@@ -1,50 +1,53 @@
 #pragma once
 
-/* The open-chained hash table emitted by OctBuildPreTree.cpp for 16-bit
-   region keys. Entries double as the free list: next_index links a bucket
-   chain while live and the next unused slot while free. */
-template <class Value>
-struct W8UShortHashEntry {
+/* The open-chained hash table used by the octree builders. Entries double as
+   the free list: next_index links a bucket chain while live and the next
+   unused slot while free. */
+inline unsigned int W8HashValue(unsigned short key)
+{
+    return (key >> 10) ^ key;
+}
+
+inline unsigned int W8HashValue(unsigned int key)
+{
+    unsigned int mixed = (key >> 10) ^ key;
+    return (mixed >> 10) ^ mixed;
+}
+
+template <class Key, class Value>
+struct W8HashEntry {
     int next_index;
-    unsigned short key;
+    Key key;
     Value value;
 };
 
-template <class Value>
-class W8UShortHashTable {
+template <class Key, class Value>
+class W8HashTable {
 public:
-    W8UShortHashTable();
+    W8HashTable()
+        : bucket_heads(0), entries(0), free_head(-1), bucket_count(0)
+    {
+        Grow();
+    }
 
-    Value Lookup(const unsigned short* key) const;
-    void Insert(const unsigned short* key, const Value* value);
-    void Remove(const unsigned short* key, const Value* value);
+    Value Lookup(const Key* key) const;
+    int FindNextEntry(const Key* key, int previous) const;
+    void Insert(const Key* key, const Value* value);
+    void Remove(const Key* key, const Value* value);
     void Grow();
     int AllocateEntry();
 
     int* bucket_heads;
-    W8UShortHashEntry<Value>* entries;
+    W8HashEntry<Key, Value>* entries;
     int free_head;
     unsigned int bucket_count;
-
-private:
-    static unsigned int Hash(unsigned short key)
-    {
-        return (key >> 10) ^ key;
-    }
 };
 
-template <class Value>
-W8UShortHashTable<Value>::W8UShortHashTable()
-    : bucket_heads(0), entries(0), free_head(-1), bucket_count(0)
+template <class Key, class Value>
+Value W8HashTable<Key, Value>::Lookup(const Key* key) const
 {
-    Grow();
-}
-
-template <class Value>
-Value W8UShortHashTable<Value>::Lookup(const unsigned short* key) const
-{
-    unsigned short wanted = *key;
-    int slot = bucket_heads[Hash(wanted) & (bucket_count - 1)];
+    Key wanted = *key;
+    int slot = bucket_heads[W8HashValue(wanted) & (bucket_count - 1)];
     while (slot != -1) {
         if (entries[slot].key == wanted) {
             return entries[slot].value;
@@ -54,13 +57,29 @@ Value W8UShortHashTable<Value>::Lookup(const unsigned short* key) const
     return 0;
 }
 
-template <class Value>
-void W8UShortHashTable<Value>::Insert(
-    const unsigned short* key, const Value* value)
+template <class Key, class Value>
+int W8HashTable<Key, Value>::FindNextEntry(
+    const Key* key, int previous) const
+{
+    int slot;
+    if (previous == -1) {
+        slot = bucket_heads[W8HashValue(*key) & (bucket_count - 1)];
+    }
+    else {
+        slot = entries[previous].next_index;
+    }
+    while (slot != -1 && entries[slot].key != *key) {
+        slot = entries[slot].next_index;
+    }
+    return slot;
+}
+
+template <class Key, class Value>
+void W8HashTable<Key, Value>::Insert(const Key* key, const Value* value)
 {
     int slot = AllocateEntry();
-    unsigned short stored = *key;
-    unsigned int bucket = Hash(stored) & (bucket_count - 1);
+    Key stored = *key;
+    unsigned int bucket = W8HashValue(stored) & (bucket_count - 1);
 
     entries[slot].key = stored;
     entries[slot].value = *value;
@@ -68,17 +87,17 @@ void W8UShortHashTable<Value>::Insert(
     bucket_heads[bucket] = slot;
 }
 
-template <class Value>
-void W8UShortHashTable<Value>::Remove(
-    const unsigned short* key, const Value* value)
+template <class Key, class Value>
+void W8HashTable<Key, Value>::Remove(const Key* key, const Value* value)
 {
-    unsigned short wanted = *key;
-    int* bucket = bucket_heads + (Hash(wanted) & (bucket_count - 1));
+    Key wanted = *key;
+    int* bucket =
+        bucket_heads + (W8HashValue(wanted) & (bucket_count - 1));
     int slot = *bucket;
     int previous = -1;
 
     while (slot != -1) {
-        W8UShortHashEntry<Value>* entry = entries + slot;
+        W8HashEntry<Key, Value>* entry = entries + slot;
         if (entry->key == wanted && entry->value == *value) {
             if (previous == -1) {
                 *bucket = entry->next_index;
@@ -95,21 +114,21 @@ void W8UShortHashTable<Value>::Remove(
     }
 }
 
-template <class Value>
-void W8UShortHashTable<Value>::Grow()
+template <class Key, class Value>
+void W8HashTable<Key, Value>::Grow()
 {
     unsigned int capacity = bucket_count << 1;
     if (capacity < 4) {
         capacity = 4;
     }
 
-    W8UShortHashEntry<Value>* new_entries =
-        static_cast<W8UShortHashEntry<Value>*>(
-            ::operator new(capacity * sizeof(W8UShortHashEntry<Value>)));
+    W8HashEntry<Key, Value>* new_entries =
+        static_cast<W8HashEntry<Key, Value>*>(
+            ::operator new(capacity * sizeof(W8HashEntry<Key, Value>)));
     int* new_buckets =
         static_cast<int*>(::operator new(capacity * sizeof(int)));
 
-    W8UShortHashEntry<Value>* fill_entry = new_entries;
+    W8HashEntry<Key, Value>* fill_entry = new_entries;
     int* fill_bucket = new_buckets;
     unsigned int remaining = capacity;
     if ((int)capacity > 0) {
@@ -127,10 +146,10 @@ void W8UShortHashTable<Value>::Grow()
         for (int bucket = 0; bucket < (int)bucket_count; ++bucket) {
             int slot = bucket_heads[bucket];
             while (slot != -1) {
-                W8UShortHashEntry<Value>* source = entries + slot;
+                W8HashEntry<Key, Value>* source = entries + slot;
                 new_entries[used].key = source->key;
                 unsigned int new_bucket =
-                    Hash(source->key) & (capacity - 1);
+                    W8HashValue(source->key) & (capacity - 1);
                 new_entries[used].value = source->value;
                 new_entries[used].next_index = new_buckets[new_bucket];
                 new_buckets[new_bucket] = used;
@@ -156,8 +175,8 @@ void W8UShortHashTable<Value>::Grow()
     bucket_heads = new_buckets;
 }
 
-template <class Value>
-int W8UShortHashTable<Value>::AllocateEntry()
+template <class Key, class Value>
+int W8HashTable<Key, Value>::AllocateEntry()
 {
     if (free_head == -1) {
         Grow();
@@ -166,4 +185,3 @@ int W8UShortHashTable<Value>::AllocateEntry()
     free_head = entries[slot].next_index;
     return slot;
 }
-

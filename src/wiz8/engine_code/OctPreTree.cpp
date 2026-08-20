@@ -86,6 +86,28 @@ W8OctSpatialState0046CCC0::~W8OctSpatialState0046CCC0()
     owned_98 = 0;
 }
 
+/* Strict axis-aligned overlap: touching faces are not an intersection. */
+// FUNCTION: WIZ8 0x0046d470
+unsigned char BoundsOverlap0046D470(
+    const srVector3T<float>* first,
+    const srVector3T<float>* second)
+{
+    return first[1].x > second[0].x && first[0].x < second[1].x &&
+           first[1].y > second[0].y && first[0].y < second[1].y &&
+           first[1].z > second[0].z && first[0].z < second[1].z;
+}
+
+/* Inclusive point containment for an axis-aligned box. */
+// FUNCTION: WIZ8 0x0046d4d0
+unsigned char PointInsideBounds0046D4D0(
+    const srVector3T<float>* bounds,
+    const srVector3T<float>* point)
+{
+    return bounds[0].x <= point->x && point->x <= bounds[1].x &&
+           bounds[0].y <= point->y && point->y <= bounds[1].y &&
+           bounds[0].z <= point->z && point->z <= bounds[1].z;
+}
+
 /* Test a triangle against an axis-aligned box.  The inexpensive containment
    and separating-axis checks precede explicit triangle-edge intersections
    with all six box faces. */

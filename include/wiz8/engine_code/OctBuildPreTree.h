@@ -4,7 +4,8 @@
 #include "wiz8/engine_code/OctBuildTree.h"
 #include "wiz8/engine_code/stHash.hpp"
 
-struct W8OctreeIndex;
+class BitArray;
+struct W8OctRegionGameData;
 
 extern "C" {
 extern int g_value_65be60;
@@ -22,6 +23,22 @@ struct W8OctBuildPreTree004AFDA0 : W8OctBuildTree00446390 {
         unsigned long path_capacity,
         short extent_mode);
     W8OctPreTree004679E0* BuildOctPreTree004B4640();
+    unsigned short BuildRegions004B19F0();
+
+    void Function004B1D90(const W8OctSpatialState0046CCC0* spatial);
+    unsigned char UpdateRegionMap004B07E0(
+        const W8OctSpatialState0046CCC0* spatial,
+        const srVector3T<float>* geometry,
+        short value,
+        short mode);
+    W8OctBuildNode00446330* FindNode004B23F0(unsigned int path);
+    unsigned char Function004B2450(
+        W8OctBuildNode00446330* node, unsigned int path);
+    unsigned char MergeRegion004B25C0(
+        W8OctBuildNode00446330* node, const int* cell);
+    void Function004B2A20();
+    void Function004B3050(const W8OctSpatialState0046CCC0* spatial);
+    void Function004B3330();
 
     unsigned long path_capacity_bc;
     unsigned short selected_depth_c0;
@@ -31,8 +48,8 @@ struct W8OctBuildPreTree004AFDA0 : W8OctBuildTree00446390 {
     unsigned long region_path_count_f0;
     unsigned char active_f4;
     unsigned char padding_f5[3];
-    void* region_bits_f8;
-    void* region_centers_fc;
+    BitArray* region_bits_f8;
+    srVector3T<float>* region_centers_fc;
     unsigned long positional_100;
     void* positional_104;
     void* positional_108;
@@ -44,11 +61,11 @@ struct W8OctBuildPreTree004AFDA0 : W8OctBuildTree00446390 {
     unsigned short padding_11a;
     unsigned long positional_11c;
     unsigned long positional_120;
-    W8UShortHashTable<W8OctBuildNode00446330*>* positional_124;
-    W8OctreeIndex* positional_128;
-    W8UShortHashTable<short>* positional_12c;
-    W8UShortHashTable<short>* positional_130;
-    void* game_data_134;
+    W8HashTable<unsigned short, unsigned long>* positional_124;
+    W8HashTable<unsigned int, short>* positional_128;
+    W8HashTable<unsigned short, short>* positional_12c;
+    W8HashTable<unsigned short, short>* positional_130;
+    W8OctRegionGameData* game_data_134;
     unsigned long positional_138;
     unsigned long positional_13c;
 };

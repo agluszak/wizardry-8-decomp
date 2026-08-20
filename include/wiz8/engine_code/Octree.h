@@ -643,7 +643,7 @@ class W8OctPreTree004679E0 : public W8Octree {
 public:
     W8OctPreTree004679E0();
 
-    W8UShortHashTable<W8OctBuildNode00446330*>* positional_29c;
+    W8HashTable<unsigned short, unsigned long>* positional_29c;
     unsigned long positional_2a0;
     unsigned char positional_2a4[0xfc];
     unsigned long polygon_cursor_3a0;

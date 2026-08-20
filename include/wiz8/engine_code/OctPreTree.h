@@ -30,7 +30,7 @@ struct W8OctSpatialState0046CCC0 {
     unsigned char positional_4a[6];
     unsigned short positional_50;
     unsigned short positional_52;
-    unsigned long positional_54;
+    float positional_54;
     unsigned short positional_58;
     unsigned short positional_5a;
     void* owned_5c;
@@ -52,6 +52,12 @@ unsigned char TestSpatialTriangle0046CE60(
     const srVector3T<float>* bounds,
     const srVector3T<float>* vertices,
     const srVector3T<float>* plane_normal);
+unsigned char BoundsOverlap0046D470(
+    const srVector3T<float>* first,
+    const srVector3T<float>* second);
+unsigned char PointInsideBounds0046D4D0(
+    const srVector3T<float>* bounds,
+    const srVector3T<float>* point);
 
 static_assert(sizeof(W8OctSpatialState0046CCC0) == 0x9c,
               "W8OctSpatialState0046CCC0_must_be_0x9c");
