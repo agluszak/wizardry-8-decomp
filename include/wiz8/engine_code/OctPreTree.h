@@ -47,6 +47,11 @@ struct W8OctSpatialState0046CCC0 {
     void* owned_98;
 };
 
+unsigned char TestSpatialTriangle0046CE60(
+    const srVector3T<float>* bounds,
+    const srVector3T<float>* vertices,
+    const srVector3T<float>* plane_normal);
+
 static_assert(sizeof(W8OctSpatialState0046CCC0) == 0x9c,
               "W8OctSpatialState0046CCC0_must_be_0x9c");
 

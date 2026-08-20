@@ -5,14 +5,13 @@
 #include "wiz8/geometry.h"
 
 struct W8OctBuildLink {
-    unsigned long value_00;
-    unsigned long value_04;
+    W8GDSurface* surface_00;
+    W8OctBuildLink* next_04;
 };
 
 struct W8OctBuildLinkLists {
     W8OctBuildLinkLists();
-    W8OctBuildLink* GetNewLink00446250(
-        unsigned long first, unsigned long second);
+    W8OctBuildLink* GetNewLink00446250(W8GDSurface* surface);
 
     unsigned short m_usCurrent;
     unsigned short padding_02;
@@ -24,7 +23,10 @@ struct W8OctBuildNode00446330 {
     W8OctBuildNode00446330();
     ~W8OctBuildNode00446330();
 
-    W8OctBuildNode00446330* children_00[8];
+    union {
+        W8OctBuildNode00446330* children_00[8];
+        W8OctBuildLink* links_00[8];
+    };
     unsigned long positional_20;
     unsigned long positional_24;
     unsigned short positional_28;

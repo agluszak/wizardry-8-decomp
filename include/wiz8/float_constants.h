@@ -16,6 +16,9 @@
 
 extern "C" {
 extern float g_float_005ebb38;
+extern float g_float_005ebb34;
+extern double g_double_005ebc70;
+extern float g_float_005ebc90;
 extern double g_double_005ebc30;
 extern const float g_float_005ec0a8;
 extern float g_float_005ec020;
@@ -41,6 +44,8 @@ extern float g_float_005ec3bc;
 extern float g_float_005ec3c0;
 extern float g_float_005ec3c8;
 extern float g_float_005ec3d0;
+extern float g_float_005ec410;
+extern float g_float_005ec414;
 extern float g_float_005ec438;
 extern float g_float_005ec5c0;
 extern float g_float_005ec5c4;

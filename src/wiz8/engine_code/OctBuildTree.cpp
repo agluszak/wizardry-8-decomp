@@ -13,10 +13,6 @@ extern float g_path_waypoint_exact_distance_005ebc64;
 extern float g_float_005ec188;
 extern void Function497690(int channel, const char* message);
 extern void* g_oct_build_scratch_00659a48;
-extern unsigned char TestSpatialTriangle0046CE60(
-    const srVector3T<float>* tree_minimum,
-    const srVector3T<float>* vertices,
-    const srVector3T<float>* plane_point);
 
 W8OctBuildLinkLists::W8OctBuildLinkLists()
     : m_usCurrent(0), padding_02(0)
@@ -28,10 +24,11 @@ W8OctBuildLinkLists::W8OctBuildLinkLists()
 }
 
 /* The original member names come from this body's assertion.  Each bank owns
-   50,000 eight-byte links and a fresh link records both caller values. */
+   50,000 eight-byte links.  A fresh zeroed link records the surface while its
+   next pointer remains null. */
 // FUNCTION: WIZ8 0x00446250
 W8OctBuildLink* W8OctBuildLinkLists::GetNewLink00446250(
-    unsigned long first, unsigned long second)
+    W8GDSurface* surface)
 {
     if (m_ausLinkCounts[m_usCurrent] > 49999) {
         ++m_usCurrent;
@@ -51,8 +48,7 @@ W8OctBuildLink* W8OctBuildLinkLists::GetNewLink00446250(
         }
         W8OctBuildLink* link =
             &m_apLinkLists[m_usCurrent][m_ausLinkCounts[m_usCurrent]++];
-        link->value_00 = second;
-        link->value_04 = first;
+        link->surface_00 = surface;
         return link;
     }
     return 0;
@@ -61,7 +57,10 @@ W8OctBuildLink* W8OctBuildLinkLists::GetNewLink00446250(
 // FUNCTION: WIZ8 0x00446330
 W8OctBuildNode00446330::W8OctBuildNode00446330()
 {
-    memset(this, 0, sizeof(*this));
+    memset(this, 0, 10 * sizeof(unsigned long));
+    positional_28 = 0;
+    leaf_kind_2a = 0;
+    positional_2c = 0;
 }
 
 // FUNCTION: WIZ8 0x00446350
@@ -253,6 +252,7 @@ unsigned char W8OctBuildTree00446390::InsertSurface00446820(
         }
     }
     working.root_90 = spatial_00.root_90;
+    working.owned_98 = vertices;
     working.depth_44 = 0;
     working.level_kind_6c = 1;
     if (InsertSurfaceRecursive004469F0(
@@ -261,4 +261,92 @@ unsigned char W8OctBuildTree00446390::InsertSurface00446820(
     }
     ++spatial_00.item_count_40;
     return 1;
+}
+
+/* Descend through every overlapping octant.  Branch nodes own child nodes;
+   leaf nodes reuse the same eight slots as per-mode linked-list heads. */
+// FUNCTION: WIZ8 0x004469f0
+unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(
+    W8OctSpatialState0046CCC0* working,
+    W8GDSurface* surface,
+    srVector3T<float>* plane_point,
+    unsigned long mode)
+{
+    W8OctSpatialState0046CCC0 child(working);
+    unsigned char inserted = 0;
+
+    if (spatial_00.depth_44 < working->depth_44) {
+        spatial_00.depth_44 = working->depth_44;
+    }
+
+    if (working->extent_04 <= working->cell_size_08) {
+        W8OctBuildNode00446330* node =
+            static_cast<W8OctBuildNode00446330*>(working->root_90);
+        ++node->leaf_kind_2a;
+        if (positional_b8 < node->leaf_kind_2a) {
+            positional_b8 = node->leaf_kind_2a;
+        }
+
+        W8OctBuildLink*& head = node->links_00[(short)mode];
+        if (head == 0) {
+            head = link_lists_9c->GetNewLink00446250(surface);
+        }
+        else {
+            W8OctBuildLink* tail = head;
+            while (tail->next_04 != 0) {
+                tail = tail->next_04;
+            }
+            tail->next_04 = link_lists_9c->GetNewLink00446250(surface);
+        }
+        inserted = 1;
+    }
+    else {
+        float half_extent = working->extent_04 * g_float_005ebc7c;
+        child.cell_size_08 = working->cell_size_08;
+        child.depth_44 = working->depth_44 + 1;
+
+        short octant = 0;
+        for (int x = 0; x != 2; ++x) {
+            for (int y = 0; y != 2; ++y) {
+                for (int z = 0; z != 2; ++z, ++octant) {
+                    child.minimum_0c.x =
+                        working->minimum_0c.x + x * half_extent;
+                    child.maximum_18.x = child.minimum_0c.x + half_extent;
+                    child.minimum_0c.y =
+                        working->minimum_0c.y + y * half_extent;
+                    child.maximum_18.y = child.minimum_0c.y + half_extent;
+                    child.minimum_0c.z =
+                        working->minimum_0c.z + z * half_extent;
+                    child.maximum_18.z = child.minimum_0c.z + half_extent;
+
+                    if (TestSpatialTriangle0046CE60(
+                            &child.minimum_0c,
+                            static_cast<const srVector3T<float>*>(
+                                working->owned_98),
+                            plane_point) != 0) {
+                        W8OctBuildNode00446330* node =
+                            static_cast<W8OctBuildNode00446330*>(
+                                working->root_90);
+                        if (node->children_00[octant] == 0) {
+                            if (use_owned_nodes_b4 == 0) {
+                                node->children_00[octant] =
+                                    new W8OctBuildNode00446330;
+                            }
+                            else {
+                                node->children_00[octant] =
+                                    new W8CountedOctBuildNode004AF760;
+                            }
+                        }
+                        child.root_90 = node->children_00[octant];
+                        child.owned_98 = working->owned_98;
+                        if (InsertSurfaceRecursive004469F0(
+                                &child, surface, plane_point, mode) != 0) {
+                            inserted = 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return inserted;
 }
