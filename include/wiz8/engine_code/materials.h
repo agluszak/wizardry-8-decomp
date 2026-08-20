@@ -1,11 +1,39 @@
 #pragma once
 
+#include "surrender/srMaterial.h"
+
 class srMaterialIFace;
 class srMeshModel;
 class srModelInstance;
 class srTexture;
 class srTextureIFace;
 class stTextureAnim;
+
+/* Engine Code\materials.cpp. Its canonical assertions name the pointer
+   ppstMaterial, and the constructor at 0x004925B0 registers the class with
+   SurRender's registry under the literal "stMaterial" and the class id
+   0x10002, whose parent chain the same body spells out: srMaterialIFace
+   0x2200, then srMaterial 0x2210, then this. So the name is the original's
+   own, not a descriptive one.
+
+   The vtable at 0x005ECB6C lines up with srMaterial's slot for slot: slots 3,
+   4, 6 and 8 through 12 are import thunks into SR.DLL, and the four overridden
+   here plus the destructor are the five SurRender does not export. The object
+   is 0x7C bytes, which is what the constructor's callers allocate through
+   srHeap, and the only field past srMaterial's extent is at 0x78. */
+class stMaterial : public srMaterial {
+public:
+    stMaterial();
+    virtual const char* getClassName() const override;
+    virtual unsigned long getClassID() const override;
+    virtual srRegistry::ClassNode* getClassNode() const override;
+    virtual ~stMaterial() override;
+    virtual srClass* clone() override;
+
+    int m_field_78;                          /* 0x78 */
+};
+
+static_assert((sizeof(stMaterial) == 0x7C), "stMaterial_must_be_0x7c");
 
 #pragma pack(push, 1)
 

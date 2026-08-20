@@ -143,6 +143,9 @@ public:
     void pushEnable();
     void popEnable();
     void loadIdentity();
+    void rotate(double angle, const srVector3T<float>& axis);
+    void scale(double x, double y, double z);
+    void translate(const srVector3T<float>& offset);
     e_visibility testBoundingSphere(
         const srVector3T<float>& center, float radius);
     e_visibility testBoundingBox(

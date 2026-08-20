@@ -148,6 +148,9 @@ EXPORTS
     ?pushMatrix@srGERD@@QAEXXZ
     ?popMatrix@srGERD@@QAEXXZ
     ?loadIdentity@srGERD@@QAEXXZ
+    ?rotate@srGERD@@QAEXNABV?$srVector3T@M@@@Z
+    ?scale@srGERD@@QAEXNNN@Z
+    ?translate@srGERD@@QAEXABV?$srVector3T@M@@@Z
     ?ortho@srGERD@@QAEXNNNNNN@Z
     ?setClipState@srGERD@@QAEXV?$srFlags@W4e_clip@srRendererDefs@@@@@Z
     ?setAntiAlias@srGERD@@QAEXW4e_antiAlias@1@@Z

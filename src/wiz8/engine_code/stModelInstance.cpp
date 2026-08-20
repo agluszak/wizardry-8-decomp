@@ -1,14 +1,22 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/stModelInstance.h"
+#include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/stTextureAnim.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/mesh_model.h"
 #include "surrender/srCore.h"
+#include "surrender/srGERD.h"
 #include "surrender/srMaterial.h"
 #include "surrender/srNode.h"
 #include "surrender/srHeap.h"
+#include "wiz8/sr_api.h"
 
+#include <math.h>
 #include <new>
 #include <string.h>
+
+#define ST_MODEL_INSTANCE_CPP \
+    "C:\\Projects\\Wizardry 8\\Engine Code\\stModelInstance.cpp"
 
 // VTABLE: WIZ8 0x005ec89c srClassSupport<srModelInstance, class srNode, 0, 4352>
 // VTABLE: WIZ8 0x005ec88c srModel::Client
@@ -337,6 +345,146 @@ void stModelInstance2D::SetModel0047F3A0(srModel* model)
     if (model != 0) {
         static_cast<srMeshModel*>(model)->enableStartupControls();
     }
+}
+
+/* Render the instance through SurRender's detached TriMesh value. Aligned
+   instances retain their screen-facing orientation while preserving the
+   current view matrix's translation, scale and handedness. The optional glow
+   path clones the mesh material once, oscillates between the two configured
+   emissive colors, and overrides only this draw's material and first shader. */
+// FUNCTION: WIZ8 0x00480920
+void stModelInstance2D::process(const ProcessInfo& info, e_processType)
+{
+    srMeshModel::TriMesh mesh;
+    srGERD* renderer = info.renderer;
+
+    if ((alignment_flags_148 & 1) == 0) {
+        applyWorldSpaceMatrix(*renderer);
+    }
+    else {
+        srMatrix4T<float> view;
+        srVector3T<double> world_location;
+        srVector3T<double> world_scale;
+        srVector4T<float> transformed_location;
+        srVector3T<float> translation;
+        float basis_x;
+        float basis_y;
+        float basis_z;
+
+        renderer->matrixMode(srGERD::MATRIX_MODE_POSITIONAL_0);
+        renderer->pushMatrix();
+        renderer->getMatrix(srGERD::MATRIX_MODE_POSITIONAL_0, view);
+        world_location = getWorldSpaceLocation();
+        world_scale = getWorldSpaceScale();
+
+        transformed_location.x =
+            view.vectors[0].x * (float)world_location.x
+            + view.vectors[0].y * (float)world_location.y
+            + view.vectors[0].z * (float)world_location.z
+            + view.vectors[0].w;
+        transformed_location.y =
+            view.vectors[1].x * (float)world_location.x
+            + view.vectors[1].y * (float)world_location.y
+            + view.vectors[1].z * (float)world_location.z
+            + view.vectors[1].w;
+        transformed_location.z =
+            view.vectors[2].x * (float)world_location.x
+            + view.vectors[2].y * (float)world_location.y
+            + view.vectors[2].z * (float)world_location.z
+            + view.vectors[2].w;
+        transformed_location.w =
+            view.vectors[3].x * (float)world_location.x
+            + view.vectors[3].y * (float)world_location.y
+            + view.vectors[3].z * (float)world_location.z
+            + view.vectors[3].w;
+
+        basis_x = (float)sqrt(
+            view.vectors[0].x * view.vectors[0].x
+            + view.vectors[1].x * view.vectors[1].x
+            + view.vectors[2].x * view.vectors[2].x);
+        basis_y = (float)sqrt(
+            view.vectors[0].y * view.vectors[0].y
+            + view.vectors[1].y * view.vectors[1].y
+            + view.vectors[2].y * view.vectors[2].y);
+        basis_z = (float)sqrt(
+            view.vectors[0].z * view.vectors[0].z
+            + view.vectors[1].z * view.vectors[1].z
+            + view.vectors[2].z * view.vectors[2].z);
+
+        float determinant =
+            (view.vectors[1].y * view.vectors[2].z
+             - view.vectors[1].z * view.vectors[2].y)
+                * view.vectors[0].x
+            + view.vectors[2].x
+                * (view.vectors[0].y * view.vectors[1].z
+                   - view.vectors[0].z * view.vectors[1].y)
+            + view.vectors[1].x
+                * (view.vectors[0].z * view.vectors[2].y
+                   - view.vectors[0].y * view.vectors[2].z);
+        if (determinant > g_zero_005ebb40) {
+            basis_x = -basis_x;
+            basis_y = -basis_y;
+            basis_z = -basis_z;
+        }
+
+        renderer->loadIdentity();
+        translation.x = transformed_location.x;
+        translation.y = transformed_location.y;
+        translation.z = transformed_location.z;
+        renderer->translate(translation);
+        if (align_angle_158 != g_float_005ebb34) {
+            renderer->rotate((double)align_angle_158, align_axis_14c);
+        }
+        renderer->scale(
+            world_scale.x * basis_x,
+            world_scale.y * basis_y,
+            -(world_scale.z * basis_z));
+    }
+
+    srMeshModel* model = static_cast<srMeshModel*>(
+        static_cast<srModel::Client&>(*this).getModel());
+    model->getTriMesh(mesh);
+
+    if (state_171 != 0) {
+        if (m_pGlowMaterial_17c == 0) {
+            m_pGlowMaterial_17c = new stMaterial;
+            if (m_pGlowMaterial_17c == 0) {
+                srAssertFail(
+                    "m_pGlowMaterial",
+                    ST_MODEL_INSTANCE_CPP,
+                    926,
+                    0);
+            }
+            if (mesh.material_070 != 0) {
+                *m_pGlowMaterial_17c = *mesh.material_070;
+            }
+            if (m_pGlowMaterial_17c == 0) {
+                goto render_mesh;
+            }
+        }
+
+        float glow_weight = (float)fabs(sin(
+            ((double)(GetTickCount() % render_depth_164)
+             / (double)(int)render_depth_164)
+            * g_camera_angle_period_005ec014));
+        float base_weight = g_float_005ebb38 - glow_weight;
+        srVector4T<float> emissive;
+        emissive.x =
+            vector_174->x * base_weight + vector_178->x * glow_weight;
+        emissive.y =
+            vector_174->y * base_weight + vector_178->y * glow_weight;
+        emissive.z =
+            vector_174->z * base_weight + vector_178->z * glow_weight;
+        emissive.w = g_float_005ebb38;
+        m_pGlowMaterial_17c->setEmissive(emissive);
+        mesh.material_070 = m_pGlowMaterial_17c;
+        mesh.shaders_0b0[0].value =
+            (mesh.shaders_0b0[0].value & ~0x400UL) | 0x800UL;
+    }
+
+render_mesh:
+    model->renderTriMesh(*renderer, mesh);
+    renderer->popMatrix();
 }
 
 // FUNCTION: WIZ8 0x00481E30

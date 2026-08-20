@@ -66,7 +66,23 @@ class SR_DLL_IMPORT srMeshModel
     : public srClassSupport<srMeshModel, srModel, 0, 0x2010> {
 public:
     enum e_side {};
-    struct TriMesh;
+    /* SR.DLL's getTriMesh copies 0x154 bytes into this value. Wiz8's 2D
+       model path independently proves the material at +0x70 and the four
+       pass shaders beginning at +0xb0; the rest remains renderer-owned. */
+    struct TriMesh {
+        TriMesh()
+        {
+            for (int pass = 0; pass != 4; ++pass) {
+                shaders_0b0[pass].value = 0x0100241b;
+            }
+        }
+
+        unsigned char unknown_000[0x70];
+        srMaterial* material_070;
+        unsigned char unknown_074[0x3c];
+        srShader shaders_0b0[4];
+        unsigned char unknown_0c0[0x94];
+    };
 
     srMeshModel(long polygons, long vertices);
     srMeshModel& operator=(const srMeshModel& other);
@@ -86,8 +102,8 @@ public:
     virtual void render(class srGERD& renderer) override;
     virtual void reindexPolygons(const unsigned long* indices);
     virtual void reindexVertices(const unsigned long* indices);
-    virtual const TriMesh& getTriMesh();
     virtual void getTriMesh(TriMesh& mesh);
+    virtual const TriMesh& getTriMesh();
     virtual void renderTriMesh(class srGERD& renderer, const TriMesh& mesh);
     srPtr<srTextureIFace>* getPolyTexture(long polygon, long layer, int table);
     srVector3i* getPolyVertex();
@@ -152,6 +168,8 @@ private:
 };
 
 static_assert((sizeof(srModel::Client) == 0x10), "srModelClient_must_be_0x10");
+static_assert((sizeof(srMeshModel::TriMesh) == 0x154),
+              "srMeshModel_TriMesh_must_be_0x154");
 static_assert((sizeof(srModel) == 0x1c), "srModel_must_be_0x1c");
 static_assert((sizeof(srMeshModel) == 0x398), "srMeshModel_must_be_0x398");
 static_assert((sizeof(srModeler) == 0x14), "srModeler_must_be_0x14");
