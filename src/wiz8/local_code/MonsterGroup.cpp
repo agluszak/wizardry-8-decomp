@@ -1,5 +1,9 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/factions.h"
+#include "wiz8/character.h"
+#include "wiz8/game_state.h"
+#include "wiz8/monster_runtime.h"
+#include "wiz8/utility.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
 

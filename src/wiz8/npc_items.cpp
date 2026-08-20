@@ -1,5 +1,4 @@
 #include "wiz8/npc_state.h"
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/item_tables.h"

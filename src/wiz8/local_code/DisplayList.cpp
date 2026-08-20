@@ -1,4 +1,8 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/local_code/DisplayList.h"
+#include "wiz8/regions.h"
+#include "wiz8/ui_state.h"
+#include "wiz8/utility.h"
 #include "Types.h"
 #include "mousesystem.h"
 
@@ -52,6 +56,7 @@ MOUSE_REGION* g_display_ptr_650e8c;
    game-owned help-box boundary, but the timer and mouse-region rules remain
    the source-owned SGP implementation. */
 // LIBRARY: WIZ8 0x0040c0b0
+// RenderFastHelp
 void Function40C0B0(void)
 {
     int current_clock;

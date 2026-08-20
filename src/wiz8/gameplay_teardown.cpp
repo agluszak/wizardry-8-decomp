@@ -1,4 +1,6 @@
-#include "wiz8/gameplay_boundaries.h"
+
+#include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/startup_runtime_state.h"
 
 /* The concrete identity of the second owned object is unresolved. Its slot
    zero is nevertheless the compiler-generated scalar-deleting destructor, so

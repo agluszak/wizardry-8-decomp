@@ -1,4 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/local_code/Strings.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/dialog_base.h"
 #include "wiz8/dirty_tiles.h"

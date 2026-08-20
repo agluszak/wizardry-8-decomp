@@ -5,11 +5,10 @@
 #include "LibraryDataBase.h"
 #undef gGameLibaries
 #include "MemMan.h"
+#include "wiz8/sgp-compat/WizLibs.h"
 
 #include <stdio.h>
 #include <string.h>
-
-extern "C" LibraryInitHeader gGameLibaries[MAX_NUMBER_OF_LIBRARIES];
 
 /* Wizardry's product-private WizLibs.c extends the released SGP catalog with
    one map flag per configuration, a 56-slot archive-state table, and dynamic

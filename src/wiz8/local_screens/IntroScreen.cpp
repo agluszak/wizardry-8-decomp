@@ -1,6 +1,6 @@
 #include "wiz8/bink_video.h"
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/regions.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"
 
 #include "FileMan.h"

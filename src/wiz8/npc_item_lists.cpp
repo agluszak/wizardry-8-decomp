@@ -1,4 +1,3 @@
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/npc_item_lists.h"
 
 // FUNCTION: WIZ8 0x0050b830

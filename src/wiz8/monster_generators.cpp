@@ -1,9 +1,12 @@
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/local_code/MonsterGenerator.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/monster_runtime.h"
+#include "wiz8/monster_generators.h"
+#include "wiz8/game_state.h"
+#include "wiz8/utility.h"
+#include "random.h"
 #include <math.h>
 #include "wiz8/vector.h"
 #include "wiz8/sr_api.h"

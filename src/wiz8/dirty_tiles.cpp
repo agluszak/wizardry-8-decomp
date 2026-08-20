@@ -1,4 +1,3 @@
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/render_state.h"
 #include "wiz8/surface2d.h"

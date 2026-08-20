@@ -1,4 +1,5 @@
-#include "wiz8/gameplay_boundaries.h"
+#include "wiz8/character.h"
+#include "wiz8/layouts/gameplay_databases.h"
 
 /* 0x00547940, not yet identified; asked here whether trait 0x1f applies. */
 extern unsigned char Function547940(W8Character* character, int trait_id);
@@ -170,3 +171,5 @@ void RecalculateCharacterResistances(W8Character* character)
         }
     }
 }
+#include "wiz8/character.h"
+#include "wiz8/layouts/gameplay_databases.h"

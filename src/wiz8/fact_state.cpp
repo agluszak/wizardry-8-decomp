@@ -1,5 +1,7 @@
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/fact_state.h"
+#include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/local_code/Strings.h"
+#include "wiz8/utility.h"
 #include "wiz8/npc_item_lists.h"
 #include "wiz8/virtual_file.h"
 #include "wiz8/xstatus.h"

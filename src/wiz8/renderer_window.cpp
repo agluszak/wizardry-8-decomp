@@ -1,6 +1,5 @@
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/dirty_tiles.h"
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"

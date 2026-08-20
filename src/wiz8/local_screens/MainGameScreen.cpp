@@ -1,4 +1,8 @@
-#include "wiz8/gameplay_boundaries.h"
+#include "wiz8/combat_state.h"
+#include "wiz8/game_state.h"
+#include "wiz8/regions.h"
+#include "wiz8/screen_state.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/wiz8_windows.h"
 
 /*

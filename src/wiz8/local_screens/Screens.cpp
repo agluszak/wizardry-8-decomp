@@ -1,4 +1,6 @@
-#include "wiz8/gameplay_boundaries.h"
+#include "wiz8/game_state.h"
+#include "wiz8/screen_state.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/cursor.h"
 #include "wiz8/item_video_object_vector.h"
 #include "wiz8/video_object_catalog.h"

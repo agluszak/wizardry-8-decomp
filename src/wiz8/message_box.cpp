@@ -1,3 +1,4 @@
+#include "wiz8/message_box.h"
 #include "wiz8/ui_state.h"
 
 #include <string.h>

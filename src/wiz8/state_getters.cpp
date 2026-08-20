@@ -1,6 +1,8 @@
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/location_variables.h"
+#include "wiz8/state_getters.h"
+#include "wiz8/game_state.h"
 
 #include <string.h>
 

@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/item_spawning.h"

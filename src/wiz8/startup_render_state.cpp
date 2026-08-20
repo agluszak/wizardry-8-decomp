@@ -1,4 +1,3 @@
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/stTextureAnim.h"

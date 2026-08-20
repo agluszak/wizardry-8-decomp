@@ -1,4 +1,8 @@
-#include "wiz8/gameplay_boundaries.h"
+#include "wiz8/3d_code/PList.h"
+#include "wiz8/game_state.h"
+#include "wiz8/ui_state.h"
+#include "wiz8/xstatus.h"
+#include "timer.h"
 #include "wiz8/local_code/Controls.h"
 
 #include <stdlib.h>

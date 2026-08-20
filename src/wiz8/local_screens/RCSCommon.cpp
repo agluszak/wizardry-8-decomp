@@ -1,5 +1,5 @@
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/local_code/Controls.h"
+#include "wiz8/xstatus.h"
 
 /*
  * Local Screens\RCSCommon.cpp.

@@ -1,3 +1,4 @@
+#include "wiz8/float_constants.h"
 #include "wiz8/engine_code/AniMesh.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stModelInstance.h"

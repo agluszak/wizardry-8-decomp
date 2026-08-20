@@ -1,4 +1,8 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/utility.h"
+#include "wiz8/character.h"
+#include "wiz8/local_code/Strings.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"
 
 #include <stdarg.h>

@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/local_code/Strings.h"
 
 /* Original translation unit: Local Code\Formation & Facing.cpp. */
 

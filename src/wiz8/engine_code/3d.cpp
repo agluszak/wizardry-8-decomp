@@ -1,4 +1,3 @@
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/stModelInstance.h"

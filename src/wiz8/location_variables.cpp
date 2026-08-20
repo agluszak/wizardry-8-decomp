@@ -1,4 +1,4 @@
-#include "wiz8/gameplay_boundaries.h"
+#include "wiz8/location_variables.h"
 
 #include <string.h>
 
@@ -28,3 +28,4 @@ int GetLocationVarIDByName(const char* name)
     }
     return -1;
 }
+#include "wiz8/location_variables.h"

@@ -103,6 +103,12 @@ static_assert(sizeof(W8MonsterManagerState) == 0x1a0a,
 
 extern W8MonsterManagerState g_monster_manager_state;
 
+extern "C" {
+W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);
+unsigned char LoadMonsterDatabaseRecord(
+    unsigned int monster_species, W8MonsterRecord* record);
+}
+
 /* The 0x153-byte combat allocation has two adjacent runs of 0x11-byte records.
    ClearEffectSlot consumes a record whenever its leading active byte is set. */
 typedef struct W8MonsterCombatEntry {

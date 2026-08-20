@@ -7,6 +7,9 @@
  */
 
 #include "wiz8/float_constants.h"
+#include "wiz8/magic.h"
+#include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/character.h"
 #include "wiz8/engine_code/Emitter.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/GDCamera.h"
@@ -19,7 +22,6 @@
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/3d_code/PList.h"
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/render_state.h"
 #include "wiz8/sr_api.h"

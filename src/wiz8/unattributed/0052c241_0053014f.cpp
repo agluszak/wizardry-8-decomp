@@ -1,3 +1,4 @@
+#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/unattributed/quarantine_common.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/startup_runtime_state.h"

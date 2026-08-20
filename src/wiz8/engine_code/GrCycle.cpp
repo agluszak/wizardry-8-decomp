@@ -1,7 +1,6 @@
 #include "wiz8/engine_code/SoundEvent.h"
 #include "wiz8/grcycle.h"
 #include "wiz8/float_constants.h"
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/ground_shadow.h"
