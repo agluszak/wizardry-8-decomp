@@ -529,6 +529,62 @@ int W8PropRepresentation::FindCurrentAnimationSlot()
     return -1;
 }
 
+/* Collect every concrete model instance represented by the prop. Static
+   animations use their three direct mesh slots; running animations walk the
+   corresponding three mesh lists. */
+// FUNCTION: WIZ8 0x0044E570
+void W8Prop::CollectModelInstances0044E570(
+    W8GrowableVector<stModelInstance*>* instances)
+{
+    W8AnimObj* animation = Rep()->animation;
+    if (animation == 0) {
+        return;
+    }
+
+    unsigned char running = AnimationIsRunning(animation);
+    if (running == 0) {
+        for (int slot = 0; slot < 3; ++slot) {
+            W8AniMesh* mesh = animation->entries_18[slot];
+            if (mesh == 0) {
+                continue;
+            }
+            unsigned char frame_count = AniMeshValue004B64F0(mesh);
+            if ((mesh->flags_00 & W8_ANI_MESH_SINGLE_INSTANCE) == 0) {
+                for (int frame = 0; frame < frame_count; ++frame) {
+                    instances->Add(GetAniMeshFrame004B6550(
+                        mesh, static_cast<unsigned char>(frame)));
+                }
+            }
+            else {
+                instances->Add(GetAniMeshFrame004B6550(mesh, 0));
+            }
+        }
+        return;
+    }
+
+    if (running == 1) {
+        for (int slot = 0; slot < 3; ++slot) {
+            W8PList* meshes = animation->meshes_28[slot];
+            if (meshes == 0) {
+                continue;
+            }
+            unsigned int mesh_count = PLLength(meshes);
+            for (unsigned int index = 0; index < mesh_count; ++index) {
+                W8AniMesh* mesh = static_cast<W8AniMesh*>(
+                    PLGet(meshes, index));
+                if (mesh == 0) {
+                    continue;
+                }
+                unsigned char frame_count = AniMeshValue004B64F0(mesh);
+                for (int frame = 0; frame < frame_count; ++frame) {
+                    instances->Add(GetAniMeshFrame004B6550(
+                        mesh, static_cast<unsigned char>(frame)));
+                }
+            }
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x0044bb20
 unsigned char W8PropRepresentation::AdvanceAnimationSegment()
 {
@@ -729,7 +785,7 @@ void W8Prop::Method44C670()
                 reinterpret_cast<W8PathAI*>(
                     reinterpret_cast<W8PropRepresentation*>(m_pRep)
                         ->animation->path_24),
-                reinterpret_cast<stModelInstance005EC7D0*>(mesh));
+                reinterpret_cast<stModelInstance*>(mesh));
         }
         return;
     }
@@ -757,7 +813,7 @@ void W8Prop::Method44C670()
                 path,
                 (float)reinterpret_cast<W8PropRepresentation*>(m_pRep)->flag_064);
             PathAIApply004AA520(
-                path, reinterpret_cast<stModelInstance005EC7D0*>(mesh));
+                path, reinterpret_cast<stModelInstance*>(mesh));
             reinterpret_cast<srNode*>(mesh)->getLocation(location);
             position_02c.x = location.x;
             position_02c.y = location.y;
@@ -1090,7 +1146,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
         W8AniMesh* mesh = reinterpret_cast<W8AniMesh*>(
             AnimObjEntry004A1660(animation, 2, 0, 0));
         unsigned char value_count = AniMeshValue004B64F0(mesh);
-        stModelInstance005EC7D0* frame =
+        stModelInstance* frame =
             GetAniMeshFrame004B6550(mesh, 0);
         srVector3T<float> minimum;
         srVector3T<float> maximum;

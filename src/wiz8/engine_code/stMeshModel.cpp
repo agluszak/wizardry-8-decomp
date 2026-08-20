@@ -12,6 +12,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define ST_MESH_MODEL_CPP \
+    "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp"
+
 /*
  * Engine Code\stMeshModel.cpp.
  *
@@ -21,6 +24,14 @@
  */
 
 extern void Function4729F0(void* model);
+
+unsigned long g_mesh_frame_bytes_0065a0e8;
+unsigned long g_mesh_frame_budget_00609d34 = 0x00800000;
+float g_mesh_normal_values_00659ce8[256];
+int g_mesh_model_count_00659cbc;
+stMeshModel** g_mesh_models_00659cc4;
+
+unsigned char EnsureMeshFrameMemory00473BF0(unsigned long bytes);
 
 // FUNCTION: WIZ8 0x004712d0
 int stMeshModel::FindMappedIndex(short key)
@@ -51,10 +62,351 @@ void stMeshModel::LinkTo(stMeshModel* other)
 // FUNCTION: WIZ8 0x00471aa0
 void* stMeshModel::GetVertex(unsigned int index)
 {
-    if (vertices != 0 && index < vertex_count) {
-        return vertices[index];
+    if (compressed_locations_3e0 != 0 && index < frame_count_3d0) {
+        return compressed_locations_3e0[index];
     }
     return 0;
+}
+
+// FUNCTION: WIZ8 0x00471720
+unsigned char stMeshModel::PrepareFrame00471720(
+    unsigned int frame, int channels)
+{
+    if ((channels & 1) != 0 && frame_locations_3d4[frame] == 0) {
+        unsigned long bytes = vertex_location_count_22c * sizeof(srVector3T<float>);
+        unsigned long total = g_mesh_frame_bytes_0065a0e8 + bytes;
+        if (total >= g_mesh_frame_budget_00609d34) {
+            if (!EnsureMeshFrameMemory00473BF0(bytes)) {
+                return 0;
+            }
+            total = g_mesh_frame_bytes_0065a0e8 + bytes;
+        }
+        g_mesh_frame_bytes_0065a0e8 = total;
+        frame_locations_3d4[frame] = static_cast<srVector3T<float>*>(
+            srHeap.allocate(bytes));
+        if (frame_locations_3d4[frame] == 0) {
+            srAssertFail(
+                "m_pVertexLoc[uiFrame]", ST_MESH_MODEL_CPP, 0x243, 0);
+        }
+    }
+    if ((channels & 2) != 0 && frame_normals_3d8[frame] == 0) {
+        unsigned long bytes = vertex_location_count_22c * sizeof(srVector3T<float>);
+        unsigned long total = g_mesh_frame_bytes_0065a0e8 + bytes;
+        if (total >= g_mesh_frame_budget_00609d34) {
+            if (!EnsureMeshFrameMemory00473BF0(bytes)) {
+                return 0;
+            }
+            total = g_mesh_frame_bytes_0065a0e8 + bytes;
+        }
+        g_mesh_frame_bytes_0065a0e8 = total;
+        frame_normals_3d8[frame] = static_cast<srVector3T<float>*>(
+            srHeap.allocate(bytes));
+        if (frame_normals_3d8[frame] == 0) {
+            srAssertFail(
+                "m_pVertexNormal[uiFrame]", ST_MESH_MODEL_CPP, 0x24e, 0);
+        }
+    }
+    if ((channels & 4) != 0 && frame_values_3dc[frame] == 0) {
+        unsigned long bytes = polygon_count_230 * sizeof(srVector3T<float>);
+        unsigned long total = g_mesh_frame_bytes_0065a0e8 + bytes;
+        if (total >= g_mesh_frame_budget_00609d34) {
+            if (!EnsureMeshFrameMemory00473BF0(bytes)) {
+                return 0;
+            }
+            total = g_mesh_frame_bytes_0065a0e8 + bytes;
+        }
+        g_mesh_frame_bytes_0065a0e8 = total;
+        frame_values_3dc[frame] = static_cast<srVector3T<float>*>(
+            srHeap.allocate(bytes));
+        if (frame_values_3dc[frame] == 0) {
+            srAssertFail(
+                "m_pPolyNormal[uiFrame]", ST_MESH_MODEL_CPP, 0x259, 0);
+        }
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00471930
+unsigned char stMeshModel::FinalizeFrame00471930(
+    unsigned int frame, int channels, void* values)
+{
+    srVector3T<float>* destination =
+        static_cast<srVector3T<float>*>(values);
+    if ((channels & 1) != 0) {
+        short* source = compressed_locations_3e0[frame];
+        for (int index = 0; index < vertex_location_count_22c; ++index) {
+            destination[index].x = source[index * 3] * compression_scale_444;
+            destination[index].y = source[index * 3 + 1] * compression_scale_444;
+            destination[index].z = source[index * 3 + 2] * compression_scale_444;
+        }
+        return 1;
+    }
+    if ((channels & 2) != 0) {
+        unsigned char* source = compressed_normals_3e4[frame];
+        for (int index = 0; index < vertex_location_count_22c; ++index) {
+            destination[index].x = g_mesh_normal_values_00659ce8[source[index * 3]];
+            destination[index].y = g_mesh_normal_values_00659ce8[source[index * 3 + 1]];
+            destination[index].z = g_mesh_normal_values_00659ce8[source[index * 3 + 2]];
+        }
+        return 1;
+    }
+    if ((channels & 4) != 0) {
+        unsigned char* source = compressed_values_3e8[frame];
+        for (int index = 0; index < polygon_count_230; ++index) {
+            destination[index].x = g_mesh_normal_values_00659ce8[source[index * 3]];
+            destination[index].y = g_mesh_normal_values_00659ce8[source[index * 3 + 1]];
+            destination[index].z = g_mesh_normal_values_00659ce8[source[index * 3 + 2]];
+        }
+        return 1;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x00471AD0
+srVector3T<float>* stMeshModel::GetVertexLocations00471AD0(
+    unsigned int frame, char load, float interpolation)
+{
+    if (frame_locations_3d4 == 0) {
+        return 0;
+    }
+    if (interpolation > 0.0f && frame < frame_count_3d0 - 1) {
+        unsigned int next_frame = (frame + 1) % frame_count_3d0;
+        if (lerp_buffer_448 == 0) {
+            lerp_buffer_448 = static_cast<srVector3T<float>*>(
+                srHeap.allocate(
+                    vertex_location_count_22c * sizeof(srVector3T<float>)));
+            if (lerp_buffer_448 == 0) {
+                srAssertFail("m_pLerpBuffer", ST_MESH_MODEL_CPP, 0x2d4, 0);
+            }
+        }
+        if (frame_locations_3d4[frame] == 0) {
+            PrepareFrame00471720(frame, 1);
+            FinalizeFrame00471930(
+                frame, 1, frame_locations_3d4[frame]);
+        }
+        if (frame_locations_3d4[next_frame] == 0) {
+            PrepareFrame00471720(next_frame, 1);
+            FinalizeFrame00471930(
+                next_frame, 1, frame_locations_3d4[next_frame]);
+        }
+        if (lerp_buffer_448 != 0 &&
+            frame_locations_3d4[next_frame] != 0 &&
+            frame_locations_3d4[frame] != 0 &&
+            vertex_location_count_22c != 0) {
+            if (interpolation == 1.0f) {
+                if (lerp_buffer_448 != frame_locations_3d4[next_frame]) {
+                    srVectorProcessor::memoryCopy(
+                        lerp_buffer_448,
+                        frame_locations_3d4[next_frame],
+                        vertex_location_count_22c * sizeof(srVector3T<float>));
+                }
+            }
+            else {
+                srVectorProcessor::lerp(
+                    reinterpret_cast<float*>(lerp_buffer_448),
+                    reinterpret_cast<const float*>(
+                        frame_locations_3d4[next_frame]),
+                    reinterpret_cast<const float*>(frame_locations_3d4[frame]),
+                    interpolation,
+                    vertex_location_count_22c * 3);
+            }
+        }
+        return lerp_buffer_448;
+    }
+    if (frame_locations_3d4[frame] == 0) {
+        PrepareFrame00471720(frame, 1);
+        if (load != 0 && frame_locations_3d4[frame] != 0) {
+            FinalizeFrame00471930(
+                frame, 1, frame_locations_3d4[frame]);
+        }
+    }
+    return frame_locations_3d4[frame];
+}
+
+// FUNCTION: WIZ8 0x004739E0
+unsigned long stMeshModel::ReleaseFrames004739E0()
+{
+    unsigned long released = 0;
+    if (frame_locations_3d4 != 0) {
+        for (unsigned int frame = 0; frame < frame_count_3d0; ++frame) {
+            if (frame_locations_3d4[frame] != 0) {
+                released +=
+                    vertex_location_count_22c * sizeof(srVector3T<float>);
+                srHeap.free(frame_locations_3d4[frame]);
+                frame_locations_3d4[frame] = 0;
+            }
+        }
+    }
+    if (frame_normals_3d8 != 0) {
+        for (unsigned int frame = 0; frame < frame_count_3d0; ++frame) {
+            if (frame_normals_3d8[frame] != 0) {
+                released +=
+                    vertex_location_count_22c * sizeof(srVector3T<float>);
+                srHeap.free(frame_normals_3d8[frame]);
+                frame_normals_3d8[frame] = 0;
+            }
+        }
+    }
+    if (frame_values_3dc != 0) {
+        for (unsigned int frame = 0; frame < frame_count_3d0; ++frame) {
+            if (frame_values_3dc[frame] != 0) {
+                released += polygon_count_230 * sizeof(srVector3T<float>);
+                srHeap.free(frame_values_3dc[frame]);
+                frame_values_3dc[frame] = 0;
+            }
+        }
+    }
+    last_frame_use_440 = GetTickCount();
+    g_mesh_frame_bytes_0065a0e8 -= released;
+    return released;
+}
+
+// FUNCTION: WIZ8 0x00473BF0
+unsigned char EnsureMeshFrameMemory00473BF0(unsigned long bytes)
+{
+    unsigned long released = 0;
+    bool exhausted = false;
+    while (released < bytes && !exhausted) {
+        stMeshModel* oldest = 0;
+        unsigned long oldest_time = 0xffffffffUL;
+        if (g_mesh_model_count_00659cbc < 1) {
+            exhausted = true;
+            continue;
+        }
+        for (int index = 0; index < g_mesh_model_count_00659cbc; ++index) {
+            stMeshModel* model = g_mesh_models_00659cc4[index];
+            if (model == 0) {
+                srAssertFail("pstModel", ST_MESH_MODEL_CPP, 0x712, 0);
+            }
+            if (model->last_frame_use_440 < oldest_time) {
+                oldest = model;
+                oldest_time = model->last_frame_use_440;
+            }
+        }
+        if (oldest == 0) {
+            exhausted = true;
+        }
+        else {
+            released += oldest->ReleaseFrames004739E0();
+        }
+    }
+    return exhausted ? 0 : 1;
+}
+
+/* Build the active-polygon table once for either the base texture set or a
+   named skin. Polygons whose texture name begins with "blank" are excluded;
+   a null result means every polygon remains active and needs no table. */
+// FUNCTION: WIZ8 0x00473CD0
+unsigned long* stMeshModel::GetPolygonTable00473CD0(
+    int* count, int texture_table, char create)
+{
+    int skin = skin_table_ids.IndexOf(texture_table);
+    unsigned long* table;
+    unsigned char checked;
+
+    if (skin >= 0) {
+        if (skin_blanking_apt_458 == 0) {
+            *count = 0;
+            return 0;
+        }
+        table = *skin_blanking_apt_458->GetAt(skin);
+        *count = *skin_blanking_apt_number_45c->GetAt(skin);
+        checked = *skin_blanking_checked_460->GetAt(skin);
+    }
+    else {
+        table = blanking_apt_44c;
+        *count = blanking_apt_number_450;
+        checked = blanking_checked_454;
+    }
+
+    if (table == 0 && checked == 0 && create != 0) {
+        *count = 0;
+        table = new unsigned long[polygon_count_230];
+
+        srPtr<srTextureIFace>* textures;
+        if (skin < 0) {
+            blanking_checked_454 = 1;
+            textures = getPolyTexture(0, 0, 0);
+        }
+        else {
+            *skin_blanking_checked_460->GetAt(skin) = 1;
+            textures = *skin_texture_tables.GetAt(skin);
+        }
+
+        if (textures != 0) {
+            for (int polygon = 0; polygon < polygon_count_230; ++polygon) {
+                srTextureIFace* texture = textures[polygon].get();
+                if (texture == 0) {
+                    table[(*count)++] = polygon;
+                }
+                else {
+                    char name[256];
+                    strcpy(name, texture->getName());
+                    if (_strnicmp(name, "blank", 5) != 0) {
+                        table[(*count)++] = polygon;
+                    }
+                }
+            }
+            if (*count != polygon_count_230) {
+                if (skin >= 0) {
+                    *skin_blanking_apt_458->GetAt(skin) = table;
+                    *skin_blanking_apt_number_45c->GetAt(skin) = *count;
+                }
+                else {
+                    blanking_apt_44c = table;
+                    blanking_apt_number_450 = *count;
+                }
+                return table;
+            }
+        }
+        delete[] table;
+    }
+
+    *count = 0;
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x00472990
+void stMeshModel::SetAmbientColor00472990(
+    const srVector3T<float>& color)
+{
+    if (ambient_color_3a4.x != color.x ||
+        ambient_color_3a4.y != color.y ||
+        ambient_color_3a4.z != color.z) {
+        ambient_color_3a4 = color;
+        flags_3a0 |= 2;
+    }
+}
+
+// FUNCTION: WIZ8 0x00471CA0
+srVector3T<float>* stMeshModel::GetVertexNormals00471CA0(
+    unsigned int frame, char load)
+{
+    if (frame_normals_3d8 == 0) {
+        return 0;
+    }
+    if (frame_normals_3d8[frame] == 0) {
+        PrepareFrame00471720(frame, 2);
+        if (load != 0 && frame_normals_3d8[frame] != 0) {
+            FinalizeFrame00471930(frame, 2, frame_normals_3d8[frame]);
+        }
+    }
+    return frame_normals_3d8[frame];
+}
+
+// FUNCTION: WIZ8 0x00471D00
+void* stMeshModel::GetFrameValues00471D00(unsigned int frame, char load)
+{
+    if (frame_values_3dc == 0) {
+        return 0;
+    }
+    if (frame_values_3dc[frame] == 0) {
+        PrepareFrame00471720(frame, 4);
+        if (load != 0 && frame_values_3dc[frame] != 0) {
+            FinalizeFrame00471930(frame, 4, frame_values_3dc[frame]);
+        }
+    }
+    return frame_values_3dc[frame];
 }
 
 // FUNCTION: WIZ8 0x004736d0
@@ -121,7 +473,7 @@ int stMeshModel::CreateSkinTable00473260(
     skin_table_names.Add(copied_name);
 
     if (skin_blanking_apt_458 == 0) {
-        skin_blanking_apt_458 = new W8GrowableVector<int*>;
+        skin_blanking_apt_458 = new W8GrowableVector<unsigned long*>;
         if (skin_blanking_apt_458 == 0) {
             srAssertFail(
                 "m_plsSkinBlankingAPT",
@@ -172,7 +524,7 @@ void stMeshModel::RemoveSkinTable00473830(int index)
     skin_table_names.RemoveAt(index);
     skin_table_ids.RemoveAt(index);
 
-    int* apt = *skin_blanking_apt_458->GetAt(index);
+    unsigned long* apt = *skin_blanking_apt_458->GetAt(index);
     if (apt != 0) {
         delete apt;
     }

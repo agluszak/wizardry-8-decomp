@@ -14,6 +14,8 @@ extern "C" {
 
 extern unsigned char* g_render_options_65a118;
 extern srGERD* g_gerd_659634;
+
+void SetModelPickKey004277F0(unsigned long key);
 extern LPDIRECTDRAWSURFACE2 g_primary_surface_6596a8;
 extern stSurface2D* g_surface_node_659664;
 extern srMaterial* g_blit_material_65967c;

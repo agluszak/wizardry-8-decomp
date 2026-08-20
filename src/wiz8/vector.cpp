@@ -102,19 +102,19 @@ class W8VectorElement005EBFB4;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-class stModelInstance005EC7D0;
+class stModelInstance;
 
 // VTABLE: WIZ8 0x005ec018
-// class W8GrowableVector<stModelInstance005EC7D0*>
+// class W8GrowableVector<stModelInstance*>
 
 // TEMPLATE: WIZ8 0x004cad80
-// W8GrowableVector<stModelInstance005EC7D0*>::W8GrowableVector
+// W8GrowableVector<stModelInstance*>::W8GrowableVector
 
 // SYNTHETIC: WIZ8 0x00438f70
-// W8GrowableVector<stModelInstance005EC7D0*>::`scalar deleting destructor'
+// W8GrowableVector<stModelInstance*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00438c70
-// W8GrowableVector<stModelInstance005EC7D0*>::~W8GrowableVector<stModelInstance005EC7D0*>
+// W8GrowableVector<stModelInstance*>::~W8GrowableVector<stModelInstance*>
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 

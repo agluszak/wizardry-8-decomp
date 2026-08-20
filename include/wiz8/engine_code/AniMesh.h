@@ -3,7 +3,7 @@
 
 #include "surrender/srMath.h"
 
-class stModelInstance005EC7D0;
+class stModelInstance;
 struct W8ReadLevelInfo;
 struct W8World;
 
@@ -23,7 +23,7 @@ struct W8AniMesh {
     unsigned char flags_00;              /* 0x00 */
     unsigned char frame_count_01;        /* 0x01 */
     unsigned char unknown_02[2];
-    stModelInstance005EC7D0** meshes_04; /* 0x04: ppsrMeshes */
+    stModelInstance** meshes_04; /* 0x04: ppsrMeshes */
     srVector3T<float> bounds_minimum_08; /* 0x08 */
     srVector3T<float> bounds_maximum_14; /* 0x14 */
     float radius_20;                     /* 0x20 */
@@ -49,7 +49,7 @@ unsigned char LoadAniMesh004B5D00(
 unsigned char LoadAniMeshFromInfo004B5B30(
     W8ReadLevelInfo* info, W8AniMesh* mesh, unsigned char load_all);
 unsigned char UnloadAniMesh004B63F0(W8AniMesh* mesh, unsigned char force);
-stModelInstance005EC7D0* GetAniMeshFrame004B6550(
+stModelInstance* GetAniMeshFrame004B6550(
     W8AniMesh* mesh, unsigned char frame);
 void DestroyAniMesh004B5880(W8AniMesh* mesh);
 unsigned char AniMeshValue004B64F0(W8AniMesh* mesh);

@@ -100,6 +100,25 @@ public:
         return result;
     }
 
+    /* A second proved operation uses an exact element capacity and discards
+       the old allocation before installing the replacement. */
+    inline T* ensureExact(unsigned long needed)
+    {
+        if (capacity < needed && capacity != needed) {
+            T* replacement = 0;
+            if (needed != 0) {
+                replacement = static_cast<T*>(
+                    srHeap.allocate(needed * sizeof(T)));
+            }
+            if (data != 0) {
+                srHeap.free(data);
+            }
+            data = replacement;
+            capacity = needed;
+        }
+        return data;
+    }
+
     T* data;
     unsigned long capacity;
 };

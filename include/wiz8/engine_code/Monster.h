@@ -14,7 +14,7 @@ struct W8AnimObj;
 struct W8GrCycleReadInfo004A6970;
 struct W8PList;
 struct W8Item;
-class stModelInstance005EC7D0;
+class stModelInstance;
 class stScript;
 class stSound3D;
 class Trigger;
@@ -89,7 +89,7 @@ struct W8MonsterRep : public W8EmitterHost {
     int value_608;
     int value_60c;
     int value_610;
-    W8GrowableVector<stModelInstance005EC7D0*> linked_runtime_objects_614;
+    W8GrowableVector<stModelInstance*> linked_runtime_objects_614;
     class MonsterLight* monster_light_624;
 
     unsigned char GetNumSubsPerCycle(signed char bCycle);
@@ -184,7 +184,7 @@ public:
     unsigned char IsCycleInterruptable(signed char cycle);
     void ApplyRemovalStateEffects();
     void CollectModelInstances004C6350(
-        W8GrowableVector<stModelInstance005EC7D0*>* instances);
+        W8GrowableVector<stModelInstance*>* instances);
     void SetDamageStage004C6990(int stage);
     int GetDamageStageCount004C6A50();
     unsigned char ReplaceSkinTexture004C6700(

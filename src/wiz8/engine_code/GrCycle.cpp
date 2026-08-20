@@ -895,8 +895,8 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         int count = (int)AnimObjListCount004A1620(animation, pRep->m_bLOD);
 
         for (index = 0; index < count; ++index) {
-            stModelInstance005EC7D0* psrMesh =
-                (stModelInstance005EC7D0*)AnimObjDispatchList004A1560(
+            stModelInstance* psrMesh =
+                (stModelInstance*)AnimObjDispatchList004A1560(
                     animation, pRep->m_bLOD, (signed char)index);
             W8PathAI* path;
             srMatrix3T<float> current;
@@ -933,8 +933,8 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             current_model_instance_1a8 = psrMesh;
         }
     } else {
-        stModelInstance005EC7D0* psrMesh =
-            (stModelInstance005EC7D0*)SelectCycleFrameLod004A8360(
+        stModelInstance* psrMesh =
+            (stModelInstance*)SelectCycleFrameLod004A8360(
                 pRep->selection.monster.current_cycle,
                 pRep->flag_064,
                 (signed char)pRep->m_bLOD);

@@ -133,9 +133,11 @@ public:
     unsigned long getVertexProcessorCount() const;
     void getVertexProcessors(srVertexProcessor** processors) const;
     void getAmbientLight(srVector4T<float>& light);
+    void setAmbientLight(const srVector4T<float>& light);
     void getEnvironmentRange(float& minimum, float& maximum) const;
     void getEnvironmentScaleFactor(float& scale, float& inverse_scale);
     unsigned long getExclusionMask() const;
+    void setExclusionMask(unsigned long mask);
     /* The pipeline's single-stage mask branch inlines this exported getter. */
     long getMaxTextureStages() const { return max_texture_stages_78_; }
     void pushMatrix();
@@ -151,6 +153,7 @@ public:
     e_visibility testBoundingBox(
         const srVector3T<float>& minimum, const srVector3T<float>& maximum);
     void setPickKey(unsigned long key);
+    void setWinding(e_winding winding);
     void ortho(double left, double right, double bottom, double top,
                double near_plane, double far_plane);
     void setClipState(srFlags<srRendererDefs::e_clip> state);

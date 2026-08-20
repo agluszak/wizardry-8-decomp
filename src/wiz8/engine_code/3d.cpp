@@ -58,14 +58,14 @@ void ExpandBounds0046F510(
    Its model assignment goes through srModel::Client, exactly as the ordinary
    SurRender ownership interface requires. */
 // FUNCTION: WIZ8 0x0046F5C0
-stModelInstance005EC7D0* CreateModelInstance0046F5C0(stMeshModel* model)
+stModelInstance* CreateModelInstance0046F5C0(stMeshModel* model)
 {
-    stModelInstance005EC7D0* instance;
+    stModelInstance* instance;
 
     if (model == 0) {
         srAssertFail("pstMeshModel", THREE_D_CPP, 0x5bf, 0);
     }
-    instance = new stModelInstance005EC7D0(0);
+    instance = new stModelInstance(0);
     if (instance == 0) {
         srAssertFail("pstHeadInstance", THREE_D_CPP, 0x5c2, 0);
     }
@@ -75,15 +75,15 @@ stModelInstance005EC7D0* CreateModelInstance0046F5C0(stMeshModel* model)
 }
 
 // FUNCTION: WIZ8 0x0046F680
-stModelInstance005EC7D0* DuplicateModelInstance0046F680(
-    stModelInstance005EC7D0* instance)
+stModelInstance* DuplicateModelInstance0046F680(
+    stModelInstance* instance)
 {
-    stModelInstance005EC7D0* copy;
+    stModelInstance* copy;
 
     if (instance == 0) {
         srAssertFail("pstModelInstance", THREE_D_CPP, 0x5ce, 0);
     }
-    copy = new stModelInstance005EC7D0(0);
+    copy = new stModelInstance(0);
     if (copy == 0) {
         srAssertFail("pstHeadInstance", THREE_D_CPP, 0x5d1, 0);
     }

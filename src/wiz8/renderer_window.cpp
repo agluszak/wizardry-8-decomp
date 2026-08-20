@@ -573,6 +573,14 @@ unsigned char Function4277E0(void)
     return g_flag_65970f;
 }
 
+// FUNCTION: WIZ8 0x004277f0
+void SetModelPickKey004277F0(unsigned long key)
+{
+    if (g_gerd_659634 != 0) {
+        g_gerd_659634->setPickKey(key);
+    }
+}
+
 // FUNCTION: WIZ8 0x00422050
 void Function422050(void)
 {

@@ -443,7 +443,7 @@ unsigned char ReadWorldProps004BC5E0(
 {
     /* CollectModelInstances appends. The canonical body deliberately keeps
        this one vector across the complete prop loop. */
-    W8GrowableVector<stModelInstance005EC7D0*> model_instances(5);
+    W8GrowableVector<stModelInstance*> model_instances(5);
     W8Prop* prop;
     W8PropBounds004BC5E0 bounds;
     int count;
@@ -494,7 +494,7 @@ unsigned char ReadWorldProps004BC5E0(
             for (model_index = 0;
                  model_index < model_instances.GetCount();
                  ++model_index) {
-                stModelInstance005EC7D0* instance =
+                stModelInstance* instance =
                     *model_instances.GetAt(model_index);
                 if (instance != 0) {
                     instance->state_178 |= 0x10;

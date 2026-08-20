@@ -61,7 +61,7 @@ extern float Function4BE420(
 extern float CalcRangeDistance(int range_category);
 extern unsigned char Function51B3F0(int mode);
 extern void Function497690(int channel, const char* message);
-extern stModelInstance005EC7D0* CreateModelInstance0046F5C0(
+extern stModelInstance* CreateModelInstance0046F5C0(
     stMeshModel* model);
 extern srShader g_path_shader_00652dc4;
 extern srTextureIFace* g_path_texture_00652dc0;
@@ -4334,7 +4334,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(
    the following groups and are emitted once when a visible reverse edge
    exists. */
 // FUNCTION: WIZ8 0x0045BE30
-stModelInstance005EC7D0* W8PathingService::BuildPathVisualization0045BE30()
+stModelInstance* W8PathingService::BuildPathVisualization0045BE30()
 {
     static srVector3T<float> marker_offsets[5] = {
         srVector3T<float>(0.0f, 0.5f, 0.0f),
@@ -4948,7 +4948,7 @@ void W8PathingService::GetWaypointVisualizationColor0045D490(
    path editor's shared texture/material state before the concrete model
    instance takes ownership of the mesh. */
 // FUNCTION: WIZ8 0x0045D530
-stModelInstance005EC7D0* W8PathingService::EnsurePathVisualization0045D530()
+stModelInstance* W8PathingService::EnsurePathVisualization0045D530()
 {
     const int polygon_count = 0x3138;
     const int vertex_count = 0x30d4;

@@ -16,8 +16,8 @@
 
 #define ANI_MESH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\AniMesh.cpp"
 
-extern stModelInstance005EC7D0* DuplicateModelInstance0046F680(
-    stModelInstance005EC7D0* instance);
+extern stModelInstance* DuplicateModelInstance0046F680(
+    stModelInstance* instance);
 extern void ExpandBounds0046F510(
     srVector3T<float>* minimum,
     srVector3T<float>* maximum,
@@ -90,7 +90,7 @@ W8AniMesh* CopyAniMesh004B58D0(const W8AniMesh* other)
 
     if ((other->flags_00 & W8_ANI_MESH_SINGLE_INSTANCE) != 0) {
         mesh->flags_00 |= W8_ANI_MESH_SINGLE_INSTANCE;
-        mesh->meshes_04 = static_cast<stModelInstance005EC7D0**>(malloc(sizeof(*mesh->meshes_04)));
+        mesh->meshes_04 = static_cast<stModelInstance**>(malloc(sizeof(*mesh->meshes_04)));
         if (mesh->meshes_04 == 0) {
             srAssertFail("pAniMesh->ppsrMeshes", ANI_MESH_CPP, 0xd4, 0);
         }
@@ -99,7 +99,7 @@ W8AniMesh* CopyAniMesh004B58D0(const W8AniMesh* other)
         return mesh;
     }
 
-    mesh->meshes_04 = static_cast<stModelInstance005EC7D0**>(
+    mesh->meshes_04 = static_cast<stModelInstance**>(
         malloc(mesh->frame_count_01 * sizeof(*mesh->meshes_04)));
     if (mesh->meshes_04 == 0) {
         srAssertFail("pAniMesh->ppsrMeshes", ANI_MESH_CPP, 0xde, 0);
@@ -141,7 +141,7 @@ unsigned char LoadAniMeshFromInfo004B5B30(
 // FUNCTION: WIZ8 0x004b5c10
 float GetAniMeshFrameRadius004B5C10(W8AniMesh* mesh, unsigned char frame)
 {
-    stModelInstance005EC7D0* instance = GetAniMeshFrame004B6550(mesh, frame);
+    stModelInstance* instance = GetAniMeshFrame004B6550(mesh, frame);
 
     if (instance != 0) {
         stMeshModel* model = static_cast<stMeshModel*>(instance->model());
@@ -224,20 +224,20 @@ unsigned char LoadAniMesh004B5D00(
     }
 
     loaded_instance->setName("AniMeshReallyReadFromFile");
-    stModelInstance005EC7D0* instance =
-        static_cast<stModelInstance005EC7D0*>(loaded_instance);
+    stModelInstance* instance =
+        static_cast<stModelInstance*>(loaded_instance);
     stMeshModel* model = static_cast<stMeshModel*>(instance->model());
 
-    if (model->vertex_count > 1) {
+    if (model->frame_count_3d0 > 1) {
         mesh->flags_00 |= W8_ANI_MESH_SINGLE_INSTANCE;
-        mesh->meshes_04 = static_cast<stModelInstance005EC7D0**>(
+        mesh->meshes_04 = static_cast<stModelInstance**>(
             malloc(sizeof(*mesh->meshes_04)));
         if (mesh->meshes_04 == 0) {
             srAssertFail("pAniMesh->ppsrMeshes", ANI_MESH_CPP, 0x1d0, 0);
         }
         mesh->meshes_04[0] = instance;
     } else {
-        mesh->meshes_04 = static_cast<stModelInstance005EC7D0**>(
+        mesh->meshes_04 = static_cast<stModelInstance**>(
             malloc(frame_count * sizeof(*mesh->meshes_04)));
         if (mesh->meshes_04 == 0) {
             srAssertFail("pAniMesh->ppsrMeshes", ANI_MESH_CPP, 0x1db, 0);
@@ -273,7 +273,7 @@ unsigned char LoadAniMesh004B5D00(
             }
             loaded_instance->setName("AniMeshReallyReadFromFile");
             mesh->meshes_04[frame_index] =
-                static_cast<stModelInstance005EC7D0*>(loaded_instance);
+                static_cast<stModelInstance*>(loaded_instance);
             ++loaded_count;
         }
     }
@@ -297,7 +297,7 @@ unsigned char LoadAniMesh004B5D00(
     mesh->bounds_maximum_14.y = 0.0f;
     mesh->bounds_maximum_14.z = 0.0f;
     for (frame_index = 0; frame_index < mesh->frame_count_01; ++frame_index) {
-        stModelInstance005EC7D0* frame =
+        stModelInstance* frame =
             GetAniMeshFrame004B6550(mesh, frame_index);
         if (frame != 0) {
             stMeshModel* frame_model = static_cast<stMeshModel*>(frame->model());
@@ -427,7 +427,7 @@ unsigned char UnloadAniMesh004B63F0(W8AniMesh* mesh, unsigned char force)
             frame_count = mesh->frame_count_01;
         }
         for (frame = 0; frame < frame_count; ++frame) {
-            stModelInstance005EC7D0* instance = GetAniMeshFrame004B6550(mesh, frame);
+            stModelInstance* instance = GetAniMeshFrame004B6550(mesh, frame);
 
             instance->setParent(0, 1);
             instance->setFlag(srNode::FLAG_POSITIONAL_0);
@@ -442,10 +442,10 @@ unsigned char UnloadAniMesh004B63F0(W8AniMesh* mesh, unsigned char force)
 }
 
 // FUNCTION: WIZ8 0x004b6550
-stModelInstance005EC7D0* GetAniMeshFrame004B6550(
+stModelInstance* GetAniMeshFrame004B6550(
     W8AniMesh* mesh, unsigned char frame)
 {
-    stModelInstance005EC7D0* instance;
+    stModelInstance* instance;
     char message[0x80];
 
     if (mesh == 0 || frame >= mesh->frame_count_01) {

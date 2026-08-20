@@ -12,7 +12,7 @@ struct W8AnimObj;
 struct W8ReadLevelInfo;
 struct W8World;
 class srModelInstance;
-class stModelInstance005EC7D0;
+class stModelInstance;
 class Trigger;
 class W8Prop;
 
@@ -108,7 +108,7 @@ public:
     void GetBounds0044DD60(
         srVector3T<float>* minimum, srVector3T<float>* maximum);
     void CollectModelInstances0044E570(
-        W8GrowableVector<stModelInstance005EC7D0*>* instances);
+        W8GrowableVector<stModelInstance*>* instances);
 
     Trigger* trigger_18;                 /* 0x18 */
     unsigned int flags_1c;               /* 0x1c */

@@ -8,6 +8,7 @@
 
 class srShader {
 public:
+    srShader() : value(0x0100241b) {}
     unsigned long value;
 };
 
@@ -77,11 +78,43 @@ public:
             }
         }
 
-        unsigned char unknown_000[0x70];
+        unsigned long vertex_count_000;
+        unsigned long triangle_count_004;
+        unsigned long pass_count_008;
+        unsigned long flags_00c;
+        srVector3i* triangles_010;
+        void* value_014;
+        void* value_018;
+        unsigned char unknown_01c[0x1c];
+        srVector3T<float>* vertex_locations_038;
+        srVector3T<float>* vertex_normals_03c;
+        void* values_040;
+        unsigned char unknown_044[0x0c];
+        void* value_050;
+        unsigned char unknown_054[0x0c];
+        void* value_060;
+        unsigned char unknown_064[0x0c];
         srMaterial* material_070;
-        unsigned char unknown_074[0x3c];
+        unsigned char unknown_074[0x1c];
+        srRuntimeClass* texture_090;
+        unsigned char unknown_094[0x1c];
         srShader shaders_0b0[4];
-        unsigned char unknown_0c0[0x94];
+        unsigned long value_0c0;
+        unsigned char unknown_0c4[0x0c];
+        srPtr<srTextureIFace>* polygon_textures_0d0;
+        unsigned char unknown_0d4[0x1c];
+        void* value_0f0;
+        unsigned char unknown_0f4[0x0c];
+        void* value_100;
+        unsigned char unknown_104[0x0c];
+        void* value_110;
+        unsigned char unknown_114[0x0c];
+        srVector3T<float> bounds_minimum_120;
+        srVector3T<float> bounds_maximum_12c;
+        srVector4T<float> bounds_center_138;
+        unsigned long value_148;
+        unsigned long* polygon_table_14c;
+        int polygon_table_count_150;
     };
 
     srMeshModel(long polygons, long vertices);

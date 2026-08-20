@@ -6,51 +6,44 @@ class srMaterial;
 class srTextureIFace;
 class stTextureAnim;
 
-srRegistry::ClassNode* GetSrModelInstanceClassNode00481D00();
-
-/* Engine Code\stModelInstance.cpp. */
-// VTABLE: WIZ8 0x005ec814 stModelInstance
-// VTABLE: WIZ8 0x005ec804 srModel::Client
-class stModelInstance : public srModelInstance {
+/* Engine Code\stModelInstance.cpp. The 0x005EC814/0x005EC804 tables are the
+   construction-phase tables of the canonical srClassSupport instantiation,
+   not a separate authored 0x190-byte base. */
+// VTABLE: WIZ8 0x005ec7d0 stModelInstance
+// VTABLE: WIZ8 0x005ec7c0 srModel::Client
+class stModelInstance
+    : public srClassSupport<stModelInstance, srModelInstance, false, 0x10004> {
 public:
-    stModelInstance()
-        : srModelInstance(0)
-    {
-        srRegistry* registry = srCore.getRegistry();
-        srRegistry::ClassNode* node = registry->getClassNode(0x10004);
+    static const char* sGetClassName() { return "stModelInstance"; }
 
-        if (node == 0) {
-            node = registry->registerClass(
-                "stModelInstance",
-                GetSrModelInstanceClassNode00481D00(),
-                0x10004,
-                0);
-        }
-        registry->registerInstance(node, this);
-        damage_stage_tables_188 = 0;
-        damage_stage_count_18c = 0;
-    }
-
-    const char* getClassName() const override;     /* 0x00481870 */
-    srRegistry::ClassNode* getClassNode() const override; /* 0x00481880 */
-    unsigned long getClassID() const override;     /* 0x00481860 */
+    explicit stModelInstance(srNode* parent);          /* 0x0047EC80 */
+    stModelInstance& operator=(const stModelInstance& other); /* 0x0047EDF0 */
     stTextureAnim* FindMouthTexture00481080();     /* 0x00481080 */
     int AddDamageStage00480560(const char* name);
     int AddExistingDamageStage00480670(const char* name);
     int FindDamageStage00480790(const char* name);
     unsigned char ReplaceDamageStageTexture004807B0(
         int stage, const char* old_name, srTextureIFace* replacement);
+    srClass* vInstance() override;                     /* 0x00481DD0 */
+    void traverse(TraverseInfo& info) override;        /* 0x004803F0 */
+    void process(const ProcessInfo& info, e_processType type) override; /* 0x0047F560 */
+
+    void Render0047F930(srGERD* renderer);             /* 0x0047F930 */
+
     unsigned char displayState() const { return state_170; }
     void setRenderDepth(unsigned long depth) { render_depth_164 = depth; }
 
-protected:
-    virtual ~stModelInstance() override;           /* 0x00481940 */
+    virtual ~stModelInstance() override;               /* 0x0047EF70 */
 
 public:
     unsigned long state_160;
-    unsigned long render_depth_164;
+    union {
+        unsigned long render_depth_164;
+        float emissive_x_164;
+    };
     union {
         unsigned long state_168;
+        float emissive_y_168;
         struct {
             short left_168;
             short top_16a;
@@ -58,6 +51,7 @@ public:
     };
     union {
         unsigned long state_16c;
+        float emissive_z_16c;
         struct {
             short right_16c;
             short bottom_16e;
@@ -65,34 +59,19 @@ public:
     };
     union {
         unsigned long state_170_173;
+        float emissive_w_170;
         struct {
             unsigned char state_170;
             unsigned char state_171;
             unsigned char padding_172[2];
         };
     };
-    srClass* retained_174;
+    srMaterial* material_174;
     unsigned long state_178;
     unsigned long state_17c;
     unsigned int frame_index_180;
     int damage_stage_184;
-    int* damage_stage_tables_188;
-    int damage_stage_count_18c;
-};
-
-static_assert(sizeof(stModelInstance) == 0x190,
-              "stModelInstance_size_must_be_0x190");
-
-/* The constructor at 0x0047EC80 first builds the 0x190-byte
-   stModelInstance base, then installs vtables 0x005EC7D0/0x005EC7C0 and
-   initializes the fields below through +0x1ac. Its original derived-class
-   name is not yet available. */
-class stModelInstance005EC7D0 : public stModelInstance {
-public:
-    explicit stModelInstance005EC7D0(srNode* parent); /* 0x0047EC80 */
-    stModelInstance005EC7D0& operator=(
-        const stModelInstance005EC7D0& other);         /* 0x0047EDF0 */
-
+    srHeapArray<int> damage_stage_tables_188;
     int value_190;
     srVector3T<float> scale_194;
     unsigned char flag_1a0;
@@ -107,11 +86,10 @@ public:
     };
     int value_1a8;
     float value_1ac;
-    virtual ~stModelInstance005EC7D0() override; /* 0x0047EF70 */
 };
 
-static_assert(sizeof(stModelInstance005EC7D0) == 0x1b0,
-              "stModelInstance005EC7D0_size_must_be_0x1b0");
+static_assert(sizeof(stModelInstance) == 0x1b0,
+              "stModelInstance_size_must_be_0x1b0");
 
 /* Concrete 2D model instance. Slot 5 and the secondary slot-0 adjustor are
    SYNTHETIC compiler-generated deleting destructors; no source body owns
@@ -146,6 +124,12 @@ public:
 
     stModelInstance2D& operator=(const stModelInstance2D& other); /* 0x0047F290 */
     void SetModel0047F3A0(srModel* model);              /* 0x0047F3A0 */
+    void SetGlowEnabled00480EB0(unsigned char enabled); /* 0x00480EB0 */
+    unsigned short GetScaledWidth00480EF0() const;      /* 0x00480EF0 */
+    unsigned short GetScaledHeight00480F70() const;     /* 0x00480F70 */
+    void SetGlowColors00480FF0(
+        const srVector4T<float>* first,
+        const srVector4T<float>* second);               /* 0x00480FF0 */
 
     srClass* vInstance() override;                 /* 0x00481E30 */
     void process(const ProcessInfo& info, e_processType type) override; /* 0x00480920 */

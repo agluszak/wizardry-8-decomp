@@ -396,6 +396,8 @@ EXPORTS
     ?getModelViewScaleType@srGERD@@QAE?AW4e_scaleType@?$srMatrix4T@M@@XZ
     ?getCullMode@srGERD@@QBE?AW4e_cullMode@1@XZ
     ?getWinding@srGERD@@QBE?AW4e_winding@1@XZ
+    ?setAmbientLight@srGERD@@QAEXABV?$srVector4T@M@@@Z
+    ?setWinding@srGERD@@QAEXW4e_winding@1@@Z
     ?lockRenderer@srGERD@@QAEPAVRenderer@1@XZ
     ?lockBuffer@srGERD@@QAEPAVsrColorSurfaceIFace@@XZ
     ?unlockBuffer@srGERD@@QAEXXZ
@@ -407,6 +409,7 @@ EXPORTS
     ?getEnvironmentRange@srGERD@@QBEXAAM0@Z
     ?getEnvironmentScaleFactor@srGERD@@QAEXAAM0@Z
     ?getExclusionMask@srGERD@@QBEKXZ
+    ?setExclusionMask@srGERD@@QAEXK@Z
     ?allocVertexArray@Renderer@srGERD@@QAEXAAUsrVertexArray@@K@Z
     ?render@Renderer@srGERD@@QAEXABUTriInput@12@@Z
     ?cull@srTriangleCuller@@SAHAAUOutput@1@ABUInput@1@@Z

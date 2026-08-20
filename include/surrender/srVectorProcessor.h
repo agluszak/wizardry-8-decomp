@@ -462,6 +462,46 @@ public:
    spelling is inferred from the named `_minMax` implementation boundary. */
 class srVectorProcessor {
 public:
+    static inline void copy(
+        SRDWORD* destination, SRDWORD constant, SRDWORD count)
+    {
+        vp->_copy(destination, constant, count);
+    }
+
+    static inline void memoryCopy(
+        void* destination, const void* source, SRDWORD bytes)
+    {
+        vp->_memcopy(destination, source, bytes);
+    }
+
+    static inline void add(
+        float* destination,
+        const float* source_0,
+        const float* source_1,
+        SRDWORD count)
+    {
+        vp->_add(destination, source_0, source_1, count);
+    }
+
+    static inline void multiply(
+        srVector3* destination,
+        const srVector3& constant,
+        const srVector3* source,
+        SRDWORD count)
+    {
+        vp->_mul(destination, constant, source, count);
+    }
+
+    static inline void lerp(
+        float* destination,
+        const float* target,
+        const float* source,
+        float constant,
+        SRDWORD count)
+    {
+        vp->_lerp(destination, target, source, constant, count);
+    }
+
     static inline void minMax(
         const srVector3* source,
         srVector3& minimum,

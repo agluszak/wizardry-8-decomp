@@ -4,7 +4,7 @@
 #include "wiz8/geometry.h"
 #include "wiz8/vector.h"
 
-class stModelInstance005EC7D0;
+class stModelInstance;
 class W8AnimRepBase005EC1D8;
 
 /* Engine Code\PathAI.cpp.  The assertion-backed `pPathAI` identity and the
@@ -50,7 +50,7 @@ void PathAIApplyToRep004A91F0(
 /* Places one model instance through a path. AnimObj.cpp and GrCycle.cpp are
    both callers, so the declaration lives with the path's owner. */
 extern "C" void PathAIApply004AA520(
-    W8PathAI* path, stModelInstance005EC7D0* instance);   /* 0x004AA520 */
+    W8PathAI* path, stModelInstance* instance);   /* 0x004AA520 */
 void DestroyPathAI004A9810(W8PathAI* path);
 void PathAIClearOwned004A9BB0(W8PathAI* path);
 void PathAISetFlag3A004A9B90(W8PathAI* path, unsigned char value);
