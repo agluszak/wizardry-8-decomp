@@ -28,6 +28,7 @@
 #include "wiz8/item_spawning.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
+#include "wiz8/float_constants.h"
 #include "surrender/srScene.h"
 #include "wiz8/mesh_model.h"
 
@@ -117,7 +118,6 @@ static_assert(sizeof(W8LevelParticleRecord004BD0D0) == 0x225,
 extern const float g_world_scale_005ebc40;
 extern const float g_environment_distance_threshold_005ebcd0;
 extern const float g_environment_near_scale_005ec0b0;
-extern const float g_environment_far_scale_005ec3b8;
 extern srVector3T<float> g_environment_offset_00659cd0;
 extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
@@ -393,7 +393,7 @@ unsigned char ReadWorldEnvironment004BC9D0(
     WorldSetFarClip(pWorld, pWorld->view_distance_020);
     distance_scale = view_distance < g_environment_distance_threshold_005ebcd0
         ? g_environment_near_scale_005ec0b0
-        : g_environment_far_scale_005ec3b8;
+        : g_float_005ec3b8;
     WorldSetValue74(pWorld, distance_scale * pWorld->view_distance_020);
     pWorld->environment_range_start_014 = environment_colour.red;
     pWorld->environment_range_end_018 = environment_colour.green;

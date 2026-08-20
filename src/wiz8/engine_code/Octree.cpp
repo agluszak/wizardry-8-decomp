@@ -1603,7 +1603,7 @@ W8Octree::~W8Octree()
 /* The node whose 0x1c is non-null is the only kind worth attaching. */
 extern int g_shared_mark_006598ac;
 
-extern void OctreeTraverse(
+extern unsigned int __stdcall OctreeTraverse(
     void* walker, void* arg_2, void* arg_3, int kind, unsigned int limit);   /* 0x0042F280 */
 
 /* Attach a visited set to the walker, but only one that has been built. */
@@ -1650,14 +1650,15 @@ void W8Octree::VisitPointCopy0042E620(
 /* Start a traversal of the twelfth kind. A limit of zero means no limit, which
    is what the -1 stands for. */
 // FUNCTION: WIZ8 0x0042ef00
-void OctreeTraverseKind12(void* walker, void* arg_2, void* arg_3, unsigned short limit)
+unsigned int __stdcall OctreeTraverseKind12(
+    void* walker, void* arg_2, void* arg_3, unsigned short limit)
 {
     unsigned int bound = (unsigned int)-1;
 
     if (limit != 0) {
         bound = limit;
     }
-    OctreeTraverse(walker, arg_2, arg_3, 0xc, bound);
+    return OctreeTraverse(walker, arg_2, arg_3, 0xc, bound);
 }
 
 /* Queue one node of the thirteenth kind, with its three coordinates converted

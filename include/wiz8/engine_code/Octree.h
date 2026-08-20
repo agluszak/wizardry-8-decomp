@@ -109,6 +109,24 @@ struct W8PathProbeVolume {
 static_assert(sizeof(W8PathProbeVolume) == 0x18,
               "W8PathProbeVolume_must_be_0x18");
 
+/* The fixed 0x2c search node allocated by W8PathingService's constructor.
+   Scoring at 0x00464FF0 proves the flag word, base score, current distance,
+   accumulated score and world position; the remaining planner state stays
+   positional until its readers are recovered. */
+struct W8PathSearchNode {
+    unsigned int flags_00;
+    unsigned char positional_04[8];
+    float base_score_0c;
+    unsigned char positional_10[4];
+    float distance_14;
+    unsigned char positional_18[4];
+    float score_1c;
+    srVector3T<float> position_20;
+};
+
+static_assert(sizeof(W8PathSearchNode) == 0x2c,
+              "W8PathSearchNode_must_be_0x2c");
+
 /* The pathing service the octree builds when its file carries one. Its own
    constructor at 0x004578E0 initialises through 0x238 and ReadOctFile allocates
    0x240, which is what fixes the extent; only the fields those two bodies and
@@ -146,6 +164,25 @@ public:
         unsigned int tag,
         const float* radius,
         const srVector3T<float>* position);
+    unsigned int CollectPathProbes004656A0(
+        W8NavigatorMovementState* movement, float radius);
+    unsigned short PlanMovement00463460(
+        W8NavigatorMovementState* movement, float radius, float separation);
+    unsigned short PlanMovementToPosition00464AB0(
+        W8NavigatorMovementState* movement,
+        const srVector3T<float>* target,
+        float radius,
+        float separation);
+    float UpdateSearchNodeScore00464FF0(
+        unsigned int node,
+        const srVector3T<float>* position,
+        float minimum,
+        float maximum);
+    unsigned short ResolveSearchNodeCollisions00465130(
+        W8NavigatorMovementState* movement,
+        unsigned int node,
+        float radius,
+        float separation);
     unsigned short FindWaypoint0045B120(
         const srVector3T<float>* position, unsigned char exhaustive);
     void SnapPathHeight0045B5A0(srVector3T<float>* position);
@@ -259,7 +296,9 @@ public:
     srVector3T<float> probe_position_07c; /* 0x7c */
     unsigned int probe_limit_088;        /* 0x88 */
     unsigned char flag_08c;              /* 0x8c */
-    unsigned char m_positional_08d[0xf];
+    unsigned char m_positional_08d[7];
+    unsigned int path_candidate_count_094;
+    int* path_candidates_098;
     unsigned char flag_09c;              /* 0x9c */
     unsigned char m_positional_09d[3];
     unsigned int waypoint_neighbor_mask_0a0; /* 0xa0 */
@@ -273,7 +312,7 @@ public:
     int m_positional_0bc;
     int m_positional_0c0;
     int m_positional_0c4;
-    void* m_owned_0c8;                   /* 0xc8 */
+    W8PathSearchNode* m_owned_0c8;       /* 0xc8 */
     int m_positional_0cc;
     int m_positional_0d0;
     unsigned int path_probe_count_0d4;
@@ -505,6 +544,11 @@ struct W8OctreeEntry {
 void InsertEntry0055DBB0(
     W8OctreeIndex* index, const unsigned int* key, const int* value);
 void GrowIndex00439290(W8OctreeIndex* index);
+unsigned int __stdcall OctreeTraverseKind12(
+    void* walker,
+    void* lower,
+    void* upper,
+    unsigned short limit);
 
 extern W8Octree* g_octree_6598a4;
 

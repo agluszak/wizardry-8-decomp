@@ -1,10 +1,12 @@
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Navigator.h"
+#include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 
@@ -23,6 +25,8 @@ extern unsigned char g_path_reserve_0060827a;
 extern float g_path_span_scale_005ec344;
 extern float g_path_limit_006081e8;
 extern W8PathingService* g_pathing_00659c60;
+extern W8Navigator* g_startup_world_659c0c;
+extern unsigned char g_flag_00659c5c;
 extern void ConstructPathState004CCCB0(void* state);
 extern void* CreateOctPathIndex();
 extern void* g_path_scratch_00659c64;
@@ -486,6 +490,334 @@ unsigned char W8PathingService::MatchesPathProbe00465970(
     return 0;
 }
 
+/* Collect the player and nearby active monsters whose collision volumes can
+   overlap the movement search radius. The octree supplies location tags; the
+   monster manager remains authoritative for resolving each live navigator.
+   Retail caps the resulting probe table at five entries even though its fixed
+   storage has room for ten. */
+// FUNCTION: WIZ8 0x004656a0
+unsigned int W8PathingService::CollectPathProbes004656A0(
+    W8NavigatorMovementState* movement,
+    float radius)
+{
+    path_probe_count_0d4 = 0;
+
+    float extent = g_path_limit_006081e8 + radius;
+    srVector3T<float> lower;
+    srVector3T<float> upper;
+    lower.x = movement->position_040.x - extent;
+    lower.y = movement->position_040.y - extent;
+    lower.z = movement->position_040.z - extent;
+    upper.x = movement->position_040.x + extent;
+    upper.y = movement->position_040.y + extent;
+    upper.z = movement->position_040.z + extent;
+
+    path_candidates_098 = 0;
+    path_candidate_count_094 = OctreeTraverseKind12(
+        &path_candidates_098, &lower, &upper, movement->location_id_004);
+
+    srVector3T<float> player_position =
+        g_startup_world_659c0c->GetPosition();
+    float delta_x = player_position.x - movement->position_040.x;
+    float delta_y = player_position.y - movement->position_040.y;
+    float delta_z = player_position.z - movement->position_040.z;
+    float distance = (float)sqrt(
+        delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
+    float player_radius = g_startup_world_659c0c->
+        fields.movement_0c0.alternate_radius_0b4;
+    float overlap_radius = radius;
+    if (player_radius < radius) {
+        overlap_radius = player_radius;
+    }
+    if (distance < (radius - overlap_radius * g_float_005ebc7c) +
+                       player_radius) {
+        W8PathProbeVolume* probe = &path_probes_0d8[path_probe_count_0d4];
+        probe->tag_00 = 0;
+        probe->outer_radius_04 = player_radius;
+        probe->center_0c = g_startup_world_659c0c->GetPosition();
+        ++path_probe_count_0d4;
+    }
+
+    for (unsigned int index = 0;
+         index < path_candidate_count_094 && path_probe_count_0d4 < 5;
+         ++index) {
+        int location_id = path_candidates_098[index];
+        unsigned int monster_index = MonsterGetIndexByLocationID(
+            0x26ae, OCTPATH_CPP, location_id, 0);
+        if (monster_index != (unsigned int)-1) {
+            monster_index = MonsterGetIndexByLocationID(
+                0x26b1, OCTPATH_CPP, location_id, 1);
+            W8MonsterInfo* info =
+                MonsterGetScriptPartByLocationIndex(monster_index);
+            if (info != 0 && info->monster != 0 &&
+                info->monster->fields.state_088 != 0) {
+                W8Monster* monster = info->monster;
+                srVector3T<float> monster_position = monster->GetPosition();
+                delta_x = monster_position.x - movement->position_040.x;
+                delta_y = monster_position.y - movement->position_040.y;
+                delta_z = monster_position.z - movement->position_040.z;
+                distance = (float)sqrt(
+                    delta_x * delta_x + delta_y * delta_y +
+                    delta_z * delta_z);
+                float monster_radius = monster->
+                    fields.movement_0c0.alternate_radius_0b4;
+                overlap_radius = radius;
+                if (monster_radius < radius) {
+                    overlap_radius = monster_radius;
+                }
+                if (distance <
+                    (radius - overlap_radius * g_float_005ebc7c) +
+                        monster_radius) {
+                    W8PathProbeVolume* probe =
+                        &path_probes_0d8[path_probe_count_0d4];
+                    probe->tag_00 = location_id;
+                    probe->outer_radius_04 = monster_radius;
+                    probe->inner_radius_08 = distance;
+                    probe->center_0c = monster->GetPosition();
+                    ++path_probe_count_0d4;
+                }
+            }
+        }
+    }
+    return path_probe_count_0d4;
+}
+
+/* Plan with an explicit target position. The service flag suppresses the core
+   planner's ordinary post-search callback for exactly this nested call, while
+   the planner's status is passed straight back to the navigator caller. */
+// FUNCTION: WIZ8 0x00464ab0
+unsigned short W8PathingService::PlanMovementToPosition00464AB0(
+    W8NavigatorMovementState* movement,
+    const srVector3T<float>* target,
+    float radius,
+    float separation)
+{
+    flag_09c = 1;
+    movement->target_position_04c = *target;
+    unsigned short result =
+        PlanMovement00463460(movement, radius, separation);
+    flag_09c = 0;
+    return result;
+}
+
+/* Refresh one planner node's distance and accumulated score. Explicit-target
+   mode scores from the shared ceiling; ordinary mode starts from the node's
+   base score and adds a range penalty only when the adjusted gap is positive.
+   Flag 0x2000 applies the final fixed penalty in either mode. */
+// FUNCTION: WIZ8 0x00464ff0
+float W8PathingService::UpdateSearchNodeScore00464FF0(
+    unsigned int node_index,
+    const srVector3T<float>* position,
+    float minimum,
+    float maximum)
+{
+    W8PathSearchNode* node = &m_owned_0c8[node_index & 0xffff];
+    float delta_x = position->x - node->position_20.x;
+    float delta_y = position->y - node->position_20.y;
+    float delta_z = position->z - node->position_20.z;
+    float distance = (float)sqrt(
+        delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
+    node->distance_14 = distance;
+
+    if (flag_09c == 0) {
+        node->score_1c = distance * g_float_005ec3b8 + node->base_score_0c;
+    }
+    else {
+        node->score_1c = g_float_005ec3c0 - distance;
+    }
+
+    float gap = maximum - minimum;
+    if (flag_09c == 0) {
+        float adjusted_gap = gap;
+        if (distance <= gap) {
+            adjusted_gap = (gap - distance) * g_float_005ec390;
+        }
+        if (adjusted_gap > g_float_005ebb34) {
+            node->score_1c += gap * g_float_005ec3bc;
+        }
+    }
+    else if (gap > g_float_005ebb34) {
+        node->score_1c += g_float_005ec3c0;
+    }
+
+    if ((node->flags_00 & 0x2000) != 0) {
+        node->score_1c += g_float_005ec3c0;
+    }
+    return node->score_1c;
+}
+
+/* Resolve dynamic navigator overlap for one candidate search node.
+
+   The player is tag zero; a target navigator receives the caller's separation
+   allowance, while every other live monster uses only the two radii. Probe
+   volumes can mark the node as hard-blocked before the live object lookup.
+   Shallow overlaps move the node outward and set flag 0x200; deeper or
+   directionally conflicting overlaps return the retail collision state. */
+// FUNCTION: WIZ8 0x00465130
+unsigned short W8PathingService::ResolveSearchNodeCollisions00465130(
+    W8NavigatorMovementState* movement,
+    unsigned int node_index,
+    float radius,
+    float separation)
+{
+    unsigned short result = 0;
+    if (flag_09c != 0) {
+        separation = 0.0f;
+    }
+
+    W8PathSearchNode* node = &m_owned_0c8[node_index & 0xffff];
+    srVector3T<float> blocking_direction;
+    srVector3T<float> player_position = g_startup_world_659c0c->GetPosition();
+    float delta_x = player_position.x - node->position_20.x;
+    float delta_y = player_position.y - node->position_20.y;
+    float delta_z = player_position.z - node->position_20.z;
+    float distance_squared =
+        delta_x * delta_x + delta_y * delta_y + delta_z * delta_z;
+    float threshold = g_startup_world_659c0c->
+        fields.movement_0c0.alternate_radius_0b4 + radius;
+    if (movement->value_010 == 0) {
+        threshold += separation;
+    }
+
+    if ((float)sqrt(distance_squared) < threshold) {
+        if (movement->value_010 != 0 || flag_09c != 0) {
+            return 1;
+        }
+        blocking_direction.x = delta_x;
+        blocking_direction.y = delta_y;
+        blocking_direction.z = delta_z;
+        if ((double)distance_squared != g_zero_005ebb40) {
+            float scale = (float)(g_double_005ebc30 / sqrt(distance_squared));
+            blocking_direction.x *= scale;
+            blocking_direction.y *= scale;
+            blocking_direction.z *= scale;
+        }
+        result = 3;
+    }
+
+    for (unsigned int candidate = 0;
+         candidate < path_candidate_count_094;
+         ++candidate) {
+        int location_id = path_candidates_098[candidate];
+        unsigned int monster_index = MonsterGetIndexByLocationID(
+            0x2622, OCTPATH_CPP, location_id, 0);
+        if (monster_index == (unsigned int)-1) {
+            continue;
+        }
+
+        unsigned int probe_index;
+        for (probe_index = 0; probe_index < path_probe_count_0d4;
+             ++probe_index) {
+            W8PathProbeVolume* probe = &path_probes_0d8[probe_index];
+            if (probe->tag_00 == (unsigned int)location_id) {
+                float probe_x = probe->center_0c.x - node->position_20.x;
+                float probe_y = probe->center_0c.y - node->position_20.y;
+                float probe_z = probe->center_0c.z - node->position_20.z;
+                float probe_distance = (float)sqrt(
+                    probe_x * probe_x + probe_y * probe_y + probe_z * probe_z);
+                if (probe_distance < radius + probe->outer_radius_04 &&
+                    probe->inner_radius_08 < probe_distance) {
+                    node->flags_00 |= 0x2000;
+                    break;
+                }
+            }
+        }
+        if (probe_index < path_probe_count_0d4) {
+            continue;
+        }
+
+        monster_index = MonsterGetIndexByLocationID(
+            0x262b, OCTPATH_CPP, location_id, 1);
+        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(monster_index);
+        if (info == 0 || info->monster == 0 ||
+            info->monster->fields.state_088 == 0) {
+            continue;
+        }
+
+        W8Monster* monster = info->monster;
+        srVector3T<float> monster_position = monster->GetPosition();
+        delta_x = node->position_20.x - monster_position.x;
+        delta_y = node->position_20.y - monster_position.y;
+        delta_z = node->position_20.z - monster_position.z;
+        distance_squared =
+            delta_x * delta_x + delta_y * delta_y + delta_z * delta_z;
+        float distance = (float)sqrt(distance_squared);
+        threshold = monster->fields.movement_0c0.alternate_radius_0b4 + radius;
+        if (location_id == movement->value_010 && flag_09c == 0) {
+            threshold += separation;
+        }
+
+        if (distance < threshold) {
+            if (location_id == movement->value_010 && flag_09c == 0) {
+                blocking_direction.x = delta_x;
+                blocking_direction.y = delta_y;
+                blocking_direction.z = delta_z;
+                if ((double)distance_squared != g_zero_005ebb40) {
+                    float scale =
+                        (float)(g_double_005ebc30 / sqrt(distance_squared));
+                    blocking_direction.x *= scale;
+                    blocking_direction.y *= scale;
+                    blocking_direction.z *= scale;
+                }
+                result = 3;
+                continue;
+            }
+
+            unsigned char adjust = 0;
+            if ((node->flags_00 & 0x0200) == 0 &&
+                threshold <= distance + g_float_005ec020) {
+                if (result == 3) {
+                    srVector3T<float> direction;
+                    direction.x = delta_x;
+                    direction.y = delta_y;
+                    direction.z = delta_z;
+                    if ((double)distance_squared != g_zero_005ebb40) {
+                        float scale = (float)(
+                            g_double_005ebc30 / sqrt(distance_squared));
+                        direction.x *= scale;
+                        direction.y *= scale;
+                        direction.z *= scale;
+                    }
+                    float dot =
+                        direction.x * blocking_direction.x +
+                        direction.y * blocking_direction.y +
+                        direction.z * blocking_direction.z;
+                    if (dot <= g_float_005ec3d0 ||
+                        g_float_005ec3c8 <= dot) {
+                        adjust = 1;
+                    }
+                }
+                else if (result != 1) {
+                    adjust = 1;
+                }
+            }
+
+            if (adjust != 0) {
+                if ((double)distance_squared != g_zero_005ebb40) {
+                    float scale =
+                        (threshold - distance) / (float)sqrt(distance_squared);
+                    delta_x *= scale;
+                    delta_y *= scale;
+                    delta_z *= scale;
+                }
+                node->position_20.x += delta_x;
+                node->position_20.y += delta_y;
+                node->position_20.z += delta_z;
+                node->flags_00 |= 0x0200;
+                if (result != 1) {
+                    continue;
+                }
+            }
+
+            if (g_flag_00659c5c == 0) {
+                return 1;
+            }
+            result = 2;
+        }
+    }
+    return result;
+}
+
 /* Give everything the service owns back.
 
    Not a destructor: nothing restores a vtable and the object is left holding
@@ -631,7 +963,8 @@ W8PathingService::W8PathingService()
     value_1d4 = 0;
     value_1d6 = 0;
     value_1d8 = 0;
-    m_owned_0c8 = ::operator new((g_path_reserve_0060827a + 0x14) * 0x2c);
+    m_owned_0c8 = static_cast<W8PathSearchNode*>(
+        ::operator new((g_path_reserve_0060827a + 0x14) * 0x2c));
     m_positional_0cc = 0;
     m_positional_0d0 = 0;
     flag_09c = 0;
