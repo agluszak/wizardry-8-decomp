@@ -1,8 +1,12 @@
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Navigator.h"
+#include "wiz8/float_constants.h"
+#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 
+#include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -20,6 +24,8 @@ extern void* g_path_scratch_00659c64;
 extern void RegisterPathSurface004B7730(unsigned int index, const int* point);
 extern void RegisterPathVertex004B7830(
     unsigned int index, const int* point, const int* second);
+extern const double g_path_waypoint_snap_distance_005ec150;
+extern void Function58AAD0(int channel, const char* format, ...);
 
 #define OCTPATH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctPath.cpp"
 
@@ -159,7 +165,7 @@ void W8PathingService::LinkSurfaces00460020()
         return;
     }
     do {
-        surface = m_pSurfaces_048 + offset;
+        surface = reinterpret_cast<unsigned char*>(m_pSurfaces_048) + offset;
         if ((*surface & 0x40) != 0) {
             converted = (int)((*reinterpret_cast<float*>(surface + 0xc) - level_bounds[2]) /
                               grid_scale_01c);
@@ -193,10 +199,10 @@ void W8PathingService::LinkEdges004600B0()
         return;
     }
     do {
-        edge = m_pEdges_04c + offset;
+        edge = reinterpret_cast<unsigned char*>(m_pEdges_04c) + offset;
         if ((*reinterpret_cast<unsigned int*>(edge) & 0x20000000) != 0) {
             surface_index = *reinterpret_cast<unsigned short*>(edge + 4);
-            surface = m_pSurfaces_048 + surface_index * 0x28;
+            surface = reinterpret_cast<unsigned char*>(m_pSurfaces_048) + surface_index * 0x28;
             converted = (int)((*reinterpret_cast<float*>(surface + 0xc) - level_bounds[2]) /
                               grid_scale_01c);
             first[0] = (int)((*reinterpret_cast<float*>(surface + 4) - level_bounds[0]) /
@@ -204,7 +210,7 @@ void W8PathingService::LinkEdges004600B0()
             first[1] = converted;
 
             surface_index = *reinterpret_cast<unsigned short*>(edge + 6);
-            surface = m_pSurfaces_048 + surface_index * 0x28;
+            surface = reinterpret_cast<unsigned char*>(m_pSurfaces_048) + surface_index * 0x28;
             converted = (int)((*reinterpret_cast<float*>(surface + 0xc) - level_bounds[2]) /
                               grid_scale_01c);
             second[0] = (int)((*reinterpret_cast<float*>(surface + 4) - level_bounds[0]) /
@@ -407,6 +413,400 @@ void W8PathingService::ConfigureForLevel(
     span_020 = (level_bounds[4] - level_bounds[1]) * g_path_span_scale_005ec344;
     cell_count_024 = (short)(int)span_020 + 1;
     level_name = name;
+}
+
+/* Append one waypoint surface and keep every capacity-coupled side table sized
+   to the same hundred-record block.
+
+   Surface zero is reserved on the first allocation. Growth replaces the three
+   BitArrays rather than preserving their bits, and recreates the shared
+   unsigned-short scratch run. The new surface receives its index and position,
+   is classified for the path-surface flag, and is registered in the octree's
+   spatial object index as kind nine. */
+// FUNCTION: WIZ8 0x0045ddb0
+void W8PathingService::AddWaypoint0045DDB0(
+    const srVector3T<float>* position)
+{
+    if (m_ulNumSurfaces % 100 == 0) {
+        unsigned int capacity = (m_ulNumSurfaces / 100 + 1) * 100;
+        W8PathSurface* new_surfaces =
+            static_cast<W8PathSurface*>(malloc(capacity * sizeof(W8PathSurface)));
+
+        if (new_surfaces == 0) {
+            srAssertFail("pNewWayPoints", OCTPATH_CPP, 0x12ec, 0);
+        }
+        memset(new_surfaces, 0, capacity * sizeof(W8PathSurface));
+        if (m_ulNumSurfaces == 0) {
+            m_ulNumSurfaces = 1;
+        }
+        else {
+            memcpy(
+                new_surfaces, m_pSurfaces_048,
+                m_ulNumSurfaces * sizeof(W8PathSurface));
+            free(m_pSurfaces_048);
+        }
+        m_pSurfaces_048 = new_surfaces;
+
+        if (m_owned_058 != 0) {
+            m_owned_058->FreeIndex();
+            ::operator delete(m_owned_058);
+        }
+        m_owned_058 = new BitArray(capacity);
+        if (m_owned_05c != 0) {
+            m_owned_05c->FreeIndex();
+            ::operator delete(m_owned_05c);
+        }
+        m_owned_05c = new BitArray(capacity);
+        if (m_owned_060 != 0) {
+            m_owned_060->FreeIndex();
+            ::operator delete(m_owned_060);
+        }
+        m_owned_060 = new BitArray(capacity);
+
+        free(g_path_scratch_00659c64);
+        g_path_scratch_00659c64 = malloc(capacity * sizeof(unsigned short));
+    }
+
+    W8PathSurface* surface = &m_pSurfaces_048[m_ulNumSurfaces];
+    int point[2];
+
+    surface->flags_00 = 0x2000;
+    surface->index_02 = (unsigned short)m_ulNumSurfaces;
+    surface->position_04 = *position;
+    if ((ClassifyWaypoint00459C00(&surface->position_04) & 0x04000000) != 0) {
+        surface->flags_00 |= 0x40;
+    }
+    g_octree_6598a4->WorldPositionToCell00431440(position, point);
+    g_octree_6598a4->object_registry->UpdateObjectCell00436B90(
+        9, (unsigned short)m_ulNumSurfaces + 1, point);
+    ++m_ulNumSurfaces;
+}
+
+/* Add one directed edge to the waypoint graph, or update the matching edge
+   when the source already owns it.
+
+   Edge zero is the list sentinel and storage grows in hundred-record blocks.
+   The cached length is computed before growth, the new record is appended to
+   the source surface's chain, and the geometry-derived flag follows the same
+   endpoint/span tests as an updated edge. */
+// FUNCTION: WIZ8 0x0045ec30
+void W8PathingService::AddWaypointLink0045EC30(
+    unsigned short source,
+    unsigned short destination,
+    unsigned int flags)
+{
+    W8PathSurface* source_surface;
+    W8PathSurface* destination_surface;
+    float delta_x;
+    float delta_y;
+    float delta_z;
+    float distance;
+    W8PathEdge* edge;
+
+    if (source == 0 || destination == 0 || source == destination) {
+        Function58AAD0(
+            0xf, "Cannot Link: Tried to link WayPt %d to WayPt %d. ",
+            source, destination);
+        return;
+    }
+
+    source_surface = &m_pSurfaces_048[source];
+    destination_surface = &m_pSurfaces_048[destination];
+    if ((source_surface->position_04.x == g_float_005ebb34 &&
+         source_surface->position_04.y == g_float_005ebb34 &&
+         source_surface->position_04.z == g_float_005ebb34) ||
+        (destination_surface->position_04.x == g_float_005ebb34 &&
+         destination_surface->position_04.y == g_float_005ebb34 &&
+         destination_surface->position_04.z == g_float_005ebb34)) {
+        Function58AAD0(
+            0xf, "Cannot Link: WayPt %d is at (0, 0, 0). ", source);
+        return;
+    }
+
+    if (UpdateWaypointLink0045F200(source, destination, flags) != 0) {
+        return;
+    }
+
+    delta_x = source_surface->position_04.x - destination_surface->position_04.x;
+    delta_y = source_surface->position_04.y - destination_surface->position_04.y;
+    delta_z = source_surface->position_04.z - destination_surface->position_04.z;
+    distance = (float)sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
+
+    if (m_ulNumEdges % 100 == 0) {
+        unsigned int capacity = m_ulNumEdges / 100 + 1;
+        W8PathEdge* new_edges = static_cast<W8PathEdge*>(malloc(capacity * 100 * sizeof(W8PathEdge)));
+
+        if (new_edges == 0) {
+            srAssertFail("pNewWayPtLinks", OCTPATH_CPP, 0x1526, 0);
+        }
+        memset(new_edges, 0, capacity * 100 * sizeof(W8PathEdge));
+        if (m_ulNumEdges == 0) {
+            m_ulNumEdges = 1;
+        }
+        else {
+            memcpy(new_edges, m_pEdges_04c, m_ulNumEdges * sizeof(W8PathEdge));
+            free(m_pEdges_04c);
+        }
+        m_pEdges_04c = new_edges;
+    }
+
+    edge = &m_pEdges_04c[m_ulNumEdges];
+    edge->flags_00 = flags;
+    edge->destination_06 = destination;
+    edge->source_04 = source;
+    edge->distance_08 = distance;
+    edge->next_0c = 0;
+
+    if (source_surface->first_edge_24 == 0) {
+        source_surface->first_edge_24 = (unsigned short)m_ulNumEdges;
+    }
+    else {
+        unsigned short previous = source_surface->first_edge_24;
+
+        while (m_pEdges_04c[previous].next_0c != 0) {
+            previous = m_pEdges_04c[previous].next_0c;
+        }
+        m_pEdges_04c[previous].next_0c = (unsigned short)m_ulNumEdges;
+    }
+
+    if ((source_surface->flags_00 & 0x40) != 0 ||
+        (destination_surface->flags_00 & 0x40) != 0 ||
+        (TestWaypointSpan0045A1B0(
+             &source_surface->position_04,
+             &destination_surface->position_04, 0, 0),
+         flag_23c != 0)) {
+        edge->flags_00 |= 0x20000000;
+    }
+    ++m_ulNumEdges;
+}
+
+/* Decide whether a new directed edge would duplicate the graph already leading
+   from source toward destination.
+
+   A direct edge is an immediate hit. Otherwise only nearer first-hop neighbors
+   matter: their horizontal direction is normalized and compared with the
+   destination direction. A neighbor that already links to the destination uses
+   the tighter alignment threshold; every nearer neighbor also receives the
+   looser threshold test. Vertical displacement participates in the distance
+   ordering but not in either direction comparison. */
+// FUNCTION: WIZ8 0x0045ef90
+unsigned char W8PathingService::HasDirectionalWaypointLink0045EF90(
+    unsigned short source,
+    unsigned short destination)
+{
+    W8PathSurface* source_surface = &m_pSurfaces_048[source];
+    const W8PathSurface* destination_surface = &m_pSurfaces_048[destination];
+    srVector3T<float> destination_direction;
+    float destination_distance;
+    float horizontal_length_squared;
+    float scale;
+    unsigned short edge_index;
+
+    destination_direction.x = destination_surface->position_04.x - source_surface->position_04.x;
+    destination_direction.y = destination_surface->position_04.y - source_surface->position_04.y;
+    destination_direction.z = destination_surface->position_04.z - source_surface->position_04.z;
+    destination_distance = (float)sqrt(
+        destination_direction.x * destination_direction.x +
+        destination_direction.y * destination_direction.y +
+        destination_direction.z * destination_direction.z);
+    horizontal_length_squared =
+        destination_direction.x * destination_direction.x +
+        destination_direction.z * destination_direction.z;
+    destination_direction.y = 0.0f;
+    if ((double)horizontal_length_squared != g_zero_005ebb40) {
+        scale = (float)(g_double_005ebc30 / sqrt(horizontal_length_squared));
+        destination_direction.x *= scale;
+        destination_direction.z *= scale;
+    }
+
+    edge_index = source_surface->first_edge_24;
+    while (edge_index != 0) {
+        W8PathEdge* edge = &m_pEdges_04c[edge_index];
+        unsigned short neighbor_index = edge->destination_06;
+        W8PathSurface* neighbor = &m_pSurfaces_048[neighbor_index];
+        srVector3T<float> neighbor_direction;
+        float neighbor_distance;
+
+        if (neighbor_index == destination) {
+            return 1;
+        }
+
+        neighbor_direction.x = neighbor->position_04.x - source_surface->position_04.x;
+        neighbor_direction.y = neighbor->position_04.y - source_surface->position_04.y;
+        neighbor_direction.z = neighbor->position_04.z - source_surface->position_04.z;
+        neighbor_distance = (float)sqrt(
+            neighbor_direction.x * neighbor_direction.x +
+            neighbor_direction.y * neighbor_direction.y +
+            neighbor_direction.z * neighbor_direction.z);
+        if (neighbor_distance < destination_distance) {
+            unsigned short second_edge_index;
+
+            horizontal_length_squared =
+                neighbor_direction.x * neighbor_direction.x +
+                neighbor_direction.z * neighbor_direction.z;
+            neighbor_direction.y = 0.0f;
+            if ((double)horizontal_length_squared != g_zero_005ebb40) {
+                scale = (float)(g_double_005ebc30 / sqrt(horizontal_length_squared));
+                neighbor_direction.x *= scale;
+                neighbor_direction.z *= scale;
+            }
+
+            second_edge_index = neighbor->first_edge_24;
+            while (second_edge_index != 0) {
+                if (m_pEdges_04c[second_edge_index].destination_06 == destination) {
+                    break;
+                }
+                second_edge_index = m_pEdges_04c[second_edge_index].next_0c;
+            }
+            if (second_edge_index != 0 &&
+                Function4218E0(neighbor_direction, destination_direction) >
+                    g_float_005ec390) {
+                return 1;
+            }
+            if (Function4218E0(neighbor_direction, destination_direction) >
+                g_float_005ec38c) {
+                return 1;
+            }
+        }
+        edge_index = edge->next_0c;
+    }
+    return 0;
+}
+
+/* Update an already-linked directed edge.
+
+   The source surface owns the chain. A match receives the caller's new flags;
+   the geometry-derived flag is also forced when either endpoint is a registered
+   path surface or when the service's span test leaves its shared mode enabled.
+   The image applies that derived bit through the next-edge slot rather than the
+   matched index, so this preserves that observable retail behavior. */
+// FUNCTION: WIZ8 0x0045f200
+unsigned char W8PathingService::UpdateWaypointLink0045F200(
+    unsigned short source,
+    unsigned short destination,
+    unsigned int flags)
+{
+    unsigned short edge_index = m_pSurfaces_048[source].first_edge_24;
+
+    while (edge_index != 0) {
+        W8PathEdge* edge = &m_pEdges_04c[edge_index];
+
+        if (edge->destination_06 == destination) {
+            edge->flags_00 = flags;
+            if ((m_pSurfaces_048[source].flags_00 & 0x40) != 0 ||
+                (m_pSurfaces_048[destination].flags_00 & 0x40) != 0 ||
+                (TestWaypointSpan0045A1B0(
+                     &m_pSurfaces_048[source].position_04,
+                     &m_pSurfaces_048[destination].position_04, 0, 0),
+                 flag_23c != 0)) {
+                m_pEdges_04c[m_ulNumEdges].flags_00 |= 0x20000000;
+            }
+            return 1;
+        }
+        edge_index = edge->next_0c;
+    }
+    return 0;
+}
+
+/* Edit the directed path edge joining a teleportal's two settled endpoints.
+
+   An endpoint only counts as an existing teleportal waypoint when the lookup
+   lands on a flagged surface within the shared snap distance. Missing ends are
+   inserted with their respective inbound/outbound defaults. When both ends
+   already existed, the first end's edge chain is searched so the dialog edits
+   the current flags rather than starting from zero. The resulting edge is
+   forced dynamic, its cached distance is invalidated, and both the renderer
+   and path-edit state are marked dirty. */
+// FUNCTION: WIZ8 0x0045f2d0
+void W8PathingService::EditTeleportalLink(
+    const srVector3T<float>* destination,
+    const srVector3T<float>* source)
+{
+    char title[80];
+    unsigned int link_flags[2];
+    unsigned short destination_index;
+    unsigned short source_index;
+    unsigned short edge_index;
+    unsigned char both_existing = 1;
+
+    if (flag_1c8 == 0) {
+        return;
+    }
+
+    destination_index = FindWaypoint0045B120(destination, 0);
+    if ((m_pSurfaces_048[destination_index].flags_00 & 2) == 0 ||
+        sqrt(
+            (m_pSurfaces_048[destination_index].position_04.z - destination->z) *
+                (m_pSurfaces_048[destination_index].position_04.z - destination->z) +
+            (m_pSurfaces_048[destination_index].position_04.y - destination->y) *
+                (m_pSurfaces_048[destination_index].position_04.y - destination->y) +
+            (m_pSurfaces_048[destination_index].position_04.x - destination->x) *
+                (m_pSurfaces_048[destination_index].position_04.x - destination->x)) >
+            g_path_waypoint_snap_distance_005ec150) {
+        destination_index = 0;
+    }
+
+    source_index = FindWaypoint0045B120(source, 0);
+    if ((m_pSurfaces_048[source_index].flags_00 & 2) == 0 ||
+        sqrt(
+            (m_pSurfaces_048[source_index].position_04.z - source->z) *
+                (m_pSurfaces_048[source_index].position_04.z - source->z) +
+            (m_pSurfaces_048[source_index].position_04.y - source->y) *
+                (m_pSurfaces_048[source_index].position_04.y - source->y) +
+            (m_pSurfaces_048[source_index].position_04.x - source->x) *
+                (m_pSurfaces_048[source_index].position_04.x - source->x)) >
+            g_path_waypoint_snap_distance_005ec150) {
+        source_index = 0;
+    }
+
+    if (destination_index == 0) {
+        destination_index = (unsigned short)m_ulNumSurfaces;
+        AddWaypoint0045DDB0(destination);
+        m_pSurfaces_048[destination_index].flags_00 = 2;
+        SetWaypointLinkFlags0045E030(destination_index, 6);
+        both_existing = 0;
+    }
+    if (source_index == 0) {
+        source_index = (unsigned short)m_ulNumSurfaces;
+        AddWaypoint0045DDB0(source);
+        m_pSurfaces_048[source_index].flags_00 = 2;
+        SetWaypointLinkFlags0045E030(source_index, 5);
+        both_existing = 0;
+    }
+
+    edge_index = 0;
+    link_flags[0] = 0;
+    link_flags[1] = 0;
+    if (both_existing != 0) {
+        edge_index = m_pSurfaces_048[destination_index].first_edge_24;
+        while (edge_index != 0) {
+            if (m_pEdges_04c[edge_index].destination_06 == source_index) {
+                link_flags[0] = m_pEdges_04c[edge_index].flags_00;
+                break;
+            }
+            edge_index = m_pEdges_04c[edge_index].next_0c;
+        }
+    }
+
+    if (edge_index != 0) {
+        sprintf(title, "EDIT FLAGS FOR EXISTING LINK BETWEEN TELEPORTAL WAYPOINTS: ");
+    }
+    else {
+        sprintf(title, "EDIT FLAGS FOR NEW LINK BETWEEN TELEPORTAL WAYPOINTS: ");
+    }
+    EditWaypointLinkFlags0045F530(title, link_flags, 5);
+
+    if (edge_index == 0) {
+        edge_index = (unsigned short)m_ulNumEdges;
+        AddWaypointLink0045EC30(destination_index, source_index, link_flags[0]);
+    }
+    else {
+        m_pEdges_04c[edge_index].flags_00 = link_flags[0];
+    }
+    m_pEdges_04c[edge_index].flags_00 |= 0x01000000;
+    m_pEdges_04c[edge_index].distance_08 = 0.0f;
+    MarkRendererReady();
+    flag_1cc = 1;
 }
 
 /* Look one named path up, and report the region and height range it spans.

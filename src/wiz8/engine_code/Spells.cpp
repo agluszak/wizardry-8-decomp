@@ -18,6 +18,7 @@
 #include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/3d_code/PList.h"
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/render_state.h"
@@ -327,13 +328,94 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
 }
 
 W8SpellEmitterHost::W8SpellEmitterHost()
-    : flag_378(0)
+    : value_0ac(0),
+      value_0b0(0),
+      flag_378(0)
 {
     int emitter;
 
     for (emitter = 0; emitter < 28; ++emitter) {
         emitters[emitter] = 0;
         emitter_values[emitter] = 15.0f;
+    }
+}
+
+/* Copy the two proven host values and terminal flag, clone every populated
+   animation, and deep-copy all optional per-emitter light vectors. */
+// FUNCTION: WIZ8 0x004aad20
+W8SpellEmitterHost::W8SpellEmitterHost(const W8SpellEmitterHost& other)
+    : W8EmitterHost(other),
+      value_0ac(other.value_0ac),
+      value_0b0(other.value_0b0),
+      flag_378(other.flag_378)
+{
+    int emitter;
+
+    for (emitter = 0; emitter < 28; ++emitter) {
+        if (other.emitters[emitter] == 0) {
+            emitters[emitter] = 0;
+            emitter_values[emitter] = 15.0f;
+        }
+        else {
+            emitters[emitter] = CloneAnimObj004A0320(other.emitters[emitter]);
+            emitter_values[emitter] = other.emitter_values[emitter];
+        }
+    }
+
+    active = 1;
+    selection.emitter.emitter_index =
+        other.selection.emitter.emitter_index;
+
+    for (emitter = 0; emitter < 28; ++emitter) {
+        int list_index;
+
+        for (list_index = 0;
+             list_index < other.light_lists[emitter].GetCount();
+             ++list_index) {
+            W8LightVector* source_lights =
+                *other.light_lists[emitter].GetAt(list_index);
+            W8LightVector* copied_lights = 0;
+
+            if (source_lights != 0) {
+                int light_index;
+
+                copied_lights = new W8LightVector;
+                if (copied_lights == 0) {
+                    srAssertFail(
+                        "plsNewLights",
+                        "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
+                        0x198,
+                        "Out of memory creating monster light list");
+                }
+                for (light_index = 0;
+                     light_index < source_lights->GetCount();
+                     ++light_index) {
+                    stLight* source_light =
+                        *source_lights->GetAt(light_index);
+                    float x = source_light->positionalX();
+                    float y = source_light->positionalY();
+                    float z = source_light->positionalZ();
+                    stLight* copied_light = new stLight;
+
+                    if (copied_light != 0) {
+                        *copied_light = *source_light;
+                    }
+                    if (copied_light == 0) {
+                        srAssertFail(
+                            "pstNewLight",
+                            "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
+                            0x1a0,
+                            "Out of memory creating monster light");
+                    }
+                    copied_light->ConfigureMonsterCopy();
+                    copied_light->setLocation(x, y, z);
+                    copied_light->setParent(0, 0);
+                    PLAdoptAppend(&g_world->m_list_0a8, copied_light);
+                    copied_lights->Add(copied_light);
+                }
+            }
+            light_lists[emitter].Add(copied_lights);
+        }
     }
 }
 
@@ -590,6 +672,10 @@ void ReleaseSpellDatabase(void)
 
 // VTABLE: WIZ8 0x005ecf40 W8SpellVisual
 // VTABLE: WIZ8 0x005ecf2c W8Navigator
+// class W8SpellVisual
+
+// VTABLE: WIZ8 0x005ecf18 W8SpellEmitterHost
+// class W8SpellEmitterHost
 
 // VTABLE: WIZ8 0x005ecfb0
 // class stSound3D

@@ -29,7 +29,9 @@ public:
         int positional_2,
         int emitter_index);
 
-    unsigned char unknown_0ac[0x2c];
+    unsigned int value_0ac;
+    unsigned int value_0b0;
+    unsigned char unknown_0b4[0x24];
     W8AnimObj* emitters[2];
     float emitter_values[2];
     W8GrowableVector<W8LightVector*> light_lists[2];

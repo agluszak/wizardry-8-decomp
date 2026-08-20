@@ -30,9 +30,6 @@ extern void Function439140(void);
 extern void Function457B10(void* value);
 extern void Function434020(int value);
 extern unsigned char g_navigator_link_mode_00659c10;
-/* 0x0045F2D0 consumes the settled pair; its own body is not recovered. */
-extern void ApplyPortalTransition0045F2D0(
-    const srVector3T<float>* destination, const srVector3T<float>* source);
 extern float g_rate_006068EC;
 extern float g_world_scale_005ebc40;
 
@@ -1781,7 +1778,7 @@ void W8Octree::AdjustPortalDestination(
     if (hit != 0) {
         local_source.y = probe.y;
     }
-    ApplyPortalTransition0045F2D0(&local_destination, &local_source);
+    pathing_180->EditTeleportalLink(&local_destination, &local_source);
 }
 
 /* Engine Code\Trigger.cpp lives in the same interval. Its list of live

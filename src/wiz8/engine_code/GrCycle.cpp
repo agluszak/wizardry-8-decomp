@@ -28,6 +28,10 @@
 #include <stdio.h>
 #include <string.h>
 
+template <>
+srVector3T<double>* srVector3T<double>::method_004A90E0(
+    const srVector3T<float>* source);
+
 /* Engine Code\GrCycle.cpp. BEHAVIOUR_FIRST and BEHAVIOUR_LAST come from the
    canonical assertion at line 1598; the body bounds-checks against 1 and 3, so
    the enum runs 1..3. The stored-to object is whatever GrCycle's primary vtable
@@ -178,10 +182,6 @@ extern int UpdateSoundEvents004D5890(
     int cycle,
     unsigned int frame,
     int subcycle);
-/* 0x004A90E0 widens one float row into the double row a world-space
-   rotation needs; its own body is not recovered. */
-extern void ConvertVector004A90E0(
-    srVector3T<double>* destination, const srVector3T<float>* source);
 extern float g_float_005ec128;
 extern float g_float_005ebc64;
 extern void Function401920(const char* message);
@@ -1153,8 +1153,8 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
             world.vectors[0].x = combined.vectors[0].x;
             world.vectors[0].y = combined.vectors[0].y;
             world.vectors[0].z = combined.vectors[0].z;
-            ConvertVector004A90E0(&world.vectors[1], &combined.vectors[1]);
-            ConvertVector004A90E0(&world.vectors[2], &combined.vectors[2]);
+            world.vectors[1].method_004A90E0(&combined.vectors[1]);
+            world.vectors[2].method_004A90E0(&combined.vectors[2]);
             particle->setWorldSpaceRotation(world);
         }
         location.x = placed.x;
@@ -1587,3 +1587,16 @@ void W8GrCycle::SetGroundShadowVisible(char visible)
         }
     }
 }
+
+template <>
+srVector3T<double>* srVector3T<double>::method_004A90E0(
+    const srVector3T<float>* source)
+{
+    x = (double)source->x;
+    y = (double)source->y;
+    z = (double)source->z;
+    return this;
+}
+
+// TEMPLATE: WIZ8 0x004a90e0
+// srVector3T<double>::method_004A90E0

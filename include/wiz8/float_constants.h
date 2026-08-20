@@ -17,10 +17,12 @@
 extern "C" {
 extern float g_float_005ebb38;
 extern double g_double_005ebc30;
+extern const float g_float_005ec0a8;
 extern double g_double_005ec318;
 extern float g_float_005ebc3c;
 extern float g_float_005ebc60;
 extern float g_float_005ebc7c;
+extern float g_float_005ec38c;
 extern float g_float_005ec390;
 extern float g_float_005ec438;
 extern float g_float_005ec5c0;

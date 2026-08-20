@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/Object0043A910.h"
+#include "wiz8/float_constants.h"
 
 /* The game-timer unit: a small timer object over one shared, reference-counted
    srTimer-derived singleton. The image names neither the unit nor the classes -
@@ -20,6 +21,9 @@ unsigned char g_shared_timer_flag_d1;                /* 0x006598D1 */
 unsigned char g_shared_timer_flag_d2;                /* 0x006598D2 */
 int g_game_time_ms;                                  /* 0x006874F7 */
 int g_game_time_days;                                /* 0x00687595 */
+
+// GLOBAL: WIZ8 0x005ec0a8
+extern "C" const float g_float_005ec0a8 = 10000.0f;
 
 // FUNCTION: WIZ8 0x00439bc0
 void Function439BC0(void)
@@ -62,6 +66,32 @@ void Function439BC0(void)
     }
 }
 
+// FUNCTION: WIZ8 0x00439ca0
+void Function439CA0(void)
+{
+    g_shared_timer_paused = 0;
+    g_shared_timer_flag_d1 = 0;
+    if (g_shared_timer != 0) {
+        g_shared_timer_pause_base =
+            g_shared_timer->getUTime(srTimer::TIMER_READ_DEFAULT)
+            - g_shared_timer_pause_time;
+        g_shared_timer_pause_time = 0;
+    }
+
+    W8Object0043A910* timer = g_object_6598bc;
+    if (timer != 0) {
+        timer->m_flags &= ~8;
+        int sample = timer->ReadClock();
+        float duration = timer->m_duration_scale
+                         * timer->m_duration_seconds
+                         * g_float_005ec0a8;
+        int start = sample - timer->m_start;
+        timer->m_start = start;
+        timer->m_duration = (int)duration;
+        timer->m_end = start + timer->m_duration;
+    }
+}
+
 // VTABLE: WIZ8 0x005ec0a4
 // class W8GameTimer
 
@@ -87,6 +117,12 @@ W8GameTimer::~W8GameTimer()
         delete shared;
     }
     m_shared = 0;
+}
+
+// FUNCTION: WIZ8 0x00439a60
+int W8GameTimer::Method00439A60()
+{
+    return ReadClock();
 }
 
 // FUNCTION: WIZ8 0x00439550

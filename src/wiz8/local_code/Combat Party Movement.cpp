@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
 
 /*
@@ -18,7 +19,6 @@ enum { W8_PHASES_PER_ROUND = 100 };
 enum { W8_TURN_PHASE_FREE = 3 };
 extern unsigned char g_party_moving_006850b5;
 extern unsigned char g_flag_00683fce;
-extern float g_movement_speed_005ec0a8;
 extern float g_movement_speed_step_005ed490;
 extern void ClampUnsignedInteger(unsigned int* value, unsigned int base, unsigned int span);
 extern void SetPartyMoving(int moving);                                 /* 0x00420B40 */
@@ -114,9 +114,9 @@ float GetPartyMovementSpeed(void)
         speed = 1.5f;
     }
     if (Function4F0010(&steps)) {
-        return (steps * g_movement_speed_step_005ed490 + speed) * g_movement_speed_005ec0a8;
+        return (steps * g_movement_speed_step_005ed490 + speed) * g_float_005ec0a8;
     }
-    return speed * g_movement_speed_005ec0a8;
+    return speed * g_float_005ec0a8;
 }
 
 /* End the party's movement phase. Outside the two combat modes there is

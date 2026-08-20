@@ -13,6 +13,7 @@
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Emitter.h"
+#include "wiz8/3d_code/PList.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/render_state.h"
 #include "wiz8/virtual_file.h"
@@ -138,9 +139,11 @@ extern "C" void ReleaseMissileDatabase(void)
     }
 }
 
+// VTABLE: WIZ8 0x005ecde0 W8MissileRep
+// class W8MissileRep
+
 // VTABLE: WIZ8 0x005ece08 W8Missile
 // VTABLE: WIZ8 0x005ecdf4 W8Navigator
-// VTABLE: WIZ8 0x005ecde0 W8MissileRep
 // class W8Missile
 
 static int g_missile_iterator_0065bde4;
@@ -238,6 +241,88 @@ W8MissileRep::W8MissileRep()
     emitters[1] = 0;
     emitter_values[0] = 15.0f;
     emitter_values[1] = 15.0f;
+}
+
+/* Copy the two proven representation values, clone each animation, and deep
+   copy every optional light vector. The copied lights are ordinary scene
+   objects registered with the world but detached until the missile selects
+   their emitter. */
+// FUNCTION: WIZ8 0x004a2db0
+W8MissileRep::W8MissileRep(const W8MissileRep& other)
+    : W8EmitterHost(other),
+      value_0ac(other.value_0ac),
+      value_0b0(other.value_0b0)
+{
+    int emitter;
+
+    for (emitter = 0; emitter < 2; ++emitter) {
+        if (other.emitters[emitter] == 0) {
+            emitters[emitter] = 0;
+            emitter_values[emitter] = 15.0f;
+        }
+        else {
+            emitters[emitter] = CloneAnimObj004A0320(other.emitters[emitter]);
+            emitter_values[emitter] = other.emitter_values[emitter];
+        }
+    }
+
+    for (emitter = 0; emitter < 2; ++emitter) {
+        int list_index;
+
+        for (list_index = 0;
+             list_index < other.light_lists[emitter].GetCount();
+             ++list_index) {
+            W8LightVector* source_lights =
+                *other.light_lists[emitter].GetAt(list_index);
+            W8LightVector* copied_lights = 0;
+
+            if (source_lights != 0) {
+                int light_index;
+
+                copied_lights = new W8LightVector;
+                if (copied_lights == 0) {
+                    srAssertFail(
+                        "plsNewLights",
+                        "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
+                        0x184,
+                        "Out of memory creating monster light list");
+                }
+                for (light_index = 0;
+                     light_index < source_lights->GetCount();
+                     ++light_index) {
+                    stLight* source_light =
+                        *source_lights->GetAt(light_index);
+                    float x = source_light->positionalX();
+                    float y = source_light->positionalY();
+                    float z = source_light->positionalZ();
+                    stLight* copied_light = new stLight;
+
+                    if (copied_light != 0) {
+                        *copied_light = *source_light;
+                    }
+                    if (copied_light == 0) {
+                        srAssertFail(
+                            "pstNewLight",
+                            "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
+                            0x18c,
+                            "Out of memory creating monster light");
+                    }
+                    copied_light->ConfigureMonsterCopy();
+                    copied_light->setLocation(x, y, z);
+                    copied_light->setParent(0, 0);
+                    PLAdoptAppend(&g_world->m_list_0a8, copied_light);
+                    copied_lights->Add(copied_light);
+                }
+            }
+            light_lists[emitter].Add(copied_lights);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004a5d40
+W8AnimRepBase005EC1D8* W8MissileRep::Clone()
+{
+    return new W8MissileRep(*this);
 }
 
 // FUNCTION: WIZ8 0x004A3300

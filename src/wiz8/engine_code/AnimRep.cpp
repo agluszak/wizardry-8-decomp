@@ -7,6 +7,15 @@ extern srTimer* g_shared_timer_base;
 extern float g_lod_range_default_0060e608;
 extern float g_lod_range_default_0060e60c;
 
+// VTABLE: WIZ8 0x005ec1d8 W8AnimRepBase005EC1D8
+// class W8AnimRepBase005EC1D8
+
+// VTABLE: WIZ8 0x005ed050 W8AnimRep005ED050
+// class W8AnimRep005ED050
+
+// VTABLE: WIZ8 0x005ed058 W8EmitterHost
+// class W8EmitterHost
+
 // FUNCTION: WIZ8 0x004b86e0
 W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8()
 {

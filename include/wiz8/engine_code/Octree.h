@@ -21,11 +21,36 @@ public:
 };
 struct W8NavigatorMovementState;
 
+/* OctPath.cpp's two compact graph records. Surface zero and edge zero are
+   sentinels; live records are addressed by their unsigned-short indices. */
+struct W8PathSurface {
+    unsigned short flags_00;
+    unsigned short index_02;
+    srVector3T<float> position_04;
+    unsigned char positional_10[0x14];
+    unsigned short first_edge_24;
+    unsigned short positional_26;
+};
+
+#pragma pack(push, 1)
+struct W8PathEdge {
+    unsigned int flags_00;
+    unsigned short source_04;
+    unsigned short destination_06;
+    float distance_08;
+    unsigned short next_0c;
+};
+#pragma pack(pop)
+
+static_assert(sizeof(W8PathSurface) == 0x28, "W8PathSurface_must_be_0x28");
+static_assert(sizeof(W8PathEdge) == 0x0e, "W8PathEdge_must_be_0x0e");
+
 class W8OctreeObjectRegistry {
 public:
     /* Returns whether the pairing ended up recorded; every recovered caller
        discards it. */
     unsigned char RegisterObjectCell(int kind, int id, const int* point);
+    unsigned char UpdateObjectCell00436B90(int kind, int id, const int* point);
 };
 
 /* The cell walk 0x004362D0 builds and both line-of-sight bodies step: an
@@ -71,6 +96,27 @@ public:
         W8NavigatorMovementState* movement, float radius, float separation);
     void LinkSurfaces00460020();          /* 0x00460020 */
     void LinkEdges004600B0();             /* 0x004600B0 */
+    unsigned short FindWaypoint0045B120(
+        const srVector3T<float>* position, unsigned char exhaustive);
+    void AddWaypoint0045DDB0(const srVector3T<float>* position);
+    unsigned int ClassifyWaypoint00459C00(const srVector3T<float>* position);
+    void SetWaypointLinkFlags0045E030(unsigned short waypoint, unsigned int direction);
+    void AddWaypointLink0045EC30(
+        unsigned short source, unsigned short destination, unsigned int flags);
+    unsigned char UpdateWaypointLink0045F200(
+        unsigned short source, unsigned short destination, unsigned int flags);
+    unsigned char HasDirectionalWaypointLink0045EF90(
+        unsigned short source, unsigned short destination);
+    unsigned char TestWaypointSpan0045A1B0(
+        const srVector3T<float>* source,
+        const srVector3T<float>* destination,
+        int value_3,
+        int value_4);
+    unsigned int EditWaypointLinkFlags0045F530(
+        const char* title, unsigned int* flags, unsigned int direction);
+    void EditTeleportalLink(
+        const srVector3T<float>* destination,
+        const srVector3T<float>* source); /* 0x0045F2D0 */
     /* Takes the size, two loose values, the six-float bounds block out of the
        octree header, and the level name the octree already owns. */
     void ConfigureForLevel(
@@ -102,8 +148,8 @@ public:
     void* m_owned_044;                   /* 0x44 */
     /* Surfaces are 0x28 bytes apart, edges 0xe; an edge names two surfaces by
        index in its two shorts at +4 and +6. */
-    unsigned char* m_pSurfaces_048;      /* 0x48 */
-    unsigned char* m_pEdges_04c;         /* 0x4c */
+    W8PathSurface* m_pSurfaces_048;      /* 0x48 */
+    W8PathEdge* m_pEdges_04c;            /* 0x4c */
     void* m_owned_050;                   /* 0x50 */
     class W8PathOwned054* m_owned_054;   /* 0x54 */
     BitArray* m_owned_058;               /* 0x58 */
@@ -161,7 +207,8 @@ public:
     short* m_pCondFrames;                /* 0x230 */
     int* m_pCondKeys;                    /* 0x234 */
     int* m_pCondValues;                  /* 0x238 */
-    int m_positional_23c;
+    unsigned char flag_23c;
+    unsigned char m_padding_23d[3];
 };
 
 static_assert(sizeof(W8PathingService) == 0x240,
@@ -184,6 +231,8 @@ public:
         int index, const srVector3T<float>* bounds);
     void VisitPointCopy0042E620(
         unsigned short location_id, srVector3T<float>* position);
+    void WorldPositionToCell00431440(
+        const srVector3T<float>* position, int* point);
     void UpdateMonsterLocation(
         unsigned short location_id, const srVector3T<float>* position);
     bool HasLineOfSight(

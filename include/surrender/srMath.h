@@ -47,6 +47,7 @@ public:
     srVector3T<T>& operator/=(double scalar);
     T method_00421700() const;
     srVector3T<T>* method_00446110(const srVector3T<double>* source);
+    srVector3T<T>* method_004A90E0(const srVector3T<float>* source);
     srVector3T<T>* method_00451A10(double sine, double cosine);
     srVector3T<T>* method_0049BA80(double sine, double cosine);
 
