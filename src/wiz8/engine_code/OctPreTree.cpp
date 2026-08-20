@@ -1,8 +1,30 @@
 #include "wiz8/engine_code/OctPreTree.h"
+#include "wiz8/engine_code/Octree.h"
 #include "wiz8/float_constants.h"
 
 #include <math.h>
 #include <string.h>
+
+extern "C" W8OctPreTree004679E0* g_oct_pre_tree_659c74;
+
+/* The build-time runtime tree extends the ordinary 0x29c octree with transfer
+   bookkeeping and one separately owned pointer vector.  Its only recovered
+   construction caller allocates exactly 0x3bc bytes. */
+// FUNCTION: WIZ8 0x004679e0
+W8OctPreTree004679E0::W8OctPreTree004679E0()
+    : W8Octree(0, 0)
+{
+    positional_3a4 = 0;
+    positional_3a8 = 0;
+    positional_3ac = 0;
+    positional_3b0 = 0;
+    m_positional_178 = 0;
+    positional_3b4 = 0;
+    positional_29c = 0;
+    positional_2a0 = 0;
+    positional_3b8 = new W8GrowableVector<void*>;
+    g_oct_pre_tree_659c74 = this;
+}
 
 /* Construct the spatial value used by both the runtime octree and the level
    build tree.  A source value describes the next child: its extent halves and

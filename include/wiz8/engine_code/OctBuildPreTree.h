@@ -18,6 +18,7 @@ struct W8OctBuildPreTree004AFDA0 : W8OctBuildTree00446390 {
         unsigned short item_limit,
         unsigned long path_capacity,
         short extent_mode);
+    W8OctPreTree004679E0* BuildOctPreTree004B4640();
 
     unsigned long path_capacity_bc;
     unsigned short selected_depth_c0;
@@ -30,12 +31,12 @@ struct W8OctBuildPreTree004AFDA0 : W8OctBuildTree00446390 {
     void* region_bits_f8;
     void* region_centers_fc;
     unsigned long positional_100;
-    unsigned long positional_104;
-    unsigned long positional_108;
+    void* positional_104;
+    void* positional_108;
     unsigned short positional_10c;
     unsigned short padding_10e;
-    unsigned long positional_110;
-    unsigned long positional_114;
+    void* positional_110;
+    void* positional_114;
     unsigned short positional_118;
     unsigned short padding_11a;
     unsigned long positional_11c;

@@ -743,6 +743,7 @@ symbol
 ?g_float_005ebcf8@@3MB
 ?g_float_005ec128@@3MA
 ?g_float_005ecf98@@3MA
+?g_float_005ed038@@3MA
 ?g_fog_enabled_0065b9ad@@3EA
 ?g_footstep_alternate_65a10a@@3EA
 ?g_footstep_fixed_name_609f44@@3PBDB
@@ -1190,6 +1191,7 @@ _g_monster_record_float_scale
 _g_navigator_position_changed_659c11
 _g_next_world_item_id
 _g_npc_item_lists
+_g_oct_pre_tree_659c74
 _g_party_characters
 _g_party_gold
 _g_party_item_count

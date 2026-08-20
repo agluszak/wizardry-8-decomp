@@ -124,6 +124,39 @@ void WriteMember(W8Octree* octree, unsigned int offset, T value)
 
 } // namespace
 
+/* Follow one child bit per axis and level through the compact 9-word branch
+   records.  Zero is the missing-child sentinel; live leaves start at one. */
+// FUNCTION: WIZ8 0x00433660
+unsigned long W8Octree::FindLeaf00433660(const int* point)
+{
+    unsigned long level = spatial_000.depth_44;
+    unsigned long mask = 1 << spatial_000.depth_44;
+    unsigned long node = 1;
+
+    do {
+        if ((long)level < 1) {
+            break;
+        }
+        mask /= 2;
+        int child = 0;
+        if ((point[0] & mask) != 0) {
+            child = 4;
+        }
+        if ((point[1] & mask) != 0) {
+            child += 2;
+        }
+        if ((point[2] & mask) != 0) {
+            child += 1;
+        }
+        node = m_owned_09c[node].children_04[child];
+        --level;
+    } while (node != 0);
+    if (m_positional_0b8 < node) {
+        return 0;
+    }
+    return node;
+}
+
 /* Whether one point can see another, and where the line stops if it cannot.
 
    Both of these walk the same cell line. A line inside one or two cells probes

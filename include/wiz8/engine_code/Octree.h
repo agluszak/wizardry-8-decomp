@@ -4,6 +4,7 @@
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/OctPreTree.h"
 #include "wiz8/engine_code/stHeap.hpp"
+#include "wiz8/vector.h"
 
 class GDProp;
 class stModelInstance005EC7D0;
@@ -483,6 +484,7 @@ public:
         unsigned short location_id, srVector3T<float>* position);
     void WorldPositionToCell00431440(
         const srVector3T<float>* position, int* point);
+    unsigned long FindLeaf00433660(const int* point);
     void UpdateMonsterLocation(
         unsigned short location_id, const srVector3T<float>* position);
     bool HasLineOfSight(
@@ -637,14 +639,18 @@ static_assert(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
    the destructive OctBuildPreTree conversion is named here. */
 class W8OctPreTree004679E0 : public W8Octree {
 public:
-    unsigned char positional_29c[0x104];
+    W8OctPreTree004679E0();
+
+    void* positional_29c;
+    unsigned long positional_2a0;
+    unsigned char positional_2a4[0xfc];
     unsigned long polygon_cursor_3a0;
     void* positional_3a4;
     unsigned long positional_3a8;
     unsigned long positional_3ac;
     unsigned long positional_3b0;
     unsigned long positional_3b4;
-    void* positional_3b8;
+    W8GrowableVector<void*>* positional_3b8;
 };
 
 static_assert(sizeof(W8OctPreTree004679E0) == 0x3bc,

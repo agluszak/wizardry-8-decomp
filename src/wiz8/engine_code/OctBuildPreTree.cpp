@@ -5,6 +5,7 @@
 #include <string.h>
 
 extern void Function497690(int channel, const char* message);
+extern float g_float_005ed038;
 
 /* This zero-storage node form is constructed by OctBuildTree when its
    pre-tree ownership mode is active.  Its immediately following conversion
@@ -272,6 +273,163 @@ W8OctBuildPreTree004AFDA0::W8OctBuildPreTree004AFDA0(
     positional_114 = 0;
     positional_118 = 0;
     positional_11c = 0;
+}
+
+/* Build the compact runtime pre-tree, transfer the auxiliary ownership that
+   already has runtime form, consume the counted build-node hierarchy, and
+   populate the dense cell-to-leaf lookup. */
+// FUNCTION: WIZ8 0x004b4640
+W8OctPreTree004679E0* W8OctBuildPreTree004AFDA0::BuildOctPreTree004B4640()
+{
+    W8OctPreTree004679E0* tree = new W8OctPreTree004679E0;
+    if (tree == 0) {
+        return 0;
+    }
+
+    tree->m_owned_09c = static_cast<W8OctPreTreeBranch*>(
+        malloc((g_value_65be60 * 9 + 0x12) * sizeof(unsigned long)));
+    if (tree->m_owned_09c == 0) {
+        return 0;
+    }
+    memset(tree->m_owned_09c, 0,
+           (g_value_65be60 * 9 + 0x12) * sizeof(unsigned long));
+
+    tree->m_owned_0a0 = static_cast<W8OctPreTreeLeaf*>(
+        malloc((positional_a8 + 2) * sizeof(W8OctPreTreeLeaf)));
+    if (tree->m_owned_0a0 == 0) {
+        return 0;
+    }
+    memset(tree->m_owned_0a0, 0,
+           (positional_a8 + 2) * sizeof(W8OctPreTreeLeaf));
+
+    tree->m_owned_0d0 = static_cast<unsigned long*>(
+        malloc(positional_a0 * 2 * sizeof(unsigned long)));
+    if (tree->m_owned_0d0 == 0) {
+        return 0;
+    }
+    memset(tree->m_owned_0d0, 0,
+           positional_a0 * 2 * sizeof(unsigned long));
+
+    tree->m_owned_148 = static_cast<unsigned short*>(
+        malloc(positional_a8 * 0x50));
+    if (tree->m_owned_148 == 0) {
+        return 0;
+    }
+    memset(tree->m_owned_148, 0, positional_a8 * 0x50);
+
+    tree->m_owned_12c = static_cast<unsigned long*>(
+        malloc(positional_a4 * 2 * sizeof(unsigned long)));
+    if (tree->m_owned_12c == 0) {
+        return 0;
+    }
+    memset(tree->m_owned_12c, 0,
+           positional_a4 * 2 * sizeof(unsigned long));
+
+    tree->spatial_000.positional_46 = spatial_00.positional_46;
+    tree->spatial_000.positional_52 = spatial_00.positional_52;
+    tree->spatial_000.positional_74 = spatial_00.positional_74;
+    tree->spatial_000.positional_58 = spatial_00.positional_58;
+
+    tree->m_pusMeshParticleLookup =
+        static_cast<unsigned short*>(positional_104);
+    positional_104 = 0;
+    tree->m_pusMeshParticles = static_cast<unsigned short*>(positional_108);
+    positional_108 = 0;
+    tree->m_positional_0e8 = positional_10c;
+    tree->m_pusMeshPropLookup = static_cast<unsigned short*>(positional_110);
+    positional_110 = 0;
+    tree->m_pusMeshProps = static_cast<unsigned short*>(positional_114);
+    tree->m_positional_0f4 = positional_118;
+    positional_114 = 0;
+    tree->m_ulNumParticles = positional_11c;
+    tree->m_ulNumProps = positional_120;
+
+    tree->spatial_000.depth_44 = spatial_00.depth_44;
+    tree->spatial_000.node_extent_70 = spatial_00.node_extent_70;
+    tree->spatial_000.positional_60 =
+        spatial_00.positional_60 < g_float_005ed038
+            ? spatial_00.positional_60
+            : g_float_005ed038;
+    while (selected_depth_c0 < tree->spatial_000.depth_44) {
+        Function497690(6, "Collapsing tree by one level.");
+        --tree->spatial_000.depth_44;
+        tree->spatial_000.node_extent_70 += tree->spatial_000.node_extent_70;
+    }
+
+    tree->spatial_000.extent_04 = spatial_00.extent_04;
+    tree->spatial_000.cell_size_08 = spatial_00.cell_size_08;
+    tree->spatial_000.owned_5c = spatial_00.owned_5c;
+    tree->positional_3a4 = game_data_134;
+    tree->positional_3a8 = positional_138;
+    tree->positional_3ac = positional_13c;
+    tree->positional_3b0 = positional_b8;
+    tree->spatial_000.item_count_40 = spatial_00.item_count_40;
+    tree->spatial_000.state_3c = spatial_00.state_3c;
+    tree->m_owned_190 = new BitArray(spatial_00.state_3c);
+    tree->spatial_000.positional_54 = spatial_00.positional_54;
+    tree->spatial_000.positional_50 = spatial_00.positional_50;
+    tree->positional_29c = positional_124;
+    positional_124 = 0;
+
+    for (int axis = 0; axis != 3; ++axis) {
+        (&tree->spatial_000.minimum_0c.x)[axis] =
+            (&spatial_00.minimum_0c.x)[axis];
+        (&tree->spatial_000.maximum_18.x)[axis] =
+            (&spatial_00.maximum_18.x)[axis];
+        (&tree->spatial_000.clipped_minimum_24.x)[axis] =
+            (&spatial_00.clipped_minimum_24.x)[axis];
+        (&tree->spatial_000.clipped_maximum_30.x)[axis] =
+            (&spatial_00.clipped_maximum_30.x)[axis];
+    }
+
+    tree->m_positional_0b4 = 1;
+    tree->m_positional_0b8 = 1;
+    tree->polygon_cursor_3a0 = 1;
+    tree->m_positional_138 = 1;
+    tree->m_positional_124 = 1;
+    tree->m_positional_13c = 0;
+    tree->m_positional_128 = 0;
+
+    W8OctBuildNode00446330* root =
+        static_cast<W8OctBuildNode00446330*>(spatial_00.root_90);
+    root->ConvertToOctPreTree004AFA30(0, tree);
+    delete root;
+    spatial_00.root_90 = 0;
+    if (tree->m_positional_138 == 1) {
+        tree->m_positional_138 = 0;
+    }
+
+    for (int grid_axis = 0; grid_axis != 3; ++grid_axis) {
+        (&tree->m_positional_0a4)[grid_axis] =
+            (int)(((&tree->spatial_000.clipped_maximum_30.x)[grid_axis] -
+                   (&tree->spatial_000.clipped_minimum_24.x)[grid_axis]) /
+                  tree->spatial_000.node_extent_70) +
+            1;
+    }
+    tree->m_owned_0b0 = malloc(
+        tree->m_positional_0ac * tree->m_positional_0a4 *
+        tree->m_positional_0a8 * sizeof(unsigned long));
+    unsigned long cell_index = 0;
+    int point[3];
+    for (point[0] = 0; point[0] < (int)tree->m_positional_0a4; ++point[0]) {
+        for (point[1] = 0; point[1] < (int)tree->m_positional_0a8; ++point[1]) {
+            for (point[2] = 0; point[2] < (int)tree->m_positional_0ac;
+                 ++point[2]) {
+                static_cast<unsigned long*>(tree->m_owned_0b0)[cell_index] =
+                    tree->FindLeaf00433660(point);
+                if (tree->m_positional_0b8 <
+                    static_cast<unsigned long*>(tree->m_owned_0b0)[cell_index]) {
+                    static_cast<unsigned long*>(
+                        tree->m_owned_0b0)[cell_index] = 0;
+                }
+                ++cell_index;
+            }
+        }
+    }
+    tree->spatial_000.positional_68 = tree->m_positional_0ac;
+    tree->spatial_000.positional_64 =
+        tree->m_positional_0ac * tree->m_positional_0a8;
+    return tree;
 }
 
 // FUNCTION: WIZ8 0x004afe90

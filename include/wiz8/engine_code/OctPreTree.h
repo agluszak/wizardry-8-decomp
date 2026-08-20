@@ -27,13 +27,14 @@ struct W8OctSpatialState0046CCC0 {
     unsigned short depth_44;
     unsigned short positional_46;
     unsigned short item_limit_48;
-    unsigned char positional_4a[8];
+    unsigned char positional_4a[6];
+    unsigned short positional_50;
     unsigned short positional_52;
-    unsigned char positional_54[4];
+    unsigned long positional_54;
     unsigned short positional_58;
     unsigned short positional_5a;
     void* owned_5c;
-    unsigned long positional_60;
+    float positional_60;
     unsigned long positional_64;
     unsigned long positional_68;
     unsigned short level_kind_6c;
