@@ -111,12 +111,8 @@ __forceinline Controls::~Controls()
 /* 0x00562A50 takes the redraw-request mask the panel raises. */
 extern void RequestRedraw(unsigned int mask);
 extern void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags);
-extern void Function548F90(int operation, int target, int arg_1c, int arg_20,
-                           int left, int top, int mode, int flags);
 extern void Function5494F0(int target, int arg_1c, int arg_20,
                            int left, int top, int mode);
-extern void Function549600(int operation, int target, int arg_1c, int arg_20,
-                           int left, int top, int mode, int flags);
 extern void Function407210(int font);
 extern int Function406DF0(int font);
 extern void Function4068E0(int font_context, int render_mode);

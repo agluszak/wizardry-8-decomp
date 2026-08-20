@@ -201,6 +201,35 @@ void NavigatorDefaultCallback00451EA0(W8Navigator* navigator)
     navigator->fields.movement_0c0.velocity_034.z = 0.0f;
 }
 
+// FUNCTION: WIZ8 0x00453160
+void Function453160(void)
+{
+    int count = g_navigator_count_659b34;
+    for (int index = 0; index < count; ++index) {
+        W8Navigator* navigator = g_navigators_659b3c[index];
+        navigator->fields.flag_025 = 1;
+        navigator->fields.movement_0c0.velocity_034.x = 0.0f;
+        navigator->fields.movement_0c0.velocity_034.y = 0.0f;
+        navigator->fields.movement_0c0.velocity_034.z = 0.0f;
+    }
+}
+
+// FUNCTION: WIZ8 0x004531a0
+void Function4531A0(void)
+{
+    int count = g_navigator_count_659b34;
+    for (int index = 0; index < count; ++index) {
+        W8Navigator* navigator = g_navigators_659b3c[index];
+        navigator->fields.flag_025 = 0;
+        if (navigator->fields.path_ai_068 != 0) {
+            PathAIResetTick004A9C20(navigator->fields.path_ai_068);
+        }
+        if (navigator->fields.path_ai_068 != 0) {
+            PathAIResetTick004A9C20(navigator->fields.path_ai_068);
+        }
+    }
+}
+
 /* The attachment owns two allocations from construction: ten srVector3T<float>
    of recorded positions from srHeap, and a zeroed twenty-byte record. */
 // FUNCTION: WIZ8 0x00456210

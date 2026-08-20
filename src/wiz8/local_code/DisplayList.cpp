@@ -9,6 +9,12 @@ extern "C" {
 void Function40B830(MOUSE_REGION* node);
 extern void HideRegionHelp(void);
 extern void Function5A1140(short shape);
+extern void ReleaseScreenTransitionObjects(void);
+extern void SetHelpBoxText(void* text);
+extern void PlaceHelpBox(int x, int y);
+extern int g_help_box_width;
+extern int g_help_box_height;
+extern unsigned char g_flag_5ff7ca;
 
 short g_word_5ff7c8;
 MOUSE_REGION* g_display_ptr_650e6c;
@@ -27,6 +33,8 @@ MOUSE_REGION* g_display_ptr_650e9c;
 unsigned char g_display_flag_650ea0;
 unsigned char g_display_flag_650e90;
 unsigned short g_display_id_6e4100;
+unsigned char g_fast_help_render_enabled_5ff824 = 1;
+int g_fast_help_last_clock_650e68;
 
 int g_dword_650e78;
 int g_dword_650e7c;
@@ -38,6 +46,67 @@ unsigned char g_byte_650e88;
 unsigned char g_byte_650e89;
 unsigned char g_byte_650e8a;
 MOUSE_REGION* g_display_ptr_650e8c;
+
+/* This is the pinned SGP RenderFastHelp body selected by its Wizardry build.
+   Wizardry's video tooltip calls are represented by the already recovered
+   game-owned help-box boundary, but the timer and mouse-region rules remain
+   the source-owned SGP implementation. */
+// LIBRARY: WIZ8 0x0040c0b0
+void Function40C0B0(void)
+{
+    int current_clock;
+    int elapsed;
+    int x;
+    int y;
+
+    if (!g_fast_help_render_enabled_5ff824) {
+        return;
+    }
+    current_clock = GetClock();
+    elapsed = current_clock - g_fast_help_last_clock_650e68;
+    if (elapsed < 0) {
+        elapsed += 0x7fffffff;
+    }
+    g_fast_help_last_clock_650e68 = current_clock;
+
+    if (g_display_ptr_650e9c == 0 || g_display_ptr_650e9c->FastHelpText == 0 ||
+        !g_flag_5ff7ca) {
+        return;
+    }
+    if (g_display_ptr_650e9c->FastHelpTimer == 0) {
+        if ((g_display_ptr_650e9c->uiFlags &
+             (MSYS_ALLOW_DISABLED_FASTHELP | MSYS_REGION_ENABLED)) == 0) {
+            return;
+        }
+        if ((g_display_ptr_650e9c->uiFlags & MSYS_MOUSE_IN_AREA) == 0) {
+            g_display_ptr_650e9c->uiFlags &=
+                ~(MSYS_FASTHELP | MSYS_FASTHELP_RESET);
+            ReleaseScreenTransitionObjects();
+            return;
+        }
+        g_display_ptr_650e9c->uiFlags |= MSYS_FASTHELP;
+        SetHelpBoxText(g_display_ptr_650e9c->FastHelpText);
+        x = g_display_ptr_650e9c->RegionTopLeftX + 10;
+        if (x < 0) x = 0;
+        if (x + g_help_box_width >= 640) x = 636 - g_help_box_width;
+        y = g_display_ptr_650e9c->RegionTopLeftY - g_help_box_height * 3 / 4;
+        if (y < 0) y = 0;
+        if (y + g_help_box_height >= 480) y = 465 - g_help_box_height;
+        PlaceHelpBox(x, y);
+        return;
+    }
+    if ((g_display_ptr_650e9c->uiFlags &
+         (MSYS_ALLOW_DISABLED_FASTHELP | MSYS_REGION_ENABLED)) != 0 &&
+        (g_display_ptr_650e9c->uiFlags & MSYS_MOUSE_IN_AREA) != 0 &&
+        g_display_ptr_650e9c->ButtonState == 0) {
+        if (elapsed > 0) {
+            g_display_ptr_650e9c->FastHelpTimer -= (short)elapsed;
+        }
+        if (g_display_ptr_650e9c->FastHelpTimer < 0) {
+            g_display_ptr_650e9c->FastHelpTimer = 0;
+        }
+    }
+}
 
 /*
  * Inserts a node into the display list, ordered on the key at +0x02 with

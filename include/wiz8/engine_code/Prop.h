@@ -13,6 +13,7 @@ struct W8ReadLevelInfo;
 struct W8World;
 class srModelInstance;
 class stModelInstance005EC7D0;
+class Trigger;
 class W8Prop;
 
 /* Prop.cpp's m_pRep.  Assertions name the member; the constructor allocates
@@ -42,7 +43,7 @@ public:
     virtual ~W8PropRepresentation() override;
     virtual W8AnimRepBase005EC1D8* Clone() override;
 
-    void ToggleAnimation(int argument);   /* 0x0044BA00 */
+    srModelInstance* ToggleAnimation(int argument); /* 0x0044BA00 */
     unsigned char SelectAnimationSlot(unsigned char tag);
     int FindCurrentAnimationSlot();           /* 0x0044BAE0 */
     unsigned char AdvanceAnimationSegment();
@@ -109,7 +110,7 @@ public:
     void CollectModelInstances0044E570(
         W8GrowableVector<stModelInstance005EC7D0*>* instances);
 
-    int value_18;                        /* 0x18 */
+    Trigger* trigger_18;                 /* 0x18 */
     unsigned int flags_1c;               /* 0x1c */
     char* m_name;                     /* 0x20 */
     int unknown_024;                     /* 0x24 */

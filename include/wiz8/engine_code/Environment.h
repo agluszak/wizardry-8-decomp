@@ -34,5 +34,6 @@ void SetFogEnabled(unsigned char enabled);
 unsigned char IsFogEnabled(void);
 void DisableSky(void);
 unsigned char IsSkyEnabled(void);
+void GetWorldLightValue(const void* world, int* light_value);
 void ResetEnvironment(void);
 void ReleaseEnvironmentObjects(void);

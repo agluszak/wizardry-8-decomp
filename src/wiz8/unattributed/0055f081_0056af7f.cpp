@@ -1,4 +1,7 @@
 #include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/game_state.h"
+#include "wiz8/screen_state.h"
+#include "wiz8/combat_state.h"
 #include "input.h"
 #include "mousesystem_macros.h"
 
@@ -35,5 +38,87 @@ unsigned int Function568950(const InputAtom* input)
         return 1;
     default:
         return 0;
+    }
+}
+
+extern unsigned char g_flag_00683fcd;
+extern unsigned char g_flag_00683f95;
+extern unsigned char g_flag_00683f96;
+extern unsigned char g_flag_00683f97;
+extern unsigned char g_flag_00683f98;
+extern unsigned char g_flag_00683f99;
+extern unsigned char g_flag_00683f9a;
+extern unsigned char g_flag_00683f9c;
+extern unsigned char g_flag_00683f9d;
+extern unsigned char g_flag_006840bd;
+extern "C" unsigned char g_flag_6840bc;
+extern void DisableRegionSet1C(void);
+extern float Function420B40(int value);
+extern void Function482990(unsigned char enabled);
+extern void MonsterForward453160(void);
+extern void Function41F0D0(void);
+extern void MonsterForward4531A0(void);
+extern void ClearLevelDataFlag6(void);
+extern void Function5A1950(void);
+extern "C" void ClearSurfaceRect(
+    int left, unsigned int top, int right, unsigned int bottom);
+extern void MarkScreenRectDirty(
+    int left, int top, int right, int bottom, int flags);
+
+// FUNCTION: WIZ8 0x0056aa30
+void Function56AA30(void)
+{
+    g_flag_6840bc = 1;
+    if (g_flag_00683fcd != 0) {
+        DisableRegionSet1C();
+    }
+    if (g_in_combat_00683f94 == 0) {
+        if (g_flag_006840bd != 0) {
+            Function420B40(1);
+            ClearRegionModeBits(0x137);
+            ActivateDialogRegion(0x137);
+        }
+        Function482990(0);
+        MonsterForward453160();
+        Function41F0D0();
+    }
+    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME &&
+        g_level_block != 0) {
+        g_level_block->redraw_flags |= 0x8000;
+    }
+}
+
+// FUNCTION: WIZ8 0x0056aab0
+void Function56AAB0(void)
+{
+    if (g_flag_00683f95 == 0 && g_flag_00683f97 == 0 &&
+        g_flag_00683f96 == 0 && g_flag_00683f9a == 0) {
+        if (g_in_combat_00683f94 == 0) {
+            if (g_flag_006840bd != 0) {
+                Function420B40(4);
+                ClearActiveRegionIfMatches(0x137);
+                SetRegionMode4(0x137);
+            }
+            Function482990(1);
+            MonsterForward4531A0();
+            if (g_flag_00683f98 == 0 && g_flag_00683f99 == 0 &&
+                g_flag_00683f9c == 0 && g_flag_00683f9d == 0) {
+                ClearLevelDataFlag6();
+            }
+        }
+        g_flag_6840bc = 0;
+        g_flag_006840bd = 0;
+        if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME &&
+            g_level_block->flag_327 == 0) {
+            if (g_flag_00683fcd != 0) {
+                Function5A1950();
+            }
+            ClearSurfaceRect(0xb1, 0x13f, 0x1cf, 0x153);
+            MarkScreenRectDirty(0xb1, 0x13f, 0x1cf, 0x153, 0);
+            if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME &&
+                g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x8000;
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/GDProp.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/engine_code/AnimObj.h"
@@ -104,7 +105,7 @@ W8Prop::W8Prop()
     W8PropRepresentation* rep;
     void* memory;
 
-    value_18 = 0;
+    trigger_18 = 0;
     flags_1c = 0;
     m_name = 0;
     unknown_024 = 0;
@@ -307,7 +308,7 @@ void W8Prop::ToggleSetting6E()
 // FUNCTION: WIZ8 0x0044d5a0
 int W8Prop::GetValue18()
 {
-    return this->value_18;
+    return reinterpret_cast<int>(this->trigger_18);
 }
 
 /* One value out of the owned GDProp, but only once the flag that says it is
@@ -356,15 +357,126 @@ void W8Prop::GetCenterPosition(srVector3T<float>* position)
     position->z = (first.z + second.z) * 0.5f;
 }
 
+extern srModelInstance* GetValue65962C(void);
+extern void SetValue65962C(srModelInstance* value);
+extern unsigned char g_flag_6081e4;
+
+Trigger* g_selected_prop_trigger_00659a60;
+int g_selected_prop_index_00607b98;
+
+/* Resolve the renderer's picked model instance back to the prop and trigger
+   that own it. A pick is accepted only while the prop is active, the trigger
+   permits selection, and the prop centre lies inside the trigger's distance
+   interval. */
+// FUNCTION: WIZ8 0x0044d760
+char Function44D760(W8World* world)
+{
+    srModelInstance* selected;
+    srVector3T<float> camera_position;
+    unsigned int prop_count;
+    int prop_index;
+    char valid;
+
+    g_selected_prop_trigger_00659a60 = 0;
+    g_selected_prop_index_00607b98 = -1;
+    selected = GetValue65962C();
+    if (selected == 0) {
+        return 0;
+    }
+
+    valid = 1;
+    GetCameraPosition(&camera_position);
+    prop_count = PLLength(world->plsProps);
+    for (prop_index = 0; prop_index < static_cast<int>(prop_count); ++prop_index) {
+        W8Prop* prop;
+        W8PropRepresentation* representation;
+        srModelInstance* instance;
+        int instance_index;
+
+        if (!valid) {
+            return 0;
+        }
+        if (g_selected_prop_trigger_00659a60 != 0) {
+            return valid;
+        }
+        prop = static_cast<W8Prop*>(PLGet(world->plsProps, prop_index));
+        representation = prop->Rep();
+        if (representation->active == 0) {
+            continue;
+        }
+
+        instance = 0;
+        if (AnimationIsRunning(representation->animation) == 1) {
+            int count = static_cast<int>(AnimObjListCount004A1620(
+                representation->animation, 2));
+            for (instance_index = 0; instance_index < count; ++instance_index) {
+                instance = AnimObjDispatchList004A1560(
+                    representation->animation, 2,
+                    static_cast<signed char>(instance_index));
+                if (GetValue65962C() == instance) {
+                    break;
+                }
+            }
+            if (instance_index == count) {
+                continue;
+            }
+        } else {
+            instance = representation->ToggleAnimation(
+                representation->flag_064);
+            if (GetValue65962C() != instance) {
+                continue;
+            }
+        }
+
+        {
+            Trigger* trigger = prop->trigger_18;
+            g_selected_prop_trigger_00659a60 = trigger;
+            if (trigger != 0 && (trigger->flags_0a0 & 0x100) != 0 &&
+                ((trigger->flags_0a0 & 0x40000) == 0 ||
+                 (trigger->flags_0a0 & 0x80000) == 0) &&
+                (g_flag_6081e4 ||
+                 (trigger->m_pActionData != 0 &&
+                  trigger->m_pActionData->type_004 == 10 &&
+                  (trigger->m_pActionData->flags_008 & 1) == 0)) &&
+                representation->active != 0) {
+                srVector3T<float> minimum;
+                srVector3T<float> maximum;
+                float dx;
+                float dy;
+                float dz;
+                float distance;
+
+                ((LegacyAnimObjBoundsCall)AnimObjGetBounds004A1710)(
+                    representation->animation, 2, representation->flag_064,
+                    &minimum, &maximum);
+                dx = (minimum.x + maximum.x) * 0.5f - camera_position.x;
+                dy = (minimum.y + maximum.y) * 0.5f - camera_position.y;
+                dz = (minimum.z + maximum.z) * 0.5f - camera_position.z;
+                distance = static_cast<float>(sqrt(dx * dx + dy * dy + dz * dz));
+                if (trigger->range_minimum_0a4 <= distance) {
+                    g_selected_prop_index_00607b98 = prop_index;
+                    if (distance <= trigger->range_maximum_0a8) {
+                        continue;
+                    }
+                }
+            }
+            valid = 0;
+            SetValue65962C(0);
+            g_selected_prop_trigger_00659a60 = 0;
+            g_selected_prop_index_00607b98 = -1;
+        }
+    }
+    return valid;
+}
+
 /* Start or stop the prop's own animation, whichever it is not doing. */
 // FUNCTION: WIZ8 0x0044ba00
-void W8PropRepresentation::ToggleAnimation(int argument)
+srModelInstance* W8PropRepresentation::ToggleAnimation(int argument)
 {
     if (AnimationIsRunning(animation)) {
-        AnimObjDispatchList004A1560(animation, 2, 0);
-        return;
+        return AnimObjDispatchList004A1560(animation, 2, 0);
     }
-    AnimObjDispatch004A14D0(animation, 2, argument);
+    return AnimObjDispatch004A14D0(animation, 2, argument);
 }
 
 /* Select the animation slot whose second byte carries the requested tag.
@@ -1085,7 +1197,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
                 this->flag_06d = 0;
                 break;
             }
-            prop->value_18 = reinterpret_cast<int>(trigger);
+            prop->trigger_18 = trigger;
             hFile = info->hFile;
         }
     }

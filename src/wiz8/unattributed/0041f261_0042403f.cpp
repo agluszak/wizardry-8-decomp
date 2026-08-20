@@ -1,13 +1,47 @@
 #include "wiz8/unattributed/quarantine_common.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/Object0043A910.h"
+#include "wiz8/engine_code/game_timer.h"
+#include "surrender/srExtension.h"
+#include "surrender/srGERD.h"
+#include "surrender/srImporter.h"
+
+#include <stdio.h>
 
 /* Address quarantine 0041f261-0042403f; bounds come from adjacent
    assertion-backed original translation-unit intervals. */
 
 extern unsigned char g_flag_00652da7;
+extern unsigned char g_flag_00652dce;
 extern const double g_double_005ebc18;
 extern const float g_float_005ebcf8;
+extern W8Object0043A910* g_object_6598bc;
+
+// FUNCTION: WIZ8 0x00420b40
+float Function420B40(int value)
+{
+    if (g_object_6598bc == 0) {
+        g_object_6598bc = new W8Object0043A910;
+        if (g_object_6598bc == 0) {
+            return g_float_005ebb34;
+        }
+    }
+    if (g_flag_00652dce != 0) {
+        if ((value == 8 && g_screen_state_0068ec78.id == 7) || value == 4) {
+            Function439CA0();
+            g_flag_00652dce = 0;
+        }
+        else {
+            return g_float_005ebb34;
+        }
+    }
+    if (value == 1) {
+        Function439BC0();
+        g_flag_00652dce = 1;
+    }
+    return g_object_6598bc->GetValue28();
+}
 
 // FUNCTION: WIZ8 0x00420D40
 srCamera* CreateOrSetGameCamera(
@@ -116,4 +150,40 @@ int GetCameraYawDegrees(void)
 IDirectDraw2* GetDirectDraw2(void)
 {
     return g_direct_draw2_6596a0;
+}
+
+extern "C" unsigned char g_flag_6596f4;
+int g_screenshot_index_659724;
+int g_screenshot_page_659728;
+
+// FUNCTION: WIZ8 0x004229e0
+void Function4229E0(void)
+{
+    srSurfaceIOManager* surface_io_manager =
+        srCore.getSurfaceIOManager();
+    srExtension::load("JPEGImporter", 0);
+
+    srColorSurfaceIFace* surface = g_gerd_659634->lockBuffer();
+    int screenshot_index = g_screenshot_index_659724;
+    if (surface != 0) {
+        char filename[32];
+        srSurfaceIOManager::ExportInfo options;
+        options.unknown_00 = 0;
+        options.unknown_04 = 1;
+        options.option_string = 0;
+
+        ++g_screenshot_index_659724;
+        sprintf(filename, "Wiz8%5.5d.JPG", screenshot_index);
+        if (g_flag_6596f4 == 0) {
+            surface_io_manager->exportSurface(filename, *surface, options);
+        }
+        else {
+            options.option_string = "QUALITY=0.35";
+            Function439BC0();
+            surface_io_manager->exportSurface(filename, *surface, options);
+            Function439CA0();
+        }
+        g_gerd_659634->unlockBuffer();
+    }
+    g_screenshot_page_659728 = (g_screenshot_page_659728 - 1) & 1;
 }

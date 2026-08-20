@@ -8,6 +8,7 @@
 #include "srFlags.h"
 
 class srDD;
+class srModelInstance;
 class srVertexProcessor;
 struct srVertexArray;
 
@@ -24,7 +25,11 @@ public:
 class SR_DLL_IMPORT srGERD : public srRuntimeClass {
 public:
     struct Pick {
-        unsigned char unknown_00_[0x14];
+        float value_00;
+        float value_04;
+        float value_08;
+        srModelInstance* selected_model_0c;
+        unsigned long value_10;
     };
 
     struct ClipPlanes {
@@ -53,6 +58,8 @@ public:
     };
 
     enum e_error {};
+    enum e_closeHint {};
+    enum e_buffer {};
     enum e_matrixMode {
         MATRIX_MODE_POSITIONAL_0 = 0
     };
@@ -90,12 +97,23 @@ public:
                         unsigned long depth) const;
     e_error openWindow();
     e_error openWindow(long mode);
+    void closeWindow(e_closeHint hint);
     int isWindowOpen() const;
     void setGamma(const srVector3T<float>& gamma);
     e_error beginFrame();
     void endFrame();
     void flush();
     void flushRenderers();
+    void clear(const srFlags<e_buffer>& buffers);
+    long getHeight() const;
+    long getWidth() const;
+    void resetStatistics();
+    void setClearColor(float red, float green, float blue, float alpha);
+    void setScissor(unsigned long x, unsigned long y,
+                    unsigned long width, unsigned long height);
+    void setTextureReduction(long reduction);
+    void setViewPort(unsigned long x, unsigned long y,
+                     unsigned long width, unsigned long height);
     void matrixMode(e_matrixMode mode);
     void getMatrix(e_matrixMode mode, srMatrix4T<float>& matrix);
     void getEyeSpaceBounds(srVector3T<float>& center, float& radius,
@@ -110,6 +128,8 @@ public:
     e_winding getWinding() const;
     Renderer* lockRenderer();
     void unlockRenderer(Renderer* renderer, int submit);
+    srColorSurfaceIFace* lockBuffer();
+    void unlockBuffer();
     unsigned long getVertexProcessorCount() const;
     void getVertexProcessors(srVertexProcessor** processors) const;
     void getAmbientLight(srVector4T<float>& light);

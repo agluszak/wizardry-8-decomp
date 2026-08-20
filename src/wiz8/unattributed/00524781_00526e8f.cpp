@@ -1,4 +1,22 @@
 #include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/npc_state.h"
+
+extern unsigned char g_flag_68c4a0;
+extern unsigned char g_flag_68c4f6;
+extern W8NpcState* g_npc_state_68c4ac;
+extern W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc);
+
+// GLOBAL: WIZ8 0x0068C4A0
+unsigned char g_flag_68c4a0;
+// GLOBAL: WIZ8 0x0068C4AC
+W8NpcState* g_npc_state_68c4ac;
+// GLOBAL: WIZ8 0x0068C4C0
+int g_value_68c4c0;
+// GLOBAL: WIZ8 0x0068C4F6
+unsigned char g_flag_68c4f6;
+// GLOBAL: WIZ8 0x0068C4F7
+unsigned char g_flag_68c4f7;
 
 /* Address quarantine 00524781-00526e8f; bounds come from adjacent
    assertion-backed original translation-unit intervals. */
@@ -7,6 +25,30 @@
 bool IsValue68C4C0Clear(void)
 {
     return g_value_68c4c0 == 0;
+}
+
+// FUNCTION: WIZ8 0x00525DD0
+unsigned char Function525DD0(void)
+{
+    return g_flag_68c4a0 != 0 || g_flag_68c4f6 != 0;
+}
+
+// FUNCTION: WIZ8 0x00525DF0
+unsigned char Function525DF0(unsigned char require_group_entry)
+{
+    if (g_flag_68c4f7 != 0) {
+        return 0;
+    }
+    if (g_flag_68c4a0 == 0 && g_flag_68c4f6 == 0 && g_value_68c4c0 == 0) {
+        return 0;
+    }
+    if (g_npc_state_68c4ac == 0) {
+        return 0;
+    }
+    if (GetNpcGroupEntry(g_npc_state_68c4ac) != 0 && require_group_entry == 0) {
+        return 0;
+    }
+    return 1;
 }
 
 /* Report whether a party slot can be picked: in range, its slot row occupied,

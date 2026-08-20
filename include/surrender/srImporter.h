@@ -21,6 +21,11 @@ public:
 
     class SurfaceImporter;
     class SurfaceExporter;
+
+    SR_DLL_IMPORT void exportSurface(
+        const char* path,
+        srColorSurfaceIFace& surface,
+        const ExportInfo& options);
 };
 
 static_assert((sizeof(srSurfaceIOManager::ImportInfo) == 0x0c), "srSurfaceImportInfo_must_be_0x0c");

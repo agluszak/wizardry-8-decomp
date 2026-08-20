@@ -1,6 +1,7 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sgp_video.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/video_object_catalog.h"
 #include "wiz8/wiz8_windows.h"
 
 #include "input.h"
@@ -56,7 +57,6 @@ extern void Function422B10(void);
 extern void Function40B290(void);
 extern unsigned char ClearPrimarySurface(void);
 extern void SetViewport(int left, int top, int right, int bottom);
-extern void Function548F90(int id, int a, int b, int c, int d, int e, int f, int g);
 extern void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags);
 extern void Function4E3620(char* text, int a, int b, int c);
 extern unsigned char Function48FC10(const char* playlist, int immediate, int replace);

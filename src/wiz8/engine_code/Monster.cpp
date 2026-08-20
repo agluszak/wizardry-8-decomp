@@ -59,7 +59,7 @@ extern const double g_monster_death_rotation_pi_005ed1f0;
 extern float g_light_scale_0060bfe0;
 extern float g_monster_scale_transition_step_005ebcf4;
 extern unsigned char g_monster_model_value_enabled_00685111;
-extern unsigned char g_monster_shadow_updates_enabled_0065970c;
+unsigned char g_monster_shadow_updates_enabled_0065970c;
 extern unsigned char g_monster_combat_timer_enabled_006f0531;
 extern unsigned char g_flag_00683fce;
 extern const float g_monster_attachment_distance_scale_005ed2a8;

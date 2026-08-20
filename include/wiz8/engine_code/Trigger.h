@@ -168,8 +168,8 @@ public:
             unsigned int flag_0a0_31 : 1;
         };
     };
-    int value_0a4;
-    int value_0a8;
+    union { int value_0a4; float range_minimum_0a4; };
+    union { int value_0a8; float range_maximum_0a8; };
     int value_0ac;
     unsigned char value_0b0;
     unsigned char value_0b1;

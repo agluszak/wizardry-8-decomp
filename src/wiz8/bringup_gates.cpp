@@ -33,6 +33,7 @@ extern "C" {
 struct W8VideoManagerNode {
     unsigned int handle;
     int unused_04;
+    int unused_08;
     W8VideoManagerNode* next;
 };
 
@@ -46,6 +47,7 @@ HVSURFACE g_surface_650de0;
 extern HVSURFACE ghFrameBuffer;
 extern HVSURFACE ghMouseBuffer;
 int g_dword_650dc0;
+int g_cursor_clip_active_650db8;
 int g_dword_650dc4;
 int g_dword_650dc8;
 int g_dword_650dcc;
@@ -200,6 +202,13 @@ bool InitializeWizardryVideoSurfaceManager(void)
     return ready;
 }
 
+// FUNCTION: WIZ8 0x00402750
+void Function402750(void)
+{
+    ClipCursor(0);
+    g_cursor_clip_active_650db8 = 0;
+}
+
 // FUNCTION: WIZ8 0x00404ba0
 bool InitializeVideoSurfaceState(void)
 {
@@ -236,6 +245,34 @@ bool ShutdownWizardryVideoSurfaceManager(void)
     g_dword_650dc4 = 0;
     g_dword_650dc8 = 0;
     g_dword_650dcc = 0;
+    return true;
+}
+
+// FUNCTION: WIZ8 0x004029f0
+bool Function4029F0(void)
+{
+    W8VideoManagerNode* node = g_surface_list_650dbc;
+
+    while (node) {
+        HVSURFACE surface = reinterpret_cast<HVSURFACE>(node->handle);
+        if ((surface->fFlags & VSURFACE_VIDEO_MEM_USAGE) == 0 ||
+            surface->pSavedSurfaceData1 == 0) {
+            return false;
+        }
+        DDRestoreSurface(
+            reinterpret_cast<IDirectDrawSurface2*>(surface->pSurfaceData));
+        RECT rectangle;
+        rectangle.left = 0;
+        rectangle.top = 0;
+        rectangle.right = surface->usWidth;
+        rectangle.bottom = surface->usHeight;
+        DDBltFastSurface(
+            reinterpret_cast<IDirectDrawSurface2*>(surface->pSavedSurfaceData),
+            0, 0,
+            reinterpret_cast<IDirectDrawSurface2*>(surface->pSurfaceData),
+            &rectangle, 0);
+        node = node->next;
+    }
     return true;
 }
 

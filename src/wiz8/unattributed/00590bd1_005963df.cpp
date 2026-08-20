@@ -1,4 +1,5 @@
 #include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/video_object_catalog.h"
 
 #include "himage.h"
 #include "input.h"
@@ -22,8 +23,6 @@ extern void NoOp(void);
 extern void ShutdownDisplayList(void);
 extern unsigned char ClearPrimarySurface(void);
 extern void UpdateHeldItemCursor(void);
-extern void Function548F90(int target, int object, int frame, short y,
-                           int a5, int a6, int a7, int a8);
 /* 0x00422B10 clears the software frame and retires the transient 2D overlays;
    0x00422F10 is the scene-side teardown the same frames are torn down through.
    Only the first is recovered. */

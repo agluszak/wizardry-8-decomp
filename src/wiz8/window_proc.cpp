@@ -4,6 +4,8 @@
 #include "input.h"
 #include "timer.h"
 
+float Function420B40(int value);
+
 /*
  * The window procedure BringUpEngine hands to the renderer. Ghidra defines no
  * function at this address and the project lock could not be taken to create
@@ -27,10 +29,9 @@ extern bool g_teardown_done_650db4;
 extern void Function422970(int enable);
 extern void Function422550(void);
 extern unsigned char Function4277E0(void);
-extern void Function4220B0(void);
+extern unsigned char Function4220B0(void);
 extern void Function422050(void);
-extern void Function4029F0(void);
-extern float Function420B40(int value);
+extern bool Function4029F0(void);
 extern void ShutdownGameData(void);
 extern void ShutdownDisplayList(void);
 extern void Function408850(void);

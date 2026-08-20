@@ -9,6 +9,8 @@
 #include "wiz8/targeting.h"
 #include "wiz8/vector.h"
 
+struct W8StartupStateElement005EE748;
+
 /* One eight-byte row per animation cycle at 0x0060EA08. The parser at
    0x004C2010 compares exactly prefix_length characters and then uses the same
    offset to read an optional numeric subcycle suffix. */
@@ -32,8 +34,10 @@ struct W8MonsterManagerEntry {
 
     unsigned char field_000;
     int field_001;
-    unsigned char unknown_005[0x6c];
-    int field_071;
+    unsigned char unknown_005[0x10];
+    unsigned char field_015;
+    unsigned char unknown_016[0x5b];
+    W8StartupStateElement005EE748* field_071;
     int field_075;
     int field_079;
     int field_07d;
@@ -71,7 +75,9 @@ struct W8MonsterManagerEntry {
     unsigned short field_0d6;
     W8GrowableVector<int> highlighted_monsters; /* 0x0d8 */
     unsigned char field_0e8;
-    unsigned char unknown_0e9[0x2f];
+    unsigned char unknown_0e9[0x2a];
+    unsigned int field_113;
+    unsigned char unknown_117;
 };                                       /* 0x118 */
 
 /* 0x004E6900 passes 0x006836B8 as this constructor's receiver. The constructor

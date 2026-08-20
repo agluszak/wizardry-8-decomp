@@ -54,7 +54,8 @@ extern unsigned int FindMonsterLocationsInBox0042F280(
 extern stLight* FindLightByName00445A10(
     const char* name, const srRuntimeClass* relative_to);
 extern void SetWorldEnvironmentValue00483AE0(W8World* world, float value);
-extern unsigned char g_trigger_action_active_006599c8;
+unsigned char g_trigger_action_active_006599c8;
+srVector3T<float> g_trigger_action_scene_offset_006599ac;
 extern char g_trigger_parse_buffer_00659908[256];
 W8GrowableVector<int> g_location_variable_levels_006598e0;
 W8GrowableVector<char*> g_location_variable_names_006598f8;

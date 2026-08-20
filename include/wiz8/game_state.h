@@ -121,7 +121,9 @@ typedef struct W8GlobalStatus {
     W8ItemInstance item_in_hand_235b;
     unsigned char unknown_2367[0x3a];
     W8PartyStatusState party_status_23a1;
-    unsigned char unknown_2425[0x259d];
+    unsigned char unknown_2425[0x72];
+    unsigned char flag_2497;
+    unsigned char unknown_2498[0x252a];
 } W8GlobalStatus;                        /* 0x49c2 */
 
 /* Defined by GameplayDatabase.cpp, which carries the address marker. Declared
@@ -208,11 +210,14 @@ typedef struct W8LevelRuntimeBlock {
     unsigned char unknown_301[3];
     int tooltip_subject;                 /* 0x304 */
     int tooltip_kind;                    /* 0x308 */
+    unsigned char unknown_30c[0x1b];
+    /* Main-screen restore skips the portrait strip while this is raised. */
+    unsigned char flag_327;
 } W8LevelRuntimeBlock;
 
 #ifdef __cplusplus
-static_assert(sizeof(W8LevelRuntimeBlock) == 0x30c,
-              "W8LevelRuntimeBlock_must_be_0x30c");
+static_assert(sizeof(W8LevelRuntimeBlock) == 0x328,
+              "W8LevelRuntimeBlock_must_be_0x328");
 #endif
 
 #pragma pack(pop)

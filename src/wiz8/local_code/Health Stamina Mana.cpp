@@ -245,8 +245,6 @@ enum { W8_STAMINA_TO_SHAKE_OFF_EXHAUSTION = 9 };
 extern void PostCharacterNotice(int party_slot, const wchar_t* notice, ...);
 /* 0x00590950 */
 extern unsigned char CharacterHasEffect(void* effect, int party_slot);   /* 0x0052DD90 */
-extern void ClearCharacterEffect(void* effect, int party_slot, int arg_3);
-/* 0x0052DD20 */
 extern void CalcArmorClasses(W8Character* character);                    /* 0x004EE9D0 */
 extern void RemoveCharacterCondition(int party_slot, int condition, int arg_3);
 extern void SetCharacterCondition(
@@ -339,14 +337,17 @@ void HealCharacter(int party_slot, int amount, char announce)
     fraction = (character->hp_current * 100) / (unsigned int)character->hp_max;
     if (fraction >= g_effect_threshold_005ed904) {
         if (CharacterHasEffect(g_effect_005ee594, party_slot)) {
-            ClearCharacterEffect(g_effect_005ee594, party_slot, 0);
+            g_startup_runtime_state->SetEventCharacterMask(
+                reinterpret_cast<unsigned int>(g_effect_005ee594), party_slot, 0);
         }
         if (fraction >= g_effect_threshold_005ed900) {
             if (CharacterHasEffect(g_effect_005ee590, party_slot)) {
-                ClearCharacterEffect(g_effect_005ee590, party_slot, 0);
+                g_startup_runtime_state->SetEventCharacterMask(
+                    reinterpret_cast<unsigned int>(g_effect_005ee590), party_slot, 0);
             }
             if (CharacterHasEffect(g_effect_005ee5f8, party_slot)) {
-                ClearCharacterEffect(g_effect_005ee5f8, party_slot, 0);
+                g_startup_runtime_state->SetEventCharacterMask(
+                    reinterpret_cast<unsigned int>(g_effect_005ee5f8), party_slot, 0);
             }
         }
     }

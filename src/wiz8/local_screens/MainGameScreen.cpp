@@ -17,11 +17,17 @@
 enum { W8_REGION_SET_MAIN = 4 };
 extern void* g_modal_owner_0068edd0;
 extern int g_flag_0068ed14;
-extern unsigned char g_flag_00683f95;
-extern unsigned char g_flag_00683f96;
-extern unsigned char g_flag_00683f97;
-extern unsigned char g_flag_00683f98;
-extern unsigned char g_flag_00683f99;
+unsigned char g_in_combat_00683f94;
+unsigned char g_flag_00683f95;
+unsigned char g_flag_00683f96;
+unsigned char g_flag_00683f97;
+unsigned char g_flag_00683f98;
+unsigned char g_flag_00683f99;
+unsigned char g_flag_00683f9c;
+unsigned char g_flag_00683f9d;
+unsigned char g_flag_00683fcd;
+unsigned char g_flag_006840bd;
+W8LevelRuntimeBlock* g_level_block;
 
 extern void SetPendingScreenState(int state);
 extern void Function4F2040(int region);
@@ -172,7 +178,7 @@ public:
     unsigned char flag_140;              /* 0x140 */
 };
 
-extern unsigned char g_flag_00683f9a;
+unsigned char g_flag_00683f9a;
 extern unsigned char g_map_loading_00659757;
 extern void Function55EE70(int reason);
 extern void UpdateHeldItemCursor(void);

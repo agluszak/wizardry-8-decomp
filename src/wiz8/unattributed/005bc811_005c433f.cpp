@@ -59,15 +59,11 @@ void Function40B510(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
 void Function4F1360(int x, int y);
 unsigned char DispatchScreenInput004F1910(const void* event);
-void Function52E750(void);
+int Function52E750(void);
 void Function426790(void);
 void Function5D5390(void);
 void Function4048A0(int target, int left, int top, int right, int bottom);
 void Function4068E0(int font_context, int render_mode);
-void Function548F90(int target, int object, int frame, short y,
-                    int left, int top, int mode, int flags);
-void Function549600(int target, int object, int frame, int y,
-                    int left, int top, int mode, int flags);
 unsigned int Function568950(const InputAtom* input);
 unsigned short Function402780(unsigned short key, unsigned char modifiers);
 unsigned int Function5D3F50(const InputAtom* input);

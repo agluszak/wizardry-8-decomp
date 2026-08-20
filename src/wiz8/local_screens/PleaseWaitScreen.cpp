@@ -4,6 +4,7 @@
 #include "wiz8/dialog_base.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/video_object_catalog.h"
 
 #include "Font.h"
 #include "FileMan.h"
@@ -87,13 +88,6 @@ extern int Function509750(void);
 extern void Function58FD30(void);
 extern void Function407650(int x, int y, const char* format, const wchar_t* text);
 extern unsigned char SetValue5FF5F0(int font);
-/* Local Code\VideoObjectManager.cpp defines the fourth parameter as short, but
-   the retail call below pushes the caption's y as a full dword and Local
-   Code\Controls.cpp already declares this position as int. */
-extern void Function548F90(int target, int object, int frame, int y,
-                           int a5, int a6, int a7, int a8);
-extern void Function549600(int target, int object, int frame, int y,
-                           int a5, int a6, int a7, int a8);
 extern void Function422F10(void);
 extern void Function426790(void);
 extern void Function4095B0(void);

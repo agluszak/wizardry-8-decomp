@@ -10,6 +10,8 @@ LIBRARY SR
 ; original imports the variadic one; only a hand-built long-form import
 ; object could close that, not a .def.
 EXPORTS
+    ?closeWindow@srGERD@@QAEXW4e_closeHint@1@@Z
+    ?setFogColor@srScene@@QAEXABV?$srVector3T@M@@@Z
     ?vp@srVectorProcessor@@0PAVsrVP@@A
     ??4srModelInstance@@QAEAAV0@ABV0@@Z
     ??0srFog@@QAE@PAVsrNode@@@Z
@@ -131,8 +133,17 @@ EXPORTS
     ?openWindow@srGERD@@QAE?AW4e_error@1@XZ
     ?openWindow@srGERD@@QAE?AW4e_error@1@J@Z
     ?beginFrame@srGERD@@QAE?AW4e_error@1@XZ
+    ?clear@srGERD@@QAEXABV?$srFlags@W4e_buffer@srGERD@@@@@Z
     ?endFrame@srGERD@@QAEXXZ
     ?flushRenderers@srGERD@@QAEXXZ
+    ?getFogColor@srScene@@QBEXAAV?$srVector3T@M@@@Z
+    ?getHeight@srGERD@@QBEJXZ
+    ?getWidth@srGERD@@QBEJXZ
+    ?resetStatistics@srGERD@@QAEXXZ
+    ?setClearColor@srGERD@@QAEXMMMM@Z
+    ?setScissor@srGERD@@QAEXKKKK@Z
+    ?setTextureReduction@srGERD@@QAEXJ@Z
+    ?setViewPort@srGERD@@QAEXKKKK@Z
     ?matrixMode@srGERD@@QAEXW4e_matrixMode@1@@Z
     ?pushMatrix@srGERD@@QAEXXZ
     ?popMatrix@srGERD@@QAEXXZ
@@ -157,6 +168,7 @@ EXPORTS
     ?open@srIStreamOpener@@QAEPAVsrBinIStream@@PBD@Z
     ?parsePrefix@srIStreamOpener@@AAEXPAPAD0PBD@Z
     ?getRootNode@srCore@@QBEPAVsrNode@@XZ
+    ?getSurfaceIOManager@srCore@@QBEPAVsrSurfaceIOManager@@XZ
     ?addStreamType@srIStreamOpener@@QAEXPAVOpener@1@PBD@Z
     ?srCore@@3V0@A
     ??0srFilter@@QAE@ABV0@@Z
@@ -382,7 +394,10 @@ EXPORTS
     ?getCullMode@srGERD@@QBE?AW4e_cullMode@1@XZ
     ?getWinding@srGERD@@QBE?AW4e_winding@1@XZ
     ?lockRenderer@srGERD@@QAEPAVRenderer@1@XZ
+    ?lockBuffer@srGERD@@QAEPAVsrColorSurfaceIFace@@XZ
+    ?unlockBuffer@srGERD@@QAEXXZ
     ?unlockRenderer@srGERD@@QAEXPAVRenderer@1@H@Z
+    ?exportSurface@srSurfaceIOManager@@QAEXPBDAAVsrColorSurfaceIFace@@ABUExportInfo@1@@Z
     ?getVertexProcessorCount@srGERD@@QBEKXZ
     ?getVertexProcessors@srGERD@@QBEXPAPAVsrVertexProcessor@@@Z
     ?getAmbientLight@srGERD@@QAEXAAV?$srVector4T@M@@@Z

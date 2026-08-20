@@ -1,8 +1,14 @@
 #include <cstring>
+#include <math.h>
 
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/Environment.h"
+#include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/game_timer.h"
+#include "wiz8/engine_code/registry_classes.h"
+#include "wiz8/engine_code/stTextureAnim.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
@@ -22,22 +28,22 @@
 
 #define ENVIRONMENT_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Environment.cpp"
 
-extern float g_view_distance_0060a390;
-extern unsigned char g_environment_flag_0060a394;
+extern "C" float g_view_distance_0060a390;
+extern "C" unsigned char g_environment_flag_0060a394;
 extern int g_environment_value_0060a3a8;
-extern float g_environment_value_0060a3a4;
+extern "C" float g_environment_value_0060a3a4;
 extern unsigned char g_fog_enabled_0065b9ad;
 extern unsigned char g_sky_enabled_0065b9ae;
-extern int g_light_direction_0065ad78;
-extern int g_light_direction_0065ad7c;
-extern int g_light_direction_0065ad80;
-extern int g_environment_value_0065ad84;
-extern int g_environment_value_0065a160;
-extern int g_environment_value_0065a168;
-extern int g_environment_value_0065a16c;
-extern int g_environment_value_0065a170;
-extern int g_dword_6874f7;
-extern unsigned long g_tick_65b9a8;
+extern "C" int g_light_direction_0065ad78;
+extern "C" int g_light_direction_0065ad7c;
+extern "C" int g_light_direction_0065ad80;
+extern "C" W8Prop* g_environment_value_0065ad84;
+extern "C" W8Prop* g_environment_value_0065a160;
+extern "C" stTextureAnim* g_environment_value_0065a168;
+extern "C" stTextureAnim* g_environment_value_0065a16c;
+extern "C" stTextureAnim* g_environment_value_0065a170;
+extern "C" srVector3T<float> g_environment_origin_65ad88;
+unsigned long g_tick_65b9a8;
 extern "C" EnvironmentColour g_environment_colours_65a178[256];
 extern "C" EnvironmentColour g_environment_colours_65ad98[256];
 /* 0x00659AB4: the world being rendered. Its sky node is the one field these
@@ -55,6 +61,111 @@ srFog* g_environment_object_0065b9b4;
 W8LightVector g_environment_lights_0065b998(5);
 
 extern void PublishLightDirection(const int* direction);                 /* 0x00427380 */
+extern void Function502010(int elapsed);
+
+/* Advance the authoritative game clock and place the two celestial props on
+   opposite sides of the world's recovered sky origin. The three animated sky
+   gradients consume the same 8-bit day phase, so the clock, prop placement,
+   and gradient animation remain one update rather than parallel timers. */
+// FUNCTION: WIZ8 0x00482a20
+void Function482A20(int elapsed)
+{
+    unsigned int time = (unsigned int)(g_game_time_ms + elapsed);
+    if (time > 86399999U) {
+        ++g_game_time_days;
+    }
+    g_game_time_ms = (int)(time % 86400000U);
+
+    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME) {
+        Function502010(elapsed);
+    }
+    g_tick_65b9a8 = GetTickCount();
+
+    const double arc = 3.141592653589793 * (double)(1.0f / 180.0f) * 80.0;
+    bool day;
+    double angle;
+    if ((unsigned int)g_game_time_ms < 18000001U) {
+        day = false;
+        angle = (double)(g_game_time_ms + 7200000) * arc *
+                3.9682539682539686e-08;
+    }
+    else if ((unsigned int)g_game_time_ms < 79200001U) {
+        day = true;
+        angle = (double)(g_game_time_ms - 18000000) * arc *
+                1.633986928104575e-08;
+    }
+    else {
+        day = false;
+        angle = (double)(g_game_time_ms - 79200000) * arc *
+                3.9682539682539686e-08;
+    }
+
+    srVector3T<float> direction;
+    direction.method_00421680(0.0, g_environment_value_0060a3a4, 0.0);
+
+    srMatrix3T<float> rotation;
+    rotation.vectors[0].method_00421680(1.0, 0.0, 0.0);
+    rotation.vectors[1].method_00421680(0.0, 1.0, 0.0);
+    rotation.vectors[2].method_00421680(0.0, 0.0, 1.0);
+
+    angle -= 3.141592653589793 * (double)(1.0f / 180.0f) * 40.0;
+    if (angle != 0.0) {
+        rotation.method_00438F90(sin(angle), cos(angle));
+    }
+
+    srVector3T<float> position;
+    position.x = Function4218E0(rotation.vectors[0], direction) +
+                 g_environment_origin_65ad88.x;
+    position.y = Function4218E0(rotation.vectors[1], direction) +
+                 g_environment_origin_65ad88.y;
+    position.z = Function4218E0(rotation.vectors[2], direction) +
+                 g_environment_origin_65ad88.z;
+
+    W8Prop* moving = day ? g_environment_value_0065a160
+                         : g_environment_value_0065ad84;
+    W8Prop* opposite = day ? g_environment_value_0065ad84
+                           : g_environment_value_0065a160;
+    if (moving != 0) {
+        moving->Rep()->SetLocation004B8850(&position);
+    }
+    if (opposite != 0) {
+        opposite->Rep()->SetLocation004B8850(&g_environment_origin_65ad88);
+    }
+
+    unsigned int phase =
+        (((unsigned int)g_game_time_ms / 1000U) << 8) / 86400U;
+    stTextureAnim* animations[3] = {
+        g_environment_value_0065a168,
+        g_environment_value_0065a16c,
+        g_environment_value_0065a170
+    };
+    for (int index = 0; index != 3; ++index) {
+        if (animations[index] != 0) {
+            animations[index]->frame_58 = (int)phase;
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x00482990
+void Function482990(unsigned char enabled)
+{
+    if (enabled == 0) {
+        g_environment_flag_0060a394 = 0;
+        return;
+    }
+
+    g_environment_flag_0060a394 = 1;
+    g_tick_65b9a8 = GetTickCount();
+    if (g_environment_flag_0060a394 != 0) {
+        unsigned long now = GetTickCount();
+        unsigned long elapsed = now < g_tick_65b9a8
+                                    ? now - g_tick_65b9a8 - 1
+                                    : now - g_tick_65b9a8;
+        if (elapsed != 0) {
+            Function482A20((int)((double)elapsed * g_view_distance_0060a390));
+        }
+    }
+}
 
 /* The same component clamp is expanded at every red, green and blue write in
    all four table bodies below; it is source structure shared by those bodies,
@@ -441,7 +552,10 @@ extern "C" {
 // FUNCTION: WIZ8 0x00482720
 void Function482720(int value)
 {
-    g_dword_6874f7 = value;
+    g_game_time_ms = value;
     g_tick_65b9a8 = GetTickCount();
 }
 }
+
+// TEMPLATE: WIZ8 0x004848d0
+// srMatrix3T<float>::method_00438F90(double,double)
