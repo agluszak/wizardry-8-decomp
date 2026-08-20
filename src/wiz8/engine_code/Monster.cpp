@@ -11,12 +11,14 @@
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/MonsterLight.h"
 #include "wiz8/engine_code/registry_classes.h"
+#include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/stTextureAnim.h"
 #include "wiz8/engine_code/stScript.h"
 #include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/PathAI.h"
 #include "wiz8/grcycle.h"
 #include "wiz8/magic.h"
 #include "wiz8/mesh_model.h"
@@ -402,6 +404,105 @@ W8MonsterRep::W8MonsterRep()
     for (index = 0; index < 8; ++index) {
         objects_5c8[index] = 0;
     }
+}
+
+/* Read one animation/subcycle into the Monster representation.  The current
+   subcycle is the newly appended animation slot; its playback scale and light
+   list occupy the two parallel vectors for the same cycle. */
+// FUNCTION: WIZ8 0x004BF520
+unsigned char W8MonsterRep::ReadCycleData004BF520(
+    W8GrCycleReadInfo004A6970* info,
+    W8Monster* monster,
+    int cycle_index,
+    int value)
+{
+    W8LightVector* lights = new W8LightVector;
+    W8AnimObj* animation;
+    unsigned char success;
+    signed char cycle;
+    int subcycle;
+
+    if (info == 0 || info->handle_04 == 0 || monster == 0) {
+        srAssertFail(
+            "pInfo && pInfo->hFile && pMonster",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp",
+            0x22d,
+            0);
+    }
+
+    animation = CreateAnimObj004A01A0();
+    success = AnimObjReadFromFile004A05C0(
+        reinterpret_cast<W8ReadLevelInfo*>(info),
+        animation,
+        value,
+        lights,
+        0);
+    if (cycle_index == -1) {
+        cycle_index = static_cast<signed char>(animation->unknown_03[1]);
+    }
+    cycle = static_cast<signed char>(cycle_index);
+    if (cycle < 0 || cycle >= W8_MONSTER_CYCLE_COUNT) {
+        srAssertFail(
+            "bCycle>=CYCLE_FIRST && bCycle<=CYCLE_LAST",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp",
+            0xc35,
+            0);
+    }
+
+    animations[cycle].Add(0);
+    selection.monster.current_subcycle =
+        static_cast<signed char>(animations[cycle].GetCount() - 1);
+    subcycle = selection.monster.current_subcycle;
+    if (subcycle < animation_scales[cycle].GetCount()) {
+        *animation_scales[cycle].GetAt(subcycle) = animation->playback_scale_08;
+    }
+    else {
+        animation_scales[cycle].Add(animation->playback_scale_08);
+    }
+
+    active = 1;
+    flag_06e = 1;
+    m_bLOD = 2;
+    timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
+    flag_070 = animation->unknown_03[0];
+    flag_06f = animation->value_02;
+    flag_06d = animation->unknown_00[1];
+    if (selection.monster.current_cycle == -1) {
+        selection.monster.current_cycle = cycle;
+    }
+    if (subcycle < animations[cycle].GetCount()) {
+        *animations[cycle].GetAt(subcycle) = animation;
+    }
+
+    if (AnimationIsRunning(animation) == 1) {
+        signed char list;
+
+        for (list = 0; list < 3; ++list) {
+            signed char entry;
+            signed char count = static_cast<signed char>(
+                AnimObjListCount004A1620(animation, list));
+
+            for (entry = 0; entry < count; ++entry) {
+                W8PathAI* path = static_cast<W8PathAI*>(
+                    AnimObjListEntry004A16C0(animation, list, entry));
+                if (path != 0) {
+                    PathAISetFlag38004AA9D0(path, 1);
+                    PathAISetFlag1C004AAA10(path, 1);
+                    PathAISetScale004AA9C0(path, animation->playback_scale_08);
+                }
+            }
+        }
+    }
+
+    if (lights->GetCount() == 0) {
+        delete lights;
+        lights = 0;
+    }
+    else {
+        monster->SetLights(lights);
+    }
+    light_lists[cycle].Add(lights);
+    return success;
 }
 
 // FUNCTION: WIZ8 0x004bebd0

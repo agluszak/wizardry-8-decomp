@@ -1,10 +1,18 @@
 #pragma once
 
 #include "wiz8/engine_code/GrCycle.h"
+#include "wiz8/targeting.h"
 
 struct W8AIMissile;
+struct W8GrCycleReadInfo004A6970;
+class W8Missile;
 
 W8AIMissile* CopyAIMissile004A53A0(const W8AIMissile* source);
+unsigned char ReadMissileCycleData004A3300(
+    W8GrCycleReadInfo004A6970* info,
+    W8Missile* missile,
+    int cycle_index,
+    int value);
 
 /* The missile constructor allocates this complete 0x108-byte representation,
    invokes W8EmitterHost on the same receiver, constructs the two light-list
@@ -34,6 +42,7 @@ static_assert(sizeof(W8MissileRep) == 0x108, "W8MissileRep_size_must_be_0x108");
    tables. The source assertion for its AI names the object `pMissile`. */
 class W8Missile : public W8GrCycle {
 public:
+    W8Missile();
     virtual ~W8Missile() override;
 
     virtual void UpdateRepresentation(W8World* world) override;
@@ -52,9 +61,27 @@ public:
 public:
     int missile_table_index_1d8;
     W8MissileRep* m_pRep;
-    unsigned char unknown_1e0[0x1c];
+    unsigned char flag_1e0;
+    unsigned char flag_1e1;
+    unsigned char flag_1e2;
+    unsigned char flag_1e3;
+    unsigned char flag_1e4;
+    unsigned char flag_1e5;
+    unsigned char flag_1e6;
+    unsigned char flag_1e7;
+    void* value_1e8;
+    void* value_1ec;
+    float lifetime_1f0;
+    int value_1f4;
+    unsigned char unknown_1f8[4];
     float values_1fc[12];
-    unsigned char unknown_22c[0xfc];
+    unsigned char unknown_22c[0x34];
+    W8CombatSlot combat_slot_260;
+    unsigned char unknown_280[0x58];
+    W8GrowableVector<void*> vector_2d8;
+    unsigned char unknown_2e8[0x3a];
+    unsigned char flag_322;
+    unsigned char unknown_323[5];
 };
 
 static_assert(sizeof(W8Missile) == 0x328, "W8Missile_size_must_be_0x328");

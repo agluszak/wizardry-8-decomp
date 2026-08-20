@@ -2,6 +2,9 @@
 
 struct W8World;
 class srModelInstance;
+class srNode;
+class stParticle;
+template <class T> class W8GrowableVector;
 
 struct W8ReadLevelInfo {
     W8World* world;                      /* 0x00 */
@@ -18,3 +21,7 @@ unsigned char ReadSingleLevelMesh00485B20(
     int positional_0, int positional_1, const char* name,
     unsigned char load_materials);
 unsigned char SkipSingleLevelMesh00487BD0(W8ReadLevelInfo* info);
+unsigned char ReadWorldParticles004BD0D0(
+    W8ReadLevelInfo* info,
+    srNode* scene,
+    W8GrowableVector<stParticle*>* particles);

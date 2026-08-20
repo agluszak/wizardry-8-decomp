@@ -11,6 +11,7 @@
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/SpellEmitterHost.h"
+#include "wiz8/engine_code/SpellVisual.h"
 #include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
@@ -20,25 +21,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-class W8SpellVisual {
-public:
-    virtual ~W8SpellVisual();
-    virtual W8AnimObj* Method34();
-
-    W8EmitterHost* GetHost();            /* 0x004AC890 */
-    W8AnimObj* GetActiveEmitter();       /* 0x004AC820 */
-    float GetActiveEmitterValue();       /* 0x004AC870 */
-    char GetEmitterCount();              /* 0x004AC840 */
-    void ApplyHostSetting98();           /* 0x004AC360 */
-    void StartIfHostActive();            /* 0x004ABDC0 */
-    void* GetActiveEmitterEntry004AC8A0();
-
-    unsigned char unknown_004[0x1dc];
-    W8SpellEmitterHost* host;            /* 0x1e0 */
-    unsigned char started;               /* 0x1e4 */
-};
-
 extern void Function4A6E20(float value);
+extern int IncrementValue60DFAC(void);
 extern int CountSpellsOfKind(int kind);                      /* 0x004AC8F0 */
 extern void ReleaseSoundHandle00408F70(int handle);
 extern void GetCameraPosition(srVector3T<float>* position);
@@ -49,28 +33,28 @@ W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
 
 /* The emitter record a spell's visual hangs off. */
 // FUNCTION: WIZ8 0x004ac890
-W8EmitterHost* W8SpellVisual::GetHost()
+W8EmitterHost* W8SpellVisual::GetRepresentation()
 {
     return this->host;
 }
 
 /* The emitter it is currently coming out of. */
 // FUNCTION: WIZ8 0x004ac820
-W8AnimObj* W8SpellVisual::GetActiveEmitter()
+W8AnimObj* W8SpellVisual::GetCurrentAnimation()
 {
     return this->host->emitters[this->host->selection.emitter.emitter_index];
 }
 
 /* That emitter's own value. */
 // FUNCTION: WIZ8 0x004ac870
-float W8SpellVisual::GetActiveEmitterValue()
+float W8SpellVisual::GetCurrentAnimationScale()
 {
     return this->host->emitters[
         this->host->selection.emitter.emitter_index]->playback_scale_08;
 }
 
 // FUNCTION: WIZ8 0x004ac8a0
-void* W8SpellVisual::GetActiveEmitterEntry004AC8A0()
+W8AniMesh* W8SpellVisual::GetCurrentAniMesh()
 {
     W8AnimObj* emitter = this->host->emitters[
         this->host->selection.emitter.emitter_index];
@@ -83,7 +67,7 @@ void* W8SpellVisual::GetActiveEmitterEntry004AC8A0()
 
 /* How many emitters the host has, counted by testing each for null. */
 // FUNCTION: WIZ8 0x004ac840
-char W8SpellVisual::GetEmitterCount()
+signed char W8SpellVisual::GetTotalAnimationCount()
 {
     char count = 0;
 
@@ -102,7 +86,41 @@ char W8SpellVisual::GetEmitterCount()
 // FUNCTION: WIZ8 0x004ac360
 void W8SpellVisual::ApplyHostSetting98()
 {
-    AnimObjValue004A15D0(Method34(), this->host->m_bLOD);
+    AnimObjValue004A15D0(GetCurrentAnimation(), this->host->m_bLOD);
+}
+
+W8SpellEmitterHost::W8SpellEmitterHost()
+    : flag_378(0)
+{
+    int emitter;
+
+    for (emitter = 0; emitter < 28; ++emitter) {
+        emitters[emitter] = 0;
+        emitter_values[emitter] = 15.0f;
+    }
+}
+
+// FUNCTION: WIZ8 0x004ABBB0
+W8SpellVisual::W8SpellVisual()
+    : value_1d8(-1),
+      host(0),
+      started(0),
+      flag_1e5(0),
+      flag_1e6(1),
+      flag_1e7(0),
+      value_1e8(1.0f),
+      value_1ec(0)
+{
+    unknown_004 = 1;
+    unknown_008 = IncrementValue60DFAC();
+    host = new W8SpellEmitterHost;
+    if (host == 0) {
+        srAssertFail(
+            "m_pRep",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
+            0x3c0,
+            0);
+    }
 }
 
 /* Start the visual, but only while the host is live. A spell of the seventh

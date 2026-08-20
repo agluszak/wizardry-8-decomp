@@ -16,6 +16,13 @@
 class srModelInstance;
 struct W8World;
 
+struct W8GrCycleReadInfo004A6970 {
+    unsigned int name_prefix_00;
+    int handle_04;
+    const char* bitmap_directory_08;
+    const char* mon_path_0c;
+};
+
 class stLight;
 class stParticle;
 class stGroundShadow;
@@ -172,3 +179,9 @@ unsigned char LoadGrCycle004A67E0(
     const char* directory,
     unsigned char object_type,
     const char* bitmap_directory = 0);
+unsigned char ReadGrCycleData004A6970(
+    W8GrCycleReadInfo004A6970* info,
+    W8GrCycle** cycle,
+    int cycle_index,
+    int value,
+    unsigned char object_type);

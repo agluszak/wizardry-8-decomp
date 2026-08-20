@@ -18,6 +18,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern int IncrementValue60DFAC(void);
+extern void ResetCombatSlot(W8CombatSlot* slot);
+extern float g_navigator_largest_extent_6081e8;
+
 /* The copy body establishes only these fields. Padding remains explicit: the
    source leaves it uninitialized in the freshly allocated result. */
 struct W8AIMissile {
@@ -217,6 +221,68 @@ unsigned int W8MissileRep::ApplyEmitterSetting(char emitter)
             0);
     }
     return AnimObjValue004A15D0(target, m_bLOD);
+}
+
+/* The two emitter slots start empty and at the source default playback value.
+   Construction of the two light-list vectors is ordinary array-member
+   construction and precedes these assignments in the retail body. */
+W8MissileRep::W8MissileRep()
+{
+    emitters[0] = 0;
+    emitters[1] = 0;
+    emitter_values[0] = 15.0f;
+    emitter_values[1] = 15.0f;
+}
+
+/* Retail constructs the +0x2d8 growable vector normally, then clears the
+   complete +0x280..+0x321 tail after allocating the representation.  That
+   overwrites the vector and leaks its initial five-pointer allocation; the
+   ordering is preserved because it is present explicitly in the product. */
+// FUNCTION: WIZ8 0x004A3C10
+W8Missile::W8Missile()
+    : missile_table_index_1d8(-1),
+      m_pRep(0),
+      flag_1e0(0),
+      flag_1e1(0),
+      flag_1e2(1),
+      flag_1e3(0),
+      flag_1e4(0),
+      flag_1e5(0),
+      flag_1e6(0),
+      flag_1e7(1),
+      value_1e8(0),
+      value_1ec(0),
+      lifetime_1f0(15000.0f),
+      value_1f4(0),
+      flag_322(0)
+{
+    unknown_004 = 1;
+    fields.radius_084 = 1.0f;
+    if (g_navigator_largest_extent_6081e8 < 1.0f) {
+        g_navigator_largest_extent_6081e8 = 1.0f;
+    }
+    fields.movement_0c0.value_0b0 = 1.0f;
+    if (g_navigator_largest_extent_6081e8 < 1.0f) {
+        g_navigator_largest_extent_6081e8 = 1.0f;
+    }
+    fields.movement_0c0.alternate_radius_0b4 = 1.0f;
+    if (g_navigator_largest_extent_6081e8 < 1.0f) {
+        g_navigator_largest_extent_6081e8 = 1.0f;
+    }
+    unknown_008 = IncrementValue60DFAC();
+
+    m_pRep = new W8MissileRep;
+    if (m_pRep == 0) {
+        srAssertFail(
+            "m_pRep",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
+            0x38e,
+            0);
+    }
+
+    memset(values_1fc, 0, sizeof(values_1fc));
+    memset(unknown_280, 0, 0xa2);
+    ResetCombatSlot(&combat_slot_260);
 }
 
 /* Release the two owned animations and every light vector before the ordinary

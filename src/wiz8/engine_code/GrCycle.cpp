@@ -7,6 +7,10 @@
 #include "wiz8/ground_shadow.h"
 #include "wiz8/mesh_model.h"
 #include "wiz8/engine_code/PathAI.h"
+#include "wiz8/engine_code/Missile.h"
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/ReadLevel.h"
+#include "wiz8/engine_code/SpellVisual.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/AniMesh.h"
 #include "wiz8/engine_code/game_timer.h"
@@ -182,20 +186,7 @@ extern void ConvertVector004A90E0(
 extern float g_float_005ec128;
 extern float g_float_005ebc64;
 extern void Function401920(const char* message);
-
-struct W8GrCycleReadInfo004A6970 {
-    unsigned int name_prefix_00;
-    int handle_04;
-    const char* bitmap_directory_08;
-    const char* mon_path_0c;
-};
-
-extern unsigned char ReadGrCycleData004A6970(
-    W8GrCycleReadInfo004A6970* info,
-    W8GrCycle** cycle,
-    int cycle_index,
-    int value,
-    unsigned char object_type);
+extern int IncrementValue60DFAC(void);
 
 /* Build the two paths used while reading a .mon resource, verify its one-byte
    version, and hand the open file plus its resource context to the typed cycle
@@ -261,6 +252,133 @@ unsigned char LoadGrCycle004A67E0(
                 "GrCycle::Read: ERROR - Read %s in %s failed",
                 mon_path,
                 bitmap_path));
+    }
+    return success;
+}
+
+/* Read the shared path and particle prefix, then dispatch the object-specific
+   representation payload.  A particle attachment keeps the source node plus
+   its local transform; the live cycle owns the attachment record and vector,
+   while the particle node remains scene-owned. */
+// FUNCTION: WIZ8 0x004A6970
+unsigned char ReadGrCycleData004A6970(
+    W8GrCycleReadInfo004A6970* info,
+    W8GrCycle** cycle,
+    int cycle_index,
+    int value,
+    unsigned char object_type)
+{
+    unsigned char has_path;
+    unsigned char has_particles;
+    unsigned char success;
+
+    if (info == 0) {
+        srAssertFail(
+            "pInfo",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
+            0x1ba,
+            0);
+    }
+
+    if (*cycle == 0) {
+        switch (object_type) {
+        case 0:
+            *cycle = new W8Monster;
+            break;
+        case 1:
+            *cycle = new W8Missile;
+            break;
+        case 2:
+            *cycle = new W8SpellVisual;
+            break;
+        default:
+            srAssertFail(
+                "FALSE",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
+                0x1d0,
+                "Unknown object type");
+            break;
+        }
+        if (*cycle == 0) {
+            srAssertFail(
+                "pCycle",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
+                0x1d2,
+                0);
+        }
+        if (object_type == 0) {
+            (*cycle)->unknown_008 = IncrementValue60DFAC();
+        }
+        (*cycle)->GetRepresentation()->selection.emitter.emitter_index = -1;
+    }
+
+    ReadVirtualFile(info->handle_04, &has_path, 1, 0);
+    if (has_path != 0 &&
+        LoadPathAI004A92A0(
+            reinterpret_cast<W8PathAI**>(&(*cycle)->m_pAI),
+            info->handle_04) == 0) {
+        srAssertFail(
+            "fSuccess",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
+            0x1e6,
+            0);
+    }
+
+    ReadVirtualFile(info->handle_04, &has_particles, 1, 0);
+    if (has_particles != 0) {
+        W8GrowableVector<stParticle*> particles;
+
+        success = ReadWorldParticles004BD0D0(
+            reinterpret_cast<W8ReadLevelInfo*>(info),
+            g_world->dynamic_scene,
+            &particles);
+        if (particles.GetCount() != 0) {
+            int index;
+
+            if ((*cycle)->m_plsParticles == 0) {
+                (*cycle)->m_plsParticles =
+                    new W8GrowableVector<W8GrCycleShakeEvent*>;
+            }
+            for (index = 0; index < particles.GetCount(); ++index) {
+                stParticle* particle = *particles.GetAt(index);
+                W8GrCycleShakeEvent* event =
+                    static_cast<W8GrCycleShakeEvent*>(
+                        ::operator new(sizeof(W8GrCycleShakeEvent)));
+                srVector3T<double> location;
+
+                if (event == 0) {
+                    srAssertFail(
+                        "pPartSys",
+                        "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
+                        0x201,
+                        0);
+                }
+                event->cycle_00 = cycle_index;
+                event->subcycle_04 = -1;
+                event->particle_08 = particle;
+                location = particle->getLocation();
+                event->position_0c.x = static_cast<float>(location.x);
+                event->position_0c.y = static_cast<float>(location.y);
+                event->position_0c.z = static_cast<float>(location.z);
+                particle->getRotation(event->rotation_18);
+                (*cycle)->m_plsParticles->Add(event);
+            }
+        }
+    }
+
+    switch (object_type) {
+    case 0:
+        success = static_cast<W8Monster*>(*cycle)->m_pRep->ReadCycleData004BF520(
+            info, static_cast<W8Monster*>(*cycle), cycle_index, value);
+        break;
+    case 1:
+        success = ReadMissileCycleData004A3300(
+            info, static_cast<W8Missile*>(*cycle), cycle_index, value);
+        break;
+    case 2:
+        success = ReadSpellCycleData004AB340(
+            info, static_cast<W8SpellVisual*>(*cycle), cycle_index, value);
+        break;
     }
     return success;
 }

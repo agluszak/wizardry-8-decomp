@@ -11,6 +11,7 @@
    and 0x004AB1C0 prove the complete 0x37c-byte extent. */
 class W8SpellEmitterHost : public W8EmitterHost {
 public:
+    W8SpellEmitterHost();
     W8SpellEmitterHost(const W8SpellEmitterHost& other);
     virtual ~W8SpellEmitterHost() override;
     virtual W8AnimRepBase005EC1D8* Clone() override;
