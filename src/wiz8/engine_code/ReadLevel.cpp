@@ -99,7 +99,7 @@ struct W8LevelParticleRecord004BD0D0 {
     float direction_0e0;                   /* 0x0e0 */
     float direction_0e4;                   /* 0x0e4 */
     int initially_active;                  /* 0x0e8 */
-    unsigned char material[0x12a];         /* 0x0ec */
+    W8MaterialRecord004B8A70 material;     /* 0x0ec */
     short value_216;                       /* 0x216 */
     int state_218;                         /* 0x218 */
     unsigned char value_21c;               /* 0x21c */
@@ -134,10 +134,6 @@ extern void FinalizeWorldScenes0046F410(
     srScene* static_scene, srNode* dynamic_scene);
 extern void RefreshEnvironment00483560(void);
 extern void FinalizeStaticScene0046F3A0(srScene* scene);
-extern unsigned char Function4B8A70(
-    const char* bitmap_folder, const unsigned char* source,
-    srMaterialIFace** material, srTextureIFace** texture,
-    unsigned long* render_flags, int load_texture);
 extern unsigned char ReadAutomapNodes00584DD0(int hFile);
 extern void SetChainValue15C(char* node, int value);
 
@@ -1041,8 +1037,8 @@ unsigned char ReadWorldParticles004BD0D0(
         particle->state_184 = record.state_218;
         particle->active_190 = 0;
 
-        Function4B8A70(
-            pInfo->bitmap_folder, record.material, &material, &texture,
+        LoadMaterial004B8A70(
+            pInfo->bitmap_folder, &record.material, &material, &texture,
             &render_flags.value, 1);
         particle->SetRetainedObject0049ACA0(material);
         particle->SetRenderFlags004925A0(render_flags);

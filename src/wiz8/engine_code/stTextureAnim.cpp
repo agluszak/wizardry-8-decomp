@@ -103,6 +103,13 @@ void stTextureAnim::SetFrame00485400(int frame)
     frame_tick_6c = GetTickCount();
 }
 
+// FUNCTION: WIZ8 0x00485420
+void stTextureAnim::AddTexture00485420(srTextureIFace* texture)
+{
+    textures_54->Add(texture);
+    texture->addReference();
+}
+
 // FUNCTION: WIZ8 0x004854B0
 void stTextureAnim::UpdateFrame004854B0()
 {
