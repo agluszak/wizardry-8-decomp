@@ -4,13 +4,7 @@
 #include "wiz8/engine_code/BitArray.h"
 
 class GDProp;
-
-/* Released through its own deleting slot by 0x00457B10; nothing else about it
-   is established. */
-class W8PathOwned054 {
-public:
-    virtual ~W8PathOwned054();
-};
+class stModelInstance005EC7D0;
 
 /* The 0x58-byte state object the pathing constructor builds and 0x00457B10
    gives back with a plain operator delete, so it has no destructor of its own.
@@ -251,14 +245,15 @@ public:
         const srVector3T<float>* destination);
     void DrawPathPosition0045C9A0(
         srVector3T<float> position, unsigned char mode);
-    W8PathOwned054* BuildPathVisualization0045BE30();
-    void EnsurePathVisualization0045D530();
+    stModelInstance005EC7D0* BuildPathVisualization0045BE30();
+    stModelInstance005EC7D0* EnsurePathVisualization0045D530();
     void GetWaypointVisualizationColor0045D490(
         unsigned short waypoint, srVector3T<float>* color);
     short CollectPathVisualization0045D880(
         const srVector3T<float>* position);
-    void PreparePathVisualization0045E840(
-        srVector3T<float>* source, const srVector3T<float>* destination);
+    unsigned char PreparePathVisualization0045E840(
+        const srVector3T<float>* source,
+        const srVector3T<float>* direction);
     void AddWaypoint0045DDB0(const srVector3T<float>* position);
     unsigned int ClassifyWaypoint00459C00(const srVector3T<float>* position);
     unsigned char SnapWaypointPosition00462E60(
@@ -350,7 +345,7 @@ public:
     W8PathSurface* m_pSurfaces_048;      /* 0x48 */
     W8PathEdge* m_pEdges_04c;            /* 0x4c */
     W8FileWaypoint* file_waypoints_050; /* 0x50 */
-    class W8PathOwned054* m_owned_054;   /* 0x54 */
+    stModelInstance005EC7D0* m_owned_054; /* 0x54 */
     BitArray* m_owned_058;               /* 0x58 */
     BitArray* m_owned_05c;               /* 0x5c */
     BitArray* m_owned_060;               /* 0x60 */
@@ -395,7 +390,8 @@ public:
     unsigned short value_1d4;
     unsigned short value_1d6;
     unsigned short value_1d8;
-    unsigned char m_positional_1da[0x3a];
+    unsigned char path_direction_valid_1da;
+    unsigned char m_positional_1db[0x39];
     void* m_owned_214;                   /* 0x214 */
     int m_positional_218;
     /* The conditional path tables. ReadPathNodes at 0x00458CE0 asserts on the

@@ -19,6 +19,7 @@ extern float g_float_005ebb38;
 extern double g_double_005ebc30;
 extern const float g_float_005ec0a8;
 extern float g_float_005ec020;
+extern double g_double_005ec030;
 extern double g_double_005ec318;
 extern float g_float_005ebc3c;
 extern float g_float_005ebc60;

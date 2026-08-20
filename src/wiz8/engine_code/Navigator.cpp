@@ -689,7 +689,6 @@ extern unsigned char g_navigator_link_mode_00659c10;
 extern float g_navigator_speed_006850ff;
 extern float g_navigator_linked_radius_scale_005ebc98;
 extern float g_navigator_vertical_phase_step_005ebcc8;
-extern float g_navigator_target_refresh_distance_005ec030;
 extern float g_navigator_startup_refresh_distance_005ec150;
 extern float g_navigator_minimum_speed_006081ec;
 extern float g_navigator_minimum_speed_mode23_006081f0;
@@ -1290,7 +1289,7 @@ int W8Navigator::ResolveMovement()
             fields.target_last_position_050.z;
         float target_motion = (float)sqrt(dx * dx + dy * dy + dz * dz);
 
-        if (target_motion > g_navigator_target_refresh_distance_005ec030 ||
+        if ((double)target_motion > g_double_005ec030 ||
             (target == g_startup_world_659c0c &&
              target_motion > g_navigator_startup_refresh_distance_005ec150)) {
             fields.target_last_position_050 =

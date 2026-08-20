@@ -9,6 +9,7 @@
    semantic domain is not established, so the names stay positional. */
 class stMeshModel : public srMeshModel {
 public:
+    stMeshModel(long polygons, long vertices);    /* 0x00470B00 */
     const char* getClassName() const override;     /* 0x004741F0 */
     unsigned long getClassID() const override;     /* 0x004741E0 */
     class srRegistry::ClassNode* getClassNode() const override;  /* 0x00474820 */
@@ -28,7 +29,9 @@ public:
     stMeshModel* next;                    /* 0x398 */
     stMeshModel* previous;                /* 0x39c */
     unsigned int flags_3a0;
-    unsigned char unknown_3a4[0x2c];
+    unsigned char unknown_3a4[0x28];
+    unsigned char flag_3cc;
+    unsigned char unknown_3cd[3];
     unsigned int vertex_count;            /* 0x3d0 */
     unsigned char unknown_3d4[0xc];
     void** vertices;                      /* 0x3e0 */

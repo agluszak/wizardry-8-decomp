@@ -2,16 +2,19 @@
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/mesh_model.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "wiz8/virtual_file.h"
 
 #include "surrender/srNode.h"
+#include "surrender/srModelInstance.h"
 #include "FileMan.h"
 
 #include <math.h>
@@ -48,7 +51,7 @@ extern float g_path_direction_threshold_3_005ec354;
 extern float g_path_cardinal_scale_005ec358;
 extern float g_path_waypoint_query_vertical_005ec35c;
 extern float g_path_waypoint_query_horizontal_005ec360;
-extern double g_path_waypoint_exact_distance_005ebc64;
+extern float g_path_waypoint_exact_distance_005ebc64;
 extern float g_float_005ebb34;
 extern double g_double_005ebe80;
 extern void Function58AAD0(int channel, const char* format, ...);
@@ -58,6 +61,11 @@ extern float Function4BE420(
 extern float CalcRangeDistance(int range_category);
 extern unsigned char Function51B3F0(int mode);
 extern void Function497690(int channel, const char* message);
+extern stModelInstance005EC7D0* CreateModelInstance0046F5C0(
+    stMeshModel* model);
+extern srShader g_path_shader_00652dc4;
+extern srTextureIFace* g_path_texture_00652dc0;
+extern srMaterialIFace* g_path_material_00652dbc;
 
 #define OCTPATH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctPath.cpp"
 
@@ -2850,7 +2858,7 @@ unsigned short W8PathingService::FindWaypoint0045B120(
             distances[index] = (unsigned int)(int)sqrt(
                 delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
 
-            if ((double)distances[index] <
+            if ((float)distances[index] <
                     g_path_waypoint_exact_distance_005ebc64 &&
                 sqrt(delta_x * delta_x + delta_z * delta_z) <
                     g_path_waypoint_snap_distance_005ec150) {
@@ -3265,7 +3273,7 @@ void W8PathingService::GetWaypointVisualizationColor0045D490(
         color->z = 1.0f;
         return;
     }
-    if (m_positional_1da[0] != 0) {
+    if (path_direction_valid_1da != 0) {
         color->x = 0.0f;
         color->y = 1.0f;
         color->z = 0.0f;
@@ -3274,6 +3282,121 @@ void W8PathingService::GetWaypointVisualizationColor0045D490(
     color->x = 1.0f;
     color->y = 0.0f;
     color->z = 0.0f;
+}
+
+/* Create the fixed-capacity editor mesh shared by waypoint and edge drawing.
+   The first hundred six-triangle groups describe waypoint markers; the next
+   two thousand describe edge segments. Every polygon and vertex receives the
+   path editor's shared texture/material state before the concrete model
+   instance takes ownership of the mesh. */
+// FUNCTION: WIZ8 0x0045D530
+stModelInstance005EC7D0* W8PathingService::EnsurePathVisualization0045D530()
+{
+    const int polygon_count = 0x3138;
+    const int vertex_count = 0x30d4;
+    stMeshModel* model = new stMeshModel(polygon_count, vertex_count);
+    int index;
+
+    if (model == 0) {
+        srAssertFail(
+            "pstMeshModel", OCTPATH_CPP, 0x11e9,
+            "CreateWayPointMesh::Read -- Could not create pstMeshModel.");
+    }
+    model->autoRelease();
+    model->flags_3a0 &= ~1U;
+    model->setShader(g_path_shader_00652dc4, 0);
+    model->setName("WayPoint Mesh");
+    model->flag_3cc = 0;
+
+    srVector3i* polygons = model->getPolyVertex();
+    srPtr<srTextureIFace>* textures = model->getPolyTexture(0, 0, 1);
+    srVector2T<float>* texture_coordinates =
+        model->getVertexTexCoords(0, 0, 1);
+    srPtr<srMaterialIFace>* materials = model->getVertexMaterial(
+        0, static_cast<srMeshModel::e_side>(0), 1);
+    unsigned long* shade_indices = model->getVertexShadeIndex(1);
+
+    for (index = 0; index < polygon_count; ++index) {
+        textures[index] = g_path_texture_00652dc0;
+    }
+    for (index = 0; index < vertex_count; ++index) {
+        texture_coordinates[index].x = 0.0f;
+        texture_coordinates[index].y = 0.0f;
+        materials[index] = g_path_material_00652dbc;
+        shade_indices[index] = index;
+    }
+
+    int polygon_index = 0;
+    int vertex_index = 1;
+    do {
+        polygons[polygon_index].x = vertex_index - 1;
+        polygons[polygon_index].y = vertex_index;
+        polygons[polygon_index].z = vertex_index + 1;
+        polygons[polygon_index + 1].x = vertex_index - 1;
+        polygons[polygon_index + 1].y = vertex_index + 1;
+        polygons[polygon_index + 1].z = vertex_index + 2;
+        polygons[polygon_index + 2].x = vertex_index - 1;
+        polygons[polygon_index + 2].y = vertex_index + 2;
+        polygons[polygon_index + 2].z = vertex_index + 3;
+        polygons[polygon_index + 3].x = vertex_index - 1;
+        polygons[polygon_index + 3].y = vertex_index + 3;
+        polygons[polygon_index + 3].z = vertex_index;
+        polygons[polygon_index + 4].x = vertex_index;
+        polygons[polygon_index + 4].y = vertex_index + 3;
+        polygons[polygon_index + 4].z = vertex_index + 2;
+        polygons[polygon_index + 5].x = vertex_index;
+        polygons[polygon_index + 5].y = vertex_index + 2;
+        polygons[polygon_index + 5].z = vertex_index + 1;
+        vertex_index += 5;
+        polygon_index += 6;
+    } while (vertex_index < 0x1f5);
+
+    vertex_index = 0x1f8;
+    do {
+        polygons[polygon_index].x = vertex_index - 4;
+        polygons[polygon_index].y = vertex_index - 3;
+        polygons[polygon_index].z = vertex_index - 1;
+        polygons[polygon_index + 1].x = vertex_index - 3;
+        polygons[polygon_index + 1].y = vertex_index - 2;
+        polygons[polygon_index + 1].z = vertex_index;
+        polygons[polygon_index + 2].x = vertex_index - 2;
+        polygons[polygon_index + 2].y = vertex_index - 4;
+        polygons[polygon_index + 2].z = vertex_index + 1;
+        polygons[polygon_index + 3].x = vertex_index;
+        polygons[polygon_index + 3].y = vertex_index - 1;
+        polygons[polygon_index + 3].z = vertex_index - 3;
+        polygons[polygon_index + 4].x = vertex_index + 1;
+        polygons[polygon_index + 4].y = vertex_index;
+        polygons[polygon_index + 4].z = vertex_index - 2;
+        polygons[polygon_index + 5].x = vertex_index - 1;
+        polygons[polygon_index + 5].y = vertex_index + 1;
+        polygons[polygon_index + 5].z = vertex_index - 4;
+        vertex_index += 6;
+        polygon_index += 6;
+    } while (vertex_index < 0x30d8);
+
+    srVector3T<float>* colors = model->getVertexDIG(0, 1);
+    for (index = 0; index < 5; ++index) {
+        colors[index].x = 1.0f;
+        colors[index].y = 0.0f;
+        colors[index].z = 0.0f;
+    }
+    for (index = 10; index < 0x1f9; ++index) {
+        colors[index].x = 0.0f;
+        colors[index].y = 0.0f;
+        colors[index].z = 1.0f;
+    }
+
+    m_owned_054 = CreateModelInstance0046F5C0(model);
+    if (m_owned_054 == 0) {
+        srAssertFail(
+            "m_pPathModelInstance", OCTPATH_CPP, 0x1226,
+            "CreateWayPointMesh -- Could not create pstModelInstance.");
+    }
+    m_owned_054->setName("WayPoint Mesh");
+    m_owned_054->setExclusionMask(3);
+    m_owned_054->setFlag(srNode::FLAG_POSITIONAL_0);
+    return m_owned_054;
 }
 
 /* Append one waypoint surface and keep every capacity-coupled side table sized
@@ -3376,6 +3499,141 @@ void W8PathingService::RemoveWaypointLink0045E360(
         MarkRendererReady();
         flag_1cc = 1;
     }
+}
+
+/* Choose the waypoint that best continues from the surface nearest source in
+   the requested direction. Existing graph edges take precedence. When none
+   are sufficiently aligned, probe twenty-five fixed steps forward and retain
+   the best distinct surface found there. The second selection is marked valid
+   only when it is an existing edge or the direct span test accepts it. */
+// FUNCTION: WIZ8 0x0045e840
+unsigned char W8PathingService::PreparePathVisualization0045E840(
+    const srVector3T<float>* source,
+    const srVector3T<float>* direction)
+{
+    float best_alignment = -1.0f;
+    unsigned short best_waypoint = 0;
+    unsigned short source_waypoint;
+    W8PathSurface* source_surface;
+    srVector3T<float> offset;
+    float length_squared;
+    float scale;
+
+    value_1d6 = 0;
+    path_direction_valid_1da = 0;
+    source_waypoint = FindWaypoint0045B120(source, 0);
+    source_surface = &m_pSurfaces_048[source_waypoint];
+
+    offset.x = source_surface->position_04.x - source->x;
+    offset.y = source_surface->position_04.y - source->y;
+    offset.z = source_surface->position_04.z - source->z;
+    if ((double)(float)sqrt(
+            offset.x * offset.x + offset.y * offset.y + offset.z * offset.z) <=
+        g_double_005ec030) {
+        unsigned short edge_index = source_surface->first_edge_24;
+
+        while (edge_index != 0) {
+            W8PathEdge* edge = &m_pEdges_04c[edge_index];
+            unsigned short neighbor_index = edge->destination_06;
+            W8PathSurface* neighbor = &m_pSurfaces_048[neighbor_index];
+            srVector3T<float> neighbor_direction;
+            float alignment;
+
+            neighbor_direction.x =
+                neighbor->position_04.x - source_surface->position_04.x;
+            neighbor_direction.y =
+                neighbor->position_04.y - source_surface->position_04.y;
+            neighbor_direction.z =
+                neighbor->position_04.z - source_surface->position_04.z;
+            length_squared =
+                neighbor_direction.x * neighbor_direction.x +
+                neighbor_direction.y * neighbor_direction.y +
+                neighbor_direction.z * neighbor_direction.z;
+            if ((double)length_squared != g_zero_005ebb40) {
+                scale = (float)(g_double_005ebc30 / sqrt(length_squared));
+                neighbor_direction.x *= scale;
+                neighbor_direction.y *= scale;
+                neighbor_direction.z *= scale;
+            }
+            alignment =
+                neighbor_direction.x * direction->x +
+                neighbor_direction.y * direction->y +
+                neighbor_direction.z * direction->z;
+            if (alignment > best_alignment) {
+                best_alignment = alignment;
+                best_waypoint = neighbor_index;
+            }
+            edge_index = edge->next_0c;
+        }
+
+        if (best_alignment > g_float_005ec38c) {
+            value_1d6 = best_waypoint;
+            path_direction_valid_1da = 1;
+            value_1d4 = source_waypoint;
+            return 1;
+        }
+
+        best_alignment = -1.0f;
+        best_waypoint = 0;
+        float distance = 0.0f;
+        int probe_count = 25;
+        do {
+            srVector3T<float> probe;
+            unsigned short probe_waypoint;
+
+            distance += g_path_waypoint_exact_distance_005ebc64;
+            probe.x = source_surface->position_04.x + direction->x * distance;
+            probe.y = source_surface->position_04.y + direction->y * distance;
+            probe.z = source_surface->position_04.z + direction->z * distance;
+            probe_waypoint = FindWaypoint0045B120(&probe, 0);
+            if (probe_waypoint != 0 && probe_waypoint != source_waypoint) {
+                W8PathSurface* candidate = &m_pSurfaces_048[probe_waypoint];
+                srVector3T<float> candidate_direction;
+                float alignment;
+
+                candidate_direction.x =
+                    candidate->position_04.x - source_surface->position_04.x;
+                candidate_direction.y =
+                    candidate->position_04.y - source_surface->position_04.y;
+                candidate_direction.z =
+                    candidate->position_04.z - source_surface->position_04.z;
+                length_squared =
+                    candidate_direction.x * candidate_direction.x +
+                    candidate_direction.y * candidate_direction.y +
+                    candidate_direction.z * candidate_direction.z;
+                if ((double)length_squared != g_zero_005ebb40) {
+                    scale =
+                        (float)(g_double_005ebc30 / sqrt(length_squared));
+                    candidate_direction.x *= scale;
+                    candidate_direction.y *= scale;
+                    candidate_direction.z *= scale;
+                }
+                alignment =
+                    candidate_direction.x * direction->x +
+                    candidate_direction.y * direction->y +
+                    candidate_direction.z * direction->z;
+                if (alignment > best_alignment) {
+                    best_alignment = alignment;
+                    best_waypoint = probe_waypoint;
+                }
+            }
+            --probe_count;
+        } while (probe_count != 0);
+
+        if (best_alignment > g_float_005ec38c) {
+            value_1d6 = best_waypoint;
+            if (TestWaypointSpan0045A1B0(
+                    &source_surface->position_04,
+                    &m_pSurfaces_048[best_waypoint].position_04, 0, 0) != 0) {
+                path_direction_valid_1da = 1;
+            }
+            value_1d4 = source_waypoint;
+            return 1;
+        }
+    }
+
+    value_1d4 = source_waypoint;
+    return 0;
 }
 
 /* Add one directed edge to the waypoint graph, or update the matching edge

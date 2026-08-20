@@ -3,6 +3,7 @@
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/registry_classes.h"
+#include "wiz8/mesh_model.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srScene.h"
 
@@ -50,6 +51,26 @@ void ExpandBounds0046F510(
     maximum->z = maximum->z > candidate_maximum->z
                      ? maximum->z
                      : candidate_maximum->z;
+}
+
+/* Build the concrete first-party instance used for an already-created mesh.
+   Its model assignment goes through srModel::Client, exactly as the ordinary
+   SurRender ownership interface requires. */
+// FUNCTION: WIZ8 0x0046F5C0
+stModelInstance005EC7D0* CreateModelInstance0046F5C0(stMeshModel* model)
+{
+    stModelInstance005EC7D0* instance;
+
+    if (model == 0) {
+        srAssertFail("pstMeshModel", THREE_D_CPP, 0x5bf, 0);
+    }
+    instance = new stModelInstance005EC7D0(0);
+    if (instance == 0) {
+        srAssertFail("pstHeadInstance", THREE_D_CPP, 0x5c2, 0);
+    }
+    instance->setName("ST CreateInstance");
+    instance->assignModel(model);
+    return instance;
 }
 
 // FUNCTION: WIZ8 0x0046F680
