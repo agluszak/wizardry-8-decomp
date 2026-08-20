@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+unsigned char PleaseWaitScreenInitialize(void);
+
 extern "C" {
 
 // GLOBAL: WIZ8 0x0068EC78
@@ -69,7 +71,6 @@ const W8CampScreenRegion g_camp_screen_regions_64cbf0[12] = {
     { 0x16a, 0x17a, 0x1a, 0x3a, 0x14, 0x05, 0x165, 0x19f, 1 }
 };
 
-extern unsigned char PleaseWaitScreenInitialize(void);
 extern void InitializeCampScreenRegions(void);
 extern void Function5B7230(void);
 

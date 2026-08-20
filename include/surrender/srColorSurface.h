@@ -131,10 +131,10 @@ public:
         long source_x, long source_y, long width, long height,
         double alpha);
     virtual SR_DLL_IMPORT void blit(
-        const BlitInfo& info, srColorSurfaceIFace& source);
-    virtual SR_DLL_IMPORT void blit(
         long x, long y, srColorSurfaceIFace& source,
         long source_x, long source_y, long width, long height);
+    virtual SR_DLL_IMPORT void blit(
+        const BlitInfo& info, srColorSurfaceIFace& source);
     virtual SR_DLL_IMPORT void copy(srColorSurfaceIFace& source);
     virtual SR_DLL_IMPORT void swapPixelRows(
         long x, long y0, long y1, long width, long rows);
@@ -170,18 +170,19 @@ public:
     SR_DLL_IMPORT srFilter* getFilter() const;
     SR_DLL_IMPORT long getGreenBits() const;
     SR_DLL_IMPORT int getHClampMode() const;
-    SR_DLL_IMPORT long getHeight() const;
-    SR_DLL_IMPORT long getPitch() const;
-    SR_DLL_IMPORT void getPixelFormat(
-        srPixelConvert::PixelFormat& format) const;
+    long getHeight() const { return height_20; }
+    long getPitch() const { return pitch_24; }
+    void getPixelFormat(srPixelConvert::PixelFormat& format) const {
+        format = pixel_format_30;
+    }
     SR_DLL_IMPORT long getRedBits() const;
     SR_DLL_IMPORT void getSurfaceDesc(SurfaceDesc& description) const;
     SR_DLL_IMPORT int getVClampMode() const;
-    SR_DLL_IMPORT long getWidth() const;
+    long getWidth() const { return width_1c; }
     SR_DLL_IMPORT int isAlpha() const;
     SR_DLL_IMPORT int isPaletted() const;
     SR_DLL_IMPORT void rotate180();
-    SR_DLL_IMPORT void setFilter(srFilter* filter);
+    void setFilter(srFilter* filter) { filter_2c = filter; }
     SR_DLL_IMPORT void setHClampMode(int enabled);
     SR_DLL_IMPORT void setVClampMode(int enabled);
 
