@@ -25,3 +25,4 @@ unsigned char ReadWorldParticles004BD0D0(
     W8ReadLevelInfo* info,
     srNode* scene,
     W8GrowableVector<stParticle*>* particles);
+void ReleaseReadMeshScratch004881D0();

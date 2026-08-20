@@ -3,6 +3,38 @@
 
 #include "FileMan.h"
 
+#include <stdlib.h>
+
+/* ReadMesh.cpp owns four parallel scratch allocations. Their element types are
+   not established yet; this cleanup proves only the shared lifetime and the
+   trailing count. */
+static void *g_read_mesh_scratch_65b9e8;
+static void *g_read_mesh_scratch_65b9ec;
+static void *g_read_mesh_scratch_65b9f0;
+static void *g_read_mesh_scratch_65b9f4;
+static int g_read_mesh_scratch_count_65b9f8;
+
+// FUNCTION: WIZ8 0x004881d0
+void ReleaseReadMeshScratch004881D0() {
+  if (g_read_mesh_scratch_65b9e8 != 0) {
+    free(g_read_mesh_scratch_65b9e8);
+    g_read_mesh_scratch_65b9e8 = 0;
+  }
+  if (g_read_mesh_scratch_65b9ec != 0) {
+    free(g_read_mesh_scratch_65b9ec);
+    g_read_mesh_scratch_65b9ec = 0;
+  }
+  if (g_read_mesh_scratch_65b9f0 != 0) {
+    free(g_read_mesh_scratch_65b9f0);
+    g_read_mesh_scratch_65b9f0 = 0;
+  }
+  if (g_read_mesh_scratch_65b9f4 != 0) {
+    free(g_read_mesh_scratch_65b9f4);
+    g_read_mesh_scratch_65b9f4 = 0;
+  }
+  g_read_mesh_scratch_count_65b9f8 = 0;
+}
+
 // FUNCTION: WIZ8 0x00487bd0
 unsigned char SkipSingleLevelMesh00487BD0(W8ReadLevelInfo *info) {
   int version;

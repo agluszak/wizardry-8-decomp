@@ -7,6 +7,7 @@
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Levels.h"
+#include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/game_state.h"
@@ -70,7 +71,6 @@ extern void Function5060C0(void);
 extern unsigned int AgeAllMonsterSight(void);
 extern void RebuildAllWorldItemInstances(void);
 extern void Function451020(void);
-extern void Function4881D0(void);
 extern void SetSkyNodeVisible(char visible);
 
 extern unsigned char g_world_cleanup_flag_00659757;
@@ -361,7 +361,7 @@ unsigned char LoadLevel(
     }
     MarkRendererReady();
     Function451020();
-    Function4881D0();
+    ReleaseReadMeshScratch004881D0();
     return 1;
 }
 

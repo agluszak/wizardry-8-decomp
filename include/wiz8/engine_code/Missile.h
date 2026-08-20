@@ -8,11 +8,6 @@ struct W8GrCycleReadInfo004A6970;
 class W8Missile;
 
 W8AIMissile* CopyAIMissile004A53A0(const W8AIMissile* source);
-unsigned char ReadMissileCycleData004A3300(
-    W8GrCycleReadInfo004A6970* info,
-    W8Missile* missile,
-    int cycle_index,
-    int value);
 
 /* The missile constructor allocates this complete 0x108-byte representation,
    invokes W8EmitterHost on the same receiver, constructs the two light-list
@@ -28,6 +23,11 @@ public:
         signed char cycle, signed char frame, signed char lod) override;
     virtual unsigned int ApplyEmitterSetting(char emitter) override;
     virtual W8AniMesh* GetEmitterAniMesh(char emitter) override;
+    unsigned char ReadCycleData004A3300(
+        W8GrCycleReadInfo004A6970* info,
+        W8Missile* missile,
+        int positional_2,
+        int emitter_index);
 
     unsigned char unknown_0ac[0x2c];
     W8AnimObj* emitters[2];

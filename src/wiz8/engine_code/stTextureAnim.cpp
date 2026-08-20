@@ -1,12 +1,12 @@
 #include "wiz8/engine_code/stTextureAnim.h"
 
+#include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stTextureFile.h"
 #include "wiz8/wiz8_windows.h"
 
 #include <stdlib.h>
 
 extern unsigned char Function489A80(const void* texture);
-extern void Function4881D0();
 extern float g_float_005ec128;
 
 // VTABLE: WIZ8 0x005EC9C0
@@ -86,7 +86,7 @@ stTextureAnim::stTextureAnim(const stTextureAnim& other)
 stTextureAnim::~stTextureAnim()
 {
     if (Function489A80(this) != 0) {
-        Function4881D0();
+        ReleaseReadMeshScratch004881D0();
     }
 
     while (textures_54->GetCount() != 0) {

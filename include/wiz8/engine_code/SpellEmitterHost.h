@@ -4,6 +4,9 @@
 #include "wiz8/engine_code/Emitter.h"
 #include "wiz8/vector_005ece60.h"
 
+struct W8GrCycleReadInfo004A6970;
+class W8SpellVisual;
+
 #pragma pack(push, 1)
 
 /* Engine Code\Spells.cpp's concrete five-slot emitter host.  The allocation
@@ -19,6 +22,11 @@ public:
         signed char cycle, signed char frame, signed char lod) override;
     virtual unsigned int ApplyEmitterSetting(char emitter) override;
     virtual W8AniMesh* GetEmitterAniMesh(char emitter) override;
+    unsigned char ReadCycleData004AB340(
+        W8GrCycleReadInfo004A6970* info,
+        W8SpellVisual* visual,
+        int positional_2,
+        int emitter_index);
 
     unsigned char unknown_0ac[0x2c];
     W8AnimObj* emitters[28];              /* 0x0d8 */

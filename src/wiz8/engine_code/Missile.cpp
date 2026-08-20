@@ -9,11 +9,13 @@
 
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/Missile.h"
+#include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Emitter.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
+#include "surrender/srTimer.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -21,6 +23,7 @@
 extern int IncrementValue60DFAC(void);
 extern void ResetCombatSlot(W8CombatSlot* slot);
 extern float g_navigator_largest_extent_6081e8;
+extern srTimer* g_shared_timer_base;
 
 /* The copy body establishes only these fields. Padding remains explicit: the
    source leaves it uninitialized in the freshly allocated result. */
@@ -232,6 +235,66 @@ W8MissileRep::W8MissileRep()
     emitters[1] = 0;
     emitter_values[0] = 15.0f;
     emitter_values[1] = 15.0f;
+}
+
+// FUNCTION: WIZ8 0x004A3300
+unsigned char W8MissileRep::ReadCycleData004A3300(
+    W8GrCycleReadInfo004A6970* info,
+    W8Missile* missile,
+    int,
+    int emitter_index)
+{
+    W8LightVector* lights = new W8LightVector;
+    W8AnimObj* animation;
+    unsigned char success;
+    signed char emitter;
+
+    if (info == 0 || info->handle_04 == 0 || missile == 0) {
+        srAssertFail(
+            "pInfo && pInfo->hFile && pMissile",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
+            0x1df,
+            0);
+    }
+    animation = CreateAnimObj004A01A0();
+    success = AnimObjReadFromFile004A05C0(
+        reinterpret_cast<W8ReadLevelInfo*>(info), animation, 1, lights, 1);
+    emitter = static_cast<signed char>(animation->unknown_03[1]);
+
+    if (lights->GetCount() == 0) {
+        delete lights;
+        lights = 0;
+    }
+    else {
+        missile->SetLights(lights);
+    }
+    light_lists[emitter_index].Add(lights);
+
+    if (emitter_index != -1) {
+        emitter = static_cast<signed char>(emitter_index);
+        selection.emitter.emitter_index = emitter;
+    }
+    emitter_values[emitter] = animation->playback_scale_08;
+    active = 1;
+    flag_06e = 1;
+    timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
+    flag_070 = animation->unknown_03[0];
+    flag_06f = animation->value_02;
+    flag_06d = animation->unknown_00[1];
+    emitters[emitter] = animation;
+
+    if (missile != 0) {
+        if (SetCycleFrameLod(selection.emitter.emitter_index, 0, 2) != 0) {
+            m_bLOD = 2;
+        }
+        else if (SetCycleFrameLod(selection.emitter.emitter_index, 0, 1) != 0) {
+            m_bLOD = 1;
+        }
+        else {
+            m_bLOD = 0;
+        }
+    }
+    return success;
 }
 
 /* Retail constructs the +0x2d8 growable vector normally, then clears the

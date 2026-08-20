@@ -372,11 +372,11 @@ unsigned char ReadGrCycleData004A6970(
             info, static_cast<W8Monster*>(*cycle), cycle_index, value);
         break;
     case 1:
-        success = ReadMissileCycleData004A3300(
+        success = static_cast<W8Missile*>(*cycle)->m_pRep->ReadCycleData004A3300(
             info, static_cast<W8Missile*>(*cycle), cycle_index, value);
         break;
     case 2:
-        success = ReadSpellCycleData004AB340(
+        success = static_cast<W8SpellVisual*>(*cycle)->host->ReadCycleData004AB340(
             info, static_cast<W8SpellVisual*>(*cycle), cycle_index, value);
         break;
     }

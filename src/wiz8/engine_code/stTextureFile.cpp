@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/stTextureFile.h"
 
+#include "wiz8/engine_code/ReadLevel.h"
 #include "FileMan.h"
 #include "surrender/srPalette.h"
 #include "wiz8/virtual_file.h"
@@ -7,7 +8,6 @@
 #include <string.h>
 
 extern unsigned char Function489A80(const void* texture);
-extern void Function4881D0();
 
 // VTABLE: WIZ8 0x005EC5F8
 // class stTextureFile
@@ -133,7 +133,7 @@ void stTextureFile::invalidate()
 stTextureFile::~stTextureFile()
 {
     if (Function489A80(this) != 0) {
-        Function4881D0();
+        ReleaseReadMeshScratch004881D0();
     }
     invalidate();
     delete[] file_name_58;

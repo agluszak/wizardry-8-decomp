@@ -39,9 +39,3 @@ public:
 
 static_assert(sizeof(W8SpellVisual) == 0x1f8,
               "W8SpellVisual_size_must_be_0x1f8");
-
-unsigned char ReadSpellCycleData004AB340(
-    W8GrCycleReadInfo004A6970* info,
-    W8SpellVisual* visual,
-    int cycle_index,
-    int value);

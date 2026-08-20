@@ -10,12 +10,14 @@
 #include "wiz8/engine_code/Emitter.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/SpellEmitterHost.h"
 #include "wiz8/engine_code/SpellVisual.h"
 #include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
+#include "surrender/srTimer.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -28,6 +30,7 @@ extern void ReleaseSoundHandle00408F70(int handle);
 extern void GetCameraPosition(srVector3T<float>* position);
 extern unsigned char IsSoundHandleActive00408EF0(int handle);
 extern unsigned char g_master_ambient_volume_6850f6;
+extern srTimer* g_shared_timer_base;
 
 W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
 
@@ -98,6 +101,66 @@ W8SpellEmitterHost::W8SpellEmitterHost()
         emitters[emitter] = 0;
         emitter_values[emitter] = 15.0f;
     }
+}
+
+// FUNCTION: WIZ8 0x004AB340
+unsigned char W8SpellEmitterHost::ReadCycleData004AB340(
+    W8GrCycleReadInfo004A6970* info,
+    W8SpellVisual* visual,
+    int,
+    int emitter_index)
+{
+    W8LightVector* lights = new W8LightVector;
+    W8AnimObj* animation;
+    unsigned char success;
+    signed char emitter;
+
+    if (info == 0 || info->handle_04 == 0 || visual == 0) {
+        srAssertFail(
+            "pInfo && pInfo->hFile && pSpell",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
+            0x25a,
+            0);
+    }
+    animation = CreateAnimObj004A01A0();
+    success = AnimObjReadFromFile004A05C0(
+        reinterpret_cast<W8ReadLevelInfo*>(info), animation, 1, lights, 1);
+    emitter = static_cast<signed char>(animation->unknown_03[1]);
+
+    if (lights->GetCount() == 0) {
+        delete lights;
+        lights = 0;
+    }
+    else {
+        visual->SetLights(lights);
+    }
+    light_lists[emitter_index].Add(lights);
+
+    if (emitter_index != -1) {
+        emitter = static_cast<signed char>(emitter_index);
+        selection.emitter.emitter_index = emitter;
+    }
+    emitter_values[emitter] = animation->playback_scale_08;
+    active = 1;
+    flag_06e = 1;
+    timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
+    flag_070 = animation->unknown_03[0];
+    flag_06f = animation->value_02;
+    flag_06d = animation->unknown_00[1];
+    emitters[emitter] = animation;
+
+    if (visual != 0) {
+        if (SetCycleFrameLod(selection.emitter.emitter_index, 0, 2) != 0) {
+            m_bLOD = 2;
+        }
+        else if (SetCycleFrameLod(selection.emitter.emitter_index, 0, 1) != 0) {
+            m_bLOD = 1;
+        }
+        else {
+            m_bLOD = 0;
+        }
+    }
+    return success;
 }
 
 // FUNCTION: WIZ8 0x004ABBB0
