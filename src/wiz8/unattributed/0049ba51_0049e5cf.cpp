@@ -1,6 +1,7 @@
 #include "wiz8/float_constants.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/PathAI.h"
+#include "wiz8/engine_code/OctPreTree.h"
 #include "wiz8/geometry.h"
 
 #include <windows.h>
@@ -217,3 +218,20 @@ srClass* stLight::vInstance()
 
 // SYNTHETIC: WIZ8 0x0049E450
 // stLight::`scalar deleting destructor'`adjustor{312}'
+
+/* Test a point against the six inward-facing planes of one region volume. */
+// FUNCTION: WIZ8 0x0049e460
+unsigned char W8OctRegionVolume0049E460::ContainsPoint0049E460(
+    const srVector3T<float>* point) const
+{
+    for (short plane = 0; plane < 6; ++plane) {
+        float distance = planes_88[plane].x * point->x +
+                         planes_88[plane].y * point->y +
+                         planes_88[plane].z * point->z +
+                         planes_88[plane].w;
+        if (distance < g_float_005ebb34) {
+            return 0;
+        }
+    }
+    return 1;
+}

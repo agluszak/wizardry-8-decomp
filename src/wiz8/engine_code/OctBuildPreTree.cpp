@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/OctBuildPreTree.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
 
@@ -13,6 +14,8 @@
 extern void Function497690(int channel, const char* message);
 extern float g_float_005ed038;
 extern float g_float_005ec52c;
+extern const float g_world_scale_005ebc40;
+extern const float g_startup_near_limit_005ec000;
 
 #define OCT_BUILD_PRE_TREE_CPP \
     "C:\\Projects\\Wizardry 8\\Engine Code\\OctBuildPreTree.cpp"
@@ -289,13 +292,39 @@ W8OctBuildPreTree004AFDA0::W8OctBuildPreTree004AFDA0(
         static_cast<W8GDSurface**>(malloc(10000 * sizeof(W8GDSurface*)));
     g_pointer_65be68 =
         static_cast<W8GDSurface**>(malloc(10000 * sizeof(W8GDSurface*)));
-    positional_104 = 0;
-    positional_108 = 0;
-    positional_10c = 0;
-    positional_110 = 0;
-    positional_114 = 0;
-    positional_118 = 0;
-    positional_11c = 0;
+    mesh_particle_lookup_104 = 0;
+    mesh_particles_108 = 0;
+    mesh_particle_count_10c = 0;
+    mesh_prop_lookup_110 = 0;
+    mesh_props_114 = 0;
+    mesh_prop_count_118 = 0;
+    particle_count_11c = 0;
+    prop_count_120 = 0;
+}
+
+/* Seed a temporary root when the build tree is still empty, account for the
+   inserted geometry kind, and route the point or box through the ordinary
+   recursive region-map walk. */
+// FUNCTION: WIZ8 0x004b06e0
+unsigned char W8OctBuildPreTree004AFDA0::UpdateRegionForGeometry004B06E0(
+    const srVector3T<float>* geometry,
+    short value,
+    short mode)
+{
+    W8OctSpatialState0046CCC0 working(&spatial_00);
+    if (spatial_00.root_90 == 0) {
+        working.root_90 = new W8CountedOctBuildNode004AF760;
+        spatial_00.root_90 = working.root_90;
+    }
+    if (mode == 2) {
+        ++spatial_00.state_3c;
+    }
+    else if (mode == 3) {
+        ++spatial_00.item_count_40;
+    }
+    working.depth_44 = 0;
+    working.level_kind_6c = 1;
+    return UpdateRegionMap004B07E0(&working, geometry, value, mode);
 }
 
 /* Walk the build tree against either a point or an axis-aligned volume and
@@ -547,6 +576,344 @@ unsigned char W8OctBuildPreTree004AFDA0::MergeRegion004B25C0(
     return 1;
 }
 
+/* Associate every non-cloud particle with the regions containing its origin
+   or any corner of its serialized bounds. Particles still outside the built
+   regions lead the compact list, followed by one null-terminated list per
+   region; the lookup table stores each region's offset into that list. */
+// FUNCTION: WIZ8 0x004b3820
+unsigned char W8OctBuildPreTree004AFDA0::BuildParticleRegions004B3820(
+    const W8VersionedLevelParticleRecord* particles,
+    int particle_count)
+{
+    particle_count_11c = particle_count;
+    positional_12c = new W8HashTable<unsigned short, short>;
+
+    short region_particles[4998];
+    region_particles[0] = 0;
+    unsigned short list_count = 0;
+    int particle_number = 0;
+
+    for (int particle_index = 0;
+         particle_index < particle_count;
+         ++particle_index) {
+        const W8LevelParticleRecord004BD0D0& particle =
+            particles[particle_index].particle_001;
+        char name[64];
+        strcpy(name, particle.name);
+        _strupr(name);
+        if (strncmp(name, "CLOUD", 5) == 0) {
+            continue;
+        }
+
+        ++particle_number;
+        short particle_value = (short)particle_number;
+        srVector3T<float> position;
+        position.x = particle.location.x * g_world_scale_005ebc40;
+        position.y = particle.location.y * g_world_scale_005ebc40;
+        position.z = particle.location.z * g_world_scale_005ebc40;
+
+        bool mapped = false;
+        for (unsigned short region_index = 1;
+             region_index < spatial_00.positional_46;
+             ++region_index) {
+            W8OctRegionVolume0049E460* volume =
+                spatial_00.owned_5c + region_index;
+            if (volume->ContainsPoint0049E460(&position) != 0) {
+                unsigned short region = volume->region_04;
+                bool present = false;
+                int entry = -1;
+                while ((entry = positional_12c->FindNextEntry(
+                            &region, entry)) != -1) {
+                    if (positional_12c->entries[entry].value ==
+                        particle_value) {
+                        present = true;
+                        break;
+                    }
+                }
+                if (!present) {
+                    positional_12c->Insert(&region, &particle_value);
+                }
+                mapped = true;
+            }
+        }
+        if (mapped) {
+            continue;
+        }
+
+        if (UpdateRegionForGeometry004B06E0(
+                &position, particle_value, 6) == 0) {
+            srVector3T<float> extent;
+            bool has_bounds = false;
+            if (particle.bounds_mode == 1) {
+                extent.x = particle.bounds_extent.x *
+                           g_startup_near_limit_005ec000;
+                extent.y = particle.bounds_extent.y *
+                           g_startup_near_limit_005ec000;
+                extent.z = particle.bounds_extent.z *
+                           g_startup_near_limit_005ec000;
+                has_bounds = true;
+            }
+            else if (particle.bounds_mode == 2 &&
+                     particle.bounds_radius > g_float_005ebb34) {
+                extent.x = particle.bounds_origin.x *
+                           g_world_scale_005ebc40;
+                extent.y = particle.bounds_origin.y *
+                           g_world_scale_005ebc40;
+                extent.z = particle.bounds_origin.z *
+                           g_world_scale_005ebc40;
+                has_bounds = true;
+            }
+
+            if (has_bounds) {
+                srVector3T<float> minimum;
+                srVector3T<float> maximum;
+                minimum.x = position.x - extent.x;
+                minimum.y = position.y - extent.y;
+                minimum.z = position.z - extent.z;
+                maximum.x = position.x + extent.x;
+                maximum.y = position.y + extent.y;
+                maximum.z = position.z + extent.z;
+
+                for (int x = 0; x != 2; ++x) {
+                    for (int y = 0; y != 2; ++y) {
+                        for (int z = 0; z != 2; ++z) {
+                            srVector3T<float> corner;
+                            corner.x = x == 0 ? minimum.x : maximum.x;
+                            corner.y = y == 0 ? minimum.y : maximum.y;
+                            corner.z = z == 0 ? minimum.z : maximum.z;
+
+                            bool corner_mapped = false;
+                            for (unsigned short region_index = 1;
+                                 region_index < spatial_00.positional_46;
+                                 ++region_index) {
+                                W8OctRegionVolume0049E460* volume =
+                                    spatial_00.owned_5c + region_index;
+                                if (volume->ContainsPoint0049E460(
+                                        &corner) != 0) {
+                                    unsigned short region = volume->region_04;
+                                    bool present = false;
+                                    int entry = -1;
+                                    while ((entry =
+                                                positional_12c->FindNextEntry(
+                                                    &region, entry)) != -1) {
+                                        if (positional_12c->entries[entry]
+                                                .value == particle_value) {
+                                            present = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!present) {
+                                        positional_12c->Insert(
+                                            &region, &particle_value);
+                                    }
+                                    corner_mapped = true;
+                                    mapped = true;
+                                }
+                            }
+                            if (!corner_mapped &&
+                                UpdateRegionForGeometry004B06E0(
+                                    &corner, particle_value, 6) != 0) {
+                                mapped = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!mapped) {
+                region_particles[list_count++] = particle_value;
+            }
+        }
+    }
+
+    if (list_count != 0) {
+        region_particles[list_count++] = 0;
+    }
+    else {
+        list_count = 1;
+    }
+
+    unsigned short region_count =
+        (unsigned short)spatial_00.positional_74;
+    mesh_particle_lookup_104 = static_cast<unsigned short*>(
+        malloc(region_count * sizeof(unsigned short)));
+    memset(mesh_particle_lookup_104, 0,
+           region_count * sizeof(unsigned short));
+
+    for (unsigned short region = 1; region < region_count; ++region) {
+        int entry = -1;
+        bool first = true;
+        while ((entry = positional_12c->FindNextEntry(
+                    &region, entry)) != -1) {
+            if (first) {
+                mesh_particle_lookup_104[region] = list_count;
+                first = false;
+            }
+            region_particles[list_count++] =
+                positional_12c->entries[entry].value;
+        }
+        if (!first) {
+            region_particles[list_count++] = 0;
+        }
+    }
+
+    mesh_particles_108 = static_cast<unsigned short*>(
+        malloc(list_count * sizeof(unsigned short)));
+    if (mesh_particles_108 != 0) {
+        memcpy(mesh_particles_108, region_particles,
+               list_count * sizeof(unsigned short));
+    }
+    mesh_particle_count_10c = list_count;
+    delete positional_12c;
+    return 1;
+}
+
+/* Accumulate the two preprocessing geometry banks into one region-to-prop
+   table. The first call owns the shared scratch list; the final call appends
+   the second bank, emits the compact lookup/list pair, and releases scratch. */
+// FUNCTION: WIZ8 0x004b3f90
+unsigned char W8OctBuildPreTree004AFDA0::BuildGeometryRegions004B3F90(
+    const W8OctRegionGeometryRecord004B3F90* records,
+    int record_count,
+    int base_index,
+    unsigned char finalize)
+{
+    if (finalize == 0) {
+        positional_130 = new W8HashTable<unsigned short, short>;
+        g_pointer_65be5c = static_cast<unsigned short*>(malloc(10000));
+        g_pointer_65be5c[0] = 0;
+        g_value_65be6c = 0;
+    }
+
+    for (int record_index = 0;
+         record_index < record_count;
+         ++record_index) {
+        const W8OctRegionGeometryRecord004B3F90& record =
+            records[record_index];
+        short value = (short)(base_index + 1 + record_index);
+        bool mapped = false;
+
+        for (unsigned short region_index = 1;
+             region_index < spatial_00.positional_46;
+             ++region_index) {
+            W8OctRegionVolume0049E460* volume =
+                spatial_00.owned_5c + region_index;
+            for (unsigned char bounds_index = 0;
+                 bounds_index < record.bounds_count_09a;
+                 ++bounds_index) {
+                const srVector3T<float>* bounds =
+                    record.bounds_09b + bounds_index * 2;
+                for (int x = 0; x != 2; ++x) {
+                    for (int y = 0; y != 2; ++y) {
+                        for (int z = 0; z != 2; ++z) {
+                            srVector3T<float> corner;
+                            corner.x = bounds[x].x * g_world_scale_005ebc40;
+                            corner.y = bounds[y].y * g_world_scale_005ebc40;
+                            corner.z = bounds[z].z * g_world_scale_005ebc40;
+                            if (volume->ContainsPoint0049E460(&corner) != 0) {
+                                unsigned short region = volume->region_04;
+                                bool present = false;
+                                int entry = -1;
+                                while ((entry =
+                                            positional_130->FindNextEntry(
+                                                &region, entry)) != -1) {
+                                    if (positional_130->entries[entry].value ==
+                                        value) {
+                                        present = true;
+                                        break;
+                                    }
+                                }
+                                if (!present) {
+                                    positional_130->Insert(&region, &value);
+                                }
+                                mapped = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        srVector3T<float> aggregate[2];
+        aggregate[0].x = 1000000.0f;
+        aggregate[0].y = 1000000.0f;
+        aggregate[0].z = 1000000.0f;
+        aggregate[1].x = -1000000.0f;
+        aggregate[1].y = -1000000.0f;
+        aggregate[1].z = -1000000.0f;
+        for (unsigned char bounds_index = 0;
+             bounds_index < record.bounds_count_09a;
+             ++bounds_index) {
+            const srVector3T<float>* bounds =
+                record.bounds_09b + bounds_index * 2;
+            for (int endpoint = 0; endpoint != 2; ++endpoint) {
+                srVector3T<float> point;
+                point.x = bounds[endpoint].x * g_world_scale_005ebc40;
+                point.y = bounds[endpoint].y * g_world_scale_005ebc40;
+                point.z = bounds[endpoint].z * g_world_scale_005ebc40;
+                for (int axis = 0; axis != 3; ++axis) {
+                    if ((&point.x)[axis] < (&aggregate[0].x)[axis]) {
+                        (&aggregate[0].x)[axis] = (&point.x)[axis];
+                    }
+                    if ((&aggregate[1].x)[axis] < (&point.x)[axis]) {
+                        (&aggregate[1].x)[axis] = (&point.x)[axis];
+                    }
+                }
+            }
+        }
+
+        if (UpdateRegionForGeometry004B06E0(
+                aggregate, value, 5) == 0 && !mapped) {
+            g_pointer_65be5c[g_value_65be6c++] = value;
+        }
+    }
+
+    if (finalize != 0) {
+        if (g_value_65be6c == 0) {
+            g_value_65be6c = 1;
+        }
+        else {
+            g_pointer_65be5c[g_value_65be6c++] = 0;
+        }
+
+        unsigned long region_count = spatial_00.positional_74;
+        mesh_prop_lookup_110 = static_cast<unsigned short*>(
+            malloc(region_count * sizeof(unsigned short)));
+        for (unsigned long region_value = 1;
+             region_value < region_count;
+             ++region_value) {
+            unsigned short region = (unsigned short)region_value;
+            mesh_prop_lookup_110[region_value] = 0;
+            int entry = -1;
+            bool first = true;
+            while ((entry = positional_130->FindNextEntry(
+                        &region, entry)) != -1) {
+                if (first) {
+                    mesh_prop_lookup_110[region_value] = g_value_65be6c;
+                    first = false;
+                }
+                g_pointer_65be5c[g_value_65be6c++] =
+                    positional_130->entries[entry].value;
+            }
+            if (!first) {
+                g_pointer_65be5c[g_value_65be6c++] = 0;
+            }
+        }
+
+        mesh_props_114 = static_cast<unsigned short*>(
+            malloc(g_value_65be6c * sizeof(unsigned short)));
+        if (mesh_props_114 != 0) {
+            memcpy(mesh_props_114, g_pointer_65be5c,
+                   g_value_65be6c * sizeof(unsigned short));
+        }
+        mesh_prop_count_118 = g_value_65be6c;
+        prop_count_120 = record_count + base_index;
+        delete positional_130;
+        free(g_pointer_65be5c);
+    }
+    return 1;
+}
+
 /* Build the compact runtime pre-tree, transfer the auxiliary ownership that
    already has runtime form, consume the counted build-node hierarchy, and
    populate the dense cell-to-leaf lookup. */
@@ -602,19 +969,18 @@ W8OctPreTree004679E0* W8OctBuildPreTree004AFDA0::BuildOctPreTree004B4640()
     tree->spatial_000.positional_74 = spatial_00.positional_74;
     tree->spatial_000.positional_58 = spatial_00.positional_58;
 
-    tree->m_pusMeshParticleLookup =
-        static_cast<unsigned short*>(positional_104);
-    positional_104 = 0;
-    tree->m_pusMeshParticles = static_cast<unsigned short*>(positional_108);
-    positional_108 = 0;
-    tree->m_positional_0e8 = positional_10c;
-    tree->m_pusMeshPropLookup = static_cast<unsigned short*>(positional_110);
-    positional_110 = 0;
-    tree->m_pusMeshProps = static_cast<unsigned short*>(positional_114);
-    tree->m_positional_0f4 = positional_118;
-    positional_114 = 0;
-    tree->m_ulNumParticles = positional_11c;
-    tree->m_ulNumProps = positional_120;
+    tree->m_pusMeshParticleLookup = mesh_particle_lookup_104;
+    mesh_particle_lookup_104 = 0;
+    tree->m_pusMeshParticles = mesh_particles_108;
+    mesh_particles_108 = 0;
+    tree->m_positional_0e8 = mesh_particle_count_10c;
+    tree->m_pusMeshPropLookup = mesh_prop_lookup_110;
+    mesh_prop_lookup_110 = 0;
+    tree->m_pusMeshProps = mesh_props_114;
+    tree->m_positional_0f4 = mesh_prop_count_118;
+    mesh_props_114 = 0;
+    tree->m_ulNumParticles = particle_count_11c;
+    tree->m_ulNumProps = prop_count_120;
 
     tree->spatial_000.depth_44 = spatial_00.depth_44;
     tree->spatial_000.node_extent_70 = spatial_00.node_extent_70;

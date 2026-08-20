@@ -3,6 +3,19 @@
 
 #include "surrender/srMath.h"
 
+/* One 0xe8-byte region volume from the spatial state's region array. The
+   region id at +4 is consumed by the particle-region builder, and the six
+   plane equations at +0x88 are consumed by 0x0049E460. */
+struct W8OctRegionVolume0049E460 {
+    unsigned long positional_00;
+    unsigned short region_04;
+    unsigned char positional_06[0x82];
+    srVector4T<float> planes_88[6];
+
+    unsigned char ContainsPoint0049E460(
+        const srVector3T<float>* point) const;
+};
+
 /* A reusable, non-polymorphic 0x9c spatial record.  Octree.cpp constructs one
    at the start of its 0x29c owner, while OctBuildTree.cpp constructs the same
    value at the start of its 0xbc build tree and uses standalone copies while
@@ -33,7 +46,7 @@ struct W8OctSpatialState0046CCC0 {
     float positional_54;
     unsigned short positional_58;
     unsigned short positional_5a;
-    void* owned_5c;
+    W8OctRegionVolume0049E460* owned_5c;
     float positional_60;
     unsigned long positional_64;
     unsigned long positional_68;
@@ -61,5 +74,7 @@ unsigned char PointInsideBounds0046D4D0(
 
 static_assert(sizeof(W8OctSpatialState0046CCC0) == 0x9c,
               "W8OctSpatialState0046CCC0_must_be_0x9c");
+static_assert(sizeof(W8OctRegionVolume0049E460) == 0xe8,
+              "W8OctRegionVolume0049E460_must_be_0xe8");
 
 #endif

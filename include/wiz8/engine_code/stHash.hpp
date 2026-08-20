@@ -29,6 +29,15 @@ public:
     {
         Grow();
     }
+    ~W8HashTable()
+    {
+        if (bucket_heads != 0) {
+            ::operator delete(bucket_heads);
+        }
+        if (entries != 0) {
+            ::operator delete(entries);
+        }
+    }
 
     Value Lookup(const Key* key) const;
     int FindNextEntry(const Key* key, int previous) const;

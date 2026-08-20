@@ -1125,7 +1125,9 @@ W8Octree::W8Octree(const char* path, void** game_data)
                             if (ReadHeader<unsigned short>(header, 0x96) > 1) {
                                 block = malloc(
                                     (ReadHeader<unsigned short>(header, 0x96) + 2) * 0xe8);
-                                spatial_000.owned_5c = block;
+                                spatial_000.owned_5c =
+                                    static_cast<W8OctRegionVolume0049E460*>(
+                                        block);
                                 if (block == 0) {
                                     fSuccess = 0;
                                     strcpy(acMessage,
