@@ -26,7 +26,7 @@
    place every one of these bodies in OctPath.cpp rather than in Octree.cpp
    where the octree's own loader lives. */
 
-extern unsigned char g_path_reserve_0060827a;
+extern unsigned short g_path_reserve_0060827a;
 extern float g_path_span_scale_005ec344;
 extern float g_path_limit_006081e8;
 extern W8PathingService* g_pathing_00659c60;
@@ -71,6 +71,9 @@ extern void SortPathCandidates004677A0(
     unsigned int* distances,
     int first,
     int last);
+extern unsigned char g_flag_006081e4;
+extern unsigned int g_path_visualization_cell_00659c6c;
+extern float g_path_search_visualization_limit_005ec380;
 
 #define OCTPATH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctPath.cpp"
 
@@ -888,6 +891,36 @@ unsigned char W8PathingService::MatchesPathProbe00465970(
     return 0;
 }
 
+/* Reserve the next fixed-width planner node. Storage grows by fifty records,
+   is cleared in full, and retains every node through the newly issued index. */
+// FUNCTION: WIZ8 0x00465A00
+unsigned short W8PathingService::AllocateSearchNode00465A00()
+{
+    unsigned int node_index = ++search_node_count_0cc;
+
+    if (m_owned_0c8 != 0 && node_index < search_node_capacity_0d0) {
+        return (unsigned short)node_index;
+    }
+
+    search_node_capacity_0d0 += 50;
+    W8PathSearchNode* new_nodes = static_cast<W8PathSearchNode*>(
+        ::operator new(search_node_capacity_0d0 * sizeof(W8PathSearchNode)));
+    if (new_nodes == 0) {
+        srAssertFail("pNewSearchNodes", OCTPATH_CPP, 0x2751, 0);
+    }
+    memset(
+        new_nodes, 0,
+        search_node_capacity_0d0 * sizeof(W8PathSearchNode));
+    if (m_owned_0c8 != 0) {
+        memcpy(
+            new_nodes, m_owned_0c8,
+            search_node_count_0cc * sizeof(W8PathSearchNode));
+        ::operator delete(m_owned_0c8);
+    }
+    m_owned_0c8 = new_nodes;
+    return (unsigned short)node_index;
+}
+
 /* Collect the player and nearby active monsters whose collision volumes can
    overlap the movement search radius. The octree supplies location tags; the
    monster manager remains authoritative for resolving each live navigator.
@@ -1576,8 +1609,8 @@ W8PathingService::W8PathingService()
     value_1d8 = 0;
     m_owned_0c8 = static_cast<W8PathSearchNode*>(
         ::operator new((g_path_reserve_0060827a + 0x14) * 0x2c));
-    m_positional_0cc = 0;
-    m_positional_0d0 = 0;
+    search_node_count_0cc = 0;
+    search_node_capacity_0d0 = 0;
     flag_09c = 0;
     flag_0a4 = 0;
     trace_target_location_0c0 = 0;
@@ -3516,6 +3549,316 @@ stModelInstance005EC7D0* W8PathingService::BuildPathVisualization0045BE30()
     model->control_state_390 |= 8;
     model->flags_3a0 &= ~2U;
     return m_owned_054;
+}
+
+/* Rebuild the editor's bounded grid search when the cursor enters a new path
+   cell. Each reachable vertical span is inserted once into the visited hash;
+   the minimum heap expands the nearest pending position first, and the final
+   node set is handed to the search-trace renderer. */
+// FUNCTION: WIZ8 0x0045C9A0
+void W8PathingService::DrawPathPosition0045C9A0(
+    srVector3T<float> position, unsigned char mode)
+{
+    if (mode == 0 || g_flag_006081e4 == 0) {
+        g_path_visualization_cell_00659c6c = 0;
+        return;
+    }
+
+    int root_x = (int)((position.x - level_bounds[0]) / grid_scale_01c);
+    int root_z = (int)((position.z - level_bounds[2]) / grid_scale_01c);
+    unsigned int root_key = root_z * 0x10000 + root_x;
+    if (root_key == g_path_visualization_cell_00659c6c) {
+        return;
+    }
+    g_path_visualization_cell_00659c6c = root_key;
+
+    W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pIndex_074);
+    if (visited->bucket_count != 0) {
+        ::operator delete(visited->bucket_heads);
+        ::operator delete(visited->entries);
+    }
+    visited->bucket_count = 0;
+    visited->bucket_heads = 0;
+    visited->entries = 0;
+    visited->free_head = -1;
+    GrowIndex00439290(visited);
+
+    search_node_count_0cc = 0;
+    path_heap_06c->heap_00->size_0c = 0;
+    unsigned short root_index = AllocateSearchNode00465A00();
+    W8PathSearchNode* root = &m_owned_0c8[root_index];
+    root->flags_00 = 0;
+    root->node_index_02 = root_index;
+    root->cell_x_04 = (unsigned short)root_x;
+    root->cell_z_06 = (unsigned short)root_z;
+    root->path_height_08 = (unsigned short)(
+        (int)((position.y - level_bounds[1]) / span_020) + 1);
+    root->parent_node_0a = 0;
+    root->base_score_0c = 0.0f;
+    root->position_20 = position;
+
+    W8PathHeap* heap = path_heap_06c->heap_00;
+    W8PathHeapEntry root_entry;
+    root_entry.node_00 = root_index;
+    root_entry.priority_04 = (unsigned int)root->score_1c;
+    if (heap->size_0c >= heap->capacity_08) {
+        srAssertFail(
+            "heapsize < maxheapsize",
+            "..\\Engine Code\\Include\\stHeap.hpp",
+            0xe1,
+            "stHeap overflow");
+    }
+    heap->entries_00[heap->size_0c] = root_entry;
+    heap->SiftUp00467990(heap->size_0c);
+    ++heap->size_0c;
+    path_heap_06c->root_node_04 = heap->entries_00[0].node_00;
+
+    unsigned int best_node = root_index;
+    while (best_node != 0 &&
+           search_node_count_0cc < g_path_reserve_0060827a) {
+        W8PathSearchNode* current = &m_owned_0c8[best_node];
+        unsigned short current_x = current->cell_x_04;
+        unsigned short current_z = current->cell_z_06;
+        unsigned short current_height = current->path_height_08;
+
+        for (int direction = 0; direction < 8; ++direction) {
+            unsigned int neighbor_x;
+            unsigned int neighbor_z;
+            if (direction >= 1 && direction <= 3) {
+                neighbor_x = current_x + 1;
+            }
+            else if (direction > 4) {
+                neighbor_x = current_x - 1;
+            }
+            else {
+                neighbor_x = current_x;
+            }
+            if (direction < 2 || direction > 6) {
+                neighbor_z = current_z + 1;
+            }
+            else if (direction > 2 && direction < 6) {
+                neighbor_z = current_z - 1;
+            }
+            else {
+                neighbor_z = current_z;
+            }
+
+            unsigned int key = neighbor_z * 0x10000 + neighbor_x;
+            unsigned int hash = ((key >> 10 ^ key) >> 10 ^ key);
+            int slot = static_cast<int*>(visited->bucket_heads)[
+                (visited->bucket_count - 1) & hash];
+            while (slot != -1) {
+                W8OctreeEntry* entry =
+                    static_cast<W8OctreeEntry*>(visited->entries) + slot;
+                if (entry->key == key) {
+                    if (entry->value != 0) {
+                        slot = -2;
+                    }
+                    break;
+                }
+                slot = entry->next_index;
+            }
+            if (slot == -2) {
+                continue;
+            }
+
+            W8OctreeIndex* paths = static_cast<W8OctreeIndex*>(m_pIndex_064);
+            int path_slot = static_cast<int*>(paths->bucket_heads)[
+                (paths->bucket_count - 1) & hash];
+            while (path_slot != -1) {
+                W8OctreeEntry* path_entry =
+                    static_cast<W8OctreeEntry*>(paths->entries) + path_slot;
+                if (path_entry->key == key) {
+                    unsigned int path_value = (unsigned int)path_entry->value;
+                    int height_delta =
+                        (int)(path_value & 0xffff) - current_height;
+                    if (height_delta > -(int)cell_count_024 &&
+                        height_delta < (int)cell_count_024) {
+                        unsigned short node_index =
+                            AllocateSearchNode00465A00();
+                        if (visited->free_head == -1) {
+                            GrowIndex00439290(visited);
+                        }
+                        W8OctreeEntry* visited_entries =
+                            static_cast<W8OctreeEntry*>(visited->entries);
+                        int inserted = visited->free_head;
+                        visited->free_head =
+                            visited_entries[inserted].next_index;
+                        unsigned int bucket =
+                            (visited->bucket_count - 1) & hash;
+                        visited_entries[inserted].key = key;
+                        visited_entries[inserted].value = node_index;
+                        visited_entries[inserted].next_index =
+                            static_cast<int*>(visited->bucket_heads)[bucket];
+                        static_cast<int*>(visited->bucket_heads)[bucket] =
+                            inserted;
+
+                        W8PathSearchNode* node = &m_owned_0c8[node_index];
+                        node->flags_00 = 0;
+                        if ((path_value & 0x10000000) != 0) {
+                            node->flags_00 = 0x800;
+                        }
+                        if ((path_value & 0x04000000) != 0) {
+                            node->flags_00 |= 0x1000;
+                        }
+                        node->node_index_02 = node_index;
+                        node->cell_x_04 = (unsigned short)neighbor_x;
+                        node->cell_z_06 = (unsigned short)neighbor_z;
+                        node->path_height_08 =
+                            (unsigned short)(path_value & 0xffff);
+                        node->parent_node_0a = (unsigned short)best_node;
+                        node->position_20.x =
+                            ((float)node->cell_x_04 + g_float_005ebc7c) *
+                                grid_scale_01c +
+                            level_bounds[0];
+                        node->position_20.y =
+                            (float)(node->path_height_08 - 1) * span_020 +
+                            level_bounds[1];
+                        node->position_20.z =
+                            ((float)node->cell_z_06 + g_float_005ebc7c) *
+                                grid_scale_01c +
+                            level_bounds[2];
+                        float delta_x = node->position_20.x - position.x;
+                        float delta_y = node->position_20.y - position.y;
+                        float delta_z = node->position_20.z - position.z;
+                        node->score_1c = (float)sqrt(
+                            delta_x * delta_x + delta_y * delta_y +
+                            delta_z * delta_z);
+                        if (node->score_1c <
+                            g_path_search_visualization_limit_005ec380) {
+                            W8PathHeapEntry pending;
+                            pending.node_00 = node->node_index_02;
+                            pending.priority_04 =
+                                (unsigned int)node->score_1c;
+                            heap->Insert004675B0(&pending);
+                            path_heap_06c->root_node_04 =
+                                heap->entries_00[0].node_00;
+                        }
+                        else {
+                            --search_node_count_0cc;
+                        }
+                    }
+                }
+                path_slot = path_entry->next_index;
+            }
+        }
+
+        path_heap_06c->DeleteRoot004577F0(current);
+        best_node = path_heap_06c->root_node_04;
+        if (best_node > search_node_count_0cc) {
+            char message[80];
+            sprintf(
+                message,
+                "A:  Invalid node index %d from Queue.",
+                best_node);
+            srAssertFail(
+                "(ulBestNode <= m_ulSearchNodesUsed)",
+                OCTPATH_CPP,
+                0x1110,
+                message);
+        }
+    }
+    BuildSearchVisualization0045CFD0();
+}
+
+/* Draw the bounded path-search trace in the editor mesh. Search node zero is
+   the root, so every later node contributes one raised square at its stored
+   position. Its flags select the diagnostic color used for all five vertices
+   in that marker. */
+// FUNCTION: WIZ8 0x0045CFD0
+void W8PathingService::BuildSearchVisualization0045CFD0()
+{
+    const srVector3T<float> marker_offsets[5] = {
+        srVector3T<float>(0.0f, 125.0f, 0.0f),
+        srVector3T<float>(-62.5f, 0.0f, -62.5f),
+        srVector3T<float>(-62.5f, 0.0f, 62.5f),
+        srVector3T<float>(62.5f, 0.0f, 62.5f),
+        srVector3T<float>(62.5f, 0.0f, -62.5f)
+    };
+    stMeshModel* model = static_cast<stMeshModel*>(m_owned_054->model());
+    srVector3T<float>* colors = model->getVertexDIG(0, 1);
+    srVector3T<float>* vertices = model->getVertexLoc();
+    model->getActivePolygonTable(1);
+    srVector3i* polygons = model->getPolyVertex();
+    unsigned int node_count = search_node_count_0cc;
+
+    if (node_count > 2000) {
+        node_count = 2000;
+    }
+    for (unsigned int node_index = 1; node_index < node_count; ++node_index) {
+        W8PathSearchNode* node = &m_owned_0c8[node_index];
+        unsigned int vertex_index = 500 + (node_index - 1) * 5;
+        unsigned int polygon_index = 600 + (node_index - 1) * 4;
+
+        polygons[polygon_index].x = vertex_index;
+        polygons[polygon_index].y = vertex_index + 1;
+        polygons[polygon_index].z = vertex_index + 2;
+        polygons[polygon_index + 1].x = vertex_index;
+        polygons[polygon_index + 1].y = vertex_index + 2;
+        polygons[polygon_index + 1].z = vertex_index + 3;
+        polygons[polygon_index + 2].x = vertex_index;
+        polygons[polygon_index + 2].y = vertex_index + 3;
+        polygons[polygon_index + 2].z = vertex_index + 4;
+        polygons[polygon_index + 3].x = vertex_index;
+        polygons[polygon_index + 3].y = vertex_index + 4;
+        polygons[polygon_index + 3].z = vertex_index + 1;
+
+        srVector3T<float> color;
+        if ((node->flags_00 & 0x800) != 0) {
+            color = srVector3T<float>(0.0f, 0.0f, 0.0f);
+        }
+        else if ((node->flags_00 & 4) != 0) {
+            color = srVector3T<float>(1.0f, 0.0f, 1.0f);
+        }
+        else if ((node->flags_00 & 2) != 0) {
+            color = srVector3T<float>(1.0f, 1.0f, 1.0f);
+        }
+        else if ((node->flags_00 & 0x100) != 0) {
+            color = srVector3T<float>(1.0f, 0.0f, 0.0f);
+        }
+        else if ((node->flags_00 & 0x2000) != 0) {
+            color = srVector3T<float>(1.0f, 1.0f, 0.0f);
+        }
+        else if ((node->flags_00 & 0x8000) != 0) {
+            color = srVector3T<float>(0.0f, 1.0f, 1.0f);
+        }
+        else if ((node->flags_00 & 0x1000) != 0) {
+            color = srVector3T<float>(0.0f, 0.0f, 1.0f);
+        }
+        else {
+            color = srVector3T<float>(0.0f, 1.0f, 0.0f);
+        }
+
+        for (int offset_index = 0; offset_index < 5; ++offset_index) {
+            vertices[vertex_index + offset_index].x =
+                node->position_20.x + marker_offsets[offset_index].x;
+            vertices[vertex_index + offset_index].y =
+                node->position_20.y + marker_offsets[offset_index].y;
+            vertices[vertex_index + offset_index].z =
+                node->position_20.z + marker_offsets[offset_index].z;
+            colors[vertex_index + offset_index] = color;
+        }
+    }
+
+    unsigned long* active_polygons = model->getActivePolygonTable(1);
+    unsigned long active_count = node_count > 1 ? (node_count - 1) * 4 : 0;
+    for (unsigned long index = 0; index < active_count; ++index) {
+        active_polygons[index] = index + 600;
+    }
+    model->setActivePolygonCount(active_count);
+    if ((model->control_state_390 & 1) == 0) {
+        unsigned long state = model->control_state_390;
+        model->control_state_390 = state | 9;
+        model->reindexPolygons(0);
+    }
+    if ((model->control_state_390 & 2) == 0) {
+        model->control_state_390 |= 10;
+    }
+    if ((model->control_state_390 & 4) == 0) {
+        model->control_state_390 |= 12;
+    }
+    model->control_state_390 |= 8;
+    model->flags_3a0 &= ~2U;
 }
 
 /* Select the editor color for one waypoint. Disabled surfaces are black; the

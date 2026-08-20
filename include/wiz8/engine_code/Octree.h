@@ -120,8 +120,12 @@ static_assert(sizeof(W8PathProbeVolume) == 0x18,
    accumulated score and world position; the remaining planner state stays
    positional until its readers are recovered. */
 struct W8PathSearchNode {
-    unsigned int flags_00;
-    unsigned char positional_04[8];
+    unsigned short flags_00;
+    unsigned short node_index_02;
+    unsigned short cell_x_04;
+    unsigned short cell_z_06;
+    unsigned short path_height_08;
+    unsigned short parent_node_0a;
     float base_score_0c;
     unsigned char positional_10[4];
     float distance_14;
@@ -140,11 +144,16 @@ struct W8PathHeap {
     unsigned int external_storage_04;
     unsigned int capacity_08;
     unsigned int size_0c;
+
+    void Insert004675B0(const W8PathHeapEntry* entry);
+    void SiftUp00467990(unsigned int index);
 };
 
 struct W8PathHeapHandle {
     W8PathHeap* heap_00;
     unsigned int root_node_04;
+
+    void DeleteRoot004577F0(W8PathSearchNode* node);
 };
 
 static_assert(sizeof(W8PathHeapEntry) == 8, "W8PathHeapEntry_must_be_8");
@@ -191,6 +200,7 @@ public:
         unsigned int tag,
         const float* radius,
         const srVector3T<float>* position);
+    unsigned short AllocateSearchNode00465A00();
     unsigned int CollectPathProbes004656A0(
         W8NavigatorMovementState* movement, float radius);
     unsigned short PlanMovement00463460(
@@ -245,6 +255,7 @@ public:
         const srVector3T<float>* destination);
     void DrawPathPosition0045C9A0(
         srVector3T<float> position, unsigned char mode);
+    void BuildSearchVisualization0045CFD0();
     stModelInstance005EC7D0* BuildPathVisualization0045BE30();
     stModelInstance005EC7D0* EnsurePathVisualization0045D530();
     void GetWaypointVisualizationColor0045D490(
@@ -375,8 +386,8 @@ public:
     int trace_target_location_0c0;
     float trace_target_yaw_0c4;
     W8PathSearchNode* m_owned_0c8;       /* 0xc8 */
-    int m_positional_0cc;
-    int m_positional_0d0;
+    unsigned int search_node_count_0cc;
+    unsigned int search_node_capacity_0d0;
     unsigned int path_probe_count_0d4;
     W8PathProbeVolume path_probes_0d8[10];
     unsigned char flag_1c8;              /* 0x1c8 */

@@ -59,7 +59,7 @@ extern char ResolveTraceHit004353F0(
     int value_7);
 extern int GetSectorForPosition00430BF0(const srVector3T<float>* position);
 extern float g_octree_cell_scale_005ebcd0;
-extern unsigned char g_path_reserve_0060827a;
+extern unsigned short g_path_reserve_0060827a;
 extern float g_path_span_scale_005ec344;
 extern float g_path_limit_006081e8;
 extern W8PathingService* g_pathing_00659c60;
