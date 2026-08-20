@@ -187,6 +187,10 @@ public:
         unsigned short count, unsigned short* waypoints);
     void CheckConditionalLinkStatus00460250(
         unsigned short count, unsigned short* edges);
+    void SetConditionalPathFrame00457EA0(
+        unsigned int path_handle, short frame);
+    unsigned int FindConditionalPathValue00458970(
+        unsigned int key, unsigned int value);
     unsigned char HandlePathEdgeTransition00460350(
         W8NavigatorMovementState* movement);
     void ReduceWaypointCosts00462220(
@@ -207,6 +211,10 @@ public:
         W8NavigatorMovementState* movement,
         float radius,
         float separation);
+    void UpdateConditionalPathFlags00465FB0(
+        unsigned int path_handle,
+        unsigned short frame,
+        unsigned int flags);
     int ProcessSearchNodeProps004663D0(
         unsigned int node_index, unsigned char first_only);
     unsigned int CollectPathProbes004656A0(
@@ -612,6 +620,8 @@ public:
    entries, a free-list head threaded through the same next_index field, and a power-of-two
    bucket count. Both Octree.cpp and OctPath.cpp build and walk these. */
 struct W8OctreeIndex {
+    int FindNextEntry00438D50(const unsigned int* key, int previous);
+
     void* bucket_heads;
     void* entries;
     long free_head;
@@ -625,6 +635,8 @@ struct W8OctreeEntry {
 };
 
 void InsertEntry0055DBB0(
+    W8OctreeIndex* index, const unsigned int* key, const int* value);
+void RemoveEntry00438C90(
     W8OctreeIndex* index, const unsigned int* key, const int* value);
 void GrowIndex00439290(W8OctreeIndex* index);
 unsigned int __stdcall OctreeTraverseKind12(

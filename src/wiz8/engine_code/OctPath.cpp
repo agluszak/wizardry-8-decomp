@@ -672,6 +672,199 @@ void W8PathingService::LinkEdges004600B0()
     } while (index < m_ulNumEdges);
 }
 
+/* Apply one GD prop frame to every conditional path cell in its serialized
+   lookup run. Bit 0x02000000 is the frame-local state, while 0x10000000 is the
+   disabled state published through the live path hash.
+
+   A frame of -1 disables the complete run. When the requested frame exists,
+   non-selected frames publish the inverse of their local state and the
+   selected frame publishes the state itself. The serialized values for the
+   non-selected frames are updated alongside the hash, exactly as retail does.
+
+   Retail's missing-frame path performs its inverse-state work in two loops and
+   deliberately carries the last value found by the first loop into the second.
+   Once that carried value is disabled, later clear-state keys are skipped. */
+// FUNCTION: WIZ8 0x00457ea0
+void W8PathingService::SetConditionalPathFrame00457EA0(
+    unsigned int path_handle,
+    short frame)
+{
+    W8OctreeIndex* index = static_cast<W8OctreeIndex*>(m_pIndex_064);
+    unsigned int lookup_index = path_handle;
+    unsigned char frame_missing = 1;
+
+    while (m_pCondLookup[lookup_index] != 0 && frame_missing != 0) {
+        if (m_pCondFrames[lookup_index] == frame) {
+            frame_missing = 0;
+        }
+        ++lookup_index;
+    }
+
+    if (frame == -1) {
+        lookup_index = path_handle;
+        while (m_pCondLookup[lookup_index] != 0) {
+            unsigned int key_index = m_pCondLookup[lookup_index];
+            while (m_pCondKeys[key_index] != 0) {
+                unsigned int key = m_pCondKeys[key_index];
+                unsigned int current_value = FindConditionalPathValue00458970(
+                    key, m_pCondValues[key_index]);
+                if ((current_value & 0x10000000) == 0) {
+                    RemoveEntry00438C90(
+                        index, &key,
+                        reinterpret_cast<const int*>(&current_value));
+                    current_value |= 0x10000000;
+                    InsertEntry0055DBB0(
+                        index, &key,
+                        reinterpret_cast<const int*>(&current_value));
+                }
+                ++key_index;
+            }
+            ++lookup_index;
+        }
+        return;
+    }
+
+    if (frame_missing != 0) {
+        unsigned int current_value;
+        lookup_index = path_handle;
+        while (m_pCondLookup[lookup_index] != 0) {
+            unsigned int key_index = m_pCondLookup[lookup_index];
+            while (m_pCondKeys[key_index] != 0) {
+                unsigned int key = m_pCondKeys[key_index];
+                current_value = FindConditionalPathValue00458970(
+                    key, m_pCondValues[key_index]);
+                if ((m_pCondValues[key_index] & 0x02000000) != 0 &&
+                    (current_value & 0x10000000) != 0) {
+                    RemoveEntry00438C90(
+                        index, &key,
+                        reinterpret_cast<const int*>(&current_value));
+                    current_value &= 0xefffffff;
+                    InsertEntry0055DBB0(
+                        index, &key,
+                        reinterpret_cast<const int*>(&current_value));
+                }
+                ++key_index;
+            }
+            ++lookup_index;
+        }
+
+        lookup_index = path_handle;
+        while (m_pCondLookup[lookup_index] != 0) {
+            unsigned int key_index = m_pCondLookup[lookup_index];
+            while (m_pCondKeys[key_index] != 0) {
+                if ((m_pCondValues[key_index] & 0x02000000) == 0 &&
+                    (current_value & 0x10000000) == 0) {
+                    unsigned int key = m_pCondKeys[key_index];
+                    RemoveEntry00438C90(
+                        index, &key,
+                        reinterpret_cast<const int*>(&current_value));
+                    current_value |= 0x10000000;
+                    InsertEntry0055DBB0(
+                        index, &key,
+                        reinterpret_cast<const int*>(&current_value));
+                }
+                ++key_index;
+            }
+            ++lookup_index;
+        }
+        return;
+    }
+
+    lookup_index = path_handle;
+    while (m_pCondLookup[lookup_index] != 0) {
+        if (m_pCondFrames[lookup_index] != frame) {
+            unsigned int key_index = m_pCondLookup[lookup_index];
+            while (m_pCondKeys[key_index] != 0) {
+                unsigned int key = m_pCondKeys[key_index];
+                unsigned int current_value = FindConditionalPathValue00458970(
+                    key, m_pCondValues[key_index]);
+                if ((m_pCondValues[key_index] & 0x02000000) != 0) {
+                    if ((current_value & 0x10000000) != 0) {
+                        RemoveEntry00438C90(
+                            index, &key,
+                            reinterpret_cast<const int*>(&current_value));
+                        m_pCondValues[key_index] &= 0xefffffff;
+                        current_value &= 0xefffffff;
+                        InsertEntry0055DBB0(
+                            index, &key,
+                            reinterpret_cast<const int*>(&current_value));
+                    }
+                }
+                else if ((current_value & 0x10000000) == 0) {
+                    RemoveEntry00438C90(
+                        index, &key,
+                        reinterpret_cast<const int*>(&current_value));
+                    m_pCondValues[key_index] |= 0x10000000;
+                    current_value |= 0x10000000;
+                    InsertEntry0055DBB0(
+                        index, &key,
+                        reinterpret_cast<const int*>(&current_value));
+                }
+                ++key_index;
+            }
+        }
+        ++lookup_index;
+    }
+
+    lookup_index = path_handle;
+    while (m_pCondLookup[lookup_index] != 0) {
+        if (m_pCondFrames[lookup_index] == frame) {
+            unsigned int key_index = m_pCondLookup[lookup_index];
+            while (m_pCondKeys[key_index] != 0) {
+                unsigned int key = m_pCondKeys[key_index];
+                unsigned int current_value = FindConditionalPathValue00458970(
+                    key, m_pCondValues[key_index]);
+                if ((m_pCondValues[key_index] & 0x02000000) != 0) {
+                    if ((current_value & 0x10000000) == 0) {
+                        RemoveEntry00438C90(
+                            index, &key,
+                            reinterpret_cast<const int*>(&current_value));
+                        current_value |= 0x10000000;
+                        InsertEntry0055DBB0(
+                            index, &key,
+                            reinterpret_cast<const int*>(&current_value));
+                    }
+                }
+                else if ((current_value & 0x10000000) != 0) {
+                    RemoveEntry00438C90(
+                        index, &key,
+                        reinterpret_cast<const int*>(&current_value));
+                    current_value &= 0xefffffff;
+                    InsertEntry0055DBB0(
+                        index, &key,
+                        reinterpret_cast<const int*>(&current_value));
+                }
+                ++key_index;
+            }
+        }
+        ++lookup_index;
+    }
+}
+
+/* Find the value for one conditional path key whose persistent identity is
+   the requested low word. Several state variants of the same path cell can
+   occupy one hash bucket, so an ordinary key lookup is not sufficient. */
+// FUNCTION: WIZ8 0x00458970
+unsigned int W8PathingService::FindConditionalPathValue00458970(
+    unsigned int key,
+    unsigned int value)
+{
+    W8OctreeIndex* index = static_cast<W8OctreeIndex*>(m_pIndex_064);
+    int slot = index->FindNextEntry00438D50(&key, -1);
+    unsigned int found = 0;
+    unsigned char searching = 1;
+    while (slot >= 0 && searching != 0) {
+        unsigned int candidate = static_cast<W8OctreeEntry*>(
+            index->entries)[slot].value;
+        if (((candidate ^ value) & 0xffff) == 0) {
+            searching = 0;
+            found = candidate;
+        }
+        slot = index->FindNextEntry00438D50(&key, slot);
+    }
+    return found;
+}
+
 /* Refresh the disabled bit for a conditional list of waypoints. */
 // FUNCTION: WIZ8 0x004601b0
 void W8PathingService::CheckConditionalWaypointStatus004601B0(
@@ -1078,6 +1271,86 @@ void W8PathingService::AdjustFinalPathEndpoint00465D70(
             g_octree_6598a4->QueueOctreeKind130042E810(
                 movement->location_id_004, &adjusted);
         }
+    }
+}
+
+/* Select one conditional frame for a GD prop's path cells. Entries belonging
+   to every other frame first lose both prop-state bits. Entries belonging to
+   the selected frame then gain the caller's state bits. The hash table may
+   contain several values for one key, so the low word from the serialized
+   conditional value is the identity used to find the exact pairing. */
+// FUNCTION: WIZ8 0x00465fb0
+void W8PathingService::UpdateConditionalPathFlags00465FB0(
+    unsigned int path_handle,
+    unsigned short frame,
+    unsigned int flags)
+{
+    W8OctreeIndex* index = static_cast<W8OctreeIndex*>(m_pIndex_064);
+    unsigned int lookup_index = path_handle;
+
+    while (m_pCondLookup[lookup_index] != 0) {
+        if ((unsigned short)m_pCondFrames[lookup_index] != frame) {
+            unsigned int key_index = m_pCondLookup[lookup_index];
+            while (m_pCondKeys[key_index] != 0) {
+                unsigned int key = m_pCondKeys[key_index];
+                unsigned int wanted_value = m_pCondValues[key_index];
+                unsigned int current_value = 0;
+                int slot = index->FindNextEntry00438D50(&key, -1);
+                unsigned char searching = 1;
+                while (slot >= 0 && searching != 0) {
+                    unsigned int value = static_cast<W8OctreeEntry*>(
+                        index->entries)[slot].value;
+                    if (((value ^ wanted_value) & 0xffff) == 0) {
+                        searching = 0;
+                        current_value = value;
+                    }
+                    slot = index->FindNextEntry00438D50(&key, slot);
+                }
+
+                if ((current_value & 0x08000000) != 0) {
+                    RemoveEntry00438C90(
+                        index, &key, reinterpret_cast<const int*>(&current_value));
+                    current_value &= 0xd7ffffff;
+                    InsertEntry0055DBB0(
+                        index, &key, reinterpret_cast<const int*>(&current_value));
+                }
+                ++key_index;
+            }
+        }
+        ++lookup_index;
+    }
+
+    lookup_index = path_handle;
+    while (m_pCondLookup[lookup_index] != 0) {
+        if ((unsigned short)m_pCondFrames[lookup_index] == frame) {
+            unsigned int key_index = m_pCondLookup[lookup_index];
+            while (m_pCondKeys[key_index] != 0) {
+                unsigned int key = m_pCondKeys[key_index];
+                unsigned int wanted_value = m_pCondValues[key_index];
+                unsigned int current_value = 0;
+                int slot = index->FindNextEntry00438D50(&key, -1);
+                unsigned char searching = 1;
+                while (slot >= 0 && searching != 0) {
+                    unsigned int value = static_cast<W8OctreeEntry*>(
+                        index->entries)[slot].value;
+                    if (((value ^ wanted_value) & 0xffff) == 0) {
+                        searching = 0;
+                        current_value = value;
+                    }
+                    slot = index->FindNextEntry00438D50(&key, slot);
+                }
+
+                if ((flags & current_value) == 0) {
+                    RemoveEntry00438C90(
+                        index, &key, reinterpret_cast<const int*>(&current_value));
+                    current_value |= flags;
+                    InsertEntry0055DBB0(
+                        index, &key, reinterpret_cast<const int*>(&current_value));
+                }
+                ++key_index;
+            }
+        }
+        ++lookup_index;
     }
 }
 

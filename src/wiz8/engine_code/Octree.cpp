@@ -503,8 +503,32 @@ void RemoveEntry00438C90(
     index->free_head = slot;
 }
 
+/* Find the first entry for a key, or continue along the same bucket chain
+   after a previously returned entry. Values are deliberately not considered:
+   conditional paths use this to inspect every value stored under one cell. */
+// FUNCTION: WIZ8 0x00438d50
+int W8OctreeIndex::FindNextEntry00438D50(
+    const unsigned int* key, int previous)
+{
+    W8OctreeEntry* index_entries = static_cast<W8OctreeEntry*>(entries);
+    int slot;
+    if (previous == -1) {
+        unsigned int wanted = *key;
+        unsigned int hash = (wanted >> 10 ^ wanted) >> 10 ^ wanted;
+        slot = static_cast<int*>(bucket_heads)[hash & (bucket_count - 1)];
+    }
+    else {
+        slot = index_entries[previous].next_index;
+    }
 
-
+    while (slot != -1) {
+        if (index_entries[slot].key == *key) {
+            return slot;
+        }
+        slot = index_entries[slot].next_index;
+    }
+    return -1;
+}
 
 /* Link one key to one value, growing first when there is no free entry. */
 // FUNCTION: WIZ8 0x0055dbb0
