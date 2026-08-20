@@ -206,6 +206,144 @@ unsigned char W8PathingService::WriteWaypointFile00459540()
     return result;
 }
 
+/* Read a versioned .WPT snapshot and rebuild its live graph representation.
+   Version one stores the four persistent edge fields separately; later files
+   contain the complete packed 0x0e-byte edge record. */
+// FUNCTION: WIZ8 0x00459650
+unsigned char W8PathingService::ReadWaypointFile00459650()
+{
+    unsigned int version = 2;
+    unsigned char success = 0;
+    char path[256];
+    if (size_004 == 0) return 0;
+    sprintf(path, "%s.WPT", level_name);
+    unsigned int handle = FileOpen(path, 1, 0);
+    if (handle == 0) return 0;
+
+    success = ReadVirtualFile(handle, &version, 4, 0) |
+              ReadVirtualFile(handle, &m_positional_008, 4, 0) |
+              ReadVirtualFile(handle, &m_ulNumSurfaces, 4, 0) |
+              ReadVirtualFile(handle, &m_ulNumEdges, 4, 0);
+    if (success == 0) {
+        CloseVirtualFile(handle);
+        return 0;
+    }
+    unsigned int surface_capacity = (m_ulNumSurfaces / 100 + 1) * 100;
+    unsigned int edge_capacity = (m_ulNumEdges / 100 + 1) * 100;
+    file_waypoints_050 = static_cast<W8FileWaypoint*>(
+        malloc(m_ulNumSurfaces * sizeof(W8FileWaypoint)));
+    m_pSurfaces_048 = static_cast<W8PathSurface*>(
+        malloc(surface_capacity * sizeof(W8PathSurface)));
+    m_pEdges_04c = static_cast<W8PathEdge*>(
+        malloc(edge_capacity * sizeof(W8PathEdge)));
+    if (m_pSurfaces_048 != 0)
+        memset(m_pSurfaces_048, 0, surface_capacity * sizeof(W8PathSurface));
+    if (m_pEdges_04c != 0)
+        memset(m_pEdges_04c, 0, edge_capacity * sizeof(W8PathEdge));
+    if (file_waypoints_050 == 0 || m_pSurfaces_048 == 0 || m_pEdges_04c == 0) {
+        if (file_waypoints_050 != 0) free(file_waypoints_050);
+        if (m_pSurfaces_048 != 0) free(m_pSurfaces_048);
+        if (m_pEdges_04c != 0) free(m_pEdges_04c);
+        CloseVirtualFile(handle);
+        return 0;
+    }
+
+    success = ReadVirtualFile(handle, file_waypoints_050,
+        m_ulNumSurfaces * sizeof(W8FileWaypoint), 0);
+    if (success != 0) {
+        if (version == 1) {
+            for (unsigned int edge = 0; edge < m_ulNumEdges; ++edge) {
+                W8PathEdge* item = &m_pEdges_04c[edge];
+                success &= ReadVirtualFile(handle, &item->flags_00, 4, 0);
+                success &= ReadVirtualFile(handle, &item->destination_06, 2, 0);
+                success &= ReadVirtualFile(handle, &item->distance_08, 4, 0);
+                success &= ReadVirtualFile(handle, &item->next_0c, 2, 0);
+                item->source_04 = 0;
+            }
+        } else {
+            success &= ReadVirtualFile(handle, m_pEdges_04c,
+                m_ulNumEdges * sizeof(W8PathEdge), 0);
+        }
+    }
+    if (success == 0) {
+        free(file_waypoints_050);
+        free(m_pSurfaces_048);
+        free(m_pEdges_04c);
+        CloseVirtualFile(handle);
+        return 0;
+    }
+
+    if (path_heap_06c != 0) {
+        if (path_heap_06c->heap_00 != 0) {
+            if (path_heap_06c->heap_00->external_storage_04 == 0)
+                ::operator delete(path_heap_06c->heap_00->entries_00);
+            ::operator delete(path_heap_06c->heap_00);
+        }
+        ::operator delete(path_heap_06c);
+    }
+    unsigned int heap_capacity = surface_capacity;
+    if (heap_capacity <= g_path_reserve_0060827a)
+        heap_capacity = g_path_reserve_0060827a;
+    path_heap_06c = static_cast<W8PathHeapHandle*>(::operator new(8));
+    path_heap_06c->heap_00 = static_cast<W8PathHeap*>(::operator new(0x10));
+    path_heap_06c->heap_00->entries_00 = static_cast<W8PathHeapEntry*>(
+        ::operator new(heap_capacity * sizeof(W8PathHeapEntry)));
+    if (path_heap_06c->heap_00->entries_00 == 0)
+        srAssertFail("hlist", "..\\Engine Code\\Include\\stHeap.hpp", 0x79, 0);
+    path_heap_06c->heap_00->external_storage_04 = 0;
+    path_heap_06c->heap_00->capacity_08 = heap_capacity;
+    path_heap_06c->heap_00->size_0c = 0;
+
+    memset(m_pSurfaces_048, 0, m_ulNumSurfaces * sizeof(W8PathSurface));
+    for (unsigned int surface = 1; surface < m_ulNumSurfaces; ++surface) {
+        W8FileWaypoint* source = &file_waypoints_050[surface];
+        W8PathSurface* destination = &m_pSurfaces_048[surface];
+        destination->flags_00 = source->flags_00;
+        destination->index_02 = (unsigned short)surface;
+        destination->first_edge_24 = source->first_edge_02;
+        destination->position_04 = source->position_04;
+        int point[2];
+        g_octree_6598a4->WorldPositionToCell00431440(&destination->position_04, point);
+        g_octree_6598a4->object_registry->UpdateObjectCell00436B90(9, surface + 1, point);
+        if ((destination->flags_00 & 0xf000) == 0)
+            destination->flags_00 |= 0x2000;
+    }
+    m_owned_058->SetSize(surface_capacity);
+    m_owned_05c->SetSize(surface_capacity);
+    m_owned_060->SetSize(surface_capacity);
+    CloseVirtualFile(handle);
+    g_path_scratch_00659c64 = malloc(surface_capacity * sizeof(unsigned short));
+
+    if (version <= 2) {
+        unsigned int surface;
+        for (surface = 1; surface < m_ulNumSurfaces; ++surface) {
+            if ((ClassifyWaypoint00459C00(&m_pSurfaces_048[surface].position_04) &
+                 0x04000000) != 0)
+                m_pSurfaces_048[surface].flags_00 |= 0x40;
+        }
+        for (surface = 1; surface < m_ulNumSurfaces; ++surface) {
+            unsigned short edge_index = m_pSurfaces_048[surface].first_edge_24;
+            while (edge_index != 0) {
+                W8PathEdge* edge = &m_pEdges_04c[edge_index];
+                edge->source_04 = (unsigned short)surface;
+                unsigned int destination_index = edge->destination_06;
+                if ((m_pSurfaces_048[surface].flags_00 & 0x40) != 0 ||
+                    (m_pSurfaces_048[destination_index].flags_00 & 0x40) != 0) {
+                    edge->flags_00 |= 0x20000000;
+                } else {
+                    TestWaypointSpan0045A1B0(
+                        &m_pSurfaces_048[surface].position_04,
+                        &m_pSurfaces_048[destination_index].position_04, 0, 0);
+                    if (flag_23c != 0) edge->flags_00 |= 0x20000000;
+                }
+                edge_index = edge->next_0c;
+            }
+        }
+    }
+    flag_1cc = 1;
+    return success;
+}
+
 /* Compact the editable waypoint graph. Invalid and dead-end surfaces are
    unregistered and discarded; every surviving surface and edge is packed
    toward its sentinel and all indices are rewritten through temporary maps. */
@@ -1337,7 +1475,7 @@ void W8PathingService::Release00457B10()
         }
         ::operator delete(index);
     }
-    index = static_cast<void**>(m_owned_06c);
+    index = reinterpret_cast<void**>(path_heap_06c);
     if (index != 0) {
         void** held = static_cast<void**>(index[0]);
 
@@ -1411,7 +1549,7 @@ W8PathingService::W8PathingService()
     m_pIndex_074 = 0;
     level_name = 0;
     flag_08c = 0;
-    m_owned_06c = 0;
+    path_heap_06c = 0;
     m_positional_070 = 0x501502f9;
     flag_1c8 = 0;
     flag_1c9 = 0;

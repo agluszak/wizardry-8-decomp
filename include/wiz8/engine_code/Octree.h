@@ -136,6 +136,27 @@ struct W8PathSearchNode {
     srVector3T<float> position_20;
 };
 
+struct W8PathHeapEntry {
+    unsigned int node_00;
+    unsigned int priority_04;
+};
+
+struct W8PathHeap {
+    W8PathHeapEntry* entries_00;
+    unsigned int external_storage_04;
+    unsigned int capacity_08;
+    unsigned int size_0c;
+};
+
+struct W8PathHeapHandle {
+    W8PathHeap* heap_00;
+    unsigned int root_node_04;
+};
+
+static_assert(sizeof(W8PathHeapEntry) == 8, "W8PathHeapEntry_must_be_8");
+static_assert(sizeof(W8PathHeap) == 0x10, "W8PathHeap_must_be_0x10");
+static_assert(sizeof(W8PathHeapHandle) == 8, "W8PathHeapHandle_must_be_8");
+
 static_assert(sizeof(W8PathSearchNode) == 0x2c,
               "W8PathSearchNode_must_be_0x2c");
 
@@ -299,6 +320,7 @@ public:
     unsigned char WritePathNodes00458AD0(unsigned int handle);
     unsigned char SaveWaypointSnapshot00459400(unsigned char force);
     unsigned char WriteWaypointFile00459540();
+    unsigned char ReadWaypointFile00459650();
     void BuildWaypointFileData0045E440();
     /* Not a destructor: nothing restores a vtable and the object is left
        holding dangling pointers, exactly as BitArray::FreeIndex does. */
@@ -336,7 +358,7 @@ public:
        way DestroyIndex does. */
     void* m_pIndex_064;                  /* 0x64 */
     const char* level_name;                /* 0x68 */
-    void* m_owned_06c;                   /* 0x6c */
+    W8PathHeapHandle* path_heap_06c;     /* 0x6c */
     unsigned int m_positional_070;       /* 0x70: starts 0x501502f9 */
     void* m_pIndex_074;                  /* 0x74 */
     unsigned int probe_cell_key_078;     /* 0x78 */
