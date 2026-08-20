@@ -133,6 +133,17 @@ public:
         W8PathGridWalk* walk);
     unsigned char ProbeWaypointSegment00462750(
         const srVector3T<float>* from, const srVector3T<float>* to);
+    unsigned int ComputeWaypointNeighborMask004667A0(
+        const int* cell, unsigned int path_value);
+    float MeasureDirectionalPath0045AC70(
+        const int* cell,
+        int direction,
+        unsigned int height,
+        float distance);
+    float CompareDirectionalClearance0045AAC0(
+        const srVector3T<float>* position,
+        const srVector3T<float>* direction,
+        float distance);
     void SetWaypointLinkFlags0045E030(unsigned short waypoint, unsigned int direction);
     void AddWaypointLink0045EC30(
         unsigned short source, unsigned short destination, unsigned int flags);
@@ -142,9 +153,9 @@ public:
         unsigned short source, unsigned short destination);
     unsigned char TestWaypointSpan0045A1B0(
         const srVector3T<float>* source,
-        const srVector3T<float>* destination,
-        int value_3,
-        int value_4);
+        srVector3T<float>* destination,
+        unsigned char adjust_destination,
+        unsigned char diagonal_steps);
     unsigned int EditWaypointLinkFlags0045F530(
         const char* title, unsigned int* flags, unsigned int direction);
     void EditTeleportalLink(
@@ -201,7 +212,8 @@ public:
     unsigned char flag_08c;              /* 0x8c */
     unsigned char m_positional_08d[0xf];
     unsigned char flag_09c;              /* 0x9c */
-    unsigned char m_positional_09d[7];
+    unsigned char m_positional_09d[3];
+    unsigned int waypoint_neighbor_mask_0a0; /* 0xa0 */
     unsigned char flag_0a4;              /* 0xa4 */
     unsigned char m_padding_0a5[3];
     int m_positional_0a8;

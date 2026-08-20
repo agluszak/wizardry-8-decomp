@@ -27,6 +27,11 @@ extern void RegisterPathVertex004B7830(
 extern const double g_path_waypoint_snap_distance_005ec150;
 extern double g_double_005ec3a8;
 extern double g_double_005ec3b0;
+extern float g_path_direction_threshold_0_005ec348;
+extern float g_path_direction_threshold_1_005ec34c;
+extern float g_path_direction_threshold_2_005ec350;
+extern float g_path_direction_threshold_3_005ec354;
+extern float g_path_cardinal_scale_005ec358;
 extern void Function58AAD0(int channel, const char* format, ...);
 
 #define OCTPATH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctPath.cpp"
@@ -926,6 +931,525 @@ unsigned char W8PathingService::ProbeWaypointSegment00462750(
     }
 
     return blocked == 0;
+}
+
+/* Find the directions from one path cell that lead to vertically compatible
+   neighboring cells. A source record carrying an explicit direction mask only
+   permits those directions to be tested. As in retail, an entirely open set
+   of eight neighbors is represented by zero rather than 0xff. */
+// FUNCTION: WIZ8 0x004667a0
+unsigned int W8PathingService::ComputeWaypointNeighborMask004667A0(
+    const int* cell,
+    unsigned int path_value)
+{
+    unsigned int source_directions = 0;
+    if ((path_value & 0x01000000) != 0) {
+        source_directions = path_value >> 16 & 0xff;
+    }
+
+    unsigned int result = 0;
+    int direction;
+    for (direction = 0; direction < 8; ++direction) {
+        if ((path_value & 0x01000000) == 0 ||
+            (source_directions & 1 << (direction & 0x1f)) != 0) {
+            int neighbor[2];
+            neighbor[0] = cell[0];
+            neighbor[1] = cell[1];
+
+            if (direction >= 1 && direction <= 3) {
+                ++neighbor[0];
+            }
+            else if (direction > 4) {
+                --neighbor[0];
+            }
+            if (direction < 2 || direction > 6) {
+                ++neighbor[1];
+            }
+            else if (direction > 2 && direction < 6) {
+                --neighbor[1];
+            }
+
+            unsigned int key = neighbor[1] * 0x10000 + neighbor[0];
+            unsigned int hash = (key >> 10 ^ key) >> 10 ^ key;
+            W8OctreeIndex* index = static_cast<W8OctreeIndex*>(m_pIndex_064);
+            W8OctreeEntry* entries =
+                static_cast<W8OctreeEntry*>(index->entries);
+            int slot = static_cast<int*>(index->bucket_heads)[
+                hash & (index->bucket_count - 1)];
+            unsigned char found = 0;
+
+            while (slot != -1) {
+                W8OctreeEntry* entry = &entries[slot];
+                if (entry->key == key) {
+                    unsigned int candidate = entry->value;
+                    int height_delta =
+                        (path_value & 0xffff) - (candidate & 0xffff);
+                    if ((candidate & 0x10000000) == 0 &&
+                        -cell_count_024 < height_delta &&
+                        height_delta < cell_count_024) {
+                        found = 1;
+                        break;
+                    }
+                }
+                slot = entry->next_index;
+            }
+            if (found != 0) {
+                result |= 1 << (direction & 0x1f);
+            }
+        }
+    }
+
+    if ((unsigned char)result == 0xff) {
+        result = 0;
+    }
+    return result;
+}
+
+/* Test a waypoint span through the indexed path cells.
+
+   The ordinary mode rejects endpoints outside the level and verifies the
+   destination height. Adjustment mode instead snaps a failed destination to
+   the last accepted cell; its alternate stepping mode combines simultaneous
+   major/minor moves into the corresponding diagonal direction. Packed path
+   records contribute their direction masks and two obstruction flag bits. */
+// FUNCTION: WIZ8 0x0045a1b0
+unsigned char W8PathingService::TestWaypointSpan0045A1B0(
+    const srVector3T<float>* source,
+    srVector3T<float>* destination,
+    unsigned char adjust_destination,
+    unsigned char diagonal_steps)
+{
+    unsigned char blocked = 0;
+
+    if (adjust_destination == 0 &&
+        (source->x < level_bounds[0] || source->y < level_bounds[1] ||
+         source->z < level_bounds[2] || level_bounds[3] < source->x ||
+         level_bounds[4] < source->y || level_bounds[5] < source->z ||
+         destination->x < level_bounds[0] ||
+         destination->y < level_bounds[1] ||
+         destination->z < level_bounds[2] ||
+         level_bounds[3] < destination->x ||
+         level_bounds[4] < destination->y ||
+         level_bounds[5] < destination->z)) {
+        return 0;
+    }
+
+    flag_23c = 0;
+    int cell[2];
+    cell[0] = (int)((source->x - level_bounds[0]) / grid_scale_01c);
+    cell[1] = (int)((source->z - level_bounds[2]) / grid_scale_01c);
+    unsigned int cell_key = cell[1] * 0x10000 + cell[0];
+    int destination_x =
+        (int)((destination->x - level_bounds[0]) / grid_scale_01c);
+    int destination_z =
+        (int)((destination->z - level_bounds[2]) / grid_scale_01c);
+    unsigned int destination_key = destination_z * 0x10000 + destination_x;
+    waypoint_neighbor_mask_0a0 = 0;
+
+    W8OctreeIndex* path_index = static_cast<W8OctreeIndex*>(m_pIndex_064);
+    W8OctreeEntry* entries = static_cast<W8OctreeEntry*>(path_index->entries);
+
+    if (cell_key == destination_key) {
+        unsigned int height =
+            (unsigned int)(int)((source->y - level_bounds[1]) / span_020) + 1;
+        unsigned int hash = (cell_key >> 10 ^ cell_key) >> 10 ^ cell_key;
+        int slot = static_cast<int*>(path_index->bucket_heads)[
+            hash & (path_index->bucket_count - 1)];
+        unsigned int source_value = 0;
+        unsigned char found = 0;
+
+        while (slot != -1) {
+            W8OctreeEntry* entry = &entries[slot];
+            if (entry->key == cell_key) {
+                unsigned int value = entry->value;
+                int difference = (value & 0xffff) - height;
+                if ((value & 0x10000000) == 0 &&
+                    -cell_count_024 < difference &&
+                    difference < cell_count_024) {
+                    source_value = value;
+                    found = 1;
+                    break;
+                }
+            }
+            slot = entry->next_index;
+        }
+        if (found == 0) {
+            return 0;
+        }
+
+        waypoint_neighbor_mask_0a0 =
+            ComputeWaypointNeighborMask004667A0(cell, source_value);
+        height = (unsigned int)(int)(
+            (destination->y - level_bounds[1]) / span_020) + 1;
+        slot = static_cast<int*>(path_index->bucket_heads)[
+            hash & (path_index->bucket_count - 1)];
+        found = 0;
+
+        while (slot != -1) {
+            W8OctreeEntry* entry = &entries[slot];
+            if (entry->key == cell_key) {
+                unsigned int value = entry->value;
+                int difference = (value & 0xffff) - height;
+                if ((value & 0x10000000) == 0 &&
+                    -cell_count_024 < difference &&
+                    difference < cell_count_024) {
+                    found = value == source_value;
+                    break;
+                }
+            }
+            slot = entry->next_index;
+        }
+        return found;
+    }
+
+    float walk_source[2];
+    float walk_destination[2];
+    float origin[2];
+    W8PathGridWalk walk;
+    int directions[2];
+    walk_source[0] = source->x;
+    walk_source[1] = source->z;
+    walk_destination[0] = destination->x;
+    walk_destination[1] = destination->z;
+    origin[0] = level_bounds[0];
+    origin[1] = level_bounds[2];
+    BuildPathGridWalk0045AF60(
+        walk_source, walk_destination, origin, &walk);
+    GetPathGridStepDirections0045AEE0(&walk, directions);
+
+    int error = walk.error_2c;
+    unsigned int height =
+        (unsigned int)(int)((source->y - level_bounds[1]) / span_020) + 1;
+    unsigned int previous_key = 0;
+    unsigned int previous_value;
+    int iteration = 0;
+
+    while (iteration < walk.count_24 && blocked == 0) {
+        unsigned int hash = (cell_key >> 10 ^ cell_key) >> 10 ^ cell_key;
+        int slot = static_cast<int*>(path_index->bucket_heads)[
+            hash & (path_index->bucket_count - 1)];
+        unsigned int direction_mask = 0;
+        unsigned int path_value;
+        unsigned char found = 0;
+
+        while (slot != -1) {
+            W8OctreeEntry* entry = &entries[slot];
+            if (entry->key == cell_key) {
+                path_value = entry->value;
+                int difference = (path_value & 0xffff) - height;
+
+                if (-cell_count_024 < difference &&
+                    difference < cell_count_024) {
+                    if ((path_value & 0x10000000) == 0) {
+                        if ((path_value & 0x01000000) != 0) {
+                            direction_mask = path_value >> 16 & 0xff;
+                        }
+                        found = 1;
+                        height = path_value & 0xffff;
+                        previous_key = cell_key;
+                        previous_value = path_value;
+                        break;
+                    }
+                    flag_23c = 1;
+                }
+            }
+            slot = entry->next_index;
+        }
+
+        if (found == 0) {
+            unsigned int mask_key = previous_key;
+            unsigned int mask_value = previous_value;
+            if (previous_key == 0) {
+                mask_key = cell_key;
+                mask_value = path_value;
+            }
+            if (previous_key != 0 || cell_key != 0) {
+                int mask_cell[2];
+                mask_cell[0] = mask_key & 0xffff;
+                mask_cell[1] = mask_key >> 16;
+                waypoint_neighbor_mask_0a0 =
+                    ComputeWaypointNeighborMask004667A0(mask_cell, mask_value);
+            }
+            blocked = 1;
+        }
+
+        if ((previous_value & 0x04000000) != 0) {
+            flag_23c = 1;
+        }
+
+        unsigned int direction = directions[0];
+        if (diagonal_steps == 0) {
+            if (error >= 0 || blocked != 0) {
+                cell[walk.major_axis_18] += walk.step_0c[walk.major_axis_18];
+                error -= walk.error_28;
+            }
+            else {
+                cell[walk.minor_axis_1c] += walk.step_0c[walk.minor_axis_1c];
+                direction = directions[1];
+                --iteration;
+                error += walk.cell_size_30;
+            }
+        }
+        else {
+            if (error < 0 && blocked == 0) {
+                cell[walk.minor_axis_1c] += walk.step_0c[walk.minor_axis_1c];
+                error += walk.cell_size_30;
+                if (cell[1] * 0x10000 + cell[0] == destination_key) {
+                    --iteration;
+                    direction = directions[1];
+                    goto stepped;
+                }
+                if ((directions[0] == 0 && directions[1] == 6) ||
+                    (directions[0] == 6 && directions[1] == 0)) {
+                    direction = 7;
+                }
+                else {
+                    direction = (directions[0] + directions[1]) / 2;
+                }
+            }
+            cell[walk.major_axis_18] += walk.step_0c[walk.major_axis_18];
+            error -= walk.error_28;
+        }
+
+stepped:
+        if (cell_key == destination_key) {
+            iteration = walk.count_24;
+        }
+        else if (direction_mask != 0 &&
+                 (direction_mask & 1 << (direction & 0x1f)) == 0) {
+            unsigned int mask_key = previous_key;
+            unsigned int mask_value = previous_value;
+            if (previous_key == 0) {
+                mask_key = cell_key;
+                mask_value = path_value;
+            }
+            if (previous_key != 0 || cell_key != 0) {
+                int mask_cell[2];
+                mask_cell[0] = mask_key & 0xffff;
+                mask_cell[1] = mask_key >> 16;
+                waypoint_neighbor_mask_0a0 =
+                    ComputeWaypointNeighborMask004667A0(mask_cell, mask_value);
+            }
+            blocked = 1;
+        }
+
+        cell_key = cell[1] * 0x10000 + cell[0];
+        ++iteration;
+    }
+
+    if (adjust_destination == 0) {
+        if (blocked == 0) {
+            int destination_height =
+                (int)((destination->y - level_bounds[1]) / span_020) + 1;
+            int difference = destination_height - height;
+            if (difference < -cell_count_024 || cell_count_024 < difference) {
+                blocked = 1;
+            }
+        }
+    }
+    else if (previous_key == 0) {
+        *destination = *source;
+    }
+    else {
+        if (blocked != 0) {
+            destination->x =
+                ((float)(previous_key & 0xffff) + g_float_005ebc7c) *
+                    grid_scale_01c +
+                level_bounds[0];
+            destination->z =
+                ((float)(previous_key >> 16) + g_float_005ebc7c) *
+                    grid_scale_01c +
+                level_bounds[2];
+        }
+        destination->y = (float)(height - 1) * span_020 + level_bounds[1];
+    }
+
+    return blocked == 0;
+}
+
+/* Compare clearance along the two compass rays bracketing a horizontal
+   direction. The normalized Z component selects the pair; the sign of X
+   selects which half of the compass owns the middle bands. */
+// FUNCTION: WIZ8 0x0045aac0
+float W8PathingService::CompareDirectionalClearance0045AAC0(
+    const srVector3T<float>* position,
+    const srVector3T<float>* direction,
+    float distance)
+{
+    float normalized_x = direction->x;
+    float normalized_z = direction->z;
+    float length_squared =
+        normalized_x * normalized_x + normalized_z * normalized_z;
+
+    if ((double)length_squared != g_zero_005ebb40) {
+        float scale = (float)(g_double_005ebc30 / sqrt(length_squared));
+        normalized_x *= scale;
+        normalized_z *= scale;
+    }
+
+    int first_direction;
+    int second_direction;
+    if (normalized_x <= g_float_005ebb34) {
+        if (g_path_direction_threshold_3_005ec354 < normalized_z) {
+            first_direction = 7;
+            second_direction = 1;
+        }
+        else if (g_path_direction_threshold_2_005ec350 < normalized_z) {
+            first_direction = 6;
+            second_direction = 0;
+        }
+        else if (normalized_z <= g_path_direction_threshold_1_005ec34c) {
+            if (normalized_z <= g_path_direction_threshold_0_005ec348) {
+                first_direction = 3;
+                second_direction = 5;
+            }
+            else {
+                first_direction = 4;
+                second_direction = 6;
+            }
+        }
+        else {
+            first_direction = 5;
+            second_direction = 7;
+        }
+    }
+    else {
+        if (g_path_direction_threshold_3_005ec354 < normalized_z) {
+            first_direction = 7;
+            second_direction = 1;
+        }
+        else if (g_path_direction_threshold_2_005ec350 < normalized_z) {
+            first_direction = 0;
+            second_direction = 2;
+        }
+        else if (g_path_direction_threshold_1_005ec34c < normalized_z) {
+            first_direction = 1;
+            second_direction = 3;
+        }
+        else if (g_path_direction_threshold_0_005ec348 < normalized_z) {
+            first_direction = 2;
+            second_direction = 4;
+        }
+        else {
+            first_direction = 3;
+            second_direction = 5;
+        }
+    }
+
+    int cell[2];
+    cell[0] = (int)((position->x - level_bounds[0]) / grid_scale_01c);
+    cell[1] = (int)((position->z - level_bounds[2]) / grid_scale_01c);
+    unsigned int height =
+        (unsigned int)(int)((position->y - level_bounds[1]) / span_020) + 1;
+    float first = MeasureDirectionalPath0045AC70(
+        cell, first_direction, height, distance);
+    float second = MeasureDirectionalPath0045AC70(
+        cell, second_direction, height, distance);
+    return second - first;
+}
+
+/* Measure how much of a requested run remains traversable in one compass
+   direction. Cardinal runs use the retail diagonal-to-axis scale before cell
+   stepping; every crossed cell must carry a vertically compatible record whose
+   explicit direction mask, when present, permits the same direction. */
+// FUNCTION: WIZ8 0x0045ac70
+float W8PathingService::MeasureDirectionalPath0045AC70(
+    const int* cell,
+    int direction,
+    unsigned int height,
+    float distance)
+{
+    int step_x;
+    int step_z;
+    float remaining = distance;
+
+    switch (direction) {
+    case 0:
+        step_x = 0;
+        step_z = 1;
+        remaining *= g_path_cardinal_scale_005ec358;
+        break;
+    case 1:
+        step_x = 1;
+        step_z = 1;
+        break;
+    case 2:
+        step_x = 1;
+        step_z = 0;
+        remaining *= g_path_cardinal_scale_005ec358;
+        break;
+    case 3:
+        step_x = 1;
+        step_z = -1;
+        break;
+    case 4:
+        step_x = 0;
+        step_z = -1;
+        remaining *= g_path_cardinal_scale_005ec358;
+        break;
+    case 5:
+        step_x = -1;
+        step_z = -1;
+        break;
+    case 6:
+        step_x = -1;
+        step_z = 0;
+        remaining *= g_path_cardinal_scale_005ec358;
+        break;
+    default:
+        step_x = -1;
+        step_z = 1;
+        break;
+    }
+
+    int cell_x = cell[0];
+    int cell_z = cell[1];
+    unsigned char stopped = 0;
+
+    while (grid_scale_01c < remaining) {
+        cell_x += step_x;
+        cell_z += step_z;
+        unsigned int key = cell_z * 0x10000 + cell_x;
+        unsigned int hash = (key >> 10 ^ key) >> 10 ^ key;
+        W8OctreeIndex* index = static_cast<W8OctreeIndex*>(m_pIndex_064);
+        W8OctreeEntry* entries =
+            static_cast<W8OctreeEntry*>(index->entries);
+        int slot = static_cast<int*>(index->bucket_heads)[
+            hash & (index->bucket_count - 1)];
+        unsigned int path_value;
+        unsigned char found = 0;
+
+        while (slot != -1) {
+            W8OctreeEntry* entry = &entries[slot];
+            if (entry->key == key) {
+                path_value = entry->value;
+                int difference = (path_value & 0xffff) - height;
+                if ((path_value & 0x10000000) == 0 &&
+                    -cell_count_024 < difference &&
+                    difference < cell_count_024) {
+                    found = 1;
+                    height = path_value & 0xffff;
+                    break;
+                }
+            }
+            slot = entry->next_index;
+        }
+
+        if (found != 0) {
+            remaining -= grid_scale_01c;
+        }
+        if (found == 0 ||
+            ((path_value & 0x01000000) != 0 &&
+             (path_value & 1 << ((direction + 16) & 0x1f)) == 0)) {
+            stopped = 1;
+            break;
+        }
+    }
+
+    if (stopped == 0) {
+        return distance;
+    }
+    return distance - remaining;
 }
 
 /* Append one waypoint surface and keep every capacity-coupled side table sized
