@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern const double g_world_scale_005ec150 = 500.0;
+
 extern "C" {
 
 extern void NoOp(void);

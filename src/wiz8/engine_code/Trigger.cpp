@@ -7,7 +7,9 @@
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/GDFileIO.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/AmbientSound.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/Octree.h"
@@ -16,10 +18,12 @@
 #include "wiz8/item_tables.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/search.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "wiz8/vector.h"
+#include "wiz8/virtual_file.h"
 #include "Random.h"
 #include "surrender/srCore.h"
 #include "surrender/srMath.h"
@@ -108,6 +112,10 @@ extern int g_value_0068c548;
 extern int g_value_005ee59c;
 extern int g_value_005ee5a0;
 extern int g_value_005ed8c8;
+extern const double g_world_scale_005ec150;
+extern const float g_world_scale_005ebc40;
+extern float g_float_005ec128;
+extern unsigned int g_missile_table_count_65bddc;
 static int g_next_trigger_id_006874c6;
 
 Trigger* FindTriggerByName(const char* name)
@@ -564,6 +572,662 @@ void Trigger::GetPosition(srVector3T<float>* position) const
     position->x = position_118;
     position->y = position_11c;
     position->z = position_120;
+}
+
+/* Read the type-10 linked-trigger payload used by serialized trigger records.
+   The first format byte is retained only for wire compatibility; the next
+   bytes are the two packed flag fields and optional linked position. */
+// FUNCTION: WIZ8 0x004417c0
+W8TriggerActionData005EC134* ReadTriggerActionData004417C0(int handle)
+{
+    W8TriggerActionData005EC134* data =
+        new W8TriggerActionData005EC134;
+    unsigned char version;
+    unsigned char flags[8];
+    unsigned char secondary_flag;
+    unsigned char has_position;
+    short item;
+    srVector3T<float> position;
+    char linked_trigger[0x80];
+    int index;
+
+    data->type_004 = 10;
+    data->flags_008 = 0x40;
+    data->flags_009 = 0;
+    data->item_00a = -1;
+    data->linked_trigger_00c[0] = 0;
+    data->position_08c = srVector3T<float>(0.0f, 0.0f, 0.0f);
+
+    ReadVirtualFile(handle, &version, 1, 0);
+    for (index = 0; index < 8; ++index) {
+        ReadVirtualFile(handle, &flags[index], 1, 0);
+    }
+    ReadVirtualFile(handle, &secondary_flag, 1, 0);
+    ReadVirtualFile(handle, &item, 2, 0);
+    ReadVirtualFile(handle, &has_position, 1, 0);
+    ReadVirtualFile(handle, &position, sizeof(position), 0);
+    position *= static_cast<float>(g_world_scale_005ec150);
+    ReadVirtualFile(handle, linked_trigger, sizeof(linked_trigger), 0);
+
+    data->flags_008 = 0;
+    for (index = 0; index < 8; ++index) {
+        data->flags_008 |= (flags[index] & 1) << index;
+    }
+    data->flags_009 =
+        static_cast<unsigned char>((data->flags_009 & 0xfe) |
+                                   (secondary_flag & 1));
+    data->item_00a = item;
+    strcpy(data->linked_trigger_00c, linked_trigger);
+    if (has_position != 0) {
+        data->position_08c = position;
+        data->flags_009 |= 2;
+    }
+    return data;
+}
+
+/* Deserialize the four trigger record families emitted by the level editor.
+   Types one, two and four create ordinary Trigger objects; type three is the
+   ambient-sound record that shares this stream and deliberately returns null. */
+// FUNCTION: WIZ8 0x00441a20
+Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
+{
+    unsigned char outer_version;
+    unsigned char kind;
+    Trigger* trigger = 0;
+
+    if (handle == 0) {
+        srAssertFail("hFile",
+                     "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                     0xca3, 0);
+    }
+    if (ReadVirtualFile(handle, &outer_version, 1, 0) != 0) {
+        ReadVirtualFile(handle, &kind, 1, 0);
+    }
+
+    if (kind != 3) {
+        trigger = new Trigger;
+        if (trigger == 0) {
+            srAssertFail("pTrigger",
+                         "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                         0xcb2, "Out of memory: Trigger::CreateAndLoadLevelTrigger");
+        }
+        trigger->trigger_id_09c = g_next_trigger_id_006874c6++;
+        trigger->m_pWorld = world;
+        trigger->flag_0a0_04 = 1;
+    }
+
+    switch (kind) {
+    case 1: {
+        unsigned char version;
+        int value_b3;
+        int value_b0;
+        float flag_0;
+        int value_a8;
+        int action;
+        float unused;
+        int flag_1;
+        unsigned char packed_flags;
+        unsigned char flag_8;
+        char recipients[0x100];
+        char sound[0x80];
+        float value_a4 = 0.0f;
+        int value_ac = 0;
+
+        ReadVirtualFile(handle, &version, 1, 0);
+        ReadVirtualFile(handle, &value_b3, 4, 0);
+        ReadVirtualFile(handle, &value_b0, 4, 0);
+        ReadVirtualFile(handle, &flag_0, 4, 0);
+        ReadVirtualFile(handle, &value_a8, 4, 0);
+        ReadVirtualFile(handle, &action, 4, 0);
+        ReadVirtualFile(handle, &unused, 4, 0);
+        ReadVirtualFile(handle, &flag_1, 4, 0);
+        ReadVirtualFile(handle, &packed_flags, 1, 0);
+        ReadVirtualFile(handle, &flag_8, 1, 0);
+        ReadVirtualFile(handle, &trigger->state_01c, 0x80, 0);
+        ReadVirtualFile(handle, recipients, sizeof(recipients), 0);
+        ReadVirtualFile(handle, sound, sizeof(sound), 0);
+        sprintf((char*)trigger->action_data_128, "data/sound/%s", sound);
+        _strupr((char*)&trigger->state_01c);
+        _strupr(recipients);
+
+        if (version > 1) {
+            char location[0x40];
+            ReadVirtualFile(handle, &value_a4, 4, 0);
+            ReadVirtualFile(handle, location, sizeof(location), 0);
+            if (location[0] == '\0' && world->m_owned_04c != 0) {
+                location[0x3f] = '\0';
+                trigger->value_0b8 = atoi(location + 1);
+            }
+        }
+        if (version > 2) {
+            unsigned char has_action_data;
+            ReadVirtualFile(handle, &has_action_data, 1, 0);
+            if (has_action_data != 0) {
+                unsigned char action_data_version;
+                ReadVirtualFile(handle, &action_data_version, 1, 0);
+                if (action_data_version == 1) {
+                    trigger->m_pActionData =
+                        ReadTriggerActionData004417C0(handle);
+                    trigger->value_0b1 =
+                        (trigger->m_pActionData->flags_008 & 1) != 0;
+                }
+            }
+        }
+        if (version > 3) {
+            ReadVirtualFile(handle, &value_ac, 4, 0);
+        }
+
+        trigger->trigger_kind_018 = 1;
+        trigger->value_0a8 =
+            static_cast<float>(value_a8) * g_world_scale_005ebc40;
+        trigger->value_0a4 = value_a4 * g_world_scale_005ebc40;
+        trigger->value_0ac = value_ac;
+        trigger->initial_action_22a = static_cast<unsigned short>(action);
+        trigger->value_0b0 = static_cast<unsigned char>(value_b0);
+        trigger->value_0b1 = 0;
+        trigger->value_0b2 = 1;
+        trigger->value_0b3 = static_cast<unsigned char>(value_b3);
+        trigger->flag_0a0_00 = flag_0 != 0.0f;
+        trigger->flag_0a0_01 = flag_1 != 0;
+        trigger->flag_0a0_08 = flag_8 != 0;
+        trigger->flag_0a0_09 = (packed_flags & 2) != 0;
+        trigger->flag_0a0_07 = (packed_flags & 1) != 0;
+        trigger->m_pacRecipients = new char[strlen(recipients) + 1];
+        strcpy(trigger->m_pacRecipients, recipients);
+        world->triggers->Add(trigger);
+        if (*(char*)&trigger->state_01c != '\0') {
+            trigger->setName((char*)&trigger->state_01c);
+        }
+        break;
+    }
+
+    case 2: {
+        unsigned char version;
+        float value_a8;
+        float position[3];
+        int action;
+        int value_c8;
+        unsigned char flag_7;
+        unsigned char flag_8;
+        char recipients[0x100];
+        int value_ac = 0;
+        unsigned char flag_3 = 0;
+
+        ReadVirtualFile(handle, &version, 1, 0);
+        ReadVirtualFile(handle, &value_a8, 4, 0);
+        ReadVirtualFile(handle, &position[0], 4, 0);
+        ReadVirtualFile(handle, &position[1], 4, 0);
+        ReadVirtualFile(handle, &position[2], 4, 0);
+        ReadVirtualFile(handle, &action, 4, 0);
+        ReadVirtualFile(handle, &value_c8, 4, 0);
+        ReadVirtualFile(handle, &flag_7, 1, 0);
+        ReadVirtualFile(handle, &flag_8, 1, 0);
+        ReadVirtualFile(handle, &trigger->state_01c, 0x80, 0);
+        ReadVirtualFile(handle, recipients, sizeof(recipients), 0);
+        _strupr((char*)&trigger->state_01c);
+        _strupr(recipients);
+
+        if (version > 1) {
+            unsigned char has_plane;
+            ReadVirtualFile(handle, &has_plane, 1, 0);
+            trigger->flag_0a0_02 = has_plane == 1;
+            ReadVirtualFile(handle, trigger->unknown_0ca.vertices_002,
+                            sizeof(trigger->unknown_0ca.vertices_002), 0);
+            ReadVirtualFile(handle, &trigger->angle_0fc, 4, 0);
+            ReadVirtualFile(handle, &trigger->value_100, 4, 0);
+            ReadVirtualFile(handle, &trigger->value_104, 4, 0);
+            ReadVirtualFile(handle, &trigger->value_108, 4, 0);
+            {
+                unsigned char unused;
+                char action_string[0x80];
+                int i;
+                ReadVirtualFile(handle, &unused, 1, 0);
+                ReadVirtualFile(handle, action_string, sizeof(action_string), 0);
+                if (action == 17) {
+                    W8TriggerActionData005EC158* data =
+                        new W8TriggerActionData005EC158;
+                    data->type_004 = 6;
+                    data->owned_string_008 =
+                        new char[strlen(action_string) + 1];
+                    strcpy(data->owned_string_008, action_string);
+                    trigger->m_pActionData = data;
+                }
+                for (i = 0; i < 4; ++i) {
+                    trigger->unknown_0ca.vertices_002[i] *=
+                        static_cast<float>(g_world_scale_005ec150);
+                }
+            }
+        }
+        if (version > 3) {
+            ReadVirtualFile(handle, &flag_3, 1, 0);
+            ReadVirtualFile(handle, &value_ac, 4, 0);
+        }
+        if (version > 4) {
+            unsigned char has_extra_planes;
+            ReadVirtualFile(handle, &has_extra_planes, 1, 0);
+            if (has_extra_planes != 0) {
+                unsigned char extra_version;
+                srVector3T<float> ignored_planes[36];
+                unsigned char ignored_flags[2];
+                int i;
+                ReadVirtualFile(handle, &extra_version, 1, 0);
+                for (i = 0; i < 36; ++i) {
+                    ReadVirtualFile(handle, &ignored_planes[i],
+                                    sizeof(ignored_planes[i]), 0);
+                    ignored_planes[i] *=
+                        static_cast<float>(g_world_scale_005ec150);
+                }
+                ReadVirtualFile(handle, ignored_flags, sizeof(ignored_flags), 0);
+            }
+        }
+
+        trigger->trigger_kind_018 = 2;
+        trigger->value_0a8 = value_a8 * g_world_scale_005ebc40;
+        trigger->position_118 = position[0] * g_world_scale_005ebc40;
+        trigger->position_11c = position[1] * g_world_scale_005ebc40;
+        trigger->position_120 = position[2] * g_world_scale_005ebc40;
+        trigger->initial_action_22a = static_cast<unsigned short>(action);
+        trigger->value_0ac = value_ac;
+        trigger->value_0c8 = static_cast<unsigned short>(value_c8);
+        trigger->m_bRepType = 3;
+        trigger->flag_0a0_11 = 1;
+        trigger->flag_0a0_07 = flag_7 != 0;
+        trigger->flag_0a0_08 = flag_8 != 0;
+        trigger->flag_0a0_03 = flag_3 != 0;
+        trigger->m_pacRecipients = new char[strlen(recipients) + 1];
+        strcpy(trigger->m_pacRecipients, recipients);
+        if (trigger->flag_0a0_02 != 0 && world->m_owned_04c != 0) {
+            static_cast<GDFileIO*>(world->m_owned_04c)->AddTriggerPlane(
+                trigger->unknown_0ca.vertices_002, trigger);
+        }
+        if (trigger->initial_action_22a == 0x34 && recipients[0] == '\0') {
+            trigger->value_0a4 = 0;
+            trigger->value_0a8 = 0;
+        }
+        world->triggers->Add(trigger);
+        if (*(char*)&trigger->state_01c != '\0') {
+            trigger->setName((char*)&trigger->state_01c);
+        }
+        break;
+    }
+
+    case 3: {
+        unsigned char version;
+        int value_a4;
+        int value_a8;
+        int value_ac;
+        int value_b0;
+        int value_94;
+        int value_98;
+        int flag_b9;
+        float value_b4;
+        srVector3T<float> vector_88;
+        srVector3T<float> vector_c8;
+        srVector3T<float> vector_d4;
+        W8AmbientSoundConfig0047A790 config;
+        srVector3T<float> vector_e0 = srVector3T<float>(0, 0, 0);
+        int value_ec = 0;
+        srVector3T<float> vector_f0 = srVector3T<float>(0, 0, 0);
+        srVector3T<float> vector_fc = srVector3T<float>(0, 0, 0);
+        unsigned char flag_c5 = 0;
+        unsigned char flag_c4 = 0;
+        char alternate_name[0x80];
+        char* name = 0;
+
+        ReadVirtualFile(handle, &version, 1, 0);
+        ReadVirtualFile(handle, &value_a4, 4, 0);
+        ReadVirtualFile(handle, &value_a8, 4, 0);
+        ReadVirtualFile(handle, &value_ac, 4, 0);
+        ReadVirtualFile(handle, &value_b0, 4, 0);
+        ReadVirtualFile(handle, &value_94, 4, 0);
+        ReadVirtualFile(handle, &value_98, 4, 0);
+        ReadVirtualFile(handle, &flag_b9, 4, 0);
+        ReadVirtualFile(handle, &value_b4, 4, 0);
+        ReadVirtualFile(handle, &vector_88, sizeof(vector_88), 0);
+        ReadVirtualFile(handle, &vector_c8, sizeof(vector_c8), 0);
+        ReadVirtualFile(handle, &vector_d4, sizeof(vector_d4), 0);
+        ReadVirtualFile(handle, alternate_name, sizeof(alternate_name), 0);
+        sprintf(config.match_name, "data/sound/%s", alternate_name);
+        if (version > 1) {
+            ReadVirtualFile(handle, &flag_c5, 1, 0);
+            {
+                unsigned char unused;
+                ReadVirtualFile(handle, &unused, 1, 0);
+            }
+        }
+        if (version > 2) {
+            ReadVirtualFile(handle, &vector_e0, sizeof(vector_e0), 0);
+            ReadVirtualFile(handle, &value_ec, 4, 0);
+            ReadVirtualFile(handle, &vector_f0, sizeof(vector_f0), 0);
+            ReadVirtualFile(handle, &vector_fc, sizeof(vector_fc), 0);
+            vector_e0 *= static_cast<float>(g_world_scale_005ec150);
+        }
+        if (version > 3) {
+            ReadVirtualFile(handle, alternate_name, sizeof(alternate_name), 0);
+            name = alternate_name;
+        }
+        if (version > 4) {
+            ReadVirtualFile(handle, &flag_c4, 1, 0);
+        }
+        vector_88 *= static_cast<float>(g_world_scale_005ec150);
+        vector_c8 *= static_cast<float>(g_world_scale_005ec150);
+        vector_d4 *= static_cast<float>(g_world_scale_005ec150);
+        AddAmbientSound0047A790(
+            world, name, &config, &vector_88, &vector_c8, &vector_d4,
+            value_94, value_98, value_ac, value_b0, value_a4, value_a8,
+            static_cast<int>(value_b4 * g_world_scale_005ebc40),
+            flag_b9 == 0, flag_c5, &vector_e0, value_ec, &vector_f0,
+            &vector_fc, flag_c4);
+        break;
+    }
+
+    case 4: {
+        unsigned char version;
+        unsigned char record_flags;
+        unsigned char flag_8;
+        unsigned char flag_7;
+        unsigned char flag_9;
+        unsigned char flag_3;
+        unsigned char flag_12;
+        unsigned char flag_15;
+        int action;
+        int value_22c;
+        int fallback_action;
+        char recipients[0x100];
+        unsigned char rep_type;
+        char value_23c_text[0x100];
+        unsigned char flag_16;
+        unsigned char flag_1;
+        char sound[0x80];
+        unsigned char state_mode = 0;
+        unsigned char flag_23 = 0;
+        unsigned char representation = 0;
+        float scale = 1.0f;
+
+        ReadVirtualFile(handle, &version, 1, 0);
+        ReadVirtualFile(handle, &trigger->state_01c, 0x80, 0);
+        ReadVirtualFile(handle, &record_flags, 1, 0);
+        ReadVirtualFile(handle, &flag_8, 1, 0);
+        ReadVirtualFile(handle, &flag_7, 1, 0);
+        ReadVirtualFile(handle, &flag_9, 1, 0);
+        ReadVirtualFile(handle, &flag_3, 1, 0);
+        ReadVirtualFile(handle, &flag_12, 1, 0);
+        ReadVirtualFile(handle, &flag_15, 1, 0);
+        ReadVirtualFile(handle, &action, 4, 0);
+        ReadVirtualFile(handle, &value_22c, 4, 0);
+        ReadVirtualFile(handle, &fallback_action, 4, 0);
+        ReadVirtualFile(handle, recipients, sizeof(recipients), 0);
+        ReadVirtualFile(handle, &rep_type, 1, 0);
+        ReadVirtualFile(handle, value_23c_text, sizeof(value_23c_text), 0);
+        ReadVirtualFile(handle, &flag_16, 1, 0);
+        ReadVirtualFile(handle, &trigger->value_0ac, 4, 0);
+        ReadVirtualFile(handle, &flag_1, 1, 0);
+        ReadVirtualFile(handle, sound, sizeof(sound), 0);
+        sprintf((char*)trigger->action_data_128, "data/sound/%s", sound);
+        _strupr((char*)&trigger->state_01c);
+        _strupr(recipients);
+        _strupr(value_23c_text);
+
+        if (version >= 2) {
+            int ignored;
+            ReadVirtualFile(handle, &trigger->m_lData1, 4, 0);
+            ReadVirtualFile(handle, &trigger->m_lData2, 4, 0);
+            ReadVirtualFile(handle, &trigger->m_lData3, 4, 0);
+            ReadVirtualFile(handle, &scale, 4, 0);
+            ReadVirtualFile(handle, &state_mode, 1, 0);
+            ReadVirtualFile(handle, &flag_23, 1, 0);
+            ReadVirtualFile(handle, &trigger->action_data_mode_228, 1, 0);
+            ReadVirtualFile(handle, &trigger->value_229, 1, 0);
+            ReadVirtualFile(handle, &ignored, 4, 0);
+            ReadVirtualFile(handle, &ignored, 4, 0);
+            ReadVirtualFile(handle, &ignored, 4, 0);
+            ReadVirtualFile(handle, &ignored, 4, 0);
+        }
+
+        trigger->trigger_kind_018 =
+            ((record_flags & 1) != 0 || rep_type == 1) ? 1 : 2;
+        trigger->flag_0a0_17 = (record_flags & 2) != 0;
+        trigger->flag_0a0_18 = (record_flags & 4) != 0;
+        trigger->flag_0a0_20 = (record_flags & 8) != 0;
+        trigger->flag_0a0_21 = (record_flags & 0x10) != 0;
+        trigger->flag_0a0_22 = (record_flags & 0x20) != 0;
+        if (recipients[0] != '\0') {
+            trigger->m_pacRecipients = new char[strlen(recipients) + 1];
+            if (trigger->m_pacRecipients == 0) {
+                srAssertFail("pTrigger->m_pacRecipients",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                             0xe48, "Out of memory: Trigger.cpp");
+            }
+            strcpy(trigger->m_pacRecipients, recipients);
+        }
+        trigger->value_23c = value_23c_text[0] == '\0'
+            ? -1 : atoi(value_23c_text);
+        trigger->value_22c = static_cast<unsigned short>(value_22c);
+        trigger->initial_action_22a = static_cast<unsigned short>(action);
+        trigger->fallback_action_22e =
+            static_cast<unsigned short>(fallback_action);
+        trigger->value_0c8 = rep_type;
+        trigger->flag_0a0_08 = flag_8 != 0;
+        trigger->flag_0a0_07 = flag_7 != 0;
+        trigger->flag_0a0_09 = flag_9 != 0;
+        trigger->flag_0a0_03 = flag_3 != 0;
+        trigger->flag_0a0_12 = flag_12 != 0;
+        trigger->flag_0a0_16 = flag_16 != 0;
+        trigger->flag_0a0_01 = flag_1 != 0;
+        trigger->flag_0a0_15 = flag_15 != 0;
+        if (trigger->value_22c != 0) {
+            trigger->flag_0a0_13 = 1;
+        }
+
+        {
+            unsigned char value_b0;
+            unsigned char flag_0;
+            unsigned char value_b3;
+            char required_states[0x100];
+            char state_to_mod[0x100];
+            unsigned char value_b4;
+            ReadVirtualFile(handle, &value_b0, 1, 0);
+            ReadVirtualFile(handle, &flag_0, 1, 0);
+            ReadVirtualFile(handle, &value_b3, 1, 0);
+            ReadVirtualFile(handle, required_states, sizeof(required_states), 0);
+            ReadVirtualFile(handle, state_to_mod, sizeof(state_to_mod), 0);
+            ReadVirtualFile(handle, &value_b4, 1, 0);
+            _strupr(required_states);
+            _strupr(state_to_mod);
+            if (required_states[0] != '\0') {
+                trigger->m_pacRequiredStates =
+                    new char[strlen(required_states) + 1];
+                if (trigger->m_pacRequiredStates == 0) {
+                    srAssertFail("pTrigger->m_pacRequiredStates",
+                                 "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                                 0xe6f, "Out of memory: Trigger.cpp");
+                }
+                strcpy(trigger->m_pacRequiredStates, required_states);
+            }
+            if (state_to_mod[0] != '\0') {
+                trigger->m_pacStateToMod = new char[strlen(state_to_mod) + 1];
+                if (trigger->m_pacStateToMod == 0) {
+                    srAssertFail("pTrigger->m_pacStateToMod",
+                                 "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                                 0xe75, "Out of memory: Trigger.cpp");
+                }
+                strcpy(trigger->m_pacStateToMod, state_to_mod);
+            }
+            trigger->value_0b3 = value_b3;
+            trigger->value_0b4 = value_b4;
+            trigger->value_0b0 = value_b0;
+            trigger->flag_0a0_00 = flag_0 != 0;
+        }
+
+        if (trigger->m_pacStateToMod != 0 && state_mode <= 1) {
+            int variable_id = 0;
+            while (variable_id < g_location_variable_names_006598f8.GetCount()) {
+                if (_stricmp(
+                        *g_location_variable_names_006598f8.GetAt(variable_id),
+                        trigger->m_pacStateToMod) == 0 &&
+                    *g_location_variable_levels_006598e0.GetAt(variable_id) ==
+                        g_loaded_level_id) {
+                    break;
+                }
+                ++variable_id;
+            }
+            if (variable_id == g_location_variable_names_006598f8.GetCount()) {
+                char* variable_name =
+                    new char[strlen(trigger->m_pacStateToMod) + 1];
+                if (variable_name == 0) {
+                    srAssertFail("pacVariableName",
+                                 "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                                 0x109c, 0);
+                }
+                strcpy(variable_name, trigger->m_pacStateToMod);
+                g_location_variable_names_006598f8.Add(variable_name);
+                g_location_variable_values_00659990.Add(state_mode);
+                g_location_variable_levels_006598e0.Add(g_loaded_level_id);
+            }
+        }
+
+        ReadVirtualFile(handle, &trigger->value_0a4, 4, 0);
+        ReadVirtualFile(handle, &trigger->value_0a8, 4, 0);
+        ReadVirtualFile(handle, trigger->inline_action_data_24c,
+                        sizeof(trigger->inline_action_data_24c), 0);
+        {
+            int ignored;
+            ReadVirtualFile(handle, &ignored, 4, 0);
+        }
+        _strupr(trigger->inline_action_data_24c);
+        trigger->value_0a4 *= g_world_scale_005ebc40;
+        trigger->value_0a8 *= g_world_scale_005ebc40;
+
+        if (version > 2) {
+            char alternate_sound[0x80];
+            ReadVirtualFile(handle, alternate_sound, sizeof(alternate_sound), 0);
+            sprintf((char*)trigger->alternate_action_data_1a8,
+                    "data/sound/%s", alternate_sound);
+            trigger->flag_0a0_23 = flag_23 != 0;
+        }
+        if ((record_flags & 1) == 0) {
+            ReadVirtualFile(handle, &representation, 1, 0);
+            if (representation == 1) {
+                ReadVirtualFile(handle, &trigger->position_118, 0x0c, 0);
+                ReadVirtualFile(handle, &trigger->angle_0fc, 4, 0);
+                ReadVirtualFile(handle, &trigger->value_100, 0x0c, 0);
+                trigger->position_118 *=
+                    static_cast<float>(g_world_scale_005ec150);
+                trigger->position_11c *=
+                    static_cast<float>(g_world_scale_005ec150);
+                trigger->position_120 *=
+                    static_cast<float>(g_world_scale_005ec150);
+                trigger->flag_0a0_11 = 1;
+            }
+            else if (representation == 2) {
+                int i;
+                ReadVirtualFile(handle, trigger->unknown_0ca.vertices_002,
+                                sizeof(trigger->unknown_0ca.vertices_002), 0);
+                for (i = 0; i < 4; ++i) {
+                    trigger->unknown_0ca.vertices_002[i] *=
+                        static_cast<float>(g_world_scale_005ec150);
+                }
+            }
+            {
+                unsigned char has_extra;
+                ReadVirtualFile(handle, &has_extra, 1, 0);
+                if (has_extra != 0) {
+                    unsigned char extra_version;
+                    float ignored_value;
+                    char ignored_name[0x80];
+                    ReadVirtualFile(handle, &extra_version, 1, 0);
+                    ReadVirtualFile(handle, &ignored_value, 4, 0);
+                    ReadVirtualFile(handle, ignored_name, sizeof(ignored_name), 0);
+                }
+            }
+        }
+        {
+            unsigned char has_action_data;
+            ReadVirtualFile(handle, &has_action_data, 1, 0);
+            if (has_action_data != 0) {
+                unsigned char action_data_version;
+                ReadVirtualFile(handle, &action_data_version, 1, 0);
+                if (action_data_version == 1) {
+                    trigger->m_pActionData =
+                        ReadTriggerActionData004417C0(handle);
+                    trigger->value_0b1 =
+                        (trigger->m_pActionData->flags_008 & 1) != 0;
+                }
+                else if (action_data_version == 2) {
+                    unsigned char ignored_version;
+                    srVector3T<float> ignored_points[36];
+                    unsigned char ignored_flags[2];
+                    int i;
+                    ReadVirtualFile(handle, &ignored_version, 1, 0);
+                    for (i = 0; i < 36; ++i) {
+                        ReadVirtualFile(handle, &ignored_points[i],
+                                        sizeof(ignored_points[i]), 0);
+                        ignored_points[i] *=
+                            static_cast<float>(g_world_scale_005ec150);
+                    }
+                    ReadVirtualFile(handle, ignored_flags,
+                                    sizeof(ignored_flags), 0);
+                }
+            }
+        }
+
+        if (representation == 2 &&
+            world->m_owned_04c != 0) {
+            static_cast<GDFileIO*>(world->m_owned_04c)->AddTriggerPlane(
+                trigger->unknown_0ca.vertices_002, trigger);
+        }
+        if (trigger->initial_action_22a == 0x34 &&
+            trigger->m_pacRecipients == 0) {
+            trigger->value_0a4 = 0;
+            trigger->value_0a8 = 0;
+        }
+        world->triggers->Add(trigger);
+        if (*(char*)&trigger->state_01c != '\0') {
+            trigger->setName((char*)&trigger->state_01c);
+        }
+        if (rep_type == 1) {
+            AddSearchableTrigger00516F00(trigger);
+        }
+
+        if (trigger->initial_action_22a == 0x0c) {
+            if (trigger->m_lData1 < 0 ||
+                static_cast<unsigned int>(trigger->m_lData1) >=
+                    g_missile_table_count_65bddc) {
+                srAssertFail("pTrigger->m_lData1 >= 0 && pTrigger->m_lData1 < missile count",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                             0xf14, 0);
+            }
+            if (trigger->m_lData2 == -1) {
+                srAssertFail("pTrigger->m_lData2 != -1",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                             0xf15, 0);
+            }
+            if (trigger->m_lData2 < 0) {
+                trigger->m_pEvent = new W8TriggerEvent;
+                if (trigger->m_pEvent == 0) {
+                    srAssertFail("pTrigger->m_pEvent",
+                                 "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                                 0xf1e, 0);
+                }
+                trigger->m_pEvent->action_004 = trigger->initial_action_22a;
+                trigger->m_pEvent->timer_008.SetDuration(
+                    static_cast<float>(abs(trigger->m_lData2)) *
+                    g_float_005ec128);
+                trigger->m_pEvent->timer_008.Restart();
+                trigger->m_pEvent->trigger_030 = trigger;
+                trigger->flag_0a0_06 = 1;
+                g_timed_events_006599b8.Add(trigger->m_pEvent);
+            }
+        }
+        else if (trigger->initial_action_22a >= 0x25 &&
+                 trigger->initial_action_22a <= 0x2b &&
+                 trigger->m_lData1 >= 0) {
+            trigger->value_35c = trigger->m_lData1;
+        }
+        break;
+    }
+    }
+    return trigger;
 }
 
 // VTABLE: WIZ8 0x005ec104

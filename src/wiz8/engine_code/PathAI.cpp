@@ -21,7 +21,7 @@ extern float g_float_005ebc38;
 extern double g_double_005ebe80;
 extern float g_float_005ec128;
 extern double g_double_005ec3b0;
-extern const double g_path_ai_world_scale_005ec150;
+extern const double g_world_scale_005ec150;
 extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
 
@@ -100,9 +100,9 @@ unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
             ReadVirtualFile(handle, &point->x, 4, 0);
             ReadVirtualFile(handle, &point->y, 4, 0);
             ReadVirtualFile(handle, &point->z, 4, 0);
-            point->x = static_cast<float>(point->x * g_path_ai_world_scale_005ec150);
-            point->y = static_cast<float>(point->y * g_path_ai_world_scale_005ec150);
-            point->z = static_cast<float>(point->z * g_path_ai_world_scale_005ec150);
+            point->x = static_cast<float>(point->x * g_world_scale_005ec150);
+            point->y = static_cast<float>(point->y * g_world_scale_005ec150);
+            point->z = static_cast<float>(point->z * g_world_scale_005ec150);
             PathAIAddPoint004A9C30(path, point);
 
             ReadVirtualFile(handle, &angle, 4, 0);

@@ -97,6 +97,13 @@ struct W8TriggerState370 {
 static_assert(sizeof(W8TriggerState370) == 9,
               "W8TriggerState370_must_be_9");
 
+#pragma pack(push, 1)
+struct W8TriggerPlaneStorage {
+    unsigned char unknown_000[2];
+    srVector3T<float> vertices_002[4];
+};
+#pragma pack(pop)
+
 /* Engine Code\Trigger.cpp. Trigger is registered directly below srClass. It is
    not an srNode: the temporary table installed while srClassSupport is under
    construction has the same +0 vptr as the final Trigger table, and neither
@@ -167,8 +174,8 @@ public:
             unsigned int flag_0a0_31 : 1;
         };
     };
-    int value_0a4;
-    int value_0a8;
+    float value_0a4;
+    float value_0a8;
     int value_0ac;
     unsigned char value_0b0;
     unsigned char value_0b1;
@@ -181,7 +188,7 @@ public:
     int m_lData2;
     int m_lData3;
     unsigned short value_0c8;
-    unsigned char unknown_0ca[0x32];
+    W8TriggerPlaneStorage unknown_0ca;
     float angle_0fc;
     float value_100;
     float value_104;
@@ -231,6 +238,7 @@ public:
 };
 
 void Function445200(Trigger* trigger);
+W8TriggerActionData005EC134* ReadTriggerActionData004417C0(int handle);
 
 static_assert(sizeof(Trigger) == 0x38c, "Trigger_must_be_0x38c");
 

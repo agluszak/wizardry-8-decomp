@@ -1,6 +1,7 @@
 #include "wiz8/chunk.h"
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/search.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/save_game.h"
 #include "wiz8/virtual_file.h"
@@ -36,10 +37,6 @@
    reports whether the flag word at +0x29 has any of the caller's bits set. The
    original spells the result through NEG/SBB/NEG, which is what VC6 emits for a
    bool conversion, so the return type is bool rather than the mask. */
-/* 0x00516E20, search.cpp line 293: appends the item to the global searchable
-   array. Not yet identified beyond that, so it keeps an address name. */
-extern void Function516E20(W8WorldItem* item);
-
 /* 0x00659756: set to 1 by LoadLevel (0x0042A6F0) around its restore call at
    0x005135D0 and cleared immediately after, and read only from the save and
    load paths. It gates the bit-3 clear below. The meaning is not established
@@ -433,7 +430,7 @@ W8WorldItem* LoadItem(int handle, char add_to_list)
         item->unknown_08 = 0;
         item->owner = 0;
         if (ItemHasFlags(item, 1)) {
-            Function516E20(item);
+            AddSearchableItem00516E20(item);
         }
         if (previous != 0) {
             previous->next = item;

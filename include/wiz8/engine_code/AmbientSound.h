@@ -3,6 +3,8 @@
 #include "surrender/srMath.h"
 #include "wiz8/engine_code/game_timer.h"
 
+struct W8World;
+
 struct W8AmbientSoundConfig0047A790 {
     char match_name[0x80];
 };
@@ -53,3 +55,16 @@ public:
 
 static_assert(sizeof(W8AmbientSound) == 0x12c,
               "W8AmbientSound_must_be_0x12c");
+
+unsigned char AddAmbientSound0047A790(
+    W8World* world, const char* name,
+    const W8AmbientSoundConfig0047A790* config,
+    const srVector3T<float>* vector_88,
+    const srVector3T<float>* vector_c8,
+    const srVector3T<float>* vector_d4,
+    int value_94, int value_98, int value_ac, int value_b0,
+    int value_a4, int value_a8, int value_b4,
+    unsigned char flag_b9, unsigned char flag_c5,
+    const srVector3T<float>* vector_e0, int value_ec,
+    const srVector3T<float>* vector_f0,
+    const srVector3T<float>* vector_fc, unsigned char flag_c4);

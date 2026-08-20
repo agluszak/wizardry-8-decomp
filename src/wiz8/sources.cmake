@@ -3,6 +3,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/local_code/FormationAndFacing.cpp
     src/wiz8/local_code/Controls.cpp
     src/wiz8/local_code/Factions.cpp
+    src/wiz8/local_code/search.cpp
     src/wiz8/local_code/LoadSaveGame.cpp
     src/wiz8/local_code/Magic.cpp
     "src/wiz8/local_code/Health Stamina Mana.cpp"
@@ -43,6 +44,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/Object0043A910.cpp
     src/wiz8/engine_code/IntervalGate.cpp
     src/wiz8/engine_code/BitArray.cpp
+    src/wiz8/engine_code/GDFileIO.cpp
     src/wiz8/engine_code/GameData.cpp
     src/wiz8/engine_code/Octree.cpp
     src/wiz8/engine_code/OctPath.cpp

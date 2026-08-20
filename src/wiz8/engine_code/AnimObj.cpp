@@ -17,7 +17,7 @@
 /* The callee returns its byte value in an int-sized result; this wrapper is
    the narrowing boundary, as shown by its explicit `and eax, 0xff`. */
 extern int Function4B64F0(void* entry);                        /* 0x004B64F0 */
-extern const double g_anim_obj_world_scale_005ec150;
+extern const double g_world_scale_005ec150;
 extern const float g_world_scale_005ebc40;
 
 // FUNCTION: WIZ8 0x004a01a0
@@ -122,9 +122,9 @@ unsigned char AnimObjReadFromFile004A05C0(
                 ReadVirtualFile(handle, &animation->pvecBoundMax[index],
                                 sizeof(srVector3T<float>), 0);
                 animation->pvecBoundMin[index] *=
-                    static_cast<float>(g_anim_obj_world_scale_005ec150);
+                    static_cast<float>(g_world_scale_005ec150);
                 animation->pvecBoundMax[index] *=
-                    static_cast<float>(g_anim_obj_world_scale_005ec150);
+                    static_cast<float>(g_world_scale_005ec150);
             }
         }
     }
@@ -147,7 +147,7 @@ unsigned char AnimObjReadFromFile004A05C0(
             ReadVirtualFile(handle, &color, sizeof(color), 0);
             ReadVirtualFile(handle, &intensity, 4, 0);
             ReadVirtualFile(handle, &range, 4, 0);
-            position *= static_cast<float>(g_anim_obj_world_scale_005ec150);
+            position *= static_cast<float>(g_world_scale_005ec150);
             if (light_version < 3) {
                 definition_kind = light_version == 2 ? 1 : 0;
             }
