@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "vobject.h"
+#include "vobject_blitters.h"
 #include "vsurface.h"
 
 /*
@@ -172,6 +173,13 @@ void InitializeMenuVideoObjectCatalog(void)
         strcpy(g_video_frames_62c430[0x1d7 + index].path,
                party_generation_paths[index]);
     }
+
+    /* Object 0x1b6 is the flat 8-bit fill surface used by state-5 panels.
+       Retail maps it to frame 0x262 and loads it through the surface path. */
+    g_video_slots_6448c8[0x1b6].first_frame = 0x262;
+    strcpy(g_video_frames_62c430[0x262].path,
+           "Data\\Main Interface\\basic_fill_texture.pcx");
+    g_video_frames_62c430[0x262].mode = 1;
 }
 
 // FUNCTION: WIZ8 0x00548f90
@@ -383,6 +391,46 @@ void Function549660(int object, int frame, int image,
             record->handle, subimage,
             (unsigned short*)width, (unsigned short*)height);
     }
+}
+
+/* Copy a rectangle from one catalog-owned 8-bit surface into a 16-bit target.
+   The source rectangle has the destination's extent and begins at the two
+   caller-provided source coordinates. Both surfaces remain locked for exactly
+   the pinned SGP conversion call. */
+// FUNCTION: WIZ8 0x005497c0
+unsigned char Function5497C0(int target, int left, int top,
+                             int right, int bottom, int object,
+                             int source_x, int source_y)
+{
+    SGPRect source_rect;
+    HVSURFACE source_surface;
+    unsigned int target_pitch;
+    unsigned int source_pitch;
+    unsigned int source_handle;
+    unsigned char* target_pixels;
+    unsigned char* source_pixels;
+
+    source_rect.iLeft = source_x;
+    source_rect.iTop = source_y;
+    source_rect.iRight = source_x + right - left;
+    source_rect.iBottom = source_y + bottom - top;
+
+    if (!g_video_objects_ready_650e20) {
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
+                     0x19d, 0);
+    }
+    Function549090(object, 0);
+    source_handle =
+        g_video_frames_62c430[g_video_slots_6448c8[object].first_frame].handle;
+    GetVideoSurface(&source_surface, source_handle);
+    target_pixels = LockVideoSurface(target, &target_pitch);
+    source_pixels = LockVideoSurface(source_handle, &source_pitch);
+    Blt8BPPDataSubTo16BPPBuffer(
+        reinterpret_cast<unsigned short*>(target_pixels), target_pitch,
+        source_surface, source_pixels, source_pitch, left, top, &source_rect);
+    UnLockVideoSurface(target);
+    UnLockVideoSurface(source_handle);
+    return 1;
 }
 
 }

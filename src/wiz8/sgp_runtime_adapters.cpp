@@ -29,6 +29,10 @@
 // LIBRARY: WIZ8 0x00413e80
 // SetShadeTablePercent
 
+/* Released SGP flat-surface palette conversion used by VideoObjectManager. */
+// LIBRARY: WIZ8 0x00411730
+// Blt8BPPDataSubTo16BPPBuffer
+
 /* The FileMan implementation is likewise owned by the pinned SFI SGP oracle.
    The match image currently consumes it through the runtime-shared boundary,
    so retain its original linked identity without cloning its declaration or

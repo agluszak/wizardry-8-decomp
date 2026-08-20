@@ -35,8 +35,6 @@ bool IsCharacterReadyToAdvance(int party_slot);
 unsigned int FindFreePartySlot(unsigned int first, unsigned int last);
 char* ConvertWideStringToString(const wchar_t* string);
 void GetScreenPoint004284F0(W8ScreenPoint* point);
-void Function5497C0(int target, int left, int top, int right, int bottom,
-                    int object, int frame, int flags);
 void SetRenderClip00407220(int target, int left, int top, int right,
                            int bottom, int flags);
 unsigned char SetValue5FF5F0(int font);
