@@ -6,6 +6,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
 
 #include <string.h>
@@ -42,8 +43,7 @@
    FindPropByName independently proves that +0x20 is the owned prop name.
    Unresolved members and the gaps between them remain positional. */
 
-extern int Function443830(W8World* world, W8Prop* prop);
-extern void Function4B7470(int value);
+extern void* Function443830(W8World* world, W8Prop* prop);
 extern int IncrementValue60DFAC(void);
 extern const double g_zero_005ebb40;
 
@@ -211,14 +211,14 @@ void UpdateWorldProps0044E010(W8World* world)
     if (world == 0 || world->plsProps == 0) {
         srAssertFail("pWorld && pWorld->plsProps", "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp", 0x969, 0);
     }
-    count = PLLength(world->plsProps);
+    count = ILLength(reinterpret_cast<W8IList*>(world->plsProps));
     for (index = 0; index < static_cast<int>(count); ++index) {
         W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
-        int value;
+        void* value;
 
         if (prop != 0 && (value = Function443830(world, prop)) != 0 && prop->m_gd_prop != 0) {
             prop->flags_1c |= 0x80;
-            Function4B7470(value);
+            prop->m_gd_prop->BindOwner004B7470(value);
         }
     }
 }
@@ -248,7 +248,8 @@ W8Prop* FindPropByName(W8World* world, const char* name)
     int index;
 
     if (world != 0 && name != 0) {
-        unsigned int count = PLLength(world->plsProps);
+        unsigned int count = ILLength(
+            reinterpret_cast<W8IList*>(world->plsProps));
 
         for (index = 0; index < (int)count; ++index) {
             W8Prop* prop = static_cast<W8Prop*>(

@@ -5,6 +5,7 @@
 #include <windows.h>
 
 #include "wiz8/utility.h"
+#include "wiz8/3d_code/IList.h"
 
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/PathAI.h"
@@ -151,7 +152,8 @@ void AssociateWorldLights004BC060(W8World* world)
         if (definition != 0 && definition->type_04 == 1 &&
             (static_cast<stLightDefinition005ECDBC*>(definition)->flags_08 &
              1) != 0) {
-            int prop_count = PLLength(world->plsProps);
+            int prop_count = ILLength(
+                reinterpret_cast<W8IList*>(world->plsProps));
             int prop_index;
 
             for (prop_index = 0; prop_index < prop_count; ++prop_index) {
@@ -1292,7 +1294,7 @@ unsigned char ReadLevel(
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after automap nodes.");
 
     g_environment_offset_00659cd0 = environment_offset;
-    prop_count = PLLength(world->plsProps);
+    prop_count = ILLength(reinterpret_cast<W8IList*>(world->plsProps));
     for (index = 0; index < (int)prop_count; ++index) {
         W8Prop* prop = static_cast<W8Prop*>(
             PLGet(world->plsProps, index));

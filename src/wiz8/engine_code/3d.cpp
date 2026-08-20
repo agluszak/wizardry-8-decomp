@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/3d_code/IList.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/World.h"
@@ -200,7 +201,7 @@ void WorldUpdateProps(W8World* world)
             0x158,
             0);
     }
-    count = (int)PLLength(world->plsProps);
+    count = (int)ILLength((W8IList*)world->plsProps);
     for (index = 0; index < count; index++) {
         prop = (W8Prop*)PLGet(world->plsProps, index);
         if (prop) {
@@ -258,7 +259,7 @@ void WorldRemoveFromList04(W8World* unused, void* entry)
 // FUNCTION: WIZ8 0x0046e600
 void WorldGetPropCount(void)
 {
-    PLLength(g_world->plsProps);
+    ILLength((W8IList*)g_world->plsProps);
 }
 
 // FUNCTION: WIZ8 0x0046e620

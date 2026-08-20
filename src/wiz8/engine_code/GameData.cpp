@@ -2,7 +2,10 @@
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/Object0043A910.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
+
+#include <math.h>
 
 /*
  * Engine Code\GameData.cpp.
@@ -25,7 +28,129 @@ enum {
 
 extern unsigned char g_level_override_00652dba;
 extern unsigned char g_flag_00652dce;
+extern const float g_world_scale_005ebc40;
+extern float g_path_endpoint_scale_005ec1a4;
 extern void Function43AAD0();
+
+/* Rebuild one indexed surface plane and derive the runtime classification
+   carried by the level-geometry record. Bit 0x80 requests dominant-axis
+   selection; bit 4 is the walkable slope classification. */
+// FUNCTION: WIZ8 0x004498c0
+void ClassifySurfacePlane004498C0(
+    const srVector3T<float>* vertices, W8GDSurface* surface)
+{
+    BuildTrianglePlane00449A40(
+        surface->plane_24,
+        &vertices[surface->vertex_indices_18[0]],
+        &vertices[surface->vertex_indices_18[1]],
+        &vertices[surface->vertex_indices_18[2]]);
+
+    unsigned int flags = surface->flags_00;
+    if ((flags & 0x80) != 0) {
+        float largest = g_float_005ebb34;
+        unsigned int dominant_axis = 0;
+        for (int axis = 0; axis < 3; ++axis) {
+            float magnitude = (float)fabs(surface->plane_24[axis]);
+            if (largest < magnitude) {
+                largest = magnitude;
+                dominant_axis = axis;
+            }
+        }
+        flags |= dominant_axis;
+        surface->flags_00 = flags;
+    }
+
+    if ((surface->flags_00 & 4) != 0) {
+        surface->flags_00 |= 0x40;
+    }
+
+    float upper_value = g_float_005ebb38;
+    if (g_float_005ebc7c < surface->plane_24[1]) {
+        if ((surface->flags_00 & 4) == 0 &&
+            g_float_005ec1a0 < surface->plane_24[1]) {
+            surface->flags_00 |= 4;
+            surface->value_48 = g_float_005ebb38;
+        }
+        if (surface->value_48 < g_float_005ebb34) {
+            surface->flags_00 |= 0x20;
+            surface->value_48 = g_float_005ebb34;
+        }
+    }
+    else if (surface->value_40 < g_float_005ec028 &&
+             g_path_endpoint_scale_005ec1a4 < surface->value_40 &&
+             (surface->flags_00 & 4) != 0) {
+        surface->value_40 = 0.1f;
+    }
+
+    flags = surface->flags_00;
+    surface->value_40 *= g_world_scale_005ebc40;
+    if ((flags & 4) == 0) {
+        surface->value_48 = g_float_005ebb34;
+    }
+    else if (surface->value_48 < g_float_005ebc58 &&
+             (flags & 0x20) == 0) {
+        if (surface->plane_24[1] <= g_float_005ebccc) {
+            upper_value = surface->plane_24[1];
+        }
+        surface->value_48 = upper_value;
+    }
+    surface->flags_00 = flags & ~8U;
+}
+
+/* Build the normalized plane shared by level geometry and GDProp collision
+   surfaces. The three determinant terms are accumulated cyclically so the
+   winding, normal direction and degenerate-triangle division all remain the
+   retail behavior. */
+// FUNCTION: WIZ8 0x00449a40
+void BuildTrianglePlane00449A40(
+    float* plane,
+    const srVector3T<float>* first,
+    const srVector3T<float>* second,
+    const srVector3T<float>* third)
+{
+    srVector3T<float> vertices[3];
+    short index = 2;
+
+    vertices[0] = *first;
+    vertices[1] = *second;
+    vertices[2] = *third;
+    plane[0] = 0.0f;
+    plane[1] = 0.0f;
+    plane[2] = 0.0f;
+    plane[3] = 0.0f;
+
+    do {
+        short next = (short)((index - 1) % 3);
+        short following = (short)(index % 3);
+        srVector3T<float>& vertex = vertices[index - 2];
+
+        plane[0] += vertex.y *
+                    (vertices[next].z - vertices[following].z);
+        plane[1] += vertex.z *
+                    (vertices[next].x - vertices[following].x);
+        plane[2] += vertex.x *
+                    (vertices[next].y - vertices[following].y);
+        ++index;
+    } while ((short)(index - 2) < 3);
+
+    float scale = g_float_005ebb38 /
+                  (float)sqrt(
+                      plane[0] * plane[0] + plane[1] * plane[1] +
+                      plane[2] * plane[2]);
+    plane[0] *= scale;
+    plane[1] *= scale;
+    plane[2] *= scale;
+
+    float distances[3];
+    for (int vertex_index = 0; vertex_index != 3; ++vertex_index) {
+        distances[vertex_index] =
+            plane[0] * vertices[vertex_index].x +
+            plane[1] * vertices[vertex_index].y +
+            plane[2] * vertices[vertex_index].z;
+    }
+    plane[3] =
+        (distances[0] + distances[1] + distances[2]) * g_float_005ec1a8;
+}
 
 // FUNCTION: WIZ8 0x0041F260
 void Function41F260()

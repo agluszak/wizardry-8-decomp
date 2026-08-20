@@ -13,12 +13,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern float g_float_005ebccc;
-extern void BuildTrianglePlane00449A40(
-    float* plane,
-    const srVector3T<float>* first,
-    const srVector3T<float>* second,
-    const srVector3T<float>* third);
 extern void SetWorldItemFlag02(W8WorldItem* item, char enabled);
 
 // FUNCTION: WIZ8 0x004b6e00
@@ -280,6 +274,39 @@ void GDProp::Initialize(
                 PLGet(m_list_54, (int)index));
             if (item != 0) {
                 SetWorldItemFlag02(item, 1);
+            }
+        }
+    }
+}
+
+/* Attach the product-side prop owner and immediately mirror its active state
+   into both the local GD flags and the conditional path table. */
+// FUNCTION: WIZ8 0x004b7470
+void GDProp::BindOwner004B7470(void* owner_value)
+{
+    unsigned char* owner = static_cast<unsigned char*>(owner_value);
+    m_owner_24 = owner;
+    unsigned char* state =
+        *reinterpret_cast<unsigned char**>(owner + 0x234);
+    if (state != 0 && state[4] == 10) {
+        if (state != 0) {
+            m_flags_00 |= 2;
+            unsigned int path_flags = 0x08000000;
+            if ((*reinterpret_cast<int*>(owner + 0x368) == 0 ||
+                 owner[0x370] != 0) &&
+                (*reinterpret_cast<unsigned int*>(owner + 0xa0) & 0x100) != 0 &&
+                (state[8] & 5) == 0) {
+                m_flags_00 |= 8;
+            }
+            else {
+                path_flags = 0x28000000;
+                m_flags_00 &= 0xfff7;
+            }
+
+            W8PathingService* pathing = g_octree_6598a4->pathing_180;
+            if (pathing != 0) {
+                pathing->UpdateConditionalPathFlags00465FB0(
+                    m_path_handle_04, m_prop_number_02, path_flags);
             }
         }
     }

@@ -2,27 +2,10 @@
 #define WIZ8_ENGINE_CODE_GDPROP_H
 
 #include "wiz8/3d_code/PList.h"
-#include "surrender/srMath.h"
+#include "wiz8/geometry.h"
 
 class srModelInstance;
 class W8Prop;
-
-struct W8GDSurface {
-    unsigned int flags_00;
-    unsigned char positional_04[0x14];
-    int vertex_indices_18[3];
-    float plane_24[4];
-    unsigned int positional_34;
-    unsigned int value_38;
-    unsigned char surface_flag_3c;
-    unsigned char vertex_flag_3d;
-    unsigned char positional_3e[2];
-    float value_40;
-    unsigned int positional_44;
-    float value_48;
-};
-
-static_assert(sizeof(W8GDSurface) == 0x4c, "W8GDSurface_must_be_0x4c");
 
 /* Engine Code\GDProp.cpp. Prop.cpp allocates 0x58 bytes for this object,
    constructs it at 0x004B6E00, and owns it at Prop+0x38. Assertions in the
@@ -39,6 +22,7 @@ public:
         unsigned char surface_flag,
         unsigned char vertex_flag);      /* 0x004B6E00 */
     ~GDProp();                            /* 0x004B6ED0 */
+    void BindOwner004B7470(void* owner);
     unsigned char ContainsPathCoordinate004B75F0(
         unsigned short x, unsigned short y) const;
     unsigned char HasListEntries004B7BA0();

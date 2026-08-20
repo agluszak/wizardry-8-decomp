@@ -3,6 +3,7 @@
 #include <cstring>
 
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/3d_code/IList.h"
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/GDCamera.h"
@@ -340,7 +341,7 @@ void DestroyWorldCollections(W8World* world)
     }
     if (g_world_cleanup_flag_00659757 != 0) Function426790();
     if (world->plsProps != 0) {
-        while (PLLength(world->plsProps) != 0) {
+        while (ILLength(reinterpret_cast<W8IList*>(world->plsProps)) != 0) {
             W8Prop* object = static_cast<W8Prop*>(
                 PLGet(world->plsProps, 0));
             PLRemoveAt(world->plsProps, 0);
