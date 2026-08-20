@@ -51,7 +51,10 @@ struct W8TextInputStyle005D35E0 {
     unsigned short colour_0c;
     unsigned short colour_0e;
     unsigned char flag_10;
-    unsigned char value_11[5];
+    unsigned char disabled_foreground;
+    unsigned char disabled_background;
+    unsigned char value_13;
+    unsigned short disabled_colour;
     unsigned short colour_16;
 };
 
@@ -71,10 +74,23 @@ static_assert(sizeof(W8TextInputSession005D3520) == 0x0c,
 extern "C" {
 extern int g_wiz_text_mono_font_683630;
 extern int g_font12point1_683648;
+extern unsigned char g_flag_6f04ed;
 unsigned char g_flag_69c808;
 }
 extern wchar_t g_no_target_text[];
-extern void Function5D4CB0(MOUSE_REGION* region, int reason);
+extern unsigned char SetValue5FF5F0(int font);
+extern unsigned char FillSurfaceRect(int surface_id, int left, int top,
+                                     int right, int bottom, int colour);
+extern void MarkScreenRectDirty(int left, int top, int right, int bottom,
+                                int flags);
+extern void* Function402B90(int surface_id, unsigned int* pitch);
+extern void Function402C30(int surface_id);
+extern int Function4124A0(void* pixels, unsigned int pitch, int* rectangle);
+extern int Function40BFC0(MOUSE_REGION* region);
+extern bool IsModalOpen(void);
+extern int Function55EF80(void);
+extern void Function55EE70(int value);
+void Function5D4CB0(MOUSE_REGION* region, int reason);
 extern void Function5D4F10(MOUSE_REGION* region, int reason);
 
 static W8TextInputStyle005D35E0* g_text_input_style_0069c7ec;
@@ -90,13 +106,17 @@ static unsigned char g_text_input_end_0069c80d;
 static unsigned char g_text_input_visible_end_0069c80e;
 static unsigned char g_text_input_visible_start_0069c80f;
 static unsigned char g_text_input_horizontal_key_0069c7e8;
+static unsigned char g_text_input_click_start_0069c7e9;
 static int g_text_input_cursor_width_0069c5d8;
 static size_t g_text_input_visible_count_0069c7e4;
 
 void Function5D35E0(int mode);
 unsigned int Function5D5A10(int width, int cursor, const wchar_t* text,
                            int* cursor_width, size_t* visible_count);
+void Function5D52C0(W8TextInputField005D39B0* field);
+void Function5D5390(void);
 void Function5D5770(W8TextInputField005D39B0* field);
+void Function5D5C40(void);
 void Function5D4970(unsigned short character);
 void Function5D4B70(unsigned short character);
 void Function5D5BF0(unsigned char cursor);
@@ -781,6 +801,448 @@ void Function5D4B70(unsigned short character)
         &g_text_input_visible_count_0069c7e4);
 }
 
+// FUNCTION: WIZ8 0x005D4CB0
+void Function5D4CB0(MOUSE_REGION* region, int reason)
+{
+    if (IsModalOpen()) return;
+
+    int field_index = MSYS_GetRegionUserData(region, 0);
+    for (W8TextInputField005D39B0* field = g_text_input_first_0069c7f4;
+         field != 0; field = field->next) {
+        if (field->index == field_index && field->blocks_mouse_callback != 0)
+            return;
+    }
+
+    if ((reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) != 0)
+        Function55EE70(Function55EF80());
+    if ((reason & MSYS_CALLBACK_REASON_LOST_MOUSE) != 0)
+        Function55EE70(-1);
+
+    if (g_flag_6f04ed == 0 || g_text_input_current_0069c7fc == 0 ||
+        (reason & MSYS_CALLBACK_REASON_MOVE) == 0) {
+        return;
+    }
+
+    field_index = MSYS_GetRegionUserData(region, 0);
+    if (field_index != g_text_input_current_0069c7fc->index) {
+        Function5D5770(g_text_input_current_0069c7fc);
+        for (W8TextInputField005D39B0* field = g_text_input_first_0069c7f4;
+             field != 0; field = field->next) {
+            if (field->index == field_index) {
+                g_text_input_click_start_0069c7e9 = 0;
+                g_text_input_cursor_0069c80b = 0;
+                g_text_input_current_0069c7fc = field;
+                g_text_input_visible_end_0069c80e = Function5D5A10(
+                    field->region.RegionBottomRightX -
+                        field->region.RegionTopLeftX - 10,
+                    0, field->text, &g_text_input_cursor_width_0069c5d8,
+                    &g_text_input_visible_count_0069c7e4);
+                g_text_input_cursor_visible_0069c80a = 0;
+                g_text_input_anchor_0069c80c = 0;
+                g_text_input_end_0069c80d = 0;
+                break;
+            }
+        }
+    }
+
+    W8TextInputField005D39B0* current_field = g_text_input_current_0069c7fc;
+    if (current_field->text == 0 || g_flag_6f04ed == 0) return;
+
+    unsigned char position = g_text_input_visible_end_0069c80e;
+    int mouse_offset = gusMouseXPos - current_field->region.RegionTopLeftX;
+    unsigned int start = g_text_input_visible_end_0069c80e;
+    short width = StringPixLengthArg(
+        g_text_input_style_0069c7ec->font, 1,
+        (unsigned short*)(current_field->text + start));
+    if ((width / 2) / 2 < mouse_offset) {
+        int count = 1;
+        int previous_width = width / 2;
+        do {
+            if (current_field->length <= position) break;
+            ++position;
+            ++count;
+            width = StringPixLengthArg(
+                g_text_input_style_0069c7ec->font, count,
+                (unsigned short*)(current_field->text + start));
+            int midpoint = (width - previous_width) / 2 + previous_width;
+            previous_width = width;
+            if (mouse_offset <= midpoint) break;
+        } while (true);
+    }
+
+    if (position == g_text_input_click_start_0069c7e9) {
+        g_text_input_cursor_visible_0069c80a = 0;
+        return;
+    }
+    if (g_text_input_click_start_0069c7e9 < position) {
+        g_text_input_anchor_0069c80c = g_text_input_click_start_0069c7e9;
+        g_text_input_end_0069c80d = position;
+    }
+    else {
+        g_text_input_end_0069c80d = g_text_input_click_start_0069c7e9;
+        g_text_input_anchor_0069c80c = position;
+    }
+    g_text_input_cursor_visible_0069c80a = 1;
+    g_text_input_cursor_0069c80b = position;
+    g_text_input_visible_end_0069c80e = Function5D5A10(
+        current_field->region.RegionBottomRightX -
+            current_field->region.RegionTopLeftX - 10,
+        position, current_field->text, &g_text_input_cursor_width_0069c5d8,
+        &g_text_input_visible_count_0069c7e4);
+}
+
+// FUNCTION: WIZ8 0x005D4F10
+void Function5D4F10(MOUSE_REGION* region, int reason)
+{
+    int field_index = MSYS_GetRegionUserData(region, 0);
+    if (IsModalOpen()) return;
+
+    for (W8TextInputField005D39B0* field = g_text_input_first_0069c7f4;
+         field != 0; field = field->next) {
+        if (field->index == field_index && field->blocks_mouse_callback != 0)
+            return;
+    }
+
+    if ((reason & MSYS_CALLBACK_REASON_LBUTTON_DOUBLECLICK) != 0) {
+        if (g_text_input_current_0069c7fc != 0) Function5D5C40();
+        return;
+    }
+
+    if ((reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) != 0) {
+        W8TextInputField005D39B0* field = g_text_input_current_0069c7fc;
+        if (field == 0 || field_index != field->index) return;
+
+        unsigned char position = g_text_input_visible_end_0069c80e;
+        if (field->text == 0) {
+            position = 0;
+        }
+        else {
+            int mouse_offset = gusMouseXPos - field->region.RegionTopLeftX;
+            unsigned int start = g_text_input_visible_end_0069c80e;
+            short width = StringPixLengthArg(
+                g_text_input_style_0069c7ec->font, 1,
+                (unsigned short*)(field->text + start));
+            if ((width / 2) / 2 < mouse_offset) {
+                int count = 1;
+                int previous_width = width / 2;
+                do {
+                    position = (unsigned char)(position + 1);
+                    ++count;
+                    width = StringPixLengthArg(
+                        g_text_input_style_0069c7ec->font, count,
+                        (unsigned short*)(field->text + start));
+                    int midpoint = (width - previous_width) / 2 + previous_width;
+                    previous_width = width;
+                    if (field->length <= position || mouse_offset <= midpoint)
+                        break;
+                } while (true);
+            }
+        }
+        Function5D5BF0(position);
+        g_text_input_click_start_0069c7e9 = g_text_input_cursor_0069c80b;
+        Function40BFC0(region);
+        return;
+    }
+
+    if ((reason & MSYS_CALLBACK_REASON_LBUTTON_UP) == 0) return;
+    MSYS_ReleaseMouse(region);
+
+    W8TextInputField005D39B0* clicked = g_text_input_first_0069c7f4;
+    if (g_text_input_current_0069c7fc != 0) {
+        if (field_index != g_text_input_current_0069c7fc->index)
+            Function5D5770(g_text_input_current_0069c7fc);
+        clicked = g_text_input_first_0069c7f4;
+        if (field_index == g_text_input_current_0069c7fc->index)
+            clicked = g_text_input_current_0069c7fc;
+    }
+
+    if (clicked != g_text_input_current_0069c7fc) {
+        while (clicked != 0 && clicked->index != field_index)
+            clicked = clicked->next;
+        if (clicked == 0) return;
+
+        W8TextInputField005D39B0* candidate = g_text_input_first_0069c7f4;
+        while (candidate != 0 &&
+               (candidate == g_text_input_current_0069c7fc ||
+                candidate->index != clicked->index ||
+                candidate->region_enabled == 0)) {
+            candidate = candidate->next;
+        }
+        if (candidate == 0) return;
+
+        g_text_input_current_0069c7fc = candidate;
+        if (candidate->text == 0) {
+            g_text_input_cursor_visible_0069c80a = 0;
+            g_flag_69c808 = 0;
+            if (candidate->callback != 0)
+                candidate->callback(candidate->index, 1);
+            return;
+        }
+        g_text_input_anchor_0069c80c = 0;
+        g_text_input_end_0069c80d = candidate->length;
+        g_text_input_cursor_0069c80b = candidate->length;
+        Function5D5BF0(g_text_input_cursor_0069c80b);
+        g_text_input_cursor_0069c80b = candidate->length;
+        g_text_input_cursor_visible_0069c80a = 1;
+        g_flag_69c808 = 1;
+        return;
+    }
+
+    unsigned char position = g_text_input_visible_end_0069c80e;
+    if (g_flag_6f04ed != 0) {
+        if (g_text_input_current_0069c7fc->text == 0) {
+            position = 0;
+        }
+        else {
+            W8TextInputField005D39B0* field = g_text_input_current_0069c7fc;
+            int mouse_offset = gusMouseXPos - field->region.RegionTopLeftX;
+            unsigned int start = g_text_input_visible_end_0069c80e;
+            short width = StringPixLengthArg(
+                g_text_input_style_0069c7ec->font, 1,
+                (unsigned short*)(field->text + start));
+            if ((width / 2) / 2 < mouse_offset) {
+                int count = 1;
+                int previous_width = width / 2;
+                do {
+                    if (field->length <= position) break;
+                    position = (unsigned char)(position + 1);
+                    ++count;
+                    width = StringPixLengthArg(
+                        g_text_input_style_0069c7ec->font, count,
+                        (unsigned short*)(field->text + start));
+                    int midpoint = (width - previous_width) / 2 + previous_width;
+                    previous_width = width;
+                    if (mouse_offset <= midpoint) break;
+                } while (true);
+            }
+        }
+        if (position == g_text_input_click_start_0069c7e9)
+            g_text_input_cursor_visible_0069c80a = 0;
+        Function5D5BF0(position);
+    }
+}
+
+// FUNCTION: WIZ8 0x005D52C0
+void Function5D52C0(W8TextInputField005D39B0* field)
+{
+    W8TextInputStyle005D35E0* style = g_text_input_style_0069c7ec;
+    int left = field->region.RegionTopLeftX;
+    int top = field->region.RegionTopLeftY;
+    int right = field->region.RegionBottomRightX;
+    int bottom = field->region.RegionBottomRightY;
+
+    if (style->flag_09 != 0) {
+        FillSurfaceRect(-14, left, top, right, bottom, style->colour_0c);
+        FillSurfaceRect(-14, left + 1, top + 1, right, bottom, style->colour_0a);
+    }
+
+    unsigned short colour;
+    if (field->region_enabled == 0 && style->flag_10 == 0)
+        colour = style->disabled_colour;
+    else
+        colour = style->foreground;
+    if (field->flag_60 != 0 && field != g_text_input_current_0069c7fc)
+        colour = style->colour_16;
+
+    FillSurfaceRect(-14, left, top, right, bottom, colour);
+    MarkScreenRectDirty(left, top, right, bottom, 0);
+}
+
+// FUNCTION: WIZ8 0x005D5390
+void Function5D5390(void)
+{
+    W8TextInputField005D39B0* field = g_text_input_current_0069c7fc;
+    if (field == 0 || field->text == 0) return;
+
+    if (g_flag_6f04ed != 0) {
+        if ((int)gusMouseXPos < field->region.RegionTopLeftX) {
+            if (g_text_input_cursor_0069c80b != 0) {
+                --g_text_input_cursor_0069c80b;
+                g_text_input_visible_end_0069c80e = Function5D5A10(
+                    field->region.RegionBottomRightX -
+                        field->region.RegionTopLeftX - 10,
+                    g_text_input_cursor_0069c80b, field->text,
+                    &g_text_input_cursor_width_0069c5d8,
+                    &g_text_input_visible_count_0069c7e4);
+            }
+            if (g_text_input_cursor_visible_0069c80a != 0)
+                g_text_input_anchor_0069c80c =
+                    g_text_input_visible_start_0069c80f;
+        }
+        else if (field->region.RegionBottomRightX < (int)gusMouseXPos) {
+            if (g_text_input_cursor_0069c80b < field->length) {
+                ++g_text_input_cursor_0069c80b;
+                g_text_input_visible_end_0069c80e = Function5D5A10(
+                    field->region.RegionBottomRightX -
+                        field->region.RegionTopLeftX - 10,
+                    g_text_input_cursor_0069c80b, field->text,
+                    &g_text_input_cursor_width_0069c5d8,
+                    &g_text_input_visible_count_0069c7e4);
+            }
+            if (g_text_input_cursor_visible_0069c80a != 0)
+                g_text_input_end_0069c80d =
+                    (unsigned char)(g_text_input_visible_count_0069c7e4 +
+                                    g_text_input_visible_start_0069c80f);
+        }
+    }
+
+    SaveFontSettings();
+    SetValue5FF5F0(g_text_input_style_0069c7ec->font);
+    unsigned short font_height =
+        GetFontHeight(g_text_input_style_0069c7ec->font);
+    unsigned int vertical_offset =
+        (field->region.RegionBottomRightY - field->region.RegionTopLeftY -
+         font_height) / 2;
+    Function5D52C0(field);
+
+    wchar_t escaped[256];
+    wchar_t visible[512];
+    int escaped_length = 0;
+    for (const wchar_t* source = field->text; *source != L'\0'; ++source) {
+        if (*source == L'%') escaped[escaped_length++] = L'%';
+        escaped[escaped_length++] = *source;
+    }
+    escaped[escaped_length] = L'\0';
+    wcscpy(visible, escaped + g_text_input_visible_end_0069c80e);
+
+    bool has_selection =
+        g_text_input_cursor_visible_0069c80a != 0 &&
+        g_text_input_anchor_0069c80c != g_text_input_end_0069c80d;
+    unsigned char selection_first = g_text_input_end_0069c80d;
+    unsigned char selection_last = g_text_input_anchor_0069c80c;
+    if (g_text_input_anchor_0069c80c < g_text_input_end_0069c80d) {
+        selection_first = g_text_input_anchor_0069c80c;
+        selection_last = g_text_input_end_0069c80d;
+    }
+
+    for (size_t index = 0; index < g_text_input_visible_count_0069c7e4;
+         ++index) {
+        short prefix = StringPixLengthArg(
+            g_text_input_style_0069c7ec->font, index,
+            (unsigned short*)visible);
+        if (has_selection &&
+            (int)(selection_first - g_text_input_visible_end_0069c80e) <=
+                (int)index &&
+            (int)index <
+                (int)(selection_last - g_text_input_visible_end_0069c80e)) {
+            SetFontForeground(g_text_input_style_0069c7ec->value_06);
+            SetFontBackground(g_text_input_style_0069c7ec->value_07);
+            SetFontShadow(g_text_input_style_0069c7ec->value_08);
+        }
+        else {
+            SetFontForeground(g_text_input_style_0069c7ec->value_04);
+            SetFontBackground(g_text_input_style_0069c7ec->value_05);
+            SetFontShadow(0);
+        }
+        if (visible[index] == L'%') {
+            mprintf(field->region.RegionTopLeftX + prefix + 3,
+                    field->region.RegionTopLeftY + vertical_offset, L"%%");
+        }
+        else {
+            mprintf(field->region.RegionTopLeftX + prefix + 3,
+                    field->region.RegionTopLeftY + vertical_offset, L"%c",
+                    visible[index]);
+        }
+    }
+
+    if (g_flag_69c808 != 0 && field->text != 0 && g_flag_6f04ed == 0 &&
+        GetTickCount() % 1000 < 500) {
+        int left = field->region.RegionTopLeftX +
+                   g_text_input_cursor_width_0069c5d8;
+        int top = field->region.RegionTopLeftY + vertical_offset;
+        FillSurfaceRect(-14, left, top, left + 1, top + font_height,
+                        g_text_input_style_0069c7ec->colour_0e);
+    }
+    RestoreFontSettings();
+}
+
+// FUNCTION: WIZ8 0x005D5770
+void Function5D5770(W8TextInputField005D39B0* field)
+{
+    if (field == 0 || field->text == 0) return;
+
+    SaveFontSettings();
+    SetValue5FF5F0(g_text_input_style_0069c7ec->font);
+    bool disabled = field->region_enabled == 0 &&
+                    g_text_input_style_0069c7ec->flag_10 != 0;
+    if (disabled) {
+        SetFontForeground(g_text_input_style_0069c7ec->disabled_foreground);
+        SetFontBackground(g_text_input_style_0069c7ec->disabled_background);
+    }
+    else {
+        SetFontForeground(g_text_input_style_0069c7ec->value_04);
+        SetFontBackground(g_text_input_style_0069c7ec->value_05);
+    }
+    unsigned short font_height =
+        GetFontHeight(g_text_input_style_0069c7ec->font);
+    unsigned int vertical_offset =
+        (field->region.RegionBottomRightY - field->region.RegionTopLeftY -
+         font_height) / 2;
+    SetFontShadow(0);
+    Function5D52C0(field);
+
+    wchar_t escaped[256];
+    int escaped_length = 0;
+    for (const wchar_t* source = field->text; *source != L'\0'; ++source) {
+        if (*source == L'%') escaped[escaped_length++] = L'%';
+        escaped[escaped_length++] = *source;
+    }
+    escaped[escaped_length] = L'\0';
+
+    for (size_t index = 0; index < wcslen(escaped); ++index) {
+        short prefix = StringPixLengthArg(
+            g_text_input_style_0069c7ec->font, index,
+            (unsigned short*)escaped);
+        if (field->region.RegionBottomRightX -
+                field->region.RegionTopLeftX - 10 < prefix + 3) {
+            break;
+        }
+        if (escaped[index] == L'%') {
+            mprintf(field->region.RegionTopLeftX + prefix + 3,
+                    field->region.RegionTopLeftY + vertical_offset, L"%%");
+        }
+        else {
+            mprintf(field->region.RegionTopLeftX + prefix + 3,
+                    field->region.RegionTopLeftY + vertical_offset, L"%c",
+                    escaped[index]);
+        }
+    }
+    RestoreFontSettings();
+
+    if (disabled) {
+        int rectangle[4] = {
+            field->region.RegionTopLeftX,
+            field->region.RegionTopLeftY,
+            field->region.RegionBottomRightX,
+            field->region.RegionBottomRightY,
+        };
+        unsigned int pitch;
+        void* pixels = Function402B90(-14, &pitch);
+        Function4124A0(pixels, pitch, rectangle);
+        Function402C30(-14);
+    }
+}
+
+// FUNCTION: WIZ8 0x005D59A0
+void Function5D59A0(void)
+{
+    for (W8TextInputSession005D3520* session =
+             g_text_input_sessions_0069c7f0;
+         session != 0; session = session->previous) {
+        for (W8TextInputField005D39B0* field = session->first;
+             field != 0; field = field->next) {
+            Function5D5770(field);
+        }
+    }
+    for (W8TextInputField005D39B0* field = g_text_input_first_0069c7f4;
+         field != 0; field = field->next) {
+        if (field == g_text_input_current_0069c7fc)
+            Function5D5390();
+        else
+            Function5D5770(field);
+    }
+}
+
 // FUNCTION: WIZ8 0x005D5A00
 unsigned char GetFlag69C808(void)
 {
@@ -859,4 +1321,62 @@ void Function5D5BF0(unsigned char cursor)
             &g_text_input_cursor_width_0069c5d8,
             &g_text_input_visible_count_0069c7e4);
     }
+}
+
+// FUNCTION: WIZ8 0x005D5C40
+void Function5D5C40(void)
+{
+    W8TextInputField005D39B0* field = g_text_input_current_0069c7fc;
+    unsigned char position = g_text_input_visible_end_0069c80e;
+    if (field->text == 0) {
+        position = 0;
+    }
+    else {
+        int mouse_offset = gusMouseXPos - field->region.RegionTopLeftX;
+        unsigned int start = g_text_input_visible_end_0069c80e;
+        short width = StringPixLengthArg(
+            g_text_input_style_0069c7ec->font, 1,
+            (unsigned short*)(field->text + start));
+        if ((width / 2) / 2 < mouse_offset) {
+            int count = 1;
+            int previous_width = width / 2;
+            do {
+                if (field->length <= position) break;
+                ++position;
+                ++count;
+                width = StringPixLengthArg(
+                    g_text_input_style_0069c7ec->font, count,
+                    (unsigned short*)(field->text + start));
+                int midpoint = (width - previous_width) / 2 + previous_width;
+                previous_width = width;
+                if (mouse_offset <= midpoint) break;
+            } while (true);
+        }
+    }
+
+    if (field->text[position] == L' ') return;
+    unsigned char first = 0;
+    if (position != 0) {
+        unsigned int scan = position;
+        const wchar_t* character = field->text + position;
+        do {
+            if (*character == L' ') {
+                first = (unsigned char)(scan + 1);
+                break;
+            }
+            --scan;
+            --character;
+        } while (scan != 0);
+    }
+
+    unsigned char last = (unsigned char)wcslen(field->text);
+    for (unsigned int scan = position + 1; scan < wcslen(field->text); ++scan) {
+        if (field->text[scan] == L' ') {
+            last = (unsigned char)scan;
+            break;
+        }
+    }
+    g_text_input_anchor_0069c80c = first;
+    g_text_input_end_0069c80d = last;
+    g_text_input_cursor_visible_0069c80a = 1;
 }
