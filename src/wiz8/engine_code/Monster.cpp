@@ -760,7 +760,7 @@ unsigned char MonsterReadAllCycles004C0300(
     else if (crawls != 0) navigation_mode = 6;
     (*monster)->SetNavigationMode(navigation_mode);
     if (spice_monster != 0) {
-        (*monster)->flags_330.copied_flag_02 = 1;
+        (*monster)->copied_flag_332 = 1;
         (*monster)->owned_object_0a0 = 0;
         (*monster)->movement_0c0.pitch_enabled_074 = 0;
     }
@@ -1256,10 +1256,10 @@ extern unsigned char g_flag_00689b32;
 W8Monster::W8Monster()
 {
     memset(&value_1e0, 0, 0x58);
-    memset(&state_28c, 0, sizeof(state_28c));
-    memset(&state_2ac, 0, sizeof(state_2ac));
-    memset(&state_2fc, 0, sizeof(state_2fc));
-    memset(&flags_330, 0, sizeof(flags_330));
+    memset(&defining_orders_28c, 0, 0x10);
+    memset(&patrol_index_2ac, 0, 0x2c);
+    memset(&target_scale_2fc, 0, 0x10);
+    memset(&fade_state_330, 0, 4);
 
     flags_1dc = 0;
     value_1e0 = -1;
@@ -1318,9 +1318,9 @@ W8Monster::W8Monster(const W8Monster& rhs)
     formation.x = 0.0f;
     formation.y = 0.0f;
     formation.z = 0.0f;
-    flags_330.flag_00 = 0;
-    flags_330.flag_01 = 0;
-    flags_330.copied_flag_02 = rhs.flags_330.copied_flag_02;
+    fade_state_330 = 0;
+    flag_331 = 0;
+    copied_flag_332 = rhs.copied_flag_332;
 
     if (rhs.m_pRep == 0) {
         srAssertFail(
@@ -1332,26 +1332,26 @@ W8Monster::W8Monster(const W8Monster& rhs)
     m_pRep = static_cast<W8MonsterRep*>(rhs.m_pRep->Clone());
     m_pRep->linked_objects_5e8 = PLCreate();
 
-    state_28c.defining_orders = 0;
-    state_28c.orders_finished = 0;
-    state_28c.order_mode = -1;
-    state_28c.deaf = 0;
-    state_28c.face_party = 0;
-    state_28c.stay_home = 0;
-    state_2ac.flag_00 = 0;
-    state_2ac.direction_x = 0;
-    state_2ac.direction_y = 0;
-    state_2ac.direction_z = 0;
-    state_2ac.look_frequency = 0;
-    state_2ac.look_duration = 0;
-    state_2ac.value_24 = -1;
-    state_2ac.flag_28 = 1;
-    state_2fc.scale_00 = 1.0f;
-    state_2fc.scale_04 = 1.0f;
+    defining_orders_28c = 0;
+    orders_finished_28d = 0;
+    order_mode_28e = -1;
+    deaf_28f = 0;
+    face_party_290 = 0;
+    stay_home_291 = 0;
+    patrol_index_2ac = 0;
+    direction_x_2b0 = 0;
+    direction_y_2b4 = 0;
+    direction_z_2b8 = 0;
+    look_frequency_2c8 = 0;
+    look_duration_2cc = 0;
+    value_2d0 = -1;
+    position_dirty_2d4 = 1;
+    target_scale_2fc = 1.0f;
+    current_scale_300 = 1.0f;
     flags_1dc &= 0xfffffcb6;
     state_22e = 0;
     cycle_callback_230 = 0;
-    if (flags_330.copied_flag_02 != 0) {
+    if (copied_flag_332 != 0) {
         state_088 = 0;
     }
 }
@@ -1428,9 +1428,9 @@ void W8Monster::Update()
     dz = monster_position.z - party_position.z;
     distance = (float)sqrt(dx * dx + dy * dy + dz * dz);
 
-    if (state_2ac.value_24 == -1 ||
+    if (value_2d0 == -1 ||
         g_light_scale_0060bfe0 < g_float_005ebb38) {
-        state_2fc.scale_04 = 0.75f;
+        current_scale_300 = 0.75f;
         g_monster_model_instances_682fd0.Clear();
         CollectModelInstances004C6350(&g_monster_model_instances_682fd0);
         for (index = 0;
@@ -1442,16 +1442,16 @@ void W8Monster::Update()
             model->scale_194.y = 0.75f;
             model->scale_194.z = 0.75f;
         }
-        state_2fc.scale_00 = 0.75f;
+        target_scale_2fc = 0.75f;
         timer_2d8.SetDuration(0.025f);
         timer_2d8.Restart();
-        state_2ac.value_24 = 1;
-        state_2ac.flag_28 = 1;
+        value_2d0 = 1;
+        position_dirty_2d4 = 1;
     }
 
     if (g_monster_shadow_updates_enabled_0065970c != 0 &&
-        (state_2ac.flag_28 != 0 || UpdateTrackedPosition00454950() != 0)) {
-        state_2ac.flag_28 = 0;
+        (position_dirty_2d4 != 0 || UpdateTrackedPosition00454950() != 0)) {
+        position_dirty_2d4 = 0;
         if (distance < WorldGetValue78(g_world)) {
             srNode* sun = static_cast<srNode*>(
                 srCore.getRegistry()->find(
@@ -1467,35 +1467,35 @@ void W8Monster::Update()
                 sun_position.z = (float)sun_location.z;
                 if (g_octree_6598a4->HasLineOfSight(
                         &mapped_position, &sun_position, 1)) {
-                    if (state_2ac.value_24 == 0) {
-                        state_2fc.scale_00 = 0.75f;
+                    if (value_2d0 == 0) {
+                        target_scale_2fc = 0.75f;
                         timer_2d8.SetDuration(0.025f);
                         timer_2d8.Restart();
-                        state_2ac.value_24 = 1;
+                        value_2d0 = 1;
                     }
                 }
-                else if (state_2ac.value_24 == 1) {
-                    state_2fc.scale_00 = 0.0f;
+                else if (value_2d0 == 1) {
+                    target_scale_2fc = 0.0f;
                     timer_2d8.SetDuration(0.025f);
                     timer_2d8.Restart();
-                    state_2ac.value_24 = 0;
+                    value_2d0 = 0;
                 }
             }
         }
     }
 
-    if (state_2fc.scale_04 != state_2fc.scale_00 &&
+    if (current_scale_300 != target_scale_2fc &&
         timer_2d8.GetProgress() >= g_float_005ebb38) {
-        if (state_2fc.scale_00 <= state_2fc.scale_04) {
-            state_2fc.scale_04 -= g_monster_scale_transition_step_005ebcf4;
-            if (state_2fc.scale_04 < state_2fc.scale_00) {
-                state_2fc.scale_04 = state_2fc.scale_00;
+        if (target_scale_2fc <= current_scale_300) {
+            current_scale_300 -= g_monster_scale_transition_step_005ebcf4;
+            if (current_scale_300 < target_scale_2fc) {
+                current_scale_300 = target_scale_2fc;
             }
         }
         else {
-            state_2fc.scale_04 += g_monster_scale_transition_step_005ebcf4;
-            if (state_2fc.scale_04 > state_2fc.scale_00) {
-                state_2fc.scale_04 = state_2fc.scale_00;
+            current_scale_300 += g_monster_scale_transition_step_005ebcf4;
+            if (current_scale_300 > target_scale_2fc) {
+                current_scale_300 = target_scale_2fc;
             }
         }
         g_monster_model_instances_682fd0.Clear();
@@ -1505,37 +1505,37 @@ void W8Monster::Update()
              ++index) {
             stModelInstance005EC7D0* model =
                 *g_monster_model_instances_682fd0.GetAt(index);
-            model->scale_194.x = state_2fc.scale_04;
-            model->scale_194.y = state_2fc.scale_04;
-            model->scale_194.z = state_2fc.scale_04;
+            model->scale_194.x = current_scale_300;
+            model->scale_194.y = current_scale_300;
+            model->scale_194.z = current_scale_300;
         }
         timer_2d8.Restart();
     }
 
-    if (flags_330.flag_00 != 0) {
+    if (fade_state_330 != 0) {
         float progress = timer_30c.GetProgress();
         if (progress > g_float_005ebb38) {
             progress = g_float_005ebb38;
         }
-        if (flags_330.flag_00 == -2) {
+        if (fade_state_330 == -2) {
             if (progress == g_float_005ebb38) {
-                flags_330.flag_00 = 0;
+                fade_state_330 = 0;
                 timer_30c.SetDuration(3.0f);
                 timer_30c.Restart();
-                if ((signed char)flags_330.flag_00 < 1) {
+                if ((signed char)fade_state_330 < 1) {
                     m_pRep->value_05c = g_float_005ebb38;
                     m_pRep->flag_061 = 1;
-                    flags_330.flag_00 = -1;
+                    fade_state_330 = -1;
                 }
                 else {
                     timer_30c.SetProgress(
                         g_float_005ebb38 - m_pRep->value_05c);
-                    flags_330.flag_00 = -1;
+                    fade_state_330 = -1;
                 }
             }
         }
         else {
-            if ((signed char)flags_330.flag_00 < 1) {
+            if ((signed char)fade_state_330 < 1) {
                 m_pRep->value_05c =
                     g_float_005ebb38 - progress;
             }
@@ -1544,17 +1544,17 @@ void W8Monster::Update()
             }
             m_pRep->flag_061 = 1;
             if (progress == g_float_005ebb38) {
-                if ((signed char)flags_330.flag_00 < 0) {
+                if ((signed char)fade_state_330 < 0) {
                     flags_1dc |= 0x400;
                 }
-                flags_330.flag_00 = 0;
+                fade_state_330 = 0;
             }
         }
     }
 
     cycle = Query(6);
     SetGroundShadowVisible(
-        cycle != 0 && cycle != 0x15 && flags_330.flag_00 == 0 &&
+        cycle != 0 && cycle != 0x15 && fade_state_330 == 0 &&
         (flags_1dc & 0x400) == 0);
 
     {
@@ -1865,7 +1865,7 @@ unsigned char W8Monster::SetScript004C7F10(
         sound_334 = 0;
     }
     if (reset_orders != 0) {
-        state_28c.orders_finished = 0;
+        orders_finished_28d = 0;
     }
 
     registry = srCore.getRegistry();
@@ -2055,7 +2055,7 @@ void W8Monster::ProcessScript004C80E0()
     monster_index = MonsterGetIndexByLocationID(
         0x1a4a, MONSTER_CPP, propagated_value_1e4, 1);
     monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-    if (state_28c.orders_finished != 0) {
+    if (orders_finished_28d != 0) {
         if (monster_info == 0 || (monster_info->flag_255 & 0x10) == 0) {
             return;
         }
@@ -2117,7 +2117,7 @@ void W8Monster::ProcessScript004C80E0()
             continue;
         }
 
-        if (state_28c.defining_orders == 0) {
+        if (defining_orders_28c == 0) {
             switch (command) {
             case MONSCR_GOTO: {
                 token = strtok(0, " \t");
@@ -2422,10 +2422,10 @@ void W8Monster::ProcessScript004C80E0()
                 }
                 break;
             case MONSCR_BEGINORDERS:
-                state_28c.defining_orders = 1;
+                defining_orders_28c = 1;
                 break;
             case MONSCR_DEAF:
-                state_28c.deaf = 1;
+                deaf_28f = 1;
                 break;
             case MONSCR_DOACTION:
                 token = strtok(0, " \t");
@@ -2513,17 +2513,17 @@ void W8Monster::ProcessScript004C80E0()
             }
             case MONSCR_FADEOUT:
                 flags_1dc |= 0x100;
-                if ((signed char)flags_330.flag_00 >= 0) {
+                if ((signed char)fade_state_330 >= 0) {
                     timer_30c.SetDuration(3.0f);
                     timer_30c.Restart();
-                    if ((signed char)flags_330.flag_00 < 1) {
+                    if ((signed char)fade_state_330 < 1) {
                         m_pRep->value_05c = 1.0f;
                         m_pRep->flag_061 = 1;
                     }
                     else {
                         timer_30c.SetProgress(1.0f - m_pRep->value_05c);
                     }
-                    flags_330.flag_00 = -1;
+                    fade_state_330 = -1;
                 }
                 RemoveMonster(
                     MonsterGetIndexByLocationID(
@@ -2541,7 +2541,7 @@ void W8Monster::ProcessScript004C80E0()
             case MONSCR_FACE:
                 token = strtok(0, " \t");
                 if (token != 0 && _stricmp(token, "PARTY") == 0) {
-                    state_28c.face_party = 1;
+                    face_party_290 = 1;
                 }
                 else if (token != 0) {
                     int direction = -1;
@@ -2556,11 +2556,11 @@ void W8Monster::ProcessScript004C80E0()
                         double angle =
                             (direction - MONSCR_EAST) *
                             g_monster_script_direction_step_005ed2b8;
-                        state_28c.order_mode = 4;
-                        state_2ac.direction_x =
+                        order_mode_28e = 4;
+                        direction_x_2b0 =
                             (float)cos(angle) * g_monster_script_direction_scale_005ec150;
-                        state_2ac.direction_y = 0.0f;
-                        state_2ac.direction_z =
+                        direction_y_2b4 = 0.0f;
+                        direction_z_2b8 =
                             (float)sin(angle) * g_monster_script_direction_scale_005ec150;
                     }
                 }
@@ -2568,19 +2568,19 @@ void W8Monster::ProcessScript004C80E0()
             case MONSCR_PATROL:
                 token = strtok(0, " \t");
                 if (token != 0) {
-                    state_28c.patrol_distance =
+                    patrol_distance_294 =
                         (float)atof(token) * g_world_scale_005ebc40;
                     token = strtok(0, " \t");
                     if (token != 0) {
-                        state_28c.patrol_variation =
+                        patrol_variation_298 =
                             (float)atof(token) * g_world_scale_005ebc40;
-                        state_28c.order_mode = 1;
+                        order_mode_28e = 1;
                     }
                 }
                 break;
             case MONSCR_ENDORDERS:
-                state_28c.defining_orders = 0;
-                state_28c.orders_finished = 1;
+                defining_orders_28c = 0;
+                orders_finished_28d = 1;
                 script_wait_240 = MONSCR_ENDORDERS;
                 break;
             case MONSCR_GUARD:
@@ -2607,36 +2607,36 @@ void W8Monster::ProcessScript004C80E0()
                     if (command == MONSCR_GUARD) break;
                 }
                 if (command == MONSCR_GUARD && added != 0) {
-                    state_28c.orders_finished = 0;
-                    state_28c.order_mode = 0;
+                    orders_finished_28d = 0;
+                    order_mode_28e = 0;
                 }
                 else if (added != 0) {
-                    state_28c.order_mode =
+                    order_mode_28e =
                         command == MONSCR_POINTPATROL ? 2 : 3;
                 }
                 break;
             }
             case MONSCR_DEAF:
-                state_28c.deaf = 1;
+                deaf_28f = 1;
                 break;
             case MONSCR_TURNTOFACEPARTY:
-                state_28c.face_party = 1;
+                face_party_290 = 1;
                 break;
             case MONSCR_LOOKABOUT:
                 token = strtok(0, " \t");
                 if (token != 0) {
-                    state_2ac.look_frequency = (float)atoi(token);
+                    look_frequency_2c8 = (float)atoi(token);
                     if (monster_info != 0) {
                         monster_info->unknown_301[1] = (unsigned char)atoi(token);
                     }
                     token = strtok(0, " \t");
                     if (token != 0) {
-                        state_2ac.look_duration = (float)atoi(token);
+                        look_duration_2cc = (float)atoi(token);
                     }
                 }
                 break;
             case MONSCR_STAYHOME:
-                state_28c.stay_home = 1;
+                stay_home_291 = 1;
                 break;
             default:
                 break;
@@ -2744,8 +2744,8 @@ unsigned char W8Monster::GetFlag216004CA290() const
 // FUNCTION: WIZ8 0x004CA2A0
 unsigned char W8Monster::IsWithinWorldRange004CA2A0()
 {
-    if (state_2fc.node_0c != 0) {
-        return state_2fc.node_0c->testFlag(srNode::FLAG_POSITIONAL_0) == 0;
+    if (node_308 != 0) {
+        return node_308->testFlag(srNode::FLAG_POSITIONAL_0) == 0;
     }
     else {
         double far_clip = WorldGetFarClip(GetWorld());
@@ -2997,10 +2997,10 @@ int W8Monster::IsFacingPlayer004C4D40()
 // FUNCTION: WIZ8 0x004c4f80
 void W8Monster::BeginFadeIn004C4F80(float duration)
 {
-    if (flags_330.flag_00 <= 0) {
+    if (fade_state_330 <= 0) {
         timer_30c.SetDuration(duration);
         timer_30c.Restart();
-        if (flags_330.flag_00 < 0) {
+        if (fade_state_330 < 0) {
             W8MonsterRep* rep = m_pRep;
             timer_30c.SetProgress(rep->value_05c);
         }
@@ -3009,7 +3009,7 @@ void W8Monster::BeginFadeIn004C4F80(float duration)
             rep->value_05c = 0.0f;
             rep->flag_061 = 1;
         }
-        flags_330.flag_00 = 1;
+        fade_state_330 = 1;
         flags_1dc &= ~0x400;
     }
 }
@@ -3018,7 +3018,7 @@ void W8Monster::BeginFadeIn004C4F80(float duration)
 void W8Monster::BeginDelayedRemoval004C5000()
 {
     flags_1dc |= 0x100;
-    flags_330.flag_00 = -2;
+    fade_state_330 = -2;
     timer_30c.SetDuration(5.0f);
     timer_30c.Restart();
 }
@@ -3030,11 +3030,11 @@ void W8Monster::BeginDelayedRemoval004C5000()
 void W8Monster::BeginFadeOutAndRemove004C5040(signed char state)
 {
     flags_1dc |= 0x100;
-    if (flags_330.flag_00 >= 0) {
+    if (fade_state_330 >= 0) {
         timer_30c.SetDuration(3.0f);
         timer_30c.Restart();
         W8MonsterRep* rep = m_pRep;
-        if (flags_330.flag_00 > 0) {
+        if (fade_state_330 > 0) {
             timer_30c.SetProgress(
                 1.0f - rep->value_05c);
         }
@@ -3042,7 +3042,7 @@ void W8Monster::BeginFadeOutAndRemove004C5040(signed char state)
             rep->value_05c = 1.0f;
             rep->flag_061 = 1;
         }
-        flags_330.flag_00 = -1;
+        fade_state_330 = -1;
     }
     RemoveMonster(
         MonsterGetIndexByLocationID(
@@ -3054,21 +3054,21 @@ void W8Monster::BeginFadeOutAndRemove004C5040(signed char state)
 // FUNCTION: WIZ8 0x004c5150
 void W8Monster::BeginFadeOut004C5150(float duration)
 {
-    if (flags_330.flag_00 < 0) {
+    if (fade_state_330 < 0) {
         return;
     }
     timer_30c.SetDuration(duration);
     timer_30c.Restart();
-    if (flags_330.flag_00 > 0) {
+    if (fade_state_330 > 0) {
         W8MonsterRep* rep = m_pRep;
         timer_30c.SetProgress(1.0f - rep->value_05c);
-        flags_330.flag_00 = -1;
+        fade_state_330 = -1;
         return;
     }
     W8MonsterRep* rep = m_pRep;
     rep->value_05c = 1.0f;
     rep->flag_061 = 1;
-    flags_330.flag_00 = -1;
+    fade_state_330 = -1;
 }
 
 // FUNCTION: WIZ8 0x004c73f0
@@ -3124,7 +3124,7 @@ unsigned char W8Monster::GetPatrolPoint004CA360(srVector3T<float>* point)
 {
     srVector3T<float>* patrol_point;
 
-    if (state_28c.orders_finished == 0 || state_2ac.flag_00 < 0) {
+    if (orders_finished_28d == 0 || patrol_index_2ac < 0) {
         return 0;
     }
     if (vector_29c.GetCount() == 0) {
@@ -3139,12 +3139,12 @@ unsigned char W8Monster::GetPatrolPoint004CA360(srVector3T<float>* point)
         vector_29c.Add(formation);
     }
 
-    if (state_28c.order_mode == 0) {
+    if (order_mode_28e == 0) {
         patrol_point = vector_29c.GetAt(0);
     }
-    else if (state_28c.order_mode > 1 && state_28c.order_mode < 4) {
-        if (state_2ac.flag_00 < vector_29c.GetCount()) {
-            patrol_point = vector_29c.GetAt(state_2ac.flag_00);
+    else if (order_mode_28e > 1 && order_mode_28e < 4) {
+        if (patrol_index_2ac < vector_29c.GetCount()) {
+            patrol_point = vector_29c.GetAt(patrol_index_2ac);
         }
         else {
             patrol_point = vector_29c.GetAt(0);
@@ -3612,8 +3612,8 @@ void W8Monster::UpdateRepresentation(W8World* world)
             (unsigned short)propagated_value_1e4, &position);
     }
 
-    if ((state_2fc.node_0c == 0 ||
-         state_2fc.node_0c->testFlag(srNode::FLAG_POSITIONAL_0) == 0) &&
+    if ((node_308 == 0 ||
+         node_308->testFlag(srNode::FLAG_POSITIONAL_0) == 0) &&
         IsRenderable004C7C00(0) != 0) {
         W8GrCycle::UpdateRepresentation(world);
         model = GetCurrentModelInstance004A8250();
@@ -3939,9 +3939,9 @@ void W8Monster::SetCycle(signed char cycle)
          ++index) {
         stModelInstance005EC7D0* model =
             *g_monster_model_instances_682fd0.GetAt(index);
-        model->scale_194.x = state_2fc.scale_04;
-        model->scale_194.y = state_2fc.scale_04;
-        model->scale_194.z = state_2fc.scale_04;
+        model->scale_194.x = current_scale_300;
+        model->scale_194.y = current_scale_300;
+        model->scale_194.z = current_scale_300;
     }
 
     if (cycle == 0x15) {
@@ -4081,7 +4081,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
         party_position.y * party_position.y +
         party_position.z * party_position.z) *
         g_monster_attachment_distance_scale_005ed2a8;
-    if (flags_330.flag_01 == 0 && distance_scale > g_float_005ebb38) {
+    if (flag_331 == 0 && distance_scale > g_float_005ebb38) {
         distance_scale = g_float_005ebb38;
     }
 
@@ -4380,8 +4380,8 @@ void W8Monster::HandleAnimationFrame004C74D0(unsigned char previous_frame)
         ((value_1f8 > 0 && previous_frame < value_1f8 &&
           value_1f8 <= m_pRep->flag_064) ||
          (value_1f8 == 0 && m_pRep->flag_064 == 1))) {
-        if (state_2fc.unknown_08[0] != 0) {
-            state_2fc.unknown_08[0] = 0;
+        if (unknown_304[0] != 0) {
+            unknown_304[0] = 0;
             CreateSpellEffect004AD8A0(
                 g_spell_records[g_spell_index_0069b7dc].resource_name,
                 g_spell_effect_frame_0064c158, this, 0, 0);
@@ -5724,7 +5724,7 @@ unsigned char W8Monster::IsRenderable004C7C00(char alternate)
     if (((flags_1dc >> 8) & 1) != 0) {
         return 1;
     }
-    if (flags_330.flag_00 != 0) {
+    if (fade_state_330 != 0) {
         return 1;
     }
 

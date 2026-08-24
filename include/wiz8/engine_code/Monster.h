@@ -106,46 +106,6 @@ static_assert(sizeof(W8MonsterRep) == 0x628, "W8MonsterRep_size_must_be_0x628");
 static_assert(sizeof(W8GrowableVector<W8AnimObj*>) == 0x10,
               "W8Monster_animation_vector_must_be_0x10");
 
-struct W8MonsterState28C {
-    unsigned char defining_orders;
-    unsigned char orders_finished;
-    signed char order_mode;
-    unsigned char deaf;
-    unsigned char face_party;
-    unsigned char stay_home;
-    unsigned char unknown_06[2];
-    float patrol_distance;
-    float patrol_variation;
-};
-
-struct W8MonsterState2AC {
-    signed char flag_00;
-    unsigned char unknown_01[3];
-    float direction_x;
-    float direction_y;
-    float direction_z;
-    unsigned char unknown_10[0x0c];
-    float look_frequency;
-    float look_duration;
-    int value_24;
-    unsigned char flag_28;
-    unsigned char unknown_29[3];
-};
-
-struct W8MonsterState2FC {
-    float scale_00;
-    float scale_04;
-    unsigned char unknown_08[4];
-    srNode* node_0c;
-};
-
-struct W8MonsterFlags330 {
-    signed char flag_00;
-    unsigned char flag_01;
-    unsigned char copied_flag_02;
-    unsigned char unknown_03;
-};
-
 /* The GrCycle factory allocates 0x348 bytes and calls the constructor at
    0x004BFB00 for object type zero. Both constructors and the destructor install
    primary vtable 0x005ED22C and the W8Navigator secondary-base table at +0x18. */
@@ -285,13 +245,37 @@ public:
     Trigger* trigger_278;
     int registry_weight_27c;
     srVector3T<float> formation;
-    W8MonsterState28C state_28c;
+    unsigned char defining_orders_28c;
+    unsigned char orders_finished_28d;
+    signed char order_mode_28e;
+    unsigned char deaf_28f;
+    unsigned char face_party_290;
+    unsigned char stay_home_291;
+    unsigned char unknown_292[2];
+    float patrol_distance_294;
+    float patrol_variation_298;
     W8GrowableVector<srVector3T<float> > vector_29c;
-    W8MonsterState2AC state_2ac;
+    signed char patrol_index_2ac;
+    unsigned char unknown_2ad[3];
+    float direction_x_2b0;
+    float direction_y_2b4;
+    float direction_z_2b8;
+    unsigned char unknown_2bc[0x0c];
+    float look_frequency_2c8;
+    float look_duration_2cc;
+    int value_2d0;
+    unsigned char position_dirty_2d4;
+    unsigned char unknown_2d5[3];
     W8GameTimer timer_2d8;
-    W8MonsterState2FC state_2fc;
+    float target_scale_2fc;
+    float current_scale_300;
+    unsigned char unknown_304[4];
+    srNode* node_308;
     W8GameTimer timer_30c;
-    W8MonsterFlags330 flags_330;
+    signed char fade_state_330;
+    unsigned char flag_331;
+    unsigned char copied_flag_332;
+    unsigned char unknown_333;
     stSound3D* sound_334;
     W8GrowableVector<int> values_338;
 };
@@ -398,9 +382,5 @@ public:
 static_assert(
     sizeof(W8MonsterShakeCallback) == 0x10,
     "W8MonsterShakeCallback_size_must_be_0x10");
-static_assert(sizeof(W8MonsterState28C) == 0x10, "W8MonsterState28C_size_must_be_0x10");
-static_assert(sizeof(W8MonsterState2AC) == 0x2c, "W8MonsterState2AC_size_must_be_0x2c");
-static_assert(sizeof(W8MonsterState2FC) == 0x10, "W8MonsterState2FC_size_must_be_0x10");
-static_assert(sizeof(W8MonsterFlags330) == 4, "W8MonsterFlags330_size_must_be_4");
 
 #endif

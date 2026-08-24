@@ -1674,7 +1674,7 @@ void ProcessMonsterManagerFrame(void)
         W8Monster* monster = monster_info->monster;
 
         if ((monster->flags_1dc & 0x100) != 0) {
-            if (monster->flags_330.flag_00 == 0) {
+            if (monster->fade_state_330 == 0) {
                 if (monster->state_22e != 0) {
                     monster->ApplyRemovalStateEffects();
                 }

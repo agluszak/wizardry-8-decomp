@@ -885,13 +885,9 @@ void W8Octree::UpdateMonsterLocation(
         if (sector == 0 ||
             (mesh = reinterpret_cast<int*>(g_world->psrMeshes)
                  [reinterpret_cast<int*>(m_owned_0d8)[sector * 4 + 1]]) == 0) {
-            reinterpret_cast<unsigned char*>(&monster->state_28c)[0x7c] = 0;
-            reinterpret_cast<unsigned char*>(&monster->state_28c)[0x7d] = 0;
-            reinterpret_cast<unsigned char*>(&monster->state_28c)[0x7e] = 0;
-            reinterpret_cast<unsigned char*>(&monster->state_28c)[0x7f] = 0;
+            monster->node_308 = 0;
         } else {
-            *reinterpret_cast<int*>(
-                reinterpret_cast<unsigned char*>(&monster->state_28c) + 0x7c) = mesh;
+            monster->node_308 = reinterpret_cast<srNode*>(mesh);
         }
     }
     point[0] = (int)((position->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
