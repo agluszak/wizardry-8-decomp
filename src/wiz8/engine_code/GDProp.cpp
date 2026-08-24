@@ -1,6 +1,7 @@
 /* Engine Code\GDProp.cpp */
 
 #include "wiz8/engine_code/GDProp.h"
+#include "wiz8/engine_code/OctPath.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/item_spawning.h"

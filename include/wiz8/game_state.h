@@ -160,7 +160,6 @@ typedef struct W8GlobalStatus {
     unsigned char unknown_49b7[0x0b];
 } W8GlobalStatus;                        /* 0x49c2 */
 
-#ifdef __cplusplus
 static_assert(sizeof(W8StatusBuffers) == 0x0c,
               "W8StatusBuffers_must_be_0x0c");
 static_assert(offsetof(W8GlobalStatus, party_gold) == 0x19,
@@ -193,7 +192,6 @@ static_assert(offsetof(W8GlobalStatus, text_box_lines_shown_49a7) == 0x49a7,
               "W8GlobalStatus_migrated_shown_values_offset");
 static_assert(sizeof(W8GlobalStatus) == 0x49c2,
               "W8GlobalStatus_must_be_0x49c2");
-#endif
 
 /* Defined by GameplayDatabase.cpp, which carries the address marker. Declared
    here beside its type so consumers share one declaration instead of repeating

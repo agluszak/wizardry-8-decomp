@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/OctPath.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/engine_code/Monster.h"

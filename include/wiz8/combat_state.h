@@ -41,10 +41,8 @@ typedef struct W8PartySlotRow {
     unsigned char flag_105;
 } W8PartySlotRow;
 
-#ifdef __cplusplus
 static_assert(sizeof(W8PartySlotRow) == 0x106,
               "W8PartySlotRow_must_be_0x106");
-#endif
 
 /* One record per character class, 0x1e5 bytes, indexed by the class index a
    combat actor carries at its +0x1d8. Only the flag the combat toggle reads is
