@@ -2,9 +2,10 @@
 #define WIZ8_ENGINE_CODE_SPELL_EMITTER_HOST_H
 
 #include "wiz8/engine_code/Emitter.h"
-#include "wiz8/vector_005ece60.h"
+#include "wiz8/vector.h"
 
 struct W8GrCycleReadInfo004A6970;
+class stLight;
 class W8SpellVisual;
 
 #pragma pack(push, 1)
@@ -33,7 +34,7 @@ public:
     unsigned char unknown_0b4[0x24];
     W8AnimObj* emitters[28];              /* 0x0d8 */
     float emitter_values[28];             /* 0x148 */
-    W8GrowableVector<W8VectorElement005ECE60*> light_lists[28]; /* 0x1b8 */
+    W8GrowableVector<W8GrowableVector<stLight*>*> light_lists[28]; /* 0x1b8 */
     unsigned char flag_378;
     unsigned char unknown_379[3];
 };                                        /* 0x37c */

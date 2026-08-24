@@ -5,6 +5,7 @@
 
 struct W8AIMissile;
 struct W8GrCycleReadInfo004A6970;
+class stLight;
 class W8Missile;
 
 W8AIMissile* CopyAIMissile004A53A0(const W8AIMissile* source);
@@ -34,7 +35,7 @@ public:
     unsigned char unknown_0b4[0x24];
     W8AnimObj* emitters[2];
     float emitter_values[2];
-    W8GrowableVector<W8LightVector*> light_lists[2];
+    W8GrowableVector<W8GrowableVector<stLight*>*> light_lists[2];
 };
 
 static_assert(sizeof(W8MissileRep) == 0x108, "W8MissileRep_size_must_be_0x108");

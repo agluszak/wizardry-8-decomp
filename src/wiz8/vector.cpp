@@ -1,9 +1,11 @@
-#include "wiz8/vector_005ece60.h"
+#include "wiz8/vector.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/targeting.h"
 
 #include <stdlib.h>
 #include <string.h>
+
+class stLight;
 
 // TEMPLATE: WIZ8 0x004addf0
 // W8GrowableVector<int>::Grow
@@ -287,16 +289,23 @@ class W8VectorElement005ECAD0;
 // TEMPLATE: WIZ8 0x0048f1f0
 // W8GrowableVector<W8VectorElement005ECAD0*>::~W8GrowableVector<W8VectorElement005ECAD0*>
 
-/* The emitted lifecycle belongs directly to the template specialization. */
+/* The emitted lifecycle and both reviewed vtables belong directly to the
+   ordinary light-vector template specializations. */
+
+// VTABLE: WIZ8 0x005ec294
+// class W8GrowableVector<stLight*>
+
+// VTABLE: WIZ8 0x005ece60
+// class W8GrowableVector<W8GrowableVector<stLight*>*>
 
 // TEMPLATE: WIZ8 0x004a5c30
-// W8GrowableVector<W8VectorElement005ECE60*>::W8GrowableVector
+// W8GrowableVector<W8GrowableVector<stLight*>*>::W8GrowableVector
 
 // SYNTHETIC: WIZ8 0x004a5d20
-// W8GrowableVector<W8VectorElement005ECE60*>::`scalar deleting destructor'
+// W8GrowableVector<W8GrowableVector<stLight*>*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004a5c90
-// W8GrowableVector<W8VectorElement005ECE60*>::~W8GrowableVector<W8VectorElement005ECE60*>
+// W8GrowableVector<W8GrowableVector<stLight*>*>::~W8GrowableVector<W8GrowableVector<stLight*>*>
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 

@@ -5,7 +5,6 @@
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/geometry.h"
 #include "wiz8/vector.h"
-#include "wiz8/vector_005ec294.h"
 
 class srCamera;
 class srLight;
@@ -91,7 +90,7 @@ struct W8World {
     W8PList m_list_0a8;
     W8GrowableVector<W8SpellVisual*>* spell_visuals;
     W8GrowableVector<W8Missile*>* missiles;
-    W8LightVector* lights_to_update;
+    W8GrowableVector<stLight*>* lights_to_update;
     W8GrowableVector<W8Prop*>* collidable_props;
     W8GrowableVector<W8MonsterGenerator*>* monster_generators;
     W8GrowableVector<Trigger*>* triggers;

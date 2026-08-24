@@ -181,7 +181,7 @@ void W8SpellVisual::AdvanceAnimationFrame(int value, int flags)
 // FUNCTION: WIZ8 0x004ac580
 void W8SpellVisual::SetCycle(signed char cycle)
 {
-    W8LightVector* lights;
+    W8GrowableVector<stLight*>* lights;
     W8AnimObj* animation;
     int index;
 
@@ -416,14 +416,14 @@ W8SpellEmitterHost::W8SpellEmitterHost(const W8SpellEmitterHost& other)
         for (list_index = 0;
              list_index < other.light_lists[emitter].GetCount();
              ++list_index) {
-            W8LightVector* source_lights =
+            W8GrowableVector<stLight*>* source_lights =
                 *other.light_lists[emitter].GetAt(list_index);
-            W8LightVector* copied_lights = 0;
+            W8GrowableVector<stLight*>* copied_lights = 0;
 
             if (source_lights != 0) {
                 int light_index;
 
-                copied_lights = new W8LightVector;
+                copied_lights = new W8GrowableVector<stLight*>;
                 if (copied_lights == 0) {
                     srAssertFail(
                         "plsNewLights",
@@ -470,7 +470,7 @@ unsigned char W8SpellEmitterHost::ReadCycleData004AB340(
     int,
     int emitter_index)
 {
-    W8LightVector* lights = new W8LightVector;
+    W8GrowableVector<stLight*>* lights = new W8GrowableVector<stLight*>;
     W8AnimObj* animation;
     unsigned char success;
     signed char emitter;

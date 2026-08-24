@@ -11,7 +11,6 @@
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/geometry.h"
 #include "wiz8/vector.h"
-#include "wiz8/vector_005ec294.h"
 
 class srModelInstance;
 struct W8World;
@@ -36,6 +35,8 @@ class stParticle;
 class stGroundShadow;
 struct W8AnimObj;
 struct W8AniMesh;
+
+void DestroyLightVector(W8GrowableVector<stLight*>* vector); /* 0x004A8C50 */
 
 /* Engine Code\GrCycle.cpp's camera-shake effect. 0x004AE080 allocates 0x4c and
    hands it to the constructor at 0x004ADED0.
@@ -138,7 +139,7 @@ public:
 
     void SetSubCycle(unsigned char subcycle);
     void SetBehaviour(signed char bBehaviour);
-    void SetLights(W8LightVector* lights);
+    void SetLights(W8GrowableVector<stLight*>* lights);
     void AddShakeEffect004A8530(W8CameraShakeEffect* effect);
     void CreateGroundShadow(int value_140, int value_13c);
     void SetGroundShadowVisible(char visible);
@@ -156,7 +157,7 @@ public:
 
 public:
     srModelInstance* current_model_instance_1a8;
-    W8LightVector* m_plsLights; /* 0x1ac */
+    W8GrowableVector<stLight*>* m_plsLights; /* 0x1ac */
     W8GrowableVector<W8CameraShakeEffect*>* m_plsShakeEvents; /* 0x1b0 */
     unsigned char m_fDeleteLights;        /* 0x1b4: named by GrCycle.cpp:1656 */
     unsigned char unknown_1b5;

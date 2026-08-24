@@ -15,6 +15,7 @@ struct W8GrCycleReadInfo004A6970;
 struct W8PList;
 struct W8Item;
 class stModelInstance005EC7D0;
+class stLight;
 class stScript;
 class stSound3D;
 class Trigger;
@@ -37,13 +38,9 @@ struct W8MonsterLinkedItem005E8 {
     W8Item* item_04;
 };
 
-/* MonsterRep owns three ordinary arrays of growable vectors.  The first is
-   proven as AnimObj* by its consumers; the second element identity remains
-   unknown; the third owns vectors of light nodes. */
-typedef W8GrowableVector<W8AnimObj*> W8MonsterAnimationVector;
-typedef W8GrowableVector<float> W8MonsterAnimationScaleVector;
-typedef W8LightVector W8MonsterLightVector;
-typedef W8GrowableVector<W8MonsterLightVector*> W8MonsterLightVectorList;
+/* MonsterRep owns three ordinary arrays of growable vectors. The first is
+   proven as AnimObj* by its consumers, the second holds animation scales, and
+   the third owns vectors of light nodes. */
 
 /* W8MonsterRep's constructor calls the 0xac-byte W8EmitterHost constructor at
    offset zero, constructs its three cycle arrays at +0xac/+0x25c/+0x40c,
@@ -68,9 +65,9 @@ struct W8MonsterRep : public W8EmitterHost {
         int cycle_index,
         int value);
 
-    W8MonsterAnimationVector animations[W8_MONSTER_CYCLE_COUNT]; /* 0x0ac */
-    W8MonsterAnimationScaleVector animation_scales[W8_MONSTER_CYCLE_COUNT]; /* 0x25c */
-    W8MonsterLightVectorList light_lists[W8_MONSTER_CYCLE_COUNT];/* 0x40c */
+    W8GrowableVector<W8AnimObj*> animations[W8_MONSTER_CYCLE_COUNT]; /* 0x0ac */
+    W8GrowableVector<float> animation_scales[W8_MONSTER_CYCLE_COUNT]; /* 0x25c */
+    W8GrowableVector<W8GrowableVector<stLight*>*> light_lists[W8_MONSTER_CYCLE_COUNT];/* 0x40c */
     unsigned char flag_5bc;                    /* 0x5bc */
     unsigned char unknown_5bd[3];
     char* name_5c0;                            /* 0x5c0: owned copy */
@@ -105,7 +102,8 @@ struct W8MonsterRep : public W8EmitterHost {
    object. */
 static_assert(sizeof(W8MonsterRep) == 0x628, "W8MonsterRep_size_must_be_0x628");
 
-static_assert(sizeof(W8MonsterAnimationVector) == 0x10, "W8MonsterAnimationVector_size_must_be_0x10");
+static_assert(sizeof(W8GrowableVector<W8AnimObj*>) == 0x10,
+              "W8Monster_animation_vector_must_be_0x10");
 
 struct W8MonsterState28C {
     unsigned char defining_orders;

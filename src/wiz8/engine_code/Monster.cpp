@@ -27,7 +27,6 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/targeting.h"
 #include "wiz8/utility.h"
-#include "wiz8/vector_005ec294.h"
 #include "wiz8/virtual_file.h"
 #include "surrender/srTimer.h"
 #include "surrender/srScene.h"
@@ -993,7 +992,7 @@ unsigned char W8MonsterRep::ReadCycleData004BF520(
     int cycle_index,
     int value)
 {
-    W8LightVector* lights = new W8LightVector;
+    W8GrowableVector<stLight*>* lights = new W8GrowableVector<stLight*>;
     W8AnimObj* animation;
     unsigned char success;
     signed char cycle;
@@ -1177,14 +1176,14 @@ void W8MonsterRep::Method004BF0F0(
     }
 
     for (index = 0; index < other->light_lists[other_cycle].GetCount(); ++index) {
-        W8LightVector* source_lights =
+        W8GrowableVector<stLight*>* source_lights =
             *other->light_lists[other_cycle].GetAt(index);
-        W8LightVector* copied_lights = 0;
+        W8GrowableVector<stLight*>* copied_lights = 0;
 
         if (source_lights != 0) {
             int light_index;
 
-            copied_lights = new W8LightVector;
+            copied_lights = new W8GrowableVector<stLight*>;
             if (copied_lights == 0) {
                 srAssertFail(
                     "plsNewLights",
@@ -1977,7 +1976,7 @@ unsigned char W8Monster::GetCycleMappedPosition004C7960(
     signed char cycle, int mapped_index, srVector3T<float>* position)
 {
     srModelInstance* current_model = GetCurrentModelInstance004A8250();
-    W8MonsterAnimationVector* animations;
+    W8GrowableVector<W8AnimObj*>* animations;
     W8AnimObj* animation;
     int subcycle;
     int dispatch_value;
@@ -3496,7 +3495,7 @@ srModelInstance* W8MonsterRep::SetCycleFrameLod(
     signed char cycle, signed char frame, signed char lod)
 {
     int subcycle = selection.monster.current_subcycle;
-    W8MonsterAnimationVector* selected_cycle = &animations[cycle];
+    W8GrowableVector<W8AnimObj*>* selected_cycle = &animations[cycle];
     W8AnimObj** animation_slot;
     W8AnimObj* animation;
 
@@ -3544,7 +3543,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
     srMatrix3T<float> rotation;
     srModelInstance* model;
     stTextureAnim* mouth;
-    W8MonsterLightVector* lights;
+    W8GrowableVector<stLight*>* lights;
     int index;
     int count;
 
@@ -3721,7 +3720,7 @@ void W8Monster::SetShakeEventVisibility004BF9E0(signed char cycle)
 // FUNCTION: WIZ8 0x004bf970
 unsigned int W8MonsterRep::ApplyEmitterSetting(char cycle)
 {
-    W8MonsterAnimationVector* selected_cycle = &animations[cycle];
+    W8GrowableVector<W8AnimObj*>* selected_cycle = &animations[cycle];
     W8AnimObj** animation_slot;
     W8AnimObj* animation;
 
@@ -3747,7 +3746,7 @@ unsigned int W8MonsterRep::ApplyEmitterSetting(char cycle)
 signed char W8Monster::GetNumSubCycles()
 {
     W8MonsterRep* representation = m_pRep;
-    W8MonsterAnimationVector* cycle = &representation->animations[
+    W8GrowableVector<W8AnimObj*>* cycle = &representation->animations[
         representation->selection.monster.current_cycle];
     W8AnimObj** slot = cycle->data;
     int subcycle = representation->selection.monster.current_subcycle;
@@ -3781,8 +3780,8 @@ unsigned char W8Monster::IsCycleSupported(signed char cycle)
 // FUNCTION: WIZ8 0x004c3790
 void W8Monster::SetCycle(signed char cycle)
 {
-    W8MonsterAnimationVector* animations;
-    W8MonsterLightVector* lights;
+    W8GrowableVector<W8AnimObj*>* animations;
+    W8GrowableVector<stLight*>* lights;
     W8AnimObj* animation;
     signed char subcycle;
     int count;
@@ -4667,7 +4666,7 @@ W8AniMesh* W8Monster::GetCurrentAniMesh()
         m_pRep->selection.monster.current_cycle;
     int subcycle_index =
         m_pRep->selection.monster.current_subcycle;
-    W8MonsterAnimationVector* cycle = &m_pRep->animations[cycle_index];
+    W8GrowableVector<W8AnimObj*>* cycle = &m_pRep->animations[cycle_index];
     W8AnimObj** animation_slot;
     W8AnimObj* animation;
 
@@ -5547,7 +5546,7 @@ void W8Monster::CollectModelInstances004C6350(
         for (subcycle = 0;
              subcycle < m_pRep->GetNumSubsPerCycle((signed char)cycle);
              ++subcycle) {
-            W8MonsterAnimationVector* cycle_animations =
+            W8GrowableVector<W8AnimObj*>* cycle_animations =
                 &m_pRep->animations[cycle];
             W8AnimObj* animation;
 

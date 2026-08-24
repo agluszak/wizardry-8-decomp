@@ -17,7 +17,6 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "wiz8/vector.h"
-#include "wiz8/vector_005ec294.h"
 #include "wiz8/virtual_file.h"
 #include "surrender/srModelInstance.h"
 #include "surrender/srCore.h"
@@ -429,7 +428,7 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other)
     if (other.m_plsLights != 0 && other.m_plsLights->GetCount() != 0 &&
         m_fDeleteLights != 0) {
         count = other.m_plsLights->GetCount();
-        m_plsLights = new W8LightVector(5);
+        m_plsLights = new W8GrowableVector<stLight*>(5);
         for (index = 0; index < count; ++index) {
             stLight* source_light = *other.m_plsLights->GetAt(index);
             float x = source_light->positionalX();
@@ -1369,7 +1368,7 @@ void W8GrCycle::SetBehaviour(signed char bBehaviour)
 }
 
 // FUNCTION: WIZ8 0x004a84c0
-void W8GrCycle::SetLights(W8LightVector* lights)
+void W8GrCycle::SetLights(W8GrowableVector<stLight*>* lights)
 {
     if (m_fDeleteLights && m_plsLights != 0) {
         srAssertFail(
@@ -1519,7 +1518,7 @@ void RegisterGrCycle(const char* name, W8GrCycle* cycle)
 }
 
 // FUNCTION: WIZ8 0x004a8c50
-void DestroyLightVector(W8LightVector* vector)
+void DestroyLightVector(W8GrowableVector<stLight*>* vector)
 {
     int count;
     int index;
