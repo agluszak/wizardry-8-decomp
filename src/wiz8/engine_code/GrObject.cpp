@@ -1,6 +1,6 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
-#include "wiz8/grcycle.h"
+#include "wiz8/engine_code/GrObject.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/SoundEvent.h"
 

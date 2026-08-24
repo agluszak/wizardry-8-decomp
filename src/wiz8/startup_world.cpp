@@ -1,6 +1,6 @@
 #include "surrender/srNode.h"
 #include "wiz8/3d_code/PList.h"
-#include "wiz8/grcycle.h"
+#include "wiz8/engine_code/Navigator.h"
 
 #include <new>
 #include <stdlib.h>

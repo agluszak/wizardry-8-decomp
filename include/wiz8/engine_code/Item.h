@@ -3,7 +3,7 @@
 #include "surrender/srMath.h"
 #include "surrender/srNode.h"
 #include "wiz8/engine_code/Emitter.h"
-#include "wiz8/grcycle.h"
+#include "wiz8/engine_code/GrObject.h"
 
 struct W8World;
 class Trigger;

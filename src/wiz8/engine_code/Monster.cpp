@@ -23,7 +23,6 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/PathAI.h"
-#include "wiz8/grcycle.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/magic.h"
 #include "wiz8/mesh_model.h"

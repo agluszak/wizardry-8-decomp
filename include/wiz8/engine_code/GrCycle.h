@@ -1,7 +1,7 @@
 #pragma once
 
-/* Engine Code\GrCycle.cpp owns these declarations, split out of the combined
-   grcycle.h. The two bases keep their original relative order: W8GrObject is
+/* Engine Code\GrCycle.cpp owns these declarations. The two bases keep their
+   original relative order: W8GrObject is
    W8GrCycle's first base and W8Navigator its second. */
 
 #include "surrender/srMath.h"

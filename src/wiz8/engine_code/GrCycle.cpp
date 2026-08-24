@@ -1,5 +1,5 @@
 #include "wiz8/engine_code/SoundEvent.h"
-#include "wiz8/grcycle.h"
+#include "wiz8/engine_code/GrCycle.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/stLight.h"

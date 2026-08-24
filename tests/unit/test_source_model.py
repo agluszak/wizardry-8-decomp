@@ -64,7 +64,7 @@ def test_source_model_keeps_definition_as_owner_of_folded_alias(tmp_path: Path) 
     {
       "address": 4878656,
       "marker_kind": "FUNCTION",
-      "source_file": "include/wiz8/grcycle.h",
+      "source_file": "include/wiz8/engine_code/GrCycle.h",
       "line": 149,
       "declaration": {
         "semantic_id": "?CanEnterCycle@W8GrCycle@@UAEEC@Z",
@@ -81,7 +81,7 @@ def test_source_model_keeps_definition_as_owner_of_folded_alias(tmp_path: Path) 
     {
       "address": 4878656,
       "marker_kind": "SYNTHETIC",
-      "source_file": "include/wiz8/grcycle.h",
+      "source_file": "include/wiz8/engine_code/GrCycle.h",
       "line": 196,
       "declaration": null,
       "marker_name": "W8Navigator::secondary_vslot3",

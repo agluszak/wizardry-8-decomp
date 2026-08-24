@@ -1,7 +1,6 @@
 #pragma once
 
-/* Engine Code\Navigator.cpp owns these declarations, split out of the combined
-   grcycle.h. */
+/* Engine Code\Navigator.cpp owns these declarations. */
 
 #include "surrender/srMath.h"
 #include "wiz8/geometry.h"

@@ -1,8 +1,7 @@
 #pragma once
 
-/* Engine Code\GrObject.cpp owns these two declarations. They were split out of
-   the combined grcycle.h so GrObject.cpp, Navigator.cpp and GrCycle.cpp stop
-   sharing one header; grcycle.h remains as an include-only umbrella. */
+/* Engine Code\GrObject.cpp owns these declarations. GrObject.cpp, Navigator.cpp
+   and GrCycle.cpp have separate direct headers. */
 
 #include "wiz8/vector.h"
 

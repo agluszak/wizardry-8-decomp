@@ -1,5 +1,6 @@
 #include "wiz8/npc_state.h"
 #include "wiz8/fact_state.h"
+#include "wiz8/game_status.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/item_tables.h"
 #include "wiz8/item_spawning.h"

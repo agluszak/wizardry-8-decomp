@@ -7,7 +7,7 @@
 #include "wiz8/engine_code/Emitter.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/geometry.h"
-#include "wiz8/grcycle.h"
+#include "wiz8/engine_code/GrCycle.h"
 #include "wiz8/local_code/MonsterGroup.h"
 
 struct W8AnimObj;
