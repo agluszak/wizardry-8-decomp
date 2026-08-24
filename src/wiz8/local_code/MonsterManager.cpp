@@ -1,5 +1,6 @@
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/3d_code/IList.h"
+#include "wiz8/combat_state.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/game_state.h"
@@ -14,6 +15,8 @@
 #include "wiz8/float_constants.h"
 #include "wiz8/npc_item_lists.h"
 #include "wiz8/sr_api.h"
+#include "DEBUG.H"
+#include "random.h"
 #include <math.h>
 #include <new>
 #include <stdlib.h>

@@ -344,9 +344,6 @@ extern int g_value_654ad4;
 
 
 
-/* Writes the second world, the object whose one declaration gameplay_boundaries.h
-   settled; the viewport's reads through it are what typed it. */
-
 /* The one setter of this group that cleans its own argument: the body ends in
    `ret 4` rather than `ret`, which is __stdcall and the whole of the two-byte
    difference against the cdecl siblings above. */

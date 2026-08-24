@@ -515,8 +515,8 @@ void DestroyItemTables(void)
    reference sites, and the other fifteen are reads in seven other functions.
    Sole-writer ownership is weaker than a proved layout boundary: the .bss run
    around 0x00687599 is packed with no gap marking a unit edge, so this is the
-   best available evidence rather than a settled fact. It is declared once in
-   gameplay_boundaries.h; see that declaration for why the type is one byte. */
+   best available evidence rather than a settled fact. Its canonical declaration
+   in GameplayDatabase.h keeps the byte width established by these stores. */
 // GLOBAL: WIZ8 0x00687599
 unsigned char g_save_flag_00687599;
 

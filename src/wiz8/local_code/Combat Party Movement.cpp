@@ -1,6 +1,6 @@
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/Strings.h"
+#include "wiz8/combat_state.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
 

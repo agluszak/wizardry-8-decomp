@@ -1,5 +1,5 @@
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/float_constants.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/unattributed/quarantine_common.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GameData.h"

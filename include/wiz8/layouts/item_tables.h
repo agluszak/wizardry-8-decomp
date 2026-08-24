@@ -69,7 +69,7 @@ static_assert(sizeof(W8ItemTableRecord) == 0x1f1, "W8ItemTableRecord_size_must_b
 
 /* GameplayDatabase.cpp owns the runtime Items.dbs and ItemTables.dbs roots.
    Keeping their declarations beside the record layouts gives item consumers a
-   direct owner instead of routing them through gameplay_boundaries.h. */
+   direct owner beside the file-format types they index. */
 extern W8ItemDatabaseRecord* g_item_records;
 extern W8ItemTableRecord** g_item_tables;
 extern char** g_item_table_category_names;

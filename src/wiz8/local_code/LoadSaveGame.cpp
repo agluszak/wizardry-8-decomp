@@ -1,11 +1,14 @@
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/3d_code/IList.h"
+#include "wiz8/combat_state.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/notices.h"
 #include "wiz8/chunk.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/save_game.h"
+#include "wiz8/screen_state.h"
+#include "wiz8/utility.h"
 #include "wiz8/virtual_file.h"
 
 /* GETFILESTRUCT is library layout and comes from the vendored SGP header rather
@@ -623,8 +626,8 @@ extern char g_save_extension[];
 /* Both are owned by address-quarantine units and have no header yet, so they
    are declared the way this unit declares every other cross-unit callee: the
    canonical name and signature, with the owning address named. They are
-   deliberately not added to gameplay_boundaries.h, whose declarations sit in an
-   extern "C" block that would relink the existing C++-mangled definitions. */
+   deliberately kept local until their owning quarantine units gain direct
+   headers; giving them C linkage would relink the existing C++ definitions. */
 extern void DeleteFileByName(const char* path);                         /* 0x00404C70 */
 extern int* GetAddress69C1CC(void);                                     /* 0x005A9E90 */
 
@@ -662,9 +665,9 @@ void DeleteCurrentSaveFiles(void)
 extern unsigned char g_flag_006875a5;
 extern unsigned char g_flag_0068510d;
 
-/* g_in_combat_00683f94 and g_camp_open_00683f9b already reach this unit through
-   combat_state.h and gameplay_boundaries.h, so they are used rather than
-   redeclared. 0x00683F97 has no header owner and is declared here under the
+/* g_in_combat_00683f94 and g_camp_open_00683f9b reach this unit through
+   combat_state.h, so they are used rather than redeclared. 0x00683F97 has no
+   header owner and is declared here under the
    name MainGameScreen.cpp already gives it. */
 extern unsigned char IsSightRangeOverridden(void);                      /* 0x00504910 */
 extern int IsLevelDataFlag4EffectivelySet(void);                        /* 0x0041F090 */

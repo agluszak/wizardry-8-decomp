@@ -1,7 +1,9 @@
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/startup_runtime_state.h"
+#include "random.h"
+#include "timer.h"
 
 extern void Function52F890(
     int party_slot, int active, int animation, int argument, int show_text);

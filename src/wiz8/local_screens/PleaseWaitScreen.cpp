@@ -3,10 +3,12 @@
 #include "wiz8/game_state.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/dialog_base.h"
+#include "wiz8/fact_state.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/video_object_catalog.h"
+#include "wiz8/utility.h"
 
 #include "Font.h"
 #include "FileMan.h"
@@ -68,11 +70,6 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
 
 extern "C" {
 
-/* gameplay_boundaries.h owns this declaration and gives it C linkage; the
-   spelling is repeated rather than the header included, because that header is
-   at its includer ceiling. Linkage has to agree with it or the call resolves
-   nowhere. */
-extern void InitializeFactState(void);
 extern void NoOp(void);
 extern void ShutdownDisplayList(void);
 extern int Function40B290(void);
@@ -82,9 +79,6 @@ extern int Function42B720(int level);
 extern void Function425570(int value);
 /* 0x00412A10; the reviewed identity Ghidra carries. Nothing defines it yet. */
 extern void RefreshSlfArchives(void);
-/* Local Code\UtilityFunctions.cpp owns this; gameplay_boundaries.h declares it,
-   and the spelling is repeated here because that header is at its ceiling. */
-extern wchar_t* FormatWideString(const wchar_t* format, ...);
 extern int Function509750(void);
 extern void Function58FD30(void);
 extern void Function407650(int x, int y, const char* format, const wchar_t* text);

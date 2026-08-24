@@ -1,7 +1,7 @@
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/local_code/Controls.h"
+#include "wiz8/regions.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
 #include "wiz8/video_object_catalog.h"

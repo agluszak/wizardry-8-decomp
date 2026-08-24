@@ -37,7 +37,6 @@ AGGREGATE_MARKER_CEILING = {
 # shrinking baseline; no unit may newly include one.
 AGGREGATE_HEADER_CEILING = {
     "registry_classes.h": 12,
-    "gameplay_boundaries.h": 72,
     "quarantine_common.h": 32,
 }
 

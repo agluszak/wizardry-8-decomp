@@ -1,7 +1,8 @@
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/dirty_tiles.h"
+#include "wiz8/wiz8_windows.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/video_object_catalog.h"
+#include "wiz8/utility.h"
 
 #include <stdlib.h>
 #include <string.h>

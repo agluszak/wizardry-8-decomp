@@ -1,5 +1,5 @@
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/combat_state.h"
 #include "wiz8/npc_state.h"
 #include "wiz8/sr_api.h"
 

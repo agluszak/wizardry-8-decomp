@@ -1,8 +1,13 @@
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/combat_state.h"
+#include "wiz8/game_state.h"
+#include "wiz8/magic.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/ui_state.h"
+#include "wiz8/utility.h"
+#include "random.h"
 
 /*
  * Local Code\Magic Effects.cpp.

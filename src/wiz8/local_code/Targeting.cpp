@@ -1,5 +1,8 @@
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/float_constants.h"
+#include "wiz8/3d_code/PList.h"
+#include "wiz8/3d_code/IList.h"
+#include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/layouts/item_tables.h"
 #include "wiz8/factions.h"
 #include "wiz8/targeting.h"
 #include "wiz8/character.h"
@@ -7,10 +10,12 @@
 #include "wiz8/game_state.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/magic.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/utility.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
+#include "Types.h"
 
 #include <math.h>
 #include <stdlib.h>
