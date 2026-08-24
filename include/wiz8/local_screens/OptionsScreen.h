@@ -4,6 +4,23 @@
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/vector.h"
 
+/* The 0xc0-byte menu-row class constructed at 0x005A7370.  It is a concrete
+   W8TextControl with an independent listener subobject and a source-table item
+   id; the two optional child controls are owned by the base Controls panel. */
+class W8OptionsMenuButton005EED3C
+    : public W8TextControl005ED604,
+      public W8TextControl005ED604::Listener {
+public:
+    W8OptionsMenuButton005EED3C(Controls* owner, const int* row);
+    virtual void OnPrimary(W8TextControl005ED604* control) override;
+    virtual void OnSecondary(W8TextControl005ED604* control) override;
+
+    int m_item_id_0bc;
+};
+
+static_assert(sizeof(W8OptionsMenuButton005EED3C) == 0xc0,
+              "W8OptionsMenuButton005EED3C_must_be_0xc0");
+
 /* The 0x60-byte controls-derived menu-set object constructed at 0x005A8C90.
    Its independent allocation, constructor, secondary listener vptr, and the
    OptionsScreen.cpp assertion on m_pMenuSet establish this boundary. */
