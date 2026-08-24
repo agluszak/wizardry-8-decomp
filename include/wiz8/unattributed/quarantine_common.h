@@ -5,7 +5,6 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/World.h"
-#include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/game_state.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"

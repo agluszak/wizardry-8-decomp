@@ -16,6 +16,7 @@ struct W8PList;
 struct W8Item;
 class stModelInstance005EC7D0;
 class stLight;
+class stParticle;
 class stScript;
 class stSound3D;
 class Trigger;

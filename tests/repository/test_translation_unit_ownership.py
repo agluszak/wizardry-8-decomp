@@ -36,7 +36,6 @@ AGGREGATE_MARKER_CEILING = {
 # Headers that aggregate unrelated declarations. Existing includers are the
 # shrinking baseline; no unit may newly include one.
 AGGREGATE_HEADER_CEILING = {
-    "registry_classes.h": 12,
     "quarantine_common.h": 32,
 }
 

@@ -1,5 +1,5 @@
 #include "wiz8/engine_code/GDCamera.h"
-#include "wiz8/engine_code/registry_classes.h"
+#include "wiz8/engine_code/stParticle.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Octree.h"

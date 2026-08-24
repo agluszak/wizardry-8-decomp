@@ -1,5 +1,5 @@
 #include "wiz8/float_constants.h"
-#include "wiz8/engine_code/registry_classes.h"
+#include "wiz8/engine_code/stLight.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/OctPreTree.h"
 #include "wiz8/geometry.h"

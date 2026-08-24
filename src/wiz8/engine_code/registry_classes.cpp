@@ -3,6 +3,7 @@
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/stScript.h"
+#include "wiz8/engine_code/stLight.h"
 // SYNTHETIC: WIZ8 0x004A2200
 // stLightDefinition005ECDBC::`scalar deleting destructor'
 

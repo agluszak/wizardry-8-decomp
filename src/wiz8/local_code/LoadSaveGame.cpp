@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/stParticle.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
@@ -105,7 +106,6 @@ extern void Function43C810(W8World* world, int handle);
 extern void Function44E830(W8World* world, int handle);
 extern void SaveMonsterGenerators(int handle);
 extern void SaveAmbientSoundList0047B140(int handle);
-extern void SaveParticleStates0049B150(unsigned int handle);
 extern void Function49D120(int handle);
 
 /* 0x005156C0, 0x00517A90 and 0x00518510, not yet identified; named by address
