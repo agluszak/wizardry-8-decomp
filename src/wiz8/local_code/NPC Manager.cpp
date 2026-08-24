@@ -1,5 +1,6 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/combat_state.h"
+#include "wiz8/fact_state.h"
 #include "wiz8/npc_state.h"
 #include "wiz8/sr_api.h"
 
@@ -211,7 +212,6 @@ enum { W8_NPC_NAME_STYLE_SUBSTITUTABLE = ' ' };
 /* The fact that makes the substitution happen. */
 enum { W8_FACT_NPC_NAME_KNOWN = 0x44 };
 
-extern unsigned char GetFact(int fact);
 
 /* The engine object standing in the world for this NPC. */
 // FUNCTION: WIZ8 0x0050a400

@@ -1,12 +1,14 @@
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/game_timer.h"
+#include "wiz8/game_state.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/startup_runtime_state.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/item_tables.h"
+#include "wiz8/item_spawning.h"
 #include "wiz8/npc_item_lists.h"
 #include "wiz8/targeting.h"
 #include "wiz8/utility.h"
@@ -31,7 +33,6 @@ extern void QueueGameplayEvent(int event_type, int party_slot);
 extern void PostCharacterMessage(int party_slot, const W8WideChar* format, ...);
 extern W8WideChar* GetItemDisplayName(const W8ItemInstance* item);
 /* 0x0054B300 resets one of eight slots. */
-extern void Function54B300(unsigned int slot);
 /* The gStatus object owned by GameplayDatabase.cpp. */
 // GLOBAL: WIZ8 0x00685170
 W8GlobalStatus g_status_685170;
@@ -62,7 +63,6 @@ char** g_item_table_category_names;
 W8SpellRuntimeRecord* g_spell_records;
 // GLOBAL: WIZ8 0x0065BE18
 unsigned int g_spell_database_version;
-extern W8GameSettings g_settings_6850c8;
 extern "C" unsigned char g_flag_68edac;
 void SetPendingScreenState(int value);
 void RequestScreenTransition(void);
@@ -74,12 +74,6 @@ extern void Function58FD30(void);
 extern void Function520070(
     W8ItemInstance* item, W8Character* character, unsigned char refresh);
 extern void Function554580(unsigned char* target);
-extern void ReplaceOrCreateItem(
-    W8ItemInstance* item,
-    int item_id,
-    unsigned char maximum_quantity,
-    unsigned char force_identified,
-    unsigned char mark_special);
 extern bool g_flag_68517c;
 extern int g_dword_6875b7;
 extern void Function5A9E70(void* target);

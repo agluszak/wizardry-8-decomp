@@ -26,12 +26,6 @@
 /* Shared declarations for address-interval quarantine units. Definitions live
    only in the physical source selected by source-path or bounded-gap evidence. */
 
-/* 0x00522FE0, the condition applier Local Code\Conditions & Enchantments.cpp
-   and Local Code\Health Stamina Mana.cpp already reach; the hit-point
-   recalculation below is its third caller. */
-extern void SetCharacterCondition(
-    int party_slot, int condition, int duration, int argument, int arg_5, int arg_6);
-
 /* Only the virtual destructor is established: the call goes through slot 0 with
    the deleting flag set, which is what `delete` on a polymorphic object emits.
    No field is known, so none is modelled. */
@@ -39,12 +33,7 @@ struct W8Releasable {
     virtual ~W8Releasable();
 };
 
-bool IsCharacterReadyToAdvance(int party_slot);
-
 extern "C" {
-
-extern void Function4C4EF0(void);
-extern void Function4A7A70(int value);
 
 extern int g_clip_left_600078;
 extern int g_clip_top_60007c;
@@ -291,8 +280,6 @@ extern unsigned int g_region_set_69c528;
    load, which is what rules out the narrower type its one use suggests. */
 extern int g_value_68c4c0;
 extern void* g_pointer_689b40;
-extern unsigned char g_flag_6081e4;
-extern int g_value_659c14;
 extern unsigned char g_table_647ccc[128];
 /* Indexed row-major with a stride of eight, which is what makes the second
    subscript the inner one. */
@@ -323,10 +310,6 @@ extern int g_value_689fac;
 extern unsigned char g_flag_68c4f4;
 extern unsigned char g_flag_68c4f7;
 extern unsigned char g_flag_68c500;
-
-/* The refresh 0x004284F0 runs before reading the pair below. Its own body is not
-   recovered, so it keeps an address-qualified name. */
-extern void Function00428340(void);
 
 /* Two pairs of adjacent ints that 0x004284F0 sums into a screen point: the first
    supplies x and the second y in each pair. Only that use is established, so

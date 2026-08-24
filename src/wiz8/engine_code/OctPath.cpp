@@ -51,9 +51,7 @@ extern float g_path_cardinal_scale_005ec358;
 extern float g_path_waypoint_query_vertical_005ec35c;
 extern float g_path_waypoint_query_horizontal_005ec360;
 extern float g_path_waypoint_exact_distance_005ebc64;
-extern float g_float_005ebb34;
 extern double g_double_005ebe80;
-extern void Function58AAD0(int channel, const char* format, ...);
 extern float Function4BE420(
     const srVector3T<float>* source,
     const srVector3T<float>* target);
@@ -5462,8 +5460,8 @@ void W8PathingService::AddWaypointLink0045EC30(
     W8PathEdge* edge;
 
     if (source == 0 || destination == 0 || source == destination) {
-        Function58AAD0(
-            0xf, "Cannot Link: Tried to link WayPt %d to WayPt %d. ",
+        WriteGameLog(
+            0xf, L"Cannot Link: Tried to link WayPt %d to WayPt %d. ",
             source, destination);
         return;
     }
@@ -5476,8 +5474,8 @@ void W8PathingService::AddWaypointLink0045EC30(
         (destination_surface->position_04.x == g_float_005ebb34 &&
          destination_surface->position_04.y == g_float_005ebb34 &&
          destination_surface->position_04.z == g_float_005ebb34)) {
-        Function58AAD0(
-            0xf, "Cannot Link: WayPt %d is at (0, 0, 0). ", source);
+        WriteGameLog(
+            0xf, L"Cannot Link: WayPt %d is at (0, 0, 0). ", source);
         return;
     }
 

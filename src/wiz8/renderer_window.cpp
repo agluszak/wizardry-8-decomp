@@ -659,7 +659,6 @@ unsigned char ClearPrimarySurface(void)
 
 }
 
-extern "C" void Function00428340(void);
 extern "C" void Function40C0B0(void);
 extern "C" void Function425B40(void);
 extern "C" srScene* g_cursor_scene_659684;

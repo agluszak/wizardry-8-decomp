@@ -149,9 +149,6 @@ void ResetPartyEffectBlock(W8EffectSlot* slot)
 }
 
 extern void PostCharacterNotice(int party_slot, void* notice);           /* 0x00590950 */
-extern unsigned int MonsterGetIndexByLocationID(
-    int caller_line, const char* caller_file, int location_id, unsigned char assert_on_failure);
-extern W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int index);
 extern void ApplyEffectToTarget(
     int* result, W8CombatSlot* target, int arg_3, int arg_4);            /* 0x00552250 */
 #define MAGIC_EFFECTS_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Magic Effects.cpp"

@@ -103,6 +103,8 @@ struct W8World {
 extern "C" {
 extern W8World* g_world;
 extern W8World* g_world_659ab8;
+extern unsigned char g_flag_6081e4;
+extern int g_value_659c14;
 W8World* GetWorld(void);
 W8World* GetWorld659AB8(void);
 void MarkRendererReady(void);

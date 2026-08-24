@@ -16,6 +16,7 @@
 #include "wiz8/factions.h"
 #include "wiz8/npc_item_lists.h"
 #include "wiz8/item_video_object_vector.h"
+#include "wiz8/item_spawning.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/video_object_catalog.h"
 
@@ -256,12 +257,6 @@ int W8ItemVideoObjectVector::GetOrCreateVideoObject(int item_id)
 extern void DropHeldItem(int arg_1);                         /* 0x004F7610 */
 extern void ShowNotice(void* notice, int a, int b, int c);   /* 0x0055F260 */
 extern "C" void ClearHeldItemDisplay(void);                  /* 0x0055F1E0 */
-extern void ReplaceOrCreateItem(
-    W8ItemInstance* item,
-    int item_id,
-    unsigned char maximum_quantity,
-    unsigned char force_identified,
-    unsigned char mark_special);
 extern void MoveItem(W8ItemInstance* to, W8ItemInstance* from, int arg_3, int arg_4);
 /* 0x0051FE30 */
 extern unsigned char CanCharacterActivateItem(
@@ -270,8 +265,6 @@ extern void AddPartyGoldNotice(int channel, const wchar_t* notice, ...);
 extern int Function40A910(const char* path);
 extern void PlaySound(const char* path, int flags);
 extern void Function58AC00(int channel, void* message);
-extern void Function58AAD0(int channel, const wchar_t* format, W8WideChar* item_name);
-extern int GetRandomCharacter(int value_1, int value_2, int value_3, int value_4);
 extern signed char GetFactionDispositionScore(signed char faction);
 extern unsigned char Function50B8F0(int npc_id);
 extern void Function52E690(
@@ -2187,7 +2180,7 @@ bool AddItemToParty(
         g_camp_screen_0069c0f4->item_redraw_flags |= 0x7fc00000;
     }
     if (announce) {
-        Function58AAD0(8, (const wchar_t*)gppStringList[0x7a4 / 4], display_name);
+        WriteGameLog(8, (const wchar_t*)gppStringList[0x7a4 / 4], display_name);
     }
     W8ItemInstance* stored_item =
         &g_status_685170.party_item_pool_0021[index];

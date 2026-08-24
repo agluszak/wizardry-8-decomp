@@ -29,12 +29,10 @@
 unsigned char GetRenderOptionState(int index);
 unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating);
 unsigned char MonsterIsAnimating(W8Monster* monster);
-unsigned char MonsterIsCycleSupported(W8Monster* monster, int cycle);
 void MonsterSetPendingCycle(W8Monster* monster, int cycle);
 void Function4C5B10(W8Monster* monster, int value);
 int MonsterQuery(W8Monster* monster, int query);
 void MonsterForward4537E0(W8Monster* monster);
-void MonsterSetCycle(W8Monster* monster, int cycle);
 void MonsterSetBehaviour(W8Monster* monster, int behavior);
 void MonsterSetSubCycle(W8Monster* monster, int subcycle);
 unsigned char RemoveMonster(
@@ -185,7 +183,6 @@ void MonsterForward4A7BE0(
 void MonsterCallSlot10(void* object, int argument);
 void RequestRefreshPartyState(void);
 unsigned char GetFlag68F105(void);
-void Function58AAD0(int channel, const W8WideChar* format, ...);
 extern int g_monster_cycle_registry_weight_0065ba4c;
 extern float g_float_005ec52c;
 extern unsigned char g_flag_689b32;
@@ -280,7 +277,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
         g_monster_cycle_registry_weight_0065ba4c +=
             registry_after - registry_before;
         if (GetFlag68F105() != 0) {
-            Function58AAD0(
+            WriteGameLog(
                 7,
                 L"%dK\n",
                 static_cast<unsigned int>(registry_after - registry_before) >> 10);
@@ -420,7 +417,7 @@ void Function4E4600(W8MonsterInfo* monster_info)
     if (monster_info->motionless == 0) {
         result = MonsterQuery(monster_info->monster, 6);
         if (result != 1 && result != 2 &&
-            monster_info->monster->m_pRep->selection.monster.pending_cycle == -1) {
+            monster_info->monster->m_pRep->pending_cycle == -1) {
             StartMonsterCycle(monster_info, 1, 3);
         }
     }
@@ -951,13 +948,13 @@ void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, unsigned char motionl
     if (motionless == 0) {
         if (previous != 0) {
             MonsterSetAnimating(monster, 1);
-            if (monster_info->monster->m_pRep->selection.monster.pending_cycle == -1) {
+            if (monster_info->monster->m_pRep->pending_cycle == -1) {
                 StartMonsterCycle(monster_info, 1, 3);
             }
         }
     }
     else if (previous == 0) {
-        signed char cycle_value = monster->m_pRep->selection.monster.pending_cycle;
+        signed char cycle_value = monster->m_pRep->pending_cycle;
 
         if (cycle_value != -1) {
             if (cycle_value == 0x14) {
@@ -1151,7 +1148,7 @@ void TryStartMonsterCycle2(
         if (result != 0 && monster_info->motionless == 0) {
             monster->flags_1dc |= 0x80;
             if (MonsterIsCycleSupported(monster, 2) != 0) {
-                signed char cycle = monster->m_pRep->selection.monster.pending_cycle;
+                signed char cycle = monster->m_pRep->pending_cycle;
 
                 if (cycle == 2 ||
                     monster->IsCycleInterruptable(cycle) == 0 ||
@@ -1425,7 +1422,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
     if (monster_info->motionless == 0) {
         query_state = MonsterQuery(monster_info->monster, 6);
         if (query_state != 1 && query_state != 2 &&
-            monster_info->monster->m_pRep->selection.monster.pending_cycle == -1) {
+            monster_info->monster->m_pRep->pending_cycle == -1) {
             StartMonsterCycle(monster_info, 1, 3);
         }
     }
@@ -1621,7 +1618,7 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
         detail = "Trying to set a NEVER_STOP behaviour with an uninterruptable cycle!";
         line = 0x46f;
     } else {
-        pending = monster->m_pRep->selection.monster.pending_cycle;
+        pending = monster->m_pRep->pending_cycle;
         if (g_in_combat_00683f94 != 0) {
             MonsterQuery(monster, 6);
         }
@@ -1733,7 +1730,7 @@ void ProcessMonsterManagerFrame(void)
                         break;
                     default:
                         if (monster_info->motionless == 0) {
-                            if (monster_info->monster->m_pRep->selection.monster.pending_cycle ==
+                            if (monster_info->monster->m_pRep->pending_cycle ==
                                 W8_CYCLE_NONE) {
                                 StartMonsterCycle(monster_info, 1, 3);
                             }

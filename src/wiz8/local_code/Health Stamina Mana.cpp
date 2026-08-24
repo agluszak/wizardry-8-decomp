@@ -1,10 +1,12 @@
 #include "wiz8/startup_runtime_state.h"
+#include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/targeting.h"
 #include "wiz8/utility.h"
 #include "random.h"
 
@@ -252,8 +254,6 @@ extern void PostCharacterNotice(int party_slot, const wchar_t* notice, ...);
 extern unsigned char CharacterHasEffect(void* effect, int party_slot);   /* 0x0052DD90 */
 extern void CalcArmorClasses(W8Character* character);                    /* 0x004EE9D0 */
 extern void RemoveCharacterCondition(int party_slot, int condition, int arg_3);
-extern void SetCharacterCondition(
-    int party_slot, int condition, int duration, int arg_4, int arg_5, int arg_6);
 extern void RecalculateCharacterHitPoints(W8Character* character);
 extern void FatigueCharacter(int party_slot, int amount, char scale_by_load, int arg_4, int arg_5);
 /* 0x0052AF50 */
@@ -266,8 +266,6 @@ extern void ClearMonsterCondition(int location_id, int condition);       /* 0x00
 extern void ApplyMonsterCondition(int location_id, int condition, int arg_3);
 /* 0x00524110 */
 extern void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
-extern unsigned char TargetSourceIsCharacter(int target, int arg_2);
-extern unsigned char TargetSourceIsMonster(int target, int arg_2);
 extern char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info);
 /* 0x00546F10 */
 extern char Function546F80(W8MonsterInfo* aggressor, W8MonsterInfo* monster_info);
@@ -623,7 +621,8 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announc
    control is handed back to itself; and if the attacker is not already an
    enemy, the disposition check decides whether being hit makes them one. */
 // FUNCTION: WIZ8 0x0052beb0
-void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, int attacker, char quiet)
+void MonsterReactsToBeingStruck(
+    W8MonsterInfo* monster_info, W8TargetSource* attacker, char quiet)
 {
     StartMonsterCycle(monster_info, 0x14, 1);
 
@@ -638,16 +637,17 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, int attacker, char 
     if (!TargetSourceIsCharacter(attacker, 0) && !TargetSourceIsMonster(attacker, 0)) {
         return;
     }
-    if (*(char*)(attacker + 0x1c) == 0 && *(char*)(attacker + 0x1b) == 0 &&
-        *(char*)(attacker + 0x1e) == 0 && quiet == 0 && monster_info->condition_turns[W8_CONDITION_HOSTILE] != 0) {
+    if (attacker->fBackfire == 0 && attacker->fReflection == 0 &&
+        attacker->unknown_1d[1] == 0 && quiet == 0 &&
+        monster_info->condition_turns[W8_CONDITION_HOSTILE] != 0) {
         if (TargetSourceIsCharacter(attacker, 0)) {
-            if (MonsterVsCharDisposition(*(int*)(attacker + 4), monster_info) == 2) {
+            if (MonsterVsCharDisposition(attacker->iChar, monster_info) == 2) {
                 ApplyMonsterCondition(monster_info->location_id, 0xd, 1);
             }
         }
         else if (Function546F80(
                      MonsterInfoFromID(1570, HEALTH_STAMINA_MANA_CPP,
-                                       *(int*)(attacker + 8), 1),
+                                       attacker->iMonsterID, 1),
                      monster_info) == 2) {
             ApplyMonsterCondition(monster_info->location_id, 0xd, 1);
         }

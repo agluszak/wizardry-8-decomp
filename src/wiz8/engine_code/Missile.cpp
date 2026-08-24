@@ -13,6 +13,7 @@
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Emitter.h"
+#include "wiz8/engine_code/game_timer.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/render_state.h"
@@ -26,7 +27,6 @@
 extern int IncrementValue60DFAC(void);
 extern void ResetCombatSlot(W8CombatSlot* slot);
 extern float g_navigator_largest_extent_6081e8;
-extern srTimer* g_shared_timer_base;
 extern void DetachMissileReferences005019A0(W8Missile* missile);
 
 /* The copy body establishes only these fields. Padding remains explicit: the
@@ -360,7 +360,7 @@ unsigned char W8MissileRep::ReadCycleData004A3300(
 
     if (emitter_index != -1) {
         emitter = static_cast<signed char>(emitter_index);
-        selection.emitter.emitter_index = emitter;
+        current_cycle = emitter;
     }
     emitter_values[emitter] = animation->playback_scale_08;
     active = 1;
@@ -372,10 +372,10 @@ unsigned char W8MissileRep::ReadCycleData004A3300(
     emitters[emitter] = animation;
 
     if (missile != 0) {
-        if (SetCycleFrameLod(selection.emitter.emitter_index, 0, 2) != 0) {
+        if (SetCycleFrameLod(current_cycle, 0, 2) != 0) {
             m_bLOD = 2;
         }
-        else if (SetCycleFrameLod(selection.emitter.emitter_index, 0, 1) != 0) {
+        else if (SetCycleFrameLod(current_cycle, 0, 1) != 0) {
             m_bLOD = 1;
         }
         else {
@@ -534,7 +534,7 @@ W8EmitterHost* W8Missile::GetRepresentation()
 W8AnimObj* W8Missile::GetCurrentAnimation()
 {
     return m_pRep->emitters[
-        m_pRep->selection.emitter.emitter_index];
+        m_pRep->current_cycle];
 }
 
 /* That animation's own playback scale. */
@@ -542,14 +542,14 @@ W8AnimObj* W8Missile::GetCurrentAnimation()
 float W8Missile::GetCurrentAnimationScale()
 {
     return m_pRep->emitters[
-        m_pRep->selection.emitter.emitter_index]->playback_scale_08;
+        m_pRep->current_cycle]->playback_scale_08;
 }
 
 // FUNCTION: WIZ8 0x004a45f0
 W8AniMesh* W8Missile::GetCurrentAniMesh()
 {
     W8AnimObj* animation = m_pRep->emitters[
-        m_pRep->selection.emitter.emitter_index];
+        m_pRep->current_cycle];
 
     if (animation == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x55e, 0);
@@ -622,7 +622,7 @@ void W8Missile::SetCycle(signed char cycle)
     }
 
     lights = *m_pRep->light_lists[
-        m_pRep->selection.emitter.emitter_index].GetAt(0);
+        m_pRep->current_cycle].GetAt(0);
     if (lights != 0) {
         for (index = 0; index < lights->GetCount(); ++index) {
             stLight* light = *lights->GetAt(index);
@@ -637,7 +637,7 @@ void W8Missile::SetCycle(signed char cycle)
         }
     }
 
-    m_pRep->selection.emitter.emitter_index = cycle;
+    m_pRep->current_cycle = cycle;
     animation = m_pRep->emitters[cycle];
     m_pRep->active = 1;
     m_pRep->flag_06e = 1;

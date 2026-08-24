@@ -10,6 +10,7 @@ BOOLEAN SetMouseCursorFromVideoObject(
 void BlitToMouseCursor(
     UINT32 video_object, UINT16 region, UINT16 x, UINT16 y);
 void RefreshMouseCursorTexture(void);
+void Function00428340(void);
 extern int g_cursor_width_654ad0;
 extern int g_cursor_height_654ad4;
 extern int g_cursor_hotspot_x_6596bc;

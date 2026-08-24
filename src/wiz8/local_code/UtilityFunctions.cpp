@@ -301,10 +301,10 @@ void StripMonsterNameSuffix(W8WideChar* name)
 }
 
 // FUNCTION: WIZ8 0x00517ec0
-unsigned int CharacterPointerToPartySlot(W8Character* character)
+unsigned int CharacterPointerToPartySlot(const W8Character* character)
 {
     unsigned int slot;
-    W8Character* party_character;
+    const W8Character* party_character;
 
     if (!character->in_party) {
         srAssertFail(

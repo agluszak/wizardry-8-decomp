@@ -122,8 +122,6 @@ static srModelInstance* MakePolygonBrush(
     return instance;
 }
 
-void PositionMouseCursor(int width, int height, unsigned char reset_tick);
-
 static BOOLEAN BlitVideoObjectToColorSurface(
     UINT32 video_object, UINT16 region, srColorSurface* destination,
     UINT16 x, UINT16 y)

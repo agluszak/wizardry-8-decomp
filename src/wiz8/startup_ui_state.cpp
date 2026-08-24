@@ -6,8 +6,6 @@
 
 extern "C" {
 
-extern W8GameSettings g_settings_6850c8;
-
 unsigned char g_message_box_state_6e1240[1600];
 unsigned int g_message_box_runtime_650ea4;
 unsigned char g_flag_5ff7ca;

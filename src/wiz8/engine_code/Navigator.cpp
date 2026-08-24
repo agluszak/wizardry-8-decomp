@@ -671,7 +671,6 @@ extern float g_frame_scale_006068ec;
 extern const float g_negative_one_005ebc38;
 extern float g_navigator_snap_angle_005ec2f0;
 extern float g_navigator_mode3_scale_005ebca4;
-extern float g_float_005ebb34;
 extern unsigned char g_flag_006081e4;
 
 // FUNCTION: WIZ8 0x004526c0

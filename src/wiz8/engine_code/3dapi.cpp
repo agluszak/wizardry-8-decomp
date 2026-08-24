@@ -44,7 +44,6 @@ extern void SetValue60DFAC(void);
 extern unsigned char g_renderer_ready_00607d7c;
 extern void Function46DC90(srScene* scene);
 extern void* ReadGameData00447570(const char* path, void* parent);
-extern unsigned char InitializeGameData004497C0(W8GameData* game_data);
 extern int CheckLevelAssetSet0042CCC0(const char* level_path);
 extern void UpdateWorldMeshFromQuads004BAD40(W8World* world);
 extern void UpdateWorldMeshFromOctree004BAF50(W8World* world);

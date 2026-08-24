@@ -182,7 +182,6 @@ extern int UpdateSoundEvents004D5890(
     int subcycle);
 extern float g_float_005ec128;
 extern float g_float_005ebc64;
-extern void Function401920(const char* message);
 extern int IncrementValue60DFAC(void);
 
 /* Build the two paths used while reading a .mon resource, verify its one-byte
@@ -223,7 +222,7 @@ unsigned char LoadGrCycle004A67E0(
 
     int handle = FileOpen(mon_path, FILE_ACCESS_READ | FILE_OPEN_EXISTING, 0);
     if (handle == 0) {
-        Function401920(FormatString("Couldn't open %s", mon_path));
+        ReportError00401920(FormatString("Couldn't open %s", mon_path));
     }
 
     info.world_00 = context->world_00;
@@ -305,7 +304,7 @@ unsigned char ReadGrCycleData004A6970(
         if (object_type == 0) {
             (*cycle)->unknown_008 = IncrementValue60DFAC();
         }
-        (*cycle)->GetRepresentation()->selection.emitter.emitter_index = -1;
+        (*cycle)->GetRepresentation()->current_cycle = -1;
     }
 
     ReadVirtualFile(info->handle_04, &has_path, 1, 0);
@@ -604,16 +603,16 @@ void W8GrCycle::TickAnimation(float scale)
                             m_plsSoundEvents,
                             &position,
                             0x101,
-                            representation->selection.monster.current_cycle,
+                            representation->current_cycle,
                             representation->flag_064,
-                            representation->selection.monster.current_subcycle);
+                            representation->current_subcycle);
                     }
                     if (m_plsShakeEvents != 0) {
                         TriggerShakeEffects004AE170(
                             m_plsShakeEvents,
-                            representation->selection.monster.current_cycle,
+                            representation->current_cycle,
                             representation->flag_064,
-                            representation->selection.monster.current_subcycle,
+                            representation->current_subcycle,
                             &position);
                     }
                 } while (frames != 0);
@@ -633,12 +632,12 @@ unsigned char W8GrCycle::ApplyPendingCycle()
     W8EmitterHost* representation = GetRepresentation();
 
     if (representation != 0 &&
-        representation->selection.monster.pending_cycle != -1 &&
-        CanEnterCycle(representation->selection.monster.pending_cycle) != 0) {
+        representation->pending_cycle != -1 &&
+        CanEnterCycle(representation->pending_cycle) != 0) {
         signed char pending_cycle =
-            representation->selection.monster.pending_cycle;
+            representation->pending_cycle;
         SetCycle(pending_cycle);
-        representation->selection.monster.pending_cycle = -1;
+        representation->pending_cycle = -1;
 
         if (representation->value_066 != 0xffff) {
             unsigned char subcycle = (unsigned char)representation->value_066;
@@ -672,16 +671,16 @@ unsigned char W8GrCycle::ApplyPendingCycle()
                 m_plsSoundEvents,
                 &position,
                 0x103,
-                representation->selection.monster.current_cycle,
+                representation->current_cycle,
                 representation->flag_064,
-                representation->selection.monster.current_subcycle);
+                representation->current_subcycle);
         }
         if (m_plsShakeEvents != 0) {
             TriggerShakeEffects004AE170(
                 m_plsShakeEvents,
-                representation->selection.monster.current_cycle,
+                representation->current_cycle,
                 representation->flag_064,
-                representation->selection.monster.current_subcycle,
+                representation->current_subcycle,
                 &position);
         }
 
@@ -933,7 +932,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
     } else {
         stModelInstance005EC7D0* psrMesh =
             (stModelInstance005EC7D0*)SelectCycleFrameLod004A8360(
-                pRep->selection.monster.current_cycle,
+                pRep->current_cycle,
                 pRep->flag_064,
                 (signed char)pRep->m_bLOD);
         srNode* child;
@@ -943,7 +942,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
                 "psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x40f, 0);
         }
         AniMeshSetFlag10004B6860(
-            pRep->GetEmitterAniMesh(pRep->selection.monster.current_cycle), 1);
+            pRep->GetEmitterAniMesh(pRep->current_cycle), 1);
         *(W8AnimRepValue4*)&psrMesh->render_depth_164 = pRep->value_04c;
         if (pRep->flag_061 != 0) {
             if (pRep->value_05c == g_float_005ebb38) {
@@ -1066,7 +1065,7 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
             psrMesh = AnimObjDispatchList004A1560(animation, rep->m_bLOD, 0);
         } else {
             psrMesh = SelectCycleFrameLod004A8360(
-                rep->selection.monster.current_cycle,
+                rep->current_cycle,
                 rep->flag_064,
                 (signed char)rep->m_bLOD);
         }
@@ -1181,11 +1180,11 @@ void W8GrCycle::SelectLOD004A7BE0(const float* position)
     float dz = vecLoc.z - position[2];
     float distance = (float)sqrt(dx * dx + dy * dy + dz * dz);
     unsigned char has_lod_2 =
-        pRep->SetCycleFrameLod(pRep->selection.monster.current_cycle, 0, 2) != 0;
+        pRep->SetCycleFrameLod(pRep->current_cycle, 0, 2) != 0;
     unsigned char has_lod_1 =
-        pRep->SetCycleFrameLod(pRep->selection.monster.current_cycle, 0, 1) != 0;
+        pRep->SetCycleFrameLod(pRep->current_cycle, 0, 1) != 0;
     unsigned char has_lod_0 =
-        pRep->SetCycleFrameLod(pRep->selection.monster.current_cycle, 0, 0) != 0;
+        pRep->SetCycleFrameLod(pRep->current_cycle, 0, 0) != 0;
 
     if (has_lod_2 == 0 && has_lod_1 == 0 && has_lod_0 == 0) {
         ReportError00401920("Monster has no valid LODs!");
@@ -1255,7 +1254,7 @@ srModelInstance* W8GrCycle::GetCurrentModelInstance004A8250()
     }
 
     return SelectCycleFrameLod004A8360(
-        representation->selection.monster.current_cycle,
+        representation->current_cycle,
         representation->flag_064,
         (signed char)representation->m_bLOD);
 }

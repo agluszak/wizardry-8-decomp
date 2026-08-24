@@ -1,6 +1,7 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/magic.h"
+#include "wiz8/spell_effect.h"
 #include "wiz8/sr_api.h"
 #include "random.h"
 
@@ -38,7 +39,6 @@ extern short Function4526C0(void* position, int arg_2, double radius);
 extern void Function453F30(const srVector3T<float>* position);
 extern float Function4C7CB0(W8MonsterInfo* monster_info);
 struct W8SpellEffectEntry;
-extern struct W8SpellEffectEntry* FindMonsterControlSpellEffect(void);   /* 0x00500F30 */
 extern void ResetCombatSlot(W8CombatSlot* slot);                        /* 0x00536170 */
 extern void GetPartyPosition(srVector3T<float>* position);                     /* 0x00421070 */
 /* 0x0061EEFC: two bytes per AI kind; only the leading byte is read. */

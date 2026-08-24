@@ -23,11 +23,7 @@
 #include <string.h>
 
 /* Address quarantine 005bc811-005c433f; bounds come from adjacent
-   assertion-backed original translation-unit intervals.
-
-   This unit declares the three functions it calls itself rather than reaching
-   for quarantine_common.h: nothing here needs a type, and that header is a
-   mechanism the repository drains rather than grows. */
+   assertion-backed original translation-unit intervals. */
 
 void RequestScreenTransition(void);
 void SetPendingScreenState(int value);
@@ -36,9 +32,7 @@ void Function54B250(unsigned char notify, void* target);
 void GetSaveSlotName005D3CC0(int slot, wchar_t* name);
 unsigned char SaveSlotFileExists(const char* slot_name);
 int CountActiveCharacters(void);
-bool IsCharacterReadyToAdvance(int party_slot);
 unsigned int FindFreePartySlot(unsigned int first, unsigned int last);
-char* ConvertWideStringToString(const wchar_t* string);
 void GetScreenPoint004284F0(W8ScreenPoint* point);
 unsigned char SetValue5FF5F0(int font);
 unsigned char LoadCharacter(const char* name, W8Character* character, int slot,

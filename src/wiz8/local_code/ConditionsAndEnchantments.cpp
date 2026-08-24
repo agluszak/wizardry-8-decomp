@@ -1,4 +1,5 @@
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/screen_state.h"
@@ -59,13 +60,8 @@ extern void SetMonsterCondition(
     int location_id, int condition, int duration, int argument, W8TargetSource* target_block, int quiet);
 /* 0x00523C00 */
 extern void ClearMonsterCondition(int location_id, int condition);       /* 0x00523F40 */
-extern void SetCharacterCondition(
-    int party_slot, int condition, int duration, int argument, int arg_5, int arg_6);
 extern void RemoveCharacterCondition(int party_slot, int condition, int arg_3);
 extern void ResetTargetSource(W8TargetSource* target_block);               /* 0x00536150 */
-extern int CharacterPointerToPartySlot(const W8Character* character);
-extern unsigned int MonsterGetIndexByLocationID(
-    int caller_line, const char* caller_file, int location_id, unsigned char assert_on_failure);
 extern void NotifySpellPointsChanged(int party_slot);                    /* 0x0055EE30 */
 extern void Function4ACD80(W8Monster* monster, int slot, int arg_3);
 extern void Function50E8C0(int location_id);

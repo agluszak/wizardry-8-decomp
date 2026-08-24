@@ -267,7 +267,6 @@ int GenerateItemsFromTable(
 /* 0x00689B54: the cursor the iterator below resumes from. */
 extern int g_world_item_cursor;
 
-extern char* ConvertWideStringToString(const W8WideChar* wide);
 
 /* Bit 0x20 of the item record's flag word, which is the only bit
    ItemInfoIsWorldPersistent reads. */
@@ -465,12 +464,6 @@ extern void WorldRemoveFromList04(W8World* world);
 extern void Function49F720(const float* position);
 extern void RemoveItemFromSector(int sector, W8WorldItem* item);         /* 0x004B7B50 */
 extern void AddItemToSector(int sector, W8WorldItem* item);              /* 0x004B7AD0 */
-extern void ReplaceOrCreateItem(
-    W8ItemInstance* item,
-    int item_id,
-    unsigned char maximum_quantity,
-    unsigned char force_identified,
-    unsigned char mark_special);
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
 extern float g_world_scale_005ebc40;

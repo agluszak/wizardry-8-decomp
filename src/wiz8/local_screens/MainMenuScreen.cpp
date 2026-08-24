@@ -8,6 +8,8 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/wiz8_windows.h"
+#include "wiz8/dialog_code/DialogInterface.h"
+#include "wiz8/utility.h"
 
 #include "input.h"
 #include "english.h"
@@ -36,10 +38,6 @@ void SetValue64D8AC(unsigned long value);
 
 extern "C" {
 
-extern W8RegionSet g_region_sets[];
-extern W8Region g_regions[];
-extern unsigned int g_hot_region_689b3c;
-extern unsigned int g_hot_region_689b4c;
 extern unsigned char g_flag_68510e;
 
 
@@ -64,12 +62,10 @@ extern unsigned char ClearPrimarySurface(void);
 extern void SetViewport(int left, int top, int right, int bottom);
 extern void Function4E3620(char* text, int a, int b, int c);
 extern void UpdateHeldItemCursor(void);
-extern void* Function5CF300(int a);
+extern W8DialogInterface* Function5CF300(int a);
 extern void Function5D2CB0(int a, int b);
 extern void Function5D2800(int a, int b, int c, int d, int e, int f, int g, int h, int i);
-extern void Function5CF580(void* a, int b);
 extern unsigned char Function4298F0(void);
-extern wchar_t* ConvertStringToWide(const char* text);
 unsigned char Function5BCAB0(short item, short state);
 extern void PresentMenuOverlayFrame(void);
 extern void ReleaseLoadedVideoFrames(void);
@@ -341,7 +337,7 @@ unsigned char MainMenuScreenFunction005BC810(void)
     char text[64];
     wchar_t wide[64];
     unsigned short colour;
-    void* dialog;
+    W8DialogInterface* dialog;
     int pending;
     short measured;
 

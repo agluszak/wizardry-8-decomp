@@ -178,7 +178,6 @@ extern void Function55EE70(int reason);
 extern void UpdateHeldItemCursor(void);
 extern void Function42B3E0(void);
 extern unsigned char Function42ACE0(const char* path);
-extern void SetRegionMode4(unsigned int region);
 extern void Function5879A0(int arg_1);
 extern void Function58A790(int arg_1);
 extern void Function59F2B0(void);

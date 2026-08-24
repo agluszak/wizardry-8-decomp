@@ -42,8 +42,6 @@ extern "C" stTextureAnim* g_environment_value_0065a16c;
 extern "C" stTextureAnim* g_environment_value_0065a170;
 extern "C" srVector3T<float> g_environment_origin_65ad88;
 unsigned long g_tick_65b9a8;
-extern "C" EnvironmentColour g_environment_colours_65a178[256];
-extern "C" EnvironmentColour g_environment_colours_65ad98[256];
 /* 0x00659AB4: the world being rendered. Its sky node is the one field these
    two bodies reach, and it is the same W8World the 3d code walks. */
 

@@ -18,7 +18,6 @@
 
 extern "C" {
 extern float g_light_scale_0060bfe0;
-extern double g_double_005ebc70;
 extern unsigned char g_byte_0060bfdc;
 }
 

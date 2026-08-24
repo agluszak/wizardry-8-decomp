@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/Levels.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/game_state.h"
 #include "wiz8/screen_state.h"
@@ -66,7 +67,6 @@ void ResetRegions(void);
 unsigned char SetFlag603C60(void);
 unsigned char ClearFlag603C60(void);
 /* Engine Code\Levels.cpp owns this with C++ linkage. */
-unsigned char LoadLevel(int requested_level, int entrance, unsigned char restoring_game);
 
 extern "C" {
 
@@ -97,9 +97,6 @@ extern unsigned char SaveGame(const char* slot_name, void* screenshot);
 extern void RequestScreenTransition(void);
 extern void SetPendingScreenState(int value);
 extern void SetValue64D8AC(unsigned long value);
-class W8World;
-extern W8World* GetWorld(void);
-
 extern unsigned char g_flag_689b2c;
 
 /* 0x0064BF8C: one video-object id per level, the backdrop the Please Wait

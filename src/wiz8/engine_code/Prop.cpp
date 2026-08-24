@@ -45,7 +45,6 @@
 
 extern void* Function443830(W8World* world, W8Prop* prop);
 extern int IncrementValue60DFAC(void);
-extern const double g_zero_005ebb40;
 
 /* This byte is reset before the world Prop update and set when a collidable
    Prop rebuilds its pathing geometry.  Its three retail references establish
@@ -358,7 +357,6 @@ void W8Prop::GetCenterPosition(srVector3T<float>* position)
 
 extern srModelInstance* GetValue65962C(void);
 extern void SetValue65962C(srModelInstance* value);
-extern unsigned char g_flag_6081e4;
 
 Trigger* g_selected_prop_trigger_00659a60;
 int g_selected_prop_index_00607b98;

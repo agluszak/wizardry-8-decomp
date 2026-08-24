@@ -66,7 +66,6 @@ extern void* CreatePathState004CAE40(void);
 /* 0x00659888 accumulates every byte the loader reads, and 0x00652DB0 caches the
    game-data block LoadWorld hands back through its out parameter. */
 extern unsigned long g_octree_bytes_read_00659888;
-extern W8GameData* g_octree_game_data_00652db0;
 
 namespace {
 

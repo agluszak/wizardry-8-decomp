@@ -1,4 +1,5 @@
 #include "wiz8/screen_state.h"
+#include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/game_state.h"
 #include "wiz8/regions.h"
 #include "Font.h"
@@ -85,8 +86,6 @@ extern unsigned char InitializeVector005EEA28(void);
 extern void InitializeMenuVideoObjectCatalog(void);
 extern void Function549090(int object, int frame);
 extern unsigned short* Function5492E0(int object, int frame);
-extern void Function5CF250(int font, unsigned char enabled,
-                           unsigned char foreground, unsigned char background);
 
 int g_calligraphy_shadow_font_6835f4;
 int g_calligraphy_font_6835f8;

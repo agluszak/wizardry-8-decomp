@@ -286,8 +286,16 @@ int GetNextCharacter(
     int require_primary, int require_secondary, int previous_slot);
 int RPCPtrToPCSlot(const W8RPCSlot* rpc);
 void StripMonsterNameSuffix(W8WideChar* name);
-unsigned int CharacterPointerToPartySlot(W8Character* character);
+unsigned int CharacterPointerToPartySlot(const W8Character* character);
+void SetCharacterCondition(
+    int party_slot,
+    int condition,
+    int duration,
+    int argument,
+    int value_5,
+    int value_6);
 unsigned char IsPartyCharacterPointer(const W8Character* character);
+bool IsCharacterReadyToAdvance(int party_slot);
 int GetProfessionCasterLevel(W8Character* character, int profession_id);
 unsigned char IsCharacterSkillAvailable(
     W8Character* character,

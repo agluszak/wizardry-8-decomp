@@ -46,7 +46,6 @@
  */
 
 extern W8GrowableVector<W8TriggerEvent*> g_timed_events_006599b8;
-extern unsigned char g_flag_6081e4;
 extern void ApplyRolledHealthChangeToParty(
     const W8Dice* dice, int argument_2, int argument_3);
 extern float* RotateMatrixAroundAxis0042B910(
@@ -97,7 +96,6 @@ extern void RestorePartySpellPoints(int amount);
 extern int PointCastSpell(
     float x, float y, float z, int spell_id, unsigned int power_level);
 extern void RemoveAllConditionsFromParty(void);
-extern void GetCameraPosition(srVector3T<float>* position);
 
 extern int ApplyItemEffectToRandomCharacter0052E5C0(
     unsigned int item_id, int character_filter, int value_3, int value_4);

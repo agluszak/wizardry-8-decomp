@@ -26,7 +26,6 @@ extern unsigned char CharacterHasCondition(const W8Character* character, int con
    run 0xd4 bytes apart, so the state's leading fields are the first row's. */
 extern unsigned char g_combat_log_enabled_0068d810;
 extern const wchar_t g_combat_log_format_00617664;
-extern void ClampUnsignedInteger(unsigned int* value, unsigned int base, unsigned int span);
 extern void RoundPhaseToStep(unsigned int* actor, int round);
 extern int GetCurrentTargetingContext(int party_slot);
 extern void ClearTargetHighlights(int party_slot, const W8CombatSlot* target);
@@ -257,8 +256,6 @@ extern int MonsterActionFatigueCost(const W8MonsterInfo* monster_info);
 extern void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount, int report_to);
 extern void RoundPhaseToStep(unsigned int* phase, unsigned int base);
 extern void RequestRedraw(unsigned int mask);
-extern float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info);
-extern W8Monster* GetMonsterByLocationID(int location_id);
 extern void* g_effect_005ee610;
 extern unsigned int g_flee_hp_fraction_005ed8f8;
 extern unsigned int g_flee_chance_005ed908;

@@ -13,6 +13,7 @@
 #include "wiz8/engine_code/Emitter.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/registry_classes.h"
@@ -36,9 +37,7 @@
 extern void Function4A6E20(float value);
 extern int IncrementValue60DFAC(void);
 extern int CountSpellsOfKind(int kind);                      /* 0x004AC8F0 */
-extern void GetCameraPosition(srVector3T<float>* position);
 extern unsigned char g_master_ambient_volume_6850f6;
-extern srTimer* g_shared_timer_base;
 extern const float g_monster_rotation_offset_005ec04c;
 extern const double g_camera_pi_005ec2a0;
 extern float Function4BE420(
@@ -102,7 +101,7 @@ W8EmitterHost* W8SpellVisual::GetRepresentation()
 // FUNCTION: WIZ8 0x004ac820
 W8AnimObj* W8SpellVisual::GetCurrentAnimation()
 {
-    return this->host->emitters[this->host->selection.emitter.emitter_index];
+    return this->host->emitters[this->host->current_cycle];
 }
 
 /* That emitter's own value. */
@@ -110,14 +109,14 @@ W8AnimObj* W8SpellVisual::GetCurrentAnimation()
 float W8SpellVisual::GetCurrentAnimationScale()
 {
     return this->host->emitters[
-        this->host->selection.emitter.emitter_index]->playback_scale_08;
+        this->host->current_cycle]->playback_scale_08;
 }
 
 // FUNCTION: WIZ8 0x004ac8a0
 W8AniMesh* W8SpellVisual::GetCurrentAniMesh()
 {
     W8AnimObj* emitter = this->host->emitters[
-        this->host->selection.emitter.emitter_index];
+        this->host->current_cycle];
 
     if (emitter == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x653, 0);
@@ -194,7 +193,7 @@ void W8SpellVisual::SetCycle(signed char cycle)
     }
 
     lights = *host->light_lists[
-        host->selection.emitter.emitter_index].GetAt(0);
+        host->current_cycle].GetAt(0);
     if (lights != 0) {
         for (index = 0; index < lights->GetCount(); ++index) {
             stLight* light = *lights->GetAt(index);
@@ -209,7 +208,7 @@ void W8SpellVisual::SetCycle(signed char cycle)
         }
     }
 
-    host->selection.emitter.emitter_index = cycle;
+    host->current_cycle = cycle;
     animation = host->emitters[cycle];
     host->active = 1;
     host->flag_06e = 1;
@@ -407,8 +406,8 @@ W8SpellEmitterHost::W8SpellEmitterHost(const W8SpellEmitterHost& other)
     }
 
     active = 1;
-    selection.emitter.emitter_index =
-        other.selection.emitter.emitter_index;
+    current_cycle =
+        other.current_cycle;
 
     for (emitter = 0; emitter < 28; ++emitter) {
         int list_index;
@@ -498,7 +497,7 @@ unsigned char W8SpellEmitterHost::ReadCycleData004AB340(
 
     if (emitter_index != -1) {
         emitter = static_cast<signed char>(emitter_index);
-        selection.emitter.emitter_index = emitter;
+        current_cycle = emitter;
     }
     emitter_values[emitter] = animation->playback_scale_08;
     active = 1;
@@ -510,10 +509,10 @@ unsigned char W8SpellEmitterHost::ReadCycleData004AB340(
     emitters[emitter] = animation;
 
     if (visual != 0) {
-        if (SetCycleFrameLod(selection.emitter.emitter_index, 0, 2) != 0) {
+        if (SetCycleFrameLod(current_cycle, 0, 2) != 0) {
             m_bLOD = 2;
         }
-        else if (SetCycleFrameLod(selection.emitter.emitter_index, 0, 1) != 0) {
+        else if (SetCycleFrameLod(current_cycle, 0, 1) != 0) {
             m_bLOD = 1;
         }
         else {

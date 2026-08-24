@@ -16,7 +16,6 @@ extern "C" void NoOp(
     W8PathAI* path, W8AnimRepBase005EC1D8* representation);
 extern unsigned char Function4A4CF0(W8PathAI* path);
 extern void Function4A9FE0(W8PathAI* path, float value);
-extern float g_float_005ebb34;
 extern float g_float_005ebc38;
 extern double g_double_005ebe80;
 extern float g_float_005ec128;

@@ -3,6 +3,7 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/utility.h"
 
 /*
  * Local Code\Combat Party Movement.cpp.
@@ -19,9 +20,7 @@ enum { W8_PHASES_PER_ROUND = 100 };
 
 /* The turn phase in which the party has its own movement back. */
 enum { W8_TURN_PHASE_FREE = 3 };
-extern unsigned char g_party_moving_006850b5;
 extern float g_movement_speed_step_005ed490;
-extern void ClampUnsignedInteger(unsigned int* value, unsigned int base, unsigned int span);
 extern void SetPartyMoving(int moving);                                 /* 0x00420B40 */
 extern void ReleasePartyMovement(void);                                 /* 0x005A1890 */
 extern void HoldPartyMovement(void);                                    /* 0x005A1DD0 */

@@ -378,8 +378,6 @@ void ToggleAmbientSoundByName0047AA70(int /* unused */, const char* name)
     }
 }
 
-extern unsigned char ReadTextLine004CEE40(
-    int handle, char* destination, int capacity, unsigned char* more);
 extern int PlaySoundConfigured00408D60(const char* path, int* options);
 extern "C" unsigned char Function4098D0(int size);
 extern "C" void SetMasterSoundVolume(unsigned int volume);

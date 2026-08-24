@@ -13,11 +13,7 @@
 
 /* 0x005080F0, reviewed in evidence/reviewed/wiz8/claims.csv. */
 extern unsigned char EvaluateFact(int fact_id);
-/* Not yet identified; named by address as elsewhere in src/wiz8. 0x0058AAD0 is a
-   wide-string logger taking a channel, 0x0055A0A0 and 0x00524CA0 tear down an
-   NPC item list. */
-extern void Function58AAD0(int channel, const wchar_t* format, const char* name,
-                           const wchar_t* text);
+/* 0x0055A0A0 and 0x00524CA0 tear down an NPC item list. */
 extern void Function55A0A0(int handle);
 extern void Function524CA0(W8NPCItemList* list);
 /* Provisional semantic name for the journal/notification path at 0x005588f0. */
@@ -167,8 +163,8 @@ static __inline unsigned char CheckFactLogged(int fact_id)
         } else {
             wcscpy(text, L"FALSE");
         }
-        Function58AAD0(5, L"Checking fact %S which is %s",
-                       g_fact_records[fact_id].symbolic_name, text);
+        WriteGameLog(5, L"Checking fact %S which is %s",
+                     g_fact_records[fact_id].symbolic_name, text);
     }
     return value;
 }

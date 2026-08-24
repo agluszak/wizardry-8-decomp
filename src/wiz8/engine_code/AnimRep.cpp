@@ -1,9 +1,9 @@
 #include "surrender/srTimer.h"
 #include "wiz8/engine_code/Emitter.h"
+#include "wiz8/engine_code/game_timer.h"
 #include "wiz8/geometry.h"
 #include "wiz8/sr_api.h"
 
-extern srTimer* g_shared_timer_base;
 extern float g_lod_range_default_0060e608;
 extern float g_lod_range_default_0060e60c;
 
@@ -224,10 +224,10 @@ W8EmitterHost::W8EmitterHost(const W8EmitterHost& other)
     m_bLOD = other.m_bLOD;
     lod_range_09c = other.lod_range_09c;
     lod_range_0a0 = other.lod_range_0a0;
-    selection.emitter.emitter_index = 0;
-    selection.emitter.emitter_subindex = 0;
-    selection.emitter.emitter_value_a6 = 0xff;
-    selection.emitter.emitter_value_a7 = -1;
+    current_cycle = 0;
+    current_subcycle = 0;
+    selection_value_0a6 = -1;
+    pending_cycle = -1;
     value_0a8 = other.value_0a8;
 }
 
@@ -237,10 +237,10 @@ W8EmitterHost::W8EmitterHost()
     m_bLOD = 0;
     lod_range_09c = g_lod_range_default_0060e608;
     lod_range_0a0 = g_lod_range_default_0060e60c;
-    selection.emitter.emitter_index = 0;
-    selection.emitter.emitter_subindex = 0;
-    selection.emitter.emitter_value_a6 = 0xff;
-    selection.emitter.emitter_value_a7 = -1;
+    current_cycle = 0;
+    current_subcycle = 0;
+    selection_value_0a6 = -1;
+    pending_cycle = -1;
     value_0a8 = 0;
 }
 

@@ -44,7 +44,6 @@ extern float g_camera_transition_speed_65a0f4;
 extern float g_camera_max_yaw_velocity_609ea4;
 extern float g_camera_level_forward_scale_603aac;
 extern unsigned char g_flag_006875a5;
-extern "C" void MarkRendererReady(void);
 extern float Function4BE420(
     const srVector3T<float>* from, const srVector3T<float>* to);
 extern float Function4BE490(

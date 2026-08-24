@@ -25,7 +25,6 @@ extern void ExpandBounds0046F510(
     const srVector3T<float>* candidate_minimum,
     const srVector3T<float>* candidate_maximum);
 extern double g_double_005ebe80;
-extern float g_float_005ebb34;
 extern "C" int g_storage_state_65be80;
 extern "C" int g_storage_state_65be84;
 extern "C" int g_storage_limit_65be88;

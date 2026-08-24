@@ -485,7 +485,6 @@ bool CombatHasCondition(int condition_id)
     return false;
 }
 
-extern int CharacterPointerToPartySlot(const W8Character* character);
 extern void Function4E7CC0(
     int party_slot, int arg_2, int arg_3, void* arg_4, int arg_5, int arg_6);
 extern W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context);
@@ -1120,10 +1119,8 @@ bool CanPartySlotUseRecordedItem(int party_slot)
     return true;
 }
 
-extern W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
 extern wchar_t* GetMonsterName(
     W8MonsterInfo* monster_info, W8MonsterRecord* record, char arg_3);
-extern void FormatDebugMessage(int channel, const char* format, ...);
 
 /* The spell id that stands for no monster spell. */
 enum { W8_MONSTER_SPELL_NONE = 0x77 };
@@ -1705,8 +1702,6 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
 
 /* The target block and the source block are the same struct, so the two
    predicates Targeting.cpp declares over a source answer for a target too. */
-extern unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect);
-extern unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect);
 extern wchar_t* GetMonsterGroupName(W8MonsterGroup* group);              /* 0x00510280 */
 extern W8WideChar* FormatItemDisplayName(
     const W8ItemInstance* item, unsigned char include_quantity);

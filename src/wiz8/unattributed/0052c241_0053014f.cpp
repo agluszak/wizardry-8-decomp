@@ -1,4 +1,5 @@
 #include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/game_state.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/startup_runtime_state.h"
@@ -29,7 +30,6 @@ extern unsigned char Function525DD0(void);
 extern void Function52E4D0(W8StartupStateElement005EE748* entry);
 extern void Function52E160(W8StartupStateElement005EE748* entry);
 extern void Function52CA60(void);
-extern W8GameSettings g_settings_6850c8;
 extern int g_special_event_0068c504;
 extern int g_special_event_0068c50c;
 extern int g_special_event_0068c51c;

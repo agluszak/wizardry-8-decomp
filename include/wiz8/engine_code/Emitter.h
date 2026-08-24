@@ -119,24 +119,14 @@ public:
        are compared. 0x004A7BE0 reads both with fmul, which types them. */
     float lod_range_09c;
     float lod_range_0a0;
-    /* The shared emitter host treats this as an emitter/sub-entry quartet.
-       MonsterRep gives the same four bytes the cycle meanings witnessed by
-       Monster.cpp.  Keeping both views here models the real inherited storage
-       instead of inventing a second runtime object at Monster +0x18. */
-    union {
-        struct {
-            signed char emitter_index;       /* 0xa4 */
-            unsigned char emitter_subindex;  /* 0xa5 */
-            unsigned char emitter_value_a6;  /* 0xa6 */
-            signed char emitter_value_a7;    /* 0xa7 */
-        } emitter;
-        struct {
-            signed char current_cycle;       /* 0xa4 */
-            signed char current_subcycle;    /* 0xa5 */
-            signed char runtime_value_a6;    /* 0xa6 */
-            signed char pending_cycle;       /* 0xa7 */
-        } monster;
-    } selection;
+    /* W8GrCycle itself reads these inherited bytes as the common selected
+       cycle/subcycle and pending cycle. Missile and Spell use current_cycle
+       for the same role; there is no separate Monster view. Only +0xa6 stays
+       positional until behavior outside Monster establishes its meaning. */
+    signed char current_cycle;          /* 0xa4 */
+    signed char current_subcycle;       /* 0xa5 */
+    signed char selection_value_0a6;    /* 0xa6 */
+    signed char pending_cycle;          /* 0xa7 */
     float value_0a8;
 };                                       /* 0xac */
 

@@ -10,7 +10,6 @@
 
 extern "C" {
 
-extern void Function54B560(void);
 
 W8GameSettings g_settings_6850c8;
 unsigned int g_master_sound_volume_5ff644;
