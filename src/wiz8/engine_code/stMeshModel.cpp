@@ -35,7 +35,7 @@ int stMeshModel::FindMappedIndex(short key)
 }
 
 /* Link one model onto another, setting both ends - so the two pointers are one
-   link rather than two independent fields. Unlinking passes nothing. */
+   link rather than two independent  Unlinking passes nothing. */
 // FUNCTION: WIZ8 0x00471d60
 void stMeshModel::LinkTo(stMeshModel* other)
 {

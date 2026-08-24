@@ -364,7 +364,7 @@ void SetUpMonsterTurn(W8MonsterInfo* monster_info)
     float scale;
 
     if (monster_info->pCombat->turn_started != 0) {
-        monster_info->monster->fields.movement_complete_026 = 0;
+        monster_info->monster->movement_complete_026 = 0;
         return;
     }
 
@@ -388,9 +388,9 @@ void SetUpMonsterTurn(W8MonsterInfo* monster_info)
 
     SetMonsterTurnSpeed(speed * scale * g_movement_speed_step_005ed490);
     /* Four bytes inside cycle eight's block, cleared together. */
-    monster_info->monster->fields.movement_0c0.callback_progress_05c = 0.0f;
+    monster_info->monster->movement_0c0.callback_progress_05c = 0.0f;
     monster_info->pCombat->turn_started = 1;
-    monster_info->monster->fields.movement_complete_026 = 0;
+    monster_info->monster->movement_complete_026 = 0;
 }
 
 /* Finish one monster's attack: charge it the fatigue, drop the party's

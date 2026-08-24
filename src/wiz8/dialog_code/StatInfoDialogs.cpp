@@ -13,7 +13,7 @@ static const char STAT_INFO_DIALOGS_CPP[] =
 enum { ATTR_COUNT = 7 };
 
 /* Per-attribute lookup tables. Each dialog reads its own pair, widening the
-   16-bit entries into its 32-bit fields. */
+   16-bit entries into its 32-bit  */
 extern unsigned short g_attr_table_61E3A4[];
 extern unsigned short g_attr_table_61E4FC[];
 extern unsigned short g_attr_table_61E3C4[];

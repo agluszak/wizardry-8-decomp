@@ -12,7 +12,7 @@
 #define GAMEPLAY_CODE_CPP "C:\\Projects\\Wizardry 8\\Local Code\\GameplayCode.cpp"
 
 /* PROF_COUNT and PC_RACE_COUNT, both named by the assertions that bound their
-   fields. */
+    */
 enum { W8_PROF_COUNT = 15, W8_PC_RACE_COUNT = 11 };
 
 /* How much one level in a profession is worth towards physical combat

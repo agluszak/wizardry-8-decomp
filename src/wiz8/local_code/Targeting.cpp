@@ -995,7 +995,7 @@ void CollectMonstersWithinRadius(
         dy = centre->y - position.y;
         dz = centre->z - position.z;
 
-        if (radius < (float)sqrt(dx * dx + dy * dy + dz * dz) - monster->fields.radius_084) {
+        if (radius < (float)sqrt(dx * dx + dy * dy + dz * dz) - monster->radius_084) {
             if (highlighting != 0) {
                 SetMonsterHighlightColour(monster, 0.0f, 0.0f, 0.0f, 0.0f);
             }

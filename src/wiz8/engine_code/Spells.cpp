@@ -533,7 +533,7 @@ W8SpellVisual::W8SpellVisual()
       value_1e8(1.0f),
       value_1ec(0)
 {
-    unknown_004 = 1;
+    W8GrObject::unknown_004 = 1;
     unknown_008 = IncrementValue60DFAC();
     host = new W8SpellEmitterHost;
     if (host == 0) {

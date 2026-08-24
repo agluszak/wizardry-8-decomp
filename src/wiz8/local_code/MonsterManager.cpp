@@ -240,7 +240,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
             }
             MonsterSetSubCycle(monster_info->monster, 0);
             MonsterSetAnimating(monster_info->monster, 0);
-            monster_info->monster->fields.state_088 = 0;
+            monster_info->monster->state_088 = 0;
             monster_info->monster->flag_215 = 1;
         }
         else {
@@ -264,7 +264,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
         MonsterSetFacing004C5B60(
             monster_info->monster, monster_info->derived_23);
         Function50E8C0(monster_info->location_id);
-        monster_info->monster->fields.movement_0c0.value_008 =
+        monster_info->monster->movement_0c0.value_008 =
             static_cast<unsigned int>(record->missile_value_24f) * 0x10000U +
             monster_info->location_id;
         MonsterPropagateValue004C5870(
@@ -321,7 +321,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
     RequestRefreshPartyState();
     Function593330();
     if (record->unknown_0c0[0] != 0) {
-        monster_info->monster->fields.movement_0c0.unknown_000 |= 0x10000000;
+        monster_info->monster->movement_0c0.unknown_000 |= 0x10000000;
     }
     Function509CD0(
         record->unknown_0cd[0], 1, monster_info->location_id);
@@ -412,7 +412,7 @@ void Function4E4600(W8MonsterInfo* monster_info)
         srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x2f7, 0);
     }
     Function4C5B10(monster_info->monster, 0);
-    monster_info->monster->fields.flags_00c &= 0xdfffffff;
+    monster_info->monster->flags_00c &= 0xdfffffff;
     MonsterForward4537E0(monster_info->monster);
     if (monster_info->motionless == 0) {
         result = MonsterQuery(monster_info->monster, 6);
@@ -922,7 +922,7 @@ void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state)
     case 0:
     case 2:
         if (monster_info->control_state == 1 &&
-            monster_info->monster->fields.linked_navigator_05c == 0) {
+            monster_info->monster->linked_navigator_05c == 0) {
             Function4537E0(monster_info->monster);
             monster_info->flag_255 = 0;
         }
@@ -987,7 +987,7 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
     }
     MonsterSetSubCycle(monster_info->monster, 0);
     MonsterSetAnimating(monster_info->monster, 1);
-    monster_info->monster->fields.state_088 = 1;
+    monster_info->monster->state_088 = 1;
     monster_info->monster->flag_215 = 0;
 }
 
@@ -1374,8 +1374,8 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         monster_info->value_107 = 0x12;
         monster_info->hp_current = 0;
         monster_info->runtime_stat_current_33 = 0;
-        monster_info->monster->fields.state_088 = 0;
-        monster_info->monster->fields.flags_00c = 0x200000;
+        monster_info->monster->state_088 = 0;
+        monster_info->monster->flags_00c = 0x200000;
         Function4ACF90(monster_info->monster);
         ReleaseMonToMonVisibilityList(monster_info);
         Function4C5750(monster_info->monster, &position);
@@ -1417,7 +1417,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
         srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x2f7, 0);
     }
     Function4C5B10(monster_info->monster, 0);
-    monster_info->monster->fields.flags_00c &= 0xdfffffff;
+    monster_info->monster->flags_00c &= 0xdfffffff;
     MonsterForward4537E0(monster_info->monster);
     if (monster_info->motionless == 0) {
         query_state = MonsterQuery(monster_info->monster, 6);
@@ -1438,7 +1438,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
     }
     ResetCombatSlot(&monster_info->combat_slot_2ba);
     MonsterSetRuntimeFlag5BC(monster_info->monster, 0);
-    monster_info->monster->fields.flags_00c = 0;
+    monster_info->monster->flags_00c = 0;
     if (monster_info->flag_16 == 1) {
         Function546E70();
     }

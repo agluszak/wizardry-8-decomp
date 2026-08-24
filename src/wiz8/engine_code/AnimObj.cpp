@@ -863,7 +863,7 @@ void* AnimObjEntry004A1660(
 
 /* Type-two light definitions own four synchronized keyframe vectors.  The
    clone iterates the second vector's count, which is the retail authority for
-   the shared extent, then copies the four scalar playback fields. */
+   the shared extent, then copies the four scalar playback  */
 // FUNCTION: WIZ8 0x004a2230
 stLightDefinition* stLightDefinition005ECDA0::Clone() const
 {

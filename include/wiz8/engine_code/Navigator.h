@@ -196,11 +196,11 @@ public:
     /* Monster.cpp's 0x004C3F00 reads a byte where maximum_078.z sits. */
     signed char animationIndex() const
     {
-        return *reinterpret_cast<const signed char*>(&fields.maximum_078.z);
+        return *reinterpret_cast<const signed char*>(&maximum_078.z);
     }
 
 public:
-    /* Monster.cpp reaches this payload as a secondary base through
+    /* Monster.cpp reaches this state as a secondary base through
        `lea ecx,[monster+0x18]`. It used to be unioned with an unsigned int[98]
        dword view, because the recovered constructor wrote it as a memset plus
        indexed stores. The retail constructor contains no memset and constructs
@@ -208,60 +208,59 @@ public:
        a body that does not exist - and while it existed it made this a union
        member, which C++98 forbids from having a constructor or destructor and
        which therefore blocked both of the movement tail's special members. */
-    struct Fields {
-            unsigned char unknown_004;
-            unsigned char unknown_005[3];
-            int navigation_mode_008;
-            unsigned int flags_00c;
-            double collision_margin_010;
-            /* Used both as a movement target and, by Monster.cpp, as three
-               loose dwords. It was an anonymous union until movement_0c0 gained
-               a constructor, which VC6 will not generate for a struct holding
-               one. The float view is the declared one; the dword uses spell out
-               their reinterpretation. */
-            srVector3T<float> movement_target_018;
-            unsigned char flag_024;
-            unsigned char flag_025;
-            unsigned char movement_complete_026;
-            unsigned char unknown_027;
-            srVector3T<float> position_028;
-            float minimum_height_034;
-            float maximum_height_038;
-            srVector3T<float> position_03c;
-            unsigned int unknown_048;
-            W8Navigator* target_navigator_04c;
-            srVector3T<float> target_last_position_050;
-            W8Navigator* linked_navigator_05c;
-            unsigned int unknown_060;
-            unsigned int unknown_064;
-            W8PathAI* path_ai_068;
-            /* 0x00451EC0 fills these as -500 and +500 triples, which is what
-               makes them a pair rather than five loose floats. Note that
-               maximum_078.z overlaps the byte Monster.cpp reads at +0x80 as an
-               animation index; animationIndex() spells that access out rather
-               than declaring a field the constructor contradicts. */
-            srVector3T<float> minimum_06c;
-            srVector3T<float> maximum_078;
-            float radius_084;
-            unsigned char state_088;
-            unsigned char unknown_089[3];
-            void (__cdecl *movement_callback_08c)(W8Navigator* navigator);
-            unsigned int unknown_090;
-            unsigned int unknown_094;
-            unsigned int unknown_098;
-            unsigned char position_dirty_09c;
-            unsigned char unknown_09d[3];
-            W8NavigatorOwned0A0* owned_object_0a0;
-            srVector3T<float> tracked_position_0a4;
-            float tracked_distance_0b0;
-            unsigned char tracked_dirty_0b4;
-            unsigned char unknown_0b5[3];
-            int linked_update_time_0b8;
-            unsigned char unknown_0bc[4];
-            W8NavigatorMovementState movement_0c0;
-    };
-
-    Fields fields;
+    unsigned char unknown_004;
+    unsigned char unknown_005[3];
+    int navigation_mode_008;
+    unsigned int flags_00c;
+    double collision_margin_010;
+    /* Used both as a movement target and, by Monster.cpp, as three
+       loose dwords. It was an anonymous union until movement_0c0 gained
+       a constructor, which VC6 will not generate for a struct holding
+       one. The float view is the declared one; the dword uses spell out
+       their reinterpretation. */
+    srVector3T<float> movement_target_018;
+    unsigned char flag_024;
+    unsigned char flag_025;
+    unsigned char movement_complete_026;
+    unsigned char unknown_027;
+    srVector3T<float> position_028;
+    float minimum_height_034;
+    float maximum_height_038;
+    srVector3T<float> position_03c;
+    unsigned int unknown_048;
+    W8Navigator* target_navigator_04c;
+    srVector3T<float> target_last_position_050;
+    W8Navigator* linked_navigator_05c;
+    unsigned int unknown_060;
+    unsigned int unknown_064;
+    W8PathAI* path_ai_068;
+    /* 0x00451EC0 fills these as -500 and +500 triples, which is what
+       makes them a pair rather than five loose floats. Note that
+       maximum_078.z overlaps the byte Monster.cpp reads at +0x80 as an
+       animation index; animationIndex() spells that access out rather
+       than declaring a field the constructor contradicts. */
+    srVector3T<float> minimum_06c;
+    srVector3T<float> maximum_078;
+    float radius_084;
+    unsigned char state_088;
+    unsigned char unknown_089[3];
+    void (__cdecl *movement_callback_08c)(W8Navigator* navigator);
+    unsigned int unknown_090;
+    unsigned int unknown_094;
+    unsigned int unknown_098;
+    unsigned char position_dirty_09c;
+    unsigned char unknown_09d[3];
+    W8NavigatorOwned0A0* owned_object_0a0;
+    srVector3T<float> tracked_position_0a4;
+    float tracked_distance_0b0;
+    unsigned char tracked_dirty_0b4;
+    unsigned char unknown_0b5[3];
+    int linked_update_time_0b8;
+    unsigned char unknown_0bc[4];
+    W8NavigatorMovementState movement_0c0;
     srNode* node_18c;                    /* 0x18c: constructed srNode */
 };                                      /* 0x190 */
 #pragma pack(pop)
+
+static_assert(sizeof(W8Navigator) == 0x190,
+              "W8Navigator_size_must_be_0x190");

@@ -407,16 +407,16 @@ W8Missile::W8Missile()
       value_1f4(0),
       flag_322(0)
 {
-    unknown_004 = 1;
-    fields.radius_084 = 1.0f;
+    W8GrObject::unknown_004 = 1;
+    radius_084 = 1.0f;
     if (g_navigator_largest_extent_6081e8 < 1.0f) {
         g_navigator_largest_extent_6081e8 = 1.0f;
     }
-    fields.movement_0c0.value_0b0 = 1.0f;
+    movement_0c0.value_0b0 = 1.0f;
     if (g_navigator_largest_extent_6081e8 < 1.0f) {
         g_navigator_largest_extent_6081e8 = 1.0f;
     }
-    fields.movement_0c0.alternate_radius_0b4 = 1.0f;
+    movement_0c0.alternate_radius_0b4 = 1.0f;
     if (g_navigator_largest_extent_6081e8 < 1.0f) {
         g_navigator_largest_extent_6081e8 = 1.0f;
     }

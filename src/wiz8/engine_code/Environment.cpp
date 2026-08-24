@@ -445,7 +445,7 @@ void GetLightDirection(int* direction)
 /* The ambient light the world contributes, or nothing at all when the world's
    own gate at 0x3c is clear. Both assertions belong to this body: line 616
    names the world and line 617 names the out-parameter pLightValue, which is
-   what makes the three writes a colour triple rather than three fields. */
+   what makes the three writes a colour triple rather than three  */
 // FUNCTION: WIZ8 0x004839e0
 void GetWorldLightValue(const void* world, int* light_value)
 {

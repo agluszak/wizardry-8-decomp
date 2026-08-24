@@ -918,9 +918,9 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             if (path != 0) {
                 PathAIApply004AA520(path, psrMesh);
             }
-            vecPos = fields.movement_0c0.position_040;
+            vecPos = movement_0c0.position_040;
             location.x = vecPos.x;
-            location.y = vecPos.y + fields.movement_0c0.vertical_offset_0c0;
+            location.y = vecPos.y + movement_0c0.vertical_offset_0c0;
             location.z = vecPos.z;
             psrMesh->setLocation(location);
             pRep->GetRotation004B88F0(&rotation);
@@ -952,9 +952,9 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
                 psrMesh->scale_1a4 = pRep->value_05c;
             }
         }
-        vecPos = fields.movement_0c0.position_040;
+        vecPos = movement_0c0.position_040;
         location.x = vecPos.x;
-        location.y = vecPos.y + fields.movement_0c0.vertical_offset_0c0;
+        location.y = vecPos.y + movement_0c0.vertical_offset_0c0;
         location.z = vecPos.z;
         pRep->GetRotation004B88F0(&rotation);
         child = psrMesh->firstChild();
@@ -992,9 +992,9 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         if (AnimationIsRunning(animation) == 1) {
             pRep->GetLocation004B8890(&origin);
         } else {
-            vecPos = fields.movement_0c0.position_040;
+            vecPos = movement_0c0.position_040;
             origin.x = vecPos.x;
-            origin.y = vecPos.y + fields.movement_0c0.vertical_offset_0c0;
+            origin.y = vecPos.y + movement_0c0.vertical_offset_0c0;
             origin.z = vecPos.z;
         }
         pRep->GetRotation004B88F0(&rotation);

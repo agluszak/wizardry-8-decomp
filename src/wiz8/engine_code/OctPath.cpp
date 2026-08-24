@@ -1242,7 +1242,7 @@ void W8PathingService::AdjustFinalPathEndpoint00465D70(
     srVector3T<float> target_position;
     if (target_location <= 0) {
         target_radius = g_startup_world_659c0c->
-            fields.movement_0c0.alternate_radius_0b4;
+            movement_0c0.alternate_radius_0b4;
         target_position = g_startup_world_659c0c->GetPosition();
     }
     else {
@@ -1252,7 +1252,7 @@ void W8PathingService::AdjustFinalPathEndpoint00465D70(
             MonsterGetScriptPartByLocationIndex(monster_index);
         if (info != 0 && info->monster != 0) {
             target_radius = info->monster->
-                fields.movement_0c0.alternate_radius_0b4;
+                movement_0c0.alternate_radius_0b4;
             target_position = info->monster->GetPosition();
         }
     }
@@ -1445,7 +1445,7 @@ unsigned int W8PathingService::CollectPathProbes004656A0(
     float distance = (float)sqrt(
         delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
     float player_radius = g_startup_world_659c0c->
-        fields.movement_0c0.alternate_radius_0b4;
+        movement_0c0.alternate_radius_0b4;
     float overlap_radius = radius;
     if (player_radius < radius) {
         overlap_radius = player_radius;
@@ -1471,7 +1471,7 @@ unsigned int W8PathingService::CollectPathProbes004656A0(
             W8MonsterInfo* info =
                 MonsterGetScriptPartByLocationIndex(monster_index);
             if (info != 0 && info->monster != 0 &&
-                info->monster->fields.state_088 != 0) {
+                info->monster->state_088 != 0) {
                 W8Monster* monster = info->monster;
                 srVector3T<float> monster_position = monster->GetPosition();
                 delta_x = monster_position.x - movement->position_040.x;
@@ -1481,7 +1481,7 @@ unsigned int W8PathingService::CollectPathProbes004656A0(
                     delta_x * delta_x + delta_y * delta_y +
                     delta_z * delta_z);
                 float monster_radius = monster->
-                    fields.movement_0c0.alternate_radius_0b4;
+                    movement_0c0.alternate_radius_0b4;
                 overlap_radius = radius;
                 if (monster_radius < radius) {
                     overlap_radius = monster_radius;
@@ -1946,9 +1946,9 @@ unsigned short W8PathingService::PlanMovement00463460(
             attachment->position_4c[attachment->path_position_index_08];
         g_octree_6598a4->QueueOctreeKind130042E810(
             movement->location_id_004, &movement->position_040);
-        g_startup_world_659c0c->fields.radius_084 =
+        g_startup_world_659c0c->radius_084 =
             g_startup_world_659c0c->
-                fields.movement_0c0.alternate_radius_0b4;
+                movement_0c0.alternate_radius_0b4;
         attachment->flags_00 &= 0xfffffff0;
         if (flag_1cb != 0 && m_owned_054 != 0) {
             BuildSearchVisualization0045CFD0();
@@ -2076,8 +2076,8 @@ unsigned short W8PathingService::PlanMovement00463460(
     }
     attachment->flags_00 &= 0xfffffff0;
     attachment->flags_00 |= result;
-    g_startup_world_659c0c->fields.radius_084 =
-        g_startup_world_659c0c->fields.movement_0c0.alternate_radius_0b4;
+    g_startup_world_659c0c->radius_084 =
+        g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
     return result;
 }
 
@@ -2173,7 +2173,7 @@ unsigned short W8PathingService::ResolveSearchNodeCollisions00465130(
     float distance_squared =
         delta_x * delta_x + delta_y * delta_y + delta_z * delta_z;
     float threshold = g_startup_world_659c0c->
-        fields.movement_0c0.alternate_radius_0b4 + radius;
+        movement_0c0.alternate_radius_0b4 + radius;
     if (movement->value_010 == 0) {
         threshold += separation;
     }
@@ -2229,7 +2229,7 @@ unsigned short W8PathingService::ResolveSearchNodeCollisions00465130(
             0x262b, OCTPATH_CPP, location_id, 1);
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(monster_index);
         if (info == 0 || info->monster == 0 ||
-            info->monster->fields.state_088 == 0) {
+            info->monster->state_088 == 0) {
             continue;
         }
 
@@ -2241,7 +2241,7 @@ unsigned short W8PathingService::ResolveSearchNodeCollisions00465130(
         distance_squared =
             delta_x * delta_x + delta_y * delta_y + delta_z * delta_z;
         float distance = (float)sqrt(distance_squared);
-        threshold = monster->fields.movement_0c0.alternate_radius_0b4 + radius;
+        threshold = monster->movement_0c0.alternate_radius_0b4 + radius;
         if (location_id == movement->value_010 && flag_09c == 0) {
             threshold += separation;
         }
@@ -2436,11 +2436,11 @@ unsigned short W8PathingService::ConfigureMovementSearch00464B00(
         float target_radius;
         if (target_location == 0) {
             target_radius = g_startup_world_659c0c->
-                fields.movement_0c0.alternate_radius_0b4;
+                movement_0c0.alternate_radius_0b4;
         }
         else {
             W8Monster* target = GetMonsterByLocationID(target_location);
-            target_radius = target->fields.movement_0c0.alternate_radius_0b4;
+            target_radius = target->movement_0c0.alternate_radius_0b4;
         }
 
         if (horizontal_clearance - target_radius <= separation &&

@@ -511,7 +511,7 @@ void W8MonsterGenerator::Save(int handle)
 
 /* Reads one generator back. The leading byte is a record version: from 3 the
    name and its trailing flag are stored too, below that they are not, and the
-   two paths converge on the same eight common fields. Every read is chained
+   two paths converge on the same eight common  Every read is chained
    through the same conjunction, so the first failure abandons the rest and the
    record is reported bad; the timer is rearmed either way, and the armed bit is
    always cleared on the way out so a loaded generator starts disarmed. */

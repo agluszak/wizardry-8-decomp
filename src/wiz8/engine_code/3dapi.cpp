@@ -128,7 +128,7 @@ void ConstructWorldCollections(W8World* world)
 
 /* Load the renderer-facing half of one level. The subordinate OCT, game-data,
    and ReadLevel parsers remain their original owners; this routine establishes
-   their order, inputs, and rollback-visible world fields. */
+   their order, inputs, and rollback-visible world  */
 // FUNCTION: WIZ8 0x0044F5F0
 unsigned char LoadWorld(
     W8World* world, char* level_file_name, const char* level_folder,

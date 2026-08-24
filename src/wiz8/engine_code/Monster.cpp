@@ -657,19 +657,19 @@ unsigned char MonsterReadAllCycles004C0300(
 
     if (walk_radius != 0.0f) {
         walk_radius *= g_world_scale_005ebc40;
-        (*monster)->fields.movement_0c0.value_0b0 = walk_radius;
+        (*monster)->movement_0c0.value_0b0 = walk_radius;
     }
     if (fight_radius != 0.0f) {
         fight_radius *= g_world_scale_005ebc40;
-        (*monster)->fields.movement_0c0.alternate_radius_0b4 = fight_radius;
+        (*monster)->movement_0c0.alternate_radius_0b4 = fight_radius;
     }
     if (target_height != 0.0f) {
         target_height *= g_world_scale_005ebc40;
         if (target_height < 250.0f) target_height = 250.0f;
-        (*monster)->fields.movement_0c0.height_offset_0b8 = target_height;
+        (*monster)->movement_0c0.height_offset_0b8 = target_height;
     }
     if (camera_height != 0.0f) {
-        (*monster)->fields.movement_0c0.secondary_height_offset_0bc =
+        (*monster)->movement_0c0.secondary_height_offset_0bc =
             camera_height * g_world_scale_005ebc40;
     }
 
@@ -717,7 +717,7 @@ unsigned char MonsterReadAllCycles004C0300(
     if (shadow_width != 0.0f) {
         if (shadow_width < 0.0f) {
             shadow_width =
-                (*monster)->fields.movement_0c0.value_0b0 * 0.75f;
+                (*monster)->movement_0c0.value_0b0 * 0.75f;
         }
         if (shadow_depth == 0.0f) shadow_depth = shadow_width;
         (*monster)->CreateGroundShadow(
@@ -732,11 +732,11 @@ unsigned char MonsterReadAllCycles004C0300(
         representation->monster_light_624 = new MonsterLight(
             g_world->dynamic_scene,
             light_pulsing,
-            (*monster)->fields.movement_0c0.value_0b0 * 0.1f,
+            (*monster)->movement_0c0.value_0b0 * 0.1f,
             &light_first,
             &light_second);
         representation->monster_light_624->m_vertical_offset_228 =
-            (*monster)->fields.movement_0c0.height_offset_0b8;
+            (*monster)->movement_0c0.height_offset_0b8;
     }
 
     representation->current_subcycle = 0;
@@ -759,8 +759,8 @@ unsigned char MonsterReadAllCycles004C0300(
     (*monster)->SetNavigationMode(navigation_mode);
     if (spice_monster != 0) {
         (*monster)->flags_330.copied_flag_02 = 1;
-        (*monster)->fields.owned_object_0a0 = 0;
-        (*monster)->fields.movement_0c0.pitch_enabled_074 = 0;
+        (*monster)->owned_object_0a0 = 0;
+        (*monster)->movement_0c0.pitch_enabled_074 = 0;
     }
 
     (*monster)->RandomizeAppearanceAndMotion004C1D20();
@@ -877,28 +877,28 @@ void W8Monster::RandomizeAppearanceAndMotion004C1D20()
         }
     }
 
-    fields.movement_0c0.vertical_base_07c =
+    movement_0c0.vertical_base_07c =
         ((value_220 - value_21c) * (float)Random(1000) *
              g_monster_script_time_scale_005ec128 +
          value_21c) *
         g_world_scale_005ebc40;
-    fields.movement_0c0.vertical_amplitude_080 =
+    movement_0c0.vertical_amplitude_080 =
         ((value_228 - value_224) * (float)Random(1000) *
              g_monster_script_time_scale_005ec128 +
          value_224) *
         g_world_scale_005ebc40;
-    fields.movement_0c0.vertical_phase_084 =
+    movement_0c0.vertical_phase_084 =
         (float)Random(1000) * g_monster_script_time_scale_005ec128;
-    fields.movement_0c0.vertical_offset_0c0 =
+    movement_0c0.vertical_offset_0c0 =
         (float)sin(
-            (double)fields.movement_0c0.vertical_phase_084 *
+            (double)movement_0c0.vertical_phase_084 *
             g_double_005ec318) *
-            fields.movement_0c0.vertical_amplitude_080 +
-        fields.movement_0c0.vertical_base_07c;
-    fields.movement_0c0.height_offset_0b8 +=
-        fields.movement_0c0.vertical_base_07c;
-    fields.movement_0c0.secondary_height_offset_0bc +=
-        fields.movement_0c0.vertical_base_07c;
+            movement_0c0.vertical_amplitude_080 +
+        movement_0c0.vertical_base_07c;
+    movement_0c0.height_offset_0b8 +=
+        movement_0c0.vertical_base_07c;
+    movement_0c0.secondary_height_offset_0bc +=
+        movement_0c0.vertical_base_07c;
 
     if (scale_1cc < g_float_005ebb38) {
         m_pRep->value_05c = scale_1cc;
@@ -1350,7 +1350,7 @@ W8Monster::W8Monster(const W8Monster& rhs)
     state_22e = 0;
     cycle_callback_230 = 0;
     if (flags_330.copied_flag_02 != 0) {
-        fields.state_088 = 0;
+        state_088 = 0;
     }
 }
 
@@ -1389,7 +1389,7 @@ void W8Monster::SetPosition(const srVector3T<float>* position)
     GetRepresentation()->SetLocation004B8850(position);
     m_pRep->SetLocation004B8850(position);
     SetPositionInternal00453590(position);
-    fields.position_dirty_09c = 1;
+    position_dirty_09c = 1;
 }
 
 /* Advance the non-rendering half of one live Monster. This is the main
@@ -1566,8 +1566,8 @@ void W8Monster::Update()
     if (GetFlag68F105() == 0) {
         if ((cycle == 1 || cycle == 2) &&
             m_pRep->pending_cycle == -1 &&
-            fields.flag_024 == 0 && fields.flag_025 == 0) {
-            fields.flags_00c |= 0x100000;
+            flag_024 == 0 && flag_025 == 0) {
+            flags_00c |= 0x100000;
         }
 
         if (monster_info == 0) {
@@ -1600,9 +1600,9 @@ void W8Monster::Update()
                 break;
             case 1:
             case 2:
-                if (fields.flag_024 == 0 && fields.flag_025 == 0 &&
+                if (flag_024 == 0 && flag_025 == 0 &&
                     (Query(2) != 0 || unknown_1bc != 0)) {
-                    fields.flags_00c &= ~0x100000;
+                    flags_00c &= ~0x100000;
                     if (IsCycleSupported(3) == 0) {
                         m_pRep->behaviour_071 = 3;
                         m_pRep->pending_cycle = 4;
@@ -1635,7 +1635,7 @@ void W8Monster::Update()
                 }
                 break;
             case 4:
-                if (fields.flag_024 != 0 || fields.flag_025 != 0) {
+                if (flag_024 != 0 || flag_025 != 0) {
                     bool transition = Query(2) != 0 || unknown_1bc != 0;
                     if (!transition && m_pRep->flag_601 == 0) {
                         transition = Query(4) < Query(0) / 2;
@@ -1664,12 +1664,12 @@ void W8Monster::Update()
                 break;
             case 0x17:
                 if (Query(7) != 0) {
-                    if ((signed char)fields.flags_00c != 0) {
+                    if ((signed char)flags_00c != 0) {
                         *reinterpret_cast<unsigned int*>(
-                            &fields.movement_target_018.z) = 0x17;
+                            &movement_target_018.z) = 0x17;
                         *reinterpret_cast<unsigned int*>(
-                            &fields.movement_target_018.x) = GetTickCount();
-                        *reinterpret_cast<unsigned int*>(&fields.movement_target_018.y) = Random(2000) + 2000;
+                            &movement_target_018.x) = GetTickCount();
+                        *reinterpret_cast<unsigned int*>(&movement_target_018.y) = Random(2000) + 2000;
                         m_pRep->pending_cycle = 0x18;
                         m_pRep->flag_06e = 1;
                         m_pRep->behaviour_071 = 1;
@@ -1685,8 +1685,8 @@ void W8Monster::Update()
                 break;
             case 0x18:
                 if (Query(7) != 0) {
-                    if (*reinterpret_cast<unsigned int*>(&fields.movement_target_018.y) <
-                            GetTickCount() - *reinterpret_cast<unsigned int*>(&fields.movement_target_018.x) &&
+                    if (*reinterpret_cast<unsigned int*>(&movement_target_018.y) <
+                            GetTickCount() - *reinterpret_cast<unsigned int*>(&movement_target_018.x) &&
                         IsCycleSupported(0x17) != 0) {
                         m_pRep->pending_cycle = 0x17;
                     }
@@ -1739,13 +1739,13 @@ void W8Monster::Update()
     if (monster_info != 0 && monster_info->condition_turns[5] != 0) {
         TickAnimation(
             Query(6) == 4
-                ? fields.movement_0c0.movement_speed_064 *
+                ? movement_0c0.movement_speed_064 *
                       g_float_005ebc7c
                 : 0.5f);
     }
     else {
         TickAnimation(
-            Query(6) == 4 ? fields.movement_0c0.movement_speed_064 : 1.0f);
+            Query(6) == 4 ? movement_0c0.movement_speed_064 : 1.0f);
     }
     InitializeAnimatedTexture004C51D0();
 
@@ -1989,7 +1989,7 @@ unsigned char W8Monster::GetCycleMappedPosition004C7960(
         dispatch_value = (int)flags_1dc;
     }
     else if (mapped_index == 6) {
-        dispatch_value = fields.navigation_mode_008;
+        dispatch_value = navigation_mode_008;
     }
     else {
         dispatch_value = 0;
@@ -2023,7 +2023,7 @@ unsigned char W8Monster::GetCycleMappedPosition004C7960(
                 position->y = matrix.vectors[1].x * x +
                               matrix.vectors[1].y * y +
                               matrix.vectors[1].z * z + owner_position.y +
-                              fields.movement_0c0.vertical_base_07c;
+                              movement_0c0.vertical_base_07c;
                 position->z = matrix.vectors[2].x * x +
                               matrix.vectors[2].y * y +
                               matrix.vectors[2].z * z + owner_position.z;
@@ -2063,7 +2063,7 @@ void W8Monster::ProcessScript004C80E0()
 
     if (monster_info != 0 && (monster_info->flag_255 & 0x10) != 0) {
         monster_info->flag_255 &= ~0x10;
-        if (script_wait_240 == MONSCR_WALKTO && fields.flag_024 != 0) {
+        if (script_wait_240 == MONSCR_WALKTO && flag_024 != 0) {
             if (script_line_23c > 0) {
                 --script_line_23c;
             }
@@ -2398,7 +2398,7 @@ void W8Monster::ProcessScript004C80E0()
                 break;
             }
             case MONSCR_STOPPATROL:
-                fields.flags_00c &= 0xdfffffff;
+                flags_00c &= 0xdfffffff;
                 break;
             case MONSCR_TRIGGER:
                 token = strtok(0, " \t");
@@ -2669,13 +2669,13 @@ unsigned char W8Monster::CanContinueScript004CA0F0()
 {
     switch (script_wait_240) {
     case 1:
-        if (fields.flag_024 == 0) {
+        if (flag_024 == 0) {
             return 0;
         }
         break;
     case 2:
-        if ((float)fabs(fields.movement_0c0.target_yaw -
-                        fields.movement_0c0.yaw) >=
+        if ((float)fabs(movement_0c0.target_yaw -
+                        movement_0c0.yaw) >=
             g_monster_script_facing_tolerance_005ebc84) {
             return 0;
         }
@@ -2766,10 +2766,10 @@ void W8Monster::CheckLineOfSightToPlayer004C4810()
     srVector3T<float> monster_position;
     srVector3T<float> player_position;
 
-    monster_position.x = fields.movement_0c0.position_040.x;
-    monster_position.y = fields.movement_0c0.position_040.y +
-                         fields.movement_0c0.height_offset_0b8;
-    monster_position.z = fields.movement_0c0.position_040.z;
+    monster_position.x = movement_0c0.position_040.x;
+    monster_position.y = movement_0c0.position_040.y +
+                         movement_0c0.height_offset_0b8;
+    monster_position.z = movement_0c0.position_040.z;
     GetCameraPosition(&player_position);
     g_octree_6598a4->HasLineOfSight(
         &monster_position, &player_position, 1);
@@ -2786,10 +2786,10 @@ void W8Monster::GetPlayerSightFlags004C4870(
     srVector3T<float> player_position;
     short result;
 
-    monster_position.x = fields.movement_0c0.position_040.x;
-    monster_position.y = fields.movement_0c0.position_040.y +
-                         fields.movement_0c0.height_offset_0b8;
-    monster_position.z = fields.movement_0c0.position_040.z;
+    monster_position.x = movement_0c0.position_040.x;
+    monster_position.y = movement_0c0.position_040.y +
+                         movement_0c0.height_offset_0b8;
+    monster_position.z = movement_0c0.position_040.z;
     GetCameraPosition(&player_position);
     result = g_octree_6598a4->TraceLineOfSight(
         &monster_position, &player_position, 1,
@@ -2839,10 +2839,10 @@ unsigned char W8Monster::IsVisibleToPlayer004C4920(unsigned char use_bounds)
     }
 
     srVector3T<float> monster_position;
-    monster_position.x = fields.movement_0c0.position_040.x;
-    monster_position.y = fields.movement_0c0.position_040.y +
-                         fields.movement_0c0.height_offset_0b8;
-    monster_position.z = fields.movement_0c0.position_040.z;
+    monster_position.x = movement_0c0.position_040.x;
+    monster_position.y = movement_0c0.position_040.y +
+                         movement_0c0.height_offset_0b8;
+    monster_position.z = movement_0c0.position_040.z;
     return g_octree_6598a4->HasLineOfSight(
         &player_position, &monster_position, 1);
 }
@@ -2857,10 +2857,10 @@ void W8Monster::GetPlayerToMonsterSightFlags004C4A20(
     srVector3T<float> player_position;
     short result;
 
-    monster_position.x = fields.movement_0c0.position_040.x;
-    monster_position.y = fields.movement_0c0.position_040.y +
-                         fields.movement_0c0.height_offset_0b8;
-    monster_position.z = fields.movement_0c0.position_040.z;
+    monster_position.x = movement_0c0.position_040.x;
+    monster_position.y = movement_0c0.position_040.y +
+                         movement_0c0.height_offset_0b8;
+    monster_position.z = movement_0c0.position_040.z;
     if (source == 0) {
         GetCameraPosition(&player_position);
     }
@@ -2891,14 +2891,14 @@ unsigned char W8Monster::HasLineOfSightToMonster004C4AF0(
     srVector3T<float> from;
     srVector3T<float> to;
 
-    from.x = fields.movement_0c0.position_040.x;
-    from.y = fields.movement_0c0.position_040.y +
-             fields.movement_0c0.height_offset_0b8;
-    from.z = fields.movement_0c0.position_040.z;
-    to.x = monster->fields.movement_0c0.position_040.x;
-    to.y = monster->fields.movement_0c0.position_040.y +
-           monster->fields.movement_0c0.height_offset_0b8;
-    to.z = monster->fields.movement_0c0.position_040.z;
+    from.x = movement_0c0.position_040.x;
+    from.y = movement_0c0.position_040.y +
+             movement_0c0.height_offset_0b8;
+    from.z = movement_0c0.position_040.z;
+    to.x = monster->movement_0c0.position_040.x;
+    to.y = monster->movement_0c0.position_040.y +
+           monster->movement_0c0.height_offset_0b8;
+    to.z = monster->movement_0c0.position_040.z;
     return g_octree_6598a4->HasLineOfSight(&from, &to, 1);
 }
 
@@ -2912,14 +2912,14 @@ void W8Monster::GetMonsterSightFlags004C4B70(
     srVector3T<float> to;
     short result;
 
-    from.x = fields.movement_0c0.position_040.x;
-    from.y = fields.movement_0c0.position_040.y +
-             fields.movement_0c0.height_offset_0b8;
-    from.z = fields.movement_0c0.position_040.z;
-    to.x = monster->fields.movement_0c0.position_040.x;
-    to.y = monster->fields.movement_0c0.position_040.y +
-           monster->fields.movement_0c0.height_offset_0b8;
-    to.z = monster->fields.movement_0c0.position_040.z;
+    from.x = movement_0c0.position_040.x;
+    from.y = movement_0c0.position_040.y +
+             movement_0c0.height_offset_0b8;
+    from.z = movement_0c0.position_040.z;
+    to.x = monster->movement_0c0.position_040.x;
+    to.y = monster->movement_0c0.position_040.y +
+           monster->movement_0c0.height_offset_0b8;
+    to.z = monster->movement_0c0.position_040.z;
     result = g_octree_6598a4->TraceLineOfSight(
         &from, &to, 1,
         propagated_value_1e4, monster->propagated_value_1e4, 1, 0);
@@ -2943,10 +2943,10 @@ unsigned char W8Monster::HasLineOfSightFromPoint004C4C40(
 {
     srVector3T<float> monster_position;
 
-    monster_position.x = fields.movement_0c0.position_040.x;
-    monster_position.y = fields.movement_0c0.position_040.y +
-                         fields.movement_0c0.height_offset_0b8;
-    monster_position.z = fields.movement_0c0.position_040.z;
+    monster_position.x = movement_0c0.position_040.x;
+    monster_position.y = movement_0c0.position_040.y +
+                         movement_0c0.height_offset_0b8;
+    monster_position.z = movement_0c0.position_040.z;
     return g_octree_6598a4->TraceLineOfSight(
         &point, &monster_position, 1, -3, -3, 1, 0) != 1;
 }
@@ -3274,8 +3274,8 @@ float W8Monster::GetDistanceToPlayer004C7CB0()
     y = position.y - (player_position.y - g_startup_depth_603ac8);
     z = position.z - player_position.z;
     distance = (float)sqrt(x * x + y * y + z * z) -
-        fields.movement_0c0.alternate_radius_0b4 -
-        g_startup_world_659c0c->fields.movement_0c0.alternate_radius_0b4;
+        movement_0c0.alternate_radius_0b4 -
+        g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
     if (distance < g_float_005ebb34) {
         distance = g_float_005ebb34;
     }
@@ -3298,8 +3298,8 @@ float W8Monster::GetPointDistanceToPlayer004C7D50(
     delta_z = z - player_position.z;
     distance = (float)sqrt(
         delta_x * delta_x + delta_y * delta_y + delta_z * delta_z) -
-        fields.movement_0c0.alternate_radius_0b4 -
-        g_startup_world_659c0c->fields.movement_0c0.alternate_radius_0b4;
+        movement_0c0.alternate_radius_0b4 -
+        g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
     if (distance < g_float_005ebb34) {
         distance = g_float_005ebb34;
     }
@@ -3315,8 +3315,8 @@ float W8Monster::GetDistanceToMonster004C7DD0(W8Monster* monster)
     float y = position.y - other_position.y;
     float z = position.z - other_position.z;
     float distance = (float)sqrt(x * x + y * y + z * z) -
-        fields.movement_0c0.alternate_radius_0b4 -
-        monster->fields.movement_0c0.alternate_radius_0b4;
+        movement_0c0.alternate_radius_0b4 -
+        monster->movement_0c0.alternate_radius_0b4;
 
     if (distance < g_float_005ebb34) {
         distance = g_float_005ebb34;
@@ -3334,8 +3334,8 @@ float W8Monster::GetPointDistanceToMonster004C7E80(
     float delta_z = z - position.z;
     float distance = (float)sqrt(
         delta_x * delta_x + delta_y * delta_y + delta_z * delta_z) -
-        fields.movement_0c0.alternate_radius_0b4 -
-        monster->fields.movement_0c0.alternate_radius_0b4;
+        movement_0c0.alternate_radius_0b4 -
+        monster->movement_0c0.alternate_radius_0b4;
 
     if (distance < g_float_005ebb34) {
         distance = g_float_005ebb34;
@@ -3536,10 +3536,10 @@ void W8Monster::UpdateRepresentation(W8World* world)
     int index;
     int count;
 
-    position.x = fields.movement_0c0.position_040.x;
-    position.y = fields.movement_0c0.position_040.y;
-    position.z = fields.movement_0c0.position_040.z;
-    position.y += fields.movement_0c0.vertical_offset_0c0;
+    position.x = movement_0c0.position_040.x;
+    position.y = movement_0c0.position_040.y;
+    position.z = movement_0c0.position_040.z;
+    position.y += movement_0c0.vertical_offset_0c0;
     GetRepresentation()->SetLocation004B8850(&position);
 
     rotation.SetIdentity00467310();
@@ -3556,8 +3556,8 @@ void W8Monster::UpdateRepresentation(W8World* world)
             rotation.method_004A5AB0((double)angle);
         }
     }
-    if (fields.movement_0c0.roll_028 != g_float_005ebb34) {
-        rotation.method_004CAB60((double)fields.movement_0c0.roll_028);
+    if (movement_0c0.roll_028 != g_float_005ebb34) {
+        rotation.method_004CAB60((double)movement_0c0.roll_028);
     }
     m_pRep->SetRotation004B88D0(&rotation);
 
@@ -3604,8 +3604,8 @@ void W8Monster::UpdateRepresentation(W8World* world)
         }
     }
 
-    if (fields.position_dirty_09c != 0 ||
-        fields.movement_0c0.position_adjusted_0c8 != 0) {
+    if (position_dirty_09c != 0 ||
+        movement_0c0.position_adjusted_0c8 != 0) {
         g_octree_6598a4->UpdateMonsterLocation(
             (unsigned short)propagated_value_1e4, &position);
     }
@@ -4064,11 +4064,11 @@ void W8Monster::UpdateAttachedObjects004C3F70()
     elapsed = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT) -
         representation->timer_068;
     WorldGetCameraRotation(g_world, &camera_rotation);
-    base_position.x = fields.movement_0c0.position_040.x;
-    base_position.y = fields.movement_0c0.position_040.y +
-        fields.movement_0c0.vertical_base_07c +
-        fields.movement_0c0.vertical_amplitude_080;
-    base_position.z = fields.movement_0c0.position_040.z;
+    base_position.x = movement_0c0.position_040.x;
+    base_position.y = movement_0c0.position_040.y +
+        movement_0c0.vertical_base_07c +
+        movement_0c0.vertical_amplitude_080;
+    base_position.z = movement_0c0.position_040.z;
 
     GetCameraPosition(&party_position);
     party_position.x -= base_position.x;
@@ -4693,7 +4693,7 @@ void MonsterPropagateValue004C5870(W8Monster* monster, int value)
             0);
     }
     monster->propagated_value_1e4 = value;
-    monster->fields.movement_0c0.location_id_004 = (unsigned short)value;
+    monster->movement_0c0.location_id_004 = (unsigned short)value;
     if (monster->m_plsSoundEvents != 0) {
         count = monster->m_plsSoundEvents->GetCount();
         index = 0;
@@ -4823,7 +4823,7 @@ void MonsterSetFacing004C5B60(W8Monster* monster, float angle)
         rotation.method_00421A40(adjustment);
     }
 
-    angle = monster->fields.movement_0c0.roll_028;
+    angle = monster->movement_0c0.roll_028;
     if (angle != g_float_005ebb34 &&
         (double)angle != g_zero_005ebb40) {
         cosine = cos((double)angle);
@@ -4970,7 +4970,7 @@ unsigned char MonsterHasCycle19Flag3(W8Monster* monster)
 void MonsterSetStateA0(W8Monster* monster, unsigned char state)
 {
     if (monster != 0) {
-        monster->fields.state_088 = state;
+        monster->state_088 = state;
     }
 }
 
@@ -5047,10 +5047,10 @@ void W8Monster::GetMappedPosition004C72A0(srVector3T<float>* position)
         }
     }
 
-    position->x = fields.movement_0c0.position_040.x;
-    position->y = fields.movement_0c0.position_040.y;
-    position->z = fields.movement_0c0.position_040.z;
-    position->y += fields.movement_0c0.height_offset_0b8;
+    position->x = movement_0c0.position_040.x;
+    position->y = movement_0c0.position_040.y;
+    position->z = movement_0c0.position_040.z;
+    position->y += movement_0c0.height_offset_0b8;
 }
 
 /* Six thin bodies over the live animation object. Each is a null check and a
@@ -5372,7 +5372,7 @@ unsigned short MonsterApproachStartupNavigator004C5FF0(
         result = monster->Function4526C0(
             g_startup_world_659c0c, separation);
         if (result != 0) {
-            monster->fields.movement_0c0.unknown_076[0] = 0;
+            monster->movement_0c0.unknown_076[0] = 0;
         }
         return result;
     }
