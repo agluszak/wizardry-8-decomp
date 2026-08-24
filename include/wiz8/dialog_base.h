@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wiz8/monster_info_dialog.h"
+#include "wiz8/dialog_code/DialogBase.h"
 #include "input.h"
 
 /* The shared dialog base at vtable 0x005EF8B0, between W8DialogBase005DC7A0
