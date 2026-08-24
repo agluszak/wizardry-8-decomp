@@ -81,7 +81,7 @@ public:
 
     W8PropRepresentation* Rep() const
     {
-        return reinterpret_cast<W8PropRepresentation*>(m_pRep);
+        return static_cast<W8PropRepresentation*>(m_pRep);
     }
 
     void Method44D360(W8World* world);

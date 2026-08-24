@@ -23,7 +23,7 @@ void W8Item::DetachMesh0049FA30(W8World* world)
     if (world == 0) {
         srAssertFail("pWorld", "C:\\Projects\\Wizardry 8\\Engine Code\\Item.cpp", 0x24a, 0);
     }
-    mesh = m_pRep->m_psrMesh;
+    mesh = static_cast<W8ItemRep*>(m_pRep)->m_psrMesh;
     if (mesh == 0) {
         srAssertFail("psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\Item.cpp", 0x24f, 0);
     }
@@ -41,10 +41,10 @@ void W8Item::ApplyRepTransform0049FAA0()
     srMatrix3T<float> rotation;
     srNode* mesh;
 
-    if (m_pRep->m_psrMesh == 0) {
+    if (static_cast<W8ItemRep*>(m_pRep)->m_psrMesh == 0) {
         srAssertFail("m_pRep->m_psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\Item.cpp", 0x266, 0);
     }
-    mesh = m_pRep->m_psrMesh;
+    mesh = static_cast<W8ItemRep*>(m_pRep)->m_psrMesh;
     m_pRep->GetLocation004B8890(&location);
     widened.x = location.x;
     widened.y = location.y;
@@ -66,10 +66,10 @@ void W8Item::Function49F900(W8World* world)
     if (world == 0) {
         srAssertFail("pWorld", "C:\\Projects\\Wizardry 8\\Engine Code\\Item.cpp", 0x211, 0);
     }
-    if ((m_pRep->flags & 0x40) == 0) {
+    if ((static_cast<W8ItemRep*>(m_pRep)->flags & 0x40) == 0) {
         return;
     }
-    mesh = m_pRep->m_psrMesh;
+    mesh = static_cast<W8ItemRep*>(m_pRep)->m_psrMesh;
     if (mesh == 0) {
         srAssertFail("psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\Item.cpp", 0x219, 0);
     }
@@ -101,7 +101,7 @@ void W8Item::Function49F900(W8World* world)
 // FUNCTION: WIZ8 0x0049fb20
 srNode* W8Item::GetMesh()
 {
-    return m_pRep->m_psrMesh;
+    return static_cast<W8ItemRep*>(m_pRep)->m_psrMesh;
 }
 
 /* Raise or clear the selected representation flags and return the resulting

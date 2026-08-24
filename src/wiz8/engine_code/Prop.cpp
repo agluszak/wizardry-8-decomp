@@ -116,7 +116,7 @@ W8Prop::W8Prop()
     else {
         rep = static_cast<W8PropRepresentation*>(memory);
         new (rep) W8PropRepresentation();
-        m_pRep = reinterpret_cast<W8ItemRep*>(rep);
+        m_pRep = rep;
     }
     m_animation_timer = new W8GameTimer();
     position_02c.x = 0.0f;
@@ -229,7 +229,7 @@ void UpdateWorldProps0044E010(W8World* world)
 // FUNCTION: WIZ8 0x0044bec0
 W8Prop::~W8Prop()
 {
-    delete reinterpret_cast<W8PropRepresentation*>(m_pRep);
+    delete static_cast<W8PropRepresentation*>(m_pRep);
     m_pRep = 0;
     if (m_name != 0) {
         operator delete(m_name);
@@ -701,8 +701,8 @@ void W8Prop::Method44C670()
     int index;
 
     if (AnimationIsRunning(
-            reinterpret_cast<W8PropRepresentation*>(m_pRep)->animation) != 1) {
-        W8PropRepresentation* rep = reinterpret_cast<W8PropRepresentation*>(m_pRep);
+            static_cast<W8PropRepresentation*>(m_pRep)->animation) != 1) {
+        W8PropRepresentation* rep = static_cast<W8PropRepresentation*>(m_pRep);
         unsigned char frame = rep->flag_064;
         srModelInstance* mesh;
         W8PathAI* path;
@@ -717,14 +717,14 @@ void W8Prop::Method44C670()
             srAssertFail("psrMesh", PROP_CPP, 0x581, 0);
         }
         path = reinterpret_cast<W8PathAI*>(
-            reinterpret_cast<W8PropRepresentation*>(m_pRep)->animation->path_24);
+            static_cast<W8PropRepresentation*>(m_pRep)->animation->path_24);
         if (path != 0) {
             PathAISetValue004A9F60(
                 path,
-                (float)reinterpret_cast<W8PropRepresentation*>(m_pRep)->flag_064);
+                (float)static_cast<W8PropRepresentation*>(m_pRep)->flag_064);
             PathAIApply004AA520(
                 reinterpret_cast<W8PathAI*>(
-                    reinterpret_cast<W8PropRepresentation*>(m_pRep)
+                    static_cast<W8PropRepresentation*>(m_pRep)
                         ->animation->path_24),
                 reinterpret_cast<stModelInstance005EC7D0*>(mesh));
         }
@@ -732,10 +732,10 @@ void W8Prop::Method44C670()
     }
 
     count = AnimObjListCount004A1620(
-        reinterpret_cast<W8PropRepresentation*>(m_pRep)->animation, 2);
+        static_cast<W8PropRepresentation*>(m_pRep)->animation, 2);
     for (index = 0; index < (int)count; ++index) {
         srModelInstance* mesh = AnimObjDispatchList004A1560(
-            reinterpret_cast<W8PropRepresentation*>(m_pRep)->animation,
+            static_cast<W8PropRepresentation*>(m_pRep)->animation,
             2,
             (signed char)index);
         W8PathAI* path;
@@ -744,7 +744,7 @@ void W8Prop::Method44C670()
             srAssertFail("psrMesh", PROP_CPP, 0x56f, 0);
         }
         path = reinterpret_cast<W8PathAI*>(AnimObjListEntry004A16C0(
-            reinterpret_cast<W8PropRepresentation*>(m_pRep)->animation,
+            static_cast<W8PropRepresentation*>(m_pRep)->animation,
             2,
             (signed char)index));
         if (path != 0) {
@@ -752,7 +752,7 @@ void W8Prop::Method44C670()
 
             PathAISetValue004A9F60(
                 path,
-                (float)reinterpret_cast<W8PropRepresentation*>(m_pRep)->flag_064);
+                (float)static_cast<W8PropRepresentation*>(m_pRep)->flag_064);
             PathAIApply004AA520(
                 path, reinterpret_cast<stModelInstance005EC7D0*>(mesh));
             reinterpret_cast<srNode*>(mesh)->getLocation(location);
@@ -828,13 +828,13 @@ unsigned char CreateAndLoadProp0044BF50(
     if (prop == 0) {
         srAssertFail("pProp", PROP_CPP, 0x348, 0);
     }
-    success = reinterpret_cast<W8PropRepresentation*>(prop->m_pRep)->LoadProp0044AEE0(
+    success = static_cast<W8PropRepresentation*>(prop->m_pRep)->LoadProp0044AEE0(
         info, prop);
     if (success != 0) {
         *prop_out = prop;
         prop->m_animation_timer->SetDuration(
             g_float_005ebb38 /
-            reinterpret_cast<W8PropRepresentation*>(prop->m_pRep)->animation_speed);
+            static_cast<W8PropRepresentation*>(prop->m_pRep)->animation_speed);
         prop->Method44C670();
     }
     return success;

@@ -70,7 +70,7 @@ void SetItemAndEntityFlags(W8WorldItem* item, unsigned int mask, unsigned char e
         item->entity_flags &= ~mask;
     }
     if (item->owner != 0) {
-        item->owner->m_pRep->SetFlags(mask, enabled);
+        static_cast<W8ItemRep*>(item->owner->m_pRep)->SetFlags(mask, enabled);
     }
 }
 
@@ -518,7 +518,7 @@ void DeactivateWorldItem(W8WorldItem* item)
     item->position.x = position.x;
     item->position.y = position.y;
     item->position.z = position.z;
-    item->entity_flags = item->owner->m_pRep->flags;
+    item->entity_flags = static_cast<W8ItemRep*>(item->owner->m_pRep)->flags;
 
     item->owner->DetachMesh0049FA30(GetWorld());
     WorldRemoveFromList04(GetWorld());

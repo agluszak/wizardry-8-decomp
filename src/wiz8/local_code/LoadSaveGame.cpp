@@ -578,7 +578,8 @@ unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
             item->position.x = position.x;
             item->position.y = position.y;
             item->position.z = position.z;
-            item->entity_flags = first->owner->m_pRep->flags;
+            item->entity_flags =
+                static_cast<W8ItemRep*>(first->owner->m_pRep)->flags;
         }
         if (g_flag_659756 != 0) {
             first->entity_flags &= ~8;
