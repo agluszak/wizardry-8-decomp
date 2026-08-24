@@ -24,27 +24,6 @@
  * fields it touches are the mode and the surface.
  */
 
-#pragma pack(push, 1)
-
-typedef struct W8VideoObjectSlot {
-    int first_frame;                      /* 0x00 */
-    short y_offset;                       /* 0x04: signed; added to the caller's y */
-    unsigned char unknown_06[2];
-} W8VideoObjectSlot;                      /* 0x08 */
-
-typedef struct W8VideoFrame {
-    /* 0x00: the record opens with its own path, which is why the table base is
-       0x0062C430 and not the 0x0062C460 the blit's first two reads suggest.
-       0x00549090 builds the load path from here. */
-    char path[0x30];
-    int mode;                             /* 0x30: zero selects the second blitter */
-    unsigned char loaded;                 /* 0x34: cleared until the frame is loaded */
-    unsigned char unknown_35[3];
-    unsigned int handle;                  /* 0x38: released SGP object/surface handle */
-} W8VideoFrame;                           /* 0x3c */
-
-#pragma pack(pop)
-
 static_assert(sizeof(W8VideoObjectSlot) == 8, "W8VideoObjectSlot_size_must_be_8");
 static_assert(sizeof(W8VideoFrame) == 0x3c, "W8VideoFrame_size_must_be_0x3c");
 
@@ -63,7 +42,6 @@ W8VideoFrame g_video_frames_62c430[1658];
 extern char Function405EF0(VOBJECT_DESC* request, unsigned int* handle);
 extern char Function402A70(VSURFACE_DESC* request, unsigned int* handle);
 
-void Function549090(int object, int frame);
 extern char Function405FF0(int object, unsigned int handle, short y,
                            int a, int b, int c, int d);
 extern char Function402ED0(int object, unsigned int handle, short y,

@@ -17,6 +17,9 @@
 #include "wiz8/npc_item_lists.h"
 #include "wiz8/item_video_object_vector.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/video_object_catalog.h"
+
+#include <stdio.h>
 
 /* The twelve places an item can be worn or held. GetItemDefaultEquipSlot maps
    an equipment class onto one of these, and GetPairedEquipSlot swaps a hand
@@ -207,6 +210,47 @@ void W8ItemVideoObjectVector::Clear()
         data = 0;
     }
     count = 0;
+}
+
+static const char g_item_video_object_fallback_names[8][0x30] = {
+    "Dagger.sti", "LongSword.sti", "Bipennis.sti", "BattleAxe.sti",
+    "Flail.sti", "Mace.sti", "Hammer.sti", "ShortStaff.sti"
+};
+
+// FUNCTION: WIZ8 0x0055ce80
+int W8ItemVideoObjectVector::GetOrCreateVideoObject(int item_id)
+{
+    W8ItemVideoObjectEntry* entry = data + item_id;
+    const W8ItemDatabaseRecord* record = &g_item_records[item_id];
+    const char* name = record->video_object_name;
+    int object;
+    int frame;
+
+    if (entry->initialized) {
+        return entry->video_object;
+    }
+    if (count == capacity || count == 1000) {
+        return 0;
+    }
+    object = count + 0x291;
+    frame = count + 0x1ec;
+    if (name[0] == '\0') {
+        name = g_item_video_object_fallback_names[record->unidentified_name_index];
+    }
+    sprintf(g_video_frames_62c430[object].path, "Data\\Items\\%s", name);
+    if (strstr(g_video_frames_62c430[object].path, ".sti") == 0) {
+        strcat(g_video_frames_62c430[object].path, ".sti");
+    }
+    g_video_frames_62c430[object].mode = 0;
+    g_video_frames_62c430[object].loaded = 0;
+    g_video_frames_62c430[object].handle = 0;
+    g_video_slots_6448c8[frame].first_frame = object;
+    g_video_slots_6448c8[frame].y_offset = 0;
+    Function549090(frame, 0);
+    ++count;
+    entry->video_object = frame;
+    entry->initialized = 1;
+    return frame;
 }
 
 extern void DropHeldItem(int arg_1);                         /* 0x004F7610 */

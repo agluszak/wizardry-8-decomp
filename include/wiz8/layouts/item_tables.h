@@ -57,7 +57,8 @@ typedef struct W8ItemDatabaseRecord {
     unsigned short weight;                /* 0x08a */
     unsigned char binds_on_equip;         /* 0x08c */
     char internal_name[0x40];             /* 0x08d */
-    unsigned char unknown_0cd[0x40];
+    /* GetOrCreateVideoObject treats this fixed buffer as the item image name. */
+    char video_object_name[0x40];         /* 0x0cd */
 } W8ItemDatabaseRecord;                   /* 0x10d */
 
 #ifndef __WIZ8_GHIDRA_LAYOUTS__
