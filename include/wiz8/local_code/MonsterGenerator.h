@@ -3,10 +3,11 @@
 
 #include "wiz8/geometry.h"
 
+struct W8Item;
+
 #pragma pack(push, 1)
-/* What a generator hangs off itself. Both are released through slot zero of
-   their own vtable with the deleting flag set, so both are polymorphic; nothing
-   else about either is established. */
+/* The generator's timer is released through slot zero of its own vtable with
+   the deleting flag set. Its concrete identity is not established. */
 class W8MonsterGeneratorNode {
 public:
     virtual ~W8MonsterGeneratorNode();
@@ -24,7 +25,7 @@ typedef struct W8MonsterGenerator {
     int state_0c;
     int state_10;
     int state_14;
-    W8MonsterGeneratorNode* node_18;      /* 0x18 */
+    W8Item* node_18;                      /* 0x18: loaded mongen.itm marker */
     int value_1c;                         /* 0x1c */
     /* 0x20: m_pTimer, named by the MonGen.cpp:535 assertion, whose message also
        gives the owning class and method - "MonGen::Reset() out of memory
@@ -38,7 +39,7 @@ typedef struct W8MonsterGenerator {
        interval. */
     void Reset();
     /* Arms or disarms the generator, loading its marker on the way in. */
-    void SetActive(unsigned char active, W8MonsterGeneratorNode* node);
+    void SetActive(unsigned char active, W8Item* node);
     /* The save pair. Both are __thiscall in the image. */
     void Save(int handle);
     unsigned char Load(int handle);

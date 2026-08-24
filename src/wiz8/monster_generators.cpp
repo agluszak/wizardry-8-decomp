@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/Levels.h"
+#include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/local_code/MonsterGenerator.h"
 #include "wiz8/local_code/MonsterManager.h"
@@ -41,7 +42,6 @@ extern int g_random_encounter_limit;
 extern int g_active_group_count;            /* 0x0065BA14 */
 extern W8MonsterGroup** g_active_groups;    /* 0x0065BA1C */
 extern void RollRandomEncounters(void);     /* 0x0048CA20 */
-extern void Function49FA30(W8World* world);                  /* 0x0049FA30 */
 extern int Function43A5D0(void);                             /* 0x0043A5D0 */
 extern unsigned char Function48B200(int value);              /* 0x0048B200 */
 extern void GenerateEncounter(void* encounter_state);         /* 0x0048AD20 */
@@ -53,9 +53,6 @@ extern void Function439B80(float delay);                     /* 0x00439B80 */
 extern void Function43A530(void);                            /* 0x0043A530 */
 extern unsigned char Function49F4A0(void* context, const char* name,
                                     void* out, int value);   /* 0x0049F4A0 */
-extern void Function49F720(void* state);                     /* 0x0049F720 */
-extern void Function49F900(W8World* world);                  /* 0x0049F900 */
-extern void Function49FAA0(void);                            /* 0x0049FAA0 */
 extern short g_generator_default_interval;                   /* 0x0060A6B6 */
 extern short g_generator_interval_min;                       /* 0x0060A6B4 */
 extern short g_generator_interval_max;                       /* 0x0060A6B8 */
@@ -384,7 +381,7 @@ static __inline void DestroyMonsterGeneratorInline(W8MonsterGenerator* generator
         if (generator->node_18 != 0) {
             if ((generator->flags >> 2 & 1) != 0) {
                 generator->flags &= ~4u;
-                Function49FA30(g_world);
+                generator->node_18->DetachMesh0049FA30(g_world);
             }
             delete generator->node_18;
         }
@@ -604,7 +601,7 @@ void W8MonsterGenerator::Reset()
 static __inline void LoadMonsterGeneratorMarkerInline(W8MonsterGenerator* generator)
 {
     void* context[2];
-    W8MonsterGeneratorNode* marker = 0;
+    W8Item* marker = 0;
 
     context[1] = const_cast<char*>("Data\\Items3D\\Bitmaps");
     context[0] = g_world;
@@ -613,8 +610,9 @@ static __inline void LoadMonsterGeneratorMarkerInline(W8MonsterGenerator* genera
     }
     generator->node_18 = marker;
     if (marker != 0) {
-        Function49F720(&generator->state_0c);
-        Function49FAA0();
+        marker->Function49F720(
+            reinterpret_cast<const srVector3T<float>*>(&generator->state_0c));
+        marker->ApplyRepTransform0049FAA0();
     }
 }
 
@@ -623,7 +621,7 @@ static __inline void LoadMonsterGeneratorMarkerInline(W8MonsterGenerator* genera
    disarming drops the flag and notifies the world. Both directions are no-ops
    when the flag already reads as asked. */
 // FUNCTION: WIZ8 0x0048b770
-void W8MonsterGenerator::SetActive(unsigned char active, W8MonsterGeneratorNode* node)
+void W8MonsterGenerator::SetActive(unsigned char active, W8Item* node)
 {
     (void)node;
     if (((flags >> 2) & 1) == active) {
@@ -632,7 +630,7 @@ void W8MonsterGenerator::SetActive(unsigned char active, W8MonsterGeneratorNode*
     if (active == 0) {
         flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
         if (node_18 != 0) {
-            Function49FA30(g_world);
+            node_18->DetachMesh0049FA30(g_world);
         }
         return;
     }
@@ -640,7 +638,7 @@ void W8MonsterGenerator::SetActive(unsigned char active, W8MonsterGeneratorNode*
     if (node_18 == 0) {
         LoadMonsterGeneratorMarkerInline(this);
     }
-    Function49F900(g_world);
+    node_18->Function49F900(g_world);
 }
 
 /* Writes the encounter subsystem's own state to a save, ahead of the generator
@@ -680,7 +678,7 @@ W8MonsterGenerator::~W8MonsterGenerator()
     if (node_18 != 0) {
         if ((flags >> 2 & 1) != 0) {
             flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
-            Function49FA30(g_world);
+            node_18->DetachMesh0049FA30(g_world);
         }
         delete node_18;
     }
@@ -696,8 +694,8 @@ void W8MonsterGenerator::SetState(const srVector3T<float>* state)
     state_10 = *reinterpret_cast<const int*>(&state->y);
     state_14 = *reinterpret_cast<const int*>(&state->z);
     if (node_18 != 0) {
-        Function49F720(const_cast<srVector3T<float>*>(state));
-        Function49FAA0();
+        node_18->Function49F720(state);
+        node_18->ApplyRepTransform0049FAA0();
     }
 }
 
@@ -717,7 +715,7 @@ void W8MonsterGenerator::Reload(int unused, unsigned char active)
     if (active == 0) {
         flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
         if (node_18 != 0) {
-            Function49FA30(g_world);
+            node_18->DetachMesh0049FA30(g_world);
         }
         return;
     }
@@ -725,5 +723,5 @@ void W8MonsterGenerator::Reload(int unused, unsigned char active)
     if (node_18 == 0) {
         LoadMonsterGeneratorMarkerInline(this);
     }
-    Function49F900(g_world);
+    node_18->Function49F900(g_world);
 }
