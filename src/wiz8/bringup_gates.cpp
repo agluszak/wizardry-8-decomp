@@ -1,5 +1,5 @@
 #include "wiz8/bringup_gates.h"
-#include "wiz8/game_state.h"
+#include "wiz8/game_status.h"
 #include "wiz8/wiz8_windows.h"
 
 #include "wiz8/render_state.h"

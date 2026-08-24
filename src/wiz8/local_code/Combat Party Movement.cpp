@@ -1,4 +1,5 @@
 #include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/float_constants.h"

@@ -5,7 +5,7 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/monster_generators.h"
-#include "wiz8/game_state.h"
+#include "wiz8/game_status.h"
 #include "wiz8/utility.h"
 #include "random.h"
 #include <math.h>

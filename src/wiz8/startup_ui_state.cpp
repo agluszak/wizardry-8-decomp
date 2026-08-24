@@ -1,4 +1,4 @@
-#include "wiz8/game_state.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/regions.h"
 
 #include <stdlib.h>

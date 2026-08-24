@@ -17,7 +17,7 @@
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/Octree.h"
-#include "wiz8/game_state.h"
+#include "wiz8/game_status.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/item_tables.h"
 #include "wiz8/local_code/MonsterManager.h"

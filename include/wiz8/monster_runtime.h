@@ -2,7 +2,6 @@
 #define WIZ8_MONSTER_RUNTIME_H
 
 #include "wiz8/3d_code/PList.h"
-#include "wiz8/game_state.h"
 #include "wiz8/layouts/gameplay_databases.h"
 
 extern "C" {

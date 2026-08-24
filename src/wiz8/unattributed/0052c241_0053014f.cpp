@@ -1,5 +1,6 @@
 #include "wiz8/unattributed/quarantine_common.h"
-#include "wiz8/game_state.h"
+#include "wiz8/game_status.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/startup_runtime_state.h"

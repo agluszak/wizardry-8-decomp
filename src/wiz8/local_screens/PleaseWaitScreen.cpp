@@ -1,7 +1,7 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/wiz8_windows.h"
-#include "wiz8/game_state.h"
+#include "wiz8/game_status.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/dialog_base.h"
 #include "wiz8/fact_state.h"

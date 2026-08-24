@@ -6,7 +6,7 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/IntervalGate.h"
 #include "wiz8/float_constants.h"
-#include "wiz8/game_state.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/utility.h"
 
 #include <math.h>

@@ -2,7 +2,7 @@
 #define WIZ8_COMBAT_STATE_H
 
 #include "wiz8/targeting.h"
-#include "wiz8/game_state.h"
+#include "wiz8/game_status.h"
 
 struct W8Character;
 struct W8MonsterInfo;

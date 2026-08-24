@@ -1,6 +1,6 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/dialog_code/DialogInterface.h"
-#include "wiz8/game_state.h"
+#include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/regions.h"
 #include "Font.h"
 #include "FileMan.h"

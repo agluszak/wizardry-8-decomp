@@ -1,5 +1,5 @@
 #include "wiz8/regions.h"
-#include "wiz8/game_state.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/utility.h"
 #include "wiz8/sr_api.h"

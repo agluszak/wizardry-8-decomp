@@ -1,6 +1,6 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/stScript.h"
-#include "wiz8/game_state.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/wiz8_windows.h"
 #include "random.h"

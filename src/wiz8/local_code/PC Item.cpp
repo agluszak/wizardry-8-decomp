@@ -4,7 +4,7 @@
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
-#include "wiz8/game_state.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/magic.h"

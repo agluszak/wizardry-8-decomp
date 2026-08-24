@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wiz8/game_state.h"
+#include "wiz8/game_status.h"
 #include "wiz8/layouts/gameplay_databases.h"
 
 extern "C" {

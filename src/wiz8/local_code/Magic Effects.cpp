@@ -1,6 +1,7 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/combat_state.h"
-#include "wiz8/game_state.h"
+#include "wiz8/game_status.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/magic.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/MonsterManager.h"

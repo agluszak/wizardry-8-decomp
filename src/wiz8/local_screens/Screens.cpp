@@ -1,4 +1,4 @@
-#include "wiz8/game_state.h"
+#include "wiz8/game_status.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/cursor.h"

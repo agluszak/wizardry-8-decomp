@@ -1,6 +1,6 @@
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "surrender/srGERD.h"
-#include "wiz8/game_state.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/render_state.h"
 #include "wiz8/wiz8_windows.h"
 #include "soundman.h"

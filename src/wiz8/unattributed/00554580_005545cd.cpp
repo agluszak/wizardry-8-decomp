@@ -1,4 +1,4 @@
-#include "wiz8/game_state.h"
+#include "wiz8/game_status.h"
 
 #include <string.h>
 

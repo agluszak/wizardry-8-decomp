@@ -1,5 +1,6 @@
 #include "wiz8/3d_code/PList.h"
-#include "wiz8/game_state.h"
+#include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/ui_state.h"
 #include "wiz8/xstatus.h"
 #include "timer.h"
