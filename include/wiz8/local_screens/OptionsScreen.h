@@ -4,6 +4,31 @@
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/vector.h"
 
+class W8OptionsPanel;
+
+/* The 0x20-byte panel-set descriptor allocated by SelectPanel at 0x005A93C0.
+   It is a real owning boundary: its embedded vector is constructed at +0x10,
+   its deleting destructor is 0x005A9380, and the Options menu chrome stores a
+   pointer to it under the asserted m_pMenuSet field.  Individual panel
+   subclasses are created by the still-unrecovered table factory. */
+class W8OptionsPanelSet005EF01C {
+public:
+    void Advance();
+    void Retreat();
+
+    int m_mode_000;
+    int unknown_004;
+    unsigned char unknown_008;
+    unsigned char m_show_page_text_009;
+    unsigned char unknown_00a;
+    unsigned char pad_00b;
+    int m_current_00c;
+    W8GrowableVector<W8OptionsPanel*> m_panels_010;
+};
+
+static_assert(sizeof(W8OptionsPanelSet005EF01C) == 0x20,
+              "W8OptionsPanelSet005EF01C_must_be_0x20");
+
 /* The 0xc0-byte menu-row class constructed at 0x005A7370.  It is a concrete
    W8TextControl with an independent listener subobject and a source-table item
    id; the two optional child controls are owned by the base Controls panel. */
@@ -33,10 +58,12 @@ public:
     virtual void OnPrimary(W8TextControl005ED604* control) override;
     virtual void OnSecondary(W8TextControl005ED604* control) override;
 
-    void* m_pMenuSet;                   /* 0x50: OptionsScreen.cpp:1481 */
+    W8OptionsPanelSet005EF01C* m_pMenuSet; /* 0x50: OptionsScreen.cpp:1481 */
     W8TextControl005ED604* m_next_054;
     W8TextControl005ED604* m_previous_058;
     W8TextBuffer005ED5B8* m_page_text_05c;
+
+    void UpdateMenuSet();
 };
 
 static_assert(sizeof(W8OptionsMenuSet005EEFEC) == 0x60,

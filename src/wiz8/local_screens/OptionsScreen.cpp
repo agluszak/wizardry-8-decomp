@@ -40,6 +40,21 @@ W8OptionsMenuSet005EEFEC::~W8OptionsMenuSet005EEFEC()
     delete m_page_text_05c;
 }
 
+/* The chrome listener is attached at the secondary base subobject.  The
+   preceding control walks back and all other primary activations walk forward;
+   both paths then recompute bounds, navigation availability, and page text. */
+// FUNCTION: WIZ8 0x005a9050
+void W8OptionsMenuSet005EEFEC::OnPrimary(W8TextControl005ED604* control)
+{
+    if (control == m_previous_058) {
+        m_pMenuSet->Retreat();
+    }
+    else {
+        m_pMenuSet->Advance();
+    }
+    UpdateMenuSet();
+}
+
 /* The dialog callback's teardown decision is part of the Options screen's
    state transition: only an accepted close outside combat saves an active
    party, then the common audio-state update runs for every accepted close. */
