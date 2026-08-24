@@ -52,7 +52,7 @@ extern void Function558720(int sound_id);
    receives leave/enter transitions, hover help timing, and the ordinary
    position callback as one transaction. */
 // FUNCTION: WIZ8 0x004f1360
-void Function4F1360(int x, int y)
+unsigned int Function4F1360(int x, int y)
 {
     W8RegionMouseEvent event;
     unsigned int set_index;
@@ -68,7 +68,7 @@ void Function4F1360(int x, int y)
     if (g_hot_region_689b44 != 0) {
         W8Region* forced = &g_regions[g_hot_region_689b44];
         forced->callback(&event.event, forced);
-        return;
+        return g_hot_region_689b3c;
     }
 
     for (set_index = 0; set_index < g_region_set_count; ++set_index) {
@@ -117,7 +117,7 @@ void Function4F1360(int x, int y)
             }
             region->flags &= 0xffcf;
             g_hot_region_689b4c = g_hot_region_689b3c;
-            return;
+            return g_hot_region_689b3c;
         }
     }
 
@@ -137,6 +137,7 @@ void Function4F1360(int x, int y)
         previous->flags &= 0xff0f;
     }
     g_hot_region_689b4c = g_hot_region_689b3c;
+    return g_hot_region_689b3c;
 }
 
 /* Raises the help box for one region, taking a stale one down first. The

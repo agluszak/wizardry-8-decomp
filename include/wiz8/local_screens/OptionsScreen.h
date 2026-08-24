@@ -29,6 +29,28 @@ public:
 static_assert(sizeof(W8OptionsPanelSet005EF01C) == 0x20,
               "W8OptionsPanelSet005EF01C_must_be_0x20");
 
+/* All concrete option panels share this 0x78-byte Controls-derived base.  Its
+   0x005A81E0 constructor establishes the two owning vectors and its vtable
+   supplies the active-state and selected-index operations used by a panel set.
+   The distinct concrete panel implementations remain in the table factory. */
+class W8OptionsPanel : public Controls {
+public:
+    W8OptionsPanel(int region_index);
+    virtual ~W8OptionsPanel();
+    virtual void Populate() = 0;
+    virtual void SetActive(unsigned char active);
+    virtual void SetCurrent(int current);
+
+    int m_current_04c;
+    int m_content_top_050;
+    int unknown_054;
+    W8GrowableVector<W8TextBuffer005ED5B8*> m_text_buffers_058;
+    W8GrowableVector<W8OptionsPanelSet005EF01C*> m_page_sets_068;
+};
+
+static_assert(sizeof(W8OptionsPanel) == 0x78,
+              "W8OptionsPanel_must_be_0x78");
+
 /* The 0xc0-byte menu-row class constructed at 0x005A7370.  It is a concrete
    W8TextControl with an independent listener subobject and a source-table item
    id; the two optional child controls are owned by the base Controls panel. */
@@ -86,6 +108,8 @@ public:
     ~W8OptionsScreen();
     void SelectPanel(int selected, int notify);
     void CreateControls();
+    unsigned char Function5A9720(const InputAtom* input);
+    void Function5A95F0();
     virtual void vslot00(W8Control005ED654* control, int selected) override;
     virtual void OnPrimary(W8TextControl005ED604* control) override;
     virtual void OnSecondary(W8TextControl005ED604*) override {}
@@ -100,10 +124,10 @@ public:
     W8OptionsMenuSet005EEFEC* m_menu_set_028;
     void* m_panel_02c;
     unsigned char unknown_030[8];
-    void* m_panel_038[6];
+    W8OptionsPanelSet005EF01C* m_panel_038[6];
     void* m_panel_050;
     void* m_panel_054;
-    void* m_active_modal;   /* 0x58: frame/leave own and clear it */
+    W8ModalDialogBase* m_active_modal; /* 0x58: frame/leave own and clear it */
     void* m_panel_05c;
     void* m_panel_060;
 };

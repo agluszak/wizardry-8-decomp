@@ -5,10 +5,10 @@
  * Dialog Code\DialogInterface.cpp, named by the assertion this body embeds at
  * line 152.
  *
- * The forwarders below establish virtual slots three and nine, while the
- * setter establishes the field at 0x44. Everything between stays opaque. The
- * assertion does not return, which is why each operation remains unconditional
- * after its null check.
+ * The forwarders below operate on the shared dialog base recovered elsewhere:
+ * slot three remains positional, slot nine is Close, and the setter establishes
+ * the base field at 0x44. The assertion does not return, which is why each
+ * operation remains unconditional after its null check.
  */
 
 extern "C" {
@@ -30,33 +30,31 @@ void Function5CF250(int font, unsigned char enabled,
 
 #define DIALOG_INTERFACE_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\DialogInterface.cpp"
 
-/* Two interface forwarders. Their slot positions, not semantic names, are the
-   reviewed fact, so the methods remain positional. */
 // FUNCTION: WIZ8 0x005cf520
-void Function5CF520(W8DialogInterface* dialog)
+void Function5CF520(W8DialogBase005DC7A0* dialog)
 {
     if (dialog == 0) {
         srAssertFail("pDialog", DIALOG_INTERFACE_CPP, 0x66, 0);
     }
-    dialog->Method3();
+    dialog->vslot3();
 }
 
 // FUNCTION: WIZ8 0x005cf550
-void Function5CF550(W8DialogInterface* dialog)
+unsigned char Function5CF550(W8DialogBase005DC7A0* dialog)
 {
     if (dialog == 0) {
         srAssertFail("pDialog", DIALOG_INTERFACE_CPP, 0x74, 0);
     }
-    dialog->Method9();
+    return dialog->Close();
 }
 
 // FUNCTION: WIZ8 0x005cf580
-void Function5CF580(W8DialogInterface* dialog, int value)
+void Function5CF580(W8DialogBase005DC7A0* dialog, int value)
 {
     if (dialog == 0) {
         srAssertFail("pCDialog", DIALOG_INTERFACE_CPP, 0x98, 0);
     }
-    dialog->value_44 = value;
+    dialog->m_field_44 = value;
 }
 
 }

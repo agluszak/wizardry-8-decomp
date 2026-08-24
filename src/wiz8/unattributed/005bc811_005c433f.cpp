@@ -51,7 +51,7 @@ extern "C" void UpdateHeldItemCursor(void);
 void Function591780(void);
 void Function40B510(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
-void Function4F1360(int x, int y);
+unsigned int Function4F1360(int x, int y);
 unsigned char DispatchScreenInput004F1910(const void* event);
 int Function52E750(void);
 void Function426790(void);
