@@ -6,13 +6,19 @@
 
 class stModelInstance005EC7D0;
 
-/* The 0x58-byte state object the pathing constructor builds and 0x00457B10
-   gives back with a plain operator delete, so it has no destructor of its own.
-   Its constructor does nothing but run the one at 0x004CCCB0. */
+/* Retail allocates this 0x58-byte object, calls its sole observed constructor,
+   and later releases it with plain operator delete. Its storage has no proven
+   semantic fields. */
 class W8PathState004CAE40 {
 public:
     W8PathState004CAE40();               /* 0x004CAE40 */
+
+private:
+    unsigned char positional_00[0x58];
 };
+
+static_assert(sizeof(W8PathState004CAE40) == 0x58,
+              "W8PathState004CAE40_must_be_0x58");
 struct W8NavigatorMovementState;
 struct W8NavigatorAttachment;
 
@@ -389,7 +395,7 @@ public:
     unsigned short value_1d8;
     unsigned char path_direction_valid_1da;
     unsigned char m_positional_1db[0x39];
-    void* m_owned_214;                   /* 0x214 */
+    W8PathState004CAE40* path_state_214; /* 0x214 */
     int m_positional_218;
     /* The conditional path tables. ReadPathNodes at 0x00458CE0 asserts on the
        first by name and names the other four in its own failure messages: a
@@ -409,4 +415,3 @@ public:
 
 static_assert(sizeof(W8PathingService) == 0x240,
               "W8PathingService_must_be_0x240");
-

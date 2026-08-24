@@ -34,7 +34,6 @@ extern W8Navigator* g_startup_world_659c0c;
 extern unsigned char g_flag_00659c5c;
 extern unsigned char g_flag_00689b32;
 extern const float g_world_scale_005ebc40;
-extern void ConstructPathState004CCCB0(void* state);
 extern void* CreateOctPathIndex();
 extern void* g_path_scratch_00659c64;
 extern void RegisterPathSurface004B7730(unsigned int index, const int* point);
@@ -76,7 +75,34 @@ extern unsigned int g_path_visualization_cell_00659c6c;
 extern float g_path_search_visualization_limit_005ec380;
 extern float g_path_endpoint_scale_005ec1a4;
 
+// GLOBAL: WIZ8 0x0060f9e8
+float g_path_acceleration_factor_0060f9e8 = 3.0f;
+// GLOBAL: WIZ8 0x0060f9ec
+float g_path_angular_acceleration_factor_0060f9ec = 2.0f;
+// GLOBAL: WIZ8 0x0060f9f0
+float g_path_angular_deceleration_factor_0060f9f0 = 0.5f;
+// GLOBAL: WIZ8 0x0060f9f4
+float g_path_prediction_time_0060f9f4 = 1.0f;
+// GLOBAL: WIZ8 0x0060f9f8
+float g_path_approach_slow_time_0060f9f8 = 1.0f;
+// GLOBAL: WIZ8 0x0060f9fc
+float g_path_approach_run_time_0060f9fc = 8.0f;
+// GLOBAL: WIZ8 0x0060fa00
+float g_path_approach_run_rate_0060fa00 = 2.0f;
+// GLOBAL: WIZ8 0x0060fa04
+float g_path_lookahead_time_0060fa04 = 1.0f;
+// GLOBAL: WIZ8 0x0060fa08
+float g_path_group_repulsion_factor_0060fa08 = 1.0f;
+// GLOBAL: WIZ8 0x0060fa0c
+float g_path_party_boundary_radius_0060fa0c = 2.0f;
+// GLOBAL: WIZ8 0x0060fa10
+float g_path_obstacle_steering_factor_0060fa10 = 2.0f;
+// GLOBAL: WIZ8 0x0060fa14
+float g_path_obstacle_braking_factor_0060fa14 = 0.3f;
+
 #define OCTPATH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctPath.cpp"
+
+static unsigned char LoadPathParameters004CCCB0();
 
 /* The path-search heap specialization is emitted after OctPath.cpp's ordinary
    bodies. The generic definitions live once in stHeap.hpp. */
@@ -2580,8 +2606,8 @@ void W8PathingService::Release00457B10()
     if (m_owned_0c8 != 0) {
         ::operator delete(m_owned_0c8);
     }
-    if (m_owned_214 != 0) {
-        ::operator delete(m_owned_214);
+    if (path_state_214 != 0) {
+        ::operator delete(path_state_214);
     }
     if (g_path_scratch_00659c64 != 0) {
         free(g_path_scratch_00659c64);
@@ -2665,7 +2691,7 @@ W8PathingService::W8PathingService()
     trace_mode_0b8 = 0;
     trace_height_offset_0bc = 0;
     trace_target_yaw_0c4 = 0;
-    m_owned_214 = new W8PathState004CAE40();
+    path_state_214 = new W8PathState004CAE40();
     m_positional_218 = 0;
     m_pCondPaths = 0;
     m_ulNumCondPaths = 0;
@@ -5824,10 +5850,59 @@ unsigned int W8PathingService::FindPathHandle(
 }
 
 
-/* The state object's whole constructor: it defers to the one at 0x004CCCB0 and
-   adds nothing of its own, which is why it has no members to clear here. */
+struct W8PathParameter {
+    const char* name;
+    float* value;
+};
+
+static W8PathParameter g_path_parameters[] = {
+    {"ACCELERATION_FACTOR", &g_path_acceleration_factor_0060f9e8},
+    {"ANGULAR_ACCEL_FACTOR", &g_path_angular_acceleration_factor_0060f9ec},
+    {"ANGULAR_DECEL_FACTOR", &g_path_angular_deceleration_factor_0060f9f0},
+    {"PREDICTION_TIME", &g_path_prediction_time_0060f9f4},
+    {"APPROACH_SLOW_TIME", &g_path_approach_slow_time_0060f9f8},
+    {"APPROACH_RUN_TIME", &g_path_approach_run_time_0060f9fc},
+    {"APPROACH_RUN_RATE", &g_path_approach_run_rate_0060fa00},
+    {"PATH_PREDICTION_TIME", &g_path_lookahead_time_0060fa04},
+    {"GROUP_REPULSION_FACTOR", &g_path_group_repulsion_factor_0060fa08},
+    {"PARTY_BOUNDARY_RADIUS", &g_path_party_boundary_radius_0060fa0c},
+    {"OBSTACLE_STEER_FACTOR", &g_path_obstacle_steering_factor_0060fa10},
+    {"OBSTACLE_BRAKE_FACTOR", &g_path_obstacle_braking_factor_0060fa14},
+    {0, 0}
+};
+
 // FUNCTION: WIZ8 0x004cae40
 W8PathState004CAE40::W8PathState004CAE40()
 {
-    ConstructPathState004CCCB0(this);
+    LoadPathParameters004CCCB0();
+}
+
+// FUNCTION: WIZ8 0x004cccb0
+unsigned char LoadPathParameters004CCCB0()
+{
+    int handle;
+    int index;
+    unsigned char more = 1;
+    char line[128];
+
+    handle = FileOpen("Data\\Monsters\\pathparms.txt", 0x41, 0);
+    if (handle == 0) {
+        return 0;
+    }
+    for (;;) {
+        do {
+            if (more == 0) {
+                CloseVirtualFile(handle);
+                return 1;
+            }
+            ReadTextLine004CEE40(handle, line, sizeof(line), &more);
+        } while (line[0] == '#');
+        for (index = 0; g_path_parameters[index].name != 0; ++index) {
+            if (strncmp(line, g_path_parameters[index].name,
+                        strlen(g_path_parameters[index].name)) == 0) {
+                sscanf(line, "%*s %f", g_path_parameters[index].value);
+                break;
+            }
+        }
+    }
 }
