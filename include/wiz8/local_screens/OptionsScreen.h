@@ -29,6 +29,7 @@ class W8OptionsMenuSet005EEFEC
       public W8TextControl005ED604::Listener {
 public:
     W8OptionsMenuSet005EEFEC(unsigned int* shared_region_set);
+    virtual ~W8OptionsMenuSet005EEFEC();
     virtual void OnPrimary(W8TextControl005ED604* control) override;
     virtual void OnSecondary(W8TextControl005ED604* control) override;
 

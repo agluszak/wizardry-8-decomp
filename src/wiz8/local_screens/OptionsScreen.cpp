@@ -31,6 +31,15 @@ unsigned char g_options_values_0069c138;
 // GLOBAL: WIZ8 0x0069c254
 W8OptionsScreen* g_options_screen_0069c254;
 
+/* The menu-set table has its own deleting destructor; the normal destructor
+   clears the inherited Controls children before releasing its page text. */
+// FUNCTION: WIZ8 0x005a8e60
+W8OptionsMenuSet005EEFEC::~W8OptionsMenuSet005EEFEC()
+{
+    DestroyAllControls();
+    delete m_page_text_05c;
+}
+
 /* The dialog callback's teardown decision is part of the Options screen's
    state transition: only an accepted close outside combat saves an active
    party, then the common audio-state update runs for every accepted close. */
