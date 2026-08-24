@@ -140,11 +140,18 @@ typedef struct W8GlobalStatus {
     unsigned char unknown_18dc[4];
     unsigned int dwords_18e0[8];          /* 0x18e0 */
     int current_level;                    /* 0x1900: 0x00686A70 */
-    unsigned char unknown_1904[0x100];
+    /* The fixed status header preserves this block byte-for-byte. */
+    unsigned char status_header_block_1904[0x100];
     W8LevelProgressRow level_progress[47]; /* 0x1a04: 0x00686B74 */
     unsigned char unknown_2013[0x294];
     W8SavedLocation pending_move_location; /* 0x22a7: 0x00687417 */
-    unsigned char unknown_22e3[0x77];
+    unsigned char unknown_22e3[0x67];
+    /* Runtime identities serialized by Load/SaveStatusHeader. Zero is never a
+       valid next identity: the loader normalizes each legacy zero to one. */
+    int status_count_234a;                /* 0x234a: 0x006874BA */
+    int next_monster_location_id_234e;    /* 0x234e: 0x006874BE */
+    int next_world_item_id_2352;          /* 0x2352: 0x006874C2 */
+    int next_trigger_id_2356;             /* 0x2356: 0x006874C6 */
     unsigned char item_in_cursor;         /* 0x235a: gStatus.fItemInCursor */
     W8ItemInstance item_in_hand_235b;
     unsigned char unknown_2367[0x20];
@@ -174,10 +181,20 @@ static_assert(offsetof(W8GlobalStatus, world_clock) == 0x18d8,
               "W8GlobalStatus_world_clock_offset");
 static_assert(offsetof(W8GlobalStatus, current_level) == 0x1900,
               "W8GlobalStatus_current_level_offset");
+static_assert(offsetof(W8GlobalStatus, status_header_block_1904) == 0x1904,
+              "W8GlobalStatus_status_header_block_offset");
 static_assert(offsetof(W8GlobalStatus, level_progress) == 0x1a04,
               "W8GlobalStatus_level_progress_offset");
 static_assert(offsetof(W8GlobalStatus, pending_move_location) == 0x22a7,
               "W8GlobalStatus_pending_move_location_offset");
+static_assert(offsetof(W8GlobalStatus, status_count_234a) == 0x234a,
+              "W8GlobalStatus_status_count_234a_offset");
+static_assert(offsetof(W8GlobalStatus, next_monster_location_id_234e) == 0x234e,
+              "W8GlobalStatus_next_monster_location_id_offset");
+static_assert(offsetof(W8GlobalStatus, next_world_item_id_2352) == 0x2352,
+              "W8GlobalStatus_next_world_item_id_offset");
+static_assert(offsetof(W8GlobalStatus, next_trigger_id_2356) == 0x2356,
+              "W8GlobalStatus_next_trigger_id_offset");
 static_assert(offsetof(W8GlobalStatus, item_in_cursor) == 0x235a,
               "W8GlobalStatus_item_in_cursor_offset");
 static_assert(offsetof(W8GlobalStatus, game_time_ms) == 0x2387,

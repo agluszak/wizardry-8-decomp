@@ -200,6 +200,63 @@ unsigned char W8Chunk::SkipCurrentChunk()
     return 1;
 }
 
+/* A grouped chunk begins with its child count. Readers retain that count for
+   the group walk. Writers mark the active head as grouped, reserve the count,
+   and retain a zero completed-child counter until ReleaseGroup patches it. */
+// FUNCTION: WIZ8 0x0055c3f0
+unsigned char W8Chunk::OpenGroup()
+{
+    unsigned int transferred;
+
+    if (!m_fWriting) {
+        int count;
+
+        Read(&count, sizeof(count), &transferred);
+        m_group_counts.Add(count);
+        return 1;
+    }
+    else {
+        W8ChunkHead* head = m_heads.data[m_heads.count - 1];
+        int position = FileGetPos(m_hFile);
+        int count = 0;
+
+        if (head == 0) {
+            srAssertFail("pHead", CHUNK_CPP, 0x185, 0);
+        }
+        head->unknown_04 = 1;
+        m_group_progress.Add(0);
+        FileSeek(m_hFile, m_offsets.data[m_offsets.count - 1] - 6,
+                 FILE_SEEK_FROM_START);
+        Write(&head->unknown_04, 1, &transferred);
+        FileSeek(m_hFile, position, FILE_SEEK_FROM_START);
+        Write(&count, sizeof(count), &transferred);
+        return 1;
+    }
+}
+
+/* Finish one grouped walk. Readers discard its retained child count. Writers
+   patch the reserved word with the number of released children. */
+// FUNCTION: WIZ8 0x0055c5a0
+unsigned char W8Chunk::ReleaseGroup()
+{
+    if (!m_fWriting) {
+        m_group_counts.RemoveAt(m_group_counts.count - 1);
+        return 1;
+    }
+    else {
+        unsigned int transferred;
+        int position = FileGetPos(m_hFile);
+        int count;
+
+        FileSeek(m_hFile, m_offsets.data[m_offsets.count - 1],
+                 FILE_SEEK_FROM_START);
+        count = m_group_progress.RemoveAt(m_group_progress.count - 1);
+        Write(&count, sizeof(count), &transferred);
+        FileSeek(m_hFile, position, FILE_SEEK_FROM_START);
+        return 1;
+    }
+}
+
 // FUNCTION: WIZ8 0x0055c660
 unsigned int W8Chunk::CurrentChunkId()
 {

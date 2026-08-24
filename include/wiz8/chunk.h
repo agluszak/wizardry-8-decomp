@@ -33,6 +33,8 @@ struct W8Chunk {
     void Close();
     unsigned char CopyCurrentChunkFrom(W8Chunk* source);
     unsigned char SkipCurrentChunk();
+    unsigned char OpenGroup();
+    unsigned char ReleaseGroup();
     unsigned int CurrentChunkId();
     int CurrentChunkExtent();
     int ChunkCount();

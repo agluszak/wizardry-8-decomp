@@ -113,7 +113,6 @@ extern int g_value_0068c548;
 extern int g_value_005ee59c;
 extern int g_value_005ee5a0;
 extern int g_value_005ed8c8;
-static int g_next_trigger_id_006874c6;
 
 Trigger* FindTriggerByName(const char* name)
 {
@@ -631,7 +630,7 @@ Trigger::Trigger()
     next_activation_time_354 = GetTickCount() + Random(30000);
     gold_358 = 0;
     value_35c = 0;
-    trigger_id_09c = g_next_trigger_id_006874c6++;
+    trigger_id_09c = g_status_685170.next_trigger_id_2356++;
 }
 
 // FUNCTION: WIZ8 0x00440d00

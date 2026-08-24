@@ -1,4 +1,4 @@
-"""Source-shape rules for compiler-owned C++ lifecycle artifacts."""
+"""Source-shape rules for repository-owned C++ sources."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 
 
 class SourcePolicyError(RuntimeError):
-    """First-party source manually models a compiler-owned artifact."""
+    """First-party source violates the recovered C++ source model."""
 
 
 def _without_comments_and_literals(source: str) -> str:
@@ -103,6 +103,11 @@ def validate_source_policy(repository: Path) -> dict[str, Any]:
             elif identifier.casefold().startswith("g_vtable_"):
                 problems.append(
                     f"{relative}:{line}: raw vtable globals must not model C++ object lifecycle"
+                )
+            elif identifier == "__cplusplus":
+                problems.append(
+                    f"{relative}:{line}: repository-owned code is C++ only; "
+                    "do not add conditional C API shapes"
                 )
 
         lines = source.splitlines()

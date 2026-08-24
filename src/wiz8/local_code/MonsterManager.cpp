@@ -52,8 +52,6 @@ void Function546E70(void);
 void ResetCombatSlot(W8CombatSlot* combat_slot);   /* 0x00536170 */
 void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flag);
 void EndMonsterTurn(W8MonsterInfo* monster_info);
-extern int g_status_count_6874be;
-extern int g_status_count_6874ba;
 extern int g_dword_6850be;
 void DeactivateMonster(W8MonsterInfo* monster_info);
 void Function4ACF90(W8Monster* monster);
@@ -96,9 +94,10 @@ W8MonsterInfo* CreateMonsterInfo(
     }
 
     memset(monster_info, 0, sizeof(W8MonsterInfo));
-    monster_info->location_id = g_status_count_6874be;
-    while (g_status_count_6874be++, monster_info->location_id == 0) {
-        monster_info->location_id = g_status_count_6874be;
+    monster_info->location_id = g_status_685170.next_monster_location_id_234e;
+    while (g_status_685170.next_monster_location_id_234e++,
+           monster_info->location_id == 0) {
+        monster_info->location_id = g_status_685170.next_monster_location_id_234e;
     }
 
     monster_info->monster_group_id = group->group_id;
@@ -1210,8 +1209,8 @@ unsigned char AnyMonsterDying(void)
 // FUNCTION: WIZ8 0x004e3720
 bool InitializeMonsterManagerState(void)
 {
-    g_status_count_6874be = 1;
-    g_status_count_6874ba = 1;
+    g_status_685170.next_monster_location_id_234e = 1;
+    g_status_685170.status_count_234a = 1;
     gXStatus.active_monster_count = 0;
     gXStatus.field_02d = 0;
     g_dword_6850be = 0;

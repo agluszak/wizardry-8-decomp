@@ -46,6 +46,19 @@ Example::~Example() {}
     assert validate_source_policy(tmp_path)["ok"] is True
 
 
+def test_source_policy_rejects_cplusplus_conditionals(tmp_path: Path) -> None:
+    _write_source(
+        tmp_path,
+        """#ifdef __cplusplus
+extern "C" {
+#endif
+""",
+    )
+
+    with pytest.raises(SourcePolicyError, match=r"C\+\+ only"):
+        validate_source_policy(tmp_path)
+
+
 def test_source_policy_requires_synthetic_marker_for_scalar_wrapper(
     tmp_path: Path,
 ) -> None:

@@ -1,4 +1,5 @@
 #include "wiz8/bringup_gates.h"
+#include "wiz8/game_state.h"
 #include "wiz8/wiz8_windows.h"
 
 #include "wiz8/render_state.h"
@@ -65,7 +66,6 @@ extern unsigned char g_flag_659711;
 extern unsigned char g_fullscreen_603c39;
 int g_dword_65a104;
 int g_dword_5ff64c;
-extern int g_status_count_6874c6;
 extern int g_dword_687595;
 extern unsigned char g_byte_68de44;
 extern unsigned char g_flag_65970f;
@@ -389,7 +389,7 @@ void Function479010(void)
 // FUNCTION: WIZ8 0x00443a50
 int Function443A50(void)
 {
-    g_status_count_6874c6 = 1;
+    g_status_685170.next_trigger_id_2356 = 1;
     return 1;
 }
 

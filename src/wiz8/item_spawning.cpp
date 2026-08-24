@@ -1,4 +1,5 @@
 #include "wiz8/item_spawning.h"
+#include "wiz8/game_state.h"
 #include "wiz8/sr_api.h"
 
 #include <malloc.h>
@@ -31,7 +32,7 @@ W8WorldItem* CreateWorldItem(
 
     memset(result, 0, sizeof(W8WorldItem));
     Function520070(&result->item, 0, 1);
-    result->runtime_id = g_next_world_item_id++;
+    result->runtime_id = g_status_685170.next_world_item_id_2352++;
     result->unknown_08 = 0;
     result->owner = 0;
     result->position = *position;

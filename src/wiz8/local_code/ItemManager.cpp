@@ -1,3 +1,4 @@
+#include "wiz8/game_state.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/character.h"
@@ -21,7 +22,7 @@
 // FUNCTION: WIZ8 0x004f69f0
 bool InitializeItemManagerState()
 {
-    g_next_world_item_id = 1;
+    g_status_685170.next_world_item_id_2352 = 1;
     gXStatus.item_manager_pending = 0;
     if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->selected_item = -1;

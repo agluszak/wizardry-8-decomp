@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/World.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
@@ -74,25 +75,38 @@ extern void Function48C750(W8MonsterGroup* group);
 extern void InitializeItemManagerState(void);
 extern void Function443A50(void);
 
-/* Four counts the header carries, each falling back to one when the save
-   records zero, and the 256-byte block it hands over whole. Their meaning is
-   not established, so all five keep positional names. */
-extern int g_status_count_6874ba;
-extern int g_status_count_6874be;
-extern int g_status_count_6874c6;
-extern unsigned char g_status_block_686a74[0x100];
-
 /* The fixed 0x314-byte header every save begins with. Only the fields
    LoadStatusHeader forwards are established; the rest is read and kept. */
 struct W8StatusHeader {
     float version;                       /* 0x000 */
-    int value_004;                       /* 0x004 */
-    int value_008;                       /* 0x008 */
-    int value_00c;                       /* 0x00c */
-    int value_010;                       /* 0x010 */
-    unsigned char block_014[0x100];      /* 0x014 */
+    int status_count_004;                /* 0x004: meaning not established */
+    int next_monster_location_id;        /* 0x008 */
+    int next_world_item_id;              /* 0x00c */
+    int next_trigger_id;                 /* 0x010 */
+    unsigned char status_block[0x100];   /* 0x014 */
     unsigned char unknown_114[0x200];
 };                                       /* 0x314 */
+
+static_assert(sizeof(W8StatusHeader) == 0x314,
+              "W8StatusHeader_must_be_0x314");
+
+/* Established save-side callees without shared declarations yet. Their
+   positional names preserve the current identity ceiling; the orchestration
+   below establishes only their argument shape and section ownership. */
+extern void SaveMonsterStatus(W8Chunk* chunks);                         /* 0x005145A0 */
+extern W8WorldItem* ItemInfo(unsigned int item_list_index);             /* 0x004F7FE0 */
+extern void Function48EAD0(int handle);
+extern void Function48E6D0(int handle);
+extern void SaveEncounterState(int handle);
+extern void Function43CB30(W8World* world, int handle, unsigned char restoring);
+extern void Function43D120(W8World* world, int handle);
+extern void Function581CE0(int handle);
+extern void Function43C810(W8World* world, int handle);
+extern void Function44E830(W8World* world, int handle);
+extern void SaveMonsterGenerators(int handle);
+extern void SaveAmbientSoundList0047B140(int handle);
+extern void SaveParticleStates0049B150(unsigned int handle);
+extern void Function49D120(int handle);
 
 /* 0x005156C0, 0x00517A90 and 0x00518510, not yet identified; named by address
    as elsewhere in src/wiz8. The first loads a character from somewhere other
@@ -277,23 +291,139 @@ unsigned char LoadStatusHeader(W8Chunk* chunk)
     if (header.version != 2.0f) {
         return 0;
     }
-    g_status_count_6874ba = header.value_004;
-    g_status_count_6874be = header.value_008;
-    g_next_world_item_id = header.value_00c;
-    g_status_count_6874c6 = header.value_010;
-    if (header.value_004 == 0) {
-        g_status_count_6874ba = 1;
+    g_status_685170.status_count_234a = header.status_count_004;
+    g_status_685170.next_monster_location_id_234e = header.next_monster_location_id;
+    g_status_685170.next_world_item_id_2352 = header.next_world_item_id;
+    g_status_685170.next_trigger_id_2356 = header.next_trigger_id;
+    if (header.status_count_004 == 0) {
+        g_status_685170.status_count_234a = 1;
     }
-    if (header.value_008 == 0) {
-        g_status_count_6874be = 1;
+    if (header.next_monster_location_id == 0) {
+        g_status_685170.next_monster_location_id_234e = 1;
     }
-    if (header.value_00c == 0) {
-        g_next_world_item_id = 1;
+    if (header.next_world_item_id == 0) {
+        g_status_685170.next_world_item_id_2352 = 1;
     }
-    if (header.value_010 == 0) {
-        g_status_count_6874c6 = 1;
+    if (header.next_trigger_id == 0) {
+        g_status_685170.next_trigger_id_2356 = 1;
     }
-    memcpy(g_status_block_686a74, header.block_014, 0x100);
+    memcpy(g_status_685170.status_header_block_1904, header.status_block,
+           sizeof(header.status_block));
+    return 1;
+}
+
+/* Serialize the complete per-level group. LVLS is a grouped chunk: its level
+   id leads a sequence of ordinary child chunks. The restore path deliberately
+   writes the four transient sections only; an ordinary save writes the live
+   automation, trigger, prop, cube, generator, lock, ambient, particle and
+   light sections. */
+// FUNCTION: WIZ8 0x00513260
+unsigned char SaveStatusHeader(W8Chunk* chunks)
+{
+    W8StatusHeader header;
+    unsigned int count;
+    unsigned int index;
+
+    DestroyUngroupedMonsters();
+    chunks->OpenChunk(0x534c564c, 0); /* LVLS */
+    chunks->OpenGroup();
+    chunks->Write(&g_status_685170.current_level,
+                  sizeof(g_status_685170.current_level), 0);
+
+    chunks->OpenChunk(0x54415453, 0); /* STAT */
+    memset(&header, 0, sizeof(header));
+    header.version = 2.0f;
+    header.status_count_004 = g_status_685170.status_count_234a;
+    header.next_monster_location_id =
+        g_status_685170.next_monster_location_id_234e;
+    header.next_world_item_id = g_status_685170.next_world_item_id_2352;
+    header.next_trigger_id = g_status_685170.next_trigger_id_2356;
+    memcpy(header.status_block, g_status_685170.status_header_block_1904,
+           sizeof(header.status_block));
+    if (!chunks->Write(&header, sizeof(header), &count)) {
+        chunks->ReleaseCurrentChunk();
+    }
+    chunks->ReleaseCurrentChunk();
+
+    chunks->OpenChunk(0x534e4f4d, 0); /* MONS */
+    SaveMonsterStatus(chunks);
+    chunks->ReleaseCurrentChunk();
+
+    chunks->OpenChunk(0x4d455449, 0); /* ITEM */
+    count = PLLength(g_world_item_list);
+    chunks->Write(&count, sizeof(count), 0);
+    for (index = 0; index < count; ++index) {
+        if (!SaveItemFile(chunks->m_hFile, ItemInfo(index))) {
+            chunks->ReleaseCurrentChunk();
+            break;
+        }
+    }
+    chunks->ReleaseCurrentChunk();
+
+    if (g_flag_659756) {
+        chunks->OpenChunk(0x45425543, 0); /* CUBE */
+        Function48EAD0(chunks->m_hFile);
+        Function48E6D0(chunks->m_hFile);
+        chunks->ReleaseCurrentChunk();
+
+        chunks->OpenChunk(0x474e4f4d, 0); /* MONG */
+        SaveEncounterState(chunks->m_hFile);
+        chunks->ReleaseCurrentChunk();
+
+        chunks->OpenChunk(0x4b434f4c, 0); /* LOCK */
+        Function43CB30(g_world, chunks->m_hFile, g_flag_659756);
+        chunks->ReleaseCurrentChunk();
+
+        chunks->OpenChunk(0x53455254, 0); /* TRES */
+        Function43D120(g_world, chunks->m_hFile);
+        chunks->ReleaseCurrentChunk();
+        if (g_flag_659756) {
+            chunks->ReleaseGroup();
+            chunks->ReleaseCurrentChunk();
+            return 1;
+        }
+    }
+
+    chunks->OpenChunk(0x4f545541, 0); /* AUTO */
+    Function581CE0(chunks->m_hFile);
+    chunks->ReleaseCurrentChunk();
+
+    if (g_world->triggers->count != 0) {
+        chunks->OpenChunk(0x47495254, 0); /* TRIG */
+        Function43C810(g_world, chunks->m_hFile);
+        chunks->ReleaseCurrentChunk();
+    }
+
+    chunks->OpenChunk(0x54535041, 0); /* APST */
+    Function44E830(g_world, chunks->m_hFile);
+    chunks->ReleaseCurrentChunk();
+
+    chunks->OpenChunk(0x53425543, 0); /* CUBS */
+    Function48E6D0(chunks->m_hFile);
+    chunks->ReleaseCurrentChunk();
+
+    chunks->OpenChunk(0x534e474d, 0); /* MGNS */
+    SaveMonsterGenerators(chunks->m_hFile);
+    chunks->ReleaseCurrentChunk();
+
+    chunks->OpenChunk(0x534b434c, 0); /* LCKS */
+    Function43CB30(g_world, chunks->m_hFile, g_flag_659756);
+    chunks->ReleaseCurrentChunk();
+
+    chunks->OpenChunk(0x53424d41, 0); /* AMBS */
+    SaveAmbientSoundList0047B140(chunks->m_hFile);
+    chunks->ReleaseCurrentChunk();
+
+    chunks->OpenChunk(0x54524150, 0); /* PART */
+    SaveParticleStates0049B150(chunks->m_hFile);
+    chunks->ReleaseCurrentChunk();
+
+    chunks->OpenChunk(0x5448474c, 0); /* LGHT */
+    Function49D120(chunks->m_hFile);
+    chunks->ReleaseCurrentChunk();
+
+    chunks->ReleaseGroup();
+    chunks->ReleaseCurrentChunk();
     return 1;
 }
 

@@ -39,11 +39,6 @@ typedef struct W8WorldItem {
 
 extern "C" {
 
-/* Saved in the status header and incremented for every newly created world
-   item, with zero normalized to the first valid id during initialization. */
-// GLOBAL: WIZ8 0x006874C2
-extern int g_next_world_item_id;
-
 W8WorldItem* CreateWorldItem(
     W8ItemInstance* item,
     const srVector3T<float>* position,
