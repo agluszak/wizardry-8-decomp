@@ -14,6 +14,14 @@ class W8OptionsScreen
       public W8TextControl005ED604::Listener,
       public W8DialogCloseListener {
 public:
+    // FUNCTION: WIZ8 0x005a9090
+    W8OptionsScreen();
+    // FUNCTION: WIZ8 0x005a9200
+    ~W8OptionsScreen();
+    // FUNCTION: WIZ8 0x005a93c0
+    void SelectPanel(int selected, int notify);
+    // FUNCTION: WIZ8 0x005a98b0
+    void CreateControls();
     virtual void vslot00(W8Control005ED654* control, int selected) override;
     virtual void OnPrimary(W8TextControl005ED604* control) override;
     virtual void OnSecondary(W8TextControl005ED604*) override {}
