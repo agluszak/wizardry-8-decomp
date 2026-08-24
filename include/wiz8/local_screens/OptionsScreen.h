@@ -4,6 +4,26 @@
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/vector.h"
 
+/* The 0x60-byte controls-derived menu-set object constructed at 0x005A8C90.
+   Its independent allocation, constructor, secondary listener vptr, and the
+   OptionsScreen.cpp assertion on m_pMenuSet establish this boundary. */
+class W8OptionsMenuSet005EEFEC
+    : public Controls,
+      public W8TextControl005ED604::Listener {
+public:
+    W8OptionsMenuSet005EEFEC(unsigned int* shared_region_set);
+    virtual void OnPrimary(W8TextControl005ED604* control) override;
+    virtual void OnSecondary(W8TextControl005ED604* control) override;
+
+    void* m_pMenuSet;                   /* 0x50: OptionsScreen.cpp:1481 */
+    W8TextControl005ED604* m_next_054;
+    W8TextControl005ED604* m_previous_058;
+    W8TextBuffer005ED5B8* m_page_text_05c;
+};
+
+static_assert(sizeof(W8OptionsMenuSet005EEFEC) == 0x60,
+              "W8OptionsMenuSet005EEFEC_must_be_0x60");
+
 /* Local Screens\OptionsScreen.cpp owns the state-10 controller.  Its source
    identity is established by the m_pMenuSet assertion at 0x005A8F14; the
    0x64-byte allocation at 0x005A9B50, constructor/destructor pair
@@ -11,9 +31,7 @@
    object extent and bases.  The constructor establishes the ordinary pointer
    vector at +0x0c, the selected panel index at +0x20, and the controls owner
    at +0x24; the remaining panel objects stay positional until their types are
-   recovered.  The direct `m_pMenuSet` assertion at 0x005A8F14 belongs to the
-   controls-derived object through this controller's +0x28 pointer, rather than
-   to the controller's +0x50 slot. */
+   recovered. */
 class W8OptionsScreen
     : public W8ControlSelectionListener,
       public W8TextControl005ED604::Listener,
@@ -34,7 +52,7 @@ public:
     unsigned char unknown_01e[2];
     int m_selected_panel_020;
     Controls* m_controls_024;
-    void* m_panel_028;      /* owns the asserted m_pMenuSet at its +0x50 */
+    W8OptionsMenuSet005EEFEC* m_menu_set_028;
     void* m_panel_02c;
     unsigned char unknown_030[8];
     void* m_panel_038[6];
