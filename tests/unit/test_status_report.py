@@ -173,7 +173,7 @@ def test_status_report_writes_json_and_markdown_under_build(
     report = derive_status(repository, _ghidra_functions())
     monkeypatch.setattr(status_module, "derive_status", lambda _repository, _functions: report)
     monkeypatch.setattr(
-        "wiz8decomp.ghidra.audits.function_inventory", lambda _settings: _ghidra_functions()
+        "wiz8decomp.ghidra.query.function_inventory", lambda _settings: _ghidra_functions()
     )
 
     result = status_report(settings)

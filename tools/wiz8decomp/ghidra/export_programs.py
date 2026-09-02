@@ -6,7 +6,8 @@ from typing import Any
 
 from ..config import Settings
 from ..paths import atomic_json, sha256_file
-from .environment import start_pyghidra, validate_environment
+from .env import open_project
+from .environment import validate_environment
 from .import_programs import HASH_OPTION
 from .project import module_for_program, resolve_program_name
 from .workspace import SEED_SCHEMA, resolve_seed_program, seed_manifest_path, seed_records
@@ -24,7 +25,6 @@ def export_project(settings: Settings, selector: str | None = None) -> dict[str,
     previous_records = seed_records(settings)
     runtime = validate_environment(settings)
 
-    start_pyghidra(settings)
     import pyghidra
     from ghidra.util.task import TaskMonitor
     from java.io import File
@@ -36,9 +36,8 @@ def export_project(settings: Settings, selector: str | None = None) -> dict[str,
     if temporary.exists():
         temporary.unlink()
 
-    project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
     pack_started = perf_counter()
-    try:
+    with open_project(settings) as project:
         domain_file = project.getProjectData().getFile("/" + program_name)
         if domain_file is None:
             raise RuntimeError(f"canonical Ghidra program is missing: {program_name}")
@@ -55,8 +54,6 @@ def export_project(settings: Settings, selector: str | None = None) -> dict[str,
                 "compiler_spec": str(program.getCompilerSpec().getCompilerSpecID()),
             }
         domain_file.packFile(File(str(temporary)), TaskMonitor.DUMMY)
-    finally:
-        project.close()
     temporary.replace(output)
     pack_seconds = perf_counter() - pack_started
 

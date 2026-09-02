@@ -5,6 +5,7 @@ from typing import Any
 
 from ..config import Settings
 from ..paths import atomic_json
+from .env import open_project, project_lock
 from .environment import start_pyghidra
 from .project import configured_modules
 
@@ -14,32 +15,34 @@ PATH_OPTION = "WIZ8_SOURCE_RELATIVE_PATH"
 
 
 def _existing_hash(settings: Settings, name: str) -> str | None:
-    import pyghidra
-
     try:
-        project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
+        context = open_project(settings)
+        project = context.__enter__()
     except FileNotFoundError:
         return None
     try:
+        import pyghidra
+
         domain_file = project.getProjectData().getFile("/" + name)
         if domain_file is None:
             return None
         with pyghidra.program_context(project, "/" + name) as program:
             return program.getOptions("Program Information").getString(HASH_OPTION, None)
     finally:
-        project.close()
+        context.__exit__(None, None, None)
 
 
 def _delete_existing_program(settings: Settings, name: str, expected_hash: str) -> bool:
     """Delete one exact hash-validated domain file before a deterministic rebuild."""
 
-    import pyghidra
-
     try:
-        project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
+        context = open_project(settings)
+        project = context.__enter__()
     except FileNotFoundError:
         return False
     try:
+        import pyghidra
+
         domain_file = project.getProjectData().getFile("/" + name)
         if domain_file is None:
             return False
@@ -57,7 +60,7 @@ def _delete_existing_program(settings: Settings, name: str, expected_hash: str) 
             raise RuntimeError(f"Ghidra did not delete program {name}")
         return True
     finally:
-        project.close()
+        context.__exit__(None, None, None)
 
 
 def import_programs(
@@ -95,24 +98,25 @@ def import_programs(
         LOG.info("importing and analyzing %s", name)
         import pyghidra
 
-        with pyghidra.open_program(
-            binary,
-            project_location=settings.project_dir,
-            project_name=settings.project_name,
-            analyze=True,
-            language="x86:LE:32:default",
-            compiler="windows",
-            program_name=name,
-            nested_project_location=False,
-        ) as flat_api:
-            program = flat_api.getCurrentProgram()
-            transaction = program.startTransaction("record reproducible import identity")
-            try:
-                options = program.getOptions("Program Information")
-                options.setString(HASH_OPTION, module["sha256"])
-                options.setString(PATH_OPTION, f"{module['variant']}/{module['relative_path']}")
-            finally:
-                program.endTransaction(transaction, True)
+        with project_lock(settings):
+            with pyghidra.open_program(
+                binary,
+                project_location=settings.project_dir,
+                project_name=settings.project_name,
+                analyze=True,
+                language="x86:LE:32:default",
+                compiler="windows",
+                program_name=name,
+                nested_project_location=False,
+            ) as flat_api:
+                program = flat_api.getCurrentProgram()
+                transaction = program.startTransaction("record reproducible import identity")
+                try:
+                    options = program.getOptions("Program Information")
+                    options.setString(HASH_OPTION, module["sha256"])
+                    options.setString(PATH_OPTION, f"{module['variant']}/{module['relative_path']}")
+                finally:
+                    program.endTransaction(transaction, True)
             record = {
                 "program": name,
                 "sha256": module["sha256"],

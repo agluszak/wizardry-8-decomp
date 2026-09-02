@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import pytest
 from wiz8decomp.config import Settings
 from wiz8decomp.ghidra import recovery as recovery_host
-from wiz8decomp.ghidra.recovery import parse_selection, run_ghidra_script
+from wiz8decomp.ghidra.recovery import parse_selection, run_headless_script
 
 
 def test_parse_selection_accepts_addresses_and_ranges() -> None:
@@ -43,7 +43,7 @@ def _settings(tmp_path: Path) -> Settings:
     )
 
 
-def test_run_ghidra_script_uses_read_only_headless_source_bundle(
+def test_run_headless_script_uses_read_only_headless_source_bundle(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     settings = _settings(tmp_path)
@@ -56,7 +56,7 @@ def test_run_ghidra_script_uses_read_only_headless_source_bundle(
         output.write_text('{"functions": []}\n', encoding="utf-8")
 
     monkeypatch.setattr(recovery_host.subprocesses, "run", fake_run)
-    output = run_ghidra_script(
+    output = run_headless_script(
         settings,
         "Wiz8Recover.java",
         ["--source-index", "index.json", "0x401000"],

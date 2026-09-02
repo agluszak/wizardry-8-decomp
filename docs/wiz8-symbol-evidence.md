@@ -29,11 +29,11 @@ Direct ownership comes only from reviewed assertion call sites whose containing
 function Ghidra resolved. Bounded interval inference is explicitly labelled and
 never incorporates guessed function starts from byte padding.
 
-Whole-program needs use narrow Java audits against live Ghidra objects. The
-current audit bundle supplies function inventory, function call/data/vtable/EH
-facts, class fields and vtable references, source-layout checks, lifecycle
-symbols, and claimed-function existence. Audit JSON is written under `build/`
-and discarded by callers after use.
+Whole-program needs use narrow Python queries against live Ghidra objects.
+`ghidra/query.py` supplies function inventory, function call/data/vtable/EH
+facts, class fields and vtable references, data reports, and claimed-function
+existence. Source-layout and lifecycle fixture checks run only against their
+separate disposable projects.
 
 ## External ABI snapshots
 

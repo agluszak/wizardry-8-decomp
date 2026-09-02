@@ -23,7 +23,6 @@ function toolName(tool: string): string {
 }
 
 export const Wiz8Guard: Plugin = async (ctx) => {
-  const prompted = new Set<string>()
   return {
     "tool.execute.before": async (input, output) => {
       const result = await policy(ctx.directory, {
@@ -68,26 +67,6 @@ export const Wiz8Guard: Plugin = async (ctx) => {
       })
       const context = result.hookSpecificOutput?.additionalContext
       if (context) output.context.push(String(context))
-    },
-    event: async (input) => {
-      const properties = input.properties as Record<string, unknown> | undefined
-      if (input.type !== "session.idle" && !(input.type === "session.status" && properties?.status === "idle")) return
-      const sessionID = String(properties?.sessionID ?? "")
-      if (!sessionID) return
-      const result = await policy(ctx.directory, {
-        hook_event_name: "Stop",
-        session_id: sessionID,
-      })
-      if (result.decision === "block") {
-        const fingerprint = `${sessionID}:${String(result.tree ?? result.reason)}`
-        if (prompted.has(fingerprint)) return
-        prompted.add(fingerprint)
-        const client = ctx.client as any
-        await client.session.prompt({
-          path: { id: sessionID },
-          body: { parts: [{ type: "text", text: String(result.reason) }] },
-        })
-      }
     },
   }
 }

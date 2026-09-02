@@ -37,17 +37,6 @@
           }
         ]
       }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run --frozen python -m wiz8decomp.agent_hooks",
-            "timeout": 10
-          }
-        ]
-      }
     ]
   }
 }

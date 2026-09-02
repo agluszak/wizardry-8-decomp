@@ -13,6 +13,7 @@ import yaml
 from ..config import Settings
 from ..paths import atomic_json, atomic_write, json_hash, sha256_file
 from ..provenance import derive_authority, origin_for_fid_source_kind
+from .env import open_project, project_lock
 from .environment import start_pyghidra
 from .project import resolve_program_name
 
@@ -144,7 +145,6 @@ def fid_status(settings: Settings) -> dict[str, Any]:
 
 def build_srs_fid(settings: Settings) -> dict[str, Any]:
     start_pyghidra(settings)
-    import pyghidra
     from ghidra.feature.fid.db import FidFileManager
     from ghidra.feature.fid.service import FidService
     from ghidra.program.model.lang import LanguageID
@@ -160,7 +160,8 @@ def build_srs_fid(settings: Settings) -> dict[str, Any]:
     manager = FidFileManager.getInstance()
     manager.createNewFidDatabase(File(str(path)))
     fid_file = manager.addUserFidFile(File(str(path)))
-    project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
+    project_context = open_project(settings)
+    project = project_context.__enter__()
     programs = ArrayList()
     try:
         for name in config["seed_programs"]:
@@ -221,7 +222,7 @@ def build_srs_fid(settings: Settings) -> dict[str, Any]:
         finally:
             database.close()
     finally:
-        project.close()
+        project_context.__exit__(None, None, None)
     atomic_json(path.with_suffix(".json"), summary)
     return summary
 
@@ -311,9 +312,8 @@ def import_static_seed_objects(
                 provenance["archive"] = library_record["archive"]
             if "source" in library_record:
                 provenance["source"] = library_record["source"]
-            project = pyghidra.open_project(
-                settings.project_dir, settings.project_name, create=False
-            )
+            project_context = open_project(settings)
+            project = project_context.__enter__()
             try:
                 domain_file = project.getProjectData().getFile("/" + name)
                 if domain_file is not None:
@@ -340,17 +340,20 @@ def import_static_seed_objects(
                         System.gc()
                     continue
             finally:
-                project.close()
-            with pyghidra.open_program(
-                object_path,
-                project_location=settings.project_dir,
-                project_name=settings.project_name,
-                analyze=True,
-                language="x86:LE:32:default",
-                compiler="windows",
-                program_name=name,
-                nested_project_location=False,
-            ) as flat_api:
+                project_context.__exit__(None, None, None)
+            with (
+                project_lock(settings),
+                pyghidra.open_program(
+                    object_path,
+                    project_location=settings.project_dir,
+                    project_name=settings.project_name,
+                    analyze=True,
+                    language="x86:LE:32:default",
+                    compiler="windows",
+                    program_name=name,
+                    nested_project_location=False,
+                ) as flat_api,
+            ):
                 program = flat_api.getCurrentProgram()
                 transaction = program.startTransaction("record reproducible FID seed identity")
                 try:
@@ -399,7 +402,6 @@ def build_fid(settings: Settings) -> dict[str, Any]:
 
     imported = import_static_seed_objects(settings, use_cached_objects=True)
     start_pyghidra(settings)
-    import pyghidra
     from ghidra.feature.fid.db import FidFileManager
     from ghidra.feature.fid.service import FidService
     from ghidra.program.model.lang import LanguageID
@@ -454,7 +456,8 @@ def build_fid(settings: Settings) -> dict[str, Any]:
     manager = FidFileManager.getInstance()
     manager.createNewFidDatabase(File(str(path)))
     fid_file = manager.addUserFidFile(File(str(path)))
-    project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
+    project_context = open_project(settings)
+    project = project_context.__enter__()
     common_symbols = ArrayList()
     if common_path.is_file():
         for line in common_path.read_text(encoding="utf-8", errors="replace").splitlines():
@@ -504,7 +507,7 @@ def build_fid(settings: Settings) -> dict[str, Any]:
         database.saveDatabase("wizardry8 reproducible static-library FID build", TaskMonitor.DUMMY)
     except Exception:
         database.close()
-        project.close()
+        project_context.__exit__(None, None, None)
         if path.exists():
             path.unlink()
         if backup_path.exists():
@@ -512,7 +515,7 @@ def build_fid(settings: Settings) -> dict[str, Any]:
         raise
     else:
         database.close()
-        project.close()
+        project_context.__exit__(None, None, None)
         if backup_path.exists():
             backup_path.unlink()
     summary = {
@@ -568,7 +571,8 @@ def match_fid(
     if active_databases != [target_path.as_posix()]:
         raise RuntimeError(f"failed to select exactly one FID database: {active_databases}")
     program_name = resolve_program_name(settings, selector)
-    project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
+    project_context = open_project(settings)
+    project = project_context.__enter__()
     matches: list[dict[str, Any]] = []
     excluded_internal_matches = 0
     provenance_by_program = _seed_provenance(settings, database_kind)
@@ -657,7 +661,7 @@ def match_fid(
             finally:
                 query_service.close()
     finally:
-        project.close()
+        project_context.__exit__(None, None, None)
         for candidate, was_active in previous:
             candidate.setActive(was_active)
     matches.sort(key=lambda item: (item["target_address"], -item["score"], item["fid_name"]))

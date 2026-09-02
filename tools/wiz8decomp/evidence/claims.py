@@ -48,7 +48,7 @@ def validate_claim_rows(
 def validate_claims_against_ghidra(settings: Settings, program: str = "wiz8") -> dict[str, int]:
     """Resolve only the claimed function entries against the live reviewed program."""
 
-    from ..ghidra.audits import validate_function_entries
+    from ..ghidra.query import validate_function_entries
 
     claims = load_claims(settings.repo_dir, program)
     path = settings.repo_dir / "evidence/reviewed" / program / "claims.csv"

@@ -1,4 +1,4 @@
-"""Run function recovery as one read-only Ghidra headless script."""
+"""Run function recovery inside the checkout-scoped Ghidra owner."""
 
 from __future__ import annotations
 
@@ -38,14 +38,14 @@ def _program_name(settings: Settings, selector: str) -> str:
     return ensure_seed(settings, selector)
 
 
-def run_ghidra_script(
+def run_headless_script(
     settings: Settings,
     script: str,
     args: list[str],
     *,
     program_name: str,
 ) -> Path:
-    """Run one source-bundle script read-only and return its JSON output path."""
+    """Run a source-bundle script against a separate project and return its output."""
 
     script_dir = settings.repo_dir / "tools" / "ghidra-scripts"
     if not (script_dir / script).is_file():
@@ -101,16 +101,66 @@ def _recover(
         raise ValueError("pass at least one function address or range")
     for selection in selections:
         parse_selection(selection)
-    program_name = _program_name(settings, program_selector)
     args = ["--source-index", str(settings.build_dir / "source-index.json")]
     if explain:
         args.append("--explain")
     args.extend(selections)
-    result_path = run_ghidra_script(settings, "Wiz8Recover.java", args, program_name=program_name)
+    from .env import open_program
+
+    with open_program(settings, program_selector) as program:
+        return _execute_script(settings, program, "Wiz8Recover.java", args)
+
+
+def _execute_script(
+    settings: Settings, program: Any, script_name: str, arguments: list[str]
+) -> dict[str, Any]:
+    """Compile and execute a repository Java script against an open program."""
+
+    from generic.jar import ResourceFile
+    from ghidra.app.script import GhidraScriptUtil, GhidraState, JavaScriptProvider
+    from ghidra.util.task import TaskMonitor
+    from java.io import PrintWriter, StringWriter
+
+    script_dir = settings.repo_dir / "tools" / "ghidra-scripts"
+    script_path = script_dir / script_name
+    if not script_path.is_file():
+        raise RuntimeError(f"missing Ghidra script {script_path}")
+    root = ResourceFile(str(script_dir))
+    host = GhidraScriptUtil.getBundleHost()
+    acquired_host = host is None
+    if host is None:
+        host = GhidraScriptUtil.acquireBundleHostReference()
     try:
-        return json.loads(result_path.read_text(encoding="utf-8"))
+        if host.getExistingGhidraBundle(root) is None:
+            host.add(root, True, False)
+        diagnostics = StringWriter()
+        script = JavaScriptProvider().getScriptInstance(
+            ResourceFile(str(script_path)), PrintWriter(diagnostics)
+        )
+        output_dir = settings.build_dir / "recover"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            prefix="ghidra-", suffix=".json", dir=output_dir, delete=False
+        ) as temporary:
+            output = Path(temporary.name)
+        output.unlink()
+        try:
+            script.setScriptArgs([*arguments, "--output", str(output)])
+            script.execute(
+                GhidraState(None, None, program, None, None, None),
+                TaskMonitor.DUMMY,
+                PrintWriter(diagnostics),
+            )
+            if not output.is_file():
+                raise RuntimeError(
+                    f"{script_name} completed without writing {output}: {diagnostics}"
+                )
+            return json.loads(output.read_text(encoding="utf-8"))
+        finally:
+            output.unlink(missing_ok=True)
     finally:
-        result_path.unlink(missing_ok=True)
+        if acquired_host:
+            GhidraScriptUtil.releaseBundleHostReference()
 
 
 def recover_functions(

@@ -39,8 +39,8 @@ durable task state and `just` for the supported daily workflow.
 
 ## Recovery loop
 
-Use the supported joined recovery view; it idempotently ensures the reviewed seed and manages any
-warm Ghidra runtime internally:
+Use the supported joined recovery view; it idempotently ensures the reviewed seed and opens the
+reviewed program through the shared short-lived Ghidra owner:
 
 ```sh
 just context 0x<address>
@@ -51,8 +51,9 @@ match state, cross-build mappings, strings/assertions, callers/callees, decompil
 fields. Use the Ghidra UI/API for ordinary listing, symbol, type, and cross-reference work. For a
 speculative experiment, clone or version the project, use undo, or use a temporary GZF.
 Source synchronization remains an explicit review operation when needed; it is not a bootstrap step
-for ordinary context or recovery. There is no agent-managed Ghidra daemon, generic query command,
-parallel analysis store, or lifecycle command. Warm runtime metadata under `build/` is disposable.
+for ordinary context or recovery. There is no agent-managed Ghidra daemon, parallel analysis store,
+or lifecycle command. Every live-project operation uses `ghidra/env.py`; commands never coordinate
+project ownership manually.
 `just recover 0x<address>` drafts a first-pass port from the reviewed project state: it exports
 the function, inserts it in address order in its owning translation unit, builds, compares, and
 reports per-candidate results with diagnostics and include suggestions; the default previews and

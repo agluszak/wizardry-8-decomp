@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from ..evidence.claims import load_claims
-from ..ghidra.session import query_many
+from ..ghidra.query import query_many
 from ..ghidra.unit_intervals import TranslationUnitResolver
 from ..ghidra.workspace import resolve_seed_program
 from ..paths import atomic_json, atomic_write

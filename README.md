@@ -59,10 +59,11 @@ exceptional proprietary-input snapshots is defined in
 [docs/evidence-policy.md](docs/evidence-policy.md).
 
 Ghidra owns operational analysis state: functions, symbols, signatures, structures, fields, vtables,
-comments, cross-references, and decompiler state. `just context` idempotently ensures the reviewed
-seed and uses a transparent, checkout-scoped warm PyGhidra session when one is available. That
-worker is an implementation detail: there is no agent-managed daemon, evidence replay, materialized
-analysis mirror, or speculative overlay layer.
+comments, cross-references, and decompiler state. Supported commands that inspect the reviewed
+project pass through one ordinary project-opening API. Each command opens one short-lived PyGhidra
+owner, performs all of its queries or recovery work, and closes it. A checkout-scoped file lock
+prevents competing commands from opening the live project simultaneously. There is no required
+daemon, worker protocol, or lifecycle choreography.
 
 ```sh
 just context 0x0044bec0
@@ -70,18 +71,17 @@ just context 0x0044bec0
 
 `just context` is the supported joined recovery view: it combines the current decompilation and
 call graph with provenance, source ownership, match state, cross-build mappings, strings, and
-relevant fields. Focused read-only Java audits validate provenance claims and source layouts
-against live Ghidra objects without exporting a normalized function/type/vtable database.
-Rebuilt PDB metadata is imported only into disposable verification projects.
+relevant fields. Live inspection and audit facts come from Python query functions over the opened
+program; the Java recovery engine runs in that same command-owned session. Source-layout validation
+and rebuilt PDB import use separate disposable derived projects.
 Ghidra-to-source remains a review workflow through `just context`; no generator rewrites C++.
 `ghidra seed refresh` is an intentional checkpoint operation, not a routine consequence of editing
-evidence. Warm-session runtime metadata and hook validation stamps live under disposable `build/`
-paths; deleting them only makes the next command cold.
+evidence. Generated reports live under disposable `build/` paths.
 
 Codex and OpenCode use the same `wiz8decomp.agent_hooks` policy through the repository's frozen
-`uv` environment. Their adapters only translate lifecycle events; validation stamps and bounded
-tool logs are disposable `build/` state. Agents do not start, stop, restore, or inspect a Ghidra
-worker manually.
+`uv` environment. Their adapters provide compact session context, narrow command guardrails, and
+bounded tool output. Validation belongs to `just` commands and CI; no Stop hook supervises agent
+completion. Agents do not start, stop, restore, or inspect a Ghidra owner manually.
 
 An address-marked C++ declaration is the authority for a recovered Wiz8 function's address, name,
 signature, and source ownership. Ghidra owns analysis-only functions that have no owned declaration;

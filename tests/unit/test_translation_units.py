@@ -25,18 +25,18 @@ def test_translation_unit_report_writes_generated_outputs_under_build(tmp_path: 
     shutil.copyfile(repository / "build/source-index.json", tmp_path / "build/source-index.json")
 
     settings = SimpleNamespace(repo_dir=tmp_path, build_dir=tmp_path / "build")
-    from wiz8decomp.ghidra import audits
+    from wiz8decomp.ghidra import query
     from wiz8decomp.source_model import build_source_model
 
-    original = audits.function_inventory
-    audits.function_inventory = lambda _settings: [
+    original = query.function_inventory
+    query.function_inventory = lambda _settings: [
         {"entry": f"0x{address:08x}", "name": function.name}
         for address, function in build_source_model(tmp_path).functions.items()
     ]
     try:
         result = translation_unit_report(settings)
     finally:
-        audits.function_inventory = original
+        query.function_inventory = original
 
     assert result["outputs"] == [
         "build/reports/translation-units/translation-unit-intervals.csv",

@@ -16,6 +16,10 @@ def _address(program: Any, text: str) -> Any:
     return value
 
 
+def _hex_address(address: Any) -> str:
+    return f"0x{address.getOffset():08x}"
+
+
 def _function(program: Any, text: str) -> Any:
     manager = program.getFunctionManager()
     try:
@@ -305,6 +309,53 @@ def _functions(program: Any, pattern: str | None = None) -> dict[str, Any]:
     return {"functions": values}
 
 
+def _function_inventory(program: Any) -> dict[str, Any]:
+    functions = []
+    iterator = program.getFunctionManager().getFunctions(True)
+    while iterator.hasNext():
+        function = iterator.next()
+        if not function.isExternal():
+            functions.append(
+                {"entry": _hex_address(function.getEntryPoint()), "name": function.getName(True)}
+            )
+    return {"schema": "wiz8.function-inventory", "functions": functions}
+
+
+def _function_exists(program: Any, entries: list[str]) -> dict[str, Any]:
+    manager = program.getFunctionManager()
+    missing = [
+        entry for entry in entries if manager.getFunctionAt(_address(program, entry)) is None
+    ]
+    return {"schema": "wiz8.function-existence-audit", "ok": not missing, "missing": missing}
+
+
+def _data_facts(program: Any, entries: list[str]) -> dict[str, Any]:
+    facts = []
+    for entry in entries:
+        requested = _address(program, entry)
+        data = program.getListing().getDataContaining(requested)
+        fact: dict[str, Any] = {"address": _hex_address(requested)}
+        if data is not None:
+            fact.update(
+                {
+                    "defined_at": _hex_address(data.getAddress()),
+                    "length": data.getLength(),
+                    "type": data.getDataType().getDisplayName(),
+                }
+            )
+        symbol = program.getSymbolTable().getPrimarySymbol(requested)
+        fact["name"] = symbol.getName(True) if symbol is not None else ""
+        fact["references"] = [
+            {
+                "from": _hex_address(reference.getFromAddress()),
+                "kind": reference.getReferenceType().getName(),
+            }
+            for reference in program.getReferenceManager().getReferencesTo(requested)
+        ]
+        facts.append(fact)
+    return {"schema": "wiz8.data-facts", "data": facts}
+
+
 def _function_of(program: Any, argument: str) -> dict[str, Any]:
     """Containing-function entry for each comma-separated address; null when none.
 
@@ -409,6 +460,12 @@ def execute_query(program: Any, command: str, arguments: list[str]) -> dict[str,
         return {**_strings(program, arguments[0]), **_functions(program, arguments[0])}
     if command == "functions":
         return _functions(program)
+    if command == "function-inventory":
+        return _function_inventory(program)
+    if command == "function-exists":
+        return _function_exists(program, arguments)
+    if command == "data-facts":
+        return _data_facts(program, arguments)
     if command == "imports":
         return _symbols(program, True)
     if command == "exports":
@@ -454,6 +511,7 @@ def validate_query_arguments(command: str, arguments: list[str]) -> None:
         "string-refs": 1,
         "search": 1,
         "functions": 0,
+        "function-inventory": 0,
         "imports": 0,
         "exports": 0,
         "sections": 0,
@@ -462,7 +520,7 @@ def validate_query_arguments(command: str, arguments: list[str]) -> None:
         "callsite": 1,
         "condition-accesses": 1,
     }
-    if command in {"class-facts", "class-fields"}:
+    if command in {"class-facts", "class-fields", "function-exists", "data-facts"}:
         if not arguments:
             raise ValueError(f"{command} expects one or more class names")
         return
@@ -474,3 +532,86 @@ def validate_query_arguments(command: str, arguments: list[str]) -> None:
         raise ValueError("unknown command; expected one of: " + ", ".join(sorted(arity)))
     if len(arguments) != arity[command]:
         raise ValueError(f"{command} expects {arity[command]} argument(s), got {len(arguments)}")
+
+
+def query_many(
+    settings: Any,
+    selector: str,
+    queries: list[tuple[str, list[str]]],
+    *,
+    function_seeds: list[str] | None = None,
+) -> tuple[list[dict[str, Any]], str]:
+    """Run an ordered query batch in one ordinary short-lived project owner."""
+
+    if not queries:
+        raise ValueError("at least one query is required")
+    for command, arguments in queries:
+        validate_query_arguments(command, arguments)
+    from .env import open_program
+
+    with open_program(settings, selector) as program:
+        transaction = None
+        try:
+            if function_seeds:
+                from ghidra.app.cmd.disassemble import DisassembleCommand
+                from ghidra.app.cmd.function import CreateFunctionCmd
+
+                transaction = program.startTransaction("disposable function seeds")
+                for seed in function_seeds:
+                    address = _address(program, seed)
+                    if program.getFunctionManager().getFunctionContaining(address) is not None:
+                        continue
+                    if program.getListing().getInstructionAt(
+                        address
+                    ) is None and not DisassembleCommand(address, None, True).applyTo(program):
+                        raise ValueError(f"could not disassemble function seed {address}")
+                    if not CreateFunctionCmd(address).applyTo(program):
+                        raise ValueError(f"could not create function seed {address}")
+            results = [
+                {
+                    "command": command,
+                    "arguments": arguments,
+                    "result": execute_query(program, command, arguments),
+                }
+                for command, arguments in queries
+            ]
+        finally:
+            from .semantic import dispose_sessions
+
+            dispose_sessions()
+            if transaction is not None:
+                program.endTransaction(transaction, False)
+    return results, "pyghidra"
+
+
+def query(
+    settings: Any,
+    selector: str,
+    command: str,
+    arguments: list[str],
+    *,
+    function_seeds: list[str] | None = None,
+) -> tuple[dict[str, Any], str]:
+    results, transport = query_many(
+        settings, selector, [(command, arguments)], function_seeds=function_seeds
+    )
+    return results[0]["result"], transport
+
+
+def function_inventory(settings: Any, selector: str = "wiz8") -> list[dict[str, str]]:
+    result, _ = query(settings, selector, "function-inventory", [])
+    return list(result["functions"])
+
+
+def validate_function_entries(
+    settings: Any, entries: set[int], selector: str = "wiz8"
+) -> dict[str, Any]:
+    arguments = [f"0x{entry:08x}" for entry in sorted(entries)]
+    result, _ = query(settings, selector, "function-exists", arguments)
+    return result
+
+
+def data_facts(settings: Any, entries: set[int], selector: str = "wiz8") -> list[dict[str, Any]]:
+    arguments = [f"0x{entry:08x}" for entry in sorted(entries)]
+    result, _ = query(settings, selector, "data-facts", arguments)
+    return list(result["data"])

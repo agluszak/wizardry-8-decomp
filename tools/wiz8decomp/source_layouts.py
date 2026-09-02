@@ -20,7 +20,7 @@ def verify_source_layouts(settings: Any, pdb: Path | None = None) -> dict[str, A
     """Run the audit in a cached derived project without touching reviewed state."""
 
     from .ghidra.reccmp_import import import_reccmp_source
-    from .ghidra.recovery import _program_name, run_ghidra_script
+    from .ghidra.recovery import _program_name, run_headless_script
     from .ghidra.workspace import restore_seed, seed_record
     from .paths import sha256_file
 
@@ -54,7 +54,7 @@ def verify_source_layouts(settings: Any, pdb: Path | None = None) -> dict[str, A
     restore_seed(derived, "wiz8")
     import_reccmp_source(derived, "wiz8")
     program_name = _program_name(derived, "wiz8")
-    transient = run_ghidra_script(
+    transient = run_headless_script(
         derived,
         "Wiz8Audit.java",
         [

@@ -56,6 +56,9 @@ verify *args:
 context selector *args:
     uv run wiz8 report context {{selector}} {{args}}
 
+report *args:
+    uv run wiz8 report {{args}}
+
 recover-explain selector *args:
     uv run wiz8 recover explain {{selector}} {{args}}
 

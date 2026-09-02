@@ -220,7 +220,7 @@ def render_gameplay_map_csv(
 
 
 def translation_unit_report(settings: Any) -> dict[str, Any]:
-    from ..ghidra.audits import function_inventory as ghidra_function_inventory
+    from ..ghidra.query import function_inventory as ghidra_function_inventory
 
     assertions = _read_rows(
         settings.repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv"

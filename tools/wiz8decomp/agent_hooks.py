@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import re
@@ -12,7 +11,6 @@ from pathlib import Path
 from typing import Any
 
 MAX_TOOL_OUTPUT = 50_000
-VALIDATION_RE = re.compile(r"(?:^|\s)just\s+(test|lint|check|build(?:\s+\S+)?|compare(?:\s+\S+)*)")
 MARKER_RE = re.compile(r"//\s*(?:FUNCTION|TEMPLATE|LIBRARY):.*?\b(0x[0-9a-fA-F]{6,8})\b")
 
 
@@ -38,71 +36,6 @@ def _root(event: dict[str, Any]) -> Path:
     except (OSError, subprocess.SubprocessError):
         pass
     return cwd
-
-
-def _tree(root: Path) -> str:
-    try:
-        result = subprocess.run(
-            ["jj", "log", "-r", "@", "--no-graph", "-T", "commit_id"],
-            cwd=root,
-            capture_output=True,
-            text=True,
-            timeout=1,
-            check=False,
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            return result.stdout.strip()
-    except (OSError, subprocess.SubprocessError):
-        pass
-    digest = hashlib.sha256()
-    ignored = {".git", ".venv", "build", "ghidra-project", "__pycache__"}
-    for path in sorted(root.rglob("*")):
-        if any(part in ignored for part in path.parts):
-            continue
-        if path.is_file():
-            digest.update(str(path.relative_to(root)).encode())
-            try:
-                digest.update(path.read_bytes())
-            except OSError:
-                continue
-    return digest.hexdigest()
-
-
-def _cache_path(root: Path, event: dict[str, Any]) -> Path:
-    session = re.sub(r"[^A-Za-z0-9_.-]", "_", str(event.get("session_id") or "default"))
-    return root / "build" / "codex" / f"{session}.json"
-
-
-def _load_cache(root: Path, event: dict[str, Any]) -> dict[str, Any]:
-    path = _cache_path(root, event)
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        if data.get("tree") == _tree(root):
-            return data
-    except (OSError, ValueError):
-        pass
-    return {"tree": _tree(root), "checks": {}}
-
-
-def _save_cache(root: Path, event: dict[str, Any], data: dict[str, Any]) -> None:
-    path = _cache_path(root, event)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-
-
-def command_key(command: str) -> str | None:
-    match = VALIDATION_RE.search(command)
-    if not match:
-        return None
-    value = match.group(1)
-    if value.startswith("build"):
-        target = value.removeprefix("build").strip()
-        return "build" if not target else f"build:{target}"
-    if value.startswith("compare"):
-        selectors = " ".join(value.removeprefix("compare").split())
-        selectors = re.sub(r"0x[0-9a-fA-F]+", lambda match: match.group(0).lower(), selectors)
-        return "compare" if not selectors else f"compare:{selectors}"
-    return value
 
 
 def _deny(reason: str) -> dict[str, Any]:
@@ -151,47 +84,11 @@ def pre_tool(event: dict[str, Any]) -> dict[str, Any]:
             return _deny(
                 "Unbounded objdump data dumps are blocked; use bounded context/compare evidence or --deep."
             )
-        key = command_key(command)
-        if key:
-            cache = _load_cache(_root(event), event)
-            record = cache.get("checks", {}).get(key)
-            if record and record.get("status") == "pass":
-                return _deny(f"`{key}` already passed for this unchanged working tree.")
     return {}
-
-
-def _success(response: Any) -> bool:
-    if isinstance(response, dict):
-        exit_code = response.get("exit_code", response.get("exitCode"))
-        if exit_code not in (None, 0):
-            return False
-        if response.get("isError") is True or response.get("error"):
-            return False
-        metadata = response.get("metadata")
-        if isinstance(metadata, dict) and metadata.get(
-            "exit_code", metadata.get("exitCode")
-        ) not in (
-            None,
-            0,
-        ):
-            return False
-    return True
 
 
 def post_tool(event: dict[str, Any]) -> dict[str, Any]:
     root = _root(event)
-    tool_input = event.get("tool_input")
-    command = _text(
-        tool_input.get("command", "") if isinstance(tool_input, dict) else tool_input or ""
-    )
-    key = command_key(command)
-    if key:
-        cache = _load_cache(root, event)
-        cache.setdefault("checks", {})[key] = {
-            "status": "pass" if _success(event.get("tool_response")) else "fail",
-            "command": command,
-        }
-        _save_cache(root, event, cache)
     if str(event.get("tool_name", "")) in {"apply_patch", "Edit", "Write"}:
         duplicates = _duplicate_markers(root)
         if duplicates:
@@ -220,7 +117,7 @@ def post_tool(event: dict[str, Any]) -> dict[str, Any]:
 
 def session_start(event: dict[str, Any]) -> dict[str, Any]:
     root = _root(event)
-    lines = [f"workspace: {root}", f"tree: {_tree(root)[:12]}"]
+    lines = [f"workspace: {root}"]
     try:
         status = subprocess.run(
             ["jj", "status"], cwd=root, capture_output=True, text=True, timeout=2, check=False
@@ -229,95 +126,12 @@ def session_start(event: dict[str, Any]) -> dict[str, Any]:
             lines.append("jj: " + status.splitlines()[0])
     except (OSError, subprocess.SubprocessError):
         pass
-    cache = _load_cache(root, event)
-    passed = sorted(
-        key for key, record in cache.get("checks", {}).items() if record.get("status") == "pass"
-    )
-    if passed:
-        lines.append("validated: " + ", ".join(passed))
     return {
         "hookSpecificOutput": {
             "hookEventName": "SessionStart",
             "additionalContext": "\n".join(lines),
         }
     }
-
-
-def _changed_paths(root: Path) -> list[Path]:
-    try:
-        result = subprocess.run(
-            ["jj", "diff", "--name-only"],
-            cwd=root,
-            capture_output=True,
-            text=True,
-            timeout=1,
-            check=False,
-        )
-        return [Path(path) for path in result.stdout.splitlines()]
-    except (OSError, subprocess.SubprocessError):
-        return []
-
-
-def _changed_compare_keys(root: Path) -> set[str]:
-    try:
-        result = subprocess.run(
-            ["jj", "diff", "--git"],
-            cwd=root,
-            capture_output=True,
-            text=True,
-            timeout=2,
-            check=False,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return set()
-    addresses = {address.lower() for address in MARKER_RE.findall(result.stdout)}
-    if not addresses:
-        for path in _changed_paths(root):
-            if path.suffix in {".cpp", ".h"}:
-                try:
-                    addresses.update(
-                        address.lower() for address in MARKER_RE.findall(path.read_text())
-                    )
-                except OSError:
-                    continue
-    return {f"compare:{address}" for address in addresses}
-
-
-def stop(event: dict[str, Any]) -> dict[str, Any]:
-    if event.get("stop_hook_active"):
-        return {}
-    root = _root(event)
-    cache = _load_cache(root, event)
-    changed_paths = _changed_paths(root)
-    changed_cpp = any(path.suffix in {".cpp", ".h"} for path in changed_paths)
-    changed_python = any(path.suffix == ".py" for path in changed_paths)
-    changed_policy = any(
-        path.name in {"AGENTS.md", "hooks.json"} or ".agents" in path.parts
-        for path in changed_paths
-    )
-    changed = changed_cpp or changed_python or changed_policy
-    if not changed:
-        return {}
-    checks = cache.get("checks", {})
-    required = ["test"] if changed_cpp else ["check"] if changed_python or changed_policy else []
-    if changed_cpp:
-        compare_keys = _changed_compare_keys(root)
-        required.extend(sorted(compare_keys))
-        if not compare_keys:
-            required.append("compare")
-    missing = [
-        key
-        for key in required
-        if not checks.get(key) or checks[key].get("status") not in {"pass", "fail"}
-    ]
-    if missing:
-        return {
-            "decision": "block",
-            "tree": cache.get("tree"),
-            "reason": "Before stopping, run the missing validation: "
-            + ", ".join("just " + key for key in missing),
-        }
-    return {}
 
 
 def main() -> None:
@@ -328,7 +142,6 @@ def main() -> None:
             "SessionStart": session_start,
             "PreToolUse": pre_tool,
             "PostToolUse": post_tool,
-            "Stop": stop,
         }.get(name, lambda _: {})(event)
         print(json.dumps(result, ensure_ascii=False))
     except (OSError, ValueError, TypeError, KeyError, subprocess.SubprocessError) as exc:

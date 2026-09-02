@@ -145,7 +145,7 @@ def render_status_markdown(report: dict[str, Any]) -> str:
 
 
 def status_report(settings: Any) -> dict[str, Any]:
-    from ..ghidra.audits import function_inventory as ghidra_function_inventory
+    from ..ghidra.query import function_inventory as ghidra_function_inventory
 
     report = derive_status(settings.repo_dir, ghidra_function_inventory(settings))
     report_dir = settings.build_dir / "reports"

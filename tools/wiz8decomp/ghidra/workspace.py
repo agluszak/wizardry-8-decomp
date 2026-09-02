@@ -11,7 +11,6 @@ from ..config import (
     Settings,
 )
 from ..paths import sha256_file
-from .environment import start_pyghidra
 from .import_programs import HASH_OPTION
 
 SEED_SCHEMA = "wiz8.ghidra-seeds"
@@ -135,15 +134,14 @@ def restore_seed(settings: Settings, selector: str | None = None) -> dict[str, A
     seed = seed_record(settings, selector)
     program_name = str(seed["program"])
     check_project_owner(settings)
-    start_pyghidra(settings)
-    import pyghidra
-    from ghidra.util.task import TaskMonitor
-    from java.io import File
+    from .env import open_project
 
     settings.project_dir.mkdir(parents=True, exist_ok=True)
     _write_project_owner(settings)
-    project = pyghidra.open_project(settings.project_dir, settings.project_name, create=True)
-    try:
+    with open_project(settings, create=True) as project:
+        from ghidra.util.task import TaskMonitor
+        from java.io import File
+
         existing_hash = _program_hash(project, program_name)
         if existing_hash is not None:
             if existing_hash != seed["binary_sha256"]:
@@ -161,8 +159,6 @@ def restore_seed(settings: Settings, selector: str | None = None) -> dict[str, A
             if restored_hash != seed["binary_sha256"]:
                 raise RuntimeError(f"restored program hash metadata mismatch for {program_name}")
             status = "restored"
-    finally:
-        project.close()
     return {
         "schema": "wiz8.ghidra-workspace",
         "program": program_name,

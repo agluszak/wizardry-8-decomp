@@ -39,6 +39,7 @@ packages = ["tools/wiz8decomp"]
 addopts = "-ra"
 testpaths = ["tests/unit", "tests/repository"]
 markers = [
+  "integration: live external-tool workflow checks",
   "repository: checked-in evidence and source invariants",
 ]
 

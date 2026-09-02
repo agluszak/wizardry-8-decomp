@@ -15,7 +15,7 @@ def class_command(
 ) -> None:
     """Report class fields, vtables, and binary references from live Ghidra."""
     from .. import command_support as cli
-    from ..ghidra.session import query_many
+    from ..ghidra.query import query_many
     from ..paths import atomic_json
 
     def action() -> Any:
@@ -52,7 +52,7 @@ def class_command(
 def data_command(address: Annotated[str, typer.Argument(help="Data address")]) -> None:
     """Report one typed datum and its live Ghidra references."""
     from .. import command_support as cli
-    from ..ghidra.audits import data_facts
+    from ..ghidra.query import data_facts
     from ..paths import atomic_json
 
     def action() -> dict[str, object]:

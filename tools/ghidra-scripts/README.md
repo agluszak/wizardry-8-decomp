@@ -1,6 +1,6 @@
 # Wizardry 8 recovery scripts
 
-`Wiz8Recover.java` is the single headless entry point for function recovery.
+`Wiz8Recover.java` is the Java entry point for function recovery.
 Ghidra builds the adjacent Java source bundle and loads `wiz8.recovery` through
 the script OSGi classloader; there is no separately compiled extension JAR.
 
@@ -39,9 +39,10 @@ uv run wiz8 recover regress 0x004a5e50 0x004a5f20
 uv run wiz8 recover explain 0x004a5e50
 ```
 
-The host invokes `analyzeHeadless -readOnly -noanalysis`, supplies
-`build/source-index.json`, and reads one JSON result. Python never receives a
-Ghidra `Program`, `Function`, data type, or P-code object.
+The host loads this source bundle in the checkout-scoped PyGhidra owner, executes it against the
+already-open reviewed program, supplies `build/source-index.json`, and reads one JSON result.
+Headless invocation is reserved for genuinely separate disposable projects such as compiler
+fixtures and source-layout verification.
 
 ## Adding recovery behavior
 
