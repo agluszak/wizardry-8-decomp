@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel)/tools/codex_hook.py\"",
+            "command": "uv run --frozen python -m wiz8decomp.agent_hooks",
             "additionalContextLimit": 1200,
             "timeout": 3
           }
@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel)/tools/codex_hook.py\"",
+            "command": "uv run --frozen python -m wiz8decomp.agent_hooks",
             "timeout": 3
           }
         ]
@@ -32,7 +32,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel)/tools/codex_hook.py\"",
+            "command": "uv run --frozen python -m wiz8decomp.agent_hooks",
             "timeout": 5
           }
         ]
@@ -43,7 +43,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel)/tools/codex_hook.py\"",
+            "command": "uv run --frozen python -m wiz8decomp.agent_hooks",
             "timeout": 10
           }
         ]

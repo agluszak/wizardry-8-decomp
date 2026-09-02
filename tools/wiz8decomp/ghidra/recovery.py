@@ -10,6 +10,7 @@ from typing import Any
 from .. import subprocesses
 from ..config import Settings
 from ..paths import atomic_write
+from .workspace import ensure_seed
 
 
 def parse_selection(text: str) -> tuple[int, int | None]:
@@ -32,17 +33,9 @@ def parse_selection(text: str) -> tuple[int, int | None]:
 
 
 def _program_name(settings: Settings, selector: str) -> str:
-    from .workspace import check_project_owner, seed_record
-
-    check_project_owner(settings)
-    record = seed_record(settings, selector)
-    project = settings.project_dir / f"{settings.project_name}.gpr"
-    if not project.is_file():
-        raise RuntimeError(
-            f"reviewed Ghidra project is not restored at {project}; "
-            "run `uv run wiz8 ghidra restore` first"
-        )
-    return str(record["program"])
+    # Seed restoration is idempotent and owns the project/checkout guard.  A
+    # recovery command should not require agents to manage that lifecycle.
+    return ensure_seed(settings, selector)
 
 
 def run_ghidra_script(

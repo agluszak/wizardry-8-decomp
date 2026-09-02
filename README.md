@@ -59,12 +59,12 @@ exceptional proprietary-input snapshots is defined in
 [docs/evidence-policy.md](docs/evidence-policy.md).
 
 Ghidra owns operational analysis state: functions, symbols, signatures, structures, fields, vtables,
-comments, cross-references, and decompiler state. Restore the validated reviewed checkpoint once,
-then review and edit that project directly. There is no evidence replay, materialization cache,
-query daemon, or speculative overlay layer.
+comments, cross-references, and decompiler state. `just context` idempotently ensures the reviewed
+seed and uses a transparent, checkout-scoped warm PyGhidra session when one is available. That
+worker is an implementation detail: there is no agent-managed daemon, evidence replay, materialized
+analysis mirror, or speculative overlay layer.
 
 ```sh
-uv run wiz8 ghidra restore
 just context 0x0044bec0
 ```
 
@@ -75,7 +75,13 @@ against live Ghidra objects without exporting a normalized function/type/vtable 
 Rebuilt PDB metadata is imported only into disposable verification projects.
 Ghidra-to-source remains a review workflow through `just context`; no generator rewrites C++.
 `ghidra seed refresh` is an intentional checkpoint operation, not a routine consequence of editing
-evidence.
+evidence. Warm-session runtime metadata and hook validation stamps live under disposable `build/`
+paths; deleting them only makes the next command cold.
+
+Codex and OpenCode use the same `wiz8decomp.agent_hooks` policy through the repository's frozen
+`uv` environment. Their adapters only translate lifecycle events; validation stamps and bounded
+tool logs are disposable `build/` state. Agents do not start, stop, restore, or inspect a Ghidra
+worker manually.
 
 An address-marked C++ declaration is the authority for a recovered Wiz8 function's address, name,
 signature, and source ownership. Ghidra owns analysis-only functions that have no owned declaration;

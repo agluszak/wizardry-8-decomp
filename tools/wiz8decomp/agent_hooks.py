@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-"""Small, dependency-free Codex lifecycle guardrails for this repository."""
+"""Shared, dependency-light lifecycle policy for Codex and OpenCode."""
 
 from __future__ import annotations
 
@@ -14,9 +13,7 @@ from typing import Any
 
 MAX_TOOL_OUTPUT = 50_000
 VALIDATION_RE = re.compile(r"(?:^|\s)just\s+(test|lint|check|build(?:\s+\S+)?|compare(?:\s+\S+)*)")
-MARKER_RE = re.compile(
-    r"^\+\s*//\s*(?:FUNCTION|TEMPLATE|LIBRARY):.*?\b(0x[0-9a-fA-F]{6,8})\b", re.MULTILINE
-)
+MARKER_RE = re.compile(r"//\s*(?:FUNCTION|TEMPLATE|LIBRARY):.*?\b(0x[0-9a-fA-F]{6,8})\b")
 
 
 def _text(value: Any) -> str:
@@ -58,7 +55,10 @@ def _tree(root: Path) -> str:
     except (OSError, subprocess.SubprocessError):
         pass
     digest = hashlib.sha256()
-    for path in sorted(root.glob("src/**/*")):
+    ignored = {".git", ".venv", "build", "ghidra-project", "__pycache__"}
+    for path in sorted(root.rglob("*")):
+        if any(part in ignored for part in path.parts):
+            continue
         if path.is_file():
             digest.update(str(path.relative_to(root)).encode())
             try:
@@ -96,8 +96,13 @@ def command_key(command: str) -> str | None:
         return None
     value = match.group(1)
     if value.startswith("build"):
-        return "build"
-    return value.split()[0] if value in {"test", "lint", "check"} else "compare"
+        target = value.removeprefix("build").strip()
+        return "build" if not target else f"build:{target}"
+    if value.startswith("compare"):
+        selectors = " ".join(value.removeprefix("compare").split())
+        selectors = re.sub(r"0x[0-9a-fA-F]+", lambda match: match.group(0).lower(), selectors)
+        return "compare" if not selectors else f"compare:{selectors}"
+    return value
 
 
 def _deny(reason: str) -> dict[str, Any]:
@@ -110,21 +115,21 @@ def _deny(reason: str) -> dict[str, Any]:
     }
 
 
-def _marker_owner(root: Path, address: str) -> str | None:
-    for path in root.glob("src/**/*.cpp"):
+def _duplicate_markers(root: Path) -> list[str]:
+    owners: dict[str, list[str]] = {}
+    for path in root.glob("src/**/*"):
+        if not path.is_file():
+            continue
         try:
-            for line_no, line in enumerate(
-                path.read_text(encoding="utf-8", errors="ignore").splitlines(), 1
-            ):
-                if (
-                    address.lower() in line.lower()
-                    and "//" in line
-                    and any(tag in line for tag in ("FUNCTION:", "TEMPLATE:", "LIBRARY:"))
-                ):
-                    return f"{path.relative_to(root)}:{line_no}"
+            lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
         except OSError:
             continue
-    return None
+        for line_no, line in enumerate(lines, 1):
+            if not any(tag in line for tag in ("FUNCTION:", "TEMPLATE:", "LIBRARY:")):
+                continue
+            for address in MARKER_RE.findall(line):
+                owners.setdefault(address.lower(), []).append(f"{path.relative_to(root)}:{line_no}")
+    return [f"{address}: {', '.join(paths)}" for address, paths in owners.items() if len(paths) > 1]
 
 
 def pre_tool(event: dict[str, Any]) -> dict[str, Any]:
@@ -152,22 +157,23 @@ def pre_tool(event: dict[str, Any]) -> dict[str, Any]:
             record = cache.get("checks", {}).get(key)
             if record and record.get("status") == "pass":
                 return _deny(f"`{key}` already passed for this unchanged working tree.")
-    if tool == "apply_patch":
-        root = _root(event)
-        for address in MARKER_RE.findall(command):
-            owner = _marker_owner(root, address)
-            if owner:
-                return _deny(
-                    f"{address} already has a canonical marker at {owner}; extend that owner."
-                )
     return {}
 
 
 def _success(response: Any) -> bool:
     if isinstance(response, dict):
-        if response.get("exit_code") not in (None, 0):
+        exit_code = response.get("exit_code", response.get("exitCode"))
+        if exit_code not in (None, 0):
             return False
         if response.get("isError") is True or response.get("error"):
+            return False
+        metadata = response.get("metadata")
+        if isinstance(metadata, dict) and metadata.get(
+            "exit_code", metadata.get("exitCode")
+        ) not in (
+            None,
+            0,
+        ):
             return False
     return True
 
@@ -186,6 +192,17 @@ def post_tool(event: dict[str, Any]) -> dict[str, Any]:
             "command": command,
         }
         _save_cache(root, event, cache)
+    if str(event.get("tool_name", "")) in {"apply_patch", "Edit", "Write"}:
+        duplicates = _duplicate_markers(root)
+        if duplicates:
+            return {
+                "continue": False,
+                "reason": "Duplicate canonical ownership detected: " + "; ".join(duplicates[:4]),
+                "hookSpecificOutput": {
+                    "hookEventName": "PostToolUse",
+                    "additionalContext": "Fix the duplicate marker before continuing.",
+                },
+            }
     response = _text(event.get("tool_response", ""))
     if len(response) <= MAX_TOOL_OUTPUT:
         return {}
@@ -226,23 +243,52 @@ def session_start(event: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def stop(event: dict[str, Any]) -> dict[str, Any]:
-    if event.get("stop_hook_active"):
-        return {}
-    root = _root(event)
-    cache = _load_cache(root, event)
+def _changed_paths(root: Path) -> list[Path]:
     try:
-        diff = subprocess.run(
+        result = subprocess.run(
             ["jj", "diff", "--name-only"],
             cwd=root,
             capture_output=True,
             text=True,
             timeout=1,
             check=False,
-        ).stdout
+        )
+        return [Path(path) for path in result.stdout.splitlines()]
     except (OSError, subprocess.SubprocessError):
-        diff = ""
-    changed_paths = [Path(path) for path in diff.splitlines()]
+        return []
+
+
+def _changed_compare_keys(root: Path) -> set[str]:
+    try:
+        result = subprocess.run(
+            ["jj", "diff", "--git"],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            timeout=2,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return set()
+    addresses = {address.lower() for address in MARKER_RE.findall(result.stdout)}
+    if not addresses:
+        for path in _changed_paths(root):
+            if path.suffix in {".cpp", ".h"}:
+                try:
+                    addresses.update(
+                        address.lower() for address in MARKER_RE.findall(path.read_text())
+                    )
+                except OSError:
+                    continue
+    return {f"compare:{address}" for address in addresses}
+
+
+def stop(event: dict[str, Any]) -> dict[str, Any]:
+    if event.get("stop_hook_active"):
+        return {}
+    root = _root(event)
+    cache = _load_cache(root, event)
+    changed_paths = _changed_paths(root)
     changed_cpp = any(path.suffix in {".cpp", ".h"} for path in changed_paths)
     changed_python = any(path.suffix == ".py" for path in changed_paths)
     changed_policy = any(
@@ -253,13 +299,12 @@ def stop(event: dict[str, Any]) -> dict[str, Any]:
     if not changed:
         return {}
     checks = cache.get("checks", {})
-    required = (
-        ("test", "compare")
-        if changed_cpp
-        else ("check",)
-        if changed_python or changed_policy
-        else ()
-    )
+    required = ["test"] if changed_cpp else ["check"] if changed_python or changed_policy else []
+    if changed_cpp:
+        compare_keys = _changed_compare_keys(root)
+        required.extend(sorted(compare_keys))
+        if not compare_keys:
+            required.append("compare")
     missing = [
         key
         for key in required
@@ -268,6 +313,7 @@ def stop(event: dict[str, Any]) -> dict[str, Any]:
     if missing:
         return {
             "decision": "block",
+            "tree": cache.get("tree"),
             "reason": "Before stopping, run the missing validation: "
             + ", ".join("just " + key for key in missing),
         }
