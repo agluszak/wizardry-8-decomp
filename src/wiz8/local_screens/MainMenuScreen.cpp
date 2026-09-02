@@ -9,6 +9,7 @@
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/dialog_code/DialogInterface.h"
+#include "wiz8/dialog_base.h"
 #include "wiz8/utility.h"
 
 #include "input.h"
@@ -39,6 +40,7 @@ void SetValue64D8AC(unsigned long value);
 extern "C" {
 
 extern unsigned char g_flag_68510e;
+extern unsigned char g_flag_689b32;
 
 
 /* The screen's own state. */
@@ -47,8 +49,11 @@ unsigned char g_flag_69c4ba;
 unsigned char g_flag_69c4b6;
 unsigned short g_selected_item_0069c4b4;
 unsigned char g_flag_69c4c4;
+unsigned char g_flag_69c4bb;
+int g_dword_69c4ac;
+unsigned int g_dword_69c4b0;
 int g_dword_69c4bc;
-int g_dword_69c4c0;
+W8ModalDialogBase* g_dword_69c4c0;
 extern int g_dword_647bc0;
 extern int g_font_683660;
 extern unsigned short* g_font_state_palettes_68ee1c[15];
@@ -62,13 +67,23 @@ extern unsigned char ClearPrimarySurface(void);
 extern void SetViewport(int left, int top, int right, int bottom);
 extern void Function4E3620(char* text, int a, int b, int c);
 extern void UpdateHeldItemCursor(void);
-extern W8DialogInterface* Function5CF300(int a);
-extern void Function5D2CB0(int a, int b);
-extern void Function5D2800(int a, int b, int c, int d, int e, int f, int g, int h, int i);
 extern unsigned char Function4298F0(void);
 unsigned char Function5BCAB0(short item, short state);
-extern void PresentMenuOverlayFrame(void);
 extern void ReleaseLoadedVideoFrames(void);
+extern unsigned char SetValue5FF5F0(int font);
+extern void Function406DC0(int font, unsigned short* palette);
+extern void GetScreenPoint004284F0(W8ScreenPoint* point);
+extern unsigned int Function4F1360(int x, int y);
+extern unsigned char DispatchScreenInput004F1910(const void* event);
+extern unsigned char Function5A1140(const InputAtom* input);
+extern void Function518B30(void);
+extern void Function5189B0(void);
+extern void Function422F10(void);
+extern void Function4229C0(void);
+extern void NoOp(void);
+extern "C" unsigned char Function402ED0(
+    int destination, unsigned int source, short region,
+    int x, int y, int flags, int effects);
 
 static void MainMenuRegionEvent(
     short item, const W8RegionEvent* event, W8Region* region)
@@ -337,7 +352,7 @@ unsigned char MainMenuScreenFunction005BC810(void)
     char text[64];
     wchar_t wide[64];
     unsigned short colour;
-    W8DialogInterface* dialog;
+    W8ModalDialogBase* dialog;
     int pending;
     short measured;
 
@@ -388,11 +403,11 @@ unsigned char MainMenuScreenFunction005BC810(void)
 
     pending = g_dword_69c4bc;
     if (pending != 0) {
-        dialog = Function5CF300(1);
-        Function5D2CB0(0xfa, 200);
-        Function5D2800(pending, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
+        dialog = static_cast<W8ModalDialogBase*>(Function5CF300(1));
+        dialog->SetClientExtent(0xfa, 200);
+        dialog->SetMessage((void*)pending, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
         Function5CF580(dialog, 0);
-        g_dword_69c4c0 = (int)dialog;
+        g_dword_69c4c0 = dialog;
         ::operator delete((void*)g_dword_69c4bc);
         g_dword_69c4bc = 0;
         return 1;
@@ -400,20 +415,163 @@ unsigned char MainMenuScreenFunction005BC810(void)
     if (!Function4298F0() && !g_flag_69c4c4) {
         int message = *(int*)&gppStringList[0x1fb8 / 4];
 
-        dialog = Function5CF300(1);
-        Function5D2CB0(0xfa, 200);
-        Function5D2800(message, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
+        dialog = static_cast<W8ModalDialogBase*>(Function5CF300(1));
+        dialog->SetClientExtent(0xfa, 200);
+        dialog->SetMessage((void*)message, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
         Function5CF580(dialog, 0);
         g_flag_69c4c4 = 1;
-        g_dword_69c4c0 = (int)dialog;
+        g_dword_69c4c0 = dialog;
     }
     return 1;
 }
 
-void MainMenuScreenFrame(void)
+/* The canonical state-1 frame services a modal dialog first.  Without one it
+   dispatches queued region and keyboard input, including the direct New Game,
+   Load, Options and exit shortcuts, then completes the shared 2D redraw and
+   renderer transaction. */
+// FUNCTION: WIZ8 0x005bcbf0
+void MainMenuScreenFrame()
 {
-    ProcessMainMenuInput();
-    PresentMenuOverlayFrame();
+    W8ScreenPoint point;
+    InputAtom input;
+
+    if (g_flag_689b32 != 0) {
+        SetPendingScreenState(12);
+    }
+    if (g_dword_69c4c0 != 0) {
+        Function5CF520(g_dword_69c4c0);
+        if (Function5CF550(g_dword_69c4c0) == 0) {
+            delete g_dword_69c4c0;
+            g_dword_69c4c0 = 0;
+            g_flag_69c4b6 = 1;
+            Function548F90(-14, 0xe8, 0, 0, 0, 0, 2, 0);
+            Function5BCAB0(0, 0);
+            Function5BCAB0(1, 0);
+            Function5BCAB0(2, 0);
+            Function5BCAB0(3, 0);
+            Function5BCAB0(4, 0);
+            Function5BCAB0(5, 0);
+            Function5BCAB0(g_selected_item_0069c4b4, 1);
+        }
+    }
+    else if (IsStringTableLoaded()) {
+        Function518B30();
+    }
+    else {
+        GetScreenPoint004284F0(&point);
+        g_dword_69c4b0 = Function4F1360(point.x, point.y);
+        while (DequeueEvent(&input) == 1) {
+            if (!DispatchScreenInput004F1910(&input) &&
+                input.usEvent == KEY_DOWN) {
+                if (Function5A1140(&input)) {
+                    if (g_flag_689b32 != 0) {
+                        SetValue5FF5F0(g_font_683660);
+                        Function406DC0(g_font_683660, g_colour_68ee08);
+                        mprintf(5, 5, (unsigned short*)L"Developer mode enabled.");
+                    }
+                }
+                else {
+                    switch (input.usParam) {
+                    case ENTER:
+                        switch (g_selected_item_0069c4b4) {
+                        case 0:
+                            Function5BCAB0(g_selected_item_0069c4b4, 2);
+                            RequestScreenTransition();
+                            g_flag_68510e = 0;
+                            SetValue64D8AC(0);
+                            SetPendingScreenState(0);
+                            break;
+                        case 1:
+                            Function5BCAB0(g_selected_item_0069c4b4, 2);
+                            SetPendingScreenState(5);
+                            break;
+                        case 2:
+                            Function5BCAB0(g_selected_item_0069c4b4, 2);
+                            if (g_flag_69c4ba != 0) {
+                                g_dword_68ed10.mode = 1;
+                                SetPendingScreenState(10);
+                            }
+                            break;
+                        case 3:
+                            Function5BCAB0(g_selected_item_0069c4b4, 2);
+                            SetPendingScreenState(9);
+                            break;
+                        case 4:
+                            Function5BCAB0(g_selected_item_0069c4b4, 2);
+                            SetPendingScreenState(10);
+                            break;
+                        case 5:
+                            Function5BCAB0(g_selected_item_0069c4b4, 2);
+                            SetPendingScreenState(12);
+                            break;
+                        }
+                        break;
+                    case ESC:
+                    case 'E':
+                    case 'X':
+                        SetPendingScreenState(12);
+                        break;
+                    case HOME:
+                        Function5BCAB0(g_selected_item_0069c4b4, 0);
+                        g_selected_item_0069c4b4 = 0;
+                        Function5BCAB0(0, 1);
+                        break;
+                    case KEY_END:
+                        Function5BCAB0(g_selected_item_0069c4b4, 0);
+                        g_selected_item_0069c4b4 = 5;
+                        Function5BCAB0(5, 1);
+                        break;
+                    case UPARROW:
+                        Function5BCAB0(g_selected_item_0069c4b4, 0);
+                        if (g_selected_item_0069c4b4 > 0) {
+                            --g_selected_item_0069c4b4;
+                        }
+                        else {
+                            g_selected_item_0069c4b4 = 5;
+                        }
+                        Function5BCAB0(g_selected_item_0069c4b4, 1);
+                        break;
+                    case DNARROW:
+                        Function5BCAB0(g_selected_item_0069c4b4, 0);
+                        if (g_selected_item_0069c4b4 < 5) {
+                            ++g_selected_item_0069c4b4;
+                        }
+                        else {
+                            g_selected_item_0069c4b4 = 0;
+                        }
+                        Function5BCAB0(g_selected_item_0069c4b4, 1);
+                        break;
+                    case 'L':
+                        if (g_flag_69c4ba != 0) {
+                            g_dword_68ed10.mode = 1;
+                            SetPendingScreenState(10);
+                        }
+                        break;
+                    case 'O':
+                        SetPendingScreenState(10);
+                        break;
+                    case 'S':
+                        SetPendingScreenState(5);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    NoOp();
+    if (g_flag_69c4b6 != 0 || IsStringTableLoaded()) {
+        if (g_dword_69c4c0 != 0) {
+            Function5CF520(g_dword_69c4c0);
+        }
+        if (g_flag_69c4bb != 0) {
+            Function402ED0(-14, g_dword_69c4ac, 0, 0, 0x1d1, 6, 0);
+        }
+        Function5189B0();
+        Function422F10();
+        g_flag_69c4b6 = 0;
+    }
+    Function4229C0();
 }
 
 // FUNCTION: WIZ8 0x00591870

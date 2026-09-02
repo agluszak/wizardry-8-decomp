@@ -22,7 +22,6 @@ int g_music_state_60aae8;
 int g_music_state_60aaec;
 int g_music_state_60aaf0;
 extern unsigned char g_flag_689b32;
-extern void Function591780(void);
 
 /* Builds the named playlist object before the screen loop begins. */
 // FUNCTION: WIZ8 0x0048f940

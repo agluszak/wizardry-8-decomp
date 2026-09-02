@@ -2,6 +2,9 @@
 
 #include "wiz8/vector.h"
 
+class W8DialogBase005DC7A0;
+extern "C" void Function5CF580(W8DialogBase005DC7A0* dialog, int value);
+
 /* The released binary proves this shared dialog base and the three embedded
    member identities, but exposes none of their original source names. Address-
    qualified positional names preserve that distinction. */
@@ -27,10 +30,14 @@ public:
     virtual void ClearField41IfEnabled();
     virtual void vslot13();
 
+    friend void Function5CF580(W8DialogBase005DC7A0* dialog, int value);
+
 protected:
     unsigned char unknown_004[0x3d];
     unsigned char m_field_41;            /* 0x41 */
-    unsigned char unknown_042[0x0e];
+    unsigned char unknown_042[2];
+    int m_field_44;                      /* 0x44 */
+    unsigned char unknown_048[8];
     unsigned char m_field_50;            /* 0x50 */
     unsigned char unknown_051[3];
 };                                      /* 0x54 */

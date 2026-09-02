@@ -1,6 +1,7 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/local_code/Strings.h"

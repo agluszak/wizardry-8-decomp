@@ -20,6 +20,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/local_code/VideoObjectManager.cpp
     "src/wiz8/local_screens/IntroScreen.cpp"
     "src/wiz8/local_screens/MainMenuScreen.cpp"
+    src/wiz8/local_screens/OptionsScreen.cpp
     src/wiz8/local_screens/PleaseWaitScreen.cpp
     src/wiz8/local_screens/Screens.cpp
     src/wiz8/local_screens/RCSCommon.cpp
