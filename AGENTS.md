@@ -121,9 +121,9 @@ a second wrapper API. If the canonical template name or its type arguments are n
 record the layout and emission as unresolved; do not create a provisional nested type,
 address-qualified method, or explicit specialization merely to make a caller compile.
 
-Load the task's skill before starting: porting or near-matching a function body uses
-`matching-decomp`; promoting candidate classes or deciding what an unnamed
-constructor/destructor constructs uses `class-triage`.
+Task-specific recovery reasoning is provided by the matching-decomp and class-triage skills under
+`.agents/skills/`; do not manually read an entire skill file. Open only a linked reference when the
+active skill directs it.
 
 ## Matching expectations
 
@@ -261,10 +261,10 @@ Give every checkout its own absolute `WIZ8_WORK_DIR`. The live Ghidra project li
 checkout at `ghidra-project/`; never point two checkouts at one project and never hardlink or
 copy a live project directory. Product builds use a per-checkout lock under `build/decomp`.
 
-At session start, run `bd prime`, `bd dolt pull`, inspect `bd ready`, and claim or create a Bead
-before substantial work. Record partial and negative evidence; close only after acceptance and push
-Beads state. End a session by handing off what changed, how it was verified, the status of every
-touched Bead, and any step that stayed blocked, naming the exact command and error.
+SessionStart hooks provide compact dynamic workspace and Beads state when Codex is available. Use
+the supported `bd` commands for task updates, record partial and negative evidence, and close work
+only after acceptance and validation. End a session by handing off changed files, verification,
+Bead status, and any blocked command with its exact error.
 
 Use Jujutsu, not raw Git, for repository history. Start substantial work from current integrated
 `main` on a unique named bookmark such as `agent/<bead>-<topic>`. Keep the whole task or coherent

@@ -36,10 +36,8 @@ from the retail body.
    ```sh
    just build WIZ8
    just compare 0x<address>...
-   just triage 0x<address>...
    # or:
    just compare --file src/wiz8/<unit>.cpp
-   just triage --file src/wiz8/<unit>.cpp
    ```
 
    `just compare` builds by default. Use `--no-build` only when the current checkout's product was
@@ -66,7 +64,7 @@ Focused comparison classifies each selected function as:
 - `mismatch`: a real machine-state divergence remains;
 - `inconclusive`: the analysis reached a limit and has not proved a source defect.
 
-Use `just triage` for the first structured divergence. Its categories point at the evidence-bearing
+Use the first-divergence section of `just compare` for structured mismatch evidence. Its categories point at the evidence-bearing
 part of the model: field/global selection, stored value, callee identity, receiver or argument,
 branch condition, branch target, return value, or preserved state.
 

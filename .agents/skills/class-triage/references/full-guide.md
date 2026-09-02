@@ -146,7 +146,7 @@ just test
 
 `just verify` remains the integration gate. Read `just compare`'s status
 (`exact`/`effective`/`mismatch`/`inconclusive`), not the raw percentage; relocated operands and
-scratch-register choices depress it even for exact bodies. `just triage` gives the first structured
+scratch-register choices depress it even for exact bodies. `just compare` gives the first structured
 divergence.
 
 **A depressed score is not automatically register noise.** Line the two bodies up instruction by
