@@ -25,21 +25,33 @@ def prepare_command() -> None:
     cli.run_action(lambda: prepare(cli.settings()))
 
 
-def check_command() -> None:
+def check_command(
+    json_output: bool = typer.Option(False, "--json", help="Emit complete JSON."),
+) -> None:
     """Run the fast public validation lane."""
     from .. import command_support as cli
-    from ..build import check
+    from ..build import check, check_human_result
     from ..config import repository_root
 
-    cli.run_action(lambda: check(repository_root()))
+    def action():
+        result = check(repository_root())
+        return cli.human(check_human_result(result), result)
+
+    cli.run_action(action, force_json=json_output)
 
 
-def lint_command() -> None:
+def lint_command(
+    json_output: bool = typer.Option(False, "--json", help="Emit complete JSON."),
+) -> None:
     """Compile recovered C++ with clang-cl structural diagnostics."""
     from .. import command_support as cli
-    from ..build import lint
+    from ..build import lint, lint_human_result
 
-    cli.run_action(lambda: lint(cli.settings()))
+    def action():
+        result = lint(cli.settings())
+        return cli.human(lint_human_result(result), result)
+
+    cli.run_action(action, force_json=json_output)
 
 
 def diagnostics_command() -> None:
@@ -53,12 +65,19 @@ def diagnostics_command() -> None:
 def build_command(
     target: Annotated[str, typer.Argument(help="Friendly alias or CMake target.")] = "match",
     jobs: Annotated[int | None, typer.Option("--jobs", "-j")] = None,
+    json_output: bool = typer.Option(False, "--json", help="Emit complete JSON."),
 ) -> None:
     """Configure when needed and build one product target."""
     from .. import command_support as cli
-    from ..build import build_target
+    from ..build import build_human_result, build_target
 
-    cli.run_action(lambda: build_target(cli.settings(), target, jobs))
+    def action():
+        settings = cli.settings()
+        result = build_target(settings, target, jobs)
+        text, data = build_human_result(settings, result)
+        return cli.human(text, data)
+
+    cli.run_action(action, force_json=json_output)
 
 
 def compare_command(
@@ -73,13 +92,14 @@ def compare_command(
     ] = None,
     target: Annotated[str, typer.Option("--target")] = "WIZ8",
     no_build: bool = typer.Option(False, "--no-build"),
+    json_output: bool = typer.Option(False, "--json", help="Emit complete JSON."),
 ) -> None:
     """Compare selected functions in one process, or diagnose the whole image."""
     from .. import command_support as cli
     from ..build import build_target, compare
-    from ..reccmp_workflows import compare_selected, selected_addresses
+    from ..reccmp_workflows import compare_selected, comparison_human, selected_addresses
 
-    def action() -> dict[str, Any]:
+    def action() -> Any:
         settings = cli.settings()
         if addresses or files:
             if ctx.args:
@@ -87,34 +107,11 @@ def compare_command(
             if not no_build:
                 build_target(settings, target)
             selected = selected_addresses(settings.repo_dir, addresses or [], files or [])
-            return compare_selected(settings.repo_dir, target, selected)
+            result = compare_selected(settings.repo_dir, target, selected)
+            return cli.human(comparison_human(result), result)
         return compare(settings, target, list(ctx.args), build_first=not no_build)
 
-    cli.run_action(action)
-
-
-def triage_command(
-    addresses: Annotated[list[str] | None, typer.Argument(help="Original addresses.")] = None,
-    files: Annotated[
-        list[Path] | None,
-        typer.Option("--file", help="Triage every FUNCTION marker in this source file."),
-    ] = None,
-    target: Annotated[str, typer.Option("--target")] = "WIZ8",
-    no_build: bool = typer.Option(False, "--no-build"),
-) -> None:
-    """Interpret reccmp's structured first divergence without parsing assembly."""
-    from .. import command_support as cli
-    from ..build import build_target
-    from ..reccmp_workflows import selected_addresses, triage_selected
-
-    def action() -> dict[str, Any]:
-        settings = cli.settings()
-        if not no_build:
-            build_target(settings, target)
-        selected = selected_addresses(settings.repo_dir, addresses or [], files or [])
-        return triage_selected(settings.repo_dir, target, selected)
-
-    cli.run_action(action)
+    cli.run_action(action, force_json=json_output)
 
 
 def vtable_command(
@@ -245,7 +242,6 @@ def register(app: typer.Typer) -> None:
     app.command(
         "compare", context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
     )(compare_command)
-    app.command("triage")(triage_command)
     app.command("vtable")(vtable_command)
     app.command("datacmp")(datacmp_command)
     app.command("addr")(address_command)
@@ -267,7 +263,13 @@ def source_index_command() -> None:
     from .. import command_support as cli
     from ..source_index import write_source_index
 
-    cli.run_action(lambda: write_source_index(cli.settings()))
+    def action():
+        result = write_source_index(cli.settings())
+        counts = result.get("counts", result)
+        functions = counts.get("functions") or counts.get("markers") or "updated"
+        return cli.human(f"source index: {functions} functions", result)
+
+    cli.run_action(action)
 
 
 def unresolved_report_command(

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 
@@ -8,24 +8,44 @@ app = typer.Typer(help="Generate reports from collected evidence.", no_args_is_h
 
 
 @app.command("class")
-def class_command(name: Annotated[str, typer.Argument(help="Reviewed Ghidra class name")]) -> None:
+def class_command(
+    name: Annotated[str, typer.Argument(help="Reviewed Ghidra class name")],
+    program: str = typer.Option("wiz8", "--program"),
+    json_output: bool = typer.Option(False, "--json", help="Emit complete JSON."),
+) -> None:
     """Report class fields, vtables, and binary references from live Ghidra."""
     from .. import command_support as cli
-    from ..ghidra.audits import class_facts, class_fields
+    from ..ghidra.session import query_many
     from ..paths import atomic_json
 
-    def action() -> dict[str, object]:
+    def action() -> Any:
         settings = cli.settings()
+        rows, _transport = query_many(
+            settings, program, [("class-facts", [name]), ("class-fields", [name])]
+        )
         result = {
-            **class_facts(settings, {name}),
+            **rows[0]["result"],
             "schema": "wiz8.class-report",
-            "classes": class_fields(settings, {name}),
+            "classes": rows[1]["result"]["classes"],
         }
         output = settings.build_dir / "reports" / "classes" / f"{name.replace('::', '_')}.json"
         atomic_json(output, result)
-        return {**result, "outputs": [str(output.relative_to(settings.repo_dir))]}
+        result["outputs"] = [str(output.relative_to(settings.repo_dir))]
+        lines = [name]
+        for item in result["classes"]:
+            lines.extend(
+                f"  +0x{field['offset']:x} {field['type']} {field['field']}"
+                for field in item["fields"]
+            )
+        for table in result["vtables"]:
+            lines.append(
+                f"  vtable {table['address']} {table['name']} "
+                f"({len(table['references'])} references)"
+            )
+        lines.append(f"artifact: {result['outputs'][0]}")
+        return cli.human("\n".join(lines), result)
 
-    cli.run_action(action)
+    cli.run_action(action, force_json=json_output)
 
 
 @app.command("data")
@@ -57,7 +77,9 @@ def status_command() -> None:
 
 @app.command("context")
 def context_command(
-    address: Annotated[str, typer.Argument(help="Address inside the function to inspect")],
+    selectors: Annotated[
+        list[str], typer.Argument(help="Function addresses, ranges, or exact source-owned names")
+    ],
     program: str = typer.Option("wiz8", "--program"),
     deep: bool = typer.Option(False, "--deep", help="Include listing, P-code and rooted flow."),
     root: str = typer.Option("this", "--root", help="Deep-analysis parameter root."),
@@ -66,16 +88,22 @@ def context_command(
         "--discover",
         help="Create a missing function transactionally for this report, then roll it back.",
     ),
+    json_output: bool = typer.Option(False, "--json", help="Emit the complete context payload."),
 ) -> None:
     """Join Ghidra and every relevant evidence channel for one function."""
     from .. import command_support as cli
-    from ..reports.recovery_context import recovery_context_report
+    from ..reports.recovery_context import recovery_context_reports, render_context
 
-    cli.run_action(
-        lambda: recovery_context_report(
-            cli.settings(), address, program, deep=deep, root=root, discover=discover
+    def action():
+        settings = cli.settings()
+        contexts = recovery_context_reports(
+            settings, selectors, program, deep=deep, root=root, discover=discover
         )
-    )
+        text = "\n\n".join(render_context(context) for context in contexts)
+        data: object = contexts[0] if len(contexts) == 1 else {"contexts": contexts}
+        return cli.human(text, data)
+
+    cli.run_action(action, force_json=json_output)
 
 
 @app.command("translation-units")

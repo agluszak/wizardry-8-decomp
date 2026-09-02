@@ -9,7 +9,7 @@ prepare:
 
 test *args:
     uv run wiz8 analyze source-index
-    uv run pytest tests/unit tests/repository {{args}}
+    uv run pytest -q tests/unit tests/repository {{args}}
 
 check:
     uv run wiz8 check
@@ -23,8 +23,8 @@ lint:
 diagnostics:
     uv run wiz8 diagnostics
 
-build target="match" *args:
-    uv run wiz8 build {{target}} {{args}}
+build *args:
+    uv run wiz8 build {{args}}
 
 run:
     uv run wiz8 run
@@ -41,9 +41,6 @@ recover address *args:
 compare *args:
     uv run wiz8 compare {{args}}
 
-triage *args:
-    uv run wiz8 triage {{args}}
-
 vtable *args:
     uv run wiz8 vtable {{args}}
 
@@ -56,8 +53,11 @@ addr *args:
 verify *args:
     uv run wiz8 verify {{args}}
 
-context address program="wiz8" *args:
-    uv run wiz8 report context {{address}} --program {{program}} {{args}}
+context selector *args:
+    uv run wiz8 report context {{selector}} {{args}}
+
+recover-explain selector *args:
+    uv run wiz8 recover explain {{selector}} {{args}}
 
 wiz8 *args:
     uv run wiz8 {{args}}

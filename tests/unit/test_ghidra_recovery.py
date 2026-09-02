@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from wiz8decomp.config import Settings
@@ -75,6 +76,30 @@ def test_recover_functions_rejects_empty_selection() -> None:
         recovery_host.recover_functions(object(), [])
 
 
-def test_explain_rejects_ranges() -> None:
-    with pytest.raises(ValueError, match="plain address"):
-        recovery_host.explain_function(object(), "0x401000:0x401020")
+def test_explain_accepts_ranges(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    settings = SimpleNamespace(repo_dir=tmp_path)
+    monkeypatch.setattr(
+        recovery_host,
+        "_recover",
+        lambda _settings, selections, **_kwargs: {
+            "program": "wiz8",
+            "selections": selections,
+            "exports": [
+                {
+                    "entry": "0x00401000",
+                    "name": "Function401000",
+                    "recovery": {
+                        "emission_kind": "function",
+                        "source_kind": "unrecovered",
+                        "passes": [],
+                        "defects": [],
+                    },
+                }
+            ],
+        },
+    )
+
+    result = recovery_host.explain_function(settings, "0x401000:0x401020")
+
+    assert result["selections"] == ["0x00401000:0x00401020"]
+    assert result["functions"][0]["entry"] == "0x00401000"

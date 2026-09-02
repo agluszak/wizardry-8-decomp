@@ -136,28 +136,51 @@ def recover_functions(
     return result
 
 
-def explain_function(
+def explain_functions(
     settings: Settings,
-    selection: str,
+    selections: list[str],
     *,
     program_selector: str = "wiz8",
 ) -> dict[str, Any]:
-    """Format the structured facts for one recovered function."""
+    """Format structured recovery facts for addresses, ranges, or mixed selections."""
 
-    start, end = parse_selection(selection)
-    if end is not None:
-        raise ValueError("explain takes one plain address")
-    result = _recover(settings, [selection], program_selector=program_selector, explain=True)
-    recovery = result["exports"][0]["recovery"]
-    lines = [f"0x{start:08x} {recovery['emission_kind']} ({recovery['source_kind']})"]
-    lines.extend(
-        f"{fact['status']:<12} {fact['pass']}: {fact['detail']}" for fact in recovery["passes"]
-    )
-    if not recovery["passes"]:
-        lines.append("no recognizer applied or declined; verbatim rendering")
-    lines.extend(f"defect      {defect}" for defect in recovery["defects"])
+    from ..selectors import recovery_selections
+
+    normalized = recovery_selections(settings.repo_dir, selections)
+    result = _recover(settings, normalized, program_selector=program_selector, explain=True)
+    lines: list[str] = []
+    functions: list[dict[str, Any]] = []
+    for item in result.get("exports", []):
+        recovery = item["recovery"]
+        entry = str(item["entry"])
+        name = item.get("name") or recovery.get("name") or ""
+        lines.append(f"{entry.removeprefix('0x').upper()} {name}".rstrip())
+        passes = list(recovery.get("passes", []))
+        lines.extend(f"  {fact['pass']} {fact['status']}: {fact['detail']}" for fact in passes)
+        if not passes:
+            lines.append("  no recognizer applied or declined; verbatim rendering")
+        lines.extend(f"  defect: {defect}" for defect in recovery.get("defects", []))
+        functions.append(
+            {
+                "entry": entry,
+                "name": name,
+                "emission_kind": recovery.get("emission_kind"),
+                "source_kind": recovery.get("source_kind"),
+                "passes": passes,
+                "defects": recovery.get("defects", []),
+            }
+        )
+        lines.append("")
     return {
+        "schema": "wiz8.recovery-explanation",
         "program": result["program"],
-        "address": f"0x{start:08x}",
-        "text": "\n".join(lines) + "\n",
+        "selections": normalized,
+        "functions": functions,
+        "text": "\n".join(lines).rstrip() + "\n",
     }
+
+
+def explain_function(
+    settings: Settings, selection: str, *, program_selector: str = "wiz8"
+) -> dict[str, Any]:
+    return explain_functions(settings, [selection], program_selector=program_selector)

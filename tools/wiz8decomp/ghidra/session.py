@@ -44,7 +44,7 @@ def query_many(
                     transaction = program.startTransaction("disposable function seeds")
                     for seed in function_seeds:
                         address = _address(program, seed)
-                        if program.getFunctionManager().getFunctionAt(address) is not None:
+                        if program.getFunctionManager().getFunctionContaining(address) is not None:
                             continue
                         if program.getListing().getInstructionAt(address) is None:
                             command = DisassembleCommand(address, None, True)

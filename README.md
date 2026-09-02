@@ -38,13 +38,13 @@ process. The real menu handlers execute on the UI thread; the host reruns the sc
 order and requires identical normalized observations. Test-only code is not linked into either
 matching image.
 
-For focused recovery, one reccmp process can compare or triage several original addresses, or all
-`FUNCTION` markers in a source file. The wrappers consume reccmp's structured result; they do not
-infer meaning by parsing rendered disassembly.
+For focused recovery, one reccmp process compares several function selectors or all `FUNCTION`
+markers in a source file. A mismatch includes reccmp's structured first divergence and a bounded
+instruction window; no second triage run is needed.
 
 ```sh
 just compare 0x00406b70 0x00406ba0
-just triage --file src/wiz8/local_code/Combat.cpp
+just compare --file src/wiz8/local_code/Combat.cpp
 just vtable W8Widget
 just datacmp
 just addr 0x00406b70

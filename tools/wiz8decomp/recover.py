@@ -423,10 +423,14 @@ def recover_function(
 
     from .build import build_target
     from .ghidra.recovery import recover_functions
-    from .reccmp_workflows import compare_selected, parse_address, triage_selected
+    from .reccmp_workflows import compare_selected
+    from .selectors import resolve_function_selectors
     from .source_model import load_source_index
 
-    address = parse_address(selection)
+    resolved = resolve_function_selectors(settings.repo_dir, [selection])
+    if len(resolved) != 1:
+        raise ValueError("recover function takes exactly one function selector")
+    address = resolved[0]
     source_index = load_source_index(settings.repo_dir)
     markers = source_index["markers"]
     owned = next((marker for marker in markers if marker["address"] == address), None)
@@ -502,10 +506,7 @@ def recover_function(
                 outcome["status"] = entity["status"]
                 outcome["raw_matching"] = entity.get("raw_matching")
                 if entity["status"] not in {"exact", "effective"}:
-                    triage = triage_selected(settings.repo_dir, target, [address])
-                    findings = triage.get("functions") or []
-                    if findings:
-                        outcome["first_divergence"] = findings[0]
+                    outcome["first_divergence"] = entity
     finally:
         path.write_text(original, encoding="utf-8")
 
@@ -542,10 +543,11 @@ def regress(
 ) -> dict[str, Any]:
     from .build import build_target
     from .ghidra.recovery import recover_functions
-    from .reccmp_workflows import compare_selected, parse_address, triage_selected
+    from .reccmp_workflows import compare_selected
+    from .selectors import resolve_function_selectors
     from .source_model import load_source_index
 
-    addresses = [parse_address(selection) for selection in selections]
+    addresses = resolve_function_selectors(settings.repo_dir, selections)
     if not addresses:
         raise ValueError("pass one or more function addresses")
 
@@ -625,10 +627,7 @@ def regress(
             row["status"] = entity["status"]
             row["raw_matching"] = entity.get("raw_matching")
             if entity["status"] not in {"exact", "effective"}:
-                triage = triage_selected(settings.repo_dir, target, [address])
-                findings = triage.get("functions") or []
-                if findings:
-                    row["first_divergence"] = findings[0]
+                row["first_divergence"] = entity
         finally:
             path.write_text(original, encoding="utf-8")
 
@@ -835,7 +834,7 @@ def sweep(
 
     from .build import build_target
     from .ghidra.recovery import recover_functions
-    from .reccmp_workflows import compare_selected, triage_selected
+    from .reccmp_workflows import compare_selected
 
     markers = _sweep_selection(settings, source_file, class_name)
     addresses = [marker["address"] for marker in markers]
@@ -984,21 +983,13 @@ def sweep(
                     continue
                 outcomes[address]["status"] = entity["status"]
                 outcomes[address]["raw_matching"] = entity.get("raw_matching")
+                if entity["status"] == "mismatch":
+                    outcomes[address]["first_divergence"] = entity
             paired = comparison.get("functions") or []
             if paired and all("address" not in entity for entity in paired):
                 for address, entity in zip(sorted(survivors), paired):
                     outcomes[address]["status"] = entity["status"]
                     outcomes[address]["raw_matching"] = entity.get("raw_matching")
-            mismatched = sorted(
-                address for address in survivors if outcomes[address].get("status") == "mismatch"
-            )
-            if mismatched:
-                triage = triage_selected(settings.repo_dir, target, mismatched)
-                for finding in triage.get("functions") or []:
-                    address = finding.get("address")
-                    parsed = int(str(address), 16) if address else None
-                    if parsed in outcomes:
-                        outcomes[parsed]["first_divergence"] = finding
         for address in survivors:
             outcomes[address].setdefault("status", "not-compared")
     finally:

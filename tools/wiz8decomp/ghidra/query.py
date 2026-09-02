@@ -17,8 +17,24 @@ def _address(program: Any, text: str) -> Any:
 
 
 def _function(program: Any, text: str) -> Any:
-    address = _address(program, text)
     manager = program.getFunctionManager()
+    try:
+        address = _address(program, text)
+    except ValueError:
+        matches = []
+        iterator = manager.getFunctions(True)
+        while iterator.hasNext():
+            candidate = iterator.next()
+            if text in {candidate.getName(), candidate.getName(True)}:
+                matches.append(candidate)
+        if not matches:
+            raise ValueError(f"unknown function selector: {text}") from None
+        if len(matches) > 1:
+            candidates = ", ".join(
+                f"{item.getName(True)} at {item.getEntryPoint()}" for item in matches[:8]
+            )
+            raise ValueError(f"ambiguous function selector {text!r}; candidates: {candidates}")
+        return matches[0]
     function = manager.getFunctionContaining(address) or manager.getFunctionAt(address)
     if function is None:
         raise ValueError(f"no function contains {address}")
@@ -107,14 +123,127 @@ def _listing(program: Any, argument: str) -> dict[str, Any]:
         f"{instruction.getAddress()}  {instruction}"
         for instruction in program.getListing().getInstructions(function.getBody(), True)
     ]
-    return {"function": function_metadata(program, function), "listing": "\n".join(lines)}
+    return {"listing": "\n".join(lines)}
 
 
 def _decompile(program: Any, argument: str) -> dict[str, Any]:
     from .semantic import decompile_c
 
     function = _function(program, argument)
-    return {"function": function_metadata(program, function), **decompile_c(program, function)}
+    return decompile_c(program, function)
+
+
+def _function_facts(program: Any, argument: str) -> dict[str, Any]:
+    function = _function(program, argument)
+    symbols = program.getSymbolTable()
+    calls: list[dict[str, Any]] = []
+    data: list[dict[str, Any]] = []
+    vptrs: list[dict[str, Any]] = []
+    exception_metadata: list[dict[str, Any]] = []
+    listing = program.getListing()
+    instructions = program.getListing().getInstructions(function.getBody(), True)
+    while instructions.hasNext():
+        instruction = instructions.next()
+        for reference in instruction.getReferencesFrom():
+            symbol = symbols.getPrimarySymbol(reference.getToAddress())
+            name = symbol.getName(True) if symbol is not None else ""
+            fact = {
+                "site": str(instruction.getAddress()),
+                "target": str(reference.getToAddress()),
+                "name": name,
+                "instruction": str(instruction),
+            }
+            if reference.getReferenceType().isCall():
+                calls.append(fact)
+            elif reference.getReferenceType().isData():
+                fact["access"] = reference.getReferenceType().getName()
+                datum = listing.getDataAt(reference.getToAddress())
+                if datum is not None and datum.hasStringValue():
+                    fact["kind"] = "string"
+                elif name.startswith("PTR_") and instruction.getMnemonicString().upper() == "CALL":
+                    fact["kind"] = "import-pointer"
+                elif program.getMemory().contains(reference.getToAddress()):
+                    fact["kind"] = "program-data"
+                else:
+                    fact["kind"] = "raw"
+                data.append(fact)
+                folded = name.casefold()
+                if "vftable" in folded:
+                    vptrs.append(dict(fact))
+                if any(value in folded for value in ("funcinfo", "unwind", "ehhandler")):
+                    exception_metadata.append(dict(fact))
+    return {
+        "entry": str(function.getEntryPoint()),
+        "name": function.getName(True),
+        "calls": calls,
+        "data_references": data,
+        "vptr_references": vptrs,
+        "exception_metadata": exception_metadata,
+    }
+
+
+def _class_fields(program: Any, names: list[str]) -> dict[str, Any]:
+    manager = program.getDataTypeManager()
+    classes = []
+    for name in names:
+        data_type = manager.getDataType(f"/wiz8/classes/{name}")
+        fields = []
+        if data_type is not None and hasattr(data_type, "getDefinedComponents"):
+            for component in data_type.getDefinedComponents():
+                if component.getFieldName() is not None:
+                    fields.append(
+                        {
+                            "field": component.getFieldName(),
+                            "offset": component.getOffset(),
+                            "length": component.getLength(),
+                            "type": component.getDataType().getDisplayName(),
+                        }
+                    )
+        classes.append({"name": name, "fields": fields})
+    return {"classes": classes}
+
+
+def _class_facts(program: Any, names: list[str]) -> dict[str, Any]:
+    tables = []
+    symbols = program.getSymbolTable().getAllSymbols(True)
+    while symbols.hasNext():
+        symbol = symbols.next()
+        name = symbol.getName(True)
+        if "vftable" not in name.casefold() or not any(value + "::" in name for value in names):
+            continue
+        references = []
+        iterator = program.getReferenceManager().getReferencesTo(symbol.getAddress())
+        while iterator.hasNext():
+            reference = iterator.next()
+            instruction = program.getListing().getInstructionContaining(reference.getFromAddress())
+            owner = program.getFunctionManager().getFunctionContaining(reference.getFromAddress())
+            references.append(
+                {
+                    "from": str(reference.getFromAddress()),
+                    "kind": reference.getReferenceType().getName(),
+                    "instruction": str(instruction) if instruction is not None else "",
+                    "function": str(owner.getEntryPoint()) if owner is not None else "",
+                }
+            )
+        tables.append({"name": name, "address": str(symbol.getAddress()), "references": references})
+    return {"schema": "wiz8.class-facts", "vtables": tables}
+
+
+def _indirect_calls(program: Any, argument: str) -> dict[str, Any]:
+    from .semantic import callsite, pcode
+
+    normalized = pcode(program, argument, "normalize")
+    sites = sorted(
+        {
+            str(operation["address"])
+            for operation in normalized.get("operations", [])
+            if operation.get("op") == "CALLIND"
+        }
+    )
+    return {
+        "calls": [call for site in sites for call in callsite(program, site).get("sites", [])],
+        "normalized_pcode": normalized,
+    }
 
 
 def _xrefs(program: Any, argument: str, direction: str) -> dict[str, Any]:
@@ -258,8 +387,16 @@ def execute_query(program: Any, command: str, arguments: list[str]) -> dict[str,
             arguments[0],
             {"xrefs": "both", "xrefs-to": "to", "xrefs-from": "from"}[command],
         )
-    if command in {"function", "function-slice"}:
+    if command == "function":
         return {"function": function_metadata(program, _function(program, arguments[0]))}
+    if command == "function-facts":
+        return _function_facts(program, arguments[0])
+    if command == "class-fields":
+        return _class_fields(program, arguments)
+    if command == "class-facts":
+        return _class_facts(program, arguments)
+    if command == "indirect-calls":
+        return _indirect_calls(program, arguments[0])
     if command == "function-of":
         return _function_of(program, arguments[0])
     if command == "read-data":
@@ -309,7 +446,8 @@ def validate_query_arguments(command: str, arguments: list[str]) -> None:
         "xrefs-to": 1,
         "xrefs-from": 1,
         "function": 1,
-        "function-slice": 1,
+        "function-facts": 1,
+        "indirect-calls": 1,
         "function-of": 1,
         "read-data": 2,
         "strings": 0,
@@ -324,6 +462,10 @@ def validate_query_arguments(command: str, arguments: list[str]) -> None:
         "callsite": 1,
         "condition-accesses": 1,
     }
+    if command in {"class-facts", "class-fields"}:
+        if not arguments:
+            raise ValueError(f"{command} expects one or more class names")
+        return
     if command == "pcode":
         if len(arguments) not in {1, 2}:
             raise ValueError("pcode expects an address and an optional style")

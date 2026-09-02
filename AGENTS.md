@@ -230,10 +230,10 @@ Relocation-masked selected-function comparison is the exact/effective body autho
 comparison is diagnostic because relocated globals can reduce its raw score even for an exact body.
 Preserve `/OPT:NOREF` comparison and `/OPT:REF` runtime modes.
 
-Use `just compare ADDRESS...` or `just compare --file SOURCE...` for one batch comparison and
-`just triage ADDRESS...` or `just triage --file SOURCE...` for reccmp's structured first
-divergence. `just vtable`, `just datacmp`, and `just addr` expose reccmp's owned
-vtable/data/pairing analyses; they do not supersede function comparison.
+Use `just compare SELECTOR...` or `just compare --file SOURCE...` for one batch comparison.
+Mismatches include reccmp's structured first divergence and a bounded original/recompiled
+instruction window from that same report. `just vtable`, `just datacmp`, and `just addr` expose
+reccmp's owned vtable/data/pairing analyses; they do not supersede function comparison.
 
 Use `just runtime-test` for the separate in-process semantic product. Its input is queued from the
 test driver but consumed by the real screen handler on the UI thread; forward/reverse normalized

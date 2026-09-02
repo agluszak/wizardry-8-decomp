@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +19,18 @@ from .config import load_settings
 console = Console()
 logger = logging.getLogger(__name__)
 _JSON_OUTPUT = False
+
+
+@dataclass(frozen=True)
+class HumanResult:
+    """Concise terminal text paired with the complete machine-readable result."""
+
+    text: str
+    data: Any
+
+
+def human(text: str, data: Any) -> HumanResult:
+    return HumanResult(text=text.rstrip(), data=data)
 
 
 def set_json_output(enabled: bool) -> None:
@@ -35,6 +48,14 @@ def settings():
 
 
 def emit(value: Any, *, force_json: bool = False) -> None:
+    if isinstance(value, HumanResult):
+        if _JSON_OUTPUT or force_json:
+            sys.stdout.write(
+                json.dumps(value.data, indent=2, sort_keys=False, ensure_ascii=False) + "\n"
+            )
+        else:
+            console.print(value.text, highlight=False, markup=False)
+        return
     if _JSON_OUTPUT or force_json:
         sys.stdout.write(json.dumps(value, indent=2, sort_keys=False, ensure_ascii=False) + "\n")
     elif isinstance(value, (dict, list)):

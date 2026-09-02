@@ -175,3 +175,42 @@ def test_vtable_workflow_refuses_zero_entity_success(
 
     with pytest.raises(RuntimeError, match="vacuous success"):
         compare_vtables(tmp_path, "WIZ8", None)
+
+
+def test_compare_mismatch_acquires_one_report_and_includes_triage(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = 0
+
+    def fake_report(*_args, **_kwargs):
+        nonlocal calls
+        calls += 1
+        return [
+            _entity(
+                0x401000,
+                "mismatch",
+                difference={"kind": "branch_target", "orig": {}, "recomp": {}},
+            )
+        ]
+
+    monkeypatch.setattr(reccmp_workflows, "run_report", fake_report)
+    monkeypatch.setattr(
+        reccmp_workflows,
+        "_instruction_windows",
+        lambda *_args, **_kwargs: {
+            "original": [
+                {
+                    "address": "0x00401003",
+                    "instruction": "jne 0x401020",
+                    "divergence": True,
+                }
+            ]
+        },
+    )
+
+    result = reccmp_workflows.compare_selected(tmp_path, "WIZ8", [0x401000])
+
+    assert calls == 1
+    assert result["functions"][0]["difference"]["kind"] == "branch_target"
+    assert result["functions"][0]["instruction_window"]["original"][0]["divergence"]
+    assert "first divergence: branch_target" in reccmp_workflows.comparison_human(result)

@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import sys
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
@@ -357,6 +358,7 @@ def build_target(
             "target": resolved_target,
             "parallel_makefiles": parallel_makefiles,
             "command": _result(result),
+            "log": str(Path("build/logs/product-build.json")),
         }
 
 
@@ -401,6 +403,10 @@ def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any
     configure_result = run(
         configure_command,
         cwd=settings.repo_dir,
+        log_path=settings.repo_dir
+        / "build"
+        / "logs"
+        / ("clang-full-configure.json" if full_diagnostics else "clang-lint-configure.json"),
     )
     target = "WIZ8_CLANG_DIAGNOSTICS" if full_diagnostics else "WIZ8_CLANG_LINT"
     build_result = run(
@@ -427,7 +433,62 @@ def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any
         "mode": "full-diagnostics" if full_diagnostics else "gating",
         "configure": _result(configure_result),
         "build": _result(build_result),
+        "log": str(
+            Path("build/logs")
+            / ("clang-full-diagnostics.json" if full_diagnostics else "clang-lint-build.json")
+        ),
     }
+
+
+def build_human_result(settings: Settings, result: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    """Attach the existing unresolved-symbol delta and render a compact build result."""
+
+    enriched = dict(result)
+    lines = [f"{result['target']} built successfully"]
+    if result["target"] == "WIZ8":
+        from .unresolved import unresolved_report, verify_unresolved_delta
+
+        current = unresolved_report(
+            settings.repo_dir / "build/decomp/CMakeFiles/wiz8_recovered_objects.dir",
+            settings.repo_dir / "build/decomp/Wiz8.map",
+        )
+        delta = verify_unresolved_delta(settings, current)
+        enriched["unresolved"] = delta
+        lines.append(
+            f"unresolved symbols: {delta['unchanged_count']} expected, "
+            f"{delta['introduced_count']} new"
+        )
+    lines.append(f"log: {result['log']}")
+    return "\n".join(lines), enriched
+
+
+def lint_human_result(result: dict[str, Any]) -> str:
+    output = str(result["build"].get("stdout", ""))
+    progress = [(int(done), int(total)) for done, total in re.findall(r"\[(\d+)/(\d+)\]", output)]
+    if progress:
+        done, total = max(progress, key=lambda pair: pair[0])
+        summary = f"lint: {done}/{total} translation units passed"
+    else:
+        summary = "lint: passed"
+    return f"{summary}\nlog: {result['log']}"
+
+
+def check_human_result(result: dict[str, Any]) -> str:
+    pytest_output = next(
+        (
+            str(command.get("stdout", ""))
+            for command in result["commands"]
+            if command.get("argv", [None])[0] == "pytest"
+        ),
+        "",
+    )
+    match = re.search(r"(\d+) passed", pytest_output)
+    lines = ["check:", "  all gates passed"]
+    if match:
+        lines.append(f"  tests: {match.group(1)} passed")
+    lint_line = lint_human_result(result["lint"]).splitlines()[0]
+    lines.append(f"  {lint_line}")
+    return "\n".join(lines)
 
 
 def build_source_indexer(settings: Settings) -> Path:
@@ -577,17 +638,26 @@ def check(repository: Path) -> dict[str, Any]:
     source_index = write_source_index(settings)
     write_wiz8_data_source(repository)
     commands = (
-        ["ruff", "format", "--check", "."],
-        ["ruff", "check", "."],
-        ["pyright"],
-        ["cmake", "-P", "cmake/ValidateWiz8Sources.cmake"],
-        ["pytest", "tests/unit", "tests/repository"],
-        ["wiz8", "check-reccmp"],
+        ("format", ["ruff", "format", "--check", "."]),
+        ("ruff", ["ruff", "check", "."]),
+        ("types", ["pyright"]),
+        ("sources", ["cmake", "-P", "cmake/ValidateWiz8Sources.cmake"]),
+        ("tests", ["pytest", "tests/unit", "tests/repository"]),
+        ("reccmp", ["wiz8", "check-reccmp"]),
     )
     return {
         "lint": lint_result,
         "source_index": source_index,
-        "commands": [_result(run(command, cwd=repository)) for command in commands],
+        "commands": [
+            _result(
+                run(
+                    command,
+                    cwd=repository,
+                    log_path=repository / "build/logs" / f"check-{name}.json",
+                )
+            )
+            for name, command in commands
+        ],
     }
 
 

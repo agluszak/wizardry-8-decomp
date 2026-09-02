@@ -15,6 +15,46 @@ from .paths import atomic_json
 LOG = logging.getLogger(__name__)
 
 
+class CommandFailure(RuntimeError):
+    def __init__(
+        self, result: CommandResult, diagnostics: list[str], log_path: Path | None
+    ) -> None:
+        lines = [f"command failed ({result.exit_status}): {result.command}", *diagnostics]
+        if log_path is not None:
+            lines.append(f"log: {log_path}")
+        super().__init__("\n".join(lines))
+        self.result = result
+        self.log_path = log_path
+
+
+def actionable_diagnostics(stdout: str, stderr: str, *, limit: int = 20) -> list[str]:
+    """Keep compiler/test diagnostics and discard repetitive build-tool unwinding."""
+
+    combined = f"{stdout}\n{stderr}".strip()
+    useful: list[str] = []
+    seen: set[str] = set()
+    markers = (
+        "error C",
+        "fatal error",
+        " error:",
+        "FAILED:",
+        "AssertionError",
+        "E   ",
+        "failed,",
+    )
+    for raw in combined.splitlines():
+        line = raw.strip()
+        if line and any(marker in raw for marker in markers) and line not in seen:
+            seen.add(line)
+            useful.append(line[-500:])
+            if len(useful) == limit:
+                break
+    if useful:
+        return useful
+    tail = [line.strip() for line in combined.splitlines() if line.strip()][-10:]
+    return tail or ["command produced no diagnostics"]
+
+
 @dataclass(frozen=True)
 class CommandResult:
     argv: list[str]
@@ -68,8 +108,11 @@ def run(
     if log_path:
         atomic_json(log_path, asdict(result))
     if check and completed.returncode:
-        detail = completed.stderr.strip() or completed.stdout.strip()
-        raise RuntimeError(f"command failed ({completed.returncode}): {result.command}\n{detail}")
+        raise CommandFailure(
+            result,
+            actionable_diagnostics(result.stdout, result.stderr),
+            log_path,
+        )
     return result
 
 

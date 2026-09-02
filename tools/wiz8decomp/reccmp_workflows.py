@@ -46,7 +46,9 @@ def addresses_from_files(repository: Path, paths: Iterable[Path]) -> list[int]:
 
 
 def selected_addresses(repository: Path, raw: Iterable[str], paths: Iterable[Path]) -> list[int]:
-    selected = {parse_address(value) for value in raw}
+    from .selectors import resolve_function_selectors
+
+    selected = set(resolve_function_selectors(repository, raw)) if raw else set()
     selected.update(addresses_from_files(repository, paths))
     if not selected:
         raise ValueError("pass one or more addresses and/or --file source paths")
@@ -202,10 +204,102 @@ def compare_rows(rows: list[dict[str, Any]], wanted: Iterable[int]) -> dict[str,
 
 
 def compare_selected(repository: Path, target: str, addresses: list[int]) -> dict[str, Any]:
-    return compare_rows(
-        run_report(repository, target, original_addresses=addresses),
-        addresses,
+    rows = run_report(repository, target, original_addresses=addresses)
+    comparison = compare_rows(rows, addresses)
+    triage = triage_rows(rows, addresses)
+    details = {int(row["address"], 16): row for row in triage["functions"]}
+    for row in comparison["functions"]:
+        detail = details.get(int(row["address"], 16), {})
+        for key in ("difference", "guidance", "reason", "location", "conclusion"):
+            if key in detail:
+                row[key] = detail[key]
+        if row["status"] == "mismatch":
+            window = _instruction_windows(repository, target, rows, int(row["address"], 16))
+            if window:
+                row["instruction_window"] = window
+    return comparison
+
+
+def _instruction_windows(
+    repository: Path,
+    target: str,
+    rows: list[dict[str, Any]],
+    address: int,
+    *,
+    radius: int = 3,
+) -> dict[str, list[dict[str, Any]]]:
+    """Decode a bounded window around reccmp's structured first divergence."""
+
+    from .binary.code import disassembler
+    from .binary.image import PeImage
+
+    entity = next((row for row in rows if _entity_address(row) == address), None)
+    if entity is None:
+        return {}
+    difference = (entity.get("comparison") or {}).get("difference") or {}
+    user = yaml.safe_load((repository / "reccmp-user.yml").read_text(encoding="utf-8")) or {}
+    build = (
+        yaml.safe_load((repository / "build/decomp/reccmp-build.yml").read_text(encoding="utf-8"))
+        or {}
     )
+    paths = {
+        "original": Path(str(user["targets"][target]["path"]).strip()),
+        "recomp": Path(str(build["targets"][target]["path"]).strip()),
+    }
+    starts = {"original": address, "recomp": _entity_address(entity, "recomp")}
+    sides = {"original": difference.get("orig") or {}, "recomp": difference.get("recomp") or {}}
+    result: dict[str, list[dict[str, Any]]] = {}
+    for side in ("original", "recomp"):
+        start = starts[side]
+        index = sides[side].get("instruction_index")
+        if start is None or not isinstance(index, int):
+            continue
+        try:
+            image = PeImage(paths[side])
+            instructions = list(disassembler().disasm(image.read(start, 0x4000), start))
+        except (OSError, ValueError):
+            continue
+        low, high = max(0, index - radius), min(len(instructions), index + radius + 1)
+        result[side] = [
+            {
+                "address": f"0x{instruction.address:08x}",
+                "instruction": f"{instruction.mnemonic} {instruction.op_str}".rstrip(),
+                "divergence": position == index,
+            }
+            for position, instruction in enumerate(instructions[low:high], start=low)
+        ]
+    return result
+
+
+def comparison_human(result: dict[str, Any]) -> str:
+    lines: list[str] = []
+    for row in result["functions"]:
+        address = row["address"].removeprefix("0x").upper()
+        status = row["status"]
+        name = row.get("name") or ""
+        if status in {"exact", "effective"}:
+            lines.append(f"{address} {name} {status}".rstrip())
+            continue
+        score = row.get("raw_matching")
+        score_text = f" {float(score) * 100:.1f}%" if isinstance(score, int | float) else ""
+        lines.append(f"{address} {name} {status}{score_text}".rstrip())
+        difference = row.get("difference") or {}
+        if difference:
+            lines.append(f"  first divergence: {difference.get('kind', 'unknown')}")
+        if row.get("guidance"):
+            lines.append(f"  {row['guidance']}")
+        for side in ("original", "recomp"):
+            window = (row.get("instruction_window") or {}).get(side, [])
+            if not window:
+                continue
+            lines.append(f"  {side}:")
+            for instruction in window:
+                marker = ">" if instruction["divergence"] else " "
+                lines.append(
+                    f"  {marker} {instruction['address'].removeprefix('0x').upper()}  "
+                    f"{instruction['instruction']}"
+                )
+    return "\n".join(lines)
 
 
 def _guidance(kind: str) -> str:
@@ -259,13 +353,6 @@ def triage_rows(rows: list[dict[str, Any]], wanted: Iterable[int]) -> dict[str, 
             raise ValueError(f"0x{address:08x} has unknown comparison status: {status}")
         findings.append(finding)
     return {"functions": findings}
-
-
-def triage_selected(repository: Path, target: str, addresses: list[int]) -> dict[str, Any]:
-    return triage_rows(
-        run_report(repository, target, original_addresses=addresses),
-        addresses,
-    )
 
 
 def translate_rows(rows: list[dict[str, Any]], queries: Iterable[int]) -> dict[str, Any]:
