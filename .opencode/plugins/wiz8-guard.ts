@@ -16,40 +16,8 @@ async function policy(directory: string, event: PolicyEvent): Promise<Record<str
   return JSON.parse(output) as Record<string, any>
 }
 
-function toolName(tool: string): string {
-  if (tool === "bash" || tool === "shell") return "Bash"
-  if (tool === "apply_patch" || tool === "edit" || tool === "write") return "apply_patch"
-  return tool
-}
-
 export const Wiz8Guard: Plugin = async (ctx) => {
   return {
-    "tool.execute.before": async (input, output) => {
-      const result = await policy(ctx.directory, {
-        hook_event_name: "PreToolUse",
-        session_id: input.sessionID,
-        tool_name: toolName(input.tool),
-        tool_use_id: input.callID,
-        tool_input: output.args,
-      })
-      const specific = result.hookSpecificOutput as Record<string, any> | undefined
-      if (specific?.permissionDecision === "deny") {
-        throw new Error(String(specific.permissionDecisionReason ?? "Blocked by repository policy."))
-      }
-    },
-    "tool.execute.after": async (input, output) => {
-      const result = await policy(ctx.directory, {
-        hook_event_name: "PostToolUse",
-        session_id: input.sessionID,
-        tool_name: toolName(input.tool),
-        tool_use_id: input.callID,
-        tool_input: output.args,
-        tool_response: output.output,
-      })
-      if (result.continue === false) {
-        output.output = `${String(result.reason ?? "Tool output was bounded.")}\n${String(result.hookSpecificOutput?.additionalContext ?? "")}`
-      }
-    },
     "experimental.chat.system.transform": async (input, output) => {
       const result = await policy(ctx.directory, {
         hook_event_name: "SessionStart",

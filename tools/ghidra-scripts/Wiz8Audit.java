@@ -23,11 +23,6 @@ import ghidra.program.model.data.DataTypeComponent;
 import ghidra.program.model.data.Pointer;
 import ghidra.program.model.data.Structure;
 import ghidra.program.model.data.TypeDef;
-import ghidra.program.model.listing.Function;
-import ghidra.program.model.listing.Instruction;
-import ghidra.program.model.listing.Data;
-import ghidra.program.model.symbol.Reference;
-import ghidra.program.model.symbol.Symbol;
 
 public class Wiz8Audit extends GhidraScript {
 	@Override
@@ -35,12 +30,6 @@ public class Wiz8Audit extends GhidraScript {
 		Arguments arguments = Arguments.parse(getScriptArgs());
 		JsonObject result = switch (arguments.audit()) {
 			case "source-layouts" -> sourceLayouts(arguments.sourceIndex());
-			case "function-inventory" -> functionInventory();
-			case "class-fields" -> classFields(arguments.classes());
-			case "function-exists" -> functionExists(arguments.entries());
-			case "function-facts" -> functionFacts(arguments.entries());
-			case "class-facts" -> classFacts(arguments.classes());
-			case "data-facts" -> dataFacts(arguments.entries());
 			case "lifecycle-symbols" -> lifecycleSymbols(arguments.classes());
 			default -> throw new IllegalArgumentException("unknown audit " + arguments.audit());
 		};
@@ -50,187 +39,6 @@ public class Wiz8Audit extends GhidraScript {
 			.toJson(result);
 		Files.writeString(arguments.output(), json + "\n", StandardCharsets.UTF_8);
 		println(arguments.output().toAbsolutePath().toString());
-	}
-
-	private JsonObject functionInventory() {
-		JsonArray functions = new JsonArray();
-		for (Function function : currentProgram.getFunctionManager().getFunctions(true)) {
-			if (function.isExternal()) continue;
-			JsonObject item = new JsonObject();
-			item.addProperty("entry", address(function.getEntryPoint().getOffset()));
-			item.addProperty("name", function.getName(true));
-			functions.add(item);
-		}
-		JsonObject result = new JsonObject();
-		result.addProperty("schema", "wiz8.function-inventory");
-		result.add("functions", functions);
-		return result;
-	}
-
-	private JsonObject classFields(List<String> names) {
-		Map<String, DataType> dataTypes = dataTypes();
-		JsonArray classes = new JsonArray();
-		for (String name : names) {
-			JsonObject item = new JsonObject();
-			item.addProperty("name", name);
-			JsonArray fields = new JsonArray();
-			Structure structure = structure(dataTypes.get("/wiz8/classes/" + name));
-			if (structure != null) {
-				for (DataTypeComponent component : structure.getDefinedComponents()) {
-					if (component.getFieldName() == null) continue;
-					JsonObject field = new JsonObject();
-					field.addProperty("field", component.getFieldName());
-					field.addProperty("offset", component.getOffset());
-					field.addProperty("length", component.getLength());
-					field.addProperty("type", component.getDataType().getDisplayName());
-					fields.add(field);
-				}
-			}
-			item.add("fields", fields);
-			classes.add(item);
-		}
-		JsonObject result = new JsonObject();
-		result.addProperty("schema", "wiz8.class-fields");
-		result.add("classes", classes);
-		return result;
-	}
-
-	private JsonObject functionExists(List<Long> entries) {
-		JsonArray missing = new JsonArray();
-		var space = currentProgram.getAddressFactory().getDefaultAddressSpace();
-		for (long entry : entries) {
-			if (currentProgram.getFunctionManager().getFunctionAt(space.getAddress(entry)) == null) {
-				missing.add(address(entry));
-			}
-		}
-		JsonObject result = new JsonObject();
-		result.addProperty("schema", "wiz8.function-existence-audit");
-		result.addProperty("ok", missing.isEmpty());
-		result.add("missing", missing);
-		return result;
-	}
-
-	private JsonObject functionFacts(List<Long> entries) {
-		JsonArray functions = new JsonArray();
-		var space = currentProgram.getAddressFactory().getDefaultAddressSpace();
-		for (long entry : entries) {
-			Function function = currentProgram.getFunctionManager()
-				.getFunctionAt(space.getAddress(entry));
-			if (function == null) continue;
-			JsonArray calls = new JsonArray();
-			JsonArray data = new JsonArray();
-			JsonArray vptrs = new JsonArray();
-			JsonArray exceptionMetadata = new JsonArray();
-			var instructions = currentProgram.getListing().getInstructions(function.getBody(), true);
-			while (instructions.hasNext()) {
-				Instruction instruction = instructions.next();
-				for (Reference reference : instruction.getReferencesFrom()) {
-					Symbol symbol = currentProgram.getSymbolTable()
-						.getPrimarySymbol(reference.getToAddress());
-					String name = symbol == null ? "" : symbol.getName(true);
-					JsonObject fact = new JsonObject();
-					fact.addProperty("site", address(instruction.getAddress().getOffset()));
-					fact.addProperty("target", address(reference.getToAddress().getOffset()));
-					fact.addProperty("name", name);
-					fact.addProperty("instruction", instruction.toString());
-					if (reference.getReferenceType().isCall()) {
-						calls.add(fact);
-					}
-					else if (reference.getReferenceType().isData()) {
-						fact.addProperty("access", reference.getReferenceType().getName());
-						data.add(fact);
-						String folded = name.toLowerCase();
-						if (folded.contains("vftable")) vptrs.add(fact.deepCopy());
-						if (folded.contains("funcinfo") || folded.contains("unwind") ||
-							folded.contains("ehhandler")) {
-							exceptionMetadata.add(fact.deepCopy());
-						}
-					}
-				}
-			}
-			JsonObject item = new JsonObject();
-			item.addProperty("entry", address(entry));
-			item.addProperty("name", function.getName(true));
-			item.add("calls", calls);
-			item.add("data_references", data);
-			item.add("vptr_references", vptrs);
-			item.add("exception_metadata", exceptionMetadata);
-			functions.add(item);
-		}
-		JsonObject result = new JsonObject();
-		result.addProperty("schema", "wiz8.function-facts");
-		result.add("functions", functions);
-		return result;
-	}
-
-	private JsonObject classFacts(List<String> classes) {
-		JsonArray tables = new JsonArray();
-		var symbols = currentProgram.getSymbolTable().getAllSymbols(true);
-		while (symbols.hasNext()) {
-			Symbol symbol = symbols.next();
-			String name = symbol.getName(true);
-			if (!name.toLowerCase().contains("vftable")) continue;
-			if (!classes.isEmpty() && classes.stream()
-				.noneMatch(value -> name.contains(value + "::"))) continue;
-			JsonObject table = new JsonObject();
-			table.addProperty("name", name);
-			table.addProperty("address", address(symbol.getAddress().getOffset()));
-			JsonArray references = new JsonArray();
-			var iterator = currentProgram.getReferenceManager().getReferencesTo(symbol.getAddress());
-			while (iterator.hasNext()) {
-				Reference reference = iterator.next();
-				JsonObject item = new JsonObject();
-				item.addProperty("from", address(reference.getFromAddress().getOffset()));
-				item.addProperty("kind", reference.getReferenceType().getName());
-				Instruction instruction = currentProgram.getListing()
-					.getInstructionContaining(reference.getFromAddress());
-				item.addProperty("instruction", instruction == null ? "" : instruction.toString());
-				Function owner = currentProgram.getFunctionManager()
-					.getFunctionContaining(reference.getFromAddress());
-				item.addProperty("function", owner == null ? "" :
-					address(owner.getEntryPoint().getOffset()));
-				references.add(item);
-			}
-			table.add("references", references);
-			tables.add(table);
-		}
-		JsonObject result = new JsonObject();
-		result.addProperty("schema", "wiz8.class-facts");
-		result.add("vtables", tables);
-		return result;
-	}
-
-	private JsonObject dataFacts(List<Long> entries) {
-		JsonArray facts = new JsonArray();
-		var space = currentProgram.getAddressFactory().getDefaultAddressSpace();
-		for (long entry : entries) {
-			var requested = space.getAddress(entry);
-			Data data = currentProgram.getListing().getDataContaining(requested);
-			JsonObject fact = new JsonObject();
-			fact.addProperty("address", address(entry));
-			if (data != null) {
-				fact.addProperty("defined_at", address(data.getAddress().getOffset()));
-				fact.addProperty("length", data.getLength());
-				fact.addProperty("type", data.getDataType().getDisplayName());
-			}
-			Symbol symbol = currentProgram.getSymbolTable().getPrimarySymbol(requested);
-			fact.addProperty("name", symbol == null ? "" : symbol.getName(true));
-			JsonArray references = new JsonArray();
-			var iterator = currentProgram.getReferenceManager().getReferencesTo(requested);
-			while (iterator.hasNext()) {
-				Reference reference = iterator.next();
-				JsonObject item = new JsonObject();
-				item.addProperty("from", address(reference.getFromAddress().getOffset()));
-				item.addProperty("kind", reference.getReferenceType().getName());
-				references.add(item);
-			}
-			fact.add("references", references);
-			facts.add(fact);
-		}
-		JsonObject result = new JsonObject();
-		result.addProperty("schema", "wiz8.data-facts");
-		result.add("data", facts);
-		return result;
 	}
 
 	private JsonObject lifecycleSymbols(List<String> classes) {
@@ -464,21 +272,18 @@ public class Wiz8Audit extends GhidraScript {
 		int end() { return offset + length; }
 	}
 
-	private record Arguments(String audit, Path sourceIndex, Path output, List<String> classes,
-			List<Long> entries) {
+	private record Arguments(String audit, Path sourceIndex, Path output, List<String> classes) {
 		static Arguments parse(String[] args) {
 			String audit = null;
 			Path sourceIndex = null;
 			Path output = null;
 			List<String> classes = new ArrayList<>();
-			List<Long> entries = new ArrayList<>();
 			for (int i = 0; i < args.length; i++) {
 				switch (args[i]) {
 					case "--audit" -> audit = args[++i];
 					case "--source-index" -> sourceIndex = Path.of(args[++i]);
 					case "--output" -> output = Path.of(args[++i]);
 					case "--class" -> classes.add(args[++i]);
-					case "--entry" -> entries.add(Long.decode(args[++i]));
 					default -> throw new IllegalArgumentException("unknown argument " + args[i]);
 				}
 			}
@@ -487,8 +292,7 @@ public class Wiz8Audit extends GhidraScript {
 				throw new IllegalArgumentException("--source-index is required");
 			}
 			if (output == null) throw new IllegalArgumentException("--output is required");
-			return new Arguments(audit, sourceIndex, output, List.copyOf(classes),
-				List.copyOf(entries));
+			return new Arguments(audit, sourceIndex, output, List.copyOf(classes));
 		}
 	}
 }

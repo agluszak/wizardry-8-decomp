@@ -7,10 +7,9 @@ from pathlib import Path
 from typing import Any
 
 from ..evidence.claims import load_claims
-from ..ghidra.query import query_many
+from ..ghidra.query import query_many_dynamic, resolve_function_selectors
 from ..ghidra.unit_intervals import TranslationUnitResolver
 from ..ghidra.workspace import resolve_seed_program
-from ..paths import atomic_json, atomic_write
 from ..source_model import build_source_model, load_source_index
 
 
@@ -72,14 +71,15 @@ def _markdown(context: dict[str, Any]) -> str:
         f"- EH cleanups: {len(context['eh']['unwind'])}",
         f"- Named globals: {len(context['globals'])}",
         f"- Vptr writes: {len(context['polymorphism']['vptr_writes'])}",
-        f"- Program facts: {len(context['semantic']['facts'].get('properties', {}))}",
-        f"- Field accesses: {len(context['semantic'].get('field_accesses', {}).get('accesses', []))}",
-        f"- Indirect call sites: {len(context['semantic'].get('indirect_calls', []))}",
+        f"- Field accesses: {len(context.get('field_accesses', {}).get('accesses', []))}",
+        f"- Indirect call sites: {len(context.get('indirect_calls', []))}",
         "",
     ]
 
     match = context.get("match", {})
-    if match:
+    if match.get("unavailable"):
+        lines.extend(["## Match", "", f"unavailable — {match['unavailable']}", ""])
+    elif match:
         row = (match.get("functions") or [{}])[0]
         score = row.get("raw_matching")
         score_text = f" ({float(score) * 100:.1f}%)" if isinstance(score, int | float) else ""
@@ -87,6 +87,13 @@ def _markdown(context: dict[str, Any]) -> str:
         difference = row.get("difference") or {}
         if difference:
             lines.append(f"First divergence: {difference.get('kind', 'unknown')}")
+        for side in ("original", "recomp"):
+            window = (row.get("instruction_window") or {}).get(side, [])
+            if window:
+                lines.append(f"{side}:")
+            for instruction in window:
+                marker = ">" if instruction.get("divergence") else " "
+                lines.append(f"  {marker} {instruction['address']}  {instruction['instruction']}")
         lines.append("")
 
     if context.get("calls"):
@@ -99,22 +106,26 @@ def _markdown(context: dict[str, Any]) -> str:
     if callers:
         lines.extend(["## Called by", "", *(f"- `{value}`" for value in callers), ""])
 
-    field_accesses = context["semantic"].get("field_accesses", {}).get("accesses", [])
+    field_accesses = context.get("field_accesses", {}).get("accesses", [])
     if field_accesses:
         lines.extend(["## Fields", ""])
         for row in field_accesses:
-            location = row.get("path") or row.get("offset") or row.get("address") or "unknown"
+            location = next(
+                (row[key] for key in ("path", "offset", "address") if row.get(key) is not None),
+                "unknown",
+            )
             lines.append(f"- `{row.get('site', '')}` {row.get('kind', '')} `{location}`")
         lines.append("")
 
-    indirect_calls = context["semantic"].get("indirect_calls", [])
+    indirect_calls = context.get("indirect_calls", [])
     if indirect_calls:
         lines.extend(["## Virtual / indirect calls", ""])
         for row in indirect_calls:
             target = row.get("target") or {}
             offset = target.get("offset") if isinstance(target, dict) else target
+            rendered_offset = "unknown" if offset is None else offset
             lines.append(
-                f"- `{row.get('address') or row.get('site', '')}` target `{offset or 'unknown'}`"
+                f"- `{row.get('address') or row.get('site', '')}` target `{rendered_offset}`"
             )
         lines.append("")
 
@@ -182,17 +193,12 @@ def _markdown(context: dict[str, Any]) -> str:
             [
                 "## Vptr writes",
                 "",
-                "| Site | Store displacement | Vtable | Slots |",
-                "|---|---:|---|---:|",
+                "| Site | Vtable |",
+                "|---|---|",
             ]
         )
-        tables = context["polymorphism"]["tables"]
         for row in context["polymorphism"]["vptr_writes"]:
-            table = tables[row["vtable"]]
-            lines.append(
-                f"| {row['site']} | {row['store_displacement']} | {row['vtable']} | "
-                f"{table['slot_count']} |"
-            )
+            lines.append(f"| {row['site']} | {row['vtable']} |")
         lines.append("")
 
     lines.extend(
@@ -231,9 +237,7 @@ def recovery_context_reports(
     """Build one or more contexts with one Ghidra session and one reccmp report."""
 
     from ..reccmp_workflows import compare_selected
-    from ..selectors import resolve_function_selectors
 
-    requested_entries = resolve_function_selectors(settings.repo_dir, selectors)
     program_name = resolve_seed_program(settings, selector)
     canonical_program = resolve_seed_program(settings, "wiz8")
     has_canonical_addresses = program_name == canonical_program
@@ -241,66 +245,69 @@ def recovery_context_reports(
         settings.repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv"
     )
     source_model = build_source_model(settings.repo_dir) if has_canonical_addresses else None
-    assertions_by_entry = {
-        requested: [
-            row
-            for row in reviewed_assertions
-            if row.get("containing_function") and int(row["containing_function"], 16) == requested
-        ]
-        for requested in requested_entries
-    }
-    boundary_addresses = set(requested_entries)
-    boundary_addresses.update(
-        int(row["call_site"], 16) for rows in assertions_by_entry.values() for row in rows
-    )
-    boundary_argument = ",".join(f"0x{item:08x}" for item in sorted(boundary_addresses))
-    queries: list[tuple[str, list[str]]] = [("function-of", [boundary_argument])]
-    class_names = sorted(
-        {
-            function.owning_class
-            for requested in requested_entries
-            if source_model is not None
-            and (function := source_model.functions.get(requested)) is not None
-            and function.owning_class
-        }
-    )
-    for requested in requested_entries:
-        address = f"0x{requested:08x}"
-        queries.extend(
-            [
-                ("function", [address]),
-                ("decompile", [address]),
-                ("function-facts", [address]),
-                ("indirect-calls", [address]),
+
+    def build_queries(program: Any):
+        requested_entries = resolve_function_selectors(program, selectors)
+        assertions_by_entry = {
+            requested: [
+                row
+                for row in reviewed_assertions
+                if row.get("containing_function")
+                and int(row["containing_function"], 16) == requested
             ]
+            for requested in requested_entries
+        }
+        boundary_addresses = set(requested_entries)
+        boundary_addresses.update(
+            int(row["call_site"], 16) for rows in assertions_by_entry.values() for row in rows
         )
-        source_function = source_model.functions.get(requested) if source_model else None
-        if source_function is not None and source_function.owning_class:
-            queries.append(("field-accesses", [address, root]))
-        if deep:
+        queries: list[tuple[str, list[str]]] = [
+            ("function-of", [",".join(f"0x{item:08x}" for item in sorted(boundary_addresses))])
+        ]
+        class_names = sorted(
+            {
+                function.owning_class
+                for requested in requested_entries
+                if source_model is not None
+                and (function := source_model.functions.get(requested)) is not None
+                and function.owning_class
+            }
+        )
+        for requested in requested_entries:
+            address = f"0x{requested:08x}"
             queries.extend(
                 [
-                    ("listing", [address]),
-                    ("high-function", [address]),
+                    ("function", [address]),
+                    ("decompile", [address]),
+                    ("function-facts", [address]),
+                    ("indirect-calls", [address]),
                 ]
             )
-    if class_names:
-        queries.append(("class-fields", class_names))
-    function_seeds = [
-        f"0x{requested:08x}"
-        for requested in requested_entries
-        if discover
-        or (
-            bool(assertions_by_entry[requested])
-            and (source_model is None or requested not in source_model.functions)
-        )
-    ]
-    results, transport = query_many(
-        settings,
-        selector,
-        queries,
-        function_seeds=function_seeds or None,
-    )
+            source_function = source_model.functions.get(requested) if source_model else None
+            if source_function is not None and source_function.owning_class:
+                queries.append(("field-accesses", [address, root]))
+            if deep:
+                queries.extend(
+                    [
+                        ("listing", [address]),
+                        ("high-function", [address]),
+                    ]
+                )
+        if class_names:
+            queries.append(("class-fields", class_names))
+        function_seeds = [
+            f"0x{requested:08x}"
+            for requested in requested_entries
+            if discover
+            or (
+                bool(assertions_by_entry[requested])
+                and (source_model is None or requested not in source_model.functions)
+            )
+        ]
+        return queries, (requested_entries, assertions_by_entry), function_seeds or None
+
+    results, transport, metadata = query_many_dynamic(settings, selector, build_queries)
+    requested_entries, assertions_by_entry = metadata
     raw_boundaries = results[0]["result"]["functions"]
     boundaries = {
         int(item_address, 0): int(owner, 16) if owner is not None else None
@@ -312,11 +319,12 @@ def recovery_context_reports(
         [],
     )
     claims = load_claims(settings.repo_dir)
-    match_bundle = (
-        compare_selected(settings.repo_dir, "WIZ8", requested_entries)
-        if has_canonical_addresses
-        else {}
-    )
+    match_bundle: dict[str, Any] = {}
+    if has_canonical_addresses:
+        try:
+            match_bundle = compare_selected(settings.repo_dir, "WIZ8", requested_entries)
+        except (OSError, RuntimeError, ValueError) as error:
+            match_bundle = {"unavailable": str(error)}
     matches = {int(row["address"], 16): row for row in match_bundle.get("functions", [])}
 
     def result_for(command: str, requested: int) -> dict[str, Any]:
@@ -353,15 +361,11 @@ def recovery_context_reports(
                 for marker in ("vftable", "funcinfo", "unwind", "ehhandler")
             )
         ]
-        vptr_writes = [
-            {**row, "vtable": row["target"], "store_displacement": ""}
-            for row in function_fact["vptr_references"]
-        ]
+        vptr_writes = [{**row, "vtable": row["target"]} for row in function_fact["vptr_references"]]
         tables = {
             row["target"]: {
                 "address": row["target"],
                 "name": row["name"],
-                "slot_count": "",
             }
             for row in function_fact["vptr_references"]
         }
@@ -412,7 +416,13 @@ def recovery_context_reports(
         normalized_pcode = indirect_result.get("normalized_pcode", {}) if deep else {}
         listing = result_for("listing", requested).get("listing", "") if deep else ""
         indirect_calls = indirect_result["calls"]
-        match = {**match_bundle, "functions": [matches[entry]]} if entry in matches else {}
+        match = (
+            {**match_bundle, "functions": [matches[entry]]}
+            if entry in matches
+            else match_bundle
+            if match_bundle.get("unavailable")
+            else {}
+        )
         unit = TranslationUnitResolver(reviewed_assertions).resolve(entry)
         context = {
             "schema": "wiz8.recovery-context",
@@ -457,13 +467,10 @@ def recovery_context_reports(
             "raw_references": raw_references,
             "match": match,
             "polymorphism": {"vptr_writes": vptr_writes, "tables": tables},
-            "semantic": {
-                "facts": {},
-                "high_function": high,
-                "normalized_pcode": normalized_pcode,
-                "field_accesses": semantic_fields,
-                "indirect_calls": indirect_calls,
-            },
+            "high_function": high,
+            "normalized_pcode": normalized_pcode,
+            "field_accesses": semantic_fields,
+            "indirect_calls": indirect_calls,
             "ghidra": {
                 "function": function,
                 "decompiled": result_for("decompile", requested)["decompiled"] or "",
@@ -475,20 +482,10 @@ def recovery_context_reports(
                 "global_references": len(globals_joined),
                 "raw_references": len(raw_references),
                 "vptr_writes": len(vptr_writes),
-                "program_facts": 0,
                 "field_accesses": len(semantic_fields.get("accesses", [])),
                 "indirect_calls": len(indirect_calls),
             },
         }
-        report_dir = settings.build_dir / "reports" / "recovery-context"
-        json_path = report_dir / f"{entry:08x}.json"
-        markdown_path = report_dir / f"{entry:08x}.md"
-        context["outputs"] = [
-            str(json_path.relative_to(settings.repo_dir)),
-            str(markdown_path.relative_to(settings.repo_dir)),
-        ]
-        atomic_json(json_path, context)
-        atomic_write(markdown_path, _markdown(context))
         contexts.append(context)
     return contexts
 
@@ -505,5 +502,4 @@ def recovery_context_report(
 
 
 def render_context(context: dict[str, Any]) -> str:
-    footer = "artifacts: " + ", ".join(context["outputs"])
-    return _markdown(context).rstrip() + "\n\n" + footer
+    return _markdown(context).rstrip()

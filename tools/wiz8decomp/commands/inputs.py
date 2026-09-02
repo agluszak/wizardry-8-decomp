@@ -60,7 +60,7 @@ def verify_command() -> None:
     from ..pipeline import verify_pipeline
 
     result = verify_pipeline(cli.settings())
-    cli.emit(result)
+    cli.emit(cli.summary(result, label="corpus verification"))
     if not result["ok"]:
         raise typer.Exit(1)
 

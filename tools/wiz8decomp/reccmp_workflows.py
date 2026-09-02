@@ -203,7 +203,9 @@ def compare_rows(rows: list[dict[str, Any]], wanted: Iterable[int]) -> dict[str,
     }
 
 
-def compare_selected(repository: Path, target: str, addresses: list[int]) -> dict[str, Any]:
+def compare_selected(
+    repository: Path, target: str, addresses: list[int], *, include_windows: bool = True
+) -> dict[str, Any]:
     rows = run_report(repository, target, original_addresses=addresses)
     comparison = compare_rows(rows, addresses)
     triage = triage_rows(rows, addresses)
@@ -213,7 +215,7 @@ def compare_selected(repository: Path, target: str, addresses: list[int]) -> dic
         for key in ("difference", "guidance", "reason", "location", "conclusion"):
             if key in detail:
                 row[key] = detail[key]
-        if row["status"] == "mismatch":
+        if include_windows and row["status"] == "mismatch":
             window = _instruction_windows(repository, target, rows, int(row["address"], 16))
             if window:
                 row["instruction_window"] = window

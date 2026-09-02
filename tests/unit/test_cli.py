@@ -2,12 +2,18 @@ import json
 import re
 from pathlib import Path
 
+import pytest
 from typer.testing import CliRunner
 from wiz8decomp import command_support
 from wiz8decomp.cli import app
 from wiz8decomp.extract import variants
 
 REPOSITORY = Path(__file__).resolve().parents[2]
+
+
+def test_normal_output_rejects_unwrapped_structures() -> None:
+    with pytest.raises(TypeError, match="must wrap"):
+        command_support.emit({"large": [1, 2, 3]})
 
 
 def test_cli_groups_subcommands_instead_of_exposing_them_at_the_root() -> None:
@@ -57,7 +63,10 @@ def test_corpus_extract_accepts_multiple_roles(monkeypatch) -> None:
 
     assert result.exit_code == 0
     assert seen == [(settings, "demo"), (settings, "patch-128")]
-    assert json.loads(result.stdout) == [{"role": "demo"}, {"role": "patch-128"}]
+    assert "2 item(s)" in result.stdout
+
+    machine = CliRunner().invoke(app, ["--json", "corpus", "extract", "demo", "patch-128"])
+    assert json.loads(machine.stdout) == [{"role": "demo"}, {"role": "patch-128"}]
 
 
 def test_corpus_extract_all_uses_the_canonical_sequence(monkeypatch) -> None:
@@ -72,4 +81,4 @@ def test_corpus_extract_all_uses_the_canonical_sequence(monkeypatch) -> None:
     result = CliRunner().invoke(app, ["corpus", "extract", "--all"])
 
     assert result.exit_code == 0
-    assert json.loads(result.stdout) == {"all": True}
+    assert "complete" in result.stdout

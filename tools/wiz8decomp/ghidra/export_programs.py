@@ -6,8 +6,7 @@ from typing import Any
 
 from ..config import Settings
 from ..paths import atomic_json, sha256_file
-from .env import open_project
-from .environment import validate_environment
+from .env import open_project, validate_environment
 from .import_programs import HASH_OPTION
 from .project import module_for_program, resolve_program_name
 from .workspace import SEED_SCHEMA, resolve_seed_program, seed_manifest_path, seed_records

@@ -55,13 +55,22 @@ def data_command(address: Annotated[str, typer.Argument(help="Data address")]) -
     from ..ghidra.query import data_facts
     from ..paths import atomic_json
 
-    def action() -> dict[str, object]:
+    def action() -> Any:
         settings = cli.settings()
         entry = int(address, 0)
         result = {"schema": "wiz8.data-report", "data": data_facts(settings, {entry})}
         output = settings.build_dir / "reports" / "data" / f"{entry:08x}.json"
         atomic_json(output, result)
-        return {**result, "outputs": [str(output.relative_to(settings.repo_dir))]}
+        data = {**result, "outputs": [str(output.relative_to(settings.repo_dir))]}
+        facts = data["data"]
+        return cli.human(
+            "\n".join(
+                f"{row['address']} {row.get('name') or '(unnamed)'} "
+                f"{row.get('type', 'undefined')} ({len(row.get('references', []))} references)"
+                for row in facts
+            ),
+            data,
+        )
 
     cli.run_action(action)
 
@@ -72,13 +81,17 @@ def status_command() -> None:
     from .. import command_support as cli
     from ..reports.status import status_report
 
-    cli.run_action(lambda: status_report(cli.settings()))
+    def action():
+        result = status_report(cli.settings())
+        return cli.summary(result, label="repository status")
+
+    cli.run_action(action)
 
 
 @app.command("context")
 def context_command(
     selectors: Annotated[
-        list[str], typer.Argument(help="Function addresses, ranges, or exact source-owned names")
+        list[str], typer.Argument(help="Function addresses, ranges, or exact reviewed Ghidra names")
     ],
     program: str = typer.Option("wiz8", "--program"),
     deep: bool = typer.Option(False, "--deep", help="Include listing, P-code and rooted flow."),
@@ -113,4 +126,8 @@ def translation_units_command() -> None:
     from .. import command_support as cli
     from ..reports.translation_units import translation_unit_report
 
-    cli.run_action(lambda: translation_unit_report(cli.settings()))
+    def action():
+        result = translation_unit_report(cli.settings())
+        return cli.summary(result, label="translation units")
+
+    cli.run_action(action)

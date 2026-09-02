@@ -124,7 +124,7 @@ def _write_project_owner(settings: Settings) -> None:
         )
 
 
-def restore_seed(settings: Settings, selector: str | None = None) -> dict[str, Any]:
+def restore_seed(settings: Settings, project: Any, selector: str | None = None) -> dict[str, Any]:
     """Restore the reviewed checkpoint once into the canonical local project.
 
     The project is operational analysis state. Evidence edits do not clone,
@@ -134,31 +134,28 @@ def restore_seed(settings: Settings, selector: str | None = None) -> dict[str, A
     seed = seed_record(settings, selector)
     program_name = str(seed["program"])
     check_project_owner(settings)
-    from .env import open_project
-
     settings.project_dir.mkdir(parents=True, exist_ok=True)
     _write_project_owner(settings)
-    with open_project(settings, create=True) as project:
-        from ghidra.util.task import TaskMonitor
-        from java.io import File
+    from ghidra.util.task import TaskMonitor
+    from java.io import File
 
-        existing_hash = _program_hash(project, program_name)
-        if existing_hash is not None:
-            if existing_hash != seed["binary_sha256"]:
-                raise RuntimeError(
-                    f"existing {program_name} hash {existing_hash} differs from the seed's "
-                    f"{seed['binary_sha256']}; use a different Ghidra project directory "
-                    "(WIZ8_GHIDRA_PROJECT_DIR)"
-                )
-            status = "already-restored"
-        else:
-            project.getProjectData().getRootFolder().createFile(
-                program_name, File(str(seed["archive"])), TaskMonitor.DUMMY
+    existing_hash = _program_hash(project, program_name)
+    if existing_hash is not None:
+        if existing_hash != seed["binary_sha256"]:
+            raise RuntimeError(
+                f"existing {program_name} hash {existing_hash} differs from the seed's "
+                f"{seed['binary_sha256']}; use a different Ghidra project directory "
+                "(WIZ8_GHIDRA_PROJECT_DIR)"
             )
-            restored_hash = _program_hash(project, program_name)
-            if restored_hash != seed["binary_sha256"]:
-                raise RuntimeError(f"restored program hash metadata mismatch for {program_name}")
-            status = "restored"
+        status = "already-restored"
+    else:
+        project.getProjectData().getRootFolder().createFile(
+            program_name, File(str(seed["archive"])), TaskMonitor.DUMMY
+        )
+        restored_hash = _program_hash(project, program_name)
+        if restored_hash != seed["binary_sha256"]:
+            raise RuntimeError(f"restored program hash metadata mismatch for {program_name}")
+        status = "restored"
     return {
         "schema": "wiz8.ghidra-workspace",
         "program": program_name,
@@ -169,6 +166,6 @@ def restore_seed(settings: Settings, selector: str | None = None) -> dict[str, A
     }
 
 
-def ensure_seed(settings: Settings, selector: str | None = None) -> str:
-    result = restore_seed(settings, selector)
+def ensure_seed(settings: Settings, project: Any, selector: str | None = None) -> str:
+    result = restore_seed(settings, project, selector)
     return str(result["program"])

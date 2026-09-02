@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from wiz8decomp import reccmp_workflows, selectors
+from wiz8decomp import reccmp_workflows
 from wiz8decomp.ghidra.unit_intervals import TranslationUnitResolver
 from wiz8decomp.reports import recovery_context
 from wiz8decomp.reports.recovery_context import _assertion_boundary_defects, render_context
@@ -65,7 +65,8 @@ def test_context_renders_primary_evidence_without_opening_artifacts() -> None:
         "eh": {"unwind": []},
         "globals": [],
         "polymorphism": {"vptr_writes": [], "tables": {}},
-        "semantic": {"facts": {}, "field_accesses": {"accesses": []}, "indirect_calls": []},
+        "field_accesses": {"accesses": []},
+        "indirect_calls": [],
         "calls": [{"site": "00401002", "target": "00402000", "name": "Callee"}],
         "match": {
             "functions": [
@@ -87,14 +88,45 @@ def test_context_renders_primary_evidence_without_opening_artifacts() -> None:
             "decompiled": "void Thing::Run() {}",
             "listing": "",
         },
-        "outputs": ["build/reports/recovery-context/00401000.json"],
     }
 
     output = render_context(context)
     assert "## Calls" in output
     assert "First divergence: call_target" in output
     assert "void Thing::Run() {}" in output
-    assert output.rstrip().endswith("00401000.json")
+    assert "artifacts:" not in output
+
+
+def test_context_preserves_zero_offsets_and_renders_match_availability() -> None:
+    context = {
+        "entry": 0x401000,
+        "translation_unit": {"source_path": "", "attribution": "unresolved"},
+        "reviewed": {"function": {"name": "f"}, "class_names": []},
+        "assertions": [],
+        "eh": {"unwind": []},
+        "globals": [],
+        "polymorphism": {"vptr_writes": [], "tables": {}},
+        "field_accesses": {"accesses": [{"site": "00401001", "kind": "load", "offset": 0}]},
+        "indirect_calls": [{"site": "00401002", "target": {"offset": 0}}],
+        "calls": [],
+        "match": {"unavailable": "no current paired build"},
+        "ghidra": {
+            "function": {
+                "name": "f",
+                "prototype": "void f()",
+                "size": 1,
+                "callers": [],
+                "referenced_strings": [],
+            },
+            "decompiled": "void f() {}",
+            "listing": "",
+        },
+    }
+
+    output = render_context(context)
+    assert "unavailable — no current paired build" in output
+    assert "`0`" in output
+    assert "target `0`" in output
 
 
 def test_multiple_contexts_use_one_ghidra_session(tmp_path, monkeypatch) -> None:
@@ -107,7 +139,7 @@ def test_multiple_contexts_use_one_ghidra_session(tmp_path, monkeypatch) -> None
     (tmp_path / "build").mkdir()
     settings = SimpleNamespace(repo_dir=tmp_path, build_dir=tmp_path / "build")
     addresses = [0x401000, 0x401020]
-    monkeypatch.setattr(selectors, "resolve_function_selectors", lambda *_args: addresses)
+    monkeypatch.setattr(recovery_context, "resolve_function_selectors", lambda *_args: addresses)
     monkeypatch.setattr(recovery_context, "resolve_seed_program", lambda *_args: "wiz8")
     monkeypatch.setattr(
         recovery_context,
@@ -125,9 +157,10 @@ def test_multiple_contexts_use_one_ghidra_session(tmp_path, monkeypatch) -> None
     )
     calls = 0
 
-    def fake_query_many(_settings, _selector, queries, **_kwargs):
+    def fake_query_many(_settings, _selector, builder, **_kwargs):
         nonlocal calls
         calls += 1
+        queries, metadata, _seeds = builder(object())
         results = []
         for command, arguments in queries:
             if command == "function-of":
@@ -159,9 +192,9 @@ def test_multiple_contexts_use_one_ghidra_session(tmp_path, monkeypatch) -> None
             else:
                 raise AssertionError(command)
             results.append({"command": command, "arguments": arguments, "result": result})
-        return results, "pyghidra"
+        return results, "pyghidra", metadata
 
-    monkeypatch.setattr(recovery_context, "query_many", fake_query_many)
+    monkeypatch.setattr(recovery_context, "query_many_dynamic", fake_query_many)
 
     contexts = recovery_context.recovery_context_reports(settings, ["a", "b"])
 

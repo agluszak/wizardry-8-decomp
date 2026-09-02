@@ -104,10 +104,15 @@ def compare_command(
         if addresses or files:
             if ctx.args:
                 raise ValueError("raw reccmp options cannot be combined with selected functions")
+            selected = selected_addresses(settings.repo_dir, addresses or [], files or [])
             if not no_build:
                 build_target(settings, target)
-            selected = selected_addresses(settings.repo_dir, addresses or [], files or [])
-            result = compare_selected(settings.repo_dir, target, selected)
+            result = compare_selected(
+                settings.repo_dir,
+                target,
+                selected,
+                include_windows=bool(addresses) and len(selected) <= 8,
+            )
             return cli.human(comparison_human(result), result)
         return compare(settings, target, list(ctx.args), build_first=not no_build)
 
@@ -125,11 +130,12 @@ def vtable_command(
     from ..build import build_target
     from ..reccmp_workflows import compare_vtables
 
-    def action() -> dict[str, Any]:
+    def action() -> Any:
         settings = cli.settings()
         if not no_build:
             build_target(settings, target)
-        return compare_vtables(settings.repo_dir, target, class_filter, verbose=verbose)
+        result = compare_vtables(settings.repo_dir, target, class_filter, verbose=verbose)
+        return cli.summary(result, label="vtable comparison")
 
     cli.run_action(action)
 
@@ -145,11 +151,12 @@ def datacmp_command(
     from ..build import build_target
     from ..reccmp_workflows import compare_data
 
-    def action() -> dict[str, Any]:
+    def action() -> Any:
         settings = cli.settings()
         if not no_build:
             build_target(settings, target)
-        return compare_data(settings.repo_dir, target, show_all=show_all, verbose=verbose)
+        result = compare_data(settings.repo_dir, target, show_all=show_all, verbose=verbose)
+        return cli.summary(result, label="data comparison")
 
     cli.run_action(action)
 
@@ -164,14 +171,20 @@ def address_command(
     from ..build import build_target
     from ..reccmp_workflows import parse_address, translate_addresses
 
-    def action() -> dict[str, Any]:
+    def action() -> Any:
         settings = cli.settings()
         if not no_build:
             build_target(settings, target)
         queries = sorted({parse_address(address) for address in addresses})
         if not queries:
             raise ValueError("pass one or more addresses")
-        return translate_addresses(settings.repo_dir, target, queries)
+        result = translate_addresses(settings.repo_dir, target, queries)
+        lines = [
+            f"{row.get('query', row.get('address', ''))}: "
+            f"{row.get('original') or row.get('recompiled') or row.get('result') or 'unpaired'}"
+            for row in result.get("addresses", result.get("results", []))
+        ]
+        return cli.human("\n".join(lines) or "no paired addresses", result)
 
     cli.run_action(action)
 
@@ -182,9 +195,10 @@ def run_command() -> None:
     from ..build import build_target
     from ..runtime import run_game
 
-    def action() -> dict[str, Any]:
+    def action() -> Any:
         build_target(cli.settings(), "runtime")
-        return run_game(cli.settings())
+        result = run_game(cli.settings())
+        return cli.summary(result, label="runtime launched")
 
     cli.run_action(action)
 
@@ -195,9 +209,10 @@ def runtime_test_command() -> None:
     from ..build import build_target
     from ..runtime import run_runtime_suite
 
-    def action() -> dict[str, Any]:
+    def action() -> Any:
         build_target(cli.settings(), "runtime-test")
-        return run_runtime_suite(cli.settings())
+        result = run_runtime_suite(cli.settings())
+        return cli.summary(result, label="runtime tests")
 
     cli.run_action(action)
 
@@ -219,7 +234,11 @@ def verify_command(
     from .. import command_support as cli
     from ..build import verify
 
-    cli.run_action(lambda: verify(cli.settings(), compare_image=compare_image, against=against))
+    def action():
+        result = verify(cli.settings(), compare_image=compare_image, against=against)
+        return cli.summary(result, label="verification")
+
+    cli.run_action(action)
 
 
 @toolchain_app.command("build")

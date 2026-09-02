@@ -13,8 +13,7 @@ import yaml
 from ..config import Settings
 from ..paths import atomic_json, atomic_write, json_hash, sha256_file
 from ..provenance import derive_authority, origin_for_fid_source_kind
-from .env import open_project, project_lock
-from .environment import start_pyghidra
+from .env import open_project, project_lock, start_pyghidra
 from .project import resolve_program_name
 
 
@@ -160,10 +159,8 @@ def build_srs_fid(settings: Settings) -> dict[str, Any]:
     manager = FidFileManager.getInstance()
     manager.createNewFidDatabase(File(str(path)))
     fid_file = manager.addUserFidFile(File(str(path)))
-    project_context = open_project(settings)
-    project = project_context.__enter__()
     programs = ArrayList()
-    try:
+    with open_project(settings) as project:
         for name in config["seed_programs"]:
             domain_file = project.getProjectData().getFile("/" + name)
             if domain_file is None:
@@ -221,8 +218,6 @@ def build_srs_fid(settings: Settings) -> dict[str, Any]:
             }
         finally:
             database.close()
-    finally:
-        project_context.__exit__(None, None, None)
     atomic_json(path.with_suffix(".json"), summary)
     return summary
 
@@ -312,9 +307,7 @@ def import_static_seed_objects(
                 provenance["archive"] = library_record["archive"]
             if "source" in library_record:
                 provenance["source"] = library_record["source"]
-            project_context = open_project(settings)
-            project = project_context.__enter__()
-            try:
+            with open_project(settings) as project:
                 domain_file = project.getProjectData().getFile("/" + name)
                 if domain_file is not None:
                     with pyghidra.program_context(project, "/" + name) as program:
@@ -339,8 +332,6 @@ def import_static_seed_objects(
                     if len(records) % 100 == 0:
                         System.gc()
                     continue
-            finally:
-                project_context.__exit__(None, None, None)
             with (
                 project_lock(settings),
                 pyghidra.open_program(
@@ -456,8 +447,6 @@ def build_fid(settings: Settings) -> dict[str, Any]:
     manager = FidFileManager.getInstance()
     manager.createNewFidDatabase(File(str(path)))
     fid_file = manager.addUserFidFile(File(str(path)))
-    project_context = open_project(settings)
-    project = project_context.__enter__()
     common_symbols = ArrayList()
     if common_path.is_file():
         for line in common_path.read_text(encoding="utf-8", errors="replace").splitlines():
@@ -466,48 +455,50 @@ def build_fid(settings: Settings) -> dict[str, Any]:
     summaries = []
     database = fid_file.getFidDB(True)
     try:
-        groups: dict[tuple[str, str, str], list[str]] = {}
-        for record in imported["programs"]:
-            groups.setdefault(
-                (record["toolchain"], record["library"], record["variant"]), []
-            ).append(record["program"])
-        libraries_by_id = {library.id: library for library in config.libraries}
-        for (toolchain_id, library_id, variant), names in sorted(groups.items()):
-            programs = ArrayList()
-            for name in sorted(names):
-                domain_file = project.getProjectData().getFile("/" + name)
-                if domain_file is None:
-                    raise RuntimeError(f"FID seed program is not imported: {name}")
-                programs.add(domain_file)
-            library = libraries_by_id[library_id]
-            result = FidService().createNewLibraryFromPrograms(
-                database,
-                library.family,
-                library.version,
-                f"{toolchain_id}-{variant}",
-                programs,
-                None,
-                LanguageID(ghidra_config["language"]),
-                None,
-                common_symbols,
-                TaskMonitor.DUMMY,
+        with open_project(settings) as project:
+            groups: dict[tuple[str, str, str], list[str]] = {}
+            for record in imported["programs"]:
+                groups.setdefault(
+                    (record["toolchain"], record["library"], record["variant"]), []
+                ).append(record["program"])
+            libraries_by_id = {library.id: library for library in config.libraries}
+            for (toolchain_id, library_id, variant), names in sorted(groups.items()):
+                programs = ArrayList()
+                for name in sorted(names):
+                    domain_file = project.getProjectData().getFile("/" + name)
+                    if domain_file is None:
+                        raise RuntimeError(f"FID seed program is not imported: {name}")
+                    programs.add(domain_file)
+                library = libraries_by_id[library_id]
+                result = FidService().createNewLibraryFromPrograms(
+                    database,
+                    library.family,
+                    library.version,
+                    f"{toolchain_id}-{variant}",
+                    programs,
+                    None,
+                    LanguageID(ghidra_config["language"]),
+                    None,
+                    common_symbols,
+                    TaskMonitor.DUMMY,
+                )
+                summaries.append(
+                    {
+                        "family": library.family,
+                        "version": library.version,
+                        "variant": f"{toolchain_id}-{variant}",
+                        "seed_programs": len(names),
+                        "total_attempted": result.getTotalAttempted(),
+                        "total_added": result.getTotalAdded(),
+                        "total_excluded": result.getTotalExcluded(),
+                        "unresolved_symbol_count": len(result.getUnresolvedSymbols()),
+                    }
+                )
+            database.saveDatabase(
+                "wizardry8 reproducible static-library FID build", TaskMonitor.DUMMY
             )
-            summaries.append(
-                {
-                    "family": library.family,
-                    "version": library.version,
-                    "variant": f"{toolchain_id}-{variant}",
-                    "seed_programs": len(names),
-                    "total_attempted": result.getTotalAttempted(),
-                    "total_added": result.getTotalAdded(),
-                    "total_excluded": result.getTotalExcluded(),
-                    "unresolved_symbol_count": len(result.getUnresolvedSymbols()),
-                }
-            )
-        database.saveDatabase("wizardry8 reproducible static-library FID build", TaskMonitor.DUMMY)
     except Exception:
         database.close()
-        project_context.__exit__(None, None, None)
         if path.exists():
             path.unlink()
         if backup_path.exists():
@@ -515,7 +506,6 @@ def build_fid(settings: Settings) -> dict[str, Any]:
         raise
     else:
         database.close()
-        project_context.__exit__(None, None, None)
         if backup_path.exists():
             backup_path.unlink()
     summary = {
@@ -571,8 +561,6 @@ def match_fid(
     if active_databases != [target_path.as_posix()]:
         raise RuntimeError(f"failed to select exactly one FID database: {active_databases}")
     program_name = resolve_program_name(settings, selector)
-    project_context = open_project(settings)
-    project = project_context.__enter__()
     matches: list[dict[str, Any]] = []
     excluded_internal_matches = 0
     provenance_by_program = _seed_provenance(settings, database_kind)
@@ -580,90 +568,88 @@ def match_fid(
     score_threshold = (
         threshold if threshold is not None else float(service.getDefaultScoreThreshold())
     )
-    try:
-        with pyghidra.program_context(project, "/" + program_name) as program:
-            query_service = manager.openFidQueryService(program.getLanguage(), False)
-            try:
-                results = service.processProgram(
-                    program, query_service, score_threshold, TaskMonitor.DUMMY
-                )
-                # FID match records resolve names through their owning database.
-                # Materialize every value before closing the query service.
-                for result in results:
-                    for match in result.matches:
-                        function_record = match.getFunctionRecord()
-                        library = match.getLibraryRecord()
-                        fid_name = str(function_record.getName())
-                        if not _is_authoritative_fid_name(fid_name):
-                            excluded_internal_matches += 1
-                            continue
-                        seed_domain_path = str(function_record.getDomainPath())
-                        provenance = _provenance_for_domain(provenance_by_program, seed_domain_path)
-                        if database_kind == "static" and provenance is None:
-                            raise RuntimeError(
-                                f"FID match lacks seed provenance: {seed_domain_path} {fid_name}"
+    with (
+        open_project(settings) as project,
+        pyghidra.program_context(project, "/" + program_name) as program,
+    ):
+        query_service = manager.openFidQueryService(program.getLanguage(), False)
+        try:
+            results = service.processProgram(
+                program, query_service, score_threshold, TaskMonitor.DUMMY
+            )
+            # FID match records resolve names through their owning database.
+            # Materialize every value before closing the query service.
+            for result in results:
+                for match in result.matches:
+                    function_record = match.getFunctionRecord()
+                    library = match.getLibraryRecord()
+                    fid_name = str(function_record.getName())
+                    if not _is_authoritative_fid_name(fid_name):
+                        excluded_internal_matches += 1
+                        continue
+                    seed_domain_path = str(function_record.getDomainPath())
+                    provenance = _provenance_for_domain(provenance_by_program, seed_domain_path)
+                    if database_kind == "static" and provenance is None:
+                        raise RuntimeError(
+                            f"FID match lacks seed provenance: {seed_domain_path} {fid_name}"
+                        )
+                    # A FID name is only as authoritative as the seed that carried
+                    # it; see docs/wiz8-evidence-model.md.
+                    name_origin = origin_for_fid_source_kind(
+                        provenance.get("source_kind") if provenance else None
+                    )
+                    matches.append(
+                        {
+                            "target_address": str(result.function.getEntryPoint()),
+                            "target_name": str(result.function.getName()),
+                            "fid_name": fid_name,
+                            "score": float(match.getOverallScore()),
+                            "primary_score": float(match.getPrimaryFunctionCodeUnitScore()),
+                            "child_score": float(match.getChildFunctionCodeUnitScore()),
+                            "parent_score": float(match.getParentFunctionCodeUnitScore()),
+                            "match_mode": str(match.getPrimaryFunctionMatchMode()),
+                            "library_family": str(library.getLibraryFamilyName()),
+                            "library_version": str(library.getLibraryVersion()),
+                            "library_variant": str(library.getLibraryVariant()),
+                            "seed_domain_path": seed_domain_path,
+                            "seed_entry": f"0x{function_record.getEntryPoint():x}",
+                            "seed_toolchain": provenance.get("toolchain") if provenance else None,
+                            "seed_toolchain_commit": provenance.get("toolchain_commit")
+                            if provenance
+                            else None,
+                            "seed_source_kind": provenance.get("source_kind")
+                            if provenance
+                            else None,
+                            "seed_object_path": provenance.get("object_path")
+                            if provenance
+                            else None,
+                            "seed_object_sha256": provenance.get("object_sha256")
+                            if provenance
+                            else None,
+                            "seed_archive_member": provenance.get("archive_member")
+                            if provenance
+                            else None,
+                            "seed_archive_member_index": provenance.get("archive_member_index")
+                            if provenance
+                            else None,
+                            "seed_source_archive_sha256": provenance.get("source", {}).get(
+                                "archive_sha256"
                             )
-                        # A FID name is only as authoritative as the seed that carried
-                        # it; see docs/wiz8-evidence-model.md.
-                        name_origin = origin_for_fid_source_kind(
-                            provenance.get("source_kind") if provenance else None
-                        )
-                        matches.append(
-                            {
-                                "target_address": str(result.function.getEntryPoint()),
-                                "target_name": str(result.function.getName()),
-                                "fid_name": fid_name,
-                                "score": float(match.getOverallScore()),
-                                "primary_score": float(match.getPrimaryFunctionCodeUnitScore()),
-                                "child_score": float(match.getChildFunctionCodeUnitScore()),
-                                "parent_score": float(match.getParentFunctionCodeUnitScore()),
-                                "match_mode": str(match.getPrimaryFunctionMatchMode()),
-                                "library_family": str(library.getLibraryFamilyName()),
-                                "library_version": str(library.getLibraryVersion()),
-                                "library_variant": str(library.getLibraryVariant()),
-                                "seed_domain_path": seed_domain_path,
-                                "seed_entry": f"0x{function_record.getEntryPoint():x}",
-                                "seed_toolchain": provenance.get("toolchain")
-                                if provenance
-                                else None,
-                                "seed_toolchain_commit": provenance.get("toolchain_commit")
-                                if provenance
-                                else None,
-                                "seed_source_kind": provenance.get("source_kind")
-                                if provenance
-                                else None,
-                                "seed_object_path": provenance.get("object_path")
-                                if provenance
-                                else None,
-                                "seed_object_sha256": provenance.get("object_sha256")
-                                if provenance
-                                else None,
-                                "seed_archive_member": provenance.get("archive_member")
-                                if provenance
-                                else None,
-                                "seed_archive_member_index": provenance.get("archive_member_index")
-                                if provenance
-                                else None,
-                                "seed_source_archive_sha256": provenance.get("source", {}).get(
-                                    "archive_sha256"
-                                )
-                                if provenance
-                                else None,
-                                "seed_source_tree_hash": provenance.get("source", {}).get(
-                                    "source_tree_hash"
-                                )
-                                if provenance
-                                else None,
-                                "name_origin": name_origin,
-                                "authority": derive_authority((name_origin,)),
-                            }
-                        )
-            finally:
-                query_service.close()
-    finally:
-        project_context.__exit__(None, None, None)
-        for candidate, was_active in previous:
-            candidate.setActive(was_active)
+                            if provenance
+                            else None,
+                            "seed_source_tree_hash": provenance.get("source", {}).get(
+                                "source_tree_hash"
+                            )
+                            if provenance
+                            else None,
+                            "name_origin": name_origin,
+                            "authority": derive_authority((name_origin,)),
+                        }
+                    )
+        finally:
+            query_service.close()
+    for candidate, was_active in previous:
+        candidate.setActive(was_active)
     matches.sort(key=lambda item: (item["target_address"], -item["score"], item["fid_name"]))
     output = settings.build_dir / "evidence" / "fid" / f"{program_name}.csv"
     stream = io.StringIO(newline="")

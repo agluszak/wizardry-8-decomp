@@ -5,8 +5,7 @@ from typing import Any
 
 from ..config import Settings
 from ..paths import atomic_json
-from .env import open_project, project_lock
-from .environment import start_pyghidra
+from .env import open_project, project_lock, start_pyghidra
 from .project import configured_modules
 
 LOG = logging.getLogger(__name__)

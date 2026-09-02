@@ -12,7 +12,6 @@ from typing import Any
 import typer
 import yaml
 from rich.console import Console
-from rich.json import JSON
 
 from .config import load_settings
 
@@ -31,6 +30,29 @@ class HumanResult:
 
 def human(text: str, data: Any) -> HumanResult:
     return HumanResult(text=text.rstrip(), data=data)
+
+
+def summary(data: Any, *, label: str | None = None) -> HumanResult:
+    """Render a deliberately small public summary while retaining complete JSON."""
+
+    if not isinstance(data, dict):
+        count = len(data) if isinstance(data, list) else None
+        text = label or (f"{count} item(s)" if count is not None else str(data))
+        return human(text, data)
+    heading = label or str(data.get("schema") or data.get("status") or "complete")
+    details = []
+    if "ok" in data:
+        details.append("ok" if data["ok"] else "failed")
+    for key in ("status", "program", "target", "failure_count", "count"):
+        if key in data and data[key] not in (None, "", heading):
+            details.append(f"{key.replace('_', ' ')}: {data[key]}")
+    if not details:
+        details.extend(
+            f"{key.replace('_', ' ')}: {value}"
+            for key, value in data.items()
+            if isinstance(value, (bool, int, float))
+        )
+    return human(" — ".join([heading, *details]), data)
 
 
 def set_json_output(enabled: bool) -> None:
@@ -59,7 +81,7 @@ def emit(value: Any, *, force_json: bool = False) -> None:
     if _JSON_OUTPUT or force_json:
         sys.stdout.write(json.dumps(value, indent=2, sort_keys=False, ensure_ascii=False) + "\n")
     elif isinstance(value, (dict, list)):
-        console.print(JSON.from_data(value))
+        raise TypeError("public commands must wrap structured results with human()")
     else:
         console.print(value)
 
@@ -68,6 +90,8 @@ def run_action(action: Any, *, force_json: bool = False) -> None:
     try:
         value = action()
         if value is not None:
+            if isinstance(value, (dict, list)) and not (_JSON_OUTPUT or force_json):
+                value = summary(value)
             emit(value, force_json=force_json)
     except Exception as error:
         if logger.isEnabledFor(logging.DEBUG):

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+from collections.abc import Callable
 from typing import Any
 
 
@@ -43,6 +44,37 @@ def _function(program: Any, text: str) -> Any:
     if function is None:
         raise ValueError(f"no function contains {address}")
     return function
+
+
+def resolve_function_selectors(program: Any, values: list[str]) -> list[int]:
+    """Resolve investigative names and ranges against the open Program."""
+
+    selected: set[int] = set()
+    manager = program.getFunctionManager()
+    for value in values:
+        start_text, separator, end_text = value.strip().partition(":")
+        try:
+            start = int(start_text, 0)
+            end = int(end_text, 0) if separator else start
+        except ValueError:
+            selected.add(int(_function(program, value).getEntryPoint().getOffset()))
+            continue
+        if start < 0 or end < start:
+            raise ValueError(f"invalid function selector range: {value}")
+        if start == end:
+            selected.add(int(_function(program, value).getEntryPoint().getOffset()))
+            continue
+        matches = [
+            int(function.getEntryPoint().getOffset())
+            for function in manager.getFunctions(True)
+            if start <= int(function.getEntryPoint().getOffset()) <= end
+        ]
+        if not matches:
+            raise ValueError(f"no Ghidra functions in selector range {value}")
+        selected.update(matches)
+    if not selected:
+        raise ValueError("pass one or more function selectors")
+    return sorted(selected)
 
 
 def function_metadata(program: Any, function: Any) -> dict[str, Any]:
@@ -543,13 +575,27 @@ def query_many(
 ) -> tuple[list[dict[str, Any]], str]:
     """Run an ordered query batch in one ordinary short-lived project owner."""
 
-    if not queries:
-        raise ValueError("at least one query is required")
-    for command, arguments in queries:
-        validate_query_arguments(command, arguments)
+    results, transport, _ = query_many_dynamic(
+        settings, selector, lambda _program: (queries, None, function_seeds)
+    )
+    return results, transport
+
+
+def query_many_dynamic(
+    settings: Any,
+    selector: str,
+    builder: Callable[[Any], tuple[list[tuple[str, list[str]]], Any, list[str] | None]],
+) -> tuple[list[dict[str, Any]], str, Any]:
+    """Build and execute a query batch after opening its Program once."""
+
     from .env import open_program
 
     with open_program(settings, selector) as program:
+        queries, metadata, function_seeds = builder(program)
+        if not queries:
+            raise ValueError("at least one query is required")
+        for command, arguments in queries:
+            validate_query_arguments(command, arguments)
         transaction = None
         try:
             if function_seeds:
@@ -581,7 +627,7 @@ def query_many(
             dispose_sessions()
             if transaction is not None:
                 program.endTransaction(transaction, False)
-    return results, "pyghidra"
+    return results, "pyghidra", metadata
 
 
 def query(

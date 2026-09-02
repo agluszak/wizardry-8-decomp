@@ -20,9 +20,16 @@ app.add_typer(fid_app, name="fid", hidden=True)
 def restore_command(program: str = "wiz8") -> None:
     """Restore the tracked reviewed checkpoint if the local project is absent."""
     from .. import command_support as cli
+    from ..ghidra.env import open_project
     from ..ghidra.workspace import restore_seed
 
-    cli.run_action(lambda: restore_seed(cli.settings(), program))
+    def action():
+        settings = cli.settings()
+        settings.project_dir.mkdir(parents=True, exist_ok=True)
+        with open_project(settings, create=True) as project:
+            return restore_seed(settings, project, program)
+
+    cli.run_action(action)
 
 
 @app.command("import")

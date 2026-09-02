@@ -10,7 +10,7 @@ from typing import Any
 from .. import subprocesses
 from ..config import Settings
 from ..paths import atomic_write
-from .workspace import ensure_seed
+from .workspace import resolve_seed_program
 
 
 def parse_selection(text: str) -> tuple[int, int | None]:
@@ -35,7 +35,7 @@ def parse_selection(text: str) -> tuple[int, int | None]:
 def _program_name(settings: Settings, selector: str) -> str:
     # Seed restoration is idempotent and owns the project/checkout guard.  A
     # recovery command should not require agents to manage that lifecycle.
-    return ensure_seed(settings, selector)
+    return resolve_seed_program(settings, selector)
 
 
 def run_headless_script(

@@ -19,6 +19,7 @@ DEFAULT_BASELINE = Path("config/verification/source-layout-baseline.csv")
 def verify_source_layouts(settings: Any, pdb: Path | None = None) -> dict[str, Any]:
     """Run the audit in a cached derived project without touching reviewed state."""
 
+    from .ghidra.env import open_project
     from .ghidra.reccmp_import import import_reccmp_source
     from .ghidra.recovery import _program_name, run_headless_script
     from .ghidra.workspace import restore_seed, seed_record
@@ -51,7 +52,9 @@ def verify_source_layouts(settings: Any, pdb: Path | None = None) -> dict[str, A
         return report
 
     derived = settings.model_copy(update={"ghidra_project_dir_override": cache / "project"})
-    restore_seed(derived, "wiz8")
+    derived.project_dir.mkdir(parents=True, exist_ok=True)
+    with open_project(derived, create=True) as project:
+        restore_seed(derived, project, "wiz8")
     import_reccmp_source(derived, "wiz8")
     program_name = _program_name(derived, "wiz8")
     transient = run_headless_script(
