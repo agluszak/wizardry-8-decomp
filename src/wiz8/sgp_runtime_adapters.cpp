@@ -23,6 +23,15 @@
 // LIBRARY: WIZ8 0x004048A0
 // ShadowVideoSurfaceRect
 
+/* The FileMan existence checks are likewise owned by the pinned SFI SGP
+   FileMan.c oracle. The recovery exports pair them exactly (fopen/fclose
+   with the library fallback), so retain their linked identities here. */
+// LIBRARY: WIZ8 0x00404BF0
+// FileExists
+
+// LIBRARY: WIZ8 0x00404C40
+// FileExistsNoDB
+
 // LIBRARY: WIZ8 0x00408AD0
 // SoundPlayStreamedFile
 
