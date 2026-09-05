@@ -426,7 +426,7 @@ def recover_function(
     from .ghidra.query import resolve_function_selectors as resolve_ghidra_selectors
     from .ghidra.recovery import recover_functions
     from .reccmp_workflows import compare_selected
-    from .source_model import load_source_index
+    from .source_index import load_source_index
 
     with open_program(settings, program_selector) as program:
         resolved = resolve_ghidra_selectors(program, [selection])
@@ -548,7 +548,7 @@ def regress(
     from .ghidra.query import resolve_function_selectors as resolve_ghidra_selectors
     from .ghidra.recovery import recover_functions
     from .reccmp_workflows import compare_selected
-    from .source_model import load_source_index
+    from .source_index import load_source_index
 
     with open_program(settings, program_selector) as program:
         addresses = resolve_ghidra_selectors(program, selections)
@@ -794,7 +794,7 @@ def attribute_diagnostics(
 def _sweep_selection(
     settings: Settings, source_file: str | None, class_name: str | None
 ) -> list[dict[str, Any]]:
-    from .source_model import load_source_index
+    from .source_index import load_source_index
 
     markers = [
         marker

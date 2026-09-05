@@ -20,8 +20,9 @@ def verify_source_layouts(settings: Any, pdb: Path | None = None) -> dict[str, A
     """Run the audit in a cached derived project without touching reviewed state."""
 
     from .ghidra.env import open_project
+    from .ghidra.layout_audit import audit_source_layouts
     from .ghidra.reccmp_import import import_reccmp_source
-    from .ghidra.recovery import _program_name, run_headless_script
+    from .ghidra.recovery import _program_name
     from .ghidra.workspace import restore_seed, seed_record
     from .paths import sha256_file
 
@@ -33,7 +34,7 @@ def verify_source_layouts(settings: Any, pdb: Path | None = None) -> dict[str, A
         raise ValueError(f"source index does not exist: {source_index}; run `just test` first")
     seed = seed_record(settings, "wiz8")
     digest = hashlib.sha256()
-    audit_script = settings.repo_dir / "tools/ghidra-scripts/Wiz8Audit.java"
+    audit_script = settings.repo_dir / "tools/wiz8decomp/ghidra/layout_audit.py"
     for value in (
         sha256_file(path),
         sha256_file(source_index),
@@ -57,21 +58,13 @@ def verify_source_layouts(settings: Any, pdb: Path | None = None) -> dict[str, A
         restore_seed(derived, project, "wiz8")
     import_reccmp_source(derived, "wiz8")
     program_name = _program_name(derived, "wiz8")
-    transient = run_headless_script(
-        derived,
-        "Wiz8Audit.java",
-        [
-            "--audit",
-            "source-layouts",
-            "--source-index",
-            str(source_index),
-        ],
-        program_name=program_name,
-    )
-    try:
-        report = json.loads(transient.read_text(encoding="utf-8"))
-    finally:
-        transient.unlink(missing_ok=True)
+    with open_project(derived) as project:
+        import pyghidra
+
+        with pyghidra.program_context(project, "/" + program_name) as program:
+            report = audit_source_layouts(
+                program, json.loads(source_index.read_text(encoding="utf-8"))
+            )
     report["pdb"] = str(path)
     atomic_json(cached_report, report)
     destination = settings.build_dir / "reports/source-layouts/report.json"

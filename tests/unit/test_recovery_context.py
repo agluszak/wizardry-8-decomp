@@ -143,8 +143,8 @@ def test_multiple_contexts_use_one_ghidra_session(tmp_path, monkeypatch) -> None
     monkeypatch.setattr(recovery_context, "resolve_seed_program", lambda *_args: "wiz8")
     monkeypatch.setattr(
         recovery_context,
-        "build_source_model",
-        lambda *_args: SimpleNamespace(functions={}),
+        "source_functions",
+        lambda *_args: {},
     )
     monkeypatch.setattr(recovery_context, "load_source_index", lambda *_args: {"classes": []})
     monkeypatch.setattr(recovery_context, "load_claims", lambda *_args: ())

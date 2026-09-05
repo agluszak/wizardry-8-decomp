@@ -11,7 +11,7 @@ from wiz8decomp.provenance import (
     parse_name_origin,
     validate_provenance,
 )
-from wiz8decomp.source_model import build_source_model
+from wiz8decomp.source_index import source_functions
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 FUNCTION_MAPS = sorted((REPOSITORY / "evidence/reviewed").glob("*/functions.csv"))
@@ -89,7 +89,7 @@ def test_reviewed_function_maps_carry_valid_provenance(path: Path) -> None:
 
 
 def test_claims_exclude_source_owned_identities_and_type_layouts() -> None:
-    source_addresses = set(build_source_model(REPOSITORY).functions)
+    source_addresses = set(source_functions(REPOSITORY))
     with (REPOSITORY / "evidence/reviewed/wiz8/claims.csv").open(
         newline="", encoding="utf-8"
     ) as stream:

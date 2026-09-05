@@ -7,7 +7,6 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from .. import subprocesses
 from ..config import Settings
 from ..paths import atomic_write
 from .workspace import resolve_seed_program
@@ -17,58 +16,6 @@ def _program_name(settings: Settings, selector: str) -> str:
     # Seed restoration is idempotent and owns the project/checkout guard.  A
     # recovery command should not require agents to manage that lifecycle.
     return resolve_seed_program(settings, selector)
-
-
-def run_headless_script(
-    settings: Settings,
-    script: str,
-    args: list[str],
-    *,
-    program_name: str,
-) -> Path:
-    """Run a source-bundle script against a separate project and return its output."""
-
-    script_dir = settings.repo_dir / "tools" / "ghidra-scripts"
-    if not (script_dir / script).is_file():
-        raise RuntimeError(f"missing Ghidra script {script_dir / script}")
-    headless = settings.ghidra_install_dir / "support" / "analyzeHeadless"
-    if not headless.is_file():
-        raise RuntimeError(f"missing analyzeHeadless at {headless}")
-    output_dir = settings.build_dir / "recover"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile(
-        prefix="ghidra-", suffix=".json", dir=output_dir, delete=False
-    ) as temporary:
-        output = Path(temporary.name)
-    output.unlink()
-    command = [
-        headless,
-        settings.project_dir,
-        settings.project_name,
-        "-process",
-        program_name,
-        "-readOnly",
-        "-noanalysis",
-        "-scriptPath",
-        script_dir,
-        "-postScript",
-        script,
-        *args,
-        "--output",
-        output,
-    ]
-    try:
-        subprocesses.run(
-            command,
-            cwd=settings.repo_dir,
-            log_path=settings.build_dir / "logs" / f"{Path(script).stem}.json",
-        )
-    except Exception:
-        output.unlink(missing_ok=True)
-        raise
-    if not output.is_file():
-        raise RuntimeError(f"{script} completed without writing {output}")
-    return output
 
 
 def _recover(

@@ -57,16 +57,21 @@ def test_source_selection_deduplicates_function_markers(tmp_path: Path) -> None:
             {
                 "schema": "reccmp-source-index-v1",
                 "classes": [],
+                "declarations": [],
                 "markers": [
                     {
                         "marker_kind": "FUNCTION",
                         "address": 0x00401000,
                         "source_file": "unit.cpp",
                         "line": 1,
-                        "declaration": {"qualified_name": "a"},
+                        "declaration": None,
+                        "marker_name": "a",
+                        "target": "WIZ8",
                     },
                     {
                         "marker_kind": "LIBRARY",
+                        "marker_name": "library",
+                        "target": "WIZ8",
                         "address": 0x00402000,
                         "source_file": "unit.cpp",
                         "line": 3,
@@ -77,7 +82,9 @@ def test_source_selection_deduplicates_function_markers(tmp_path: Path) -> None:
                         "address": 0x00401010,
                         "source_file": "unit.cpp",
                         "line": 4,
-                        "declaration": {"qualified_name": "b"},
+                        "declaration": None,
+                        "marker_name": "b",
+                        "target": "WIZ8",
                     },
                 ],
             }

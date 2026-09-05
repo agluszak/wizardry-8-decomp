@@ -128,29 +128,6 @@ wheels = [
 ]
 
 [[package]]
-name = "cydifflib"
-version = "1.2.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/16/3d/37bd6a166e657259470ec12ad4c6fe8f544e67529c9b046f6450d6d890ed/cydifflib-1.2.0.tar.gz", hash = "sha256:b8fb1bd1a1ac4360aacd9210baed6e342a1e1a3972e033b0aeaad7f6c536d96d", size = 340192, upload-time = "2025-04-11T13:33:15.338Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/0c/c5/65dd6a94a87d3212d527a17511432c24a5c4a6f27587a403fa5b57ac33f5/cydifflib-1.2.0-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:8a55c225a61cbbba7d0c4262f1bb946a02ea220e981135eed4750c3d7c80b181", size = 224662, upload-time = "2025-04-11T13:32:12.846Z" },
-    { url = "https://files.pythonhosted.org/packages/c8/65/b7084cdcafa17c9887d3c72e853c57d1159313dba81b73d303f9ccfb9b5d/cydifflib-1.2.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:37c4972b06030534aa9ee9b206f2db5adf6f5142dacf78fa992ee93495c6c3c6", size = 205837, upload-time = "2025-04-11T13:32:13.961Z" },
-    { url = "https://files.pythonhosted.org/packages/4a/ad/0837f0704245d3aae2e8f435760bd09adc82373fe162ce465f774212d65d/cydifflib-1.2.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:3671402af5a53d1b504121822e9cfd02dc13bc3ea3ab37e6860e13e7eb2f6366", size = 239828, upload-time = "2025-04-11T13:32:15.693Z" },
-    { url = "https://files.pythonhosted.org/packages/9a/34/43843ae2ded5a5566ec7bbb1599c2015ab7997452b2b247c861a16f79076/cydifflib-1.2.0-cp313-cp313-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:d4c7ad24e181d3e0d03ddb614d6fb7352f6368f9ba458f92753acf85ec3e97a4", size = 271497, upload-time = "2025-04-11T13:32:16.773Z" },
-    { url = "https://files.pythonhosted.org/packages/9d/92/1fe6d155c6060659c67eeead9199946203ffc2fed99afb5adaf8f3060267/cydifflib-1.2.0-cp313-cp313-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:b4af68c428e5fb24610767a4dc95abea954cb715d5a4edb3651137f643e533a2", size = 238592, upload-time = "2025-04-11T13:32:18.038Z" },
-    { url = "https://files.pythonhosted.org/packages/70/31/4f262564dc0fc9291875097ffa3a0179737ea015be1292f9e8d4a9651076/cydifflib-1.2.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c9ee8c24d54d70f9cac19b44dc71ec34d360a8b47494e4f73c076e746ab08def", size = 258763, upload-time = "2025-04-11T13:32:19.132Z" },
-    { url = "https://files.pythonhosted.org/packages/94/70/78c832f5047ba68d1743e494113e5a6d4a9f3bf8bc3d27004bf752ede61b/cydifflib-1.2.0-cp313-cp313-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:f0b8e85d8d8df17f9b434e4cbdad9be74e1f4bd2884c3012edba7a6607a2a943", size = 262246, upload-time = "2025-04-11T13:32:20.369Z" },
-    { url = "https://files.pythonhosted.org/packages/82/e2/7b22f50ba01aeb878ede706253fa5bbef89b008f73b97141bd10b23bd7e0/cydifflib-1.2.0-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:156cbfab6afa4f9bc4e478b7e3e3897aba900fd363bf20634ab9091d7f04b9dd", size = 1231223, upload-time = "2025-04-11T13:32:21.635Z" },
-    { url = "https://files.pythonhosted.org/packages/96/06/4cd0c7f5e1852ce58ac7b7db595dcf0719d2d5484cda31962c4e23a3b943/cydifflib-1.2.0-cp313-cp313-musllinux_1_2_i686.whl", hash = "sha256:073fb5f360c3bb30595e015225011c63102324eaf5cda1d71a23d72c1f3e7c62", size = 1417784, upload-time = "2025-04-11T13:32:22.92Z" },
-    { url = "https://files.pythonhosted.org/packages/0d/dc/10c2cdf30136a7ff849d86cf4113501f6199219bd8d32bdf0e68ce04ec44/cydifflib-1.2.0-cp313-cp313-musllinux_1_2_ppc64le.whl", hash = "sha256:7018128e9eb7fdaeb57828c64b7221fcc64be531f683f9b3fe94693d9bacc0bf", size = 1340243, upload-time = "2025-04-11T13:32:26.248Z" },
-    { url = "https://files.pythonhosted.org/packages/41/60/fb065008486c4ba0b97f2fddc3aa21399da598c324c4e330660558d2364a/cydifflib-1.2.0-cp313-cp313-musllinux_1_2_s390x.whl", hash = "sha256:311ced28dd4d54f738e621b37a876f6348e2cea74ba4c6ad6f291df4f2fff113", size = 1463121, upload-time = "2025-04-11T13:32:27.667Z" },
-    { url = "https://files.pythonhosted.org/packages/a0/96/5c32bff584c16dca3bccab52b4672cace3f46667b2eaafbacb61ffc35dec/cydifflib-1.2.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:6205d54c81ffcfa1d1a8bea6b27f1216838df1cc338fc4711e9afae7c7885ae0", size = 1311940, upload-time = "2025-04-11T13:32:29.017Z" },
-    { url = "https://files.pythonhosted.org/packages/91/5b/d4c4363b13c8e2ec2ea94811bc41412c0cc5c15cb01f8a37c938f5ef3404/cydifflib-1.2.0-cp313-cp313-win32.whl", hash = "sha256:fa14f4c3f6dca9b96fdffd67ff730cb411faa7179b444685097a83914050d297", size = 177197, upload-time = "2025-04-11T13:32:30.266Z" },
-    { url = "https://files.pythonhosted.org/packages/38/98/ff838de79ff3cd8d483bc95b359d47d09c4863662bb56bf1560b05d2b45c/cydifflib-1.2.0-cp313-cp313-win_amd64.whl", hash = "sha256:9cf9034f4df63f201c09ad09441febd9e2683d40d1126d696a6549d724227967", size = 203955, upload-time = "2025-04-11T13:32:31.448Z" },
-    { url = "https://files.pythonhosted.org/packages/43/ea/6524aa88a99694a24f05d75e24ba88051d2bbc2984c4a886d9f93ba9feef/cydifflib-1.2.0-cp313-cp313-win_arm64.whl", hash = "sha256:dea9ae3b69d26fca4824c26b15a2fb0eae7b5ed0ba0fc9d56b99830d95cc524c", size = 167083, upload-time = "2025-04-11T13:32:32.964Z" },
-]
-
-[[package]]
 name = "iniconfig"
 version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -445,12 +422,11 @@ wheels = [
 
 [[package]]
 name = "reccmp"
-version = "0.1.6"
-source = { git = "https://github.com/agluszak/reccmp?rev=021d4c4dfe33cf70958917cc3f1925a3df22c0f2#021d4c4dfe33cf70958917cc3f1925a3df22c0f2" }
+version = "0.1.7"
+source = { git = "https://github.com/agluszak/reccmp?rev=c9c555035ee109dbe4c987414f8f4320e3139801#c9c555035ee109dbe4c987414f8f4320e3139801" }
 dependencies = [
     { name = "capstone" },
     { name = "colorama" },
-    { name = "cydifflib" },
     { name = "pydantic" },
     { name = "pydemumble" },
     { name = "pyghidra" },
@@ -593,6 +569,6 @@ dev = [
     { name = "pyright", specifier = ">=1.1.403,<2" },
     { name = "pytest", specifier = ">=8.4,<10" },
     { name = "pytest-cov", specifier = ">=6.2,<8" },
-    { name = "reccmp", git = "https://github.com/agluszak/reccmp?rev=021d4c4dfe33cf70958917cc3f1925a3df22c0f2" },
+    { name = "reccmp", git = "https://github.com/agluszak/reccmp?rev=c9c555035ee109dbe4c987414f8f4320e3139801" },
     { name = "ruff", specifier = ">=0.12,<1" },
 ]

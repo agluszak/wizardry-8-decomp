@@ -9,7 +9,7 @@ from pathlib import Path
 
 from .evidence.claims import load_claims
 from .paths import atomic_write
-from .source_model import build_source_model
+from .source_index import source_functions
 
 
 @dataclass
@@ -24,13 +24,13 @@ def render_wiz8_data_source(repository: Path) -> str:
     """Project canonical evidence into reccmp's pipe-delimited schema."""
 
     entities: dict[int, ReccmpEntity] = {}
-    model = build_source_model(repository)
-    for function in model.functions.values():
+    model = source_functions(repository)
+    for function in model.values():
         entities[function.address] = ReccmpEntity(
             address=function.address,
             symbol=function.name,
             size=None,
-            kind="library" if function.kind == "LIBRARY" else "function",
+            kind="library" if function.marker_kind == "LIBRARY" else "function",
         )
 
     # Unrecovered functions have no owned declaration yet.  Their reviewed
@@ -42,7 +42,7 @@ def render_wiz8_data_source(repository: Path) -> str:
         if claim["predicate"].strip() != "accepted-identity":
             continue
         address = int(claim["entity_key"], 16)
-        if address in model.functions:
+        if address in model:
             continue
         origin = set(claim["origin"].split("|"))
         entities[address] = ReccmpEntity(

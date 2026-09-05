@@ -38,15 +38,15 @@ def function_inventory(
         }
         for item in ghidra_functions
     ]
-    from ..source_model import build_source_model
+    from ..source_index import source_functions
 
     by_address = {int(item["address"], 16): item for item in values}
-    for address, function in build_source_model(repo_dir).functions.items():
+    for address, function in source_functions(repo_dir).items():
         by_address[address] = {
             "address": f"{address:08x}",
             "symbol": function.name,
-            "owner": "surrender-template" if function.kind == "TEMPLATE" else "source",
-            "source_path": function.file,
+            "owner": "surrender-template" if function.marker_kind == "TEMPLATE" else "source",
+            "source_path": function.source_file,
         }
     return list(by_address.values())
 

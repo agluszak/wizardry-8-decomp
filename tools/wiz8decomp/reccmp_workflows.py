@@ -32,7 +32,7 @@ def parse_address(value: str) -> int:
 def addresses_from_files(repository: Path, paths: Iterable[Path]) -> list[int]:
     """Select compiler-bound FUNCTION markers from the shared source index."""
 
-    from .source_model import load_source_index
+    from .source_index import load_source_index
 
     selected = {
         str((path if path.is_absolute() else repository / path).resolve()) for path in paths
@@ -68,12 +68,12 @@ def _numeric_range(value: str) -> tuple[int, int] | None:
 def _resolve_source_selectors(repository: Path, values: Iterable[str]) -> list[int]:
     """Resolve addresses, ranges, and exact source-owned identities for compare."""
 
-    from .source_model import build_source_model
+    from .source_index import source_functions
 
-    model = build_source_model(repository)
+    model = source_functions(repository)
     selected: set[int] = set()
     by_name: dict[str, list[int]] = {}
-    for address, function in model.functions.items():
+    for address, function in model.items():
         by_name.setdefault(function.name, []).append(address)
 
     for value in values:
@@ -83,7 +83,7 @@ def _resolve_source_selectors(repository: Path, values: Iterable[str]) -> list[i
             if start == end:
                 selected.add(start)
             else:
-                matches = [address for address in model.functions if start <= address <= end]
+                matches = [address for address in model if start <= address <= end]
                 if not matches:
                     raise ValueError(f"no source-owned functions in selector range {value}")
                 selected.update(matches)

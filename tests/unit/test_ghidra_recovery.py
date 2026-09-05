@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 from wiz8decomp.config import Settings
 from wiz8decomp.ghidra import recovery as recovery_host
-from wiz8decomp.ghidra.recovery import run_headless_script
 
 
 def _settings(tmp_path: Path) -> Settings:
@@ -28,34 +26,6 @@ def _settings(tmp_path: Path) -> Settings:
             "repo_dir": repo,
         }
     )
-
-
-def test_run_headless_script_uses_read_only_headless_source_bundle(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    settings = _settings(tmp_path)
-    invocations: list[list[str]] = []
-
-    def fake_run(argv, *, cwd, log_path=None, env=None, check=True):
-        command = [str(part) for part in argv]
-        invocations.append(command)
-        output = Path(command[command.index("--output") + 1])
-        output.write_text('{"functions": []}\n', encoding="utf-8")
-
-    monkeypatch.setattr(recovery_host.subprocesses, "run", fake_run)
-    output = run_headless_script(
-        settings,
-        "Wiz8Recover.java",
-        ["--source-index", "index.json", "0x401000"],
-        program_name="wiz8",
-    )
-    assert json.loads(output.read_text(encoding="utf-8")) == {"functions": []}
-    command = invocations[0]
-    assert "-readOnly" in command
-    assert "-noanalysis" in command
-    assert command[command.index("-scriptPath") + 1].endswith("tools/ghidra-scripts")
-    assert command[command.index("-postScript") + 1] == "Wiz8Recover.java"
-    assert "javac" not in command
 
 
 def test_recover_functions_rejects_empty_selection() -> None:

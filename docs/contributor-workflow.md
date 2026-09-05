@@ -74,6 +74,19 @@ jj bookmark set agent/<bead>-<topic> -r @
 
 ## Recovering C++ from the reviewed project
 
+`uv run wiz8 analyze source-index` refreshes `build/source-index.json` through
+reccmp's public batch API. `just check` and `just test` already run it. After
+changing the CMake source inventory, run `just lint` to regenerate compile commands.
+The collector lives in the pinned reccmp package, including its C++ AST emitter;
+do not add a local indexer or import private reccmp internals. Content-based caching
+includes source/header inputs and the actual toolchain image ID. Unchanged indexes
+retain their timestamp, and compiler failures identify the failing translation unit.
+
+Python callers use `source_index.source_functions()` for address-keyed reccmp
+markers and `marker.declaration` for compiler semantics. Layout verification runs
+directly against a derived Ghidra project. The lifecycle fixture owns a separate,
+unique temporary project; neither audit changes the reviewed project.
+
 `uv run wiz8 recover explain 0x<address>` reports structured recovery facts, while
 `uv run wiz8 recover regress 0x<address>...` measures how much of an already-recovered body the
 headless recovery engine regenerates with zero manual edits. Recovery opens the reviewed Ghidra

@@ -14,13 +14,16 @@ def _index(repository: Path, names: list[tuple[int, str]]) -> None:
             {
                 "schema": "reccmp-source-index-v1",
                 "classes": [],
+                "declarations": [],
                 "markers": [
                     {
                         "marker_kind": "FUNCTION",
                         "address": address,
                         "source_file": "src/wiz8/unit.cpp",
                         "line": index + 1,
-                        "declaration": {"qualified_name": name},
+                        "declaration": None,
+                        "marker_name": name,
+                        "target": "WIZ8",
                     }
                     for index, (address, name) in enumerate(names)
                 ],

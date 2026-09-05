@@ -11,7 +11,7 @@ from ..ghidra.env import open_program
 from ..ghidra.query import query_many, resolve_function_selectors
 from ..ghidra.unit_intervals import TranslationUnitResolver
 from ..ghidra.workspace import resolve_seed_program
-from ..source_model import build_source_model, load_source_index
+from ..source_index import load_source_index, source_functions
 
 
 def _read(path: Path) -> list[dict[str, str]]:
@@ -227,7 +227,7 @@ def recovery_context_reports(
     reviewed_assertions = _read(
         settings.repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv"
     )
-    source_model = build_source_model(settings.repo_dir) if has_canonical_addresses else None
+    source_model = source_functions(settings.repo_dir) if has_canonical_addresses else None
 
     with open_program(settings, selector) as program:
         requested_entries = resolve_function_selectors(program, selectors)
@@ -249,11 +249,12 @@ def recovery_context_reports(
         ]
         class_names = sorted(
             {
-                function.owning_class
+                function.declaration.owning_class
                 for requested in requested_entries
                 if source_model is not None
-                and (function := source_model.functions.get(requested)) is not None
-                and function.owning_class
+                and (function := source_model.get(requested)) is not None
+                and function.declaration is not None
+                and function.declaration.owning_class
             }
         )
         for requested in requested_entries:
@@ -265,8 +266,12 @@ def recovery_context_reports(
                     ("indirect-calls", [address]),
                 ]
             )
-            source_function = source_model.functions.get(requested) if source_model else None
-            if source_function is not None and source_function.owning_class:
+            source_function = source_model.get(requested) if source_model else None
+            if (
+                source_function is not None
+                and source_function.declaration is not None
+                and source_function.declaration.owning_class
+            ):
                 queries.append(("field-accesses", [address, root]))
             if deep:
                 queries.extend(
@@ -283,7 +288,7 @@ def recovery_context_reports(
             if discover
             or (
                 bool(assertions_by_entry[requested])
-                and (source_model is None or requested not in source_model.functions)
+                and (source_model is None or requested not in source_model)
             )
         ]
         results = query_many(program, queries, function_seeds=function_seeds or None)
@@ -318,7 +323,7 @@ def recovery_context_reports(
     for requested in requested_entries:
         function = result_for("function", requested)["function"]
         entry = int(function["entry"], 16)
-        source_function = source_model.functions.get(entry) if source_model is not None else None
+        source_function = source_model.get(entry) if source_model is not None else None
         requested_assertions = assertions_by_entry[requested]
         assertions = [
             row
@@ -361,8 +366,8 @@ def recovery_context_reports(
             {
                 "address": f"{entry:08x}",
                 "name": source_function.name,
-                "kind": source_function.kind,
-                "source_path": source_function.file,
+                "kind": source_function.marker_kind,
+                "source_path": source_function.source_file,
                 "source_line": source_function.line,
             }
             if source_function is not None
@@ -381,11 +386,17 @@ def recovery_context_reports(
             and f"{int(row['vtable_address']):08x}" in table_addresses
         }
         context_classes = {row["qualified_name"] for row in source_vtables.values()}
-        if source_function is not None and source_function.owning_class:
-            context_classes.add(source_function.owning_class)
+        if (
+            source_function is not None
+            and source_function.declaration is not None
+            and source_function.declaration.owning_class
+        ):
+            context_classes.add(source_function.declaration.owning_class)
         semantic_fields = (
             result_for("field-accesses", requested)
-            if source_function is not None and source_function.owning_class
+            if source_function is not None
+            and source_function.declaration is not None
+            and source_function.declaration.owning_class
             else {}
         )
         high = result_for("high-function", requested) if deep else {}
@@ -413,8 +424,8 @@ def recovery_context_reports(
             "reviewed": {
                 "function": reviewed_function,
                 "signature": {
-                    "prototype": source_function.prototype
-                    if source_function
+                    "prototype": source_function.declaration.prototype
+                    if source_function and source_function.declaration
                     else function["prototype"],
                     "calling_convention": function.get("calling_convention", ""),
                     "authority": "source" if source_function else "ghidra",

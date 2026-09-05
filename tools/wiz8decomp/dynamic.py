@@ -79,11 +79,11 @@ class Event:
 def bring_up_points(repo: Path) -> list[TracePoint]:
     """Source-owned startup functions, derived from physical TU ownership."""
 
-    from .source_model import build_source_model
+    from .source_index import source_functions
 
     points = []
-    for function in build_source_model(repo).functions.values():
-        path = Path(function.file)
+    for function in source_functions(repo).values():
+        path = Path(function.source_file)
         if not (
             path.stem.startswith("startup_")
             or path.name in {"bringup_gates.cpp", "game_init.cpp", "winmain.cpp"}

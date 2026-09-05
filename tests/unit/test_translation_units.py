@@ -26,12 +26,12 @@ def test_translation_unit_report_writes_generated_outputs_under_build(tmp_path: 
 
     settings = SimpleNamespace(repo_dir=tmp_path, build_dir=tmp_path / "build")
     from wiz8decomp.ghidra import query
-    from wiz8decomp.source_model import build_source_model
+    from wiz8decomp.source_index import source_functions
 
     original = query.function_inventory
     query.function_inventory = lambda _settings: [
         {"entry": f"0x{address:08x}", "name": function.name}
-        for address, function in build_source_model(tmp_path).functions.items()
+        for address, function in source_functions(tmp_path).items()
     ]
     try:
         result = translation_unit_report(settings)

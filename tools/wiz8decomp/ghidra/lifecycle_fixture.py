@@ -94,7 +94,6 @@ def _recover_image(
         source_index = temporary / "source-index.json"
         source_index.write_text('{"markers": []}\n', encoding="utf-8")
         result_path = temporary / "result.json"
-        symbols_path = temporary / "symbols.json"
         (temporary / "project").mkdir()
         subprocesses.run(
             [
@@ -121,30 +120,23 @@ def _recover_image(
             cwd=settings.repo_dir,
             log_path=settings.build_dir / "logs" / f"Wiz8RecoverSelfTest-{label}.json",
         )
-        subprocesses.run(
-            [
-                headless,
-                temporary / "project",
-                "lifecycle-fixture",
-                "-process",
-                fixture.name,
-                "-readOnly",
-                "-noanalysis",
-                "-scriptPath",
-                scripts,
-                "-postScript",
-                "Wiz8Audit.java",
-                "--audit",
-                "lifecycle-symbols",
-                *[value for name in sorted(_ROUND_TRIP_CLASSES) for value in ("--class", name)],
-                "--output",
-                symbols_path,
-            ],
-            cwd=settings.repo_dir,
-            log_path=settings.build_dir / "logs" / f"Wiz8AuditLifecycle-{label}.json",
-        )
+        from .env import start_pyghidra
+
+        start_pyghidra(settings)
+        import pyghidra
+
+        # This unique disposable fixture has its own project name and lifetime.
+        with (
+            pyghidra.open_project(temporary / "project", "lifecycle-fixture") as project,
+            pyghidra.program_context(project, "/" + fixture.name) as program,
+        ):
+            symbols = [
+                name
+                for symbol in program.getSymbolTable().getAllSymbols(True)
+                if "vftable" in (name := str(symbol.getName(True))).lower()
+                and any(value + "::" in name for value in _ROUND_TRIP_CLASSES)
+            ]
         recovered = json.loads(result_path.read_text(encoding="utf-8"))
-        symbols = json.loads(symbols_path.read_text(encoding="utf-8"))["vtables"]
     return recovered, sorted(symbols)
 
 

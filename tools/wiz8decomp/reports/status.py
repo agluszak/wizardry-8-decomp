@@ -5,7 +5,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from ..source_model import build_source_model, load_source_index
+from ..source_index import load_source_index, source_functions
 from .translation_units import (
     derive_intervals,
     function_inventory,
@@ -44,8 +44,8 @@ def derive_status(repo_dir: Path, ghidra_functions: list[dict[str, str]]) -> dic
         if row["entity_kind"] == "function"
         and row["predicate"] in {"accepted-identity", "identity-provenance"}
     ]
-    source_functions = build_source_model(repo_dir).functions
-    function_addresses = set(source_functions) | {
+    functions = source_functions(repo_dir)
+    function_addresses = set(functions) | {
         int(row["entity_key"], 16)
         for row in identity_claims
         if row["predicate"] == "accepted-identity"
@@ -72,8 +72,8 @@ def derive_status(repo_dir: Path, ghidra_functions: list[dict[str, str]]) -> dic
         "programs": programs,
         "wiz8": {
             "function_identities": len(function_addresses),
-            "source_functions": len(source_functions),
-            "analysis_only_identities": len(function_addresses - set(source_functions)),
+            "source_functions": len(functions),
+            "analysis_only_identities": len(function_addresses - set(functions)),
             "claims": len(claims),
             "authority": _counts(identity_claims, "authority"),
             "classes": len(classes),

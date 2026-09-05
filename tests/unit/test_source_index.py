@@ -1,115 +1,143 @@
-import json
 from pathlib import Path
 
 import pytest
-from reccmp.source.index import SourceIndexError
-from wiz8decomp.source_index import _index_command, _RecordCollector
-
-DECLARATION = {
-    "record": "declaration",
-    "semantic_id": "?Grow@Vector@@QAEHH@Z",
-    "qualified_name": "Vector::Grow",
-    "semantic_kind": "instance_method",
-    "calling_convention": "__thiscall",
-    "return_type": "int",
-    "parameter_types": ["int"],
-    "source_signature": "int Vector::Grow(int value)",
-    "parameter_references": [False],
-    "owning_class": "Vector",
-    "has_this": True,
-    "is_virtual": False,
-    "source_file": "include/wiz8/vector.h",
-    "line": 20,
-    "end_line": 20,
-    "is_definition": False,
-}
-CLASS = {
-    "record": "class",
-    "semantic_id": "record:Vector",
-    "qualified_name": "Vector",
-    "bases": [],
-    "fields": [
-        {
-            "name": "count",
-            "type": "int",
-            "source_file": "include/wiz8/vector.h",
-            "line": 24,
-        }
-    ],
-    "virtual_declarations": [],
-    "source_file": "include/wiz8/vector.h",
-    "line": 12,
-    "end_line": 30,
-}
+from reccmp.source import SourceIndexError
+from wiz8decomp.source_index import source_functions
 
 
-def _records(*records: dict) -> str:
-    return "".join(json.dumps(record) + "\n" for record in records)
+def test_source_functions_expose_clang_semantics_from_generated_index() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    model = source_functions(repository)
+
+    free_function = model[0x004F8130]
+    assert free_function.name == "ItemHasFlags"
+    assert free_function.declaration.semantic_kind == "free_function"
+    assert free_function.declaration.return_type == "bool"
+    assert free_function.declaration.parameter_types == ("W8WorldItem *", "unsigned int")
+    assert free_function.source_file == "src/wiz8/local_code/ItemManager.cpp"
+
+    method = model[0x004A8430]
+    assert method.name == "W8GrCycle::SetSubCycle"
+    assert method.declaration.semantic_kind == "instance_method"
+    assert method.declaration.owning_class == "W8GrCycle"
+    assert method.declaration.calling_convention == "__thiscall"
+
+    destructor = model[0x00439A00]
+    assert destructor.declaration.semantic_kind == "destructor"
+    assert destructor.declaration.calling_convention == "__thiscall"
+
+    template = model[0x004ADDF0]
+    assert template.marker_kind == "TEMPLATE"
+    assert template.name == "W8GrowableVector<int>::Grow"
+
+    synthetic = model[0x004F6030]
+    assert synthetic.marker_kind == "SYNTHETIC"
+    assert synthetic.name == "W8TextControl005ED604::`scalar deleting destructor'"
+    assert synthetic.declaration is None
+
+    library = model[0x00401000]
+    assert library.marker_kind == "LIBRARY"
+    assert library.name == "__WinMainCRTStartup"
+    assert library.declaration is None
 
 
-def test_definition_replaces_a_declaration_from_another_unit() -> None:
-    collector = _RecordCollector(Path("/repo"))
-    definition = {**DECLARATION, "is_definition": True, "line": 105, "end_line": 118}
-    collector.collect_records(_records(DECLARATION))
-    collector.collect_records(_records(definition))
-    collector.collect_records(_records(DECLARATION))
+def test_surrender_source_functions_use_their_own_marker_target() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    surrender = source_functions(repository, "SURRENDER")
+    wiz8 = source_functions(repository, "WIZ8")
 
-    kept = collector.declarations["?Grow@Vector@@QAEHH@Z"]
-    assert kept.is_definition
-    assert (kept.line, kept.end_line) == (105, 118)
-    assert kept.parameter_types == ("int",)
-    assert collector.source_metadata["?Grow@Vector@@QAEHH@Z"] == {
-        "source_signature": "int Vector::Grow(int value)",
-        "parameter_references": [False],
-        "parameter_reference_forms": [],
-    }
-
-
-def test_class_is_kept_from_the_first_unit_that_located_it() -> None:
-    collector = _RecordCollector(Path("/repo"))
-    collector.collect_records(_records({**CLASS, "line": 0, "end_line": 0}))
-    collector.collect_records(_records(CLASS))
-    collector.collect_records(_records({**CLASS, "line": 99, "end_line": 99}))
-
-    kept = collector.classes["record:Vector"]
-    assert (kept.line, kept.end_line) == (12, 30)
-    assert kept.fields[0].name == "count"
-
-
-def test_conflicting_size_assertions_are_refused() -> None:
-    collector = _RecordCollector(Path("/repo"))
-    assertion = {"record": "size-assertion", "qualified_name": "Vector", "asserted_size": 16}
-    collector.collect_records(_records(assertion))
-    collector.collect_records(_records(assertion))
-    assert collector.size_assertions == {"Vector": 16}
-
-    with pytest.raises(SourceIndexError, match="conflicting size assertions"):
-        collector.collect_records(_records({**assertion, "asserted_size": 20}))
-
-
-def test_an_unknown_record_is_refused_rather_than_ignored() -> None:
-    collector = _RecordCollector(Path("/repo"))
-    with pytest.raises(SourceIndexError, match="unknown record"):
-        collector.collect_records(_records({"record": "enum", "qualified_name": "Slot"}))
-
-
-def test_the_index_command_keeps_the_build_arguments_and_drops_the_ast_dump() -> None:
-    command = _index_command(
-        {
-            "directory": "/out",
-            "file": "/repo/src/wiz8/vector.cpp",
-            "command": (
-                "/usr/bin/clang-cl /nologo -Xclang -fno-wchar /Fovector.obj /c "
-                "-- /repo/src/wiz8/vector.cpp"
-            ),
-        }
+    assert surrender[0x10015010].name == "srCore::getCopyright"
+    assert surrender[0x10045780].name == ("srDynamicLibrary::checkCompatibility")
+    assert set(surrender).isdisjoint(wiz8)
+    assert all(
+        item.source_file.startswith(("src/surrender/", "include/surrender/"))
+        for item in surrender.values()
     )
 
-    assert command[:2] == ["/indexer/indexer", "/usr/bin/clang-cl"]
-    assert "-ast-dump=json" not in command
-    # The build's own -Xclang option and its argument both survive, and the
-    # source file stays behind the driver's end-of-options separator.
-    assert command.count("-Xclang") == 1
-    assert command[command.index("-Xclang") + 1] == "-fno-wchar"
-    assert command[-2:] == ["--", "/repo/src/wiz8/vector.cpp"]
-    assert not any(argument.startswith("/Fo") or argument == "/c" for argument in command)
+
+def test_source_functions_keep_definition_as_owner_of_folded_alias(tmp_path: Path) -> None:
+    build = tmp_path / "build"
+    build.mkdir()
+    (build / "source-index.json").write_text(
+        """{
+  "schema": "reccmp-source-index-v1",
+  "markers": [
+    {
+      "address": 4878656,
+      "target": "WIZ8",
+      "marker_kind": "FUNCTION",
+      "source_file": "include/wiz8/engine_code/GrCycle.h",
+      "line": 149,
+      "declaration": {
+        "semantic_id": "?CanEnterCycle@W8GrCycle@@UAEEC@Z",
+        "qualified_name": "W8GrCycle::CanEnterCycle",
+        "semantic_kind": "instance_method",
+        "calling_convention": "__thiscall",
+        "return_type": "unsigned char",
+        "parameter_types": ["signed char"],
+        "owning_class": "W8GrCycle",
+        "has_this": true,
+        "source_file": "include/wiz8/engine_code/GrCycle.h",
+        "line": 149,
+        "end_line": 150,
+        "is_definition": true,
+        "is_virtual": true
+      },
+      "marker_name": null
+    },
+    {
+      "address": 4878656,
+      "marker_kind": "SYNTHETIC",
+      "target": "WIZ8",
+      "source_file": "include/wiz8/engine_code/GrCycle.h",
+      "line": 196,
+      "declaration": null,
+      "marker_name": "W8Navigator::secondary_vslot3",
+      "folded": true
+    }
+  ],
+  "declarations": [],
+  "classes": []
+}\n""",
+        encoding="utf-8",
+    )
+
+    function = source_functions(tmp_path)[0x004A7140]
+    assert function.name == "W8GrCycle::CanEnterCycle"
+    assert function.marker_kind == "FUNCTION"
+
+
+def test_source_functions_reject_two_non_folded_owners(tmp_path: Path) -> None:
+    build = tmp_path / "build"
+    build.mkdir()
+    (build / "source-index.json").write_text(
+        """{
+  "schema": "reccmp-source-index-v1",
+  "markers": [
+    {
+      "address": 1,
+      "target": "WIZ8",
+      "marker_kind": "SYNTHETIC",
+      "source_file": "src/wiz8/a.cpp",
+      "line": 1,
+      "declaration": null,
+      "marker_name": "First"
+    },
+    {
+      "address": 1,
+      "marker_kind": "SYNTHETIC",
+      "source_file": "src/wiz8/b.cpp",
+      "line": 1,
+      "declaration": null,
+      "marker_name": "Second"
+      ,"target": "WIZ8"
+    }
+  ],
+  "declarations": [],
+  "classes": []
+}\n""",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(SourceIndexError, match="more than one source owner"):
+        source_functions(tmp_path)

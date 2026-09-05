@@ -6,7 +6,7 @@ from dataclasses import asdict
 from typing import Any
 
 from ..config import Settings
-from ..source_model import target_for_program
+from ..source_index import target_for_program
 from ..subprocesses import run
 from .workspace import resolve_seed_program
 

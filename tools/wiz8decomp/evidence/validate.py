@@ -5,7 +5,7 @@ from collections.abc import Iterable, Mapping
 from pathlib import Path
 
 from ..provenance import ProvenanceError, validate_provenance
-from ..source_model import build_source_model, validate_source_index
+from ..source_index import source_functions, validate_source_index
 from .claims import load_claims, validate_claim_rows
 from .io import parse_hex
 
@@ -47,7 +47,7 @@ def _validate_csv_shapes(repo_dir: Path) -> int:
 
 
 def _validate_functions(repo_dir: Path, program: str) -> set[int]:
-    source_addresses = set(build_source_model(repo_dir, program.upper()).functions)
+    source_addresses = set(source_functions(repo_dir, program.upper()))
     claims_path = repo_dir / "evidence" / "reviewed" / program / "claims.csv"
     reviewed_addresses = {
         parse_hex(claim["entity_key"], field="entity_key", path=claims_path) or 0

@@ -59,4 +59,4 @@ exclude = [
 typeCheckingMode = "basic"
 
 [tool.uv.sources]
-reccmp = { git = "https://github.com/agluszak/reccmp", rev = "021d4c4dfe33cf70958917cc3f1925a3df22c0f2" }
+reccmp = { git = "https://github.com/agluszak/reccmp", rev = "c9c555035ee109dbe4c987414f8f4320e3139801" }

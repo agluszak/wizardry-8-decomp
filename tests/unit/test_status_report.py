@@ -86,10 +86,22 @@ def repository(tmp_path: Path) -> Path:
                         "line": 12,
                         "declaration": None,
                         "marker_name": "Owned",
+                        "target": "WIZ8",
                     }
                 ],
                 "declarations": [],
-                "classes": [{"semantic_id": "record:BitArray", "qualified_name": "BitArray"}],
+                "classes": [
+                    {
+                        "semantic_id": "record:BitArray",
+                        "qualified_name": "BitArray",
+                        "bases": [],
+                        "fields": [],
+                        "virtual_declarations": [],
+                        "source_file": "include/wiz8/BitArray.h",
+                        "line": 1,
+                        "end_line": 2,
+                    }
+                ],
             }
         ),
     )
