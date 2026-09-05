@@ -32,6 +32,45 @@
 // LIBRARY: WIZ8 0x00404C40
 // FileExistsNoDB
 
+// LIBRARY: WIZ8 0x00404C80
+// FileOpen
+
+// LIBRARY: WIZ8 0x00404FB0
+// FileWrite
+
+// LIBRARY: WIZ8 0x00405030
+// FileSeek
+
+// LIBRARY: WIZ8 0x004051D0
+// DirectoryExists
+
+// LIBRARY: WIZ8 0x004051F0
+// MakeFileManDirectory
+
+// LIBRARY: WIZ8 0x00405200
+// GetExecutableDirectory
+
+// LIBRARY: WIZ8 0x00405270
+// GetFileFirst
+
+// LIBRARY: WIZ8 0x00405300
+// GetFileNext
+
+// LIBRARY: WIZ8 0x00405350
+// GetFileClose
+
+// LIBRARY: WIZ8 0x00405390
+// W32toSGPFileFind
+
+// LIBRARY: WIZ8 0x004054D0
+// FileCopy
+
+// LIBRARY: WIZ8 0x004054F0
+// FileGetAttributes
+
+// LIBRARY: WIZ8 0x00405550
+// FileClearAttributes
+
 // LIBRARY: WIZ8 0x00408AD0
 // SoundPlayStreamedFile
 
