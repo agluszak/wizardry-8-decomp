@@ -137,6 +137,36 @@
 // LIBRARY: WIZ8 0x00405630
 // GetFileManFileTime
 
+/* The stack/list containers are likewise owned by the pinned SFI SGP
+   Container.c oracle (release-mode DbgMessage calls compile out). Retain
+   their linked identities without restating them. */
+// LIBRARY: WIZ8 0x00405970
+// CreateStack
+
+// LIBRARY: WIZ8 0x004059B0
+// CreateList
+
+// LIBRARY: WIZ8 0x00405A70
+// Pop
+
+// LIBRARY: WIZ8 0x00405AC0
+// PeekStack
+
+// LIBRARY: WIZ8 0x00405B00
+// DeleteStack
+
+// LIBRARY: WIZ8 0x00405B20
+// PeekList
+
+// LIBRARY: WIZ8 0x00405B90
+// StoreListNode
+
+// LIBRARY: WIZ8 0x00405C00
+// StackSize
+
+// LIBRARY: WIZ8 0x00405C10
+// AddtoList
+
 /* These are the released Font.c string-width and font-height operations. */
 // LIBRARY: WIZ8 0x004068E0
 // SetObjectShade
