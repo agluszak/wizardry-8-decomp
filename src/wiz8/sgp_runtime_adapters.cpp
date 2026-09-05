@@ -146,6 +146,9 @@
 // LIBRARY: WIZ8 0x004059B0
 // CreateList
 
+// LIBRARY: WIZ8 0x00405A00
+// Push
+
 // LIBRARY: WIZ8 0x00405A70
 // Pop
 
@@ -166,6 +169,58 @@
 
 // LIBRARY: WIZ8 0x00405C10
 // AddtoList
+
+/* The random-number helpers are likewise owned by the pinned SFI SGP
+   Random.c oracle (Wizardry inlines the Random call inside Chance). */
+// LIBRARY: WIZ8 0x0040EF80
+// InitializeRandom
+
+// LIBRARY: WIZ8 0x0040EFA0
+// Random
+
+// LIBRARY: WIZ8 0x0040EFE0
+// Chance
+
+/* The DirectDraw wrappers are likewise owned by the pinned SFI SGP DirectDraw
+   Calls.c oracle, recognizable by their __FILE__ fingerprints and NoOp calls. */
+// LIBRARY: WIZ8 0x0040F0B0
+// DDCreateSurface
+
+// LIBRARY: WIZ8 0x0040F100
+// DDLockSurface
+
+// LIBRARY: WIZ8 0x0040F150
+// DDUnlockSurface
+
+// LIBRARY: WIZ8 0x0040F180
+// DDGetSurfaceDescription
+
+// LIBRARY: WIZ8 0x0040F1C0
+// DDReleaseSurface
+
+// LIBRARY: WIZ8 0x0040F210
+// DDRestoreSurface
+
+// LIBRARY: WIZ8 0x0040F230
+// DDBltFastSurface
+
+// LIBRARY: WIZ8 0x0040F290
+// DDBltSurface
+
+// LIBRARY: WIZ8 0x0040F300
+// DDCreatePalette
+
+// LIBRARY: WIZ8 0x0040F340
+// DDSetPaletteEntries
+
+// LIBRARY: WIZ8 0x0040F380
+// DDGetPaletteEntries
+
+// LIBRARY: WIZ8 0x0040F3C0
+// DDReleasePalette
+
+// LIBRARY: WIZ8 0x0040F3E0
+// DDSetSurfaceColorKey
 
 /* These are the released Font.c string-width and font-height operations. */
 // LIBRARY: WIZ8 0x004068E0
