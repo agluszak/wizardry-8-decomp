@@ -17,7 +17,7 @@ def self_test_command() -> None:
     from .. import command_support as cli
     from ..ghidra.lifecycle_fixture import verify_lifecycle_fixture
 
-    cli.run_action(lambda: verify_lifecycle_fixture(cli.settings()))
+    cli.run_action(lambda: cli.summary(verify_lifecycle_fixture(cli.settings())))
 
 
 @app.command("function")
@@ -41,8 +41,10 @@ def function_command(
     from ..recover import recover_function
 
     cli.run_action(
-        lambda: recover_function(
-            cli.settings(), address, apply=apply, target=target, program_selector=program
+        lambda: cli.summary(
+            recover_function(
+                cli.settings(), address, apply=apply, target=target, program_selector=program
+            )
         ),
         force_json=json_output,
     )
@@ -66,12 +68,14 @@ def sweep_command(
     from ..recover import sweep
 
     cli.run_action(
-        lambda: sweep(
-            cli.settings(),
-            source_file=file,
-            class_name=class_name,
-            target=target,
-            program_selector=program,
+        lambda: cli.summary(
+            sweep(
+                cli.settings(),
+                source_file=file,
+                class_name=class_name,
+                target=target,
+                program_selector=program,
+            )
         )
     )
 
@@ -110,5 +114,7 @@ def regress_command(
     from ..recover import regress
 
     cli.run_action(
-        lambda: regress(cli.settings(), list(addresses), target=target, program_selector=program)
+        lambda: cli.summary(
+            regress(cli.settings(), list(addresses), target=target, program_selector=program)
+        )
     )

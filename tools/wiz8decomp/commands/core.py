@@ -14,7 +14,7 @@ def doctor_command() -> None:
     from .. import command_support as cli
     from ..doctor import validate_environment
 
-    cli.run_action(lambda: validate_environment(cli.settings()))
+    cli.run_action(lambda: cli.summary(validate_environment(cli.settings()), label="environment"))
 
 
 def prepare_command() -> None:
@@ -22,7 +22,7 @@ def prepare_command() -> None:
     from .. import command_support as cli
     from ..build import prepare
 
-    cli.run_action(lambda: prepare(cli.settings()))
+    cli.run_action(lambda: cli.summary(prepare(cli.settings()), label="prepare"))
 
 
 def check_command(
@@ -57,9 +57,13 @@ def lint_command(
 def diagnostics_command() -> None:
     """Emit non-gating recovery-relevant clang diagnostics."""
     from .. import command_support as cli
-    from ..build import lint
+    from ..build import lint, lint_human_result
 
-    cli.run_action(lambda: lint(cli.settings(), full_diagnostics=True))
+    def action():
+        result = lint(cli.settings(), full_diagnostics=True)
+        return cli.human(lint_human_result(result), result)
+
+    cli.run_action(action)
 
 
 def build_command(
@@ -114,7 +118,7 @@ def compare_command(
                 include_windows=bool(addresses) and len(selected) <= 8,
             )
             return cli.human(comparison_human(result), result)
-        return compare(settings, target, list(ctx.args), build_first=not no_build)
+        return cli.summary(compare(settings, target, list(ctx.args), build_first=not no_build))
 
     cli.run_action(action, force_json=json_output)
 
@@ -248,7 +252,7 @@ def toolchain_build_command(
     from .. import command_support as cli
     from ..build import build_toolchain
 
-    cli.run_action(lambda: build_toolchain(cli.settings(), toolchain))
+    cli.run_action(lambda: cli.summary(build_toolchain(cli.settings(), toolchain)))
 
 
 def register(app: typer.Typer) -> None:
@@ -302,7 +306,7 @@ def unresolved_report_command(
     from .. import command_support as cli
     from ..unresolved import DEFAULT_BASELINE, unresolved_report, write_unresolved_baseline
 
-    def action() -> dict[str, Any]:
+    def action():
         settings = cli.settings()
         build = settings.repo_dir / "build" / "decomp"
         report = unresolved_report(
@@ -310,8 +314,10 @@ def unresolved_report_command(
             link_map or build / "Wiz8.map",
         )
         if write_baseline:
-            return write_unresolved_baseline(settings.repo_dir / DEFAULT_BASELINE, report)
-        return report
+            return cli.summary(
+                write_unresolved_baseline(settings.repo_dir / DEFAULT_BASELINE, report)
+            )
+        return cli.summary(report)
 
     cli.run_action(action)
 
@@ -323,9 +329,11 @@ def check_build_dir_command(
     from ..build_dir import check_build_directory
 
     cli.run_action(
-        lambda: check_build_directory(
-            build_dir or cli.settings().repo_dir / "build" / "decomp",
-            cli.settings().repo_dir,
+        lambda: cli.summary(
+            check_build_directory(
+                build_dir or cli.settings().repo_dir / "build" / "decomp",
+                cli.settings().repo_dir,
+            )
         )
     )
 
@@ -336,14 +344,17 @@ def check_reccmp_command() -> None:
     from ..config import repository_root
     from ..reccmp_lint import validate_reccmp_annotations
 
-    cli.run_action(lambda: validate_reccmp_annotations(repository_root()))
+    cli.run_action(lambda: cli.summary(validate_reccmp_annotations(repository_root())))
 
 
 def inventory_command(json_output: bool = typer.Option(False, "--json", help="Emit JSON.")) -> None:
     from .. import command_support as cli
     from ..binary.inventory import inventory
 
-    cli.run_action(lambda: inventory(cli.settings()), force_json=json_output)
+    cli.run_action(
+        lambda: cli.summary(inventory(cli.settings()), label="inventory"),
+        force_json=json_output,
+    )
 
 
 def trace_command(
@@ -355,17 +366,19 @@ def trace_command(
     from .. import command_support as cli
     from ..dynamic import Sandbox, run_trace, trace_plan, write_report
 
-    def action() -> dict[str, Any]:
+    def action():
         settings = cli.settings()
         if plan_only:
             points = trace_plan(settings.repo_dir, scenario)
-            return {
-                "scenario": scenario,
-                "points": [
-                    {"address": point.address, "name": point.name, "kind": point.kind}
-                    for point in points
-                ],
-            }
+            return cli.summary(
+                {
+                    "scenario": scenario,
+                    "points": [
+                        {"address": point.address, "name": point.name, "kind": point.kind}
+                        for point in points
+                    ],
+                }
+            )
         result = run_trace(
             settings.repo_dir,
             Sandbox.from_environment(),
@@ -373,7 +386,7 @@ def trace_command(
             seconds=seconds,
             port=port,
         )
-        return write_report(result, settings.repo_dir / "build/reports/trace")
+        return cli.summary(write_report(result, settings.repo_dir / "build/reports/trace"))
 
     cli.run_action(action)
 
@@ -399,11 +412,13 @@ def verify_source_layouts_command(
         write_source_layout_baseline,
     )
 
-    def action() -> dict[str, Any]:
+    def action():
         settings = cli.settings()
         report = verify_source_layouts(settings, pdb)
         if write_baseline:
-            return write_source_layout_baseline(settings.repo_dir / DEFAULT_BASELINE, report)
-        return require_source_layouts(report)
+            return cli.summary(
+                write_source_layout_baseline(settings.repo_dir / DEFAULT_BASELINE, report)
+            )
+        return cli.summary(require_source_layouts(report))
 
     cli.run_action(action)

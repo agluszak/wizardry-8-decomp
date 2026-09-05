@@ -126,6 +126,23 @@ class Indexer {
     return QualType::getAsString(desugared != spelled ? desugared : spelled, policy_);
   }
 
+  // Pointer layers peeled from the outside of the desugared type, so the
+  // depth comes from the type structure rather than counting `*` in a
+  // spelling. A reference, array or function type on the outside stops the
+  // peel at zero: those spellings never end in `*` either, and their layout
+  // comparison would be against a different kind of Ghidra type.
+  static int pointerDepth(QualType type) {
+    int depth = 0;
+    QualType current = type;
+    while (!current.isNull()) {
+      const auto* pointer = dyn_cast<PointerType>(current.getSplitDesugaredType().Ty);
+      if (!pointer) break;
+      ++depth;
+      current = pointer->getPointeeType();
+    }
+    return depth;
+  }
+
   std::string templateArguments(const ClassTemplateSpecializationDecl* specialization) const {
     std::vector<std::string> rendered;
     for (const TemplateArgument& argument : specialization->getTemplateArgs().asArray()) {
@@ -358,6 +375,7 @@ class Indexer {
       fields.push_back(llvm::json::Object{
           {"name", field->getNameAsString()},
           {"type", typeName(field->getType())},
+          {"pointer_depth", pointerDepth(field->getType())},
           {"source_file", relative(where.file)},
           {"line", where.line},
       });

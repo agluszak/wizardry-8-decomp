@@ -127,7 +127,7 @@ public class Wiz8Audit extends GhidraScript {
 					failures.add(failure("missing-pdb-field", name, fieldName));
 					continue;
 				}
-				int expectedDepth = sourcePointerDepth(sourceField.get("type").getAsString());
+				int expectedDepth = pointerDepth(sourceField);
 				int actualDepth = pointerDepth(actual.getDataType());
 				if (expectedDepth > 0 && expectedDepth != actualDepth) {
 					JsonObject failure = failure("source-field-pointer-depth", name, fieldName);
@@ -232,14 +232,13 @@ public class Wiz8Audit extends GhidraScript {
 		return depth;
 	}
 
-	private static int sourcePointerDepth(String spelling) {
-		int depth = 0;
-		String current = spelling.stripTrailing();
-		while (current.endsWith("*")) {
-			depth++;
-			current = current.substring(0, current.length() - 1).stripTrailing();
+	private static int pointerDepth(JsonObject sourceField) {
+		if (!sourceField.has("pointer_depth") || sourceField.get("pointer_depth").isJsonNull()) {
+			throw new IllegalArgumentException(
+				"source index field lacks pointer_depth; rebuild the source index: "
+					+ sourceField);
 		}
-		return depth;
+		return sourceField.get("pointer_depth").getAsInt();
 	}
 
 	private static boolean isBase(DataTypeComponent component) {

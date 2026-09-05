@@ -422,12 +422,14 @@ def recover_function(
     """
 
     from .build import build_target
+    from .ghidra.env import open_program
+    from .ghidra.query import resolve_function_selectors as resolve_ghidra_selectors
     from .ghidra.recovery import recover_functions
     from .reccmp_workflows import compare_selected
-    from .selectors import resolve_function_selectors
     from .source_model import load_source_index
 
-    resolved = resolve_function_selectors(settings.repo_dir, [selection])
+    with open_program(settings, program_selector) as program:
+        resolved = resolve_ghidra_selectors(program, [selection])
     if len(resolved) != 1:
         raise ValueError("recover function takes exactly one function selector")
     address = resolved[0]
@@ -542,12 +544,14 @@ def regress(
     program_selector: str = "wiz8",
 ) -> dict[str, Any]:
     from .build import build_target
+    from .ghidra.env import open_program
+    from .ghidra.query import resolve_function_selectors as resolve_ghidra_selectors
     from .ghidra.recovery import recover_functions
     from .reccmp_workflows import compare_selected
-    from .selectors import resolve_function_selectors
     from .source_model import load_source_index
 
-    addresses = resolve_function_selectors(settings.repo_dir, selections)
+    with open_program(settings, program_selector) as program:
+        addresses = resolve_ghidra_selectors(program, selections)
     if not addresses:
         raise ValueError("pass one or more function addresses")
 

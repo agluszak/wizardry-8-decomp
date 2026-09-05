@@ -13,25 +13,6 @@ from ..paths import atomic_write
 from .workspace import resolve_seed_program
 
 
-def parse_selection(text: str) -> tuple[int, int | None]:
-    """Parse ``0xADDR`` or an inclusive ``0xSTART:0xEND`` entry range."""
-
-    raw = text.strip()
-    if not raw:
-        raise ValueError("empty selection")
-    start_text, separator, end_text = raw.partition(":")
-    try:
-        start = int(start_text, 0)
-        end = int(end_text, 0) if separator else None
-    except ValueError as error:
-        raise ValueError(f"invalid selection {text!r}: {error}") from error
-    if start < 0 or (end is not None and end < 0):
-        raise ValueError(f"invalid selection {text!r}: addresses must be non-negative")
-    if end is not None and end < start:
-        raise ValueError(f"invalid selection {text!r}: range end precedes start")
-    return start, end
-
-
 def _program_name(settings: Settings, selector: str) -> str:
     # Seed restoration is idempotent and owns the project/checkout guard.  A
     # recovery command should not require agents to manage that lifecycle.
@@ -99,15 +80,17 @@ def _recover(
 ) -> dict[str, Any]:
     if not selections:
         raise ValueError("pass at least one function address or range")
-    for selection in selections:
-        parse_selection(selection)
-    args = ["--source-index", str(settings.build_dir / "source-index.json")]
-    if explain:
-        args.append("--explain")
-    args.extend(selections)
     from .env import open_program
+    from .query import resolve_function_selectors
 
     with open_program(settings, program_selector) as program:
+        normalized = [
+            f"0x{address:08x}" for address in resolve_function_selectors(program, list(selections))
+        ]
+        args = ["--source-index", str(settings.build_dir / "source-index.json")]
+        if explain:
+            args.append("--explain")
+        args.extend(normalized)
         return _execute_script(settings, program, "Wiz8Recover.java", args)
 
 
@@ -187,9 +170,13 @@ def explain_functions(
 ) -> dict[str, Any]:
     """Format structured recovery facts for addresses, ranges, or mixed selections."""
 
-    from ..selectors import recovery_selections
+    from .env import open_program
+    from .query import resolve_function_selectors
 
-    normalized = recovery_selections(settings.repo_dir, selections)
+    with open_program(settings, program_selector) as program:
+        normalized = [
+            f"0x{address:08x}" for address in resolve_function_selectors(program, selections)
+        ]
     result = _recover(settings, normalized, program_selector=program_selector, explain=True)
     lines: list[str] = []
     functions: list[dict[str, Any]] = []

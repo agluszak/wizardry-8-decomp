@@ -36,7 +36,7 @@ def test_listing_and_decompile_do_not_repeat_function_metadata(monkeypatch) -> N
 
     function = Function()
     monkeypatch.setattr(query_module, "_function", lambda *_args: function)
-    monkeypatch.setattr(query_module, "function_metadata", lambda *_args: {"large": "metadata"})
+    monkeypatch.setattr(query_module, "function_facts", lambda *_args: {"large": "metadata"})
     from wiz8decomp.ghidra import semantic
 
     monkeypatch.setattr(semantic, "decompile_c", lambda *_args: {"decompiled": "body"})

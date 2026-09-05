@@ -14,14 +14,14 @@ def _root(event: dict[str, Any]) -> Path:
     cwd = Path(str(event.get("cwd") or os.getcwd())).resolve()
     try:
         result = subprocess.run(
-            ["git", "rev-parse", "--show-toplevel"],
+            ["jj", "root"],
             cwd=cwd,
             capture_output=True,
             text=True,
             timeout=1,
             check=False,
         )
-        if result.returncode == 0:
+        if result.returncode == 0 and result.stdout.strip():
             return Path(result.stdout.strip()).resolve()
     except (OSError, subprocess.SubprocessError):
         pass

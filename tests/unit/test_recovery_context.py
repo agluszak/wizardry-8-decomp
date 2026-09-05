@@ -157,10 +157,9 @@ def test_multiple_contexts_use_one_ghidra_session(tmp_path, monkeypatch) -> None
     )
     calls = 0
 
-    def fake_query_many(_settings, _selector, builder, **_kwargs):
+    def fake_query_many(_program, queries, **_kwargs):
         nonlocal calls
         calls += 1
-        queries, metadata, _seeds = builder(object())
         results = []
         for command, arguments in queries:
             if command == "function-of":
@@ -176,25 +175,27 @@ def test_multiple_contexts_use_one_ghidra_session(tmp_path, monkeypatch) -> None
                         "size": 1,
                         "callers": [],
                         "referenced_strings": [],
+                        "calls": [],
+                        "data_references": [],
+                        "vptr_references": [],
+                        "exception_metadata": [],
                     }
                 }
             elif command == "decompile":
                 result = {"decompiled": "void f() {}"}
-            elif command == "function-facts":
-                result = {
-                    "calls": [],
-                    "data_references": [],
-                    "vptr_references": [],
-                    "exception_metadata": [],
-                }
             elif command == "indirect-calls":
                 result = {"calls": []}
             else:
                 raise AssertionError(command)
             results.append({"command": command, "arguments": arguments, "result": result})
-        return results, "pyghidra", metadata
+        return results
 
-    monkeypatch.setattr(recovery_context, "query_many_dynamic", fake_query_many)
+    import contextlib
+
+    monkeypatch.setattr(recovery_context, "query_many", fake_query_many)
+    monkeypatch.setattr(
+        recovery_context, "open_program", lambda *_args, **_kwargs: contextlib.nullcontext(object())
+    )
 
     contexts = recovery_context.recovery_context_reports(settings, ["a", "b"])
 

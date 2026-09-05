@@ -19,8 +19,12 @@ def debug_artifacts_command(
     from ..debug_artifacts import sweep_debug_artifacts
 
     cli.run_action(
-        lambda: sweep_debug_artifacts(
-            cli.settings(), update_snapshot=update_snapshot, archive_password=archive_password
+        lambda: cli.summary(
+            sweep_debug_artifacts(
+                cli.settings(),
+                update_snapshot=update_snapshot,
+                archive_password=archive_password,
+            )
         )
     )
 
@@ -29,7 +33,9 @@ def surrender_abi_command(update_snapshot: bool = typer.Option(False, "--update-
     from .. import command_support as cli
     from ..surrender_abi import sweep_surrender_abi
 
-    cli.run_action(lambda: sweep_surrender_abi(cli.settings(), update_snapshot=update_snapshot))
+    cli.run_action(
+        lambda: cli.summary(sweep_surrender_abi(cli.settings(), update_snapshot=update_snapshot))
+    )
 
 
 refresh_app.command("debug-artifacts")(debug_artifacts_command)
@@ -42,7 +48,7 @@ def validate_command(program: str = typer.Option("wiz8", "--program")) -> None:
     from .. import command_support as cli
     from ..evidence.validate import require_valid_repository
 
-    cli.run_action(lambda: require_valid_repository(cli.settings().repo_dir, program))
+    cli.run_action(lambda: cli.summary(require_valid_repository(cli.settings().repo_dir, program)))
 
 
 @app.command("validate-ghidra")
@@ -51,4 +57,4 @@ def validate_ghidra_command(program: str = typer.Option("wiz8", "--program")) ->
     from .. import command_support as cli
     from ..evidence.claims import validate_claims_against_ghidra
 
-    cli.run_action(lambda: validate_claims_against_ghidra(cli.settings(), program))
+    cli.run_action(lambda: cli.summary(validate_claims_against_ghidra(cli.settings(), program)))

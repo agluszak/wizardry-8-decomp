@@ -15,22 +15,18 @@ def class_command(
 ) -> None:
     """Report class fields, vtables, and binary references from live Ghidra."""
     from .. import command_support as cli
+    from ..ghidra.env import open_program
     from ..ghidra.query import query_many
-    from ..paths import atomic_json
 
     def action() -> Any:
         settings = cli.settings()
-        rows, _transport = query_many(
-            settings, program, [("class-facts", [name]), ("class-fields", [name])]
-        )
+        with open_program(settings, program) as live:
+            rows = query_many(live, [("class-facts", [name]), ("class-fields", [name])])
         result = {
             **rows[0]["result"],
             "schema": "wiz8.class-report",
             "classes": rows[1]["result"]["classes"],
         }
-        output = settings.build_dir / "reports" / "classes" / f"{name.replace('::', '_')}.json"
-        atomic_json(output, result)
-        result["outputs"] = [str(output.relative_to(settings.repo_dir))]
         lines = [name]
         for item in result["classes"]:
             lines.extend(
@@ -42,7 +38,6 @@ def class_command(
                 f"  vtable {table['address']} {table['name']} "
                 f"({len(table['references'])} references)"
             )
-        lines.append(f"artifact: {result['outputs'][0]}")
         return cli.human("\n".join(lines), result)
 
     cli.run_action(action, force_json=json_output)
@@ -53,23 +48,19 @@ def data_command(address: Annotated[str, typer.Argument(help="Data address")]) -
     """Report one typed datum and its live Ghidra references."""
     from .. import command_support as cli
     from ..ghidra.query import data_facts
-    from ..paths import atomic_json
 
     def action() -> Any:
         settings = cli.settings()
         entry = int(address, 0)
         result = {"schema": "wiz8.data-report", "data": data_facts(settings, {entry})}
-        output = settings.build_dir / "reports" / "data" / f"{entry:08x}.json"
-        atomic_json(output, result)
-        data = {**result, "outputs": [str(output.relative_to(settings.repo_dir))]}
-        facts = data["data"]
+        facts = result["data"]
         return cli.human(
             "\n".join(
                 f"{row['address']} {row.get('name') or '(unnamed)'} "
                 f"{row.get('type', 'undefined')} ({len(row.get('references', []))} references)"
                 for row in facts
             ),
-            data,
+            result,
         )
 
     cli.run_action(action)

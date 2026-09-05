@@ -179,7 +179,7 @@ def _symbol_entry(symbol: Any) -> dict[str, Any]:
 def high_function(program: Any, argument: str) -> dict[str, Any]:
     """Prototype, parameters, locals and high variables of one function."""
 
-    from .query import _function, function_metadata
+    from .query import _function, function_facts
 
     function = _function(program, argument)
     high = _high_function(program, function)
@@ -194,7 +194,7 @@ def high_function(program: Any, argument: str) -> dict[str, Any]:
         if not symbol.isParameter():
             locals_.append(_symbol_entry(symbol))
     return {
-        "function": function_metadata(program, function),
+        "function": function_facts(program, function),
         "return_type": (
             prototype.getReturnType().getDisplayName() if prototype.getReturnType() else None
         ),

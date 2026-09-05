@@ -164,7 +164,7 @@ def test_markdown_renders_the_report_it_is_given(repository: Path) -> None:
     assert "Owned gameplay matching" in markdown
 
 
-def test_status_report_writes_json_and_markdown_under_build(
+def test_status_report_writes_no_artifact_files(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     repository: Path,
@@ -178,12 +178,7 @@ def test_status_report_writes_json_and_markdown_under_build(
 
     result = status_report(settings)
 
-    assert result["outputs"] == ["build/reports/status.json", "build/reports/status.md"]
-    assert (
-        json.loads((settings.build_dir / "reports/status.json").read_text(encoding="utf-8"))[
-            "schema"
-        ]
-        == "wiz8.recovery-status"
-    )
-    markdown = (settings.build_dir / "reports/status.md").read_text(encoding="utf-8")
-    assert "# Wizardry recovery status" in markdown
+    assert "outputs" not in result
+    assert result["schema"] == "wiz8.recovery-status"
+    assert not (settings.build_dir / "reports/status.json").exists()
+    assert not (settings.build_dir / "reports/status.md").exists()

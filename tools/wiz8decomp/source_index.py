@@ -171,6 +171,7 @@ class _RecordCollector(_AstCollector):
     def __init__(self, repository: Path) -> None:
         super().__init__(repository)
         self.source_metadata: dict[str, dict[str, Any]] = {}
+        self.field_pointer_depths: dict[str, dict[str, int]] = {}
 
     def collect_records(self, records: str) -> None:
         for line in records.splitlines():
@@ -196,17 +197,24 @@ class _RecordCollector(_AstCollector):
                         "parameter_reference_forms": parameter_reference_forms or [],
                     }
         elif kind == "class":
+            fields = record["fields"]
+            pointer_depths = {
+                field["name"]: field.pop("pointer_depth")
+                for field in fields
+                if "pointer_depth" in field
+            }
             source_class = SourceClass(
                 **{
                     **record,
                     "bases": tuple(record["bases"]),
-                    "fields": tuple(SourceField(**field) for field in record["fields"]),
+                    "fields": tuple(SourceField(**field) for field in fields),
                     "virtual_declarations": tuple(record["virtual_declarations"]),
                 }
             )
             previous = self.classes.get(source_class.semantic_id)
             if previous is None or (not previous.line and source_class.line):
                 self.classes[source_class.semantic_id] = source_class
+                self.field_pointer_depths[source_class.semantic_id] = pointer_depths
         elif kind == "size-assertion":
             name = record["qualified_name"]
             asserted_size = record["asserted_size"]
@@ -282,7 +290,9 @@ def _emit_batch(
     subprocess.run(command, check=False, capture_output=True)
 
 
-def build_source_index(settings: Settings) -> tuple[SourceIndex, dict[str, dict[str, Any]]]:
+def build_source_index(
+    settings: Settings,
+) -> tuple[SourceIndex, dict[str, dict[str, Any]], dict[str, dict[str, int]]]:
     """Replay clang-cl compile commands and join their records with the markers."""
 
     repository = settings.repo_dir.resolve()
@@ -329,7 +339,7 @@ def build_source_index(settings: Settings) -> tuple[SourceIndex, dict[str, dict[
         classes=(item for index in indexes for item in index.classes),
         markers=(item for index in indexes for item in index.markers),
     )
-    return index, collector.source_metadata
+    return index, collector.source_metadata, collector.field_pointer_depths
 
 
 def _summary(settings: Settings, index: SourceIndex) -> dict[str, Any]:
@@ -342,7 +352,10 @@ def _summary(settings: Settings, index: SourceIndex) -> dict[str, Any]:
 
 
 def _index_document(
-    repository: Path, index: SourceIndex, source_metadata: dict[str, dict[str, Any]]
+    repository: Path,
+    index: SourceIndex,
+    source_metadata: dict[str, dict[str, Any]],
+    field_pointer_depths: dict[str, dict[str, int]],
 ) -> dict[str, Any]:
     """Retain marker properties that reccmp's v1 projection omits.
 
@@ -359,6 +372,11 @@ def _index_document(
         metadata = source_metadata.get(declaration["semantic_id"])
         if metadata is not None:
             declaration.update(metadata)
+    for source_class in document["classes"]:
+        depths = field_pointer_depths.get(source_class["semantic_id"], {})
+        for field in source_class["fields"]:
+            if field["name"] in depths:
+                field["pointer_depth"] = depths[field["name"]]
     for marker in document["markers"]:
         declaration = marker.get("declaration")
         if declaration:
@@ -432,10 +450,13 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
             "reused": True,
         }
 
-    index, source_metadata = build_source_index(settings)
+    index, source_metadata, field_pointer_depths = build_source_index(settings)
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(
-        json.dumps(_index_document(repository, index, source_metadata), indent=2) + "\n",
+        json.dumps(
+            _index_document(repository, index, source_metadata, field_pointer_depths), indent=2
+        )
+        + "\n",
         encoding="utf-8",
     )
     stamp.parent.mkdir(parents=True, exist_ok=True)

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import re
-from collections.abc import Callable
 from typing import Any
 
 
@@ -25,7 +24,7 @@ def _function(program: Any, text: str) -> Any:
     manager = program.getFunctionManager()
     try:
         address = _address(program, text)
-    except ValueError:
+    except Exception:  # noqa: BLE001 - Ghidra throws AddressFormatException, not ValueError
         matches = []
         iterator = manager.getFunctions(True)
         while iterator.hasNext():
@@ -77,16 +76,23 @@ def resolve_function_selectors(program: Any, values: list[str]) -> list[int]:
     return sorted(selected)
 
 
-def function_metadata(program: Any, function: Any) -> dict[str, Any]:
+def function_facts(program: Any, function: Any) -> dict[str, Any]:
+    """One instruction traversal: identity, callers, calls, data, and EH facts."""
+
     from ghidra.program.model.listing import CodeUnit
 
-    manager = program.getFunctionManager()
     references = program.getReferenceManager()
-    body = function.getBody()
+    symbols = program.getSymbolTable()
     listing = program.getListing()
+    body = function.getBody()
     instructions = list(listing.getInstructions(body, True))
     raw = bytearray()
     mnemonic_parts = []
+    calls: list[dict[str, Any]] = []
+    data: list[dict[str, Any]] = []
+    vptrs: list[dict[str, Any]] = []
+    exception_metadata: list[dict[str, Any]] = []
+    strings = []
     for instruction in instructions:
         try:
             raw.extend(instruction.getBytes())
@@ -96,41 +102,49 @@ def function_metadata(program: Any, function: Any) -> dict[str, Any]:
             str(instruction.getOperandType(index)) for index in range(instruction.getNumOperands())
         ]
         mnemonic_parts.append(instruction.getMnemonicString() + ":" + ",".join(operand_types))
+        for reference in references.getReferencesFrom(instruction.getAddress()):
+            target = reference.getToAddress()
+            symbol = symbols.getPrimarySymbol(target)
+            name = symbol.getName(True) if symbol is not None else ""
+            fact = {
+                "site": str(instruction.getAddress()),
+                "target": str(target),
+                "name": name,
+                "instruction": str(instruction),
+            }
+            if reference.getReferenceType().isCall():
+                calls.append(fact)
+                datum = listing.getDataAt(target)
+                if datum is not None and datum.hasStringValue():
+                    strings.append(str(datum.getValue()))
+                continue
+            if not reference.getReferenceType().isData():
+                continue
+            fact["access"] = reference.getReferenceType().getName()
+            datum = listing.getDataAt(target)
+            if datum is not None and datum.hasStringValue():
+                fact["kind"] = "string"
+                strings.append(str(datum.getValue()))
+            elif name.startswith("PTR_") and instruction.getMnemonicString().upper() == "CALL":
+                fact["kind"] = "import-pointer"
+            elif program.getMemory().contains(target):
+                fact["kind"] = "program-data"
+            else:
+                fact["kind"] = "raw"
+            data.append(fact)
+            folded = name.casefold()
+            if "vftable" in folded:
+                vptrs.append(dict(fact))
+            if any(value in folded for value in ("funcinfo", "unwind", "ehhandler")):
+                exception_metadata.append(dict(fact))
     callers = sorted(
         {str(ref.getFromAddress()) for ref in references.getReferencesTo(function.getEntryPoint())}
     )
-    callees = sorted(
-        {
-            str(ref.getToAddress())
-            for instruction in instructions
-            for ref in references.getReferencesFrom(instruction.getAddress())
-            if manager.getFunctionAt(ref.getToAddress()) is not None
-        }
-    )
-    data_references = sorted(
-        (
-            {
-                "site": str(reference.getFromAddress()),
-                "target": str(reference.getToAddress()),
-                "access": str(reference.getReferenceType()),
-            }
-            for instruction in instructions
-            for reference in references.getReferencesFrom(instruction.getAddress())
-            if manager.getFunctionAt(reference.getToAddress()) is None
-            and program.getMemory().contains(reference.getToAddress())
-        ),
-        key=lambda item: (item["site"], item["target"], item["access"]),
-    )
-    strings = []
-    for instruction in instructions:
-        for reference in references.getReferencesFrom(instruction.getAddress()):
-            data = listing.getDataAt(reference.getToAddress())
-            if data is not None and data.hasStringValue():
-                strings.append(str(data.getValue()))
     return {
         "entry": str(function.getEntryPoint()),
         "size": body.getNumAddresses(),
         "name": function.getName(),
+        "qualified_name": function.getName(True),
         "namespace": str(function.getParentNamespace()),
         "thunk": bool(function.isThunk()),
         "thunk_target": str(function.getThunkedFunction(False).getEntryPoint())
@@ -140,11 +154,11 @@ def function_metadata(program: Any, function: Any) -> dict[str, Any]:
         "prototype": function.getPrototypeString(False, False),
         "plate_comment": listing.getComment(CodeUnit.PLATE_COMMENT, function.getEntryPoint()),
         "caller_count": len(callers),
-        "callee_count": len(callees),
         "callers": callers,
-        "callees": callees,
-        "data_references": data_references,
-        "instruction_addresses": [str(instruction.getAddress()) for instruction in instructions],
+        "calls": calls,
+        "data_references": data,
+        "vptr_references": vptrs,
+        "exception_metadata": exception_metadata,
         "referenced_strings": sorted(set(strings), key=str.casefold),
         "raw_body_sha256": hashlib.sha256(raw).hexdigest(),
         "instruction_fingerprint_sha256": hashlib.sha256(
@@ -167,55 +181,6 @@ def _decompile(program: Any, argument: str) -> dict[str, Any]:
 
     function = _function(program, argument)
     return decompile_c(program, function)
-
-
-def _function_facts(program: Any, argument: str) -> dict[str, Any]:
-    function = _function(program, argument)
-    symbols = program.getSymbolTable()
-    calls: list[dict[str, Any]] = []
-    data: list[dict[str, Any]] = []
-    vptrs: list[dict[str, Any]] = []
-    exception_metadata: list[dict[str, Any]] = []
-    listing = program.getListing()
-    instructions = program.getListing().getInstructions(function.getBody(), True)
-    while instructions.hasNext():
-        instruction = instructions.next()
-        for reference in instruction.getReferencesFrom():
-            symbol = symbols.getPrimarySymbol(reference.getToAddress())
-            name = symbol.getName(True) if symbol is not None else ""
-            fact = {
-                "site": str(instruction.getAddress()),
-                "target": str(reference.getToAddress()),
-                "name": name,
-                "instruction": str(instruction),
-            }
-            if reference.getReferenceType().isCall():
-                calls.append(fact)
-            elif reference.getReferenceType().isData():
-                fact["access"] = reference.getReferenceType().getName()
-                datum = listing.getDataAt(reference.getToAddress())
-                if datum is not None and datum.hasStringValue():
-                    fact["kind"] = "string"
-                elif name.startswith("PTR_") and instruction.getMnemonicString().upper() == "CALL":
-                    fact["kind"] = "import-pointer"
-                elif program.getMemory().contains(reference.getToAddress()):
-                    fact["kind"] = "program-data"
-                else:
-                    fact["kind"] = "raw"
-                data.append(fact)
-                folded = name.casefold()
-                if "vftable" in folded:
-                    vptrs.append(dict(fact))
-                if any(value in folded for value in ("funcinfo", "unwind", "ehhandler")):
-                    exception_metadata.append(dict(fact))
-    return {
-        "entry": str(function.getEntryPoint()),
-        "name": function.getName(True),
-        "calls": calls,
-        "data_references": data,
-        "vptr_references": vptrs,
-        "exception_metadata": exception_metadata,
-    }
 
 
 def _class_fields(program: Any, names: list[str]) -> dict[str, Any]:
@@ -471,9 +436,7 @@ def execute_query(program: Any, command: str, arguments: list[str]) -> dict[str,
             {"xrefs": "both", "xrefs-to": "to", "xrefs-from": "from"}[command],
         )
     if command == "function":
-        return {"function": function_metadata(program, _function(program, arguments[0]))}
-    if command == "function-facts":
-        return _function_facts(program, arguments[0])
+        return {"function": function_facts(program, _function(program, arguments[0]))}
     if command == "class-fields":
         return _class_fields(program, arguments)
     if command == "class-facts":
@@ -535,7 +498,6 @@ def validate_query_arguments(command: str, arguments: list[str]) -> None:
         "xrefs-to": 1,
         "xrefs-from": 1,
         "function": 1,
-        "function-facts": 1,
         "indirect-calls": 1,
         "function-of": 1,
         "read-data": 2,
@@ -567,67 +529,48 @@ def validate_query_arguments(command: str, arguments: list[str]) -> None:
 
 
 def query_many(
-    settings: Any,
-    selector: str,
+    program: Any,
     queries: list[tuple[str, list[str]]],
     *,
     function_seeds: list[str] | None = None,
-) -> tuple[list[dict[str, Any]], str]:
-    """Run an ordered query batch in one ordinary short-lived project owner."""
+) -> list[dict[str, Any]]:
+    """Run an ordered query batch against an open Program."""
 
-    results, transport, _ = query_many_dynamic(
-        settings, selector, lambda _program: (queries, None, function_seeds)
-    )
-    return results, transport
+    if not queries:
+        raise ValueError("at least one query is required")
+    for command, arguments in queries:
+        validate_query_arguments(command, arguments)
+    transaction = None
+    try:
+        if function_seeds:
+            from ghidra.app.cmd.disassemble import DisassembleCommand
+            from ghidra.app.cmd.function import CreateFunctionCmd
 
+            transaction = program.startTransaction("disposable function seeds")
+            for seed in function_seeds:
+                address = _address(program, seed)
+                if program.getFunctionManager().getFunctionContaining(address) is not None:
+                    continue
+                if program.getListing().getInstructionAt(
+                    address
+                ) is None and not DisassembleCommand(address, None, True).applyTo(program):
+                    raise ValueError(f"could not disassemble function seed {address}")
+                if not CreateFunctionCmd(address).applyTo(program):
+                    raise ValueError(f"could not create function seed {address}")
+        return [
+            {
+                "command": command,
+                "arguments": arguments,
+                "result": execute_query(program, command, arguments),
+            }
+            for command, arguments in queries
+        ]
+    finally:
+        from .semantic import dispose_sessions
 
-def query_many_dynamic(
-    settings: Any,
-    selector: str,
-    builder: Callable[[Any], tuple[list[tuple[str, list[str]]], Any, list[str] | None]],
-) -> tuple[list[dict[str, Any]], str, Any]:
-    """Build and execute a query batch after opening its Program once."""
-
-    from .env import open_program
-
-    with open_program(settings, selector) as program:
-        queries, metadata, function_seeds = builder(program)
-        if not queries:
-            raise ValueError("at least one query is required")
-        for command, arguments in queries:
-            validate_query_arguments(command, arguments)
-        transaction = None
-        try:
-            if function_seeds:
-                from ghidra.app.cmd.disassemble import DisassembleCommand
-                from ghidra.app.cmd.function import CreateFunctionCmd
-
-                transaction = program.startTransaction("disposable function seeds")
-                for seed in function_seeds:
-                    address = _address(program, seed)
-                    if program.getFunctionManager().getFunctionContaining(address) is not None:
-                        continue
-                    if program.getListing().getInstructionAt(
-                        address
-                    ) is None and not DisassembleCommand(address, None, True).applyTo(program):
-                        raise ValueError(f"could not disassemble function seed {address}")
-                    if not CreateFunctionCmd(address).applyTo(program):
-                        raise ValueError(f"could not create function seed {address}")
-            results = [
-                {
-                    "command": command,
-                    "arguments": arguments,
-                    "result": execute_query(program, command, arguments),
-                }
-                for command, arguments in queries
-            ]
-        finally:
-            from .semantic import dispose_sessions
-
-            dispose_sessions()
-            if transaction is not None:
-                program.endTransaction(transaction, False)
-    return results, "pyghidra", metadata
+        dispose_sessions()
+        if transaction is not None:
+            program.endTransaction(transaction, False)
 
 
 def query(
@@ -637,27 +580,26 @@ def query(
     arguments: list[str],
     *,
     function_seeds: list[str] | None = None,
-) -> tuple[dict[str, Any], str]:
-    results, transport = query_many(
-        settings, selector, [(command, arguments)], function_seeds=function_seeds
-    )
-    return results[0]["result"], transport
+) -> dict[str, Any]:
+    from .env import open_program
+
+    with open_program(settings, selector) as program:
+        return query_many(program, [(command, arguments)], function_seeds=function_seeds)[0][
+            "result"
+        ]
 
 
 def function_inventory(settings: Any, selector: str = "wiz8") -> list[dict[str, str]]:
-    result, _ = query(settings, selector, "function-inventory", [])
-    return list(result["functions"])
+    return list(query(settings, selector, "function-inventory", [])["functions"])
 
 
 def validate_function_entries(
     settings: Any, entries: set[int], selector: str = "wiz8"
 ) -> dict[str, Any]:
     arguments = [f"0x{entry:08x}" for entry in sorted(entries)]
-    result, _ = query(settings, selector, "function-exists", arguments)
-    return result
+    return query(settings, selector, "function-exists", arguments)
 
 
 def data_facts(settings: Any, entries: set[int], selector: str = "wiz8") -> list[dict[str, Any]]:
     arguments = [f"0x{entry:08x}" for entry in sorted(entries)]
-    result, _ = query(settings, selector, "data-facts", arguments)
-    return list(result["data"])
+    return list(query(settings, selector, "data-facts", arguments)["data"])

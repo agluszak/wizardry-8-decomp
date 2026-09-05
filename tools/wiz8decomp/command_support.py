@@ -90,8 +90,6 @@ def run_action(action: Any, *, force_json: bool = False) -> None:
     try:
         value = action()
         if value is not None:
-            if isinstance(value, (dict, list)) and not (_JSON_OUTPUT or force_json):
-                value = summary(value)
             emit(value, force_json=force_json)
     except Exception as error:
         if logger.isEnabledFor(logging.DEBUG):

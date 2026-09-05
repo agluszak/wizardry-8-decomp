@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Any
 
 from ..evidence.claims import load_claims
-from ..ghidra.query import query_many_dynamic, resolve_function_selectors
+from ..ghidra.env import open_program
+from ..ghidra.query import query_many, resolve_function_selectors
 from ..ghidra.unit_intervals import TranslationUnitResolver
 from ..ghidra.workspace import resolve_seed_program
 from ..source_model import build_source_model, load_source_index
@@ -68,7 +69,6 @@ def _markdown(context: dict[str, Any]) -> str:
         f"- Reviewed identity: `{reviewed_name}`",
         f"- Reviewed classes: {', '.join(context['reviewed']['class_names']) or 'none'}",
         f"- Assertions: {len(context['assertions'])}",
-        f"- EH cleanups: {len(context['eh']['unwind'])}",
         f"- Named globals: {len(context['globals'])}",
         f"- Vptr writes: {len(context['polymorphism']['vptr_writes'])}",
         f"- Field accesses: {len(context.get('field_accesses', {}).get('accesses', []))}",
@@ -153,23 +153,6 @@ def _markdown(context: dict[str, Any]) -> str:
             lines.append("| " + " | ".join(value.replace("|", "\\|") for value in values) + " |")
         lines.append("")
 
-    if context["eh"]["unwind"]:
-        lines.extend(
-            [
-                "## EH locals",
-                "",
-                "| State | Frame slot | Kind | Destructor |",
-                "|---:|---:|---|---|",
-            ]
-        )
-        for row in context["eh"]["unwind"]:
-            destructor = row["import_signature"] or row["import_name"] or row["target"]
-            lines.append(
-                f"| {row['state']} | {row['frame_offset']} | {row['kind']} | "
-                f"{destructor.replace('|', '\\|')} |"
-            )
-        lines.append("")
-
     if context["globals"]:
         lines.extend(
             [
@@ -246,7 +229,7 @@ def recovery_context_reports(
     )
     source_model = build_source_model(settings.repo_dir) if has_canonical_addresses else None
 
-    def build_queries(program: Any):
+    with open_program(settings, selector) as program:
         requested_entries = resolve_function_selectors(program, selectors)
         assertions_by_entry = {
             requested: [
@@ -279,7 +262,6 @@ def recovery_context_reports(
                 [
                     ("function", [address]),
                     ("decompile", [address]),
-                    ("function-facts", [address]),
                     ("indirect-calls", [address]),
                 ]
             )
@@ -304,10 +286,7 @@ def recovery_context_reports(
                 and (source_model is None or requested not in source_model.functions)
             )
         ]
-        return queries, (requested_entries, assertions_by_entry), function_seeds or None
-
-    results, transport, metadata = query_many_dynamic(settings, selector, build_queries)
-    requested_entries, assertions_by_entry = metadata
+        results = query_many(program, queries, function_seeds=function_seeds or None)
     raw_boundaries = results[0]["result"]["functions"]
     boundaries = {
         int(item_address, 0): int(owner, 16) if owner is not None else None
@@ -339,7 +318,6 @@ def recovery_context_reports(
     for requested in requested_entries:
         function = result_for("function", requested)["function"]
         entry = int(function["entry"], 16)
-        function_fact = result_for("function-facts", requested)
         source_function = source_model.functions.get(entry) if source_model is not None else None
         requested_assertions = assertions_by_entry[requested]
         assertions = [
@@ -348,8 +326,7 @@ def recovery_context_reports(
             if row.get("containing_function") and int(row["containing_function"], 16) == entry
         ]
         boundary_defects = _assertion_boundary_defects(requested_assertions, boundaries)
-        auto_discover = boundaries.get(requested) is None and bool(requested_assertions)
-        raw_references = list(function_fact["data_references"])
+        raw_references = list(function["data_references"])
         globals_joined = [
             row
             for row in raw_references
@@ -361,13 +338,13 @@ def recovery_context_reports(
                 for marker in ("vftable", "funcinfo", "unwind", "ehhandler")
             )
         ]
-        vptr_writes = [{**row, "vtable": row["target"]} for row in function_fact["vptr_references"]]
+        vptr_writes = [{**row, "vtable": row["target"]} for row in function["vptr_references"]]
         tables = {
             row["target"]: {
                 "address": row["target"],
                 "name": row["name"],
             }
-            for row in function_fact["vptr_references"]
+            for row in function["vptr_references"]
         }
         table_addresses = set(tables)
         function_claims = [
@@ -429,11 +406,7 @@ def recovery_context_reports(
             "program": program_name,
             "requested_address": f"0x{requested:08x}",
             "entry": entry,
-            "transport": transport,
-            "deep": deep,
-            "discovered": discover or auto_discover,
             "boundary_defects": boundary_defects,
-            "root": root if semantic_fields else None,
             "translation_unit": unit
             if has_canonical_addresses
             else {"source_path": "", "attribution": "non-canonical", "alternatives": []},
@@ -460,9 +433,8 @@ def recovery_context_reports(
                 ],
             },
             "assertions": assertions,
-            "runtime_class_names": [],
-            "eh": {"metadata": function_fact["exception_metadata"], "unwind": []},
-            "calls": function_fact["calls"],
+            "eh": {"metadata": function["exception_metadata"]},
+            "calls": function["calls"],
             "globals": globals_joined,
             "raw_references": raw_references,
             "match": match,
@@ -475,15 +447,6 @@ def recovery_context_reports(
                 "function": function,
                 "decompiled": result_for("decompile", requested)["decompiled"] or "",
                 "listing": listing,
-            },
-            "counts": {
-                "assertions": len(assertions),
-                "eh_cleanups": 0,
-                "global_references": len(globals_joined),
-                "raw_references": len(raw_references),
-                "vptr_writes": len(vptr_writes),
-                "field_accesses": len(semantic_fields.get("accesses", [])),
-                "indirect_calls": len(indirect_calls),
             },
         }
         contexts.append(context)

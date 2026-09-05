@@ -5,7 +5,6 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from ..paths import atomic_json, atomic_write
 from ..source_model import build_source_model, load_source_index
 from .translation_units import (
     derive_intervals,
@@ -147,16 +146,4 @@ def render_status_markdown(report: dict[str, Any]) -> str:
 def status_report(settings: Any) -> dict[str, Any]:
     from ..ghidra.query import function_inventory as ghidra_function_inventory
 
-    report = derive_status(settings.repo_dir, ghidra_function_inventory(settings))
-    report_dir = settings.build_dir / "reports"
-    json_path = report_dir / "status.json"
-    markdown_path = report_dir / "status.md"
-    atomic_json(json_path, report)
-    atomic_write(markdown_path, render_status_markdown(report))
-    return {
-        **report,
-        "outputs": [
-            str(json_path.relative_to(settings.build_dir.parent)),
-            str(markdown_path.relative_to(settings.build_dir.parent)),
-        ],
-    }
+    return derive_status(settings.repo_dir, ghidra_function_inventory(settings))
