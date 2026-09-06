@@ -8,12 +8,10 @@ from wiz8decomp.reccmp_workflows import (
     _sr_assert_alias_mismatch,
     addresses_from_files,
     compare_rows,
-    compare_vtables,
     run_report,
     selected_addresses,
     translate_rows,
     triage_rows,
-    vtable_count,
 )
 
 
@@ -150,8 +148,7 @@ def test_triage_preserves_structured_difference_and_inconclusive_ceiling() -> No
     )
 
     assert result["functions"][0]["difference"]["kind"] == "call_argument"
-    assert "receiver" in result["functions"][0]["guidance"]
-    assert result["functions"][1]["conclusion"] == "not evidence of a source defect"
+    assert result["functions"][1]["reason"] == "unsupported_control_flow"
 
 
 def test_address_translation_checks_both_spaces() -> None:
@@ -162,13 +159,6 @@ def test_address_translation_checks_both_spaces() -> None:
     assert result["translations"][0]["direction"] == "original-to-recompiled"
     assert result["translations"][1]["direction"] == "recompiled-to-original"
     assert result["translations"][2]["status"] == "missing"
-
-
-def test_vtable_summary_count_makes_zero_detectable() -> None:
-    assert vtable_count("Vtables found: 3.\n100% match.\n") == 3
-    assert vtable_count("Vtables found: 0.\n100% match.\n") == 0
-    with pytest.raises(ValueError, match="entity count"):
-        vtable_count("100% match.\n")
 
 
 def test_one_report_process_receives_every_selected_address(
@@ -187,23 +177,6 @@ def test_one_report_process_receives_every_selected_address(
     assert len(seen) == 1
     assert seen[0][0].count("--orig-address") == 2
     assert seen[0][1] == tmp_path / "build/decomp"
-
-
-def test_vtable_workflow_refuses_zero_entity_success(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setattr(
-        reccmp_workflows,
-        "run",
-        lambda *args, **kwargs: SimpleNamespace(
-            exit_status=0,
-            stdout="Vtables found: 0.\n100% match.\n",
-            stderr="",
-        ),
-    )
-
-    with pytest.raises(RuntimeError, match="vacuous success"):
-        compare_vtables(tmp_path, "WIZ8", None)
 
 
 def test_compare_mismatch_acquires_one_report_and_includes_triage(
@@ -243,20 +216,3 @@ def test_compare_mismatch_acquires_one_report_and_includes_triage(
     assert result["functions"][0]["difference"]["kind"] == "alignment_or_structure"
     assert result["functions"][0]["reported_difference"]["kind"] == "branch_target"
     assert result["functions"][0]["instruction_window"]["original"][0]["divergence"]
-    assert "first divergence: alignment_or_structure" in reccmp_workflows.comparison_human(result)
-
-
-def test_comparison_human_includes_inconclusive_reason() -> None:
-    result = {
-        "functions": [
-            {
-                "address": "0x00401000",
-                "name": "f",
-                "status": "inconclusive",
-                "raw_matching": 0.25,
-                "reason": "alignment_failure",
-            }
-        ]
-    }
-
-    assert "inconclusive: alignment_failure" in reccmp_workflows.comparison_human(result)

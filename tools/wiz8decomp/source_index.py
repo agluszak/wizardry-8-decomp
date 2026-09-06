@@ -26,7 +26,8 @@ def load_source_index(repository: Path) -> dict[str, Any]:
 
 
 def target_for_program(program_name: str) -> str:
-    return "SURRENDER" if "--sr--" in program_name else "WIZ8"
+    normalized = program_name.casefold()
+    return "SURRENDER" if "--sr--" in normalized or normalized == "surrender" else "WIZ8"
 
 
 def source_functions(repository: Path, target: str = "WIZ8") -> dict[int, SourceMarker]:

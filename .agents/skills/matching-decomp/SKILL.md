@@ -9,20 +9,18 @@ Use existing source ownership and current compact context. Do not fetch the same
 it is missing, stale, or contradictory. Inferred signatures and generated bodies can be wrong;
 retail instructions and call sites decide.
 
-Start with the narrow human view that answers the question:
+Start with `just context ADDRESS...` for bounded source ownership, declarations, immediate
+dependencies, and unresolved facts. It writes substantial decompiled code to the artifact path in
+each function record. Reuse the batch until its evidence changes. Use the supported direct Ghidra
+data, instruction, or rooted-flow query only for a concrete unanswered question.
 
-- `just context ADDRESS... --view summary --no-match` for ownership and signature conflicts;
-- `just context ADDRESS... --view code --no-match` for decompiled bodies;
-- `just context ADDRESS... --view dependencies --no-match` for caller/callee boundaries;
-- add `--listing --view listing` only when instructions are needed.
-
-Use full context or `--deep` only when these views omit evidence needed for a concrete question. Reuse
-a batch packet until its evidence changes. Automatic recovery is optional; an exporter decline does
-not block manual recovery from retail evidence.
+`just recover ADDRESS...` generates persistent source-aware candidate C++ without editing the source
+tree, building, or comparing. Inspect the candidate artifacts and blockers, then integrate a
+connected batch with ordinary editing tools. Uncertain placement blocks insertion, not generation.
 
 Recover ordinary C++ using canonical declarations. Make one coherent source-model change, then run
-focused comparison with `just compare ADDRESS...` or `just compare --changed`. Use `--no-build` if
-that source state was already built. Include unchanged callers when a header or ABI change affects
+focused comparison with `just compare ADDRESS...` or `just compare --changed`; comparison establishes
+incremental build freshness itself. Include unchanged callers when a header or ABI change affects
 them.
 
 Interpret the result:

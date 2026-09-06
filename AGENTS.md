@@ -20,6 +20,9 @@ Use `matching-decomp` for the operational recovery loop and comparison reasoning
 before declaring an unnamed constructor, destructor, vtable, registry family, or class. Their targeted
 references own technical examples; this file owns repository policy.
 
+Recovery commands are agent-only structured interfaces: they emit one JSON result or failure, keep
+large generated code in named `build/` artifacts, and do not provide human/JSON presentation modes.
+
 - Assume ordinary circa-2000 C++, VC6 ABI, and familiar container/lifecycle semantics unless evidence requires otherwise.
 - Never invent code absent from retail, and never omit, stub, or approximate code retail contains.
 - Do not invent wrapper types/APIs or speculative type boundaries to improve codegen. One object has one evidence-backed canonical type.

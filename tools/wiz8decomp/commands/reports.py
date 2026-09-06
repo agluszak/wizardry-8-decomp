@@ -7,11 +7,53 @@ import typer
 app = typer.Typer(help="Generate reports from collected evidence.", no_args_is_help=True)
 
 
+@app.command("instructions")
+def instructions_command(
+    selector: Annotated[str, typer.Argument(help="Function address or reviewed Ghidra name")],
+    program: str = typer.Option("wiz8", "--program"),
+) -> None:
+    """Write the selected retail instruction listing and return its path."""
+    from .. import command_support as cli
+    from ..ghidra.env import open_program
+    from ..ghidra.query import query_many
+    from ..paths import atomic_write
+
+    def action() -> dict[str, Any]:
+        import re
+
+        settings = cli.settings()
+        with open_program(settings, program) as live:
+            result = query_many(live, [("listing", [selector])])[0]["result"]
+        safe_name = re.sub(r"[^a-z0-9_-]+", "-", selector.casefold().removeprefix("0x"))
+        artifact = settings.build_dir / "context" / f"{safe_name}.asm"
+        atomic_write(artifact, str(result["listing"]).rstrip() + "\n")
+        return {"selector": selector, "instructions": str(artifact.relative_to(settings.repo_dir))}
+
+    cli.run_action(action)
+
+
+@app.command("flow")
+def flow_command(
+    selector: Annotated[str, typer.Argument(help="Function address or reviewed Ghidra name")],
+    root: str = typer.Option(..., "--root", help="Parameter or receiver root to trace."),
+    program: str = typer.Option("wiz8", "--program"),
+) -> None:
+    """Answer one rooted field-flow question."""
+    from .. import command_support as cli
+    from ..ghidra.env import open_program
+    from ..ghidra.query import query_many
+
+    def action() -> dict[str, Any]:
+        with open_program(cli.settings(), program) as live:
+            return query_many(live, [("field-accesses", [selector, root])])[0]["result"]
+
+    cli.run_action(action)
+
+
 @app.command("class")
 def class_command(
     name: Annotated[str, typer.Argument(help="Reviewed Ghidra class name")],
     program: str = typer.Option("wiz8", "--program"),
-    json_output: bool = typer.Option(False, "--json", help="Emit complete JSON."),
 ) -> None:
     """Report class fields, vtables, and binary references from live Ghidra."""
     from .. import command_support as cli
@@ -27,20 +69,9 @@ def class_command(
             "schema": "wiz8.class-report",
             "classes": rows[1]["result"]["classes"],
         }
-        lines = [name]
-        for item in result["classes"]:
-            lines.extend(
-                f"  +0x{field['offset']:x} {field['type']} {field['field']}"
-                for field in item["fields"]
-            )
-        for table in result["vtables"]:
-            lines.append(
-                f"  vtable {table['address']} {table['name']} "
-                f"({len(table['references'])} references)"
-            )
-        return cli.human("\n".join(lines), result)
+        return result
 
-    cli.run_action(action, force_json=json_output)
+    cli.run_action(action)
 
 
 @app.command("data")
@@ -75,25 +106,7 @@ def data_command(
                     "value": struct.unpack(formats[interpret], raw[:size])[0],
                 }
 
-        def human_row(row: dict[str, Any]) -> str:
-            interpretation = row.get("interpretation") or {}
-            value = (
-                f" {interpretation['type']}={interpretation['value']}"
-                if interpretation
-                else ""
-            )
-            writes = len(row.get("write_references", []))
-            mutability = f"; {writes} write reference(s)" if writes else "; no write references"
-            return (
-                f"{row['address']} {row.get('name') or '(unnamed)'} "
-                f"{row.get('type', 'undefined')} bytes={row.get('hex', 'unavailable')}"
-                f"{value}{mutability}"
-            )
-
-        return cli.human(
-            "\n".join(human_row(row) for row in facts),
-            result,
-        )
+        return result
 
     cli.run_action(action)
 
@@ -105,8 +118,7 @@ def status_command() -> None:
     from ..reports.status import status_report
 
     def action():
-        result = status_report(cli.settings())
-        return cli.summary(result, label="repository status")
+        return status_report(cli.settings())
 
     cli.run_action(action)
 
@@ -117,51 +129,18 @@ def context_command(
         list[str], typer.Argument(help="Function addresses, ranges, or exact reviewed Ghidra names")
     ],
     program: str = typer.Option("wiz8", "--program"),
-    listing: bool = typer.Option(
-        False, "--listing", help="Include the retail instruction listing."
-    ),
-    no_match: bool = typer.Option(
-        False,
-        "--no-match",
-        help="Skip comparison with the current product build when gathering evidence.",
-    ),
-    deep: bool = typer.Option(False, "--deep", help="Include listing, P-code and rooted flow."),
-    root: str = typer.Option("this", "--root", help="Deep-analysis parameter root."),
-    discover: bool = typer.Option(
-        False,
-        "--discover",
-        help="Create a missing function transactionally for this report, then roll it back.",
-    ),
-    view: str = typer.Option(
-        "full",
-        "--view",
-        help="Human view: full, summary, code, listing, or dependencies.",
-    ),
-    json_output: bool = typer.Option(False, "--json", help="Emit the complete context payload."),
 ) -> None:
-    """Join Ghidra and every relevant evidence channel for one function."""
+    """Return source and retail context for a selected function batch."""
     from .. import command_support as cli
-    from ..reports.recovery_context import recovery_context_reports, render_context
+    from ..reports.recovery_context import recovery_context_reports
 
     def action():
-        if view not in {"full", "summary", "code", "listing", "dependencies"}:
-            raise ValueError("--view must be full, summary, code, listing, or dependencies")
-        settings = cli.settings()
-        contexts = recovery_context_reports(
-            settings,
-            selectors,
-            program,
-            listing=listing,
-            match=not no_match,
-            deep=deep,
-            root=root,
-            discover=discover,
-        )
-        text = "\n\n".join(render_context(context, view) for context in contexts)
-        data: object = contexts[0] if len(contexts) == 1 else {"contexts": contexts}
-        return cli.human(text, data)
+        return {
+            "schema": "wiz8.recovery-contexts",
+            "functions": recovery_context_reports(cli.settings(), selectors, program),
+        }
 
-    cli.run_action(action, force_json=json_output)
+    cli.run_action(action)
 
 
 @app.command("translation-units")
@@ -172,7 +151,6 @@ def translation_units_command() -> None:
     from ..reports.translation_units import translation_unit_report
 
     def action():
-        result = translation_unit_report(cli.settings())
-        return cli.summary(result, label="translation units")
+        return translation_unit_report(cli.settings())
 
     cli.run_action(action)

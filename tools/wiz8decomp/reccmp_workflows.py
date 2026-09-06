@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import re
 import shutil
 import tempfile
 from collections.abc import Iterable
@@ -12,9 +11,9 @@ from typing import Any
 
 import yaml
 
+from .paths import atomic_json
 from .subprocesses import run
 
-VTABLE_COUNT = re.compile(r"Vtables found:\s*(?P<count>\d+)\.")
 SR_ASSERT_FIXED = b"?srAssertFail@@YAXPBD0J0@Z"
 SR_ASSERT_VARIADIC = b"?srAssertFail@@YAXPBD0J0ZZ"
 
@@ -285,7 +284,7 @@ def compare_selected(
     details = {int(row["address"], 16): row for row in triage["functions"]}
     for row in comparison["functions"]:
         detail = details.get(int(row["address"], 16), {})
-        for key in ("difference", "guidance", "reason", "location", "conclusion"):
+        for key in ("difference", "reason", "location", "effective_reasons"):
             if key in detail:
                 row[key] = detail[key]
         if include_windows and row["status"] == "mismatch":
@@ -296,10 +295,6 @@ def compare_selected(
                 if difference.get("kind") == "branch_target" and not _paired_branch_witness(window):
                     row["reported_difference"] = difference
                     row["difference"] = {"kind": "alignment_or_structure"}
-                    row["guidance"] = (
-                        "instruction correspondence does not support a branch-target diagnosis; "
-                        "inspect alignment and source structure"
-                    )
     return comparison
 
 
@@ -365,59 +360,6 @@ def _instruction_windows(
     return result
 
 
-def comparison_human(result: dict[str, Any]) -> str:
-    lines: list[str] = []
-    selection = result.get("selection") or {}
-    if selection.get("warning"):
-        lines.extend((f"note: {selection['warning']}", ""))
-    for row in result["functions"]:
-        address = row["address"].removeprefix("0x").upper()
-        status = row["status"]
-        name = row.get("name") or ""
-        if status in {"exact", "effective"}:
-            lines.append(f"{address} {name} {status}".rstrip())
-            continue
-        score = row.get("raw_matching")
-        score_text = f" {float(score) * 100:.1f}%" if isinstance(score, int | float) else ""
-        lines.append(f"{address} {name} {status}{score_text}".rstrip())
-        difference = row.get("difference") or {}
-        if difference:
-            lines.append(f"  first divergence: {difference.get('kind', 'unknown')}")
-        reason = row.get("reason")
-        if reason:
-            location = row.get("location")
-            detail = f" at {location}" if location else ""
-            lines.append(f"  inconclusive: {reason}{detail}")
-        if row.get("guidance"):
-            lines.append(f"  {row['guidance']}")
-        for side in ("original", "recomp"):
-            window = (row.get("instruction_window") or {}).get(side, [])
-            if not window:
-                continue
-            lines.append(f"  {side}:")
-            for instruction in window:
-                marker = ">" if instruction["divergence"] else " "
-                lines.append(
-                    f"  {marker} {instruction['address'].removeprefix('0x').upper()}  "
-                    f"{instruction['instruction']}"
-                )
-    return "\n".join(lines)
-
-
-def _guidance(kind: str) -> str:
-    return {
-        "memory_address": "inspect the typed field/global selection and object layout",
-        "memory_value": "trace the stored value's typed source expression",
-        "call_target": "inspect callee identity, ownership, and dispatch",
-        "call_argument": "inspect receiver and argument provenance at the callsite",
-        "branch_condition": "inspect the comparison operands and signedness",
-        "branch_target": "inspect early-return and source block structure",
-        "return_value": "inspect the declared return type and returned expression",
-        "preserved_state": "inspect local lifetimes and prologue/epilogue shape",
-        "alignment_or_structure": "inspect alignment and source structure",
-    }.get(kind, "inspect the first structured machine-state divergence")
-
-
 def triage_rows(rows: list[dict[str, Any]], wanted: Iterable[int]) -> dict[str, Any]:
     by_address = {address: row for row in rows if (address := _entity_address(row)) is not None}
     findings: list[dict[str, Any]] = []
@@ -438,20 +380,16 @@ def triage_rows(rows: list[dict[str, Any]], wanted: Iterable[int]) -> dict[str, 
         }
         if status == "effective":
             finding["effective_reasons"] = comparison.get("effective_reasons") or []
-            finding["conclusion"] = "proved semantically harmless"
         elif status == "exact":
-            finding["conclusion"] = "no divergence"
+            pass
         elif status == "mismatch":
             difference = comparison.get("difference")
             if not isinstance(difference, dict):
                 raise ValueError(f"0x{address:08x} mismatch lacks its structured difference")
-            kind = str(difference.get("kind") or "unknown")
             finding["difference"] = difference
-            finding["guidance"] = _guidance(kind)
         elif status == "inconclusive":
             finding["reason"] = comparison.get("inconclusive_reason") or "analysis_limit"
             finding["location"] = comparison.get("inconclusive_location")
-            finding["conclusion"] = "not evidence of a source defect"
         else:
             raise ValueError(f"0x{address:08x} has unknown comparison status: {status}")
         findings.append(finding)
@@ -501,46 +439,85 @@ def translate_addresses(repository: Path, target: str, queries: list[int]) -> di
     return translate_rows(rows, queries)
 
 
-def vtable_count(output: str) -> int:
-    match = VTABLE_COUNT.search(output)
-    if match is None:
-        raise ValueError("reccmp-vtable did not report an entity count")
-    return int(match.group("count"))
+def compare_vtables(repository: Path, target: str, class_filter: str | None) -> dict[str, Any]:
+    from reccmp.compare import Compare
+    from reccmp.project.detect import RecCmpProject
 
-
-def compare_vtables(
-    repository: Path, target: str, class_filter: str | None, *, verbose: bool = False
-) -> dict[str, Any]:
-    command = ["reccmp-vtable", "--target", target, "--no-color"]
-    if class_filter:
-        command.extend(("--filter", class_filter))
-    if verbose:
-        command.append("--verbose")
-    result = run(command, cwd=repository / "build" / "decomp", check=False)
-    count = vtable_count(result.stdout)
-    if count == 0:
+    project = RecCmpProject.from_directory(repository / "build" / "decomp")
+    if project is None:
+        raise RuntimeError("reccmp project is unavailable")
+    engine = Compare.from_target(project.get(target))
+    name_filter = class_filter.casefold() if class_filter else None
+    rows = []
+    for item in engine.compare_vtables(include_diff=False):
+        if name_filter is not None and name_filter not in (item.name or "").casefold():
+            continue
+        rows.append(
+            {
+                "name": item.name,
+                "original": f"0x{item.orig_addr:08x}",
+                "recompiled": (
+                    f"0x{item.recomp_addr:08x}" if item.recomp_addr is not None else None
+                ),
+                "status": "exact" if item.accuracy == 1 else "mismatch",
+                "accuracy": item.accuracy,
+            }
+        )
+    if not rows:
         qualifier = f" matching {class_filter!r}" if class_filter else ""
         raise RuntimeError(f"reccmp found zero vtables{qualifier}; refusing vacuous success")
     return {
-        "ok": result.exit_status == 0,
-        "vtables": count,
+        "ok": all(row["status"] == "exact" for row in rows),
+        "count": len(rows),
+        "exact_count": sum(row["status"] == "exact" for row in rows),
+        "issue_count": sum(row["status"] != "exact" for row in rows),
         "filter": class_filter,
-        "output": result.stdout,
-        "diagnostics": result.stderr,
+        "issues": [row for row in rows if row["status"] != "exact"],
     }
 
 
-def compare_data(
-    repository: Path, target: str, *, show_all: bool = False, verbose: bool = False
-) -> dict[str, Any]:
-    command = ["reccmp-datacmp", "--target", target, "--no-color"]
-    if show_all:
-        command.append("--all")
-    if verbose:
-        command.append("--verbose")
-    result = run(command, cwd=repository / "build" / "decomp", check=False)
+def compare_data(repository: Path, target: str) -> dict[str, Any]:
+    from reccmp.project.detect import RecCmpProject
+    from reccmp.tools.datacmp import do_the_comparison
+
+    project = RecCmpProject.from_directory(repository / "build" / "decomp")
+    if project is None:
+        raise RuntimeError("reccmp project is unavailable")
+    items = list(do_the_comparison(project.get(target)))
+    problems = []
+    artifact_dir = repository / "build" / "reports" / "datacmp"
+    for item in items:
+        status = item.result.name.casefold()
+        if status == "match":
+            continue
+        differences = [
+            {
+                "offset": value.offset,
+                "name": value.name,
+                "original": value.values[0],
+                "recompiled": value.values[1],
+            }
+            for value in item.compared
+            if not value.match
+        ]
+        problem = {
+            "name": item.name,
+            "original": f"0x{item.orig_addr:08x}",
+            "recompiled": f"0x{item.recomp_addr:08x}",
+            "status": status,
+            "error": item.error,
+            "raw_only": item.raw_only,
+            "difference_count": len(differences),
+            "witness": differences[:8],
+        }
+        if len(differences) > 8:
+            artifact = artifact_dir / f"{item.orig_addr:08x}.json"
+            atomic_json(artifact, {**problem, "differences": differences})
+            problem["artifact"] = str(artifact.relative_to(repository))
+        problems.append(problem)
     return {
-        "ok": result.exit_status == 0,
-        "output": result.stdout,
-        "diagnostics": result.stderr,
+        "ok": not problems,
+        "count": len(items),
+        "issue_count": len(problems),
+        "issues": problems,
     }

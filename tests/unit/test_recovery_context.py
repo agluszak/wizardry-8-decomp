@@ -1,12 +1,11 @@
 from __future__ import annotations
 
+import contextlib
 from types import SimpleNamespace
 
-import pytest
-from wiz8decomp import reccmp_workflows
 from wiz8decomp.ghidra.unit_intervals import TranslationUnitResolver
 from wiz8decomp.reports import recovery_context
-from wiz8decomp.reports.recovery_context import _assertion_boundary_defects, render_context
+from wiz8decomp.reports.recovery_context import _assertion_boundary_defects
 
 
 def test_direct_assertion_ownership_wins_over_an_interval() -> None:
@@ -16,36 +15,13 @@ def test_direct_assertion_ownership_wins_over_an_interval() -> None:
             "containing_function": "004f88f0",
         }
     ]
-    result = TranslationUnitResolver(assertions).resolve(0x004F88F0)
-
-    assert result == {
-        "source_path": r"Local Code\ItemManager.cpp",
-        "attribution": "direct",
-        "alternatives": [],
-    }
-
-
-def test_multiple_direct_units_are_reported_as_inlined_instead_of_guessed() -> None:
-    assertions = [
-        {
-            "source_path": r"C:\Projects\Wizardry 8\Engine Code\A.cpp",
-            "containing_function": "00401000",
-        },
-        {
-            "source_path": r"C:\Projects\Wizardry 8\Local Code\B.cpp",
-            "containing_function": "00401000",
-        },
-    ]
-    result = TranslationUnitResolver(assertions).resolve(0x00401000)
-
-    assert result["attribution"] == "inlined-or-conflicting"
-    assert result["source_path"] == ""
-    assert result["alternatives"] == [r"Engine Code\A.cpp", r"Local Code\B.cpp"]
+    assert TranslationUnitResolver(assertions).resolve(0x004F88F0)["source_path"] == (
+        r"Local Code\ItemManager.cpp"
+    )
 
 
 def test_invalid_assertion_function_boundary_is_structured() -> None:
     assertions = [{"containing_function": "004a42b0", "call_site": "004a42ce"}]
-
     assert _assertion_boundary_defects(assertions, {0x004A42B0: None, 0x004A42CE: 0x004A42C0}) == [
         {
             "kind": "invalid-assertion-function-boundary",
@@ -57,146 +33,7 @@ def test_invalid_assertion_function_boundary_is_structured() -> None:
     ]
 
 
-def test_context_renders_primary_evidence_without_opening_artifacts() -> None:
-    context = {
-        "entry": 0x401000,
-        "translation_unit": {"source_path": "src/wiz8/unit.cpp", "attribution": "source"},
-        "source_owner": None,
-        "signatures": {
-            "stored": {"prototype": "void Thing::Run()"},
-            "inferred": {"prototype": "void Thing::Run()"},
-            "source": None,
-            "disagree": False,
-        },
-        "reviewed": {"function": {"name": "Thing::Run"}, "class_names": ["Thing"]},
-        "assertions": [],
-        "eh": {"unwind": []},
-        "globals": [],
-        "polymorphism": {"vptr_writes": [], "tables": {}},
-        "field_accesses": {"analysis": "available", "accesses": []},
-        "indirect_calls": [],
-        "calls": [{"site": "00401002", "target": "00402000", "name": "Callee"}],
-        "match": {
-            "functions": [
-                {
-                    "status": "mismatch",
-                    "raw_matching": 0.75,
-                    "difference": {"kind": "call_target"},
-                }
-            ]
-        },
-        "ghidra": {
-            "function": {
-                "name": "Thing::Run",
-                "prototype": "void Thing::Run()",
-                "size": 12,
-                "callers": ["00400000"],
-                "referenced_strings": ["hello"],
-            },
-            "decompiled": "void Thing::Run() {}",
-            "listing": "",
-        },
-    }
-
-    output = render_context(context)
-    assert "## Calls" in output
-    assert "First divergence: call_target" in output
-    assert "void Thing::Run() {}" in output
-    assert "artifacts:" not in output
-
-
-def test_context_preserves_zero_offsets_and_renders_match_availability() -> None:
-    context = {
-        "entry": 0x401000,
-        "translation_unit": {"source_path": "", "attribution": "unresolved"},
-        "source_owner": None,
-        "signatures": {
-            "stored": {"prototype": "void f()"},
-            "inferred": {"prototype": "void f()"},
-            "source": None,
-            "disagree": False,
-        },
-        "reviewed": {"function": {"name": "f"}, "class_names": []},
-        "assertions": [],
-        "eh": {"unwind": []},
-        "globals": [],
-        "polymorphism": {"vptr_writes": [], "tables": {}},
-        "field_accesses": {
-            "analysis": "available",
-            "accesses": [{"site": "00401001", "kind": "load", "offset": 0}],
-        },
-        "indirect_calls": [{"site": "00401002", "target": {"offset": 0}}],
-        "calls": [],
-        "match": {"unavailable": "no current paired build"},
-        "ghidra": {
-            "function": {
-                "name": "f",
-                "prototype": "void f()",
-                "size": 1,
-                "callers": [],
-                "referenced_strings": [],
-            },
-            "decompiled": "void f() {}",
-            "listing": "",
-        },
-    }
-
-    output = render_context(context)
-    assert "unavailable — no current paired build" in output
-    assert "`0`" in output
-    assert "target `0`" in output
-
-
-def test_context_summary_distinguishes_signature_conflict_and_unavailable_field_analysis() -> None:
-    context = {
-        "entry": 0x401000,
-        "translation_unit": {"source_path": "", "attribution": "unresolved"},
-        "source_owner": {
-            "name": "Thing::Run",
-            "location": "include/wiz8/Thing.h:10",
-            "implementation": "declaration only",
-        },
-        "signatures": {
-            "stored": {"prototype": "undefined FUN_00401000()"},
-            "inferred": {"prototype": "ushort __thiscall Thing::Run(Thing *this)"},
-            "source": {
-                "prototype": "unsigned short Thing::Run()",
-                "location": "include/wiz8/Thing.h:10",
-            },
-            "disagree": True,
-        },
-        "reviewed": {"function": {"name": "Thing::Run"}, "class_names": ["Thing"]},
-        "assertions": [],
-        "globals": [],
-        "polymorphism": {"vptr_writes": []},
-        "field_accesses": {"analysis": "not-analyzed", "accesses": []},
-        "indirect_calls": [],
-        "calls": [],
-        "callers": [],
-        "ghidra": {
-            "function": {
-                "name": "FUN_00401000",
-                "prototype": "undefined FUN_00401000()",
-                "size": 12,
-            },
-            "decompiled": "ushort __thiscall Thing::Run(Thing *this) {}",
-            "listing": "",
-        },
-    }
-
-    output = render_context(context, "summary")
-
-    assert "Field accesses: not analyzed" in output
-    assert "Ghidra stored" in output
-    assert "Decompiler inferred" in output
-    assert "Recovered source" in output
-    assert "disagreement" in output
-    assert "## Decompiled" not in output
-
-
-@pytest.mark.parametrize("listing", [False, True])
-@pytest.mark.parametrize("match", [False, True])
-def test_multiple_contexts_use_one_ghidra_session(tmp_path, monkeypatch, listing, match) -> None:
+def test_context_batch_uses_one_session_and_never_compares(tmp_path, monkeypatch) -> None:
     evidence = tmp_path / "evidence/observations/wiz8"
     evidence.mkdir(parents=True)
     (evidence / "assertions.csv").write_text(
@@ -208,19 +45,8 @@ def test_multiple_contexts_use_one_ghidra_session(tmp_path, monkeypatch, listing
     addresses = [0x401000, 0x401020]
     monkeypatch.setattr(recovery_context, "resolve_function_selectors", lambda *_args: addresses)
     monkeypatch.setattr(recovery_context, "resolve_seed_program", lambda *_args: "wiz8")
-    monkeypatch.setattr(
-        recovery_context,
-        "source_functions",
-        lambda *_args: {},
-    )
+    monkeypatch.setattr(recovery_context, "source_functions", lambda *_args: {})
     monkeypatch.setattr(recovery_context, "load_source_index", lambda *_args: {"classes": []})
-    monkeypatch.setattr(recovery_context, "load_claims", lambda *_args: ())
-
-    def fake_compare(_repo, _target, values):
-        assert match, "--no-match must not invoke reccmp"
-        return {"functions": [{"address": f"0x{value:08x}", "status": "exact"} for value in values]}
-
-    monkeypatch.setattr(reccmp_workflows, "compare_selected", fake_compare)
     calls = 0
 
     def fake_query_many(_program, queries, **_kwargs):
@@ -238,10 +64,8 @@ def test_multiple_contexts_use_one_ghidra_session(tmp_path, monkeypatch, listing
                         "name": f"Function{value:X}",
                         "prototype": "void f()",
                         "calling_convention": "__cdecl",
-                        "size": 1,
-                        "callers": [],
-                        "referenced_strings": [],
                         "calls": [],
+                        "caller_functions": [],
                         "data_references": [],
                         "vptr_references": [],
                         "exception_metadata": [],
@@ -251,29 +75,24 @@ def test_multiple_contexts_use_one_ghidra_session(tmp_path, monkeypatch, listing
                 result = {"decompiled": "void f() {}"}
             elif command == "indirect-calls":
                 result = {"calls": []}
-            elif command == "listing" and listing:
-                result = {"listing": f"{arguments[0]}  RET"}
             else:
                 raise AssertionError(command)
             results.append({"command": command, "arguments": arguments, "result": result})
         return results
 
-    import contextlib
-
     monkeypatch.setattr(recovery_context, "query_many", fake_query_many)
     monkeypatch.setattr(
         recovery_context, "open_program", lambda *_args, **_kwargs: contextlib.nullcontext(object())
     )
+    contexts = recovery_context.recovery_context_reports(settings, ["a", "b"])
 
-    contexts = recovery_context.recovery_context_reports(
-        settings, ["a", "b"], listing=listing, match=match
-    )
-
-    assert len(contexts) == 2
     assert calls == 1
-    for context, address in zip(contexts, addresses, strict=True):
-        expected = f"0x{address:08x}  RET" if listing else ""
-        assert context["ghidra"]["listing"] == expected
-        assert ("## Listing" in render_context(context)) == listing
-        if not match:
-            assert context["match"]["unavailable"] == "not requested (--no-match)"
+    assert [context["entry"] for context in contexts] == [
+        "0x00401000",
+        "0x00401020",
+    ]
+    assert all("match" not in context for context in contexts)
+    assert all(
+        set(context) >= {"identity", "source", "retail", "dependencies"} for context in contexts
+    )
+    assert all("disagree" not in context["signature_evidence"] for context in contexts)

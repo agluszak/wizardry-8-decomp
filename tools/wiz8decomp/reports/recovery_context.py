@@ -1,4 +1,4 @@
-"""Generate one joined, disposable source-recovery packet for a function."""
+"""Build bounded source and retail context for selected functions."""
 
 from __future__ import annotations
 
@@ -6,24 +6,17 @@ import csv
 from pathlib import Path
 from typing import Any
 
-from ..evidence.claims import load_claims
 from ..ghidra.env import open_program
 from ..ghidra.query import query_many, resolve_function_selectors
 from ..ghidra.unit_intervals import TranslationUnitResolver
 from ..ghidra.workspace import resolve_seed_program
+from ..paths import atomic_write
 from ..source_index import load_source_index, source_functions
 
 
 def _read(path: Path) -> list[dict[str, str]]:
     with path.open(newline="", encoding="utf-8") as stream:
         return list(csv.DictReader(stream))
-
-
-def _source_unit(path: str) -> str:
-    marker = "wizardry 8\\"
-    folded = path.casefold()
-    index = folded.find(marker)
-    return path[index + len(marker) :] if index >= 0 else path
 
 
 def _assertion_boundary_defects(
@@ -52,297 +45,56 @@ def _assertion_boundary_defects(
     return defects
 
 
-def _one_line_signature(text: str) -> str:
+def _one_line(text: str) -> str:
     return " ".join(text.replace("\n", " ").split())
 
 
 def _decompiled_signature(text: str) -> str:
-    """Return the decompiler's function header without printing its whole body."""
-
-    head = text.split("{", 1)[0].strip()
-    return _one_line_signature(head)
-
-
-def _signature_lines(context: dict[str, Any]) -> list[str]:
-    signatures = context["signatures"]
-    lines = ["## Signatures", ""]
-    for authority, label in (
-        ("stored", "Ghidra stored"),
-        ("inferred", "Decompiler inferred"),
-        ("source", "Recovered source"),
-    ):
-        row = signatures.get(authority)
-        if row and row.get("prototype"):
-            location = row.get("location")
-            suffix = f" — `{location}`" if location else ""
-            lines.append(f"- {label}: `{row['prototype']}`{suffix}")
-    if signatures["disagree"]:
-        lines.append("- Status: **disagreement; resolve from retail instructions and call sites**")
-    else:
-        lines.append("- Status: signatures agree")
-    return [*lines, ""]
-
-
-def _dependency_lines(context: dict[str, Any]) -> list[str]:
-    lines: list[str] = []
-    if context.get("calls"):
-        lines.extend(["## Calls", ""])
-        for row in context["calls"]:
-            source = row.get("source") or {}
-            name = source.get("name") or row.get("name") or row["target"]
-            prototype = source.get("prototype")
-            location = source.get("location")
-            detail = f" — `{prototype}`" if prototype else ""
-            detail += f" at `{location}`" if location else ""
-            lines.append(f"- `{row['site']}` -> `{name}`{detail}")
-        lines.append("")
-
-    callers = context.get("callers") or []
-    if callers:
-        lines.extend(["## Called by", ""])
-        for row in callers:
-            source = row.get("source") or {}
-            name = source.get("name") or row.get("name") or row.get("entry") or row["site"]
-            location = source.get("location")
-            suffix = f" at `{location}`" if location else ""
-            lines.append(f"- `{row['site']}` from `{name}`{suffix}")
-        lines.append("")
-    return lines
-
-
-def _markdown(context: dict[str, Any], view: str = "full") -> str:
-    if view == "code":
-        return f"```cpp\n{context['ghidra']['decompiled'].rstrip()}\n```"
-    if view == "listing":
-        listing = context["ghidra"].get("listing") or "listing not requested; pass --listing"
-        return f"```asm\n{listing.rstrip()}\n```"
-
-    function = context["ghidra"]["function"]
-    unit = context["translation_unit"]
-    reviewed_function = context["reviewed"]["function"]
-    reviewed_name = reviewed_function.get("name") or "none"
-    lines = [
-        f"# Recovery context for 0x{context['entry']:08X}",
-        "",
-        f"- Function: `{function['name']}`",
-        f"- Size: {function['size']} bytes",
-        (
-            f"- Translation unit: `{unit.get('source_path') or 'unresolved'}` "
-            f"({unit['attribution']})"
-        ),
-        f"- Reviewed identity: `{reviewed_name}`",
-        f"- Reviewed classes: {', '.join(context['reviewed']['class_names']) or 'none'}",
-        f"- Assertions: {len(context['assertions'])}",
-        f"- Named globals: {len(context['globals'])}",
-        f"- Vptr writes: {len(context['polymorphism']['vptr_writes'])}",
-        (
-            f"- Field accesses: {len(context['field_accesses'].get('accesses', []))}"
-            if context["field_accesses"]["analysis"] == "available"
-            else "- Field accesses: not analyzed (no source-owned class receiver)"
-        ),
-        f"- Indirect call sites: {len(context.get('indirect_calls', []))}",
-        "",
-    ]
-    owner = context.get("source_owner")
-    if owner:
-        lines.extend(
-            [
-                "## Source owner",
-                "",
-                f"- Recovered source: `{owner['name']}` at `{owner['location']}`",
-                f"- Implementation: {owner['implementation']}",
-                (
-                    "- Ownership: source candidate; original translation-unit attribution is "
-                    f"`{unit['attribution']}`"
-                ),
-                "",
-            ]
-        )
-    lines.extend(_signature_lines(context))
-
-    if view == "summary":
-        return "\n".join(lines)
-    if view == "dependencies":
-        lines.extend(_dependency_lines(context))
-        return "\n".join(lines)
-
-    match = context.get("match", {})
-    if match.get("unavailable"):
-        lines.extend(["## Match", "", f"unavailable — {match['unavailable']}", ""])
-    elif match:
-        row = (match.get("functions") or [{}])[0]
-        score = row.get("raw_matching")
-        score_text = f" ({float(score) * 100:.1f}%)" if isinstance(score, int | float) else ""
-        lines.extend(["## Match", "", f"{row.get('status', 'unknown')}{score_text}"])
-        difference = row.get("difference") or {}
-        if difference:
-            lines.append(f"First divergence: {difference.get('kind', 'unknown')}")
-        for side in ("original", "recomp"):
-            window = (row.get("instruction_window") or {}).get(side, [])
-            if window:
-                lines.append(f"{side}:")
-            for instruction in window:
-                marker = ">" if instruction.get("divergence") else " "
-                lines.append(f"  {marker} {instruction['address']}  {instruction['instruction']}")
-        lines.append("")
-
-    lines.extend(_dependency_lines(context))
-
-    field_accesses = context["field_accesses"].get("accesses", [])
-    if field_accesses:
-        lines.extend(["## Fields", ""])
-        for row in field_accesses:
-            location = next(
-                (row[key] for key in ("path", "offset", "address") if row.get(key) is not None),
-                "unknown",
-            )
-            lines.append(f"- `{row.get('site', '')}` {row.get('kind', '')} `{location}`")
-        lines.append("")
-
-    indirect_calls = context.get("indirect_calls", [])
-    if indirect_calls:
-        lines.extend(["## Virtual / indirect calls", ""])
-        for row in indirect_calls:
-            target = row.get("target") or {}
-            offset = target.get("offset") if isinstance(target, dict) else target
-            rendered_offset = "unknown" if offset is None else offset
-            lines.append(
-                f"- `{row.get('address') or row.get('site', '')}` target `{rendered_offset}`"
-            )
-        lines.append("")
-
-    strings = function.get("referenced_strings") or []
-    if strings:
-        lines.extend(["## Strings", "", *(f"- {value}" for value in strings), ""])
-
-    if context["assertions"]:
-        lines.extend(
-            [
-                "## Assertions",
-                "",
-                "| Site | Source | Line | Expression | Message |",
-                "|---|---|---:|---|---|",
-            ]
-        )
-        for row in context["assertions"]:
-            values = [
-                row["call_site"],
-                _source_unit(row["source_path"]),
-                row["line"],
-                row["expression"],
-                row["message"],
-            ]
-            lines.append("| " + " | ".join(value.replace("|", "\\|") for value in values) + " |")
-        lines.append("")
-
-    if context["globals"]:
-        lines.extend(
-            [
-                "## Named globals",
-                "",
-                "| Site | Global | Access | Width | Kind | Storage |",
-                "|---|---|---|---:|---|---|",
-            ]
-        )
-        for row in context["globals"]:
-            lines.append(
-                f"| {row['site']} | {row.get('name') or row['target']} ({row['target']}) | "
-                f"{row['access']} | "
-                f"{row.get('width', row.get('widths', ''))} | "
-                f"{row.get('kind', '')} | {row.get('storage', '')} |"
-            )
-        lines.append("")
-
-    if context["polymorphism"]["vptr_writes"]:
-        lines.extend(
-            [
-                "## Vptr writes",
-                "",
-                "| Site | Vtable |",
-                "|---|---|",
-            ]
-        )
-        for row in context["polymorphism"]["vptr_writes"]:
-            lines.append(f"| {row['site']} | {row['vtable']} |")
-        lines.append("")
-
-    lines.extend(
-        [
-            "## Decompiled",
-            "",
-            "```cpp",
-            context["ghidra"]["decompiled"].rstrip(),
-            "```",
-            "",
-        ]
-    )
-    if context["ghidra"].get("listing"):
-        lines.extend(
-            [
-                "## Listing",
-                "",
-                "```asm",
-                context["ghidra"]["listing"].rstrip(),
-                "```",
-                "",
-            ]
-        )
-    return "\n".join(lines)
+    return _one_line(text.split("{", 1)[0].strip())
 
 
 def recovery_context_reports(
     settings: Any,
     selectors: list[str],
     selector: str = "wiz8",
-    *,
-    listing: bool = False,
-    match: bool = True,
-    deep: bool = False,
-    root: str = "this",
-    discover: bool = False,
 ) -> list[dict[str, Any]]:
-    """Build one or more contexts with one Ghidra session and one reccmp report."""
+    """Return a stable function-record collection without comparison or deep analysis."""
 
-    from ..reccmp_workflows import compare_selected
-
+    if not selectors:
+        raise ValueError("pass one or more function selectors")
     program_name = resolve_seed_program(settings, selector)
-    canonical_program = resolve_seed_program(settings, "wiz8")
-    has_canonical_addresses = program_name == canonical_program
-    reviewed_assertions = _read(
-        settings.repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv"
-    )
-    source_model = source_functions(settings.repo_dir) if has_canonical_addresses else None
+    canonical = program_name == resolve_seed_program(settings, "wiz8")
+    assertions = _read(settings.repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv")
+    source_model = source_functions(settings.repo_dir) if canonical else {}
 
     with open_program(settings, selector) as program:
-        requested_entries = resolve_function_selectors(program, selectors)
-        assertions_by_entry = {
-            requested: [
+        entries = resolve_function_selectors(program, selectors)
+        by_requested = {
+            entry: [
                 row
-                for row in reviewed_assertions
-                if row.get("containing_function")
-                and int(row["containing_function"], 16) == requested
+                for row in assertions
+                if row.get("containing_function") and int(row["containing_function"], 16) == entry
             ]
-            for requested in requested_entries
+            for entry in entries
         }
-        boundary_addresses = set(requested_entries)
+        boundary_addresses = set(entries)
         boundary_addresses.update(
-            int(row["call_site"], 16) for rows in assertions_by_entry.values() for row in rows
+            int(row["call_site"], 16) for rows in by_requested.values() for row in rows
         )
         queries: list[tuple[str, list[str]]] = [
-            ("function-of", [",".join(f"0x{item:08x}" for item in sorted(boundary_addresses))])
+            ("function-of", [",".join(f"0x{entry:08x}" for entry in sorted(boundary_addresses))])
         ]
         class_names = sorted(
             {
-                function.declaration.owning_class
-                for requested in requested_entries
-                if source_model is not None
-                and (function := source_model.get(requested)) is not None
-                and function.declaration is not None
-                and function.declaration.owning_class
+                marker.declaration.owning_class
+                for entry in entries
+                if (marker := source_model.get(entry)) is not None
+                and marker.declaration is not None
+                and marker.declaration.owning_class
             }
         )
-        for requested in requested_entries:
-            address = f"0x{requested:08x}"
+        for entry in entries:
+            address = f"0x{entry:08x}"
             queries.extend(
                 [
                     ("function", [address]),
@@ -350,49 +102,23 @@ def recovery_context_reports(
                     ("indirect-calls", [address]),
                 ]
             )
-            source_function = source_model.get(requested) if source_model else None
-            if (
-                source_function is not None
-                and source_function.declaration is not None
-                and source_function.declaration.owning_class
-            ):
-                queries.append(("field-accesses", [address, root]))
-            if listing or deep:
-                queries.append(("listing", [address]))
-            if deep:
-                queries.append(("high-function", [address]))
         if class_names:
             queries.append(("class-fields", class_names))
-        function_seeds = [
-            f"0x{requested:08x}"
-            for requested in requested_entries
-            if discover
-            or (
-                bool(assertions_by_entry[requested])
-                and (source_model is None or requested not in source_model)
-            )
+        seeds = [
+            f"0x{entry:08x}"
+            for entry in entries
+            if by_requested[entry] and entry not in source_model
         ]
-        results = query_many(program, queries, function_seeds=function_seeds or None)
-    raw_boundaries = results[0]["result"]["functions"]
+        results = query_many(program, queries, function_seeds=seeds or None)
+
     boundaries = {
-        int(item_address, 0): int(owner, 16) if owner is not None else None
-        for item_address, owner in raw_boundaries.items()
+        int(address, 0): int(owner, 16) if owner is not None else None
+        for address, owner in results[0]["result"]["functions"].items()
     }
-    source_classes = load_source_index(settings.repo_dir)["classes"]
-    class_field_rows = next(
-        (item["result"]["classes"] for item in results if item["command"] == "class-fields"),
-        [],
+    indexed_classes = load_source_index(settings.repo_dir)["classes"]
+    field_rows = next(
+        (item["result"]["classes"] for item in results if item["command"] == "class-fields"), []
     )
-    claims = load_claims(settings.repo_dir)
-    match_bundle: dict[str, Any] = {}
-    if has_canonical_addresses and match:
-        try:
-            match_bundle = compare_selected(settings.repo_dir, "WIZ8", requested_entries)
-        except (OSError, RuntimeError, ValueError) as error:
-            match_bundle = {"unavailable": str(error)}
-    elif not match:
-        match_bundle = {"unavailable": "not requested (--no-match)"}
-    matches = {int(row["address"], 16): row for row in match_bundle.get("functions", [])}
 
     def result_for(command: str, requested: int) -> dict[str, Any]:
         address = f"0x{requested:08x}"
@@ -402,230 +128,122 @@ def recovery_context_reports(
             if item["command"] == command and item["arguments"][0] == address
         )
 
-    contexts: list[dict[str, Any]] = []
-    for requested in requested_entries:
+    def source_boundary(address: str | None) -> dict[str, Any] | None:
+        if not address:
+            return None
+        try:
+            marker = source_model.get(int(address, 16))
+        except ValueError:
+            return None
+        if marker is None:
+            return None
+        declaration = marker.declaration
+        return {
+            "name": marker.name,
+            "prototype": declaration.prototype if declaration is not None else None,
+            "location": f"{marker.source_file}:{marker.line}",
+        }
+
+    output_dir = settings.build_dir / "context"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    records: list[dict[str, Any]] = []
+    for requested in entries:
         function = result_for("function", requested)["function"]
         entry = int(function["entry"], 16)
-        source_function = source_model.get(entry) if source_model is not None else None
-        decompiled = result_for("decompile", requested)["decompiled"] or ""
-        requested_assertions = assertions_by_entry[requested]
-        assertions = [
-            row
-            for row in reviewed_assertions
-            if row.get("containing_function") and int(row["containing_function"], 16) == entry
-        ]
-        boundary_defects = _assertion_boundary_defects(requested_assertions, boundaries)
-        raw_references = list(function["data_references"])
-        globals_joined = [
-            row
-            for row in raw_references
-            if row.get("kind") == "program-data"
-            and row.get("name")
-            and not row["name"].casefold().startswith(("dat_", "lab_", "switchd_", "case_"))
-            and not any(
-                marker in row["name"].casefold()
-                for marker in ("vftable", "funcinfo", "unwind", "ehhandler")
-            )
-        ]
-        vptr_writes = [{**row, "vtable": row["target"]} for row in function["vptr_references"]]
-        tables = {
-            row["target"]: {
-                "address": row["target"],
-                "name": row["name"],
-            }
-            for row in function["vptr_references"]
-        }
-        table_addresses = set(tables)
-        function_claims = [
-            row
-            for row in claims
-            if has_canonical_addresses
-            and row["entity_kind"] == "function"
-            and int(row["entity_key"], 16) == entry
-        ]
-        accepted_identity = next(
-            (row for row in function_claims if row["predicate"] == "accepted-identity"), None
-        )
-        reviewed_function = (
+        marker = source_model.get(entry)
+        decompiled = result_for("decompile", requested).get("decompiled") or ""
+        artifact = output_dir / f"{entry:08x}.cpp"
+        atomic_write(artifact, decompiled.rstrip() + "\n")
+        declaration = marker.declaration if marker is not None else None
+        source = (
             {
-                "address": f"{entry:08x}",
-                "name": source_function.name,
-                "kind": source_function.marker_kind,
-                "source_path": source_function.source_file,
-                "source_line": source_function.line,
-            }
-            if source_function is not None
-            else {
-                "address": f"{entry:08x}",
-                "name": accepted_identity["value"] if accepted_identity else function["name"],
-                "kind": "GHIDRA",
-                "source_path": "",
-                "source_line": "",
-            }
-        )
-        source_vtables = {
-            f"{int(row['vtable_address']):08x}": row
-            for row in source_classes
-            if row.get("vtable_address") is not None
-            and f"{int(row['vtable_address']):08x}" in table_addresses
-        }
-        context_classes = {row["qualified_name"] for row in source_vtables.values()}
-        if (
-            source_function is not None
-            and source_function.declaration is not None
-            and source_function.declaration.owning_class
-        ):
-            context_classes.add(source_function.declaration.owning_class)
-        semantic_fields = (
-            {"analysis": "available", **result_for("field-accesses", requested)}
-            if source_function is not None
-            and source_function.declaration is not None
-            and source_function.declaration.owning_class
-            else {"analysis": "not-analyzed", "accesses": []}
-        )
-        high = result_for("high-function", requested) if deep else {}
-        indirect_result = result_for("indirect-calls", requested)
-        normalized_pcode = indirect_result.get("normalized_pcode", {}) if deep else {}
-        instruction_listing = (
-            result_for("listing", requested).get("listing", "") if listing or deep else ""
-        )
-        indirect_calls = indirect_result["calls"]
-        function_match = (
-            {**match_bundle, "functions": [matches[entry]]}
-            if entry in matches
-            else match_bundle
-            if match_bundle.get("unavailable")
-            else {}
-        )
-        unit = TranslationUnitResolver(reviewed_assertions).resolve(entry)
-        source_owner = None
-        source_signature = None
-        if source_function is not None:
-            location = f"{source_function.source_file}:{source_function.line}"
-            declaration = source_function.declaration
-            source_owner = {
-                "name": source_function.name,
-                "location": location,
+                "translation_unit": marker.source_file,
+                "location": f"{marker.source_file}:{marker.line}",
+                "prototype": declaration.prototype if declaration is not None else None,
                 "implementation": (
-                    "definition present"
+                    "definition"
                     if declaration is not None and declaration.is_definition
-                    else "declaration only"
-                    if declaration is not None
-                    else "emitted or linked marker"
+                    else "declaration"
                 ),
             }
-            if declaration is not None:
-                source_signature = {
-                    "prototype": _one_line_signature(declaration.prototype),
-                    "location": location,
-                }
-        signatures = {
-            "stored": {"prototype": _one_line_signature(function["prototype"])},
-            "inferred": {"prototype": _decompiled_signature(decompiled)},
-            "source": source_signature,
-        }
-        signature_values = {
-            row["prototype"]
-            for row in signatures.values()
-            if isinstance(row, dict) and row.get("prototype")
-        }
-        signatures["disagree"] = len(signature_values) > 1
-
-        def source_boundary(address_text: str | None) -> dict[str, Any] | None:
-            if not address_text or source_model is None:
-                return None
-            try:
-                address = int(address_text, 16)
-            except ValueError:
-                return None
-            marker = source_model.get(address)
-            if marker is None:
-                return None
-            declaration = marker.declaration
-            return {
-                "name": marker.name,
-                "prototype": declaration.prototype if declaration is not None else None,
-                "location": f"{marker.source_file}:{marker.line}",
+            if marker is not None
+            else {
+                "translation_unit": TranslationUnitResolver(assertions).resolve(entry),
+                "location": None,
+                "prototype": None,
+                "implementation": "unrecovered",
             }
-
+        )
         calls = []
-        for row in function["calls"]:
-            function_target = row.get("function") or {}
+        for call in function.get("calls", []):
+            target = call.get("function") or {}
             calls.append(
                 {
-                    **row,
-                    "source": source_boundary(function_target.get("entry") or row.get("target")),
+                    "site": call.get("site"),
+                    "target": call.get("target"),
+                    "name": call.get("name"),
+                    "source": source_boundary(target.get("entry") or call.get("target")),
                 }
             )
         callers = [
-            {**row, "source": source_boundary(row.get("entry"))}
+            {
+                "site": row.get("site"),
+                "entry": row.get("entry"),
+                "name": row.get("name"),
+                "source": source_boundary(row.get("entry")),
+            }
             for row in function.get("caller_functions", [])
         ]
-        context = {
-            "schema": "wiz8.recovery-context",
-            "program": program_name,
-            "requested_address": f"0x{requested:08x}",
-            "entry": entry,
-            "boundary_defects": boundary_defects,
-            "translation_unit": unit
-            if has_canonical_addresses
-                else {"source_path": "", "attribution": "non-canonical", "alternatives": []},
-            "source_owner": source_owner,
-            "signatures": signatures,
-            "reviewed": {
-                "function": reviewed_function,
-                "signature": {
-                    "prototype": source_function.declaration.prototype
-                    if source_function and source_function.declaration
-                    else function["prototype"],
-                    "calling_convention": function.get("calling_convention", ""),
-                    "authority": "source" if source_function else "ghidra",
-                },
-                "function_claims": function_claims,
-                "vtables": source_vtables,
-                "class_names": sorted(context_classes, key=str.casefold),
-                "classes": [
-                    row for row in source_classes if row["qualified_name"] in context_classes
-                ],
-                "fields": [
-                    {"class_name": item["name"], **field}
-                    for item in class_field_rows
-                    if item["name"] in context_classes
-                    for field in item["fields"]
-                ],
-            },
-            "assertions": assertions,
-            "eh": {"metadata": function["exception_metadata"]},
-            "calls": calls,
-            "callers": callers,
-            "globals": globals_joined,
-            "raw_references": raw_references,
-            "match": function_match,
-            "polymorphism": {"vptr_writes": vptr_writes, "tables": tables},
-            "high_function": high,
-            "normalized_pcode": normalized_pcode,
-            "field_accesses": semantic_fields,
-            "indirect_calls": indirect_calls,
-            "ghidra": {
-                "function": function,
-                "decompiled": decompiled,
-                "listing": instruction_listing,
-            },
+        globals_ = [
+            row
+            for row in function.get("data_references", [])
+            if row.get("kind") == "program-data"
+            and row.get("name")
+            and not str(row["name"]).casefold().startswith(("dat_", "lab_", "switchd_", "case_"))
+        ]
+        related_classes = {
+            declaration.owning_class
+            for declaration in [marker.declaration if marker is not None else None]
+            if declaration is not None and declaration.owning_class
         }
-        contexts.append(context)
-    return contexts
+        records.append(
+            {
+                "entry": f"0x{entry:08x}",
+                "program": program_name,
+                "identity": {"name": marker.name if marker is not None else function["name"]},
+                "source": source,
+                "retail": {
+                    "prototype": _one_line(function["prototype"]),
+                    "calling_convention": function.get("calling_convention"),
+                    "decompiled": str(artifact.relative_to(settings.repo_dir)),
+                },
+                "signature_evidence": {
+                    "decompiler": _decompiled_signature(decompiled),
+                    "limitation": "representations are not automatically classified as ABI conflicts",
+                },
+                "dependencies": {
+                    "calls": calls,
+                    "callers": callers,
+                    "globals": globals_,
+                    "indirect_calls": result_for("indirect-calls", requested).get("calls", []),
+                },
+                "classes": {
+                    "names": sorted(related_classes, key=str.casefold),
+                    "layouts": [row for row in field_rows if row["name"] in related_classes],
+                    "source": [
+                        row for row in indexed_classes if row["qualified_name"] in related_classes
+                    ],
+                },
+                "unresolved": {
+                    "boundary_defects": _assertion_boundary_defects(
+                        by_requested[requested], boundaries
+                    ),
+                    "assertions": by_requested[requested],
+                },
+            }
+        )
+    return records
 
 
-def recovery_context_report(
-    settings: Any,
-    address: str,
-    selector: str = "wiz8",
-    **options: Any,
-) -> dict[str, Any]:
-    """Compatibility entry point for callers requesting one context."""
-
-    return recovery_context_reports(settings, [address], selector, **options)[0]
-
-
-def render_context(context: dict[str, Any], view: str = "full") -> str:
-    return _markdown(context, view).rstrip()
+def recovery_context_report(settings: Any, address: str, selector: str = "wiz8") -> dict[str, Any]:
+    return recovery_context_reports(settings, [address], selector)[0]
