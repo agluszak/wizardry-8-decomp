@@ -18,4 +18,4 @@ def sweep_command(
     from .. import command_support as cli
     from ..sgp_oracle import sweep_sgp_units
 
-    cli.run_action(lambda: cli.summary(sweep_sgp_units(cli.settings(), unit)))
+    cli.run_action(lambda: sweep_sgp_units(cli.settings(), unit))

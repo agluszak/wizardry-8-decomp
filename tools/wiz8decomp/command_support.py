@@ -5,59 +5,15 @@ from __future__ import annotations
 import json
 import logging
 import sys
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import typer
 import yaml
-from rich.console import Console
 
 from .config import load_settings
 
-console = Console()
 logger = logging.getLogger(__name__)
-_JSON_OUTPUT = False
-
-
-@dataclass(frozen=True)
-class HumanResult:
-    """Concise terminal text paired with the complete machine-readable result."""
-
-    text: str
-    data: Any
-
-
-def human(text: str, data: Any) -> HumanResult:
-    return HumanResult(text=text.rstrip(), data=data)
-
-
-def summary(data: Any, *, label: str | None = None) -> HumanResult:
-    """Render a deliberately small public summary while retaining complete JSON."""
-
-    if not isinstance(data, dict):
-        count = len(data) if isinstance(data, list) else None
-        text = label or (f"{count} item(s)" if count is not None else str(data))
-        return human(text, data)
-    heading = label or str(data.get("schema") or data.get("status") or "complete")
-    details = []
-    if "ok" in data:
-        details.append("ok" if data["ok"] else "failed")
-    for key in ("status", "program", "target", "failure_count", "count"):
-        if key in data and data[key] not in (None, "", heading):
-            details.append(f"{key.replace('_', ' ')}: {data[key]}")
-    if not details:
-        details.extend(
-            f"{key.replace('_', ' ')}: {value}"
-            for key, value in data.items()
-            if isinstance(value, (bool, int, float))
-        )
-    return human(" — ".join([heading, *details]), data)
-
-
-def set_json_output(enabled: bool) -> None:
-    global _JSON_OUTPUT
-    _JSON_OUTPUT = enabled
 
 
 def settings():
@@ -69,32 +25,26 @@ def settings():
         raise typer.BadParameter(str(error)) from error
 
 
-def emit(value: Any, *, force_json: bool = False) -> None:
-    if isinstance(value, HumanResult):
-        if _JSON_OUTPUT or force_json:
-            sys.stdout.write(
-                json.dumps(value.data, indent=2, sort_keys=False, ensure_ascii=False) + "\n"
-            )
-        else:
-            console.print(value.text, highlight=False, markup=False)
-        return
-    if _JSON_OUTPUT or force_json:
-        sys.stdout.write(json.dumps(value, indent=2, sort_keys=False, ensure_ascii=False) + "\n")
-    elif isinstance(value, (dict, list)):
-        raise TypeError("public commands must wrap structured results with human()")
-    else:
-        console.print(value)
+def emit(value: Any) -> None:
+    """Emit the one public, agent-facing result representation."""
+
+    sys.stdout.write(json.dumps(value, indent=2, sort_keys=False, ensure_ascii=False) + "\n")
 
 
-def run_action(action: Any, *, force_json: bool = False) -> None:
+def run_action(action: Any) -> None:
     try:
         value = action()
         if value is not None:
-            emit(value, force_json=force_json)
+            emit(value)
     except Exception as error:
         if logger.isEnabledFor(logging.DEBUG):
             logger.exception("command failed")
-        console.print(f"[red]error:[/red] {error}", highlight=False)
+        emit(
+            {
+                "ok": False,
+                "error": {"type": type(error).__name__, "message": str(error)},
+            }
+        )
         raise typer.Exit(1) from error
 
 

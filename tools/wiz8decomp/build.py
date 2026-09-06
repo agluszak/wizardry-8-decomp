@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import sys
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
@@ -335,17 +334,26 @@ def build_target(
         run(build.check_build_system_command(), cwd=settings.repo_dir)
         parallel_makefiles = _enable_jom_parallelism(build.build_dir)
         resolved_target = TARGET_ALIASES.get(target, target)
-        result = run(
+        run(
             build.build_command(resolved_target, jobs or max(1, os.cpu_count() or 1)),
             cwd=settings.repo_dir,
             log_path=settings.repo_dir / "build" / "logs" / "product-build.json",
         )
-        return {
+        built: dict[str, Any] = {
             "target": resolved_target,
             "parallel_makefiles": parallel_makefiles,
-            "command": _result(result),
+            "status": "built",
             "log": str(Path("build/logs/product-build.json")),
         }
+        if resolved_target == "WIZ8":
+            from .unresolved import unresolved_report, verify_unresolved_delta
+
+            current = unresolved_report(
+                settings.repo_dir / "build/decomp/CMakeFiles/wiz8_recovered_objects.dir",
+                settings.repo_dir / "build/decomp/Wiz8.map",
+            )
+            built["unresolved"] = verify_unresolved_delta(settings, current)
+        return built
 
 
 def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any]:
@@ -386,7 +394,7 @@ def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any
     ]
     if full_diagnostics:
         configure_command.append("-DWIZ8_FULL_DIAGNOSTICS=ON")
-    configure_result = run(
+    run(
         configure_command,
         cwd=settings.repo_dir,
         log_path=settings.repo_dir
@@ -395,7 +403,7 @@ def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any
         / ("clang-full-configure.json" if full_diagnostics else "clang-lint-configure.json"),
     )
     target = "WIZ8_CLANG_DIAGNOSTICS" if full_diagnostics else "WIZ8_CLANG_LINT"
-    build_result = run(
+    run(
         [
             *prefix(),
             "--entrypoint",
@@ -417,64 +425,12 @@ def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any
     )
     return {
         "mode": "full-diagnostics" if full_diagnostics else "gating",
-        "configure": _result(configure_result),
-        "build": _result(build_result),
+        "status": "passed",
         "log": str(
             Path("build/logs")
             / ("clang-full-diagnostics.json" if full_diagnostics else "clang-lint-build.json")
         ),
     }
-
-
-def build_human_result(settings: Settings, result: dict[str, Any]) -> tuple[str, dict[str, Any]]:
-    """Attach the existing unresolved-symbol delta and render a compact build result."""
-
-    enriched = dict(result)
-    lines = [f"{result['target']} built successfully"]
-    if result["target"] == "WIZ8":
-        from .unresolved import unresolved_report, verify_unresolved_delta
-
-        current = unresolved_report(
-            settings.repo_dir / "build/decomp/CMakeFiles/wiz8_recovered_objects.dir",
-            settings.repo_dir / "build/decomp/Wiz8.map",
-        )
-        delta = verify_unresolved_delta(settings, current)
-        enriched["unresolved"] = delta
-        lines.append(
-            f"unresolved symbols: {delta['unchanged_count']} expected, "
-            f"{delta['introduced_count']} new"
-        )
-    lines.append(f"log: {result['log']}")
-    return "\n".join(lines), enriched
-
-
-def lint_human_result(result: dict[str, Any]) -> str:
-    output = str(result["build"].get("stdout", ""))
-    progress = [(int(done), int(total)) for done, total in re.findall(r"\[(\d+)/(\d+)\]", output)]
-    if progress:
-        done, total = max(progress, key=lambda pair: pair[0])
-        summary = f"lint: {done}/{total} translation units passed"
-    else:
-        summary = "lint: passed"
-    return f"{summary}\nlog: {result['log']}"
-
-
-def check_human_result(result: dict[str, Any]) -> str:
-    pytest_output = next(
-        (
-            str(command.get("stdout", ""))
-            for command in result["commands"]
-            if command.get("argv", [None])[0] == "pytest"
-        ),
-        "",
-    )
-    match = re.search(r"(\d+) passed", pytest_output)
-    lines = ["check:", "  all gates passed"]
-    if match:
-        lines.append(f"  tests: {match.group(1)} passed")
-    lint_line = lint_human_result(result["lint"]).splitlines()[0]
-    lines.append(f"  {lint_line}")
-    return "\n".join(lines)
 
 
 def build_analysis_target(
@@ -561,19 +517,16 @@ def check(repository: Path) -> dict[str, Any]:
         ("tests", ["pytest", "tests/unit", "tests/repository"]),
         ("reccmp", ["wiz8", "check-reccmp"]),
     )
+    gates = []
+    for name, command in commands:
+        log = Path("build/logs") / f"check-{name}.json"
+        run(command, cwd=repository, log_path=repository / log)
+        gates.append({"name": name, "status": "passed", "log": str(log)})
     return {
+        "status": "passed",
         "lint": lint_result,
         "source_index": source_index,
-        "commands": [
-            _result(
-                run(
-                    command,
-                    cwd=repository,
-                    log_path=repository / "build/logs" / f"check-{name}.json",
-                )
-            )
-            for name, command in commands
-        ],
+        "gates": gates,
     }
 
 

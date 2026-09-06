@@ -4,7 +4,6 @@ import logging
 
 import typer
 
-from . import command_support
 from .commands.core import register as register_core
 from .commands.core import toolchain_app
 from .commands.evidence import app as evidence_app
@@ -31,19 +30,15 @@ register_core(app)
 
 class CliState:
     verbose = False
-    json_output = False
 
 
 @app.callback()
 def main(
     ctx: typer.Context,
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable debug logging."),
-    json_output: bool = typer.Option(False, "--json", help="Render command results as JSON."),
 ) -> None:
     state = CliState()
     state.verbose = verbose
-    state.json_output = json_output
-    command_support.set_json_output(json_output)
     ctx.obj = state
     logging.basicConfig(
         level=logging.DEBUG if verbose else logging.INFO,

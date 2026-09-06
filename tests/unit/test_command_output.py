@@ -2,27 +2,27 @@ from __future__ import annotations
 
 import json
 
+import pytest
+import typer
 from wiz8decomp import command_support
 from wiz8decomp.subprocesses import actionable_diagnostics
 
 
-def test_human_result_hides_complete_subprocess_payload(capsys) -> None:
-    command_support.set_json_output(False)
-    command_support.emit(
-        command_support.human(
-            "WIZ8 built successfully\nlog: build/logs/product-build.json", {"stdout": "huge"}
-        )
-    )
-    output = capsys.readouterr().out
-    assert "built successfully" in output
-    assert "huge" not in output
-
-
-def test_json_result_contains_complete_structured_payload(capsys) -> None:
-    command_support.set_json_output(True)
-    command_support.emit(command_support.human("short", {"context": {"calls": [1]}}))
+def test_structured_result_is_the_only_output(capsys) -> None:
+    command_support.emit({"context": {"calls": [1]}})
     assert json.loads(capsys.readouterr().out) == {"context": {"calls": [1]}}
-    command_support.set_json_output(False)
+
+
+def test_failure_uses_the_same_structured_boundary(capsys) -> None:
+    def fail() -> None:
+        raise ValueError("bad selector")
+
+    with pytest.raises(typer.Exit):
+        command_support.run_action(fail)
+    assert json.loads(capsys.readouterr().out) == {
+        "ok": False,
+        "error": {"type": "ValueError", "message": "bad selector"},
+    }
 
 
 def test_failed_build_diagnostics_strip_jom_unwinding() -> None:

@@ -27,7 +27,7 @@ def restore_command(program: str = "wiz8") -> None:
         settings = cli.settings()
         settings.project_dir.mkdir(parents=True, exist_ok=True)
         with open_project(settings, create=True) as project:
-            return cli.summary(restore_seed(settings, project, program))
+            return restore_seed(settings, project, program)
 
     cli.run_action(action)
 
@@ -42,9 +42,7 @@ def import_command(
     from ..ghidra.import_programs import import_programs
 
     cli.run_action(
-        lambda: cli.summary(
-            import_programs(cli.settings(), requested_program=program, replace_existing=replace)
-        )
+        lambda: import_programs(cli.settings(), requested_program=program, replace_existing=replace)
     )
 
 
@@ -54,7 +52,7 @@ def seed_refresh_command(program: str | None = typer.Argument(None)) -> None:
     from .. import command_support as cli
     from ..ghidra.export_programs import export_project
 
-    cli.run_action(lambda: cli.summary(export_project(cli.settings(), program)))
+    cli.run_action(lambda: export_project(cli.settings(), program))
 
 
 @fid_app.command("status")
@@ -62,7 +60,7 @@ def fid_status_command() -> None:
     from .. import command_support as cli
     from ..ghidra.fid import fid_status
 
-    cli.run_action(lambda: cli.summary(fid_status(cli.settings())))
+    cli.run_action(lambda: fid_status(cli.settings()))
 
 
 @fid_app.command("inventory")
@@ -70,7 +68,7 @@ def fid_inventory_command() -> None:
     from .. import command_support as cli
     from ..ghidra.fid_seeds import static_inventory
 
-    cli.run_action(lambda: cli.summary(static_inventory(cli.settings())))
+    cli.run_action(lambda: static_inventory(cli.settings()))
 
 
 @fid_app.command("fetch-sources")
@@ -78,7 +76,7 @@ def fid_fetch_sources_command() -> None:
     from .. import command_support as cli
     from ..ghidra.fid_seeds import fetch_seed_sources
 
-    cli.run_action(lambda: cli.summary(fetch_seed_sources(cli.settings())))
+    cli.run_action(lambda: fetch_seed_sources(cli.settings()))
 
 
 @fid_app.command("build-image")
@@ -91,7 +89,7 @@ def fid_build_image_command(
     from .. import command_support as cli
     from ..ghidra.fid_seeds import build_toolchain_images
 
-    cli.run_action(lambda: cli.summary(build_toolchain_images(cli.settings(), toolchain)))
+    cli.run_action(lambda: build_toolchain_images(cli.settings(), toolchain))
 
 
 @fid_app.command("probe-toolchain")
@@ -104,7 +102,7 @@ def fid_probe_toolchain_command(
     from .. import command_support as cli
     from ..ghidra.fid_seeds import probe_toolchains
 
-    cli.run_action(lambda: cli.summary(probe_toolchains(cli.settings(), toolchain)))
+    cli.run_action(lambda: probe_toolchains(cli.settings(), toolchain))
 
 
 @fid_app.command("build-seeds")
@@ -121,7 +119,7 @@ def fid_build_seeds_command(
     from .. import command_support as cli
     from ..ghidra.fid_seeds import build_seed_objects
 
-    cli.run_action(lambda: cli.summary(build_seed_objects(cli.settings(), toolchain, library)))
+    cli.run_action(lambda: build_seed_objects(cli.settings(), toolchain, library))
 
 
 @fid_app.command("extract-libraries")
@@ -137,7 +135,7 @@ def fid_extract_libraries_command(
     from .. import command_support as cli
     from ..ghidra.fid_seeds import extract_precompiled_objects
 
-    cli.run_action(lambda: cli.summary(extract_precompiled_objects(cli.settings(), toolchain)))
+    cli.run_action(lambda: extract_precompiled_objects(cli.settings(), toolchain))
 
 
 @fid_app.command("build")
@@ -145,7 +143,7 @@ def fid_build_command() -> None:
     from .. import command_support as cli
     from ..ghidra.fid import build_fid
 
-    cli.run_action(lambda: cli.summary(build_fid(cli.settings())))
+    cli.run_action(lambda: build_fid(cli.settings()))
 
 
 @fid_app.command("build-srs")
@@ -153,7 +151,7 @@ def fid_build_srs_command() -> None:
     from .. import command_support as cli
     from ..ghidra.fid import build_srs_fid
 
-    cli.run_action(lambda: cli.summary(build_srs_fid(cli.settings())))
+    cli.run_action(lambda: build_srs_fid(cli.settings()))
 
 
 @fid_app.command("match")
@@ -165,4 +163,4 @@ def fid_match_command(
     from .. import command_support as cli
     from ..ghidra.fid import match_fid
 
-    cli.run_action(lambda: cli.summary(match_fid(cli.settings(), program, threshold, database)))
+    cli.run_action(lambda: match_fid(cli.settings(), program, threshold, database))
