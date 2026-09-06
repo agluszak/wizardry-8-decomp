@@ -1,6 +1,6 @@
 # Wizardry 8 decompilation
 
-This is a Jujutsu repository for evidence-driven matching decompilation. Use Beads for durable task state and `just` for supported workflows.
+This is a Jujutsu repository for evidence-driven matching decompilation.
 
 ## Authority
 
@@ -22,8 +22,9 @@ This is a Jujutsu repository for evidence-driven matching decompilation. Use Bea
 ## Recovery
 
 Use `matching-decomp` for the operational recovery loop and comparison reasoning. Use `class-triage`
-before declaring an unnamed constructor, destructor, vtable, registry family, or class. Their targeted
-references own technical examples; this file owns repository policy.
+only when proposing a new class boundary or changing an existing hierarchy, not merely to implement
+another method of an established class. Their targeted references own technical examples; this file
+owns repository policy.
 
 Recovery commands are agent-only structured interfaces: they emit one JSON result or failure, keep
 large generated code in named `build/` artifacts, and do not provide human/JSON presentation modes.
@@ -34,11 +35,11 @@ large generated code in named `build/` artifacts, and do not provide human/JSON 
 - A distinct vtable, lifecycle body, address, or template emission does not alone prove authored source. Compare canonical bases/templates first. Record emitted instantiations with `TEMPLATE`; keep generic definitions in canonical headers.
 - Preserve proven translation-unit ownership and order in `src/wiz8/sources.cmake`. Keep address-qualified template emissions separate until ownership is proved.
 
-Faithfulness is absolute; byte identity is incremental. The pinned VC6 build tests source hypotheses. Build and compare a connected first-pass batch together; use `just compare --changed` for every marked function in changed C++ files, or explicit addresses/`--file` selections for a narrower batch. Compare immediately when an experiment changes previously matched layout, ABI, lifecycle, or behavior. Inspect reported divergences: a classifier failure or low percentage alone does not prove incorrect C++. Revert proven regressions and record the hypothesis, command, before/after result, first divergence, and conclusion in the Bead. Do not brute-force inlining, scheduling, or register allocation. If instructions correspond one-for-one and only scratch registers differ, the body is done.
+Faithfulness is absolute; byte identity is incremental.
 
 Marker rules enforced by `just check`: `FUNCTION` sits immediately above its declaration; `TEMPLATE` is followed immediately by a comment naming the emitted symbol and owns no body; `LIBRARY` is address-only.
 
-Recover source placement before optimizer control. Ordinary functions stay unannotated. Header/class bodies require cross-translation-unit visibility evidence. Inline-control annotations require call-site evidence and improvement of the complete ABI bundle, and should be revisited later.
+Recover source placement before optimizer control. Ordinary functions stay unannotated. Header/class bodies require cross-translation-unit visibility evidence. Inline-control annotations require call-site evidence and improvement of the complete ABI bundle.
 
 ## Scope
 
@@ -46,17 +47,16 @@ The deliverable is the requested recovery, behavior, or code change. Tooling, te
 and process changes support that work; they do not replace it. During recovery, do not introduce new
 commands, frameworks, schemas, inventories, generic abstractions, or policy gates unless an existing
 defect blocks the requested work and has no small reliable workaround. Fix a blocker at its existing
-owner. Record non-blocking tooling ideas briefly and continue. Keep exploratory scripts disposable
-unless they solve a recurring problem that warrants maintenance.
+owner. Keep exploratory scripts disposable unless they solve a recurring problem that warrants
+maintenance.
 
 ## Verification
 
-Validate a coherent change, not each textual edit. Finish the declaration, definition, and necessary
-caller updates for one source hypothesis, then compare the affected functions. Use the smallest
-existing check that can detect the relevant failure:
+Validate a coherent change, not each textual edit. Use the smallest existing check that can detect
+the relevant failure:
 
 - Prose-only documentation or skill changes: review the diff.
-- Python implementation: relevant existing tests and relevant lint/type checks.
+- Python implementation: relevant existing tests via `uv run pytest -q PATH` and relevant lint/type checks.
 - Recovered function body with unchanged ABI: focused `just compare ADDRESS...`; it builds by default.
 - Class layout, inheritance, virtual, or lifecycle changes: focused affected ABI bundle, relevant
   `just vtable` checks, and declaration/ABI checks.
@@ -65,21 +65,21 @@ existing check that can detect the relevant failure:
   affects shared validation machinery; it is not a publication prerequisite.
 
 A completed check remains sufficient until a relevant source, dependency, configuration, toolchain,
-analysis input, incoming rebase change, or conflict resolution changes what it covered. Reuse a
-recovery command's result when it covers the retained source and current inputs. A new change ID,
-description edit, bookmark move, or successful push does not require retesting.
+analysis input, incoming rebase change, or conflict resolution changes what it covered. Reuse results
+that cover the retained source and current inputs. A new change ID, description edit, bookmark move,
+or successful push does not require retesting.
 
 For a local recovery task, stop when the affected functions or ABI bundle meet the task's acceptance
-criteria. Exact/effective does not require an independent reconstruction of the same evidence. For a
-mismatch or inconclusive result, investigate a specific structural hypothesis and report unresolved
-differences honestly. Broad validation belongs to integration and shared infrastructure changes.
+criteria. Exact/effective does not require an independent reconstruction of the same evidence.
+Investigate failures relevant to the change and report uncertainty when no sound baseline exists;
+do not reproduce unrelated baseline failures as a publication ritual. Deleting policy-only tests
+does not require a game build or a broad audit.
 
-Changed-file selection does not cover unchanged callers of an edited header, so add the affected
-caller or ABI bundle when needed. Selected-function relocation-masked comparison is authoritative;
-whole-image comparison is diagnostic. Preserve `/OPT:NOREF` comparison and `/OPT:REF` runtime modes.
-`just runtime-test` must not add test branches to matching bodies.
+Selected-function relocation-masked comparison is authoritative; whole-image comparison is diagnostic.
+Preserve `/OPT:NOREF` comparison and `/OPT:REF` runtime modes. `just runtime-test` must not add test
+branches to matching bodies.
 
-## Tests and verification
+## Tests
 
 Do not add tests by default.
 
@@ -87,8 +87,7 @@ Add a test only when explicitly requested, or when reproducing a concrete observ
 that existing checks do not detect. Use an independently justified expected result. A plausible
 hypothetical failure is not, by itself, a reason to add permanent test machinery.
 
-For ordinary C++ recovery, focused retail comparison is the default validation. Do not add Python
-tests that inspect the recovered source.
+Do not add Python tests that inspect the recovered source.
 
 Do not add tests for exact source spelling, documentation wording, deleted filenames, current
 inventory counts, internal helper call order, or assertions over unchanged generated reports. Test
@@ -101,12 +100,6 @@ When removing obsolete code or policy, remove its tests and test-only helpers. D
 obsolete machinery to keep its tests green. Do not write tests asserting that the removed tests or
 files stay deleted.
 
-Run only existing checks relevant to the actual change. Repeat them only after a relevant input
-changes or a specific error invalidates the result. Deleting policy-only tests does not require a
-game build or a broad audit. Direct targeted pytest commands are supported; `just test <file>` still
-selects the complete unit and repository directories before the extra argument and is not a narrow
-file-only invocation.
-
 ## Workspace and publication
 
 - Use Jujutsu in the provided checkout. Resume the current task change when appropriate. Never create
@@ -118,12 +111,9 @@ file-only invocation.
   other agents must not independently switch, rebase, or publish it.
 - Use `main@origin` as the upstream base. Fetch and rebase when upstream work is needed or immediately
   before authorized direct integration, not repeatedly during implementation.
-- Claim a concrete Bead before substantial work and update it at meaningful task boundaries. Record
-  accepted facts, consequential rejected hypotheses, and unresolved blockers without attaching
-  bookkeeping to every VCS operation.
-- Review the change and run relevant checks. Reuse valid results. Do not run broad verification or
-  reproduce unrelated baseline failures as a publication ritual; investigate failures relevant to
-  the change and report uncertainty when no sound baseline exists.
+- Use the assigned Bead when one exists. Create or update task records only when coordination or
+  durable findings require it. Do not block an explicit user task on tracker setup. Record
+  consequential discoveries and blockers, not command histories or routine failed experiments.
 - Publish once within the user's authorization. Move `main` only for completed authorized direct
   integration. Never rewrite remote `main` or discard another contributor's changes. A successful
   push completes publication; investigate an actual rejection instead of running routine post-push

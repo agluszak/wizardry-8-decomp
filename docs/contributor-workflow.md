@@ -40,28 +40,10 @@ jj describe -m "Recover W8DialogInterface"
 
 Do not create an empty child merely to imitate `git commit`.
 
-Claim and update a concrete Bead at meaningful task boundaries. Record accepted facts,
-consequential rejected hypotheses, and unresolved blockers. Bead synchronization is tracker
-maintenance, not a step attached to every checkpoint, rebase, or push.
-
 ## Validate the change
 
-Review the change and run checks whose scope can detect its failures. Typical examples are:
-
-- recovered bodies: focused `just compare ADDRESS...` or `just compare --file SOURCE`;
-- layout, inheritance, virtual, or lifecycle changes: the affected comparison bundle and relevant
-  vtable or ABI checks;
-- Python/tooling changes: relevant tests plus applicable lint and type checks;
-- prose-only changes: review the diff.
-
-`just verify` remains available for deliberate repository-wide auditing and shared validation
-changes. It is not an integration or publication prerequisite.
-
-Reuse successful validation while its relevant inputs remain unchanged. A new change ID, description
-edit, bookmark move, or successful push does not invalidate it. After a rebase, rerun only checks
-affected by incoming changes or conflict resolution. Investigate an unexplained relevant failure;
-do not label it pre-existing without evidence. Reuse known baseline evidence when available, and
-report uncertainty instead of creating a clean sibling solely to classify a failure.
+Follow the verification policy in `AGENTS.md`. After a rebase, rerun only checks affected by incoming
+changes or conflict resolution.
 
 ## Publish directly to main
 

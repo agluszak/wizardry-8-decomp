@@ -19,6 +19,6 @@ line up instruction for instruction.
 | tail `jmp` versus `call`/`ret` | return shape enabled a tail call | test a named local result |
 
 These are hypotheses, not recipes. Test one source fact at a time when practical. A worse structured
-status, earlier divergence, or changed machine effect falsifies the hypothesis. Reordered independent
-stores or stack slots alone do not. Record a rejected hypothesis only when it changes a shared model,
-prevents repeated work, or explains an unresolved blocker.
+status or earlier divergence is a reason to inspect the reported difference, not proof that the
+source hypothesis is wrong. Reject the hypothesis when the underlying instruction evidence
+contradicts it. Reordered independent stores or stack slots alone do not establish a regression.

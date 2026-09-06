@@ -48,13 +48,8 @@ the canonical analysis checkpoint, while provenance remains the explanation of a
 
 ## Acceptance
 
-For a recovered function, require the narrowest applicable proof:
-
-```sh
-just build WIZ8
-just compare
-just test
-```
+Follow `AGENTS.md` for change-specific verification and `matching-decomp` for the focused comparison
+loop.
 
 Reccmp's current-binary relocation-masked result is the exact-body authority. Runtime behavior is
 the product authority.

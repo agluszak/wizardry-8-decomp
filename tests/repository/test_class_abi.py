@@ -36,23 +36,16 @@ DELETING_DESTRUCTORS = (
 def _index() -> dict[str, Any]:
     """Load the generated index.
 
-    These rules are only as current as this file. `just test` and `just check`
-    both regenerate it before running the repository suite, and the generator
-    aborts the lane rather than rewriting a bad index, so the supported lanes
-    cannot reach these rules with stale data. Running pytest directly after
-    editing sources can, so refresh with `uv run wiz8 analyze source-index`
-    first and read its errors -- it refuses to rewrite the index when a marker
-    is malformed, and that refusal is itself a defect to fix.
+    These rules require a current index. `just check` refreshes it before the
+    repository suite; for a direct run after source changes, refresh with
+    `uv run wiz8 analyze source-index` first.
 
     Do not add an mtime-based staleness assert here: the writer preserves the
     file when regenerated content is byte-identical, so mtime comparison
     reports false staleness.
     """
     path = REPOSITORY / "build" / "source-index.json"
-    assert path.is_file(), (
-        f"{path} is missing; the source index is refreshed by `just test` and "
-        "`just check` before the repository suite runs"
-    )
+    assert path.is_file(), f"{path} is missing; generate it with `uv run wiz8 analyze source-index`"
     with path.open(encoding="utf-8") as handle:
         index = json.load(handle)
 

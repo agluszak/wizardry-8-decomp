@@ -1,6 +1,6 @@
 ---
 name: class-triage
-description: Decide whether an unnamed Wizardry 8 constructor, destructor, vtable, or registry family is a real class before declaring it.
+description: Evaluate evidence for a new Wizardry 8 class boundary or a change to an existing hierarchy; not for implementing another method of an established class.
 ---
 
 # Class triage
