@@ -291,7 +291,7 @@ unsigned char MonsterReadAllCycles004C0300(
             for (int index = 0;
                  index < (*monster)->m_plsParticles->GetCount();
                  ++index) {
-                W8GrCycleShakeEvent* event =
+                W8GrCycleParticleAttachment* event =
                     *(*monster)->m_plsParticles->GetAt(index);
                 if (event->cycle_00 == -1 && event->subcycle_04 == -1) {
                     event->subcycle_04 =
@@ -527,7 +527,7 @@ unsigned char MonsterReadAllCycles004C0300(
                                 for (int index = 0;
                                      index < (*monster)->m_plsParticles->GetCount();
                                      ++index) {
-                                    W8GrCycleShakeEvent* event =
+                                    W8GrCycleParticleAttachment* event =
                                         *(*monster)->m_plsParticles->GetAt(index);
                                     if (event->cycle_00 == cycle &&
                                         event->subcycle_04 == -1) {
@@ -3676,7 +3676,7 @@ void W8Monster::SetShakeEventVisibility004BF9E0(signed char cycle)
     }
 
     for (index = 0; index < count; ++index) {
-        W8GrCycleShakeEvent* event = *m_plsParticles->GetAt(index);
+        W8GrCycleParticleAttachment* event = *m_plsParticles->GetAt(index);
 
         if (event->cycle_00 == cycle &&
             event->subcycle_04 ==
@@ -4544,7 +4544,7 @@ void W8MonsterShakeCallback::RestoreAnimation()
 void W8Monster::UpdateShakeEvents004C3380(unsigned char previous_frame)
 {
     W8AnimObj* animation;
-    W8GrCycleShakeEvent* event;
+    W8GrCycleParticleAttachment* event;
     stParticle* particle;
     W8MonsterShakeCallback* callback;
     int count;
@@ -5261,7 +5261,7 @@ unsigned char LoadMonsterCycle004C5910(
         int count = (*monster)->m_plsParticles->GetCount();
         if (count != 0) {
             for (int index = 0; index < count; ++index) {
-                W8GrCycleShakeEvent* event =
+                W8GrCycleParticleAttachment* event =
                     *(*monster)->m_plsParticles->GetAt(index);
                 if (event->cycle_00 == cycle && event->subcycle_04 == -1) {
                     event->subcycle_04 =
@@ -5619,7 +5619,7 @@ unsigned char W8Monster::ReplaceSkinTexture004C6700(
 
     if (replaced == 0 && m_plsParticles != 0) {
         for (int index = 0; index < m_plsParticles->GetCount(); ++index) {
-            W8GrCycleShakeEvent* event = *m_plsParticles->GetAt(index);
+            W8GrCycleParticleAttachment* event = *m_plsParticles->GetAt(index);
             if (event->particle_08->ReplaceTexture0049AC30(
                     old_name, texture) != 0) {
                 replaced = 1;

@@ -7,7 +7,8 @@ extern "C" {
 
 extern unsigned char g_save_flag_00687599;
 extern unsigned char g_status_block_685078[56];
-extern void* g_object_685067;
+class W8GameTimer;
+extern W8GameTimer* g_gameplay_timer_685067;
 extern unsigned char g_party_moving_006850b5;
 extern unsigned int g_starting_item_ids[];
 

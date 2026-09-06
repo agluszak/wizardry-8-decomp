@@ -1,4 +1,3 @@
-#include "wiz8/unattributed/quarantine_common.h"
 #include "surrender/srClipPlane.h"
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/engine_code/GDCamera.h"

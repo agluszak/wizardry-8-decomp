@@ -1,13 +1,14 @@
 #pragma once
 
-#include "wiz8/character.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/saved_location.h"
 
 #include <stddef.h>
 
 struct W8PartySlotRow;
+struct W8Character;
 
 enum { W8_PARTY_SLOT_COUNT = 8 };
 
@@ -40,7 +41,7 @@ struct W8PartyFormationState {
 
 struct W8GlobalStatus {
     W8StatusBuffers buffers;
-    unsigned char game_started_000c;
+    unsigned char game_started;          /* 0x000c */
     unsigned char unknown_000d[0x0c];
     unsigned int party_gold;
     int selected_character;

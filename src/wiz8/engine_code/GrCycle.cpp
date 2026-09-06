@@ -334,13 +334,13 @@ unsigned char ReadGrCycleData004A6970(
 
             if ((*cycle)->m_plsParticles == 0) {
                 (*cycle)->m_plsParticles =
-                    new W8GrowableVector<W8GrCycleShakeEvent*>;
+                    new W8GrowableVector<W8GrCycleParticleAttachment*>;
             }
             for (index = 0; index < particles.GetCount(); ++index) {
                 stParticle* particle = *particles.GetAt(index);
-                W8GrCycleShakeEvent* event =
-                    static_cast<W8GrCycleShakeEvent*>(
-                        ::operator new(sizeof(W8GrCycleShakeEvent)));
+                W8GrCycleParticleAttachment* event =
+                    static_cast<W8GrCycleParticleAttachment*>(
+                        ::operator new(sizeof(W8GrCycleParticleAttachment)));
                 srVector3T<double> location;
 
                 if (event == 0) {
@@ -473,16 +473,16 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other)
     }
     if (other.m_plsParticles != 0 && other.m_plsParticles->GetCount() != 0) {
         count = other.m_plsParticles->GetCount();
-        m_plsParticles = new W8GrowableVector<W8GrCycleShakeEvent*>(5);
+        m_plsParticles = new W8GrowableVector<W8GrCycleParticleAttachment*>(5);
         if (m_plsParticles == 0) {
             srAssertFail("m_plsParticles", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0xf6, 0);
         }
         for (index = 0; index < count; ++index) {
-            W8GrCycleShakeEvent* event = static_cast<W8GrCycleShakeEvent*>(
-                ::operator new(sizeof(W8GrCycleShakeEvent)));
+            W8GrCycleParticleAttachment* event = static_cast<W8GrCycleParticleAttachment*>(
+                ::operator new(sizeof(W8GrCycleParticleAttachment)));
 
             if (event != 0) {
-                W8GrCycleShakeEvent* source_event =
+                W8GrCycleParticleAttachment* source_event =
                     *other.m_plsParticles->GetAt(index);
 
                 event->cycle_00 = source_event->cycle_00;
@@ -523,7 +523,7 @@ W8GrCycle::~W8GrCycle()
     if (m_plsParticles != 0) {
         count = m_plsParticles->GetCount();
         for (index = 0; index < count; ++index) {
-            W8GrCycleShakeEvent* event = *m_plsParticles->GetAt(index);
+            W8GrCycleParticleAttachment* event = *m_plsParticles->GetAt(index);
             stParticle* owner = event->particle_08;
 
             if (owner == 0 || owner->active_particle_count_18c == 0) {
@@ -1084,7 +1084,7 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
     scale_z = (float)scale.z;
 
     for (index = 0; index < count; ++index) {
-        W8GrCycleShakeEvent* attachment = *m_plsParticles->GetAt(index);
+        W8GrCycleParticleAttachment* attachment = *m_plsParticles->GetAt(index);
         stParticle* particle = attachment->particle_08;
         if (particle->active_1a0 == 0) {
             continue;
@@ -1334,13 +1334,13 @@ extern W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
 // W8GrowableVector<W8CameraShakeEffect*>::~W8GrowableVector<W8CameraShakeEffect*>
 
 // VTABLE: WIZ8 0x005ececc
-// class W8GrowableVector<W8GrCycleShakeEvent*>
+// class W8GrowableVector<W8GrCycleParticleAttachment*>
 
 // SYNTHETIC: WIZ8 0x004a8fe0
-// W8GrowableVector<W8GrCycleShakeEvent*>::`scalar deleting destructor'
+// W8GrowableVector<W8GrCycleParticleAttachment*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004a8fb0
-// W8GrowableVector<W8GrCycleShakeEvent*>::~W8GrowableVector<W8GrCycleShakeEvent*>
+// W8GrowableVector<W8GrCycleParticleAttachment*>::~W8GrowableVector<W8GrCycleParticleAttachment*>
 
 // FUNCTION: WIZ8 0x004a8430
 void W8GrCycle::SetSubCycle(unsigned char subcycle)

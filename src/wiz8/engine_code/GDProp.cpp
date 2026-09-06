@@ -3,6 +3,7 @@
 #include "wiz8/engine_code/GDProp.h"
 #include "wiz8/engine_code/OctPath.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/Trigger.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/mesh_model.h"
@@ -250,15 +251,14 @@ void GDProp::Initialize(
         }
     }
 
-    unsigned char* owner = static_cast<unsigned char*>(m_owner_24);
+    Trigger* owner = m_owner_24;
     if (owner != 0 && attach != 0) {
-        unsigned char* state = *reinterpret_cast<unsigned char**>(owner + 0x234);
-        if (state != 0 && state[4] == 10) {
+        W8TriggerActionData* action = owner->m_pActionData;
+        if (action != 0 && action->type_004 == 10) {
             unsigned int flags = 0x08000000;
-            if ((*reinterpret_cast<int*>(owner + 0x368) != 0 &&
-                 owner[0x370] == 0) ||
-                ((*reinterpret_cast<unsigned int*>(owner + 0xa0) & 0x100) == 0 ||
-                 (state[8] & 5) != 0)) {
+            if ((owner->value_368 != 0 && owner->state_370.state == 0) ||
+                ((owner->flags_0a0 & 0x100) == 0 ||
+                 (action->flags_008 & 5) != 0)) {
                 flags = 0x28000000;
             }
             if (pathing != 0) {
@@ -283,20 +283,17 @@ void GDProp::Initialize(
 /* Attach the product-side prop owner and immediately mirror its active state
    into both the local GD flags and the conditional path table. */
 // FUNCTION: WIZ8 0x004b7470
-void GDProp::BindOwner004B7470(void* owner_value)
+void GDProp::BindTrigger(Trigger* owner)
 {
-    unsigned char* owner = static_cast<unsigned char*>(owner_value);
     m_owner_24 = owner;
-    unsigned char* state =
-        *reinterpret_cast<unsigned char**>(owner + 0x234);
-    if (state != 0 && state[4] == 10) {
-        if (state != 0) {
+    W8TriggerActionData* action = owner->m_pActionData;
+    if (action != 0 && action->type_004 == 10) {
+        if (action != 0) {
             m_flags_00 |= 2;
             unsigned int path_flags = 0x08000000;
-            if ((*reinterpret_cast<int*>(owner + 0x368) == 0 ||
-                 owner[0x370] != 0) &&
-                (*reinterpret_cast<unsigned int*>(owner + 0xa0) & 0x100) != 0 &&
-                (state[8] & 5) == 0) {
+            if ((owner->value_368 == 0 || owner->state_370.state != 0) &&
+                (owner->flags_0a0 & 0x100) != 0 &&
+                (action->flags_008 & 5) == 0) {
                 m_flags_00 |= 8;
             }
             else {

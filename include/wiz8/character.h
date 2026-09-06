@@ -4,6 +4,7 @@
 #include "surrender/srMath.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/saved_location.h"
 
 #pragma pack(push, 1)
 
@@ -38,17 +39,6 @@ typedef struct W8Enchantment {
        consults on slot five. */
     int value_08;
 } W8Enchantment;                          /* 0x0c */
-
-/* A world position as the packed records carry it: three floats, C-compatible,
-   distinct from srVector3T<float> which only exists for C++ consumers. */
-
-/* The 0x3c-byte anchor a character carries and the recall effect restores.
-   Only the leading point is read field by field; the rest travels as one
-   block, so nothing beyond it is named. */
-typedef struct W8SavedLocation {
-    srVector3T<float> point;                    /* 0x00 */
-    unsigned char unknown_0c[0x30];
-} W8SavedLocation;                       /* 0x3c */
 
 /* The game's wide text format: fixed-size UINT16 arrays stored inline in
    records and manipulated through the CRT wide-string functions. Under VC6
@@ -203,8 +193,11 @@ typedef struct W8Character {
     int sp_max[W8_SPELL_REALM_COUNT];     /* 0x0b25 */
     unsigned char unknown_0b3d[8];
     int sp_left[W8_SPELL_REALM_COUNT];    /* 0x0b45 */
-    unsigned char unknown_0b5d[0x68];
-    int value_0bc5;                     /* state-5 summary displays value / 10 */
+    unsigned char unknown_0b5d[0x5c];
+    int inventory_weight;               /* 0x0bb9 */
+    int party_weight_share;              /* 0x0bbd */
+    int total_carried_weight;            /* 0x0bc1 */
+    int carrying_capacity;               /* 0x0bc5; displayed divided by 10 */
     /* 0x0bc9: the load category, zero through four, which scales what an
        action costs in fatigue. FatigueCharacter's error text calls it that. */
     int load_category;

@@ -28,13 +28,6 @@
 /* Shared declarations for address-interval quarantine units. Definitions live
    only in the physical source selected by source-path or bounded-gap evidence. */
 
-/* Only the virtual destructor is established: the call goes through slot 0 with
-   the deleting flag set, which is what `delete` on a polymorphic object emits.
-   No field is known, so none is modelled. */
-struct W8Releasable {
-    virtual ~W8Releasable();
-};
-
 extern "C" {
 
 extern int g_clip_left_600078;

@@ -266,7 +266,7 @@ void W8OptionsMenuSet005EEFEC::OnPrimary(W8TextControl005ED604* control)
 void W8OptionsScreen::OnDialogClosed(unsigned char reason, int)
 {
     if (reason != 0) {
-        if (g_status_685170.game_started_000c != 0 &&
+        if (g_status_685170.game_started != 0 &&
             g_in_combat_00683f94 == 0 && AnyCharacterActive()) {
             AutoSaveIfAllowed(1);
         }
