@@ -21,15 +21,18 @@ class stTextureAnim;
    here plus the destructor are the five SurRender does not export. The object
    is 0x7C bytes, which is what the constructor's callers allocate through
    srHeap, and the only field past srMaterial's extent is at 0x78. */
-class stMaterial : public srMaterial {
+class stMaterial
+    : public srClassSupport<stMaterial, srMaterial, false, 0x10002> {
 public:
+    static const char* sGetClassName() { return "stMaterial"; }
+
     stMaterial();
-    virtual const char* getClassName() const override;
-    virtual unsigned long getClassID() const override;
-    virtual srRegistry::ClassNode* getClassNode() const override;
-    virtual ~stMaterial() override;
     virtual srClass* clone() override;
 
+protected:
+    virtual ~stMaterial() override;
+
+public:
     int m_field_78;                          /* 0x78 */
 };
 

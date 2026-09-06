@@ -87,74 +87,21 @@ void W8MaterialMapper004B89A0::process(srVertexPipe& pipe)
 // FUNCTION: WIZ8 0x004925B0
 stMaterial::stMaterial()
 {
-    srCore.getRegistry()->registerInstance(getClassNode(), this);
     m_field_78 = 0;
 }
 
+// TEMPLATE: WIZ8 0x00492940
+// srClassSupport<stMaterial,srMaterial,0,65538>::getClassID
 
-// Slot 0. The name the constructor also hands to srRegistry::registerClass.
-// FUNCTION: WIZ8 0x00492950
-const char* stMaterial::getClassName() const
-{
-    return "stMaterial";
-}
+// TEMPLATE: WIZ8 0x00492950
+// srClassSupport<stMaterial,srMaterial,0,65538>::getClassName
 
-// Slot 1. The class id registered for stMaterial.
-// FUNCTION: WIZ8 0x00492940
-unsigned long stMaterial::getClassID() const
-{
-    return 0x10002;
-}
+// TEMPLATE: WIZ8 0x00492960
+// srClassSupport<stMaterial,srMaterial,0,65538>::getClassNode
 
-/* Slot 2. Ensures the class tree this instance registers against exists,
-   walking down from stMaterial's own id to whichever ancestor is already
-   registered and building back up. The three registry reads are three separate
-   loads of srCore, not one cached pointer. */
-// FUNCTION: WIZ8 0x00492960
-srRegistry::ClassNode* stMaterial::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x10002);
-
-    if (node == 0) {
-        srRegistry* material_registry = srCore.getRegistry();
-
-        node = material_registry->getClassNode(0x2210);
-        if (node == 0) {
-            srRegistry* interface_registry = srCore.getRegistry();
-
-            node = interface_registry->getClassNode(0x2200);
-            if (node == 0) {
-                node = interface_registry->registerClass(
-                    srMaterialIFace::sGetClassName(),
-                    srClass::sGetClassNode(),
-                    0x2200,
-                    1);
-            }
-            node = material_registry->registerClass(
-                srMaterial::sGetClassName(), node, 0x2210, 0);
-        }
-        node = registry->registerClass("stMaterial", node, 0x10002, 0);
-    }
-    return node;
-}
-
-/* Slot 5. The complete destructor at 0x00492A30 is not recovered: it is 425
-   bytes that tear the instance out of the registry at three levels, and the two
-   it unwinds through are levels this class model does not yet have. Only the
-   compiler-generated deleting destructor above it is claimed, which is what
-   proves the srHeap routing on srClass::operator delete. */
-stMaterial::~stMaterial()
-{
-}
-
-// Slot 7. Copies through the instance slot 6 returns, then carries the one
-// field srMaterial's assignment operator cannot know about.
-// FUNCTION: WIZ8 0x00492a00
+// FUNCTION: WIZ8 0x00492A00
 srClass* stMaterial::clone()
 {
-    /* srClass is srMaterial's base at offset zero, so the original reuses the
-       returned pointer without adjusting it. */
     stMaterial* instance = static_cast<stMaterial*>(vInstance());
 
     if (this != instance) {
@@ -163,6 +110,14 @@ srClass* stMaterial::clone()
     }
     return instance;
 }
+
+// FUNCTION: WIZ8 0x00492A30
+stMaterial::~stMaterial()
+{
+}
+
+// SYNTHETIC: WIZ8 0x00492C40
+// stMaterial::`scalar deleting destructor'
 
 /* Select the first populated texture layer, load its file or IFL animation,
    derive the renderer flags, and retain a registry-cached stMaterial keyed by
