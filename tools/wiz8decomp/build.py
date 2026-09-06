@@ -95,8 +95,6 @@ class ContainerBuild:
                 "-DZLIB_SOURCE=Z:/zlib",
                 "-DINFOZIP_SOURCE=Z:/infozip",
                 "-DSGP_SOURCE=Z:/repo/third_party/sfi-sgp/sgp",
-                f"-DRECCMP_PROJECT_DIR_HOST={self.source_dir}",
-                f"-DRECCMP_BUILD_DIR_HOST={self.build_dir}",
                 "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
             )
         )
@@ -139,33 +137,6 @@ def _product_cache_ready(build_dir: Path) -> bool:
         return False
     cached = cache.read_text(encoding="utf-8", errors="replace").replace("\r", "")
     return f"CMAKE_GENERATOR:INTERNAL={PRODUCT_GENERATOR}\n" in cached
-
-
-def _reccmp_configs_ready(settings: Settings, target: str) -> bool:
-    project_path = settings.repo_dir / "reccmp-project.yml"
-    user_path = settings.repo_dir / "reccmp-user.yml"
-    build_path = settings.repo_dir / "build" / "decomp" / "reccmp-build.yml"
-    if not all(path.is_file() for path in (project_path, user_path, build_path)):
-        return False
-    cache = (settings.repo_dir / "build/decomp/CMakeCache.txt").read_text(
-        encoding="utf-8", errors="replace"
-    )
-    if f"RECCMP_PROJECT_DIR_HOST:PATH={settings.repo_dir}\n" not in cache.replace(
-        "\r", ""
-    ) or f"RECCMP_BUILD_DIR_HOST:PATH={settings.repo_dir / 'build/decomp'}\n" not in cache.replace(
-        "\r", ""
-    ):
-        return False
-
-    user = yaml.safe_load(user_path.read_text(encoding="utf-8")) or {}
-    build = yaml.safe_load(build_path.read_text(encoding="utf-8")) or {}
-    user_targets = user.get("targets") or {}
-    build_targets = build.get("targets") or {}
-    return bool(
-        user_targets.get(target, {}).get("path")
-        and build_targets.get(target, {}).get("path")
-        and build_targets.get(target, {}).get("pdb")
-    )
 
 
 def _enable_jom_parallelism(build_dir: Path) -> list[str]:
@@ -249,6 +220,20 @@ def prepare(settings: Settings) -> dict[str, Any]:
     extractions = extract_all(settings)
     variants = materialize_variants(settings)
     sources = fetch_seed_sources(settings)
+    write_wiz8_data_source(settings.repo_dir)
+    _write_sr_assert_import(settings.repo_dir)
+    detected = run(
+        [
+            "reccmp-project",
+            "detect",
+            "--search-path",
+            settings.work_dir / "variants" / "gog-base",
+            settings.work_dir / "variants" / "gog-base" / "Dll",
+            "--what",
+            "original",
+        ],
+        cwd=settings.repo_dir,
+    )
     return {
         "manifest_files": len(manifest.files),
         "repairs": repairs,
@@ -258,6 +243,7 @@ def prepare(settings: Settings) -> dict[str, Any]:
             "ready": sum(row["status"] == "ready" for row in sources["sources"]),
             "skipped": sum(row["status"] != "ready" for row in sources["sources"]),
         },
+        "detect": _result(detected),
     }
 
 
@@ -272,25 +258,10 @@ def _write_sr_assert_import(repository: Path) -> None:
 
 
 def _configure(settings: Settings) -> dict[str, Any]:
-    prepare_result = prepare(settings)
     build = ContainerBuild.from_settings(settings)
     build.build_dir.mkdir(parents=True, exist_ok=True)
     (build.build_dir / "tmp").mkdir(parents=True, exist_ok=True)
     validate_build_directory(settings)
-    write_wiz8_data_source(settings.repo_dir)
-    _write_sr_assert_import(settings.repo_dir)
-    detect = run(
-        [
-            "reccmp-project",
-            "detect",
-            "--search-path",
-            settings.work_dir / "variants" / "gog-base",
-            settings.work_dir / "variants" / "gog-base" / "Dll",
-            "--what",
-            "original",
-        ],
-        cwd=settings.repo_dir,
-    )
     cache = build.build_dir / "CMakeCache.txt"
     fresh = cache.is_file() and not _product_cache_ready(build.build_dir)
     configured = run(build.configure_command(fresh=fresh), cwd=settings.repo_dir)
@@ -298,11 +269,7 @@ def _configure(settings: Settings) -> dict[str, Any]:
         _owner_path(build.build_dir),
         {"source_dir": str(settings.repo_dir), "build_dir": str(build.build_dir)},
     )
-    return {
-        "prepare": prepare_result,
-        "detect": _result(detect),
-        "configure": _result(configured),
-    }
+    return {"configure": _result(configured)}
 
 
 def configure(settings: Settings) -> dict[str, Any]:
@@ -412,22 +379,21 @@ def build_target(
     with build_lock(settings):
         build = ContainerBuild.from_settings(settings)
         resolved_target = TARGET_ALIASES.get(target, target)
-        comparison_target = (
-            "WIZ8" if resolved_target in {"WIZ8", "WIZ8_RUNTIME", "WIZ8_RUNTIME_TEST"} else target
-        )
-        write_wiz8_data_source(settings.repo_dir)
-        _write_sr_assert_import(settings.repo_dir)
         validate_build_directory(settings)
-        prerequisites_ready = all(
-            mount.host.exists()
+        missing = [
+            mount.host
             for mount in build.mounts
-            if mount.container not in {"/repo", "/out"}
-        )
-        if (
-            not prerequisites_ready
-            or not _product_cache_ready(build.build_dir)
-            or not _reccmp_configs_ready(settings, comparison_target)
-        ):
+            if mount.container not in {"/repo", "/out"} and not mount.host.exists()
+        ]
+        import_archive = build.build_dir / "sr-assert-import.lib"
+        if not import_archive.is_file():
+            missing.append(import_archive)
+        if missing:
+            rendered = ", ".join(str(path) for path in missing)
+            raise RuntimeError(
+                f"prepared build inputs are missing ({rendered}); run `wiz8 prepare`"
+            )
+        if not _product_cache_ready(build.build_dir):
             _configure(settings)
         # Let CMake regenerate while its NMake serialization guards are intact,
         # then adapt only those generated guards for the parallel JOM build.
@@ -438,22 +404,12 @@ def build_target(
             cwd=settings.repo_dir,
             log_path=settings.repo_dir / "build" / "logs" / "product-build.json",
         )
-        built: dict[str, Any] = {
+        return {
             "target": resolved_target,
             "parallel_makefiles": parallel_makefiles,
             "status": "built",
             "log": str(Path("build/logs/product-build.json")),
-            "imports": _check_product_imports(settings.repo_dir, resolved_target),
         }
-        if resolved_target == "WIZ8":
-            from .unresolved import unresolved_report, verify_unresolved_delta
-
-            current = unresolved_report(
-                settings.repo_dir / "build/decomp/CMakeFiles/wiz8_recovered_objects.dir",
-                settings.repo_dir / "build/decomp/Wiz8.map",
-            )
-            built["unresolved"] = verify_unresolved_delta(settings, current)
-        return built
 
 
 def configure_clang(
@@ -670,6 +626,7 @@ def verify(
     runtime_build = gate("build_runtime_test", lambda: build_target(settings, "WIZ8_RUNTIME_TEST"))
 
     if wiz8_build is not None:
+        gate("imports_wiz8", lambda: _check_product_imports(settings.repo_dir, "WIZ8"))
         current_unresolved = gate(
             "current_unresolved",
             lambda: unresolved_report(

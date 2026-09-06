@@ -8,17 +8,14 @@ function(reccmp_add_target TARGET)
 endfunction()
 
 function(reccmp_configure)
-    if(NOT RECCMP_PROJECT_DIR_HOST OR NOT RECCMP_BUILD_DIR_HOST)
-        message(FATAL_ERROR "reccmp host project and build paths are required")
-    endif()
-    set(content "project: '${RECCMP_PROJECT_DIR_HOST}'\ntargets:\n")
+    set(content "project: '../..'\ntargets:\n")
     get_property(targets GLOBAL PROPERTY WIZ8_RECCMP_TARGETS)
     foreach(target IN LISTS targets)
         get_property(id TARGET ${target} PROPERTY WIZ8_RECCMP_ID)
         string(APPEND content
             "  ${id}:\n"
-            "    path: '${RECCMP_BUILD_DIR_HOST}/$<TARGET_FILE_NAME:${target}>'\n"
-            "    pdb: '${RECCMP_BUILD_DIR_HOST}/$<TARGET_PDB_FILE_NAME:${target}>'\n"
+            "    path: '$<TARGET_FILE_NAME:${target}>'\n"
+            "    pdb: '$<TARGET_PDB_FILE_NAME:${target}>'\n"
         )
     endforeach()
     file(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/reccmp-build.yml" CONTENT "${content}")

@@ -121,7 +121,5 @@ set(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO
     "/DEBUG /INCREMENTAL:NO /BASE:0x10000000" CACHE STRING "" FORCE)
 
 include(cmake/Reccmp.cmake)
-set(RECCMP_PROJECT_DIR_HOST "" CACHE PATH "Host checkout path written to reccmp-build.yml")
-set(RECCMP_BUILD_DIR_HOST "" CACHE PATH "Host build path written to reccmp-build.yml")
 include(cmake/Product.cmake)
 reccmp_configure()
