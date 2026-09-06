@@ -71,7 +71,7 @@ unsigned char ClearFlag603C60(void);
 
 extern "C" {
 
-extern void NoOp(void);
+extern "C++" void NoOp(void);
 extern void ShutdownDisplayList(void);
 extern int Function40B290(void);
 extern void ConfigurePresentation00413FD0(int a, int b, int c, int d, int e);

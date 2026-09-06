@@ -12,7 +12,7 @@ extern "C" {
 void Function40B830(MOUSE_REGION* node);
 extern void HideRegionHelp(void);
 extern void Function5A1140(short shape);
-extern void ReleaseScreenTransitionObjects(void);
+extern "C++" void ReleaseScreenTransitionObjects(void);
 extern void SetHelpBoxText(void* text);
 extern void PlaceHelpBox(int x, int y);
 extern int g_help_box_width;

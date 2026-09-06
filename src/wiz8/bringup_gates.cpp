@@ -29,8 +29,6 @@
  * establishes purpose.
  */
 
-extern "C" {
-
 struct W8VideoManagerNode {
     unsigned int handle;
     int unused_04;
@@ -45,8 +43,8 @@ HVSURFACE g_surface_650dd4;
 HVSURFACE g_surface_650dd8;
 HVSURFACE g_primary_surface_view_650ddc;
 HVSURFACE g_surface_650de0;
-extern HVSURFACE ghFrameBuffer;
-extern HVSURFACE ghMouseBuffer;
+extern "C" HVSURFACE ghFrameBuffer;
+extern "C" HVSURFACE ghMouseBuffer;
 int g_dword_650dc0;
 int g_cursor_clip_active_650db8;
 int g_dword_650dc4;
@@ -143,9 +141,8 @@ extern long __stdcall WindowProc4011E0(void* window, int message,
                                        unsigned int wparam, long lparam);
 
 
-extern unsigned char InitializeRenderer(void* instance, int show_command,
-                                        long(__stdcall* window_proc)(void*, int,
-                                                                     unsigned int, long));
+extern unsigned char InitializeRenderer(
+    void* instance, unsigned short show_command, void* window_proc);
 
 
 
@@ -459,8 +456,8 @@ void Function404B00(void)
 
 extern void Function4E3340(void);
 /* These are retained SGP globals, named by the vendored declaration surface. */
-extern HINSTANCE ghInstance;
-extern unsigned char gfApplicationActive;
+extern "C" HINSTANCE ghInstance;
+extern "C" unsigned char gfApplicationActive;
 
 /* The caller shifts the result right by ten and stores kilobytes. */
 // FUNCTION: WIZ8 0x00404bd0
@@ -1090,6 +1087,4 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     } while (gfProgramIsRunning);
     PostQuitMessage(0);
     return message.wParam;
-}
-
 }

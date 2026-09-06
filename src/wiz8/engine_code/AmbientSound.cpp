@@ -379,7 +379,7 @@ void ToggleAmbientSoundByName0047AA70(int /* unused */, const char* name)
 }
 
 extern int PlaySoundConfigured00408D60(const char* path, int* options);
-extern "C" unsigned char Function4098D0(int size);
+extern unsigned char Function4098D0(int size);
 extern "C" void SetMasterSoundVolume(unsigned int volume);
 extern unsigned char g_master_ambient_volume_6850f6;
 extern unsigned char g_saved_ambient_volume_6850fa;

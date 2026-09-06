@@ -12,7 +12,7 @@ static_assert(offsetof(BINK, FrameRects) == 0x34, "BINK_FrameRects_at_0x34");
 extern "C" {
 
 extern int GetMilesDigitalDriver0040A8A0(void);
-extern void NoOp(int result, int line, const char* source);
+extern "C++" void NoOp(int result, int line, const char* source);
 
 // FUNCTION: WIZ8 0x005e2f90
 W8BinkVideo::W8BinkVideo()

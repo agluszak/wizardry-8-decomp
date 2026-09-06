@@ -19,8 +19,6 @@ typedef struct W8ScreenPoint {
     int y;
 } W8ScreenPoint;
 
-extern "C" {
-
 void SetDice(W8Dice* dice, unsigned char count, unsigned char sides, short base);
 int RollDice(const W8Dice* dice);
 int IntegerPower(int base, unsigned int exponent);
@@ -56,7 +54,5 @@ void ReportError00401920(const char* message);
 int GetRandomCharacter(
     int require_primary, int require_secondary, int excluded_slot,
     signed char excluded_faction);
-
-}
 
 #endif

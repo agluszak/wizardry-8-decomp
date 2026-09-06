@@ -12,7 +12,7 @@
 
 #define PATH_AI_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\PathAI.CPP"
 
-extern "C" void NoOp(
+extern void NoOp(
     W8PathAI* path, W8AnimRepBase005EC1D8* representation);
 extern unsigned char Function4A4CF0(W8PathAI* path);
 extern void Function4A9FE0(W8PathAI* path, float value);

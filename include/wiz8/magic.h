@@ -3,8 +3,6 @@
 
 #include "wiz8/layouts/gameplay_databases.h"
 
-extern "C" {
-
 extern W8SpellRuntimeRecord* g_spell_records;
 extern unsigned int g_spell_database_version;
 extern int g_effect_argument_005ed8c8;
@@ -16,7 +14,5 @@ int GetSpellTargetType(
 int MinimumCasterLevelForSpellLevel(int spell_level);
 int GetMinimumCasterLevelForSpell(int spell_id);
 bool CanSpellBackfire(int spell_id);
-
-}
 
 #endif

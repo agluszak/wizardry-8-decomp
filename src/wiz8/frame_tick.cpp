@@ -77,7 +77,7 @@ int g_screen_transition_object_count_654aac;
 srClass** g_screen_transition_objects_654ab4;
 
 // FUNCTION: WIZ8 0x00429770
-void ReleaseScreenTransitionObjects(void)
+extern "C++" void ReleaseScreenTransitionObjects(void)
 {
     int index;
     srClass* object;
@@ -96,7 +96,7 @@ void ReleaseScreenTransitionObjects(void)
 }
 
 // FUNCTION: WIZ8 0x004e3340
-void Function4E3340(void)
+extern "C++" void Function4E3340(void)
 {
     int state;
 
@@ -164,7 +164,7 @@ stop:
 }
 
 // FUNCTION: WIZ8 0x004e34b0
-void ShutdownScreenStack(int release_screens)
+extern "C++" void ShutdownScreenStack(int release_screens)
 {
     int state;
 

@@ -34,11 +34,7 @@ enum {
     W8_DISPOSITION_FRIENDLY = 2
 };
 
-extern "C" {
-
 extern W8FactionRuntimeRecord g_factions[W8_FACTION_COUNT];
 W8FactionDisposition GetFactionDisposition(signed char faction);
-
-}
 
 #endif

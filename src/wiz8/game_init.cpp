@@ -57,7 +57,7 @@ extern void SetMessageBoxModeDisabled(void);
 extern void SetMessageBoxModeEnabled(void);
 extern void SetMessageBoxWord(unsigned short value);
 extern void UpdateHeldItemCursor(void);
-extern void Function479010(void);
+extern "C++" void Function479010(void);
 extern void InitializeEncounterTables(void);
 extern unsigned char LoadMissileDatabase(void);
 extern unsigned char LoadHitSoundDatabase(void);
@@ -69,7 +69,7 @@ extern unsigned short* g_font_state_palettes_68ee1c[15];
 extern unsigned char g_flag_65beaf;
 
 // FUNCTION: WIZ8 0x004e2f40
-unsigned char InitializeGameData(void)
+extern "C++" unsigned char InitializeGameData(void)
 {
     char version[64];
     void* buffer;
@@ -166,7 +166,7 @@ extern void ReleaseHitSoundDatabase(void);
 extern void ReleaseMissileDatabase(void);
 
 // FUNCTION: WIZ8 0x004e3290
-void ShutdownGameData(void)
+extern "C++" void ShutdownGameData(void)
 {
     int index;
 

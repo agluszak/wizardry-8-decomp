@@ -44,7 +44,7 @@ void BuildCharacterPath00514EC0(char* destination, const wchar_t* name,
                                 int slot);
 extern "C" void SetViewport(int left, int top, int right, int bottom);
 extern "C" int Function40B290(void);
-extern "C" void NoOp(void);
+extern void NoOp(void);
 extern "C" void ShutdownDisplayList(void);
 void ResetRegions(void);
 extern "C" void UpdateHeldItemCursor(void);

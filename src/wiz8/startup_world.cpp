@@ -8,7 +8,7 @@
 
 extern "C" {
 
-extern void NoOp(void);
+extern "C++" void NoOp(void);
 extern void InitializeRenderQuality(void);
 extern unsigned char InitializeEnvironmentColours(void);
 

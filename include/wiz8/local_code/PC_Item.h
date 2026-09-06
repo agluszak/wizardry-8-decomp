@@ -5,8 +5,6 @@
 
 #define g_game_started (g_status_685170.game_started)
 
-extern "C" {
-
 extern const int g_item_spell_presentation[];
 extern const int g_equip_slot_icons[];
 extern unsigned int g_party_gold;
@@ -20,5 +18,3 @@ void GetOriginOfCharacterItem(
     void* item,
     unsigned char* origin,
     unsigned short* slot);
-
-}

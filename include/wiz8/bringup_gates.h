@@ -1,3 +1,3 @@
 #pragma once
 
-extern "C" bool CheckCdPresent(void);
+bool CheckCdPresent(void);

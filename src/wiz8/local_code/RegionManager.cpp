@@ -44,7 +44,7 @@ unsigned char g_flag_689b32;
 extern unsigned short gfAltState;
 extern unsigned short gfCtrlState;
 extern unsigned short gfShiftState;
-extern void ReleaseScreenTransitionObjects(void);
+extern "C++" void ReleaseScreenTransitionObjects(void);
 extern void Function558720(int sound_id);
 
 /* Dispatch one mouse-position event through the enabled region sets. A forced

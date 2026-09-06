@@ -29,7 +29,7 @@ static_assert(sizeof(W8VideoFrame) == 0x3c, "W8VideoFrame_size_must_be_0x3c");
 
 extern "C" {
 
-extern unsigned char g_video_objects_ready_650e20;
+extern "C++" unsigned char g_video_objects_ready_650e20;
 W8VideoObjectSlot g_video_slots_6448c8[494];
 /* The cleanup loop bounds the complete table at 0x00644900: 0x184d0 bytes,
    or 1658 records.  Only the first 566 catalog entries are attributed so far. */

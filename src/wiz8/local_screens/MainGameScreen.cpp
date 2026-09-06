@@ -27,7 +27,7 @@ W8LevelRuntimeBlock* g_level_block;
 
 extern void SetPendingScreenState(int state);
 extern void Function4F2040(int region);
-extern void ReleaseScreenTransitionObjects(void);
+extern "C++" void ReleaseScreenTransitionObjects(void);
 extern unsigned char Function577850(void);
 extern void SetCombatSelection(int value);                              /* 0x00569F70 */
 extern void SetCombatTarget(int value);                                 /* 0x0056A2D0 */
