@@ -2096,8 +2096,8 @@ void W8State5Controller005EF4CC::OpenNotification(
     if (!m_dialog_68) {
         return;
     }
-    m_dialog_68->SetExtent(0xf0, 0xbe);
-    m_dialog_68->SetOrigin(0xa0, 100);
+    m_dialog_68->SetOrigin(0xf0, 0xbe);
+    m_dialog_68->SetExtent(0xa0, 100);
     m_dialog_68->SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
     m_dialog_68->SetClientExtent(0xfa, 200);
     m_dialog_68->SetMessage(
@@ -2409,7 +2409,7 @@ void State5Frame005C3120(void)
     GetScreenPoint004284F0(&point);
     W8State5Controller005EF4CC* controller = g_state5_controller_69c4e8;
     if (controller->m_dialog_68) {
-        controller->m_dialog_68->Close();
+        controller->m_dialog_68->ProcessInput();
         if (!controller->m_dialog_68->is_open) {
             unsigned char result = controller->m_dialog_68->close_result;
             delete controller->m_dialog_68;

@@ -15,7 +15,7 @@ public:
         int caption_id,
         int notify_value);
     virtual ~W8NotificationDialog() override;         /* 0x005A8190 */
-    virtual unsigned char Close() override;       /* 0x005A81A0 */
+    virtual unsigned char ProcessInput() override; /* 0x005A81A0 */
 
 private:
     int notification_value;                          /* 0x98 */

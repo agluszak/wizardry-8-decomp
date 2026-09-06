@@ -38,6 +38,8 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/local_code/ButtonSound.cpp
     src/wiz8/dialog_code/NotificationDialog.cpp
     src/wiz8/dialog_code/ModalDialogBase.cpp
+    src/wiz8/dialog_code/DialogBase.cpp
+    src/wiz8/dialog_code/DialogFactoryDialogs.cpp
     src/wiz8/dialog_code/Object005EF894.cpp
     src/wiz8/dialog_code/StatInfoDialogs.cpp
     src/wiz8/dialog_code/ProfRaceInfoDialog.cpp

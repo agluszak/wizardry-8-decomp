@@ -2,6 +2,7 @@
 
 #include "wiz8/dialog_code/DialogBase.h"
 #include "input.h"
+#include "Button System.h"
 
 /* The shared dialog base at vtable 0x005EF8B0, between W8DialogBase005DC7A0
    and the concrete dialogs. Its fifteen slots are what every derived dialog
@@ -10,12 +11,16 @@
 
    The released binary exposes no original name for it, so the name is
    qualified by its constructor address. */
+// VTABLE: WIZ8 0x005ef8b0
 class W8ModalDialogBase : public W8DialogBase005DC7A0 {
 public:
     W8ModalDialogBase();                              /* 0x005D25B0 */
     virtual ~W8ModalDialogBase() override;            /* 0x005D2610 */
+    virtual int vslot1() override;                    /* 0x005D2D00 */
     virtual void ResetSubobjectAndRefresh() override;    /* slot 2, 0x005D2F40 */
-    virtual unsigned char Close() override;              /* slot 9, 0x005D3080 */
+    virtual void vslot3() override;                   /* 0x005D2660 */
+    virtual int vslot4() override;                    /* 0x005AD280 */
+    virtual unsigned char ProcessInput() override;       /* slot 9, 0x005D3080 */
     virtual unsigned char HandleInput(
         const InputAtom* input);                         /* slot 14 */
 
@@ -26,6 +31,11 @@ public:
     /* State 5 calls this centering helper on a freshly allocated base dialog,
        so it is part of the public surface rather than a derived-only helper. */
     void SetClientExtent(int width, int height);     /* 0x005D2CB0 */
+
+    unsigned int WrapMessage(wchar_t* message);      /* 0x005D2A50 */
+
+    friend void Function5D32C0(GUI_BUTTON* button, int reason);
+    friend void Function5D3370(GUI_BUTTON* button, int reason);
 
     /* Both are read and written on this object from outside the class by the
        Please Wait screen's frame handler, which is what puts them here. */
@@ -41,8 +51,8 @@ protected:
     int m_field_74;                      /* 0x74 */
     int m_field_78;                      /* 0x78 */
     unsigned char unknown_07c[0x10];
-    int m_field_8c;                      /* 0x8c */
-    int m_field_90;                      /* 0x90 */
+    wchar_t** m_lines;                   /* 0x8c */
+    unsigned int m_line_count;           /* 0x90 */
     unsigned char m_field_94;            /* 0x94 */
     unsigned char allow_cancel;            /* 0x95: changes Escape handling */
     unsigned char unknown_096[2];

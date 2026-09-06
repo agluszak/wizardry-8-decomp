@@ -3,9 +3,8 @@
 #include "wiz8/regions.h"
 
 /* Dialog Code. W8NotificationDialog is a modal popup built on the unnamed base
-   constructed by 0x005D25B0 and destroyed by 0x005D2610. Only members touched
-   by these bodies are modelled; base storage stays opaque, and the source owns
-   the two proven fields at 0x98 and 0x9c.
+   constructed by 0x005D25B0 and destroyed by 0x005D2610. The source owns the
+   two proven fields at 0x98 and 0x9c beyond that recovered base.
 
    The base is the shared W8ModalDialogBase in wiz8/dialog_base.h, whose
    fifteen slots this class inherits; it overrides only slot 9. */
@@ -21,8 +20,8 @@
 W8NotificationDialog::W8NotificationDialog(int message_index, int caption_id, int notify_value)
     : notification_value(notify_value), notify_target(0)
 {
-    SetExtent(0xf0, 0xbe);
-    SetOrigin(0xa0, 100);
+    SetOrigin(0xf0, 0xbe);
+    SetExtent(0xa0, 100);
     SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
     SetClientExtent(0xfa, 200);
     SetMessage(gppStringList[message_index], 1, 0x32, 1, caption_id, 1, 1, 0, 0x15e);
@@ -38,11 +37,11 @@ W8NotificationDialog::~W8NotificationDialog()
 }
 
 // FUNCTION: WIZ8 0x005a81a0
-unsigned char W8NotificationDialog::Close()
+unsigned char W8NotificationDialog::ProcessInput()
 {
     unsigned char handled;
 
-    W8ModalDialogBase::Close();
+    W8ModalDialogBase::ProcessInput();
     handled = is_open;
     if (!handled) {
         ClearActiveRegionIfMatches(0x138);

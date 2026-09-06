@@ -382,7 +382,7 @@ void OptionsScreenFrame005A9CC0()
 
     W8ModalDialogBase** active_modal = &screen->m_active_modal;
     if (*active_modal != 0) {
-        if ((*active_modal)->Close() == 0) {
+        if ((*active_modal)->ProcessInput() == 0) {
             if (screen->m_modal_closing_01d == 0) {
                 delete *active_modal;
                 *active_modal = 0;

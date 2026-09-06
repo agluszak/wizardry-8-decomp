@@ -5,11 +5,11 @@
 class W8MonsterInfoDialog : public W8DialogBase005DC7A0 {
 public:
     virtual ~W8MonsterInfoDialog() override;
-    virtual void vslot1() override;
+    virtual int vslot1() override;
     virtual void ResetSubobjectAndRefresh() override;
     virtual void vslot3() override;
     virtual void ClearField41IfEnabled() override;
-    virtual void vslot13() override;
+    virtual void vslot13(int value) override;
 
 private:
     void* m_constructor_argument_54;      /* 0x54 */

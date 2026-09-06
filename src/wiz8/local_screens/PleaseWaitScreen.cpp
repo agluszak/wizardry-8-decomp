@@ -199,8 +199,8 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
                 g_swap_disc_dialog_69b7cc = new W8ModalDialogBase;
                 g_swap_disc_dialog_69b7cc->SetBackground(
                     "Data\\Dialogs\\DialogBackground.sti", 0);
-                g_swap_disc_dialog_69b7cc->SetExtent(0xf0, 0xbe);
-                g_swap_disc_dialog_69b7cc->SetOrigin(0xa0, 100);
+                g_swap_disc_dialog_69b7cc->SetOrigin(0xf0, 0xbe);
+                g_swap_disc_dialog_69b7cc->SetExtent(0xa0, 100);
             }
             wchar_t* message = FormatWideString(L"%s%d", gppStringList[0x1bb8 / 4],
                                                 Function42B720(level));
@@ -245,7 +245,7 @@ void PleaseWaitScreenFrame(void)
     if (g_load_descriptor_69b7c8->waiting) {
         if (g_swap_disc_dialog_69b7cc->is_open) {
             g_swap_disc_dialog_69b7cc->vslot3();
-            if (!g_swap_disc_dialog_69b7cc->Close()) {
+            if (!g_swap_disc_dialog_69b7cc->ProcessInput()) {
                 if (!g_swap_disc_dialog_69b7cc->close_result) {
                     delete g_swap_disc_dialog_69b7cc;
                     g_swap_disc_dialog_69b7cc = 0;
