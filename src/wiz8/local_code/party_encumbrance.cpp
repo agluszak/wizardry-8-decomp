@@ -1,13 +1,13 @@
 #include "wiz8/combat_state.h"
+#include "wiz8/local_code/party_encumbrance.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/character.h"
 #include "wiz8/game_status.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/screen_state.h"
 
-/* This party-load recalculation sits in the reviewed attribution gap between
-   Combat.cpp and GameplayCode.cpp.  Keep it in the address quarantine until
-   source evidence assigns the original translation unit. */
+/* Party encumbrance redistribution. The original translation-unit spelling is
+   not established; this descriptive name is provisional. */
 
 extern unsigned int GetItemStackWeight(const W8ItemInstance* item);
 extern void Function4EE000(W8Character* character);

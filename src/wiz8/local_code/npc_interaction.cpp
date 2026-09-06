@@ -1,6 +1,14 @@
-#include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/character.h"
+#include "wiz8/combat_state.h"
+#include "wiz8/game_status.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/npc_interaction.h"
 #include "wiz8/npc_state.h"
+
+extern "C" {
+extern int g_value_68c4c0;
+extern unsigned char g_flag_68c4f7;
+}
 
 extern unsigned char g_flag_68c4a0;
 extern unsigned char g_flag_68c4f6;
@@ -18,8 +26,9 @@ unsigned char g_flag_68c4f6;
 // GLOBAL: WIZ8 0x0068C4F7
 unsigned char g_flag_68c4f7;
 
-/* Address quarantine 00524781-00526e8f; bounds come from adjacent
-   assertion-backed original translation-unit intervals. */
+/* NPC interaction availability and its party-slot eligibility query. The
+   original translation-unit spelling is not established; this descriptive
+   name is provisional. */
 
 // FUNCTION: WIZ8 0x00525E50
 bool IsValue68C4C0Clear(void)

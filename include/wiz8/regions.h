@@ -93,4 +93,6 @@ unsigned char DispatchScreenInput004F1910(const InputAtom* event);
 
 }
 
+unsigned int Function568950(const InputAtom* input);
+
 #endif

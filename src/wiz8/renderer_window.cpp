@@ -4,6 +4,7 @@
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/stModelInstance.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/cursor.h"
 #include "wiz8/regions.h"
 #include "wiz8/sgp_video.h"
@@ -26,9 +27,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-void Function56AAB0(void);
-void Function56AA30(void);
 
 /*
  * The renderer window and extension loading gate BringUpEngine calls after the

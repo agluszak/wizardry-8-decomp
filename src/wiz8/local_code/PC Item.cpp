@@ -2,6 +2,7 @@
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/party_encumbrance.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -304,7 +305,6 @@ extern void RequestRefreshPartyState(void);
 extern void RequestRedraw(unsigned int mask);
 extern void Function595600(void);
 extern void Function593330(void);
-extern void Function4EDD20(void);
 void Function520D10(
     W8ItemInstance* item, W8Character* character, unsigned char refresh);
 void Function520070(

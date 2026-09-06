@@ -2,6 +2,7 @@
 #include "wiz8/xstatus.h"
 
 #include "wiz8/combat_state.h"
+#include "wiz8/cursor.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/GameplayDatabase.h"
@@ -35,7 +36,6 @@ extern unsigned char g_flag_689b32;
 extern unsigned char g_flag_6f04e8;
 extern unsigned char g_flag_6f04ed;
 
-void GetScreenPoint004284F0(W8ScreenPoint* point);
 void Function40B510(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
 unsigned int Function4F1360(int x, int y);

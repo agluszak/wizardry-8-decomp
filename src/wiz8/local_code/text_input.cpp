@@ -1,5 +1,6 @@
-#include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/wiz8_windows.h"
 #include "wiz8/dirty_tiles.h"
+#include "wiz8/text_input.h"
 
 #include "Font.h"
 #include "himage.h"
@@ -10,8 +11,8 @@
 #include <string.h>
 #include <wchar.h>
 
-/* Address quarantine 005d2a51-005d730f; bounds come from adjacent
-   assertion-backed original translation-unit intervals. */
+/* Text-input sessions and fields. The original translation-unit name is
+   unknown; the existing compilation boundary is retained. */
 
 typedef void (*W8TextInputFieldCallback)(unsigned char index, int active);
 
@@ -113,7 +114,6 @@ void Function5D35E0(int mode);
 unsigned int Function5D5A10(int width, int cursor, const wchar_t* text,
                            int* cursor_width, size_t* visible_count);
 void Function5D52C0(W8TextInputField005D39B0* field);
-void Function5D5390(void);
 void Function5D5770(W8TextInputField005D39B0* field);
 void Function5D5C40(void);
 void Function5D4970(unsigned short character);

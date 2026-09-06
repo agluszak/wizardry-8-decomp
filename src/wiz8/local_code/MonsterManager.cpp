@@ -3,6 +3,7 @@
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_screens/screen8.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -182,7 +183,6 @@ void MonsterForward4A7BE0(
     const srVector3T<float>* position);
 void MonsterCallSlot10(void* object, int argument);
 void RequestRefreshPartyState(void);
-unsigned char GetFlag68F105(void);
 extern int g_monster_cycle_registry_weight_0065ba4c;
 extern float g_float_005ec52c;
 extern unsigned char g_flag_689b32;

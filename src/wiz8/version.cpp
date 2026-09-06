@@ -1,9 +1,10 @@
-#include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/utility.h"
+#include "wiz8/version.h"
 
-/* Address quarantine 004e34b1-004e381f; bounds come from adjacent
-   assertion-backed original translation-unit intervals. */
+#include <string.h>
 
-extern "C" {
+/* Version-banner formatting. The original translation-unit name is unknown. */
+
 // FUNCTION: WIZ8 0x004E3620
 void Function4E3620(char* out, char with_title, char with_build, char with_date)
 {
@@ -18,5 +19,4 @@ void Function4E3620(char* out, char with_title, char with_build, char with_date)
     if (with_date) {
         strcat(out, FormatString(" %s", "2001/12/24 15:36"));
     }
-}
 }

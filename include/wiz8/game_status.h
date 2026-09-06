@@ -117,3 +117,5 @@ extern W8GlobalStatus g_status_685170;
     (g_status_685170.pending_move_location.point)
 #define g_game_time_ms (g_status_685170.game_time_ms)
 #define g_game_time_days (g_status_685170.game_time_days)
+
+void Function554580(unsigned char* storage);

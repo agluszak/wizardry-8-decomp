@@ -24,7 +24,7 @@ endif()
     add_library(wiz8_recovered_objects OBJECT
         ${WIZ8_ORIGINAL_UNITS}
         ${WIZ8_TEMPLATE_EMISSIONS}
-        ${WIZ8_UNATTRIBUTED_UNITS}
+        ${WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS}
     )
     # The vendored SGP headers are on the path so recovered bodies that call
     # into SGP declare its types from the real header rather than restating

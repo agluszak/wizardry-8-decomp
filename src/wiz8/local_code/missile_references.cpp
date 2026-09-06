@@ -1,9 +1,9 @@
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/vector.h"
 
-/* Address quarantine 005019a0-005019a0. The containing original translation
-   unit remains unknown; the two nested growable-vector layouts are established
-   directly by this body's count/data/RemoveAt accesses. */
+/* The containing original translation-unit spelling remains unknown. The two
+   nested growable-vector layouts are established directly by this body's
+   count/data/RemoveAt accesses. */
 
 struct W8MissileReferenceOwner {
     unsigned char unknown_000[0x110];

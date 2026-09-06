@@ -1,4 +1,7 @@
-#include "wiz8/unattributed/quarantine_common.h"
+extern "C" {
+extern unsigned char g_flag_6850f6;
+extern unsigned char g_flag_6850fa;
+}
 
 /* Address quarantine 0047a791-0047b4ff; bounds come from adjacent
    assertion-backed original translation-unit intervals. */

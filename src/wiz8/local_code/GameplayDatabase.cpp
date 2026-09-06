@@ -74,7 +74,6 @@ extern int GetRendererFamily(void);
 extern void Function58FD30(void);
 extern void Function520070(
     W8ItemInstance* item, W8Character* character, unsigned char refresh);
-extern void Function554580(unsigned char* target);
 extern int g_dword_6875b7;
 extern void Function5A9E70(void* target);
 extern void Function482720(int value);

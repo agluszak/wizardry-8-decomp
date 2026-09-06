@@ -1,12 +1,17 @@
-#include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/character.h"
+#include "wiz8/combat_state.h"
+#include "wiz8/engine_code/Monster.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/npc_interaction.h"
 #include "wiz8/startup_runtime_state.h"
 #include "random.h"
 #include "timer.h"
+
+extern "C" unsigned char g_flag_6850fc;
 
 extern void Function52F890(
     int party_slot, int active, int animation, int argument, int show_text);
@@ -27,8 +32,6 @@ extern int g_effect_005ee590;
 extern int g_effect_005ee5f8;
 extern unsigned int g_first_remapped_event_005ee718;
 extern unsigned int g_last_event_005ee70c;
-extern unsigned char Function525DF0(unsigned char require_group_entry);
-extern unsigned char Function525DD0(void);
 extern void Function52E4D0(W8StartupStateElement005EE748* entry);
 extern void Function52E160(W8StartupStateElement005EE748* entry);
 extern void Function52CA60(void);
@@ -77,8 +80,8 @@ int g_special_event_0068c564;
 // GLOBAL: WIZ8 0x0068C568
 int g_special_event_0068c568;
 
-/* Address quarantine 0052c241-0053014f; bounds come from adjacent
-   assertion-backed original translation-unit intervals. */
+/* Character-event queue and portrait/voice updates. The original
+   translation-unit name is unknown; the existing unit is retained intact. */
 
 // FUNCTION: WIZ8 0x0052E360
 bool IsFlag6850FCSet(void)

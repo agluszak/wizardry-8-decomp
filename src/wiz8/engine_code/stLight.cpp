@@ -7,14 +7,15 @@
 #include <windows.h>
 #include <new>
 
-/* Address quarantine 0049ba51-0049e5cf. The previous 00497af0-004adb20 bounds
-   spanned eight units that carry their own assertion-backed intervals -
+/* The previous 00497af0-004adb20 range spanned eight units that carry their
+   own assertion-backed intervals -
    stParticle, OctSubMesh, Item, AnimObj, Missile, GrCycle, PathAI and Spells -
    and every body actually in this file belongs to the single unnamed unit that
    sits between them. The upper bound is OctSubMesh.cpp's interval lower bound
    less one; the lower bound is one past stParticle.cpp's last emission at
    0x0049BA50, since that unit runs past its own assertion interval. No CPP path
-   string in the image names this unit, so it stays address-bounded. */
+   string in the image names this unit; the class ownership is nevertheless
+   established by its definitions. */
 
 extern "C" {
 extern float g_light_scale_0060bfe0;

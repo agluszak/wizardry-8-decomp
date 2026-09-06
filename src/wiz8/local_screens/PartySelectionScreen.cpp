@@ -2,6 +2,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
+#include "wiz8/cursor.h"
 #include "wiz8/dialog_base.h"
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/game_status.h"
@@ -11,6 +12,7 @@
 #include "wiz8/music_playlist.h"
 #include "wiz8/regions.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/text_input.h"
 #include "wiz8/vector.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/virtual_file.h"
@@ -23,8 +25,8 @@
 #include <stdio.h>
 #include <string.h>
 
-/* Address quarantine 005bc811-005c433f; bounds come from adjacent
-   assertion-backed original translation-unit intervals. */
+/* Party-selection and imported-character UI. The original translation-unit
+   spelling is not established; this descriptive name is provisional. */
 
 void RequestScreenTransition(void);
 void SetPendingScreenState(int value);
@@ -34,7 +36,6 @@ void GetSaveSlotName005D3CC0(int slot, wchar_t* name);
 unsigned char SaveSlotFileExists(const char* slot_name);
 int CountActiveCharacters(void);
 unsigned int FindFreePartySlot(unsigned int first, unsigned int last);
-void GetScreenPoint004284F0(W8ScreenPoint* point);
 unsigned char SetValue5FF5F0(int font);
 unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
                             char report_failure);
@@ -54,19 +55,8 @@ void Function40B510(unsigned short event, unsigned short x, unsigned short y,
 unsigned int Function4F1360(int x, int y);
 int Function52E750(void);
 void Function426790(void);
-void Function5D5390(void);
-unsigned int Function568950(const InputAtom* input);
 unsigned short Function402780(unsigned short key, unsigned char modifiers);
-unsigned int Function5D3F50(const InputAtom* input);
-unsigned char Function5D3D00(int index);
 void Function55EE70(int value);
-void Function5D3520(int value);
-char Function5D39B0(int left, int top, int width, int height, int colour,
-                    const wchar_t* text, unsigned char capacity,
-                    short input_type, unsigned char enabled);
-void Function5D3D20(char index);
-void Function5D3B40(int index);
-void Function5D3800(void);
 void RenderPartyPortrait0052EB00(int portrait, int left, int top,
                                 int flags, int value, int party_slot);
 void Function4EF610(int party_slot, int value);

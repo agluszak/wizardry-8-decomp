@@ -2,6 +2,7 @@
 #include "wiz8/startup_world.h"
 #include "wiz8/engine_code/SoundEvent.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_screens/screen8.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
@@ -29,6 +30,7 @@
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/npc_item_lists.h"
+#include "wiz8/npc_interaction.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/targeting.h"
 #include "wiz8/utility.h"
@@ -47,7 +49,6 @@
 #include <stdio.h>
 #include <math.h>
 
-extern unsigned char GetFlag68F105(void);
 extern unsigned char FindEntityByName(
     const char* name,
     srVector3T<float>* position,
@@ -71,7 +72,6 @@ extern const double g_monster_poster_max_distance_005ec3d8;
 extern srVector3T<float> g_monster_attachment_offsets_0060e618[][8];
 extern float g_monster_attachment_scales_0060e914[];
 extern void SetChainValue15C(char* node, int value);
-extern unsigned char Function525DF0(int value);
 extern float g_startup_depth_603ac8;
 extern const float g_monster_script_facing_tolerance_005ebc84;
 extern const float g_world_scale_005ebc40;

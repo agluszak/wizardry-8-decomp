@@ -1,4 +1,5 @@
 #include "wiz8/regions.h"
+#include "wiz8/cursor.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/local_code/Strings.h"
@@ -12,6 +13,7 @@
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/dialog_base.h"
 #include "wiz8/utility.h"
+#include "wiz8/version.h"
 
 #include "input.h"
 #include "english.h"
@@ -65,14 +67,12 @@ extern void Function422B10(void);
 extern void Function40B290(void);
 extern unsigned char ClearPrimarySurface(void);
 extern void SetViewport(int left, int top, int right, int bottom);
-extern void Function4E3620(char* text, int a, int b, int c);
 extern void UpdateHeldItemCursor(void);
 extern unsigned char Function4298F0(void);
 unsigned char Function5BCAB0(short item, short state);
 extern void ReleaseLoadedVideoFrames(void);
 extern unsigned char SetValue5FF5F0(int font);
 extern void Function406DC0(int font, unsigned short* palette);
-extern void GetScreenPoint004284F0(W8ScreenPoint* point);
 extern unsigned int Function4F1360(int x, int y);
 extern unsigned char Function5A1140(const InputAtom* input);
 extern void Function518B30(void);

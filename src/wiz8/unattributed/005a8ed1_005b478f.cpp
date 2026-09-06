@@ -1,4 +1,7 @@
-#include "wiz8/unattributed/quarantine_common.h"
+extern "C" {
+extern int g_value_69c1cc;
+extern unsigned long g_value_64d8ac;
+}
 
 /* Address quarantine 005a8ed1-005b478f; bounds come from adjacent
    assertion-backed original translation-unit intervals. */

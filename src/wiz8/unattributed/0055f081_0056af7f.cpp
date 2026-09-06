@@ -1,4 +1,5 @@
-#include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/utility.h"
+#include "wiz8/regions.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -6,6 +7,8 @@
 #include "wiz8/combat_state.h"
 #include "input.h"
 #include "mousesystem_macros.h"
+
+extern "C" unsigned char g_table_647ccc[128];
 
 /* Address quarantine 0055f081-0056af7f; bounds come from adjacent
    assertion-backed original translation-unit intervals. */

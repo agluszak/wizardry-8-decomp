@@ -1,7 +1,8 @@
 #include "wiz8/geometry.h"
 
-/* Address quarantine 004be201-004bf0ef; the helper lies in the unresolved
-   interval between Engine Code\quad.cpp and Engine Code\Monster.cpp. */
+/* Geometry bounds helper. Its original translation-unit spelling is not
+   established; the body lies between the proved Engine Code\quad.cpp and
+   Engine Code\Monster.cpp intervals. */
 
 // FUNCTION: WIZ8 0x004BE870
 unsigned char PointInsideBounds004BE870(

@@ -1217,8 +1217,6 @@ unsigned int Function53A8D0(int party_slot, unsigned int context)
 }
 
 extern void Function4ADD30(int enabled);
-extern void Function56AA30(void);
-extern void Function56AAB0(void);
 extern void Function53B660(const srVector3T<float>* position, srVector3T<float>* target, int enabled);
 // GLOBAL: WIZ8 0x0068406F
 srVector3T<float> g_target_position_0068406f;

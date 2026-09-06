@@ -28,7 +28,6 @@
 extern int IncrementValue60DFAC(void);
 extern void ResetCombatSlot(W8CombatSlot* slot);
 extern float g_navigator_largest_extent_6081e8;
-extern void DetachMissileReferences005019A0(W8Missile* missile);
 
 /* The copy body establishes only these fields. Padding remains explicit: the
    source leaves it uninitialized in the freshly allocated result. */

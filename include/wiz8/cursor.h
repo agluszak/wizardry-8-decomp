@@ -3,6 +3,8 @@
 
 #include "Types.h"
 
+struct W8ScreenPoint;
+
 extern "C" {
 
 BOOLEAN SetMouseCursorFromVideoObject(
@@ -19,5 +21,6 @@ extern int g_cursor_hotspot_y_6596c0;
 }
 
 void PositionMouseCursor(int x, int y, unsigned char reset_tick);
+void GetScreenPoint004284F0(W8ScreenPoint* point);
 
 #endif
