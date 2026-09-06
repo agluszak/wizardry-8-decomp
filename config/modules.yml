@@ -36,12 +36,16 @@ selection_rules:
     classification: renderer
     import: true
     variants: [gog-base, demo, gog-128]
-  - match: "srEXT_JPEGImporter.dll"
+  - match: "srEXT_*.dll"
     classification: renderer-extension
     import: true
     variants: [gog-base]
-  - match: "srEXT_Unzip.dll"
-    classification: renderer-extension
+  - match: "srHXImporter.dll"
+    classification: renderer-importer
+    import: true
+    variants: [gog-base]
+  - match: "srVP_*.dll"
+    classification: renderer-vector-processor
     import: true
     variants: [gog-base]
   - match: "3DSetup.exe"

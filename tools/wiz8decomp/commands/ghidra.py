@@ -36,6 +36,8 @@ def restore_command(program: str = "wiz8") -> None:
 def import_command(
     program: str | None = typer.Argument(None),
     replace: bool = typer.Option(False, "--replace"),
+    all_modules: bool = typer.Option(False, "--all-modules"),
+    variant: str | None = typer.Option(None, "--variant"),
 ) -> None:
     """Import and analyze a materialized binary from the configured corpus."""
     from .. import command_support as cli
@@ -43,7 +45,13 @@ def import_command(
 
     cli.run_action(
         lambda: cli.summary(
-            import_programs(cli.settings(), requested_program=program, replace_existing=replace)
+            import_programs(
+                cli.settings(),
+                all_modules=all_modules,
+                variant=variant,
+                requested_program=program,
+                replace_existing=replace,
+            )
         )
     )
 

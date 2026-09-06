@@ -37,6 +37,15 @@ def classify_module(module: dict[str, Any]) -> tuple[str, list[str]]:
     if name.startswith("srdd_") or name == "sr.dll":
         reasons.append("Wizardry renderer module naming")
         return "renderer", reasons
+    if name.startswith("srext_"):
+        reasons.append("SurRender extension module naming")
+        return "renderer-extension", reasons
+    if name == "srhximporter.dll":
+        reasons.append("SurRender HX importer module naming")
+        return "renderer-importer", reasons
+    if name.startswith("srvp_"):
+        reasons.append("SurRender vector processor module naming")
+        return "renderer-vector-processor", reasons
     if "setup" in name or "launcher" in name or name == "3dsetup.exe":
         reasons.append("setup/configuration executable naming")
         return "setup", reasons
@@ -197,7 +206,8 @@ def inventory(settings: Settings) -> dict[str, Any]:
                 "rich_header": item["rich_header"],
             }
             for item in modules
-            if item["classification"] in {"first-party-game", "renderer", "fan-patch", "setup"}
+            if item["classification"] in {"first-party-game", "fan-patch", "setup"}
+            or item["classification"].startswith("renderer")
         ],
     }
     atomic_json(settings.build_dir / "reports" / "compiler-evidence.json", compiler)
