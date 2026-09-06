@@ -24,6 +24,5 @@ extern int g_message_box_line_count;
 extern int g_message_box_line_capacity;
 extern int g_message_sequence;
 
-void AddMessageBoxLine(int type, W8WideChar* text, void* extra);
-
 }
+void AddMessageBoxLine(int type, W8WideChar* text, void* extra);

@@ -1,3 +1,3 @@
 #pragma once
 
-extern "C" int GetItemInHand(void);
+int GetItemInHand(void);

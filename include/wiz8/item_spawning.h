@@ -13,7 +13,7 @@
    recovered, which declared 0x004B8890 twice; the canonical pair now lives in
    engine_code/Item.h and this header uses it. */
 
-typedef struct W8WorldItem {
+struct W8WorldItem {
     int runtime_id;                      /* 0x00 */
     W8Item* owner;                       /* 0x04: owns the live world entity */
     unsigned char unknown_08;
@@ -29,15 +29,13 @@ typedef struct W8WorldItem {
        through the link. The link is written to the file and reloaded with the
        record, so on disk it only records that another entry follows. */
     int saved_marker;                    /* 0x2d */
-    struct W8WorldItem* next;            /* 0x31 */
+    W8WorldItem* next;                   /* 0x31 */
     int unknown_35;
     int sector_id;                       /* 0x39 */
     unsigned char unknown_3d[0x70];
-} W8WorldItem;                           /* 0xad */
+};                                      /* 0xad */
 
 #pragma pack(pop)
-
-extern "C" {
 
 W8WorldItem* CreateWorldItem(
     W8ItemInstance* item,
@@ -49,8 +47,6 @@ W8WorldItem* SpawnItem(
     const srVector3T<float>* position,
     int unknown,
     unsigned char add_to_world);
-
-}
 
 void ReplaceOrCreateItem(
     W8ItemInstance* item,
