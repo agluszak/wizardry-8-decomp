@@ -1,4 +1,6 @@
 #include "wiz8/local_code/Strings.h"
+#include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/startup_world.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
@@ -6,15 +8,12 @@
 #include "wiz8/utility.h"
 #include "surrender/srMath.h"
 
+#include <math.h>
+
 /* Original translation unit: Local Code\Formation & Facing.cpp. */
 
 /* Fills in the party's own world position. */
 extern void GetPartyPosition(srVector3T<float>* position);          /* 0x00421070 */
-/* The bearing in degrees from the first position to the second. */
-extern float BearingBetween(const srVector3T<float>* from,
-                            const srVector3T<float>* to);           /* 0x004BE420 */
-/* The party's current facing in degrees. */
-
 /* A full turn, and the half-quadrant the bearing is biased by so that a
    quadrant is centred on its facing rather than starting at it. */
 enum { W8_DEGREES_PER_TURN = 360, W8_DEGREES_PER_QUADRANT = 90 };
@@ -31,7 +30,7 @@ int GetQuadrantForPosition(srVector3T<float> position)
     int bearing;
 
     GetPartyPosition(&party);
-    bearing = static_cast<int>(NormalizeAngle(BearingBetween(&party, &position)));
+    bearing = static_cast<int>(NormalizeAngle(BearingBetween(party, position)));
     bearing -= g_party_facing;
     if (bearing < 0) {
         bearing += W8_DEGREES_PER_TURN;
@@ -65,8 +64,7 @@ extern void Function5B1E70(void);
 extern unsigned int GetCameraHeading(void);                 /* 0x00421550 */
 extern unsigned int SetCameraHeading(float degrees);        /* 0x00421000 */
 extern void SnapCameraHeading(float degrees);               /* 0x00420FD0 */
-extern float GetPartyFacingDegrees(void);                   /* 0x00453970 */
-extern float g_facing_tolerance_005ee858;
+extern double g_facing_tolerance_005ee858;
 extern float g_facing_tolerance_005ebcf4;
 
 /* Whether one character can hold a place in the formation at all: they have to
@@ -221,11 +219,14 @@ bool PositionFacesOppositeToDecided(int arg_1, int position)
 /* Whether the party is looking far enough away from a point to count as not
    facing it, measured as the shortest way round. */
 // FUNCTION: WIZ8 0x00555d60
-bool IsPartyLookingAwayFrom(srVector3T<float> from, srVector3T<float> to)
+bool IsPartyLookingAwayFrom(int, W8MonsterInfo* monster_info)
 {
-    float bearing = NormalizeAngle(BearingBetween(&to, &from));
+    float bearing = NormalizeAngle(BearingBetween(
+        monster_info->monster->GetPosition(),
+        g_startup_world_659c0c->GetPosition()));
+    float facing = monster_info->monster->GetYaw();
 
-    return ShortestAngleDistance(bearing, GetPartyFacingDegrees()) >=
+    return ShortestAngleDistance(bearing, facing) >=
            g_facing_tolerance_005ee858;
 }
 
@@ -233,14 +234,12 @@ bool IsPartyLookingAwayFrom(srVector3T<float> from, srVector3T<float> to)
    rather than the shortest way round - so a bearing either side of the wrap
    answers no. */
 // FUNCTION: WIZ8 0x00555ba0
-bool IsPartyLookingAt(srVector3T<float> point)
+bool IsPartyLookingAt(
+    W8MonsterInfo* monster_info, srVector3T<float> point)
 {
-    srVector3T<float> party;
-    float bearing;
+    float bearing = NormalizeAngle(BearingBetween(
+        monster_info->monster->GetPosition(), point));
 
-    GetPartyPosition(&party);
-    bearing = NormalizeAngle(BearingBetween(&party, &point));
-    return (bearing - GetPartyFacingDegrees() < 0
-                ? GetPartyFacingDegrees() - bearing
-                : bearing - GetPartyFacingDegrees()) <= g_facing_tolerance_005ebcf4;
+    return fabsf(bearing - monster_info->monster->GetYaw()) <=
+           g_facing_tolerance_005ebcf4;
 }

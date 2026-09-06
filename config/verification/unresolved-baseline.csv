@@ -52,7 +52,7 @@ symbol
 ?AudioUpdateBegin00409310@@YAXXZ
 ?AudioUpdateFinish004AEFD0@@YAXXZ
 ?AudioUpdateStage004095B0@@YAXXZ
-?BearingBetween@@YAMPBV?$srVector3T@M@@0@Z
+?BearingBetween@@YAMABV?$srVector3T@M@@0@Z
 ?BeginLevelTransition@@YAXXZ
 ?BindCharacterItems@@YAXHH@Z
 ?BitArrayLoad0043AEC0@@YAEPAVBitArray@@H@Z
@@ -691,7 +691,7 @@ symbol
 ?g_environment_value_0065a170@@3HA
 ?g_environment_value_0065ad84@@3HA
 ?g_facing_tolerance_005ebcf4@@3MA
-?g_facing_tolerance_005ee858@@3MA
+?g_facing_tolerance_005ee858@@3NA
 ?g_faction_names@@3QAY0BO@$$CBDA
 ?g_faction_runtime@@3PAUW8FactionRuntimeRecord@@A
 ?g_flag_00606994@@3EA
@@ -1025,8 +1025,8 @@ _Function5494F0
 _Function56AAB0
 _Function5A1140
 _Function5CF300
-_Function5D1AE0
-_Function5D1C00
+?Function5D1AE0@W8DialogMember005D14D0@@QAEEI@Z
+?Function5D1C00@W8DialogMember005D14D0@@QAEEI@Z
 _Function5D2800
 _Function5D2CB0
 _Get16BPPColor

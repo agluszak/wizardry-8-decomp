@@ -10,6 +10,11 @@ This is a Jujutsu repository for evidence-driven matching decompilation. Use Bea
 - Provenance records why an identity is accepted, its authority ceiling, aliases, confidence, and observations; it does not duplicate Ghidra's model.
 - Never commit binaries, extracted trees, live Ghidra projects, or build products. Only reviewed GZF checkpoints in `vendor/ghidra/exports/manifest.json` may be tracked.
 - Do not reverse engineer available source. Use pinned Windows/MSVC runtime, SGP, zlib, IJG, and Info-ZIP source/header oracles. SurRender remains recoverable.
+- Match oracle constants by their numeric values in the owning headers, not by enum names that
+  Ghidra happens to attach to equal-valued symbols. Before retaining a function from an oracle
+  translation unit, check whether that unit contains inline assembly. An assembly-containing unit
+  requires per-function code-generation comparison; structural similarity to nearby C is not
+  sufficient provenance.
 - Search `third_party/sfi-sgp/sgp` before using any SGP interface and include its owning header. Put missing product headers under `include/wiz8/sgp-compat` by their original names; never invent replacement interfaces. Preserve SFI-SCLA and upstream notices.
 - Search before declaring anything. Extend the canonical owner; do not add duplicate externs, guessed aliases, raw vtable calls, wrappers, or parallel inventories.
 - Repository-owned Wizardry and SurRender code is unconditional C++. Retain `extern "C"` only for proven C linkage; never add C fallback APIs.

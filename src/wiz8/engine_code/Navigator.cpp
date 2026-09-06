@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/Navigator.h"
+#include "wiz8/startup_world.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/float_constants.h"
 
@@ -666,7 +667,6 @@ void W8Navigator::configureStartupDepth(float near_depth, float far_depth)
 }
 
 extern "C" {
-extern W8Navigator* g_startup_world_659c0c;
 extern unsigned char g_navigator_position_changed_659c11;
 }
 

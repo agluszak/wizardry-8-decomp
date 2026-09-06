@@ -5,6 +5,7 @@
 #include "wiz8/string_database.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/Trigger.h"
+#include "wiz8/startup_world.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Missile.h"
@@ -53,7 +54,6 @@ extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
 extern int PlaySound00408860(const char* path, int* options);
 extern unsigned char g_master_ambient_volume_6850f6;
-extern W8Navigator* g_startup_world_659c0c;
 extern unsigned int FindMonsterLocationsInBox0042F280(
     int** locations, const srVector3T<float>* lower,
     const srVector3T<float>* upper, int kind, int excluded_location);

@@ -4,6 +4,8 @@
 #include "wiz8/cursor.h"
 #include "wiz8/item_video_object_vector.h"
 #include "wiz8/video_object_catalog.h"
+#include "wiz8/dialog_code/DialogBase.h"
+#include "wiz8/local_code/Controls.h"
 #include "Container.h"
 
 #include <string.h>
@@ -21,44 +23,54 @@ extern "C" {
 extern unsigned char g_flag_68edac;
 extern void* g_stack_68eda8;
 
-extern char Function5D1AE0(unsigned int command);
-extern char Function5D1C00(unsigned int command);
 extern void RequestRedraw(unsigned int mask);
 
-class W8ScreenCommandTarget0055EBB0 {
+/* Constructor 0x0055DE40 builds Controls, constructs the dialog member at
+   +0x64, installs vtable 0x005EE920, and is the only value stored into the camp
+   controller's +0x1B0 field. The 0xBC-byte allocation proves the complete
+   extent below. */
+// VTABLE: WIZ8 0x005ee920
+class W8Controls005EE920 : public Controls {
 public:
-    virtual void vslot0();
-    virtual void vslot1(int value);
+    bool Function55EBB0(unsigned int command);
+    bool Function55EBE0(unsigned int command);
 
-    int Function55EBB0(unsigned int command);
-    int Function55EBE0(unsigned int command);
+private:
+    int m_positional_4c;
+    int m_positional_50;
+    int m_positional_54;
+    int m_positional_58;
+    int m_positional_5c;
+    int m_positional_60;
+    W8DialogMember005D14D0 m_dialog_64;
 };
+WIZ8_ASSERT_SIZE(W8Controls005EE920, 0xbc);
 
 /* Run the first screen command predicate and reset this target through its
    second virtual slot when command zero succeeds. */
 // FUNCTION: WIZ8 0x0055EBB0
-int W8ScreenCommandTarget0055EBB0::Function55EBB0(unsigned int command)
+bool W8Controls005EE920::Function55EBB0(unsigned int command)
 {
-    if (Function5D1AE0(command) != 0) {
+    if (m_dialog_64.Function5D1AE0(command) != 0) {
         if (static_cast<char>(command) == 0) {
-            vslot1(0);
+            Invalidate(0);
         }
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* The parallel path using the second command predicate. */
 // FUNCTION: WIZ8 0x0055EBE0
-int W8ScreenCommandTarget0055EBB0::Function55EBE0(unsigned int command)
+bool W8Controls005EE920::Function55EBE0(unsigned int command)
 {
-    if (Function5D1C00(command) != 0) {
+    if (m_dialog_64.Function5D1C00(command) != 0) {
         if (static_cast<char>(command) == 0) {
-            vslot1(0);
+            Invalidate(0);
         }
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Return the requested screen id, falling back to the state at the top of the

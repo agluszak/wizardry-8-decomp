@@ -116,6 +116,8 @@ class W8DialogMember005D14D0 {
 public:
     W8DialogMember005D14D0();            /* 0x005D14D0 */
     ~W8DialogMember005D14D0();           /* 0x005D1590 */
+    unsigned char Function5D1AE0(unsigned int command);
+    unsigned char Function5D1C00(unsigned int command);
 
 private:
     unsigned char unknown_000[0x10];

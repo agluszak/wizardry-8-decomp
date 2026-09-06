@@ -1,4 +1,5 @@
 #include "wiz8/float_constants.h"
+#include "wiz8/startup_world.h"
 #include "wiz8/engine_code/SoundEvent.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/combat_state.h"
@@ -71,7 +72,6 @@ extern srVector3T<float> g_monster_attachment_offsets_0060e618[][8];
 extern float g_monster_attachment_scales_0060e914[];
 extern void SetChainValue15C(char* node, int value);
 extern unsigned char Function525DF0(int value);
-extern W8Navigator* g_startup_world_659c0c;
 extern float g_startup_depth_603ac8;
 extern const float g_monster_script_facing_tolerance_005ebc84;
 extern const float g_world_scale_005ebc40;
@@ -96,8 +96,6 @@ extern const float g_monster_script_direction_scale_005ec150;
 extern const double g_monster_facing_tolerance_005ec2b0;
 extern const double g_monster_group_nearest_range_005ed2c0;
 extern const char g_warning_missing_spell_vertex_0060f684[];
-extern float BearingBetween(
-    const srVector3T<float>* from, const srVector3T<float>* to);
 extern unsigned char HasLineOfSightToBounds0046FD70(
     const srVector3T<float>* origin,
     srVector3T<float>* minimum,
@@ -2965,7 +2963,7 @@ int W8Monster::IsFacingMonster004C4CA0(W8Monster* monster)
     }
     to = monster->GetPosition();
     from = GetPosition();
-    bearing = NormalizeAngle(BearingBetween(&from, &to));
+    bearing = NormalizeAngle(BearingBetween(from, to));
     facing = NormalizeAngle(GetYaw());
     return fabs(bearing - facing) <=
            g_monster_facing_tolerance_005ec2b0;
@@ -2984,7 +2982,7 @@ int W8Monster::IsFacingPlayer004C4D40()
     }
     to = g_startup_world_659c0c->GetPosition();
     from = GetPosition();
-    bearing = NormalizeAngle(BearingBetween(&from, &to));
+    bearing = NormalizeAngle(BearingBetween(from, to));
     facing = NormalizeAngle(GetYaw());
     return fabs(bearing - facing) <=
            g_monster_facing_tolerance_005ec2b0;
