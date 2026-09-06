@@ -140,6 +140,16 @@ def compare_command(
                 selected,
                 include_windows=bool(addresses) and len(selected) <= 8,
             )
+            if changed:
+                baseline = since or "working-copy parent"
+                result["selection"] = {
+                    "mode": "changed-files",
+                    "baseline": baseline,
+                    "warning": (
+                        f"selected markers in changed files since {baseline}; unchanged callers of "
+                        "changed headers are outside this selection"
+                    ),
+                }
             return cli.human(comparison_human(result), result)
         return cli.summary(compare(settings, target, list(ctx.args), build_first=not no_build))
 

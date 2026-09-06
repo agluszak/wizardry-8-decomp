@@ -44,22 +44,54 @@ def class_command(
 
 
 @app.command("data")
-def data_command(address: Annotated[str, typer.Argument(help="Data address")]) -> None:
+def data_command(
+    address: Annotated[str, typer.Argument(help="Data address")],
+    interpret: str | None = typer.Option(
+        None, "--as", help="Interpret the first bytes as float, u32, i32, u16, or i16."
+    ),
+) -> None:
     """Report one typed datum and its live Ghidra references."""
     from .. import command_support as cli
     from ..ghidra.query import data_facts
 
     def action() -> Any:
+        import struct
+
         settings = cli.settings()
         entry = int(address, 0)
         result = {"schema": "wiz8.data-report", "data": data_facts(settings, {entry})}
         facts = result["data"]
-        return cli.human(
-            "\n".join(
+        formats = {"float": "<f", "u32": "<I", "i32": "<i", "u16": "<H", "i16": "<h"}
+        if interpret is not None and interpret not in formats:
+            raise ValueError("--as must be float, u32, i32, u16, or i16")
+        for row in facts:
+            if interpret is not None:
+                raw = bytes.fromhex(row.get("hex") or "")
+                size = struct.calcsize(formats[interpret])
+                if len(raw) < size:
+                    raise ValueError(f"{row['address']} has fewer than {size} readable bytes")
+                row["interpretation"] = {
+                    "type": interpret,
+                    "value": struct.unpack(formats[interpret], raw[:size])[0],
+                }
+
+        def human_row(row: dict[str, Any]) -> str:
+            interpretation = row.get("interpretation") or {}
+            value = (
+                f" {interpretation['type']}={interpretation['value']}"
+                if interpretation
+                else ""
+            )
+            writes = len(row.get("write_references", []))
+            mutability = f"; {writes} write reference(s)" if writes else "; no write references"
+            return (
                 f"{row['address']} {row.get('name') or '(unnamed)'} "
-                f"{row.get('type', 'undefined')} ({len(row.get('references', []))} references)"
-                for row in facts
-            ),
+                f"{row.get('type', 'undefined')} bytes={row.get('hex', 'unavailable')}"
+                f"{value}{mutability}"
+            )
+
+        return cli.human(
+            "\n".join(human_row(row) for row in facts),
             result,
         )
 
@@ -100,6 +132,11 @@ def context_command(
         "--discover",
         help="Create a missing function transactionally for this report, then roll it back.",
     ),
+    view: str = typer.Option(
+        "full",
+        "--view",
+        help="Human view: full, summary, code, listing, or dependencies.",
+    ),
     json_output: bool = typer.Option(False, "--json", help="Emit the complete context payload."),
 ) -> None:
     """Join Ghidra and every relevant evidence channel for one function."""
@@ -107,6 +144,8 @@ def context_command(
     from ..reports.recovery_context import recovery_context_reports, render_context
 
     def action():
+        if view not in {"full", "summary", "code", "listing", "dependencies"}:
+            raise ValueError("--view must be full, summary, code, listing, or dependencies")
         settings = cli.settings()
         contexts = recovery_context_reports(
             settings,
@@ -118,7 +157,7 @@ def context_command(
             root=root,
             discover=discover,
         )
-        text = "\n\n".join(render_context(context) for context in contexts)
+        text = "\n\n".join(render_context(context, view) for context in contexts)
         data: object = contexts[0] if len(contexts) == 1 else {"contexts": contexts}
         return cli.human(text, data)
 

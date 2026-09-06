@@ -52,7 +52,9 @@ def test_compare_refreshes_changed_file_selection_before_build(tmp_path, monkeyp
     result = CliRunner().invoke(app, ["compare", "--changed", "--json"])
     assert result.exit_code == 0, result.output
     assert events == ["index", "build", "compare"]
-    assert json.loads(result.stdout)["functions"][0]["address"] == "0x00401000"
+    payload = json.loads(result.stdout)
+    assert payload["functions"][0]["address"] == "0x00401000"
+    assert "unchanged callers" in payload["selection"]["warning"]
 
 
 def test_compare_changed_does_not_fall_back_to_whole_image(tmp_path, monkeypatch) -> None:

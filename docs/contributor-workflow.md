@@ -2,11 +2,11 @@
 
 The root instructions contain policy; this page contains the repeatable machine procedure.
 
-## Isolated workspace setup
+## Checkout setup
 
-Copy `.env.example` to `.env`. Every checkout needs a unique absolute `WIZ8_WORK_DIR`.
-A private work directory may use `cp -al` for immutable `extracted`, `fid`, `variants`,
-`oracles`, and `sgp` trees.
+Use the provided checkout. Do not create a worktree, Jujutsu workspace, clone, or baseline checkout
+unless the task explicitly requires one. Copy `.env.example` to `.env` when configuring a new
+provided checkout. If multiple checkouts already exist, each needs a unique absolute `WIZ8_WORK_DIR`.
 
 The live Ghidra project lives inside the checkout at `ghidra-project/` (gitignored), so
 every workspace owns its project by construction. `WIZ8_GHIDRA_PROJECT_DIR` relocates one
@@ -33,16 +33,16 @@ bd update <id> --claim
 ```
 
 Create a concrete Bead before substantial implementation and link dependencies instead of
-duplicating scope. Record decisions and negative compiler experiments with `bd note`. A useful
-negative note names the symbol/address, hypothesis, source shape, comparison command, before/after
-result, and conclusion. When all acceptance criteria and gates pass:
+duplicating scope. Record accepted facts, consequential rejected hypotheses, and unresolved blockers.
+Batch related experiments into one concise note; include commands and detailed results only when a
+non-obvious conclusion needs to be reproduced. When the task acceptance criteria pass:
 
 ```sh
 bd close <id> --reason="<verified outcome>"
 bd dolt push
 ```
 
-## Start an isolated task stack
+## Start a task stack
 
 Fetch once, inspect the shared bookmark state, and create a unique task bookmark from integrated
 `main`. Include the Bead ID so concurrent agents cannot choose the same name.
@@ -72,46 +72,15 @@ jj describe -m "<next coherent change>"
 jj bookmark set agent/<bead>-<topic> -r @
 ```
 
-## Recovering C++ from the reviewed project
+## Local completion and checkpoint publication
 
-`uv run wiz8 analyze source-index` refreshes `build/source-index.json` through
-reccmp's public batch API. `just check` and `just test` already run it. After
-changing the CMake source inventory, run `just lint` to regenerate compile commands.
-The collector lives in the pinned reccmp package, including its C++ AST emitter;
-do not add a local indexer or import private reccmp internals. Content-based caching
-includes source/header inputs and the actual toolchain image ID. Unchanged indexes
-retain their timestamp, and compiler failures identify the failing translation unit.
-
-Python callers use `source_index.source_functions()` for address-keyed reccmp
-markers and `marker.declaration` for compiler semantics. Layout verification runs
-directly against a derived Ghidra project. The lifecycle fixture owns a separate,
-unique temporary project; neither audit changes the reviewed project.
-
-`uv run wiz8 recover explain 0x<address>` reports structured recovery facts, while
-`uv run wiz8 recover regress 0x<address>...` measures how much of an already-recovered body the
-headless recovery engine regenerates with zero manual edits. Recovery opens the reviewed Ghidra
-project read-only and receives source-index facts transiently; it does not generate class,
-translation-unit, or global-data source products.
-`just recover 0x<address>` drafts a new function into its owning translation unit: source-owner
-lookup and address-order insertion from the source index, duplicate refusal, a focused build with
-`compare`/`triage`, one structurally recovered definition, and diagnostics
-with include suggestions on failure. Constructor placement alternatives use the source index's
-actual field inventory; other structured differences decline until reccmp identifies the affected
-source declaration or region.
-The default previews and restores the tree; `--apply` writes
-it. All of these need the live Ghidra project; the recover/regress loops also need the pinned VC6
-toolchain.
-
-## Work and checkpoint publication
-
-Use the narrow change-specific gates while iterating. Inspect every meaningful source change and
-record compiler-falsified hypotheses rather than silently forgetting them.
+Use the change-specific verification policy in `AGENTS.md`. A completed result remains valid until a
+relevant input changes. Review the final diff before publication.
 
 ```sh
 jj status
 jj diff --stat
 jj diff
-just test                       # plus the narrow change-specific gate
 ```
 
 Push the task bookmark when a remote checkpoint or review is useful. This is not integration and
@@ -140,10 +109,12 @@ jj bookmark set agent/<bead>-<topic> -r @
 Inspect the incoming commits before resolving conflicts. Never force or overwrite a concurrent
 bookmark movement.
 
-## Final validation
+## Integration preparation
 
-Once the Bead scope is complete, perform one final fetch and stack rebase. Run the complete
-applicable lane on the rebased tip, not on a pre-rebase commit:
+Local completion, checkpoint publication, PR publication, and integration are separate operations.
+Do not integrate merely because implementation is complete. Before requested integration, fetch and
+rebase the task stack, inspect what changed, and run `just verify` once on the rebased tip. Add only
+focused comparisons that `just verify` does not provide.
 
 ```sh
 jj git fetch --remote origin
@@ -151,30 +122,26 @@ jj rebase -s 'roots(main..agent/<bead>-<topic>)' -d main
 jj bookmark set agent/<bead>-<topic> -r @
 jj diff --stat
 jj diff
-just check
-just test                       # plus focused compare/triage and other change-specific gates
-just lint                       # for C++ class or inheritance changes
-just verify                     # integration gate
+just verify
 ```
 
-When `just verify` fails, do not merely label the output pre-existing. Reproduce the same command in
-a clean sibling workspace at the exact `main` commit used for the rebase. All narrower required
-gates must pass, and the topic may proceed only when the baseline and topic failure identities have
-an empty delta. Record the base commit, both failure sets, and the delta in the Bead and handoff.
+For a failing broad gate, use an existing baseline only when its base commit and relevant inputs are
+known. Otherwise report the failure as unclassified. Do not create another checkout merely to classify
+it, and do not call it pre-existing without evidence. Do not integrate with an unresolved blocking
+failure; a local handoff may still contain completed work and a clearly stated blocker.
 
-If `main` advances after this rebase, inspect the new commits, rebase the whole task stack again, and
-rerun every gate that the rebase could affect.
+If `main` advances after this rebase, inspect the new commits and rebase again. Rerun only checks whose
+inputs or affected scope changed.
 
 ## Integrate once
 
-For authorized direct integration, move `main` only after the complete task has passed final
-validation. Treat fetch, rebase, validation, bookmark movement, and push as one controlled sequence:
+For authorized direct integration, move `main` only after integration verification passes. Do not
+repeat unchanged constituent checks during the publication sequence:
 
 ```sh
 jj git fetch --remote origin
 jj rebase -s 'roots(main..agent/<bead>-<topic>)' -d main
 jj bookmark set agent/<bead>-<topic> -r @
-# rerun the final applicable gates here
 jj bookmark set main -r agent/<bead>-<topic>
 jj git push --remote origin --bookmark main
 bd dolt push
@@ -198,8 +165,8 @@ an empty tree diff against it.
 
 ## Pull-request publication
 
-When a pull request is explicitly requested, perform the same final fetch, whole-stack rebase, and
-validation first. Then push the task bookmark and open the PR:
+When a pull request is explicitly requested, fetch and rebase the stack, run the verification needed
+for review, then push the task bookmark and open the PR:
 
 ```sh
 jj bookmark set agent/<bead>-<topic> -r @

@@ -52,7 +52,71 @@ def _assertion_boundary_defects(
     return defects
 
 
-def _markdown(context: dict[str, Any]) -> str:
+def _one_line_signature(text: str) -> str:
+    return " ".join(text.replace("\n", " ").split())
+
+
+def _decompiled_signature(text: str) -> str:
+    """Return the decompiler's function header without printing its whole body."""
+
+    head = text.split("{", 1)[0].strip()
+    return _one_line_signature(head)
+
+
+def _signature_lines(context: dict[str, Any]) -> list[str]:
+    signatures = context["signatures"]
+    lines = ["## Signatures", ""]
+    for authority, label in (
+        ("stored", "Ghidra stored"),
+        ("inferred", "Decompiler inferred"),
+        ("source", "Recovered source"),
+    ):
+        row = signatures.get(authority)
+        if row and row.get("prototype"):
+            location = row.get("location")
+            suffix = f" — `{location}`" if location else ""
+            lines.append(f"- {label}: `{row['prototype']}`{suffix}")
+    if signatures["disagree"]:
+        lines.append("- Status: **disagreement; resolve from retail instructions and call sites**")
+    else:
+        lines.append("- Status: signatures agree")
+    return [*lines, ""]
+
+
+def _dependency_lines(context: dict[str, Any]) -> list[str]:
+    lines: list[str] = []
+    if context.get("calls"):
+        lines.extend(["## Calls", ""])
+        for row in context["calls"]:
+            source = row.get("source") or {}
+            name = source.get("name") or row.get("name") or row["target"]
+            prototype = source.get("prototype")
+            location = source.get("location")
+            detail = f" — `{prototype}`" if prototype else ""
+            detail += f" at `{location}`" if location else ""
+            lines.append(f"- `{row['site']}` -> `{name}`{detail}")
+        lines.append("")
+
+    callers = context.get("callers") or []
+    if callers:
+        lines.extend(["## Called by", ""])
+        for row in callers:
+            source = row.get("source") or {}
+            name = source.get("name") or row.get("name") or row.get("entry") or row["site"]
+            location = source.get("location")
+            suffix = f" at `{location}`" if location else ""
+            lines.append(f"- `{row['site']}` from `{name}`{suffix}")
+        lines.append("")
+    return lines
+
+
+def _markdown(context: dict[str, Any], view: str = "full") -> str:
+    if view == "code":
+        return f"```cpp\n{context['ghidra']['decompiled'].rstrip()}\n```"
+    if view == "listing":
+        listing = context["ghidra"].get("listing") or "listing not requested; pass --listing"
+        return f"```asm\n{listing.rstrip()}\n```"
+
     function = context["ghidra"]["function"]
     unit = context["translation_unit"]
     reviewed_function = context["reviewed"]["function"]
@@ -61,7 +125,7 @@ def _markdown(context: dict[str, Any]) -> str:
         f"# Recovery context for 0x{context['entry']:08X}",
         "",
         f"- Function: `{function['name']}`",
-        f"- Prototype: `{function['prototype']}` ({function['size']} bytes)",
+        f"- Size: {function['size']} bytes",
         (
             f"- Translation unit: `{unit.get('source_path') or 'unresolved'}` "
             f"({unit['attribution']})"
@@ -71,10 +135,36 @@ def _markdown(context: dict[str, Any]) -> str:
         f"- Assertions: {len(context['assertions'])}",
         f"- Named globals: {len(context['globals'])}",
         f"- Vptr writes: {len(context['polymorphism']['vptr_writes'])}",
-        f"- Field accesses: {len(context.get('field_accesses', {}).get('accesses', []))}",
+        (
+            f"- Field accesses: {len(context['field_accesses'].get('accesses', []))}"
+            if context["field_accesses"]["analysis"] == "available"
+            else "- Field accesses: not analyzed (no source-owned class receiver)"
+        ),
         f"- Indirect call sites: {len(context.get('indirect_calls', []))}",
         "",
     ]
+    owner = context.get("source_owner")
+    if owner:
+        lines.extend(
+            [
+                "## Source owner",
+                "",
+                f"- Recovered source: `{owner['name']}` at `{owner['location']}`",
+                f"- Implementation: {owner['implementation']}",
+                (
+                    "- Ownership: source candidate; original translation-unit attribution is "
+                    f"`{unit['attribution']}`"
+                ),
+                "",
+            ]
+        )
+    lines.extend(_signature_lines(context))
+
+    if view == "summary":
+        return "\n".join(lines)
+    if view == "dependencies":
+        lines.extend(_dependency_lines(context))
+        return "\n".join(lines)
 
     match = context.get("match", {})
     if match.get("unavailable"):
@@ -96,17 +186,9 @@ def _markdown(context: dict[str, Any]) -> str:
                 lines.append(f"  {marker} {instruction['address']}  {instruction['instruction']}")
         lines.append("")
 
-    if context.get("calls"):
-        lines.extend(["## Calls", ""])
-        for row in context["calls"]:
-            lines.append(f"- `{row['site']}` -> `{row.get('name') or row['target']}`")
-        lines.append("")
+    lines.extend(_dependency_lines(context))
 
-    callers = function.get("callers") or []
-    if callers:
-        lines.extend(["## Called by", "", *(f"- `{value}`" for value in callers), ""])
-
-    field_accesses = context.get("field_accesses", {}).get("accesses", [])
+    field_accesses = context["field_accesses"].get("accesses", [])
     if field_accesses:
         lines.extend(["## Fields", ""])
         for row in field_accesses:
@@ -325,6 +407,7 @@ def recovery_context_reports(
         function = result_for("function", requested)["function"]
         entry = int(function["entry"], 16)
         source_function = source_model.get(entry) if source_model is not None else None
+        decompiled = result_for("decompile", requested)["decompiled"] or ""
         requested_assertions = assertions_by_entry[requested]
         assertions = [
             row
@@ -394,11 +477,11 @@ def recovery_context_reports(
         ):
             context_classes.add(source_function.declaration.owning_class)
         semantic_fields = (
-            result_for("field-accesses", requested)
+            {"analysis": "available", **result_for("field-accesses", requested)}
             if source_function is not None
             and source_function.declaration is not None
             and source_function.declaration.owning_class
-            else {}
+            else {"analysis": "not-analyzed", "accesses": []}
         )
         high = result_for("high-function", requested) if deep else {}
         indirect_result = result_for("indirect-calls", requested)
@@ -415,6 +498,69 @@ def recovery_context_reports(
             else {}
         )
         unit = TranslationUnitResolver(reviewed_assertions).resolve(entry)
+        source_owner = None
+        source_signature = None
+        if source_function is not None:
+            location = f"{source_function.source_file}:{source_function.line}"
+            declaration = source_function.declaration
+            source_owner = {
+                "name": source_function.name,
+                "location": location,
+                "implementation": (
+                    "definition present"
+                    if declaration is not None and declaration.is_definition
+                    else "declaration only"
+                    if declaration is not None
+                    else "emitted or linked marker"
+                ),
+            }
+            if declaration is not None:
+                source_signature = {
+                    "prototype": _one_line_signature(declaration.prototype),
+                    "location": location,
+                }
+        signatures = {
+            "stored": {"prototype": _one_line_signature(function["prototype"])},
+            "inferred": {"prototype": _decompiled_signature(decompiled)},
+            "source": source_signature,
+        }
+        signature_values = {
+            row["prototype"]
+            for row in signatures.values()
+            if isinstance(row, dict) and row.get("prototype")
+        }
+        signatures["disagree"] = len(signature_values) > 1
+
+        def source_boundary(address_text: str | None) -> dict[str, Any] | None:
+            if not address_text or source_model is None:
+                return None
+            try:
+                address = int(address_text, 16)
+            except ValueError:
+                return None
+            marker = source_model.get(address)
+            if marker is None:
+                return None
+            declaration = marker.declaration
+            return {
+                "name": marker.name,
+                "prototype": declaration.prototype if declaration is not None else None,
+                "location": f"{marker.source_file}:{marker.line}",
+            }
+
+        calls = []
+        for row in function["calls"]:
+            function_target = row.get("function") or {}
+            calls.append(
+                {
+                    **row,
+                    "source": source_boundary(function_target.get("entry") or row.get("target")),
+                }
+            )
+        callers = [
+            {**row, "source": source_boundary(row.get("entry"))}
+            for row in function.get("caller_functions", [])
+        ]
         context = {
             "schema": "wiz8.recovery-context",
             "program": program_name,
@@ -423,7 +569,9 @@ def recovery_context_reports(
             "boundary_defects": boundary_defects,
             "translation_unit": unit
             if has_canonical_addresses
-            else {"source_path": "", "attribution": "non-canonical", "alternatives": []},
+                else {"source_path": "", "attribution": "non-canonical", "alternatives": []},
+            "source_owner": source_owner,
+            "signatures": signatures,
             "reviewed": {
                 "function": reviewed_function,
                 "signature": {
@@ -448,7 +596,8 @@ def recovery_context_reports(
             },
             "assertions": assertions,
             "eh": {"metadata": function["exception_metadata"]},
-            "calls": function["calls"],
+            "calls": calls,
+            "callers": callers,
             "globals": globals_joined,
             "raw_references": raw_references,
             "match": function_match,
@@ -459,7 +608,7 @@ def recovery_context_reports(
             "indirect_calls": indirect_calls,
             "ghidra": {
                 "function": function,
-                "decompiled": result_for("decompile", requested)["decompiled"] or "",
+                "decompiled": decompiled,
                 "listing": instruction_listing,
             },
         }
@@ -478,5 +627,5 @@ def recovery_context_report(
     return recovery_context_reports(settings, [address], selector, **options)[0]
 
 
-def render_context(context: dict[str, Any]) -> str:
-    return _markdown(context).rstrip()
+def render_context(context: dict[str, Any], view: str = "full") -> str:
+    return _markdown(context, view).rstrip()

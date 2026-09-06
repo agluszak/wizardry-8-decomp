@@ -240,6 +240,23 @@ def test_compare_mismatch_acquires_one_report_and_includes_triage(
     result = reccmp_workflows.compare_selected(tmp_path, "WIZ8", [0x401000])
 
     assert calls == 1
-    assert result["functions"][0]["difference"]["kind"] == "branch_target"
+    assert result["functions"][0]["difference"]["kind"] == "alignment_or_structure"
+    assert result["functions"][0]["reported_difference"]["kind"] == "branch_target"
     assert result["functions"][0]["instruction_window"]["original"][0]["divergence"]
-    assert "first divergence: branch_target" in reccmp_workflows.comparison_human(result)
+    assert "first divergence: alignment_or_structure" in reccmp_workflows.comparison_human(result)
+
+
+def test_comparison_human_includes_inconclusive_reason() -> None:
+    result = {
+        "functions": [
+            {
+                "address": "0x00401000",
+                "name": "f",
+                "status": "inconclusive",
+                "raw_matching": 0.25,
+                "reason": "alignment_failure",
+            }
+        ]
+    }
+
+    assert "inconclusive: alignment_failure" in reccmp_workflows.comparison_human(result)

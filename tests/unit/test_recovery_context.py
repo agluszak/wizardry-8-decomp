@@ -61,12 +61,19 @@ def test_context_renders_primary_evidence_without_opening_artifacts() -> None:
     context = {
         "entry": 0x401000,
         "translation_unit": {"source_path": "src/wiz8/unit.cpp", "attribution": "source"},
+        "source_owner": None,
+        "signatures": {
+            "stored": {"prototype": "void Thing::Run()"},
+            "inferred": {"prototype": "void Thing::Run()"},
+            "source": None,
+            "disagree": False,
+        },
         "reviewed": {"function": {"name": "Thing::Run"}, "class_names": ["Thing"]},
         "assertions": [],
         "eh": {"unwind": []},
         "globals": [],
         "polymorphism": {"vptr_writes": [], "tables": {}},
-        "field_accesses": {"accesses": []},
+        "field_accesses": {"analysis": "available", "accesses": []},
         "indirect_calls": [],
         "calls": [{"site": "00401002", "target": "00402000", "name": "Callee"}],
         "match": {
@@ -102,12 +109,22 @@ def test_context_preserves_zero_offsets_and_renders_match_availability() -> None
     context = {
         "entry": 0x401000,
         "translation_unit": {"source_path": "", "attribution": "unresolved"},
+        "source_owner": None,
+        "signatures": {
+            "stored": {"prototype": "void f()"},
+            "inferred": {"prototype": "void f()"},
+            "source": None,
+            "disagree": False,
+        },
         "reviewed": {"function": {"name": "f"}, "class_names": []},
         "assertions": [],
         "eh": {"unwind": []},
         "globals": [],
         "polymorphism": {"vptr_writes": [], "tables": {}},
-        "field_accesses": {"accesses": [{"site": "00401001", "kind": "load", "offset": 0}]},
+        "field_accesses": {
+            "analysis": "available",
+            "accesses": [{"site": "00401001", "kind": "load", "offset": 0}],
+        },
         "indirect_calls": [{"site": "00401002", "target": {"offset": 0}}],
         "calls": [],
         "match": {"unavailable": "no current paired build"},
@@ -128,6 +145,53 @@ def test_context_preserves_zero_offsets_and_renders_match_availability() -> None
     assert "unavailable — no current paired build" in output
     assert "`0`" in output
     assert "target `0`" in output
+
+
+def test_context_summary_distinguishes_signature_conflict_and_unavailable_field_analysis() -> None:
+    context = {
+        "entry": 0x401000,
+        "translation_unit": {"source_path": "", "attribution": "unresolved"},
+        "source_owner": {
+            "name": "Thing::Run",
+            "location": "include/wiz8/Thing.h:10",
+            "implementation": "declaration only",
+        },
+        "signatures": {
+            "stored": {"prototype": "undefined FUN_00401000()"},
+            "inferred": {"prototype": "ushort __thiscall Thing::Run(Thing *this)"},
+            "source": {
+                "prototype": "unsigned short Thing::Run()",
+                "location": "include/wiz8/Thing.h:10",
+            },
+            "disagree": True,
+        },
+        "reviewed": {"function": {"name": "Thing::Run"}, "class_names": ["Thing"]},
+        "assertions": [],
+        "globals": [],
+        "polymorphism": {"vptr_writes": []},
+        "field_accesses": {"analysis": "not-analyzed", "accesses": []},
+        "indirect_calls": [],
+        "calls": [],
+        "callers": [],
+        "ghidra": {
+            "function": {
+                "name": "FUN_00401000",
+                "prototype": "undefined FUN_00401000()",
+                "size": 12,
+            },
+            "decompiled": "ushort __thiscall Thing::Run(Thing *this) {}",
+            "listing": "",
+        },
+    }
+
+    output = render_context(context, "summary")
+
+    assert "Field accesses: not analyzed" in output
+    assert "Ghidra stored" in output
+    assert "Decompiler inferred" in output
+    assert "Recovered source" in output
+    assert "disagreement" in output
+    assert "## Decompiled" not in output
 
 
 @pytest.mark.parametrize("listing", [False, True])

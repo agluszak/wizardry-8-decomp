@@ -3,14 +3,38 @@ name: matching-decomp
 description: Recover Wizardry 8 C++ bodies and declarations against the pinned VC6 target; use for source-model changes and interpreting focused comparison mismatches.
 ---
 
-# Matching workflow
+# Matching decompilation
 
-Recover connected groups of ordinary circa-2000 C++ bodies, preserving canonical types and translation-unit ownership. Gather their evidence together with `just context ADDRESS... --listing --no-match` and reuse it. Inferred signatures and generated bodies can be wrong; retail instructions and call sites decide. A failed automatic export is a reason to recover manually or fix the exporter, not a prerequisite to wait on.
+Use existing source ownership and current compact context. Do not fetch the same evidence again unless
+it is missing, stale, or contradictory. Inferred signatures and generated bodies can be wrong;
+retail instructions and call sites decide.
 
-Build and compare the first-pass batch once with `just compare ADDRESS...` or `just compare --changed`. Use `--no-build` if that source state was already built. Changed-file selection covers all marked functions in those files; explicitly include unchanged callers affected by a header/ABI change. Reserve immediate before/after comparisons for experiments on previously matched code.
+Start with the narrow human view that answers the question:
 
-Review structured divergences against the instruction evidence. Neither a low percentage nor an inconclusive classifier result proves a semantic defect. Record actual regressions and negative experiments in the active Bead; do not tune scratch registers or compiler scheduling. Run broad validation for the completed batch, not after each body. Use `--deep` only when the listing and decompiler cannot answer a concrete question.
+- `just context ADDRESS... --view summary --no-match` for ownership and signature conflicts;
+- `just context ADDRESS... --view code --no-match` for decompiled bodies;
+- `just context ADDRESS... --view dependencies --no-match` for caller/callee boundaries;
+- add `--listing --view listing` only when instructions are needed.
 
-Use the references for the specific evidence pattern encountered: `references/full-guide.md` is the
-legacy detailed guide; consult only the relevant section when a mismatch, layout, or ABI question
-requires it.
+Use full context or `--deep` only when these views omit evidence needed for a concrete question. Reuse
+a batch packet until its evidence changes. Automatic recovery is optional; an exporter decline does
+not block manual recovery from retail evidence.
+
+Recover ordinary C++ using canonical declarations. Make one coherent source-model change, then run
+focused comparison with `just compare ADDRESS...` or `just compare --changed`. Use `--no-build` if
+that source state was already built. Include unchanged callers when a header or ABI change affects
+them.
+
+Interpret the result:
+
+- `exact` or `effective`: stop investigating the body unless the task requires more.
+- `mismatch`: inspect the first structural divergence and test one source hypothesis.
+- `inconclusive`: identify the missing evidence; do not assume a source defect.
+
+Expand the comparison set only when shared layout, lifecycle, virtual dispatch, or inline visibility
+can affect other functions. Do not tune scratch registers or compiler scheduling. Validation and
+publication policy lives in `AGENTS.md`.
+
+Read [mismatch patterns](references/mismatch-patterns.md) for a structural divergence or
+[layout evidence](references/layout-evidence.md) when proving fields, widths, object size, or
+inheritance layout. Do not load either for an ordinary exact result.

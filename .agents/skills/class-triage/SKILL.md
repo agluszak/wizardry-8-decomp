@@ -5,11 +5,14 @@ description: Decide whether an unnamed Wizardry 8 constructor, destructor, vtabl
 
 # Class triage
 
-1. Start with `just context <selector>` and identify source ownership, storage, and lifecycle evidence.
-2. Check ordinary base/template emission before proposing a new class or override.
-3. Require independent evidence for a class boundary; vtables, deleting destructors, and template emissions alone are insufficient.
-4. Recover normal C++ ownership and ABI shapes, then validate the complete constructor/destructor/vtable bundle.
-5. Record unresolved identity and negative experiments in the active Bead instead of inventing wrappers.
+Use this skill when proposing a new class boundary or revising an existing hierarchy. Do not rerun
+identity triage merely to implement another method of an established class.
 
-Open `references/full-guide.md` only for the matching evidence pattern at hand (template emission,
-inheritance, layout, or deleting-destructor ABI).
+First test whether the canonical base or template explains the evidence. A distinct vtable,
+lifecycle body, deleting destructor, or registry family does not alone prove authored source.
+Declare only the additional boundary independently supported by storage, behavior, or source identity.
+
+Read [template emission](references/template-emission.md) for `srClassSupport`, registry, clone, or
+deleting-destructor evidence. Read [inheritance evidence](references/inheritance-evidence.md) when
+receivers, subobject placement, or a hierarchy changes. Validate the affected lifecycle/vtable bundle
+when the model changes. Record unresolved identity concisely instead of inventing a wrapper.

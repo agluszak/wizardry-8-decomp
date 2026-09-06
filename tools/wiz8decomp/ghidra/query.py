@@ -113,6 +113,13 @@ def function_facts(program: Any, function: Any) -> dict[str, Any]:
                 "instruction": str(instruction),
             }
             if reference.getReferenceType().isCall():
+                callee = program.getFunctionManager().getFunctionAt(target)
+                if callee is not None:
+                    fact["function"] = {
+                        "entry": str(callee.getEntryPoint()),
+                        "name": callee.getName(True),
+                        "prototype": callee.getPrototypeString(False, False),
+                    }
                 calls.append(fact)
                 datum = listing.getDataAt(target)
                 if datum is not None and datum.hasStringValue():
@@ -137,9 +144,24 @@ def function_facts(program: Any, function: Any) -> dict[str, Any]:
                 vptrs.append(dict(fact))
             if any(value in folded for value in ("funcinfo", "unwind", "ehhandler")):
                 exception_metadata.append(dict(fact))
-    callers = sorted(
-        {str(ref.getFromAddress()) for ref in references.getReferencesTo(function.getEntryPoint())}
-    )
+    caller_references = list(references.getReferencesTo(function.getEntryPoint()))
+    callers = sorted({str(ref.getFromAddress()) for ref in caller_references})
+    caller_functions = []
+    seen_callers = set()
+    for reference in caller_references:
+        owner = program.getFunctionManager().getFunctionContaining(reference.getFromAddress())
+        key = (str(reference.getFromAddress()), str(owner.getEntryPoint()) if owner else "")
+        if key in seen_callers:
+            continue
+        seen_callers.add(key)
+        caller_functions.append(
+            {
+                "site": key[0],
+                "entry": key[1],
+                "name": owner.getName(True) if owner else "",
+                "prototype": owner.getPrototypeString(False, False) if owner else "",
+            }
+        )
     return {
         "entry": str(function.getEntryPoint()),
         "size": body.getNumAddresses(),
@@ -155,6 +177,7 @@ def function_facts(program: Any, function: Any) -> dict[str, Any]:
         "plate_comment": listing.getComment(CodeUnit.PLATE_COMMENT, function.getEntryPoint()),
         "caller_count": len(callers),
         "callers": callers,
+        "caller_functions": sorted(caller_functions, key=lambda row: (row["entry"], row["site"])),
         "calls": calls,
         "data_references": data,
         "vptr_references": vptrs,
@@ -333,13 +356,18 @@ def _data_facts(program: Any, entries: list[str]) -> dict[str, Any]:
         data = program.getListing().getDataContaining(requested)
         fact: dict[str, Any] = {"address": _hex_address(requested)}
         if data is not None:
+            length = data.getLength()
             fact.update(
                 {
                     "defined_at": _hex_address(data.getAddress()),
-                    "length": data.getLength(),
+                    "length": length,
                     "type": data.getDataType().getDisplayName(),
+                    "initial_value": str(data.getValue()) if data.getValue() is not None else None,
                 }
             )
+        else:
+            length = 4
+        fact["hex"] = _read_data(program, str(requested), str(max(length, 8)))["hex"]
         symbol = program.getSymbolTable().getPrimarySymbol(requested)
         fact["name"] = symbol.getName(True) if symbol is not None else ""
         fact["references"] = [
@@ -348,6 +376,9 @@ def _data_facts(program: Any, entries: list[str]) -> dict[str, Any]:
                 "kind": reference.getReferenceType().getName(),
             }
             for reference in program.getReferenceManager().getReferencesTo(requested)
+        ]
+        fact["write_references"] = [
+            row for row in fact["references"] if "WRITE" in str(row["kind"]).upper()
         ]
         facts.append(fact)
     return {"schema": "wiz8.data-facts", "data": facts}

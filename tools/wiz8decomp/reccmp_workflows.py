@@ -292,7 +292,26 @@ def compare_selected(
             window = _instruction_windows(repository, target, rows, int(row["address"], 16))
             if window:
                 row["instruction_window"] = window
+                difference = row.get("difference") or {}
+                if difference.get("kind") == "branch_target" and not _paired_branch_witness(window):
+                    row["reported_difference"] = difference
+                    row["difference"] = {"kind": "alignment_or_structure"}
+                    row["guidance"] = (
+                        "instruction correspondence does not support a branch-target diagnosis; "
+                        "inspect alignment and source structure"
+                    )
     return comparison
+
+
+def _paired_branch_witness(window: dict[str, list[dict[str, Any]]]) -> bool:
+    """A branch-target diagnosis requires corresponding branch instructions on both sides."""
+
+    def divergent_mnemonic(side: str) -> str:
+        row = next((item for item in window.get(side, []) if item.get("divergence")), None)
+        return str(row.get("instruction", "")).split(maxsplit=1)[0].casefold() if row else ""
+
+    mnemonics = (divergent_mnemonic("original"), divergent_mnemonic("recomp"))
+    return all(value.startswith("j") and value != "jmp" for value in mnemonics)
 
 
 def _instruction_windows(
@@ -348,6 +367,9 @@ def _instruction_windows(
 
 def comparison_human(result: dict[str, Any]) -> str:
     lines: list[str] = []
+    selection = result.get("selection") or {}
+    if selection.get("warning"):
+        lines.extend((f"note: {selection['warning']}", ""))
     for row in result["functions"]:
         address = row["address"].removeprefix("0x").upper()
         status = row["status"]
@@ -361,6 +383,11 @@ def comparison_human(result: dict[str, Any]) -> str:
         difference = row.get("difference") or {}
         if difference:
             lines.append(f"  first divergence: {difference.get('kind', 'unknown')}")
+        reason = row.get("reason")
+        if reason:
+            location = row.get("location")
+            detail = f" at {location}" if location else ""
+            lines.append(f"  inconclusive: {reason}{detail}")
         if row.get("guidance"):
             lines.append(f"  {row['guidance']}")
         for side in ("original", "recomp"):
@@ -387,6 +414,7 @@ def _guidance(kind: str) -> str:
         "branch_target": "inspect early-return and source block structure",
         "return_value": "inspect the declared return type and returned expression",
         "preserved_state": "inspect local lifetimes and prologue/epilogue shape",
+        "alignment_or_structure": "inspect alignment and source structure",
     }.get(kind, "inspect the first structured machine-state divergence")
 
 
