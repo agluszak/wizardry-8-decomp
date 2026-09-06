@@ -1,5 +1,15 @@
-#include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/wiz8_windows.h"
+#include "wiz8/render_state.h"
+#include "wiz8/utility.h"
+#include "surrender/srNode.h"
 #include "wiz8/cursor.h"
+
+extern "C" {
+extern unsigned char g_flag_603c60;
+extern unsigned char g_flag_603c4c;
+extern int g_value_659668;
+extern int g_screen_transition_object_count_654aac;
+}
 
 /* Address quarantine 00424041-0042a36f; bounds come from adjacent
    assertion-backed original translation-unit intervals. */

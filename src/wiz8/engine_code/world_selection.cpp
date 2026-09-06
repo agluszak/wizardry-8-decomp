@@ -1,8 +1,7 @@
-#include "wiz8/unattributed/quarantine_common.h"
 #include "wiz8/engine_code/World.h"
 
-/* Address quarantine 004511d1-0045368f; bounds come from adjacent
-   assertion-backed original translation-unit intervals. */
+/* World selection. The original translation-unit name is not established;
+   these bodies retain their existing compilation unit and link-order slot. */
 
 // FUNCTION: WIZ8 0x00451290
 void SetCurrentWorld(W8World* world)

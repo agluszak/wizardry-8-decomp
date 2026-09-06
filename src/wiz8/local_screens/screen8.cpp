@@ -1,12 +1,16 @@
-#include "wiz8/unattributed/quarantine_common.h"
-
+#include "surrender/srClass.h"
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/vector.h"
 
 #include <stdlib.h>
 
-/* Address quarantine 0057d741-005817cf; bounds come from adjacent
-   assertion-backed original translation-unit intervals. */
+/* Lifecycle record 8. Its original screen and translation-unit names are
+   unknown; the existing compilation boundary is retained. */
+
+extern "C" {
+extern unsigned char g_flag_68f104;
+extern unsigned char g_flag_68f105;
+}
 
 class W8VectorElement005EEA28;
 
