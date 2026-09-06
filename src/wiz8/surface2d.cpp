@@ -3,48 +3,11 @@
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
 
-
-static srRegistry::ClassNode* texture_class_node()
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x1000f);
-    if (!node) {
-        srRegistry::ClassNode* parent = registry->getClassNode(0x2110);
-        if (!parent) {
-            parent = registry->getClassNode(0x2100);
-            if (!parent) {
-                parent = registry->registerClass(
-                    "srTextureIFace", srClass::sGetClassNode(), 0x2100, 1);
-            }
-            parent = registry->registerClass(
-                srTexture::sGetClassName(), parent, 0x2110, 0);
-        }
-        node = registry->registerClass("stTexture2D", parent, 0x1000f, 0);
-    }
-    return node;
-}
-
-static srRegistry::ClassNode* surface_class_node()
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x1000e);
-    if (!node) {
-        srRegistry::ClassNode* parent = registry->getClassNode(0x1000);
-        if (!parent) {
-            parent = registry->registerClass(
-                srNode::sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
-        }
-        node = registry->registerClass("stSurface2D", parent, 0x1000e, 0);
-    }
-    return node;
-}
-
 stTexture2D::stTexture2D()
-    : left(0), top(0), right(128), bottom(128),
+    : srClassSupport<stTexture2D, srTexture, false, 0x1000f>(),
+      left(0), top(0), right(128), bottom(128),
       frame_handle(getNewFrameHandle()), surface(0)
 {
-    srCore.getRegistry()->registerInstance(
-        texture_class_node(), this);
     setMipmap((e_mipmap)0);
     enableHint((e_hint)3);
     enableHint((e_hint)6);
@@ -53,42 +16,41 @@ stTexture2D::stTexture2D()
     texture_dimensions_.height = 128;
 }
 
-// FUNCTION: WIZ8 0x0047e7e0
-const char* stTexture2D::getClassName() const { return "stTexture2D"; }
-// FUNCTION: WIZ8 0x0047e7d0
-unsigned long stTexture2D::getClassID() const { return 0x1000f; }
-srRegistry::ClassNode* stTexture2D::getClassNode() const { return texture_class_node(); }
+// TEMPLATE: WIZ8 0x0047E7D0
+// srClassSupport<stTexture2D,srTexture,0,65551>::getClassID
 
+// TEMPLATE: WIZ8 0x0047E7E0
+// srClassSupport<stTexture2D,srTexture,0,65551>::getClassName
+
+// TEMPLATE: WIZ8 0x0047EBE0
+// srClassSupport<stTexture2D,srTexture,0,65551>::getClassNode
+
+// FUNCTION: WIZ8 0x0047E600
 stTexture2D::~stTexture2D()
 {
     invalidateFrameHandle(frame_handle);
-    srCore.getRegistry()->unregisterInstance(
-        texture_class_node(), this);
 }
 
+// FUNCTION: WIZ8 0x0047DE60
 srClass* stTexture2D::vInstance() { return new stTexture2D; }
 
-srClass* stTexture2D::clone()
-{
-    stTexture2D* copy = new stTexture2D;
-    *static_cast<srTexture*>(copy) = *this;
-    copy->left = left;
-    copy->top = top;
-    copy->right = right;
-    copy->bottom = bottom;
-    copy->frame_handle = frame_handle;
-    copy->surface = surface;
-    return copy;
-}
+// TEMPLATE: WIZ8 0x0047E7F0
+// srClassSupport<stTexture2D,srTexture,0,65551>::clone
 
+// TEMPLATE: WIZ8 0x0047E830
+// srClassSupport<stTexture2D,srTexture,0,65551>::~srClassSupport<stTexture2D,srTexture,0,65551>
+
+// FUNCTION: WIZ8 0x0047DE50
 unsigned long stTexture2D::getTextureFrameHandle() { return frame_handle; }
 
+// FUNCTION: WIZ8 0x0047E710
 void stTexture2D::getMipmapData(MultiRequest& request)
 {
     request.destinations[request.mipmap_level]->blit(
         0, 0, *surface, left, top, right, bottom);
 }
 
+// FUNCTION: WIZ8 0x0047E740
 void stTexture2D::getMipmapLevelPartial(PartialRequest& request)
 {
     request.destination->blit(
@@ -97,8 +59,10 @@ void stTexture2D::getMipmapLevelPartial(PartialRequest& request)
         left + request.source_right, top + request.source_bottom);
 }
 
+// FUNCTION: WIZ8 0x0047DE40
 void stTexture2D::invalidate() { invalidateFrameHandle(frame_handle); }
 
+// FUNCTION: WIZ8 0x0047E790
 void stTexture2D::setupDefaultValues()
 {
     if (surface) {
@@ -111,9 +75,12 @@ void stTexture2D::setupDefaultValues()
     texture_flags_ &= ~2UL;
 }
 
+// FUNCTION: WIZ8 0x0047DAE0
 stSurface2D::stSurface2D(srColorSurfaceIFace* source, int source_width,
                          int source_height, srNode* parent, int tile_extent)
-    : srNode(0), source_surface(source), state(0x10), flags(0x100a017),
+    : srClassSupport<stSurface2D, srNode, false, 0x1000e>(
+          static_cast<srNode*>(0)),
+      source_surface(source), state(0x10), flags(0x100a017),
       tile_size(tile_extent),
       columns((source_width + tile_extent - 1) / tile_extent),
       rows((source_height + tile_extent - 1) / tile_extent),
@@ -127,8 +94,6 @@ stSurface2D::stSurface2D(srColorSurfaceIFace* source, int source_width,
     int column;
     int index = 0;
 
-    srCore.getRegistry()->registerInstance(
-        surface_class_node(), this);
     setParent(parent, 1);
     for (row = 0; row != rows; ++row) {
         for (column = 0; column != columns; ++column) {
@@ -155,45 +120,49 @@ stSurface2D::stSurface2D(srColorSurfaceIFace* source, int source_width,
     coordinates[7] = 1.0f;
 }
 
-// FUNCTION: WIZ8 0x0047e940
-const char* stSurface2D::getClassName() const { return "stSurface2D"; }
-// FUNCTION: WIZ8 0x0047e930
-unsigned long stSurface2D::getClassID() const { return 0x1000e; }
-srRegistry::ClassNode* stSurface2D::getClassNode() const { return surface_class_node(); }
+// TEMPLATE: WIZ8 0x0047E930
+// srClassSupport<stSurface2D,srNode,0,65550>::getClassID
 
+// TEMPLATE: WIZ8 0x0047E940
+// srClassSupport<stSurface2D,srNode,0,65550>::getClassName
+
+// TEMPLATE: WIZ8 0x0047E950
+// srClassSupport<stSurface2D,srNode,0,65550>::getClassNode
+
+// FUNCTION: WIZ8 0x0047DFF0
 stSurface2D::~stSurface2D()
 {
     int index;
     for (index = 0; index != tile_count; ++index) tiles[index]->release();
     delete[] tiles;
-    srCore.getRegistry()->unregisterInstance(
-        surface_class_node(), this);
 }
 
-srClass* stSurface2D::clone()
+// TEMPLATE: WIZ8 0x0047E9C0
+// srClassSupport<stSurface2D,srNode,0,65550>::clone
+
+// TEMPLATE: WIZ8 0x0047EAC0
+// srClassSupport<stSurface2D,srNode,0,65550>::~srClassSupport<stSurface2D,srNode,0,65550>
+
+// FUNCTION: WIZ8 0x004D6540
+void stSurface2D::traverse(TraverseInfo& info)
 {
-    stSurface2D* copy = static_cast<stSurface2D*>(vInstance());
-    *static_cast<srNode*>(copy) = *this;
-    copy->source_surface = source_surface;
-    copy->state = state;
-    copy->flags = flags;
-    copy->tile_size = tile_size;
-    copy->columns = columns;
-    copy->rows = rows;
-    copy->tile_count = tile_count;
-    copy->width = width;
-    copy->height = height;
-    copy->tiles = tiles;
-    copy->tile_u = tile_u;
-    copy->tile_v = tile_v;
-    copy->field_168 = field_168;
-    copy->field_16c = field_16c;
-    for (int index = 0; index != 8; ++index) copy->coordinates[index] = coordinates[index];
-    copy->scale = scale;
-    copy->field_194 = field_194;
-    return copy;
+    if (nextSibling() != 0) {
+        nextSibling()->traverse(info);
+    }
+
+    if (!testFlag(FLAG_POSITIONAL_0)) {
+        TraverseInfo::Entry& entry = info.entries[info.entry_count];
+        entry.node = this;
+        entry.value = 0;
+        ++info.entry_count;
+    }
+
+    if (!testFlag(FLAG_POSITIONAL_1) && firstChild() != 0) {
+        firstChild()->traverse(info);
+    }
 }
 
+// FUNCTION: WIZ8 0x0047E0F0
 void stSurface2D::process(const ProcessInfo& info, e_processType)
 {
     srGERD* renderer = info.renderer;
@@ -260,6 +229,7 @@ void stSurface2D::invalidateTiles()
    the ABI even though SurRender obtains the pixels through each stTexture2D's
    source surface. Keeping the source locked brackets the immediate partial
    texture uploads exactly as the caller does. */
+// FUNCTION: WIZ8 0x0047E450
 void stSurface2D::updateRectangle(srGERD* renderer, void*, long,
                                   int left, int top, int right, int bottom)
 {
@@ -313,3 +283,15 @@ void stSurface2D::enableRendererFlag(unsigned int flag)
 {
     field_194 |= flag;
 }
+
+// SYNTHETIC: WIZ8 0x0047DFC0
+// stSurface2D::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x0047E5D0
+// stTexture2D::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x0047EB80
+// srClassSupport<stTexture2D,srTexture,0,65551>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x0047EBB0
+// srClassSupport<stSurface2D,srNode,0,65550>::`scalar deleting destructor'

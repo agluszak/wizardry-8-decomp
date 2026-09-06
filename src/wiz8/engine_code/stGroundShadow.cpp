@@ -72,7 +72,6 @@ stGroundShadow::stGroundShadow(const stGroundShadow& other)
     value_140 = other.value_140;
 }
 
-// FUNCTION: WIZ8 0x004d6540
 void stGroundShadow::traverse(TraverseInfo& info)
 {
     if (nextSibling() != 0) {
