@@ -7,10 +7,6 @@ default:
 prepare:
     uv run wiz8 prepare
 
-test *args:
-    uv run wiz8 analyze source-index
-    uv run pytest -q tests/unit tests/repository {{args}}
-
 check:
     uv run wiz8 check
 

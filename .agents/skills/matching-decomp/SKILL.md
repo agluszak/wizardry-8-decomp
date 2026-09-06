@@ -29,9 +29,9 @@ Interpret the result:
 - `mismatch`: inspect the first structural divergence and test one source hypothesis.
 - `inconclusive`: identify the missing evidence; do not assume a source defect.
 
-Expand the comparison set only when shared layout, lifecycle, virtual dispatch, or inline visibility
-can affect other functions. Do not tune scratch registers or compiler scheduling. Validation and
-publication policy lives in `AGENTS.md`.
+Revert demonstrated regressions. Expand the comparison set only when shared layout, lifecycle,
+virtual dispatch, or inline visibility can affect other functions. Do not tune scratch registers or
+compiler scheduling. Validation and publication policy lives in `AGENTS.md`.
 
 Read [mismatch patterns](references/mismatch-patterns.md) for a structural divergence or
 [layout evidence](references/layout-evidence.md) when proving fields, widths, object size, or

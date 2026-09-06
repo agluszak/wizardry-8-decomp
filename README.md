@@ -9,9 +9,9 @@ The shared Standard Gaming Platform source is distributed under Strategy First's
 SFI Source Code License Agreement in `third_party/sfi-sgp/sgp`. This project accepts those terms;
 the vendored subtree is not offered under broader or commercial-use terms.
 
-Copy `.env.example` to `.env`, set its absolute machine paths, and copy
-`config/local-inputs.example.yml` to the gitignored `config/local-inputs.yml`. Then use the
-supported daily workflow:
+For initial setup, copy `.env.example` to `.env`, set its absolute machine paths, and copy
+`config/local-inputs.example.yml` to the gitignored `config/local-inputs.yml`. The following commands
+are available; this is not a required sequence. Follow `AGENTS.md` for change-specific verification:
 
 ```sh
 uv sync --frozen
@@ -31,7 +31,7 @@ just verify
 `build-lint-image` builds the pinned VC6 image with its native Clang lane. `lint`
 compile-checks the recovered C++ with Clang's virtual-override diagnostics while the matching build
 continues to use VC6. `build` configures automatically. `compare` is reccmp's live linked-image and
-exact-body diagnostic. `just test` runs the public unit and repository-invariant lanes.
+exact-body diagnostic. Run Python tests directly with `uv run pytest -q PATH`.
 
 `just runtime-test` builds a separate test product and runs named main-menu scenarios inside the
 process. The real menu handlers execute on the UI thread; the host reruns the scenarios in reverse

@@ -17,5 +17,5 @@ Never hand-write a scalar-deleting destructor. Declare an ordinary virtual destr
 write, or zero-storage lifecycle body remains compiler-emission evidence until storage, behavior, or
 source identity independently proves an authored boundary.
 
-The final `srClassSupport` template parameter controls registry instance-index allocation. It is not
-proof of C++ abstractness.
+`RegistrationFlag` controls registry instance-index allocation; it does not represent C++ abstractness.
+`ClassID` identifies the registered class.
