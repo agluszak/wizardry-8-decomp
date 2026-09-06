@@ -53,16 +53,24 @@ def validate_source_index(repository: Path) -> dict[str, int]:
 
 
 def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, Any]:
-    from .build import LINT_BUILD_DIR, VC6_IMAGE
+    from .build import LINT_BUILD_DIR, VC6_IMAGE, configure_clang
 
     repository = settings.repo_dir.resolve()
     database = repository / LINT_BUILD_DIR / "compile_commands.json"
+    inventories = tuple(
+        repository / inventory
+        for inventory in (
+            "CMakeLists.txt",
+            "src/wiz8/sources.cmake",
+            "src/surrender/CMakeLists.txt",
+        )
+    )
+    if not database.is_file() or any(
+        path.is_file() and path.stat().st_mtime > database.stat().st_mtime for path in inventories
+    ):
+        configure_clang(settings)
     if not database.is_file():
-        raise FileNotFoundError(f"{database} is missing; run `just lint` to generate it")
-    for inventory in ("CMakeLists.txt", "src/wiz8/sources.cmake", "src/surrender/CMakeLists.txt"):
-        path = repository / inventory
-        if path.is_file() and path.stat().st_mtime > database.stat().st_mtime:
-            raise RuntimeError(f"the compile database predates {inventory}; run `just lint` first")
+        raise FileNotFoundError(f"clang configuration did not produce {database}")
     targets = {
         target: tuple(
             sorted(

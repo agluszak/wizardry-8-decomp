@@ -1,8 +1,68 @@
+import os
 from pathlib import Path
 
 import pytest
 from reccmp.source import SourceIndexError
+from wiz8decomp import source_index
+from wiz8decomp.config import Settings
 from wiz8decomp.source_index import source_functions
+
+
+def _settings(tmp_path: Path) -> Settings:
+    return Settings.model_validate(
+        {
+            "GHIDRA_INSTALL_DIR": tmp_path / "ghidra",
+            "WIZ8_INPUT_DIR": tmp_path / "inputs",
+            "WIZ8_WORK_DIR": tmp_path / "work",
+            "repo_dir": tmp_path / "repo",
+        }
+    )
+
+
+@pytest.mark.parametrize("existing_database", [False, True])
+def test_source_index_configures_missing_or_stale_compile_database(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, existing_database: bool
+) -> None:
+    settings = _settings(tmp_path)
+    repository = settings.repo_dir
+    inventory = repository / "CMakeLists.txt"
+    inventory.parent.mkdir(parents=True)
+    inventory.write_text("project(wiz8)\n", encoding="utf-8")
+    database = repository / "build/clang/compile_commands.json"
+    if existing_database:
+        database.parent.mkdir(parents=True)
+        database.write_text("[]\n", encoding="utf-8")
+        os.utime(database, ns=(1_000_000_000, 1_000_000_000))
+        os.utime(inventory, ns=(2_000_000_000, 2_000_000_000))
+
+    configured: list[bool] = []
+
+    def configure(_settings: Settings) -> None:
+        configured.append(True)
+        database.parent.mkdir(parents=True, exist_ok=True)
+        database.write_text("[]\n", encoding="utf-8")
+
+    class FakeIndex:
+        markers: tuple[()] = ()
+        declarations: tuple[()] = ()
+        classes: tuple[()] = ()
+
+        def write(self, path: Path) -> None:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text('{"schema": "reccmp-source-index-v1"}\n', encoding="utf-8")
+
+    import wiz8decomp.build as build_module
+
+    monkeypatch.setattr(build_module, "configure_clang", configure)
+    monkeypatch.setattr(
+        source_index.SourceIndex,
+        "from_compile_database",
+        lambda *_args, **_kwargs: FakeIndex(),
+    )
+
+    source_index.write_source_index(settings)
+
+    assert configured == [True]
 
 
 def test_source_functions_expose_clang_semantics_from_generated_index() -> None:

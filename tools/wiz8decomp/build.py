@@ -356,9 +356,10 @@ def build_target(
         return built
 
 
-def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any]:
-    """Compile recovered C++ with structural or full recovery diagnostics."""
-
+def configure_clang(
+    settings: Settings, *, full_diagnostics: bool = False
+) -> tuple[Path, list[str]]:
+    """Configure the compiler-backed source projection and return its runner."""
     docker = resolve_executable("docker") or "docker"
     output = settings.repo_dir / (DIAGNOSTICS_BUILD_DIR if full_diagnostics else LINT_BUILD_DIR)
     output.mkdir(parents=True, exist_ok=True)
@@ -402,10 +403,17 @@ def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any
         / "logs"
         / ("clang-full-configure.json" if full_diagnostics else "clang-lint-configure.json"),
     )
+    return output, prefix()
+
+
+def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any]:
+    """Compile recovered C++ with structural or full recovery diagnostics."""
+
+    _output, prefix = configure_clang(settings, full_diagnostics=full_diagnostics)
     target = "WIZ8_CLANG_DIAGNOSTICS" if full_diagnostics else "WIZ8_CLANG_LINT"
     run(
         [
-            *prefix(),
+            *prefix,
             "--entrypoint",
             "cmake",
             VC6_IMAGE,

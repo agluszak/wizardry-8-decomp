@@ -28,10 +28,11 @@ def _recover(
 ) -> dict[str, Any]:
     if not selections:
         raise ValueError("pass at least one function address or range")
-    from ..source_index import target_for_program
+    from ..source_index import target_for_program, write_source_index
     from .env import open_program
     from .query import resolve_function_selectors
 
+    write_source_index(settings)
     with open_program(settings, program_selector) as program:
         normalized = [
             f"0x{address:08x}" for address in resolve_function_selectors(program, list(selections))

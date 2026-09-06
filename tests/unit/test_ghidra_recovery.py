@@ -38,17 +38,18 @@ def test_recover_passes_the_selected_program_target(monkeypatch: pytest.MonkeyPa
 
     import wiz8decomp.ghidra.env as env_module
     import wiz8decomp.ghidra.query as query_module
+    import wiz8decomp.source_index as source_index_module
 
     settings = SimpleNamespace(repo_dir=Path("/repo"), build_dir=Path("/repo/build"))
     monkeypatch.setattr(env_module, "open_program", lambda _s, _p: contextlib.nullcontext(object()))
+    monkeypatch.setattr(source_index_module, "write_source_index", lambda _settings: {})
     monkeypatch.setattr(query_module, "resolve_function_selectors", lambda _p, _s: [0x10003840])
     seen: list[str] = []
     monkeypatch.setattr(
         recovery_host,
         "_execute_script",
         lambda _settings, _program, _script, arguments: (
-            seen.extend(str(value) for value in arguments)
-            or {"program": "SR.dll", "exports": []}
+            seen.extend(str(value) for value in arguments) or {"program": "SR.dll", "exports": []}
         ),
     )
 
@@ -60,6 +61,40 @@ def test_recover_passes_the_selected_program_target(monkeypatch: pytest.MonkeyPa
     )
 
     assert seen[seen.index("--target") + 1] == "SURRENDER"
+
+
+def test_recover_refreshes_source_index_before_opening_program(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import contextlib
+
+    import wiz8decomp.ghidra.env as env_module
+    import wiz8decomp.ghidra.query as query_module
+    import wiz8decomp.source_index as source_index_module
+
+    settings = SimpleNamespace(repo_dir=Path("/repo"), build_dir=Path("/repo/build"))
+    events: list[str] = []
+    monkeypatch.setattr(
+        source_index_module,
+        "write_source_index",
+        lambda _settings: events.append("source-index") or {},
+    )
+
+    def open_program(_settings: object, _selector: str):
+        events.append("open-program")
+        return contextlib.nullcontext(object())
+
+    monkeypatch.setattr(env_module, "open_program", open_program)
+    monkeypatch.setattr(query_module, "resolve_function_selectors", lambda _p, _s: [0x401000])
+    monkeypatch.setattr(
+        recovery_host,
+        "_execute_script",
+        lambda *_args: {"program": "wiz8", "exports": []},
+    )
+
+    recovery_host._recover(settings, ["0x401000"], program_selector="wiz8", explain=False)
+
+    assert events == ["source-index", "open-program"]
 
 
 def test_explain_resolves_ranges_through_ghidra(monkeypatch: pytest.MonkeyPatch) -> None:

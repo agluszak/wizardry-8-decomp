@@ -49,7 +49,9 @@ def resolve_seed_program(settings: Settings, selector: str | None = None) -> str
     )
 
 
-def seed_record(settings: Settings, selector: str | None = None) -> dict[str, Any]:
+def seed_record(
+    settings: Settings, selector: str | None = None, *, validate_archive: bool = True
+) -> dict[str, Any]:
     program_name = resolve_seed_program(settings, selector)
     record = next(
         record for record in seed_records(settings) if record.get("program") == program_name
@@ -70,14 +72,21 @@ def seed_record(settings: Settings, selector: str | None = None) -> dict[str, An
             f"seed={actual_runtime}, required={expected_runtime}"
         )
     archive = settings.repo_dir / str(record["path"])
+    resolved = {**record, "archive": archive}
+    if validate_archive:
+        _validate_seed_archive(resolved)
+    return resolved
+
+
+def _validate_seed_archive(seed: dict[str, Any]) -> None:
+    archive = Path(seed["archive"])
     if not archive.is_file():
         raise RuntimeError(f"validated GZF seed is missing: {archive}")
     actual_hash = sha256_file(archive)
-    if actual_hash != record.get("sha256"):
+    if actual_hash != seed.get("sha256"):
         raise RuntimeError(
-            f"GZF seed hash mismatch for {archive}: {actual_hash} != {record.get('sha256')}"
+            f"GZF seed hash mismatch for {archive}: {actual_hash} != {seed.get('sha256')}"
         )
-    return {**record, "archive": archive}
 
 
 def _program_hash(project: Any, program_name: str) -> str | None:
@@ -131,14 +140,11 @@ def restore_seed(settings: Settings, project: Any, selector: str | None = None) 
     replay, invalidate, or replace it.
     """
 
-    seed = seed_record(settings, selector)
+    seed = seed_record(settings, selector, validate_archive=False)
     program_name = str(seed["program"])
     check_project_owner(settings)
     settings.project_dir.mkdir(parents=True, exist_ok=True)
     _write_project_owner(settings)
-    from ghidra.util.task import TaskMonitor
-    from java.io import File
-
     existing_hash = _program_hash(project, program_name)
     if existing_hash is not None:
         if existing_hash != seed["binary_sha256"]:
@@ -149,6 +155,10 @@ def restore_seed(settings: Settings, project: Any, selector: str | None = None) 
             )
         status = "already-restored"
     else:
+        _validate_seed_archive(seed)
+        from ghidra.util.task import TaskMonitor
+        from java.io import File
+
         project.getProjectData().getRootFolder().createFile(
             program_name, File(str(seed["archive"])), TaskMonitor.DUMMY
         )
