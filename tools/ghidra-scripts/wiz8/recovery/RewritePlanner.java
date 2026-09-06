@@ -3,46 +3,39 @@ package wiz8.recovery;
 import java.util.Map;
 import java.util.Set;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import ghidra.app.decompiler.ClangNode;
-import ghidra.app.decompiler.ClangStatement;
 
 /** Resolves proposal overlap and applies an accepted plan atomically. */
 final class RewritePlanner {
 	private final Set<ClangNode> dropped;
 	private final Map<ClangNode, String> replaced;
-	private final Map<ClangNode, String> owners;
-	private final Map<String, Integer> priorities;
+	private final Map<ClangNode, RewriteOwner> owners;
 
 	RewritePlanner(Set<ClangNode> dropped, Map<ClangNode, String> replaced,
-			Map<ClangNode, String> owners, Map<String, Integer> priorities) {
+			Map<ClangNode, RewriteOwner> owners) {
 		this.dropped = dropped;
 		this.replaced = replaced;
 		this.owners = owners;
-		this.priorities = priorities;
 	}
 
 	PlanResult accept(ProposedRewrite proposal) {
-		List<List<NodeEdit>> groups = groups(proposal);
 		List<String> rejected = new ArrayList<>();
-		boolean accepted = false;
-		for (List<NodeEdit> group : groups) {
-			String conflict = null;
-			for (NodeEdit edit : group) {
-				conflict = conflict(proposal, edit.node());
-				if (conflict != null) break;
-			}
+		String internal = internalConflict(proposal.edits());
+		if (internal != null) {
+			rejected.add(internal);
+			return new PlanResult(false, List.copyOf(rejected));
+		}
+		for (NodeEdit edit : proposal.edits()) {
+			String conflict = conflict(proposal, edit.node());
 			if (conflict != null) {
 				rejected.add(conflict);
-				continue;
+				return new PlanResult(false, List.copyOf(rejected));
 			}
-			apply(proposal, group);
-			accepted = true;
 		}
-		priorities.put(proposal.rule(), proposal.priority());
-		return new PlanResult(accepted, List.copyOf(rejected));
+		apply(proposal, proposal.edits());
+		return new PlanResult(true, List.of());
 	}
 
 	private void apply(ProposedRewrite proposal, List<NodeEdit> edits) {
@@ -55,43 +48,48 @@ final class RewritePlanner {
 				dropped.remove(replace.node());
 				replaced.put(replace.node(), replace.text());
 			}
-			owners.put(edit.node(), proposal.rule());
+			owners.put(edit.node(), proposal.owner());
 		}
 	}
 
-	private static List<List<NodeEdit>> groups(ProposedRewrite proposal) {
-		if (proposal.priority() > 1) return List.of(proposal.edits());
-		Map<ClangNode, List<NodeEdit>> grouped = new LinkedHashMap<>();
-		for (NodeEdit edit : proposal.edits()) {
-			ClangNode region = statement(edit.node());
-			grouped.computeIfAbsent(region, ignored -> new ArrayList<>()).add(edit);
-		}
-		return new ArrayList<>(grouped.values());
-	}
-
-	private static ClangNode statement(ClangNode node) {
-		for (ClangNode current = node; current != null; current = current.Parent()) {
-			if (current instanceof ClangStatement) return current;
-		}
-		return node;
-	}
-
-	private String conflict(ProposedRewrite proposal, ClangNode node) {
-		String owner = owners.get(node);
-		if (owner != null && !owner.equals(proposal.rule()) &&
-			proposal.priority() <= priorities.getOrDefault(owner, 1)) {
-			return "node already claimed by " + owner;
-		}
-		for (ClangNode ancestor = node.Parent(); ancestor != null;
-				ancestor = ancestor.Parent()) {
-			String ancestorOwner = owners.get(ancestor);
-			if (ancestorOwner != null && !ancestorOwner.equals(proposal.rule()) &&
-				replaced.containsKey(ancestor) &&
-				proposal.priority() <= priorities.getOrDefault(ancestorOwner, 1)) {
-				return "inside a node replaced by " + ancestorOwner;
+	private static String internalConflict(List<NodeEdit> edits) {
+		for (int i = 0; i < edits.size(); i++) {
+			for (int j = i + 1; j < edits.size(); j++) {
+				if (isAncestor(edits.get(i).node(), edits.get(j).node()) ||
+					isAncestor(edits.get(j).node(), edits.get(i).node())) {
+					return "semantic rewrite contains nested edits";
+				}
 			}
 		}
 		return null;
+	}
+
+	private String conflict(ProposedRewrite proposal, ClangNode node) {
+		RewriteOwner owner = owners.get(node);
+		if (owner != null && !owner.equals(proposal.owner())) {
+			return "node already claimed by " + owner.rule();
+		}
+		for (ClangNode ancestor = node.Parent(); ancestor != null;
+				ancestor = ancestor.Parent()) {
+			RewriteOwner ancestorOwner = owners.get(ancestor);
+			if (ancestorOwner != null && !ancestorOwner.equals(proposal.owner()) &&
+				(replaced.containsKey(ancestor) || dropped.contains(ancestor))) {
+				return "inside a node consumed by " + ancestorOwner.rule();
+			}
+		}
+		for (var entry : owners.entrySet()) {
+			if (!entry.getValue().equals(proposal.owner()) && isAncestor(node, entry.getKey())) {
+				return "contains a node claimed by " + entry.getValue().rule();
+			}
+		}
+		return null;
+	}
+
+	private static boolean isAncestor(ClangNode ancestor, ClangNode node) {
+		for (ClangNode current = node.Parent(); current != null; current = current.Parent()) {
+			if (current == ancestor) return true;
+		}
+		return false;
 	}
 
 	record PlanResult(boolean accepted, List<String> rejected) { }

@@ -11,7 +11,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from wiz8decomp.ghidra.semantic import trace_accesses
+from wiz8decomp.ghidra.semantic import (
+    _address_expression,
+    _implicit_receiver_paths,
+    trace_accesses,
+)
 
 
 class _Space:
@@ -29,6 +33,12 @@ class _Address:
 
     def getAddressSpace(self) -> _Space:
         return self._space
+
+    def equals(self, other: Any) -> bool:
+        return isinstance(other, _Address) and (self._space.getName(), self._offset) == (
+            other._space.getName(),
+            other._offset,
+        )
 
     def __str__(self) -> str:
         return f"{self._offset:08x}"
@@ -220,3 +230,110 @@ def test_stores_record_width_and_value_and_cycles_terminate() -> None:
     store = next(a for a in accesses if a["kind"] == "store")
 
     assert (store["path"], store["offset"], store["width"]) == ("this", "0x828", 4)
+
+
+def test_merged_distinct_pointer_offsets_are_not_reported_as_one_field() -> None:
+    this = _Node("register", 4)
+    left = _Node("unique", 0x100)
+    right = _Node("unique", 0x104)
+    merged = _Node("unique", 0x108)
+    loaded = _Node("unique", 0x10C)
+    _Op("INT_ADD", [this, _const(4)], left, 0x1000)
+    _Op("INT_ADD", [this, _const(8)], right, 0x1004)
+    _Op("MULTIEQUAL", [left, right], merged, 0x1008)
+    _Op("LOAD", [_const(0x1A1), merged], loaded, 0x100C)
+
+    accesses = trace_accesses([this.handle()], "this")
+
+    assert not any(access["kind"] == "load" for access in accesses)
+
+
+def test_constant_minus_pointer_is_not_a_root_relative_address() -> None:
+    this = _Node("register", 4)
+    difference = _Node("unique", 0x100)
+    _Op("INT_SUB", [_const(0x20), this], difference, 0x1000)
+
+    assert _address_expression(difference.handle()) == {"kind": "unresolved"}
+
+
+class _Flow:
+    def __init__(self, *, jump: bool = False, terminal: bool = False) -> None:
+        self._jump = jump
+        self._terminal = terminal
+
+    def isJump(self) -> bool:
+        return self._jump
+
+    def isTerminal(self) -> bool:
+        return self._terminal
+
+
+class _Instruction:
+    def __init__(
+        self,
+        address: int,
+        mnemonic: str,
+        pcode: list[_Op] | None = None,
+        *,
+        jump: bool = False,
+    ) -> None:
+        self._address = address
+        self._mnemonic = mnemonic
+        self._pcode = pcode or []
+        self._flow = _Flow(jump=jump)
+
+    def getAddress(self) -> _Address:
+        return _Address("ram", self._address)
+
+    def getMnemonicString(self) -> str:
+        return self._mnemonic
+
+    def getPcode(self) -> list[_Op]:
+        return self._pcode
+
+    def getFlowType(self) -> _Flow:
+        return self._flow
+
+    def getFallThrough(self) -> _Address:
+        return _Address("ram", self._address + 1)
+
+
+class _Listing:
+    def __init__(self, instructions: list[_Instruction]) -> None:
+        self._instructions = instructions
+
+    def getInstructions(self, _body: Any, _forward: bool) -> _Iterator:
+        return _Iterator(self._instructions)
+
+
+class _Program:
+    def __init__(self, instructions: list[_Instruction]) -> None:
+        self._listing = _Listing(instructions)
+
+    def getListing(self) -> _Listing:
+        return self._listing
+
+
+class _Function:
+    def getBody(self) -> object:
+        return object()
+
+
+def test_implicit_receiver_evidence_stops_at_calls_and_control_flow() -> None:
+    edi = _Node("register", 0x1C)
+    ecx = _Node("register", 4)
+    seed = _Op("COPY", [_const(0)], edi, 0x1000)
+    copy = _Op("COPY", [edi], ecx, 0x1001)
+    instructions = [
+        _Instruction(0x1000, "MOV", [seed]),
+        _Instruction(0x1001, "MOV", [copy]),
+        _Instruction(0x1002, "CALL"),
+        _Instruction(0x1003, "CALL"),
+        _Instruction(0x1004, "JMP", jump=True),
+        _Instruction(0x2000, "CALL"),
+    ]
+    accesses = [{"kind": "load", "path": "this", "offset": "0x14", "site": "00001000"}]
+
+    receivers = _implicit_receiver_paths(_Program(instructions), _Function(), accesses)
+
+    assert receivers == {"00001002": ("this[0x14]", 0, "00001000")}

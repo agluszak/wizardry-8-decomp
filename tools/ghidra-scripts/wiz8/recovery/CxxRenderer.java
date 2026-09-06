@@ -254,19 +254,17 @@ public final class CxxRenderer {
 	}
 
 	/**
-	 * The outermost enclosing node a recognizer dropped or replaced, if any.
-	 * The outermost claim wins so a statement-level drop silences token-level
-	 * rewrites recorded inside it.
+	 * The enclosing node a semantic rewrite dropped or replaced, if any. The
+	 * planner rejects nested claims, so there can be only one applicable edit.
 	 */
 	private static ClangNode recognizedAncestor(ClangNode node,
 			Msvc6Patterns.Analysis analysis) {
-		ClangNode outermost = null;
 		for (ClangNode current = node; current != null; current = current.Parent()) {
 			if (analysis.replaced.containsKey(current) || analysis.dropped.contains(current)) {
-				outermost = current;
+				return current;
 			}
 		}
-		return outermost;
+		return null;
 	}
 
 	/**

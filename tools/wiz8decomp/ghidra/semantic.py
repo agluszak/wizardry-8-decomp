@@ -307,15 +307,35 @@ def _walk_value_flow(
             site = str(op.getSeqnum().getTarget())
             next_provenance = (*provenance, f"{mnemonic}@{site}")
             on_operation(node, op, path, offset, depth, provenance, same)
-            if mnemonic in {"COPY", "CAST", "MULTIEQUAL", "INDIRECT"}:
+            if mnemonic in {"COPY", "CAST"}:
                 if output is not None:
                     trace(output, offset, path, depth, next_provenance, visited)
-            elif mnemonic in {"INT_ADD", "INT_SUB", "PTRSUB"}:
+            elif mnemonic == "MULTIEQUAL":
+                # A phi is value-preserving only when every incoming value is
+                # the same SSA value. Distinct inputs require a join-aware
+                # proof; choosing whichever root path reaches the phi first
+                # turns control-flow ambiguity into a false field offset.
+                if output is not None and all(
+                    same(node, op.getInput(index)) for index in range(op.getNumInputs())
+                ):
+                    trace(output, offset, path, depth, next_provenance, visited)
+            elif mnemonic == "INT_ADD":
                 other = op.getInput(1) if same(node, op.getInput(0)) else op.getInput(0)
                 if other is not None and other.isConstant() and output is not None:
-                    delta = other.getOffset()
-                    if mnemonic == "INT_SUB" and same(node, op.getInput(0)):
-                        delta = -delta
+                    trace(output, offset + other.getOffset(), path, depth,
+                          next_provenance, visited)
+            elif mnemonic in {"INT_SUB", "PTRSUB"}:
+                # Pointer subtraction is root-relative only for
+                # pointer-minus-constant. constant-minus-pointer is not an
+                # additive displacement and must remain unresolved.
+                other = op.getInput(1)
+                if (
+                    same(node, op.getInput(0))
+                    and other is not None
+                    and other.isConstant()
+                    and output is not None
+                ):
+                    delta = -other.getOffset() if mnemonic == "INT_SUB" else other.getOffset()
                     trace(output, offset + delta, path, depth, next_provenance, visited)
             elif mnemonic == "PTRADD":
                 index_node, scale = op.getInput(1), op.getInput(2)
@@ -359,8 +379,8 @@ def _walk_value_flow(
 def trace_accesses(instances: list[Any], root: str) -> list[dict[str, Any]]:
     """Every access reachable from the given root varnodes, with derived offsets.
 
-    The trace follows value-preserving ops (COPY, CAST, MULTIEQUAL, INDIRECT)
-    and constant pointer arithmetic (INT_ADD, INT_SUB, PTRADD, PTRSUB), so each
+    The trace follows proven value-preserving copies and constant pointer
+    arithmetic, so each
     reached varnode carries a byte offset from the root. Loads spawn further
     levels: the loaded pointer becomes a sub-root whose own accesses describe
     the *pointee* - which is what turns `delete this->member` sequences into
@@ -563,9 +583,9 @@ def _implicit_receiver_paths(
 
     High P-code intentionally omits an unresolved call's implicit ECX input.
     Raw instruction P-code still records ``MOV ECX, EDI``. A semantic load at
-    the instruction that defines EDI seeds the register path, COPY operations
-    propagate it, and the ECX value at CALL is therefore a real data-flow
-    witness rather than same-block proximity.
+    the instruction that defines EDI seeds a local register path and COPY
+    operations propagate it only along a contiguous fallthrough sequence.
+    Calls and control-flow boundaries end the evidence.
     """
 
     load_paths: dict[str, tuple[str, int, str]] = {}
@@ -581,11 +601,16 @@ def _implicit_receiver_paths(
 
     registers: dict[tuple[int, int], tuple[str, int, str]] = {}
     receivers: dict[str, tuple[str, int, str]] = {}
+    expected_fallthrough: Any | None = None
     instructions = program.getListing().getInstructions(function.getBody(), True)
     while instructions.hasNext():
         instruction = instructions.next()
+        address = instruction.getAddress()
+        if expected_fallthrough is None or not bool(address.equals(expected_fallthrough)):
+            registers.clear()
         site = str(instruction.getAddress())
-        if instruction.getMnemonicString().upper() == "CALL":
+        is_call = instruction.getMnemonicString().upper() == "CALL"
+        if is_call:
             receiver = registers.get((4, 4))
             if receiver is not None:
                 receivers[site] = receiver
@@ -610,6 +635,16 @@ def _implicit_receiver_paths(
             for key in outputs:
                 if key[1] == 4:
                     registers[key] = seeded
+        flow = instruction.getFlowType()
+        if is_call:
+            # VC6 calls may clobber every register this fallback tracks. The
+            # receiver at this call is evidence; its register state is not
+            # evidence for a later call.
+            registers.clear()
+        expected_fallthrough = (
+            None if flow is None or flow.isJump() or flow.isTerminal()
+            else instruction.getFallThrough()
+        )
     return receivers
 
 
@@ -833,7 +868,7 @@ def _address_expression(node: Any) -> dict[str, Any]:
         root = symbol.getName() if symbol is not None else str(node.getAddress())
         return {"kind": "root-relative", "root": root, "offset": 0}
     mnemonic = definition.getMnemonic()
-    if mnemonic in {"COPY", "CAST", "INDIRECT"}:
+    if mnemonic in {"COPY", "CAST"}:
         return _address_expression(definition.getInput(0))
     if mnemonic in {"INT_ADD", "INT_SUB", "PTRSUB"} and definition.getNumInputs() >= 2:
         left, right = definition.getInput(0), definition.getInput(1)
@@ -846,7 +881,7 @@ def _address_expression(node: Any) -> dict[str, Any]:
                 return {"kind": "absolute", "address": int(base["address"]) + delta}
             if base["kind"] == "root-relative":
                 return {**base, "offset": int(base["offset"]) + delta}
-        if left is not None and left.isConstant():
+        if mnemonic == "INT_ADD" and left is not None and left.isConstant():
             base = _address_expression(right)
             if base["kind"] == "absolute":
                 return {

@@ -122,10 +122,10 @@ final class Msvc6Patterns {
 	/** Program symbol address of the VC6 thread exception-list head. */
 	private Address exceptionListAddress;
 	/** Which pass owns each claimed node; drives conflict rejection. */
-	private final Map<ClangNode, String> claimOwner = new HashMap<>();
-	private final Map<String, Integer> claimPriority = new HashMap<>();
+	private final Map<ClangNode, RewriteOwner> claimOwner = new HashMap<>();
+	private long nextRewriteId;
 	private final RewritePlanner planner = new RewritePlanner(analysis.dropped,
-		analysis.replaced, claimOwner, claimPriority);
+		analysis.replaced, claimOwner);
 	/** The pass currently running; claims and trace records attach to it. */
 	private String currentPass;
 	/** Staged all-or-nothing claims for the semantic pass currently running. */
@@ -245,25 +245,32 @@ final class Msvc6Patterns {
 		currentClaims = new ClaimTransaction(name);
 		Set<ClangNode> droppedBefore = new HashSet<>(analysis.dropped);
 		Map<ClangNode, String> replacedBefore = new HashMap<>(analysis.replaced);
-		Map<ClangNode, String> ownersBefore = new HashMap<>(claimOwner);
+		Map<ClangNode, RewriteOwner> ownersBefore = new HashMap<>(claimOwner);
 		boolean liftBefore = analysis.liftSignature;
 		String initializerBefore = analysis.initializerSuffix;
 		int traceBefore = analysis.trace.size();
 		try {
 			body.run();
-			RewritePlanner.PlanResult planned = planner.accept(currentClaims.proposal());
-			if (!planned.accepted() && !currentClaims.proposal().edits().isEmpty()) {
+			List<ProposedRewrite> proposals = currentClaims.proposals();
+			boolean accepted = false;
+			List<String> rejected = new ArrayList<>();
+			for (ProposedRewrite proposal : proposals) {
+				RewritePlanner.PlanResult planned = planner.accept(proposal);
+				accepted |= planned.accepted();
+				rejected.addAll(planned.rejected());
+			}
+			if (!accepted && !proposals.isEmpty()) {
 				restoreClaims(droppedBefore, replacedBefore, ownersBefore, liftBefore,
 					initializerBefore);
 				analysis.trace.subList(traceBefore, analysis.trace.size())
 					.removeIf(event -> "applied".equals(event.status));
 				trace("declined", name, "atomic claim set rejected: " +
-					String.join("; ", planned.rejected()));
+					String.join("; ", rejected));
 				return;
 			}
-			if (!planned.rejected().isEmpty()) {
+			if (!rejected.isEmpty()) {
 				trace("declined", name, "overlapping region rejected: " +
-					String.join("; ", planned.rejected()));
+					String.join("; ", rejected));
 			}
 		}
 		catch (Exception e) {
@@ -286,39 +293,71 @@ final class Msvc6Patterns {
 	 * subset into the renderer.
 	 */
 	private final class ClaimTransaction {
-		final String owner;
-		final Set<ClangNode> dropped = new HashSet<>();
-		final Map<ClangNode, String> replaced = new HashMap<>();
+		final String rule;
+		final List<ClaimGroup> groups = new ArrayList<>();
+		ClaimGroup current;
 		String failure;
 
-		ClaimTransaction(String owner) {
-			this.owner = owner;
+		ClaimTransaction(String rule) {
+			this.rule = rule;
+		}
+
+		ClaimGroup group() {
+			if (current == null) {
+				current = new ClaimGroup(new RewriteOwner(nextRewriteId++, rule));
+			}
+			return current;
+		}
+
+		RewriteOwner owner() {
+			return group().owner;
 		}
 
 		boolean drop(ClangNode node) {
-			replaced.remove(node);
-			dropped.add(node);
+			ClaimGroup group = group();
+			group.replaced.remove(node);
+			group.dropped.add(node);
 			return true;
 		}
 
 		boolean replace(ClangNode node, String text) {
-			dropped.remove(node);
-			replaced.put(node, text);
+			ClaimGroup group = group();
+			group.dropped.remove(node);
+			group.replaced.put(node, text);
 			return true;
 		}
 
-		ProposedRewrite proposal() {
-			List<NodeEdit> edits = new ArrayList<>();
-			for (ClangNode node : dropped) edits.add(new NodeEdit.Drop(node));
-			for (var entry : replaced.entrySet()) {
-				edits.add(new NodeEdit.Replace(entry.getKey(), entry.getValue()));
+		void seal() {
+			if (current != null && (!current.dropped.isEmpty() || !current.replaced.isEmpty())) {
+				groups.add(current);
 			}
-			return new ProposedRewrite(owner, List.copyOf(edits), passPriority(owner), "");
+			current = null;
+		}
+
+		List<ProposedRewrite> proposals() {
+			seal();
+			List<ProposedRewrite> proposals = new ArrayList<>();
+			for (ClaimGroup group : groups) {
+				List<NodeEdit> edits = new ArrayList<>();
+				for (ClangNode node : group.dropped) edits.add(new NodeEdit.Drop(node));
+				for (var entry : group.replaced.entrySet()) {
+					edits.add(new NodeEdit.Replace(entry.getKey(), entry.getValue()));
+				}
+				proposals.add(new ProposedRewrite(group.owner, List.copyOf(edits), ""));
+			}
+			return List.copyOf(proposals);
 		}
 	}
 
+	private static final class ClaimGroup {
+		final RewriteOwner owner;
+		final Set<ClangNode> dropped = new HashSet<>();
+		final Map<ClangNode, String> replaced = new HashMap<>();
+		ClaimGroup(RewriteOwner owner) { this.owner = owner; }
+	}
+
 	private void restoreClaims(Set<ClangNode> dropped, Map<ClangNode, String> replaced,
-			Map<ClangNode, String> owners, boolean liftSignature, String initializerSuffix) {
+			Map<ClangNode, RewriteOwner> owners, boolean liftSignature, String initializerSuffix) {
 		analysis.dropped.clear();
 		analysis.dropped.addAll(dropped);
 		analysis.replaced.clear();
@@ -333,8 +372,8 @@ final class Msvc6Patterns {
 	 * Claim a node as dropped. A node already claimed by another pass, or
 	 * sitting inside another pass's replacement text, is a conflict: the new
 	 * claim is rejected and traced. A pass may re-claim and refine its own
-	 * claims freely, and may supersede other passes only by claiming an
-	 * enclosing node (the renderer's outermost-wins rule).
+	 * claims freely. Cross-pass nested claims are rejected because the renderer
+	 * cannot display both edits.
 	 */
 	private boolean claimDrop(ClangNode node) {
 		if (currentClaims == null) {
@@ -351,44 +390,43 @@ final class Msvc6Patterns {
 		return currentClaims.replace(node, replacement);
 	}
 
-	/**
-	 * Declared claim priority: statement-scope recognizers (lifecycle, EH,
-	 * allocation) supersede token-scope rewrites (expression, literal, call,
-	 * signature) on the same nodes, because they remove or replace whole
-	 * compiler-owned constructs the token rewrites were polishing. Equal
-	 * priority never overwrites across passes.
-	 */
-	private static int passPriority(String pass) {
-		return pass != null && (pass.startsWith("lifecycle") || pass.startsWith("eh.") ||
-			pass.startsWith("allocation") || pass.equals("shape.call-result-local")) ? 2 : 1;
-	}
-
 	private boolean conflicts(ClangNode node) {
-		String owner = claimOwner.get(node);
-		if (owner != null && !owner.equals(currentPass)) {
-			if (passPriority(currentPass) > passPriority(owner)) {
-				return false; // declared supersede: statement scope over token scope
-			}
+		RewriteOwner owner = claimOwner.get(node);
+		if (owner != null && !owner.equals(currentClaims.owner())) {
 			trace("declined", currentPass,
-				"claim conflict: node already claimed by " + owner);
+				"claim conflict: node already claimed by " + owner.rule());
 			return true;
 		}
 		for (ClangNode ancestor = node.Parent(); ancestor != null;
 				ancestor = ancestor.Parent()) {
-			String ancestorOwner = claimOwner.get(ancestor);
-			if (ancestorOwner != null && !ancestorOwner.equals(currentPass) &&
-				analysis.replaced.containsKey(ancestor) &&
-				passPriority(currentPass) <= passPriority(ancestorOwner)) {
+			RewriteOwner ancestorOwner = claimOwner.get(ancestor);
+			if (ancestorOwner != null && !ancestorOwner.equals(currentClaims.owner()) &&
+				(analysis.replaced.containsKey(ancestor) || analysis.dropped.contains(ancestor))) {
 				trace("declined", currentPass,
-					"claim conflict: inside a node replaced by " + ancestorOwner);
+					"claim conflict: inside a node consumed by " + ancestorOwner.rule());
+				return true;
+			}
+		}
+		for (var entry : claimOwner.entrySet()) {
+			if (!entry.getValue().equals(currentClaims.owner()) && isAncestor(node, entry.getKey())) {
+				trace("declined", currentPass,
+					"claim conflict: contains a node claimed by " + entry.getValue().rule());
 				return true;
 			}
 		}
 		return false;
 	}
 
+	private static boolean isAncestor(ClangNode ancestor, ClangNode node) {
+		for (ClangNode current = node.Parent(); current != null; current = current.Parent()) {
+			if (current == ancestor) return true;
+		}
+		return false;
+	}
+
 	private void trace(String status, String pass, String detail) {
 		analysis.trace.add(new TraceEvent(pass == null ? "?" : pass, status, detail));
+		if ("applied".equals(status) && currentClaims != null) currentClaims.seal();
 	}
 
 	/** The listing address a statement's root operation executes at. */
@@ -455,34 +493,33 @@ final class Msvc6Patterns {
 		List<ClangToken> region = line.region(sigFrom, sigTo);
 		if (region.isEmpty()) return false;
 		ClangToken first = region.get(0);
-		String firstOwner = claimOwner.get(first);
-		if (firstOwner != null && !firstOwner.equals(currentPass) &&
-			passPriority(currentPass) <= passPriority(firstOwner)) {
+		RewriteOwner firstOwner = claimOwner.get(first);
+		if (firstOwner != null && !firstOwner.equals(currentClaims.owner())) {
 			trace("declined", currentPass,
-				"claim conflict: range anchor already claimed by " + firstOwner);
+				"claim conflict: range anchor already claimed by " + firstOwner.rule());
 			return false;
 		}
 		for (ClangToken token : region) {
-			String owner = claimOwner.get(token);
-			if (owner != null && !owner.equals(currentPass) &&
-				analysis.replaced.containsKey(token) &&
-				passPriority(currentPass) <= passPriority(owner)) {
+			RewriteOwner owner = claimOwner.get(token);
+			if (owner != null && !owner.equals(currentClaims.owner())) {
 				trace("declined", currentPass,
-					"claim conflict: range contains a replacement owned by " + owner);
+					"claim conflict: range contains a replacement owned by " + owner.rule());
 				return false;
 			}
 		}
 		for (ClangToken token : region) {
-			String owner = claimOwner.get(token);
-			if (owner == null || owner.equals(currentPass) ||
-				passPriority(currentPass) > passPriority(owner)) {
+			RewriteOwner owner = claimOwner.get(token);
+			if (owner == null || owner.equals(currentClaims.owner())) {
 				claimDrop(token);
 			}
 		}
 		if (replacement.isEmpty()) {
+			currentClaims.seal();
 			return true;
 		}
-		return claimReplace(first, replacement);
+		boolean accepted = claimReplace(first, replacement);
+		currentClaims.seal();
+		return accepted;
 	}
 
 	private void dropToken(ClangToken token) {
@@ -3087,6 +3124,7 @@ final class Msvc6Patterns {
 				dropToken(sig.get(i + 3));
 				dropToken(sig.get(i + 4));
 				dropToken(sig.get(i + 5));
+				currentClaims.seal();
 				applied++;
 				i += 5;
 				continue;
@@ -3097,6 +3135,7 @@ final class Msvc6Patterns {
 				!nextFieldIsVftable(sig, i + 2)) {
 				dropToken(sig.get(i));
 				dropToken(sig.get(i + 1));
+				currentClaims.seal();
 				applied++;
 				i += 1;
 				continue;
@@ -3125,6 +3164,7 @@ final class Msvc6Patterns {
 				!isBaseFieldToken(sig.get(i + 2)) && !nextFieldIsVftable(sig, i + 2)) {
 				dropToken(sig.get(i));
 				dropToken(sig.get(i + 1));
+				currentClaims.seal();
 				applied++;
 				i += 1;
 				continue;
