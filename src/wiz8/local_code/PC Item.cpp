@@ -1886,7 +1886,7 @@ void Function520D10(
         Function5201B0(character, W8_EQUIP_SLOT_PRIMARY_LEFT);
     }
 
-    if (!character->in_party || !g_status_685170.game_started_000c) {
+    if (!character->in_party || !g_status_685170.game_started) {
         return;
     }
 

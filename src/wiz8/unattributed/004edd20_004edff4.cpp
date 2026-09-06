@@ -1,4 +1,5 @@
 #include "wiz8/combat_state.h"
+#include "wiz8/character.h"
 #include "wiz8/game_status.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/screen_state.h"
@@ -8,9 +9,9 @@
    source evidence assigns the original translation unit. */
 
 extern unsigned int GetItemStackWeight(const W8ItemInstance* item);
-extern void Function4EE000(void* character);
-extern void Function4EE220(void* character);
-extern void Function4EE9D0(void* character);
+extern void Function4EE000(W8Character* character);
+extern void Function4EE220(W8Character* character);
+extern void Function4EE9D0(W8Character* character);
 extern void RequestRedraw(unsigned int mask);
 
 // FUNCTION: WIZ8 0x004edd20
@@ -19,11 +20,10 @@ void Function4EDD20(void)
     int capacity[8];
     int unassigned[8];
     float load_ratio[8];
-    unsigned char* characters = reinterpret_cast<unsigned char*>(
-        g_status_685170.buffers.characters);
+    W8Character* characters = g_status_685170.buffers.characters;
     W8PartySlotRow* active = g_status_685170.buffers.party_rows;
 
-    if (!g_status_685170.game_started_000c) {
+    if (!g_status_685170.game_started) {
         return;
     }
     if (g_in_combat_00683f94) {
@@ -33,17 +33,13 @@ void Function4EDD20(void)
 
     unsigned int slot;
     for (slot = 0; slot < 8; ++slot) {
-        unsigned char* character =
-            characters + slot * W8_CHARACTER_SERIALIZED_SIZE;
-        character[0xbbd] = 0;
-        character[0xbbe] = 0;
-        character[0xbbf] = 0;
-        character[0xbc0] = 0;
+        W8Character* character = &characters[slot];
+        character->party_weight_share = 0;
         if (active[slot].occupied != 0 &&
-            *(unsigned int*)(character + 0xb01) < 0x12) {
-            capacity[slot] = *(int*)(character + 0xbc5);
+            character->unknown_0b01 < 0x12) {
+            capacity[slot] = character->carrying_capacity;
             unassigned[slot] =
-                capacity[slot] - *(int*)(character + 0xbb9);
+                capacity[slot] - character->inventory_weight;
             load_ratio[slot] =
                 (float)unassigned[slot] * 100.0f / (float)capacity[slot];
         }
@@ -61,10 +57,9 @@ void Function4EDD20(void)
         unsigned int best_slot = (unsigned int)-1;
         float best_ratio = -999999.0f;
         for (slot = 0; slot < 8; ++slot) {
-            unsigned char* character =
-                characters + slot * W8_CHARACTER_SERIALIZED_SIZE;
+            W8Character* character = &characters[slot];
             if (active[slot].occupied != 0 &&
-                *(unsigned int*)(character + 0xb01) < 0x12 &&
+                character->unknown_0b01 < 0x12 &&
                 load_ratio[slot] > best_ratio) {
                 best_ratio = load_ratio[slot];
                 best_slot = slot;
@@ -73,9 +68,8 @@ void Function4EDD20(void)
         if (best_slot == (unsigned int)-1) {
             return;
         }
-        unsigned char* character =
-            characters + best_slot * W8_CHARACTER_SERIALIZED_SIZE;
-        ++*(int*)(character + 0xbbd);
+        W8Character* character = &characters[best_slot];
+        ++character->party_weight_share;
         --unassigned[best_slot];
         load_ratio[best_slot] =
             (float)unassigned[best_slot] * 100.0f /
@@ -86,28 +80,26 @@ void Function4EDD20(void)
         if (active[slot].occupied == 0) {
             continue;
         }
-        unsigned char* character =
-            characters + slot * W8_CHARACTER_SERIALIZED_SIZE;
-        int carried = *(int*)(character + 0xbb9) +
-                      *(int*)(character + 0xbbd);
-        *(int*)(character + 0xbc1) = carried;
+        W8Character* character = &characters[slot];
+        int carried = character->inventory_weight + character->party_weight_share;
+        character->total_carried_weight = carried;
         unsigned int percent =
             (unsigned int)(carried * 100) /
-            *(unsigned int*)(character + 0xbc5);
-        int old_band = *(int*)(character + 0xbc9);
+            (unsigned int)character->carrying_capacity;
+        int old_band = character->load_category;
         if (percent < 50) {
-            *(int*)(character + 0xbc9) = 0;
+            character->load_category = 0;
         }
         else if (percent < 70) {
-            *(int*)(character + 0xbc9) = 1;
+            character->load_category = 1;
         }
         else if (percent < 85) {
-            *(int*)(character + 0xbc9) = 2;
+            character->load_category = 2;
         }
         else {
-            *(int*)(character + 0xbc9) = (percent > 100) + 3;
+            character->load_category = (percent > 100) + 3;
         }
-        if (old_band != *(int*)(character + 0xbc9)) {
+        if (old_band != character->load_category) {
             Function4EE000(character);
             Function4EE220(character);
             Function4EE9D0(character);

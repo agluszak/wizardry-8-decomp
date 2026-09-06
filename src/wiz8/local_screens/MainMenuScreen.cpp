@@ -4,6 +4,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/dirty_tiles.h"
+#include "wiz8/game_status.h"
 #include "wiz8/sgp_video.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/video_object_catalog.h"
@@ -44,7 +45,6 @@ extern unsigned char g_flag_689b32;
 
 
 /* The screen's own state. */
-unsigned char g_flag_68517c;
 unsigned char g_flag_69c4ba;
 unsigned char g_flag_69c4b6;
 unsigned short g_selected_item_0069c4b4;
@@ -358,7 +358,7 @@ unsigned char MainMenuScreenFunction005BC810(void)
 
     Function422B10();
     Function40B290();
-    g_flag_68517c = 0;
+    g_status_685170.game_started = 0;
     g_flag_69c4ba = SaveGameExists();
     g_flag_69c4b6 = 1;
     ClearPrimarySurface();

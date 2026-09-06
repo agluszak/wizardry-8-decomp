@@ -672,7 +672,7 @@ void W8Missile::SetCycle(signed char cycle)
 
     if (m_plsParticles != 0) {
         for (index = 0; index < m_plsParticles->GetCount(); ++index) {
-            W8GrCycleShakeEvent* event = *m_plsParticles->GetAt(index);
+            W8GrCycleParticleAttachment* event = *m_plsParticles->GetAt(index);
 
             if (event->cycle_00 == cycle) {
                 event->particle_08->SetActive(1);

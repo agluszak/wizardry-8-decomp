@@ -1171,7 +1171,7 @@ void W8State5PlainPanel005EF4E0::Redraw()
     mprintf(0x115, 0x143, L"%d", character->stamina_max);
     mprintf(0xe3, 0x151,
             gppStringList[0x1b10 / 4]);
-    mprintf(0x115, 0x151, L"%d", character->value_0bc5 / 10);
+    mprintf(0x115, 0x151, L"%d", character->carrying_capacity / 10);
 }
 
 // GLOBAL: WIZ8 0x0069C4FC

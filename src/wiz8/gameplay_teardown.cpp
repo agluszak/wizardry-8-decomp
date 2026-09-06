@@ -1,14 +1,7 @@
 
 #include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/engine_code/game_timer.h"
 #include "wiz8/startup_runtime_state.h"
-
-/* The concrete identity of the second owned object is unresolved. Its slot
-   zero is nevertheless the compiler-generated scalar-deleting destructor, so
-   model the known virtual lifetime contract and let a typed delete emit the
-   call. */
-struct W8Deletable {
-    virtual ~W8Deletable() = 0;
-};
 
 extern "C" {
 
@@ -16,17 +9,15 @@ extern "C" {
 void DestroyGameplayObjects(void)
 {
     W8StartupRuntimeState* owned = g_startup_runtime_state;
-    W8Deletable* deletable;
 
     if (owned) {
         owned->~W8StartupRuntimeState();
         operator delete(owned);
         g_startup_runtime_state = 0;
     }
-    deletable = static_cast<W8Deletable*>(g_object_685067);
-    if (deletable) {
-        delete deletable;
-        g_object_685067 = 0;
+    if (g_gameplay_timer_685067) {
+        delete g_gameplay_timer_685067;
+        g_gameplay_timer_685067 = 0;
     }
 }
 

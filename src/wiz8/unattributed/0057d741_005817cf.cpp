@@ -10,6 +10,13 @@
 
 class W8VectorElement005EEA28;
 
+/* No recovered allocation path identifies the object at 0x0068F1F4 yet.
+   Keep its demonstrated virtual-delete contract local to its only consumer
+   until that concrete type is established. */
+struct W8Releasable0057FA20 {
+    virtual ~W8Releasable0057FA20();
+};
+
 /* Lifecycle record 8's own state, all of it released by the finalizer below and
    nothing here naming what any of it holds. The list is vector.cpp's, created by
    this record's initializer at 0x0057E5D0. */
@@ -48,7 +55,7 @@ srClass* g_class_68f2a8;
 
 /* Released through slot 0 with the deleting flag, which is all this one shows. */
 // GLOBAL: WIZ8 0x0068F1F4
-W8Releasable* g_releasable_68f1f4;
+W8Releasable0057FA20* g_releasable_68f1f4;
 
 }
 

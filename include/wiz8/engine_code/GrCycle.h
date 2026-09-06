@@ -95,7 +95,7 @@ void StopShakeEffects004AE270(
 /* 0x004A5F20 allocates 0x3c for each of these and copies them field by field:
    a leading dword, the byte after it, an owned stParticle rebuilt through
    0x00498180, a vector at +0x0c, and the 0x24-byte tail wholesale. */
-class W8GrCycleShakeEvent {
+class W8GrCycleParticleAttachment {
 public:
     int cycle_00;
     signed char subcycle_04;
@@ -108,8 +108,8 @@ public:
     srMatrix3T<float> rotation_18;
 };
 
-static_assert(sizeof(W8GrCycleShakeEvent) == 0x3c,
-              "W8GrCycleShakeEvent_must_be_0x3c");
+static_assert(sizeof(W8GrCycleParticleAttachment) == 0x3c,
+              "W8GrCycleParticleAttachment_must_be_0x3c");
 
 class W8GrCycle :
     public W8GrObject,
@@ -162,7 +162,7 @@ public:
     unsigned char m_fDeleteLights;        /* 0x1b4: named by GrCycle.cpp:1656 */
     unsigned char unknown_1b5;
     unsigned char unknown_1b6[2];
-    W8GrowableVector<W8GrCycleShakeEvent*>* m_plsParticles; /* 0x1b8 */
+    W8GrowableVector<W8GrCycleParticleAttachment*>* m_plsParticles; /* 0x1b8 */
     unsigned char unknown_1bc;
     unsigned char enabled_1bd;
     unsigned char unknown_1be;

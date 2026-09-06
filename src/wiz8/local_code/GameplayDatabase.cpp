@@ -75,7 +75,6 @@ extern void Function58FD30(void);
 extern void Function520070(
     W8ItemInstance* item, W8Character* character, unsigned char refresh);
 extern void Function554580(unsigned char* target);
-extern bool g_flag_68517c;
 extern int g_dword_6875b7;
 extern void Function5A9E70(void* target);
 extern void Function482720(int value);
@@ -521,7 +520,7 @@ unsigned char g_save_flag_00687599;
 // FUNCTION: WIZ8 0x0054b250
 void Function54B250(unsigned char notify, void* target)
 {
-    g_flag_68517c = true;
+    g_status_685170.game_started = 1;
     if (target) {
         g_save_flag_00687599 = 1;
         Function5A9E70(target);
@@ -947,7 +946,7 @@ void __fastcall ProcessStartupStateEntry(W8StartupStateElement005EE748* entry)
    object; this full-size clear deliberately wipes them along with the rest of
    its runtime state. */
 W8StartupRuntimeState* g_startup_runtime_state;
-void* g_object_685067;
+W8GameTimer* g_gameplay_timer_685067;
 
 // FUNCTION: WIZ8 0x0054afd0
 void InitializeGameplayRuntimeObjects(void)
@@ -955,7 +954,7 @@ void InitializeGameplayRuntimeObjects(void)
     memset(static_cast<void*>(&g_monster_manager_state), 0,
            sizeof(W8MonsterManagerState));
     g_startup_runtime_state = new W8StartupRuntimeState();
-    g_object_685067 = new W8GameTimer(300.0f, 0);
+    g_gameplay_timer_685067 = new W8GameTimer(300.0f, 0);
 }
 
 /* Stores the value the frame tick and the new-game reset both read back. */

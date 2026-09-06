@@ -187,7 +187,6 @@ unsigned char GetFlag68F105(void);
 extern int g_monster_cycle_registry_weight_0065ba4c;
 extern float g_float_005ec52c;
 extern unsigned char g_flag_689b32;
-extern unsigned char g_flag_68517c;
 extern unsigned char g_flag_6850d2;
 
 static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(
@@ -1507,7 +1506,7 @@ void TogglePartyCombatStance(void)
 {
     void* message;
 
-    if (g_flag_68517c == 0) {
+    if (g_status_685170.game_started == 0) {
         g_flag_6850d2 = (g_flag_6850d2 == 0);
         return;
     }

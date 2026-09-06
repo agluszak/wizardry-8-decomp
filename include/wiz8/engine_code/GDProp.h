@@ -6,6 +6,7 @@
 
 class srModelInstance;
 class W8Prop;
+class Trigger;
 
 /* Engine Code\GDProp.cpp. Prop.cpp allocates 0x58 bytes for this object,
    constructs it at 0x004B6E00, and owns it at Prop+0x38. Assertions in the
@@ -22,7 +23,7 @@ public:
         unsigned char surface_flag,
         unsigned char vertex_flag);      /* 0x004B6E00 */
     ~GDProp();                            /* 0x004B6ED0 */
-    void BindOwner004B7470(void* owner);
+    void BindTrigger(Trigger* owner);
     unsigned char ContainsPathCoordinate004B75F0(
         unsigned short x, unsigned short y) const;
     unsigned char HasListEntries004B7BA0();
@@ -47,7 +48,7 @@ private:
     int m_vertex_count_18;                /* 0x18; m_pVertices count */
     W8GDSurface* m_pGDSurfaces;          /* 0x1c */
     srVector3T<float>* m_pVertices;       /* 0x20 */
-    void* m_owner_24;                    /* 0x24: installed by 0x004B7470 */
+    Trigger* m_owner_24;                 /* 0x24: installed by 0x004B7470 */
     float m_path_range_28;               /* 0x28 */
     float m_path_sentinel_2c;            /* 0x2c */
     float m_path_range_30;               /* 0x30 */

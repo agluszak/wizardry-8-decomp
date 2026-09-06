@@ -3,7 +3,7 @@
 #include "wiz8/item_instance.h"
 #include "wiz8/game_status.h"
 
-#define g_game_started (g_status_685170.game_started_000c)
+#define g_game_started (g_status_685170.game_started)
 
 extern "C" {
 

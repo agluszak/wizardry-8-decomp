@@ -43,7 +43,7 @@
    FindPropByName independently proves that +0x20 is the owned prop name.
    Unresolved members and the gaps between them remain positional. */
 
-extern void* Function443830(W8World* world, W8Prop* prop);
+extern Trigger* FindTriggerForProp00443830(W8World* world, W8Prop* prop);
 extern int IncrementValue60DFAC(void);
 
 /* This byte is reset before the world Prop update and set when a collidable
@@ -213,11 +213,13 @@ void UpdateWorldProps0044E010(W8World* world)
     count = ILLength(reinterpret_cast<W8IList*>(world->plsProps));
     for (index = 0; index < static_cast<int>(count); ++index) {
         W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
-        void* value;
+        Trigger* trigger;
 
-        if (prop != 0 && (value = Function443830(world, prop)) != 0 && prop->m_gd_prop != 0) {
+        if (prop != 0 &&
+            (trigger = FindTriggerForProp00443830(world, prop)) != 0 &&
+            prop->m_gd_prop != 0) {
             prop->flags_1c |= 0x80;
-            prop->m_gd_prop->BindOwner004B7470(value);
+            prop->m_gd_prop->BindTrigger(trigger);
         }
     }
 }

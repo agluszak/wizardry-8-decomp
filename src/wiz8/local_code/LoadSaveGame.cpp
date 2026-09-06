@@ -128,7 +128,6 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status);            /* 0x00
    consulted only when it is set. The failure notice comes out of the shared
    notice array, and 0x00683678 is passed alongside; neither is established
    beyond that, so both keep positional names. */
-extern unsigned char g_flag_68517c;
 extern unsigned char g_flags_6874d7[];
 extern int g_small_font_683678;
 
@@ -143,7 +142,7 @@ void BuildCharacterFilePath00514FA0(char* destination, const char* filename,
 {
     char directory[260];
 
-    if (!g_flag_68517c) {
+    if (!g_status_685170.game_started) {
         strcpy(directory, slot == -1 ? "Saves\\Characters" : "Saves\\NPCs");
         sprintf(destination, "%s\\%s", directory, filename);
         return;
@@ -163,7 +162,7 @@ void BuildCharacterPath00514EC0(char* destination, const wchar_t* name,
     char directory[260];
 
     sprintf(filename, "%ls.%s", name, "CHR");
-    if (!g_flag_68517c) {
+    if (!g_status_685170.game_started) {
         strcpy(directory, slot == -1 ? "Saves\\Characters" : "Saves\\NPCs");
     }
     else if (slot == -1 || g_flags_6874d7[slot]) {
@@ -195,7 +194,7 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
     unsigned char loaded = 0;
     int handle;
 
-    if (g_flag_68517c) {
+    if (g_status_685170.game_started) {
         if (slot != -1 && g_flags_6874d7[slot] == 0) {
             sprintf(path, "%s\\%s", "Saves\\NPCs", name);
         } else {
@@ -206,7 +205,8 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
         sprintf(path, "%s\\%s", directory, name);
     }
 
-    if (g_flag_68517c && (slot == -1 || g_flags_6874d7[slot] != 0)) {
+    if (g_status_685170.game_started &&
+        (slot == -1 || g_flags_6874d7[slot] != 0)) {
         loaded = Function5156C0(path, character);
     } else {
         handle = FileOpen(path, 1, 0);
@@ -693,7 +693,7 @@ unsigned char SaveCharacter(W8Character* character, int slot, char report_failur
 
     character->record_version = 1;
     sprintf(file_name, "%ls.%s", character->name, "CHR");
-    if (g_flag_68517c == 0) {
+    if (g_status_685170.game_started == 0) {
         strcpy(directory, slot != -1 ? "Saves\\NPCs" : "Saves\\Characters");
         sprintf(path, "%s\\%s", directory, file_name);
     } else if (slot == -1 || g_flags_6874d7[slot] != 0) {
@@ -702,7 +702,7 @@ unsigned char SaveCharacter(W8Character* character, int slot, char report_failur
         sprintf(path, "%s\\%s", "Saves\\NPCs", file_name);
     }
 
-    if (g_flag_68517c == 0) {
+    if (g_status_685170.game_started == 0) {
         if (FileExists(path) &&
             (FileGetAttributes(path) & FILE_IS_READONLY) != 0 &&
             FileClearAttributes(path) == 0) {
