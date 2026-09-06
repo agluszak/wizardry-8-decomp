@@ -23,16 +23,23 @@ focused comparison with `just compare ADDRESS...` or `just compare --changed`; c
 incremental build freshness itself. Include unchanged callers when a header or ABI change affects
 them.
 
-Interpret the result:
+A comparison mismatch is not automatically a source defect. Interpret the result:
 
 - `exact` or `effective`: stop investigating the body unless the task requires more.
-- `mismatch`: inspect the first structural divergence and test one source hypothesis.
+- `mismatch`: inspect the first structural divergence. Test a concrete behavior, type, ABI, lifetime,
+  or source-ownership hypothesis only when supported by evidence, not just a different branch shape.
 - `inconclusive`: identify the missing evidence; do not assume a source defect.
+
+Equivalent compiler lowering is not a source correction. Preserve the ordinary source forms required
+by `AGENTS.md`; do not experiment with equivalent loop, scope, or return spellings to chase a score.
+When no evidence-backed correction is available, stop source-shape experiments and report the
+remaining mismatch. This does not establish equivalence or waive the task's acceptance criteria:
+classify a difference as codegen-only or relocation/classifier noise only with supporting evidence.
 
 Revert demonstrated regressions. Expand the comparison set only when shared layout, lifecycle,
 virtual dispatch, or inline visibility can affect other functions. Do not tune scratch registers or
 compiler scheduling. Validation and publication policy lives in `AGENTS.md`.
 
-Read [mismatch patterns](references/mismatch-patterns.md) for a structural divergence or
+Read [mismatch patterns](references/mismatch-patterns.md) for an unexplained comparison divergence or
 [layout evidence](references/layout-evidence.md) when proving fields, widths, object size, or
 inheritance layout. Do not load either for an ordinary exact result.
