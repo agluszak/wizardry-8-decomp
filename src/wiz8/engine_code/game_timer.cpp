@@ -1,6 +1,7 @@
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/Object0043A910.h"
 #include "wiz8/float_constants.h"
+#include "wiz8/virtual_file.h"
 
 /* The game-timer unit: a small timer object over one shared, reference-counted
    srTimer-derived singleton. The image names neither the unit nor the classes -
@@ -235,6 +236,28 @@ void W8GameTimer::Restart()
     m_end = m_start + m_duration;
 }
 
+// FUNCTION: WIZ8 0x00439e20
+void W8GameTimer::SetDurationScale(float scale)
+{
+    m_duration_scale = scale;
+    if (scale < 0.5f) {
+        m_flags |= 0x10;
+    }
+    float progress = GetProgress();
+    m_duration = (int)(m_duration_seconds * m_duration_scale * 10000.0f);
+    SetProgress(progress);
+}
+
+// FUNCTION: WIZ8 0x00439fe0
+void W8GameTimer::ResetDurationScale()
+{
+    m_flags &= ~0x10;
+    m_duration_scale = 1.0f;
+    float progress = GetProgress();
+    m_duration = (int)(m_duration_seconds * m_duration_scale * 10000.0f);
+    SetProgress(progress);
+}
+
 // FUNCTION: WIZ8 0x0043a190
 float W8GameTimer::GetProgress()
 {
@@ -265,6 +288,32 @@ void W8GameTimer::SetProgress(float progress)
     int sample = ReadClock();
     m_start = sample - (int)((float)(unsigned int)m_duration * progress);
     m_end = m_start + m_duration;
+}
+
+// FUNCTION: WIZ8 0x0043a330
+unsigned char W8GameTimer::Load(int handle)
+{
+    float progress;
+    // Retail performs both reads and combines their results with bitwise OR.
+    unsigned char loaded = ReadVirtualFile(handle, &progress, sizeof(progress), 0);
+    loaded |= ReadVirtualFile(handle, &m_duration_scale, sizeof(m_duration_scale), 0);
+    if (loaded != 0) {
+        m_duration = (int)(m_duration_seconds * m_duration_scale * 10000.0f);
+        m_end = m_start + m_duration;
+        unsigned int sample = ReadClock();
+        unsigned int elapsed = (unsigned int)((float)(unsigned int)m_duration * progress);
+        m_start = sample < elapsed ? 0 : sample - elapsed;
+        m_end = m_start + m_duration;
+    }
+    return loaded;
+}
+
+// FUNCTION: WIZ8 0x0043a440
+float W8GameTimer::GetElapsedSeconds()
+{
+    int sample = ReadClock();
+    return ((float)(unsigned int)(sample - m_start) /
+            (float)(unsigned int)(m_end - m_start)) * m_duration_seconds;
 }
 
 void* CreateGameTimer005EC0A4(float duration, unsigned char raw_time)

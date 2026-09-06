@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/Levels.h"
+#include "wiz8/engine_code/Object0043A910.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
@@ -58,7 +59,6 @@ extern void Function53BF80(void);
 extern void SetViewDistance(float value);
 extern float GetViewDistance(void);
 extern void Function452F50(int value);
-extern void Function43AA20(void);
 extern void Function48CBE0(void);
 extern float g_sight_default_005ec254;
 
@@ -68,7 +68,7 @@ void ResetSight(void)
 {
     SetViewDistance(12.0f);
     Function452F50(0);
-    Function43AA20();
+    g_object_6598bc->ResetDurationScale();
     Function48CBE0();
 }
 

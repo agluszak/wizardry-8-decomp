@@ -35,7 +35,6 @@ extern unsigned char g_level_override_00652dba;
 extern unsigned char g_flag_00652dce;
 extern const float g_world_scale_005ebc40;
 extern float g_path_endpoint_scale_005ec1a4;
-extern void Function43AAD0();
 
 /* Resolve one surface's three vertex indices through the active processed
    GameData vertex table.  The retail comparison is signed and accepts an index
@@ -219,7 +218,7 @@ void Function41F260()
     if (g_object_6598bc == 0) {
         g_object_6598bc = new W8Object0043A910;
         if (g_object_6598bc == 0) {
-            Function43AAD0();
+            g_object_6598bc->Update();
             return;
         }
     }
@@ -227,7 +226,7 @@ void Function41F260()
         Function439CA0();
         g_flag_00652dce = 0;
     }
-    Function43AAD0();
+    g_object_6598bc->Update();
 }
 /* 0x005EBB34: one float constant with two independent readings - the level
    vector's "no value" here, and Controls.cpp's own range start. Neither is

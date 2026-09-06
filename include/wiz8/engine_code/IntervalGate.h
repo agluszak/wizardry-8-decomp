@@ -14,6 +14,8 @@ public:
     void Arm();                              /* 0x0043A530 */
     unsigned int PollElapsedIntervals();                      /* 0x0043A5D0 */
     unsigned char IsFinished() const { return m_finished; }
+    unsigned char Load(int handle);
+    unsigned char Save(int handle);
 
 private:
     unsigned char m_finished;                     /* 0x024 */

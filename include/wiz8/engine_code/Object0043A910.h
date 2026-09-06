@@ -8,13 +8,16 @@ class W8Object0043A910 : public W8GameTimer {
 public:
     W8Object0043A910();                  /* 0x0043A910 */
     virtual ~W8Object0043A910() override;
+    void SetDurationScale(float scale);
+    void ResetDurationScale();
+    float Update();
     float GetValue28() const { return m_value_28; }
     float GetValue30() const { return m_value_30; }
 
 private:
     float m_scale_24;
     float m_value_28;
-    float m_value_2c;
+    unsigned int m_elapsed_ticks_2c;
     float m_value_30;
 };
 

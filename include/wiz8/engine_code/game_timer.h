@@ -39,6 +39,10 @@ public:
     void Restart();
     float GetProgress();
     void SetProgress(float progress);
+    void SetDurationScale(float scale);
+    void ResetDurationScale();
+    unsigned char Load(int handle);
+    float GetElapsedSeconds();
 
     int m_clock_mode;                          /* 0x04: 1 reads the game clock */
     unsigned short m_flags;              /* 0x08: bit 0 reads the timer raw */

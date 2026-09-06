@@ -43,7 +43,6 @@ extern int g_random_encounter_limit;
 extern int g_active_group_count;            /* 0x0065BA14 */
 extern W8MonsterGroup** g_active_groups;    /* 0x0065BA1C */
 extern void RollRandomEncounters(void);     /* 0x0048CA20 */
-extern void Function43A770(int handle);                      /* 0x0043A770 */
 extern unsigned char g_generator_save_flag;                  /* 0x0065BA48 */
 extern unsigned char Function49F4A0(void* context, const char* name,
                                     void* out, int value);   /* 0x0049F4A0 */
@@ -52,7 +51,6 @@ extern short g_generator_interval_min;                       /* 0x0060A6B4 */
 extern short g_generator_interval_max;                       /* 0x0060A6B8 */
 extern int g_saved_encounter_budget;                         /* 0x006850B6 */
 extern int g_encounter_culling_time_seconds;
-extern void Function43A690(int handle);                      /* 0x0043A690 */
 extern const float g_generator_jitter_fraction;              /* 0x005EC040 */
 
 // GLOBAL: WIZ8 0x0065ba20
@@ -404,7 +402,7 @@ void SaveMonsterGenerators(int handle)
         FileWrite(handle, generator->name, 0x20, 0);
         FileWrite(handle, &generator->flag_44, 1, 0);
         FileWrite(handle, &generator->flags, 4, 0);
-        Function43A770(handle);
+        generator->m_pTimer->Save(handle);
     }
 }
 
@@ -428,7 +426,7 @@ void W8MonsterGenerator::Save(int handle)
     FileWrite(handle, &state_10, 4, 0);
     FileWrite(handle, &state_14, 4, 0);
     FileWrite(handle, &value_1c, 4, 0);
-    Function43A770(handle);
+    m_pTimer->Save(handle);
 }
 
 /* Reads one generator back. The leading byte is a record version: from 3 the
@@ -459,7 +457,7 @@ unsigned char W8MonsterGenerator::Load(int handle)
              ReadVirtualFile(handle, &value_1c, 4, 0);
     Reset();
     if (static_cast<signed char>(version) > 1) {
-        Function43A690(handle);
+        m_pTimer->Load(handle);
         m_pTimer->Arm();
     }
     flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
