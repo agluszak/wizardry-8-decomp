@@ -7,7 +7,7 @@
 class stModelInstance005EC7D0;
 
 /* Retail allocates this 0x58-byte object, calls its sole observed constructor,
-   and later releases it with plain operator delete. Its storage has no proven
+   and later releases it with delete. Its storage has no proven
    semantic fields. */
 class W8PathState004CAE40 {
 public:
@@ -331,9 +331,9 @@ public:
     unsigned char WriteWaypointFile00459540();
     unsigned char ReadWaypointFile00459650();
     void BuildWaypointFileData0045E440();
-    /* Not a destructor: nothing restores a vtable and the object is left
-       holding dangling pointers, exactly as BitArray::FreeIndex does. */
-    void Release00457B10();               /* 0x00457B10 */
+    /* Owning destructor: releases owned tables and bit sets. Single caller
+       destroys the service at octree teardown. */
+    ~W8PathingService();                  /* 0x00457B10 */
 
     unsigned int m_positional_000;
     int size_004;                        /* 0x04 */

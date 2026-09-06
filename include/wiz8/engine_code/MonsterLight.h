@@ -19,11 +19,7 @@ public:
     void Update0049D990(const srVector3T<float>* position);
     void StartFadeOut0049DAF0();
 
-    virtual const char* getClassName() const override; /* 0x0049DC30 */
-    virtual unsigned long getClassID() const override; /* 0x0049DC20 */
-    virtual srRegistry::ClassNode* getClassNode() const override; /* 0x0049E300 */
     virtual ~MonsterLight() override;                 /* 0x0049E0D0 */
-    virtual srClass* clone() override;                 /* 0x0049DC40 */
 
 public:
     float m_vertical_offset_228;                      /* 0x228 */

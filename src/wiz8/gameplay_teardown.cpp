@@ -11,8 +11,7 @@ void DestroyGameplayObjects(void)
     W8StartupRuntimeState* owned = g_startup_runtime_state;
 
     if (owned) {
-        owned->~W8StartupRuntimeState();
-        operator delete(owned);
+        delete owned;
         g_startup_runtime_state = 0;
     }
     if (g_gameplay_timer_685067) {

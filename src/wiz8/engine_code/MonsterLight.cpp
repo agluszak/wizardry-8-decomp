@@ -115,49 +115,14 @@ void MonsterLight::StartFadeOut0049DAF0()
     m_start_time_244 = g_object_6598bc->GetValue30();
 }
 
-// FUNCTION: WIZ8 0x0049DC20
-unsigned long MonsterLight::getClassID() const
-{
-    return 0x1220;
-}
+// TEMPLATE: WIZ8 0x0049DC20
+// srClassSupport<srLight,srIlluminator,0,4640>::getClassID
 
-// FUNCTION: WIZ8 0x0049DC30
-const char* MonsterLight::getClassName() const
-{
-    return "srLight";
-}
+// TEMPLATE: WIZ8 0x0049DC30
+// srClassSupport<srLight,srIlluminator,0,4640>::getClassName
 
-// FUNCTION: WIZ8 0x0049DC40
-srClass* MonsterLight::clone()
-{
-    srLight* instance = (srLight*)vInstance();
-    *instance = *this;
-    return instance;
-}
+// TEMPLATE: WIZ8 0x0049DC40
+// srClassSupport<srLight,srIlluminator,0,4640>::clone
 
-// FUNCTION: WIZ8 0x0049E300
-srRegistry::ClassNode* MonsterLight::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* light = registry->getClassNode(0x1220);
-
-    if (!light) {
-        srRegistry* illuminator_registry = srCore.getRegistry();
-        srRegistry::ClassNode* illuminator =
-            illuminator_registry->getClassNode(0x1200);
-
-        if (!illuminator) {
-            srRegistry* node_registry = srCore.getRegistry();
-            srRegistry::ClassNode* node = node_registry->getClassNode(0x1000);
-
-            if (!node) {
-                node = node_registry->registerClass(
-                    srNode::sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
-            }
-            illuminator = illuminator_registry->registerClass(
-                srIlluminator::sGetClassName(), node, 0x1200, 0);
-        }
-        light = registry->registerClass("srLight", illuminator, 0x1220, 0);
-    }
-    return light;
-}
+// TEMPLATE: WIZ8 0x0049E300
+// srClassSupport<srLight,srIlluminator,0,4640>::getClassNode

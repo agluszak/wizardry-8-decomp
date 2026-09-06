@@ -24,9 +24,9 @@ public:
     /* Reallocate to hold this many bits and clear every one of them. Asking
        for the size it already has only clears. */
     void SetSize(unsigned int bit_count);       /* 0x0043ADA0 */
-    /* Release the index. Not a destructor: nothing restores a vtable and the
-       object is left holding a dangling pointer. */
-    void FreeIndex();                            /* 0x0043AD90 */
+    /* Frees the index buffer. All lifetime-ending callers destroy the
+       object immediately after, so this is the owning destructor. */
+    ~BitArray();                             /* 0x0043AD90 */
     /* Copy another array's bits and count into this one, sizing the source to
        this one's bit count first. */
     void CopyFrom(BitArray& other);              /* 0x0043AE80 */

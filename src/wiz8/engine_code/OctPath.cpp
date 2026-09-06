@@ -342,18 +342,17 @@ unsigned char W8PathingService::ReadWaypointFile00459650()
     if (path_heap_06c != 0) {
         if (path_heap_06c->heap_00 != 0) {
             if (path_heap_06c->heap_00->external_storage_04 == 0)
-                ::operator delete(path_heap_06c->heap_00->entries_00);
-            ::operator delete(path_heap_06c->heap_00);
+                delete[] path_heap_06c->heap_00->entries_00;
+            delete path_heap_06c->heap_00;
         }
-        ::operator delete(path_heap_06c);
+        delete path_heap_06c;
     }
     unsigned int heap_capacity = surface_capacity;
     if (heap_capacity <= g_path_reserve_0060827a)
         heap_capacity = g_path_reserve_0060827a;
-    path_heap_06c = static_cast<W8PathHeapHandle*>(::operator new(8));
-    path_heap_06c->heap_00 = static_cast<W8PathHeap*>(::operator new(0x10));
-    path_heap_06c->heap_00->entries_00 = static_cast<W8PathHeapEntry*>(
-        ::operator new(heap_capacity * sizeof(W8PathHeapEntry)));
+    path_heap_06c = new W8PathHeapHandle;
+    path_heap_06c->heap_00 = new W8PathHeap;
+    path_heap_06c->heap_00->entries_00 = new W8PathHeapEntry[heap_capacity];
     if (path_heap_06c->heap_00->entries_00 == 0)
         srAssertFail("hlist", "..\\Engine Code\\Include\\stHeap.hpp", 0x79, 0);
     path_heap_06c->heap_00->external_storage_04 = 0;
@@ -1146,8 +1145,7 @@ unsigned short W8PathingService::AllocateSearchNode00465A00()
     }
 
     search_node_capacity_0d0 += 50;
-    W8PathSearchNode* new_nodes = static_cast<W8PathSearchNode*>(
-        ::operator new(search_node_capacity_0d0 * sizeof(W8PathSearchNode)));
+    W8PathSearchNode* new_nodes = new W8PathSearchNode[search_node_capacity_0d0];
     if (new_nodes == 0) {
         srAssertFail("pNewSearchNodes", OCTPATH_CPP, 0x2751, 0);
     }
@@ -1158,7 +1156,7 @@ unsigned short W8PathingService::AllocateSearchNode00465A00()
         memcpy(
             new_nodes, m_owned_0c8,
             search_node_count_0cc * sizeof(W8PathSearchNode));
-        ::operator delete(m_owned_0c8);
+        delete[] m_owned_0c8;
     }
     m_owned_0c8 = new_nodes;
     return (unsigned short)node_index;
@@ -1537,8 +1535,8 @@ unsigned short W8PathingService::PlanMovement00463460(
     attachment->flags_00 &= 0xfffffff0;
     W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pIndex_074);
     if (visited->bucket_count != 0) {
-        ::operator delete(visited->bucket_heads);
-        ::operator delete(visited->entries);
+        delete[] static_cast<int*>(visited->bucket_heads);
+        delete[] static_cast<W8OctreeEntry*>(visited->entries);
     }
     visited->bucket_count = 0;
     visited->bucket_heads = 0;
@@ -2529,15 +2527,12 @@ unsigned char W8PathingService::ResolvePathCell004648D0(
     return 0;
 }
 
-/* Give everything the service owns back.
-
-   Not a destructor: nothing restores a vtable and the object is left holding
-   dangling pointers, which is the same shape BitArray::FreeIndex has. The four
-   malloc'd tables and the conditional path tables go back through free, the bit
-   sets and the two hash indexes through their own teardown, and the global slot
-   the constructor claimed is cleared last. */
+/* Give everything the service owns back. The four malloc'd tables and the
+   conditional path tables go back through free, the bit sets and the two
+   hash indexes through their own teardown, and the global slot the
+   constructor claimed is cleared last. */
 // FUNCTION: WIZ8 0x00457b10
-void W8PathingService::Release00457B10()
+W8PathingService::~W8PathingService()
 {
     void** index;
 
@@ -2557,16 +2552,13 @@ void W8PathingService::Release00457B10()
         delete m_owned_054;
     }
     if (visible_waypoints_058 != 0) {
-        visible_waypoints_058->FreeIndex();
-        ::operator delete(visible_waypoints_058);
+        delete visible_waypoints_058;
     }
     if (rendered_waypoints_05c != 0) {
-        rendered_waypoints_05c->FreeIndex();
-        ::operator delete(rendered_waypoints_05c);
+        delete rendered_waypoints_05c;
     }
     if (collected_waypoints_060 != 0) {
-        collected_waypoints_060->FreeIndex();
-        ::operator delete(collected_waypoints_060);
+        delete collected_waypoints_060;
     }
     index = static_cast<void**>(m_pIndex_064);
     if (index != 0) {
@@ -2601,10 +2593,10 @@ void W8PathingService::Release00457B10()
         ::operator delete(index);
     }
     if (m_owned_0c8 != 0) {
-        ::operator delete(m_owned_0c8);
+        delete[] m_owned_0c8;
     }
     if (path_state_214 != 0) {
-        ::operator delete(path_state_214);
+        delete path_state_214;
     }
     if (g_path_scratch_00659c64 != 0) {
         free(g_path_scratch_00659c64);
@@ -2674,8 +2666,7 @@ W8PathingService::W8PathingService()
     value_1d4 = 0;
     value_1d6 = 0;
     value_1d8 = 0;
-    m_owned_0c8 = static_cast<W8PathSearchNode*>(
-        ::operator new((g_path_reserve_0060827a + 0x14) * 0x2c));
+    m_owned_0c8 = new W8PathSearchNode[g_path_reserve_0060827a + 0x14];
     search_node_count_0cc = 0;
     search_node_capacity_0d0 = 0;
     flag_09c = 0;
@@ -2946,8 +2937,8 @@ unsigned char W8PathingService::ProbeAttachmentPath00462360(
     flag_08c = 0;
     W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pIndex_074);
     if (visited->bucket_count != 0) {
-        ::operator delete(visited->bucket_heads);
-        ::operator delete(visited->entries);
+        delete[] static_cast<int*>(visited->bucket_heads);
+        delete[] static_cast<W8OctreeEntry*>(visited->entries);
     }
     visited->bucket_count = 0;
     visited->bucket_heads = 0;
@@ -4007,8 +3998,8 @@ unsigned short W8PathingService::FindWaypoint0045B120(
 
         W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pIndex_074);
         if (visited->bucket_count != 0) {
-            ::operator delete(visited->bucket_heads);
-            ::operator delete(visited->entries);
+            delete[] static_cast<int*>(visited->bucket_heads);
+            delete[] static_cast<W8OctreeEntry*>(visited->entries);
         }
         visited->bucket_count = 0;
         visited->bucket_heads = 0;
@@ -4027,8 +4018,8 @@ unsigned short W8PathingService::FindWaypoint0045B120(
             visited = static_cast<W8OctreeIndex*>(m_pIndex_074);
             flag_08c = 0;
             if (visited->bucket_count != 0) {
-                ::operator delete(visited->bucket_heads);
-                ::operator delete(visited->entries);
+                delete[] static_cast<int*>(visited->bucket_heads);
+                delete[] static_cast<W8OctreeEntry*>(visited->entries);
             }
             visited->bucket_count = 0;
             visited->bucket_heads = 0;
@@ -4641,8 +4632,8 @@ void W8PathingService::DrawPathPosition0045C9A0(
 
     W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pIndex_074);
     if (visited->bucket_count != 0) {
-        ::operator delete(visited->bucket_heads);
-        ::operator delete(visited->entries);
+        delete[] static_cast<int*>(visited->bucket_heads);
+        delete[] static_cast<W8OctreeEntry*>(visited->entries);
     }
     visited->bucket_count = 0;
     visited->bucket_heads = 0;
@@ -5233,18 +5224,15 @@ void W8PathingService::AddWaypoint0045DDB0(
         m_pSurfaces_048 = new_surfaces;
 
         if (visible_waypoints_058 != 0) {
-            visible_waypoints_058->FreeIndex();
-            ::operator delete(visible_waypoints_058);
+            delete visible_waypoints_058;
         }
         visible_waypoints_058 = new BitArray(capacity);
         if (rendered_waypoints_05c != 0) {
-            rendered_waypoints_05c->FreeIndex();
-            ::operator delete(rendered_waypoints_05c);
+            delete rendered_waypoints_05c;
         }
         rendered_waypoints_05c = new BitArray(capacity);
         if (collected_waypoints_060 != 0) {
-            collected_waypoints_060->FreeIndex();
-            ::operator delete(collected_waypoints_060);
+            delete collected_waypoints_060;
         }
         collected_waypoints_060 = new BitArray(capacity);
 

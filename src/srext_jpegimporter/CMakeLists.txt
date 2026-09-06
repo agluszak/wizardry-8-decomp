@@ -111,16 +111,10 @@
         COMPILE_OPTIONS "/GX-"
     )
 
-    set(SR_IMPORT_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/sr.lib")
-    add_custom_command(
-        OUTPUT "${SR_IMPORT_LIBRARY}"
-        COMMAND lib.exe /nologo /machine:ix86
-            "/def:${CMAKE_CURRENT_SOURCE_DIR}/src/srext_jpegimporter/sr-jpeg-imports.def"
-            "/out:${SR_IMPORT_LIBRARY}"
-        DEPENDS src/srext_jpegimporter/sr-jpeg-imports.def
-        VERBATIM
+    wiz8_add_import_library(
+        SREXT_JPEG_SR
+        src/srext_jpegimporter/sr-jpeg-imports.def
     )
-    add_custom_target(surrender_import_library DEPENDS "${SR_IMPORT_LIBRARY}")
 
     # Source ordering is intentional: the original DLL links the Sir-Tech codec
     # adapter first, IJG release 6 next, and the SurRender plug-in code last.
@@ -134,14 +128,20 @@
         src/srext_jpegimporter/srEXT_JPEGImporter.rc
     )
     wiz8_enable_cpp_compat(SREXT_JPEGIMPORTER)
-    add_dependencies(SREXT_JPEGIMPORTER surrender_import_library)
+    add_dependencies(
+        SREXT_JPEGIMPORTER
+        ${SREXT_JPEG_SR_IMPORT_TARGET}
+    )
     target_include_directories(SREXT_JPEGIMPORTER PRIVATE
         include
         src/srext_jpegimporter
         config/fid-overlays/ijg-jpeg-6
         "${IJG_JPEG_SOURCE}"
     )
-    target_link_libraries(SREXT_JPEGIMPORTER PRIVATE "${SR_IMPORT_LIBRARY}")
+    target_link_libraries(
+        SREXT_JPEGIMPORTER
+        PRIVATE "${SREXT_JPEG_SR_IMPORT_LIBRARY}"
+    )
     target_link_options(SREXT_JPEGIMPORTER PRIVATE
         /DEBUGTYPE:CV
         /OPT:NOREF

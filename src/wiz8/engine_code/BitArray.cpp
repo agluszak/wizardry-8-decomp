@@ -84,10 +84,10 @@ void BitArray::SetSize(unsigned int new_bit_count)
     memset(puiIndex, 0, word_count * sizeof(unsigned int));
 }
 
-/* Release the index. Nothing else is touched, so the caller owns whatever is
-   left behind. */
-// FUNCTION: WIZ8 0x0043ad90
-void BitArray::FreeIndex()
+/* The owning destructor. Only the index buffer needs explicit cleanup;
+   all other members are values. */
+ // FUNCTION: WIZ8 0x0043ad90
+BitArray::~BitArray()
 {
     free(puiIndex);
 }

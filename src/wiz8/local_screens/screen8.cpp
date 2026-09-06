@@ -31,8 +31,7 @@ extern W8GrowableVector<W8VectorElement005EEA28*>* g_list_0068F258;
 
 extern "C" {
 
-/* Two index arrays, released the way BitArray requires: FreeIndex is not a
-   destructor, so the storage goes back through the global operator. */
+/* Two owned index arrays, released through BitArray's destructor. */
 // GLOBAL: WIZ8 0x0068F288
 BitArray* g_bits_68f288;
 // GLOBAL: WIZ8 0x0068F28C
@@ -76,14 +75,12 @@ unsigned char Screen8Finalize(void)
     }
     BitArray* bits = g_bits_68f288;
     if (bits) {
-        bits->FreeIndex();
-        ::operator delete(bits);
+        delete bits;
         g_bits_68f288 = 0;
     }
     bits = g_bits_68f28c;
     if (bits) {
-        bits->FreeIndex();
-        ::operator delete(bits);
+        delete bits;
         g_bits_68f28c = 0;
     }
     if (g_block_68f280) {

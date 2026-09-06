@@ -490,7 +490,6 @@ unsigned short W8OctBuildPreTree004AFDA0::BuildRegions004B19F0()
     srHeap.free(region_centers_fc);
     region_centers_fc = 0;
     if (region_bits_f8 != 0) {
-        region_bits_f8->FreeIndex();
         delete region_bits_f8;
     }
     region_bits_f8 = 0;

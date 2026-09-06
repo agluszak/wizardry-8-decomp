@@ -240,8 +240,7 @@ namespace {
 void DestroyBitArray(BitArray*& bits)
 {
     if (bits != 0) {
-        bits->FreeIndex();
-        operator delete(bits);
+        delete bits;
         bits = 0;
     }
 }
@@ -249,9 +248,9 @@ void DestroyBitArray(BitArray*& bits)
 void DestroyIndex(W8OctreeIndex* index)
 {
     if (index != 0) {
-        operator delete(index->bucket_heads);
-        operator delete(index->entries);
-        operator delete(index);
+        delete[] static_cast<int*>(index->bucket_heads);
+        delete[] static_cast<W8OctreeEntry*>(index->entries);
+        delete index;
     }
 }
 
@@ -602,8 +601,8 @@ void GrowIndex00439290(W8OctreeIndex* index)
     if (capacity < 4) {
         capacity = 4;
     }
-    entries = static_cast<W8OctreeEntry*>(::operator new(capacity * 0xc));
-    bucket_heads = static_cast<int*>(::operator new(capacity * 4));
+    entries = new W8OctreeEntry[capacity];
+    bucket_heads = new int[capacity];
     fill = entries;
     fill_bucket = bucket_heads;
     remaining = capacity;
@@ -634,8 +633,8 @@ void GrowIndex00439290(W8OctreeIndex* index)
                 } while (slot != -1);
             }
         }
-        ::operator delete(index->bucket_heads);
-        ::operator delete(index->entries);
+        delete[] static_cast<int*>(index->bucket_heads);
+        delete[] static_cast<W8OctreeEntry*>(index->entries);
     }
     if (used < (int)capacity) {
         for (slot = used; slot < (int)capacity; ) {
@@ -1756,8 +1755,8 @@ W8Octree::~W8Octree()
 
     if (m_owned_150 != 0) {
         W8OctreeIndex* index = static_cast<W8OctreeIndex*>(m_owned_150);
-        operator delete(index->bucket_heads);
-        operator delete(index->entries);
+        delete[] static_cast<int*>(index->bucket_heads);
+        delete[] static_cast<W8OctreeEntry*>(index->entries);
         index->bucket_heads = 0;
         index->entries = 0;
         index->free_head = -1;
@@ -1807,13 +1806,12 @@ W8Octree::~W8Octree()
     if (pair != 0) {
         DestroyIndex(pair[0]);
         DestroyIndex(pair[1]);
-        operator delete(pair);
+        delete[] pair;
     }
 
     free(m_owned_0d8);
     if (pathing_180 != 0) {
-        pathing_180->Release00457B10();
-        operator delete(pathing_180);
+        delete pathing_180;
         pathing_180 = 0;
     }
     DestroyBitArray(m_pPropSunBits);
