@@ -7,7 +7,7 @@
 #include "srMeshModel.h"
 #include "srFlags.h"
 
-class srDD;
+#include "srDD.h"
 class srModelInstance;
 class srVertexProcessor;
 struct srVertexArray;

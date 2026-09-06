@@ -2,3 +2,8 @@ LIBRARY sr
 EXPORTS
     ?getCopyright@srCore@@QBEPBDXZ
     ?getVersion@srCore@@QBEPBDXZ
+    ?getName@srVectorProcessor@@SAPBDXZ
+    ?load@srVectorProcessor@@SAHPBD@Z
+    ?getID@srVectorProcessor@@SAJPBD@Z
+    ?release@srVectorProcessor@@SAXXZ
+    ?vp@srVectorProcessor@@0PAVsrVP@@A DATA

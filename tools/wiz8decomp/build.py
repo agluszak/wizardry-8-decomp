@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import struct
 import sys
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
@@ -10,8 +11,10 @@ from fcntl import LOCK_EX, LOCK_NB, LOCK_UN, flock
 from pathlib import Path
 from typing import Any
 
+import pefile
 import yaml
 
+from .binary.coff_archive import coff_member_kind, named_iat_archive, read_coff_archive
 from .build_dir import check_build_directory
 from .config import Settings
 from .paths import atomic_json
@@ -258,6 +261,16 @@ def prepare(settings: Settings) -> dict[str, Any]:
     }
 
 
+def _write_sr_assert_import(repository: Path) -> None:
+    path = repository / "build" / "decomp" / "sr-assert-import.lib"
+    payload = named_iat_archive(
+        "SR.dll", "?srAssertFail@@YAXPBD0J0@Z", "?srAssertFail@@YAXPBD0J0ZZ"
+    )
+    if not path.is_file() or path.read_bytes() != payload:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(payload)
+
+
 def _configure(settings: Settings) -> dict[str, Any]:
     prepare_result = prepare(settings)
     build = ContainerBuild.from_settings(settings)
@@ -265,6 +278,7 @@ def _configure(settings: Settings) -> dict[str, Any]:
     (build.build_dir / "tmp").mkdir(parents=True, exist_ok=True)
     validate_build_directory(settings)
     write_wiz8_data_source(settings.repo_dir)
+    _write_sr_assert_import(settings.repo_dir)
     detect = run(
         [
             "reccmp-project",
@@ -296,6 +310,102 @@ def configure(settings: Settings) -> dict[str, Any]:
         return _configure(settings)
 
 
+def _check_product_imports(repository: Path, target: str) -> dict[str, object]:
+    """Check the small consumer libraries against original PEs, not our sr.dll."""
+    boundaries = {
+        "WIZ8": (
+            ("MSS32", "mss32.dll", "src/wiz8/imports/mss32.def", "wiz8_mss32.lib"),
+            ("BINKW32", "binkw32.dll", "src/wiz8/imports/binkw32.def", "wiz8_binkw32.lib"),
+        ),
+        "SREXT_JPEGIMPORTER": (
+            (
+                "SURRENDER",
+                "sr.dll",
+                "src/srext_jpegimporter/sr-jpeg-imports.def",
+                "srext_jpeg_sr.lib",
+            ),
+        ),
+        "SREXT_UNZIP": (
+            ("SURRENDER", "sr.dll", "src/srext_unzip/sr-unzip-imports.def", "srext_unzip_sr.lib"),
+        ),
+    }
+    if target not in boundaries:
+        return {}
+    originals = yaml.safe_load((repository / "reccmp-user.yml").read_text())["targets"]
+    products = yaml.safe_load((repository / "build/decomp/reccmp-build.yml").read_text())["targets"]
+
+    def imports(path: Path) -> dict[str, set[str]]:
+        with pefile.PE(str(path), fast_load=True) as pe:
+            pe.parse_data_directories([pefile.DIRECTORY_ENTRY["IMAGE_DIRECTORY_ENTRY_IMPORT"]])
+            return {
+                entry.dll.decode("ascii").lower(): {
+                    symbol.name.decode("ascii") if symbol.name else f"#{symbol.ordinal}"
+                    for symbol in entry.imports
+                }
+                for entry in getattr(pe, "DIRECTORY_ENTRY_IMPORT", [])
+            }
+
+    def exports(provider: str) -> set[str]:
+        with pefile.PE(originals[provider]["path"], fast_load=True) as pe:
+            pe.parse_data_directories([pefile.DIRECTORY_ENTRY["IMAGE_DIRECTORY_ENTRY_EXPORT"]])
+            directory = getattr(pe, "DIRECTORY_ENTRY_EXPORT", None)
+            if directory is None:
+                return set()
+            return {symbol.name.decode("ascii") for symbol in directory.symbols if symbol.name}
+
+    original = imports(Path(originals[target]["path"]))
+    product_path = Path(products[target]["path"])
+    if not product_path.is_absolute():
+        product_path = repository / "build/decomp" / product_path
+    built = imports(product_path)
+    checked: dict[str, object] = {}
+    for provider, dll, definition, library in boundaries[target]:
+        expected = original[dll].copy()
+        # Retail's malformed name is not exported by its own MSS provider.
+        if dll == "mss32.dll" and "_AIL_init_sample@" in expected:
+            expected.remove("_AIL_init_sample@")
+            expected.add("_AIL_init_sample@4")
+        declared = set()
+        for line in (repository / definition).read_text().splitlines():
+            line = line.split(";", 1)[0].strip()
+            if line and not line.startswith(("LIBRARY", "EXPORTS")):
+                declared.add(line)
+        imported = set()
+        for member in read_coff_archive(repository / "build/decomp" / library):
+            if coff_member_kind(member.data) != "coff-import":
+                continue  # ordinary descriptor/terminator objects
+            name = member.data[20:].split(b"\0", 1)[0].decode("ascii")
+            name_type = (struct.unpack_from("<H", member.data, 18)[0] >> 2) & 7
+            if name_type == 2:
+                name = name[1:] if name.startswith(("_", "@", "?")) else name
+            elif name_type != 1:
+                raise RuntimeError(f"unexpected import encoding in {library}: {name_type}")
+            imported.add(name)
+        for owner, names in ((definition, declared), (library, imported)):
+            if names != expected:
+                raise RuntimeError(
+                    f"{owner}: missing {sorted(expected - names)}, "
+                    f"extra {sorted(names - expected)} against retail imports"
+                )
+        if not expected <= exports(provider) or not built[dll] <= expected:
+            raise RuntimeError(f"{target}/{dll}: unsupported provider or consumer import names")
+        checked[dll] = {
+            "retail": len(original[dll]),
+            "library": len(imported),
+            "linked": len(built[dll]),
+        }
+    if target == "WIZ8":
+        unsupported = built["sr.dll"] - exports("SURRENDER")
+        if unsupported:
+            raise RuntimeError(
+                f"WIZ8/SR.dll: names absent from retail provider: {sorted(unsupported)}"
+            )
+        if "?srAssertFail@@YAXPBD0J0ZZ" not in built["sr.dll"]:
+            raise RuntimeError("WIZ8/SR.dll: srAssertFail's provider import is missing")
+        checked["sr.dll"] = {"linked": len(built["sr.dll"]), "provider_supported": True}
+    return checked
+
+
 def build_target(
     settings: Settings, target: str = "match", jobs: int | None = None
 ) -> dict[str, Any]:
@@ -306,6 +416,7 @@ def build_target(
             "WIZ8" if resolved_target in {"WIZ8", "WIZ8_RUNTIME", "WIZ8_RUNTIME_TEST"} else target
         )
         write_wiz8_data_source(settings.repo_dir)
+        _write_sr_assert_import(settings.repo_dir)
         validate_build_directory(settings)
         prerequisites_ready = all(
             mount.host.exists()
@@ -332,6 +443,7 @@ def build_target(
             "parallel_makefiles": parallel_makefiles,
             "status": "built",
             "log": str(Path("build/logs/product-build.json")),
+            "imports": _check_product_imports(settings.repo_dir, resolved_target),
         }
         if resolved_target == "WIZ8":
             from .unresolved import unresolved_report, verify_unresolved_delta

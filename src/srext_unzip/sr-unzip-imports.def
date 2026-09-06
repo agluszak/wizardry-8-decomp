@@ -8,35 +8,14 @@ EXPORTS
     ?allocate@srHeap@@QAEPAXK@Z
     ?free@srHeap@@QAEXPAX@Z
     ?getIStreamOpener@srCore@@QBEPAVsrIStreamOpener@@XZ
-    ??0Opener@srIStreamOpener@@QAE@XZ
     ??1Opener@srIStreamOpener@@UAE@XZ
-    ??4Opener@srIStreamOpener@@QAEAAV01@ABV01@@Z
-    ??0srIStreamOpener@@QAE@XZ
-    ??1srIStreamOpener@@QAE@XZ
-    ??4srIStreamOpener@@QAEAAV0@ABV0@@Z
     ?addStreamType@srIStreamOpener@@QAEXPAVOpener@1@PBD@Z
-    ?findOpener@srIStreamOpener@@AAEPAVOpener@1@PBD@Z
-    ?open@srIStreamOpener@@AAEPAVsrBinIStream@@PBD0@Z
-    ?open@srIStreamOpener@@QAEPAVsrBinIStream@@PBD@Z
-    ?parsePrefix@srIStreamOpener@@AAEXPAPAD0PBD@Z
     ?getSize@srBinIMStream@@UAEKXZ
     ?seek@srBinIMStream@@UAEAAVsrBinStream@@K@Z
     ?seek@srBinIMStream@@UAEAAVsrBinStream@@KW4e_seekDir@2@@Z
-    ??0srConfig@@QAE@XZ
-    ??1srConfig@@QAE@XZ
-    ?append@srConfig@@QAEXPBD0@Z
-    ?dump@srConfig@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?exists@srConfig@@QBEHPBD@Z
     ?get@srConfig@@QBEPBDPBD@Z
     ?getBool@srConfig@@QBEHPBD@Z
-    ?getFloat@srConfig@@QBEMPBD@Z
-    ?getLong@srConfig@@QBEJPBD@Z
-    ?remove@srConfig@@QAEXPBD@Z
-    ?removeAll@srConfig@@QAEXXZ
-    ?set@srConfig@@QAEXPBD0@Z
-    ?setBool@srConfig@@QAEXPBDH@Z
-    ?setFloat@srConfig@@QAEXPBDM@Z
-    ?setLong@srConfig@@QAEXPBDJ@Z
     ?srConfig@@3V0@A
     ?srCore@@3V0@A
     ?srHeap@@3V0@A
@@ -44,12 +23,6 @@ EXPORTS
     ?vget@srBinIStream@@MAEGXZ
     ?vread@srBinIMStream@@EAEKPAXK@Z
     ??0srStringTable@@QAE@XZ
-    ??0srStringTable@@QAE@ABV0@@Z
     ??1srStringTable@@QAE@XZ
-    ??4srStringTable@@QAEAAV0@ABV0@@Z
-    ??AsrStringTable@@QAEPADH@Z
     ?addSeparatedStrings@srStringTable@@QAEXPBD0H@Z
-    ?addString@srStringTable@@QAEXPBD@Z
-    ?getCount@srStringTable@@QBEJXZ
     ?getString@srStringTable@@QBEPADJ@Z
-    ?reset@srStringTable@@QAEXXZ

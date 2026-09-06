@@ -10,26 +10,26 @@
 
 class srStringTable;
 
-class SR_SYSTEM_API srSystem {
+class srSystem {
 public:
-    static long chDir(const char* path);
-    static char* fullPath(
+    static SR_SYSTEM_API long chDir(const char* path);
+    static SR_SYSTEM_API char* fullPath(
         char* absolute_path, const char* path, unsigned long size);
-    static char* getCwd(char* path, long size);
-    static void makePath(
+    static SR_SYSTEM_API char* getCwd(char* path, long size);
+    static SR_SYSTEM_API void makePath(
         char* path,
         const char* drive,
         const char* directory,
         const char* filename,
         const char* extension);
-    static long scanFiles(srStringTable& files, const char* path);
-    static long scanFiles(
+    static SR_SYSTEM_API long scanFiles(srStringTable& files, const char* path);
+    static SR_SYSTEM_API long scanFiles(
         srStringTable& files, const char* directory, const char* pattern);
-    static long scanLibraries(
+    static SR_SYSTEM_API long scanLibraries(
         srStringTable& libraries,
         const char* directory,
         const char* extension);
-    static void splitPath(
+    static SR_SYSTEM_API void splitPath(
         const char* path,
         char* drive,
         char* directory,

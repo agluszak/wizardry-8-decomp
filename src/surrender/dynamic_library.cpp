@@ -1,4 +1,5 @@
 #include "surrender/srDynamicLibrary.h"
+#include "surrender/srPlugin.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -179,12 +180,10 @@ int srDynamicLibrary::testDependencies(const char* name)
 // FUNCTION: SURRENDER 0x10046500
 unsigned long srDynamicLibrary::getVersion(const char* name)
 {
-    typedef unsigned long(__cdecl* GetLibraryVersion)();
-
     void* library = load(name);
     if (library != 0) {
-        GetLibraryVersion get_library_version =
-            reinterpret_cast<GetLibraryVersion>(
+        srGetLibraryVersionCdeclFn get_library_version =
+            reinterpret_cast<srGetLibraryVersionCdeclFn>(
                 getFunction(library, "srGetLibraryVersion"));
         if (get_library_version != 0) {
             const unsigned long version = get_library_version();

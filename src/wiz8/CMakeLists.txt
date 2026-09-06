@@ -32,7 +32,8 @@ endif()
     # directory through GetFileFirst.
     target_link_libraries(wiz8_recovered_objects PRIVATE wiz8_compile_settings)
 
-    wiz8_add_import_library(WIZ8_SR src/wiz8/imports/sr.def)
+    wiz8_add_import_library(WIZ8_SR src/wiz8/imports/sr.def
+        IMPORT_OBJECTS "${CMAKE_CURRENT_BINARY_DIR}/sr-assert-import.lib")
     wiz8_add_import_library(WIZ8_MSS32 src/wiz8/imports/mss32.def PRESERVE_C_DECORATION)
     wiz8_add_import_library(WIZ8_BINKW32 src/wiz8/imports/binkw32.def PRESERVE_C_DECORATION)
 

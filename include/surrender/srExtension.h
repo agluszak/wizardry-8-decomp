@@ -5,11 +5,18 @@
 #include "srCore.h"
 #include "srPlugin.h"
 
-class SR_DLL_IMPORT srExtension {
+class
+#if defined(SURRENDER_BUILD)
+__declspec(dllexport)
+#else
+SR_DLL_IMPORT
+#endif
+srExtension {
 public:
     srExtension(const char* name);
     ~srExtension();
-    srExtension& operator=(const srExtension& other);
+    // SYNTHETIC: SURRENDER 0x10013D50
+    // srExtension::operator=(srExtension const &)
 
     static void dumpAll(std::ostream& stream);
     static srExtension* find(const char* name);
@@ -22,7 +29,9 @@ public:
     static void releaseAll();
 
 private:
+    // GLOBAL: SURRENDER 0x100A45F0
     static long count;
+    // GLOBAL: SURRENDER 0x100A45EC
     static srExtension* firstExt;
 
     srPlugin* plugin_00;

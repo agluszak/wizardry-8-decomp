@@ -5,6 +5,10 @@ project(wizardry8_decomp LANGUAGES C CXX)
 option(WIZ8_LINT_COMPILE_ONLY "Compile recovered C++ with modern diagnostics" OFF)
 option(WIZ8_FULL_DIAGNOSTICS "Report recovery warnings without making them errors" OFF)
 
+# Keep provider static-data definitions in provider mode in the lint/index TU too.
+set_source_files_properties(src/surrender/extension.cpp src/surrender/vector_processor.cpp PROPERTIES
+    COMPILE_DEFINITIONS SURRENDER_BUILD)
+
 if(WIZ8_LINT_COMPILE_ONLY)
     include(src/wiz8/sources.cmake)
     if(WIZ8_FULL_DIAGNOSTICS)
@@ -18,8 +22,10 @@ if(WIZ8_LINT_COMPILE_ONLY)
         ${WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS}
         src/surrender/core.cpp
         src/surrender/dynamic_library.cpp
+        src/surrender/extension.cpp
         src/surrender/string_table.cpp
         src/surrender/system.cpp
+        src/surrender/vector_processor.cpp
         src/wiz8/zlib_wrappers.c
     )
     target_include_directories(${wiz8_clang_target} PRIVATE

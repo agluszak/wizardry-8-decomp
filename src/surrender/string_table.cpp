@@ -64,12 +64,6 @@ char* srStringTable::getString(long index) const
     return strings_00[index];
 }
 
-// FUNCTION: SURRENDER 0x10003A60
-long srStringTable::getCount() const
-{
-    return count_08;
-}
-
 // FUNCTION: SURRENDER 0x10003A70
 char* srStringTable::operator[](int index)
 {

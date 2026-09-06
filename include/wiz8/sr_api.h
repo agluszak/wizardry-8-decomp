@@ -22,7 +22,8 @@ __declspec(dllimport) void __cdecl srAssertSetFunc(srAssertHandler handler);
  * message (CharacterPointerToPartySlot, RPCPtrToPCSlot, MonsterInfoFromID)
  * fold that cleanup across the assert call. The original translation units
  * therefore saw a fixed-arity declaration, and their import library mapped
- * its mangling onto the variadic export - which is what sr.def models. The
+ * its mangling onto the variadic export. The generated sr-assert-import.lib
+ * reproduces that IAT-symbol/hint-name distinction without a code wrapper. The
  * line is long because the true ABI spells it long; int folds identically,
  * so only the arity is proven, not the width.
  */

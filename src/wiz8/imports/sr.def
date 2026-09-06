@@ -79,7 +79,8 @@ EXPORTS
     ?stepForward@srVariableTimer@@QAEXK@Z
     ?setGamma@srGERD@@QAEXABV?$srVector3T@M@@@Z
     ?srAssertFail@@YAXPBD0J0ZZ
-    ?srAssertFail@@YAXPBD0J0@Z = ?srAssertFail@@YAXPBD0J0ZZ
+; The fixed-arity caller's IAT symbol is provided by sr-assert-import.lib.
+; Its hint/name entry names the variadic export above; a DEF alias does not.
 
 ; Renderer entry points the bring-up path calls. The names are taken verbatim
 ; from Wiz8.exe's import table, so the declarations in recovered source must

@@ -19,7 +19,8 @@ public:
     void addString(const char* string);
     void addSeparatedStrings(
         const char* strings, const char* separators, int append_slash);
-    long getCount() const;
+    // FUNCTION: SURRENDER 0x10003A60
+    long getCount() const { return count_08; }
     char* getString(long index) const;
     void reset();
 

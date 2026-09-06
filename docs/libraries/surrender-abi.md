@@ -7,6 +7,106 @@ binary containing it. Thus SurRender bodies belong to `SURRENDER`, while Wizardr
 invoke SurRender belong to `WIZ8`. This document covers the shared declaration surface and the
 evidence that establishes it.
 
+## Consumer ABI and provider recovery are independent
+
+Consumer import libraries describe the **original provider**, even when that function has a
+recovered implementation. Wiz8, JPEG and ZIP must not link against the partial `SURRENDER` target.
+The original has 2059 exports; the recovered comparison DLL has only a small subset. Its DEF is not
+its complete export list: member `dllexport` declarations contribute exports too.
+
+Use these distinctions without adding another target inventory:
+
+| Family | Recovered boundary | Recovered build product |
+| --- | --- | --- |
+| Wiz8 → SR / MSS / Bink | Static consumer declarations and retail import libraries | Partial Wiz8 comparison/runtime targets |
+| JPEG / ZIP | Extension entrypoints, `srPlugin`, retail SR imports | Both extension DLLs; not a complete reconstructed runtime |
+| DirectX7 | Six driver entrypoint types in `srDD.h`, checked against `srGERD` | No recovered driver target |
+| Generic VP | Three entrypoint types in `srVectorProcessor.h`, loader and ownership paths | No recovered backend target |
+| Other known srDD / srVP / srEXT binaries | Evidence targets; family resemblance is not complete ABI recovery | No recovered products |
+| SR provider | Incrementally recovered classes and module loaders | Comparison DLL, not a replacement for retail SR |
+
+Presence in `reccmp-project.yml` establishes a known binary, not a recovered build product,
+usable replacement, import library, or tested runtime load.
+
+The recovered extension and VP loaders deliberately retain their calls to unrecovered
+`srConfig::get`, the `srConfig` global, `srDebugPrintf`, and `srStreamPrintf`. Consequently
+`SURRENDER` now uses `/FORCE:UNRESOLVED` explicitly as a comparison image. Those unresolved calls
+are not stubs or retail self-imports. Do not deploy this image; recovering the configuration,
+heap/index ownership and logging dependency closure remains necessary before runtime use.
+
+## Module ABI spine
+
+`src/surrender/extension.cpp` recovers the eleven authored `srExtension` bodies at
+`0x10013840`–`0x10013AF0`; assignment at `0x10013D50` remains a compiler-generated shallow copy,
+not an invented ownership operation. The loader rejects empty names, reuses an already-loaded
+case-sensitive name, obtains an optional path from `DLL_PATH`, constructs `srEXT_%s`, checks
+compatibility through `srDynamicLibrary`, resolves `srInitPlugin`, and retains plugin and module
+together. Destruction deletes the plugin **before** freeing its DLL. Failure paths retain retail
+logging and unload behavior; there is no invented allocation-failure guard after extension creation.
+
+Every available srEXT binary exports `srGetLibraryVersion` at ordinal 1 and `srInitPlugin` at 2;
+their version getters return `0x012A0209`. Both functions take zero arguments. JPEG and ZIP
+therefore do not settle an original cdecl/stdcall spelling: both conventions produce plain `RET`
+for these x86 calls. `srPlugin.h` records both typed spellings, the loader uses the cdecl form,
+and ZIP's existing stdcall definitions are retained rather than relabeled as proven cdecl.
+The shared plugin interface remains deleting destructor followed by `getDescription() const`.
+
+DirectX7 exposes `srDDGetDriverApiVersion` (`0x10001680`, value `0x128`),
+`srDDGetDeviceCount` (`0x10001690`), `srDDConfigureDriver` (`0x10001700`),
+`srDDGetDriverName` (`0x10001900`, `DirectX7`), `srDDGetDeviceName` (`0x10001910`), and
+`srDDInitDevice` (`0x10001AA0`). `srGERD::loadDeviceWithFileName` at `0x10018870` resolves all six,
+requires API >= `0x128`, supplies the uppercased `DD_<driver>` configuration, checks the device
+index, and retains the initialized `srDD` with its module. The argument-bearing calls prove cdecl
+cleanup; the indices are scalar words, not Ghidra's initially inferred string pointers.
+`srDD.h` does not invent the still-unrecovered device vtable or layout.
+
+Generic VP exports API (`0x10001000`, value `0x119`), ID (`0x10001010`, value 0), and initialization
+(`0x10001020`, a `0x440` allocation). This is not an `srPlugin` or `srClassSupport` factory.
+The recovered provider-side `srVectorProcessor` loads the named file, resolves API and factory,
+requires API >= `0x119`, installs the resulting `srVP`, and retains its module. ID probing loads
+and frees a separate reference. Release deletes the owned base/debug processors before unloading.
+The full Generic implementation, base initialization, best-backend selection, and debug wrapper
+remain unrecovered; no empty replacement backend is built.
+
+## Declaration visibility and client construction
+
+Apply import/export and inline attributes where evidence reaches, not with a global import bypass.
+ZIP's `srZipOpener::open` at `0x1001080C` reads the `srStringTable` count directly from object+8;
+`getCount()` is now header-visible while retaining its exported out-of-line identity at
+`0x10003A60`. Its unnecessary ZIP import is gone. `srSystem` uses member-level visibility because
+class-wide export generated an assignment export absent from retail. Other class-wide declarations
+are not mechanically rewritten without comparable evidence.
+
+All available consumer binaries were checked for retained support-template names, imports and
+debug records. AVI (`0x100013EE`), default (`0x1000125E`) and FLIC (`0x100014F2`) call imported
+`srColorSurface` constructors, install client-local tables, and expose class ID `0x3110`, matching
+the self-support pattern in JPEG and Wiz8. LWO's texture construction at `0x10002E06` likewise
+installs a local table with ID `0x2112`. The driver and VP families supply no comparable
+`srClassSupport` import evidence; their factories must not be generalized to that template.
+
+None of the retained names or NB10 PDB references establishes an original SDK macro, nested alias,
+or declaration macro spelling. `SR_NEW` and its `ClientType` implementation remain explicitly
+provisional. Application variables/containers use the canonical class pointer, with `ClientType`
+confined to the construction interface. No speculative `SR_CLASS` macro is introduced.
+
+## Import-name verification
+
+The existing build path checks JPEG/ZIP/MSS/Bink DEFs **and generated import-library names** against
+the original consumer import table, and checks names against the original provider exports.
+Unused imports need not be linked into a partial consumer: MSS has 56 library names but currently
+54 linked names; Bink has 12/12, JPEG 69/69, and ZIP 25/25. ZIP's former 27 unused DEF entries were
+removed. MSS's retail `_AIL_init_sample@` is explicitly normalized to the provider-exported
+`_AIL_init_sample@4`; the malformed spelling is not treated as authoritative callable ABI.
+Wiz8's larger SR boundary is checked for provider-supported linked names, not forced to equal the
+retail consumer's set while recovery is incomplete.
+
+For `srAssertFail`, the generated long-form COFF import member owns the fixed-arity caller IAT
+symbol `__imp_?srAssertFail@@YAXPBD0J0@Z`, while its hint/name section names the provider's variadic
+`?srAssertFail@@YAXPBD0J0ZZ`. It has no code section. LIB combines this member with the ordinary
+SR descriptor/terminators, preserving DLL grouping; a plain DEF alias did not express this mapping.
+The final PE check confirms the real provider spelling without changing the load-bearing caller
+declaration or introducing a thunk wrapper.
+
 ## What the export table already settles
 
 `sr.dll` exports 2059 decorated symbols and Wizardry imports 461 of them across 51 classes. Names,

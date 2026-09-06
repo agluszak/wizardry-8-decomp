@@ -69,12 +69,10 @@ The current source calls `srAssertFail`, whose actual Wiz8 import is the variadi
 `?srAssertFail@@YAXPBD0J0ZZ`. `include/wiz8/sr_api.h` owns the fixed-arity call declaration proven by
 the exact recovered bodies. For these four-argument calls, its 32-bit cdecl ABI is compatible with
 the DLL export; changing the declaration itself to variadic changes otherwise-exact VC6 output.
-The narrow `src/wiz8/imports/sr.def` imports only the canonical decorated name, while linker
-diagnostics retain the fixed-arity C++ spelling and temporary C spelling as unresolved boundaries.
-VC6 LINK has no `/alternatename` support, and generating fictitious DLL import names would make the
-PE fail at load time. Those spellings will disappear as the artificial bootstrap units are restored
-to their original declarations; until then `/FORCE:UNRESOLVED` records them without changing exact
-matching bodies.
+`src/wiz8/imports/sr.def` retains the canonical provider name. Build preparation generates an
+import-data-only COFF member whose fixed-arity IAT symbol points to that variadic PE hint/name.
+The final PE imports the actual provider export; there is no call wrapper or unresolved assertion
+alias. The ordinary build checks this mapping and the retail-backed MSS/Bink/JPEG/ZIP import sets.
 
 ## reccmp
 

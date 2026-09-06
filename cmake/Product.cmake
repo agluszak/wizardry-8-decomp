@@ -25,7 +25,8 @@ function(wiz8_enable_cpp_compat TARGET)
 endfunction()
 
 function(wiz8_add_import_library NAME DEF_FILE)
-    cmake_parse_arguments(ARG "PRESERVE_C_DECORATION" "" "" ${ARGN})
+    # Consumer ABI describes the retail DLL, never the partial SURRENDER target.
+    cmake_parse_arguments(ARG "PRESERVE_C_DECORATION" "" "IMPORT_OBJECTS" ${ARGN})
     string(TOLOWER "${NAME}" target_stem)
     set(import_library "${CMAKE_CURRENT_BINARY_DIR}/${target_stem}.lib")
     set(import_def "${CMAKE_CURRENT_SOURCE_DIR}/${DEF_FILE}")
@@ -57,12 +58,21 @@ function(wiz8_add_import_library NAME DEF_FILE)
         )
         list(APPEND import_objects "${import_object}")
     endif()
+    set(def_library "${import_library}")
+    set(combine_imports)
+    if(ARG_IMPORT_OBJECTS)
+        set(def_library "${CMAKE_CURRENT_BINARY_DIR}/${target_stem}-def.lib")
+        # Place custom DLL members before the ordinary library's terminators.
+        set(combine_imports COMMAND lib.exe /nologo
+            "/out:${import_library}" ${ARG_IMPORT_OBJECTS} "${def_library}")
+    endif()
     add_custom_command(
         OUTPUT "${import_library}"
         COMMAND lib.exe /nologo /machine:ix86
             "/def:${import_def}" ${import_objects}
-            "/out:${import_library}"
-        DEPENDS "${DEF_FILE}" "${import_def}" ${import_objects}
+            "/out:${def_library}"
+        ${combine_imports}
+        DEPENDS "${DEF_FILE}" "${import_def}" ${import_objects} ${ARG_IMPORT_OBJECTS}
         VERBATIM
     )
     add_custom_target(${target_stem}_import_library DEPENDS "${import_library}")

@@ -362,12 +362,11 @@ unsigned char ReadWorldEnvironment004BC9D0(
 unsigned char ReadWorldClipPlanes004BCE20(
     W8ReadLevelInfo* pInfo, W8World* pWorld)
 {
-    W8GrowableVector<
-        srClipPlane::ClientType*> clip_planes(5);
+    W8GrowableVector<srClipPlane*> clip_planes(5);
     srVector4T<float> plane;
     srVector4T<float> serialized_position;
     srVector3T<double> position;
-    srClipPlane::ClientType* clip_plane;
+    srClipPlane* clip_plane;
     char name[64];
     int count;
     int index;

@@ -4,6 +4,15 @@
 #include "srMath.h"
 
 class srARGB;
+class srVP;
+
+// Generic exports API 0x119, ID 0, and a factory returning an owned srVP.
+// All three take no arguments; cdecl is the loader spelling, not proof that
+// the SDK source could not have used the x86-equivalent stdcall spelling.
+enum { SR_VP_MIN_API_VERSION = 0x119 };
+typedef unsigned long (__cdecl *srGetVectorProcessorAPIFn)();
+typedef long (__cdecl *srGetVectorProcessorIDFn)();
+typedef srVP* (__cdecl *srInitVectorProcessorFn)();
 
 /* These names are present in srDebugVP's own signature table. */
 typedef unsigned char SRBYTE;
@@ -462,6 +471,11 @@ public:
    spelling is inferred from the named `_minMax` implementation boundary. */
 class srVectorProcessor {
 public:
+    static SR_DLL_IMPORT const char* getName();
+    static SR_DLL_IMPORT int load(const char* filename);
+    static SR_DLL_IMPORT long getID(const char* filename);
+    static SR_DLL_IMPORT void release();
+
     static inline void minMax(
         const srVector3* source,
         srVector3& minimum,
@@ -472,5 +486,16 @@ public:
     }
 
 private:
+    static void install10064390(srVP* processor);
+    // GLOBAL: SURRENDER 0x100A923C
     static SR_DLL_IMPORT srVP* vp;
+    // Original private spellings are not exported.
+    // GLOBAL: SURRENDER 0x100A9240
+    static srVP* base_100a9240;
+    // GLOBAL: SURRENDER 0x100A9244
+    static srVP* debug_100a9244;
+    // GLOBAL: SURRENDER 0x100A9248
+    static unsigned long state_100a9248;
+    // GLOBAL: SURRENDER 0x100A924C
+    static void* module_100a924c;
 };
