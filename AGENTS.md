@@ -35,7 +35,13 @@ large generated code in named `build/` artifacts, and do not provide human/JSON 
 - A distinct vtable, lifecycle body, address, or template emission does not alone prove authored source. Compare canonical bases/templates first. Record emitted instantiations with `TEMPLATE`; keep generic definitions in canonical headers.
 - Preserve proven translation-unit ownership and order in `src/wiz8/sources.cmake`. Keep address-qualified template emissions separate until ownership is proved.
 
-Faithfulness is absolute; byte identity is incremental.
+Faithfulness is absolute; byte identity is incremental. Recover plausible authored C++, not the
+compiler's lowered representation. Preserve conventional counted `for` loops; do not turn them into
+guarded `do`/`while` loops or add redundant countdown variables solely to match instructions. Do not
+introduce artificial scopes, duplicate cleanup, or reshuffle equivalent expressions for a better
+score. A different machine control-flow graph alone does not prove different source syntax.
+Retain straightforward source when no evidence-backed correction is available; report unresolved
+mismatches rather than declaring them harmless without evidence.
 
 Marker rules enforced by `just check`: `FUNCTION` sits immediately above its declaration; `TEMPLATE` is followed immediately by a comment naming the emitted symbol and owns no body; `LIBRARY` is address-only.
 
@@ -75,7 +81,8 @@ Investigate failures relevant to the change and report uncertainty when no sound
 do not reproduce unrelated baseline failures as a publication ritual. Deleting policy-only tests
 does not require a game build or a broad audit.
 
-Selected-function relocation-masked comparison is authoritative; whole-image comparison is diagnostic.
+Selected-function relocation-masked comparison is authoritative for byte identity, not authored source
+syntax; whole-image comparison is diagnostic.
 Preserve `/OPT:NOREF` comparison and `/OPT:REF` runtime modes. `just runtime-test` must not add test
 branches to matching bodies.
 
