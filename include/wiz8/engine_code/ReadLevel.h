@@ -83,6 +83,9 @@ unsigned char ReadSingleLevelMesh00485B20(
     W8ReadLevelInfo* info, srModelInstance** instance,
     int positional_0, int positional_1, const char* name,
     unsigned char load_materials);
+unsigned char ReadMultipleLevelMeshes00488240(
+    W8ReadLevelInfo* info, srModelInstance** instances,
+    unsigned long count, const char* name);
 unsigned char SkipSingleLevelMesh00487BD0(W8ReadLevelInfo* info);
 unsigned char ReadWorldParticles004BD0D0(
     W8ReadLevelInfo* info,

@@ -15,6 +15,7 @@ public:
     class srRegistry::ClassNode* getClassNode() const override;  /* 0x00474820 */
 
     int FindMappedIndex(short key);       /* 0x004712D0 */
+    void SetMappedVertex00471160(short vertex, short key);
     void LinkTo(stMeshModel* other);      /* 0x00471D60 */
     void* GetVertex(unsigned int index);  /* 0x00471AA0 */
     int FindSkinTable004736D0(const char* name);
@@ -24,7 +25,12 @@ public:
     void RemoveSkinTablesForCycle00473780(const char* cycle_name);
     srVector3T<float>* GetVertexLocations00471AD0(
         unsigned int frame, char load, float interpolation);
-    int InitializeVertexWeights004721E0(char initialize);
+    srVector3T<float>* GetVertexDIG00472100(
+        char initialize, int table);
+    float* InitializeVertexWeights004721E0(char initialize);
+    void Function5AA400(stMeshModel* linked_model);
+    void InitializeVertexFrames00473B00(int frame_count);
+    void FinalizeVertexFrame00473180(int frame);
 
     stMeshModel* next;                    /* 0x398 */
     stMeshModel* previous;                /* 0x39c */
@@ -41,7 +47,9 @@ public:
     W8GrowableVector<char*> skin_table_names; /* 0x410 */
     W8GrowableVector<short> mapped_values; /* 0x420 */
     W8GrowableVector<short> mapped_keys;   /* 0x430 */
-    unsigned char unknown_440[0x18];
+    unsigned char unknown_440[4];
+    float vertex_compression_scale_444;
+    unsigned char unknown_448[0x10];
     W8GrowableVector<int*>* skin_blanking_apt_458;
     W8GrowableVector<int>* skin_blanking_apt_number_45c;
     W8GrowableVector<unsigned char>* skin_blanking_checked_460;

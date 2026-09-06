@@ -1228,7 +1228,6 @@ W8AnimRepBase005EC1D8* W8MonsterRep::Clone()
 
 extern "C" {
 extern void Function4C4EF0(void);
-extern void Function4A7A70(int value);
 }
 
 // VTABLE: WIZ8 0x005ed22c W8Monster
@@ -5782,10 +5781,10 @@ void DeleteMonster004C5860(W8Monster* monster)
 }
 extern "C" {
 // FUNCTION: WIZ8 0x004C59C0
-void Function4C59C0(int enabled, int value)
+void Function4C59C0(W8Monster* monster, W8World* world)
 {
-    if (enabled != 0 && value != 0) {
-        Function4A7A70(value);
+    if (monster != 0 && world != 0) {
+        monster->DetachRepresentation004A7A70(world);
     }
 }
 }

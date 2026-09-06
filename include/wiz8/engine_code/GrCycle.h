@@ -144,6 +144,7 @@ public:
     void CreateGroundShadow(int value_140, int value_13c);
     void SetGroundShadowVisible(char visible);
     void ResetRepresentation004A7420();
+    void DetachRepresentation004A7A70(W8World* world);
     /* Runs at the end of every representation update; its own body is the
        shake/particle event walk and is not recovered yet. */
     void UpdateParticleAttachments004A7E50();

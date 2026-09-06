@@ -107,16 +107,20 @@ public:
     virtual void renderTriMesh(class srGERD& renderer, const TriMesh& mesh);
     srPtr<srTextureIFace>* getPolyTexture(long polygon, long layer, int table);
     srVector3i* getPolyVertex();
+    srVector3i* getPolyUVIndex(long layer, int table);
     srVector2T<float>* getVertexTexCoords(long vertex, long layer, int table);
     srPtr<srMaterialIFace>* getVertexMaterial(
         long vertex, e_side side, int table);
     unsigned long* getVertexShadeIndex(int table);
+    srVector3T<float>* getVertexNormal();
+    srVector4T<float>* getPolyEq();
     srVector3T<float>* getVertexDIG(long vertex, int table);
     srMaterialIFace* getMaterial(long polygon, e_side side) const;
     srTextureIFace* getTexture(long polygon, long layer) const;
     void setMaterial(srMaterialIFace* material, long polygon, e_side side);
     void setTexture(srTextureIFace* texture, long polygon, long layer);
     void setShader(srShader shader, long pass);
+    void setUVCount(long count);
     void setActivePolygonCount(long count);
     unsigned long* getActivePolygonTable(int table);
     srVector3T<float>* getVertexLoc();

@@ -19,6 +19,8 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/stLight.h"
 #include "wiz8/engine_code/stParticle.h"
+#include "wiz8/combat_state.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 #include "surrender/srColorSurface.h"
@@ -59,6 +61,25 @@ extern void Function490B90(void);
 extern unsigned char g_world_cleanup_flag_00659757;
 extern W8GrowableVector<W8World*> g_worlds_00659a80;
 extern void Function46DE40(W8World* world);
+extern unsigned char g_monster_combat_timer_enabled_006f0531;
+extern unsigned char g_navigator_vertical_enabled_006081f8;
+extern unsigned char g_world_mesh_update_enabled_00607d7d;
+extern void Function444F70(int value, float duration, float intensity,
+                          unsigned char reverse);
+extern void UpdateWorldMonsters0046DD70(W8World* world);
+extern void Function4A27C0(W8World* world);
+extern void Function4AAB80(W8World* world);
+extern void UpdateAmbientSounds0047A3E0(W8World* world);
+extern void WorldUpdateLights(W8World* world);
+extern void RunMonsterGenerators(void);
+extern void Function443AE0(W8World* world);
+extern void Function4D8E40(void);
+extern void Function500930(void);
+extern void RepositionAmbientSounds0047A600(W8World* world);
+extern void RequestRefreshPartyState(void);
+extern void Function4AE310(void);
+extern void Function482770(void);
+extern void Function50D530(void);
 
 // FUNCTION: WIZ8 0x00450B10
 void ConstructWorldCollections(W8World* world)
@@ -292,6 +313,74 @@ W8World* CreateWorld()
     world->m_positional_01c = 1.0f;
     world->environment_range_start_014 = 0.75f;
     return world;
+}
+
+// FUNCTION: WIZ8 0x0044F400
+void UpdateWorlds0044F400(void)
+{
+    g_navigator_vertical_enabled_006081f8 =
+        !(g_monster_combat_timer_enabled_006f0531 != 0 &&
+          g_combat_state != 0 &&
+          (g_combat_state->flag_001 != 0 ||
+           gXStatus.fPartyMovementMode != 0));
+
+    {
+        int count = g_worlds_00659a80.GetCount();
+        for (int index = 0; index < count; ++index) {
+            UpdateWorld0044F4E0(*g_worlds_00659a80.GetAt(index));
+        }
+    }
+
+    if (g_renderer_ready_00607d7c != 0 &&
+        g_world_mesh_update_enabled_00607d7d != 0) {
+        if (g_world->octree != 0) {
+            UpdateWorldMeshFromOctree004BAF50(g_world);
+        }
+        else if (g_world->m_owned_06c != 0) {
+            ++g_world->m_owned_06c->dirty;
+            UpdateWorldMeshFromQuads004BAD40(g_world);
+        }
+        RepositionAmbientSounds0047A600(g_world);
+        RequestRefreshPartyState();
+        g_renderer_ready_00607d7c = 0;
+    }
+
+    UpdateTimedTriggerEvents00443D30();
+    Function4AE310();
+    Function482770();
+    Function50D530();
+}
+
+// FUNCTION: WIZ8 0x0044F4E0
+void UpdateWorld0044F4E0(W8World* world)
+{
+    if (world == 0) {
+        srAssertFail("pWorld", THREE_D_API_CPP, 0x106, 0);
+        Function444F70(0x6a4, 70.0f, 5000.0f, 1);
+    }
+
+    if (world != g_world_659ab8) {
+        UpdateWorldMonsters0046DD70(world);
+        Function4A27C0(world);
+        Function4AAB80(world);
+        UpdateAmbientSounds0047A3E0(world);
+        WorldUpdateLights(world);
+        RunMonsterGenerators();
+        Function443AE0(world);
+        if (world->octree != 0) {
+            Function4D8E40();
+        }
+        Function500930();
+    }
+
+    W8PList* nodes = &world->m_list_09c;
+    int count = static_cast<short>(
+        ILLength(reinterpret_cast<W8IList*>(nodes)));
+    for (int index = 0; index < count; ++index) {
+        srNode* node = static_cast<srNode*>(PLGet(nodes, index));
+        node->setFlag(srNode::FLAG_POSITIONAL_0);
+    }
+    PListClear(nodes);
 }
 
 // VTABLE: WIZ8 0x005EC208

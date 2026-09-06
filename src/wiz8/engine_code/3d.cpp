@@ -1,4 +1,5 @@
 #include "wiz8/3d_code/IList.h"
+#include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/World.h"
@@ -8,6 +9,36 @@
 #include "surrender/srScene.h"
 
 #define THREE_D_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\3d.cpp"
+
+// FUNCTION: WIZ8 0x0046DD70
+void UpdateWorldMonsters0046DD70(W8World* world)
+{
+    if (world == 0) {
+        srAssertFail("pWorld", THREE_D_CPP, 0x10d, 0);
+    }
+    if (world->plsMonsters == 0) {
+        srAssertFail("pWorld->plsMonsters", THREE_D_CPP, 0x10e, 0);
+    }
+
+    srVector3T<double> camera_location = world->camera->getLocation();
+    float position[3];
+    position[0] = static_cast<float>(camera_location.x);
+    position[1] = static_cast<float>(camera_location.y);
+    position[2] = static_cast<float>(camera_location.z);
+
+    unsigned int count = PLLength(world->plsMonsters);
+    UpdateNearestMonsterGroupMembers004CA570();
+    for (int index = 0; index < static_cast<int>(count); ++index) {
+        W8Monster* monster =
+            static_cast<W8Monster*>(PLGet(world->plsMonsters, index));
+        if (monster != 0) {
+            monster->DetachRepresentation004A7A70(world);
+            monster->SelectLOD004A7BE0(position);
+            monster->Update();
+            monster->UpdateRepresentation(world);
+        }
+    }
+}
 
 /* Put static-scene illuminators in group one and the world's camera light in
    group two.  The scene graph access is the ordinary srNode hierarchy API. */

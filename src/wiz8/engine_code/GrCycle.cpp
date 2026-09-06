@@ -1016,6 +1016,56 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
     }
 }
 
+// FUNCTION: WIZ8 0x004a7a70
+void W8GrCycle::DetachRepresentation004A7A70(W8World* world)
+{
+    W8EmitterHost* representation = GetRepresentation();
+    W8AnimObj* animation = GetCurrentAnimation();
+
+    if (AnimationIsRunning(animation) == 1) {
+        int count = (int)AnimObjListCount004A1620(
+            animation, representation->m_bLOD);
+        for (int index = 0; index < count; ++index) {
+            srModelInstance* mesh = AnimObjDispatchList004A1560(
+                animation, representation->m_bLOD,
+                static_cast<signed char>(index));
+            if (mesh == 0) {
+                srAssertFail(
+                    "psrMesh",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
+                    0x476, 0);
+            }
+            W8AniMesh* ani_mesh = representation->GetEmitterAniMesh(
+                representation->current_cycle);
+            if (ani_mesh != 0) {
+                AniMeshSetFlag10004B6860(ani_mesh, 0);
+            }
+            mesh->setFlag(srNode::FLAG_POSITIONAL_0);
+            mesh->setParent(0, 1);
+        }
+    }
+    else if (current_model_instance_1a8 != 0) {
+        if (world == 0) {
+            srAssertFail(
+                "pWorld",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
+                0x484, 0);
+        }
+        W8AniMesh* ani_mesh = representation->GetEmitterAniMesh(
+            representation->current_cycle);
+        AniMeshSetFlag10004B6860(ani_mesh, 0);
+        current_model_instance_1a8->setFlag(srNode::FLAG_POSITIONAL_0);
+        current_model_instance_1a8->setFlag(srNode::FLAG_POSITIONAL_1);
+        current_model_instance_1a8->setParent(0, 0);
+        current_model_instance_1a8 = 0;
+    }
+
+    if (m_ground_shadow != 0) {
+        m_ground_shadow->setFlag(srNode::FLAG_POSITIONAL_1);
+        m_ground_shadow->setParent(0, 1);
+    }
+}
+
 /* Place every particle this cycle has attached to its model.
 
    An attachment normally rides a named vertex of the model's mesh: the

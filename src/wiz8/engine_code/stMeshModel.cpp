@@ -21,6 +21,18 @@
 
 extern void Function4729F0(void* model);
 
+// FUNCTION: WIZ8 0x00471160
+void stMeshModel::SetMappedVertex00471160(short vertex, short key)
+{
+    int index = mapped_keys.IndexOf(key);
+    if (index != -1) {
+        mapped_values.SetAt(index, vertex);
+        return;
+    }
+    mapped_values.Add(vertex);
+    mapped_keys.Add(key);
+}
+
 // FUNCTION: WIZ8 0x004712d0
 int stMeshModel::FindMappedIndex(short key)
 {

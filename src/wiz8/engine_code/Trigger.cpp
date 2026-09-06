@@ -47,7 +47,8 @@
  * it from Run. Its registry support is the ordinary srClassSupport template.
  */
 
-extern W8GrowableVector<W8TriggerEvent*> g_timed_events_006599b8;
+// GLOBAL: WIZ8 0x006599B8
+W8GrowableVector<W8TriggerEvent*> g_timed_events_006599b8;
 extern void ApplyRolledHealthChangeToParty(
     const W8Dice* dice, int argument_2, int argument_3);
 extern float* RotateMatrixAroundAxis0042B910(
@@ -169,6 +170,23 @@ static_assert(sizeof(W8TriggerShakeEvent) == 0x44,
 W8TriggerShakeEvent::W8TriggerShakeEvent()
     : effect_038(0), intensity_03c(1), reverse_040(0)
 {
+}
+
+// FUNCTION: WIZ8 0x00443D30
+void UpdateTimedTriggerEvents00443D30(void)
+{
+    for (int index = 0; index < g_timed_events_006599b8.GetCount(); ++index) {
+        W8TriggerEvent* event = *g_timed_events_006599b8.GetAt(index);
+        event->Update();
+        if (event->completed_035 != 0) {
+            g_timed_events_006599b8.RemoveAt(index);
+            --index;
+            if (event->trigger_030 != 0) {
+                event->trigger_030->m_pEvent = 0;
+            }
+            delete event;
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x00444ec0

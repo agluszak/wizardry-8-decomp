@@ -1,5 +1,7 @@
 #pragma once
 
+void CopyLevelDataHandle(int* destination, const int* source);
+
 #include "wiz8/geometry.h"
 
 #pragma pack(push, 1)

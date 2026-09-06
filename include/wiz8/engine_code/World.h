@@ -125,6 +125,8 @@ void ConstructWorldCollections(W8World* world);
 void DestroyWorldCollections(W8World* world);
 void DestroyWorld(W8World* world);
 void DetachAllWorldItems(void);
+void UpdateWorlds0044F400(void);
+void UpdateWorld0044F4E0(W8World* world);
 void WorldUpdateLights(W8World* world);
 float WorldGetValue78(W8World* world);
 double WorldGetFarClip(W8World* world);

@@ -74,9 +74,6 @@ extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
 extern void WorldSetFarClip(W8World* world, float distance);
 extern void WorldSetValue74(W8World* world, float value);
-extern unsigned char ReadMultipleLevelMeshes00488240(
-    W8ReadLevelInfo* info, srModelInstance** instances,
-    unsigned long count, unsigned int flags);
 extern void UpdateSky00482EA0(void);
 extern void FinalizeWorldTriggers00448840(void);
 extern void UpdateWorldProps0044E010(W8World* world);

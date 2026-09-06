@@ -32,6 +32,8 @@ public:
 static_assert(sizeof(W8TriggerEvent) == 0x38,
               "W8TriggerEvent_must_be_0x38");
 
+void UpdateTimedTriggerEvents00443D30(void);
+
 /* Trigger's m_pActionData points at this polymorphic payload. The concrete
    object created by Trigger::Run has a distinct final vtable at 0x005EC148
    and returns to the base table at 0x005EC138 during destruction. The payload
