@@ -89,7 +89,7 @@ int IsPartyEngaged(void)
 // FUNCTION: WIZ8 0x004ecdd0
 void RecordCharacterDeath(int party_slot)
 {
-    if (g_in_combat_00683f94 != 0) {
+    if (gXStatus.fCombatMode != 0) {
         g_combat_state->pending_deaths[g_combat_state->pending_death_count] = party_slot;
         ++g_combat_state->pending_death_count;
     }
@@ -129,7 +129,7 @@ void BeginCombatRound(void)
 {
     int party_slot;
 
-    if (g_in_combat_00683f94 == 0) {
+    if (gXStatus.fCombatMode == 0) {
         return;
     }
     for (party_slot = 0; party_slot < 8; ++party_slot) {
@@ -198,7 +198,7 @@ void NotifyNearbyMonsters(int what)
     unsigned int index;
     W8MonsterInfo* monster_info;
 
-    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0 && monster_info->hp_current != 0 &&
             (unsigned int)monster_info->value_107 < 0xe &&
@@ -219,7 +219,7 @@ int PartyAvoidsSurprise(void)
 {
     unsigned int party_slot = 0;
 
-    if (g_surprise_possible_00683fc5 == 0) {
+    if (gXStatus.fSurprisePossible == 0) {
         return 0;
     }
     while (g_party_slot_rows[party_slot].occupied == 0 ||

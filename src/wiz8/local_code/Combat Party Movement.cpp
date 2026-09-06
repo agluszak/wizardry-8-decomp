@@ -57,7 +57,7 @@ char GetPhaseStep(void)
 // FUNCTION: WIZ8 0x004f0520
 void SetPendingMoveKind(int kind)
 {
-    if (g_in_combat_00683f94 == 0) {
+    if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", COMBAT_MOVEMENT_CPP, 435, 0);
     }
     g_combat_state->pending_move_kind = (kind != 10) + 1;
@@ -88,7 +88,7 @@ unsigned char CanPartyMove(void)
 {
     unsigned int phase;
 
-    if (g_in_combat_00683f94 == 0) {
+    if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", COMBAT_MOVEMENT_CPP, 613, 0);
     }
     phase = g_combat_state->turn_phase;
@@ -148,7 +148,7 @@ void BeginFreeTurnPhase(void)
 {
     Function41F0D0();
     g_combat_state->turn_phase = W8_TURN_PHASE_FREE;
-    g_flag_00683fce = 0;
+    gXStatus.fPartyMovementMode = 0;
     Function5354E0();
     Function4F06B0();
     NotifyNearbyMonsters(0);

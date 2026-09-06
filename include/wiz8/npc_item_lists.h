@@ -20,11 +20,7 @@ typedef struct W8NPCItemList {
 
 #pragma pack(pop)
 
-extern "C" {
-
 extern W8GrowableVector<W8NPCItemList*>* g_npc_item_lists;
 W8NPCItemList* GetNPCItemListByID(int npc_record_id);
-
-}
 
 #endif

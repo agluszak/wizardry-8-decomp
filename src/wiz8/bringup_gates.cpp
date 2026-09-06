@@ -3,6 +3,7 @@
 #include "wiz8/wiz8_windows.h"
 
 #include "wiz8/render_state.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/sgp_vsurface_private.h"
 #include "Button System.h"
 #include "Font.h"
@@ -137,16 +138,6 @@ extern void GetRuntimeSettings(void);
 extern unsigned char InitializeWiz8FontManager(
     unsigned short pixel_depth, FontTranslationTable* translation);
 
-extern long __stdcall WindowProc4011E0(void* window, int message,
-                                       unsigned int wparam, long lparam);
-
-
-extern unsigned char InitializeRenderer(
-    void* instance, unsigned short show_command, void* window_proc);
-
-
-
-extern unsigned char InitializeGameData(void);
 unsigned int g_mswheel_roll_message;
 bool g_flag_6505a9;
 
@@ -314,12 +305,9 @@ bool SetModuleSubdirectory(const char* subdirectory);
 bool g_shutdown_started_650db5;
 bool g_teardown_done_650db4;
 char g_shutdown_message_6505ac[0x100];
-extern void ShutdownScreenStack(int flag);
-extern void ShutdownGameData(void);
 extern void ShutdownDisplayList(void);
 extern bool ShutdownWizardryVideoSurfaceManager(void);
 extern void ShutdownWizardryVideoObjectManager(void);
-extern void ShutdownRenderer(void);
 extern int ReturnZero(void);
 
 
@@ -454,7 +442,6 @@ void Function404B00(void)
     g_flag_6ef440 = 0;
 }
 
-extern void Function4E3340(void);
 /* These are retained SGP globals, named by the vendored declaration surface. */
 extern "C" HINSTANCE ghInstance;
 extern "C" unsigned char gfApplicationActive;
@@ -492,9 +479,6 @@ unsigned char g_flag_650e38;
 W8BindingNode* g_binding_head_6eb704;
 unsigned char g_block_6eb6a0[0x64];
 
-extern void GetDefaultScreenMode(unsigned short* height,
-                                 unsigned short* width,
-                                 unsigned char* depth);
 extern void Function427A30(const char* path);
 extern void Function422970(int enable);
 

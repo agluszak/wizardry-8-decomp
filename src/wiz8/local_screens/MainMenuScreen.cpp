@@ -79,7 +79,7 @@ extern void Function518B30(void);
 extern void Function5189B0(void);
 extern void Function422F10(void);
 extern void Function4229C0(void);
-extern "C++" void NoOp(void);
+extern void NoOp(void);
 extern "C" unsigned char Function402ED0(
     int destination, unsigned int source, short region,
     int x, int y, int flags, int effects);

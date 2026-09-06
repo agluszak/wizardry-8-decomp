@@ -1472,7 +1472,7 @@ void W8Navigator::UpdateAngles00453990()
     float reverse_distance;
     float direction;
 
-    if (g_in_combat_00683f94 == 0) {
+    if (gXStatus.fCombatMode == 0) {
         step = movement_0c0.turn_rate_068;
     }
     step *= g_frame_scale_006068ec * g_object_6598bc->GetValue28();

@@ -242,46 +242,46 @@ unsigned char SpellUsableNow(
         srAssertFail("uiSpellUsableWhen < SPELL_USAGE_COUNT", MAGIC_CPP, 4182, 0);
     }
 
-    if (g_screen_state_0068ec78.id == W8_SCREEN_CAMP && g_in_combat_00683f94 == 0 &&
-        g_camp_open_00683f9b != 0 && (spell_id == 0x17 || spell_id == 0x3a)) {
+    if (g_screen_state_0068ec78.id == W8_SCREEN_CAMP && gXStatus.fCombatMode == 0 &&
+        gXStatus.fCampMode != 0 && (spell_id == 0x17 || spell_id == 0x3a)) {
         return 1;
     }
 
-    shopping = g_flag_00683f9c != 0 || g_flag_00683f9d != 0;
+    shopping = gXStatus.field_024 != 0 || gXStatus.field_025 != 0;
 
     switch (usable_when) {
     case W8_SPELL_USABLE_ANY_TIME:
         break;
     case W8_SPELL_USABLE_IN_COMBAT:
-        if (g_in_combat_00683f94 != 1 && allow_out_of_combat == 0) {
+        if (gXStatus.fCombatMode != 1 && allow_out_of_combat == 0) {
             return 0;
         }
         break;
     case W8_SPELL_USABLE_OUT_OF_COMBAT:
-        if (g_in_combat_00683f94 != 0) {
+        if (gXStatus.fCombatMode != 0) {
             return 0;
         }
         break;
     case W8_SPELL_USABLE_WHILE_CAMPED:
-        if (g_camp_open_00683f9b == 0) {
+        if (gXStatus.fCampMode == 0) {
             return 0;
         }
         return !shopping;
     case W8_SPELL_USABLE_WHILE_SHOPPING:
         if (spell_id != 0x27) {
-            return spell_id == 0x12 ? (unsigned char)g_flag_00683f9d : 0;
+            return spell_id == 0x12 ? (unsigned char)gXStatus.field_025 : 0;
         }
-        if (g_flag_00683f9c != 0) {
+        if (gXStatus.field_024 != 0) {
             return 1;
         }
-        return g_flag_00683f9d != 0;
+        return gXStatus.field_025 != 0;
     default:
         srAssertFail("FALSE", MAGIC_CPP, 4228,
                      "SpellUsableNow: ERROR - Invalid uiSpellUsableWhen");
         return fallback;
     }
 
-    if (g_camp_open_00683f9b == 0) {
+    if (gXStatus.fCampMode == 0) {
         return !shopping;
     }
     return 0;
@@ -437,7 +437,7 @@ void TickSpellEffects(void)
             if (effect->turns_remaining == 0 &&
                 effect->kind == W8_SPELL_EFFECT_KIND_MONSTER_CONTROL) {
                 for (monster_index = 0;
-                     monster_index < PLLength(g_active_monster_list_00683fad);
+                     monster_index < PLLength(gXStatus.plsMonsterList);
                      ++monster_index) {
                     monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
                     if (monster_info != 0 && !monster_info->monster->IsDying()) {
@@ -593,8 +593,8 @@ unsigned int ScaleByCombatPace(int party_slot, unsigned int* value)
     unsigned int speed;
     int scaled;
 
-    if (g_in_combat_00683f94 == 0) {
-        return g_in_combat_00683f94;
+    if (gXStatus.fCombatMode == 0) {
+        return gXStatus.fCombatMode;
     }
 
     if (g_settings_6850c8.field_00d == 0) {
@@ -666,7 +666,7 @@ void StartCharacterSpellCast(int party_slot, int power_level)
     int named[2];
     const int* target;
 
-    if (g_in_combat_00683f94 == 0) {
+    if (gXStatus.fCombatMode == 0) {
         AimAtTarget(party_slot, &row->spell_target, 6);
     }
 
@@ -697,7 +697,7 @@ void StartCharacterItemUse(int party_slot)
     W8PartySlotRow* row = &g_party_slot_rows[party_slot];
     W8CombatSlot saved_target = row->item_target;
 
-    if (g_in_combat_00683f94 == 0) {
+    if (gXStatus.fCombatMode == 0) {
         AimAtTarget(party_slot, &row->item_target, 6);
     }
     ChooseAction(party_slot, 8, -1, (int)&row->item_use_kind, 0, 1);
@@ -995,7 +995,7 @@ bool CanPartySlotCastRecordedSpell(int party_slot)
         return false;
     }
     if (row->spell_power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
-        g_spell_records[spell_id].unknown_125 == 1 && g_in_combat_00683f94 != 0) {
+        g_spell_records[spell_id].unknown_125 == 1 && gXStatus.fCombatMode != 0) {
         return false;
     }
 
@@ -1009,7 +1009,7 @@ bool CanPartySlotCastRecordedSpell(int party_slot)
     if (!SpellUsableNow(spell_id, 0, 0, 0)) {
         return false;
     }
-    if (g_in_combat_00683f94 == 0 && !IsSpellTargetStillValidIn(party_slot, spell_id, 3)) {
+    if (gXStatus.fCombatMode == 0 && !IsSpellTargetStillValidIn(party_slot, spell_id, 3)) {
         return false;
     }
     return true;
@@ -1037,13 +1037,13 @@ int GetAffordableSpellPowerLevel(int party_slot)
         return 0;
     }
     if (row->spell_power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
-        g_spell_records[spell_id].unknown_125 == 1 && g_in_combat_00683f94 != 0) {
+        g_spell_records[spell_id].unknown_125 == 1 && gXStatus.fCombatMode != 0) {
         return 0;
     }
     if (!SpellUsableNow(spell_id, 0, 0, 0)) {
         return 0;
     }
-    if (g_in_combat_00683f94 == 0 && !IsSpellTargetStillValidIn(party_slot, spell_id, 3)) {
+    if (gXStatus.fCombatMode == 0 && !IsSpellTargetStillValidIn(party_slot, spell_id, 3)) {
         return 0;
     }
 
@@ -1095,7 +1095,7 @@ bool CanPartySlotUseRecordedItem(int party_slot)
     item = FindCharacterItemAt(party_slot, row->item_origin, row->item_slot);
     row->item_in_use = item;
 
-    if (row->item_origin == W8_ITEM_ORIGIN_EQUIPPED && g_in_combat_00683f94 != 0) {
+    if (row->item_origin == W8_ITEM_ORIGIN_EQUIPPED && gXStatus.fCombatMode != 0) {
         return false;
     }
     if (item == 0 || item->item_id == -1 || item->item_id != row->item_id_0c9) {
@@ -1116,7 +1116,7 @@ bool CanPartySlotUseRecordedItem(int party_slot)
     if (!SpellUsableNow(spell_id, 0, 0, 0)) {
         return false;
     }
-    if (g_in_combat_00683f94 == 0 && !IsSpellTargetStillValidIn(party_slot, spell_id, 4)) {
+    if (gXStatus.fCombatMode == 0 && !IsSpellTargetStillValidIn(party_slot, spell_id, 4)) {
         return false;
     }
     return true;

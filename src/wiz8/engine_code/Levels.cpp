@@ -203,15 +203,15 @@ unsigned char LoadLevel(
     Function427440();
     SetCurrentWorld(CreateWorld());
 
-    previous_level = g_current_level;
-    g_current_level = level;
+    previous_level = g_status_685170.current_level;
+    g_status_685170.current_level = level;
     sprintf(
         music_path, "Data\\Music\\%s.MPL",
         g_level_folders[level].folder_name);
     if (FileExists(music_path)) {
         sprintf(
             music_path, "%s.MPL",
-            g_level_folders[g_current_level].folder_name);
+            g_level_folders[g_status_685170.current_level].folder_name);
         Function48FC10(music_path, 1, 1);
     }
     else {
@@ -230,7 +230,7 @@ unsigned char LoadLevel(
             level_info.level_bitmap_folder, 1)) {
         /* This is the complete canonical rollback here: restore the level ID.
            The already-installed replacement world is not destroyed. */
-        g_current_level = previous_level;
+        g_status_685170.current_level = previous_level;
         return 0;
     }
 
@@ -297,13 +297,13 @@ unsigned char LoadLevel(
     }
     else {
         MoveWorldToPoint(
-            GetWorld(), GetWorld659AB8(), &g_saved_world_position_00687417);
+            GetWorld(), GetWorld659AB8(), &g_status_685170.pending_move_location.point);
     }
 
-    if (level < 47 && !g_level_progress[level].visited) {
+    if (level < 47 && !g_status_685170.level_progress[level].visited) {
         ResetMonsterGroupTurnState();
         Function5115B0();
-        g_level_progress[level].visited = 1;
+        g_status_685170.level_progress[level].visited = 1;
         first_visit = 1;
     }
 
@@ -365,12 +365,12 @@ unsigned char LoadLevel(
 // FUNCTION: WIZ8 0x0042ACE0
 unsigned char UnloadLevel(const char* save_directory)
 {
-    if (g_in_combat_00683f94 != 0) {
+    if (gXStatus.fCombatMode != 0) {
         Function4EA310(1);
     }
 
-    if (g_current_level < 47) {
-        g_level_progress[g_current_level].sight_clock = g_world_clock_00686a48;
+    if (g_status_685170.current_level < 47) {
+        g_status_685170.level_progress[g_status_685170.current_level].sight_clock = g_status_685170.world_clock;
     }
 
     if (g_world_cleanup_flag_00659757 != 0) {
@@ -386,7 +386,7 @@ unsigned char UnloadLevel(const char* save_directory)
         Function426790();
     }
 
-    if (g_active_monster_list_00683fad != 0) {
+    if (gXStatus.plsMonsterList != 0) {
         if (ReleaseItemLists() == 0) {
             return 0;
         }
@@ -427,7 +427,7 @@ unsigned char UnloadLevel(const char* save_directory)
     }
 
     DisableSky();
-    g_current_level = -1;
+    g_status_685170.current_level = -1;
     ReleaseEnvironmentObjects();
     g_runtime_world_scale_6081e8 = 500.0f;
     ClearValue6834D4();

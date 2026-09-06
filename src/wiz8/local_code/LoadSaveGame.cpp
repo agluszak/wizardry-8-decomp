@@ -351,7 +351,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     chunks->ReleaseCurrentChunk();
 
     chunks->OpenChunk(0x4d455449, 0); /* ITEM */
-    count = PLLength(g_world_item_list);
+    count = PLLength(gXStatus.plsItemList);
     chunks->Write(&count, sizeof(count), 0);
     for (index = 0; index < count; ++index) {
         if (!SaveItemFile(chunks->m_hFile, ItemInfo(index))) {
@@ -488,9 +488,9 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
         group->flag_28 = 0;
         group->flag_29 = 0;
         if (is_encounter) {
-            index = PLAdoptAppend(g_monster_group_encounter_list, group);
+            index = PLAdoptAppend(gXStatus.plsMonsterGroupEncounterList, group);
         } else {
-            index = PLAdoptAppend(g_monster_group_species_list, group);
+            index = PLAdoptAppend(gXStatus.plsMonsterGroupList, group);
         }
         if (index == -1) {
             free(group);
@@ -621,7 +621,7 @@ W8WorldItem* LoadItem(int handle, char add_to_list)
         }
         if (previous != 0) {
             previous->next = item;
-        } else if (add_to_list && PLAdoptAppend(g_world_item_list, item) == -1) {
+        } else if (add_to_list && PLAdoptAppend(gXStatus.plsItemList, item) == -1) {
             return 0;
         }
         if (g_flag_659756 != 0) {
@@ -795,7 +795,7 @@ void DeleteCurrentSaveFiles(void)
 extern unsigned char g_flag_006875a5;
 extern unsigned char g_flag_0068510d;
 
-/* g_in_combat_00683f94 and g_camp_open_00683f9b reach this unit through
+/* gXStatus.fCombatMode and gXStatus.fCampMode reach this unit through
    combat_state.h, so they are used rather than redeclared. 0x00683F97 has no
    header owner and is declared here under the
    name MainGameScreen.cpp already gives it. */
@@ -823,9 +823,9 @@ unsigned char AutoSaveIfAllowed(char forced)
     g_save_notice_shown_0068506b = 0;
     if (g_flag_006875a5 == 0 && AnyMonsterDying() == 0
         && ((g_flag_0068510d != 0 && forced == 0) || g_save_flag_00687599 != 0)
-        && g_in_combat_00683f94 == 0 && IsSightRangeOverridden() == 0
-        && (char)IsLevelDataFlag4EffectivelySet() != 0 && g_flag_00683f97 == 0
-        && g_camp_open_00683f9b == 0) {
+        && gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0
+        && (char)IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.field_01f == 0
+        && gXStatus.fCampMode == 0) {
         /* The copy is written out in both arms rather than selecting the source
            into one call. VC6 tail-merges the two inlined copies but keeps each
            arm's own destination `lea` and source load, which is the canonical
@@ -984,7 +984,7 @@ void ReadSaveChunks(W8Chunk* source, W8Chunk* destination)
                 }
                 else if (tag == W8_SAVE_TAG_LVLS) {
                     source->Read(&level, 4, 0);
-                    if (level != g_current_level) {
+                    if (level != g_status_685170.current_level) {
                         source->RewindCurrentChunk();
                         destination->CopyCurrentChunkFrom(source);
                     }

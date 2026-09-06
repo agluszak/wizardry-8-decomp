@@ -95,7 +95,7 @@ void Function48F9E0(void)
         return;
     }
 
-    if (g_music_force_next_60aae5 == 0 && g_in_combat_00683f94 == 0 &&
+    if (g_music_force_next_60aae5 == 0 && gXStatus.fCombatMode == 0 &&
         Random(100) <= static_cast<unsigned int>(g_music_state_60aaf0)) {
         g_music_playlist_tick_65ba78 =
             GetTickCount() + g_music_state_60aae8 * 1000 +

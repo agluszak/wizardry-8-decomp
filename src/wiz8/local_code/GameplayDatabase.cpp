@@ -462,7 +462,7 @@ void ResetGameplayStatusBlock(void)
     memset(g_status_block_685078, 0, sizeof(g_status_block_685078));
     g_startup_runtime_state->ClearOwnedEntries();
     g_party_moving_006850b5 = 0;
-    g_surprise_possible_00683fc5 = 0;
+    gXStatus.fSurprisePossible = 0;
 }
 
 // FUNCTION: WIZ8 0x0054b2d0
@@ -525,7 +525,7 @@ void Function54B250(unsigned char notify, void* target)
         Function5A9E70(target);
     }
     g_dword_6875b7 = g_settings_6850c8.field_00d;
-    g_flag_683fa0 = true;
+    gXStatus.field_028 = true;
     Function482720(0x2932e00);
     Function482740(1);
     if (notify) {
@@ -704,7 +704,7 @@ void Function54B100(void)
     } while (id < g_starting_item_ids + 6);
     g_status_685170.party_gold = 500;
     g_status_685170.selected_character = GetNextCharacter(1, 1, -1);
-    g_current_level = -1;
+    g_status_685170.current_level = -1;
     Function554580((unsigned char*)&g_status_685170.formation);
     for (index = 0; index < 8; ++index) {
         g_status_685170.dwords_18e0[index] = 0xffffffff;

@@ -199,7 +199,7 @@ extern "C" unsigned int InitializeEncounterTables(void)
         g_encounter_tables[g_encounter_table_count++] = table;
         (void)record_kind;
     }
-    g_encounter_tables_level = g_current_level;
+    g_encounter_tables_level = g_status_685170.current_level;
     CloseVirtualFile(handle);
     return 1;
 }
@@ -233,16 +233,16 @@ void UpdateRandomEncounterBudget(unsigned char reset_budget)
     int index;
 
     if (reset_budget == 0) {
-        elapsed = g_world_clock_00686a48 -
-                  g_level_progress[g_current_level].sight_clock;
+        elapsed = g_status_685170.world_clock -
+                  g_status_685170.level_progress[g_status_685170.current_level].sight_clock;
         g_random_encounter_budget +=
-            elapsed / g_level_records[g_current_level].encounter_budget_period;
+            elapsed / g_level_records[g_status_685170.current_level].encounter_budget_period;
     } else {
         g_random_encounter_budget =
-            g_level_records[g_current_level].maximum_encounter_budget;
+            g_level_records[g_status_685170.current_level].maximum_encounter_budget;
         elapsed = W8_ENCOUNTER_STALE_SECONDS + 1;
     }
-    level = &g_level_records[g_current_level];
+    level = &g_level_records[g_status_685170.current_level];
     ClampInteger(&g_random_encounter_budget, level->minimum_encounter_budget,
                  level->maximum_encounter_budget);
     g_random_encounter_limit = g_random_encounter_budget;
@@ -294,10 +294,10 @@ void CullExpiredEncounters(void)
 
     GetPartyPosition(&party);
     if (IsSightRangeOverridden() == 0) {
-        span = g_level_records[g_current_level].encounter_culling_seconds *
+        span = g_level_records[g_status_685170.current_level].encounter_culling_seconds *
                g_encounter_culling_scale;
     } else {
-        span = g_level_records[g_current_level].encounter_culling_seconds *
+        span = g_level_records[g_status_685170.current_level].encounter_culling_seconds *
                g_encounter_culling_scale_fast * g_encounter_culling_rate;
     }
     for (index = 0; index < g_active_group_count; ++index) {
@@ -305,7 +305,7 @@ void CullExpiredEncounters(void)
             index < g_active_group_count ? g_active_groups[index] : g_active_groups[0];
 
         if (span < static_cast<float>(
-                       static_cast<unsigned int>(g_world_clock_00686a48 - group->spawn_time))) {
+                       static_cast<unsigned int>(g_status_685170.world_clock - group->spawn_time))) {
             W8Monster* monster = GetMonsterByLocationID(group->value_9f);
 
             position = monster->GetPosition();

@@ -135,7 +135,7 @@ W8MonsterInfo* CreateMonsterInfo(
            sizeof(monster_info->runtime_values_338));
 
     if (PLAdoptAppend(
-            record->flag_26a != 0 ? g_unborn_monster_list : g_monster_list,
+            record->flag_26a != 0 ? gXStatus.plsUnbornMonsterList : gXStatus.plsMonsterList,
             monster_info) == -1) {
         free(monster_info);
         return 0;
@@ -449,15 +449,15 @@ unsigned int MonsterGetIndexByLocationID(
     unsigned int index;
     W8MonsterInfo* monster;
 
-    for (index = 0; index < PLLength(g_monster_list); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster = MonsterGetScriptPartByLocationIndex(index);
         if (monster->location_id == location_id) {
             return index;
         }
     }
 
-    for (index = 0; index < PLLength(g_unborn_monster_list); ++index) {
-        monster = (W8MonsterInfo*)PLGet(g_unborn_monster_list, index);
+    for (index = 0; index < PLLength(gXStatus.plsUnbornMonsterList); ++index) {
+        monster = (W8MonsterInfo*)PLGet(gXStatus.plsUnbornMonsterList, index);
         if (monster->location_id == location_id) {
             return index + 10000;
         }
@@ -699,9 +699,9 @@ W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator)
     if (reset_iterator != 0) {
         g_monster_info_iterator_index = 0;
     }
-    if (g_monster_info_iterator_index < (int)PLLength(g_monster_list)) {
+    if (g_monster_info_iterator_index < (int)PLLength(gXStatus.plsMonsterList)) {
         index = g_monster_info_iterator_index++;
-        result = (W8MonsterInfo*)PLGet(g_monster_list, index);
+        result = (W8MonsterInfo*)PLGet(gXStatus.plsMonsterList, index);
     }
     return result;
 }
@@ -738,7 +738,7 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
 {
     unsigned int index;
 
-    for (index = 0; index < PLLength(g_monster_list); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
         if (monster_info->flag_14 != 0 &&
@@ -843,7 +843,7 @@ W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species)
     unsigned int index;
     W8MonsterInfo* monster_info;
 
-    for (index = 0; index < PLLength(g_monster_list); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->monster_species == monster_species) {
             return monster_info;
@@ -857,7 +857,7 @@ void ResetLivingMonstersAfterCombat(void)
 {
     unsigned int index;
 
-    for (index = 0; index < PLLength(g_monster_list); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
         if (static_cast<unsigned int>(monster_info->hp_current) > 0) {
@@ -874,7 +874,7 @@ void DestroyUngroupedMonsters(void)
 {
     unsigned int index;
 
-    for (index = 0; index < PLLength(g_monster_list); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
         if (monster_info->monster_group_id == 0) {
@@ -902,7 +902,7 @@ void DestroyUngroupedMonsters(void)
             (void)g_octree_6598a4;
             Function42E650(static_cast<unsigned short>(monster_info->location_id));
             Function509EA0(monster_info->runtime_value_2f1);
-            void* removed = PLRemoveAt(g_monster_list, index);
+            void* removed = PLRemoveAt(gXStatus.plsMonsterList, index);
             if (removed != 0) {
                 free(removed);
             }
@@ -971,11 +971,11 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
     if (monster_info == 0) {
         srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x8b8, 0);
     }
-    if (PListRemove(g_unborn_monster_list, monster_info) == 0) {
+    if (PListRemove(gXStatus.plsUnbornMonsterList, monster_info) == 0) {
         return;
     }
 
-    PLAdoptAppend(g_monster_list, monster_info);
+    PLAdoptAppend(gXStatus.plsMonsterList, monster_info);
     if (MonsterIsCycleSupported(monster_info->monster, 0) != 0) {
         MonsterSetCycle(monster_info->monster, 0);
         MonsterSetBehaviour(monster_info->monster, 1);
@@ -1009,8 +1009,8 @@ W8MonsterInfo* FindNearestMonsterInfo(
     double nearest_distance = 1.0e11;
     unsigned int index;
 
-    for (index = 0; index < PLLength(g_monster_list); ++index) {
-        W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(g_monster_list, index);
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+        W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(gXStatus.plsMonsterList, index);
         double distance = DistanceBetweenPositions(
             position,
             monster_info->monster->GetPosition());
@@ -1022,8 +1022,8 @@ W8MonsterInfo* FindNearestMonsterInfo(
         }
     }
 
-    for (index = 0; index < PLLength(g_unborn_monster_list); ++index) {
-        W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(g_unborn_monster_list, index);
+    for (index = 0; index < PLLength(gXStatus.plsUnbornMonsterList); ++index) {
+        W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(gXStatus.plsUnbornMonsterList, index);
         double distance = DistanceBetweenPositions(
             position,
             monster_info->monster->GetPosition());
@@ -1042,8 +1042,8 @@ void InitializeMonsterRuntimeStats(void)
 {
     unsigned int index;
 
-    for (index = 0; index < PLLength(g_monster_list); ++index) {
-        W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(g_monster_list, index);
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+        W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(gXStatus.plsMonsterList, index);
         W8MonsterRecord* record;
         int value;
 
@@ -1068,8 +1068,8 @@ void InitializeMonsterRuntimeStats(void)
         Function4C5ED0(monster_info->monster);
     }
 
-    for (index = 0; index < PLLength(g_unborn_monster_list); ++index) {
-        W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(g_unborn_monster_list, index);
+    for (index = 0; index < PLLength(gXStatus.plsUnbornMonsterList); ++index) {
+        W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(gXStatus.plsUnbornMonsterList, index);
         W8MonsterRecord* record;
         int value;
 
@@ -1151,7 +1151,7 @@ void TryStartMonsterCycle2(
 
                 if (cycle == 2 ||
                     monster->IsCycleInterruptable(cycle) == 0 ||
-                    (g_in_combat_00683f94 != 0 &&
+                    (gXStatus.fCombatMode != 0 &&
                      g_combat_state->selected_slot != 0 &&
                      g_combat_state->selected_monster == monster_info)) {
                     return;
@@ -1164,7 +1164,7 @@ void TryStartMonsterCycle2(
                         1));
                 unsigned int chance = group->member_count * 20;
 
-                if (g_flag_683f97 == 0 && Random(chance) == 0) {
+                if (gXStatus.field_01f == 0 && Random(chance) == 0) {
                     StartMonsterCycle(monster_info, 2, 1);
                 }
             }
@@ -1189,7 +1189,7 @@ unsigned char AnyMonsterDying(void)
     unsigned int index;
     W8MonsterInfo* monster_info;
 
-    for (index = 0; index < PLLength(g_monster_list); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info != 0 && monster_info->monster->IsDying() != 0) {
             return 1;
@@ -1303,7 +1303,7 @@ unsigned char RemoveMonster(
 {
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
 
-    if (g_in_combat_00683f94 != 0 && monster_info->fInCombat != 0 && monster_info->pCombat != 0) {
+    if (gXStatus.fCombatMode != 0 && monster_info->fInCombat != 0 && monster_info->pCombat != 0) {
         MonsterInfoLeaveCombat(monster_info);
     }
     if (monster_info->monster_group_id != 0) {
@@ -1343,7 +1343,7 @@ unsigned char RemoveMonster(
         (void)g_octree_6598a4;
         Function42E650(static_cast<unsigned short>(monster_info->location_id));
         Function509EA0(monster_info->runtime_value_2f1);
-        void* removed = PLRemoveAt(g_monster_list, monster_list_index);
+        void* removed = PLRemoveAt(gXStatus.plsMonsterList, monster_list_index);
         if (removed != 0) {
             free(removed);
         }
@@ -1382,8 +1382,8 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         monster_info->position_17.y = position.y;
         monster_info->position_17.z = position.z;
         monster_info->flag_14 = 0;
-        --g_active_monster_count_683fa1;
-        if (g_in_combat_00683f94 != 0) {
+        --gXStatus.active_monster_count;
+        if (gXStatus.fCombatMode != 0) {
             RefreshAllSight();
             SetTargetToMonster(monster_info->location_id, 0);
             Function593330();
@@ -1433,7 +1433,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
     monster_info->fInCombat = 1;
     if (monster_info->state_34c == 0) {
         monster_info->state_34c = 2;
-        monster_info->value_354 = g_world_clock_00686a48;
+        monster_info->value_354 = g_status_685170.world_clock;
     }
     ResetCombatSlot(&monster_info->combat_slot_2ba);
     MonsterSetRuntimeFlag5BC(monster_info->monster, 0);
@@ -1441,7 +1441,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
     if (monster_info->flag_16 == 1) {
         Function546E70();
     }
-    if (g_in_combat_00683f94 != 0) {
+    if (gXStatus.fCombatMode != 0) {
         EndMonsterTurn(monster_info);
     }
 }
@@ -1457,7 +1457,7 @@ void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info)
     unsigned int index;
     W8MonsterCombatEntry* entry;
 
-    if (g_in_combat_00683f94 == 0) {
+    if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", MONSTER_MANAGER_CPP, 0x2c6, 0);
     }
     if (monster_info == 0) {
@@ -1511,7 +1511,7 @@ void TogglePartyCombatStance(void)
     }
     if (g_flag_6850d2 != 0) {
         g_flag_6850d2 = 0;
-        if (g_in_combat_00683f94 != 0) {
+        if (gXStatus.fCombatMode != 0) {
             g_combat_state->flag_001 = (g_combat_state->flag_000 == 0);
             g_combat_state->flag_a62 = 1;
         }
@@ -1521,7 +1521,7 @@ void TogglePartyCombatStance(void)
         message = gppStringList[W8_NOTICE_COMBAT_STANCE_RELAXED];
     } else {
         g_flag_6850d2 = 1;
-        if (g_in_combat_00683f94 != 0 && g_combat_state->flag_a62 != 0) {
+        if (gXStatus.fCombatMode != 0 && g_combat_state->flag_a62 != 0) {
             g_combat_state->flag_001 = 1;
             g_combat_state->flag_a62 = 0;
         }
@@ -1549,18 +1549,18 @@ void ToggleCombatMode(void)
     W8MonsterGroup* monster_group;
     W8CombatActor* character;
 
-    if (g_in_combat_00683f94 == 0) {
+    if (gXStatus.fCombatMode == 0) {
         StartCombat(1);
         return;
     }
-    if (g_dword_683fa5 != 0 || g_combat_state->flag_a54 != 0) {
+    if (gXStatus.field_02d != 0 || g_combat_state->flag_a54 != 0) {
         if (g_combat_state->value_004 != 0) {
             ShowNotice(
                 0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END], -1, -1, 0);
             return;
         }
         for (group_list_index = 0;
-             group_list_index < PLLength(g_monster_group_list);
+             group_list_index < PLLength(gXStatus.plsMonsterGroupList);
              ++group_list_index) {
             monster_group = GetMonsterGroupByListIndex(group_list_index);
             if (monster_group->flag_28 != 0 && monster_group->flag_29 != 0 &&
@@ -1618,7 +1618,7 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
         line = 0x46f;
     } else {
         pending = monster->m_pRep->pending_cycle;
-        if (g_in_combat_00683f94 != 0) {
+        if (gXStatus.fCombatMode != 0) {
             MonsterQuery(monster, 6);
         }
         if (pending != W8_CYCLE_STOP && pending != W8_CYCLE_NONE &&

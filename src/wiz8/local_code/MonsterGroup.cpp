@@ -182,25 +182,25 @@ W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index)
 
     if (group_list_index < W8_ENCOUNTER_GROUP_INDEX_BIAS ||
         group_list_index >= 2 * W8_ENCOUNTER_GROUP_INDEX_BIAS) {
-        if (group_list_index >= PLLength(g_monster_group_list)) {
+        if (group_list_index >= PLLength(gXStatus.plsMonsterGroupList)) {
             return 0;
         }
-        result = (W8MonsterGroup*)PLGet(g_monster_group_list, group_list_index);
+        result = (W8MonsterGroup*)PLGet(gXStatus.plsMonsterGroupList, group_list_index);
         if (result != 0) {
             return result;
         }
         detail = FormatString(
             "GroupInfo: ERROR - PLGet failed, index %d, pList %d",
             group_list_index,
-            g_monster_group_list);
+            gXStatus.plsMonsterGroupList);
         line = 0x3dc;
     } else {
         if (group_list_index - W8_ENCOUNTER_GROUP_INDEX_BIAS >=
-            PLLength(g_monster_group_encounter_list)) {
+            PLLength(gXStatus.plsMonsterGroupEncounterList)) {
             return 0;
         }
         result = (W8MonsterGroup*)PLGet(
-            g_monster_group_encounter_list,
+            gXStatus.plsMonsterGroupEncounterList,
             group_list_index - W8_ENCOUNTER_GROUP_INDEX_BIAS);
         if (result != 0) {
             return result;
@@ -208,7 +208,7 @@ W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index)
         detail = FormatString(
             "GroupInfo: ERROR - PLGet failed, index %d, pList %d",
             group_list_index,
-            g_monster_group_list);
+            gXStatus.plsMonsterGroupList);
         line = 0x3d1;
     }
     srAssertFail("pMonsterGroup != NULL", MONSTER_GROUP_CPP, line, detail);
@@ -229,15 +229,15 @@ unsigned int GetMonsterGroupIndexByID(
     unsigned int index;
     W8MonsterGroup* group;
 
-    for (index = 0; index < PLLength(g_monster_group_list); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
         group = GetMonsterGroupByListIndex(index);
         if (group->group_id == group_id) {
             return index;
         }
     }
 
-    for (index = 0; index < PLLength(g_monster_group_encounter_list); ++index) {
-        group = (W8MonsterGroup*)PLGet(g_monster_group_encounter_list, index);
+    for (index = 0; index < PLLength(gXStatus.plsMonsterGroupEncounterList); ++index) {
+        group = (W8MonsterGroup*)PLGet(gXStatus.plsMonsterGroupEncounterList, index);
         if (group->group_id == group_id) {
             return index + W8_ENCOUNTER_GROUP_INDEX_BIAS;
         }
@@ -447,7 +447,7 @@ void ReapplyMonsterGroupFormations(void)
     W8MonsterInfo* monster_info;
 
     for (group_list_index = 0;
-         group_list_index < PLLength(g_monster_group_list);
+         group_list_index < PLLength(gXStatus.plsMonsterGroupList);
          ++group_list_index) {
         monster_group = GetMonsterGroupByListIndex(group_list_index);
         monster_info = MonsterInfoFromID(
@@ -565,7 +565,7 @@ void MonsterGroupLeaveCombat(int unused, W8MonsterGroup* monster_group)
     unsigned int index;
     W8MonsterInfo* lead;
 
-    if (g_in_combat_00683f94 == 0) {
+    if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", MONSTER_GROUP_CPP, 0x1eb, 0);
     }
     if (monster_group->flag_29 == 0) {
@@ -639,10 +639,10 @@ void ResetMonsterGroupTurnState(void)
     unsigned int index;
     W8MonsterInfo* monster_info;
 
-    for (index = 0; index < PLLength(g_monster_group_list); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
         GetMonsterGroupByListIndex(index)->value_cb = 0;
     }
-    for (index = 0; index < PLLength(g_monster_list); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         monster_info->value_354 = 0;
         monster_info->value_28e = 0;
@@ -715,7 +715,7 @@ void RepairMonsterGroupLeaderLinks(void)
     W8MonsterGroup* monster_group;
     int ally;
 
-    count = PLLength(g_monster_group_list);
+    count = PLLength(gXStatus.plsMonsterGroupList);
     for (group_list_index = 0; group_list_index < count; ++group_list_index) {
         monster_group = GetMonsterGroupByListIndex(group_list_index);
         if (monster_group->leader_group_id == monster_group->group_id) {
@@ -837,10 +837,10 @@ unsigned char DestroyMonsterGroup(W8MonsterGroup* monster_group, int value)
     if (ILDestroy(monster_group->monsters) != 0) {
         group_list_index = GetMonsterGroupIndexByID(
             0xf3, MONSTER_GROUP_CPP, monster_group->group_id, 1);
-        list = g_monster_group_list;
+        list = gXStatus.plsMonsterGroupList;
         if (group_list_index >= W8_ENCOUNTER_GROUP_INDEX_BIAS) {
             group_list_index -= W8_ENCOUNTER_GROUP_INDEX_BIAS;
-            list = g_monster_group_encounter_list;
+            list = gXStatus.plsMonsterGroupEncounterList;
         }
         removed = PLRemoveAt(list, group_list_index);
         if (removed != 0) {
@@ -862,7 +862,7 @@ void ApplyDefaultMonsterGroupSounds(void)
     W8MonsterGroup* monster_group;
     W8MonsterInfo* lead;
 
-    count = PLLength(g_monster_group_list);
+    count = PLLength(gXStatus.plsMonsterGroupList);
     for (group_list_index = 0; group_list_index < count; ++group_list_index) {
         monster_group = GetMonsterGroupByListIndex(group_list_index);
         lead = MonsterInfoFromID(

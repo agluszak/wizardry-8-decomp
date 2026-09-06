@@ -77,19 +77,12 @@ srModelInstance* AnimObjDispatch004A14D0(
 srModelInstance* AnimObjDispatchList004A1560(
     W8AnimObj* animation, signed char list_index, signed char entry_index);
 void* AnimObjEntry004A1660(
-    W8AnimObj* animation, int unused_edx, signed char list_index, unsigned int entry_index);
-/* Six slots, not five. Both recovered callers - W8GrCycle::GetAnimationBounds
-   and W8Prop::GetCenterPosition - push only five and let the body read a
-   stale slot for the frame, the same legacy call shape Monster.cpp documents for
-   0x004A1660. The prototype follows the body; the callers keep their own ABI. */
+    W8AnimObj* animation, signed char list_index, unsigned int entry_index);
 unsigned char AnimObjGetBounds004A1710(
     W8AnimObj* animation,
-    int channel,
     signed char list_index,
     unsigned int frame,
     srVector3T<float>* minimum,
     srVector3T<float>* maximum);
-typedef unsigned char (*LegacyAnimObjBoundsCall)(
-    W8AnimObj*, int, signed char, srVector3T<float>*, srVector3T<float>*);
 
 #endif

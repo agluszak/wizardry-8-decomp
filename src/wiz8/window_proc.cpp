@@ -1,4 +1,6 @@
 #include "wiz8/wiz8_windows.h"
+#include "wiz8/game_status.h"
+#include "wiz8/render_state.h"
 #include "Button System.h"
 #include "Font.h"
 #include "input.h"
@@ -17,32 +19,28 @@ float Function420B40(int value);
  * / 480 and (width * 480) / 640 compile to.
  */
 
-extern "C" {
-
 unsigned char g_flag_650dac;
 unsigned char g_flag_6f0630;
-extern "C++" unsigned int g_mswheel_roll_message;
+extern unsigned int g_mswheel_roll_message;
 int g_dword_650db0;
-extern "C++" bool g_flag_6505a9;
-extern "C++" bool g_teardown_done_650db4;
+extern bool g_flag_6505a9;
+extern bool g_teardown_done_650db4;
 
 extern void Function422970(int enable);
 extern void Function422550(void);
 extern unsigned char Function4277E0(void);
 extern unsigned char Function4220B0(void);
 extern void Function422050(void);
-extern "C++" bool Function4029F0(void);
-extern "C++" void ShutdownGameData(void);
+extern bool Function4029F0(void);
 extern void ShutdownDisplayList(void);
-extern "C++" void Function408850(void);
-extern "C++" bool ShutdownWizardryVideoSurfaceManager(void);
-extern "C++" void ShutdownWizardryVideoObjectManager(void);
-extern "C++" void ShutdownRenderer(void);
-extern "C++" void NoOp(void);
-extern "C++" void ShutdownVideoSurfaceState(void);
+extern void Function408850(void);
+extern bool ShutdownWizardryVideoSurfaceManager(void);
+extern void ShutdownWizardryVideoObjectManager(void);
+extern void NoOp(void);
+extern void ShutdownVideoSurfaceState(void);
 
 // FUNCTION: WIZ8 0x004011e0
-extern "C++" long __stdcall WindowProc4011E0(
+long __stdcall WindowProc4011E0(
     void* window, int message, unsigned int wparam, long lparam)
 {
     RECT* rect;
@@ -222,6 +220,5 @@ extern "C++" long __stdcall WindowProc4011E0(
         return DefWindowProcA((HWND)window, message, wparam, lparam);
     }
 
-}
 
 }

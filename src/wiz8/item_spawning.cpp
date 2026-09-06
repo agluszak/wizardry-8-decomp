@@ -43,7 +43,7 @@ W8WorldItem* CreateWorldItem(
     if (item != 0) {
         CopyItemInstance(&result->item, item, 0, 1);
     }
-    if (add_to_world && AddWorldItemToList(g_world_item_list, result) == -1) {
+    if (add_to_world && AddWorldItemToList(gXStatus.plsItemList, result) == -1) {
         return 0;
     }
     return result;

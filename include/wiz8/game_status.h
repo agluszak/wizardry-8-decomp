@@ -106,16 +106,6 @@ static_assert(sizeof(W8GlobalStatus) == 0x49c2,
 
 extern W8GlobalStatus g_status_685170;
 
-#define g_party_facing (g_status_685170.party_facing)
-#define g_party_heading (g_status_685170.party_heading)
-#define g_world_clock_00686a48 (g_status_685170.world_clock)
-#define g_current_level (g_status_685170.current_level)
-#define g_level_progress (g_status_685170.level_progress)
-#define g_pending_move_location_00687417 \
-    (g_status_685170.pending_move_location)
-#define g_saved_world_position_00687417 \
-    (g_status_685170.pending_move_location.point)
-#define g_game_time_ms (g_status_685170.game_time_ms)
-#define g_game_time_days (g_status_685170.game_time_days)
-
 void Function554580(unsigned char* storage);
+unsigned char InitializeGameData(void);
+void ShutdownGameData(void);

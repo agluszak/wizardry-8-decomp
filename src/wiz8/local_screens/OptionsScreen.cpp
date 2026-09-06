@@ -268,7 +268,7 @@ void W8OptionsScreen::OnDialogClosed(unsigned char reason, int)
 {
     if (reason != 0) {
         if (g_status_685170.game_started != 0 &&
-            g_in_combat_00683f94 == 0 && AnyCharacterActive()) {
+            gXStatus.fCombatMode == 0 && AnyCharacterActive()) {
             AutoSaveIfAllowed(1);
         }
         Function591780();
@@ -336,7 +336,7 @@ unsigned char OptionsScreenEnter005A9B50()
         else {
             selected = g_dword_647bc0;
             if (g_dword_647bc0 == 5) {
-                if (g_in_combat_00683f94 != 0) {
+                if (gXStatus.fCombatMode != 0) {
                     selected = 4;
                 }
                 if (g_save_flag_00687599 != 0) {

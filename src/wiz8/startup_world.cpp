@@ -7,16 +7,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern "C" {
-
-extern "C++" void NoOp(void);
+extern void NoOp(void);
 extern void InitializeRenderQuality(void);
 extern unsigned char InitializeEnvironmentColours(void);
 
-extern "C++" {
 // GLOBAL: WIZ8 0x00659c0c
 W8Navigator* g_startup_world_659c0c;
-}
 float g_runtime_world_scale_6081e8 = 500.0f;
 extern const float g_world_scale_005ebc40 = 500.0f;
 float g_startup_depth_603ac8 = 1000.0f;
@@ -69,6 +65,4 @@ unsigned char Function44F060(void)
             : g_startup_depth_603ac8,
         g_startup_depth_603ac8);
     return 1;
-}
-
 }

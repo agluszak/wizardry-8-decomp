@@ -17,12 +17,8 @@ struct W8MessageBoxLine {
 static_assert(sizeof(W8MessageBoxLine) == 0x24,
               "W8MessageBoxLine_must_be_0x24");
 
-extern "C" {
-
 extern W8MessageBoxLine** g_message_box_lines;
 extern int g_message_box_line_count;
 extern int g_message_box_line_capacity;
 extern int g_message_sequence;
-
-}
 void AddMessageBoxLine(int type, W8WideChar* text, void* extra);

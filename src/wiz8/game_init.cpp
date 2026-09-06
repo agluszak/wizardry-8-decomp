@@ -16,9 +16,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-/* GameplayDatabase.cpp is an original C++ translation unit.  Keep these
-   declarations outside the C-linkage block: spelling them as C functions
-   leaves the recovered bodies present but unreachable from this unit. */
 extern void Function54AF30(unsigned char release);
 extern void InitializeGameplayRuntimeObjects(void);
 extern unsigned char Function54A760(W8MonsterRecord** records);
@@ -42,8 +39,6 @@ extern void ReleasePointer689B40(void);
  * recovered elsewhere keep theirs.
  */
 
-extern "C" {
-
 extern unsigned char InitializeMenuStartupSubsystems(void);
 
 extern unsigned char InitializeSlfArchives(void);
@@ -57,7 +52,7 @@ extern void SetMessageBoxModeDisabled(void);
 extern void SetMessageBoxModeEnabled(void);
 extern void SetMessageBoxWord(unsigned short value);
 extern void UpdateHeldItemCursor(void);
-extern "C++" void Function479010(void);
+extern void Function479010(void);
 extern void InitializeEncounterTables(void);
 extern unsigned char LoadMissileDatabase(void);
 extern unsigned char LoadHitSoundDatabase(void);
@@ -69,7 +64,7 @@ extern unsigned short* g_font_state_palettes_68ee1c[15];
 extern unsigned char g_flag_65beaf;
 
 // FUNCTION: WIZ8 0x004e2f40
-extern "C++" unsigned char InitializeGameData(void)
+unsigned char InitializeGameData(void)
 {
     char version[64];
     void* buffer;
@@ -137,7 +132,7 @@ extern "C++" unsigned char InitializeGameData(void)
     InitializeItemVideoObjects();
     Function479010();
     SetPendingScreenState(0);
-    g_current_level = -1;
+    g_status_685170.current_level = -1;
     if (gfLoadAtStartup && FindStartupQuickSave(g_dword_68ed10.name)) {
         g_dword_68ed10.mode = 1;
         g_dword_68ed10.parameter = GetSaveGameLevel(g_dword_68ed10.name);
@@ -166,7 +161,7 @@ extern void ReleaseHitSoundDatabase(void);
 extern void ReleaseMissileDatabase(void);
 
 // FUNCTION: WIZ8 0x004e3290
-extern "C++" void ShutdownGameData(void)
+void ShutdownGameData(void)
 {
     int index;
 
@@ -181,6 +176,5 @@ extern "C++" void ShutdownGameData(void)
         g_stack_68eda8 = 0;
     }
     ShutDownFileDatabase();
-}
 
 }

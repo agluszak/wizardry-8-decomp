@@ -44,7 +44,7 @@ private:
     int m_positional_60;
     W8DialogMember005D14D0 m_dialog_64;
 };
-WIZ8_ASSERT_SIZE(W8Controls005EE920, 0xbc);
+static_assert(sizeof(W8Controls005EE920) == 0xbc, "W8Controls005EE920_size");
 
 /* Run the first screen command predicate and reset this target through its
    second virtual slot when command zero succeeds. */
@@ -130,18 +130,18 @@ void UpdateHeldItemCursor(void)
                 GetCatalogVideoObjectHandle(0, 0), 0, 0,
                 GetCatalogVideoObjectYOffset(0));
             RefreshMouseCursorTexture();
-            g_cursor_state_00683fdb = 7;
+            gXStatus.iCurrentCursor = 7;
             return;
         }
     }
-    else if (g_cursor_state_00683fdb != -1) {
+    else if (gXStatus.iCurrentCursor != -1) {
         SetMouseCursorFromVideoObject(
             GetCatalogVideoObjectHandle(0, 0), 0, 0,
             GetCatalogVideoObjectYOffset(0));
         RefreshMouseCursorTexture();
-        g_cursor_state_00683fdb = -1;
-        g_dword_683fdf = 0;
-        g_dword_683fe3 = 0;
+        gXStatus.iCurrentCursor = -1;
+        gXStatus.current_cursor_frame = 0;
+        gXStatus.current_cursor_time = 0;
     }
 }
 
@@ -156,14 +156,14 @@ void ClearHeldItemDisplay(void)
     g_status_685170.item_in_cursor = 0;
     g_status_685170.item_in_hand_235b.item_id = -1;
 
-    if (g_cursor_state_00683fdb != -1) {
+    if (gXStatus.iCurrentCursor != -1) {
         SetMouseCursorFromVideoObject(
             GetCatalogVideoObjectHandle(0, 0), 0, 0,
             GetCatalogVideoObjectYOffset(0));
         RefreshMouseCursorTexture();
-        g_cursor_state_00683fdb = -1;
-        g_dword_683fdf = 0;
-        g_dword_683fe3 = 0;
+        gXStatus.iCurrentCursor = -1;
+        gXStatus.current_cursor_frame = 0;
+        gXStatus.current_cursor_time = 0;
     }
 }
 

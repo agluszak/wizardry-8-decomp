@@ -332,11 +332,10 @@ void W8Prop::SetSetting6C(unsigned char value)
     Rep()->active = value;
 }
 
-/* Both of these were separate names for 0x004A1710, which AnimObj.h now owns as
-   AnimObjGetBounds004A1710. Its body reads six slots; every recovered caller
-   pushes five, so each site keeps its own call shape through a cast rather than
-   the prototype being weakened. */
-typedef void (*LegacyAnimObjPlayCall)(
+/* Retail routes this integer-tail call to the bounds body at 0x004A1710.
+   The W8Prop operation's semantic identity remains unresolved, so preserve
+   its observed arguments without describing the mismatch as compatibility. */
+typedef void (*AnimObjIntegerTailCall)(
     W8AnimObj* animation, int channel, unsigned char argument, int from, int to);
 extern void Function444750(void);
 
@@ -346,7 +345,7 @@ void W8Prop::GetCenterPosition(srVector3T<float>* position)
     srVector3T<float> first;
     srVector3T<float> second;
 
-    ((LegacyAnimObjBoundsCall)AnimObjGetBounds004A1710)(
+    AnimObjGetBounds004A1710(
         Rep()->animation, 2, Rep()->flag_064,
         &first, &second);
     position->x = (first.x + second.x) * 0.5f;
@@ -442,7 +441,7 @@ char Function44D760(W8World* world)
                 float dz;
                 float distance;
 
-                ((LegacyAnimObjBoundsCall)AnimObjGetBounds004A1710)(
+                AnimObjGetBounds004A1710(
                     representation->animation, 2, representation->flag_064,
                     &minimum, &maximum);
                 dx = (minimum.x + maximum.x) * 0.5f - camera_position.x;
@@ -592,7 +591,7 @@ srModelInstance* W8Prop::ToggleRepAnimationDefault()
 // FUNCTION: WIZ8 0x0044d5c0
 int W8Prop::PlayRepAnimation(int from, int to)
 {
-    ((LegacyAnimObjPlayCall)AnimObjGetBounds004A1710)(
+    ((AnimObjIntegerTailCall)AnimObjGetBounds004A1710)(
         Rep()->animation, 2, Rep()->flag_064, from, to);
     return 1;
 }
@@ -1086,7 +1085,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
 
     if (animation->flag_05 == 0) {
         W8AniMesh* mesh = reinterpret_cast<W8AniMesh*>(
-            AnimObjEntry004A1660(animation, 2, 0, 0));
+            AnimObjEntry004A1660(animation, 2, 0));
         unsigned char value_count = AniMeshValue004B64F0(mesh);
         stModelInstance005EC7D0* frame =
             GetAniMeshFrame004B6550(mesh, 0);

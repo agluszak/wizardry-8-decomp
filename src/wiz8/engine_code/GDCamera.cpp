@@ -235,7 +235,7 @@ void GDCamera::ApplyRotationMatrix(
 // FUNCTION: WIZ8 0x00476950
 void GDCamera::SnapToTarget(const srVector3T<float>* target)
 {
-    if (g_flag_00683f97 == 0) {
+    if (gXStatus.field_01f == 0) {
         if ((m_positional_000 & 1) != 0) {
             return;
         }
@@ -285,7 +285,7 @@ void GDCamera::SnapToTarget(const srVector3T<float>* target)
 
     m_target_pitch_09c = pitch;
     m_target_angle_098 = angle;
-    if (g_flag_00683f97 == 0) {
+    if (gXStatus.field_01f == 0) {
         if ((m_positional_000 & 1) != 0) {
             return;
         }
@@ -311,7 +311,7 @@ void GDCamera::SnapToTarget(const srVector3T<float>* target)
 // FUNCTION: WIZ8 0x00476C30
 void GDCamera::SetOrientationImmediate(float pitch, float angle)
 {
-    if (g_flag_00683f97 == 0) {
+    if (gXStatus.field_01f == 0) {
         if ((m_positional_000 & 1) != 0) {
             return;
         }
@@ -338,7 +338,7 @@ void GDCamera::SetOrientationImmediate(float pitch, float angle)
 unsigned char GDCamera::LookAt(
     const srVector3T<float>* target, unsigned char preserve_pitch)
 {
-    if (g_flag_00683f97 == 0) {
+    if (gXStatus.field_01f == 0) {
         if ((m_positional_000 & 1) != 0) {
             return 0;
         }
@@ -468,7 +468,7 @@ unsigned char GDCamera::ComputeTrackingOrientation(
 unsigned char GDCamera::BeginOrientationTransition(
     float target_pitch, float target_angle, unsigned char force)
 {
-    if (force == 0 && g_flag_00683f97 == 0) {
+    if (force == 0 && gXStatus.field_01f == 0) {
         if ((m_positional_000 & 1) != 0) {
             return 0;
         }
@@ -645,7 +645,7 @@ void GDCamera::Update(float elapsed)
 void GDCamera::ApplyYawInput(float input)
 {
     if (input != g_zero_005ebb34) {
-        if (g_flag_00683f97 == 0 && g_flag_006875a5 == 0) {
+        if (gXStatus.field_01f == 0 && g_flag_006875a5 == 0) {
             m_positional_000 |= 1;
             m_manual_input_timer->Arm();
             m_transition_active = 0;
@@ -705,7 +705,7 @@ void GDCamera::ApplyYawInput(float input)
 void GDCamera::ApplyPitchInput(float input)
 {
     if (input != g_zero_005ebb34
-        && g_flag_00683f97 == 0 && g_flag_006875a5 == 0) {
+        && gXStatus.field_01f == 0 && g_flag_006875a5 == 0) {
         m_positional_000 |= 1;
         m_manual_input_timer->Arm();
         m_transition_active = 0;
@@ -1038,7 +1038,7 @@ void GDCamera::GetForwardPoint(float distance, srVector3T<float>* output)
 // FUNCTION: WIZ8 0x00478E00
 void GDCamera::SetManualControlActive(unsigned char enabled)
 {
-    if (enabled != 0 && g_flag_00683f97 == 0 && g_flag_006875a5 == 0) {
+    if (enabled != 0 && gXStatus.field_01f == 0 && g_flag_006875a5 == 0) {
         m_positional_000 |= 1;
         m_manual_input_timer->Arm();
         m_transition_active = 0;

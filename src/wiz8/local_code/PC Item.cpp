@@ -1054,8 +1054,8 @@ void AddPartyGold(int amount, char announce)
     strcpy(sound_path, "Data\Sound\Misc\ChaChing.wav");
 
     g_status_685170.party_gold += amount;
-    if (g_current_level < 0x2f) {
-        g_level_progress[g_current_level].gold_collected += amount;
+    if (g_status_685170.current_level < 0x2f) {
+        g_status_685170.level_progress[g_status_685170.current_level].gold_collected += amount;
     }
 
     if (announce) {
@@ -1583,8 +1583,8 @@ void BindEveryPartyItem(void)
 {
     int party_slot;
 
-    if (g_in_combat_00683f94 != 0 && g_combat_state->flag_001 == 0 &&
-        g_flag_00683fce == 0) {
+    if (gXStatus.fCombatMode != 0 && g_combat_state->flag_001 == 0 &&
+        gXStatus.fPartyMovementMode == 0) {
         ShowNotice(0xc, gppStringList[0x7d8 / 4], -1, -1, 0);
         return;
     }
@@ -1925,7 +1925,7 @@ void Function520D10(
             }
         }
 
-        if (g_in_combat_00683f94) {
+        if (gXStatus.fCombatMode) {
             int action = *reinterpret_cast<int*>(state + 0x3d);
             if (action == 0 || action == 1) {
                 if (!Function4E79A0(party_slot, 1, 1, 0)) {

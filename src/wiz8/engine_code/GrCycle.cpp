@@ -759,9 +759,7 @@ unsigned char W8GrCycle::GetAnimationBounds(
     W8AnimObj* animation = GetCurrentAnimation();
     W8EmitterHost* representation = GetRepresentation();
 
-    /* Five slots against the callee's six, preserved as found: see the note on
-       the prototype in AnimObj.h. */
-    return ((LegacyAnimObjBoundsCall)AnimObjGetBounds004A1710)(
+    return AnimObjGetBounds004A1710(
         animation,
         representation->m_bLOD,
         representation->flag_064,

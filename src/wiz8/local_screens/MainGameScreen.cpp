@@ -27,7 +27,6 @@ W8LevelRuntimeBlock* g_level_block;
 
 extern void SetPendingScreenState(int state);
 extern void Function4F2040(int region);
-extern "C++" void ReleaseScreenTransitionObjects(void);
 extern unsigned char Function577850(void);
 extern void SetCombatSelection(int value);                              /* 0x00569F70 */
 extern void SetCombatTarget(int value);                                 /* 0x0056A2D0 */
@@ -73,7 +72,7 @@ void RequestRefreshPartyState(void)
     if (g_level_block == 0) {
         return;
     }
-    if (g_in_combat_00683f94 != 0) {
+    if (gXStatus.fCombatMode != 0) {
         g_level_block->refresh_combat_panel = 1;
     }
     g_level_block->refresh_party_panel = 1;
@@ -146,13 +145,13 @@ void ClearHighlightIfItIs(const int* item)
 // FUNCTION: WIZ8 0x00562540
 int IsScreenInputBlocked(void)
 {
-    if (g_flag_00683f95 != 0) {
+    if (gXStatus.field_01d != 0) {
         return 1;
     }
-    if (g_flag_00683f97 != 0 && !Function577850()) {
+    if (gXStatus.field_01f != 0 && !Function577850()) {
         return 1;
     }
-    if (g_flag_00683f98 == 0 && g_flag_00683f99 == 0 && g_flag_00683f96 == 0) {
+    if (gXStatus.field_020 == 0 && gXStatus.field_021 == 0 && gXStatus.fItemSelectMode == 0) {
         return 0;
     }
     return 1;
@@ -192,8 +191,8 @@ extern void Function558720(int arg_1);
 // FUNCTION: WIZ8 0x00561440
 int IsScreenIdle(void)
 {
-    if (g_in_combat_00683f94 == 0 && g_flag_00683f95 == 0 && g_flag_00683f96 == 0 &&
-        g_flag_00683f97 == 0 && g_flag_00683f98 == 0 && g_flag_00683f99 == 0) {
+    if (gXStatus.fCombatMode == 0 && gXStatus.field_01d == 0 && gXStatus.fItemSelectMode == 0 &&
+        gXStatus.field_01f == 0 && gXStatus.field_020 == 0 && gXStatus.field_021 == 0) {
         return 1;
     }
     return 0;
@@ -207,7 +206,7 @@ bool LoadCurrentLevelData(void)
 {
     bool loaded = true;
 
-    if (g_current_level != -1) {
+    if (g_status_685170.current_level != -1) {
         Function55EE70(9);
         g_map_loading_00659757 = 1;
         Function42B3E0();
@@ -255,19 +254,19 @@ void DisableCombatRegions(void)
 // FUNCTION: WIZ8 0x0056af20
 void UpdateScreenOverlays(int frame)
 {
-    if (g_flag_00683f98 != 0) {
+    if (gXStatus.field_020 != 0) {
         Function5879A0(frame);
     }
-    if (g_flag_00683f99 != 0) {
+    if (gXStatus.field_021 != 0) {
         Function58A790(frame);
     }
-    if (g_flag_00683f95 != 0) {
+    if (gXStatus.field_01d != 0) {
         Function59F2B0();
     }
-    if (g_flag_00683f96 != 0) {
+    if (gXStatus.fItemSelectMode != 0) {
         Function59CAC0();
     }
-    if (g_flag_00683f9a != 0) {
+    if (gXStatus.field_022 != 0) {
         Function5B2200();
     }
 }

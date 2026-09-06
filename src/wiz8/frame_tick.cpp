@@ -26,8 +26,6 @@ unsigned char State5Tick005C30B0(int leaving);
  * the ordinary one.
  */
 
-extern "C" {
-
 struct W8ScreenStateHandlers {
     unsigned char (*initialise)(void);    /* 0x00, walked by InitializeGameData */
     unsigned char (*enter)(void);         /* 0x04 */
@@ -77,7 +75,7 @@ int g_screen_transition_object_count_654aac;
 srClass** g_screen_transition_objects_654ab4;
 
 // FUNCTION: WIZ8 0x00429770
-extern "C++" void ReleaseScreenTransitionObjects(void)
+void ReleaseScreenTransitionObjects(void)
 {
     int index;
     srClass* object;
@@ -96,7 +94,7 @@ extern "C++" void ReleaseScreenTransitionObjects(void)
 }
 
 // FUNCTION: WIZ8 0x004e3340
-extern "C++" void Function4E3340(void)
+void Function4E3340(void)
 {
     int state;
 
@@ -164,7 +162,7 @@ stop:
 }
 
 // FUNCTION: WIZ8 0x004e34b0
-extern "C++" void ShutdownScreenStack(int release_screens)
+void ShutdownScreenStack(int release_screens)
 {
     int state;
 
@@ -191,6 +189,5 @@ extern "C++" void ShutdownScreenStack(int release_screens)
             }
         }
     }
-}
 
 }

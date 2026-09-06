@@ -644,7 +644,7 @@ W8AniMesh* W8SpellEmitterHost::GetEmitterAniMesh(char emitter)
         return 0;
     }
     return (W8AniMesh*)AnimObjEntry004A1660(
-        target, 0, this->m_bLOD, 0);
+        target, this->m_bLOD, 0);
 }
 
 /* The clone slot owns both the 0x37c allocation and the copy-construction

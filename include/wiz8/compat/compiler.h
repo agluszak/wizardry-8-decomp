@@ -15,15 +15,6 @@
         (condition) ? 1 : -1]
 #endif
 
-#define WIZ8_JOIN_DETAIL(left, right) left##right
-#define WIZ8_JOIN(left, right) WIZ8_JOIN_DETAIL(left, right)
-#if defined(WIZ8_CLANG_LINT)
-#define WIZ8_ASSERT_SIZE(type, size) static_assert(sizeof(type) == (size), #type " size")
-#else
-#define WIZ8_ASSERT_SIZE(type, size) \
-    typedef char WIZ8_JOIN(wiz8_size_assert_, __LINE__)[sizeof(type) == (size) ? 1 : -1]
-#endif
-
 /* VC6 treats wchar_t as an unsigned-short typedef.  Clang normally makes it
    a distinct built-in type even for a Windows target; the lint lane disables
    that built-in and recreates the legacy ABI spelling before VC6 headers are

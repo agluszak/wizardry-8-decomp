@@ -249,7 +249,7 @@ typedef struct W8Character {
        rep movsd, which lands precisely on the level id below. */
     W8SavedLocation saved_location;      /* 0x17d7 */
     /* 0x1813: which level that anchor belongs to. The recall compares it
-       against g_current_level and takes a different path when they differ. */
+       against g_status_685170.current_level and takes a different path when they differ. */
     int saved_level;                     /* 0x1813 */
     unsigned char unknown_1817[0x44];
     /* 0x185b: the deep-fatigue effect is already on this character, which is

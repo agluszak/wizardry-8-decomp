@@ -443,7 +443,6 @@ W8AnimObj* CloneAnimObj004A0320(const W8AnimObj* source)
 // FUNCTION: WIZ8 0x004a1710
 unsigned char AnimObjGetBounds004A1710(
     W8AnimObj* animation,
-    int channel,
     signed char list_index,
     unsigned int frame,
     srVector3T<float>* minimum,
@@ -851,7 +850,7 @@ srModelInstance* AnimObjDispatchList004A1560(
 
 // FUNCTION: WIZ8 0x004a1660
 void* AnimObjEntry004A1660(
-    W8AnimObj* animation, int, signed char list_index, unsigned int entry_index)
+    W8AnimObj* animation, signed char list_index, unsigned int entry_index)
 {
     if (animation == 0) {
         srAssertFail("pao", ANIM_OBJ_CPP, 0x2bd, 0);

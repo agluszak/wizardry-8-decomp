@@ -28,6 +28,10 @@ extern "C" W8ScreenStateRuntime g_dword_68ed10;
 
 static_assert(sizeof(W8ScreenStateRuntime) == 0x98, "W8ScreenStateRuntime_must_be_0x98");
 
+void ReleaseScreenTransitionObjects(void);
+void Function4E3340(void);
+void ShutdownScreenStack(int release_screens);
+
 /* 0x0069C0F4: the camp screen's state block, allocated while that screen is up.
    Lifecycle record 6 - the camp record, which the screen enum's W8_SCREEN_CAMP
    selects - clears the pointer from its initializer, and the redraw router reads

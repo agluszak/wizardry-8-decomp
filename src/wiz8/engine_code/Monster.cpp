@@ -1579,7 +1579,7 @@ void W8Monster::Update()
         }
 
         if (cycle != 0x15 && script_238 != 0 &&
-            g_in_combat_00683f94 == 0) {
+            gXStatus.fCombatMode == 0) {
             ProcessScript004C80E0();
             cycle = Query(6);
         }
@@ -1723,7 +1723,7 @@ void W8Monster::Update()
     cycle = Query(6);
     if (g_monster_combat_timer_enabled_006f0531 != 0 &&
         g_combat_state != 0 &&
-        (g_combat_state->flag_001 != 0 || g_flag_00683fce != 0) &&
+        (g_combat_state->flag_001 != 0 || gXStatus.fPartyMovementMode != 0) &&
         (cycle == 1 || cycle == 2) &&
         (m_pRep->pending_cycle == -1 ||
          m_pRep->pending_cycle == 1 ||
@@ -2691,7 +2691,7 @@ unsigned char W8Monster::CanContinueScript004CA0F0()
         flags_1dc &= ~0x20;
         return 1;
     case 0x0e:
-        if (g_flag_00683f97 == 1) {
+        if (gXStatus.field_01f == 1) {
             return 0;
         }
         break;
@@ -3215,7 +3215,7 @@ void UpdateNearestMonsterGroupMembers004CA570()
 
     GetCameraPosition(&player_position);
     for (group_index = 0;
-         group_index < PLLength(g_monster_group_list);
+         group_index < PLLength(gXStatus.plsMonsterGroupList);
          ++group_index) {
         W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
 
@@ -3353,7 +3353,7 @@ unsigned char W8Monster::CanEnterCycle(signed char cycle)
     W8MonsterInfo* monster_info =
         MonsterGetScriptPartByLocationIndex(monster_index);
 
-    if (g_in_combat_00683f94 != 0 && Function420E10() != 0) {
+    if (gXStatus.fCombatMode != 0 && Function420E10() != 0) {
         return 0;
     }
     if (m_pRep->flag_06d == 0) {
@@ -3500,24 +3500,17 @@ srModelInstance* W8MonsterRep::SetCycleFrameLod(
     return AnimObjDispatchList004A1560(animation, (signed char)lod, 0);
 }
 
-/* The selected subcycle's AniMesh for one animation cycle.  AnimObj's
-   canonical body takes the three stack arguments emitted here; keep that
-   call-site ABI local until the older four-parameter declaration is
-   corrected as its own bundle. */
+/* The selected subcycle's AniMesh for one animation cycle. */
 // FUNCTION: WIZ8 0x004bf920
 W8AniMesh* W8MonsterRep::GetEmitterAniMesh(char cycle)
 {
-    typedef void* (__cdecl *LegacyAnimObjEntryCall)(
-        W8AnimObj*, signed char, unsigned int);
-
     W8AnimObj* animation =
         *animations[cycle].GetAt(current_subcycle);
 
     if (animation == 0) {
         return 0;
     }
-    return (W8AniMesh*)((LegacyAnimObjEntryCall)AnimObjEntry004A1660)(
-        animation, m_bLOD, 0);
+    return (W8AniMesh*)AnimObjEntry004A1660(animation, m_bLOD, 0);
 }
 
 /* Synchronize the live world representation with the Navigator state, update
@@ -4438,7 +4431,7 @@ void W8Monster::HandleAnimationThreshold004C75C0()
     record = GetMonsterDataForInfo(monster_info);
     SetTargetSourceToMonster(monster_info, &source);
 
-    if (g_in_combat_00683f94 != 0 &&
+    if (gXStatus.fCombatMode != 0 &&
         g_combat_state->selected_slot == 2 &&
         g_combat_state->selected_monster == monster_info) {
         attack_index = monster_info->pCombat->attack_index_11;
@@ -4643,9 +4636,6 @@ void W8Monster::SetCurrentAnimationScale(float scale)
 // FUNCTION: WIZ8 0x004c3f00
 W8AniMesh* W8Monster::GetCurrentAniMesh()
 {
-    typedef void* (__cdecl *LegacyAnimObjEntryCall)(
-        W8AnimObj*, signed char, unsigned int);
-
     int cycle_index =
         m_pRep->current_cycle;
     int subcycle_index =
@@ -4667,11 +4657,7 @@ W8AniMesh* W8Monster::GetCurrentAniMesh()
             0xc4e,
             0);
     }
-    /* This canonical caller passes the legacy three-argument call shape to
-       0x004A1660 even though that callee's own body has a four-slot prototype.
-       Preserve the observed caller ABI locally rather than weakening the
-       callee's reviewed declaration. */
-    return (W8AniMesh*)((LegacyAnimObjEntryCall)AnimObjEntry004A1660)(
+    return (W8AniMesh*)AnimObjEntry004A1660(
         animation, animationIndex(), 0);
 }
 

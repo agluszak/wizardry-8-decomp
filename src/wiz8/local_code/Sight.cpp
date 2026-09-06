@@ -95,10 +95,10 @@ void RefreshOutwardSightForAllMonsters(void)
 {
     unsigned int index;
 
-    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 1, 0);
     }
-    if (g_in_combat_00683f94 != 0) {
+    if (gXStatus.fCombatMode != 0) {
         Function593330();
         Function53BF80();
     }
@@ -110,7 +110,7 @@ void RefreshInwardSightForAllMonsters(void)
 {
     unsigned int index;
 
-    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 0, 0);
     }
 }
@@ -123,14 +123,14 @@ void RefreshAllSight(void)
 {
     unsigned int index;
 
-    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 1, 0);
     }
-    if (g_in_combat_00683f94 != 0) {
+    if (gXStatus.fCombatMode != 0) {
         Function593330();
         Function53BF80();
     }
-    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 0, 0);
     }
 }
@@ -144,7 +144,7 @@ void ReleaseMonToMonVisibilityInfoAbout(int location_id)
     W8MonsterInfo* monster_info;
     W8MonToMonVisibility* visibility;
 
-    for (monster_index = 0; monster_index < PLLength(g_active_monster_list_00683fad);
+    for (monster_index = 0; monster_index < PLLength(gXStatus.plsMonsterList);
          ++monster_index) {
         monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
         if (monster_info->flag_14 == 0) {
@@ -274,19 +274,19 @@ unsigned int AgeAllMonsterSight(void)
     unsigned int index;
     W8MonsterInfo* monster_info;
 
-    elapsed = g_world_clock_00686a48 * 1000 -
-              g_level_progress[g_current_level].sight_clock * 1000;
+    elapsed = g_status_685170.world_clock * 1000 -
+              g_status_685170.level_progress[g_status_685170.current_level].sight_clock * 1000;
     steps = elapsed / 120000;
     if (steps == 0) {
         return 0;
     }
-    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if ((unsigned int)monster_info->value_107 < 0x12) {
             AgeMonsterSight(monster_info, steps, 1);
         }
     }
-    return PLLength(g_active_monster_list_00683fad);
+    return PLLength(gXStatus.plsMonsterList);
 }
 
 /* What one monster has recorded about another, if anything. Both monsters have

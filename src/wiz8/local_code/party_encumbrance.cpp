@@ -27,8 +27,8 @@ void Function4EDD20(void)
     if (!g_status_685170.game_started) {
         return;
     }
-    if (g_in_combat_00683f94) {
-        g_flag_683fa0 = true;
+    if (gXStatus.fCombatMode) {
+        gXStatus.field_028 = true;
         return;
     }
 
@@ -108,9 +108,9 @@ void Function4EDD20(void)
     }
 
     if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME) {
-        if (g_flag_00683f97 == 0) {
+        if (gXStatus.field_01f == 0) {
             RequestRedraw(0xff);
-            g_flag_683fa0 = false;
+            gXStatus.field_028 = false;
             return;
         }
     }
@@ -118,5 +118,5 @@ void Function4EDD20(void)
              g_camp_screen_0069c0f4 != 0) {
         g_camp_screen_0069c0f4->redraw_flags |= 0x2100;
     }
-    g_flag_683fa0 = false;
+    gXStatus.field_028 = false;
 }

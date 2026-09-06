@@ -166,7 +166,7 @@ public:
     W8ControlCallback m_focusCallback;   /* 0x2c */
     W8ControlCallback m_blurCallback;    /* 0x30 */
 };                                       /* 0x34 established */
-WIZ8_ASSERT_SIZE(W8WidgetBase005ED5BC, 0x34);
+static_assert(sizeof(W8WidgetBase005ED5BC) == 0x34, "W8WidgetBase005ED5BC_size");
 
 // VTABLE: WIZ8 0x005ed604
 class W8TextControl005ED604 : public W8WidgetBase005ED5BC {
@@ -236,7 +236,7 @@ public:
 protected:
     __forceinline void InvalidateCore(unsigned char immediate);
 };
-WIZ8_ASSERT_SIZE(W8TextControl005ED604, 0xb8);
+static_assert(sizeof(W8TextControl005ED604) == 0xb8, "W8TextControl005ED604_size");
 
 // VTABLE: WIZ8 0x005ed758
 class W8HelpTextControl005ED758 : public W8TextControl005ED604 {
@@ -254,7 +254,7 @@ public:
 protected:
     wchar_t m_regionHelp[200];            /* 0xb8 */
 };
-WIZ8_ASSERT_SIZE(W8HelpTextControl005ED758, 0x248);
+static_assert(sizeof(W8HelpTextControl005ED758) == 0x248, "W8HelpTextControl005ED758_size");
 
 class W8RangeControl005ED74C;
 
@@ -275,7 +275,7 @@ protected:
     unsigned short pad_ba;
     W8RangeControl005ED74C* m_range;     /* 0xbc */
 };
-WIZ8_ASSERT_SIZE(W8RangeButton005ED6FC, 0xc0);
+static_assert(sizeof(W8RangeButton005ED6FC) == 0xc0, "W8RangeButton005ED6FC_size");
 
 class W8WidgetBase005ED5BC;
 
@@ -369,7 +369,7 @@ public:
     W8RangeListener* m_listener;         /* 0x64 */
     unsigned char m_enabled;             /* 0x68 */
 };
-WIZ8_ASSERT_SIZE(W8RangeControl005ED74C, 0x6c);
+static_assert(sizeof(W8RangeControl005ED74C) == 0x6c, "W8RangeControl005ED74C_size");
 
 class W8Control005ED654;
 
@@ -402,6 +402,6 @@ public:
     W8GrowableVector<W8TextControl005ED604*> m_lsButtons;
     W8ControlSelectionListener* m_value_20;
 };
-WIZ8_ASSERT_SIZE(W8Control005ED654, 0x24);
+static_assert(sizeof(W8Control005ED654) == 0x24, "W8Control005ED654_size");
 
 #endif

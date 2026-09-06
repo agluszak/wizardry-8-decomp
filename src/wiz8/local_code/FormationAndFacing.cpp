@@ -31,7 +31,7 @@ int GetQuadrantForPosition(srVector3T<float> position)
 
     GetPartyPosition(&party);
     bearing = static_cast<int>(NormalizeAngle(BearingBetween(party, position)));
-    bearing -= g_party_facing;
+    bearing -= g_status_685170.party_facing;
     if (bearing < 0) {
         bearing += W8_DEGREES_PER_TURN;
     }
@@ -85,7 +85,7 @@ void SaveCombatFormation(void)
     int index;
     int* saved;
 
-    if (g_in_combat_00683f94 == 0) {
+    if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", FORMATION_CPP, 258, 0);
     }
     saved = (int*)((char*)g_combat_state + 0x920);
@@ -104,7 +104,7 @@ void RestoreCombatFormation(void)
     const int* saved;
     bool unchanged = true;
 
-    if (g_in_combat_00683f94 == 0) {
+    if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", FORMATION_CPP, 266, 0);
     }
     saved = (const int*)((char*)g_combat_state + 0x920);
@@ -135,10 +135,10 @@ unsigned int TurnPartyTo(unsigned int degrees)
 {
     unsigned int previous;
 
-    g_party_facing = degrees;
-    previous = g_party_heading;
-    if (degrees != g_party_heading) {
-        g_party_heading = degrees;
+    g_status_685170.party_facing = degrees;
+    previous = g_status_685170.party_heading;
+    if (degrees != g_status_685170.party_heading) {
+        g_status_685170.party_heading = degrees;
         Function5B1E70();
         previous = GetCameraHeading() / W8_DEGREES_PER_TURN;
         if (GetCameraHeading() % W8_DEGREES_PER_TURN != degrees) {
@@ -153,10 +153,10 @@ unsigned int TurnPartyTo(unsigned int degrees)
 // FUNCTION: WIZ8 0x00555420
 void TurnPartyToImmediate(unsigned int degrees, char snap)
 {
-    if (degrees == g_party_heading) {
+    if (degrees == g_status_685170.party_heading) {
         return;
     }
-    g_party_heading = degrees;
+    g_status_685170.party_heading = degrees;
     Function5B1E70();
     if (GetCameraHeading() % W8_DEGREES_PER_TURN == degrees) {
         return;

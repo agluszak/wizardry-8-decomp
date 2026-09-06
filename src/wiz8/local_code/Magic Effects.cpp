@@ -247,14 +247,14 @@ void RecallCasterToSavedLocation(W8SpellQueueEntry* pQueue)
     }
     caster = &g_party_characters[pQueue->Source.iChar];
     if (caster->has_saved_location != 0) {
-        if (caster->saved_level == g_current_level) {
+        if (caster->saved_level == g_status_685170.current_level) {
             MoveWorldToPoint(GetWorld(), GetWorld659AB8(), &caster->saved_location.point);
             point = caster->saved_location.point;
             PlacePartyAtPoint(&point);
             MarkRendererReady();
             return;
         }
-        g_pending_move_location_00687417 = caster->saved_location;
+        g_status_685170.pending_move_location = caster->saved_location;
         g_level_block->pending_level = g_party_characters[pQueue->Source.iChar].saved_level;
         g_level_block->pending_entry_id = -1;
         BeginLevelTransition();

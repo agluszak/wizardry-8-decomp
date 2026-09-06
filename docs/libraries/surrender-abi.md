@@ -1,7 +1,6 @@
 # The SurRender boundary
 
-SurRender is linked, not authored, so its bodies are not a recovery subject. What the project needs
-from it is a *declaration* surface: enough of `sr.dll`'s classes, in real C++, that the first-party
+The project needs a *declaration* surface for `sr.dll`: enough of its classes, in real C++, that the first-party
 units calling and deriving from them compile in the VC6 target and still match. This document covers
 where that surface comes from and how far it can honestly be taken.
 

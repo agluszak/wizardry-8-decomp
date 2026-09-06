@@ -62,10 +62,10 @@ extern "C" void ClearSurfaceRect(
 void Function56AA30(void)
 {
     g_flag_6840bc = 1;
-    if (g_flag_00683fcd != 0) {
+    if (gXStatus.field_055 != 0) {
         DisableRegionSet1C();
     }
-    if (g_in_combat_00683f94 == 0) {
+    if (gXStatus.fCombatMode == 0) {
         if (g_flag_006840bd != 0) {
             Function420B40(1);
             ClearRegionModeBits(0x137);
@@ -84,9 +84,9 @@ void Function56AA30(void)
 // FUNCTION: WIZ8 0x0056aab0
 void Function56AAB0(void)
 {
-    if (g_flag_00683f95 == 0 && g_flag_00683f97 == 0 &&
-        g_flag_00683f96 == 0 && g_flag_00683f9a == 0) {
-        if (g_in_combat_00683f94 == 0) {
+    if (gXStatus.field_01d == 0 && gXStatus.field_01f == 0 &&
+        gXStatus.fItemSelectMode == 0 && gXStatus.field_022 == 0) {
+        if (gXStatus.fCombatMode == 0) {
             if (g_flag_006840bd != 0) {
                 Function420B40(4);
                 ClearActiveRegionIfMatches(0x137);
@@ -94,8 +94,8 @@ void Function56AAB0(void)
             }
             Function482990(1);
             MonsterForward4531A0();
-            if (g_flag_00683f98 == 0 && g_flag_00683f99 == 0 &&
-                g_flag_00683f9c == 0 && g_flag_00683f9d == 0) {
+            if (gXStatus.field_020 == 0 && gXStatus.field_021 == 0 &&
+                gXStatus.field_024 == 0 && gXStatus.field_025 == 0) {
                 ClearLevelDataFlag6();
             }
         }
@@ -103,7 +103,7 @@ void Function56AAB0(void)
         g_flag_006840bd = 0;
         if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME &&
             g_level_block->flag_327 == 0) {
-            if (g_flag_00683fcd != 0) {
+            if (gXStatus.field_055 != 0) {
                 Function5A1950();
             }
             ClearSurfaceRect(0xb1, 0x13f, 0x1cf, 0x153);

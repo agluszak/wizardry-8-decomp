@@ -143,9 +143,9 @@ unsigned char MaintainNpcStock(W8NpcState* npc, char force)
         } while (index < count);
     }
 
-    if (static_cast<unsigned int>(g_world_clock_00686a48 - npc->restock_clock) > 0xa8c0 ||
+    if (static_cast<unsigned int>(g_status_685170.world_clock - npc->restock_clock) > 0xa8c0 ||
         force != 0) {
-        npc->restock_clock = g_world_clock_00686a48;
+        npc->restock_clock = g_status_685170.world_clock;
         count = PLLength(npc->record->item_stock_rules);
         rule_index = 0;
         if (count > 0) {
@@ -198,7 +198,7 @@ unsigned char MaintainNpcStock(W8NpcState* npc, char force)
         }
     }
 
-    if (static_cast<unsigned int>(g_world_clock_00686a48 - npc->maintenance_clock) < 0x15180 &&
+    if (static_cast<unsigned int>(g_status_685170.world_clock - npc->maintenance_clock) < 0x15180 &&
         force == 0) {
         return 0;
     }
@@ -219,8 +219,8 @@ unsigned char MaintainNpcStock(W8NpcState* npc, char force)
             ++index;
         } while (index < count);
     }
-    npc->maintenance_clock = g_world_clock_00686a48;
-    npc->restock_clock = g_world_clock_00686a48;
+    npc->maintenance_clock = g_status_685170.world_clock;
+    npc->restock_clock = g_status_685170.world_clock;
     return 1;
 }
 
@@ -312,8 +312,8 @@ unsigned char PopulateNpcStock(W8NpcState* npc)
         } while (rule_index < rule_count);
     }
     SortNpcItems(npc);
-    npc->maintenance_clock = g_world_clock_00686a48;
-    npc->restock_clock = g_world_clock_00686a48;
+    npc->maintenance_clock = g_status_685170.world_clock;
+    npc->restock_clock = g_status_685170.world_clock;
     return 1;
 }
 
@@ -629,7 +629,7 @@ int AddNpcItemWithDelay(W8NpcState* npc, int item_id, unsigned int quantity, int
         return -1;
     }
     entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
-    entry->available_at = g_world_clock_00686a48 + delay;
+    entry->available_at = g_status_685170.world_clock + delay;
     return index;
 }
 

@@ -163,7 +163,7 @@ void CloseFormationGap(int from_position, int to_position, int* rows_apart)
 {
     char crossable;
 
-    if (g_in_combat_00683f94 == 0) {
+    if (gXStatus.fCombatMode == 0) {
         return;
     }
     if (*rows_apart < 0 || *rows_apart >= 2) {

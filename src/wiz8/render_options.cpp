@@ -18,8 +18,6 @@
  * holds, so it is not modelled.
  */
 
-extern "C" {
-
 void SetRenderOption(int option, int enabled);
 
 float g_render_brightness_60a210;
@@ -197,6 +195,4 @@ bool SaveRenderOptions0047B920(HWFILE handle)
         return false;
     }
     return FileWrite(handle, g_render_options_65a118 + 2, 0x11, &transferred) != 0;
-}
-
 }

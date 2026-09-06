@@ -882,13 +882,13 @@ void CharacterDies(int party_slot)
 
     ResetCombatSlot(&row->target_out_of_combat);
     ResetCombatSlot(&row->target_in_combat);
-    if (g_in_combat_00683f94 != 0) {
+    if (gXStatus.fCombatMode != 0) {
         RecordCharacterDeath(party_slot);
     }
     Function52F110(party_slot);
     PlaySound("Data\\Sound\\Misc\\CharacterDead.wav", 0);
 
-    if (g_in_combat_00683f94 != 0) {
+    if (gXStatus.fCombatMode != 0) {
         if (g_combat_state->selected_character == party_slot) {
             g_combat_state->selected_slot = 0;
             g_combat_state->selected_character = -1;

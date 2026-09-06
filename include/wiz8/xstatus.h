@@ -76,38 +76,4 @@ static_assert(sizeof(W8XStatus) == 0x73, "W8XStatus_recovered_prefix_size");
 
 extern W8XStatus gXStatus;
 
-/* Positional compatibility names for already-recovered bodies outside this
-   batch. Named gXStatus members are used directly by the owners recovered
-   here; these aliases keep unrelated translation units on the same storage. */
-#define g_in_combat_00683f94 (gXStatus.fCombatMode)
-#define g_flag_00683f95 (gXStatus.field_01d)
-#define g_flag_00683f96 (gXStatus.fItemSelectMode)
-#define g_flag_00683f97 (gXStatus.field_01f)
-#define g_flag_683f97 (gXStatus.field_01f)
-#define g_flag_00683f98 (gXStatus.field_020)
-#define g_flag_00683f99 (gXStatus.field_021)
-#define g_flag_00683f9a (gXStatus.field_022)
-#define g_camp_open_00683f9b (gXStatus.fCampMode)
-#define g_flag_00683f9c (gXStatus.field_024)
-#define g_flag_00683f9d (gXStatus.field_025)
-#define g_flag_683fa0 (gXStatus.field_028)
-#define g_active_monster_count_683fa1 (gXStatus.active_monster_count)
-#define g_dword_683fa5 (gXStatus.field_02d)
-#define g_item_manager_pending_00683FA9 (gXStatus.item_manager_pending)
-#define g_active_monster_list_00683fad (gXStatus.plsMonsterList)
-#define g_monster_list (gXStatus.plsMonsterList)
-#define g_monster_group_list (gXStatus.plsMonsterGroupList)
-#define g_monster_group_list_00683fb1 (gXStatus.plsMonsterGroupList)
-#define g_monster_group_species_list (gXStatus.plsMonsterGroupList)
-#define g_world_item_list (gXStatus.plsItemList)
-#define g_unborn_monster_list (gXStatus.plsUnbornMonsterList)
-#define g_monster_group_encounter_list (gXStatus.plsMonsterGroupEncounterList)
-#define g_surprise_possible_00683fc5 (gXStatus.fSurprisePossible)
-#define g_flag_00683fcd (gXStatus.field_055)
-#define g_flag_00683fce (gXStatus.fPartyMovementMode)
-#define g_cursor_state_00683fdb (gXStatus.iCurrentCursor)
-#define g_dword_683fdf (gXStatus.current_cursor_frame)
-#define g_dword_683fe3 (gXStatus.current_cursor_time)
-#define g_highlight_suppressed_00683fe7 (gXStatus.field_06f)
-
 #endif

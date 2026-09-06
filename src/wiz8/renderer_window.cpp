@@ -7,7 +7,9 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/cursor.h"
 #include "wiz8/regions.h"
+#include "wiz8/render_state.h"
 #include "wiz8/sgp_video.h"
+#include "wiz8/startup_world.h"
 #include "wiz8/sr_api.h"
 #include "DirectDraw Calls.h"
 #include "input.h"
@@ -35,8 +37,6 @@
  * handle have real ones.
  */
 
-extern "C" {
-
 /* The released SGP video unit owns this platform handle.  Wiz8 replaces the
    released video manager but keeps the same source-defined interface. */
 HWND ghWindow;
@@ -46,7 +46,7 @@ unsigned char g_flag_603c4c = 1;
 unsigned char g_flag_603c60 = 1;
 unsigned char g_flag_603c6d = 1;
 int g_frame_reset_interval_603c68 = 50;
-extern "C++" unsigned char g_fullscreen_603c39 = 1;
+unsigned char g_fullscreen_603c39 = 1;
 unsigned char g_flush_pending_603c3a = 1;
 int g_screen_width_603c3c = 640;
 int g_screen_height_603c40 = 480;
@@ -64,14 +64,10 @@ unsigned short g_show_command_659620;
 WNDPROC g_window_proc_6595f8;
 unsigned char g_flag_659710;
 unsigned char g_flag_65970e;
-extern "C++" {
 unsigned char g_flag_659711;
-}
 unsigned char g_flag_6596f4;
 unsigned char g_flag_6840bc;
-extern "C++" {
 unsigned char g_flag_65970f;
-}
 srGERD* g_gerd_659634;
 LPDIRECTDRAW g_direct_draw_65969c;
 LPDIRECTDRAW2 g_direct_draw2_6596a0;
@@ -133,20 +129,17 @@ extern unsigned char CreateWizardryWindow(void);
 extern unsigned char InitializePrimaryDirectDrawSurface(void);
 extern unsigned char InitializeVideoDevice(void);
 extern unsigned char InitializeRendererSceneObjects(void);
-extern "C++" void Function402750(void);
+extern void Function402750(void);
 extern unsigned char Function422800(void);
 extern void PurgeInactiveSceneInstances(srScene* scene);
 extern void SetViewport(int left, int top, int right, int bottom);
-extern unsigned char Function44F060(void);
 extern "C" void EnableAllRenderOptions(void);
 extern void Function47D5F0(void);
 extern unsigned char Function4285C0(void);
 extern void AssertFailureHandler(const char* expression, const char* file,
                                  long line, const char* message);
 
-extern "C++" {
 char* g_sound_provider_650e54;
-}
 unsigned char* g_render_options_65a118;
 
 // FUNCTION: WIZ8 0x00421f70
@@ -192,7 +185,7 @@ void Function422B10(void)
    original working directory. Each gate that fails returns straight out with
    the callee's own false still in AL. */
 // FUNCTION: WIZ8 0x00421bb0
-extern "C++" unsigned char InitializeRenderer(
+unsigned char InitializeRenderer(
     void* instance, unsigned short show_command, void* window_proc)
 {
     MEMORYSTATUS status;
@@ -266,7 +259,7 @@ done:
 }
 
 // FUNCTION: WIZ8 0x00421dc0
-extern "C++" void ShutdownRenderer(void)
+void ShutdownRenderer(void)
 {
     if (g_cursor_node_659694) {
         g_cursor_node_659694->release();
@@ -638,7 +631,7 @@ void UnlockPrimarySurface(void)
 /* The mode the engine falls back to: 640x480 at 16bpp, reported height first.
    Nothing here reads a configuration - the three constants are inline. */
 // FUNCTION: WIZ8 0x00422af0
-extern "C++" void GetDefaultScreenMode(
+void GetDefaultScreenMode(
     unsigned short* height, unsigned short* width, unsigned char* depth)
 {
     *height = 0x1e0;
@@ -662,11 +655,9 @@ unsigned char ClearPrimarySurface(void)
     return 1;
 }
 
-}
-
 extern "C" void Function40C0B0(void);
 extern "C" void Function425B40(void);
-extern "C" srScene* g_cursor_scene_659684;
+extern srScene* g_cursor_scene_659684;
 extern "C" unsigned char g_render_flag_603c6c;
 extern "C" int g_resident_texture_policy_659714;
 extern unsigned char g_monster_shadow_updates_enabled_0065970c;

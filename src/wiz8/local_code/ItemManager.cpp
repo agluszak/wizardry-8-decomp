@@ -323,9 +323,9 @@ W8WorldItem* GetNextWorldItem(char restart)
         g_world_item_cursor = 0;
     }
     index = g_world_item_cursor;
-    if ((unsigned int)index < PLLength(g_world_item_list)) {
+    if ((unsigned int)index < PLLength(gXStatus.plsItemList)) {
         ++g_world_item_cursor;
-        return (W8WorldItem*)PLGet(g_world_item_list, index);
+        return (W8WorldItem*)PLGet(gXStatus.plsItemList, index);
     }
     return 0;
 }
@@ -427,15 +427,15 @@ W8WorldItem* ItemInfo(unsigned int item_list_index)
 {
     W8WorldItem* item;
 
-    if (item_list_index >= PLLength(g_world_item_list)) {
+    if (item_list_index >= PLLength(gXStatus.plsItemList)) {
         srAssertFail("uiItemListIndex < (UINT32) PLLength(gXStatus.plsItemList)",
                      ITEM_MANAGER_CPP, 961, 0);
     }
-    item = (W8WorldItem*)PLGet(g_world_item_list, item_list_index);
+    item = (W8WorldItem*)PLGet(gXStatus.plsItemList, item_list_index);
     if (item == 0) {
         srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 965,
                      FormatString("ItemInfo: ERROR - PLGet failed, index %d, pList %d",
-                                  item_list_index, g_world_item_list));
+                                  item_list_index, gXStatus.plsItemList));
     }
     return item;
 }
@@ -447,7 +447,7 @@ unsigned int ItemIndex(int runtime_id)
 {
     unsigned int index;
 
-    for (index = 0; index < PLLength(g_world_item_list); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsItemList); ++index) {
         if (ItemInfo(index)->runtime_id == runtime_id) {
             return index;
         }
@@ -522,7 +522,7 @@ void DeactivateWorldItem(W8WorldItem* item)
     delete item->owner;
     item->owner = 0;
     item->unknown_08 = 0;
-    --g_item_manager_pending_00683FA9;
+    --gXStatus.item_manager_pending;
 }
 
 /* Whether one world item is close enough to a point to be reached, and in
@@ -609,7 +609,7 @@ void RebuildAllWorldItemInstances(void)
     unsigned int index;
     W8WorldItem* item;
 
-    for (index = 0; index < PLLength(g_world_item_list); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsItemList); ++index) {
         item = ItemInfo(index);
         ReplaceOrCreateItem(&item->item, item->item.item_id, 0, 0, 0);
     }

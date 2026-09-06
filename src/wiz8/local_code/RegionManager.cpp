@@ -1,4 +1,5 @@
 #include "wiz8/regions.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/utility.h"
@@ -44,7 +45,6 @@ unsigned char g_flag_689b32;
 extern unsigned short gfAltState;
 extern unsigned short gfCtrlState;
 extern unsigned short gfShiftState;
-extern "C++" void ReleaseScreenTransitionObjects(void);
 extern void Function558720(int sound_id);
 
 /* Dispatch one mouse-position event through the enabled region sets. A forced

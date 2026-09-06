@@ -74,7 +74,7 @@ void DestroyRcsPanelB(void)
 void UpdateRcsPanelB(void)
 {
     if ((g_rcs_mode_0064cbe8 == 0 || g_rcs_mode_0064cbe8 == 1) &&
-        g_in_combat_00683f94 == 0 && g_camp_open_00683f9b == 0) {
+        gXStatus.fCombatMode == 0 && gXStatus.fCampMode == 0) {
         if (g_rcs_widget_b_0069c400->m_flag_5 == 0) {
             g_rcs_widget_b_0069c400->SetEnabled(1);
             g_rcs_panel_b_0069c3c8->Invalidate(0);

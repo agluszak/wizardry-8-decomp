@@ -217,7 +217,7 @@ void SetKnockKnockTarget(int target)
 {
     unsigned char* screen = g_main_game_screen_0068f2d4;
 
-    if (g_flag_00683f99 == 0) {
+    if (gXStatus.field_021 == 0) {
         ShowNotice(0xc, L"You can't cast Knock Knock here!", -1, -1, 0);
         return;
     }

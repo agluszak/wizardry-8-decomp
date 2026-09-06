@@ -363,7 +363,7 @@ int Function52E750(void)
             }
         }
 
-        if (g_flag_00683f97 != 0 && (party_slot & 1) != 0 &&
+        if (gXStatus.field_01f != 0 && (party_slot & 1) != 0 &&
             Function56EC90(party_slot) != 0) {
             continue;
         }

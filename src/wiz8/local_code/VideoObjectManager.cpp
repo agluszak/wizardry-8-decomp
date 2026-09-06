@@ -27,9 +27,7 @@
 static_assert(sizeof(W8VideoObjectSlot) == 8, "W8VideoObjectSlot_size_must_be_8");
 static_assert(sizeof(W8VideoFrame) == 0x3c, "W8VideoFrame_size_must_be_0x3c");
 
-extern "C" {
-
-extern "C++" unsigned char g_video_objects_ready_650e20;
+extern unsigned char g_video_objects_ready_650e20;
 W8VideoObjectSlot g_video_slots_6448c8[494];
 /* The cleanup loop bounds the complete table at 0x00644900: 0x184d0 bytes,
    or 1658 records.  Only the first 566 catalog entries are attributed so far. */
@@ -410,6 +408,4 @@ unsigned char Function5497C0(int target, int left, int top,
     UnLockVideoSurface(target);
     UnLockVideoSurface(source_handle);
     return 1;
-}
-
 }

@@ -27,11 +27,9 @@ unsigned long float_bits(float value)
 
 }
 
-extern "C" {
-
 extern srModeler* g_modeler_65963c;
 extern float g_surface_scale_659680;
-extern "C++" unsigned char g_video_objects_ready_650e20;
+extern unsigned char g_video_objects_ready_650e20;
 
 srScene* g_cursor_scene_659684;
 srMeshModel* g_cursor_model_65968c;
@@ -45,9 +43,7 @@ int g_cursor_image_height_6596b8;
 int g_cursor_hotspot_x_6596bc;
 int g_cursor_hotspot_y_6596c0;
 unsigned char g_system_cursor_visible_6596c4;
-extern "C++" unsigned char g_fullscreen_603c39;
-
-}
+extern unsigned char g_fullscreen_603c39;
 
 // SYNTHETIC: WIZ8 0x00424A50
 // srClassSupport<srMeshModel,srMeshModel,0,8208>::`scalar deleting destructor'

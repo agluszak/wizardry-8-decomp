@@ -58,7 +58,7 @@ void Function439BC0(void)
         }
         else {
             g_object_6598bc->m_start =
-                (g_game_time_days * 86400000 + g_game_time_ms) * 10
+                (g_status_685170.game_time_days * 86400000 + g_status_685170.game_time_ms) * 10
                 - g_object_6598bc->m_start;
         }
     }

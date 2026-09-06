@@ -213,7 +213,7 @@ W8AniMesh* W8MissileRep::GetEmitterAniMesh(char emitter)
         return 0;
     }
     return static_cast<W8AniMesh*>(
-        AnimObjEntry004A1660(target, 0, m_bLOD, 0));
+        AnimObjEntry004A1660(target, m_bLOD, 0));
 }
 
 /* Apply the representation's current LOD to one required animation. */

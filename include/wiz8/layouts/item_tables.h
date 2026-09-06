@@ -62,10 +62,8 @@ typedef struct W8ItemDatabaseRecord {
     char video_object_name[0x40];         /* 0x0cd */
 } W8ItemDatabaseRecord;                   /* 0x10d */
 
-#ifndef __WIZ8_GHIDRA_LAYOUTS__
 static_assert(sizeof(W8ItemDatabaseRecord) == 0x10d, "W8ItemDatabaseRecord_size_must_be_0x10d");
 static_assert(sizeof(W8ItemTableRecord) == 0x1f1, "W8ItemTableRecord_size_must_be_0x1f1");
-#endif
 
 #pragma pack(pop)
 

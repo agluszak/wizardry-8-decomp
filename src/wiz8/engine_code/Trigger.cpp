@@ -959,7 +959,7 @@ void Trigger::RunDestination00440DD0(const char* destination)
     }
 
     Function41EF50();
-    current_location = g_current_level;
+    current_location = g_status_685170.current_level;
     named_entity = FindEntityByName(
         destination, &destination_position, &entity_value,
         &destination_direction);
@@ -1620,10 +1620,10 @@ toggle_item_prop:
         }
         monster_id = atoi(m_pacRecipients);
         for (index = 0;
-             index < (int)PLLength(g_monster_group_list);
+             index < (int)PLLength(gXStatus.plsMonsterGroupList);
              ++index) {
             group = static_cast<W8MonsterGroup*>(
-                PLGet(g_monster_group_list, index));
+                PLGet(gXStatus.plsMonsterGroupList, index));
             if (group->monster_id == monster_id) {
                 int location_id = IListGetAt(group->monsters, 0);
                 unsigned int monster_index = MonsterGetIndexByLocationID(

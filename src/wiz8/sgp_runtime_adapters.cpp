@@ -253,9 +253,7 @@
 // LIBRARY: WIZ8 0x00407B80
 // mprintf_buffer
 
-extern "C" {
-
-extern "C++" unsigned char g_fullscreen_603c39;
+extern unsigned char g_fullscreen_603c39;
 extern unsigned short g_red_mask_650f4a;
 extern unsigned short g_green_mask_650f4c;
 extern unsigned short g_blue_mask_650f4e;
@@ -263,7 +261,7 @@ extern unsigned short g_alpha_mask_650f48;
 extern int g_screen_width_603c3c;
 extern int g_screen_height_603c40;
 extern int g_screen_depth_603c44;
-extern "C++" unsigned char InitializeWiz8FontManager(
+unsigned char InitializeWiz8FontManager(
     unsigned short pixel_depth, FontTranslationTable* translation)
 {
     if (!InitializeFontManager(pixel_depth, translation)) {
@@ -378,6 +376,4 @@ unsigned char Function402ED0(int destination, unsigned int source, short region,
     return BltVideoSurface(
         destination, source, static_cast<unsigned short>(region), x, y,
         static_cast<unsigned int>(flags), reinterpret_cast<blt_vs_fx*>(effects));
-}
-
 }

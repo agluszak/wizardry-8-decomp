@@ -69,9 +69,7 @@ unsigned char SetFlag603C60(void);
 unsigned char ClearFlag603C60(void);
 /* Engine Code\Levels.cpp owns this with C++ linkage. */
 
-extern "C" {
-
-extern "C++" void NoOp(void);
+extern void NoOp(void);
 extern void ShutdownDisplayList(void);
 extern int Function40B290(void);
 extern void ConfigurePresentation00413FD0(int a, int b, int c, int d, int e);
@@ -105,8 +103,6 @@ extern unsigned char g_flag_689b2c;
    frame handler falls back to. */
 extern int g_level_backdrops_64bf8c[];
 extern unsigned short g_level_name_indices_605820[];
-
-}
 
 /* The path the five assertions carry. */
 #define PLEASE_WAIT_SCREEN_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\PleaseWaitScreen.cpp"
@@ -155,7 +151,7 @@ unsigned char PleaseWaitScreenEnter(void)
             strcpy(g_load_descriptor_69b7c8->name, g_screen_state_0068ec78.name);
             break;
         case 2:
-            g_load_descriptor_69b7c8->parameter = g_current_level;
+            g_load_descriptor_69b7c8->parameter = g_status_685170.current_level;
             strcpy(g_load_descriptor_69b7c8->name, g_screen_state_0068ec78.name);
             g_load_descriptor_69b7c8->save_payload = g_screen_state_0068ec78.parameter_3;
             break;
@@ -330,7 +326,7 @@ void PleaseWaitScreenFrame(void)
             if (!LoadGame(g_load_descriptor_69b7c8->name)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 293, 0);
             }
-            if (!LoadLevel(g_current_level, -1, 1)) {
+            if (!LoadLevel(g_status_685170.current_level, -1, 1)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 296, 0);
             }
         }

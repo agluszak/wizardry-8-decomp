@@ -66,11 +66,11 @@ extern void Function502010(int elapsed);
 // FUNCTION: WIZ8 0x00482a20
 void Function482A20(int elapsed)
 {
-    unsigned int time = (unsigned int)(g_game_time_ms + elapsed);
+    unsigned int time = (unsigned int)(g_status_685170.game_time_ms + elapsed);
     if (time > 86399999U) {
-        ++g_game_time_days;
+        ++g_status_685170.game_time_days;
     }
-    g_game_time_ms = (int)(time % 86400000U);
+    g_status_685170.game_time_ms = (int)(time % 86400000U);
 
     if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME) {
         Function502010(elapsed);
@@ -80,19 +80,19 @@ void Function482A20(int elapsed)
     const double arc = 3.141592653589793 * (double)(1.0f / 180.0f) * 80.0;
     bool day;
     double angle;
-    if ((unsigned int)g_game_time_ms < 18000001U) {
+    if ((unsigned int)g_status_685170.game_time_ms < 18000001U) {
         day = false;
-        angle = (double)(g_game_time_ms + 7200000) * arc *
+        angle = (double)(g_status_685170.game_time_ms + 7200000) * arc *
                 3.9682539682539686e-08;
     }
-    else if ((unsigned int)g_game_time_ms < 79200001U) {
+    else if ((unsigned int)g_status_685170.game_time_ms < 79200001U) {
         day = true;
-        angle = (double)(g_game_time_ms - 18000000) * arc *
+        angle = (double)(g_status_685170.game_time_ms - 18000000) * arc *
                 1.633986928104575e-08;
     }
     else {
         day = false;
-        angle = (double)(g_game_time_ms - 79200000) * arc *
+        angle = (double)(g_status_685170.game_time_ms - 79200000) * arc *
                 3.9682539682539686e-08;
     }
 
@@ -129,7 +129,7 @@ void Function482A20(int elapsed)
     }
 
     unsigned int phase =
-        (((unsigned int)g_game_time_ms / 1000U) << 8) / 86400U;
+        (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) / 86400U;
     stTextureAnim* animations[3] = {
         g_environment_value_0065a168,
         g_environment_value_0065a16c,
@@ -548,7 +548,7 @@ extern "C" {
 // FUNCTION: WIZ8 0x00482720
 void Function482720(int value)
 {
-    g_game_time_ms = value;
+    g_status_685170.game_time_ms = value;
     g_tick_65b9a8 = GetTickCount();
 }
 }

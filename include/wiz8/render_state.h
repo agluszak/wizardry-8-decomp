@@ -10,8 +10,6 @@ class srModelInstance;
 class srNode;
 class stSurface2D;
 
-extern "C" {
-
 extern unsigned char* g_render_options_65a118;
 extern srGERD* g_gerd_659634;
 extern LPDIRECTDRAWSURFACE2 g_primary_surface_6596a8;
@@ -47,6 +45,10 @@ extern int g_viewport_right_6595f0;
 extern int g_viewport_bottom_6595f4;
 extern int g_dword_6596d8;
 
-}
+unsigned char InitializeRenderer(
+    void* instance, unsigned short show_command, void* window_proc);
+void ShutdownRenderer(void);
+void GetDefaultScreenMode(
+    unsigned short* height, unsigned short* width, unsigned char* depth);
 
 #endif

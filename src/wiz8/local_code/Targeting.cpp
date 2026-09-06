@@ -566,12 +566,12 @@ void UpdateAllMonsterHighlights(int party_slot, int location_id)
     W8MonsterInfo* monster_info;
     int tint;
 
-    if (g_level_block->highlight_override != -1 && g_highlight_suppressed_00683fe7 == 0) {
+    if (g_level_block->highlight_override != -1 && gXStatus.field_06f == 0) {
         overridden = true;
         owner = g_level_block->highlight_override;
     }
 
-    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->flag_14 == 0) {
             continue;
@@ -660,7 +660,7 @@ int CompareMonsterTargetCandidates(const void* left, const void* right)
 // FUNCTION: WIZ8 0x0053c720
 int ChooseMonsterTarget(int party_slot, int group_id, int context)
 {
-    unsigned int monster_count = PLLength(g_active_monster_list_00683fad);
+    unsigned int monster_count = PLLength(gXStatus.plsMonsterList);
     W8MonsterTargetCandidate* candidates;
     W8MonsterTargetCandidate* next;
     size_t found = 0;
@@ -889,15 +889,15 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
 
     if (valid == 0) {
         SetMonsterHighlightColour(monster, 1.0f, 0.0f, 0.0f, 1.0f);
-        if (g_modal_owner_0068edd0 == 0 && g_cursor_state_00683fdb == W8_CURSOR_VALID_TARGET) {
+        if (g_modal_owner_0068edd0 == 0 && gXStatus.iCurrentCursor == W8_CURSOR_VALID_TARGET) {
             ClearTargetCursor();
         }
         return 0;
     }
 
     SetMonsterHighlightColour(monster, 0.0f, 1.0f, 0.0f, 1.0f);
-    if (g_modal_owner_0068edd0 == 0 && g_highlight_suppressed_00683fe7 == 0 && IsScreenIdle() &&
-        g_cursor_state_00683fdb != W8_CURSOR_INVALID_TARGET) {
+    if (g_modal_owner_0068edd0 == 0 && gXStatus.field_06f == 0 && IsScreenIdle() &&
+        gXStatus.iCurrentCursor != W8_CURSOR_INVALID_TARGET) {
         SetTargetCursor(W8_CURSOR_VALID_TARGET);
     }
     return valid;
@@ -970,7 +970,7 @@ void CollectMonstersWithinRadius(
         return;
     }
 
-    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
         W8Monster* monster = monster_info->monster;
         W8MonsterRecord* record;
@@ -1041,10 +1041,10 @@ unsigned char GetCurrentTargetingContext(int party_slot)
         return W8_TARGETING_CONTEXT_DIALOGUE;
     }
     if (party_slot == g_status_685170.selected_character &&
-        (g_flag_00683f95 != 0 || g_flag_00683f96 != 0)) {
+        (gXStatus.field_01d != 0 || gXStatus.fItemSelectMode != 0)) {
         return W8_TARGETING_CONTEXT_SHARED;
     }
-    return (unsigned char)(g_in_combat_00683f94 != 0);
+    return (unsigned char)(gXStatus.fCombatMode != 0);
 }
 
 /* Resolve "current" to a real context and check that what comes back is one.
@@ -1155,7 +1155,7 @@ void Function53A300(W8MonsterInfo* monster_info, int spell_id)
 // FUNCTION: WIZ8 0x0053A3D0
 unsigned int Function53A3D0(int alternate)
 {
-    switch (g_highlight_suppressed_00683fe7) {
+    switch (gXStatus.field_06f) {
     case 1:
     case 6:
     case 7:
@@ -1184,7 +1184,7 @@ unsigned char Function53A700(int party_slot)
     case 10:
         return 0;
     case 3:
-        if (g_camp_open_00683f9b != 0) {
+        if (gXStatus.fCampMode != 0) {
             return 0;
         }
         return g_targeting_flag_00685116 == 0;
@@ -1230,7 +1230,7 @@ void Function53A320(int state)
 {
     int cursor;
 
-    g_highlight_suppressed_00683fe7 = state;
+    gXStatus.field_06f = state;
     switch (state) {
     case 1:
     case 6:
@@ -1253,7 +1253,7 @@ void Function53A320(int state)
         cursor = -1;
         break;
     }
-    if (cursor != g_cursor_state_00683fdb) {
+    if (cursor != gXStatus.iCurrentCursor) {
         SetTargetCursor(cursor);
     }
     g_target_position_0068407f.x = 0.0f;
@@ -1279,7 +1279,7 @@ void Function53AEB0(unsigned int party_slot)
 {
     unsigned int index;
 
-    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
         W8Monster* monster = monster_info->monster;
 
@@ -1449,14 +1449,14 @@ unsigned char CanTargetMonster(
     if (monster_info->condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0) {
         return 0;
     }
-    if (g_camp_open_00683f9b != 0 &&
+    if (gXStatus.fCampMode != 0 &&
         *(const int*)(g_camp_screen_00649f1c + 0xf8) != location_id) {
         return 0;
     }
 
     if (ResolveTargetingContext(party_slot, W8_TARGETING_CONTEXT_CURRENT) == 0) {
         needed = 0;
-        if (g_in_combat_00683f94 != 0) {
+        if (gXStatus.fCombatMode != 0) {
             return 0;
         }
     }
@@ -1475,7 +1475,7 @@ unsigned char CanTargetMonster(
                 if (needed != 0) {
                     return 0;
                 }
-                if (g_in_combat_00683f94 != 0) {
+                if (gXStatus.fCombatMode != 0) {
                     return 0;
                 }
             }
@@ -1523,7 +1523,7 @@ unsigned char SlotHasAnyValidTarget(int party_slot)
     switch (action) {
     case 0:
     case 1:
-        for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
+        for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             if (CanTargetMonster(
                     party_slot, MonsterGetScriptPartByLocationIndex(index)->location_id, 0, 0)) {
                 return 1;
@@ -1545,7 +1545,7 @@ unsigned char SlotHasAnyValidTarget(int party_slot)
                 return 1;
             }
         }
-        for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
+        for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             memset(&target, 0, sizeof(target));
             target.iChar = BAD_INDEX;
             target.iGroupID = BAD_INDEX;
@@ -1608,7 +1608,7 @@ unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char
         if (g_targeting_flag_00685116 != 0) {
             return 1;
         }
-        for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
+        for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             if (CanTargetMonster(
                     party_slot, MonsterGetScriptPartByLocationIndex(index)->location_id, 0, 0)) {
                 return 1;
@@ -1617,7 +1617,7 @@ unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char
         return 0;
 
     case W8_SPELL_TARGET_MONSTER_GROUP:
-        for (index = 0; index < PLLength(g_monster_group_list_00683fb1); ++index) {
+        for (index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
             W8MonsterGroup* group = GetMonsterGroupByListIndex(index);
 
             if (group->flag_28 != 0 && CanTargetMonsterGroup(party_slot, group)) {
@@ -1817,7 +1817,7 @@ extern int g_picked_group_006840b7;
 // FUNCTION: WIZ8 0x00537ed0
 int PickNextTargetableGroup(int party_slot)
 {
-    unsigned int count = PLLength(g_monster_group_list_00683fb1);
+    unsigned int count = PLLength(gXStatus.plsMonsterGroupList);
     unsigned int start;
     unsigned int index;
 
@@ -1836,7 +1836,7 @@ int PickNextTargetableGroup(int party_slot)
         }
         else {
             ++start;
-            if (start == PLLength(g_monster_group_list_00683fb1)) {
+            if (start == PLLength(gXStatus.plsMonsterGroupList)) {
                 start = 0;
             }
         }
@@ -1850,7 +1850,7 @@ int PickNextTargetableGroup(int party_slot)
             return group->group_id;
         }
         ++index;
-        if (index == PLLength(g_monster_group_list_00683fb1)) {
+        if (index == PLLength(gXStatus.plsMonsterGroupList)) {
             index = 0;
         }
     } while (index != start);

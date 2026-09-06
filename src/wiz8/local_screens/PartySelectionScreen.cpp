@@ -102,7 +102,7 @@ struct W8State5PartyCollection {
     W8GrowableVector<char*> names;
     int first_visible;
 };
-WIZ8_ASSERT_SIZE(W8State5PartyCollection, 0x24);
+static_assert(sizeof(W8State5PartyCollection) == 0x24, "W8State5PartyCollection_size");
 
 // GLOBAL: WIZ8 0x0069C4EC
 W8State5PartyCollection* g_state5_party_collection_69c4ec;
@@ -354,7 +354,7 @@ public:
     int m_first_visible;                 /* 0x44 */
     W8State5ListSelectionListener005EF4C8* m_listener; /* 0x48 */
 };
-WIZ8_ASSERT_SIZE(W8State5ListControl005EF464, 0x4c);
+static_assert(sizeof(W8State5ListControl005EF464) == 0x4c, "W8State5ListControl005EF464_size");
 
 // SYNTHETIC: WIZ8 0x005bff20
 // W8State5ListControl005EF464::`scalar deleting destructor'
@@ -475,7 +475,7 @@ public:
     int m_character_index;
     W8State5PanelSelectionListener005EF3B4* m_selection_listener;
 };
-WIZ8_ASSERT_SIZE(W8State5CharacterRow005EF364, 0xc4);
+static_assert(sizeof(W8State5CharacterRow005EF364) == 0xc4, "W8State5CharacterRow005EF364_size");
 
 class W8State5InputHandler005C0E50 {
 public:
@@ -485,7 +485,7 @@ public:
 
     W8State5DecisionListener005EF4C0* m_listener;
 };
-WIZ8_ASSERT_SIZE(W8State5InputHandler005C0E50, 8);
+static_assert(sizeof(W8State5InputHandler005C0E50) == 8, "W8State5InputHandler005C0E50_size");
 
 class W8State5Controller005EF4CC;
 
@@ -513,7 +513,7 @@ public:
     W8RangeControl005ED74C* m_range_7c;
     int m_selected_row;
 };
-WIZ8_ASSERT_SIZE(W8State5CharacterPanel005EF3C8, 0x84);
+static_assert(sizeof(W8State5CharacterPanel005EF3C8) == 0x84, "W8State5CharacterPanel005EF3C8_size");
 
 class W8State5SixTextPanel005EF450
     : public Controls,
@@ -524,7 +524,7 @@ public:
     virtual void OnPrimary(W8TextControl005ED604* control) override;
     virtual void OnSecondary(W8TextControl005ED604*) override {}
 };
-WIZ8_ASSERT_SIZE(W8State5SixTextPanel005EF450, 0x50);
+static_assert(sizeof(W8State5SixTextPanel005EF450) == 0x50, "W8State5SixTextPanel005EF450_size");
 
 class W8State5PartySlotRow005EF3E4 : public W8TextControl005ED604 {
 public:
@@ -537,7 +537,7 @@ public:
     int m_row;
     W8WidgetBase005ED5BC* m_redraw_partner;
 };
-WIZ8_ASSERT_SIZE(W8State5PartySlotRow005EF3E4, 0xc0);
+static_assert(sizeof(W8State5PartySlotRow005EF3E4) == 0xc0, "W8State5PartySlotRow005EF3E4_size");
 
 class W8State5PartySlotPanel005EF438
     : public Controls,
@@ -550,7 +550,7 @@ public:
     virtual ~W8State5PartySlotPanel005EF438();
     virtual void vslot00(W8Control005ED654* control, int selected) override;
 };
-WIZ8_ASSERT_SIZE(W8State5PartySlotPanel005EF438, 0x74);
+static_assert(sizeof(W8State5PartySlotPanel005EF438) == 0x74, "W8State5PartySlotPanel005EF438_size");
 
 class W8State5PlainPanel005EF4E0 : public Controls {
 public:
@@ -560,7 +560,7 @@ public:
 
     W8Character* m_character_4c;
 };
-WIZ8_ASSERT_SIZE(W8State5PlainPanel005EF4E0, 0x50);
+static_assert(sizeof(W8State5PlainPanel005EF4E0) == 0x50, "W8State5PlainPanel005EF4E0_size");
 
 /* Unlike the two selection panels above, the option panel does not inherit
    W8Control.  Its constructor writes a mode word at +0x4c and constructs a
@@ -583,7 +583,7 @@ public:
     short m_image_width_94;
     short m_image_height_96;
 };
-WIZ8_ASSERT_SIZE(W8State5OptionPanel005EF4AC, 0x98);
+static_assert(sizeof(W8State5OptionPanel005EF4AC) == 0x98, "W8State5OptionPanel005EF4AC_size");
 
 /* The state-5 owner is established by three construction-phase abstract
    vtables, seven registered text controls, the list-selection callback above,
@@ -645,7 +645,7 @@ public:
     W8ModalDialogBase* m_dialog_68;
     int m_dialog_value_6c;
 };
-WIZ8_ASSERT_SIZE(W8State5Controller005EF4CC, 0x70);
+static_assert(sizeof(W8State5Controller005EF4CC) == 0x70, "W8State5Controller005EF4CC_size");
 
 // GLOBAL: WIZ8 0x0069C4E8
 W8State5Controller005EF4CC* g_state5_controller_69c4e8;
