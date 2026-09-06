@@ -33,6 +33,35 @@ def test_recover_functions_rejects_empty_selection() -> None:
         recovery_host.recover_functions(object(), [])
 
 
+def test_recover_passes_the_selected_program_target(monkeypatch: pytest.MonkeyPatch) -> None:
+    import contextlib
+
+    import wiz8decomp.ghidra.env as env_module
+    import wiz8decomp.ghidra.query as query_module
+
+    settings = SimpleNamespace(repo_dir=Path("/repo"), build_dir=Path("/repo/build"))
+    monkeypatch.setattr(env_module, "open_program", lambda _s, _p: contextlib.nullcontext(object()))
+    monkeypatch.setattr(query_module, "resolve_function_selectors", lambda _p, _s: [0x10003840])
+    seen: list[str] = []
+    monkeypatch.setattr(
+        recovery_host,
+        "_execute_script",
+        lambda _settings, _program, _script, arguments: (
+            seen.extend(str(value) for value in arguments)
+            or {"program": "SR.dll", "exports": []}
+        ),
+    )
+
+    recovery_host._recover(
+        settings,
+        ["0x10003840"],
+        program_selector="wiz8--gog-base--sr--cec1caf85861",
+        explain=False,
+    )
+
+    assert seen[seen.index("--target") + 1] == "SURRENDER"
+
+
 def test_explain_resolves_ranges_through_ghidra(monkeypatch: pytest.MonkeyPatch) -> None:
     import contextlib
 

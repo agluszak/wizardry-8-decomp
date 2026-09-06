@@ -175,12 +175,9 @@ public final class RecoveryEngine {
 	 * Source-index reference forms feed the one analysis used by both renderings.
 	 */
 	public static FunctionExport[] exportFunctionPackets(Program program, long[] entryPoints,
-			String[][] referenceForms, boolean explain,
+			RecoverySourceIndex source, boolean explain,
 			TaskMonitor monitor) throws CancelledException {
-		if (referenceForms.length != entryPoints.length) {
-			throw new IllegalArgumentException("reference-form count must match entries");
-		}
-		RecoverySession session = new RecoverySession(program);
+		RecoverySession session = new RecoverySession(program, source);
 		DecompileOptions options = new DecompileOptions();
 		DecompInterface decompiler = openDecompiler(program, options);
 		try {
@@ -196,10 +193,8 @@ public final class RecoveryEngine {
 						new String[] {"missing function"});
 					continue;
 				}
-				SourceHints hints = SourceHints.parse(referenceForms[i]);
 				output[i] = renderFunction(session, function,
-					session.entity(function, hints, monitor),
-					session.emission(function, hints), referenceForms[i], decompiler,
+					session.entity(function, monitor), session.emission(function), decompiler,
 					options, explain, monitor);
 			}
 			return output;
@@ -215,14 +210,15 @@ public final class RecoveryEngine {
 	 * TEMPLATE for every other member, each followed by the specialization
 	 * symbol it records.
 	 */
-	private static String templateEmissionBlock(SourceEntity entity, Emission emission) {
+	private static String templateEmissionBlock(String target, SourceEntity entity,
+			Emission emission) {
 		Function function = emission.function();
 		if (emission.isDeletingWrapper()) {
-			return new CxxRenderer(function, entity, emission).printSynthetic();
+			return new CxxRenderer(target, function, entity, emission).printSynthetic();
 		}
 		String owner = TypeNames.map(function.getParentNamespace().getName(true));
 		String name = TypeNames.map(function.getName());
-		return String.format("// TEMPLATE: WIZ8 0x%08x%n// %s::%s%n",
+		return String.format("// TEMPLATE: %s 0x%08x%n// %s::%s%n", target,
 			function.getEntryPoint().getOffset(), owner, name);
 	}
 
@@ -240,15 +236,15 @@ public final class RecoveryEngine {
 	}
 
 	private static FunctionExport renderFunction(RecoverySession session, Function function,
-			SourceEntity entity, Emission emission, String[] referenceForms,
+			SourceEntity entity, Emission emission,
 			DecompInterface decompiler,
 			DecompileOptions options, boolean explain, TaskMonitor monitor) {
-		CxxRenderer printer = new CxxRenderer(function, entity, emission);
+		CxxRenderer printer = new CxxRenderer(session.source.target(), function, entity, emission);
 
 		if (function.getParentNamespace() instanceof GhidraClass owner &&
 			owner.getName().indexOf('[') >= 0 &&
 			!emission.isDeletingWrapper()) {
-			return new FunctionExport(templateEmissionBlock(entity, emission), "", entity,
+			return new FunctionExport(templateEmissionBlock(session.source.target(), entity, emission), "", entity,
 				emission, new String[0]);
 		}
 		boolean direct = entity.bodyCarrier() instanceof BodyCarrier.Direct carrier &&
@@ -284,7 +280,7 @@ public final class RecoveryEngine {
 		try {
 			Msvc6Patterns.Analysis analysis =
 				Msvc6Patterns.analyze(session, function, entity, emission, results,
-					referenceForms);
+					session.source.facts(function.getEntryPoint().getOffset()));
 			String text = printer.print(markup, analysis);
 			String body = printer.printBody(markup, analysis);
 			String[] defects = analysis.defects.toArray(String[]::new);

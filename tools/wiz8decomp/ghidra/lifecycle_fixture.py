@@ -113,6 +113,8 @@ def _recover_image(
                 "Wiz8Recover.java",
                 "--source-index",
                 source_index,
+                "--target",
+                "WIZ8",
                 "--output",
                 result_path,
                 "--all-functions",

@@ -21,19 +21,21 @@ import ghidra.program.model.symbol.Symbol;
  */
 final class FunctionRoleResolver {
 	private final CallTargetResolver calls;
+	private final RecoverySourceIndex source;
 	private final Map<Function, Result> cache = new IdentityHashMap<>();
 	private final Set<Function> resolving = java.util.Collections.newSetFromMap(
 		new IdentityHashMap<>());
 
-	FunctionRoleResolver(CallTargetResolver calls) {
+	FunctionRoleResolver(CallTargetResolver calls, RecoverySourceIndex source) {
 		this.calls = calls;
+		this.source = source;
 	}
 
 	Result resolve(Function function) {
-		return resolve(function, SourceHints.NONE);
+		return resolve(function, source.facts(function.getEntryPoint().getOffset()));
 	}
 
-	Result resolve(Function function, SourceHints hints) {
+	private Result resolve(Function function, SourceHints hints) {
 		Function deletingTarget = CompilerEmissionClassifier
 			.scalarDeletingDestructorTarget(function);
 		if (deletingTarget != null) {
@@ -56,7 +58,7 @@ final class FunctionRoleResolver {
 				Emission binary = emission(function, emission, origin,
 					"transient compiler source hint");
 				Result result = new Result(SourceEntityKey.fromHint(function,
-					hints.sourceKind(), hints.sourceSignature()), binary);
+					hints.sourceKind(), hints), binary);
 				cache.put(function, result);
 				return result;
 			}

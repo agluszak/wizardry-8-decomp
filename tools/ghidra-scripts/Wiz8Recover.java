@@ -23,20 +23,18 @@ import ghidra.program.model.address.Address;
 import ghidra.program.model.address.AddressSet;
 import ghidra.program.model.listing.Function;
 import wiz8.recovery.RecoveryEngine;
+import wiz8.recovery.RecoverySourceIndex;
+import wiz8.recovery.SourceHints;
 
 public class Wiz8Recover extends GhidraScript {
 	@Override
 	protected void run() throws Exception {
 		Arguments arguments = Arguments.parse(getScriptArgs());
-		Map<Long, JsonObject> source = sourceMarkers(arguments.sourceIndex());
+		RecoverySourceIndex source = sourceIndex(arguments.sourceIndex(), arguments.target());
 		long[] entries = arguments.allFunctions()
 			? allFunctions() : resolveEntries(arguments.selections());
-		String[][] sourceHints = new String[entries.length][];
-		for (int i = 0; i < entries.length; i++) {
-			sourceHints[i] = sourceHints(source.get(entries[i]));
-		}
 		RecoveryEngine.FunctionExport[] packets = RecoveryEngine.exportFunctionPackets(
-			currentProgram, entries, sourceHints, arguments.explain(), monitor);
+			currentProgram, entries, source, arguments.explain(), monitor);
 		JsonObject result = result(entries, packets, arguments.explain(), arguments.includeBody());
 		Path parent = arguments.output().toAbsolutePath().getParent();
 		if (parent != null) Files.createDirectories(parent);
@@ -82,27 +80,26 @@ public class Wiz8Recover extends GhidraScript {
 		return entries.stream().mapToLong(Long::longValue).toArray();
 	}
 
-	private static Map<Long, JsonObject> sourceMarkers(Path path) throws Exception {
-		Map<Long, JsonObject> markers = new LinkedHashMap<>();
+	private static RecoverySourceIndex sourceIndex(Path path, String target) throws Exception {
+		Map<Long, SourceHints> functions = new LinkedHashMap<>();
 		try (var reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
 			JsonArray array = JsonParser.parseReader(reader).getAsJsonObject()
 				.getAsJsonArray("markers");
 			for (JsonElement element : array) {
 				JsonObject marker = element.getAsJsonObject();
-				markers.put(marker.get("address").getAsLong(), marker);
+				if (!target.equals(marker.get("target").getAsString())) continue;
+				functions.put(marker.get("address").getAsLong(), sourceHints(marker));
 			}
 		}
-		return markers;
+		return new RecoverySourceIndex(target, functions);
 	}
 
-	private static String[] sourceHints(JsonObject marker) {
+	private static SourceHints sourceHints(JsonObject marker) {
 		if (marker == null || !marker.has("declaration") || marker.get("declaration").isJsonNull()) {
-			return new String[0];
+			return SourceHints.NONE;
 		}
-		List<String> hints = new ArrayList<>();
 		String markerKind = marker.has("marker_kind")
 			? marker.get("marker_kind").getAsString() : "UNKNOWN";
-		hints.add("marker=" + markerKind);
 		JsonObject declaration = marker.getAsJsonObject("declaration");
 		String semanticKind = declaration.has("semantic_kind")
 			? declaration.get("semantic_kind").getAsString() : "";
@@ -114,16 +111,13 @@ public class Wiz8Recover extends GhidraScript {
 		else if (declaration.has("owning_class") &&
 				!declaration.get("owning_class").isJsonNull()) sourceKind = "MEMBER_FUNCTION";
 		else sourceKind = "FREE_FUNCTION";
-		hints.add("source=" + sourceKind);
-		if (declaration.has("source_signature")) {
-			hints.add("signature=" + declaration.get("source_signature").getAsString());
-		}
-		if (declaration.has("semantic_id")) {
-			hints.add("semantic=" + declaration.get("semantic_id").getAsString());
-		}
-		if (marker.has("source_file")) {
-			hints.add("file=" + marker.get("source_file").getAsString());
-		}
+		String signature = declaration.has("source_signature")
+			? declaration.get("source_signature").getAsString() : "";
+		String semantic = declaration.has("semantic_id")
+			? declaration.get("semantic_id").getAsString() : "";
+		String sourceFile = marker.has("source_file")
+			? marker.get("source_file").getAsString() : "";
+		List<String> references = new ArrayList<>();
 		if (declaration.has("parameter_reference_forms")) {
 			JsonArray forms = declaration.getAsJsonArray("parameter_reference_forms");
 			if (!forms.isEmpty()) {
@@ -131,15 +125,17 @@ public class Wiz8Recover extends GhidraScript {
 					JsonElement form = forms.get(i);
 					String kind = form.isJsonObject() && form.getAsJsonObject().has("kind")
 						? form.getAsJsonObject().get("kind").getAsString() : "value";
-					hints.add("reference=" + kind);
+					references.add(kind);
 				}
-				return hints.toArray(String[]::new);
+				return SourceHints.of(markerKind, sourceKind, signature, semantic,
+					references.toArray(String[]::new), sourceFile);
 			}
 		}
 		int count = declaration.has("parameter_references")
 			? declaration.getAsJsonArray("parameter_references").size() : 0;
-		for (int i = 0; i < count; i++) hints.add("reference=value");
-		return hints.toArray(String[]::new);
+		for (int i = 0; i < count; i++) references.add("value");
+		return SourceHints.of(markerKind, sourceKind, signature, semantic,
+			references.toArray(String[]::new), sourceFile);
 	}
 
 	private JsonObject result(long[] entries, RecoveryEngine.FunctionExport[] packets,
@@ -226,11 +222,12 @@ public class Wiz8Recover extends GhidraScript {
 		return String.format("0x%08x", value);
 	}
 
-	private record Arguments(Path sourceIndex, Path output, boolean explain, boolean includeBody,
+	private record Arguments(Path sourceIndex, String target, Path output, boolean explain, boolean includeBody,
 			boolean allFunctions,
 			List<String> selections) {
 		static Arguments parse(String[] args) {
 			Path sourceIndex = null;
+			String target = null;
 			Path output = null;
 			boolean explain = false;
 			boolean includeBody = false;
@@ -239,6 +236,7 @@ public class Wiz8Recover extends GhidraScript {
 			for (int i = 0; i < args.length; i++) {
 				switch (args[i]) {
 					case "--source-index" -> sourceIndex = Path.of(args[++i]);
+					case "--target" -> target = args[++i];
 					case "--output" -> output = Path.of(args[++i]);
 					case "--explain" -> explain = true;
 					case "--include-body" -> includeBody = true;
@@ -247,11 +245,12 @@ public class Wiz8Recover extends GhidraScript {
 				}
 			}
 			if (sourceIndex == null) throw new IllegalArgumentException("--source-index is required");
+			if (target == null) throw new IllegalArgumentException("--target is required");
 			if (output == null) throw new IllegalArgumentException("--output is required");
 			if (selections.isEmpty() && !allFunctions) {
 				throw new IllegalArgumentException("select at least one function");
 			}
-			return new Arguments(sourceIndex, output, explain, includeBody, allFunctions,
+			return new Arguments(sourceIndex, target, output, explain, includeBody, allFunctions,
 				List.copyOf(selections));
 		}
 	}

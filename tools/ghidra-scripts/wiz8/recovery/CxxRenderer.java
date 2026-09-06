@@ -34,10 +34,12 @@ public final class CxxRenderer {
 	private static final String INDENT_UNIT = " ";
 
 	private final Function function;
+	private final String target;
 	private final SourceEntity entity;
 	private final Emission emission;
 
-	CxxRenderer(Function function, SourceEntity entity, Emission emission) {
+	CxxRenderer(String target, Function function, SourceEntity entity, Emission emission) {
+		this.target = target;
 		this.function = function;
 		this.entity = entity;
 		this.emission = emission;
@@ -50,7 +52,7 @@ public final class CxxRenderer {
 		String prefix = entity.kind() == SourceKind.LIBRARY_ENTITY ? "LIBRARY"
 			: entity.kind() == SourceKind.TEMPLATE_MEMBER ? "TEMPLATE"
 				: direct ? "FUNCTION" : "SYNTHETIC";
-		return String.format("// %s: WIZ8 0x%08x", prefix,
+		return String.format("// %s: %s 0x%08x", prefix, target,
 			function.getEntryPoint().getOffset());
 	}
 

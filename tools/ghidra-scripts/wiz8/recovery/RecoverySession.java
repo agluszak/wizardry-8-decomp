@@ -19,16 +19,18 @@ import ghidra.util.task.TaskMonitor;
  */
 final class RecoverySession {
 	final Program program;
+	final RecoverySourceIndex source;
 	final CallTargetResolver calls;
 	final FunctionRoleResolver roles;
 	final VtableResolver vtables;
 	private final IdentityHashMap<GhidraClass, ClassEntityResolver.ClassEntities> classes =
 		new IdentityHashMap<>();
 
-	RecoverySession(Program program) {
+	RecoverySession(Program program, RecoverySourceIndex source) {
 		this.program = program;
+		this.source = source;
 		this.calls = new CallTargetResolver();
-		this.roles = new FunctionRoleResolver(calls);
+		this.roles = new FunctionRoleResolver(calls, source);
 		this.vtables = new VtableResolver(program);
 	}
 
@@ -36,16 +38,8 @@ final class RecoverySession {
 		return roles.resolve(function);
 	}
 
-	private FunctionRoleResolver.Result classification(Function function, SourceHints hints) {
-		return roles.resolve(function, hints);
-	}
-
 	Emission emission(Function function) {
 		return classification(function).emission();
-	}
-
-	Emission emission(Function function, SourceHints hints) {
-		return classification(function, hints).emission();
 	}
 
 	SourceEntityKey sourceKey(Function function) {
@@ -53,19 +47,14 @@ final class RecoverySession {
 	}
 
 	SourceEntity entity(Function function, TaskMonitor monitor) throws CancelledException {
-		return entity(function, SourceHints.NONE, monitor);
-	}
-
-	SourceEntity entity(Function function, SourceHints hints, TaskMonitor monitor)
-			throws CancelledException {
-		SourceEntityKey key = classification(function, hints).sourceEntity();
+		SourceEntityKey key = classification(function).sourceEntity();
 		if (function.getParentNamespace() instanceof GhidraClass owner &&
 			(key.kind() == SourceKind.CONSTRUCTOR || key.kind() == SourceKind.DESTRUCTOR)) {
 			for (SourceEntity entity : classEntities(owner, monitor).sourceEntities()) {
 				if (entity.key().equals(key)) return entity;
 			}
 		}
-		Emission emission = emission(function, hints);
+		Emission emission = emission(function);
 		BodyCarrier carrier = emission.kind() == EmissionKind.AUTHORED_BODY ||
 			emission.kind() == EmissionKind.CONSTRUCTOR_BODY
 				? new BodyCarrier.Direct(emission) : new BodyCarrier.None();

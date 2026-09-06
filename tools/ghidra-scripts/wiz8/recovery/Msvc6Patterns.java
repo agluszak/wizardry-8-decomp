@@ -138,13 +138,13 @@ final class Msvc6Patterns {
 	private Msvc6Patterns(RecoverySession session, Function function, SourceEntity entity,
 			Emission emission,
 			DecompileResults results,
-			String[] sourceReferenceForms) {
+			SourceHints sourceHints) {
 		this.session = session;
 		this.function = function;
 		this.entity = entity;
 		this.emission = emission;
 		this.results = results;
-		this.sourceHints = SourceHints.parse(sourceReferenceForms);
+		this.sourceHints = sourceHints;
 		this.sourceReferenceForms = sourceHints.referenceForms();
 		this.vtables = session.vtables;
 		this.callTargets = session.calls;
@@ -159,15 +159,15 @@ final class Msvc6Patterns {
 	static Analysis analyze(RecoverySession session, Function function, SourceEntity entity,
 			Emission emission,
 			DecompileResults results) {
-		return analyze(session, function, entity, emission, results, new String[0]);
+		return analyze(session, function, entity, emission, results, SourceHints.NONE);
 	}
 
 	static Analysis analyze(RecoverySession session, Function function, SourceEntity entity,
 			Emission emission,
-			DecompileResults results, String[] sourceReferenceForms) {
+			DecompileResults results, SourceHints sourceHints) {
 		Msvc6Patterns patterns =
 			new Msvc6Patterns(session, function, entity, emission, results,
-				sourceReferenceForms);
+				sourceHints);
 		try {
 			patterns.run();
 		}

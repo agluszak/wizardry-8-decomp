@@ -28,6 +28,7 @@ def _recover(
 ) -> dict[str, Any]:
     if not selections:
         raise ValueError("pass at least one function address or range")
+    from ..source_index import target_for_program
     from .env import open_program
     from .query import resolve_function_selectors
 
@@ -35,7 +36,12 @@ def _recover(
         normalized = [
             f"0x{address:08x}" for address in resolve_function_selectors(program, list(selections))
         ]
-        args = ["--source-index", str(settings.build_dir / "source-index.json")]
+        args = [
+            "--source-index",
+            str(settings.build_dir / "source-index.json"),
+            "--target",
+            target_for_program(program_selector),
+        ]
         if explain:
             args.append("--explain")
         if include_body:

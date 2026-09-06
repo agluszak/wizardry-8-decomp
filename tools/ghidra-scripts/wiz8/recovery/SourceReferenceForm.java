@@ -1,7 +1,7 @@
 package wiz8.recovery;
 
 /** Compiler-owned source reference shape for one formal parameter. */
-enum SourceReferenceForm {
+public enum SourceReferenceForm {
 	VALUE,
 	LVALUE_REFERENCE_TO_OBJECT,
 	LVALUE_REFERENCE_TO_POINTER,
