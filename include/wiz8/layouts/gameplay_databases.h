@@ -22,7 +22,7 @@ enum { W8_MAX_MONSTER_ATTACKS = 3 };
 /* One of a monster's three attacks. Monster.cpp walks the array with a
    0x22-byte stride and copies the missile-launch fields below into its local
    attack block. */
-typedef struct W8MonsterAttack {
+struct W8MonsterAttack {
     unsigned char fHasAttack;           /* 0x00 */
     unsigned char unknown_01[2];
     unsigned char range_category;       /* 0x03 */
@@ -34,15 +34,15 @@ typedef struct W8MonsterAttack {
     unsigned char unknown_1c;
     signed char missile_type;            /* 0x1d */
     unsigned char unknown_1e[4];
-} W8MonsterAttack;                      /* 0x22 */
+};                                     /* 0x22 */
 
-typedef struct W8Dice {
+struct W8Dice {
     short base;
     unsigned char count;
     unsigned char sides;
-} W8Dice;
+};
 
-typedef enum W8SpellRealm {
+enum W8SpellRealm {
     W8_SPELL_REALM_FIRE = 0,
     W8_SPELL_REALM_WATER = 1,
     W8_SPELL_REALM_AIR = 2,
@@ -50,7 +50,7 @@ typedef enum W8SpellRealm {
     W8_SPELL_REALM_MENTAL = 4,
     W8_SPELL_REALM_DIVINE = 5,
     W8_SPELL_REALM_COUNT = 6
-} W8SpellRealm;
+};
 
 /* Which spellbooks a profession may draw on, and which a spell belongs to. The
    four flags live apart in the record rather than as one mask, so the mask is
@@ -68,7 +68,7 @@ enum {
 enum { W8_SPELL_NONE = 0 };
 
 /* One spell, as the database holds it at run time. */
-typedef struct W8SpellRuntimeRecord {
+struct W8SpellRuntimeRecord {
     char database_name[64];             /* 0x000 */
     unsigned char unknown_040[8];
     unsigned char alchemy_spell;        /* 0x048 */
@@ -101,27 +101,27 @@ typedef struct W8SpellRuntimeRecord {
     unsigned char needs_aim_13f;
     unsigned char unknown_140[0xb];
     char sound_name[0x74];              /* 0x14b: relative to Data\Spells\Sounds */
-} W8SpellRuntimeRecord;                 /* 0x1bf */
+};                                    /* 0x1bf */
 
-typedef struct W8FactDatabaseRecord {
+struct W8FactDatabaseRecord {
     unsigned int identifier;
     char symbolic_name[256];             /* 0x004 */
     W8WideChar description[106];         /* 0x104 */
-} W8FactDatabaseRecord;                  /* 0x1d8 */
+};                                     /* 0x1d8 */
 
 /* One optional NPC stock-rule entry appended after its database record.
    DecayNpcInventory establishes the leading item id and the keep flag at 0x05.
    RestockNpcItems establishes 0x04 as the configured quantity: it restocks only
    while the NPC holds no more than half of it, and tops up by the shortfall. */
-typedef struct W8NpcItemStockRule {
+struct W8NpcItemStockRule {
     int item_id;                           /* 0x00: Items.dbs index */
     unsigned char quantity;               /* 0x04: configured stock quantity */
     unsigned char persistent;             /* 0x05: retain and replenish this item */
-} W8NpcItemStockRule;                     /* 0x06 */
+};                                      /* 0x06 */
 
 /* One Data\Databases\NPC.DBS record. Only source-consumed fields are modelled
    here; Ghidra owns the wider operational field inventory. */
-typedef struct W8NpcDatabaseRecord {
+struct W8NpcDatabaseRecord {
     unsigned short version;              /* 0x000: two in the corpus; the rule tail loads only when this exceeds 1 */
     /* 0x002: non-zero marks the record as carrying whatever the NPC manager's
        first predicate asks about. */
@@ -149,11 +149,11 @@ typedef struct W8NpcDatabaseRecord {
     unsigned char unknown_0c8[0x202];
     W8PList* item_stock_rules;           /* 0x2ca: W8NpcItemStockRule* elements */
     unsigned char unknown_2ce[0x3b];
-} W8NpcDatabaseRecord;                   /* 0x309 */
+};                                     /* 0x309 */
 
 /* One Data\Databases\LEVELS.DBS record. Only the disk and runtime stride is
    established; the leading field is a display name. */
-typedef struct W8LevelDatabaseRecord {
+struct W8LevelDatabaseRecord {
     unsigned char unknown_000[0x3c];
     /* 0x3c..0x50: the per-level random-encounter budget parameters, all five
        read by UpdateRandomEncounterBudget and the sixth by the culling pass.
@@ -165,7 +165,7 @@ typedef struct W8LevelDatabaseRecord {
     int encounter_budget_period;         /* 0x4c: elapsed-time divisor */
     int encounter_culling_seconds;       /* 0x50 */
     unsigned char unknown_054[0x84];
-} W8LevelDatabaseRecord;                 /* 0xd8 */
+};                                     /* 0xd8 */
 
 /* One runtime DATABASES\MONSTERS.DBS record. The size is the tracked disk and
    runtime record size; source-consumed fields are typed here and the reviewed
@@ -175,7 +175,7 @@ typedef struct W8LevelDatabaseRecord {
    rather than in either of them. */
 enum { W8_MONSTER_RECORD_ALTERNATE_NAME = 397 };
 
-typedef struct W8MonsterRecord {
+struct W8MonsterRecord {
     W8WideChar name_00[24];               /* 0x000: suffix after '#' removed at load */
     W8WideChar name_30[24];               /* 0x030: suffix after '#' removed at load */
     W8WideChar name_60[24];               /* 0x060: suffix after '#' removed at load */
@@ -241,14 +241,12 @@ typedef struct W8MonsterRecord {
        name. */
     int sp_budget;
     unsigned char unknown_273[0x24];
-} W8MonsterRecord;                       /* 0x297 */
+};                                     /* 0x297 */
 
 /* Historical catalogue spelling. Both names intentionally resolve to the one
    canonical record above rather than carrying parallel field inventories. */
 typedef W8MonsterRecord W8MonsterDatabaseRecord;
-#ifndef __WIZ8_GHIDRA_LAYOUTS__
 static_assert(sizeof(W8MonsterRecord) == 0x297, "W8MonsterRecord_size_must_be_0x297");
-#endif
 
 #pragma pack(pop)
 
@@ -258,14 +256,14 @@ static_assert(sizeof(W8MonsterRecord) == 0x297, "W8MonsterRecord_size_must_be_0x
    resistance_index of -1 terminates a race's list; an adjustment above
    W8_RACE_ADJUSTMENT_ATTRIBUTE_BIAS names a character attribute instead of a
    flat amount. */
-typedef struct W8RaceResistanceAdjustment {
+struct W8RaceResistanceAdjustment {
     int resistance_index;
     int adjustment_or_attribute;
-} W8RaceResistanceAdjustment;           /* 0x08 */
+};                                     /* 0x08 */
 
-typedef struct W8RaceResistanceProfile {
+struct W8RaceResistanceProfile {
     W8RaceResistanceAdjustment adjustments[6];
-} W8RaceResistanceProfile;              /* 0x30 */
+};                                     /* 0x30 */
 
 /* Runtime roots for the database records described above. GameplayDatabase.cpp
    owns their storage; consumers reach it through this one declaration surface

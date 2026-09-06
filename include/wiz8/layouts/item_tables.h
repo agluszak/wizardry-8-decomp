@@ -5,13 +5,13 @@
 
 #pragma pack(push, 1)
 
-typedef struct W8ItemTableEntry {
+struct W8ItemTableEntry {
     short selector_00;                    /* 0x00: zero disables the slot */
     unsigned short item_id;               /* 0x02: index into Items.dbs */
     unsigned char weight;                 /* 0x04 */
-} W8ItemTableEntry;                       /* 0x05 */
+};                                      /* 0x05 */
 
-typedef struct W8ItemTableRecord {
+struct W8ItemTableRecord {
     char name[256];                       /* 0x000 */
     unsigned int category_id;             /* 0x100 */
     W8ItemTableEntry entries[40];         /* 0x104 */
@@ -20,16 +20,16 @@ typedef struct W8ItemTableRecord {
     unsigned char unknown_1d1[4];
     W8Dice gold_dice;                     /* 0x1d5 */
     unsigned char unknown_1d9[0x18];
-} W8ItemTableRecord;                      /* 0x1f1 */
+};                                      /* 0x1f1 */
 
 /* One "you need this much of that" entry. CanCharacterUseItem walks two of
    these for attributes and two for skills, stopping at an id of 0xff. */
-typedef struct W8ItemRequirement {
+struct W8ItemRequirement {
     unsigned char stat_id;                /* 0xff when the entry is unused */
     unsigned char minimum;
-} W8ItemRequirement;                      /* 0x02 */
+};                                      /* 0x02 */
 
-typedef struct W8ItemDatabaseRecord {
+struct W8ItemDatabaseRecord {
     W8WideChar display_name[30];          /* 0x000 */
     unsigned char unknown_03c[2];
     unsigned char equip_class;            /* 0x03e: zero through twelve */
@@ -59,12 +59,10 @@ typedef struct W8ItemDatabaseRecord {
     char internal_name[0x40];             /* 0x08d */
     /* GetOrCreateVideoObject treats this fixed buffer as the item image name. */
     char video_object_name[0x40];         /* 0x0cd */
-} W8ItemDatabaseRecord;                   /* 0x10d */
+};                                      /* 0x10d */
 
-#ifndef __WIZ8_GHIDRA_LAYOUTS__
 static_assert(sizeof(W8ItemDatabaseRecord) == 0x10d, "W8ItemDatabaseRecord_size_must_be_0x10d");
 static_assert(sizeof(W8ItemTableRecord) == 0x1f1, "W8ItemTableRecord_size_must_be_0x1f1");
-#endif
 
 #pragma pack(pop)
 
