@@ -61,29 +61,27 @@ def exported_defects(result: dict[str, Any]) -> dict[int, list[str]]:
     return defects
 
 
-def exported_declines(result: dict[str, Any]) -> dict[int, list[dict[str, str]]]:
+def exported_blockers(result: dict[str, Any]) -> dict[int, list[dict[str, str]]]:
     """Source-entity blockers which make an unattended write unsafe."""
 
-    declines: dict[int, list[dict[str, str]]] = {}
+    blockers: dict[int, list[dict[str, str]]] = {}
     for item in result.get("exports", []):
         entry = item.get("entry")
         recovery = item.get("recovery")
-        passes = recovery.get("passes") if isinstance(recovery, dict) else None
-        if not isinstance(entry, str) or not isinstance(passes, list):
+        values = recovery.get("blockers") if isinstance(recovery, dict) else None
+        if not isinstance(entry, str) or not isinstance(values, list):
             continue
-        blockers = [
+        source_blockers = [
             {
-                "pass": str(value.get("pass", "")),
+                "kind": str(value.get("kind", "")),
                 "detail": str(value.get("detail", "")),
             }
-            for value in passes
+            for value in values
             if isinstance(value, dict)
-            and value.get("status") == "declined"
-            and value.get("pass") == "signature.prototype"
         ]
-        if blockers:
-            declines[int(entry, 0)] = blockers
-    return declines
+        if source_blockers:
+            blockers[int(entry, 0)] = source_blockers
+    return blockers
 
 
 def marker_span(marker: dict[str, Any]) -> tuple[str, int, int] | None:
@@ -433,7 +431,7 @@ def recover_candidates(
             row["source_candidates"] = source_candidates
         placement = resolve_source_placement(settings.repo_dir, markers, address)
         row["placement"] = placement
-        blockers = exported_declines({"exports": [item]}).get(address, [])
+        blockers = exported_blockers({"exports": [item]}).get(address, [])
         projections: list[dict[str, str]] = []
         source_blockers: list[str] = []
         if isinstance(generated, str) and placement.get("source_file"):
@@ -452,9 +450,10 @@ def recover_candidates(
             row["projections"] = projections
         combined_blockers: list[Any] = [*blockers, *source_blockers]
         defects = item.get("recovery", {}).get("defects", [])
-        combined_blockers.extend(defects)
         if combined_blockers:
             row["blockers"] = combined_blockers
+        if defects:
+            row["exporter_defects"] = defects
         functions.append(row)
     return {"schema": "wiz8.recovery-candidates", "functions": functions}
 

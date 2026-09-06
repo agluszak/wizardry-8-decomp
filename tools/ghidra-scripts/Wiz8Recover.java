@@ -219,22 +219,29 @@ public class Wiz8Recover extends GhidraScript {
 		recovery.addProperty("origin", packet.getOrigin());
 		recovery.addProperty("evidence", packet.getEvidence());
 		JsonArray passes = new JsonArray();
+		JsonArray blockers = new JsonArray();
 		for (RecoveryEngine.PassFact fact : packet.getPasses()) {
+			if (fact.getStatus().equals("declined") &&
+				fact.getPass().equals("signature.prototype")) {
+				JsonObject blocker = new JsonObject();
+				blocker.addProperty("kind", "source-prototype");
+				blocker.addProperty("detail", fact.getDetail());
+				blockers.add(blocker);
+			}
+			if (!explain) continue;
 			JsonObject value = new JsonObject();
 			value.addProperty("status", fact.getStatus());
 			value.addProperty("pass", fact.getPass());
 			value.addProperty("detail", fact.getDetail());
 			passes.add(value);
 		}
-		recovery.add("passes", passes);
+		recovery.add("blockers", blockers);
+		if (explain) recovery.add("passes", passes);
 		JsonArray defects = new JsonArray();
 		for (String defect : packet.getDefects()) defects.add(defect);
 		recovery.add("defects", defects);
 		if (explain) {
 			recovery.add("calls", calls(packet));
-		}
-		else {
-			recovery.add("calls", new JsonArray());
 		}
 		item.add("recovery", recovery);
 		return item;

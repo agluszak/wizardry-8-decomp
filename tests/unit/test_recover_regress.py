@@ -14,8 +14,8 @@ from wiz8decomp.cli import app
 from wiz8decomp.recover import (
     block_end_line,
     compile_diagnostics,
+    exported_blockers,
     exported_blocks,
-    exported_declines,
     graft_source_signature,
     insert_lines,
     marker_span,
@@ -60,7 +60,7 @@ def test_recover_candidates_preserves_source_and_writes_each_candidate(
                             "evidence": "exact qualified name and parameter count",
                         }
                     ],
-                    "recovery": {"passes": [], "defects": []},
+                    "recovery": {"blockers": [], "defects": []},
                 }
             ]
         },
@@ -102,28 +102,26 @@ def test_exported_blocks_does_not_parse_or_normalize_cpp_text() -> None:
     assert exported_blocks({"exports": [{"entry": "0x10", "generated_code": text}]}) == {0x10: text}
 
 
-def test_exported_declines_blocks_unresolved_formal_prototypes() -> None:
+def test_exported_blockers_preserve_concrete_source_obstacles() -> None:
     result = {
         "exports": [
             {
                 "entry": "0x0046a490",
                 "recovery": {
-                    "passes": [
+                    "blockers": [
                         {
-                            "status": "declined",
-                            "pass": "signature.prototype",
+                            "kind": "source-prototype",
                             "detail": "formal signature contains an unresolved ABI type",
-                        },
-                        {"status": "declined", "pass": "other", "detail": "not a blocker"},
+                        }
                     ]
                 },
             }
         ]
     }
-    assert exported_declines(result) == {
+    assert exported_blockers(result) == {
         0x46A490: [
             {
-                "pass": "signature.prototype",
+                "kind": "source-prototype",
                 "detail": "formal signature contains an unresolved ABI type",
             }
         ]

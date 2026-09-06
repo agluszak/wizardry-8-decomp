@@ -212,6 +212,8 @@ def verify_lifecycle_fixture(settings: Settings) -> dict[str, Any]:
     atomic_json(settings.build_dir / "reports/recovery-lifecycle-functions.json", recovered)
 
     exports = recovered["exports"]
+    if any("passes" in item["recovery"] or "calls" in item["recovery"] for item in exports):
+        raise RuntimeError("ordinary recovery serialized exporter-debug traces")
     namespaces = {str(item.get("namespace", "")).rsplit("::", 1)[-1] for item in exports}
     missing = sorted(_CLASSES - namespaces)
     if missing:
