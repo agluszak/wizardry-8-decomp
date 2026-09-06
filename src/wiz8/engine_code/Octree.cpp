@@ -38,9 +38,7 @@ extern unsigned long g_octree_storage_00659770;
 extern unsigned long g_octree_state_00659890;
 extern void Function4331F0(void* value);
 extern void Function432D60(void* value);
-extern void Function459400(int value);
 extern void Function439140(void);
-extern void Function457B10(void* value);
 extern void Function434020(int value);
 extern unsigned char g_navigator_link_mode_00659c10;
 extern float g_rate_006068EC;
@@ -1742,7 +1740,7 @@ W8Octree::~W8Octree()
         Function432D60(m_owned_0c0);
     }
     if (pathing_180 != 0) {
-        Function459400(0);
+        pathing_180->SaveWaypointSnapshot00459400(0);
     }
 
     free(m_aulGDObjs);
@@ -1814,7 +1812,7 @@ W8Octree::~W8Octree()
 
     free(m_owned_0d8);
     if (pathing_180 != 0) {
-        Function457B10(pathing_180);
+        pathing_180->Release00457B10();
         operator delete(pathing_180);
         pathing_180 = 0;
     }

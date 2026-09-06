@@ -2,7 +2,6 @@ kind,class,field,expected,actual
 base,Trigger,,"srClassSupport<Trigger, srClass, false, 65544>",[]
 base,W8Monster,,W8GrCycle,[]
 base,W8MonsterRep,,W8EmitterHost,[]
-base,W8Prop005EC1E0,,W8GrObject,[]
 base,W8PropRep,,W8AnimRep005ED050,[]
 base,W8MonsterShakeCallback,,W8MonsterShakeCallbackBase,[]
 base,W8VirtualFileBinIStream,,srBinIStream,"[""srBinIStream_vbase_slim""]"
@@ -26,7 +25,6 @@ missing-ghidra-class,W8CameraMatrixRow004D6930,,,
 missing-ghidra-class,W8CameraShakeEffect,,,
 missing-ghidra-class,W8Chunk,,,
 missing-ghidra-class,W8ChunkHead,,,
-missing-ghidra-class,W8DialogInterface,,,
 missing-ghidra-class,W8EmitterHost,,,
 missing-ghidra-class,W8EncounterTableRuntime,,,
 missing-ghidra-class,W8GrCycle,,,
@@ -57,7 +55,6 @@ missing-ghidra-class,W8RaceInfoDialog005EFC38,,,
 missing-ghidra-class,W8SpellEmitterHost,,,
 missing-ghidra-class,W8StartupRuntimeState,,,
 missing-ghidra-class,W8StatInfoDialogBase005DF880,,,
-missing-ghidra-class,W8Timer005EC0A4,,,
 missing-ghidra-class,W8TriggerActionData,,,
 missing-ghidra-class,W8TriggerActionData005EC148,,,
 missing-ghidra-class,W8TriggerActionData005EC158,,,

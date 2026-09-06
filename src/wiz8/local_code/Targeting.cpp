@@ -607,7 +607,6 @@ typedef struct W8MonsterTargetCandidate {
     float distance;                      /* 0x18 */
 } W8MonsterTargetCandidate;              /* 0x1c */
 
-extern float MonsterDistanceToParty(W8MonsterInfo* monster_info);        /* 0x004C7CB0 */
 extern unsigned char MonsterIsHostileTo(int party_slot, W8MonsterInfo* monster_info);
 /* 0x00546F10 */
 extern unsigned char CanReachTarget(
@@ -706,7 +705,8 @@ int ChooseMonsterTarget(int party_slot, int group_id, int context)
 
         /* The first range band whose reach covers where the monster is. */
         for (band = 0; band < 4; ++band) {
-            if (MonsterDistanceToParty(monster_info) <= CalcRangeDistance((int)band)) {
+            if (monster_info->monster->GetDistanceToPlayer004C7CB0() <=
+                CalcRangeDistance((int)band)) {
                 next->range_band = band;
                 break;
             }
@@ -717,7 +717,7 @@ int ChooseMonsterTarget(int party_slot, int group_id, int context)
         }
         next->hp_current = monster_info->hp_current;
         next->same_group = (unsigned char)(monster_info->monster_group_id == group_id);
-        next->distance = MonsterDistanceToParty(monster_info);
+        next->distance = monster_info->monster->GetDistanceToPlayer004C7CB0();
 
         ++found;
         ++next;
@@ -944,7 +944,6 @@ void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
     }
 }
 
-extern unsigned char LineOfSightClear(float x, float y, float z);        /* 0x004C4C40 */
 /* 0x005EBB34: the float that stands for "no distance given". GameData.cpp
    reads the same constant as the level vector's absent value. */
 /* The side selector that means any side at all. */
@@ -1003,7 +1002,8 @@ void CollectMonstersWithinRadius(
             }
             continue;
         }
-        if (highlighting != 0 || LineOfSightClear(eye->x, eye->y, eye->z)) {
+        if (highlighting != 0 ||
+            monster_info->monster->HasLineOfSightFromPoint004C4C40(*eye)) {
             found->Add(monster_info->location_id);
         }
     }
@@ -1648,7 +1648,7 @@ extern void GetPartyPosition(srVector3T<float>* position);                      
 extern float AngleFromPartyTo(const srVector3T<float>* from, const srVector3T<float>* to);
 /* 0x004BE420 */
 extern float NormalizeAngle(float radians);
-extern int CompareSignedAscending(const void* left, const void* right);  /* 0x004534C0 */
+extern int CompareSignedAscending(const void* left, const void* right);  /* 0x00517A30 */
 extern W8Monster* GetMonsterByLocationID(int location_id);
 extern void AimAtTarget(int actor, const W8CombatSlot* target, int context);
 /* 0x005387F0 */

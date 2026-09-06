@@ -275,8 +275,6 @@ void W8Prop::SetAnimationSpeed(float speed)
     }
 }
 
-extern void Function439D80(void);
-
 /* Four accessors reaching through the owned member at 0x14. */
 // FUNCTION: WIZ8 0x0044d4f0
 unsigned char W8Prop::GetSetting6C()
@@ -329,7 +327,7 @@ int W8Prop::GetGDPropValue24()
 void W8Prop::SetSetting6C(unsigned char value)
 {
     if (Rep()->active == 0) {
-        Function439D80();
+        m_animation_timer->Restart();
     }
     Rep()->active = value;
 }
@@ -340,7 +338,6 @@ void W8Prop::SetSetting6C(unsigned char value)
    the prototype being weakened. */
 typedef void (*LegacyAnimObjPlayCall)(
     W8AnimObj* animation, int channel, unsigned char argument, int from, int to);
-extern unsigned char Function4B75F0(int arg_1, int arg_2);
 extern void Function444750(void);
 
 // FUNCTION: WIZ8 0x0044d5f0
@@ -682,7 +679,9 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
         (state != 0 && (state[8] & 5) != 0)) {
         return false;
     }
-    if (!Function4B75F0(arg_2, arg_3)) {
+    if (!m_gd_prop->ContainsPathCoordinate004B75F0(
+            static_cast<unsigned short>(arg_2),
+            static_cast<unsigned short>(arg_3))) {
         return false;
     }
     if (notify) {

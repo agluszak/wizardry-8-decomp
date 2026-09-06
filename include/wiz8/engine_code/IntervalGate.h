@@ -6,6 +6,7 @@
    name is not exposed; the vtable address remains the stable identity. */
 class W8IntervalGate : public W8GameTimer {
 public:
+    W8IntervalGate();                                  /* 0x0043A4E0 */
     W8IntervalGate(
         float duration, unsigned char raw_time, unsigned char set_flag_2);
                                                         /* 0x0043A500 */

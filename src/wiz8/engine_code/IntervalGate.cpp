@@ -12,6 +12,12 @@
 
    Nothing names the class, so it is qualified by its vtable address. */
 
+// FUNCTION: WIZ8 0x0043a4e0
+W8IntervalGate::W8IntervalGate()
+    : W8GameTimer(1.0f, 0), m_finished(0)
+{
+}
+
 // FUNCTION: WIZ8 0x0043a500
 W8IntervalGate::W8IntervalGate(
     float duration, unsigned char raw_time, unsigned char set_flag_2)

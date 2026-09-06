@@ -88,7 +88,6 @@ symbol
 ?ClearMonsterCondition@@YAXHH@Z
 ?ClearMonsterTargetNotice@@YAXXZ
 ?ClearTargetCursor@@YAXXZ
-?CollectModelInstances0044E570@W8Prop005EC1E0@@QAEXPAV?$W8GrowableVector@PAVstModelInstance005EC7D0@@@@@Z
 ?CompareSignedAscending@@YAHPBX0@Z
 ?CompareSpellPointDeficits@@YAHPBX0@Z
 ?CompatiblePartnerItems@@YAEHH@Z
@@ -101,7 +100,6 @@ symbol
 ?CountRowsBetween@@YADHH@Z
 ?CountSpellsOfKind@@YAHH@Z
 ?CreateAndLoadLevelTrigger@Trigger@@SAPAV1@HPAUW8World@@@Z
-?CreateAndLoadProp0044BF50@@YAEPAUW8ReadLevelInfo@@PAPAVW8Prop005EC1E0@@@Z
 ?CreateGameData00449010@@YAPAXHH@Z
 ?CreateGroup@@YAPAUW8MonsterGroup@@IIPBV?$srVector3T@M@@EEE@Z
 ?CreateOctPathIndex@@YAPAXXZ
@@ -173,13 +171,11 @@ symbol
 ?Function43A770@@YAXH@Z
 ?Function43AA20@@YAXXZ
 ?Function43AAD0@@YAXXZ
-?Function443830@@YAHPAUW8World@@PAVW8Prop005EC1E0@@@Z
 ?Function443A50@@YAXXZ
 ?Function443A60@@YAXPAUW8World@@@Z
 ?Function444750@@YAXXZ
 ?Function449BB0@@YAXPAX@Z
 ?Function451020@@YAXXZ
-?Function452630@@YAXH@Z
 ?Function452630@W8Navigator@@QAEEPBV?$srVector3T@M@@@Z
 ?Function4526C0@@YAFPAXHN@Z
 ?Function452C90@@YIXPAVW8Navigator@@@Z
@@ -224,8 +220,6 @@ symbol
 ?Function4914C0@@YAEXZ
 ?Function492500@@YAXPAX@Z
 ?Function49F4A0@@YAEPAXPBD0H@Z
-?Function49F720@@YAXPAX@Z
-?Function49F720@@YAXPBM@Z
 ?Function49F900@@YAXPAUW8World@@@Z
 ?Function49FA30@@YAXPAUW8World@@@Z
 ?Function49FAA0@@YAXXZ
@@ -378,7 +372,6 @@ symbol
 ?Function5B2200@@YAXXZ
 ?GenerateEncounter@@YAXPAX@Z
 ?GetAniMeshFrame004B6550@@YAPAVstModelInstance005EC7D0@@PAUW8AniMesh@@E@Z
-?GetBounds0044DD60@W8Prop005EC1E0@@QAEXPAV?$srVector3T@M@@0@Z
 ?GetCameraHeading@@YAIXZ
 ?GetCurrentTargetingContext@@YAHH@Z
 ?GetHelpBoxAnchor@@YAXPAUW8ScreenPoint@@@Z
@@ -435,10 +428,6 @@ symbol
 ?LoadTexture004B9460@@YAPAVsrTextureIFace@@PBDEE@Z
 ?LoadTexture004B95D0@@YAPAVsrTexture@@PBD0E@Z
 ?MarkScreenRectDirty@@YAXHHHHH@Z
-?Method00439A60@W8Timer005EC0A4@@QAEHXZ
-?Method44C030@W8Prop005EC1E0@@QAEXXZ
-?Method44C830@W8Prop005EC1E0@@QAEXPAUW8World@@@Z
-?Method44D360@W8Prop005EC1E0@@QAEXPAUW8World@@@Z
 ?Method4C5290@W8Monster@@QAEXXZ
 ?MonsterChooseTarget@@YAXPAUW8MonsterInfo@@PAHH@Z
 ?MonsterDies@@YAXPAUW8MonsterInfo@@H@Z

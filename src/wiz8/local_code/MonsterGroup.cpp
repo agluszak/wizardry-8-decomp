@@ -25,7 +25,6 @@ extern void Function510590(W8MonsterGroup* monster_group);   /* 0x00510590 */
 extern void Function454C80(void);                            /* 0x00454C80 */
 extern void SetTargetToGroup(int group_id, int value);         /* 0x00538DB0 */
 extern unsigned char Function547510(void);                   /* 0x00547510 */
-extern void Function452630(int value);                       /* 0x00452630 */
 extern void Function48C670(W8MonsterGroup* monster_group);   /* 0x0048C670 */
 extern void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info);
 extern void Function4C5730(W8Monster* monster, srVector3T<float>* position); /* 0x004C5730 */
@@ -414,8 +413,10 @@ unsigned char IsMonsterGroupLive(W8MonsterGroup* monster_group)
    group - stops the walk and reports success anyway, as does a null group,
    which is why every path returns one. */
 // FUNCTION: WIZ8 0x0050fba0
-unsigned char ApplyToMonsterGroupLeader(W8MonsterGroup* monster_group, int value,
-                                        char follow_leader)
+unsigned char ApplyToMonsterGroupLeader(
+    W8MonsterGroup* monster_group,
+    const srVector3T<float>* position,
+    char follow_leader)
 {
     if (monster_group != 0) {
         while (follow_leader != 0 && monster_group->leader_group_id != 0) {
@@ -426,10 +427,10 @@ unsigned char ApplyToMonsterGroupLeader(W8MonsterGroup* monster_group, int value
                 return 1;
             }
         }
-        MonsterGetScriptPartByLocationIndex(
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(
                 0x21e, MONSTER_GROUP_CPP, monster_group->value_9f, 1));
-        Function452630(value);
+        monster_info->monster->Function452630(position);
     }
     return 1;
 }

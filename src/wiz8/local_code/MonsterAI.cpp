@@ -1,4 +1,5 @@
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/engine_code/Monster.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/magic.h"
@@ -36,9 +37,6 @@ extern unsigned char AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int sp
 extern unsigned char Function53C630(W8CombatSlot* slot, int arg_2);
 extern unsigned char Function5474B0(int spell_id);
 extern unsigned char Function5353E0(W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* slot);
-extern short Function4526C0(void* position, int arg_2, double radius);
-extern void Function453F30(const srVector3T<float>* position);
-extern float Function4C7CB0(W8MonsterInfo* monster_info);
 struct W8SpellEffectEntry;
 extern void ResetCombatSlot(W8CombatSlot* slot);                        /* 0x00536170 */
 extern void GetPartyPosition(srVector3T<float>* position);                     /* 0x00421070 */
@@ -199,7 +197,7 @@ float GetGroupNearestDistance(W8MonsterGroup* group, float furthest)
         location_id = IListGetAt(group->monsters, index);
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(1845, MONSTER_AI_CPP, location_id, 1));
-        distance = Function4C7CB0(monster_info);
+        distance = monster_info->monster->GetDistanceToPlayer004C7CB0();
         if (distance < furthest) {
             furthest = distance;
         }
@@ -211,7 +209,7 @@ float GetGroupNearestDistance(W8MonsterGroup* group, float furthest)
    reach. With no effect running, or nothing anchored, there is nothing to be
    in range of; failing the test falls back on where the party is standing. */
 // FUNCTION: WIZ8 0x00534d50
-short IsMonsterControlPointInRange(void)
+short IsMonsterControlPointInRange(W8MonsterInfo* monster_info)
 {
     W8SpellEffectEntry* effect = FindMonsterControlSpellEffect();
     void** anchor;
@@ -225,10 +223,12 @@ short IsMonsterControlPointInRange(void)
     if (*anchor == 0) {
         return 0;
     }
-    in_range = Function4526C0((char*)*anchor + 0x18, 0, 2500.0);
+    W8Navigator* anchor_navigator = reinterpret_cast<W8Navigator*>(
+        static_cast<char*>(*anchor) + 0x18);
+    in_range = monster_info->monster->Function4526C0(anchor_navigator, 2500.0);
     if (in_range == 0) {
-        GetPartyPosition(&party);
-        Function453F30(&party);
+        party = anchor_navigator->GetPosition();
+        monster_info->monster->AimAtPosition(&party);
     }
     return in_range;
 }

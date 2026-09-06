@@ -35,7 +35,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern void Function4A6E20(float value);
 extern int IncrementValue60DFAC(void);
 extern int CountSpellsOfKind(int kind);                      /* 0x004AC8F0 */
 extern unsigned char g_master_ambient_volume_6850f6;
@@ -604,7 +603,7 @@ void W8SpellVisual::StartIfHostActive()
         this->started = 1;
         return;
     }
-    Function4A6E20(1.0f);
+    TickAnimation(1.0f);
 }
 
 /* Send something to one named emitter. The arguments are handed on in the

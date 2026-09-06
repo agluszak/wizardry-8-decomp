@@ -5080,12 +5080,10 @@ extern int g_spell_index_0069b7dc;
 extern void* CreateSpellEffect004AD8A0(
     const char* mls_name, int frame, W8Monster* parent, int value, int flags);
 
-extern void Function4A84A0(W8GrCycle* monster);
 /* Spelled the way MonsterManager.cpp already declares it: the callee takes its
    receiver in ECX, which __fastcall is how a no-argument member call is
    reachable from a free declaration. The receiver is the monster's Navigator
    base at +0x18. */
-extern void __fastcall Function4537E0(W8Navigator* navigator);
 
 /* Copies a position into a local and hands the local on. The monster argument
    is dead beyond its own null check - the callee never receives it - which is
@@ -5180,7 +5178,7 @@ float MonsterGetAngleD4004C5770(W8Monster* monster)
 void MonsterForward4A84A0(W8Monster* monster)
 {
     if (monster != 0) {
-        Function4A84A0(monster);
+        monster->SubmitTargetValue004A84A0();
     }
 }
 
@@ -5188,7 +5186,7 @@ void MonsterForward4A84A0(W8Monster* monster)
 void MonsterForward4537E0(W8Monster* monster)
 {
     if (monster != 0) {
-        Function4537E0(monster);
+        monster->ClearMovement();
     }
 }
 

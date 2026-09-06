@@ -2,17 +2,11 @@
 #define WIZ8_LOCAL_CODE_MONSTER_GENERATOR_H
 
 #include "wiz8/geometry.h"
+#include "wiz8/engine_code/IntervalGate.h"
 
 struct W8Item;
 
 #pragma pack(push, 1)
-/* The generator's timer is released through slot zero of its own vtable with
-   the deleting flag set. Its concrete identity is not established. */
-class W8MonsterGeneratorNode {
-public:
-    virtual ~W8MonsterGeneratorNode();
-};
-
 typedef struct W8MonsterGenerator {
     unsigned int flags;                   /* 0x00: bit 2 is cleared on teardown */
     unsigned char flag_04;                /* 0x04 */
@@ -30,7 +24,7 @@ typedef struct W8MonsterGenerator {
     /* 0x20: m_pTimer, named by the MonGen.cpp:535 assertion, whose message also
        gives the owning class and method - "MonGen::Reset() out of memory
        allocating m_pTimer". */
-    W8MonsterGeneratorNode* m_pTimer;
+    W8IntervalGate* m_pTimer;
     char name[32];                        /* 0x24 */
     unsigned char flag_44;                /* 0x44: written to the save after the name */
 
@@ -38,6 +32,8 @@ typedef struct W8MonsterGenerator {
        creating it on first use, with a delay jittered around the configured
        interval. */
     void Reset();
+    unsigned char Function48B200(int value);         /* 0x0048B200 */
+    void GenerateEncounter(void* encounter_state);   /* 0x0048AD20 */
     /* Arms or disarms the generator, loading its marker on the way in. */
     void SetActive(unsigned char active, W8Item* node);
     /* The save pair. Both are __thiscall in the image. */

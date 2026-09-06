@@ -42,15 +42,9 @@ extern int g_random_encounter_limit;
 extern int g_active_group_count;            /* 0x0065BA14 */
 extern W8MonsterGroup** g_active_groups;    /* 0x0065BA1C */
 extern void RollRandomEncounters(void);     /* 0x0048CA20 */
-extern int Function43A5D0(void);                             /* 0x0043A5D0 */
-extern unsigned char Function48B200(int value);              /* 0x0048B200 */
-extern void GenerateEncounter(void* encounter_state);         /* 0x0048AD20 */
 extern void DestroyEncounterTable(W8EncounterTableRuntime* table); /* 0x0048AC60 */
 extern void Function43A770(int handle);                      /* 0x0043A770 */
 extern unsigned char g_generator_save_flag;                  /* 0x0065BA48 */
-extern W8MonsterGeneratorNode* Function43A4E0(void);         /* 0x0043A4E0 */
-extern void Function439B80(float delay);                     /* 0x00439B80 */
-extern void Function43A530(void);                            /* 0x0043A530 */
 extern unsigned char Function49F4A0(void* context, const char* name,
                                     void* out, int value);   /* 0x0049F4A0 */
 extern short g_generator_default_interval;                   /* 0x0060A6B6 */
@@ -423,9 +417,10 @@ void RunMonsterGenerators(void)
 
     for (index = 0; index < count; ++index) {
         generator = *g_world->monster_generators->GetAt(index);
-        if (generator->m_pTimer != 0 && Function43A5D0() != 0) {
-            if (Function48B200(0) != 0) {
-                GenerateEncounter(&generator->state_0c);
+        if (generator->m_pTimer != 0 &&
+            generator->m_pTimer->PollElapsedIntervals() != 0) {
+            if (generator->Function48B200(0) != 0) {
+                generator->GenerateEncounter(&generator->state_0c);
             }
             generator->Reset();
         }
@@ -538,7 +533,7 @@ unsigned char W8MonsterGenerator::Load(int handle)
     Reset();
     if (static_cast<signed char>(version) > 1) {
         Function43A690(handle);
-        Function43A530();
+        m_pTimer->Arm();
     }
     flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
     return loaded;
@@ -576,7 +571,7 @@ void W8MonsterGenerator::Reset()
     float jitter;
 
     if (m_pTimer == 0) {
-        m_pTimer = Function43A4E0();
+        m_pTimer = new W8IntervalGate;
         if (m_pTimer == 0) {
             srAssertFail(
                 "m_pTimer",
@@ -591,9 +586,9 @@ void W8MonsterGenerator::Reset()
                    ? value_06
                    : g_generator_default_interval;
     jitter = interval * g_generator_jitter_fraction;
-    Function439B80(
+    m_pTimer->SetDuration(
         static_cast<float>(Random(static_cast<int>(jitter) * 2 + 1)) + interval - jitter);
-    Function43A530();
+    m_pTimer->Arm();
 }
 
 /* Loads the generator's marker from Data\\Items3D\\Bitmaps and hands it over.

@@ -186,7 +186,6 @@ void DropCharacterFromRound(int party_slot)
     Function4E8000(party_slot, row->action_kind, row->action_detail, 0, 0);
 }
 
-extern float MonsterDistanceToParty(W8MonsterInfo* monster_info);        /* 0x004C7CB0 */
 extern float CalcRangeDistance(int range_category);                      /* 0x0051A9A0 */
 extern void NotifyMonsterOfSound(W8Monster* monster, int arg_2);      /* 0x004C6240 */
 
@@ -204,7 +203,8 @@ void NotifyNearbyMonsters(int what)
         if (monster_info->fInCombat != 0 && monster_info->hp_current != 0 &&
             (unsigned int)monster_info->value_107 < 0xe &&
             monster_info->condition_turns[12] == 0 && monster_info->flag_16 == 1) {
-            if (MonsterDistanceToParty(monster_info) <= CalcRangeDistance(1)) {
+            if (monster_info->monster->GetDistanceToPlayer004C7CB0() <=
+                CalcRangeDistance(1)) {
                 NotifyMonsterOfSound(monster_info->monster, what);
             }
         }
