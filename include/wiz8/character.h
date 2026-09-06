@@ -210,8 +210,19 @@ typedef struct W8Character {
        LearnSpell also writes a recomputed figure into entry 36, which is a
        real skill id but not a count; that disagreement is recorded rather than
        resolved. */
-    unsigned int skill_unlocks[0x29];
-    unsigned char unknown_0e91[0x48];
+    unsigned int skill_unlocks[0x25];
+    /* 0x0e81: rebuilt by CalcInitiative from level, speed, senses, the
+       initiative skill and the current load category. */
+    int initiative;
+    /* 0x0e85..0x0e8c: the two armor-class summaries rebuilt after the
+       location values below. */
+    int armor_class_total;
+    int armor_class_average;
+    /* 0x0e8d: thirteen armor-class components. CalcArmorClasses clears the
+       whole run before applying equipment, traits, load and fatigue. */
+    int armor_class_components[13];
+    int armor_class_by_location[5];       /* 0x0ec1 */
+    unsigned char unknown_0ed5[4];
     /* 0x0ed9: a percentage taken off incoming damage, the character's
        counterpart of the monster's own at 0x1e1. */
     int damage_reduction;

@@ -3,6 +3,8 @@
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/fact_state.h"
+#include "wiz8/layouts/item_tables.h"
 
 /*
  * Local Code\GameplayCode.cpp.
@@ -28,6 +30,16 @@ enum {
 extern void CalcXPGoal(W8Character* character);                 /* 0x004EF090 */
 /* 0x00616604: one entry per faction, race and profession together. */
 extern const int g_character_table_00616604[];
+extern unsigned char TryCharacterAction(int party_slot, int action, char commit);
+extern unsigned char Function547940(const W8Character* character, int ability);
+extern unsigned int FatigueArmorPenalty(int fatigue_band);
+
+// GLOBAL: WIZ8 0x00683F94
+unsigned char g_in_combat_00683f94;
+
+static const unsigned char g_armor_class_location_weights[5] = {
+    15, 40, 30, 10, 5
+};
 
 /* Whether any monster is engaged with the party right now: in combat, in the
    engaged state, still alive and not yet on its way out. */
@@ -238,4 +250,159 @@ int CalcPhysCombatExperience(W8Character* character)
         }
     }
     return total;
+}
+
+/* Rebuild the character's initiative from level, speed and senses, with the
+   initiative skill and equipment/effect modifier applied before encumbrance. */
+// FUNCTION: WIZ8 0x004ee000
+void CalcInitiative(W8Character* character)
+{
+    character->initiative =
+        ((character->level + 1) >> 1) +
+        character->attributes[6].effective / 5 - 10 +
+        character->attributes[5].effective / 5;
+
+    if (character->skills[39].flag_00 != 0) {
+        character->initiative += character->skills[39].level / 10 + 1;
+    }
+    character->initiative +=
+        static_cast<signed char>(character->unknown_16a2[0xce]);
+
+    switch (character->load_category) {
+    case 0:
+        break;
+    case 1:
+        character->initiative -= 1;
+        break;
+    case 2:
+        character->initiative -= 2;
+        break;
+    case 3:
+        character->initiative -= 4;
+        break;
+    case 4:
+        character->initiative -= 8;
+        break;
+    default:
+        srAssertFail("FALSE", GAMEPLAY_CODE_CPP, 380,
+                     "CalcInitiative: ERROR - Invalid load category");
+        break;
+    }
+}
+
+/* Rebuild the thirteen shared and location-specific armor-class components,
+   then derive the unweighted and body-location-weighted summaries. */
+// FUNCTION: WIZ8 0x004ee9d0
+void CalcArmorClasses(W8Character* character)
+{
+    bool defensive_action = false;
+    if (g_in_combat_00683f94) {
+        unsigned int slot = CharacterPointerToPartySlot(character);
+        defensive_action =
+            TryCharacterAction(slot, 4, 0) || TryCharacterAction(slot, 5, 0);
+    }
+
+    unsigned int index;
+    for (index = 0; index < 13; ++index) {
+        character->armor_class_components[index] = 0;
+    }
+
+    for (index = 0; index < 12; ++index) {
+        int item_id = character->equipment[index].item_id;
+        if (index != 0 && index != 4 && index != 5 &&
+            index != 8 && index != 9 && index != 10 && index != 11 &&
+            item_id != -1) {
+            int component = g_item_records[item_id].equip_class == 5 ? 3 : 4;
+            character->armor_class_components[component] +=
+                g_item_records[item_id].armor_class_bonus;
+        }
+    }
+
+    if (character->unknown_0b01 <= 0x11) {
+        if (Function547940(character, 0x16)) {
+            character->armor_class_components[0] += 2;
+        }
+        unsigned int speed = character->attributes[5].effective;
+        if (speed > 79) {
+            ++character->armor_class_components[1];
+        }
+        if (speed > 89) {
+            ++character->armor_class_components[1];
+        }
+        if (speed < 20) {
+            --character->armor_class_components[1];
+        }
+        if (speed < 10) {
+            --character->armor_class_components[1];
+        }
+
+        character->armor_class_components[2] +=
+            character->skills[11].level / 10;
+        if (character->skills[38].flag_00) {
+            character->armor_class_components[11] +=
+                character->skills[38].level / 20 + 1;
+        }
+
+        int shield = character->armor_class_components[3];
+        if (shield > 0) {
+            int skill_bonus = defensive_action
+                ? static_cast<int>(character->skills[6].level / 15)
+                : static_cast<int>(character->skills[6].level / 25);
+            int ceiling = defensive_action ? shield * 3 / 2 : shield;
+            if (skill_bonus > ceiling) {
+                skill_bonus = ceiling;
+            }
+            character->armor_class_components[3] += skill_bonus;
+        }
+
+        character->armor_class_components[5] +=
+            static_cast<signed char>(character->unknown_16a2[0xd2]);
+        character->armor_class_components[8] +=
+            static_cast<signed char>(character->unknown_17b6[5]);
+        if (defensive_action) {
+            character->armor_class_components[10] += 2;
+        }
+        switch (character->load_category) {
+        case 2:
+            character->armor_class_components[7] -= 1;
+            break;
+        case 3:
+            character->armor_class_components[7] -= 2;
+            break;
+        case 4:
+            character->armor_class_components[7] -= 4;
+            break;
+        }
+        character->armor_class_components[9] -=
+            FatigueArmorPenalty(character->fatigue_band) / 10;
+        character->armor_class_components[6] +=
+            static_cast<signed char>(character->unknown_16a2[0xd3]);
+    }
+
+    character->armor_class_total = 0;
+    for (index = 0; index < 12; ++index) {
+        if (index != 6) {
+            character->armor_class_total +=
+                character->armor_class_components[index];
+        }
+    }
+    if (character->out_of_formation && character->armor_class_total > -5) {
+        character->armor_class_total = -5;
+    }
+
+    static const int equipment_slots[5] = { 0, 4, 10, 5, 11 };
+    int weighted_total = 0;
+    for (index = 0; index < 5; ++index) {
+        int armor_class = character->armor_class_total +
+                          character->armor_class_components[6];
+        int item_id = character->equipment[equipment_slots[index]].item_id;
+        if (item_id != -1) {
+            armor_class += g_item_records[item_id].armor_class_bonus;
+        }
+        character->armor_class_by_location[index] = armor_class;
+        weighted_total += g_armor_class_location_weights[index] * armor_class;
+    }
+    character->armor_class_average =
+        weighted_total < 0 ? (weighted_total - 50) / 100
+                           : (weighted_total + 50) / 100;
 }

@@ -40,7 +40,8 @@ typedef struct W8ItemDatabaseRecord {
     unsigned char unknown_043[3];
     unsigned char weapon_skill;           /* 0x046 */
     unsigned char wield_group;            /* 0x047 */
-    unsigned char unknown_048[0x1b];
+    unsigned char unknown_048[0x1a];
+    signed char armor_class_bonus;        /* 0x062 */
     unsigned char spell_id;               /* 0x063 */
     unsigned char unknown_064[2];
     unsigned char quantity_kind;          /* 0x066 */

@@ -13,6 +13,9 @@ extern unsigned int g_shared_item_pool_count;
 
 bool AddItemToParty(
     W8ItemInstance* item, unsigned char announce, unsigned char skip_stacking);
+bool AddItemToCharacter(
+    W8Character* character, W8ItemInstance* item,
+    char equip_if_possible, char announce, char skip_stacking);
 void GetOriginOfCharacterItem(
     int character_index,
     void* item,

@@ -294,6 +294,9 @@ extern void Function4EE220(W8Character* character);
 extern unsigned char Function521060(
     int item_id, int value_1, int value_2, int value_3, int value_4);
 extern void Function50E5C0(int party_slot);
+extern int Function51C5A0(W8Character* character, int item_id);
+extern bool Function4EDC60(W8Character* character);
+extern void PostCharacterNotice(int party_slot, const wchar_t* notice, ...);
 extern void DropCharacterFromRound(int party_slot);
 extern unsigned char Function5458A0(int party_slot);
 extern unsigned char Function4E79A0(
@@ -314,6 +317,14 @@ void CopyItemInstance(
     W8ItemInstance* source,
     W8Character* character,
     unsigned char refresh);
+unsigned char Function51F900(
+    W8ItemInstance* destination,
+    W8ItemInstance* source,
+    unsigned char* partially_merged);
+void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item);
+void Function5227D0(
+    W8ItemInstance* item, unsigned char choose_character,
+    W8Character* character);
 extern void Function55F160(int value);                       /* 0x0055F160 */
 extern unsigned char g_byte_652da6;
 
@@ -580,12 +591,6 @@ enum {
 
 #define PC_ITEM_CPP "C:\\Projects\\Wizardry 8\\Local Code\\PC Item.cpp"
 
-extern bool AddItemToCharacter(
-    int character_index,
-    W8ItemInstance* item,
-    int arg_3,
-    int arg_4,
-    int arg_5);                       /* 0x0051C300 */
 /* 0x00521EF0 */
 
 /* Whether one character is allowed to use one item at all: profession, race
@@ -796,14 +801,14 @@ bool CanItemLeaveItsSlot(const W8ItemInstance* item)
    first again, so a full destination never loses the item. */
 // FUNCTION: WIZ8 0x0051c280
 bool StoreItemWithCharacterOrParty(
-    int character_index,
+    W8Character* character,
     W8ItemInstance* item,
     char party_first,
     int arg_4,
     int arg_5)
 {
     if (!party_first) {
-        if (AddItemToCharacter(character_index, item, arg_5, arg_4, 0)) {
+        if (AddItemToCharacter(character, item, arg_5, arg_4, 0)) {
             return true;
         }
     }
@@ -811,11 +816,95 @@ bool StoreItemWithCharacterOrParty(
         return true;
     }
     if (party_first) {
-        if (AddItemToCharacter(character_index, item, arg_5, arg_4, 0)) {
+        if (AddItemToCharacter(character, item, arg_5, arg_4, 0)) {
             return true;
         }
     }
     return false;
+}
+
+/* Place an item with one character. Equipment is tried first when requested;
+   otherwise compatible stacks are coalesced before the first empty backpack
+   slot is used. The source item is consumed only after a destination accepts
+   it, so the caller can still fall back to the party pool on failure. */
+// FUNCTION: WIZ8 0x0051c300
+bool AddItemToCharacter(
+    W8Character* character, W8ItemInstance* item,
+    char equip_if_possible, char announce, char skip_stacking)
+{
+    W8ItemInstance* stored_item = 0;
+    unsigned int stored_index = 0;
+
+    if (equip_if_possible &&
+        CanCharacterUseItem(character, item->item_id)) {
+        int equip_slot = Function51C5A0(character, item->item_id);
+        if (equip_slot != W8_EQUIP_SLOT_NONE) {
+            W8ItemInstance* destination = &character->equipment[equip_slot];
+            unsigned char stored;
+            if (destination->item_id == -1) {
+                CopyItemInstance(destination, item, character, 1);
+                stored = 1;
+            }
+            else {
+                stored = Function51F900(destination, item, 0);
+            }
+            if (character->in_party) {
+                Function50E5C0(CharacterPointerToPartySlot(character));
+            }
+            if (stored) {
+                return true;
+            }
+        }
+    }
+
+    W8WideChar* display_name = FormatItemDisplayName(item, 1);
+    if (g_item_records[item->item_id].quantity_kind == 1 && !skip_stacking) {
+        unsigned int index;
+        for (index = 0; index < 12; ++index) {
+            if (Function51F900(&character->equipment[index], item, 0)) {
+                stored_item = &character->equipment[index];
+                stored_index = index;
+                break;
+            }
+        }
+        if (stored_item == 0) {
+            for (index = 0; index < 8; ++index) {
+                if (Function51F900(&character->backpack[index], item, 0)) {
+                    stored_item = &character->backpack[index];
+                    stored_index = index;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (stored_item == 0) {
+        while (stored_index < 8 &&
+               character->backpack[stored_index].item_id != -1) {
+            ++stored_index;
+        }
+        if (stored_index == 8) {
+            return false;
+        }
+        stored_item = &character->backpack[stored_index];
+        CopyItemInstance(stored_item, item, 0, 1);
+    }
+
+    if (Function4EDC60(character)) {
+        Function4EDD20();
+    }
+    if (g_screen_state_0068ec78.id == W8_SCREEN_CAMP &&
+        g_camp_screen_0069c0f4 != 0) {
+        g_camp_screen_0069c0f4->item_redraw_flags |= 2 << stored_index;
+    }
+    if (announce) {
+        PostCharacterNotice(
+            CharacterPointerToPartySlot(character),
+            (const wchar_t*)gppStringList[0x7a0 / 4], display_name);
+    }
+    UpdateFactsAfterAcquiringItem(stored_item);
+    Function5227D0(stored_item, 0, character);
+    return true;
 }
 
 /* Take gold from the party. Asking for more than it has empties the purse

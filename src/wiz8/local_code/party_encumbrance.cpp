@@ -1,5 +1,6 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/local_code/party_encumbrance.h"
+#include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/character.h"
 #include "wiz8/game_status.h"
@@ -10,9 +11,7 @@
    not established; this descriptive name is provisional. */
 
 extern unsigned int GetItemStackWeight(const W8ItemInstance* item);
-extern void Function4EE000(W8Character* character);
 extern void Function4EE220(W8Character* character);
-extern void Function4EE9D0(W8Character* character);
 extern void RequestRedraw(unsigned int mask);
 
 // FUNCTION: WIZ8 0x004edd20
@@ -101,9 +100,9 @@ void Function4EDD20(void)
             character->load_category = (percent > 100) + 3;
         }
         if (old_band != character->load_category) {
-            Function4EE000(character);
+            CalcInitiative(character);
             Function4EE220(character);
-            Function4EE9D0(character);
+            CalcArmorClasses(character);
         }
     }
 

@@ -5,6 +5,7 @@
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/targeting.h"
@@ -253,7 +254,19 @@ enum { W8_STAMINA_TO_SHAKE_OFF_EXHAUSTION = 9 };
 extern void PostCharacterNotice(int party_slot, const wchar_t* notice, ...);
 /* 0x00590950 */
 extern unsigned char CharacterHasEffect(void* effect, int party_slot);   /* 0x0052DD90 */
-extern void CalcArmorClasses(W8Character* character);                    /* 0x004EE9D0 */
+
+// FUNCTION: WIZ8 0x0052a7d0
+unsigned int FatigueArmorPenalty(int fatigue_band)
+{
+    switch (fatigue_band) {
+    case 0: return 0;
+    case 1: return 5;
+    case 2: return 10;
+    case 3: return 20;
+    case 4: return 40;
+    default: return fatigue_band;
+    }
+}
 extern void RemoveCharacterCondition(int party_slot, int condition, int arg_3);
 extern void RecalculateCharacterHitPoints(W8Character* character);
 extern void FatigueCharacter(int party_slot, int amount, char scale_by_load, int arg_4, int arg_5);
