@@ -6,6 +6,7 @@
 #include "surrender/srStatisticsManager.h"
 #include "surrender/srVertexProcessor.h"
 #include "wiz8/engine_code/materials.h"
+#include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stTextureAnim.h"
 #include "wiz8/engine_code/stTextureFile.h"
 #include "wiz8/float_constants.h"
@@ -47,6 +48,15 @@ static_assert(sizeof(W8MaterialMapper004B89A0) == 4,
 
 // GLOBAL: WIZ8 0x0065BEA8
 W8MaterialMapper004B89A0 g_material_mapper_0065bea8;
+
+// GLOBAL: WIZ8 0x0065BA9E
+unsigned char g_material_diffuse_scale_enabled_0065ba9e;
+// GLOBAL: WIZ8 0x0065BAA0
+float g_material_diffuse_scale_0065baa0;
+// GLOBAL: WIZ8 0x0065BAA4
+unsigned char g_material_emissive_override_enabled_0065baa4;
+// GLOBAL: WIZ8 0x0065BAA8
+float g_material_emissive_override_0065baa8;
 
 // FUNCTION: WIZ8 0x004B89A0
 W8MaterialMapper004B89A0::W8MaterialMapper004B89A0()
@@ -99,6 +109,12 @@ stMaterial::stMaterial()
 // TEMPLATE: WIZ8 0x00492960
 // srClassSupport<stMaterial,srMaterial,0,65538>::getClassNode
 
+// FUNCTION: WIZ8 0x00492D00
+srClass* stMaterial::vInstance()
+{
+    return new stMaterial;
+}
+
 // FUNCTION: WIZ8 0x00492A00
 srClass* stMaterial::clone()
 {
@@ -111,13 +127,37 @@ srClass* stMaterial::clone()
     return instance;
 }
 
-// FUNCTION: WIZ8 0x00492A30
-stMaterial::~stMaterial()
+// FUNCTION: WIZ8 0x004928F0
+void stMaterial::getMaterialInfo(srVertexProcessor::MaterialInfo& info)
 {
+    srMaterial::getMaterialInfo(info);
+    if (g_material_diffuse_scale_enabled_0065ba9e != 0) {
+        info.diffuse.w *= g_material_diffuse_scale_0065baa0;
+    }
+    if (g_material_emissive_override_enabled_0065baa4 != 0) {
+        info.emissive.x = g_material_emissive_override_0065baa8;
+        info.emissive.y = g_material_emissive_override_0065baa8;
+        info.emissive.z = g_material_emissive_override_0065baa8;
+        info.emissive.w = 1.0f;
+    }
 }
 
-// SYNTHETIC: WIZ8 0x00492C40
+// FUNCTION: WIZ8 0x00492720
+stMaterial::~stMaterial()
+{
+    if (IsReadMeshMaterial00489AC0(this) != 0) {
+        ReleaseReadMeshScratch004881D0();
+    }
+}
+
+// SYNTHETIC: WIZ8 0x004926F0
 // stMaterial::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x00492A30
+// srClassSupport<stMaterial,srMaterial,0,65538>::~srClassSupport<stMaterial,srMaterial,0,65538>
+
+// SYNTHETIC: WIZ8 0x00492C40
+// srClassSupport<stMaterial,srMaterial,0,65538>::`scalar deleting destructor'
 
 /* Select the first populated texture layer, load its file or IFL animation,
    derive the renderer flags, and retain a registry-cached stMaterial keyed by

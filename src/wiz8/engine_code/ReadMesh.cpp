@@ -46,6 +46,22 @@ static unsigned long* g_read_mesh_render_flags_65b9f0;
 static W8MaterialRecord004B8A70* g_read_mesh_material_records_65b9f4;
 static int g_read_mesh_scratch_count_65b9f8;
 static int g_read_mesh_material_count_65b9cc;
+
+// FUNCTION: WIZ8 0x00489AC0
+unsigned char IsReadMeshMaterial00489AC0(const srClass* material)
+{
+    if (g_read_mesh_materials_65b9e8 != 0 &&
+        g_read_mesh_material_count_65b9cc > 0) {
+        for (short index = 0;
+             index < g_read_mesh_material_count_65b9cc;
+             ++index) {
+            if (g_read_mesh_materials_65b9e8[index] == material) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
 static int g_read_mesh_index_65b9e4;
 static srMaterialIFace** g_multi_mesh_materials_65ba00;
 static srTextureIFace** g_multi_mesh_textures_65b9fc;
