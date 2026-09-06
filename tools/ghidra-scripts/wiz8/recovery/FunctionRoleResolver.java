@@ -39,8 +39,10 @@ final class FunctionRoleResolver {
 		Function deletingTarget = CompilerEmissionClassifier
 			.scalarDeletingDestructorTarget(function);
 		if (deletingTarget != null) {
+			CallTargetResolver.Target resolved = calls.resolve(deletingTarget);
+			Function canonical = resolved == null ? deletingTarget : resolved.canonical();
 			Result result = role(function, SourceKind.DESTRUCTOR,
-				EmissionKind.SCALAR_DELETING_DESTRUCTOR, deletingTarget, false,
+				EmissionKind.SCALAR_DELETING_DESTRUCTOR, canonical, false,
 				Origin.FIRST_PARTY, "VC6 scalar deleting-wrapper instruction shape");
 			cache.put(function, result);
 			return result;

@@ -91,6 +91,8 @@ final class Msvc6Patterns {
 		final Set<ClangNode> dropped = new HashSet<>();
 		final Map<ClangNode, String> replaced = new HashMap<>();
 		boolean liftSignature = false;
+		/** The selected compiler wrapper was proved and reduced to its authored body. */
+		boolean extractedBody = false;
 		/** Structurally generated constructor initializer suffix, if any. */
 		String initializerSuffix = "";
 		/** Ephemeral per-function transformation trace, in pass order. */
@@ -176,6 +178,7 @@ final class Msvc6Patterns {
 			patterns.analysis.dropped.clear();
 			patterns.analysis.replaced.clear();
 			patterns.analysis.liftSignature = false;
+			patterns.analysis.extractedBody = false;
 			patterns.analysis.initializerSuffix = "";
 		}
 		return patterns.analysis;
@@ -220,6 +223,10 @@ final class Msvc6Patterns {
 		if (!analyzeLifecycle(lifecycleDropped, initializers)) {
 			return;
 		}
+		if (entity.bodyCarrier() instanceof BodyCarrier.Extracted extracted &&
+			extracted.carrier().equals(emission)) {
+			analysis.extractedBody = true;
+		}
 		for (ClangNode node : lifecycleDropped) {
 			claimDrop(node);
 		}
@@ -247,6 +254,7 @@ final class Msvc6Patterns {
 		Map<ClangNode, String> replacedBefore = new HashMap<>(analysis.replaced);
 		Map<ClangNode, RewriteOwner> ownersBefore = new HashMap<>(claimOwner);
 		boolean liftBefore = analysis.liftSignature;
+		boolean extractedBefore = analysis.extractedBody;
 		String initializerBefore = analysis.initializerSuffix;
 		int traceBefore = analysis.trace.size();
 		try {
@@ -261,7 +269,7 @@ final class Msvc6Patterns {
 			}
 			if (!accepted && !proposals.isEmpty()) {
 				restoreClaims(droppedBefore, replacedBefore, ownersBefore, liftBefore,
-					initializerBefore);
+					extractedBefore, initializerBefore);
 				analysis.trace.subList(traceBefore, analysis.trace.size())
 					.removeIf(event -> "applied".equals(event.status));
 				trace("declined", name, "atomic claim set rejected: " +
@@ -275,7 +283,7 @@ final class Msvc6Patterns {
 		}
 		catch (Exception e) {
 			restoreClaims(droppedBefore, replacedBefore, ownersBefore, liftBefore,
-				initializerBefore);
+				extractedBefore, initializerBefore);
 			analysis.defects.add(name + ": " + e);
 			trace("failed", name, String.valueOf(e));
 		}
@@ -357,7 +365,8 @@ final class Msvc6Patterns {
 	}
 
 	private void restoreClaims(Set<ClangNode> dropped, Map<ClangNode, String> replaced,
-			Map<ClangNode, RewriteOwner> owners, boolean liftSignature, String initializerSuffix) {
+			Map<ClangNode, RewriteOwner> owners, boolean liftSignature,
+			boolean extractedBody, String initializerSuffix) {
 		analysis.dropped.clear();
 		analysis.dropped.addAll(dropped);
 		analysis.replaced.clear();
@@ -365,6 +374,7 @@ final class Msvc6Patterns {
 		claimOwner.clear();
 		claimOwner.putAll(owners);
 		analysis.liftSignature = liftSignature;
+		analysis.extractedBody = extractedBody;
 		analysis.initializerSuffix = initializerSuffix;
 	}
 

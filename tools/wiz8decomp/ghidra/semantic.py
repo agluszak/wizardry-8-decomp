@@ -32,6 +32,9 @@ _STYLES = ("decompile", "normalize", "paramid")
 # (program unique id, style) -> DecompInterface. A batch session serves one program,
 # so this holds at most a handful of interfaces; one-shot paths dispose on exit.
 _sessions: dict[tuple[int, str, str], Any] = {}
+# (session key, function entry) -> DecompileResults. Public query documents are
+# projections of this live result, never inputs to another analysis.
+_results: dict[tuple[int, str, str, str], Any] = {}
 
 
 def _domain_identity(program: Any) -> str:
@@ -67,7 +70,7 @@ def _session(program: Any, style: str, *, c_output: bool) -> Any:
     coexist rather than thrash one interface's configuration.
     """
 
-    from ghidra.app.decompiler import DecompInterface
+    from ghidra.app.decompiler import DecompileOptions, DecompInterface
 
     if style not in _STYLES:
         raise ValueError(f"unknown decompiler style: {style}")
@@ -79,7 +82,10 @@ def _session(program: Any, style: str, *, c_output: bool) -> Any:
     interface = _sessions.get(key)
     if interface is not None:
         return interface
+    options = DecompileOptions()
+    options.grabFromProgram(program)
     interface = DecompInterface()
+    interface.setOptions(options)
     interface.setSimplificationStyle(style)
     if not c_output:
         interface.toggleCCode(False)
@@ -89,11 +95,28 @@ def _session(program: Any, style: str, *, c_output: bool) -> Any:
     return interface
 
 
+def _decompile_result(program: Any, function: Any, style: str, *, c_output: bool) -> Any:
+    from ghidra.util.task import TaskMonitor
+
+    session_key = (
+        int(program.getUniqueProgramID()),
+        _domain_identity(program),
+        f"{style}:{'c' if c_output else 'tree'}",
+    )
+    key = (*session_key, str(function.getEntryPoint()))
+    if key not in _results:
+        _results[key] = _session(program, style, c_output=c_output).decompileFunction(
+            function, _TIMEOUT_SECONDS, TaskMonitor.DUMMY
+        )
+    return _results[key]
+
+
 def dispose_sessions() -> None:
     """Release every cached interface when the batch session closes."""
 
     import contextlib
 
+    _results.clear()
     while _sessions:
         _, interface = _sessions.popitem()
         # A dying JVM can make dispose fail; the process is exiting either way.
@@ -102,10 +125,7 @@ def dispose_sessions() -> None:
 
 
 def _high_function(program: Any, function: Any, style: str = "decompile") -> Any:
-    from ghidra.util.task import TaskMonitor
-
-    interface = _session(program, style, c_output=False)
-    result = interface.decompileFunction(function, _TIMEOUT_SECONDS, TaskMonitor.DUMMY)
+    result = _decompile_result(program, function, style, c_output=False)
     high = result.getHighFunction() if result is not None else None
     if high is None:
         error = result.getErrorMessage() if result is not None else "no result"
@@ -118,10 +138,7 @@ def _high_function(program: Any, function: Any, style: str = "decompile") -> Any
 def decompile_c(program: Any, function: Any) -> dict[str, Any]:
     """Render C through the same persistent service used for HighFunction."""
 
-    from ghidra.util.task import TaskMonitor
-
-    interface = _session(program, "decompile", c_output=True)
-    result = interface.decompileFunction(function, _TIMEOUT_SECONDS, TaskMonitor.DUMMY)
+    result = _decompile_result(program, function, "decompile", c_output=True)
     completed = bool(result is not None and result.decompileCompleted())
     rendered = result.getDecompiledFunction() if completed else None
     return {
@@ -211,6 +228,12 @@ def pcode(program: Any, argument: str, style: str = "decompile") -> dict[str, An
 
     function = _function(program, argument)
     high = _high_function(program, function, style)
+    return _pcode_document(function, high, style)
+
+
+def _pcode_document(function: Any, high: Any, style: str) -> dict[str, Any]:
+    """Serialize one already-live HighFunction for the public query boundary."""
+
     operations = []
     iterator = high.getPcodeOps()
     while iterator.hasNext():
@@ -322,8 +345,7 @@ def _walk_value_flow(
             elif mnemonic == "INT_ADD":
                 other = op.getInput(1) if same(node, op.getInput(0)) else op.getInput(0)
                 if other is not None and other.isConstant() and output is not None:
-                    trace(output, offset + other.getOffset(), path, depth,
-                          next_provenance, visited)
+                    trace(output, offset + other.getOffset(), path, depth, next_provenance, visited)
             elif mnemonic in {"INT_SUB", "PTRSUB"}:
                 # Pointer subtraction is root-relative only for
                 # pointer-minus-constant. constant-minus-pointer is not an
@@ -642,7 +664,8 @@ def _implicit_receiver_paths(
             # evidence for a later call.
             registers.clear()
         expected_fallthrough = (
-            None if flow is None or flow.isJump() or flow.isTerminal()
+            None
+            if flow is None or flow.isJump() or flow.isTerminal()
             else instruction.getFallThrough()
         )
     return receivers
@@ -902,25 +925,23 @@ def _address_expression(node: Any) -> dict[str, Any]:
     return {"kind": "unresolved"}
 
 
-def callsite(program: Any, argument: str) -> dict[str, Any]:
-    """The CALL or CALLIND at one address, with normalized arguments."""
+def _callsite_facts(function: Any, high: Any, addresses: set[str] | None = None) -> dict[str, Any]:
+    """Project call facts from one live HighFunction without redecompiling."""
 
-    from .query import _address, _function
-
-    address = _address(program, argument)
-    function = _function(program, argument)
-    high = _high_function(program, function)
-    iterator = high.getPcodeOps(address)
     sites = []
+    iterator = high.getPcodeOps()
     while iterator.hasNext():
         op = iterator.next()
-        if op.getMnemonic() not in {"CALL", "CALLIND"}:
+        address = str(op.getSeqnum().getTarget())
+        if op.getMnemonic() not in {"CALL", "CALLIND"} or (
+            addresses is not None and address not in addresses
+        ):
             continue
         target = op.getInput(0)
         sites.append(
             {
                 "op": op.getMnemonic(),
-                "address": str(op.getSeqnum().getTarget()),
+                "address": address,
                 "target": (
                     str(target.getAddress())
                     if target is not None and target.isAddress()
@@ -930,6 +951,19 @@ def callsite(program: Any, argument: str) -> dict[str, Any]:
                 "output": _varnode(op.getOutput()),
             }
         )
+    return {"entry": str(function.getEntryPoint()), "sites": sites}
+
+
+def callsite(program: Any, argument: str) -> dict[str, Any]:
+    """The CALL or CALLIND at one address, with normalized arguments."""
+
+    from .query import _address, _function
+
+    address = _address(program, argument)
+    function = _function(program, argument)
+    high = _high_function(program, function)
+    facts = _callsite_facts(function, high, {str(address)})
+    sites = facts["sites"]
     if not sites:
         raise ValueError(f"no call operation at {address}")
-    return {"entry": str(function.getEntryPoint()), "sites": sites}
+    return facts

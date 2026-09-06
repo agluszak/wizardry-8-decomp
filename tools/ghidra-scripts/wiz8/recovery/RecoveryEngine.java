@@ -249,7 +249,9 @@ public final class RecoveryEngine {
 		}
 		boolean direct = entity.bodyCarrier() instanceof BodyCarrier.Direct carrier &&
 			carrier.emission().equals(emission);
-		if (!direct) {
+		boolean extracted = entity.bodyCarrier() instanceof BodyCarrier.Extracted carrier &&
+			carrier.carrier().equals(emission);
+		if (!direct && !extracted) {
 			return new FunctionExport(printer.printSynthetic(), "", entity, emission,
 				new String[0]);
 		}
@@ -281,6 +283,12 @@ public final class RecoveryEngine {
 			Msvc6Patterns.Analysis analysis =
 				Msvc6Patterns.analyze(session, function, entity, emission, results,
 					session.source.facts(function.getEntryPoint().getOffset()));
+			if (extracted && !analysis.extractedBody) {
+				String defect = "body extraction: deleting-wrapper epilogue was not fully proved";
+				return new FunctionExport(printer.printSynthetic(), "", entity, emission,
+					new String[] {defect}, analysis.trace.stream().map(PassFact::new)
+						.toArray(PassFact[]::new), new CallFact[0]);
+			}
 			String text = printer.print(markup, analysis);
 			String body = printer.printBody(markup, analysis);
 			String[] defects = analysis.defects.toArray(String[]::new);

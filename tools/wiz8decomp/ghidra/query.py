@@ -254,9 +254,11 @@ def _class_facts(program: Any, names: list[str]) -> dict[str, Any]:
 
 
 def _indirect_calls(program: Any, argument: str) -> dict[str, Any]:
-    from .semantic import callsite, pcode
+    from .semantic import _callsite_facts, _high_function, _pcode_document
 
-    normalized = pcode(program, argument, "normalize")
+    function = _function(program, argument)
+    normalized_high = _high_function(program, function, "normalize")
+    normalized = _pcode_document(function, normalized_high, "normalize")
     sites = sorted(
         {
             str(operation["address"])
@@ -264,8 +266,9 @@ def _indirect_calls(program: Any, argument: str) -> dict[str, Any]:
             if operation.get("op") == "CALLIND"
         }
     )
+    detailed_high = _high_function(program, function)
     return {
-        "calls": [call for site in sites for call in callsite(program, site).get("sites", [])],
+        "calls": _callsite_facts(function, detailed_high, set(sites))["sites"],
         "normalized_pcode": normalized,
     }
 

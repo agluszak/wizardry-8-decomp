@@ -199,6 +199,8 @@ def verify_lifecycle_fixture(settings: Settings) -> dict[str, Any]:
         raise RuntimeError(f"lifecycle PDB import missed classes: {', '.join(missing)}")
 
     wrappers: list[str] = []
+    extracted_wrappers: list[str] = []
+    unavailable_extractions: list[str] = []
     authored_by_entity: dict[str, int] = {}
     for item in exports:
         recovery = item["recovery"]
@@ -207,8 +209,19 @@ def verify_lifecycle_fixture(settings: Settings) -> dict[str, Any]:
         if item.get("generated_body") and recovery["source_kind"] in {"constructor", "destructor"}:
             authored_by_entity[entity] = authored_by_entity.get(entity, 0) + 1
         if emission in {"SCALAR_DELETING_DESTRUCTOR", "VECTOR_DELETING_DESTRUCTOR"}:
-            if "// SYNTHETIC:" not in item["generated_code"] or item["generated_body"]:
-                raise RuntimeError(f"{item.get('name')} owns a deleting-wrapper body")
+            body_owner = recovery.get("body_owner")
+            extracted = body_owner == item["entry"]
+            if "// SYNTHETIC:" not in item["generated_code"]:
+                raise RuntimeError(f"{item.get('name')} lost its deleting-wrapper annotation")
+            if extracted and item["generated_body"]:
+                extracted_wrappers.append(emission)
+            elif extracted:
+                defects = recovery.get("defects", [])
+                if not any(str(defect).startswith("body extraction:") for defect in defects):
+                    raise RuntimeError(f"{item.get('name')} silently lost its modeled body carrier")
+                unavailable_extractions.append(emission)
+            elif item["generated_body"]:
+                raise RuntimeError(f"{item.get('name')} owns an unmodeled deleting-wrapper body")
             wrappers.append(emission)
     duplicates = sorted(entity for entity, count in authored_by_entity.items() if count > 1)
     if duplicates:
@@ -267,6 +280,8 @@ def verify_lifecycle_fixture(settings: Settings) -> dict[str, Any]:
         "classes": len(_CLASSES),
         "functions": len(exports),
         "deleting_wrappers": sorted(wrappers),
+        "extracted_wrapper_bodies": sorted(extracted_wrappers),
+        "unavailable_extractions": sorted(unavailable_extractions),
         "destroy_and_free": "authored_body",
         "unique_lifecycle_definitions": True,
         "round_trip": {
