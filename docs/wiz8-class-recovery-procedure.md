@@ -10,14 +10,11 @@ accepted; it is not a second Data Type Manager.
 Choose a handler reached by the current menu flow, identify its screen class and original
 translation unit, and recover only the immediate call graph needed to make that transition work.
 
-```sh
-uv run wiz8 ghidra restore
-just context 0x<handler-address>
-```
-
-The joined context includes source ownership, current match results, provenance, strings and
-assertions, callers/callees, decompilation, and relevant fields. Use Ghidra itself for ordinary
-listing, cross-reference, data-type, and vtable inspection.
+Use [direct PyGhidra](../.agents/skills/matching-decomp/references/pyghidra.md) for native function,
+listing, reference, data-type, and vtable inspection and edits. The existing project opener handles
+startup and restores the seed when needed; do not run restore as a routine prerequisite.
+`just context ADDRESS...` is optional when its joined source/provenance view answers the question.
+Do not add a custom query or edit command to expose an existing Ghidra operation.
 
 ## Establish a class
 
@@ -36,15 +33,19 @@ method names or inheritance semantics.
 
 ## Experiments and checkpoints
 
-Use Ghidra undo/versioning, a cloned project, or a temporary GZF for speculative changes. Do not
-create overlay plans or candidate databases. Refresh the tracked checkpoint only after review:
+Use native transactions in the existing project; roll back speculative edits and save accepted
+changes once per coherent batch. Do not clone a project, create overlay plans, or maintain candidate
+databases for ordinary recovery. Resolve canonical data types by their actual paths and preserve
+unresolved fields/types. Correct demonstrated ABI errors directly, then regenerate affected
+caller/callee output instead of interpreting candidates built from a known-bad prototype.
+Refresh the tracked checkpoint when sharing reviewed analysis, not after every edit:
 
 ```sh
 uv run wiz8 ghidra seed refresh wiz8
 ```
 
-Focused reports under `build/reports/` are disposable and reviewable. The tracked GZF is
-the canonical analysis checkpoint, while provenance remains the explanation of accepted claims.
+Focused reports under `build/` are disposable. The tracked GZF is the canonical analysis checkpoint,
+while provenance remains the explanation of accepted claims.
 
 ## Acceptance
 

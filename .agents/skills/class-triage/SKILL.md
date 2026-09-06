@@ -8,6 +8,11 @@ description: Evaluate evidence for a new Wizardry 8 class boundary or a change t
 Use this skill when proposing a new class boundary or revising an existing hierarchy. Do not rerun
 identity triage merely to implement another method of an established class.
 
+Inspect and edit native Ghidra objects through [direct PyGhidra](../matching-decomp/references/pyghidra.md).
+Search the actual data-type manager before declaring a type; missing fields in a wrapper report do
+not establish that the type is absent. Existing lifecycle and field-flow algorithms are optional
+helpers, not required command paths or a substitute for binary evidence.
+
 First test whether the canonical base or template explains the evidence. A distinct vtable,
 lifecycle body, deleting destructor, or registry family does not alone prove authored source.
 Declare only the additional boundary independently supported by storage, behavior, or source identity.

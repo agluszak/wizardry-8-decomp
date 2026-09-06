@@ -1,9 +1,8 @@
 # Wizardry 8 matching decompilation
 
 This repository contains reproducible tooling and analysis metadata, not Wizardry 8 game files.
-Each layer has one owner: `just` provides short human aliases, Python owns host/Docker/Wine
-orchestration, CMake owns compilation and linking, and the evidence package owns canonical reads and
-validation.
+Ghidra owns binary analysis, C++ owns recovered source, Python composes agent workflows and
+host/Docker/Wine orchestration, CMake owns compilation and linking, and `just` provides short aliases.
 
 The shared Standard Gaming Platform source is distributed under Strategy First's non-commercial
 SFI Source Code License Agreement in `third_party/sfi-sgp/sgp`. This project accepts those terms;
@@ -50,38 +49,34 @@ just datacmp
 just addr 0x00406b70
 ```
 
-Generated reports live under the gitignored `build/` directory. Extracted files, materialized
-variants, live Ghidra projects, and Wine prefixes live under `WIZ8_WORK_DIR` outside this checkout.
-The CMake build directory is `build/decomp` inside the checkout, so several checkouts can share one
-`WIZ8_WORK_DIR` without overwriting each other's build or comparison state.
+Generated reports and the CMake build directory (`build/decomp`) live under the gitignored `build/`
+directory. Extracted files, materialized variants, and Wine prefixes use `WIZ8_WORK_DIR`. Each existing
+checkout needs its own work directory and live Ghidra project; the project defaults to
+`ghidra-project` in the checkout, with an absolute `WIZ8_GHIDRA_PROJECT_DIR` override available.
+Do not share or copy a live project between checkouts.
 The distinction between configuration, observations, reviewed conclusions, generated reports, and
 exceptional proprietary-input snapshots is defined in
 [docs/evidence-policy.md](docs/evidence-policy.md).
 
 Ghidra owns operational analysis state: functions, symbols, signatures, structures, fields, vtables,
-comments, cross-references, and decompiler state. Supported commands that inspect the reviewed
-project pass through one ordinary project-opening API. Each command opens one short-lived PyGhidra
-owner, performs all of its queries or recovery work, and closes it. A checkout-scoped file lock
-prevents competing commands from opening the live project simultaneously. There is no required
-daemon, worker protocol, or lifecycle choreography.
+comments, cross-references, and decompiler state. Use direct PyGhidra for exploratory reads and edits.
+The existing `wiz8decomp.ghidra.env.open_program` handles configuration, startup, seed restoration
+when needed, and the project lock, then yields a native `Program`. Perform related work in ordinary
+Python within that session; do not extend a custom command/query protocol to access native APIs.
+The [PyGhidra reference](.agents/skills/matching-decomp/references/pyghidra.md) contains inspection and
+transactional signature-edit examples. There is no required daemon or lifecycle choreography.
 
-```sh
-just context 0x0044bec0
-```
+`just context ADDRESS...` is an optional joined source/provenance view. `just recover ADDRESS...`
+is an optional source-aware candidate exporter. Neither is a prerequisite for investigation or
+editing. Keep useful recovery algorithms and compiler comparison separate from basic Ghidra access.
+Source-layout validation and rebuilt PDB import use their existing disposable derived projects;
+ordinary exploratory edits use transactions in the live project, not additional projects.
 
-`just context` is the supported joined recovery view: it combines the current decompilation and
-call graph with provenance, source ownership, match state, cross-build mappings, strings, and
-relevant fields. Live inspection and audit facts come from Python query functions over the opened
-program; the Java recovery engine runs in that same command-owned session. Source-layout validation
-and rebuilt PDB import use separate disposable derived projects.
-Ghidra-to-source remains a review workflow through `just context`; no generator rewrites C++.
-`ghidra seed refresh` is an intentional checkpoint operation, not a routine consequence of editing
-evidence. Generated reports live under disposable `build/` paths.
-
-Codex and OpenCode use the same `wiz8decomp.agent_hooks` policy through the repository's frozen
-`uv` environment. Their adapters provide compact session context, narrow command guardrails, and
-bounded tool output. Validation belongs to `just` commands and CI; no Stop hook supervises agent
-completion. Agents do not start, stop, restore, or inspect a Ghidra owner manually.
+Recovery tooling is agent-only. Select results before printing, use JSON when a consumer needs it,
+and write large code/listings to named disposable `build/` artifacts. No generator rewrites C++.
+Save accepted analysis edits once per coherent batch. `uv run wiz8 ghidra seed refresh wiz8` remains
+an intentional reviewed-checkpoint operation, not a per-edit ritual. See `AGENTS.md` and the
+`matching-decomp` skill for the recovery and verification rules.
 
 An address-marked C++ declaration is the authority for a recovered Wiz8 function's address, name,
 signature, and source ownership. Ghidra owns analysis-only functions that have no owned declaration;
@@ -109,7 +104,7 @@ name came from and how far that may be trusted, validated against a closed vocab
 
 No Wiz8 build carries first-party debug information, and the game was linked without RTTI. The
 reviewed Ghidra project therefore owns surviving exception, call, vtable, global, and function
-facts. Focused read-only Java reports project only what a workflow needs under `build/`; only
+facts. Read native objects through PyGhidra and project only the needed output under `build/`;
 external debug artifacts and the SurRender ABI retain snapshot producers. The authority and
 extension rules are in [docs/wiz8-symbol-evidence.md](docs/wiz8-symbol-evidence.md).
 

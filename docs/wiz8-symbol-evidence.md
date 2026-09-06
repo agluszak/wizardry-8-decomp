@@ -2,7 +2,8 @@
 
 Wizardry 8 shipped without first-party debug symbols and without RTTI. Binary
 facts therefore come from the reviewed Ghidra project, not from tracked
-byte-scanner snapshots.
+byte-scanner snapshots. Stored types and prototypes remain analysis models;
+retail instructions and call sites outrank incorrect inferences.
 
 ## Authority boundaries
 
@@ -16,24 +17,22 @@ byte-scanner snapshots.
 - Pinned external source and ABI oracles, including SurRender exports, remain
   tracked where reproducing them requires proprietary inputs.
 
-## Focused reports
+## Direct inspection and optional reports
 
-Use `just context ADDRESS` for the joined function view. It queries the live
-reviewed program for the function, calls, data references, exception metadata,
-vtable references, decompilation, and optional P-code detail. It combines those
-facts with source markers and reviewed assertion observations, then writes a
-transient packet under `build/reports/recovery-context/`.
+Use [direct PyGhidra](../.agents/skills/matching-decomp/references/pyghidra.md)
+for functions, instructions/P-code, parameters, references, and data types.
+Open the existing project once, inspect native objects, and filter before
+printing. Large output belongs in disposable `build/` artifacts. A custom
+query dispatcher or report schema is not required for exploratory work.
 
-`uv run wiz8 report translation-units` uses one `TranslationUnitResolver`.
+`just context ADDRESS...` remains an optional joined function/source/provenance
+view. `uv run wiz8 report translation-units` uses one `TranslationUnitResolver`.
 Direct ownership comes only from reviewed assertion call sites whose containing
 function Ghidra resolved. Bounded interval inference is explicitly labelled and
 never incorporates guessed function starts from byte padding.
 
-Whole-program needs use narrow Python queries against live Ghidra objects.
-`ghidra/query.py` supplies function inventory, function call/data/vtable/EH
-facts, class fields and vtable references, data reports, and claimed-function
-existence. Source-layout and lifecycle fixture checks run only against their
-separate disposable projects.
+Existing source-layout and lifecycle fixture checks use their separate
+disposable projects; ordinary live investigation does not need another project.
 
 ## External ABI snapshots
 
@@ -51,8 +50,10 @@ model.
 
 ## Extension rule
 
-When a mechanically reproducible binary observation is needed repeatedly, add
-the smallest focused Ghidra query that answers it and emit only the report
-result under `build/`. Promote an interpretation into Ghidra when it is reviewed.
-Do not add a tracked CSV snapshot, generic upsert path, or another Python x86
-decoder.
+Use task-local Python and native Ghidra APIs first. Keep an existing recovery
+algorithm when it adds useful analysis, not merely because it wraps an API.
+Promote a repeated task into a small library function only when that removes
+real duplication; do not grow a command catalogue, query protocol, or generic
+editing framework. Apply reviewed interpretations to Ghidra and keep only their
+provenance separately. Do not add tracked binary snapshots, signature ledgers,
+or another Python x86 decoder.
