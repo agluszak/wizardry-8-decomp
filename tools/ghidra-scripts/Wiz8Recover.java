@@ -37,7 +37,7 @@ public class Wiz8Recover extends GhidraScript {
 		}
 		RecoveryEngine.FunctionExport[] packets = RecoveryEngine.exportFunctionPackets(
 			currentProgram, entries, sourceHints, arguments.explain(), monitor);
-		JsonObject result = result(entries, packets, arguments.explain());
+		JsonObject result = result(entries, packets, arguments.explain(), arguments.includeBody());
 		Path parent = arguments.output().toAbsolutePath().getParent();
 		if (parent != null) Files.createDirectories(parent);
 		Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
@@ -143,15 +143,13 @@ public class Wiz8Recover extends GhidraScript {
 	}
 
 	private JsonObject result(long[] entries, RecoveryEngine.FunctionExport[] packets,
-			boolean explain) {
+			boolean explain, boolean includeBody) {
 		JsonObject result = new JsonObject();
 		result.addProperty("program", currentProgram.getName());
-		JsonArray functions = new JsonArray();
 		JsonArray exports = new JsonArray();
-		StringBuilder text = new StringBuilder();
 		for (int i = 0; i < packets.length; i++) {
 			RecoveryEngine.FunctionExport packet = packets[i];
-			JsonObject item = packet(entries[i], packet, explain);
+			JsonObject item = packet(entries[i], packet, explain, includeBody);
 			Function listed = currentProgram.getFunctionManager().getFunctionAt(
 				currentProgram.getAddressFactory().getDefaultAddressSpace().getAddress(entries[i]));
 			if (listed != null) {
@@ -159,25 +157,17 @@ public class Wiz8Recover extends GhidraScript {
 				item.addProperty("namespace", listed.getParentNamespace().getName(true));
 			}
 			exports.add(item);
-			JsonObject function = new JsonObject();
-			function.addProperty("entry", address(entries[i]));
-			function.addProperty("kind", packet.getEmissionKind());
-			functions.add(function);
-			if (text.length() > 0) text.append('\n');
-			text.append(packet.getText());
 		}
-		result.add("functions", functions);
 		result.add("exports", exports);
-		result.addProperty("text", text.toString());
 		return result;
 	}
 
 	private static JsonObject packet(long entry, RecoveryEngine.FunctionExport packet,
-			boolean explain) {
+			boolean explain, boolean includeBody) {
 		JsonObject item = new JsonObject();
 		item.addProperty("entry", address(entry));
-		item.addProperty("text", packet.getText());
-		item.addProperty("body", packet.getBody());
+		item.addProperty("generated_code", packet.getText());
+		if (includeBody) item.addProperty("generated_body", packet.getBody());
 		JsonObject recovery = new JsonObject();
 		recovery.addProperty("source_kind", packet.getSourceKind());
 		recovery.addProperty("source_entity", packet.getSourceEntity());
@@ -236,12 +226,14 @@ public class Wiz8Recover extends GhidraScript {
 		return String.format("0x%08x", value);
 	}
 
-	private record Arguments(Path sourceIndex, Path output, boolean explain, boolean allFunctions,
+	private record Arguments(Path sourceIndex, Path output, boolean explain, boolean includeBody,
+			boolean allFunctions,
 			List<String> selections) {
 		static Arguments parse(String[] args) {
 			Path sourceIndex = null;
 			Path output = null;
 			boolean explain = false;
+			boolean includeBody = false;
 			boolean allFunctions = false;
 			List<String> selections = new ArrayList<>();
 			for (int i = 0; i < args.length; i++) {
@@ -249,6 +241,7 @@ public class Wiz8Recover extends GhidraScript {
 					case "--source-index" -> sourceIndex = Path.of(args[++i]);
 					case "--output" -> output = Path.of(args[++i]);
 					case "--explain" -> explain = true;
+					case "--include-body" -> includeBody = true;
 					case "--all-functions" -> allFunctions = true;
 					default -> selections.add(args[i]);
 				}
@@ -258,7 +251,7 @@ public class Wiz8Recover extends GhidraScript {
 			if (selections.isEmpty() && !allFunctions) {
 				throw new IllegalArgumentException("select at least one function");
 			}
-			return new Arguments(sourceIndex, output, explain, allFunctions,
+			return new Arguments(sourceIndex, output, explain, includeBody, allFunctions,
 				List.copyOf(selections));
 		}
 	}

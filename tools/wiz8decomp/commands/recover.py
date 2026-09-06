@@ -17,36 +17,23 @@ def self_test_command() -> None:
     from .. import command_support as cli
     from ..ghidra.lifecycle_fixture import verify_lifecycle_fixture
 
-    cli.run_action(lambda: cli.summary(verify_lifecycle_fixture(cli.settings())))
+    cli.run_action(lambda: verify_lifecycle_fixture(cli.settings()))
 
 
 @app.command("function")
 def function_command(
-    address: Annotated[
-        str,
-        typer.Argument(help="Entry address of the function to recover, e.g. 0x004a6970."),
+    selectors: Annotated[
+        list[str],
+        typer.Argument(help="Function addresses, ranges, or exact reviewed Ghidra names."),
     ],
-    apply: bool = typer.Option(
-        False,
-        "--apply",
-        help="Write the best non-regressing candidate into the tree "
-        "(the default previews and restores).",
-    ),
-    target: str = typer.Option("WIZ8", "--target"),
     program: str = typer.Option("wiz8", "--program"),
-    json_output: bool = typer.Option(False, "--json", help="Emit complete structured details."),
 ) -> None:
-    """Recover one function into its owning translation unit."""
+    """Generate persistent source-aware C++ candidates for a function batch."""
     from .. import command_support as cli
-    from ..recover import recover_function
+    from ..recover import recover_candidates
 
     cli.run_action(
-        lambda: cli.summary(
-            recover_function(
-                cli.settings(), address, apply=apply, target=target, program_selector=program
-            )
-        ),
-        force_json=json_output,
+        lambda: recover_candidates(cli.settings(), list(selectors), program_selector=program)
     )
 
 
@@ -68,14 +55,12 @@ def sweep_command(
     from ..recover import sweep
 
     cli.run_action(
-        lambda: cli.summary(
-            sweep(
-                cli.settings(),
-                source_file=file,
-                class_name=class_name,
-                target=target,
-                program_selector=program,
-            )
+        lambda: sweep(
+            cli.settings(),
+            source_file=file,
+            class_name=class_name,
+            target=target,
+            program_selector=program,
         )
     )
 
@@ -87,17 +72,15 @@ def explain_command(
         typer.Argument(help="Function addresses, ranges, or exact source-owned names."),
     ],
     program: str = typer.Option("wiz8", "--program"),
-    json_output: bool = typer.Option(False, "--json", help="Emit complete structured details."),
 ) -> None:
     """Trace structured recovery facts for one function."""
     from .. import command_support as cli
     from ..ghidra.recovery import explain_functions
 
     def action():
-        result = explain_functions(cli.settings(), selectors, program_selector=program)
-        return cli.human(result["text"], result)
+        return explain_functions(cli.settings(), selectors, program_selector=program)
 
-    cli.run_action(action, force_json=json_output)
+    cli.run_action(action)
 
 
 @app.command("regress")
@@ -114,7 +97,5 @@ def regress_command(
     from ..recover import regress
 
     cli.run_action(
-        lambda: cli.summary(
-            regress(cli.settings(), list(addresses), target=target, program_selector=program)
-        )
+        lambda: regress(cli.settings(), list(addresses), target=target, program_selector=program)
     )

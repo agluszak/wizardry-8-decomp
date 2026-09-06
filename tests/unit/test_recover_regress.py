@@ -21,6 +21,7 @@ from wiz8decomp.recover import (
     marker_span,
     place_address,
     project_source_forms,
+    recover_candidates,
     resolve_source_placement,
     splice_lines,
     suggest_includes,
@@ -28,13 +29,54 @@ from wiz8decomp.recover import (
 )
 
 
+def test_recover_candidates_preserves_source_and_writes_each_candidate(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from types import SimpleNamespace
+
+    from wiz8decomp import recover
+
+    source = tmp_path / "unit.cpp"
+    source.write_text("int existing;\n", encoding="utf-8")
+    settings = SimpleNamespace(repo_dir=tmp_path, build_dir=tmp_path / "build")
+    monkeypatch.setattr(
+        "wiz8decomp.source_index.load_source_index",
+        lambda *_args: {"markers": []},
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.ghidra.recovery.recover_functions",
+        lambda *_args, **_kwargs: {
+            "exports": [
+                {
+                    "entry": "0x00401000",
+                    "generated_code": "void candidate() {}\n",
+                    "recovery": {"passes": [], "defects": []},
+                }
+            ]
+        },
+    )
+    monkeypatch.setattr(
+        recover,
+        "resolve_source_placement",
+        lambda *_args: {"status": "placed", "source_file": "unit.cpp", "after_line": 1},
+    )
+
+    result = recover_candidates(settings, ["0x00401000"])
+
+    assert source.read_text(encoding="utf-8") == "int existing;\n"
+    assert result["functions"][0]["candidate"] == "build/recover/candidates/00401000.cpp"
+    assert (tmp_path / result["functions"][0]["candidate"]).read_text(encoding="utf-8") == (
+        "void candidate() {}\n"
+    )
+
+
 def test_exported_blocks_uses_structured_per_entry_results() -> None:
     blocks = exported_blocks(
         {
             "exports": [
-                {"entry": "0x004a5e50", "text": "constructor\n"},
-                {"entry": "0x004a5f00", "text": "destructor\n"},
-                {"entry": "0x004a6e20", "text": "method\n"},
+                {"entry": "0x004a5e50", "generated_code": "constructor\n"},
+                {"entry": "0x004a5f00", "generated_code": "destructor\n"},
+                {"entry": "0x004a6e20", "generated_code": "method\n"},
             ]
         }
     )
@@ -46,7 +88,7 @@ def test_exported_blocks_uses_structured_per_entry_results() -> None:
 
 def test_exported_blocks_does_not_parse_or_normalize_cpp_text() -> None:
     text = "body\n\n\n"
-    assert exported_blocks({"exports": [{"entry": "0x10", "text": text}]}) == {0x10: text}
+    assert exported_blocks({"exports": [{"entry": "0x10", "generated_code": text}]}) == {0x10: text}
 
 
 def test_exported_declines_blocks_unresolved_formal_prototypes() -> None:
@@ -300,18 +342,17 @@ def test_suggest_includes_names_declaring_headers(tmp_path) -> None:
     assert suggestions == {"W8Chunk": ["include/wiz8/chunk.h"]}
 
 
-def test_recover_function_command_previews(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_recover_function_command_generates_a_batch(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(command_support, "settings", lambda: object())
 
-    def fake_recover(settings, address, *, apply, target, program_selector):
-        assert address == "0x004a6970"
-        assert apply is False
-        return {"address": "0x004a6970", "status": "previewed"}
+    def fake_recover(settings, selectors, *, program_selector):
+        assert selectors == ["0x004a6970", "0x004a6980"]
+        return {"schema": "wiz8.recovery-candidates", "functions": []}
 
-    monkeypatch.setattr("wiz8decomp.recover.recover_function", fake_recover)
-    result = CliRunner().invoke(app, ["recover", "function", "0x004a6970"])
+    monkeypatch.setattr("wiz8decomp.recover.recover_candidates", fake_recover)
+    result = CliRunner().invoke(app, ["recover", "function", "0x004a6970", "0x004a6980"])
     assert result.exit_code == 0
-    assert "previewed" in result.stdout
+    assert "wiz8.recovery-candidates" in result.stdout
 
 
 def test_verify_marker_adjacency_proves_the_span_start() -> None:

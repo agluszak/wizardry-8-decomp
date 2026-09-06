@@ -116,6 +116,7 @@ def _recover_image(
                 "--output",
                 result_path,
                 "--all-functions",
+                "--include-body",
             ],
             cwd=settings.repo_dir,
             log_path=settings.build_dir / "logs" / f"Wiz8RecoverSelfTest-{label}.json",
@@ -142,9 +143,9 @@ def _recover_image(
 
 def _graft_round_trip_bodies(recovered: dict[str, Any], destination: Path) -> list[str]:
     bodies = {
-        item["recovery"]["source_entity"]: item["body"]
+        item["recovery"]["source_entity"]: item["generated_body"]
         for item in recovered["exports"]
-        if item["recovery"]["emission_kind"] == "authored_body" and item.get("body")
+        if item["recovery"]["emission_kind"] == "authored_body" and item.get("generated_body")
     }
     missing = sorted(set(_GRAFT_SITES) - set(bodies))
     if missing:
@@ -201,10 +202,10 @@ def verify_lifecycle_fixture(settings: Settings) -> dict[str, Any]:
         recovery = item["recovery"]
         emission = str(recovery["emission_kind"]).upper()
         entity = str(recovery["source_entity"])
-        if item.get("body") and recovery["source_kind"] in {"constructor", "destructor"}:
+        if item.get("generated_body") and recovery["source_kind"] in {"constructor", "destructor"}:
             authored_by_entity[entity] = authored_by_entity.get(entity, 0) + 1
         if emission in {"SCALAR_DELETING_DESTRUCTOR", "VECTOR_DELETING_DESTRUCTOR"}:
-            if "// SYNTHETIC:" not in item["text"] or item["body"]:
+            if "// SYNTHETIC:" not in item["generated_code"] or item["generated_body"]:
                 raise RuntimeError(f"{item.get('name')} owns a deleting-wrapper body")
             wrappers.append(emission)
     duplicates = sorted(entity for entity, count in authored_by_entity.items() if count > 1)
@@ -218,7 +219,7 @@ def verify_lifecycle_fixture(settings: Settings) -> dict[str, Any]:
         for item in exports
         if str(item.get("name", "")).endswith("destroy_and_free")
         and item["recovery"]["emission_kind"] == "authored_body"
-        and item["body"]
+        and item["generated_body"]
     ]
     if len(destroy) != 1:
         raise RuntimeError("destroy_and_free was not retained as one authored body")

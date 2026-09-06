@@ -30,7 +30,7 @@ def exported_blocks(result: dict[str, Any]) -> dict[int, str]:
     blocks: dict[int, str] = {}
     for item in result.get("exports", []):
         entry = item.get("entry")
-        text = item.get("text")
+        text = item.get("generated_code")
         if isinstance(entry, str) and isinstance(text, str):
             blocks[int(entry, 0)] = text
     return blocks
@@ -42,7 +42,7 @@ def exported_bodies(result: dict[str, Any]) -> dict[int, str]:
     bodies: dict[int, str] = {}
     for item in result.get("exports", []):
         entry = item.get("entry")
-        body = item.get("body")
+        body = item.get("generated_body")
         if isinstance(entry, str) and isinstance(body, str):
             bodies[int(entry, 0)] = body
     return bodies
@@ -405,135 +405,55 @@ def suggest_includes(repo_dir: Path, diagnostics: list[str]) -> dict[str, list[s
     return found
 
 
-def recover_function(
+def recover_candidates(
     settings: Settings,
-    selection: str,
+    selections: list[str],
     *,
-    apply: bool = False,
-    target: str = "WIZ8",
     program_selector: str = "wiz8",
 ) -> dict[str, Any]:
-    """Recover one function into its owning translation unit.
+    """Generate persistent source-aware candidates without mutating recovered source."""
 
-    Export the function, place it in address order between its recovered
-    neighbours, then build/compare/triage the recovered definition. The
-    default previews and restores the tree; ``--apply`` leaves a compiling
-    definition in place.
-    """
-
-    from .build import build_target
-    from .ghidra.env import open_program
-    from .ghidra.query import resolve_function_selectors as resolve_ghidra_selectors
     from .ghidra.recovery import recover_functions
-    from .reccmp_workflows import compare_selected
     from .source_index import load_source_index
 
-    with open_program(settings, program_selector) as program:
-        resolved = resolve_ghidra_selectors(program, [selection])
-    if len(resolved) != 1:
-        raise ValueError("recover function takes exactly one function selector")
-    address = resolved[0]
+    if not selections:
+        raise ValueError("pass one or more function selectors")
     source_index = load_source_index(settings.repo_dir)
     markers = source_index["markers"]
-    owned = next((marker for marker in markers if marker["address"] == address), None)
-    if owned is not None:
-        return {
-            "address": f"0x{address:08x}",
-            "status": "already-recovered",
-            "source_file": owned["source_file"],
-            "line": owned["line"],
-            "note": "the address already has a marker; use `wiz8 recover regress` "
-            "to measure regeneration of a recovered body",
-        }
+    exported = recover_functions(settings, selections, program_selector=program_selector)
+    output_dir = settings.build_dir / "recover" / "candidates"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    functions: list[dict[str, Any]] = []
+    for item in exported.get("exports", []):
+        address = int(str(item["entry"]), 0)
+        generated = item.get("generated_code")
+        row: dict[str, Any] = {"entry": f"0x{address:08x}"}
+        placement = resolve_source_placement(settings.repo_dir, markers, address)
+        row["placement"] = placement
+        blockers = exported_declines({"exports": [item]}).get(address, [])
+        projections: list[dict[str, str]] = []
+        source_blockers: list[str] = []
+        if isinstance(generated, str) and placement.get("source_file"):
+            source = (settings.repo_dir / placement["source_file"]).read_text(encoding="utf-8")
+            generated, projections, source_blockers = project_source_forms(generated, source)
+        if isinstance(generated, str):
+            from .paths import atomic_write
 
-    placement = resolve_source_placement(settings.repo_dir, markers, address)
-    exported = recover_functions(settings, [f"0x{address:08x}"], program_selector=program_selector)
-    declines = exported_declines(exported).get(address, [])
-    if declines:
-        decline_result: dict[str, Any] = {
-            "address": f"0x{address:08x}",
-            "status": "declined",
-            "reason": "source entity has an unresolved formal prototype",
-            "blockers": declines,
-            "placement": placement["status"],
-        }
-        for key in ("source_path", "attribution", "source_file", "after_line"):
-            if placement.get(key) is not None:
-                decline_result[key] = placement[key]
-        if placement["status"] != "placed" and placement.get("reason"):
-            decline_result["placement_reason"] = placement["reason"]
-        return decline_result
-    block = exported_blocks(exported).get(address)
-    if block is None:
-        return {"address": f"0x{address:08x}", "status": "not-exported"}
-
-    if placement["status"] != "placed":
-        return {"address": f"0x{address:08x}", **placement, "block": block}
-
-    source_file = placement["source_file"]
-    after_line = placement["after_line"]
-    path = settings.repo_dir / source_file
-    original = path.read_text(encoding="utf-8")
-    block, projections, blockers = project_source_forms(block, original)
-    if blockers:
-        return {
-            "address": f"0x{address:08x}",
-            "status": "declined",
-            "reason": "generated source contains unresolved source forms",
-            "source_file": source_file,
-            "projections": projections,
-            "blockers": blockers,
-        }
-
-    outcome: dict[str, Any] = {}
-    product_dirty = False
-    try:
-        path.write_text(insert_lines(original, after_line, block), encoding="utf-8")
-        product_dirty = True
-        try:
-            build_target(settings, target)
-        except RuntimeError as error:
-            outcome["status"] = "compile-failed"
-            outcome["diagnostics"] = compile_diagnostics(_failed_build_output(settings, str(error)))
-            outcome["suggested_includes"] = suggest_includes(
-                settings.repo_dir, outcome["diagnostics"]
-            )
+            artifact = output_dir / f"{address:08x}.cpp"
+            atomic_write(artifact, generated.rstrip() + "\n")
+            row["candidate"] = str(artifact.relative_to(settings.repo_dir))
+            row["status"] = "generated"
         else:
-            comparison = compare_selected(settings.repo_dir, target, [address])
-            functions = comparison.get("functions") or []
-            if not functions:
-                outcome["status"] = "not-compared"
-            else:
-                entity = functions[0]
-                outcome["status"] = entity["status"]
-                outcome["raw_matching"] = entity.get("raw_matching")
-                if entity["status"] not in {"exact", "effective"}:
-                    outcome["first_divergence"] = entity
-    finally:
-        path.write_text(original, encoding="utf-8")
-
-    compiling = outcome.get("status") not in {"compile-failed", "not-compared", None}
-    result: dict[str, Any] = {
-        "address": f"0x{address:08x}",
-        "status": "previewed",
-        "source_file": source_file,
-        "after_line": after_line,
-        "translation_unit": placement.get("source_path"),
-        "attribution": placement.get("attribution"),
-        "projections": projections,
-        "recovery": outcome,
-    }
-    if apply and compiling:
-        path.write_text(insert_lines(original, after_line, block), encoding="utf-8")
-        result["status"] = "applied"
-        result["note"] = "source updated; rerun the applicable validation lane"
-    elif apply:
-        result["status"] = "previewed"
-        result["note"] = "no candidate compiled; nothing applied"
-    # The temporary build may reflect a restored tree; rebuild so products
-    # match the final sources.
-    result["product_restored"] = _restore_product(settings, target, product_dirty)
-    return result
+            row["status"] = "unavailable"
+        if projections:
+            row["projections"] = projections
+        combined_blockers: list[Any] = [*blockers, *source_blockers]
+        defects = item.get("recovery", {}).get("defects", [])
+        combined_blockers.extend(defects)
+        if combined_blockers:
+            row["blockers"] = combined_blockers
+        functions.append(row)
+    return {"schema": "wiz8.recovery-candidates", "functions": functions}
 
 
 def regress(
@@ -562,7 +482,10 @@ def regress(
     }
 
     exported = recover_functions(
-        settings, [f"0x{a:08x}" for a in addresses], program_selector=program_selector
+        settings,
+        [f"0x{a:08x}" for a in addresses],
+        program_selector=program_selector,
+        include_body=True,
     )
     blocks = exported_blocks(exported)
     bodies = exported_bodies(exported)
@@ -843,7 +766,10 @@ def sweep(
     markers = _sweep_selection(settings, source_file, class_name)
     addresses = [marker["address"] for marker in markers]
     exported = recover_functions(
-        settings, [f"0x{a:08x}" for a in addresses], program_selector=program_selector
+        settings,
+        [f"0x{a:08x}" for a in addresses],
+        program_selector=program_selector,
+        include_body=True,
     )
     blocks = exported_blocks(exported)
     bodies = exported_bodies(exported)

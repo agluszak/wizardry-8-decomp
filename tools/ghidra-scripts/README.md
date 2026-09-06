@@ -34,13 +34,14 @@ translation units, or global-data definitions.
 The supported host commands are:
 
 ```sh
-uv run wiz8 recover function 0x004a5e50
+uv run wiz8 recover function 0x004a5e50 0x004a5f20
 uv run wiz8 recover regress 0x004a5e50 0x004a5f20
 uv run wiz8 recover explain 0x004a5e50
 ```
 
-The host loads this source bundle in the checkout-scoped PyGhidra owner, executes it against the
-already-open reviewed program, supplies `build/source-index.json`, and reads one JSON result.
+The ordinary command writes one persistent candidate artifact per selected function. It does not
+splice recovered sources, build, or compare. The host loads this source bundle in the checkout-scoped
+PyGhidra owner, supplies `build/source-index.json`, and reads one structured result.
 Headless invocation is reserved for genuinely separate disposable projects such as compiler
 fixtures and source-layout verification.
 

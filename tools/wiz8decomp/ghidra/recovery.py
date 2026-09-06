@@ -24,6 +24,7 @@ def _recover(
     *,
     program_selector: str,
     explain: bool,
+    include_body: bool = False,
 ) -> dict[str, Any]:
     if not selections:
         raise ValueError("pass at least one function address or range")
@@ -37,6 +38,8 @@ def _recover(
         args = ["--source-index", str(settings.build_dir / "source-index.json")]
         if explain:
             args.append("--explain")
+        if include_body:
+            args.append("--include-body")
         args.extend(normalized)
         return _execute_script(settings, program, "Wiz8Recover.java", args)
 
@@ -99,12 +102,20 @@ def recover_functions(
     *,
     program_selector: str = "wiz8",
     output: Path | None = None,
+    include_body: bool = False,
 ) -> dict[str, Any]:
     """Recover one or more selected function definitions."""
 
-    result = _recover(settings, selections, program_selector=program_selector, explain=False)
+    result = _recover(
+        settings,
+        selections,
+        program_selector=program_selector,
+        explain=False,
+        include_body=include_body,
+    )
     if output is not None:
-        atomic_write(output, str(result["text"]))
+        generated = [str(item["generated_code"]) for item in result.get("exports", [])]
+        atomic_write(output, "\n".join(generated))
         result["outputs"] = [str(output)]
     return result
 
@@ -125,18 +136,12 @@ def explain_functions(
             f"0x{address:08x}" for address in resolve_function_selectors(program, selections)
         ]
     result = _recover(settings, normalized, program_selector=program_selector, explain=True)
-    lines: list[str] = []
     functions: list[dict[str, Any]] = []
     for item in result.get("exports", []):
         recovery = item["recovery"]
         entry = str(item["entry"])
         name = item.get("name") or recovery.get("name") or ""
-        lines.append(f"{entry.removeprefix('0x').upper()} {name}".rstrip())
         passes = list(recovery.get("passes", []))
-        lines.extend(f"  {fact['pass']} {fact['status']}: {fact['detail']}" for fact in passes)
-        if not passes:
-            lines.append("  no recognizer applied or declined; verbatim rendering")
-        lines.extend(f"  defect: {defect}" for defect in recovery.get("defects", []))
         functions.append(
             {
                 "entry": entry,
@@ -147,13 +152,11 @@ def explain_functions(
                 "defects": recovery.get("defects", []),
             }
         )
-        lines.append("")
     return {
         "schema": "wiz8.recovery-explanation",
         "program": result["program"],
         "selections": normalized,
         "functions": functions,
-        "text": "\n".join(lines).rstrip() + "\n",
     }
 
 
