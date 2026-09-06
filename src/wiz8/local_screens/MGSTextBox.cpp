@@ -159,11 +159,11 @@ void SetTextBoxMode(unsigned char mode, int value)
 // FUNCTION: WIZ8 0x0058a8c0
 void RedrawTextBoxComplete(void)
 {
-    unsigned char* screen = g_main_game_screen_0068f2d4;
+    W8MainGameScreen005EEBD8* screen = g_main_game_screen_0068f2d4;
 
-    (*(Controls**)(screen + 0xc))->Invalidate(0);
+    screen->m_text_panel_00c->Invalidate(0);
     RedrawTextBoxBody();
-    (*(Controls**)(screen + 0x14))->Invalidate(0);
+    screen->m_action_panel_014->Invalidate(0);
 }
 
 extern void Function558810(void);
@@ -194,15 +194,15 @@ int FindStoppedTextLine(void)
 // FUNCTION: WIZ8 0x0058a8f0
 char TextBoxHandleKey(const void* event)
 {
-    char* panel = *(char**)(g_main_game_screen_0068f2d4 + 0xc);
-    int before = *(int*)(panel + 0x78);
-    char* handler = *(char**)(panel + 0x74);
+    W8MainGameTextPanel005EEBA8* panel =
+        g_main_game_screen_0068f2d4->m_text_panel_00c;
+    int before = panel->m_selection_078;
     char handled;
 
-    handled = (*(char(**)(char*, unsigned short))(*(char***)handler + 0x48 / 4))(
-        handler, *(const unsigned short*)((const char*)event + 8));
+    handled = panel->m_key_handler_074->HandleKey(
+        *(const unsigned short*)((const char*)event + 8));
 
-    if (handled != 0 && *(int*)(panel + 0x78) != before) {
+    if (handled != 0 && panel->m_selection_078 != before) {
         Function558810();
         Function558720(3);
     }
@@ -215,13 +215,13 @@ char TextBoxHandleKey(const void* event)
 // FUNCTION: WIZ8 0x0058a9c0
 void SetKnockKnockTarget(int target)
 {
-    unsigned char* screen = g_main_game_screen_0068f2d4;
+    W8MainGameScreen005EEBD8* screen = g_main_game_screen_0068f2d4;
 
     if (gXStatus.field_021 == 0) {
         ShowNotice(0xc, L"You can't cast Knock Knock here!", -1, -1, 0);
         return;
     }
-    *(int*)(screen + 0x14c) = target;
-    *(int*)(*(char**)(screen + 0x10) + 0x68) = target;
-    *(unsigned char*)(*(char**)(screen + 0xc) + 0x140) = 1;
+    screen->m_target_14c = target;
+    screen->m_status_panel_010->m_target_068 = target;
+    screen->m_text_panel_00c->m_target_changed_140 = 1;
 }

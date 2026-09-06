@@ -157,22 +157,6 @@ int IsScreenInputBlocked(void)
     return 1;
 }
 
-/* The screen object at 0x0068F2D4. Only the members these bodies reach are
-   established: two panels, the object the region events go to, and the
-   pending target the Knock Knock cast records. */
-class W8MainGameScreenPanel {
-public:
-    virtual ~W8MainGameScreenPanel();
-    virtual void Redraw(int full_redraw);
-
-    unsigned char unknown_004[0x70];
-    /* 0x074 and 0x078: the key handler and the selection it moves. */
-    W8MainGameScreenPanel* key_target;
-    int selection;
-    unsigned char unknown_07c[0xc4];
-    unsigned char flag_140;              /* 0x140 */
-};
-
 extern unsigned char g_map_loading_00659757;
 extern void Function55EE70(int reason);
 extern void UpdateHeldItemCursor(void);
