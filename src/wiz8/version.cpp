@@ -1,7 +1,8 @@
-#include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/utility.h"
 
-/* Address quarantine 004e34b1-004e381f; bounds come from adjacent
-   assertion-backed original translation-unit intervals. */
+#include <string.h>
+
+/* Version-banner formatting. The original translation-unit name is unknown. */
 
 extern "C" {
 // FUNCTION: WIZ8 0x004E3620

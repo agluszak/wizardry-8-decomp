@@ -101,9 +101,12 @@ set(WIZ8_ORIGINAL_UNITS
 set(WIZ8_TEMPLATE_EMISSIONS
     src/wiz8/vector.cpp
 )
-# Provisionally named subsystem units: their contents have coherent ownership,
-# but the original translation-unit spelling is not yet independently proved.
-set(WIZ8_PROVISIONAL_PREFIX_UNITS
+
+# Original translation-unit names remain unproved for these units. A descriptive
+# filename records a coherent subsystem, not a claim about the original name.
+# Unknown fragments retain bounded address names under unattributed/.
+# Keep this single list in link order: renaming a unit must not move its slot.
+set(WIZ8_UNATTRIBUTED_UNITS
     src/wiz8/bringup_gates.cpp
     src/wiz8/renderer_window.cpp
     src/wiz8/startup_render_state.cpp
@@ -123,47 +126,39 @@ set(WIZ8_PROVISIONAL_PREFIX_UNITS
     src/wiz8/engine_code/registry_classes.cpp
     src/wiz8/engine_code/MonsterLight.cpp
     src/wiz8/engine_code/GDCamera.cpp
-)
-
-# Address-bounded quarantine: every marker must fall inside the filename's
-# explicit range. These files make no subsystem or original-TU claim.
-set(WIZ8_ADDRESS_QUARANTINE_UNITS
     src/wiz8/unattributed/00401001_0041ab3f.cpp
     src/wiz8/unattributed/0041f261_0042403f.cpp
     src/wiz8/unattributed/00424041_0042a36f.cpp
-    src/wiz8/unattributed/004511d1_0045368f.cpp
+    src/wiz8/engine_code/world_selection.cpp
     src/wiz8/unattributed/0046c0f1_0046dc8f.cpp
     src/wiz8/unattributed/0047a791_0047b4ff.cpp
     src/wiz8/unattributed/0048e7b1_00490c5f.cpp
     src/wiz8/unattributed/00490c61_00497aef.cpp
-    src/wiz8/unattributed/0049ba51_0049e5cf.cpp
+    src/wiz8/engine_code/stLight.cpp
     src/wiz8/unattributed/004b6bd1_004b6f2f.cpp
-    src/wiz8/unattributed/004be201_004bf0ef.cpp
-    src/wiz8/unattributed/004cfb30_004cfb6a.cpp
-    src/wiz8/unattributed/004e34b1_004e381f.cpp
-    src/wiz8/unattributed/004edd20_004edff4.cpp
+    src/wiz8/engine_code/bounds.cpp
+    src/wiz8/engine_code/OctRegionPolygon.cpp
+    src/wiz8/version.cpp
+    src/wiz8/local_code/party_load.cpp
     src/wiz8/unattributed/004f0c81_004f203f.cpp
-    src/wiz8/unattributed/005019a0_005019a0.cpp
+    src/wiz8/local_code/missile_references.cpp
     src/wiz8/unattributed/00516f01_00517c5f.cpp
     src/wiz8/unattributed/00524781_00526e8f.cpp
     src/wiz8/unattributed/00526e91_0052a88f.cpp
-    src/wiz8/unattributed/0052c241_0053014f.cpp
-    src/wiz8/unattributed/00554580_005545cd.cpp
+    src/wiz8/local_code/character_events.cpp
+    src/wiz8/local_code/formation_state.cpp
     src/wiz8/unattributed/005587c1_005592cf.cpp
     src/wiz8/unattributed/0055f081_0056af7f.cpp
-    src/wiz8/unattributed/0057d741_005817cf.cpp
+    src/wiz8/local_screens/screen8.cpp
     src/wiz8/unattributed/00583bc1_0058abff.cpp
-    src/wiz8/unattributed/00590bd1_005963df.cpp
+    src/wiz8/local_screens/screen12.cpp
     src/wiz8/unattributed/0059e0f1_0059f70f.cpp
     src/wiz8/unattributed/005a1151_005a19af.cpp
     src/wiz8/unattributed/005a8ed1_005b478f.cpp
-    src/wiz8/unattributed/005bc811_005c433f.cpp
+    src/wiz8/local_screens/party_selection.cpp
     src/wiz8/unattributed/005c4341_005c87af.cpp
-    src/wiz8/unattributed/005d2a51_005d730f.cpp
+    src/wiz8/local_code/text_input.cpp
     src/wiz8/unattributed/005e2cc1_005e37ff.cpp
-)
-
-set(WIZ8_PROVISIONAL_SUFFIX_UNITS
     src/wiz8/frame_tick.cpp
     src/wiz8/game_init.cpp
     src/wiz8/gameplay_teardown.cpp
@@ -183,14 +178,6 @@ set(WIZ8_PROVISIONAL_SUFFIX_UNITS
     src/wiz8/vc6_runtime.cpp
 )
 
-# Build consumers need the original interleaved quarantine surface, while the
-# validation categories above retain the actual ownership distinction.
-set(WIZ8_UNATTRIBUTED_UNITS
-    ${WIZ8_PROVISIONAL_PREFIX_UNITS}
-    ${WIZ8_ADDRESS_QUARANTINE_UNITS}
-    ${WIZ8_PROVISIONAL_SUFFIX_UNITS}
-)
-
 # These explicit categories preserve matching-sensitive object order. The
 # glob is validation-only: it prevents a new recovered C++ source from
 # silently escaping ownership without using the filesystem to order or
@@ -198,9 +185,7 @@ set(WIZ8_UNATTRIBUTED_UNITS
 set(WIZ8_RECOVERED_SOURCE_CATEGORIES
     WIZ8_ORIGINAL_UNITS
     WIZ8_TEMPLATE_EMISSIONS
-    WIZ8_PROVISIONAL_PREFIX_UNITS
-    WIZ8_ADDRESS_QUARANTINE_UNITS
-    WIZ8_PROVISIONAL_SUFFIX_UNITS
+    WIZ8_UNATTRIBUTED_UNITS
 )
 set(WIZ8_CLASSIFIED_SOURCES)
 foreach(category IN LISTS WIZ8_RECOVERED_SOURCE_CATEGORIES)
@@ -217,7 +202,7 @@ endforeach()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/wiz8/unattributed_helpers.cpp")
     message(FATAL_ERROR "Synthetic catch-all source is forbidden: unattributed_helpers.cpp")
 endif()
-foreach(source IN LISTS WIZ8_ADDRESS_QUARANTINE_UNITS)
+foreach(source IN LISTS WIZ8_UNATTRIBUTED_UNITS)
     if(source MATCHES "^src/wiz8/unattributed/([0-9a-f]+)_([0-9a-f]+)[.]cpp$")
         set(lower "${CMAKE_MATCH_1}")
         set(upper "${CMAKE_MATCH_2}")

@@ -1,4 +1,5 @@
-#include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/character.h"
+#include "wiz8/engine_code/Monster.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/Configuration.h"
@@ -7,6 +8,8 @@
 #include "wiz8/startup_runtime_state.h"
 #include "random.h"
 #include "timer.h"
+
+extern "C" unsigned char g_flag_6850fc;
 
 extern void Function52F890(
     int party_slot, int active, int animation, int argument, int show_text);
@@ -77,8 +80,8 @@ int g_special_event_0068c564;
 // GLOBAL: WIZ8 0x0068C568
 int g_special_event_0068c568;
 
-/* Address quarantine 0052c241-0053014f; bounds come from adjacent
-   assertion-backed original translation-unit intervals. */
+/* Character-event queue and portrait/voice updates. The original
+   translation-unit name is unknown; the existing unit is retained intact. */
 
 // FUNCTION: WIZ8 0x0052E360
 bool IsFlag6850FCSet(void)

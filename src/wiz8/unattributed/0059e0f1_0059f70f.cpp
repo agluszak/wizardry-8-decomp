@@ -1,4 +1,3 @@
-#include "wiz8/unattributed/quarantine_common.h"
 #include "wiz8/local_screens/MGSUseItemSelect.h"
 
 /* Address quarantine 0059e0f1-0059f70f; bounds come from adjacent

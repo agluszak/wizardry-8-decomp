@@ -1,18 +1,14 @@
-#include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/regions.h"
 #include "wiz8/video_object_catalog.h"
 
 #include "himage.h"
 #include "input.h"
 #include "vsurface.h"
 
-/* Address quarantine 00590bd1-005963df; bounds come from adjacent
-   assertion-backed original translation-unit intervals.
+/* Lifecycle record 12. The original screen and translation-unit names are
+   unknown; the existing compilation boundary is retained. */
 
-   The declarations below are this unit's own rather than quarantine_common.h's:
-   no other unit in the interval scheme reaches them, and that header is a
-   mechanism the repository drains rather than grows. The linkage split is not
-   cosmetic - it follows each definition site, and getting it wrong makes the
-   reference resolve to the image base under /FORCE. */
+extern "C" int g_value_64c1c8;
 
 void ResetRegions(void);
 unsigned char ClearFlag603C60(void);

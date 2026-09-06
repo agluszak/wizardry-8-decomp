@@ -1,8 +1,17 @@
 #include "wiz8/local_code/DisplayList.h"
-#include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/render_state.h"
+#include "wiz8/wiz8_windows.h"
 
 #include "english.h"
 #include "input.h"
+
+extern "C" {
+extern int g_value_6e4104;
+extern int g_clip_left_600078;
+extern int g_clip_top_60007c;
+extern int g_clip_right_600080;
+extern int g_clip_bottom_600084;
+}
 
 /* Address quarantine 00401001-0041ab3f; bounds come from adjacent
    assertion-backed original translation-unit intervals. */

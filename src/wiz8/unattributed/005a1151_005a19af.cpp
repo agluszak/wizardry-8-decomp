@@ -1,4 +1,4 @@
-#include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/regions.h"
 
 /* Address quarantine 005a1151-005a19af; bounds come from adjacent
    assertion-backed original translation-unit intervals. */
