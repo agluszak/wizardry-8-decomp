@@ -268,6 +268,18 @@ public:
         srVector3T<float>* position, unsigned char allow_directional);
     unsigned char ProbeAttachmentPath00462360(
         W8NavigatorAttachment* attachment);
+    unsigned int FindPathCell00459D60(
+        srVector3T<float>* position, unsigned int* cell, unsigned char adjust);
+    unsigned char BuildAttachmentPath00460950(
+        W8NavigatorAttachment* attachment, unsigned int flags);
+    unsigned char PrepareLinkedNavigator00466FB0(W8NavigatorMovementState* movement);
+    unsigned char LinkAttachmentTarget004612A0(
+        W8NavigatorAttachment* attachment, unsigned int flags,
+        const srVector3T<float>* target, float separation);
+    unsigned char BuildPatrolPath00461960(
+        W8NavigatorAttachment* attachment, unsigned int flags,
+        const srVector3T<float>* target, float minimum,
+        const srVector3T<float>* velocity, float maximum);
     void ProbeWaypointArc00462570(
         const srVector3T<float>* from, const srVector3T<float>* to);
     void GetPathGridStepDirections0045AEE0(
@@ -415,3 +427,5 @@ public:
 
 static_assert(sizeof(W8PathingService) == 0x240,
               "W8PathingService_must_be_0x240");
+
+extern W8PathingService* g_pathing_00659c60;

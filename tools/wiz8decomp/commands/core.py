@@ -94,6 +94,13 @@ def compare_command(
         list[Path] | None,
         typer.Option("--file", help="Compare every FUNCTION marker in this source file."),
     ] = None,
+    changed: bool = typer.Option(
+        False, "--changed", help="Compare all FUNCTION markers in C++ files changed in Jujutsu."
+    ),
+    since: Annotated[
+        str | None,
+        typer.Option("--since", help="With --changed, compare files changed since this revision."),
+    ] = None,
     target: Annotated[str, typer.Option("--target")] = "WIZ8",
     no_build: bool = typer.Option(False, "--no-build"),
     json_output: bool = typer.Option(False, "--json", help="Emit complete JSON."),
@@ -101,14 +108,30 @@ def compare_command(
     """Compare selected functions in one process, or diagnose the whole image."""
     from .. import command_support as cli
     from ..build import build_target, compare
-    from ..reccmp_workflows import compare_selected, comparison_human, selected_addresses
+    from ..reccmp_workflows import (
+        changed_source_files,
+        compare_selected,
+        comparison_human,
+        selected_addresses,
+    )
+    from ..source_index import write_source_index
 
     def action() -> Any:
         settings = cli.settings()
-        if addresses or files:
+        if since is not None and not changed:
+            raise ValueError("--since requires --changed")
+        if addresses or files or changed:
             if ctx.args:
                 raise ValueError("raw reccmp options cannot be combined with selected functions")
-            selected = selected_addresses(settings.repo_dir, addresses or [], files or [])
+            selected_files = list(files or [])
+            if changed:
+                selected_files.extend(changed_source_files(settings.repo_dir, since))
+                if not selected_files and not addresses:
+                    raise ValueError("no changed C++ files; no functions selected")
+            # Selection must see this source state, not the snapshot left by
+            # an earlier check/test run. The indexer caches unchanged inputs.
+            write_source_index(settings)
+            selected = selected_addresses(settings.repo_dir, addresses or [], selected_files)
             if not no_build:
                 build_target(settings, target)
             result = compare_selected(

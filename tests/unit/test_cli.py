@@ -1,6 +1,7 @@
 import json
 import re
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from typer.testing import CliRunner
@@ -9,6 +10,60 @@ from wiz8decomp.cli import app
 from wiz8decomp.extract import variants
 
 REPOSITORY = Path(__file__).resolve().parents[2]
+
+
+def test_compare_refreshes_changed_file_selection_before_build(tmp_path, monkeypatch) -> None:
+    from wiz8decomp import build, reccmp_workflows, source_index
+
+    settings = SimpleNamespace(repo_dir=tmp_path)
+    source = tmp_path / "new.cpp"
+    source.write_text("// FUNCTION: WIZ8 0x00401000\nvoid added() {}\n")
+    (tmp_path / "build").mkdir()
+    index = tmp_path / "build/source-index.json"
+    stale = {"schema": "reccmp-source-index-v1", "markers": []}
+    index.write_text(json.dumps(stale))
+    events = []
+
+    def refresh(actual):
+        assert actual is settings
+        events.append("index")
+        index.write_text(
+            json.dumps(
+                {
+                    **stale,
+                    "markers": [
+                        {"marker_kind": "FUNCTION", "address": 0x401000, "source_file": "new.cpp"}
+                    ],
+                }
+            )
+        )
+
+    def compare(_repo, _target, selected, **_kwargs):
+        assert selected == [0x401000]
+        events.append("compare")
+        return {"functions": [{"address": "0x00401000", "name": "added", "status": "exact"}]}
+
+    monkeypatch.setattr(command_support, "settings", lambda: settings)
+    monkeypatch.setattr(reccmp_workflows, "changed_source_files", lambda *_args: [source])
+    monkeypatch.setattr(source_index, "write_source_index", refresh)
+    monkeypatch.setattr(build, "build_target", lambda *_args: events.append("build"))
+    monkeypatch.setattr(reccmp_workflows, "compare_selected", compare)
+
+    result = CliRunner().invoke(app, ["compare", "--changed", "--json"])
+    assert result.exit_code == 0, result.output
+    assert events == ["index", "build", "compare"]
+    assert json.loads(result.stdout)["functions"][0]["address"] == "0x00401000"
+
+
+def test_compare_changed_does_not_fall_back_to_whole_image(tmp_path, monkeypatch) -> None:
+    from wiz8decomp import build, reccmp_workflows
+
+    monkeypatch.setattr(command_support, "settings", lambda: SimpleNamespace(repo_dir=tmp_path))
+    monkeypatch.setattr(reccmp_workflows, "changed_source_files", lambda *_args: [])
+    monkeypatch.setattr(build, "compare", lambda *_args, **_kwargs: pytest.fail("whole image"))
+    result = CliRunner().invoke(app, ["compare", "--changed"])
+    assert result.exit_code != 0
+    assert "no changed C++ files" in result.output
 
 
 def test_normal_output_rejects_unwrapped_structures() -> None:

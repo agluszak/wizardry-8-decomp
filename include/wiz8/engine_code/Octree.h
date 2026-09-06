@@ -98,6 +98,17 @@ public:
     unsigned int AdvanceNavigator(
         W8NavigatorMovementState* movement,
         float radius, float separation);
+    unsigned char PrepareNavigatorTarget00434250(
+        W8NavigatorMovementState* movement, float radius, float separation);
+    unsigned char PrepareNavigatorPatrol00434880(
+        W8NavigatorMovementState* movement, float minimum, float maximum);
+    unsigned char LinkNavigatorTarget00434A00(
+        W8NavigatorMovementState* movement,
+        const srVector3T<float>* target, float separation);
+    void GetPathSurfaceNormal00433A70(
+        const srVector3T<float>* position, srVector3T<float>* normal);
+    float SettleToGround00433820(
+        srVector3T<float>* position, unsigned char* out_hit, char mode, float limit);
     void QueueOctreeKind130042E810(
         int id, const srVector3T<float>* position);
     int QueryObjects0042F280(
@@ -288,13 +299,10 @@ unsigned int __stdcall OctreeTraverseKind12(
 
 extern W8Octree* g_octree_6598a4;
 
-/* Drops one world-space position onto the ground below it, reporting through
-   the second argument whether anything was hit - a byte, and a float limit:
-   0x00434A30 stores zero into that slot with a byte move and pushes its 500 as
-   a single. ItemManager.cpp settles dropped items with it and Octree.cpp
-   settles portal endpoints, so the name stays neutral. */
-unsigned char SettleToGround00433820(
-    float* position, unsigned char* out_hit, int mode, float limit);
+unsigned char __stdcall IsNavigatorAtTarget004347D0(W8NavigatorMovementState* movement);
+unsigned int __stdcall FindNavigatorPosition00437F30(
+    const srVector3T<float>* source, float yaw, float radius, unsigned int count,
+    srVector3T<float>* positions, char first_only, char flag_2, char flag_3,
+    int mode, char flag_4);
 
 static_assert(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
-

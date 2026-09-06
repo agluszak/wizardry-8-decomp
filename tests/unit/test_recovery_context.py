@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
+import pytest
 from wiz8decomp import reccmp_workflows
 from wiz8decomp.ghidra.unit_intervals import TranslationUnitResolver
 from wiz8decomp.reports import recovery_context
@@ -129,7 +130,9 @@ def test_context_preserves_zero_offsets_and_renders_match_availability() -> None
     assert "target `0`" in output
 
 
-def test_multiple_contexts_use_one_ghidra_session(tmp_path, monkeypatch) -> None:
+@pytest.mark.parametrize("listing", [False, True])
+@pytest.mark.parametrize("match", [False, True])
+def test_multiple_contexts_use_one_ghidra_session(tmp_path, monkeypatch, listing, match) -> None:
     evidence = tmp_path / "evidence/observations/wiz8"
     evidence.mkdir(parents=True)
     (evidence / "assertions.csv").write_text(
@@ -148,13 +151,12 @@ def test_multiple_contexts_use_one_ghidra_session(tmp_path, monkeypatch) -> None
     )
     monkeypatch.setattr(recovery_context, "load_source_index", lambda *_args: {"classes": []})
     monkeypatch.setattr(recovery_context, "load_claims", lambda *_args: ())
-    monkeypatch.setattr(
-        reccmp_workflows,
-        "compare_selected",
-        lambda _repo, _target, values: {
-            "functions": [{"address": f"0x{value:08x}", "status": "exact"} for value in values]
-        },
-    )
+
+    def fake_compare(_repo, _target, values):
+        assert match, "--no-match must not invoke reccmp"
+        return {"functions": [{"address": f"0x{value:08x}", "status": "exact"} for value in values]}
+
+    monkeypatch.setattr(reccmp_workflows, "compare_selected", fake_compare)
     calls = 0
 
     def fake_query_many(_program, queries, **_kwargs):
@@ -185,6 +187,8 @@ def test_multiple_contexts_use_one_ghidra_session(tmp_path, monkeypatch) -> None
                 result = {"decompiled": "void f() {}"}
             elif command == "indirect-calls":
                 result = {"calls": []}
+            elif command == "listing" and listing:
+                result = {"listing": f"{arguments[0]}  RET"}
             else:
                 raise AssertionError(command)
             results.append({"command": command, "arguments": arguments, "result": result})
@@ -197,7 +201,15 @@ def test_multiple_contexts_use_one_ghidra_session(tmp_path, monkeypatch) -> None
         recovery_context, "open_program", lambda *_args, **_kwargs: contextlib.nullcontext(object())
     )
 
-    contexts = recovery_context.recovery_context_reports(settings, ["a", "b"])
+    contexts = recovery_context.recovery_context_reports(
+        settings, ["a", "b"], listing=listing, match=match
+    )
 
     assert len(contexts) == 2
     assert calls == 1
+    for context, address in zip(contexts, addresses, strict=True):
+        expected = f"0x{address:08x}  RET" if listing else ""
+        assert context["ghidra"]["listing"] == expected
+        assert ("## Listing" in render_context(context)) == listing
+        if not match:
+            assert context["match"]["unavailable"] == "not requested (--no-match)"

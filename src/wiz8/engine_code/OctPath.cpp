@@ -29,7 +29,6 @@
 extern unsigned short g_path_reserve_0060827a;
 extern float g_path_span_scale_005ec344;
 extern float g_path_limit_006081e8;
-extern W8PathingService* g_pathing_00659c60;
 extern W8Navigator* g_startup_world_659c0c;
 extern unsigned char g_flag_00659c5c;
 extern unsigned char g_flag_00689b32;

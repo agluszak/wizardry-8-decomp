@@ -8,9 +8,14 @@
 #include "wiz8/engine_code/PathAI.h"
 #include "surrender/srNode.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/OctPath.h"
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/utility.h"
+#include "wiz8/sr_api.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -664,8 +669,6 @@ extern W8Navigator* g_startup_world_659c0c;
 extern unsigned char g_navigator_position_changed_659c11;
 }
 
-extern void Function454780(int changed);
-
 extern float g_navigator_default_turn_rate_005ec2f4;
 extern float g_frame_scale_006068ec;
 extern const float g_negative_one_005ebc38;
@@ -748,6 +751,662 @@ extern float Function4BE420(
 extern float Function4BE490(
     const srVector3T<float>* from, const srVector3T<float>* to);
 
+// GLOBAL: WIZ8 0x005ec2a8
+static const float NAVIGATOR_QUARTER_TURN = 1.57079625f;
+// GLOBAL: WIZ8 0x005ec314
+static const float NAVIGATOR_THREE_QUARTER_TURN = 4.712389f;
+// GLOBAL: WIZ8 0x005ec310
+static const float NAVIGATOR_MAXIMUM_DROP = 1500.0f;
+// GLOBAL: WIZ8 0x00603acc
+float g_navigator_gravity_00603acc = 187.5f;
+// GLOBAL: WIZ8 0x005ec320
+static const float NAVIGATOR_LINK_DISTANCE_SQUARED = 400.0f;
+
+// FUNCTION: WIZ8 0x00454d70
+void W8Navigator::UpdateLinkedNavigator()
+{
+    if (linked_navigator_05c == 0) {
+        return;
+    }
+    srVector3T<float> own_position = movement_0c0.position_040;
+    srVector3T<float> linked_position = linked_navigator_05c->movement_0c0.position_040;
+    float dx = linked_position.x - own_position.x;
+    float dy = linked_position.y - own_position.y;
+    float dz = linked_position.z - own_position.z;
+    if (dx * dx + dy * dy + dz * dz <= radius_084 * radius_084 * NAVIGATOR_LINK_DISTANCE_SQUARED) {
+        linked_update_time_0b8 = 0;
+        return;
+    }
+    if (static_cast<W8Monster*>(this)->IsWithinWorldRange004CA2A0() == 0 &&
+        static_cast<W8Monster*>(linked_navigator_05c)->IsWithinWorldRange004CA2A0() == 0) {
+        UpdateLinkedPosition00454FE0();
+        return;
+    }
+    int tick = (int)g_object_6598bc->GetValue30();
+    if ((unsigned int)(tick - linked_update_time_0b8) <= 50) {
+        return;
+    }
+    linked_update_time_0b8 = tick;
+    srVector3T<float> camera;
+    GetCameraPosition(&camera);
+    if (static_cast<W8Monster*>(linked_navigator_05c)->IsWithinWorldRange004CA2A0() != 0) {
+        MonsterGetWorldAnimationBounds004CA4F0(
+            static_cast<W8Monster*>(linked_navigator_05c), &linked_position, &own_position);
+        if (TraceToBounds(&camera, &linked_position.x, &own_position.x) != 0) {
+            goto follow_path;
+        }
+    }
+    if (static_cast<W8Monster*>(this)->IsWithinWorldRange004CA2A0() != 0) {
+        MonsterGetWorldAnimationBounds004CA4F0(
+            static_cast<W8Monster*>(this), &linked_position, &own_position);
+        if (TraceToBounds(&camera, &linked_position.x, &own_position.x) != 0) {
+            goto follow_path;
+        }
+    }
+    if (UpdateLinkedPosition00454FE0() != 0) {
+        return;
+    }
+follow_path:
+    if (g_octree_6598a4->pathing_180->PrepareLinkedNavigator00466FB0(&movement_0c0) != 0) {
+        if (flag_024 != 0) {
+            flag_024 = 0;
+            if (g_flag_006081e4 != 0 && linked_navigator_05c == 0) {
+                g_navigator_group_659bf8.Clear();
+                CollectGroupNavigators(&g_navigator_group_659bf8);
+                for (int index = 0; index < g_navigator_group_659bf8.GetCount(); ++index) {
+                    (*g_navigator_group_659bf8.GetAt(index))->flag_024 = 0;
+                }
+            }
+        }
+    } else {
+        if (flag_024 == 0) {
+            flag_024 = 1;
+            if (navigation_mode_008 != 5 && navigation_mode_008 != 6) {
+                movement_0c0.target_pitch_024 = NormalizeAngle(0.0f);
+            }
+        }
+        AimAtPosition(&camera);
+    }
+}
+
+// FUNCTION: WIZ8 0x00454fe0
+unsigned char W8Navigator::UpdateLinkedPosition00454FE0()
+{
+    if (linked_navigator_05c == 0) {
+        return 0;
+    }
+    srVector3T<float> position;
+    if (linked_navigator_05c->flag_024 != 0) {
+        if (FindNavigatorPosition00437F30(
+                &linked_navigator_05c->movement_0c0.position_040,
+                linked_navigator_05c->movement_0c0.yaw,
+                movement_0c0.value_0b0 + movement_0c0.value_0b0,
+                1, &position, 1, 0, 0, 5, 1) == 0) {
+            return 0;
+        }
+        if (flag_024 == 0) {
+            flag_024 = 1;
+            if (navigation_mode_008 != 5 && navigation_mode_008 != 6) {
+                movement_0c0.target_pitch_024 = NormalizeAngle(0.0f);
+            }
+        }
+    } else {
+        position = linked_navigator_05c->movement_0c0.position_040;
+        if (flag_024 != 0) {
+            flag_024 = 0;
+        }
+    }
+    movement_0c0.attachment_0ac->CopyPathFrom004564F0(
+        linked_navigator_05c->movement_0c0.attachment_0ac);
+    movement_0c0.attachment_0ac->flags_00 &= 0xff7fffff;
+    movement_0c0.yaw = linked_navigator_05c->movement_0c0.yaw;
+    movement_0c0.velocity_034.x = (float)(linked_navigator_05c->movement_0c0.velocity_034.x * 0.5);
+    movement_0c0.velocity_034.y = (float)(linked_navigator_05c->movement_0c0.velocity_034.y * 0.5);
+    movement_0c0.velocity_034.z = (float)(linked_navigator_05c->movement_0c0.velocity_034.z * 0.5);
+    SetPosition(&position);
+    g_octree_6598a4->QueueOctreeKind130042E810(movement_0c0.location_id_004, &position);
+    linked_update_time_0b8 = 0;
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00454440
+srVector3T<float>* W8Navigator::AdjustPosition00454440(
+    srVector3T<float>* result, const srVector3T<float>* current,
+    const srVector3T<float>* previous)
+{
+    float acceleration_scale = 0.25f;
+    if (movement_0c0.location_id_004 == 0 || navigation_mode_008 == 4) {
+        *result = *current;
+        return result;
+    }
+    srVector3T<float> probe = *current;
+    probe.y += g_world_scale_005ebc40;
+    unsigned char hit;
+    float ground = g_octree_6598a4->SettleToGround00433820(&probe, &hit, 1, 500.0f);
+    if (hit == 0) {
+        movement_0c0.velocity_034.x = 0.0f;
+        movement_0c0.velocity_034.y = 0.0f;
+        movement_0c0.velocity_034.z = 0.0f;
+        if (g_flag_006081e4 == 0) {
+            ClearMovement();
+        }
+        *result = *previous;
+        return result;
+    }
+    if (g_octree_6598a4->current_sector < 0) {
+        movement_0c0.position_adjusted_0c8 = 0;
+    } else {
+        movement_0c0.position_adjusted_0c8 = 1;
+        acceleration_scale = 0.5f;
+    }
+    if (current->y - ground > NAVIGATOR_MAXIMUM_DROP &&
+        (previous->x != probe.x || previous->z != probe.z)) {
+        movement_0c0.velocity_034.x = 0.0f;
+        movement_0c0.velocity_034.y = 0.0f;
+        movement_0c0.velocity_034.z = 0.0f;
+        if (g_flag_006081e4 == 0) {
+            ClearMovement();
+        }
+        *result = *previous;
+        return result;
+    }
+    if (current->y - ground > g_startup_near_limit_005ec000) {
+        srVector3T<float> falling = *current;
+        float distance;
+        if (g_flag_006081e4 == 0) {
+            movement_0c0.vertical_velocity_078 += g_object_6598bc->GetValue28() *
+                g_navigator_speed_006850ff * g_navigator_gravity_00603acc * acceleration_scale;
+            distance = movement_0c0.vertical_velocity_078 * g_object_6598bc->GetValue28() *
+                g_navigator_speed_006850ff;
+        } else {
+            movement_0c0.vertical_velocity_078 += g_object_6598bc->GetValue28() *
+                g_navigator_gravity_00603acc * acceleration_scale;
+            distance = movement_0c0.vertical_velocity_078 * g_object_6598bc->GetValue28();
+        }
+        falling.y -= distance;
+        if (falling.y >= ground) {
+            position_dirty_09c = 1;
+            *result = falling;
+            return result;
+        }
+    }
+    movement_0c0.vertical_velocity_078 = 0.0f;
+    position_dirty_09c = 0;
+    probe.y = ground;
+    *result = probe;
+    return result;
+}
+
+// FUNCTION: WIZ8 0x00454780
+void W8Navigator::UpdateFacing(char immediate)
+{
+    if (movement_0c0.pitch_enabled_074 == 0 && movement_0c0.roll_enabled_075 == 0) {
+        return;
+    }
+    srVector3T<float> forward(0.0f, 0.0f, 1.0f);
+    srVector3T<float> normal;
+    forward.method_00451A10(sin(movement_0c0.yaw), cos(movement_0c0.yaw));
+    g_octree_6598a4->GetPathSurfaceNormal00433A70(&movement_0c0.position_040, &normal);
+    if (movement_0c0.pitch_enabled_074 != 0) {
+        float angle = (float)acos(normal.x * forward.x + normal.y * forward.y + normal.z * forward.z);
+        if (angle < NAVIGATOR_QUARTER_TURN) {
+            angle += NAVIGATOR_THREE_QUARTER_TURN;
+        } else {
+            angle -= NAVIGATOR_QUARTER_TURN;
+        }
+        if (immediate != 0) {
+            movement_0c0.pitch_020 = NormalizeAngle((float)angle);
+        }
+        movement_0c0.target_pitch_024 = NormalizeAngle((float)angle);
+    }
+    if (movement_0c0.roll_enabled_075 != 0) {
+        srVector3T<float> side(-forward.z, 0.0f, forward.x);
+        float angle = (float)acos(side.x * normal.x + side.z * normal.z);
+        if (angle < NAVIGATOR_QUARTER_TURN) {
+            angle += NAVIGATOR_THREE_QUARTER_TURN;
+        } else {
+            angle -= NAVIGATOR_QUARTER_TURN;
+        }
+        if (immediate != 0) {
+            movement_0c0.roll_028 = NormalizeAngle((float)angle);
+        }
+        movement_0c0.target_roll_02c = NormalizeAngle((float)angle);
+    }
+}
+
+// FUNCTION: WIZ8 0x004564f0
+void W8NavigatorAttachment::CopyPathFrom004564F0(const W8NavigatorAttachment* other)
+{
+    flags_00 = other->flags_00;
+    value_04 = other->value_04;
+    path_position_index_08 = other->path_position_index_08;
+    value_0c = other->value_0c;
+    value_058 = other->value_058;
+    separation_54 = other->separation_54;
+    position_10 = other->position_10;
+    position_34 = other->position_10;
+    position_1c = other->position_1c;
+    if ((flags_00 & 0x80000) != 0) {
+        position_28 = other->position_28;
+    }
+    if (path_position_index_08 + 1 >= capacity_0a) {
+        int capacity = (path_position_index_08 / 10 + 1) * 10;
+        srVector3T<float>* positions = new srVector3T<float>[capacity];
+        delete[] position_4c;
+        position_4c = positions;
+        unsigned short* values = static_cast<unsigned short*>(malloc(capacity * sizeof(unsigned short)));
+        free(path_values_50);
+        path_values_50 = values;
+        capacity_0a = (unsigned short)capacity;
+    }
+    for (unsigned int index = 1; index <= path_position_index_08; ++index) {
+        position_4c[index] = other->position_4c[index];
+        path_values_50[index] = other->path_values_50[index];
+    }
+}
+
+// FUNCTION: WIZ8 0x00456660
+void W8NavigatorAttachment::GetNextPosition00456660(srVector3T<float>* position)
+{
+    if ((flags_00 & 0x80000) != 0) {
+        *position = position_28;
+        return;
+    }
+    if (value_04 < path_position_index_08) {
+        *position = position_4c[value_04];
+    } else {
+        *position = position_1c;
+    }
+}
+
+// FUNCTION: WIZ8 0x00452630
+unsigned char W8Navigator::Function452630(const srVector3T<float>* position)
+{
+    flags_00c = 6;
+    movement_0c0.value_010 = -1;
+    movement_target_018.x = 0.0f;
+    movement_target_018.y = 0.0f;
+    movement_target_018.z = 0.0f;
+    collision_margin_010 = 0.0;
+    target_navigator_04c = 0;
+    if (flag_024 != 0) {
+        PathAIClearOwned004A9BB0(path_ai_068);
+    }
+    srVector3T<float> target = *position;
+    flags_00c = 6;
+    movement_0c0.target_position_04c = target;
+    movement_target_018 = target;
+    if (movement_0c0.value_00c == 0) {
+        movement_0c0.value_00c = movement_0c0.value_008;
+    }
+    return SetMovementTarget(&movement_target_018, 0);
+}
+
+// FUNCTION: WIZ8 0x004531f0
+void W8Navigator::SetFlag25(char value)
+{
+    flag_025 = value;
+    if (value == 0) {
+        if (path_ai_068 != 0) {
+            PathAIResetTick004A9C20(path_ai_068);
+        }
+    } else {
+        movement_0c0.velocity_034.x = 0.0f;
+        movement_0c0.velocity_034.y = 0.0f;
+        movement_0c0.velocity_034.z = 0.0f;
+    }
+}
+
+// FUNCTION: WIZ8 0x004527a0
+unsigned char W8Navigator::LinkToNavigator004527A0(W8Navigator* target, double separation)
+{
+    unsigned char result = 0;
+    if (g_pathing_00659c60 == 0) {
+        return 0;
+    }
+    movement_target_018.x = 0.0f;
+    movement_target_018.y = 0.0f;
+    movement_target_018.z = 0.0f;
+    collision_margin_010 = separation;
+    flags_00c = 0;
+    target_navigator_04c = target;
+    movement_0c0.value_010 = target->movement_0c0.location_id_004;
+    PathAIClearOwned004A9BB0(path_ai_068);
+    movement_0c0.attachment_0ac->InitializeSegment004563E0(
+        &movement_0c0.position_040, &target->movement_0c0.position_040);
+    if (g_flag_006081e4 == 0) {
+        movement_0c0.attachment_0ac->flags_00 |= 0x10000;
+        if (g_pathing_00659c60->PlanMovementToPosition00464AB0(
+                &movement_0c0, &target->movement_0c0.position_040,
+                radius_084, (float)separation) == 0) {
+            unknown_0bc[0] = 1;
+            return 0;
+        }
+        flags_00c = 9;
+        target_last_position_050 = target->movement_0c0.position_040;
+        result = (unsigned char)(movement_0c0.attachment_0ac->flags_00 & 7);
+        flag_024 = 0;
+        if (g_flag_006081e4 != 0 && linked_navigator_05c == 0) {
+            g_navigator_group_659bf8.Clear();
+            CollectGroupNavigators(&g_navigator_group_659bf8);
+            for (int index = 0; index < g_navigator_group_659bf8.GetCount(); ++index) {
+                (*g_navigator_group_659bf8.GetAt(index))->flag_024 = 0;
+            }
+        }
+    } else if (g_octree_6598a4->LinkNavigatorTarget00434A00(
+                   &movement_0c0, &target->movement_0c0.position_040, (float)separation) != 0) {
+        flags_00c = 9;
+        target_last_position_050 = target->movement_0c0.position_040;
+        flag_024 = 0;
+        result = 1;
+        if (g_flag_006081e4 != 0 && linked_navigator_05c == 0) {
+            g_navigator_group_659bf8.Clear();
+            CollectGroupNavigators(&g_navigator_group_659bf8);
+            for (int index = 0; index < g_navigator_group_659bf8.GetCount(); ++index) {
+                (*g_navigator_group_659bf8.GetAt(index))->flag_024 = 0;
+            }
+        }
+    }
+    return result;
+}
+
+// FUNCTION: WIZ8 0x004529a0
+unsigned short W8Navigator::ConfigureMovementToNavigator004529A0(
+    W8Navigator* target, float separation, float maximum_distance,
+    srVector3T<float> position, int trace_mode, float facing, unsigned char* probe_result)
+{
+    if (g_pathing_00659c60 == 0) {
+        return 0;
+    }
+    if (g_flag_006081e4 != 0) {
+        return Function4526C0(target, separation);
+    }
+    movement_0c0.attachment_0ac->flags_00 |= 0x10000;
+    movement_target_018.x = 0.0f;
+    movement_target_018.y = 0.0f;
+    movement_target_018.z = 0.0f;
+    collision_margin_010 = separation;
+    flags_00c = 0x21;
+    target_navigator_04c = target;
+    movement_0c0.value_010 = target->movement_0c0.location_id_004;
+    movement_0c0.target_position_04c = target->movement_0c0.position_040;
+    PathAIClearOwned004A9BB0(path_ai_068);
+    radius_084 = movement_0c0.alternate_radius_0b4;
+    unsigned short result = g_pathing_00659c60->ConfigureMovementSearch00464B00(
+        &movement_0c0, target->movement_0c0.location_id_004, radius_084,
+        separation, maximum_distance, position.x, position.y, position.z,
+        trace_mode, target->movement_0c0.height_offset_0b8, facing, probe_result);
+    target_last_position_050 = target->movement_0c0.position_040;
+    if (result == 0) {
+        if (flag_024 == 0) {
+            flag_024 = 1;
+            if (navigation_mode_008 != 5 && navigation_mode_008 != 6) {
+                movement_0c0.target_pitch_024 = NormalizeAngle(0.0f);
+            }
+        }
+        PathAIClearOwned004A9BB0(path_ai_068);
+        movement_0c0.velocity_034.x = 0.0f;
+        movement_0c0.velocity_034.y = 0.0f;
+        movement_0c0.velocity_034.z = 0.0f;
+        if ((movement_0c0.attachment_0ac->flags_00 & 0x10000) == 0) {
+            flags_00c &= 0xff000000;
+        } else {
+            flags_00c = 0;
+        }
+        movement_0c0.attachment_0ac->RecordPosition(&movement_0c0.position_040);
+        g_octree_6598a4->QueueOctreeKind130042E810(
+            movement_0c0.location_id_004, &movement_0c0.position_040);
+        movement_complete_026 = 1;
+        flags_00c = 0;
+        unknown_0bc[0] = 1;
+        return 0;
+    }
+    if (flag_024 != 0) {
+        movement_complete_026 = 0;
+        flag_024 = 0;
+        if (g_flag_006081e4 != 0 && linked_navigator_05c == 0) {
+            g_navigator_group_659bf8.Clear();
+            CollectGroupNavigators(&g_navigator_group_659bf8);
+            for (int index = 0; index < g_navigator_group_659bf8.GetCount(); ++index) {
+                (*g_navigator_group_659bf8.GetAt(index))->flag_024 = 0;
+            }
+        }
+    }
+    return result;
+}
+
+// FUNCTION: WIZ8 0x00453d20
+unsigned char W8Navigator::ConfigureMovement00453D20(float minimum, float maximum)
+{
+    flags_00c |= 0x20000000;
+    movement_0c0.attachment_0ac->flags_00 |= 0x800000;
+    if (minimum > g_float_005ebb34) {
+        minimum_height_034 = minimum;
+    }
+    if (maximum > g_float_005ec2f8) {
+        maximum_height_038 = maximum;
+    }
+    if (minimum_height_034 + g_float_005ec2f8 < maximum_height_038) {
+        movement_0c0.target_position_04c = position_03c;
+        if (g_octree_6598a4->PrepareNavigatorPatrol00434880(
+                &movement_0c0, minimum_height_034, maximum_height_038) != 0) {
+            flags_00c |= 6;
+            flag_024 = 0;
+            if (g_flag_006081e4 != 0 && linked_navigator_05c == 0) {
+                g_navigator_group_659bf8.Clear();
+                CollectGroupNavigators(&g_navigator_group_659bf8);
+                for (int index = 0; index < g_navigator_group_659bf8.GetCount(); ++index) {
+                    (*g_navigator_group_659bf8.GetAt(index))->flag_024 = 0;
+                }
+            }
+            flag_025 = 0;
+            movement_target_018 = movement_0c0.attachment_0ac->position_1c;
+            movement_0c0.attachment_0ac->separation_54 = 0.0f;
+            if (g_flag_006081e4 != 0) {
+                linked_update_time_0b8 = 0;
+                g_navigator_group_659bf8.Clear();
+                CollectGroupNavigators(&g_navigator_group_659bf8);
+                for (int index = 0; index < g_navigator_group_659bf8.GetCount(); ++index) {
+                    W8Navigator* navigator = *g_navigator_group_659bf8.GetAt(index);
+                    navigator->movement_0c0.attachment_0ac->CopyPathFrom004564F0(
+                        movement_0c0.attachment_0ac);
+                    navigator->position_03c = position_03c;
+                    navigator->movement_0c0.attachment_0ac->flags_00 &= 0xff7effff;
+                    navigator->linked_update_time_0b8 = 0;
+                }
+            }
+            return 1;
+        }
+        flags_00c &= 0xdffffff9;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x00454170
+unsigned char W8Navigator::SetMovementTarget(const srVector3T<float>* target, char propagate)
+{
+    movement_0c0.target_position_04c = *target;
+    movement_target_018 = *target;
+    unsigned char result;
+    if (g_flag_006081e4 == 0) {
+        radius_084 = movement_0c0.alternate_radius_0b4;
+        result = g_octree_6598a4->PrepareNavigatorTarget00434250(
+            &movement_0c0, radius_084, (float)collision_margin_010);
+    } else {
+        radius_084 = movement_0c0.value_0b0;
+        if ((flags_00c & 4) != 0 && (flags_00c & 1) != 0) {
+            result = g_octree_6598a4->PrepareNavigatorTarget00434250(
+                &movement_0c0, radius_084,
+                target_navigator_04c->radius_084 + (float)collision_margin_010);
+        } else {
+            result = g_octree_6598a4->PrepareNavigatorTarget00434250(
+                &movement_0c0, radius_084, (float)collision_margin_010);
+        }
+    }
+    if (result == 0 || IsNavigatorAtTarget004347D0(&movement_0c0) != 0) {
+        radius_084 = movement_0c0.alternate_radius_0b4;
+    }
+    if (result == 0) {
+        if (flag_024 == 0) {
+            flag_024 = 1;
+            if (navigation_mode_008 != 5 && navigation_mode_008 != 6) {
+                movement_0c0.target_pitch_024 = NormalizeAngle(0.0f);
+            }
+        }
+        PathAIClearOwned004A9BB0(path_ai_068);
+        movement_0c0.velocity_034.x = 0.0f;
+        movement_0c0.velocity_034.y = 0.0f;
+        movement_0c0.velocity_034.z = 0.0f;
+        if ((movement_0c0.attachment_0ac->flags_00 & 0x10000) == 0) {
+            flags_00c &= 0xff000000;
+        } else {
+            flags_00c = 0;
+        }
+        movement_0c0.attachment_0ac->RecordPosition(&movement_0c0.position_040);
+        g_octree_6598a4->QueueOctreeKind130042E810(
+            movement_0c0.location_id_004, &movement_0c0.position_040);
+        movement_complete_026 = 1;
+    } else if (flag_024 != 0) {
+        movement_complete_026 = 0;
+        flag_024 = 0;
+        if (g_flag_006081e4 != 0 && linked_navigator_05c == 0) {
+            g_navigator_group_659bf8.Clear();
+            CollectGroupNavigators(&g_navigator_group_659bf8);
+            for (int index = 0; index < g_navigator_group_659bf8.GetCount(); ++index) {
+                (*g_navigator_group_659bf8.GetAt(index))->flag_024 = 0;
+            }
+        }
+    }
+    if (propagate == 0 && result != 0 && movement_0c0.attachment_0ac != 0 &&
+        (movement_0c0.attachment_0ac->flags_00 & 0x10000) == 0 && g_flag_006081e4 != 0) {
+        linked_update_time_0b8 = 0;
+        g_navigator_group_659bf8.Clear();
+        CollectGroupNavigators(&g_navigator_group_659bf8);
+        for (int index = 0; index < g_navigator_group_659bf8.GetCount(); ++index) {
+            W8Navigator* navigator = *g_navigator_group_659bf8.GetAt(index);
+            navigator->movement_0c0.attachment_0ac->CopyPathFrom004564F0(
+                movement_0c0.attachment_0ac);
+            navigator->position_03c = position_03c;
+            navigator->movement_0c0.attachment_0ac->flags_00 &= 0xff7effff;
+            navigator->linked_update_time_0b8 = 0;
+        }
+    }
+    return result;
+}
+
+// FUNCTION: WIZ8 0x00453690
+void W8Navigator::Function453690(const srVector3T<float>* position)
+{
+    if (path_ai_068 == 0) {
+        path_ai_068 = CreateRecord004A9750(movement_0c0.location_id_004);
+        if (path_ai_068 == 0) {
+            srAssertFail("pNavAI",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp", 0x6c7, 0);
+        }
+    }
+    flags_00c &= 0x00ffffff;
+    if (flags_00c == 0) {
+        flags_00c = 6;
+        if (movement_0c0.value_00c == 0) {
+            movement_0c0.value_00c = movement_0c0.value_008;
+        }
+        movement_0c0.target_position_04c = *position;
+        movement_target_018 = *position;
+        flag_024 = 0;
+        if (g_flag_006081e4 != 0 && linked_navigator_05c == 0) {
+            g_navigator_group_659bf8.Clear();
+            CollectGroupNavigators(&g_navigator_group_659bf8);
+            for (int index = 0; index < g_navigator_group_659bf8.GetCount(); ++index) {
+                (*g_navigator_group_659bf8.GetAt(index))->flag_024 = 0;
+            }
+        }
+        PathAIAddPoint004A9C30(path_ai_068, &movement_0c0.position_040);
+        SetMovementTarget(&movement_target_018, 0);
+    }
+    PathAIAddPoint004A9C30(path_ai_068, position);
+}
+
+// FUNCTION: WIZ8 0x004537c0
+void W8Navigator::SetObject68Flag38(char value)
+{
+    if (path_ai_068 != 0) {
+        if (value != 0) {
+            path_ai_068->flag_38 = 1;
+            return;
+        }
+        path_ai_068->flag_38 = 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x00453c50
+void W8Navigator::SetValue120(float value)
+{
+    movement_0c0.movement_scale_060 = value;
+}
+
+// FUNCTION: WIZ8 0x00453c60
+float W8Navigator::GetValue120()
+{
+    return movement_0c0.movement_scale_060;
+}
+
+// FUNCTION: WIZ8 0x00454040
+void W8Navigator::Function454040(const srVector3T<float>* target)
+{
+    srVector3T<float> current;
+    current.x = movement_0c0.position_040.x;
+    current.y = movement_0c0.position_040.y + movement_0c0.height_offset_0b8;
+    current.z = movement_0c0.position_040.z;
+    if (target->x != current.x || target->y != current.y || target->z != current.z) {
+        float angle = Function4BE420(&current, target);
+        movement_0c0.yaw = NormalizeAngle(angle);
+        movement_0c0.target_yaw = NormalizeAngle(angle);
+        if (navigation_mode_008 == 2 || navigation_mode_008 == 3) {
+            angle = -Function4BE490(&current, target);
+            movement_0c0.pitch_020 = NormalizeAngle(angle);
+            movement_0c0.target_pitch_024 = NormalizeAngle(angle);
+        } else if (navigation_mode_008 == 5 || navigation_mode_008 == 6) {
+            UpdateFacing(1);
+        }
+        if (movement_0c0.location_id_004 != 0) {
+            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(0xa9d,
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp",
+                    movement_0c0.location_id_004, 1));
+            if (monster_info->fInCombat != 0) {
+                monster_info->pCombat->unknown_151[0] = 1;
+            }
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x00456020
+void W8Navigator::SetPosition(const srVector3T<float>* position)
+{
+    if (position->x != movement_0c0.position_040.x ||
+        position->y != movement_0c0.position_040.y ||
+        position->z != movement_0c0.position_040.z) {
+        movement_0c0.position_040 = *position;
+        srVector3T<double> widened;
+        widened.x = position->x;
+        widened.y = position->y;
+        widened.z = position->z;
+        node_18c->setLocation(widened);
+        if (movement_0c0.location_id_004 != 0 || this == g_startup_world_659c0c) {
+            g_navigator_position_changed_659c11 = 1;
+        }
+        UpdateFacing(1);
+        if (movement_0c0.attachment_0ac != 0) {
+            *movement_0c0.attachment_0ac->position_4c = *position;
+            movement_0c0.attachment_0ac->position_34 =
+                *movement_0c0.attachment_0ac->position_4c;
+            movement_0c0.attachment_0ac->position_10 =
+                *movement_0c0.attachment_0ac->position_4c;
+        }
+    }
+    position_dirty_09c = 1;
+}
+
 // FUNCTION: WIZ8 0x00453590
 void W8Navigator::SetPositionInternal00453590(const srVector3T<float>* position)
 {
@@ -767,7 +1426,7 @@ void W8Navigator::SetPositionInternal00453590(const srVector3T<float>* position)
             this == g_startup_world_659c0c) {
             g_navigator_position_changed_659c11 = 1;
         }
-        Function454780(1);
+        UpdateFacing(1);
         if (movement_0c0.attachment_0ac != 0) {
             *movement_0c0.attachment_0ac->position_4c =
                 movement_0c0.position_040;

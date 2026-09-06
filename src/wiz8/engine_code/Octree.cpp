@@ -20,6 +20,19 @@
 
 #define OCTREE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Octree.cpp"
 
+// FUNCTION: WIZ8 0x00433a70
+void W8Octree::GetPathSurfaceNormal00433A70(
+    const srVector3T<float>* position, srVector3T<float>* normal)
+{
+    if (pathing_180 != 0) {
+        pathing_180->GetPathSurfaceNormal0045B730(position, normal);
+        return;
+    }
+    normal->x = 0.0f;
+    normal->y = 1.0f;
+    normal->z = 0.0f;
+}
+
 
 extern unsigned long g_octree_storage_00659770;
 extern unsigned long g_octree_state_00659890;
@@ -32,6 +45,164 @@ extern void Function434020(int value);
 extern unsigned char g_navigator_link_mode_00659c10;
 extern float g_rate_006068EC;
 extern float g_world_scale_005ebc40;
+
+// GLOBAL: WIZ8 0x005ec02c
+static const float NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE = 50.0f;
+
+// FUNCTION: WIZ8 0x00434250
+unsigned char W8Octree::PrepareNavigatorTarget00434250(
+    W8NavigatorMovementState* movement, float radius, float separation)
+{
+    unsigned char result = 0;
+    unsigned char hit = 0;
+    if (movement->target_position_04c.y > spatial_000.clipped_maximum_30.y) {
+        movement->target_position_04c.y = spatial_000.clipped_maximum_30.y;
+    }
+    srVector3T<float> probe = movement->target_position_04c;
+    SettleToGround00433820(&probe, &hit, 1, 500.0f);
+    if (hit != 0) {
+        movement->target_position_04c.y = probe.y;
+    }
+    if (pathing_180 == 0) {
+        return 1;
+    }
+    srVector3T<float> delta;
+    delta.x = movement->target_position_04c.x - movement->position_040.x;
+    delta.y = 0.0f;
+    delta.z = movement->target_position_04c.z - movement->position_040.z;
+    if (sqrt(delta.x * delta.x + delta.z * delta.z) < NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE) {
+        return 0;
+    }
+    if ((movement->attachment_0ac->flags_00 & 0x10000) == 0) {
+        srVector3T<float> target = movement->target_position_04c;
+        if (pathing_180->FindPathCell00459D60(&target, 0, 1) != 0) {
+            if (pathing_180->TestWaypointSpan0045A1B0(&movement->position_040, &target, 0, 0) == 0) {
+                movement->attachment_0ac->InitializeSegment004563E0(&movement->position_040, &target);
+                movement->attachment_0ac->separation_54 = separation;
+                result = pathing_180->BuildAttachmentPath00460950(
+                    movement->attachment_0ac, movement->unknown_000);
+                if (result != 0) {
+                    W8NavigatorAttachment* attachment = movement->attachment_0ac;
+                    attachment->position_4c[attachment->path_position_index_08] =
+                        movement->target_position_04c;
+                    attachment->position_1c = attachment->position_4c[attachment->path_position_index_08];
+                    pathing_180->AdvanceAttachmentWaypoint00462DE0(&movement->position_040, attachment);
+                    movement->attachment_0ac->GetNextPosition00456660(&movement->target_position_04c);
+                    return result;
+                }
+                result = pathing_180->ProbeAttachmentPath00462360(movement->attachment_0ac);
+                if (result != 0) {
+                    W8NavigatorAttachment* attachment = movement->attachment_0ac;
+                    attachment->position_4c[attachment->path_position_index_08] =
+                        movement->target_position_04c;
+                    attachment->position_1c = attachment->position_4c[attachment->path_position_index_08];
+                    return result;
+                }
+            } else {
+                movement->attachment_0ac->InitializeSegment004563E0(
+                    &movement->position_040, &movement->target_position_04c);
+                result = 1;
+            }
+        }
+        return result;
+    }
+    delta.x = movement->target_position_04c.x - movement->position_040.x;
+    delta.y = movement->target_position_04c.y - movement->position_040.y;
+    delta.z = movement->target_position_04c.z - movement->position_040.z;
+    float squared_length = delta.x * delta.x + delta.y * delta.y + delta.z * delta.z;
+    float gap = (float)sqrt(squared_length) - separation;
+    if (gap < g_float_005ebb34) {
+        movement->attachment_0ac->InitializeSegment004563E0(
+            &movement->position_040, &movement->position_040);
+        return 1;
+    }
+    if (gap < g_world_scale_005ebc40) {
+        if (squared_length != g_zero_005ebb40) {
+            float scale = (float)(gap * g_float_005ec028 / sqrt(squared_length));
+            delta.x *= scale;
+            delta.y *= scale;
+            delta.z *= scale;
+        }
+        delta.x += movement->position_040.x;
+        delta.y += movement->position_040.y;
+        delta.z += movement->position_040.z;
+        movement->attachment_0ac->InitializeSegment004563E0(&movement->position_040, &delta);
+        return 1;
+    }
+    movement->attachment_0ac->InitializeSegment004563E0(
+        &movement->position_040, &movement->target_position_04c);
+    movement->attachment_0ac->separation_54 = separation;
+    return pathing_180->PlanMovement00463460(movement, radius, separation) != 0;
+}
+
+// FUNCTION: WIZ8 0x004347d0
+unsigned char __stdcall IsNavigatorAtTarget004347D0(W8NavigatorMovementState* movement)
+{
+    srVector3T<float> target;
+    if (movement->attachment_0ac != 0) {
+        W8NavigatorAttachment* attachment = movement->attachment_0ac;
+        if (attachment->value_04 < attachment->path_position_index_08 ||
+            (attachment->flags_00 & 0x80000) != 0) {
+            return 0;
+        }
+        attachment->GetNextPosition00456660(&target);
+    } else {
+        target = movement->target_position_04c;
+    }
+    float dx = target.x - movement->position_040.x;
+    float dy = target.y - movement->position_040.y;
+    float dz = target.z - movement->position_040.z;
+    if (movement->movement_scale_060 * g_world_scale_005ebc40 < sqrt(dx * dx + dy * dy + dz * dz)) {
+        return 0;
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00434880
+unsigned char W8Octree::PrepareNavigatorPatrol00434880(
+    W8NavigatorMovementState* movement, float minimum, float maximum)
+{
+    unsigned char result = 0;
+    if (pathing_180 != 0) {
+        srVector3T<float> velocity = movement->velocity_034;
+        movement->attachment_0ac->InitializeSegment004563E0(
+            &movement->position_040, &movement->target_position_04c);
+        result = pathing_180->BuildPatrolPath00461960(
+            movement->attachment_0ac, movement->unknown_000,
+            &movement->target_position_04c, minimum, &velocity, maximum);
+        if (result == 0) {
+            return 0;
+        }
+        double step = movement->movement_scale_060 * g_world_scale_005ebc40;
+        movement->attachment_0ac->GetNextPosition00456660(&movement->target_position_04c);
+        srVector3T<float> delta;
+        delta.x = movement->target_position_04c.x - movement->position_040.x;
+        delta.y = movement->target_position_04c.y - movement->position_040.y;
+        delta.z = movement->target_position_04c.z - movement->position_040.z;
+        float squared_length = delta.x * delta.x + delta.y * delta.y + delta.z * delta.z;
+        if (step < sqrt(squared_length) && squared_length != g_zero_005ebb40) {
+            float scale = (float)(step / sqrt(squared_length));
+            delta.x *= scale;
+            delta.y *= scale;
+            delta.z *= scale;
+        }
+        movement->target_position_04c.x = delta.x + movement->position_040.x;
+        movement->target_position_04c.y = delta.y + movement->position_040.y;
+        movement->target_position_04c.z = delta.z + movement->position_040.z;
+    }
+    return result;
+}
+
+// FUNCTION: WIZ8 0x00434a00
+unsigned char W8Octree::LinkNavigatorTarget00434A00(
+    W8NavigatorMovementState* movement, const srVector3T<float>* target, float separation)
+{
+    if (pathing_180 != 0) {
+        return pathing_180->LinkAttachmentTarget004612A0(
+            movement->attachment_0ac, movement->unknown_000, target, separation);
+    }
+    return 0;
+}
 
 /* ReadOctFile's own direct callees. Their bodies are not recovered, so they
    keep address-qualified names. */
@@ -61,7 +232,6 @@ extern float g_octree_cell_scale_005ebcd0;
 extern unsigned short g_path_reserve_0060827a;
 extern float g_path_span_scale_005ec344;
 extern float g_path_limit_006081e8;
-extern W8PathingService* g_pathing_00659c60;
 extern void* CreatePathState004CAE40(void);
 /* 0x00659888 accumulates every byte the loader reads, and 0x00652DB0 caches the
    game-data block LoadWorld hands back through its out parameter. */
@@ -1816,7 +1986,7 @@ void W8Octree::AdjustPortalDestination(
         local_destination.y = spatial_000.clipped_maximum_30.y;
     }
     probe = local_destination;
-    SettleToGround00433820(&probe.x, &hit, 1, 500.0f);
+    SettleToGround00433820(&probe, &hit, 1, 500.0f);
     if (hit != 0) {
         local_destination.y = probe.y;
     }
@@ -1826,7 +1996,7 @@ void W8Octree::AdjustPortalDestination(
         local_source.y = spatial_000.clipped_maximum_30.y;
     }
     probe = local_source;
-    SettleToGround00433820(&probe.x, &hit, 1, 500.0f);
+    SettleToGround00433820(&probe, &hit, 1, 500.0f);
     if (hit != 0) {
         local_source.y = probe.y;
     }

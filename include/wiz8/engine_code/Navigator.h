@@ -36,6 +36,8 @@ struct W8NavigatorAttachment {
 
     void RecordPosition(const srVector3T<float>* position);
     void GrowPathStorage00456BD0();
+    void CopyPathFrom004564F0(const W8NavigatorAttachment* other);
+    void GetNextPosition00456660(srVector3T<float>* position);
     void InitializeSegment004563E0(
         const srVector3T<float>* source,
         const srVector3T<float>* destination);
@@ -154,16 +156,16 @@ public:
         W8Navigator* target, double separation); /* 0x004526C0 */
     unsigned short ConfigureMovementToNavigator004529A0(
         W8Navigator* target,
-        int value_1,
-        int value_2,
+        float separation,
+        float maximum_distance,
         srVector3T<float> position,
-        int value_3,
+        int trace_mode,
         float facing,
-        int value_4);                                  /* 0x004529A0 */
-    void Function453690(void* argument);                   /* 0x00453690 */
+        unsigned char* probe_result);                  /* 0x004529A0 */
+    void Function453690(const srVector3T<float>* position); /* 0x00453690 */
     void SetPositionInternal00453590(const srVector3T<float>* position);
     void SetObject68Flag38(char value);                    /* 0x004537C0 */
-    unsigned short LinkToNavigator004527A0(
+    unsigned char LinkToNavigator004527A0(
         W8Navigator* target, double separation);           /* 0x004527A0 */
     void Function454040(const srVector3T<float>* position);       /* 0x00454040 */
     void AimAtPosition(const srVector3T<float>* position); /* 0x00453F30 */
@@ -182,6 +184,7 @@ public:
         const srVector3T<float>* previous);                /* 0x00454440 */
     void UpdateFacing(char immediate);             /* 0x00454780 */
     void UpdateLinkedNavigator();                  /* 0x00454D70 */
+    unsigned char UpdateLinkedPosition00454FE0();
     void CollectGroupNavigators(
         W8GrowableVector<W8Navigator*>* navigators);       /* 0x00455140 */
     int ResolveMovement();                         /* 0x00455CC0 */

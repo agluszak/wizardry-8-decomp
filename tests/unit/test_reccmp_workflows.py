@@ -99,6 +99,28 @@ def test_source_selection_deduplicates_function_markers(tmp_path: Path) -> None:
     ]
 
 
+@pytest.mark.parametrize("since", [None, "main"])
+def test_changed_source_files_preserves_spaces_and_ignores_removed_files(
+    tmp_path, monkeypatch, since
+):
+    for name in ["One.cpp", "Two Words.h", "README.md"]:
+        (tmp_path / name).write_text("")
+
+    def fake_run(command, *, cwd):
+        assert cwd == tmp_path
+        expected = ["jj", "diff", "--name-only", "--color=never"]
+        if since is not None:
+            expected.extend(("--from", since))
+        assert command == expected
+        return SimpleNamespace(stdout="One.cpp\nTwo Words.h\nREADME.md\nremoved.cpp\n")
+
+    monkeypatch.setattr(reccmp_workflows, "run", fake_run)
+    assert reccmp_workflows.changed_source_files(tmp_path, since) == [
+        tmp_path / "One.cpp",
+        tmp_path / "Two Words.h",
+    ]
+
+
 def test_compare_treats_semantically_effective_as_complete() -> None:
     result = compare_rows(
         [

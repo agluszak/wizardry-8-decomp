@@ -13,6 +13,7 @@ class srNode;
 class srScene;
 class stLevel;
 class W8Octree;
+unsigned char TraceToBounds(void* eye, const float* lower, const float* upper);
 struct W8Quad;
 class W8Missile;
 class W8SpellVisual;

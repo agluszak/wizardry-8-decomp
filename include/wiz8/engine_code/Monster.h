@@ -328,22 +328,22 @@ void MonsterSetAdjustedPosition004C5F00(
     W8Monster* monster, const srVector3T<float>* position);
 unsigned short MonsterApproachStartupNavigator004C5FF0(
     W8Monster* monster, double separation);
-unsigned short MonsterLinkToStartupNavigator004C6030(W8Monster* monster);
+unsigned char MonsterLinkToStartupNavigator004C6030(W8Monster* monster);
 unsigned short MonsterConfigureMovementToPlayer004C6070(
     W8Monster* monster,
-    int value_1,
-    int value_2,
+    float value_1,
+    float value_2,
     srVector3T<float> position,
     int value_3,
-    int value_4);
+    unsigned char* value_4);
 unsigned short MonsterConfigureMovementToMonster004C60D0(
     W8Monster* monster,
     W8Monster* target,
-    int value_1,
-    int value_2,
+    float value_1,
+    float value_2,
     srVector3T<float> position,
     int value_3,
-    int value_4);
+    unsigned char* value_4);
 void MonsterAimAtMonster004C62C0(
     W8Monster* monster, W8Monster* target, char alternate);
 void MonsterSetCycle(W8Monster* monster, signed char cycle);

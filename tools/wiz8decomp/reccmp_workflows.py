@@ -45,6 +45,22 @@ def addresses_from_files(repository: Path, paths: Iterable[Path]) -> list[int]:
     ]
 
 
+def changed_source_files(repository: Path, since: str | None = None) -> list[Path]:
+    """Use Jujutsu's diff to select current C++ files, including marked headers."""
+
+    command = ["jj", "diff", "--name-only", "--color=never"]
+    if since is not None:
+        command.extend(("--from", since))
+    result = run(command, cwd=repository)
+    return [
+        path
+        for name in result.stdout.splitlines()
+        if (path := repository / name).suffix.lower()
+        in {".cpp", ".cc", ".cxx", ".h", ".hpp", ".hxx"}
+        and path.is_file()
+    ]
+
+
 def selected_addresses(repository: Path, raw: Iterable[str], paths: Iterable[Path]) -> list[int]:
     selected = set(_resolve_source_selectors(repository, raw)) if raw else set()
     selected.update(addresses_from_files(repository, paths))

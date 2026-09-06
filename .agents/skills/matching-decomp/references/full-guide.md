@@ -5,21 +5,21 @@ description: Recover Wizardry 8 function bodies, declarations, and layouts again
 
 # Matching decompilation for Wiz8.exe
 
-The pinned VC6 target is a **falsifier**. Static analysis and C++ reasoning propose a source model;
-the emitted instruction sequence decides whether that model survives. A clean-looking constructor,
-container abstraction, field type, or control-flow rewrite is still wrong when VC6 moves farther
-from the retail body.
+The pinned VC6 target tests source hypotheses. Check emitted instructions and their effects;
+percentages and classifier verdicts need interpretation. Preserve retail behavior and ABI even
+when byte identity remains incomplete.
 
 ## Supported recovery loop
 
 1. Start with the joined context report:
 
    ```sh
-   just context 0x<address>
+   just context ADDRESS... --listing --no-match
    ```
 
    It combines Ghidra decompilation, source ownership, provenance, callers/callees, strings and
-   assertions, fields, cross-build mappings, and current match state. Use the Ghidra UI/API for
+   assertions, fields, and cross-build mappings. Omit `--no-match` for current match state. Reuse
+   the batch packet until its evidence changes. Use the Ghidra UI/API for
    ordinary listing, type, namespace, xref, and function-boundary work. There is no generic
    `just ghidra query` command.
 
@@ -34,10 +34,9 @@ from the retail body.
 4. Build with the pinned compiler and compare the smallest useful batch:
 
    ```sh
-   just build WIZ8
    just compare 0x<address>...
    # or:
-   just compare --file src/wiz8/<unit>.cpp
+   just compare --changed
    ```
 
    `just compare` builds by default. Use `--no-build` only when the current checkout's product was
@@ -79,7 +78,7 @@ symptom of the wrong source shape rather than an excuse.
 
 ## Falsification discipline
 
-Run a focused comparison immediately after any change that can alter the source model:
+For first-pass recovery, build and compare a connected batch together. Run a focused before/after comparison immediately when an experiment changes previously matched code, especially:
 
 - field width, order, offset, signedness, or constness;
 - parameter or return type, especially byte-sized values;
@@ -89,8 +88,9 @@ Run a focused comparison immediately after any change that can alter the source 
 - loop, branch, early-return, reload, or local-lifetime structure.
 
 A worse exact/effective status, an earlier first divergence, or a newly changed memory/call operand
-falsifies the experiment unless the diff proves a stale build, wrong checkout, or unrelated pairing
-problem. Do not reason past the compiler because the model looked more idiomatic.
+requires inspecting the actual instructions. Reordered independent stores, different stack-slot
+allocation, and classifier alignment failures are not by themselves semantic regressions. Do not
+override a demonstrated code defect merely because a source hypothesis looks more idiomatic.
 
 Revert code that the experiment proved worse, but preserve the negative result. A useful Bead note
 contains:

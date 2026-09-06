@@ -85,6 +85,14 @@ def context_command(
         list[str], typer.Argument(help="Function addresses, ranges, or exact reviewed Ghidra names")
     ],
     program: str = typer.Option("wiz8", "--program"),
+    listing: bool = typer.Option(
+        False, "--listing", help="Include the retail instruction listing."
+    ),
+    no_match: bool = typer.Option(
+        False,
+        "--no-match",
+        help="Skip comparison with the current product build when gathering evidence.",
+    ),
     deep: bool = typer.Option(False, "--deep", help="Include listing, P-code and rooted flow."),
     root: str = typer.Option("this", "--root", help="Deep-analysis parameter root."),
     discover: bool = typer.Option(
@@ -101,7 +109,14 @@ def context_command(
     def action():
         settings = cli.settings()
         contexts = recovery_context_reports(
-            settings, selectors, program, deep=deep, root=root, discover=discover
+            settings,
+            selectors,
+            program,
+            listing=listing,
+            match=not no_match,
+            deep=deep,
+            root=root,
+            discover=discover,
         )
         text = "\n\n".join(render_context(context) for context in contexts)
         data: object = contexts[0] if len(contexts) == 1 else {"contexts": contexts}

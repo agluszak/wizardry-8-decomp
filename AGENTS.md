@@ -5,6 +5,7 @@ This is a Jujutsu repository for evidence-driven matching decompilation. Use Bea
 ## Authority
 
 - Ghidra owns live analysis state: functions, names, signatures, labels, types, fields, enums, vtables, references, comments, and decompiler state.
+- Retail instructions and call sites, plus pinned upstream source where available, outrank inferred Ghidra types, generated declarations, tool verdicts, and workflow descriptions. Treat this file and the skills as maintainable guidance, not evidence about the original program. Correct demonstrated errors at their owner.
 - Git owns recovered C++, declarations, translation-unit order, compiler settings, matching markers, and provenance claims. Generated `build/` projections are disposable.
 - Provenance records why an identity is accepted, its authority ceiling, aliases, confidence, and observations; it does not duplicate Ghidra's model.
 - Never commit binaries, extracted trees, live Ghidra projects, or build products. Only reviewed GZF checkpoints in `vendor/ghidra/exports/manifest.json` may be tracked.
@@ -15,9 +16,11 @@ This is a Jujutsu repository for evidence-driven matching decompilation. Use Bea
 
 ## Recovery
 
-Use `just context 0x<address>` for the joined live view. It opens the reviewed program through the single short-lived owner in `ghidra/env.py`. Use Ghidra UI/API for listing, symbols, types, references, and decompiler work. Use undo or a temporary GZF for experiments. Do not create daemons, parallel stores, or manual project ownership.
+Use `just context ADDRESS... --listing --no-match` to gather retail evidence for a connected batch in one session. Omit `--no-match` when the current build comparison is useful; use `--deep` only for questions that need P-code or rooted flow. Reuse the packet until the underlying evidence changes. Context opens the reviewed program through the single short-lived owner in `ghidra/env.py`. Use Ghidra UI/API for symbols, types, references, and decompiler work. Use undo or a temporary GZF for experiments. Do not create daemons, parallel stores, or manual project ownership.
 
 `just recover 0x<address>` drafts, inserts, builds, and compares a first-pass port. It previews and restores by default; `--apply` retains the best non-regressing candidate. Recover the immediate call graph needed for the next visible product transition.
+
+Automatic recovery is an aid, not a prerequisite. An unresolved prototype, exporter decline, or bad generated body should lead to manual recovery from the evidence or a focused tooling repair. For bulk recovery, complete a coherent group of bodies before building and comparing them together. Do not turn each function into a separate setup, survey, build, and full-validation cycle.
 
 - Assume ordinary circa-2000 C++, VC6 ABI, and familiar container/lifecycle semantics unless evidence requires otherwise.
 - Never invent code absent from retail, and never omit, stub, or approximate code retail contains.
@@ -26,7 +29,7 @@ Use `just context 0x<address>` for the joined live view. It opens the reviewed p
 - Preserve proven translation-unit ownership and order in `src/wiz8/sources.cmake`. Keep address-qualified template emissions separate until ownership is proved.
 - Use `matching-decomp` for source-model and comparison reasoning. Use `class-triage` before declaring an unnamed constructor, destructor, vtable, registry family, or class. Follow their linked references rather than expanding standing instructions here.
 
-Faithfulness is absolute; byte identity is incremental. The pinned VC6 build falsifies source hypotheses. Compare immediately after changing layout, widths, signedness, return/calling convention, lifecycle shape, containers, or control flow. Revert proven regressions and record the hypothesis, exact command, before/after result, first divergence, and conclusion in the Bead. Do not brute-force inlining, scheduling, or register allocation. If instructions correspond one-for-one and only scratch registers differ, the body is done.
+Faithfulness is absolute; byte identity is incremental. The pinned VC6 build tests source hypotheses. Build and compare a connected first-pass batch together; use `just compare --changed` for every marked function in changed C++ files, or explicit addresses/`--file` selections for a narrower batch. Compare immediately when an experiment changes previously matched layout, ABI, lifecycle, or behavior. Inspect reported divergences: a classifier failure or low percentage alone does not prove incorrect C++. Revert proven regressions and record the hypothesis, command, before/after result, first divergence, and conclusion in the Bead. Do not brute-force inlining, scheduling, or register allocation. If instructions correspond one-for-one and only scratch registers differ, the body is done.
 
 Marker rules enforced by `just check`: `FUNCTION` sits immediately above its declaration; `TEMPLATE` is followed immediately by a comment naming the emitted symbol and owns no body; `LIBRARY` is address-only.
 
@@ -41,10 +44,12 @@ Use the narrowest lane while iterating, then the full applicable lane after reba
 - Other C++ class declarations: `just lint`.
 - Recovered body: `just build WIZ8`, focused `just compare ADDRESS...`, then `just test`.
 - Inheritance, virtuals, `srClassSupport`, constructors, or destructors: `just lint`, `just build WIZ8`, focused compare and `just vtable CLASS`, then `just test`.
-- Reviewed Ghidra change: representative contexts, `uv run wiz8 ghidra index`, then intentional checkpoint refresh.
+- Reviewed Ghidra change: representative contexts, then `uv run wiz8 ghidra seed refresh` when intentionally publishing a reviewed checkpoint.
 - Integration: `just verify`.
 
 Selected-function relocation-masked comparison is authoritative; whole-image comparison is diagnostic. Preserve `/OPT:NOREF` comparison and `/OPT:REF` runtime modes. `just runtime-test` is separate and must not add test branches to matching bodies.
+
+`just compare` builds once by default. After an explicit build, use `--no-build`; do not build twice for the same batch. Changed-file selection does not cover unchanged callers of an edited header, so add the affected caller or ABI bundle when needed. Run broad validation once for the completed batch and again only for changes that invalidate it.
 
 A red integration gate requires a clean sibling baseline at the exact rebased `main`. Integrate only when narrower lanes pass and the topic adds no failures; record base commit, baseline/topic failures, and empty delta. Do not fix unrelated failures without expanded scope.
 

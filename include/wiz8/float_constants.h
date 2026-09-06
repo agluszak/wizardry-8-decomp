@@ -53,7 +53,10 @@ extern double g_double_005ec8d0;
 extern float g_float_005ecc38;
 extern float g_float_005ecc3c;
 extern float g_float_005ecc40;
+extern const float g_startup_near_limit_005ec000;
 }
+
+extern float g_navigator_gravity_00603acc;
 
 extern const double g_zero_005ebb40;
 extern const float g_camera_angle_period_005ec014;

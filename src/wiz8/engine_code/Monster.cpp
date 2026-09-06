@@ -5329,7 +5329,7 @@ unsigned char MonsterForward452630(W8Monster* monster, const srVector3T<float>* 
 void MonsterForward453690(W8Monster* monster, void* argument)
 {
     if (monster != 0) {
-        monster->Function453690(argument);
+        monster->Function453690(static_cast<const srVector3T<float>*>(argument));
     }
 }
 
@@ -5381,7 +5381,7 @@ unsigned short MonsterApproachStartupNavigator004C5FF0(
 }
 
 // FUNCTION: WIZ8 0x004c6030
-unsigned short MonsterLinkToStartupNavigator004C6030(W8Monster* monster)
+unsigned char MonsterLinkToStartupNavigator004C6030(W8Monster* monster)
 {
     if (monster != 0) {
         W8Navigator* target = g_startup_world_659c0c;
@@ -5395,11 +5395,11 @@ unsigned short MonsterLinkToStartupNavigator004C6030(W8Monster* monster)
 // FUNCTION: WIZ8 0x004c6070
 unsigned short MonsterConfigureMovementToPlayer004C6070(
     W8Monster* monster,
-    int value_1,
-    int value_2,
+    float value_1,
+    float value_2,
     srVector3T<float> position,
     int value_3,
-    int value_4)
+    unsigned char* value_4)
 {
     if (monster != 0) {
         W8Navigator* target = g_startup_world_659c0c;
@@ -5420,11 +5420,11 @@ unsigned short MonsterConfigureMovementToPlayer004C6070(
 unsigned short MonsterConfigureMovementToMonster004C60D0(
     W8Monster* monster,
     W8Monster* target,
-    int value_1,
-    int value_2,
+    float value_1,
+    float value_2,
     srVector3T<float> position,
     int value_3,
-    int value_4)
+    unsigned char* value_4)
 {
     if (monster != 0 && target != 0) {
         return monster->ConfigureMovementToNavigator004529A0(

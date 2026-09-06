@@ -4,6 +4,7 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/character.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/Item.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/item_tables.h"
@@ -459,10 +460,7 @@ unsigned int ItemIndex(int runtime_id)
 
 extern void GetPartyEyePosition(void* position);                         /* 0x00421070 */
 extern void GetWorldItemBounds(float* lower, float* upper);              /* 0x0049FB30 */
-extern unsigned char TraceToBounds(void* eye, const float* lower, const float* upper);
-/* 0x0046F820 */
 extern void WorldRemoveFromList04(W8World* world);
-extern void Function49F720(const float* position);
 extern void RemoveItemFromSector(int sector, W8WorldItem* item);         /* 0x004B7B50 */
 extern void AddItemToSector(int sector, W8WorldItem* item);              /* 0x004B7AD0 */
 /* 0x0068EDCC: the level runtime block, which also carries the interface
@@ -567,20 +565,21 @@ unsigned char IsWorldItemWithinReach(W8Item* owner, const float* from, float rad
    unit up so an item already resting does not settle into the floor; landing
    moves it between sectors and clears its saved-marker flag. */
 // FUNCTION: WIZ8 0x004f93d0
-int SettleWorldItem(W8WorldItem* item)
+unsigned char SettleWorldItem(W8WorldItem* item)
 {
-    float start[3];
+    srVector3T<float> start;
     unsigned char hit;
     int sector;
 
-    start[0] = item->position.x;
-    start[2] = item->position.z;
-    start[1] = item->position.y + g_world_scale_005ebc40;
+    start.x = item->position.x;
+    start.z = item->position.z;
+    start.y = item->position.y + g_world_scale_005ebc40;
 
     item->flags &= ~2u;
     item->unknown_35 = 0;
 
-    if (!SettleToGround00433820(start, &hit, 1, 250.0f)) {
+    g_octree_6598a4->SettleToGround00433820(&start, &hit, 1, 250.0f);
+    if (hit == 0) {
         return 0;
     }
 
@@ -595,11 +594,11 @@ int SettleWorldItem(W8WorldItem* item)
         item->sector_id = sector;
     }
     if (item->owner != 0) {
-        Function49F720(start);
+        item->owner->Function49F720(&start);
     }
-    item->position.x = start[0];
-    item->position.y = start[1];
-    item->position.z = start[2];
+    item->position.x = start.x;
+    item->position.y = start.y;
+    item->position.z = start.z;
     return 1;
 }
 

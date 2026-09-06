@@ -213,6 +213,8 @@ def recovery_context_reports(
     selectors: list[str],
     selector: str = "wiz8",
     *,
+    listing: bool = False,
+    match: bool = True,
     deep: bool = False,
     root: str = "this",
     discover: bool = False,
@@ -273,13 +275,10 @@ def recovery_context_reports(
                 and source_function.declaration.owning_class
             ):
                 queries.append(("field-accesses", [address, root]))
+            if listing or deep:
+                queries.append(("listing", [address]))
             if deep:
-                queries.extend(
-                    [
-                        ("listing", [address]),
-                        ("high-function", [address]),
-                    ]
-                )
+                queries.append(("high-function", [address]))
         if class_names:
             queries.append(("class-fields", class_names))
         function_seeds = [
@@ -304,11 +303,13 @@ def recovery_context_reports(
     )
     claims = load_claims(settings.repo_dir)
     match_bundle: dict[str, Any] = {}
-    if has_canonical_addresses:
+    if has_canonical_addresses and match:
         try:
             match_bundle = compare_selected(settings.repo_dir, "WIZ8", requested_entries)
         except (OSError, RuntimeError, ValueError) as error:
             match_bundle = {"unavailable": str(error)}
+    elif not match:
+        match_bundle = {"unavailable": "not requested (--no-match)"}
     matches = {int(row["address"], 16): row for row in match_bundle.get("functions", [])}
 
     def result_for(command: str, requested: int) -> dict[str, Any]:
@@ -402,9 +403,11 @@ def recovery_context_reports(
         high = result_for("high-function", requested) if deep else {}
         indirect_result = result_for("indirect-calls", requested)
         normalized_pcode = indirect_result.get("normalized_pcode", {}) if deep else {}
-        listing = result_for("listing", requested).get("listing", "") if deep else ""
+        instruction_listing = (
+            result_for("listing", requested).get("listing", "") if listing or deep else ""
+        )
         indirect_calls = indirect_result["calls"]
-        match = (
+        function_match = (
             {**match_bundle, "functions": [matches[entry]]}
             if entry in matches
             else match_bundle
@@ -448,7 +451,7 @@ def recovery_context_reports(
             "calls": function["calls"],
             "globals": globals_joined,
             "raw_references": raw_references,
-            "match": match,
+            "match": function_match,
             "polymorphism": {"vptr_writes": vptr_writes, "tables": tables},
             "high_function": high,
             "normalized_pcode": normalized_pcode,
@@ -457,7 +460,7 @@ def recovery_context_reports(
             "ghidra": {
                 "function": function,
                 "decompiled": result_for("decompile", requested)["decompiled"] or "",
-                "listing": listing,
+                "listing": instruction_listing,
             },
         }
         contexts.append(context)
