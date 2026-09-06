@@ -5,18 +5,27 @@ description: Recover Wizardry 8 C++ bodies and declarations against the pinned V
 
 # Matching decompilation
 
-Use existing source ownership and current compact context. Do not fetch the same evidence again unless
+Use existing source ownership and current evidence. Do not fetch the same evidence again unless
 it is missing, stale, or contradictory. Inferred signatures and generated bodies can be wrong;
 retail instructions and call sites decide.
 
-Start with `just context ADDRESS...` for bounded source ownership, declarations, immediate
-dependencies, and unresolved facts. It writes substantial decompiled code to the artifact path in
-each function record. Reuse the batch until its evidence changes. Use the supported direct Ghidra
-data, instruction, or rooted-flow query only for a concrete unanswered question.
+Use direct PyGhidra for the unanswered question: inspect native functions, parameter storage,
+callers, instructions/P-code, references, or data types in one open-program session. The
+[PyGhidra reference](references/pyghidra.md) has the bootstrap and edit recipe. Batch related work in
+ordinary Python; do not discover or extend the custom query command catalogue first.
 
-`just recover ADDRESS...` generates persistent source-aware candidate C++ without editing the source
-tree, building, or comparing. Inspect the candidate artifacts and blockers, then integrate a
-connected batch with ordinary editing tools. Uncertain placement blocks insertion, not generation.
+When call sites or incoming storage contradict a prototype, correct its established parts in
+Ghidra with a native transaction, save the coherent edit, and regenerate affected caller/callee
+output. Keep uncertain types unknown and preserve already-established types. A rooted-flow query
+uses the current inferred prototype: it cannot discover an omitted parameter, and an empty access
+list does not prove an argument is unused. Do not repeatedly query a known-bad model or ask for
+separate permission to correct it within the recovery task.
+
+Use `just context ADDRESS...` only when its joined source/provenance view helps. `just recover
+ADDRESS...` optionally generates source-aware candidate artifacts without editing source, building,
+or comparing. Inspect useful candidates, then integrate a connected batch with ordinary editing
+tools. Neither command is a prerequisite for direct analysis or editing. Uncertain placement blocks
+insertion, not investigation or candidate generation.
 
 Recover ordinary C++ using canonical declarations. Make one coherent source-model change, then run
 focused comparison with `just compare ADDRESS...` or `just compare --changed`; comparison establishes

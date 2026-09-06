@@ -26,8 +26,21 @@ only when proposing a new class boundary or changing an existing hierarchy, not 
 another method of an established class. Their targeted references own technical examples; this file
 owns repository policy.
 
-Recovery commands are agent-only structured interfaces: they emit one JSON result or failure, keep
-large generated code in named `build/` artifacts, and do not provide human/JSON presentation modes.
+Direct PyGhidra with native Ghidra objects is the default for exploratory analysis and edits, not an
+escape hatch. Use `wiz8decomp.ghidra.env.open_program` for the existing project bootstrap and lock;
+then use the native APIs directly. The [PyGhidra reference](.agents/skills/matching-decomp/references/pyghidra.md)
+shows startup, inspection, transactions, and saving. Do not add query/edit commands, dispatchers,
+schemas, or wrapper APIs for operations Ghidra already supports.
+
+`just context` and `just recover` remain optional source-aware conveniences, not prerequisites or
+mandatory access paths. Keep useful recovery algorithms and compiler comparison; do not expand the
+custom Ghidra access protocol. Correct evidence-backed signature/type errors during recovery without
+requesting a separate permission round. Preserve unresolved facts as unknown; storing a type is not
+proof of it. Retain valid observations when changing inspection tools.
+
+Recovery tooling is agent-only. Keep native objects while computing; print only the selected result
+and use JSON when a consumer needs it. Write large code/listings to named `build/` artifacts. Do not
+introduce human/JSON modes or serialize entire object graphs merely to inspect them in Python.
 
 - Assume ordinary circa-2000 C++, VC6 ABI, and familiar container/lifecycle semantics unless evidence requires otherwise.
 - Never invent code absent from retail, and never omit, stub, or approximate code retail contains.
