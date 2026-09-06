@@ -2,6 +2,6 @@ address|symbol|size|type
 10016d68|??_7srJPEGPlugin@@6B@|8|vtable
 10016d70|??_7srJPEGImporter@@6BSurfaceExporter@srSurfaceIOManager@@@|12|vtable
 10016d7c|??_7srJPEGImporter@@6BSurfaceImporter@srSurfaceIOManager@@@|16|vtable
-10016d8c|??_7srJPEGColorSurface@@6B@|208|vtable
+10016d8c|??_7?$srClassSupport@VsrColorSurface@@V1@$0A@$0DBBA@@@6B@|208|vtable
 1001a22c|?srJPEG_active_input_stream@@3PAVsrBinIStream@@A|4|global
 1001a230|?srJPEG_active_output_stream@@3PAVsrBinOStream@@A|4|global

@@ -58,45 +58,17 @@ bool srJPEGImporter::readHeader(void* input_cookie)
     return codec_.failed == 0;
 }
 
-// FUNCTION: SREXT_JPEGIMPORTER 0x10015450
-unsigned long srJPEGColorSurface::getClassID() const
-{
-    return 0x3110;
-}
+// TEMPLATE: SREXT_JPEGIMPORTER 0x10015450
+// srClassSupport<srColorSurface,srColorSurface,0,12560>::getClassID
 
-// FUNCTION: SREXT_JPEGIMPORTER 0x10015460
-const char* srJPEGColorSurface::getClassName() const
-{
-    return sGetClassName();
-}
+// TEMPLATE: SREXT_JPEGIMPORTER 0x10015460
+// srClassSupport<srColorSurface,srColorSurface,0,12560>::getClassName
 
-// FUNCTION: SREXT_JPEGIMPORTER 0x10015470
-srRegistry::ClassNode* srJPEGColorSurface::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x3110);
-    if (node == 0) {
-        srRegistry* parent_registry = srCore.getRegistry();
-        srRegistry::ClassNode* parent = parent_registry->getClassNode(0x3100);
-        if (parent == 0) {
-            parent = parent_registry->registerClass(
-                srColorSurfaceIFace::sGetClassName(),
-                srClass::sGetClassNode(),
-                0x3100,
-                1);
-        }
-        node = registry->registerClass(sGetClassName(), parent, 0x3110, 0);
-    }
-    return node;
-}
+// TEMPLATE: SREXT_JPEGIMPORTER 0x10015470
+// srClassSupport<srColorSurface,srColorSurface,0,12560>::getClassNode
 
-// FUNCTION: SREXT_JPEGIMPORTER 0x100154E0
-srClass* srJPEGColorSurface::clone()
-{
-    srColorSurface* result = static_cast<srColorSurface*>(vInstance());
-    *result = *this;
-    return result;
-}
+// TEMPLATE: SREXT_JPEGIMPORTER 0x100154E0
+// srClassSupport<srColorSurface,srColorSurface,0,12560>::clone
 
 // FUNCTION: SREXT_JPEGIMPORTER 0x10014BA0
 const char* srJPEGPlugin::getDescription() const
@@ -127,4 +99,3 @@ extern "C" srPlugin* __cdecl srInitPlugin()
 
 static_assert((sizeof(srJPEGImporter) == 0x44), "srJPEGImporter_must_be_0x44");
 static_assert((sizeof(srJPEGPlugin) == 0x48), "srJPEGPlugin_must_be_0x48");
-static_assert((sizeof(srJPEGColorSurface) == 0x5c), "srJPEGColorSurface_must_be_0x5c");

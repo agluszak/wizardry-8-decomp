@@ -6,32 +6,14 @@
 
 #include "layout.h"
 
-class srJPEGColorSurface : public srColorSurface {
-public:
-    static void* operator new(size_t size)
-    {
-        return srHeap.allocate(size);
-    }
-
-    static void operator delete(void* memory)
-    {
-        srHeap.free(memory);
-    }
-
-    srJPEGColorSurface(
-        srPixelConvert::e_surfaceType type,
-        unsigned long width,
-        unsigned long height)
-        : srColorSurface(type, width, height) {}
-
-    virtual const char* getClassName() const;
-    virtual unsigned long getClassID() const;
-    virtual srRegistry::ClassNode* getClassNode() const;
-    virtual srClass* clone();
-};
+// The importer's surfaces are the established self-support specialization,
+// constructed directly at the allocation sites in surface_transfer.cpp. There
+// is no JPEG-specific surface subclass: identity (0x3110/"srColorSurface"),
+// heap routing (srClass), and cloning (srColorSurface::operator=) all come
+// from the canonical type below.
 
 // SYNTHETIC: SREXT_JPEGIMPORTER 0x100151D0
-// srJPEGColorSurface::`scalar deleting destructor'
+// srClassSupport<srColorSurface,srColorSurface,0,12560>::`scalar deleting destructor'
 
 class srJPEGImporter :
     public srSurfaceIOManager::SurfaceImporter,

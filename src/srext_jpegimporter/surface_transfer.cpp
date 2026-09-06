@@ -53,18 +53,18 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(
     const int components = codec_.components;
     const unsigned long height = codec_.height;
     const unsigned long width = codec_.width;
-    srJPEGColorSurface* surface;
+    srColorSurface* surface;
     switch (components) {
     case 1:
-        surface = new srJPEGColorSurface(
+        surface = new srClassSupport<srColorSurface, srColorSurface, false, 0x3110>(
             srPixelConvert::SURFACE_L8, width, height);
         break;
     case 3:
-        surface = new srJPEGColorSurface(
+        surface = new srClassSupport<srColorSurface, srColorSurface, false, 0x3110>(
             srPixelConvert::SURFACE_BGR24, width, height);
         break;
     case 4:
-        surface = new srJPEGColorSurface(
+        surface = new srClassSupport<srColorSurface, srColorSurface, false, 0x3110>(
             srPixelConvert::SURFACE_BGRA32, width, height);
         break;
     default:
@@ -180,10 +180,11 @@ void srJPEGImporter::exportSurface(
         ::operator delete(option_string);
     }
 
-    srJPEGColorSurface* copy = new srJPEGColorSurface(
-        srPixelConvert::SURFACE_COPY,
-        source.getWidth(),
-        source.getHeight());
+    srColorSurface* copy =
+        new srClassSupport<srColorSurface, srColorSurface, false, 0x3110>(
+            srPixelConvert::SURFACE_COPY,
+            source.getWidth(),
+            source.getHeight());
     copy->copy(source);
 
     memset(&codec_, 0, sizeof(codec_));
