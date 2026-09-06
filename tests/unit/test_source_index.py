@@ -28,6 +28,29 @@ def test_program_target_resolution_uses_configured_identity() -> None:
         target_for_program(repository, "unregistered.dll")
 
 
+def test_synthetic_marker_cannot_own_a_declaration(tmp_path: Path) -> None:
+    source = tmp_path / "src/wiz8/item.cpp"
+    source.parent.mkdir(parents=True)
+    source.write_text(
+        "// SYNTHETIC: WIZ8 0x0049F420\n"
+        "// W8Item::`scalar deleting destructor'\n"
+        "W8Item::~W8Item() {}\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(SourceIndexError, match="SYNTHETIC owns no declaration or body"):
+        source_index.validate_synthetic_marker_blocks(tmp_path)
+
+    source.write_text(
+        "// SYNTHETIC: WIZ8 0x0049F420\n"
+        "// W8Item::`scalar deleting destructor'\n\n"
+        "// FUNCTION: WIZ8 0x0049F440\n"
+        "W8Item::~W8Item() {}\n",
+        encoding="utf-8",
+    )
+    assert source_index.validate_synthetic_marker_blocks(tmp_path) == 1
+
+
 @pytest.mark.parametrize("existing_database", [False, True])
 def test_source_index_configures_missing_or_stale_compile_database(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, existing_database: bool

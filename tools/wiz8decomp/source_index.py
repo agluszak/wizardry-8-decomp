@@ -12,6 +12,42 @@ from reccmp.source import SourceIndex, SourceIndexError, SourceMarker
 from .config import Settings
 
 _INDEXED_TARGETS = ("WIZ8", "SURRENDER")
+_SOURCE_SUFFIXES = frozenset({".c", ".cpp", ".h", ".hpp"})
+_SYNTHETIC_MARKER = re.compile(r"^\s*//\s*SYNTHETIC:\s+")
+_SOURCE_MARKER = re.compile(r"^\s*//\s*(?:FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY|VTABLE|GLOBAL):\s+")
+
+
+def validate_synthetic_marker_blocks(repository: Path) -> int:
+    """Require marker-only synthetic identities with an explicit block end."""
+    failures: list[str] = []
+    count = 0
+    for root_name in ("src", "include"):
+        root = repository / root_name
+        if not root.is_dir():
+            continue
+        for path in sorted(root.rglob("*")):
+            if path.suffix not in _SOURCE_SUFFIXES:
+                continue
+            lines = path.read_text(encoding="utf-8").splitlines()
+            for index, line in enumerate(lines):
+                if not _SYNTHETIC_MARKER.match(line):
+                    continue
+                count += 1
+                location = f"{path.relative_to(repository)}:{index + 1}"
+                if index + 1 >= len(lines) or not lines[index + 1].lstrip().startswith("//"):
+                    failures.append(f"{location}: SYNTHETIC lacks its identity comment")
+                    continue
+                if index + 2 >= len(lines):
+                    continue
+                following = lines[index + 2]
+                if following.strip() and not _SOURCE_MARKER.match(following):
+                    failures.append(
+                        f"{location}: SYNTHETIC owns no declaration or body; "
+                        "end the marker block before the next source entity"
+                    )
+    if failures:
+        raise SourceIndexError("invalid SYNTHETIC marker blocks:\n" + "\n".join(failures))
+    return count
 
 
 def project_targets(repository: Path) -> dict[str, dict[str, Any]]:
@@ -72,6 +108,7 @@ def source_functions(repository: Path, target: str = "WIZ8") -> dict[int, Source
 
 
 def validate_source_index(repository: Path) -> dict[str, int]:
+    validate_synthetic_marker_blocks(repository)
     index = SourceIndex.from_dict(load_source_index(repository))
     counts = {
         target: len(index.functions_by_address(target=target))
@@ -92,6 +129,7 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
     from .build import LINT_BUILD_DIR, VC6_IMAGE, configure_clang
 
     repository = settings.repo_dir.resolve()
+    validate_synthetic_marker_blocks(repository)
     database = repository / LINT_BUILD_DIR / "compile_commands.json"
     inventories = tuple(
         repository / inventory
@@ -113,7 +151,7 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
                 path
                 for source_root in _source_roots(project_targets(repository)[target])
                 for path in (repository / source_root).rglob("*")
-                if path.suffix in {".c", ".cpp", ".h", ".hpp"}
+                if path.suffix in _SOURCE_SUFFIXES
             )
         )
         for target in _INDEXED_TARGETS

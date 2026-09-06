@@ -477,10 +477,16 @@ public:
 };
 static_assert(sizeof(W8State5CharacterRow005EF364) == 0xc4, "W8State5CharacterRow005EF364_size");
 
+// VTABLE: WIZ8 0x005EF4BC W8State5InputHandler005C0E50
+// class W8State5InputHandler005C0E50
 class W8State5InputHandler005C0E50 {
 public:
     __forceinline W8State5InputHandler005C0E50() {}
-    virtual ~W8State5InputHandler005C0E50();
+    virtual ~W8State5InputHandler005C0E50()
+    {
+        Function5D3B40(0);
+        Function5D3800();
+    }
     unsigned char HandleInput(const InputAtom* input);
 
     W8State5DecisionListener005EF4C0* m_listener;
@@ -1244,16 +1250,9 @@ void W8State5OptionPanel005EF4AC::Redraw()
     }
 }
 
-/* Tear down the single-field text editor installed by option mode two.  The
-   vtable at 0x005EF4BC contains only this deleting-destructor family; input
-   completion is delivered through the separate decision-listener pointer. */
 // SYNTHETIC: WIZ8 0x005c0e20
 // W8State5InputHandler005C0E50::`scalar deleting destructor'
-W8State5InputHandler005C0E50::~W8State5InputHandler005C0E50()
-{
-    Function5D3B40(0);
-    Function5D3800();
-}
+
 
 /* Give the active string editor first refusal on keyboard events, reject the
    filename characters retail excludes, and report both edit-state and final

@@ -46,6 +46,7 @@ introduce human/JSON modes or serialize entire object graphs merely to inspect t
 - Never invent code absent from retail, and never omit, stub, or approximate code retail contains.
 - Do not invent wrapper types/APIs or speculative type boundaries to improve codegen. One object has one evidence-backed canonical type.
 - A distinct vtable, lifecycle body, address, or template emission does not alone prove authored source. Compare canonical bases/templates first. Record emitted instantiations with `TEMPLATE`; keep generic definitions in canonical headers.
+- Scalar and vector deleting destructors are compiler-generated MSVC ABI glue. Mark their addresses with `SYNTHETIC` and the exact generated identity comment, never with a source body, hidden flags parameter, manual `operator delete`, or destruct-and-maybe-free helper. Recover an independently emitted ordinary destructor with `FUNCTION`, or a template emission with `TEMPLATE`; when no standalone ordinary body exists, use only the declaration or inline destructor required by the evidenced hierarchy. Deleting wrappers do not prove authored destructor bodies or class boundaries.
 - Preserve proven translation-unit ownership and order in `src/wiz8/sources.cmake`. Keep address-qualified template emissions separate until ownership is proved.
 
 Faithfulness is absolute; byte identity is incremental. Recover plausible authored C++, not the
@@ -57,6 +58,7 @@ Retain straightforward source when no evidence-backed correction is available; r
 mismatches rather than declaring them harmless without evidence.
 
 Marker rules enforced by `just check`: `FUNCTION` sits immediately above its declaration; `TEMPLATE` is followed immediately by a comment naming the emitted symbol and owns no body; `LIBRARY` is address-only.
+`SYNTHETIC` is followed immediately by its generated identity comment and owns no declaration or body; separate it from the next source entity or give that entity its own marker.
 
 Recover source placement before optimizer control. Ordinary functions stay unannotated. Header/class bodies require cross-translation-unit visibility evidence. Inline-control annotations require call-site evidence and improvement of the complete ABI bundle.
 

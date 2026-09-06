@@ -54,6 +54,7 @@ srFog* g_environment_object_0065b9b4;
 // `dynamic initializer for 'g_environment_lights_0065b998''
 // SYNTHETIC: WIZ8 0x00482270
 // `dynamic atexit destructor for 'g_environment_lights_0065b998''
+
 W8GrowableVector<stLight*> g_environment_lights_0065b998(5);
 
 extern void PublishLightDirection(const int* direction);                 /* 0x00427380 */

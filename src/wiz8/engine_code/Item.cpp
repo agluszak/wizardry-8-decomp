@@ -4,10 +4,15 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/sr_api.h"
 
+// VTABLE: WIZ8 0x005ECD78 W8Item
+// class W8Item
+
 /* VC6 emits the scalar-deleting wrapper at 0x0049F420 from this ordinary
    virtual destructor. */
 // SYNTHETIC: WIZ8 0x0049F420
 // W8Item::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x0049F440
 W8Item::~W8Item()
 {
     delete m_pRep;

@@ -702,6 +702,7 @@ void WorldGetCameraLocation(W8World* world, srVector3T<float>* location)
 // srClassSupport<srScene,srScene,0,4112>::`scalar deleting destructor'
 // SYNTHETIC: WIZ8 0x00423f00
 // srClassSupport<srColorSurface,srColorSurface,0,12560>::`scalar deleting destructor'
+
 /* The second world, read straight out of the global with no guard. Its type is
    settled by the viewport, which reads a camera member through the same
    object. */

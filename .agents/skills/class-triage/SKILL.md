@@ -17,6 +17,11 @@ First test whether the canonical base or template explains the evidence. A disti
 lifecycle body, deleting destructor, or registry family does not alone prove authored source.
 Declare only the additional boundary independently supported by storage, behavior, or source identity.
 
+Scalar and vector deleting destructors are MSVC ABI glue, never authored functions or evidence for a
+new class boundary. Keep the wrapper address as a marker-only `SYNTHETIC` identity. Recover a separate
+ordinary destructor only when retail emits it independently; otherwise use the declaration, inline
+form, or inherited virtual destructor required by the evidenced hierarchy.
+
 Read [template emission](references/template-emission.md) for `srClassSupport`, registry, clone, or
 deleting-destructor evidence. Read [inheritance evidence](references/inheritance-evidence.md) when
 receivers, subobject placement, or a hierarchy changes. Validate the affected lifecycle/vtable bundle

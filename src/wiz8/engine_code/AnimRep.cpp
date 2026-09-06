@@ -163,14 +163,9 @@ W8AnimRepBase005EC1D8* W8AnimRepBase005EC1D8::Clone()
     return new W8AnimRepBase005EC1D8(*this);
 }
 
-/* VC6 emits the scalar-deleting wrapper below from this ordinary source
-   destructor.  The synthetic marker identifies the generated wrapper; it is
-   not an address claim for the source destructor itself. */
 // SYNTHETIC: WIZ8 0x0044ee50
 // W8AnimRepBase005EC1D8::`scalar deleting destructor'
-W8AnimRepBase005EC1D8::~W8AnimRepBase005EC1D8()
-{
-}
+
 
 /* AnimRep.cpp copies persistent animation state, then timestamps the new
    representation from the shared SurRender timer.  The source assertion names

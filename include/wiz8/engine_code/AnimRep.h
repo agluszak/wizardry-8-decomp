@@ -28,7 +28,7 @@ class W8AnimRepBase005EC1D8 {
 public:
     W8AnimRepBase005EC1D8();
     W8AnimRepBase005EC1D8(const W8AnimRepBase005EC1D8& other);
-    virtual ~W8AnimRepBase005EC1D8();
+    virtual ~W8AnimRepBase005EC1D8() {}
     virtual W8AnimRepBase005EC1D8* Clone();
 
     void SetLocation004B8850(const srVector3T<float>* location);
