@@ -6,34 +6,22 @@ class srMaterial;
 class srTextureIFace;
 class stTextureAnim;
 
-srRegistry::ClassNode* GetSrModelInstanceClassNode00481D00();
-
 /* Engine Code\stModelInstance.cpp. */
 // VTABLE: WIZ8 0x005ec814 stModelInstance
 // VTABLE: WIZ8 0x005ec804 srModel::Client
-class stModelInstance : public srModelInstance {
+class stModelInstance
+    : public srClassSupport<stModelInstance, srModelInstance, false, 0x10004> {
 public:
-    stModelInstance()
-        : srModelInstance(0)
-    {
-        srRegistry* registry = srCore.getRegistry();
-        srRegistry::ClassNode* node = registry->getClassNode(0x10004);
+    static const char* sGetClassName() { return "stModelInstance"; }
 
-        if (node == 0) {
-            node = registry->registerClass(
-                "stModelInstance",
-                GetSrModelInstanceClassNode00481D00(),
-                0x10004,
-                0);
-        }
-        registry->registerInstance(node, this);
+    stModelInstance()
+        : srClassSupport<stModelInstance, srModelInstance, false, 0x10004>(
+              static_cast<srNode*>(0))
+    {
         damage_stage_tables_188 = 0;
         damage_stage_count_18c = 0;
     }
 
-    const char* getClassName() const override;     /* 0x00481870 */
-    srRegistry::ClassNode* getClassNode() const override; /* 0x00481880 */
-    unsigned long getClassID() const override;     /* 0x00481860 */
     stTextureAnim* FindMouthTexture00481080();     /* 0x00481080 */
     int AddDamageStage00480560(const char* name);
     int AddExistingDamageStage00480670(const char* name);
