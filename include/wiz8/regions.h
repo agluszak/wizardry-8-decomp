@@ -23,7 +23,8 @@ typedef struct W8RegionMouseEvent {
 } W8RegionMouseEvent;
 
 struct W8Region;
-typedef void (*W8RegionCallback)(const W8RegionEvent* event, struct W8Region* region);
+typedef unsigned char (*W8RegionCallback)(
+    const W8RegionEvent* event, struct W8Region* region);
 
 typedef struct W8Region {
     unsigned int flags;

@@ -271,6 +271,19 @@ extern "C" {
 extern W8RaceResistanceProfile g_race_resistance_profiles[];
 extern int g_profession_skill_availability[0x29][15];
 extern int g_profession_bonus_skills[15];
+
+/* Profession and race trait sets consulted by Function547940. Each entry is
+   only its id list: three profession abilities, five race abilities. */
+typedef struct W8ProfessionAbilitySet {
+    int ability_ids[3];
+} W8ProfessionAbilitySet;
+
+typedef struct W8RaceAbilitySet {
+    int ability_ids[5];
+} W8RaceAbilitySet;
+
+extern W8ProfessionAbilitySet g_profession_abilities[15];
+extern W8RaceAbilitySet g_race_abilities[11];
 extern int g_profession_skills[15][4];
 extern int g_profession_magic_level_offsets[15];
 extern float g_profession_hit_point_factors[15];
@@ -280,13 +293,13 @@ int GetNextCharacter(
 int RPCPtrToPCSlot(const W8RPCSlot* rpc);
 void StripMonsterNameSuffix(W8WideChar* name);
 unsigned int CharacterPointerToPartySlot(const W8Character* character);
-void SetCharacterCondition(
+unsigned char SetCharacterCondition(
     int party_slot,
     int condition,
     int duration,
     int argument,
-    int value_5,
-    int value_6);
+    char value_5,
+    char value_6);
 unsigned char IsPartyCharacterPointer(const W8Character* character);
 bool IsCharacterReadyToAdvance(int party_slot);
 int GetProfessionCasterLevel(W8Character* character, int profession_id);

@@ -46,11 +46,9 @@ extern void Function421090(const float* location);
 extern void SetValue60DFAC(void);
 extern unsigned char g_renderer_ready_00607d7c;
 extern void Function46DC90(srScene* scene);
-extern void* ReadGameData00447570(const char* path, void* parent);
 extern int CheckLevelAssetSet0042CCC0(const char* level_path);
 extern void UpdateWorldMeshFromQuads004BAD40(W8World* world);
 extern void UpdateWorldMeshFromOctree004BAF50(W8World* world);
-extern void Function449BB0(void* owner);
 extern void Function426790(void);
 extern void Function443A60(W8World* world);
 extern void Function479030(void);
@@ -516,8 +514,7 @@ void DestroyWorld(W8World* world)
         world->update_mesh_source = 0;
     }
     if (world->m_owned_04c != 0) {
-        Function449BB0(world->m_owned_04c);
-        operator delete(world->m_owned_04c);
+        delete static_cast<W8GameData*>(world->m_owned_04c);
         world->m_owned_04c = 0;
     }
     if (world->octree != 0) {

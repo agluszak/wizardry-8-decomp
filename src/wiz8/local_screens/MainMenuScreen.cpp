@@ -146,19 +146,19 @@ static void MainMenuRegionEvent(
     }
 }
 
-static void MainMenuIntroduction(
+static unsigned char MainMenuIntroduction(
     const W8RegionEvent* event, W8Region* region)
-{ MainMenuRegionEvent(0, event, region); }
-static void MainMenuNewGame(const W8RegionEvent* event, W8Region* region)
-{ MainMenuRegionEvent(1, event, region); }
-static void MainMenuLoadGame(const W8RegionEvent* event, W8Region* region)
-{ MainMenuRegionEvent(2, event, region); }
-static void MainMenuCredits(const W8RegionEvent* event, W8Region* region)
-{ MainMenuRegionEvent(3, event, region); }
-static void MainMenuOptions(const W8RegionEvent* event, W8Region* region)
-{ MainMenuRegionEvent(4, event, region); }
-static void MainMenuExit(const W8RegionEvent* event, W8Region* region)
-{ MainMenuRegionEvent(5, event, region); }
+{ MainMenuRegionEvent(0, event, region); return 0; }
+static unsigned char MainMenuNewGame(const W8RegionEvent* event, W8Region* region)
+{ MainMenuRegionEvent(1, event, region); return 0; }
+static unsigned char MainMenuLoadGame(const W8RegionEvent* event, W8Region* region)
+{ MainMenuRegionEvent(2, event, region); return 0; }
+static unsigned char MainMenuCredits(const W8RegionEvent* event, W8Region* region)
+{ MainMenuRegionEvent(3, event, region); return 0; }
+static unsigned char MainMenuOptions(const W8RegionEvent* event, W8Region* region)
+{ MainMenuRegionEvent(4, event, region); return 0; }
+static unsigned char MainMenuExit(const W8RegionEvent* event, W8Region* region)
+{ MainMenuRegionEvent(5, event, region); return 0; }
 
 static void InitializeMainMenuRegions(void)
 {

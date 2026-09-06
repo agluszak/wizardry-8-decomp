@@ -2,10 +2,15 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/OctBuildTree.h"
 #include "wiz8/engine_code/Object0043A910.h"
+#include "wiz8/engine_code/BitArray.h"
+#include "wiz8/engine_code/game_timer.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
 
 #include <math.h>
+#include <stdlib.h>
+#include <windows.h>
+#include <new>
 
 /*
  * Engine Code\GameData.cpp.
@@ -367,4 +372,221 @@ unsigned char HasLevelDataVector(void)
         return 1;
     }
     return 0;
+}
+
+extern void Function449240(int handle);
+extern void Function497690(int channel, const char* message);
+extern float Function420B40(int value);
+extern W8EnvironRecord* g_environ_00652DB4;
+
+/* Builds the processed game-data record in place: zeroed storage, bound
+   extremes, the shared engine-time object on first use, a default
+   environment bank, and the previous level-data teardown. The zero stores
+   below follow the image order rather than field order. */
+// FUNCTION: WIZ8 0x00449010
+W8GameData::W8GameData(int handle, void* parent)
+{
+    geometry_index_00 = 0;
+    positional_04 = 0;
+    vertex_count_20 = 0;
+    vertices_24 = 0;
+    *(int*)&positional_2c[8] = 0;
+    *(int*)&positional_2c[4] = 0;
+    *(int*)&positional_2c[0] = 0;
+    surface_count_28 = 0;
+    surfaces_38 = 0;
+    overflow_surfaces_48 = 0;
+    value_4c = 0;
+    block_50 = 0;
+    *(int*)&positional_3c[0] = 0;
+    *(int*)&positional_3c[4] = 0;
+    *(int*)&positional_3c[8] = 0;
+    bits_58 = 0;
+    bits_5c = 0;
+    value_54 = 0;
+    value_60 = 0;
+    block_64 = 0;
+    value_68 = 0;
+    block_6c = 0;
+    value_70 = 0;
+    block_74 = 0;
+    count_78 = 0;
+    array_7c = 0;
+    environ_count_80 = 0;
+    environs_84 = 0;
+    value_88 = 0;
+    minimum_08.x = 1.0e8f;
+    minimum_08.y = 1.0e8f;
+    minimum_08.z = 1.0e8f;
+    maximum_14.x = -1.0e8f;
+    maximum_14.y = -1.0e8f;
+    maximum_14.z = -1.0e8f;
+    if (parent == 0) {
+        Function420B40(4);
+        if (g_object_6598bc == 0) {
+            void* object = ::operator new(sizeof(W8Object0043A910));
+            if (object == 0) {
+                g_object_6598bc = 0;
+            }
+            else {
+                g_object_6598bc = new (object) W8Object0043A910();
+            }
+        }
+    }
+    if (handle != 0) {
+        Function449240(handle);
+    }
+    if (g_environ_00652DB4 != 0) {
+        delete g_environ_00652DB4;
+    }
+    if (environ_count_80 == 0) {
+        environ_count_80 = 1;
+        environs_84 = static_cast<W8EnvironRecord**>(malloc(0x28));
+        if (environs_84 == 0) {
+            srAssertFail(
+                "m_ppEnvirons",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                0x441, 0);
+        }
+        for (int index = 0; index < 10; ++index) {
+            environs_84[index] = 0;
+        }
+        W8EnvironRecord* environ_record = new W8EnvironRecord();
+        if (environ_record == 0) {
+            environ_record = 0;
+        }
+        else {
+            environ_record->value_00 = 0;
+            environ_record->value_04 = 0;
+            environ_record->value_08 = 0;
+            environ_record->value_10 = 0;
+            environ_record->value_14 = -g_navigator_gravity_00603acc;
+            environ_record->value_18 = 0;
+            environ_record->value_1c = 0.05f;
+            environ_record->value_20 = 1.0f;
+            environ_record->value_24 = 0;
+            environ_record->value_28 = 0;
+            environ_record->value_2c = 0;
+            environ_record->value_30 = g_float_00603ac8;
+            environ_record->value_34 = g_float_00603aac * g_float_005ebc98;
+            environ_record->value_38 = g_float_00603ab8;
+            environ_record->value_3c = g_float_00603abc;
+            environ_record->value_40 = 1.0f;
+        }
+        environs_84[0] = environ_record;
+    }
+    W8LevelDataRecord* old_level = g_level_data_00652dac;
+    g_environ_00652DB4 = environs_84[0];
+    if (old_level != 0) {
+        /* The embedded timer's most-derived type is unrecovered, so a plain
+           delete would dispatch the wrong destructor; the base teardown plus
+           deallocation below is the entire model until that type is known. */
+        ((W8GameTimer*)((unsigned char*)old_level + 0xC4))->~W8GameTimer();
+        delete old_level;
+        g_level_data_00652dac = 0;
+    }
+    g_octree_game_data_00652db0 = this;
+}
+
+/* Tears down owned storage: the geometry index, heap and malloc'd banks,
+   both bit sets, the counted pointer blocks, and the environment bank. */
+// FUNCTION: WIZ8 0x00449BB0
+W8GameData::~W8GameData()
+{
+    int index;
+
+    Function41A9E0();
+    if (geometry_index_00 != 0) {
+        delete geometry_index_00;
+    }
+    if (vertices_24 != 0) {
+        srHeap.free(vertices_24);
+    }
+    if (surfaces_38 != 0) {
+        free(surfaces_38);
+    }
+    if (bits_58 != 0) {
+        delete bits_58;
+    }
+    if (bits_5c != 0) {
+        delete bits_5c;
+    }
+    if (array_7c != 0) {
+        if (count_78 > 0) {
+            index = 0;
+            do {
+                if (array_7c[index] != 0) {
+                    free(array_7c[index]);
+                }
+                ++index;
+            } while (index < count_78);
+        }
+        free(array_7c);
+        count_78 = 0;
+        array_7c = 0;
+    }
+    if (block_64 != 0) {
+        free(block_64);
+        block_64 = 0;
+        value_60 = 0;
+    }
+    if (block_74 != 0) {
+        free(block_74);
+        block_74 = 0;
+        value_70 = 0;
+    }
+    if (block_6c != 0) {
+        free(block_6c);
+        block_6c = 0;
+        value_68 = 0;
+    }
+    if (block_50 != 0) {
+        free(block_50);
+        block_50 = 0;
+    }
+    *(int*)&positional_3c[8] = 0;
+    if (environs_84 != 0) {
+        if (environ_count_80 > 0) {
+            index = 0;
+            do {
+                if (environs_84[index] != 0) {
+                    delete environs_84[index];
+                }
+                ++index;
+            } while (index < environ_count_80);
+        }
+        free(environs_84);
+        environs_84 = 0;
+    }
+    g_octree_game_data_00652db0 = 0;
+}
+
+/* Opens a game-data file, builds its record, and pulls the polygon and
+   vertex banks through the record reader. */
+// FUNCTION: WIZ8 0x00447570
+W8GameData* ReadGameData00447570(const char* path, void* parent)
+{
+    HANDLE file = CreateFileA(
+        path, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    W8GameData* game_data;
+    unsigned char got_polygons;
+    unsigned char got_vertices;
+
+    if (file == INVALID_HANDLE_VALUE) {
+        return 0;
+    }
+    game_data = new W8GameData(0, parent);
+    if (game_data == 0) {
+        srAssertFail(
+            "pGameData",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+            0xa7, 0);
+    }
+    got_polygons = game_data->Function447660(file, 0);
+    got_vertices = game_data->Function447660(file, 1);
+    if (got_vertices == 0 && got_polygons == 0) {
+        Function497690(7, "ReadGameData: No polygons or vertices in GameData!\n");
+    }
+    CloseHandle(file);
+    return game_data;
 }

@@ -208,7 +208,6 @@ extern int CheckLevelAssetSet0042CCC0(const char* level_path);
 extern char BuildPreprocessedFiles00492E60(const char* level_path);
 extern void ReportStartupMessage004969D0(const char* message);
 extern unsigned char BitArrayLoad0043AEC0(BitArray* bits, int handle);
-extern void* CreateGameData00449010(int handle, int value);
 extern unsigned char ReadLevelName00432E90(const char* name);
 extern void ApplyLevelName00432B80(const char* name);
 extern void ReadWaypointFile0043A0F0(void);
@@ -1531,7 +1530,7 @@ finish:
     g_octree_game_data_00652db0 = 0;
     *game_data = 0;
     if (fSuccess != 0 && ReadHeader<unsigned long>(header, 0x86) != 0) {
-        pGameData = CreateGameData00449010(hOctFile, 0);
+        pGameData = new W8GameData(hOctFile, 0);
         if (pGameData == 0) {
             strcpy(acMessage, "ReadOctFile: Couldn't allocate submesh array.");
             fSuccess = 0;

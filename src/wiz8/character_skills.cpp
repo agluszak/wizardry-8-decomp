@@ -1,8 +1,77 @@
 #include "wiz8/character.h"
 #include "wiz8/layouts/gameplay_databases.h"
 
-/* 0x00547940, not yet identified; asked here whether trait 0x1f applies. */
-extern unsigned char Function547940(W8Character* character, int trait_id);
+/* Profession and race trait-id sets. Values are the retail table contents at
+   0x0061507C (fifteen triples) and 0x00615130 (eleven quintuples); -1 is no
+   trait. */
+// GLOBAL: WIZ8 0x0061507C
+W8ProfessionAbilitySet g_profession_abilities[15] = {
+    {{0, 19, 20}},
+    {{1, -1, -1}},
+    {{2, -1, -1}},
+    {{4, 12, -1}},
+    {{3, 16, -1}},
+    {{5, 21, -1}},
+    {{6, 7, -1}},
+    {{9, -1, -1}},
+    {{8, -1, -1}},
+    {{10, -1, -1}},
+    {{11, 17, -1}},
+    {{18, -1, -1}},
+    {{13, 17, -1}},
+    {{3, 14, -1}},
+    {{15, -1, -1}},
+};
+
+// GLOBAL: WIZ8 0x00615130
+W8RaceAbilitySet g_race_abilities[11] = {
+    {{-1, -1, -1, -1, -1}},
+    {{-1, -1, -1, -1, -1}},
+    {{29, -1, -1, -1, -1}},
+    {{-1, -1, -1, -1, -1}},
+    {{-1, -1, -1, -1, -1}},
+    {{22, 26, 23, 25, 24}},
+    {{27, -1, -1, -1, -1}},
+    {{28, -1, -1, -1, -1}},
+    {{-1, -1, -1, -1, -1}},
+    {{-1, -1, -1, -1, -1}},
+    {{-1, -1, -1, -1, -1}},
+};
+
+/* Whether the character has the trait through profession, race, or - for
+   trait 0x1c - a set second enchantment slot. Profession id -1 and race id
+   -1 both mean absent and skip their tables. Read-only, so callers agree
+   on a const character. */
+// FUNCTION: WIZ8 0x00547940
+unsigned char Function547940(const W8Character* character, int trait)
+{
+    unsigned int index;
+
+    if (character == 0) {
+        return 0;
+    }
+    if (character->current_profession != -1) {
+        const int* abilities =
+            g_profession_abilities[character->current_profession].ability_ids;
+        for (index = 0; index < 3; ++index) {
+            if (abilities[index] == trait) {
+                return 1;
+            }
+        }
+    }
+    if (character->race != -1) {
+        const int* abilities = g_race_abilities[character->race].ability_ids;
+        for (index = 0; index < 5; ++index) {
+            if (abilities[index] == trait) {
+                return 1;
+            }
+        }
+    }
+    if (trait == 0x1c && character->enchantments[1].value_08 != 0) {
+        return 1;
+    }
+    return 0;
+}
 
 /* Skill ids fall into three bands. Below 0x18 and at 0x1c..0x21 they are
    ordinary skills resolved against the profession; 0x18..0x1b are the magic

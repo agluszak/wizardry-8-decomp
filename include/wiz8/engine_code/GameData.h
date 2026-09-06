@@ -27,10 +27,45 @@ struct W8LevelDataRecord {
 
 struct W8OctBuildTree00446390;
 
-/* Proven prefix of the processed GameData owner.  GDFileIO.cpp constructs a
-   larger record; these fields are the bounds, vertex table and first surface
-   bank consumed by GameData.cpp and OctBuildTree.cpp. */
+class BitArray;
+
+/* One environment record: seventeen dwords mixing counters and factors. */
+struct W8EnvironRecord {
+    int value_00;
+    unsigned char value_04;
+    unsigned char pad_05[3];
+    int value_08;
+    int unknown_0c;
+    int value_10;
+    float value_14;
+    int value_18;
+    float value_1c;
+    float value_20;
+    int value_24;
+    int value_28;
+    int value_2c;
+    int value_30;
+    float value_34;
+    float value_38;
+    float value_3c;
+    float value_40;
+};
+
+static_assert(sizeof(W8EnvironRecord) == 0x44, "W8EnvironRecord_must_be_0x44");
+
+class BitArray;
+
+/* The processed game-data record the octree and world own. The proven prefix
+   above is consumed by GameData.cpp and OctBuildTree.cpp; the constructor
+   below establishes the rest: two bit sets, paired count/allocation blocks,
+   a counted pointer array, the environment count/array pair, and a trailing
+   flag. Only straightforward storage is claimed past the prefix. */
 struct W8GameData {
+    W8GameData(int handle, void* parent);              /* 0x00449010 */
+    ~W8GameData();                                     /* 0x00449BB0 */
+    unsigned char Function447660(void* file, int index);
+    void Function41A9E0();
+
     W8OctBuildTree00446390* geometry_index_00;
     unsigned long positional_04;
     srVector3T<float> minimum_08;
@@ -42,7 +77,26 @@ struct W8GameData {
     W8GDSurface* surfaces_38;
     unsigned char positional_3c[0x0c];
     W8GDSurface* overflow_surfaces_48;
+    int value_4c;
+    void* block_50;
+    int value_54;
+    BitArray* bits_58;
+    BitArray* bits_5c;
+    int value_60;
+    void* block_64;
+    int value_68;
+    void* block_6c;
+    int value_70;
+    void* block_74;
+    int count_78;
+    void** array_7c;
+    int environ_count_80;
+    W8EnvironRecord** environs_84;
+    unsigned char value_88;
+    unsigned char pad_89[3];
 };
+
+static_assert(sizeof(W8GameData) == 0x8c, "W8GameData_must_be_0x8c");
 
 #pragma pack(pop)
 
@@ -51,6 +105,8 @@ static_assert(sizeof(W8LevelDataRecord) == 0xac,
 
 extern W8LevelDataRecord* g_level_data_00652dac;
 extern W8GameData* g_octree_game_data_00652db0;
+
+W8GameData* ReadGameData00447570(const char* path, void* parent); /* 0x00447570 */
 
 void Function41EF50(void);
 void Function41F260();

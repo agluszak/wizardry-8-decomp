@@ -282,10 +282,11 @@ class W8WidgetBase005ED5BC;
 // VTABLE: WIZ8 0x005ed5b0
 // class W8GrowableVector<W8WidgetBase005ED5BC*>
 
-/* The region callback a widget without its own region is given. Ghidra has no
-   function at 0x004F3140, only a label, so this is a declaration and not a
-   claim on the address. */
-extern void Function4F3140(const W8RegionEvent* event, struct W8Region* region);
+/* The region callback a widget without its own region is given. It answers
+   whether the event was consumed; the screen-input dispatcher returns that
+   byte to its caller. */
+extern unsigned char Function4F3140(
+    const W8RegionEvent* event, struct W8Region* region); /* 0x004F3140 */
 
 /* The accumulated redraw rectangle a panel hands the compositor. An empty
    rectangle is spelled with left at -1, which is what 0x004F2E50 tests before

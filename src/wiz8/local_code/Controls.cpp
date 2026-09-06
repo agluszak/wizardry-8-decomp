@@ -125,6 +125,7 @@ extern void Function558720(int sound_id);
 extern void Function5587C0(int a, int b);
 extern void Function4284F0(int* coordinates);
 extern void Function4F2040(unsigned int region);
+extern short Function402760(unsigned int mouse_position);
 
 
 // FUNCTION: WIZ8 0x004f30f0
@@ -216,6 +217,90 @@ W8WidgetBase005ED5BC::W8WidgetBase005ED5BC(Controls* owner, unsigned int region,
         SetRegionCallback(taken, Function4F3140, (unsigned short)index);
         SetRegionOwner(taken, holder);
     }
+}
+
+/* The shared widget-region callback registered above. It fetches the widget
+   from the owner's array - an out-of-range index saturates to the first
+   widget - and dispatches the region event through eleven widget virtual
+   slots, answering whether the event was consumed. Button press and release
+   arms and disarms the 0x40/0x80 region latches their repeat and release
+   paths test. */
+// FUNCTION: WIZ8 0x004F3140
+unsigned char Function4F3140(const W8RegionEvent* event, W8Region* region)
+{
+    Controls* owner = (Controls*)region->owner;
+    W8WidgetBase005ED5BC* widget;
+    unsigned short index = region->callback_id;
+    unsigned short reason = event->reason;
+
+    if (index < owner->m_controls.count) {
+        widget = owner->m_controls.data[index];
+    }
+    else {
+        widget = owner->m_controls.data[0];
+    }
+    if (widget == 0) {
+        srAssertFail(
+            "pControl",
+            "C:\\Projects\\Wizardry 8\\Local Code\\Controls.cpp",
+            0x1AA,
+            0);
+    }
+    switch (reason) {
+    case LEFT_BUTTON_DOWN:
+        widget->Function4F70(0);
+        region->flags |= 0x40u;
+        return 1;
+    case LEFT_BUTTON_UP:
+        if ((region->flags & 0x40u) == 0) {
+            return 1;
+        }
+        widget->Function50C0(0);
+        region->flags &= ~0x40u;
+        return 1;
+    case LEFT_BUTTON_DBL_CLK:
+        widget->InvokeBlurCallback(0);
+        return 1;
+    case LEFT_BUTTON_REPEAT:
+        if ((region->flags & 0x40u) == 0) {
+            return 1;
+        }
+        widget->ActivatePrimary(0);
+        return 1;
+    case RIGHT_BUTTON_DOWN:
+        widget->InvokeFocusCallback(0);
+        region->flags |= 0x80u;
+        return 1;
+    case RIGHT_BUTTON_UP:
+        if ((region->flags & 0x80u) == 0) {
+            return 1;
+        }
+        widget->Function5290(0);
+        region->flags &= ~0x80u;
+        return 1;
+    case RIGHT_BUTTON_REPEAT:
+        if ((region->flags & 0x80u) == 0) {
+            return 1;
+        }
+        widget->ActivateSecondary(0);
+        return 1;
+    case MOUSE_POS:
+        if ((region->flags & 0x20u) != 0) {
+            widget->Function4E00(0);
+        }
+        else if ((region->flags & 0x10u) != 0) {
+            widget->Function4D30(0);
+        }
+        else {
+            widget->FunctionSlot09(region->flags & 0x40u);
+        }
+        return 1;
+    case MOUSE_WHEEL:
+        widget->AdjustValue(Function402760(
+            ((const W8RegionMouseEvent*)event)->mouse_position));
+        return 1;
+    }
+    return 0;
 }
 
 /*
