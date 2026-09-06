@@ -6,5 +6,11 @@
    actually consume.  The matching compiler continues to use the real VC6
    header. */
 namespace std {
-class ostream;
+class ostream {
+public:
+    ostream& operator<<(unsigned long value);
+};
+
+ostream& operator<<(ostream& stream, const char* value);
+ostream& operator<<(ostream& stream, char value);
 }

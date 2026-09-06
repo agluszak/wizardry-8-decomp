@@ -8,6 +8,7 @@
 #include <windows.h>
 
 #include "srCore.h"
+#include "srCriticalSection.h"
 #include "srHeap.h"
 
 class srRuntimeClass;
@@ -19,9 +20,44 @@ public:
     class ClassNode {
         friend class srRegistry;
 
-        struct ChildLink;
+        struct ChildLink {
+            ClassNode* node_00;
+            ChildLink* next_04;
+            ChildLink* previous_08;
+        };
+    public:
         struct NameIndex;
         struct IDIndex;
+
+    private:
+
+        int isDerivedOrSame(ClassNode* derived) const;
+        long getNumberOfInstances(int exact) const;
+        unsigned long getClassID() const;
+        ClassNode* getParent() const;
+        NameIndex* getNameIndex() const;
+        IDIndex* getIDIndex() const;
+        void enableInstanceLookup();
+        void registerInstance(srRuntimeClass* instance);
+        void refreshInstance(srRuntimeClass* instance);
+        void unregisterInstance(srRuntimeClass* instance);
+        srRuntimeClass* findByName(
+            ClassNode* requested_class,
+            const char* name,
+            int exact,
+            const srRuntimeClass* relative_to);
+        srRuntimeClass* findRelative(
+            ClassNode* requested_class,
+            int exact,
+            const srRuntimeClass* relative_to);
+        srRuntimeClass* findByID(
+            ClassNode* requested_class, unsigned long id, int exact);
+
+        ClassNode(
+            ClassNode* parent, const char* class_name, unsigned long class_id);
+        ~ClassNode();
+        void* operator new(unsigned int size) { return srHeap.allocate(size); }
+        void operator delete(void* node) { srHeap.free(node); }
 
         unsigned long child_count_00;
         ChildLink* first_child_04;
@@ -49,10 +85,10 @@ public:
     SR_DLL_IMPORT unsigned long getClassID(ClassNode* node);
     SR_DLL_IMPORT const char* getClassName(ClassNode* node);
     SR_DLL_IMPORT ClassNode* getChildClass(ClassNode* parent, ClassNode* child);
-    SR_DLL_IMPORT long getNumberOfInstances(ClassNode* node, int recursive);
+    SR_DLL_IMPORT long getNumberOfInstances(ClassNode* node, int exact);
     SR_DLL_IMPORT ClassNode* getRootClass();
     SR_DLL_IMPORT ClassNode* getRootNode();
-    SR_DLL_IMPORT int isDerivedOrSame(ClassNode* derived, ClassNode* base);
+    SR_DLL_IMPORT int isDerivedOrSame(ClassNode* base, ClassNode* derived);
     /* SR.DLL's registerClass at 0x1000EC60 adds the node, then calls
        0x1000F7E0 only when the last argument is non-zero. That routine
        allocates this node's own instance indices, named_instances_18 and
@@ -64,7 +100,7 @@ public:
         const char* class_name,
         ClassNode* parent,
         unsigned long class_id,
-        int registration_flag);
+        int register_instances);
     SR_DLL_IMPORT void registerInstance(
         ClassNode* node, srRuntimeClass* instance);
     SR_DLL_IMPORT void unregisterInstance(
@@ -87,13 +123,15 @@ public:
         ClassNode* node, srRuntimeClass* instance);
 
 private:
+    struct ClassIndex;
+
     SR_DLL_IMPORT ClassNode* addToTree(
         ClassNode* parent, const char* class_name, unsigned long class_id);
 
     ClassNode* root_00;
-    void* class_index_04;
-    unsigned long next_class_id_08;
-    CRITICAL_SECTION* critical_section_0c;
+    ClassIndex* class_index_04;
+    int valid_08;
+    srCriticalSection* critical_section_0c;
 };
 
 static_assert(sizeof(srRegistry::ClassNode) == 0x2c,
@@ -113,7 +151,7 @@ public:
     virtual SR_DLL_IMPORT void verify(e_verify mode);
 
     static SR_DLL_IMPORT srRegistry::ClassNode* sGetClassNode();
-    static SR_DLL_IMPORT long getTotalInstances(int recursive);
+    static SR_DLL_IMPORT long getTotalInstances(int exact);
     static SR_DLL_IMPORT void dumpNames(std::ostream& stream, int indent);
 
     SR_DLL_IMPORT srRuntimeClass(const srRuntimeClass& other);
@@ -218,7 +256,7 @@ private:
     static SR_DLL_IMPORT double _lastUpdateTime;
     static SR_DLL_IMPORT unsigned long _timestampCtr;
 
-    long reference_count_0c;
+    mutable long reference_count_0c;
     unsigned long timestamp_10;
     Update* update_14;
 };
@@ -229,7 +267,7 @@ static_assert(sizeof(srClass) == 0x18, "srClass_must_be_0x18");
    parameter order. It contributes no storage: it supplies registry identity,
    instance registration and the class hierarchy's clone slot for a class
    derived from an existing registry class. */
-template <class Derived, class Base, bool RegistrationFlag, unsigned long ClassID>
+template <class Derived, class Base, bool RegisterInstances, unsigned long ClassID>
 class srClassSupport : public Base {
 private:
     /* VC6 has no partial class-template specialization. Overload resolution
@@ -265,7 +303,7 @@ public:
         if (node == 0) {
             node = registry->registerClass(
                 Derived::sGetClassName(), Base::sGetClassNode(), ClassID,
-                RegistrationFlag);
+                RegisterInstances);
         }
         return node;
     }

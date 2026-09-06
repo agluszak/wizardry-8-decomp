@@ -4,12 +4,16 @@ add_library(SURRENDER SHARED
     src/surrender/extension.cpp
     src/surrender/string_table.cpp
     src/surrender/system.cpp
+    src/surrender/type_registry.cpp
     src/surrender/vector_processor.cpp
     src/surrender/sr.def
 )
 target_compile_definitions(SURRENDER PRIVATE SURRENDER_BUILD)
 target_compile_options(SURRENDER PRIVATE /GX-)
-set_source_files_properties(src/surrender/extension.cpp PROPERTIES COMPILE_OPTIONS /GX)
+set_source_files_properties(
+    src/surrender/extension.cpp
+    src/surrender/type_registry.cpp
+    PROPERTIES COMPILE_OPTIONS /GX)
 target_link_libraries(SURRENDER PRIVATE wiz8_compile_settings version.lib)
 target_link_options(SURRENDER PRIVATE
     /DEBUG /DEBUGTYPE:CV /INCREMENTAL:NO

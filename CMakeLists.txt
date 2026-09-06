@@ -6,7 +6,7 @@ option(WIZ8_LINT_COMPILE_ONLY "Compile recovered C++ with modern diagnostics" OF
 option(WIZ8_FULL_DIAGNOSTICS "Report recovery warnings without making them errors" OFF)
 
 # Keep provider static-data definitions in provider mode in the lint/index TU too.
-set_source_files_properties(src/surrender/extension.cpp src/surrender/vector_processor.cpp PROPERTIES
+set_source_files_properties(src/surrender/extension.cpp src/surrender/type_registry.cpp src/surrender/vector_processor.cpp PROPERTIES
     COMPILE_DEFINITIONS SURRENDER_BUILD)
 
 if(WIZ8_LINT_COMPILE_ONLY)
@@ -25,6 +25,7 @@ if(WIZ8_LINT_COMPILE_ONLY)
         src/surrender/extension.cpp
         src/surrender/string_table.cpp
         src/surrender/system.cpp
+        src/surrender/type_registry.cpp
         src/surrender/vector_processor.cpp
         src/wiz8/zlib_wrappers.c
     )

@@ -1,7 +1,75 @@
 LIBRARY sr
 EXPORTS
+    ?addToTree@srRegistry@@AAEPAVClassNode@1@PAV21@PBDK@Z
+    ?addReference@srClass@@QBEXXZ
+    ?allocateID@srRegistry@@QAEKXZ
+    ??0srRegistry@@QAE@XZ
+    ??1srRegistry@@QAE@XZ
+    ??4srRegistry@@QAEAAV0@ABV0@@Z
+    ?autoRelease@srClass@@QAEXXZ
+    ??0srClass@@IAE@XZ
+    ??0srClass@@QAE@ABV0@@Z
+    ??1srClass@@MAE@XZ
+    ??4srClass@@QAEAAV0@ABV0@@Z
+    ??0srRuntimeClass@@IAE@XZ
+    ??0srRuntimeClass@@QAE@ABV0@@Z
+    ??1srRuntimeClass@@MAE@XZ
+    ??4srRuntimeClass@@QAEAAV0@ABV0@@Z
+    ?getID@srRuntimeClass@@QBEKXZ
+    ?checkValidity@srRegistry@@QAEHXZ
+    ?getChildClass@srRegistry@@QAEPAVClassNode@1@PAV21@0@Z
+    ?getClassID@srRegistry@@QAEKPAVClassNode@1@@Z
+    ?getClassName@srRegistry@@QAEPBDPAVClassNode@1@@Z
+    ?getNumberOfInstances@srRegistry@@QAEJPAVClassNode@1@H@Z
+    ?find@srRegistry@@QAEPAVsrRuntimeClass@@PAVClassNode@1@K@Z
+    ?find@srRegistry@@QAEPAVsrRuntimeClass@@PAVClassNode@1@PBDPBV2@@Z
+    ?find@srRegistry@@QAEPAVsrRuntimeClass@@PAVClassNode@1@PBV2@@Z
+    ?findExact@srRegistry@@QAEPAVsrRuntimeClass@@PAVClassNode@1@K@Z
+    ?findExact@srRegistry@@QAEPAVsrRuntimeClass@@PAVClassNode@1@PBDPBV2@@Z
+    ?findExact@srRegistry@@QAEPAVsrRuntimeClass@@PAVClassNode@1@PBV2@@Z
+    ?getClassNode@srRegistry@@QAEPAVClassNode@1@K@Z
+    ?getRootClass@srRegistry@@QAEPAVClassNode@1@XZ
+    ?getRootNode@srRegistry@@QAEPAVClassNode@1@XZ
+    ?isDerivedOrSame@srRegistry@@QAEHPAVClassNode@1@0@Z
+    ?refreshInstance@srRegistry@@QAEXPAVClassNode@1@PAVsrRuntimeClass@@@Z
+    ?registerClass@srRegistry@@QAEPAVClassNode@1@PBDPAV21@KH@Z
+    ?registerInstance@srRegistry@@QAEXPAVClassNode@1@PAVsrRuntimeClass@@@Z
+    ?unregisterInstance@srRegistry@@QAEXPAVClassNode@1@PAVsrRuntimeClass@@@Z
+    ?dumpNames@srRuntimeClass@@SAXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@H@Z
+    ?getClassID@srRuntimeClass@@UBEKXZ
+    ?getClassName@srRuntimeClass@@UBEPBDXZ
+    ?getClassNode@srRuntimeClass@@UBEPAVClassNode@srRegistry@@XZ
+    ?getName@srRuntimeClass@@QBEPBDXZ
+    ?getTotalInstances@srRuntimeClass@@SAJH@Z
+    ?isNamed@srRuntimeClass@@QBEHXZ
+    ?matchClassID@srRuntimeClass@@QBEHK@Z
+    ?sGetClassID@srRuntimeClass@@CAKXZ
+    ?sGetClassNode@srRuntimeClass@@SAPAVClassNode@srRegistry@@XZ
+    ?getReferenceCount@srClass@@QBEJXZ
+    ?_firstUpdate@srClass@@0PAUUpdate@1@A DATA
+    ?_lastUpdateTime@srClass@@0NA DATA
+    ?_timestampCtr@srClass@@0KA DATA
+    ?allocateTimeStamps@srClass@@IBEKK@Z
+    ?find@srClass@@SAPAV1@K@Z
+    ?find@srClass@@SAPAV1@PBDKPBVsrRuntimeClass@@@Z
+    ?find@srClass@@SAPAV1@PBDPBV1@@Z
+    ?find@srClass@@SAPAV1@PBV1@@Z
+    ?getClassNode@srClass@@UBEPAVClassNode@srRegistry@@XZ
+    ?getTimestamp@srClass@@QBEKXZ
+    ?getUpdateCallBack@srClass@@QAEP6AXPAV1@NN@ZXZ
+    ?getUpdateInterval@srClass@@QAENXZ
+    ?instance@srClass@@QAEPAV1@XZ
+    ?performUpdates@srClass@@SAXN@Z
+    ?sGetClassName@srClass@@SAPBDXZ
+    ?sGetClassNode@srClass@@SAPAVClassNode@srRegistry@@XZ
+    ?setUpdate@srClass@@QAEXP6AXPAV1@NN@ZN@Z
+    ?setUpdatesTime@srClass@@QAEXN@Z
+    ?touch@srClass@@QAEXXZ
+    ?getUniqueName@srRuntimeClass@@QBEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?getCopyright@srCore@@QBEPBDXZ
     ?getVersion@srCore@@QBEPBDXZ
+    ?release@srClass@@QBEHXZ
+    ?setName@srRuntimeClass@@QAEXPBD@Z
     ?getName@srVectorProcessor@@SAPBDXZ
     ?load@srVectorProcessor@@SAHPBD@Z
     ?getID@srVectorProcessor@@SAJPBD@Z

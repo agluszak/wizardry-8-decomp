@@ -161,7 +161,38 @@ closer to the original rather than further from it.
 
 ## srClassSupport is a real base, and srNode proves it
 
-`srClassSupport<Derived, Base, RegistrationFlag, ClassID>` supplies slots 0, 1, 2 and 7 - the
+The recovered provider bodies establish the object framework below that template. `srClass` stores
+an ordinary signed 32-bit reference count. Objects begin at one, `addReference()` increments the
+whole word, `autoRelease()` changes one to zero without destroying the object, and `release()`
+decrements and deletes at zero or below. There is no packed autorelease bit in this SurRender build.
+`srRuntimeClass` allocates its ID through the registry, owns its optional copied name, refreshes the
+name index after `setName()`, and registers and unregisters at its own lifecycle layer. Its exported
+copy and assignment bodies shallow-copy the name pointer and ID; higher-level `srClass::operator=`
+instead calls `setName()`, preserving the destination object's registered identity during the
+framework's instance-then-assign clone path.
+
+`ClassNode` is a 0x2c-byte class-tree node. A nonzero `RegisterInstances` value gives that node its
+own name and ID indexes; a zero value retains pointers to the nearest ancestor indexes. Construction
+through successive support bases registers an instance at each corresponding class layer, so an
+index-owning family root sees its descendants while a concrete child still keeps its own count.
+The public normal and exact lookups are byte-exact wrappers around the recovered name, ID and
+relative traversal. The count selector is exactness too: zero returns the inclusive count and
+nonzero subtracts child-family counts.
+
+The timestamp and update half is likewise active framework behavior. Each constructed `srClass`
+touches the global counter. Update records form an intrusive list; a nonpositive interval runs once
+for each advancing frame, while a positive interval catches up at each elapsed boundary. The next
+record is saved before invoking a callback, allowing that callback to remove its own update safely.
+
+The provider's nonvirtual `srClass::clone` export is a five-byte tail dispatch through slot 7, the
+slot introduced by `srClassSupport`; expressing that body would require the raw vtable call forbidden
+at the recovered source boundary, so consumers continue to import it. The client-emitted self-support
+identity and clone families for material, camera, scene and color surface are byte-exact with the
+generic template. No provider or client binary retains an SDK declaration macro, construction macro,
+or nested alias name. Consequently the template behavior is recovered, while `SR_NEW` and
+`ClientType` remain explicitly provisional source spellings rather than invented macro archaeology.
+
+`srClassSupport<Derived, Base, RegisterInstances, ClassID>` supplies slots 0, 1, 2 and 7 - the
 identity trio and clone - plus instance registration in its constructors and unregistration in its
 destructor. It contributes no storage. Classes derive from a specialization of it rather than
 declaring those members themselves.
