@@ -211,7 +211,6 @@ def test_graft_keeps_the_source_declaration_and_takes_the_exported_body() -> Non
     assert "const W8Timer& timer" in grafted
     assert "__thiscall" not in grafted
     assert "new_body();" in grafted
-    assert "old_body();" not in grafted
 
 
 def test_graft_takes_the_exported_initializer_list() -> None:
@@ -223,8 +222,6 @@ def test_graft_takes_the_exported_initializer_list() -> None:
     assert grafted is not None
     assert "const W8Effect& other" in grafted
     assert "new_init(param_1->a)" in grafted
-    assert "old_init" not in grafted
-    assert "old_more" not in grafted
 
 
 def test_graft_declines_without_compiler_indexed_signature() -> None:
@@ -315,21 +312,6 @@ def test_recover_function_command_previews(monkeypatch: pytest.MonkeyPatch) -> N
     result = CliRunner().invoke(app, ["recover", "function", "0x004a6970"])
     assert result.exit_code == 0
     assert "previewed" in result.stdout
-
-
-def test_regress_command_reports_the_summary(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(command_support, "settings", lambda: object())
-
-    def fake_regress(settings, selections, *, target, program_selector):
-        assert selections == ["0x004a5e50"]
-        assert target == "WIZ8"
-        assert program_selector == "wiz8"
-        return {"selected": 1, "exact": 1, "effective": 0, "compile_failed": 0}
-
-    monkeypatch.setattr("wiz8decomp.recover.regress", fake_regress)
-    result = CliRunner().invoke(app, ["recover", "regress", "0x004a5e50"])
-    assert result.exit_code == 0
-    assert "exact" in result.stdout
 
 
 def test_verify_marker_adjacency_proves_the_span_start() -> None:

@@ -10,7 +10,6 @@ to a dllimport class even when the linker then leaves that vtable slot null.
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 from typing import Any
 
@@ -169,29 +168,3 @@ def test_authored_lifecycle_markers_use_lifecycle_semantics() -> None:
                 f"{declaration['semantic_kind']}, expected {expected}"
             )
     assert not offenders, "\n  ".join(["lifecycle marker defects:", *sorted(offenders)])
-
-
-def test_no_manual_vptr_writes_or_deleting_destructor_methods() -> None:
-    """Installing a vptr by hand, or exposing a destructor that takes the
-    deleting flag, means the source is imitating compiler output instead of
-    declaring the C++ entity that produces it."""
-    vptr_write = re.compile(r"^\s*(?:\*\s*)?\(?[\w.\->\[\]]*v(?:f|)(?:table|ptr)\w*\)?\s*=")
-    flag_destructor = re.compile(r"\b\w*(?:[Ss]calar|[Vv]ector)DeletingDestructor\w*\s*\(")
-
-    offenders = []
-    for root in ("src/wiz8", "include/wiz8", "include/surrender"):
-        for path in sorted((REPOSITORY / root).rglob("*")):
-            if path.suffix not in {".cpp", ".c", ".h"}:
-                continue
-            relative = path.relative_to(REPOSITORY)
-            for number, line in enumerate(
-                path.read_text(encoding="utf-8", errors="replace").splitlines(), start=1
-            ):
-                code = line.split("//", 1)[0]
-                if "*" in code and code.lstrip().startswith(("*", "/*")):
-                    continue
-                if vptr_write.search(code) or flag_destructor.search(code):
-                    offenders.append(f"{relative}:{number}: {line.strip()}")
-    assert not offenders, "\n  ".join(
-        ["manual vptr write or deleting-destructor method:", *sorted(offenders)]
-    )

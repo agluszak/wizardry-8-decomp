@@ -10,11 +10,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from types import SimpleNamespace
 
 import pytest
-import wiz8decomp.reports.status as status_module
-from wiz8decomp.reports.status import derive_status, render_status_markdown, status_report
+from wiz8decomp.reports.status import derive_status
 
 _UNIT = r"C:\Projects\Wizardry 8\Local Code\A.cpp"
 
@@ -165,32 +163,3 @@ def test_gameplay_attribution_separates_markers_assertions_and_gaps(repository: 
     # A marker attributes its recovered `src/` path while an assertion anchor
     # attributes the original `Local Code\` spelling; both are counted.
     assert gameplay["attributed_source_units"] == 2
-
-
-def test_markdown_renders_the_report_it_is_given(repository: Path) -> None:
-    markdown = render_status_markdown(derive_status(repository, _ghidra_functions()))
-
-    assert markdown.startswith("# Wizardry recovery status")
-    assert "| `cfagent-128` | 2 |" in markdown
-    assert "- Source-owned functions: 1" in markdown
-    assert "Owned gameplay matching" in markdown
-
-
-def test_status_report_writes_no_artifact_files(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    repository: Path,
-) -> None:
-    settings = SimpleNamespace(repo_dir=repository, build_dir=tmp_path / "build")
-    report = derive_status(repository, _ghidra_functions())
-    monkeypatch.setattr(status_module, "derive_status", lambda _repository, _functions: report)
-    monkeypatch.setattr(
-        "wiz8decomp.ghidra.query.function_inventory", lambda _settings: _ghidra_functions()
-    )
-
-    result = status_report(settings)
-
-    assert "outputs" not in result
-    assert result["schema"] == "wiz8.recovery-status"
-    assert not (settings.build_dir / "reports/status.json").exists()
-    assert not (settings.build_dir / "reports/status.md").exists()

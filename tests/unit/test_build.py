@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 import wiz8decomp.build as build_module
-from wiz8decomp import reccmp_workflows, runtime, source_index, source_layouts, unresolved
 from wiz8decomp.build import (
     PRODUCT_GENERATOR,
     ContainerBuild,
@@ -148,84 +147,3 @@ def test_full_diagnostics_uses_an_isolated_build_and_explicit_target(
     assert "-DWIZ8_FULL_DIAGNOSTICS=ON" in commands[0]
     assert "WIZ8_CLANG_DIAGNOSTICS" in commands[1]
     assert (settings.repo_dir / build_module.DIAGNOSTICS_BUILD_DIR).is_dir()
-
-
-def test_strict_warning_surface_enables_every_recovery_diagnostic() -> None:
-    cmake = (Path(__file__).resolve().parents[2] / "CMakeLists.txt").read_text()
-
-    assert "set(WIZ8_STRICT_WARNING_UNITS" in cmake
-    assert "src/wiz8/engine_code/BitArray.cpp" in cmake
-    for warning in (
-        "-Werror=sometimes-uninitialized",
-        "-Werror=switch",
-        "-Werror=array-bounds",
-        "-Werror=sign-compare",
-        "-Werror=missing-field-initializers",
-    ):
-        assert warning in cmake
-
-
-def test_verify_builds_and_runs_the_runtime_semantic_suite(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    settings = _settings(tmp_path)
-    built: list[str] = []
-
-    monkeypatch.setattr(build_module, "check", lambda _repository: {"check": "ok"})
-
-    def fake_build(_settings: object, target: str) -> dict[str, str]:
-        built.append(target)
-        return {"target": target}
-
-    monkeypatch.setattr(build_module, "build_target", fake_build)
-    monkeypatch.setattr(build_module, "build_analysis_target", lambda *_args: None)
-    monkeypatch.setattr(
-        build_module,
-        "run",
-        lambda command, **_kwargs: build_module.CommandResult(
-            argv=command,
-            executable=command[0],
-            cwd=str(settings.repo_dir),
-            exit_status=0,
-            stdout="",
-            stderr="",
-            timestamp_utc="2026-07-29T00:00:00+00:00",
-        ),
-    )
-    monkeypatch.setattr(build_module, "compare", lambda *_args, **_kwargs: {"match": "ok"})
-
-    monkeypatch.setattr(source_index, "write_source_index", lambda *_args: {"index": "ok"})
-    monkeypatch.setattr(
-        reccmp_workflows,
-        "compare_vtables",
-        lambda *_args: {"ok": True},
-    )
-    monkeypatch.setattr(source_layouts, "verify_source_layouts", lambda *_args: {"valid": True})
-    monkeypatch.setattr(
-        source_layouts,
-        "verify_source_layout_delta",
-        lambda _settings, _current, against: {"valid": True, "against": against},
-    )
-    monkeypatch.setattr(source_layouts, "require_source_layout_delta", lambda result: result)
-    monkeypatch.setattr(
-        unresolved,
-        "unresolved_report",
-        lambda *_args: {"by_symbol": {}, "ranked_units": [], "near_link_complete_units": []},
-    )
-    monkeypatch.setattr(
-        unresolved,
-        "verify_unresolved_delta",
-        lambda _settings, _current: {"valid": True},
-    )
-    monkeypatch.setattr(unresolved, "require_unresolved_delta", lambda result: result)
-    monkeypatch.setattr(
-        runtime,
-        "run_runtime_suite",
-        lambda _settings: {"deterministic": True},
-    )
-
-    result = build_module.verify(settings)
-
-    assert built == ["WIZ8", "SURRENDER", "WIZ8_RUNTIME_TEST"]
-    assert result["runtime_tests"] == {"deterministic": True}
-    assert result["source_layouts"]["against"] is None

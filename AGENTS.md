@@ -71,14 +71,33 @@ caller or ABI bundle when needed. Selected-function relocation-masked comparison
 whole-image comparison is diagnostic. Preserve `/OPT:NOREF` comparison and `/OPT:REF` runtime modes.
 `just runtime-test` must not add test branches to matching bodies.
 
-## Tests
+## Tests and verification
 
-New code does not automatically require a new test. Add one when it detects a concrete failure that
-existing comparison, compiler, ABI, or runtime checks do not already detect. Prefer an existing
-behavioral test with an independently justified expected result. Do not add tests solely to enforce
-documentation wording, file deletion, source spelling, helper call order, or the implementation just
-written. Do not build a new harness for an isolated port. A faithful recovered function with adequate
-focused comparison usually needs no separate Python source-text test.
+Do not add tests by default.
+
+Add a test only when explicitly requested, or when reproducing a concrete observed correctness bug
+that existing checks do not detect. Use an independently justified expected result. A plausible
+hypothetical failure is not, by itself, a reason to add permanent test machinery.
+
+For ordinary C++ recovery, focused retail comparison is the default validation. Do not add Python
+tests that inspect the recovered source.
+
+Do not add tests for exact source spelling, documentation wording, deleted filenames, current
+inventory counts, internal helper call order, or assertions over unchanged generated reports. Test
+fixtures may exercise live code; frozen outputs are not a substitute for exercising it.
+
+Do not introduce a framework, parser, report, baseline, command, or production abstraction merely
+to support a test.
+
+When removing obsolete code or policy, remove its tests and test-only helpers. Do not preserve the
+obsolete machinery to keep its tests green. Do not write tests asserting that the removed tests or
+files stay deleted.
+
+Run only existing checks relevant to the actual change. Repeat them only after a relevant input
+changes or a specific error invalidates the result. Deleting policy-only tests does not require a
+game build or a broad audit. Direct targeted pytest commands are supported; `just test <file>` still
+selects the complete unit and repository directories before the extra argument and is not a narrow
+file-only invocation.
 
 ## Workspace and publication
 

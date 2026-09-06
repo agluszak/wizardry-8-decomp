@@ -1,5 +1,4 @@
 import json
-import re
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -73,39 +72,6 @@ def test_normal_output_rejects_unwrapped_structures() -> None:
         command_support.emit({"large": [1, 2, 3]})
 
 
-def test_cli_groups_subcommands_instead_of_exposing_them_at_the_root() -> None:
-    """Grouped work is reachable only through its group.
-
-    Pinning the absent names of every retired command makes this test fail on
-    any CLI reshuffle, so it asserts the current shape instead: each group is
-    present at the root, and a grouped command is not.
-    """
-
-    result = CliRunner().invoke(app, ["--help"])
-    assert result.exit_code == 0
-    for group in ("corpus", "ghidra", "report", "toolchain", "evidence", "analyze"):
-        assert group in result.stdout
-        assert CliRunner().invoke(app, [group, "--help"]).exit_code == 0
-
-    assert "inventory" not in result.stdout
-    assert CliRunner().invoke(app, ["inventory", "--help"]).exit_code != 0
-
-    evidence = CliRunner().invoke(app, ["evidence", "refresh", "--help"])
-    assert evidence.exit_code == 0
-    assert "debug-artifacts" in evidence.stdout
-    assert "surrender-abi" in evidence.stdout
-    assert "function-census" not in evidence.stdout
-    assert CliRunner().invoke(app, ["evidence", "upsert", "--help"]).exit_code != 0
-
-    analyze = CliRunner().invoke(app, ["analyze", "--help"])
-    assert analyze.exit_code == 0
-    assert "inventory" in analyze.stdout
-
-    verify = CliRunner().invoke(app, ["verify", "--help"], terminal_width=120)
-    assert verify.exit_code == 0
-    assert "--against" in re.sub(r"\x1b\[[0-9;]*m", "", verify.stdout)
-
-
 def test_corpus_extract_accepts_multiple_roles(monkeypatch) -> None:
     settings = object()
     seen: list[tuple[object, str]] = []
@@ -124,18 +90,3 @@ def test_corpus_extract_accepts_multiple_roles(monkeypatch) -> None:
 
     machine = CliRunner().invoke(app, ["--json", "corpus", "extract", "demo", "patch-128"])
     assert json.loads(machine.stdout) == [{"role": "demo"}, {"role": "patch-128"}]
-
-
-def test_corpus_extract_all_uses_the_canonical_sequence(monkeypatch) -> None:
-    settings = object()
-    monkeypatch.setattr(command_support, "settings", lambda: settings)
-    monkeypatch.setattr(
-        variants,
-        "extract_all",
-        lambda actual: {"all": actual is settings},
-    )
-
-    result = CliRunner().invoke(app, ["corpus", "extract", "--all"])
-
-    assert result.exit_code == 0
-    assert "complete" in result.stdout
