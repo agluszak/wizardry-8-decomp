@@ -3,7 +3,7 @@
 
 #include "wiz8/layouts/gameplay_databases.h"
 
-typedef struct W8MessageBoxLine {
+struct W8MessageBoxLine {
     int unknown_00;                       /* initialized to -1 */
     int unknown_04;
     int unknown_08;
@@ -13,7 +13,7 @@ typedef struct W8MessageBoxLine {
     int unknown_18;
     void* extra;                          /* 0x1c: caller-owned payload */
     int sequence;                         /* 0x20: running global counter */
-} W8MessageBoxLine;                       /* 0x24 */
+};                                      /* 0x24 */
 
 extern "C" {
 
