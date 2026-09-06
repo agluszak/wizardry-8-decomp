@@ -2,7 +2,6 @@
 #include "wiz8/render_state.h"
 #include "wiz8/utility.h"
 #include "surrender/srNode.h"
-#include "wiz8/cursor.h"
 
 extern "C" {
 extern unsigned char g_flag_603c60;
@@ -114,18 +113,5 @@ void __fastcall ReleaseOwnedClass(srClass** owner)
 {
     if (*owner) {
         (*owner)->release();
-    }
-}
-
-/* Fill a caller-supplied point with the sum of the two global pairs, after the
-   refresh that recomputes them. Fifty callers reach this; what the two pairs
-   mean is not established beyond the sum, so both keep address-qualified names. */
-// FUNCTION: WIZ8 0x004284f0
-void GetScreenPoint004284F0(W8ScreenPoint* point)
-{
-    if (point != 0) {
-        Function00428340();
-        point->x = g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0;
-        point->y = g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4;
     }
 }

@@ -15,3 +15,4 @@ void RedrawPanel69B998(void);
 void CloseUseItemSelection0059D950(void);
 int GetSelectedOrFallbackValue0059E0D0(void);
 void SelectCurrentUseItemLine0059E0E0(void);
+void SetValue69B9A4(int value);

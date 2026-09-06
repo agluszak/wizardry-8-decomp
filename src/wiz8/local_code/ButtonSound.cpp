@@ -4,8 +4,11 @@
    original top name and the SCHEME_STACK_SIZE spelling; the body establishes
    the 32-entry capacity and pre-increment push convention. */
 extern "C" {
+// GLOBAL: WIZ8 0x0062A498
 int g_button_sound_scheme_stack_62a498[32];
+// GLOBAL: WIZ8 0x0062A518
 int g_value_62a518;
+// GLOBAL: WIZ8 0x0068DE38
 int g_button_sound_scheme_stack_top_68de38;
 }
 
@@ -22,4 +25,10 @@ void PushButtonSoundScheme005587C0(int scheme, char replace_current)
     }
     ++g_button_sound_scheme_stack_top_68de38;
     g_button_sound_scheme_stack_62a498[g_button_sound_scheme_stack_top_68de38] = scheme;
+}
+
+// FUNCTION: WIZ8 0x00558810
+void ResetValue62A518(void)
+{
+    g_value_62a518 = -1;
 }

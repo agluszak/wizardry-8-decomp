@@ -46,3 +46,9 @@ void SelectCurrentUseItemLine0059E0E0(void)
 {
     SelectUseItemLine0059DDC0(g_selected_use_item_line_0069b95c);
 }
+
+// FUNCTION: WIZ8 0x0059E1E0
+void SetValue69B9A4(int value)
+{
+    g_value_69b9a4 = value;
+}

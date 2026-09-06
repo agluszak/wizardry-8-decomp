@@ -1,4 +1,6 @@
 #include "wiz8/utility.h"
+#include "wiz8/cursor.h"
+#include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/regions.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/dirty_tiles.h"
@@ -18,8 +20,6 @@ unsigned char GetTable647CCCEntry(char index)
 {
     return g_table_647ccc[index];
 }
-
-void GetScreenPoint004284F0(W8ScreenPoint* point);
 
 /* Forward the four mouse-button event kinds through SGP's owned mouse-system
    hook at the current game-space cursor position. Keyboard and motion events
@@ -48,7 +48,6 @@ unsigned int Function568950(const InputAtom* input)
 
 extern unsigned char g_flag_006840bd;
 extern "C" unsigned char g_flag_6840bc;
-extern void DisableRegionSet1C(void);
 extern float Function420B40(int value);
 extern void Function482990(unsigned char enabled);
 extern void MonsterForward453160(void);
