@@ -56,13 +56,13 @@ existing check that can detect the relevant failure:
 - Class layout, inheritance, virtual, or lifecycle changes: focused affected ABI bundle, relevant
   `just vtable` checks, and declaration/ABI checks.
 - Build system or shared validation machinery: broad checks appropriate to that machinery.
-- Integration: `just verify` once, plus focused comparisons it does not provide. Do not separately
-  repeat its constituent checks.
+- Repository-wide audit: `just verify` when that broad scope is deliberately requested or the change
+  affects shared validation machinery; it is not a publication prerequisite.
 
 A completed check remains sufficient until a relevant source, dependency, configuration, toolchain,
-or analysis input changes. Reuse a recovery command's result when it covers the retained source and
-current inputs. Do not repeat a check merely because you are committing, handing off, or moving a
-bookmark.
+analysis input, incoming rebase change, or conflict resolution changes what it covered. Reuse a
+recovery command's result when it covers the retained source and current inputs. A new change ID,
+description edit, bookmark move, or successful push does not require retesting.
 
 For a local recovery task, stop when the affected functions or ABI bundle meet the task's acceptance
 criteria. Exact/effective does not require an independent reconstruction of the same evidence. For a
@@ -104,13 +104,22 @@ file-only invocation.
 
 ## Workspace and publication
 
-- Use the provided checkout. Do not create another worktree, Jujutsu workspace, clone, or baseline
-  checkout unless explicitly requested. If multiple checkouts already exist, each needs a unique
-  absolute `WIZ8_WORK_DIR`; never share, copy, or hardlink a live Ghidra project.
-- Use supported `bd` commands. Claim a concrete Bead before substantial work. Record accepted facts,
-  consequential rejected hypotheses, and unresolved blockers; batch related experiments into one
-  concise note. Include reproduction detail only for non-obvious conclusions.
-- Use Jujutsu, not raw Git. Start from integrated `main` on `agent/<bead>-<topic>`. Keep the coherent task stack there; never move global `main` to unfinished work.
-- Rebase when upstream evidence is needed and once immediately before integration. Rerun only checks
-  invalidated by the rebase.
-- Publication commands are in `docs/contributor-workflow.md`. A requested PR uses that workflow. Direct `main` publication requires explicit authorization and post-push proof that local `main` equals `main@origin` with an empty tree diff.
+- Use Jujutsu in the provided checkout. Resume the current task change when appropriate. Never create
+  a worktree, workspace, clone, sibling, or baseline checkout unless explicitly requested. Preserve
+  unrelated work. Existing additional checkouts need unique absolute `WIZ8_WORK_DIR` values; never
+  share, copy, or hardlink a live Ghidra project.
+- Keep one mutable change per coherent task by default. Bookmarks are optional until publication.
+  Keep unfinished work off `main`. Only one agent may change repository state in a shared checkout;
+  other agents must not independently switch, rebase, or publish it.
+- Use `main@origin` as the upstream base. Fetch and rebase when upstream work is needed or immediately
+  before authorized direct integration, not repeatedly during implementation.
+- Claim a concrete Bead before substantial work and update it at meaningful task boundaries. Record
+  accepted facts, consequential rejected hypotheses, and unresolved blockers without attaching
+  bookkeeping to every VCS operation.
+- Review the change and run relevant checks. Reuse valid results. Do not run broad verification or
+  reproduce unrelated baseline failures as a publication ritual; investigate failures relevant to
+  the change and report uncertainty when no sound baseline exists.
+- Publish once within the user's authorization. Move `main` only for completed authorized direct
+  integration. Never rewrite remote `main` or discard another contributor's changes. A successful
+  push completes publication; investigate an actual rejection instead of running routine post-push
+  proofs. The ordinary commands are in `docs/contributor-workflow.md`.
