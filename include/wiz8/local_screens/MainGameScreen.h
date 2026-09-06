@@ -61,4 +61,5 @@ static_assert(sizeof(W8LevelRuntimeBlock) == 0x328,
 
 extern "C" {
 extern W8LevelRuntimeBlock* g_level_block;
+extern unsigned char* g_main_game_screen_0068f2d4;
 }

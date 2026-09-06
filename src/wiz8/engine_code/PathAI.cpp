@@ -1,5 +1,5 @@
 #include "wiz8/engine_code/PathAI.h"
-#include "wiz8/engine_code/Emitter.h"
+#include "wiz8/engine_code/AnimRep.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/sr_api.h"

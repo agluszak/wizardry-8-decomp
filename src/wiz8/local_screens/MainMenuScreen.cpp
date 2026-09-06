@@ -74,7 +74,6 @@ extern unsigned char SetValue5FF5F0(int font);
 extern void Function406DC0(int font, unsigned short* palette);
 extern void GetScreenPoint004284F0(W8ScreenPoint* point);
 extern unsigned int Function4F1360(int x, int y);
-extern unsigned char DispatchScreenInput004F1910(const void* event);
 extern unsigned char Function5A1140(const InputAtom* input);
 extern void Function518B30(void);
 extern void Function5189B0(void);

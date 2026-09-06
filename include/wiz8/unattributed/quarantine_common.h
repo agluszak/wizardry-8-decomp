@@ -244,11 +244,6 @@ extern unsigned char g_flag_69c808;
 extern unsigned char g_flag_69da6c;
 }
 
-extern Controls* g_panel_69b940;
-extern Controls* g_panel_69b998;
-extern Controls* g_panel_69bf4c;
-extern Controls* g_panel_69bf40;
-extern W8TextControl005ED604* g_portrait_controls_0069b920[8];
 
 
 
@@ -268,7 +263,6 @@ extern W8TextControl005ED604* g_portrait_controls_0069b920[8];
 extern "C" {
 extern int g_value_68f2b0;
 extern int g_value_68f2c4;
-extern int g_value_69b988;
 extern unsigned long g_value_64d8ac;
 extern unsigned int g_region_set_69c528;
 /* Dword-wide despite reading like a flag: the load is `mov eax`, not a byte
@@ -280,8 +274,6 @@ extern unsigned char g_table_647ccc[128];
    subscript the inner one. */
 extern unsigned char g_table_650434[][8];
 extern int g_value_69da68;
-extern int g_value_69b9a4;
-extern int g_value_69b9a0;
 extern int g_value_62a518;
 extern int g_value_69c1cc;
 extern int g_screen_transition_object_count_654aac;
@@ -300,7 +292,6 @@ extern unsigned char g_flag_603c4c;
 extern int g_value_659668;
 extern int g_value_652db0;
 extern int g_value_60dfac;
-extern int g_value_6834d4;
 extern int g_value_689fac;
 extern unsigned char g_flag_68c4f4;
 extern unsigned char g_flag_68c4f7;

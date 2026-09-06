@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wiz8/engine_code/Emitter.h"
+#include "wiz8/engine_code/AnimRep.h"
 #include "wiz8/engine_code/GrObject.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/vector.h"

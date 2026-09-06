@@ -2,7 +2,7 @@
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/stTextureAnim.h"
 #include "wiz8/float_constants.h"
-#include "wiz8/mesh_model.h"
+#include "wiz8/engine_code/stMeshModel.h"
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
 #include "surrender/srMaterial.h"

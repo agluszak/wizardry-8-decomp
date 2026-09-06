@@ -747,8 +747,6 @@ enum { W8_SAVE_TAG_CHAR = 0x52414843, W8_SAVE_TAG_LVLS = 0x534c564c };
 
 extern unsigned char g_save_pending_00689f98;
 extern unsigned char g_save_notice_shown_0068506b;
-extern void ShowNotice(int channel, void* notice, int a, int b, int c);  /* 0x0058AC00 */
-
 /* 0x0061A144, the save-file extension. It sits in writable .data with 16
    reference sites across 10 functions rather than in .rdata with the format
    literals, so it is a variable the game can repoint rather than a constant;

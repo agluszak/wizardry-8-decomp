@@ -8,7 +8,7 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/local_code/MonsterManager.h"
-#include "wiz8/mesh_model.h"
+#include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "wiz8/virtual_file.h"

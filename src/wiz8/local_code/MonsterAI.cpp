@@ -1,4 +1,5 @@
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/magic.h"
 #include "wiz8/spell_effect.h"

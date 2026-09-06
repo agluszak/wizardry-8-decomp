@@ -7,6 +7,7 @@
 #include "wiz8/fact_state.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/music_playlist.h"
+#include "wiz8/notices.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/utility.h"
@@ -88,7 +89,6 @@ extern void Function426790(void);
 extern void Function512C40(void);
 extern void Function5092F0(int* level, int* entrance);
 extern void Function5063E0(void);
-extern void Function58AC00(int channel, const wchar_t* text, int a, int b, int c);
 extern unsigned char Function42AF60(int level, int entrance);
 extern void Function5159E0(int value);
 extern int Function55EC10(void);
@@ -338,7 +338,7 @@ void PleaseWaitScreenFrame(void)
     case 2: {
         unsigned char saved = SaveGame(g_load_descriptor_69b7c8->name,
                                        g_load_descriptor_69b7c8->save_payload);
-        Function58AC00(0xc,
+        ShowNotice(0xc,
                        saved ? gppStringList[0x1bd0 / 4] : gppStringList[0x1bd8 / 4],
                        -1, -1, 0);
         if (g_load_descriptor_69b7c8->save_payload) {

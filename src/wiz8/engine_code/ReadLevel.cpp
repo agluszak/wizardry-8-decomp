@@ -32,7 +32,7 @@
 #include "wiz8/virtual_file.h"
 #include "wiz8/float_constants.h"
 #include "surrender/srScene.h"
-#include "wiz8/mesh_model.h"
+#include "wiz8/engine_code/stMeshModel.h"
 
 #define READ_LEVEL_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\ReadLevel.cpp"
 

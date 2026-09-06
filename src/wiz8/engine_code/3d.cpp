@@ -3,7 +3,7 @@
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/stLight.h"
-#include "wiz8/mesh_model.h"
+#include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srScene.h"
 

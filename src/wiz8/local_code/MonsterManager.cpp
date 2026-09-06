@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/World.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/local_code/MonsterManager.h"
@@ -163,8 +164,6 @@ void Function509EA0(int value);
 void Function508D70(unsigned int monster_list_index);
 void Function4F8CB0(W8MonsterInfo* monster_info, int value);
 void Function4C5ED0(W8Monster* monster);
-void __cdecl Function58AC00(int channel, void* message, int first, int second,
-                            int flag);
 void RequestRedraw(int mask);
 unsigned char Function531920(W8MonsterGroup* monster_group);
 W8CombatActor* NextEngagedCharacter(int restart);
@@ -1504,7 +1503,7 @@ void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info)
 // FUNCTION: WIZ8 0x004e6c10
 void TogglePartyCombatStance(void)
 {
-    void* message;
+    const wchar_t* message;
 
     if (g_status_685170.game_started == 0) {
         g_flag_6850d2 = (g_flag_6850d2 == 0);
@@ -1531,7 +1530,7 @@ void TogglePartyCombatStance(void)
         }
         message = gppStringList[W8_NOTICE_COMBAT_STANCE_READY];
     }
-    Function58AC00(0xc, message, -1, -1, 0);
+    ShowNotice(0xc, message, -1, -1, 0);
     if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME) {
         RequestRedraw(0x80000);
     }
@@ -1556,7 +1555,7 @@ void ToggleCombatMode(void)
     }
     if (g_dword_683fa5 != 0 || g_combat_state->flag_a54 != 0) {
         if (g_combat_state->value_004 != 0) {
-            Function58AC00(
+            ShowNotice(
                 0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END], -1, -1, 0);
             return;
         }
@@ -1566,7 +1565,7 @@ void ToggleCombatMode(void)
             monster_group = GetMonsterGroupByListIndex(group_list_index);
             if (monster_group->flag_28 != 0 && monster_group->flag_29 != 0 &&
                 Function531920(monster_group) != 0) {
-                Function58AC00(
+                ShowNotice(
                     0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END], -1, -1, 0);
                 return;
             }
@@ -1577,18 +1576,18 @@ void ToggleCombatMode(void)
         if ((character == g_combat_state->engaged_actor ||
              g_character_class_records[character->class_record_index].flag_154 != 0) &&
             Function4A5790() != 0) {
-            Function58AC00(
+            ShowNotice(
                 0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END_ENGAGED], -1, -1, 0);
             return;
         }
     }
     if (g_combat_state->flag_000 != 0) {
-        Function58AC00(
+        ShowNotice(
             0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END_PENDING], -1, -1, 1);
         return;
     }
     EndCombat(0);
-    Function58AC00(0xc, gppStringList[W8_NOTICE_COMBAT_ENDED], -1, -1, 0);
+    ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_ENDED], -1, -1, 0);
     if (g_level_block->combat_end_notification != -1) {
         Function595570();
     }

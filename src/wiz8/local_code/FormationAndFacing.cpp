@@ -1,6 +1,8 @@
 #include "wiz8/local_code/Strings.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
+#include "wiz8/notices.h"
 #include "wiz8/utility.h"
 #include "surrender/srMath.h"
 
@@ -60,7 +62,6 @@ extern signed char DecideFacingForPosition(int position, int arg_2);  /* 0x00555
 extern void Function5B1C80(void);
 extern void Function5A24A0(void);
 extern void Function5B1E70(void);
-extern void Function58AC00(int channel, void* notice, int a, int b, int c);
 extern unsigned int GetCameraHeading(void);                 /* 0x00421550 */
 extern unsigned int SetCameraHeading(float degrees);        /* 0x00421000 */
 extern void SnapCameraHeading(float degrees);               /* 0x00420FD0 */
@@ -125,7 +126,7 @@ void RestoreCombatFormation(void)
         }
         Function5B1C80();
         Function5A24A0();
-        Function58AC00(8, gppStringList[0x92c / 4], 0, -1, 0);
+        ShowNotice(8, gppStringList[0x92c / 4], 0, -1, 0);
     }
 }
 

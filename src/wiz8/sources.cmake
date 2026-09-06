@@ -178,7 +178,7 @@ set(WIZ8_PROVISIONAL_SUFFIX_UNITS
     src/wiz8/record_file_0055a480.cpp
     src/wiz8/spell_backfire.cpp
     src/wiz8/state_getters.cpp
-    src/wiz8/vector_conversions.cpp
+    src/wiz8/surrender_math.cpp
     src/wiz8/virtual_file_stream.cpp
     src/wiz8/vc6_runtime.cpp
 )

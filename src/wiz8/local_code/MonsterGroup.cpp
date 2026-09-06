@@ -1,4 +1,5 @@
 #include "wiz8/factions.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/character.h"

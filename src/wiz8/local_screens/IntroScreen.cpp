@@ -26,7 +26,6 @@ extern void PrepareVideoPlayback0048FF00(int value);
 extern unsigned char ClearFlag603C60(void);
 extern IDirectDrawSurface2* GetPrimaryRenderTarget00423390(void);
 extern void FinishVideoPresentation004234A0(void);
-extern unsigned char DispatchScreenInput004F1910(const void* event);
 extern int GetActiveScreenState0055EC10(void);
 extern void SetPendingScreenState(int state);
 extern void RequestScreenTransition(void);

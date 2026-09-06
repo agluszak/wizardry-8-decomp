@@ -2,7 +2,8 @@
 #define WIZ8_LAYOUTS_GAMEPLAY_DATABASES_H
 
 #include "wiz8/3d_code/PList.h"
-#include "wiz8/xstatus.h"
+#include "wiz8/dice.h"
+#include "wiz8/text_types.h"
 
 /*
  * The on-disk gameplay records, as the matching source compiles them.
@@ -12,8 +13,6 @@
  * to a record index and fixed stride, so the sizes are part of the format
  * rather than incidental layout.
  */
-
-typedef unsigned short W8WideChar;
 
 #pragma pack(push, 1)
 
@@ -35,12 +34,6 @@ typedef struct W8MonsterAttack {
     signed char missile_type;            /* 0x1d */
     unsigned char unknown_1e[4];
 } W8MonsterAttack;                      /* 0x22 */
-
-typedef struct W8Dice {
-    short base;
-    unsigned char count;
-    unsigned char sides;
-} W8Dice;
 
 typedef enum W8SpellRealm {
     W8_SPELL_REALM_FIRE = 0,

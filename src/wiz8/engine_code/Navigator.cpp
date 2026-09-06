@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/Navigator.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/float_constants.h"
 
 #include "surrender/srNode.h"

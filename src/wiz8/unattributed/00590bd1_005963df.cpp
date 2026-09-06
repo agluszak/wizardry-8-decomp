@@ -29,11 +29,6 @@ extern void UpdateHeldItemCursor(void);
 extern void Function422B10(void);
 extern void Function422F10(void);
 extern void Function426790(void);
-/* 0x004F1910, the region manager's own dispatch for one dequeued input atom. It
-   reports whether it consumed the atom, so a screen loop can fall through to its
-   own key handling. IntroScreen.cpp owns this spelling. */
-extern unsigned char DispatchScreenInput004F1910(const void* event);
-
 }
 
 // FUNCTION: WIZ8 0x00593320

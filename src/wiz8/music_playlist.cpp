@@ -1,4 +1,5 @@
 #include "wiz8/combat_state.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/engine_code/stScript.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/music_playlist.h"

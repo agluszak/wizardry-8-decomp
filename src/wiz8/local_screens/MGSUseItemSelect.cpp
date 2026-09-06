@@ -1,4 +1,6 @@
-#include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/game_status.h"
+#include "wiz8/local_code/Controls.h"
+#include "wiz8/local_screens/MGSUseItemSelect.h"
 
 extern void Function0059CAC0(void);
 extern void ClearTargetingMode0053B050(int party_slot);

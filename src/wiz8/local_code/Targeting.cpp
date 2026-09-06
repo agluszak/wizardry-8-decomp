@@ -1,4 +1,5 @@
 #include "wiz8/float_constants.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/local_code/GameplayDatabase.h"

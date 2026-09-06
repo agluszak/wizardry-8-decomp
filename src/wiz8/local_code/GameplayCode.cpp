@@ -1,4 +1,5 @@
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/sr_api.h"

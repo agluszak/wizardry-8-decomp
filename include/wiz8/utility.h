@@ -1,7 +1,9 @@
 #ifndef WIZ8_UTILITY_H
 #define WIZ8_UTILITY_H
 
-#include "wiz8/layouts/gameplay_databases.h"
+#include <wchar.h>
+
+#include "wiz8/dice.h"
 
 /* Local Code\UtilityFunctions.cpp. These signed screen-space shapes are
    distinct from W8ControlsRect even though the current layouts coincide. */

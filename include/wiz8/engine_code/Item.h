@@ -2,7 +2,7 @@
 
 #include "surrender/srMath.h"
 #include "surrender/srNode.h"
-#include "wiz8/engine_code/Emitter.h"
+#include "wiz8/engine_code/AnimRep.h"
 #include "wiz8/engine_code/GrObject.h"
 
 struct W8World;

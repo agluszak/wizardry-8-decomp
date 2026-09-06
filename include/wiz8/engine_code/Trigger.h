@@ -2,8 +2,8 @@
 
 #include "surrender/srMath.h"
 #include "surrender/srTypeRegistry.h"
+#include "wiz8/dice.h"
 #include "wiz8/engine_code/game_timer.h"
-#include "wiz8/layouts/gameplay_databases.h"
 
 class W8Prop;
 class Trigger;

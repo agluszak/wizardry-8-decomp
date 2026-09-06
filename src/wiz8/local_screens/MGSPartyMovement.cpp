@@ -1,4 +1,5 @@
-#include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/local_code/Controls.h"
+#include "wiz8/local_screens/MGSPartyMovement.h"
 
 // GLOBAL: WIZ8 0x0069BF40
 Controls* g_panel_69bf40;

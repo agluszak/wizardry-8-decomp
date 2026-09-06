@@ -1,4 +1,5 @@
 #include "wiz8/local_screens/OptionsScreen.h"
+#include "wiz8/xstatus.h"
 
 #include "wiz8/combat_state.h"
 #include "wiz8/game_status.h"
@@ -9,6 +10,7 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/geometry.h"
 #include "wiz8/music_playlist.h"
+#include "wiz8/regions.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
@@ -37,7 +39,6 @@ void GetScreenPoint004284F0(W8ScreenPoint* point);
 void Function40B510(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
 unsigned int Function4F1360(int x, int y);
-unsigned char DispatchScreenInput004F1910(const void* event);
 void RequestScreenTransition(void);
 void Function426790(void);
 void Function427230(int enabled);

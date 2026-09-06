@@ -3,16 +3,15 @@
 /* The open-chained hash table used by the octree builders. Entries double as
    the free list: next_index links a bucket chain while live and the next
    unused slot while free. */
-inline unsigned int W8HashValue(unsigned short key)
+inline unsigned int W8HashValue(unsigned int key)
 {
     unsigned int mixed = (key >> 10) ^ key;
     return (mixed >> 10) ^ mixed;
 }
 
-inline unsigned int W8HashValue(unsigned int key)
+inline unsigned int W8HashValue(unsigned short key)
 {
-    unsigned int mixed = (key >> 10) ^ key;
-    return (mixed >> 10) ^ mixed;
+    return W8HashValue(static_cast<unsigned int>(key));
 }
 
 template <class Key, class Value>

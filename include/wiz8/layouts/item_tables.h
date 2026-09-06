@@ -1,7 +1,8 @@
 #ifndef WIZ8_LAYOUTS_ITEM_TABLES_H
 #define WIZ8_LAYOUTS_ITEM_TABLES_H
 
-#include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/dice.h"
+#include "wiz8/text_types.h"
 
 #pragma pack(push, 1)
 

@@ -10,6 +10,7 @@
 #include "wiz8/magic.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/monster_runtime.h"
+#include "wiz8/notices.h"
 #include "wiz8/targeting.h"
 #include "wiz8/utility.h"
 #include "wiz8/fact_state.h"
@@ -255,7 +256,6 @@ int W8ItemVideoObjectVector::GetOrCreateVideoObject(int item_id)
 }
 
 extern void DropHeldItem(int arg_1);                         /* 0x004F7610 */
-extern void ShowNotice(void* notice, int a, int b, int c);   /* 0x0055F260 */
 extern "C" void ClearHeldItemDisplay(void);                  /* 0x0055F1E0 */
 extern void MoveItem(W8ItemInstance* to, W8ItemInstance* from, int arg_3, int arg_4);
 /* 0x0051FE30 */
@@ -264,7 +264,6 @@ extern unsigned char CanCharacterActivateItem(
 extern void AddPartyGoldNotice(int channel, const wchar_t* notice, ...);
 extern int Function40A910(const char* path);
 extern void PlaySound(const char* path, int flags);
-extern void Function58AC00(int channel, void* message);
 extern signed char GetFactionDispositionScore(signed char faction);
 extern unsigned char Function50B8F0(int npc_id);
 extern void Function52E690(
@@ -944,7 +943,7 @@ W8WideChar* GetItemDisplayName(const W8ItemInstance* item)
 bool DropItemInHand(int arg_1)
 {
     if ((g_item_records[g_status_685170.item_in_hand_235b.item_id].flags_041 & W8_ITEM_FLAG_NO_DISCARD) != 0) {
-        ShowNotice(gppStringList[0x13bc / 4], 0, 1, 0);
+        ShowNoticeLine(gppStringList[0x13bc / 4], 0, 1, 0);
         return false;
     }
     DropHeldItem(arg_1);
@@ -1063,7 +1062,7 @@ void AddPartyGold(int amount, char announce)
         line = FormatWideString((const wchar_t*)gppStringList[0x788 / 4],
                                 gppStringList[0x57c / 4], amount, gppStringList[0x580 / 4],
                                 -1, -1, 0);
-        Function58AC00(8, line);
+        ShowNotice(8, line);
         if (!Function40A910(sound_path)) {
             PlaySound(sound_path, 0);
         }
@@ -1358,8 +1357,6 @@ enum { W8_SKILL_IDENTIFY = 0x14 };
 extern void PracticeCharacterSkill(W8Character* character, int skill, int amount, int arg_4);
 extern void RemoveCharacterItem(int party_slot, W8ItemInstance* item, int arg_3);
 extern void BindCharacterItems(int party_slot, int arg_2);              /* 0x0051D2C0 */
-extern void ShowNotice(int channel, void* notice, int a, int b, int c);
-
 /* The most of one item a character can hold at once: the record's own quantity
    dice taken at their maximum. */
 static int MaximumQuantity(int item_id)

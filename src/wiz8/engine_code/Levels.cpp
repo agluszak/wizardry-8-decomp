@@ -1,4 +1,5 @@
 #include <cmath>
+#include "wiz8/xstatus.h"
 #include <cstdio>
 #include <cstring>
 

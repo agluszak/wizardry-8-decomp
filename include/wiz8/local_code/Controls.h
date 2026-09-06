@@ -332,10 +332,7 @@ struct Controls {
        the guard shows up once per use rather than once per loop. */
     __inline W8WidgetBase005ED5BC* ControlAt(int index)
     {
-        if (index < m_controls.count) {
-            return m_controls.data[index];
-        }
-        return m_controls.data[0];
+        return *m_controls.GetAt(index);
     }
 };
 

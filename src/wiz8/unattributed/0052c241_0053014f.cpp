@@ -1,4 +1,5 @@
 #include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/screen_state.h"

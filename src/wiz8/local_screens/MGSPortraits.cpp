@@ -1,5 +1,9 @@
-#include "wiz8/unattributed/quarantine_common.h"
 #include "wiz8/character.h"
+#include "wiz8/game_status.h"
+#include "wiz8/local_code/Controls.h"
+#include "wiz8/regions.h"
+
+extern Controls* g_panel_69b940;
 
 // GLOBAL: WIZ8 0x0069B920
 W8TextControl005ED604* g_portrait_controls_0069b920[8];

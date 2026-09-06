@@ -25,7 +25,7 @@
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/magic.h"
-#include "wiz8/mesh_model.h"
+#include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/npc_item_lists.h"
 #include "wiz8/sr_api.h"

@@ -5,7 +5,9 @@
 /* Local Screens\MGSTextBox.cpp owns the four message runs at 0x0068F2D8. */
 struct W8MessageStorageRecord {
     void* allocation_00;
-    unsigned char unknown_04[0x14];
+    unsigned char unknown_04[4];
+    int clock_08;
+    unsigned char unknown_0c[0x0c];
     W8PList* entries_18;
     unsigned char unknown_1c[8];
 };

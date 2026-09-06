@@ -1,4 +1,5 @@
 #include "wiz8/local_code/Strings.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/game_status.h"
@@ -9,6 +10,7 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/spell_effect.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/notices.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "random.h"
@@ -859,7 +861,6 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
 }
 
 extern int Function52A540(W8Character* character);                       /* 0x0052A540 */
-extern void ShowNoticeLine(const wchar_t* line, int a, int b, int c);    /* 0x0055F260 */
 /* 0x0068C09C: the loaded message table, one wide string per entry. Bodies
    name entries by their byte offset into it, which is why the index is
    spelled as one. */

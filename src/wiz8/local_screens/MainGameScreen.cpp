@@ -1,5 +1,6 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/notices.h"
 #include "wiz8/regions.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/xstatus.h"
@@ -183,10 +184,8 @@ extern void Function58A790(int arg_1);
 extern void Function59F2B0(void);
 extern void Function59CAC0(void);
 extern void Function5B2200(void);
-extern unsigned int DispatchScreenInput004F1910(const void* event);
 extern void Function558810(void);
 extern void Function558720(int arg_1);
-extern void ShowNotice(int channel, const void* text, int a, int b, int c);
 
 /* Whether the screen is idle - none of the six overlays is up. The same six
    flags the input block reads, but all of them and unconditionally. */
@@ -277,7 +276,7 @@ void UpdateScreenOverlays(int frame)
    against two runs of region numbers at once - one starting at 0x24 six apart
    and one at 0x5a one apart - and only two event kinds are answered. */
 // FUNCTION: WIZ8 0x00569c00
-unsigned int HitTestPartyPortrait(const void* event)
+unsigned int HitTestPartyPortrait(const InputAtom* event)
 {
     unsigned int region = 0x24;
     int slot = 0;

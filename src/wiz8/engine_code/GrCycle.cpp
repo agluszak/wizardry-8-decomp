@@ -6,7 +6,7 @@
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/ground_shadow.h"
-#include "wiz8/mesh_model.h"
+#include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/engine_code/Monster.h"

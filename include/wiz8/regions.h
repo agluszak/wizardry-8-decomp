@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "input.h"
+
 typedef struct W8RegionSet {
     unsigned int enabled;
     unsigned int first_region;
@@ -86,6 +88,8 @@ void EnableRegionHelp(unsigned int region_index);
 void DisableRegionHelp(unsigned int region_index);
 unsigned char ClearActiveRegionIfMatches(unsigned int region_index);
 void ActivateDialogRegion(unsigned int region_index); /* 0x004F2040 */
+/* 0x004F1910 returns the byte produced by the selected region callback. */
+unsigned char DispatchScreenInput004F1910(const InputAtom* event);
 
 }
 

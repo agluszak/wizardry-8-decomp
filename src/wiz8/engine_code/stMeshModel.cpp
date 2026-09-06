@@ -1,4 +1,4 @@
-#include "wiz8/mesh_model.h"
+#include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"

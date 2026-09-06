@@ -1,4 +1,5 @@
 #include "wiz8/startup_runtime_state.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/layouts/item_tables.h"

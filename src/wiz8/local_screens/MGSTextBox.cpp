@@ -1,7 +1,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MainGameScreen.h"
-#include "wiz8/ui_state.h"
+#include "wiz8/notices.h"
 #include "wiz8/xstatus.h"
 #include "timer.h"
 #include "wiz8/local_code/Controls.h"
@@ -166,12 +166,8 @@ void RedrawTextBoxComplete(void)
     (*(Controls**)(screen + 0x14))->Invalidate(0);
 }
 
-/* 0x0068F2E0: one clock per message, nine dwords apart, in per-line runs of
-   0x15e. */
-extern int g_message_clocks[];
 extern void Function558810(void);
 extern void Function558720(int arg_1);
-extern void ShowNotice(int channel, const void* text, int a, int b, int c);
 
 /* The last message on the current line whose clock has stopped, searched from
    the newest backwards - so the first one found is the most recent finished
@@ -186,7 +182,7 @@ int FindStoppedTextLine(void)
     }
     while (--index >= 0) {
         if (ClockIsTicking(
-                g_message_clocks[(index + g_text_line_cursor_00686905 * 0x15e) * 9]) == 0) {
+                g_message_storage_68f2d8[g_text_line_cursor_00686905][index].clock_08) == 0) {
             return index;
         }
     }

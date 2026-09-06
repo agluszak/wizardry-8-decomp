@@ -6,7 +6,7 @@
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/item_spawning.h"
-#include "wiz8/mesh_model.h"
+#include "wiz8/engine_code/stMeshModel.h"
 
 #include "surrender/srHeap.h"
 #include "surrender/srModelInstance.h"

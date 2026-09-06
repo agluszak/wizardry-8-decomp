@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/World.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/engine_code/GDCamera.h"
 
 #include "surrender/srNode.h"

@@ -1,5 +1,7 @@
 #include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/notices.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/float_constants.h"
@@ -29,7 +31,6 @@ extern void Function5A1E90(void);
 extern void Function41F0D0(void);
 extern void Function5354E0(void);
 extern void Function4F06B0(void);
-extern void ShowNotice(int channel, void* notice, int a, int b, int c);  /* 0x0058AC00 */
 extern unsigned char GetLevelDataFlag6(void);                            /* 0x0041F140 */
 extern void NotifyNearbyMonsters(int what);                              /* 0x004ECAA0 */
 extern void RefreshOutwardSightForAllMonsters(void);                     /* 0x00505780 */
