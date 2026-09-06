@@ -92,7 +92,26 @@ def _recover_image(
         shutil.copy2(executable, fixture)
         shutil.copy2(pdb, temporary / pdb.name)
         source_index = temporary / "source-index.json"
-        source_index.write_text('{"markers": []}\n', encoding="utf-8")
+        source_index.write_text(
+            json.dumps(
+                {
+                    "markers": [],
+                    "declarations": [
+                        {
+                            "semantic_id": "?destroy_and_free@@YAXPAVBase@@@Z",
+                            "qualified_name": "destroy_and_free",
+                            "semantic_kind": "free_function",
+                            "parameter_types": ["Base *"],
+                            "source_file": "src/wiz8/recovery-fixture/lifecycle.cpp",
+                            "source_signature": "void destroy_and_free(Base * value)",
+                            "line": 71,
+                        }
+                    ],
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
         result_path = temporary / "result.json"
         (temporary / "project").mkdir()
         subprocesses.run(
@@ -238,6 +257,11 @@ def verify_lifecycle_fixture(settings: Settings) -> dict[str, Any]:
     ]
     if len(destroy) != 1:
         raise RuntimeError("destroy_and_free was not retained as one authored body")
+    candidates = destroy[0].get("source_candidates", [])
+    if [candidate.get("semantic_id") for candidate in candidates] != [
+        "?destroy_and_free@@YAXPAVBase@@@Z"
+    ]:
+        raise RuntimeError("unmarked destroy_and_free declaration was not exposed as a candidate")
     virtual_constructors = [
         item
         for item in exports
@@ -283,6 +307,7 @@ def verify_lifecycle_fixture(settings: Settings) -> dict[str, Any]:
         "extracted_wrapper_bodies": sorted(extracted_wrappers),
         "unavailable_extractions": sorted(unavailable_extractions),
         "destroy_and_free": "authored_body",
+        "unmarked_source_candidate": "destroy_and_free",
         "unique_lifecycle_definitions": True,
         "round_trip": {
             "grafted_entities": grafted,

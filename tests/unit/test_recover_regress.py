@@ -50,6 +50,16 @@ def test_recover_candidates_preserves_source_and_writes_each_candidate(
                 {
                     "entry": "0x00401000",
                     "generated_code": "void candidate() {}\n",
+                    "source_candidates": [
+                        {
+                            "semantic_id": "?candidate@@YAXXZ",
+                            "qualified_name": "candidate",
+                            "source_signature": "void candidate()",
+                            "source_file": "unit.cpp",
+                            "line": 2,
+                            "evidence": "exact qualified name and parameter count",
+                        }
+                    ],
                     "recovery": {"passes": [], "defects": []},
                 }
             ]
@@ -65,6 +75,7 @@ def test_recover_candidates_preserves_source_and_writes_each_candidate(
 
     assert source.read_text(encoding="utf-8") == "int existing;\n"
     assert result["functions"][0]["candidate"] == "build/recover/candidates/00401000.cpp"
+    assert result["functions"][0]["source_candidates"][0]["semantic_id"] == ("?candidate@@YAXXZ")
     assert (tmp_path / result["functions"][0]["candidate"]).read_text(encoding="utf-8") == (
         "void candidate() {}\n"
     )

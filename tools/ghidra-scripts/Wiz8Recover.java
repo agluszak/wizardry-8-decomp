@@ -24,7 +24,9 @@ import ghidra.program.model.address.AddressSet;
 import ghidra.program.model.listing.Function;
 import wiz8.recovery.RecoveryEngine;
 import wiz8.recovery.RecoverySourceIndex;
+import wiz8.recovery.SourceCandidate;
 import wiz8.recovery.SourceHints;
+import wiz8.recovery.SourceKind;
 
 public class Wiz8Recover extends GhidraScript {
 	@Override
@@ -35,7 +37,7 @@ public class Wiz8Recover extends GhidraScript {
 			? allFunctions() : resolveEntries(arguments.selections());
 		RecoveryEngine.FunctionExport[] packets = RecoveryEngine.exportFunctionPackets(
 			currentProgram, entries, source, arguments.explain(), monitor);
-		JsonObject result = result(entries, packets, arguments.explain(), arguments.includeBody());
+		JsonObject result = result(entries, packets, source, arguments.explain(), arguments.includeBody());
 		Path parent = arguments.output().toAbsolutePath().getParent();
 		if (parent != null) Files.createDirectories(parent);
 		Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
@@ -82,16 +84,43 @@ public class Wiz8Recover extends GhidraScript {
 
 	private static RecoverySourceIndex sourceIndex(Path path, String target) throws Exception {
 		Map<Long, SourceHints> functions = new LinkedHashMap<>();
+		Map<String, SourceCandidate> declarations = new LinkedHashMap<>();
 		try (var reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-			JsonArray array = JsonParser.parseReader(reader).getAsJsonObject()
-				.getAsJsonArray("markers");
+			JsonObject document = JsonParser.parseReader(reader).getAsJsonObject();
+			JsonArray array = document.getAsJsonArray("markers");
 			for (JsonElement element : array) {
 				JsonObject marker = element.getAsJsonObject();
 				if (!target.equals(marker.get("target").getAsString())) continue;
 				functions.put(marker.get("address").getAsLong(), sourceHints(marker));
 			}
+			for (JsonElement element : document.getAsJsonArray("declarations")) {
+				JsonObject declaration = element.getAsJsonObject();
+				String sourceFile = declaration.get("source_file").getAsString();
+				if (!belongsToTarget(sourceFile, target)) continue;
+				SourceKind sourceKind = sourceKind("UNKNOWN", declaration);
+				if (sourceKind == SourceKind.LIBRARY_ENTITY) continue;
+				String semanticId = declaration.get("semantic_id").getAsString();
+				declarations.putIfAbsent(semanticId, new SourceCandidate(
+					semanticId,
+					declaration.get("qualified_name").getAsString(),
+					declaration.get("source_signature").getAsString(),
+					sourceKind, declaration.getAsJsonArray("parameter_types").size(),
+					sourceFile, declaration.get("line").getAsInt()));
+			}
 		}
-		return new RecoverySourceIndex(target, functions);
+		Set<String> established = new LinkedHashSet<>();
+		for (SourceHints hints : functions.values()) {
+			if (!hints.semanticId().isBlank()) established.add(hints.semanticId());
+		}
+		for (String semanticId : established) declarations.remove(semanticId);
+		return new RecoverySourceIndex(target, functions,
+			new ArrayList<>(declarations.values()));
+	}
+
+	private static boolean belongsToTarget(String sourceFile, String target) {
+		String root = target.equals("SURRENDER") ? "surrender" : "wiz8";
+		return sourceFile.startsWith("src/" + root + "/") ||
+			sourceFile.startsWith("include/" + root + "/");
 	}
 
 	private static SourceHints sourceHints(JsonObject marker) {
@@ -101,16 +130,7 @@ public class Wiz8Recover extends GhidraScript {
 		String markerKind = marker.has("marker_kind")
 			? marker.get("marker_kind").getAsString() : "UNKNOWN";
 		JsonObject declaration = marker.getAsJsonObject("declaration");
-		String semanticKind = declaration.has("semantic_kind")
-			? declaration.get("semantic_kind").getAsString() : "";
-		String sourceKind;
-		if (markerKind.equals("TEMPLATE")) sourceKind = "TEMPLATE_MEMBER";
-		else if (markerKind.equals("LIBRARY")) sourceKind = "LIBRARY_ENTITY";
-		else if (semanticKind.equals("constructor")) sourceKind = "CONSTRUCTOR";
-		else if (semanticKind.equals("destructor")) sourceKind = "DESTRUCTOR";
-		else if (declaration.has("owning_class") &&
-				!declaration.get("owning_class").isJsonNull()) sourceKind = "MEMBER_FUNCTION";
-		else sourceKind = "FREE_FUNCTION";
+		String sourceKind = sourceKind(markerKind, declaration).name();
 		String signature = declaration.has("source_signature")
 			? declaration.get("source_signature").getAsString() : "";
 		String semantic = declaration.has("semantic_id")
@@ -138,7 +158,20 @@ public class Wiz8Recover extends GhidraScript {
 			references.toArray(String[]::new), sourceFile);
 	}
 
+	private static SourceKind sourceKind(String markerKind, JsonObject declaration) {
+		String semanticKind = declaration.has("semantic_kind")
+			? declaration.get("semantic_kind").getAsString() : "";
+		if (markerKind.equals("TEMPLATE")) return SourceKind.TEMPLATE_MEMBER;
+		if (markerKind.equals("LIBRARY")) return SourceKind.LIBRARY_ENTITY;
+		if (semanticKind.equals("constructor")) return SourceKind.CONSTRUCTOR;
+		if (semanticKind.equals("destructor")) return SourceKind.DESTRUCTOR;
+		if (declaration.has("owning_class") &&
+			!declaration.get("owning_class").isJsonNull()) return SourceKind.MEMBER_FUNCTION;
+		return SourceKind.FREE_FUNCTION;
+	}
+
 	private JsonObject result(long[] entries, RecoveryEngine.FunctionExport[] packets,
+			RecoverySourceIndex source,
 			boolean explain, boolean includeBody) {
 		JsonObject result = new JsonObject();
 		result.addProperty("program", currentProgram.getName());
@@ -151,6 +184,19 @@ public class Wiz8Recover extends GhidraScript {
 			if (listed != null) {
 				item.addProperty("name", listed.getName(true));
 				item.addProperty("namespace", listed.getParentNamespace().getName(true));
+				JsonArray candidates = new JsonArray();
+				SourceKind kind = SourceKind.valueOf(packet.getSourceKind().toUpperCase());
+				for (SourceCandidate candidate : source.candidates(listed, kind)) {
+					JsonObject value = new JsonObject();
+					value.addProperty("semantic_id", candidate.semanticId());
+					value.addProperty("qualified_name", candidate.qualifiedName());
+					value.addProperty("source_signature", candidate.sourceSignature());
+					value.addProperty("source_file", candidate.sourceFile());
+					value.addProperty("line", candidate.line());
+					value.addProperty("evidence", "exact qualified name and parameter count");
+					candidates.add(value);
+				}
+				item.add("source_candidates", candidates);
 			}
 			exports.add(item);
 		}

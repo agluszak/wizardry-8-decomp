@@ -428,6 +428,9 @@ def recover_candidates(
         address = int(str(item["entry"]), 0)
         generated = item.get("generated_code")
         row: dict[str, Any] = {"entry": f"0x{address:08x}"}
+        source_candidates = item.get("source_candidates")
+        if isinstance(source_candidates, list) and source_candidates:
+            row["source_candidates"] = source_candidates
         placement = resolve_source_placement(settings.repo_dir, markers, address)
         row["placement"] = placement
         blockers = exported_declines({"exports": [item]}).get(address, [])
