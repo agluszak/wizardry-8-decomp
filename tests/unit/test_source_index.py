@@ -5,7 +5,7 @@ import pytest
 from reccmp.source import SourceIndexError
 from wiz8decomp import source_index
 from wiz8decomp.config import Settings
-from wiz8decomp.source_index import source_functions
+from wiz8decomp.source_index import source_functions, target_for_program
 
 
 def _settings(tmp_path: Path) -> Settings:
@@ -19,6 +19,15 @@ def _settings(tmp_path: Path) -> Settings:
     )
 
 
+def test_program_target_resolution_uses_configured_identity() -> None:
+    repository = Path(__file__).resolve().parents[2]
+
+    assert target_for_program(repository, "srEXT_Unzip.dll") == "SREXT_UNZIP"
+    assert target_for_program(repository, "wiz8--gog-base--sr--cec1caf85861") == "SURRENDER"
+    with pytest.raises(SourceIndexError, match="no configured reccmp target"):
+        target_for_program(repository, "unregistered.dll")
+
+
 @pytest.mark.parametrize("existing_database", [False, True])
 def test_source_index_configures_missing_or_stale_compile_database(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, existing_database: bool
@@ -28,6 +37,11 @@ def test_source_index_configures_missing_or_stale_compile_database(
     inventory = repository / "CMakeLists.txt"
     inventory.parent.mkdir(parents=True)
     inventory.write_text("project(wiz8)\n", encoding="utf-8")
+    (repository / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    source-root: src/wiz8\n"
+        "    hash:\n      sha256: abc\n",
+        encoding="utf-8",
+    )
     database = repository / "build/clang/compile_commands.json"
     if existing_database:
         database.parent.mkdir(parents=True)
@@ -116,6 +130,9 @@ def test_surrender_source_functions_use_their_own_marker_target() -> None:
 
 
 def test_source_functions_keep_definition_as_owner_of_folded_alias(tmp_path: Path) -> None:
+    (tmp_path / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
+    )
     build = tmp_path / "build"
     build.mkdir()
     (build / "source-index.json").write_text(
@@ -168,6 +185,9 @@ def test_source_functions_keep_definition_as_owner_of_folded_alias(tmp_path: Pat
 
 
 def test_source_functions_reject_two_non_folded_owners(tmp_path: Path) -> None:
+    (tmp_path / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
+    )
     build = tmp_path / "build"
     build.mkdir()
     (build / "source-index.json").write_text(

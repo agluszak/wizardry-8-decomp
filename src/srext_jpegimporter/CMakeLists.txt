@@ -153,3 +153,4 @@
         PREFIX ""
         PDB_NAME srEXT_JPEGImporter
     )
+    reccmp_add_target(SREXT_JPEGIMPORTER ID SREXT_JPEGIMPORTER)

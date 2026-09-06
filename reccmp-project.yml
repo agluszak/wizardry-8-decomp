@@ -31,3 +31,103 @@ targets:
       - include/surrender
     hash:
       sha256: cec1caf85861c34bc4583ef1c69209e96a6930bdfc9af545c429f7470a8b6165
+  SRDD_DIRECTX6:
+    filename: srDD_DirectX6.dll
+    hash:
+      sha256: 2968987f843f1e1b228b2ff322923e5ac215095a3cb41877b169f01820f8f316
+  SRDD_DIRECTX7:
+    filename: srDD_DirectX7.dll
+    hash:
+      sha256: 3623f1cb66cd50b7141b49f82100a8ffa1fd3c53ddebc7093bfddeb148cbf8e9
+  SRDD_GLIDE2X:
+    filename: srDD_Glide2x.dll
+    hash:
+      sha256: e19987fb5bc9abcceadf4ad64bf108ac2f95d10b520d8de294d9b10466ca1d11
+  SRDD_OPENGL:
+    filename: srDD_OpenGL.dll
+    hash:
+      sha256: a176aa711039aebbfe33eb5d48e082dcd608835eeebd2a69ead9b455400afc8c
+  SRDD_SOFTWARE:
+    filename: srDD_Software.dll
+    hash:
+      sha256: 8866a254569f61022b857628380171dff018939376c02965741635421d0c79f8
+  SREXT_AVI:
+    filename: srEXT_AVI.dll
+    hash:
+      sha256: 9d27a6698693fb6b244951166d873a1f1a102213f5832d60379234176bd0eb07
+  SREXT_DEFAULT:
+    filename: srEXT_default.dll
+    hash:
+      sha256: e2a9d1e7f11e0927b7bacfe058a7113b234f0aded92f4c5fecfb23cf86ead7f8
+  SREXT_FLIC:
+    filename: srEXT_FLIC.dll
+    hash:
+      sha256: 3ce83b9944f4d26f027c5b322a5dbea97cfe6339a7298b25914f67f35ccfd281
+  SREXT_HTTP:
+    filename: srEXT_HTTP.dll
+    hash:
+      sha256: ade27ce64a7af1824aeb5ba65f908bab56344311cd8f45c0c65edde02d1d87af
+  SREXT_INSPECTOR:
+    filename: srEXT_Inspector.dll
+    hash:
+      sha256: 6bc2949d6c9bca35ecc37e8f4f98ed36886a075f00d69ae86687d38f682387a1
+  SREXT_LWOIMPORTER:
+    filename: srEXT_LWOImporter.dll
+    hash:
+      sha256: a681095372decd2639d0ea14bdbadb362b7aeac04f137dc1558856212479932a
+  SREXT_MPEG:
+    filename: srEXT_MPEG.dll
+    hash:
+      sha256: 42344e67d5de0b962652677d70891402dae16b0f39979693539867f779455ecd
+  SRHXIMPORTER:
+    filename: srHXImporter.dll
+    hash:
+      sha256: db83029ad30f8df5dd425e586a1b847193b0edc38e79ec62a3d2c7d4cb59e7a7
+  SRVP_486:
+    filename: srVP_486.dll
+    hash:
+      sha256: e28fd5ad6da156179910fa59b8d6ef88da432b1e69b3c44507592d10fdfc8c57
+  SRVP_AMD3DNOW:
+    filename: srVP_AMD3DNow.dll
+    hash:
+      sha256: 42e169c89a01ab620320981d5b6a15a89ea7a6d3fe312a8728e1262b95fac8f3
+  SRVP_GENERIC:
+    filename: srVP_Generic.dll
+    hash:
+      sha256: 0c4704c920235e58f0fab852844fc9273cd4683b7b9655c702855bc9335e1474
+  SRVP_KNI:
+    filename: srVP_KNI.dll
+    hash:
+      sha256: 895b5fb3f4982f7a70e7bfc518fed1d674587380d708487f57a0a00e0c9669cc
+  SRVP_PENTIUM:
+    filename: srVP_Pentium.dll
+    hash:
+      sha256: 9a08cddb2f75d98d61a3a3bfd644bffe07610c080840c03660ba9d6d849e14fa
+  SRVP_PENTIUMII:
+    filename: srVP_PentiumII.dll
+    hash:
+      sha256: 2cadefd51ed177c762ccbc6be0181fc70e6e26ecaf04b1b475298f206fed518c
+  SRVP_PENTIUMMMX:
+    filename: srVP_PentiumMMX.dll
+    hash:
+      sha256: bf1a2e932680a71261382115a3afc4ceb1742814d4c52742fcf8a1d6fb0f5a47
+  SRVP_PENTIUMPRO:
+    filename: srVP_PentiumPro.dll
+    hash:
+      sha256: 7f3502649d7cfd151ebdb82ab5472d8f32ab0268d2ac24add60490b6b0e4cdd0
+  SRVP_X86:
+    filename: srVP_x86.dll
+    hash:
+      sha256: bbec96aa91b6988618fb4ec07696baed01ca556a3eab6f3836f9f475b45730c2
+  SETUP3D:
+    filename: 3DSetup.exe
+    hash:
+      sha256: b440ee06a3aa03c4fa301dcaba6875a61488f0dee3d06386b721f4cbe0c11473
+  MSS32:
+    filename: Mss32.dll
+    hash:
+      sha256: 2a515199cc7a2e1ccd8d756efdaab07cedd5c3052309ef1c7499c2560e2097bd
+  BINKW32:
+    filename: binkw32.dll
+    hash:
+      sha256: 1fd7ef7873c8a3be7e2f127b306d0d24d7d88e20cf9188894eff87b5af0d495f

@@ -44,6 +44,7 @@ endif()
         MAP Wiz8.map
         LIBRARIES ddraw.lib gdi32.lib user32.lib
     )
+    reccmp_add_target(WIZ8_BRINGUP ID WIZ8)
     add_custom_target(WIZ8 DEPENDS WIZ8_BRINGUP)
 
     wiz8_add_executable(

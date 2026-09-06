@@ -19,3 +19,4 @@ set_target_properties(SURRENDER PROPERTIES
     PREFIX ""
     PDB_NAME sr
 )
+reccmp_add_target(SURRENDER ID SURRENDER)

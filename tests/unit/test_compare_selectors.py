@@ -8,6 +8,9 @@ from wiz8decomp.reccmp_workflows import selected_addresses
 
 
 def _index(repository: Path, names: list[tuple[int, str]]) -> None:
+    (repository / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
+    )
     (repository / "build").mkdir()
     (repository / "build/source-index.json").write_text(
         json.dumps(
@@ -35,11 +38,14 @@ def _index(repository: Path, names: list[tuple[int, str]]) -> None:
 
 def test_name_and_range_selectors_resolve_without_source_search(tmp_path: Path) -> None:
     _index(tmp_path, [(0x401000, "Thing::Run"), (0x401020, "Function401020")])
-    assert selected_addresses(tmp_path, ["Thing::Run"], []) == [0x401000]
-    assert selected_addresses(tmp_path, ["0x401000:0x401020"], []) == [0x401000, 0x401020]
+    assert selected_addresses(tmp_path, "WIZ8", ["Thing::Run"], []) == [0x401000]
+    assert selected_addresses(tmp_path, "WIZ8", ["0x401000:0x401020"], []) == [
+        0x401000,
+        0x401020,
+    ]
 
 
 def test_ambiguous_selector_lists_candidates(tmp_path: Path) -> None:
     _index(tmp_path, [(0x401000, "Run"), (0x402000, "Run")])
     with pytest.raises(ValueError, match=r"ambiguous.*0x00401000.*0x00402000"):
-        selected_addresses(tmp_path, ["Run"], [])
+        selected_addresses(tmp_path, "WIZ8", ["Run"], [])

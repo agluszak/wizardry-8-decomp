@@ -14,7 +14,7 @@ import yaml
 
 from .build_dir import check_build_directory
 from .config import Settings
-from .paths import atomic_json, atomic_write
+from .paths import atomic_json
 from .reccmp_data import write_wiz8_data_source
 from .subprocesses import CommandResult, resolve_executable, run
 
@@ -92,6 +92,8 @@ class ContainerBuild:
                 "-DZLIB_SOURCE=Z:/zlib",
                 "-DINFOZIP_SOURCE=Z:/infozip",
                 "-DSGP_SOURCE=Z:/repo/third_party/sfi-sgp/sgp",
+                f"-DRECCMP_PROJECT_DIR_HOST={self.source_dir}",
+                f"-DRECCMP_BUILD_DIR_HOST={self.build_dir}",
                 "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
             )
         )
@@ -136,24 +138,30 @@ def _product_cache_ready(build_dir: Path) -> bool:
     return f"CMAKE_GENERATOR:INTERNAL={PRODUCT_GENERATOR}\n" in cached
 
 
-def _reccmp_configs_ready(settings: Settings) -> bool:
+def _reccmp_configs_ready(settings: Settings, target: str) -> bool:
     project_path = settings.repo_dir / "reccmp-project.yml"
     user_path = settings.repo_dir / "reccmp-user.yml"
     build_path = settings.repo_dir / "build" / "decomp" / "reccmp-build.yml"
     if not all(path.is_file() for path in (project_path, user_path, build_path)):
         return False
+    cache = (settings.repo_dir / "build/decomp/CMakeCache.txt").read_text(
+        encoding="utf-8", errors="replace"
+    )
+    if f"RECCMP_PROJECT_DIR_HOST:PATH={settings.repo_dir}\n" not in cache.replace(
+        "\r", ""
+    ) or f"RECCMP_BUILD_DIR_HOST:PATH={settings.repo_dir / 'build/decomp'}\n" not in cache.replace(
+        "\r", ""
+    ):
+        return False
 
-    project = yaml.safe_load(project_path.read_text(encoding="utf-8")) or {}
     user = yaml.safe_load(user_path.read_text(encoding="utf-8")) or {}
     build = yaml.safe_load(build_path.read_text(encoding="utf-8")) or {}
-    required = set(project.get("targets") or {})
     user_targets = user.get("targets") or {}
     build_targets = build.get("targets") or {}
-    return all(
+    return bool(
         user_targets.get(target, {}).get("path")
         and build_targets.get(target, {}).get("path")
         and build_targets.get(target, {}).get("pdb")
-        for target in required
     )
 
 
@@ -250,28 +258,6 @@ def prepare(settings: Settings) -> dict[str, Any]:
     }
 
 
-def _write_reccmp_build(settings: Settings) -> None:
-    build_dir = settings.repo_dir / "build" / "decomp"
-    targets = {}
-    for target, stem in (
-        ("WIZ8", "Wiz8"),
-        ("SURRENDER", "sr"),
-        ("SREXT_JPEGIMPORTER", "srEXT_JPEGImporter"),
-        ("SREXT_UNZIP", "srEXT_Unzip"),
-    ):
-        targets[target] = {
-            "path": str(build_dir / (stem + (".exe" if target == "WIZ8" else ".dll"))),
-            "pdb": str(build_dir / (stem + ".pdb")),
-        }
-    atomic_write(
-        build_dir / "reccmp-build.yml",
-        yaml.safe_dump(
-            {"project": str(settings.repo_dir), "targets": targets},
-            sort_keys=False,
-        ),
-    )
-
-
 def _configure(settings: Settings) -> dict[str, Any]:
     prepare_result = prepare(settings)
     build = ContainerBuild.from_settings(settings)
@@ -298,7 +284,6 @@ def _configure(settings: Settings) -> dict[str, Any]:
         _owner_path(build.build_dir),
         {"source_dir": str(settings.repo_dir), "build_dir": str(build.build_dir)},
     )
-    _write_reccmp_build(settings)
     return {
         "prepare": prepare_result,
         "detect": _result(detect),
@@ -316,6 +301,10 @@ def build_target(
 ) -> dict[str, Any]:
     with build_lock(settings):
         build = ContainerBuild.from_settings(settings)
+        resolved_target = TARGET_ALIASES.get(target, target)
+        comparison_target = (
+            "WIZ8" if resolved_target in {"WIZ8", "WIZ8_RUNTIME", "WIZ8_RUNTIME_TEST"} else target
+        )
         write_wiz8_data_source(settings.repo_dir)
         validate_build_directory(settings)
         prerequisites_ready = all(
@@ -326,14 +315,13 @@ def build_target(
         if (
             not prerequisites_ready
             or not _product_cache_ready(build.build_dir)
-            or not _reccmp_configs_ready(settings)
+            or not _reccmp_configs_ready(settings, comparison_target)
         ):
             _configure(settings)
         # Let CMake regenerate while its NMake serialization guards are intact,
         # then adapt only those generated guards for the parallel JOM build.
         run(build.check_build_system_command(), cwd=settings.repo_dir)
         parallel_makefiles = _enable_jom_parallelism(build.build_dir)
-        resolved_target = TARGET_ALIASES.get(target, target)
         run(
             build.build_command(resolved_target, jobs or max(1, os.cpu_count() or 1)),
             cwd=settings.repo_dir,

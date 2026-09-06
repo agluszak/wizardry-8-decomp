@@ -50,7 +50,7 @@ Build and compare with:
 
 ```sh
 just build SREXT_JPEGIMPORTER
-just compare SREXT_JPEGIMPORTER
+just compare 0x10014D40 --program SREXT_JPEGIMPORTER
 ```
 
 The CMake target compiles the pinned IJG release-6 source directly with VC6 SP5, then links the

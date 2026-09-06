@@ -42,6 +42,11 @@ def test_sr_assert_import_alias_requires_the_exact_known_pair() -> None:
 
 
 def test_source_selection_deduplicates_function_markers(tmp_path: Path) -> None:
+    (tmp_path / "reccmp-project.yml").write_text(
+        "targets:\n"
+        "  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
+        "  SURRENDER:\n    filename: sr.dll\n    hash:\n      sha256: def\n"
+    )
     source = tmp_path / "unit.cpp"
     source.write_text(
         "// FUNCTION: WIZ8 0x00401000\nvoid a();\n"
@@ -57,6 +62,15 @@ def test_source_selection_deduplicates_function_markers(tmp_path: Path) -> None:
                 "classes": [],
                 "declarations": [],
                 "markers": [
+                    {
+                        "marker_kind": "FUNCTION",
+                        "address": 0x00401000,
+                        "source_file": "unit.cpp",
+                        "line": 1,
+                        "declaration": None,
+                        "marker_name": "sr_a",
+                        "target": "SURRENDER",
+                    },
                     {
                         "marker_kind": "FUNCTION",
                         "address": 0x00401000,
@@ -90,8 +104,8 @@ def test_source_selection_deduplicates_function_markers(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    assert addresses_from_files(tmp_path, [source]) == [0x00401000, 0x00401010]
-    assert selected_addresses(tmp_path, ["0x00401000"], [source]) == [
+    assert addresses_from_files(tmp_path, "WIZ8", [source]) == [0x00401000, 0x00401010]
+    assert selected_addresses(tmp_path, "WIZ8", ["0x00401000"], [source]) == [
         0x00401000,
         0x00401010,
     ]

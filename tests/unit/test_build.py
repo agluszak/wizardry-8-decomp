@@ -46,6 +46,8 @@ def test_container_commands_preserve_vc6_configuration_and_target(tmp_path: Path
     assert PRODUCT_GENERATOR in configure
     assert not any(argument.startswith("-DCMAKE_MAKE_PROGRAM=") for argument in configure)
     assert "-DSGP_SOURCE=Z:/repo/third_party/sfi-sgp/sgp" in configure
+    assert f"-DRECCMP_PROJECT_DIR_HOST={tmp_path / 'repo'}" in configure
+    assert f"-DRECCMP_BUILD_DIR_HOST={tmp_path / 'repo/build/decomp'}" in configure
     assert compile_command[-2:] == [
         "/c",
         "set TEMP=Z:\\out\\tmp&& set TMP=Z:\\out\\tmp&& cd /d Z:\\out&& C:\\jom\\jom.exe -j 7 WIZ8",
@@ -62,7 +64,7 @@ def test_product_cache_requires_the_supported_generator(tmp_path: Path) -> None:
     assert _product_cache_ready(tmp_path) is False
 
 
-def test_reccmp_configs_require_every_project_target(tmp_path: Path) -> None:
+def test_reccmp_configs_require_only_the_requested_built_target(tmp_path: Path) -> None:
     settings = _settings(tmp_path)
     repository = settings.repo_dir
     build_dir = repository / "build/decomp"
@@ -77,8 +79,13 @@ def test_reccmp_configs_require_every_project_target(tmp_path: Path) -> None:
         "targets:\n  WIZ8:\n    path: Wiz8.exe\n    pdb: Wiz8.pdb\n",
         encoding="utf-8",
     )
+    (build_dir / "CMakeCache.txt").write_text(
+        f"RECCMP_PROJECT_DIR_HOST:PATH={repository}\nRECCMP_BUILD_DIR_HOST:PATH={build_dir}\n",
+        encoding="utf-8",
+    )
 
-    assert _reccmp_configs_ready(settings) is False
+    assert _reccmp_configs_ready(settings, "WIZ8") is True
+    assert _reccmp_configs_ready(settings, "SURRENDER") is False
 
     (repository / "reccmp-user.yml").write_text(
         "targets:\n  WIZ8:\n    path: original.exe\n  SURRENDER:\n    path: sr.dll\n",
@@ -91,7 +98,7 @@ def test_reccmp_configs_require_every_project_target(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    assert _reccmp_configs_ready(settings) is True
+    assert _reccmp_configs_ready(settings, "SURRENDER") is True
 
 
 def test_parallel_adaptation_removes_only_generated_serial_guards(tmp_path: Path) -> None:

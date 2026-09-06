@@ -41,7 +41,7 @@ def _recover(
             "--source-index",
             str(settings.build_dir / "source-index.json"),
             "--target",
-            target_for_program(program_selector),
+            target_for_program(settings.repo_dir, program_selector),
         ]
         if explain:
             args.append("--explain")

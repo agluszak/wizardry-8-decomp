@@ -16,6 +16,9 @@ def test_compare_refreshes_changed_file_selection_before_build(tmp_path, monkeyp
     from wiz8decomp import build, reccmp_workflows, source_index
 
     settings = SimpleNamespace(repo_dir=tmp_path)
+    (tmp_path / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
+    )
     source = tmp_path / "new.cpp"
     source.write_text("// FUNCTION: WIZ8 0x00401000\nvoid added() {}\n")
     (tmp_path / "build").mkdir()
@@ -32,7 +35,12 @@ def test_compare_refreshes_changed_file_selection_before_build(tmp_path, monkeyp
                 {
                     **stale,
                     "markers": [
-                        {"marker_kind": "FUNCTION", "address": 0x401000, "source_file": "new.cpp"}
+                        {
+                            "marker_kind": "FUNCTION",
+                            "address": 0x401000,
+                            "source_file": "new.cpp",
+                            "target": "WIZ8",
+                        }
                     ],
                 }
             )
@@ -60,6 +68,9 @@ def test_compare_refreshes_changed_file_selection_before_build(tmp_path, monkeyp
 def test_compare_changed_does_not_fall_back_to_whole_image(tmp_path, monkeypatch) -> None:
     from wiz8decomp import build, reccmp_workflows
 
+    (tmp_path / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
+    )
     monkeypatch.setattr(command_support, "settings", lambda: SimpleNamespace(repo_dir=tmp_path))
     monkeypatch.setattr(reccmp_workflows, "changed_source_files", lambda *_args: [])
     monkeypatch.setattr(build, "compare", lambda *_args, **_kwargs: pytest.fail("whole image"))

@@ -130,4 +130,5 @@ if(INFOZIP_SOURCE)
         PREFIX ""
         PDB_NAME srEXT_Unzip
     )
+    reccmp_add_target(SREXT_UNZIP ID SREXT_UNZIP)
 endif()

@@ -28,7 +28,7 @@ def parse_address(value: str) -> int:
     return address
 
 
-def addresses_from_files(repository: Path, paths: Iterable[Path]) -> list[int]:
+def addresses_from_files(repository: Path, target: str, paths: Iterable[Path]) -> list[int]:
     """Select compiler-bound FUNCTION markers from the shared source index."""
 
     from .source_index import load_source_index
@@ -40,6 +40,7 @@ def addresses_from_files(repository: Path, paths: Iterable[Path]) -> list[int]:
         int(marker["address"])
         for marker in load_source_index(repository)["markers"]
         if marker["marker_kind"] == "FUNCTION"
+        and marker["target"].upper() == target.upper()
         and str((repository / marker["source_file"]).resolve()) in selected
     ]
 
@@ -60,9 +61,11 @@ def changed_source_files(repository: Path, since: str | None = None) -> list[Pat
     ]
 
 
-def selected_addresses(repository: Path, raw: Iterable[str], paths: Iterable[Path]) -> list[int]:
-    selected = set(_resolve_source_selectors(repository, raw)) if raw else set()
-    selected.update(addresses_from_files(repository, paths))
+def selected_addresses(
+    repository: Path, target: str, raw: Iterable[str], paths: Iterable[Path]
+) -> list[int]:
+    selected = set(_resolve_source_selectors(repository, target, raw)) if raw else set()
+    selected.update(addresses_from_files(repository, target, paths))
     if not selected:
         raise ValueError("pass one or more addresses and/or --file source paths")
     return sorted(selected)
@@ -80,12 +83,12 @@ def _numeric_range(value: str) -> tuple[int, int] | None:
     return start, end
 
 
-def _resolve_source_selectors(repository: Path, values: Iterable[str]) -> list[int]:
+def _resolve_source_selectors(repository: Path, target: str, values: Iterable[str]) -> list[int]:
     """Resolve addresses, ranges, and exact source-owned identities for compare."""
 
     from .source_index import source_functions
 
-    model = source_functions(repository)
+    model = source_functions(repository, target)
     selected: set[int] = set()
     by_name: dict[str, list[int]] = {}
     for address, function in model.items():

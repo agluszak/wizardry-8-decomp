@@ -43,6 +43,14 @@ def test_recover_passes_the_selected_program_target(monkeypatch: pytest.MonkeyPa
     settings = SimpleNamespace(repo_dir=Path("/repo"), build_dir=Path("/repo/build"))
     monkeypatch.setattr(env_module, "open_program", lambda _s, _p: contextlib.nullcontext(object()))
     monkeypatch.setattr(source_index_module, "write_source_index", lambda _settings: {})
+    monkeypatch.setattr(
+        source_index_module,
+        "project_targets",
+        lambda _repository: {
+            "WIZ8": {"filename": "Wiz8.exe", "hash": {"sha256": "a"}},
+            "SURRENDER": {"filename": "sr.dll", "hash": {"sha256": "b"}},
+        },
+    )
     monkeypatch.setattr(query_module, "resolve_function_selectors", lambda _p, _s: [0x10003840])
     seen: list[str] = []
     monkeypatch.setattr(
@@ -78,6 +86,11 @@ def test_recover_refreshes_source_index_before_opening_program(
         source_index_module,
         "write_source_index",
         lambda _settings: events.append("source-index") or {},
+    )
+    monkeypatch.setattr(
+        source_index_module,
+        "project_targets",
+        lambda _repository: {"WIZ8": {"filename": "Wiz8.exe", "hash": {"sha256": "a"}}},
     )
 
     def open_program(_settings: object, _selector: str):

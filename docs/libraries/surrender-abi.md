@@ -1,8 +1,11 @@
 # The SurRender boundary
 
-The project needs a *declaration* surface for `sr.dll`: enough of its classes, in real C++, that the first-party
-units calling and deriving from them compile in the VC6 target and still match. This document covers
-where that surface comes from and how far it can honestly be taken.
+Recover each executable and DLL under its own reccmp target. Preserve the original DLL import/export
+boundaries. Share canonical C++ declarations and genuinely shared source; do not create duplicate
+C-compatible models for DLL consumers. Attribute each emitted function, global, and vtable to the
+binary containing it. Thus SurRender bodies belong to `SURRENDER`, while Wizardry call sites that
+invoke SurRender belong to `WIZ8`. This document covers the shared declaration surface and the
+evidence that establishes it.
 
 ## What the export table already settles
 

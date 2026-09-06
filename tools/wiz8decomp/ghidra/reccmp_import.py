@@ -15,7 +15,7 @@ def import_reccmp_source(settings: Settings, selector: str = "wiz8") -> dict[str
     """Let reccmp import existing build metadata; callers own the build step."""
 
     program_name = resolve_seed_program(settings, selector)
-    target = target_for_program(program_name)
+    target = target_for_program(settings.repo_dir, program_name)
     result = run(
         [
             "reccmp-ghidra-import",

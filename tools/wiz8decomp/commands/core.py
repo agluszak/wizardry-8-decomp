@@ -106,7 +106,7 @@ def compare_command(
         settings = cli.settings()
         from ..source_index import target_for_program
 
-        target = target_for_program(program)
+        target = target_for_program(settings.repo_dir, program)
         if since is not None and not changed:
             raise ValueError("--since requires --changed")
         if ctx.args:
@@ -120,7 +120,9 @@ def compare_command(
             # Selection must see this source state, not the snapshot left by
             # an earlier check/test run. The indexer caches unchanged inputs.
             write_source_index(settings)
-            selected = selected_addresses(settings.repo_dir, addresses or [], selected_files)
+            selected = selected_addresses(
+                settings.repo_dir, target, addresses or [], selected_files
+            )
             build_target(settings, target)
             result = compare_selected(
                 settings.repo_dir,
@@ -157,7 +159,7 @@ def vtable_command(
         settings = cli.settings()
         from ..source_index import target_for_program
 
-        target = target_for_program(program)
+        target = target_for_program(settings.repo_dir, program)
         build_target(settings, target)
         result = compare_vtables(settings.repo_dir, target, class_filter)
         return result
@@ -177,7 +179,7 @@ def datacmp_command(
         settings = cli.settings()
         from ..source_index import target_for_program
 
-        target = target_for_program(program)
+        target = target_for_program(settings.repo_dir, program)
         build_target(settings, target)
         result = compare_data(settings.repo_dir, target)
         return result
@@ -198,7 +200,7 @@ def address_command(
         settings = cli.settings()
         from ..source_index import target_for_program
 
-        target = target_for_program(program)
+        target = target_for_program(settings.repo_dir, program)
         build_target(settings, target)
         queries = sorted({parse_address(address) for address in addresses})
         if not queries:

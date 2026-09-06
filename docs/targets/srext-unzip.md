@@ -41,7 +41,7 @@ Build and compare with:
 
 ```sh
 just build SREXT_UNZIP
-just compare SREXT_UNZIP
+just compare 0x100106B0 --program SREXT_UNZIP
 ```
 
 The target links the pinned upstream source subset, the recovered wrapper, and the typed SurRender

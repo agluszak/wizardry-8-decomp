@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -10,7 +11,19 @@ from reccmp.source import SourceIndex, SourceIndexError, SourceMarker
 
 from .config import Settings
 
-_TARGETS = {"WIZ8": "wiz8", "SURRENDER": "surrender"}
+_INDEXED_TARGETS = ("WIZ8", "SURRENDER")
+
+
+def project_targets(repository: Path) -> dict[str, dict[str, Any]]:
+    import yaml
+
+    document = yaml.safe_load((repository / "reccmp-project.yml").read_text(encoding="utf-8"))
+    return {str(name).upper(): value for name, value in (document.get("targets") or {}).items()}
+
+
+def _source_roots(config: dict[str, Any]) -> tuple[str, ...]:
+    value = config.get("source-root", ())
+    return (value,) if isinstance(value, str) else tuple(value)
 
 
 def load_source_index(repository: Path) -> dict[str, Any]:
@@ -25,14 +38,34 @@ def load_source_index(repository: Path) -> dict[str, Any]:
     return document
 
 
-def target_for_program(program_name: str) -> str:
+def target_for_program(repository: Path, program_name: str) -> str:
+    """Resolve a target name, binary filename, or content-addressed Ghidra program."""
+
+    targets = project_targets(repository)
     normalized = program_name.casefold()
-    return "SURRENDER" if "--sr--" in normalized or normalized == "surrender" else "WIZ8"
+    direct = [
+        target
+        for target, config in targets.items()
+        if normalized in {target.casefold(), str(config["filename"]).casefold()}
+    ]
+    if len(direct) == 1:
+        return direct[0]
+
+    match = re.fullmatch(r"wiz8--.+--(.+)--[0-9a-f]{12}", normalized)
+    if match:
+        stem = match.group(1)
+        associated = [
+            target
+            for target, config in targets.items()
+            if re.sub(r"[^a-z0-9]+", "-", Path(config["filename"]).stem.casefold()).strip("-")
+            == stem
+        ]
+        if len(associated) == 1:
+            return associated[0]
+    raise SourceIndexError(f"program has no configured reccmp target: {program_name}")
 
 
 def source_functions(repository: Path, target: str = "WIZ8") -> dict[int, SourceMarker]:
-    if target.upper() not in _TARGETS:
-        raise SourceIndexError(f"unsupported source-index target: {target}")
     return SourceIndex.from_dict(load_source_index(repository)).functions_by_address(
         target=target.upper()
     )
@@ -40,7 +73,10 @@ def source_functions(repository: Path, target: str = "WIZ8") -> dict[int, Source
 
 def validate_source_index(repository: Path) -> dict[str, int]:
     index = SourceIndex.from_dict(load_source_index(repository))
-    counts = {target: len(index.functions_by_address(target=target)) for target in _TARGETS}
+    counts = {
+        target: len(index.functions_by_address(target=target))
+        for target in project_targets(repository)
+    }
     if len({item.semantic_id for item in index.classes}) != len(index.classes):
         raise SourceIndexError("compiler-backed source index contains duplicate class definitions")
     return {
@@ -75,12 +111,13 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
         target: tuple(
             sorted(
                 path
-                for root in (repository / "src" / stem, repository / "include" / stem)
-                for path in root.rglob("*")
+                for source_root in _source_roots(project_targets(repository)[target])
+                for path in (repository / source_root).rglob("*")
                 if path.suffix in {".c", ".cpp", ".h", ".hpp"}
             )
         )
-        for target, stem in _TARGETS.items()
+        for target in _INDEXED_TARGETS
+        if target in project_targets(repository)
     }
     index = SourceIndex.from_compile_database(
         repository,
