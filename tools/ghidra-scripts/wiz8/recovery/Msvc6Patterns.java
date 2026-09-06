@@ -205,11 +205,16 @@ final class Msvc6Patterns {
 		// resolves claims accepted from another domain.
 		MatchShaping.recover(this);
 		CallRecovery.recoverEarly(this);
-		LifecycleRecovery.recoverScaffolding(this);
+		recover("lifecycle.vptr-store", this::suppressCompilerVptrStores);
 		ExpressionRecovery.recover(this);
 		CallRecovery.recoverStructureReturns(this);
 		EhRecovery.recover(this);
-		LifecycleRecovery.recoverBodies(this, entity);
+		if (entity.isConstructor() || entity.isDestructor()) {
+			recover(entity.isConstructor() ? "lifecycle.constructor"
+				: "lifecycle.destructor", this::lifecyclePass);
+		}
+		recover("allocation.pairs", this::rewriteAllocationPairs);
+		recover("signature.prototype", this::renderCompletePrototype);
 	}
 
 	void lifecyclePass() {
