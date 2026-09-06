@@ -2,7 +2,7 @@
 #include "wiz8/dialog_base.h"
 #include "wiz8/sr_api.h"
 
-extern wchar_t g_split_item_dialog_text_689b34[];
+extern wchar_t g_wchar_00689b34;
 
 /*
  * Dialog Code\DialogInterface.cpp, named by the assertion this body embeds at
@@ -47,7 +47,7 @@ W8DialogBase005DC7A0* Function5CF300(int kind)
         break;
     case 5:
         dialog = new W8Dialog005D97D0;
-        dialog->vslot5(g_split_item_dialog_text_689b34);
+        dialog->vslot5(&g_wchar_00689b34);
         dialog->SetOrigin(159, 184);
         return dialog;
     default:
