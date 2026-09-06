@@ -24,6 +24,8 @@ typedef struct W8EncounterScriptName {
 } W8EncounterScriptName;                /* 0x40 */
 
 typedef struct W8EncounterTableRuntime {
+    ~W8EncounterTableRuntime();
+
     W8GrowableVector<unsigned short> species_ids; /* 0x000 */
     W8GrowableVector<unsigned char> rarity_class; /* 0x010: 3, 7, 20, or 70 */
     W8GrowableVector<unsigned char> time_condition; /* 0x020 */

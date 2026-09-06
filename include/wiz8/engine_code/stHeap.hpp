@@ -7,6 +7,13 @@
 template <class T>
 class stHeap {
 public:
+    ~stHeap()
+    {
+        if (external_storage_04 == 0) {
+            delete[] entries_00;
+        }
+    }
+
     T* entries_00;
     unsigned int external_storage_04;
     unsigned int capacity_08;

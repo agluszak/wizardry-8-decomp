@@ -363,11 +363,11 @@ unsigned char ReadWorldClipPlanes004BCE20(
     W8ReadLevelInfo* pInfo, W8World* pWorld)
 {
     W8GrowableVector<
-        srClassSupport<srClipPlane, srClipPlane, false, 0x1500>*> clip_planes(5);
+        srClipPlane::ClientType*> clip_planes(5);
     srVector4T<float> plane;
     srVector4T<float> serialized_position;
     srVector3T<double> position;
-    srClassSupport<srClipPlane, srClipPlane, false, 0x1500>* clip_plane;
+    srClipPlane::ClientType* clip_plane;
     char name[64];
     int count;
     int index;
@@ -401,7 +401,7 @@ unsigned char ReadWorldClipPlanes004BCE20(
     plane.w = 0.0f;
     for (index = 0; index < count; ++index) {
         clip_plane =
-            new srClassSupport<srClipPlane, srClipPlane, false, 0x1500>(
+            SR_NEW(srClipPlane)(
                 pWorld->dynamic_scene);
         if (clip_plane == 0) {
             srAssertFail("psrClipPlane", READ_LEVEL_CPP, 0x5ae,

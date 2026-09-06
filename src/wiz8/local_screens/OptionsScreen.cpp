@@ -31,7 +31,7 @@ extern int g_dword_647bc0;
 extern int g_font_683660;
 extern int g_options_detail_font_683614;
 extern unsigned short* g_colour_68ee08;
-extern void* g_small_subsystem_69c130;
+extern unsigned int* g_small_subsystem_69c130;
 extern unsigned char g_flag_689b32;
 extern unsigned char g_flag_6f04e8;
 extern unsigned char g_flag_6f04ed;
@@ -102,7 +102,7 @@ W8OptionsPanel::W8OptionsPanel(int region_index)
     : Controls(0x104, 0, 0, 0, 0xee, 0, 1),
       m_current_04c(0), m_content_top_050(0x18)
 {
-    AcquireRegionSet((unsigned int*)g_small_subsystem_69c130 + region_index);
+    AcquireRegionSet(g_small_subsystem_69c130 + region_index);
 
     short width;
     short height;
@@ -294,8 +294,7 @@ unsigned char OptionsScreenLeave005A9C70(int)
     Function5A6E20(&g_options_values_0069c138);
     W8OptionsScreen* screen = g_options_screen_0069c254;
     if (screen != 0) {
-        screen->~W8OptionsScreen();
-        ::operator delete(screen);
+        delete screen;
     }
     g_options_screen_0069c254 = 0;
     NoOp();

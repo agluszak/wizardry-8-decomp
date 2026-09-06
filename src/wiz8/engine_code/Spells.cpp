@@ -704,7 +704,7 @@ bool IsSpellInSingledOutSet(int spell_id)
 void ReleaseSpellDatabase(void)
 {
     if (g_spell_records != 0) {
-        operator delete(g_spell_records);
+        delete[] g_spell_records;
         g_spell_records = 0;
         g_spell_database_version = 0;
     }

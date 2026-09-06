@@ -130,11 +130,11 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
     }
     party_slot = CharacterPointerToPartySlot(entry->character_04);
     if ((bytes_68[event_index] & (1 << (party_slot & 31))) != 0) {
-        ::operator delete(entry);
+        delete entry;
         return 0;
     }
     if (g_status_685170.flag_2497 != 0) {
-        ::operator delete(entry);
+        delete entry;
         return 0;
     }
     if (entry->type_08 > 0x91 && (entry->flags_10 & 0x20) == 0) {
@@ -144,7 +144,7 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
             Function52E4D0(slot->field_071);
             Function52E160(slot->field_071);
             ProcessStartupStateEntry(slot->field_071);
-            ::operator delete(slot->field_071);
+            delete slot->field_071;
         }
         Function52CA60();
         return 1;
@@ -152,12 +152,12 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
     if (entry->type_08 == 0x21) {
         int index;
         if (vector_40.count > 0 && vector_40.data[0]->type_08 == 0x21) {
-            ::operator delete(entry);
+            delete entry;
             return 0;
         }
         for (index = 0; index < vector_10.count; ++index) {
             if (vector_10.data[index]->type_08 == 0x21) {
-                ::operator delete(entry);
+                delete entry;
                 return 0;
             }
         }
@@ -236,7 +236,7 @@ void W8StartupRuntimeState::ProcessOwnedEntry(W8StartupStateElement005EE748* ent
         }
     }
     ProcessStartupStateEntry(entry);
-    ::operator delete(entry);
+    delete entry;
 }
 
 /* A character at zero percent hit points may start one of the three recovered

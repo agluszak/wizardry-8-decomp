@@ -7,12 +7,26 @@
 #include "wiz8/vector.h"
 
 class GDProp;
+typedef W8HashTable<unsigned int, int> W8OctreeIndex;
+typedef W8HashEntry<unsigned int, int> W8OctreeEntry;
+
 class W8PathingService;
 struct W8NavigatorMovementState;
 struct W8OctBuildNode00446330;
 
 class W8OctreeObjectRegistry {
 public:
+    W8OctreeObjectRegistry()
+        : by_cell(new W8OctreeIndex), by_object(new W8OctreeIndex) {}
+    ~W8OctreeObjectRegistry()
+    {
+        delete by_cell;
+        delete by_object;
+    }
+
+    W8OctreeIndex* by_cell;
+    W8OctreeIndex* by_object;
+
     /* Returns whether the pairing ended up recorded; every recovered caller
        discards it. */
     unsigned char RegisterObjectCell(int kind, int id, const int* point);
@@ -185,7 +199,7 @@ public:
     unsigned long m_positional_144;
     unsigned short* m_owned_148;
     unsigned char* m_pfRegsVisited;
-    void* m_owned_150;
+    W8HashTable<unsigned int, short>* m_owned_150;
     BitArray* m_owned_154;
     unsigned long m_positional_158;
     BitArray* m_owned_15c;
@@ -268,29 +282,6 @@ static_assert(sizeof(W8OctPreTree004679E0) == 0x3bc,
 /* The shared spatial-service pointer at 0x006598A4 is the active W8Octree.
    Its callers reach fields at +0x70/+0x120/+0x180, while 0x0042E620 proves
    that the same receiver dispatches ordinary W8Octree methods. */
-/* The octree's open-chained hash map: bucket heads, {next_index, key, value}
-   entries, a free-list head threaded through the same next_index field, and a power-of-two
-   bucket count. Both Octree.cpp and OctPath.cpp build and walk these. */
-struct W8OctreeIndex {
-    int FindNextEntry00438D50(const unsigned int* key, int previous);
-
-    void* bucket_heads;
-    void* entries;
-    long free_head;
-    unsigned long bucket_count;
-};
-
-struct W8OctreeEntry {
-    int next_index;
-    unsigned int key;
-    int value;
-};
-
-void InsertEntry0055DBB0(
-    W8OctreeIndex* index, const unsigned int* key, const int* value);
-void RemoveEntry00438C90(
-    W8OctreeIndex* index, const unsigned int* key, const int* value);
-void GrowIndex00439290(W8OctreeIndex* index);
 unsigned int __stdcall OctreeTraverseKind12(
     void* walker,
     void* lower,

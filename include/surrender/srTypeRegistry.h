@@ -1,5 +1,9 @@
 #pragma once
 
+// Reconstructed SDK construction interface; the original spelling is unknown.
+// ClientType retains the evidenced self-support specialization and allocation.
+#define SR_NEW(Type) new Type::ClientType
+
 #include <iostream>
 #include <windows.h>
 
@@ -141,6 +145,8 @@ static_assert(sizeof(srRuntimeClass) == 0x0c,
    missing handwritten vtable write. */
 class __declspec(novtable) srClass : public srRuntimeClass {
 public:
+    typedef srClass RegistryClass;
+
     typedef void (__cdecl *UpdateCallBack)(
         srClass* instance, double time, double elapsed);
 
@@ -235,14 +241,21 @@ private:
     static char selfType(Derived*);
     static long selfType(...);
     enum { IsSelfType = sizeof(selfType(static_cast<Base*>(0))) == sizeof(char) };
+    enum { BaseOwnsClass =
+        sizeof(selfType(static_cast<typename Base::RegistryClass*>(0))) == sizeof(char) };
 
 public:
+    typedef Derived RegistryClass;
+    typedef srClassSupport<Derived, Derived, false, ClassID> ClientType;
+
     static srRegistry::ClassNode* sGetClassNode()
     {
         /* A self-support instantiation reuses the canonical class's registry
            body. Retail's emitted self-type functions contain that body once;
            recursively registering the same ClassID a second time is absent. */
-        if (IsSelfType) {
+        // Fog and clip planes inherit an ancestor's registry support. Their
+        // client layer must register its own ClassID above that ancestor.
+        if (IsSelfType && BaseOwnsClass) {
             return Base::sGetClassNode();
         }
 

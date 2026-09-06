@@ -138,7 +138,7 @@ srCamera* GDCamera::CreateOrAttachCamera(
         srVector3T<double> position;
 
         g_game_camera_65a0fc =
-            new srClassSupport<srCamera, srCamera, false, 0x1400>(parent);
+            SR_NEW(srCamera)(parent);
         g_game_camera_65a0fc->setName("Sirtech Camera");
         position.x = m_position_08c.x;
         position.y = m_position_08c.y;

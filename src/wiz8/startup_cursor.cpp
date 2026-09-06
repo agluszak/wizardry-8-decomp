@@ -64,7 +64,7 @@ static srModelInstance* MakePolygonBrush(
     srShader shader;
 
     model =
-        new srClassSupport<srMeshModel, srMeshModel, false, 0x2010>(0L, 0L);
+        SR_NEW(srMeshModel)(0L, 0L);
     if (!model) {
         return 0;
     }
@@ -91,7 +91,7 @@ static srModelInstance* MakePolygonBrush(
         shader.value &= 0xffff7fff;
     } else {
         texture =
-            new srClassSupport<srTextureMap, srTextureMap, false, 0x2111>(
+            SR_NEW(srTextureMap)(
                 static_cast<srColorSurfaceIFace*>(0));
         texture->autoRelease();
         texture->setName("Video2DMakePolygonBrush");
@@ -359,7 +359,7 @@ void GetScreenPoint004284F0(W8ScreenPoint* point)
 extern "C" unsigned char Function4285C0(void)
 {
     srScene* cursor_scene =
-        new srClassSupport<srScene, srScene, false, 0x1010>(
+        SR_NEW(srScene)(
             static_cast<srNode*>(0));
     cursor_scene->setAmbientLight(0.0f, 0.0f, 0.0f);
     cursor_scene->setFogColor(0.0f, 0.0f, 0.0f);

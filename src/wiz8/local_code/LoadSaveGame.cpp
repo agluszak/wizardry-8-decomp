@@ -803,7 +803,6 @@ extern unsigned char IsSightRangeOverridden(void);                      /* 0x005
 extern int IsLevelDataFlag4EffectivelySet(void);                        /* 0x0041F090 */
 /* Byte-sized, not int: the refusal below returns through `mov al,1` and the
    save arm returns this result unchanged, so both share one byte register. */
-extern unsigned char SaveGame(const char* name, void* destination);     /* 0x005123F0 */
 
 /* Autosave, if every gate allows it. Declining is reported as success, which is
    why the whole chain is one condition with a single trailing `return 1` rather

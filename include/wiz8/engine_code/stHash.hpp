@@ -6,7 +6,7 @@
 inline unsigned int W8HashValue(unsigned int key)
 {
     unsigned int mixed = (key >> 10) ^ key;
-    return (mixed >> 10) ^ mixed;
+    return (mixed >> 10) ^ key;
 }
 
 inline unsigned int W8HashValue(unsigned short key)
@@ -32,10 +32,10 @@ public:
     ~W8HashTable()
     {
         if (bucket_heads != 0) {
-            ::operator delete(bucket_heads);
+            delete[] bucket_heads;
         }
         if (entries != 0) {
-            ::operator delete(entries);
+            delete[] entries;
         }
     }
 
@@ -45,6 +45,17 @@ public:
     void Remove(const Key* key, const Value* value);
     void Grow();
     int AllocateEntry();
+
+    void Clear()
+    {
+        delete[] bucket_heads;
+        delete[] entries;
+        bucket_heads = 0;
+        entries = 0;
+        free_head = -1;
+        bucket_count = 0;
+        Grow();
+    }
 
     int* bucket_heads;
     W8HashEntry<Key, Value>* entries;
@@ -132,10 +143,8 @@ void W8HashTable<Key, Value>::Grow()
     }
 
     W8HashEntry<Key, Value>* new_entries =
-        static_cast<W8HashEntry<Key, Value>*>(
-            ::operator new(capacity * sizeof(W8HashEntry<Key, Value>)));
-    int* new_buckets =
-        static_cast<int*>(::operator new(capacity * sizeof(int)));
+        new W8HashEntry<Key, Value>[capacity];
+    int* new_buckets = new int[capacity];
 
     W8HashEntry<Key, Value>* fill_entry = new_entries;
     int* fill_bucket = new_buckets;
@@ -166,8 +175,8 @@ void W8HashTable<Key, Value>::Grow()
                 ++used;
             }
         }
-        ::operator delete(bucket_heads);
-        ::operator delete(entries);
+        delete[] bucket_heads;
+        delete[] entries;
     }
 
     if (used < (int)capacity) {

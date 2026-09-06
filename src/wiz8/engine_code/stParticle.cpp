@@ -230,8 +230,7 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     active_particle_count_18c = 0;
     allocation_198 = static_cast<srVector3T<float>*>(
         srHeap.allocate(count * sizeof(srVector3T<float>)));
-    allocation_19c = static_cast<unsigned int*>(
-        ::operator new(count * sizeof(unsigned int)));
+    allocation_19c = new unsigned int[count];
     allocation_194 = new unsigned char[count];
     memset(allocation_194, 0, count);
 
@@ -1123,7 +1122,7 @@ stParticle::~stParticle()
         srHeap.free(allocation_16c);
     }
     if (allocation_174 != 0) {
-        ::operator delete(allocation_174);
+        delete[] allocation_174;
     }
     if (retained_14c != 0) {
         retained_14c->release();
@@ -1132,22 +1131,22 @@ stParticle::~stParticle()
         srHeap.free(allocation_198);
     }
     if (allocation_19c != 0) {
-        ::operator delete(allocation_19c);
+        delete[] allocation_19c;
     }
     if (allocation_254 != 0) {
-        ::operator delete(allocation_254);
+        delete[] allocation_254;
     }
     if (allocation_194 != 0) {
-        ::operator delete(allocation_194);
+        delete[] allocation_194;
     }
     if (texture_frames_178 != 0) {
         for (unsigned int i = 0; i < texture_frame_count_15c; i += 2) {
             texture_frames_178[i]->release();
         }
-        ::operator delete(texture_frames_178);
+        delete[] texture_frames_178;
     }
     if (m_pflFlutterAngle != 0) {
-        ::operator delete(m_pflFlutterAngle);
+        delete[] m_pflFlutterAngle;
     }
     texture_154->release();
     setParent(0, 1);
@@ -1229,7 +1228,7 @@ void stParticle::SetFlutter0049AD10(int enabled)
     value_1c0 = enabled;
     if (enabled == 0) {
         if (m_pflFlutterAngle != 0) {
-            ::operator delete(m_pflFlutterAngle);
+            delete[] m_pflFlutterAngle;
             m_pflFlutterAngle = 0;
         }
     }

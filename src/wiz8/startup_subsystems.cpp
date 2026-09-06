@@ -25,7 +25,7 @@ unsigned char g_flag_65beaf;
 
 extern unsigned short g_selected_item_0069c4b4;
 // GLOBAL: WIZ8 0x0069C130
-void* g_small_subsystem_69c130;
+unsigned int* g_small_subsystem_69c130;
 // GLOBAL: WIZ8 0x0069C0F4
 W8CampScreenState0069C0F4* g_camp_screen_0069c0f4;
 
@@ -248,10 +248,7 @@ unsigned char InitializeStartupGrid(void)
 unsigned char AllocateSmallStartupSubsystem(void)
 {
     if (!g_small_subsystem_69c130) {
-        g_small_subsystem_69c130 = malloc(0x38);
-        if (!g_small_subsystem_69c130) {
-            return 0;
-        }
+        g_small_subsystem_69c130 = new unsigned int[14];
         memset(g_small_subsystem_69c130, 0, 0x38);
     }
     return 1;
@@ -265,7 +262,7 @@ unsigned char AllocateSmallStartupSubsystem(void)
 // FUNCTION: WIZ8 0x005a9b30
 unsigned char FreeSmallStartupSubsystem(void)
 {
-    ::operator delete(g_small_subsystem_69c130);
+    delete[] g_small_subsystem_69c130;
     return 1;
 }
 

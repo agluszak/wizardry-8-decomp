@@ -1,20 +1,18 @@
 LIBRARY BINKW32
 
-; Closed Bink middleware import surface used by Engine Code\Bink.cpp. Every
-; decorated export is taken from the canonical Wiz8.exe import table. As with
-; mss32.def, entries omit the leading underscore because LIB supplies the
-; public __stdcall decoration.
+; Bink's exported stdcall names, including their leading underscores.
+; VC6's directive-based import generation preserves these exact DLL names.
 
 EXPORTS
-    BinkDDSurfaceType@4
-    BinkCopyToBuffer@28
-    BinkGetRects@8
-    BinkPause@8
-    BinkSetVolume@8
-    BinkClose@4
-    BinkSetSoundSystem@8
-    BinkOpenMiles@4
-    BinkOpen@8
-    BinkDoFrame@4
-    BinkWait@4
-    BinkNextFrame@4
+    _BinkDDSurfaceType@4
+    _BinkCopyToBuffer@28
+    _BinkGetRects@8
+    _BinkPause@8
+    _BinkSetVolume@8
+    _BinkClose@4
+    _BinkSetSoundSystem@8
+    _BinkOpenMiles@4
+    _BinkOpen@8
+    _BinkDoFrame@4
+    _BinkWait@4
+    _BinkNextFrame@4

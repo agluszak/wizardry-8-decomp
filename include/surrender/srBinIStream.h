@@ -14,7 +14,7 @@ class __declspec(novtable) srBinIStream : public virtual srBinStream {
 public:
     SR_DLL_IMPORT srBinIStream();
     SR_DLL_IMPORT srBinIStream(const srBinIStream& stream);
-    virtual SR_DLL_IMPORT ~srBinIStream() override;
+    virtual ~srBinIStream() override {}
     SR_DLL_IMPORT srBinIStream& operator=(const srBinIStream& stream);
 
     SR_DLL_IMPORT unsigned short getChar();
@@ -36,7 +36,7 @@ class __declspec(novtable) srBinIMStream : public srBinIStream {
 public:
     SR_DLL_IMPORT srBinIMStream(const void* data, unsigned long size);
     SR_DLL_IMPORT srBinIMStream(const srBinIMStream& stream);
-    virtual SR_DLL_IMPORT ~srBinIMStream() override;
+    virtual ~srBinIMStream() override {}
     SR_DLL_IMPORT srBinIMStream& operator=(const srBinIMStream& stream);
 
     virtual SR_DLL_IMPORT unsigned long getSize() override;

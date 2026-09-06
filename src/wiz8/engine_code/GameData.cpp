@@ -424,13 +424,7 @@ W8GameData::W8GameData(int handle, void* parent)
     if (parent == 0) {
         Function420B40(4);
         if (g_object_6598bc == 0) {
-            void* object = ::operator new(sizeof(W8Object0043A910));
-            if (object == 0) {
-                g_object_6598bc = 0;
-            }
-            else {
-                g_object_6598bc = new (object) W8Object0043A910();
-            }
+            g_object_6598bc = new W8Object0043A910();
         }
     }
     if (handle != 0) {

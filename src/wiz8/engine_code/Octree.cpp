@@ -4,6 +4,7 @@
 #include "surrender/srHeap.h"
 #include "wiz8/engine_code/OctPath.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/location_variables.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/geometry.h"
@@ -38,7 +39,6 @@ extern unsigned long g_octree_storage_00659770;
 extern unsigned long g_octree_state_00659890;
 extern void Function4331F0(void* value);
 extern void Function432D60(void* value);
-extern void Function439140(void);
 extern void Function434020(int value);
 extern unsigned char g_navigator_link_mode_00659c10;
 extern float g_rate_006068EC;
@@ -242,36 +242,6 @@ void DestroyBitArray(BitArray*& bits)
         delete bits;
         bits = 0;
     }
-}
-
-void DestroyIndex(W8OctreeIndex* index)
-{
-    if (index != 0) {
-        delete[] static_cast<int*>(index->bucket_heads);
-        delete[] static_cast<W8OctreeEntry*>(index->entries);
-        delete index;
-    }
-}
-
-W8OctreeIndex* CreateIndex()
-{
-    W8OctreeIndex* index = new W8OctreeIndex;
-    long* entries = new long[12];
-    long* bucket_heads = new long[4];
-    int position;
-
-    for (position = 0; position < 4; ++position) {
-        bucket_heads[position] = -1;
-        entries[position * 3] = position + 1;
-        entries[position * 3 + 1] = -1;
-        entries[position * 3 + 2] = -1;
-    }
-    entries[9] = -1;
-    index->bucket_heads = bucket_heads;
-    index->entries = entries;
-    index->free_head = 0;
-    index->bucket_count = 4;
-    return index;
 }
 
 template <class T>
@@ -576,182 +546,23 @@ resolve:
     return (short)cell[3];
 }
 
-/* Double the index and rehash into it.
+// TEMPLATE: WIZ8 0x00439290
+// W8HashTable<unsigned int,int>::Grow
 
-   Every live entry is re-linked under its key's new bucket, and whatever is
-   left over becomes the free list, terminated at the last slot. The old two
-   allocations go back only when there was a table to begin with. */
-// FUNCTION: WIZ8 0x00439290
-void GrowIndex00439290(W8OctreeIndex* index)
-{
-    W8OctreeEntry* entries;
-    int* bucket_heads;
-    W8OctreeEntry* fill;
-    int* fill_bucket;
-    W8OctreeEntry* source;
-    unsigned int capacity;
-    unsigned int remaining;
-    unsigned int hash;
-    int used = 0;
-    int bucket;
-    int slot;
+// TEMPLATE: WIZ8 0x00439140
+// W8HashTable<unsigned int,short>::Grow
 
-    capacity = index->bucket_count << 1;
-    if (capacity < 4) {
-        capacity = 4;
-    }
-    entries = new W8OctreeEntry[capacity];
-    bucket_heads = new int[capacity];
-    fill = entries;
-    fill_bucket = bucket_heads;
-    remaining = capacity;
-    if ((int)capacity > 0) {
-        do {
-            fill->next_index = -1;
-            *fill_bucket = -1;
-            --remaining;
-            ++fill;
-            ++fill_bucket;
-        } while (remaining != 0);
-    }
-    if (index->bucket_count != 0) {
-        for (bucket = 0; bucket < (int)index->bucket_count; ++bucket) {
-            slot = static_cast<int*>(index->bucket_heads)[bucket];
-            if (slot != -1) {
-                do {
-                    source = static_cast<W8OctreeEntry*>(index->entries) + slot;
-                    entries[used].key = source->key;
-                    hash = ((source->key >> 10 ^ source->key) >> 10 ^ source->key) &
-                        (capacity - 1);
-                    entries[used].value =
-                        (static_cast<W8OctreeEntry*>(index->entries) + slot)->value;
-                    entries[used].next_index = bucket_heads[hash];
-                    bucket_heads[hash] = used;
-                    slot = (static_cast<W8OctreeEntry*>(index->entries) + slot)->next_index;
-                    ++used;
-                } while (slot != -1);
-            }
-        }
-        delete[] static_cast<int*>(index->bucket_heads);
-        delete[] static_cast<W8OctreeEntry*>(index->entries);
-    }
-    if (used < (int)capacity) {
-        for (slot = used; slot < (int)capacity; ) {
-            ++slot;
-            entries[slot - 1].next_index = slot;
-        }
-    }
-    entries[capacity - 1].next_index = -1;
-    index->bucket_count = capacity;
-    index->bucket_heads = bucket_heads;
-    index->free_head = used;
-    index->entries = entries;
-}
+// TEMPLATE: WIZ8 0x004393e0
+// W8HashTable<unsigned int,int>::AllocateEntry
 
-/* Take the next free entry, growing first when there is none. */
-// FUNCTION: WIZ8 0x004393e0
-int AllocateEntry004393E0(W8OctreeIndex* index)
-{
-    int slot;
+// TEMPLATE: WIZ8 0x00438c90
+// W8HashTable<unsigned int,int>::Remove
 
-    if (index->free_head == -1) {
-        GrowIndex00439290(index);
-    }
-    slot = index->free_head;
-    index->free_head = (static_cast<W8OctreeEntry*>(index->entries) + slot)->next_index;
-    return slot;
-}
+// TEMPLATE: WIZ8 0x00438d50
+// W8HashTable<unsigned int,int>::FindNextEntry
 
-/* Unlink one key/value pair and put its entry back on the free list. A key that
-   is not there, or one whose chain holds a different value, is left alone. */
-// FUNCTION: WIZ8 0x00438c90
-void RemoveEntry00438C90(
-    W8OctreeIndex* index, const unsigned int* key, const int* value)
-{
-    unsigned int wanted = *key;
-    int* bucket = static_cast<int*>(index->bucket_heads) +
-        (((wanted >> 10 ^ wanted) >> 10 ^ wanted) & (index->bucket_count - 1));
-    int slot = *bucket;
-    int previous = -1;
-    W8OctreeEntry* entries;
-    W8OctreeEntry* entry;
-
-    if (slot == -1) {
-        return;
-    }
-    entries = static_cast<W8OctreeEntry*>(index->entries);
-    for (;;) {
-        entry = entries + slot;
-        if (entry->key == wanted && entry->value == *value) {
-            break;
-        }
-        previous = slot;
-        slot = entry->next_index;
-        if (entry->next_index == -1) {
-            return;
-        }
-    }
-    if (previous != -1) {
-        entries[previous].next_index = entry->next_index;
-    } else {
-        *bucket = entry->next_index;
-    }
-    (static_cast<W8OctreeEntry*>(index->entries) + slot)->next_index = index->free_head;
-    index->free_head = slot;
-}
-
-/* Find the first entry for a key, or continue along the same bucket chain
-   after a previously returned entry. Values are deliberately not considered:
-   conditional paths use this to inspect every value stored under one cell. */
-// FUNCTION: WIZ8 0x00438d50
-int W8OctreeIndex::FindNextEntry00438D50(
-    const unsigned int* key, int previous)
-{
-    W8OctreeEntry* index_entries = static_cast<W8OctreeEntry*>(entries);
-    int slot;
-    if (previous == -1) {
-        unsigned int wanted = *key;
-        unsigned int hash = (wanted >> 10 ^ wanted) >> 10 ^ wanted;
-        slot = static_cast<int*>(bucket_heads)[hash & (bucket_count - 1)];
-    }
-    else {
-        slot = index_entries[previous].next_index;
-    }
-
-    while (slot != -1) {
-        if (index_entries[slot].key == *key) {
-            return slot;
-        }
-        slot = index_entries[slot].next_index;
-    }
-    return -1;
-}
-
-/* Link one key to one value, growing first when there is no free entry. */
-// FUNCTION: WIZ8 0x0055dbb0
-void InsertEntry0055DBB0(
-    W8OctreeIndex* index, const unsigned int* key, const int* value)
-{
-    W8OctreeEntry* entries;
-    unsigned int hash;
-    unsigned int stored;
-    int capacity;
-    int slot;
-
-    if (index->free_head == -1) {
-        GrowIndex00439290(index);
-    }
-    slot = index->free_head;
-    capacity = index->bucket_count;
-    entries = static_cast<W8OctreeEntry*>(index->entries);
-    index->free_head = entries[slot].next_index;
-    stored = *key;
-    entries[slot].key = stored;
-    entries[slot].value = *value;
-    hash = ((stored >> 10 ^ stored) >> 10 ^ stored) & (capacity - 1);
-    entries[slot].next_index = static_cast<int*>(index->bucket_heads)[hash];
-    static_cast<int*>(index->bucket_heads)[hash] = slot;
-}
+// TEMPLATE: WIZ8 0x0055dbb0
+// W8HashTable<unsigned int,int>::Insert
 
 /* Record that one object now occupies one cell.
 
@@ -767,8 +578,7 @@ void InsertEntry0055DBB0(
 unsigned char W8OctreeObjectRegistry::RegisterObjectCell(
     int kind, int id, const int* point)
 {
-    W8OctreeIndex** pair = reinterpret_cast<W8OctreeIndex**>(this);
-    W8OctreeIndex* by_object = pair[1];
+    W8OctreeIndex* by_object = this->by_object;
     W8OctreeIndex* by_cell;
     W8OctreeEntry* entries;
     unsigned int object_key;
@@ -820,7 +630,7 @@ unsigned char W8OctreeObjectRegistry::RegisterObjectCell(
                     }
                 }
             }
-            by_cell = pair[0];
+            by_cell = this->by_cell;
             bucket = static_cast<int*>(by_cell->bucket_heads) +
                 ((((unsigned int)occupied >> 10 ^ occupied) >> 10 ^ occupied) &
                  (by_cell->bucket_count - 1));
@@ -852,9 +662,9 @@ unsigned char W8OctreeObjectRegistry::RegisterObjectCell(
     if ((short)kind == 0xc) {
         cell_key = ((point[0] << 8) + point[1]) * 0x100 + 1 + point[2];
         tagged_key = (id & 0xffff) + 0xd0000;
-        RemoveEntry00438C90(by_object, &tagged_key, &cell_key);
-        by_object = pair[1];
-        slot = AllocateEntry004393E0(by_object);
+        by_object->Remove(&tagged_key, &cell_key);
+        by_object = this->by_object;
+        slot = by_object->AllocateEntry();
         entries = static_cast<W8OctreeEntry*>(by_object->entries);
         hash = ((tagged_key >> 10 ^ tagged_key) >> 10 ^ tagged_key) &
             (by_object->bucket_count - 1);
@@ -862,15 +672,15 @@ unsigned char W8OctreeObjectRegistry::RegisterObjectCell(
         entries[slot].value = cell_key;
         entries[slot].next_index = static_cast<int*>(by_object->bucket_heads)[hash];
         static_cast<int*>(by_object->bucket_heads)[hash] = slot;
-        RemoveEntry00438C90(pair[0], (const unsigned int*)&cell_key, (const int*)&tagged_key);
-        InsertEntry0055DBB0(pair[0], (const unsigned int*)&cell_key, (const int*)&tagged_key);
+        this->by_cell->Remove((const unsigned int*)&cell_key, (const int*)&tagged_key);
+        this->by_cell->Insert((const unsigned int*)&cell_key, (const int*)&tagged_key);
     }
 record:
     cell_key = ((point[0] << 8) + point[1]) * 0x100 + 1 + point[2];
-    RemoveEntry00438C90(pair[1], &object_key, &cell_key);
-    InsertEntry0055DBB0(pair[1], &object_key, &cell_key);
-    RemoveEntry00438C90(pair[0], (const unsigned int*)&cell_key, (const int*)&object_key);
-    InsertEntry0055DBB0(pair[0], (const unsigned int*)&cell_key, (const int*)&object_key);
+    this->by_object->Remove(&object_key, &cell_key);
+    this->by_object->Insert(&object_key, &cell_key);
+    this->by_cell->Remove((const unsigned int*)&cell_key, (const int*)&object_key);
+    this->by_cell->Insert((const unsigned int*)&cell_key, (const int*)&object_key);
     return 1;
 }
 
@@ -889,7 +699,6 @@ void W8Octree::AddCollidablePropBounds(
 {
     int minimum[3];
     int maximum[3];
-    W8OctreeIndex** pair;
     W8OctreeIndex* by_prop;
     W8OctreeIndex* by_cell;
     W8OctreeEntry* entries;
@@ -917,10 +726,9 @@ void W8Octree::AddCollidablePropBounds(
         for (y = minimum[1]; y <= maximum[1]; ++y) {
             for (z = minimum[2]; z <= maximum[2]; ++z) {
                 cell_key = ((x << 8) + y) * 0x100 + 1 + z;
-                pair = reinterpret_cast<W8OctreeIndex**>(object_registry);
-                by_prop = pair[1];
-                RemoveEntry00438C90(by_prop, &prop_key, (const int*)&cell_key);
-                slot = AllocateEntry004393E0(by_prop);
+                by_prop = object_registry->by_object;
+                by_prop->Remove(&prop_key, (const int*)&cell_key);
+                slot = by_prop->AllocateEntry();
                 entries = static_cast<W8OctreeEntry*>(by_prop->entries);
                 hash = ((prop_key >> 10 ^ prop_key) >> 10 ^ prop_key) &
                     (by_prop->bucket_count - 1);
@@ -929,10 +737,10 @@ void W8Octree::AddCollidablePropBounds(
                 entries[slot].next_index = static_cast<int*>(by_prop->bucket_heads)[hash];
                 static_cast<int*>(by_prop->bucket_heads)[hash] = slot;
 
-                by_cell = pair[0];
-                RemoveEntry00438C90(by_cell, &cell_key, (const int*)&prop_key);
+                by_cell = object_registry->by_cell;
+                by_cell->Remove(&cell_key, (const int*)&prop_key);
                 if (by_cell->free_head == -1) {
-                    GrowIndex00439290(by_cell);
+                    by_cell->Grow();
                 }
                 slot = by_cell->free_head;
                 entries = static_cast<W8OctreeEntry*>(by_cell->entries);
@@ -1662,11 +1470,8 @@ void W8Octree::Initialize(const void* raw_header)
         m_owned_198 = new BitArray(ReadHeader<unsigned long>(header, 0x66) + 1);
         m_owned_19c = new BitArray(ReadHeader<unsigned long>(header, 0x72));
 
-        W8OctreeIndex** pair = new W8OctreeIndex*[2];
-        pair[0] = CreateIndex();
-        pair[1] = CreateIndex();
-        object_registry = reinterpret_cast<W8OctreeObjectRegistry*>(pair);
-        m_owned_150 = CreateIndex();
+        object_registry = new W8OctreeObjectRegistry;
+        m_owned_150 = new W8HashTable<unsigned int, short>;
 
         unsigned int visited_size = ReadHeader<unsigned short>(header, 0x64) + 1;
         m_pfRegsVisited = static_cast<unsigned char*>(malloc(visited_size));
@@ -1729,8 +1534,6 @@ void W8Octree::AddLoadedParticle(void* particle)
 // FUNCTION: WIZ8 0x0042de60
 W8Octree::~W8Octree()
 {
-    W8OctreeIndex** pair;
-
     if (m_positional_16c != 0) {
         Function4331F0(m_owned_0c0);
     }
@@ -1753,15 +1556,8 @@ W8Octree::~W8Octree()
     free(m_owned_130);
 
     if (m_owned_150 != 0) {
-        W8OctreeIndex* index = static_cast<W8OctreeIndex*>(m_owned_150);
-        delete[] static_cast<int*>(index->bucket_heads);
-        delete[] static_cast<W8OctreeEntry*>(index->entries);
-        index->bucket_heads = 0;
-        index->entries = 0;
-        index->free_head = -1;
-        index->bucket_count = 0;
-        Function439140();
-        DestroyIndex(index);
+        m_owned_150->Clear();
+        delete m_owned_150;
         m_owned_150 = 0;
     }
 
@@ -1801,12 +1597,7 @@ W8Octree::~W8Octree()
     DestroyBitArray(m_owned_1a0);
     DestroyBitArray(m_owned_1a4);
 
-    pair = reinterpret_cast<W8OctreeIndex**>(object_registry);
-    if (pair != 0) {
-        DestroyIndex(pair[0]);
-        DestroyIndex(pair[1]);
-        delete[] pair;
-    }
+    delete object_registry;
 
     free(m_owned_0d8);
     if (pathing_180 != 0) {
@@ -1998,26 +1789,17 @@ void W8Octree::AdjustPortalDestination(
     pathing_180->EditTeleportalLink(&local_destination, &local_source);
 }
 
-/* Engine Code\Trigger.cpp lives in the same interval. Its list of live
-   triggers is torn down wholesale rather than one at a time. */
-
-/* 0x006598FC and 0x00659904: the live triggers, count and data. */
-extern int g_trigger_count;
-extern void** g_trigger_data;
-extern int g_trigger_flag_00659994;
-extern int g_trigger_flag_006598e4;
-
-/* Release every live trigger and forget the three pieces of state that go with
-   the list, which is what groups them. */
+/* Release the location-variable names and empty their parallel value and
+   level vectors. Trigger.cpp creates the names as copied character arrays. */
 // FUNCTION: WIZ8 0x004445b0
 void ReleaseAllTriggers(void)
 {
     int index;
 
-    for (index = 0; index < g_trigger_count; ++index) {
-        operator delete(g_trigger_data[index]);
+    for (index = 0; index < g_location_variable_names_006598f8.GetCount(); ++index) {
+        delete[] *g_location_variable_names_006598f8.GetAt(index);
     }
-    g_trigger_flag_00659994 = 0;
-    g_trigger_count = 0;
-    g_trigger_flag_006598e4 = 0;
+    g_location_variable_values_00659990.Clear();
+    g_location_variable_names_006598f8.Clear();
+    g_location_variable_levels_006598e0.Clear();
 }

@@ -5,6 +5,7 @@
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/monster_runtime.h"
+#include "wiz8/monster_generators.h"
 #include "wiz8/utility.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/sgp_video.h"
@@ -53,7 +54,6 @@ extern void SetMessageBoxModeEnabled(void);
 extern void SetMessageBoxWord(unsigned short value);
 extern void UpdateHeldItemCursor(void);
 extern void Function479010(void);
-extern void InitializeEncounterTables(void);
 extern unsigned char LoadMissileDatabase(void);
 extern unsigned char LoadHitSoundDatabase(void);
 extern unsigned int GetTotalPhysicalMemory(void);

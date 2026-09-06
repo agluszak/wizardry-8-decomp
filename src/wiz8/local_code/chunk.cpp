@@ -155,13 +155,13 @@ unsigned char W8Chunk::CopyCurrentChunkFrom(W8Chunk* source)
     if (!m_fWriting) {
         return 0;
     }
-    contents = static_cast<unsigned char*>(::operator new(extent));
+    contents = new unsigned char[extent];
     if (contents == 0) {
         return 0;
     }
     source->Read(contents, extent, &transferred);
     if (extent != transferred) {
-        ::operator delete(contents);
+        delete[] contents;
         return 0;
     }
     source_head = source->m_heads.data[source->m_heads.count - 1];
@@ -171,12 +171,12 @@ unsigned char W8Chunk::CopyCurrentChunkFrom(W8Chunk* source)
     OpenChunk(source->CurrentChunkId(), source_head->unknown_04);
     Write(contents, extent, &transferred);
     if (extent != transferred) {
-        ::operator delete(contents);
+        delete[] contents;
         ReleaseCurrentChunk();
         return 0;
     }
     ReleaseCurrentChunk();
-    ::operator delete(contents);
+    delete[] contents;
     return 1;
 }
 

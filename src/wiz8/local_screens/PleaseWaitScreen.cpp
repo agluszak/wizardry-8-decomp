@@ -6,6 +6,7 @@
 #include "wiz8/dialog_base.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/local_code/Strings.h"
+#include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/notices.h"
 #include "wiz8/sr_api.h"
@@ -45,7 +46,7 @@ struct W8LevelLoadDescriptor {
     int parameter_2;               /* 0x0f8 */
     unsigned char waiting;         /* 0x0fc, gates the polling path */
     char name[0x3f];               /* 0x0fd, bounded only by the next field */
-    void* save_payload;            /* 0x13c */
+    W8SaveScreenshot* save_payload; /* 0x13c */
     unsigned long entered_tick;    /* 0x140 */
     int caption_y;                 /* 0x144 */
 };
@@ -91,7 +92,6 @@ extern unsigned char Function42AF60(int level, int entrance);
 extern void Function5159E0(int value);
 extern int Function55EC10(void);
 extern unsigned int LoadGame(const char* slot_name);
-extern unsigned char SaveGame(const char* slot_name, void* screenshot);
 extern void RequestScreenTransition(void);
 extern void SetPendingScreenState(int value);
 extern void SetValue64D8AC(unsigned long value);
@@ -153,7 +153,8 @@ unsigned char PleaseWaitScreenEnter(void)
         case 2:
             g_load_descriptor_69b7c8->parameter = g_status_685170.current_level;
             strcpy(g_load_descriptor_69b7c8->name, g_screen_state_0068ec78.name);
-            g_load_descriptor_69b7c8->save_payload = g_screen_state_0068ec78.parameter_3;
+            g_load_descriptor_69b7c8->save_payload =
+                static_cast<W8SaveScreenshot*>(g_screen_state_0068ec78.parameter_3);
             break;
         case 3:
             g_load_descriptor_69b7c8->parameter = g_screen_state_0068ec78.parameter;
@@ -338,7 +339,7 @@ void PleaseWaitScreenFrame(void)
                        saved ? gppStringList[0x1bd0 / 4] : gppStringList[0x1bd8 / 4],
                        -1, -1, 0);
         if (g_load_descriptor_69b7c8->save_payload) {
-            ::operator delete(g_load_descriptor_69b7c8->save_payload);
+            delete g_load_descriptor_69b7c8->save_payload;
         }
         while (GetTickCount() - g_load_descriptor_69b7c8->entered_tick < 500) {
         }

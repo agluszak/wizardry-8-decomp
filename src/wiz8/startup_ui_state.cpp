@@ -32,7 +32,7 @@ void InitializeRegionHelpState(void)
     g_hot_region_689b4c = 0;
     g_dword_689b50 = 0;
     if (g_default_help_text) {
-        free(g_default_help_text);
+        delete[] g_default_help_text;
     }
     g_default_help_text = 0;
 }

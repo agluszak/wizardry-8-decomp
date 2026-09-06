@@ -279,7 +279,7 @@ W8World* CreateWorld()
     memset(world, 0, sizeof(*world));
 
     world->static_scene =
-        new srClassSupport<srScene, srScene, false, 0x1010>(
+        SR_NEW(srScene)(
             static_cast<srNode*>(0));
     if (world->static_scene == 0) {
         free(world);
@@ -297,7 +297,7 @@ W8World* CreateWorld()
     world->level->m_active = 1;
 
     world->dynamic_scene =
-        new srClassSupport<srNode, srNode, false, 0x1000>(world->static_scene);
+        SR_NEW(srNode)(world->static_scene);
     if (world->dynamic_scene == 0) {
         delete world->static_scene;
         delete world->level;
@@ -478,7 +478,7 @@ void DestroyWorldCollections(W8World* world)
     }
     if (world->named_positions != 0) {
         while (world->named_positions->GetCount() != 0) {
-            operator delete(*world->named_positions->GetAt(0));
+            delete *world->named_positions->GetAt(0);
             world->named_positions->RemoveAt(0);
         }
     }

@@ -43,58 +43,8 @@ unsigned int float_bits(float value)
     return representation.bits;
 }
 
-W8Navigator** g_navigators_659b3c;
-int g_navigator_count_659b34;
-int g_navigator_capacity_659b38;
-
-void RegisterNavigator(W8Navigator* navigator)
-{
-    W8Navigator** replacement;
-    int index;
-    int new_count = g_navigator_count_659b34 + 1;
-
-    if (g_navigator_capacity_659b38 < new_count) {
-        replacement = static_cast<W8Navigator**>(
-            ::operator new(new_count * sizeof(*replacement)));
-        if (replacement == 0) {
-            return;
-        }
-        for (index = 0; index != g_navigator_count_659b34; ++index) {
-            replacement[index] = g_navigators_659b3c[index];
-        }
-        ::operator delete(g_navigators_659b3c);
-        g_navigators_659b3c = replacement;
-        g_navigator_capacity_659b38 = new_count;
-    }
-    g_navigators_659b3c[g_navigator_count_659b34++] = navigator;
-}
-
-/* The removal counterpart, inlined into the destructor: find this navigator by
-   address, shift the tail down over it and drop the count. The array itself is
-   never shrunk, so the capacity survives the removal. */
-inline int FindNavigator(const W8Navigator* navigator)
-{
-    int index;
-
-    for (index = 0; index < g_navigator_count_659b34; ++index) {
-        if (g_navigators_659b3c[index] == navigator) {
-            return index;
-        }
-    }
-    return -1;
-}
-
-inline void UnregisterNavigator(const W8Navigator* navigator)
-{
-    int index = FindNavigator(navigator);
-
-    if (index < g_navigator_count_659b34 && index >= 0) {
-        for (; index < g_navigator_count_659b34 - 1; ++index) {
-            g_navigators_659b3c[index] = g_navigators_659b3c[index + 1];
-        }
-        --g_navigator_count_659b34;
-    }
-}
+// GLOBAL: WIZ8 0x00659b30
+W8GrowableVector<W8Navigator*> g_registered_navigators(5);
 
 }
 
@@ -195,7 +145,7 @@ W8Navigator::W8Navigator()
     movement_0c0.Reset();
     tracked_position_0a4.x = 0.0f;
     node_18c = new srNode(0);
-    RegisterNavigator(this);
+    g_registered_navigators.Add(this);
 }
 
 /* The callback a navigator starts with: mark it and stop it dead. */
@@ -211,9 +161,9 @@ void NavigatorDefaultCallback00451EA0(W8Navigator* navigator)
 // FUNCTION: WIZ8 0x00453160
 void Function453160(void)
 {
-    int count = g_navigator_count_659b34;
+    int count = g_registered_navigators.GetCount();
     for (int index = 0; index < count; ++index) {
-        W8Navigator* navigator = g_navigators_659b3c[index];
+        W8Navigator* navigator = *g_registered_navigators.GetAt(index);
         navigator->flag_025 = 1;
         navigator->movement_0c0.velocity_034.x = 0.0f;
         navigator->movement_0c0.velocity_034.y = 0.0f;
@@ -224,9 +174,9 @@ void Function453160(void)
 // FUNCTION: WIZ8 0x004531a0
 void Function4531A0(void)
 {
-    int count = g_navigator_count_659b34;
+    int count = g_registered_navigators.GetCount();
     for (int index = 0; index < count; ++index) {
-        W8Navigator* navigator = g_navigators_659b3c[index];
+        W8Navigator* navigator = *g_registered_navigators.GetAt(index);
         navigator->flag_025 = 0;
         if (navigator->path_ai_068 != 0) {
             PathAIResetTick004A9C20(navigator->path_ai_068);
@@ -396,7 +346,7 @@ W8NavigatorMovementState::~W8NavigatorMovementState()
             attachment->path_values_50 = 0;
             free(allocation);
         }
-        ::operator delete(attachment);
+        delete attachment;
     }
     attachment_0ac = 0;
 }
@@ -483,10 +433,10 @@ W8Navigator::W8Navigator(const W8Navigator& other)
     tracked_position_0a4.y = 0.0f;
     tracked_position_0a4.z = 0.0f;
     node_18c =
-        new srClassSupport<srNode, srNode, false, 0x1000>(
+        SR_NEW(srNode)(
             static_cast<srNode*>(0));
     node_18c->setLocation(other.node_18c->getLocation());
-    RegisterNavigator(this);
+    g_registered_navigators.Add(this);
 }
 
 /* Everything this navigator owns, in the order the retail body releases it.
@@ -501,7 +451,7 @@ W8Navigator::~W8Navigator()
     if (path_ai_068 != 0) {
         DestroyOwnedPathAI004A9110(path_ai_068);
     }
-    UnregisterNavigator(this);
+    g_registered_navigators.RemoveAt(g_registered_navigators.IndexOf(this));
     delete owned_object_0a0;
     owned_object_0a0 = 0;
     if (movement_0c0.location_id_004 != 0 && g_object_6598a4 != 0) {

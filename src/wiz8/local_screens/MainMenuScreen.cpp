@@ -54,7 +54,8 @@ unsigned char g_flag_69c4c4;
 unsigned char g_flag_69c4bb;
 int g_dword_69c4ac;
 unsigned int g_dword_69c4b0;
-int g_dword_69c4bc;
+// GLOBAL: WIZ8 0x0069c4bc
+wchar_t* g_pending_main_menu_message;
 W8ModalDialogBase* g_dword_69c4c0;
 extern int g_dword_647bc0;
 extern int g_font_683660;
@@ -352,7 +353,7 @@ unsigned char MainMenuScreenFunction005BC810(void)
     wchar_t wide[64];
     unsigned short colour;
     W8ModalDialogBase* dialog;
-    int pending;
+    wchar_t* pending;
     short measured;
 
     Function422B10();
@@ -400,15 +401,15 @@ unsigned char MainMenuScreenFunction005BC810(void)
     }
     UpdateHeldItemCursor();
 
-    pending = g_dword_69c4bc;
+    pending = g_pending_main_menu_message;
     if (pending != 0) {
         dialog = static_cast<W8ModalDialogBase*>(Function5CF300(1));
         dialog->SetClientExtent(0xfa, 200);
         dialog->SetMessage((void*)pending, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
         Function5CF580(dialog, 0);
         g_dword_69c4c0 = dialog;
-        ::operator delete((void*)g_dword_69c4bc);
-        g_dword_69c4bc = 0;
+        delete[] g_pending_main_menu_message;
+        g_pending_main_menu_message = 0;
         return 1;
     }
     if (!Function4298F0() && !g_flag_69c4c4) {
@@ -582,4 +583,11 @@ unsigned char MainMenuScreenLeave(int)
     return 1;
 }
 
+}
+
+// FUNCTION: WIZ8 0x005bd010
+void SetMainMenuMessage005BD010(const wchar_t* message)
+{
+    g_pending_main_menu_message = new wchar_t[wcslen(message) + 1];
+    wcscpy(g_pending_main_menu_message, message);
 }

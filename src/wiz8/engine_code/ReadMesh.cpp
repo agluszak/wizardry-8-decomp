@@ -82,58 +82,11 @@ extern void UpdatePleaseWaitLoadFrame005915A0(void);
 
 namespace {
 
-void InitializeReadMeshIndex(W8OctreeIndex* index)
-{
-    W8OctreeEntry* entries = static_cast<W8OctreeEntry*>(::operator new(0x30));
-    int* buckets = static_cast<int*>(::operator new(0x10));
-    for (int slot = 0; slot < 4; ++slot) {
-        buckets[slot] = -1;
-        entries[slot].next_index = slot + 1;
-        entries[slot].key = static_cast<unsigned int>(-1);
-        entries[slot].value = -1;
-    }
-    entries[3].next_index = -1;
-    index->bucket_heads = buckets;
-    index->entries = entries;
-    index->free_head = 0;
-    index->bucket_count = 4;
-}
+// TEMPLATE: WIZ8 0x00489fe0
+// W8HashTable<unsigned int,int>::W8HashTable
 
-void DestroyReadMeshIndex(W8OctreeIndex* index)
-{
-    ::operator delete(index->bucket_heads);
-    ::operator delete(index->entries);
-}
-
-int FindReadMeshVertex(W8OctreeIndex* index, unsigned int key)
-{
-    W8OctreeEntry* entries = static_cast<W8OctreeEntry*>(index->entries);
-    int slot = static_cast<int*>(index->bucket_heads)[
-        ((key >> 10 ^ key) >> 10 ^ key) & (index->bucket_count - 1)];
-    for (; slot != -1; slot = entries[slot].next_index) {
-        if (entries[slot].key == key) {
-            return entries[slot].value - 1;
-        }
-    }
-    return -1;
-}
-
-void InsertReadMeshVertex(W8OctreeIndex* index, unsigned int key, int value)
-{
-    if (index->free_head == -1) {
-        GrowIndex00439290(index);
-    }
-    W8OctreeEntry* entries = static_cast<W8OctreeEntry*>(index->entries);
-    int slot = index->free_head;
-    index->free_head = entries[slot].next_index;
-    unsigned int bucket =
-        ((key >> 10 ^ key) >> 10 ^ key) & (index->bucket_count - 1);
-    entries[slot].key = key;
-    entries[slot].value = value + 1;
-    entries[slot].next_index =
-        static_cast<int*>(index->bucket_heads)[bucket];
-    static_cast<int*>(index->bucket_heads)[bucket] = slot;
-}
+// TEMPLATE: WIZ8 0x0055db80
+// W8HashTable<unsigned int,int>::~W8HashTable
 
 bool ReadMeshFaceNeedsSplit(
     const W8ReadMeshFace& face, srMaterialIFace** materials)
@@ -213,7 +166,6 @@ stMeshModel* BuildSingleLevelMesh00488650(
         polygon_counts[type] = 0;
         vertex_counts[type] = 0;
         extra_uv_counts[type] = 0;
-        InitializeReadMeshIndex(vertex_indices + type);
         int capacity = capacities[type];
         vertex_materials[type] = new srPtr<srMaterialIFace>[capacity * 3];
         polygon_textures[type] = new srPtr<srTextureIFace>[capacity];
@@ -246,10 +198,11 @@ stMeshModel* BuildSingleLevelMesh00488650(
             unsigned int key =
                 (reinterpret_cast<unsigned int>(materials[face.material_index]) & 0xfff) |
                 (original_vertex << 12);
-            int vertex = FindReadMeshVertex(vertex_indices + type, key);
+            int vertex = vertex_indices[type].Lookup(&key) - 1;
             if (vertex == -1) {
                 vertex = vertex_counts[type];
-                InsertReadMeshVertex(vertex_indices + type, key, vertex);
+                int stored_vertex = vertex + 1;
+                vertex_indices[type].Insert(&key, &stored_vertex);
                 vertex_materials[type][vertex] = materials[face.material_index];
                 vertex_uvs[type][vertex] = face.texture_coordinates[corner];
                 reinterpret_cast<int*>(&poly)[corner] = vertex;
@@ -424,9 +377,6 @@ stMeshModel* BuildSingleLevelMesh00488650(
         unsigned long state = first_model->control_state_390;
         first_model->control_state_390 = state | 9;
         first_model->reindexPolygons(0);
-    }
-    for (type = 0; type < polygon_types.count; ++type) {
-        DestroyReadMeshIndex(vertex_indices + type);
     }
     return first_model;
 }

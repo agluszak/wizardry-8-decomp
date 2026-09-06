@@ -327,8 +327,7 @@ static int WINAPI noteArchive(
 srZipAdapter::srZipAdapter()
 {
     Wiz_NoPrinting(1);
-    callbacks_ = static_cast<srZipCallbacks*>(
-        ::operator new(sizeof(srZipCallbacks)));
+    callbacks_ = new srZipCallbacks;
     memset(callbacks_, 0, sizeof(*callbacks_));
     callbacks_->password = reinterpret_cast<DLLPASSWORD*>(noteArchive);
     callbacks_->print = discardPrintOrService;
@@ -372,7 +371,7 @@ srInlineString& srInlineString::operator=(const char* source)
 // FUNCTION: SREXT_UNZIP 0x10011020
 srZipAdapter::~srZipAdapter()
 {
-    ::operator delete(callbacks_);
+    delete callbacks_;
 }
 
 // FUNCTION: SREXT_UNZIP 0x10011060

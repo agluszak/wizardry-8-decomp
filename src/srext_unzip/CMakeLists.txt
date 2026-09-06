@@ -57,17 +57,10 @@ if(INFOZIP_SOURCE)
     )
     add_dependencies(INFOZIP_UNZIP_5_4 SREXT_UNZIP_ADAPTER_PROBE)
 
-    set(SR_UNZIP_IMPORT_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/sr-unzip.lib")
-    add_custom_command(
-        OUTPUT "${SR_UNZIP_IMPORT_LIBRARY}"
-        COMMAND lib.exe /nologo /machine:ix86
-            "/def:${CMAKE_CURRENT_SOURCE_DIR}/src/srext_unzip/sr-unzip-imports.def"
-            "/out:${SR_UNZIP_IMPORT_LIBRARY}"
-        DEPENDS src/srext_unzip/sr-unzip-imports.def
-        VERBATIM
+    wiz8_add_import_library(
+        SREXT_UNZIP_SR
+        src/srext_unzip/sr-unzip-imports.def
     )
-    add_custom_target(surrender_unzip_import_library
-        DEPENDS "${SR_UNZIP_IMPORT_LIBRARY}")
 
     find_program(CVTRES_EXECUTABLE cvtres.exe REQUIRED)
     set(SREXT_UNZIP_RESOURCE_RES
@@ -107,7 +100,7 @@ if(INFOZIP_SOURCE)
         "${SREXT_UNZIP_RESOURCE_OBJECT}"
     )
     wiz8_enable_cpp_compat(SREXT_UNZIP)
-    add_dependencies(SREXT_UNZIP surrender_unzip_import_library)
+    add_dependencies(SREXT_UNZIP ${SREXT_UNZIP_SR_IMPORT_TARGET})
     target_compile_options(SREXT_UNZIP PRIVATE /nologo /W3 /GX /O2 /Zp4)
     target_compile_definitions(SREXT_UNZIP PRIVATE
         NDEBUG WIN32 _WINDOWS WINDLL USE_EF_UT_TIME DLL
@@ -118,7 +111,7 @@ if(INFOZIP_SOURCE)
         "${INFOZIP_SOURCE}/windll"
         "${INFOZIP_SOURCE}/win32"
     )
-    target_link_libraries(SREXT_UNZIP PRIVATE "${SR_UNZIP_IMPORT_LIBRARY}")
+    target_link_libraries(SREXT_UNZIP PRIVATE "${SREXT_UNZIP_SR_IMPORT_LIBRARY}")
     target_link_options(SREXT_UNZIP PRIVATE
         /DEBUGTYPE:CV
         /OPT:REF

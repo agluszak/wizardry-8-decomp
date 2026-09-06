@@ -61,12 +61,12 @@ private:
 
 class __declspec(novtable) srIOManager::Importer {
 public:
-    SR_DLL_IMPORT Importer();
+    Importer() {}
     SR_DLL_IMPORT Importer(const Importer& importer);
     SR_DLL_IMPORT Importer& operator=(const Importer& importer);
 
     virtual const char* getTypeName() const = 0;
-    virtual SR_DLL_IMPORT ~Importer();
+    virtual ~Importer() {}
 
 protected:
     SR_DLL_IMPORT void addToImporters(
@@ -80,12 +80,12 @@ protected:
 
 class __declspec(novtable) srIOManager::Exporter {
 public:
-    SR_DLL_IMPORT Exporter();
+    Exporter() {}
     SR_DLL_IMPORT Exporter(const Exporter& exporter);
     SR_DLL_IMPORT Exporter& operator=(const Exporter& exporter);
 
     virtual const char* getTypeName() const = 0;
-    virtual SR_DLL_IMPORT ~Exporter();
+    virtual ~Exporter() {}
 
 protected:
     SR_DLL_IMPORT void addToExporters(

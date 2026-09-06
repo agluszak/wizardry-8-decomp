@@ -15,6 +15,7 @@
 #include "FileMan.h"
 
 #include <string.h>
+#include <stdlib.h>
 
 // FUNCTION: WIZ8 0x0048bdc0
 W8MonsterGenerator* FindMonGenByName(const char* name)
@@ -42,7 +43,6 @@ extern int g_random_encounter_limit;
 extern int g_active_group_count;            /* 0x0065BA14 */
 extern W8MonsterGroup** g_active_groups;    /* 0x0065BA1C */
 extern void RollRandomEncounters(void);     /* 0x0048CA20 */
-extern void DestroyEncounterTable(W8EncounterTableRuntime* table); /* 0x0048AC60 */
 extern void Function43A770(int handle);                      /* 0x0043A770 */
 extern unsigned char g_generator_save_flag;                  /* 0x0065BA48 */
 extern unsigned char Function49F4A0(void* context, const char* name,
@@ -55,38 +55,14 @@ extern int g_encounter_culling_time_seconds;
 extern void Function43A690(int handle);                      /* 0x0043A690 */
 extern const float g_generator_jitter_fraction;              /* 0x005EC040 */
 
-W8EncounterTableRuntime** g_encounter_tables;
-char** g_encounter_names;
-unsigned int g_encounter_name_count;
-unsigned int g_encounter_table_count;
+// GLOBAL: WIZ8 0x0065ba20
+W8GrowableVector<W8EncounterTableRuntime*> g_encounter_tables;
+// GLOBAL: WIZ8 0x0065ba38
+W8GrowableVector<char*> g_encounter_names;
+// GLOBAL: WIZ8 0x0060a6bc
 int g_encounter_tables_level = -1;
 
-static unsigned int g_encounter_name_capacity;
-static unsigned int g_encounter_table_capacity;
-
 void UnloadEncounterTables(void);
-
-static unsigned char GrowPointerArray(void*** values, unsigned int* capacity,
-                                      unsigned int wanted)
-{
-    void** replacement;
-    unsigned int next = *capacity ? *capacity + 5 : 5;
-
-    if (next < wanted) {
-        next = wanted;
-    }
-    replacement = static_cast<void**>(::operator new(next * sizeof(void*)));
-    if (!replacement) {
-        return 0;
-    }
-    if (*values) {
-        memcpy(replacement, *values, *capacity * sizeof(void*));
-        ::operator delete(*values);
-    }
-    *values = replacement;
-    *capacity = next;
-    return 1;
-}
 
 /* Engine Code\\MonGen.cpp's startup loader.  EncounterTables.dbs stores the
    names first, followed by a columnar record: ids, rarity, time, challenge and
@@ -94,10 +70,9 @@ static unsigned char GrowPointerArray(void*** values, unsigned int* capacity,
    vector layout makes this useful to the later encounter path as well as to
    startup. */
 // FUNCTION: WIZ8 0x0048a7a0
-extern "C" unsigned int InitializeEncounterTables(void)
+unsigned int InitializeEncounterTables(void)
 {
-    char archive_path[] = "Data\\Databases\\EncounterTables.dbs";
-    int handle = FileOpen(archive_path, 0x41, 0);
+    int handle = FileOpen("Data\\Databases\\EncounterTables.dbs", 0x41, 0);
     int name_count;
     int table_count;
     int index;
@@ -106,102 +81,86 @@ extern "C" unsigned int InitializeEncounterTables(void)
         return 0;
     }
     UnloadEncounterTables();
-    if (!ReadVirtualFile(handle, &name_count, 4, 0)) {
-        CloseVirtualFile(handle);
-        return 0;
-    }
+    unsigned char success = ReadVirtualFile(handle, &name_count, 4, 0);
     for (index = 0; index < name_count; ++index) {
-        char* name = static_cast<char*>(::operator new(0x100));
-        if (!name || !ReadVirtualFile(handle, name, 0x100, 0)) {
+        if (!success) {
             CloseVirtualFile(handle);
             return 0;
         }
-        if (g_encounter_name_count == g_encounter_name_capacity &&
-            !GrowPointerArray(reinterpret_cast<void***>(&g_encounter_names),
-                              &g_encounter_name_capacity,
-                              g_encounter_name_count + 1)) {
-            CloseVirtualFile(handle);
-            return 0;
-        }
-        g_encounter_names[g_encounter_name_count++] = name;
+        char* name = new char[0x100];
+        success = ReadVirtualFile(handle, name, 0x100, 0);
+        g_encounter_names.Add(name);
     }
-    if (!ReadVirtualFile(handle, &table_count, 4, 0)) {
+    if (!success) {
         CloseVirtualFile(handle);
         return 0;
     }
+    ReadVirtualFile(handle, &table_count, 4, 0);
     for (index = 0; index < table_count; ++index) {
         unsigned char record_kind;
         char name[256];
         unsigned int unknown_150;
         unsigned short version;
         unsigned char entry_count;
-        unsigned char flags = 0;
-        int initial_capacity;
         unsigned short species[256];
         unsigned char rarity[256];
         unsigned char time[256];
         unsigned char challenge[256];
-        W8EncounterTableRuntime* table;
-        int entry;
 
-        if (!ReadVirtualFile(handle, &record_kind, 1, 0) ||
-            !ReadVirtualFile(handle, name, sizeof(name), 0) ||
-            !ReadVirtualFile(handle, &unknown_150, 4, 0) ||
-            !ReadVirtualFile(handle, &version, 2, 0) ||
-            !ReadVirtualFile(handle, &entry_count, 1, 0)) {
-            CloseVirtualFile(handle);
-            return 0;
-        }
-        table = new W8EncounterTableRuntime;
+        ReadVirtualFile(handle, &record_kind, 1, 0);
+        ReadVirtualFile(handle, name, sizeof(name), 0);
+        ReadVirtualFile(handle, &unknown_150, 4, 0);
+        ReadVirtualFile(handle, &version, 2, 0);
+        ReadVirtualFile(handle, &entry_count, 1, 0);
+        W8EncounterTableRuntime* table = new W8EncounterTableRuntime;
         if (!table) {
-            CloseVirtualFile(handle);
-            return 0;
+            srAssertFail("pTable",
+                         "C:\\Projects\\Wizardry 8\\Engine Code\\MonGen.cpp",
+                         0xd3, "Out of memory allocating monster generation table.");
         }
-        initial_capacity = entry_count > 5 ? entry_count : 5;
-        if (!table->species_ids.Grow(initial_capacity) ||
-            !table->rarity_class.Grow(initial_capacity) ||
-            !table->time_condition.Grow(initial_capacity) ||
-            !table->challenge_level.Grow(initial_capacity) ||
-            !table->script_names.Grow(initial_capacity) ||
-            !ReadVirtualFile(handle, species, entry_count * 2, 0) ||
-            !ReadVirtualFile(handle, rarity, entry_count, 0) ||
-            !ReadVirtualFile(handle, time, entry_count, 0) ||
-            !ReadVirtualFile(handle, challenge, entry_count, 0)) {
-            CloseVirtualFile(handle);
-            return 0;
-        }
-        for (entry = 0; entry < entry_count; ++entry) {
-            W8EncounterScriptName* script = new W8EncounterScriptName;
-            if (!script || !ReadVirtualFile(handle, script, 0x40, 0)) {
-                CloseVirtualFile(handle);
-                return 0;
+        ReadVirtualFile(handle, species, entry_count * 2, 0);
+        ReadVirtualFile(handle, rarity, entry_count, 0);
+        ReadVirtualFile(handle, time, entry_count, 0);
+        ReadVirtualFile(handle, challenge, entry_count, 0);
+        for (int entry = 0; entry < entry_count; ++entry) {
+            W8EncounterScriptName* script = static_cast<W8EncounterScriptName*>(
+                malloc(sizeof(W8EncounterScriptName)));
+            if (!script) {
+                srAssertFail("pScript",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\MonGen.cpp",
+                             0xdd, 0);
             }
+            ReadVirtualFile(handle, script, sizeof(*script), 0);
             table->species_ids.Add(species[entry]);
             table->rarity_class.Add(rarity[entry]);
             table->time_condition.Add(time[entry]);
             table->challenge_level.Add(challenge[entry]);
             table->script_names.Add(script);
         }
-        memcpy(table->name, name, sizeof(name));
+        strcpy(table->name, name);
         table->unknown_150 = unknown_150;
-        if (version != 1 && !ReadVirtualFile(handle, &flags, 1, 0)) {
-            CloseVirtualFile(handle);
-            return 0;
+        g_encounter_tables.Add(table);
+        if (version == 1) {
+            table->version_two_flags = 0;
         }
-        table->version_two_flags = flags;
-        if (g_encounter_table_count == g_encounter_table_capacity &&
-            !GrowPointerArray(reinterpret_cast<void***>(&g_encounter_tables),
-                              &g_encounter_table_capacity,
-                              g_encounter_table_count + 1)) {
-            CloseVirtualFile(handle);
-            return 0;
+        else {
+            unsigned char flags;
+            ReadVirtualFile(handle, &flags, 1, 0);
+            table->version_two_flags = flags;
         }
-        g_encounter_tables[g_encounter_table_count++] = table;
-        (void)record_kind;
     }
     g_encounter_tables_level = g_status_685170.current_level;
     CloseVirtualFile(handle);
     return 1;
+}
+
+// FUNCTION: WIZ8 0x0048ac60
+W8EncounterTableRuntime::~W8EncounterTableRuntime()
+{
+    while (script_names.GetCount() != 0) {
+        free(*script_names.GetAt(0));
+        script_names.RemoveAt(0);
+    }
 }
 
 static const char MON_GEN_CPP[] = "C:\\Projects\\Wizardry 8\\Engine Code\\MonGen.cpp";
@@ -344,14 +303,12 @@ W8MonsterGenerator* GetMonsterGenerator(int index)
     return *generators->GetAt(index);
 }
 
-/* One loaded encounter table by index. Unlike the generator lookup this one has
-   no second bounds test, because the tables are a plain array rather than a
-   vector. */
+/* One loaded encounter table by index. */
 // FUNCTION: WIZ8 0x0048ad00
 W8EncounterTableRuntime* GetEncounterTable(int index)
 {
-    if (index < static_cast<int>(g_encounter_table_count)) {
-        return g_encounter_tables[index];
+    if (index < g_encounter_tables.GetCount()) {
+        return *g_encounter_tables.GetAt(index);
     }
     return 0;
 }
@@ -362,26 +319,6 @@ W8EncounterTableRuntime* GetEncounterTable(int index)
 void AddMonsterGenerator(W8MonsterGenerator* generator)
 {
     g_world->monster_generators->Add(generator);
-}
-
-/* Releases one generator and everything it hangs off itself. Both the list
-   teardown and the single remove compile this, so it is written once.
-   The world is notified only when the generator was holding the flag it clears,
-   which is why the notify sits inside the first pointer's guard rather than
-   beside it. */
-static __inline void DestroyMonsterGeneratorInline(W8MonsterGenerator* generator)
-{
-    if (generator != 0) {
-        if (generator->node_18 != 0) {
-            if ((generator->flags >> 2 & 1) != 0) {
-                generator->flags &= ~4u;
-                generator->node_18->DetachMesh0049FA30(g_world);
-            }
-            delete generator->node_18;
-        }
-        delete generator->m_pTimer;
-        ::operator delete(generator);
-    }
 }
 
 /* Destroys every generator and empties the list. The count is taken once up
@@ -400,7 +337,7 @@ void DestroyMonsterGenerators(void)
         return;
     }
     for (index = 0; index < count; ++index) {
-        DestroyMonsterGeneratorInline(*g_world->monster_generators->GetAt(index));
+        delete *g_world->monster_generators->GetAt(index);
     }
     g_world->monster_generators->Clear();
 }
@@ -434,25 +371,15 @@ void RunMonsterGenerators(void)
 // FUNCTION: WIZ8 0x0048a710
 void UnloadEncounterTables(void)
 {
-    W8EncounterTableRuntime* table;
     int index;
-
-    for (index = 0; index < static_cast<int>(g_encounter_table_count); ++index) {
-        table = index < static_cast<int>(g_encounter_table_count)
-                    ? g_encounter_tables[index]
-                    : g_encounter_tables[0];
-        if (table != 0) {
-            DestroyEncounterTable(table);
-            ::operator delete(table);
-        }
+    for (index = 0; index < g_encounter_tables.GetCount(); ++index) {
+        delete *g_encounter_tables.GetAt(index);
     }
-    g_encounter_table_count = 0;
-    for (index = 0; index < static_cast<int>(g_encounter_name_count); ++index) {
-        ::operator delete(index < static_cast<int>(g_encounter_name_count)
-                              ? g_encounter_names[index]
-                              : g_encounter_names[0]);
+    g_encounter_tables.Clear();
+    for (index = 0; index < g_encounter_names.GetCount(); ++index) {
+        delete[] *g_encounter_names.GetAt(index);
     }
-    g_encounter_name_count = 0;
+    g_encounter_names.Clear();
     g_encounter_tables_level = -1;
 }
 
@@ -554,7 +481,7 @@ void RemoveMonsterGenerator(W8MonsterGenerator* generator)
         return;
     }
     removed = generators->RemoveAt(index);
-    DestroyMonsterGeneratorInline(removed);
+    delete removed;
 }
 
 /* Rearms the generator's timer, creating it on first use. The delay is the

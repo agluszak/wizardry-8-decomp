@@ -50,7 +50,7 @@ stGroundShadow::stGroundShadow(srNode* parent)
             static_cast<srTextureIFace::e_wrap>(1));
 
         srMaterial* material =
-            new srClassSupport<srMaterial, srMaterial, false, 0x2210>;
+            SR_NEW(srMaterial);
         g_ground_shadow_material_006834d0 = material;
         material->setMapper(reinterpret_cast<srVertexProcessor*>(
             g_ground_shadow_material_parameters_00683430));

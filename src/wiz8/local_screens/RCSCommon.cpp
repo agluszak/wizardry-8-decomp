@@ -31,17 +31,14 @@ void RedrawRcsPanelB(void)
     g_rcs_panel_b_0069c3c8->Invalidate(0);
 }
 
-/* Tear the first panel down. The Controls object is destroyed and released by
-   hand; the widget goes through its own vtable slot zero with the deleting
-   flag, which is what tells the two apart. */
+/* Tear the first panel down, then destroy its separate widget. */
 // FUNCTION: WIZ8 0x005b6540
 void DestroyRcsPanelA(void)
 {
     Controls* panel = g_rcs_panel_a_0069c3c4;
 
     if (panel != 0) {
-        panel->~Controls();
-        operator delete(panel);
+        delete panel;
         g_rcs_panel_a_0069c3c4 = 0;
     }
     if (g_rcs_widget_a_0069c3c0 != 0) {
@@ -57,8 +54,7 @@ void DestroyRcsPanelB(void)
     Controls* panel = g_rcs_panel_b_0069c3c8;
 
     if (panel != 0) {
-        panel->~Controls();
-        operator delete(panel);
+        delete panel;
         g_rcs_panel_b_0069c3c8 = 0;
     }
     if (g_rcs_widget_b_0069c400 != 0) {

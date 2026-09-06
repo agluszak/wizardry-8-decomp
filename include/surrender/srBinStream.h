@@ -22,7 +22,7 @@ public:
     };
 
     srBinStream(const srBinStream& stream);
-    virtual ~srBinStream();
+    virtual ~srBinStream() {}
     srBinStream& operator=(const srBinStream& stream);
 
     virtual unsigned long getSize();

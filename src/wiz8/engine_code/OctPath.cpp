@@ -33,7 +33,6 @@ extern float g_path_limit_006081e8;
 extern unsigned char g_flag_00659c5c;
 extern unsigned char g_flag_00689b32;
 extern const float g_world_scale_005ebc40;
-extern void* CreateOctPathIndex();
 extern void* g_path_scratch_00659c64;
 extern void RegisterPathSurface004B7730(unsigned int index, const int* point);
 extern void RegisterPathVertex004B7830(
@@ -339,14 +338,7 @@ unsigned char W8PathingService::ReadWaypointFile00459650()
         return 0;
     }
 
-    if (path_heap_06c != 0) {
-        if (path_heap_06c->heap_00 != 0) {
-            if (path_heap_06c->heap_00->external_storage_04 == 0)
-                delete[] path_heap_06c->heap_00->entries_00;
-            delete path_heap_06c->heap_00;
-        }
-        delete path_heap_06c;
-    }
+    delete path_heap_06c;
     unsigned int heap_capacity = surface_capacity;
     if (heap_capacity <= g_path_reserve_0060827a)
         heap_capacity = g_path_reserve_0060827a;
@@ -521,8 +513,8 @@ unsigned char W8PathingService::Load00458CE0(int handle)
     unsigned int index;
 
     if (size_004 != 0) {
-        m_pIndex_064 = CreateOctPathIndex();
-        m_pIndex_074 = CreateOctPathIndex();
+        m_pIndex_064 = new W8OctreeIndex;
+        m_pIndex_074 = new W8OctreeIndex;
         buffer = static_cast<unsigned int*>(malloc(size_004 * 8));
         if (m_pIndex_064 == 0 || buffer == 0) {
             strcpy(acMessage, "ReadPathNodes: Couldn't allocate path hash array.");
@@ -534,9 +526,7 @@ unsigned char W8PathingService::Load00458CE0(int handle)
             } else {
                 scan = buffer;
                 for (index = 0; index < (unsigned int)size_004; ++index) {
-                    InsertEntry0055DBB0(
-                        static_cast<W8OctreeIndex*>(m_pIndex_064),
-                        &scan[0], reinterpret_cast<const int*>(&scan[1]));
+                    (static_cast<W8OctreeIndex*>(m_pIndex_064))->Insert(&scan[0], reinterpret_cast<const int*>(&scan[1]));
                     scan += 2;
                 }
                 free(buffer);
@@ -731,13 +721,9 @@ void W8PathingService::SetConditionalPathFrame00457EA0(
                 unsigned int current_value = FindConditionalPathValue00458970(
                     key, m_pCondValues[key_index]);
                 if ((current_value & 0x10000000) == 0) {
-                    RemoveEntry00438C90(
-                        index, &key,
-                        reinterpret_cast<const int*>(&current_value));
+                    index->Remove(&key, reinterpret_cast<const int*>(&current_value));
                     current_value |= 0x10000000;
-                    InsertEntry0055DBB0(
-                        index, &key,
-                        reinterpret_cast<const int*>(&current_value));
+                    index->Insert(&key, reinterpret_cast<const int*>(&current_value));
                 }
                 ++key_index;
             }
@@ -757,13 +743,9 @@ void W8PathingService::SetConditionalPathFrame00457EA0(
                     key, m_pCondValues[key_index]);
                 if ((m_pCondValues[key_index] & 0x02000000) != 0 &&
                     (current_value & 0x10000000) != 0) {
-                    RemoveEntry00438C90(
-                        index, &key,
-                        reinterpret_cast<const int*>(&current_value));
+                    index->Remove(&key, reinterpret_cast<const int*>(&current_value));
                     current_value &= 0xefffffff;
-                    InsertEntry0055DBB0(
-                        index, &key,
-                        reinterpret_cast<const int*>(&current_value));
+                    index->Insert(&key, reinterpret_cast<const int*>(&current_value));
                 }
                 ++key_index;
             }
@@ -777,13 +759,9 @@ void W8PathingService::SetConditionalPathFrame00457EA0(
                 if ((m_pCondValues[key_index] & 0x02000000) == 0 &&
                     (current_value & 0x10000000) == 0) {
                     unsigned int key = m_pCondKeys[key_index];
-                    RemoveEntry00438C90(
-                        index, &key,
-                        reinterpret_cast<const int*>(&current_value));
+                    index->Remove(&key, reinterpret_cast<const int*>(&current_value));
                     current_value |= 0x10000000;
-                    InsertEntry0055DBB0(
-                        index, &key,
-                        reinterpret_cast<const int*>(&current_value));
+                    index->Insert(&key, reinterpret_cast<const int*>(&current_value));
                 }
                 ++key_index;
             }
@@ -802,25 +780,17 @@ void W8PathingService::SetConditionalPathFrame00457EA0(
                     key, m_pCondValues[key_index]);
                 if ((m_pCondValues[key_index] & 0x02000000) != 0) {
                     if ((current_value & 0x10000000) != 0) {
-                        RemoveEntry00438C90(
-                            index, &key,
-                            reinterpret_cast<const int*>(&current_value));
+                        index->Remove(&key, reinterpret_cast<const int*>(&current_value));
                         m_pCondValues[key_index] &= 0xefffffff;
                         current_value &= 0xefffffff;
-                        InsertEntry0055DBB0(
-                            index, &key,
-                            reinterpret_cast<const int*>(&current_value));
+                        index->Insert(&key, reinterpret_cast<const int*>(&current_value));
                     }
                 }
                 else if ((current_value & 0x10000000) == 0) {
-                    RemoveEntry00438C90(
-                        index, &key,
-                        reinterpret_cast<const int*>(&current_value));
+                    index->Remove(&key, reinterpret_cast<const int*>(&current_value));
                     m_pCondValues[key_index] |= 0x10000000;
                     current_value |= 0x10000000;
-                    InsertEntry0055DBB0(
-                        index, &key,
-                        reinterpret_cast<const int*>(&current_value));
+                    index->Insert(&key, reinterpret_cast<const int*>(&current_value));
                 }
                 ++key_index;
             }
@@ -838,23 +808,15 @@ void W8PathingService::SetConditionalPathFrame00457EA0(
                     key, m_pCondValues[key_index]);
                 if ((m_pCondValues[key_index] & 0x02000000) != 0) {
                     if ((current_value & 0x10000000) == 0) {
-                        RemoveEntry00438C90(
-                            index, &key,
-                            reinterpret_cast<const int*>(&current_value));
+                        index->Remove(&key, reinterpret_cast<const int*>(&current_value));
                         current_value |= 0x10000000;
-                        InsertEntry0055DBB0(
-                            index, &key,
-                            reinterpret_cast<const int*>(&current_value));
+                        index->Insert(&key, reinterpret_cast<const int*>(&current_value));
                     }
                 }
                 else if ((current_value & 0x10000000) != 0) {
-                    RemoveEntry00438C90(
-                        index, &key,
-                        reinterpret_cast<const int*>(&current_value));
+                    index->Remove(&key, reinterpret_cast<const int*>(&current_value));
                     current_value &= 0xefffffff;
-                    InsertEntry0055DBB0(
-                        index, &key,
-                        reinterpret_cast<const int*>(&current_value));
+                    index->Insert(&key, reinterpret_cast<const int*>(&current_value));
                 }
                 ++key_index;
             }
@@ -872,7 +834,7 @@ unsigned int W8PathingService::FindConditionalPathValue00458970(
     unsigned int value)
 {
     W8OctreeIndex* index = static_cast<W8OctreeIndex*>(m_pIndex_064);
-    int slot = index->FindNextEntry00438D50(&key, -1);
+    int slot = index->FindNextEntry(&key, -1);
     unsigned int found = 0;
     unsigned char searching = 1;
     while (slot >= 0 && searching != 0) {
@@ -882,7 +844,7 @@ unsigned int W8PathingService::FindConditionalPathValue00458970(
             searching = 0;
             found = candidate;
         }
-        slot = index->FindNextEntry00438D50(&key, slot);
+        slot = index->FindNextEntry(&key, slot);
     }
     return found;
 }
@@ -1316,7 +1278,7 @@ void W8PathingService::UpdateConditionalPathFlags00465FB0(
                 unsigned int key = m_pCondKeys[key_index];
                 unsigned int wanted_value = m_pCondValues[key_index];
                 unsigned int current_value = 0;
-                int slot = index->FindNextEntry00438D50(&key, -1);
+                int slot = index->FindNextEntry(&key, -1);
                 unsigned char searching = 1;
                 while (slot >= 0 && searching != 0) {
                     unsigned int value = static_cast<W8OctreeEntry*>(
@@ -1325,15 +1287,13 @@ void W8PathingService::UpdateConditionalPathFlags00465FB0(
                         searching = 0;
                         current_value = value;
                     }
-                    slot = index->FindNextEntry00438D50(&key, slot);
+                    slot = index->FindNextEntry(&key, slot);
                 }
 
                 if ((current_value & 0x08000000) != 0) {
-                    RemoveEntry00438C90(
-                        index, &key, reinterpret_cast<const int*>(&current_value));
+                    index->Remove(&key, reinterpret_cast<const int*>(&current_value));
                     current_value &= 0xd7ffffff;
-                    InsertEntry0055DBB0(
-                        index, &key, reinterpret_cast<const int*>(&current_value));
+                    index->Insert(&key, reinterpret_cast<const int*>(&current_value));
                 }
                 ++key_index;
             }
@@ -1349,7 +1309,7 @@ void W8PathingService::UpdateConditionalPathFlags00465FB0(
                 unsigned int key = m_pCondKeys[key_index];
                 unsigned int wanted_value = m_pCondValues[key_index];
                 unsigned int current_value = 0;
-                int slot = index->FindNextEntry00438D50(&key, -1);
+                int slot = index->FindNextEntry(&key, -1);
                 unsigned char searching = 1;
                 while (slot >= 0 && searching != 0) {
                     unsigned int value = static_cast<W8OctreeEntry*>(
@@ -1358,15 +1318,13 @@ void W8PathingService::UpdateConditionalPathFlags00465FB0(
                         searching = 0;
                         current_value = value;
                     }
-                    slot = index->FindNextEntry00438D50(&key, slot);
+                    slot = index->FindNextEntry(&key, slot);
                 }
 
                 if ((flags & current_value) == 0) {
-                    RemoveEntry00438C90(
-                        index, &key, reinterpret_cast<const int*>(&current_value));
+                    index->Remove(&key, reinterpret_cast<const int*>(&current_value));
                     current_value |= flags;
-                    InsertEntry0055DBB0(
-                        index, &key, reinterpret_cast<const int*>(&current_value));
+                    index->Insert(&key, reinterpret_cast<const int*>(&current_value));
                 }
                 ++key_index;
             }
@@ -1542,7 +1500,7 @@ unsigned short W8PathingService::PlanMovement00463460(
     visited->bucket_heads = 0;
     visited->entries = 0;
     visited->free_head = -1;
-    GrowIndex00439290(visited);
+    visited->Grow();
     attachment->flags_00 &= 0xfdffffff;
 
     unsigned char allow_dynamic =
@@ -1620,7 +1578,7 @@ unsigned short W8PathingService::PlanMovement00463460(
 
     unsigned int root_key = root_z * 0x10000 + root_x;
     if (visited->free_head == -1) {
-        GrowIndex00439290(visited);
+        visited->Grow();
     }
     int root_slot = visited->free_head;
     W8OctreeEntry* visited_entries =
@@ -1749,7 +1707,7 @@ unsigned short W8PathingService::PlanMovement00463460(
 
             unsigned short node_index = AllocateSearchNode00465A00();
             if (visited->free_head == -1) {
-                GrowIndex00439290(visited);
+                visited->Grow();
             }
             visited_entries =
                 static_cast<W8OctreeEntry*>(visited->entries);
@@ -2534,8 +2492,6 @@ unsigned char W8PathingService::ResolvePathCell004648D0(
 // FUNCTION: WIZ8 0x00457b10
 W8PathingService::~W8PathingService()
 {
-    void** index;
-
     if (path_nodes_044 != 0) {
         free(path_nodes_044);
     }
@@ -2560,38 +2516,9 @@ W8PathingService::~W8PathingService()
     if (collected_waypoints_060 != 0) {
         delete collected_waypoints_060;
     }
-    index = static_cast<void**>(m_pIndex_064);
-    if (index != 0) {
-        if (index[0] != 0) {
-            ::operator delete(index[0]);
-        }
-        if (index[1] != 0) {
-            ::operator delete(index[1]);
-        }
-        ::operator delete(index);
-    }
-    index = static_cast<void**>(m_pIndex_074);
-    if (index != 0) {
-        if (index[0] != 0) {
-            ::operator delete(index[0]);
-        }
-        if (index[1] != 0) {
-            ::operator delete(index[1]);
-        }
-        ::operator delete(index);
-    }
-    index = reinterpret_cast<void**>(path_heap_06c);
-    if (index != 0) {
-        void** held = static_cast<void**>(index[0]);
-
-        if (held != 0) {
-            if (held[1] == 0) {
-                ::operator delete(held[0]);
-            }
-            ::operator delete(held);
-        }
-        ::operator delete(index);
-    }
+    delete m_pIndex_064;
+    delete m_pIndex_074;
+    delete path_heap_06c;
     if (m_owned_0c8 != 0) {
         delete[] m_owned_0c8;
     }
@@ -2944,7 +2871,7 @@ unsigned char W8PathingService::ProbeAttachmentPath00462360(
     visited->bucket_heads = 0;
     visited->entries = 0;
     visited->free_head = -1;
-    GrowIndex00439290(visited);
+    visited->Grow();
 
     probe_cell_key_078 = 0;
     probe_limit_088 = 0;
@@ -3291,7 +3218,7 @@ unsigned char W8PathingService::ProbeWaypointSegment00462750(
 
                 if (probe_limit_088 == 0) {
                     if (visited_index->free_head == -1) {
-                        GrowIndex00439290(visited_index);
+                        visited_index->Grow();
                     }
                     int inserted = visited_index->free_head;
                     W8OctreeEntry* entries =
@@ -3342,7 +3269,7 @@ unsigned char W8PathingService::ProbeWaypointSegment00462750(
                     }
 
                     if (visited_index->free_head == -1) {
-                        GrowIndex00439290(visited_index);
+                        visited_index->Grow();
                     }
                     int inserted = visited_index->free_head;
                     entries = static_cast<W8OctreeEntry*>(visited_index->entries);
@@ -4005,7 +3932,7 @@ unsigned short W8PathingService::FindWaypoint0045B120(
         visited->bucket_heads = 0;
         visited->entries = 0;
         visited->free_head = -1;
-        GrowIndex00439290(visited);
+        visited->Grow();
         value_1d4 = 0;
         flag_08c = 0;
 
@@ -4025,7 +3952,7 @@ unsigned short W8PathingService::FindWaypoint0045B120(
             visited->bucket_heads = 0;
             visited->entries = 0;
             visited->free_head = -1;
-            GrowIndex00439290(visited);
+            visited->Grow();
 
             probe_cell_key_078 = 0;
             probe_limit_088 = 0;
@@ -4639,7 +4566,7 @@ void W8PathingService::DrawPathPosition0045C9A0(
     visited->bucket_heads = 0;
     visited->entries = 0;
     visited->free_head = -1;
-    GrowIndex00439290(visited);
+    visited->Grow();
 
     search_node_count_0cc = 0;
     path_heap_06c->heap_00->size_0c = 0;
@@ -4735,7 +4662,7 @@ void W8PathingService::DrawPathPosition0045C9A0(
                         unsigned short node_index =
                             AllocateSearchNode00465A00();
                         if (visited->free_head == -1) {
-                            GrowIndex00439290(visited);
+                            visited->Grow();
                         }
                         W8OctreeEntry* visited_entries =
                             static_cast<W8OctreeEntry*>(visited->entries);

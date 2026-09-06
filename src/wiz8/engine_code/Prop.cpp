@@ -100,24 +100,13 @@ struct PropModelInstanceAccess : srModelInstance {
 // FUNCTION: WIZ8 0x0044bc00
 W8Prop::W8Prop()
 {
-    W8PropRepresentation* rep;
-    void* memory;
-
     trigger_18 = 0;
     flags_1c = 0;
     m_name = 0;
     unknown_024 = 0;
     unknown_004 = 4;
     unknown_008 = IncrementValue60DFAC();
-    memory = ::operator new(sizeof(W8PropRepresentation));
-    if (memory == 0) {
-        m_pRep = 0;
-    }
-    else {
-        rep = static_cast<W8PropRepresentation*>(memory);
-        new (rep) W8PropRepresentation();
-        m_pRep = rep;
-    }
+    m_pRep = new W8PropRepresentation();
     m_animation_timer = new W8GameTimer();
     position_02c.x = 0.0f;
     position_02c.y = 0.0f;
@@ -184,7 +173,7 @@ W8PropRepresentation::~W8PropRepresentation()
     int index;
 
     for (index = 0; index < slots.count; ++index) {
-        operator delete(slots.data[index]);
+        delete[] slots.data[index];
     }
     slots.count = 0;
     if (animation != 0) {
@@ -234,7 +223,7 @@ W8Prop::~W8Prop()
     delete static_cast<W8PropRepresentation*>(m_pRep);
     m_pRep = 0;
     if (m_name != 0) {
-        operator delete(m_name);
+        delete[] m_name;
         m_name = 0;
     }
     delete m_animation_timer;
@@ -957,7 +946,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
             prop->flags_1c |= (unsigned int)flag_bits;
         }
         if (version > 6) {
-            char* buffer = static_cast<char*>(operator new(0x40));
+            char* buffer = new char[0x40];
             int length = -1;
             char* scan = buffer;
 
@@ -969,11 +958,11 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
                 --length;
             } while (*scan++ != '\0');
             if (length == -2) {
-                operator delete(buffer);
+                delete[] buffer;
             }
             else {
                 if (prop->m_name != 0) {
-                    operator delete(prop->m_name);
+                    delete[] prop->m_name;
                 }
                 prop->m_name = buffer;
             }
@@ -985,7 +974,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
                 unsigned short frame_tmp = 0;
                 unsigned short tag_tmp = 0;
                 unsigned char* slot =
-                    static_cast<unsigned char*>(operator new(2));
+                    new unsigned char[2];
 
                 ReadVirtualFile(hFile, &frame_tmp, 2, 0);
                 slot[0] = (unsigned char)frame_tmp;

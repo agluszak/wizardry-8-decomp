@@ -10,6 +10,8 @@
    and vtable are not evidence for another authored class. */
 class SR_DLL_IMPORT srClipPlane : public srNode {
 public:
+    typedef srClassSupport<srClipPlane, srClipPlane, false, 0x1500> ClientType;
+
     enum e_clip {
         CLIP_POSITIONAL_0 = 0
     };

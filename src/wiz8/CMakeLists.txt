@@ -33,8 +33,8 @@ endif()
     target_link_libraries(wiz8_recovered_objects PRIVATE wiz8_compile_settings)
 
     wiz8_add_import_library(WIZ8_SR src/wiz8/imports/sr.def)
-    wiz8_add_import_library(WIZ8_MSS32 src/wiz8/imports/mss32.def)
-    wiz8_add_import_library(WIZ8_BINKW32 src/wiz8/imports/binkw32.def)
+    wiz8_add_import_library(WIZ8_MSS32 src/wiz8/imports/mss32.def PRESERVE_C_DECORATION)
+    wiz8_add_import_library(WIZ8_BINKW32 src/wiz8/imports/binkw32.def PRESERVE_C_DECORATION)
 
     # The comparison image retains every recovered section with /OPT:NOREF;
     # the runtime image selects only referenced COMDATs with /OPT:REF.

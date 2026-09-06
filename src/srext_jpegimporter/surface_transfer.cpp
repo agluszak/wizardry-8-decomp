@@ -56,15 +56,15 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(
     srColorSurface* surface;
     switch (components) {
     case 1:
-        surface = new srClassSupport<srColorSurface, srColorSurface, false, 0x3110>(
+        surface = SR_NEW(srColorSurface)(
             srPixelConvert::SURFACE_L8, width, height);
         break;
     case 3:
-        surface = new srClassSupport<srColorSurface, srColorSurface, false, 0x3110>(
+        surface = SR_NEW(srColorSurface)(
             srPixelConvert::SURFACE_BGR24, width, height);
         break;
     case 4:
-        surface = new srClassSupport<srColorSurface, srColorSurface, false, 0x3110>(
+        surface = SR_NEW(srColorSurface)(
             srPixelConvert::SURFACE_BGRA32, width, height);
         break;
     default:
@@ -72,12 +72,12 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(
     }
 
     const unsigned long data_size = components * height * width;
-    unsigned char* decoded = static_cast<unsigned char*>(::operator new(data_size));
+    unsigned char* decoded = new unsigned char[data_size];
     codec_.pixels = decoded;
     stream.seek(0, srBinStream::SR_SEEK_BEGIN);
     srJPEG_decode_adapter(&codec_);
     if (codec_.failed != 0) {
-        ::operator delete(decoded);
+        delete[] decoded;
         if (surface != 0) {
             surface->release();
         }
@@ -124,7 +124,7 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(
     }
 
     srJPEG_active_input_stream = 0;
-    ::operator delete(decoded);
+    delete[] decoded;
     return surface;
 }
 
@@ -150,7 +150,7 @@ void srJPEGImporter::exportSurface(
     export_options_.quality = 100;
     if (options.option_string != 0) {
         const unsigned long length = strlen(options.option_string) + 1;
-        char* option_string = static_cast<char*>(::operator new(length));
+        char* option_string = new char[length];
         strcpy(option_string, options.option_string);
         for (char* cursor = option_string; *cursor != '\0'; ++cursor) {
             *cursor = static_cast<char>(toupper(*cursor));
@@ -177,11 +177,11 @@ void srJPEGImporter::exportSurface(
                     normalized_quality * 100.0);
             }
         }
-        ::operator delete(option_string);
+        delete[] option_string;
     }
 
     srColorSurface* copy =
-        new srClassSupport<srColorSurface, srColorSurface, false, 0x3110>(
+        SR_NEW(srColorSurface)(
             srPixelConvert::SURFACE_COPY,
             source.getWidth(),
             source.getHeight());

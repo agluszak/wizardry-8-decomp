@@ -93,7 +93,7 @@ extern "C" unsigned char LoadMissileDatabase(void)
     int handle;
 
     if (g_missile_table_65bde0) {
-        ::operator delete(g_missile_table_65bde0);
+        delete[] g_missile_table_65bde0;
         g_missile_table_65bde0 = 0;
         g_missile_table_count_65bddc = 0;
     }
@@ -106,8 +106,7 @@ extern "C" unsigned char LoadMissileDatabase(void)
         }
         return 0;
     }
-    g_missile_table_65bde0 = static_cast<W8MissileTableRecord*>(
-        ::operator new(allocated_count * sizeof(W8MissileTableRecord)));
+    g_missile_table_65bde0 = new W8MissileTableRecord[allocated_count];
     if (!g_missile_table_65bde0) {
         CloseVirtualFile(handle);
         return 0;
@@ -116,7 +115,7 @@ extern "C" unsigned char LoadMissileDatabase(void)
         if (!FileSeek(handle, 0x101, 4) ||
             !ReadVirtualFile(handle, &g_missile_table_65bde0[index],
                              sizeof(W8MissileTableRecord), 0)) {
-            ::operator delete(g_missile_table_65bde0);
+            delete[] g_missile_table_65bde0;
             g_missile_table_65bde0 = 0;
             g_missile_table_count_65bddc = 0;
             CloseVirtualFile(handle);
@@ -133,7 +132,7 @@ extern "C" unsigned char LoadMissileDatabase(void)
 extern "C" void ReleaseMissileDatabase(void)
 {
     if (g_missile_table_65bde0) {
-        ::operator delete(g_missile_table_65bde0);
+        delete[] g_missile_table_65bde0;
         g_missile_table_65bde0 = 0;
         g_missile_table_count_65bddc = 0;
     }

@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/BitArray.h"
+#include "wiz8/engine_code/stHash.hpp"
 #include "wiz8/local_screens/screen8.h"
 #include "wiz8/vector.h"
 #include "surrender/srTypeRegistry.h"
@@ -39,15 +40,8 @@ BitArray* g_bits_68f28c;
 // GLOBAL: WIZ8 0x0068F280
 void* g_block_68f280;
 
-/* Three allocations released together, the outer one last. Only that shape is
-   established, so the two it owns stay positional. */
-struct W8Record0068F284 {
-    void* m_owned_000;
-    void* m_owned_004;
-};
-
 // GLOBAL: WIZ8 0x0068F284
-W8Record0068F284* g_record_68f284;
+W8HashTable<unsigned int, int>* g_record_68f284;
 // GLOBAL: WIZ8 0x0068F29C
 srClass* g_class_68f29c;
 // GLOBAL: WIZ8 0x0068F2A0
@@ -87,15 +81,9 @@ unsigned char Screen8Finalize(void)
         free(g_block_68f280);
         g_block_68f280 = 0;
     }
-    W8Record0068F284* record = g_record_68f284;
+    W8HashTable<unsigned int, int>* record = g_record_68f284;
     if (record) {
-        if (record->m_owned_000) {
-            ::operator delete(record->m_owned_000);
-        }
-        if (record->m_owned_004) {
-            ::operator delete(record->m_owned_004);
-        }
-        ::operator delete(record);
+        delete record;
         g_record_68f284 = 0;
     }
     if (g_class_68f29c) {

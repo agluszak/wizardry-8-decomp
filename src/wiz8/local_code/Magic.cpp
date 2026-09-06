@@ -901,7 +901,7 @@ void LearnSpell(W8Character* character, int spell_id, char announce)
     piece = FormatWideString(gppStringList[0x6e8 / 4], realm_name, character->sp_max[realm]);
     points_length = wcslen(piece);
 
-    line = (wchar_t*)operator new((name_length + spell_length + 8 + points_length) * 2);
+    line = new wchar_t[name_length + spell_length + 8 + points_length];
     if (line == 0) {
         srAssertFail("wTempMsg", MAGIC_CPP, 0xfdc, 0);
     }

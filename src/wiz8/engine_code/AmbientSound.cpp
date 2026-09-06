@@ -258,7 +258,7 @@ void DestroyAmbientSound0047A700(W8AmbientSound* ambient)
         ReleaseAmbientChannel0040A8E0(ambient->sound_handle_c0, 6);
     }
     if (ambient->pacSoundName != 0) {
-        operator delete(ambient->pacSoundName);
+        delete[] ambient->pacSoundName;
     }
     delete ambient;
 }

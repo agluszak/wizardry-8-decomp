@@ -310,10 +310,10 @@ void SetSkyEnabled(unsigned char enabled)
         }
 
         g_environment_object_0065b9b0 =
-            new srClassSupport<srFog, srFog, false, 0x1210>(
+            SR_NEW(srFog)(
                 g_world->static_scene);
         g_environment_object_0065b9b4 =
-            new srClassSupport<srFog, srFog, false, 0x1210>(
+            SR_NEW(srFog)(
                 g_world->dynamic_scene);
         g_environment_object_0065b9b0->m_positional_28 = 1.0f;
         g_environment_object_0065b9b4->m_positional_28 = 1.0f;

@@ -265,7 +265,7 @@ unsigned char InitializeNpcDatabase(void)
     unsigned int entry_count;
     unsigned int transferred;
     int handle;
-    void* element;
+    W8NpcItemStockRule* element;
 
     sprintf(path, "%s\\%s.%s", "Data\\Databases", "NPC", "DBS");
     handle = FileOpen(path, 1, 0);
@@ -295,7 +295,7 @@ unsigned char InitializeNpcDatabase(void)
             if (entry_count > 0) {
                 g_npc_records[index].item_stock_rules = PLCreate();
                 for (entry = 0; entry < entry_count; ++entry) {
-                    element = ::operator new(6);
+                    element = new W8NpcItemStockRule;
                     if (!element) {
                         CloseVirtualFile(handle);
                         return 0;
@@ -839,14 +839,14 @@ void Function54B300(unsigned int slot)
 W8StartupRuntimeState::W8StartupRuntimeState()
     : value_50(-1), value_54(-1), value_5c(0), value_64(-1)
 {
-    bytes_68 = static_cast<unsigned char*>(::operator new(0xb1));
+    bytes_68 = new unsigned char[0xb1];
     memset(bytes_68, 0, 0xb1);
 }
 
 // FUNCTION: WIZ8 0x0052d5b0
 W8StartupRuntimeState::~W8StartupRuntimeState()
 {
-    ::operator delete(bytes_68);
+    delete[] bytes_68;
 }
 
 // FUNCTION: WIZ8 0x0052db80
@@ -864,19 +864,19 @@ void W8StartupRuntimeState::ClearOwnedEntries()
     count = vector_30.count;
     while (count > 0) {
         entry = vector_30.RemoveAt(0);
-        ::operator delete(entry);
+        delete entry;
         count = vector_30.count;
     }
     count = vector_10.count;
     while (count > 0) {
         entry = vector_10.RemoveAt(0);
-        ::operator delete(entry);
+        delete entry;
         count = vector_10.count;
     }
     count = vector_00.count;
     while (count > 0) {
         entry = vector_00.RemoveAt(0);
-        ::operator delete(entry);
+        delete entry;
         count = vector_00.count;
     }
 }
@@ -898,7 +898,7 @@ void W8StartupRuntimeState::ProcessNextPendingEntry()
             }
         }
         ProcessStartupStateEntry(entry);
-        ::operator delete(entry);
+        delete entry;
     }
 }
 
@@ -993,7 +993,7 @@ unsigned char InitializeSpellDatabase(void)
     unsigned int row_count;
 
     if (g_spell_records != 0) {
-        ::operator delete(g_spell_records);
+        delete[] g_spell_records;
         g_spell_records = 0;
         g_spell_database_version = 0;
     }
@@ -1006,8 +1006,7 @@ unsigned char InitializeSpellDatabase(void)
         ReadVirtualFile(handle, &row_count, 4, 0)) {
         ok = 1;
     }
-    g_spell_records = static_cast<W8SpellRuntimeRecord*>(
-        ::operator new(allocation_count * sizeof(W8SpellRuntimeRecord)));
+    g_spell_records = new W8SpellRuntimeRecord[allocation_count];
     if (g_spell_records == 0) {
         srAssertFail(
             "s_pSpellTable",
@@ -1032,7 +1031,7 @@ unsigned char InitializeSpellDatabase(void)
     }
     if (ok == 0) {
 discard:
-        ::operator delete(g_spell_records);
+        delete[] g_spell_records;
         g_spell_records = 0;
     }
     CloseVirtualFile(handle);

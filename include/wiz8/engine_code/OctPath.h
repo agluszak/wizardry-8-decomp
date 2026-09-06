@@ -3,6 +3,7 @@
 #include "surrender/srMath.h"
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/stHeap.hpp"
+#include "wiz8/engine_code/stHash.hpp"
 
 class stModelInstance005EC7D0;
 
@@ -123,6 +124,8 @@ struct W8PathHeapEntry {
 typedef stHeap<W8PathHeapEntry> W8PathHeap;
 
 struct W8PathHeapHandle {
+    ~W8PathHeapHandle() { delete heap_00; }
+
     W8PathHeap* heap_00;
     unsigned int root_node_04;
 
@@ -363,13 +366,12 @@ public:
     BitArray* visible_waypoints_058;     /* 0x58 */
     BitArray* rendered_waypoints_05c;    /* 0x5c */
     BitArray* collected_waypoints_060;   /* 0x60 */
-    /* Two hash indexes the loader builds and 0x00457B10 tears down the same
-       way DestroyIndex does. */
-    void* m_pIndex_064;                  /* 0x64 */
+    /* Two hash indexes the loader builds and 0x00457B10 destroys. */
+    W8HashTable<unsigned int, int>* m_pIndex_064; /* 0x64 */
     const char* level_name;                /* 0x68 */
     W8PathHeapHandle* path_heap_06c;     /* 0x6c */
     unsigned int m_positional_070;       /* 0x70: starts 0x501502f9 */
-    void* m_pIndex_074;                  /* 0x74 */
+    W8HashTable<unsigned int, int>* m_pIndex_074; /* 0x74 */
     unsigned int probe_cell_key_078;     /* 0x78 */
     srVector3T<float> probe_position_07c; /* 0x7c */
     unsigned int probe_limit_088;        /* 0x88 */

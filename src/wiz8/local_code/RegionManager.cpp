@@ -458,11 +458,10 @@ void UpdateRegionHelp(void)
 void SetRegionHelpText(const wchar_t* text)
 {
     if (g_default_help_text != 0) {
-        ::operator delete(g_default_help_text);
+        delete[] g_default_help_text;
     }
     if (text != 0) {
-        g_default_help_text = static_cast<wchar_t*>(
-            ::operator new((wcslen(text) + 1) * sizeof(wchar_t)));
+        g_default_help_text = new wchar_t[wcslen(text) + 1];
         wcscpy(g_default_help_text, text);
     } else {
         g_default_help_text = 0;

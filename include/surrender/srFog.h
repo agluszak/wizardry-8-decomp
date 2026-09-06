@@ -7,9 +7,11 @@
    supplies srVertexProcessor destruction, activation and processing. */
 class srFog : public srIlluminator {
 public:
+    typedef srClassSupport<srFog, srFog, false, 0x1210> ClientType;
+
     SR_DLL_IMPORT srFog(srNode* parent);
     SR_DLL_IMPORT srFog& operator=(const srFog& other);
-    static SR_DLL_IMPORT const char* sGetClassName();
+    static SR_DLL_IMPORT const char* sGetClassName() { return "srFog"; }
 
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
     virtual SR_DLL_IMPORT void verify(srRuntimeClass::e_verify mode) override;

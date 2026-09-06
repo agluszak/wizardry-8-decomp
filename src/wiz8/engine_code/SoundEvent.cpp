@@ -14,7 +14,7 @@
 W8VectorElement005ED094::~W8VectorElement005ED094()
 {
     if (m_pacWaveName != 0) {
-        ::operator delete(m_pacWaveName);
+        delete[] m_pacWaveName;
     }
     if (flag_025 != 0 && handle_020 != -1) {
         SoundStop(handle_020);
@@ -43,7 +43,7 @@ W8VectorElement005ED094* CreateSoundEvent004D57A0(
     pSndEvent->value_008 = value_008;
     pSndEvent->value_00c = value_00c;
     pSndEvent->m_pacWaveName =
-        static_cast<char*>(::operator new(strlen(wave_name) + 1));
+        new char[strlen(wave_name) + 1];
     pSndEvent->flag_025 = flag_025;
     if (pSndEvent->m_pacWaveName == 0) {
         srAssertFail(

@@ -339,8 +339,7 @@ unsigned char ReadGrCycleData004A6970(
             for (index = 0; index < particles.GetCount(); ++index) {
                 stParticle* particle = *particles.GetAt(index);
                 W8GrCycleParticleAttachment* event =
-                    static_cast<W8GrCycleParticleAttachment*>(
-                        ::operator new(sizeof(W8GrCycleParticleAttachment)));
+                    new W8GrCycleParticleAttachment;
                 srVector3T<double> location;
 
                 if (event == 0) {
@@ -478,8 +477,7 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other)
             srAssertFail("m_plsParticles", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0xf6, 0);
         }
         for (index = 0; index < count; ++index) {
-            W8GrCycleParticleAttachment* event = static_cast<W8GrCycleParticleAttachment*>(
-                ::operator new(sizeof(W8GrCycleParticleAttachment)));
+            W8GrCycleParticleAttachment* event = new W8GrCycleParticleAttachment;
 
             if (event != 0) {
                 W8GrCycleParticleAttachment* source_event =

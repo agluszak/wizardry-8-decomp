@@ -125,7 +125,7 @@ srNode* VideoMakePoster(
 {
     srTextureIFace::e_hint hint;
     srTextureMap* texture =
-        new srClassSupport<srTextureMap, srTextureMap, false, 0x2111>(
+        SR_NEW(srTextureMap)(
             static_cast<srColorSurfaceIFace*>(0));
     texture->setMipmapBias(-8.0f);
     texture->autoRelease();
@@ -203,7 +203,7 @@ unsigned char InitializeMouseSurface(void)
     }
 
     g_mouse_surface_659688 =
-        new srClassSupport<srColorSurface, srColorSurface, false, 0x3110>(
+        SR_NEW(srColorSurface)(
             type, 128UL, 128UL);
     if (!g_mouse_surface_659688) {
         srAssertFail("psrMouseSurface", "C:\\Projects\\Wizardry 8\\Engine Code\\Video2.cpp",
@@ -226,63 +226,63 @@ extern "C" unsigned char InitializeRendererSceneObjects(void)
     InitializeMouseSurface();
     g_modeler_65963c = new srModeler;
     g_scene_permanent_659648 =
-        new srClassSupport<srScene, srScene, false, 0x1010>(
+        SR_NEW(srScene)(
             static_cast<srNode*>(0));
     g_scene_permanent_659648->setName("2D Permanent Overlay Scene");
     g_scene_permanent_659648->setAmbientLight(0.0f, 0.0f, 0.0f);
     g_scene_permanent_659648->setFogColor(0.0f, 0.0f, 0.0f);
 
     g_scene_user_659640 =
-        new srClassSupport<srScene, srScene, false, 0x1010>(
+        SR_NEW(srScene)(
             static_cast<srNode*>(0));
     g_scene_user_659640->setName("2D User Overlay Scene");
     g_scene_user_659640->setAmbientLight(0.0f, 0.0f, 0.0f);
     g_scene_user_659640->setFogColor(0.0f, 0.0f, 0.0f);
 
     g_scene_fullscreen_659644 =
-        new srClassSupport<srScene, srScene, false, 0x1010>(
+        SR_NEW(srScene)(
             static_cast<srNode*>(0));
     g_scene_fullscreen_659644->setName("Full Screen Overlay Scene");
     g_scene_fullscreen_659644->setAmbientLight(0.0f, 0.0f, 0.0f);
     g_scene_fullscreen_659644->setFogColor(0.0f, 0.0f, 0.0f);
 
     g_scene_overlay0_659654 =
-        new srClassSupport<srScene, srScene, false, 0x1010>(
+        SR_NEW(srScene)(
             static_cast<srNode*>(0));
     g_scene_overlay0_659654->setName("2D Overlay Scene (0)");
     g_scene_overlay0_659654->setAmbientLight(0.0f, 0.0f, 0.0f);
     g_scene_overlay0_659654->setFogColor(0.0f, 0.0f, 0.0f);
 
     g_scene_overlay1_659658 =
-        new srClassSupport<srScene, srScene, false, 0x1010>(
+        SR_NEW(srScene)(
             static_cast<srNode*>(0));
     g_scene_overlay1_659658->setName("2D Overlay Scene (1)");
     g_scene_overlay1_659658->setAmbientLight(0.0f, 0.0f, 0.0f);
     g_scene_overlay1_659658->setFogColor(0.0f, 0.0f, 0.0f);
 
     g_scene_square_65965c =
-        new srClassSupport<srScene, srScene, false, 0x1010>(
+        SR_NEW(srScene)(
             static_cast<srNode*>(0));
     g_scene_square_65965c->setName("2D Square Overlay Scene");
     g_scene_square_65965c->setAmbientLight(0.0f, 0.0f, 0.0f);
     g_scene_square_65965c->setFogColor(0.0f, 0.0f, 0.0f);
 
     g_scene_prerender0_65964c =
-        new srClassSupport<srScene, srScene, false, 0x1010>(
+        SR_NEW(srScene)(
             static_cast<srNode*>(0));
     g_scene_prerender0_65964c->setName("2D Pre-render Overlay Scene (0)");
     g_scene_prerender0_65964c->setAmbientLight(0.0f, 0.0f, 0.0f);
     g_scene_prerender0_65964c->setFogColor(0.0f, 0.0f, 0.0f);
 
     g_scene_prerender1_659650 =
-        new srClassSupport<srScene, srScene, false, 0x1010>(
+        SR_NEW(srScene)(
             static_cast<srNode*>(0));
     g_scene_prerender1_659650->setName("2D Pre-render Overlay Scene (1)");
     g_scene_prerender1_659650->setAmbientLight(0.0f, 0.0f, 0.0f);
     g_scene_prerender1_659650->setFogColor(0.0f, 0.0f, 0.0f);
 
     g_overlay_camera_659670 =
-        new srClassSupport<srCamera, srCamera, false, 0x1400>(
+        SR_NEW(srCamera)(
             static_cast<srNode*>(0));
     g_overlay_camera_659670->setName("2D Overlay Camera");
     g_overlay_camera_659670->setClipRange(0.01, 2.0);
@@ -296,7 +296,7 @@ extern "C" unsigned char InitializeRendererSceneObjects(void)
     g_overlay_camera_659670->setEnvironmentRange(0.0f, 0.0f);
 
     g_square_camera_659674 =
-        new srClassSupport<srCamera, srCamera, false, 0x1400>(
+        SR_NEW(srCamera)(
             g_scene_square_65965c);
     g_square_camera_659674->setName("2D Square Overlay Camera");
     g_square_camera_659674->setClipRange(0.01, 2.0);
@@ -310,7 +310,7 @@ extern "C" unsigned char InitializeRendererSceneObjects(void)
     g_square_camera_659674->setEnvironmentRange(0.0f, 0.0f);
 
     material =
-        new srClassSupport<srMaterial, srMaterial, false, 0x2210>;
+        SR_NEW(srMaterial);
     g_blit_material_65967c = material;
     material->setName("Blit Rect Material");
     material_value.x = 1.0f;
@@ -341,7 +341,7 @@ extern "C" unsigned char InitializeRendererSceneObjects(void)
     DDLockSurface(g_primary_surface_6596a8, 0, &surface_description, 0, 0);
     DDUnlockSurface(g_primary_surface_6596a8, 0);
     g_primary_color_surface_659660 =
-        new srClassSupport<srColorSurface, srColorSurface, false, 0x3110>(
+        SR_NEW(srColorSurface)(
             srPixelConvert::SURFACE_ARGB1555, surface_description.lpSurface,
             640UL, 480UL,
             static_cast<unsigned long>(surface_description.lPitch));
