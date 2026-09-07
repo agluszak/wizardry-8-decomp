@@ -12,6 +12,55 @@ extern "C" {
 
 class W8DialogBase005DC7A0;
 class W8CharacterScreen;
+class W8CharacterPageEntry;
+
+class W8CharacterPageEntryListener {
+public:
+    virtual void AdjustEntry(W8CharacterPageEntry* entry, int delta) = 0;
+    virtual void ShowEntryInfo(W8CharacterPageEntry* entry) = 0;
+};
+
+/* One value row shared by the skills and attributes pages. */
+class W8CharacterPageEntry : public W8TextControl005ED604::Listener {
+public:
+    W8CharacterPageEntry(Controls* owner, int x, int y,
+                         unsigned char compact);        /* 0x005AF690 */
+    virtual ~W8CharacterPageEntry()
+    {
+        delete m_label_014;
+        delete m_first_text_018;
+        delete m_second_text_01c;
+    }
+    void SetContent(unsigned int id, const wchar_t* label, int* first,
+                    int* second, int* third, int help_id); /* 0x005AF9E0 */
+    void SetEnabled(unsigned char enabled);             /* 0x005AFA90 */
+    void SetIncrementAllowed(unsigned char allowed);    /* 0x005AFC20 */
+    void Redraw();                                      /* 0x005AFAF0 */
+    void MarkDirty();                                   /* 0x005AFC00 */
+    void UpdateButtons();                               /* 0x005AFD10 */
+    virtual void OnPrimary(W8TextControl005ED604* control) override; /* 0x005AFC50 */
+    virtual void OnSecondary(W8TextControl005ED604* control) override; /* 0x005AFCB0 */
+
+    W8CharacterPageEntryListener* m_listener_004;
+    W8TextControl005ED604* m_increment_008;
+    W8TextControl005ED604* m_decrement_00c;
+    W8TextControl005ED604* m_help_010;
+    W8TextBuffer005ED5B8* m_label_014;
+    W8TextBuffer005ED5B8* m_first_text_018;
+    W8TextBuffer005ED5B8* m_second_text_01c;
+    int* m_first_020;
+    int* m_second_024;
+    int* m_third_028;
+    unsigned int m_id_02c;
+    int m_x_030;
+    int m_y_034;
+    unsigned char m_draw_background_038;
+    unsigned char m_dirty_039;
+    unsigned char m_enabled_03a;
+    unsigned char m_flag_03b;
+};
+static_assert(sizeof(W8CharacterPageEntry) == 0x3c,
+              "W8CharacterPageEntry_size");
 
 /* The page's secondary subobject begins at +0x4c.  Its two deleting-wrapper
    targets are compiler-generated; the interface itself is independently
@@ -46,7 +95,7 @@ public:
 
     int m_entry_count_050;
     int m_entry_capacity_054;
-    void** m_entries_058;
+    W8CharacterPageEntry** m_entries_058;
     W8CharacterScreen* m_screen_05c;
     W8Character* m_character_060;
     void* m_creation_state_064;
@@ -54,12 +103,13 @@ public:
     unsigned char m_prepared_06c;
     unsigned char m_dirty_06d;
     unsigned char pad_06e[2];
+
+    void AddEntry(W8CharacterPageEntry* entry);         /* 0x005AFFC0 */
 };
 static_assert(sizeof(W8CharacterPage) == 0x70, "W8CharacterPage_size");
 
 class W8CharacterPage005EF778 : public W8CharacterPage {
 public:
-    W8CharacterPage005EF778();                         /* 0x005CBA90 */
     virtual void Activate() override;
     virtual void Deactivate() override;
     virtual void Accept() override;
@@ -71,7 +121,6 @@ static_assert(sizeof(W8CharacterPage005EF778) == 0xa0, "W8CharacterPage005EF778_
 
 class W8CharacterPage005EF664 : public W8CharacterPage {
 public:
-    W8CharacterPage005EF664();                         /* 0x005C8DE0 */
     virtual void Activate() override;
     virtual void Deactivate() override;
     virtual void Accept() override;
@@ -81,21 +130,30 @@ private:
 };
 static_assert(sizeof(W8CharacterPage005EF664) == 0x624, "W8CharacterPage005EF664_size");
 
-class W8CharacterPage005EF5C8 : public W8CharacterPage {
+class W8CharacterPage005EF5C8 : public W8CharacterPage,
+                                public W8CharacterPageEntryListener {
 public:
-    W8CharacterPage005EF5C8();                         /* 0x005C7CC0 */
+    W8CharacterPage005EF5C8() : W8CharacterPage(0x108) {}
+    virtual ~W8CharacterPage005EF5C8() override {}
+    virtual void Redraw() override;
+    virtual void SetCharacter(W8Character*, void*, int) override;
     virtual void Activate() override;
     virtual void Deactivate() override;
     virtual void Accept() override;
     virtual void GetNavigationState(unsigned char*, unsigned char*) override;
+    virtual void AdjustEntry(W8CharacterPageEntry*, int) override;
+    virtual void ShowEntryInfo(W8CharacterPageEntry*) override;
+    virtual void Refresh() override;
 private:
-    unsigned char unknown_070[8];
+    unsigned char m_force_redraw_074;
+    unsigned char m_show_fifth_category_075;
+    unsigned char m_navigation_state_076;
+    unsigned char unknown_077;
 };
 static_assert(sizeof(W8CharacterPage005EF5C8) == 0x78, "W8CharacterPage005EF5C8_size");
 
 class W8CharacterPage005EF57C : public W8CharacterPage {
 public:
-    W8CharacterPage005EF57C();                         /* 0x005C73F0 */
     virtual void Activate() override;
     virtual void Deactivate() override;
     virtual void Accept() override;
@@ -104,6 +162,11 @@ private:
     unsigned char unknown_070[0x90];
 };
 static_assert(sizeof(W8CharacterPage005EF57C) == 0x100, "W8CharacterPage005EF57C_size");
+
+W8CharacterPage005EF778* CreateCharacterPage005CBA90();
+W8CharacterPage005EF664* CreateCharacterPage005C8DE0();
+W8CharacterPage005EF5C8* CreateCharacterPage005C7CC0();
+W8CharacterPage005EF57C* CreateCharacterPage005C73F0();
 
 /* Primary interface at 0x005EF224, used by the pages to raise the screen-owned
    dialogs and to query the current character. */

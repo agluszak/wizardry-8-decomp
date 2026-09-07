@@ -404,10 +404,10 @@ void W8CharacterScreen::SelectPage(int index)
     if (m_pages_1b0c[index] == 0) {
         W8CharacterPage* page = 0;
         switch (index) {
-        case 0: page = new W8CharacterPage005EF778; break;
-        case 1: page = new W8CharacterPage005EF664; break;
-        case 2: page = new W8CharacterPage005EF5C8; break;
-        case 3: page = new W8CharacterPage005EF57C; break;
+        case 0: page = CreateCharacterPage005CBA90(); break;
+        case 1: page = CreateCharacterPage005C8DE0(); break;
+        case 2: page = CreateCharacterPage005C7CC0(); break;
+        case 3: page = CreateCharacterPage005C73F0(); break;
         }
         page->m_screen_05c = this;
         page->SetCharacter(&m_character_018, m_creation_state_187c, m_mode_008);

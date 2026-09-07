@@ -285,6 +285,13 @@ typedef struct W8Character {
     unsigned char has_saved_location;
 } W8Character;                           /* 0x1862 */
 
+typedef struct W8SkillAttributes {
+    int category;
+    int unknown_04;
+    int unknown_08;
+    int unknown_0c;
+} W8SkillAttributes;
+
 typedef struct W8RPCSlot {
     unsigned char opaque[0x118];
 } W8RPCSlot;
@@ -296,6 +303,7 @@ extern "C" {
 extern W8RaceResistanceProfile g_race_resistance_profiles[];
 extern int g_profession_skill_availability[0x29][15];
 extern int g_profession_bonus_skills[15];
+extern W8SkillAttributes g_skill_attributes[0x29];
 
 /* Profession and race trait sets consulted by Function547940. Each entry is
    only its id list: three profession abilities, five race abilities. */
