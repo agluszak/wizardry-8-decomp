@@ -28,9 +28,9 @@ void EnablePortraitAdvanceRegions0059BB70(void)
     do {
         if (!IsCharacterReadyToAdvance(party_slot) ||
             reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)[state_offset + 0x103] == 0) {
-            SetRegionMode4(party_slot + 0x12);
+            DisableRegionInput(party_slot + 0x12);
         } else {
-            ClearRegionModeBits(party_slot + 0x12);
+            EnableRegionInput(party_slot + 0x12);
         }
         state_offset += 0x106;
         ++party_slot;

@@ -152,7 +152,7 @@ W8WidgetBase005ED5BC::~W8WidgetBase005ED5BC()
 {
     m_flag_5 = 0;
     if (m_region_18 != -1) {
-        SetRegionMode4(m_region_18);
+        DisableRegionInput(m_region_18);
     }
 }
 
@@ -179,7 +179,7 @@ void W8WidgetBase005ED5BC::SetPanel(Controls* panel)
     if (panel->m_uiRegionSetId != 0 && m_region_18 == -1) {
         unsigned int region = AddRegionToSet(panel->m_uiRegionSetId);
         SetRegion(region);
-        SetRegionCallback(region, Function4F3140,
+        SetRegionCallback(region, DispatchControlRegionEvent,
                           static_cast<unsigned short>(index));
         SetRegionOwner(region, panel);
     }
@@ -246,7 +246,7 @@ W8WidgetBase005ED5BC::W8WidgetBase005ED5BC(Controls* owner, unsigned int region,
                         (unsigned short)((short)origin_y + (short)top),
                         (unsigned short)((short)right + (short)origin_x),
                         (unsigned short)((short)bottom + (short)origin_y));
-        SetRegionMode4(m_region_18);
+        DisableRegionInput(m_region_18);
     }
 
     holder = m_pPanel;
@@ -254,7 +254,7 @@ W8WidgetBase005ED5BC::W8WidgetBase005ED5BC(Controls* owner, unsigned int region,
     if (holder->m_uiRegionSetId != 0 && m_region_18 == -1) {
         taken = AddRegionToSet(holder->m_uiRegionSetId);
         SetRegion(taken);
-        SetRegionCallback(taken, Function4F3140, (unsigned short)index);
+        SetRegionCallback(taken, DispatchControlRegionEvent, (unsigned short)index);
         SetRegionOwner(taken, holder);
     }
 }
@@ -266,7 +266,7 @@ W8WidgetBase005ED5BC::W8WidgetBase005ED5BC(Controls* owner, unsigned int region,
    arms and disarms the 0x40/0x80 region latches their repeat and release
    paths test. */
 // FUNCTION: WIZ8 0x004F3140
-unsigned char Function4F3140(const W8RegionEvent* event, W8Region* region)
+unsigned char DispatchControlRegionEvent(const W8RegionEvent* event, W8Region* region)
 {
     Controls* owner = (Controls*)region->owner;
     W8WidgetBase005ED5BC* widget;
@@ -289,50 +289,50 @@ unsigned char Function4F3140(const W8RegionEvent* event, W8Region* region)
     switch (reason) {
     case LEFT_BUTTON_DOWN:
         widget->OnLeftButtonDown(0);
-        region->flags |= 0x40u;
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         return 1;
     case LEFT_BUTTON_UP:
-        if ((region->flags & 0x40u) == 0) {
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
             return 1;
         }
         widget->OnLeftButtonUp(0);
-        region->flags &= ~0x40u;
+        region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
         return 1;
     case LEFT_BUTTON_DBL_CLK:
         widget->OnLeftButtonDoubleClick(0);
         return 1;
     case LEFT_BUTTON_REPEAT:
-        if ((region->flags & 0x40u) == 0) {
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
             return 1;
         }
         widget->ActivatePrimary(0);
         return 1;
     case RIGHT_BUTTON_DOWN:
         widget->OnRightButtonDown(0);
-        region->flags |= 0x80u;
+        region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
         return 1;
     case RIGHT_BUTTON_UP:
-        if ((region->flags & 0x80u) == 0) {
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) == 0) {
             return 1;
         }
         widget->OnRightButtonUp(0);
-        region->flags &= ~0x80u;
+        region->flags &= ~W8_REGION_RIGHT_BUTTON_HELD;
         return 1;
     case RIGHT_BUTTON_REPEAT:
-        if ((region->flags & 0x80u) == 0) {
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) == 0) {
             return 1;
         }
         widget->ActivateSecondary(0);
         return 1;
     case MOUSE_POS:
-        if ((region->flags & 0x20u) != 0) {
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
             widget->OnMouseLeave(0);
         }
-        else if ((region->flags & 0x10u) != 0) {
+        else if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
             widget->OnMouseEnter(0);
         }
         else {
-            widget->OnMouseMove(region->flags & 0x40u);
+            widget->OnMouseMove(region->flags & W8_REGION_LEFT_BUTTON_HELD);
         }
         return 1;
     case MOUSE_WHEEL:
@@ -379,10 +379,10 @@ void W8WidgetBase005ED5BC::SetRegion(unsigned int region)
     bound = m_region_18;
     if (bound != 0xffffffff) {
         if (m_flag_5 != 0) {
-            ClearRegionModeBits(bound);
+            EnableRegionInput(bound);
             return;
         }
-        SetRegionMode4(bound);
+        DisableRegionInput(bound);
     }
 }
 
@@ -2232,9 +2232,9 @@ void Controls::SetEnabled(unsigned char enable)
         control->m_flag_5 = enable;
         if (control->m_region_18 != -1) {
             if (enable == 0) {
-                SetRegionMode4(control->m_region_18);
+                DisableRegionInput(control->m_region_18);
             } else {
-                ClearRegionModeBits(control->m_region_18);
+                EnableRegionInput(control->m_region_18);
             }
         }
     }
@@ -2431,10 +2431,10 @@ void W8WidgetBase005ED5BC::SetEnabled(unsigned char enabled)
     m_flag_5 = enabled;
     if (m_region_18 != -1) {
         if (enabled) {
-            ClearRegionModeBits(m_region_18);
+            EnableRegionInput(m_region_18);
             return;
         }
-        SetRegionMode4(m_region_18);
+        DisableRegionInput(m_region_18);
     }
 }
 

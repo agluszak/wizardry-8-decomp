@@ -38,7 +38,6 @@ extern unsigned char g_flag_6f04ed;
 
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
-unsigned int Function4F1360(int x, int y);
 void RequestScreenTransition(void);
 void Function426790(void);
 void Function427230(int enabled);
@@ -401,10 +400,10 @@ void OptionsScreenFrame005A9CC0()
         screen->m_modal_closing_01d = 0;
     }
 
-    Function4F1360(point.x, point.y);
+    UpdateRegionMousePosition(point.x, point.y);
     while (DequeueEvent(&input) == 1) {
         if (!screen->Function5A9720(&input) &&
-            !DispatchScreenInput004F1910(&input) &&
+            !DispatchRegionInput(&input) &&
             input.usEvent == KEY_DOWN && input.usParam == VK_ESCAPE) {
             RequestScreenTransition();
         }

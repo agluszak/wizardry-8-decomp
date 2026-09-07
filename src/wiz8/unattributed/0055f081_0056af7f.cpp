@@ -68,7 +68,7 @@ void Function56AA30(void)
     if (gXStatus.fCombatMode == 0) {
         if (g_flag_006840bd != 0) {
             Function420B40(1);
-            ClearRegionModeBits(0x137);
+            EnableRegionInput(0x137);
             ActivateDialogRegion(0x137);
         }
         Function482990(0);
@@ -90,7 +90,7 @@ void Function56AAB0(void)
             if (g_flag_006840bd != 0) {
                 Function420B40(4);
                 ClearActiveRegionIfMatches(0x137);
-                SetRegionMode4(0x137);
+                DisableRegionInput(0x137);
             }
             Function482990(1);
             MonsterForward4531A0();

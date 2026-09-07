@@ -166,7 +166,7 @@ public:
     int m_top;                           /* 0x0c */
     int m_right;                         /* 0x10 */
     int m_bottom;                        /* 0x14 */
-    int m_region_18;                     /* 0x18: handed to SetRegionMode4 unless -1 */
+    int m_region_18;                     /* 0x18: handed to DisableRegionInput unless -1 */
     Controls* m_pPanel;                  /* 0x1c: named by Controls.cpp:1849 */
     W8ControlCallback m_primaryActivationCallback; /* 0x20: invoked by text-control activation */
     int m_field_24;                      /* 0x24: otherwise touched by the recovered */
@@ -294,7 +294,7 @@ class W8WidgetBase005ED5BC;
 /* The region callback a widget without its own region is given. It answers
    whether the event was consumed; the screen-input dispatcher returns that
    byte to its caller. */
-extern unsigned char Function4F3140(
+extern unsigned char DispatchControlRegionEvent(
     const W8RegionEvent* event, struct W8Region* region); /* 0x004F3140 */
 
 /* The accumulated redraw rectangle a panel hands the compositor. An empty

@@ -69,7 +69,7 @@ void Screen12Finish(void)
 
     Function426790();
     while (DequeueEvent(&input) == 1) {
-        if (!DispatchScreenInput004F1910(&input)) {
+        if (!DispatchRegionInput(&input)) {
             switch (input.usEvent) {
             case KEY_DOWN:
                 g_flag_6f0628 = 0;

@@ -51,7 +51,6 @@ extern "C" void UpdateHeldItemCursor(void);
 void Function591780(void);
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
-unsigned int Function4F1360(int x, int y);
 int Function52E750(void);
 void Function426790(void);
 unsigned short Function402780(unsigned short key, unsigned char modifiers);
@@ -2422,9 +2421,9 @@ void State5Frame005C3120(void)
                        static_cast<unsigned short>(current.y),
                        g_flag_6f04ed, g_flag_6f04e8);
     }
-    Function4F1360(point.x, point.y);
+    UpdateRegionMousePosition(point.x, point.y);
     while (DequeueEvent(&input) == 1) {
-        if (!DispatchScreenInput004F1910(&input) &&
+        if (!DispatchRegionInput(&input) &&
             (!controller->m_input_handler_64 ||
              !controller->m_input_handler_64->HandleInput(&input)) &&
             (input.usEvent == KEY_DOWN || input.usEvent == KEY_REPEAT)) {

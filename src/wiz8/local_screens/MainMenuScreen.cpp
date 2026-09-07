@@ -73,7 +73,6 @@ extern unsigned char Function4298F0(void);
 unsigned char Function5BCAB0(short item, short state);
 extern void ReleaseLoadedVideoFrames(void);
 extern void Function406DC0(int font, unsigned short* palette);
-extern unsigned int Function4F1360(int x, int y);
 extern unsigned char Function5A1140(const InputAtom* input);
 extern void Function518B30(void);
 extern void Function5189B0(void);
@@ -88,13 +87,13 @@ static void MainMenuRegionEvent(
     short item, const W8RegionEvent* event, W8Region* region)
 {
     if (event->reason == MOUSE_POS) {
-        if (region->flags & 0x20) {
+        if (region->flags & W8_REGION_MOUSE_LEAVE) {
             Function5BCAB0(item, 0);
             if (g_selected_item_0069c4b4 == item) {
                 g_selected_item_0069c4b4 = (unsigned short)-1;
             }
         }
-        if (region->flags & 0x10) {
+        if (region->flags & W8_REGION_MOUSE_ENTER) {
             if (g_selected_item_0069c4b4 < 6) {
                 Function5BCAB0(g_selected_item_0069c4b4, 0);
             }
@@ -104,7 +103,7 @@ static void MainMenuRegionEvent(
         return;
     }
     if (event->reason == LEFT_BUTTON_DOWN) {
-        region->flags |= 0x40;
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         Function5BCAB0(item, 2);
         return;
     }
@@ -113,10 +112,10 @@ static void MainMenuRegionEvent(
     }
 
     Function5BCAB0(item, 1);
-    if ((region->flags & 0x40) == 0) {
+    if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
         return;
     }
-    region->flags &= ~0x40u;
+    region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
     switch (item) {
     case 0:
         RequestScreenTransition();
@@ -211,23 +210,23 @@ static void UpdateMainMenuHover(unsigned short x, unsigned short y)
     unsigned int next = MainMenuRegionAt(x, y);
     W8RegionEvent event;
 
-    if (next == g_hot_region_689b4c) {
+    if (next == g_hover_region_index) {
         return;
     }
     event.time = GetTickCount();
     event.modifiers = gfAltState | gfCtrlState | gfShiftState;
     event.reason = MOUSE_POS;
-    if (g_hot_region_689b4c != 0) {
-        W8Region* previous = &g_regions[g_hot_region_689b4c];
-        previous->flags |= 0x20;
+    if (g_hover_region_index != 0) {
+        W8Region* previous = &g_regions[g_hover_region_index];
+        previous->flags |= W8_REGION_MOUSE_LEAVE;
         previous->callback(&event, previous);
         previous->flags &= ~0x30u;
     }
-    g_hot_region_689b3c = next;
-    g_hot_region_689b4c = next;
+    g_current_region_index = next;
+    g_hover_region_index = next;
     if (next != 0) {
         W8Region* current = &g_regions[next];
-        current->flags |= 0x10;
+        current->flags |= W8_REGION_MOUSE_ENTER;
         current->callback(&event, current);
         current->flags &= ~0x30u;
     }
@@ -277,8 +276,8 @@ static void ProcessMainMenuInput(void)
                 static_cast<unsigned short>(mouse.y));
         } else if ((input.usEvent == LEFT_BUTTON_DOWN
                     || input.usEvent == LEFT_BUTTON_UP)
-                   && g_hot_region_689b4c != 0) {
-            W8Region* region = &g_regions[g_hot_region_689b4c];
+                   && g_hover_region_index != 0) {
+            W8Region* region = &g_regions[g_hover_region_index];
             region->callback((const W8RegionEvent*)&input, region);
         } else if (input.usEvent == KEY_DOWN || input.usEvent == KEY_REPEAT) {
             if (input.usParam == UPARROW) {
@@ -458,9 +457,9 @@ void MainMenuScreenFrame()
     }
     else {
         GetScreenPoint004284F0(&point);
-        g_dword_69c4b0 = Function4F1360(point.x, point.y);
+        g_dword_69c4b0 = UpdateRegionMousePosition(point.x, point.y);
         while (DequeueEvent(&input) == 1) {
-            if (!DispatchScreenInput004F1910(&input) &&
+            if (!DispatchRegionInput(&input) &&
                 input.usEvent == KEY_DOWN) {
                 if (Function5A1140(&input)) {
                     if (g_flag_689b32 != 0) {

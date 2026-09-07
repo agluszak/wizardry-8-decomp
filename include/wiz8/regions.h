@@ -22,6 +22,20 @@ typedef struct W8RegionMouseEvent {
     unsigned int mouse_position;
 } W8RegionMouseEvent;
 
+enum W8RegionFlags {
+    W8_REGION_RECTANGLE = 0x01,
+    W8_REGION_CIRCLE = 0x02,
+    W8_REGION_INPUT_DISABLED = 0x04,
+    W8_REGION_INPUT_MODE_MASK = 0x0c,
+    W8_REGION_MOUSE_ENTER = 0x10,
+    W8_REGION_MOUSE_LEAVE = 0x20,
+    W8_REGION_LEFT_BUTTON_HELD = 0x40,
+    W8_REGION_RIGHT_BUTTON_HELD = 0x80,
+    W8_REGION_MOUSE_TRANSITION_MASK = 0x30,
+    W8_REGION_MOUSE_STATE_MASK = 0xf0,
+    W8_REGION_HELP_SHOWN = 0x200
+};
+
 struct W8Region;
 typedef unsigned char (*W8RegionCallback)(
     const W8RegionEvent* event, struct W8Region* region);
@@ -48,22 +62,23 @@ extern unsigned int g_region_count;      /* guiRegionCount */
 extern W8Region g_regions[];
 extern int g_region_help_delay;
 extern int g_region_help_clock;
-extern unsigned int g_hot_region_689b3c;
-extern unsigned int g_hot_region_689b44;
-extern unsigned int g_hot_region_689b4c;
+extern unsigned int g_current_region_index;
+extern unsigned int g_captured_region_index;
+extern unsigned int g_hover_region_index;
 extern unsigned short g_dword_689b48;
 extern unsigned int g_dword_689b50;
 extern wchar_t* g_default_help_text;
 
 unsigned int GetForcedRegion(void);
 void ReleasePointer689B40(void);
-unsigned int FindRegionAtPoint004F16F0(unsigned short x, unsigned short y);
+unsigned int UpdateRegionMousePosition(int x, int y);
+unsigned int FindRegionAtPoint(unsigned short x, unsigned short y);
 void RegionSetEnable(unsigned int region_set_index);
 void RegionSetDisable(unsigned int region_set_index);
-void ClearRegionSetModeBits(unsigned int region_set_index);
-void SetRegionSetMode4(unsigned int region_set_index);
-void ClearRegionModeBits(unsigned int region_index);
-void SetRegionMode4(unsigned int region_index);
+void EnableRegionSetInput(unsigned int region_set_index);
+void DisableRegionSetInput(unsigned int region_set_index);
+void EnableRegionInput(unsigned int region_index);
+void DisableRegionInput(unsigned int region_index);
 void SetRegionBounds(
     unsigned int region_index,
     unsigned short x1,
@@ -93,7 +108,7 @@ void DisableRegionHelp(unsigned int region_index);
 unsigned char ClearActiveRegionIfMatches(unsigned int region_index);
 void ActivateDialogRegion(unsigned int region_index); /* 0x004F2040 */
 /* 0x004F1910 returns the byte produced by the selected region callback. */
-unsigned char DispatchScreenInput004F1910(const InputAtom* event);
+unsigned char DispatchRegionInput(const InputAtom* event);
 
 }
 

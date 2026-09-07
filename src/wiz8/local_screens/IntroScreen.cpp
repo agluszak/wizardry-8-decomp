@@ -94,7 +94,7 @@ void IntroScreenFrame(void)
     InputAtom input;
 
     while (DequeueEvent(&input) == 1) {
-        if (!DispatchScreenInput004F1910(&input)) {
+        if (!DispatchRegionInput(&input)) {
             switch (input.usEvent) {
             case KEY_DOWN:
                 if (input.usParam != ESC) {
@@ -196,10 +196,10 @@ unsigned char IntroScreenRegionEvent(const W8RegionEvent* event, W8Region* regio
 {
     switch (event->reason) {
     case LEFT_BUTTON_DOWN:
-        region->flags |= 0x40;
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         break;
     case LEFT_BUTTON_UP:
-        if (region->flags & 0x40) {
+        if (region->flags & W8_REGION_LEFT_BUTTON_HELD) {
             AdvanceIntroScreen();
         }
         break;

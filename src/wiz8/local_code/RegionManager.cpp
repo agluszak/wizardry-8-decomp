@@ -21,7 +21,7 @@ extern void GetHelpBoxAnchor(W8ScreenPoint* anchor);        /* 0x004284F0 */
 extern void PlaceHelpBox(int x, int y);                     /* 0x00429210 */
 
 enum { W8_SCREEN_WIDTH = 640, W8_SCREEN_HEIGHT = 480, W8_HELP_MARGIN = 2 };
-enum { W8_REGION_MODE_MASK = 0xf, W8_REGION_HELP_SHOWN = 0x200 };
+enum { W8_REGION_MODE_MASK = 0xf };
 
 /* The retail catalog contains 51 statically declared sets and 313 statically
    declared regions.  Dynamically constructed controls append after that
@@ -30,12 +30,12 @@ unsigned int g_region_set_count = 51;
 W8RegionSet g_region_sets[300];
 unsigned int g_region_count = 313;
 W8Region g_regions[1500] = {
-    { 1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0 }
+    { W8_REGION_RECTANGLE, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0 }
 };
-unsigned int g_hot_region_689b3c;
+unsigned int g_current_region_index;
 wchar_t* g_default_help_text;
-unsigned int g_hot_region_689b44;
-unsigned int g_hot_region_689b4c;
+unsigned int g_captured_region_index;
+unsigned int g_hover_region_index;
 unsigned short g_dword_689b48;
 unsigned int g_dword_689b50;
 unsigned short g_word_6850ed;
@@ -61,7 +61,7 @@ void ReleasePointer689B40(void)
    receives leave/enter transitions, hover help timing, and the ordinary
    position callback as one transaction. */
 // FUNCTION: WIZ8 0x004f1360
-unsigned int Function4F1360(int x, int y)
+unsigned int UpdateRegionMousePosition(int x, int y)
 {
     W8RegionMouseEvent event;
     unsigned int set_index;
@@ -74,10 +74,10 @@ unsigned int Function4F1360(int x, int y)
         (static_cast<unsigned int>(static_cast<unsigned short>(y)) << 16) |
         static_cast<unsigned short>(x);
 
-    if (g_hot_region_689b44 != 0) {
-        W8Region* forced = &g_regions[g_hot_region_689b44];
+    if (g_captured_region_index != 0) {
+        W8Region* forced = &g_regions[g_captured_region_index];
         forced->callback(&event.event, forced);
-        return g_hot_region_689b3c;
+        return g_current_region_index;
     }
 
     for (set_index = 0; set_index < g_region_set_count; ++set_index) {
@@ -94,11 +94,11 @@ unsigned int Function4F1360(int x, int y)
             }
 
             W8Region* region = &g_regions[region_index];
-            unsigned int previous_index = g_hot_region_689b4c;
-            g_hot_region_689b3c = region_index;
+            unsigned int previous_index = g_hover_region_index;
+            g_current_region_index = region_index;
             if (previous_index != 0 && previous_index != region_index) {
                 W8Region* previous = &g_regions[previous_index];
-                previous->flags = (previous->flags & 0xff0f) | 0x20;
+                previous->flags = (previous->flags & 0xff0f) | W8_REGION_MOUSE_LEAVE;
                 previous->callback(&event.event, previous);
                 if ((previous->flags & W8_REGION_HELP_SHOWN) != 0) {
                     ReleaseScreenTransitionObjects();
@@ -106,16 +106,16 @@ unsigned int Function4F1360(int x, int y)
                 }
                 Function558720(1);
                 g_dword_689b48 = g_word_6850ed;
-                previous->flags &= 0xff0f;
+                previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
                 g_dword_689b50 = 0;
             }
             if (previous_index != region_index) {
-                region->flags |= 0x10;
+                region->flags |= W8_REGION_MOUSE_ENTER;
                 SetRegionHelpText(
                     FormatWideString(L"Region %d", region_index));
             }
             region->callback(&event.event, region);
-            if (g_hot_region_689b3c != previous_index) {
+            if (g_current_region_index != previous_index) {
                 if (region->help_enabled != 0 &&
                     (g_settings_6850c8.field_00c != 0 ||
                      g_dword_689b50 != 0)) {
@@ -124,17 +124,17 @@ unsigned int Function4F1360(int x, int y)
                 }
                 Function558720(0);
             }
-            region->flags &= 0xffcf;
-            g_hot_region_689b4c = g_hot_region_689b3c;
-            return g_hot_region_689b3c;
+            region->flags &= ~W8_REGION_MOUSE_TRANSITION_MASK;
+            g_hover_region_index = g_current_region_index;
+            return g_current_region_index;
         }
     }
 
-    g_hot_region_689b3c = 0;
-    if (g_hot_region_689b4c != 0) {
-        unsigned int previous_index = g_hot_region_689b4c;
+    g_current_region_index = 0;
+    if (g_hover_region_index != 0) {
+        unsigned int previous_index = g_hover_region_index;
         W8Region* previous = &g_regions[previous_index];
-        previous->flags = (previous->flags & 0xff0f) | 0x20;
+        previous->flags = (previous->flags & 0xff0f) | W8_REGION_MOUSE_LEAVE;
         previous->callback(&event.event, previous);
         if ((previous->flags & W8_REGION_HELP_SHOWN) != 0) {
             ReleaseScreenTransitionObjects();
@@ -143,17 +143,17 @@ unsigned int Function4F1360(int x, int y)
         Function558720(1);
         g_dword_689b48 = g_word_6850ed;
         g_dword_689b50 = 0;
-        previous->flags &= 0xff0f;
+        previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
     }
-    g_hot_region_689b4c = g_hot_region_689b3c;
-    return g_hot_region_689b3c;
+    g_hover_region_index = g_current_region_index;
+    return g_current_region_index;
 }
 
 /* Find the first enabled region containing the mouse position.  Moving to a
    different region also sends the old region its leave transition and drops
    any help box it still owns. */
 // FUNCTION: WIZ8 0x004f16f0
-unsigned int FindRegionAtPoint004F16F0(unsigned short x, unsigned short y)
+unsigned int FindRegionAtPoint(unsigned short x, unsigned short y)
 {
     W8RegionMouseEvent event;
     unsigned int set_index;
@@ -165,8 +165,8 @@ unsigned int FindRegionAtPoint004F16F0(unsigned short x, unsigned short y)
     event.mouse_position =
         (static_cast<unsigned int>(y) << 16) | x;
 
-    if (g_hot_region_689b44 != 0) {
-        return g_hot_region_689b44;
+    if (g_captured_region_index != 0) {
+        return g_captured_region_index;
     }
 
     for (set_index = 0; set_index < g_region_set_count; ++set_index) {
@@ -179,28 +179,28 @@ unsigned int FindRegionAtPoint004F16F0(unsigned short x, unsigned short y)
             if (!RegionContainsPoint(region_index, x, y)) {
                 continue;
             }
-            if (g_hot_region_689b4c != 0 &&
-                g_hot_region_689b4c != region_index) {
-                W8Region* previous = &g_regions[g_hot_region_689b4c];
-                previous->flags = (previous->flags & 0xff0f) | 0x20;
+            if (g_hover_region_index != 0 &&
+                g_hover_region_index != region_index) {
+                W8Region* previous = &g_regions[g_hover_region_index];
+                previous->flags = (previous->flags & 0xff0f) | W8_REGION_MOUSE_LEAVE;
                 previous->callback(&event.event, previous);
                 if ((previous->flags & W8_REGION_HELP_SHOWN) != 0) {
                     ReleaseScreenTransitionObjects();
                     previous->flags &= ~W8_REGION_HELP_SHOWN;
                 }
                 g_dword_689b48 = g_word_6850ed;
-                previous->flags &= 0xff0f;
+                previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
                 g_dword_689b50 = 0;
-                g_hot_region_689b4c = 0;
-                g_hot_region_689b3c = 0;
+                g_hover_region_index = 0;
+                g_current_region_index = 0;
             }
             return region_index;
         }
     }
 
-    if (g_hot_region_689b4c != 0 &&
-        (g_regions[g_hot_region_689b4c].flags & W8_REGION_HELP_SHOWN) != 0) {
-        unsigned int previous_index = g_hot_region_689b4c;
+    if (g_hover_region_index != 0 &&
+        (g_regions[g_hover_region_index].flags & W8_REGION_HELP_SHOWN) != 0) {
+        unsigned int previous_index = g_hover_region_index;
         ReleaseScreenTransitionObjects();
         g_regions[previous_index].flags &= ~W8_REGION_HELP_SHOWN;
     }
@@ -210,9 +210,9 @@ unsigned int FindRegionAtPoint004F16F0(unsigned short x, unsigned short y)
 /* Route one queued input atom to the forced region, the current hot region,
    or the first enabled region under the event's mouse position. */
 // FUNCTION: WIZ8 0x004f1910
-unsigned char DispatchScreenInput004F1910(const InputAtom* event)
+unsigned char DispatchRegionInput(const InputAtom* event)
 {
-    unsigned int region_index = g_hot_region_689b44;
+    unsigned int region_index = g_captured_region_index;
     unsigned int set_index;
     int sound_id = -1;
     unsigned short x = static_cast<unsigned short>(event->uiParam) +
@@ -224,7 +224,7 @@ unsigned char DispatchScreenInput004F1910(const InputAtom* event)
         goto dispatch;
     }
 
-    region_index = g_hot_region_689b3c;
+    region_index = g_current_region_index;
     if (region_index != 0 && RegionContainsPoint(region_index, x, y)) {
         goto dispatch;
     }
@@ -266,12 +266,12 @@ dispatch:
         sound_id = 2;
         break;
     case LEFT_BUTTON_UP:
-        if ((g_regions[g_hot_region_689b3c].flags & 0x40) != 0) {
+        if ((g_regions[g_current_region_index].flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
             sound_id = 3;
         }
         break;
     case RIGHT_BUTTON_UP:
-        if ((g_regions[g_hot_region_689b3c].flags & 0x80) != 0) {
+        if ((g_regions[g_current_region_index].flags & W8_REGION_RIGHT_BUTTON_HELD) != 0) {
             sound_id = 3;
         }
         break;
@@ -354,40 +354,40 @@ void ActivateDialogRegion(unsigned int region_index)
             0);
     }
 
-    g_hot_region_689b44 = region_index;
-    g_hot_region_689b3c = region_index;
-    if (g_hot_region_689b4c == region_index) {
+    g_captured_region_index = region_index;
+    g_current_region_index = region_index;
+    if (g_hover_region_index == region_index) {
         return;
     }
 
-    if (g_hot_region_689b4c != 0) {
+    if (g_hover_region_index != 0) {
         W8RegionEvent event;
         event.time = GetClock();
         event.modifiers = gfAltState | gfCtrlState | gfShiftState;
         event.reason = MOUSE_POS;
 
-        W8Region* previous = &g_regions[g_hot_region_689b4c];
-        previous->flags = (previous->flags & 0xff0f) | 0x20;
+        W8Region* previous = &g_regions[g_hover_region_index];
+        previous->flags = (previous->flags & 0xff0f) | W8_REGION_MOUSE_LEAVE;
         previous->callback(&event, previous);
-        unsigned int previous_index = g_hot_region_689b4c;
-        if ((g_regions[previous_index].flags & 0x200) != 0) {
+        unsigned int previous_index = g_hover_region_index;
+        if ((g_regions[previous_index].flags & W8_REGION_HELP_SHOWN) != 0) {
             ReleaseScreenTransitionObjects();
-            g_regions[previous_index].flags &= ~0x200u;
+            g_regions[previous_index].flags &= ~W8_REGION_HELP_SHOWN;
         }
         g_dword_689b48 = g_word_6850ed;
-        g_regions[g_hot_region_689b4c].flags &= 0xff0f;
+        g_regions[g_hover_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
         g_dword_689b50 = 0;
-        g_hot_region_689b4c = 0;
+        g_hover_region_index = 0;
     }
-    g_regions[g_hot_region_689b44].flags &= 0xff0f;
+    g_regions[g_captured_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
 }
 
 // FUNCTION: WIZ8 0x004f21b0
 unsigned char ClearActiveRegionIfMatches(unsigned int region_index)
 {
-    if (g_hot_region_689b44 == region_index) {
-        g_hot_region_689b44 = 0;
-        g_hot_region_689b3c = 0;
+    if (g_captured_region_index == region_index) {
+        g_captured_region_index = 0;
+        g_current_region_index = 0;
         return 1;
     }
     return 0;
@@ -396,7 +396,7 @@ unsigned char ClearActiveRegionIfMatches(unsigned int region_index)
 // FUNCTION: WIZ8 0x004f21d0
 unsigned int GetForcedRegion(void)
 {
-    return g_hot_region_689b44;
+    return g_captured_region_index;
 }
 
 // FUNCTION: WIZ8 0x004f21e0
@@ -426,7 +426,7 @@ void RegionSetDisable(unsigned int region_set_index)
 }
 
 // FUNCTION: WIZ8 0x004f2260
-void ClearRegionSetModeBits(unsigned int region_set_index)
+void EnableRegionSetInput(unsigned int region_set_index)
 {
     unsigned int region_index;
     W8Region* region;
@@ -449,7 +449,7 @@ void ClearRegionSetModeBits(unsigned int region_set_index)
                     0x259,
                     0);
             }
-            region->flags &= 0xfff3;
+            region->flags &= ~W8_REGION_INPUT_MODE_MASK;
             ++region_index;
             ++region;
         } while (region_index <= g_region_sets[region_set_index].last_region);
@@ -457,7 +457,7 @@ void ClearRegionSetModeBits(unsigned int region_set_index)
 }
 
 // FUNCTION: WIZ8 0x004f22f0
-void SetRegionSetMode4(unsigned int region_set_index)
+void DisableRegionSetInput(unsigned int region_set_index)
 {
     unsigned int region_index;
     unsigned int last_region;
@@ -481,14 +481,15 @@ void SetRegionSetMode4(unsigned int region_set_index)
             }
             last_region = g_region_sets[region_set_index].last_region;
             g_regions[region_index].flags =
-                (g_regions[region_index].flags & 0xfff3) | 4;
+                (g_regions[region_index].flags & ~W8_REGION_INPUT_MODE_MASK) |
+                W8_REGION_INPUT_DISABLED;
             ++region_index;
         } while (region_index <= last_region);
     }
 }
 
 // FUNCTION: WIZ8 0x004f2380
-void ClearRegionModeBits(unsigned int region_index)
+void EnableRegionInput(unsigned int region_index)
 {
     if (region_index >= g_region_count) {
         srAssertFail(
@@ -497,11 +498,11 @@ void ClearRegionModeBits(unsigned int region_index)
             0x259,
             0);
     }
-    g_regions[region_index].flags &= 0xfff3;
+    g_regions[region_index].flags &= ~W8_REGION_INPUT_MODE_MASK;
 }
 
 // FUNCTION: WIZ8 0x004f23d0
-void SetRegionMode4(unsigned int region_index)
+void DisableRegionInput(unsigned int region_index)
 {
     if (region_index >= g_region_count) {
         srAssertFail(
@@ -511,8 +512,8 @@ void SetRegionMode4(unsigned int region_index)
             0);
     }
     unsigned int flags = g_regions[region_index].flags;
-    flags &= 0xfff3;
-    flags |= 4;
+    flags &= ~W8_REGION_INPUT_MODE_MASK;
+    flags |= W8_REGION_INPUT_DISABLED;
     g_regions[region_index].flags = flags;
 }
 
@@ -546,14 +547,14 @@ bool RegionContainsPoint(unsigned int region_index, unsigned short x, unsigned s
             0);
     }
     region = &g_regions[region_index];
-    switch (region->flags & 0x0f) {
-    case 1:
+    switch (region->flags & W8_REGION_MODE_MASK) {
+    case W8_REGION_RECTANGLE:
         if (x >= region->x1 && x <= region->x2 &&
             y >= region->y1 && y <= region->y2) {
             return true;
         }
         break;
-    case 2: {
+    case W8_REGION_CIRCLE: {
         short delta_x = x - region->x1;
         short delta_y = y - region->y1;
         if (delta_x * delta_x + delta_y * delta_y <= region->x2 * region->x2) {
@@ -584,17 +585,17 @@ bool RegionHasFlags(unsigned int region_index, unsigned int flags)
 // FUNCTION: WIZ8 0x004f25a0
 void UpdateRegionHelp(void)
 {
-    if (g_hot_region_689b44 == 0) {
-        if (g_hot_region_689b3c != 0 &&
-            g_regions[g_hot_region_689b3c].help_enabled != 0 &&
+    if (g_captured_region_index == 0) {
+        if (g_current_region_index != 0 &&
+            g_regions[g_current_region_index].help_enabled != 0 &&
             (g_settings_6850c8.field_00c != 0 || g_region_help_force_enabled != 0) &&
             ClockIsTicking(g_region_help_clock) == 0) {
-            ShowRegionHelp(g_hot_region_689b3c);
+            ShowRegionHelp(g_current_region_index);
         }
-    } else if (g_regions[g_hot_region_689b44].help_enabled != 0 &&
+    } else if (g_regions[g_captured_region_index].help_enabled != 0 &&
                (g_settings_6850c8.field_00c != 0 || g_region_help_force_enabled != 0) &&
                ClockIsTicking(g_region_help_clock) == 0) {
-        ShowRegionHelp(g_hot_region_689b44);
+        ShowRegionHelp(g_captured_region_index);
     }
 }
 
@@ -616,13 +617,13 @@ void SetRegionHelpText(const wchar_t* text)
 // FUNCTION: WIZ8 0x004f27f0
 void ResetRegionHelp(unsigned char delayed)
 {
-    unsigned int region_index = g_hot_region_689b3c;
+    unsigned int region_index = g_current_region_index;
 
     HideRegionHelp();
     g_regions[region_index].flags &= 0xfffffdff;
     if (delayed == 0) {
-        ShowRegionHelp(g_hot_region_689b3c);
-    } else if (g_regions[g_hot_region_689b3c].help_enabled != 0 &&
+        ShowRegionHelp(g_current_region_index);
+    } else if (g_regions[g_current_region_index].help_enabled != 0 &&
                (g_settings_6850c8.field_00c != 0 || g_region_help_force_enabled != 0)) {
         g_region_help_clock = SetCountdownClock(g_region_help_delay);
     }
@@ -743,21 +744,21 @@ void ClearHotRegion004F2A80(void)
         (static_cast<unsigned int>(mouse.y) << 16) |
         (static_cast<unsigned int>(mouse.x) & 0xffff);
 
-    if (g_hot_region_689b3c != 0) {
-        W8Region* region = &g_regions[g_hot_region_689b3c];
+    if (g_current_region_index != 0) {
+        W8Region* region = &g_regions[g_current_region_index];
         unsigned int mode = region->flags & W8_REGION_MODE_MASK;
         if (mode == 1 || mode == 2) {
-            region->flags = (region->flags & 0xff0f) | 0x20;
+            region->flags = (region->flags & 0xff0f) | W8_REGION_MOUSE_LEAVE;
             region->callback(&event.event, region);
-            unsigned int region_index = g_hot_region_689b3c;
+            unsigned int region_index = g_current_region_index;
             if ((g_regions[region_index].flags & W8_REGION_HELP_SHOWN) != 0) {
                 ReleaseScreenTransitionObjects();
                 g_regions[region_index].flags &= ~W8_REGION_HELP_SHOWN;
             }
             g_dword_689b48 = g_word_6850ed;
             g_dword_689b50 = 0;
-            g_regions[g_hot_region_689b3c].flags &= 0xff0f;
-            g_hot_region_689b3c = 0;
+            g_regions[g_current_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
+            g_current_region_index = 0;
         }
     }
 }
@@ -801,20 +802,20 @@ void ResetRegions(void)
     W8Region* region;
     unsigned int remaining;
 
-    index = g_hot_region_689b3c;
-    if (g_hot_region_689b3c != 0 && (g_regions[g_hot_region_689b3c].flags & 0x200) != 0) {
+    index = g_current_region_index;
+    if (g_current_region_index != 0 && (g_regions[g_current_region_index].flags & W8_REGION_HELP_SHOWN) != 0) {
         ReleaseScreenTransitionObjects();
-        g_regions[index].flags &= ~0x200u;
+        g_regions[index].flags &= ~W8_REGION_HELP_SHOWN;
     }
-    index = g_hot_region_689b4c;
-    if (g_hot_region_689b4c != 0 && (g_regions[g_hot_region_689b4c].flags & 0x200) != 0) {
+    index = g_hover_region_index;
+    if (g_hover_region_index != 0 && (g_regions[g_hover_region_index].flags & W8_REGION_HELP_SHOWN) != 0) {
         ReleaseScreenTransitionObjects();
-        g_regions[index].flags &= ~0x200u;
+        g_regions[index].flags &= ~W8_REGION_HELP_SHOWN;
     }
-    index = g_hot_region_689b44;
-    if (g_hot_region_689b44 != 0 && (g_regions[g_hot_region_689b44].flags & 0x200) != 0) {
+    index = g_captured_region_index;
+    if (g_captured_region_index != 0 && (g_regions[g_captured_region_index].flags & W8_REGION_HELP_SHOWN) != 0) {
         ReleaseScreenTransitionObjects();
-        g_regions[index].flags &= ~0x200u;
+        g_regions[index].flags &= ~W8_REGION_HELP_SHOWN;
     }
     if (g_region_set_count != 0) {
         set = g_region_sets;
@@ -834,9 +835,9 @@ void ResetRegions(void)
             remaining = remaining - 1;
         } while (remaining != 0);
     }
-    g_hot_region_689b3c = 0;
-    g_hot_region_689b4c = 0;
-    g_hot_region_689b44 = 0;
+    g_current_region_index = 0;
+    g_hover_region_index = 0;
+    g_captured_region_index = 0;
     g_dword_689b50 = 0;
     g_dword_689b48 = g_word_6850ed;
 }

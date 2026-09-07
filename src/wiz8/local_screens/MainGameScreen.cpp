@@ -105,7 +105,7 @@ void EnableMainRegionSet(void)
 void DisableMainRegionSet(void)
 {
     RegionSetDisable(W8_REGION_SET_MAIN);
-    SetRegionSetMode4(W8_REGION_SET_MAIN);
+    DisableRegionSetInput(W8_REGION_SET_MAIN);
 }
 
 /* Clear whatever the screen was waiting on and hand the tenth reason to the
@@ -220,15 +220,15 @@ void SetTooltipSubject(int kind, int subject)
 // FUNCTION: WIZ8 0x005690c0
 void DisableCombatRegions(void)
 {
-    SetRegionMode4(0x52);
-    SetRegionMode4(0x53);
-    SetRegionMode4(0x54);
-    SetRegionMode4(0x55);
-    SetRegionMode4(0x56);
-    SetRegionMode4(0x57);
-    SetRegionMode4(0x58);
+    DisableRegionInput(0x52);
+    DisableRegionInput(0x53);
+    DisableRegionInput(0x54);
+    DisableRegionInput(0x55);
+    DisableRegionInput(0x56);
+    DisableRegionInput(0x57);
+    DisableRegionInput(0x58);
     if (g_level_block->flag_155 == 0) {
-        SetRegionMode4(0x59);
+        DisableRegionInput(0x59);
         RegionSetDisable(0x14);
     }
 }
@@ -276,7 +276,7 @@ unsigned int HitTestPartyPortrait(const InputAtom* event)
     }
     kind = *(const unsigned short*)((const char*)event + 6);
     if (kind == 8 || kind == 0x10) {
-        return DispatchScreenInput004F1910(event);
+        return DispatchRegionInput(event);
     }
     return 0;
 }

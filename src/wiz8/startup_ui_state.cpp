@@ -25,9 +25,9 @@ void InitializeRegionHelpState(void)
 {
     g_region_help_delay = g_settings_6850c8.field_025;
     g_region_help_clock = 0;
-    g_hot_region_689b3c = 0;
-    g_hot_region_689b44 = 0;
-    g_hot_region_689b4c = 0;
+    g_current_region_index = 0;
+    g_captured_region_index = 0;
+    g_hover_region_index = 0;
     g_dword_689b50 = 0;
     if (g_default_help_text) {
         delete[] g_default_help_text;
