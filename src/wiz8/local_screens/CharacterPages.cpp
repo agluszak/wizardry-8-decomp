@@ -18,8 +18,6 @@ extern int g_character_page2_category_geometry_64ef90[5][2];
 extern int g_character_page2_category_frames_64efb8[5];
 extern unsigned short g_character_skill_name_ids_61e454[0x29];
 extern int g_options_detail_font_683614;
-extern void Function557F90(W8Character*, W8CharacterCreationState*);
-extern void Function557BC0(W8Character*, W8CharacterCreationState*, unsigned int, int);
 extern void Function558610(W8Character*);
 extern void Function422F10(void);
 extern unsigned short Function402780(unsigned short key, unsigned char modifiers);
@@ -71,21 +69,21 @@ W8CharacterPageEntry::W8CharacterPageEntry(
         owner, 0xffffffff, relative_split + 0x1b, y + 1, 0, 0,
         0x10a, 0, 0x19, 0x1b, 0x1a, 0x1d, 0x1c);
     m_decrement_00c->AddLayoutFlags(0x100);
-    m_decrement_00c->SetVisible(0);
     m_decrement_00c->SetEnabled(0);
+    m_decrement_00c->SetActive(0);
     m_decrement_00c->m_listener = this;
 
     m_increment_008 = new W8TextControl005ED604(
         owner, 0xffffffff, relative_split + 0x3d, y + 1, 0, 0,
         0x10a, 0, 0x1e, 0x20, 0x1f, 0x22, 0x21);
     m_increment_008->AddLayoutFlags(0x100);
-    m_increment_008->SetEnabled(0);
+    m_increment_008->SetActive(0);
     m_increment_008->m_listener = this;
 
     m_help_010 = new W8TextControl005ED604(
         owner, 0xffffffff, x, y, relative_split, y + 0xc,
         -1, -1, -1, -1, -1, -1, -1);
-    m_help_010->SetEnabled(0);
+    m_help_010->SetActive(0);
     m_help_010->m_listener = this;
 }
 
@@ -102,9 +100,9 @@ void W8CharacterPageEntry::SetContent(
     if (help_id == -1) m_help_010->DisableRegionHelp();
     else m_help_010->EnableRegionHelp(help_id);
     m_enabled_03a = 1;
-    m_increment_008->SetEnabled(1);
-    m_decrement_00c->SetEnabled(1);
-    m_help_010->SetEnabled(1);
+    m_increment_008->SetActive(1);
+    m_decrement_00c->SetActive(1);
+    m_help_010->SetActive(1);
     m_decrement_00c->Invalidate(0);
     m_increment_008->Invalidate(0);
     m_dirty_039 = 1;
@@ -128,9 +126,9 @@ void W8CharacterPageEntry::SetIncrementAllowed(unsigned char allowed)
 void W8CharacterPageEntry::SetEnabled(unsigned char enabled)
 {
     m_enabled_03a = enabled;
-    m_increment_008->SetEnabled(enabled);
-    m_decrement_00c->SetEnabled(enabled);
-    m_help_010->SetEnabled(enabled);
+    m_increment_008->SetActive(enabled);
+    m_decrement_00c->SetActive(enabled);
+    m_help_010->SetActive(enabled);
     m_decrement_00c->Invalidate(0);
     m_increment_008->Invalidate(0);
     m_dirty_039 = 1;
@@ -180,17 +178,17 @@ void W8CharacterPageEntry::UpdateButtons()
 {
     if (m_enabled_03a) {
         unsigned char enabled = static_cast<unsigned char>(*m_second_024 > 0);
-        if (m_decrement_00c->m_flag_4 != enabled) {
-            m_decrement_00c->SetVisible(enabled);
+        if (m_decrement_00c->m_enabled != enabled) {
+            m_decrement_00c->SetEnabled(enabled);
             m_decrement_00c->Invalidate(0);
         }
         enabled = static_cast<unsigned char>(
             m_flag_03b && *m_second_024 < *m_third_028);
-        if (m_increment_008->m_flag_4 != enabled) {
-            m_increment_008->SetVisible(enabled);
+        if (m_increment_008->m_enabled != enabled) {
+            m_increment_008->SetEnabled(enabled);
             m_increment_008->Invalidate(0);
         }
-        m_help_010->SetVisible(1);
+        m_help_010->SetEnabled(1);
     }
 }
 
@@ -522,7 +520,7 @@ W8CharacterPage005EF5C8* CreateCharacterPage005C7CC0()
 
 // VTABLE: WIZ8 0x005ef57c W8CharacterPage005EF57C
 // VTABLE: WIZ8 0x005ef578 W8ControlSelectionListener
-// VTABLE: WIZ8 0x005ef570 W8TextControlActionListener005ED664
+// VTABLE: WIZ8 0x005ef570 W8TextControl005ED604::Listener
 // class W8CharacterPage005EF57C
 
 // SYNTHETIC: WIZ8 0x005c74c0
@@ -539,9 +537,7 @@ void W8CharacterPage005EF57C::SetCharacter(
 {
     AcquireRegionSet(&g_character_page4_region_set_0069c52c);
     W8CharacterPage::SetCharacter(character, creation_state, mode);
-    W8TextControl005ED604::Listener* action_listener =
-        reinterpret_cast<W8TextControl005ED604::Listener*>(
-            static_cast<W8TextControlActionListener005ED664*>(this));
+    W8TextControl005ED604::Listener* action_listener = this;
 
     m_control_07c = new W8TextControl005ED604(
         this, 0xffffffff, 100, 0x19, 0, 0, 0x10a, 0,
@@ -714,7 +710,7 @@ void W8CharacterPage005EF57C::OnSelectionChanged(
 }
 
 // FUNCTION: WIZ8 0x005c7220
-void W8CharacterPage005EF57C::OnControlAction(
+void W8CharacterPage005EF57C::OnPrimary(
     W8TextControl005ED604* control)
 {
     int portrait = m_character_060->table_value_0079;

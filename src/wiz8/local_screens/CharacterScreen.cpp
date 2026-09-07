@@ -42,16 +42,12 @@ extern void Function426790(void);
 extern void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x,
                                         unsigned short y, char right_button,
                                         char left_button);
-extern void Function556DC0(W8Character*, W8CharacterCreationState*);
-extern void Function556CC0(W8Character*, W8CharacterCreationState*);
-extern void Function558180(W8Character*, W8CharacterCreationState*);
 extern void Function4EFA30(W8Character*);
 extern void CalcCharacterTableValue(W8Character*);
 extern void Function52DDD0(void);
 extern int Function52E750(void);
 extern int Function557FD0(W8Character* original, W8Character* edited);
 extern void SetPendingScreenState(int state);
-extern void Function557580(W8Character*, W8CharacterCreationState*, unsigned char);
 extern void Function4EF7E0(W8Character*, W8Character*, int);
 extern int Function558640(W8Character*);
 extern unsigned char Function5586B0(W8Character*);
@@ -151,12 +147,12 @@ void W8CharacterScreen::BuildControls()
     m_controls_1af0->SetEnabled(1);
     m_controls_1af0->EnableRegionSet(1);
     m_controls_1af0->Invalidate(0);
-    m_reset_1b04->SetEnabled(0);
+    m_reset_1b04->SetActive(0);
     if (m_mode_008 == 1 && g_status_685170.game_started != 0 &&
         CharacterPointerToPartySlot(m_original_014) > 1) {
-        m_reset_1b04->SetEnabled(1);
+        m_reset_1b04->SetActive(1);
         if (g_in_combat_00683f94 != 0) {
-            m_reset_1b04->SetVisible(0);
+            m_reset_1b04->SetEnabled(0);
         }
     }
 
@@ -202,15 +198,15 @@ void W8CharacterScreen::UpdateNavigation(W8CharacterPage* page)
     unsigned char next_enabled;
     unsigned char exit_enabled;
     page->GetNavigationState(&next_enabled, &exit_enabled);
-    if (!m_next_1af8->m_flag_4 && next_enabled) {
+    if (!m_next_1af8->m_enabled && next_enabled) {
         PlaySound("Data\\Sound\\Misc\\Points Spent.wav", 0);
     }
-    if (m_next_1af8->m_flag_4 != next_enabled) {
-        m_next_1af8->SetVisible(next_enabled);
+    if (m_next_1af8->m_enabled != next_enabled) {
+        m_next_1af8->SetEnabled(next_enabled);
         m_next_1af8->Invalidate(0);
     }
-    if (m_exit_1afc->m_flag_4 != exit_enabled) {
-        m_exit_1afc->SetVisible(exit_enabled);
+    if (m_exit_1afc->m_enabled != exit_enabled) {
+        m_exit_1afc->SetEnabled(exit_enabled);
         m_exit_1afc->Invalidate(0);
     }
 }
@@ -278,7 +274,7 @@ void W8CharacterScreen::ShowDialog005B08E0(int value)
 void W8CharacterScreen::OnPrimary(W8TextControl005ED604* control)
 {
     if (control == m_accept_1b00) {
-        if (m_mode_008 == 1 && !m_exit_1afc->m_flag_4) {
+        if (m_mode_008 == 1 && !m_exit_1afc->m_enabled) {
             RequestScreenTransition();
         }
         else {
@@ -306,7 +302,7 @@ void W8CharacterScreen::OnPrimary(W8TextControl005ED604* control)
         Function556DC0(&m_character_018, &m_creation_state_187c);
         m_mode_008 = 0;
         m_pages_1b0c[3]->m_mode_068 = 0;
-        m_reset_1b04->SetEnabled(0);
+        m_reset_1b04->SetActive(0);
         SelectPage(0);
     }
 }
@@ -337,7 +333,7 @@ void W8CharacterScreen::ShowCharacterSummary()
 // FUNCTION: WIZ8 0x005b0b50
 void W8CharacterScreen::AdvancePage(unsigned char forward)
 {
-    if (!forward || (m_page_index_00c != 3 && m_next_1af8->m_flag_4)) {
+    if (!forward || (m_page_index_00c != 3 && m_next_1af8->m_enabled)) {
         int index = m_page_index_00c;
         if (index == 1 && m_creation_state_187c.spell_points_remaining > 0 &&
             !m_block_advance_1aec) {
@@ -422,7 +418,7 @@ void W8CharacterScreen::SelectPage(int index)
 
     int previous = index - 1;
     while (previous >= 0 && m_page_enabled_1b08[previous] == 0) --previous;
-    m_previous_1af4->SetEnabled(static_cast<unsigned char>(previous != -1));
+    m_previous_1af4->SetActive(static_cast<unsigned char>(previous != -1));
     int next = index + 1;
     while (next < 4 && m_page_enabled_1b08[next] == 0) ++next;
     if (next == 4) {
@@ -735,7 +731,7 @@ void CharacterScreenFrame005B18E0(void)
                 screen->AdvancePage(1);
             }
             else if (input.usParam == 0x1b) {
-                if (screen->m_mode_008 == 1 && !screen->m_exit_1afc->m_flag_4) {
+                if (screen->m_mode_008 == 1 && !screen->m_exit_1afc->m_enabled) {
                     RequestScreenTransition();
                 }
                 else {

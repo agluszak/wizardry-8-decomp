@@ -105,38 +105,40 @@ public:
     unsigned char m_flag_4c;
 };
 
-/* The widget the file's bodies act on, and the owner that holds them. Local
-   Screens\\RCSCommon.cpp reaches the same objects. */
+/* W8Widget is a recovered role name, not a claim about the original spelling.
+   Its 0x34-byte layout and region/panel ownership are established by retail. */
 typedef void (*W8ControlCallback)();
 struct Controls;
 struct W8Region;
 struct W8RegionEvent;
 
 // VTABLE: WIZ8 0x005ed5bc
-class W8WidgetBase005ED5BC {
+class W8Widget {
 public:
     friend struct Controls;
 
-    W8WidgetBase005ED5BC()
-        : m_flag_4(1), m_flag_5(0), m_flag_6(0),
-          m_left(0), m_top(0), m_right(0), m_bottom(0), m_region_18(-1),
-          m_pPanel(0), m_primaryActivationCallback(0), m_field_24(0),
+    W8Widget()
+        : m_enabled(1), m_active(0), m_dirty(0),
+          m_left(0), m_top(0), m_right(0), m_bottom(0), m_region(-1),
+          m_pPanel(0), m_primaryActivationCallback(0), m_leftButtonDownCallback(0),
           m_secondaryActivationCallback(0), m_rightButtonDownCallback(0), m_leftDoubleClickCallback(0)
     {
     }
-    W8WidgetBase005ED5BC(Controls* owner, unsigned int region,
+    W8Widget(Controls* owner, unsigned int region,
                          int left, int top, int right, int bottom);
 
     void SetPanel(Controls* panel);
     void SetRegion(unsigned int region);
     void Invalidate(unsigned char immediate);
-    void SetEnabled(unsigned char enabled);
+    void SetActive(unsigned char active);
     void EnableRegionHelp(int help_text_id);
     void DisableRegionHelp();
 
-    virtual ~W8WidgetBase005ED5BC();
+    virtual ~W8Widget();
 
-    virtual void SetVisible(unsigned char visible);
+    virtual void SetEnabled(unsigned char enabled);
+    /* Slots 2 and 5..17 share the retail ret-4 no-op at 0x005B1BE0.
+       These are default hooks, not missing implementations. */
     // FUNCTION: WIZ8 0x005b1be0
     virtual void Redraw(int) {}
     virtual void SetBounds(int left, int top, int right, int bottom);
@@ -157,9 +159,9 @@ public:
 
     /* Read from outside the class by Local Screens\RCSCommon.cpp, which is what
        keeps the three flags reachable rather than protected. */
-    unsigned char m_flag_4;              /* 0x04: set to 1 on construction */
-    unsigned char m_flag_5;              /* 0x05: cleared on teardown */
-    unsigned char m_flag_6;              /* 0x06: cleared on construction */
+    unsigned char m_enabled;            /* 0x04: interaction and enabled appearance */
+    unsigned char m_active;             /* 0x05: panel participation and region input */
+    unsigned char m_dirty;              /* 0x06: pending widget redraw */
     unsigned char pad_007;
     /* 0x08: the widget's rectangle, relative to the owner's origin. The
        constructor adds the origin to all four before handing them to the
@@ -168,25 +170,28 @@ public:
     int m_top;                           /* 0x0c */
     int m_right;                         /* 0x10 */
     int m_bottom;                        /* 0x14 */
-    int m_region_18;                     /* 0x18: handed to DisableRegionInput unless -1 */
+    int m_region;                     /* 0x18: handed to DisableRegionInput unless -1 */
     Controls* m_pPanel;                  /* 0x1c: named by Controls.cpp:1849 */
     W8ControlCallback m_primaryActivationCallback; /* 0x20: invoked by text-control activation */
-    int m_field_24;                      /* 0x24: otherwise touched by the recovered */
+    W8ControlCallback m_leftButtonDownCallback;    /* 0x24 */
     W8ControlCallback m_secondaryActivationCallback;/* 0x28 */
     W8ControlCallback m_rightButtonDownCallback;   /* 0x2c */
     W8ControlCallback m_leftDoubleClickCallback;    /* 0x30 */
 };                                       /* 0x34 established */
-static_assert(sizeof(W8WidgetBase005ED5BC) == 0x34, "W8WidgetBase005ED5BC_size");
+static_assert(sizeof(W8Widget) == 0x34, "W8Widget_size");
 
 // VTABLE: WIZ8 0x005ed604
-class W8TextControl005ED604 : public W8WidgetBase005ED5BC {
+class W8TextControl005ED604 : public W8Widget {
 public:
     friend class W8Control005ED654;
 
+    /* Retail 0x005ED664: pure primary callback, default secondary no-op.
+       Journal and character-profile listener tables retain that second slot. */
+    // VTABLE: WIZ8 0x005ed664
     class Listener {
     public:
         virtual void OnPrimary(W8TextControl005ED604* control) = 0;
-        virtual void OnSecondary(W8TextControl005ED604* control) = 0;
+        virtual void OnSecondary(W8TextControl005ED604*) {}
     };
 
     W8TextControl005ED604();
@@ -198,7 +203,7 @@ public:
     unsigned char MeasureText004F4800();
     void GetTextOrigin(int unused, int* px, int* py);
     void Invalidate(unsigned char immediate);
-    virtual void SetVisible(unsigned char visible) override;
+    virtual void SetEnabled(unsigned char enabled) override;
     virtual void Redraw(int full_redraw) override;
     void SetFlaggedRegionBounds(short left, short top, unsigned short right);
     virtual void AddLayoutFlags(unsigned int flags) override;
@@ -288,10 +293,10 @@ protected:
 };
 static_assert(sizeof(W8RangeButton005ED6FC) == 0xc0, "W8RangeButton005ED6FC_size");
 
-class W8WidgetBase005ED5BC;
+class W8Widget;
 
 // VTABLE: WIZ8 0x005ed5b0
-// class W8GrowableVector<W8WidgetBase005ED5BC*>
+// class W8GrowableVector<W8Widget*>
 
 /* The region callback a widget without its own region is given. It answers
    whether the event was consumed; the screen-input dispatcher returns that
@@ -312,7 +317,7 @@ struct Controls {
     virtual void Invalidate(const W8ControlsRect* rect);
     virtual void Redraw();
     /* 0x04 and 0x05 travel together: SetEnabled writes the panel's own state to
-       the first and mirrors it into every child's m_flag_5, and the redraw
+       the first and mirrors it into every child's m_active, and the redraw
        requests raise the second. 0x06 is raised on its own by 0x004F2F00. */
     unsigned char m_fEnabled;               /* 0x04 */
     unsigned char m_fDirty;                 /* 0x05 */
@@ -328,11 +333,11 @@ struct Controls {
     W8ControlsRect m_dirtyRect;             /* 0x24 */
     unsigned char m_fWholeAreaDirty;        /* 0x34: set when a caller passes no rectangle */
     unsigned char unknown_35[3];
-    W8GrowableVector<W8WidgetBase005ED5BC*> m_controls; /* 0x38 */
+    W8GrowableVector<W8Widget*> m_controls; /* 0x38 */
     unsigned int m_uiRegionSetId;           /* 0x48 */
 
     void EnableRegionSet(unsigned char enable);
-    void RemoveControl(W8WidgetBase005ED5BC* control);
+    void RemoveControl(W8Widget* control);
     void DestroyAllControls();
     void InvalidateLayout();
     void SetBounds(int left, int top, int right, int bottom);
@@ -342,7 +347,7 @@ struct Controls {
        it answers element zero rather than failing, which is what the canonical
        `p = m_ppControls; if (i < m_nControls) p += i;` compiles from and why
        the guard shows up once per use rather than once per loop. */
-    __inline W8WidgetBase005ED5BC* ControlAt(int index)
+    __inline W8Widget* ControlAt(int index)
     {
         return *m_controls.GetAt(index);
     }
@@ -370,13 +375,13 @@ public:
     void SetValue(int value);
     void Decrement();
     void Increment();
-    void SetEnabled(unsigned char enabled) override;
+    void SetRangeEnabled(unsigned char enabled);
 
     int m_minimum;                       /* 0x4c */
     int m_maximum;                       /* 0x50 */
     int m_value;                         /* 0x54 */
-    W8WidgetBase005ED5BC* m_decrement;   /* 0x58 */
-    W8WidgetBase005ED5BC* m_increment;   /* 0x5c */
+    W8Widget* m_decrement;   /* 0x58 */
+    W8Widget* m_increment;   /* 0x5c */
     W8VerticalRangeThumb005ED6B4* m_thumb; /* 0x60 */
     W8RangeListener* m_listener;         /* 0x64 */
     unsigned char m_enabled;             /* 0x68 */
@@ -389,14 +394,6 @@ class W8ControlSelectionListener {
 public:
     virtual void OnSelectionChanged(
         W8Control005ED654* control, int selected) = 0;
-};
-
-/* One-slot action callback installed by controls that report an activated
-   text control without the ordinary primary/secondary listener pair. */
-// VTABLE: WIZ8 0x005ed664
-class W8TextControlActionListener005ED664 {
-public:
-    virtual void OnControlAction(W8TextControl005ED604* control) = 0;
 };
 
 // VTABLE: WIZ8 0x005ed65c

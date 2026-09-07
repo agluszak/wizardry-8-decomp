@@ -1,5 +1,11 @@
 #include "wiz8/dialog_code/DialogBase.h"
 
+// FUNCTION: WIZ8 0x005cd700
+int W8Dialog005CBB40::GetDialogType()
+{
+    return 3;
+}
+
 // FUNCTION: WIZ8 0x005d97d0
 W8Dialog005D97D0::W8Dialog005D97D0()
 {

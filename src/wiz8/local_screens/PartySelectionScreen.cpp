@@ -326,13 +326,13 @@ public:
    range callback; its own listener is the controller's independently observed
    +4 callback subobject. */
 // VTABLE: WIZ8 0x005ef464
-class W8State5ListControl005EF464 : public W8WidgetBase005ED5BC,
+class W8State5ListControl005EF464 : public W8Widget,
                                     public W8RangeListener {
 public:
     __forceinline W8State5ListControl005EF464(
         Controls* panel, unsigned int region,
         int left, int top, int right, int bottom)
-        : W8WidgetBase005ED5BC(panel, region, left, top, right, bottom),
+        : W8Widget(panel, region, left, top, right, bottom),
           m_visible_rows(0x11), m_selection(0), m_hovered(-1),
           m_first_visible(0), m_listener(0)
     {
@@ -364,7 +364,7 @@ W8State5ListControl005EF464::~W8State5ListControl005EF464()
 // FUNCTION: WIZ8 0x005bff60
 void W8State5ListControl005EF464::Redraw(int full_redraw)
 {
-    if (m_flag_5 && (m_flag_6 || full_redraw)) {
+    if (m_active && (m_dirty || full_redraw)) {
         int left = m_pPanel->origin_x + m_left;
         int top = m_pPanel->origin_y + m_top;
         int right = m_pPanel->origin_x + m_right;
@@ -395,7 +395,7 @@ void W8State5ListControl005EF464::Redraw(int full_redraw)
         }
         SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
         SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
-        m_flag_6 = 0;
+        m_dirty = 0;
     }
 }
 
@@ -538,7 +538,7 @@ public:
     virtual void OnLeftButtonDoubleClick(int event) override;
 
     int m_row;
-    W8WidgetBase005ED5BC* m_redraw_partner;
+    W8Widget* m_redraw_partner;
 };
 static_assert(sizeof(W8State5PartySlotRow005EF3E4) == 0xc0, "W8State5PartySlotRow005EF3E4_size");
 
@@ -665,7 +665,7 @@ W8State5CharacterRow005EF364::W8State5CharacterRow005EF364(
 {
     AddLayoutFlags(0x11);
     m_character_index = g_state5_party_collection_69c4ec->first_visible + m_row;
-    SetEnabled(m_character_index <
+    SetActive(m_character_index <
                g_state5_party_collection_69c4ec->characters.count);
     Invalidate(0);
 }
@@ -678,7 +678,7 @@ W8State5CharacterRow005EF364::~W8State5CharacterRow005EF364()
 // FUNCTION: WIZ8 0x005be9b0
 void W8State5CharacterRow005EF364::Redraw(int full_redraw)
 {
-    if (!m_flag_5 || (!(unsigned char)full_redraw && !m_flag_6)) {
+    if (!m_active || (!(unsigned char)full_redraw && !m_dirty)) {
         return;
     }
 
@@ -714,7 +714,7 @@ void W8State5CharacterRow005EF364::Redraw(int full_redraw)
 // FUNCTION: WIZ8 0x005beb90
 void W8State5CharacterRow005EF364::AdjustValue(int amount)
 {
-    if (m_flag_5 && m_flag_4 && m_selection_listener) {
+    if (m_active && m_enabled && m_selection_listener) {
         m_selection_listener->Function5BF0E0(amount);
     }
 }
@@ -722,7 +722,7 @@ void W8State5CharacterRow005EF364::AdjustValue(int amount)
 // FUNCTION: WIZ8 0x005beb10
 void W8State5CharacterRow005EF364::OnRightButtonUp(int event)
 {
-    if (m_flag_5 && m_flag_4) {
+    if (m_active && m_enabled) {
         SetAlternateTextEnabled(0);
         if (m_selection_listener) {
             m_selection_listener->Function5BF050(m_row);
@@ -734,7 +734,7 @@ void W8State5CharacterRow005EF364::OnRightButtonUp(int event)
 // FUNCTION: WIZ8 0x005beb50
 void W8State5CharacterRow005EF364::OnLeftButtonDoubleClick(int event)
 {
-    if (m_flag_5 && m_flag_4 && m_selection_listener) {
+    if (m_active && m_enabled && m_selection_listener) {
         m_selection_listener->Function5BF0C0(m_row);
     }
     W8TextControl005ED604::OnLeftButtonDoubleClick(event);
@@ -769,7 +769,7 @@ W8State5CharacterPanel005EF3C8::W8State5CharacterPanel005EF3C8()
             static_cast<W8State5CharacterRow005EF364*>(ControlAt(index));
         row->m_character_index =
             g_state5_party_collection_69c4ec->first_visible + row->m_row;
-        row->SetEnabled(row->m_character_index <
+        row->SetActive(row->m_character_index <
                         g_state5_party_collection_69c4ec->characters.count);
         row->Invalidate(0);
     }
@@ -811,7 +811,7 @@ void W8State5CharacterPanel005EF3C8::OnRangeChanged(
             static_cast<W8State5CharacterRow005EF364*>(ControlAt(index));
         row->m_character_index =
             g_state5_party_collection_69c4ec->first_visible + row->m_row;
-        row->SetEnabled(row->m_character_index <
+        row->SetActive(row->m_character_index <
                         g_state5_party_collection_69c4ec->characters.count);
         row->Invalidate(0);
     }
@@ -849,7 +849,7 @@ void W8State5CharacterPanel005EF3C8::SetSelectedRow(int selection)
             static_cast<W8State5CharacterRow005EF364*>(ControlAt(index));
         row->m_character_index =
             g_state5_party_collection_69c4ec->first_visible + row->m_row;
-        row->SetEnabled(row->m_character_index <
+        row->SetActive(row->m_character_index <
                         g_state5_party_collection_69c4ec->characters.count);
         row->Invalidate(0);
     }
@@ -918,7 +918,7 @@ W8State5PartySlotRow005EF3E4::~W8State5PartySlotRow005EF3E4()
 // FUNCTION: WIZ8 0x005bf280
 void W8State5PartySlotRow005EF3E4::Redraw(int full_redraw)
 {
-    if (!m_flag_5 || (!(unsigned char)full_redraw && !m_flag_6)) {
+    if (!m_active || (!(unsigned char)full_redraw && !m_dirty)) {
         return;
     }
 
@@ -956,7 +956,7 @@ void W8State5PartySlotRow005EF3E4::Redraw(int full_redraw)
 void W8State5PartySlotRow005EF3E4::OnRightButtonUp(int event)
 {
     W8TextControl005ED604::OnRightButtonUp(event);
-    if (!m_flag_4 || !m_flag_5) {
+    if (!m_enabled || !m_active) {
         return;
     }
     SetAlternateTextEnabled(0);
@@ -985,7 +985,7 @@ void W8State5PartySlotRow005EF3E4::OnRightButtonUp(int event)
 void W8State5PartySlotRow005EF3E4::OnLeftButtonDoubleClick(int event)
 {
     W8TextControl005ED604::OnLeftButtonDoubleClick(event);
-    if (m_flag_4 && m_flag_5) {
+    if (m_enabled && m_active) {
         g_state5_controller_69c4e8->SetSelection(m_row, 1, 0);
         g_state5_controller_69c4e8->Function5C2970();
     }
@@ -1010,7 +1010,7 @@ W8State5PartySlotPanel005EF438::W8State5PartySlotPanel005EF438()
     m_control_50.m_selectionListener = this;
     for (int slot = 0; slot < 6; ++slot) {
         W8TextControl005ED604* control = m_control_50.m_lsButtons.data[slot];
-        control->SetVisible(
+        control->SetEnabled(
             reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)
                 [slot * 0x106 + 0x20c]);
     }
@@ -1307,7 +1307,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
         delete m_entries_7c.RemoveAt(m_entries_7c.count - 1);
     }
     for (int index = 0; index < m_controls.count; ++index) {
-        ControlAt(index)->SetEnabled(mode == 0);
+        ControlAt(index)->SetActive(mode == 0);
     }
 
     W8ControlsRect bounds = {
@@ -1619,7 +1619,7 @@ void W8State5Controller005EF4CC::SetMode(int mode)
             maximum = 0;
         }
         m_range->SetRange(0, maximum);
-        m_range->SetEnabled(maximum > 0);
+        m_range->SetRangeEnabled(maximum > 0);
         m_range->Invalidate(0);
 
         m_character_panel_20->m_control_58.m_selectionListener = 0;
@@ -1638,7 +1638,7 @@ void W8State5Controller005EF4CC::SetMode(int mode)
                     m_character_panel_20->ControlAt(index));
             row->m_character_index =
                 g_state5_party_collection_69c4ec->first_visible + row->m_row;
-            row->SetEnabled(
+            row->SetActive(
                 row->m_character_index <
                 g_state5_party_collection_69c4ec->characters.count);
             row->Invalidate(0);
@@ -1652,7 +1652,7 @@ void W8State5Controller005EF4CC::SetMode(int mode)
         m_control_2c->SetEnabled(1);
         m_control_30->SetEnabled(0);
         m_control_30->EnableRegionSet(0);
-        m_text_54->SetVisible(CountActiveCharacters() != 0);
+        m_text_54->SetEnabled(CountActiveCharacters() != 0);
         label = gppStringList[0x1ad0 / 4];
         break;
     }
@@ -1677,9 +1677,9 @@ void W8State5Controller005EF4CC::SetMode(int mode)
         m_range->EnableRegionSet(1);
         m_panel_34->SetEnabled(1);
         m_panel_34->EnableRegionSet(1);
-        m_text_40->SetEnabled(0);
-        m_text_44->SetEnabled(0);
-        m_text_48->SetEnabled(0);
+        m_text_40->SetActive(0);
+        m_text_44->SetActive(0);
+        m_text_48->SetActive(0);
         m_character_panel_20->SetEnabled(0);
         m_character_panel_20->EnableRegionSet(0);
         m_control_24->EnableRegionSet(1);
@@ -1688,7 +1688,7 @@ void W8State5Controller005EF4CC::SetMode(int mode)
             unsigned char occupied =
                 reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)
                     [slot * 0x106 + 0x20c];
-            m_control_24->ControlAt(slot)->SetEnabled(
+            m_control_24->ControlAt(slot)->SetActive(
                 m_mode == 1 && occupied &&
                 IsCharacterReadyToAdvance(slot + 2));
         }
@@ -1705,7 +1705,7 @@ void W8State5Controller005EF4CC::SetMode(int mode)
         }
         m_range->SetRange(0, maximum);
         m_range->SetValue(m_list_5c->m_selection);
-        m_range->SetEnabled(maximum > 0);
+        m_range->SetRangeEnabled(maximum > 0);
         m_range->Invalidate(0);
 
         m_control_2c->SetEnabled(1);
@@ -1727,19 +1727,19 @@ void W8State5Controller005EF4CC::SetMode(int mode)
         m_panel_38->SetEnabled(0);
         m_panel_38->EnableRegionSet(0);
         m_control_2c->SetEnabled(0);
-        m_text_50->SetEnabled(0);
+        m_text_50->SetActive(0);
         m_control_30->SetEnabled(1);
         m_control_30->EnableRegionSet(1);
         m_control_30->Function5C05F0(0);
         label = gppStringList[0x1ad8 / 4];
         break;
     case 3:
-        m_text_50->SetEnabled(0);
+        m_text_50->SetActive(0);
         m_control_30->Function5C05F0(1);
         label = gppStringList[0x1adc / 4];
         break;
     case 4:
-        m_text_50->SetEnabled(0);
+        m_text_50->SetActive(0);
         m_control_30->Function5C05F0(2);
         label = gppStringList[0x1adc / 4];
         break;
@@ -1815,15 +1815,15 @@ void W8State5Controller005EF4CC::SetSelection(
              : 0x1b1c) / 4];
     m_text_44->m_textBuffer.SetText(text, g_font_683660);
     unsigned char have_character = m_character_18 != 0;
-    m_text_44->SetVisible(have_character);
+    m_text_44->SetEnabled(have_character);
     m_text_44->Invalidate(0);
-    m_text_48->SetVisible(have_character);
+    m_text_48->SetEnabled(have_character);
     m_text_48->Invalidate(0);
-    m_text_4c->SetVisible(have_character);
+    m_text_4c->SetEnabled(have_character);
     m_text_4c->Invalidate(0);
     if (m_character_18 && !m_character_18->in_party &&
         FindFreePartySlot(2, 8) == 0xffffffff) {
-        m_text_44->SetVisible(0);
+        m_text_44->SetEnabled(0);
     }
 }
 
@@ -2032,8 +2032,8 @@ void W8State5Controller005EF4CC::OnDecision(
 // FUNCTION: WIZ8 0x005c1ea0
 void W8State5Controller005EF4CC::OnToggle(int value)
 {
-    if ((char)m_text_54->m_flag_4 != (char)value) {
-        m_text_54->SetVisible((unsigned char)value);
+    if ((char)m_text_54->m_enabled != (char)value) {
+        m_text_54->SetEnabled((unsigned char)value);
         m_text_54->Invalidate(0);
     }
 }
@@ -2142,7 +2142,7 @@ void W8State5Controller005EF4CC::Function5C26C0(
             maximum = 0;
         }
         m_range->SetRange(0, maximum);
-        m_range->SetEnabled(maximum > 0);
+        m_range->SetRangeEnabled(maximum > 0);
         m_range->Invalidate(0);
         if (selected > 0 || collection->characters.count == 0) {
             --selected;
@@ -2213,21 +2213,21 @@ void W8State5Controller005EF4CC::Function5C2C60(int selection)
         }
     }
 
-    m_text_54->SetVisible(CountActiveCharacters() != 0);
+    m_text_54->SetEnabled(CountActiveCharacters() != 0);
     m_text_54->Invalidate(0);
     int slot;
     for (slot = 0; slot < 6; ++slot) {
         unsigned char occupied =
             reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)
                 [slot * 0x106 + 0x20c];
-        m_control_28->m_control_50.m_lsButtons.data[slot]->SetVisible(occupied);
+        m_control_28->m_control_50.m_lsButtons.data[slot]->SetEnabled(occupied);
     }
     m_control_28->Invalidate(0);
     for (slot = 0; slot < 6; ++slot) {
         unsigned char occupied =
             reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)
                 [slot * 0x106 + 0x20c];
-        m_control_24->ControlAt(slot)->SetEnabled(
+        m_control_24->ControlAt(slot)->SetActive(
             m_mode == 1 && occupied && IsCharacterReadyToAdvance(slot + 2));
     }
     m_control_24->Invalidate(0);
@@ -2291,11 +2291,11 @@ void W8State5Controller005EF4CC::Function5C2970()
         unsigned char occupied =
             reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)
                 [slot * 0x106 + 0x20c];
-        m_control_28->m_control_50.m_lsButtons.data[slot]->SetVisible(occupied);
+        m_control_28->m_control_50.m_lsButtons.data[slot]->SetEnabled(occupied);
     }
     m_control_28->Invalidate(0);
     m_character_panel_20->Invalidate(0);
-    m_text_54->SetVisible(CountActiveCharacters() != 0);
+    m_text_54->SetEnabled(CountActiveCharacters() != 0);
     m_text_54->Invalidate(0);
 }
 

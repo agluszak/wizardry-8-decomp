@@ -74,11 +74,11 @@ static_assert(sizeof(W8LevelRuntimeBlock) == 0x330,
 class W8MainGameScreen005EEBD8;
 
 /* 0x00587CF0 constructs this concrete key handler.  Its primary vtable is the
-   W8WidgetBase005ED5BC table extended by one entry: slot 0x48 points at
+   W8Widget table extended by one entry: slot 0x48 points at
    0x00588170 and accepts the key code forwarded by TextBoxHandleKey. */
 // VTABLE: WIZ8 0x005eeafc
 class W8MainGameTextKeyHandler005EEAFC
-    : public W8WidgetBase005ED5BC,
+    : public W8Widget,
       public W8RangeListener {
 public:
     virtual char HandleKey(unsigned short key);

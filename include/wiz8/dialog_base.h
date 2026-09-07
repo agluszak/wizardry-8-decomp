@@ -19,7 +19,7 @@ public:
     virtual int CreateControls() override;            /* 0x005D2D00 */
     virtual void DestroyControls() override;          /* slot 2, 0x005D2F40 */
     virtual void Draw() override;                     /* 0x005D2660 */
-    virtual int vslot4() override;                    /* 0x005AD280 */
+    virtual int GetDialogType() override;                    /* 0x005AD280 */
     virtual unsigned char ProcessInput() override;       /* slot 9, 0x005D3080 */
     virtual unsigned char HandleInput(
         const InputAtom* input);                         /* slot 14 */

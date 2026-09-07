@@ -255,6 +255,13 @@ extern void PostCharacterNotice(int party_slot, const wchar_t* notice, ...);
 /* 0x00590950 */
 extern unsigned char CharacterHasEffect(void* effect, int party_slot);   /* 0x0052DD90 */
 
+// FUNCTION: WIZ8 0x0052a710
+int GetCharacterRealmSpellPoints(const W8Character* character, int realm)
+{
+    int points = character->sp_left[realm];
+    return points > 0 ? points : 0;
+}
+
 // FUNCTION: WIZ8 0x0052a7d0
 unsigned int FatigueArmorPenalty(int fatigue_band)
 {

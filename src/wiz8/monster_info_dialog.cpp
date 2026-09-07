@@ -122,40 +122,100 @@ void W8DialogTextArea::SetFirstVisibleEntry(unsigned int index)
 // FUNCTION: WIZ8 0x005e0e00
 void W8DialogScrollBar::DestroyControls()
 {
-    if (unknown_02c != -1) {
-        RemoveButton(unknown_02c);
-        unknown_02c = -1;
+    if (m_up_button != -1) {
+        RemoveButton(m_up_button);
+        m_up_button = -1;
     }
-    if (unknown_028 != -1) {
-        UnloadButtonImage(unknown_028);
-        unknown_028 = -1;
+    if (m_up_image != -1) {
+        UnloadButtonImage(m_up_image);
+        m_up_image = -1;
     }
-    if (unknown_034 != -1) {
-        RemoveButton(unknown_034);
-        unknown_034 = -1;
+    if (m_down_button != -1) {
+        RemoveButton(m_down_button);
+        m_down_button = -1;
     }
-    if (unknown_030 != -1) {
-        UnloadButtonImage(unknown_030);
-        unknown_030 = -1;
+    if (m_down_image != -1) {
+        UnloadButtonImage(m_down_image);
+        m_down_image = -1;
     }
-    if (unknown_03c != -1) {
-        RemoveButton(unknown_03c);
-        unknown_03c = -1;
+    if (m_thumb_button != -1) {
+        RemoveButton(m_thumb_button);
+        m_thumb_button = -1;
     }
-    if (unknown_038 != -1) {
-        UnloadButtonImage(unknown_038);
-        unknown_038 = -1;
+    if (m_thumb_image != -1) {
+        UnloadButtonImage(m_thumb_image);
+        m_thumb_image = -1;
     }
-    if (unknown_044 != -1) {
-        RemoveButton(unknown_044);
-        unknown_044 = -1;
+    if (m_track_button != -1) {
+        RemoveButton(m_track_button);
+        m_track_button = -1;
     }
-    if (unknown_040 != -1) {
-        UnloadButtonImage(unknown_040);
-        unknown_040 = -1;
+    if (m_track_image != -1) {
+        UnloadButtonImage(m_track_image);
+        m_track_image = -1;
     }
-    unknown_048 = 0;
-    unknown_000 = 0;
+    m_on_scroll = 0;
+    m_initialized = 0;
+}
+
+// FUNCTION: WIZ8 0x005e1000
+void W8DialogScrollBar::UpdateThumb()
+{
+    if (m_initialized && m_entry_count != -1 && m_first_visible_entry != -1) {
+        int x = m_track_bounds[0] +
+                (m_track_bounds[2] - m_track_bounds[0] - GetButtonWidth(m_thumb_button)) / 2;
+        int offset = 0;
+        if (m_entry_count > m_view_height / m_entry_height) {
+            offset = ((m_track_bounds[3] - m_track_bounds[1] -
+                       GetButtonHeight(m_thumb_button)) * m_first_visible_entry) /
+                     (m_entry_count - m_view_height / m_entry_height);
+        }
+        SetButtonPosition(m_thumb_button, static_cast<short>(x),
+                          static_cast<short>(m_track_bounds[1] + offset));
+        m_dirty = 1;
+    }
+}
+
+// FUNCTION: WIZ8 0x005e10b0
+void W8DialogScrollBar::Draw(unsigned char force)
+{
+    if (m_initialized && m_visible && (force || m_dirty)) {
+        DrawButton(m_track_button);
+        DrawButton(m_up_button);
+        DrawButton(m_down_button);
+        DrawButton(m_thumb_button);
+        MarkScreenRectDirty(
+            GetButtonX(m_track_button), GetButtonY(m_track_button),
+            GetButtonX(m_track_button) + GetButtonWidth(m_track_button),
+            GetButtonY(m_track_button) + GetButtonHeight(m_track_button), 0);
+        m_dirty = 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x005e1170
+void W8DialogScrollBar::ScrollUp()
+{
+    if (m_first_visible_entry != 0) {
+        --m_first_visible_entry;
+        if (m_on_scroll) {
+            m_on_scroll(this, m_first_visible_entry);
+        }
+        UpdateThumb();
+    }
+}
+
+// FUNCTION: WIZ8 0x005e11a0
+void W8DialogScrollBar::ScrollDown()
+{
+    int visible_entries = m_view_height / m_entry_height;
+    if (visible_entries < m_entry_count &&
+        m_first_visible_entry < m_entry_count - visible_entries) {
+        ++m_first_visible_entry;
+        if (m_on_scroll) {
+            m_on_scroll(this, m_first_visible_entry);
+        }
+        UpdateThumb();
+    }
 }
 
 // FUNCTION: WIZ8 0x005d1ae0
@@ -239,27 +299,27 @@ unsigned char W8DialogTextArea::ScrollUp(unsigned char check_only)
 // FUNCTION: WIZ8 0x005e0c40
 W8DialogScrollBar::W8DialogScrollBar()
 {
-    unknown_000 = 0;
-    unknown_001 = 0;
+    m_initialized = 0;
+    m_visible = 0;
     unknown_024 = 0;
-    unknown_004 = 1;
-    unknown_008 = 0;
-    unknown_00c = -1;
-    unknown_010 = -1;
-    unknown_002 = 0;
-    unknown_014[0] = 0;
-    unknown_014[1] = 0;
-    unknown_014[2] = 0;
-    unknown_014[3] = 0;
-    unknown_028 = -1;
-    unknown_02c = -1;
-    unknown_030 = -1;
-    unknown_034 = -1;
-    unknown_038 = -1;
-    unknown_03c = -1;
-    unknown_040 = -1;
-    unknown_044 = -1;
-    unknown_048 = 0;
+    m_entry_count = 1;
+    m_first_visible_entry = 0;
+    m_entry_height = -1;
+    m_view_height = -1;
+    m_dirty = 0;
+    m_track_bounds[0] = 0;
+    m_track_bounds[1] = 0;
+    m_track_bounds[2] = 0;
+    m_track_bounds[3] = 0;
+    m_up_image = -1;
+    m_up_button = -1;
+    m_down_image = -1;
+    m_down_button = -1;
+    m_thumb_image = -1;
+    m_thumb_button = -1;
+    m_track_image = -1;
+    m_track_button = -1;
+    m_on_scroll = 0;
 }
 
 // FUNCTION: WIZ8 0x005db1b0

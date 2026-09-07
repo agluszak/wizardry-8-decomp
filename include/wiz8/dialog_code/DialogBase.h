@@ -21,7 +21,7 @@ public:
     virtual int CreateControls();          /* 0x005DCAF0 */
     virtual void DestroyControls();        /* 0x005DCC30 */
     virtual void Draw();                   /* 0x005DC890 */
-    virtual int vslot4();
+    virtual int GetDialogType();           /* 0x005D6FA0: base=0, modal=1, list=3 */
     virtual void SetText(const wchar_t* text); /* 0x005DC940 */
     /* Slots 6, 7 and 8 of the table at 0x005EFAF8 are 0x005DC9C0, 0x005DC9F0 and
        0x005DCA70 - the three setters a derived constructor calls directly
@@ -31,7 +31,7 @@ public:
     virtual void SetExtent(int width, int height);   /* 0x005DC9F0 */
     virtual void SetBackground(const char* path, int flags); /* 0x005DCA70 */
     virtual unsigned char ProcessInput();            /* 0x005DCCE0 */
-    virtual void vslot10(int value);
+    virtual void OnNumericInputChanged(int control_id);
     virtual void OnRightButtonDown();
     virtual void OnRightButtonUp();
     virtual void OnMouseWheel(int delta);
@@ -83,7 +83,7 @@ public:
     virtual int CreateControls() override;
     virtual void DestroyControls() override;
     virtual void Draw() override;
-    virtual int vslot4() override;
+    virtual int GetDialogType() override;
     virtual void SetText(const wchar_t* text) override;
     virtual unsigned char ProcessInput() override;
 
@@ -100,7 +100,7 @@ public:
     virtual void DestroyControls() override;
     virtual void Draw() override;
     virtual unsigned char ProcessInput() override;
-    virtual void vslot10(int value) override;
+    virtual void OnNumericInputChanged(int value) override;
 
 private:
     int m_fields_54[6];
@@ -125,27 +125,31 @@ public:
     W8DialogScrollBar();         /* 0x005E0C40 */
     ~W8DialogScrollBar();
     void DestroyControls();              /* 0x005E0E00 */
+    void UpdateThumb();                  /* 0x005E1000 */
+    void Draw(unsigned char force);      /* 0x005E10B0 */
+    void ScrollUp();                     /* 0x005E1170 */
+    void ScrollDown();                   /* 0x005E11A0 */
 
 private:
-    unsigned char unknown_000;           /* 0x00 */
-    unsigned char unknown_001;           /* 0x01 */
-    unsigned char unknown_002;           /* 0x02 */
+    unsigned char m_initialized;         /* 0x00 */
+    unsigned char m_visible;             /* 0x01 */
+    unsigned char m_dirty;               /* 0x02 */
     unsigned char unknown_003;
-    int unknown_004;                     /* 0x04 */
-    int unknown_008;                     /* 0x08 */
-    int unknown_00c;                     /* 0x0c */
-    int unknown_010;                     /* 0x10 */
-    int unknown_014[4];                  /* 0x14 */
+    int m_entry_count;                   /* 0x04 */
+    int m_first_visible_entry;           /* 0x08 */
+    int m_entry_height;                  /* 0x0c */
+    int m_view_height;                   /* 0x10 */
+    int m_track_bounds[4];               /* 0x14: left, top, right, bottom */
     int unknown_024;                     /* 0x24 */
-    int unknown_028;                     /* 0x28 */
-    int unknown_02c;                     /* 0x2c */
-    int unknown_030;                     /* 0x30 */
-    int unknown_034;                     /* 0x34 */
-    int unknown_038;                     /* 0x38 */
-    int unknown_03c;                     /* 0x3c */
-    int unknown_040;                     /* 0x40 */
-    int unknown_044;                     /* 0x44 */
-    int unknown_048;                     /* 0x48 */
+    int m_up_image;                      /* 0x28 */
+    int m_up_button;                     /* 0x2c */
+    int m_down_image;                    /* 0x30 */
+    int m_down_button;                   /* 0x34 */
+    int m_thumb_image;                   /* 0x38 */
+    int m_thumb_button;                  /* 0x3c */
+    int m_track_image;                   /* 0x40 */
+    int m_track_button;                  /* 0x44 */
+    void (*m_on_scroll)(W8DialogScrollBar* scroll_bar, int first_visible_entry); /* 0x48 */
 };                                      /* 0x4c */
 
 // VTABLE: WIZ8 0x005efa98

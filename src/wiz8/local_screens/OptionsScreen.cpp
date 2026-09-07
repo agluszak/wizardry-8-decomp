@@ -234,8 +234,8 @@ void W8OptionsMenuSet005EEFEC::UpdateMenuSet()
     SetEnabled(panel_set->m_show_page_text_009 == 0 &&
                        (panel_set->unknown_008 != 0 || count > 1));
     if (panel_set->m_show_page_text_009 != 0) {
-        m_next_054->SetVisible(current < count - 1);
-        m_previous_058->SetVisible(current > 0);
+        m_next_054->SetEnabled(current < count - 1);
+        m_previous_058->SetEnabled(current > 0);
         wchar_t text[0x10];
 
         swprintf(text, L"%d / %d", current + 1, count);

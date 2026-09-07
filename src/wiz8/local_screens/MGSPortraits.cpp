@@ -14,7 +14,7 @@ void DisablePortraitControls0059BB40(void)
     RegionSetDisable(5);
     W8TextControl005ED604** control = g_portrait_controls_0069b920;
     do {
-        (*control)->SetEnabled(0);
+        (*control)->SetActive(0);
         ++control;
     } while (control < g_portrait_controls_0069b920 + 8);
 }

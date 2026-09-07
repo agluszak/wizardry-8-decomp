@@ -1,5 +1,7 @@
 #include "wiz8/dialog_base.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/cursor.h"
+#include "wiz8/utility.h"
 
 #include "english.h"
 #include "mousesystem_macros.h"
@@ -386,7 +388,7 @@ void W8ModalDialogBase::Draw()
 }
 
 // FUNCTION: WIZ8 0x005ad280
-int W8ModalDialogBase::vslot4()
+int W8ModalDialogBase::GetDialogType()
 {
     return 1;
 }
@@ -469,14 +471,14 @@ unsigned char W8ModalDialogBase::HandleInput(
 // FUNCTION: WIZ8 0x005d3080
 unsigned char W8ModalDialogBase::ProcessInput()
 {
-    SGPPoint mouse;
+    W8ScreenPoint mouse;
     InputAtom input;
 
-    GetMousePos(&mouse);
+    GetScreenPoint004284F0(&mouse);
     MSYS_SGP_Mouse_Handler_Hook(
         MOUSE_POS,
-        mouse.iX,
-        mouse.iY,
+        mouse.x,
+        mouse.y,
         gfLeftButtonState,
         gfRightButtonState);
 
@@ -503,8 +505,8 @@ unsigned char W8ModalDialogBase::ProcessInput()
 
         MSYS_SGP_Mouse_Handler_Hook(
             mouse_event,
-            mouse.iX,
-            mouse.iY,
+            mouse.x,
+            mouse.y,
             gfLeftButtonState,
             gfRightButtonState);
     }

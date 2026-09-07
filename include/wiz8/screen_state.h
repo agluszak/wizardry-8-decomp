@@ -1,5 +1,16 @@
 #pragma once
 
+#include "vobject.h"
+
+/* Screen font resources initialized by startup_subsystems.cpp. */
+extern "C" {
+extern int g_font_683660;
+extern int g_options_detail_font_683614;
+extern unsigned short* g_colour_68ee08;
+extern unsigned short* g_font_state_palettes_68ee1c[15];
+extern HVOBJECT g_wiz_text_font_secondary_object_683680;
+}
+
 enum {
     W8_SCREEN_INTRO = 0,
     W8_SCREEN_MAIN_MENU = 1,

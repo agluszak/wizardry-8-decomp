@@ -28,6 +28,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/local_screens/MainGameScreen.cpp
     src/wiz8/local_screens/CharacterScreen.cpp
     src/wiz8/local_screens/CharacterPages.cpp
+    src/wiz8/local_screens/CGSSpellsPage.cpp
     src/wiz8/local_screens/JournalScreen.cpp
     src/wiz8/local_screens/CreditsScreen.cpp
     src/wiz8/local_screens/MGSPortraits.cpp

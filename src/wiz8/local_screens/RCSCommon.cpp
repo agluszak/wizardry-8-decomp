@@ -135,7 +135,7 @@ void CreateRcsLevelUpPanel(void)
     g_level_up_button_0069c3c0->m_primaryActivationCallback =
         OpenLevelUpCharacterScreen;
     g_level_up_panel_0069c3c4->SetEnabled(1);
-    g_level_up_button_0069c3c0->SetEnabled(0);
+    g_level_up_button_0069c3c0->SetActive(0);
 }
 /* Ask the first panel to redraw all of itself. A null rectangle is how
    Controls::Invalidate spells "the whole area", so these are not a separate
@@ -178,12 +178,12 @@ void UpdateRcsLevelUpPanel(void)
         (!g_party_slot_rows[g_rcs_mode_0064cbe8].flag_105 &&
          g_status_685170.game_started) ||
         g_camp_open_00683f9b) {
-        if (g_level_up_button_0069c3c0->m_flag_5) {
-            g_level_up_button_0069c3c0->SetEnabled(0);
+        if (g_level_up_button_0069c3c0->m_active) {
+            g_level_up_button_0069c3c0->SetActive(0);
         }
     }
-    else if (!g_level_up_button_0069c3c0->m_flag_5) {
-        g_level_up_button_0069c3c0->SetEnabled(1);
+    else if (!g_level_up_button_0069c3c0->m_active) {
+        g_level_up_button_0069c3c0->SetActive(1);
         g_level_up_panel_0069c3c4->Invalidate(0);
     }
     g_level_up_panel_0069c3c4->Redraw();
@@ -214,7 +214,7 @@ void CreateRcsDismissPanel(void)
     g_dismiss_button_0069c400->m_primaryActivationCallback =
         ShowDismissCharacterDialog;
     g_dismiss_panel_0069c3c8->SetEnabled(1);
-    g_dismiss_button_0069c400->SetEnabled(0);
+    g_dismiss_button_0069c400->SetActive(0);
 }
 
 // FUNCTION: WIZ8 0x005b6950
@@ -284,13 +284,13 @@ void UpdateRcsDismissPanel(void)
 {
     if ((g_rcs_mode_0064cbe8 == 0 || g_rcs_mode_0064cbe8 == 1) &&
         gXStatus.fCombatMode == 0 && gXStatus.fCampMode == 0) {
-        if (g_dismiss_button_0069c400->m_flag_5 == 0) {
-            g_dismiss_button_0069c400->SetEnabled(1);
+        if (g_dismiss_button_0069c400->m_active == 0) {
+            g_dismiss_button_0069c400->SetActive(1);
             g_dismiss_panel_0069c3c8->Invalidate(0);
         }
     }
-    else if (g_dismiss_button_0069c400->m_flag_5 != 0) {
-        g_dismiss_button_0069c400->SetEnabled(0);
+    else if (g_dismiss_button_0069c400->m_active != 0) {
+        g_dismiss_button_0069c400->SetActive(0);
     }
     g_dismiss_panel_0069c3c8->Redraw();
 }

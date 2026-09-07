@@ -272,12 +272,14 @@ unsigned char W8DialogBase::ProcessInput()
 }
 
 // FUNCTION: WIZ8 0x005d6fa0
-int W8DialogBase::vslot4()
+int W8DialogBase::GetDialogType()
 {
     return 0;
 }
 
-void W8DialogBase::vslot10(int)
+/* Shared one-argument no-op at 0x005B1BE0, also emitted for widget Redraw.
+   Keep its existing source marker at that owner. */
+void W8DialogBase::OnNumericInputChanged(int)
 {
 }
 
@@ -292,6 +294,7 @@ void W8DialogBase::OnRightButtonUp()
 {
 }
 
+/* Same 0x005B1BE0 no-op as OnNumericInputChanged. */
 void W8DialogBase::OnMouseWheel(int)
 {
 }

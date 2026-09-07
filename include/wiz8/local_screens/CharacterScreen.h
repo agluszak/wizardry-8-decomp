@@ -6,6 +6,7 @@
 #include "wiz8/compat/compiler.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/local_code/Controls.h"
+#include "wiz8/local_code/CharGeneration.h"
 #include "wiz8/vector.h"
 
 extern "C" {
@@ -107,14 +108,46 @@ private:
 };
 static_assert(sizeof(W8CharacterPage005EF778) == 0xa0, "W8CharacterPage005EF778_size");
 
-class W8CharacterPage005EF664 : public W8CharacterPage {
+struct W8CharacterSpellEntry {
+    int realm;
+    unsigned int spell;
+    unsigned char selectable;
+    unsigned char selected;
+    unsigned char pad_00a[2];
+};
+static_assert(sizeof(W8CharacterSpellEntry) == 0xc, "W8CharacterSpellEntry_size");
+
+class W8CharacterSpellListListener {
 public:
+    virtual void SelectSpell(unsigned int entry) = 0;
+    virtual void ShowSpellInfo(unsigned int entry) = 0;
+};
+
+class W8CharacterSpellList005EF614;
+
+/* CGSSpellsPage.cpp: the 0x558-byte middle is 114 spell entries, not an
+   embedded framework object. The range-list callbacks use the +0x70 base. */
+class W8CharacterPage005EF664 : public W8CharacterPage,
+                                public W8CharacterSpellListListener {
+public:
+    W8CharacterPage005EF664();
+    virtual ~W8CharacterPage005EF664() override;
+    virtual void SetCharacter(W8Character*, W8CharacterCreationState*, int) override;
+    virtual void Redraw() override;
     virtual void Activate() override;
     virtual void Deactivate() override;
     virtual void Accept() override;
     virtual void GetNavigationState(unsigned char*, unsigned char*) override;
+    virtual void Refresh() override;
+    virtual void SelectSpell(unsigned int entry) override;
+    virtual void ShowSpellInfo(unsigned int entry) override;
 private:
-    unsigned char unknown_070[0x5b4];
+    void UpdateSpellLists();
+    W8CharacterSpellList005EF614* m_realms_074[6];
+    W8CharacterSpellEntry m_spell_data_08c[114];
+    W8GameTimer m_animation_timer_5e4;
+    unsigned int m_animation_frames_608[6];
+    unsigned int m_last_selected_620;
 };
 static_assert(sizeof(W8CharacterPage005EF664) == 0x624, "W8CharacterPage005EF664_size");
 
@@ -143,7 +176,7 @@ static_assert(sizeof(W8CharacterPage005EF5C8) == 0x78, "W8CharacterPage005EF5C8_
 class W8CharacterPage005EF57C
     : public W8CharacterPage,
       public W8ControlSelectionListener,
-      public W8TextControlActionListener005ED664 {
+      public W8TextControl005ED604::Listener {
 public:
     W8CharacterPage005EF57C()
         : W8CharacterPage(0x105), m_animation_timer_0d4(0.4f, 1),
@@ -158,7 +191,7 @@ public:
     virtual void HandleInput(InputAtom*) override;
     virtual void Refresh() override;
     virtual void OnSelectionChanged(W8Control005ED654*, int) override;
-    virtual void OnControlAction(W8TextControl005ED604*) override;
+    virtual void OnPrimary(W8TextControl005ED604*) override;
 private:
     W8TextControl005ED604* m_control_078;
     W8TextControl005ED604* m_control_07c;
