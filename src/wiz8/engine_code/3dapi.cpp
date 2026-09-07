@@ -49,7 +49,7 @@ extern void Function46DC90(srScene* scene);
 extern int CheckLevelAssetSet0042CCC0(const char* level_path);
 extern void UpdateWorldMeshFromQuads004BAD40(W8World* world);
 extern void UpdateWorldMeshFromOctree004BAF50(W8World* world);
-extern void Function426790(void);
+extern void RenderFrame(void);
 extern void Function443A60(W8World* world);
 extern void Function479030(void);
 extern void Function47A700(void* ambient_sound);
@@ -416,7 +416,7 @@ void DestroyWorldCollections(W8World* world)
         PLDestroy(world->plsMonsters);
         world->plsMonsters = 0;
     }
-    if (g_world_cleanup_flag_00659757 != 0) Function426790();
+    if (g_world_cleanup_flag_00659757 != 0) RenderFrame();
     if (world->plsItems != 0) {
         while (PLLength(world->plsItems) != 0) {
             W8Item* object = static_cast<W8Item*>(
@@ -427,7 +427,7 @@ void DestroyWorldCollections(W8World* world)
         PLDestroy(world->plsItems);
         world->plsItems = 0;
     }
-    if (g_world_cleanup_flag_00659757 != 0) Function426790();
+    if (g_world_cleanup_flag_00659757 != 0) RenderFrame();
     if (world->plsProps != 0) {
         while (ILLength(reinterpret_cast<W8IList*>(world->plsProps)) != 0) {
             W8Prop* object = static_cast<W8Prop*>(
@@ -438,14 +438,14 @@ void DestroyWorldCollections(W8World* world)
         PLDestroy(world->plsProps);
         world->plsProps = 0;
     }
-    if (g_world_cleanup_flag_00659757 != 0) Function426790();
+    if (g_world_cleanup_flag_00659757 != 0) RenderFrame();
 
     Function443A60(world);
     if (world->triggers != 0) {
         delete world->triggers;
         world->triggers = 0;
     }
-    if (g_world_cleanup_flag_00659757 != 0) Function426790();
+    if (g_world_cleanup_flag_00659757 != 0) RenderFrame();
 
     if (world->plsCameras != 0) {
         while (PLLength(world->plsCameras) != 0) {
@@ -525,9 +525,9 @@ void DestroyWorld(W8World* world)
         DestroyWorldQuad004BE0A0(world->m_owned_06c);
         world->m_owned_06c = 0;
     }
-    if (g_world_cleanup_flag_00659757 != 0) Function426790();
+    if (g_world_cleanup_flag_00659757 != 0) RenderFrame();
     DestroyWorldCollections(world);
-    if (g_world_cleanup_flag_00659757 != 0) Function426790();
+    if (g_world_cleanup_flag_00659757 != 0) RenderFrame();
     if (Function4914C0() != 0) Function490B90();
 
     index = g_worlds_00659a80.IndexOf(world);

@@ -5,6 +5,7 @@
 #include "LibraryDataBase.h"
 #undef gGameLibaries
 #include "MemMan.h"
+#include "wiz8/slf_archives.h"
 #include "wiz8/sgp-compat/WizLibs.h"
 
 #include <stdio.h>

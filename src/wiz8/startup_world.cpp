@@ -2,14 +2,13 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/startup_world.h"
+#include "wiz8/render_state.h"
 
 #include <new>
 #include <stdlib.h>
 #include <string.h>
 
 extern void NoOp(void);
-extern void InitializeRenderQuality(void);
-extern unsigned char InitializeEnvironmentColours(void);
 
 // GLOBAL: WIZ8 0x00659c0c
 W8Navigator* g_startup_world_659c0c;

@@ -25,7 +25,6 @@
 
 #define MATERIALS_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\materials.cpp"
 
-extern "C" unsigned char g_flag_65beaf;
 extern void UpdatePleaseWaitLoadFrame005915A0(void);
 
 /* The global at 0x0065BEA8 is a real zero-storage srVertexProcessor subclass:

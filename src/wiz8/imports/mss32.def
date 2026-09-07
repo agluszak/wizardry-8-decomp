@@ -6,6 +6,21 @@ LIBRARY MSS32
 ; on _AIL_init_sample@4; use that callable identity.
 
 EXPORTS
+    ; Additional provider exports used by the retained SGP sound manager.
+    ; Verified in the shipped MSS32.dll; these are not retail EXE imports.
+    _AIL_close_3D_listener@4
+    _AIL_auto_service_stream@8
+    _AIL_set_digital_master_volume@8
+    _AIL_digital_master_volume@4
+    _AIL_stream_pan@4
+    _AIL_sample_pan@4
+    _AIL_3D_sample_loop_count@4
+    _AIL_stream_loop_count@4
+    _AIL_sample_loop_count@4
+    _AIL_WAV_info@8
+    _AIL_waveOutClose@4
+    _AIL_waveOutOpen@16
+    _AIL_active_3D_sample_count@4
     _AIL_3D_provider_attribute@12
     _AIL_3D_sample_playback_rate@4
     _AIL_3D_sample_status@4

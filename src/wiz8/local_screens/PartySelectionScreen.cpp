@@ -18,6 +18,7 @@
 #include "wiz8/music_playlist.h"
 #include "wiz8/regions.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/render_state.h"
 #include "wiz8/text_input.h"
 #include "wiz8/vector.h"
 #include "wiz8/video_object_catalog.h"
@@ -46,7 +47,6 @@ void BuildCharacterFilePath00514FA0(char* destination, const char* filename,
                                     int slot);
 void BuildCharacterPath00514EC0(char* destination, const wchar_t* name,
                                 int slot);
-extern "C" void SetViewport(int left, int top, int right, int bottom);
 extern "C" int MSYS_Init(void);
 extern void NoOp(void);
 extern "C" void MSYS_Shutdown(void);
@@ -54,7 +54,7 @@ void ResetRegions(void);
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
 int Function52E750(void);
-void Function426790(void);
+void RenderFrame(void);
 unsigned short Function402780(unsigned short key, unsigned char modifiers);
 void Function55EE70(int value);
 void RenderPartyPortrait0052EB00(int portrait, int left, int top,
@@ -2484,7 +2484,7 @@ void PartySelectionScreenFrame(void)
     }
     Function52E750();
     controller->Function5C1F40();
-    Function426790();
+    RenderFrame();
 }
 
 // GLOBAL: WIZ8 0x006875B4

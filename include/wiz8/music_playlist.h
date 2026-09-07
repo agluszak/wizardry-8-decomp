@@ -2,6 +2,8 @@
 #define WIZ8_MUSIC_PLAYLIST_H
 #include "wiz8/screen_state.h"
 
+extern int g_music_sample_handle_60aae0;
+
 extern "C" {
 
 unsigned char InitializeMusicPlaylist(void);

@@ -73,9 +73,8 @@ unsigned char ClearPrimarySurface(void);
 void PlaySound(const char* path, int flags);
 void Function53A320(int state);
 void Function5187E0(void);
-void Function518B30(void);
 void BeginCombatRound(void);
-void ConfigurePresentation00413FD0(int, int, int, int, int);
+#include "line.h"
 void Function5B4EB0(void);
 void Function5B9070(void);
 void Function5B9350(void);
@@ -95,7 +94,7 @@ void SortPartyItemPool(void);
 void Function52DDD0(void);
 int Function52E750(void);
 void Function5A42A0(void);
-void Function422F10(void);
+void ResetTransientRenderScenes(void);
 void Function425570(int value);
 void ResetRegions(void);
 void Function5C5240(void);
@@ -496,7 +495,7 @@ unsigned char CampScreenEnter(void)
         g_camp_screen_0069c0f4 =
             static_cast<W8CampScreenState0069C0F4*>(malloc(sizeof(W8CampScreenState0069C0F4)));
         if (!g_camp_screen_0069c0f4) {
-            if (IsStringTableLoaded()) {
+            if (IsMessageBoxActive()) {
                 Function5187E0();
             }
             BeginCombatRound();
@@ -505,7 +504,7 @@ unsigned char CampScreenEnter(void)
         }
         memset(g_camp_screen_0069c0f4, 0, sizeof(W8CampScreenState0069C0F4));
     }
-    ConfigurePresentation00413FD0(0x500, 0, 0, 0x280, 0x1e0);
+    SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
     g_camp_screen_0069c0f4->entry_mode = entry_mode;
     MSYS_Init();
     for (unsigned int realm = 0; realm < 6; ++realm) {
@@ -588,7 +587,7 @@ show_equip_message:
         ActivateDialogRegion(0x138);
     }
     g_camp_screen_0069c0f4->redraw_flags |= 0x0fffffff;
-    Function422F10();
+    ResetTransientRenderScenes();
     Function425570(0);
     if (!g_status_685170.game_started) {
         Function48FC10("MainMenu.MPL", 1, 1);
@@ -602,8 +601,8 @@ void CampScreenFrame(void)
     if (g_flag_689b32) {
         RequestExitScreen();
     }
-    if (IsStringTableLoaded()) {
-        Function518B30();
+    if (IsMessageBoxActive()) {
+        ProcessMessageBoxInput();
     }
     Function48F9E0();
     if (g_camp_screen_0069c0f4->dialog &&
@@ -626,7 +625,7 @@ void CampScreenFrame(void)
             if (input.usParam == ESC) {
                 if (!g_camp_screen_0069c0f4->entry_mode || g_camp_screen_0069c0f4->page != 0) {
                     if (!g_camp_character_pending_0069c104) {
-                        if (IsStringTableLoaded()) {
+                        if (IsMessageBoxActive()) {
                             Function5187E0();
                         }
                         BeginCombatRound();

@@ -1,4 +1,5 @@
 #include "wiz8/virtual_file.h"
+#include "wiz8/local_code/CombatSound.h"
 #include "FileMan.h"
 
 #include <ctype.h>
@@ -59,7 +60,7 @@ static char* DuplicateHitSound(const char* source)
    material columns of up to twenty-eight impact sounds.  A hash line advances
    the material column; an asterisk starts an inline comment. */
 // FUNCTION: WIZ8 0x00549b00
-extern "C" unsigned char LoadHitSoundDatabase(void)
+unsigned char LoadHitSoundDatabase(void)
 {
     char path[] = "Data\\Databases\\HitSounds.txt";
     char line[256];
@@ -117,7 +118,7 @@ extern "C" unsigned char LoadHitSoundDatabase(void)
 
 /* Free the two string tables populated by LoadHitSoundDatabase. */
 // FUNCTION: WIZ8 0x00549e50
-extern "C" void ReleaseHitSoundDatabase(void)
+void ReleaseHitSoundDatabase(void)
 {
     int row;
     int column;

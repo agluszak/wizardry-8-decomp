@@ -13,7 +13,7 @@
  * The per-frame tick WinMain calls when no message is waiting and the
  * application is active. It drives a screen-state stack: the current state
  * descriptor sits at 0x0068EC78 and the pending one immediately after it at
- * 0x0068ED10, both 0x98 bytes, which is the element size InitializeGameData gives
+ * 0x0068ED10, both 0x98 bytes, which is the element size InitializeGame gives
  * CreateStack. A state transition copies pending over current, and the
  * displaced state is pushed so it can be returned to.
  *
@@ -93,7 +93,7 @@ void ReleaseScreenTransitionObjects(void)
 }
 
 // FUNCTION: WIZ8 0x004e3340
-void UpdateScreenState(void)
+void GameLoop(void)
 {
     int state;
 
@@ -161,7 +161,7 @@ stop:
 }
 
 // FUNCTION: WIZ8 0x004e34b0
-void ShutdownScreenStack(unsigned char release_screens)
+void GameloopExit(unsigned char release_screens)
 {
     int state;
 

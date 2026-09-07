@@ -18,6 +18,21 @@
 // LIBRARY: WIZ8 0x00401570
 // InitializeStandardGamingPlatform
 
+// LIBRARY: WIZ8 0x0040cf60
+// InitButtonSystem
+
+// LIBRARY: WIZ8 0x00405ef0
+// AddStandardVideoObject
+
+// LIBRARY: WIZ8 0x00402a70
+// AddStandardVideoSurface
+
+// LIBRARY: WIZ8 0x00405ff0
+// BltVideoObjectFromIndex
+
+// LIBRARY: WIZ8 0x00402ed0
+// BltVideoSurface
+
 // LIBRARY: WIZ8 0x00402750
 // FreeMouseCursor
 
@@ -472,41 +487,7 @@ unsigned char GetPrimaryRGBDistributionMasks(
     return 1;
 }
 
-void GetCurrentVideoSettings(
-    unsigned short* width, unsigned short* height, unsigned char* depth)
-{
-    *width = static_cast<unsigned short>(g_screen_width_603c3c);
-    *height = static_cast<unsigned short>(g_screen_height_603c40);
-    *depth = static_cast<unsigned char>(g_screen_depth_603c44);
-}
-
 void InvalidateRegion(int left, int top, int right, int bottom)
 {
     MarkScreenRectDirty(left, top, right, bottom, 0);
-}
-
-unsigned char Function405EF0(VOBJECT_DESC* request, unsigned int* handle)
-{
-    return AddStandardVideoObject(request, handle);
-}
-
-unsigned char Function402A70(VSURFACE_DESC* request, unsigned int* handle)
-{
-    return AddStandardVideoSurface(request, handle);
-}
-
-unsigned char Function405FF0(int destination, unsigned int source, short region,
-                             int x, int y, int flags, int effects)
-{
-    return BltVideoObjectFromIndex(
-        destination, source, static_cast<unsigned short>(region), x, y,
-        static_cast<unsigned int>(flags), reinterpret_cast<blt_fx*>(effects));
-}
-
-unsigned char Function402ED0(int destination, unsigned int source, short region,
-                             int x, int y, int flags, int effects)
-{
-    return BltVideoSurface(
-        destination, source, static_cast<unsigned short>(region), x, y,
-        static_cast<unsigned int>(flags), reinterpret_cast<blt_vs_fx*>(effects));
 }

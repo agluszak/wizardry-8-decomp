@@ -39,7 +39,7 @@ extern unsigned char g_flag_689b32;
 
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
-void Function426790(void);
+void RenderFrame(void);
 void Function427230(int enabled);
 void RepositionAmbientSounds0047A600(W8World* world);
 void UpdateAmbientSounds0047A3E0(W8World* world);
@@ -412,9 +412,9 @@ void OptionsScreenFrame()
     screen->Function5A95F0();
     if (g_flag_69c1c8 != 0) {
         Function427230(0);
-        Function426790();
+        RenderFrame();
         Function427230(1);
         g_flag_69c1c8 = 0;
     }
-    Function426790();
+    RenderFrame();
 }

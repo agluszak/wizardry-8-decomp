@@ -2,23 +2,23 @@
 #include "wiz8/regions.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/sgp_video.h"
 
 #include "FileMan.h"
 #include "Font.h"
 #include "english.h"
 #include "input.h"
+#include "line.h"
 
 #include <stdio.h>
 
 /* Local Screens\IntroScreen.cpp is named by the gpVideo assertion at line 98.
    The canonical state-zero row owns this enter/frame/leave bundle. */
 
-extern unsigned char g_flag_68510e;
+#include "wiz8/local_code/Configuration.h"
 extern unsigned char g_flag_689b2c;
 extern char g_path_6e0fa0[];
 
-extern void ConfigurePresentation00413FD0(int a, int b, int c, int d, int e);
-extern void InvalidateScreenRect004263F0(int left, int top, int right, int bottom);
 extern unsigned char FindGameDataPath0042B590(char* path, int drive);
 extern void PrepareVideoPlayback0048FF00(int value);
 extern unsigned char ClearFlag603C60(void);
@@ -46,10 +46,10 @@ unsigned char IntroScreenEnter(void)
 {
     char path[500];
 
-    ConfigurePresentation00413FD0(0x500, 0, 0, 0x280, 0x1e0);
+    SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
     SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
-    InvalidateScreenRect004263F0(0, 0, 0x280, 0x1e0);
-    if (g_intro_video_index_0064d8ac == 0 && g_flag_68510e && !g_flag_689b2c) {
+    ClearSurfaceRect(0, 0, 0x280, 0x1e0);
+    if (g_intro_video_index_0064d8ac == 0 && g_settings_6850c8.intro_seen && !g_flag_689b2c) {
         return 1;
     }
     sprintf(path, "Data\\Flics\\Intro\\%s", g_intro_video_names[g_intro_video_index_0064d8ac]);
@@ -116,7 +116,7 @@ void AdvanceIntroScreen(void)
     char path[500];
     W8BinkVideo* video;
 
-    if (g_intro_video_index_0064d8ac == 6 && !g_flag_68510e) {
+    if (g_intro_video_index_0064d8ac == 6 && !g_settings_6850c8.intro_seen) {
         g_intro_video_index_0064d8ac = 0;
         sprintf(path, "Data\\Flics\\Intro\\%s", g_intro_video_names[g_intro_video_index_0064d8ac]);
         if (!FileExists(path)) {
@@ -152,7 +152,7 @@ cleared:
     case 0:
     case 6:
         SetPendingScreenState(W8_SCREEN_MAIN_MENU);
-        g_flag_68510e = 1;
+        g_settings_6850c8.intro_seen = 1;
         break;
     case 1:
     case 2:

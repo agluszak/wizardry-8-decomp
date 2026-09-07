@@ -4,6 +4,10 @@
 #include "Types.h"
 
 struct W8ScreenPoint;
+class srModelInstance;
+
+extern srModelInstance* g_cursor_node_659694;
+unsigned char InitializeMouseCursorScene(void);
 
 extern "C" {
 

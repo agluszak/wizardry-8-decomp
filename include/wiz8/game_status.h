@@ -1,5 +1,11 @@
 #pragma once
 
+#include "Types.h"
+
+extern "C" {
+#include "gameloop.h"
+}
+
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
@@ -110,5 +116,3 @@ static_assert(sizeof(W8GlobalStatus) == 0x49c2,
 extern W8GlobalStatus g_status_685170;
 
 void Function554580(unsigned char* storage);
-unsigned char InitializeGameData(void);
-void ShutdownGameData(void);

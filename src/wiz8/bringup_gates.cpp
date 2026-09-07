@@ -52,8 +52,6 @@ extern unsigned char g_flag_659711;
 extern unsigned char g_fullscreen_603c39;
 unsigned char g_flag_5ff5e8;
 
-extern void ProcessCommandLine(char* pCommandLine);
-extern void GetRuntimeSettings(void);
 extern unsigned char InitializeWiz8FontManager(
     unsigned short pixel_depth, FontTranslationTable* translation);
 
@@ -85,10 +83,20 @@ int ReturnZero(void)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x00427a60
-char* GetVideoConfigFileName(void)
+/* The initialized path occupies the 260 bytes before the mode at 0x603d74. */
+// GLOBAL: WIZ8 0x00603c70
+char g_video_config_file[260] = "3DVideo.CFG";
+
+// FUNCTION: WIZ8 0x00427a30
+void VideoSetConfigFile(const char* path)
 {
-    return "3DVideo.CFG";
+    strcpy(g_video_config_file, path);
+}
+
+// FUNCTION: WIZ8 0x00427a60
+char* VideoGetConfigFile(void)
+{
+    return g_video_config_file;
 }
 
 unsigned short* g_pointer_table_6ed440[0x400];
@@ -123,7 +131,7 @@ void Function4229D0(void)
 }
 
 // FUNCTION: WIZ8 0x004277d0
-void Function4277D0(void)
+void VideoInspectorEnable(void)
 {
     g_flag_65970f = 1;
 }
@@ -257,8 +265,6 @@ unsigned char g_flag_650e38;
 W8BindingNode* g_binding_head_6eb704;
 unsigned char g_block_6eb6a0[0x64];
 
-extern void Function427A30(const char* path);
-extern void Function422970(int enable);
 
 extern unsigned char Function409C50(void);
 extern "C" {
@@ -625,7 +631,7 @@ bool Function407D30(unsigned short code, W8BindingNode* source)
     FontDefault = -1;
     g_dword_5ff5f4 = -15;
     g_dword_5ff5f8 = 0;
-    GetDefaultScreenMode(&first, &second, &third);
+    GetCurrentVideoSettings(&first, &second, &third);
     g_dword_5ff600 = 0;
     g_dword_5ff604 = 0;
     g_dword_5ff608 = first;
@@ -699,13 +705,13 @@ void ShutdownHandler(void)
     gfProgramIsRunning = 0;
     Function408850();
     if (g_flag_6505a9) {
-        ShutdownScreenStack(1);
+        GameloopExit(1);
     }
     if (!g_teardown_done_650db4) {
         engine_up = g_flag_6505a9;
         g_teardown_done_650db4 = true;
         if (engine_up) {
-            ShutdownGameData();
+            ShutdownGame();
         }
         ShutdownButtonSystem();
         MSYS_Shutdown();
@@ -715,7 +721,7 @@ void ShutdownHandler(void)
         ShutdownClockManager();
         ShutdownVideoSurfaceManager();
         ShutdownVideoObjectManager();
-        ShutdownRenderer();
+        ShutdownVideoManager();
         ShutdownInputManager();
         NoOp();
         NoOp();
@@ -768,10 +774,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     ghInstance = hInstance;
     ProcessCommandLine(lpCmdLine);
     giStartMem = QueryAvailableMemory() >> 10;
-    if (!FileExists(GetVideoConfigFileName())) {
-        _spawnl(0, "3DSetup.EXE", "3DSetup.EXE", GetVideoConfigFileName(), NULL);
+    if (!FileExists(VideoGetConfigFile())) {
+        _spawnl(0, "3DSetup.EXE", "3DSetup.EXE", VideoGetConfigFile(), NULL);
     }
-    if (!FileExists(GetVideoConfigFileName())) {
+    if (!FileExists(VideoGetConfigFile())) {
         return 0;
     }
     if (!CheckCdPresent()) {
@@ -793,7 +799,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         } else if (gfApplicationActive == 0) {
             WaitMessage();
         } else {
-            UpdateScreenState();
+            GameLoop();
             gfSGPInputReceived = 0;
         }
     } while (gfProgramIsRunning);

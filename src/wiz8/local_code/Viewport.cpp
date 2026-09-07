@@ -13,8 +13,6 @@
  * thunk where the canonical has an indirect call through the import table.
  */
 
-extern "C" {
-
 extern unsigned char g_flush_pending_603c3a;
 extern unsigned char g_flag_652da4;
 extern const float g_scale_x_5ebb1c;
@@ -71,6 +69,4 @@ void SetViewport(int left, int top, int right, int bottom)
             Function450080(g_world->camera, 1);
         }
     }
-}
-
 }

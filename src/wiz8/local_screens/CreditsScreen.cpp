@@ -25,8 +25,8 @@ extern unsigned char SetFlag603C60(void);
 extern unsigned char ReadWideTextLine004CEED0(
     int handle, wchar_t* destination, int capacity, unsigned char* more);
 extern void Function407650(int x, int y, const wchar_t* format, ...);
-extern void Function422F10(void);
-extern void Function426790(void);
+extern void ResetTransientRenderScenes(void);
+extern void RenderFrame(void);
 extern char Function490180(const char* playlist);
 extern void Function48FF00(char stop);
 
@@ -176,7 +176,7 @@ void CreditsScreenFrame(void)
         }
         y += entry->line_height;
     }
-    Function422F10();
+    ResetTransientRenderScenes();
     g_credit_redraw_0069c498 = 0;
-    Function426790();
+    RenderFrame();
 }

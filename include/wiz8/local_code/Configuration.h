@@ -1,5 +1,8 @@
 #pragma once
 
+void LoadGameConfiguration(void);
+unsigned int GetTotalPhysicalMemory(void);
+
 /* Local Code\Configuration.cpp owns the persisted 0xa4-byte configuration
    block at 0x006850C8. */
 
@@ -42,7 +45,7 @@ struct W8GameSettings {
     unsigned char field_043;
     unsigned char unknown_044[0x1];
     unsigned char field_045;
-    unsigned char unknown_046[0x1];
+    unsigned char intro_seen;
     unsigned char field_047;
     unsigned char field_048;
     unsigned char field_049;

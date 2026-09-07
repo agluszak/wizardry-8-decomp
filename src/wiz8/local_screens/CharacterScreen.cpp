@@ -41,7 +41,7 @@ extern void PlaySound(const char*, int);
 extern wchar_t* FormatWideString(const wchar_t*, ...);
 extern unsigned int CharacterPointerToPartySlot(W8Character* character);
 extern void NoOp(void);
-extern void Function426790(void);
+extern void RenderFrame(void);
 extern void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x,
                                         unsigned short y, char right_button,
                                         char left_button);
@@ -751,5 +751,5 @@ void CharacterScreenFrame(void)
     screen->m_pages_1b0c[screen->m_page_index_00c]->Redraw();
     screen->m_controls_1af0->Redraw();
     if (screen->m_dialog_1b1c != 0) screen->m_dialog_1b1c->Draw();
-    Function426790();
+    RenderFrame();
 }

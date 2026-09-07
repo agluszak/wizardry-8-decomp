@@ -54,6 +54,8 @@ typedef struct W8Region {
     void* owner;
 } W8Region;                              /* 0x1c */
 
+void InitializeRegionHelpState(void);
+
 extern "C" {
 
 extern unsigned int g_region_set_count;  /* guiRegsetCount */

@@ -1,4 +1,5 @@
 #include "wiz8/regions.h"
+#include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/xstatus.h"
@@ -18,11 +19,11 @@ extern "C" {
 extern int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous,
                           LPSTR command_line, int show_command);
 extern unsigned char gfProgramIsRunning;
-extern unsigned short g_selected_item_0069c4b4;
 extern HWND ghWindow;
-extern bool g_teardown_done_650db4;
 
 }
+
+extern bool g_teardown_done_650db4;
 
 extern unsigned char g_music_playlist_active_65ba7e;
 extern int g_music_playlist_weight_total_65ba80;
@@ -128,7 +129,7 @@ static bool WaitForMainMenu(unsigned int timeout_ms)
 {
     unsigned int started = GetTickCount();
     while (GetTickCount() - started < timeout_ms) {
-        if (*(volatile int*)&g_screen_state_0068ec78.id == 0 &&
+        if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_MENU &&
             *(HWND volatile*)&ghWindow != NULL && g_region_sets[1].enabled) {
             return true;
         }
@@ -185,7 +186,7 @@ static DWORD WINAPI DriveScenario(void*)
         fprintf(
             stderr,
             "runtime-test timeout: state=%d window=%p regions=%u running=%u\n",
-            g_screen_state_0068ec78.id,
+            g_current_screen_state.id,
             ghWindow,
             g_region_sets[1].enabled,
             gfProgramIsRunning);
@@ -198,7 +199,7 @@ static DWORD WINAPI DriveScenario(void*)
     }
 
     g_observation.menu_seen = 1;
-    g_observation.menu_state = g_screen_state_0068ec78.id;
+    g_observation.menu_state = g_current_screen_state.id;
     g_observation.region_set_enabled = g_region_sets[1].enabled;
     g_observation.first_region = g_region_sets[1].first_region;
     g_observation.last_region = g_region_sets[1].last_region;
@@ -232,7 +233,7 @@ static DWORD WINAPI DriveScenario(void*)
         g_observation.region_set_enabled,
         g_observation.first_region,
         g_observation.last_region,
-        g_selected_item_0069c4b4,
+        g_main_menu_selected_item,
         g_observation.playlist_active,
         g_observation.playlist_tracks,
         g_observation.playlist_weight,
@@ -255,7 +256,7 @@ static DWORD WINAPI DriveScenario(void*)
         QueueEvent(KEY_DOWN, ENTER, 0);
         unsigned int started = GetTickCount();
         while (GetTickCount() - started < 5000) {
-            if (*(volatile int*)&g_screen_state_0068ec78.id == 5) {
+            if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_PARTY_SELECTION) {
                 g_observation.transition_observed = 1;
                 gfProgramIsRunning = 0;
                 return 0;
@@ -348,8 +349,8 @@ int main(int argc, char** argv)
         g_observation.timed_out);
 
     const bool startup_ok =
-        g_observation.menu_seen && g_observation.menu_state == 0 &&
-        g_observation.region_set_enabled && g_observation.first_region == 0 &&
+        g_observation.menu_seen && g_observation.menu_state == W8_SCREEN_MAIN_MENU &&
+        g_observation.region_set_enabled && g_observation.first_region == 1 &&
         g_observation.last_region == 6 && g_observation.playlist_active &&
         g_observation.playlist_tracks > 0 &&
         g_observation.patch_catalog_count > 0 &&

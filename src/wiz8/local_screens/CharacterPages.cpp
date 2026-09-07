@@ -23,7 +23,7 @@ extern int g_character_page2_category_frames_64efb8[5];
 extern unsigned short g_character_skill_name_ids_61e454[0x29];
 extern int g_options_detail_font_683614;
 extern void Function558610(W8Character*);
-extern void Function422F10(void);
+extern void ResetTransientRenderScenes(void);
 extern unsigned short Function402780(unsigned short key, unsigned char modifiers);
 
 struct W8PortraitDescriptor {
@@ -755,7 +755,7 @@ void W8CharacterPage005EF57C::OnPrimary(
         m_animation_frame_0f8 = 2;
         m_animation_timer_0d4.Restart();
         ShadowVideoSurfaceRect(-14, 0, 0, 0x280, 0x1e0);
-        Function422F10();
+        ResetTransientRenderScenes();
         m_screen_05c->ShowCharacterSummary();
     }
 

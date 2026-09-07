@@ -23,6 +23,8 @@ set(WIZ8_SGP_RUNTIME_SOURCES
     "${SGP_SOURCE}/English.c"
     "${SGP_SOURCE}/input.c"
     "${SGP_SOURCE}/sgp.c"
+    "${SGP_SOURCE}/MemMan.c"
+    "${SGP_SOURCE}/line.c"
     "${SGP_SOURCE}/vsurface.c"
 )
 

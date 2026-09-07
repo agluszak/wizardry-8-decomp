@@ -3,8 +3,8 @@
 
 #include "Types.h"
 
-enum { TIMER_RESUME = 0, TIMER_SUSPEND = 1 };
+enum { TIMER_SUSPEND = 1, TIMER_RESUME = 8 };
 
-void MoveTimer(UINT32 action);
+float MoveTimer(INT32 action);
 
 #endif

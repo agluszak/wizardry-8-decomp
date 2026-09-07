@@ -2,15 +2,34 @@
 #define WIZ8_RENDER_STATE_H
 
 #include "wiz8/wiz8_windows.h"
+#include "wiz8/sgp_video.h"
 
 class srColorSurface;
+class srCamera;
+class srModeler;
 class srGERD;
 class srMaterial;
 class srModelInstance;
 class srNode;
+class srScene;
 class stSurface2D;
 
+extern int g_pixel_format_603c48;
+extern srModeler* g_modeler_65963c;
+extern srScene* g_scene_user_659640;
+extern srScene* g_scene_fullscreen_659644;
+extern srScene* g_scene_permanent_659648;
+extern srScene* g_scene_prerender0_65964c;
+extern srScene* g_scene_prerender1_659650;
+extern srScene* g_scene_overlay0_659654;
+extern srScene* g_scene_overlay1_659658;
+extern srScene* g_scene_square_65965c;
+extern srColorSurface* g_primary_color_surface_659660;
+extern srCamera* g_overlay_camera_659670;
+extern srCamera* g_square_camera_659674;
+
 extern unsigned char* g_render_options_65a118;
+extern unsigned char g_flag_65beaf;
 extern srGERD* g_gerd_659634;
 extern LPDIRECTDRAWSURFACE2 g_primary_surface_6596a8;
 extern stSurface2D* g_surface_node_659664;
@@ -52,11 +71,14 @@ void SetRenderOption(int option, int enabled);
 void SetResidentTexturePolicy(int policy);
 void DisableRenderOption(int option);
 unsigned char GetRenderOptionState(int option);
+void EnableAllRenderOptions(void);
+void InitializeRenderQuality(void);
+unsigned char InitializeEnvironmentColours(void);
+void SetViewport(int left, int top, int right, int bottom);
+unsigned char InitializeRendererSceneObjects(void);
+void PurgeInactiveSceneInstances(srScene* scene);
+void ResetTransientRenderScenes(void);
+void RenderFrame(void);
 
-unsigned char InitializeRenderer(
-    void* instance, unsigned short show_command, void* window_proc);
-void ShutdownRenderer(void);
-void GetDefaultScreenMode(
-    unsigned short* height, unsigned short* width, unsigned char* depth);
 
 #endif

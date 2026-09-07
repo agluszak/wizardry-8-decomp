@@ -11,9 +11,11 @@
 #include "wiz8/sgp_video.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/virtual_file_stream.h"
 #include "DirectDraw Calls.h"
 #include "input.h"
 #include "sgp.h"
+#include "soundman.h"
 #include "surrender/srConfig.h"
 #include "surrender/srColorSurface.h"
 #include "surrender/srGERD.h"
@@ -122,24 +124,41 @@ int g_value_659668;
 unsigned int g_tick_65409c;
 float g_frames_per_second_659704;
 float g_seconds_per_frame_659708;
-extern srClass* g_cursor_node_659694;
 
 extern void Initialize16BitPixelFormatMasks(void);
 extern unsigned char CreateWizardryWindow(void);
 extern unsigned char InitializePrimaryDirectDrawSurface(void);
 extern unsigned char InitializeVideoDevice(void);
-extern unsigned char InitializeRendererSceneObjects(void);
 extern unsigned char Function422800(void);
-extern void PurgeInactiveSceneInstances(srScene* scene);
-extern void SetViewport(int left, int top, int right, int bottom);
-extern "C" void EnableAllRenderOptions(void);
-extern void Function47D5F0(void);
-extern unsigned char Function4285C0(void);
-extern void AssertFailureHandler(const char* expression, const char* file,
-                                 long line, const char* message);
+void AssertFailureHandler(const char* expression, const char* file,
+                         long line, const char* message);
 
 char* g_sound_provider_650e54;
 unsigned char* g_render_options_65a118;
+
+// FUNCTION: WIZ8 0x00428ab0
+void AssertFailureHandler(const char* expression, const char* file,
+                         long line, const char* message)
+{
+    char text[2048];
+    strcpy(text,
+           "ERROR: You are viewing a message intended for the developers of "
+           "Wizardry 8. Please report the following information to technical "
+           "support. We apologize for this inconvenience.\n\n");
+    if (message != 0 && *message != '\0') {
+        _snprintf(text + strlen(text), 0x6d3,
+                  "Debug assertion in module %s line %d failed:\n\n"
+                  "Expression [ %s ] evaluates to false.\n\n%s\n",
+                  file, line, expression, message);
+    } else {
+        _snprintf(text + strlen(text), 0x6d3,
+                  "Debug assertion in module %s line %d failed:\n\n"
+                  "Expression [ %s ] evaluates to false.\n",
+                  file, line, expression);
+    }
+    g_pending_screen_state.id = -1;
+    ShutdownWithErrorBox(text);
+}
 
 // FUNCTION: WIZ8 0x00421f70
 PTR LockPrimarySurface(UINT32* pitch)
@@ -184,8 +203,8 @@ void Function422B10(void)
    original working directory. Each gate that fails returns straight out with
    the callee's own false still in AL. */
 // FUNCTION: WIZ8 0x00421bb0
-unsigned char InitializeRenderer(
-    void* instance, unsigned short show_command, void* window_proc)
+unsigned char InitializeVideoManager(
+    HINSTANCE instance, unsigned short show_command, void* window_proc)
 {
     MEMORYSTATUS status;
     unsigned int active;
@@ -254,11 +273,11 @@ done:
         return 0;
     }
     EnableAllRenderOptions();
-    return Function4285C0();
+    return InitializeMouseCursorScene();
 }
 
 // FUNCTION: WIZ8 0x00421dc0
-void ShutdownRenderer(void)
+void ShutdownVideoManager(void)
 {
     if (g_cursor_node_659694) {
         g_cursor_node_659694->release();
@@ -502,12 +521,9 @@ unsigned char InitializeVideoDevice(void)
     Function422800();
     srAssertSetFunc(AssertFailureHandler);
     if (_strnicmp(sound_provider, "none", 4) != 0) {
-        g_sound_provider_650e54 = (char*)malloc(strlen(sound_provider) + 1);
-        if (g_sound_provider_650e54) {
-            strcpy(g_sound_provider_650e54, sound_provider);
-        }
+        Sound3DSetProvider(sound_provider);
     }
-    Function47D5F0();
+    InitializeVirtualFileImageImporters();
     return 1;
 }
 
@@ -554,23 +570,59 @@ unsigned char Function422800(void)
 /* WM_SIZE only rebuilds the SurRender output in windowed mode.  Full-screen
    startup receives the same Windows notification while the device already
    owns its configured 640x480 mode, so there is no resize operation to do. */
-unsigned char Function422550(void)
+// FUNCTION: WIZ8 0x00422550
+unsigned char VideoResizeWindow(void)
 {
     if (g_fullscreen_603c39 || !ghWindow || !g_gerd_659634 ||
         !g_flush_pending_603c3a) {
         return 0;
     }
-    return 0;
+    g_flush_pending_603c3a = 0;
+    g_gerd_659634->closeWindow(static_cast<srGERD::e_closeHint>(1));
+    if (g_gerd_659634->openWindow() == static_cast<srGERD::e_error>(3)) {
+        return 0;
+    }
+    g_dword_6596f0 = 2;
+    g_dword_6596ec = 2;
+    ResetTransientRenderScenes();
+    g_flush_pending_603c3a = 1;
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00422970
+void VideoFullScreen(unsigned char enabled)
+{
+    g_fullscreen_603c39 = enabled;
+    if (ghWindow && g_gerd_659634 && g_flush_pending_603c3a) {
+        g_flush_pending_603c3a = 0;
+        g_gerd_659634->closeWindow(static_cast<srGERD::e_closeHint>(1));
+        Function422800();
+    }
+}
+
+// FUNCTION: WIZ8 0x00422f10
+void ResetTransientRenderScenes(void)
+{
+    memset(g_block_652ddc, 0, sizeof(g_block_652ddc));
+    unsigned int active = g_index_6596e4;
+    g_flags_6596e8[active ^ 1] = 0;
+    g_flags_6596e8[active] = 0;
+    g_dword_6596d8 = 0;
+    PurgeInactiveSceneInstances(g_scene_prerender0_65964c);
+    PurgeInactiveSceneInstances(g_scene_overlay0_659654);
+    PurgeInactiveSceneInstances(g_scene_prerender1_659650);
+    PurgeInactiveSceneInstances(g_scene_overlay1_659658);
+    MarkScreenRectDirty(0, 0, 640, 480, 0);
 }
 
 // FUNCTION: WIZ8 0x004277e0
-unsigned char Function4277E0(void)
+unsigned char VideoInspectorIsEnabled(void)
 {
     return g_flag_65970f;
 }
 
 // FUNCTION: WIZ8 0x00422050
-void Function422050(void)
+void SuspendVideoManager(void)
 {
     if (g_flag_659710) {
         Function56AA30();
@@ -588,7 +640,7 @@ void Function422050(void)
 }
 
 // FUNCTION: WIZ8 0x004220b0
-unsigned char Function4220B0(void)
+unsigned char RestoreVideoManager(void)
 {
     if (g_flag_659710) {
         return 1;
@@ -630,7 +682,7 @@ void UnlockPrimarySurface(void)
 /* The mode the engine falls back to: 640x480 at 16bpp, reported height first.
    Nothing here reads a configuration - the three constants are inline. */
 // FUNCTION: WIZ8 0x00422af0
-void GetDefaultScreenMode(
+void GetCurrentVideoSettings(
     unsigned short* height, unsigned short* width, unsigned char* depth)
 {
     *height = 0x1e0;
@@ -729,7 +781,7 @@ void Function427850(srScene* scene, srCamera* camera,
    pass, optional world picking, transient-node retirement, and frame timing;
    callers do not reproduce any subset of that lifecycle. */
 // FUNCTION: WIZ8 0x00426790
-void Function426790(void)
+void RenderFrame(void)
 {
     srVector3T<float> clear_color;
     srVector3T<float> saved_world_position;

@@ -1,5 +1,6 @@
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/game_status.h"
+#include "wiz8/engine_code/GameData.h"
 #include "wiz8/render_state.h"
 #include "Button System.h"
 #include "Font.h"
@@ -7,7 +8,6 @@
 #include "timer.h"
 #include "vsurface.h"
 
-float Function420B40(int value);
 
 /*
  * The window procedure InitializeStandardGamingPlatform hands to the renderer. Ghidra defines no
@@ -27,11 +27,6 @@ int g_dword_650db0;
 extern bool g_flag_6505a9;
 extern bool g_teardown_done_650db4;
 
-extern void Function422970(int enable);
-extern void Function422550(void);
-extern unsigned char Function4277E0(void);
-extern unsigned char Function4220B0(void);
-extern void Function422050(void);
 extern void MSYS_Shutdown(void);
 extern void Function408850(void);
 extern void NoOp(void);
@@ -69,20 +64,20 @@ long __stdcall WindowProc4011E0(
             return 0;
         }
         if (wparam == SIZE_RESTORED) {
-            Function422550();
+            VideoResizeWindow();
             return 0;
         }
         if (wparam != SIZE_MAXIMIZED) {
             return 0;
         }
-        Function422970(1);
+        VideoFullScreen(1);
         return 0;
 
     case WM_DESTROY:
         if (!g_teardown_done_650db4) {
             g_teardown_done_650db4 = true;
             if (g_flag_6505a9) {
-                ShutdownGameData();
+                ShutdownGame();
             }
             ShutdownButtonSystem();
             MSYS_Shutdown();
@@ -92,7 +87,7 @@ long __stdcall WindowProc4011E0(
             ShutdownClockManager();
             ShutdownVideoSurfaceManager();
             ShutdownVideoObjectManager();
-            ShutdownRenderer();
+            ShutdownVideoManager();
             ShutdownInputManager();
             NoOp();
             NoOp();
@@ -104,15 +99,15 @@ long __stdcall WindowProc4011E0(
         return 0;
 
     case WM_SETFOCUS:
-        if (!Function4277E0()) {
-            Function4220B0();
+        if (!VideoInspectorIsEnabled()) {
+            RestoreVideoManager();
         }
         g_flag_6f0630 = 1;
         return 0;
 
     case WM_KILLFOCUS:
-        if (!Function4277E0()) {
-            Function422050();
+        if (!VideoInspectorIsEnabled()) {
+            SuspendVideoManager();
         }
         g_flag_6f0630 = 0;
         FreeMouseCursor();
@@ -121,10 +116,10 @@ long __stdcall WindowProc4011E0(
 
     case WM_ACTIVATEAPP:
         if (wparam == 0) {
-            if (!Function4277E0()) {
-                Function422050();
+            if (!VideoInspectorIsEnabled()) {
+                SuspendVideoManager();
             }
-            Function420B40(1);
+            MoveTimer(1);
             g_dword_650db0 = 1;
             g_flag_6f0630 = 0;
             return 0;
@@ -135,11 +130,11 @@ long __stdcall WindowProc4011E0(
         if (g_dword_650db0 != 1) {
             return 0;
         }
-        if (!Function4277E0()) {
-            Function4220B0();
+        if (!VideoInspectorIsEnabled()) {
+            RestoreVideoManager();
             RestoreVideoSurfaces();
         }
-        Function420B40(8);
+        MoveTimer(8);
         g_flag_6f0630 = 1;
         return 0;
 

@@ -1,8 +1,11 @@
 #include "wiz8/regions.h"
+#include "wiz8/local_screens/MainMenuScreen.h"
+#include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/cursor.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/local_code/Strings.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/game_status.h"
@@ -20,39 +23,44 @@
 #include "Font.h"
 #include "himage.h"
 #include "sgp.h"
+#include "mousesystem.h"
 #include "vsurface.h"
 
 #include <wchar.h>
 
 unsigned char SaveGameExists(void);
 void ResetRegions(void);
-void MSYS_Shutdown(void);
 void SetValue64D8AC(unsigned long value);
 
 /*
  * Local Screens\MainMenuScreen.cpp.
  *
- * The unit is named by the assertion this body embeds at line 135. Nothing here
- * is named beyond that: the callees and globals carry address-derived names
- * because no evidence assigns them meaning yet, and inventing one would be a
- * guess dressed as a recovery.
+ * The unit is named by the assertion in its entry handler. Its six static
+ * regions share the global RegionManager catalog and screen-state dispatcher.
  */
 
-extern unsigned char g_flag_68510e;
 extern unsigned char g_flag_689b32;
 
 
 /* The screen's own state. */
-unsigned char g_flag_69c4ba;
-unsigned char g_flag_69c4b6;
-unsigned short g_selected_item_0069c4b4;
-unsigned char g_flag_69c4c4;
-unsigned char g_flag_69c4bb;
-int g_dword_69c4ac;
-unsigned int g_dword_69c4b0;
+// GLOBAL: WIZ8 0x0069c4ba
+unsigned char g_main_menu_has_save_games;
+// GLOBAL: WIZ8 0x0069c4b6
+unsigned char g_main_menu_redraw;
+// GLOBAL: WIZ8 0x0069c4b4
+unsigned short g_main_menu_selected_item;
+// GLOBAL: WIZ8 0x0069c4c4
+unsigned char g_main_menu_warning_shown;
+// GLOBAL: WIZ8 0x0069c4bb
+unsigned char g_main_menu_overlay_enabled;
+// GLOBAL: WIZ8 0x0069c4ac
+unsigned int g_main_menu_overlay_surface;
+// GLOBAL: WIZ8 0x0069c4b0
+unsigned int g_main_menu_hover_region;
 // GLOBAL: WIZ8 0x0069c4bc
 wchar_t* g_pending_main_menu_message;
-W8ModalDialogBase* g_dword_69c4c0;
+// GLOBAL: WIZ8 0x0069c4c0
+W8ModalDialogBase* g_main_menu_dialog;
 extern int g_font_683660;
 extern unsigned short* g_font_state_palettes_68ee1c[15];
 extern unsigned short* g_colour_68ee08;
@@ -60,237 +68,15 @@ extern unsigned short gfAltState;
 extern unsigned short gfCtrlState;
 extern unsigned short gfShiftState;
 extern void Function422B10(void);
-extern int MSYS_Init(void);
 extern unsigned char ClearPrimarySurface(void);
 extern void SetViewport(int left, int top, int right, int bottom);
 extern void UpdateHeldItemCursor(void);
 extern unsigned char Function4298F0(void);
-unsigned char Function5BCAB0(short item, short state);
 extern void ReleaseLoadedVideoFrames(void);
-extern void Function406DC0(int font, unsigned short* palette);
-extern unsigned char Function5A1140(const InputAtom* input);
-extern void Function518B30(void);
-extern void Function5189B0(void);
-extern void Function422F10(void);
-extern void Function4229C0(void);
+extern void ResetTransientRenderScenes(void);
+extern void RenderFrame(void);
 extern void NoOp(void);
-extern "C" unsigned char Function402ED0(
-    int destination, unsigned int source, short region,
-    int x, int y, int flags, int effects);
 
-static void MainMenuRegionEvent(
-    short item, const W8RegionEvent* event, W8Region* region)
-{
-    if (event->reason == MOUSE_POS) {
-        if (region->flags & W8_REGION_MOUSE_LEAVE) {
-            Function5BCAB0(item, 0);
-            if (g_selected_item_0069c4b4 == item) {
-                g_selected_item_0069c4b4 = (unsigned short)-1;
-            }
-        }
-        if (region->flags & W8_REGION_MOUSE_ENTER) {
-            if (g_selected_item_0069c4b4 < 6) {
-                Function5BCAB0(g_selected_item_0069c4b4, 0);
-            }
-            g_selected_item_0069c4b4 = item;
-            Function5BCAB0(item, 1);
-        }
-        return;
-    }
-    if (event->reason == LEFT_BUTTON_DOWN) {
-        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-        Function5BCAB0(item, 2);
-        return;
-    }
-    if (event->reason != LEFT_BUTTON_UP) {
-        return;
-    }
-
-    Function5BCAB0(item, 1);
-    if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
-        return;
-    }
-    region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-    switch (item) {
-    case 0:
-        RequestScreenTransition();
-        g_flag_68510e = 0;
-        SetValue64D8AC(0);
-        SetPendingScreenState(W8_SCREEN_INTRO);
-        break;
-    case 1:
-        SetPendingScreenState(W8_SCREEN_PARTY_SELECTION);
-        break;
-    case 2:
-        if (g_flag_69c4ba) {
-            g_pending_screen_state.mode = 1;
-            SetPendingScreenState(W8_SCREEN_OPTIONS);
-        }
-        break;
-    case 3:
-        SetPendingScreenState(W8_SCREEN_CREDITS);
-        break;
-    case 4:
-        g_pending_screen_state.mode = 0;
-        SetPendingScreenState(W8_SCREEN_OPTIONS);
-        break;
-    case 5:
-        gfProgramIsRunning = 0;
-        break;
-    }
-}
-
-static unsigned char MainMenuIntroduction(
-    const W8RegionEvent* event, W8Region* region)
-{ MainMenuRegionEvent(0, event, region); return 0; }
-static unsigned char MainMenuNewGame(const W8RegionEvent* event, W8Region* region)
-{ MainMenuRegionEvent(1, event, region); return 0; }
-static unsigned char MainMenuLoadGame(const W8RegionEvent* event, W8Region* region)
-{ MainMenuRegionEvent(2, event, region); return 0; }
-static unsigned char MainMenuCredits(const W8RegionEvent* event, W8Region* region)
-{ MainMenuRegionEvent(3, event, region); return 0; }
-static unsigned char MainMenuOptions(const W8RegionEvent* event, W8Region* region)
-{ MainMenuRegionEvent(4, event, region); return 0; }
-static unsigned char MainMenuExit(const W8RegionEvent* event, W8Region* region)
-{ MainMenuRegionEvent(5, event, region); return 0; }
-
-static void InitializeMainMenuRegions(void)
-{
-    static const short bounds[6][4] = {
-        { 174, 138, 467, 182 },
-        { 140, 187, 501, 231 },
-        { 204, 235, 436, 279 },
-        { 239, 284, 403, 328 },
-        { 234, 335, 408, 379 },
-        { 279, 423, 364, 467 }
-    };
-    static W8RegionCallback callbacks[6] = {
-        MainMenuIntroduction, MainMenuNewGame, MainMenuLoadGame,
-        MainMenuCredits, MainMenuOptions, MainMenuExit
-    };
-
-    g_region_sets[1].first_region = 0;
-    g_region_sets[1].last_region = 6;
-    for (int item = 0; item != 6; ++item) {
-        W8Region* region = &g_regions[item + 1];
-        region->flags = 1;
-        region->x1 = bounds[item][0];
-        region->y1 = bounds[item][1];
-        region->x2 = bounds[item][2];
-        region->y2 = bounds[item][3];
-        region->callback = callbacks[item];
-        region->callback_id = 0;
-        region->help_enabled = 0;
-        region->unknown_13 = 0;
-        region->help_text_id = -1;
-        region->owner = 0;
-    }
-}
-
-static unsigned int MainMenuRegionAt(unsigned short x, unsigned short y)
-{
-    if (!g_region_sets[1].enabled) {
-        return 0;
-    }
-    for (unsigned int region = 1; region <= 6; ++region) {
-        if (RegionContainsPoint(region, x, y)) {
-            return region;
-        }
-    }
-    return 0;
-}
-
-static void UpdateMainMenuHover(unsigned short x, unsigned short y)
-{
-    unsigned int next = MainMenuRegionAt(x, y);
-    W8RegionEvent event;
-
-    if (next == g_hover_region_index) {
-        return;
-    }
-    event.time = GetTickCount();
-    event.modifiers = gfAltState | gfCtrlState | gfShiftState;
-    event.reason = MOUSE_POS;
-    if (g_hover_region_index != 0) {
-        W8Region* previous = &g_regions[g_hover_region_index];
-        previous->flags |= W8_REGION_MOUSE_LEAVE;
-        previous->callback(&event, previous);
-        previous->flags &= ~0x30u;
-    }
-    g_current_region_index = next;
-    g_hover_region_index = next;
-    if (next != 0) {
-        W8Region* current = &g_regions[next];
-        current->flags |= W8_REGION_MOUSE_ENTER;
-        current->callback(&event, current);
-        current->flags &= ~0x30u;
-    }
-}
-
-static void SelectMainMenuItem(unsigned short item)
-{
-    if (g_selected_item_0069c4b4 < 6) {
-        Function5BCAB0(g_selected_item_0069c4b4, 0);
-    }
-    g_selected_item_0069c4b4 = item;
-    Function5BCAB0(item, 1);
-}
-
-static void ActivateMainMenuItem(unsigned short item)
-{
-    W8RegionEvent event;
-    W8Region* region = &g_regions[item + 1];
-
-    event.time = GetTickCount();
-    event.modifiers = gfAltState | gfCtrlState | gfShiftState;
-    event.reason = LEFT_BUTTON_DOWN;
-    region->callback(&event, region);
-    event.reason = LEFT_BUTTON_UP;
-    region->callback(&event, region);
-}
-
-static void ProcessMainMenuInput(void)
-{
-    InputAtom input;
-    POINT mouse;
-
-    /* The released SGP hook reports screen coordinates.  Retail's per-frame
-       cursor update converts them into the 640x480 client before region
-       dispatch; that conversion is observable in windowed Wine too. */
-    GetCursorPos(&mouse);
-    ScreenToClient(ghWindow, &mouse);
-    UpdateMainMenuHover(
-        static_cast<unsigned short>(mouse.x),
-        static_cast<unsigned short>(mouse.y));
-    while (DequeueEvent(&input)) {
-        if (input.usEvent == MOUSE_POS) {
-            GetCursorPos(&mouse);
-            ScreenToClient(ghWindow, &mouse);
-            UpdateMainMenuHover(
-                static_cast<unsigned short>(mouse.x),
-                static_cast<unsigned short>(mouse.y));
-        } else if ((input.usEvent == LEFT_BUTTON_DOWN
-                    || input.usEvent == LEFT_BUTTON_UP)
-                   && g_hover_region_index != 0) {
-            W8Region* region = &g_regions[g_hover_region_index];
-            region->callback((const W8RegionEvent*)&input, region);
-        } else if (input.usEvent == KEY_DOWN || input.usEvent == KEY_REPEAT) {
-            if (input.usParam == UPARROW) {
-                SelectMainMenuItem(
-                    g_selected_item_0069c4b4 == 0 ? 5 : g_selected_item_0069c4b4 - 1);
-            } else if (input.usParam == DNARROW) {
-                SelectMainMenuItem(
-                    g_selected_item_0069c4b4 >= 5 ? 0 : g_selected_item_0069c4b4 + 1);
-            } else if (input.usParam == HOME) {
-                SelectMainMenuItem(0);
-            } else if (input.usParam == KEY_END) {
-                SelectMainMenuItem(5);
-            } else if (input.usParam == ENTER && g_selected_item_0069c4b4 < 6) {
-                ActivateMainMenuItem(g_selected_item_0069c4b4);
-            }
-        }
-    }
-}
 
 /* Draws one of the six menu items. The first switch turns the item index into
    its sprite slot and its top and bottom rows; the second turns the requested
@@ -303,12 +89,11 @@ static void ProcessMainMenuInput(void)
    the four identical calls together. An unrecognised state draws no sprite but
    still redraws the row. */
 // FUNCTION: WIZ8 0x005bcab0
-unsigned char Function5BCAB0(short item, short state)
+unsigned char DrawMainMenuItem(short item, short state)
 {
     int slot;
     int top;
     int bottom;
-    int sprite;
 
     switch (item) {
     case 0: slot = 0; top = 0x8a;  bottom = 0xb1;  break;
@@ -317,7 +102,7 @@ unsigned char Function5BCAB0(short item, short state)
         slot = 2;
         top = 0xeb;
         bottom = 0x112;
-        if (!g_flag_69c4ba) {
+        if (!g_main_menu_has_save_games) {
             state = 3;
         }
         break;
@@ -352,34 +137,33 @@ unsigned char MainMenuScreenEnter(void)
     Function422B10();
     MSYS_Init();
     g_status_685170.game_started = 0;
-    g_flag_69c4ba = SaveGameExists();
-    g_flag_69c4b6 = 1;
+    g_main_menu_has_save_games = SaveGameExists();
+    g_main_menu_redraw = 1;
     ClearPrimarySurface();
     colour = Get16BPPColor(0x10101);
     ColorFillVideoSurfaceArea(-14, 0, 0, 0x280, 0x1e0, colour);
     SetViewport(0, 0, 0x280, 0x1e0);
-    g_selected_item_0069c4b4 = 0;
+    g_main_menu_selected_item = 0;
     DrawCatalogImage(-14, 0xe8, 0, 0, 0, 0, 2, 0);
 
     /* Six items cleared then the selected one set, written out rather than
        looped: the original repeats the call with a literal index each time. */
-    Function5BCAB0(0, 0);
-    Function5BCAB0(1, 0);
-    Function5BCAB0(2, 0);
-    Function5BCAB0(3, 0);
-    Function5BCAB0(4, 0);
-    Function5BCAB0(5, 0);
-    Function5BCAB0(g_selected_item_0069c4b4, 1);
+    DrawMainMenuItem(0, 0);
+    DrawMainMenuItem(1, 0);
+    DrawMainMenuItem(2, 0);
+    DrawMainMenuItem(3, 0);
+    DrawMainMenuItem(4, 0);
+    DrawMainMenuItem(5, 0);
+    DrawMainMenuItem(g_main_menu_selected_item, 1);
 
     Function4E3620(text, 0, 0, 0);
     wcscpy(wide, ConvertStringToWide(text));
     SetFont(g_font_683660);
     SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes_68ee1c[8]);
     measured = StringPixLength((unsigned short*)wide, g_font_683660);
-    mprintf(0x27b - measured, 5, (unsigned short*)wide);
+    gprintf(0x27b - measured, 5, (unsigned short*)wide);
     SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
     ResetRegions();
-    InitializeMainMenuRegions();
     RegionSetEnable(1);
 
     if (gXStatus.uiMonstersInDatabase > 1000) {
@@ -400,20 +184,20 @@ unsigned char MainMenuScreenEnter(void)
         dialog->SetClientExtent(0xfa, 200);
         dialog->SetMessage((void*)pending, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
         SetDialogDestroyCallback(dialog, 0);
-        g_dword_69c4c0 = dialog;
+        g_main_menu_dialog = dialog;
         delete[] g_pending_main_menu_message;
         g_pending_main_menu_message = 0;
         return 1;
     }
-    if (!Function4298F0() && !g_flag_69c4c4) {
+    if (!Function4298F0() && !g_main_menu_warning_shown) {
         int message = *(int*)&gppStringList[0x1fb8 / 4];
 
         dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(0xfa, 200);
         dialog->SetMessage((void*)message, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
         SetDialogDestroyCallback(dialog, 0);
-        g_flag_69c4c4 = 1;
-        g_dword_69c4c0 = dialog;
+        g_main_menu_warning_shown = 1;
+        g_main_menu_dialog = dialog;
     }
     return 1;
 }
@@ -429,113 +213,113 @@ void MainMenuScreenFrame()
     InputAtom input;
 
     if (g_flag_689b32 != 0) {
-        SetPendingScreenState(W8_SCREEN_EXIT);
+        RequestExitScreen();
     }
-    if (g_dword_69c4c0 != 0) {
-        DrawDialog(g_dword_69c4c0);
-        if (ProcessDialogInput(g_dword_69c4c0) == 0) {
-            delete g_dword_69c4c0;
-            g_dword_69c4c0 = 0;
-            g_flag_69c4b6 = 1;
+    if (g_main_menu_dialog != 0) {
+        DrawDialog(g_main_menu_dialog);
+        if (ProcessDialogInput(g_main_menu_dialog) == 0) {
+            delete g_main_menu_dialog;
+            g_main_menu_dialog = 0;
+            g_main_menu_redraw = 1;
             DrawCatalogImage(-14, 0xe8, 0, 0, 0, 0, 2, 0);
-            Function5BCAB0(0, 0);
-            Function5BCAB0(1, 0);
-            Function5BCAB0(2, 0);
-            Function5BCAB0(3, 0);
-            Function5BCAB0(4, 0);
-            Function5BCAB0(5, 0);
-            Function5BCAB0(g_selected_item_0069c4b4, 1);
+            DrawMainMenuItem(0, 0);
+            DrawMainMenuItem(1, 0);
+            DrawMainMenuItem(2, 0);
+            DrawMainMenuItem(3, 0);
+            DrawMainMenuItem(4, 0);
+            DrawMainMenuItem(5, 0);
+            DrawMainMenuItem(g_main_menu_selected_item, 1);
         }
     }
-    else if (IsStringTableLoaded()) {
-        Function518B30();
+    else if (IsMessageBoxActive()) {
+        ProcessMessageBoxInput();
     }
     else {
         GetScreenPoint004284F0(&point);
-        g_dword_69c4b0 = UpdateRegionMousePosition(point.x, point.y);
+        g_main_menu_hover_region = UpdateRegionMousePosition(point.x, point.y);
         while (DequeueEvent(&input) == 1) {
             if (!DispatchRegionInput(&input) &&
                 input.usEvent == KEY_DOWN) {
                 if (Function5A1140(&input)) {
                     if (g_flag_689b32 != 0) {
                         SetFont(g_font_683660);
-                        Function406DC0(g_font_683660, g_colour_68ee08);
-                        mprintf(5, 5, (unsigned short*)L"Developer mode enabled.");
+                        SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+                        gprintfDirty(5, 5, (unsigned short*)L"Developer mode enabled.");
                     }
                 }
                 else {
                     switch (input.usParam) {
                     case ENTER:
-                        switch (g_selected_item_0069c4b4) {
+                        switch (g_main_menu_selected_item) {
                         case 0:
-                            Function5BCAB0(g_selected_item_0069c4b4, 2);
+                            DrawMainMenuItem(g_main_menu_selected_item, 2);
                             RequestScreenTransition();
-                            g_flag_68510e = 0;
+                            g_settings_6850c8.intro_seen = 0;
                             SetValue64D8AC(0);
                             SetPendingScreenState(W8_SCREEN_INTRO);
                             break;
                         case 1:
-                            Function5BCAB0(g_selected_item_0069c4b4, 2);
+                            DrawMainMenuItem(g_main_menu_selected_item, 2);
                             SetPendingScreenState(W8_SCREEN_PARTY_SELECTION);
                             break;
                         case 2:
-                            Function5BCAB0(g_selected_item_0069c4b4, 2);
-                            if (g_flag_69c4ba != 0) {
+                            DrawMainMenuItem(g_main_menu_selected_item, 2);
+                            if (g_main_menu_has_save_games != 0) {
                                 g_pending_screen_state.mode = 1;
                                 SetPendingScreenState(W8_SCREEN_OPTIONS);
                             }
                             break;
                         case 3:
-                            Function5BCAB0(g_selected_item_0069c4b4, 2);
+                            DrawMainMenuItem(g_main_menu_selected_item, 2);
                             SetPendingScreenState(W8_SCREEN_CREDITS);
                             break;
                         case 4:
-                            Function5BCAB0(g_selected_item_0069c4b4, 2);
+                            DrawMainMenuItem(g_main_menu_selected_item, 2);
                             SetPendingScreenState(W8_SCREEN_OPTIONS);
                             break;
                         case 5:
-                            Function5BCAB0(g_selected_item_0069c4b4, 2);
-                            SetPendingScreenState(W8_SCREEN_EXIT);
+                            DrawMainMenuItem(g_main_menu_selected_item, 2);
+                            RequestExitScreen();
                             break;
                         }
                         break;
                     case ESC:
                     case 'E':
                     case 'X':
-                        SetPendingScreenState(W8_SCREEN_EXIT);
+                        RequestExitScreen();
                         break;
                     case HOME:
-                        Function5BCAB0(g_selected_item_0069c4b4, 0);
-                        g_selected_item_0069c4b4 = 0;
-                        Function5BCAB0(0, 1);
+                        DrawMainMenuItem(g_main_menu_selected_item, 0);
+                        g_main_menu_selected_item = 0;
+                        DrawMainMenuItem(0, 1);
                         break;
                     case KEY_END:
-                        Function5BCAB0(g_selected_item_0069c4b4, 0);
-                        g_selected_item_0069c4b4 = 5;
-                        Function5BCAB0(5, 1);
+                        DrawMainMenuItem(g_main_menu_selected_item, 0);
+                        g_main_menu_selected_item = 5;
+                        DrawMainMenuItem(5, 1);
                         break;
                     case UPARROW:
-                        Function5BCAB0(g_selected_item_0069c4b4, 0);
-                        if (g_selected_item_0069c4b4 > 0) {
-                            --g_selected_item_0069c4b4;
+                        DrawMainMenuItem(g_main_menu_selected_item, 0);
+                        if (g_main_menu_selected_item > 0) {
+                            --g_main_menu_selected_item;
                         }
                         else {
-                            g_selected_item_0069c4b4 = 5;
+                            g_main_menu_selected_item = 5;
                         }
-                        Function5BCAB0(g_selected_item_0069c4b4, 1);
+                        DrawMainMenuItem(g_main_menu_selected_item, 1);
                         break;
                     case DNARROW:
-                        Function5BCAB0(g_selected_item_0069c4b4, 0);
-                        if (g_selected_item_0069c4b4 < 5) {
-                            ++g_selected_item_0069c4b4;
+                        DrawMainMenuItem(g_main_menu_selected_item, 0);
+                        if (g_main_menu_selected_item < 5) {
+                            ++g_main_menu_selected_item;
                         }
                         else {
-                            g_selected_item_0069c4b4 = 0;
+                            g_main_menu_selected_item = 0;
                         }
-                        Function5BCAB0(g_selected_item_0069c4b4, 1);
+                        DrawMainMenuItem(g_main_menu_selected_item, 1);
                         break;
                     case 'L':
-                        if (g_flag_69c4ba != 0) {
+                        if (g_main_menu_has_save_games != 0) {
                             g_pending_screen_state.mode = 1;
                             SetPendingScreenState(W8_SCREEN_OPTIONS);
                         }
@@ -553,18 +337,18 @@ void MainMenuScreenFrame()
     }
 
     NoOp();
-    if (g_flag_69c4b6 != 0 || IsStringTableLoaded()) {
-        if (g_dword_69c4c0 != 0) {
-            DrawDialog(g_dword_69c4c0);
+    if (g_main_menu_redraw != 0 || IsMessageBoxActive() || g_main_menu_dialog != 0) {
+        if (g_main_menu_dialog != 0) {
+            DrawDialog(g_main_menu_dialog);
         }
-        if (g_flag_69c4bb != 0) {
-            Function402ED0(-14, g_dword_69c4ac, 0, 0, 0x1d1, 6, 0);
+        if (g_main_menu_overlay_enabled != 0) {
+            BltVideoSurface(-14, g_main_menu_overlay_surface, 0, 0, 0x1d1, 6, 0);
         }
-        Function5189B0();
-        Function422F10();
-        g_flag_69c4b6 = 0;
+        RenderMessageBox();
+        ResetTransientRenderScenes();
+        g_main_menu_redraw = 0;
     }
-    Function4229C0();
+    RenderFrame();
 }
 
 // FUNCTION: WIZ8 0x00591870
@@ -577,8 +361,186 @@ unsigned char MainMenuScreenLeave(int)
 }
 
 // FUNCTION: WIZ8 0x005bd010
-void SetMainMenuMessage005BD010(const wchar_t* message)
+void SetMainMenuMessage(const wchar_t* message)
 {
     g_pending_main_menu_message = new wchar_t[wcslen(message) + 1];
     wcscpy(g_pending_main_menu_message, message);
+}
+
+// FUNCTION: WIZ8 0x005bd040
+unsigned char MainMenuNewGame(const W8RegionEvent* event, W8Region* region)
+{
+    switch (event->reason) {
+    case LEFT_BUTTON_DOWN:
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        DrawMainMenuItem(g_main_menu_selected_item, 2);
+        return 1;
+    case LEFT_BUTTON_UP:
+        DrawMainMenuItem(g_main_menu_selected_item, 1);
+        if (region->flags & W8_REGION_LEFT_BUTTON_HELD) {
+            SetPendingScreenState(W8_SCREEN_PARTY_SELECTION);
+        }
+        return 1;
+    case MOUSE_POS:
+        if (region->flags & W8_REGION_MOUSE_LEAVE) {
+            DrawMainMenuItem(g_main_menu_selected_item, 0);
+            g_main_menu_selected_item = static_cast<unsigned short>(-1);
+            return 0;
+        }
+        if (region->flags & W8_REGION_MOUSE_ENTER) {
+            DrawMainMenuItem(g_main_menu_selected_item, 0);
+            g_main_menu_selected_item = 1;
+            DrawMainMenuItem(1, 1);
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x005bd110
+unsigned char MainMenuLoadGame(const W8RegionEvent* event, W8Region* region)
+{
+    if (!g_main_menu_has_save_games) return 0;
+    switch (event->reason) {
+    case LEFT_BUTTON_DOWN:
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        DrawMainMenuItem(g_main_menu_selected_item, 2);
+        return 1;
+    case LEFT_BUTTON_UP:
+        DrawMainMenuItem(g_main_menu_selected_item, 1);
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) && g_main_menu_has_save_games) {
+            g_pending_screen_state.mode = 1;
+            SetPendingScreenState(W8_SCREEN_OPTIONS);
+        }
+        return 1;
+    case MOUSE_POS:
+        if (region->flags & W8_REGION_MOUSE_LEAVE) {
+            DrawMainMenuItem(g_main_menu_selected_item, 0);
+            g_main_menu_selected_item = static_cast<unsigned short>(-1);
+        } else if (region->flags & W8_REGION_MOUSE_ENTER) {
+            DrawMainMenuItem(g_main_menu_selected_item, 0);
+            g_main_menu_selected_item = 2;
+            DrawMainMenuItem(2, 1);
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x005bd1f0
+unsigned char MainMenuExit(const W8RegionEvent* event, W8Region* region)
+{
+    switch (event->reason) {
+    case LEFT_BUTTON_DOWN:
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        DrawMainMenuItem(g_main_menu_selected_item, 2);
+        return 1;
+    case LEFT_BUTTON_UP:
+        DrawMainMenuItem(g_main_menu_selected_item, 1);
+        if (region->flags & W8_REGION_LEFT_BUTTON_HELD) {
+            RequestExitScreen();
+        }
+        return 1;
+    case MOUSE_POS:
+        if (region->flags & W8_REGION_MOUSE_LEAVE) {
+            DrawMainMenuItem(g_main_menu_selected_item, 0);
+            g_main_menu_selected_item = static_cast<unsigned short>(-1);
+            return 0;
+        }
+        if (region->flags & W8_REGION_MOUSE_ENTER) {
+            DrawMainMenuItem(g_main_menu_selected_item, 0);
+            g_main_menu_selected_item = 5;
+            DrawMainMenuItem(5, 1);
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x005bd2b0
+unsigned char MainMenuOptions(const W8RegionEvent* event, W8Region* region)
+{
+    switch (event->reason) {
+    case LEFT_BUTTON_DOWN:
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        DrawMainMenuItem(g_main_menu_selected_item, 2);
+        return 1;
+    case LEFT_BUTTON_UP:
+        DrawMainMenuItem(g_main_menu_selected_item, 1);
+        if (region->flags & W8_REGION_LEFT_BUTTON_HELD) {
+            g_pending_screen_state.mode = 0;
+            SetPendingScreenState(W8_SCREEN_OPTIONS);
+        }
+        return 1;
+    case MOUSE_POS:
+        if (region->flags & W8_REGION_MOUSE_LEAVE) {
+            DrawMainMenuItem(g_main_menu_selected_item, 0);
+            g_main_menu_selected_item = static_cast<unsigned short>(-1);
+            return 0;
+        }
+        if (region->flags & W8_REGION_MOUSE_ENTER) {
+            DrawMainMenuItem(g_main_menu_selected_item, 0);
+            g_main_menu_selected_item = 4;
+            DrawMainMenuItem(4, 1);
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x005bd380
+unsigned char MainMenuIntroduction(const W8RegionEvent* event, W8Region* region)
+{
+    switch (event->reason) {
+    case LEFT_BUTTON_DOWN:
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        DrawMainMenuItem(g_main_menu_selected_item, 2);
+        return 1;
+    case LEFT_BUTTON_UP:
+        DrawMainMenuItem(g_main_menu_selected_item, 1);
+        if (region->flags & W8_REGION_LEFT_BUTTON_HELD) {
+            RequestScreenTransition();
+            g_settings_6850c8.intro_seen = 0;
+            SetValue64D8AC(0);
+            SetPendingScreenState(W8_SCREEN_INTRO);
+        }
+        return 1;
+    case MOUSE_POS:
+        if (region->flags & W8_REGION_MOUSE_LEAVE) {
+            DrawMainMenuItem(g_main_menu_selected_item, 0);
+            g_main_menu_selected_item = static_cast<unsigned short>(-1);
+            return 0;
+        }
+        if (region->flags & W8_REGION_MOUSE_ENTER) {
+            DrawMainMenuItem(g_main_menu_selected_item, 0);
+            g_main_menu_selected_item = 0;
+            DrawMainMenuItem(0, 1);
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x005bd460
+unsigned char MainMenuCredits(const W8RegionEvent* event, W8Region* region)
+{
+    switch (event->reason) {
+    case LEFT_BUTTON_DOWN:
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        DrawMainMenuItem(g_main_menu_selected_item, 2);
+        return 1;
+    case LEFT_BUTTON_UP:
+        DrawMainMenuItem(g_main_menu_selected_item, 1);
+        if (region->flags & W8_REGION_LEFT_BUTTON_HELD) {
+            SetPendingScreenState(W8_SCREEN_CREDITS);
+        }
+        return 1;
+    case MOUSE_POS:
+        if (region->flags & W8_REGION_MOUSE_LEAVE) {
+            DrawMainMenuItem(g_main_menu_selected_item, 0);
+            g_main_menu_selected_item = static_cast<unsigned short>(-1);
+            return 0;
+        }
+        if (region->flags & W8_REGION_MOUSE_ENTER) {
+            DrawMainMenuItem(g_main_menu_selected_item, 0);
+            g_main_menu_selected_item = 3;
+            DrawMainMenuItem(3, 1);
+        }
+    }
+    return 0;
 }

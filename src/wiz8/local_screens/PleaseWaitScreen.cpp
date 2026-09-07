@@ -73,7 +73,7 @@ unsigned char ClearFlag603C60(void);
 extern void NoOp(void);
 extern void MSYS_Shutdown(void);
 extern int MSYS_Init(void);
-extern void ConfigurePresentation00413FD0(int a, int b, int c, int d, int e);
+#include "line.h"
 extern unsigned char Function42B6F0(int level);
 extern int Function42B720(int level);
 extern void Function425570(int value);
@@ -82,8 +82,8 @@ extern void RefreshSlfArchives(void);
 extern int Function509750(void);
 extern void Function58FD30(void);
 extern void Function407650(int x, int y, const char* format, const wchar_t* text);
-extern void Function422F10(void);
-extern void Function426790(void);
+extern void ResetTransientRenderScenes(void);
+extern void RenderFrame(void);
 extern void Function512C40(void);
 extern void Function5092F0(int* level, int* entrance);
 extern void Function5063E0(void);
@@ -160,7 +160,7 @@ unsigned char PleaseWaitScreenEnter(void)
     }
     MSYS_Init();
     ResetRegions();
-    ConfigurePresentation00413FD0(0x500, 0, 0, 0x280, 0x1e0);
+    SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
     SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
     Function425570(0);
     ClearFlag603C60();
@@ -222,7 +222,7 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
                        (const wchar_t*)g_load_descriptor_69b7c8);             \
         DrawCatalogImage(-14, 0x1dd, 0, g_load_descriptor_69b7c8->caption_y,  \
                        0, 0x185, 2, 0);                                       \
-        Function422F10();                                                     \
+        ResetTransientRenderScenes();                                                     \
     } while (0)
 
 /* The frame handler, and the body whose five assertions name this unit.
@@ -246,7 +246,7 @@ void PleaseWaitScreenFrame(void)
                     return;
                 }
                 PLEASE_WAIT_SCREEN_DRAW();
-                Function426790();
+                RenderFrame();
                 return;
             }
         }
@@ -263,7 +263,7 @@ void PleaseWaitScreenFrame(void)
             }
             g_load_descriptor_69b7c8->entered_tick = GetTickCount();
         }
-        Function426790();
+        RenderFrame();
         return;
     }
 
@@ -301,8 +301,8 @@ void PleaseWaitScreenFrame(void)
     }
 
     PLEASE_WAIT_SCREEN_DRAW();
-    Function426790();
-    Function426790();
+    RenderFrame();
+    RenderFrame();
     ClearFlag603C60();
 
     switch (g_load_descriptor_69b7c8->mode) {
@@ -405,6 +405,6 @@ void UpdatePleaseWaitLoadFrame005915A0(void)
         DrawCatalogImageAndInvalidate(-0xe, 0x1dd, 0,
                        g_load_descriptor_69b7c8->caption_y,
                        0, 0x185, 2, 0);
-        Function426790();
+        RenderFrame();
     }
 }

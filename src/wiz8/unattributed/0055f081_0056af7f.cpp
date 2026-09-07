@@ -1,4 +1,5 @@
 #include "wiz8/utility.h"
+#include "wiz8/engine_code/GameData.h"
 #include "wiz8/cursor.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/regions.h"
@@ -48,7 +49,6 @@ unsigned int Function568950(const InputAtom* input)
 
 extern unsigned char g_flag_006840bd;
 extern "C" unsigned char g_flag_6840bc;
-extern float Function420B40(int value);
 extern void Function482990(unsigned char enabled);
 extern void MonsterForward453160(void);
 extern void Function41F0D0(void);
@@ -67,7 +67,7 @@ void Function56AA30(void)
     }
     if (gXStatus.fCombatMode == 0) {
         if (g_flag_006840bd != 0) {
-            Function420B40(1);
+            MoveTimer(1);
             EnableRegionInput(0x137);
             ActivateDialogRegion(0x137);
         }
@@ -88,7 +88,7 @@ void Function56AAB0(void)
         gXStatus.fItemSelectMode == 0 && gXStatus.field_022 == 0) {
         if (gXStatus.fCombatMode == 0) {
             if (g_flag_006840bd != 0) {
-                Function420B40(4);
+                MoveTimer(4);
                 ClearActiveRegionIfMatches(0x137);
                 DisableRegionInput(0x137);
             }

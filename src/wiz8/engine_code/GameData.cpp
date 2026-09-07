@@ -32,7 +32,8 @@ enum {
 };
 
 extern unsigned char g_level_override_00652dba;
-extern unsigned char g_flag_00652dce;
+// GLOBAL: WIZ8 0x00652dce
+unsigned char g_flag_00652dce;
 extern const float g_world_scale_005ebc40;
 extern float g_path_endpoint_scale_005ec1a4;
 
@@ -375,7 +376,6 @@ unsigned char HasLevelDataVector(void)
 
 extern void Function449240(int handle);
 extern void Function497690(int channel, const char* message);
-extern float Function420B40(int value);
 extern W8EnvironRecord* g_environ_00652DB4;
 
 /* Builds the processed game-data record in place: zeroed storage, bound
@@ -421,7 +421,7 @@ W8GameData::W8GameData(int handle, void* parent)
     maximum_14.y = -1.0e8f;
     maximum_14.z = -1.0e8f;
     if (parent == 0) {
-        Function420B40(4);
+        MoveTimer(4);
         if (g_object_6598bc == 0) {
             g_object_6598bc = new W8Object0043A910();
         }

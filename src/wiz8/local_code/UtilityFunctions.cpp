@@ -4,6 +4,11 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/cursor.h"
+#include "wiz8/dirty_tiles.h"
+#include "wiz8/sgp_video.h"
+#include "Button System.h"
+#include "input.h"
 #include "DEBUG.H"
 #include "random.h"
 
@@ -18,7 +23,28 @@ extern W8RPCSlot g_rpc_slots[8];
 extern W8RPCSlot g_rpc_slots_end[];
 extern int g_string_table_count;
 extern char** g_string_table;
-extern int g_string_table_state;
+// GLOBAL: WIZ8 0x0068c0a4
+int g_message_box_state;
+// GLOBAL: WIZ8 0x0061a548
+short g_message_box_background_image = -1;
+// GLOBAL: WIZ8 0x0061a54c
+int g_message_box_background_button = -1;
+// GLOBAL: WIZ8 0x0061a550
+int g_message_box_accept_button = -1;
+// GLOBAL: WIZ8 0x0061a554
+int g_message_box_cancel_button = -1;
+// GLOBAL: WIZ8 0x0061a558
+int g_message_box_accept_image = -1;
+// GLOBAL: WIZ8 0x0061a55c
+int g_message_box_cancel_image = -1;
+// GLOBAL: WIZ8 0x0068c0a0
+void (*g_message_box_callback)(void);
+// GLOBAL: WIZ8 0x0068c0a8
+int g_message_box_font;
+// GLOBAL: WIZ8 0x0068c0ac
+unsigned int g_message_box_shade;
+// GLOBAL: WIZ8 0x0068c0b0
+unsigned char g_message_box_accepted;
 char g_format_string_buffer[200];
 wchar_t g_wide_string_buffer[4096];
 wchar_t g_empty_wide_string[1];
@@ -505,10 +531,93 @@ void FreeStringTable(void)
 }
 
 // FUNCTION: WIZ8 0x00518b20
-bool IsStringTableLoaded(void)
+bool IsMessageBoxActive(void)
 {
-    bool loaded;
+    return g_message_box_state != 0;
+}
 
-    loaded = g_string_table_state != 0;
-    return loaded;
+// FUNCTION: WIZ8 0x005189b0
+void RenderMessageBox(void)
+{
+    if (g_message_box_state == 1) {
+        if (g_message_box_accept_button != -1) {
+            RemoveButton(g_message_box_accept_button);
+            UnloadButtonImage(g_message_box_accept_image);
+        }
+        if (g_message_box_cancel_button != -1) {
+            RemoveButton(g_message_box_cancel_button);
+            UnloadButtonImage(g_message_box_cancel_image);
+        }
+        if (g_message_box_background_button != -1) {
+            SGPRect rect;
+            GetButtonArea(g_message_box_background_button, &rect);
+            ClearSurfaceRect(rect.iLeft, rect.iTop, rect.iRight, rect.iBottom);
+            MarkScreenRectDirty(rect.iLeft, rect.iTop, rect.iRight, rect.iBottom, 1);
+            RemoveButton(g_message_box_background_button);
+        }
+        if (g_message_box_background_image != -1) {
+            UnloadGenericButtonImage(g_message_box_background_image);
+            g_message_box_background_image = -1;
+        }
+        g_message_box_state = 3;
+    } else if (g_message_box_state == 2) {
+        HVOBJECT font;
+        if (g_message_box_font == g_large_font_683674) {
+            font = g_large_font_object_683618;
+        } else if (g_message_box_font == g_small_font_683678) {
+            font = g_small_font_object_683620;
+        } else if (g_message_box_font == g_small_font_secondary_68366c) {
+            font = g_small_font_secondary_object_683638;
+        } else if (g_message_box_font == g_wiz_text_font_683640) {
+            font = g_wiz_text_font_object_683604;
+        } else {
+            font = g_wiz_text_font_secondary_object_683680;
+        }
+        SetObjectShade(font, g_message_box_shade);
+        MarkButtonsDirty();
+        RenderButtons();
+    } else if (g_message_box_state == 3) {
+        g_message_box_state = 0;
+        if (g_message_box_accepted == 1 && g_message_box_callback != 0) {
+            void (*callback)(void) = g_message_box_callback;
+            g_message_box_callback = 0;
+            callback();
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x00518b30
+void ProcessMessageBoxInput(void)
+{
+    W8ScreenPoint point;
+    InputAtom input;
+    GetScreenPoint004284F0(&point);
+    MSYS_SGP_Mouse_Handler_Hook(
+        MOUSE_POS, point.x, point.y, gfLeftButtonState, gfRightButtonState);
+    while (DequeueEvent(&input) == 1) {
+        switch (input.usEvent) {
+        case LEFT_BUTTON_DOWN:
+        case LEFT_BUTTON_UP:
+        case RIGHT_BUTTON_DOWN:
+        case RIGHT_BUTTON_UP:
+            MSYS_SGP_Mouse_Handler_Hook(
+                input.usEvent, point.x, point.y, gfLeftButtonState, gfRightButtonState);
+            break;
+        case KEY_DOWN:
+            switch (toupper(input.usParam)) {
+            case '\r':
+            case ' ':
+            case 'Y':
+                g_message_box_state = 1;
+                g_message_box_accepted = 1;
+                break;
+            case 27:
+            case 'N':
+                g_message_box_accepted = g_message_box_cancel_button == -1;
+                g_message_box_state = 1;
+                break;
+            }
+            break;
+        }
+    }
 }

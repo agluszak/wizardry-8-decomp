@@ -27,7 +27,6 @@ unsigned long float_bits(float value)
 
 }
 
-extern srModeler* g_modeler_65963c;
 extern float g_surface_scale_659680;
 
 srScene* g_cursor_scene_659684;
@@ -355,7 +354,7 @@ void GetScreenPoint004284F0(W8ScreenPoint* point)
 
 /* Creates the shipped 128x128 mouse polygon inside its dedicated scene. */
 // FUNCTION: WIZ8 0x004285c0
-extern "C" unsigned char Function4285C0(void)
+unsigned char InitializeMouseCursorScene(void)
 {
     srScene* cursor_scene =
         SR_NEW(srScene)(
@@ -374,7 +373,7 @@ extern "C" unsigned char Function4285C0(void)
     g_cursor_node_659694 = MakePolygonBrush(
         g_cursor_scene_659684, g_mouse_surface_659688,
         0.2, 0.26666666666666666,
-        g_surface_scale_659680, g_surface_scale_659680,
+        g_surface_scale_659680 / 128.0f, g_surface_scale_659680 / 128.0f,
         1.0f, 1.0f, 1);
     if (g_cursor_node_659694) {
         g_cursor_node_659694->setName("MouseInit");

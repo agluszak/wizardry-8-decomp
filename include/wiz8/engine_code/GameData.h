@@ -1,5 +1,12 @@
 #pragma once
 
+#include "Types.h"
+extern "C" {
+#include <GameData.h>
+}
+
+extern unsigned char g_flag_00652dce;
+
 void CopyLevelDataHandle(int* destination, const int* source);
 
 #include "wiz8/geometry.h"

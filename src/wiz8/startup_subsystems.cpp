@@ -2,8 +2,10 @@
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
+#include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/regions.h"
 #include "wiz8/video_object_catalog.h"
+#include "wiz8/render_state.h"
 #include "Font.h"
 #include "FileMan.h"
 #include "vobject.h"
@@ -11,13 +13,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern "C" {
-
-unsigned short g_word_6850ed;
-W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
+// GLOBAL: WIZ8 0x0065beaf
 unsigned char g_flag_65beaf;
 
-extern unsigned short g_selected_item_0069c4b4;
+extern "C" {
+
+W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
+
 // GLOBAL: WIZ8 0x0069C130
 unsigned int* g_small_subsystem_69c130;
 
@@ -150,7 +152,7 @@ unsigned short* g_font_state_palettes_68ee1c[15];
 // FUNCTION: WIZ8 0x005bc800
 unsigned char MainMenuScreenInitialize(void)
 {
-    g_selected_item_0069c4b4 = 0;
+    g_main_menu_selected_item = 0;
     return 1;
 }
 

@@ -1,5 +1,8 @@
 #pragma once
 
+unsigned char LoadMissileDatabase(void);
+void ReleaseMissileDatabase(void);
+
 #include "wiz8/engine_code/GrCycle.h"
 #include "wiz8/targeting.h"
 

@@ -10,6 +10,12 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/regions.h"
 #include "wiz8/sgp_video.h"
+#include "wiz8/render_state.h"
+#include "wiz8/local_code/Strings.h"
+#include "wiz8/local_code/CombatSound.h"
+#include "wiz8/engine_code/Missile.h"
+#include "wiz8/slf_archives.h"
+#include "Button System.h"
 #include "Container.h"
 #include "LibraryDataBase.h"
 #include "shading.h"
@@ -23,7 +29,6 @@ extern void InitializeGameplayRuntimeObjects(void);
 extern unsigned char Function54A760(W8MonsterRecord** records);
 extern unsigned char VerifyDataSubdirs(void);
 extern void InitializeItemVideoObjects(void);
-extern void InitializeMenuVideoObjectCatalog(void);
 extern unsigned char FindStartupQuickSave(char* slot_name);
 extern int GetSaveGameLevel(const char* slot_name);
 extern unsigned char InitializeSpellDatabase(void);
@@ -40,28 +45,14 @@ extern void ReleaseAllTriggers(void);
  * recovered elsewhere keep theirs.
  */
 
-extern unsigned char InitializeSlfArchives(void);
-extern int LoadPatchSlfArchives(const char* directory);
-extern void LoadLocalizedStrings(const char* path);
-extern void LoadGameConfiguration(void);
 extern unsigned char InitializeMenuFonts(void);
-extern void InitializeMessageBoxState(void);
-extern void InitializeRegionHelpState(void);
-extern void DisableMouseFastHelp(void);
-extern void EnableMouseFastHelp(void);
-extern void SetFastHelpDelay(unsigned short value);
 extern void UpdateHeldItemCursor(void);
 extern void Function479010(void);
-extern unsigned char LoadMissileDatabase(void);
-extern unsigned char LoadHitSoundDatabase(void);
-extern unsigned int GetTotalPhysicalMemory(void);
 
-extern unsigned short g_word_6850ed;
 extern unsigned short* g_font_state_palettes_68ee1c[15];
-extern unsigned char g_flag_65beaf;
 
 // FUNCTION: WIZ8 0x004e2f40
-unsigned char InitializeGameData(void)
+unsigned char InitializeGame(void)
 {
     char version[64];
     void* buffer;
@@ -91,20 +82,19 @@ unsigned char InitializeGameData(void)
             return 0;
         }
     }
-    InitializeMenuVideoObjectCatalog();
     SetShadeTablePercent((FLOAT)0.66);
     BuildShadeTable();
     if (!InitializeMenuFonts()) {
         return 0;
     }
-    InitializeMessageBoxState();
+    InitButtonSystem();
     InitializeRegionHelpState();
     if (g_settings_6850c8.field_00c) {
         EnableMouseFastHelp();
     } else {
         DisableMouseFastHelp();
     }
-    SetFastHelpDelay(g_word_6850ed);
+    SetFastHelpDelay((unsigned short)g_settings_6850c8.field_025);
     Function54AF30(0);
     InitializeGameplayRuntimeObjects();
     UpdateHeldItemCursor();
@@ -157,11 +147,9 @@ unsigned char InitializeGameData(void)
     return 1;
 }
 
-extern void ReleaseHitSoundDatabase(void);
-extern void ReleaseMissileDatabase(void);
 
 // FUNCTION: WIZ8 0x004e3290
-void ShutdownGameData(void)
+void ShutdownGame(void)
 {
     int index;
 

@@ -173,8 +173,8 @@ void Function583BC0(void);
 unsigned char Function427260(void);
 void Function425570(int value);
 void Function581200(void);
-void Function422F10(void);
-void Function426790(void);
+void ResetTransientRenderScenes(void);
+void RenderFrame(void);
 void Function425C90(int left, int top, int right, int bottom);
 void Function580380(void);
 void Function474FB0(int value);
@@ -277,9 +277,9 @@ unsigned char AutomapScreenEnter(void)
             g_automap_buttons[button]->Draw();
         }
     }
-    Function422F10();
-    Function426790();
-    Function426790();
+    ResetTransientRenderScenes();
+    RenderFrame();
+    RenderFrame();
     SetFlag603C60();
     Function425C90(12, 32, 467, 467);
     Function580380();

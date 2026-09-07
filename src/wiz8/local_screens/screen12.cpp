@@ -31,8 +31,8 @@ extern void UpdateHeldItemCursor(void);
    0x00422F10 is the scene-side teardown the same frames are torn down through.
    Only the first is recovered. */
 extern void Function422B10(void);
-extern void Function422F10(void);
-extern void Function426790(void);
+extern void ResetTransientRenderScenes(void);
+extern void RenderFrame(void);
 }
 
 // FUNCTION: WIZ8 0x00593320
@@ -57,7 +57,7 @@ unsigned char ExitScreenEnter(void)
     colour = Get16BPPColor(0x10101);
     ColorFillVideoSurfaceArea(-14, 0, 0, 0x280, 0x1e0, colour);
     DrawCatalogImage(-14, 0x1e4, 0, 0, 0, 0, 2, 0);
-    Function422F10();
+    ResetTransientRenderScenes();
     return 1;
 }
 
@@ -71,7 +71,7 @@ void ExitScreenFrame(void)
 {
     InputAtom input;
 
-    Function426790();
+    RenderFrame();
     while (DequeueEvent(&input) == 1) {
         if (!DispatchRegionInput(&input)) {
             switch (input.usEvent) {
@@ -89,7 +89,7 @@ void ExitScreenFrame(void)
     }
     ClearFlag603C60();
     ClearPrimarySurface();
-    Function422F10();
-    Function426790();
-    Function426790();
+    ResetTransientRenderScenes();
+    RenderFrame();
+    RenderFrame();
 }

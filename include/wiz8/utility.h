@@ -6,6 +6,10 @@
 
 #include "wiz8/dice.h"
 
+bool IsMessageBoxActive(void);
+void RenderMessageBox(void);
+void ProcessMessageBoxInput(void);
+
 template <class T>
 class srVector3T;
 

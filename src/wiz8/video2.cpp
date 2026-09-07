@@ -157,23 +157,6 @@ srNode* VideoMakePoster(
 // TEMPLATE: WIZ8 0x00429AD0
 // srClassSupport<srColorSurface,srColorSurface,0,12560>::clone
 
-extern "C" {
-extern int g_pixel_format_603c48;
-extern srModeler* g_modeler_65963c;
-extern srScene* g_scene_user_659640;
-extern srScene* g_scene_fullscreen_659644;
-extern srScene* g_scene_permanent_659648;
-extern srScene* g_scene_prerender0_65964c;
-extern srScene* g_scene_prerender1_659650;
-extern srScene* g_scene_overlay0_659654;
-extern srScene* g_scene_overlay1_659658;
-extern srScene* g_scene_square_65965c;
-extern srColorSurface* g_primary_color_surface_659660;
-extern srCamera* g_overlay_camera_659670;
-extern srCamera* g_square_camera_659674;
-
-}
-
 extern "C" void PresentMenuOverlayFrame(void)
 {
     srNode::ProcessInfo process;
@@ -215,7 +198,7 @@ unsigned char InitializeMouseSurface(void)
 }
 
 // FUNCTION: WIZ8 0x00423500
-extern "C" unsigned char InitializeRendererSceneObjects(void)
+unsigned char InitializeRendererSceneObjects(void)
 {
     DDSURFACEDESC surface_description;
     srCamera::Rect view;
@@ -395,7 +378,7 @@ extern "C" void ClearSurfaceRect(int left, unsigned int top, int right, unsigned
 }
 
 // FUNCTION: WIZ8 0x00426500
-extern "C" void PurgeInactiveSceneInstances(srScene* scene)
+void PurgeInactiveSceneInstances(srScene* scene)
 {
     srNode* node;
 

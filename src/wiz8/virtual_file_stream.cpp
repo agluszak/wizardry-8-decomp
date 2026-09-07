@@ -136,7 +136,7 @@ W8VirtualFileStreamOpener g_virtual_file_stream_opener_65a124;
 /* Loads the image importers and routes their JPG/TGA reads through Wizardry's
    SLF-aware virtual file stream, which is the bridge the real menu assets use. */
 // FUNCTION: WIZ8 0x0047d5f0
-extern "C" void Function47D5F0(void)
+void InitializeVirtualFileImageImporters(void)
 {
     srExtension::load("JPEGImporter", NULL);
     srExtension::load("TargaImporter", NULL);

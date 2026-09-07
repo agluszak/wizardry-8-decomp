@@ -1,4 +1,5 @@
 #include "wiz8/combat_state.h"
+#include "wiz8/engine_code/GameData.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/render_state.h"
 #include "wiz8/sgp_video.h"
@@ -69,8 +70,7 @@ extern void Function59BDB0(void);
 extern void Function55F2C0(void);
 extern void ScrollTextBoxToCursor(void);
 extern void Function413FD0(int, int, int, int, int);
-extern void Function422F10(void);
-extern float Function420B40(int value);
+extern void ResetTransientRenderScenes(void);
 extern void Function482EA0(void);
 extern void Function482990(unsigned char enabled);
 extern void Function425570(int enabled);
@@ -178,7 +178,6 @@ void Function4314C0(int save);
 void Function5615F0(int level, int entry, int flag);
 void Function568C40(void);
 void Function569CC0(void);
-void Function518B30(void);
 void Function5A6970(void);
 unsigned char Function5A6790(void);
 void Function5A68C0(void);
@@ -333,8 +332,8 @@ unsigned char MainGameScreenEnter(void)
         Function58AAD0(0xc, gppStringList[0x1e30 / 4],
                        gppStringList[display_mode]);
     }
-    Function422F10();
-    Function420B40(4);
+    ResetTransientRenderScenes();
+    MoveTimer(4);
     if (!g_flag_006840bc && !g_in_combat_00683f94) {
         Function482990(1);
     }
@@ -416,7 +415,7 @@ void MainGameScreenFrame(void)
 update_screen:
     Function568C40();
     Function569CC0();
-    if (IsStringTableLoaded() || g_modal_owner_0068edd0) {
+    if (IsMessageBoxActive() || g_modal_owner_0068edd0) {
         if (g_flag_0068edd8) {
             SetFlag603C60();
             g_flag_0068edd8 = 0;
@@ -424,7 +423,7 @@ update_screen:
         }
         UpdateHeldItemCursor();
         if (!g_modal_owner_0068edd0) {
-            Function518B30();
+            ProcessMessageBoxInput();
         }
     }
     if (!g_level_block->flag_328) {
@@ -462,7 +461,7 @@ update_screen:
             }
             if (!gXStatus.fCombatMode) {
                 if (g_flag_006840bd) {
-                    Function420B40(1);
+                    MoveTimer(1);
                     EnableRegionInput(0x137);
                     ActivateDialogRegion(0x137);
                 }
@@ -762,7 +761,7 @@ unsigned char MainGameScreenLeave(int leaving)
     if (g_flag_00683fcd) DisableRegionSet1C();
     Function529510();
     if (GetFlag68F105()) Function57D740();
-    Function420B40(1);
+    MoveTimer(1);
     Function482990(0);
 
     if ((g_gameplay_timer_685067->m_flags & 8) == 0) {

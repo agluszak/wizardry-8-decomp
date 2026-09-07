@@ -1,14 +1,13 @@
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "surrender/srGERD.h"
 #include "wiz8/local_code/Configuration.h"
+#include "wiz8/music_playlist.h"
 #include "wiz8/render_state.h"
 #include "wiz8/wiz8_windows.h"
 #include "soundman.h"
 
 #include <stdio.h>
 #include <string.h>
-
-extern "C" {
 
 
 W8GameSettings g_settings_6850c8;
@@ -103,6 +102,4 @@ void LoadGameConfiguration(void)
         memcpy(&g_settings_6850c8.field_03c, &gamma, sizeof(gamma));
     }
     SetDisplayGamma(gamma);
-}
-
 }

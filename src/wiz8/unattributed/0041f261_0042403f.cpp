@@ -17,12 +17,11 @@
    assertion-backed original translation-unit intervals. */
 
 extern unsigned char g_flag_00652da7;
-extern unsigned char g_flag_00652dce;
 extern const double g_double_005ebc18;
 extern const float g_float_005ebcf8;
 
 // FUNCTION: WIZ8 0x00420b40
-float Function420B40(int value)
+float MoveTimer(int value)
 {
     if (g_object_6598bc == 0) {
         g_object_6598bc = new W8Object0043A910;

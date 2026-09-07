@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern "C" {
-
 int giStringListLen;
 wchar_t** gppStringList;   /* 0x0068C09C */
 
@@ -66,6 +64,4 @@ void LoadLocalizedStrings(const char* path)
         DecodeLocalizedText(reinterpret_cast<unsigned short*>(gppStringList[index]), byte_count / 2);
     }
     CloseVirtualFile(handle);
-}
-
 }

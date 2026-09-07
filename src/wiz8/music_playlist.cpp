@@ -16,7 +16,6 @@ unsigned int g_music_playlist_tick_65ba78;
 unsigned char g_music_playlist_active_65ba7e;
 int g_music_playlist_weight_total_65ba80;
 int g_music_playlist_track_count_65ba84;
-extern "C" int g_music_sample_handle_60aae0;
 unsigned char g_music_fade_60aae4;
 unsigned char g_music_force_next_60aae5;
 int g_music_state_60aae8;

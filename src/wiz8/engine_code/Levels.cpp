@@ -28,7 +28,7 @@
 #include "FileMan.h"
 
 extern void Function4EA310(int mode);
-extern void Function426790(void);
+extern void RenderFrame(void);
 extern void Function50DA00(void);
 extern unsigned char ReleaseItemLists(void);
 extern unsigned char ShutdownMonsterManager(void);
@@ -374,7 +374,7 @@ unsigned char UnloadLevel(const char* save_directory)
     }
 
     if (g_world_cleanup_flag_00659757 != 0) {
-        Function426790();
+        RenderFrame();
     }
 
     Function50DA00();
@@ -383,7 +383,7 @@ unsigned char UnloadLevel(const char* save_directory)
     }
 
     if (g_world_cleanup_flag_00659757 != 0) {
-        Function426790();
+        RenderFrame();
     }
 
     if (gXStatus.plsMonsterList != 0) {
@@ -391,26 +391,26 @@ unsigned char UnloadLevel(const char* save_directory)
             return 0;
         }
         if (g_world_cleanup_flag_00659757 != 0) {
-            Function426790();
+            RenderFrame();
         }
         if (ShutdownMonsterManager() == 0) {
             return 0;
         }
         if (g_world_cleanup_flag_00659757 != 0) {
-            Function426790();
+            RenderFrame();
         }
         if (ScreenLifecycleSuccess() == 0) {
             return 0;
         }
         if (g_world_cleanup_flag_00659757 != 0) {
-            Function426790();
+            RenderFrame();
         }
     }
 
     Function48DB30();
     ClearValue689FAC();
     if (g_world_cleanup_flag_00659757 != 0) {
-        Function426790();
+        RenderFrame();
     }
 
     Function4909C0();
@@ -423,7 +423,7 @@ unsigned char UnloadLevel(const char* save_directory)
     Function489920();
 
     if (g_world_cleanup_flag_00659757 != 0) {
-        Function426790();
+        RenderFrame();
     }
 
     DisableSky();

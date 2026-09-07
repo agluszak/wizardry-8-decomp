@@ -4,21 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern "C" {
-
-unsigned char g_message_box_state_6e1240[1600];
-unsigned int g_message_box_runtime_650ea4;
-
 int g_region_help_delay;
 int g_region_help_clock;
-
-/* The buffer and selector state are independent of the four STI button
-   objects.  Those source-backed SGP video objects are part of wiz8-xb9. */
-void InitializeMessageBoxState(void)
-{
-    memset(g_message_box_state_6e1240, 0, sizeof(g_message_box_state_6e1240));
-    g_message_box_runtime_650ea4 = 0;
-}
 
 // FUNCTION: WIZ8 0x004f11d0
 void InitializeRegionHelpState(void)
@@ -33,6 +20,4 @@ void InitializeRegionHelpState(void)
         delete[] g_default_help_text;
     }
     g_default_help_text = 0;
-}
-
 }

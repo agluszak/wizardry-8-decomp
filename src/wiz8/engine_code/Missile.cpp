@@ -84,7 +84,7 @@ static_assert(sizeof(W8MissileTableRecord) == 0x1e5, "W8MissileTableRecord_must_
 /* Engine Code\\Missile.cpp's startup database load.  Each disk row has a
    0x101-byte editor prefix followed by the 0x1e5-byte runtime record. */
 // FUNCTION: WIZ8 0x004a5600
-extern "C" unsigned char LoadMissileDatabase(void)
+unsigned char LoadMissileDatabase(void)
 {
     char path[] = "Data\\Databases\\MissileTables.dbs";
     int allocated_count;
@@ -129,7 +129,7 @@ extern "C" unsigned char LoadMissileDatabase(void)
 
 /* Release the one allocation that owns every runtime missile-table row. */
 // FUNCTION: WIZ8 0x004a5760
-extern "C" void ReleaseMissileDatabase(void)
+void ReleaseMissileDatabase(void)
 {
     if (g_missile_table_65bde0) {
         delete[] g_missile_table_65bde0;

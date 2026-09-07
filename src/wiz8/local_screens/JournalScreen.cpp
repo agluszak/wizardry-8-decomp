@@ -25,7 +25,7 @@ extern int g_font_00683614;
 extern int g_journal_page_0064df38;
 extern W8GrowableVector<W8JournalEntry>* g_journal_entries_0069c4e4;
 extern void RefreshJournalPanel005BD860(void);
-extern void Function426790(void);
+extern void RenderFrame(void);
 extern void Function577260(void);
 extern void ResetRegions(void);
 extern unsigned char g_camp_open_00683f9b;
@@ -385,5 +385,5 @@ void JournalScreenFrame(void)
         }
     }
     g_journal_panel_0069c4d4->Redraw();
-    Function426790();
+    RenderFrame();
 }

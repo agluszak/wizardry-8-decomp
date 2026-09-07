@@ -1,4 +1,5 @@
 #include "wiz8/regions.h"
+#include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/cursor.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/local_code/Configuration.h"
@@ -13,7 +14,6 @@
 #include <wchar.h>
 
 extern unsigned char g_region_help_force_enabled;
-extern unsigned short g_word_6850ed;
 extern void HideRegionHelp(void);                           /* 0x00429770 */
 extern int g_help_box_width;                                /* 0x006548A0 */
 extern int g_help_box_height;                               /* 0x00654ACC */
@@ -27,11 +27,24 @@ enum { W8_REGION_MODE_MASK = 0xf };
 /* The retail catalog contains 51 statically declared sets and 313 statically
    declared regions.  Dynamically constructed controls append after that
    catalog; region zero is the template copied into each appended record. */
+// GLOBAL: WIZ8 0x00617b18
 unsigned int g_region_set_count = 51;
-W8RegionSet g_region_sets[300];
+// GLOBAL: WIZ8 0x0061f238
+W8RegionSet g_region_sets[300] = {
+    { 0, 0, 0 },
+    { 0, 1, 6 }
+};
+// GLOBAL: WIZ8 0x00617b1c
 unsigned int g_region_count = 313;
+// GLOBAL: WIZ8 0x00620048
 W8Region g_regions[1500] = {
-    { W8_REGION_RECTANGLE, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0 }
+    { W8_REGION_RECTANGLE, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0 },
+    { W8_REGION_RECTANGLE, 174, 138, 467, 182, MainMenuIntroduction, 0, 0, 0, -1, 0 },
+    { W8_REGION_RECTANGLE, 140, 187, 501, 231, MainMenuNewGame, 0, 0, 0, -1, 0 },
+    { W8_REGION_RECTANGLE, 204, 235, 436, 279, MainMenuLoadGame, 0, 0, 0, -1, 0 },
+    { W8_REGION_RECTANGLE, 239, 284, 403, 328, MainMenuCredits, 0, 0, 0, -1, 0 },
+    { W8_REGION_RECTANGLE, 234, 335, 408, 379, MainMenuOptions, 0, 0, 0, -1, 0 },
+    { W8_REGION_RECTANGLE, 279, 423, 364, 467, MainMenuExit, 0, 0, 0, -1, 0 }
 };
 unsigned int g_current_region_index;
 wchar_t* g_default_help_text;
@@ -39,7 +52,6 @@ unsigned int g_captured_region_index;
 unsigned int g_hover_region_index;
 unsigned short g_dword_689b48;
 unsigned int g_dword_689b50;
-unsigned short g_word_6850ed;
 
 // GLOBAL: WIZ8 0x00689B32
 unsigned char g_flag_689b32;
@@ -105,7 +117,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
                     previous->flags &= ~W8_REGION_HELP_SHOWN;
                 }
                 PlayButtonSound(1);
-                g_dword_689b48 = g_word_6850ed;
+                g_dword_689b48 = (unsigned short)g_settings_6850c8.field_025;
                 previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
                 g_dword_689b50 = 0;
             }
@@ -141,7 +153,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
             previous->flags &= ~W8_REGION_HELP_SHOWN;
         }
         PlayButtonSound(1);
-        g_dword_689b48 = g_word_6850ed;
+        g_dword_689b48 = (unsigned short)g_settings_6850c8.field_025;
         g_dword_689b50 = 0;
         previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
     }
@@ -188,7 +200,7 @@ unsigned int FindRegionAtPoint(unsigned short x, unsigned short y)
                     ReleaseScreenTransitionObjects();
                     previous->flags &= ~W8_REGION_HELP_SHOWN;
                 }
-                g_dword_689b48 = g_word_6850ed;
+                g_dword_689b48 = (unsigned short)g_settings_6850c8.field_025;
                 previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
                 g_dword_689b50 = 0;
                 g_hover_region_index = 0;
@@ -374,7 +386,7 @@ void ActivateDialogRegion(unsigned int region_index)
             ReleaseScreenTransitionObjects();
             g_regions[previous_index].flags &= ~W8_REGION_HELP_SHOWN;
         }
-        g_dword_689b48 = g_word_6850ed;
+        g_dword_689b48 = (unsigned short)g_settings_6850c8.field_025;
         g_regions[g_hover_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
         g_dword_689b50 = 0;
         g_hover_region_index = 0;
@@ -755,7 +767,7 @@ void ClearHotRegion004F2A80(void)
                 ReleaseScreenTransitionObjects();
                 g_regions[region_index].flags &= ~W8_REGION_HELP_SHOWN;
             }
-            g_dword_689b48 = g_word_6850ed;
+            g_dword_689b48 = (unsigned short)g_settings_6850c8.field_025;
             g_dword_689b50 = 0;
             g_regions[g_current_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
             g_current_region_index = 0;
@@ -839,5 +851,5 @@ void ResetRegions(void)
     g_hover_region_index = 0;
     g_captured_region_index = 0;
     g_dword_689b50 = 0;
-    g_dword_689b48 = g_word_6850ed;
+    g_dword_689b48 = (unsigned short)g_settings_6850c8.field_025;
 }

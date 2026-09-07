@@ -4,7 +4,6 @@ import os
 import re
 import shutil
 import subprocess
-import time
 from pathlib import Path
 from typing import Any
 
@@ -197,13 +196,7 @@ def run_game(settings: Settings) -> dict[str, Any]:
         environment, default="host", log_path=stage / "xvfb-runtime.log"
     ) as display:
         _configure_wine_window_management(environment, private_display=display is not None)
-        desktop = subprocess.Popen(
-            ["wine", "explorer", "/desktop=Wizardry8,640x480"],
-            cwd=stage,
-            env=environment,
-        )
         try:
-            time.sleep(1)
             completed = subprocess.run(
                 ["wine", "./Wiz8Runtime.exe"], cwd=stage, env=environment, check=False
             )
@@ -217,7 +210,6 @@ def run_game(settings: Settings) -> dict[str, Any]:
                 check=False,
                 capture_output=True,
             )
-            desktop.wait()
     return {
         **staged,
         "wine_prefix": str(prefix),

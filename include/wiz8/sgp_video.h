@@ -16,6 +16,6 @@
 
 extern "C" {
 #include "Mutex Manager.h"
-#include "video.h"
+#include "video2.h"
 void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom);
 }

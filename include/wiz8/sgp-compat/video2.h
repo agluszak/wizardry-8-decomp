@@ -16,6 +16,13 @@ enum {
 void InvalidateRegion(INT32 left, INT32 top, INT32 right, INT32 bottom,
                       UINT32 flags);
 BOOLEAN VideoIsFullScreen(void);
+void VideoFullScreen(BOOLEAN enabled);
+BOOLEAN VideoResizeWindow(void);
+void VideoInspectorEnable(void);
+BOOLEAN VideoInspectorIsEnabled(void);
+CHAR8* VideoGetConfigFile(void);
+void VideoSetConfigFile(const CHAR8* path);
+void VideoDumpMemoryLeaks(void);
 void VideoGetClientRect(RECT* rect);
 void VideoToolTip(UINT16* text);
 INT32 VideoGetToolTipWidth(void);

@@ -1,6 +1,10 @@
 #pragma once
 
 #include "vobject.h"
+#include "Types.h"
+extern "C" {
+#include "gameloop.h"
+}
 
 /* Screen font resources initialized by startup_subsystems.cpp. */
 extern "C" {
@@ -19,6 +23,13 @@ extern unsigned short* g_font_palette_calligraphy_shadow_68ee18;
 extern unsigned short* g_font_palette_wiz_text_68ee14;
 extern int g_button_font_683670;
 extern int g_wiz_text_bold_font_683664;
+extern int g_large_font_683674;
+extern int g_small_font_683678;
+extern int g_small_font_secondary_68366c;
+extern HVOBJECT g_large_font_object_683618;
+extern HVOBJECT g_small_font_object_683620;
+extern HVOBJECT g_small_font_secondary_object_683638;
+extern HVOBJECT g_wiz_text_font_object_683604;
 extern unsigned short* g_font_palette_button_68ee04;
 extern unsigned short* g_font_palette_wiz_text_bold_68ee0c;
 extern unsigned short* g_font_palette_options_detail_68ee00;
@@ -80,8 +91,6 @@ extern int g_suspended_screen_id;
 static_assert(sizeof(W8ScreenStateRuntime) == 0x98, "W8ScreenStateRuntime_must_be_0x98");
 
 void ReleaseScreenTransitionObjects(void);
-void UpdateScreenState(void);
-void ShutdownScreenStack(unsigned char release_screens);
 int GetPendingScreenState(void);
 void SetPendingScreenState(int value);
 void RequestScreenTransition(void);
