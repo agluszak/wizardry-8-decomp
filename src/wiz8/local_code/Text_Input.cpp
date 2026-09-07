@@ -11,7 +11,16 @@
 #include <string.h>
 #include <wchar.h>
 
-/* Wizardry's product fork of Sir-Tech's released Utils/Text_Input.c. */
+/*
+ * Wizardry's product fork of Sir-Tech's released Utils/Text_Input.c.
+ *
+ * The unmodified released unit and header are retained at
+ * third_party/sfi-sgp/utils/Text_Input.{c,h}.  This derivative is distributed
+ * under the SFI Source Code License Agreement retained with that source.
+ * Modified 2026-09-07 to identify the released source and keep only
+ * retail-evidenced Wizardry declarations and behavior in the product unit.
+ * See third_party/sfi-sgp/WIZARDY_PATCHES.md for the demonstrated boundary.
+ */
 
 typedef void (*INPUT_CALLBACK)(unsigned char index, int active);
 
