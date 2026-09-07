@@ -7,12 +7,14 @@
 /* Engine Code\stMeshModel.cpp. Only fields reached by reviewed bodies are
    modeled. The two short-vector pairs are parallel key/value tables; their
    semantic domain is not established, so the names stay positional. */
-class stMeshModel : public srMeshModel {
+// VTABLE: WIZ8 0x005ec454 stMeshModel
+// VTABLE: WIZ8 0x005ec4b0 srClassSupport<stMeshModel, srMeshModel, 0, 65539>
+class stMeshModel
+    : public srClassSupport<stMeshModel, srMeshModel, false, 0x10003> {
 public:
+    static const char* sGetClassName() { return "stMeshModel"; }
+
     stMeshModel(long polygons, long vertices);    /* 0x00470B00 */
-    const char* getClassName() const override;     /* 0x004741F0 */
-    unsigned long getClassID() const override;     /* 0x004741E0 */
-    class srRegistry::ClassNode* getClassNode() const override;  /* 0x00474820 */
 
     int FindMappedIndex(short key);       /* 0x004712D0 */
     void SetMappedVertex00471160(short vertex, short key);

@@ -219,50 +219,17 @@ void ReleaseMeshModel(void* model)
     Function4729F0(model);
 }
 
-/* The two SurRender registry slots. The literal is the class's own original
-   name and the id sits in the Wizardry-registered range at 0x10000 and up,
-   which is what separates this class from SurRender's own srMeshModel at
-   0x2010. */
-// FUNCTION: WIZ8 0x004741f0
-const char* stMeshModel::getClassName() const
-{
-    return "stMeshModel";
-}
+// TEMPLATE: WIZ8 0x004741E0
+// srClassSupport<stMeshModel,srMeshModel,0,65539>::getClassID
 
-// FUNCTION: WIZ8 0x004741e0
-unsigned long stMeshModel::getClassID() const
-{
-    return 0x10003;
-}
+// TEMPLATE: WIZ8 0x004741F0
+// srClassSupport<stMeshModel,srMeshModel,0,65539>::getClassName
 
-/* Three-level registry builder that names every level by literal - no static
-   name getter appears at all, which is what makes it the shortest of the
-   three-level forms. The chain is stMeshModel under srMeshModel under srModel
-   under srClass. */
-// FUNCTION: WIZ8 0x00474820
-srRegistry::ClassNode* stMeshModel::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x10003);
+// TEMPLATE: WIZ8 0x00474200
+// srClassSupport<stMeshModel,srMeshModel,0,65539>::clone
 
-    if (!node) {
-        srRegistry* mesh_registry = srCore.getRegistry();
-        srRegistry::ClassNode* mesh = mesh_registry->getClassNode(0x2010);
-
-        if (!mesh) {
-            srRegistry* model_registry = srCore.getRegistry();
-            srRegistry::ClassNode* model = model_registry->getClassNode(0x2000);
-
-            if (!model) {
-                model = model_registry->registerClass(
-                    "srModel", srClass::sGetClassNode(), 0x2000, 1);
-            }
-            mesh = mesh_registry->registerClass("srMeshModel", model, 0x2010, 0);
-        }
-        node = registry->registerClass("stMeshModel", mesh, 0x10003, 0);
-    }
-    return node;
-}
+// TEMPLATE: WIZ8 0x00474820
+// srClassSupport<stMeshModel,srMeshModel,0,65539>::getClassNode
 
 /* Ordinary primary-template instantiation emissions. The generic methods live
    inline in srArray.h; there are no per-element authored bodies here. */
