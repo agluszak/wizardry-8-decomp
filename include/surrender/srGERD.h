@@ -93,6 +93,7 @@ public:
 
     static srGERD* loadDevice(srStringTable& devices, unsigned long flags);
     e_error createContext(unsigned long window);
+    void deleteContext();
     long getDisplayMode(unsigned long width, unsigned long height,
                         unsigned long depth) const;
     e_error openWindow();

@@ -234,3 +234,21 @@ extern "C" unsigned char Function48FC10(
     }
     return 1;
 }
+
+// FUNCTION: WIZ8 0x0048FF00
+void StopMusicPlaylist(unsigned char fade)
+{
+    if (fade != 0) {
+        if (g_music_sample_handle_60aae0 != -1) {
+            SoundSetFadeVolume(g_music_sample_handle_60aae0, 0, 2000, 1);
+            g_music_sample_handle_60aae0 = -1;
+            g_music_playlist_active_65ba7e = 0;
+            return;
+        }
+    }
+    else {
+        SoundStopMusic();
+    }
+    g_music_sample_handle_60aae0 = -1;
+    g_music_playlist_active_65ba7e = 0;
+}

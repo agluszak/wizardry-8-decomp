@@ -1,6 +1,7 @@
 #include "wiz8/local_screens/CreditsScreen.h"
 
 #include "wiz8/cursor.h"
+#include "wiz8/music_playlist.h"
 #include "wiz8/regions.h"
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
@@ -28,7 +29,6 @@ extern void Function407650(int x, int y, const wchar_t* format, ...);
 extern void ResetTransientRenderScenes(void);
 extern void RenderFrame(void);
 extern char Function490180(const char* playlist);
-extern void Function48FF00(char stop);
 
 W8GrowableVector<W8CreditLine>* g_credit_lines_0069c4a8;
 int g_credit_elapsed_steps_0069c494;
@@ -114,7 +114,7 @@ unsigned char CreditsScreenLeave(int)
     ResetRegions();
     SetFlag603C60();
     if (Function490180("EndCredit.MPL")) {
-        Function48FF00(1);
+        StopMusicPlaylist(1);
     }
     return 1;
 }

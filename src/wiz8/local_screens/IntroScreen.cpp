@@ -1,5 +1,7 @@
 #include "wiz8/bink_video.h"
+#include "wiz8/music_playlist.h"
 #include "wiz8/regions.h"
+#include "wiz8/render_state.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/sgp_video.h"
@@ -20,10 +22,7 @@ extern unsigned char g_flag_689b2c;
 extern char g_path_6e0fa0[];
 
 extern unsigned char FindGameDataPath0042B590(char* path, int drive);
-extern void PrepareVideoPlayback0048FF00(int value);
 extern unsigned char ClearFlag603C60(void);
-extern IDirectDrawSurface2* GetPrimaryRenderTarget00423390(void);
-extern void FinishVideoPresentation004234A0(void);
 extern unsigned char SetFlag603C60(void);
 extern void ContinueAfterDarkEndingVideo005AE770(void);
 extern void ShowModalMessage005A6620(int a, int b, int c,
@@ -63,7 +62,7 @@ unsigned char IntroScreenEnter(void)
             return 1;
         }
     }
-    PrepareVideoPlayback0048FF00(1);
+    StopMusicPlaylist(1);
     ClearFlag603C60();
     gpVideo = new W8BinkVideo();
     if (gpVideo == 0) {
@@ -73,7 +72,7 @@ unsigned char IntroScreenEnter(void)
             98,
             0);
     }
-    gpVideo->SetTarget(GetPrimaryRenderTarget00423390());
+    gpVideo->SetTarget(BeginVideoPresentation());
     if (!gpVideo->Open(path, 0)) {
         delete gpVideo;
         gpVideo = 0;
@@ -132,14 +131,14 @@ void AdvanceIntroScreen(void)
         if (gpVideo != 0 && gpVideo->Open(path, 0)) {
             return;
         }
-        FinishVideoPresentation004234A0();
+        FinishVideoPresentation();
         video = gpVideo;
     } else {
 ordinary_destroy:
         if (gpVideo == 0) {
             goto cleared;
         }
-        FinishVideoPresentation004234A0();
+        FinishVideoPresentation();
         video = gpVideo;
     }
     if (video != 0) {
@@ -180,7 +179,7 @@ cleared:
 unsigned char IntroScreenLeave(int)
 {
     if (gpVideo != 0) {
-        FinishVideoPresentation004234A0();
+        FinishVideoPresentation();
         delete gpVideo;
     }
     gpVideo = 0;

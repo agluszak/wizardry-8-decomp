@@ -242,6 +242,9 @@
 // LIBRARY: WIZ8 0x0040A9A0
 // SoundSetMusic
 
+// LIBRARY: WIZ8 0x0040A9D0
+// SoundStopMusic
+
 // LIBRARY: WIZ8 0x0040ABF0
 // Sound3DPlay
 

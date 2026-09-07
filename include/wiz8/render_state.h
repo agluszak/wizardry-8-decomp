@@ -42,6 +42,8 @@ extern unsigned char g_block_652ddc[0x12c0];
    them; holding them here instead is what stops a second unit from spelling
    the same object a second, divergent way. */
 extern IDirectDraw2* g_direct_draw2_6596a0;
+extern IDirectDrawSurface* g_video_primary_surface1_6596ac;
+extern IDirectDrawSurface2* g_video_primary_surface2_6596b0;
 extern srModelInstance* g_current_model_instance_65962c;
 extern int g_renderer_mode_603d74;
 /* The two detail-slider values GrCycle.cpp's LOD selector reads. */
@@ -79,6 +81,8 @@ unsigned char InitializeRendererSceneObjects(void);
 void PurgeInactiveSceneInstances(srScene* scene);
 void ResetTransientRenderScenes(void);
 void RenderFrame(void);
+IDirectDrawSurface2* BeginVideoPresentation(void);
+unsigned char FinishVideoPresentation(void);
 
 
 #endif

@@ -128,10 +128,17 @@ static bool VerifyShadeTable(FLOAT coefficient)
 static bool WaitForMainMenu(unsigned int timeout_ms)
 {
     unsigned int started = GetTickCount();
+    bool dismissed_intro = false;
     while (GetTickCount() - started < timeout_ms) {
         if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_MENU &&
             *(HWND volatile*)&ghWindow != NULL && g_region_sets[1].enabled) {
             return true;
+        }
+        if (!dismissed_intro &&
+            *(volatile int*)&g_current_screen_state.id == W8_SCREEN_INTRO) {
+            QueueEvent(KEY_DOWN, ESC, 0);
+            QueueEvent(KEY_DOWN, ESC, 0);
+            dismissed_intro = true;
         }
         Sleep(10);
     }

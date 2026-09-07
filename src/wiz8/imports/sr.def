@@ -130,6 +130,7 @@ EXPORTS
     ?reset@srStringTable@@QAEXXZ
     ?loadDevice@srGERD@@SAPAV1@AAVsrStringTable@@K@Z
     ?createContext@srGERD@@QAE?AW4e_error@1@K@Z
+    ?deleteContext@srGERD@@QAEXXZ
     ?getDisplayMode@srGERD@@QBEJKKK@Z
     ?openWindow@srGERD@@QAE?AW4e_error@1@XZ
     ?openWindow@srGERD@@QAE?AW4e_error@1@J@Z

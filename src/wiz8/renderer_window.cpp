@@ -75,6 +75,8 @@ LPDIRECTDRAW g_direct_draw_65969c;
 LPDIRECTDRAW2 g_direct_draw2_6596a0;
 LPDIRECTDRAWSURFACE g_primary_surface1_6596a4;
 LPDIRECTDRAWSURFACE2 g_primary_surface_6596a8;
+LPDIRECTDRAWSURFACE g_video_primary_surface1_6596ac;
+LPDIRECTDRAWSURFACE2 g_video_primary_surface2_6596b0;
 RECT g_window_rect_659610;
 
 unsigned short g_alpha_mask_650f48;
@@ -565,6 +567,61 @@ unsigned char Function422800(void)
     }
     g_flush_pending_603c3a = 1;
     return 1;
+}
+
+extern void NoOp(void);
+
+// FUNCTION: WIZ8 0x00423390
+IDirectDrawSurface2* BeginVideoPresentation(void)
+{
+    DDSURFACEDESC description;
+
+    if (g_gerd_659634 != 0) {
+        g_flush_pending_603c3a = 0;
+        g_gerd_659634->closeWindow((srGERD::e_closeHint)1);
+        g_gerd_659634->deleteContext();
+    }
+    if (g_direct_draw2_6596a0->SetCooperativeLevel(
+            ghWindow, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN) != DD_OK) {
+        NoOp();
+        return 0;
+    }
+    if (g_direct_draw2_6596a0->SetDisplayMode(640, 480, 16, 0, 0) != DD_OK) {
+        NoOp();
+        return 0;
+    }
+    memset(&description, 0, sizeof(description));
+    description.dwSize = sizeof(description);
+    description.dwFlags = DDSD_CAPS;
+    description.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE;
+    if (g_direct_draw2_6596a0->CreateSurface(
+            &description, &g_video_primary_surface1_6596ac, 0) != DD_OK) {
+        NoOp();
+        return 0;
+    }
+    if (g_video_primary_surface1_6596ac->QueryInterface(
+            IID_IDirectDrawSurface2,
+            (void**)&g_video_primary_surface2_6596b0) != DD_OK) {
+        NoOp();
+        return 0;
+    }
+    return g_video_primary_surface2_6596b0;
+}
+
+// FUNCTION: WIZ8 0x004234A0
+unsigned char FinishVideoPresentation(void)
+{
+    if (g_video_primary_surface1_6596ac != 0) {
+        g_video_primary_surface1_6596ac->Release();
+        g_video_primary_surface1_6596ac = 0;
+    }
+    if (g_video_primary_surface2_6596b0 != 0) {
+        g_video_primary_surface2_6596b0->Release();
+        g_video_primary_surface2_6596b0 = 0;
+    }
+    g_direct_draw2_6596a0->SetCooperativeLevel(ghWindow, DDSCL_NORMAL);
+    g_gerd_659634->createContext((unsigned long)ghWindow);
+    return Function422800();
 }
 
 /* WM_SIZE only rebuilds the SurRender output in windowed mode.  Full-screen

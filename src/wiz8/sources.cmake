@@ -139,7 +139,6 @@ set(WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
     src/wiz8/engine_code/GDCamera.cpp
     src/wiz8/unattributed/00401001_0041ab3f.cpp
     src/wiz8/unattributed/0041f261_0042403f.cpp
-    src/wiz8/unattributed/00424041_0042a36f.cpp
     src/wiz8/engine_code/world_selection.cpp
     src/wiz8/unattributed/0046c0f1_0046dc8f.cpp
     src/wiz8/unattributed/0047a791_0047b4ff.cpp

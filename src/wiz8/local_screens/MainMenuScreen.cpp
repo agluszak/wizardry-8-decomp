@@ -71,7 +71,7 @@ extern void Function422B10(void);
 extern unsigned char ClearPrimarySurface(void);
 extern void SetViewport(int left, int top, int right, int bottom);
 extern void UpdateHeldItemCursor(void);
-extern unsigned char Function4298F0(void);
+extern unsigned char HasEnoughFreeDiskSpace(void);
 extern void ReleaseLoadedVideoFrames(void);
 extern void ResetTransientRenderScenes(void);
 extern void RenderFrame(void);
@@ -189,7 +189,7 @@ unsigned char MainMenuScreenEnter(void)
         g_pending_main_menu_message = 0;
         return 1;
     }
-    if (!Function4298F0() && !g_main_menu_warning_shown) {
+    if (!HasEnoughFreeDiskSpace() && !g_main_menu_warning_shown) {
         int message = *(int*)&gppStringList[0x1fb8 / 4];
 
         dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
