@@ -444,6 +444,7 @@ def translate_addresses(repository: Path, target: str, queries: list[int]) -> di
 
 def compare_vtables(repository: Path, target: str, class_filter: str | None) -> dict[str, Any]:
     from reccmp.compare import Compare
+    from reccmp.compare.report import get_udiff_for_entity
     from reccmp.project.detect import RecCmpProject
 
     project = RecCmpProject.from_directory(repository / "build" / "decomp")
@@ -452,7 +453,7 @@ def compare_vtables(repository: Path, target: str, class_filter: str | None) -> 
     engine = Compare.from_target(project.get(target))
     name_filter = class_filter.casefold() if class_filter else None
     rows = []
-    for item in engine.compare_vtables(include_diff=False):
+    for item in engine.compare_vtables(include_diff=True):
         if name_filter is not None and name_filter not in (item.name or "").casefold():
             continue
         rows.append(
@@ -464,6 +465,7 @@ def compare_vtables(repository: Path, target: str, class_filter: str | None) -> 
                 ),
                 "status": "exact" if item.accuracy == 1 else "mismatch",
                 "accuracy": item.accuracy,
+                "diff": get_udiff_for_entity(item),
             }
         )
     if not rows:
@@ -475,7 +477,7 @@ def compare_vtables(repository: Path, target: str, class_filter: str | None) -> 
         "exact_count": sum(row["status"] == "exact" for row in rows),
         "issue_count": sum(row["status"] != "exact" for row in rows),
         "filter": class_filter,
-        "issues": [row for row in rows if row["status"] != "exact"],
+        "vtables": rows,
     }
 
 

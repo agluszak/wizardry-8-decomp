@@ -244,3 +244,41 @@ void W8CharacterSpellList::OnRangeChanged(W8RangeControl* range)
     m_scroll_offset = range->m_value;
     Invalidate(0);
 }
+
+// FUNCTION: WIZ8 0x005c83d0
+void W8CharacterPage005EF664::SetCharacter(
+    W8Character* character, W8CharacterCreationState* creation_state, int mode)
+{
+    W8CharacterPage::SetCharacter(character, creation_state, mode);
+    AcquireRegionSet(&g_character_spells_region_set_0069c534);
+    for (int realm = 0; realm < 6; ++realm) {
+        m_realms_074[realm] = new W8CharacterSpellList(
+            this, (realm % 2) * 215 + 13, (realm / 2) * 130 + 8,
+            m_spell_data_08c, &g_character_spell_list_region_sets_0069c538[realm]);
+        m_realms_074[realm]->m_listener = this;
+    }
+}
+
+// FUNCTION: WIZ8 0x005c8570
+void W8CharacterPage005EF664::Deactivate()
+{
+    EnableRegionSet(0);
+    for (int realm = 0; realm < 6; ++realm) {
+        m_realms_074[realm]->m_range->EnableRegionSet(0);
+    }
+}
+
+// FUNCTION: WIZ8 0x005c8770
+void W8CharacterPage005EF664::GetNavigationState(
+    unsigned char* next_enabled, unsigned char* exit_enabled)
+{
+    *next_enabled = 1;
+    *exit_enabled = m_creation_state_064->spell_points_remaining <
+                    m_creation_state_064->spell_points_total;
+}
+
+// FUNCTION: WIZ8 0x005c88a0
+void W8CharacterPage005EF664::ShowSpellInfo(unsigned int entry)
+{
+    m_screen_05c->ShowDialog005B0610(m_spell_data_08c[entry].spell);
+}

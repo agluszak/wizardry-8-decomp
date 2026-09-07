@@ -25,6 +25,48 @@ def _entity(address: int, status: str, **comparison):
     }
 
 
+@pytest.mark.parametrize("accuracy", [1.0, 0.0])
+def test_vtable_comparison_keeps_native_slot_diff(tmp_path, monkeypatch, accuracy):
+    from reccmp.compare import Compare
+    from reccmp.compare.diff import RawDiffOutput
+    from reccmp.compare.report import ReccmpComparedEntity
+    from reccmp.project.detect import RecCmpProject
+    from reccmp.types import EntityType
+
+    slot = ("vtable0x00", "Widget::Draw")
+
+    def compare_vtables(*, include_diff):
+        yield ReccmpComparedEntity(
+            orig_addr=0x401000,
+            recomp_addr=0x501000,
+            name="Widget::vftable",
+            type=EntityType.VTABLE,
+            accuracy=accuracy,
+            rdiff=(
+                RawDiffOutput(
+                    codes=[("equal", 0, 1, 0, 1)],
+                    orig_inst=[slot],
+                    recomp_inst=[slot],
+                )
+                if include_diff
+                else None
+            ),
+        )
+
+    monkeypatch.setattr(
+        RecCmpProject, "from_directory", lambda *_: SimpleNamespace(get=lambda _: object())
+    )
+    monkeypatch.setattr(
+        Compare, "from_target", lambda *_: SimpleNamespace(compare_vtables=compare_vtables)
+    )
+    result = reccmp_workflows.compare_vtables(tmp_path, "WIZ8", "Widget")
+
+    assert result["ok"] is (accuracy == 1.0)
+    table = result["vtables"][0]
+    assert table["accuracy"] == accuracy
+    assert table["diff"][0][1][0]["both"] == [(slot[0], slot[1], slot[0])]
+
+
 def test_sr_assert_import_alias_requires_the_exact_known_pair() -> None:
     row = _entity(
         0x451160,
