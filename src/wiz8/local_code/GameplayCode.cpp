@@ -478,25 +478,25 @@ void CalcAttacks(W8Character* character)
             attack->swings = 1;
         }
 
+        attack->damage_bonus = 0;
         attack->hit_bonus = 0;
-        attack->value_21 = 0;
         attack->value_25 = 0;
         attack->value_29 = 0;
         attack->damage_dice.base = 0;
         attack->damage_dice.count = 0;
         attack->damage_dice.sides = 0;
         if (records[hand] != 0) {
-            attack->hit_bonus += records[hand]->attack_damage_bonus;
-            attack->value_21 += records[hand]->attack_hit_bonus;
+            attack->damage_bonus += records[hand]->attack_damage_bonus;
+            attack->hit_bonus += records[hand]->attack_hit_bonus;
             if (other->wield_kind == 3 && records[hand == 0] != 0) {
-                attack->value_21 += records[hand == 0]->attack_hit_bonus;
+                attack->hit_bonus += records[hand == 0]->attack_hit_bonus;
             }
             if (ItemHasSingledOutGenericName(equipment[hand]->item_id)) {
                 attack->value_29 += records[hand]->attack_value_04a * 10;
             }
         }
         else {
-            attack->hit_bonus += attack->combined_skill / 10;
+            attack->damage_bonus += attack->combined_skill / 10;
             attack->attack_flags = 0x20;
             if (character->skills[attack->weapon_skill].level > 4) {
                 attack->attack_flags = 0x60;
@@ -535,30 +535,30 @@ void CalcAttacks(W8Character* character)
         }
 
         if (character->attributes[0].effective < 50) {
-            attack->value_21 -=
+            attack->hit_bonus -=
                 (50 - character->attributes[0].effective) / (divisor * 10);
             attack->value_29 -=
                 (50 - character->attributes[0].effective) / divisor;
         }
         else if (character->attributes[0].effective > 50) {
             divisor *= hand + 1;
-            attack->value_21 +=
+            attack->hit_bonus +=
                 (character->attributes[0].effective - 50) / (divisor * 10);
             attack->value_29 +=
                 (character->attributes[0].effective * 2 - 100) / divisor;
         }
 
         if (character->attributes[4].effective < 50) {
-            attack->value_21 -= (50 - character->attributes[4].effective) / 10;
+            attack->hit_bonus -= (50 - character->attributes[4].effective) / 10;
         }
         else if (character->attributes[4].effective > 50) {
-            attack->value_21 += (character->attributes[4].effective - 50) / 10;
+            attack->hit_bonus += (character->attributes[4].effective - 50) / 10;
         }
         if (character->attributes[6].effective < 30) {
-            attack->value_21 -= (30 - character->attributes[6].effective) / 10;
+            attack->hit_bonus -= (30 - character->attributes[6].effective) / 10;
         }
         else if (character->attributes[6].effective > 70) {
-            attack->value_21 += (character->attributes[6].effective - 70) / 10;
+            attack->hit_bonus += (character->attributes[6].effective - 70) / 10;
         }
 
         switch (character->load_category) {
@@ -584,12 +584,12 @@ void CalcAttacks(W8Character* character)
         if (attack->weapon_skill == 7) {
             load_penalty /= 2;
         }
-        attack->value_21 += load_penalty;
+        attack->hit_bonus += load_penalty;
         if (character->skills[40].flag_00 && attack->combat_skill == 17) {
-            attack->value_21 += character->skills[40].level / 20 + 1;
+            attack->hit_bonus += character->skills[40].level / 20 + 1;
         }
         if (character->skills[34].flag_00 && attack->combat_skill == 16) {
-            attack->value_21 += character->skills[34].level / 20 + 1;
+            attack->hit_bonus += character->skills[34].level / 20 + 1;
         }
     }
 }

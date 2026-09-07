@@ -105,8 +105,8 @@ typedef struct W8HandAttack {
     int attack_score;                     /* 0x11 */
     unsigned int attacks;                 /* 0x15 */
     int swings;                           /* 0x19 */
-    int hit_bonus;                        /* 0x1d */
-    int value_21;                         /* 0x21 */
+    int damage_bonus;                     /* 0x1d */
+    int hit_bonus;                        /* 0x21 */
     int value_25;                         /* 0x25 */
     int value_29;                         /* 0x29 */
     W8Dice damage_dice;                   /* 0x2d */
