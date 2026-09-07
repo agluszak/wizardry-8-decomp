@@ -1,3 +1,5 @@
+#include "wiz8/local_code/Widget.h"
+#include "wiz8/local_code/RangeControl.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 
 #include "wiz8/cursor.h"
@@ -35,13 +37,13 @@ W8SpellRealmAnimation g_spell_realm_animations_00648c90[6] = {
    W8RangeListener subobject at +0x34, not a second widget base. */
 // VTABLE: WIZ8 0x005ef614 W8Widget
 // VTABLE: WIZ8 0x005ef610 W8RangeListener
-class W8CharacterSpellList005EF614 : public W8Widget,
+class W8CharacterSpellList : public W8Widget,
                                      public W8RangeListener {
 public:
-    W8CharacterSpellList005EF614(Controls* owner, int x, int y,
+    W8CharacterSpellList(Controls* owner, int x, int y,
                                 W8CharacterSpellEntry* entries,
                                 unsigned int* region_set);
-    virtual ~W8CharacterSpellList005EF614() override;
+    virtual ~W8CharacterSpellList() override;
     virtual void Redraw(int force) override;
     virtual void OnMouseEnter(int event) override;
     virtual void OnMouseLeave(int event) override;
@@ -51,10 +53,10 @@ public:
     virtual void OnRightButtonDown(int event) override;
     virtual void OnLeftButtonUp(int event) override;
     virtual void OnRightButtonUp(int event) override;
-    virtual void OnRangeChanged(W8RangeControl005ED74C* range) override;
+    virtual void OnRangeChanged(W8RangeControl* range) override;
     void SetEntryCount(int count);
 
-    W8RangeControl005ED74C* m_range;       /* 0x38 */
+    W8RangeControl* m_range;       /* 0x38 */
     W8CharacterSpellEntry* m_entries;     /* 0x3c */
     int m_first_entry;                   /* 0x40 */
     int m_entry_count;                   /* 0x44 */
@@ -65,10 +67,10 @@ public:
     int m_x;                            /* 0x58 */
     int m_y;                            /* 0x5c */
 };
-static_assert(sizeof(W8CharacterSpellList005EF614) == 0x60,
-              "W8CharacterSpellList005EF614_size");
+static_assert(sizeof(W8CharacterSpellList) == 0x60,
+              "W8CharacterSpellList_size");
 
-W8CharacterSpellList005EF614::W8CharacterSpellList005EF614(
+W8CharacterSpellList::W8CharacterSpellList(
     Controls* owner, int x, int y, W8CharacterSpellEntry* entries,
     unsigned int* region_set)
     : W8Widget(owner, 0xffffffff, x + 0x1a, y + 0x19,
@@ -79,19 +81,19 @@ W8CharacterSpellList005EF614::W8CharacterSpellList005EF614(
 }
 
 // SYNTHETIC: WIZ8 0x005c7d80
-// W8CharacterSpellList005EF614::`scalar deleting destructor'
+// W8CharacterSpellList::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005c7da0
-W8CharacterSpellList005EF614::~W8CharacterSpellList005EF614()
+W8CharacterSpellList::~W8CharacterSpellList()
 {
     delete m_range;
 }
 
 // FUNCTION: WIZ8 0x005c7e10
-void W8CharacterSpellList005EF614::SetEntryCount(int count)
+void W8CharacterSpellList::SetEntryCount(int count)
 {
     if (!m_range) {
-        m_range = new W8RangeControl005ED74C(
+        m_range = new W8RangeControl(
             m_pPanel->origin_x + m_x + 0xb8, m_pPanel->origin_y + m_y + 0x1a,
             m_pPanel->origin_x + m_x + 0xca, m_pPanel->origin_y + m_y + 0x78,
             m_region_set);
@@ -109,7 +111,7 @@ void W8CharacterSpellList005EF614::SetEntryCount(int count)
 }
 
 // FUNCTION: WIZ8 0x005c7ef0
-void W8CharacterSpellList005EF614::Redraw(int force)
+void W8CharacterSpellList::Redraw(int force)
 {
     if (m_active && (m_dirty || force)) {
         int left = m_left + m_pPanel->origin_x;
@@ -147,20 +149,20 @@ void W8CharacterSpellList005EF614::Redraw(int force)
 }
 
 /* Shared with other widget classes at 0x004F58C0. */
-void W8CharacterSpellList005EF614::OnMouseEnter(int event)
+void W8CharacterSpellList::OnMouseEnter(int)
 {
-    Invalidate(static_cast<unsigned char>(event));
+    PushButtonSoundScheme005587C0(0, 1);
 }
 
 // FUNCTION: WIZ8 0x005c8100
-void W8CharacterSpellList005EF614::OnMouseLeave(int event)
+void W8CharacterSpellList::OnMouseLeave(int event)
 {
     m_hovered_entry = -1;
     Invalidate(static_cast<unsigned char>(event));
 }
 
 // FUNCTION: WIZ8 0x005c8120
-void W8CharacterSpellList005EF614::OnMouseMove(int)
+void W8CharacterSpellList::OnMouseMove(int)
 {
     W8ScreenPoint mouse;
     GetScreenPoint004284F0(&mouse);
@@ -174,7 +176,7 @@ void W8CharacterSpellList005EF614::OnMouseMove(int)
 }
 
 // FUNCTION: WIZ8 0x005c8190
-void W8CharacterSpellList005EF614::OnLeftButtonDown(int)
+void W8CharacterSpellList::OnLeftButtonDown(int)
 {
     W8ScreenPoint mouse;
     GetScreenPoint004284F0(&mouse);
@@ -186,7 +188,7 @@ void W8CharacterSpellList005EF614::OnLeftButtonDown(int)
 }
 
 /* Folded with OnLeftButtonDown at 0x005C8190. */
-void W8CharacterSpellList005EF614::OnRightButtonDown(int)
+void W8CharacterSpellList::OnRightButtonDown(int)
 {
     W8ScreenPoint mouse;
     GetScreenPoint004284F0(&mouse);
@@ -198,7 +200,7 @@ void W8CharacterSpellList005EF614::OnRightButtonDown(int)
 }
 
 // FUNCTION: WIZ8 0x005c81f0
-void W8CharacterSpellList005EF614::OnLeftButtonUp(int event)
+void W8CharacterSpellList::OnLeftButtonUp(int event)
 {
     W8ScreenPoint mouse;
     GetScreenPoint004284F0(&mouse);
@@ -215,7 +217,7 @@ void W8CharacterSpellList005EF614::OnLeftButtonUp(int event)
 }
 
 // FUNCTION: WIZ8 0x005c8280
-void W8CharacterSpellList005EF614::OnRightButtonUp(int)
+void W8CharacterSpellList::OnRightButtonUp(int)
 {
     W8ScreenPoint mouse;
     GetScreenPoint004284F0(&mouse);
@@ -229,7 +231,7 @@ void W8CharacterSpellList005EF614::OnRightButtonUp(int)
 }
 
 // FUNCTION: WIZ8 0x005c82f0
-void W8CharacterSpellList005EF614::AdjustValue(int steps)
+void W8CharacterSpellList::AdjustValue(int steps)
 {
     int step;
     for (step = 0; step < steps; ++step) m_range->Decrement();
@@ -237,7 +239,7 @@ void W8CharacterSpellList005EF614::AdjustValue(int steps)
 }
 
 // FUNCTION: WIZ8 0x005c8330
-void W8CharacterSpellList005EF614::OnRangeChanged(W8RangeControl005ED74C* range)
+void W8CharacterSpellList::OnRangeChanged(W8RangeControl* range)
 {
     m_scroll_offset = range->m_value;
     Invalidate(0);

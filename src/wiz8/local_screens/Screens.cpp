@@ -5,6 +5,7 @@
 #include "wiz8/item_video_object_vector.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/dialog_code/DialogBase.h"
+#include "wiz8/dialog_code/DialogTextArea.h"
 #include "wiz8/local_code/Controls.h"
 #include "Container.h"
 

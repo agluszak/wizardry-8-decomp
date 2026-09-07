@@ -1,3 +1,7 @@
+#include "wiz8/local_code/ControlsRect.h"
+#include "wiz8/local_code/TextBuffer.h"
+#include "wiz8/local_code/TextControl.h"
+#include "wiz8/local_code/ControlSelection.h"
 #include "wiz8/local_screens/OptionsScreen.h"
 #include "wiz8/xstatus.h"
 
@@ -72,13 +76,13 @@ W8OptionsScreen* g_options_screen_0069c254;
    up the shared layout flag. */
 // FUNCTION: WIZ8 0x005a7370
 W8OptionsMenuButton005EED3C::W8OptionsMenuButton005EED3C(Controls* owner, const int* row)
-    : W8TextControl005ED604(owner, 0xffffffff, row[9], row[10], row[11], row[12],
+    : W8TextControl(owner, 0xffffffff, row[9], row[10], row[11], row[12],
                             0xef, 0, row[13], row[14], row[15], row[16], row[17])
 {
     m_item_id_0bc = row[0];
 
     if (row[1] != -1) {
-        W8TextControl005ED604* control = new W8TextControl005ED604(
+        W8TextControl* control = new W8TextControl(
             m_pPanel, 0xffffffff, row[1], row[2], row[3], row[4],
             -1, -1, -1, -1, -1, -1, -1);
         control->m_listener = this;
@@ -86,7 +90,7 @@ W8OptionsMenuButton005EED3C::W8OptionsMenuButton005EED3C(Controls* owner, const 
     }
 
     if (row[5] != -1) {
-        W8TextControl005ED604* control = new W8TextControl005ED604(
+        W8TextControl* control = new W8TextControl(
             m_pPanel, 0xffffffff, row[5], row[6], row[7], row[8],
             -1, -1, -1, -1, -1, -1, -1);
         control->m_listener = this;
@@ -126,15 +130,15 @@ W8OptionsMenuSet005EEFEC::W8OptionsMenuSet005EEFEC(unsigned int* shared_region_s
     right = origin_x + (unsigned short)width;
     bottom = origin_y + (unsigned short)height;
 
-    m_previous_058 = new W8TextControl005ED604(
+    m_previous_058 = new W8TextControl(
         this, 0xffffffff, 3, 3, 0, 0, 0xf4, 0, 0, 2, 1, -1, 3);
     m_previous_058->m_listener = this;
 
-    m_next_054 = new W8TextControl005ED604(
+    m_next_054 = new W8TextControl(
         this, 0xffffffff, 0x11f, 3, 0, 0, 0xf4, 0, 4, 6, 5, -1, 7);
     m_next_054->m_listener = this;
 
-    m_page_text_05c = new W8TextBuffer005ED5B8(
+    m_page_text_05c = new W8TextBuffer(
         (W8ControlsRect*)&origin_x, &g_wchar_00689b34, g_options_detail_font_683614,
         g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554, 4);
 }
@@ -248,7 +252,7 @@ void W8OptionsMenuSet005EEFEC::UpdateMenuSet()
    preceding control walks back and all other primary activations walk forward;
    both paths then recompute bounds, navigation availability, and page text. */
 // FUNCTION: WIZ8 0x005a9050
-void W8OptionsMenuSet005EEFEC::OnPrimary(W8TextControl005ED604* control)
+void W8OptionsMenuSet005EEFEC::OnPrimary(W8TextControl* control)
 {
     if (control == m_previous_058) {
         m_pMenuSet->Retreat();
@@ -279,7 +283,7 @@ void W8OptionsScreen::OnDialogClosed(unsigned char reason, int)
    panel without emitting another notification. */
 // FUNCTION: WIZ8 0x005a98a0
 void W8OptionsScreen::OnSelectionChanged(
-    W8Control005ED654*, int selected)
+    W8ControlSelection*, int selected)
 {
     SelectPanel(selected, 0);
 }

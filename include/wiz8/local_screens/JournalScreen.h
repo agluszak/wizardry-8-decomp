@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/local_code/TextBuffer.h"
+#include "wiz8/local_code/TextControl.h"
 #include "wiz8/local_code/Controls.h"
 
 /* Local Screens\JournalScreen.cpp's live panel.  Construction starts with a
@@ -7,18 +9,18 @@
    base at +0x4c before the five owned display objects. */
 class W8JournalPanel005EF340
     : public Controls,
-      public W8TextControl005ED604::Listener {
+      public W8TextControl::Listener {
 public:
     explicit W8JournalPanel005EF340(unsigned int* region_set);
     virtual ~W8JournalPanel005EF340();
     virtual void Redraw() override;
-    virtual void OnPrimary(W8TextControl005ED604* control) override;
+    virtual void OnPrimary(W8TextControl* control) override;
 
-    W8TextControl005ED604* m_next_050;
-    W8TextControl005ED604* m_previous_054;
-    W8TextControl005ED604* m_close_058;
-    W8TextControl005ED604* m_mode_05c;
-    W8TextBuffer005ED5B8* m_page_text_060;
+    W8TextControl* m_next_050;
+    W8TextControl* m_previous_054;
+    W8TextControl* m_close_058;
+    W8TextControl* m_mode_05c;
+    W8TextBuffer* m_page_text_060;
     unsigned char m_alternate_mode_064;
     unsigned char m_pad_065[3];
 };

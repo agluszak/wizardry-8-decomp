@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wiz8/dialog_base.h"
+#include "wiz8/dialog_code/ModalDialogBase.h"
 
 struct W8DialogCloseListener {
     virtual void OnDialogClosed(unsigned char reason, int value) = 0;

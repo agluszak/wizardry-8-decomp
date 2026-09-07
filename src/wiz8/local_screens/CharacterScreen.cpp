@@ -1,8 +1,12 @@
+#include "wiz8/local_code/ControlsRect.h"
+#include "wiz8/local_code/TextBuffer.h"
+#include "wiz8/local_code/TextControl.h"
+#include "wiz8/dialog_code/SpellInfoDialog.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 
 #include "wiz8/cursor.h"
 #include "wiz8/combat_state.h"
-#include "wiz8/dialog_base.h"
+#include "wiz8/dialog_code/ModalDialogBase.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/dialog_code/ProfRaceInfoDialog.h"
 #include "wiz8/dialog_code/StatInfoDialogs.h"
@@ -79,7 +83,7 @@ unsigned int g_character_screen_region_set_0069c2e4;
 W8CharacterScreen* g_character_screen_0069c2e8;
 
 // VTABLE: WIZ8 0x005ef224 W8CharacterScreen
-// VTABLE: WIZ8 0x005ef21c W8TextControl005ED604::Listener
+// VTABLE: WIZ8 0x005ef21c W8TextControl::Listener
 // class W8CharacterScreen
 
 // FUNCTION: WIZ8 0x005b0040
@@ -114,31 +118,31 @@ void W8CharacterScreen::BuildControls()
     m_controls_1af0 = new Controls(0, 0x1c2, 0, 0, 0x107, 0, 4);
     m_controls_1af0->AcquireRegionSet(&g_character_screen_region_set_0069c2e4);
 
-    m_next_1af8 = new W8TextControl005ED604(
+    m_next_1af8 = new W8TextControl(
         m_controls_1af0, 0xffffffff, 0x254, 0, 0, 0, 0x106, 0,
         8, 10, 9, 10, 0xb);
     m_next_1af8->EnableRegionHelp(0xdc);
     m_next_1af8->m_listener = this;
 
-    m_previous_1af4 = new W8TextControl005ED604(
+    m_previous_1af4 = new W8TextControl(
         m_controls_1af0, 0xffffffff, 0x228, 0, 0, 0, 0x106, 0,
         0xc, 0xe, 0xd, 0xe, 0xf);
     m_previous_1af4->EnableRegionHelp(0xdd);
     m_previous_1af4->m_listener = this;
 
-    m_exit_1afc = new W8TextControl005ED604(
+    m_exit_1afc = new W8TextControl(
         m_controls_1af0, 0xffffffff, 0x1fc, 0, 0, 0, 0x106, 0,
         0x14, 0x16, 0x15, 0x16, 0x17);
     m_exit_1afc->EnableRegionHelp(0xde);
     m_exit_1afc->m_listener = this;
 
-    m_accept_1b00 = new W8TextControl005ED604(
+    m_accept_1b00 = new W8TextControl(
         m_controls_1af0, 0xffffffff, 0x1d0, 0, 0, 0, 0x106, 0,
         4, 6, 5, 6, 7);
     m_accept_1b00->EnableRegionHelp(0xdf);
     m_accept_1b00->m_listener = this;
 
-    m_reset_1b04 = new W8TextControl005ED604(
+    m_reset_1b04 = new W8TextControl(
         m_controls_1af0, 0xffffffff, 0, 0, 0, 0, 0x106, 0,
         0x1d, 0x1f, 0x1e, 0x1f, 0x20);
     m_reset_1b04->EnableRegionHelp(0xe1);
@@ -271,7 +275,7 @@ void W8CharacterScreen::ShowDialog005B08E0(int value)
 }
 
 // FUNCTION: WIZ8 0x005b0a40
-void W8CharacterScreen::OnPrimary(W8TextControl005ED604* control)
+void W8CharacterScreen::OnPrimary(W8TextControl* control)
 {
     if (control == m_accept_1b00) {
         if (m_mode_008 == 1 && !m_exit_1afc->m_enabled) {
@@ -307,7 +311,7 @@ void W8CharacterScreen::OnPrimary(W8TextControl005ED604* control)
     }
 }
 
-void W8CharacterScreen::OnSecondary(W8TextControl005ED604*)
+void W8CharacterScreen::OnSecondary(W8TextControl*)
 {
 }
 
@@ -422,19 +426,19 @@ void W8CharacterScreen::SelectPage(int index)
     int next = index + 1;
     while (next < 4 && m_page_enabled_1b08[next] == 0) ++next;
     if (next == 4) {
-        m_next_1af8->m_text_48 = 0x10;
-        m_next_1af8->m_text_4c = 0x12;
-        m_next_1af8->m_text_50 = 0x12;
-        m_next_1af8->m_text_54 = 0x11;
-        m_next_1af8->m_text_58 = 0x13;
+        m_next_1af8->m_normalSprite = 0x10;
+        m_next_1af8->m_pressedSprite = 0x12;
+        m_next_1af8->m_alternatePressedSprite = 0x12;
+        m_next_1af8->m_alternateNormalSprite = 0x11;
+        m_next_1af8->m_disabledSprite = 0x13;
         m_next_1af8->EnableRegionHelp(0xe0);
     }
     else {
-        m_next_1af8->m_text_48 = 8;
-        m_next_1af8->m_text_4c = 10;
-        m_next_1af8->m_text_50 = 10;
-        m_next_1af8->m_text_54 = 9;
-        m_next_1af8->m_text_58 = 0xb;
+        m_next_1af8->m_normalSprite = 8;
+        m_next_1af8->m_pressedSprite = 10;
+        m_next_1af8->m_alternatePressedSprite = 10;
+        m_next_1af8->m_alternateNormalSprite = 9;
+        m_next_1af8->m_disabledSprite = 0xb;
         m_next_1af8->EnableRegionHelp(0xdc);
     }
     m_controls_1af0->Invalidate(0);
@@ -463,7 +467,7 @@ void W8CharacterScreen::SyncCharacterForPage(int index)
 // FUNCTION: WIZ8 0x005b1110
 void W8CharacterScreen::DrawHeader()
 {
-    W8TextBuffer005ED5B8 text;
+    W8TextBuffer text;
     DrawCatalogImageAndInvalidate(-14, 0x107, 0, 0, 0xc3, 0, 2, 0);
     W8ControlsRect bounds = {0xc3, 0, 0x285, 0x2c};
     text.SetLayoutBounds(&bounds, 1, 1);

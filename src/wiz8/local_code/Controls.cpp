@@ -1,3 +1,9 @@
+#include "wiz8/local_code/ControlsRect.h"
+#include "wiz8/local_code/TextBuffer.h"
+#include "wiz8/local_code/Widget.h"
+#include "wiz8/local_code/TextControl.h"
+#include "wiz8/local_code/RangeControl.h"
+#include "wiz8/local_code/ControlSelection.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/cursor.h"
 #include "wiz8/dirty_tiles.h"
@@ -14,27 +20,9 @@
 
 #include <wchar.h>
 
-/* Local Code\Controls.cpp. m_uiRegionSetId is named by the canonical assertion
-   at line 399, and REGSET_NULL is zero because the body's guard is a plain
-   test against zero.
-
-   The 18-slot widget base at vtable 0x005ED5BC lives here too. Ghidra
-   attributes 0x004F3D90, 0x004F3DD0 and 0x004F4020 to this file by bounded
-   interval, and the class the constructor registers into is this one: the
-   region set it reads sits at +0x48, which is where the assertion puts
-   m_uiRegionSetId. It had been recovered separately against an invented
-   Controls of its own, so this merges the two rather than leaving one
-   address described by two structures.
-
-   The image names neither the widget class nor most of its fields, so they
-   carry address-qualified positional names. The member at +0x1c is the
-   exception: the assertion at Controls.cpp:1849 reads m_pPanel != NULL, and
-   the pointer it guards is the one the constructor stores there and registers
-   into, so that member is named by the original source. It had been called
-   m_owner here, which was a guess at the same thing. The three remaining Controls members
-   below are positional for the same reason - only m_uiRegionSetId is spoken
-   for by the assertion - so they are spelled in the file's style without
-   claiming that style is evidence. */
+/* Original Local Code\Controls.cpp translation unit. Keep these implementations
+   together and preserve their order. Retail assertions identify m_uiRegionSetId
+   (line 399) and the widget's m_pPanel (line 1849); other role names are recovered. */
 #define REGSET_NULL 0
 
 // GLOBAL: WIZ8 0x005ED548
@@ -49,6 +37,8 @@ extern const unsigned int g_W8TextBufferLayoutMask005ED554 = 0x08;
 extern const unsigned int g_W8TextBufferLayoutMask005ED558 = 0x10;
 // GLOBAL: WIZ8 0x005ED55C
 extern const unsigned int g_W8TextBufferLayoutMask005ED55C = 0x20;
+// GLOBAL: WIZ8 0x005ED560
+extern const unsigned int g_W8TextBufferLayoutMask005ED560 = 0x40;
 // GLOBAL: WIZ8 0x005ED56C
 extern const unsigned int g_W8TextControlMask005ED56C = 0x01;
 // GLOBAL: WIZ8 0x005ED570
@@ -66,11 +56,6 @@ extern const unsigned int g_W8TextControlMask005ED594 = 0x80;
 
 // TEMPLATE: WIZ8 0x004f68c0
 // W8GrowableVector<W8Widget*>::~W8GrowableVector<W8Widget*>
-
-/* The class at vtable 0x005ED5A4 is Controls itself. Its embedded vector at
-   +0x38 stores the widget pointers walked by every panel method; the former
-   W8Control005ED5A4 declaration duplicated this same layout under a candidate
-   name and hid that proven element type. */
 
 /* The default constructor. Everything the seven-argument one takes from its
    caller, this one zeroes or sets to -1. */
@@ -400,16 +385,16 @@ void W8Widget::SetRegion(unsigned int region)
 
 
 // SYNTHETIC: WIZ8 0x004f3370
-// W8TextBuffer005ED5B8::`scalar deleting destructor'
+// W8TextBuffer::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x004f3480
-W8TextBuffer005ED5B8::~W8TextBuffer005ED5B8()
+W8TextBuffer::~W8TextBuffer()
 {
     delete[] m_buffer;
 }
 
 // FUNCTION: WIZ8 0x004f3310
-W8TextBuffer005ED5B8::W8TextBuffer005ED5B8()
+W8TextBuffer::W8TextBuffer()
 {
     m_buffer = 0;
     m_font = 0;
@@ -433,7 +418,7 @@ W8TextBuffer005ED5B8::W8TextBuffer005ED5B8()
 }
 
 // FUNCTION: WIZ8 0x004f33a0
-W8TextBuffer005ED5B8::W8TextBuffer005ED5B8(const W8ControlsRect* bounds,
+W8TextBuffer::W8TextBuffer(const W8ControlsRect* bounds,
                                            const wchar_t* text,
                                            int font,
                                            unsigned int layout_mode,
@@ -472,7 +457,7 @@ W8TextBuffer005ED5B8::W8TextBuffer005ED5B8(const W8ControlsRect* bounds,
 }
 
 // FUNCTION: WIZ8 0x004f34a0
-void W8TextBuffer005ED5B8::SetLayoutMode(unsigned int layout_mode)
+void W8TextBuffer::SetLayoutMode(unsigned int layout_mode)
 {
     m_layoutMode = layout_mode;
     if ((m_layoutMode & 7) == 0) {
@@ -484,7 +469,7 @@ void W8TextBuffer005ED5B8::SetLayoutMode(unsigned int layout_mode)
 }
 
 // FUNCTION: WIZ8 0x004f34d0
-void W8TextBuffer005ED5B8::SetText(const wchar_t* text, int font)
+void W8TextBuffer::SetText(const wchar_t* text, int font)
 {
     m_font = font;
     m_lineCount = 0;
@@ -501,7 +486,7 @@ void W8TextBuffer005ED5B8::SetText(const wchar_t* text, int font)
 }
 
 // FUNCTION: WIZ8 0x004f3540
-void W8TextBuffer005ED5B8::SetLayoutBounds(const W8ControlsRect* bounds,
+void W8TextBuffer::SetLayoutBounds(const W8ControlsRect* bounds,
                                            unsigned char copy_pending,
                                            unsigned char update_layout)
 {
@@ -516,7 +501,7 @@ void W8TextBuffer005ED5B8::SetLayoutBounds(const W8ControlsRect* bounds,
 }
 
 // FUNCTION: WIZ8 0x004f35b0
-void W8TextBuffer005ED5B8::UpdateLayout()
+void W8TextBuffer::UpdateLayout()
 {
     unsigned int available_width = m_layoutBounds.right - m_layoutBounds.left;
     wchar_t* line = m_buffer;
@@ -575,7 +560,7 @@ void W8TextBuffer005ED5B8::UpdateLayout()
 
 /* Resolves one measured line against the horizontal alignment flags. */
 // FUNCTION: WIZ8 0x004f3c00
-int W8TextBuffer005ED5B8::GetHorizontalPosition(int width)
+int W8TextBuffer::GetHorizontalPosition(int width)
 {
     if ((m_layoutMode & 2) != 0) {
         int inset = (m_layoutBounds.right - m_layoutBounds.left - width) / 2;
@@ -597,7 +582,7 @@ int W8TextBuffer005ED5B8::GetHorizontalPosition(int width)
 /* Resolves the first baseline from the line count, line height and vertical
    alignment flags, including the font's own height inside a larger override. */
 // FUNCTION: WIZ8 0x004f3c50
-int W8TextBuffer005ED5B8::GetVerticalPosition()
+int W8TextBuffer::GetVerticalPosition()
 {
     unsigned int line_height = m_lineHeight;
     unsigned int font_height = GetFontHeight(m_font);
@@ -625,7 +610,7 @@ int W8TextBuffer005ED5B8::GetVerticalPosition()
 
 /* Rejects an override smaller than the active font's natural line height. */
 // FUNCTION: WIZ8 0x004f3cf0
-void W8TextBuffer005ED5B8::SetLineHeight(unsigned int height)
+void W8TextBuffer::SetLineHeight(unsigned int height)
 {
     if (height < GetFontHeight(m_font)) {
         m_lineHeight = 0;
@@ -637,7 +622,7 @@ void W8TextBuffer005ED5B8::SetLineHeight(unsigned int height)
 /* Fills the current text rectangle on the standard UI surface and queues the
    same rectangle for composition. */
 // FUNCTION: WIZ8 0x004f3d50
-void W8TextBuffer005ED5B8::FillBounds(int colour)
+void W8TextBuffer::FillBounds(int colour)
 {
     ColorFillVideoSurfaceArea(-14, m_layoutBounds.left, m_layoutBounds.top,
                               m_layoutBounds.right, m_layoutBounds.bottom, colour);
@@ -648,7 +633,7 @@ void W8TextBuffer005ED5B8::FillBounds(int colour)
 /* Draws each newline-delimited line through the active font context. The
    temporary terminators are restored before advancing to the next line. */
 // FUNCTION: WIZ8 0x004f3710
-void W8TextBuffer005ED5B8::RenderText(int a, int b, int x_offset, int y_offset,
+void W8TextBuffer::RenderText(int a, int b, int x_offset, int y_offset,
                                      unsigned char force)
 {
     wchar_t* line = m_buffer;
@@ -720,7 +705,7 @@ done:
    shares the buffer's layout and palette state but prints directly to the
    selected target, then restores the full-screen clip. */
 // FUNCTION: WIZ8 0x004f39b0
-void W8TextBuffer005ED5B8::RenderToTarget(
+void W8TextBuffer::RenderToTarget(
     int offset, unsigned char force, int target)
 {
     wchar_t* line = m_buffer;
@@ -783,7 +768,7 @@ done:
 /* Copies the owned text into caller storage. The caller supplies the capacity;
    the canonical method performs the same unbounded wide-string copy. */
 // FUNCTION: WIZ8 0x004f3990
-void W8TextBuffer005ED5B8::CopyTextTo(wchar_t* destination)
+void W8TextBuffer::CopyTextTo(wchar_t* destination)
 {
     wcscpy(destination, m_buffer);
 }
@@ -791,7 +776,7 @@ void W8TextBuffer005ED5B8::CopyTextTo(wchar_t* destination)
 /* Returns the cached line height, falling back to the active font's 16-bit
    height when the cache is zero. */
 // FUNCTION: WIZ8 0x004f3d30
-unsigned int W8TextBuffer005ED5B8::GetLineHeight()
+unsigned int W8TextBuffer::GetLineHeight()
 {
     unsigned int height = m_lineHeight;
     if (height == 0) {
@@ -802,7 +787,7 @@ unsigned int W8TextBuffer005ED5B8::GetLineHeight()
 
 /* The text-control declaration is shared in Controls.h so every consumer sees
    the same 20-slot hierarchy and its embedded W8TextBuffer at +0x60. */
-__forceinline void W8TextControl005ED604::InvalidateCore(unsigned char immediate)
+__forceinline void W8TextControl::InvalidateCore(unsigned char immediate)
 {
     if (m_pPanel != 0) {
         m_dirty = 1;
@@ -820,19 +805,19 @@ __forceinline void W8TextControl005ED604::InvalidateCore(unsigned char immediate
 /* The empty text control used as a base by controls that finish their setup
    later. */
 // FUNCTION: WIZ8 0x004f4160
-W8TextControl005ED604::W8TextControl005ED604()
+W8TextControl::W8TextControl()
 {
     m_stateFlags = 0;
     m_flags_38 = 0;
     m_alternateTextEnabled = 0;
-    m_text_40 = -1;
-    m_text_44 = -1;
-    m_text_48 = -1;
-    m_text_4c = -1;
-    m_text_50 = -1;
-    m_text_54 = -1;
-    m_text_58 = -1;
-    m_field_b0 = 1;
+    m_imageObject = -1;
+    m_imageFrame = -1;
+    m_normalSprite = -1;
+    m_pressedSprite = -1;
+    m_alternatePressedSprite = -1;
+    m_alternateNormalSprite = -1;
+    m_disabledSprite = -1;
+    m_pressedTextOffset = 1;
     m_listener = 0;
     m_textBuffer.MarkGeometryDirty(10);
 }
@@ -843,25 +828,25 @@ W8TextControl005ED604::W8TextControl005ED604()
    shorts are fixed by the constructor's direct stores and GetCatalogImageSize call;
    their descriptive identities remain unknown. */
 // FUNCTION: WIZ8 0x004f4250
-W8TextControl005ED604::W8TextControl005ED604(
+W8TextControl::W8TextControl(
     Controls* panel, unsigned int region,
     int left, int top, int right, int bottom,
     int text_40, int text_44, int text_48, int text_4c,
     int text_54, int text_50, int text_58)
     : W8Widget(panel, region, left, top, right, bottom)
 {
-    m_text_4c = text_4c;
-    m_text_50 = text_50;
-    m_text_54 = text_54;
+    m_pressedSprite = text_4c;
+    m_alternatePressedSprite = text_50;
+    m_alternateNormalSprite = text_54;
     m_stateFlags = 0;
     m_alternateTextEnabled = 0;
-    m_text_40 = text_40;
-    m_text_44 = text_44;
-    m_text_48 = text_48;
-    m_text_58 = text_58;
+    m_imageObject = text_40;
+    m_imageFrame = text_44;
+    m_normalSprite = text_48;
+    m_disabledSprite = text_58;
     m_flags_38 = 0;
     m_listener = 0;
-    m_field_b0 = 1;
+    m_pressedTextOffset = 1;
 
     int measured_text = text_48;
     if (text_40 == -1 || text_44 == -1 ||
@@ -894,13 +879,13 @@ W8TextControl005ED604::W8TextControl005ED604(
 /* Refresh the cached extent from the preferred text handle, falling back to
    the alternate handle. */
 // FUNCTION: WIZ8 0x004F4800
-unsigned char W8TextControl005ED604::MeasureText004F4800()
+unsigned char W8TextControl::MeasureText004F4800()
 {
     int handle;
 
-    if (m_text_40 != -1 && m_text_44 != -1 &&
-        ((handle = m_text_48) != -1 || (handle = m_text_4c) != -1)) {
-        GetCatalogImageSize(m_text_40, m_text_44, handle,
+    if (m_imageObject != -1 && m_imageFrame != -1 &&
+        ((handle = m_normalSprite) != -1 || (handle = m_pressedSprite) != -1)) {
+        GetCatalogImageSize(m_imageObject, m_imageFrame, handle,
                        &m_measured_w, &m_measured_h);
         return 1;
     }
@@ -912,7 +897,7 @@ unsigned char W8TextControl005ED604::MeasureText004F4800()
 /* Where the text should be drawn: the panel origin plus either the widget's
    corner or an alignment computed from its cached measured extent. */
 // FUNCTION: WIZ8 0x004f4850
-void W8TextControl005ED604::GetTextOrigin(int unused, int* px, int* py)
+void W8TextControl::GetTextOrigin(int unused, int* px, int* py)
 {
     short* measured;
     short width;
@@ -930,18 +915,18 @@ void W8TextControl005ED604::GetTextOrigin(int unused, int* px, int* py)
     *py = m_pPanel->origin_y;
     width = *measured;
     if (width == -1 || m_measured_h == -1) {
-        if (m_text_40 == -1 || m_text_44 == -1) {
+        if (m_imageObject == -1 || m_imageFrame == -1) {
             *measured = -1;
             m_measured_h = -1;
             goto plain;
         }
-        handle = m_text_48;
-        if (handle == -1 && (handle = m_text_4c, handle == -1)) {
+        handle = m_normalSprite;
+        if (handle == -1 && (handle = m_pressedSprite, handle == -1)) {
             *measured = -1;
             m_measured_h = -1;
             goto plain;
         }
-        GetCatalogImageSize(m_text_40, m_text_44, handle, measured, &m_measured_h);
+        GetCatalogImageSize(m_imageObject, m_imageFrame, handle, measured, &m_measured_h);
         if ((m_flags_38 & 0x80) != 0) {
             *px = *px + m_left;
             *py = *py + m_top;
@@ -976,7 +961,7 @@ plain:
 }
 
 // FUNCTION: WIZ8 0x004f4990
-void W8TextControl005ED604::Redraw(int full_redraw)
+void W8TextControl::Redraw(int full_redraw)
 {
     if (m_active == 0 || m_pPanel == 0) {
         return;
@@ -984,7 +969,7 @@ void W8TextControl005ED604::Redraw(int full_redraw)
 
     int text_state = 0;
     if ((m_stateFlags & 1) != 0 && (m_flags_38 & 2) == 0) {
-        text_state = m_field_b0;
+        text_state = m_pressedTextOffset;
     }
 
     if (full_redraw == 0 && m_dirty == 0) {
@@ -994,7 +979,7 @@ void W8TextControl005ED604::Redraw(int full_redraw)
         return;
     }
 
-    if (m_text_40 == -1 || m_text_44 == -1) {
+    if (m_imageObject == -1 || m_imageFrame == -1) {
         if (m_textBuffer.HasBuffer()) {
             m_textBuffer.RenderToTarget(
                 text_state, static_cast<unsigned char>(full_redraw), -14);
@@ -1004,7 +989,7 @@ void W8TextControl005ED604::Redraw(int full_redraw)
 
     int sprite;
     if (m_enabled == 0) {
-        sprite = m_text_58;
+        sprite = m_disabledSprite;
         if (sprite == -1) {
             if (m_textBuffer.HasBuffer()) {
                 m_textBuffer.RenderToTarget(
@@ -1019,11 +1004,11 @@ void W8TextControl005ED604::Redraw(int full_redraw)
             return;
         }
     } else if ((m_stateFlags & 1) == 0) {
-        sprite = m_alternateTextEnabled != 0 && m_text_54 != -1
-            ? m_text_54 : m_text_48;
+        sprite = m_alternateTextEnabled != 0 && m_alternateNormalSprite != -1
+            ? m_alternateNormalSprite : m_normalSprite;
     } else {
-        sprite = m_alternateTextEnabled != 0 && m_text_50 != -1
-            ? m_text_50 : m_text_4c;
+        sprite = m_alternateTextEnabled != 0 && m_alternatePressedSprite != -1
+            ? m_alternatePressedSprite : m_pressedSprite;
     }
 
     int x;
@@ -1033,7 +1018,7 @@ void W8TextControl005ED604::Redraw(int full_redraw)
         if (m_alternateTextEnabled != 0) {
             short width;
             short height;
-            GetCatalogImageSize(m_text_40, m_text_44, sprite, &width, &height);
+            GetCatalogImageSize(m_imageObject, m_imageFrame, sprite, &width, &height);
             int x_inset = m_left - m_right + (unsigned short)width;
             int y_inset = m_top - m_bottom + (unsigned short)height;
             if (x_inset > 0) {
@@ -1043,7 +1028,7 @@ void W8TextControl005ED604::Redraw(int full_redraw)
                 y += y_inset / 2;
             }
         }
-        DrawCatalogImageAndInvalidate(-14, m_text_40, m_text_44, sprite, x, y, 2, 0);
+        DrawCatalogImageAndInvalidate(-14, m_imageObject, m_imageFrame, sprite, x, y, 2, 0);
     }
 
     if (m_textBuffer.HasBuffer()) {
@@ -1055,7 +1040,7 @@ void W8TextControl005ED604::Redraw(int full_redraw)
 }
 
 // FUNCTION: WIZ8 0x004f4460
-void W8TextControl005ED604::SetBoundsFromRect(const W8ControlsRect* bounds)
+void W8TextControl::SetBoundsFromRect(const W8ControlsRect* bounds)
 {
     SetBounds(bounds->left, bounds->top, bounds->right, bounds->bottom);
     if (m_region != -1 && m_pPanel != 0) {
@@ -1068,7 +1053,7 @@ void W8TextControl005ED604::SetBoundsFromRect(const W8ControlsRect* bounds)
 }
 
 // FUNCTION: WIZ8 0x004f44d0
-void W8TextControl005ED604::SetBounds(int left, int top, int right, int bottom)
+void W8TextControl::SetBounds(int left, int top, int right, int bottom)
 {
     short measured_width;
     short measured_height;
@@ -1090,8 +1075,8 @@ void W8TextControl005ED604::SetBounds(int left, int top, int right, int bottom)
             int absolute_top = m_pPanel->origin_y + top;
             int absolute_right = m_pPanel->origin_x + right;
             int absolute_bottom = m_pPanel->origin_y + bottom;
-            if (m_text_40 != -1 && m_text_44 != -1) {
-                GetCatalogImageSize(m_text_40, m_text_44, m_text_48,
+            if (m_imageObject != -1 && m_imageFrame != -1) {
+                GetCatalogImageSize(m_imageObject, m_imageFrame, m_normalSprite,
                                &measured_width, &measured_height);
                 if ((m_flags_38 & 4) != 0) {
                     absolute_left += 2 + (unsigned short)measured_width;
@@ -1110,13 +1095,13 @@ void W8TextControl005ED604::SetBounds(int left, int top, int right, int bottom)
 }
 
 // FUNCTION: WIZ8 0x004f4650
-void W8TextControl005ED604::Invalidate(unsigned char immediate)
+void W8TextControl::Invalidate(unsigned char immediate)
 {
     InvalidateCore(immediate);
 }
 
 // FUNCTION: WIZ8 0x004f4600
-void W8TextControl005ED604::SetFlaggedRegionBounds(short left, short top,
+void W8TextControl::SetFlaggedRegionBounds(short left, short top,
                                                    unsigned short right)
 {
     if (m_region != -1 && m_pPanel != 0 && RegionHasFlags(m_region, 2)) {
@@ -1129,7 +1114,7 @@ void W8TextControl005ED604::SetFlaggedRegionBounds(short left, short top,
 }
 
 // FUNCTION: WIZ8 0x004f46a0
-void W8TextControl005ED604::AddLayoutFlags(unsigned int flags)
+void W8TextControl::AddLayoutFlags(unsigned int flags)
 {
     short measured_width;
     short measured_height;
@@ -1140,8 +1125,8 @@ void W8TextControl005ED604::AddLayoutFlags(unsigned int flags)
         int absolute_top = m_pPanel->origin_y + m_top;
         int absolute_right = m_pPanel->origin_x + m_right;
         int absolute_bottom = m_pPanel->origin_y + m_bottom;
-        if (m_text_40 != -1 && m_text_44 != -1) {
-            GetCatalogImageSize(m_text_40, m_text_44, m_text_48,
+        if (m_imageObject != -1 && m_imageFrame != -1) {
+            GetCatalogImageSize(m_imageObject, m_imageFrame, m_normalSprite,
                            &measured_width, &measured_height);
             if ((m_flags_38 & 4) != 0) {
                 absolute_left += 2 + (unsigned short)measured_width;
@@ -1159,7 +1144,7 @@ void W8TextControl005ED604::AddLayoutFlags(unsigned int flags)
 }
 
 // FUNCTION: WIZ8 0x004f4780
-void W8TextControl005ED604::RemoveLayoutFlags(unsigned int flags)
+void W8TextControl::RemoveLayoutFlags(unsigned int flags)
 {
     if ((flags & 2) != 0 && m_pPanel != 0) {
         m_textBuffer.SetLayoutBounds(m_pPanel->origin_x + m_left,
@@ -1175,7 +1160,7 @@ void W8TextControl005ED604::RemoveLayoutFlags(unsigned int flags)
 }
 
 // FUNCTION: WIZ8 0x004f4c40
-void W8TextControl005ED604::EnableSecondaryState(unsigned char immediate)
+void W8TextControl::EnableSecondaryState(unsigned char immediate)
 {
     if ((m_flags_38 & 1) != 0 && (m_stateFlags & 2) == 0) {
         m_stateFlags |= g_W8TextControlMask005ED56C;
@@ -1185,7 +1170,7 @@ void W8TextControl005ED604::EnableSecondaryState(unsigned char immediate)
 }
 
 // FUNCTION: WIZ8 0x004f4cb0
-void W8TextControl005ED604::DisableSecondaryState(unsigned char immediate)
+void W8TextControl::DisableSecondaryState(unsigned char immediate)
 {
     if ((m_flags_38 & 1) != 0 && (m_stateFlags & 2) != 0) {
         m_stateFlags &= ~g_W8TextControlMask005ED56C;
@@ -1195,7 +1180,7 @@ void W8TextControl005ED604::DisableSecondaryState(unsigned char immediate)
 }
 
 // FUNCTION: WIZ8 0x004f4d30
-void W8TextControl005ED604::OnMouseEnter(int event)
+void W8TextControl::OnMouseEnter(int event)
 {
     if (m_active == 0) {
         return;
@@ -1210,10 +1195,10 @@ void W8TextControl005ED604::OnMouseEnter(int event)
     }
 
     if ((m_stateFlags & 1) == 0) {
-        if (m_text_54 == -1) {
+        if (m_alternateNormalSprite == -1) {
             return;
         }
-    } else if (m_text_50 == -1) {
+    } else if (m_alternatePressedSprite == -1) {
         return;
     }
 
@@ -1222,7 +1207,7 @@ void W8TextControl005ED604::OnMouseEnter(int event)
 }
 
 // FUNCTION: WIZ8 0x004f4e00
-void W8TextControl005ED604::OnMouseLeave(int event)
+void W8TextControl::OnMouseLeave(int event)
 {
     if (m_active == 0) {
         return;
@@ -1244,7 +1229,7 @@ void W8TextControl005ED604::OnMouseLeave(int event)
     }
 
     if ((m_stateFlags & 1) == 0) {
-        if (m_text_54 == -1) {
+        if (m_alternateNormalSprite == -1) {
             return;
         }
         SetAlternateTextEnabled(0);
@@ -1252,7 +1237,7 @@ void W8TextControl005ED604::OnMouseLeave(int event)
         return;
     }
 
-    if (m_text_50 != -1 || (m_text_54 != -1 && (m_flags_38 & 0x10) != 0)) {
+    if (m_alternatePressedSprite != -1 || (m_alternateNormalSprite != -1 && (m_flags_38 & 0x10) != 0)) {
         SetAlternateTextEnabled(0);
         InvalidateCore((unsigned char)event);
     }
@@ -1264,7 +1249,7 @@ void W8TextControl005ED604::OnMouseLeave(int event)
 }
 
 // FUNCTION: WIZ8 0x004f4f70
-void W8TextControl005ED604::OnLeftButtonDown(int event)
+void W8TextControl::OnLeftButtonDown(int event)
 {
     if (m_active == 0) {
         if (m_enabled != 0) {
@@ -1283,7 +1268,7 @@ void W8TextControl005ED604::OnLeftButtonDown(int event)
 
     if ((m_flags_38 & 1) == 0) {
         m_stateFlags |= g_W8TextControlMask005ED56C;
-        if (m_text_40 != -1 && m_text_44 != -1) {
+        if (m_imageObject != -1 && m_imageFrame != -1) {
             InvalidateCore((unsigned char)event);
         }
     } else if ((m_stateFlags & 1) == 0) {
@@ -1300,7 +1285,7 @@ void W8TextControl005ED604::OnLeftButtonDown(int event)
 }
 
 // FUNCTION: WIZ8 0x004f5070
-void W8TextControl005ED604::OnRightButtonDown(int)
+void W8TextControl::OnRightButtonDown(int)
 {
     if ((m_active != 0 && m_enabled != 0)) {
         if ((m_flags_38 & 0x20) != 0) {
@@ -1318,7 +1303,7 @@ void W8TextControl005ED604::OnRightButtonDown(int)
 }
 
 // FUNCTION: WIZ8 0x004f50c0
-void W8TextControl005ED604::OnLeftButtonUp(int event)
+void W8TextControl::OnLeftButtonUp(int event)
 {
     if (m_active == 0) {
         return;
@@ -1367,7 +1352,7 @@ void W8TextControl005ED604::OnLeftButtonUp(int event)
 }
 
 // FUNCTION: WIZ8 0x004f5290
-void W8TextControl005ED604::OnRightButtonUp(int)
+void W8TextControl::OnRightButtonUp(int)
 {
     if (m_active == 0) {
         if (m_enabled != 0) {
@@ -1397,7 +1382,7 @@ void W8TextControl005ED604::OnRightButtonUp(int)
 }
 
 // FUNCTION: WIZ8 0x004f5230
-void W8TextControl005ED604::ActivatePrimary(int)
+void W8TextControl::ActivatePrimary(int)
 {
     if ((m_flags_38 & 0x100) != 0 && m_active != 0 && m_enabled != 0 &&
         (m_stateFlags & 1) != 0) {
@@ -1415,7 +1400,7 @@ void W8TextControl005ED604::ActivatePrimary(int)
 }
 
 // FUNCTION: WIZ8 0x004f5310
-void W8TextControl005ED604::OnLeftButtonDoubleClick(int)
+void W8TextControl::OnLeftButtonDoubleClick(int)
 {
     if (m_active != 0 && m_enabled != 0) {
         if ((m_flags_38 & 0x20) != 0) {
@@ -1436,7 +1421,7 @@ void W8TextControl005ED604::OnLeftButtonDoubleClick(int)
 }
 
 // FUNCTION: WIZ8 0x004f5360
-void W8TextControl005ED604::ActivateSecondary(int)
+void W8TextControl::ActivateSecondary(int)
 {
     if ((m_flags_38 & 0x100) != 0 && m_active != 0 && m_enabled != 0) {
         m_stateFlags |= 4;
@@ -1453,7 +1438,7 @@ void W8TextControl005ED604::ActivateSecondary(int)
 }
 
 // FUNCTION: WIZ8 0x004f53b0
-void W8TextControl005ED604::UpdateTextBounds(int left, int top, int right, int bottom)
+void W8TextControl::UpdateTextBounds(int left, int top, int right, int bottom)
 {
     W8ControlsRect absolute = {
         m_pPanel->origin_x + left,
@@ -1469,47 +1454,50 @@ void W8TextControl005ED604::UpdateTextBounds(int left, int top, int right, int b
 }
 
 // FUNCTION: WIZ8 0x004f5410
-void W8TextControl005ED604::SetEnabled(unsigned char enabled)
+void W8TextControl::SetEnabled(unsigned char enabled)
 {
     m_enabled = enabled;
     if (enabled == 0) {
-        if (m_text_58 != -1) {
+        if (m_disabledSprite != -1) {
             m_textBuffer.SetRenderMode(7);
         }
-    } else if (m_text_58 != -1) {
+    } else if (m_disabledSprite != -1) {
         m_textBuffer.SetRenderMode(4);
     }
 }
 
 // FUNCTION: WIZ8 0x004f69a0
-void W8TextControl005ED604::SetAlternateTextEnabled(unsigned char enabled)
+void W8TextControl::SetAlternateTextEnabled(unsigned char enabled)
 {
     m_alternateTextEnabled = enabled;
 }
 
 // FUNCTION: WIZ8 0x004f65e0
-W8HelpTextControl005ED758::W8HelpTextControl005ED758(
+W8HelpTextControl::W8HelpTextControl(
     Controls* panel, unsigned int region,
     int left, int top, int right, int bottom)
-    : W8TextControl005ED604(panel, region, left, top, right, bottom,
+    : W8TextControl(panel, region, left, top, right, bottom,
                            -1, -1, -1, -1, -1, -1, -1)
 {
     wcscpy(m_regionHelp, L"");
 }
 
-class W8RangeControl005ED74C;
+class W8RangeControl;
 
-class W8VerticalRangeThumb005ED6B4 : public W8Widget {
+// VTABLE: WIZ8 0x005ed6b4
+class W8VerticalRangeThumb : public W8Widget {
 public:
-    W8VerticalRangeThumb005ED6B4(W8RangeControl005ED74C* range,
+    W8VerticalRangeThumb(W8RangeControl* range,
                                  int left, int top, int right, int bottom,
                                  int render_arg, int normal_sprite,
                                  int hovered_sprite, int disabled_sprite);
     virtual void Redraw(int full_redraw) override;
     void AdjustValue(int steps) override;
-    void BeginDrag(int event);
-    void EndDrag(int event);
-    void UpdateDrag(int event);
+    virtual void OnMouseEnter(int event) override;
+    virtual void OnMouseLeave(int event) override;
+    virtual void OnLeftButtonDown(int event) override;
+    virtual void OnLeftButtonUp(int event) override;
+    virtual void OnMouseMove(int event) override;
     __forceinline void SetRangePosition(float position)
     {
         m_position = position;
@@ -1547,19 +1535,19 @@ protected:
     float m_minimumPosition;             /* 0x60 */
     float m_maximumPosition;             /* 0x64 */
     float m_position;                    /* 0x68 */
-    W8RangeControl005ED74C* m_range;     /* 0x6c */
+    W8RangeControl* m_range;     /* 0x6c */
 
     void ClampPositionAndInvalidate();
     void SynchronizeRangeValue();
 };
 
-__forceinline W8RangeButton005ED6FC::W8RangeButton005ED6FC(
+__forceinline W8RangeButton::W8RangeButton(
     Controls* panel, unsigned int region,
     int left, int top, int right, int bottom,
     int text_40, int text_44, int text_48, int text_4c,
     int text_54, int text_50, int text_58,
-    short direction, W8RangeControl005ED74C* range)
-    : W8TextControl005ED604(panel, region, left, top, right, bottom,
+    short direction, W8RangeControl* range)
+    : W8TextControl(panel, region, left, top, right, bottom,
                            text_40, text_44, text_48, text_4c,
                            text_54, text_50, text_58),
       m_direction(direction), m_range(range)
@@ -1571,7 +1559,7 @@ __forceinline W8RangeButton005ED6FC::W8RangeButton005ED6FC(
    allocation sizes, the ordered child construction, and the four EH cleanup
    states. */
 // FUNCTION: WIZ8 0x004f61f0
-W8RangeControl005ED74C::W8RangeControl005ED74C(
+W8RangeControl::W8RangeControl(
     int left, int top, int right, int bottom,
     unsigned int* shared_region_set)
     : Controls(left, top, right, bottom, -1, -1, -1),
@@ -1586,13 +1574,13 @@ W8RangeControl005ED74C::W8RangeControl005ED74C(
     m_uiRegionSetId = *shared_region_set;
     ResetRegionSet(m_uiRegionSetId);
 
-    m_decrement = new W8RangeButton005ED6FC(
+    m_decrement = new W8RangeButton(
         this, 0xffffffff, 0, 0, 0x10, 0x10,
         0x86, 0, 0, 2, 1, 2, 3, 0, this);
-    m_increment = new W8RangeButton005ED6FC(
+    m_increment = new W8RangeButton(
         this, 0xffffffff, 0, height - 0x10, 0x10, height,
         0x86, 0, 8, 10, 9, 10, 0xb, 1, this);
-    m_thumb = new W8VerticalRangeThumb005ED6B4(
+    m_thumb = new W8VerticalRangeThumb(
         this, 0, 0x10, 0x10, height - 0x10, 0x86, 4, 5, -1);
     m_enabled = 0;
 }
@@ -1601,7 +1589,7 @@ W8RangeControl005ED74C::W8RangeControl005ED74C(
    calls in the retail body; the Controls destructor then releases the typed
    embedded vector. */
 // FUNCTION: WIZ8 0x004f63c0
-W8RangeControl005ED74C::~W8RangeControl005ED74C()
+W8RangeControl::~W8RangeControl()
 {
     delete m_decrement;
     delete m_increment;
@@ -1609,7 +1597,7 @@ W8RangeControl005ED74C::~W8RangeControl005ED74C()
 }
 
 // FUNCTION: WIZ8 0x004f6440
-void W8RangeControl005ED74C::SetRange(int first, int second)
+void W8RangeControl::SetRange(int first, int second)
 {
     if (first < second) {
         m_minimum = first;
@@ -1622,7 +1610,7 @@ void W8RangeControl005ED74C::SetRange(int first, int second)
 }
 
 // FUNCTION: WIZ8 0x004f6470
-void W8RangeControl005ED74C::SetValue(int value)
+void W8RangeControl::SetValue(int value)
 {
     m_value = value;
     if (value < m_minimum) {
@@ -1644,7 +1632,7 @@ void W8RangeControl005ED74C::SetValue(int value)
 }
 
 // FUNCTION: WIZ8 0x004f6540
-void W8RangeControl005ED74C::Decrement()
+void W8RangeControl::Decrement()
 {
     if (m_enabled != 0) {
         SetValue(m_value - 1);
@@ -1655,7 +1643,7 @@ void W8RangeControl005ED74C::Decrement()
 }
 
 // FUNCTION: WIZ8 0x004f6570
-void W8RangeControl005ED74C::Increment()
+void W8RangeControl::Increment()
 {
     if (m_enabled != 0) {
         SetValue(m_value + 1);
@@ -1666,7 +1654,7 @@ void W8RangeControl005ED74C::Increment()
 }
 
 // FUNCTION: WIZ8 0x004f65a0
-void W8RangeControl005ED74C::SetRangeEnabled(unsigned char enabled)
+void W8RangeControl::SetRangeEnabled(unsigned char enabled)
 {
     m_enabled = enabled;
     m_decrement->SetEnabled(enabled);
@@ -1674,7 +1662,7 @@ void W8RangeControl005ED74C::SetRangeEnabled(unsigned char enabled)
     m_thumb->SetEnabled(enabled);
 }
 
-__forceinline void W8VerticalRangeThumb005ED6B4::ClampPositionAndInvalidate()
+__forceinline void W8VerticalRangeThumb::ClampPositionAndInvalidate()
 {
     if (m_position < m_minimumPosition) {
         m_position = m_minimumPosition;
@@ -1693,7 +1681,7 @@ __forceinline void W8VerticalRangeThumb005ED6B4::ClampPositionAndInvalidate()
     }
 }
 
-__forceinline void W8VerticalRangeThumb005ED6B4::SynchronizeRangeValue()
+__forceinline void W8VerticalRangeThumb::SynchronizeRangeValue()
 {
     int value = (int)(m_range->m_thumb->m_position *
                       (float)(m_range->m_maximum - m_range->m_minimum + 1)) +
@@ -1711,8 +1699,8 @@ __forceinline void W8VerticalRangeThumb005ED6B4::SynchronizeRangeValue()
 }
 
 // FUNCTION: WIZ8 0x004f5b20
-W8VerticalRangeThumb005ED6B4::W8VerticalRangeThumb005ED6B4(
-    W8RangeControl005ED74C* range, int left, int top, int right, int bottom,
+W8VerticalRangeThumb::W8VerticalRangeThumb(
+    W8RangeControl* range, int left, int top, int right, int bottom,
     int render_arg, int normal_sprite, int hovered_sprite, int disabled_sprite)
     : W8Widget(range, 0xffffffff, left, top, 0, bottom)
 {
@@ -1744,7 +1732,7 @@ W8VerticalRangeThumb005ED6B4::W8VerticalRangeThumb005ED6B4(
 }
 
 // FUNCTION: WIZ8 0x004f5c00
-void W8VerticalRangeThumb005ED6B4::BeginDrag(int event)
+void W8VerticalRangeThumb::OnLeftButtonDown(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
     if (m_enabled != 0) {
@@ -1765,7 +1753,7 @@ void W8VerticalRangeThumb005ED6B4::BeginDrag(int event)
 }
 
 // FUNCTION: WIZ8 0x004f5d30
-void W8VerticalRangeThumb005ED6B4::EndDrag(int event)
+void W8VerticalRangeThumb::OnLeftButtonUp(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
     if (m_enabled != 0 && m_dragging != 0) {
@@ -1775,7 +1763,7 @@ void W8VerticalRangeThumb005ED6B4::EndDrag(int event)
 }
 
 // FUNCTION: WIZ8 0x004f5d70
-void W8VerticalRangeThumb005ED6B4::UpdateDrag(int event)
+void W8VerticalRangeThumb::OnMouseMove(int event)
 {
     if (m_enabled == 0) {
         return;
@@ -1813,7 +1801,7 @@ void W8VerticalRangeThumb005ED6B4::UpdateDrag(int event)
 }
 
 // FUNCTION: WIZ8 0x004f5ef0
-void W8VerticalRangeThumb005ED6B4::AdjustValue(int steps)
+void W8VerticalRangeThumb::AdjustValue(int steps)
 {
     if (steps > 0) {
         do {
@@ -1830,9 +1818,9 @@ void W8VerticalRangeThumb005ED6B4::AdjustValue(int steps)
 }
 
 // FUNCTION: WIZ8 0x004f5f60
-void W8VerticalRangeThumb005ED6B4::Redraw(int full_redraw)
+void W8VerticalRangeThumb::Redraw(int full_redraw)
 {
-    if (m_active == 0 || (full_redraw == 0 && m_dirty == 0)) {
+    if (m_active == 0 || (static_cast<unsigned char>(full_redraw) == 0 && m_dirty == 0)) {
         return;
     }
     int left = m_pPanel->origin_x + m_left;
@@ -1857,9 +1845,9 @@ void W8VerticalRangeThumb005ED6B4::Redraw(int full_redraw)
 }
 
 // FUNCTION: WIZ8 0x004f6050
-void W8RangeButton005ED6FC::OnLeftButtonDown(int event)
+void W8RangeButton::OnLeftButtonDown(int event)
 {
-    W8TextControl005ED604::OnLeftButtonDown(event);
+    W8TextControl::OnLeftButtonDown(event);
     if (m_active != 0 && m_enabled != 0) {
         if (m_direction == 0) {
             m_range->Decrement();
@@ -1870,9 +1858,9 @@ void W8RangeButton005ED6FC::OnLeftButtonDown(int event)
 }
 
 // FUNCTION: WIZ8 0x004f60c0
-void W8RangeButton005ED6FC::ActivatePrimary(int event)
+void W8RangeButton::ActivatePrimary(int event)
 {
-    W8TextControl005ED604::ActivatePrimary(event);
+    W8TextControl::ActivatePrimary(event);
     if (m_active != 0 && m_enabled != 0) {
         if (m_direction == 0) {
             m_range->Decrement();
@@ -1883,7 +1871,7 @@ void W8RangeButton005ED6FC::ActivatePrimary(int event)
 }
 
 // FUNCTION: WIZ8 0x004f6180
-void W8RangeButton005ED6FC::AdjustValue(int steps)
+void W8RangeButton::AdjustValue(int steps)
 {
     if (steps > 0) {
         do {
@@ -1900,7 +1888,7 @@ void W8RangeButton005ED6FC::AdjustValue(int steps)
 }
 
 // FUNCTION: WIZ8 0x004f6680
-void W8HelpTextControl005ED758::SetRegionHelp(const wchar_t* text)
+void W8HelpTextControl::SetRegionHelp(const wchar_t* text)
 {
     if (wcslen(text) < 200) {
         wcscpy(m_regionHelp, text);
@@ -1908,10 +1896,10 @@ void W8HelpTextControl005ED758::SetRegionHelp(const wchar_t* text)
 }
 
 // FUNCTION: WIZ8 0x004f66b0
-void W8HelpTextControl005ED758::OnMouseEnter(int event)
+void W8HelpTextControl::OnMouseEnter(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
-    W8TextControl005ED604::OnMouseEnter(event);
+    W8TextControl::OnMouseEnter(event);
     if (wcslen(m_regionHelp) > 1 && m_region != -1) {
         ::SetRegionHelpText(m_regionHelp);
         ::EnableRegionHelp(m_region);
@@ -1923,30 +1911,30 @@ void W8HelpTextControl005ED758::OnMouseEnter(int event)
 }
 
 // FUNCTION: WIZ8 0x005b7cb0
-void W8HelpTextControl005ED758::OnLeftButtonDown(int event)
+void W8HelpTextControl::OnLeftButtonDown(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
-    W8TextControl005ED604::OnLeftButtonDown(event);
+    W8TextControl::OnLeftButtonDown(event);
 }
 
 // FUNCTION: WIZ8 0x004f6720
-void W8HelpTextControl005ED758::OnRightButtonDown(int event)
+void W8HelpTextControl::OnRightButtonDown(int event)
 {
     if (m_secondaryActivationCallback == 0) {
         PushButtonSoundScheme005587C0(0, 1);
     }
-    W8TextControl005ED604::OnRightButtonDown(event);
+    W8TextControl::OnRightButtonDown(event);
 }
 
 // FUNCTION: WIZ8 0x005b7cd0
-void W8HelpTextControl005ED758::OnLeftButtonUp(int event)
+void W8HelpTextControl::OnLeftButtonUp(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
-    W8TextControl005ED604::OnLeftButtonUp(event);
+    W8TextControl::OnLeftButtonUp(event);
 }
 
 // FUNCTION: WIZ8 0x004f6780
-void W8HelpTextControl005ED758::OnRightButtonUp(int)
+void W8HelpTextControl::OnRightButtonUp(int)
 {
     if (m_secondaryActivationCallback == 0) {
         PushButtonSoundScheme005587C0(0, 1);
@@ -1975,10 +1963,10 @@ void W8HelpTextControl005ED758::OnRightButtonUp(int)
 }
 
 // FUNCTION: WIZ8 0x004f6810
-void W8HelpTextControl005ED758::OnLeftButtonDoubleClick(int event)
+void W8HelpTextControl::OnLeftButtonDoubleClick(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
-    W8TextControl005ED604::OnLeftButtonDoubleClick(event);
+    W8TextControl::OnLeftButtonDoubleClick(event);
 }
 
 /* The vtable at 0x005ED66C is the horizontal draggable range thumb. Its
@@ -1986,27 +1974,29 @@ void W8HelpTextControl005ED758::OnLeftButtonDoubleClick(int event)
    the movable thumb sprite and retains the remaining horizontal travel at
    +0x4c. The interaction methods independently prove that geometry: cursor X
    is converted through +0x4c into the normalized float range +0x60..+0x68. */
-class W8HorizontalRangeThumb005ED66C;
+class W8HorizontalRangeThumb;
 
 class W8HorizontalRangeThumbListener {
 public:
-    virtual void OnDrag(W8HorizontalRangeThumb005ED66C* thumb) = 0;
-    virtual void OnDragEnd(W8HorizontalRangeThumb005ED66C* thumb) = 0;
+    virtual void OnDrag(W8HorizontalRangeThumb* thumb) = 0;
+    virtual void OnDragEnd(W8HorizontalRangeThumb* thumb) = 0;
 };
 
-class W8HorizontalRangeThumb005ED66C : public W8Widget {
+// VTABLE: WIZ8 0x005ed66c
+class W8HorizontalRangeThumb : public W8Widget {
 public:
-    virtual ~W8HorizontalRangeThumb005ED66C() override;
-    W8HorizontalRangeThumb005ED66C(Controls* panel, unsigned int region, int left, int top,
+    virtual ~W8HorizontalRangeThumb() override;
+    W8HorizontalRangeThumb(Controls* panel, unsigned int region, int left, int top,
                                    int render_arg_0, int render_arg_1, int background_sprite,
                                    int normal_thumb_sprite, int hovered_thumb_sprite,
                                    int disabled_thumb_sprite);
     virtual void Redraw(int full_redraw) override;
     void UpdatePixelPosition();
-    void BeginDrag(int event);
-    void EndDrag(int event);
-    void ClearHover(unsigned char immediate);
-    void UpdateDrag(int event);
+    virtual void OnLeftButtonDown(int event) override;
+    virtual void OnLeftButtonUp(int event) override;
+    virtual void OnMouseEnter(int event) override;
+    virtual void OnMouseLeave(int event) override;
+    virtual void OnMouseMove(int event) override;
 
 protected:
     int m_renderArg0;                    /* 0x34 */
@@ -2053,7 +2043,7 @@ protected:
 };
 
 // FUNCTION: WIZ8 0x004f5620
-W8HorizontalRangeThumb005ED66C::W8HorizontalRangeThumb005ED66C(
+W8HorizontalRangeThumb::W8HorizontalRangeThumb(
     Controls* panel, unsigned int region, int left, int top,
     int render_arg_0, int render_arg_1, int background_sprite,
     int normal_thumb_sprite, int hovered_thumb_sprite, int disabled_thumb_sprite)
@@ -2085,13 +2075,13 @@ W8HorizontalRangeThumb005ED66C::W8HorizontalRangeThumb005ED66C(
 }
 
 // FUNCTION: WIZ8 0x004f5710
-void W8HorizontalRangeThumb005ED66C::UpdatePixelPosition()
+void W8HorizontalRangeThumb::UpdatePixelPosition()
 {
     ClampPositionAndInvalidate();
 }
 
 // FUNCTION: WIZ8 0x004f5780
-void W8HorizontalRangeThumb005ED66C::BeginDrag(int event)
+void W8HorizontalRangeThumb::OnLeftButtonDown(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
     if (m_enabled != 0) {
@@ -2114,7 +2104,7 @@ void W8HorizontalRangeThumb005ED66C::BeginDrag(int event)
 }
 
 // FUNCTION: WIZ8 0x004f5880
-void W8HorizontalRangeThumb005ED66C::EndDrag(int event)
+void W8HorizontalRangeThumb::OnLeftButtonUp(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
     if (m_enabled != 0 && m_dragging != 0) {
@@ -2126,15 +2116,46 @@ void W8HorizontalRangeThumb005ED66C::EndDrag(int event)
     }
 }
 
-// FUNCTION: WIZ8 0x004f58d0
-void W8HorizontalRangeThumb005ED66C::ClearHover(unsigned char immediate)
+// FUNCTION: WIZ8 0x004f58c0
+void W8HorizontalRangeThumb::OnMouseEnter(int)
+{
+    PushButtonSoundScheme005587C0(0, 1);
+}
+
+/* Retail folds these two hover hooks with the horizontal thumb's methods. */
+void W8VerticalRangeThumb::OnMouseEnter(int)
+{
+    PushButtonSoundScheme005587C0(0, 1);
+}
+
+void W8VerticalRangeThumb::OnMouseLeave(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
     if (m_hovered != 0 && m_dragging == 0) {
         m_hovered = 0;
         if (m_pPanel != 0) {
             m_dirty = 1;
-            if (immediate != 0) {
+            if (static_cast<unsigned char>(event) != 0) {
+                m_pPanel->Invalidate(0);
+                RequestRedraw(0x80000000);
+                return;
+            }
+            m_pPanel->m_fLayoutDirty = 1;
+            RequestRedraw(0x80000000);
+            RequestRedraw(0x80000000);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004f58d0
+void W8HorizontalRangeThumb::OnMouseLeave(int event)
+{
+    PushButtonSoundScheme005587C0(0, 1);
+    if (m_hovered != 0 && m_dragging == 0) {
+        m_hovered = 0;
+        if (m_pPanel != 0) {
+            m_dirty = 1;
+            if (static_cast<unsigned char>(event) != 0) {
                 m_pPanel->Invalidate(0);
                 RequestRedraw(0x80000000);
                 return;
@@ -2147,7 +2168,7 @@ void W8HorizontalRangeThumb005ED66C::ClearHover(unsigned char immediate)
 }
 
 // FUNCTION: WIZ8 0x004f5940
-void W8HorizontalRangeThumb005ED66C::UpdateDrag(int event)
+void W8HorizontalRangeThumb::OnMouseMove(int event)
 {
     if (m_enabled == 0) {
         return;
@@ -2180,7 +2201,7 @@ void W8HorizontalRangeThumb005ED66C::UpdateDrag(int event)
 }
 
 // FUNCTION: WIZ8 0x004f5a80
-void W8HorizontalRangeThumb005ED66C::Redraw(int full_redraw)
+void W8HorizontalRangeThumb::Redraw(int full_redraw)
 {
     if (m_active == 0 || ((unsigned char)full_redraw == 0 && m_dirty == 0)) {
         return;
@@ -2204,16 +2225,16 @@ void W8HorizontalRangeThumb005ED66C::Redraw(int full_redraw)
 }
 
 // SYNTHETIC: WIZ8 0x004f69b0
-// W8HorizontalRangeThumb005ED66C::`scalar deleting destructor'
+// W8HorizontalRangeThumb::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x004f69d0
-W8HorizontalRangeThumb005ED66C::~W8HorizontalRangeThumb005ED66C()
+W8HorizontalRangeThumb::~W8HorizontalRangeThumb()
 {
 }
 
 // SYNTHETIC: WIZ8 0x004f6030
-// W8TextControl005ED604::`scalar deleting destructor'
+// W8TextControl::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x004f6640
-W8TextControl005ED604::~W8TextControl005ED604()
+W8TextControl::~W8TextControl()
 {
 }
 
@@ -2462,33 +2483,22 @@ void W8Widget::SetBoundsFromRect(const W8ControlsRect* bounds)
     m_bottom = bounds->bottom;
 }
 
-/* Local Code\Controls.cpp. A control whose constructor at 0x004F5450 carries
-   its base's construction inlined and embeds one growable vector at +0x10 -
-   the shared template in wiz8/vector.h, not a fourth private copy of it. The
-   family map reads the shape straight off the vtable stores: the base's table
-   at +0, the vector specialization's table at +0x10, and the control's own
-   table last, which is construction order exactly.
-
-   Neither class is named by the image, so both carry address-qualified
-   positional names, with one exception. The assertion at Controls.cpp:2679
-   reads iSelected < m_lsButtons.Length(), and the length it tests is the count
-   of the vector at +0x10, so that member is named by the original source
-   rather than by its offset. The index at +0x0c is what the same assertion
-   guards against that length, which is what it holds; the source does not name
-   the member itself, so it keeps its positional name. */
+/* Selection controller: the listener occupies +0, the text-control pointer
+   vector +0x10. Controls.cpp:2679 names m_lsButtons and checks iSelected against
+   its count. The selected index is stored at +0x0c. */
 
 /* No destructor is declared here on purpose. Under /GX a user-declared base
    destructor makes the derived constructor carry an unwind frame, because the
    vector's operator new can throw after the base is built; the canonical body
    has no frame, so the original base's destructor is implicit. */
 // SYNTHETIC: WIZ8 0x004f6910
-// W8GrowableVector<W8TextControl005ED604*>::`scalar deleting destructor'
+// W8GrowableVector<W8TextControl*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004f6930
-// W8GrowableVector<W8TextControl005ED604*>::~W8GrowableVector<W8TextControl005ED604*>
+// W8GrowableVector<W8TextControl*>::~W8GrowableVector<W8TextControl*>
 
 // FUNCTION: WIZ8 0x004f5450
-W8Control005ED654::W8Control005ED654()
+W8ControlSelection::W8ControlSelection()
 {
     m_value_4 = 0;
     m_value_8 = 0;
@@ -2497,22 +2507,13 @@ W8Control005ED654::W8Control005ED654()
 }
 
 // FUNCTION: WIZ8 0x004f54b0
-int W8Control005ED654::AddEntry(W8TextControl005ED604* entry)
+int W8ControlSelection::AddEntry(W8TextControl* entry)
 {
     entry->AddLayoutFlags(0x19);
     entry->m_listener = this;
     return m_lsButtons.Add(entry);
 }
 
-/*
- * Selects the entry equal to the pointer given, asserting that it is present.
- *
- * The assert does not stop anything: srAssertFail returns, and the original
- * falls straight through into the selection with the -1 it just complained
- * about. That is worth keeping visible rather than tidying into an early
- * return, because it means a missing entry reaches SetSelected, whose own
- * assert then fires on the same value.
- */
 /*
  * Moves the selection. Tells the outgoing entry it lost the selection and the
  * incoming one that it gained it, then reports the change.
@@ -2524,9 +2525,9 @@ int W8Control005ED654::AddEntry(W8TextControl005ED604* entry)
  * not return.
  */
 // FUNCTION: WIZ8 0x004f5540
-void W8Control005ED654::SetSelected(int iSelected)
+void W8ControlSelection::SetSelected(int iSelected)
 {
-    W8TextControl005ED604** entry;
+    W8TextControl** entry;
     int previous;
 
     if (iSelected >= m_lsButtons.GetCount()) {
@@ -2554,7 +2555,7 @@ void W8Control005ED654::SetSelected(int iSelected)
 }
 
 // FUNCTION: WIZ8 0x004f55c0
-void W8Control005ED654::OnPrimary(W8TextControl005ED604* entry)
+void W8ControlSelection::OnPrimary(W8TextControl* entry)
 {
     int iIndex;
 

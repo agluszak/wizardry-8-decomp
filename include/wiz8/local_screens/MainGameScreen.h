@@ -1,5 +1,10 @@
 #pragma once
 
+#include "wiz8/local_code/ControlsRect.h"
+#include "wiz8/local_code/TextBuffer.h"
+#include "wiz8/local_code/Widget.h"
+#include "wiz8/local_code/TextControl.h"
+#include "wiz8/local_code/RangeControl.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/local_code/Controls.h"
 
@@ -82,9 +87,9 @@ class W8MainGameTextKeyHandler005EEAFC
       public W8RangeListener {
 public:
     virtual char HandleKey(unsigned short key);
-    virtual void OnRangeChanged(W8RangeControl005ED74C* control) override;
+    virtual void OnRangeChanged(W8RangeControl* control) override;
 
-    W8RangeControl005ED74C m_range_038;
+    W8RangeControl m_range_038;
     int m_field_0a4;
     int m_field_0a8;
     int m_field_0ac;
@@ -102,17 +107,17 @@ static_assert(sizeof(W8MainGameTextKeyHandler005EEAFC) == 0xc0,
 // VTABLE: WIZ8 0x005eeba8
 class W8MainGameTextPanel005EEBA8
     : public Controls,
-      public W8TextControl005ED604::Listener,
+      public W8TextControl::Listener,
       public W8RangeListener {
 public:
     W8MainGameTextPanel005EEBA8();                    /* 0x005884D0 */
     virtual ~W8MainGameTextPanel005EEBA8();           /* 0x00588770 */
     virtual void Redraw() override;
-    virtual void OnPrimary(W8TextControl005ED604* control) override;
-    virtual void OnSecondary(W8TextControl005ED604*) override {}
-    virtual void OnRangeChanged(W8RangeControl005ED74C* control) override;
+    virtual void OnPrimary(W8TextControl* control) override;
+    virtual void OnSecondary(W8TextControl*) override {}
+    virtual void OnRangeChanged(W8RangeControl* control) override;
 
-    W8TextControl005ED604* m_entries_054[8];
+    W8TextControl* m_entries_054[8];
     W8MainGameTextKeyHandler005EEAFC* m_key_handler_074;
     int m_selection_078;
     W8MainGameScreen005EEBD8* m_screen_07c;
@@ -121,7 +126,7 @@ public:
     unsigned char m_unknown_085[0xf];
     W8GameTimer m_timer_094;
     W8ControlsRect m_text_bounds_0b8;
-    W8TextBuffer005ED5B8 m_text_buffer_0c8;
+    W8TextBuffer m_text_buffer_0c8;
     W8GameTimer m_timer_118;
     int m_field_13c;
     unsigned char m_target_changed_140;
@@ -139,20 +144,20 @@ public:
     virtual ~W8MainGameStatusPanel005EEBC0();         /* 0x00588D90 */
     virtual void Redraw() override;
 
-    W8TextBuffer005ED5B8* m_text_04c;
-    W8TextBuffer005ED5B8* m_text_050;
-    W8TextBuffer005ED5B8* m_text_054;
-    W8TextBuffer005ED5B8* m_text_058;
-    W8TextBuffer005ED5B8* m_text_05c;
-    W8TextBuffer005ED5B8* m_text_060;
-    W8TextBuffer005ED5B8* m_text_064;
+    W8TextBuffer* m_text_04c;
+    W8TextBuffer* m_text_050;
+    W8TextBuffer* m_text_054;
+    W8TextBuffer* m_text_058;
+    W8TextBuffer* m_text_05c;
+    W8TextBuffer* m_text_060;
+    W8TextBuffer* m_text_064;
     int m_target_068;
 };
 static_assert(sizeof(W8MainGameStatusPanel005EEBC0) == 0x6c,
               "W8MainGameStatusPanel005EEBC0_size");
 
 /* The primary base supplies the pure virtual destructor table installed at
-   the start of 0x00589160.  W8TextControl005ED604::Listener is the proven
+   the start of 0x00589160.  W8TextControl::Listener is the proven
    secondary base at +0x04. */
 // VTABLE: WIZ8 0x005eebdc
 class W8MainGameScreenBase005EEBDC {
@@ -163,12 +168,12 @@ public:
 // VTABLE: WIZ8 0x005eebd8
 class W8MainGameScreen005EEBD8
     : public W8MainGameScreenBase005EEBDC,
-      public W8TextControl005ED604::Listener {
+      public W8TextControl::Listener {
 public:
     W8MainGameScreen005EEBD8(void* owner);            /* 0x00589160 */
     virtual ~W8MainGameScreen005EEBD8() override;     /* 0x005894B0 */
-    virtual void OnPrimary(W8TextControl005ED604* control) override;
-    virtual void OnSecondary(W8TextControl005ED604*) override {}
+    virtual void OnPrimary(W8TextControl* control) override;
+    virtual void OnSecondary(W8TextControl*) override {}
 
     void* m_owner_008;
     W8MainGameTextPanel005EEBA8* m_text_panel_00c;
@@ -176,7 +181,7 @@ public:
     Controls* m_action_panel_014;
     int m_state_018;
     unsigned char m_unknown_01c[4];
-    W8TextControl005ED604* m_action_controls_020[5];
+    W8TextControl* m_action_controls_020[5];
     int m_field_034;
     int m_field_038;
     unsigned char m_unknown_03c[0x110];

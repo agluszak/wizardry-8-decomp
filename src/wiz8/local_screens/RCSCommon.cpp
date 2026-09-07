@@ -1,8 +1,11 @@
+#include "wiz8/local_code/ControlsRect.h"
+#include "wiz8/local_code/TextBuffer.h"
+#include "wiz8/local_code/TextControl.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/dialog_code/DialogInterface.h"
-#include "wiz8/dialog_base.h"
+#include "wiz8/dialog_code/ModalDialogBase.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"
@@ -19,8 +22,8 @@
 
 extern Controls* g_level_up_panel_0069c3c4;
 extern Controls* g_dismiss_panel_0069c3c8;
-extern W8TextControl005ED604* g_level_up_button_0069c3c0;
-extern W8TextControl005ED604* g_dismiss_button_0069c400;
+extern W8TextControl* g_level_up_button_0069c3c0;
+extern W8TextControl* g_dismiss_button_0069c400;
 extern int g_rcs_mode_0064cbe8;
 extern unsigned char g_in_combat_00683f94;
 extern unsigned char g_camp_open_00683f9b;
@@ -72,7 +75,7 @@ void DrawRcsText(const wchar_t* text, int left, int top, int width,
                  unsigned int layout_mode)
 {
     W8ControlsRect bounds = {left, top, left + width, top + 12};
-    W8TextBuffer005ED5B8 buffer(&bounds, text, g_font_683660, layout_mode, 4);
+    W8TextBuffer buffer(&bounds, text, g_font_683660, layout_mode, 4);
     buffer.RenderToTarget(0, 0, -14);
 }
 
@@ -81,7 +84,7 @@ void DrawRcsBoldText(const wchar_t* text, int left, int top, int width,
                      unsigned int layout_mode)
 {
     W8ControlsRect bounds = {left, top, left + width, top + 12};
-    W8TextBuffer005ED5B8 buffer(
+    W8TextBuffer buffer(
         &bounds, text, g_wiz_text_bold_font_683664, layout_mode, 4);
     buffer.RenderToTarget(0, 0, -14);
 }
@@ -91,7 +94,7 @@ void DrawTallRcsText(const wchar_t* text, int left, int top, int width,
                      unsigned int layout_mode)
 {
     W8ControlsRect bounds = {left, top, left + width, top + 18};
-    W8TextBuffer005ED5B8 buffer(&bounds, text, g_font_683660, layout_mode, 4);
+    W8TextBuffer buffer(&bounds, text, g_font_683660, layout_mode, 4);
     buffer.RenderToTarget(0, 0, -14);
 }
 
@@ -124,7 +127,7 @@ void CreateRcsLevelUpPanel(void)
                      0x84e, 0);
     }
 
-    g_level_up_button_0069c3c0 = new W8TextControl005ED604(
+    g_level_up_button_0069c3c0 = new W8TextControl(
         g_level_up_panel_0069c3c4, 0xe7, 0, 0, 0x12, 0x12,
         0xa7, 0, 0, 2, 1, 4, 3);
     if (g_level_up_button_0069c3c0 == 0) {
@@ -203,7 +206,7 @@ void CreateRcsDismissPanel(void)
                      0x8cf, 0);
     }
 
-    g_dismiss_button_0069c400 = new W8TextControl005ED604(
+    g_dismiss_button_0069c400 = new W8TextControl(
         g_dismiss_panel_0069c3c8, 0xe8, 0, 0, 0x17, 0x10,
         0x113, 0, 0, 2, 1, 2, 3);
     if (g_dismiss_button_0069c400 == 0) {

@@ -172,6 +172,9 @@ set(WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
     src/wiz8/item_spawning.cpp
     src/wiz8/message_box.cpp
     src/wiz8/monster_info_dialog.cpp
+    src/wiz8/dialog_code/DialogTextArea.cpp
+    src/wiz8/dialog_code/DialogButton.cpp
+    src/wiz8/dialog_code/DialogScrollBar.cpp
     src/wiz8/monster_generators.cpp
     src/wiz8/monster_lookup.cpp
     src/wiz8/music_playlist.cpp

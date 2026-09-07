@@ -1,3 +1,7 @@
+#include "wiz8/local_code/ControlsRect.h"
+#include "wiz8/local_code/TextBuffer.h"
+#include "wiz8/local_code/TextControl.h"
+#include "wiz8/local_code/ControlSelection.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 
 #include "wiz8/local_code/Strings.h"
@@ -53,19 +57,19 @@ W8CharacterPageEntry::W8CharacterPageEntry(
     int split = m_x_030 + (compact ? 0x6d : 0x78);
     W8ControlsRect bounds = {m_x_030 + 5, m_y_034 + 1,
                              split, m_y_034 + 0xd};
-    m_label_014 = new W8TextBuffer005ED5B8(&bounds, 0, 0, 0, 4);
+    m_label_014 = new W8TextBuffer(&bounds, 0, 0, 0, 4);
     m_label_014->SetLayoutMode(g_W8TextBufferLayoutMask005ED548);
     bounds.left = split;
     bounds.right = split + 0x17;
-    m_first_text_018 = new W8TextBuffer005ED5B8(&bounds, 0, 0, 0, 4);
+    m_first_text_018 = new W8TextBuffer(&bounds, 0, 0, 0, 4);
     m_first_text_018->SetLayoutMode(g_W8TextBufferLayoutMask005ED550);
     bounds.left = split + 0x2a;
     bounds.right = split + 0x39;
-    m_second_text_01c = new W8TextBuffer005ED5B8(&bounds, 0, 0, 0, 4);
+    m_second_text_01c = new W8TextBuffer(&bounds, 0, 0, 0, 4);
     m_second_text_01c->SetLayoutMode(g_W8TextBufferLayoutMask005ED550);
 
     int relative_split = split - owner->origin_x;
-    m_decrement_00c = new W8TextControl005ED604(
+    m_decrement_00c = new W8TextControl(
         owner, 0xffffffff, relative_split + 0x1b, y + 1, 0, 0,
         0x10a, 0, 0x19, 0x1b, 0x1a, 0x1d, 0x1c);
     m_decrement_00c->AddLayoutFlags(0x100);
@@ -73,14 +77,14 @@ W8CharacterPageEntry::W8CharacterPageEntry(
     m_decrement_00c->SetActive(0);
     m_decrement_00c->m_listener = this;
 
-    m_increment_008 = new W8TextControl005ED604(
+    m_increment_008 = new W8TextControl(
         owner, 0xffffffff, relative_split + 0x3d, y + 1, 0, 0,
         0x10a, 0, 0x1e, 0x20, 0x1f, 0x22, 0x21);
     m_increment_008->AddLayoutFlags(0x100);
     m_increment_008->SetActive(0);
     m_increment_008->m_listener = this;
 
-    m_help_010 = new W8TextControl005ED604(
+    m_help_010 = new W8TextControl(
         owner, 0xffffffff, x, y, relative_split, y + 0xc,
         -1, -1, -1, -1, -1, -1, -1);
     m_help_010->SetActive(0);
@@ -193,7 +197,7 @@ void W8CharacterPageEntry::UpdateButtons()
 }
 
 // FUNCTION: WIZ8 0x005afc50
-void W8CharacterPageEntry::OnPrimary(W8TextControl005ED604* control)
+void W8CharacterPageEntry::OnPrimary(W8TextControl* control)
 {
     if (control == m_increment_008) {
         if (m_listener_004 != 0) m_listener_004->AdjustEntry(this, 1);
@@ -208,7 +212,7 @@ void W8CharacterPageEntry::OnPrimary(W8TextControl005ED604* control)
 }
 
 // FUNCTION: WIZ8 0x005afcb0
-void W8CharacterPageEntry::OnSecondary(W8TextControl005ED604* control)
+void W8CharacterPageEntry::OnSecondary(W8TextControl* control)
 {
     if (control == m_increment_008) {
         if (m_listener_004 != 0) m_listener_004->AdjustEntry(this, 5);
@@ -463,7 +467,7 @@ void W8CharacterPage005EF5C8::Redraw()
     }
 
     if (m_prepared_06c) {
-        W8TextBuffer005ED5B8 text;
+        W8TextBuffer text;
         W8ControlsRect bounds = {4, 0xec, 0xc2, 0x162};
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0xe8], g_font_683660);
@@ -493,7 +497,7 @@ void W8CharacterPage005EF5C8::Redraw()
     }
 
     if (m_dirty_06d) {
-        W8TextBuffer005ED5B8 text;
+        W8TextBuffer text;
         W8ControlsRect bounds = {0x8f, 0x184, 0xbf, 0x19b};
         DrawCatalogImage(-14, 0x107, 0, 5, 0x8f, 0x184, 2, 0);
         text.SetLayoutBounds(&bounds, 1, 1);
@@ -520,7 +524,7 @@ W8CharacterPage005EF5C8* CreateCharacterPage005C7CC0()
 
 // VTABLE: WIZ8 0x005ef57c W8CharacterPage005EF57C
 // VTABLE: WIZ8 0x005ef578 W8ControlSelectionListener
-// VTABLE: WIZ8 0x005ef570 W8TextControl005ED604::Listener
+// VTABLE: WIZ8 0x005ef570 W8TextControl::Listener
 // class W8CharacterPage005EF57C
 
 // SYNTHETIC: WIZ8 0x005c74c0
@@ -537,25 +541,25 @@ void W8CharacterPage005EF57C::SetCharacter(
 {
     AcquireRegionSet(&g_character_page4_region_set_0069c52c);
     W8CharacterPage::SetCharacter(character, creation_state, mode);
-    W8TextControl005ED604::Listener* action_listener = this;
+    W8TextControl::Listener* action_listener = this;
 
-    m_control_07c = new W8TextControl005ED604(
+    m_control_07c = new W8TextControl(
         this, 0xffffffff, 100, 0x19, 0, 0, 0x10a, 0,
         10, 0xc, 0xb, 0xe, 0xd);
     m_control_07c->m_listener = action_listener;
-    m_control_078 = new W8TextControl005ED604(
+    m_control_078 = new W8TextControl(
         this, 0xffffffff, 0x144, 0x19, 0, 0, 0x10a, 0,
         0xf, 0x11, 0x10, 0x13, 0x12);
     m_control_078->m_listener = action_listener;
-    m_control_084 = new W8TextControl005ED604(
+    m_control_084 = new W8TextControl(
         this, 0xffffffff, 100, 0x67, 0, 0, 0x10a, 0,
         10, 0xc, 0xb, 0xe, 0xd);
     m_control_084->m_listener = action_listener;
-    m_control_080 = new W8TextControl005ED604(
+    m_control_080 = new W8TextControl(
         this, 0xffffffff, 0x144, 0x67, 0, 0, 0x10a, 0,
         0xf, 0x11, 0x10, 0x13, 0x12);
     m_control_080->m_listener = action_listener;
-    m_randomize_088 = new W8TextControl005ED604(
+    m_randomize_088 = new W8TextControl(
         this, 0xffffffff, 0x16d, 0x155, 0, 0, 0x10a, 0,
         0x14, 0x16, 0x15, 0x18, 0x17);
     m_randomize_088->m_listener = action_listener;
@@ -565,7 +569,7 @@ void W8CharacterPage005EF57C::SetCharacter(
     for (index = 0; index < 9; ++index) {
         int column = index % 3;
         int row = index / 3;
-        W8TextControl005ED604* entry = new W8TextControl005ED604(
+        W8TextControl* entry = new W8TextControl(
             this, 0xffffffff, column * 0x80 + 0x24, row * 0xe + 0x107,
             column * 0x80 + 0xa3, row * 0xe + 0x114,
             0x105, 0, 5, 7, 6, 8, -1);
@@ -577,7 +581,7 @@ void W8CharacterPage005EF57C::SetCharacter(
 
     for (index = 0; index < 2; ++index) {
         int top = index == 0 ? 0x140 : 0x15d;
-        W8TextControl005ED604* entry = new W8TextControl005ED604(
+        W8TextControl* entry = new W8TextControl(
             this, 0xffffffff, 0x21, top, 0x69, top + 0xe,
             0x105, 0, 5, 7, 6, 8, -1);
         entry->AddLayoutFlags(g_W8TextControlMask005ED594);
@@ -697,7 +701,7 @@ void W8CharacterPage005EF57C::Refresh()
 
 // FUNCTION: WIZ8 0x005c73b0
 void W8CharacterPage005EF57C::OnSelectionChanged(
-    W8Control005ED654* control, int selected)
+    W8ControlSelection* control, int selected)
 {
     if (control == &m_voice_selection_0b0) {
         m_character_060->voice_0085 = selected;
@@ -711,7 +715,7 @@ void W8CharacterPage005EF57C::OnSelectionChanged(
 
 // FUNCTION: WIZ8 0x005c7220
 void W8CharacterPage005EF57C::OnPrimary(
-    W8TextControl005ED604* control)
+    W8TextControl* control)
 {
     int portrait = m_character_060->table_value_0079;
     if (control == m_control_078) {

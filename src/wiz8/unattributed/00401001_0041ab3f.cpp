@@ -1,5 +1,6 @@
 #include "english.h"
 #include "input.h"
+#include "wiz8/utility.h"
 
 /* Address quarantine 00401001-0041ab3f; bounds come from adjacent
    assertion-backed original translation-unit intervals. */
@@ -52,4 +53,18 @@ int Function4028A0(int character)
         character += L'a' - L'A';
     }
     return character;
+}
+
+/* Unlike the pinned VC6 _wcsicmp, retail has no locale branch. The adjacent
+   character helpers provide the same ASCII-only case conversion. */
+// FUNCTION: WIZ8 0x00402920
+int CompareWideTextIgnoreAsciiCase00402920(const wchar_t* first, const wchar_t* second)
+{
+    unsigned short left;
+    unsigned short right;
+    do {
+        left = Function4028A0(*first++);
+        right = Function4028A0(*second++);
+    } while (left != 0 && left == right);
+    return static_cast<unsigned int>(left) - static_cast<unsigned int>(right);
 }

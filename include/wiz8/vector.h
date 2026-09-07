@@ -119,7 +119,9 @@ public:
         if (position < 0 || position > count) {
             return -1;
         }
-        if (count + 1 > capacity && !Grow(count + 1)) {
+        /* Retail insertion grows by five, unlike Add's minimum-sized growth
+           (005D21F0 pointer entries and 004C80E0 script-condition bytes). */
+        if (count + 1 > capacity && !Grow(capacity + 5)) {
             return -1;
         }
         for (index = count; index > position; --index) {

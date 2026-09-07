@@ -1,4 +1,4 @@
-#include "wiz8/dialog_base.h"
+#include "wiz8/dialog_code/ModalDialogBase.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/cursor.h"
 #include "wiz8/utility.h"

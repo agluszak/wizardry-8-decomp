@@ -1,9 +1,15 @@
+#include "wiz8/local_code/ControlsRect.h"
+#include "wiz8/local_code/TextBuffer.h"
+#include "wiz8/local_code/Widget.h"
+#include "wiz8/local_code/TextControl.h"
+#include "wiz8/local_code/RangeControl.h"
+#include "wiz8/local_code/ControlSelection.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/cursor.h"
-#include "wiz8/dialog_base.h"
+#include "wiz8/dialog_code/ModalDialogBase.h"
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/Configuration.h"
@@ -343,7 +349,7 @@ public:
     virtual void OnMouseLeave(int event) override;
     virtual void OnMouseMove(int event) override;
     virtual void OnLeftButtonUp(int event) override;
-    virtual void OnRangeChanged(W8RangeControl005ED74C* control) override;
+    virtual void OnRangeChanged(W8RangeControl* control) override;
 
     int m_visible_rows;                  /* 0x38 */
     int m_selection;                     /* 0x3c */
@@ -437,7 +443,7 @@ void W8State5ListControl005EF464::OnLeftButtonUp(int event)
 
 // FUNCTION: WIZ8 0x005c01b0
 void W8State5ListControl005EF464::OnRangeChanged(
-    W8RangeControl005ED74C* control)
+    W8RangeControl* control)
 {
     m_first_visible = control->m_value;
     Invalidate(0);
@@ -459,7 +465,7 @@ public:
 /* Each visible character row is the same text control that W8Control stores
    and selects. The three added dwords are the visible row, absolute character
    index, and the panel callback used for row/scroll actions. */
-class W8State5CharacterRow005EF364 : public W8TextControl005ED604 {
+class W8State5CharacterRow005EF364 : public W8TextControl {
 public:
     W8State5CharacterRow005EF364(Controls* panel, int top, int row);
     virtual ~W8State5CharacterRow005EF364() override;
@@ -505,31 +511,31 @@ public:
     W8State5CharacterPanel005EF3C8();
     virtual ~W8State5CharacterPanel005EF3C8();
     virtual void OnSelectionChanged(
-        W8Control005ED654* control, int selected) override;
-    virtual void OnRangeChanged(W8RangeControl005ED74C* control) override;
+        W8ControlSelection* control, int selected) override;
+    virtual void OnRangeChanged(W8RangeControl* control) override;
     virtual void Function5BF0C0(int row) override;
     virtual void Function5BF050(int row) override;
     virtual void Function5BF0E0(int amount) override;
     void SetSelectedRow(int selection);
 
-    W8Control005ED654 m_control_58;
-    W8RangeControl005ED74C* m_range_7c;
+    W8ControlSelection m_control_58;
+    W8RangeControl* m_range_7c;
     int m_selected_row;
 };
 static_assert(sizeof(W8State5CharacterPanel005EF3C8) == 0x84, "W8State5CharacterPanel005EF3C8_size");
 
 class W8State5SixTextPanel005EF450
     : public Controls,
-      public W8TextControl005ED604::Listener {
+      public W8TextControl::Listener {
 public:
     W8State5SixTextPanel005EF450();
     virtual ~W8State5SixTextPanel005EF450();
-    virtual void OnPrimary(W8TextControl005ED604* control) override;
-    virtual void OnSecondary(W8TextControl005ED604*) override {}
+    virtual void OnPrimary(W8TextControl* control) override;
+    virtual void OnSecondary(W8TextControl*) override {}
 };
 static_assert(sizeof(W8State5SixTextPanel005EF450) == 0x50, "W8State5SixTextPanel005EF450_size");
 
-class W8State5PartySlotRow005EF3E4 : public W8TextControl005ED604 {
+class W8State5PartySlotRow005EF3E4 : public W8TextControl {
 public:
     W8State5PartySlotRow005EF3E4(Controls* panel, int row);
     virtual ~W8State5PartySlotRow005EF3E4() override;
@@ -551,9 +557,9 @@ public:
     W8State5PartySlotPanel005EF438();
     virtual ~W8State5PartySlotPanel005EF438();
     virtual void OnSelectionChanged(
-        W8Control005ED654* control, int selected) override;
+        W8ControlSelection* control, int selected) override;
 
-    W8Control005ED654 m_control_50;
+    W8ControlSelection m_control_50;
 };
 static_assert(sizeof(W8State5PartySlotPanel005EF438) == 0x74, "W8State5PartySlotPanel005EF438_size");
 
@@ -579,10 +585,10 @@ public:
     void Function5C05F0(int mode);
 
     int m_mode_4c;
-    W8Control005ED654 m_options_50;
-    W8TextControl005ED604* m_toggle_74;
-    W8TextControl005ED604* m_toggle_78;
-    W8GrowableVector<W8TextBuffer005ED5B8*> m_entries_7c;
+    W8ControlSelection m_options_50;
+    W8TextControl* m_toggle_74;
+    W8TextControl* m_toggle_78;
+    W8GrowableVector<W8TextBuffer*> m_entries_7c;
     int m_render_left_8c;
     int m_render_top_90;
     short m_image_width_94;
@@ -596,7 +602,7 @@ static_assert(sizeof(W8State5OptionPanel005EF4AC) == 0x98, "W8State5OptionPanel0
    name does not claim a source-era screen name. */
 // VTABLE: WIZ8 0x005ef4cc
 class W8State5Controller005EF4CC
-    : public W8TextControl005ED604::Listener,
+    : public W8TextControl::Listener,
       public W8State5ListSelectionListener005EF4C8,
       public W8State5DecisionListener005EF4C0 {
 public:
@@ -606,8 +612,8 @@ public:
     }
     ~W8State5Controller005EF4CC();
 
-    virtual void OnPrimary(W8TextControl005ED604* control) override;
-    virtual void OnSecondary(W8TextControl005ED604*) override {}
+    virtual void OnPrimary(W8TextControl* control) override;
+    virtual void OnSecondary(W8TextControl*) override {}
     virtual void OnSelectionChanged(W8State5ListControl005EF464* control,
                                     int selection) override;
     virtual void OnDecision(int value, unsigned char accepted) override;
@@ -628,7 +634,7 @@ public:
     unsigned char m_redraw_backdrop_14;
     unsigned char pad_15[3];
     W8Character* m_character_18;
-    W8RangeControl005ED74C* m_range;     /* 0x1c */
+    W8RangeControl* m_range;     /* 0x1c */
     W8State5CharacterPanel005EF3C8* m_character_panel_20;
     W8State5SixTextPanel005EF450* m_control_24;
     W8State5PartySlotPanel005EF438* m_control_28;
@@ -637,15 +643,15 @@ public:
     Controls* m_panel_34;
     Controls* m_panel_38;
     Controls* m_panel_3c;
-    W8TextControl005ED604* m_text_40;
-    W8TextControl005ED604* m_text_44;
-    W8TextControl005ED604* m_text_48;
-    W8TextControl005ED604* m_text_4c;
-    W8TextControl005ED604* m_text_50;
-    W8TextControl005ED604* m_text_54;
-    W8TextControl005ED604* m_text_58;
+    W8TextControl* m_text_40;
+    W8TextControl* m_text_44;
+    W8TextControl* m_text_48;
+    W8TextControl* m_text_4c;
+    W8TextControl* m_text_50;
+    W8TextControl* m_text_54;
+    W8TextControl* m_text_58;
     W8State5ListControl005EF464* m_list_5c;
-    W8TextBuffer005ED5B8* m_text_buffer_60;
+    W8TextBuffer* m_text_buffer_60;
     W8State5InputHandler005C0E50* m_input_handler_64;
     W8ModalDialogBase* m_dialog_68;
     int m_dialog_value_6c;
@@ -657,7 +663,7 @@ W8State5Controller005EF4CC* g_state5_controller_69c4e8;
 
 W8State5CharacterRow005EF364::W8State5CharacterRow005EF364(
     Controls* panel, int top, int row)
-    : W8TextControl005ED604(panel, 0xffffffff, 0, top, 0, 0,
+    : W8TextControl(panel, 0xffffffff, 0, top, 0, 0,
                            0xfb, 0, 0, 1, 2, 1, -1),
       m_row(row),
       m_character_index(0),
@@ -682,7 +688,7 @@ void W8State5CharacterRow005EF364::Redraw(int full_redraw)
         return;
     }
 
-    W8TextControl005ED604::Redraw(full_redraw);
+    W8TextControl::Redraw(full_redraw);
     W8Character* character =
         g_state5_party_collection_69c4ec->GetCharacter(m_character_index);
     int left = m_pPanel->origin_x + m_left;
@@ -728,7 +734,7 @@ void W8State5CharacterRow005EF364::OnRightButtonUp(int event)
             m_selection_listener->Function5BF050(m_row);
         }
     }
-    W8TextControl005ED604::OnRightButtonUp(event);
+    W8TextControl::OnRightButtonUp(event);
 }
 
 // FUNCTION: WIZ8 0x005beb50
@@ -737,7 +743,7 @@ void W8State5CharacterRow005EF364::OnLeftButtonDoubleClick(int event)
     if (m_active && m_enabled && m_selection_listener) {
         m_selection_listener->Function5BF0C0(m_row);
     }
-    W8TextControl005ED604::OnLeftButtonDoubleClick(event);
+    W8TextControl::OnLeftButtonDoubleClick(event);
 }
 
 // FUNCTION: WIZ8 0x005bebc0
@@ -783,7 +789,7 @@ W8State5CharacterPanel005EF3C8::~W8State5CharacterPanel005EF3C8()
 
 // FUNCTION: WIZ8 0x005bee70
 void W8State5CharacterPanel005EF3C8::OnSelectionChanged(
-    W8Control005ED654*, int selected)
+    W8ControlSelection*, int selected)
 {
     m_selected_row = selected
                      + g_state5_party_collection_69c4ec->first_visible;
@@ -792,7 +798,7 @@ void W8State5CharacterPanel005EF3C8::OnSelectionChanged(
 
 // FUNCTION: WIZ8 0x005beea0
 void W8State5CharacterPanel005EF3C8::OnRangeChanged(
-    W8RangeControl005ED74C* control)
+    W8RangeControl* control)
 {
     if (!m_fEnabled) {
         return;
@@ -898,7 +904,7 @@ void W8State5CharacterPanel005EF3C8::Function5BF0E0(int amount)
 // FUNCTION: WIZ8 0x005bf120
 W8State5PartySlotRow005EF3E4::W8State5PartySlotRow005EF3E4(
     Controls* panel, int row)
-    : W8TextControl005ED604(panel, 0xffffffff,
+    : W8TextControl(panel, 0xffffffff,
                            (row & 1) * 0x20b + 0x0e,
                            (row / 2) * 0x82 + 0x3a,
                            0, 0, 0x101, 0, -1, 1, 0, 0, -1),
@@ -946,7 +952,7 @@ void W8State5PartySlotRow005EF3E4::Redraw(int full_redraw)
     }
     m_textBuffer.SetText(character ? character->name : 0, g_font_683660);
     DrawCatalogImageAndInvalidate(-14, 0x100, 0, 0, left - 0x0d, top - 0x0b, 2, 0);
-    W8TextControl005ED604::Redraw(full_redraw);
+    W8TextControl::Redraw(full_redraw);
     if (m_redraw_partner) {
         m_redraw_partner->Invalidate(0);
     }
@@ -955,7 +961,7 @@ void W8State5PartySlotRow005EF3E4::Redraw(int full_redraw)
 // FUNCTION: WIZ8 0x005bf410
 void W8State5PartySlotRow005EF3E4::OnRightButtonUp(int event)
 {
-    W8TextControl005ED604::OnRightButtonUp(event);
+    W8TextControl::OnRightButtonUp(event);
     if (!m_enabled || !m_active) {
         return;
     }
@@ -984,7 +990,7 @@ void W8State5PartySlotRow005EF3E4::OnRightButtonUp(int event)
 // FUNCTION: WIZ8 0x005bf4e0
 void W8State5PartySlotRow005EF3E4::OnLeftButtonDoubleClick(int event)
 {
-    W8TextControl005ED604::OnLeftButtonDoubleClick(event);
+    W8TextControl::OnLeftButtonDoubleClick(event);
     if (m_enabled && m_active) {
         g_state5_controller_69c4e8->SetSelection(m_row, 1, 0);
         g_state5_controller_69c4e8->Function5C2970();
@@ -993,7 +999,7 @@ void W8State5PartySlotRow005EF3E4::OnLeftButtonDoubleClick(int event)
 
 // FUNCTION: WIZ8 0x005bf6b0
 void W8State5PartySlotPanel005EF438::OnSelectionChanged(
-    W8Control005ED654*, int)
+    W8ControlSelection*, int)
 {
     g_state5_controller_69c4e8->SetSelection(
         m_control_50.m_selectedIndex, 1, 0);
@@ -1009,7 +1015,7 @@ W8State5PartySlotPanel005EF438::W8State5PartySlotPanel005EF438()
     }
     m_control_50.m_selectionListener = this;
     for (int slot = 0; slot < 6; ++slot) {
-        W8TextControl005ED604* control = m_control_50.m_lsButtons.data[slot];
+        W8TextControl* control = m_control_50.m_lsButtons.data[slot];
         control->SetEnabled(
             reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)
                 [slot * 0x106 + 0x20c]);
@@ -1025,8 +1031,8 @@ W8State5SixTextPanel005EF450::W8State5SixTextPanel005EF450()
     for (int index = 0; index < 6; ++index) {
         int left = (index & 1) ? 0x21d : 0x52;
         int top = (index / 2) * 0x82 + 0x6c;
-        W8TextControl005ED604* control =
-            new W8TextControl005ED604(this, 0xffffffff,
+        W8TextControl* control =
+            new W8TextControl(this, 0xffffffff,
                                       left, top, 0, 0,
                                       0xa7, 0, 0, 2, 1, 4, 3);
         control->m_listener = this;
@@ -1035,7 +1041,7 @@ W8State5SixTextPanel005EF450::W8State5SixTextPanel005EF450()
 
 // FUNCTION: WIZ8 0x005bf840
 void W8State5SixTextPanel005EF450::OnPrimary(
-    W8TextControl005ED604* control)
+    W8TextControl* control)
 {
     int index;
     for (index = 0; index < 6; ++index) {
@@ -1084,7 +1090,7 @@ void W8State5PlainPanel005EF4E0::Redraw()
                    0, 0x85, 0x30, 2, 0);
     if (character->in_party) {
         W8ControlsRect bounds = { 0x85, 0x30, 0x139, 0xba };
-        W8TextBuffer005ED5B8 overlay(
+        W8TextBuffer overlay(
             &bounds,
             gppStringList[0x1ae0 / 4],
             g_options_title_font_68368c,
@@ -1095,7 +1101,7 @@ void W8State5PlainPanel005EF4E0::Redraw()
     }
 
     W8ControlsRect name_bounds = { 0x84, 0xc8, 0x139, 0xed };
-    W8TextBuffer005ED5B8 name(
+    W8TextBuffer name(
         &name_bounds,
         FormatWideString(L"%s (%s)", character->name_part_2, character->name),
         g_wiz_text_bold_font_683664,
@@ -1201,7 +1207,7 @@ W8State5OptionPanel005EF4AC::W8State5OptionPanel005EF4AC()
     int top = 0x13;
     for (int index = 0; index < 3; ++index) {
         m_options_50.AddEntry(
-            new W8TextControl005ED604(this, 0xffffffff,
+            new W8TextControl(this, 0xffffffff,
                                       0x15f, top, 0, 0,
                                       0xf1, 0, 4, 6, 5, 7, -1));
         top += 0x16;
@@ -1210,7 +1216,7 @@ W8State5OptionPanel005EF4AC::W8State5OptionPanel005EF4AC()
 
     top += 0x16;
     m_toggle_78 =
-        new W8TextControl005ED604(this, 0xffffffff,
+        new W8TextControl(this, 0xffffffff,
                                   0x15b, top, 0, 0,
                                   0xf1, 0, 2, 0, 3, 1, -1);
     m_toggle_78->AddLayoutFlags(
@@ -1220,7 +1226,7 @@ W8State5OptionPanel005EF4AC::W8State5OptionPanel005EF4AC()
     }
 
     m_toggle_74 =
-        new W8TextControl005ED604(this, 0xffffffff,
+        new W8TextControl(this, 0xffffffff,
                                   0x15b, 0xd6, 0, 0,
                                   0xf1, 0, 2, 0, 3, 1, -1);
     m_toggle_74->AddLayoutFlags(
@@ -1316,7 +1322,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
     };
 
     if (mode == 0) {
-        m_entries_7c.Add(new W8TextBuffer005ED5B8(
+        m_entries_7c.Add(new W8TextBuffer(
             &bounds,
             gppStringList[0x1fdc / 4],
             g_options_detail_font_683614,
@@ -1325,7 +1331,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
             4));
 
         bounds.right = origin_x + 0x155;
-        m_entries_7c.Add(new W8TextBuffer005ED5B8(
+        m_entries_7c.Add(new W8TextBuffer(
             &bounds,
             gppStringList[0x1fe0 / 4],
             g_options_detail_font_683614,
@@ -1333,7 +1339,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
                 g_W8TextBufferLayoutMask005ED558,
             4));
         bounds.top += 0x16;
-        m_entries_7c.Add(new W8TextBuffer005ED5B8(
+        m_entries_7c.Add(new W8TextBuffer(
             &bounds,
             gppStringList[0x1fe4 / 4],
             g_options_detail_font_683614,
@@ -1341,7 +1347,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
                 g_W8TextBufferLayoutMask005ED558,
             4));
         bounds.top += 0x16;
-        m_entries_7c.Add(new W8TextBuffer005ED5B8(
+        m_entries_7c.Add(new W8TextBuffer(
             &bounds,
             gppStringList[0x1fe8 / 4],
             g_options_detail_font_683614,
@@ -1351,7 +1357,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
 
         bounds.right = origin_x + 0x16e;
         bounds.top += 0x2c;
-        m_entries_7c.Add(new W8TextBuffer005ED5B8(
+        m_entries_7c.Add(new W8TextBuffer(
             &bounds,
             gppStringList[0x202c / 4],
             g_options_detail_font_683614,
@@ -1360,7 +1366,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
             4));
 
         bounds.top += 0x2c;
-        W8TextBuffer005ED5B8* text = new W8TextBuffer005ED5B8(
+        W8TextBuffer* text = new W8TextBuffer(
             &bounds,
             gppStringList[0x1b34 / 4],
             g_options_detail_font_683614,
@@ -1371,7 +1377,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
         m_entries_7c.Add(text);
 
         bounds.top += 0x42;
-        m_entries_7c.Add(new W8TextBuffer005ED5B8(
+        m_entries_7c.Add(new W8TextBuffer(
             &bounds,
             gppStringList[0x1b38 / 4],
             g_options_detail_font_683614,
@@ -1380,7 +1386,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
             4));
 
         bounds.top += 0x2c;
-        text = new W8TextBuffer005ED5B8(
+        text = new W8TextBuffer(
             &bounds,
             gppStringList[0x1b3c / 4],
             g_options_detail_font_683614,
@@ -1394,7 +1400,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
 
     if (mode == 1) {
         bounds.top += 0x2c;
-        W8TextBuffer005ED5B8* text = new W8TextBuffer005ED5B8(
+        W8TextBuffer* text = new W8TextBuffer(
             &bounds,
             gppStringList[0x1b40 / 4],
             g_options_detail_font_683614,
@@ -1412,7 +1418,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
 
     bounds.left = origin_x + 0x2c;
     bounds.right = origin_x + 0x164;
-    W8TextBuffer005ED5B8* text = new W8TextBuffer005ED5B8(
+    W8TextBuffer* text = new W8TextBuffer(
         &bounds,
         gppStringList[0x1b44 / 4],
         g_options_detail_font_683614,
@@ -1447,7 +1453,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
 // FUNCTION: WIZ8 0x005c0f30
 void W8State5Controller005EF4CC::Setup()
 {
-    m_range = new W8RangeControl005ED74C(
+    m_range = new W8RangeControl(
         0x1e9, 0x31, 0x1fb, 0x12b, &g_state5_range_region_set_69c500);
     m_character_panel_20 = new W8State5CharacterPanel005EF3C8;
     m_control_24 = new W8State5SixTextPanel005EF450;
@@ -1465,7 +1471,7 @@ void W8State5Controller005EF4CC::Setup()
     m_panel_34 = new Controls(0x145, 0x137, 0, 0, -1, -1, -1);
     m_panel_34->AcquireRegionSet(&g_state5_left_action_region_set_69c504);
     m_text_40 =
-        new W8TextControl005ED604(m_panel_34, 0xffffffff,
+        new W8TextControl(m_panel_34, 0xffffffff,
                                   0, 0, 0, 0,
                                   0xfe, 0, 0, 2, 1, 2, 3);
     m_text_40->m_textBuffer.SetText(
@@ -1474,13 +1480,13 @@ void W8State5Controller005EF4CC::Setup()
     m_text_40->m_listener = this;
 
     m_text_44 =
-        new W8TextControl005ED604(m_panel_34, 0xffffffff,
+        new W8TextControl(m_panel_34, 0xffffffff,
                                   0, 0x1a, 0, 0,
                                   0xfe, 0, 0, 2, 1, 2, 3);
     m_text_44->m_listener = this;
 
     m_text_48 =
-        new W8TextControl005ED604(m_panel_34, 0xffffffff,
+        new W8TextControl(m_panel_34, 0xffffffff,
                                   0, 0x34, 0, 0,
                                   0xfe, 0, 0, 2, 1, 2, 3);
     m_text_48->m_textBuffer.SetText(
@@ -1489,7 +1495,7 @@ void W8State5Controller005EF4CC::Setup()
     m_text_48->m_listener = this;
 
     m_text_4c =
-        new W8TextControl005ED604(m_panel_34, 0xffffffff,
+        new W8TextControl(m_panel_34, 0xffffffff,
                                   0, 0x4e, 0, 0,
                                   0xfe, 0, 0, 2, 1, 2, 3);
     m_text_4c->m_textBuffer.SetText(
@@ -1506,21 +1512,21 @@ void W8State5Controller005EF4CC::Setup()
     m_panel_3c = new Controls(0x84, 0x1b5, 0, 0, -1, -1, -1);
     m_panel_3c->AcquireRegionSet(&g_state5_bottom_action_region_set_69c508);
     m_text_58 =
-        new W8TextControl005ED604(m_panel_3c, 0xffffffff,
+        new W8TextControl(m_panel_3c, 0xffffffff,
                                   0x14c, 0, 0, 0,
                                   0x106, 0, 4, 6, 5, 6, 7);
     m_text_58->EnableRegionHelp(0x6ca);
     m_text_58->m_listener = this;
 
     m_text_54 =
-        new W8TextControl005ED604(m_panel_3c, 0xffffffff,
+        new W8TextControl(m_panel_3c, 0xffffffff,
                                   0x120, 0, 0, 0,
                                   0x106, 0, 0, 2, 1, 2, 3);
     m_text_54->EnableRegionHelp(0x6cb);
     m_text_54->m_listener = this;
 
     m_text_50 =
-        new W8TextControl005ED604(m_panel_3c, 0xffffffff,
+        new W8TextControl(m_panel_3c, 0xffffffff,
                                   0xf4, 0, 0, 0,
                                   0x106, 0, 0x18, 0x1a, 0x19, 0x1c, 0x1b);
     m_text_50->AddLayoutFlags(
@@ -1529,7 +1535,7 @@ void W8State5Controller005EF4CC::Setup()
     m_text_50->m_listener = this;
 
     W8ControlsRect bounds = { 0x7b, 6, 0x205, 0x23 };
-    m_text_buffer_60 = new W8TextBuffer005ED5B8;
+    m_text_buffer_60 = new W8TextBuffer;
     m_text_buffer_60->SetLayoutBounds(&bounds, 1, 1);
 
     SetMode(0);
@@ -1833,7 +1839,7 @@ void W8State5Controller005EF4CC::SetSelection(
    character records before an imported party is selected. */
 // FUNCTION: WIZ8 0x005c1920
 void W8State5Controller005EF4CC::OnPrimary(
-    W8TextControl005ED604* control)
+    W8TextControl* control)
 {
     if (control == m_text_58) {
         if (m_input_handler_64) {

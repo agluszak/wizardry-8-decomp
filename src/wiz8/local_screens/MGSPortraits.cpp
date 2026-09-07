@@ -1,3 +1,4 @@
+#include "wiz8/local_code/TextControl.h"
 #include "wiz8/character.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/Controls.h"
@@ -6,13 +7,13 @@
 extern Controls* g_panel_69b940;
 
 // GLOBAL: WIZ8 0x0069B920
-W8TextControl005ED604* g_portrait_controls_0069b920[8];
+W8TextControl* g_portrait_controls_0069b920[8];
 
 // FUNCTION: WIZ8 0x0059BB40
 void DisablePortraitControls0059BB40(void)
 {
     RegionSetDisable(5);
-    W8TextControl005ED604** control = g_portrait_controls_0069b920;
+    W8TextControl** control = g_portrait_controls_0069b920;
     do {
         (*control)->SetActive(0);
         ++control;

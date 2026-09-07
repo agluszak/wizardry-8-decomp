@@ -1,5 +1,8 @@
 #pragma once
 
+#include "wiz8/local_code/TextBuffer.h"
+#include "wiz8/local_code/TextControl.h"
+#include "wiz8/local_code/ControlSelection.h"
 #include "wiz8/dialog_code/NotificationDialog.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/vector.h"
@@ -44,7 +47,7 @@ public:
     int m_current_04c;
     int m_content_top_050;
     int unknown_054;
-    W8GrowableVector<W8TextBuffer005ED5B8*> m_text_buffers_058;
+    W8GrowableVector<W8TextBuffer*> m_text_buffers_058;
     W8GrowableVector<W8OptionsPanelSet005EF01C*> m_page_sets_068;
 };
 
@@ -55,12 +58,12 @@ static_assert(sizeof(W8OptionsPanel) == 0x78,
    W8TextControl with an independent listener subobject and a source-table item
    id; the two optional child controls are owned by the base Controls panel. */
 class W8OptionsMenuButton005EED3C
-    : public W8TextControl005ED604,
-      public W8TextControl005ED604::Listener {
+    : public W8TextControl,
+      public W8TextControl::Listener {
 public:
     W8OptionsMenuButton005EED3C(Controls* owner, const int* row);
-    virtual void OnPrimary(W8TextControl005ED604* control) override;
-    virtual void OnSecondary(W8TextControl005ED604* control) override;
+    virtual void OnPrimary(W8TextControl* control) override;
+    virtual void OnSecondary(W8TextControl* control) override;
 
     int m_item_id_0bc;
 };
@@ -73,17 +76,17 @@ static_assert(sizeof(W8OptionsMenuButton005EED3C) == 0xc0,
    OptionsScreen.cpp assertion on m_pMenuSet establish this boundary. */
 class W8OptionsMenuSet005EEFEC
     : public Controls,
-      public W8TextControl005ED604::Listener {
+      public W8TextControl::Listener {
 public:
     W8OptionsMenuSet005EEFEC(unsigned int* shared_region_set);
     virtual ~W8OptionsMenuSet005EEFEC();
-    virtual void OnPrimary(W8TextControl005ED604* control) override;
-    virtual void OnSecondary(W8TextControl005ED604* control) override;
+    virtual void OnPrimary(W8TextControl* control) override;
+    virtual void OnSecondary(W8TextControl* control) override;
 
     W8OptionsPanelSet005EF01C* m_pMenuSet; /* 0x50: OptionsScreen.cpp:1481 */
-    W8TextControl005ED604* m_next_054;
-    W8TextControl005ED604* m_previous_058;
-    W8TextBuffer005ED5B8* m_page_text_05c;
+    W8TextControl* m_next_054;
+    W8TextControl* m_previous_058;
+    W8TextBuffer* m_page_text_05c;
 
     void UpdateMenuSet();
 };
@@ -101,7 +104,7 @@ static_assert(sizeof(W8OptionsMenuSet005EEFEC) == 0x60,
    recovered. */
 class W8OptionsScreen
     : public W8ControlSelectionListener,
-      public W8TextControl005ED604::Listener,
+      public W8TextControl::Listener,
       public W8DialogCloseListener {
 public:
     W8OptionsScreen();
@@ -111,9 +114,9 @@ public:
     unsigned char Function5A9720(const InputAtom* input);
     void Function5A95F0();
     virtual void OnSelectionChanged(
-        W8Control005ED654* control, int selected) override;
-    virtual void OnPrimary(W8TextControl005ED604* control) override;
-    virtual void OnSecondary(W8TextControl005ED604*) override {}
+        W8ControlSelection* control, int selected) override;
+    virtual void OnPrimary(W8TextControl* control) override;
+    virtual void OnSecondary(W8TextControl*) override {}
     virtual void OnDialogClosed(unsigned char reason, int value) override;
 
     W8GrowableVector<void*> m_owned_panels_00c;

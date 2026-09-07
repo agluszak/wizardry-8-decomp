@@ -1,4 +1,4 @@
-#include "wiz8/dialog_code/DialogBase.h"
+#include "wiz8/dialog_code/DialogFactoryDialogs.h"
 
 // FUNCTION: WIZ8 0x005cd700
 int W8Dialog005CBB40::GetDialogType()

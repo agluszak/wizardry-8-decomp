@@ -6,7 +6,7 @@
    constructed by 0x005D25B0 and destroyed by 0x005D2610. The source owns the
    two proven fields at 0x98 and 0x9c beyond that recovered base.
 
-   The base is the shared W8ModalDialogBase in wiz8/dialog_base.h, whose
+   The base is the shared W8ModalDialogBase in wiz8/dialog_code/ModalDialogBase.h, whose
    fifteen slots this class inherits; it overrides only slot 9. */
 
 /* Table of message payloads the dialog is constructed against; the caller

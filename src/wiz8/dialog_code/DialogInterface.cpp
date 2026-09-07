@@ -1,5 +1,6 @@
+#include "wiz8/dialog_code/DialogFactoryDialogs.h"
 #include "wiz8/dialog_code/DialogInterface.h"
-#include "wiz8/dialog_base.h"
+#include "wiz8/dialog_code/ModalDialogBase.h"
 #include "wiz8/sr_api.h"
 
 extern wchar_t g_wchar_00689b34;

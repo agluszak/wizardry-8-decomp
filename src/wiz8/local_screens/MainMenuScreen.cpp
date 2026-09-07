@@ -11,7 +11,7 @@
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/dialog_code/DialogInterface.h"
-#include "wiz8/dialog_base.h"
+#include "wiz8/dialog_code/ModalDialogBase.h"
 #include "wiz8/utility.h"
 #include "wiz8/version.h"
 

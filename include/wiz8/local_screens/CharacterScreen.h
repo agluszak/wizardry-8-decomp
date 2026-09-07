@@ -1,5 +1,9 @@
 #pragma once
 
+#include "wiz8/local_code/ControlsRect.h"
+#include "wiz8/local_code/TextBuffer.h"
+#include "wiz8/local_code/TextControl.h"
+#include "wiz8/local_code/ControlSelection.h"
 #include <stddef.h>
 
 #include "wiz8/character.h"
@@ -24,7 +28,7 @@ public:
 };
 
 /* One value row shared by the skills and attributes pages. */
-class W8CharacterPageEntry : public W8TextControl005ED604::Listener {
+class W8CharacterPageEntry : public W8TextControl::Listener {
 public:
     W8CharacterPageEntry(Controls* owner, int x, int y,
                          unsigned char compact);        /* 0x005AF690 */
@@ -42,16 +46,16 @@ public:
     void SetLabelFontState(int state);                  /* 0x005AFBF0 */
     void MarkDirty();                                   /* 0x005AFC00 */
     void UpdateButtons();                               /* 0x005AFD10 */
-    virtual void OnPrimary(W8TextControl005ED604* control) override; /* 0x005AFC50 */
-    virtual void OnSecondary(W8TextControl005ED604* control) override; /* 0x005AFCB0 */
+    virtual void OnPrimary(W8TextControl* control) override; /* 0x005AFC50 */
+    virtual void OnSecondary(W8TextControl* control) override; /* 0x005AFCB0 */
 
     W8CharacterPageEntryListener* m_listener_004;
-    W8TextControl005ED604* m_increment_008;
-    W8TextControl005ED604* m_decrement_00c;
-    W8TextControl005ED604* m_help_010;
-    W8TextBuffer005ED5B8* m_label_014;
-    W8TextBuffer005ED5B8* m_first_text_018;
-    W8TextBuffer005ED5B8* m_second_text_01c;
+    W8TextControl* m_increment_008;
+    W8TextControl* m_decrement_00c;
+    W8TextControl* m_help_010;
+    W8TextBuffer* m_label_014;
+    W8TextBuffer* m_first_text_018;
+    W8TextBuffer* m_second_text_01c;
     unsigned int* m_first_020;
     int* m_second_024;
     int* m_third_028;
@@ -123,7 +127,7 @@ public:
     virtual void ShowSpellInfo(unsigned int entry) = 0;
 };
 
-class W8CharacterSpellList005EF614;
+class W8CharacterSpellList;
 
 /* CGSSpellsPage.cpp: the 0x558-byte middle is 114 spell entries, not an
    embedded framework object. The range-list callbacks use the +0x70 base. */
@@ -143,7 +147,7 @@ public:
     virtual void ShowSpellInfo(unsigned int entry) override;
 private:
     void UpdateSpellLists();
-    W8CharacterSpellList005EF614* m_realms_074[6];
+    W8CharacterSpellList* m_realms_074[6];
     W8CharacterSpellEntry m_spell_data_08c[114];
     W8GameTimer m_animation_timer_5e4;
     unsigned int m_animation_frames_608[6];
@@ -176,7 +180,7 @@ static_assert(sizeof(W8CharacterPage005EF5C8) == 0x78, "W8CharacterPage005EF5C8_
 class W8CharacterPage005EF57C
     : public W8CharacterPage,
       public W8ControlSelectionListener,
-      public W8TextControl005ED604::Listener {
+      public W8TextControl::Listener {
 public:
     W8CharacterPage005EF57C()
         : W8CharacterPage(0x105), m_animation_timer_0d4(0.4f, 1),
@@ -190,16 +194,16 @@ public:
     virtual void GetNavigationState(unsigned char*, unsigned char*) override;
     virtual void HandleInput(InputAtom*) override;
     virtual void Refresh() override;
-    virtual void OnSelectionChanged(W8Control005ED654*, int) override;
-    virtual void OnPrimary(W8TextControl005ED604*) override;
+    virtual void OnSelectionChanged(W8ControlSelection*, int) override;
+    virtual void OnPrimary(W8TextControl*) override;
 private:
-    W8TextControl005ED604* m_control_078;
-    W8TextControl005ED604* m_control_07c;
-    W8TextControl005ED604* m_control_080;
-    W8TextControl005ED604* m_control_084;
-    W8TextControl005ED604* m_randomize_088;
-    W8Control005ED654 m_personality_selection_08c;
-    W8Control005ED654 m_voice_selection_0b0;
+    W8TextControl* m_control_078;
+    W8TextControl* m_control_07c;
+    W8TextControl* m_control_080;
+    W8TextControl* m_control_084;
+    W8TextControl* m_randomize_088;
+    W8ControlSelection m_personality_selection_08c;
+    W8ControlSelection m_voice_selection_0b0;
     W8GameTimer m_animation_timer_0d4;
     int m_animation_frame_0f8;
     unsigned char m_animation_active_0fc;
@@ -233,7 +237,7 @@ public:
 static_assert(sizeof(W8CharacterPageHost) == 0x4, "W8CharacterPageHost_size");
 
 class W8CharacterScreen : public W8CharacterPageHost,
-                          public W8TextControl005ED604::Listener {
+                          public W8TextControl::Listener {
 public:
     W8CharacterScreen(int mode, W8Character* character); /* 0x005B0040 */
     void BuildControls();                                /* 0x005B0140 */
@@ -259,8 +263,8 @@ public:
     virtual void ShowCharacterSummary() override;
     virtual unsigned char HasDialog() override;
     virtual W8Character* GetOriginalCharacter() override;
-    virtual void OnPrimary(W8TextControl005ED604* control) override;
-    virtual void OnSecondary(W8TextControl005ED604* control) override;
+    virtual void OnPrimary(W8TextControl* control) override;
+    virtual void OnSecondary(W8TextControl* control) override;
 
     int m_mode_008;
     int m_page_index_00c;
@@ -275,11 +279,11 @@ public:
     unsigned char m_force_transition_1aee;
     unsigned char pad_1aef;
     Controls* m_controls_1af0;
-    W8TextControl005ED604* m_previous_1af4;
-    W8TextControl005ED604* m_next_1af8;
-    W8TextControl005ED604* m_exit_1afc;
-    W8TextControl005ED604* m_accept_1b00;
-    W8TextControl005ED604* m_reset_1b04;
+    W8TextControl* m_previous_1af4;
+    W8TextControl* m_next_1af8;
+    W8TextControl* m_exit_1afc;
+    W8TextControl* m_accept_1b00;
+    W8TextControl* m_reset_1b04;
     unsigned char m_page_enabled_1b08[4];
     W8CharacterPage* m_pages_1b0c[4];
     W8DialogBase* m_dialog_1b1c;

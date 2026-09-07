@@ -1,8 +1,14 @@
+#include "wiz8/local_code/ControlsRect.h"
+#include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/dialog_code/DialogTextEntry.h"
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/utility.h"
 #include "Font.h"
+
+/* Retail initializer 0x005D1010 copies the Controls layout constant. */
+// GLOBAL: WIZ8 0x0069c5d0
+unsigned int g_dialog_text_layout_mask_69c5d0 = g_W8TextBufferLayoutMask005ED560;
 
 // FUNCTION: WIZ8 0x005d1020
 W8DialogTextEntry::~W8DialogTextEntry()

@@ -167,14 +167,22 @@ W8DialogTextArea
 W8DialogTextEntry derives from W8TextBuffer
 ```
 
-In [Controls.h](../include/wiz8/local_code/Controls.h), the panel holds widget pointers
-and each widget holds its panel pointer. TextControl adds interaction state while its
-embedded TextBuffer handles text layout and rendering. Panel and widget are not bases of
+The panel in [Controls.h](../include/wiz8/local_code/Controls.h) holds pointers to
+[widgets](../include/wiz8/local_code/Widget.h), and each widget holds its panel pointer.
+[TextControl](../include/wiz8/local_code/TextControl.h) adds interaction state while its
+embedded [TextBuffer](../include/wiz8/local_code/TextBuffer.h) handles text layout and rendering.
+Range controls and selection listeners also have dedicated declaration headers.
+Their implementations remain together in the original `Local Code/Controls.cpp` unit;
+the header split does not claim original header names. Panel and widget are not bases of
 one another; TextControl and TextBuffer are not duplicate identities.
 
-[DialogBase.h](../include/wiz8/dialog_code/DialogBase.h) describes the separate SGP
-Button-System shell and its contained helpers. The
-[modal base](../include/wiz8/dialog_base.h) is only one inheritance branch. TextArea is
+[DialogBase.h](../include/wiz8/dialog_code/DialogBase.h) describes only the separate SGP
+Button-System shell. Button, scrollbar and text-area helpers have their own headers
+and provisional implementation units; concrete dialogs include the helpers they contain.
+Factory-dialog and spell-dialog declarations likewise live outside the base header. The
+[modal base](../include/wiz8/dialog_code/ModalDialogBase.h) is only one inheritance branch.
+[TextArea](../include/wiz8/dialog_code/DialogTextArea.h) has its own provisional
+implementation in `dialog_code/DialogTextArea.cpp`, separate from its dialog consumers. It is
 nonpolymorphic; its two vectors own their pointer storage, but its destructor deletes
 entries only through the owning collection. The
 [dialog text entry](../include/wiz8/dialog_code/DialogTextEntry.h) extends TextBuffer

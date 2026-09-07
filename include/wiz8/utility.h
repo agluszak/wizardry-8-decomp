@@ -1,6 +1,7 @@
 #ifndef WIZ8_UTILITY_H
 #define WIZ8_UTILITY_H
 
+#include "wiz8/local_code/ControlsRect.h"
 #include <wchar.h>
 
 #include "wiz8/dice.h"
@@ -39,6 +40,7 @@ char* ConvertWideStringToString(const wchar_t* string);
 wchar_t* FormatUnsignedIntegerWithCommas(
     wchar_t* output, unsigned int value);
 char* TitleCaseString(char* string);
+int CompareWideTextIgnoreAsciiCase00402920(const wchar_t* first, const wchar_t* second);
 void ShortenTextToWidth00577410(
     wchar_t* output, const wchar_t* text, unsigned int width, int font);
 float ShortestAngleDistance(float first, float second);
