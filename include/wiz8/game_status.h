@@ -72,7 +72,10 @@ struct W8GlobalStatus {
     unsigned char unknown_238b[0x16];
     W8PartyFormationState formation;
     int game_time_days;
-    unsigned char unknown_2429[0x6e];
+    unsigned char unknown_2429[0x1b];
+    /* Character creation skips the loose CHR collision check when set. */
+    unsigned char skip_loose_character_check_2444;
+    unsigned char unknown_2445[0x52];
     unsigned char flag_2497;
     unsigned char unknown_2498[0x24ff];
     unsigned int text_box_lines_used_4997[4];

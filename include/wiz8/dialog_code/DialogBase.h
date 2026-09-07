@@ -1,6 +1,7 @@
 #pragma once
 
 #include "wiz8/vector.h"
+#include "wiz8/engine_code/game_timer.h"
 
 #include <wchar.h>
 
@@ -57,7 +58,10 @@ protected:
     int m_height;                         /* 0x34 */
     unsigned char unknown_038[8];
     unsigned char m_initialized;          /* 0x40 */
+public:
+    /* CharacterScreen closes a completed modal directly through this byte. */
     unsigned char m_field_41;            /* 0x41 */
+protected:
     unsigned char unknown_042[2];
     W8DialogDestroyCallback m_destroy_callback; /* 0x44 */
     int m_field_48;                      /* 0x48 */
@@ -214,3 +218,20 @@ private:
     unsigned char unknown_056;
     unsigned char unknown_057;
 };                                      /* modeled minimum 0x58 */
+
+// VTABLE: WIZ8 0x005efab0
+class W8SpellInfoDialog005EFAB0 : public W8DialogBase005DC7A0 {
+public:
+    W8SpellInfoDialog005EFAB0(unsigned int spell); /* 0x005DBB60 */
+    virtual ~W8SpellInfoDialog005EFAB0() override;
+
+private:
+    unsigned int m_spell_054;
+    W8DialogMember005E0C40 m_member_058;
+    W8DialogMember005DB1B0 m_member_0a4;
+    W8DialogMember005D14D0 m_member_0ec;
+    W8GameTimer m_timer_144;
+    unsigned int m_value_168;
+};
+static_assert(sizeof(W8SpellInfoDialog005EFAB0) == 0x16c,
+              "W8SpellInfoDialog005EFAB0_size");

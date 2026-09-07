@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/dialog_code/DialogBase.h"
+
 enum { W8_DIALOG_ATTRIBUTE_COUNT = 7 };
 
 struct W8AttributeMinimums {
@@ -21,13 +23,10 @@ extern W8ProfRaceInfoRow g_race_info_rows[];
 
 /* Shared dialog storage constructed by 0x005DEAF0. Only the derived tail is
    known, so the base remains address-qualified and opaque. */
-class W8ProfRaceInfoDialogBase005DEAF0 {
+class W8ProfRaceInfoDialogBase005DEAF0 : public W8DialogBase005DC7A0 {
 public:
     W8ProfRaceInfoDialogBase005DEAF0();
-    virtual ~W8ProfRaceInfoDialogBase005DEAF0();
-
-protected:
-    unsigned char unknown_004[0x50];
+    virtual ~W8ProfRaceInfoDialogBase005DEAF0() override;
 };
 
 class W8ProfessionInfoDialog005EFBFC : public W8ProfRaceInfoDialogBase005DEAF0 {

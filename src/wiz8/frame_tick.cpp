@@ -1,5 +1,6 @@
 #include "wiz8/music_playlist.h"
 #include "wiz8/local_screens/JournalScreen.h"
+#include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/CreditsScreen.h"
 #include "wiz8/startup_runtime_state.h"
 #include "wiz8/screen_state.h"
@@ -58,9 +59,9 @@ static unsigned char ScreenReady(void) { return 1; }
 static void ScreenIdle(void) {}
 static unsigned char ScreenLeave(int) { return 1; }
 
-/* Rows 3 and 8 are Character and Automap. Their live callbacks are
-   005B1750/005B18E0/005B1840 and 0057E660/0057F1F0/0057EFE0; the placeholders
-   below keep the runtime projection honest until those bodies are recovered. */
+/* Row 8 is Automap. Its live callbacks are
+   0057E660/0057F1F0/0057EFE0; the placeholders below keep the runtime
+   projection honest until those bodies are recovered. */
 
 /* WIZ8_RUNTIME currently retains the reviewed main-menu callback but not the
    complete thirteen-record lifecycle table.  Keep this bridge local and
@@ -78,8 +79,8 @@ W8ScreenStateHandlers g_screen_handlers[13] = {
       MainMenuScreenLeave, Function5B1740 },
     { Function5B1740, Function5B1740, GameStartRouterFrame005C3800,
       (unsigned char (*)(int))Function5B1740, Function5B1740 },
-    { Function5B1740, CreditsScreenEnter005BC130, CreditsScreenFrame005BC530,
-      CreditsScreenLeave005BC420, Function5B1740 },
+    { Function5B1740, CharacterScreenEnter005B1750, CharacterScreenFrame005B18E0,
+      CharacterScreenLeave005B1840, Function5B1740 },
     { PleaseWaitScreenInitialize, PleaseWaitScreenEnter, PleaseWaitScreenFrame,
       (unsigned char (*)(int))PleaseWaitScreenLeave, Function5B1740 },
     { Function5B1740, State5Enter005C2DE0, State5Frame005C3120,
@@ -91,7 +92,8 @@ W8ScreenStateHandlers g_screen_handlers[13] = {
       Function5B1740 },
     { CreateList005EEA28, ScreenReady, ScreenIdle, ScreenLeave,
       Screen8Finalize },
-    { Function5B1740, ScreenReady, ScreenIdle, ScreenLeave, Function5B1740 },
+    { Function5B1740, CreditsScreenEnter005BC130, CreditsScreenFrame005BC530,
+      CreditsScreenLeave005BC420, Function5B1740 },
     { AllocateSmallStartupSubsystem, OptionsScreenEnter005A9B50,
       OptionsScreenFrame005A9CC0, OptionsScreenLeave005A9C70,
       FreeSmallStartupSubsystem },
