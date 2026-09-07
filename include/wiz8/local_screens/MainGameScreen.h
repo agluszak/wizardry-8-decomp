@@ -24,7 +24,9 @@ struct W8LevelRuntimeBlock {
     unsigned char dialogue_open;
     unsigned char unknown_1f9[3];
     unsigned char* dialogue_owner;
-    unsigned char unknown_200[0x64];
+    unsigned char unknown_200[0x4d];
+    unsigned char flag_24d;
+    unsigned char unknown_24e[0x16];
     int highlighted_item;
     int selected_item;
     unsigned char unknown_26c[0x10];
@@ -56,11 +58,12 @@ struct W8LevelRuntimeBlock {
     int tooltip_kind;
     unsigned char unknown_30c[0x1b];
     unsigned char flag_327;
+    unsigned char unknown_328[8];
 };
 #pragma pack(pop)
 
-static_assert(sizeof(W8LevelRuntimeBlock) == 0x328,
-              "W8LevelRuntimeBlock_must_be_0x328");
+static_assert(sizeof(W8LevelRuntimeBlock) == 0x330,
+              "W8LevelRuntimeBlock_must_be_0x330");
 
 class W8MainGameScreen005EEBD8;
 
@@ -185,3 +188,5 @@ extern W8MainGameScreen005EEBD8* g_main_game_screen_0068f2d4;
 
 void Function56AA30(void);
 void Function56AAB0(void);
+unsigned char MainGameScreenEnter0055F8C0(void);
+void ResetMainGameScreenState(void);

@@ -3,8 +3,18 @@
 #include "wiz8/notices.h"
 #include "wiz8/regions.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/local_code/Strings.h"
+#include "wiz8/engine_code/Environment.h"
+#include "wiz8/local_screens/MGSUseItemSelect.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/wiz8_windows.h"
+
+#include "font.h"
+#include "mousesystem.h"
+
+#include <stdlib.h>
+#include <string.h>
 
 /*
  * Local Screens\MainGameScreen.cpp.
@@ -24,6 +34,194 @@ extern void* g_modal_owner_0068edd0;
 extern int g_flag_0068ed14;
 unsigned char g_flag_006840bd;
 W8LevelRuntimeBlock* g_level_block;
+
+extern unsigned char ClearPrimarySurface(void);
+extern unsigned char TakePendingSaveFlag(void);
+extern unsigned char IsPartySlotEligible00524A10(int slot);
+extern void ResetRegions(void);
+extern void TurnPartyToImmediate(unsigned int facing, char update_saved);
+extern void ResetTargetingState(void);
+extern void Function568E10(void);
+extern void Function598AB0(void);
+extern void Function5AE9D0(void);
+extern void Function59B940(void);
+extern void Function59BDB0(void);
+extern void Function55F2C0(void);
+extern void ScrollTextBoxToCursor(void);
+extern void Function413FD0(int, int, int, int, int);
+extern void Function422F10(void);
+extern float Function420B40(int value);
+extern void Function482EA0(void);
+extern void Function482990(unsigned char enabled);
+extern void Function425570(int enabled);
+extern void Function58AC00(int, const wchar_t*, int, int, int);
+extern void Function58AAD0(int, const wchar_t*, const wchar_t*);
+extern void Function55D3C0(void);
+extern "C" void ClearHeldItemDisplay(void);
+extern void Function55F160(int value);
+extern void Function53A320(int value);
+extern void Function587510(int value);
+extern void Function58A470(int value);
+extern void Function565740(int slot);
+extern void Function59C930(int slot);
+extern void Function42B770(int, int);
+
+extern unsigned char g_flag_0065970d;
+extern unsigned char g_flag_0065970c;
+extern unsigned char g_flag_006840bc;
+extern unsigned short g_value_006840be;
+extern int g_held_item_source_006840c0;
+extern unsigned char g_held_item_origin_006840c4;
+extern unsigned short g_held_item_slot_006840c5;
+extern unsigned char g_flag_00685070;
+extern unsigned char g_flag_00685071;
+extern int g_value_00685072;
+extern unsigned char g_flag_00685076;
+extern signed char g_value_00685077;
+extern int g_value_006850d5;
+extern unsigned char g_in_combat_00683f94;
+
+/* Reset the complete Main Game state block and the UI/selection state that is
+   coupled to it. The clear's 0xcc dwords independently prove the 0x330 extent
+   used by the allocating enter handler. */
+// FUNCTION: WIZ8 0x0055f800
+void ResetMainGameScreenState(void)
+{
+    int unset;
+
+    if (g_level_block) {
+        memset(g_level_block, 0, sizeof(W8LevelRuntimeBlock));
+        TurnPartyToImmediate(g_status_685170.party_facing, 0);
+        g_level_block->flag_24d = 0;
+        gXStatus.field_01d = 0;
+        gXStatus.field_01f = 0;
+        gXStatus.fItemSelectMode = 0;
+        gXStatus.field_020 = 0;
+        gXStatus.field_021 = 0;
+        gXStatus.field_022 = 0;
+        gXStatus.fSurprisePossible = 0;
+        g_flag_006840bc = 0;
+        g_flag_006840bd = 0;
+        unset = -1;
+        g_value_006840be = static_cast<unsigned short>(unset);
+        g_held_item_source_006840c0 = unset;
+        g_held_item_origin_006840c4 = static_cast<unsigned char>(unset);
+        g_held_item_slot_006840c5 = static_cast<unsigned short>(unset);
+        g_gameplay_timer_685067->Restart();
+        g_flag_00685070 = 1;
+        g_flag_00685071 = 0;
+        g_value_00685072 = 0;
+        g_flag_00685076 = 0xff;
+        g_value_00685077 = -1;
+        ResetTargetingState();
+    }
+}
+
+/* Enter the live game screen. The 0x330 allocation is the complete extent of
+   the per-screen block; the previously modeled fields only reached its last
+   observed access at 0x327. */
+// FUNCTION: WIZ8 0x0055f8c0
+unsigned char MainGameScreenEnter0055F8C0(void)
+{
+    int display_mode;
+    int& saved_display_mode =
+        *reinterpret_cast<int*>(&g_status_685170.status_header_block_1904[0xb43]);
+
+    if (!g_level_block) {
+        g_level_block = static_cast<W8LevelRuntimeBlock*>(malloc(sizeof(W8LevelRuntimeBlock)));
+        if (!g_level_block) {
+            return 0;
+        }
+        ResetMainGameScreenState();
+        Function568E10();
+    }
+    gXStatus.unknown_026[1] = 1;
+    MSYS_Init();
+    ResetRegions();
+    Function598AB0();
+    Function5AE9D0();
+    Function59B940();
+    Function59BDB0();
+    Function55F2C0();
+    ScrollTextBoxToCursor();
+    Function413FD0(0x500, 0, 0, 0x280, 0x1e0);
+    SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
+    g_flag_0065970d = 1;
+    g_flag_0065970c = 1;
+    ClearPrimarySurface();
+    if (IsFogEnabled()) {
+        Function482EA0();
+    }
+    else {
+        DisableSky();
+    }
+    if (TakePendingSaveFlag()) {
+        Function58AC00(0xc, gppStringList[0x1e08 / 4], -1, -1, 0);
+    }
+    if (g_value_006850d5 != saved_display_mode) {
+        g_value_006850d5 = saved_display_mode;
+        switch (saved_display_mode) {
+        case 0:
+            display_mode = 0x7f8;
+            break;
+        case 1:
+            display_mode = 0x7f9;
+            break;
+        case 2:
+            display_mode = 0x7fa;
+            break;
+        }
+        Function58AAD0(0xc, gppStringList[0x1e30 / 4],
+                       gppStringList[display_mode]);
+    }
+    Function422F10();
+    Function420B40(4);
+    if (!g_flag_006840bc && !g_in_combat_00683f94) {
+        Function482990(1);
+    }
+    {
+        W8GameTimer* timer = g_gameplay_timer_685067;
+        if ((timer->m_flags & 8) != 0 ||
+            (g_shared_timer_paused && (timer->m_flags & 1) == 0) ||
+            g_shared_timer_flag_d1) {
+            timer->m_flags &= ~8;
+            timer->m_start = timer->Method00439A60() - timer->m_start;
+            timer->SetDuration(-1.0f);
+        }
+    }
+    Function55D3C0();
+    if (g_status_685170.item_in_hand_235b.item_id != -1) {
+        Function55F160(0);
+    }
+    else {
+        ClearHeldItemDisplay();
+    }
+    Function53A320(0);
+    Function425570(1);
+    if (gXStatus.field_024) {
+        Function587510(0);
+    }
+    if (gXStatus.field_025) {
+        Function58A470(0);
+    }
+    if (g_flag_00685071) {
+        if (IsPartySlotEligible00524A10(g_value_00685077)) {
+            Function565740(g_value_00685077);
+            Function59C930(g_value_00685077);
+            SelectCurrentUseItemLine0059E0E0();
+        }
+        else {
+            g_flag_00685071 = 0;
+            g_value_00685072 = 0;
+            g_flag_00685076 = 0xff;
+            g_value_00685077 = -1;
+        }
+    }
+    if (!g_in_combat_00683f94) {
+        Function42B770(1, 1);
+    }
+    return 1;
+}
 
 extern void SetPendingScreenState(int state);
 extern unsigned char Function577850(void);

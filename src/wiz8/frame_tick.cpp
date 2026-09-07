@@ -25,6 +25,7 @@ void PleaseWaitScreenFrame(void);
 unsigned char PleaseWaitScreenLeave(char leaving);
 unsigned char InitializeCampScreen(void);
 unsigned char InitializeStartupGrid(void);
+unsigned char MainGameScreenEnter0055F8C0(void);
 unsigned char CreateList005EEA28(void);
 unsigned char Screen8Finalize(void);
 unsigned char AllocateSmallStartupSubsystem(void);
@@ -83,7 +84,7 @@ W8ScreenStateHandlers g_screen_handlers[13] = {
       State5Tick005C30B0, Function5B1740 },
     { InitializeCampScreen, ScreenReady, ScreenIdle, ScreenLeave,
       Function5B1740 },
-    { InitializeStartupGrid, ScreenReady, ScreenIdle, ScreenLeave,
+    { InitializeStartupGrid, MainGameScreenEnter0055F8C0, ScreenIdle, ScreenLeave,
       Function5B1740 },
     { CreateList005EEA28, ScreenReady, ScreenIdle, ScreenLeave,
       Screen8Finalize },
