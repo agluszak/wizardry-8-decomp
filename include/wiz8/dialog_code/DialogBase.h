@@ -182,18 +182,10 @@ private:
     int unknown_044;
 };                                      /* 0x48 */
 
-class W8DialogTextBufferVector005EF898
-    : public W8GrowableVector<W8TextBuffer005ED5B8*> {
-public:
-    virtual ~W8DialogTextBufferVector005EF898() override {}
-};
-static_assert(sizeof(W8DialogTextBufferVector005EF898) == 0x10,
-              "W8DialogTextBufferVector_size");
-
-/* Two instances of this vector-derived wrapper are embedded in
+/* Two instances of this pointer-vector specialization are embedded in
    W8DialogTextArea005D14D0. */
 // VTABLE: WIZ8 0x005ef898
-// class W8DialogTextBufferVector005EF898
+// class W8GrowableVector<W8TextBuffer005ED5B8*>
 
 class W8DialogTextArea005D14D0 {
 public:
@@ -207,8 +199,8 @@ private:
     int unknown_010;
     int unknown_014;
     int unknown_018;
-    W8DialogTextBufferVector005EF898 m_all_lines_01c;
-    W8DialogTextBufferVector005EF898 m_visible_lines_02c;
+    W8GrowableVector<W8TextBuffer005ED5B8*> m_all_lines_01c;
+    W8GrowableVector<W8TextBuffer005ED5B8*> m_visible_lines_02c;
     unsigned char unknown_03c;
     unsigned char unknown_03d;
     unsigned char unknown_03e;

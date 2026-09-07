@@ -29,20 +29,12 @@ struct W8StartupStateElement005EE748 {
 static_assert(sizeof(W8StartupStateElement005EE748) == 0x38,
               "W8StartupStateElement005EE748_must_be_0x38");
 
-class W8StartupStateVector005EE748
-    : public W8GrowableVector<W8StartupStateElement005EE748*> {
-};
-
-class W8StartupStateVector005EE744
-    : public W8GrowableVector<W8StartupStateElement005EE748*> {
-};
-
 struct W8StartupRuntimeState {
-    W8StartupStateVector005EE748 vector_00;
-    W8StartupStateVector005EE748 vector_10;
-    W8StartupStateVector005EE748 vector_20;
-    W8StartupStateVector005EE748 vector_30;
-    W8StartupStateVector005EE744 vector_40;
+    W8GrowableVector<W8StartupStateElement005EE748*> vector_00;
+    W8GrowableVector<W8StartupStateElement005EE748*> vector_10;
+    W8GrowableVector<W8StartupStateElement005EE748*> vector_20;
+    W8GrowableVector<W8StartupStateElement005EE748*> vector_30;
+    W8GrowableVector<W8StartupStateElement005EE748*> vector_40;
     int value_50;
     int value_54;
     int unknown_58;

@@ -183,10 +183,10 @@ unsigned short g_held_item_slot_006840c5;
 
 static_assert(sizeof(W8ItemVideoObjectEntry) == 8,
               "W8ItemVideoObjectEntry_must_be_8");
-static_assert(sizeof(W8ItemVideoObjectVector) == 0x0c,
-              "W8ItemVideoObjectVector_must_be_0x0c");
+static_assert(sizeof(W8ItemVideoObjectCache) == 0x0c,
+              "W8ItemVideoObjectCache_must_be_0x0c");
 
-W8ItemVideoObjectVector g_item_video_objects_68ec68;
+W8ItemVideoObjectCache g_item_video_objects_68ec68;
 
 // FUNCTION: WIZ8 0x0055cdb0
 W8ItemVideoObjectEntry::W8ItemVideoObjectEntry()
@@ -199,21 +199,21 @@ W8ItemVideoObjectEntry::~W8ItemVideoObjectEntry()
 }
 
 // FUNCTION: WIZ8 0x0055cdc0
-void W8ItemVideoObjectVector::Initialize(int new_capacity)
+void W8ItemVideoObjectCache::Initialize(int new_capacity)
 {
     capacity = new_capacity;
     data = new W8ItemVideoObjectEntry[new_capacity];
-    count = 0;
+    loaded_count = 0;
 }
 
 // FUNCTION: WIZ8 0x0055ce40
-void W8ItemVideoObjectVector::Clear()
+void W8ItemVideoObjectCache::Clear()
 {
     if (data) {
         delete[] data;
         data = 0;
     }
-    count = 0;
+    loaded_count = 0;
 }
 
 static const char g_item_video_object_fallback_names[8][0x30] = {
@@ -222,7 +222,7 @@ static const char g_item_video_object_fallback_names[8][0x30] = {
 };
 
 // FUNCTION: WIZ8 0x0055ce80
-int W8ItemVideoObjectVector::GetOrCreateVideoObject(int item_id)
+int W8ItemVideoObjectCache::GetOrCreateVideoObject(int item_id)
 {
     W8ItemVideoObjectEntry* entry = data + item_id;
     const W8ItemDatabaseRecord* record = &g_item_records[item_id];
@@ -233,11 +233,11 @@ int W8ItemVideoObjectVector::GetOrCreateVideoObject(int item_id)
     if (entry->initialized) {
         return entry->video_object;
     }
-    if (count == capacity || count == 1000) {
+    if (loaded_count == capacity || loaded_count == 1000) {
         return 0;
     }
-    object = count + 0x291;
-    frame = count + 0x1ec;
+    object = loaded_count + 0x291;
+    frame = loaded_count + 0x1ec;
     if (name[0] == '\0') {
         name = g_item_video_object_fallback_names[record->unidentified_name_index];
     }
@@ -251,7 +251,7 @@ int W8ItemVideoObjectVector::GetOrCreateVideoObject(int item_id)
     g_video_slots_6448c8[frame].first_frame = object;
     g_video_slots_6448c8[frame].y_offset = 0;
     EnsureCatalogFrameLoaded(frame, 0);
-    ++count;
+    ++loaded_count;
     entry->video_object = frame;
     entry->initialized = 1;
     return frame;

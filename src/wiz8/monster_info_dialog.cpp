@@ -92,7 +92,7 @@ W8DialogButton005DB1B0::~W8DialogButton005DB1B0()
 // W8GrowableVector<W8TextBuffer005ED5B8*>::~W8GrowableVector<W8TextBuffer005ED5B8*>
 
 // SYNTHETIC: WIZ8 0x005d2590
-// W8DialogTextBufferVector005EF898::`scalar deleting destructor'
+// W8GrowableVector<W8TextBuffer005ED5B8*>::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005d14d0
 W8DialogTextArea005D14D0::W8DialogTextArea005D14D0()

@@ -65,16 +65,6 @@ public:
 static_assert(sizeof(W8CharacterPageEntry) == 0x3c,
               "W8CharacterPageEntry_size");
 
-/* Embedded at +0x4c.  Construction first installs the pointer-vector vtable
-   0x005ef218, then this empty derived type's vtable 0x005ef214. */
-class W8CharacterPageEntries005EF214
-    : public W8GrowableVector<W8CharacterPageEntry*> {
-public:
-    virtual ~W8CharacterPageEntries005EF214() override {}
-};
-static_assert(sizeof(W8CharacterPageEntries005EF214) == 0x10,
-              "W8CharacterPageEntries_size");
-
 /* Common 0x70-byte base constructed by 0x005AFD90.  The four page constructors
    below all call it and SelectPage dispatches these primary slots. */
 class W8CharacterPage : public Controls {
@@ -94,7 +84,7 @@ public:
     virtual void HandleInput(InputAtom* input);         /* 0x005B1BE0 */
     virtual void Refresh();                            /* 0x005B1BF0 */
     virtual void Prepare();                            /* 0x005AFFA0 */
-    W8CharacterPageEntries005EF214 m_entries_04c;
+    W8GrowableVector<W8CharacterPageEntry*> m_entries_04c;
     W8CharacterScreen* m_screen_05c;
     W8Character* m_character_060;
     W8CharacterCreationState* m_creation_state_064;
