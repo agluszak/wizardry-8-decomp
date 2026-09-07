@@ -82,8 +82,6 @@ struct W8StartupGridRow {
 
 W8StartupGridRow g_startup_grid_647da0[8];
 
-extern unsigned char InitializeVector005EEA28(void);
-extern void InitializeMenuVideoObjectCatalog(void);
 extern void Function549090(int object, int frame);
 extern unsigned short* Function5492E0(int object, int frame);
 
@@ -263,25 +261,6 @@ unsigned char AllocateSmallStartupSubsystem(void)
 unsigned char FreeSmallStartupSubsystem(void)
 {
     delete[] g_small_subsystem_69c130;
-    return 1;
-}
-
-/* The menu bring-up subset of the thirteen lifecycle records, called in place of
-   the walk over the real table. The camp record's region pair is called directly
-   rather than through its own initializer: the review and inventory screens the
-   menu reaches read those regions, and the initializer around them also drops the
-   camp state pointer, which bring-up has no reason to do. Records whose remaining
-   slots reach unrecovered bodies stay out until the table drives itself. */
-unsigned char InitializeMenuStartupSubsystems(void)
-{
-    if (!InitializeSubsystemFlag()) return 0;
-    if (!PleaseWaitScreenInitialize()) return 0;
-    InitializeCampScreenRegions();
-    Function5B7230();
-    if (!InitializeStartupGrid()) return 0;
-    if (!InitializeVector005EEA28()) return 0;
-    if (!AllocateSmallStartupSubsystem()) return 0;
-    InitializeMenuVideoObjectCatalog();
     return 1;
 }
 

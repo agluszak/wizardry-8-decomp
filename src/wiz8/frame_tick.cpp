@@ -10,6 +10,32 @@
 unsigned char State5Enter005C2DE0(void);
 void State5Frame005C3120(void);
 unsigned char State5Tick005C30B0(int leaving);
+unsigned char Function5B1740(void);
+unsigned char IntroScreenEnter(void);
+void IntroScreenFrame(void);
+unsigned char IntroScreenLeave(int leaving);
+unsigned char InitializeSubsystemFlag(void);
+unsigned char MainMenuScreenFunction005BC810(void);
+void MainMenuScreenFrame(void);
+unsigned char MainMenuScreenLeave(int leaving);
+void Screen2Finish(void);
+unsigned char PleaseWaitScreenInitialize(void);
+unsigned char PleaseWaitScreenEnter(void);
+void PleaseWaitScreenFrame(void);
+unsigned char PleaseWaitScreenLeave(char leaving);
+unsigned char InitializeCampScreen(void);
+unsigned char InitializeStartupGrid(void);
+unsigned char CreateList005EEA28(void);
+unsigned char Screen8Finalize(void);
+unsigned char AllocateSmallStartupSubsystem(void);
+unsigned char OptionsScreenEnter005A9B50(void);
+void OptionsScreenFrame005A9CC0(void);
+unsigned char OptionsScreenLeave005A9C70(int leaving);
+unsigned char FreeSmallStartupSubsystem(void);
+unsigned char InitializeJournalFont(void);
+unsigned char FinalizeJournalFont(void);
+unsigned char Screen12Enter(void);
+void Screen12Finish(void);
 
 /*
  * The per-frame tick WinMain calls when no message is waiting and the
@@ -19,23 +45,10 @@ unsigned char State5Tick005C30B0(int leaving);
  * CreateStack. A state transition copies pending over current, and the
  * displaced state is pushed so it can be returned to.
  *
- * Each state owns five dwords in the table at 0x00647BC8. InitializeGameData walks
- * slot 0 of every record as an initialiser; this walks three more: the entry
- * handler at 0x00647BCC, the one at 0x00647BD0 that closes out a frame, and the
- * tick at 0x00647BD4, which takes a flag distinguishing the leaving pass from
- * the ordinary one.
+ * Each state owns five dwords in the table at 0x00647BC8: initialize, enter,
+ * frame, leave, and finalize. Startup and shutdown walk the outside pair; the
+ * transition loop dispatches the middle three.
  */
-
-struct W8ScreenStateHandlers {
-    unsigned char (*initialise)(void);    /* 0x00, walked by InitializeGameData */
-    unsigned char (*enter)(void);         /* 0x04 */
-    void (*finish)(void);                 /* 0x08 */
-    unsigned char (*tick)(int leaving);   /* 0x0c */
-    void* unknown_10;
-};
-
-extern unsigned char MainMenuScreenFunction005BC810(void);
-extern void MainMenuScreenFrame(void);
 
 static unsigned char ScreenReady(void) { return 1; }
 static void ScreenIdle(void) {}
@@ -51,20 +64,31 @@ static unsigned char EnterMainMenu(void)
 #define g_screen_state g_screen_state_0068ec78
 #define g_pending_state g_dword_68ed10
 W8ScreenStateHandlers g_screen_handlers[13] = {
-    { ScreenReady, EnterMainMenu, MainMenuScreenFrame, ScreenLeave, 0 },
-    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
-    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
-    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
-    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
-    { ScreenReady, State5Enter005C2DE0, State5Frame005C3120,
-      State5Tick005C30B0, 0 },
-    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
-    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
-    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
-    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
-    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
-    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
-    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 }
+    { Function5B1740, IntroScreenEnter, IntroScreenFrame, IntroScreenLeave,
+      Function5B1740 },
+    { InitializeSubsystemFlag, EnterMainMenu, MainMenuScreenFrame,
+      MainMenuScreenLeave, Function5B1740 },
+    { Function5B1740, Function5B1740, Screen2Finish,
+      (unsigned char (*)(int))Function5B1740, Function5B1740 },
+    { Function5B1740, ScreenReady, ScreenIdle, ScreenLeave, Function5B1740 },
+    { PleaseWaitScreenInitialize, PleaseWaitScreenEnter, PleaseWaitScreenFrame,
+      (unsigned char (*)(int))PleaseWaitScreenLeave, Function5B1740 },
+    { Function5B1740, State5Enter005C2DE0, State5Frame005C3120,
+      State5Tick005C30B0, Function5B1740 },
+    { InitializeCampScreen, ScreenReady, ScreenIdle, ScreenLeave,
+      Function5B1740 },
+    { InitializeStartupGrid, ScreenReady, ScreenIdle, ScreenLeave,
+      Function5B1740 },
+    { CreateList005EEA28, ScreenReady, ScreenIdle, ScreenLeave,
+      Screen8Finalize },
+    { Function5B1740, ScreenReady, ScreenIdle, ScreenLeave, Function5B1740 },
+    { AllocateSmallStartupSubsystem, OptionsScreenEnter005A9B50,
+      OptionsScreenFrame005A9CC0, OptionsScreenLeave005A9C70,
+      FreeSmallStartupSubsystem },
+    { InitializeJournalFont, ScreenReady, ScreenIdle, ScreenLeave,
+      FinalizeJournalFont },
+    { Function5B1740, Screen12Enter, Screen12Finish, MainMenuScreenLeave,
+      Function5B1740 }
 };
 extern unsigned char g_flag_68edac;
 int g_dword_647bc0;
@@ -104,7 +128,7 @@ void Function4E3340(void)
     if (g_flag_68edac) {
         g_dword_647bc0 = state;
         ReleaseScreenTransitionObjects();
-        if (!g_screen_handlers[g_screen_state.id].tick(1)) {
+        if (!g_screen_handlers[g_screen_state.id].leave(1)) {
             gfProgramIsRunning = 0;
             g_screen_state.id = -1;
             return;
@@ -134,7 +158,7 @@ void Function4E3340(void)
     if (state != -1) {
         g_dword_647bc0 = state;
         ReleaseScreenTransitionObjects();
-        if (!g_screen_handlers[g_screen_state.id].tick(0)) {
+        if (!g_screen_handlers[g_screen_state.id].leave(0)) {
             goto clear;
         }
         g_dword_647bc4 = g_screen_state.id;
@@ -152,7 +176,7 @@ finish:
     if (state == -1) {
         goto stop;
     }
-    g_screen_handlers[state].finish();
+    g_screen_handlers[state].frame();
     return;
 
 clear:
@@ -173,7 +197,7 @@ void ShutdownScreenStack(int release_screens)
         if (g_screen_state.id != -1) {
             g_dword_647bc0 = g_screen_state.id;
             ReleaseScreenTransitionObjects();
-            g_screen_handlers[g_screen_state.id].tick(1);
+            g_screen_handlers[g_screen_state.id].leave(1);
             g_screen_state.id = -1;
         }
         if (!StackSize(g_stack_68eda8) || !Pop(g_stack_68eda8, &g_pending_state)) {

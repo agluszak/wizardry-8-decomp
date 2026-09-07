@@ -1,9 +1,25 @@
 #pragma once
 
 enum {
+    W8_SCREEN_INTRO = 0,
+    W8_SCREEN_MAIN_MENU = 1,
+    W8_SCREEN_PLEASE_WAIT = 4,
+    W8_SCREEN_PARTY_SELECTION = 5,
     W8_SCREEN_CAMP = 6,
-    W8_SCREEN_MAIN_GAME = 7
+    W8_SCREEN_MAIN_GAME = 7,
+    W8_SCREEN_OPTIONS = 10,
+    W8_SCREEN_JOURNAL = 11
 };
+
+struct W8ScreenStateHandlers {
+    unsigned char (*initialize)(void);  /* +0x00, startup ownership */
+    unsigned char (*enter)(void);       /* +0x04, transition into state */
+    void (*frame)(void);                /* +0x08, active frame */
+    unsigned char (*leave)(int leaving);/* +0x0c, transition out */
+    unsigned char (*finalize)(void);    /* +0x10, shutdown ownership */
+};
+
+extern W8ScreenStateHandlers g_screen_handlers[13];
 
 /* The current and pending screen records begin at the two globals whose first
    dwords the reviewed setters address directly. One storage object preserves

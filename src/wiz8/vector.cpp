@@ -461,11 +461,6 @@ unsigned char CreateList005EEA28(void)
     return 1;
 }
 
-extern "C" unsigned char InitializeVector005EEA28(void)
-{
-    return CreateList005EEA28();
-}
-
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
 class W8VectorElement005EF08C;

@@ -23,6 +23,7 @@ extern void InitializeGameplayRuntimeObjects(void);
 extern unsigned char Function54A760(W8MonsterRecord** records);
 extern unsigned char VerifyDataSubdirs(void);
 extern void InitializeItemVideoObjects(void);
+extern void InitializeMenuVideoObjectCatalog(void);
 extern unsigned char FindStartupQuickSave(char* slot_name);
 extern int GetSaveGameLevel(const char* slot_name);
 extern void SetPendingScreenState(int value);
@@ -39,8 +40,6 @@ extern void ReleaseAllTriggers(void);
  * are mostly unidentified and carry address-derived names; the ones already
  * recovered elsewhere keep theirs.
  */
-
-extern unsigned char InitializeMenuStartupSubsystems(void);
 
 extern unsigned char InitializeSlfArchives(void);
 extern int LoadPatchSlfArchives(const char* directory);
@@ -89,9 +88,12 @@ unsigned char InitializeGameData(void)
     if (!g_stack_68eda8) {
         return 0;
     }
-    if (!InitializeMenuStartupSubsystems()) {
-        return 0;
+    for (int screen = 0; screen < 13; ++screen) {
+        if (!g_screen_handlers[screen].initialize()) {
+            return 0;
+        }
     }
+    InitializeMenuVideoObjectCatalog();
     SetShadeTablePercent((FLOAT)0.66);
     BuildShadeTable();
     if (!InitializeMenuFonts()) {
@@ -170,6 +172,9 @@ void ShutdownGameData(void)
     for (index = 0; index < 15; ++index) {
         free(g_font_state_palettes_68ee1c[index]);
         g_font_state_palettes_68ee1c[index] = 0;
+    }
+    for (index = 0; index < 13; ++index) {
+        g_screen_handlers[index].finalize();
     }
     if (g_stack_68eda8) {
         DeleteStack(g_stack_68eda8);
