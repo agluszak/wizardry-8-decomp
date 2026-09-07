@@ -54,6 +54,12 @@ static unsigned char ScreenReady(void) { return 1; }
 static void ScreenIdle(void) {}
 static unsigned char ScreenLeave(int) { return 1; }
 
+/* Rows 3, 8, and 9 are now identified as Character, Automap, and Credits.
+   Their live callbacks are 005B1750/005B18E0/005B1840,
+   0057E660/0057F1F0/0057EFE0, and 005BC130/005BC530/005BC420 respectively.
+   Until those bodies are recovered, these local callbacks keep the runtime
+   projection honest about its incomplete implementation. */
+
 /* WIZ8_RUNTIME currently retains the reviewed main-menu callback but not the
    complete thirteen-record lifecycle table.  Keep this bridge local and
    unclaimed: it selects the exact menu body through the same typed dispatch
