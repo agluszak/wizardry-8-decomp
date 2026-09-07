@@ -1,5 +1,6 @@
 #pragma once
 
+#include "surrender/srArray.h"
 #include "surrender/srModelInstance.h"
 
 class srMaterial;
@@ -7,20 +8,18 @@ class srTextureIFace;
 class stTextureAnim;
 
 /* Engine Code\stModelInstance.cpp. */
-// VTABLE: WIZ8 0x005ec814 stModelInstance
-// VTABLE: WIZ8 0x005ec804 srModel::Client
+// VTABLE: WIZ8 0x005ec7d0 stModelInstance
+// VTABLE: WIZ8 0x005ec7c0 stModelInstance::srModel::Client
+/* The following are the construction-phase tables for the support base. */
+// VTABLE: WIZ8 0x005ec814 srClassSupport<stModelInstance,srModelInstance,0,65540>
+// VTABLE: WIZ8 0x005ec804 srClassSupport<stModelInstance,srModelInstance,0,65540>::srModel::Client
 class stModelInstance
     : public srClassSupport<stModelInstance, srModelInstance, false, 0x10004> {
 public:
     static const char* sGetClassName() { return "stModelInstance"; }
 
-    stModelInstance()
-        : srClassSupport<stModelInstance, srModelInstance, false, 0x10004>(
-              static_cast<srNode*>(0))
-    {
-        damage_stage_tables_188 = 0;
-        damage_stage_count_18c = 0;
-    }
+    explicit stModelInstance(srNode* parent); /* 0x0047EC80 */
+    stModelInstance& operator=(const stModelInstance& other); /* 0x0047EDF0 */
 
     stTextureAnim* FindMouthTexture00481080();     /* 0x00481080 */
     int AddDamageStage00480560(const char* name);
@@ -31,8 +30,7 @@ public:
     unsigned char displayState() const { return state_170; }
     void setRenderDepth(unsigned long depth) { render_depth_164 = depth; }
 
-protected:
-    virtual ~stModelInstance() override;           /* 0x00481940 */
+    virtual ~stModelInstance() override; /* 0x0047EF70 */
 
 public:
     unsigned long state_160;
@@ -64,23 +62,7 @@ public:
     unsigned long state_17c;
     unsigned int frame_index_180;
     int damage_stage_184;
-    int* damage_stage_tables_188;
-    int damage_stage_count_18c;
-};
-
-static_assert(sizeof(stModelInstance) == 0x190,
-              "stModelInstance_size_must_be_0x190");
-
-/* The constructor at 0x0047EC80 first builds the 0x190-byte
-   stModelInstance base, then installs vtables 0x005EC7D0/0x005EC7C0 and
-   initializes the fields below through +0x1ac. Its original derived-class
-   name is not yet available. */
-class stModelInstance005EC7D0 : public stModelInstance {
-public:
-    explicit stModelInstance005EC7D0(srNode* parent); /* 0x0047EC80 */
-    stModelInstance005EC7D0& operator=(
-        const stModelInstance005EC7D0& other);         /* 0x0047EDF0 */
-
+    srHeapArray<int> damage_stage_tables_188;
     int value_190;
     srVector3T<float> scale_194;
     unsigned char flag_1a0;
@@ -95,11 +77,10 @@ public:
     };
     int value_1a8;
     float value_1ac;
-    virtual ~stModelInstance005EC7D0() override; /* 0x0047EF70 */
 };
 
-static_assert(sizeof(stModelInstance005EC7D0) == 0x1b0,
-              "stModelInstance005EC7D0_size_must_be_0x1b0");
+static_assert(sizeof(stModelInstance) == 0x1b0,
+              "stModelInstance_size_must_be_0x1b0");
 
 /* Concrete 2D model instance. Slot 5 and the secondary slot-0 adjustor are
    SYNTHETIC compiler-generated deleting destructors; no source body owns

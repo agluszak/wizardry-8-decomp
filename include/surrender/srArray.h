@@ -56,10 +56,11 @@ public:
     unsigned long capacity;
 };
 
-/* The separately proved scratch-buffer family uses srHeap and intentionally
-   discards old contents when it grows. `srHeapArray` is likewise a provisional
-   spelling, not a per-element wrapper or specialization. Its constructor
-   invokes ensure(0); retail retains that call even for an empty request. */
+/* The separately proved srHeap-backed family has both preserving exact-size
+   storage and a scratch-buffer operation that discards old contents when it
+   grows. `srHeapArray` is a provisional spelling, not a per-element wrapper or
+   specialization. Its constructor invokes ensure(0); retail retains that call
+   even for an empty request. */
 template <class T>
 class srHeapArray {
 public:
@@ -76,6 +77,51 @@ public:
         }
         data = 0;
         capacity = 0;
+    }
+
+    inline srHeapArray& operator=(const srHeapArray& other)
+    {
+        if (this != &other) {
+            if (data != 0) {
+                srHeap.free(data);
+            }
+            data = 0;
+            capacity = 0;
+            if (other.capacity != 0) {
+                setCapacity(other.capacity);
+                for (unsigned long index = 0; index < capacity; ++index) {
+                    data[index] = other.data[index];
+                }
+            }
+        }
+        return *this;
+    }
+
+    inline void setCapacity(unsigned long new_capacity)
+    {
+        if (capacity != new_capacity) {
+            T* replacement = 0;
+            if (new_capacity > 0) {
+                replacement = static_cast<T*>(
+                    srHeap.allocate(new_capacity * sizeof(T)));
+                if (data != 0 && capacity > 0) {
+                    unsigned long copy_count = capacity;
+                    if (copy_count >= new_capacity) {
+                        copy_count = new_capacity;
+                    }
+                    for (unsigned long index = 0;
+                         index < copy_count;
+                         ++index) {
+                        replacement[index] = data[index];
+                    }
+                }
+            }
+            if (data != 0) {
+                srHeap.free(data);
+            }
+            data = replacement;
+            capacity = new_capacity;
+        }
     }
 
     inline T* ensure(unsigned long needed)

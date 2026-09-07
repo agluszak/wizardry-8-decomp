@@ -715,7 +715,7 @@ void W8Prop::Method44C670()
                 reinterpret_cast<W8PathAI*>(
                     static_cast<W8PropRepresentation*>(m_pRep)
                         ->animation->path_24),
-                reinterpret_cast<stModelInstance005EC7D0*>(mesh));
+                reinterpret_cast<stModelInstance*>(mesh));
         }
         return;
     }
@@ -743,7 +743,7 @@ void W8Prop::Method44C670()
                 path,
                 (float)static_cast<W8PropRepresentation*>(m_pRep)->flag_064);
             PathAIApply004AA520(
-                path, reinterpret_cast<stModelInstance005EC7D0*>(mesh));
+                path, reinterpret_cast<stModelInstance*>(mesh));
             reinterpret_cast<srNode*>(mesh)->getLocation(location);
             position_02c.x = location.x;
             position_02c.y = location.y;
@@ -1076,7 +1076,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
         W8AniMesh* mesh = reinterpret_cast<W8AniMesh*>(
             AnimObjEntry004A1660(animation, 2, 0));
         unsigned char value_count = AniMeshValue004B64F0(mesh);
-        stModelInstance005EC7D0* frame =
+        stModelInstance* frame =
             GetAniMeshFrame004B6550(mesh, 0);
         srVector3T<float> minimum;
         srVector3T<float> maximum;

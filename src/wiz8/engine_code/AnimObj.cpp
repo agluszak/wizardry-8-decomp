@@ -455,7 +455,7 @@ unsigned char AnimObjGetBounds004A1710(
     srVector3T<float> transformed_maximum;
     srVector3T<float> mesh_minimum;
     srVector3T<float> mesh_maximum;
-    stModelInstance005EC7D0* instance;
+    stModelInstance* instance;
     W8AniMesh* mesh;
     W8PathAI* path;
     unsigned int count;

@@ -70,7 +70,7 @@ static int g_retained_material_count_65b9d4;
 static int g_retained_material_capacity_65b9d8;
 static srClass** g_retained_materials_65b9dc;
 
-extern stModelInstance005EC7D0* CreateModelInstance0046F5C0(
+extern stModelInstance* CreateModelInstance0046F5C0(
     stMeshModel* model);
 unsigned char ReadSingleLevelMeshBody00485C10(
     W8ReadLevelInfo* info, srModelInstance** instance,
@@ -509,7 +509,7 @@ unsigned char ReadSingleLevelMesh00485B20(
         stMeshModel* model = static_cast<stMeshModel*>(
             registry->find(node, name, 0));
         if (model != 0 && model->flag_3cc != 0) {
-            stModelInstance005EC7D0* duplicate =
+            stModelInstance* duplicate =
                 CreateModelInstance0046F5C0(model);
             duplicate->setName("Read Mesh Duplicate Instance");
             *instance = duplicate;
@@ -702,7 +702,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(
     if (first_model != 0) {
         first_model->autoRelease();
         first_model->setName(name);
-        stModelInstance005EC7D0* loaded_instance =
+        stModelInstance* loaded_instance =
             CreateModelInstance0046F5C0(first_model);
         loaded_instance->setName("ReadSTMeshFromFile");
         if (version > 1 && loaded_instance != 0) {
@@ -889,7 +889,7 @@ unsigned char ReadMultipleLevelMeshes00488240(
         stMeshModel* model = meshes[g_read_mesh_index_65b9e4];
         model->setName(name);
         if (model->next == 0) {
-            stModelInstance005EC7D0* instance =
+            stModelInstance* instance =
                 CreateModelInstance0046F5C0(model);
             instance->setName("Multi Mesh Instance");
             instance->state_17c = g_read_mesh_index_65b9e4;

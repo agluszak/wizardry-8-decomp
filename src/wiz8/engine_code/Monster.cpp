@@ -118,7 +118,7 @@ unsigned char g_monster_gib_option_0060e614 = 1;
 extern const double g_monster_light_color_scale_005ed280 =
     0.00392156862745098;
 
-static W8GrowableVector<stModelInstance005EC7D0*>
+static W8GrowableVector<stModelInstance*>
     g_monster_model_instances_682fd0;
 
 #define MONSTER_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp"
@@ -471,7 +471,7 @@ unsigned char MonsterReadAllCycles004C0300(
                 if (damage_stage == -1) {
                     damage_stage = (*monster)->AddDamageStage004C6880(
                         monster_name, 0);
-                    W8GrowableVector<stModelInstance005EC7D0*> instances;
+                    W8GrowableVector<stModelInstance*> instances;
                     (*monster)->CollectModelInstances004C6350(&instances);
                     for (int index = 0; index < instances.GetCount(); ++index) {
                         (*instances.GetAt(index))->damage_stage_184 =
@@ -700,10 +700,10 @@ unsigned char MonsterReadAllCycles004C0300(
         (*monster)->scale_1cc = opacity;
     }
     if (glow > 0.0f) {
-        W8GrowableVector<stModelInstance005EC7D0*> instances;
+        W8GrowableVector<stModelInstance*> instances;
         (*monster)->CollectModelInstances004C6350(&instances);
         for (int index = 0; index < instances.GetCount(); ++index) {
-            stModelInstance005EC7D0* instance = *instances.GetAt(index);
+            stModelInstance* instance = *instances.GetAt(index);
             instance->flag_1a1 = 1;
             instance->value_1a8 = glow;
         }
@@ -1432,7 +1432,7 @@ void W8Monster::Update()
         for (index = 0;
              index < g_monster_model_instances_682fd0.GetCount();
              ++index) {
-            stModelInstance005EC7D0* model =
+            stModelInstance* model =
                 *g_monster_model_instances_682fd0.GetAt(index);
             model->scale_194.x = 0.75f;
             model->scale_194.y = 0.75f;
@@ -1499,7 +1499,7 @@ void W8Monster::Update()
         for (index = 0;
              index < g_monster_model_instances_682fd0.GetCount();
              ++index) {
-            stModelInstance005EC7D0* model =
+            stModelInstance* model =
                 *g_monster_model_instances_682fd0.GetAt(index);
             model->scale_194.x = current_scale_300;
             model->scale_194.y = current_scale_300;
@@ -3607,7 +3607,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         W8GrCycle::UpdateRepresentation(world);
         model = GetCurrentModelInstance004A8250();
         if (model != 0) {
-            static_cast<stModelInstance005EC7D0*>(model)->value_1ac =
+            static_cast<stModelInstance*>(model)->value_1ac =
                 g_monster_model_value_enabled_00685111 != 0
                     ? unknown_1d4 : 0.0f;
             SetChainValue15C((char*)model, 4);
@@ -3926,7 +3926,7 @@ void W8Monster::SetCycle(signed char cycle)
     for (index = 0;
          index < g_monster_model_instances_682fd0.GetCount();
          ++index) {
-        stModelInstance005EC7D0* model =
+        stModelInstance* model =
             *g_monster_model_instances_682fd0.GetAt(index);
         model->scale_194.x = current_scale_300;
         model->scale_194.y = current_scale_300;
@@ -4197,7 +4197,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
 
         GetMappedPosition004C72A0(&mapped_position);
         while (poster_index < poster_count) {
-            stModelInstance005EC7D0* poster =
+            stModelInstance* poster =
                 *representation->linked_runtime_objects_614.GetAt(poster_index);
             srVector3T<double> location = poster->getLocation();
             float x = (float)location.x;
@@ -5494,7 +5494,7 @@ void MonsterAimAtMonster004C62C0(
    consumers read their first-party fields beyond the srModelInstance base. */
 // FUNCTION: WIZ8 0x004c6350
 void W8Monster::CollectModelInstances004C6350(
-    W8GrowableVector<stModelInstance005EC7D0*>* instances)
+    W8GrowableVector<stModelInstance*>* instances)
 {
     int cycle;
 
@@ -5589,7 +5589,7 @@ unsigned char W8Monster::ReplaceSkinTexture004C6700(
         return 0;
     }
 
-    W8GrowableVector<stModelInstance005EC7D0*> instances;
+    W8GrowableVector<stModelInstance*> instances;
     CollectModelInstances004C6350(&instances);
     for (int index = 0; index < instances.GetCount(); ++index) {
         if ((*instances.GetAt(index))->ReplaceDamageStageTexture004807B0(
@@ -5617,12 +5617,12 @@ int W8Monster::AddDamageStage004C6880(const char* base_name, int stage)
 {
     char name[128];
     int result = -1;
-    W8GrowableVector<stModelInstance005EC7D0*> instances;
+    W8GrowableVector<stModelInstance*> instances;
 
     sprintf(name, "%s%d", base_name, stage);
     CollectModelInstances004C6350(&instances);
     for (int index = 0; index < instances.GetCount(); ++index) {
-        stModelInstance005EC7D0* instance = *instances.GetAt(index);
+        stModelInstance* instance = *instances.GetAt(index);
         if (instance->FindDamageStage00480790(name) == -1) {
             result = instance->AddDamageStage00480560(name);
         }
@@ -5639,7 +5639,7 @@ int W8Monster::AddDamageStage004C6880(const char* base_name, int stage)
 void W8Monster::RemoveCycleSkinTables004C6B10()
 {
     const char* cycle_name = GetGrCycleName(this);
-    W8GrowableVector<stModelInstance005EC7D0*> instances;
+    W8GrowableVector<stModelInstance*> instances;
 
     if (cycle_name != 0) {
         CollectModelInstances004C6350(&instances);
@@ -5658,7 +5658,7 @@ void W8Monster::RemoveCycleSkinTables004C6B10()
 // FUNCTION: WIZ8 0x004c6990
 void W8Monster::SetDamageStage004C6990(int stage)
 {
-    W8GrowableVector<stModelInstance005EC7D0*> instances;
+    W8GrowableVector<stModelInstance*> instances;
     int index;
 
     CollectModelInstances004C6350(&instances);
@@ -5672,11 +5672,11 @@ void W8Monster::SetDamageStage004C6990(int stage)
 // FUNCTION: WIZ8 0x004c6a50
 int W8Monster::GetDamageStageCount004C6A50()
 {
-    W8GrowableVector<stModelInstance005EC7D0*> instances;
+    W8GrowableVector<stModelInstance*> instances;
 
     CollectModelInstances004C6350(&instances);
     if (instances.GetCount() != 0) {
-        return (*instances.GetAt(0))->damage_stage_count_18c;
+        return (*instances.GetAt(0))->damage_stage_tables_188.capacity;
     }
     return 0;
 }

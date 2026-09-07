@@ -5,7 +5,7 @@
 #include "wiz8/engine_code/stHeap.hpp"
 #include "wiz8/engine_code/stHash.hpp"
 
-class stModelInstance005EC7D0;
+class stModelInstance;
 
 /* Retail allocates this 0x58-byte object, calls its sole observed constructor,
    and later releases it with delete. Its storage has no proven
@@ -250,8 +250,8 @@ public:
     void DrawPathPosition0045C9A0(
         srVector3T<float> position, unsigned char mode);
     void BuildSearchVisualization0045CFD0();
-    stModelInstance005EC7D0* BuildPathVisualization0045BE30();
-    stModelInstance005EC7D0* EnsurePathVisualization0045D530();
+    stModelInstance* BuildPathVisualization0045BE30();
+    stModelInstance* EnsurePathVisualization0045D530();
     void GetWaypointVisualizationColor0045D490(
         unsigned short waypoint, srVector3T<float>* color);
     short CollectPathVisualization0045D880(
@@ -362,7 +362,7 @@ public:
     W8PathSurface* m_pSurfaces_048;      /* 0x48 */
     W8PathEdge* m_pEdges_04c;            /* 0x4c */
     W8FileWaypoint* file_waypoints_050; /* 0x50 */
-    stModelInstance005EC7D0* m_owned_054; /* 0x54 */
+    stModelInstance* m_owned_054; /* 0x54 */
     BitArray* visible_waypoints_058;     /* 0x58 */
     BitArray* rendered_waypoints_05c;    /* 0x5c */
     BitArray* collected_waypoints_060;   /* 0x60 */

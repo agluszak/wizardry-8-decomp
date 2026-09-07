@@ -55,8 +55,7 @@
 // FUNCTION: WIZ8 0x00481080
 stTextureAnim* stModelInstance::FindMouthTexture00481080()
 {
-    stMeshModel* mesh = static_cast<stMeshModel*>(
-        static_cast<srModel::Client&>(*this).getModel());
+    stMeshModel* mesh = static_cast<stMeshModel*>(getModel());
 
     if (damage_stage_184 == -1) {
         while (mesh != 0) {
@@ -83,7 +82,7 @@ stTextureAnim* stModelInstance::FindMouthTexture00481080()
         while (mesh != 0) {
             srPtr<srTextureIFace>* textures =
                 mesh->GetTextureTable00473720(
-                    damage_stage_tables_188[damage_stage_184]);
+                    damage_stage_tables_188.data[damage_stage_184]);
 
             if (textures != 0) {
                 for (int polygon = 0;
@@ -107,7 +106,7 @@ stTextureAnim* stModelInstance::FindMouthTexture00481080()
 // FUNCTION: WIZ8 0x00480790
 int stModelInstance::FindDamageStage00480790(const char* name)
 {
-    stMeshModel* mesh = static_cast<stMeshModel*>(model());
+    stMeshModel* mesh = static_cast<stMeshModel*>(getModel());
     return mesh->FindSkinTable004736D0(name);
 }
 
@@ -116,27 +115,17 @@ int stModelInstance::FindDamageStage00480790(const char* name)
 // FUNCTION: WIZ8 0x00480560
 int stModelInstance::AddDamageStage00480560(const char* name)
 {
-    stMeshModel* mesh = static_cast<stMeshModel*>(model());
+    stMeshModel* mesh = static_cast<stMeshModel*>(getModel());
 
     if (mesh->FindSkinTable004736D0(name) != -1) {
         return -1;
     }
 
-    int stage = damage_stage_count_18c;
-    int new_count = stage + 1;
-    int* replacement = static_cast<int*>(
-        srHeap.allocate(new_count * sizeof(int)));
-    for (int index = 0; index < damage_stage_count_18c; ++index) {
-        replacement[index] = damage_stage_tables_188[index];
-    }
-    if (damage_stage_tables_188 != 0) {
-        srHeap.free(damage_stage_tables_188);
-    }
-    damage_stage_tables_188 = replacement;
-    damage_stage_count_18c = new_count;
+    int stage = damage_stage_tables_188.capacity;
+    damage_stage_tables_188.setCapacity(stage + 1);
 
-    int base_table = stage > 0 ? damage_stage_tables_188[0] : -1;
-    damage_stage_tables_188[stage] =
+    int base_table = stage > 0 ? damage_stage_tables_188.data[0] : -1;
+    damage_stage_tables_188.data[stage] =
         mesh->CreateSkinTable00473260(name, base_table);
     for (mesh = mesh->next; mesh != 0; mesh = mesh->next) {
         mesh->CreateSkinTable00473260(name, base_table);
@@ -147,26 +136,16 @@ int stModelInstance::AddDamageStage00480560(const char* name)
 // FUNCTION: WIZ8 0x00480670
 int stModelInstance::AddExistingDamageStage00480670(const char* name)
 {
-    stMeshModel* mesh = static_cast<stMeshModel*>(model());
+    stMeshModel* mesh = static_cast<stMeshModel*>(getModel());
     int table = mesh->FindSkinTable004736D0(name);
 
     if (table == -1) {
         return -1;
     }
 
-    int stage = damage_stage_count_18c;
-    int new_count = stage + 1;
-    int* replacement = static_cast<int*>(
-        srHeap.allocate(new_count * sizeof(int)));
-    for (int index = 0; index < damage_stage_count_18c; ++index) {
-        replacement[index] = damage_stage_tables_188[index];
-    }
-    if (damage_stage_tables_188 != 0) {
-        srHeap.free(damage_stage_tables_188);
-    }
-    damage_stage_tables_188 = replacement;
-    damage_stage_count_18c = new_count;
-    damage_stage_tables_188[stage] = table;
+    int stage = damage_stage_tables_188.capacity;
+    damage_stage_tables_188.setCapacity(stage + 1);
+    damage_stage_tables_188.data[stage] = table;
     return stage;
 }
 
@@ -174,7 +153,7 @@ int stModelInstance::AddExistingDamageStage00480670(const char* name)
 unsigned char stModelInstance::ReplaceDamageStageTexture004807B0(
     int stage, const char* old_name, srTextureIFace* replacement)
 {
-    stMeshModel* mesh = static_cast<stMeshModel*>(model());
+    stMeshModel* mesh = static_cast<stMeshModel*>(getModel());
     unsigned char replaced = 0;
 
     if (replacement != 0) {
@@ -186,7 +165,7 @@ unsigned char stModelInstance::ReplaceDamageStageTexture004807B0(
 
     for (; mesh != 0; mesh = mesh->next) {
         srPtr<srTextureIFace>* textures =
-            mesh->GetTextureTable00473720(damage_stage_tables_188[stage]);
+            mesh->GetTextureTable00473720(damage_stage_tables_188.data[stage]);
         if (textures == 0) {
             continue;
         }
@@ -228,14 +207,8 @@ unsigned char stModelInstance::ReplaceDamageStageTexture004807B0(
 // TEMPLATE: WIZ8 0x00481880
 // srClassSupport<stModelInstance,srModelInstance,0,65540>::getClassNode
 
-/* The derived instance has no first-party resource to release here. Its
-   responsibility is the registry edge; srModelInstance performs the base
-   teardown automatically after this body. The registry helper is defined
-   first because its complete body is expanded into the original destructor. */
-// FUNCTION: WIZ8 0x00481940
-stModelInstance::~stModelInstance()
-{
-}
+// TEMPLATE: WIZ8 0x00481940
+// srClassSupport<stModelInstance,srModelInstance,0,65540>::~srClassSupport<stModelInstance,srModelInstance,0,65540>
 
 // FUNCTION: WIZ8 0x0047F410
 stModelInstance2D::~stModelInstance2D()
@@ -382,8 +355,7 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
             -(world_scale.z * basis_z));
     }
 
-    srMeshModel* model = static_cast<srMeshModel*>(
-        static_cast<srModel::Client&>(*this).getModel());
+    srMeshModel* model = static_cast<srMeshModel*>(getModel());
     model->getTriMesh(mesh);
 
     if (state_171 != 0) {
@@ -447,11 +419,12 @@ srClass* stModelInstance2D::vInstance()
 // srArray<srTriMeshPipeline::Pass>::operator[]
 
 // SYNTHETIC: WIZ8 0x0047EDC0
-// stModelInstance005EC7D0::`scalar deleting destructor'
+// stModelInstance::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x0047EC80
-stModelInstance005EC7D0::stModelInstance005EC7D0(srNode* parent)
-    : stModelInstance()
+stModelInstance::stModelInstance(srNode* parent)
+    : srClassSupport<stModelInstance, srModelInstance, false, 0x10004>(
+          static_cast<srNode*>(0))
 {
     render_depth_164 = 0;
     state_168 = 0;
@@ -477,10 +450,10 @@ stModelInstance005EC7D0::stModelInstance005EC7D0(srNode* parent)
 }
 
 // FUNCTION: WIZ8 0x0047EDF0
-stModelInstance005EC7D0& stModelInstance005EC7D0::operator=(
-    const stModelInstance005EC7D0& other)
+stModelInstance& stModelInstance::operator=(
+    const stModelInstance& other)
 {
-    stModelInstance::operator=(other);
+    srModelInstance::operator=(other);
     render_depth_164 = 0;
     state_168 = 0;
     state_16c = 0;
@@ -489,21 +462,7 @@ stModelInstance005EC7D0& stModelInstance005EC7D0::operator=(
     state_17c = other.state_17c;
     frame_index_180 = other.frame_index_180;
 
-    if (this != &other) {
-        if (damage_stage_tables_188 != 0) {
-            srHeap.free(damage_stage_tables_188);
-        }
-        damage_stage_tables_188 = 0;
-        damage_stage_count_18c = 0;
-        if (other.damage_stage_count_18c != 0) {
-            damage_stage_tables_188 = static_cast<int*>(
-                srHeap.allocate(other.damage_stage_count_18c * sizeof(int)));
-            damage_stage_count_18c = other.damage_stage_count_18c;
-            for (int stage = 0; stage < damage_stage_count_18c; ++stage) {
-                damage_stage_tables_188[stage] = other.damage_stage_tables_188[stage];
-            }
-        }
-    }
+    damage_stage_tables_188 = other.damage_stage_tables_188;
     damage_stage_184 = other.damage_stage_184;
     value_190 = other.value_190;
     retained_174 = 0;
@@ -517,14 +476,9 @@ stModelInstance005EC7D0& stModelInstance005EC7D0::operator=(
 }
 
 // FUNCTION: WIZ8 0x0047EF70
-stModelInstance005EC7D0::~stModelInstance005EC7D0()
+stModelInstance::~stModelInstance()
 {
     if (retained_174 != 0) {
         retained_174->release();
     }
-    if (damage_stage_tables_188 != 0) {
-        srHeap.free(damage_stage_tables_188);
-    }
-    damage_stage_tables_188 = 0;
-    damage_stage_count_18c = 0;
 }
