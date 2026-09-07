@@ -4,6 +4,7 @@
 
 #include "wiz8/character.h"
 #include "wiz8/compat/compiler.h"
+#include "wiz8/engine_code/game_timer.h"
 #include "wiz8/local_code/Controls.h"
 
 extern "C" {
@@ -153,14 +154,39 @@ private:
 };
 static_assert(sizeof(W8CharacterPage005EF5C8) == 0x78, "W8CharacterPage005EF5C8_size");
 
-class W8CharacterPage005EF57C : public W8CharacterPage {
+class W8CharacterPage005EF57C
+    : public W8CharacterPage,
+      public W8ControlSelectionListener,
+      public W8TextControlActionListener005ED664 {
 public:
+    W8CharacterPage005EF57C()
+        : W8CharacterPage(0x105), m_animation_timer_0d4(0.4f, 1),
+          m_animation_active_0fc(0) {}
+    virtual ~W8CharacterPage005EF57C() override;
+    virtual void Redraw() override;
+    virtual void SetCharacter(W8Character*, W8CharacterCreationState*, int) override;
     virtual void Activate() override;
     virtual void Deactivate() override;
     virtual void Accept() override;
     virtual void GetNavigationState(unsigned char*, unsigned char*) override;
+    virtual void HandleInput(InputAtom*) override;
+    virtual void Refresh() override;
+    virtual void OnSelectionChanged(W8Control005ED654*, int) override;
+    virtual void OnControlAction(W8TextControl005ED604*) override;
 private:
-    unsigned char unknown_070[0x90];
+    W8TextControl005ED604* m_control_078;
+    W8TextControl005ED604* m_control_07c;
+    W8TextControl005ED604* m_control_080;
+    W8TextControl005ED604* m_control_084;
+    W8TextControl005ED604* m_randomize_088;
+    W8Control005ED654 m_personality_selection_08c;
+    W8Control005ED654 m_voice_selection_0b0;
+    W8GameTimer m_animation_timer_0d4;
+    int m_animation_frame_0f8;
+    unsigned char m_animation_active_0fc;
+    unsigned char m_description_dirty_0fd;
+    unsigned char m_portrait_dirty_0fe;
+    unsigned char pad_0ff;
 };
 static_assert(sizeof(W8CharacterPage005EF57C) == 0x100, "W8CharacterPage005EF57C_size");
 

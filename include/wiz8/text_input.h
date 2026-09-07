@@ -11,5 +11,9 @@ char AddTextInputField(
 void RemoveTextInputField(int index);
 unsigned char GetTextInputFieldLength(int index);
 void SetActiveField(char index);
+void SetInputFieldStringWith16BitString(unsigned char field, wchar_t* text);
+void Get16BitStringFromField(unsigned char field, wchar_t* text);
+void SelectNextField(void);
 unsigned int HandleTextInput(const InputAtom* input);
 void RenderActiveTextField(void);
+void RenderAllTextFields(void);

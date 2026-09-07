@@ -358,6 +358,48 @@ void RemoveTextInputField(int index)
     }
 }
 
+// FUNCTION: WIZ8 0x005D3C10
+void SetInputFieldStringWith16BitString(unsigned char index, wchar_t* text)
+{
+    TEXTINPUTNODE* field = gpTextInputHead;
+    while (field != 0) {
+        if (field->ubID == index) {
+            if (text != 0) {
+                field->ubStrLen = (unsigned char)wcslen(text);
+                wcsncpy(field->szString, text, field->ubMaxChars);
+            }
+            else if (!field->fUserField) {
+                field->ubStrLen = 0;
+                wcscpy(field->szString, L"");
+            }
+            gubCursorPos = 0;
+            gubStartHilite = 0;
+            if (gpActive != 0) {
+                gubParkingPos = CalculateCursorPos(
+                    gpActive->region.RegionBottomRightX -
+                        gpActive->region.RegionTopLeftX - 10,
+                    0, gpActive->szString, &gsCursorX, &guiVisibleCount);
+            }
+            return;
+        }
+        field = field->next;
+    }
+}
+
+// FUNCTION: WIZ8 0x005D3CC0
+void Get16BitStringFromField(unsigned char index, wchar_t* text)
+{
+    TEXTINPUTNODE* field = gpTextInputHead;
+    while (field != 0) {
+        if (field->ubID == index) {
+            wcscpy(text, field->szString);
+            return;
+        }
+        field = field->next;
+    }
+    *text = L'\0';
+}
+
 // FUNCTION: WIZ8 0x005D3D00
 unsigned char GetTextInputFieldLength(int index)
 {

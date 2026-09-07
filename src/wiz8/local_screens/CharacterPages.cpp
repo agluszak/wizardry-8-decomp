@@ -1,7 +1,10 @@
 #include "wiz8/local_screens/CharacterScreen.h"
 
 #include "wiz8/local_code/Strings.h"
+#include "wiz8/text_input.h"
+#include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
+#include "vsurface.h"
 
 #include <new>
 #include <string.h>
@@ -9,12 +12,28 @@
 extern int g_font_683660;
 extern wchar_t* FormatWideString(const wchar_t*, ...);
 extern unsigned int g_character_page2_region_set_0069c530;
+extern unsigned int g_character_page4_region_set_0069c52c;
 extern int g_character_page2_category_geometry_64ef90[5][2];
 extern int g_character_page2_category_frames_64efb8[5];
 extern unsigned short g_character_skill_name_ids_61e454[0x29];
 extern int g_options_detail_font_683614;
 extern void Function557F90(W8Character*, W8CharacterCreationState*);
 extern void Function557BC0(W8Character*, W8CharacterCreationState*, unsigned int, int);
+extern void Function558610(W8Character*);
+extern void Function422F10(void);
+
+struct W8PortraitDescriptor {
+    int group;
+    unsigned char unknown_004[0xc];
+};
+struct W8PortraitGroup {
+    int count;
+    int portraits[14];
+};
+static_assert(sizeof(W8PortraitDescriptor) == 0x10, "W8PortraitDescriptor_size");
+static_assert(sizeof(W8PortraitGroup) == 0x3c, "W8PortraitGroup_size");
+extern W8PortraitDescriptor g_portrait_descriptors_6483d0[];
+extern W8PortraitGroup g_portrait_groups_648950[12];
 
 // VTABLE: WIZ8 0x005ef1d8 W8CharacterPageEntry
 // class W8CharacterPageEntry
@@ -508,4 +527,209 @@ void W8CharacterPage005EF5C8::Refresh()
 W8CharacterPage005EF5C8* CreateCharacterPage005C7CC0()
 {
     return new W8CharacterPage005EF5C8;
+}
+
+// VTABLE: WIZ8 0x005ef57c W8CharacterPage005EF57C
+// VTABLE: WIZ8 0x005ef578 W8ControlSelectionListener
+// VTABLE: WIZ8 0x005ef570 W8TextControlActionListener005ED664
+// class W8CharacterPage005EF57C
+
+// FUNCTION: WIZ8 0x005c6460
+void W8CharacterPage005EF57C::SetCharacter(
+    W8Character* character, W8CharacterCreationState* creation_state, int mode)
+{
+    AcquireRegionSet(&g_character_page4_region_set_0069c52c);
+    W8CharacterPage::SetCharacter(character, creation_state, mode);
+    W8TextControl005ED604::Listener* action_listener =
+        reinterpret_cast<W8TextControl005ED604::Listener*>(
+            static_cast<W8TextControlActionListener005ED664*>(this));
+
+    m_control_07c = new W8TextControl005ED604(
+        this, 0xffffffff, 100, 0x19, 0, 0, 0x10a, 0,
+        10, 0xc, 0xb, 0xe, 0xd);
+    m_control_07c->m_listener = action_listener;
+    m_control_078 = new W8TextControl005ED604(
+        this, 0xffffffff, 0x144, 0x19, 0, 0, 0x10a, 0,
+        0xf, 0x11, 0x10, 0x13, 0x12);
+    m_control_078->m_listener = action_listener;
+    m_control_084 = new W8TextControl005ED604(
+        this, 0xffffffff, 100, 0x67, 0, 0, 0x10a, 0,
+        10, 0xc, 0xb, 0xe, 0xd);
+    m_control_084->m_listener = action_listener;
+    m_control_080 = new W8TextControl005ED604(
+        this, 0xffffffff, 0x144, 0x67, 0, 0, 0x10a, 0,
+        0xf, 0x11, 0x10, 0x13, 0x12);
+    m_control_080->m_listener = action_listener;
+    m_randomize_088 = new W8TextControl005ED604(
+        this, 0xffffffff, 0x16d, 0x155, 0, 0, 0x10a, 0,
+        0x14, 0x16, 0x15, 0x18, 0x17);
+    m_randomize_088->m_listener = action_listener;
+    m_randomize_088->EnableRegionHelp(0xf5);
+
+    int index;
+    for (index = 0; index < 9; ++index) {
+        int column = index % 3;
+        int row = index / 3;
+        W8TextControl005ED604* entry = new W8TextControl005ED604(
+            this, 0xffffffff, column * 0x80 + 0x24, row * 0xe + 0x107,
+            column * 0x80 + 0xa3, row * 0xe + 0x114,
+            0x105, 0, 5, 7, 6, 8, -1);
+        entry->AddLayoutFlags(g_W8TextControlMask005ED594);
+        m_personality_selection_08c.AddEntry(entry);
+    }
+    m_personality_selection_08c.SetSelected(character->personality_0081);
+    m_personality_selection_08c.m_selectionListener = this;
+
+    for (index = 0; index < 2; ++index) {
+        int top = index == 0 ? 0x140 : 0x15d;
+        W8TextControl005ED604* entry = new W8TextControl005ED604(
+            this, 0xffffffff, 0x21, top, 0x69, top + 0xe,
+            0x105, 0, 5, 7, 6, 8, -1);
+        entry->AddLayoutFlags(g_W8TextControlMask005ED594);
+        m_voice_selection_0b0.AddEntry(entry);
+    }
+    ClampInteger(&character->voice_0085, 0, 1);
+    m_voice_selection_0b0.SetSelected(character->voice_0085);
+    m_voice_selection_0b0.m_selectionListener = this;
+}
+
+// FUNCTION: WIZ8 0x005c6820
+void W8CharacterPage005EF57C::Activate()
+{
+    EnableRegionSet(1);
+    m_prepared_06c = 1;
+    InitTextInputModeWithScheme(1);
+    AddTextInputField(origin_x + 0x97, origin_y + 0xab, 0x106, 0x10,
+                      0x7f, m_character_060->name_part_2, 0x27, 0xf, 1);
+    AddTextInputField(origin_x + 0x97, origin_y + 0xc7, 0x106, 0x10,
+                      0x7f, m_character_060->name, 9, 0xf, 1);
+    if (GetTextInputFieldLength(0) == 0) SetActiveField(0);
+    else if (GetTextInputFieldLength(1) == 0) SetActiveField(1);
+    m_personality_selection_08c.SetSelected(m_character_060->personality_0081);
+    m_voice_selection_0b0.SetSelected(m_character_060->voice_0085);
+}
+
+// FUNCTION: WIZ8 0x005c68f0
+void W8CharacterPage005EF57C::Deactivate()
+{
+    EnableRegionSet(0);
+    RemoveTextInputField(1);
+    RemoveTextInputField(0);
+    KillTextInputMode();
+}
+
+// FUNCTION: WIZ8 0x005c6910
+void W8CharacterPage005EF57C::Accept()
+{
+    if (m_mode_068 == 0) {
+        Function558610(m_character_060);
+    }
+    else {
+        W8Character* original = m_screen_05c->GetOriginalCharacter();
+        m_character_060->personality_0081 = original->personality_0081;
+        m_character_060->table_value_0079 = original->table_value_0079;
+        m_character_060->voice_0085 = original->voice_0085;
+        wcscpy(m_character_060->name_part_2, original->name_part_2);
+        wcscpy(m_character_060->name, original->name);
+    }
+    Refresh();
+    Invalidate(0);
+    m_screen_05c->UpdateNavigation(this);
+}
+
+// FUNCTION: WIZ8 0x005c69a0
+void W8CharacterPage005EF57C::GetNavigationState(
+    unsigned char* next_enabled, unsigned char* exit_enabled)
+{
+    *next_enabled = static_cast<unsigned char>(
+        GetTextInputFieldLength(0) != 0 && GetTextInputFieldLength(1) != 0);
+    if (m_mode_068 != 0) {
+        W8Character* original = m_screen_05c->GetOriginalCharacter();
+        *exit_enabled = 0;
+        if (m_character_060->personality_0081 == original->personality_0081 &&
+            m_character_060->table_value_0079 == original->table_value_0079 &&
+            m_character_060->voice_0085 == original->voice_0085 &&
+            wcscmp(m_character_060->name_part_2, original->name_part_2) == 0 &&
+            wcscmp(m_character_060->name, original->name) == 0) {
+            return;
+        }
+        *exit_enabled = 1;
+    }
+    else {
+        *exit_enabled = 1;
+    }
+}
+
+// FUNCTION: WIZ8 0x005c6b20
+void W8CharacterPage005EF57C::Refresh()
+{
+    SetInputFieldStringWith16BitString(0, m_character_060->name_part_2);
+    SetInputFieldStringWith16BitString(1, m_character_060->name);
+    m_personality_selection_08c.SetSelected(m_character_060->personality_0081);
+    m_voice_selection_0b0.SetSelected(m_character_060->voice_0085);
+}
+
+// FUNCTION: WIZ8 0x005c73b0
+void W8CharacterPage005EF57C::OnSelectionChanged(
+    W8Control005ED654* control, int selected)
+{
+    if (control == &m_voice_selection_0b0) {
+        m_character_060->voice_0085 = selected;
+    }
+    else {
+        m_character_060->personality_0081 = selected;
+    }
+    m_description_dirty_0fd = 1;
+    m_screen_05c->UpdateNavigation(this);
+}
+
+// FUNCTION: WIZ8 0x005c7220
+void W8CharacterPage005EF57C::OnControlAction(
+    W8TextControl005ED604* control)
+{
+    int portrait = m_character_060->table_value_0079;
+    if (control == m_control_078) {
+        int group = g_portrait_descriptors_6483d0[portrait].group + 1;
+        if (group > 11) group = 0;
+        m_character_060->table_value_0079 =
+            g_portrait_groups_648950[group].portraits[0];
+        m_portrait_dirty_0fe = 1;
+    }
+    else if (control == m_control_07c) {
+        int group = g_portrait_descriptors_6483d0[portrait].group - 1;
+        if (group < 0) group = 11;
+        m_character_060->table_value_0079 =
+            g_portrait_groups_648950[group].portraits[0];
+        m_portrait_dirty_0fe = 1;
+    }
+    else if (control == m_control_080 || control == m_control_084) {
+        int group = g_portrait_descriptors_6483d0[portrait].group;
+        W8PortraitGroup* portraits = &g_portrait_groups_648950[group];
+        int index = 0;
+        while (index < portraits->count && portraits->portraits[index] != portrait) {
+            ++index;
+        }
+        if (control == m_control_080) {
+            ++index;
+            if (index >= portraits->count) index = 0;
+        }
+        else {
+            --index;
+            if (index < 0) index = portraits->count - 1;
+        }
+        m_character_060->table_value_0079 = portraits->portraits[index];
+        m_portrait_dirty_0fe = 1;
+    }
+    else if (control == m_randomize_088) {
+        m_animation_active_0fc = 1;
+        m_animation_frame_0f8 = 2;
+        m_animation_timer_0d4.Restart();
+        ShadowVideoSurfaceRect(-14, 0, 0, 0x280, 0x1e0);
+        Function422F10();
+        m_screen_05c->ShowCharacterSummary();
+    }
+
+    if (control != m_randomize_088) {
+        m_screen_05c->UpdateNavigation(this);
+    }
 }

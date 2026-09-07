@@ -214,13 +214,13 @@ W8JournalPanel005EF340::W8JournalPanel005EF340(unsigned int* region_set)
         this, 0xffffffff, 3, 3, 0, 0, 0xf4, 0, 0, 2, 1, -1, 3);
     m_previous_054->m_listener =
         reinterpret_cast<W8TextControl005ED604::Listener*>(
-            static_cast<W8JournalControlListener005ED664*>(this));
+            static_cast<W8TextControlActionListener005ED664*>(this));
 
     m_next_050 = new W8TextControl005ED604(
         this, 0xffffffff, 0x11f, 3, 0, 0, 0xf4, 0, 4, 6, 5, -1, 7);
     m_next_050->m_listener =
         reinterpret_cast<W8TextControl005ED604::Listener*>(
-            static_cast<W8JournalControlListener005ED664*>(this));
+            static_cast<W8TextControlActionListener005ED664*>(this));
 
     W8ControlsRect bounds = { origin_x, origin_y, right, bottom };
     m_page_text_060 = new W8TextBuffer005ED5B8(
@@ -233,13 +233,13 @@ W8JournalPanel005EF340::W8JournalPanel005EF340(unsigned int* region_set)
     m_mode_05c->AddLayoutFlags(g_W8TextControlMask005ED578);
     m_mode_05c->m_listener =
         reinterpret_cast<W8TextControl005ED604::Listener*>(
-            static_cast<W8JournalControlListener005ED664*>(this));
+            static_cast<W8TextControlActionListener005ED664*>(this));
 
     m_close_058 = new W8TextControl005ED604(
         this, 0xffffffff, 0x1ea, -2, 0, 0, 0x106, 0, 0x10, -1, 0x11, 0x12, 0x13);
     m_close_058->m_listener =
         reinterpret_cast<W8TextControl005ED604::Listener*>(
-            static_cast<W8JournalControlListener005ED664*>(this));
+            static_cast<W8TextControlActionListener005ED664*>(this));
     m_close_058->EnableRegionHelp(0x6ed);
     SetEnabled(1);
     EnableRegionSet(1);
@@ -267,7 +267,7 @@ void W8JournalPanel005EF340::Redraw()
 }
 
 // FUNCTION: WIZ8 0x005bdc20
-void W8JournalPanel005EF340::OnJournalControl(W8TextControl005ED604* control)
+void W8JournalPanel005EF340::OnControlAction(W8TextControl005ED604* control)
 {
     if (control == m_previous_054) {
         if (g_journal_page_0064df38 > 0) {

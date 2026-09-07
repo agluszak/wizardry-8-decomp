@@ -177,7 +177,7 @@ typedef struct W8Character {
     int table_value_0079;
     unsigned char unknown_007d[4];
     int personality_0081;               /* indexes the state-5 descriptor text */
-    unsigned char unknown_0085[4];
+    int voice_0085;                     /* selected by the character voice control */
     unsigned int level;                   /* 0x0089: averaged across occupied slots */
     int profession_levels[15];            /* 0x008d */
     unsigned char unknown_00c9[0x14];

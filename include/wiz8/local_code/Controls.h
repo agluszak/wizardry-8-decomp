@@ -39,6 +39,7 @@ extern const unsigned int g_W8TextControlMask005ED56C;
 extern const unsigned int g_W8TextControlMask005ED570;
 extern const unsigned int g_W8TextControlMask005ED578;
 extern const unsigned int g_W8TextControlMask005ED588;
+extern const unsigned int g_W8TextControlMask005ED594;
 
 class W8TextBuffer005ED5B8 {
 public:
@@ -387,6 +388,14 @@ class W8ControlSelectionListener {
 public:
     virtual void OnSelectionChanged(
         W8Control005ED654* control, int selected) = 0;
+};
+
+/* One-slot action callback installed by controls that report an activated
+   text control without the ordinary primary/secondary listener pair. */
+// VTABLE: WIZ8 0x005ed664
+class W8TextControlActionListener005ED664 {
+public:
+    virtual void OnControlAction(W8TextControl005ED604* control) = 0;
 };
 
 // VTABLE: WIZ8 0x005ed65c
