@@ -3,13 +3,13 @@
 #include "wiz8/sgp_video.h"
 
 #include "DirectDraw Calls.h"
+#include "soundman.h"
 
 #include <stddef.h>
 #include <string.h>
 
 static_assert(offsetof(BINK, FrameRects) == 0x34, "BINK_FrameRects_at_0x34");
 
-extern int GetMilesDigitalDriver0040A8A0(void);
 extern void NoOp(int result, int line, const char* source);
 
 // FUNCTION: WIZ8 0x005e2f90
@@ -32,7 +32,8 @@ W8BinkVideo::~W8BinkVideo()
 // FUNCTION: WIZ8 0x005e2fe0
 unsigned char W8BinkVideo::Open(const char* path, int flags)
 {
-    BinkSetSoundSystem(BinkOpenMiles, GetMilesDigitalDriver0040A8A0());
+    BinkSetSoundSystem(
+        BinkOpenMiles, reinterpret_cast<U32>(SoundGetDriverHandle()));
     m_handle = BinkOpen(path, flags);
     return m_handle != 0;
 }

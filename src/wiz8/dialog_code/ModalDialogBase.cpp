@@ -11,7 +11,6 @@
 #include <wchar.h>
 
 extern void Function40C710(int resource);
-extern unsigned char SetValue5FF5F0(int font);
 extern "C" void Function407650(int x, int y, const wchar_t* text);
 extern "C" int g_dialog_font_64fde8;
 extern "C" unsigned char g_dialog_font_foreground_64fdec;
@@ -363,7 +362,7 @@ void W8ModalDialogBase::vslot3()
     }
     if (m_lines) {
         SaveFontSettings();
-        SetValue5FF5F0(g_dialog_font_64fde8);
+        SetFont(g_dialog_font_64fde8);
         SetFontForeground(g_dialog_font_foreground_64fdec);
         SetFontBackground(g_dialog_font_background_64fded);
         for (index = 0; index < m_line_count; ++index) {

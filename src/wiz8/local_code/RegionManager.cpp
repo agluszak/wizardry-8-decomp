@@ -1,4 +1,5 @@
 #include "wiz8/regions.h"
+#include "wiz8/cursor.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/Strings.h"
@@ -46,6 +47,14 @@ extern unsigned short gfAltState;
 extern unsigned short gfCtrlState;
 extern unsigned short gfShiftState;
 extern void Function558720(int sound_id);
+
+// FUNCTION: WIZ8 0x004f1220
+void ReleasePointer689B40(void)
+{
+    if (g_default_help_text != 0) {
+        delete[] g_default_help_text;
+    }
+}
 
 /* Dispatch one mouse-position event through the enabled region sets. A forced
    modal region bypasses hit testing; otherwise the first containing region
@@ -138,6 +147,142 @@ unsigned int Function4F1360(int x, int y)
     }
     g_hot_region_689b4c = g_hot_region_689b3c;
     return g_hot_region_689b3c;
+}
+
+/* Find the first enabled region containing the mouse position.  Moving to a
+   different region also sends the old region its leave transition and drops
+   any help box it still owns. */
+// FUNCTION: WIZ8 0x004f16f0
+unsigned int FindRegionAtPoint004F16F0(unsigned short x, unsigned short y)
+{
+    W8RegionMouseEvent event;
+    unsigned int set_index;
+    unsigned int region_index;
+
+    event.event.time = GetClock();
+    event.event.modifiers = gfAltState | gfCtrlState | gfShiftState;
+    event.event.reason = MOUSE_POS;
+    event.mouse_position =
+        (static_cast<unsigned int>(y) << 16) | x;
+
+    if (g_hot_region_689b44 != 0) {
+        return g_hot_region_689b44;
+    }
+
+    for (set_index = 0; set_index < g_region_set_count; ++set_index) {
+        W8RegionSet* set = &g_region_sets[set_index];
+        if (set->enabled != 1 || set->first_region > set->last_region) {
+            continue;
+        }
+        for (region_index = set->first_region;
+             region_index <= set->last_region; ++region_index) {
+            if (!RegionContainsPoint(region_index, x, y)) {
+                continue;
+            }
+            if (g_hot_region_689b4c != 0 &&
+                g_hot_region_689b4c != region_index) {
+                W8Region* previous = &g_regions[g_hot_region_689b4c];
+                previous->flags = (previous->flags & 0xff0f) | 0x20;
+                previous->callback(&event.event, previous);
+                if ((previous->flags & W8_REGION_HELP_SHOWN) != 0) {
+                    ReleaseScreenTransitionObjects();
+                    previous->flags &= ~W8_REGION_HELP_SHOWN;
+                }
+                g_dword_689b48 = g_word_6850ed;
+                previous->flags &= 0xff0f;
+                g_dword_689b50 = 0;
+                g_hot_region_689b4c = 0;
+                g_hot_region_689b3c = 0;
+            }
+            return region_index;
+        }
+    }
+
+    if (g_hot_region_689b4c != 0 &&
+        (g_regions[g_hot_region_689b4c].flags & W8_REGION_HELP_SHOWN) != 0) {
+        unsigned int previous_index = g_hot_region_689b4c;
+        ReleaseScreenTransitionObjects();
+        g_regions[previous_index].flags &= ~W8_REGION_HELP_SHOWN;
+    }
+    return 0;
+}
+
+/* Route one queued input atom to the forced region, the current hot region,
+   or the first enabled region under the event's mouse position. */
+// FUNCTION: WIZ8 0x004f1910
+unsigned char DispatchScreenInput004F1910(const InputAtom* event)
+{
+    unsigned int region_index = g_hot_region_689b44;
+    unsigned int set_index;
+    int sound_id = -1;
+    unsigned short x = static_cast<unsigned short>(event->uiParam) +
+                       g_cursor_hotspot_x_6596bc;
+    unsigned short y = static_cast<unsigned short>(event->uiParam >> 16) +
+                       g_cursor_hotspot_y_6596c0;
+
+    if (region_index != 0) {
+        goto dispatch;
+    }
+
+    region_index = g_hot_region_689b3c;
+    if (region_index != 0 && RegionContainsPoint(region_index, x, y)) {
+        goto dispatch;
+    }
+
+    for (set_index = 0; set_index < g_region_set_count; ++set_index) {
+        W8RegionSet* set = &g_region_sets[set_index];
+        if (set->enabled != 1 || set->first_region > set->last_region) {
+            continue;
+        }
+        for (region_index = set->first_region;
+             region_index <= set->last_region; ++region_index) {
+            if (RegionContainsPoint(region_index, x, y)) {
+                goto dispatch;
+            }
+        }
+    }
+    return 0;
+
+dispatch:
+    W8Region* region = &g_regions[region_index];
+    if (region->help_enabled != 0 &&
+        (g_settings_6850c8.field_00c != 0 ||
+         g_region_help_force_enabled != 0) &&
+        event->usEvent != MOUSE_POS) {
+        if ((region->flags & W8_REGION_HELP_SHOWN) != 0) {
+            ReleaseScreenTransitionObjects();
+            region->flags &= ~W8_REGION_HELP_SHOWN;
+        }
+        if (region->help_enabled != 0 &&
+            (g_settings_6850c8.field_00c != 0 ||
+             g_region_help_force_enabled != 0)) {
+            g_region_help_clock = SetCountdownClock(g_dword_689b48);
+        }
+    }
+
+    switch (event->usEvent) {
+    case LEFT_BUTTON_DOWN:
+    case RIGHT_BUTTON_DOWN:
+        sound_id = 2;
+        break;
+    case LEFT_BUTTON_UP:
+        if ((g_regions[g_hot_region_689b3c].flags & 0x40) != 0) {
+            sound_id = 3;
+        }
+        break;
+    case RIGHT_BUTTON_UP:
+        if ((g_regions[g_hot_region_689b3c].flags & 0x80) != 0) {
+            sound_id = 3;
+        }
+        break;
+    }
+
+    unsigned char handled = region->callback(
+        reinterpret_cast<const W8RegionEvent*>(event), region);
+    if (sound_id != -1) {
+        Function558720(sound_id);
+    }
+    return handled;
 }
 
 /* Raises the help box for one region, taking a stale one down first. The
@@ -580,6 +725,41 @@ void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_te
     }
     g_regions[region_index].help_enabled = enabled;
     g_regions[region_index].help_text_id = help_text_id;
+}
+
+/* Send the current hot region a mouse-leave transition at the live cursor
+   position, then relinquish its help and hover state. */
+// FUNCTION: WIZ8 0x004f2a80
+void ClearHotRegion004F2A80(void)
+{
+    W8ScreenPoint mouse;
+    W8RegionMouseEvent event;
+
+    GetScreenPoint004284F0(&mouse);
+    event.event.time = GetClock();
+    event.event.modifiers = gfAltState | gfCtrlState | gfShiftState;
+    event.event.reason = MOUSE_POS;
+    event.mouse_position =
+        (static_cast<unsigned int>(mouse.y) << 16) |
+        (static_cast<unsigned int>(mouse.x) & 0xffff);
+
+    if (g_hot_region_689b3c != 0) {
+        W8Region* region = &g_regions[g_hot_region_689b3c];
+        unsigned int mode = region->flags & W8_REGION_MODE_MASK;
+        if (mode == 1 || mode == 2) {
+            region->flags = (region->flags & 0xff0f) | 0x20;
+            region->callback(&event.event, region);
+            unsigned int region_index = g_hot_region_689b3c;
+            if ((g_regions[region_index].flags & W8_REGION_HELP_SHOWN) != 0) {
+                ReleaseScreenTransitionObjects();
+                g_regions[region_index].flags &= ~W8_REGION_HELP_SHOWN;
+            }
+            g_dword_689b48 = g_word_6850ed;
+            g_dword_689b50 = 0;
+            g_regions[g_hot_region_689b3c].flags &= 0xff0f;
+            g_hot_region_689b3c = 0;
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x004f2bb0

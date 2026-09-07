@@ -12,6 +12,78 @@
 #include "vobject_blitters.h"
 #include "vsurface.h"
 
+// LIBRARY: WIZ8 0x00404C70
+// FileDelete
+
+// LIBRARY: WIZ8 0x00405720
+// CompareSGPFileTimes
+
+// LIBRARY: WIZ8 0x00407210
+// SetFont
+
+// LIBRARY: WIZ8 0x0040A8A0
+// SoundGetDriverHandle
+
+// LIBRARY: WIZ8 0x0040C220
+// ResetClickedMode
+
+// LIBRARY: WIZ8 0x0040C1F0
+// SetFastHelpDelay
+
+// LIBRARY: WIZ8 0x0040C200
+// EnableMouseFastHelp
+
+// LIBRARY: WIZ8 0x0040C210
+// DisableMouseFastHelp
+
+// LIBRARY: WIZ8 0x00411820
+// GetClippingRect
+
+// LIBRARY: WIZ8 0x0040B290
+// MSYS_Init
+
+// LIBRARY: WIZ8 0x0040B450
+// MSYS_Shutdown
+
+// LIBRARY: WIZ8 0x0040B510
+// MSYS_SGP_Mouse_Handler_Hook
+
+// LIBRARY: WIZ8 0x0040B720
+// MSYS_AddRegionToList
+
+// LIBRARY: WIZ8 0x0040B830
+// MSYS_DeleteRegionFromList
+
+// LIBRARY: WIZ8 0x0040B900
+// MSYS_UpdateMouseRegion
+
+// LIBRARY: WIZ8 0x0040BE10
+// MSYS_DefineRegion
+
+// LIBRARY: WIZ8 0x0040BEE0
+// MSYS_RemoveRegion
+
+// LIBRARY: WIZ8 0x0040BF60
+// MSYS_EnableRegion
+
+// LIBRARY: WIZ8 0x0040BF70
+// MSYS_DisableRegion
+
+// LIBRARY: WIZ8 0x0040BF80
+// MSYS_SetRegionUserData
+
+// LIBRARY: WIZ8 0x0040BFA0
+// MSYS_GetRegionUserData
+
+// LIBRARY: WIZ8 0x0040BFC0
+// MSYS_GrabMouse
+
+// LIBRARY: WIZ8 0x0040C010
+// MSYS_ReleaseMouse
+
+// LIBRARY: WIZ8 0x0040C040
+// SetRegionFastHelpText
+
 /* Exact relocation-masked match in every comparable Wizardry build. The body
    is owned by the pinned SFI SGP vsurface.c source, not a Wizardry restatement. */
 // LIBRARY: WIZ8 0x00402FA0
@@ -85,12 +157,6 @@
 
 // LIBRARY: WIZ8 0x00409210
 // SoundSetVolume
-
-/* Wizardry polls the released SGP stream manager from the frame, load-screen,
-   and ambient-sound paths.  Keep the linked body in soundman.c rather than
-   restating it as a first-party bridge. */
-// LIBRARY: WIZ8 0x004095B0
-// SoundServiceStreams
 
 // LIBRARY: WIZ8 0x0040A9A0
 // SoundSetMusic

@@ -8,6 +8,7 @@
 #include "wiz8/monster_generators.h"
 #include "wiz8/utility.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/regions.h"
 #include "wiz8/sgp_video.h"
 #include "Container.h"
 #include "LibraryDataBase.h"
@@ -30,7 +31,6 @@ extern void ReleaseGenericItemNames(void);
 extern void UnloadEncounterTables(void);
 extern void ReleaseSpellDatabase(void);
 extern void ReleaseAllTriggers(void);
-extern void ReleasePointer689B40(void);
 
 /*
  * The data bring-up gate BringUpEngine calls last. It stamps the version
@@ -49,9 +49,9 @@ extern void LoadGameConfiguration(void);
 extern unsigned char InitializeMenuFonts(void);
 extern void InitializeMessageBoxState(void);
 extern void InitializeRegionHelpState(void);
-extern void SetMessageBoxModeDisabled(void);
-extern void SetMessageBoxModeEnabled(void);
-extern void SetMessageBoxWord(unsigned short value);
+extern void DisableMouseFastHelp(void);
+extern void EnableMouseFastHelp(void);
+extern void SetFastHelpDelay(unsigned short value);
 extern void UpdateHeldItemCursor(void);
 extern void Function479010(void);
 extern unsigned char LoadMissileDatabase(void);
@@ -100,11 +100,11 @@ unsigned char InitializeGameData(void)
     InitializeMessageBoxState();
     InitializeRegionHelpState();
     if (g_settings_6850c8.field_00c) {
-        SetMessageBoxModeEnabled();
+        EnableMouseFastHelp();
     } else {
-        SetMessageBoxModeDisabled();
+        DisableMouseFastHelp();
     }
-    SetMessageBoxWord(g_word_6850ed);
+    SetFastHelpDelay(g_word_6850ed);
     Function54AF30(0);
     InitializeGameplayRuntimeObjects();
     UpdateHeldItemCursor();

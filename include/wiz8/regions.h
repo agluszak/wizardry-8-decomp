@@ -56,6 +56,8 @@ extern unsigned int g_dword_689b50;
 extern wchar_t* g_default_help_text;
 
 unsigned int GetForcedRegion(void);
+void ReleasePointer689B40(void);
+unsigned int FindRegionAtPoint004F16F0(unsigned short x, unsigned short y);
 void RegionSetEnable(unsigned int region_set_index);
 void RegionSetDisable(unsigned int region_set_index);
 void ClearRegionSetModeBits(unsigned int region_set_index);
@@ -81,6 +83,7 @@ void SetRegionCallback(
 void SetRegionOwner(unsigned int region_index, void* owner);
 void SetRegionHelp(
     unsigned int region_index, unsigned char enabled, int help_text_id);
+void ClearHotRegion004F2A80(void);
 void UpdateRegionHelp(void);
 void ShowRegionHelp(unsigned int region_index);
 void SetRegionHelpText(const wchar_t* text);

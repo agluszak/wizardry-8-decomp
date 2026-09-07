@@ -35,7 +35,7 @@ extern unsigned char g_render_flag_60a20c;
 extern int g_dword_6596ec;
 extern int g_dword_6596f0;
 /* Defined by bringup_gates.cpp, written by a setter recovered outside it. */
-extern int g_dword_5ff5f0;
+extern "C" int FontDefault;
 
 extern int g_surface_state_6595dc;
 extern int g_surface_state_654ad8;

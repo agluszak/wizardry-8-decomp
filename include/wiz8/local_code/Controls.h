@@ -115,9 +115,17 @@ class W8WidgetBase005ED5BC {
 public:
     friend struct Controls;
 
+    W8WidgetBase005ED5BC()
+        : m_flag_4(1), m_flag_5(0), m_flag_6(0),
+          m_left(0), m_top(0), m_right(0), m_bottom(0), m_region_18(-1),
+          m_pPanel(0), m_primaryActivationCallback(0), m_field_24(0),
+          m_secondaryActivationCallback(0), m_rightButtonDownCallback(0), m_leftDoubleClickCallback(0)
+    {
+    }
     W8WidgetBase005ED5BC(Controls* owner, unsigned int region,
                          int left, int top, int right, int bottom);
 
+    void SetPanel(Controls* panel);
     void SetRegion(unsigned int region);
     void Invalidate(unsigned char immediate);
     void SetEnabled(unsigned char enabled);
@@ -133,15 +141,15 @@ public:
     virtual void SetBoundsFromRect(const W8ControlsRect* bounds);
     virtual void AddLayoutFlags(unsigned int) {}
     virtual void SetAlternateTextEnabled(unsigned char) {}
-    virtual void Function4D30(int) {}
-    virtual void Function4E00(int) {}
-    virtual void FunctionSlot09(int) {}
+    virtual void OnMouseEnter(int) {}
+    virtual void OnMouseLeave(int) {}
+    virtual void OnMouseMove(int) {}
     virtual void AdjustValue(int) {}
-    virtual void Function4F70(int) {}
-    virtual void InvokeFocusCallback(int) {}
-    virtual void Function50C0(int) {}
-    virtual void Function5290(int) {}
-    virtual void InvokeBlurCallback(int) {}
+    virtual void OnLeftButtonDown(int) {}
+    virtual void OnRightButtonDown(int) {}
+    virtual void OnLeftButtonUp(int) {}
+    virtual void OnRightButtonUp(int) {}
+    virtual void OnLeftButtonDoubleClick(int) {}
     virtual void ActivatePrimary(int) {}
     virtual void ActivateSecondary(int) {}
 
@@ -160,11 +168,11 @@ public:
     int m_bottom;                        /* 0x14 */
     int m_region_18;                     /* 0x18: handed to SetRegionMode4 unless -1 */
     Controls* m_pPanel;                  /* 0x1c: named by Controls.cpp:1849 */
-    W8ControlCallback m_primaryCallback; /* 0x20: invoked by text-control activation */
+    W8ControlCallback m_primaryActivationCallback; /* 0x20: invoked by text-control activation */
     int m_field_24;                      /* 0x24: otherwise touched by the recovered */
-    W8ControlCallback m_secondaryCallback;/* 0x28 */
-    W8ControlCallback m_focusCallback;   /* 0x2c */
-    W8ControlCallback m_blurCallback;    /* 0x30 */
+    W8ControlCallback m_secondaryActivationCallback;/* 0x28 */
+    W8ControlCallback m_rightButtonDownCallback;   /* 0x2c */
+    W8ControlCallback m_leftDoubleClickCallback;    /* 0x30 */
 };                                       /* 0x34 established */
 static_assert(sizeof(W8WidgetBase005ED5BC) == 0x34, "W8WidgetBase005ED5BC_size");
 
@@ -179,6 +187,7 @@ public:
         virtual void OnSecondary(W8TextControl005ED604* control) = 0;
     };
 
+    W8TextControl005ED604();
     W8TextControl005ED604(Controls* panel, unsigned int region,
                           int left, int top, int right, int bottom,
                           int text_40, int text_44, int text_48, int text_4c,
@@ -195,13 +204,13 @@ public:
     void RemoveLayoutFlags(unsigned int flags);
     virtual void EnableSecondaryState(unsigned char immediate);
     virtual void DisableSecondaryState(unsigned char immediate);
-    virtual void Function4D30(int event) override;
-    virtual void Function4E00(int event) override;
-    virtual void Function4F70(int event) override;
-    virtual void InvokeFocusCallback(int event) override;
-    virtual void Function50C0(int event) override;
-    virtual void Function5290(int event) override;
-    virtual void InvokeBlurCallback(int event) override;
+    virtual void OnMouseEnter(int event) override;
+    virtual void OnMouseLeave(int event) override;
+    virtual void OnLeftButtonDown(int event) override;
+    virtual void OnRightButtonDown(int event) override;
+    virtual void OnLeftButtonUp(int event) override;
+    virtual void OnRightButtonUp(int event) override;
+    virtual void OnLeftButtonDoubleClick(int event) override;
     virtual void ActivatePrimary(int event) override;
     virtual void ActivateSecondary(int event) override;
     void UpdateTextBounds(int left, int top, int right, int bottom);
@@ -244,12 +253,12 @@ public:
     W8HelpTextControl005ED758(Controls* panel, unsigned int region,
                               int left, int top, int right, int bottom);
     void SetRegionHelp(const wchar_t* text);
-    virtual void Function4D30(int event) override;
-    virtual void Function4F70(int event) override;
-    virtual void InvokeFocusCallback(int event) override;
-    virtual void Function50C0(int event) override;
-    virtual void Function5290(int event) override;
-    virtual void InvokeBlurCallback(int event) override;
+    virtual void OnMouseEnter(int event) override;
+    virtual void OnLeftButtonDown(int event) override;
+    virtual void OnRightButtonDown(int event) override;
+    virtual void OnLeftButtonUp(int event) override;
+    virtual void OnRightButtonUp(int event) override;
+    virtual void OnLeftButtonDoubleClick(int event) override;
 
 protected:
     wchar_t m_regionHelp[200];            /* 0xb8 */
@@ -266,7 +275,7 @@ public:
                           int text_40, int text_44, int text_48, int text_4c,
                           int text_54, int text_50, int text_58,
                           short direction, W8RangeControl005ED74C* range);
-    virtual void Function4F70(int event) override;
+    virtual void OnLeftButtonDown(int event) override;
     virtual void ActivatePrimary(int event) override;
     virtual void AdjustValue(int steps) override;
 

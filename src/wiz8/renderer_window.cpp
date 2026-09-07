@@ -655,7 +655,7 @@ unsigned char ClearPrimarySurface(void)
     return 1;
 }
 
-extern "C" void Function40C0B0(void);
+extern "C" void RenderFastHelp(void);
 extern "C" void Function425B40(void);
 extern srScene* g_cursor_scene_659684;
 extern "C" unsigned char g_render_flag_603c6c;
@@ -777,7 +777,7 @@ void Function426790(void)
     g_gerd_659634->setClearColor(
         clear_color.x, clear_color.y, clear_color.z, 1.0f);
     Function00428340();
-    Function40C0B0();
+    RenderFastHelp();
     UpdateRegionHelp();
     Function425B40();
     if (g_gerd_659634 != 0) {

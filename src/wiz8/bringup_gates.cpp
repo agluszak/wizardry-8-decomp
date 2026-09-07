@@ -305,7 +305,7 @@ bool SetModuleSubdirectory(const char* subdirectory);
 bool g_shutdown_started_650db5;
 bool g_teardown_done_650db4;
 char g_shutdown_message_6505ac[0x100];
-extern void ShutdownDisplayList(void);
+extern void MSYS_Shutdown(void);
 extern bool ShutdownWizardryVideoSurfaceManager(void);
 extern void ShutdownWizardryVideoObjectManager(void);
 extern int ReturnZero(void);
@@ -467,7 +467,7 @@ struct W8BindingNode {
     void* payload;                        /* 0x04 */
 };
 
-int g_dword_5ff5f0;
+int FontDefault;
 int g_dword_5ff5f4;
 int g_dword_5ff5f8;
 int g_dword_5ff5fc;
@@ -840,7 +840,7 @@ bool Function407D30(unsigned short code, W8BindingNode* source)
     unsigned char third;
     W8BindingNode* copy;
 
-    g_dword_5ff5f0 = -1;
+    FontDefault = -1;
     g_dword_5ff5f4 = -15;
     g_dword_5ff5f8 = 0;
     GetDefaultScreenMode(&first, &second, &third);
@@ -926,7 +926,7 @@ void ShutdownHandler(void)
             ShutdownGameData();
         }
         ShutdownButtonSystem();
-        ShutdownDisplayList();
+        MSYS_Shutdown();
         Function408850();
         DestroyEnglishTransTable();
         ShutdownFontManager();

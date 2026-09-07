@@ -26,7 +26,7 @@
 
 unsigned char SaveGameExists(void);
 void ResetRegions(void);
-void ShutdownDisplayList(void);
+void MSYS_Shutdown(void);
 void SetPendingScreenState(int state);
 void RequestScreenTransition(void);
 void SetValue64D8AC(unsigned long value);
@@ -65,14 +65,13 @@ extern unsigned short gfAltState;
 extern unsigned short gfCtrlState;
 extern unsigned short gfShiftState;
 extern void Function422B10(void);
-extern void Function40B290(void);
+extern int MSYS_Init(void);
 extern unsigned char ClearPrimarySurface(void);
 extern void SetViewport(int left, int top, int right, int bottom);
 extern void UpdateHeldItemCursor(void);
 extern unsigned char Function4298F0(void);
 unsigned char Function5BCAB0(short item, short state);
 extern void ReleaseLoadedVideoFrames(void);
-extern unsigned char SetValue5FF5F0(int font);
 extern void Function406DC0(int font, unsigned short* palette);
 extern unsigned int Function4F1360(int x, int y);
 extern unsigned char Function5A1140(const InputAtom* input);
@@ -357,7 +356,7 @@ unsigned char MainMenuScreenFunction005BC810(void)
     short measured;
 
     Function422B10();
-    Function40B290();
+    MSYS_Init();
     g_status_685170.game_started = 0;
     g_flag_69c4ba = SaveGameExists();
     g_flag_69c4b6 = 1;
@@ -465,7 +464,7 @@ void MainMenuScreenFrame()
                 input.usEvent == KEY_DOWN) {
                 if (Function5A1140(&input)) {
                     if (g_flag_689b32 != 0) {
-                        SetValue5FF5F0(g_font_683660);
+                        SetFont(g_font_683660);
                         Function406DC0(g_font_683660, g_colour_68ee08);
                         mprintf(5, 5, (unsigned short*)L"Developer mode enabled.");
                     }
@@ -579,7 +578,7 @@ unsigned char MainMenuScreenLeave(int)
 {
     ReleaseLoadedVideoFrames();
     ResetRegions();
-    ShutdownDisplayList();
+    MSYS_Shutdown();
     return 1;
 }
 

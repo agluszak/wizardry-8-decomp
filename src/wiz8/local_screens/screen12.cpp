@@ -16,7 +16,7 @@ unsigned char ClearFlag603C60(void);
 extern "C" {
 
 extern void NoOp(void);
-extern void ShutdownDisplayList(void);
+extern void MSYS_Shutdown(void);
 extern unsigned char ClearPrimarySurface(void);
 extern void UpdateHeldItemCursor(void);
 /* 0x00422B10 clears the software frame and retires the transient 2D overlays;

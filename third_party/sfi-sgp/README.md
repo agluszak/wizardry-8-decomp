@@ -7,7 +7,7 @@ non-commercial Wizardry 8 decompilation.
 - Upstream revision: `5ac0a9d56d27e8a7e2c4a7b48ed8932ae7f64033`
 - Upstream tree: `52766c4237e63d7a3d619796784947ed1681f24e`
 - Upstream commit: `Initial Import`, dated 2004-09-06
-- Source location: `sgp/`
+- Source locations: `sgp/` and `ja2/Build/Utils/Text_Input.{c,h}`
 - License: `sgp/SFI Source Code license agreement.txt`
 - License blob: `b66aabc6f7affb4fca0b6cc2d6288f3225ecd0b1`
 
@@ -17,4 +17,5 @@ vendored file, add a prominent notice describing the change and its date, as req
 4 of the license.
 
 The upstream prebuilt binaries `SMACKW32.LIB`, `ddraw.lib`, and `mss32.lib` are intentionally not
-vendored. All other files in `sgp/` are copied from the pinned revision without modification.
+vendored. All other files in `sgp/`, plus the two text-input oracle files under `utils/`, are copied
+from the pinned revision without modification.

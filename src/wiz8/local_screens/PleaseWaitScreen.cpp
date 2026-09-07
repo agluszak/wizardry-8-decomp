@@ -71,8 +71,8 @@ unsigned char ClearFlag603C60(void);
 /* Engine Code\Levels.cpp owns this with C++ linkage. */
 
 extern void NoOp(void);
-extern void ShutdownDisplayList(void);
-extern int Function40B290(void);
+extern void MSYS_Shutdown(void);
+extern int MSYS_Init(void);
 extern void ConfigurePresentation00413FD0(int a, int b, int c, int d, int e);
 extern unsigned char Function42B6F0(int level);
 extern int Function42B720(int level);
@@ -82,7 +82,6 @@ extern void RefreshSlfArchives(void);
 extern int Function509750(void);
 extern void Function58FD30(void);
 extern void Function407650(int x, int y, const char* format, const wchar_t* text);
-extern unsigned char SetValue5FF5F0(int font);
 extern void Function422F10(void);
 extern void Function426790(void);
 extern void Function512C40(void);
@@ -162,7 +161,7 @@ unsigned char PleaseWaitScreenEnter(void)
             break;
         }
     }
-    Function40B290();
+    MSYS_Init();
     ResetRegions();
     ConfigurePresentation00413FD0(0x500, 0, 0, 0x280, 0x1e0);
     SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
@@ -221,7 +220,7 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
             : 0xe4;                                                           \
         Function548F90(-14, backdrop, 0, 0, 0, 0, 2, 0);                      \
         Function548F90(-14, 0x1de, 0, 0, 0, 0x1be, 2, 0);                     \
-        SetValue5FF5F0(g_level_load_font_69b7c0);                             \
+        SetFont(g_level_load_font_69b7c0);                             \
         Function407650(0x6a, 0x1c7, "%",                                      \
                        (const wchar_t*)g_load_descriptor_69b7c8);             \
         Function548F90(-14, 0x1dd, 0, g_load_descriptor_69b7c8->caption_y,    \
@@ -385,7 +384,7 @@ unsigned char PleaseWaitScreenLeave(char leaving)
         g_load_descriptor_69b7c8 = 0;
     }
     NoOp();
-    ShutdownDisplayList();
+    MSYS_Shutdown();
     ResetRegions();
     SetFlag603C60();
     return 1;

@@ -19,10 +19,10 @@
 
 void __fastcall Function5A6E20(void* options);
 void NoOp(void);
-void ShutdownDisplayList(void);
+void MSYS_Shutdown(void);
 void ResetRegions(void);
 void Function425570(int value);
-int Function40B290(void);
+int MSYS_Init(void);
 void SetViewport(int left, int top, int right, int bottom);
 void UpdateHeldItemCursor(void);
 void Function406DC0(int font, unsigned short* palette);
@@ -36,7 +36,7 @@ extern unsigned char g_flag_689b32;
 extern unsigned char g_flag_6f04e8;
 extern unsigned char g_flag_6f04ed;
 
-void Function40B510(unsigned short event, unsigned short x, unsigned short y,
+void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
 unsigned int Function4F1360(int x, int y);
 void RequestScreenTransition(void);
@@ -298,7 +298,7 @@ unsigned char OptionsScreenLeave005A9C70(int)
     }
     g_options_screen_0069c254 = 0;
     NoOp();
-    ShutdownDisplayList();
+    MSYS_Shutdown();
     ResetRegions();
     return 1;
 }
@@ -313,7 +313,7 @@ unsigned char OptionsScreenEnter005A9B50()
 
     SetViewport(0, 0, 0x280, 0x1e0);
     Function425570(0);
-    Function40B290();
+    MSYS_Init();
     ResetRegions();
     UpdateHeldItemCursor();
     Function406DC0(g_font_683660, g_colour_68ee08);
@@ -373,7 +373,7 @@ void OptionsScreenFrame005A9CC0()
     W8OptionsScreen* screen = g_options_screen_0069c254;
     if (screen->m_panel_05c != 0) {
         GetScreenPoint004284F0(&current);
-        Function40B510(MOUSE_POS, static_cast<unsigned short>(current.x),
+        MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, static_cast<unsigned short>(current.x),
                        static_cast<unsigned short>(current.y),
                        g_flag_6f04ed, g_flag_6f04e8);
         screen = g_options_screen_0069c254;

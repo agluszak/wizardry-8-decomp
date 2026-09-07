@@ -92,7 +92,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/materials.cpp
     src/wiz8/engine_code/Monster.cpp
     src/wiz8/engine_code/stScript.cpp
-    src/wiz8/local_code/DisplayList.cpp
+    src/wiz8/local_code/MouseSystemWiz8.cpp
     src/wiz8/local_code/Targeting.cpp
     src/wiz8/local_code/Viewport.cpp
     src/wiz8/3d_code/PList.cpp
@@ -144,7 +144,6 @@ set(WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
     src/wiz8/engine_code/OctRegionPolygon.cpp
     src/wiz8/version.cpp
     src/wiz8/local_code/party_encumbrance.cpp
-    src/wiz8/unattributed/004f0c81_004f203f.cpp
     src/wiz8/local_code/missile_references.cpp
     src/wiz8/unattributed/00516f01_00517c5f.cpp
     src/wiz8/local_code/npc_interaction.cpp
@@ -159,7 +158,7 @@ set(WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
     src/wiz8/unattributed/005a8ed1_005b478f.cpp
     src/wiz8/local_screens/PartySelectionScreen.cpp
     src/wiz8/unattributed/005c4341_005c87af.cpp
-    src/wiz8/local_code/text_input.cpp
+    src/wiz8/local_code/Text_Input.cpp
     src/wiz8/unattributed/005e2cc1_005e37ff.cpp
     src/wiz8/frame_tick.cpp
     src/wiz8/game_init.cpp

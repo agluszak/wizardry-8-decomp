@@ -17,5 +17,12 @@ void InvalidateRegion(INT32 left, INT32 top, INT32 right, INT32 bottom,
                       UINT32 flags);
 BOOLEAN VideoIsFullScreen(void);
 void VideoGetClientRect(RECT* rect);
+void VideoToolTip(UINT16* text);
+INT32 VideoGetToolTipWidth(void);
+INT32 VideoGetToolTipHeight(void);
+void VideoPositionToolTip(INT32 x, INT32 y);
+void VideoRemoveToolTip(void);
+
+extern INT32 ghTinyMonoFont;
 
 #endif

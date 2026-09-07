@@ -80,6 +80,16 @@ UNITS = (
             "GetMouseWheelDeltaValue",
         ),
     },
+    {"id": "mouse", "source": "mousesystem.c", "target": "WIZ8_SGP_RUNTIME"},
+    {"id": "font", "source": "Font.c", "target": "WIZ8_SGP_RUNTIME"},
+    {"id": "soundman", "source": "soundman.c", "target": "WIZ8_SGP_WHOLE"},
+    {"id": "vobject", "source": "vobject.c", "target": "WIZ8_SGP_RUNTIME"},
+    {
+        "id": "vobject_blitters",
+        "source": "vobject_blitters.c",
+        "target": "WIZ8_SGP_RUNTIME",
+    },
+    {"id": "vsurface", "source": "vsurface.c", "target": "WIZ8_SGP_VSURFACE"},
 )
 
 CLASSIFICATION_RANK = {

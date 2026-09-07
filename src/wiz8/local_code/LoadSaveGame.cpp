@@ -758,7 +758,6 @@ extern char g_save_extension[];
    canonical name and signature, with the owning address named. They are
    deliberately kept local until their owning quarantine units gain direct
    headers; giving them C linkage would relink the existing C++ definitions. */
-extern void DeleteFileByName(const char* path);                         /* 0x00404C70 */
 extern int* GetAddress69C1CC(void);                                     /* 0x005A9E90 */
 
 /* GetAddress69C1CC (0x005A9E90) hands back the current save name. Its canonical
@@ -783,11 +782,11 @@ void DeleteCurrentSaveFiles(void)
     if (_access(path, 2) != 0 && errno == EACCES) {
         _chmod(path, _S_IREAD | _S_IWRITE);
     }
-    DeleteFileByName(path);
+    FileDelete(path);
     if (_access("Saves\\CurrentGame.SAV", 2) != 0 && errno == EACCES) {
         _chmod("Saves\\CurrentGame.SAV", _S_IREAD | _S_IWRITE);
     }
-    DeleteFileByName("Saves\\CurrentGame.SAV");
+    FileDelete("Saves\\CurrentGame.SAV");
 }
 
 /* Two gates with no established meaning beyond their position in the chain, so

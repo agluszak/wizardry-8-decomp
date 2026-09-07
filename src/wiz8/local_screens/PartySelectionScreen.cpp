@@ -36,7 +36,6 @@ void GetSaveSlotName005D3CC0(int slot, wchar_t* name);
 unsigned char SaveSlotFileExists(const char* slot_name);
 int CountActiveCharacters(void);
 unsigned int FindFreePartySlot(unsigned int first, unsigned int last);
-unsigned char SetValue5FF5F0(int font);
 unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
                             char report_failure);
 void BuildCharacterFilePath00514FA0(char* destination, const char* filename,
@@ -44,13 +43,13 @@ void BuildCharacterFilePath00514FA0(char* destination, const char* filename,
 void BuildCharacterPath00514EC0(char* destination, const wchar_t* name,
                                 int slot);
 extern "C" void SetViewport(int left, int top, int right, int bottom);
-extern "C" int Function40B290(void);
+extern "C" int MSYS_Init(void);
 extern void NoOp(void);
-extern "C" void ShutdownDisplayList(void);
+extern "C" void MSYS_Shutdown(void);
 void ResetRegions(void);
 extern "C" void UpdateHeldItemCursor(void);
 void Function591780(void);
-void Function40B510(unsigned short event, unsigned short x, unsigned short y,
+void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
 unsigned int Function4F1360(int x, int y);
 int Function52E750(void);
@@ -61,7 +60,6 @@ void RenderPartyPortrait0052EB00(int portrait, int left, int top,
                                 int flags, int value, int party_slot);
 void Function4EF610(int party_slot, int value);
 int Function4EF4A0(W8Character* character, int slot);
-void DeleteFileByName(const char* path);
 int Function558C40(const char* path);
 
 extern "C" int g_font_683660;
@@ -343,9 +341,9 @@ public:
 
     virtual ~W8State5ListControl005EF464() override;
     virtual void Redraw(int full_redraw) override;
-    virtual void Function4E00(int event) override;
-    virtual void FunctionSlot09(int event) override;
-    virtual void Function50C0(int event) override;
+    virtual void OnMouseLeave(int event) override;
+    virtual void OnMouseMove(int event) override;
+    virtual void OnLeftButtonUp(int event) override;
     virtual void OnRangeChanged(W8RangeControl005ED74C* control) override;
 
     int m_visible_rows;                  /* 0x38 */
@@ -382,7 +380,7 @@ void W8State5ListControl005EF464::Redraw(int full_redraw)
             end = g_state5_party_collection_69c4ec->names.count;
         }
         top += 1;
-        SetValue5FF5F0(g_font_683660);
+        SetFont(g_font_683660);
         for (int row = m_first_visible; row < end; ++row) {
             unsigned short* colour = g_font_state_palettes_68ee1c[3];
             if (row != m_selection) {
@@ -403,14 +401,14 @@ void W8State5ListControl005EF464::Redraw(int full_redraw)
 }
 
 // FUNCTION: WIZ8 0x005c00c0
-void W8State5ListControl005EF464::Function4E00(int event)
+void W8State5ListControl005EF464::OnMouseLeave(int event)
 {
     m_hovered = -1;
     Invalidate((unsigned char)event);
 }
 
 // FUNCTION: WIZ8 0x005c00e0
-void W8State5ListControl005EF464::FunctionSlot09(int)
+void W8State5ListControl005EF464::OnMouseMove(int)
 {
     W8ScreenPoint point;
     GetScreenPoint004284F0(&point);
@@ -423,7 +421,7 @@ void W8State5ListControl005EF464::FunctionSlot09(int)
 }
 
 // FUNCTION: WIZ8 0x005c0140
-void W8State5ListControl005EF464::Function50C0(int event)
+void W8State5ListControl005EF464::OnLeftButtonUp(int event)
 {
     W8ScreenPoint point;
     GetScreenPoint004284F0(&point);
@@ -468,8 +466,8 @@ public:
     virtual ~W8State5CharacterRow005EF364() override;
     virtual void Redraw(int full_redraw) override;
     virtual void AdjustValue(int amount) override;
-    virtual void Function5290(int event) override;
-    virtual void InvokeBlurCallback(int event) override;
+    virtual void OnRightButtonUp(int event) override;
+    virtual void OnLeftButtonDoubleClick(int event) override;
 
     int m_row;
     int m_character_index;
@@ -484,8 +482,8 @@ public:
     __forceinline W8State5InputHandler005C0E50() {}
     virtual ~W8State5InputHandler005C0E50()
     {
-        Function5D3B40(0);
-        Function5D3800();
+        RemoveTextInputField(0);
+        KillTextInputMode();
     }
     unsigned char HandleInput(const InputAtom* input);
 
@@ -537,8 +535,8 @@ public:
     W8State5PartySlotRow005EF3E4(Controls* panel, int row);
     virtual ~W8State5PartySlotRow005EF3E4() override;
     virtual void Redraw(int full_redraw) override;
-    virtual void Function5290(int event) override;
-    virtual void InvokeBlurCallback(int event) override;
+    virtual void OnRightButtonUp(int event) override;
+    virtual void OnLeftButtonDoubleClick(int event) override;
 
     int m_row;
     W8WidgetBase005ED5BC* m_redraw_partner;
@@ -697,7 +695,7 @@ void W8State5CharacterRow005EF364::Redraw(int full_redraw)
     }
 
     left += 0x36;
-    SetValue5FF5F0(g_font_683660);
+    SetFont(g_font_683660);
     mprintf(left, top + 4,
             const_cast<wchar_t*>(L"%s"), character->name);
     mprintf(left, top + 0x0e, L"%s %d %s",
@@ -721,7 +719,7 @@ void W8State5CharacterRow005EF364::AdjustValue(int amount)
 }
 
 // FUNCTION: WIZ8 0x005beb10
-void W8State5CharacterRow005EF364::Function5290(int event)
+void W8State5CharacterRow005EF364::OnRightButtonUp(int event)
 {
     if (m_flag_5 && m_flag_4) {
         EnableSecondaryState(0);
@@ -729,16 +727,16 @@ void W8State5CharacterRow005EF364::Function5290(int event)
             m_selection_listener->Function5BF050(this);
         }
     }
-    W8TextControl005ED604::Function5290(event);
+    W8TextControl005ED604::OnRightButtonUp(event);
 }
 
 // FUNCTION: WIZ8 0x005beb50
-void W8State5CharacterRow005EF364::InvokeBlurCallback(int event)
+void W8State5CharacterRow005EF364::OnLeftButtonDoubleClick(int event)
 {
     if (m_flag_5 && m_flag_4 && m_selection_listener) {
         m_selection_listener->Function5BF0C0(this);
     }
-    W8TextControl005ED604::InvokeBlurCallback(event);
+    W8TextControl005ED604::OnLeftButtonDoubleClick(event);
 }
 
 // FUNCTION: WIZ8 0x005bebc0
@@ -954,9 +952,9 @@ void W8State5PartySlotRow005EF3E4::Redraw(int full_redraw)
 }
 
 // FUNCTION: WIZ8 0x005bf410
-void W8State5PartySlotRow005EF3E4::Function5290(int event)
+void W8State5PartySlotRow005EF3E4::OnRightButtonUp(int event)
 {
-    W8TextControl005ED604::Function5290(event);
+    W8TextControl005ED604::OnRightButtonUp(event);
     if (!m_flag_4 || !m_flag_5) {
         return;
     }
@@ -983,9 +981,9 @@ void W8State5PartySlotRow005EF3E4::Function5290(int event)
 }
 
 // FUNCTION: WIZ8 0x005bf4e0
-void W8State5PartySlotRow005EF3E4::InvokeBlurCallback(int event)
+void W8State5PartySlotRow005EF3E4::OnLeftButtonDoubleClick(int event)
 {
-    W8TextControl005ED604::InvokeBlurCallback(event);
+    W8TextControl005ED604::OnLeftButtonDoubleClick(event);
     if (m_flag_4 && m_flag_5) {
         g_state5_controller_69c4e8->SetSelection(m_row, 1, 0);
         g_state5_controller_69c4e8->Function5C2970();
@@ -1104,7 +1102,7 @@ void W8State5PlainPanel005EF4E0::Redraw()
         4);
     name.Function4F39B0(0, 0, -14);
 
-    SetValue5FF5F0(g_font_683660);
+    SetFont(g_font_683660);
     SetObjectShade(g_wiz_text_font_secondary_object_683680, 4);
 
     const wchar_t* level_text = gppStringList[0x1ae4 / 4];
@@ -1275,13 +1273,13 @@ unsigned char W8State5InputHandler005C0E50::HandleInput(
                 strchr("\\/:*?\"<>|", static_cast<unsigned char>(character))) {
                 return 1;
             }
-            Function5D3F50(input);
+            HandleTextInput(input);
             if (m_listener) {
-                m_listener->OnToggle(Function5D3D00(0) != 0);
+                m_listener->OnToggle(GetTextInputFieldLength(0) != 0);
             }
             return 1;
         }
-        if (!Function5D3D00(0)) {
+        if (!GetTextInputFieldLength(0)) {
             return 1;
         }
     }
@@ -1428,13 +1426,13 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
     }
     W8State5InputHandler005C0E50* input_handler =
         new W8State5InputHandler005C0E50;
-    Function5D3520(1);
-    Function5D39B0(
+    InitTextInputModeWithScheme(1);
+    AddTextInputField(
         m_render_left_8c + 2, m_render_top_90 + 2,
         static_cast<unsigned short>(m_image_width_94) - 4,
         static_cast<unsigned short>(m_image_height_96) - 4,
         0x7f, L"", 0x28, 0x0f, 1);
-    Function5D3D20(0);
+    SetActiveField(0);
     controller->m_input_handler_64 = input_handler;
     input_handler->m_listener = controller;
     input_handler->m_listener->OnToggle(0);
@@ -2080,7 +2078,7 @@ void W8State5Controller005EF4CC::Function5C1F40()
         m_dialog_68->vslot3();
     }
     if (m_input_handler_64) {
-        Function5D5390();
+        RenderActiveTextField();
     }
 }
 
@@ -2130,7 +2128,7 @@ void W8State5Controller005EF4CC::Function5C26C0(
         }
         char path[128];
         BuildCharacterPath00514EC0(path, character->name, -1);
-        DeleteFileByName(path);
+        FileDelete(path);
         collection->DeleteAt(selected);
 
         m_character_panel_20->m_range_7c = m_range;
@@ -2306,7 +2304,7 @@ unsigned char State5Enter005C2DE0(void)
 {
     SetViewport(0, 0, 0x280, 0x1e0);
     NoOp();
-    Function40B290();
+    MSYS_Init();
     ResetRegions();
     UpdateHeldItemCursor();
     SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
@@ -2386,7 +2384,7 @@ unsigned char State5Tick005C30B0(int leaving)
         g_state5_controller_69c4e8 = 0;
     }
     NoOp();
-    ShutdownDisplayList();
+    MSYS_Shutdown();
     ResetRegions();
     return 1;
 }
@@ -2420,7 +2418,7 @@ void State5Frame005C3120(void)
     }
     if (controller->m_input_handler_64) {
         GetScreenPoint004284F0(&current);
-        Function40B510(MOUSE_POS, static_cast<unsigned short>(current.x),
+        MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, static_cast<unsigned short>(current.x),
                        static_cast<unsigned short>(current.y),
                        g_flag_6f04ed, g_flag_6f04e8);
     }

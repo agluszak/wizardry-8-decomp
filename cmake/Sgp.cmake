@@ -6,6 +6,7 @@ set(WIZ8_SGP_WHOLE_SOURCES
 )
 
 set(WIZ8_SGP_RUNTIME_PARTIAL_SOURCES
+    "${SGP_SOURCE}/mousesystem.c"
     "${SGP_SOURCE}/DirectDraw Calls.c"
     "${SGP_SOURCE}/DirectX Common.c"
     "${SGP_SOURCE}/FileMan.c"
@@ -58,6 +59,9 @@ set_source_files_properties("${SGP_SOURCE}/ExceptionHandling.cpp" PROPERTIES
 set_source_files_properties("${SGP_SOURCE}/sgp.c" PROPERTIES
     COMPILE_DEFINITIONS "WinMain=SgpRetainedWinMain"
 )
+set_source_files_properties("${SGP_SOURCE}/mousesystem.c" PROPERTIES
+    COMPILE_DEFINITIONS "RenderFastHelp=SgpReleasedRenderFastHelp"
+)
 
 function(wiz8_add_sgp_objects target)
     add_library(${target} OBJECT EXCLUDE_FROM_ALL ${ARGN})
@@ -74,6 +78,7 @@ function(wiz8_add_sgp_objects target)
         gusRedShift=g_red_shift_650f50
         gusBlueShift=g_blue_shift_650f52
         gusGreenShift=g_green_shift_650f54
+        ghTinyMonoFont=g_tiny_mono_font_683690
     )
 endfunction()
 

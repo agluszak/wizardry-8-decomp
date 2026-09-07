@@ -32,7 +32,7 @@ extern unsigned char Function4277E0(void);
 extern unsigned char Function4220B0(void);
 extern void Function422050(void);
 extern bool Function4029F0(void);
-extern void ShutdownDisplayList(void);
+extern void MSYS_Shutdown(void);
 extern void Function408850(void);
 extern bool ShutdownWizardryVideoSurfaceManager(void);
 extern void ShutdownWizardryVideoObjectManager(void);
@@ -87,7 +87,7 @@ long __stdcall WindowProc4011E0(
                 ShutdownGameData();
             }
             ShutdownButtonSystem();
-            ShutdownDisplayList();
+            MSYS_Shutdown();
             Function408850();
             DestroyEnglishTransTable();
             ShutdownFontManager();

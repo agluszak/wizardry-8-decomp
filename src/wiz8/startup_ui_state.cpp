@@ -8,8 +8,6 @@ extern "C" {
 
 unsigned char g_message_box_state_6e1240[1600];
 unsigned int g_message_box_runtime_650ea4;
-unsigned char g_flag_5ff7ca;
-extern short g_word_5ff7c8;
 
 int g_region_help_delay;
 int g_region_help_clock;
@@ -35,24 +33,6 @@ void InitializeRegionHelpState(void)
         delete[] g_default_help_text;
     }
     g_default_help_text = 0;
-}
-
-// FUNCTION: WIZ8 0x0040c200
-void SetMessageBoxModeEnabled(void)
-{
-    g_flag_5ff7ca = 1;
-}
-
-// FUNCTION: WIZ8 0x0040c210
-void SetMessageBoxModeDisabled(void)
-{
-    g_flag_5ff7ca = 0;
-}
-
-// FUNCTION: WIZ8 0x0040c1f0
-void SetMessageBoxWord(unsigned short value)
-{
-    g_word_5ff7c8 = static_cast<short>(value);
 }
 
 }
