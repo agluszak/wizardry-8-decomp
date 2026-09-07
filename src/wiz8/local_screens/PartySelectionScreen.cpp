@@ -879,7 +879,7 @@ void W8State5CharacterPanel005EF3C8::Function5BF050(
     }
     g_dword_68ed10.parameter_2 = slot < 6 ? slot + 2 : -1;
     g_dword_68ed10.parameter_3 = g_state5_controller_69c4e8->m_character_18;
-    SetPendingScreenState(6);
+    SetPendingScreenState(W8_SCREEN_CAMP);
 }
 
 // FUNCTION: WIZ8 0x005bf0e0
@@ -978,7 +978,7 @@ void W8State5PartySlotRow005EF3E4::OnRightButtonUp(int event)
         g_dword_68ed10.parameter_2 = m_row + 2;
         g_dword_68ed10.parameter_3 = &g_party_characters[m_row + 2];
     }
-    SetPendingScreenState(6);
+    SetPendingScreenState(W8_SCREEN_CAMP);
 }
 
 // FUNCTION: WIZ8 0x005bf4e0
@@ -1045,7 +1045,7 @@ void W8State5SixTextPanel005EF450::OnPrimary(
     control->SetAlternateTextEnabled(0);
     g_dword_68ed10.parameter_3 = &g_party_characters[index + 2];
     g_dword_68ed10.mode = 2;
-    SetPendingScreenState(3);
+    SetPendingScreenState(W8_SCREEN_CHARACTER);
 }
 
 // FUNCTION: WIZ8 0x005bf7e0
@@ -1885,13 +1885,13 @@ void W8State5Controller005EF4CC::OnPrimary(
         }
         g_dword_68ed10.parameter_2 = slot < 6 ? slot + 2 : -1;
         g_dword_68ed10.parameter_3 = m_character_18;
-        SetPendingScreenState(6);
+        SetPendingScreenState(W8_SCREEN_CAMP);
         return;
     }
     if (control == m_text_40) {
         g_dword_68ed10.mode = 0;
         g_dword_68ed10.parameter_3 = 0;
-        SetPendingScreenState(3);
+        SetPendingScreenState(W8_SCREEN_CHARACTER);
         return;
     }
 
@@ -2503,7 +2503,7 @@ int g_value_68de50;
    back, where writing the four calls out literally emits direct pushes and four
    instructions too few. */
 // FUNCTION: WIZ8 0x005c3800
-void Screen2Finish(void)
+void GameStartRouterFrame005C3800(void)
 {
     unsigned long code;
 
@@ -2525,5 +2525,5 @@ void Screen2Finish(void)
         }
     }
     SetValue64D8AC(code);
-    SetPendingScreenState(0);
+    SetPendingScreenState(W8_SCREEN_INTRO);
 }

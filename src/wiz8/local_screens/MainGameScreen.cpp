@@ -521,7 +521,7 @@ void DisableMainRegionSet(void)
 void ClearScreenWait(void)
 {
     g_flag_0068ed14 = 0;
-    SetPendingScreenState(10);
+    SetPendingScreenState(W8_SCREEN_OPTIONS);
 }
 
 /* Forget the whole combat selection - what is picked, what it is aimed at, and

@@ -363,11 +363,11 @@ void PleaseWaitScreenFrame(void)
         RequestScreenTransition();
         if (g_load_descriptor_69b7c8->mode == 1 && g_flag_689b2c) {
             SetValue64D8AC(4);
-            SetPendingScreenState(0);
+            SetPendingScreenState(W8_SCREEN_INTRO);
             return;
         }
         if (Function55EC10() != 7) {
-            SetPendingScreenState(7);
+            SetPendingScreenState(W8_SCREEN_MAIN_GAME);
         }
     }
 }

@@ -121,23 +121,23 @@ static void MainMenuRegionEvent(
         RequestScreenTransition();
         g_flag_68510e = 0;
         SetValue64D8AC(0);
-        SetPendingScreenState(0);
+        SetPendingScreenState(W8_SCREEN_INTRO);
         break;
     case 1:
-        SetPendingScreenState(5);
+        SetPendingScreenState(W8_SCREEN_PARTY_SELECTION);
         break;
     case 2:
         if (g_flag_69c4ba) {
             g_dword_68ed10.mode = 1;
-            SetPendingScreenState(10);
+            SetPendingScreenState(W8_SCREEN_OPTIONS);
         }
         break;
     case 3:
-        SetPendingScreenState(9);
+        SetPendingScreenState(W8_SCREEN_CREDITS);
         break;
     case 4:
         g_dword_68ed10.mode = 0;
-        SetPendingScreenState(10);
+        SetPendingScreenState(W8_SCREEN_OPTIONS);
         break;
     case 5:
         gfProgramIsRunning = 0;
@@ -434,7 +434,7 @@ void MainMenuScreenFrame()
     InputAtom input;
 
     if (g_flag_689b32 != 0) {
-        SetPendingScreenState(12);
+        SetPendingScreenState(W8_SCREEN_EXIT);
     }
     if (g_dword_69c4c0 != 0) {
         Function5CF520(g_dword_69c4c0);
@@ -477,37 +477,37 @@ void MainMenuScreenFrame()
                             RequestScreenTransition();
                             g_flag_68510e = 0;
                             SetValue64D8AC(0);
-                            SetPendingScreenState(0);
+                            SetPendingScreenState(W8_SCREEN_INTRO);
                             break;
                         case 1:
                             Function5BCAB0(g_selected_item_0069c4b4, 2);
-                            SetPendingScreenState(5);
+                            SetPendingScreenState(W8_SCREEN_PARTY_SELECTION);
                             break;
                         case 2:
                             Function5BCAB0(g_selected_item_0069c4b4, 2);
                             if (g_flag_69c4ba != 0) {
                                 g_dword_68ed10.mode = 1;
-                                SetPendingScreenState(10);
+                                SetPendingScreenState(W8_SCREEN_OPTIONS);
                             }
                             break;
                         case 3:
                             Function5BCAB0(g_selected_item_0069c4b4, 2);
-                            SetPendingScreenState(9);
+                            SetPendingScreenState(W8_SCREEN_CREDITS);
                             break;
                         case 4:
                             Function5BCAB0(g_selected_item_0069c4b4, 2);
-                            SetPendingScreenState(10);
+                            SetPendingScreenState(W8_SCREEN_OPTIONS);
                             break;
                         case 5:
                             Function5BCAB0(g_selected_item_0069c4b4, 2);
-                            SetPendingScreenState(12);
+                            SetPendingScreenState(W8_SCREEN_EXIT);
                             break;
                         }
                         break;
                     case ESC:
                     case 'E':
                     case 'X':
-                        SetPendingScreenState(12);
+                        SetPendingScreenState(W8_SCREEN_EXIT);
                         break;
                     case HOME:
                         Function5BCAB0(g_selected_item_0069c4b4, 0);
@@ -542,14 +542,14 @@ void MainMenuScreenFrame()
                     case 'L':
                         if (g_flag_69c4ba != 0) {
                             g_dword_68ed10.mode = 1;
-                            SetPendingScreenState(10);
+                            SetPendingScreenState(W8_SCREEN_OPTIONS);
                         }
                         break;
                     case 'O':
-                        SetPendingScreenState(10);
+                        SetPendingScreenState(W8_SCREEN_OPTIONS);
                         break;
                     case 'S':
-                        SetPendingScreenState(5);
+                        SetPendingScreenState(W8_SCREEN_PARTY_SELECTION);
                         break;
                     }
                 }

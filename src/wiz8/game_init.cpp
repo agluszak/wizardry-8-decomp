@@ -133,12 +133,12 @@ unsigned char InitializeGameData(void)
     }
     InitializeItemVideoObjects();
     Function479010();
-    SetPendingScreenState(0);
+    SetPendingScreenState(W8_SCREEN_INTRO);
     g_status_685170.current_level = -1;
     if (gfLoadAtStartup && FindStartupQuickSave(g_dword_68ed10.name)) {
         g_dword_68ed10.mode = 1;
         g_dword_68ed10.parameter = GetSaveGameLevel(g_dword_68ed10.name);
-        SetPendingScreenState(4);
+        SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
     }
     InitializeEncounterTables();
     if (!LoadMissileDatabase()) {

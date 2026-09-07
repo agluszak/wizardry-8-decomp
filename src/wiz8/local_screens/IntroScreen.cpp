@@ -155,7 +155,7 @@ cleared:
     switch (g_intro_video_index_0064d8ac) {
     case 0:
     case 6:
-        SetPendingScreenState(1);
+        SetPendingScreenState(W8_SCREEN_MAIN_MENU);
         g_flag_68510e = 1;
         break;
     case 1:
@@ -164,11 +164,11 @@ cleared:
     case 4:
         if (!g_flag_689b2c) {
             g_dword_68ed10.mode = 0;
-            SetPendingScreenState(4);
+            SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
         } else {
             g_flag_689b2c = 0;
             if (GetActiveScreenState0055EC10() != 7) {
-                SetPendingScreenState(7);
+                SetPendingScreenState(W8_SCREEN_MAIN_GAME);
             }
         }
         break;

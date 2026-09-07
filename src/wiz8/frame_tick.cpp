@@ -20,7 +20,7 @@ unsigned char InitializeSubsystemFlag(void);
 unsigned char MainMenuScreenFunction005BC810(void);
 void MainMenuScreenFrame(void);
 unsigned char MainMenuScreenLeave(int leaving);
-void Screen2Finish(void);
+void GameStartRouterFrame005C3800(void);
 unsigned char PleaseWaitScreenInitialize(void);
 unsigned char PleaseWaitScreenEnter(void);
 void PleaseWaitScreenFrame(void);
@@ -38,8 +38,8 @@ unsigned char OptionsScreenLeave005A9C70(int leaving);
 unsigned char FreeSmallStartupSubsystem(void);
 unsigned char InitializeJournalFont(void);
 unsigned char FinalizeJournalFont(void);
-unsigned char Screen12Enter(void);
-void Screen12Finish(void);
+unsigned char ExitScreenEnter00591790(void);
+void ExitScreenFrame005917E0(void);
 
 /*
  * The per-frame tick WinMain calls when no message is waiting and the
@@ -58,11 +58,9 @@ static unsigned char ScreenReady(void) { return 1; }
 static void ScreenIdle(void) {}
 static unsigned char ScreenLeave(int) { return 1; }
 
-/* Rows 3, 8, and 9 are now identified as Character, Automap, and Credits.
-   Their live callbacks are 005B1750/005B18E0/005B1840,
-   0057E660/0057F1F0/0057EFE0, and 005BC130/005BC530/005BC420 respectively.
-   Until those bodies are recovered, these local callbacks keep the runtime
-   projection honest about its incomplete implementation. */
+/* Rows 3 and 8 are Character and Automap. Their live callbacks are
+   005B1750/005B18E0/005B1840 and 0057E660/0057F1F0/0057EFE0; the placeholders
+   below keep the runtime projection honest until those bodies are recovered. */
 
 /* WIZ8_RUNTIME currently retains the reviewed main-menu callback but not the
    complete thirteen-record lifecycle table.  Keep this bridge local and
@@ -78,7 +76,7 @@ W8ScreenStateHandlers g_screen_handlers[13] = {
       Function5B1740 },
     { InitializeSubsystemFlag, EnterMainMenu, MainMenuScreenFrame,
       MainMenuScreenLeave, Function5B1740 },
-    { Function5B1740, Function5B1740, Screen2Finish,
+    { Function5B1740, Function5B1740, GameStartRouterFrame005C3800,
       (unsigned char (*)(int))Function5B1740, Function5B1740 },
     { Function5B1740, CreditsScreenEnter005BC130, CreditsScreenFrame005BC530,
       CreditsScreenLeave005BC420, Function5B1740 },
@@ -100,7 +98,8 @@ W8ScreenStateHandlers g_screen_handlers[13] = {
     { InitializeJournalFont, JournalScreenEnter005BDE40, JournalScreenFrame005BE110,
       JournalScreenLeave005BE0B0,
       FinalizeJournalFont },
-    { Function5B1740, Screen12Enter, Screen12Finish, MainMenuScreenLeave,
+    { Function5B1740, ExitScreenEnter00591790, ExitScreenFrame005917E0,
+      MainMenuScreenLeave,
       Function5B1740 }
 };
 extern unsigned char g_flag_68edac;

@@ -5,8 +5,9 @@
 #include "input.h"
 #include "vsurface.h"
 
-/* Lifecycle record 12. The original screen and translation-unit names are
-   unknown; the existing compilation boundary is retained. */
+/* Lifecycle record 12 is the exit screen selected by Main Menu's Exit row and
+   its Escape/E/X shortcuts. The original translation-unit name is unknown, so
+   the existing compilation boundary is retained. */
 
 extern "C" int g_value_64c1c8;
 
@@ -44,7 +45,7 @@ unsigned char g_flag_6f04ed;
    near-black 0x010101 and puts one video-object frame over it, which is the
    shape record 1's much larger main-menu entry starts with too. */
 // FUNCTION: WIZ8 0x00591790
-unsigned char Screen12Enter(void)
+unsigned char ExitScreenEnter00591790(void)
 {
     unsigned short colour;
 
@@ -63,7 +64,7 @@ unsigned char Screen12Enter(void)
    neither of the two other flags is. The two trailing repeats of 0x00426790 are
    the original's own. */
 // FUNCTION: WIZ8 0x005917e0
-void Screen12Finish(void)
+void ExitScreenFrame005917E0(void)
 {
     InputAtom input;
 

@@ -536,7 +536,7 @@ void Function54B250(unsigned char notify, void* target)
     Function558820();
     Function535920();
     Function56C520();
-    SetPendingScreenState(2);
+    SetPendingScreenState(W8_SCREEN_GAME_START_ROUTER);
 }
 
 /* Optionally releases the global status block's two buffers, then clears the
