@@ -1,5 +1,6 @@
 #include "wiz8/music_playlist.h"
 #include "wiz8/local_screens/JournalScreen.h"
+#include "wiz8/local_screens/CreditsScreen.h"
 #include "wiz8/startup_runtime_state.h"
 #include "wiz8/screen_state.h"
 #include "Container.h"
@@ -79,7 +80,8 @@ W8ScreenStateHandlers g_screen_handlers[13] = {
       MainMenuScreenLeave, Function5B1740 },
     { Function5B1740, Function5B1740, Screen2Finish,
       (unsigned char (*)(int))Function5B1740, Function5B1740 },
-    { Function5B1740, ScreenReady, ScreenIdle, ScreenLeave, Function5B1740 },
+    { Function5B1740, CreditsScreenEnter005BC130, CreditsScreenFrame005BC530,
+      CreditsScreenLeave005BC420, Function5B1740 },
     { PleaseWaitScreenInitialize, PleaseWaitScreenEnter, PleaseWaitScreenFrame,
       (unsigned char (*)(int))PleaseWaitScreenLeave, Function5B1740 },
     { Function5B1740, State5Enter005C2DE0, State5Frame005C3120,
