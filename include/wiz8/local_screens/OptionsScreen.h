@@ -110,7 +110,8 @@ public:
     void CreateControls();
     unsigned char Function5A9720(const InputAtom* input);
     void Function5A95F0();
-    virtual void vslot00(W8Control005ED654* control, int selected) override;
+    virtual void OnSelectionChanged(
+        W8Control005ED654* control, int selected) override;
     virtual void OnPrimary(W8TextControl005ED604* control) override;
     virtual void OnSecondary(W8TextControl005ED604*) override {}
     virtual void OnDialogClosed(unsigned char reason, int value) override;

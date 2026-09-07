@@ -2491,8 +2491,8 @@ W8Control005ED654::W8Control005ED654()
 {
     m_value_4 = 0;
     m_value_8 = 0;
-    m_index_c = -1;
-    m_value_20 = 0;
+    m_selectedIndex = -1;
+    m_selectionListener = 0;
 }
 
 // FUNCTION: WIZ8 0x004f54b0
@@ -2534,7 +2534,7 @@ void W8Control005ED654::SetSelected(int iSelected)
                      0xa77,
                      0);
     }
-    previous = m_index_c;
+    previous = m_selectedIndex;
     if (previous == iSelected) {
         return;
     }
@@ -2542,13 +2542,13 @@ void W8Control005ED654::SetSelected(int iSelected)
         entry = m_lsButtons.GetAt(previous);
         (*entry)->DisableSecondaryState(0);
     }
-    m_index_c = iSelected;
+    m_selectedIndex = iSelected;
     if (iSelected != -1) {
         entry = m_lsButtons.GetAt(iSelected);
         (*entry)->EnableSecondaryState(0);
     }
-    if (m_value_20 != 0) {
-        m_value_20->vslot00(this, m_index_c);
+    if (m_selectionListener != 0) {
+        m_selectionListener->OnSelectionChanged(this, m_selectedIndex);
     }
 }
 

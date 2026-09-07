@@ -385,7 +385,8 @@ class W8Control005ED654;
 
 class W8ControlSelectionListener {
 public:
-    virtual void vslot00(W8Control005ED654* control, int selected) = 0;
+    virtual void OnSelectionChanged(
+        W8Control005ED654* control, int selected) = 0;
 };
 
 // VTABLE: WIZ8 0x005ed65c
@@ -408,9 +409,9 @@ public:
        manufacturing an accessor that is absent from the retail call site. */
     int m_value_4;
     int m_value_8;
-    int m_index_c;
+    int m_selectedIndex;
     W8GrowableVector<W8TextControl005ED604*> m_lsButtons;
-    W8ControlSelectionListener* m_value_20;
+    W8ControlSelectionListener* m_selectionListener;
 };
 static_assert(sizeof(W8Control005ED654) == 0x24, "W8Control005ED654_size");
 

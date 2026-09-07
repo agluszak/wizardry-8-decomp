@@ -278,7 +278,8 @@ void W8OptionsScreen::OnDialogClosed(unsigned char reason, int)
    row.  The retail thunk deliberately ignores the control and chooses the
    panel without emitting another notification. */
 // FUNCTION: WIZ8 0x005a98a0
-void W8OptionsScreen::vslot00(W8Control005ED654*, int selected)
+void W8OptionsScreen::OnSelectionChanged(
+    W8Control005ED654*, int selected)
 {
     SelectPanel(selected, 0);
 }

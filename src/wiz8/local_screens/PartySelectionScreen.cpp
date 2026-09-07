@@ -506,7 +506,8 @@ class W8State5CharacterPanel005EF3C8
 public:
     W8State5CharacterPanel005EF3C8();
     virtual ~W8State5CharacterPanel005EF3C8();
-    virtual void vslot00(W8Control005ED654* control, int selected) override;
+    virtual void OnSelectionChanged(
+        W8Control005ED654* control, int selected) override;
     virtual void OnRangeChanged(W8RangeControl005ED74C* control) override;
     virtual void Function5BF0C0(W8TextControl005ED604* entry) override;
     virtual void Function5BF050(W8TextControl005ED604* entry) override;
@@ -551,7 +552,8 @@ public:
 
     W8State5PartySlotPanel005EF438();
     virtual ~W8State5PartySlotPanel005EF438();
-    virtual void vslot00(W8Control005ED654* control, int selected) override;
+    virtual void OnSelectionChanged(
+        W8Control005ED654* control, int selected) override;
 };
 static_assert(sizeof(W8State5PartySlotPanel005EF438) == 0x74, "W8State5PartySlotPanel005EF438_size");
 
@@ -761,7 +763,7 @@ W8State5CharacterPanel005EF3C8::W8State5CharacterPanel005EF3C8()
         selection = -1;
     }
     SetSelected(selection);
-    m_value_20 = this;
+    m_selectionListener = this;
     for (int index = 0; index < m_controls.count; ++index) {
         W8State5CharacterRow005EF364* row =
             static_cast<W8State5CharacterRow005EF364*>(ControlAt(index));
@@ -780,7 +782,7 @@ W8State5CharacterPanel005EF3C8::~W8State5CharacterPanel005EF3C8()
 }
 
 // FUNCTION: WIZ8 0x005bee70
-void W8State5CharacterPanel005EF3C8::vslot00(
+void W8State5CharacterPanel005EF3C8::OnSelectionChanged(
     W8Control005ED654*, int selected)
 {
     m_selected_row = selected
@@ -796,14 +798,14 @@ void W8State5CharacterPanel005EF3C8::OnRangeChanged(
         return;
     }
     g_state5_party_collection_69c4ec->first_visible = control->m_value;
-    m_value_20 = 0;
+    m_selectionListener = 0;
     int selection = m_selected_row
                     - g_state5_party_collection_69c4ec->first_visible;
     if (selection < 0 || selection > 5) {
         selection = -1;
     }
     SetSelected(selection);
-    m_value_20 = this;
+    m_selectionListener = this;
     for (int index = 0; index < m_controls.count; ++index) {
         W8State5CharacterRow005EF364* row =
             static_cast<W8State5CharacterRow005EF364*>(ControlAt(index));
@@ -834,14 +836,14 @@ void W8State5CharacterPanel005EF3C8::SetSelectedRow(int selection)
         m_range_7c->SetValue(first);
     }
 
-    m_value_20 = 0;
+    m_selectionListener = 0;
     visible = m_selected_row
               - g_state5_party_collection_69c4ec->first_visible;
     if (visible < 0 || visible > 5) {
         visible = -1;
     }
     SetSelected(visible);
-    m_value_20 = this;
+    m_selectionListener = this;
     for (int index = 0; index < m_controls.count; ++index) {
         W8State5CharacterRow005EF364* row =
             static_cast<W8State5CharacterRow005EF364*>(ControlAt(index));
@@ -990,10 +992,10 @@ void W8State5PartySlotRow005EF3E4::OnLeftButtonDoubleClick(int event)
 }
 
 // FUNCTION: WIZ8 0x005bf6b0
-void W8State5PartySlotPanel005EF438::vslot00(
+void W8State5PartySlotPanel005EF438::OnSelectionChanged(
     W8Control005ED654*, int)
 {
-    g_state5_controller_69c4e8->SetSelection(m_index_c, 1, 0);
+    g_state5_controller_69c4e8->SetSelection(m_selectedIndex, 1, 0);
 }
 
 // FUNCTION: WIZ8 0x005bf520
@@ -1004,7 +1006,7 @@ W8State5PartySlotPanel005EF438::W8State5PartySlotPanel005EF438()
     for (int row = 0; row < 6; ++row) {
         AddEntry(new W8State5PartySlotRow005EF3E4(this, row));
     }
-    m_value_20 = this;
+    m_selectionListener = this;
     for (int slot = 0; slot < 6; ++slot) {
         W8TextControl005ED604* control = m_lsButtons.data[slot];
         control->SetVisible(
@@ -1619,14 +1621,14 @@ void W8State5Controller005EF4CC::SetMode(int mode)
         m_range->SetEnabled(maximum > 0);
         m_range->Invalidate(0);
 
-        m_character_panel_20->m_value_20 = 0;
+        m_character_panel_20->m_selectionListener = 0;
         int selected = m_character_panel_20->m_selected_row
                        - g_state5_party_collection_69c4ec->first_visible;
         if (selected < 0 || selected > 5) {
             selected = -1;
         }
         m_character_panel_20->SetSelected(selected);
-        m_character_panel_20->m_value_20 = m_character_panel_20;
+        m_character_panel_20->m_selectionListener = m_character_panel_20;
         for (int index = 0;
              index < m_character_panel_20->m_controls.count; ++index) {
             W8State5CharacterRow005EF364* row =
@@ -1765,9 +1767,9 @@ void W8State5Controller005EF4CC::SetSelection(
                     }
                 }
             }
-            m_control_28->m_value_20 = 0;
+            m_control_28->m_selectionListener = 0;
             m_control_28->SetSelected(selected_slot);
-            m_control_28->m_value_20 = m_control_28;
+            m_control_28->m_selectionListener = m_control_28;
             if (refresh_other) {
                 m_character_panel_20->SetSelectedRow(selection);
             }
@@ -1797,9 +1799,9 @@ void W8State5Controller005EF4CC::SetSelection(
             m_character_panel_20->SetSelectedRow(character_index);
         }
         if (refresh_other) {
-            m_control_28->m_value_20 = 0;
+            m_control_28->m_selectionListener = 0;
             m_control_28->SetSelected(selection);
-            m_control_28->m_value_20 = m_control_28;
+            m_control_28->m_selectionListener = m_control_28;
         }
     }
 
@@ -1911,7 +1913,8 @@ void W8State5Controller005EF4CC::OnPrimary(
             SetMode(2);
             return;
         case 2:
-            g_settings_6850c8.field_00d = m_control_30->m_options_50.m_index_c;
+            g_settings_6850c8.field_00d =
+                m_control_30->m_options_50.m_selectedIndex;
             g_settings_6850c8.field_050 =
                 (unsigned char)(m_control_30->m_toggle_78->m_stateFlags &
                                 g_W8TextControlMask005ED570);
