@@ -25,6 +25,10 @@ extern unsigned char g_block_652ddc[0x12c0];
 extern IDirectDraw2* g_direct_draw2_6596a0;
 extern srModelInstance* g_current_model_instance_65962c;
 extern int g_renderer_mode_603d74;
+extern unsigned char g_flag_603c4c;
+extern unsigned char g_flag_603c60;
+extern unsigned char g_flag_6596f4;
+extern int g_value_659668;
 /* The two detail-slider values GrCycle.cpp's LOD selector reads. */
 extern float g_render_brightness_60a210;
 extern float g_render_fog_distance_60e610;

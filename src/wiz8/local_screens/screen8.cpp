@@ -23,12 +23,11 @@ struct W8Releasable0057FA20 {
     virtual ~W8Releasable0057FA20();
 };
 
-/* Lifecycle record 8's own state, all of it released by the finalizer below and
-   nothing here naming what any of it holds. The list is vector.cpp's, created by
-   this record's initializer at 0x0057E5D0. */
-/* vector.cpp defines this with C++ linkage; the spelling has to agree or the
-   reference resolves to the image base under /FORCE. */
-extern W8GrowableVector<W8VectorElement005EEA28*>* g_list_0068F258;
+/* Lifecycle record 8 owns this list: its initializer at 0x0057E5D0 allocates
+   it and its finalizer below releases it. Keep C++ linkage; the retail reference
+   uses the C++ symbol rather than an extern "C" name. */
+// GLOBAL: WIZ8 0x0068F258
+W8GrowableVector<W8VectorElement005EEA28*>* g_list_0068F258;
 
 extern "C" {
 
@@ -55,6 +54,19 @@ srClass* g_class_68f2a8;
 // GLOBAL: WIZ8 0x0068F1F4
 W8Releasable0057FA20* g_releasable_68f1f4;
 
+}
+
+// FUNCTION: WIZ8 0x0057e5d0
+unsigned char CreateList005EEA28(void)
+{
+    W8GrowableVector<W8VectorElement005EEA28*>* list;
+
+    list = new W8GrowableVector<W8VectorElement005EEA28*>();
+    g_list_0068F258 = list;
+    if (!list) {
+        return 0;
+    }
+    return 1;
 }
 
 /* Lifecycle record 8's finalizer, the fifth slot of its record and the third

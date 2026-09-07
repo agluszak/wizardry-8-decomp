@@ -142,6 +142,20 @@ unsigned char PathAIRecordFlag004A9740(const W8PathAI* path)
     return path->kind_00;
 }
 
+// FUNCTION: WIZ8 0x004a9750
+W8PathAI* CreateRecord004A9750(int unused)
+{
+    W8PathAI* path;
+
+    path = (W8PathAI*)malloc(sizeof(W8PathAI));
+    if (!path) {
+        return 0;
+    }
+    memset(path, 0, sizeof(W8PathAI));
+    path->nodes_0c = new W8GrowableVector<srVector3T<float>*>();
+    return path;
+}
+
 // FUNCTION: WIZ8 0x004a91f0
 void PathAIApplyToRep004A91F0(
     W8PathAI* path, W8AnimRepBase005EC1D8* representation)

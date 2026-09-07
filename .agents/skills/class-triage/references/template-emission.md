@@ -8,6 +8,12 @@ Check decorated base names and the retail `getClassNode` shape. A generic ClassI
 registration through `Derived::sGetClassName()` and `Base::sGetClassNode()` is template evidence.
 Mark emitted instantiations with `TEMPLATE` and keep the generic definition in its canonical header.
 
+When the original translation-unit owner of address-only compiler emissions is not established, keep
+the markers under `src/wiz8/compiler_emissions/<family>.h`. The source index scans those headers
+without inventing a compilation unit. Do not create a catch-all `.cpp` such as `vector.cpp` merely to
+carry `TEMPLATE`, `SYNTHETIC`, or `VTABLE` metadata. Once an emission's original translation-unit
+ownership is proved, keep its marker with that owner instead.
+
 Treat `clone` separately when member state requires behavior beyond base assignment. The virtual
 clone slot returns `srClass*` throughout the hierarchy; reconstructing it as `Base*` can cause VC6
 C2555 errors in derived instantiations.

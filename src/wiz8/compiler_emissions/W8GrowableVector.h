@@ -1,11 +1,12 @@
-#include "wiz8/vector.h"
-#include "wiz8/engine_code/PathAI.h"
-#include "wiz8/targeting.h"
+#pragma once
 
-#include <stdlib.h>
-#include <string.h>
-
-class stLight;
+/*
+ * Compiler-emitted W8GrowableVector specializations.
+ *
+ * This file is source-index metadata, not an original translation unit and not
+ * a place for recovered function bodies. The generic implementation lives in
+ * wiz8/vector.h; these markers only record retail emissions and addresses.
+ */
 
 // TEMPLATE: WIZ8 0x004addf0
 // W8GrowableVector<int>::Grow
@@ -52,8 +53,6 @@ class stLight;
 // VTABLE: WIZ8 0x005ec15c
 // class W8GrowableVector<W8WorldItem*>
 
-class W8VectorElement005EBFE4;
-
 // VTABLE: WIZ8 0x005ebfe4
 // class W8GrowableVector<W8VectorElement005EBFE4*>
 
@@ -75,8 +74,6 @@ class W8VectorElement005EBFE4;
 // TEMPLATE: WIZ8 0x00546df0
 // W8GrowableVector<W8TargetSource>::Grow
 
-class W8VectorElement005EE8A0;
-
 // VTABLE: WIZ8 0x005ee8a0
 // class W8GrowableVector<W8VectorElement005EE8A0>
 
@@ -85,10 +82,6 @@ class W8VectorElement005EE8A0;
 
 // TEMPLATE: WIZ8 0x005be1f0
 // W8GrowableVector<W8VectorElement005EE8A0>::Grow
-
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005EBFB4;
 
 // VTABLE: WIZ8 0x005ebfb4
 // class W8GrowableVector<W8VectorElement005EBFB4*>
@@ -102,10 +95,6 @@ class W8VectorElement005EBFB4;
 // TEMPLATE: WIZ8 0x0042a2c0
 // W8GrowableVector<W8VectorElement005EBFB4*>::~W8GrowableVector<W8VectorElement005EBFB4*>
 
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class stModelInstance;
-
 // VTABLE: WIZ8 0x005ec018
 // class W8GrowableVector<stModelInstance*>
 
@@ -117,10 +106,6 @@ class stModelInstance;
 
 // TEMPLATE: WIZ8 0x00438c70
 // W8GrowableVector<stModelInstance*>::~W8GrowableVector<stModelInstance*>
-
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-struct W8EncounterScriptName;
 
 // VTABLE: WIZ8 0x005ec164
 // class W8GrowableVector<W8EncounterScriptName*>
@@ -134,10 +119,6 @@ struct W8EncounterScriptName;
 // TEMPLATE: WIZ8 0x00446050
 // W8GrowableVector<W8EncounterScriptName*>::~W8GrowableVector<W8EncounterScriptName*>
 
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005EC16C;
-
 // VTABLE: WIZ8 0x005ec16c
 // class W8GrowableVector<W8VectorElement005EC16C*>
 
@@ -149,10 +130,6 @@ class W8VectorElement005EC16C;
 
 // TEMPLATE: WIZ8 0x004460f0
 // W8GrowableVector<W8VectorElement005EC16C*>::~W8GrowableVector<W8VectorElement005EC16C*>
-
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005EC27C;
 
 // VTABLE: WIZ8 0x005ec27c
 // class W8GrowableVector<W8VectorElement005EC27C*>
@@ -166,7 +143,8 @@ class W8VectorElement005EC27C;
 // TEMPLATE: WIZ8 0x00451b20
 // W8GrowableVector<W8VectorElement005EC27C*>::~W8GrowableVector<W8VectorElement005EC27C*>
 
-/* Emitted lifecycle bodies belong directly to the template specialization. */
+// VTABLE: WIZ8 0x005ec294
+// class W8GrowableVector<stLight*>
 
 // TEMPLATE: WIZ8 0x00484870
 // W8GrowableVector<stLight*>::W8GrowableVector
@@ -176,10 +154,6 @@ class W8VectorElement005EC27C;
 
 // TEMPLATE: WIZ8 0x00451d30
 // W8GrowableVector<stLight*>::~W8GrowableVector<stLight*>
-
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005EC2B8;
 
 // VTABLE: WIZ8 0x005ec2b8
 // class W8GrowableVector<W8VectorElement005EC2B8*>
@@ -193,10 +167,6 @@ class W8VectorElement005EC2B8;
 // TEMPLATE: WIZ8 0x00451aa0
 // W8GrowableVector<W8VectorElement005EC2B8*>::~W8GrowableVector<W8VectorElement005EC2B8*>
 
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8Navigator;
-
 // VTABLE: WIZ8 0x005ec324
 // class W8GrowableVector<W8Navigator*>
 
@@ -208,10 +178,6 @@ class W8Navigator;
 
 // TEMPLATE: WIZ8 0x004561a0
 // W8GrowableVector<W8Navigator*>::~W8GrowableVector<W8Navigator*>
-
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005EC514;
 
 // VTABLE: WIZ8 0x005ec514
 // class W8GrowableVector<W8VectorElement005EC514*>
@@ -225,10 +191,6 @@ class W8VectorElement005EC514;
 // TEMPLATE: WIZ8 0x00474c40
 // W8GrowableVector<W8VectorElement005EC514*>::~W8GrowableVector<W8VectorElement005EC514*>
 
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005ECA5C;
-
 // VTABLE: WIZ8 0x005eca5c
 // class W8GrowableVector<W8VectorElement005ECA5C*>
 
@@ -240,10 +202,6 @@ class W8VectorElement005ECA5C;
 
 // TEMPLATE: WIZ8 0x00489f30
 // W8GrowableVector<W8VectorElement005ECA5C*>::~W8GrowableVector<W8VectorElement005ECA5C*>
-
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005ECA98;
 
 // VTABLE: WIZ8 0x005eca98
 // class W8GrowableVector<W8VectorElement005ECA98*>
@@ -257,10 +215,6 @@ class W8VectorElement005ECA98;
 // TEMPLATE: WIZ8 0x0048ce00
 // W8GrowableVector<W8VectorElement005ECA98*>::~W8GrowableVector<W8VectorElement005ECA98*>
 
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005ECAA0;
-
 // VTABLE: WIZ8 0x005ecaa0
 // class W8GrowableVector<W8VectorElement005ECAA0*>
 
@@ -272,10 +226,6 @@ class W8VectorElement005ECAA0;
 
 // TEMPLATE: WIZ8 0x0048ce80
 // W8GrowableVector<W8VectorElement005ECAA0*>::~W8GrowableVector<W8VectorElement005ECAA0*>
-
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005ECAD0;
 
 // VTABLE: WIZ8 0x005ecad0
 // class W8GrowableVector<W8VectorElement005ECAD0*>
@@ -289,12 +239,6 @@ class W8VectorElement005ECAD0;
 // TEMPLATE: WIZ8 0x0048f1f0
 // W8GrowableVector<W8VectorElement005ECAD0*>::~W8GrowableVector<W8VectorElement005ECAD0*>
 
-/* The emitted lifecycle and both reviewed vtables belong directly to the
-   ordinary light-vector template specializations. */
-
-// VTABLE: WIZ8 0x005ec294
-// class W8GrowableVector<stLight*>
-
 // VTABLE: WIZ8 0x005ece60
 // class W8GrowableVector<W8GrowableVector<stLight*>*>
 
@@ -306,10 +250,6 @@ class W8VectorElement005ECAD0;
 
 // TEMPLATE: WIZ8 0x004a5c90
 // W8GrowableVector<W8GrowableVector<stLight*>*>::~W8GrowableVector<W8GrowableVector<stLight*>*>
-
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005ECEE4;
 
 // VTABLE: WIZ8 0x005ecee4
 // class W8GrowableVector<W8VectorElement005ECEE4*>
@@ -323,8 +263,6 @@ class W8VectorElement005ECEE4;
 // TEMPLATE: WIZ8 0x004a8ed0
 // W8GrowableVector<W8VectorElement005ECEE4*>::~W8GrowableVector<W8VectorElement005ECEE4*>
 
-/* Emitted W8GrowableVector instantiation identified by its vtable. */
-
 // VTABLE: WIZ8 0x005ecf00
 // class W8GrowableVector<srVector3T<float>*>
 
@@ -333,24 +271,6 @@ class W8VectorElement005ECEE4;
 
 // TEMPLATE: WIZ8 0x004aab10
 // W8GrowableVector<srVector3T<float>*>::~W8GrowableVector<srVector3T<float>*>
-
-// FUNCTION: WIZ8 0x004a9750
-W8PathAI* CreateRecord004A9750(int unused)
-{
-    W8PathAI* path;
-
-    path = (W8PathAI*)malloc(sizeof(W8PathAI));
-    if (!path) {
-        return 0;
-    }
-    memset(path, 0, sizeof(W8PathAI));
-    path->nodes_0c = new W8GrowableVector<srVector3T<float>*>();
-    return path;
-}
-
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005ED018;
 
 // VTABLE: WIZ8 0x005ed018
 // class W8GrowableVector<W8VectorElement005ED018*>
@@ -364,10 +284,6 @@ class W8VectorElement005ED018;
 // TEMPLATE: WIZ8 0x004af6f0
 // W8GrowableVector<W8VectorElement005ED018*>::~W8GrowableVector<W8VectorElement005ED018*>
 
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class srClipPlane;
-
 // VTABLE: WIZ8 0x005ed1b8
 // class W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>
 
@@ -379,10 +295,6 @@ class srClipPlane;
 
 // TEMPLATE: WIZ8 0x004bdfe0
 // W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>::~W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>
-
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005ED2C8;
 
 // VTABLE: WIZ8 0x005ed2c8
 // class W8GrowableVector<W8VectorElement005ED2C8*>
@@ -396,10 +308,6 @@ class W8VectorElement005ED2C8;
 // TEMPLATE: WIZ8 0x004cad60
 // W8GrowableVector<W8VectorElement005ED2C8*>::~W8GrowableVector<W8VectorElement005ED2C8*>
 
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005ED7D4;
-
 // VTABLE: WIZ8 0x005ed7d4
 // class W8GrowableVector<W8VectorElement005ED7D4*>
 
@@ -411,10 +319,6 @@ class W8VectorElement005ED7D4;
 
 // TEMPLATE: WIZ8 0x00501f10
 // W8GrowableVector<W8VectorElement005ED7D4*>::~W8GrowableVector<W8VectorElement005ED7D4*>
-
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005ED840;
 
 // VTABLE: WIZ8 0x005ed840
 // class W8GrowableVector<W8VectorElement005ED840*>
@@ -428,42 +332,14 @@ class W8VectorElement005ED840;
 // TEMPLATE: WIZ8 0x00517870
 // W8GrowableVector<W8VectorElement005ED840*>::~W8GrowableVector<W8VectorElement005ED840*>
 
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005EEA28;
-
 // VTABLE: WIZ8 0x005eea28
 // class W8GrowableVector<W8VectorElement005EEA28*>
-
-/* The list itself, reached through this pointer rather than through an owner.
-   Lifecycle record 8's finalizer at 0x0057FA20 releases it from another
-   translation unit, which is what makes it a global rather than the file-static
-   it was modelled as. */
-// GLOBAL: WIZ8 0x0068F258
-W8GrowableVector<W8VectorElement005EEA28*>* g_list_0068F258;
 
 // SYNTHETIC: WIZ8 0x00585420
 // W8GrowableVector<W8VectorElement005EEA28*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00585440
 // W8GrowableVector<W8VectorElement005EEA28*>::~W8GrowableVector<W8VectorElement005EEA28*>
-
-// FUNCTION: WIZ8 0x0057e5d0
-unsigned char CreateList005EEA28(void)
-{
-    W8GrowableVector<W8VectorElement005EEA28*>* list;
-
-    list = new W8GrowableVector<W8VectorElement005EEA28*>();
-    g_list_0068F258 = list;
-    if (!list) {
-        return 0;
-    }
-    return 1;
-}
-
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005EF08C;
 
 // VTABLE: WIZ8 0x005ef08c
 // class W8GrowableVector<W8VectorElement005EF08C*>

@@ -106,11 +106,6 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/Bink.cpp
     src/wiz8/level_specific_code/MasterFunctionList.cpp
 )
-# Compiler-emitted growable-vector specializations whose original
-# translation-unit ownership is not established.
-set(WIZ8_TEMPLATE_EMISSIONS
-    src/wiz8/vector.cpp
-)
 
 # Original translation-unit names remain unproved for these units. A descriptive
 # filename records a coherent subsystem, not a claim about the original name.
@@ -137,8 +132,6 @@ set(WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
     src/wiz8/engine_code/MonsterLight.cpp
     src/wiz8/engine_code/GDCamera.cpp
     src/wiz8/unattributed/00401001_0041ab3f.cpp
-    src/wiz8/unattributed/0041f261_0042403f.cpp
-    src/wiz8/unattributed/00424041_0042a36f.cpp
     src/wiz8/engine_code/world_selection.cpp
     src/wiz8/unattributed/0046c0f1_0046dc8f.cpp
     src/wiz8/unattributed/0047a791_0047b4ff.cpp
@@ -194,7 +187,7 @@ set(WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
 set(WIZ8_PROVISIONAL_UNITS)
 set(WIZ8_ADDRESS_QUARANTINE_UNITS)
 foreach(source IN LISTS WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS)
-    if(source MATCHES "^src/wiz8/unattributed/[0-9a-f]+_[0-9a-f]+[.]cpp$")
+    if(source MATCHES "^src/wiz8/unattributed/([0-9a-f]+)_([0-9a-f]+)[.]cpp$")
         list(APPEND WIZ8_ADDRESS_QUARANTINE_UNITS "${source}")
     else()
         list(APPEND WIZ8_PROVISIONAL_UNITS "${source}")
@@ -207,7 +200,6 @@ endforeach()
 # populate the build.
 set(WIZ8_RECOVERED_SOURCE_CATEGORIES
     WIZ8_ORIGINAL_UNITS
-    WIZ8_TEMPLATE_EMISSIONS
     WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
 )
 set(WIZ8_CLASSIFIED_SOURCES)

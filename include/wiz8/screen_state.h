@@ -36,6 +36,7 @@ struct W8ScreenStateHandlers {
 };
 
 extern W8ScreenStateHandlers g_screen_handlers[13];
+extern int g_screen_transition_object_count_654aac;
 
 /* The current and pending screen records begin at the two globals whose first
    dwords the reviewed setters address directly. One storage object preserves
