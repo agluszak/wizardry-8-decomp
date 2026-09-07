@@ -45,7 +45,8 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/dialog_code/ModalDialogBase.cpp
     src/wiz8/dialog_code/DialogBase.cpp
     src/wiz8/dialog_code/DialogFactoryDialogs.cpp
-    src/wiz8/dialog_code/Object005EF894.cpp
+    src/wiz8/dialog_code/DialogTextEntry.cpp
+    src/wiz8/unattributed/00577410.cpp
     src/wiz8/dialog_code/StatInfoDialogs.cpp
     src/wiz8/dialog_code/ProfRaceInfoDialog.cpp
     src/wiz8/engine_code/Object0043A910.cpp

@@ -39,6 +39,8 @@ char* ConvertWideStringToString(const wchar_t* string);
 wchar_t* FormatUnsignedIntegerWithCommas(
     wchar_t* output, unsigned int value);
 char* TitleCaseString(char* string);
+void ShortenTextToWidth00577410(
+    wchar_t* output, const wchar_t* text, unsigned int width, int font);
 float ShortestAngleDistance(float first, float second);
 void UnionScreenRects(
     const W8ScreenRect* first,

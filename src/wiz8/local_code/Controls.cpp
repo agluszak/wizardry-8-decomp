@@ -120,7 +120,6 @@ __forceinline Controls::~Controls()
 extern void RequestRedraw(unsigned int mask);
 const wchar_t g_W8TextSeparator0060CC74[] = L" ";
 const wchar_t g_W8TextBreakCharacters00617C88[] = L" \n";
-extern const wchar_t g_W8LineBreakCharacters00617C90[];
 extern int g_W8TextClipTarget005FF5F4;
 extern int g_W8TextClipFlags00650E38;
 extern int g_W8FontStateTable0068EE1C[];

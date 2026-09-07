@@ -8,17 +8,20 @@
 /*
  * Local Code\\Controls.cpp's shared surface.
  *
+ * Controls is a panel that manages W8Widget pointers; W8TextControl derives
+ * from W8Widget and embeds a separate W8TextBuffer. Controls is the current
+ * class name, not an original spelling established by the source filename
+ * or the m_pPanel assertion.
+ *
  * The text buffer lived in two places before this header existed - the full
  * model here, recovered from Controls.cpp's own bodies, and a size-and-vtable
- * sketch in the dialog code that derives from it. They are one class: the
+ * sketch of the base used by dialog text entries. They are one class: the
  * sketch's 0x4c bytes of storage after the vptr are exactly the fields below,
  * so the two agree on the extent and the richer model subsumes the other.
  */
 
-/* Note that this is the same four ints in the same order as W8ScreenRect, and
-   the two are almost certainly one type in the original - but nothing recovered
-   so far passes a control's rectangle to a screen-rect body or the other way
-   round, so the match is recorded rather than acted on. */
+/* Same four-int layout as W8ScreenRect. Shared source identity is unproven;
+   retain separate declarations until evidence connects their uses. */
 struct W8ControlsRect {
     int left;                               /* 0x00 */
     int top;                                /* 0x04 */
@@ -40,6 +43,7 @@ extern const unsigned int g_W8TextControlMask005ED570;
 extern const unsigned int g_W8TextControlMask005ED578;
 extern const unsigned int g_W8TextControlMask005ED588;
 extern const unsigned int g_W8TextControlMask005ED594;
+extern const wchar_t g_W8LineBreakCharacters00617C90[];
 
 class W8TextBuffer005ED5B8 {
 public:
@@ -304,9 +308,10 @@ class W8Widget;
 extern unsigned char DispatchControlRegionEvent(
     const W8RegionEvent* event, struct W8Region* region); /* 0x004F3140 */
 
-/* The accumulated redraw rectangle a panel hands the compositor. An empty
-   rectangle is spelled with left at -1, which is what 0x004F2E50 tests before
-   it starts unioning rather than intersecting. */
+/* Panel/container, not a W8Widget base. Widgets register their pointers in
+   m_controls and retain a back-pointer in m_pPanel. DestroyAllControls performs
+   explicit child deletion; the vector itself only owns its pointer storage.
+   The accumulated redraw rectangle uses left == -1 for an empty rectangle. */
 struct Controls {
     Controls();
     Controls(int left, int top, int right, int bottom,

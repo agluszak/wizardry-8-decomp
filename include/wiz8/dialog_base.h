@@ -4,13 +4,13 @@
 #include "input.h"
 #include "Button System.h"
 
-/* The shared dialog base at vtable 0x005EF8B0, between W8DialogBase
-   and the concrete dialogs. Its fifteen slots are what every derived dialog
-   inherits: W8NotificationDialog's table is identical except slot 0, which is each
+/* The modal branch at vtable 0x005EF8B0 derives from W8DialogBase.
+   W8NotificationDialog's table is identical except slot 0, which is each
    class's own scalar deleting destructor, and slot 9, which it overrides.
+   Other dialog families, including monster and spell information dialogs,
+   derive directly from W8DialogBase, not through this class.
 
-   The released binary exposes no original name for it, so the name is
-   qualified by its constructor address. */
+   W8ModalDialogBase is a recovered role name, not an original source spelling. */
 // VTABLE: WIZ8 0x005ef8b0
 class W8ModalDialogBase : public W8DialogBase {
 public:

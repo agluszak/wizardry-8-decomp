@@ -2,6 +2,8 @@
 
 #include "wiz8/vector.h"
 #include "wiz8/engine_code/game_timer.h"
+#include "wiz8/dialog_code/DialogTextEntry.h"
+#include "Button System.h"
 
 #include <wchar.h>
 
@@ -12,7 +14,9 @@ extern "C" void SetDialogDestroyCallback(
     W8DialogBase* dialog, W8DialogDestroyCallback callback);
 
 /* Names describe recovered roles; retail does not expose their original
-   source spellings. Address markers retain the binary identities. */
+   source spellings. Address markers retain the binary identities.
+   This shell uses SGP Button System resources; it is not a Controls panel or
+   a W8Widget. Concrete dialogs contain their own button/text/scroll helpers. */
 // VTABLE: WIZ8 0x005efaf8
 class W8DialogBase {
 public:
@@ -122,15 +126,30 @@ static_assert(sizeof(W8Dialog005D97D0) == 0x90,
 
 class W8DialogScrollBar {
 public:
+    /* Four-word record passed by the monster/profession dialogs and the
+       static record at 0x0064F908. */
+    struct Resources {
+        const char* arrows_path;
+        const char* track_path;
+        int track_frame;
+        void (*on_scroll)(W8DialogScrollBar*, int first_visible_entry);
+    };
     W8DialogScrollBar();         /* 0x005E0C40 */
     ~W8DialogScrollBar();
+    unsigned char CreateControls(const Resources* resources); /* 0x005E0CA0 */
     void DestroyControls();              /* 0x005E0E00 */
+    void SetLayout(int x, int y, int entry_count, int first_visible_entry,
+                   int entry_height, int view_height); /* 0x005E0EB0 */
     void UpdateThumb();                  /* 0x005E1000 */
     void Draw(unsigned char force);      /* 0x005E10B0 */
     void ScrollUp();                     /* 0x005E1170 */
     void ScrollDown();                   /* 0x005E11A0 */
+    void ScrollToMouse();                /* 0x005E11E0 */
 
 private:
+    static void UpButtonCallback(GUI_BUTTON* button, INT32 reason);
+    static void DownButtonCallback(GUI_BUTTON* button, INT32 reason);
+    static void TrackButtonCallback(GUI_BUTTON* button, INT32 reason);
     unsigned char m_initialized;         /* 0x00 */
     unsigned char m_visible;             /* 0x01 */
     unsigned char m_dirty;               /* 0x02 */
@@ -151,6 +170,9 @@ private:
     int m_track_button;                  /* 0x44 */
     void (*m_on_scroll)(W8DialogScrollBar* scroll_bar, int first_visible_entry); /* 0x48 */
 };                                      /* 0x4c */
+static_assert(sizeof(W8DialogScrollBar::Resources) == 0x10,
+              "W8DialogScrollBar_Resources_size");
+static_assert(sizeof(W8DialogScrollBar) == 0x4c, "W8DialogScrollBar_size");
 
 // VTABLE: WIZ8 0x005efa98
 class W8DialogButton {
@@ -198,12 +220,25 @@ private:
 /* Two instances of this pointer-vector specialization are embedded in
    W8DialogTextArea. */
 // VTABLE: WIZ8 0x005ef898
-// class W8GrowableVector<W8TextBuffer005ED5B8*>
+// class W8GrowableVector<W8DialogTextEntry*>
 
+/* Nonpolymorphic scrolling-text helper contained by dialogs, not a widget or
+   text-buffer base. Both vectors belong to this object; only all_lines owns
+   the entries. visible_lines references entries selected/ordered from it. */
 class W8DialogTextArea {
 public:
     W8DialogTextArea();           /* 0x005D14D0 */
     ~W8DialogTextArea();          /* 0x005D1590 */
+    void Configure(const W8ControlsRect* bounds, int font, unsigned int flags);
+    void Draw(unsigned char force);
+    void SetFirstVisibleLine(int line);
+    int GetTotalLineCount();
+    unsigned int GetLineHeight();
+    void SetEntrySpacing(int lines);
+    void SetLineHeight(unsigned int height);
+    unsigned char SelectEntry(int index);
+    unsigned char ClearSelection();
+    unsigned char CopyEntryText(unsigned int index, wchar_t* output);
     unsigned char ScrollDown(unsigned char check_only);
     unsigned char ScrollUp(unsigned char check_only);
     void SetFirstVisibleEntry(unsigned int index);
@@ -216,8 +251,8 @@ private:
     int unknown_010;
     int unknown_014;
     int unknown_018;
-    W8GrowableVector<W8TextBuffer005ED5B8*> m_all_lines_01c;
-    W8GrowableVector<W8TextBuffer005ED5B8*> m_visible_lines_02c;
+    W8GrowableVector<W8DialogTextEntry*> m_all_lines_01c;     /* owns entries */
+    W8GrowableVector<W8DialogTextEntry*> m_visible_lines_02c; /* non-owning view */
     unsigned char unknown_03c;
     unsigned char unknown_03d;
     unsigned char unknown_03e;

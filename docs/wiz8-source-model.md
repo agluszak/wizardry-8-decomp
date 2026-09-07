@@ -143,6 +143,50 @@ recovered function that appears to need a `try`/`catch` has been misread.
    release build's log call retains no sink — while `WriteGameLog` (`0x0058AAD0`, 541 call sites)
    is the live wide-character channel feeding the on-screen text sink at `0x0058AC00`.
 
+## UI ownership
+
+The recovered UI has two largely separate control systems, not one universal widget
+hierarchy. They share lower-level rendering services; this distinction does not imply
+disjoint dependencies. The source declarations remain authoritative:
+
+```text
+Controls panel
+  manages W8Widget objects
+    W8TextControl derives from W8Widget
+      contains W8TextBuffer
+
+W8DialogBase
+  modal branch: W8ModalDialogBase -> W8NotificationDialog
+  other branches: monster, spell, and other dialog families
+    contain button / scrollbar / text-area helpers as needed
+
+W8DialogTextArea
+  owns W8DialogTextEntry objects
+  keeps a separate non-owning visible-entry list
+
+W8DialogTextEntry derives from W8TextBuffer
+```
+
+In [Controls.h](../include/wiz8/local_code/Controls.h), the panel holds widget pointers
+and each widget holds its panel pointer. TextControl adds interaction state while its
+embedded TextBuffer handles text layout and rendering. Panel and widget are not bases of
+one another; TextControl and TextBuffer are not duplicate identities.
+
+[DialogBase.h](../include/wiz8/dialog_code/DialogBase.h) describes the separate SGP
+Button-System shell and its contained helpers. The
+[modal base](../include/wiz8/dialog_base.h) is only one inheritance branch. TextArea is
+nonpolymorphic; its two vectors own their pointer storage, but its destructor deletes
+entries only through the owning collection. The
+[dialog text entry](../include/wiz8/dialog_code/DialogTextEntry.h) extends TextBuffer
+with palette, prefix, filtering and state data plus its own rendering behavior. An empty
+destructor does not imply an empty derived object.
+
+Names describe recovered roles unless independently tied to original identifiers.
+In particular, the filename `Controls.cpp` does not prove that the panel's original
+class name was `Controls`. Likewise, matching four-integer layouts do not establish
+that `W8ControlsRect` and `W8ScreenRect` were one source type; that identity remains
+unresolved. Similar UI responsibilities alone do not justify merging classes.
+
 ## Live recovery state
 
 This document does not inventory current classes, layouts, match counts, or unresolved
