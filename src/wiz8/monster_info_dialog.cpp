@@ -1,11 +1,235 @@
 #include "wiz8/monster_info_dialog.h"
 #include "wiz8/local_code/Controls.h"
+#include "Button System.h"
+#include "Font.h"
+#include "wiz8/dirty_tiles.h"
 
 #include <new>
 
-extern void Function40C710(int resource);
-extern void Function40D150(int resource);
 extern int g_dword_69ca28;
+
+// FUNCTION: WIZ8 0x005db4e0
+void W8DialogButton::Draw()
+{
+    if (unknown_038 && m_resource_01c != -1) {
+        int left = GetButtonX(m_resource_01c);
+        int top = GetButtonY(m_resource_01c);
+        DrawButton(m_resource_01c);
+        MarkScreenRectDirty(left, top,
+                            left + GetButtonWidth(m_resource_01c),
+                            top + GetButtonHeight(m_resource_01c), 0);
+        unknown_038 = 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x005db550
+void W8DialogButton::SetPosition(int x, int y)
+{
+    if (m_resource_01c != -1 &&
+        (x != GetButtonX(m_resource_01c) || y != GetButtonY(m_resource_01c))) {
+        SetButtonPosition(m_resource_01c, static_cast<short>(x), static_cast<short>(y));
+        unknown_038 = 1;
+    }
+}
+
+// FUNCTION: WIZ8 0x005db5a0
+int W8DialogButton::GetWidth()
+{
+    return m_resource_01c != -1 ? GetButtonWidth(m_resource_01c) : 0;
+}
+
+// FUNCTION: WIZ8 0x005db5c0
+int W8DialogButton::GetHeight()
+{
+    return m_resource_01c != -1 ? GetButtonHeight(m_resource_01c) : 0;
+}
+
+// FUNCTION: WIZ8 0x005db5e0
+int W8DialogButton::GetX()
+{
+    return m_resource_01c != -1 ? GetButtonX(m_resource_01c) : 0;
+}
+
+// FUNCTION: WIZ8 0x005db600
+int W8DialogButton::GetY()
+{
+    return m_resource_01c != -1 ? GetButtonY(m_resource_01c) : 0;
+}
+
+// FUNCTION: WIZ8 0x005db8d0
+void W8DialogButton::SetEnabled(unsigned char enabled)
+{
+    GUI_BUTTON* button = GetButtonPtr(m_resource_01c);
+    unknown_035 = enabled;
+    if (button) {
+        if (enabled) {
+            if (!(button->uiFlags & BUTTON_ENABLED)) {
+                button->uiFlags |= BUTTON_ENABLED;
+                unknown_038 = 1;
+            }
+        }
+        else if (button->uiFlags & BUTTON_ENABLED) {
+            button->uiFlags &= ~BUTTON_ENABLED;
+            unknown_038 = 1;
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005db920
+unsigned char W8DialogButton::IsEnabled()
+{
+    GUI_BUTTON* button = GetButtonPtr(m_resource_01c);
+    return button ? static_cast<unsigned char>(button->uiFlags & BUTTON_ENABLED) : 0;
+}
+
+// FUNCTION: WIZ8 0x005db950
+void W8DialogButton::SetPressed(unsigned char pressed)
+{
+    GUI_BUTTON* button = GetButtonPtr(m_resource_01c);
+    if (button) {
+        if (pressed) {
+            if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
+                button->uiFlags |= BUTTON_CLICKED_ON;
+                unknown_038 = 1;
+            }
+        }
+        else if (button->uiFlags & BUTTON_CLICKED_ON) {
+            button->uiFlags &= ~BUTTON_CLICKED_ON;
+            unknown_038 = 1;
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005db9a0
+unsigned char W8DialogButton::IsPressed()
+{
+    return static_cast<unsigned char>(GetButtonPtr(m_resource_01c)->uiFlags & BUTTON_CLICKED_ON);
+}
+
+// FUNCTION: WIZ8 0x005d1ab0
+void W8DialogTextArea::SetFirstVisibleEntry(unsigned int index)
+{
+    if (m_all_lines_01c.count != 0 &&
+        index <= static_cast<unsigned int>(m_all_lines_01c.count) &&
+        (static_cast<unsigned int>(unknown_014) != index || unknown_018 != 0)) {
+        unknown_014 = index;
+        unknown_018 = 0;
+        unknown_054 = 1;
+        unknown_03d = 1;
+    }
+}
+
+// FUNCTION: WIZ8 0x005e0e00
+void W8DialogScrollBar::DestroyControls()
+{
+    if (unknown_02c != -1) {
+        RemoveButton(unknown_02c);
+        unknown_02c = -1;
+    }
+    if (unknown_028 != -1) {
+        UnloadButtonImage(unknown_028);
+        unknown_028 = -1;
+    }
+    if (unknown_034 != -1) {
+        RemoveButton(unknown_034);
+        unknown_034 = -1;
+    }
+    if (unknown_030 != -1) {
+        UnloadButtonImage(unknown_030);
+        unknown_030 = -1;
+    }
+    if (unknown_03c != -1) {
+        RemoveButton(unknown_03c);
+        unknown_03c = -1;
+    }
+    if (unknown_038 != -1) {
+        UnloadButtonImage(unknown_038);
+        unknown_038 = -1;
+    }
+    if (unknown_044 != -1) {
+        RemoveButton(unknown_044);
+        unknown_044 = -1;
+    }
+    if (unknown_040 != -1) {
+        UnloadButtonImage(unknown_040);
+        unknown_040 = -1;
+    }
+    unknown_048 = 0;
+    unknown_000 = 0;
+}
+
+// FUNCTION: WIZ8 0x005d1ae0
+unsigned char W8DialogTextArea::ScrollDown(unsigned char check_only)
+{
+    unsigned int spacing = static_cast<unsigned int>(unknown_040) /
+                           GetFontHeight(unknown_010);
+    int height = m_bottom_00c - m_top_004;
+    int visible_line = 1;
+    for (unsigned int index = unknown_014;
+         index < static_cast<unsigned int>(m_visible_lines_02c.count); ++index) {
+        for (unsigned int line = unknown_018;
+             line < (*m_visible_lines_02c.GetAt(index))->m_lineCount + spacing;
+             ++line, ++visible_line) {
+            unsigned int line_height = -1;
+            if (unknown_03c) {
+                line_height = unknown_048;
+                if (line_height == static_cast<unsigned int>(-1)) {
+                    line_height = GetFontHeight(unknown_010);
+                }
+            }
+            if (static_cast<int>(line_height * visible_line) > height) {
+                W8TextBuffer005ED5B8* text =
+                    *m_visible_lines_02c.GetAt(unknown_014);
+                if (static_cast<unsigned int>(unknown_018) <
+                    text->m_lineCount - 1 + spacing) {
+                    if (!check_only) ++unknown_018;
+                }
+                else {
+                    if (static_cast<unsigned int>(unknown_014) >=
+                        static_cast<unsigned int>(m_visible_lines_02c.count - 1)) {
+                        return 0;
+                    }
+                    if (!check_only) {
+                        ++unknown_014;
+                        unknown_018 = 0;
+                    }
+                }
+                if (!check_only) {
+                    unknown_03d = 1;
+                    unknown_054 = 1;
+                }
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x005d1c00
+unsigned char W8DialogTextArea::ScrollUp(unsigned char check_only)
+{
+    unsigned int spacing = static_cast<unsigned int>(unknown_040) /
+                           GetFontHeight(unknown_010);
+    if (m_all_lines_01c.count == 0 ||
+        (unknown_014 == 0 && unknown_018 == 0)) {
+        return 0;
+    }
+    if (!check_only) {
+        if (unknown_018 != 0) {
+            --unknown_018;
+        }
+        else {
+            --unknown_014;
+            W8TextBuffer005ED5B8* text = *m_visible_lines_02c.GetAt(unknown_014);
+            if (text->m_lineCount + spacing > 1) {
+                unknown_018 = text->m_lineCount - 1 + spacing;
+            }
+        }
+        unknown_03d = 1;
+        unknown_054 = 1;
+    }
+    return 1;
+}
 
 /* Dialog Code\MonsterInfoDialog.cpp defines no assertions, so unlike Octree or
    Monster this class yields no member names. Only offsets are established here,
@@ -13,7 +237,7 @@ extern int g_dword_69ca28;
    the first of the three the reviewed complete destructor tears down. */
 
 // FUNCTION: WIZ8 0x005e0c40
-W8DialogScrollBar005E0C40::W8DialogScrollBar005E0C40()
+W8DialogScrollBar::W8DialogScrollBar()
 {
     unknown_000 = 0;
     unknown_001 = 0;
@@ -39,7 +263,7 @@ W8DialogScrollBar005E0C40::W8DialogScrollBar005E0C40()
 }
 
 // FUNCTION: WIZ8 0x005db1b0
-W8DialogButton005DB1B0::W8DialogButton005DB1B0()
+W8DialogButton::W8DialogButton()
 {
     m_resource_018 = -1;
     m_resource_01c = -1;
@@ -67,17 +291,17 @@ W8DialogButton005DB1B0::W8DialogButton005DB1B0()
 }
 
 // SYNTHETIC: WIZ8 0x005db210
-// W8DialogButton005DB1B0::`scalar deleting destructor'
+// W8DialogButton::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005db260
-W8DialogButton005DB1B0::~W8DialogButton005DB1B0()
+W8DialogButton::~W8DialogButton()
 {
     if (m_resource_018 != -1) {
-        Function40C710(m_resource_018);
+        UnloadButtonImage(m_resource_018);
         m_resource_018 = -1;
     }
     if (m_resource_01c != -1) {
-        Function40D150(m_resource_01c);
+        RemoveButton(m_resource_01c);
         m_resource_01c = -1;
     }
 }
@@ -95,7 +319,7 @@ W8DialogButton005DB1B0::~W8DialogButton005DB1B0()
 // W8GrowableVector<W8TextBuffer005ED5B8*>::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005d14d0
-W8DialogTextArea005D14D0::W8DialogTextArea005D14D0()
+W8DialogTextArea::W8DialogTextArea()
 {
     int invalid;
 
@@ -117,7 +341,7 @@ W8DialogTextArea005D14D0::W8DialogTextArea005D14D0()
 }
 
 // FUNCTION: WIZ8 0x005d1590
-W8DialogTextArea005D14D0::~W8DialogTextArea005D14D0()
+W8DialogTextArea::~W8DialogTextArea()
 {
     int index;
 
@@ -142,5 +366,5 @@ void W8MonsterInfoDialog::OnRightButtonUp()
 void W8MonsterInfoDialog::DestroyControls()
 {
     m_scroll_bar_58.DestroyControls();
-    W8DialogBase005DC7A0::DestroyControls();
+    W8DialogBase::DestroyControls();
 }

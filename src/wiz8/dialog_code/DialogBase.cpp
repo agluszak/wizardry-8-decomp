@@ -22,7 +22,7 @@ extern "C" unsigned char g_dialog_font_background_64fded;
 void GetScreenPoint004284F0(W8ScreenPoint* point);
 
 // FUNCTION: WIZ8 0x005dc7a0
-W8DialogBase005DC7A0::W8DialogBase005DC7A0()
+W8DialogBase::W8DialogBase()
 {
     m_resource = -1;
     m_dirty_flags = 0;
@@ -48,9 +48,9 @@ W8DialogBase005DC7A0::W8DialogBase005DC7A0()
 }
 
 // SYNTHETIC: WIZ8 0x005dc810
-// W8DialogBase005DC7A0::`scalar deleting destructor'
+// W8DialogBase::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x005dc860
-W8DialogBase005DC7A0::~W8DialogBase005DC7A0()
+W8DialogBase::~W8DialogBase()
 {
     if (m_destroy_callback) {
         m_destroy_callback(this);
@@ -60,7 +60,7 @@ W8DialogBase005DC7A0::~W8DialogBase005DC7A0()
 }
 
 // FUNCTION: WIZ8 0x005dc890
-void W8DialogBase005DC7A0::Draw()
+void W8DialogBase::Draw()
 {
     if ((m_dirty_flags & 1) == 0) {
         return;
@@ -87,7 +87,7 @@ void W8DialogBase005DC7A0::Draw()
 }
 
 // FUNCTION: WIZ8 0x005dc940
-void W8DialogBase005DC7A0::SetText(const wchar_t* text)
+void W8DialogBase::SetText(const wchar_t* text)
 {
     if (m_text) {
         free(m_text);
@@ -110,7 +110,7 @@ void W8DialogBase005DC7A0::SetText(const wchar_t* text)
 }
 
 // FUNCTION: WIZ8 0x005dc9c0
-void W8DialogBase005DC7A0::SetOrigin(int x, int y)
+void W8DialogBase::SetOrigin(int x, int y)
 {
     m_x = x;
     m_y = y;
@@ -122,7 +122,7 @@ void W8DialogBase005DC7A0::SetOrigin(int x, int y)
 }
 
 // FUNCTION: WIZ8 0x005dc9f0
-void W8DialogBase005DC7A0::SetExtent(int width, int height)
+void W8DialogBase::SetExtent(int width, int height)
 {
     if (m_width != width || m_height != height) {
         if (m_initialized && m_width > 0 && m_height > 0) {
@@ -138,7 +138,7 @@ void W8DialogBase005DC7A0::SetExtent(int width, int height)
 }
 
 // FUNCTION: WIZ8 0x005dca70
-void W8DialogBase005DC7A0::SetBackground(const char* path, int flags)
+void W8DialogBase::SetBackground(const char* path, int flags)
 {
     if (m_background_path) {
         free(m_background_path);
@@ -155,7 +155,7 @@ void W8DialogBase005DC7A0::SetBackground(const char* path, int flags)
 }
 
 // FUNCTION: WIZ8 0x005dcaf0
-int W8DialogBase005DC7A0::CreateControls()
+int W8DialogBase::CreateControls()
 {
     if (m_x < 0 || m_y < 0) {
         return m_error = 1;
@@ -199,7 +199,7 @@ int W8DialogBase005DC7A0::CreateControls()
 }
 
 // FUNCTION: WIZ8 0x005dcc30
-void W8DialogBase005DC7A0::DestroyControls()
+void W8DialogBase::DestroyControls()
 {
     if (m_resource != -1) {
         RemoveButton(m_resource);
@@ -225,7 +225,7 @@ void W8DialogBase005DC7A0::DestroyControls()
 }
 
 // FUNCTION: WIZ8 0x005dcce0
-unsigned char W8DialogBase005DC7A0::ProcessInput()
+unsigned char W8DialogBase::ProcessInput()
 {
     W8ScreenPoint mouse;
     InputAtom input;
@@ -272,26 +272,26 @@ unsigned char W8DialogBase005DC7A0::ProcessInput()
 }
 
 // FUNCTION: WIZ8 0x005d6fa0
-int W8DialogBase005DC7A0::vslot4()
+int W8DialogBase::vslot4()
 {
     return 0;
 }
 
-void W8DialogBase005DC7A0::vslot10(int)
+void W8DialogBase::vslot10(int)
 {
 }
 
 // FUNCTION: WIZ8 0x005ad270
-void W8DialogBase005DC7A0::OnRightButtonDown()
+void W8DialogBase::OnRightButtonDown()
 {
     m_field_50 = 1;
 }
 
 // FUNCTION: WIZ8 0x005b1bf0
-void W8DialogBase005DC7A0::OnRightButtonUp()
+void W8DialogBase::OnRightButtonUp()
 {
 }
 
-void W8DialogBase005DC7A0::OnMouseWheel(int)
+void W8DialogBase::OnMouseWheel(int)
 {
 }

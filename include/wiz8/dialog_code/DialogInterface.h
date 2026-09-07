@@ -10,11 +10,11 @@ void ConfigureDialogFont(
     unsigned char enabled,
     unsigned char foreground,
     unsigned char background);
-W8DialogBase005DC7A0* Function5CF280(W8Character* character);
-W8DialogBase005DC7A0* CreateDialogByKind(int kind);
-unsigned char GetDialogResult(W8DialogBase005DC7A0* dialog);
-void DrawDialog(W8DialogBase005DC7A0* dialog);
-unsigned char ProcessDialogInput(W8DialogBase005DC7A0* dialog);
+W8DialogBase* Function5CF280(W8Character* character);
+W8DialogBase* CreateDialogByKind(int kind);
+unsigned char GetDialogResult(W8DialogBase* dialog);
+void DrawDialog(W8DialogBase* dialog);
+unsigned char ProcessDialogInput(W8DialogBase* dialog);
 void SetDialogDestroyCallback(
-    W8DialogBase005DC7A0* dialog, W8DialogDestroyCallback callback);
+    W8DialogBase* dialog, W8DialogDestroyCallback callback);
 }

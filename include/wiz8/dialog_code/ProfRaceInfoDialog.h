@@ -23,7 +23,7 @@ extern W8ProfRaceInfoRow g_race_info_rows[];
 
 /* Shared dialog storage constructed by 0x005DEAF0. Only the derived tail is
    known, so the base remains address-qualified and opaque. */
-class W8ProfRaceInfoDialogBase005DEAF0 : public W8DialogBase005DC7A0 {
+class W8ProfRaceInfoDialogBase005DEAF0 : public W8DialogBase {
 public:
     W8ProfRaceInfoDialogBase005DEAF0();
     virtual ~W8ProfRaceInfoDialogBase005DEAF0() override;

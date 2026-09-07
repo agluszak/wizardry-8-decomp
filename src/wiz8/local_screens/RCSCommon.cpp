@@ -29,10 +29,10 @@ extern void* g_value_0069c0f8;
 extern int g_font_683660;
 extern int g_wiz_text_bold_font_683664;
 extern void SetPendingScreenState(int state);
-extern void DisplayCampDialog(W8DialogBase005DC7A0* dialog);
+extern void DisplayCampDialog(W8DialogBase* dialog);
 extern void DismissSelectedPartyCharacter(void);
 void ShowDismissCharacterDialog(void);
-void OnDismissCharacterDialogClosed(W8DialogBase005DC7A0* dialog);
+void OnDismissCharacterDialogClosed(W8DialogBase* dialog);
 
 // FUNCTION: WIZ8 0x005b6d20
 bool CanSelectRcsPartySlot(int ui_slot)
@@ -251,7 +251,7 @@ void ShowDismissCharacterDialog(void)
 }
 
 // FUNCTION: WIZ8 0x005b6a60
-void OnDismissCharacterDialogClosed(W8DialogBase005DC7A0* base)
+void OnDismissCharacterDialogClosed(W8DialogBase* base)
 {
     if (GetDialogResult(base) &&
         g_party_slot_rows[g_rcs_mode_0064cbe8].animation_0fa != -1) {

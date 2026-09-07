@@ -5,20 +5,19 @@
 
 #include <wchar.h>
 
-class W8DialogBase005DC7A0;
+class W8DialogBase;
 class W8TextBuffer005ED5B8;
-typedef void (*W8DialogDestroyCallback)(W8DialogBase005DC7A0* dialog);
+typedef void (*W8DialogDestroyCallback)(W8DialogBase* dialog);
 extern "C" void SetDialogDestroyCallback(
-    W8DialogBase005DC7A0* dialog, W8DialogDestroyCallback callback);
+    W8DialogBase* dialog, W8DialogDestroyCallback callback);
 
-/* The released binary proves this shared dialog base and the three embedded
-   member identities, but exposes none of their original source names. Address-
-   qualified positional names preserve that distinction. */
+/* Names describe recovered roles; retail does not expose their original
+   source spellings. Address markers retain the binary identities. */
 // VTABLE: WIZ8 0x005efaf8
-class W8DialogBase005DC7A0 {
+class W8DialogBase {
 public:
-    W8DialogBase005DC7A0();              /* 0x005DC7A0 */
-    virtual ~W8DialogBase005DC7A0();     /* 0x005DC860 */
+    W8DialogBase();              /* 0x005DC7A0 */
+    virtual ~W8DialogBase();     /* 0x005DC860 */
     virtual int CreateControls();          /* 0x005DCAF0 */
     virtual void DestroyControls();        /* 0x005DCC30 */
     virtual void Draw();                   /* 0x005DC890 */
@@ -38,7 +37,7 @@ public:
     virtual void OnMouseWheel(int delta);
 
     friend void SetDialogDestroyCallback(
-        W8DialogBase005DC7A0* dialog, W8DialogDestroyCallback callback);
+        W8DialogBase* dialog, W8DialogDestroyCallback callback);
 
 protected:
     unsigned int m_dirty_flags;           /* 0x04 */
@@ -71,13 +70,13 @@ protected:
     unsigned char unknown_051[3];
 };                                      /* 0x54 */
 
-static_assert(sizeof(W8DialogBase005DC7A0) == 0x54,
-              "W8DialogBase005DC7A0_must_be_0x54");
+static_assert(sizeof(W8DialogBase) == 0x54,
+              "W8DialogBase_must_be_0x54");
 
 /* Factory kinds 3 and 5 each have a distinct primary vtable and complete
    lifecycle family. Their original names are not exposed by retail evidence. */
 // VTABLE: WIZ8 0x005ef7c8
-class W8Dialog005CBB40 : public W8DialogBase005DC7A0 {
+class W8Dialog005CBB40 : public W8DialogBase {
 public:
     W8Dialog005CBB40();                  /* 0x005CBB40 */
     virtual ~W8Dialog005CBB40() override;
@@ -93,7 +92,7 @@ private:
 };                                      /* 0xfc */
 
 // VTABLE: WIZ8 0x005ef9f0
-class W8Dialog005D97D0 : public W8DialogBase005DC7A0 {
+class W8Dialog005D97D0 : public W8DialogBase {
 public:
     W8Dialog005D97D0();                  /* 0x005D97D0 */
     virtual ~W8Dialog005D97D0() override;
@@ -121,10 +120,10 @@ static_assert(sizeof(W8Dialog005CBB40) == 0xfc,
 static_assert(sizeof(W8Dialog005D97D0) == 0x90,
               "W8Dialog005D97D0_must_be_0x90");
 
-class W8DialogScrollBar005E0C40 {
+class W8DialogScrollBar {
 public:
-    W8DialogScrollBar005E0C40();         /* 0x005E0C40 */
-    ~W8DialogScrollBar005E0C40();
+    W8DialogScrollBar();         /* 0x005E0C40 */
+    ~W8DialogScrollBar();
     void DestroyControls();              /* 0x005E0E00 */
 
 private:
@@ -150,10 +149,20 @@ private:
 };                                      /* 0x4c */
 
 // VTABLE: WIZ8 0x005efa98
-class W8DialogButton005DB1B0 {
+class W8DialogButton {
 public:
-    W8DialogButton005DB1B0();            /* 0x005DB1B0 */
-    virtual ~W8DialogButton005DB1B0();   /* 0x005DB260 */
+    W8DialogButton();            /* 0x005DB1B0 */
+    virtual ~W8DialogButton();   /* 0x005DB260 */
+    void Draw();
+    void SetPosition(int x, int y);
+    int GetWidth();
+    int GetHeight();
+    int GetX();
+    int GetY();
+    void SetEnabled(unsigned char enabled);
+    unsigned char IsEnabled();
+    void SetPressed(unsigned char pressed);
+    unsigned char IsPressed();
 
 private:
     int unknown_004;
@@ -183,19 +192,23 @@ private:
 };                                      /* 0x48 */
 
 /* Two instances of this pointer-vector specialization are embedded in
-   W8DialogTextArea005D14D0. */
+   W8DialogTextArea. */
 // VTABLE: WIZ8 0x005ef898
 // class W8GrowableVector<W8TextBuffer005ED5B8*>
 
-class W8DialogTextArea005D14D0 {
+class W8DialogTextArea {
 public:
-    W8DialogTextArea005D14D0();           /* 0x005D14D0 */
-    ~W8DialogTextArea005D14D0();          /* 0x005D1590 */
-    unsigned char Function5D1AE0(unsigned int command);
-    unsigned char Function5D1C00(unsigned int command);
+    W8DialogTextArea();           /* 0x005D14D0 */
+    ~W8DialogTextArea();          /* 0x005D1590 */
+    unsigned char ScrollDown(unsigned char check_only);
+    unsigned char ScrollUp(unsigned char check_only);
+    void SetFirstVisibleEntry(unsigned int index);
 
 private:
-    unsigned char unknown_000[0x10];
+    int m_left_000;
+    int m_top_004;
+    int m_right_008;
+    int m_bottom_00c;
     int unknown_010;
     int unknown_014;
     int unknown_018;
@@ -217,16 +230,16 @@ private:
 };                                      /* modeled minimum 0x58 */
 
 // VTABLE: WIZ8 0x005efab0
-class W8SpellInfoDialog005EFAB0 : public W8DialogBase005DC7A0 {
+class W8SpellInfoDialog005EFAB0 : public W8DialogBase {
 public:
     W8SpellInfoDialog005EFAB0(unsigned int spell); /* 0x005DBB60 */
     virtual ~W8SpellInfoDialog005EFAB0() override;
 
 private:
     unsigned int m_spell_054;
-    W8DialogScrollBar005E0C40 m_scroll_bar_058;
-    W8DialogButton005DB1B0 m_button_0a4;
-    W8DialogTextArea005D14D0 m_text_area_0ec;
+    W8DialogScrollBar m_scroll_bar_058;
+    W8DialogButton m_button_0a4;
+    W8DialogTextArea m_text_area_0ec;
     W8GameTimer m_timer_144;
     unsigned int m_value_168;
 };

@@ -22,13 +22,13 @@ unsigned char g_dialog_font_foreground_64fdec;
 unsigned char g_dialog_font_background_64fded;
 
 // FUNCTION: WIZ8 0x005cf300
-W8DialogBase005DC7A0* CreateDialogByKind(int kind)
+W8DialogBase* CreateDialogByKind(int kind)
 {
-    W8DialogBase005DC7A0* dialog;
+    W8DialogBase* dialog;
 
     switch (kind) {
     case 0:
-        dialog = new W8DialogBase005DC7A0;
+        dialog = new W8DialogBase;
         dialog->SetText(L"Test Dialog");
         dialog->SetOrigin(160, 120);
         dialog->SetExtent(320, 240);
@@ -70,13 +70,13 @@ void ConfigureDialogFont(int font, unsigned char enabled,
 #define DIALOG_INTERFACE_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\DialogInterface.cpp"
 
 // FUNCTION: WIZ8 0x005cf510
-unsigned char GetDialogResult(W8DialogBase005DC7A0* dialog)
+unsigned char GetDialogResult(W8DialogBase* dialog)
 {
     return static_cast<W8ModalDialogBase*>(dialog)->close_result;
 }
 
 // FUNCTION: WIZ8 0x005cf520
-void DrawDialog(W8DialogBase005DC7A0* dialog)
+void DrawDialog(W8DialogBase* dialog)
 {
     if (dialog == 0) {
         srAssertFail("pDialog", DIALOG_INTERFACE_CPP, 0x66, 0);
@@ -85,7 +85,7 @@ void DrawDialog(W8DialogBase005DC7A0* dialog)
 }
 
 // FUNCTION: WIZ8 0x005cf550
-unsigned char ProcessDialogInput(W8DialogBase005DC7A0* dialog)
+unsigned char ProcessDialogInput(W8DialogBase* dialog)
 {
     if (dialog == 0) {
         srAssertFail("pDialog", DIALOG_INTERFACE_CPP, 0x74, 0);
@@ -95,7 +95,7 @@ unsigned char ProcessDialogInput(W8DialogBase005DC7A0* dialog)
 
 // FUNCTION: WIZ8 0x005cf580
 void SetDialogDestroyCallback(
-    W8DialogBase005DC7A0* dialog, W8DialogDestroyCallback callback)
+    W8DialogBase* dialog, W8DialogDestroyCallback callback)
 {
     if (dialog == 0) {
         srAssertFail("pCDialog", DIALOG_INTERFACE_CPP, 0x98, 0);

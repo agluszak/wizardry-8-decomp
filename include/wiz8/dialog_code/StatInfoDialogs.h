@@ -4,7 +4,7 @@
 
 /* Shared storage for the two attribute-information dialogs. The base has no
    accepted original name yet, so its constructor address remains in the name. */
-class W8StatInfoDialogBase005DF880 : public W8DialogBase005DC7A0 {
+class W8StatInfoDialogBase005DF880 : public W8DialogBase {
 public:
     W8StatInfoDialogBase005DF880();
     virtual ~W8StatInfoDialogBase005DF880() override;

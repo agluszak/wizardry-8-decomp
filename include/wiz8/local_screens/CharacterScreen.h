@@ -12,7 +12,7 @@ extern "C" {
 #include "input.h"
 }
 
-class W8DialogBase005DC7A0;
+class W8DialogBase;
 class W8CharacterScreen;
 class W8CharacterPageEntry;
 
@@ -249,7 +249,7 @@ public:
     W8TextControl005ED604* m_reset_1b04;
     unsigned char m_page_enabled_1b08[4];
     W8CharacterPage* m_pages_1b0c[4];
-    W8DialogBase005DC7A0* m_dialog_1b1c;
+    W8DialogBase* m_dialog_1b1c;
     unsigned int m_dialog_response_1b20;
     unsigned char m_capture_dialog_result_1b24;
     unsigned char pad_1b25[3];

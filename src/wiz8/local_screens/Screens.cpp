@@ -42,7 +42,7 @@ private:
     int m_positional_58;
     int m_positional_5c;
     int m_positional_60;
-    W8DialogTextArea005D14D0 m_dialog_64;
+    W8DialogTextArea m_dialog_64;
 };
 static_assert(sizeof(W8Controls005EE920) == 0xbc, "W8Controls005EE920_size");
 
@@ -51,7 +51,7 @@ static_assert(sizeof(W8Controls005EE920) == 0xbc, "W8Controls005EE920_size");
 // FUNCTION: WIZ8 0x0055EBB0
 bool W8Controls005EE920::Function55EBB0(unsigned int command)
 {
-    if (m_dialog_64.Function5D1AE0(command) != 0) {
+    if (m_dialog_64.ScrollDown(static_cast<unsigned char>(command)) != 0) {
         if (static_cast<char>(command) == 0) {
             Invalidate(0);
         }
@@ -64,7 +64,7 @@ bool W8Controls005EE920::Function55EBB0(unsigned int command)
 // FUNCTION: WIZ8 0x0055EBE0
 bool W8Controls005EE920::Function55EBE0(unsigned int command)
 {
-    if (m_dialog_64.Function5D1C00(command) != 0) {
+    if (m_dialog_64.ScrollUp(static_cast<unsigned char>(command)) != 0) {
         if (static_cast<char>(command) == 0) {
             Invalidate(0);
         }

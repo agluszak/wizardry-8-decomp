@@ -43,6 +43,7 @@ extern const unsigned int g_W8TextControlMask005ED594;
 
 class W8TextBuffer005ED5B8 {
 public:
+    friend class W8DialogTextArea;
     W8TextBuffer005ED5B8();
     W8TextBuffer005ED5B8(const W8ControlsRect* bounds, const wchar_t* text,
                          int font, unsigned int layout_mode, int render_mode);

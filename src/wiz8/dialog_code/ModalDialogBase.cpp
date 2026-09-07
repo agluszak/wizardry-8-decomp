@@ -199,7 +199,7 @@ unsigned int W8ModalDialogBase::WrapMessage(wchar_t* message)
 // FUNCTION: WIZ8 0x005d2d00
 int W8ModalDialogBase::CreateControls()
 {
-    W8DialogBase005DC7A0::CreateControls();
+    W8DialogBase::CreateControls();
     if (m_field_56 == -1) {
         m_field_56 = LoadGenericButtonImages(
             0,
@@ -350,7 +350,7 @@ void W8ModalDialogBase::Draw()
     int y;
     unsigned int index;
 
-    W8DialogBase005DC7A0::Draw();
+    W8DialogBase::Draw();
     DrawButton(m_field_58);
     if (!m_field_94 && !allow_cancel) {
         y = m_y +
@@ -396,7 +396,7 @@ void W8ModalDialogBase::DestroyControls()
 {
     unsigned int index;
 
-    W8DialogBase005DC7A0::DestroyControls();
+    W8DialogBase::DestroyControls();
     if (m_field_56 != -1) {
         UnloadGenericButtonImage(m_field_56);
         m_field_56 = -1;

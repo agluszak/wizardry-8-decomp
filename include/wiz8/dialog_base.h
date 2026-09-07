@@ -4,7 +4,7 @@
 #include "input.h"
 #include "Button System.h"
 
-/* The shared dialog base at vtable 0x005EF8B0, between W8DialogBase005DC7A0
+/* The shared dialog base at vtable 0x005EF8B0, between W8DialogBase
    and the concrete dialogs. Its fifteen slots are what every derived dialog
    inherits: W8NotificationDialog's table is identical except slot 0, which is each
    class's own scalar deleting destructor, and slot 9, which it overrides.
@@ -12,7 +12,7 @@
    The released binary exposes no original name for it, so the name is
    qualified by its constructor address. */
 // VTABLE: WIZ8 0x005ef8b0
-class W8ModalDialogBase : public W8DialogBase005DC7A0 {
+class W8ModalDialogBase : public W8DialogBase {
 public:
     W8ModalDialogBase();                              /* 0x005D25B0 */
     virtual ~W8ModalDialogBase() override;            /* 0x005D2610 */
