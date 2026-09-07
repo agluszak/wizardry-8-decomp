@@ -71,6 +71,35 @@ typedef struct W8CharacterSkill {
     unsigned char unknown_0a[0x1c];
 } W8CharacterSkill;                       /* 0x26 */
 
+/* CharGeneration.cpp's transient editing state.  The controller embeds one
+   complete 0x270-byte instance and passes the same object through all four
+   character pages and the commit helpers. */
+typedef struct W8CharacterCreationState {
+    int attribute_points_remaining;       /* 0x000 */
+    int attribute_points_total;           /* 0x004 */
+    int attribute_values_008[7];           /* 0x008 */
+    int attribute_step_limit;              /* 0x024 */
+    int attribute_limits_028[7];           /* 0x028 */
+    unsigned char attributes_complete;     /* 0x044 */
+    unsigned char unknown_045[3];
+    int attribute_baselines_048[7];        /* 0x048 */
+    int skill_points_remaining;            /* 0x064 */
+    int skill_points_total;                /* 0x068 */
+    int skill_points_spent[0x29];          /* 0x06c */
+    int skill_step_limit;                  /* 0x110 */
+    int skill_limits[0x29];                /* 0x114 */
+    unsigned char skills_complete;         /* 0x1b8 */
+    unsigned char unknown_1b9[0xa7];
+    int spell_points_remaining;            /* 0x260 */
+    int spell_points_total;                /* 0x264 */
+    int magic_skill_bonus;                  /* 0x268 */
+    unsigned char spells_complete;         /* 0x26c */
+    unsigned char unknown_26d[3];
+} W8CharacterCreationState;                /* 0x270 */
+
+static_assert(sizeof(W8CharacterCreationState) == 0x270,
+              "W8CharacterCreationState_size");
+
 /* One resistance channel. Recalculation rebuilds `base` from scratch each time
    and then derives `total` from it, so the two are a computed pair rather than
    a stored value and a cache. */

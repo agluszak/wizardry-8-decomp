@@ -42,16 +42,16 @@ extern void Function426790(void);
 extern void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x,
                                         unsigned short y, char right_button,
                                         char left_button);
-extern void Function556DC0(W8Character*, void*);
-extern void Function556CC0(W8Character*, void*);
-extern void Function558180(W8Character*, void*);
+extern void Function556DC0(W8Character*, W8CharacterCreationState*);
+extern void Function556CC0(W8Character*, W8CharacterCreationState*);
+extern void Function558180(W8Character*, W8CharacterCreationState*);
 extern void Function4EFA30(W8Character*);
 extern void CalcCharacterTableValue(W8Character*);
 extern void Function52DDD0(void);
 extern int Function52E750(void);
 extern int Function557FD0(W8Character* original, W8Character* edited);
 extern void SetPendingScreenState(int state);
-extern void Function557580(W8Character*, void*, unsigned char);
+extern void Function557580(W8Character*, W8CharacterCreationState*, unsigned char);
 extern void Function4EF7E0(W8Character*, W8Character*, int);
 extern int Function558640(W8Character*);
 extern unsigned char Function5586B0(W8Character*);
@@ -303,7 +303,7 @@ void W8CharacterScreen::OnPrimary(W8TextControl005ED604* control)
     else if (control == m_reset_1b04) {
         memset(m_page_enabled_1b08, 1, sizeof(m_page_enabled_1b08));
         m_force_transition_1aee = 1;
-        Function556DC0(&m_character_018, m_creation_state_187c);
+        Function556DC0(&m_character_018, &m_creation_state_187c);
         m_mode_008 = 0;
         m_pages_1b0c[3]->m_mode_068 = 0;
         m_reset_1b04->SetEnabled(0);
@@ -339,7 +339,8 @@ void W8CharacterScreen::AdvancePage(unsigned char forward)
 {
     if (!forward || (m_page_index_00c != 3 && m_next_1af8->m_flag_4)) {
         int index = m_page_index_00c;
-        if (index == 1 && m_pending_page_one_1adc > 0 && !m_block_advance_1aec) {
+        if (index == 1 && m_creation_state_187c.spell_points_remaining > 0 &&
+            !m_block_advance_1aec) {
             ShowMessage(gppStringList[0x310 / 4], 1, 3);
             return;
         }
@@ -366,7 +367,8 @@ void W8CharacterScreen::AdvancePage(unsigned char forward)
                 }
                 return;
             }
-            m_page_enabled_1b08[1] = static_cast<unsigned char>(m_pending_page_zero_1ae0 > 0);
+            m_page_enabled_1b08[1] = static_cast<unsigned char>(
+                m_creation_state_187c.spell_points_total > 0);
         }
         m_block_advance_1aec = 0;
         m_confirm_profession_1aed = 0;
@@ -410,7 +412,7 @@ void W8CharacterScreen::SelectPage(int index)
         case 3: page = CreateCharacterPage005C73F0(); break;
         }
         page->m_screen_05c = this;
-        page->SetCharacter(&m_character_018, m_creation_state_187c, m_mode_008);
+        page->SetCharacter(&m_character_018, &m_creation_state_187c, m_mode_008);
         m_pages_1b0c[index] = page;
     }
     m_page_index_00c = index;
@@ -450,11 +452,11 @@ void W8CharacterScreen::SyncCharacterForPage(int index)
 {
     if (m_page_index_00c > index) return;
     if (index == 0) {
-        if (m_mode_008 == 0) Function556DC0(&m_character_018, m_creation_state_187c);
-        else if (m_mode_008 == 2) Function556CC0(&m_character_018, m_creation_state_187c);
+        if (m_mode_008 == 0) Function556DC0(&m_character_018, &m_creation_state_187c);
+        else if (m_mode_008 == 2) Function556CC0(&m_character_018, &m_creation_state_187c);
     }
     else if (index == 1) {
-        Function558180(&m_character_018, m_creation_state_187c);
+        Function558180(&m_character_018, &m_creation_state_187c);
     }
     else if (index == 3) {
         if (m_character_018.table_value_0079 < 0) Function4EFA30(&m_character_018);
@@ -535,7 +537,7 @@ unsigned char W8CharacterScreen::CommitCharacter()
     W8Character backup;
     memcpy(&backup, &m_character_018, sizeof(backup));
     if (mode != 1) {
-        Function557580(&m_character_018, m_creation_state_187c,
+        Function557580(&m_character_018, &m_creation_state_187c,
                        static_cast<unsigned char>(mode == 0));
     }
     if (!g_status_685170.game_started &&
@@ -613,19 +615,19 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
             break;
         }
         case 6:
-            Function557580(&m_character_018, m_creation_state_187c, 0);
+            Function557580(&m_character_018, &m_creation_state_187c, 0);
             Function4EF7E0(m_original_014, &m_character_018, 1);
             RequestScreenTransition();
             break;
         case 7:
-            Function557580(&m_character_018, m_creation_state_187c, 0);
+            Function557580(&m_character_018, &m_creation_state_187c, 0);
             Function4EF7E0(m_original_014, &m_character_018, 0);
             RequestScreenTransition();
             break;
         }
     }
     else if (response == 6) {
-        Function557580(&m_character_018, m_creation_state_187c, 0);
+        Function557580(&m_character_018, &m_creation_state_187c, 0);
         Function4EF7E0(m_original_014, &m_character_018, 0);
         RequestScreenTransition();
     }

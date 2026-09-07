@@ -31,11 +31,12 @@ public:
         delete m_first_text_018;
         delete m_second_text_01c;
     }
-    void SetContent(unsigned int id, const wchar_t* label, int* first,
+    void SetContent(unsigned int id, const wchar_t* label, unsigned int* first,
                     int* second, int* third, int help_id); /* 0x005AF9E0 */
     void SetEnabled(unsigned char enabled);             /* 0x005AFA90 */
     void SetIncrementAllowed(unsigned char allowed);    /* 0x005AFC20 */
     void Redraw();                                      /* 0x005AFAF0 */
+    void SetLabelFontState(int state);                  /* 0x005AFBF0 */
     void MarkDirty();                                   /* 0x005AFC00 */
     void UpdateButtons();                               /* 0x005AFD10 */
     virtual void OnPrimary(W8TextControl005ED604* control) override; /* 0x005AFC50 */
@@ -48,7 +49,7 @@ public:
     W8TextBuffer005ED5B8* m_label_014;
     W8TextBuffer005ED5B8* m_first_text_018;
     W8TextBuffer005ED5B8* m_second_text_01c;
-    int* m_first_020;
+    unsigned int* m_first_020;
     int* m_second_024;
     int* m_third_028;
     unsigned int m_id_02c;
@@ -80,10 +81,11 @@ public:
     virtual ~W8CharacterPage();                        /* 0x005AFE40 */
     virtual void Invalidate(const W8ControlsRect* rect) override; /* 0x005AFF50 */
     virtual void Redraw() override;                    /* 0x005AFF20 */
-    virtual void SetCharacter(W8Character* character, void* creation_state,
+    virtual void SetCharacter(W8Character* character,
+                              W8CharacterCreationState* creation_state,
                               int mode);                /* 0x005AFF00 */
     virtual void Activate() = 0;
-    virtual void Deactivate() = 0;
+    virtual void Deactivate();                          /* 0x005CA1F0 */
     virtual void Accept() = 0;
     virtual void GetNavigationState(unsigned char* next_enabled,
                                     unsigned char* exit_enabled) = 0;
@@ -98,7 +100,7 @@ public:
     W8CharacterPageEntry** m_entries_058;
     W8CharacterScreen* m_screen_05c;
     W8Character* m_character_060;
-    void* m_creation_state_064;
+    W8CharacterCreationState* m_creation_state_064;
     int m_mode_068;
     unsigned char m_prepared_06c;
     unsigned char m_dirty_06d;
@@ -111,7 +113,6 @@ static_assert(sizeof(W8CharacterPage) == 0x70, "W8CharacterPage_size");
 class W8CharacterPage005EF778 : public W8CharacterPage {
 public:
     virtual void Activate() override;
-    virtual void Deactivate() override;
     virtual void Accept() override;
     virtual void GetNavigationState(unsigned char*, unsigned char*) override;
 private:
@@ -136,15 +137,15 @@ public:
     W8CharacterPage005EF5C8() : W8CharacterPage(0x108) {}
     virtual ~W8CharacterPage005EF5C8() override {}
     virtual void Redraw() override;
-    virtual void SetCharacter(W8Character*, void*, int) override;
+    virtual void SetCharacter(W8Character*, W8CharacterCreationState*, int) override;
     virtual void Activate() override;
-    virtual void Deactivate() override;
     virtual void Accept() override;
     virtual void GetNavigationState(unsigned char*, unsigned char*) override;
     virtual void AdjustEntry(W8CharacterPageEntry*, int) override;
     virtual void ShowEntryInfo(W8CharacterPageEntry*) override;
     virtual void Refresh() override;
 private:
+    void UpdateEntries();                               /* 0x005C7B50 */
     unsigned char m_force_redraw_074;
     unsigned char m_show_fifth_category_075;
     unsigned char m_navigation_state_076;
@@ -223,10 +224,7 @@ public:
     W8Character* m_original_014;
     W8Character m_character_018;
     unsigned char pad_187a[2];
-    unsigned char m_creation_state_187c[0x260];
-    int m_pending_page_one_1adc;
-    int m_pending_page_zero_1ae0;
-    unsigned char m_creation_state_1ae4[8];
+    W8CharacterCreationState m_creation_state_187c;
     unsigned char m_block_advance_1aec;
     unsigned char m_confirm_profession_1aed;
     unsigned char m_force_transition_1aee;

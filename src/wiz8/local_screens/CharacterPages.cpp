@@ -10,8 +10,11 @@ extern int g_font_683660;
 extern wchar_t* FormatWideString(const wchar_t*, ...);
 extern unsigned int g_character_page2_region_set_0069c530;
 extern int g_character_page2_category_geometry_64ef90[5][2];
-extern void Function557F90(W8Character*, void*);
-extern void Function557BC0(W8Character*, void*, unsigned int, int);
+extern int g_character_page2_category_frames_64efb8[5];
+extern unsigned short g_character_skill_name_ids_61e454[0x29];
+extern int g_options_detail_font_683614;
+extern void Function557F90(W8Character*, W8CharacterCreationState*);
+extern void Function557BC0(W8Character*, W8CharacterCreationState*, unsigned int, int);
 
 // VTABLE: WIZ8 0x005ef1d8 W8CharacterPageEntry
 // class W8CharacterPageEntry
@@ -67,7 +70,7 @@ W8CharacterPageEntry::W8CharacterPageEntry(
 
 // FUNCTION: WIZ8 0x005af9e0
 void W8CharacterPageEntry::SetContent(
-    unsigned int id, const wchar_t* label, int* first, int* second, int* third,
+    unsigned int id, const wchar_t* label, unsigned int* first, int* second, int* third,
     int help_id)
 {
     m_id_02c = id;
@@ -135,6 +138,12 @@ void W8CharacterPageEntry::Redraw()
         m_label_014->RenderToTarget(0, 1, -14);
         m_dirty_039 = 0;
     }
+}
+
+// FUNCTION: WIZ8 0x005afbf0
+void W8CharacterPageEntry::SetLabelFontState(int state)
+{
+    m_label_014->m_fontStateIndex = state;
 }
 
 // FUNCTION: WIZ8 0x005afc00
@@ -239,7 +248,7 @@ W8CharacterPage::~W8CharacterPage()
 
 // FUNCTION: WIZ8 0x005aff00
 void W8CharacterPage::SetCharacter(
-    W8Character* character, void* creation_state, int mode)
+    W8Character* character, W8CharacterCreationState* creation_state, int mode)
 {
     m_character_060 = character;
     m_creation_state_064 = creation_state;
@@ -296,13 +305,19 @@ void W8CharacterPage::AddEntry(W8CharacterPageEntry* entry)
 void W8CharacterPage::HandleInput(InputAtom*) {}
 void W8CharacterPage::Refresh() {}
 
+// FUNCTION: WIZ8 0x005ca1f0
+void W8CharacterPage::Deactivate()
+{
+    EnableRegionSet(0);
+}
+
 // VTABLE: WIZ8 0x005ef5c8 W8CharacterPage005EF5C8
 // VTABLE: WIZ8 0x005ef5c0 W8CharacterPageEntryListener
 // class W8CharacterPage005EF5C8
 
 // FUNCTION: WIZ8 0x005c7580
 void W8CharacterPage005EF5C8::SetCharacter(
-    W8Character* character, void* creation_state, int mode)
+    W8Character* character, W8CharacterCreationState* creation_state, int mode)
 {
     AcquireRegionSet(&g_character_page2_region_set_0069c530);
     W8CharacterPage::SetCharacter(character, creation_state, mode);
@@ -346,11 +361,9 @@ void W8CharacterPage005EF5C8::Accept()
 void W8CharacterPage005EF5C8::GetNavigationState(
     unsigned char* next_enabled, unsigned char* exit_enabled)
 {
-    unsigned char* state = static_cast<unsigned char*>(m_creation_state_064);
-    *next_enabled = state[0x1b8];
-    *exit_enabled =
-        *reinterpret_cast<int*>(state + 0x64) <
-        *reinterpret_cast<int*>(state + 0x68);
+    *next_enabled = m_creation_state_064->skills_complete;
+    *exit_enabled = m_creation_state_064->skill_points_remaining <
+                    m_creation_state_064->skill_points_total;
     if (*next_enabled != m_navigation_state_076) {
         for (int index = 0; index < m_entry_count_050; ++index) {
             m_entries_058[index]->SetIncrementAllowed(
@@ -374,6 +387,115 @@ void W8CharacterPage005EF5C8::AdjustEntry(
 void W8CharacterPage005EF5C8::ShowEntryInfo(W8CharacterPageEntry* entry)
 {
     m_screen_05c->ShowDialog005B08E0(entry->m_id_02c);
+}
+
+// FUNCTION: WIZ8 0x005c7b50
+void W8CharacterPage005EF5C8::UpdateEntries()
+{
+    int index;
+    for (index = 0; index < 0x29; ++index) {
+        m_entries_058[index]->SetEnabled(0);
+    }
+
+    int category_count[5] = {0, 0, 0, 0, 0};
+    m_show_fifth_category_075 = 0;
+    for (int skill = 0; skill < 0x29; ++skill) {
+        W8CharacterSkill* value = &m_character_060->skills[skill];
+        if (value->flag_00 || value->value_02 != 0) {
+            int category = g_skill_attributes[skill].category;
+            int entry_index = 0;
+            int occurrence = 0;
+            for (; entry_index < 0x29; ++entry_index) {
+                if (g_skill_attributes[entry_index].category == category &&
+                    occurrence++ == category_count[category]) {
+                    break;
+                }
+            }
+            W8CharacterPageEntry* entry = m_entries_058[entry_index];
+            ++category_count[category];
+            if (category == 4) m_show_fifth_category_075 = 1;
+            entry->SetContent(
+                skill, gppStringList[g_character_skill_name_ids_61e454[skill]],
+                &value->value_02,
+                &m_creation_state_064->skill_points_spent[skill],
+                &m_creation_state_064->skill_limits[skill], 0x101);
+            entry->SetLabelFontState(
+                skill == g_profession_bonus_skills[m_character_060->current_profession]
+                    ? 3 : -1);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005c77f0
+void W8CharacterPage005EF5C8::Redraw()
+{
+    unsigned char redraw = static_cast<unsigned char>(m_fEnabled && m_fDirty);
+    if (m_force_redraw_074) {
+        UpdateEntries();
+        Invalidate(0);
+        redraw = 1;
+        m_force_redraw_074 = 0;
+    }
+    W8CharacterPage::Redraw();
+
+    if (redraw) {
+        for (int category = 0; category < 5; ++category) {
+            if (category != 4 || m_show_fifth_category_075) {
+                Function548F90(
+                    -14, 0x144, 0,
+                    static_cast<short>(g_character_page2_category_frames_64efb8[category]),
+                    origin_x + g_character_page2_category_geometry_64ef90[category][0] - 0x16,
+                    origin_y + g_character_page2_category_geometry_64ef90[category][1] - 3,
+                    2, 0);
+            }
+        }
+        if (!m_show_fifth_category_075) {
+            Function548F90(-14, 0x108, 0, 1, origin_x, origin_y + 0x118, 2, 0);
+        }
+    }
+
+    if (m_prepared_06c) {
+        W8TextBuffer005ED5B8 text;
+        W8ControlsRect bounds = {4, 0xec, 0xc2, 0x162};
+        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetText(gppStringList[0xe8], g_font_683660);
+        text.RenderToTarget(0, 1, -14);
+        bounds.top = 0x162;
+        bounds.right = 0x8f;
+        bounds.bottom = 0x179;
+        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetText(gppStringList[0xe3], g_font_683660);
+        text.RenderToTarget(0, 1, -14);
+        bounds.top = 0x184;
+        bounds.bottom = 0x19b;
+        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetText(gppStringList[0xe4], g_font_683660);
+        text.RenderToTarget(0, 1, -14);
+        bounds.left = 0x8f;
+        bounds.top = 0x162;
+        bounds.right = 0xbf;
+        bounds.bottom = 0x179;
+        Function548F90(-14, 0x107, 0, 5, 0x8f, 0x162, 2, 0);
+        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetText(FormatWideString(L"%d",
+            m_creation_state_064->skill_step_limit),
+            g_options_detail_font_683614);
+        text.RenderToTarget(0, 1, -14);
+        m_prepared_06c = 0;
+    }
+
+    if (m_dirty_06d) {
+        W8TextBuffer005ED5B8 text;
+        W8ControlsRect bounds = {0x8f, 0x184, 0xbf, 0x19b};
+        Function548F90(-14, 0x107, 0, 5, 0x8f, 0x184, 2, 0);
+        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetText(FormatWideString(L"%d/%d",
+            m_creation_state_064->skill_points_remaining,
+            m_creation_state_064->skill_points_total),
+            g_options_detail_font_683614);
+        text.RenderToTarget(0, 1, -14);
+        m_dirty_06d = 0;
+    }
 }
 
 // FUNCTION: WIZ8 0x005c7d30
