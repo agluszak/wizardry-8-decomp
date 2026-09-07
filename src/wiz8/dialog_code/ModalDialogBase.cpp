@@ -113,7 +113,7 @@ W8ModalDialogBase::W8ModalDialogBase()
 // FUNCTION: WIZ8 0x005d2610
 W8ModalDialogBase::~W8ModalDialogBase()
 {
-    ResetSubobjectAndRefresh();
+    DestroyControls();
 }
 
 // FUNCTION: WIZ8 0x005d2a50
@@ -197,9 +197,9 @@ unsigned int W8ModalDialogBase::WrapMessage(wchar_t* message)
 }
 
 // FUNCTION: WIZ8 0x005d2d00
-int W8ModalDialogBase::vslot1()
+int W8ModalDialogBase::CreateControls()
 {
-    W8DialogBase005DC7A0::vslot1();
+    W8DialogBase005DC7A0::CreateControls();
     if (m_field_56 == -1) {
         m_field_56 = LoadGenericButtonImages(
             0,
@@ -264,7 +264,7 @@ int W8ModalDialogBase::vslot1()
             GetButtonY(m_field_5c));
         return 0;
     }
-    ResetSubobjectAndRefresh();
+    DestroyControls();
     return m_error = 6;
 }
 
@@ -345,12 +345,12 @@ void W8ModalDialogBase::SetMessage(
 }
 
 // FUNCTION: WIZ8 0x005d2660
-void W8ModalDialogBase::vslot3()
+void W8ModalDialogBase::Draw()
 {
     int y;
     unsigned int index;
 
-    W8DialogBase005DC7A0::vslot3();
+    W8DialogBase005DC7A0::Draw();
     DrawButton(m_field_58);
     if (!m_field_94 && !allow_cancel) {
         y = m_y +
@@ -392,11 +392,11 @@ int W8ModalDialogBase::vslot4()
 }
 
 // FUNCTION: WIZ8 0x005d2f40
-void W8ModalDialogBase::ResetSubobjectAndRefresh()
+void W8ModalDialogBase::DestroyControls()
 {
     unsigned int index;
 
-    W8DialogBase005DC7A0::ResetSubobjectAndRefresh();
+    W8DialogBase005DC7A0::DestroyControls();
     if (m_field_56 != -1) {
         UnloadGenericButtonImage(m_field_56);
         m_field_56 = -1;

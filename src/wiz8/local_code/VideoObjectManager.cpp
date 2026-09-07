@@ -159,8 +159,8 @@ void InitializeMenuVideoObjectCatalog(void)
 }
 
 // FUNCTION: WIZ8 0x00548f90
-void Function548F90(int target, int object, int frame, short y,
-                    int a5, int a6, int a7, int a8)
+void DrawCatalogImage(int target, int object, int frame, short image,
+                      int left, int top, int mode, int flags)
 {
     W8VideoObjectSlot* slot;
     short row;
@@ -170,21 +170,21 @@ void Function548F90(int target, int object, int frame, short y,
     if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0x2d, 0);
     }
-    Function549090(object, frame);
+    EnsureCatalogFrameLoaded(object, frame);
     /* The slot address is held; the frame index is not. The original recomputes
        first_frame + frame for each of the two frame reads rather than keeping
        it, and the vertical offset is added to the caller's row in sixteen bits -
        both are shorts and the original adds them as such. */
     slot = &g_video_slots_6448c8[object];
-    row = slot->y_offset + y;
+    row = slot->y_offset + image;
     surface = g_video_frames_62c430[slot->first_frame + frame].handle;
     if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
     }
     if (g_video_frames_62c430[slot->first_frame + frame].mode == 0) {
-        ok = Function405FF0(target, surface, row, a5, a6, a7, a8);
+        ok = Function405FF0(target, surface, row, left, top, mode, flags);
     } else {
-        ok = Function402ED0(target, surface, row, a5, a6, a7, 0);
+        ok = Function402ED0(target, surface, row, left, top, mode, 0);
     }
     if (!ok) {
         srAssertFail("fReturnCode", VIDEO_OBJECT_MANAGER_CPP, 0x3e, 0);
@@ -197,7 +197,7 @@ void Function548F90(int target, int object, int frame, short y,
    failure does not return - it formats the path and the mode into the
    assertion's message. */
 // FUNCTION: WIZ8 0x00549090
-void Function549090(int object, int frame)
+void EnsureCatalogFrameLoaded(int object, int frame)
 {
     VOBJECT_DESC request_a;
     VSURFACE_DESC request_b;
@@ -244,7 +244,7 @@ void Function549090(int object, int frame)
    table.  The allocation is intentionally retained when the source API says
    the object has no palette, matching the shipped failure path. */
 // FUNCTION: WIZ8 0x005492e0
-unsigned short* Function5492E0(int object, int frame)
+unsigned short* CopyCatalogImagePalette16BPP(int object, int frame)
 {
     unsigned short* palette;
 
@@ -256,7 +256,7 @@ unsigned short* Function5492E0(int object, int frame)
     if (!palette) {
         return 0;
     }
-    Function549090(object, frame);
+    EnsureCatalogFrameLoaded(object, frame);
     if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
                      0xe6, 0);
@@ -277,7 +277,7 @@ unsigned int GetCatalogVideoObjectHandle(int object, int frame)
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
                      0xe6, 0);
     }
-    Function549090(object, frame);
+    EnsureCatalogFrameLoaded(object, frame);
     return g_video_frames_62c430[
         g_video_slots_6448c8[object].first_frame + frame].handle;
 }
@@ -297,8 +297,8 @@ short GetCatalogVideoObjectYOffset(int object)
    surface-backed objects expose the dimensions on the canonical SGP surface
    record returned by GetVideoSurface. */
 // FUNCTION: WIZ8 0x005494f0
-void Function5494F0(int object, int frame, int image,
-                    int left, int top, int flags)
+void InvalidateCatalogImageRect(int object, int frame, int image,
+                                int left, int top, int flags)
 {
     W8VideoObjectSlot* slot;
     W8VideoFrame* record;
@@ -306,7 +306,7 @@ void Function5494F0(int object, int frame, int image,
     unsigned short width = 0;
     unsigned short height = 0;
 
-    Function549090(object, frame);
+    EnsureCatalogFrameLoaded(object, frame);
     slot = &g_video_slots_6448c8[object];
     subimage = slot->y_offset + image;
     record = &g_video_frames_62c430[slot->first_frame + frame];
@@ -336,25 +336,26 @@ void Function5494F0(int object, int frame, int image,
    argument is truncated to a short for the draw and passed whole to the mark,
    and the seventh reaches the mark only as whether it equals two. */
 // FUNCTION: WIZ8 0x00549600
-void Function549600(int target, int object, int frame, int y,
-                    int a5, int a6, int a7, int a8)
+void DrawCatalogImageAndInvalidate(int target, int object, int frame, int image,
+                                   int left, int top, int mode, int flags)
 {
-    Function548F90(target, object, frame, (short)y, a5, a6, a7, a8);
-    Function5494F0(object, frame, y, a5, a6, a7 == 2);
+    DrawCatalogImage(
+        target, object, frame, (short)image, left, top, mode, flags);
+    InvalidateCatalogImageRect(object, frame, image, left, top, mode == 2);
 }
 
 /* Loads the selected catalog frame and returns the dimensions of one of its
    ETRLE subimages. Surface-backed records have no ETRLE table, so the retail
    body intentionally leaves the caller's outputs untouched for them. */
 // FUNCTION: WIZ8 0x00549660
-void Function549660(int object, int frame, int image,
-                    short* width, short* height)
+void GetCatalogImageSize(int object, int frame, int image,
+                         short* width, short* height)
 {
     W8VideoObjectSlot* slot;
     W8VideoFrame* record;
     short subimage;
 
-    Function549090(object, frame);
+    EnsureCatalogFrameLoaded(object, frame);
     slot = &g_video_slots_6448c8[object];
     subimage = slot->y_offset + image;
     record = &g_video_frames_62c430[slot->first_frame + frame];
@@ -374,9 +375,9 @@ void Function549660(int object, int frame, int image,
    caller-provided source coordinates. Both surfaces remain locked for exactly
    the pinned SGP conversion call. */
 // FUNCTION: WIZ8 0x005497c0
-unsigned char Function5497C0(int target, int left, int top,
-                             int right, int bottom, int object,
-                             int source_x, int source_y)
+unsigned char BlitCatalogSurfaceRectTo16BPP(
+    int target, int left, int top, int right, int bottom, int object,
+    int source_x, int source_y)
 {
     SGPRect source_rect;
     HVSURFACE source_surface;
@@ -395,7 +396,7 @@ unsigned char Function5497C0(int target, int left, int top,
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
                      0x19d, 0);
     }
-    Function549090(object, 0);
+    EnsureCatalogFrameLoaded(object, 0);
     source_handle =
         g_video_frames_62c430[g_video_slots_6448c8[object].first_frame].handle;
     GetVideoSurface(&source_surface, source_handle);

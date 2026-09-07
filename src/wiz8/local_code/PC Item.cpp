@@ -250,7 +250,7 @@ int W8ItemVideoObjectVector::GetOrCreateVideoObject(int item_id)
     g_video_frames_62c430[object].handle = 0;
     g_video_slots_6448c8[frame].first_frame = object;
     g_video_slots_6448c8[frame].y_offset = 0;
-    Function549090(frame, 0);
+    EnsureCatalogFrameLoaded(frame, 0);
     ++count;
     entry->video_object = frame;
     entry->initialized = 1;

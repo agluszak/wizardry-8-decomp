@@ -1,4 +1,5 @@
 #include "wiz8/monster_info_dialog.h"
+#include "wiz8/local_code/Controls.h"
 
 #include <new>
 
@@ -12,7 +13,7 @@ extern int g_dword_69ca28;
    the first of the three the reviewed complete destructor tears down. */
 
 // FUNCTION: WIZ8 0x005e0c40
-W8DialogMember005E0C40::W8DialogMember005E0C40()
+W8DialogScrollBar005E0C40::W8DialogScrollBar005E0C40()
 {
     unknown_000 = 0;
     unknown_001 = 0;
@@ -38,7 +39,7 @@ W8DialogMember005E0C40::W8DialogMember005E0C40()
 }
 
 // FUNCTION: WIZ8 0x005db1b0
-W8DialogMember005DB1B0::W8DialogMember005DB1B0()
+W8DialogButton005DB1B0::W8DialogButton005DB1B0()
 {
     m_resource_018 = -1;
     m_resource_01c = -1;
@@ -65,8 +66,11 @@ W8DialogMember005DB1B0::W8DialogMember005DB1B0()
     unknown_044 = g_dword_69ca28;
 }
 
+// SYNTHETIC: WIZ8 0x005db210
+// W8DialogButton005DB1B0::`scalar deleting destructor'
+
 // FUNCTION: WIZ8 0x005db260
-W8DialogMember005DB1B0::~W8DialogMember005DB1B0()
+W8DialogButton005DB1B0::~W8DialogButton005DB1B0()
 {
     if (m_resource_018 != -1) {
         Function40C710(m_resource_018);
@@ -78,14 +82,20 @@ W8DialogMember005DB1B0::~W8DialogMember005DB1B0()
     }
 }
 
-// SYNTHETIC: WIZ8 0x005d2590
-// W8GrowableVector<W8DialogOwned005D14D0*>::`scalar deleting destructor'
+// VTABLE: WIZ8 0x005ef89c W8GrowableVector<W8TextBuffer005ED5B8*>
+// class W8GrowableVector<W8TextBuffer005ED5B8*>
+
+// SYNTHETIC: WIZ8 0x005d2560
+// W8GrowableVector<W8TextBuffer005ED5B8*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x005d2540
-// W8GrowableVector<W8DialogOwned005D14D0*>::~W8GrowableVector<W8DialogOwned005D14D0*>
+// W8GrowableVector<W8TextBuffer005ED5B8*>::~W8GrowableVector<W8TextBuffer005ED5B8*>
+
+// SYNTHETIC: WIZ8 0x005d2590
+// W8DialogTextBufferVector005EF898::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005d14d0
-W8DialogMember005D14D0::W8DialogMember005D14D0()
+W8DialogTextArea005D14D0::W8DialogTextArea005D14D0()
 {
     int invalid;
 
@@ -107,20 +117,20 @@ W8DialogMember005D14D0::W8DialogMember005D14D0()
 }
 
 // FUNCTION: WIZ8 0x005d1590
-W8DialogMember005D14D0::~W8DialogMember005D14D0()
+W8DialogTextArea005D14D0::~W8DialogTextArea005D14D0()
 {
     int index;
 
-    if (m_vector_01c.GetCount() > 0) {
-        for (index = m_vector_01c.GetCount() - 1; index >= 0; --index) {
-            delete m_vector_01c.RemoveAt(index);
+    if (m_all_lines_01c.GetCount() > 0) {
+        for (index = m_all_lines_01c.GetCount() - 1; index >= 0; --index) {
+            delete m_all_lines_01c.RemoveAt(index);
         }
     }
 }
 
 // Primary vtable slot 12.
 // FUNCTION: WIZ8 0x005d6e60
-void W8MonsterInfoDialog::ClearField41IfEnabled()
+void W8MonsterInfoDialog::OnRightButtonUp()
 {
     if (m_field_50) {
         m_field_41 = 0;
@@ -129,8 +139,8 @@ void W8MonsterInfoDialog::ClearField41IfEnabled()
 
 // Primary vtable slot 2.
 // FUNCTION: WIZ8 0x005dbde0
-void W8MonsterInfoDialog::ResetSubobjectAndRefresh()
+void W8MonsterInfoDialog::DestroyControls()
 {
-    m_member_58.Reset();
-    W8DialogBase005DC7A0::ResetSubobjectAndRefresh();
+    m_scroll_bar_58.DestroyControls();
+    W8DialogBase005DC7A0::DestroyControls();
 }

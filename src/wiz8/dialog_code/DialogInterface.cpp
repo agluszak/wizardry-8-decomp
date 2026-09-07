@@ -22,14 +22,14 @@ unsigned char g_dialog_font_foreground_64fdec;
 unsigned char g_dialog_font_background_64fded;
 
 // FUNCTION: WIZ8 0x005cf300
-W8DialogBase005DC7A0* Function5CF300(int kind)
+W8DialogBase005DC7A0* CreateDialogByKind(int kind)
 {
     W8DialogBase005DC7A0* dialog;
 
     switch (kind) {
     case 0:
         dialog = new W8DialogBase005DC7A0;
-        dialog->vslot5(L"Test Dialog");
+        dialog->SetText(L"Test Dialog");
         dialog->SetOrigin(160, 120);
         dialog->SetExtent(320, 240);
         break;
@@ -41,13 +41,13 @@ W8DialogBase005DC7A0* Function5CF300(int kind)
         return dialog;
     case 3:
         dialog = new W8Dialog005CBB40;
-        dialog->vslot5(L"ListBox Dialog");
+        dialog->SetText(L"ListBox Dialog");
         dialog->SetOrigin(200, 100);
         dialog->SetExtent(240, 280);
         break;
     case 5:
         dialog = new W8Dialog005D97D0;
-        dialog->vslot5(&g_wchar_00689b34);
+        dialog->SetText(&g_wchar_00689b34);
         dialog->SetOrigin(159, 184);
         return dialog;
     default:
@@ -58,8 +58,8 @@ W8DialogBase005DC7A0* Function5CF300(int kind)
 }
 
 // FUNCTION: WIZ8 0x005cf250
-void Function5CF250(int font, unsigned char enabled,
-                    unsigned char foreground, unsigned char background)
+void ConfigureDialogFont(int font, unsigned char enabled,
+                         unsigned char foreground, unsigned char background)
 {
     g_dialog_font_64fde8 = font;
     g_dialog_font_enabled_69ca32 = enabled;
@@ -70,16 +70,16 @@ void Function5CF250(int font, unsigned char enabled,
 #define DIALOG_INTERFACE_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\DialogInterface.cpp"
 
 // FUNCTION: WIZ8 0x005cf520
-void Function5CF520(W8DialogBase005DC7A0* dialog)
+void DrawDialog(W8DialogBase005DC7A0* dialog)
 {
     if (dialog == 0) {
         srAssertFail("pDialog", DIALOG_INTERFACE_CPP, 0x66, 0);
     }
-    dialog->vslot3();
+    dialog->Draw();
 }
 
 // FUNCTION: WIZ8 0x005cf550
-unsigned char Function5CF550(W8DialogBase005DC7A0* dialog)
+unsigned char ProcessDialogInput(W8DialogBase005DC7A0* dialog)
 {
     if (dialog == 0) {
         srAssertFail("pDialog", DIALOG_INTERFACE_CPP, 0x74, 0);
@@ -88,7 +88,7 @@ unsigned char Function5CF550(W8DialogBase005DC7A0* dialog)
 }
 
 // FUNCTION: WIZ8 0x005cf580
-void Function5CF580(
+void SetDialogDestroyCallback(
     W8DialogBase005DC7A0* dialog, W8DialogDestroyCallback callback)
 {
     if (dialog == 0) {

@@ -334,10 +334,10 @@ unsigned char Function5BCAB0(short item, short state)
     }
 
     switch (state) {
-    case 0: Function548F90(-14, 0xea, 0, slot, 0x98, top, 2, 0); break;
-    case 1: Function548F90(-14, 0xec, 0, slot, 0x98, top, 2, 0); break;
-    case 2: Function548F90(-14, 0xeb, 0, slot, 0x98, top, 2, 0); break;
-    case 3: Function548F90(-14, 0xed, 0, slot, 0x98, top, 2, 0); break;
+    case 0: DrawCatalogImage(-14, 0xea, 0, slot, 0x98, top, 2, 0); break;
+    case 1: DrawCatalogImage(-14, 0xec, 0, slot, 0x98, top, 2, 0); break;
+    case 2: DrawCatalogImage(-14, 0xeb, 0, slot, 0x98, top, 2, 0); break;
+    case 3: DrawCatalogImage(-14, 0xed, 0, slot, 0x98, top, 2, 0); break;
     }
 
     MarkScreenRectDirty(0x98, top, 0x1f2, bottom, 0);
@@ -364,7 +364,7 @@ unsigned char MainMenuScreenFunction005BC810(void)
     ColorFillVideoSurfaceArea(-14, 0, 0, 0x280, 0x1e0, colour);
     SetViewport(0, 0, 0x280, 0x1e0);
     g_selected_item_0069c4b4 = 0;
-    Function548F90(-14, 0xe8, 0, 0, 0, 0, 2, 0);
+    DrawCatalogImage(-14, 0xe8, 0, 0, 0, 0, 2, 0);
 
     /* Six items cleared then the selected one set, written out rather than
        looped: the original repeats the call with a literal index each time. */
@@ -401,10 +401,10 @@ unsigned char MainMenuScreenFunction005BC810(void)
 
     pending = g_pending_main_menu_message;
     if (pending != 0) {
-        dialog = static_cast<W8ModalDialogBase*>(Function5CF300(1));
+        dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(0xfa, 200);
         dialog->SetMessage((void*)pending, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
-        Function5CF580(dialog, 0);
+        SetDialogDestroyCallback(dialog, 0);
         g_dword_69c4c0 = dialog;
         delete[] g_pending_main_menu_message;
         g_pending_main_menu_message = 0;
@@ -413,10 +413,10 @@ unsigned char MainMenuScreenFunction005BC810(void)
     if (!Function4298F0() && !g_flag_69c4c4) {
         int message = *(int*)&gppStringList[0x1fb8 / 4];
 
-        dialog = static_cast<W8ModalDialogBase*>(Function5CF300(1));
+        dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(0xfa, 200);
         dialog->SetMessage((void*)message, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
-        Function5CF580(dialog, 0);
+        SetDialogDestroyCallback(dialog, 0);
         g_flag_69c4c4 = 1;
         g_dword_69c4c0 = dialog;
     }
@@ -437,12 +437,12 @@ void MainMenuScreenFrame()
         SetPendingScreenState(W8_SCREEN_EXIT);
     }
     if (g_dword_69c4c0 != 0) {
-        Function5CF520(g_dword_69c4c0);
-        if (Function5CF550(g_dword_69c4c0) == 0) {
+        DrawDialog(g_dword_69c4c0);
+        if (ProcessDialogInput(g_dword_69c4c0) == 0) {
             delete g_dword_69c4c0;
             g_dword_69c4c0 = 0;
             g_flag_69c4b6 = 1;
-            Function548F90(-14, 0xe8, 0, 0, 0, 0, 2, 0);
+            DrawCatalogImage(-14, 0xe8, 0, 0, 0, 0, 2, 0);
             Function5BCAB0(0, 0);
             Function5BCAB0(1, 0);
             Function5BCAB0(2, 0);
@@ -560,7 +560,7 @@ void MainMenuScreenFrame()
     NoOp();
     if (g_flag_69c4b6 != 0 || IsStringTableLoaded()) {
         if (g_dword_69c4c0 != 0) {
-            Function5CF520(g_dword_69c4c0);
+            DrawDialog(g_dword_69c4c0);
         }
         if (g_flag_69c4bb != 0) {
             Function402ED0(-14, g_dword_69c4ac, 0, 0, 0x1d1, 6, 0);

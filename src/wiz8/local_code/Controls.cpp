@@ -841,7 +841,7 @@ W8TextControl005ED604::W8TextControl005ED604()
 /* The 182-caller text-control constructor. The first six arguments construct
    the reviewed widget base, while the implicit W8TextBuffer constructor owns
    the second EH state. The remaining positional values and the two measured
-   shorts are fixed by the constructor's direct stores and Function549660 call;
+   shorts are fixed by the constructor's direct stores and GetCatalogImageSize call;
    their descriptive identities remain unknown. */
 // FUNCTION: WIZ8 0x004f4250
 W8TextControl005ED604::W8TextControl005ED604(
@@ -870,7 +870,7 @@ W8TextControl005ED604::W8TextControl005ED604(
         m_measured_w = -1;
         m_measured_h = -1;
     } else {
-        Function549660(text_40, text_44, measured_text,
+        GetCatalogImageSize(text_40, text_44, measured_text,
                        &m_measured_w, &m_measured_h);
     }
 
@@ -901,7 +901,7 @@ unsigned char W8TextControl005ED604::MeasureText004F4800()
 
     if (m_text_40 != -1 && m_text_44 != -1 &&
         ((handle = m_text_48) != -1 || (handle = m_text_4c) != -1)) {
-        Function549660(m_text_40, m_text_44, handle,
+        GetCatalogImageSize(m_text_40, m_text_44, handle,
                        &m_measured_w, &m_measured_h);
         return 1;
     }
@@ -942,7 +942,7 @@ void W8TextControl005ED604::GetTextOrigin(int unused, int* px, int* py)
             m_measured_h = -1;
             goto plain;
         }
-        Function549660(m_text_40, m_text_44, handle, measured, &m_measured_h);
+        GetCatalogImageSize(m_text_40, m_text_44, handle, measured, &m_measured_h);
         if ((m_flags_38 & 0x80) != 0) {
             *px = *px + m_left;
             *py = *py + m_top;
@@ -1034,7 +1034,7 @@ void W8TextControl005ED604::Redraw(int full_redraw)
         if (m_alternateTextEnabled != 0) {
             short width;
             short height;
-            Function549660(m_text_40, m_text_44, sprite, &width, &height);
+            GetCatalogImageSize(m_text_40, m_text_44, sprite, &width, &height);
             int x_inset = m_left - m_right + (unsigned short)width;
             int y_inset = m_top - m_bottom + (unsigned short)height;
             if (x_inset > 0) {
@@ -1044,7 +1044,7 @@ void W8TextControl005ED604::Redraw(int full_redraw)
                 y += y_inset / 2;
             }
         }
-        Function549600(-14, m_text_40, m_text_44, sprite, x, y, 2, 0);
+        DrawCatalogImageAndInvalidate(-14, m_text_40, m_text_44, sprite, x, y, 2, 0);
     }
 
     if (m_textBuffer.HasBuffer()) {
@@ -1092,7 +1092,7 @@ void W8TextControl005ED604::SetBounds(int left, int top, int right, int bottom)
             int absolute_right = m_pPanel->origin_x + right;
             int absolute_bottom = m_pPanel->origin_y + bottom;
             if (m_text_40 != -1 && m_text_44 != -1) {
-                Function549660(m_text_40, m_text_44, m_text_48,
+                GetCatalogImageSize(m_text_40, m_text_44, m_text_48,
                                &measured_width, &measured_height);
                 if ((m_flags_38 & 4) != 0) {
                     absolute_left += 2 + (unsigned short)measured_width;
@@ -1142,7 +1142,7 @@ void W8TextControl005ED604::AddLayoutFlags(unsigned int flags)
         int absolute_right = m_pPanel->origin_x + m_right;
         int absolute_bottom = m_pPanel->origin_y + m_bottom;
         if (m_text_40 != -1 && m_text_44 != -1) {
-            Function549660(m_text_40, m_text_44, m_text_48,
+            GetCatalogImageSize(m_text_40, m_text_44, m_text_48,
                            &measured_width, &measured_height);
             if ((m_flags_38 & 4) != 0) {
                 absolute_left += 2 + (unsigned short)measured_width;
@@ -1730,7 +1730,7 @@ W8VerticalRangeThumb005ED6B4::W8VerticalRangeThumb005ED6B4(
     m_minimumPosition = 0.0f;
     m_maximumPosition = 1.0f;
     m_position = 0.0f;
-    Function549660(render_arg, 0, normal_sprite, &width, &height);
+    GetCatalogImageSize(render_arg, 0, normal_sprite, &width, &height);
     if (right - left < (unsigned short)width) {
         m_right = m_left + (unsigned short)width;
         m_drawOffsetX = 0;
@@ -1852,7 +1852,7 @@ void W8VerticalRangeThumb005ED6B4::Redraw(int full_redraw)
     } else if (m_hovered == 0 || (sprite = m_hoveredSprite) == -1) {
         sprite = m_normalSprite;
     }
-    Function548F90(-14, m_renderArg, m_renderArg38, sprite,
+    DrawCatalogImage(-14, m_renderArg, m_renderArg38, sprite,
                    m_pPanel->origin_x + m_drawOffsetX + m_left,
                    m_pPanel->origin_y + m_pixelPosition + m_top, 2, 0);
 }
@@ -2076,11 +2076,11 @@ W8HorizontalRangeThumb005ED66C::W8HorizontalRangeThumb005ED66C(
     m_maximumPosition = 1.0f;
     m_position = 0.0f;
     m_listener = 0;
-    Function549660(render_arg_0, render_arg_1, background_sprite, &width, &height);
+    GetCatalogImageSize(render_arg_0, render_arg_1, background_sprite, &width, &height);
     m_right = (unsigned short)width + m_left;
     m_bottom = m_top + (unsigned short)height;
     SetRegion(m_region_18);
-    Function549660(m_renderArg0, m_renderArg1, m_normalThumbSprite, &width, &height);
+    GetCatalogImageSize(m_renderArg0, m_renderArg1, m_normalThumbSprite, &width, &height);
     m_thumbWidth = (unsigned short)width;
     m_trackLength = (m_right - m_left) - (unsigned short)width;
 }
@@ -2189,7 +2189,7 @@ void W8HorizontalRangeThumb005ED66C::Redraw(int full_redraw)
 
     int x = m_pPanel->origin_x + m_left;
     int y = m_pPanel->origin_y + m_top;
-    Function549600(-14, m_renderArg0, m_renderArg1, m_backgroundSprite,
+    DrawCatalogImageAndInvalidate(-14, m_renderArg0, m_renderArg1, m_backgroundSprite,
                    x, y, 2, 0);
 
     int sprite;
@@ -2200,7 +2200,7 @@ void W8HorizontalRangeThumb005ED66C::Redraw(int full_redraw)
     } else {
         sprite = m_normalThumbSprite;
     }
-    Function548F90(-14, m_renderArg0, m_renderArg1, sprite,
+    DrawCatalogImage(-14, m_renderArg0, m_renderArg1, sprite,
                    x + m_pixelPosition, y, 2, 0);
 }
 
@@ -2333,12 +2333,12 @@ void Controls::Redraw()
     }
     if (m_fDirty != 0) {
         if (m_renderTarget != -1) {
-            Function548F90(-14, m_renderTarget, m_renderArg_1c, m_renderArg_20,
+            DrawCatalogImage(-14, m_renderTarget, m_renderArg_1c, m_renderArg_20,
                            origin_x, origin_y, 2, 0);
         }
         if (m_fWholeAreaDirty != 0) {
             if (m_renderTarget != -1) {
-                Function5494F0(m_renderTarget, m_renderArg_1c, m_renderArg_20,
+                InvalidateCatalogImageRect(m_renderTarget, m_renderArg_1c, m_renderArg_20,
                                origin_x, origin_y, 2);
             }
         } else {

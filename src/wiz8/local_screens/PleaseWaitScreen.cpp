@@ -218,12 +218,12 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
         int backdrop = (unsigned int)g_load_descriptor_69b7c8->parameter < 0x2f \
             ? g_level_backdrops_64bf8c[g_load_descriptor_69b7c8->parameter]   \
             : 0xe4;                                                           \
-        Function548F90(-14, backdrop, 0, 0, 0, 0, 2, 0);                      \
-        Function548F90(-14, 0x1de, 0, 0, 0, 0x1be, 2, 0);                     \
+        DrawCatalogImage(-14, backdrop, 0, 0, 0, 0, 2, 0);                    \
+        DrawCatalogImage(-14, 0x1de, 0, 0, 0, 0x1be, 2, 0);                   \
         SetFont(g_level_load_font_69b7c0);                             \
         Function407650(0x6a, 0x1c7, "%",                                      \
                        (const wchar_t*)g_load_descriptor_69b7c8);             \
-        Function548F90(-14, 0x1dd, 0, g_load_descriptor_69b7c8->caption_y,    \
+        DrawCatalogImage(-14, 0x1dd, 0, g_load_descriptor_69b7c8->caption_y,  \
                        0, 0x185, 2, 0);                                       \
         Function422F10();                                                     \
     } while (0)
@@ -240,7 +240,7 @@ void PleaseWaitScreenFrame(void)
 {
     if (g_load_descriptor_69b7c8->waiting) {
         if (g_swap_disc_dialog_69b7cc->is_open) {
-            g_swap_disc_dialog_69b7cc->vslot3();
+            g_swap_disc_dialog_69b7cc->Draw();
             if (!g_swap_disc_dialog_69b7cc->ProcessInput()) {
                 if (!g_swap_disc_dialog_69b7cc->close_result) {
                     delete g_swap_disc_dialog_69b7cc;
@@ -405,7 +405,7 @@ void UpdatePleaseWaitLoadFrame005915A0(void)
         g_load_descriptor_69b7c8->caption_y =
             (g_load_descriptor_69b7c8->caption_y + 1) % 0x18;
         g_load_descriptor_69b7c8->entered_tick = tick;
-        Function549600(-0xe, 0x1dd, 0,
+        DrawCatalogImageAndInvalidate(-0xe, 0x1dd, 0,
                        g_load_descriptor_69b7c8->caption_y,
                        0, 0x185, 2, 0);
         Function426790();

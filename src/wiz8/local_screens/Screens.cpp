@@ -42,7 +42,7 @@ private:
     int m_positional_58;
     int m_positional_5c;
     int m_positional_60;
-    W8DialogMember005D14D0 m_dialog_64;
+    W8DialogTextArea005D14D0 m_dialog_64;
 };
 static_assert(sizeof(W8Controls005EE920) == 0xbc, "W8Controls005EE920_size");
 

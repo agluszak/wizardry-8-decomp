@@ -53,7 +53,7 @@ unsigned char ExitScreenEnter00591790(void)
     UpdateHeldItemCursor();
     colour = Get16BPPColor(0x10101);
     ColorFillVideoSurfaceArea(-14, 0, 0, 0x280, 0x1e0, colour);
-    Function548F90(-14, 0x1e4, 0, 0, 0, 0, 2, 0);
+    DrawCatalogImage(-14, 0x1e4, 0, 0, 0, 0, 2, 0);
     Function422F10();
     return 1;
 }

@@ -6,6 +6,7 @@
 #include "wiz8/compat/compiler.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/local_code/Controls.h"
+#include "wiz8/vector.h"
 
 extern "C" {
 #include "input.h"
@@ -64,19 +65,19 @@ public:
 static_assert(sizeof(W8CharacterPageEntry) == 0x3c,
               "W8CharacterPageEntry_size");
 
-/* The page's secondary subobject begins at +0x4c.  Its two deleting-wrapper
-   targets are compiler-generated; the interface itself is independently
-   established by construction and adjusted receivers. */
-class W8CharacterPageOwner005EF214 {
+/* Embedded at +0x4c.  Construction first installs the pointer-vector vtable
+   0x005ef218, then this empty derived type's vtable 0x005ef214. */
+class W8CharacterPageEntries005EF214
+    : public W8GrowableVector<W8CharacterPageEntry*> {
 public:
-    virtual void OwnerMethod0() = 0;
-    virtual void OwnerMethod1() = 0;
+    virtual ~W8CharacterPageEntries005EF214() override {}
 };
-static_assert(sizeof(W8CharacterPageOwner005EF214) == 0x4, "W8CharacterPageOwner_size");
+static_assert(sizeof(W8CharacterPageEntries005EF214) == 0x10,
+              "W8CharacterPageEntries_size");
 
 /* Common 0x70-byte base constructed by 0x005AFD90.  The four page constructors
    below all call it and SelectPage dispatches these primary slots. */
-class W8CharacterPage : public Controls, public W8CharacterPageOwner005EF214 {
+class W8CharacterPage : public Controls {
 public:
     W8CharacterPage(int render_target);                /* 0x005AFD90 */
     virtual ~W8CharacterPage();                        /* 0x005AFE40 */
@@ -93,12 +94,7 @@ public:
     virtual void HandleInput(InputAtom* input);         /* 0x005B1BE0 */
     virtual void Refresh();                            /* 0x005B1BF0 */
     virtual void Prepare();                            /* 0x005AFFA0 */
-    virtual void OwnerMethod0() override;              /* 0x005B1BC0 */
-    virtual void OwnerMethod1() override;              /* 0x005B1B90 */
-
-    int m_entry_count_050;
-    int m_entry_capacity_054;
-    W8CharacterPageEntry** m_entries_058;
+    W8CharacterPageEntries005EF214 m_entries_04c;
     W8CharacterScreen* m_screen_05c;
     W8Character* m_character_060;
     W8CharacterCreationState* m_creation_state_064;

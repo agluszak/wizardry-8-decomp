@@ -155,7 +155,7 @@ void CreditsScreenFrame005BC530(void)
         return;
     }
 
-    Function548F90(-14, 0xe9, 0, 0, 0, 0, 2, 0);
+    DrawCatalogImage(-14, 0xe9, 0, 0, 0, 0, 2, 0);
     int y = g_credit_y_0069c4a0;
     for (int index = g_credit_line_0069c4a4;
          index < g_credit_lines_0069c4a8->count && y <= 0x1df;

@@ -55,18 +55,18 @@ W8DialogBase005DC7A0::~W8DialogBase005DC7A0()
     if (m_destroy_callback) {
         m_destroy_callback(this);
     }
-    ResetSubobjectAndRefresh();
+    DestroyControls();
     --g_dword_69ca28;
 }
 
 // FUNCTION: WIZ8 0x005dc890
-void W8DialogBase005DC7A0::vslot3()
+void W8DialogBase005DC7A0::Draw()
 {
     if ((m_dirty_flags & 1) == 0) {
         return;
     }
     if (!m_initialized) {
-        vslot1();
+        CreateControls();
     }
     if (m_error == 0 && m_resource != -1) {
         if (m_width != GetButtonWidth(m_resource) ||
@@ -87,7 +87,7 @@ void W8DialogBase005DC7A0::vslot3()
 }
 
 // FUNCTION: WIZ8 0x005dc940
-void W8DialogBase005DC7A0::vslot5(const wchar_t* text)
+void W8DialogBase005DC7A0::SetText(const wchar_t* text)
 {
     if (m_text) {
         free(m_text);
@@ -155,7 +155,7 @@ void W8DialogBase005DC7A0::SetBackground(const char* path, int flags)
 }
 
 // FUNCTION: WIZ8 0x005dcaf0
-int W8DialogBase005DC7A0::vslot1()
+int W8DialogBase005DC7A0::CreateControls()
 {
     if (m_x < 0 || m_y < 0) {
         return m_error = 1;
@@ -199,7 +199,7 @@ int W8DialogBase005DC7A0::vslot1()
 }
 
 // FUNCTION: WIZ8 0x005dcc30
-void W8DialogBase005DC7A0::ResetSubobjectAndRefresh()
+void W8DialogBase005DC7A0::DestroyControls()
 {
     if (m_resource != -1) {
         RemoveButton(m_resource);
@@ -239,7 +239,7 @@ unsigned char W8DialogBase005DC7A0::ProcessInput()
             MSYS_SGP_Mouse_Handler_Hook(
                 RIGHT_BUTTON_DOWN, mouse.x, mouse.y,
                 gfLeftButtonState, gfRightButtonState);
-            vslot11();
+            OnRightButtonDown();
             break;
         case LEFT_BUTTON_DOWN:
         case LEFT_BUTTON_REPEAT:
@@ -256,10 +256,10 @@ unsigned char W8DialogBase005DC7A0::ProcessInput()
             MSYS_SGP_Mouse_Handler_Hook(
                 RIGHT_BUTTON_UP, mouse.x, mouse.y,
                 gfLeftButtonState, gfRightButtonState);
-            ClearField41IfEnabled();
+            OnRightButtonUp();
             break;
         case MOUSE_WHEEL:
-            vslot13(GetMouseWheelDeltaValue(input.uiParam));
+            OnMouseWheel(GetMouseWheelDeltaValue(input.uiParam));
             break;
         case KEY_DOWN:
             if (input.usParam == 0x1b) {
@@ -282,16 +282,16 @@ void W8DialogBase005DC7A0::vslot10(int)
 }
 
 // FUNCTION: WIZ8 0x005ad270
-void W8DialogBase005DC7A0::vslot11()
+void W8DialogBase005DC7A0::OnRightButtonDown()
 {
     m_field_50 = 1;
 }
 
 // FUNCTION: WIZ8 0x005b1bf0
-void W8DialogBase005DC7A0::ClearField41IfEnabled()
+void W8DialogBase005DC7A0::OnRightButtonUp()
 {
 }
 
-void W8DialogBase005DC7A0::vslot13(int)
+void W8DialogBase005DC7A0::OnMouseWheel(int)
 {
 }

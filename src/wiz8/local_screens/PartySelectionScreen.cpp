@@ -371,7 +371,7 @@ void W8State5ListControl005EF464::Redraw(int full_redraw)
         int bottom = m_pPanel->origin_y + m_bottom;
 
         MarkScreenRectDirty(left, top, right, bottom, 0);
-        Function5497C0(-14, left, top, right, bottom, 0x1b6, 0, 0);
+        BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
         SetFontDestBuffer(-14, left, top, right, bottom, 0);
 
         int end = m_first_visible + m_visible_rows;
@@ -687,7 +687,7 @@ void W8State5CharacterRow005EF364::Redraw(int full_redraw)
         g_state5_party_collection_69c4ec->GetCharacter(m_character_index);
     int left = m_pPanel->origin_x + m_left;
     int top = m_pPanel->origin_y + m_top;
-    Function548F90(-14, 0x13, character->table_value_0079, 0,
+    DrawCatalogImage(-14, 0x13, character->table_value_0079, 0,
                    left + 2, top + 2, 2, 0);
     if (character->in_party) {
         ShadowVideoSurfaceRect(-14, left + 2, top + 2,
@@ -945,7 +945,7 @@ void W8State5PartySlotRow005EF3E4::Redraw(int full_redraw)
         RenderPartyPortrait0052EB00(portrait, left, top, flags, 1, m_row + 2);
     }
     m_textBuffer.SetText(character ? character->name : 0, g_font_683660);
-    Function549600(-14, 0x100, 0, 0, left - 0x0d, top - 0x0b, 2, 0);
+    DrawCatalogImageAndInvalidate(-14, 0x100, 0, 0, left - 0x0d, top - 0x0b, 2, 0);
     W8TextControl005ED604::Redraw(full_redraw);
     if (m_redraw_partner) {
         m_redraw_partner->Invalidate(0);
@@ -1071,15 +1071,15 @@ void W8State5PlainPanel005EF4E0::Redraw()
     }
     m_fDirty = 0;
 
-    Function549600(-14, 0xfc, 0, 0, 0x7f, 0xc5, 2, 0);
+    DrawCatalogImageAndInvalidate(-14, 0xfc, 0, 0, 0x7f, 0xc5, 2, 0);
     if (!m_character_4c) {
-        Function5497C0(-14, 0x85, 0x30, 0x139, 0xbf, 0x1b6, 0, 0);
+        BlitCatalogSurfaceRectTo16BPP(-14, 0x85, 0x30, 0x139, 0xbf, 0x1b6, 0, 0);
         MarkScreenRectDirty(0x85, 0x30, 0x139, 0xbf, 0);
         return;
     }
 
     W8Character* character = m_character_4c;
-    Function549600(-14, 0x11, character->table_value_0079,
+    DrawCatalogImageAndInvalidate(-14, 0x11, character->table_value_0079,
                    0, 0x85, 0x30, 2, 0);
     if (character->in_party) {
         W8ControlsRect bounds = { 0x85, 0x30, 0x139, 0xba };
@@ -1193,7 +1193,7 @@ W8State5OptionPanel005EF4AC::W8State5OptionPanel005EF4AC()
 
     short width;
     short height;
-    Function549660(0x102, 0, 0, &width, &height);
+    GetCatalogImageSize(0x102, 0, 0, &width, &height);
     right = origin_x + (unsigned short)width;
     bottom = origin_y + (unsigned short)height;
 
@@ -1225,7 +1225,7 @@ W8State5OptionPanel005EF4AC::W8State5OptionPanel005EF4AC()
     m_toggle_74->AddLayoutFlags(
         g_W8TextControlMask005ED588 | g_W8TextControlMask005ED578);
 
-    Function549660(0x102, 0, 1, &m_image_width_94, &m_image_height_96);
+    GetCatalogImageSize(0x102, 0, 1, &m_image_width_94, &m_image_height_96);
     m_render_left_8c =
         origin_x + 0x18 + (0x160 - (unsigned short)m_image_width_94) / 2;
     m_render_top_90 = origin_y + 0x80;
@@ -1244,7 +1244,7 @@ void W8State5OptionPanel005EF4AC::Redraw()
         m_entries_7c.data[index]->RenderToTarget(0, 1, -14);
     }
     if (m_mode_4c == 2) {
-        Function548F90(-14, 0x102, 0, 1,
+        DrawCatalogImage(-14, 0x102, 0, 1,
                        m_render_left_8c, m_render_top_90, 2, 0);
     }
 }
@@ -2059,9 +2059,9 @@ void W8State5Controller005EF4CC::Function5C1ED0()
 void W8State5Controller005EF4CC::Function5C1F40()
 {
     if (m_redraw_backdrop_14) {
-        Function549600(-14, 0xfa, 0, 0, 0, 0, 2, 0);
+        DrawCatalogImageAndInvalidate(-14, 0xfa, 0, 0, 0, 0, 2, 0);
         if (m_mode == 1) {
-            Function548F90(-14, 0x103, 0, 0, 0x140, 0x12e, 2, 0);
+            DrawCatalogImage(-14, 0x103, 0, 0, 0x140, 0x12e, 2, 0);
         }
         m_redraw_backdrop_14 = 0;
     }
@@ -2077,7 +2077,7 @@ void W8State5Controller005EF4CC::Function5C1F40()
     m_panel_3c->Redraw();
     m_text_buffer_60->RenderToTarget(0, 0, -14);
     if (m_dialog_68) {
-        m_dialog_68->vslot3();
+        m_dialog_68->Draw();
     }
     if (m_input_handler_64) {
         RenderActiveTextField();

@@ -2,6 +2,7 @@
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/regions.h"
+#include "wiz8/video_object_catalog.h"
 #include "Font.h"
 #include "FileMan.h"
 #include "vobject.h"
@@ -82,9 +83,6 @@ struct W8StartupGridRow {
 
 W8StartupGridRow g_startup_grid_647da0[8];
 
-extern void Function549090(int object, int frame);
-extern unsigned short* Function5492E0(int object, int frame);
-
 int g_calligraphy_shadow_font_6835f4;
 int g_calligraphy_font_6835f8;
 HVOBJECT g_button_font_object_6835fc;
@@ -158,7 +156,7 @@ unsigned char InitializeJournalFont(void)
 {
     g_journal_font_69c4cc = LoadFontFile((UINT8*)"Data\\Journal\\journal_font.sti");
     g_journal_font_original_palette_69c4d8 = GetFontObjectPalette16BPP(g_journal_font_69c4cc);
-    g_journal_font_palette_69c4d0 = Function5492E0(0x1b9, 0);
+    g_journal_font_palette_69c4d0 = CopyCatalogImagePalette16BPP(0x1b9, 0);
     return 1;
 }
 
@@ -352,8 +350,9 @@ unsigned char InitializeMenuFonts(void)
     CreateObjectPaletteTables(g_font12point1_object_68363c, HVOBJECT_GLOW_GREEN);
 
     for (index = 0; index != 15; ++index) {
-        Function549090(0x1e5, index);
-        g_font_state_palettes_68ee1c[index] = Function5492E0(0x1e5, index);
+        EnsureCatalogFrameLoaded(0x1e5, index);
+        g_font_state_palettes_68ee1c[index] =
+            CopyCatalogImagePalette16BPP(0x1e5, index);
         if (!g_font_state_palettes_68ee1c[index]) {
             return 0;
         }
@@ -370,7 +369,7 @@ unsigned char InitializeMenuFonts(void)
         GetFontObjectPalette16BPP(g_wiz_text_bold_font_683664);
     g_font_palette_options_detail_68ee00 =
         GetFontObjectPalette16BPP(g_options_detail_font_683614);
-    Function5CF250(g_dialog_font_683654, 1, 0xff, 0);
+    ConfigureDialogFont(g_dialog_font_683654, 1, 0xff, 0);
     return 1;
 }
 

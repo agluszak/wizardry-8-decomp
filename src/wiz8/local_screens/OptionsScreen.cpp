@@ -105,7 +105,7 @@ W8OptionsPanel::W8OptionsPanel(int region_index)
 
     short width;
     short height;
-    Function549660(0xf2, 0, 0, &width, &height);
+    GetCatalogImageSize(0xf2, 0, 0, &width, &height);
     right = origin_x + (unsigned short)width;
     bottom = origin_y + (unsigned short)height;
 }
@@ -122,7 +122,7 @@ W8OptionsMenuSet005EEFEC::W8OptionsMenuSet005EEFEC(unsigned int* shared_region_s
 
     short width;
     short height;
-    Function549660(0xf3, 0, 0, &width, &height);
+    GetCatalogImageSize(0xf3, 0, 0, &width, &height);
     right = origin_x + (unsigned short)width;
     bottom = origin_y + (unsigned short)height;
 

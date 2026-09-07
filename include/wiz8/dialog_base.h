@@ -16,9 +16,9 @@ class W8ModalDialogBase : public W8DialogBase005DC7A0 {
 public:
     W8ModalDialogBase();                              /* 0x005D25B0 */
     virtual ~W8ModalDialogBase() override;            /* 0x005D2610 */
-    virtual int vslot1() override;                    /* 0x005D2D00 */
-    virtual void ResetSubobjectAndRefresh() override;    /* slot 2, 0x005D2F40 */
-    virtual void vslot3() override;                   /* 0x005D2660 */
+    virtual int CreateControls() override;            /* 0x005D2D00 */
+    virtual void DestroyControls() override;          /* slot 2, 0x005D2F40 */
+    virtual void Draw() override;                     /* 0x005D2660 */
     virtual int vslot4() override;                    /* 0x005AD280 */
     virtual unsigned char ProcessInput() override;       /* slot 9, 0x005D3080 */
     virtual unsigned char HandleInput(

@@ -30,7 +30,6 @@ extern unsigned char g_camp_open_00683f9b;
 extern unsigned char g_journal_show_all_0069c4e0;
 extern int g_value_006850d5;
 extern void Function425570(int enabled);
-extern void Function549600(int, int, int, int, int, int, int, int);
 extern void SetViewport(int left, int top, int right, int bottom);
 extern void UpdateHeldItemCursor(void);
 extern unsigned char GetFactionFlag(char faction);
@@ -118,7 +117,7 @@ void RefreshJournalPanel005BD860(void)
         swprintf(page_text, g_journal_page_format_0064d7f0,
                  g_journal_page_0064df38 + 1, page_count);
         panel->m_page_text_060->SetText(page_text, g_font_00683614);
-        Function549600(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
+        DrawCatalogImageAndInvalidate(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
         DrawJournalLine005BDD00(gppStringList[0x1b6c / 4], 0, 0x19, 0, 1);
         DrawJournalLine005BDD00(gppStringList[0x1b70 / 4], 1, 0x19, 0, 1);
 
@@ -158,7 +157,7 @@ void RefreshJournalPanel005BD860(void)
         panel->m_previous_054->SetVisible(0);
         panel->m_page_text_060->SetText(
             g_journal_alternate_page_0064df78, g_font_00683614);
-        Function549600(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
+        DrawCatalogImageAndInvalidate(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
         DrawJournalLine005BDD00(gppStringList[0x1b78 / 4], 0, 0x19, 0, 1);
         DrawJournalLine005BDD00(gppStringList[0x1b7c / 4], 1, 0x19, 0, 1);
 
@@ -206,7 +205,7 @@ W8JournalPanel005EF340::W8JournalPanel005EF340(unsigned int* region_set)
     short height;
 
     AcquireRegionSet(region_set);
-    Function549660(0xf3, 0, 0, &width, &height);
+    GetCatalogImageSize(0xf3, 0, 0, &width, &height);
     right = origin_x + static_cast<unsigned short>(width);
     bottom = origin_y + static_cast<unsigned short>(height);
 
@@ -342,7 +341,7 @@ unsigned char JournalScreenEnter005BDE40(void)
         }
     }
     RefreshJournalPanel005BD860();
-    Function549600(-14, 0x1b7, 0, 1, 0, 0x1b4, 2, 0);
+    DrawCatalogImageAndInvalidate(-14, 0x1b7, 0, 1, 0, 0x1b4, 2, 0);
     return 1;
 }
 

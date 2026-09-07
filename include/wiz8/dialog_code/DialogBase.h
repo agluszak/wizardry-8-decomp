@@ -6,8 +6,9 @@
 #include <wchar.h>
 
 class W8DialogBase005DC7A0;
+class W8TextBuffer005ED5B8;
 typedef void (*W8DialogDestroyCallback)(W8DialogBase005DC7A0* dialog);
-extern "C" void Function5CF580(
+extern "C" void SetDialogDestroyCallback(
     W8DialogBase005DC7A0* dialog, W8DialogDestroyCallback callback);
 
 /* The released binary proves this shared dialog base and the three embedded
@@ -18,11 +19,11 @@ class W8DialogBase005DC7A0 {
 public:
     W8DialogBase005DC7A0();              /* 0x005DC7A0 */
     virtual ~W8DialogBase005DC7A0();     /* 0x005DC860 */
-    virtual int vslot1();            /* 0x005DCAF0 */
-    virtual void ResetSubobjectAndRefresh();
-    virtual void vslot3();                 /* 0x005DC890 */
+    virtual int CreateControls();          /* 0x005DCAF0 */
+    virtual void DestroyControls();        /* 0x005DCC30 */
+    virtual void Draw();                   /* 0x005DC890 */
     virtual int vslot4();
-    virtual void vslot5(const wchar_t* text); /* 0x005DC940 */
+    virtual void SetText(const wchar_t* text); /* 0x005DC940 */
     /* Slots 6, 7 and 8 of the table at 0x005EFAF8 are 0x005DC9C0, 0x005DC9F0 and
        0x005DCA70 - the three setters a derived constructor calls directly
        because its dynamic type is fixed, and that a caller holding a base
@@ -32,11 +33,11 @@ public:
     virtual void SetBackground(const char* path, int flags); /* 0x005DCA70 */
     virtual unsigned char ProcessInput();            /* 0x005DCCE0 */
     virtual void vslot10(int value);
-    virtual void vslot11();
-    virtual void ClearField41IfEnabled();
-    virtual void vslot13(int value);
+    virtual void OnRightButtonDown();
+    virtual void OnRightButtonUp();
+    virtual void OnMouseWheel(int delta);
 
-    friend void Function5CF580(
+    friend void SetDialogDestroyCallback(
         W8DialogBase005DC7A0* dialog, W8DialogDestroyCallback callback);
 
 protected:
@@ -80,11 +81,11 @@ class W8Dialog005CBB40 : public W8DialogBase005DC7A0 {
 public:
     W8Dialog005CBB40();                  /* 0x005CBB40 */
     virtual ~W8Dialog005CBB40() override;
-    virtual int vslot1() override;
-    virtual void ResetSubobjectAndRefresh() override;
-    virtual void vslot3() override;
+    virtual int CreateControls() override;
+    virtual void DestroyControls() override;
+    virtual void Draw() override;
     virtual int vslot4() override;
-    virtual void vslot5(const wchar_t* text) override;
+    virtual void SetText(const wchar_t* text) override;
     virtual unsigned char ProcessInput() override;
 
 private:
@@ -96,9 +97,9 @@ class W8Dialog005D97D0 : public W8DialogBase005DC7A0 {
 public:
     W8Dialog005D97D0();                  /* 0x005D97D0 */
     virtual ~W8Dialog005D97D0() override;
-    virtual int vslot1() override;
-    virtual void ResetSubobjectAndRefresh() override;
-    virtual void vslot3() override;
+    virtual int CreateControls() override;
+    virtual void DestroyControls() override;
+    virtual void Draw() override;
     virtual unsigned char ProcessInput() override;
     virtual void vslot10(int value) override;
 
@@ -120,11 +121,11 @@ static_assert(sizeof(W8Dialog005CBB40) == 0xfc,
 static_assert(sizeof(W8Dialog005D97D0) == 0x90,
               "W8Dialog005D97D0_must_be_0x90");
 
-class W8DialogMember005E0C40 {
+class W8DialogScrollBar005E0C40 {
 public:
-    W8DialogMember005E0C40();            /* 0x005E0C40 */
-    ~W8DialogMember005E0C40();
-    void Reset();                        /* 0x005E0E00 */
+    W8DialogScrollBar005E0C40();         /* 0x005E0C40 */
+    ~W8DialogScrollBar005E0C40();
+    void DestroyControls();              /* 0x005E0E00 */
 
 private:
     unsigned char unknown_000;           /* 0x00 */
@@ -148,10 +149,11 @@ private:
     int unknown_048;                     /* 0x48 */
 };                                      /* 0x4c */
 
-class W8DialogMember005DB1B0 {
+// VTABLE: WIZ8 0x005efa98
+class W8DialogButton005DB1B0 {
 public:
-    W8DialogMember005DB1B0();            /* 0x005DB1B0 */
-    virtual ~W8DialogMember005DB1B0();   /* 0x005DB260 */
+    W8DialogButton005DB1B0();            /* 0x005DB1B0 */
+    virtual ~W8DialogButton005DB1B0();   /* 0x005DB260 */
 
 private:
     int unknown_004;
@@ -180,20 +182,23 @@ private:
     int unknown_044;
 };                                      /* 0x48 */
 
-class W8DialogOwned005D14D0 {
+class W8DialogTextBufferVector005EF898
+    : public W8GrowableVector<W8TextBuffer005ED5B8*> {
 public:
-    virtual ~W8DialogOwned005D14D0();
+    virtual ~W8DialogTextBufferVector005EF898() override {}
 };
+static_assert(sizeof(W8DialogTextBufferVector005EF898) == 0x10,
+              "W8DialogTextBufferVector_size");
 
-/* Two instances of this pointer-vector specialization are embedded in
-   W8DialogMember005D14D0. */
+/* Two instances of this vector-derived wrapper are embedded in
+   W8DialogTextArea005D14D0. */
 // VTABLE: WIZ8 0x005ef898
-// class W8GrowableVector<W8DialogOwned005D14D0*>
+// class W8DialogTextBufferVector005EF898
 
-class W8DialogMember005D14D0 {
+class W8DialogTextArea005D14D0 {
 public:
-    W8DialogMember005D14D0();            /* 0x005D14D0 */
-    ~W8DialogMember005D14D0();           /* 0x005D1590 */
+    W8DialogTextArea005D14D0();           /* 0x005D14D0 */
+    ~W8DialogTextArea005D14D0();          /* 0x005D1590 */
     unsigned char Function5D1AE0(unsigned int command);
     unsigned char Function5D1C00(unsigned int command);
 
@@ -202,8 +207,8 @@ private:
     int unknown_010;
     int unknown_014;
     int unknown_018;
-    W8GrowableVector<W8DialogOwned005D14D0*> m_vector_01c;
-    W8GrowableVector<W8DialogOwned005D14D0*> m_vector_02c;
+    W8DialogTextBufferVector005EF898 m_all_lines_01c;
+    W8DialogTextBufferVector005EF898 m_visible_lines_02c;
     unsigned char unknown_03c;
     unsigned char unknown_03d;
     unsigned char unknown_03e;
@@ -227,9 +232,9 @@ public:
 
 private:
     unsigned int m_spell_054;
-    W8DialogMember005E0C40 m_member_058;
-    W8DialogMember005DB1B0 m_member_0a4;
-    W8DialogMember005D14D0 m_member_0ec;
+    W8DialogScrollBar005E0C40 m_scroll_bar_058;
+    W8DialogButton005DB1B0 m_button_0a4;
+    W8DialogTextArea005D14D0 m_text_area_0ec;
     W8GameTimer m_timer_144;
     unsigned int m_value_168;
 };

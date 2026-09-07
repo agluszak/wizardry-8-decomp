@@ -139,7 +139,7 @@ void W8CharacterPageEntry::Redraw()
 {
     if (m_enabled_03a && m_dirty_039) {
         if (m_draw_background_038) {
-            Function549600(-14, 0x108, 0, 2, m_x_030, m_y_034, 2, 0);
+            DrawCatalogImageAndInvalidate(-14, 0x108, 0, 2, m_x_030, m_y_034, 2, 0);
         }
         m_first_text_018->SetText(
             FormatWideString(L"%d", *m_first_020), g_font_683660);
@@ -232,18 +232,27 @@ void W8CharacterPageEntry::OnSecondary(W8TextControl005ED604* control)
 // VTABLE: WIZ8 0x005ef1e4 W8CharacterPage
 // class W8CharacterPage
 
+// VTABLE: WIZ8 0x005ef214 W8CharacterPageEntries005EF214
+// class W8CharacterPageEntries005EF214
+
+// VTABLE: WIZ8 0x005ef218 W8GrowableVector<W8CharacterPageEntry*>
+// class W8GrowableVector<W8CharacterPageEntry*>
+
+// TEMPLATE: WIZ8 0x005b1b70
+// W8GrowableVector<W8CharacterPageEntry*>::~W8GrowableVector<W8CharacterPageEntry*>
+
+// SYNTHETIC: WIZ8 0x005b1b90
+// W8GrowableVector<W8CharacterPageEntry*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x005b1bc0
+// W8CharacterPageEntries005EF214::`scalar deleting destructor'
+
 // FUNCTION: WIZ8 0x005afd90
 W8CharacterPage::W8CharacterPage(int render_target)
     : Controls(0xc3, 0x2b, 0x280, 0x1c1, render_target, 0, 0),
-      m_entry_count_050(0), m_entry_capacity_054(0), m_entries_058(0),
       m_screen_05c(0), m_character_060(0), m_creation_state_064(0),
       m_mode_068(0), m_prepared_06c(0), m_dirty_06d(0)
 {
-    m_entries_058 = static_cast<W8CharacterPageEntry**>(::operator new(0x14));
-    if (m_entries_058 != 0) {
-        m_entry_capacity_054 = 5;
-        memset(m_entries_058, 0, 0x14);
-    }
 }
 
 // SYNTHETIC: WIZ8 0x005afe20
@@ -253,16 +262,9 @@ W8CharacterPage::W8CharacterPage(int render_target)
 W8CharacterPage::~W8CharacterPage()
 {
     DestroyAllControls();
-    while (m_entry_count_050 > 0) {
-        int index = m_entry_count_050 - 1;
-        W8CharacterPageEntry* entry = m_entries_058[index];
-        for (; index < m_entry_count_050 - 1; ++index) {
-            m_entries_058[index] = m_entries_058[index + 1];
-        }
-        --m_entry_count_050;
-        delete entry;
+    while (m_entries_04c.count > 0) {
+        delete m_entries_04c.RemoveAt(m_entries_04c.count - 1);
     }
-    ::operator delete(m_entries_058);
 }
 
 // FUNCTION: WIZ8 0x005aff00
@@ -278,8 +280,8 @@ void W8CharacterPage::SetCharacter(
 void W8CharacterPage::Redraw()
 {
     Controls::Redraw();
-    for (int index = 0; index < m_entry_count_050; ++index) {
-        m_entries_058[index]->Redraw();
+    for (int index = 0; index < m_entries_04c.count; ++index) {
+        m_entries_04c.data[index]->Redraw();
     }
 }
 
@@ -287,10 +289,10 @@ void W8CharacterPage::Redraw()
 void W8CharacterPage::Invalidate(const W8ControlsRect* rect)
 {
     Controls::Invalidate(rect);
-    for (int index = 0; index < m_entry_count_050; ++index) {
-        m_entries_058[index]->m_decrement_00c->Invalidate(0);
-        m_entries_058[index]->m_increment_008->Invalidate(0);
-        m_entries_058[index]->m_dirty_039 = 1;
+    for (int index = 0; index < m_entries_04c.count; ++index) {
+        m_entries_04c.data[index]->m_decrement_00c->Invalidate(0);
+        m_entries_04c.data[index]->m_increment_008->Invalidate(0);
+        m_entries_04c.data[index]->m_dirty_039 = 1;
     }
 }
 
@@ -305,20 +307,7 @@ void W8CharacterPage::Prepare()
 // FUNCTION: WIZ8 0x005affc0
 void W8CharacterPage::AddEntry(W8CharacterPageEntry* entry)
 {
-    int new_count = m_entry_count_050 + 1;
-    if (new_count > m_entry_capacity_054) {
-        W8CharacterPageEntry** previous = m_entries_058;
-        W8CharacterPageEntry** entries =
-            static_cast<W8CharacterPageEntry**>(::operator new(new_count * 4));
-        if (entries == 0) return;
-        m_entries_058 = entries;
-        m_entry_capacity_054 = new_count;
-        for (int index = 0; index < m_entry_count_050; ++index) {
-            entries[index] = previous[index];
-        }
-        ::operator delete(previous);
-    }
-    m_entries_058[m_entry_count_050++] = entry;
+    m_entries_04c.Add(entry);
 }
 
 void W8CharacterPage::HandleInput(InputAtom*) {}
@@ -371,8 +360,8 @@ void W8CharacterPage005EF5C8::Accept()
     Invalidate(0);
     m_dirty_06d = 1;
     m_screen_05c->UpdateNavigation(this);
-    for (int index = 0; index < m_entry_count_050; ++index) {
-        m_entries_058[index]->UpdateButtons();
+    for (int index = 0; index < m_entries_04c.count; ++index) {
+        m_entries_04c.data[index]->UpdateButtons();
     }
 }
 
@@ -384,8 +373,8 @@ void W8CharacterPage005EF5C8::GetNavigationState(
     *exit_enabled = m_creation_state_064->skill_points_remaining <
                     m_creation_state_064->skill_points_total;
     if (*next_enabled != m_navigation_state_076) {
-        for (int index = 0; index < m_entry_count_050; ++index) {
-            m_entries_058[index]->SetIncrementAllowed(
+        for (int index = 0; index < m_entries_04c.count; ++index) {
+            m_entries_04c.data[index]->SetIncrementAllowed(
                 static_cast<unsigned char>(*next_enabled == 0));
         }
         m_navigation_state_076 = *next_enabled;
@@ -413,7 +402,7 @@ void W8CharacterPage005EF5C8::UpdateEntries()
 {
     int index;
     for (index = 0; index < 0x29; ++index) {
-        m_entries_058[index]->SetEnabled(0);
+        m_entries_04c.data[index]->SetEnabled(0);
     }
 
     int category_count[5] = {0, 0, 0, 0, 0};
@@ -430,7 +419,7 @@ void W8CharacterPage005EF5C8::UpdateEntries()
                     break;
                 }
             }
-            W8CharacterPageEntry* entry = m_entries_058[entry_index];
+            W8CharacterPageEntry* entry = m_entries_04c.data[entry_index];
             ++category_count[category];
             if (category == 4) m_show_fifth_category_075 = 1;
             entry->SetContent(
@@ -460,7 +449,7 @@ void W8CharacterPage005EF5C8::Redraw()
     if (redraw) {
         for (int category = 0; category < 5; ++category) {
             if (category != 4 || m_show_fifth_category_075) {
-                Function548F90(
+                DrawCatalogImage(
                     -14, 0x144, 0,
                     static_cast<short>(g_character_page2_category_frames_64efb8[category]),
                     origin_x + g_character_page2_category_geometry_64ef90[category][0] - 0x16,
@@ -469,7 +458,7 @@ void W8CharacterPage005EF5C8::Redraw()
             }
         }
         if (!m_show_fifth_category_075) {
-            Function548F90(-14, 0x108, 0, 1, origin_x, origin_y + 0x118, 2, 0);
+            DrawCatalogImage(-14, 0x108, 0, 1, origin_x, origin_y + 0x118, 2, 0);
         }
     }
 
@@ -494,7 +483,7 @@ void W8CharacterPage005EF5C8::Redraw()
         bounds.top = 0x162;
         bounds.right = 0xbf;
         bounds.bottom = 0x179;
-        Function548F90(-14, 0x107, 0, 5, 0x8f, 0x162, 2, 0);
+        DrawCatalogImage(-14, 0x107, 0, 5, 0x8f, 0x162, 2, 0);
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(FormatWideString(L"%d",
             m_creation_state_064->skill_step_limit),
@@ -506,7 +495,7 @@ void W8CharacterPage005EF5C8::Redraw()
     if (m_dirty_06d) {
         W8TextBuffer005ED5B8 text;
         W8ControlsRect bounds = {0x8f, 0x184, 0xbf, 0x19b};
-        Function548F90(-14, 0x107, 0, 5, 0x8f, 0x184, 2, 0);
+        DrawCatalogImage(-14, 0x107, 0, 5, 0x8f, 0x184, 2, 0);
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(FormatWideString(L"%d/%d",
             m_creation_state_064->skill_points_remaining,

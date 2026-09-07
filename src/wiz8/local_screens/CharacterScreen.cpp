@@ -220,7 +220,7 @@ void W8CharacterScreen::ShowDialog005B0610(int value)
 {
     m_dialog_response_1b20 = 0;
     m_dialog_1b1c = new W8SpellInfoDialog005EFAB0(value);
-    m_dialog_1b1c->vslot5(&g_wchar_00689b34);
+    m_dialog_1b1c->SetText(&g_wchar_00689b34);
     ActivateDialogRegion(0x138);
 }
 
@@ -229,7 +229,7 @@ void W8CharacterScreen::ShowProfessionInfo(unsigned int profession)
 {
     m_dialog_response_1b20 = 0;
     m_dialog_1b1c = new W8ProfessionInfoDialog005EFBFC(profession);
-    m_dialog_1b1c->vslot5(&g_wchar_00689b34);
+    m_dialog_1b1c->SetText(&g_wchar_00689b34);
     ActivateDialogRegion(0x138);
 }
 
@@ -238,7 +238,7 @@ void W8CharacterScreen::ShowRaceInfo(unsigned int race)
 {
     m_dialog_response_1b20 = 0;
     m_dialog_1b1c = new W8RaceInfoDialog005EFC38(race);
-    m_dialog_1b1c->vslot5(&g_wchar_00689b34);
+    m_dialog_1b1c->SetText(&g_wchar_00689b34);
     ActivateDialogRegion(0x138);
 }
 
@@ -247,7 +247,7 @@ void W8CharacterScreen::ShowAttributeInfo005B07C0(unsigned int attribute)
 {
     m_dialog_response_1b20 = 0;
     m_dialog_1b1c = new W8StatInfoDialog005DFC70(attribute);
-    m_dialog_1b1c->vslot5(&g_wchar_00689b34);
+    m_dialog_1b1c->SetText(&g_wchar_00689b34);
     ActivateDialogRegion(0x138);
 }
 
@@ -256,7 +256,7 @@ void W8CharacterScreen::ShowAttributeInfo005B0850(unsigned int attribute)
 {
     m_dialog_response_1b20 = 0;
     m_dialog_1b1c = new W8StatInfoDialog005E0180(attribute);
-    m_dialog_1b1c->vslot5(&g_wchar_00689b34);
+    m_dialog_1b1c->SetText(&g_wchar_00689b34);
     ActivateDialogRegion(0x138);
 }
 
@@ -270,7 +270,7 @@ void W8CharacterScreen::ShowDialog005B08E0(int value)
     else {
         m_dialog_1b1c = new W8SkillInfoDialog005EFD08(value, 0, 0, 0);
     }
-    m_dialog_1b1c->vslot5(&g_wchar_00689b34);
+    m_dialog_1b1c->SetText(&g_wchar_00689b34);
     ActivateDialogRegion(0x138);
 }
 
@@ -468,26 +468,26 @@ void W8CharacterScreen::SyncCharacterForPage(int index)
 void W8CharacterScreen::DrawHeader()
 {
     W8TextBuffer005ED5B8 text;
-    Function549600(-14, 0x107, 0, 0, 0xc3, 0, 2, 0);
+    DrawCatalogImageAndInvalidate(-14, 0x107, 0, 0, 0xc3, 0, 2, 0);
     W8ControlsRect bounds = {0xc3, 0, 0x285, 0x2c};
     text.SetLayoutBounds(&bounds, 1, 1);
     text.SetText(gppStringList[g_character_page_title_ids_64da9c[m_page_index_00c]],
                  g_options_detail_font_683614);
     text.RenderToTarget(0, 1, -14);
-    Function549600(-14, 0x107, 0, 1, 0, 0, 2, 0);
+    DrawCatalogImageAndInvalidate(-14, 0x107, 0, 1, 0, 0, 2, 0);
 
     if (m_mode_008 == 0) {
-        Function548F90(-14, 0x107, 0, 2, 10, 0xc, 2, 0);
+        DrawCatalogImage(-14, 0x107, 0, 2, 10, 0xc, 2, 0);
     }
     else {
         int frame = m_original_014 == 0
             ? m_character_018.table_value_0079
             : m_original_014->table_value_0079;
-        Function548F90(-14, 0x11, frame, 0, 10, 0xc, 2, 0);
+        DrawCatalogImage(-14, 0x11, frame, 0, 10, 0xc, 2, 0);
     }
 
     if (m_mode_008 == 0 && m_page_index_00c == 0) {
-        Function548F90(-14, 0x107, 0, 3, 5, 0xa5, 2, 0);
+        DrawCatalogImage(-14, 0x107, 0, 3, 5, 0xa5, 2, 0);
     }
     else {
         bounds.left = 5;
@@ -754,6 +754,6 @@ void CharacterScreenFrame005B18E0(void)
     if (screen->m_header_dirty_010) screen->DrawHeader();
     screen->m_pages_1b0c[screen->m_page_index_00c]->Redraw();
     screen->m_controls_1af0->Redraw();
-    if (screen->m_dialog_1b1c != 0) screen->m_dialog_1b1c->vslot3();
+    if (screen->m_dialog_1b1c != 0) screen->m_dialog_1b1c->Draw();
     Function426790();
 }
