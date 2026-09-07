@@ -26,11 +26,74 @@ extern unsigned char g_in_combat_00683f94;
 extern unsigned char g_camp_open_00683f9b;
 extern unsigned short g_value_006840be;
 extern void* g_value_0069c0f8;
+extern int g_font_683660;
+extern int g_wiz_text_bold_font_683664;
 extern void SetPendingScreenState(int state);
 extern void DisplayCampDialog(W8DialogBase005DC7A0* dialog);
 extern void DismissSelectedPartyCharacter(void);
 void ShowDismissCharacterDialog(void);
 void OnDismissCharacterDialogClosed(W8DialogBase005DC7A0* dialog);
+
+// FUNCTION: WIZ8 0x005b6d20
+bool CanSelectRcsPartySlot(int ui_slot)
+{
+    if (!g_party_slot_rows[ui_slot].occupied) {
+        srAssertFail("gStatus.XChar[uiSlot].fOccupied",
+                     "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp",
+                     0x9ac, 0);
+    }
+
+    W8Character* character = &g_party_characters[ui_slot];
+    if (character->condition_turns[19] != 0) {
+        return false;
+    }
+    if (character->condition_turns[14] != 0) {
+        return false;
+    }
+    if (character->condition_turns[11] != 0) {
+        return false;
+    }
+    if (character->condition_turns[13] != 0) {
+        return false;
+    }
+    if (g_in_combat_00683f94) {
+        if (!g_combat_state->flag_a50) {
+            return false;
+        }
+        if (g_party_slot_rows[ui_slot].pending_action != 9) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// FUNCTION: WIZ8 0x005b6df0
+void DrawRcsText(const wchar_t* text, int left, int top, int width,
+                 unsigned int layout_mode)
+{
+    W8ControlsRect bounds = {left, top, left + width, top + 12};
+    W8TextBuffer005ED5B8 buffer(&bounds, text, g_font_683660, layout_mode, 4);
+    buffer.RenderToTarget(0, 0, -14);
+}
+
+// FUNCTION: WIZ8 0x005b6e90
+void DrawRcsBoldText(const wchar_t* text, int left, int top, int width,
+                     unsigned int layout_mode)
+{
+    W8ControlsRect bounds = {left, top, left + width, top + 12};
+    W8TextBuffer005ED5B8 buffer(
+        &bounds, text, g_wiz_text_bold_font_683664, layout_mode, 4);
+    buffer.RenderToTarget(0, 0, -14);
+}
+
+// FUNCTION: WIZ8 0x005b6f30
+void DrawTallRcsText(const wchar_t* text, int left, int top, int width,
+                     unsigned int layout_mode)
+{
+    W8ControlsRect bounds = {left, top, left + width, top + 18};
+    W8TextBuffer005ED5B8 buffer(&bounds, text, g_font_683660, layout_mode, 4);
+    buffer.RenderToTarget(0, 0, -14);
+}
 
 // FUNCTION: WIZ8 0x005b6630
 void OpenLevelUpCharacterScreen(void)
