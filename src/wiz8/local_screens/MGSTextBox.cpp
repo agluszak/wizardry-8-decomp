@@ -1,6 +1,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_code/ButtonSound.h"
 #include "wiz8/notices.h"
 #include "wiz8/xstatus.h"
 #include "timer.h"
@@ -166,8 +167,6 @@ void RedrawTextBoxComplete(void)
     screen->m_action_panel_014->Invalidate(0);
 }
 
-extern void Function558810(void);
-extern void Function558720(int arg_1);
 
 /* The last message on the current line whose clock has stopped, searched from
    the newest backwards - so the first one found is the most recent finished
@@ -203,8 +202,8 @@ char TextBoxHandleKey(const void* event)
         *(const unsigned short*)((const char*)event + 8));
 
     if (handled != 0 && panel->m_selection_078 != before) {
-        Function558810();
-        Function558720(3);
+        ResetButtonSoundScheme();
+        PlayButtonSound(3);
     }
     return handled;
 }

@@ -2,6 +2,7 @@
 #include "wiz8/cursor.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/local_code/Configuration.h"
+#include "wiz8/local_code/ButtonSound.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/utility.h"
 #include "wiz8/sr_api.h"
@@ -46,7 +47,6 @@ unsigned char g_flag_689b32;
 extern unsigned short gfAltState;
 extern unsigned short gfCtrlState;
 extern unsigned short gfShiftState;
-extern void Function558720(int sound_id);
 
 // FUNCTION: WIZ8 0x004f1220
 void ReleasePointer689B40(void)
@@ -104,7 +104,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
                     ReleaseScreenTransitionObjects();
                     previous->flags &= ~W8_REGION_HELP_SHOWN;
                 }
-                Function558720(1);
+                PlayButtonSound(1);
                 g_dword_689b48 = g_word_6850ed;
                 previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
                 g_dword_689b50 = 0;
@@ -122,7 +122,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
                     g_region_help_clock =
                         SetCountdownClock(g_dword_689b48);
                 }
-                Function558720(0);
+                PlayButtonSound(0);
             }
             region->flags &= ~W8_REGION_MOUSE_TRANSITION_MASK;
             g_hover_region_index = g_current_region_index;
@@ -140,7 +140,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
             ReleaseScreenTransitionObjects();
             previous->flags &= ~W8_REGION_HELP_SHOWN;
         }
-        Function558720(1);
+        PlayButtonSound(1);
         g_dword_689b48 = g_word_6850ed;
         g_dword_689b50 = 0;
         previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
@@ -280,7 +280,7 @@ dispatch:
     unsigned char handled = region->callback(
         reinterpret_cast<const W8RegionEvent*>(event), region);
     if (sound_id != -1) {
-        Function558720(sound_id);
+        PlayButtonSound(sound_id);
     }
     return handled;
 }

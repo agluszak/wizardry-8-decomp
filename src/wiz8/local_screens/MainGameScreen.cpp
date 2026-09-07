@@ -166,8 +166,6 @@ extern void Function58A790(int arg_1);
 extern void Function59F2B0(void);
 extern void Function59CAC0(void);
 extern void Function5B2200(void);
-extern void Function558810(void);
-extern void Function558720(int arg_1);
 
 /* Whether the screen is idle - none of the six overlays is up. The same six
    flags the input block reads, but all of them and unconditionally. */

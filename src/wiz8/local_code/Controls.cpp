@@ -9,6 +9,7 @@
 #include "wiz8/vector.h"
 #include "wiz8/video_object_catalog.h"
 #include "Font.h"
+#include "input.h"
 #include "vsurface.h"
 
 #include <wchar.h>
@@ -123,8 +124,6 @@ extern int g_W8TextClipFlags00650E38;
 extern int g_W8FontStateTable0068EE1C[];
 extern float g_W8RangeEnd005EBB38;
 extern float g_W8RangeHalfStep005EBC7C;
-extern void Function558720(int sound_id);
-extern short Function402760(unsigned int mouse_position);
 
 
 // FUNCTION: WIZ8 0x004f30f0
@@ -336,7 +335,7 @@ unsigned char DispatchControlRegionEvent(const W8RegionEvent* event, W8Region* r
         }
         return 1;
     case MOUSE_WHEEL:
-        widget->AdjustValue(Function402760(
+        widget->AdjustValue(GetMouseWheelDeltaValue(
             ((const W8RegionMouseEvent*)event)->mouse_position));
         return 1;
     }
@@ -1403,7 +1402,7 @@ void W8TextControl005ED604::ActivatePrimary(int)
         (m_stateFlags & 1) != 0) {
         m_stateFlags |= 4;
         if ((m_flags_38 & 0x20) == 0) {
-            Function558720(3);
+            PlayButtonSound(3);
         }
         if (m_listener != 0) {
             m_listener->OnPrimary(this);
@@ -1441,7 +1440,7 @@ void W8TextControl005ED604::ActivateSecondary(int)
     if ((m_flags_38 & 0x100) != 0 && m_flag_5 != 0 && m_flag_4 != 0) {
         m_stateFlags |= 4;
         if ((m_flags_38 & 0x20) == 0) {
-            Function558720(3);
+            PlayButtonSound(3);
         }
         if (m_listener != 0) {
             m_listener->OnSecondary(this);

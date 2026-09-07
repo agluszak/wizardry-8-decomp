@@ -21,6 +21,15 @@
 // LIBRARY: WIZ8 0x00402750
 // FreeMouseCursor
 
+// LIBRARY: WIZ8 0x00402760
+// GetMouseWheelDeltaValue
+
+// LIBRARY: WIZ8 0x00406BF0
+// SetCountdownClock
+
+// LIBRARY: WIZ8 0x00406C00
+// ClockIsTicking
+
 // LIBRARY: WIZ8 0x00405E60
 // InitializeVideoObjectManager
 
