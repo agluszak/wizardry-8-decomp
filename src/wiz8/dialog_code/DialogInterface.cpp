@@ -69,6 +69,12 @@ void ConfigureDialogFont(int font, unsigned char enabled,
 
 #define DIALOG_INTERFACE_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\DialogInterface.cpp"
 
+// FUNCTION: WIZ8 0x005cf510
+unsigned char GetDialogResult(W8DialogBase005DC7A0* dialog)
+{
+    return static_cast<W8ModalDialogBase*>(dialog)->close_result;
+}
+
 // FUNCTION: WIZ8 0x005cf520
 void DrawDialog(W8DialogBase005DC7A0* dialog)
 {

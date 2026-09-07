@@ -1,8 +1,12 @@
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
+#include "wiz8/dialog_code/DialogInterface.h"
+#include "wiz8/dialog_base.h"
+#include "wiz8/local_code/Strings.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/utility.h"
 #include "wiz8/xstatus.h"
 
 /*
@@ -20,9 +24,13 @@ extern W8TextControl005ED604* g_dismiss_button_0069c400;
 extern int g_rcs_mode_0064cbe8;
 extern unsigned char g_in_combat_00683f94;
 extern unsigned char g_camp_open_00683f9b;
+extern unsigned short g_value_006840be;
 extern void* g_value_0069c0f8;
 extern void SetPendingScreenState(int state);
-extern void ShowDismissCharacterDialog(void);
+extern void DisplayCampDialog(W8DialogBase005DC7A0* dialog);
+extern void DismissSelectedPartyCharacter(void);
+void ShowDismissCharacterDialog(void);
+void OnDismissCharacterDialogClosed(W8DialogBase005DC7A0* dialog);
 
 // FUNCTION: WIZ8 0x005b6630
 void OpenLevelUpCharacterScreen(void)
@@ -144,6 +152,49 @@ void CreateRcsDismissPanel(void)
         ShowDismissCharacterDialog;
     g_dismiss_panel_0069c3c8->SetEnabled(1);
     g_dismiss_button_0069c400->SetEnabled(0);
+}
+
+// FUNCTION: WIZ8 0x005b6950
+void ShowDismissCharacterDialog(void)
+{
+    if (!g_party_slot_rows[g_rcs_mode_0064cbe8].occupied) {
+        srAssertFail("fCHAR_OCCUPIED(giReviewCharSlot)",
+                     "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp",
+                     0x90a, 0);
+    }
+
+    W8ModalDialogBase* dialog =
+        static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+    dialog->SetClientExtent(0xfa, 200);
+
+    W8Character* character = &g_party_characters[g_rcs_mode_0064cbe8];
+    const wchar_t* format;
+    if (character->condition_turns[19] == 0) {
+        if (character->condition_turns[W8_CONDITION_EQUIPMENT_UNLOCKED] == 0) {
+            format = gppStringList[0x92d];
+        }
+        else {
+            format = gppStringList[0x92e];
+        }
+    }
+    else {
+        format = gppStringList[0x92f];
+    }
+    dialog->SetMessage(
+        FormatWideString(format, character->name), 1, 0x32, 1, 1, 1, 1, 0,
+        0x15e);
+    SetDialogDestroyCallback(dialog, OnDismissCharacterDialogClosed);
+    DisplayCampDialog(dialog);
+}
+
+// FUNCTION: WIZ8 0x005b6a60
+void OnDismissCharacterDialogClosed(W8DialogBase005DC7A0* base)
+{
+    if (GetDialogResult(base) &&
+        g_party_slot_rows[g_rcs_mode_0064cbe8].animation_0fa != -1) {
+        g_value_006840be = static_cast<unsigned short>(g_rcs_mode_0064cbe8);
+        DismissSelectedPartyCharacter();
+    }
 }
 
 /* The same for the second panel and its widget. */
