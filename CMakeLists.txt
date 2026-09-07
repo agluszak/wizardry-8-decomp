@@ -27,7 +27,6 @@ if(WIZ8_LINT_COMPILE_ONLY)
         src/surrender/system.cpp
         src/surrender/type_registry.cpp
         src/surrender/vector_processor.cpp
-        src/wiz8/zlib_wrappers.c
     )
     target_include_directories(${wiz8_clang_target} PRIVATE
         tools/lint/include

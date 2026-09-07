@@ -62,17 +62,14 @@ semantics, the recovered call graph, and cross-build boundaries—not from weak 
 consistent with the executable's mixed 8447/8168/9044 Rich records and the unavailable complete
 8447-era optimizer combination.
 
-## Recovered Wizardry boundary
+## Retained SGP boundary
 
-The game-owned boundary functions are compilable C in `src/wiz8/zlib_wrappers.c`. The pinned SGP
-initial import contains this same boundary in `sgp/Compression.c`, so these are source-backed
-original names rather than descriptive placeholders. The boundary installs CRT allocation
-callbacks, constructs the zlib stream, retains the caller's input span, performs partial-flush
-decompression, and tears the stream down.
-
-`just build WIZ8_ZLIB_WRAPPERS` compiles this source with the pinned VC6 SP5 `/O2 /MD` toolchain
-against the pristine zlib 1.0.4 headers. Relocation-normalized classifications and hashes live in
-the canonical matching data rather than this document.
+The five boundary functions are built from the pinned `sgp/Compression.c`; Wizardry does not own a
+second implementation. The comparison build defines `WIZ8_RETAIN_DECOMPRESSION_ONLY` so its
+`/OPT:NOREF` image retains the five functions present in Wizardry without introducing the stripped
+compression half of the source unit. The runtime behavior remains the released implementation:
+install CRT allocation callbacks, construct the zlib stream, retain the caller's input span,
+perform partial-flush decompression, and tear the stream down.
 
 ## Reviewed Ghidra model
 

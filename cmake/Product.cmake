@@ -95,9 +95,6 @@ function(wiz8_add_executable)
         )
         set(subsystem /SUBSYSTEM:WINDOWS,4.0)
     endif()
-    if(TARGET WIZ8_ZLIB_WRAPPERS)
-        target_sources(${ARG_TARGET} PRIVATE $<TARGET_OBJECTS:WIZ8_ZLIB_WRAPPERS>)
-    endif()
     add_dependencies(${ARG_TARGET}
         ${WIZ8_SR_IMPORT_TARGET}
         ${WIZ8_MSS32_IMPORT_TARGET}

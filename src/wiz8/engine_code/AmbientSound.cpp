@@ -379,8 +379,6 @@ void ToggleAmbientSoundByName0047AA70(int /* unused */, const char* name)
 }
 
 extern int PlaySoundConfigured00408D60(const char* path, int* options);
-extern unsigned char Function4098D0(int size);
-extern "C" void SetMasterSoundVolume(unsigned int volume);
 extern unsigned char g_master_ambient_volume_6850f6;
 extern unsigned char g_saved_ambient_volume_6850fa;
 extern const unsigned short g_empty_ambient_name_65a110;
@@ -419,7 +417,7 @@ unsigned char LoadAmbientSoundList0047AB40(char* filename)
                    &configured[5], &configured[0], &configured[1],
                    &direct_selector);
             sprintf(path, "%s\\%s", directory, name);
-            Function4098D0(0xc8000);
+            SoundSetCacheThreshhold(0xc8000);
             if (direct_selector == -1) {
                 configured[8] = -16;
                 PlaySoundConfigured00408D60(path, configured);
@@ -445,7 +443,7 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
     int index;
 
     g_master_ambient_volume_6850f6 = volume;
-    SetMasterSoundVolume(volume);
+    SoundSetDefaultVolume(volume);
     if (g_world != 0 && g_world->plsAmbientSounds != 0) {
         count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
@@ -502,7 +500,7 @@ void SetAmbientSoundMuted0047AE90(char muted)
     if (muted == 0) {
         if (g_saved_ambient_volume_6850fa != 0xff) {
             g_master_ambient_volume_6850f6 = g_saved_ambient_volume_6850fa;
-            SetMasterSoundVolume(g_saved_ambient_volume_6850fa);
+            SoundSetDefaultVolume(g_saved_ambient_volume_6850fa);
             if (g_world != 0 &&
                 g_world->plsAmbientSounds != 0) {
                 count = static_cast<int>(
@@ -556,7 +554,7 @@ void SetAmbientSoundMuted0047AE90(char muted)
     else if (g_saved_ambient_volume_6850fa == 0xff) {
         g_saved_ambient_volume_6850fa = g_master_ambient_volume_6850f6;
         g_master_ambient_volume_6850f6 = 0;
-        SetMasterSoundVolume(0);
+        SoundSetDefaultVolume(0);
         if (g_world != 0 &&
             g_world->plsAmbientSounds != 0) {
             count = static_cast<int>(

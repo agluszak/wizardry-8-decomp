@@ -1,11 +1,4 @@
 if(ZLIB_SOURCE)
-    # These five functions are Wizardry-owned adapters around pristine zlib
-    # 1.0.4, not a second copy of the library implementation.
-    add_library(WIZ8_ZLIB_WRAPPERS OBJECT
-        src/wiz8/zlib_wrappers.c
-    )
-    target_include_directories(WIZ8_ZLIB_WRAPPERS PRIVATE "${ZLIB_SOURCE}")
-
     # The canonical executable statically links pristine zlib 1.0.4; 46 of its
     # bodies are already reviewed by their source markers and provenance claims.
     # Build the pinned source as a real library so bring-up resolves inflate*

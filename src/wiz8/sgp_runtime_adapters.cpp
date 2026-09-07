@@ -12,6 +12,51 @@
 #include "vobject_blitters.h"
 #include "vsurface.h"
 
+// LIBRARY: WIZ8 0x0040F020
+// InitializeRegistryKeys
+
+// LIBRARY: WIZ8 0x004086C0
+// SoundEnableSound
+
+// LIBRARY: WIZ8 0x00409120
+// SoundSetDefaultVolume
+
+// LIBRARY: WIZ8 0x004098D0
+// SoundSetCacheThreshhold
+
+// LIBRARY: WIZ8 0x00415820
+// ZAlloc
+
+// LIBRARY: WIZ8 0x00415840
+// ZFree
+
+// LIBRARY: WIZ8 0x00415850
+// DecompressInit
+
+// LIBRARY: WIZ8 0x004158B0
+// Decompress
+
+// LIBRARY: WIZ8 0x004158F0
+// DecompressFini
+
+// LIBRARY: WIZ8 0x00402970
+// InitializeVideoSurfaceManager
+
+// LIBRARY: WIZ8 0x00402990
+// ShutdownVideoSurfaceManager
+
+// LIBRARY: WIZ8 0x004029F0
+// RestoreVideoSurfaces
+
+// LIBRARY: WIZ8 0x00402E30
+// SetPrimaryVideoSurfaces
+
+// LIBRARY: WIZ8 0x00402E60
+// DeletePrimaryVideoSurfaces
+
+// LIBRARY: WIZ8 0x004044C0
+// CreateVideoSurfaceFromDDSurface
+
 // LIBRARY: WIZ8 0x00404C70
 // FileDelete
 
@@ -363,6 +408,7 @@ IDirectDraw2* GetDirectDraw2Object(void)
     return g_direct_draw2_6596a0;
 }
 
+// FUNCTION: WIZ8 0x00421F20
 IDirectDrawSurface2* GetFrameBufferObject(void)
 {
     return g_primary_surface_6596a8;

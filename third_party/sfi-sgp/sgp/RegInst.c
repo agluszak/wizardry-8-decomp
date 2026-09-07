@@ -72,6 +72,7 @@ BOOLEAN InitializeRegistryKeys(STR lpszAppName, STR lpszRegistryKey)
 	return(TRUE);
 }
 
+#ifndef WIZ8_RETAIN_REGISTRY_INITIALIZATION_ONLY
 // returns key for HKEY_CURRENT_USER\"Software"\RegistryKey\ProfileName
 // creating it if it doesn't exist
 // responsibility of the caller to call RegCloseKey() on the returned HKEY
@@ -384,3 +385,4 @@ BOOL WriteProfileBinary(STR lpszSection, STR lpszEntry, LPBYTE pData, UINT nByte
 //	return bResult;
 	return TRUE;
 }
+#endif

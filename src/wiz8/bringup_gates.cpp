@@ -9,6 +9,8 @@
 #include "Font.h"
 #include "FileMan.h"
 #include "Mss.h"
+#include "RegInst.h"
+#include "soundman.h"
 #include "input.h"
 #include "random.h"
 #include "sgp.h"
@@ -37,34 +39,18 @@ struct W8VideoManagerNode {
     W8VideoManagerNode* next;
 };
 
-W8VideoManagerNode* g_surface_list_650dbc;
-/* Released and cleared together by 0x00402E60, which frees each through
-   0x00403A50; only the third is rebuilt here. */
-HVSURFACE g_surface_650dd4;
-HVSURFACE g_surface_650dd8;
-HVSURFACE g_primary_surface_view_650ddc;
-HVSURFACE g_surface_650de0;
-extern "C" HVSURFACE ghFrameBuffer;
-extern "C" HVSURFACE ghMouseBuffer;
-int g_dword_650dc0;
 int g_cursor_clip_active_650db8;
-int g_dword_650dc4;
-int g_dword_650dc8;
-int g_dword_650dcc;
-int g_dword_6ef4c0;
 int g_dword_650df4;
 int g_dword_650df8;
 int g_dword_650dfc;
 int g_dword_650e00;
 bool g_flag_650e04;
 unsigned char g_flag_650e50;
-unsigned char g_flag_5ff651;
 extern unsigned char g_flag_65970f;
 extern unsigned char g_flag_6598a8;
 extern unsigned char g_flag_659711;
 extern unsigned char g_fullscreen_603c39;
 int g_dword_65a104;
-int g_dword_5ff64c;
 extern int g_dword_687595;
 extern unsigned char g_byte_68de44;
 extern unsigned char g_flag_65970f;
@@ -78,61 +64,6 @@ int g_dword_650e30;
 unsigned char g_video_objects_ready_650e20;
 unsigned char g_flag_5ff5e8;
 
-// FUNCTION: WIZ8 0x00402e60
-void Function402E60(void)
-{
-    if (g_surface_650dd4) {
-        DeleteVideoSurface(g_surface_650dd4);
-        g_surface_650dd4 = 0;
-    }
-    if (g_surface_650dd8) {
-        DeleteVideoSurface(g_surface_650dd8);
-        g_surface_650dd8 = 0;
-    }
-    if (g_primary_surface_view_650ddc) {
-        DeleteVideoSurface(g_primary_surface_view_650ddc);
-        g_primary_surface_view_650ddc = 0;
-    }
-    if (g_surface_650de0) {
-        DeleteVideoSurface(g_surface_650de0);
-        g_surface_650de0 = 0;
-    }
-}
-
-// FUNCTION: WIZ8 0x00421f20
-IDirectDrawSurface2* Function421F20(void)
-{
-    return g_primary_surface_6596a8;
-}
-
-// FUNCTION: WIZ8 0x004044c0
-HVSURFACE Function4044C0(IDirectDrawSurface2* surface)
-{
-    return CreateVideoSurfaceFromDDSurface(surface);
-}
-
-
-/* Named in the startup spine. The rest are gates it records as
-   uncharacterisable, and the callees below it that nothing yet identifies. */
-/* Three adjacent 0x34-byte SGP buffers. The helper copies the application name
-   into the first and third and the key-class spelling into the middle one; it
-   does not call RegisterClassA despite its old provisional name. */
-char g_application_key_650eac[0x34];
-char g_application_name_copy_650ee0[0x34];
-char g_application_name_650f14[0x34];
-
-// FUNCTION: WIZ8 0x0040f020
-unsigned char RegisterWindowClass(const char* application_name, const char* key_class)
-{
-    if (!application_name || !key_class) {
-        return 0;
-    }
-    strcpy(g_application_name_650f14, application_name);
-    strcpy(g_application_key_650eac, key_class);
-    strcpy(g_application_name_copy_650ee0, g_application_name_650f14);
-    return 1;
-}
-
 extern void ProcessCommandLine(char* pCommandLine);
 extern void GetRuntimeSettings(void);
 extern unsigned char InitializeWiz8FontManager(
@@ -142,52 +73,12 @@ unsigned int g_mswheel_roll_message;
 bool g_flag_6505a9;
 
 
-/* Rebuilds the view of the primary DirectDraw surface. 0x00402E60 releases and
-   clears the four views this module owns, 0x00421F20 hands back the primary
-   surface, and 0x004044C0 wraps it in the 0x30-byte descriptor that carries its
-   width, height and depth. Reports whether the wrapper was built; a missing
-   surface is not an error the caller distinguishes from a failed wrap. */
-// FUNCTION: WIZ8 0x00402e30
-bool Function402E30(void)
-{
-    IDirectDrawSurface2* surface;
-    bool built;
-
-    Function402E60();
-    surface = Function421F20();
-    if (surface == NULL) {
-        return false;
-    }
-    g_primary_surface_view_650ddc = Function4044C0(surface);
-    built = g_primary_surface_view_650ddc != 0;
-    if (built) {
-        /* The released VSurface manager names these two reserved handles.
-           Wizardry owns the actual DirectDraw wrapper, so publish that one
-           instead of constructing a parallel surface database. */
-        ghFrameBuffer = g_primary_surface_view_650ddc;
-        ghMouseBuffer = g_primary_surface_view_650ddc;
-    }
-    return built;
-}
-
 /* Shared success stub. BringUpEngine uses it as a gate and the 62-entry frame
    dispatch table parks it in seventeen slots. */
 // FUNCTION: WIZ8 0x005b1740
 unsigned char Function5B1740(void)
 {
     return 1;
-}
-
-// FUNCTION: WIZ8 0x00402970
-bool InitializeWizardryVideoSurfaceManager(void)
-{
-    bool ready;
-
-    g_dword_650dc0 = 0;
-    g_surface_list_650dbc = 0;
-    g_dword_6ef4c0 = 0;
-    ready = Function402E30() != 0;
-    return ready;
 }
 
 // FUNCTION: WIZ8 0x00402750
@@ -214,53 +105,6 @@ bool InitializeWizardryVideoObjectManager(void)
     g_dword_650e28 = 0;
     g_video_object_list_650e24 = 0;
     g_video_objects_ready_650e20 = 1;
-    return true;
-}
-
-// FUNCTION: WIZ8 0x00402990
-bool ShutdownWizardryVideoSurfaceManager(void)
-{
-    W8VideoManagerNode* node;
-
-    Function402E60();
-    while (g_surface_list_650dbc) {
-        node = g_surface_list_650dbc;
-        g_surface_list_650dbc = node->next;
-        DeleteVideoSurface((HVSURFACE)node->handle);
-        free(node);
-    }
-    g_dword_650dc0 = 0;
-    g_dword_650dc4 = 0;
-    g_dword_650dc8 = 0;
-    g_dword_650dcc = 0;
-    return true;
-}
-
-// FUNCTION: WIZ8 0x004029f0
-bool Function4029F0(void)
-{
-    W8VideoManagerNode* node = g_surface_list_650dbc;
-
-    while (node) {
-        HVSURFACE surface = reinterpret_cast<HVSURFACE>(node->handle);
-        if ((surface->fFlags & VSURFACE_VIDEO_MEM_USAGE) == 0 ||
-            surface->pSavedSurfaceData1 == 0) {
-            return false;
-        }
-        DDRestoreSurface(
-            reinterpret_cast<IDirectDrawSurface2*>(surface->pSurfaceData));
-        RECT rectangle;
-        rectangle.left = 0;
-        rectangle.top = 0;
-        rectangle.right = surface->usWidth;
-        rectangle.bottom = surface->usHeight;
-        DDBltFastSurface(
-            reinterpret_cast<IDirectDrawSurface2*>(surface->pSavedSurfaceData),
-            0, 0,
-            reinterpret_cast<IDirectDrawSurface2*>(surface->pSurfaceData),
-            &rectangle, 0);
-        node = node->next;
-    }
     return true;
 }
 
@@ -301,24 +145,17 @@ bool g_flag_5ff538;
 unsigned char g_flag_6ef440;
 
 void ShutdownHandler(void);
-bool SetModuleSubdirectory(const char* subdirectory);
+bool AddSubdirectoryToPath(const char* subdirectory);
 bool g_shutdown_started_650db5;
 bool g_teardown_done_650db4;
 char g_shutdown_message_6505ac[0x100];
 extern void MSYS_Shutdown(void);
-extern bool ShutdownWizardryVideoSurfaceManager(void);
 extern void ShutdownWizardryVideoObjectManager(void);
 extern int ReturnZero(void);
 
 
 
 /* Stores the byte 0x004086D0's environment selection consults. */
-// FUNCTION: WIZ8 0x004086c0
-void Function4086C0(int enable)
-{
-    g_flag_5ff651 = (unsigned char)enable;
-}
-
 /* Reports the byte at 0x00603C39; the only reader is 0x00421BB0. */
 // FUNCTION: WIZ8 0x004229b0
 unsigned char Function4229B0(void)
@@ -349,21 +186,11 @@ void Function42BC00(void)
 /* Takes the default unless the caller names a size. Nothing yet establishes
    what consumes the value, so both it and its holder keep address-derived
    names. */
-// FUNCTION: WIZ8 0x004098d0
-unsigned char Function4098D0(int size)
-{
-    g_dword_5ff64c = 0x1f5800;
-    if (size != 0) {
-        g_dword_5ff64c = size;
-    }
-    return 1;
-}
-
 /* Sets the size above to 0x000C8000 and clears its companion. */
 // FUNCTION: WIZ8 0x00479010
 void Function479010(void)
 {
-    Function4098D0(0xc8000);
+    SoundSetCacheThreshhold(0xc8000);
     g_dword_65a104 = 0;
 }
 
@@ -483,6 +310,10 @@ extern void Function427A30(const char* path);
 extern void Function422970(int enable);
 
 extern unsigned char Function409C50(void);
+extern "C" {
+extern BOOLEAN gfEnableStartup;
+extern UINT32 guiSoundCacheThreshold;
+}
 
 unsigned char g_flag_5ff652;
 void* g_pointer_5ff648;
@@ -510,13 +341,13 @@ bool Function4086D0(void)
         g_flag_650e50 = 0;
     }
     memset(g_block_6e4120, 0, sizeof(g_block_6e4120));
-    if (g_flag_5ff651 && Function409C50()) {
+    if (gfEnableStartup && Function409C50()) {
         g_flag_650e50 = 1;
     }
     g_pointer_5ff648 = g_buffer_7dc000;
     memset(g_block_6e4aa0, 0, sizeof(g_block_6e4aa0));
     g_dword_650e4c = 0;
-    g_dword_5ff64c = 0x1f5800;
+    guiSoundCacheThreshold = 0x1f5800;
     if (g_sound_provider_650e54 && g_provider_650e58 == 0) {
         next = 0;
         provider = 0;
@@ -873,7 +704,7 @@ bool Function407D30(unsigned short code, W8BindingNode* source)
    PATH, so plug-in DLLs load from the shipped subdirectory. Every string call
    here is inlined by VC6, which is why the body is mostly rep movs. */
 // FUNCTION: WIZ8 0x00405740
-bool SetModuleSubdirectory(const char* subdirectory)
+bool AddSubdirectoryToPath(const char* subdirectory)
 {
     char path[520];
     CHAR environment[520];
@@ -931,7 +762,7 @@ void ShutdownHandler(void)
         DestroyEnglishTransTable();
         ShutdownFontManager();
         ShutdownClockManager();
-        ShutdownWizardryVideoSurfaceManager();
+        ShutdownVideoSurfaceManager();
         ShutdownWizardryVideoObjectManager();
         ShutdownRenderer();
         ShutdownInputManager();
@@ -957,8 +788,8 @@ bool BringUpEngine(void* instance, int show_command)
     FontTranslationTable* font_table;
 
     atexit(ShutdownHandler);
-    RegisterWindowClass("Wizardry8", "Wizardry8key");
-    SetModuleSubdirectory("DLL");
+    InitializeRegistryKeys("Wizardry8", "Wizardry8key");
+    AddSubdirectoryToPath("DLL");
     GetRuntimeSettings();
     Function404B00();
     if (!InitializeVideoSurfaceState()) {
@@ -977,7 +808,7 @@ bool BringUpEngine(void* instance, int show_command)
     if (!InitializeWizardryVideoObjectManager()) {
         return false;
     }
-    if (!InitializeWizardryVideoSurfaceManager()) {
+    if (!InitializeVideoSurfaceManager()) {
         return false;
     }
     InitializeClockManager();

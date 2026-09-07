@@ -90,6 +90,7 @@ UNITS = (
         "target": "WIZ8_SGP_RUNTIME",
     },
     {"id": "vsurface", "source": "vsurface.c", "target": "WIZ8_SGP_VSURFACE"},
+    {"id": "reginst", "source": "RegInst.c", "target": "WIZ8_SGP_WHOLE"},
 )
 
 CLASSIFICATION_RANK = {

@@ -12,7 +12,6 @@ extern "C" {
 
 
 W8GameSettings g_settings_6850c8;
-unsigned int g_master_sound_volume_5ff644;
 int g_music_sample_handle_60aae0 = -1;
 
 // FUNCTION: WIZ8 0x00428e60
@@ -39,12 +38,6 @@ int GetRendererFamily(void)
     if (strstr(name, "GLIDE")) return 2;
     if (strstr(name, "DIRECT3D")) return 1;
     return strstr(name, "SOFTWARE") ? 3 : 4;
-}
-
-// FUNCTION: WIZ8 0x00409120
-void SetMasterSoundVolume(unsigned int volume)
-{
-    g_master_sound_volume_5ff644 = volume > 0x7f ? 0x7f : volume;
 }
 
 // FUNCTION: WIZ8 0x0048fe50
@@ -101,7 +94,7 @@ void LoadGameConfiguration(void)
     if (!loaded) {
         Function54B560();
     }
-    SetMasterSoundVolume(g_settings_6850c8.field_02e);
+    SoundSetDefaultVolume(g_settings_6850c8.field_02e);
     SetMusicVolume(g_settings_6850c8.field_02f);
     float gamma;
     memcpy(&gamma, &g_settings_6850c8.field_03c, sizeof(gamma));

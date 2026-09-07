@@ -17,3 +17,4 @@ soundman,sgp/soundman.c,partial,all-emitted,91,12,12,4,direct-object,"Twelve bod
 vobject,sgp/vobject.c,partial,all-emitted,32,16,16,0,runtime-object,"Sixteen video-object manager bodies have unique source matches in every comparable build"
 vobject_blitters,sgp/vobject_blitters.c,partial,all-emitted,105,20,20,0,runtime-object,"Twenty low-level blitters have unique source matches in every comparable build; generic and stripped variants remain unclaimed"
 vsurface,sgp/vsurface.c,partial,all-emitted,56,22,22,2,runtime-object,"Twenty-two video-surface manager bodies have unique source matches; lock-buffer and unlock-buffer carry Wizardry modifications"
+reginst,sgp/RegInst.c,partial,selected-retained,1,1,1,0,direct-object,"InitializeRegistryKeys is retained from the released unit; unrelated registry accessors are excluded from the no-ref image"

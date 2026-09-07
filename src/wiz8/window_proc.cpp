@@ -5,6 +5,7 @@
 #include "Font.h"
 #include "input.h"
 #include "timer.h"
+#include "vsurface.h"
 
 float Function420B40(int value);
 
@@ -31,10 +32,8 @@ extern void Function422550(void);
 extern unsigned char Function4277E0(void);
 extern unsigned char Function4220B0(void);
 extern void Function422050(void);
-extern bool Function4029F0(void);
 extern void MSYS_Shutdown(void);
 extern void Function408850(void);
-extern bool ShutdownWizardryVideoSurfaceManager(void);
 extern void ShutdownWizardryVideoObjectManager(void);
 extern void NoOp(void);
 extern void ShutdownVideoSurfaceState(void);
@@ -92,7 +91,7 @@ long __stdcall WindowProc4011E0(
             DestroyEnglishTransTable();
             ShutdownFontManager();
             ShutdownClockManager();
-            ShutdownWizardryVideoSurfaceManager();
+            ShutdownVideoSurfaceManager();
             ShutdownWizardryVideoObjectManager();
             ShutdownRenderer();
             ShutdownInputManager();
@@ -139,7 +138,7 @@ long __stdcall WindowProc4011E0(
         }
         if (!Function4277E0()) {
             Function4220B0();
-            Function4029F0();
+            RestoreVideoSurfaces();
         }
         Function420B40(8);
         g_flag_6f0630 = 1;
