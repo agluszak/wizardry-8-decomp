@@ -94,16 +94,30 @@ enum {
     W8_RACE_ADJUSTMENT_ATTRIBUTE_BIAS = 1000
 };
 
-/* One hand's attack block. The extent is the stride between the two, and only
-   the two leading fields are established. */
+/* One hand's derived attack block. CalcAttacks walks two at this stride, while
+   the equipment refresh helper writes the leading wield kind at 0x00. */
 typedef struct W8HandAttack {
-    unsigned char in_play;                /* 0x00 */
-    int weapon_skill;                     /* 0x01, unaligned */
-    unsigned char unknown_05[0xc];
-    /* 0x11: what the hand's attack is worth, read only once the hand has a
-       range to the target at all. */
-    int attack_value;
-    unsigned char unknown_15[0x46];
+    int wield_kind;                       /* 0x00 */
+    unsigned char in_play;                /* 0x04 */
+    int weapon_skill;                     /* 0x05, unaligned */
+    int combat_skill;                     /* 0x09 */
+    unsigned int combined_skill;          /* 0x0d */
+    int attack_score;                     /* 0x11 */
+    unsigned int attacks;                 /* 0x15 */
+    int swings;                           /* 0x19 */
+    int hit_bonus;                        /* 0x1d */
+    int value_21;                         /* 0x21 */
+    int value_25;                         /* 0x25 */
+    int value_29;                         /* 0x29 */
+    W8Dice damage_dice;                   /* 0x2d */
+    unsigned short attack_flags;          /* 0x31 */
+    int value_33;
+    unsigned char unknown_37[2];
+    signed char strength_bonus_39;
+    unsigned char unknown_3a;
+    int value_3b;
+    int value_3f;
+    unsigned char unknown_43[0x18];
 } W8HandAttack;                           /* 0x5b */
 
 typedef struct W8Character {
@@ -237,11 +251,11 @@ typedef struct W8Character {
     /* 0x1029: the eight per-character carried slots. GetOriginOfCharacterItem
        reports this array as origin zero and the equipment array as origin one. */
     W8ItemInstance backpack[8];           /* 0x1029 */
-    unsigned char unknown_1089[0xc4];
-    /* 0x114d: one block per hand. Only the leading flag - the hand is in play -
-       and the weapon skill the attack setup stamps into it are established. */
-    W8HandAttack hand_attacks[2];         /* 0x114d */
-    unsigned char unknown_1203[0x49b];
+    unsigned char unknown_1089[0xc0];
+    W8HandAttack hand_attacks[2];         /* 0x1149 */
+    unsigned char unknown_11ff[0xb6];
+    unsigned char dual_wielding;          /* 0x12b5 */
+    unsigned char unknown_12b6[0x3e8];
     /* 0x169e: the fatigue band, zero through four, recomputed from the stamina
        fraction whenever it moves; a change re-runs the armour class pass. */
     int fatigue_band;

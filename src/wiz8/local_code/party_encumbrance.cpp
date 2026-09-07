@@ -11,7 +11,6 @@
    not established; this descriptive name is provisional. */
 
 extern unsigned int GetItemStackWeight(const W8ItemInstance* item);
-extern void Function4EE220(W8Character* character);
 extern void RequestRedraw(unsigned int mask);
 
 // FUNCTION: WIZ8 0x004edd20
@@ -101,7 +100,7 @@ void Function4EDD20(void)
         }
         if (old_band != character->load_category) {
             CalcInitiative(character);
-            Function4EE220(character);
+            CalcAttacks(character);
             CalcArmorClasses(character);
         }
     }

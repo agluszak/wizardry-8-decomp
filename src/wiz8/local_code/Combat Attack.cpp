@@ -211,7 +211,7 @@ int GetHandAttackValue(int party_slot, unsigned int hand)
     }
     if (g_party_characters[party_slot].hand_attacks[hand].in_play != 0 &&
         CalcRangeCategoryToTarget(&g_party_characters[party_slot], hand) != -1) {
-        return g_party_characters[party_slot].hand_attacks[hand].attack_value;
+        return g_party_characters[party_slot].hand_attacks[hand].attacks;
     }
     return 0;
 }

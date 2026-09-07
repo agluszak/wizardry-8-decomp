@@ -1,5 +1,6 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/party_encumbrance.h"
@@ -287,10 +288,6 @@ extern void* g_item_message_arg_005ed914;
 
 /* Whether a weapon and an off-hand item go together, named by its own error
    text at 0x0051C8F0. */
-extern unsigned char CompatiblePartnerItems(int weapon_item_id, int off_hand_item_id);
-
-extern void Function5201B0(W8Character* character, int equip_slot);
-extern void Function4EE220(W8Character* character);
 extern unsigned char Function521060(
     int item_id, int value_1, int value_2, int value_3, int value_4);
 extern void Function50E5C0(int party_slot);
@@ -1420,11 +1417,11 @@ bool ItemHasHiddenProperties(int item_id)
     unsigned int index;
 
     for (index = 0; index < 9; ++index) {
-        if ((*(const unsigned short*)&record->unknown_048[6] & (1 << index)) != 0) {
+        if ((record->attack_flags_04e & (1 << index)) != 0) {
             return true;
         }
     }
-    if (record->unknown_048[0x1a] != 0) {
+    if (record->armor_class_bonus != 0) {
         return true;
     }
     for (index = 0; index < 6; ++index) {
@@ -1978,7 +1975,7 @@ void Function520D10(
 
     unsigned int party_slot = CharacterPointerToPartySlot(character);
     if (primary_right || primary_left) {
-        Function4EE220(character);
+        CalcAttacks(character);
     }
     if (!refresh) {
         return;

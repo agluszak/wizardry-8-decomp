@@ -5,6 +5,8 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/layouts/item_tables.h"
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/npc_state.h"
 
 /*
  * Local Code\GameplayCode.cpp.
@@ -39,6 +41,12 @@ unsigned char g_in_combat_00683f94;
 
 static const unsigned char g_armor_class_location_weights[5] = {
     15, 40, 30, 10, 5
+};
+
+static const W8Dice g_unarmed_damage_dice[12] = {
+    { 0, 1, 2 }, { 0, 1, 3 }, { 0, 2, 2 }, { 0, 2, 3 },
+    { 0, 2, 4 }, { 0, 3, 3 }, { 1, 3, 3 }, { 2, 3, 3 },
+    { 0, 3, 5 }, { 0, 4, 4 }, { 2, 4, 4 }, { 4, 4, 4 }
 };
 
 /* Whether any monster is engaged with the party right now: in combat, in the
@@ -287,6 +295,302 @@ void CalcInitiative(W8Character* character)
         srAssertFail("FALSE", GAMEPLAY_CODE_CPP, 380,
                      "CalcInitiative: ERROR - Invalid load category");
         break;
+    }
+}
+
+// FUNCTION: WIZ8 0x004ee220
+void CalcAttacks(W8Character* character)
+{
+    W8HandAttack* attacks[2];
+    W8ItemDatabaseRecord* records[2];
+    W8ItemInstance* equipment[2];
+    unsigned int hand;
+    int physical_experience;
+    int load_penalty = 0;
+
+    for (hand = 0; hand < 2; ++hand) {
+        Function5201B0(character, hand + 6);
+        attacks[hand] = &character->hand_attacks[hand];
+        equipment[hand] = &character->equipment[hand + 6];
+        if (equipment[hand]->item_id == -1) {
+            records[hand] = 0;
+            attacks[hand]->weapon_skill = 14;
+        }
+        else {
+            records[hand] = &g_item_records[equipment[hand]->item_id];
+            attacks[hand]->weapon_skill = records[hand]->weapon_skill;
+        }
+    }
+
+    for (hand = 0; hand < 2; ++hand) {
+        W8HandAttack* attack = attacks[hand];
+        attack->in_play = 1;
+        switch (attack->weapon_skill) {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+        case 14:
+            attack->combat_skill = 16;
+            break;
+        case 7:
+        case 8:
+        case 9:
+            attack->combat_skill = 17;
+            if (ItemHasSingledOutGenericName(equipment[hand]->item_id) &&
+                (equipment[hand == 0]->item_id == -1 ||
+                 !CompatiblePartnerItems(
+                     equipment[hand]->item_id,
+                     equipment[hand == 0]->item_id))) {
+                attack->in_play = 0;
+            }
+            if (ItemHasQuantityKindFour(equipment[hand]->item_id) &&
+                equipment[hand]->uses_or_charges == 0) {
+                attack->in_play = 0;
+            }
+            break;
+        default:
+            attack->combat_skill = -1;
+            attack->in_play = 0;
+        }
+
+        if (hand == 1) {
+            if (attacks[0]->combat_skill != attacks[1]->combat_skill) {
+                attacks[1]->in_play = 0;
+            }
+            if (attacks[1]->wield_kind == 2 ||
+                attacks[1]->wield_kind == 3) {
+                attacks[1]->in_play = 0;
+            }
+            if (records[0] != 0 && records[0]->unidentified_name_index == 0x83) {
+                attacks[1]->in_play = 0;
+            }
+            if (attacks[1]->wield_kind == 0 && attacks[0]->wield_kind != 0) {
+                attacks[1]->in_play = 0;
+            }
+        }
+    }
+
+    character->dual_wielding =
+        attacks[0]->wield_kind == 1 && attacks[0]->in_play &&
+        attacks[1]->wield_kind == 1 && attacks[1]->in_play;
+
+    physical_experience = CalcPhysCombatExperience(character);
+    for (hand = 0; hand < 2; ++hand) {
+        W8HandAttack* attack = attacks[hand];
+        W8HandAttack* other = attacks[hand == 0];
+        int dual_penalty;
+        int score;
+        unsigned int divisor;
+
+        if (!attack->in_play) {
+            continue;
+        }
+
+        score = ((character->skills[attack->combat_skill].level +
+                  character->skills[attack->weapon_skill].level * 2) * 2) / 3;
+        divisor = 20;
+        if (other->wield_kind == 1 && other->in_play) {
+            score += character->skills[other->weapon_skill].level >> 1;
+            divisor = 25;
+        }
+        if (character->dual_wielding) {
+            score += character->skills[18].level;
+            divisor += 10;
+        }
+        attack->combined_skill = score * 10 / divisor;
+
+        switch (character->load_category) {
+        case 0:
+            load_penalty = 0;
+            break;
+        case 1:
+            load_penalty = -15;
+            break;
+        case 2:
+            load_penalty = -30;
+            break;
+        case 3:
+            load_penalty = -60;
+            break;
+        case 4:
+            load_penalty = -120;
+            break;
+        default:
+            srAssertFail("FALSE", GAMEPLAY_CODE_CPP, 715,
+                         "CalcAttacks: ERROR - Invalid load category");
+        }
+        if (attack->weapon_skill == 7) {
+            load_penalty /= 2;
+        }
+
+        if (character->dual_wielding) {
+            dual_penalty = -10 * (hand + 1) -
+                           (100 - character->skills[18].level) / 4;
+        }
+        else {
+            dual_penalty = 0;
+        }
+
+        attack->attack_score =
+            (dual_penalty + character->attributes[4].effective / 2 +
+             attack->combined_skill * 2 + physical_experience) / 3 + 60;
+        if (character->in_party && character->race == 15) {
+            unsigned int party_slot = CharacterPointerToPartySlot(character);
+            W8NpcState* npc = GetNpcState(g_party_slot_rows[party_slot].animation_0fa);
+            if (npc != 0 && npc->name_style == ' ' && !GetFact(0x44)) {
+                attack->attack_score /= 2;
+            }
+        }
+
+        score = (((character->attributes[5].effective +
+                   character->attributes[4].effective) >> 1) +
+                 dual_penalty + physical_experience + load_penalty +
+                 attack->combined_skill) / 3;
+        attack->attacks = 1;
+        if (hand == 0) {
+            if (score > 49) {
+                attack->attacks = 2;
+                if (score > 99) {
+                    attack->attacks = 3;
+                }
+            }
+        }
+        else if (score > 74) {
+            attack->attacks = 2;
+        }
+
+        score = (character->attributes[5].effective +
+                 attack->swings * 10 + dual_penalty +
+                 physical_experience + load_penalty +
+                 attack->combined_skill) / 3;
+        attack->swings = 1;
+        if (score > 66) {
+            attack->swings = 2;
+            if (score > 99) {
+                attack->swings = 3;
+            }
+        }
+        if (records[0] != 0 && records[0]->unidentified_name_index == 0x90) {
+            attack->swings = 1;
+        }
+
+        attack->hit_bonus = 0;
+        attack->value_21 = 0;
+        attack->value_25 = 0;
+        attack->value_29 = 0;
+        attack->damage_dice.base = 0;
+        attack->damage_dice.count = 0;
+        attack->damage_dice.sides = 0;
+        if (records[hand] != 0) {
+            attack->hit_bonus += records[hand]->attack_damage_bonus;
+            attack->value_21 += records[hand]->attack_hit_bonus;
+            if (other->wield_kind == 3 && records[hand == 0] != 0) {
+                attack->value_21 += records[hand == 0]->attack_hit_bonus;
+            }
+            if (ItemHasSingledOutGenericName(equipment[hand]->item_id)) {
+                attack->value_29 += records[hand]->attack_value_04a * 10;
+            }
+        }
+        else {
+            attack->hit_bonus += attack->combined_skill / 10;
+            attack->attack_flags = 0x20;
+            if (character->skills[attack->weapon_skill].level > 4) {
+                attack->attack_flags = 0x60;
+            }
+            attack->damage_dice =
+                g_unarmed_damage_dice[character->skills[attack->weapon_skill].level / 11];
+            if (hand == 0) {
+                attack->damage_dice.base += 2;
+            }
+            attack->value_33 = 0;
+            attack->unknown_37[0] = 0;
+            attack->unknown_37[1] = 0;
+            attack->strength_bonus_39 = 0;
+            attack->unknown_3a = 0;
+            attack->value_3b = 0;
+            attack->value_3f = 0;
+            if (character->attributes[0].effective > 49) {
+                attack->strength_bonus_39 =
+                    (character->attributes[0].effective - 50) / 5;
+            }
+        }
+
+        divisor = 1;
+        if (records[hand] != 0 &&
+            (records[hand]->attack_flags_04e & 0xfe6f) == 0) {
+            switch (records[hand]->unidentified_name_index) {
+            case 0x68:
+            case 0x6e:
+            case 0x72:
+            case 0x83:
+            case 0x90:
+                break;
+            default:
+                divisor = 2;
+            }
+        }
+
+        if (character->attributes[0].effective < 50) {
+            attack->value_21 -=
+                (50 - character->attributes[0].effective) / (divisor * 10);
+            attack->value_29 -=
+                (50 - character->attributes[0].effective) / divisor;
+        }
+        else if (character->attributes[0].effective > 50) {
+            divisor *= hand + 1;
+            attack->value_21 +=
+                (character->attributes[0].effective - 50) / (divisor * 10);
+            attack->value_29 +=
+                (character->attributes[0].effective * 2 - 100) / divisor;
+        }
+
+        if (character->attributes[4].effective < 50) {
+            attack->value_21 -= (50 - character->attributes[4].effective) / 10;
+        }
+        else if (character->attributes[4].effective > 50) {
+            attack->value_21 += (character->attributes[4].effective - 50) / 10;
+        }
+        if (character->attributes[6].effective < 30) {
+            attack->value_21 -= (30 - character->attributes[6].effective) / 10;
+        }
+        else if (character->attributes[6].effective > 70) {
+            attack->value_21 += (character->attributes[6].effective - 70) / 10;
+        }
+
+        switch (character->load_category) {
+        case 0:
+            load_penalty = 0;
+            break;
+        case 1:
+            load_penalty = -1;
+            break;
+        case 2:
+            load_penalty = -2;
+            break;
+        case 3:
+            load_penalty = -4;
+            break;
+        case 4:
+            load_penalty = -8;
+            break;
+        }
+        if (hand == 1) {
+            load_penalty = load_penalty * 3 / 2;
+        }
+        if (attack->weapon_skill == 7) {
+            load_penalty /= 2;
+        }
+        attack->value_21 += load_penalty;
+        if (character->skills[40].flag_00 && attack->combat_skill == 17) {
+            attack->value_21 += character->skills[40].level / 20 + 1;
+        }
+        if (character->skills[34].flag_00 && attack->combat_skill == 16) {
+            attack->value_21 += character->skills[34].level / 20 + 1;
+        }
     }
 }
 
