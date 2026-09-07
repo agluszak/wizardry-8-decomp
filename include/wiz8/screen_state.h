@@ -9,6 +9,19 @@ extern int g_options_detail_font_683614;
 extern unsigned short* g_colour_68ee08;
 extern unsigned short* g_font_state_palettes_68ee1c[15];
 extern HVOBJECT g_wiz_text_font_secondary_object_683680;
+extern int g_smfnt_font_683694;
+extern int g_calligraphy_font_6835f8;
+extern int g_calligraphy_shadow_font_6835f4;
+extern int g_wiz_text_font_683640;
+extern unsigned short* g_font_palette_smfnt_68ee10;
+extern unsigned short* g_font_palette_calligraphy_68edfc;
+extern unsigned short* g_font_palette_calligraphy_shadow_68ee18;
+extern unsigned short* g_font_palette_wiz_text_68ee14;
+extern int g_button_font_683670;
+extern int g_wiz_text_bold_font_683664;
+extern unsigned short* g_font_palette_button_68ee04;
+extern unsigned short* g_font_palette_wiz_text_bold_68ee0c;
+extern unsigned short* g_font_palette_options_detail_68ee00;
 }
 
 enum {
@@ -24,18 +37,20 @@ enum {
     W8_SCREEN_CREDITS = 9,
     W8_SCREEN_OPTIONS = 10,
     W8_SCREEN_JOURNAL = 11,
-    W8_SCREEN_EXIT = 12
+    W8_SCREEN_EXIT = 12,
+    W8_SCREEN_COUNT = 13
 };
 
 struct W8ScreenStateHandlers {
     unsigned char (*initialize)(void);  /* +0x00, startup ownership */
     unsigned char (*enter)(void);       /* +0x04, transition into state */
     void (*frame)(void);                /* +0x08, active frame */
-    unsigned char (*leave)(int leaving);/* +0x0c, transition out */
+    unsigned char (*leave)(int leaving);/* +0x0c, 0 = suspend, 1 = discard */
     unsigned char (*finalize)(void);    /* +0x10, shutdown ownership */
 };
 
-extern W8ScreenStateHandlers g_screen_handlers[13];
+extern W8ScreenStateHandlers g_screen_handlers[W8_SCREEN_COUNT];
+static_assert(sizeof(W8ScreenStateHandlers) == 0x14, "W8ScreenStateHandlers_size");
 
 /* The current and pending screen records begin at the two globals whose first
    dwords the reviewed setters address directly. One storage object preserves
@@ -51,27 +66,74 @@ struct W8ScreenStateRuntime {
     int parameter_2;               /* 0x0c */
     void* parameter_3;             /* 0x10, the save payload the Please Wait
                                       screen's mode 2 hands to SaveGame */
-    unsigned char unknown_14[4];   /* 0x14 */
+    int parameter_4;               /* 0x14, Camp's entry mode */
     char name[0x80];               /* 0x18 */
 };
 
-extern "C" W8ScreenStateRuntime g_screen_state_0068ec78;
-extern "C" W8ScreenStateRuntime g_dword_68ed10;
+extern W8ScreenStateRuntime g_current_screen_state;
+extern W8ScreenStateRuntime g_pending_screen_state;
+extern unsigned char g_screen_return_requested;
+extern void* g_screen_return_stack;
+extern int g_previous_screen_id;
+extern int g_suspended_screen_id;
 
 static_assert(sizeof(W8ScreenStateRuntime) == 0x98, "W8ScreenStateRuntime_must_be_0x98");
 
 void ReleaseScreenTransitionObjects(void);
-void Function4E3340(void);
-void ShutdownScreenStack(int release_screens);
+void UpdateScreenState(void);
+void ShutdownScreenStack(unsigned char release_screens);
+int GetPendingScreenState(void);
+void SetPendingScreenState(int value);
+void RequestScreenTransition(void);
+unsigned char IsScreenTransitionPending(void);
+void RequestExitScreen(void);
 
-/* 0x0069C0F4: the camp screen's state block, allocated while that screen is up.
-   Lifecycle record 6 - the camp record, which the screen enum's W8_SCREEN_CAMP
-   selects - clears the pointer from its initializer, and the redraw router reads
-   the flag word through it. Only that word is established. */
-struct W8CampScreenState0069C0F4 {
-    unsigned char m_positional_000[0xf8];
-    unsigned int redraw_flags;            /* 0xf8 */
-    unsigned int item_redraw_flags;       /* 0xfc */
-};
-
-extern "C" W8CampScreenState0069C0F4* g_camp_screen_0069c0f4;
+/* All records use this lifecycle contract. The shared success address occurs
+   in retail, including the game-start router's unused leave slot. */
+unsigned char ScreenLifecycleSuccess(void);
+unsigned char IntroScreenEnter(void);
+void IntroScreenFrame(void);
+unsigned char IntroScreenLeave(int leaving);
+unsigned char MainMenuScreenInitialize(void);
+unsigned char MainMenuScreenEnter(void);
+void MainMenuScreenFrame(void);
+unsigned char MainMenuScreenLeave(int leaving);
+void GameStartRouterFrame(void);
+unsigned char CharacterScreenEnter(void);
+void CharacterScreenFrame(void);
+unsigned char CharacterScreenLeave(int leaving);
+unsigned char PleaseWaitScreenInitialize(void);
+unsigned char PleaseWaitScreenEnter(void);
+void PleaseWaitScreenFrame(void);
+unsigned char PleaseWaitScreenLeave(char leaving);
+unsigned char PartySelectionScreenEnter(void);
+void PartySelectionScreenFrame(void);
+unsigned char PartySelectionScreenLeave(int leaving);
+unsigned char CampScreenInitialize(void);
+unsigned char CampScreenEnter(void);
+void CampScreenFrame(void);
+unsigned char CampScreenLeave(int leaving);
+unsigned char MainGameScreenInitialize(void);
+unsigned char MainGameScreenEnter(void);
+void MainGameScreenFrame(void);
+unsigned char MainGameScreenLeave(int leaving);
+unsigned char AutomapScreenInitialize(void);
+unsigned char AutomapScreenEnter(void);
+void AutomapScreenFrame(void);
+unsigned char AutomapScreenLeave(int leaving);
+unsigned char AutomapScreenFinalize(void);
+unsigned char CreditsScreenEnter(void);
+void CreditsScreenFrame(void);
+unsigned char CreditsScreenLeave(int leaving);
+unsigned char OptionsScreenInitialize(void);
+unsigned char OptionsScreenEnter(void);
+void OptionsScreenFrame(void);
+unsigned char OptionsScreenLeave(int leaving);
+unsigned char OptionsScreenFinalize(void);
+unsigned char JournalScreenInitialize(void);
+unsigned char JournalScreenEnter(void);
+void JournalScreenFrame(void);
+unsigned char JournalScreenLeave(int leaving);
+unsigned char JournalScreenFinalize(void);
+unsigned char ExitScreenEnter(void);
+void ExitScreenFrame(void);

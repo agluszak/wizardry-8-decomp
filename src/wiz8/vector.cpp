@@ -1,4 +1,5 @@
 #include "wiz8/vector.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/targeting.h"
 
@@ -430,31 +431,31 @@ class W8VectorElement005ED840;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-class W8VectorElement005EEA28;
+struct W8AutomapNote;
 
 // VTABLE: WIZ8 0x005eea28
-// class W8GrowableVector<W8VectorElement005EEA28*>
+// class W8GrowableVector<W8AutomapNote*>
 
 /* The list itself, reached through this pointer rather than through an owner.
    Lifecycle record 8's finalizer at 0x0057FA20 releases it from another
    translation unit, which is what makes it a global rather than the file-static
    it was modelled as. */
 // GLOBAL: WIZ8 0x0068F258
-W8GrowableVector<W8VectorElement005EEA28*>* g_list_0068F258;
+W8GrowableVector<W8AutomapNote*>* g_automap_notes;
 
 // SYNTHETIC: WIZ8 0x00585420
-// W8GrowableVector<W8VectorElement005EEA28*>::`scalar deleting destructor'
+// W8GrowableVector<W8AutomapNote*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00585440
-// W8GrowableVector<W8VectorElement005EEA28*>::~W8GrowableVector<W8VectorElement005EEA28*>
+// W8GrowableVector<W8AutomapNote*>::~W8GrowableVector<W8AutomapNote*>
 
 // FUNCTION: WIZ8 0x0057e5d0
-unsigned char CreateList005EEA28(void)
+unsigned char AutomapScreenInitialize(void)
 {
-    W8GrowableVector<W8VectorElement005EEA28*>* list;
+    W8GrowableVector<W8AutomapNote*>* list;
 
-    list = new W8GrowableVector<W8VectorElement005EEA28*>();
-    g_list_0068F258 = list;
+    list = new W8GrowableVector<W8AutomapNote*>();
+    g_automap_notes = list;
     if (!list) {
         return 0;
     }

@@ -1,4 +1,5 @@
 #pragma once
+#include "wiz8/screen_state.h"
 
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
@@ -294,6 +295,3 @@ public:
 static_assert(sizeof(W8CharacterScreen) == 0x1b28, "W8CharacterScreen_size");
 
 extern W8CharacterScreen* g_character_screen_0069c2e8;
-unsigned char CharacterScreenEnter005B1750(void);
-unsigned char CharacterScreenLeave005B1840(int leaving);
-void CharacterScreenFrame005B18E0(void);

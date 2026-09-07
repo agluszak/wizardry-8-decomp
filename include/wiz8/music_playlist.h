@@ -1,5 +1,6 @@
 #ifndef WIZ8_MUSIC_PLAYLIST_H
 #define WIZ8_MUSIC_PLAYLIST_H
+#include "wiz8/screen_state.h"
 
 extern "C" {
 
@@ -10,6 +11,5 @@ unsigned char Function48FC10(
 }
 
 void Function48F9E0(void);
-void Function591780(void);
 
 #endif

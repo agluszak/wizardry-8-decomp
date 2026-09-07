@@ -42,6 +42,7 @@ W8WorldItem* CreateWorldItem(
     const srVector3T<float>* position,
     int unknown,
     unsigned char add_to_world);
+W8WorldItem* GetNextWorldItem(char restart);
 W8WorldItem* SpawnItem(
     int item_id,
     const srVector3T<float>* position,

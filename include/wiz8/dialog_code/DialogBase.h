@@ -38,8 +38,10 @@ public:
     friend void SetDialogDestroyCallback(
         W8DialogBase* dialog, W8DialogDestroyCallback callback);
 
-protected:
+public:
+    /* Main Game raises the redraw bit when promoting its pending dialog. */
     unsigned int m_dirty_flags;           /* 0x04 */
+protected:
     int m_error;                          /* 0x08 */
     int m_resource;                       /* 0x0c */
     wchar_t* m_text;                      /* 0x10 */

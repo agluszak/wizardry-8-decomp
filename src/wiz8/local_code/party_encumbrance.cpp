@@ -6,6 +6,7 @@
 #include "wiz8/game_status.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/local_screens/ReviewCharacterScreen.h"
 
 /* Party encumbrance redistribution. The original translation-unit spelling is
    not established; this descriptive name is provisional. */
@@ -105,14 +106,14 @@ void Function4EDD20(void)
         }
     }
 
-    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME) {
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         if (gXStatus.field_01f == 0) {
             RequestRedraw(0xff);
             gXStatus.field_028 = false;
             return;
         }
     }
-    else if (g_screen_state_0068ec78.id == W8_SCREEN_CAMP &&
+    else if (g_current_screen_state.id == W8_SCREEN_CAMP &&
              g_camp_screen_0069c0f4 != 0) {
         g_camp_screen_0069c0f4->redraw_flags |= 0x2100;
     }

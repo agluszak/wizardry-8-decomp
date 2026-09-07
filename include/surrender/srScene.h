@@ -137,12 +137,13 @@ protected:
     void processPop(srGERD* renderer);
     void processPush(srGERD* renderer);
 
-private:
+public:
     enum e_flag {
         FLAG_PROJECTION_TYPE = 0
     };
 
     srFlags<e_flag> flags_138;               /* 0x138 */
+private:
     Rect view_plane_140;                     /* 0x140 */
     double view_plane_distance_160;          /* 0x160 */
     double near_clip_168;                    /* 0x168 */

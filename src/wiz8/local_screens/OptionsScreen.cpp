@@ -31,18 +31,14 @@ void SetViewport(int left, int top, int right, int bottom);
 void UpdateHeldItemCursor(void);
 void Function406DC0(int font, unsigned short* palette);
 
-extern int g_dword_647bc0;
 extern int g_font_683660;
 extern int g_options_detail_font_683614;
 extern unsigned short* g_colour_68ee08;
 extern unsigned int* g_small_subsystem_69c130;
 extern unsigned char g_flag_689b32;
-extern unsigned char g_flag_6f04e8;
-extern unsigned char g_flag_6f04ed;
 
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
-void RequestScreenTransition(void);
 void Function426790(void);
 void Function427230(int enabled);
 void RepositionAmbientSounds0047A600(W8World* world);
@@ -274,7 +270,7 @@ void W8OptionsScreen::OnDialogClosed(unsigned char reason, int)
             gXStatus.fCombatMode == 0 && AnyCharacterActive()) {
             AutoSaveIfAllowed(1);
         }
-        Function591780();
+        RequestExitScreen();
     }
 }
 
@@ -292,7 +288,7 @@ void W8OptionsScreen::OnSelectionChanged(
    block, then releases every controller-owned control before returning the
    display and region systems to their common screen boundary. */
 // FUNCTION: WIZ8 0x005a9c70
-unsigned char OptionsScreenLeave005A9C70(int)
+unsigned char OptionsScreenLeave(int)
 {
     g_flag_69c1c4 = 1;
     Function5A6E20(&g_options_values_0069c138);
@@ -311,7 +307,7 @@ unsigned char OptionsScreenLeave005A9C70(int)
    systems.  The selected panel is determined by the transition mode, with the
    in-game branch preserving the combat and save-state overrides. */
 // FUNCTION: WIZ8 0x005a9b50
-unsigned char OptionsScreenEnter005A9B50()
+unsigned char OptionsScreenEnter()
 {
     int selected;
 
@@ -326,19 +322,19 @@ unsigned char OptionsScreenEnter005A9B50()
     g_options_screen_0069c254 = new W8OptionsScreen();
     g_options_screen_0069c254->CreateControls();
 
-    if (g_screen_state_0068ec78.mode == 1) {
+    if (g_current_screen_state.mode == 1) {
         selected = 4;
     }
-    else if (g_screen_state_0068ec78.mode == 2) {
+    else if (g_current_screen_state.mode == 2) {
         selected = 5;
     }
-    else if (g_screen_state_0068ec78.mode == 3) {
-        if (g_dword_647bc0 == 4) {
+    else if (g_current_screen_state.mode == 3) {
+        if (g_previous_screen_id == 4) {
             selected = 5;
         }
         else {
-            selected = g_dword_647bc0;
-            if (g_dword_647bc0 == 5) {
+            selected = g_previous_screen_id;
+            if (g_previous_screen_id == 5) {
                 if (gXStatus.fCombatMode != 0) {
                     selected = 4;
                 }
@@ -360,14 +356,14 @@ unsigned char OptionsScreenEnter005A9B50()
    sequencing.  Options-specific input gets first refusal, followed by shared
    region dispatch; only an unhandled Escape requests the screen transition. */
 // FUNCTION: WIZ8 0x005a9cc0
-void OptionsScreenFrame005A9CC0()
+void OptionsScreenFrame()
 {
     W8ScreenPoint point;
     W8ScreenPoint current;
     InputAtom input;
 
     if (g_flag_689b32) {
-        Function591780();
+        RequestExitScreen();
     }
     RepositionAmbientSounds0047A600(g_world);
     UpdateAmbientSounds0047A3E0(g_world);
@@ -379,7 +375,7 @@ void OptionsScreenFrame005A9CC0()
         GetScreenPoint004284F0(&current);
         MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, static_cast<unsigned short>(current.x),
                        static_cast<unsigned short>(current.y),
-                       g_flag_6f04ed, g_flag_6f04e8);
+                       gfLeftButtonState, gfRightButtonState);
         screen = g_options_screen_0069c254;
     }
 

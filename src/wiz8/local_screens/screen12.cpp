@@ -1,4 +1,5 @@
 #include "wiz8/regions.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/video_object_catalog.h"
 
 #include "himage.h"
@@ -13,6 +14,12 @@ extern "C" int g_value_64c1c8;
 
 void ResetRegions(void);
 unsigned char ClearFlag603C60(void);
+
+// FUNCTION: WIZ8 0x00591780
+void RequestExitScreen(void)
+{
+    SetPendingScreenState(W8_SCREEN_EXIT);
+}
 
 extern "C" {
 
@@ -36,16 +43,12 @@ int GetValue64C1C8(void)
 
 // GLOBAL: WIZ8 0x006F0628
 unsigned char g_flag_6f0628;
-// GLOBAL: WIZ8 0x006F04E8
-unsigned char g_flag_6f04e8;
-// GLOBAL: WIZ8 0x006F04ED
-unsigned char g_flag_6f04ed;
 
 /* Lifecycle record 12's entry handler. It paints the whole 640x480 frame in the
    near-black 0x010101 and puts one video-object frame over it, which is the
    shape record 1's much larger main-menu entry starts with too. */
 // FUNCTION: WIZ8 0x00591790
-unsigned char ExitScreenEnter00591790(void)
+unsigned char ExitScreenEnter(void)
 {
     unsigned short colour;
 
@@ -64,7 +67,7 @@ unsigned char ExitScreenEnter00591790(void)
    neither of the two other flags is. The two trailing repeats of 0x00426790 are
    the original's own. */
 // FUNCTION: WIZ8 0x005917e0
-void ExitScreenFrame005917E0(void)
+void ExitScreenFrame(void)
 {
     InputAtom input;
 
@@ -78,7 +81,7 @@ void ExitScreenFrame005917E0(void)
             }
         }
     }
-    if (g_flag_6f04ed || g_flag_6f04e8) {
+    if (gfLeftButtonState || gfRightButtonState) {
         g_flag_6f0628 = 0;
     }
     else if (g_flag_6f0628) {

@@ -19,8 +19,10 @@
 
 extern "C" {
 extern float g_light_scale_0060bfe0;
-extern unsigned char g_byte_0060bfdc;
 }
+
+// GLOBAL: WIZ8 0x0060bfdc
+unsigned int g_light_update_flags_0060bfdc = 1;
 
 /* The parent-taking constructor never forwards the parent to srLight: the base
    runs with its own defaults and the node is linked afterwards, which is why
@@ -107,7 +109,7 @@ void stLight::traverse(srNode::TraverseInfo& info)
     if (!testFlag(FLAG_POSITIONAL_1)) {
         if (testFlag(FLAG_POSITIONAL_0) ||
             fabs(m_positional_98) <= g_double_005ebc70 ||
-            (g_byte_0060bfdc & 1) == 0) {
+            (g_light_update_flags_0060bfdc & 1) == 0) {
             if (firstChild() != 0) {
                 firstChild()->traverse(info);
             }

@@ -1,6 +1,7 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/regions.h"
 #include "wiz8/video_object_catalog.h"
 #include "Font.h"
@@ -10,16 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-unsigned char PleaseWaitScreenInitialize(void);
-
 extern "C" {
 
-// GLOBAL: WIZ8 0x0068EC78
-W8ScreenStateRuntime g_screen_state_0068ec78 = { -1 };
-// GLOBAL: WIZ8 0x0068ED10
-W8ScreenStateRuntime g_dword_68ed10 = { -1 };
-unsigned char g_flag_68edac;
-void* g_stack_68eda8;
 unsigned short g_word_6850ed;
 W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
 unsigned char g_flag_65beaf;
@@ -27,8 +20,6 @@ unsigned char g_flag_65beaf;
 extern unsigned short g_selected_item_0069c4b4;
 // GLOBAL: WIZ8 0x0069C130
 unsigned int* g_small_subsystem_69c130;
-// GLOBAL: WIZ8 0x0069C0F4
-W8CampScreenState0069C0F4* g_camp_screen_0069c0f4;
 
 // GLOBAL: WIZ8 0x0069C4CC
 int g_journal_font_69c4cc;
@@ -68,7 +59,7 @@ const W8CampScreenRegion g_camp_screen_regions_64cbf0[12] = {
     { 0x16a, 0x17a, 0x1a, 0x3a, 0x14, 0x05, 0x165, 0x19f, 1 }
 };
 
-extern void InitializeCampScreenRegions(void);
+extern void CampScreenInitializeRegions(void);
 extern void Function5B7230(void);
 
 struct W8StartupGridRow {
@@ -83,7 +74,9 @@ struct W8StartupGridRow {
 
 W8StartupGridRow g_startup_grid_647da0[8];
 
+// GLOBAL: WIZ8 0x006835f4
 int g_calligraphy_shadow_font_6835f4;
+// GLOBAL: WIZ8 0x006835f8
 int g_calligraphy_font_6835f8;
 HVOBJECT g_button_font_object_6835fc;
 int g_engraved_font_683600;
@@ -91,6 +84,7 @@ HVOBJECT g_wiz_text_font_object_683604;
 int g_monster_damage_font_683608;
 HVOBJECT g_tiny_mono_font_object_68360c;
 HVOBJECT g_calligraphy_shadow_font_object_683610;
+// GLOBAL: WIZ8 0x00683614
 int g_options_detail_font_683614;
 HVOBJECT g_large_font_object_683618;
 HVOBJECT g_options_detail_font_object_68361c;
@@ -102,6 +96,7 @@ int g_wiz_text_mono_font_683630;
 HVOBJECT g_smfnt_font_object_683634;
 HVOBJECT g_small_font_secondary_object_683638;
 HVOBJECT g_font12point1_object_68363c;
+// GLOBAL: WIZ8 0x00683640
 int g_wiz_text_font_683640;
 int g_embossed_font_683644;
 int g_font12point1_683648;
@@ -110,10 +105,13 @@ HVOBJECT g_options_title_font_object_683650;
 int g_dialog_font_683654;
 int g_profession_font_683658;
 HVOBJECT g_wiz_text_bold_font_object_68365c;
+// GLOBAL: WIZ8 0x00683660
 int g_font_683660;
+// GLOBAL: WIZ8 0x00683664
 int g_wiz_text_bold_font_683664;
 int g_font10arial_683668;
 int g_small_font_secondary_68366c;
+// GLOBAL: WIZ8 0x00683670
 int g_button_font_683670;
 int g_large_font_683674;
 int g_small_font_683678;
@@ -123,23 +121,34 @@ HVOBJECT g_dialog_font_object_683684;
 HVOBJECT g_embossed_font_object_683688;
 int g_options_title_font_68368c;
 int g_tiny_mono_font_683690;
+// GLOBAL: WIZ8 0x00683694
 int g_smfnt_font_683694;
 
+// GLOBAL: WIZ8 0x0068edfc
 unsigned short* g_font_palette_calligraphy_68edfc;
+// GLOBAL: WIZ8 0x0068ee00
 unsigned short* g_font_palette_options_detail_68ee00;
+// GLOBAL: WIZ8 0x0068ee04
 unsigned short* g_font_palette_button_68ee04;
+// GLOBAL: WIZ8 0x0068ee08
 unsigned short* g_colour_68ee08;
+// GLOBAL: WIZ8 0x0068ee0c
 unsigned short* g_font_palette_wiz_text_bold_68ee0c;
+// GLOBAL: WIZ8 0x0068ee10
 unsigned short* g_font_palette_smfnt_68ee10;
+// GLOBAL: WIZ8 0x0068ee14
 unsigned short* g_font_palette_wiz_text_68ee14;
+// GLOBAL: WIZ8 0x0068ee18
 unsigned short* g_font_palette_calligraphy_shadow_68ee18;
 unsigned short* g_font_state_palettes_68ee1c[15];
+
+}
 
 /* Zero is the retail BSS state. The first screen synchronization replaces it
    with the default cursor and then records the normal -1 state. */
 
 // FUNCTION: WIZ8 0x005bc800
-unsigned char InitializeSubsystemFlag(void)
+unsigned char MainMenuScreenInitialize(void)
 {
     g_selected_item_0069c4b4 = 0;
     return 1;
@@ -152,7 +161,7 @@ unsigned char InitializeSubsystemFlag(void)
    proof that a record's fifth slot is its finalizer rather than a second
    initializer - record 10's allocate/free pair is the first. */
 // FUNCTION: WIZ8 0x005bddd0
-unsigned char InitializeJournalFont(void)
+unsigned char JournalScreenInitialize(void)
 {
     g_journal_font_69c4cc = LoadFontFile((UINT8*)"Data\\Journal\\journal_font.sti");
     g_journal_font_original_palette_69c4d8 = GetFontObjectPalette16BPP(g_journal_font_69c4cc);
@@ -161,7 +170,7 @@ unsigned char InitializeJournalFont(void)
 }
 
 // FUNCTION: WIZ8 0x005bde10
-unsigned char FinalizeJournalFont(void)
+unsigned char JournalScreenFinalize(void)
 {
     SetFontObjectPalette16BPP(g_journal_font_69c4cc, g_journal_font_original_palette_69c4d8);
     free(g_journal_font_palette_69c4d0);
@@ -172,10 +181,10 @@ unsigned char FinalizeJournalFont(void)
    W8_SCREEN_CAMP selects. It drops the camp screen's state pointer rather than
    releasing it; the block is owned by the enter/leave pair. */
 // FUNCTION: WIZ8 0x005a3500
-unsigned char InitializeCampScreen(void)
+unsigned char CampScreenInitialize(void)
 {
     g_camp_screen_0069c0f4 = 0;
-    InitializeCampScreenRegions();
+    CampScreenInitializeRegions();
     Function5B7230();
     return 1;
 }
@@ -184,7 +193,7 @@ unsigned char InitializeCampScreen(void)
    lays out from the explicit table below. Only the leading four fields of each
    record are read here, so the remaining five stay positional. */
 // FUNCTION: WIZ8 0x005a4090
-void InitializeCampScreenRegions(void)
+void CampScreenInitializeRegions(void)
 {
     unsigned int index;
     for (index = 0; index < 8; ++index) {
@@ -227,7 +236,7 @@ void Function5B7230(void)
 }
 
 // FUNCTION: WIZ8 0x0055f7b0
-unsigned char InitializeStartupGrid(void)
+unsigned char MainGameScreenInitialize(void)
 {
     unsigned int index;
     for (index = 0; index != 8; ++index) {
@@ -241,7 +250,7 @@ unsigned char InitializeStartupGrid(void)
 }
 
 // FUNCTION: WIZ8 0x005a9b00
-unsigned char AllocateSmallStartupSubsystem(void)
+unsigned char OptionsScreenInitialize(void)
 {
     if (!g_small_subsystem_69c130) {
         g_small_subsystem_69c130 = new unsigned int[14];
@@ -256,7 +265,7 @@ unsigned char AllocateSmallStartupSubsystem(void)
    block and its fifth releases it. The release is unguarded and leaves the
    pointer set, so it relies on running once at shutdown. */
 // FUNCTION: WIZ8 0x005a9b30
-unsigned char FreeSmallStartupSubsystem(void)
+unsigned char OptionsScreenFinalize(void)
 {
     delete[] g_small_subsystem_69c130;
     return 1;
@@ -371,6 +380,4 @@ unsigned char InitializeMenuFonts(void)
         GetFontObjectPalette16BPP(g_options_detail_font_683614);
     ConfigureDialogFont(g_dialog_font_683654, 1, 0xff, 0);
     return 1;
-}
-
 }

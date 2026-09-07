@@ -658,9 +658,6 @@ extern "C" void RenderFastHelp(void);
 extern "C" void Function425B40(void);
 extern srScene* g_cursor_scene_659684;
 extern "C" unsigned char g_render_flag_603c6c;
-extern "C" int g_resident_texture_policy_659714;
-extern unsigned char g_monster_shadow_updates_enabled_0065970c;
-extern "C" unsigned char g_flag_65970d;
 extern unsigned char g_trigger_action_active_006599c8;
 extern srVector3T<float> g_trigger_action_scene_offset_006599ac;
 

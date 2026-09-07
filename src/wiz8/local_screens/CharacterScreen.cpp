@@ -40,7 +40,6 @@ extern unsigned char Function48FC10(const char*, int, int);
 extern void PlaySound(const char*, int);
 extern wchar_t* FormatWideString(const wchar_t*, ...);
 extern unsigned int CharacterPointerToPartySlot(W8Character* character);
-extern void RequestScreenTransition(void);
 extern void NoOp(void);
 extern void Function426790(void);
 extern void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x,
@@ -51,7 +50,6 @@ extern void CalcCharacterTableValue(W8Character*);
 extern void Function52DDD0(void);
 extern int Function52E750(void);
 extern int Function557FD0(W8Character* original, W8Character* edited);
-extern void SetPendingScreenState(int state);
 extern void Function4EF7E0(W8Character*, W8Character*, int);
 extern int Function558640(W8Character*);
 extern unsigned char Function5586B0(W8Character*);
@@ -65,8 +63,6 @@ extern int g_wiz_text_bold_font_683664;
 extern unsigned short* g_colour_68ee08;
 extern unsigned short* g_font_palette_wiz_text_bold_68ee0c;
 extern unsigned char g_in_combat_00683f94;
-extern unsigned char g_flag_6f04e8;
-extern unsigned char g_flag_6f04ed;
 extern unsigned short g_profession_name_message_ids_61e3f0[];
 extern unsigned short g_race_name_message_ids_61e3d0[];
 extern unsigned short g_faction_name_message_rows_61e430[][4];
@@ -383,8 +379,8 @@ void W8CharacterScreen::AdvancePage(unsigned char forward)
                 RequestScreenTransition();
                 if (m_mode_008 == 2 &&
                     m_character_018.experience_goal <= m_character_018.experience) {
-                    g_dword_68ed10.mode = 3;
-                    g_dword_68ed10.parameter_3 = m_original_014;
+                    g_pending_screen_state.mode = 3;
+                    g_pending_screen_state.parameter_3 = m_original_014;
                     SetPendingScreenState(W8_SCREEN_CHARACTER);
                 }
             }
@@ -673,7 +669,7 @@ W8Character* W8CharacterScreen::GetOriginalCharacter()
 }
 
 // FUNCTION: WIZ8 0x005b1750
-unsigned char CharacterScreenEnter005B1750(void)
+unsigned char CharacterScreenEnter(void)
 {
     SetViewport(0, 0, 0x280, 0x1e0);
     Function425570(0);
@@ -684,18 +680,18 @@ unsigned char CharacterScreenEnter005B1750(void)
     SetFontObjectPalette16BPP(g_wiz_text_bold_font_683664,
                               g_font_palette_wiz_text_bold_68ee0c);
     g_character_screen_0069c2e8 = new W8CharacterScreen(
-        g_screen_state_0068ec78.mode,
-        static_cast<W8Character*>(g_screen_state_0068ec78.parameter_3));
+        g_current_screen_state.mode,
+        static_cast<W8Character*>(g_current_screen_state.parameter_3));
     g_character_screen_0069c2e8->BuildControls();
     if (!g_status_685170.game_started &&
-        (g_screen_state_0068ec78.mode == 0 || g_screen_state_0068ec78.mode == 2)) {
+        (g_current_screen_state.mode == 0 || g_current_screen_state.mode == 2)) {
         Function48FC10("Menus.MPL", 1, 1);
     }
     return 1;
 }
 
 // FUNCTION: WIZ8 0x005b1840
-unsigned char CharacterScreenLeave005B1840(int leaving)
+unsigned char CharacterScreenLeave(int leaving)
 {
     if (leaving) {
         W8CharacterScreen* screen = g_character_screen_0069c2e8;
@@ -717,7 +713,7 @@ unsigned char CharacterScreenLeave005B1840(int leaving)
 }
 
 // FUNCTION: WIZ8 0x005b18e0
-void CharacterScreenFrame005B18E0(void)
+void CharacterScreenFrame(void)
 {
     W8ScreenPoint point;
     InputAtom input;
@@ -725,7 +721,7 @@ void CharacterScreenFrame005B18E0(void)
     g_character_screen_0069c2e8->UpdateDialog();
     MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, static_cast<unsigned short>(point.x),
                                 static_cast<unsigned short>(point.y),
-                                g_flag_6f04ed, g_flag_6f04e8);
+                                gfLeftButtonState, gfRightButtonState);
     UpdateRegionMousePosition(point.x, point.y);
     while (DequeueEvent(&input) == 1) {
         W8CharacterScreen* screen = g_character_screen_0069c2e8;

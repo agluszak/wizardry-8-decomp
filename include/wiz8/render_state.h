@@ -44,6 +44,14 @@ extern int g_viewport_top_6595ec;
 extern int g_viewport_right_6595f0;
 extern int g_viewport_bottom_6595f4;
 extern int g_dword_6596d8;
+extern int g_resident_texture_policy_659714;
+extern unsigned char g_monster_shadow_updates_enabled_0065970c;
+extern "C" unsigned char g_flag_65970d;
+
+void SetRenderOption(int option, int enabled);
+void SetResidentTexturePolicy(int policy);
+void DisableRenderOption(int option);
+unsigned char GetRenderOptionState(int option);
 
 unsigned char InitializeRenderer(
     void* instance, unsigned short show_command, void* window_proc);

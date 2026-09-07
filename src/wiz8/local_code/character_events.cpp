@@ -368,7 +368,7 @@ int Function52E750(void)
             continue;
         }
         if (record->field_09b == 0 && record->field_0bd == 0 &&
-            (g_screen_state_0068ec78.id != W8_SCREEN_CHARACTER ||
+            (g_current_screen_state.id != W8_SCREEN_CHARACTER ||
              record->field_000 != 0)) {
             if (record->field_099 == 0) {
                 if (record->field_089 == record->field_08d) {

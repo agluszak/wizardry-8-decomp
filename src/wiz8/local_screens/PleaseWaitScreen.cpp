@@ -89,10 +89,7 @@ extern void Function5092F0(int* level, int* entrance);
 extern void Function5063E0(void);
 extern unsigned char Function42AF60(int level, int entrance);
 extern void Function5159E0(int value);
-extern int Function55EC10(void);
 extern unsigned int LoadGame(const char* slot_name);
-extern void RequestScreenTransition(void);
-extern void SetPendingScreenState(int value);
 extern void SetValue64D8AC(unsigned long value);
 extern unsigned char g_flag_689b2c;
 
@@ -137,7 +134,7 @@ unsigned char PleaseWaitScreenEnter(void)
             return 0;
         }
         memset(g_load_descriptor_69b7c8, 0, sizeof(W8LevelLoadDescriptor));
-        g_load_descriptor_69b7c8->mode = g_screen_state_0068ec78.mode;
+        g_load_descriptor_69b7c8->mode = g_current_screen_state.mode;
         switch (g_load_descriptor_69b7c8->mode) {
         case 0:
             InitializeFactState();
@@ -146,18 +143,18 @@ unsigned char PleaseWaitScreenEnter(void)
             DeleteFileA("Saves\\CurrentGame.SAV");
             break;
         case 1:
-            g_load_descriptor_69b7c8->parameter = g_screen_state_0068ec78.parameter;
-            strcpy(g_load_descriptor_69b7c8->name, g_screen_state_0068ec78.name);
+            g_load_descriptor_69b7c8->parameter = g_current_screen_state.parameter;
+            strcpy(g_load_descriptor_69b7c8->name, g_current_screen_state.name);
             break;
         case 2:
             g_load_descriptor_69b7c8->parameter = g_status_685170.current_level;
-            strcpy(g_load_descriptor_69b7c8->name, g_screen_state_0068ec78.name);
+            strcpy(g_load_descriptor_69b7c8->name, g_current_screen_state.name);
             g_load_descriptor_69b7c8->save_payload =
-                static_cast<W8SaveScreenshot*>(g_screen_state_0068ec78.parameter_3);
+                static_cast<W8SaveScreenshot*>(g_current_screen_state.parameter_3);
             break;
         case 3:
-            g_load_descriptor_69b7c8->parameter = g_screen_state_0068ec78.parameter;
-            g_load_descriptor_69b7c8->parameter_2 = g_screen_state_0068ec78.parameter_2;
+            g_load_descriptor_69b7c8->parameter = g_current_screen_state.parameter;
+            g_load_descriptor_69b7c8->parameter_2 = g_current_screen_state.parameter_2;
             break;
         }
     }
@@ -322,7 +319,7 @@ void PleaseWaitScreenFrame(void)
         }
         break;
     case 1:
-        if (PleaseWaitScreenEnsureLevelArchive(g_screen_state_0068ec78.parameter)) {
+        if (PleaseWaitScreenEnsureLevelArchive(g_current_screen_state.parameter)) {
             if (!LoadGame(g_load_descriptor_69b7c8->name)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 293, 0);
             }
@@ -366,7 +363,7 @@ void PleaseWaitScreenFrame(void)
             SetPendingScreenState(W8_SCREEN_INTRO);
             return;
         }
-        if (Function55EC10() != 7) {
+        if (GetPendingScreenState() != 7) {
             SetPendingScreenState(W8_SCREEN_MAIN_GAME);
         }
     }

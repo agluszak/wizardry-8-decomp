@@ -33,6 +33,8 @@ public:
     void Function5AA400(stMeshModel* linked_model);
     void InitializeVertexFrames00473B00(int frame_count);
     void FinalizeVertexFrame00473180(int frame);
+    void ClearAutomapPolygonFilter();
+    void ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* excluded_textures);
 
     stMeshModel* next;                    /* 0x398 */
     stMeshModel* previous;                /* 0x39c */
@@ -51,7 +53,11 @@ public:
     W8GrowableVector<short> mapped_keys;   /* 0x430 */
     unsigned char unknown_440[4];
     float vertex_compression_scale_444;
-    unsigned char unknown_448[0x10];
+    unsigned char unknown_448[4];
+    unsigned int* automap_polygons;       /* 0x44c */
+    unsigned int automap_polygon_count;   /* 0x450 */
+    unsigned char automap_filter_active;  /* 0x454 */
+    unsigned char unknown_455[3];
     W8GrowableVector<int*>* skin_blanking_apt_458;
     W8GrowableVector<int>* skin_blanking_apt_number_45c;
     W8GrowableVector<unsigned char>* skin_blanking_checked_460;

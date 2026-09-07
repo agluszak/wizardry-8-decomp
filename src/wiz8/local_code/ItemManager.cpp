@@ -25,7 +25,7 @@ bool InitializeItemManagerState()
 {
     g_status_685170.next_world_item_id_2352 = 1;
     gXStatus.item_manager_pending = 0;
-    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->selected_item = -1;
     }
     if (gXStatus.plsItemList != 0) {
@@ -506,7 +506,7 @@ void DeactivateWorldItem(W8WorldItem* item)
         srAssertFail("pItemInfo->p3D != NULL", ITEM_MANAGER_CPP, 556, 0);
     }
 
-    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
         g_level_block->selected_item == item->runtime_id) {
         g_level_block->selected_item = -1;
     }

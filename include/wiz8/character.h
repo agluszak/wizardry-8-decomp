@@ -167,7 +167,7 @@ typedef struct W8Character {
     unsigned int experience;
     unsigned int experience_goal;
     unsigned int experience_previous_goal;
-    unsigned char unknown_09f9[4];
+    int value_09f9;
     /* 0x09fd: how many times this character has died. */
     int death_count_09fd;
     /* 0x0a01: one entry per condition, holding how long it has left to run;
@@ -259,7 +259,14 @@ typedef struct W8Character {
     /* 0x169e: the fatigue band, zero through four, recomputed from the stamina
        fraction whenever it moves; a change re-runs the armour class pass. */
     int fatigue_band;
-    unsigned char unknown_16a2[0xd5];
+    unsigned char unknown_16a2[0xce];
+    signed char bonus_1770;
+    signed char bonus_1771;
+    signed char bonus_1772;
+    signed char bonus_1773;
+    signed char armor_bonus_1774;
+    signed char armor_bonus_1775;
+    unsigned char unknown_1776;
     signed char resistance_bonus_all;     /* 0x1777: added to every resistance */
     unsigned char unknown_1778[0x34];
     signed char resistance_bonus[W8_RESISTANCE_COUNT];      /* 0x17ac */
@@ -345,5 +352,7 @@ int SumCharacterSpellPoints(const W8Character* character);
 }
 
 int GetCharacterRealmSpellPoints(const W8Character* character, int realm);
+void GetCharacterHandDamageDice(const W8Character* character, int hand, W8Dice* dice);
+int GetCharacterHandDamageBonus(const W8Character* character, int hand);
 
 #endif

@@ -6,6 +6,7 @@
 class W8Prop;
 class Trigger;
 struct W8PathAI;
+extern unsigned int g_light_update_flags_0060bfdc;
 
 class stLightDefinition {
 public:

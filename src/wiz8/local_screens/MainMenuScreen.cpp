@@ -27,8 +27,6 @@
 unsigned char SaveGameExists(void);
 void ResetRegions(void);
 void MSYS_Shutdown(void);
-void SetPendingScreenState(int state);
-void RequestScreenTransition(void);
 void SetValue64D8AC(unsigned long value);
 
 /*
@@ -39,8 +37,6 @@ void SetValue64D8AC(unsigned long value);
  * because no evidence assigns them meaning yet, and inventing one would be a
  * guess dressed as a recovery.
  */
-
-extern "C" {
 
 extern unsigned char g_flag_68510e;
 extern unsigned char g_flag_689b32;
@@ -57,7 +53,6 @@ unsigned int g_dword_69c4b0;
 // GLOBAL: WIZ8 0x0069c4bc
 wchar_t* g_pending_main_menu_message;
 W8ModalDialogBase* g_dword_69c4c0;
-extern int g_dword_647bc0;
 extern int g_font_683660;
 extern unsigned short* g_font_state_palettes_68ee1c[15];
 extern unsigned short* g_colour_68ee08;
@@ -128,7 +123,7 @@ static void MainMenuRegionEvent(
         break;
     case 2:
         if (g_flag_69c4ba) {
-            g_dword_68ed10.mode = 1;
+            g_pending_screen_state.mode = 1;
             SetPendingScreenState(W8_SCREEN_OPTIONS);
         }
         break;
@@ -136,7 +131,7 @@ static void MainMenuRegionEvent(
         SetPendingScreenState(W8_SCREEN_CREDITS);
         break;
     case 4:
-        g_dword_68ed10.mode = 0;
+        g_pending_screen_state.mode = 0;
         SetPendingScreenState(W8_SCREEN_OPTIONS);
         break;
     case 5:
@@ -345,7 +340,7 @@ unsigned char Function5BCAB0(short item, short state)
 }
 
 // FUNCTION: WIZ8 0x005bc810
-unsigned char MainMenuScreenFunction005BC810(void)
+unsigned char MainMenuScreenEnter(void)
 {
     char text[64];
     wchar_t wide[64];
@@ -394,7 +389,7 @@ unsigned char MainMenuScreenFunction005BC810(void)
             0x87,
             0);
     }
-    if (g_dword_647bc0 != 10) {
+    if (g_previous_screen_id != 10) {
         Function48FC10("MainMenu.MPL", 0, 1);
     }
     UpdateHeldItemCursor();
@@ -486,7 +481,7 @@ void MainMenuScreenFrame()
                         case 2:
                             Function5BCAB0(g_selected_item_0069c4b4, 2);
                             if (g_flag_69c4ba != 0) {
-                                g_dword_68ed10.mode = 1;
+                                g_pending_screen_state.mode = 1;
                                 SetPendingScreenState(W8_SCREEN_OPTIONS);
                             }
                             break;
@@ -541,7 +536,7 @@ void MainMenuScreenFrame()
                         break;
                     case 'L':
                         if (g_flag_69c4ba != 0) {
-                            g_dword_68ed10.mode = 1;
+                            g_pending_screen_state.mode = 1;
                             SetPendingScreenState(W8_SCREEN_OPTIONS);
                         }
                         break;
@@ -579,8 +574,6 @@ unsigned char MainMenuScreenLeave(int)
     ResetRegions();
     MSYS_Shutdown();
     return 1;
-}
-
 }
 
 // FUNCTION: WIZ8 0x005bd010

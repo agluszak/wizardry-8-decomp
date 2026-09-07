@@ -26,7 +26,6 @@ extern void InitializeItemVideoObjects(void);
 extern void InitializeMenuVideoObjectCatalog(void);
 extern unsigned char FindStartupQuickSave(char* slot_name);
 extern int GetSaveGameLevel(const char* slot_name);
-extern void SetPendingScreenState(int value);
 extern unsigned char InitializeSpellDatabase(void);
 extern void ReleaseGenericItemNames(void);
 extern void UnloadEncounterTables(void);
@@ -57,7 +56,6 @@ extern unsigned char LoadMissileDatabase(void);
 extern unsigned char LoadHitSoundDatabase(void);
 extern unsigned int GetTotalPhysicalMemory(void);
 
-extern void* g_stack_68eda8;
 extern unsigned short g_word_6850ed;
 extern unsigned short* g_font_state_palettes_68ee1c[15];
 extern unsigned char g_flag_65beaf;
@@ -82,13 +80,13 @@ unsigned char InitializeGameData(void)
     memset(buffer, 0, count * 0x1e0);
     UnlockPrimarySurface();
     LoadGameConfiguration();
-    g_screen_state_0068ec78.id = -1;
-    g_dword_68ed10.id = -1;
-    g_stack_68eda8 = CreateStack(5, 0x98);
-    if (!g_stack_68eda8) {
+    g_current_screen_state.id = -1;
+    g_pending_screen_state.id = -1;
+    g_screen_return_stack = CreateStack(5, sizeof(W8ScreenStateRuntime));
+    if (!g_screen_return_stack) {
         return 0;
     }
-    for (int screen = 0; screen < 13; ++screen) {
+    for (int screen = 0; screen < W8_SCREEN_COUNT; ++screen) {
         if (!g_screen_handlers[screen].initialize()) {
             return 0;
         }
@@ -135,9 +133,9 @@ unsigned char InitializeGameData(void)
     Function479010();
     SetPendingScreenState(W8_SCREEN_INTRO);
     g_status_685170.current_level = -1;
-    if (gfLoadAtStartup && FindStartupQuickSave(g_dword_68ed10.name)) {
-        g_dword_68ed10.mode = 1;
-        g_dword_68ed10.parameter = GetSaveGameLevel(g_dword_68ed10.name);
+    if (gfLoadAtStartup && FindStartupQuickSave(g_pending_screen_state.name)) {
+        g_pending_screen_state.mode = 1;
+        g_pending_screen_state.parameter = GetSaveGameLevel(g_pending_screen_state.name);
         SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
     }
     InitializeEncounterTables();
@@ -173,12 +171,12 @@ void ShutdownGameData(void)
         free(g_font_state_palettes_68ee1c[index]);
         g_font_state_palettes_68ee1c[index] = 0;
     }
-    for (index = 0; index < 13; ++index) {
+    for (index = 0; index < W8_SCREEN_COUNT; ++index) {
         g_screen_handlers[index].finalize();
     }
-    if (g_stack_68eda8) {
-        DeleteStack(g_stack_68eda8);
-        g_stack_68eda8 = 0;
+    if (g_screen_return_stack) {
+        DeleteStack(g_screen_return_stack);
+        g_screen_return_stack = 0;
     }
     ShutDownFileDatabase();
 

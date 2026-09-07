@@ -3,6 +3,9 @@
 struct W8World;
 
 struct EnvironmentColour {
+    EnvironmentColour() {}
+    EnvironmentColour(double red_value, double green_value, double blue_value);
+    void Set(double red_value, double green_value, double blue_value);
     float red;
     float green;
     float blue;
@@ -30,10 +33,14 @@ void SetWorldEnvironmentColour00483A60(
     W8World* world, EnvironmentColour colour);
 
 void SetSkyEnabled(unsigned char enabled);
+void EnableSky(void);
 void SetFogEnabled(unsigned char enabled);
 unsigned char IsFogEnabled(void);
 void DisableSky(void);
 unsigned char IsSkyEnabled(void);
 void GetWorldLightValue(const void* world, int* light_value);
+void SetLightDirection(const int* direction);
+void GetLightDirection(int* direction);
+extern unsigned char g_sky_enabled_0065b9ae;
 void ResetEnvironment(void);
 void ReleaseEnvironmentObjects(void);

@@ -1210,7 +1210,7 @@ bool InitializeMonsterManagerState(void)
     gXStatus.active_monster_count = 0;
     gXStatus.field_02d = 0;
     g_dword_6850be = 0;
-    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->selected_item = -1;
     }
     if (gXStatus.plsMonsterList == 0) {
@@ -1515,7 +1515,7 @@ void TogglePartyCombatStance(void)
             g_combat_state->flag_001 = (g_combat_state->flag_000 == 0);
             g_combat_state->flag_a62 = 1;
         }
-        if (g_screen_state_0068ec78.id != W8_SCREEN_MAIN_GAME) {
+        if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
             return;
         }
         message = gppStringList[W8_NOTICE_COMBAT_STANCE_RELAXED];
@@ -1525,13 +1525,13 @@ void TogglePartyCombatStance(void)
             g_combat_state->flag_001 = 1;
             g_combat_state->flag_a62 = 0;
         }
-        if (g_screen_state_0068ec78.id != W8_SCREEN_MAIN_GAME) {
+        if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
             return;
         }
         message = gppStringList[W8_NOTICE_COMBAT_STANCE_READY];
     }
     ShowNotice(0xc, message, -1, -1, 0);
-    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME) {
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         RequestRedraw(0x80000);
     }
 }

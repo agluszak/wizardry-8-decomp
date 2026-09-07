@@ -161,7 +161,7 @@ extern "C" unsigned char Function48FC10(
         return 0;
     }
     if (g_flag_689b32 != 0) {
-        Function591780();
+        RequestExitScreen();
     }
 
     sprintf(path, "Data\\Music\\%s", playlist);

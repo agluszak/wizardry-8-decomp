@@ -24,7 +24,6 @@ extern unsigned char ClearFlag603C60(void);
 extern unsigned char SetFlag603C60(void);
 extern unsigned char ReadWideTextLine004CEED0(
     int handle, wchar_t* destination, int capacity, unsigned char* more);
-extern void RequestScreenTransition(void);
 extern void Function407650(int x, int y, const wchar_t* format, ...);
 extern void Function422F10(void);
 extern void Function426790(void);
@@ -39,7 +38,7 @@ int g_credit_y_0069c4a0;
 int g_credit_line_0069c4a4;
 
 // FUNCTION: WIZ8 0x005bc130
-unsigned char CreditsScreenEnter005BC130(void)
+unsigned char CreditsScreenEnter(void)
 {
     int handle;
     wchar_t line[128];
@@ -100,7 +99,7 @@ unsigned char CreditsScreenEnter005BC130(void)
 }
 
 // FUNCTION: WIZ8 0x005bc420
-unsigned char CreditsScreenLeave005BC420(int)
+unsigned char CreditsScreenLeave(int)
 {
     for (int index = 0; index < g_credit_lines_0069c4a8->count; ++index) {
         W8CreditLine* entry = g_credit_lines_0069c4a8->GetAt(index);
@@ -121,7 +120,7 @@ unsigned char CreditsScreenLeave005BC420(int)
 }
 
 // FUNCTION: WIZ8 0x005bc530
-void CreditsScreenFrame005BC530(void)
+void CreditsScreenFrame(void)
 {
     W8ScreenPoint point;
     InputAtom input;

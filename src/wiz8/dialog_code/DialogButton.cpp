@@ -14,14 +14,14 @@ extern int g_dword_69ca28;
 // FUNCTION: WIZ8 0x005db4e0
 void W8DialogButton::Draw()
 {
-    if (unknown_038 && m_resource_01c != -1) {
+    if (m_dirty && m_resource_01c != -1) {
         int left = GetButtonX(m_resource_01c);
         int top = GetButtonY(m_resource_01c);
         DrawButton(m_resource_01c);
         MarkScreenRectDirty(left, top,
                             left + GetButtonWidth(m_resource_01c),
                             top + GetButtonHeight(m_resource_01c), 0);
-        unknown_038 = 0;
+        m_dirty = 0;
     }
 }
 
@@ -31,7 +31,7 @@ void W8DialogButton::SetPosition(int x, int y)
     if (m_resource_01c != -1 &&
         (x != GetButtonX(m_resource_01c) || y != GetButtonY(m_resource_01c))) {
         SetButtonPosition(m_resource_01c, static_cast<short>(x), static_cast<short>(y));
-        unknown_038 = 1;
+        m_dirty = 1;
     }
 }
 
@@ -68,12 +68,12 @@ void W8DialogButton::SetEnabled(unsigned char enabled)
         if (enabled) {
             if (!(button->uiFlags & BUTTON_ENABLED)) {
                 button->uiFlags |= BUTTON_ENABLED;
-                unknown_038 = 1;
+                m_dirty = 1;
             }
         }
         else if (button->uiFlags & BUTTON_ENABLED) {
             button->uiFlags &= ~BUTTON_ENABLED;
-            unknown_038 = 1;
+            m_dirty = 1;
         }
     }
 }
@@ -93,12 +93,12 @@ void W8DialogButton::SetPressed(unsigned char pressed)
         if (pressed) {
             if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
                 button->uiFlags |= BUTTON_CLICKED_ON;
-                unknown_038 = 1;
+                m_dirty = 1;
             }
         }
         else if (button->uiFlags & BUTTON_CLICKED_ON) {
             button->uiFlags &= ~BUTTON_CLICKED_ON;
-            unknown_038 = 1;
+            m_dirty = 1;
         }
     }
 }
@@ -144,7 +144,7 @@ W8DialogButton::W8DialogButton()
     unknown_036 = 0;
     unknown_037 = 0;
     unknown_020 = -1;
-    unknown_038 = 1;
+    m_dirty = 1;
     unknown_039 = 0;
     unknown_03a = 0;
     unknown_03b = 0;

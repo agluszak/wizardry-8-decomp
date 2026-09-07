@@ -353,7 +353,7 @@ srTexture* LoadTexture004B95D0(
     srRegistry::ClassNode* node;
     stTextureFile* texture;
 
-    if (g_screen_state_0068ec78.id == 4) {
+    if (g_current_screen_state.id == 4) {
         UpdatePleaseWaitLoadFrame005915A0();
     }
     strcpy(path, folder);

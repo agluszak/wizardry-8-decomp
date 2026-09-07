@@ -242,7 +242,7 @@ unsigned char SpellUsableNow(
         srAssertFail("uiSpellUsableWhen < SPELL_USAGE_COUNT", MAGIC_CPP, 4182, 0);
     }
 
-    if (g_screen_state_0068ec78.id == W8_SCREEN_CAMP && gXStatus.fCombatMode == 0 &&
+    if (g_current_screen_state.id == W8_SCREEN_CAMP && gXStatus.fCombatMode == 0 &&
         gXStatus.fCampMode != 0 && (spell_id == 0x17 || spell_id == 0x3a)) {
         return 1;
     }

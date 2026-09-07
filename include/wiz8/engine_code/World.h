@@ -53,6 +53,14 @@ struct W8WorldCameraEntry {
     W8PathAI* path;
 };
 
+/* The camera save/restore pair moves a position and two six-word angle
+   records. Only the position's component types are established here. */
+struct W8WorldCameraState {
+    srVector3T<float> position;
+    unsigned char angle_records[0x30];
+};
+static_assert(sizeof(W8WorldCameraState) == 0x3c, "W8WorldCameraState_size");
+
 static_assert(sizeof(W8WorldCameraEntry) == 0x1c,
               "W8WorldCameraEntry_must_be_0x1c");
 
@@ -130,6 +138,11 @@ void UpdateWorld0044F4E0(W8World* world);
 void WorldUpdateLights(W8World* world);
 float WorldGetValue78(W8World* world);
 double WorldGetFarClip(W8World* world);
+void WorldSetFarClip(W8World* world, float distance);
+void WorldSetValue74(W8World* world, float value);
+void GetWorldCameraState(W8World* world, W8WorldCameraState* state);
+void RestoreWorldCameraState(W8World* world, int mode, const W8WorldCameraState* state);
+void UpdateWorldMesh004BAF60(W8World* world);
 void WorldGetCameraRotation(W8World* world, srMatrix3T<float>* rotation);
 void WorldGetCameraLocation(W8World* world, srVector3T<float>* location);
 void WorldGetCameraLocation00451160(

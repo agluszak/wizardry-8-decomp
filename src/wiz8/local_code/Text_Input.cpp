@@ -85,7 +85,6 @@ static_assert(sizeof(STACKTEXTINPUTNODE) == 0x0c,
 extern "C" {
 extern int g_wiz_text_mono_font_683630;
 extern int g_font12point1_683648;
-extern unsigned char g_flag_6f04ed;
 unsigned char gfEditingText;
 }
 extern wchar_t g_no_target_text[];
@@ -874,7 +873,7 @@ void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason)
     if ((reason & MSYS_CALLBACK_REASON_LOST_MOUSE) != 0)
         Function55EE70(-1);
 
-    if (g_flag_6f04ed == 0 || gpActive == 0 ||
+    if (gfLeftButtonState == 0 || gpActive == 0 ||
         (reason & MSYS_CALLBACK_REASON_MOVE) == 0) {
         return;
     }
@@ -902,7 +901,7 @@ void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason)
     }
 
     TEXTINPUTNODE* current_field = gpActive;
-    if (current_field->szString == 0 || g_flag_6f04ed == 0) return;
+    if (current_field->szString == 0 || gfLeftButtonState == 0) return;
 
     unsigned char position = gubParkingPos;
     int mouse_offset = gusMouseXPos - current_field->region.RegionTopLeftX;
@@ -1045,7 +1044,7 @@ void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason)
     }
 
     unsigned char position = gubParkingPos;
-    if (g_flag_6f04ed != 0) {
+    if (gfLeftButtonState != 0) {
         if (gpActive->szString == 0) {
             position = 0;
         }
@@ -1110,7 +1109,7 @@ void RenderActiveTextField(void)
     TEXTINPUTNODE* field = gpActive;
     if (field == 0 || field->szString == 0) return;
 
-    if (g_flag_6f04ed != 0) {
+    if (gfLeftButtonState != 0) {
         if ((int)gusMouseXPos < field->region.RegionTopLeftX) {
             if (gubCursorPos != 0) {
                 --gubCursorPos;
@@ -1201,7 +1200,7 @@ void RenderActiveTextField(void)
         }
     }
 
-    if (gfEditingText != 0 && field->szString != 0 && g_flag_6f04ed == 0 &&
+    if (gfEditingText != 0 && field->szString != 0 && gfLeftButtonState == 0 &&
         GetTickCount() % 1000 < 500) {
         int left = field->region.RegionTopLeftX +
                    gsCursorX;

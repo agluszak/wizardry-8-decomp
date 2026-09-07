@@ -846,7 +846,6 @@ extern void ClearMonsterTargetNotice(void);                              /* 0x00
 extern void SetTargetCursor(int cursor);                                 /* 0x0055EE70 */
 extern void ClearTargetCursor(void);                                     /* 0x0055EF90 */
 extern int IsScreenIdle(void);
-extern void* g_modal_owner_0068edd0;
 
 /* The two cursors this body cares about: the one it puts up for a monster it
    can act on, and the one it takes down for a monster it cannot. */
@@ -1028,7 +1027,7 @@ enum { W8_SELECTION_SPELL = 7, W8_SELECTION_ITEM = 8 };
 // FUNCTION: WIZ8 0x0053bc10
 unsigned char GetCurrentTargetingContext(int party_slot)
 {
-    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
         g_level_block->selection_kind != -1) {
         if (g_level_block->selection_kind == W8_SELECTION_SPELL &&
             g_level_block->selection_settled != 0) {
@@ -1266,7 +1265,7 @@ void Function53A320(int state)
     }
     else {
         Function4ADD30(0);
-        if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME) {
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
             Function56AAB0();
         }
     }

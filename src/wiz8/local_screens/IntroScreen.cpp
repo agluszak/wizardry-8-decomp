@@ -13,8 +13,6 @@
 /* Local Screens\IntroScreen.cpp is named by the gpVideo assertion at line 98.
    The canonical state-zero row owns this enter/frame/leave bundle. */
 
-extern "C" {
-
 extern unsigned char g_flag_68510e;
 extern unsigned char g_flag_689b2c;
 extern char g_path_6e0fa0[];
@@ -26,9 +24,6 @@ extern void PrepareVideoPlayback0048FF00(int value);
 extern unsigned char ClearFlag603C60(void);
 extern IDirectDrawSurface2* GetPrimaryRenderTarget00423390(void);
 extern void FinishVideoPresentation004234A0(void);
-extern int GetActiveScreenState0055EC10(void);
-extern void SetPendingScreenState(int state);
-extern void RequestScreenTransition(void);
 extern unsigned char SetFlag603C60(void);
 extern void ContinueAfterDarkEndingVideo005AE770(void);
 extern void ShowModalMessage005A6620(int a, int b, int c,
@@ -84,6 +79,7 @@ unsigned char IntroScreenEnter(void)
         gpVideo = 0;
     }
     return 1;
+
 }
 
 void AdvanceIntroScreen(void);
@@ -163,11 +159,11 @@ cleared:
     case 3:
     case 4:
         if (!g_flag_689b2c) {
-            g_dword_68ed10.mode = 0;
+            g_pending_screen_state.mode = 0;
             SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
         } else {
             g_flag_689b2c = 0;
-            if (GetActiveScreenState0055EC10() != 7) {
+            if (GetPendingScreenState() != 7) {
                 SetPendingScreenState(W8_SCREEN_MAIN_GAME);
             }
         }
@@ -207,6 +203,4 @@ unsigned char IntroScreenRegionEvent(const W8RegionEvent* event, W8Region* regio
         return 0;
     }
     return 1;
-}
-
 }

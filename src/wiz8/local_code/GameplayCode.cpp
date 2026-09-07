@@ -274,7 +274,7 @@ void CalcInitiative(W8Character* character)
         character->initiative += character->skills[39].level / 10 + 1;
     }
     character->initiative +=
-        static_cast<signed char>(character->unknown_16a2[0xce]);
+        character->bonus_1770;
 
     switch (character->load_category) {
     case 0:
@@ -492,7 +492,7 @@ void CalcAttacks(W8Character* character)
                 attack->hit_bonus += records[hand == 0]->attack_hit_bonus;
             }
             if (ItemHasSingledOutGenericName(equipment[hand]->item_id)) {
-                attack->value_29 += records[hand]->attack_value_04a * 10;
+                attack->value_29 += records[hand]->damage_dice.base * 10;
             }
         }
         else {
@@ -660,7 +660,7 @@ void CalcArmorClasses(W8Character* character)
         }
 
         character->armor_class_components[5] +=
-            static_cast<signed char>(character->unknown_16a2[0xd2]);
+            character->armor_bonus_1774;
         character->armor_class_components[8] +=
             static_cast<signed char>(character->unknown_17b6[5]);
         if (defensive_action) {
@@ -680,7 +680,7 @@ void CalcArmorClasses(W8Character* character)
         character->armor_class_components[9] -=
             FatigueArmorPenalty(character->fatigue_band) / 10;
         character->armor_class_components[6] +=
-            static_cast<signed char>(character->unknown_16a2[0xd3]);
+            character->armor_bonus_1775;
     }
 
     character->armor_class_total = 0;

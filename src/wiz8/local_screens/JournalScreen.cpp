@@ -25,7 +25,6 @@ extern int g_font_00683614;
 extern int g_journal_page_0064df38;
 extern W8GrowableVector<W8JournalEntry>* g_journal_entries_0069c4e4;
 extern void RefreshJournalPanel005BD860(void);
-extern void RequestScreenTransition(void);
 extern void Function426790(void);
 extern void Function577260(void);
 extern void ResetRegions(void);
@@ -303,7 +302,7 @@ void W8JournalPanel005EF340::OnPrimary(W8TextControl* control)
 }
 
 // FUNCTION: WIZ8 0x005bde40
-unsigned char JournalScreenEnter005BDE40(void)
+unsigned char JournalScreenEnter(void)
 {
     int maximum_visibility;
     int index;
@@ -345,7 +344,7 @@ unsigned char JournalScreenEnter005BDE40(void)
 }
 
 // FUNCTION: WIZ8 0x005be0b0
-unsigned char JournalScreenLeave005BE0B0(int)
+unsigned char JournalScreenLeave(int)
 {
     MSYS_Shutdown();
     ResetRegions();
@@ -361,7 +360,7 @@ unsigned char JournalScreenLeave005BE0B0(int)
 }
 
 // FUNCTION: WIZ8 0x005be110
-void JournalScreenFrame005BE110(void)
+void JournalScreenFrame(void)
 {
     W8ScreenPoint point;
     InputAtom input;

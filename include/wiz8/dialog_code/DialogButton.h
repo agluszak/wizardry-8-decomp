@@ -36,7 +36,9 @@ private:
     unsigned char unknown_035;
     unsigned char unknown_036;
     unsigned char unknown_037;
-    unsigned char unknown_038;
+public:
+    unsigned char m_dirty;                /* 0x38: set by owning screens before Draw */
+private:
     unsigned char unknown_039;
     unsigned char unknown_03a;
     unsigned char unknown_03b;

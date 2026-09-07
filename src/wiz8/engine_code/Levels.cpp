@@ -12,6 +12,7 @@
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/game_status.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/local_code/MonsterGroup.h"
@@ -31,7 +32,6 @@ extern void Function426790(void);
 extern void Function50DA00(void);
 extern unsigned char ReleaseItemLists(void);
 extern unsigned char ShutdownMonsterManager(void);
-extern unsigned char Function5B1740(void);
 extern void Function48DB30(void);
 extern void ClearValue689FAC(void);
 extern void Function4909C0(void);
@@ -399,7 +399,7 @@ unsigned char UnloadLevel(const char* save_directory)
         if (g_world_cleanup_flag_00659757 != 0) {
             Function426790();
         }
-        if (Function5B1740() == 0) {
+        if (ScreenLifecycleSuccess() == 0) {
             return 0;
         }
         if (g_world_cleanup_flag_00659757 != 0) {

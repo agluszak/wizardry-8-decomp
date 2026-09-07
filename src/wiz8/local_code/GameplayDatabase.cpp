@@ -64,9 +64,6 @@ char** g_item_table_category_names;
 W8SpellRuntimeRecord* g_spell_records;
 // GLOBAL: WIZ8 0x0065BE18
 unsigned int g_spell_database_version;
-extern "C" unsigned char g_flag_68edac;
-void SetPendingScreenState(int value);
-void RequestScreenTransition(void);
 extern void EnableAllRenderOptions(void);
 extern void DisableRenderOption(int id);
 extern unsigned int GetTotalPhysicalMemory(void);
@@ -954,20 +951,6 @@ void InitializeGameplayRuntimeObjects(void)
            sizeof(W8MonsterManagerState));
     g_startup_runtime_state = new W8StartupRuntimeState();
     g_gameplay_timer_685067 = new W8GameTimer(300.0f, 0);
-}
-
-/* Stores the value the frame tick and the new-game reset both read back. */
-// FUNCTION: WIZ8 0x0055ec50
-void SetPendingScreenState(int value)
-{
-    g_dword_68ed10.id = value;
-}
-
-/* Latches the flag the frame tick clears once it has acted on it. */
-// FUNCTION: WIZ8 0x0055ec60
-void RequestScreenTransition(void)
-{
-    g_flag_68edac = 1;
 }
 
 /* Loads Data\\Databases\\SpellTables.dbs, replacing whatever is already there.

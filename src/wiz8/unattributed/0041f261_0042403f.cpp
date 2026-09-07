@@ -31,7 +31,7 @@ float Function420B40(int value)
         }
     }
     if (g_flag_00652dce != 0) {
-        if ((value == 8 && g_screen_state_0068ec78.id == 7) || value == 4) {
+        if ((value == 8 && g_current_screen_state.id == 7) || value == 4) {
             Function439CA0();
             g_flag_00652dce = 0;
         }

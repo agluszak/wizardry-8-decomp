@@ -1,4 +1,5 @@
 #pragma once
+#include "wiz8/screen_state.h"
 
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/TextControl.h"
@@ -140,7 +141,3 @@ static_assert(sizeof(W8OptionsScreen) == 0x64,
               "W8OptionsScreen_must_be_0x64");
 
 extern W8OptionsScreen* g_options_screen_0069c254;
-
-unsigned char OptionsScreenEnter005A9B50();
-unsigned char OptionsScreenLeave005A9C70(int leaving);
-void OptionsScreenFrame005A9CC0();

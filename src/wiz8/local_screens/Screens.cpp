@@ -1,5 +1,6 @@
 #include "wiz8/game_status.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/cursor.h"
 #include "wiz8/item_video_object_vector.h"
@@ -19,10 +20,6 @@
  * the default cursor back and forgets what was held. The screen ids and the
  * cursor ids are the numbers the original uses, and nothing here names them.
  */
-
-extern "C" {
-extern unsigned char g_flag_68edac;
-extern void* g_stack_68eda8;
 
 extern void RequestRedraw(unsigned int mask);
 
@@ -77,25 +74,37 @@ bool W8Controls005EE920::Function55EBE0(unsigned int command)
 /* Return the requested screen id, falling back to the state at the top of the
    return stack when there is no explicit pending state. */
 // FUNCTION: WIZ8 0x0055EC10
-int Function55EC10(void)
+int GetPendingScreenState(void)
 {
     W8ScreenStateRuntime state;
 
-    if (g_dword_68ed10.id != -1) {
-        return g_dword_68ed10.id;
+    if (g_pending_screen_state.id != -1) {
+        return g_pending_screen_state.id;
     }
-    if (PeekStack(g_stack_68eda8, &state)) {
+    if (PeekStack(g_screen_return_stack, &state)) {
         return state.id;
     }
     return -1;
 }
 
+// FUNCTION: WIZ8 0x0055ec50
+void SetPendingScreenState(int value)
+{
+    g_pending_screen_state.id = value;
+}
+
+// FUNCTION: WIZ8 0x0055ec60
+void RequestScreenTransition(void)
+{
+    g_screen_return_requested = 1;
+}
+
 /* Whether a transition is pending either explicitly or through the frame's
    transition flag. */
 // FUNCTION: WIZ8 0x0055EC70
-unsigned char Function55EC70(void)
+unsigned char IsScreenTransitionPending(void)
 {
-    if (g_dword_68ed10.id == -1 && g_flag_68edac == 0) {
+    if (g_pending_screen_state.id == -1 && g_screen_return_requested == 0) {
         return 0;
     }
     return 1;
@@ -105,10 +114,10 @@ unsigned char Function55EC70(void)
 // FUNCTION: WIZ8 0x0055EE30
 void Function55EE30(unsigned char bit)
 {
-    if (g_screen_state_0068ec78.id == W8_SCREEN_CAMP) {
+    if (g_current_screen_state.id == W8_SCREEN_CAMP) {
         g_camp_screen_0069c0f4->redraw_flags |= 0x100;
     }
-    else if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME) {
+    else if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         RequestRedraw(1 << (bit & 31));
     }
 }
@@ -118,7 +127,8 @@ void UpdateHeldItemCursor(void)
 {
     int object;
 
-    if ((g_screen_state_0068ec78.id == 7 || g_screen_state_0068ec78.id == 6) &&
+    if ((g_current_screen_state.id == W8_SCREEN_MAIN_GAME ||
+         g_current_screen_state.id == W8_SCREEN_CAMP) &&
         g_status_685170.item_in_cursor) {
         if (g_status_685170.item_in_hand_235b.item_id != -1) {
             g_status_685170.item_in_cursor = 1;
@@ -166,6 +176,4 @@ void ClearHeldItemDisplay(void)
         gXStatus.current_cursor_frame = 0;
         gXStatus.current_cursor_time = 0;
     }
-}
-
 }

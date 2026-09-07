@@ -61,10 +61,9 @@ unsigned int g_mswheel_roll_message;
 bool g_flag_6505a9;
 
 
-/* Shared success stub. InitializeStandardGamingPlatform uses it as a gate and the 62-entry frame
-   dispatch table parks it in seventeen slots. */
+/* Retail's shared success return, also used by the screen lifecycle table. */
 // FUNCTION: WIZ8 0x005b1740
-unsigned char Function5B1740(void)
+unsigned char ScreenLifecycleSuccess(void)
 {
     return 1;
 }
@@ -794,7 +793,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         } else if (gfApplicationActive == 0) {
             WaitMessage();
         } else {
-            Function4E3340();
+            UpdateScreenState();
             gfSGPInputReceived = 0;
         }
     } while (gfProgramIsRunning);

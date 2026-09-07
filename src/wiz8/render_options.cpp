@@ -18,8 +18,6 @@
  * holds, so it is not modelled.
  */
 
-void SetRenderOption(int option, int enabled);
-
 float g_render_brightness_60a210;
 float g_render_fog_distance_60e610;
 unsigned char g_render_flag_60a20c;
@@ -42,7 +40,8 @@ static void SetSurfaceScale(float scale)
     g_surface_scale_659680 = scale;
 }
 
-static void SetResidentTexturePolicy(int policy)
+// FUNCTION: WIZ8 0x004266e0
+void SetResidentTexturePolicy(int policy)
 {
     if (policy != g_resident_texture_policy_659714) {
         g_gerd_659634->invalidateResidentTextures();

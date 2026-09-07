@@ -34,8 +34,6 @@
 /* Party-selection and imported-character UI. The original translation-unit
    spelling is not established; this descriptive name is provisional. */
 
-void RequestScreenTransition(void);
-void SetPendingScreenState(int value);
 void SetValue64D8AC(unsigned long value);
 void Function54B250(unsigned char notify, void* target);
 void GetSaveSlotName005D3CC0(int slot, wchar_t* name);
@@ -53,8 +51,6 @@ extern "C" int MSYS_Init(void);
 extern void NoOp(void);
 extern "C" void MSYS_Shutdown(void);
 void ResetRegions(void);
-extern "C" void UpdateHeldItemCursor(void);
-void Function591780(void);
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
 int Function52E750(void);
@@ -72,10 +68,7 @@ extern "C" int g_wiz_text_bold_font_683664;
 extern "C" unsigned short* g_colour_68ee08;
 extern "C" unsigned short* g_font_palette_wiz_text_bold_68ee0c;
 extern "C" unsigned short* g_font_state_palettes_68ee1c[15];
-extern "C" int g_dword_647bc0;
 extern unsigned char g_flag_689b32;
-extern unsigned char g_flag_6f04e8;
-extern unsigned char g_flag_6f04ed;
 extern "C" HVOBJECT g_wiz_text_font_secondary_object_683680;
 extern "C" int g_options_title_font_68368c;
 extern "C" int g_options_detail_font_683614;
@@ -883,8 +876,8 @@ void W8State5CharacterPanel005EF3C8::Function5BF050(
             break;
         }
     }
-    g_dword_68ed10.parameter_2 = slot < 6 ? slot + 2 : -1;
-    g_dword_68ed10.parameter_3 = g_state5_controller_69c4e8->m_character_18;
+    g_pending_screen_state.parameter_2 = slot < 6 ? slot + 2 : -1;
+    g_pending_screen_state.parameter_3 = g_state5_controller_69c4e8->m_character_18;
     SetPendingScreenState(W8_SCREEN_CAMP);
 }
 
@@ -976,13 +969,13 @@ void W8State5PartySlotRow005EF3E4::OnRightButtonUp(int event)
                 break;
             }
         }
-        g_dword_68ed10.parameter_2 = slot < 6 ? slot + 2 : -1;
-        g_dword_68ed10.parameter_3 =
+        g_pending_screen_state.parameter_2 = slot < 6 ? slot + 2 : -1;
+        g_pending_screen_state.parameter_3 =
             g_state5_controller_69c4e8->m_character_18;
     }
     else {
-        g_dword_68ed10.parameter_2 = m_row + 2;
-        g_dword_68ed10.parameter_3 = &g_party_characters[m_row + 2];
+        g_pending_screen_state.parameter_2 = m_row + 2;
+        g_pending_screen_state.parameter_3 = &g_party_characters[m_row + 2];
     }
     SetPendingScreenState(W8_SCREEN_CAMP);
 }
@@ -1050,8 +1043,8 @@ void W8State5SixTextPanel005EF450::OnPrimary(
         }
     }
     control->SetAlternateTextEnabled(0);
-    g_dword_68ed10.parameter_3 = &g_party_characters[index + 2];
-    g_dword_68ed10.mode = 2;
+    g_pending_screen_state.parameter_3 = &g_party_characters[index + 2];
+    g_pending_screen_state.mode = 2;
     SetPendingScreenState(W8_SCREEN_CHARACTER);
 }
 
@@ -1891,14 +1884,14 @@ void W8State5Controller005EF4CC::OnPrimary(
                 break;
             }
         }
-        g_dword_68ed10.parameter_2 = slot < 6 ? slot + 2 : -1;
-        g_dword_68ed10.parameter_3 = m_character_18;
+        g_pending_screen_state.parameter_2 = slot < 6 ? slot + 2 : -1;
+        g_pending_screen_state.parameter_3 = m_character_18;
         SetPendingScreenState(W8_SCREEN_CAMP);
         return;
     }
     if (control == m_text_40) {
-        g_dword_68ed10.mode = 0;
-        g_dword_68ed10.parameter_3 = 0;
+        g_pending_screen_state.mode = 0;
+        g_pending_screen_state.parameter_3 = 0;
         SetPendingScreenState(W8_SCREEN_CHARACTER);
         return;
     }
@@ -2310,7 +2303,7 @@ void W8State5Controller005EF4CC::Function5C2970()
    from state 3 that is not preserving mode 1.  Loose CHR files are then merged
    and ordered before the controller presents them. */
 // FUNCTION: WIZ8 0x005c2de0
-unsigned char State5Enter005C2DE0(void)
+unsigned char PartySelectionScreenEnter(void)
 {
     SetViewport(0, 0, 0x280, 0x1e0);
     NoOp();
@@ -2348,7 +2341,7 @@ unsigned char State5Enter005C2DE0(void)
         g_state5_controller_69c4e8->Setup();
     }
     else {
-        if (g_dword_647bc0 == 3 && g_state5_controller_69c4e8->m_mode != 1) {
+        if (g_previous_screen_id == 3 && g_state5_controller_69c4e8->m_mode != 1) {
             for (int index = 0; index < collection->characters.count; ++index) {
                 W8Character* character = collection->GetCharacter(index);
                 if (!character->in_party) {
@@ -2377,7 +2370,7 @@ unsigned char State5Enter005C2DE0(void)
    another screen is temporarily stacked over it.  A leaving tick destroys
    both; an ordinary tick only performs the common display/region reset. */
 // FUNCTION: WIZ8 0x005c30b0
-unsigned char State5Tick005C30B0(int leaving)
+unsigned char PartySelectionScreenLeave(int leaving)
 {
     if (leaving) {
         W8State5PartyCollection* collection =
@@ -2404,14 +2397,14 @@ unsigned char State5Tick005C30B0(int leaving)
    second refusal, after which the screen owns Return, Escape, left/right row
    movement and Delete. */
 // FUNCTION: WIZ8 0x005c3120
-void State5Frame005C3120(void)
+void PartySelectionScreenFrame(void)
 {
     W8ScreenPoint point;
     W8ScreenPoint current;
     InputAtom input;
 
     if (g_flag_689b32) {
-        Function591780();
+        RequestExitScreen();
     }
     GetScreenPoint004284F0(&point);
     W8State5Controller005EF4CC* controller = g_state5_controller_69c4e8;
@@ -2430,7 +2423,7 @@ void State5Frame005C3120(void)
         GetScreenPoint004284F0(&current);
         MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, static_cast<unsigned short>(current.x),
                        static_cast<unsigned short>(current.y),
-                       g_flag_6f04ed, g_flag_6f04e8);
+                       gfLeftButtonState, gfRightButtonState);
     }
     UpdateRegionMousePosition(point.x, point.y);
     while (DequeueEvent(&input) == 1) {
@@ -2511,7 +2504,7 @@ int g_value_68de50;
    back, where writing the four calls out literally emits direct pushes and four
    instructions too few. */
 // FUNCTION: WIZ8 0x005c3800
-void GameStartRouterFrame005C3800(void)
+void GameStartRouterFrame(void)
 {
     unsigned long code;
 

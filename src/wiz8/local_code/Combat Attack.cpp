@@ -1,4 +1,7 @@
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/character.h"
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/layouts/item_tables.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/sr_api.h"
 #include "random.h"
@@ -13,6 +16,32 @@
  */
 
 #define COMBAT_ATTACK_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Combat Attack.cpp"
+
+// FUNCTION: WIZ8 0x00546a70
+void GetCharacterHandDamageDice(const W8Character* character, int hand, W8Dice* dice)
+{
+    if (character->hand_attacks[hand].wield_kind == 0) {
+        *dice = character->hand_attacks[hand].damage_dice;
+        return;
+    }
+    int slot;
+    if (hand == 0) {
+        slot = 6;
+        if (ItemHasSingledOutGenericName(character->equipment[6].item_id)) {
+            int partner = GetPairedEquipSlot(6);
+            if (partner != -1) slot = partner;
+        }
+    } else {
+        slot = 7;
+    }
+    *dice = g_item_records[character->equipment[slot].item_id].damage_dice;
+}
+
+// FUNCTION: WIZ8 0x00546b10
+int GetCharacterHandDamageBonus(const W8Character* character, int hand)
+{
+    return character->hand_attacks[hand].value_29 + character->bonus_1773;
+}
 
 /* Nine attack modes, one bit each, held in the low half of a word. */
 enum { W8_ATTACK_MODE_COUNT = 9 };

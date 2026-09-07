@@ -1,46 +1,13 @@
 #include "wiz8/music_playlist.h"
-#include "wiz8/local_screens/JournalScreen.h"
-#include "wiz8/local_screens/CharacterScreen.h"
-#include "wiz8/local_screens/CreditsScreen.h"
 #include "wiz8/startup_runtime_state.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/sr_api.h"
 #include "Container.h"
+#include "Font.h"
 #include "sgp.h"
 #include "surrender/srTypeRegistry.h"
 
 #include <string.h>
-
-unsigned char State5Enter005C2DE0(void);
-void State5Frame005C3120(void);
-unsigned char State5Tick005C30B0(int leaving);
-unsigned char Function5B1740(void);
-unsigned char IntroScreenEnter(void);
-void IntroScreenFrame(void);
-unsigned char IntroScreenLeave(int leaving);
-unsigned char InitializeSubsystemFlag(void);
-unsigned char MainMenuScreenFunction005BC810(void);
-void MainMenuScreenFrame(void);
-unsigned char MainMenuScreenLeave(int leaving);
-void GameStartRouterFrame005C3800(void);
-unsigned char PleaseWaitScreenInitialize(void);
-unsigned char PleaseWaitScreenEnter(void);
-void PleaseWaitScreenFrame(void);
-unsigned char PleaseWaitScreenLeave(char leaving);
-unsigned char InitializeCampScreen(void);
-unsigned char InitializeStartupGrid(void);
-unsigned char MainGameScreenEnter0055F8C0(void);
-unsigned char MainGameScreenLeave00560660(int leaving);
-unsigned char CreateList005EEA28(void);
-unsigned char Screen8Finalize(void);
-unsigned char AllocateSmallStartupSubsystem(void);
-unsigned char OptionsScreenEnter005A9B50(void);
-void OptionsScreenFrame005A9CC0(void);
-unsigned char OptionsScreenLeave005A9C70(int leaving);
-unsigned char FreeSmallStartupSubsystem(void);
-unsigned char InitializeJournalFont(void);
-unsigned char FinalizeJournalFont(void);
-unsigned char ExitScreenEnter00591790(void);
-void ExitScreenFrame005917E0(void);
 
 /*
  * The per-frame tick WinMain calls when no message is waiting and the
@@ -55,59 +22,53 @@ void ExitScreenFrame005917E0(void);
  * transition loop dispatches the middle three.
  */
 
-static unsigned char ScreenReady(void) { return 1; }
-static void ScreenIdle(void) {}
-static unsigned char ScreenLeave(int) { return 1; }
+// GLOBAL: WIZ8 0x0068ec78
+W8ScreenStateRuntime g_current_screen_state;
+// GLOBAL: WIZ8 0x0068ed10
+W8ScreenStateRuntime g_pending_screen_state;
+// GLOBAL: WIZ8 0x0068edac
+unsigned char g_screen_return_requested;
+// GLOBAL: WIZ8 0x0068eda8
+void* g_screen_return_stack;
 
-/* Row 8 is Automap. Its live callbacks are
-   0057E660/0057F1F0/0057EFE0; the placeholders below keep the runtime
-   projection honest until those bodies are recovered. */
-
-/* WIZ8_RUNTIME currently retains the reviewed main-menu callback but not the
-   complete thirteen-record lifecycle table.  Keep this bridge local and
-   unclaimed: it selects the exact menu body through the same typed dispatch
-   shape while wiz8-a69 completes the remaining records. */
-static unsigned char EnterMainMenu(void)
-{ return MainMenuScreenFunction005BC810(); }
-
-#define g_screen_state g_screen_state_0068ec78
-#define g_pending_state g_dword_68ed10
-W8ScreenStateHandlers g_screen_handlers[13] = {
-    { Function5B1740, IntroScreenEnter, IntroScreenFrame, IntroScreenLeave,
-      Function5B1740 },
-    { InitializeSubsystemFlag, EnterMainMenu, MainMenuScreenFrame,
-      MainMenuScreenLeave, Function5B1740 },
-    { Function5B1740, Function5B1740, GameStartRouterFrame005C3800,
-      (unsigned char (*)(int))Function5B1740, Function5B1740 },
-    { Function5B1740, CharacterScreenEnter005B1750, CharacterScreenFrame005B18E0,
-      CharacterScreenLeave005B1840, Function5B1740 },
+// GLOBAL: WIZ8 0x00647bc8
+W8ScreenStateHandlers g_screen_handlers[W8_SCREEN_COUNT] = {
+    { ScreenLifecycleSuccess, IntroScreenEnter, IntroScreenFrame, IntroScreenLeave,
+      ScreenLifecycleSuccess },
+    { MainMenuScreenInitialize, MainMenuScreenEnter, MainMenuScreenFrame,
+      MainMenuScreenLeave, ScreenLifecycleSuccess },
+    { ScreenLifecycleSuccess, ScreenLifecycleSuccess, GameStartRouterFrame,
+      (unsigned char (*)(int))ScreenLifecycleSuccess, ScreenLifecycleSuccess },
+    { ScreenLifecycleSuccess, CharacterScreenEnter, CharacterScreenFrame,
+      CharacterScreenLeave, ScreenLifecycleSuccess },
     { PleaseWaitScreenInitialize, PleaseWaitScreenEnter, PleaseWaitScreenFrame,
-      (unsigned char (*)(int))PleaseWaitScreenLeave, Function5B1740 },
-    { Function5B1740, State5Enter005C2DE0, State5Frame005C3120,
-      State5Tick005C30B0, Function5B1740 },
-    { InitializeCampScreen, ScreenReady, ScreenIdle, ScreenLeave,
-      Function5B1740 },
-    { InitializeStartupGrid, MainGameScreenEnter0055F8C0, ScreenIdle,
-      MainGameScreenLeave00560660,
-      Function5B1740 },
-    { CreateList005EEA28, ScreenReady, ScreenIdle, ScreenLeave,
-      Screen8Finalize },
-    { Function5B1740, CreditsScreenEnter005BC130, CreditsScreenFrame005BC530,
-      CreditsScreenLeave005BC420, Function5B1740 },
-    { AllocateSmallStartupSubsystem, OptionsScreenEnter005A9B50,
-      OptionsScreenFrame005A9CC0, OptionsScreenLeave005A9C70,
-      FreeSmallStartupSubsystem },
-    { InitializeJournalFont, JournalScreenEnter005BDE40, JournalScreenFrame005BE110,
-      JournalScreenLeave005BE0B0,
-      FinalizeJournalFont },
-    { Function5B1740, ExitScreenEnter00591790, ExitScreenFrame005917E0,
+      (unsigned char (*)(int))PleaseWaitScreenLeave, ScreenLifecycleSuccess },
+    { ScreenLifecycleSuccess, PartySelectionScreenEnter, PartySelectionScreenFrame,
+      PartySelectionScreenLeave, ScreenLifecycleSuccess },
+    { CampScreenInitialize, CampScreenEnter, CampScreenFrame,
+      CampScreenLeave,
+      ScreenLifecycleSuccess },
+    { MainGameScreenInitialize, MainGameScreenEnter, MainGameScreenFrame,
+      MainGameScreenLeave,
+      ScreenLifecycleSuccess },
+    { AutomapScreenInitialize, AutomapScreenEnter, AutomapScreenFrame,
+      AutomapScreenLeave, AutomapScreenFinalize },
+    { ScreenLifecycleSuccess, CreditsScreenEnter, CreditsScreenFrame,
+      CreditsScreenLeave, ScreenLifecycleSuccess },
+    { OptionsScreenInitialize, OptionsScreenEnter,
+      OptionsScreenFrame, OptionsScreenLeave,
+      OptionsScreenFinalize },
+    { JournalScreenInitialize, JournalScreenEnter, JournalScreenFrame,
+      JournalScreenLeave,
+      JournalScreenFinalize },
+    { ScreenLifecycleSuccess, ExitScreenEnter, ExitScreenFrame,
       MainMenuScreenLeave,
-      Function5B1740 }
+      ScreenLifecycleSuccess }
 };
-extern unsigned char g_flag_68edac;
-int g_dword_647bc0;
-int g_dword_647bc4;
-extern void* g_stack_68eda8;
+// GLOBAL: WIZ8 0x00647bc0
+int g_previous_screen_id = -1;
+// GLOBAL: WIZ8 0x00647bc4
+int g_suspended_screen_id = -1;
 
 int g_screen_transition_object_count_654aac;
 srClass** g_screen_transition_objects_654ab4;
@@ -132,59 +93,59 @@ void ReleaseScreenTransitionObjects(void)
 }
 
 // FUNCTION: WIZ8 0x004e3340
-void Function4E3340(void)
+void UpdateScreenState(void)
 {
     int state;
 
     SoundServiceStreams();
     Function48F9E0();
-    state = g_screen_state.id;
-    if (g_flag_68edac) {
-        g_dword_647bc0 = state;
+    state = g_current_screen_state.id;
+    if (g_screen_return_requested) {
+        g_previous_screen_id = state;
         ReleaseScreenTransitionObjects();
-        if (!g_screen_handlers[g_screen_state.id].leave(1)) {
+        if (!g_screen_handlers[g_current_screen_state.id].leave(1)) {
             gfProgramIsRunning = 0;
-            g_screen_state.id = -1;
+            g_current_screen_state.id = -1;
             return;
         }
-        g_screen_state.id = -1;
-        if (g_pending_state.id == -1) {
-            if (!StackSize(g_stack_68eda8)) {
+        g_current_screen_state.id = -1;
+        if (g_pending_screen_state.id == -1) {
+            if (!StackSize(g_screen_return_stack)) {
                 goto stop;
             }
-            if (!Pop(g_stack_68eda8, &g_pending_state)) {
+            if (!Pop(g_screen_return_stack, &g_pending_screen_state)) {
                 goto stop;
             }
         }
         state = -1;
-        g_screen_state.id = state;
-        g_flag_68edac = 0;
+        g_current_screen_state.id = state;
+        g_screen_return_requested = 0;
     }
-    if (g_pending_state.id == -1 || g_pending_state.id == state) {
+    if (g_pending_screen_state.id == -1 || g_pending_screen_state.id == state) {
         goto finish;
     }
     /* The original tests only the low byte of the vector count. Preserve that
        aliasing instead of widening the load to the field's full int type. */
     if (*reinterpret_cast<const unsigned char*>(&g_startup_runtime_state->vector_40.count) != 0) {
         g_startup_runtime_state->ProcessNextPendingEntry();
-        state = g_screen_state.id;
+        state = g_current_screen_state.id;
     }
     if (state != -1) {
-        g_dword_647bc0 = state;
+        g_previous_screen_id = state;
         ReleaseScreenTransitionObjects();
-        if (!g_screen_handlers[g_screen_state.id].leave(0)) {
+        if (!g_screen_handlers[g_current_screen_state.id].leave(0)) {
             goto clear;
         }
-        g_dword_647bc4 = g_screen_state.id;
-        g_stack_68eda8 = Push(g_stack_68eda8, &g_screen_state);
+        g_suspended_screen_id = g_current_screen_state.id;
+        g_screen_return_stack = Push(g_screen_return_stack, &g_current_screen_state);
     }
-    state = g_pending_state.id;
-    memcpy(&g_screen_state, &g_pending_state, sizeof(W8ScreenStateRuntime));
+    state = g_pending_screen_state.id;
+    memcpy(&g_current_screen_state, &g_pending_screen_state, sizeof(W8ScreenStateRuntime));
     if (!g_screen_handlers[state].enter()) {
         goto clear;
     }
-    state = g_screen_state.id;
-    g_pending_state.id = -1;
+    state = g_current_screen_state.id;
+    g_pending_screen_state.id = -1;
 
 finish:
     if (state == -1) {
@@ -194,36 +155,51 @@ finish:
     return;
 
 clear:
-    g_screen_state.id = -1;
+    g_current_screen_state.id = -1;
 stop:
     gfProgramIsRunning = 0;
 }
 
 // FUNCTION: WIZ8 0x004e34b0
-void ShutdownScreenStack(int release_screens)
+void ShutdownScreenStack(unsigned char release_screens)
 {
     int state;
 
+    SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_palette_smfnt_68ee10);
+    SetFontObjectPalette16BPP(g_calligraphy_font_6835f8, g_font_palette_calligraphy_68edfc);
+    SetFontObjectPalette16BPP(g_calligraphy_shadow_font_6835f4,
+                            g_font_palette_calligraphy_shadow_68ee18);
+    SetFontObjectPalette16BPP(g_wiz_text_font_683640, g_font_palette_wiz_text_68ee14);
+    SetFontObjectPalette16BPP(g_button_font_683670, g_font_palette_button_68ee04);
+    SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+    SetFontObjectPalette16BPP(g_wiz_text_bold_font_683664,
+                            g_font_palette_wiz_text_bold_68ee0c);
+    SetFontObjectPalette16BPP(g_options_detail_font_683614,
+                            g_font_palette_options_detail_68ee00);
     if (!release_screens) {
         return;
     }
     for (;;) {
-        if (g_screen_state.id != -1) {
-            g_dword_647bc0 = g_screen_state.id;
+        if (g_current_screen_state.id != -1) {
+            g_previous_screen_id = g_current_screen_state.id;
             ReleaseScreenTransitionObjects();
-            g_screen_handlers[g_screen_state.id].leave(1);
-            g_screen_state.id = -1;
+            g_screen_handlers[g_current_screen_state.id].leave(1);
+            g_current_screen_state.id = -1;
         }
-        if (!StackSize(g_stack_68eda8) || !Pop(g_stack_68eda8, &g_pending_state)) {
+        if (!StackSize(g_screen_return_stack) || !Pop(g_screen_return_stack, &g_pending_screen_state)) {
             break;
         }
-        if (g_pending_state.id != -1) {
-            state = g_pending_state.id;
-            memcpy(&g_screen_state, &g_pending_state, sizeof(g_screen_state));
+        if (g_pending_screen_state.id != -1) {
+            if (g_current_screen_state.id != -1) {
+                srAssertFail("gCurrentScreen.iScreenId == NO_SCREEN",
+                             "C:\\Projects\\Wizardry 8\\Local Code\\Gameloop.cpp", 0x276, 0);
+            }
+            state = g_pending_screen_state.id;
+            memcpy(&g_current_screen_state, &g_pending_screen_state, sizeof(g_current_screen_state));
             if (!g_screen_handlers[state].enter()) {
-                g_screen_state.id = -1;
+                g_current_screen_state.id = -1;
             } else {
-                g_pending_state.id = -1;
+                g_pending_screen_state.id = -1;
             }
         }
     }

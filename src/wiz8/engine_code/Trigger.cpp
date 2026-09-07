@@ -5,6 +5,7 @@
 #include "wiz8/string_database.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/Trigger.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/Monster.h"
@@ -71,7 +72,6 @@ extern unsigned char g_flag_00606994;
 extern unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all);
 extern int OpenLockInteraction00587510(Trigger* trigger);
 extern int OpenTrapInteraction0058A470(Trigger* trigger);
-extern void* g_modal_owner_0068edd0;
 extern unsigned char FindEntityByName(
     const char* name,
     srVector3T<float>* position,

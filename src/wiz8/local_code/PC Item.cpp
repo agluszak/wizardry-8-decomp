@@ -3,6 +3,7 @@
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/cursor.h"
 #include "wiz8/local_code/party_encumbrance.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
@@ -11,6 +12,7 @@
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/magic.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/notices.h"
 #include "wiz8/targeting.h"
@@ -258,7 +260,6 @@ int W8ItemVideoObjectCache::GetOrCreateVideoObject(int item_id)
 }
 
 extern void DropHeldItem(int arg_1);                         /* 0x004F7610 */
-extern "C" void ClearHeldItemDisplay(void);                  /* 0x0055F1E0 */
 extern void MoveItem(W8ItemInstance* to, W8ItemInstance* from, int arg_3, int arg_4);
 /* 0x0051FE30 */
 extern unsigned char CanCharacterActivateItem(
@@ -890,7 +891,7 @@ bool AddItemToCharacter(
     if (Function4EDC60(character)) {
         Function4EDD20();
     }
-    if (g_screen_state_0068ec78.id == W8_SCREEN_CAMP &&
+    if (g_current_screen_state.id == W8_SCREEN_CAMP &&
         g_camp_screen_0069c0f4 != 0) {
         g_camp_screen_0069c0f4->item_redraw_flags |= 2 << stored_index;
     }
@@ -2032,7 +2033,7 @@ void Function520D10(
         RequestRedraw(1 << (party_slot & 0x1f));
     }
 
-    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block) {
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block) {
         if (g_level_block->combat_end_notification != -1) {
             Function595600();
         }
@@ -2147,7 +2148,7 @@ void Function5227D0(
 {
     void* message;
 
-    if (g_screen_state_0068ec78.id == 5) {
+    if (g_current_screen_state.id == 5) {
         return;
     }
     if (choose_character) {
@@ -2258,7 +2259,7 @@ bool AddItemToParty(
         stored = true;
     }
 
-    if (g_screen_state_0068ec78.id == W8_SCREEN_CAMP &&
+    if (g_current_screen_state.id == W8_SCREEN_CAMP &&
         g_camp_screen_0069c0f4 != 0) {
         g_camp_screen_0069c0f4->item_redraw_flags |= 0x7fc00000;
     }

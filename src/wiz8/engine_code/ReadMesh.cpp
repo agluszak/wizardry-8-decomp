@@ -865,7 +865,7 @@ unsigned char ReadMultipleLevelMeshes00488240(
     for (g_read_mesh_index_65b9e4 = 0;
          g_read_mesh_index_65b9e4 < mesh_count;
          ++g_read_mesh_index_65b9e4) {
-        if (g_screen_state_0068ec78.id == 4) {
+        if (g_current_screen_state.id == 4) {
             UpdatePleaseWaitLoadFrame005915A0();
         }
         stMeshModel* model = reader.Read0049E9A0(

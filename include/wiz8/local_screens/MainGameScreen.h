@@ -1,4 +1,5 @@
 #pragma once
+#include "wiz8/screen_state.h"
 
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
@@ -33,9 +34,18 @@ struct W8LevelRuntimeBlock {
     unsigned char dialogue_open;
     unsigned char unknown_1f9[3];
     unsigned char* dialogue_owner;
-    unsigned char unknown_200[0x4d];
+    unsigned char unknown_200[0x44];
+    unsigned int world_update_flags;     /* 0x244 */
+    unsigned int world_render_flags;     /* 0x248 */
+    unsigned char unknown_24c;
     unsigned char flag_24d;
-    unsigned char unknown_24e[0x16];
+    unsigned char unknown_24e[2];
+    unsigned int character_update_timer; /* 0x250 */
+    unsigned int world_update_timer;     /* 0x254 */
+    unsigned char unknown_258[8];
+    unsigned char transition_active;     /* 0x260 */
+    unsigned char transition_pending;    /* 0x261 */
+    unsigned char unknown_262[2];
     int highlighted_item;
     int selected_item;
     unsigned char unknown_26c[0x10];
@@ -43,7 +53,8 @@ struct W8LevelRuntimeBlock {
     int pending_entry_id;
     unsigned char unknown_284[0x3c];
     unsigned char refresh_combat_panel;
-    unsigned char unknown_2c1[7];
+    unsigned char unknown_2c1[3];
+    unsigned int combat_panel_timer;
     unsigned char refresh_party_panel;
     unsigned char unknown_2c9;
     short combat_end_notification;
@@ -65,11 +76,15 @@ struct W8LevelRuntimeBlock {
     unsigned char unknown_301[3];
     int tooltip_subject;
     int tooltip_kind;
-    unsigned char unknown_30c[8];
+    unsigned char unknown_30c[4];
+    int combat_slot;                      /* 0x310 */
     unsigned char flag_314;
-    unsigned char unknown_315[0x12];
+    unsigned char unknown_315[3];
+    int hover_combat_slot;                /* 0x318 */
+    unsigned char unknown_31c[0xb];
     unsigned char flag_327;
-    unsigned char unknown_328[8];
+    unsigned char flag_328;
+    unsigned char unknown_329[7];
 };
 #pragma pack(pop)
 
@@ -197,8 +212,11 @@ extern W8LevelRuntimeBlock* g_level_block;
 extern W8MainGameScreen005EEBD8* g_main_game_screen_0068f2d4;
 }
 
+class W8DialogBase;
+extern W8DialogBase* g_modal_owner_0068edd0;
+extern W8DialogBase* g_pending_main_game_dialog_0068edd4;
+void OnQuitGameDialogClosed(W8DialogBase* dialog);
+
 void Function56AA30(void);
 void Function56AAB0(void);
-unsigned char MainGameScreenEnter0055F8C0(void);
-unsigned char MainGameScreenLeave00560660(int leaving);
 void ResetMainGameScreenState(void);

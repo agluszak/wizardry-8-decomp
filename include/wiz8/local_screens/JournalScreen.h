@@ -1,4 +1,5 @@
 #pragma once
+#include "wiz8/screen_state.h"
 
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/TextControl.h"
@@ -37,7 +38,3 @@ static_assert(sizeof(W8JournalEntry) == 0x0c, "W8JournalEntry_size");
 
 // SYNTHETIC: WIZ8 0x005bd7d0
 // W8JournalPanel005EF340::`scalar deleting destructor'
-
-unsigned char JournalScreenEnter005BDE40(void);
-unsigned char JournalScreenLeave005BE0B0(int leaving);
-void JournalScreenFrame005BE110(void);

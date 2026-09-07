@@ -75,7 +75,7 @@ void Function56AA30(void)
         MonsterForward453160();
         Function41F0D0();
     }
-    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME &&
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
         g_level_block != 0) {
         g_level_block->redraw_flags |= 0x8000;
     }
@@ -101,14 +101,14 @@ void Function56AAB0(void)
         }
         g_flag_6840bc = 0;
         g_flag_006840bd = 0;
-        if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME &&
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
             g_level_block->flag_327 == 0) {
             if (gXStatus.field_055 != 0) {
                 Function5A1950();
             }
             ClearSurfaceRect(0xb1, 0x13f, 0x1cf, 0x153);
             MarkScreenRectDirty(0xb1, 0x13f, 0x1cf, 0x153, 0);
-            if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME &&
+            if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
                 g_level_block != 0) {
                 g_level_block->redraw_flags |= 0x8000;
             }

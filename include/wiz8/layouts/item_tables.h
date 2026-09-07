@@ -42,8 +42,7 @@ typedef struct W8ItemDatabaseRecord {
     unsigned char wield_group;            /* 0x047 */
     signed char attack_damage_bonus;      /* 0x048 */
     signed char attack_hit_bonus;         /* 0x049 */
-    short attack_value_04a;
-    unsigned short unknown_04c;
+    W8Dice damage_dice;                   /* 0x04a */
     unsigned short attack_flags_04e;
     unsigned char unknown_050[0x12];
     signed char armor_class_bonus;        /* 0x062 */
