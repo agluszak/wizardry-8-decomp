@@ -1,4 +1,5 @@
 #include "wiz8/music_playlist.h"
+#include "wiz8/local_screens/JournalScreen.h"
 #include "wiz8/startup_runtime_state.h"
 #include "wiz8/screen_state.h"
 #include "Container.h"
@@ -94,7 +95,8 @@ W8ScreenStateHandlers g_screen_handlers[13] = {
     { AllocateSmallStartupSubsystem, OptionsScreenEnter005A9B50,
       OptionsScreenFrame005A9CC0, OptionsScreenLeave005A9C70,
       FreeSmallStartupSubsystem },
-    { InitializeJournalFont, ScreenReady, ScreenIdle, ScreenLeave,
+    { InitializeJournalFont, JournalScreenEnter005BDE40, JournalScreenFrame005BE110,
+      JournalScreenLeave005BE0B0,
       FinalizeJournalFont },
     { Function5B1740, Screen12Enter, Screen12Finish, MainMenuScreenLeave,
       Function5B1740 }

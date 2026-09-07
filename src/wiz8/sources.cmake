@@ -26,6 +26,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/local_screens/RCSCommon.cpp
     src/wiz8/local_screens/MGSTextBox.cpp
     src/wiz8/local_screens/MainGameScreen.cpp
+    src/wiz8/local_screens/JournalScreen.cpp
     src/wiz8/local_screens/MGSPortraits.cpp
     src/wiz8/local_screens/MGSUseItemSelect.cpp
     src/wiz8/local_screens/MGSPartyMovement.cpp
