@@ -12,6 +12,7 @@
 
 #include "font.h"
 #include "mousesystem.h"
+#include "surrender/srTypeRegistry.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -65,6 +66,41 @@ extern void Function58A470(int value);
 extern void Function565740(int slot);
 extern void Function59C930(int slot);
 extern void Function42B770(int, int);
+extern void Function4098F0(void);
+extern void Function490AF0(void);
+extern char Function4914C0(void);
+extern void Function5187E0(void);
+extern void Function56E800(int);
+extern void Function57D740(void);
+extern void Function5879A0(int);
+extern void Function58A790(int);
+extern void Function592E60(void);
+extern void Function598AE0(void);
+extern void Function59B270(void);
+extern void Function59BAD0(void);
+extern void Function59BF70(void);
+extern void Function59C9C0(void);
+extern void Function59F2B0(void);
+extern void Function5A20E0(int);
+extern void Function5A23E0(void);
+extern void Function5AEB20(void);
+extern void Function5B1C00(void);
+extern void Function5B2200(void);
+extern void Function563DD0(void);
+extern void Function4257F0(int value);
+extern void Function529510(void);
+extern short Function5698C0(void);
+extern void Function5618F0(unsigned short mode);
+extern unsigned char SetFlag603C60(void);
+extern unsigned char GetFlag68F105(void);
+extern void DisableRegionSet1C(void);
+extern void ReleaseLoadedVideoFrames(void);
+extern void MSYS_Shutdown(void);
+extern void NoOp(void);
+extern void UpdateHeldItemCursor(void);
+extern void Function42B3E0(void);
+int IsScreenInputBlocked(void);
+void DisableCombatRegions(void);
 
 extern unsigned char g_flag_0065970d;
 extern unsigned char g_flag_0065970c;
@@ -80,6 +116,26 @@ extern unsigned char g_flag_00685076;
 extern signed char g_value_00685077;
 extern int g_value_006850d5;
 extern unsigned char g_in_combat_00683f94;
+extern unsigned char g_flag_00683f95;
+extern unsigned char g_flag_00683f96;
+extern unsigned char g_flag_00683f97;
+extern unsigned char g_flag_00683f98;
+extern unsigned char g_flag_00683f99;
+extern unsigned char g_flag_00683f9a;
+extern unsigned char g_flag_00683fcd;
+extern unsigned char g_flag_006850ce;
+extern unsigned char g_flag_0068edbc;
+extern unsigned char g_flag_0068edc8;
+extern unsigned char g_flag_0068edc9;
+extern unsigned char g_flag_0068edd8;
+extern int g_main_game_mode_0068eddc;
+extern int g_value_006f04ec;
+
+struct W8MainGameResourceSlot {
+    srClass* object;
+    unsigned char positional_04[0x10];
+};
+extern W8MainGameResourceSlot g_main_game_resource_slots_64827c[17];
 
 /* Reset the complete Main Game state block and the UI/selection state that is
    coupled to it. The clear's 0xcc dwords independently prove the 0x330 extent
@@ -220,6 +276,160 @@ unsigned char MainGameScreenEnter0055F8C0(void)
     if (!g_in_combat_00683f94) {
         Function42B770(1, 1);
     }
+    return 1;
+}
+
+/* Leave the live screen. A temporary transition keeps the allocation and the
+   resource strip alive; a full leave additionally unloads the level and owns
+   the final release of the per-screen block. */
+// FUNCTION: WIZ8 0x00560660
+unsigned char MainGameScreenLeave00560660(int leaving)
+{
+    int index;
+
+    if (g_main_game_mode_0068eddc == 3) {
+        if (g_flag_00683f97) {
+            Function56E800(0);
+        }
+    }
+    else if (g_main_game_mode_0068eddc == 5) {
+        Function5187E0();
+    }
+    else if (g_main_game_mode_0068eddc == 6) {
+        if (g_level_block->dialogue_owner != 0) {
+            Function4257F0(reinterpret_cast<int>(g_level_block->dialogue_owner));
+            g_level_block->dialogue_owner = 0;
+        }
+        Function563DD0();
+    }
+    g_main_game_mode_0068eddc = 0;
+
+    if (g_flag_0068edd8) {
+        SetFlag603C60();
+        g_flag_0068edd8 = 0;
+        g_value_006f04ec = 0;
+    }
+    if (Function4914C0()) {
+        Function490AF0();
+    }
+    Function59B270();
+    if (g_flag_00683f98) Function5879A0(0);
+    if (g_flag_00683f99) Function58A790(0);
+    if (g_flag_00683f95) Function59F2B0();
+    if (g_flag_00683f96) Function59C9C0();
+    if (g_flag_00683f9a) Function5B2200();
+    if (g_flag_00683f97) Function56E800(0);
+    if (g_level_block->flag_314) Function592E60();
+    Function59BAD0();
+    Function59BF70();
+    if (g_flag_00683fcd) DisableRegionSet1C();
+    Function529510();
+    if (GetFlag68F105()) Function57D740();
+    Function420B40(1);
+    Function482990(0);
+
+    if ((g_gameplay_timer_685067->m_flags & 8) == 0) {
+        g_gameplay_timer_685067->m_flags |= 8;
+        g_gameplay_timer_685067->m_start =
+            g_gameplay_timer_685067->Method00439A60() -
+            g_gameplay_timer_685067->m_start;
+    }
+
+    if (static_cast<unsigned char>(leaving)) {
+        for (index = 0; index < 17; ++index) {
+            if (g_main_game_resource_slots_64827c[index].object != 0) {
+                g_main_game_resource_slots_64827c[index].object->release();
+                g_main_game_resource_slots_64827c[index].object = 0;
+            }
+        }
+    }
+
+    UpdateHeldItemCursor();
+    if (g_level_block->held_item_display_190 != -1) {
+        g_level_block->held_item_display_190 = -1;
+        UpdateHeldItemCursor();
+    }
+
+    if (g_level_block->flag_156) {
+        g_level_block->flag_156 = 0;
+        RegionSetDisable(0x13);
+        Function5B1C00();
+        if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x8200;
+        }
+        if (g_flag_0068edc9) {
+            unsigned short mode;
+            if (!IsScreenInputBlocked() && !g_level_block->flag_155 &&
+                g_level_block->flag_156 && g_level_block->flag_157 &&
+                g_flag_006850ce == 0) {
+                mode = 4;
+            }
+            else if (!IsScreenInputBlocked() &&
+                     (!g_level_block->flag_156 || !g_level_block->flag_157 ||
+                      !g_level_block->flag_155)) {
+                mode = 0;
+            }
+            else if (g_flag_006850ce == 1) {
+                mode = 1;
+            }
+            else if (g_flag_006850ce == 2) {
+                mode = 0;
+            }
+            else {
+                mode = 2;
+            }
+            Function5618F0(mode);
+        }
+        g_flag_0068edc9 = 0;
+    }
+
+    if (g_level_block->flag_157) {
+        g_level_block->flag_157 = 0;
+        DisableRegionInput(0x62);
+        RegionSetDisable(0x12);
+        Function5A20E0(0);
+        Function5A23E0();
+        if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x8200;
+        }
+        if (g_flag_0068edbc) {
+            Function5618F0(Function5698C0());
+        }
+        g_flag_0068edbc = 0;
+    }
+
+    if (g_level_block->flag_155) {
+        g_level_block->flag_155 = 0;
+        DisableCombatRegions();
+        if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x8200;
+        }
+        if (g_flag_0068edc8) {
+            Function5618F0(Function5698C0());
+        }
+        g_flag_0068edc8 = 0;
+    }
+
+    if (static_cast<unsigned char>(leaving)) {
+        if (g_status_685170.current_level != -1) {
+            Function42B3E0();
+            if (!UnloadLevel("")) {
+                return 0;
+            }
+        }
+        Function4098F0();
+        free(g_level_block);
+        g_level_block = 0;
+        ReleaseLoadedVideoFrames();
+    }
+    NoOp();
+    MSYS_Shutdown();
+    ResetRegions();
+    g_flag_0065970d = 0;
+    g_flag_0065970c = 0;
+    DisableSky();
+    Function598AE0();
+    Function5AEB20();
     return 1;
 }
 
