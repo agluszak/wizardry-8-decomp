@@ -1,3 +1,4 @@
+#include "wiz8/local_code/ButtonSound.h"
 #include "wiz8/sr_api.h"
 
 /* Local Code\ButtonSound.cpp's fixed scheme stack. The assertion supplies the

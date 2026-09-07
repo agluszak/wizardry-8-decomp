@@ -53,7 +53,7 @@ public:
     void FillBounds(int colour);
     void RenderText(int a, int b, int x_offset, int y_offset,
                     unsigned char force);
-    void Function4F39B0(int offset, unsigned char force, int target);
+    void RenderToTarget(int offset, unsigned char force, int target);
     void UpdateLayout();                  /* 0x004F35B0 */
     void SetLayoutMode(unsigned int layout_mode);
     void SetText(const wchar_t* text, int font);

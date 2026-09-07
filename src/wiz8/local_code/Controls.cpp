@@ -1,7 +1,10 @@
 #include "wiz8/float_constants.h"
+#include "wiz8/cursor.h"
 #include "wiz8/dirty_tiles.h"
+#include "wiz8/local_code/ButtonSound.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/regions.h"
+#include "wiz8/utility.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
 #include "wiz8/video_object_catalog.h"
@@ -121,9 +124,6 @@ extern int g_W8FontStateTable0068EE1C[];
 extern float g_W8RangeEnd005EBB38;
 extern float g_W8RangeHalfStep005EBC7C;
 extern void Function558720(int sound_id);
-extern void Function5587C0(int a, int b);
-extern void Function4284F0(int* coordinates);
-extern void Function4F2040(unsigned int region);
 extern short Function402760(unsigned int mouse_position);
 
 
@@ -720,7 +720,7 @@ done:
    shares the buffer's layout and palette state but prints directly to the
    selected target, then restores the full-screen clip. */
 // FUNCTION: WIZ8 0x004f39b0
-void W8TextBuffer005ED5B8::Function4F39B0(
+void W8TextBuffer005ED5B8::RenderToTarget(
     int offset, unsigned char force, int target)
 {
     wchar_t* line = m_buffer;
@@ -989,14 +989,14 @@ void W8TextControl005ED604::Redraw(int full_redraw)
 
     if (full_redraw == 0 && m_flag_6 == 0) {
         if (m_textBuffer.HasBuffer()) {
-            m_textBuffer.Function4F39B0(text_state, 0, -14);
+            m_textBuffer.RenderToTarget(text_state, 0, -14);
         }
         return;
     }
 
     if (m_text_40 == -1 || m_text_44 == -1) {
         if (m_textBuffer.HasBuffer()) {
-            m_textBuffer.Function4F39B0(
+            m_textBuffer.RenderToTarget(
                 text_state, static_cast<unsigned char>(full_redraw), -14);
         }
         return;
@@ -1007,7 +1007,7 @@ void W8TextControl005ED604::Redraw(int full_redraw)
         sprite = m_text_58;
         if (sprite == -1) {
             if (m_textBuffer.HasBuffer()) {
-                m_textBuffer.Function4F39B0(
+                m_textBuffer.RenderToTarget(
                     text_state, static_cast<unsigned char>(full_redraw), -14);
             }
             ShadowVideoSurfaceRect(-14,
@@ -1047,7 +1047,7 @@ void W8TextControl005ED604::Redraw(int full_redraw)
     }
 
     if (m_textBuffer.HasBuffer()) {
-        m_textBuffer.Function4F39B0(text_state,
+        m_textBuffer.RenderToTarget(text_state,
                                    static_cast<unsigned char>(full_redraw),
                                    -14);
     }
@@ -1201,12 +1201,12 @@ void W8TextControl005ED604::OnMouseEnter(int event)
         return;
     }
     if (m_flag_4 == 0) {
-        Function5587C0(0, 1);
+        PushButtonSoundScheme005587C0(0, 1);
         SetAlternateTextEnabled(1);
         return;
     }
     if ((m_flags_38 & 0x60) != 0) {
-        Function5587C0(0, 1);
+        PushButtonSoundScheme005587C0(0, 1);
     }
 
     if ((m_stateFlags & 1) == 0) {
@@ -1228,7 +1228,7 @@ void W8TextControl005ED604::OnMouseLeave(int event)
         return;
     }
     if (m_flag_4 == 0) {
-        Function5587C0(0, 1);
+        PushButtonSoundScheme005587C0(0, 1);
         if ((m_flags_38 & 1) == 0) {
             m_stateFlags &= ~g_W8TextControlMask005ED56C;
         }
@@ -1236,10 +1236,10 @@ void W8TextControl005ED604::OnMouseLeave(int event)
         return;
     }
     if ((m_flags_38 & 0x60) != 0) {
-        Function5587C0(0, 1);
+        PushButtonSoundScheme005587C0(0, 1);
     }
     if ((m_flags_38 & 0x100) != 0 && (m_stateFlags & 4) != 0) {
-        Function5587C0(0, 1);
+        PushButtonSoundScheme005587C0(0, 1);
         m_stateFlags &= ~4u;
     }
 
@@ -1270,15 +1270,15 @@ void W8TextControl005ED604::OnLeftButtonDown(int event)
         if (m_flag_4 != 0) {
             return;
         }
-        Function5587C0(0, 1);
+        PushButtonSoundScheme005587C0(0, 1);
         return;
     }
     if (m_flag_4 == 0) {
-        Function5587C0(0, 1);
+        PushButtonSoundScheme005587C0(0, 1);
         return;
     }
     if ((m_flags_38 & 0x20) != 0) {
-        Function5587C0(0, 1);
+        PushButtonSoundScheme005587C0(0, 1);
     }
 
     if ((m_flags_38 & 1) == 0) {
@@ -1304,7 +1304,7 @@ void W8TextControl005ED604::OnRightButtonDown(int)
 {
     if ((m_flag_5 != 0 && m_flag_4 != 0)) {
         if ((m_flags_38 & 0x20) != 0) {
-            Function5587C0(0, 1);
+            PushButtonSoundScheme005587C0(0, 1);
         }
         if (m_rightButtonDownCallback != 0) {
             m_rightButtonDownCallback();
@@ -1314,7 +1314,7 @@ void W8TextControl005ED604::OnRightButtonDown(int)
     if (m_flag_5 == 0 && m_flag_4 != 0) {
         return;
     }
-    Function5587C0(0, 1);
+    PushButtonSoundScheme005587C0(0, 1);
 }
 
 // FUNCTION: WIZ8 0x004f50c0
@@ -1324,7 +1324,7 @@ void W8TextControl005ED604::OnLeftButtonUp(int event)
         return;
     }
     if (m_flag_4 == 0) {
-        Function5587C0(0, 1);
+        PushButtonSoundScheme005587C0(0, 1);
         if ((m_flags_38 & 1) == 0) {
             m_stateFlags &= ~g_W8TextControlMask005ED56C;
         }
@@ -1334,7 +1334,7 @@ void W8TextControl005ED604::OnLeftButtonUp(int event)
         return;
     }
     if ((m_flags_38 & 0x20) != 0) {
-        Function5587C0(0, 1);
+        PushButtonSoundScheme005587C0(0, 1);
     }
 
     if ((m_flags_38 & 1) == 0) {
@@ -1355,7 +1355,7 @@ void W8TextControl005ED604::OnLeftButtonUp(int event)
     m_textBuffer.SetGeometryDirty();
     if ((m_flags_38 & 0x100) != 0 && (m_stateFlags & 4) != 0) {
         m_stateFlags &= ~4u;
-        Function5587C0(0, 1);
+        PushButtonSoundScheme005587C0(0, 1);
         return;
     }
     if (m_listener != 0) {
@@ -1373,19 +1373,19 @@ void W8TextControl005ED604::OnRightButtonUp(int)
         if (m_flag_4 != 0) {
             return;
         }
-        Function5587C0(0, 1);
+        PushButtonSoundScheme005587C0(0, 1);
         return;
     }
     if (m_flag_4 == 0) {
-        Function5587C0(0, 1);
+        PushButtonSoundScheme005587C0(0, 1);
         return;
     }
     if ((m_flags_38 & 0x20) != 0) {
-        Function5587C0(0, 1);
+        PushButtonSoundScheme005587C0(0, 1);
     }
     if ((m_flags_38 & 0x100) != 0 && (m_stateFlags & 4) != 0) {
         m_stateFlags &= ~4u;
-        Function5587C0(0, 1);
+        PushButtonSoundScheme005587C0(0, 1);
         return;
     }
     if (m_listener != 0) {
@@ -1419,7 +1419,7 @@ void W8TextControl005ED604::OnLeftButtonDoubleClick(int)
 {
     if (m_flag_5 != 0 && m_flag_4 != 0) {
         if ((m_flags_38 & 0x20) != 0) {
-            Function5587C0(0, 1);
+            PushButtonSoundScheme005587C0(0, 1);
         }
         if ((m_flags_38 & 1) != 0 && (m_stateFlags & 2) == 0) {
             return;
@@ -1432,7 +1432,7 @@ void W8TextControl005ED604::OnLeftButtonDoubleClick(int)
     if (m_flag_5 == 0 && m_flag_4 != 0) {
         return;
     }
-    Function5587C0(0, 1);
+    PushButtonSoundScheme005587C0(0, 1);
 }
 
 // FUNCTION: WIZ8 0x004f5360
@@ -1746,11 +1746,11 @@ W8VerticalRangeThumb005ED6B4::W8VerticalRangeThumb005ED6B4(
 // FUNCTION: WIZ8 0x004f5c00
 void W8VerticalRangeThumb005ED6B4::BeginDrag(int event)
 {
-    Function5587C0(0, 1);
+    PushButtonSoundScheme005587C0(0, 1);
     if (m_flag_4 != 0) {
-        int cursor[2];
-        Function4284F0(cursor);
-        int y = cursor[1] - m_pPanel->origin_y - m_top;
+        W8ScreenPoint cursor;
+        GetScreenPoint004284F0(&cursor);
+        int y = cursor.y - m_pPanel->origin_y - m_top;
         if (m_hovered == 0) {
             m_hovered = 1;
             m_position = ((float)(y - m_thumbHeight / 2) / (float)m_trackLength) *
@@ -1760,14 +1760,14 @@ void W8VerticalRangeThumb005ED6B4::BeginDrag(int event)
         }
         m_dragCoordinate = y;
         m_dragging = 1;
-        Function4F2040(m_region_18);
+        ActivateDialogRegion(m_region_18);
     }
 }
 
 // FUNCTION: WIZ8 0x004f5d30
 void W8VerticalRangeThumb005ED6B4::EndDrag(int event)
 {
-    Function5587C0(0, 1);
+    PushButtonSoundScheme005587C0(0, 1);
     if (m_flag_4 != 0 && m_dragging != 0) {
         m_dragging = 0;
         ClearActiveRegionIfMatches(m_region_18);
@@ -1781,9 +1781,9 @@ void W8VerticalRangeThumb005ED6B4::UpdateDrag(int event)
         return;
     }
 
-    int cursor[2];
-    Function4284F0(cursor);
-    int y = cursor[1] - m_pPanel->origin_y - m_top;
+    W8ScreenPoint cursor;
+    GetScreenPoint004284F0(&cursor);
+    int y = cursor.y - m_pPanel->origin_y - m_top;
     if (m_dragging != 0) {
         int half_height = m_thumbHeight / 2;
         if (y <= half_height) {
@@ -1910,7 +1910,7 @@ void W8HelpTextControl005ED758::SetRegionHelp(const wchar_t* text)
 // FUNCTION: WIZ8 0x004f66b0
 void W8HelpTextControl005ED758::OnMouseEnter(int event)
 {
-    Function5587C0(0, 1);
+    PushButtonSoundScheme005587C0(0, 1);
     W8TextControl005ED604::OnMouseEnter(event);
     if (wcslen(m_regionHelp) > 1 && m_region_18 != -1) {
         ::SetRegionHelpText(m_regionHelp);
@@ -1925,7 +1925,7 @@ void W8HelpTextControl005ED758::OnMouseEnter(int event)
 // FUNCTION: WIZ8 0x005b7cb0
 void W8HelpTextControl005ED758::OnLeftButtonDown(int event)
 {
-    Function5587C0(0, 1);
+    PushButtonSoundScheme005587C0(0, 1);
     W8TextControl005ED604::OnLeftButtonDown(event);
 }
 
@@ -1933,7 +1933,7 @@ void W8HelpTextControl005ED758::OnLeftButtonDown(int event)
 void W8HelpTextControl005ED758::OnRightButtonDown(int event)
 {
     if (m_secondaryActivationCallback == 0) {
-        Function5587C0(0, 1);
+        PushButtonSoundScheme005587C0(0, 1);
     }
     W8TextControl005ED604::OnRightButtonDown(event);
 }
@@ -1941,7 +1941,7 @@ void W8HelpTextControl005ED758::OnRightButtonDown(int event)
 // FUNCTION: WIZ8 0x005b7cd0
 void W8HelpTextControl005ED758::OnLeftButtonUp(int event)
 {
-    Function5587C0(0, 1);
+    PushButtonSoundScheme005587C0(0, 1);
     W8TextControl005ED604::OnLeftButtonUp(event);
 }
 
@@ -1949,15 +1949,15 @@ void W8HelpTextControl005ED758::OnLeftButtonUp(int event)
 void W8HelpTextControl005ED758::OnRightButtonUp(int)
 {
     if (m_secondaryActivationCallback == 0) {
-        Function5587C0(0, 1);
+        PushButtonSoundScheme005587C0(0, 1);
     }
     if (m_flag_5 != 0 && m_flag_4 != 0) {
         if ((m_flags_38 & 0x20) != 0) {
-            Function5587C0(0, 1);
+            PushButtonSoundScheme005587C0(0, 1);
         }
         if ((m_flags_38 & 0x100) != 0 && (m_stateFlags & 4) != 0) {
             m_stateFlags &= ~4u;
-            Function5587C0(0, 1);
+            PushButtonSoundScheme005587C0(0, 1);
             return;
         }
         if (m_listener != 0) {
@@ -1971,13 +1971,13 @@ void W8HelpTextControl005ED758::OnRightButtonUp(int)
     if (m_flag_5 == 0 && m_flag_4 != 0) {
         return;
     }
-    Function5587C0(0, 1);
+    PushButtonSoundScheme005587C0(0, 1);
 }
 
 // FUNCTION: WIZ8 0x004f6810
 void W8HelpTextControl005ED758::OnLeftButtonDoubleClick(int event)
 {
-    Function5587C0(0, 1);
+    PushButtonSoundScheme005587C0(0, 1);
     W8TextControl005ED604::OnLeftButtonDoubleClick(event);
 }
 
@@ -2093,11 +2093,11 @@ void W8HorizontalRangeThumb005ED66C::UpdatePixelPosition()
 // FUNCTION: WIZ8 0x004f5780
 void W8HorizontalRangeThumb005ED66C::BeginDrag(int event)
 {
-    Function5587C0(0, 1);
+    PushButtonSoundScheme005587C0(0, 1);
     if (m_flag_4 != 0) {
-        int cursor[2];
-        Function4284F0(cursor);
-        int x = cursor[0] - m_pPanel->origin_x - m_left;
+        W8ScreenPoint cursor;
+        GetScreenPoint004284F0(&cursor);
+        int x = cursor.x - m_pPanel->origin_x - m_left;
         if (m_hovered == 0) {
             m_hovered = 1;
             m_position = ((float)(x - m_thumbWidth / 2) / (float)m_trackLength) *
@@ -2109,14 +2109,14 @@ void W8HorizontalRangeThumb005ED66C::BeginDrag(int event)
         }
         m_dragCoordinate = x;
         m_dragging = 1;
-        Function4F2040(m_region_18);
+        ActivateDialogRegion(m_region_18);
     }
 }
 
 // FUNCTION: WIZ8 0x004f5880
 void W8HorizontalRangeThumb005ED66C::EndDrag(int event)
 {
-    Function5587C0(0, 1);
+    PushButtonSoundScheme005587C0(0, 1);
     if (m_flag_4 != 0 && m_dragging != 0) {
         m_dragging = 0;
         ClearActiveRegionIfMatches(m_region_18);
@@ -2129,7 +2129,7 @@ void W8HorizontalRangeThumb005ED66C::EndDrag(int event)
 // FUNCTION: WIZ8 0x004f58d0
 void W8HorizontalRangeThumb005ED66C::ClearHover(unsigned char immediate)
 {
-    Function5587C0(0, 1);
+    PushButtonSoundScheme005587C0(0, 1);
     if (m_hovered != 0 && m_dragging == 0) {
         m_hovered = 0;
         if (m_pPanel != 0) {
@@ -2153,9 +2153,9 @@ void W8HorizontalRangeThumb005ED66C::UpdateDrag(int event)
         return;
     }
 
-    int cursor[2];
-    Function4284F0(cursor);
-    int x = cursor[0] - m_pPanel->origin_x - m_left;
+    W8ScreenPoint cursor;
+    GetScreenPoint004284F0(&cursor);
+    int x = cursor.x - m_pPanel->origin_x - m_left;
     if (m_dragging != 0) {
         if (x < 0 || m_trackLength + m_thumbWidth / 2 < x) {
             return;

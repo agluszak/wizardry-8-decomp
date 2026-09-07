@@ -26,7 +26,6 @@ unsigned char g_flag_006840bd;
 W8LevelRuntimeBlock* g_level_block;
 
 extern void SetPendingScreenState(int state);
-extern void Function4F2040(int region);
 extern unsigned char Function577850(void);
 extern void SetCombatSelection(int value);                              /* 0x00569F70 */
 extern void SetCombatTarget(int value);                                 /* 0x0056A2D0 */
@@ -90,7 +89,7 @@ bool IsModalOpen(void)
 void OpenModal(void* owner)
 {
     g_modal_owner_0068edd0 = owner;
-    Function4F2040(0x138);
+    ActivateDialogRegion(0x138);
 }
 
 /* Put the main region set up, and take it down again with its mode reset -

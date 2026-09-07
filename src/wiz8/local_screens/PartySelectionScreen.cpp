@@ -1088,7 +1088,7 @@ void W8State5PlainPanel005EF4E0::Redraw()
             g_W8TextBufferLayoutMask005ED55C |
                 g_W8TextBufferLayoutMask005ED54C,
             4);
-        overlay.Function4F39B0(0, 0, -14);
+        overlay.RenderToTarget(0, 0, -14);
     }
 
     W8ControlsRect name_bounds = { 0x84, 0xc8, 0x139, 0xed };
@@ -1099,7 +1099,7 @@ void W8State5PlainPanel005EF4E0::Redraw()
         g_W8TextBufferLayoutMask005ED554 |
             g_W8TextBufferLayoutMask005ED54C,
         4);
-    name.Function4F39B0(0, 0, -14);
+    name.RenderToTarget(0, 0, -14);
 
     SetFont(g_font_683660);
     SetObjectShade(g_wiz_text_font_secondary_object_683680, 4);
@@ -1239,7 +1239,7 @@ void W8State5OptionPanel005EF4AC::Redraw()
     }
 
     for (int index = 0; index < m_entries_7c.count; ++index) {
-        m_entries_7c.data[index]->Function4F39B0(0, 1, -14);
+        m_entries_7c.data[index]->RenderToTarget(0, 1, -14);
     }
     if (m_mode_4c == 2) {
         Function548F90(-14, 0x102, 0, 1,
@@ -2072,7 +2072,7 @@ void W8State5Controller005EF4CC::Function5C1F40()
     m_control_24->Redraw();
     m_panel_38->Redraw();
     m_panel_3c->Redraw();
-    m_text_buffer_60->Function4F39B0(0, 0, -14);
+    m_text_buffer_60->RenderToTarget(0, 0, -14);
     if (m_dialog_68) {
         m_dialog_68->vslot3();
     }
