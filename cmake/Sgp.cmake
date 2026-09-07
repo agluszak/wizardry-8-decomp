@@ -1,13 +1,10 @@
-set(WIZ8_SGP_WHOLE_SOURCES
+set(WIZ8_SGP_RUNTIME_SOURCES
     "${SGP_SOURCE}/Compression.c"
     "${SGP_SOURCE}/RegInst.c"
     "${SGP_SOURCE}/Random.c"
     "${SGP_SOURCE}/soundman.c"
     "${SGP_SOURCE}/timer.c"
     "${SGP_SOURCE}/shading.c"
-)
-
-set(WIZ8_SGP_RUNTIME_PARTIAL_SOURCES
     "${SGP_SOURCE}/mousesystem.c"
     "${SGP_SOURCE}/DirectDraw Calls.c"
     "${SGP_SOURCE}/DirectX Common.c"
@@ -26,6 +23,7 @@ set(WIZ8_SGP_RUNTIME_PARTIAL_SOURCES
     "${SGP_SOURCE}/English.c"
     "${SGP_SOURCE}/input.c"
     "${SGP_SOURCE}/sgp.c"
+    "${SGP_SOURCE}/vsurface.c"
 )
 
 set(WIZ8_SGP_ANALYSIS_ONLY_SOURCES
@@ -84,11 +82,5 @@ function(wiz8_add_sgp_objects target)
     )
 endfunction()
 
-wiz8_add_sgp_objects(WIZ8_SGP_WHOLE ${WIZ8_SGP_WHOLE_SOURCES})
-target_compile_definitions(WIZ8_SGP_WHOLE PRIVATE
-    WIZ8_RETAIN_DECOMPRESSION_ONLY
-    WIZ8_RETAIN_REGISTRY_INITIALIZATION_ONLY
-)
-wiz8_add_sgp_objects(WIZ8_SGP_VSURFACE "${SGP_SOURCE}/vsurface.c")
-wiz8_add_sgp_objects(WIZ8_SGP_RUNTIME ${WIZ8_SGP_RUNTIME_PARTIAL_SOURCES})
+wiz8_add_sgp_objects(WIZ8_SGP_RUNTIME ${WIZ8_SGP_RUNTIME_SOURCES})
 wiz8_add_sgp_objects(WIZ8_SGP_ANALYSIS ${WIZ8_SGP_ANALYSIS_ONLY_SOURCES})

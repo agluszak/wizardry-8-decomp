@@ -27,7 +27,6 @@
 static_assert(sizeof(W8VideoObjectSlot) == 8, "W8VideoObjectSlot_size_must_be_8");
 static_assert(sizeof(W8VideoFrame) == 0x3c, "W8VideoFrame_size_must_be_0x3c");
 
-extern unsigned char g_video_objects_ready_650e20;
 W8VideoObjectSlot g_video_slots_6448c8[494];
 /* The cleanup loop bounds the complete table at 0x00644900: 0x184d0 bytes,
    or 1658 records.  Only the first 566 catalog entries are attributed so far. */
@@ -53,7 +52,7 @@ void ReleaseLoadedVideoFrames(void)
     W8VideoFrame* frame;
     char released;
 
-    if (!g_video_objects_ready_650e20) {
+    if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0x9c, 0);
     }
     frame = g_video_frames_62c430;
@@ -168,7 +167,7 @@ void Function548F90(int target, int object, int frame, short y,
     unsigned int surface;
     char ok;
 
-    if (!g_video_objects_ready_650e20) {
+    if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0x2d, 0);
     }
     Function549090(object, frame);
@@ -179,7 +178,7 @@ void Function548F90(int target, int object, int frame, short y,
     slot = &g_video_slots_6448c8[object];
     row = slot->y_offset + y;
     surface = g_video_frames_62c430[slot->first_frame + frame].handle;
-    if (!g_video_objects_ready_650e20) {
+    if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
     }
     if (g_video_frames_62c430[slot->first_frame + frame].mode == 0) {
@@ -208,15 +207,15 @@ void Function549090(int object, int frame)
 
     /* Two nested checks, both in the original: the assertion does not return,
        so the inner one is reachable only when it is compiled out. */
-    if (!g_video_objects_ready_650e20) {
+    if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0x4c, 0);
-        if (!g_video_objects_ready_650e20) {
+        if (!gfVideoObjectsInit) {
             srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xd4, 0);
         }
     }
     record = &g_video_frames_62c430[g_video_slots_6448c8[object].first_frame + frame];
     if (record->loaded == 0) {
-        if (!g_video_objects_ready_650e20) {
+        if (!gfVideoObjectsInit) {
             srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
         }
         if (record->mode == 0) {
@@ -229,7 +228,7 @@ void Function549090(int object, int frame)
             loaded_ok = Function402A70(&request_b, &handle);
         }
         if (loaded_ok == 0) {
-            if (!g_video_objects_ready_650e20) {
+            if (!gfVideoObjectsInit) {
                 srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
             }
             srAssertFail("fReturnCode", VIDEO_OBJECT_MANAGER_CPP, 0x68,
@@ -249,7 +248,7 @@ unsigned short* Function5492E0(int object, int frame)
 {
     unsigned short* palette;
 
-    if (!g_video_objects_ready_650e20) {
+    if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
                      0xaf, 0);
     }
@@ -258,7 +257,7 @@ unsigned short* Function5492E0(int object, int frame)
         return 0;
     }
     Function549090(object, frame);
-    if (!g_video_objects_ready_650e20) {
+    if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
                      0xe6, 0);
     }
@@ -274,7 +273,7 @@ unsigned short* Function5492E0(int object, int frame)
 // FUNCTION: WIZ8 0x00549390
 unsigned int GetCatalogVideoObjectHandle(int object, int frame)
 {
-    if (!g_video_objects_ready_650e20) {
+    if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
                      0xe6, 0);
     }
@@ -286,7 +285,7 @@ unsigned int GetCatalogVideoObjectHandle(int object, int frame)
 // FUNCTION: WIZ8 0x005493e0
 short GetCatalogVideoObjectYOffset(int object)
 {
-    if (!g_video_objects_ready_650e20) {
+    if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
                      0xf2, 0);
     }
@@ -311,7 +310,7 @@ void Function5494F0(int object, int frame, int image,
     slot = &g_video_slots_6448c8[object];
     subimage = slot->y_offset + image;
     record = &g_video_frames_62c430[slot->first_frame + frame];
-    if (!g_video_objects_ready_650e20) {
+    if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
                      0xdd, 0);
     }
@@ -359,7 +358,7 @@ void Function549660(int object, int frame, int image,
     slot = &g_video_slots_6448c8[object];
     subimage = slot->y_offset + image;
     record = &g_video_frames_62c430[slot->first_frame + frame];
-    if (!g_video_objects_ready_650e20) {
+    if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
                      0xdd, 0);
     }
@@ -392,7 +391,7 @@ unsigned char Function5497C0(int target, int left, int top,
     source_rect.iRight = source_x + right - left;
     source_rect.iBottom = source_y + bottom - top;
 
-    if (!g_video_objects_ready_650e20) {
+    if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
                      0x19d, 0);
     }

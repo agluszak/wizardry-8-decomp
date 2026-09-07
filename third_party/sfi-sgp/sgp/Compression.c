@@ -89,7 +89,6 @@ void DecompressFini( PTR pDecompPtr )
 	MemFree( pZStream );
 }
 
-#ifndef WIZ8_RETAIN_DECOMPRESSION_ONLY
 UINT32 CompressedBufferSize( UINT32 uiDataSize )
 { // Function that calculates the worst-case buffer size needed to
 	// hold uiDataSize bytes compressed
@@ -164,4 +163,3 @@ void CompressFini( PTR pCompPtr )
 	deflateEnd( pZStream );
 	MemFree( pZStream );
 }
-#endif

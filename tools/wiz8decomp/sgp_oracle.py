@@ -45,7 +45,7 @@ BUILDS = (
 
 UNITS = (
     {"id": "directdraw", "source": "DirectDraw Calls.c", "target": "WIZ8_SGP_RUNTIME"},
-    {"id": "random", "source": "Random.c", "target": "WIZ8_SGP_WHOLE"},
+    {"id": "random", "source": "Random.c", "target": "WIZ8_SGP_RUNTIME"},
     {"id": "compression", "source": "Compression.c", "target": "WIZ8_SGP_ANALYSIS"},
     {"id": "fileman", "source": "FileMan.c", "target": "WIZ8_SGP_RUNTIME"},
     {"id": "librarydatabase", "source": "LibraryDataBase.c", "target": "WIZ8_SGP_RUNTIME"},
@@ -62,9 +62,15 @@ UNITS = (
         "id": "sgp",
         "source": "sgp.c",
         "target": "WIZ8_SGP_RUNTIME",
-        "functions": ("GetRuntimeSettings", "ProcessCommandLine"),
+        "functions": (
+            "WindowProcedure",
+            "InitializeStandardGamingPlatform",
+            "ShutdownStandardGamingPlatform",
+            "GetRuntimeSettings",
+            "ProcessCommandLine",
+        ),
     },
-    {"id": "timer", "source": "timer.c", "target": "WIZ8_SGP_WHOLE"},
+    {"id": "timer", "source": "timer.c", "target": "WIZ8_SGP_RUNTIME"},
     {
         "id": "input",
         "source": "input.c",
@@ -82,15 +88,15 @@ UNITS = (
     },
     {"id": "mouse", "source": "mousesystem.c", "target": "WIZ8_SGP_RUNTIME"},
     {"id": "font", "source": "Font.c", "target": "WIZ8_SGP_RUNTIME"},
-    {"id": "soundman", "source": "soundman.c", "target": "WIZ8_SGP_WHOLE"},
+    {"id": "soundman", "source": "soundman.c", "target": "WIZ8_SGP_RUNTIME"},
     {"id": "vobject", "source": "vobject.c", "target": "WIZ8_SGP_RUNTIME"},
     {
         "id": "vobject_blitters",
         "source": "vobject_blitters.c",
         "target": "WIZ8_SGP_RUNTIME",
     },
-    {"id": "vsurface", "source": "vsurface.c", "target": "WIZ8_SGP_VSURFACE"},
-    {"id": "reginst", "source": "RegInst.c", "target": "WIZ8_SGP_WHOLE"},
+    {"id": "vsurface", "source": "vsurface.c", "target": "WIZ8_SGP_RUNTIME"},
+    {"id": "reginst", "source": "RegInst.c", "target": "WIZ8_SGP_RUNTIME"},
 )
 
 CLASSIFICATION_RANK = {

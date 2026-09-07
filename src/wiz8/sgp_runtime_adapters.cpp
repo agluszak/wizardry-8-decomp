@@ -15,6 +15,18 @@
 // LIBRARY: WIZ8 0x0040F020
 // InitializeRegistryKeys
 
+// LIBRARY: WIZ8 0x00401570
+// InitializeStandardGamingPlatform
+
+// LIBRARY: WIZ8 0x00402750
+// FreeMouseCursor
+
+// LIBRARY: WIZ8 0x00405E60
+// InitializeVideoObjectManager
+
+// LIBRARY: WIZ8 0x00405E80
+// ShutdownVideoObjectManager
+
 // LIBRARY: WIZ8 0x004086C0
 // SoundEnableSound
 

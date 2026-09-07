@@ -30,8 +30,9 @@ endif()
     wiz8_add_import_library(WIZ8_MSS32 src/wiz8/imports/mss32.def PRESERVE_C_DECORATION)
     wiz8_add_import_library(WIZ8_BINKW32 src/wiz8/imports/binkw32.def PRESERVE_C_DECORATION)
 
-    # The comparison image retains every recovered section with /OPT:NOREF;
-    # the runtime image selects only referenced COMDATs with /OPT:REF.
+    # The comparison image retains every recovered first-party section with
+    # /OPT:NOREF. Released SGP source belongs only to the /OPT:REF runtime
+    # products; source-backed retail identities are compared by the SGP oracle.
     wiz8_add_executable(
         TARGET WIZ8_BRINGUP
         OUTPUT Wiz8
@@ -65,18 +66,10 @@ endif()
 if(SGP_SOURCE)
     include(cmake/Sgp.cmake)
 
-    target_sources(WIZ8_BRINGUP PRIVATE
-        $<TARGET_OBJECTS:WIZ8_SGP_WHOLE>
-        $<TARGET_OBJECTS:WIZ8_SGP_VSURFACE>
-    )
     target_sources(WIZ8_RUNTIME PRIVATE
-        $<TARGET_OBJECTS:WIZ8_SGP_WHOLE>
-        $<TARGET_OBJECTS:WIZ8_SGP_VSURFACE>
         $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME>
     )
     target_sources(WIZ8_RUNTIME_TEST PRIVATE
-        $<TARGET_OBJECTS:WIZ8_SGP_WHOLE>
-        $<TARGET_OBJECTS:WIZ8_SGP_VSURFACE>
         $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME>
     )
 endif()

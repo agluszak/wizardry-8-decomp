@@ -33,7 +33,7 @@ extern void ReleaseSpellDatabase(void);
 extern void ReleaseAllTriggers(void);
 
 /*
- * The data bring-up gate BringUpEngine calls last. It stamps the version
+ * The data bring-up gate InitializeStandardGamingPlatform calls last. It stamps the version
  * string, opens the archives and string data, then walks every database
  * loader in turn, abandoning the sequence the moment one fails. Its callees
  * are mostly unidentified and carry address-derived names; the ones already

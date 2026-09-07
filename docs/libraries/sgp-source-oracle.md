@@ -21,20 +21,19 @@ path shadowing by translation unit.
 
 ## Build model
 
-`cmake/Sgp.cmake` owns three plain source lists:
+`cmake/Sgp.cmake` owns two plain source lists:
 
-- `WIZ8_SGP_WHOLE_SOURCES` contains whole retained units linked into the `/OPT:NOREF` comparison
-  image and runtime products.
-- `WIZ8_SGP_RUNTIME_PARTIAL_SOURCES` contains partially retained units made available only to the
-  `/OPT:REF` runtime products.
+- `WIZ8_SGP_RUNTIME_SOURCES` contains the pristine released units made available to the `/OPT:REF`
+  runtime products.
 - `WIZ8_SGP_ANALYSIS_ONLY_SOURCES` contains units built only by an explicit analysis request.
 
 Source-local compiler adjustments are ordinary CMake source properties. They cover the Wizardry
 `WinMain` spelling, two known symbol/definition differences, and the two missing include surfaces
 that are not reached by a released unit's normal include list.
 
-This split is required while the comparison image uses `/OPT:NOREF`: linking a partially retained
-object there would introduce source functions absent from the original executable.
+The `/OPT:NOREF` comparison image does not link SGP objects: doing so would retain complete source
+translation units even where the retail linker stripped most of their functions. Source-backed
+retail identities remain `LIBRARY` markers and are compared through the SGP oracle instead.
 
 ## Verification and optional archaeology
 

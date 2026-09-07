@@ -24,7 +24,8 @@
 #include <string.h>
 
 /*
- * Gates called from BringUpEngine at 0x00401570, in the order the startup spine
+ * Gates called from InitializeStandardGamingPlatform at 0x00401570, in the
+ * order the startup spine
  * records. Two of them the spine characterises from their imports and strings
  * and they are named accordingly; the rest it explicitly cannot, so they keep
  * address-derived names rather than invented meanings. Their globals are
@@ -32,14 +33,6 @@
  * establishes purpose.
  */
 
-struct W8VideoManagerNode {
-    unsigned int handle;
-    int unused_04;
-    int unused_08;
-    W8VideoManagerNode* next;
-};
-
-int g_cursor_clip_active_650db8;
 int g_dword_650df4;
 int g_dword_650df8;
 int g_dword_650dfc;
@@ -57,11 +50,6 @@ extern unsigned char g_flag_65970f;
 extern unsigned char g_flag_6598a8;
 extern unsigned char g_flag_659711;
 extern unsigned char g_fullscreen_603c39;
-W8VideoManagerNode* g_video_object_list_650e24;
-int g_dword_650e28;
-int g_dword_650e2c;
-int g_dword_650e30;
-unsigned char g_video_objects_ready_650e20;
 unsigned char g_flag_5ff5e8;
 
 extern void ProcessCommandLine(char* pCommandLine);
@@ -73,19 +61,12 @@ unsigned int g_mswheel_roll_message;
 bool g_flag_6505a9;
 
 
-/* Shared success stub. BringUpEngine uses it as a gate and the 62-entry frame
+/* Shared success stub. InitializeStandardGamingPlatform uses it as a gate and the 62-entry frame
    dispatch table parks it in seventeen slots. */
 // FUNCTION: WIZ8 0x005b1740
 unsigned char Function5B1740(void)
 {
     return 1;
-}
-
-// FUNCTION: WIZ8 0x00402750
-void Function402750(void)
-{
-    ClipCursor(0);
-    g_cursor_clip_active_650db8 = 0;
 }
 
 // FUNCTION: WIZ8 0x00404ba0
@@ -97,33 +78,6 @@ bool InitializeVideoSurfaceState(void)
     g_dword_650dfc = 0;
     g_flag_650e04 = true;
     return true;
-}
-
-// FUNCTION: WIZ8 0x00405e60
-bool InitializeWizardryVideoObjectManager(void)
-{
-    g_dword_650e28 = 0;
-    g_video_object_list_650e24 = 0;
-    g_video_objects_ready_650e20 = 1;
-    return true;
-}
-
-// FUNCTION: WIZ8 0x00405e80
-void ShutdownWizardryVideoObjectManager(void)
-{
-    W8VideoManagerNode* node;
-
-    while (g_video_object_list_650e24) {
-        node = g_video_object_list_650e24;
-        g_video_object_list_650e24 = node->next;
-        DeleteVideoObject((HVOBJECT)node->handle);
-        free(node);
-    }
-    g_dword_650e28 = 0;
-    g_dword_650e2c = 0;
-    g_dword_650e30 = 0;
-    g_video_objects_ready_650e20 = 0;
-    g_flag_5ff5e8 = 1;
 }
 
 // FUNCTION: WIZ8 0x00428b80
@@ -150,7 +104,6 @@ bool g_shutdown_started_650db5;
 bool g_teardown_done_650db4;
 char g_shutdown_message_6505ac[0x100];
 extern void MSYS_Shutdown(void);
-extern void ShutdownWizardryVideoObjectManager(void);
 extern int ReturnZero(void);
 
 
@@ -232,7 +185,7 @@ void Function408850(void)
     g_flag_650e50 = 0;
 }
 
-/* Empty in the shipped build: a single ret. BringUpEngine still calls it. */
+/* Empty in the shipped build: a single ret. InitializeStandardGamingPlatform still calls it. */
 // FUNCTION: WIZ8 0x004023a0
 void NoOp(void)
 {
@@ -294,7 +247,6 @@ struct W8BindingNode {
     void* payload;                        /* 0x04 */
 };
 
-int FontDefault;
 int g_dword_5ff5f4;
 int g_dword_5ff5f8;
 int g_dword_5ff5fc;
@@ -731,9 +683,9 @@ bool AddSubdirectoryToPath(const char* subdirectory)
     return true;
 }
 
-/* Registered with atexit as BringUpEngine's first act. Guarded twice: a once
+/* Registered with atexit as InitializeStandardGamingPlatform's first act. Guarded twice: a once
    flag so a second exit does nothing, and a separate teardown flag so the long
-   release sequence runs at most once. The engine flag BringUpEngine sets on
+   release sequence runs at most once. The engine flag startup sets on
    success decides how much of it applies. Any message left in the buffer is
    shown before handing off. */
 // FUNCTION: WIZ8 0x004017f0
@@ -763,7 +715,7 @@ void ShutdownHandler(void)
         ShutdownFontManager();
         ShutdownClockManager();
         ShutdownVideoSurfaceManager();
-        ShutdownWizardryVideoObjectManager();
+        ShutdownVideoObjectManager();
         ShutdownRenderer();
         ShutdownInputManager();
         NoOp();
@@ -776,60 +728,6 @@ void ShutdownHandler(void)
         MessageBoxA(NULL, g_shutdown_message_6505ac, "Error", MB_ICONHAND);
     }
     ReturnZero();
-}
-
-/* The window init sequence. Registers the window class, points module loading
-   at the DLL subdirectory, then runs each bring-up gate in order and abandons
-   the whole sequence the moment one reports failure. Like the smaller gates it
-   returns the flag it raises at the end. */
-// FUNCTION: WIZ8 0x00401570
-bool BringUpEngine(void* instance, int show_command)
-{
-    FontTranslationTable* font_table;
-
-    atexit(ShutdownHandler);
-    InitializeRegistryKeys("Wizardry8", "Wizardry8key");
-    AddSubdirectoryToPath("DLL");
-    GetRuntimeSettings();
-    Function404B00();
-    if (!InitializeVideoSurfaceState()) {
-        return false;
-    }
-    if (!Function5B1740()) {
-        return false;
-    }
-    NoOp();
-    if (!InitializeInputManager()) {
-        return false;
-    }
-    if (!InitializeRenderer(instance, show_command, WindowProc4011E0)) {
-        return false;
-    }
-    if (!InitializeWizardryVideoObjectManager()) {
-        return false;
-    }
-    if (!InitializeVideoSurfaceManager()) {
-        return false;
-    }
-    InitializeClockManager();
-    font_table = CreateEnglishTransTable();
-    if (!font_table) {
-        return false;
-    }
-    if (!InitializeWiz8FontManager(8, font_table)) {
-        return false;
-    }
-    free(font_table);
-    if (!Function4086D0()) {
-        return false;
-    }
-    InitializeRandom();
-    if (!InitializeGameData()) {
-        return false;
-    }
-    g_mswheel_roll_message = RegisterWindowMessageA("MSWHEEL_ROLLMSG");
-    g_flag_6505a9 = true;
-    return true;
 }
 
 /* A running instance is found by class and title both spelled "Wizardry 8"; it
@@ -881,7 +779,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         return 0;
     }
     ShowCursor(FALSE);
-    if (!BringUpEngine(hInstance, nShowCmd)) {
+    if (!InitializeStandardGamingPlatform(hInstance, nShowCmd)) {
         return 0;
     }
     gfApplicationActive = 1;

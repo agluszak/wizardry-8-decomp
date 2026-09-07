@@ -36,7 +36,7 @@ cp "$WIZ8_WORK_DIR/variants/gog-base/__support/app/"{3DVideo.CFG,Wiz8.CFG} \
 
 The shipped `3DVideo.CFG` selects `Glide2x`, which under a headless X server
 fails with *Could not open video output device* - the trace shows the failure
-as `BringUpEngine` followed immediately by `ShutdownHandler`. SurRender ships
+as `InitializeStandardGamingPlatform` followed immediately by `ShutdownHandler`. SurRender ships
 `srDD_Software.dll` beside its hardware drivers, and selecting it is what makes
 the boot path complete:
 
@@ -82,7 +82,7 @@ reached nine watched bodies in this order:
 
 ```
 WinMain, ProcessCommandLine, QueryAvailableMemory, CheckCdPresent,
-BringUpEngine, SetModuleSubdirectory, GetRuntimeSettings,
+InitializeStandardGamingPlatform, SetModuleSubdirectory, GetRuntimeSettings,
 InitializeInputManager, VerifyDataSubdirs
 ```
 

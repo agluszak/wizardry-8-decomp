@@ -31,7 +31,7 @@
 #include <string.h>
 
 /*
- * The renderer window and extension loading gate BringUpEngine calls after the
+ * The renderer window and extension loading gate InitializeStandardGamingPlatform calls after the
  * input manager. Its callees and globals are almost all unidentified, so they
  * carry address-derived names; only the SR.DLL entry points and the window
  * handle have real ones.
@@ -129,7 +129,6 @@ extern unsigned char CreateWizardryWindow(void);
 extern unsigned char InitializePrimaryDirectDrawSurface(void);
 extern unsigned char InitializeVideoDevice(void);
 extern unsigned char InitializeRendererSceneObjects(void);
-extern void Function402750(void);
 extern unsigned char Function422800(void);
 extern void PurgeInactiveSceneInstances(srScene* scene);
 extern void SetViewport(int left, int top, int right, int bottom);
@@ -584,7 +583,7 @@ void Function422050(void)
             GetWindowRect(ghWindow, &g_window_rect_659610);
         }
         ShowWindow(ghWindow, SW_MINIMIZE);
-        Function402750();
+        FreeMouseCursor();
     }
 }
 

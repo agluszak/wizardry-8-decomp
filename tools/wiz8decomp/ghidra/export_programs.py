@@ -25,8 +25,6 @@ def export_project(settings: Settings, selector: str | None = None) -> dict[str,
     runtime = validate_environment(settings)
 
     import pyghidra
-    from ghidra.util.task import TaskMonitor
-    from java.io import File
 
     output_dir = settings.repo_dir / "vendor" / "ghidra" / "exports"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -37,6 +35,9 @@ def export_project(settings: Settings, selector: str | None = None) -> dict[str,
 
     pack_started = perf_counter()
     with open_project(settings) as project:
+        from ghidra.util.task import TaskMonitor
+        from java.io import File
+
         domain_file = project.getProjectData().getFile("/" + program_name)
         if domain_file is None:
             raise RuntimeError(f"canonical Ghidra program is missing: {program_name}")

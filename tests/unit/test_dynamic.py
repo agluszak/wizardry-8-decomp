@@ -22,15 +22,6 @@ from wiz8decomp.dynamic import (
 REPOSITORY = Path(__file__).resolve().parents[2]
 
 
-def test_the_plan_is_generated_from_source_owned_startup_units() -> None:
-    points = trace_plan(REPOSITORY, BRING_UP)
-    named = {point.name: point.address for point in points}
-
-    assert named["WinMain"] == "00401670"
-    assert named["BringUpEngine"] == "00401570"
-    assert all(point.kind == "gate" for point in points)
-
-
 def test_a_folded_stub_is_not_a_screen_because_it_cannot_name_its_state() -> None:
     # The linker merged seventeen trivial handlers into one address; a hit
     # there cannot say which state reached it, so it is not watched.
@@ -78,11 +69,11 @@ def test_only_event_lines_are_events() -> None:
         "Reading symbols from Wiz8.exe...\n"
         "EVENT gate WinMain 00401670\n"
         "[New Thread 292]\n"
-        "EVENT gate BringUpEngine 00401570\n"
+        "EVENT gate InitializeSubsystem 00401570\n"
         "Cannot execute this command while the target is running.\n"
     )
 
-    assert [event.name for event in events] == ["WinMain", "BringUpEngine"]
+    assert [event.name for event in events] == ["WinMain", "InitializeSubsystem"]
     assert [event.order for event in events] == [0, 1]
 
 
@@ -107,8 +98,8 @@ def test_only_the_first_divergence_is_reported() -> None:
     # Everything after a divergence is its consequence: one extra event shifts
     # the whole tail, and reporting that tail would multiply one fact.
     result = compare_streams(
-        _stream("WinMain", "CheckCdPresent", "BringUpEngine"),
-        _stream("WinMain", "ShutdownHandler", "BringUpEngine"),
+        _stream("WinMain", "CheckCdPresent", "InitializeSubsystem"),
+        _stream("WinMain", "ShutdownHandler", "InitializeSubsystem"),
     )
 
     assert result["common_prefix"] == 1
@@ -118,9 +109,10 @@ def test_only_the_first_divergence_is_reported() -> None:
 
 def test_a_run_that_stops_early_diverges_where_it_stopped() -> None:
     result = compare_streams(
-        _stream("WinMain", "CheckCdPresent"), _stream("WinMain", "CheckCdPresent", "BringUpEngine")
+        _stream("WinMain", "CheckCdPresent"),
+        _stream("WinMain", "CheckCdPresent", "InitializeSubsystem"),
     )
 
     assert result["agrees"] is False
     assert result["common_prefix"] == 2
-    assert "BringUpEngine" in result["detail"]
+    assert "InitializeSubsystem" in result["detail"]

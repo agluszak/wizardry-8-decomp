@@ -64,12 +64,12 @@ consistent with the executable's mixed 8447/8168/9044 Rich records and the unava
 
 ## Retained SGP boundary
 
-The five boundary functions are built from the pinned `sgp/Compression.c`; Wizardry does not own a
-second implementation. The comparison build defines `WIZ8_RETAIN_DECOMPRESSION_ONLY` so its
-`/OPT:NOREF` image retains the five functions present in Wizardry without introducing the stripped
-compression half of the source unit. The runtime behavior remains the released implementation:
-install CRT allocation callbacks, construct the zlib stream, retain the caller's input span,
-perform partial-flush decompression, and tear the stream down.
+The five boundary functions are built from the pristine pinned `sgp/Compression.c`; Wizardry does
+not own a second implementation. The `/OPT:NOREF` comparison image leaves them as `LIBRARY`
+identities and the SGP oracle compares their source-built bodies independently, avoiding retention
+of the compression half that retail stripped. The runtime behavior remains the released
+implementation: install CRT allocation callbacks, construct the zlib stream, retain the caller's
+input span, perform partial-flush decompression, and tear the stream down.
 
 ## Reviewed Ghidra model
 

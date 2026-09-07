@@ -10,7 +10,7 @@
 float Function420B40(int value);
 
 /*
- * The window procedure BringUpEngine hands to the renderer. Ghidra defines no
+ * The window procedure InitializeStandardGamingPlatform hands to the renderer. Ghidra defines no
  * function at this address and the project lock could not be taken to create
  * one, so this is reconstructed from the canonical encoding and its two jump
  * tables rather than from decompiler output.
@@ -34,7 +34,6 @@ extern unsigned char Function4220B0(void);
 extern void Function422050(void);
 extern void MSYS_Shutdown(void);
 extern void Function408850(void);
-extern void ShutdownWizardryVideoObjectManager(void);
 extern void NoOp(void);
 extern void ShutdownVideoSurfaceState(void);
 
@@ -92,7 +91,7 @@ long __stdcall WindowProc4011E0(
             ShutdownFontManager();
             ShutdownClockManager();
             ShutdownVideoSurfaceManager();
-            ShutdownWizardryVideoObjectManager();
+            ShutdownVideoObjectManager();
             ShutdownRenderer();
             ShutdownInputManager();
             NoOp();

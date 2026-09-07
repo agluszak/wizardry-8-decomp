@@ -29,7 +29,6 @@ unsigned long float_bits(float value)
 
 extern srModeler* g_modeler_65963c;
 extern float g_surface_scale_659680;
-extern unsigned char g_video_objects_ready_650e20;
 
 srScene* g_cursor_scene_659684;
 srMeshModel* g_cursor_model_65968c;
@@ -213,7 +212,7 @@ extern "C" BOOLEAN SetMouseCursorFromVideoObject(
     int x;
     int y;
 
-    if (!g_video_objects_ready_650e20) {
+    if (!gfVideoObjectsInit) {
         return FALSE;
     }
     if (!GetVideoObjectETRLEPropertiesFromIndex(
