@@ -386,6 +386,13 @@ void SetInputFieldStringWith16BitString(unsigned char index, wchar_t* text)
     }
 }
 
+// FUNCTION: WIZ8 0x005D3BF0
+short GetActiveTextInputField(void)
+{
+    if (gpActive != 0) return gpActive->ubID;
+    return -1;
+}
+
 // FUNCTION: WIZ8 0x005D3CC0
 void Get16BitStringFromField(unsigned char index, wchar_t* text)
 {

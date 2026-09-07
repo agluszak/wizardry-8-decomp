@@ -1,6 +1,7 @@
 #include "wiz8/local_screens/CharacterScreen.h"
 
 #include "wiz8/local_code/Strings.h"
+#include "wiz8/regions.h"
 #include "wiz8/text_input.h"
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
@@ -21,6 +22,7 @@ extern void Function557F90(W8Character*, W8CharacterCreationState*);
 extern void Function557BC0(W8Character*, W8CharacterCreationState*, unsigned int, int);
 extern void Function558610(W8Character*);
 extern void Function422F10(void);
+extern unsigned short Function402780(unsigned short key, unsigned char modifiers);
 
 struct W8PortraitDescriptor {
     int group;
@@ -523,6 +525,14 @@ W8CharacterPage005EF5C8* CreateCharacterPage005C7CC0()
 // VTABLE: WIZ8 0x005ef570 W8TextControlActionListener005ED664
 // class W8CharacterPage005EF57C
 
+// SYNTHETIC: WIZ8 0x005c74c0
+// W8CharacterPage005EF57C::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x005c74e0
+W8CharacterPage005EF57C::~W8CharacterPage005EF57C()
+{
+}
+
 // FUNCTION: WIZ8 0x005c6460
 void W8CharacterPage005EF57C::SetCharacter(
     W8Character* character, W8CharacterCreationState* creation_state, int mode)
@@ -649,6 +659,37 @@ void W8CharacterPage005EF57C::GetNavigationState(
     }
 }
 
+// FUNCTION: WIZ8 0x005c6a60
+void W8CharacterPage005EF57C::HandleInput(InputAtom* input)
+{
+    if (m_screen_05c->HasDialog()) return;
+    if (input->usEvent != KEY_DOWN && input->usEvent != KEY_REPEAT) {
+        Function568950(input);
+        return;
+    }
+
+    unsigned short character = Function402780(
+        static_cast<unsigned short>(input->usParam), input->usKeyState);
+    if (character != 0 &&
+        strchr("\\/:*?\"<>|", static_cast<unsigned char>(character)) != 0) {
+        return;
+    }
+    if (input->usParam == VK_TAB) {
+        SelectNextField();
+        return;
+    }
+    if (!HandleTextInput(input)) return;
+
+    short field = GetActiveTextInputField();
+    if (field == 0) {
+        Get16BitStringFromField(0, m_character_060->name_part_2);
+    }
+    else if (field == 1) {
+        Get16BitStringFromField(1, m_character_060->name);
+    }
+    m_screen_05c->UpdateNavigation(this);
+}
+
 // FUNCTION: WIZ8 0x005c6b20
 void W8CharacterPage005EF57C::Refresh()
 {
@@ -721,4 +762,10 @@ void W8CharacterPage005EF57C::OnControlAction(
     if (control != m_randomize_088) {
         m_screen_05c->UpdateNavigation(this);
     }
+}
+
+// FUNCTION: WIZ8 0x005c73f0
+W8CharacterPage005EF57C* CreateCharacterPage005C73F0()
+{
+    return new W8CharacterPage005EF57C;
 }
