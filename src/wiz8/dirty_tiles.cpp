@@ -7,6 +7,9 @@
 
 class srNode;
 
+extern unsigned int g_index_6596e4;
+extern unsigned char g_flags_6596e8[2];
+
 /*
  * Marks a rectangle dirty on the current page.
  *
@@ -20,9 +23,6 @@ class srNode;
  */
 
 extern "C" {
-
-extern unsigned int g_index_6596e4;
-extern unsigned char g_flags_6596e8[2];
 unsigned char g_flag_65970d;
 unsigned char g_flag_6596ea;
 /* The initial full-screen invalidation runs before any 2D node occupies the

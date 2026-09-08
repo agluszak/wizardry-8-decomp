@@ -13,6 +13,7 @@
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/LoadSaveGame.h"
+#include "wiz8/music_playlist.h"
 #include "wiz8/regions.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/fonts.h"
@@ -38,10 +39,8 @@ extern int MSYS_Init(void);
 extern void MSYS_Shutdown(void);
 extern void ResetRegions(void);
 extern void UpdateHeldItemCursor(void);
-extern unsigned char Function48FC10(const char*, int, int);
 extern void PlaySound(const char*, int);
 extern wchar_t* FormatWideString(const wchar_t*, ...);
-extern unsigned int CharacterPointerToPartySlot(W8Character* character);
 extern void NoOp(void);
 extern void RenderFrame(void);
 extern void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x,

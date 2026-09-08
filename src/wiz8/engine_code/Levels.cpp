@@ -12,6 +12,7 @@
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/game_status.h"
+#include "wiz8/location_variables.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/fact_state.h"
@@ -26,6 +27,60 @@
 #include "surrender/srNode.h"
 
 #include "FileMan.h"
+
+// GLOBAL: WIZ8 0x00604478
+W8LevelFolderRecord g_level_folders[47] = {
+    {"Arnika", "Arnika2", "ARN", 1, 3, 2},
+    {"Ascension", "Ascension", "ASC", 0, 3, 12},
+    {"Bayjin", "Bayjin1", "BA1", -1, 3, 8},
+    {"Bayjin", "Bayjin2", "BA2", -1, 3, 8},
+    {"Circle", "Circle", "CIR", 10, 3, 14},
+    {"Marten", "Marten1", "MR1", -1, 3, 5},
+    {"Marten", "Marten2", "MR2", 0, 3, 5},
+    {"MountainPass", "MountainPass", "MNT", 2, 3, 6},
+    {"Monastery", "Monastery1", "MO1", 0, 3, 1},
+    {"Monastery", "Monastery2", "MO2", 0, 3, 1},
+    {"MtGigas", "MtGigasWaterCaves", "MGW", -1, 3, 15},
+    {"MtGigas", "MtGigasBelowCaves", "MGB", -1, 3, 11},
+    {"MtGigas", "MtGigas1", "MG1", -1, 3, 11},
+    {"MtGigas", "MtGigas2", "MG2", -1, 3, 11},
+    {"MtGigas", "MtGigasOuter", "MGO", 0, 3, 11},
+    {"MtGigas", "MtGigasTop", "MGT", 0, 3, 11},
+    {"Camp", "Camp", "CMP", 7, 3, 13},
+    {"Rapax", "RapaxCellar", "RAC", 1, 3, 9},
+    {"Rapax", "RapaxMainFloor", "RAM", 1, 3, 9},
+    {"Rapax", "RapaxUpperFloor", "RAU", 1, 3, 9},
+    {"Rapax", "RapaxExterior", "RAE", 1, 3, 9},
+    {"Rift", "Rift1", "RIF", 3, 3, 10},
+    {"SeaCaves", "SeaCave1", "SC1", 0, 3, 7},
+    {"SeaCaves", "SeaCave2", "SC2", 0, 3, 7},
+    {"Swamp", "Swamp", "SWM", -1, 3, 4},
+    {"Trynnie", "Trynnie1", "TY1", -1, 3, 3},
+    {"Trynnie", "Trynnie2", "TY2", -1, 3, 3},
+    {"ConnectiveTissue", "Arnika_Trynton", "CT1", 0, 3, 16},
+    {"ConnectiveTissue", "Trynton_Swamp", "CT2", 0, 3, 0},
+    {"ConnectiveTissue2", "SouthEastWilderness", "CT3", 0, 3, 17},
+    {"ConnectiveTissue", "Rift_Peak", "CT4", 0, 3, 0},
+    {"ConnectiveTissue2", "NorthEastWilderness", "CT5", 0, 3, 0},
+    {"ConnectiveTissue", "NorthWilderness", "CT6", 0, 3, 0},
+    {"ConnectiveTissue", "Arnika_StarterDungeon", "CT7", 0, 3, 0},
+    {"ConnectiveTissue", "Peak_RapaxCastle", "CT8", 0, 3, 0},
+    {"Footsteps", "Footsteps", "FS1", 0, 3, 0},
+    {"SavantTower", "SavantTower", "SAV", -1, 3, 2},
+    {"Trynnie", "Ratkin", "RTK", -1, 3, 3},
+    {"Camp", "CampNoRapax", "CNR", 7, 3, 0},
+    {"Dungeon", "Dungeon", "DUN", -1, 3, 0},
+    {"Spare14", "Spare14", "SPE", 0, -1, 0},
+    {"Spare15", "Spare15", "SPF", 0, -1, 0},
+    {"Spare16", "Spare16", "SPG", 0, -1, 0},
+    {"Spare17", "Spare17", "SPH", 0, -1, 0},
+    {"Spare18", "Spare18", "SPI", 0, -1, 0},
+    {"Spare19", "Spare19", "SPJ", 0, -1, 0},
+    {"Spare20", "Spare20", "SPK", 0, -1, 0},
+};
+
+// GLOBAL: WIZ8 0x00686A70
+int g_loaded_level_id;
 
 extern void Function4EA310(int mode);
 extern void RenderFrame(void);

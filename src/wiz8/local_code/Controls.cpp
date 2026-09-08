@@ -25,6 +25,9 @@
    (line 399) and the widget's m_pPanel (line 1849); other role names are recovered. */
 #define REGSET_NULL 0
 
+// GLOBAL: WIZ8 0x00617C90
+extern const wchar_t g_W8LineBreakCharacters00617C90[] = L"\n";
+
 // GLOBAL: WIZ8 0x005ED548
 extern const unsigned int g_W8TextBufferLayoutMask005ED548 = 0x01;
 // GLOBAL: WIZ8 0x005ED54C

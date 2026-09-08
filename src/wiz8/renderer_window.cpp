@@ -769,7 +769,7 @@ unsigned char ClearPrimarySurface(void)
 extern "C" void RenderFastHelp(void);
 extern "C" void Function425B40(void);
 extern srScene* g_cursor_scene_659684;
-extern "C" unsigned char g_render_flag_603c6c;
+extern unsigned char g_render_flag_603c6c;
 extern unsigned char g_trigger_action_active_006599c8;
 extern srVector3T<float> g_trigger_action_scene_offset_006599ac;
 

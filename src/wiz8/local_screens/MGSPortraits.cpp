@@ -4,7 +4,8 @@
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/regions.h"
 
-extern Controls* g_panel_69b940;
+// GLOBAL: WIZ8 0x0069B940
+Controls* g_panel_69b940;
 
 // GLOBAL: WIZ8 0x0069B920
 W8TextControl* g_portrait_controls_0069b920[8];

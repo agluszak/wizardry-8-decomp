@@ -27,7 +27,8 @@ typedef struct W8NpcItemEntry {
    loads through it show, and everything reached by the recovered NPC bodies is
    placed off it. */
 typedef struct W8NpcState {
-    unsigned char unknown_00[6];
+    int unknown_00;
+    unsigned char unknown_04[2];
     W8NpcDatabaseRecord* record;          /* 0x06 */
     W8PList* items;                       /* 0x0a: W8NpcItemEntry* elements */
     /* 0x0e and 0x12: two world-clock stamps, both set when the stock is first
@@ -68,6 +69,7 @@ typedef struct W8NpcState {
 
 int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity);
 W8NpcState* GetNpcState(int index);
+W8NpcState* GetNpcStateByKind(int kind);
 int AddNpcItemFromInstance(W8NpcState* npc, const W8ItemInstance* item, char quantity);
 int AddNpcItemWithDelay(W8NpcState* npc, int item_id, unsigned int quantity, int delay);
 char RateItemIdentifyDifficulty(W8NpcState* npc, int item_id);

@@ -19,7 +19,7 @@
 #include "wiz8/utility.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/factions.h"
-#include "wiz8/npc_item_lists.h"
+#include "wiz8/npc_state.h"
 #include "wiz8/item_video_object_vector.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/sr_api.h"
@@ -2185,12 +2185,11 @@ void Function5227D0(
         if (!Function50B8F0(7) || !GetFact(0x24e)) {
             return;
         }
-        W8NPCItemList* list = GetNPCItemListByID(7);
-        if (list == 0) {
+        W8NpcState* npc = GetNpcStateByKind(7);
+        if (npc == 0) {
             return;
         }
-        signed char npc_slot =
-            *(signed char*)((unsigned char*)list + sizeof(W8NPCItemList) + 0x10);
+        signed char npc_slot = npc->group_index;
         Function52E690(
             &g_party_characters[npc_slot], g_item_message_005ee68c, 0,
             g_item_message_arg_005ed8c8, g_item_message_arg_005ed914);

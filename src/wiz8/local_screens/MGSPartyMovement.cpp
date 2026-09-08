@@ -3,6 +3,8 @@
 
 // GLOBAL: WIZ8 0x0069BF40
 Controls* g_panel_69bf40;
+// GLOBAL: WIZ8 0x0069BF4C
+Controls* g_panel_69bf4c;
 
 // FUNCTION: WIZ8 0x005A1DD0
 void RedrawPanel69BF4C(void)

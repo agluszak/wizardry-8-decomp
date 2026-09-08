@@ -29,7 +29,7 @@
 #include "wiz8/magic.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/monster_runtime.h"
-#include "wiz8/npc_item_lists.h"
+#include "wiz8/npc_state.h"
 #include "wiz8/npc_interaction.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/targeting.h"
@@ -2465,8 +2465,8 @@ void W8Monster::ProcessScript004C80E0()
                         Function577540();
                     }
                     else if (_stricmp(token, "BELA_END_CC_WALK") == 0) {
-                        W8NPCItemList* list = GetNPCItemListByID(0x8d);
-                        if (list != 0) Function56C5E0(list, 0, 6, 0, 0);
+                        W8NpcState* npc = GetNpcStateByKind(0x8d);
+                        if (npc != 0) Function56C5E0(npc, 0, 6, 0, 0);
                         monster_info = MonsterGetScriptPartByLocationIndex(
                             MonsterGetIndexByLocationID(
                                 0x14b3, MONSTER_CPP,
@@ -5770,7 +5770,6 @@ void Function4C5810(W8Monster* target)
     target->Method4C5290();
 }
 }
-extern "C" {
 // FUNCTION: WIZ8 0x004C5860
 void DeleteMonster004C5860(W8Monster* monster)
 {
@@ -5778,8 +5777,6 @@ void DeleteMonster004C5860(W8Monster* monster)
         delete monster;
     }
 }
-}
-extern "C" {
 // FUNCTION: WIZ8 0x004C59C0
 void Function4C59C0(W8Monster* monster, W8World* world)
 {
@@ -5787,15 +5784,12 @@ void Function4C59C0(W8Monster* monster, W8World* world)
         monster->DetachRepresentation004A7A70(world);
     }
 }
-}
-extern "C" {
 // FUNCTION: WIZ8 0x004C5ED0
-void Function4C5ED0(int enabled)
+void Function4C5ED0(W8Monster* monster)
 {
-    if (enabled != 0) {
+    if (monster != 0) {
         Function4C4EF0();
     }
-}
 }
 // FUNCTION: WIZ8 0x004C6220
 void SetFlag6081E4(unsigned char value)

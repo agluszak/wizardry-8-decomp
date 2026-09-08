@@ -29,7 +29,7 @@ enum { W8_NPC_DISPOSITION_HOSTILE = 0x21, W8_NPC_DISPOSITION_FRIENDLY = 0x42 };
 
 /* 0x00689F94: every NPC state, held in the shared growable vector. */
 // GLOBAL: WIZ8 0x00689F94
-extern W8GrowableVector<W8NpcState*>* g_npc_states;
+W8GrowableVector<W8NpcState*>* g_npc_states;
 
 extern char GetNpcDisposition(W8NpcState* npc);                          /* 0x0050A280 */
 extern unsigned int GetItemStackValue(const W8ItemInstance* item);       /* 0x0051B840 */
@@ -130,6 +130,34 @@ W8NpcState* GetNpcState(int index)
         return 0;
     }
     return npc;
+}
+
+// FUNCTION: WIZ8 0x0050b830
+W8NpcState* GetNpcStateByKind(int kind)
+{
+    int count = g_npc_states->count;
+    W8GrowableVector<W8NpcState*>* npc_states = g_npc_states;
+    int index = 0;
+
+    if (count > 0) {
+        do {
+            W8NpcState** element;
+            W8NpcState* npc;
+
+            if (index < count) {
+                element = &npc_states->data[index];
+            } else {
+                element = npc_states->data;
+            }
+            npc = *element;
+
+            if (npc->record->kind == kind) {
+                return npc;
+            }
+            ++index;
+        } while (index < count);
+    }
+    return 0;
 }
 
 /* The monster standing in the world for this NPC, if one is. */

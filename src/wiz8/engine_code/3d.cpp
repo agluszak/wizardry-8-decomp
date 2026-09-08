@@ -389,10 +389,8 @@ double WorldGetFarClip(W8World* world)
     return far_plane;
 }
 
-extern "C" {
 // FUNCTION: WIZ8 0x0046E5A0
-void Function46E5A0(int unused, void* item)
+void RemoveMonsterFromWorldList(W8World* unused, W8Monster* monster)
 {
-    PListRemove(g_world->plsMonsters, item);
-}
+    PListRemove(g_world->plsMonsters, monster);
 }

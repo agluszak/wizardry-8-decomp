@@ -545,13 +545,11 @@ void SetSkyNodeVisible(char visible)
     }
 }
 
-extern "C" {
 // FUNCTION: WIZ8 0x00482720
 void Function482720(int value)
 {
     g_status_685170.game_time_ms = value;
     g_tick_65b9a8 = GetTickCount();
-}
 }
 
 // TEMPLATE: WIZ8 0x004848d0

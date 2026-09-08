@@ -2,7 +2,7 @@
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/utility.h"
-#include "wiz8/npc_item_lists.h"
+#include "wiz8/npc_state.h"
 #include "wiz8/virtual_file.h"
 #include "wiz8/xstatus.h"
 
@@ -15,7 +15,7 @@
 extern unsigned char EvaluateFact(int fact_id);
 /* 0x0055A0A0 and 0x00524CA0 tear down an NPC item list. */
 extern void Function55A0A0(int handle);
-extern void Function524CA0(W8NPCItemList* list);
+extern void Function524CA0(W8NpcState* npc);
 /* Provisional semantic name for the journal/notification path at 0x005588f0. */
 extern void RecordFactChangeForJournal(int fact_id);
 extern void HandleFactChange(int fact_id, unsigned char value);
@@ -175,14 +175,14 @@ static __inline unsigned char CheckFactLogged(int fact_id)
 // FUNCTION: WIZ8 0x005064a0
 void LoadFactState(int save_handle)
 {
-    W8NPCItemList* list;
+    W8NpcState* npc;
 
     ReadVirtualFile(save_handle, g_fact_values, 1000, (unsigned int*)&save_handle);
     if (CheckFactLogged(0x44)) {
-        list = GetNPCItemListByID(0x20);
-        if (list && list->flag_1a) {
-            Function55A0A0(list->unknown_00);
-            Function524CA0(list);
+        npc = GetNpcStateByKind(0x20);
+        if (npc && npc->has_monster) {
+            Function55A0A0(npc->unknown_00);
+            Function524CA0(npc);
         }
     }
     if (!CheckFactLogged(0x4b)) {

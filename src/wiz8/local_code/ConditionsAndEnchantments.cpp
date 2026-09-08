@@ -5,6 +5,7 @@
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/layouts/item_tables.h"
+#include "wiz8/location_variables.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/utility.h"
 #include "wiz8/sr_api.h"
@@ -18,7 +19,6 @@ extern unsigned short g_condition_notices_0061E570[];
 extern wchar_t* GetMonsterName(
     W8MonsterInfo* monster_info, W8MonsterRecord* record, char arg_3);
 extern char Function42B740(int saved_level);
-extern int g_int_00686A70;
 extern char Function521060(
     int id, int* out_id, W8Character** out_character, int a, int b);
 extern W8Character* Function52C480(void);
@@ -82,8 +82,8 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
         }
         if (condition == 9) {
             if (character->condition_turns[W8_CONDITION_SURVIVES_DEATH] != 0
-                && Function42B740(g_int_00686A70) != '\t'
-                && Function42B740(g_int_00686A70) != '\n') {
+                && Function42B740(g_loaded_level_id) != '\t'
+                && Function42B740(g_loaded_level_id) != '\n') {
                 return;
             }
         }

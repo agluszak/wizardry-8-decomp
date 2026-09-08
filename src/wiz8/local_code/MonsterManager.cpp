@@ -16,7 +16,7 @@
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/float_constants.h"
-#include "wiz8/npc_item_lists.h"
+#include "wiz8/npc_state.h"
 #include "wiz8/sr_api.h"
 #include "DEBUG.H"
 #include "random.h"
@@ -155,8 +155,7 @@ W8MonsterInfo* CreateMonsterInfo(
 void Function5248D0(W8MonsterInfo* monster_info);
 void Function58AB60(int value_1, int value_2, void* notice, W8WideChar* name);
 void Function4C59C0(W8Monster* monster, W8World* world);
-W8World* GetWorld(W8Monster* monster);
-void Function46E5A0(W8World* world);
+void RemoveMonsterFromWorldList(W8World* world, W8Monster* monster);
 void DeleteMonster004C5860(W8Monster* monster);
 /* __stdcall, not __cdecl: 0x0042E650 ends in `ret 0x4`, and both callers here
    clean only three of the four dwords they push across the tail. */
@@ -895,7 +894,7 @@ void DestroyUngroupedMonsters(void)
             }
             if (monster_info->monster != 0) {
                 Function4C59C0(monster_info->monster, GetWorld());
-                Function46E5A0(GetWorld(monster_info->monster));
+                RemoveMonsterFromWorldList(GetWorld(), monster_info->monster);
                 DeleteMonster004C5860(monster_info->monster);
                 monster_info->monster = 0;
             }
@@ -1336,7 +1335,7 @@ unsigned char RemoveMonster(
         }
         if (monster_info->monster != 0) {
             Function4C59C0(monster_info->monster, GetWorld());
-            Function46E5A0(GetWorld(monster_info->monster));
+            RemoveMonsterFromWorldList(GetWorld(), monster_info->monster);
             DeleteMonster004C5860(monster_info->monster);
             monster_info->monster = 0;
         }
@@ -1683,7 +1682,7 @@ void ProcessMonsterManagerFrame(void)
                 }
                 if (monster_info->monster != 0) {
                     Function4C59C0(monster_info->monster, GetWorld());
-                    Function46E5A0(GetWorld(monster_info->monster));
+                    RemoveMonsterFromWorldList(GetWorld(), monster_info->monster);
                     DeleteMonster004C5860(monster_info->monster);
                     monster_info->monster = 0;
                 }
@@ -1816,7 +1815,7 @@ void FormatMonsterHealth(
 
     if (monster_info->flag_16 != 1) {
         W8MonsterRecord* record;
-        W8NPCItemList* npc_item_list;
+        W8NpcState* npc;
 
         if (monster_info == 0) {
             srAssertFail(
@@ -1824,9 +1823,8 @@ void FormatMonsterHealth(
         }
         record = MonsterDBFromSpeciesInline(monster_info->monster_species);
         if ((record->flags_0d0 & 1) != 0) {
-            npc_item_list = GetNPCItemListByID(record->unknown_0cd[0]);
-            if (npc_item_list != 0 &&
-                npc_item_list->npc_record->unknown_00[0x57] != 0) {
+            npc = GetNpcStateByKind(record->unknown_0cd[0]);
+            if (npc != 0 && npc->record->has_group != 0) {
                 suppress_exact_health = 1;
             }
         }

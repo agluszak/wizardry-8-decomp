@@ -5,6 +5,9 @@
    embeds, and the 0..20 domain they bound is the same one the contiguous
    21-name faction table establishes. */
 
+// GLOBAL: WIZ8 0x0068D6E8
+W8FactionRuntimeRecord g_factions[W8_FACTION_COUNT];
+
 // FUNCTION: WIZ8 0x00535ad0
 W8FactionDisposition GetFactionDisposition(signed char faction)
 {

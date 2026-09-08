@@ -8,7 +8,7 @@
 
 extern unsigned char g_application_active;
 extern unsigned char Function4229B0(void);
-extern unsigned char Function4229D0(void);
+extern void Function4229D0(void);
 extern void NoOp(void);
 extern HWND g_window_6596cc;
 

@@ -14,8 +14,6 @@ extern void CopyItemInstance( /* 0x0051FE30 */
     W8ItemInstance* source,
     W8Character* character,
     unsigned char refresh);
-extern void InitializeWorldItemPlacement(W8WorldItem* item); /* 0x004F93D0 */
-extern int AddWorldItemToList(void* list, W8WorldItem* item); /* 0x005E2480 */
 
 // FUNCTION: WIZ8 0x004f6b90
 W8WorldItem* CreateWorldItem(
@@ -37,13 +35,13 @@ W8WorldItem* CreateWorldItem(
     result->owner = 0;
     result->position = *position;
     result->sector_id = -1;
-    InitializeWorldItemPlacement(result);
+    SettleWorldItem(result);
     result->entity_flags = unknown;
 
     if (item != 0) {
         CopyItemInstance(&result->item, item, 0, 1);
     }
-    if (add_to_world && AddWorldItemToList(gXStatus.plsItemList, result) == -1) {
+    if (add_to_world && PLAdoptAppend(gXStatus.plsItemList, result) == -1) {
         return 0;
     }
     return result;

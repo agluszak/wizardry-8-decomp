@@ -10,7 +10,6 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/item_tables.h"
 #include "wiz8/item_spawning.h"
-#include "wiz8/npc_item_lists.h"
 #include "wiz8/targeting.h"
 #include "wiz8/utility.h"
 #include "wiz8/screen_state.h"

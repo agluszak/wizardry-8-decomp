@@ -13,7 +13,8 @@
 extern "C" void ClearSurfaceRect(
     int left, unsigned int top, int right, unsigned int bottom);
 
-extern int g_dword_69ca28;
+// GLOBAL: WIZ8 0x0069CA28
+int g_dword_69ca28;
 extern "C" int g_dialog_font_64fde8;
 extern "C" unsigned char g_dialog_font_enabled_69ca32;
 extern "C" unsigned char g_dialog_font_foreground_64fdec;
