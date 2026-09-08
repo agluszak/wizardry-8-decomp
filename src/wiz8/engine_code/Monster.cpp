@@ -71,7 +71,6 @@ extern unsigned char FindEntityByName(
     srVector3T<float>* direction);
 extern void SetTriggerVariableByName00444030(const char* name, int value);
 extern const float g_monster_rotation_offset_005ec04c;
-extern const float g_float_005ebcf8;
 // GLOBAL: WIZ8 0x005ebcf8
 const float g_float_005ebcf8 = 0.0055555556900799274f;
 extern const double g_monster_death_rotation_pi_005ed1f0;
@@ -108,7 +107,6 @@ extern void Function48F650(
     W8MonsterInfo* monster_info, unsigned char value_1, unsigned char value_2);
 extern float g_float_005ec128;
 extern const double g_monster_script_direction_step_005ed2b8;
-extern const float g_monster_script_direction_scale_005ec150;
 extern const double g_monster_facing_tolerance_005ec2b0;
 extern const double g_monster_group_nearest_range_005ed2c0;
 
@@ -2588,10 +2586,10 @@ void W8Monster::ProcessScript004C80E0()
                             g_monster_script_direction_step_005ed2b8;
                         order_mode_28e = 4;
                         direction_x_2b0 =
-                            (float)cos(angle) * g_monster_script_direction_scale_005ec150;
+                            (float)cos(angle) * g_double_005ec150;
                         direction_y_2b4 = 0.0f;
                         direction_z_2b8 =
-                            (float)sin(angle) * g_monster_script_direction_scale_005ec150;
+                            (float)sin(angle) * g_double_005ec150;
                     }
                 }
                 break;

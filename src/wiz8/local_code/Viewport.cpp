@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/World.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/render_state.h"
 #include "surrender/srGERD.h"
 #include "surrender/srScene.h"
@@ -18,7 +19,6 @@ extern unsigned char g_flag_652da4;
 extern const float g_scale_x_5ebb1c;
 extern const float g_scale_y_5ebb20;
 extern const float g_one_5ebc30;
-extern const double g_plane_5ebcf8;
 extern const double g_plane_5ebd00;
 extern const double g_plane_5ebf48;
 extern const double g_plane_5ebf4c;
@@ -50,8 +50,8 @@ void SetViewport(int left, int top, int right, int bottom)
 
     if (g_world != 0 && g_world->camera != 0) {
         g_world->camera->setViewPlane(
-            g_plane_5ebd00 * g_plane_5ebcf8 * g_plane_5ebf48,
-            g_plane_5ebd00 * g_plane_5ebcf8 * g_plane_5ebf4c);
+            g_plane_5ebd00 * g_float_005ebcf8 * g_plane_5ebf48,
+            g_plane_5ebd00 * g_float_005ebcf8 * g_plane_5ebf4c);
         g_world->camera->getViewPlane(view, depth);
 
         plane.left = (double)fractional_left * (view.right - view.left) + view.left;

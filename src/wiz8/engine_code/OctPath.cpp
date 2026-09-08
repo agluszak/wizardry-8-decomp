@@ -78,7 +78,6 @@ void* g_path_scratch_00659c64;
 extern void RegisterPathSurface004B7730(unsigned int index, const int* point);
 extern void RegisterPathVertex004B7830(
     unsigned int index, const int* point, const int* second);
-extern const double g_path_waypoint_snap_distance_005ec150;
 extern double g_double_005ec3a8;
 // GLOBAL: WIZ8 0x005ec3a8
 double g_double_005ec3a8 = 1.1;
@@ -3964,7 +3963,7 @@ unsigned short W8PathingService::FindWaypoint0045B120(
             if ((float)distances[index] <
                     g_path_waypoint_exact_distance_005ebc64 &&
                 sqrt(delta_x * delta_x + delta_z * delta_z) <
-                    g_path_waypoint_snap_distance_005ec150) {
+                    g_double_005ec150) {
                 result = (unsigned short)candidates[index];
             }
         }
@@ -4370,11 +4369,11 @@ stModelInstance* W8PathingService::BuildPathVisualization0045BE30()
     if (marker_offsets_scaled == 0) {
         for (index = 0; index < 5; ++index) {
             marker_offsets[index].x *=
-                (float)g_path_waypoint_snap_distance_005ec150;
+                (float)g_double_005ec150;
             marker_offsets[index].y *=
-                (float)g_path_waypoint_snap_distance_005ec150;
+                (float)g_double_005ec150;
             marker_offsets[index].z *=
-                (float)g_path_waypoint_snap_distance_005ec150;
+                (float)g_double_005ec150;
         }
         marker_offsets_scaled = 1;
     }
@@ -4406,7 +4405,7 @@ stModelInstance* W8PathingService::BuildPathVisualization0045BE30()
                 source->position_04.x + marker_offsets[index].x * marker_scale;
             vertices[marker_vertex + index].y =
                 source->position_04.y +
-                (float)g_path_waypoint_snap_distance_005ec150 +
+                (float)g_double_005ec150 +
                 marker_offsets[index].y *
                     (float)(source->flags_00 >> 12) * 0.5f;
             vertices[marker_vertex + index].z =
@@ -4461,7 +4460,7 @@ stModelInstance* W8PathingService::BuildPathVisualization0045BE30()
                         marker_offsets[index].x * destination_scale;
                     vertices[destination_vertex + index].y =
                         destination->position_04.y +
-                        (float)g_path_waypoint_snap_distance_005ec150 +
+                        (float)g_double_005ec150 +
                         marker_offsets[index].y *
                             (float)(destination->flags_00 >> 12) * 0.5f;
                     vertices[destination_vertex + index].z =
@@ -5692,7 +5691,7 @@ void W8PathingService::EditTeleportalLink(
                 (m_pSurfaces_048[destination_index].position_04.y - destination->y) +
             (m_pSurfaces_048[destination_index].position_04.x - destination->x) *
                 (m_pSurfaces_048[destination_index].position_04.x - destination->x)) >
-            g_path_waypoint_snap_distance_005ec150) {
+            g_double_005ec150) {
         destination_index = 0;
     }
 
@@ -5705,7 +5704,7 @@ void W8PathingService::EditTeleportalLink(
                 (m_pSurfaces_048[source_index].position_04.y - source->y) +
             (m_pSurfaces_048[source_index].position_04.x - source->x) *
                 (m_pSurfaces_048[source_index].position_04.x - source->x)) >
-            g_path_waypoint_snap_distance_005ec150) {
+            g_double_005ec150) {
         source_index = 0;
     }
 

@@ -673,7 +673,6 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
     return true;
 }
 
-extern const float g_monster_script_direction_scale_005ec150;
 
 /* After a successful load, bind the current animation frame's mesh to its
    path and, when the animation is already running, snapshot the live
@@ -925,9 +924,9 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
             ReadVirtualFile(hFile, &lx, 4, 0);
             ReadVirtualFile(hFile, &ly, 4, 0);
             ReadVirtualFile(hFile, &lz, 4, 0);
-            lx *= g_monster_script_direction_scale_005ec150;
-            ly *= g_monster_script_direction_scale_005ec150;
-            lz *= g_monster_script_direction_scale_005ec150;
+            lx *= g_double_005ec150;
+            ly *= g_double_005ec150;
+            lz *= g_double_005ec150;
             this->local_location_010.x = lx;
             this->location_004.x = lx;
             this->local_location_010.y = ly;

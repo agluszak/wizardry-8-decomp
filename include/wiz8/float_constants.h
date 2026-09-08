@@ -65,5 +65,7 @@ extern float g_float_005ebc98;
 
 extern const double g_zero_005ebb40;
 extern const float g_camera_angle_period_005ec014;
+extern const float g_float_005ebcf8;
+extern const double g_double_005ec150;
 
 #endif

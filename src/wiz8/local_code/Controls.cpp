@@ -6,6 +6,7 @@
 #include "wiz8/local_code/RangeControl.h"
 #include "wiz8/local_code/ControlSelection.h"
 #include "wiz8/float_constants.h"
+#include "wiz8/fonts.h"
 #include "wiz8/cursor.h"
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/local_code/ButtonSound.h"
@@ -113,7 +114,6 @@ int g_W8TextClipTarget005FF5F4 = -15;
 
 // GLOBAL: WIZ8 0x00650e38
 int g_W8TextClipFlags00650E38;
-extern int g_W8FontStateTable0068EE1C[];
 
 // GLOBAL: WIZ8 0x005ebb38
 float g_W8RangeEnd005EBB38 = 1.0f;
@@ -655,7 +655,7 @@ void W8TextBuffer::RenderText(int a, int b, int x_offset, int y_offset,
     SetObjectShade(font_object, m_renderMode);
     unsigned short* previous_state = GetFontObjectPalette16BPP(m_font);
     if (m_fontStateIndex != -1) {
-        SetFontObjectPalette16BPP(m_font, (unsigned short*)g_W8FontStateTable0068EE1C[m_fontStateIndex]);
+        SetFontObjectPalette16BPP(m_font, g_font_state_palettes_68ee1c[m_fontStateIndex]);
     }
     SaveFontSettings();
     SetFontDestBuffer(g_W8TextClipTarget005FF5F4,
@@ -732,11 +732,11 @@ void W8TextBuffer::RenderToTarget(
     if (m_fontStateIndex != -1) {
         SetFontObjectPalette16BPP(
             m_font,
-            (unsigned short*)g_W8FontStateTable0068EE1C[m_fontStateIndex]);
+            g_font_state_palettes_68ee1c[m_fontStateIndex]);
     }
     if (m_flag_4c) {
         SetFontObjectPalette16BPP(
-            m_font, (unsigned short*)g_W8FontStateTable0068EE1C[1]);
+            m_font, g_font_state_palettes_68ee1c[1]);
     }
 
     int y = GetVerticalPosition();

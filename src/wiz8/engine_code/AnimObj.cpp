@@ -3,6 +3,7 @@
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/stLight.h"
 #include "wiz8/engine_code/stModelInstance.h"
@@ -17,7 +18,6 @@
 
 /* The callee returns its byte value in an int-sized result; this wrapper is
    the narrowing boundary, as shown by its explicit `and eax, 0xff`. */
-extern const double g_anim_obj_world_scale_005ec150;
 extern const float g_world_scale_005ebc40;
 
 // FUNCTION: WIZ8 0x004a01a0
@@ -122,9 +122,9 @@ unsigned char AnimObjReadFromFile004A05C0(
                 ReadVirtualFile(handle, &animation->pvecBoundMax[index],
                                 sizeof(srVector3T<float>), 0);
                 animation->pvecBoundMin[index] *=
-                    static_cast<float>(g_anim_obj_world_scale_005ec150);
+                    static_cast<float>(g_double_005ec150);
                 animation->pvecBoundMax[index] *=
-                    static_cast<float>(g_anim_obj_world_scale_005ec150);
+                    static_cast<float>(g_double_005ec150);
             }
         }
     }
@@ -147,7 +147,7 @@ unsigned char AnimObjReadFromFile004A05C0(
             ReadVirtualFile(handle, &color, sizeof(color), 0);
             ReadVirtualFile(handle, &intensity, 4, 0);
             ReadVirtualFile(handle, &range, 4, 0);
-            position *= static_cast<float>(g_anim_obj_world_scale_005ec150);
+            position *= static_cast<float>(g_double_005ec150);
             if (light_version < 3) {
                 definition_kind = light_version == 2 ? 1 : 0;
             }

@@ -7,6 +7,7 @@
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/npc_state.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/magic.h"
@@ -36,7 +37,6 @@ extern void ApplyHealthChangeToCharacter(
     int party_slot, int amount, int arg_3, int arg_4, int arg_5, int arg_6, int arg_7);
 /* 0x0052A890 */
 extern void NotifySpellPointsChanged(int party_slot);      /* 0x0055EE30 */
-extern void ClearHighlightIfItIs(W8MonsterInfo* monster_info);
 
 /* Roll the dice once per eligible party member and apply the result to each of
    them. The roll is separate per character rather than shared. */
@@ -175,7 +175,7 @@ void HealMonster(W8MonsterInfo* monster_info, int amount, char announce)
     if (monster_info->hp_current > monster_info->hp_max) {
         monster_info->hp_current = monster_info->hp_max;
     }
-    ClearHighlightIfItIs(monster_info);
+    ClearHighlightIfItIs(&monster_info->location_id);
     UpdateMonsterDamageAppearance(monster_info);
 
     if (announce) {

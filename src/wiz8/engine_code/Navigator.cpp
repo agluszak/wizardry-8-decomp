@@ -712,9 +712,8 @@ float g_navigator_linked_radius_scale_005ebc98 = 4.0f;
 extern float g_navigator_vertical_phase_step_005ebcc8;
 // GLOBAL: WIZ8 0x005ebcc8
 float g_navigator_vertical_phase_step_005ebcc8 = 0.25f;
-extern float g_navigator_startup_refresh_distance_005ec150;
 // GLOBAL: WIZ8 0x005ec150
-float g_navigator_startup_refresh_distance_005ec150 = 0.0f;
+extern const double g_double_005ec150 = 500.0;
 extern float g_navigator_minimum_speed_006081ec;
 // GLOBAL: WIZ8 0x006081ec
 float g_navigator_minimum_speed_006081ec = 0.5f;
@@ -1977,7 +1976,7 @@ int W8Navigator::ResolveMovement()
 
         if ((double)target_motion > g_double_005ec030 ||
             (target == g_startup_world_659c0c &&
-             target_motion > g_navigator_startup_refresh_distance_005ec150)) {
+             target_motion > g_double_005ec150)) {
             target_last_position_050 =
                 target->movement_0c0.position_040;
 

@@ -3,6 +3,7 @@
 struct W8IList;
 
 void RequestRedrawParty(void);
+void ClearHighlightIfItIs(const int* item);
 #include "wiz8/screen_state.h"
 
 #include "wiz8/local_code/ControlsRect.h"
