@@ -112,12 +112,13 @@ unsigned char LoadMonsterDatabaseRecord(
 
 /* The 0x153-byte combat allocation has two adjacent runs of 0x11-byte records.
    ClearEffectSlot consumes a record whenever its leading active byte is set. */
-typedef struct W8MonsterCombatEntry {
-    signed char active;
-    unsigned char unknown_01[0x10];
-} W8MonsterCombatEntry;                    /* 0x11 */
-
 #pragma pack(push, 1)
+typedef struct W8EffectSlot {
+    signed char active;
+    int visual_index;
+    unsigned char unknown_05[0x0c];
+} W8EffectSlot;                            /* 0x11 */
+
 typedef struct W8MonsterCombatState {
     /* 0x000: the phase of the round this monster next acts on, zero when it
        has finished acting. */
@@ -137,8 +138,8 @@ typedef struct W8MonsterCombatState {
        byte record each. The AI owns the list and destroys it outright. */
     W8PList* pending_actions;
     unsigned char unknown_01a[0x24];
-    W8MonsterCombatEntry entries_3e[9];     /* 0x03e .. 0x0d7 */
-    W8MonsterCombatEntry entries_d7[6];     /* 0x0d7 .. 0x13d */
+    W8EffectSlot entries_3e[9];             /* 0x03e .. 0x0d7 */
+    W8EffectSlot entries_d7[6];             /* 0x0d7 .. 0x13d */
     unsigned char unknown_13d[0xf];
     int value_14c;                          /* 0x14c */
     /* 0x150: the monster's turn has been set up already, so the setup runs

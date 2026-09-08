@@ -1,5 +1,6 @@
 #include "wiz8/character.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/Sight.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/magic.h"
@@ -35,7 +36,6 @@ enum { W8_FORMATION_ROW_WIDTH = 3 };
 
 /* 0x00519AC0 */
 extern char CountRowsBetween(int from_position, int to_position);        /* 0x0051AEC0 */
-extern bool GetSightCondition37A(const void* conditions);               /* 0x00505E60 */
 extern const float g_world_scale_005ebc40;
 extern float g_range_constant_005ec360;
 // GLOBAL
@@ -68,12 +68,12 @@ int GetBestHandRangeCategory(const W8Character* character)
     return best;
 }
 
-/* Whether the first lighting condition applies, but only for the two middle
-   range categories - at touch and at extreme range it never does. */
+/* Whether the first lighting condition applies at distant or extreme range. */
 // FUNCTION: WIZ8 0x00519be0
-bool RangeCategoryUsesSightCondition(const void* conditions, int range_category)
+unsigned char RangeCategoryUsesSightCondition(
+    const W8SightConditions* conditions, int range_category)
 {
-    if (range_category > W8_RANGE_SHORT && range_category < W8_RANGE_EXTREME) {
+    if (range_category >= W8_RANGE_FIRST_DISTANT && range_category <= W8_RANGE_EXTREME) {
         return GetSightCondition37A(conditions);
     }
     return false;

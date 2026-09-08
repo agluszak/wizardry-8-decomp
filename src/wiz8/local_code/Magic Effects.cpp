@@ -34,15 +34,6 @@ typedef struct W8SpellEffectDefinition {
     int duration_per_power;               /* 0x2c */
 } W8SpellEffectDefinition;
 
-/* One effect slot on a target. The leading flag says whether it is running,
-   and the byte after selects the visual the renderer is told to drop. */
-typedef struct W8EffectSlot {
-    unsigned char active;                 /* 0x00 */
-    int visual_index;                     /* 0x01, unaligned */
-    unsigned char unknown_05[8];
-    unsigned char unknown_0d[4];
-} W8EffectSlot;                           /* 0x11 */
-
 #pragma pack(pop)
 
 /* The duration that means "for good". */

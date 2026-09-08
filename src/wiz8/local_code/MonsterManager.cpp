@@ -50,7 +50,7 @@ void MonsterSetBehaviour(W8Monster* monster, int behavior);
 void MonsterSetSubCycle(W8Monster* monster, int subcycle);
 void DestroyMonsterGroup(W8MonsterGroup* monster_group, W8MonsterInfo* monster_info);
 void Function5103E0(W8MonsterGroup* monster_group);
-void ClearEffectSlot(W8MonsterInfo* monster_info, W8MonsterCombatEntry* entry);
+void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* entry);
 void DestroyMonsterActionQueue(W8MonsterInfo* monster_info);
 void Function546E70(void);
 extern int g_dword_6850be;
@@ -1442,7 +1442,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
 void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info)
 {
     unsigned int index;
-    W8MonsterCombatEntry* entry;
+    W8EffectSlot* entry;
 
     if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", MONSTER_MANAGER_CPP, 0x2c6, 0);
