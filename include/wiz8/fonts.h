@@ -1,5 +1,7 @@
 #pragma once
 
+unsigned char InitializeMenuFonts(void);
+
 #include "vobject.h"
 #include "Types.h"
 

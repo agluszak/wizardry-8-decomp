@@ -113,17 +113,12 @@ extern "C" {
 extern void GetRuntimeSettings(void);
 extern unsigned int guiMouseWheelMsg;
 }
-extern unsigned char InitializeVideoManager(
-    HINSTANCE instance, unsigned short show_command, void* window_proc);
-extern long __stdcall WindowProc4011E0(
-    void* window, int message, unsigned int wparam, long lparam);
 extern unsigned char InitializeGame(void);
 extern HWND g_window_6596cc;
 bool g_shutdown_started_650db5;
 bool g_teardown_done_650db4;
 char g_shutdown_message_6505ac[0x100];
 extern void MSYS_Shutdown(void);
-extern int ReturnZero(void);
 
 
 

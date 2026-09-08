@@ -300,20 +300,14 @@ extern void Function50E5C0(int party_slot);
 extern int Function51C5A0(W8Character* character, int item_id);
 extern bool Function4EDC60(W8Character* character);
 extern void PostCharacterNotice(int party_slot, const wchar_t* notice, ...);
-extern void DropCharacterFromRound(int party_slot);
 extern unsigned char Function5458A0(int party_slot);
 extern unsigned char Function4E79A0(
     int party_slot, int value_1, int value_2, int value_3);
-extern void AimByKind(int actor, int kind, int context);
 extern unsigned char Function536F60(int party_slot, int value);
 extern void Function536570(int party_slot, int value_1, int value_2);
-extern void RequestRefreshPartyState(void);
 extern void RequestRedraw(unsigned int mask);
 extern void Function595600(void);
-extern void Function593330(void);
 void Function520D10(
-    W8ItemInstance* item, W8Character* character, unsigned char refresh);
-void Function520070(
     W8ItemInstance* item, W8Character* character, unsigned char refresh);
 void CopyItemInstance(
     W8ItemInstance* destination,
@@ -1254,7 +1248,6 @@ void ReplaceOrCreateItem(
     }
 }
 
-extern unsigned char TryIdentifyItemFor(W8Character* character, W8ItemInstance* item);
 /* 0x005208F0 */
 
 /* Bind one worn item to its wearer. A binding that has not been announced yet

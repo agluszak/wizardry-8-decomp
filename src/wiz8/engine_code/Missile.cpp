@@ -26,7 +26,6 @@
 #include <string.h>
 
 extern int IncrementValue60DFAC(void);
-extern void ResetCombatSlot(W8CombatSlot* slot);
 extern float g_navigator_largest_extent_6081e8;
 // GLOBAL
 float g_navigator_largest_extent_6081e8;

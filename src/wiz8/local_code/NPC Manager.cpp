@@ -1,3 +1,4 @@
+#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/fact_state.h"
@@ -32,7 +33,6 @@ enum { W8_NPC_DISPOSITION_HOSTILE = 0x21, W8_NPC_DISPOSITION_FRIENDLY = 0x42 };
 W8GrowableVector<W8NpcState*>* g_npc_states;
 
 extern char GetNpcDisposition(W8NpcState* npc);                          /* 0x0050A280 */
-extern unsigned int GetItemStackValue(const W8ItemInstance* item);       /* 0x0051B840 */
 extern void UpdateNpcAt(W8NpcState* npc, int arg_2, void* scratch);      /* 0x0050B2F0 */
 
 /* Whether the NPC's database entry carries the value at 0x002 at all. */

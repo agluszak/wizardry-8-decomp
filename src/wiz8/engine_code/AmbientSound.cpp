@@ -1,3 +1,4 @@
+#include "wiz8/render_state.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/AmbientSound.h"
@@ -128,10 +129,6 @@ void UpdateAmbientSounds0047A3E0(W8World* world)
     }
 }
 
-extern unsigned char GetRenderOptionState(int option);
-extern void BuildFootstepPath0047A540(
-    char* path, char surface, char material, char kind, int variant);
-extern int PlaySound00408860(const char* path, int* options);
 extern unsigned char g_default_footstep_surface_65a108;
 // GLOBAL: WIZ8 0x0065a108
 unsigned char g_default_footstep_surface_65a108;

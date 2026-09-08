@@ -56,7 +56,7 @@ endif()
         MAP Wiz8Runtime.map
         OPT_REF
         ALLOW_UNRESOLVED
-        LIBRARIES ddraw.lib dxguid.lib gdi32.lib user32.lib
+        LIBRARIES ddraw.lib gdi32.lib user32.lib
     )
     add_custom_target(WIZ8_RUNNABLE DEPENDS WIZ8_RUNTIME)
 
@@ -71,7 +71,7 @@ endif()
         CONSOLE
         ALLOW_UNRESOLVED
         SOURCES tests/runtime/wiz8_runtime_test.cpp
-        LIBRARIES ddraw.lib dxguid.lib gdi32.lib user32.lib
+        LIBRARIES ddraw.lib gdi32.lib user32.lib
     )
     wiz8_add_executable(
         TARGET WIZ8_RUNTIME_DEBUG
@@ -83,19 +83,13 @@ endif()
         OBJECT_TARGET wiz8_debug_objects
         COMPILE_SETTINGS wiz8_debug_compile_settings
         SOURCES tests/runtime/wiz8_runtime_test.cpp
-        LIBRARIES ddraw.lib dxguid.lib gdi32.lib user32.lib
+        LIBRARIES ddraw.lib gdi32.lib user32.lib
     )
 if(SGP_SOURCE)
     include(cmake/Sgp.cmake)
 
-    target_sources(WIZ8_RUNTIME PRIVATE
-        $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME>
-    )
-    target_sources(WIZ8_RUNTIME_MATCH PRIVATE
-        $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME>
-    )
-    wiz8_add_sgp_objects(WIZ8_SGP_DEBUG DEBUG ${WIZ8_SGP_RUNTIME_SOURCES})
-    target_sources(WIZ8_RUNTIME_DEBUG PRIVATE
-        $<TARGET_OBJECTS:WIZ8_SGP_DEBUG>
-    )
+    target_link_libraries(WIZ8_RUNTIME PRIVATE WIZ8_SGP_RUNTIME)
+    target_link_libraries(WIZ8_RUNTIME_MATCH PRIVATE WIZ8_SGP_RUNTIME)
+    wiz8_add_sgp_target(WIZ8_SGP_DEBUG STATIC DEBUG ${WIZ8_SGP_RUNTIME_SOURCES})
+    target_link_libraries(WIZ8_RUNTIME_DEBUG PRIVATE WIZ8_SGP_DEBUG)
 endif()

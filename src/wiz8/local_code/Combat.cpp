@@ -1,4 +1,6 @@
+#include "wiz8/targeting.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/combat_state.h"
 extern "C" {
@@ -31,17 +33,11 @@ extern unsigned char CharacterHasCondition(const W8Character* character, int con
 /* 0x00547940 */
 /* The per-character combat rows begin at the combat state's own address and
    run 0xd4 bytes apart, so the state's leading fields are the first row's. */
-extern unsigned char g_combat_log_enabled_0068d810;
 // GLOBAL: WIZ8 0x0068d810
 unsigned char g_combat_log_enabled_0068d810;
 extern const wchar_t g_combat_log_format_00617664;
-extern void RoundPhaseToStep(unsigned int* actor, int round);
-extern int GetCurrentTargetingContext(int party_slot);
-extern void ClearTargetHighlights(int party_slot, const W8CombatSlot* target);
 /* 0x0053AC30 */
-extern void ResetCombatSlot(W8CombatSlot* slot);
 extern void NotifySpellPointsChanged(int party_slot);
-extern void RequestRedrawParty(void);
 extern void Function4E8000(int party_slot, int action_kind, int action_detail, int a, int b);
 
 /* Whether anybody in the party is engaged with something. */
@@ -263,7 +259,6 @@ extern unsigned char Function5323F0(W8MonsterInfo* monster_info, int a, int b, i
 extern void SetMonsterTurnSpeed(float speed);                            /* 0x00453C70 */
 extern int MonsterActionFatigueCost(const W8MonsterInfo* monster_info);
 extern void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount, int report_to);
-extern void RoundPhaseToStep(unsigned int* phase, unsigned int base);
 extern void RequestRedraw(unsigned int mask);
 extern int g_effect_005ee610;
 extern unsigned int g_flee_hp_fraction_005ed8f8;

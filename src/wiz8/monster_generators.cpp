@@ -81,8 +81,6 @@ W8GrowableVector<char*> g_encounter_names;
 // GLOBAL: WIZ8 0x0060a6bc
 int g_encounter_tables_level = -1;
 
-void UnloadEncounterTables(void);
-
 /* Engine Code\\MonGen.cpp's startup loader.  EncounterTables.dbs stores the
    names first, followed by a columnar record: ids, rarity, time, challenge and
    fixed 64-byte script names.  Keeping those columns in their reviewed inline

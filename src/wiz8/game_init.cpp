@@ -1,4 +1,9 @@
 #include "wiz8/music_playlist.h"
+#include "wiz8/cursor.h"
+#include "wiz8/local_code/LoadSaveGame.h"
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/engine_code/Octree.h"
+#include "wiz8/magic.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/game_status.h"
@@ -26,19 +31,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-extern void Function54AF30(unsigned char release);
-extern void InitializeGameplayRuntimeObjects(void);
-extern unsigned char Function54A760(W8MonsterRecord** records);
-extern unsigned char VerifyDataSubdirs(void);
-extern void InitializeItemVideoObjects(void);
-extern unsigned char FindStartupQuickSave(char* slot_name);
-extern int GetSaveGameLevel(const char* slot_name);
-extern unsigned char InitializeSpellDatabase(void);
-extern void ReleaseGenericItemNames(void);
-extern void UnloadEncounterTables(void);
-extern void ReleaseSpellDatabase(void);
-extern void ReleaseAllTriggers(void);
-
 /*
  * The data bring-up gate InitializeStandardGamingPlatform calls last. It stamps the version
  * string, opens the archives and string data, then walks every database
@@ -46,11 +38,6 @@ extern void ReleaseAllTriggers(void);
  * are mostly unidentified and carry address-derived names; the ones already
  * recovered elsewhere keep theirs.
  */
-
-extern unsigned char InitializeMenuFonts(void);
-extern void UpdateHeldItemCursor(void);
-
-extern unsigned short* g_font_state_palettes_68ee1c[15];
 
 // FUNCTION: WIZ8 0x004e2f40
 unsigned char InitializeGame(void)

@@ -38,7 +38,6 @@ extern unsigned char Function53C630(W8CombatSlot* slot, int arg_2);
 extern unsigned char Function5474B0(int spell_id);
 extern unsigned char Function5353E0(W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* slot);
 struct W8SpellEffectEntry;
-extern void ResetCombatSlot(W8CombatSlot* slot);                        /* 0x00536170 */
 extern void GetPartyPosition(srVector3T<float>* position);                     /* 0x00421070 */
 /* 0x0061EEFC: two bytes per AI kind; only the leading byte is read. */
 extern const unsigned char g_ai_kind_table[][2];

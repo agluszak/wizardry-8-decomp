@@ -1,3 +1,4 @@
+#include "wiz8/render_state.h"
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/TextControl.h"
@@ -33,16 +34,13 @@ extern "C" {
 
 #include "FileMan.h"
 
-extern void SetViewport(int left, int top, int right, int bottom);
 extern void Function425570(int enabled);
 extern int MSYS_Init(void);
 extern void MSYS_Shutdown(void);
 extern void ResetRegions(void);
-extern void UpdateHeldItemCursor(void);
 extern void PlaySound(const char*, int);
 extern wchar_t* FormatWideString(const wchar_t*, ...);
 extern void NoOp(void);
-extern void RenderFrame(void);
 extern void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x,
                                         unsigned short y, char right_button,
                                         char left_button);

@@ -1,5 +1,7 @@
 #pragma once
 
+void ReleaseAllTriggers(void);
+
 #include "surrender/srMath.h"
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/OctPreTree.h"

@@ -1,6 +1,8 @@
 #ifndef WIZ8_COMBAT_STATE_H
 #define WIZ8_COMBAT_STATE_H
 
+void RoundPhaseToStep(unsigned int* phase, unsigned int base);
+
 #include "wiz8/targeting.h"
 #include "wiz8/game_status.h"
 
@@ -123,5 +125,12 @@ extern W8CharacterClassRecord* g_character_class_records; /* 0x0065BDE0 */
     (g_status_685170.buffers.characters)
 #define g_party_slot_rows \
     (g_status_685170.buffers.party_rows)
+
+
+void RecordCharacterDeath(int party_slot);
+void DropCharacterFromRound(int party_slot);
+unsigned char TryCharacterAction(int party_slot, int action, char commit);
+void NotifyNearbyMonsters(int what);
+void CombatLog(const char* format, ...);
 
 #endif

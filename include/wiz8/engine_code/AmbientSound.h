@@ -1,5 +1,7 @@
 #pragma once
 
+struct W8World;
+
 #include "surrender/srMath.h"
 #include "wiz8/engine_code/game_timer.h"
 
@@ -53,3 +55,9 @@ public:
 
 static_assert(sizeof(W8AmbientSound) == 0x12c,
               "W8AmbientSound_must_be_0x12c");
+
+void BuildFootstepPath0047A540(
+    char* path, char surface, char material, char kind, int variant);
+void UpdateAmbientSounds0047A3E0(W8World* world);
+void RepositionAmbientSounds0047A600(W8World* world);
+unsigned char LoadAmbientSoundList0047AB40(char* filename);

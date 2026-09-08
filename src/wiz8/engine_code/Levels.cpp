@@ -1,3 +1,7 @@
+#include "wiz8/bringup_gates.h"
+#include "wiz8/engine_code/AmbientSound.h"
+#include "wiz8/monster_generators.h"
+#include "wiz8/render_state.h"
 #include <cmath>
 #include "wiz8/xstatus.h"
 #include <cstdio>
@@ -87,10 +91,8 @@ int g_level_resource_state_00604470;
 char g_path_6e0fa0[260];
 
 extern void Function4EA310(int mode);
-extern void RenderFrame(void);
 extern void Function50DA00(void);
 extern unsigned char ReleaseItemLists(void);
-extern unsigned char ShutdownMonsterManager(void);
 extern void Function48DB30(void);
 extern void ClearValue689FAC(void);
 extern void Function4909C0(void);
@@ -98,7 +100,6 @@ extern void Function489920(void);
 extern void ClearValue6834D4(void);
 extern unsigned char SaveLevelStatus(const char* path);
 extern int NormalizeMasterFunctionValue004D9700(int value);
-extern void Function427440(void);
 extern unsigned char FindGameDataPath0042B590(char* path, int drive);
 extern void SetWorld659AB8(W8World* world);
 
@@ -137,7 +138,6 @@ void Function42B3E0(void)
 }
 extern unsigned char Function42B020(int level, W8LevelInfo* info);
 extern void InitializeItemManagerState(void);
-extern int Function443A50(void);
 extern void Function5817D0(void);
 extern unsigned char LoadLevelStatus(const char* path, int level);
 extern void BuildLevelStatusPath(char* path, int level);
@@ -147,8 +147,6 @@ extern float* RotateMatrixAroundAxis0042B910(
 extern void MoveWorldToPoint(
     W8World* destination, W8World* source, const srVector3T<float>* point);
 extern void Function5115B0(void);
-extern void ResetMonsterGroupTurnState(void);
-extern unsigned char LoadAmbientSoundList0047AB40(char* filename);
 extern void ResetCurrentEnvironment0041AA40(void);
 extern void Function482410(void);
 extern void Function4D6C50(int level);
@@ -160,12 +158,10 @@ extern void Function50C270(void);
 extern void Function50C2E0(void);
 extern void Function5777C0(void);
 extern void UpdateRandomEncounterBudget(unsigned char first_visit);
-extern void Function48C9F0(void);
 extern void Function5060C0(void);
 extern unsigned int AgeAllMonsterSight(void);
 extern void RebuildAllWorldItemInstances(void);
 extern void Function451020(void);
-extern void SetSkyNodeVisible(char visible);
 
 extern unsigned char g_world_cleanup_flag_00659757;
 extern float g_runtime_world_scale_6081e8;

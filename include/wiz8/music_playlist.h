@@ -15,4 +15,7 @@ unsigned char Function48FC10(
 void Function48F9E0(void);
 void StopMusicPlaylist(unsigned char fade);
 
+
+char IsCurrentMusicPlaylist(const char* playlist);
+
 #endif

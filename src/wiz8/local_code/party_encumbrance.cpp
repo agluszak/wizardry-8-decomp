@@ -1,3 +1,4 @@
+#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/local_code/party_encumbrance.h"
 #include "wiz8/local_code/GameplayCode.h"
@@ -11,7 +12,6 @@
 /* Party encumbrance redistribution. The original translation-unit spelling is
    not established; this descriptive name is provisional. */
 
-extern unsigned int GetItemStackWeight(const W8ItemInstance* item);
 extern void RequestRedraw(unsigned int mask);
 
 // FUNCTION: WIZ8 0x004edd20

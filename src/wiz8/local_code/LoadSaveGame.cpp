@@ -1,3 +1,5 @@
+#include "wiz8/bringup_gates.h"
+#include "wiz8/monster_generators.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/local_code/GameplayDatabase.h"
@@ -78,7 +80,6 @@ extern void Function48C750(W8MonsterGroup* group);
    run before the header is read, so they read as teardown of whatever the
    previous level left behind. */
 extern void InitializeItemManagerState(void);
-extern int Function443A50(void);
 
 /* The fixed 0x314-byte header every save begins with. Only the fields
    LoadStatusHeader forwards are established; the rest is read and kept. */
@@ -102,13 +103,11 @@ extern void SaveMonsterStatus(W8Chunk* chunks);                         /* 0x005
 extern W8WorldItem* ItemInfo(unsigned int item_list_index);             /* 0x004F7FE0 */
 extern void Function48EAD0(int handle);
 extern void Function48E6D0(int handle);
-extern void SaveEncounterState(int handle);
 extern void Function43CB30(W8World* world, int handle, unsigned char restoring);
 extern void Function43D120(W8World* world, int handle);
 extern void Function581CE0(int handle);
 extern void Function43C810(W8World* world, int handle);
 extern void Function44E830(W8World* world, int handle);
-extern void SaveMonsterGenerators(int handle);
 extern void SaveAmbientSoundList0047B140(int handle);
 extern void Function49D120(int handle);
 

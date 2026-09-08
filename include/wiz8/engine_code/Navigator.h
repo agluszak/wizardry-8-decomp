@@ -266,3 +266,6 @@ public:
 
 static_assert(sizeof(W8Navigator) == 0x190,
               "W8Navigator_size_must_be_0x190");
+
+void Function453160(void);
+void Function4531A0(void);

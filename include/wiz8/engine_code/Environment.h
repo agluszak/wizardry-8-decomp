@@ -44,3 +44,9 @@ void GetLightDirection(int* direction);
 extern unsigned char g_sky_enabled_0065b9ae;
 void ResetEnvironment(void);
 void ReleaseEnvironmentObjects(void);
+
+void Function482990(unsigned char enabled);
+float GetViewDistance(void);
+void Function482720(int value);
+float GetWorldValue24(const void* world);
+void SetSkyNodeVisible(char visible);

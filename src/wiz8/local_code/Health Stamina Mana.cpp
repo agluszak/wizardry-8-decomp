@@ -286,7 +286,6 @@ extern void SetMonsterCondition(
 extern void ClearMonsterCondition(int location_id, int condition);       /* 0x00523F40 */
 extern void ApplyMonsterCondition(int location_id, int condition, int arg_3);
 /* 0x00524110 */
-extern void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
 extern char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info);
 /* 0x00546F10 */
 extern char Function546F80(W8MonsterInfo* aggressor, W8MonsterInfo* monster_info);
@@ -696,11 +695,8 @@ extern void ApplyCharacterEffect(
     W8Character* character, int effect, int arg_3, int arg_4, int arg_5);
 /* 0x0052E690 */
 extern int g_effect_005ee598;
-extern void ResetCombatSlot(W8CombatSlot* combat_slot);   /* 0x00536170 */
-extern void RecordCharacterDeath(int party_slot);
 extern void Function52F110(int party_slot);
 extern int GetNpcState(int animation_id);
-extern void DropCharacterFromRound(int party_slot);
 extern void PlaySound(const char* path, int flags);
 
 /* Tire one character. The load they are carrying scales the cost - eased or

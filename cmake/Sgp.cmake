@@ -75,8 +75,13 @@ set_source_files_properties("${SGP_SOURCE}/mousesystem.c" PROPERTIES
     COMPILE_DEFINITIONS "RenderFastHelp=SgpReleasedRenderFastHelp"
 )
 
-function(wiz8_add_sgp_objects target profile)
-    add_library(${target} OBJECT EXCLUDE_FROM_ALL ${ARGN})
+function(wiz8_add_sgp_target target kind profile)
+    add_library(${target} ${kind} EXCLUDE_FROM_ALL ${ARGN})
+    if(kind STREQUAL "STATIC")
+        # DirectX Common.c supplies two DirectDraw IIDs itself; search the
+        # remaining SDK GUIDs only after extracting SGP's objects.
+        target_link_libraries(${target} PUBLIC dxguid.lib)
+    endif()
     target_include_directories(${target} PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/sgp-compat"
         "${SGP_SOURCE}"
@@ -101,5 +106,7 @@ function(wiz8_add_sgp_objects target profile)
     )
 endfunction()
 
-wiz8_add_sgp_objects(WIZ8_SGP_RUNTIME MATCH ${WIZ8_SGP_RUNTIME_SOURCES})
-wiz8_add_sgp_objects(WIZ8_SGP_ANALYSIS MATCH ${WIZ8_SGP_ANALYSIS_ONLY_SOURCES})
+# Runtime consumers link the dependency archive. Oracle comparisons still use
+# the individual compiled objects, including the analysis-only units.
+wiz8_add_sgp_target(WIZ8_SGP_RUNTIME STATIC MATCH ${WIZ8_SGP_RUNTIME_SOURCES})
+wiz8_add_sgp_target(WIZ8_SGP_ANALYSIS OBJECT MATCH ${WIZ8_SGP_ANALYSIS_ONLY_SOURCES})

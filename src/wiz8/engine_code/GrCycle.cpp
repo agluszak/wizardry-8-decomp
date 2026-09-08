@@ -763,8 +763,6 @@ void W8GrCycle::UpdateLights004A7150()
     }
 }
 
-extern void PathAIResetRecord004A9720(W8PathAI* path);
-extern void DestroyOwnedPathAI004A9110(W8PathAI* path);
 
 // FUNCTION: WIZ8 0x004a7dd0
 unsigned char W8GrCycle::GetAnimationBounds(

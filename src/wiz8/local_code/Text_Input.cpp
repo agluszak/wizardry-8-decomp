@@ -1,3 +1,4 @@
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/fonts.h"
@@ -93,7 +94,6 @@ extern void* Function402B90(int surface_id, unsigned int* pitch);
 extern void Function402C30(int surface_id);
 extern int Function4124A0(void* pixels, unsigned int pitch, int* rectangle);
 extern int MSYS_GrabMouse(MOUSE_REGION* region);
-extern bool IsModalOpen(void);
 extern int Function55EF80(void);
 extern void Function55EE70(int value);
 void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason);

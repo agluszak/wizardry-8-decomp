@@ -57,3 +57,8 @@ unsigned char LevelBuildInfoByID(int level_id, W8LevelInfo* info);
 unsigned char LoadLevel(
     int requested_level, int entrance, unsigned char restoring_game);
 unsigned char UnloadLevel(const char* save_directory);
+
+unsigned char Function42B6F0(int level);
+int Function42B720(int level);
+void Function42B3E0(void);
+char Function42B740(int saved_level);

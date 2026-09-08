@@ -838,3 +838,83 @@ EXPORTS
     ?setViewPlane@srCamera@@QAEXNN@Z
     ?getViewPlane@srCamera@@QBEXAAURect@1@AAN@Z
     ?setViewPlane@srCamera@@QAEXABURect@1@N@Z
+
+    ; Remaining retail Wiz8.exe imports, verified against the shipped SR.DLL.
+    ; Authority: evidence/observations/surrender/wiz8-sr-imports.csv.
+    ??0BitIStream@srHuffman@@QAE@AAVsrBinIStream@@@Z
+    ??0BitOStream@srHuffman@@QAE@AAVsrBinOStream@@@Z
+    ??0Compressor@srHuffman@@QAE@ABVSampler@1@@Z
+    ??0Decompressor@srHuffman@@QAE@AAVBitIStream@1@@Z
+    ??0Polygon@srModeler@@QAE@H@Z
+    ??0Sampler@srHuffman@@QAE@XZ
+    ??0Vertex@srModeler@@QAE@XZ
+    ??0srIlluminator@@QAE@PAVsrNode@@@Z
+    ??1BitOStream@srHuffman@@QAE@XZ
+    ??1Compressor@srHuffman@@QAE@XZ
+    ??1Decompressor@srHuffman@@QAE@XZ
+    ??1Polygon@srModeler@@QAE@XZ
+    ??1Sampler@srHuffman@@QAE@XZ
+    ??1srIlluminator@@UAE@XZ
+    ??1srLight@@UAE@XZ
+    ??4srIlluminator@@QAEAAV0@ABV0@@Z
+    ??4srMaterialIFace@@QAEAAV0@ABV0@@Z
+    ??_7srLight@@6B?$srClassSupport@VsrIlluminator@@VsrNode@@$0A@$0BCAA@@@@ DATA
+    ??_7srLight@@6BsrVertexProcessor@@@ DATA
+    ??_DsrBinIMStream@@QAEXXZ
+    ??_DsrBinOMStream@@QAEXXZ
+    ?addPolygon@srModeler@@QAEXABVPolygon@1@@Z
+    ?decompressSymbol@Decompressor@srHuffman@@QAEKXZ
+    ?disableHint@srTexture@@QAEXW4e_hint@srTextureIFace@@@Z
+    ?flipFrame@srGERD@@QAEXXZ
+    ?getActivePolygonCount@srMeshModel@@QAEJXZ
+    ?getActivePolygonTable@srMeshModel@@QAEPAKH@Z
+    ?getClipRange@srCamera@@QBEXAAN0@Z
+    ?getDataCount@Decompressor@srHuffman@@QBEKXZ
+    ?getFilter@srCore@@QBEPAVsrFilter@@XZ
+    ?getFilter@srTexture@@QBEPAVsrFilter@@XZ
+    ?getGroupMask@srIlluminator@@QBEKXZ
+    ?getHorizontalFOV@srCamera@@QBENXZ
+    ?getPalette@srCore@@QBEPAVsrPalette@@XZ
+    ?getPolyEq@srMeshModel@@QAEPAV?$srVector4T@M@@XZ
+    ?getPolyShader@srMeshModel@@QAEPAVsrShader@@JH@Z
+    ?getPolyUVIndex@srMeshModel@@QAEPAVsrVector3i@@JH@Z
+    ?getPolygonOffset@srGERD@@QBEJXZ
+    ?getResidentTextureMemUsed@srGERD@@QBEKXZ
+    ?getShader@srMeshModel@@QBE?AVsrShader@@J@Z
+    ?getStatistics@srGERD@@QAEXAAUStatistics@1@@Z
+    ?getSurfacePtr@srTextureMap@@QBEPAVsrColorSurfaceIFace@@XZ
+    ?getTextureCacheUsed@srGERD@@QBEKXZ
+    ?getVertexDIG@srMeshModel@@QAEPAV?$srVector3T@M@@JH@Z
+    ?getVertexMaterial@srMeshModel@@QAEPAV?$srPtr@VsrMaterialIFace@@@@JW4e_side@1@H@Z
+    ?getVertexNormal@srMeshModel@@QAEPAV?$srVector3T@M@@XZ
+    ?getVertexShadeIndex@srMeshModel@@QAEPAKH@Z
+    ?getVertexTexCoords@srMeshModel@@QAEPAV?$srVector2T@M@@JJH@Z
+    ?getVerticalFOV@srCamera@@QBENXZ
+    ?insert@Sampler@srHuffman@@QAEXK@Z
+    ?mapPixelFormat@srPixelConvert@@SAXW4e_surfaceType@1@AAUPixelFormat@1@@Z
+    ?pipe@srTriMeshPipeline@@1PAV1@A DATA
+    ?process@srIlluminator@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
+    ?project@srCamera@@QAE?AW4e_projectionResult@1@AAV?$srVector3T@M@@ABV?$srVector3T@N@@@Z
+    ?put@BitOStream@srHuffman@@QAEXKK@Z
+    ?relocateVertices@srMeshModel@@QAEXABV?$srVector3T@M@@@Z
+    ?reset@srMeshModel@@QAEXJJ@Z
+    ?scale@srMeshModel@@QAEXABV?$srVector3T@M@@@Z
+    ?setActivePolygonCount@srMeshModel@@QAEXJ@Z
+    ?setAmbientLight@srGERD@@QAEXABV?$srVector4T@M@@@Z
+    ?setAmbientLight@srGERD@@QAEXMMMM@Z
+    ?setBounds@srMeshModel@@QAEXABV?$srVector3T@M@@00M@Z
+    ?setClearDepth@srGERD@@QAEXN@Z
+    ?setExclusionMask@srGERD@@QAEXK@Z
+    ?setFogColor@srGERD@@QAEXABV?$srVector3T@M@@@Z
+    ?setGroupMask@srIlluminator@@QAEXK@Z
+    ?setMaterial@srModeler@@QAEXPAVsrMaterialIFace@@JW4e_side@srMeshModel@@@Z
+    ?setPolygonOffset@srGERD@@QAEXJ@Z
+    ?setProjectionType@srCamera@@QAEXW4e_project@1@@Z
+    ?setShader@srModeler@@QAEXVsrShader@@J@Z
+    ?setUVCount@srMeshModel@@QAEXJ@Z
+    ?setWinding@srGERD@@QAEXW4e_winding@1@@Z
+    ?setupDefaultValuesFromSurface@srTexture@@IAEXPAVsrColorSurfaceIFace@@@Z
+    ?srExit@@YAHXZ
+    ?storeSymbolTable@Compressor@srHuffman@@QAEXAAVBitOStream@2@@Z
+    ?translate@srGERD@@QAEXNNN@Z
+    ?traverse@srIlluminator@@UAEXAAVTraverseInfo@srNode@@@Z

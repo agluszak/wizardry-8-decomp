@@ -310,4 +310,9 @@ void FormatMonsterHealth(
 unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
 unsigned char AnyMonsterDying(void);
 
+
+void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
+void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info);
+unsigned char ShutdownMonsterManager(void);
+
 #endif

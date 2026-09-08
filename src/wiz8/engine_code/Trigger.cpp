@@ -1,3 +1,5 @@
+#include "wiz8/engine_code/Environment.h"
+#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/sound_man.h"
@@ -88,7 +90,6 @@ extern void Function48F280(W8World* world, const char* name, int active);
 extern unsigned char Function521060(
     int item_id, int value_1, int value_2, int value_3, int value_4);
 extern void Function41C680(int interface_id, int state);
-extern float GetWorldValue24(const void* world);
 extern void PositionAmbientSoundByName0047A950(int unused, const char* name);
 extern void StopAmbientSoundByName0047A9E0(int unused, const char* name);
 extern void ToggleAmbientSoundByName0047AA70(int unused, const char* name);
@@ -104,7 +105,6 @@ extern void RemoveAllConditionsFromParty(void);
 
 extern int ApplyItemEffectToRandomCharacter0052E5C0(
     unsigned int item_id, int character_filter, int value_3, int value_4);
-extern void AddPartyGold(int amount, char announce);
 extern char PartyAttemptsToIdentifyItem(
     W8ItemInstance* item, int argument_2);
 extern void MoveItem(

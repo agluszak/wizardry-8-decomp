@@ -1,3 +1,4 @@
+#include "wiz8/render_state.h"
 #include "wiz8/regions.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
@@ -65,14 +66,8 @@ W8ModalDialogBase* g_main_menu_dialog;
 extern unsigned short gfAltState;
 extern unsigned short gfCtrlState;
 extern unsigned short gfShiftState;
-extern void Function422B10(void);
-extern unsigned char ClearPrimarySurface(void);
-extern void SetViewport(int left, int top, int right, int bottom);
-extern void UpdateHeldItemCursor(void);
 extern unsigned char HasEnoughFreeDiskSpace(void);
 extern void ReleaseLoadedVideoFrames(void);
-extern void ResetTransientRenderScenes(void);
-extern void RenderFrame(void);
 extern void NoOp(void);
 
 

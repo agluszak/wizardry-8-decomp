@@ -38,3 +38,5 @@ static_assert(sizeof(W8JournalEntry) == 0x0c, "W8JournalEntry_size");
 
 // SYNTHETIC: WIZ8 0x005bd7d0
 // W8JournalPanel005EF340::`scalar deleting destructor'
+
+void RefreshJournalPanel005BD860(void);

@@ -1,3 +1,4 @@
+#include "wiz8/render_state.h"
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/TextControl.h"
@@ -30,7 +31,6 @@ int g_character_page2_category_geometry_64ef90[5][2] = {
 int g_character_page2_category_frames_64efb8[5] = {2, 3, 0, 1, 4};
 extern unsigned short g_character_skill_name_ids_61e454[84];
 extern void Function558610(W8Character*);
-extern void ResetTransientRenderScenes(void);
 extern unsigned short Function402780(unsigned short key, unsigned char modifiers);
 
 struct W8PortraitDescriptor {

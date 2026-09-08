@@ -1,3 +1,6 @@
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/targeting.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/character.h"
@@ -126,8 +129,6 @@ enum {
     W8_SPELL_USABLE_WHILE_CAMPED = 3,
     W8_SPELL_USABLE_WHILE_SHOPPING = 4
 };
-extern void Function53A2C0(W8MonsterInfo* monster_info, int location_id);
-extern unsigned char Function53A300(W8MonsterInfo* monster_info, int spell_id);
 extern unsigned char Function519F80(
     W8MonsterInfo* monster_info,
     W8MonsterRecord* record,
@@ -497,7 +498,6 @@ bool CombatHasCondition(int condition_id)
 
 extern void Function4E7CC0(
     int party_slot, int arg_2, int arg_3, void* arg_4, int arg_5, int arg_6);
-extern W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context);
 /* 0x0053B7F0 */
 extern unsigned char TargetMatchesNeeded(const W8CombatSlot* target, char needed_target);
 extern unsigned char Function519180(int party_slot, int arg_2, int arg_3);
@@ -556,7 +556,6 @@ extern void ChooseAction(int party_slot, int action, int detail, int a, int b, i
 extern void AimAtTarget(int actor, W8CombatSlot* target, int context);   /* 0x005387F0 */
 extern void StartBreathCycle(int party_slot, int arg_2);                 /* 0x0052FE80 */
 extern void ReportBreathFailed(int party_slot);                          /* 0x0056A770 */
-extern bool IsSpellTargetStillValidIn(int party_slot, int spell_id, int context);
 /* 0x00616DF0: seventeen entries, indexed by the spell's own cost band. The
    monster power-level chooser reads the same table as a spell-point budget
    cost, so the one table serves both. */
@@ -654,7 +653,6 @@ unsigned int GetSpellFailureChance(unsigned int skill, int spell_id, int factor)
 }
 
 extern void ReportActionFailed(int party_slot);                          /* 0x0056A770 */
-extern unsigned char GetItemSpell(const W8ItemInstance* item);           /* 0x00520880 */
 extern void RecordItemOrigin(int party_slot, unsigned char origin, unsigned short slot);
 /* 0x00522180 */
 // GLOBAL: WIZ8 0x0061634c
@@ -922,8 +920,6 @@ void LearnSpell(W8Character* character, int spell_id, char announce)
     ShowNoticeLine(line, 0, 1, 0);
 }
 
-extern void Function520070(
-    W8ItemInstance* item, W8Character* character, unsigned char refresh);
 extern int Function52E690(
     W8Character* character, int effect, int argument, int value_1,
     unsigned int value_2); /* 0x0052E690 */
@@ -1215,7 +1211,6 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, int unuse
 }
 
 extern void ResetTargetSource(W8TargetSource* target_block);               /* 0x00536150 */
-extern void ResetCombatSlot(W8CombatSlot* combat_slot);                  /* 0x00536170 */
 extern void AimCombatSlotAtParty(W8CombatSlot* combat_slot, int hostile);
 /* 0x0053C630 */
 extern int CastSpellFromSource(
@@ -1718,8 +1713,6 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
 /* The target block and the source block are the same struct, so the two
    predicates Targeting.cpp declares over a source answer for a target too. */
 extern wchar_t* GetMonsterGroupName(W8MonsterGroup* group);              /* 0x00510280 */
-extern W8WideChar* FormatItemDisplayName(
-    const W8ItemInstance* item, unsigned char include_quantity);
 /* 0x0068C09C is indexed here by byte offset; 0x610 is the "at %s" wrapper every
    named target goes through and the rest are the fixed words. */
 enum {
@@ -1830,7 +1823,6 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
 extern void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8TargetSource* source);
 /* 0x0053BE50 */
 extern unsigned int SpellCastFatigueCost(int spell_id, int result);      /* 0x0052C320 */
-extern void SetTextBoxMode(unsigned char mode, int value);   /* 0x005905C0 */
 
 /* The two log lines a monster's cast is announced with: one that names the
    power level and one that does not. */

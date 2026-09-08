@@ -1,3 +1,7 @@
+#include "wiz8/bringup_gates.h"
+#include "wiz8/engine_code/Environment.h"
+#include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/render_state.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/game_timer.h"
@@ -37,7 +41,6 @@ extern unsigned char StopSound(int sound_handle);
 extern void Function52F890(int party_slot, int value_1, int value_2, int value_3, int value_4);
 extern void QueueGameplayEvent(int event_type, int party_slot);
 extern void PostCharacterMessage(int party_slot, const W8WideChar* format, ...);
-extern W8WideChar* GetItemDisplayName(const W8ItemInstance* item);
 /* 0x0054B300 resets one of eight slots. */
 /* The gStatus object owned by GameplayDatabase.cpp. */
 // GLOBAL: WIZ8 0x00685170
@@ -69,19 +72,11 @@ char** g_item_table_category_names;
 W8SpellRuntimeRecord* g_spell_records;
 // GLOBAL: WIZ8 0x0065BE18
 unsigned int g_spell_database_version;
-extern void EnableAllRenderOptions(void);
 extern void DisableRenderOption(int id);
-extern unsigned int GetTotalPhysicalMemory(void);
-extern int GetRendererFamily(void);
-extern void Function58FD30(void);
-extern void Function520070(
-    W8ItemInstance* item, W8Character* character, unsigned char refresh);
 extern int g_dword_6875b7;
 // GLOBAL: WIZ8 0x006875b7
 int g_dword_6875b7;
 extern void Function5A9E70(void* target);
-extern void Function482720(int value);
-extern void Function482740(int value);
 extern void Function509890(void);
 extern void Function509920(void);
 extern void Function558820(void);

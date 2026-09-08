@@ -32,7 +32,6 @@ enum {
 extern void CalcXPGoal(W8Character* character);                 /* 0x004EF090 */
 /* 0x00616604: one entry per faction, race and profession together. */
 extern const int g_character_table_00616604[];
-extern unsigned char TryCharacterAction(int party_slot, int action, char commit);
 extern unsigned char Function547940(const W8Character* character, int ability);
 extern unsigned int FatigueArmorPenalty(int fatigue_band);
 

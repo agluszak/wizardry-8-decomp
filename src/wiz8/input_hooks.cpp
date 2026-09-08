@@ -1,3 +1,4 @@
+#include "wiz8/bringup_gates.h"
 #include "wiz8/input_hooks.h"
 
 #include "wiz8/cursor.h"
@@ -7,8 +8,6 @@
 #include <string.h>
 
 extern unsigned char g_application_active;
-extern unsigned char Function4229B0(void);
-extern void Function4229D0(void);
 extern void NoOp(void);
 extern HWND g_window_6596cc;
 

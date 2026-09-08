@@ -3,6 +3,11 @@
 #include "wiz8/game_status.h"
 #include "wiz8/layouts/gameplay_databases.h"
 
+void Function54AF30(unsigned char release);
+void InitializeGameplayRuntimeObjects(void);
+unsigned char Function54A760(W8MonsterRecord** records);
+unsigned char InitializeSpellDatabase(void);
+
 extern "C" {
 
 extern unsigned char g_save_flag_00687599;

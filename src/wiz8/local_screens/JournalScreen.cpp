@@ -1,3 +1,6 @@
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/targeting.h"
+#include "wiz8/render_state.h"
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/TextControl.h"
@@ -29,9 +32,6 @@ extern int g_journal_page_0064df38;
 // GLOBAL: WIZ8 0x0064df38
 int g_journal_page_0064df38 = -1;
 extern W8GrowableVector<W8JournalEntry>* g_journal_entries_0069c4e4;
-extern void RefreshJournalPanel005BD860(void);
-extern void RenderFrame(void);
-extern void Function577260(void);
 extern void ResetRegions(void);
 extern unsigned char g_camp_open_00683f9b;
 // GLOBAL: WIZ8 0x00683f9b
@@ -43,9 +43,6 @@ extern int g_value_006850d5;
 // GLOBAL: WIZ8 0x006850d5
 int g_value_006850d5;
 extern void Function425570(int enabled);
-extern void SetViewport(int left, int top, int right, int bottom);
-extern void UpdateHeldItemCursor(void);
-extern unsigned char GetFactionFlag(char faction);
 extern unsigned short g_level_name_indices_605820[];
 // GLOBAL: WIZ8 0x0064d7b8
 wchar_t g_default_level_0064d7b8[] = L"Default Level";

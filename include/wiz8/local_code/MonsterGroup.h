@@ -83,4 +83,7 @@ W8MonsterGroup* CreateGroup(
     unsigned char flag_2,
     unsigned char flag_3);
 
+
+void ResetMonsterGroupTurnState(void);
+
 #endif

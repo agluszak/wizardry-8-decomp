@@ -1,3 +1,6 @@
+#include "wiz8/engine_code/Levels.h"
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/targeting.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/Strings.h"
@@ -11,7 +14,6 @@
 #include "wiz8/sr_api.h"
 
 extern void Function5477D0(W8MonsterInfo* monster_info, int flag);
-extern void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
 extern unsigned char g_flag_00683F94;
 // GLOBAL
 unsigned char g_flag_00683F94;
@@ -38,7 +40,6 @@ unsigned short g_condition_notices_0061E570[128] = {
 };
 extern wchar_t* GetMonsterName(
     W8MonsterInfo* monster_info, W8MonsterRecord* record, char arg_3);
-extern char Function42B740(int saved_level);
 extern char Function521060(
     int id, int* out_id, W8Character** out_character, int a, int b);
 extern void Function536570(int party_slot, int a, int b);
@@ -48,7 +49,6 @@ extern void Function53A930(int party_slot, W8CombatSlot* target);
 extern void Function547A50(int party_slot);
 extern void Function5237E0(int party_slot);
 extern unsigned char Function547940(const W8Character* character, int trait);
-extern void Function53AEB0(unsigned int party_slot);
 extern void Function52F430(void* character);
 
 // FUNCTION: WIZ8 0x005248a0
@@ -77,10 +77,6 @@ W8Character* FindPartyMemberWithLowestResistance4(void)
     return &g_party_characters[selected];
 }
 extern void Function590950(int party_slot, const wchar_t* format, ...);
-extern bool FindItemOnCharacter(
-    W8Character* character, int item_id, W8ItemInstance** found,
-    int include_backpack, const W8ItemInstance* resume_after);
-extern void SetTargetToCharacter(int character_slot, int context);
 extern void CharacterDies(int party_slot);
 extern void Function50E650(int party_slot);
 extern unsigned char g_byte_00687500;
@@ -195,7 +191,6 @@ extern void Function4ACD80(W8Monster* monster, int slot, int arg_3);
 extern void Function50E8C0(int location_id);
 extern void Function50E650(int party_slot);
 extern void RefreshMonsterSight(W8MonsterInfo* monster_info);
-extern void ResetCombatSlot(W8CombatSlot* slot);
 extern void RequestRedraw(int mask);
 extern unsigned char g_enchantment_six_cleared_006840bb;
 

@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/Environment.h"
 #include "wiz8/utility.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/cursor.h"
@@ -55,7 +56,6 @@ unsigned char g_flag_6840bc;
 // GLOBAL: WIZ8 0x00647ccc
 unsigned char g_table_647ccc[128];
 }
-extern void Function482990(unsigned char enabled);
 extern void MonsterForward453160(void);
 extern void ResetLevelDataVectors0041F0D0(void);
 extern void MonsterForward4531A0(void);

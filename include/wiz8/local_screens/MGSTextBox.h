@@ -18,3 +18,7 @@ static_assert(sizeof(W8MessageStorageRecord) == 0x24,
 extern "C" {
 extern W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
 }
+
+void Function58FD30(void);
+void ScrollTextBoxToCursor(void);
+void SetTextBoxMode(unsigned char mode, int value);

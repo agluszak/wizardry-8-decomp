@@ -92,3 +92,5 @@ void SetCameraOrientation(
 void GetCameraPosition(srVector3T<float>* position);
 
 static_assert(sizeof(GDCamera) == 0xc0, "GDCamera_must_be_0xc0");
+
+unsigned char Function420E10(void);

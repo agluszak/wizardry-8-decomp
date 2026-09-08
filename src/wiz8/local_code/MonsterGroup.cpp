@@ -1,7 +1,9 @@
+#include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/factions.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/character.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/utility.h"
@@ -22,7 +24,6 @@ extern int Function50A440(unsigned int monster_list_index);  /* 0x0050A440 */
    exactly this much - the same split the monster list uses. */
 enum { W8_ENCOUNTER_GROUP_INDEX_BIAS = 10000 };
 extern signed char GetNpcDispositionBand(int npc_record);           /* 0x0050A500 */
-extern void RequestRedrawParty(void);                            /* 0x00565420 */
 extern void Function510590(W8MonsterGroup* monster_group);   /* 0x00510590 */
 extern void Function454C80(void);                            /* 0x00454C80 */
 extern void SetTargetToGroup(int group_id, int value);         /* 0x00538DB0 */
@@ -33,7 +34,6 @@ unsigned char Function547510(void)
            g_combat_state->value_004 <= 1;
 }
 extern void Function48C670(W8MonsterGroup* monster_group);   /* 0x0048C670 */
-extern void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info);
 extern void Function48C750(W8MonsterGroup* monster_group);   /* 0x0048C750 */
 extern void Function50FD40(W8MonsterGroup* monster_group, int value); /* 0x0050FD40 */
 extern void Function547570(W8MonsterGroup* monster_group, unsigned char flag,

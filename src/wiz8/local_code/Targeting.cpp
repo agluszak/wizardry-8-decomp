@@ -1,3 +1,5 @@
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/PList.h"
@@ -33,7 +35,6 @@ int g_target_state_6840b3;
 
 W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context);
 int ResolveTargetingContext(int party_slot, unsigned int context);
-unsigned char GetCurrentTargetingContext(int party_slot);
 
 
 /* Point a source at one party character. Everything is cleared first and the
@@ -237,7 +238,6 @@ extern void GetMonsterBounds(W8Monster* monster, void* lower, void* upper);
 /* 0x004CA4F0 */
 extern void ShowTargetMarker(void* eye, void* lower, void* upper);       /* 0x0046F820 */
 extern void Function492500(void* scratch);
-extern void RequestRefreshPartyState(void);
 extern unsigned char g_target_marker_00684073;
 // GLOBAL: WIZ8 0x00684073
 unsigned char g_target_marker_00684073;
@@ -411,8 +411,6 @@ extern void NotifyMonsterHighlight(int party_slot, int location_id, int on);
 /* 0x004C5EB0 */
 extern void SetMonsterHighlightColour(
     W8Monster* monster, float r, float g, float b, float a);         /* 0x004C5AD0 */
-extern unsigned int GetMonsterGroupIndexByID(
-    int caller_line, const char* caller_file, int group_id, unsigned char assert_on_failure);
 extern W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int index);
 extern unsigned char ItemClassNormalizesTarget(const W8ItemDatabaseRecord* record);
 
@@ -624,7 +622,6 @@ extern unsigned char CanReachTarget(
 extern bool AnyoneStandsAhead(unsigned char position);
 extern int GetBestMonsterAttackRange(const W8MonsterRecord* record, char close_quarters_only);
 extern float CalcRangeDistance(int range_category);                      /* 0x0051A9A0 */
-extern W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
 
 /* The order the candidates are taken in: the monster in the lowest state
    first, then the one that can actually be reached, then the nearest. Only
@@ -854,7 +851,6 @@ extern unsigned char CanTargetMonsterWithAction(
 extern void ClearMonsterTargetNotice(void);                              /* 0x00547510 */
 extern void SetTargetCursor(int cursor);                                 /* 0x0055EE70 */
 extern void ClearTargetCursor(void);                                     /* 0x0055EF90 */
-extern int IsScreenIdle(void);
 
 /* The two cursors this body cares about: the one it puts up for a monster it
    can act on, and the one it takes down for a monster it cannot. */
@@ -1036,7 +1032,7 @@ enum { W8_SELECTION_SPELL = 7, W8_SELECTION_ITEM = 8 };
    Everything below carries this body inline rather than calling it, which is
    why the same fifteen-odd instructions open three of them. */
 // FUNCTION: WIZ8 0x0053bc10
-unsigned char GetCurrentTargetingContext(int party_slot)
+int GetCurrentTargetingContext(int party_slot)
 {
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
         g_level_block->selection_kind != -1) {
@@ -1054,7 +1050,7 @@ unsigned char GetCurrentTargetingContext(int party_slot)
         (gXStatus.field_01d != 0 || gXStatus.fItemSelectMode != 0)) {
         return W8_TARGETING_CONTEXT_SHARED;
     }
-    return (unsigned char)(gXStatus.fCombatMode != 0);
+    return gXStatus.fCombatMode != 0;
 }
 
 /* Resolve "current" to a real context and check that what comes back is one.
@@ -1126,7 +1122,6 @@ extern void GetSlotChosenAction(
     int party_slot, unsigned int context, int* action, int* detail, void* unused,
     const W8ActionDetailBlock** detail_block);
 extern int GetTargetNeededForSpellHostile(int spell_id);                 /* 0x005011C0 */
-extern unsigned char GetItemSpell(const W8ItemInstance* item);           /* 0x00520880 */
 extern unsigned char IsTargetSourceInRangeOfGroup(
     const W8TargetSource* source, W8MonsterGroup* group, int context);   /* 0x00537780 */
 extern unsigned char CanReachTarget(
@@ -1654,7 +1649,6 @@ extern float AngleFromPartyTo(const srVector3T<float>* from, const srVector3T<fl
 /* 0x004BE420 */
 extern float NormalizeAngle(float radians);
 extern int CompareSignedAscending(const void* left, const void* right);  /* 0x00517A30 */
-extern W8Monster* GetMonsterByLocationID(int location_id);
 extern void AimAtTarget(int actor, const W8CombatSlot* target, int context);
 /* 0x005387F0 */
 extern void StartBreathCycle(int party_slot, int arg_2);                 /* 0x0052FE80 */

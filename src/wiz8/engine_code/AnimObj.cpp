@@ -17,7 +17,6 @@
 
 /* The callee returns its byte value in an int-sized result; this wrapper is
    the narrowing boundary, as shown by its explicit `and eax, 0xff`. */
-extern unsigned char AniMeshValue004B64F0(W8AniMesh* mesh);
 extern const double g_anim_obj_world_scale_005ec150;
 extern const float g_world_scale_005ebc40;
 

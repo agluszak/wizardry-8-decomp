@@ -1,3 +1,4 @@
+#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/game_status.h"
 #include "wiz8/sr_api.h"
@@ -7,8 +8,6 @@
 
 struct W8Character;
 
-extern void Function520070(
-    W8ItemInstance* item, W8Character* character, unsigned char refresh);
 extern void CopyItemInstance( /* 0x0051FE30 */
     W8ItemInstance* destination,
     W8ItemInstance* source,

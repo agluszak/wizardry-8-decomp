@@ -1,5 +1,9 @@
 #pragma once
 
+unsigned char VerifyDataSubdirs(void);
+unsigned char FindStartupQuickSave(char* slot_name);
+int GetSaveGameLevel(const char* slot_name);
+
 /* The SHOT record. SaveGame writes 0x2588 bytes; the save-screen producer
    copy-constructs one complete record, including its trailing padding.
    The 80 by 60 16-bit surface begins at offset 6. */
@@ -16,3 +20,5 @@ static_assert(sizeof(W8SaveScreenshot) == 0x2588,
 unsigned char SaveGame(const char* name, W8SaveScreenshot* screenshot);
 
 unsigned char AutoSaveIfAllowed(char forced);
+
+unsigned char TakePendingSaveFlag(void);

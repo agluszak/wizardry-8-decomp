@@ -1,3 +1,7 @@
+#include "wiz8/engine_code/AmbientSound.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/monster_generators.h"
+#include "wiz8/render_state.h"
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -52,7 +56,6 @@ void SetSceneAmbientLightWhite(srScene* scene);
 extern int CheckLevelAssetSet0042CCC0(const char* level_path);
 extern void UpdateWorldMeshFromQuads004BAD40(W8World* world);
 extern void UpdateWorldMeshFromOctree004BAF50(W8World* world);
-extern void RenderFrame(void);
 void DestroyAllWorldTriggers(W8World* world);
 extern void Function479030(void);
 class W8AmbientSound;
@@ -79,14 +82,9 @@ extern void Function444F70(int value, float duration, float intensity,
 extern void UpdateWorldMonsters0046DD70(W8World* world);
 extern void Function4A27C0(W8World* world);
 extern void Function4AAB80(W8World* world);
-extern void UpdateAmbientSounds0047A3E0(W8World* world);
-extern void WorldUpdateLights(W8World* world);
-extern void RunMonsterGenerators(void);
 extern void Function443AE0(W8World* world);
 extern void Function4D8E40(void);
 extern void Function500930(void);
-extern void RepositionAmbientSounds0047A600(W8World* world);
-extern void RequestRefreshPartyState(void);
 extern void Function4AE310(void);
 extern void Function482770(void);
 extern void Function50D530(void);

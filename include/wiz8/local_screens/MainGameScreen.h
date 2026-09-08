@@ -1,4 +1,6 @@
 #pragma once
+
+void RequestRedrawParty(void);
 #include "wiz8/screen_state.h"
 
 #include "wiz8/local_code/ControlsRect.h"
@@ -242,3 +244,10 @@ void OnQuitGameDialogClosed(W8DialogBase* dialog);
 void Function56AA30(void);
 void Function56AAB0(void);
 void ResetMainGameScreenState(void);
+
+void Function577260(void);
+unsigned char Function577850(void);
+void RequestRefreshPartyState(void);
+void Function593330(void);
+int IsScreenIdle(void);
+bool IsModalOpen(void);

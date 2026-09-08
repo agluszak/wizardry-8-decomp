@@ -87,4 +87,14 @@ IDirectDrawSurface2* BeginVideoPresentation(void);
 unsigned char FinishVideoPresentation(void);
 
 
+
+void Initialize16BitPixelFormatMasks(void);
+unsigned char CreateWizardryWindow(void);
+unsigned char InitializePrimaryDirectDrawSurface(void);
+unsigned char InitializeVideoDevice(void);
+unsigned char Function422800(void);
+unsigned char InitializeVideoManager(
+    HINSTANCE instance, unsigned short show_command, void* window_proc);
+void Function427440(void);
+
 #endif

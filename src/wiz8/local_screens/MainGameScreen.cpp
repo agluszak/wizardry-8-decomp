@@ -1,3 +1,8 @@
+#include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/engine_code/Levels.h"
+#include "wiz8/local_screens/MGSSpellCasting.h"
+#include "wiz8/local_screens/screen8.h"
+#include "wiz8/targeting.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -58,23 +63,17 @@ W8DialogBase* g_modal_owner_0068edd0;
 // GLOBAL: WIZ8 0x0068edd4
 W8DialogBase* g_pending_main_game_dialog_0068edd4;
 
-extern unsigned char ClearPrimarySurface(void);
-extern unsigned char TakePendingSaveFlag(void);
 extern unsigned char IsPartySlotEligible00524A10(int slot);
 extern void ResetRegions(void);
 extern void TurnPartyToImmediate(unsigned int facing, char update_saved);
-extern void ResetTargetingState(void);
 extern void Function568E10(void);
 extern void Function598AB0(void);
 extern void Function5AE9D0(void);
 extern void Function59B940(void);
 extern void Function59BDB0(void);
 extern void Function55F2C0(void);
-extern void ScrollTextBoxToCursor(void);
 extern void SetSurfaceClipBounds00413FD0(int, int, int, int, int);
-extern void ResetTransientRenderScenes(void);
 extern void Function482EA0(void);
-extern void Function482990(unsigned char enabled);
 extern void Function425570(int enabled);
 extern void Function58AC00(int, const wchar_t*, int, int, int);
 extern void Function58AAD0(int, const wchar_t*, const wchar_t*);
@@ -113,13 +112,9 @@ extern void Function529510(void);
 extern short Function5698C0(void);
 extern void Function5618F0(unsigned short mode);
 extern unsigned char SetFlag603C60(void);
-extern unsigned char GetFlag68F105(void);
-extern void DisableRegionSet1C(void);
 extern void ReleaseLoadedVideoFrames(void);
 extern void MSYS_Shutdown(void);
 extern void NoOp(void);
-extern void UpdateHeldItemCursor(void);
-extern void Function42B3E0(void);
 int IsScreenInputBlocked(void);
 void DisableCombatRegions(void);
 
@@ -1009,7 +1004,6 @@ unsigned char MainGameScreenLeave(int leaving)
     return 1;
 }
 
-extern unsigned char Function577850(void);
 extern void SetCombatSelection(int value);                              /* 0x00569F70 */
 extern void SetCombatTarget(int value);                                 /* 0x0056A2D0 */
 extern void SetCombatAction(int value);                                 /* 0x0056A480 */
@@ -1154,9 +1148,6 @@ extern unsigned char g_map_loading_00659757;
 // GLOBAL
 unsigned char g_map_loading_00659757;
 extern void Function55EE70(int reason);
-extern void UpdateHeldItemCursor(void);
-extern void Function42B3E0(void);
-extern unsigned char UnloadLevel(const char* save_directory);
 extern void Function5879A0(int arg_1);
 extern void Function58A790(int arg_1);
 extern void Function59F2B0(void);

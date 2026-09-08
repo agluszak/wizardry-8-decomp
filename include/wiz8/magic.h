@@ -1,6 +1,8 @@
 #ifndef WIZ8_MAGIC_H
 #define WIZ8_MAGIC_H
 
+void ReleaseSpellDatabase(void);
+
 #include "wiz8/layouts/gameplay_databases.h"
 
 extern W8SpellRuntimeRecord* g_spell_records;

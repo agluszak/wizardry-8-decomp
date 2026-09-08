@@ -1,3 +1,5 @@
+#include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/render_state.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/wiz8_windows.h"
@@ -74,21 +76,15 @@ extern void NoOp(void);
 extern void MSYS_Shutdown(void);
 extern int MSYS_Init(void);
 #include "line.h"
-extern unsigned char Function42B6F0(int level);
-extern int Function42B720(int level);
 extern void Function425570(int value);
 /* 0x00412A10; the reviewed identity Ghidra carries. Nothing defines it yet. */
 extern void RefreshSlfArchives(void);
 extern int Function509750(void);
-extern void Function58FD30(void);
 extern void Function407650(int x, int y, const char* format, const wchar_t* text);
-extern void ResetTransientRenderScenes(void);
-extern void RenderFrame(void);
 extern void Function512C40(void);
 extern void Function5092F0(int* level, int* entrance);
 extern void Function5063E0(void);
 extern unsigned char Function42AF60(int level, int entrance);
-extern unsigned char AutoSaveIfAllowed(char forced);
 extern unsigned int LoadGame(const char* slot_name);
 extern void SetValue64D8AC(unsigned long value);
 extern unsigned char g_flag_689b2c;

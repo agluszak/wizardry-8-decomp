@@ -1,5 +1,8 @@
 #pragma once
 
+void InitializeItemVideoObjects(void);
+void ReleaseGenericItemNames(void);
+
 #include "wiz8/item_instance.h"
 #include "wiz8/game_status.h"
 
@@ -27,3 +30,21 @@ void GetOriginOfCharacterItem(
     void* item,
     unsigned char* origin,
     unsigned short* slot);
+
+void Function520070(
+    W8ItemInstance* item, W8Character* character, unsigned char refresh);
+unsigned char TryIdentifyItemFor(W8Character* character, W8ItemInstance* item);
+unsigned char GetItemSpell(const W8ItemInstance* item);
+W8WideChar* FormatItemDisplayName(
+    const W8ItemInstance* item, unsigned char include_quantity);
+unsigned int GetItemStackValue(const W8ItemInstance* item);
+W8WideChar* GetItemDisplayName(const W8ItemInstance* item);
+bool FindItemOnCharacter(
+    W8Character* character,
+    int item_id,
+    W8ItemInstance** found,
+    int include_backpack,
+    const W8ItemInstance* resume_after);
+unsigned int GetItemStackWeight(const W8ItemInstance* item);
+void CreateItemIntoHandOrPool(int item_id, unsigned char quality);
+void AddPartyGold(int amount, char announce);

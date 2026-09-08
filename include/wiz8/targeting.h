@@ -1,6 +1,11 @@
 #ifndef WIZ8_TARGETING_H
 #define WIZ8_TARGETING_H
 
+struct W8CombatSlot;
+struct W8MonsterInfo;
+void ResetCombatSlot(W8CombatSlot* slot);
+int GetCurrentTargetingContext(int party_slot);
+
 #include "wiz8/geometry.h"
 
 struct W8ItemInstance;
@@ -106,5 +111,16 @@ extern int g_target_state_6840b3;
 extern int g_picked_group_006840b7;
 void ResetTargetingState(void);
 }
+
+
+unsigned char GetFactionFlag(char faction);
+void AimByKind(int actor, int kind, int context);
+void Function53A2C0(W8MonsterInfo* monster_info, int location_id);
+unsigned char Function53A300(W8MonsterInfo* monster_info, int spell_id);
+W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context);
+bool IsSpellTargetStillValidIn(int party_slot, int spell_id, int context);
+void ClearTargetHighlights(int party_slot, const W8CombatSlot* target);
+void Function53AEB0(unsigned int party_slot);
+void SetTargetToCharacter(int character_slot, int context);
 
 #endif

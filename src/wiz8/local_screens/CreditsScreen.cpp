@@ -1,3 +1,4 @@
+#include "wiz8/render_state.h"
 #include "wiz8/local_screens/CreditsScreen.h"
 
 #include "wiz8/cursor.h"
@@ -23,16 +24,12 @@ int g_font_00683614;
 extern int g_font_bold_0068368c;
 // GLOBAL: WIZ8 0x0068368c
 int g_font_bold_0068368c;
-extern void SetViewport(int left, int top, int right, int bottom);
 extern void ResetRegions(void);
 extern unsigned char ClearFlag603C60(void);
 extern unsigned char SetFlag603C60(void);
 extern unsigned char ReadWideTextLine004CEED0(
     int handle, wchar_t* destination, int capacity, unsigned char* more);
 extern void Function407650(int x, int y, const wchar_t* format, ...);
-extern void ResetTransientRenderScenes(void);
-extern void RenderFrame(void);
-extern char IsCurrentMusicPlaylist(const char* playlist);
 
 W8GrowableVector<W8CreditLine>* g_credit_lines_0069c4a8;
 int g_credit_elapsed_steps_0069c494;

@@ -129,11 +129,6 @@ unsigned int g_tick_65409c;
 float g_frames_per_second_659704;
 float g_seconds_per_frame_659708;
 
-extern void Initialize16BitPixelFormatMasks(void);
-extern unsigned char CreateWizardryWindow(void);
-extern unsigned char InitializePrimaryDirectDrawSurface(void);
-extern unsigned char InitializeVideoDevice(void);
-extern unsigned char Function422800(void);
 void AssertFailureHandler(const char* expression, const char* file,
                          long line, const char* message);
 

@@ -1,3 +1,6 @@
+#include "wiz8/engine_code/Navigator.h"
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/render_state.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/engine_code/SoundEvent.h"
@@ -96,7 +99,6 @@ extern W8WideChar* GetMonsterName(
     W8MonsterInfo* monster_info,
     W8MonsterRecord* record,
     unsigned char name_form);
-extern void CreateItemIntoHandOrPool(int item_id, unsigned char quality);
 extern int Function50A440(unsigned int monster_list_index);
 extern void Function56C590(
     int npc_record, int value, int line, unsigned char suppress);
@@ -149,7 +151,6 @@ extern void SetMonsterCondition(
     W8TargetSource* source, int value_6);
 extern srTextureIFace* LoadTexture004B9460(
     const char* path, unsigned char cached, unsigned char required);
-extern unsigned char GetRenderOptionState(int option);
 extern int NormalizeAttackMode(int attack_mode);
 // GLOBAL: WIZ8 0x0060e614
 unsigned char g_monster_gib_option_0060e614 = 1;
@@ -1286,7 +1287,6 @@ extern int g_monster_cycle_registry_weight_0065ba4c;
 int g_monster_cycle_registry_weight_0065ba4c;
 extern void PrepareMonsterCycleForDestruction004ACF90(
     W8Monster* cycle);
-extern unsigned char Function420E10(void);
 extern unsigned char g_flag_00689b32;
 // GLOBAL
 unsigned char g_flag_00689b32;
@@ -4376,7 +4376,6 @@ extern unsigned int ChooseAttackMode(unsigned int attack_modes);
 extern int CalculateMonsterMissileAccuracy(
     W8MonsterInfo* monster_info, const W8MonsterAttack* attack,
     int attack_mode, int flags);
-extern void CombatLog(const char* format, ...);
 extern void FireMissileSourceToTarget(
     int missile_type, W8TargetSource* source, W8CombatSlot* target,
     void* attack_block, unsigned char use_default_accuracy,
@@ -5093,8 +5092,6 @@ extern void Function4C4DE0(int arg_1, int arg_2, int arg_3);
    globals at 0x00659B34 and 0x00659B3C, which is what makes them free
    functions rather than the Navigator methods their neighbours in the same
    address range are. */
-extern void Function453160(void);
-extern void Function4531A0(void);
 /* Cleans its own argument - the caller at 0x004C5A40 pushes and never adjusts
    afterwards - so it is __stdcall and not the cdecl the decompiler assumes. */
 extern unsigned int MonsterCastsSpell(

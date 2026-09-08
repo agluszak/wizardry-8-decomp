@@ -55,14 +55,12 @@ unsigned char RemoveMonster(
     unsigned char destroy_monster);
 void MonsterInfoEnterCombat(W8MonsterInfo* monster_info);
 void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info);
-void RequestRedrawParty(void);
 void DestroyMonsterGroup(W8MonsterGroup* monster_group, W8MonsterInfo* monster_info);
 void Function5103E0(W8MonsterGroup* monster_group);
 void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group);
 void ClearEffectSlot(W8MonsterInfo* monster_info, W8MonsterCombatEntry* entry);
 void DestroyMonsterActionQueue(W8MonsterInfo* monster_info);
 void Function546E70(void);
-void ResetCombatSlot(W8CombatSlot* combat_slot);   /* 0x00536170 */
 void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flag);
 void EndMonsterTurn(W8MonsterInfo* monster_info);
 extern int g_dword_6850be;
