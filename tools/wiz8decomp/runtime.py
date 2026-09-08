@@ -55,16 +55,30 @@ def stage_runtime(settings: Settings, executable_name: str = "Wiz8Runtime.exe") 
         encoded = (settings.repo_dir / "config" / "runtime" / "Wiz8.CFG.hex").read_text()
         game_cfg.write_bytes(bytes.fromhex(encoded))
     shutil.copy2(executable, stage / executable_name)
+    # Stage the VC6 program database next to the executable so Wine's
+    # debugger resolves our symbols instead of reporting Deferred modules.
+    program_database = executable.with_suffix(".pdb")
+    if program_database.is_file():
+        shutil.copy2(program_database, stage / program_database.name)
     return {"stage": str(stage), "links": links, "executable": str(stage / executable_name)}
 
 
-def _wine_environment(settings: Settings) -> tuple[Path, dict[str, str]]:
+def _wine_environment(
+    settings: Settings, *, silent_audio: bool = False
+) -> tuple[Path, dict[str, str]]:
     prefix = Path(os.environ.get("WIZ8_WINE_PREFIX", settings.work_dir / "wine" / "wiz8-runtime"))
     prefix.mkdir(parents=True, exist_ok=True)
+    overrides = "winemenubuilder.exe=d"
+    if silent_audio:
+        # Miles crashes inside Wine's stub audio drivers instead of reporting
+        # no usable driver. The scenarios never assert audible output, so the
+        # suite runs the soundless-machine path: every Miles open fails and
+        # the game stays silent.
+        overrides += ";winealsa.drv=d;wineoss.drv=d;winepulse.drv=d;winemm.drv=d"
     return prefix, {
         **os.environ,
         "WINEPREFIX": str(prefix),
-        "WINEDLLOVERRIDES": "winemenubuilder.exe=d",
+        "WINEDLLOVERRIDES": overrides,
         "WINEDEBUG": "-all",
     }
 
@@ -152,7 +166,7 @@ def run_runtime_suite(settings: Settings) -> dict[str, Any]:
     staged = stage_runtime(settings, "Wiz8RuntimeTest.exe")
     stage = Path(staged["stage"])
     executable = Path(staged["executable"])
-    prefix, environment = _wine_environment(settings)
+    prefix, environment = _wine_environment(settings, silent_audio=True)
     runs: dict[str, dict[str, dict[str, str | int]]] = {}
     with runtime_display(
         environment, default="virtual", log_path=stage / "xvfb-runtime-test.log"

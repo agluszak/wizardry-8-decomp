@@ -8,6 +8,7 @@
 #include "wiz8/monster_generators.h"
 #include "wiz8/utility.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/fonts.h"
 #include "wiz8/regions.h"
 #include "wiz8/sgp_video.h"
 #include "wiz8/render_state.h"

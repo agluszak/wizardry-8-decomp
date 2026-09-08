@@ -24,6 +24,7 @@
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/3d_code/PList.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/render_state.h"
 #include "wiz8/sr_api.h"
@@ -37,7 +38,6 @@
 
 extern int IncrementValue60DFAC(void);
 extern int CountSpellsOfKind(int kind);                      /* 0x004AC8F0 */
-extern unsigned char g_master_ambient_volume_6850f6;
 extern const float g_monster_rotation_offset_005ec04c;
 extern const double g_camera_pi_005ec2a0;
 extern float Function4BE420(
@@ -815,7 +815,7 @@ void stSound3D::BuildSoundOptions004AECC0(
 {
     float angle = -GetCameraYawRadians();
     unsigned int volume =
-        (value_140 * g_master_ambient_volume_6850f6) / 0x7f;
+        (value_140 * g_settings_6850c8.field_02e) / 0x7f;
     srMatrix3T<float> rotation;
     srVector3T<float> node_position;
     srVector3T<float> offset;

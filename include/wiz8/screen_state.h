@@ -6,35 +6,6 @@ extern "C" {
 #include "gameloop.h"
 }
 
-/* Screen font resources initialized by startup_subsystems.cpp. */
-extern "C" {
-extern int g_font_683660;
-extern int g_options_detail_font_683614;
-extern unsigned short* g_colour_68ee08;
-extern unsigned short* g_font_state_palettes_68ee1c[15];
-extern HVOBJECT g_wiz_text_font_secondary_object_683680;
-extern int g_smfnt_font_683694;
-extern int g_calligraphy_font_6835f8;
-extern int g_calligraphy_shadow_font_6835f4;
-extern int g_wiz_text_font_683640;
-extern unsigned short* g_font_palette_smfnt_68ee10;
-extern unsigned short* g_font_palette_calligraphy_68edfc;
-extern unsigned short* g_font_palette_calligraphy_shadow_68ee18;
-extern unsigned short* g_font_palette_wiz_text_68ee14;
-extern int g_button_font_683670;
-extern int g_wiz_text_bold_font_683664;
-extern int g_large_font_683674;
-extern int g_small_font_683678;
-extern int g_small_font_secondary_68366c;
-extern HVOBJECT g_large_font_object_683618;
-extern HVOBJECT g_small_font_object_683620;
-extern HVOBJECT g_small_font_secondary_object_683638;
-extern HVOBJECT g_wiz_text_font_object_683604;
-extern unsigned short* g_font_palette_button_68ee04;
-extern unsigned short* g_font_palette_wiz_text_bold_68ee0c;
-extern unsigned short* g_font_palette_options_detail_68ee00;
-}
-
 enum {
     W8_SCREEN_INTRO = 0,
     W8_SCREEN_MAIN_MENU = 1,
@@ -87,6 +58,10 @@ extern unsigned char g_screen_return_requested;
 extern void* g_screen_return_stack;
 extern int g_previous_screen_id;
 extern int g_suspended_screen_id;
+/* Retail 0x006F0628: WinMain's loop flag, set with 0x006F0630 at startup and
+   cleared by the exit screen, the state machine's stop paths, and shutdown. */
+extern unsigned char g_flag_6f0628;
+extern unsigned char g_flag_6f0630;
 
 static_assert(sizeof(W8ScreenStateRuntime) == 0x98, "W8ScreenStateRuntime_must_be_0x98");
 

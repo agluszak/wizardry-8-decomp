@@ -1,4 +1,6 @@
 #include "wiz8/engine_code/Levels.h"
+#include "wiz8/local_code/Configuration.h"
+#include "wiz8/sound_man.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/location_variables.h"
 #include "wiz8/state_getters.h"
@@ -54,8 +56,6 @@ extern void ApplyRolledHealthChangeToParty(
     const W8Dice* dice, int argument_2, int argument_3);
 extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
-extern int PlaySound00408860(const char* path, int* options);
-extern unsigned char g_master_ambient_volume_6850f6;
 extern unsigned int FindMonsterLocationsInBox0042F280(
     int** locations, const srVector3T<float>* lower,
     const srVector3T<float>* upper, int kind, int excluded_location);
@@ -307,7 +307,7 @@ unsigned char Trigger::PlayActionSound(const char* sound_name, int volume)
             for (int index = 0; index < 8; ++index) {
                 options[index] = -1;
             }
-            options[2] = (g_master_ambient_volume_6850f6 * volume) / 0x7f;
+            options[2] = (g_settings_6850c8.field_02e * volume) / 0x7f;
             PlaySound00408860(sound_name, options);
             return 0;
         }

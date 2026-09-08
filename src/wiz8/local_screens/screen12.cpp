@@ -1,6 +1,9 @@
 #include "wiz8/regions.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/video_object_catalog.h"
+#include "wiz8/cursor.h"
+#include "wiz8/input_hooks.h"
+#include "wiz8/render_state.h"
 
 #include "himage.h"
 #include "input.h"
@@ -19,20 +22,6 @@ unsigned char ClearFlag603C60(void);
 void RequestExitScreen(void)
 {
     SetPendingScreenState(W8_SCREEN_EXIT);
-}
-
-extern "C" {
-
-extern void NoOp(void);
-extern void MSYS_Shutdown(void);
-extern unsigned char ClearPrimarySurface(void);
-extern void UpdateHeldItemCursor(void);
-/* 0x00422B10 clears the software frame and retires the transient 2D overlays;
-   0x00422F10 is the scene-side teardown the same frames are torn down through.
-   Only the first is recovered. */
-extern void Function422B10(void);
-extern void ResetTransientRenderScenes(void);
-extern void RenderFrame(void);
 }
 
 // FUNCTION: WIZ8 0x00593320
@@ -64,7 +53,7 @@ unsigned char ExitScreenEnter(void)
 /* Lifecycle record 12's frame close-out. It drains the input queue through the
    region manager and lets a key press that the regions did not consume clear
    0x006F0628; the screen then tears down unless that flag is still set and
-   neither of the two other flags is. The two trailing repeats of 0x00426790 are
+   neither mouse-button latch is. The two trailing repeats of 0x00426790 are
    the original's own. */
 // FUNCTION: WIZ8 0x005917e0
 void ExitScreenFrame(void)
@@ -81,11 +70,13 @@ void ExitScreenFrame(void)
             }
         }
     }
-    if (gfLeftButtonState || gfRightButtonState) {
-        g_flag_6f0628 = 0;
+    if (g_flag_6f04ed == 0 && g_flag_6f04e8 == 0) {
+        if (g_flag_6f0628 != 0) {
+            return;
+        }
     }
-    else if (g_flag_6f0628) {
-        return;
+    else {
+        g_flag_6f0628 = 0;
     }
     ClearFlag603C60();
     ClearPrimarySurface();

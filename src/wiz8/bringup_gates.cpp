@@ -4,6 +4,9 @@
 
 #include "wiz8/render_state.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/input_hooks.h"
+#include "wiz8/font_manager.h"
+#include "wiz8/sound_man.h"
 #include "wiz8/sgp_vsurface_private.h"
 #include "Button System.h"
 #include "Font.h"
@@ -51,9 +54,6 @@ extern unsigned char g_flag_6598a8;
 extern unsigned char g_flag_659711;
 extern unsigned char g_fullscreen_603c39;
 unsigned char g_flag_5ff5e8;
-
-extern unsigned char InitializeWiz8FontManager(
-    unsigned short pixel_depth, FontTranslationTable* translation);
 
 unsigned int g_mswheel_roll_message;
 bool g_flag_6505a9;
@@ -107,6 +107,16 @@ unsigned char g_flag_6ef440;
 
 void ShutdownHandler(void);
 bool AddSubdirectoryToPath(const char* subdirectory);
+extern "C" {
+extern void GetRuntimeSettings(void);
+extern unsigned int guiMouseWheelMsg;
+}
+extern unsigned char InitializeVideoManager(
+    HINSTANCE instance, unsigned short show_command, void* window_proc);
+extern long __stdcall WindowProc4011E0(
+    void* window, int message, unsigned int wparam, long lparam);
+extern unsigned char InitializeGame(void);
+extern HWND g_window_6596cc;
 bool g_shutdown_started_650db5;
 bool g_teardown_done_650db4;
 char g_shutdown_message_6505ac[0x100];
@@ -245,42 +255,22 @@ unsigned int QueryAvailableMemory(void)
 }
 
 
-/* An eight-byte node: a code and a payload word. 0x00407D30 builds a head node
-   pointing at a copy of the caller's, which is the only structure either
-   establishes. */
-struct W8BindingNode {
-    unsigned short code;                  /* 0x00 */
-    unsigned char unknown_02[2];
-    void* payload;                        /* 0x04 */
-};
-
-int g_dword_5ff5f4;
-int g_dword_5ff5f8;
-int g_dword_5ff5fc;
-int g_dword_5ff600;
-int g_dword_5ff604;
-int g_dword_5ff608;
-int g_dword_5ff60c;
-unsigned char g_flag_650e38;
-W8BindingNode* g_binding_head_6eb704;
-unsigned char g_block_6eb6a0[0x64];
-
-
-extern unsigned char Function409C50(void);
 extern "C" {
 extern BOOLEAN gfEnableStartup;
 extern UINT32 guiSoundCacheThreshold;
 }
 
 unsigned char g_flag_5ff652;
-void* g_pointer_5ff648;
-unsigned char g_block_6e4120[0x980];
-unsigned char g_block_6e4aa0[0x6c00];
-int g_dword_650e4c;
+/* The retail channel and sample tables, typed from the pinned soundman.h
+   layouts their strides and field offsets prove (SOUNDTAG is 0x4c wide,
+   SAMPLETAG 0xd8). sound_man.cpp consumes them by these definitions. */
+SOUNDTAG g_sound_channels_6e4120[32];
+SAMPLETAG g_sound_samples_6e4aa0[128];
+unsigned int g_sound_memory_limit_5ff648;
+unsigned int g_sound_memory_used_650e4c;
 extern char* g_sound_provider_650e54;
 HPROVIDER g_provider_650e58;
 H3DPOBJECT g_listener_650e5c;
-unsigned char g_buffer_7dc000[1];
 
 /* Walks the Miles 3D providers for the one whose name matches the configured
    string, opens it and its listener, and records whether the provider exposes
@@ -297,13 +287,13 @@ bool Function4086D0(void)
     if (g_flag_650e50) {
         g_flag_650e50 = 0;
     }
-    memset(g_block_6e4120, 0, sizeof(g_block_6e4120));
-    if (gfEnableStartup && Function409C50()) {
+    memset(g_sound_channels_6e4120, 0, sizeof(g_sound_channels_6e4120));
+    if (gfEnableStartup && SoundInitHardware00409C50()) {
         g_flag_650e50 = 1;
     }
-    g_pointer_5ff648 = g_buffer_7dc000;
-    memset(g_block_6e4aa0, 0, sizeof(g_block_6e4aa0));
-    g_dword_650e4c = 0;
+    g_sound_memory_limit_5ff648 = 8048 * 1024;
+    memset(g_sound_samples_6e4aa0, 0, sizeof(g_sound_samples_6e4aa0));
+    g_sound_memory_used_650e4c = 0;
     guiSoundCacheThreshold = 0x1f5800;
     if (g_sound_provider_650e54 && g_provider_650e58 == 0) {
         next = 0;
@@ -351,16 +341,16 @@ bool Function4086D0(void)
    and dropping the second cursor local all compile to one of these two shapes,
    so the phase is not reachable by rewriting the loop body. */
 // FUNCTION: WIZ8 0x00407ec0
-W8BindingNode* Function407EC0(void)
+FontTranslationTable* Function407EC0(void)
 {
-    W8BindingNode* node;
+    FontTranslationTable* node;
     unsigned short* codes;
     unsigned short* cursor;
 
-    node = (W8BindingNode*)malloc(8);
-    node->code = 0xfc;
+    node = (FontTranslationTable*)malloc(sizeof(FontTranslationTable));
+    node->usNumberOfSymbols = 0xfc;
     codes = (unsigned short*)malloc(0x1f8);
-    node->payload = codes;
+    node->DynamicArrayOf16BitValues = codes;
     cursor = codes;
     *cursor++ = 0x41;
     *cursor++ = 0x42;
@@ -617,44 +607,18 @@ W8BindingNode* Function407EC0(void)
     return node;
 }
 
-/* Publishes the three values 0x00422AF0 reports, narrowed to their field
-   widths, then - when given a source node - allocates a head and a copy of it.
-   Either allocation failing abandons the whole thing, leaking the first. */
+/* Hands the translation table to SGP's font manager: FontManager's record
+   stays private to Font.c, so this delegates instead of rebuilding it. The
+   oracle zeroes the font slots, selects no font, and publishes the video
+   mode as the destination, which is what the retail body does around its
+   own GetDefaultScreenMode call. */
 // FUNCTION: WIZ8 0x00407d30
-bool Function407D30(unsigned short code, W8BindingNode* source)
+unsigned char Function407D30(unsigned short code, FontTranslationTable* source)
 {
-    unsigned short first;
-    unsigned short second;
-    unsigned char third;
-    W8BindingNode* copy;
-
-    FontDefault = -1;
-    g_dword_5ff5f4 = -15;
-    g_dword_5ff5f8 = 0;
-    GetCurrentVideoSettings(&first, &second, &third);
-    g_dword_5ff600 = 0;
-    g_dword_5ff604 = 0;
-    g_dword_5ff608 = first;
-    g_dword_5ff60c = second;
-    g_dword_5ff5fc = third;
-    g_flag_650e38 = 0;
-    if (!source) {
-        return false;
+    if (source == 0) {
+        return 0;
     }
-    g_binding_head_6eb704 = (W8BindingNode*)malloc(8);
-    if (!g_binding_head_6eb704) {
-        return false;
-    }
-    copy = (W8BindingNode*)malloc(8);
-    if (!copy) {
-        return false;
-    }
-    g_binding_head_6eb704->payload = copy;
-    g_binding_head_6eb704->code = code;
-    copy->code = source->code;
-    copy->payload = source->payload;
-    memset(g_block_6eb6a0, 0, sizeof(g_block_6eb6a0));
-    return true;
+    return InitializeFontManager(code, source);
 }
 
 /* Appends the subdirectory to the working directory and prepends the result to
@@ -702,7 +666,7 @@ void ShutdownHandler(void)
         return;
     }
     g_shutdown_started_650db5 = true;
-    gfProgramIsRunning = 0;
+    g_flag_6f0628 = 0;
     Function408850();
     if (g_flag_6505a9) {
         GameloopExit(1);
@@ -759,6 +723,96 @@ bool CheckCdPresent(void)
     return true;
 }
 
+/* Retail 0x006EB708/0x006EB70C: the 10 ms timer driver's current and start
+   ticks. */
+// GLOBAL: WIZ8 0x006EB708
+unsigned int g_dword_6eb708;
+// GLOBAL: WIZ8 0x006EB70C
+unsigned int g_dword_6eb70c;
+
+/* A TIMERPROC: retail ends in `ret 0x10`, so it takes and cleans the four
+   timer arguments even though it only reads the tick count. */
+// FUNCTION: WIZ8 0x00406b70
+void __stdcall Clock00406B70(
+    HWND window, unsigned int message, unsigned int timer, unsigned long ticks)
+{
+    (void)window;
+    (void)message;
+    (void)timer;
+    (void)ticks;
+    unsigned int now = GetTickCount();
+    if (now < g_dword_6eb708) {
+        g_dword_6eb70c = now + (-1 - g_dword_6eb708);
+        return;
+    }
+    g_dword_6eb70c = now - g_dword_6eb708;
+}
+
+// FUNCTION: WIZ8 0x00406ba0
+unsigned char InitializeClockManager00406BA0(void)
+{
+    g_dword_6eb708 = GetTickCount();
+    g_dword_6eb70c = g_dword_6eb708;
+    SetTimer(g_window_6596cc, 1, 10, (TIMERPROC)Clock00406B70);
+    return 1;
+}
+
+/* The retail startup spine. Each gate that fails returns straight out; the
+   window procedure and shutdown handler this installs are what the live
+   runtime tears down through. */
+// FUNCTION: WIZ8 0x00401570
+unsigned char InitializeStandardGamingPlatform(
+    HINSTANCE instance, int show_command)
+{
+    FontTranslationTable* table;
+
+    atexit(ShutdownHandler);
+    InitializeRegistryKeys("Wizardry8", "Wizardry8key");
+    AddSubdirectoryToPath("DLL");
+    GetRuntimeSettings();
+    Function404B00();
+    if (!InitializeVideoSurfaceState()) {
+        return 0;
+    }
+    if (!ScreenLifecycleSuccess()) {
+        return 0;
+    }
+    NoOp();
+    if (!InitializeInputManager00401EA0()) {
+        return 0;
+    }
+    if (!InitializeVideoManager(
+            instance, (unsigned short)show_command,
+            (void*)WindowProc4011E0)) {
+        return 0;
+    }
+    if (!InitializeVideoObjectManager()) {
+        return 0;
+    }
+    if (!InitializeVideoSurfaceManager()) {
+        return 0;
+    }
+    InitializeClockManager00406BA0();
+    table = Function407EC0();
+    if (table == 0) {
+        return 0;
+    }
+    if (!Function407D30(8, table)) {
+        return 0;
+    }
+    free(table);
+    if (!Function4086D0()) {
+        return 0;
+    }
+    InitializeRandom();
+    if (!InitializeGame()) {
+        return 0;
+    }
+    guiMouseWheelMsg = RegisterWindowMessageA("MSWHEEL_ROLLMSG");
+    g_flag_6505a9 = 1;
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x00401670
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
@@ -789,6 +843,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     }
     gfApplicationActive = 1;
     gfProgramIsRunning = 1;
+    g_flag_6f0630 = 1;
+    g_flag_6f0628 = 1;
     do {
         if (PeekMessageA(&message, NULL, 0, 0, 0)) {
             if (GetMessageA(&message, NULL, 0, 0) == 0) {
@@ -802,7 +858,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             GameLoop();
             gfSGPInputReceived = 0;
         }
-    } while (gfProgramIsRunning);
+    } while (g_flag_6f0628);
     PostQuitMessage(0);
     return message.wParam;
 }

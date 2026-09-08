@@ -15,6 +15,7 @@
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/regions.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/fonts.h"
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
 
@@ -22,6 +23,8 @@ extern "C" {
 #include "input.h"
 #include "mousesystem.h"
 }
+
+#include "Font.h"
 
 #include <new>
 #include <string.h>
@@ -35,7 +38,6 @@ extern int MSYS_Init(void);
 extern void MSYS_Shutdown(void);
 extern void ResetRegions(void);
 extern void UpdateHeldItemCursor(void);
-extern void SetFontObjectPalette16BPP(int font, unsigned short* palette);
 extern unsigned char Function48FC10(const char*, int, int);
 extern void PlaySound(const char*, int);
 extern wchar_t* FormatWideString(const wchar_t*, ...);
@@ -58,10 +60,6 @@ extern void Function5218C0(W8Character*);
 extern void Function51D960(W8Character*);
 extern unsigned char SaveCharacter(W8Character*, int, char, void (*)(void));
 
-extern int g_font_683660;
-extern int g_wiz_text_bold_font_683664;
-extern unsigned short* g_colour_68ee08;
-extern unsigned short* g_font_palette_wiz_text_bold_68ee0c;
 extern unsigned char g_in_combat_00683f94;
 extern unsigned short g_profession_name_message_ids_61e3f0[];
 extern unsigned short g_race_name_message_ids_61e3d0[];
@@ -70,7 +68,6 @@ extern unsigned short g_profession_level_name_message_ids_61e688[][9];
 extern unsigned short g_character_description_first_ids_61e3a4[];
 extern unsigned short g_character_description_second_ids_61e454[];
 extern int g_character_page_title_ids_64da9c[4];
-extern int g_options_detail_font_683614;
 extern wchar_t g_wchar_00689b34;
 
 // GLOBAL: WIZ8 0x0069c2e4

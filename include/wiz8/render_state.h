@@ -79,6 +79,8 @@ unsigned char InitializeEnvironmentColours(void);
 void SetViewport(int left, int top, int right, int bottom);
 unsigned char InitializeRendererSceneObjects(void);
 void PurgeInactiveSceneInstances(srScene* scene);
+void Function422B10(void);
+unsigned char ClearPrimarySurface(void);
 void ResetTransientRenderScenes(void);
 void RenderFrame(void);
 IDirectDrawSurface2* BeginVideoPresentation(void);

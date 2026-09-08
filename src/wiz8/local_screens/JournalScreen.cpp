@@ -13,12 +13,15 @@
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/vector.h"
 
+#include "Font.h"
+
 extern "C" {
 #include "input.h"
 #include "mousesystem.h"
 }
 
 #include <new>
+#include <stdlib.h>
 
 extern const wchar_t g_wchar_00689b34;
 extern int g_font_00683614;
@@ -42,15 +45,12 @@ extern wchar_t g_journal_alternate_page_0064df78[];
 extern signed char g_journal_factions_0064df40[12];
 extern int g_journal_faction_name_indices_0064df4c[11];
 extern int g_journal_page_count_0064df3c;
-extern int g_journal_font_69c4cc;
-extern unsigned short* g_journal_font_palette_69c4d0;
-extern unsigned short* g_journal_font_original_palette_69c4d8;
-extern short StringPixLength(unsigned short* text, int font);
-extern void SetFont(int font);
-extern unsigned char SetFontDestBuffer(
-    unsigned int target, int left, int top, int right, int bottom,
-    unsigned char wrap);
-extern void SetFontObjectPalette16BPP(int font, unsigned short* palette);
+// GLOBAL: WIZ8 0x0069C4CC
+int g_journal_font_69c4cc;
+// GLOBAL: WIZ8 0x0069C4D0
+unsigned short* g_journal_font_palette_69c4d0;
+// GLOBAL: WIZ8 0x0069C4D8
+unsigned short* g_journal_font_original_palette_69c4d8;
 extern void Function407650(int x, int y, const wchar_t* format, ...);
 
 W8JournalPanel005EF340* g_journal_panel_0069c4d4;
@@ -299,6 +299,29 @@ void W8JournalPanel005EF340::OnPrimary(W8TextControl* control)
         }
         RefreshJournalPanel005BD860();
     }
+}
+
+/* Lifecycle record 11's initializer and finalizer. The initializer loads the
+   journal font, saves the palette the font arrived with, and takes a second
+   palette from frame 0 of video object 0x1B9; the finalizer puts the original
+   palette back and releases the one it took. The two together are the second
+   proof that a record's fifth slot is its finalizer rather than a second
+   initializer - record 10's allocate/free pair is the first. */
+// FUNCTION: WIZ8 0x005bddd0
+unsigned char JournalScreenInitialize(void)
+{
+    g_journal_font_69c4cc = LoadFontFile((UINT8*)"Data\\Journal\\journal_font.sti");
+    g_journal_font_original_palette_69c4d8 = GetFontObjectPalette16BPP(g_journal_font_69c4cc);
+    g_journal_font_palette_69c4d0 = CopyCatalogImagePalette16BPP(0x1b9, 0);
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x005bde10
+unsigned char JournalScreenFinalize(void)
+{
+    SetFontObjectPalette16BPP(g_journal_font_69c4cc, g_journal_font_original_palette_69c4d8);
+    free(g_journal_font_palette_69c4d0);
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x005bde40

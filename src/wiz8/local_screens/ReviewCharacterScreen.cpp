@@ -1,6 +1,7 @@
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/fonts.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/cursor.h"
@@ -468,6 +469,97 @@ void W8CampSkillRange::OnRangeChanged(W8RangeControl*)
 {
     g_camp_screen_0069c0f4->skill_list_scroll = m_range->m_value;
     g_camp_screen_0069c0f4->redraw_flags |= 0x20000;
+}
+
+/* Lifecycle record 6's initializer - the camp record, which is what
+   W8_SCREEN_CAMP selects. It drops the camp screen's state pointer rather than
+   releasing it; the block is owned by the enter/leave pair. */
+void CampScreenInitializeRegions(void);
+void Function5B7230(void);
+// FUNCTION: WIZ8 0x005a3500
+unsigned char CampScreenInitialize(void)
+{
+    g_camp_screen_0069c0f4 = 0;
+    CampScreenInitializeRegions();
+    Function5B7230();
+    return 1;
+}
+
+/* 0x0064CBF0: the twelve camp-screen regions the layout rules do not cover,
+   given as explicit rectangles. The region initializer reads the first four
+   fields; the trailing five are never touched there and stay positional. */
+struct W8CampScreenRegion {
+    int x;                 /* 0x00 */
+    int y;                 /* 0x04 */
+    int width;             /* 0x08 */
+    int height;            /* 0x0c */
+    int unknown_10;
+    int unknown_14;
+    int unknown_18;
+    int unknown_1c;
+    int unknown_20;
+};
+
+// GLOBAL: WIZ8 0x0064CBF0
+const W8CampScreenRegion g_camp_screen_regions_64cbf0[12] = {
+    { 0x0bc, 0x0b0, 0x2d, 0x39, 0x00, 0x01, 0x0ee, 0x0c1, 0 },
+    { 0x1af, 0x0c6, 0x28, 0x28, 0x28, 0x08, 0x1aa, 0x0de, 1 },
+    { 0x1af, 0x0f1, 0x28, 0x28, 0x24, 0x08, 0x1aa, 0x0f1, 1 },
+    { 0x178, 0x0b0, 0x26, 0x49, 0x2c, 0x09, 0x173, 0x0b0, 1 },
+    { 0x086, 0x0f1, 0x39, 0x3a, 0x04, 0x02, 0x0c4, 0x11c, 0 },
+    { 0x183, 0x101, 0x23, 0x2b, 0x20, 0x07, 0x17e, 0x10b, 1 },
+    { 0x09e, 0x134, 0x22, 0x65, 0x0c, 0x03, 0x0a0, 0x134, 0 },
+    { 0x190, 0x134, 0x22, 0x48, 0x18, 0x06, 0x1b0, 0x134, 1 },
+    { 0x079, 0x134, 0x22, 0x65, 0x08, 0x03, 0x07b, 0x154, 0 },
+    { 0x1b5, 0x134, 0x22, 0x48, 0x1c, 0x06, 0x1d1, 0x154, 1 },
+    { 0x0cb, 0x167, 0x22, 0x4d, 0x10, 0x04, 0x0f2, 0x18f, 0 },
+    { 0x16a, 0x17a, 0x1a, 0x3a, 0x14, 0x05, 0x165, 0x19f, 1 }
+};
+
+/* The four region blocks the camp screen lays out by rule, and the twelve it
+   lays out from the explicit table below. Only the leading four fields of each
+   record are read here, so the remaining five stay positional. */
+// FUNCTION: WIZ8 0x005a4090
+void CampScreenInitializeRegions(void)
+{
+    unsigned int index;
+    for (index = 0; index < 8; ++index) {
+        unsigned short x = static_cast<unsigned short>((index & 1) * 0x30 + 6);
+        unsigned short y = static_cast<unsigned short>((index >> 1) * 0x27 + 5);
+        SetRegionBounds(index + 0xea, x, y, x + 0x2d, y + 0x24);
+    }
+    for (index = 0; index < 8; ++index) {
+        unsigned short x = static_cast<unsigned short>((index & 1) * 0x31 + 0xb);
+        unsigned short y = static_cast<unsigned short>((index >> 1) * 0x39 + 0xc0);
+        SetRegionBounds(index + 0xf4, x, y, x + 0x2e, y + 0x36);
+    }
+    for (index = 0; index < 12; ++index) {
+        const W8CampScreenRegion& region = g_camp_screen_regions_64cbf0[index];
+        SetRegionBounds(index + 0xfc,
+                        static_cast<unsigned short>(region.x),
+                        static_cast<unsigned short>(region.y),
+                        static_cast<unsigned short>(region.x + region.width),
+                        static_cast<unsigned short>(region.y + region.height));
+    }
+    for (index = 0; index < 8; ++index) {
+        unsigned short x = static_cast<unsigned short>((index & 1) * 0x31 + 0x200);
+        unsigned short y = static_cast<unsigned short>((index >> 1) * 0x39 + 0xc0);
+        SetRegionBounds(index + 0x108, x, y, x + 0x2e, y + 0x36);
+    }
+}
+
+/* The camp screen's remaining six regions, three across and two down. The
+   initializer calls this immediately after the block above; nothing else
+   reaches it, and nothing here names what the six cells hold. */
+// FUNCTION: WIZ8 0x005b7230
+void Function5B7230(void)
+{
+    unsigned int index;
+    for (index = 0; index < 6; ++index) {
+        unsigned short x = static_cast<unsigned short>((index % 3) * 0xd5 + 0x1d);
+        unsigned short y = static_cast<unsigned short>((index / 3) * 0x8c + 0xc3);
+        SetRegionBounds(index + 0x119, x, y, x + 0x99, y + 0x65);
+    }
 }
 
 // FUNCTION: WIZ8 0x005a3520

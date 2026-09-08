@@ -3,6 +3,7 @@
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/cursor.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/fonts.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/Configuration.h"
@@ -61,9 +62,6 @@ unsigned int g_main_menu_hover_region;
 wchar_t* g_pending_main_menu_message;
 // GLOBAL: WIZ8 0x0069c4c0
 W8ModalDialogBase* g_main_menu_dialog;
-extern int g_font_683660;
-extern unsigned short* g_font_state_palettes_68ee1c[15];
-extern unsigned short* g_colour_68ee08;
 extern unsigned short gfAltState;
 extern unsigned short gfCtrlState;
 extern unsigned short gfShiftState;
@@ -121,6 +119,16 @@ unsigned char DrawMainMenuItem(short item, short state)
     }
 
     MarkScreenRectDirty(0x98, top, 0x1f2, bottom, 0);
+    return 1;
+}
+
+/* Zero is the retail BSS state. The first screen synchronization replaces it
+   with the default cursor and then records the normal -1 state. */
+
+// FUNCTION: WIZ8 0x005bc800
+unsigned char MainMenuScreenInitialize(void)
+{
+    g_main_menu_selected_item = 0;
     return 1;
 }
 

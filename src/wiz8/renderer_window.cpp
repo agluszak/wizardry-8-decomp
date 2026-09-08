@@ -42,6 +42,8 @@
 /* The released SGP video unit owns this platform handle.  Wiz8 replaces the
    released video manager but keeps the same source-defined interface. */
 HWND ghWindow;
+// GLOBAL: WIZ8 0x006596CC
+HWND g_window_6596cc;
 
 unsigned char g_flag_603c38 = 1;
 unsigned char g_flag_603c4c = 1;
@@ -399,6 +401,7 @@ unsigned char CreateWizardryWindow(void)
     if (!ghWindow) {
         return 0;
     }
+    g_window_6596cc = ghWindow;
     SetFocus(ghWindow);
     return 1;
 }

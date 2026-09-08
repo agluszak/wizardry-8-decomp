@@ -1,6 +1,7 @@
 #include "wiz8/music_playlist.h"
 #include "wiz8/startup_runtime_state.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/fonts.h"
 #include "wiz8/sr_api.h"
 #include "Container.h"
 #include "Font.h"
@@ -104,7 +105,7 @@ void GameLoop(void)
         g_previous_screen_id = state;
         ReleaseScreenTransitionObjects();
         if (!g_screen_handlers[g_current_screen_state.id].leave(1)) {
-            gfProgramIsRunning = 0;
+            g_flag_6f0628 = 0;
             g_current_screen_state.id = -1;
             return;
         }
@@ -157,7 +158,7 @@ finish:
 clear:
     g_current_screen_state.id = -1;
 stop:
-    gfProgramIsRunning = 0;
+    g_flag_6f0628 = 0;
 }
 
 // FUNCTION: WIZ8 0x004e34b0

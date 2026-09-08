@@ -9,19 +9,18 @@
 #include "wiz8/text_input.h"
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
+#include "wiz8/fonts.h"
 #include "vsurface.h"
 
 #include <new>
 #include <string.h>
 
-extern int g_font_683660;
 extern wchar_t* FormatWideString(const wchar_t*, ...);
 extern unsigned int g_character_page2_region_set_0069c530;
 extern unsigned int g_character_page4_region_set_0069c52c;
 extern int g_character_page2_category_geometry_64ef90[5][2];
 extern int g_character_page2_category_frames_64efb8[5];
 extern unsigned short g_character_skill_name_ids_61e454[0x29];
-extern int g_options_detail_font_683614;
 extern void Function558610(W8Character*);
 extern void ResetTransientRenderScenes(void);
 extern unsigned short Function402780(unsigned short key, unsigned char modifiers);

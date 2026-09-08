@@ -11,6 +11,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/save_game.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/fonts.h"
 #include "wiz8/utility.h"
 #include "wiz8/virtual_file.h"
 
@@ -129,7 +130,6 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status);            /* 0x00
    notice array, and 0x00683678 is passed alongside; neither is established
    beyond that, so both keep positional names. */
 extern unsigned char g_flags_6874d7[];
-extern int g_small_font_683678;
 
 /* Build the loose character/NPC path in the two forms used by the save code.
    The first accepts an already formatted filename or wildcard; the second

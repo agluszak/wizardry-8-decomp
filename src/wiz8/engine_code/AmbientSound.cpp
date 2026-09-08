@@ -2,6 +2,8 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/AmbientSound.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/local_code/Configuration.h"
+#include "wiz8/sound_man.h"
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
 #include "random.h"
@@ -10,9 +12,7 @@
 #include <string.h>
 #include <stdio.h>
 
-extern void ReleaseAmbientChannel0040A8E0(int handle, int channel);
 extern void GetPartyPosition(srVector3T<float>* position); /* 0x00421070 */
-extern void AudioUpdateBegin00409310();
 extern void AudioUpdateFinish004AEFD0();
 
 // FUNCTION: WIZ8 0x00479040
@@ -113,7 +113,7 @@ void UpdateAmbientSounds0047A3E0(W8World* world)
         int count;
         int index;
 
-        AudioUpdateBegin00409310();
+        SoundServiceRandom();
         SoundServiceStreams();
         count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
@@ -219,7 +219,7 @@ void RepositionAmbientSounds0047A600(W8World* world)
         int count;
         int index;
 
-        AudioUpdateBegin00409310();
+        SoundServiceRandom();
         count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound = static_cast<W8AmbientSound*>(
@@ -255,7 +255,7 @@ void DestroyAmbientSound0047A700(W8AmbientSound* ambient)
         SoundStop(ambient->sound_handle_bc);
     }
     if (ambient->sound_handle_c0 != -1) {
-        ReleaseAmbientChannel0040A8E0(ambient->sound_handle_c0, 6);
+        SoundRemoveSampleFlags(ambient->sound_handle_c0, 6);
     }
     if (ambient->pacSoundName != 0) {
         delete[] ambient->pacSoundName;
@@ -378,9 +378,6 @@ void ToggleAmbientSoundByName0047AA70(int /* unused */, const char* name)
     }
 }
 
-extern int PlaySoundConfigured00408D60(const char* path, int* options);
-extern unsigned char g_master_ambient_volume_6850f6;
-extern unsigned char g_saved_ambient_volume_6850fa;
 extern const unsigned short g_empty_ambient_name_65a110;
 
 // FUNCTION: WIZ8 0x0047ab40
@@ -420,13 +417,13 @@ unsigned char LoadAmbientSoundList0047AB40(char* filename)
             SoundSetCacheThreshhold(0xc8000);
             if (direct_selector == -1) {
                 configured[8] = -16;
-                PlaySoundConfigured00408D60(path, configured);
+                SoundPlayRandom(path, (RANDOMPARMS*)configured);
             }
             else {
                 direct[4] = direct_selector;
                 direct[5] = -16;
                 direct[2] =
-                    (g_master_ambient_volume_6850f6 * configured[5]) / 0x7f;
+                    (g_settings_6850c8.field_02e * configured[5]) / 0x7f;
                 PlaySound00408860(path, direct);
             }
         }
@@ -442,7 +439,7 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
     int count;
     int index;
 
-    g_master_ambient_volume_6850f6 = volume;
+    g_settings_6850c8.field_02e = volume;
     SoundSetDefaultVolume(volume);
     if (g_world != 0 && g_world->plsAmbientSounds != 0) {
         count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
@@ -452,7 +449,7 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
             if (sound != 0) {
                 if (sound->sound_handle_bc != -1) {
                     unsigned int adjusted =
-                        (sound->value_98 * g_master_ambient_volume_6850f6) / 0x7f;
+                        (sound->value_98 * g_settings_6850c8.field_02e) / 0x7f;
                     sound->value_9c = adjusted;
                     sound->value_a0 = adjusted;
                     SoundSetVolume(sound->sound_handle_bc, adjusted);
@@ -464,7 +461,7 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
     }
     world = GetWorld();
     if (world != 0) {
-        AudioUpdateBegin00409310();
+        SoundServiceRandom();
         count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound = static_cast<W8AmbientSound*>(
@@ -475,7 +472,7 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
                 sound->ApplyPosition00479350(&position);
             }
         }
-        AudioUpdateBegin00409310();
+        SoundServiceRandom();
         SoundServiceStreams();
         count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
@@ -498,9 +495,9 @@ void SetAmbientSoundMuted0047AE90(char muted)
     int index;
 
     if (muted == 0) {
-        if (g_saved_ambient_volume_6850fa != 0xff) {
-            g_master_ambient_volume_6850f6 = g_saved_ambient_volume_6850fa;
-            SoundSetDefaultVolume(g_saved_ambient_volume_6850fa);
+        if (g_settings_6850c8.field_032 != 0xff) {
+            g_settings_6850c8.field_02e = g_settings_6850c8.field_032;
+            SoundSetDefaultVolume(g_settings_6850c8.field_032);
             if (g_world != 0 &&
                 g_world->plsAmbientSounds != 0) {
                 count = static_cast<int>(
@@ -511,7 +508,7 @@ void SetAmbientSoundMuted0047AE90(char muted)
                     if (sound != 0) {
                         if (sound->sound_handle_bc != -1) {
                             unsigned int adjusted =
-                                (sound->value_98 * g_master_ambient_volume_6850f6) /
+                                (sound->value_98 * g_settings_6850c8.field_02e) /
                                 0x7f;
                             sound->value_9c = adjusted;
                             sound->value_a0 = adjusted;
@@ -524,7 +521,7 @@ void SetAmbientSoundMuted0047AE90(char muted)
             }
             world = GetWorld();
             if (world != 0) {
-                AudioUpdateBegin00409310();
+                SoundServiceRandom();
                 count = static_cast<int>(PLLength(world->plsAmbientSounds));
                 for (index = 0; index < count; ++index) {
                     W8AmbientSound* sound = static_cast<W8AmbientSound*>(
@@ -535,7 +532,7 @@ void SetAmbientSoundMuted0047AE90(char muted)
                         sound->ApplyPosition00479350(&position);
                     }
                 }
-                AudioUpdateBegin00409310();
+                SoundServiceRandom();
                 SoundServiceStreams();
                 count = static_cast<int>(PLLength(world->plsAmbientSounds));
                 for (index = 0; index < count; ++index) {
@@ -548,12 +545,12 @@ void SetAmbientSoundMuted0047AE90(char muted)
                 }
                 AudioUpdateFinish004AEFD0();
             }
-            g_saved_ambient_volume_6850fa = 0xff;
+            g_settings_6850c8.field_032 = 0xff;
         }
     }
-    else if (g_saved_ambient_volume_6850fa == 0xff) {
-        g_saved_ambient_volume_6850fa = g_master_ambient_volume_6850f6;
-        g_master_ambient_volume_6850f6 = 0;
+    else if (g_settings_6850c8.field_032 == 0xff) {
+        g_settings_6850c8.field_032 = g_settings_6850c8.field_02e;
+        g_settings_6850c8.field_02e = 0;
         SoundSetDefaultVolume(0);
         if (g_world != 0 &&
             g_world->plsAmbientSounds != 0) {
@@ -565,7 +562,7 @@ void SetAmbientSoundMuted0047AE90(char muted)
                 if (sound != 0) {
                     if (sound->sound_handle_bc != -1) {
                         unsigned int adjusted =
-                            (sound->value_98 * g_master_ambient_volume_6850f6) /
+                            (sound->value_98 * g_settings_6850c8.field_02e) /
                             0x7f;
                         sound->value_9c = adjusted;
                         sound->value_a0 = adjusted;
@@ -578,7 +575,7 @@ void SetAmbientSoundMuted0047AE90(char muted)
         }
         world = GetWorld();
         if (world != 0) {
-            AudioUpdateBegin00409310();
+            SoundServiceRandom();
             count = static_cast<int>(PLLength(world->plsAmbientSounds));
             for (index = 0; index < count; ++index) {
                 W8AmbientSound* sound = static_cast<W8AmbientSound*>(

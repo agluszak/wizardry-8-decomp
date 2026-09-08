@@ -1,9 +1,8 @@
 #include "wiz8/local_code/ButtonSound.h"
+#include "wiz8/local_code/Configuration.h"
+#include "wiz8/sound_man.h"
 #include "wiz8/sr_api.h"
 #include "timer.h"
-
-extern unsigned char g_master_ambient_volume_6850f6;
-extern int PlaySound00408860(const char* path, int* options);
 
 extern char g_button_click_1_62a51c[];
 extern char g_button_click_2_62a544[];
@@ -78,7 +77,7 @@ void PlayButtonSound(int sound_id)
     for (int i = 0; i < 8; ++i) {
         options[i] = -1;
     }
-    options[2] = g_master_ambient_volume_6850f6 >> 1;
+    options[2] = g_settings_6850c8.field_02e >> 1;
     PlaySound00408860(path, options);
 }
 

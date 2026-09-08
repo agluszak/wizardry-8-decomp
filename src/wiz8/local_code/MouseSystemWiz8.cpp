@@ -7,13 +7,19 @@
 extern "C" {
 extern BOOLEAN gfShowFastHelp;
 extern MOUSE_REGION* MSYS_CurrRegion;
-extern INT32 guiFastHelpLastClock;
-extern unsigned char g_flag_5ff7ca;
 extern void SetHelpBoxText(void* text);
 extern void PlaceHelpBox(int x, int y);
 extern int g_help_box_width;
 extern int g_help_box_height;
 }
+
+/* Retail 0x00650E68: Wizardry's fast-help clock, written on every frame the
+   mouse system runs. */
+// GLOBAL: WIZ8 0x00650E68
+int g_fast_help_last_clock_650e68;
+/* Retail 0x005FF7CA: the fast-help enable flag retail's
+   Enable/DisableMouseFastHelp maintain. */
+unsigned char g_flag_5ff7ca;
 
 // FUNCTION: WIZ8 0x0040c0b0
 void RenderFastHelp(void)
@@ -27,11 +33,11 @@ void RenderFastHelp(void)
         return;
     }
     current_clock = GetClock();
-    elapsed = current_clock - guiFastHelpLastClock;
+    elapsed = current_clock - g_fast_help_last_clock_650e68;
     if (elapsed < 0) {
         elapsed += 0x7fffffff;
     }
-    guiFastHelpLastClock = current_clock;
+    g_fast_help_last_clock_650e68 = current_clock;
 
     if (MSYS_CurrRegion == 0 || MSYS_CurrRegion->FastHelpText == 0 ||
         !g_flag_5ff7ca) {

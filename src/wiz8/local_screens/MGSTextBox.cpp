@@ -37,6 +37,10 @@ extern void RedrawTextBoxBody(void);                                    /* 0x005
    return each record to its all-zero initial state.  The retail body walks
    the same record boundary twice: 0x15e records per run and four runs up to
    the next global at 0x0069B7D0. */
+extern "C" {
+W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
+}
+
 // FUNCTION: WIZ8 0x0058fd30
 void Function58FD30(void)
 {

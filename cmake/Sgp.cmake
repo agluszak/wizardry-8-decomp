@@ -43,6 +43,16 @@ set_source_files_properties("${SGP_SOURCE}/vsurface.c" PROPERTIES
     COMPILE_DEFINITIONS "FillSurfaceRect=SgpReleasedFillSurfaceRect"
     COMPILE_OPTIONS "/FI${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/sgp-compat/video2.h"
 )
+# Retail's font printers keep first-party bodies (they lock retail surfaces),
+# but the stateless accessors below are byte-identical to the oracle (see
+# build/reports/sgp/harness.csv) and link from it; only the modified palette
+# setter, the file-backed loader, and the two printers stay first-party.
+# The vanilla spellings of those stay available under SgpReleased names for
+# the untouched Font.c internals.
+set_source_files_properties("${SGP_SOURCE}/Font.c" PROPERTIES
+    COMPILE_DEFINITIONS
+        "SetFontObjectPalette16BPP=SgpReleasedSetFontObjectPalette16BPP;LoadFontFile=SgpReleasedLoadFontFile;gprintf=SgpReleasedGprintf;mprintf=SgpReleasedMprintf"
+)
 set_source_files_properties("${SGP_SOURCE}/himage.c" PROPERTIES
     COMPILE_DEFINITIONS WIZ8_EXTERNAL_PIXEL_FORMAT
 )

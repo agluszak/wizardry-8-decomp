@@ -18,6 +18,7 @@
 #include "wiz8/music_playlist.h"
 #include "wiz8/regions.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/fonts.h"
 #include "wiz8/render_state.h"
 #include "wiz8/text_input.h"
 #include "wiz8/vector.h"

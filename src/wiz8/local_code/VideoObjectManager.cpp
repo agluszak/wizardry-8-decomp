@@ -1204,9 +1204,9 @@ void ReleaseLoadedVideoFrames(void)
     do {
         if (frame->loaded) {
             if (frame->mode == 0) {
-                released = DeleteVideoObject((HVOBJECT)frame->handle);
+                released = DeleteVideoObjectFromIndex(frame->handle);
             } else {
-                released = DeleteVideoSurface((HVSURFACE)frame->handle);
+                released = DeleteVideoSurfaceFromIndex(frame->handle);
             }
             if (!released) {
                 srAssertFail("fReturnCode", VIDEO_OBJECT_MANAGER_CPP, 0x85, 0);

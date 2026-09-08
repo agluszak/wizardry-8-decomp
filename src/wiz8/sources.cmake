@@ -127,6 +127,9 @@ set(WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
     src/wiz8/startup_cursor.cpp
     src/wiz8/slf_archives.cpp
     src/wiz8/sgp_runtime_adapters.cpp
+    src/wiz8/input_hooks.cpp
+    src/wiz8/sound_man.cpp
+    src/wiz8/font_manager.cpp
     src/wiz8/surface2d.cpp
     src/wiz8/video2.cpp
     src/wiz8/window_proc.cpp

@@ -15,11 +15,14 @@
 // LIBRARY: WIZ8 0x0040F020
 // InitializeRegistryKeys
 
-// LIBRARY: WIZ8 0x00401570
-// InitializeStandardGamingPlatform
-
 // LIBRARY: WIZ8 0x0040cf60
 // InitButtonSystem
+
+// LIBRARY: WIZ8 0x004018c0
+// GetRuntimeSettings
+
+// LIBRARY: WIZ8 0x00401950
+// ProcessCommandLine
 
 // LIBRARY: WIZ8 0x00405ef0
 // AddStandardVideoObject
@@ -194,6 +197,9 @@
 // LIBRARY: WIZ8 0x00405030
 // FileSeek
 
+// LIBRARY: WIZ8 0x00405150
+// FileGetSize
+
 // LIBRARY: WIZ8 0x004051D0
 // DirectoryExists
 
@@ -227,6 +233,9 @@
 // LIBRARY: WIZ8 0x00408AD0
 // SoundPlayStreamedFile
 
+// LIBRARY: WIZ8 0x00408D60
+// SoundPlayRandom
+
 // LIBRARY: WIZ8 0x00408EF0
 // SoundIsPlaying
 
@@ -239,11 +248,17 @@
 // LIBRARY: WIZ8 0x00409210
 // SoundSetVolume
 
+// LIBRARY: WIZ8 0x00409310
+// SoundServiceRandom
+
 // LIBRARY: WIZ8 0x0040A9A0
 // SoundSetMusic
 
 // LIBRARY: WIZ8 0x0040A9D0
 // SoundStopMusic
+
+// LIBRARY: WIZ8 0x0040A8E0
+// SoundRemoveSampleFlags
 
 // LIBRARY: WIZ8 0x0040ABF0
 // Sound3DPlay
@@ -259,6 +274,21 @@
 /* Released SGP flat-surface palette conversion used by VideoObjectManager. */
 // LIBRARY: WIZ8 0x00411730
 // Blt8BPPDataSubTo16BPPBuffer
+
+// LIBRARY: WIZ8 0x004109F0
+// Blt8BPPDataTo8BPPBufferTransparentClip
+
+// LIBRARY: WIZ8 0x00411DE0
+// Blt8BPPDataTo16BPPBufferTransparentClip
+
+// LIBRARY: WIZ8 0x004120B0
+// BltIsClipped
+
+// LIBRARY: WIZ8 0x00410750
+// Blt8BPPDataTo8BPPBufferMonoShadowClip
+
+// LIBRARY: WIZ8 0x00411190
+// Blt8BPPDataTo16BPPBufferMonoShadowClip
 
 // LIBRARY: WIZ8 0x004124A0
 // Blt16BPPBufferShadowRect
@@ -411,15 +441,6 @@ extern unsigned short g_alpha_mask_650f48;
 extern int g_screen_width_603c3c;
 extern int g_screen_height_603c40;
 extern int g_screen_depth_603c44;
-unsigned char InitializeWiz8FontManager(
-    unsigned short pixel_depth, FontTranslationTable* translation)
-{
-    if (!InitializeFontManager(pixel_depth, translation)) {
-        return 0;
-    }
-    return SetFontDestBuffer(
-        0xfffffff2u, 0, 0, g_screen_width_603c3c, g_screen_height_603c40, 0);
-}
 
 extern "C" unsigned char VideoIsFullScreen(void)
 {

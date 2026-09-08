@@ -8,6 +8,7 @@
 #include "wiz8/dialog_code/ModalDialogBase.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/fonts.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
@@ -28,8 +29,6 @@ extern W8TextControl* g_dismiss_button_0069c400;
 extern unsigned char g_in_combat_00683f94;
 extern unsigned char g_camp_open_00683f9b;
 extern unsigned short g_value_006840be;
-extern int g_font_683660;
-extern int g_wiz_text_bold_font_683664;
 extern void DisplayCampDialog(W8DialogBase* dialog);
 extern void DismissSelectedPartyCharacter(void);
 void ShowDismissCharacterDialog(void);

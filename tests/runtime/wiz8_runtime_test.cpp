@@ -18,7 +18,6 @@ extern "C" {
 
 extern int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous,
                           LPSTR command_line, int show_command);
-extern unsigned char gfProgramIsRunning;
 extern HWND ghWindow;
 
 }
@@ -70,6 +69,11 @@ static LONG WINAPI ReportUnhandledException(EXCEPTION_POINTERS* exception)
             exception->ExceptionRecord->ExceptionAddress,
             context->Eip, context->Esp,
             stack[0], stack[1], stack[2], stack[3]);
+    fprintf(stderr, "runtime-test stack16=");
+    for (unsigned int word = 0; word < 16; ++word) {
+        fprintf(stderr, "%s%08lx", word ? "," : "", stack[word]);
+    }
+    fprintf(stderr, "\n");
     fprintf(stderr, "runtime-test module-stack=");
     unsigned int found = 0;
     for (unsigned int index = 0; index < 256 && found < 24; ++index) {
@@ -80,6 +84,20 @@ static LONG WINAPI ReportUnhandledException(EXCEPTION_POINTERS* exception)
         }
     }
     fprintf(stderr, "\n");
+    {
+        int pending = g_pending_screen_state.id;
+        int current = g_current_screen_state.id;
+        unsigned long slot = 0xdeadbeef;
+        if (pending >= 0 && pending < W8_SCREEN_COUNT) {
+            slot = (unsigned long)g_screen_handlers[pending].enter;
+        }
+        fprintf(stderr,
+                "runtime-test regs: eax=%08lx ebx=%08lx ecx=%08lx edx=%08lx "
+                "esi=%08lx edi=%08lx ebp=%08lx pending=%d current=%d slot=%08lx\n",
+                context->Eax, context->Ebx, context->Ecx, context->Edx,
+                context->Esi, context->Edi, context->Ebp,
+                pending, current, slot);
+    }
     fflush(stderr);
     return EXCEPTION_CONTINUE_SEARCH;
 }
@@ -196,9 +214,9 @@ static DWORD WINAPI DriveScenario(void*)
             g_current_screen_state.id,
             ghWindow,
             g_region_sets[1].enabled,
-            gfProgramIsRunning);
+            g_flag_6f0628);
         fflush(stderr);
-        gfProgramIsRunning = 0;
+        g_flag_6f0628 = 0;
         if (ghWindow != NULL) {
             PostMessage(ghWindow, WM_CLOSE, 0, 0);
         }
@@ -253,7 +271,7 @@ static DWORD WINAPI DriveScenario(void*)
     fflush(stderr);
 
     if (strcmp(g_scenario, "main-menu-startup") == 0) {
-        gfProgramIsRunning = 0;
+        g_flag_6f0628 = 0;
         return 0;
     }
 
@@ -265,7 +283,7 @@ static DWORD WINAPI DriveScenario(void*)
         while (GetTickCount() - started < 5000) {
             if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_PARTY_SELECTION) {
                 g_observation.transition_observed = 1;
-                gfProgramIsRunning = 0;
+                g_flag_6f0628 = 0;
                 return 0;
             }
             Sleep(10);
@@ -279,7 +297,18 @@ static DWORD WINAPI DriveScenario(void*)
     QueueEvent(KEY_DOWN, ENTER, 0);
     unsigned int started = GetTickCount();
     while (GetTickCount() - started < 5000) {
-        if (*(volatile unsigned char*)&gfProgramIsRunning == 0) {
+        if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_EXIT) {
+            break;
+        }
+        Sleep(10);
+    }
+    /* The exit screen only clears the loop flag for input its regions do
+       not consume, so a key arriving after the transition ends the run the
+       way a held key's auto-repeat does on retail. */
+    QueueEvent(KEY_DOWN, ENTER, 0);
+    started = GetTickCount();
+    while (GetTickCount() - started < 5000) {
+        if (*(volatile unsigned char*)&g_flag_6f0628 == 0) {
             g_observation.exit_observed = 1;
             return 0;
         }

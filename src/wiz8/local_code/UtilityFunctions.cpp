@@ -3,6 +3,7 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/fonts.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/cursor.h"
 #include "wiz8/dirty_tiles.h"

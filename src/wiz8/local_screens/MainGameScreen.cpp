@@ -18,6 +18,7 @@
 #include "wiz8/notices.h"
 #include "wiz8/regions.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/fonts.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/Environment.h"
@@ -238,6 +239,32 @@ unsigned char Function57E3C0(void);
 unsigned char Function48EFC0(void);
 void Function427830(int enabled);
 void Function4EF1F0(void);
+
+struct W8StartupGridRow {
+    int x1;
+    int y1;
+    int x2;
+    int y2;
+    int unknown_10;
+    int unknown_14;
+    int unknown_18;
+};
+
+W8StartupGridRow g_startup_grid_647da0[8];
+
+// FUNCTION: WIZ8 0x0055f7b0
+unsigned char MainGameScreenInitialize(void)
+{
+    unsigned int index;
+    for (index = 0; index != 8; ++index) {
+        W8StartupGridRow& row = g_startup_grid_647da0[index];
+        row.x1 = (index & 1) << 9;
+        row.y1 = (index >> 1) * 0x55 + 0x12;
+        row.x2 = row.x1 + 0x7f;
+        row.y2 = row.y1 + 0x55;
+    }
+    return 1;
+}
 
 /* Reset the complete Main Game state block and the UI/selection state that is
    coupled to it. The clear's 0xcc dwords independently prove the 0x330 extent

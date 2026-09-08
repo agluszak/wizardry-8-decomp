@@ -17,9 +17,12 @@
 #include "wiz8/music_playlist.h"
 #include "wiz8/regions.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/fonts.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
+
+#include <string.h>
 
 void __fastcall Function5A6E20(void* options);
 void NoOp(void);
@@ -31,10 +34,8 @@ void SetViewport(int left, int top, int right, int bottom);
 void UpdateHeldItemCursor(void);
 void Function406DC0(int font, unsigned short* palette);
 
-extern int g_font_683660;
-extern int g_options_detail_font_683614;
-extern unsigned short* g_colour_68ee08;
-extern unsigned int* g_small_subsystem_69c130;
+// GLOBAL: WIZ8 0x0069C130
+unsigned int* g_small_subsystem_69c130;
 extern unsigned char g_flag_689b32;
 
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
@@ -300,6 +301,28 @@ unsigned char OptionsScreenLeave(int)
     NoOp();
     MSYS_Shutdown();
     ResetRegions();
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x005a9b00
+unsigned char OptionsScreenInitialize(void)
+{
+    if (!g_small_subsystem_69c130) {
+        g_small_subsystem_69c130 = new unsigned int[14];
+        memset(g_small_subsystem_69c130, 0, 0x38);
+    }
+    return 1;
+}
+
+/* The finalizer half of the pair above, and the fifth dword of lifecycle record
+   10 - which is what establishes that the record's last slot is the finalizer
+   rather than a second initializer: record 10's first slot allocates this exact
+   block and its fifth releases it. The release is unguarded and leaves the
+   pointer set, so it relies on running once at shutdown. */
+// FUNCTION: WIZ8 0x005a9b30
+unsigned char OptionsScreenFinalize(void)
+{
+    delete[] g_small_subsystem_69c130;
     return 1;
 }
 

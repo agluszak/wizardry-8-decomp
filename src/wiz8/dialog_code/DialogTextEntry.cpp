@@ -3,6 +3,7 @@
 #include "wiz8/dialog_code/DialogTextEntry.h"
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/fonts.h"
 #include "wiz8/utility.h"
 #include "Font.h"
 

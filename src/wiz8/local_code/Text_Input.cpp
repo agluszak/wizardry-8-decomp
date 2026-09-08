@@ -1,5 +1,6 @@
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/dirty_tiles.h"
+#include "wiz8/fonts.h"
 #include "wiz8/text_input.h"
 
 #include "Font.h"
@@ -83,8 +84,6 @@ static_assert(sizeof(STACKTEXTINPUTNODE) == 0x0c,
               "text input session must match the retail allocation");
 
 extern "C" {
-extern int g_wiz_text_mono_font_683630;
-extern int g_font12point1_683648;
 unsigned char gfEditingText;
 }
 extern wchar_t g_no_target_text[];
