@@ -269,3 +269,5 @@ static_assert(sizeof(W8Navigator) == 0x190,
 
 void Function453160(void);
 void Function4531A0(void);
+
+void NavigatorDefaultCallback00451EA0(W8Navigator* navigator);

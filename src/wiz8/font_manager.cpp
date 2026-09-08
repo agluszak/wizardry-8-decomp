@@ -1,3 +1,4 @@
+#include "wiz8/bringup_gates.h"
 #include "wiz8/font_manager.h"
 
 #include "wiz8/render_state.h"
@@ -17,8 +18,6 @@
 #include <wchar.h>
 
 void* LockPrimarySurface(unsigned int* pitch);
-void UnlockPrimarySurface(void);
-void NoOp(void);
 unsigned char Function414700(void* record, unsigned int mode);
 unsigned char Function414C60(void* record, unsigned int mode);
 
@@ -37,8 +36,6 @@ extern unsigned char gbPixelDepth;
 extern HVOBJECT FontObjs[25];
 }
 
-void* Function402B90(int target, unsigned int* pitch);
-void Function402C30(int target);
 
 // GLOBAL: WIZ8 0x00600078
 RECT g_clip_rect_600078;
@@ -170,22 +167,6 @@ struct W8StiHeader {
 /* The font table entries are the 0xFC-byte objects 0x00406180 builds. Their
    metrics array at +0x18 is an ETRLEObject array (stride 0x10), which is why
    the print path can hand these objects straight to the SGP blitters. */
-void* Function406180(W8FontLoadRequest* request);
-void* Function40F850(char* path, unsigned int mode);
-unsigned char Function415130(void* record, unsigned int mode);
-unsigned char Function415250(
-    W8ImageRecord* record, unsigned int mode, int file, W8StiHeader* header);
-unsigned char Function4153F0(
-    W8ImageRecord* record, unsigned int mode, int file, W8StiHeader* header);
-unsigned char Function410580(void* image, void* metrics);
-unsigned short* Function410190(int table);
-unsigned char Function40F9F0(void* resource);
-unsigned char Function40FA10(void* resource, unsigned char mask);
-void Function410620(unsigned short* pixels, int count);
-void Function410670(unsigned short* pixels, int count);
-void Function4106C0(unsigned short* pixels, int count);
-void Function410700(unsigned short* pixels, int count);
-unsigned int Function4104B0(int value);
 extern unsigned short g_alpha_mask_650f48;
 extern unsigned short g_red_mask_650f4a;
 extern unsigned short g_green_mask_650f4c;

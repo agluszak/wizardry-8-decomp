@@ -1,3 +1,4 @@
+#include "wiz8/text_types.h"
 #ifndef WIZ8_LOCAL_CODE_MONSTER_MANAGER_H
 #define WIZ8_LOCAL_CODE_MONSTER_MANAGER_H
 
@@ -314,5 +315,13 @@ unsigned char AnyMonsterDying(void);
 void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
 void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info);
 unsigned char ShutdownMonsterManager(void);
+
+W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+                           unsigned char name_form);
+unsigned char RemoveMonster(
+    unsigned int monster_list_index,
+    unsigned char destroy_monster);
+void MonsterInfoEnterCombat(W8MonsterInfo* monster_info);
+void DeactivateMonster(W8MonsterInfo* monster_info);
 
 #endif

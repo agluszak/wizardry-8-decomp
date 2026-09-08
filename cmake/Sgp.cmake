@@ -74,6 +74,11 @@ set_source_files_properties("${SGP_SOURCE}/sgp.c" PROPERTIES
 set_source_files_properties("${SGP_SOURCE}/mousesystem.c" PROPERTIES
     COMPILE_DEFINITIONS "RenderFastHelp=SgpReleasedRenderFastHelp"
 )
+set_source_files_properties("${SGP_SOURCE}/FileMan.c" PROPERTIES
+    # Retail uses two 520-byte stack buffers instead of the released heap
+    # allocations. Keep that override on FileMan.h's original C interface.
+    COMPILE_DEFINITIONS "AddSubdirectoryToPath=SgpReleasedAddSubdirectoryToPath"
+)
 
 function(wiz8_add_sgp_target target kind profile)
     add_library(${target} ${kind} EXCLUDE_FROM_ALL ${ARGN})

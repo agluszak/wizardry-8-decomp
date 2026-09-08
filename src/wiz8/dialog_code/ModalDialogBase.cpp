@@ -17,8 +17,6 @@ extern "C" void Function407650(int x, int y, const wchar_t* text);
 extern "C" int g_dialog_font_64fde8;
 extern "C" unsigned char g_dialog_font_foreground_64fdec;
 extern "C" unsigned char g_dialog_font_background_64fded;
-extern void Function5D32C0(GUI_BUTTON* button, int reason);
-extern void Function5D3370(GUI_BUTTON* button, int reason);
 
 // FUNCTION: WIZ8 0x005d32c0
 void Function5D32C0(GUI_BUTTON* button, int reason)

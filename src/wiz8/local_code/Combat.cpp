@@ -1,3 +1,6 @@
+#include "wiz8/character.h"
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/targeting.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -29,7 +32,7 @@ W8CombatCharacterRow* g_combat_character_rows;
 enum { W8_ACTION_LIFTED_AT_ROUND_END = 9, W8_ACTION_KIND_ONE = 1 };
 
 extern unsigned char CharacterIsEngaged(unsigned int party_slot);        /* 0x00524A10 */
-extern unsigned char CharacterHasCondition(const W8Character* character, int condition);
+
 /* 0x00547940 */
 /* The per-character combat rows begin at the combat state's own address and
    run 0xd4 bytes apart, so the state's leading fields are the first row's. */
@@ -190,9 +193,6 @@ void DropCharacterFromRound(int party_slot)
     Function4E8000(party_slot, row->action_kind, row->action_detail, 0, 0);
 }
 
-extern float CalcRangeDistance(int range_category);                      /* 0x0051A9A0 */
-extern void NotifyMonsterOfSound(W8Monster* monster, int arg_2);      /* 0x004C6240 */
-
 /* Tell every monster within short range about something. A monster has to be
    in combat, alive, not on its way out, free of whatever 0x087 records, and
    in the engaged state before it is told. */
@@ -241,25 +241,18 @@ int PartyAvoidsSurprise(void)
     return 0;
 }
 
-extern int GetHandAttackValue(int party_slot, unsigned int hand);        /* 0x0053D7F0 */
 extern void ChooseCombatAction(
     int party_slot, int is_monster_turn, int* out_kind, int a, int b, int c); /* 0x004E77B0 */
-extern void ApplyCharacterEffect(
-    W8Character* character, int effect, int arg_3, int arg_4, int arg_5);
+
 extern unsigned char CharacterCanSwitchTo(int party_slot, int a, int b, int c);
 /* 0x004E79A0 */
 extern void SwitchCharacterTo(int party_slot, int action);               /* 0x004ED390 */
 extern void MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int arg_3);
 /* 0x0051AC30 */
-extern void NotifyMonsterIdle(W8Monster* monster, int arg_2);         /* 0x004C6240 */
-extern void NotifyMonsterFacing(W8Monster* monster, W8Monster* target, int arg_3);
+
 /* 0x004C62C0 */
-extern void MonsterSetNavigatorFlag25(W8Monster* monster, char value);
 extern unsigned char Function5323F0(W8MonsterInfo* monster_info, int a, int b, int c);
 extern void SetMonsterTurnSpeed(float speed);                            /* 0x00453C70 */
-extern int MonsterActionFatigueCost(const W8MonsterInfo* monster_info);
-extern void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount, int report_to);
-extern void RequestRedraw(unsigned int mask);
 extern int g_effect_005ee610;
 extern unsigned int g_flee_hp_fraction_005ed8f8;
 extern unsigned int g_flee_chance_005ed908;

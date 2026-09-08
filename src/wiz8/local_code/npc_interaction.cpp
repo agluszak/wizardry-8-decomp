@@ -13,7 +13,6 @@ extern unsigned char g_flag_68c4f7;
 extern unsigned char g_flag_68c4a0;
 extern unsigned char g_flag_68c4f6;
 extern W8NpcState* g_npc_state_68c4ac;
-extern W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc);
 
 // GLOBAL: WIZ8 0x0068C4A0
 unsigned char g_flag_68c4a0;

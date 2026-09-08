@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/3d.h"
 #include "wiz8/float_constants.h"
 extern "C" {
 // GLOBAL: WIZ8 0x005ebb34
@@ -21,13 +22,6 @@ float g_float_005ebb34 = 0.0f;
 
 #define ANI_MESH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\AniMesh.cpp"
 
-extern stModelInstance* DuplicateModelInstance0046F680(
-    stModelInstance* instance);
-extern void ExpandBounds0046F510(
-    srVector3T<float>* minimum,
-    srVector3T<float>* maximum,
-    const srVector3T<float>* candidate_minimum,
-    const srVector3T<float>* candidate_maximum);
 extern double g_double_005ebe80;
 // GLOBAL: WIZ8 0x005ebe80
 double g_double_005ebe80 = 0.5;

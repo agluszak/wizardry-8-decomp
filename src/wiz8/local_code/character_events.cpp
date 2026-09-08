@@ -1,3 +1,5 @@
+#include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/local_code/character_events.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/Monster.h"
@@ -19,10 +21,6 @@ unsigned char g_flag_6850fc;
 
 extern void Function52F890(
     int party_slot, int active, int animation, int argument, int show_text);
-extern void __fastcall ProcessStartupStateEntry(
-    W8StartupStateElement005EE748* entry);
-extern int Function52E690(
-    W8Character* character, int effect, int argument, int value_1, unsigned int value_2);
 extern void Function5E2F40(int sound_handle, unsigned char* state);
 extern unsigned char Function56EC90(unsigned int party_slot);
 extern void Function55EC90(unsigned int party_slot);

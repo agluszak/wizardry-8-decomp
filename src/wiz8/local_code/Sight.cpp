@@ -1,3 +1,4 @@
+#include "wiz8/local_code/Sight.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/Levels.h"
@@ -57,10 +58,9 @@ typedef struct W8VisibilityRow {
 extern void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int arg_3);
 /* 0x005049C0 */
 extern void Function53BF80(void);
-extern void SetViewDistance(float value);
 extern void Function452F50(int value);
 extern void Function48CBE0(void);
-extern float g_sight_default_005ec254;
+
 // GLOBAL: WIZ8 0x005ec254
 float g_sight_default_005ec254 = 12.0f;
 

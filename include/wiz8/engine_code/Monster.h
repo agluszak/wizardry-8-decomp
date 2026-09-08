@@ -383,4 +383,34 @@ static_assert(
     sizeof(W8MonsterShakeCallback) == 0x10,
     "W8MonsterShakeCallback_size_must_be_0x10");
 
+void MonsterForward453160(void);
+unsigned char MonsterGetRuntimeFlag5BC(W8Monster* monster);
+void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flag);
+unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating);
+unsigned char MonsterIsAnimating(W8Monster* monster);
+void MonsterSetPendingCycle(W8Monster* monster, int cycle);
+int MonsterQuery(W8Monster* monster, int query);
+void MonsterForward4537E0(W8Monster* monster);
+void MonsterSetRuntimeBehaviour(W8Monster* monster, signed char behaviour);
+void MonsterForward4A84A0(W8Monster* monster);
+void Function4C59C0(W8Monster* monster, W8World* world);
+void DeleteMonster004C5860(W8Monster* monster);
+void Function4C5ED0(W8Monster* monster);
+void MonsterPropagateValue004C5870(W8Monster* monster, int value);
+void MonsterForward4A7BE0(W8Monster* monster, const srVector3T<float>* position);
+void MonsterCallSlot10(void* object, int argument);
+void MonsterSetNavigatorFlag25(W8Monster* monster, char value);
+void MonsterForward4531A0(void);
+
+void GetMonsterBounds(W8Monster* monster, void* lower, void* upper);
+void SetMonsterHighlightColour(
+    W8Monster* monster, float r, float g, float b, float a);
+void NotifyMonsterOfSound(W8Monster* monster, int arg_2);
+void NotifyMonsterIdle(W8Monster* monster, int arg_2);
+void NotifyMonsterFacing(W8Monster* monster, W8Monster* target, int arg_3);
+void Function4ACD80(W8Monster* monster, int slot, int arg_3);
+void DropMonsterVisual(W8Monster* monster, int visual, int arg_3);
+void PrepareMonsterCycleForDestruction004ACF90(
+    W8Monster* cycle);
+
 #endif

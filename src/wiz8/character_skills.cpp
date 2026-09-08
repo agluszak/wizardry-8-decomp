@@ -1,8 +1,6 @@
+#include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/character.h"
 #include "wiz8/layouts/gameplay_databases.h"
-
-extern void Function4EFA30(W8Character* character);
-extern void CalcCharacterTableValue(W8Character* character);
 
 // FUNCTION: WIZ8 0x00558610
 void Function558610(W8Character* character)

@@ -1,3 +1,5 @@
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/sgp_video.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/utility.h"
 #include "wiz8/engine_code/GameData.h"
@@ -56,13 +58,7 @@ unsigned char g_flag_6840bc;
 // GLOBAL: WIZ8 0x00647ccc
 unsigned char g_table_647ccc[128];
 }
-extern void MonsterForward453160(void);
-extern void ResetLevelDataVectors0041F0D0(void);
-extern void MonsterForward4531A0(void);
-extern void ClearLevelDataFlag6(void);
 extern void Function5A1950(void);
-extern "C" void ClearSurfaceRect(
-    int left, unsigned int top, int right, unsigned int bottom);
 
 // FUNCTION: WIZ8 0x0056aa30
 void Function56AA30(void)

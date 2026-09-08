@@ -1,10 +1,9 @@
+#include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/dialog_code/DialogButton.h"
 #include "Button System.h"
 #include "input.h"
 #include "mousesystem_macros.h"
 #include "wiz8/dirty_tiles.h"
-
-extern int g_dword_69ca28;
 
 /* Reconstructed logical owner; original translation-unit identity is unproven. */
 

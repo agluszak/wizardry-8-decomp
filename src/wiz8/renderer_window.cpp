@@ -1,3 +1,7 @@
+#include "Types.h"
+#include "mousesystem.h"
+#include "wiz8/bringup_gates.h"
+#include "wiz8/engine_code/Prop.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/engine_code/World.h"
@@ -129,8 +133,6 @@ unsigned int g_tick_65409c;
 float g_frames_per_second_659704;
 float g_seconds_per_frame_659708;
 
-void AssertFailureHandler(const char* expression, const char* file,
-                         long line, const char* message);
 
 char* g_sound_provider_650e54;
 unsigned char* g_render_options_65a118;
@@ -567,7 +569,6 @@ unsigned char Function422800(void)
     return 1;
 }
 
-extern void NoOp(void);
 
 // FUNCTION: WIZ8 0x00423390
 IDirectDrawSurface2* BeginVideoPresentation(void)
@@ -761,15 +762,12 @@ unsigned char ClearPrimarySurface(void)
     return 1;
 }
 
-extern "C" void RenderFastHelp(void);
-extern "C" void Function425B40(void);
 extern srScene* g_cursor_scene_659684;
 extern unsigned char g_render_flag_603c6c;
 extern unsigned char g_trigger_action_active_006599c8;
 extern srVector3T<float> g_trigger_action_scene_offset_006599ac;
 
 extern void Function4229E0(void);
-extern char Function44D760(W8World* world);
 extern "C" void Function482140(void);
 
 /* Clamp the three components of a renderer colour independently. The input is

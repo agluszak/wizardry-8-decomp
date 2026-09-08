@@ -1,3 +1,4 @@
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/game_status.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
@@ -21,7 +22,6 @@
  * cursor ids are the numbers the original uses, and nothing here names them.
  */
 
-extern void RequestRedraw(unsigned int mask);
 
 /* Constructor 0x0055DE40 builds Controls, constructs the dialog member at
    +0x64, installs vtable 0x005EE920, and is the only value stored into the camp

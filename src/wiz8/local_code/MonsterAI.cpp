@@ -1,3 +1,4 @@
+#include "wiz8/targeting.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/xstatus.h"
@@ -34,7 +35,7 @@ enum { W8_MONSTER_ACTION_ATTACK = 0, W8_MONSTER_ACTION_SPELL = 2, W8_MONSTER_ACT
 extern void UpdateMonsterAI(W8MonsterInfo* monster_info);                /* 0x00531540 */
 extern unsigned char AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int spell_id);
 /* 0x005326F0 */
-extern unsigned char Function53C630(W8CombatSlot* slot, int arg_2);
+
 extern unsigned char Function5474B0(int spell_id);
 extern unsigned char Function5353E0(W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* slot);
 struct W8SpellEffectEntry;

@@ -1,3 +1,5 @@
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/TextControl.h"
@@ -34,9 +36,9 @@ Controls* g_dismiss_panel_0069c3c8;
 W8TextControl* g_level_up_button_0069c3c0;
 // GLOBAL: WIZ8 0x0069c400
 W8TextControl* g_dismiss_button_0069c400;
-extern unsigned char g_in_combat_00683f94;
+
 extern unsigned char g_camp_open_00683f9b;
-extern unsigned short g_value_006840be;
+
 extern void DisplayCampDialog(W8DialogBase* dialog);
 extern void DismissSelectedPartyCharacter(void);
 void ShowDismissCharacterDialog(void);

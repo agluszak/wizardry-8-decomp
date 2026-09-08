@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/geometry.h"
+
 #include "surrender/srMath.h"
 #include "wiz8/vector.h"
 
@@ -16,3 +18,9 @@ extern W8GrowableVector<W8AutomapNote*>* g_automap_notes;
 
 unsigned char GetFlag68F105(void);
 unsigned char GetFlag68F104(void);
+
+unsigned char IsCursorInsideViewport(void);
+unsigned char GetCursorPositionInViewport(srVector3T<float>* position);
+unsigned char HasAutomapLayer(int layer);
+void RestoreAutomapCameraPosition(void);
+unsigned char Function57E490(void);

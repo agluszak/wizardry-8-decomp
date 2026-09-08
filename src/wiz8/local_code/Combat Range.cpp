@@ -1,3 +1,4 @@
+#include "wiz8/character.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/combat_state.h"
@@ -32,7 +33,6 @@ enum { W8_RANGE_FIRST_DISTANT = 2 };
    table. */
 enum { W8_FORMATION_ROW_WIDTH = 3 };
 
-extern int CalcRangeCategoryToTarget(const W8Character* character, int hand);
 /* 0x00519AC0 */
 extern char CountRowsBetween(int from_position, int to_position);        /* 0x0051AEC0 */
 extern bool GetSightCondition37A(const void* conditions);               /* 0x00505E60 */

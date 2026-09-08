@@ -116,4 +116,6 @@ unsigned char DispatchRegionInput(const InputAtom* event);
 
 unsigned int Function568950(const InputAtom* input);
 
+void ResetRegions(void);
+
 #endif

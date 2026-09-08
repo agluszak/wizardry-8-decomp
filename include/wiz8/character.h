@@ -355,4 +355,26 @@ int GetCharacterRealmSpellPoints(const W8Character* character, int realm);
 void GetCharacterHandDamageDice(const W8Character* character, int hand, W8Dice* dice);
 int GetCharacterHandDamageBonus(const W8Character* character, int hand);
 
+void Function558610(W8Character* character);
+unsigned char Function547940(const W8Character* character, int trait);
+
+void Function4EFA30(W8Character* character);
+int Function557FD0(W8Character* original, W8Character* edited);
+void Function4EF7E0(W8Character*, W8Character*, int);
+int Function558640(W8Character*);
+unsigned char Function5586B0(W8Character*);
+void Function5218C0(W8Character*);
+void Function51D960(W8Character*);
+void Function52F2C0(W8Character* character);
+void ApplyCharacterEffect(
+    W8Character* character, int effect, int arg_3, int arg_4, int arg_5);
+int CalcRangeCategoryToTarget(const W8Character* character, int hand);
+int Function51C5A0(W8Character* character, int item_id);
+bool Function4EDC60(W8Character* character);
+void CalcXPGoal(W8Character* character);
+int GetSpellbookForSpell(
+    const W8Character* character, int spell_id, int a, int b, int c);
+int Function52A540(W8Character* character);
+unsigned char CharacterHasCondition(const W8Character* character, int condition);
+
 #endif

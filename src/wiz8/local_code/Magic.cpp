@@ -1,3 +1,7 @@
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/character_events.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/targeting.h"
@@ -23,8 +27,6 @@ unsigned char g_detailed_combat_messages_0068510c;
 
 #include <wchar.h>
 
-extern bool CanCharReBreathe(int party_slot);                             /* 0x004EBC80 */
-
 /* Local Code\Magic.cpp, named by the assertion this body embeds. */
 
 // FUNCTION: WIZ8 0x004ff3b0
@@ -49,8 +51,6 @@ int GetProfessionCasterLevel(W8Character* character, int profession_id)
     }
     return character->profession_levels[profession_id] + magic_level_offset;
 }
-
-extern unsigned char CanCharacterUseItem(int caster, int item_id);   /* 0x0051D610 */
 
 /* The target type that costs three off the difficulty: whatever
    GetSpellTargetType answers seven for. */
@@ -80,7 +80,7 @@ int GetSpellDifficulty(unsigned int caster_figure, int spell_id, int bonus)
 /* Whether one carried item can be cast from. It has to be of the spell-source
    kind, it has to be identified, and the caster has to be able to use it. */
 // FUNCTION: WIZ8 0x00500010
-bool CanCastFromItem(int caster, const W8ItemInstance* item)
+bool CanCastFromItem(const W8Character* caster, const W8ItemInstance* item)
 {
     if (g_item_records[item->item_id].category != 3) {
         return false;
@@ -134,7 +134,6 @@ extern unsigned char Function519F80(
     W8MonsterRecord* record,
     int arg_3,
     W8CombatSlot* combat_slot);
-extern unsigned char ClearMonsterCombatSlot(W8MonsterInfo* monster_info);
 extern unsigned char Function4D9080(W8MonsterInfo* monster_info, int arg_2, int arg_3);
 extern unsigned char Function5327E0(
     W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* combat_slot);
@@ -498,8 +497,6 @@ bool CombatHasCondition(int condition_id)
 
 extern void Function4E7CC0(
     int party_slot, int arg_2, int arg_3, void* arg_4, int arg_5, int arg_6);
-/* 0x0053B7F0 */
-extern unsigned char TargetMatchesNeeded(const W8CombatSlot* target, char needed_target);
 extern unsigned char Function519180(int party_slot, int arg_2, int arg_3);
 
 /* Record the spell one party slot is about to cast, at what strength, and at
@@ -762,12 +759,9 @@ int GetTotalCasterLevel(
     return total;
 }
 
-extern unsigned char Function547940(const W8Character* character, int trait);
 /* 0x00547940 */
 extern void PracticeCharacterSkill(
     W8Character* character, unsigned int skill_id, int usage_points, int arg_4);
-extern int GetSpellbookForSpell(
-    const W8Character* character, int spell_id, int a, int b, int c);   /* 0x004FF7F0 */
 
 /* The trait that stops a character learning anything at all. */
 enum { W8_TRAIT_CANNOT_LEARN = 0x1f };
@@ -867,7 +861,6 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
     return (char)(1 - (ceiling < (unsigned int)g_spell_records[spell_id].spell_level));
 }
 
-extern int Function52A540(W8Character* character);                       /* 0x0052A540 */
 /* 0x0068C09C: the loaded message table, one wide string per entry. Bodies
    name entries by their byte offset into it, which is why the index is
    spelled as one. */
@@ -920,9 +913,6 @@ void LearnSpell(W8Character* character, int spell_id, char announce)
     ShowNoticeLine(line, 0, 1, 0);
 }
 
-extern int Function52E690(
-    W8Character* character, int effect, int argument, int value_1,
-    unsigned int value_2); /* 0x0052E690 */
 extern int g_learn_sound_0068c510;
 // GLOBAL: WIZ8 0x0068c510
 int g_learn_sound_0068c510;
@@ -967,8 +957,6 @@ void LearnSpellFromItem(void* origin, W8Character* character, const W8ItemInstan
     Function52E690(
         character, g_learn_sound_0068c510, 0, g_effect_argument_005ed8c8, g_effect_argument_005ed914);
 }
-
-extern unsigned char Function5248A0(int party_slot, int arg_2);          /* 0x005248A0 */
 
 /* Eight is not a power level but the request to cast at the highest one the
    caster can pay for; the walk below resolves it. */
@@ -1073,9 +1061,6 @@ extern W8ItemInstance* FindCharacterItemAt(
     int party_slot, unsigned char origin, unsigned short slot);          /* 0x00522180 */
 extern unsigned char Function522A30(int party_slot, const W8ItemInstance* item);
 /* 0x00522A30 */
-extern unsigned char CanCharacterUseItem(
-    W8Character* character, const W8ItemInstance* item);                 /* 0x0051D800 */
-extern unsigned char ItemClassNormalizesTarget(const W8ItemDatabaseRecord* record);
 
 /* The origin that means the item is worn or held rather than carried; in
    combat an equipped item is not re-fetched. */
@@ -1112,7 +1097,7 @@ bool CanPartySlotUseRecordedItem(int party_slot)
     if (!Function522A30(party_slot, item)) {
         return false;
     }
-    if (!CanCharacterUseItem(&g_party_characters[party_slot], item)) {
+    if (!CanCharacterActivateItem(&g_party_characters[party_slot], item)) {
         return false;
     }
 
@@ -1129,9 +1114,6 @@ bool CanPartySlotUseRecordedItem(int party_slot)
     }
     return true;
 }
-
-extern wchar_t* GetMonsterName(
-    W8MonsterInfo* monster_info, W8MonsterRecord* record, char arg_3);
 
 /* The spell id that stands for no monster spell. */
 enum { W8_MONSTER_SPELL_NONE = 0x77 };
@@ -1210,8 +1192,6 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, int unuse
     return power_level;
 }
 
-extern void ResetTargetSource(W8TargetSource* target_block);               /* 0x00536150 */
-extern void AimCombatSlotAtParty(W8CombatSlot* combat_slot, int hostile);
 /* 0x0053C630 */
 extern int CastSpellFromSource(
     int spell_id, W8TargetSource* source, W8CombatSlot* target, unsigned int power_level,
@@ -1580,7 +1560,6 @@ unsigned int ChoosePowerLevelToRestore(
     return power_level;
 }
 
-extern unsigned int CountIdentifyAttemptsNeeded(const W8ItemInstance* item, int arg_2);
 extern unsigned int Function520C70(int item);                            /* 0x00520C70 */
 
 /* The spells whose power level is decided by how bad the target's condition
@@ -1709,10 +1688,8 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
     return 1;
 }
 
-
 /* The target block and the source block are the same struct, so the two
    predicates Targeting.cpp declares over a source answer for a target too. */
-extern wchar_t* GetMonsterGroupName(W8MonsterGroup* group);              /* 0x00510280 */
 /* 0x0068C09C is indexed here by byte offset; 0x610 is the "at %s" wrapper every
    named target goes through and the rest are the fixed words. */
 enum {
@@ -1820,9 +1797,7 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
         gppStringList[W8_MESSAGE_TARGET_AT / 4], gppStringList[name_prefix]);
 }
 
-extern void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8TargetSource* source);
 /* 0x0053BE50 */
-extern unsigned int SpellCastFatigueCost(int spell_id, int result);      /* 0x0052C320 */
 
 /* The two log lines a monster's cast is announced with: one that names the
    power level and one that does not. */

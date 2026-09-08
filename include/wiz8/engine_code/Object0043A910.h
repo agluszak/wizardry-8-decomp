@@ -25,3 +25,5 @@ static_assert(sizeof(W8Object0043A910) == 0x34,
               "W8Object0043A910_must_be_0x34");
 
 extern W8Object0043A910* g_object_6598bc;
+
+extern float g_rate_006068EC;

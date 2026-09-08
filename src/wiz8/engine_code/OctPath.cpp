@@ -1,3 +1,5 @@
+#include "wiz8/combat_state.h"
+#include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/OctPath.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/engine_code/Octree.h"
@@ -112,7 +114,6 @@ extern double g_double_005ebe80;
 extern float Function4BE420(
     const srVector3T<float>* source,
     const srVector3T<float>* target);
-extern float CalcRangeDistance(int range_category);
 // FUNCTION: WIZ8 0x0051b3f0
 unsigned char Function51B3F0(int mode)
 {
@@ -128,8 +129,6 @@ unsigned char Function51B3F0(int mode)
     }
 }
 extern void Function497690(int channel, const char* message);
-extern stModelInstance* CreateModelInstance0046F5C0(
-    stMeshModel* model);
 // GLOBAL: WIZ8 0x00652dc4
 srShader g_path_shader_00652dc4;
 extern srTextureIFace* g_path_texture_00652dc0;

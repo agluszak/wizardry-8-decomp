@@ -1,3 +1,5 @@
+#include "wiz8/bringup_gates.h"
+#include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/render_state.h"
 #include "wiz8/regions.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
@@ -25,13 +27,12 @@
 #include "Font.h"
 #include "himage.h"
 #include "sgp.h"
+#include "Types.h"
 #include "mousesystem.h"
 #include "vsurface.h"
 
 #include <wchar.h>
 
-unsigned char SaveGameExists(void);
-void ResetRegions(void);
 void SetValue64D8AC(unsigned long value);
 
 /*
@@ -66,9 +67,6 @@ W8ModalDialogBase* g_main_menu_dialog;
 extern unsigned short gfAltState;
 extern unsigned short gfCtrlState;
 extern unsigned short gfShiftState;
-extern unsigned char HasEnoughFreeDiskSpace(void);
-extern void ReleaseLoadedVideoFrames(void);
-extern void NoOp(void);
 
 
 /* Draws one of the six menu items. The first switch turns the item index into

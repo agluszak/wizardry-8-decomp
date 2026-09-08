@@ -40,4 +40,6 @@ unsigned short* CopyCatalogImagePalette16BPP(int object, int frame);
 
 }
 
+void ReleaseLoadedVideoFrames(void);
+
 #endif

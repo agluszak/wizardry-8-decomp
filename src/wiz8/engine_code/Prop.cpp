@@ -1,3 +1,4 @@
+#include "wiz8/render_state.h"
 #include "wiz8/engine_code/GDProp.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Prop.h"
@@ -29,7 +30,6 @@
 #include <new>
 #include <windows.h>
 
-
 /* Engine Code\Prop.cpp. The complete destructor at 0x0044BEC0 releases four
    owned members, and each release names the shape of what it owns:
 
@@ -43,7 +43,6 @@
    FindPropByName independently proves that +0x20 is the owned prop name.
    Unresolved members and the gaps between them remain positional. */
 
-extern Trigger* FindTriggerForProp00443830(W8World* world, W8Prop* prop);
 extern int IncrementValue60DFAC(void);
 
 /* This byte is reset before the world Prop update and set when a collidable
@@ -144,7 +143,6 @@ W8Prop::W8Prop()
             "Prop::Prop() out of memory allocating m_animation_timer");
     }
 }
-
 
 /* Copy keeps animation through CloneAnimObj and rebuilds an empty slot vector
    with the source capacity.  Clone's vtable slot allocates 0xc4 and lands here. */
@@ -341,9 +339,6 @@ void W8Prop::GetCenterPosition(srVector3T<float>* position)
     position->y = (first.y + second.y) * 0.5f;
     position->z = (first.z + second.z) * 0.5f;
 }
-
-extern srModelInstance* GetValue65962C(void);
-extern void SetValue65962C(srModelInstance* value);
 
 Trigger* g_selected_prop_trigger_00659a60;
 int g_selected_prop_index_00607b98;
@@ -847,7 +842,6 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
     W8AnimObj* animation = 0;
     unsigned char result = 0;
     long fail_line;
-
 
     if (info == 0 || info->hFile == 0 || prop == 0) {
         srAssertFail(

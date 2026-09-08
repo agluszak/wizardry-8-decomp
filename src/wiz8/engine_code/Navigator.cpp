@@ -53,7 +53,6 @@ W8GrowableVector<W8Navigator*> g_registered_navigators(5);
 
 }
 
-void NavigatorDefaultCallback00451EA0(W8Navigator* navigator);
 
 // FUNCTION: WIZ8 0x00456ae0
 void W8NavigatorAttachment::RecordPosition(

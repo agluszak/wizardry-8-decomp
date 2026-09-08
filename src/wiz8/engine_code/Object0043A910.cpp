@@ -8,7 +8,6 @@
    layout: a float copied from a global, an integer derived from it, and four
    constants. */
 
-extern float g_rate_006068EC;            /* 0.1f in the shipped image */
 // GLOBAL
 float g_rate_006068EC;
 

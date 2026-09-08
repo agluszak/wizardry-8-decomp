@@ -20,6 +20,7 @@
 
 extern "C" {
 #include "input.h"
+#include "Types.h"
 #include "mousesystem.h"
 }
 
@@ -32,7 +33,6 @@ extern int g_journal_page_0064df38;
 // GLOBAL: WIZ8 0x0064df38
 int g_journal_page_0064df38 = -1;
 extern W8GrowableVector<W8JournalEntry>* g_journal_entries_0069c4e4;
-extern void ResetRegions(void);
 extern unsigned char g_camp_open_00683f9b;
 // GLOBAL: WIZ8 0x00683f9b
 unsigned char g_camp_open_00683f9b;

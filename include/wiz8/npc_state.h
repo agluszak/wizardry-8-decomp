@@ -28,7 +28,7 @@ typedef struct W8NpcItemEntry {
    placed off it. */
 typedef struct W8NpcState {
     int unknown_00;
-    unsigned char unknown_04[2];
+    unsigned short unknown_04;
     W8NpcDatabaseRecord* record;          /* 0x06 */
     W8PList* items;                       /* 0x0a: W8NpcItemEntry* elements */
     /* 0x0e and 0x12: two world-clock stamps, both set when the stock is first
@@ -82,5 +82,9 @@ W8NpcItemEntry* GetNpcItemAt(W8NpcState* npc, int index);
 unsigned int GetNpcItemCount(W8NpcState* npc);
 unsigned char ConsumeNpcItemQuantity(W8NpcState* npc, int index, unsigned char quantity);
 void DecayNpcInventory(W8NpcState* npc);
+
+struct W8MonsterManagerEntry;
+
+W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc);
 
 #endif

@@ -1,3 +1,4 @@
+#include "wiz8/screen_state.h"
 #include "wiz8/bringup_gates.h"
 #include "wiz8/input_hooks.h"
 
@@ -7,8 +8,6 @@
 
 #include <string.h>
 
-extern unsigned char g_application_active;
-extern void NoOp(void);
 extern HWND g_window_6596cc;
 
 /* The text line editor descriptor the hooks edit through. Only the fields
@@ -106,13 +105,6 @@ unsigned short g_key_remap_5ff51c[14] = {
     0x0069, 0x0063, 0x0061, 0x0067, 0x0064, 0x0068, 0x0066,
     0x0062, 0x0000, 0x0000, 0x0000, 0x0000, 0x0060, 0x006e
 };
-
-void Function401F90(short kind, unsigned int param_08, unsigned int param_0c);
-void Function402270(unsigned int key, unsigned int flags, char pressed);
-void Function4023B0(unsigned short key);
-void Function427A70(RECT* rect);
-long __stdcall Function401B30(int code, unsigned int key, long flags);
-long __stdcall Function401C70(int code, unsigned int button, long info);
 
 // FUNCTION: WIZ8 0x00401ea0
 unsigned char InitializeInputManager00401EA0(void)

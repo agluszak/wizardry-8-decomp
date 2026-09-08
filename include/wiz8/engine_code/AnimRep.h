@@ -90,4 +90,7 @@ static_assert(sizeof(W8AnimRep005ED050) == 0x98,
 
 #pragma pack(pop)
 
+extern float g_lod_range_default_0060e608;
+extern float g_lod_range_default_0060e60c;
+
 #endif

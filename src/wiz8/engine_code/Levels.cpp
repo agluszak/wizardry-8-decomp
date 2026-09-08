@@ -1,3 +1,8 @@
+#include "wiz8/engine_code/3dapi.h"
+#include "wiz8/engine_code/GameData.h"
+#include "wiz8/level_specific_code/MasterFunctionList.h"
+#include "wiz8/local_code/ItemManager.h"
+#include "wiz8/local_code/Sight.h"
 #include "wiz8/bringup_gates.h"
 #include "wiz8/engine_code/AmbientSound.h"
 #include "wiz8/monster_generators.h"
@@ -97,11 +102,8 @@ extern void Function48DB30(void);
 extern void ClearValue689FAC(void);
 extern void Function4909C0(void);
 extern void Function489920(void);
-extern void ClearValue6834D4(void);
 extern unsigned char SaveLevelStatus(const char* path);
-extern int NormalizeMasterFunctionValue004D9700(int value);
 extern unsigned char FindGameDataPath0042B590(char* path, int drive);
-extern void SetWorld659AB8(W8World* world);
 
 // FUNCTION: WIZ8 0x0042b720
 int Function42B720(int level)
@@ -137,17 +139,14 @@ void Function42B3E0(void)
     }
 }
 extern unsigned char Function42B020(int level, W8LevelInfo* info);
-extern void InitializeItemManagerState(void);
 extern void Function5817D0(void);
 extern unsigned char LoadLevelStatus(const char* path, int level);
 extern void BuildLevelStatusPath(char* path, int level);
 extern float Function420BD0(const srVector3T<float>* position, unsigned char* hit);
 extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
-extern void MoveWorldToPoint(
-    W8World* destination, W8World* source, const srVector3T<float>* point);
+
 extern void Function5115B0(void);
-extern void ResetCurrentEnvironment0041AA40(void);
 extern void Function482410(void);
 extern void Function4D6C50(int level);
 extern void Function50AC60(void);
@@ -157,36 +156,32 @@ extern void Function50DB50(void);
 extern void Function50C270(void);
 extern void Function50C2E0(void);
 extern void Function5777C0(void);
-extern void UpdateRandomEncounterBudget(unsigned char first_visit);
 extern void Function5060C0(void);
-extern unsigned int AgeAllMonsterSight(void);
-extern void RebuildAllWorldItemInstances(void);
 extern void Function451020(void);
 
-extern unsigned char g_world_cleanup_flag_00659757;
 extern float g_runtime_world_scale_6081e8;
-extern unsigned char g_flag_00659756;
+
 // GLOBAL
 unsigned char g_flag_00659756;
-extern float g_default_world_height_00603ac8;
+
 // GLOBAL: WIZ8 0x00603ac8
 float g_default_world_height_00603ac8 = 1000.0f;
-extern float g_position_height_epsilon_005ebfdc;
+
 // GLOBAL: WIZ8 0x005ebfdc
 float g_position_height_epsilon_005ebfdc = 2500.0f;
-extern unsigned char g_environment_load_flag_00603ad0;
+
 // GLOBAL: WIZ8 0x00603ad0
 unsigned char g_environment_load_flag_00603ad0 = 1;
-extern unsigned char g_level_runtime_flag_0065ba70;
+
 // GLOBAL: WIZ8 0x0065ba70
 unsigned char g_level_runtime_flag_0065ba70;
-extern unsigned char g_value_0068f0fd;
+
 // GLOBAL: WIZ8 0x0068f0fd
 unsigned char g_value_0068f0fd;
-extern int g_value_006850b0;
+
 // GLOBAL: WIZ8 0x006850b0
 int g_value_006850b0;
-extern unsigned char g_flag_00687607;
+
 // GLOBAL: WIZ8 0x00687607
 unsigned char g_flag_00687607;
 

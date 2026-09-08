@@ -1,5 +1,7 @@
 #pragma once
 
+#include "FileMan.h"
+
 struct W8World;
 
 #include "surrender/srMath.h"
@@ -61,3 +63,16 @@ void BuildFootstepPath0047A540(
 void UpdateAmbientSounds0047A3E0(W8World* world);
 void RepositionAmbientSounds0047A600(W8World* world);
 unsigned char LoadAmbientSoundList0047AB40(char* filename);
+
+void PositionAmbientSoundByName0047A950(int /* unused */, const char* name);
+void StopAmbientSoundByName0047A9E0(int /* unused */, const char* name);
+void ToggleAmbientSoundByName0047AA70(int /* unused */, const char* name);
+void DestroyAmbientSound0047A700(W8AmbientSound* ambient);
+
+void SaveAmbientSoundList0047B140(HWFILE handle);
+
+extern unsigned char g_default_footstep_surface_65a108;
+extern unsigned char g_default_footstep_material_65a109;
+extern unsigned char g_footstep_alternate_65a10a;
+extern int g_previous_footstep_variant_65a10c;
+extern unsigned char g_footstep_option_6850f9;

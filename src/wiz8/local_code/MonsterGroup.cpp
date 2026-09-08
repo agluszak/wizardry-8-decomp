@@ -1,3 +1,5 @@
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/targeting.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/factions.h"
 #include "wiz8/xstatus.h"
@@ -12,7 +14,6 @@
 
 #include <wchar.h>
 
-extern unsigned char g_in_combat_00683f94;
 #include <stdlib.h>
 
 static const char MONSTER_GROUP_CPP[] =
@@ -24,27 +25,18 @@ extern int Function50A440(unsigned int monster_list_index);  /* 0x0050A440 */
    exactly this much - the same split the monster list uses. */
 enum { W8_ENCOUNTER_GROUP_INDEX_BIAS = 10000 };
 extern signed char GetNpcDispositionBand(int npc_record);           /* 0x0050A500 */
-extern void Function510590(W8MonsterGroup* monster_group);   /* 0x00510590 */
+
 extern void Function454C80(void);                            /* 0x00454C80 */
-extern void SetTargetToGroup(int group_id, int value);         /* 0x00538DB0 */
 // FUNCTION: WIZ8 0x00547510
 unsigned char Function547510(void)
 {
     return g_in_combat_00683f94 != 0 && g_combat_state->flag_a54 == 0 &&
            g_combat_state->value_004 <= 1;
 }
-extern void Function48C670(W8MonsterGroup* monster_group);   /* 0x0048C670 */
-extern void Function48C750(W8MonsterGroup* monster_group);   /* 0x0048C750 */
-extern void Function50FD40(W8MonsterGroup* monster_group, int value); /* 0x0050FD40 */
-extern void Function547570(W8MonsterGroup* monster_group, unsigned char flag,
-                           int value);                       /* 0x00547570 */
 
 /* A group of one is named in the singular; any other count uses the plural
    form, which is the second entry of each name set. */
 enum { W8_MONSTER_GROUP_SINGULAR = 1, W8_MONSTER_NAME_STRIDE = 24 };
-
-extern unsigned char RemoveMonster(unsigned int monster_list_index,
-                                  unsigned char destroy_monster);
 
 /* A member counts as active while its state byte is below this and it is not
    under the control state the group excludes. */

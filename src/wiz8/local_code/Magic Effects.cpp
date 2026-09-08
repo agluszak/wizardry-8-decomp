@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/dirty_tiles.h"
@@ -50,7 +51,6 @@ enum { W8_EFFECT_PERMANENT = 9999 };
 /* 0x0060CFFC: eight bytes per visual, whose leading dword names it. */
 extern const int g_effect_visual_table[][2];
 
-extern void DropMonsterVisual(W8Monster* monster, int visual, int arg_3);  /* 0x004ACD80 */
 extern void PostMonsterNotice(W8MonsterInfo* monster_info, void* notice);  /* 0x00590B40 */
 extern void Function50E700(void);
 // FUNCTION: WIZ8 0x005af2d0
@@ -61,7 +61,6 @@ void Function5AF2D0(void)
         MarkScreenRectDirty(0x7f, 0x14, 0x201, 0x28, 0);
     }
 }
-extern void RequestRedraw(int mask);
 extern void Function50E8C0(int location_id);
 
 /* How big the effect lands. A permanent magnitude is taken as it is; anything
@@ -235,7 +234,6 @@ struct W8SpellQueueEntry {
     W8TargetSource Source;               /* 0x5c */
 };
 
-extern void MoveWorldToPoint(W8World* destination, W8World* source, const srVector3T<float>* point);
 /* 0x00450610 */
 extern void PlacePartyAtPoint(const srVector3T<float>* point);                  /* 0x00421090 */
 extern void BeginLevelTransition(void);                                  /* 0x005611A0 */

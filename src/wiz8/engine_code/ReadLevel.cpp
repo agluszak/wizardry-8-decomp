@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/3d.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -67,8 +68,7 @@ static_assert(sizeof(W8LevelLightRecord004BBAD0) == 0x28,
 } // namespace
 
 extern const float g_world_scale_005ebc40;
-extern float g_octree_cell_scale_005ebcd0;
-extern const float g_environment_near_scale_005ec0b0;
+
 // GLOBAL: WIZ8 0x005ec0b0
 const float g_environment_near_scale_005ec0b0 = 2.0f;
 extern srVector3T<float> g_environment_offset_00659cd0;
@@ -78,14 +78,11 @@ extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
 extern void UpdateSky00482EA0(void);
 extern void FinalizeWorldTriggers00448840(void);
-extern void UpdateWorldProps0044E010(W8World* world);
 extern void UpdateCameraView00450080(srCamera* camera, int mode);
 extern void FinalizeWorldScenes0046F410(
     srScene* static_scene, srNode* dynamic_scene);
 extern void RefreshEnvironment00483560(void);
-extern void FinalizeStaticScene0046F3A0(srScene* scene);
 extern unsigned char ReadAutomapNodes00584DD0(int hFile);
-extern void SetChainValue15C(char* node, int value);
 
 // FUNCTION: WIZ8 0x004BC060
 void AssociateWorldLights004BC060(W8World* world)

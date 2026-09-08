@@ -1,3 +1,4 @@
+#include "wiz8/local_code/ItemManager.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/World.h"
@@ -266,10 +267,9 @@ int GenerateItemsFromTable(
 #include <stdlib.h>
 
 /* 0x00689B54: the cursor the iterator below resumes from. */
-extern int g_world_item_cursor;
+
 // GLOBAL: WIZ8 0x00689b54
 int g_world_item_cursor;
-
 
 /* Bit 0x20 of the item record's flag word, which is the only bit
    ItemInfoIsWorldPersistent reads. */

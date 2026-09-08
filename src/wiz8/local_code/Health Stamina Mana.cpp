@@ -1,3 +1,5 @@
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/startup_runtime_state.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/character.h"
@@ -5,6 +7,7 @@
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/npc_state.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
@@ -32,14 +35,8 @@ enum { W8_RESTORE_EVERYTHING = -1 };
 extern void ApplyHealthChangeToCharacter(
     int party_slot, int amount, int arg_3, int arg_4, int arg_5, int arg_6, int arg_7);
 /* 0x0052A890 */
-void HealCharacter(int party_slot, int amount, char announce);
-void RestoreCharacterStamina(int party_slot, int amount, char announce);
-void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announce);
-void RestoreCharacterSpellPointsEvenly(int party_slot, int amount);
 extern void NotifySpellPointsChanged(int party_slot);      /* 0x0055EE30 */
 extern void ClearHighlightIfItIs(W8MonsterInfo* monster_info);
-W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
-                           unsigned char name_form);
 
 /* Roll the dice once per eligible party member and apply the result to each of
    them. The roll is separate per character rather than shared. */
@@ -274,16 +271,10 @@ unsigned int FatigueArmorPenalty(int fatigue_band)
     default: return fatigue_band;
     }
 }
-extern void RemoveCharacterCondition(int party_slot, int condition, int arg_3);
 extern void RecalculateCharacterHitPoints(W8Character* character);
-extern void FatigueCharacter(int party_slot, int amount, char scale_by_load, int arg_4, int arg_5);
 /* 0x0052AF50 */
-extern void Function52F2C0(W8Character* character);
-extern void ResetTargetSource(W8TargetSource* target_block);               /* 0x00536150 */
-extern void SetMonsterCondition(
-    int location_id, int condition, int duration, int arg_4, W8TargetSource* target_block, int quiet);
+
 /* 0x00523C00 */
-extern void ClearMonsterCondition(int location_id, int condition);       /* 0x00523F40 */
 extern void ApplyMonsterCondition(int location_id, int condition, int arg_3);
 /* 0x00524110 */
 extern char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info);
@@ -691,12 +682,9 @@ enum {
     W8_FATIGUE_BAND_RECOVERED = 2
 };
 
-extern void ApplyCharacterEffect(
-    W8Character* character, int effect, int arg_3, int arg_4, int arg_5);
 /* 0x0052E690 */
 extern int g_effect_005ee598;
 extern void Function52F110(int party_slot);
-extern int GetNpcState(int animation_id);
 extern void PlaySound(const char* path, int flags);
 
 /* Tire one character. The load they are carrying scales the cost - eased or
@@ -923,9 +911,9 @@ void CharacterDies(int party_slot)
 
     animation = row->animation_0fa;
     if (animation != -1) {
-        animation = GetNpcState(animation);
-        if (animation != 0) {
-            *(unsigned short*)(animation + 4) = 1;
+        W8NpcState* npc = GetNpcState(animation);
+        if (npc != 0) {
+            npc->unknown_04 = 1;
         }
     }
 }

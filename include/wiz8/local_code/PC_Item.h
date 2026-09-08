@@ -6,6 +6,11 @@ void ReleaseGenericItemNames(void);
 #include "wiz8/item_instance.h"
 #include "wiz8/game_status.h"
 
+struct W8ItemDatabaseRecord;
+
+unsigned char CanCharacterActivateItem(
+    W8Character* character, const W8ItemInstance* item);
+
 #define g_game_started (g_status_685170.game_started)
 
 extern const int g_item_spell_presentation[];
@@ -48,3 +53,34 @@ bool FindItemOnCharacter(
 unsigned int GetItemStackWeight(const W8ItemInstance* item);
 void CreateItemIntoHandOrPool(int item_id, unsigned char quality);
 void AddPartyGold(int amount, char announce);
+
+void CopyItemInstance(
+    W8ItemInstance* destination,
+    W8ItemInstance* source,
+    W8Character* character,
+    unsigned char refresh);
+void SortPartyItemPool(void);
+void Function520D10(
+    W8ItemInstance* item, W8Character* character, unsigned char refresh);
+unsigned char Function51F900(
+    W8ItemInstance* destination,
+    W8ItemInstance* source,
+    unsigned char* partially_merged);
+void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item);
+void Function5227D0(
+    W8ItemInstance* item, unsigned char choose_character, W8Character* character);
+char PartyAttemptsToIdentifyItem(W8ItemInstance* item, int argument_2);
+
+bool CanCharacterUseItem(const W8Character* character, int item_id);
+
+unsigned int CountIdentifyAttemptsNeeded(
+    W8ItemInstance* item, unsigned int percent);
+
+bool ItemClassNormalizesTarget(const W8ItemDatabaseRecord* record);
+
+void MoveItem(W8ItemInstance* to, W8ItemInstance* from, int arg_3, int arg_4);
+
+extern int g_held_item_source_006840c0;
+extern unsigned char g_held_item_origin_006840c4;
+extern unsigned short g_held_item_slot_006840c5;
+extern unsigned char g_byte_652da6;

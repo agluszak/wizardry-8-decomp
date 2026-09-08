@@ -62,3 +62,12 @@ unsigned char Function42B6F0(int level);
 int Function42B720(int level);
 void Function42B3E0(void);
 char Function42B740(int saved_level);
+
+extern unsigned char g_level_runtime_flag_0065ba70;
+extern unsigned char g_flag_00659756;
+extern float g_default_world_height_00603ac8;
+extern float g_position_height_epsilon_005ebfdc;
+extern unsigned char g_environment_load_flag_00603ad0;
+extern unsigned char g_value_0068f0fd;
+extern int g_value_006850b0;
+extern unsigned char g_flag_00687607;

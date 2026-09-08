@@ -1,3 +1,6 @@
+#include "Types.h"
+#include "mousesystem.h"
+#include "wiz8/sgp-compat/gameloop.h"
 #include "wiz8/bringup_gates.h"
 #include "wiz8/game_status.h"
 #include "wiz8/wiz8_windows.h"
@@ -107,18 +110,13 @@ bool g_flag_650de4;
 bool g_flag_5ff538;
 unsigned char g_flag_6ef440;
 
-void ShutdownHandler(void);
-bool AddSubdirectoryToPath(const char* subdirectory);
 extern "C" {
-extern void GetRuntimeSettings(void);
 extern unsigned int guiMouseWheelMsg;
 }
-extern unsigned char InitializeGame(void);
 extern HWND g_window_6596cc;
 bool g_shutdown_started_650db5;
 bool g_teardown_done_650db4;
 char g_shutdown_message_6505ac[0x100];
-extern void MSYS_Shutdown(void);
 
 
 
@@ -238,7 +236,7 @@ unsigned int QueryAvailableMemory(void)
    PATH, so plug-in DLLs load from the shipped subdirectory. Every string call
    here is inlined by VC6, which is why the body is mostly rep movs. */
 // FUNCTION: WIZ8 0x00405740
-bool AddSubdirectoryToPath(const char* subdirectory)
+BOOLEAN AddSubdirectoryToPath(CHAR8* subdirectory)
 {
     char path[520];
     CHAR environment[520];

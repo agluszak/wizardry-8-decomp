@@ -1,3 +1,5 @@
+#include "Types.h"
+#include "mousesystem.h"
 #include "wiz8/bringup_gates.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/game_status.h"
@@ -30,8 +32,6 @@ int g_dword_650db0;
 extern bool g_flag_6505a9;
 extern bool g_teardown_done_650db4;
 
-extern void MSYS_Shutdown(void);
-extern void NoOp(void);
 
 // FUNCTION: WIZ8 0x004011e0
 long __stdcall WindowProc4011E0(

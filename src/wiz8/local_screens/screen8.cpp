@@ -1,3 +1,4 @@
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/stHash.hpp"
 #include "wiz8/local_screens/screen8.h"
@@ -27,6 +28,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/wiz8_windows.h"
 #include "input.h"
+#include "Types.h"
 #include "mousesystem.h"
 
 #include <stdlib.h>
@@ -147,13 +149,6 @@ W8AutomapNote* g_automap_editing_note;
 // GLOBAL: WIZ8 0x0068f298
 W8AutomapNote* g_automap_hovered_note;
 
-void Function56AAB0(void);
-void SetValue659668(int value);
-void UpdateHeldItemCursor(void);
-unsigned char SetFlag603C60(void);
-unsigned char ClearFlag603C60(void);
-unsigned char IsCursorInsideViewport(void);
-unsigned char GetCursorPositionInViewport(srVector3T<float>* position);
 unsigned char Function584690(const InputAtom* input);
 void Function584250(const InputAtom* input);
 void Function581460(W8AutomapNote* note);
@@ -161,24 +156,17 @@ void Function582930(void);
 void Function5820F0(int tool);
 W8AutomapNote* Function582180(void);
 unsigned char Function582050(srVector3T<float>* position);
-unsigned char HasAutomapLayer(int layer);
 void Function57FFC0(const srVector3T<float>* position);
 void Function57FC70(const srVector3T<float>* position);
 void Function57FD90(int update);
 void Function57FE40(void);
 void Function427460(int x, int y);
 void Function581030(void);
-void RestoreAutomapCameraPosition(void);
 void Function46F760(W8World* world, int value);
-void Function427830(char enabled);
-void Function56AA30(void);
 void Function5822C0(void);
 void Function583BC0(void);
-unsigned char Function427260(void);
 void Function425570(int value);
 void Function581200(void);
-void ResetTransientRenderScenes(void);
-void RenderFrame(void);
 void Function425C90(int left, int top, int right, int bottom);
 void Function580380(void);
 void Function474FB0(int value);

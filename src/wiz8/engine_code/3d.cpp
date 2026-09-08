@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/3d.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Prop.h"

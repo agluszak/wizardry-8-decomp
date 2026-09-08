@@ -22,7 +22,7 @@ float g_float_005ebc7c;
 extern const double g_camera_view_factor_005ec300;
 extern const double g_camera_view_factor_005ec538;
 extern const double g_camera_view_factor_005ec568;
-extern float g_float_005ebb34;
+
 extern const float g_negative_one_005ebc38;
 extern const float g_camera_snap_epsilon_005ebc2c;
 extern const float g_camera_transition_epsilon_005ebc84;

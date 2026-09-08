@@ -73,3 +73,5 @@ protected:
 
 static_assert(sizeof(W8DialogBase) == 0x54,
               "W8DialogBase_must_be_0x54");
+
+extern int g_dword_69ca28;

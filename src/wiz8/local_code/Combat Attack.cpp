@@ -190,7 +190,6 @@ enum { W8_HAND_COUNT = 2 };
 /* The skill practised whenever the character's own damage reduction is used. */
 enum { W8_SKILL_DAMAGE_REDUCTION = 0x25 };
 
-extern int CalcRangeCategoryToTarget(const W8Character* character, int hand);
 /* 0x00519AC0 */
 extern void PracticeCharacterSkill(W8Character* character, int skill, int amount, int arg_4);
 extern unsigned char MonsterHasAttackOn(W8MonsterInfo* monster_info, W8CombatSlot* target);

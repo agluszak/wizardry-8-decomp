@@ -1,3 +1,4 @@
+#include "wiz8/local_code/character_events.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/GameplayCode.h"
@@ -265,21 +266,12 @@ int W8ItemVideoObjectCache::GetOrCreateVideoObject(int item_id)
 }
 
 extern void DropHeldItem(int arg_1);                         /* 0x004F7610 */
-extern void MoveItem(W8ItemInstance* to, W8ItemInstance* from, int arg_3, int arg_4);
+
 /* 0x0051FE30 */
-extern unsigned char CanCharacterActivateItem(
-    W8Character* character, const W8ItemInstance* item);     /* 0x0051D800 */
 extern void AddPartyGoldNotice(int channel, const wchar_t* notice, ...);
 extern int Function40A910(const char* path);
 extern void PlaySound(const char* path, int flags);
-extern signed char GetFactionDispositionScore(signed char faction);
 extern unsigned char Function50B8F0(int npc_id);
-extern int Function52E690(
-    W8Character* character,
-    int effect,
-    int argument,
-    int value_1,
-    unsigned int value_2);
 extern int g_item_message_005ee6fc;
 extern int g_item_message_005ee640;
 extern int g_item_message_005ee644;
@@ -288,42 +280,22 @@ extern int g_item_message_005ee64c;
 extern int g_item_message_005ee690;
 extern int g_item_message_005ee68c;
 extern int g_item_message_005ee664;
-extern int g_effect_argument_005ed8c8;
-extern int g_effect_argument_005ed914;
-
 
 /* Whether a weapon and an off-hand item go together, named by its own error
    text at 0x0051C8F0. */
 extern unsigned char Function521060(
     int item_id, int value_1, int value_2, int value_3, int value_4);
 extern void Function50E5C0(int party_slot);
-extern int Function51C5A0(W8Character* character, int item_id);
-extern bool Function4EDC60(W8Character* character);
+
 extern void PostCharacterNotice(int party_slot, const wchar_t* notice, ...);
 extern unsigned char Function5458A0(int party_slot);
 extern unsigned char Function4E79A0(
     int party_slot, int value_1, int value_2, int value_3);
 extern unsigned char Function536F60(int party_slot, int value);
 extern void Function536570(int party_slot, int value_1, int value_2);
-extern void RequestRedraw(unsigned int mask);
 extern void Function595600(void);
-void Function520D10(
-    W8ItemInstance* item, W8Character* character, unsigned char refresh);
-void CopyItemInstance(
-    W8ItemInstance* destination,
-    W8ItemInstance* source,
-    W8Character* character,
-    unsigned char refresh);
-unsigned char Function51F900(
-    W8ItemInstance* destination,
-    W8ItemInstance* source,
-    unsigned char* partially_merged);
-void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item);
-void Function5227D0(
-    W8ItemInstance* item, unsigned char choose_character,
-    W8Character* character);
 extern void Function55F160(int value);                       /* 0x0055F160 */
-extern unsigned char g_byte_652da6;
+
 // GLOBAL: WIZ8 0x00652da6
 unsigned char g_byte_652da6;
 
@@ -974,7 +946,6 @@ void GetOriginOfCharacterItem(
     *slot = 0xffff;
 }
 
-
 /* Initialize the fixed item-video-object vector to one entry per item record. */
 // FUNCTION: WIZ8 0x0051b560
 void InitializeItemVideoObjects(void)
@@ -1345,7 +1316,7 @@ void ApplyIdentifyAttempt(W8ItemInstance* item, unsigned int strength, unsigned 
    the smallest count that still clears it. */
 // FUNCTION: WIZ8 0x00520a70
 unsigned int CountIdentifyAttemptsNeeded(
-    W8ItemInstance* item, unsigned int strength, unsigned int percent)
+    W8ItemInstance* item, unsigned int percent)
 {
     unsigned int attempts;
     unsigned int candidate;

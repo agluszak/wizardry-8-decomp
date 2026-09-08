@@ -1,9 +1,11 @@
+#include "wiz8/text_types.h"
 #ifndef WIZ8_LOCAL_CODE_MONSTER_GROUP_H
 #define WIZ8_LOCAL_CODE_MONSTER_GROUP_H
 
 #include "wiz8/geometry.h"
 
 struct W8IList;
+struct W8MonsterRecord;
 
 #pragma pack(push, 1)
 /* The stride is the record LoadMonsterGroup allocates, zeroes and reads whole,
@@ -85,5 +87,19 @@ W8MonsterGroup* CreateGroup(
 
 
 void ResetMonsterGroupTurnState(void);
+
+void DespawnMonsterGroup(W8MonsterGroup* monster_group);
+void ActivateGroupMembers(W8MonsterGroup* monster_group, int mode);
+W8WideChar* GetMonsterGroupName(W8MonsterGroup* monster_group);
+void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group);
+
+void Function48C750(W8MonsterGroup* group);
+W8MonsterRecord* GetMonsterGroupRecord(W8MonsterGroup* group);
+void Function510590(W8MonsterGroup* monster_group);
+void Function48C670(W8MonsterGroup* monster_group);
+void Function50FD40(W8MonsterGroup* monster_group, int value);
+void Function547570(W8MonsterGroup* monster_group, unsigned char flag,
+                           int value);
+void Function50F720(W8MonsterGroup* monster_group);
 
 #endif

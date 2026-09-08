@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/ReadMesh.h"
 #include "wiz8/engine_code/stTextureFile.h"
 
 #include "wiz8/engine_code/ReadLevel.h"
@@ -7,7 +8,6 @@
 
 #include <string.h>
 
-extern unsigned char IsTextureInReadMeshScratch(const void* texture);
 
 // VTABLE: WIZ8 0x005EC5F8
 // class stTextureFile

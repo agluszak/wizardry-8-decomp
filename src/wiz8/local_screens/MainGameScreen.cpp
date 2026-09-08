@@ -1,3 +1,12 @@
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/Sight.h"
+#include "wiz8/bringup_gates.h"
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/local_code/FormationAndFacing.h"
+#include "wiz8/local_code/character_events.h"
+#include "wiz8/local_code/party_encumbrance.h"
+#include "wiz8/npc_interaction.h"
+#include "wiz8/video_object_catalog.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
@@ -36,6 +45,7 @@
 #include "FileMan.h"
 #include "input.h"
 #include "timer.h"
+#include "Types.h"
 #include "mousesystem.h"
 #include "surrender/srTypeRegistry.h"
 
@@ -63,9 +73,6 @@ W8DialogBase* g_modal_owner_0068edd0;
 // GLOBAL: WIZ8 0x0068edd4
 W8DialogBase* g_pending_main_game_dialog_0068edd4;
 
-extern unsigned char IsPartySlotEligible00524A10(int slot);
-extern void ResetRegions(void);
-extern void TurnPartyToImmediate(unsigned int facing, char update_saved);
 extern void Function568E10(void);
 extern void Function598AB0(void);
 extern void Function5AE9D0(void);
@@ -79,9 +86,7 @@ extern void Function58AC00(int, const wchar_t*, int, int, int);
 extern void Function58AAD0(int, const wchar_t*, const wchar_t*);
 extern void Function55D3C0(void);
 extern void Function55EE70(int value);
-extern void ClearLevelDataFlag6(void);
 extern void Function55F160(int value);
-extern void Function53A320(int value);
 extern void Function587510(int value);
 extern void Function58A470(int value);
 extern void Function565740(int slot);
@@ -111,76 +116,65 @@ extern void Function4257F0(int value);
 extern void Function529510(void);
 extern short Function5698C0(void);
 extern void Function5618F0(unsigned short mode);
-extern unsigned char SetFlag603C60(void);
-extern void ReleaseLoadedVideoFrames(void);
-extern void MSYS_Shutdown(void);
-extern void NoOp(void);
-int IsScreenInputBlocked(void);
-void DisableCombatRegions(void);
 
-extern unsigned char g_flag_006840bc;
 // GLOBAL
 unsigned char g_flag_006840bc;
-extern unsigned short g_value_006840be;
+
 // GLOBAL: WIZ8 0x006840be
 unsigned short g_value_006840be;
-extern int g_held_item_source_006840c0;
-extern unsigned char g_held_item_origin_006840c4;
-extern unsigned short g_held_item_slot_006840c5;
-extern unsigned char g_flag_00685070;
+
 // GLOBAL: WIZ8 0x00685070
 unsigned char g_flag_00685070;
-extern unsigned char g_flag_00685071;
+
 // GLOBAL: WIZ8 0x00685071
 unsigned char g_flag_00685071;
-extern int g_value_00685072;
+
 // GLOBAL: WIZ8 0x00685072
 int g_value_00685072;
-extern unsigned char g_flag_00685076;
+
 // GLOBAL: WIZ8 0x00685076
 unsigned char g_flag_00685076;
-extern signed char g_value_00685077;
+
 // GLOBAL: WIZ8 0x00685077
 signed char g_value_00685077;
 extern int g_value_006850d5;
-extern unsigned char g_in_combat_00683f94;
-extern unsigned char g_flag_00683f95;
+
 // GLOBAL: WIZ8 0x00683f95
 unsigned char g_flag_00683f95;
-extern unsigned char g_flag_00683f96;
+
 // GLOBAL: WIZ8 0x00683f96
 unsigned char g_flag_00683f96;
-extern unsigned char g_flag_00683f97;
+
 // GLOBAL: WIZ8 0x00683f97
 unsigned char g_flag_00683f97;
-extern unsigned char g_flag_00683f98;
+
 // GLOBAL: WIZ8 0x00683f98
 unsigned char g_flag_00683f98;
-extern unsigned char g_flag_00683f99;
+
 // GLOBAL: WIZ8 0x00683f99
 unsigned char g_flag_00683f99;
-extern unsigned char g_flag_00683f9a;
+
 // GLOBAL: WIZ8 0x00683f9a
 unsigned char g_flag_00683f9a;
-extern unsigned char g_flag_00683fcd;
+
 // GLOBAL: WIZ8 0x00683fcd
 unsigned char g_flag_00683fcd;
-extern unsigned char g_flag_006850ce;
+
 // GLOBAL: WIZ8 0x006850ce
 unsigned char g_flag_006850ce;
-extern unsigned char g_flag_0068edbc;
+
 // GLOBAL: WIZ8 0x0068edbc
 unsigned char g_flag_0068edbc;
-extern unsigned char g_flag_0068edc8;
+
 // GLOBAL: WIZ8 0x0068edc8
 unsigned char g_flag_0068edc8;
-extern unsigned char g_flag_0068edc9;
+
 // GLOBAL: WIZ8 0x0068edc9
 unsigned char g_flag_0068edc9;
-extern unsigned char g_flag_0068edd8;
+
 // GLOBAL: WIZ8 0x0068edd8
 unsigned char g_flag_0068edd8;
-extern int g_main_game_mode_0068eddc;
+
 // GLOBAL: WIZ8 0x0068eddc
 int g_main_game_mode_0068eddc;
 
@@ -201,32 +195,30 @@ W8MainGameResourceSlot g_main_game_resource_slots_64827c[17] = {
     {0, 1, 0, 0, 16}, {0, 1, 0, 0, 0}
 };
 
-extern unsigned char g_build_level_links_0065bd2c;
 // GLOBAL: WIZ8 0x0065bd2c
 unsigned char g_build_level_links_0065bd2c;
 extern unsigned char g_flag_689b32;
-extern int g_next_link_level_0068ede8;
+
 // GLOBAL: WIZ8 0x0068ede8
 int g_next_link_level_0068ede8;
-extern unsigned char g_flag_0068edd9;
+
 // GLOBAL: WIZ8 0x0068edd9
 unsigned char g_flag_0068edd9;
 extern unsigned char g_byte_00659a64;
-extern unsigned char g_level_runtime_flag_0065ba70;
-extern unsigned char g_debug_monster_cycle_0068f0fc;
+
 // GLOBAL: WIZ8 0x0068ee90
 W8MainScreenState g_screen_state_storage_0068ee90;
 // GLOBAL: WIZ8 0x00649f1c
 W8MainScreenState* g_screen_state_00649f1c = &g_screen_state_storage_0068ee90;
 // GLOBAL: WIZ8 0x0068f0fc
 unsigned char g_debug_monster_cycle_0068f0fc;
-extern W8IList* g_debug_monster_ids_0068f100;
+
 // GLOBAL: WIZ8 0x0068f100
 W8IList* g_debug_monster_ids_0068f100;
-extern unsigned char g_navigator_position_changed_659c11;
+
 // GLOBAL: WIZ8 0x00659c11
 unsigned char g_navigator_position_changed_659c11;
-extern unsigned char g_flag_006840bb;
+
 // GLOBAL
 unsigned char g_flag_006840bb;
 
@@ -238,17 +230,12 @@ void Function5A6970(void);
 unsigned char Function5A6790(void);
 void Function5A68C0(void);
 void Function50B3B0(int value);
-void Function577220(void);
 unsigned char Function554540(void);
 void Function5542E0(void);
-void Function4EDD20(void);
 void Function59A3A0(void);
-void MonsterForward453160(void);
-void ResetLevelDataVectors0041F0D0(void);
 void Function575C50(void);
 void Function577560(void);
 void Function52DDD0(void);
-int Function52E750(void);
 void Function59B1A0(void);
 void Function59B4C0(void);
 void Function59B390(void);
@@ -256,14 +243,11 @@ void Function502650(void);
 void Function562A80(void);
 void Function515B00(void);
 void Function41F1F0(void);
-unsigned char Function525DF0(unsigned char require_group_entry);
 void Function4916C0(void);
 unsigned char Function5684E0(void);
 void Function561330(unsigned char value);
 unsigned char GetFlag69DA6C(void);
-unsigned char GetFlag68F104(void);
 void Function5929D0(void);
-unsigned char Function57E490(void);
 void Function592A10(void);
 void Function57E0E0(int event, const W8ScreenPoint* point);
 void Function44FC20(W8World* world, unsigned int flags);
@@ -273,14 +257,12 @@ void Function55F080(void);
 void Function5A1EB0(W8ScreenPoint* point, unsigned int* value);
 void Function5171C0(void);
 void Function4E8EA0(void);
-unsigned char IsSightRangeOverridden(void);
 void StartCombat(int surprise);
 void Function530110(void);
 void Function530150(int value);
 void Function5398D0(void);
 void Function53B310(void);
 void Function53B1D0(void);
-void UpdateAllMonsterHighlights(int character, int item);
 void Function4F7480(void);
 void Function5A0BC0(void);
 void Function59D180(void);
@@ -295,7 +277,6 @@ unsigned char Function53A1D0(void);
 unsigned char Function4F8650(void);
 unsigned char Function57E3C0(void);
 unsigned char Function48EFC0(void);
-void Function427830(char enabled);
 void Function4EF1F0(void);
 
 // FUNCTION: WIZ8 0x00587960
@@ -1007,7 +988,6 @@ unsigned char MainGameScreenLeave(int leaving)
 extern void SetCombatSelection(int value);                              /* 0x00569F70 */
 extern void SetCombatTarget(int value);                                 /* 0x0056A2D0 */
 extern void SetCombatAction(int value);                                 /* 0x0056A480 */
-extern unsigned int Function53A3D0(int arg_1);
 extern void Function55EE70(int arg_1);
 
 // FUNCTION: WIZ8 0x00560c30
@@ -1144,7 +1124,6 @@ int IsScreenInputBlocked(void)
     return 1;
 }
 
-extern unsigned char g_map_loading_00659757;
 // GLOBAL
 unsigned char g_map_loading_00659757;
 extern void Function55EE70(int reason);

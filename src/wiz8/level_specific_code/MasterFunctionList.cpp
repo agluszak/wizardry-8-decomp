@@ -1,3 +1,4 @@
+#include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/fact_state.h"
 
 extern "C" int g_value_6834d4;

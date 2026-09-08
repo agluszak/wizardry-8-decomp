@@ -97,4 +97,17 @@ unsigned char InitializeVideoManager(
     HINSTANCE instance, unsigned short show_command, void* window_proc);
 void Function427440(void);
 
+void AssertFailureHandler(const char* expression, const char* file,
+                         long line, const char* message);
+unsigned char ClearFlag603C60(void);
+unsigned char SetFlag603C60(void);
+void SetValue659668(int value);
+void Function427830(char enabled);
+unsigned char Function427260(void);
+void SetRendererOption4Enabled(char enabled);
+unsigned char HasEnoughFreeDiskSpace(void);
+int Function428E20(void);
+srModelInstance* GetValue65962C(void);
+void SetValue65962C(srModelInstance* value);
+
 #endif

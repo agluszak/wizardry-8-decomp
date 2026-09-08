@@ -238,3 +238,11 @@ void Function445200(Trigger* trigger);
 static_assert(sizeof(Trigger) == 0x38c, "Trigger_must_be_0x38c");
 
 Trigger* FindTriggerByName(const char* name);
+
+extern unsigned char g_flag_00606994;
+extern unsigned char g_flag_0068506e;
+extern int g_value_0068c520;
+extern int g_value_0068c548;
+extern int g_value_005ee59c;
+extern int g_value_005ee5a0;
+extern int g_value_005ed8c8;

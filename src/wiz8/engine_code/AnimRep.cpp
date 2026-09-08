@@ -1,13 +1,13 @@
+#include "wiz8/engine_code/AnimRep.h"
 #include "surrender/srTimer.h"
 #include "wiz8/engine_code/Emitter.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/geometry.h"
 #include "wiz8/sr_api.h"
 
-extern float g_lod_range_default_0060e608;
 // GLOBAL: WIZ8 0x0060e608
 float g_lod_range_default_0060e608 = 3500.0f;
-extern float g_lod_range_default_0060e60c;
+
 // GLOBAL: WIZ8 0x0060e60c
 float g_lod_range_default_0060e60c = 8500.0f;
 
@@ -169,7 +169,6 @@ W8AnimRepBase005EC1D8* W8AnimRepBase005EC1D8::Clone()
 
 // SYNTHETIC: WIZ8 0x0044ee50
 // W8AnimRepBase005EC1D8::`scalar deleting destructor'
-
 
 /* AnimRep.cpp copies persistent animation state, then timestamps the new
    representation from the shared SurRender timer.  The source assertion names

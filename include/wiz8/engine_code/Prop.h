@@ -129,3 +129,6 @@ static_assert(sizeof(W8Prop) == 0x90,
 W8Prop* FindPropByName(W8World* world, const char* name);
 unsigned char CreateAndLoadProp0044BF50(
     W8ReadLevelInfo* info, W8Prop** prop);
+
+char Function44D760(W8World* world);
+void UpdateWorldProps0044E010(W8World* world);

@@ -60,3 +60,6 @@ protected:
 
 static_assert(sizeof(W8ModalDialogBase) == 0x98,
               "W8ModalDialogBase_must_be_0x98");
+
+void Function5D32C0(GUI_BUTTON* button, int reason);
+void Function5D3370(GUI_BUTTON* button, int reason);

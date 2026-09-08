@@ -1,3 +1,8 @@
+#include "wiz8/engine_code/3d.h"
+#include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/Sight.h"
+#include "wiz8/render_state.h"
+#include "wiz8/targeting.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
@@ -41,43 +46,19 @@ unsigned char g_alternate_name_slot;
 #define MONSTER_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\MonsterManager.cpp"
 #define MAX_MONSTERS_IN_DATABASE 1000
 
-unsigned char GetRenderOptionState(int index);
-unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating);
-unsigned char MonsterIsAnimating(W8Monster* monster);
-void MonsterSetPendingCycle(W8Monster* monster, int cycle);
-unsigned char MonsterReplacePath(W8Monster* monster, void* path);
-int MonsterQuery(W8Monster* monster, int query);
-void MonsterForward4537E0(W8Monster* monster);
 void MonsterSetBehaviour(W8Monster* monster, int behavior);
 void MonsterSetSubCycle(W8Monster* monster, int subcycle);
-unsigned char RemoveMonster(
-    unsigned int monster_list_index,
-    unsigned char destroy_monster);
-void MonsterInfoEnterCombat(W8MonsterInfo* monster_info);
-void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info);
 void DestroyMonsterGroup(W8MonsterGroup* monster_group, W8MonsterInfo* monster_info);
 void Function5103E0(W8MonsterGroup* monster_group);
-void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group);
 void ClearEffectSlot(W8MonsterInfo* monster_info, W8MonsterCombatEntry* entry);
 void DestroyMonsterActionQueue(W8MonsterInfo* monster_info);
 void Function546E70(void);
-void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flag);
-void EndMonsterTurn(W8MonsterInfo* monster_info);
 extern int g_dword_6850be;
 // GLOBAL: WIZ8 0x006850be
 int g_dword_6850be;
-void DeactivateMonster(W8MonsterInfo* monster_info);
 void Function4ACF90(W8Monster* monster);
-void ReleaseMonToMonVisibilityList(W8MonsterInfo* monster_info);
 /* Writes the monster's world position through an out-parameter; __cdecl, since
    0x004C5750 ends in a bare `ret`. */
-void MonsterGetLocalLocation(W8Monster* monster, srVector3T<float>* position);
-void RefreshAllSight(void);
-void SetTargetToMonster(int location_id, int value);
-void Function593330(void);
-void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
-void MonsterSetRuntimeBehaviour(W8Monster* monster, signed char behaviour);
-void MonsterForward4A84A0(W8Monster* monster);
 float Function4BE5C0(srVector3T<float>* position);
 // FUNCTION: WIZ8 0x0052A780
 int CalculateMonsterHealthTier(int current, int maximum)
@@ -96,8 +77,6 @@ enum { W8_CYCLE_NONE = 0xff, W8_CYCLE_STOP = 0x14, W8_CYCLE_DEATH = 0x15 };
 enum { W8_BEHAVIOUR_NEVER_STOP = 3 };
 void MonsterDies(W8MonsterInfo* monster_info, int display_message);
 void __fastcall Function452C90(W8Navigator* navigator);
-W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
-                           unsigned char name_form);
 /* The character array the alternate-name form indexes, and the slot it uses. */
 
 // FUNCTION: WIZ8 0x004e3930
@@ -174,34 +153,21 @@ W8MonsterInfo* CreateMonsterInfo(
    rather than out of the monster database. */
 void Function5248D0(W8MonsterInfo* monster_info);
 void Function58AB60(int value_1, int value_2, void* notice, W8WideChar* name);
-void Function4C59C0(W8Monster* monster, W8World* world);
-void RemoveMonsterFromWorldList(W8World* world, W8Monster* monster);
-void DeleteMonster004C5860(W8Monster* monster);
 /* __stdcall, not __cdecl: 0x0042E650 ends in `ret 0x4`, and both callers here
    clean only three of the four dwords they push across the tail. */
 void __stdcall Function42E650(unsigned short location_id);
 void Function509EA0(int value);
 void Function508D70(unsigned int monster_list_index);
 void Function4F8CB0(W8MonsterInfo* monster_info, int value);
-void Function4C5ED0(W8Monster* monster);
-void RequestRedraw(int mask);
 unsigned char Function531920(W8MonsterGroup* monster_group);
 W8CombatActor* NextEngagedCharacter(int restart);
 unsigned char Function4A5790(void);
 void StartCombat(int surprise);
 void EndCombat(unsigned char reason);
 void Function595570(void);
-int Function428E20(void);
 void Function50E8C0(int location_id);
 void Function51B420(W8MonsterInfo* monster_info, W8MonsterRecord* record);
 void Function509CD0(unsigned char value, int enabled, int location_id);
-void WorldAddToList00(W8World* world, void* entry);
-void MonsterPropagateValue004C5870(W8Monster* monster, int value);
-void MonsterForward4A7BE0(
-    W8Monster* monster,
-    const srVector3T<float>* position);
-void MonsterCallSlot10(void* object, int argument);
-void RequestRefreshPartyState(void);
 extern int g_monster_cycle_registry_weight_0065ba4c;
 extern float g_float_005ec52c;
 extern unsigned char g_flag_689b32;

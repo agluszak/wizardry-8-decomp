@@ -157,3 +157,21 @@ void ConfigureWorldLight0046E300(srLight* light, float range);
 void WorldRemoveLight(W8World* world, srNode* light); /* 0x0046E250 */
 
 static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");
+
+void SetWorld659AB8(W8World* world);
+
+void Function43CB30(W8World* world, int handle, unsigned char restoring);
+void Function43D120(W8World* world, int handle);
+void Function43C810(W8World* world, int handle);
+void Function44E830(W8World* world, int handle);
+void MoveWorldToPoint(W8World* destination, W8World* source, const srVector3T<float>* point);
+void SetWorldEnvironmentValue00483AE0(W8World* world, float value);
+void Function48F280(W8World* world, const char* name, int active);
+Trigger* FindTriggerForProp00443830(W8World* world, W8Prop* prop);
+void UpdateWorldMeshFromQuads004BAD40(W8World* world);
+void UpdateWorldMeshFromOctree004BAF50(W8World* world);
+void Function46E4A0(W8World* world);
+void Function46DE40(W8World* world);
+void Function4A27C0(W8World* world);
+void Function4AAB80(W8World* world);
+void Function443AE0(W8World* world);

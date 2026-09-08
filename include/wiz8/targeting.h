@@ -3,6 +3,7 @@
 
 struct W8CombatSlot;
 struct W8MonsterInfo;
+struct W8MonsterGroup;
 void ResetCombatSlot(W8CombatSlot* slot);
 int GetCurrentTargetingContext(int party_slot);
 
@@ -122,5 +123,26 @@ bool IsSpellTargetStillValidIn(int party_slot, int spell_id, int context);
 void ClearTargetHighlights(int party_slot, const W8CombatSlot* target);
 void Function53AEB0(unsigned int party_slot);
 void SetTargetToCharacter(int character_slot, int context);
+
+void Function53A320(int state);
+void UpdateAllMonsterHighlights(int party_slot, int location_id);
+unsigned int Function53A3D0(int alternate);
+void ResetTargetSource(W8TargetSource* source);
+void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8TargetSource* source);
+int ResolveTargetingContext(int party_slot, unsigned int context);
+char TargetMatchesNeeded(W8CombatSlot* target, int needed);
+unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char normalize);
+void SetTargetToMonster(int monster_id, int context);
+void SetTargetToGroup(int group_id, int context);
+
+bool ClearMonsterCombatSlot(W8MonsterInfo* monster_info);
+
+unsigned char Function53C630(W8CombatSlot* slot, int arg_2);
+void AimCombatSlotAtParty(W8CombatSlot* combat_slot, int hostile);
+void ApplyTarget(W8CombatSlot* target, int context);
+unsigned char TargetIsReachable(W8CombatSlot* target);
+unsigned char IsTargetSourceInRangeOfGroup(
+    const W8TargetSource* source, W8MonsterGroup* group, int context);
+void NoteTargetChosen(const W8TargetSource* source, const W8CombatSlot* target);
 
 #endif

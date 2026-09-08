@@ -133,4 +133,19 @@ unsigned char TryCharacterAction(int party_slot, int action, char commit);
 void NotifyNearbyMonsters(int what);
 void CombatLog(const char* format, ...);
 
+struct W8MonsterRecord;
+
+void BeginCombatRound(void);
+bool AnyoneStandsAhead(unsigned char position);
+int GetBestMonsterAttackRange(const W8MonsterRecord* record, char close_quarters_only);
+float CalcRangeDistance(int range_category);
+void EndMonsterTurn(W8MonsterInfo* monster_info);
+void SetSlotAction(int party_slot, int action_kind, int action_detail);
+int GetHandAttackValue(int party_slot, unsigned int hand);
+int NormalizeAttackMode(int attack_mode);
+void ClearAttackBlock(void* block);
+unsigned int ChooseAttackMode(unsigned int attack_modes);
+
+unsigned char CanCharReBreathe(int party_slot);
+
 #endif

@@ -1,3 +1,4 @@
+#include "wiz8/bringup_gates.h"
 #include "surrender/srNode.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/Navigator.h"
@@ -8,7 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern void NoOp(void);
 
 // GLOBAL: WIZ8 0x00659c0c
 W8Navigator* g_startup_world_659c0c;

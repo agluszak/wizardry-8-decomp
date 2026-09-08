@@ -1,3 +1,8 @@
+#include "wiz8/engine_code/AmbientSound.h"
+#include "wiz8/local_code/Sight.h"
+#include "wiz8/engine_code/GameData.h"
+#include "wiz8/local_code/ItemManager.h"
+#include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/bringup_gates.h"
 #include "wiz8/monster_generators.h"
 #include "wiz8/engine_code/World.h"
@@ -56,7 +61,7 @@ extern void Function516E20(W8WorldItem* item);
    0x005135D0 and cleared immediately after, and read only from the save and
    load paths. It gates the bit-3 clear below. The meaning is not established
    beyond "a level restore is in progress", so the name stays positional. */
-extern unsigned char g_flag_659756;
+
 // GLOBAL
 unsigned char g_flag_659756;
 
@@ -72,14 +77,11 @@ unsigned char g_flag_659756;
 /* 0x0050F6A0 and 0x0048C750, not yet identified; named by address as elsewhere
    in src/wiz8. The first is told about every group that survives the load, the
    second only about those two of its flags select. */
-extern void ActivateGroupMembers(W8MonsterGroup* group, int unknown);
-extern void Function48C750(W8MonsterGroup* group);
 
 /* 0x004E3720, 0x004F69F0 and 0x00443A50, not yet identified; named by address
    as elsewhere in src/wiz8. All three take no argument and return nothing, and
    run before the header is read, so they read as teardown of whatever the
    previous level left behind. */
-extern void InitializeItemManagerState(void);
 
 /* The fixed 0x314-byte header every save begins with. Only the fields
    LoadStatusHeader forwards are established; the rest is read and kept. */
@@ -100,15 +102,11 @@ static_assert(sizeof(W8StatusHeader) == 0x314,
    positional names preserve the current identity ceiling; the orchestration
    below establishes only their argument shape and section ownership. */
 extern void SaveMonsterStatus(W8Chunk* chunks);                         /* 0x005145A0 */
-extern W8WorldItem* ItemInfo(unsigned int item_list_index);             /* 0x004F7FE0 */
 extern void Function48EAD0(int handle);
 extern void Function48E6D0(int handle);
-extern void Function43CB30(W8World* world, int handle, unsigned char restoring);
-extern void Function43D120(W8World* world, int handle);
+
 extern void Function581CE0(int handle);
-extern void Function43C810(W8World* world, int handle);
-extern void Function44E830(W8World* world, int handle);
-extern void SaveAmbientSoundList0047B140(int handle);
+
 extern void Function49D120(int handle);
 
 /* 0x005156C0, 0x00517A90 and 0x00518510, not yet identified; named by address
@@ -124,7 +122,6 @@ extern void Function518510(void* notice);
 extern W8ItemInstance* FindCharacterItemAt(
     int party_slot, unsigned char origin, unsigned short slot);          /* 0x00522180 */
 extern void RebuildPartyStatus00555FA0(W8PartyFormationState* status);
-void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status);            /* 0x00515CF0 */
 
 /* 0x0068517C selects where characters live, and 0x006874D7 is a per-slot byte
    consulted only when it is set. The failure notice comes out of the shared
@@ -746,10 +743,9 @@ report:
    comparison spells them. */
 enum { W8_SAVE_TAG_CHAR = 0x52414843, W8_SAVE_TAG_LVLS = 0x534c564c };
 
-extern unsigned char g_save_pending_00689f98;
 // GLOBAL: WIZ8 0x00689f98
 unsigned char g_save_pending_00689f98;
-extern unsigned char g_save_notice_shown_0068506b;
+
 // GLOBAL: WIZ8 0x0068506b
 unsigned char g_save_notice_shown_0068506b;
 /* 0x0061A144, the save-file extension. It sits in writable .data with 16
@@ -797,7 +793,7 @@ void DeleteCurrentSaveFiles(void)
 /* Two gates with no established meaning beyond their position in the chain, so
    both keep positional names. Both are zero in the shipped image. */
 extern unsigned char g_flag_006875a5;
-extern unsigned char g_flag_0068510d;
+
 // GLOBAL: WIZ8 0x0068510d
 unsigned char g_flag_0068510d;
 
@@ -805,8 +801,6 @@ unsigned char g_flag_0068510d;
    combat_state.h, so they are used rather than redeclared. 0x00683F97 has no
    header owner and is declared here under the
    name MainGameScreen.cpp already gives it. */
-extern unsigned char IsSightRangeOverridden(void);                      /* 0x00504910 */
-extern int IsLevelDataFlag4EffectivelySet(void);                        /* 0x0041F090 */
 /* Byte-sized, not int: the refusal below returns through `mov al,1` and the
    save arm returns this result unchanged, so both share one byte register. */
 

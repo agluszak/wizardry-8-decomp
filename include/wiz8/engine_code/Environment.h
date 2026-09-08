@@ -50,3 +50,8 @@ float GetViewDistance(void);
 void Function482720(int value);
 float GetWorldValue24(const void* world);
 void SetSkyNodeVisible(char visible);
+
+void SetViewDistance(float distance);
+
+extern int g_environment_value_0060a3a8;
+extern unsigned char g_fog_enabled_0065b9ad;

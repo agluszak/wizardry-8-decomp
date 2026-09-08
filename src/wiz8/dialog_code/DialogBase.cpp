@@ -1,3 +1,5 @@
+#include "wiz8/cursor.h"
+#include "wiz8/sgp_video.h"
 #include "wiz8/dialog_code/DialogBase.h"
 
 #include "wiz8/dirty_tiles.h"
@@ -10,8 +12,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern "C" void ClearSurfaceRect(
-    int left, unsigned int top, int right, unsigned int bottom);
 
 // GLOBAL: WIZ8 0x0069CA28
 int g_dword_69ca28;
@@ -20,7 +20,6 @@ extern "C" unsigned char g_dialog_font_enabled_69ca32;
 extern "C" unsigned char g_dialog_font_foreground_64fdec;
 extern "C" unsigned char g_dialog_font_background_64fded;
 
-void GetScreenPoint004284F0(W8ScreenPoint* point);
 
 // FUNCTION: WIZ8 0x005dc7a0
 W8DialogBase::W8DialogBase()

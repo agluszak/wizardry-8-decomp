@@ -9,14 +9,13 @@
 #define OCT_BUILD_TREE_CPP \
     "C:\\Projects\\Wizardry 8\\Engine Code\\OctBuildTree.cpp"
 
-extern float g_path_waypoint_exact_distance_005ebc64;
 // GLOBAL
 float g_path_waypoint_exact_distance_005ebc64;
-extern float g_float_005ec188;
+
 // GLOBAL: WIZ8 0x005ec188
 float g_float_005ec188 = 1.000100016593933f;
 extern void Function497690(int channel, const char* message);
-extern void* g_oct_build_scratch_00659a48;
+
 // GLOBAL: WIZ8 0x00659a48
 void* g_oct_build_scratch_00659a48;
 

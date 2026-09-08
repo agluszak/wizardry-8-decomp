@@ -38,3 +38,8 @@ void Function54B300(unsigned int slot);
 void Function54B560(void);
 
 }
+
+struct W8StartupStateElement005EE748;
+
+void Function54B250(unsigned char notify, void* target);
+void __fastcall ProcessStartupStateEntry(W8StartupStateElement005EE748* entry);

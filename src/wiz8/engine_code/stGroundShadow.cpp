@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/materials.h"
 #include "wiz8/ground_shadow.h"
 
 #include "surrender/srMaterial.h"
@@ -21,8 +22,6 @@ extern unsigned long g_ground_shadow_shader_006834c8;
 unsigned long g_ground_shadow_shader_006834c8;
 extern unsigned char g_ground_shadow_material_parameters_00683430[];
 
-srTexture* LoadTexture004B95D0(
-    const char* folder, const char* name, unsigned char required);
 
 // SYNTHETIC: WIZ8 0x004D6340
 // stGroundShadow::`scalar deleting destructor'

@@ -1,3 +1,7 @@
+#include "wiz8/character.h"
+#include "wiz8/bringup_gates.h"
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/character_events.h"
 #include "wiz8/render_state.h"
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
@@ -23,6 +27,7 @@
 
 extern "C" {
 #include "input.h"
+#include "Types.h"
 #include "mousesystem.h"
 }
 
@@ -35,26 +40,13 @@ extern "C" {
 #include "FileMan.h"
 
 extern void Function425570(int enabled);
-extern int MSYS_Init(void);
-extern void MSYS_Shutdown(void);
-extern void ResetRegions(void);
 extern void PlaySound(const char*, int);
-extern wchar_t* FormatWideString(const wchar_t*, ...);
-extern void NoOp(void);
 extern void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x,
                                         unsigned short y, char right_button,
                                         char left_button);
-extern void Function4EFA30(W8Character*);
-extern void CalcCharacterTableValue(W8Character*);
+
 extern void Function52DDD0(void);
-extern int Function52E750(void);
-extern int Function557FD0(W8Character* original, W8Character* edited);
-extern void Function4EF7E0(W8Character*, W8Character*, int);
-extern int Function558640(W8Character*);
-extern unsigned char Function5586B0(W8Character*);
-extern void BuildCharacterPath00514EC0(char*, const wchar_t*, int);
-extern void Function5218C0(W8Character*);
-extern void Function51D960(W8Character*);
+
 extern unsigned char SaveCharacter(W8Character*, int, char, void (*)(void));
 
 extern unsigned char g_in_combat_00683f94;

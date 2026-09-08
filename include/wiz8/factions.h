@@ -37,4 +37,6 @@ enum {
 extern W8FactionRuntimeRecord g_factions[W8_FACTION_COUNT];
 W8FactionDisposition GetFactionDisposition(signed char faction);
 
+signed char GetFactionDispositionScore(signed char faction);
+
 #endif

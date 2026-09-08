@@ -1,3 +1,9 @@
+#include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/engine_code/3d.h"
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/render_state.h"
@@ -88,26 +94,18 @@ extern const float g_monster_poster_vertical_rate_005ed298;
 extern const double g_monster_poster_max_distance_005ec3d8;
 extern srVector3T<float> g_monster_attachment_offsets_0060e618[][8];
 extern float g_monster_attachment_scales_0060e914[];
-extern void SetChainValue15C(char* node, int value);
 extern float g_startup_depth_603ac8;
 extern const float g_camera_transition_epsilon_005ebc84;
 extern const float g_world_scale_005ebc40;
 extern unsigned char g_force_encounter_culling; /* 0x00687500 */
 // GLOBAL
 unsigned char g_force_encounter_culling;
-extern W8WideChar* GetMonsterName(
-    W8MonsterInfo* monster_info,
-    W8MonsterRecord* record,
-    unsigned char name_form);
 extern int Function50A440(unsigned int monster_list_index);
 extern void Function56C590(
     int npc_record, int value, int line, unsigned char suppress);
-extern void Function547570(
-    W8MonsterGroup* monster_group, unsigned char disposition, int value);
+
 extern void Function48F650(
     W8MonsterInfo* monster_info, unsigned char value_1, unsigned char value_2);
-extern unsigned char RemoveMonster(
-    unsigned int monster_list_index, unsigned char destroy_monster);
 extern float g_float_005ec128;
 extern const double g_monster_script_direction_step_005ed2b8;
 extern const float g_monster_script_direction_scale_005ec150;
@@ -141,17 +139,11 @@ extern unsigned char HasLineOfSightToBounds0046FD70(
     const srVector3T<float>* origin,
     srVector3T<float>* minimum,
     srVector3T<float>* maximum);
-extern void Function577540();
-extern void Function50F720(W8MonsterGroup* monster_group);
+
 extern void Function56C5E0(
     void* item_list, int value_1, int value_2, int value_3, int value_4);
-extern void ResetTargetSource(W8TargetSource* source);
-extern void SetMonsterCondition(
-    int monster_id, int value_2, int value_3, int value_4,
-    W8TargetSource* source, int value_6);
 extern srTextureIFace* LoadTexture004B9460(
     const char* path, unsigned char cached, unsigned char required);
-extern int NormalizeAttackMode(int attack_mode);
 // GLOBAL: WIZ8 0x0060e614
 unsigned char g_monster_gib_option_0060e614 = 1;
 // GLOBAL: WIZ8 0x005ed280
@@ -1285,8 +1277,7 @@ extern void Function4C4EF0(void);
 extern int g_monster_cycle_registry_weight_0065ba4c;
 // GLOBAL: WIZ8 0x0065ba4c
 int g_monster_cycle_registry_weight_0065ba4c;
-extern void PrepareMonsterCycleForDestruction004ACF90(
-    W8Monster* cycle);
+
 extern unsigned char g_flag_00689b32;
 // GLOBAL
 unsigned char g_flag_00689b32;
@@ -4357,10 +4348,6 @@ void W8Monster::AdvanceAnimationFrame(int value, int)
     }
 }
 
-extern unsigned int MonsterCastsSpell(
-    W8MonsterInfo* monster_info, int spell_id, unsigned int power_level);
-extern void FatigueMonster(
-    W8MonsterInfo* monster_info, unsigned int amount, int report_to);
 extern int g_spell_effect_frame_0064c158;
 // GLOBAL: WIZ8 0x0064c158
 int g_spell_effect_frame_0064c158 = 1;
@@ -4369,10 +4356,6 @@ extern int g_spell_index_0069b7dc;
 int g_spell_index_0069b7dc;
 extern void* CreateSpellEffect004AD8A0(
     const char* mls_name, int frame, W8Monster* parent, int value, int flags);
-extern void SetTargetSourceToMonster(
-    const W8MonsterInfo* monster_info, W8TargetSource* source);
-extern void ClearAttackBlock(void* block);
-extern unsigned int ChooseAttackMode(unsigned int attack_modes);
 extern int CalculateMonsterMissileAccuracy(
     W8MonsterInfo* monster_info, const W8MonsterAttack* attack,
     int attack_mode, int flags);
@@ -4745,8 +4728,6 @@ bool MonsterHasPendingCycle(W8Monster* monster)
     return monster->m_pRep->pending_cycle != -1;
 }
 
-extern srModelInstance* GetValue65962C(void);
-
 /* Compare the cycle's selected frame against the renderer's typed current-model
    slot.  Prop.cpp independently compares that slot with srModelInstance values. */
 // FUNCTION: WIZ8 0x004c56f0
@@ -5094,10 +5075,6 @@ extern void Function4C4DE0(int arg_1, int arg_2, int arg_3);
    address range are. */
 /* Cleans its own argument - the caller at 0x004C5A40 pushes and never adjusts
    afterwards - so it is __stdcall and not the cdecl the decompiler assumes. */
-extern unsigned int MonsterCastsSpell(
-    W8MonsterInfo* monster_info, int spell_id, unsigned int power_level);
-extern void FatigueMonster(
-    W8MonsterInfo* monster_info, unsigned int amount, int report_to);
 
 /* The caller proves only the roles below: the first global selects a frame in
    the spell animation, and the second indexes g_spell_records. Their original
@@ -5179,7 +5156,6 @@ void MonsterSetRuntimeBlock4C(W8Monster* monster, W8MonsterRuntimeBlock4C block)
         monster->m_pRep->value_04c = block;
     }
 }
-
 
 /* The engine object a monster holds at 0x0c, or nothing when there is no
    monster to ask. */

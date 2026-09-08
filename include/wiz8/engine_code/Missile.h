@@ -100,3 +100,5 @@ W8Missile* Function4A2D30(
 void DestroyMissile(W8Missile* missile);            /* 0x004A4180 */
 void DestroyAllMissiles(W8World* world);             /* 0x004A4210 */
 void DetachMissileReferences005019A0(W8Missile* missile);
+
+extern float g_navigator_largest_extent_6081e8;

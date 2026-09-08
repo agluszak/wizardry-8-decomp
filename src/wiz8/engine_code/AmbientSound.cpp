@@ -129,19 +129,18 @@ void UpdateAmbientSounds0047A3E0(W8World* world)
     }
 }
 
-extern unsigned char g_default_footstep_surface_65a108;
 // GLOBAL: WIZ8 0x0065a108
 unsigned char g_default_footstep_surface_65a108;
-extern unsigned char g_default_footstep_material_65a109;
+
 // GLOBAL: WIZ8 0x0065a109
 unsigned char g_default_footstep_material_65a109;
-extern unsigned char g_footstep_alternate_65a10a;
+
 // GLOBAL: WIZ8 0x0065a10a
 unsigned char g_footstep_alternate_65a10a;
-extern int g_previous_footstep_variant_65a10c;
+
 // GLOBAL: WIZ8 0x0065a10c
 int g_previous_footstep_variant_65a10c;
-extern unsigned char g_footstep_option_6850f9;
+
 // GLOBAL: WIZ8 0x006850f9
 unsigned char g_footstep_option_6850f9;
 extern const char* g_footstep_names_609edc[];

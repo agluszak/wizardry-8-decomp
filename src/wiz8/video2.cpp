@@ -1,3 +1,4 @@
+#include "wiz8/dirty_tiles.h"
 #include "surrender/srColorSurface.h"
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
@@ -16,7 +17,6 @@
 
 #include <string.h>
 
-extern "C" void Function425B40(void);
 extern srNode* Function424BA0(
     srTextureIFace* texture,
     float width,

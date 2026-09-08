@@ -120,3 +120,10 @@ void Function41F260();
 unsigned char LoadSurfaceVertices004214D0(
     srVector3T<float>* output, const int* vertex_indices);
 unsigned char InitializeGameData004497C0(W8GameData* game_data);
+
+void ClearLevelDataFlag6(void);
+void ResetLevelDataVectors0041F0D0(void);
+int IsLevelDataFlag4EffectivelySet(void);
+void ResetCurrentEnvironment0041AA40(void);
+
+unsigned int GetLevelDataFlag6(void);

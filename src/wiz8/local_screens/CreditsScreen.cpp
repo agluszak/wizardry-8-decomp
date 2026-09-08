@@ -24,9 +24,6 @@ int g_font_00683614;
 extern int g_font_bold_0068368c;
 // GLOBAL: WIZ8 0x0068368c
 int g_font_bold_0068368c;
-extern void ResetRegions(void);
-extern unsigned char ClearFlag603C60(void);
-extern unsigned char SetFlag603C60(void);
 extern unsigned char ReadWideTextLine004CEED0(
     int handle, wchar_t* destination, int capacity, unsigned char* more);
 extern void Function407650(int x, int y, const wchar_t* format, ...);

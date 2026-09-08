@@ -127,3 +127,9 @@ void DestroyRcsLevelUpPanel(void);
 void CreateRcsDismissPanel(void);
 void DestroyRcsDismissPanel(void);
 void DrawRcsText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode);
+
+void CampScreenInitializeRegions(void);
+void Function5B7230(void);
+
+extern int g_effect_005ee6ec;
+extern int g_effect_argument_005ed8cc;

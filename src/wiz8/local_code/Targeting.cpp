@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/Monster.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/float_constants.h"
@@ -32,10 +33,6 @@ int g_target_state_6840b3;
 #include <string.h>
 
 #define TARGETING_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Targeting.cpp"
-
-W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context);
-int ResolveTargetingContext(int party_slot, unsigned int context);
-
 
 /* Point a source at one party character. Everything is cleared first and the
    monster id invalidated, so a source built this way never reads as a monster;
@@ -110,10 +107,7 @@ unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indi
    Twenty-one of them, which is the whole faction domain. */
 extern const char g_faction_names[][0x1e];               /* 0x0061CE74 */
 
-extern char GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize, int context);
-char TargetMatchesNeeded(W8CombatSlot* target, int needed);
 extern unsigned char Function519180(int party_slot, int arg_2, int context);
-extern unsigned char ItemClassNormalizesTarget(const W8ItemDatabaseRecord* record, int context);
 extern unsigned char g_targeting_flag_00685116;
 // GLOBAL: WIZ8 0x00685116
 unsigned char g_targeting_flag_00685116;
@@ -227,14 +221,13 @@ char GetTargetNeededForItem(const W8ItemInstance* item)
         return 0;
     }
     return GetTargetNeededForSpellFriendly(
-        record->spell_id, ItemClassNormalizesTarget(record, 6), 0);
+        record->spell_id, ItemClassNormalizesTarget(record), 6);
 }
 
 extern void AimAtTarget(int actor, W8CombatSlot* target, int context);   /* 0x005387F0 */
-extern void ApplyTarget(W8CombatSlot* target, int context);              /* 0x00538E00 */
-extern unsigned char TargetIsReachable(W8CombatSlot* target);            /* 0x00536190 */
+
 extern void GetPartyEyePosition(void* position);                         /* 0x00421070 */
-extern void GetMonsterBounds(W8Monster* monster, void* lower, void* upper);
+
 /* 0x004CA4F0 */
 extern void ShowTargetMarker(void* eye, void* lower, void* upper);       /* 0x0046F820 */
 extern void Function492500(void* scratch);
@@ -405,14 +398,8 @@ char TargetMatchesNeeded(W8CombatSlot* target, int needed)
     return 0;
 }
 
-extern unsigned char MonsterGetRuntimeFlag5BC(W8Monster* monster);
-extern void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flags);
 extern void NotifyMonsterHighlight(int party_slot, int location_id, int on);
 /* 0x004C5EB0 */
-extern void SetMonsterHighlightColour(
-    W8Monster* monster, float r, float g, float b, float a);         /* 0x004C5AD0 */
-extern W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int index);
-extern unsigned char ItemClassNormalizesTarget(const W8ItemDatabaseRecord* record);
 
 /* What the interface has to ask the player to pick for one action. Most
    actions answer a fixed kind; casting asks the spell and using an item asks
@@ -619,9 +606,6 @@ extern unsigned char MonsterIsHostileTo(int party_slot, W8MonsterInfo* monster_i
 extern unsigned char CanReachTarget(
     int party_slot, int kind, W8MonsterInfo* monster_info, int context, int arg_5);
 /* 0x005194E0 */
-extern bool AnyoneStandsAhead(unsigned char position);
-extern int GetBestMonsterAttackRange(const W8MonsterRecord* record, char close_quarters_only);
-extern float CalcRangeDistance(int range_category);                      /* 0x0051A9A0 */
 
 /* The order the candidates are taken in: the monster in the lowest state
    first, then the one that can actually be reached, then the nearest. Only
@@ -1019,7 +1003,6 @@ extern W8CombatSlot g_shared_target_0068408b;
 // GLOBAL: WIZ8 0x0068408b
 W8CombatSlot g_shared_target_0068408b;
 
-
 /* The two dialogue selections that have a targeting context of their own, and
    they are the same two action kinds - casting and using an item. */
 enum { W8_SELECTION_SPELL = 7, W8_SELECTION_ITEM = 8 };
@@ -1114,16 +1097,13 @@ W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context)
     return 0;
 }
 
-extern W8MonsterRecord* GetMonsterGroupRecord(W8MonsterGroup* group);    /* 0x00510180 */
 /* 0x004E77B0: hands back what the slot has chosen - the action, the detail
    qualifying it, and a pointer to the action's own two-word block, which is
    the party slot row's own pair rather than a copy. */
 extern void GetSlotChosenAction(
     int party_slot, unsigned int context, int* action, int* detail, void* unused,
     const W8ActionDetailBlock** detail_block);
-extern int GetTargetNeededForSpellHostile(int spell_id);                 /* 0x005011C0 */
-extern unsigned char IsTargetSourceInRangeOfGroup(
-    const W8TargetSource* source, W8MonsterGroup* group, int context);   /* 0x00537780 */
+
 extern unsigned char CanReachTarget(
     int party_slot, int kind, W8MonsterInfo* monster_info, int context, int arg_5);
 
@@ -1496,8 +1476,6 @@ unsigned char CanTargetMonster(
 
 extern unsigned char CanTargetPartySlot(int party_slot, const W8CombatSlot* target);
 /* 0x00545C20 */
-extern unsigned char SpellHasAnyValidTarget(
-    int party_slot, int spell_id, unsigned char normalize);              /* 0x0053D010 */
 
 /* Whether a party slot's chosen action has anything at all to aim at. Each
    action asks its own question: an attack looks for one targetable monster, a
@@ -1647,12 +1625,10 @@ unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char
 extern void GetPartyPosition(srVector3T<float>* position);                      /* 0x00421070 */
 extern float AngleFromPartyTo(const srVector3T<float>* from, const srVector3T<float>* to);
 /* 0x004BE420 */
-extern float NormalizeAngle(float radians);
-extern int CompareSignedAscending(const void* left, const void* right);  /* 0x00517A30 */
 extern void AimAtTarget(int actor, const W8CombatSlot* target, int context);
 /* 0x005387F0 */
 extern void StartBreathCycle(int party_slot, int arg_2);                 /* 0x0052FE80 */
-extern void NoteTargetChosen(const W8TargetSource* source, const W8CombatSlot* target);
+
 /* 0x004ECC80 */
 
 /* One candidate in the angle sort: the screen angle to the monster and the

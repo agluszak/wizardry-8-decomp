@@ -133,10 +133,10 @@ int CompareUnsignedDescending(const unsigned int* first, const unsigned int* sec
 }
 
 // FUNCTION: WIZ8 0x00517a30
-int CompareSignedAscending(const int* first, const int* second)
+int CompareSignedAscending(const void* first, const void* second)
 {
-    int left = *first;
-    int right = *second;
+    int left = *static_cast<const int*>(first);
+    int right = *static_cast<const int*>(second);
 
     if (left < right) {
         return -1;

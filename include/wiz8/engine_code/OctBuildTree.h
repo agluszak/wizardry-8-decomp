@@ -99,4 +99,8 @@ static_assert(sizeof(W8CountedOctBuildNode004AF760) == 0x30,
 static_assert(sizeof(W8OctBuildTree00446390) == 0xbc,
               "W8OctBuildTree00446390_must_be_0xbc");
 
+extern float g_path_waypoint_exact_distance_005ebc64;
+extern float g_float_005ec188;
+extern void* g_oct_build_scratch_00659a48;
+
 #endif

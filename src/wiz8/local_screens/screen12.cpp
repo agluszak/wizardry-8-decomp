@@ -19,8 +19,6 @@ extern "C" {
 int g_value_64c1c8 = -1;
 }
 
-void ResetRegions(void);
-unsigned char ClearFlag603C60(void);
 
 // FUNCTION: WIZ8 0x00591780
 void RequestExitScreen(void)

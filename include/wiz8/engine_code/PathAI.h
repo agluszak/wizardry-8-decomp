@@ -90,4 +90,7 @@ void DestroyOwnedPathAI004A9110(W8PathAI* path);
 void* CloneAIRecord004A91C0(void* record);
 W8PathAI* ClonePathAI004A98C0(const W8PathAI* path);
 
+unsigned char Function4A4CF0(W8PathAI* path);
+void Function4A9FE0(W8PathAI* path, float value);
+
 #endif

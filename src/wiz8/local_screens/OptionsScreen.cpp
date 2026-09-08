@@ -1,3 +1,8 @@
+#include "Font.h"
+#include "Types.h"
+#include "mousesystem.h"
+#include "wiz8/bringup_gates.h"
+#include "wiz8/render_state.h"
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/TextControl.h"
@@ -25,14 +30,7 @@
 #include <string.h>
 
 void __fastcall Function5A6E20(void* options);
-void NoOp(void);
-void MSYS_Shutdown(void);
-void ResetRegions(void);
 void Function425570(int value);
-int MSYS_Init(void);
-void SetViewport(int left, int top, int right, int bottom);
-void UpdateHeldItemCursor(void);
-unsigned short* SetFontObjectPalette16BPP(int font, unsigned short* palette);
 
 // GLOBAL: WIZ8 0x0069C130
 unsigned int* g_small_subsystem_69c130;
@@ -40,10 +38,6 @@ extern unsigned char g_flag_689b32;
 
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
-void RenderFrame(void);
-void SetRendererOption4Enabled(char enabled);
-void RepositionAmbientSounds0047A600(W8World* world);
-void UpdateAmbientSounds0047A3E0(W8World* world);
 
 /* Shared zero-initialized wide string: binary-wide DATA references read it as
    empty text and as a swprintf format argument. No recovered writer owns it

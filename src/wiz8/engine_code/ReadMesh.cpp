@@ -1,3 +1,5 @@
+#include "wiz8/engine_code/3d.h"
+#include "wiz8/engine_code/ReadMesh.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/OctMeshModel.h"
@@ -83,23 +85,9 @@ static int g_retained_material_count_65b9d4;
 static int g_retained_material_capacity_65b9d8;
 static srClass** g_retained_materials_65b9dc;
 
-extern stModelInstance* CreateModelInstance0046F5C0(
-    stMeshModel* model);
-unsigned char ReadSingleLevelMeshBody00485C10(
-    W8ReadLevelInfo* info, srModelInstance** instance,
-    int positional_0, int positional_1, const char* name,
-    unsigned char load_materials);
 extern void ReadMeshTransform004896C0(
     int file, srVector3T<float>* location, srMatrix3T<float>* rotation,
     srVector3T<float>* scale);
-stMeshModel* BuildSingleLevelMesh00488650(
-    int face_count, W8ReadMeshFace* faces, int vertex_count,
-    int material_count, srMaterialIFace** materials,
-    srTextureIFace** textures, unsigned long* render_flags,
-    unsigned int* mesh_count, int*** vertex_maps,
-    unsigned int* vertex_map_count,
-    W8GrowableVector<short>* mapped_values,
-    W8GrowableVector<short>* mapped_keys);
 extern void UpdateMeshAfterVertexLoad004867F0(
     srMeshModel* model, int frame);
 extern void NormalizeMaterialRecord00489980(

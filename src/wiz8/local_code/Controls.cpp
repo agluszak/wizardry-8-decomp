@@ -1,3 +1,4 @@
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/Widget.h"
@@ -53,7 +54,6 @@ extern const unsigned int g_W8TextControlMask005ED588 = 0x10;
 // GLOBAL: WIZ8 0x005ed594
 extern const unsigned int g_W8TextControlMask005ED594 = 0x80;
 
-
 // SYNTHETIC: WIZ8 0x004f68a0
 // W8GrowableVector<W8Widget*>::`scalar deleting destructor'
 
@@ -105,23 +105,21 @@ __forceinline Controls::~Controls()
 }
 
 /* 0x00562A50 takes the redraw-request mask the panel raises. */
-extern void RequestRedraw(unsigned int mask);
 const wchar_t g_W8TextSeparator0060CC74[] = L" ";
 const wchar_t g_W8TextBreakCharacters00617C88[] = L" \n";
-extern int g_W8TextClipTarget005FF5F4;
+
 // GLOBAL: WIZ8 0x005ff5f4
 int g_W8TextClipTarget005FF5F4 = -15;
-extern int g_W8TextClipFlags00650E38;
+
 // GLOBAL: WIZ8 0x00650e38
 int g_W8TextClipFlags00650E38;
 extern int g_W8FontStateTable0068EE1C[];
-extern float g_W8RangeEnd005EBB38;
+
 // GLOBAL: WIZ8 0x005ebb38
 float g_W8RangeEnd005EBB38 = 1.0f;
-extern float g_W8RangeHalfStep005EBC7C;
+
 // GLOBAL: WIZ8 0x005ebc7c
 float g_W8RangeHalfStep005EBC7C = 0.5f;
-
 
 // FUNCTION: WIZ8 0x004f30f0
 void Controls::EnableRegionSet(unsigned char enable)
@@ -139,7 +137,6 @@ void Controls::EnableRegionSet(unsigned char enable)
         RegionSetDisable(m_uiRegionSetId);
     }
 }
-
 
 // SYNTHETIC: WIZ8 0x004f3d90
 // W8Widget::`scalar deleting destructor'
@@ -192,7 +189,6 @@ void W8Widget::SetPanel(Controls* panel)
                 static_cast<short>(m_bottom) + static_cast<short>(m_pPanel->origin_y)));
     }
 }
-
 
 /*
  * The full constructor. Places the widget in its owner, gives the region the
@@ -393,7 +389,6 @@ void W8Widget::SetRegion(unsigned int region)
  * and the constructor is what emits the vtable so the fold has something to
  * hang on.
  */
-
 
 // SYNTHETIC: WIZ8 0x004f3370
 // W8TextBuffer::`scalar deleting destructor'

@@ -1,3 +1,4 @@
+#include "wiz8/font_manager.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/dirty_tiles.h"
@@ -7,6 +8,7 @@
 #include "Font.h"
 #include "himage.h"
 #include "input.h"
+#include "Types.h"
 #include "mousesystem.h"
 
 #include <stdlib.h>
@@ -90,20 +92,14 @@ unsigned char gfEditingText;
 extern wchar_t g_no_target_text[];
 extern unsigned char FillSurfaceRect(int surface_id, int left, int top,
                                      int right, int bottom, int colour);
-extern void* Function402B90(int surface_id, unsigned int* pitch);
-extern void Function402C30(int surface_id);
 extern int Function4124A0(void* pixels, unsigned int pitch, int* rectangle);
-extern int MSYS_GrabMouse(MOUSE_REGION* region);
-extern int Function55EF80(void);
 extern void Function55EE70(int value);
-void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason);
 
 // FUNCTION: WIZ8 0x0055ef80
 int Function55EF80(void)
 {
     return 8;
 }
-extern void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason);
 
 static TextInputColors* pColors;
 static STACKTEXTINPUTNODE* pInputStack;
@@ -122,15 +118,6 @@ static unsigned char gubMouseDownPos;
 static int gsCursorX;
 static size_t guiVisibleCount;
 
-void SetTextInputScheme(int mode);
-unsigned int CalculateCursorPos(int width, int cursor, const wchar_t* text,
-                           int* cursor_width, size_t* visible_count);
-void RenderBackgroundField(TEXTINPUTNODE* field);
-void RenderInactiveTextFieldNode(TEXTINPUTNODE* field);
-void SelectAllText(void);
-void HandleExclusiveInput(unsigned short character);
-void AddChar(unsigned short character);
-void SetTextInputCursor(unsigned char cursor);
 unsigned short Function402780(unsigned short key, unsigned char modifiers);
 unsigned short Function402800(unsigned short character);
 unsigned short Function402820(unsigned short character);

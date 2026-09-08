@@ -1,3 +1,9 @@
+#include "Types.h"
+#include "mousesystem.h"
+#include "wiz8/bringup_gates.h"
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/LoadSaveGame.h"
+#include "wiz8/local_code/character_events.h"
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/Widget.h"
@@ -37,25 +43,9 @@
    spelling is not established; this descriptive name is provisional. */
 
 void SetValue64D8AC(unsigned long value);
-void Function54B250(unsigned char notify, void* target);
 void GetSaveSlotName005D3CC0(int slot, wchar_t* name);
-unsigned char SaveSlotFileExists(const char* slot_name);
-int CountActiveCharacters(void);
-unsigned int FindFreePartySlot(unsigned int first, unsigned int last);
-unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
-                            char report_failure);
-void BuildCharacterFilePath00514FA0(char* destination, const char* filename,
-                                    int slot);
-void BuildCharacterPath00514EC0(char* destination, const wchar_t* name,
-                                int slot);
-extern "C" int MSYS_Init(void);
-extern void NoOp(void);
-extern "C" void MSYS_Shutdown(void);
-void ResetRegions(void);
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
-int Function52E750(void);
-void RenderFrame(void);
 unsigned short Function402780(unsigned short key, unsigned char modifiers);
 void Function55EE70(int value);
 void RenderPartyPortrait0052EB00(int portrait, int left, int top,

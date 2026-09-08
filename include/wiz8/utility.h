@@ -35,7 +35,7 @@ void ClampUnsignedInteger(
     unsigned int* value, unsigned int minimum, unsigned int maximum);
 int CompareUnsignedDescending(
     const unsigned int* first, const unsigned int* second);
-int CompareSignedAscending(const int* first, const int* second);
+int CompareSignedAscending(const void* first, const void* second);
 int CompareSignedDescending(const int* first, const int* second);
 char* FormatString(const char* format, ...);
 wchar_t* FormatWideString(const wchar_t* format, ...);

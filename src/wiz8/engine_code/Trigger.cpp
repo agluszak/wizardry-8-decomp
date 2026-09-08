@@ -1,3 +1,7 @@
+#include "wiz8/engine_code/AmbientSound.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/magic.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/engine_code/Levels.h"
@@ -54,8 +58,6 @@
 
 // GLOBAL: WIZ8 0x006599B8
 W8GrowableVector<W8TriggerEvent*> g_timed_events_006599b8;
-extern void ApplyRolledHealthChangeToParty(
-    const W8Dice* dice, int argument_2, int argument_3);
 extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
 extern unsigned int FindMonsterLocationsInBox0042F280(
@@ -63,7 +65,7 @@ extern unsigned int FindMonsterLocationsInBox0042F280(
     const srVector3T<float>* upper, int kind, int excluded_location);
 extern stLight* FindLightByName00445A10(
     const char* name, const srRuntimeClass* relative_to);
-extern void SetWorldEnvironmentValue00483AE0(W8World* world, float value);
+
 unsigned char g_trigger_action_active_006599c8;
 srVector3T<float> g_trigger_action_scene_offset_006599ac;
 // GLOBAL: WIZ8 0x00659908
@@ -71,7 +73,7 @@ char g_trigger_parse_buffer_00659908[256];
 W8GrowableVector<int> g_location_variable_levels_006598e0;
 W8GrowableVector<char*> g_location_variable_names_006598f8;
 W8GrowableVector<int> g_location_variable_values_00659990;
-extern unsigned char g_flag_00606994;
+
 // GLOBAL: WIZ8 0x00606994
 unsigned char g_flag_00606994 = 1;
 extern unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all);
@@ -86,46 +88,30 @@ extern void RequestLevelTransition005615F0(
     int location_id, int entrance, unsigned char show_message);
 extern void* SpawnSpellEffect004AD080(
     const char* name, int animation, int value_1, int value_2);
-extern void Function48F280(W8World* world, const char* name, int active);
+
 extern unsigned char Function521060(
     int item_id, int value_1, int value_2, int value_3, int value_4);
 extern void Function41C680(int interface_id, int state);
-extern void PositionAmbientSoundByName0047A950(int unused, const char* name);
-extern void StopAmbientSoundByName0047A9E0(int unused, const char* name);
-extern void ToggleAmbientSoundByName0047AA70(int unused, const char* name);
 extern void UpdateCameraView00450080(srCamera* camera, int mode);
-extern void RestorePartyStaminaByDice(
-    unsigned char count, unsigned char sides, short base);
-extern void HealPartyByDice(
-    unsigned char count, unsigned char sides, short base);
-extern void RestorePartySpellPoints(int amount);
-extern int PointCastSpell(
-    float x, float y, float z, int spell_id, unsigned int power_level);
-extern void RemoveAllConditionsFromParty(void);
 
 extern int ApplyItemEffectToRandomCharacter0052E5C0(
     unsigned int item_id, int character_filter, int value_3, int value_4);
-extern char PartyAttemptsToIdentifyItem(
-    W8ItemInstance* item, int argument_2);
-extern void MoveItem(
-    W8ItemInstance* destination, W8ItemInstance* source,
-    int argument_3, int argument_4);
-extern unsigned char g_flag_0068506e;
+
 // GLOBAL: WIZ8 0x0068506e
 unsigned char g_flag_0068506e;
-extern int g_value_0068c520;
+
 // GLOBAL: WIZ8 0x0068c520
 int g_value_0068c520;
-extern int g_value_0068c548;
+
 // GLOBAL: WIZ8 0x0068c548
 int g_value_0068c548;
-extern int g_value_005ee59c;
+
 // GLOBAL: WIZ8 0x005ee59c
 int g_value_005ee59c = 5;
-extern int g_value_005ee5a0;
+
 // GLOBAL: WIZ8 0x005ee5a0
 int g_value_005ee5a0 = 6;
-extern int g_value_005ed8c8;
+
 // GLOBAL
 int g_value_005ed8c8;
 

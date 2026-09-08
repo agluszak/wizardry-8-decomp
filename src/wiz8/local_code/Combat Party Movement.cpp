@@ -1,3 +1,5 @@
+#include "wiz8/engine_code/GameData.h"
+#include "wiz8/local_code/Sight.h"
 #include "wiz8/local_screens/MGSPartyMovement.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/xstatus.h"
@@ -28,11 +30,8 @@ extern float g_movement_speed_step_005ed490;
 extern void SetPartyMoving(int moving);                                 /* 0x00420B40 */
 extern void ReleasePartyMovement(void);                                 /* 0x005A1890 */
 extern void HoldPartyMovement(void);                                    /* 0x005A1DD0 */
-extern void ResetLevelDataVectors0041F0D0(void);
 extern void Function5354E0(void);
 extern void Function4F06B0(void);
-extern unsigned char GetLevelDataFlag6(void);                            /* 0x0041F140 */
-extern void RefreshOutwardSightForAllMonsters(void);                     /* 0x00505780 */
 extern unsigned char Function4F0010(unsigned int* out_steps);
 
 /* Note that the party has started moving. */

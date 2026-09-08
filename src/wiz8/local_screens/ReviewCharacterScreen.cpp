@@ -1,3 +1,8 @@
+#include "wiz8/magic.h"
+#include "wiz8/local_code/character_events.h"
+#include "wiz8/npc_interaction.h"
+#include "wiz8/render_state.h"
+#include "wiz8/targeting.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/screen_state.h"
@@ -20,6 +25,7 @@
 #include "Font.h"
 #include "english.h"
 #include "input.h"
+#include "Types.h"
 #include "mousesystem.h"
 #include "random.h"
 #include "timer.h"
@@ -62,23 +68,15 @@ int g_camp_spell_animations[6][3] = {
 };
 
 extern unsigned char g_flag_689b32;
-extern unsigned char g_flag_00685071;
-extern int g_value_00685072;
-extern unsigned char g_flag_00685076;
-extern signed char g_value_00685077;
-extern int g_effect_005ee6ec;
+
 // GLOBAL: WIZ8 0x005ee6ec
 int g_effect_005ee6ec = 109;
-extern int g_effect_argument_005ed8cc;
+
 // GLOBAL: WIZ8 0x005ed8cc
 int g_effect_argument_005ed8cc = 1;
-extern int g_effect_argument_005ed914;
 
-unsigned char ClearPrimarySurface(void);
 void PlaySound(const char* path, int flags);
-void Function53A320(int state);
 void Function5187E0(void);
-void BeginCombatRound(void);
 #include "line.h"
 void Function5B4EB0(void);
 void Function5B9070(void);
@@ -92,16 +90,10 @@ void Function5B9760(void);
 void Function5B9EA0(void);
 void Function4EF1F0(void);
 void Function5B6B30(unsigned int slot);
-unsigned char IsPartySlotEligible00524A10(int slot);
-int Function52E690(W8Character*, int, int, int, unsigned int);
 void Function5B59B0(int page);
-void SortPartyItemPool(void);
 void Function52DDD0(void);
-int Function52E750(void);
 void Function5A42A0(void);
-void ResetTransientRenderScenes(void);
 void Function425570(int value);
-void ResetRegions(void);
 void Function5C5240(void);
 // GLOBAL: WIZ8 0x0069c428
 Controls* g_camp_secondary_panel_0069c428;
@@ -478,8 +470,6 @@ void W8CampSkillRange::OnRangeChanged(W8RangeControl*)
 /* Lifecycle record 6's initializer - the camp record, which is what
    W8_SCREEN_CAMP selects. It drops the camp screen's state pointer rather than
    releasing it; the block is owned by the enter/leave pair. */
-void CampScreenInitializeRegions(void);
-void Function5B7230(void);
 // FUNCTION: WIZ8 0x005a3500
 unsigned char CampScreenInitialize(void)
 {

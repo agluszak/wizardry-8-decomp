@@ -26,7 +26,6 @@ W8MainGameScreen005EEBD8* g_main_game_screen_0068f2d4;
 /* The redraw the text box asks for whenever anything it shows changes. */
 enum { W8_REDRAW_TEXT_BOX = 0x800 };
 
-extern void RequestRedraw(int mask);                                    /* 0x00562A50 */
 extern unsigned char g_text_box_mode_0069b7b8;
 // GLOBAL: WIZ8 0x0069b7b8
 unsigned char g_text_box_mode_0069b7b8;

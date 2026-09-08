@@ -24,8 +24,6 @@ unsigned char g_flag_689b2c;
 extern char g_path_6e0fa0[];
 
 extern unsigned char FindGameDataPath0042B590(char* path, int drive);
-extern unsigned char ClearFlag603C60(void);
-extern unsigned char SetFlag603C60(void);
 extern void ContinueAfterDarkEndingVideo005AE770(void);
 extern void ShowModalMessage005A6620(int a, int b, int c,
                                     void (*callback)(void), int d, int e);

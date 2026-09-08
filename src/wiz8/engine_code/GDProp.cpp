@@ -1,3 +1,4 @@
+#include "wiz8/local_code/ItemManager.h"
 /* Engine Code\GDProp.cpp */
 
 #include "wiz8/engine_code/GDProp.h"
@@ -19,7 +20,6 @@ float g_float_005ebccc = 0.75f;
 #include <stdlib.h>
 #include <string.h>
 
-extern void SetWorldItemFlag02(W8WorldItem* item, char enabled);
 
 // FUNCTION: WIZ8 0x004b6e00
 GDProp::GDProp(

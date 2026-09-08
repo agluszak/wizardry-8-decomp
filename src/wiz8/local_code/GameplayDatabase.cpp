@@ -35,7 +35,6 @@ unsigned char g_status_block_685078[56];
 #include <string.h>
 #include <stdlib.h>
 
-extern void __fastcall ProcessStartupStateEntry(W8StartupStateElement005EE748* entry);
 extern unsigned char IsSoundPlaying(int sound_handle);
 extern unsigned char StopSound(int sound_handle);
 extern void Function52F890(int party_slot, int value_1, int value_2, int value_3, int value_4);
@@ -72,7 +71,6 @@ char** g_item_table_category_names;
 W8SpellRuntimeRecord* g_spell_records;
 // GLOBAL: WIZ8 0x0065BE18
 unsigned int g_spell_database_version;
-extern void DisableRenderOption(int id);
 extern int g_dword_6875b7;
 // GLOBAL: WIZ8 0x006875b7
 int g_dword_6875b7;
@@ -83,7 +81,6 @@ extern void Function558820(void);
 extern void Function535920(void);
 extern void Function56C520(void);
 /* 0x004E8290, not yet identified; notified when a party slot is reset. */
-extern void SetSlotAction(int slot, int a, int b);
 #define GAMEPLAY_DATABASE_CPP "C:\\Projects\\Wizardry 8\\Local Code\\GameplayDatabase.cpp"
 
 /* The three loaders below share one shape: build Data\Databases\<NAME>.DBS,

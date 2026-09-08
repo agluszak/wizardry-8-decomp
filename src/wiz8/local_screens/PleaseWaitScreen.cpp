@@ -1,3 +1,7 @@
+#include "Types.h"
+#include "mousesystem.h"
+#include "wiz8/bringup_gates.h"
+#include "wiz8/regions.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/render_state.h"
 #include "wiz8/engine_code/World.h"
@@ -67,14 +71,8 @@ unsigned char g_cd_marker_present_69b7d0;
 
 }
 
-void ResetRegions(void);
-unsigned char SetFlag603C60(void);
-unsigned char ClearFlag603C60(void);
 /* Engine Code\Levels.cpp owns this with C++ linkage. */
 
-extern void NoOp(void);
-extern void MSYS_Shutdown(void);
-extern int MSYS_Init(void);
 #include "line.h"
 extern void Function425570(int value);
 /* 0x00412A10; the reviewed identity Ghidra carries. Nothing defines it yet. */

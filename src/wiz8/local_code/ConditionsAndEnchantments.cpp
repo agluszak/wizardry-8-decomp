@@ -1,3 +1,8 @@
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_code/Sight.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/targeting.h"
@@ -14,7 +19,7 @@
 #include "wiz8/sr_api.h"
 
 extern void Function5477D0(W8MonsterInfo* monster_info, int flag);
-extern unsigned char g_flag_00683F94;
+
 // GLOBAL
 unsigned char g_flag_00683F94;
 /* Condition-to-notice word table. Only the first word of each four-word
@@ -38,8 +43,6 @@ unsigned short g_condition_notices_0061E570[128] = {
     0x673, 0x674, 0x675, 0x676, 0x3a0, 0x3a1, 0x3a2, 0x3a3,
     0x3a4, 0x3a5, 0x3a6, 0x3a7, 0x3a8, 0x3a9, 0x3aa, 0x3ab,
 };
-extern wchar_t* GetMonsterName(
-    W8MonsterInfo* monster_info, W8MonsterRecord* record, char arg_3);
 extern char Function521060(
     int id, int* out_id, W8Character** out_character, int a, int b);
 extern void Function536570(int party_slot, int a, int b);
@@ -48,7 +51,6 @@ extern unsigned char Function4E79A0(int party_slot, int a, int b, int c);
 extern void Function53A930(int party_slot, W8CombatSlot* target);
 extern void Function547A50(int party_slot);
 extern void Function5237E0(int party_slot);
-extern unsigned char Function547940(const W8Character* character, int trait);
 extern void Function52F430(void* character);
 
 // FUNCTION: WIZ8 0x005248a0
@@ -77,12 +79,11 @@ W8Character* FindPartyMemberWithLowestResistance4(void)
     return &g_party_characters[selected];
 }
 extern void Function590950(int party_slot, const wchar_t* format, ...);
-extern void CharacterDies(int party_slot);
 extern void Function50E650(int party_slot);
-extern unsigned char g_byte_00687500;
+
 // GLOBAL
 unsigned char g_byte_00687500;
-extern unsigned char g_enchantment_six_cleared_006840bb;
+
 // GLOBAL
 unsigned char g_enchantment_six_cleared_006840bb;
 
@@ -185,14 +186,10 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
         }
     }
 }
-extern void ResetTargetSource(W8TargetSource* target_block);               /* 0x00536150 */
 extern void NotifySpellPointsChanged(int party_slot);                    /* 0x0055EE30 */
-extern void Function4ACD80(W8Monster* monster, int slot, int arg_3);
+
 extern void Function50E8C0(int location_id);
 extern void Function50E650(int party_slot);
-extern void RefreshMonsterSight(W8MonsterInfo* monster_info);
-extern void RequestRedraw(int mask);
-extern unsigned char g_enchantment_six_cleared_006840bb;
 
 /*
  * Original translation unit: Local Code\Conditions & Enchantments.cpp.

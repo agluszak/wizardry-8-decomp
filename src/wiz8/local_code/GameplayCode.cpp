@@ -1,3 +1,5 @@
+#include "wiz8/character.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/local_code/GameplayCode.h"
@@ -29,11 +31,8 @@ enum {
     W8_PHYS_COMBAT_WEIGHT_CASTER = 2
 };
 
-extern void CalcXPGoal(W8Character* character);                 /* 0x004EF090 */
 /* 0x00616604: one entry per faction, race and profession together. */
 extern const int g_character_table_00616604[];
-extern unsigned char Function547940(const W8Character* character, int ability);
-extern unsigned int FatigueArmorPenalty(int fatigue_band);
 
 // GLOBAL: WIZ8 0x00683F94
 unsigned char g_in_combat_00683f94;

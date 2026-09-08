@@ -8,11 +8,6 @@
 
 struct W8Character;
 
-extern void CopyItemInstance( /* 0x0051FE30 */
-    W8ItemInstance* destination,
-    W8ItemInstance* source,
-    W8Character* character,
-    unsigned char refresh);
 
 // FUNCTION: WIZ8 0x004f6b90
 W8WorldItem* CreateWorldItem(
