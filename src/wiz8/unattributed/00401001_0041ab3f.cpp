@@ -5,6 +5,28 @@
 /* Address quarantine 00401001-0041ab3f; bounds come from adjacent
    assertion-backed original translation-unit intervals. */
 
+// GLOBAL: WIZ8 0x00650f9c
+int g_surface_pitch_00650f9c;
+// GLOBAL: WIZ8 0x00650fa0
+int g_surface_clip_left_00650fa0;
+// GLOBAL: WIZ8 0x00650fa4
+int g_surface_clip_right_00650fa4;
+// GLOBAL: WIZ8 0x00650fa8
+int g_surface_clip_top_00650fa8;
+// GLOBAL: WIZ8 0x00650fac
+int g_surface_clip_bottom_00650fac;
+
+// FUNCTION: WIZ8 0x00413FD0
+void SetSurfaceClipBounds00413FD0(
+    int pitch, int left, int top, int width, int height)
+{
+    g_surface_pitch_00650f9c = pitch;
+    g_surface_clip_left_00650fa0 = left;
+    g_surface_clip_right_00650fa4 = left + width - 1;
+    g_surface_clip_top_00650fa8 = top;
+    g_surface_clip_bottom_00650fac = top + height - 1;
+}
+
 // FUNCTION: WIZ8 0x00402780
 unsigned short Function402780(unsigned short key, unsigned char modifiers)
 {

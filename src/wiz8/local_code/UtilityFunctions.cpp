@@ -2,6 +2,7 @@
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/local_code/Strings.h"
+#include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/fonts.h"
 #include "wiz8/sr_api.h"
@@ -20,12 +21,12 @@
 #include <wchar.h>
 #include <stdlib.h>
 
-extern W8RPCSlot g_rpc_slots[8];
-extern W8RPCSlot g_rpc_slots_end[];
 extern int g_string_table_count;
 // GLOBAL: WIZ8 0x0068c098
 int g_string_table_count;
 extern char** g_string_table;
+// GLOBAL
+char** g_string_table;
 // GLOBAL: WIZ8 0x0068c0a4
 int g_message_box_state;
 // GLOBAL: WIZ8 0x0061a548
@@ -496,8 +497,9 @@ void FormatDebugMessage(int channel, const char* format, ...)
 int RPCPtrToPCSlot(const W8RPCSlot* rpc)
 {
     int slot = 0;
+    W8RPCSlot* g_rpc_slots = reinterpret_cast<W8RPCSlot*>(&g_monster_manager_state);
 
-    for (W8RPCSlot* current = g_rpc_slots; current < g_rpc_slots_end; ++current) {
+    for (W8RPCSlot* current = g_rpc_slots; current < g_rpc_slots + 8; ++current) {
         if (rpc == current) {
             return slot;
         }

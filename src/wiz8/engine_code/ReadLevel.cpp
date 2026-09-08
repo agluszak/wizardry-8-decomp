@@ -67,9 +67,13 @@ static_assert(sizeof(W8LevelLightRecord004BBAD0) == 0x28,
 } // namespace
 
 extern const float g_world_scale_005ebc40;
-extern const float g_environment_distance_threshold_005ebcd0;
+extern float g_octree_cell_scale_005ebcd0;
 extern const float g_environment_near_scale_005ec0b0;
+// GLOBAL: WIZ8 0x005ec0b0
+const float g_environment_near_scale_005ec0b0 = 2.0f;
 extern srVector3T<float> g_environment_offset_00659cd0;
+// GLOBAL: WIZ8 0x00659cd0
+srVector3T<float> g_environment_offset_00659cd0;
 extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
 extern void WorldSetFarClip(W8World* world, float distance);
@@ -340,7 +344,7 @@ unsigned char ReadWorldEnvironment004BC9D0(
     white.blue = 1.0f;
     SetWorldEnvironment00483BA0(pWorld, intensity, &white);
     WorldSetFarClip(pWorld, pWorld->view_distance_020);
-    distance_scale = view_distance < g_environment_distance_threshold_005ebcd0
+    distance_scale = view_distance < g_octree_cell_scale_005ebcd0
         ? g_environment_near_scale_005ec0b0
         : g_float_005ec3b8;
     WorldSetValue74(pWorld, distance_scale * pWorld->view_distance_020);

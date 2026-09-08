@@ -17,6 +17,8 @@ extern float g_float_005ec188;
 float g_float_005ec188 = 1.000100016593933f;
 extern void Function497690(int channel, const char* message);
 extern void* g_oct_build_scratch_00659a48;
+// GLOBAL: WIZ8 0x00659a48
+void* g_oct_build_scratch_00659a48;
 
 W8OctBuildLinkLists::W8OctBuildLinkLists()
     : m_usCurrent(0), padding_02(0)

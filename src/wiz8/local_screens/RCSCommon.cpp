@@ -26,6 +26,14 @@ extern Controls* g_level_up_panel_0069c3c4;
 extern Controls* g_dismiss_panel_0069c3c8;
 extern W8TextControl* g_level_up_button_0069c3c0;
 extern W8TextControl* g_dismiss_button_0069c400;
+// GLOBAL: WIZ8 0x0069c3c4
+Controls* g_level_up_panel_0069c3c4;
+// GLOBAL: WIZ8 0x0069c3c8
+Controls* g_dismiss_panel_0069c3c8;
+// GLOBAL: WIZ8 0x0069c3c0
+W8TextControl* g_level_up_button_0069c3c0;
+// GLOBAL: WIZ8 0x0069c400
+W8TextControl* g_dismiss_button_0069c400;
 extern unsigned char g_in_combat_00683f94;
 extern unsigned char g_camp_open_00683f9b;
 extern unsigned short g_value_006840be;

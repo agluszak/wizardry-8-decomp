@@ -1,6 +1,20 @@
 #include "wiz8/character.h"
 #include "wiz8/layouts/gameplay_databases.h"
 
+extern void Function4EFA30(W8Character* character);
+extern void CalcCharacterTableValue(W8Character* character);
+
+// FUNCTION: WIZ8 0x00558610
+void Function558610(W8Character* character)
+{
+    character->table_value_0079 = -1;
+    for (int index = 0; index < 8; ++index) {
+        character->unknown_007d[index] = 0xff;
+    }
+    Function4EFA30(character);
+    CalcCharacterTableValue(character);
+}
+
 /* Profession and race trait-id sets. Values are the retail table contents at
    0x0061507C (fifteen triples) and 0x00615130 (eleven quintuples); -1 is no
    trait. */
@@ -36,6 +50,21 @@ W8RaceAbilitySet g_race_abilities[11] = {
     {{-1, -1, -1, -1, -1}},
     {{-1, -1, -1, -1, -1}},
     {{-1, -1, -1, -1, -1}},
+};
+
+// GLOBAL: WIZ8 0x00615270
+W8RaceResistanceProfile g_race_resistance_profiles[11] = {
+    {{{-1, 0}, {-1, 0}, {-1, 0}, {-1, 0}, {-1, 0}, {-1, 0}}},
+    {{{4, 20}, {2, 10}, {-1, 0}, {-1, 0}, {-1, 0}, {-1, 0}}},
+    {{{0, 1003}, {-1, 0}, {-1, 0}, {-1, 0}, {-1, 0}, {-1, 0}}},
+    {{{4, 1003}, {3, 10}, {-1, 0}, {-1, 0}, {-1, 0}, {-1, 0}}},
+    {{{3, 1003}, {-1, 0}, {-1, 0}, {-1, 0}, {-1, 0}, {-1, 0}}},
+    {{{2, 15}, {3, 15}, {4, 15}, {5, 15}, {-1, 0}, {-1, 0}}},
+    {{{1, 10}, {3, 10}, {0, 15}, {5, -10}, {4, -10}, {-1, 0}}},
+    {{{1, 15}, {2, 5}, {5, -5}, {4, -5}, {-1, 0}, {-1, 0}}},
+    {{{1, -15}, {3, 10}, {2, 10}, {4, 10}, {-1, 0}, {-1, 0}}},
+    {{{1, 10}, {3, 5}, {5, 15}, {-1, 0}, {-1, 0}, {-1, 0}}},
+    {{{5, 10}, {1, 15}, {4, 15}, {-1, 0}, {-1, 0}, {-1, 0}}},
 };
 
 /* Whether the character has the trait through profession, race, or - for

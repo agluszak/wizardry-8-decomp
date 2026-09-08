@@ -108,7 +108,6 @@ unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indi
 /* The faction names, thirty bytes apart, in the same order as the faction ids.
    Twenty-one of them, which is the whole faction domain. */
 extern const char g_faction_names[][0x1e];               /* 0x0061CE74 */
-extern W8FactionRuntimeRecord g_faction_runtime[];       /* 0x0068D6EA */
 
 extern char GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize, int context);
 char TargetMatchesNeeded(W8CombatSlot* target, int needed);
@@ -137,20 +136,20 @@ char FindFactionByName(const char* name)
 // FUNCTION: WIZ8 0x005360f0
 int GetFactionValue(char faction)
 {
-    return g_faction_runtime[faction].value_04;
+    return g_factions[faction].value_06;
 }
 
 /* Raise or lower one faction's flag. */
 // FUNCTION: WIZ8 0x00536110
 void SetFactionFlag(char faction, unsigned char flag)
 {
-    g_faction_runtime[faction].flag_08 = flag;
+    g_factions[faction].flag_0a = flag;
 }
 
 // FUNCTION: WIZ8 0x00536130
 unsigned char GetFactionFlag(char faction)
 {
-    return g_faction_runtime[faction].flag_08;
+    return g_factions[faction].flag_0a;
 }
 
 /* Build an empty target block: everything zeroed, then the two ids set to
@@ -1021,6 +1020,8 @@ void CollectMonstersWithinRadius(
    party rather than kept per slot - which is what makes it the odd one out
    among the six. */
 extern W8CombatSlot g_shared_target_0068408b;
+// GLOBAL: WIZ8 0x0068408b
+W8CombatSlot g_shared_target_0068408b;
 
 
 /* The two dialogue selections that have a targeting context of their own, and
@@ -1152,9 +1153,9 @@ void Function53A2C0(W8MonsterInfo* monster_info, int location_id)
    chosen hostile spell accepts. The caller only needs the validator's side
    effects, so this wrapper discards its answer. */
 // FUNCTION: WIZ8 0x0053A300
-void Function53A300(W8MonsterInfo* monster_info, int spell_id)
+unsigned char Function53A300(W8MonsterInfo* monster_info, int spell_id)
 {
-    TargetMatchesNeeded(
+    return TargetMatchesNeeded(
         &monster_info->combat_slot_2ba, GetTargetNeededForSpellHostile(spell_id));
 }
 
@@ -1422,9 +1423,6 @@ unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
     }
     return reachable != 0;
 }
-/* 0x00649F1C: the camp screen, which pins targeting to the one monster it is
-   showing. */
-extern unsigned char* g_camp_screen_00649f1c;
 extern unsigned char IsSlotInRangeOfGroup(
     int party_slot, int group_id, int context, int arg_4);               /* 0x00519920 */
 
@@ -1459,7 +1457,7 @@ unsigned char CanTargetMonster(
         return 0;
     }
     if (gXStatus.fCampMode != 0 &&
-        *(const int*)(g_camp_screen_00649f1c + 0xf8) != location_id) {
+        g_screen_state_00649f1c->target_location_id_f8 != location_id) {
         return 0;
     }
 

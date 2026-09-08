@@ -249,7 +249,7 @@ extern int GetHandAttackValue(int party_slot, unsigned int hand);        /* 0x00
 extern void ChooseCombatAction(
     int party_slot, int is_monster_turn, int* out_kind, int a, int b, int c); /* 0x004E77B0 */
 extern void ApplyCharacterEffect(
-    W8Character* character, void* effect, int arg_3, int arg_4, int arg_5);
+    W8Character* character, int effect, int arg_3, int arg_4, int arg_5);
 extern unsigned char CharacterCanSwitchTo(int party_slot, int a, int b, int c);
 /* 0x004E79A0 */
 extern void SwitchCharacterTo(int party_slot, int action);               /* 0x004ED390 */
@@ -258,14 +258,14 @@ extern void MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int arg_3
 extern void NotifyMonsterIdle(W8Monster* monster, int arg_2);         /* 0x004C6240 */
 extern void NotifyMonsterFacing(W8Monster* monster, W8Monster* target, int arg_3);
 /* 0x004C62C0 */
-extern void Function4C6200(W8Monster* monster, int arg_2);
+extern void MonsterSetNavigatorFlag25(W8Monster* monster, char value);
 extern unsigned char Function5323F0(W8MonsterInfo* monster_info, int a, int b, int c);
 extern void SetMonsterTurnSpeed(float speed);                            /* 0x00453C70 */
 extern int MonsterActionFatigueCost(const W8MonsterInfo* monster_info);
 extern void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount, int report_to);
 extern void RoundPhaseToStep(unsigned int* phase, unsigned int base);
 extern void RequestRedraw(unsigned int mask);
-extern void* g_effect_005ee610;
+extern int g_effect_005ee610;
 extern unsigned int g_flee_hp_fraction_005ed8f8;
 extern unsigned int g_flee_chance_005ed908;
 // GLOBAL: WIZ8 0x005ed908
@@ -275,7 +275,8 @@ extern float g_movement_speed_step_005ed490;
 float g_movement_speed_step_005ed490 = 0.009999999776482582f;
 /* 0x00683FE7-adjacent: the per-character per-hand attack values combat saved
    when the round began, 0x35 dwords per character. */
-extern int g_saved_attack_values[];
+// GLOBAL
+int g_saved_attack_values[8 * 0x35];
 
 /* What one character's whole turn is worth. A character whose turn combat has
    already set up uses the values it saved; anyone else is asked afresh. A
@@ -417,7 +418,7 @@ void EndMonsterAttack(W8MonsterInfo* monster_info)
 
     GetMonsterDataForInfo(monster_info);
     FatigueMonster(monster_info, MonsterActionFatigueCost(monster_info), 0);
-    Function4C6200(monster_info->monster, 1);
+    MonsterSetNavigatorFlag25(monster_info->monster, 1);
     g_combat_state->selected_slot = 0;
     g_combat_state->selected_monster = 0;
 

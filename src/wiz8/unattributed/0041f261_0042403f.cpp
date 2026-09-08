@@ -20,6 +20,8 @@ extern unsigned char g_flag_00652da7;
 // GLOBAL: WIZ8 0x00652da7
 unsigned char g_flag_00652da7;
 extern const double g_double_005ebc18;
+// GLOBAL: WIZ8 0x005ebc18
+const double g_double_005ebc18 = 3.141592653589793;
 extern const float g_float_005ebcf8;
 
 // FUNCTION: WIZ8 0x00420b40

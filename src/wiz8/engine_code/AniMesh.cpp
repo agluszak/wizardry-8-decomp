@@ -31,6 +31,8 @@ extern void ExpandBounds0046F510(
 extern double g_double_005ebe80;
 // GLOBAL: WIZ8 0x005ebe80
 double g_double_005ebe80 = 0.5;
+// GLOBAL: WIZ8 0x005ebb40
+extern const double g_zero_005ebb40 = 0.0;
 extern int g_storage_state_65be80;
 extern int g_storage_state_65be84;
 extern int g_storage_limit_65be88;

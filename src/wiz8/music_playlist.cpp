@@ -23,6 +23,12 @@ int g_music_state_60aaec;
 int g_music_state_60aaf0;
 extern unsigned char g_flag_689b32;
 
+// FUNCTION: WIZ8 0x00490180
+char IsCurrentMusicPlaylist(const char* playlist)
+{
+    return _stricmp(playlist, g_music_playlist_65ba74->getName()) == 0;
+}
+
 /* Builds the named playlist object before the screen loop begins. */
 // FUNCTION: WIZ8 0x0048f940
 extern "C" unsigned char InitializeMusicPlaylist(void)

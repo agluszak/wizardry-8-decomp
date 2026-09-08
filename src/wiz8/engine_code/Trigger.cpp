@@ -64,7 +64,8 @@ extern stLight* FindLightByName00445A10(
 extern void SetWorldEnvironmentValue00483AE0(W8World* world, float value);
 unsigned char g_trigger_action_active_006599c8;
 srVector3T<float> g_trigger_action_scene_offset_006599ac;
-extern char g_trigger_parse_buffer_00659908[256];
+// GLOBAL: WIZ8 0x00659908
+char g_trigger_parse_buffer_00659908[256];
 W8GrowableVector<int> g_location_variable_levels_006598e0;
 W8GrowableVector<char*> g_location_variable_names_006598f8;
 W8GrowableVector<int> g_location_variable_values_00659990;

@@ -32,7 +32,7 @@ void Function425570(int value);
 int MSYS_Init(void);
 void SetViewport(int left, int top, int right, int bottom);
 void UpdateHeldItemCursor(void);
-void Function406DC0(int font, unsigned short* palette);
+unsigned short* SetFontObjectPalette16BPP(int font, unsigned short* palette);
 
 // GLOBAL: WIZ8 0x0069C130
 unsigned int* g_small_subsystem_69c130;
@@ -41,7 +41,7 @@ extern unsigned char g_flag_689b32;
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
 void RenderFrame(void);
-void Function427230(int enabled);
+void SetRendererOption4Enabled(char enabled);
 void RepositionAmbientSounds0047A600(W8World* world);
 void UpdateAmbientSounds0047A3E0(W8World* world);
 
@@ -339,7 +339,7 @@ unsigned char OptionsScreenEnter()
     MSYS_Init();
     ResetRegions();
     UpdateHeldItemCursor();
-    Function406DC0(g_font_683660, g_colour_68ee08);
+    SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
     g_flag_69c1c4 = 0;
     Function5A6E20(&g_options_values_0069c138);
     g_options_screen_0069c254 = new W8OptionsScreen();
@@ -434,9 +434,9 @@ void OptionsScreenFrame()
     }
     screen->Function5A95F0();
     if (g_flag_69c1c8 != 0) {
-        Function427230(0);
+        SetRendererOption4Enabled(0);
         RenderFrame();
-        Function427230(1);
+        SetRendererOption4Enabled(1);
         g_flag_69c1c8 = 0;
     }
     RenderFrame();

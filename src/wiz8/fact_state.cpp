@@ -17,6 +17,10 @@ unsigned char g_log_fact_checks;
 unsigned char g_import_party_loaded;
 // GLOBAL: WIZ8 0x0068de5d
 int g_import_ending_choice;
+// GLOBAL: WIZ8 0x00689b78
+unsigned char g_fact_values[1001];
+// GLOBAL
+unsigned char g_import_flags[0x60];
 
 /* 0x005080F0, reviewed in evidence/reviewed/wiz8/claims.csv. */
 extern unsigned char EvaluateFact(int fact_id);

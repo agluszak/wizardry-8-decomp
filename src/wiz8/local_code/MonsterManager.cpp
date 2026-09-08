@@ -45,7 +45,7 @@ unsigned char GetRenderOptionState(int index);
 unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating);
 unsigned char MonsterIsAnimating(W8Monster* monster);
 void MonsterSetPendingCycle(W8Monster* monster, int cycle);
-void Function4C5B10(W8Monster* monster, int value);
+unsigned char MonsterReplacePath(W8Monster* monster, void* path);
 int MonsterQuery(W8Monster* monster, int query);
 void MonsterForward4537E0(W8Monster* monster);
 void MonsterSetBehaviour(W8Monster* monster, int behavior);
@@ -73,7 +73,7 @@ void Function4ACF90(W8Monster* monster);
 void ReleaseMonToMonVisibilityList(W8MonsterInfo* monster_info);
 /* Writes the monster's world position through an out-parameter; __cdecl, since
    0x004C5750 ends in a bare `ret`. */
-void Function4C5750(W8Monster* monster, srVector3T<float>* position);
+void MonsterGetLocalLocation(W8Monster* monster, srVector3T<float>* position);
 void RefreshAllSight(void);
 void SetTargetToMonster(int location_id, int value);
 void Function593330(void);
@@ -81,7 +81,16 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
 void MonsterSetRuntimeBehaviour(W8Monster* monster, signed char behaviour);
 void MonsterForward4A84A0(W8Monster* monster);
 float Function4BE5C0(srVector3T<float>* position);
-int Function52A780(int first, int second);
+// FUNCTION: WIZ8 0x0052A780
+int CalculateMonsterHealthTier(int current, int maximum)
+{
+    int percentage_lost = 100 - current * 100 / static_cast<unsigned int>(maximum);
+    if (percentage_lost < 50) return 0;
+    if (percentage_lost < 70) return 1;
+    if (percentage_lost < 85) return 2;
+    if (percentage_lost < 95) return 3;
+    return 4;
+}
 
 /* The two cycles that always start regardless of the pending one: 0x14 is the
    cycle a motionless monster is still allowed to enter, and 0x15 is death. */
@@ -89,7 +98,6 @@ enum { W8_CYCLE_NONE = 0xff, W8_CYCLE_STOP = 0x14, W8_CYCLE_DEATH = 0x15 };
 enum { W8_BEHAVIOUR_NEVER_STOP = 3 };
 void MonsterDies(W8MonsterInfo* monster_info, int display_message);
 void __fastcall Function452C90(W8Navigator* navigator);
-void __fastcall Function4537E0(W8Navigator* navigator);
 W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                            unsigned char name_form);
 /* The character array the alternate-name form indexes, and the slot it uses. */
@@ -132,7 +140,7 @@ W8MonsterInfo* CreateMonsterInfo(
     value = RollDice(&record->runtime_stat_da);
     monster_info->runtime_stat_max_2f = value;
     monster_info->runtime_stat_current_33 = value;
-    monster_info->runtime_value_242 = Function52A780(value, value);
+    monster_info->runtime_value_242 = CalculateMonsterHealthTier(value, value);
 
     memset(monster_info->condition_turns, 0, sizeof(monster_info->condition_turns));
     memset(monster_info->enchantments, 0, sizeof(monster_info->enchantments));
@@ -425,7 +433,7 @@ void Function4E4600(W8MonsterInfo* monster_info)
     if (monster_info == 0) {
         srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x2f7, 0);
     }
-    Function4C5B10(monster_info->monster, 0);
+    MonsterReplacePath(monster_info->monster, 0);
     monster_info->monster->flags_00c &= 0xdfffffff;
     MonsterForward4537E0(monster_info->monster);
     if (monster_info->motionless == 0) {
@@ -937,7 +945,7 @@ void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state)
     case 2:
         if (monster_info->control_state == 1 &&
             monster_info->monster->linked_navigator_05c == 0) {
-            Function4537E0(monster_info->monster);
+            monster_info->monster->ClearMovement();
             monster_info->flag_255 = 0;
         }
         break;
@@ -1076,7 +1084,7 @@ void InitializeMonsterRuntimeStats(void)
         value = RollDice(&record->runtime_stat_da);
         monster_info->runtime_stat_max_2f = value;
         monster_info->runtime_stat_current_33 = value;
-        monster_info->runtime_value_242 = Function52A780(value, value);
+        monster_info->runtime_value_242 = CalculateMonsterHealthTier(value, value);
         monster_info->scale_24f = CalculateMonsterScale(monster_info);
         MonsterSetScale(monster_info->monster, monster_info->scale_24f);
         Function4C5810(monster_info->monster);
@@ -1102,7 +1110,7 @@ void InitializeMonsterRuntimeStats(void)
         value = RollDice(&record->runtime_stat_da);
         monster_info->runtime_stat_max_2f = value;
         monster_info->runtime_stat_current_33 = value;
-        monster_info->runtime_value_242 = Function52A780(value, value);
+        monster_info->runtime_value_242 = CalculateMonsterHealthTier(value, value);
         monster_info->scale_24f = CalculateMonsterScale(monster_info);
         MonsterSetScale(monster_info->monster, monster_info->scale_24f);
         Function4C5810(monster_info->monster);
@@ -1392,7 +1400,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         monster_info->monster->flags_00c = 0x200000;
         Function4ACF90(monster_info->monster);
         ReleaseMonToMonVisibilityList(monster_info);
-        Function4C5750(monster_info->monster, &position);
+        MonsterGetLocalLocation(monster_info->monster, &position);
         monster_info->position_17.x = position.x;
         monster_info->position_17.y = position.y;
         monster_info->position_17.z = position.z;
@@ -1430,7 +1438,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
     if (monster_info == 0) {
         srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x2f7, 0);
     }
-    Function4C5B10(monster_info->monster, 0);
+        MonsterReplacePath(monster_info->monster, 0);
     monster_info->monster->flags_00c &= 0xdfffffff;
     MonsterForward4537E0(monster_info->monster);
     if (monster_info->motionless == 0) {
@@ -1815,8 +1823,38 @@ W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
     return record->name_60 + name_form * 24;
 }
 
-float Function4EFB60(void);
-unsigned int Function554490(int skill_index, int* party_slot);
+// FUNCTION: WIZ8 0x004EFB60
+float GetAveragePartyLevel(void)
+{
+    float total = 0.0f;
+    float count = 0.0f;
+    for (int party_slot = 0; party_slot < 6; ++party_slot) {
+        if (g_party_slot_rows[party_slot].occupied != 0) {
+            total += g_party_characters[party_slot].level;
+            count += 1.0f;
+        }
+    }
+    if (count == 0.0f) return 1.0f;
+    return total / count;
+}
+
+// FUNCTION: WIZ8 0x00554490
+unsigned int GetBestPartySkillLevel(int skill_index, int* party_slot)
+{
+    unsigned int best_level = 0;
+    int best_slot = -1;
+    for (int index = 0; index < 8; ++index) {
+        W8Character* character = &g_party_characters[index];
+        if (g_party_slot_rows[index].occupied != 0 &&
+            character->hp_current != 0 && character->unknown_0b01 < 0xd &&
+            (character->skills[skill_index].level > best_level || best_slot == -1)) {
+            best_level = character->skills[skill_index].level;
+            best_slot = index;
+        }
+    }
+    if (party_slot != 0) *party_slot = best_slot;
+    return best_level;
+}
 
 /* Format the health knowledge the party has earned for one monster. NPC-backed
    records can suppress exact values, and ordinary monsters expose current and
@@ -1850,7 +1888,7 @@ void FormatMonsterHealth(
         health_knowledge = 125;
     }
     else {
-        float average_party_level = Function4EFB60();
+        float average_party_level = GetAveragePartyLevel();
         W8MonsterRecord* record;
         int best_party_slot;
         int monster_level;
@@ -1861,7 +1899,7 @@ void FormatMonsterHealth(
         }
         record = MonsterDBFromSpeciesInline(monster_info->monster_species);
         monster_level = record->unknown_250[1];
-        health_knowledge = Function554490(0x15, &best_party_slot);
+        health_knowledge = GetBestPartySkillLevel(0x15, &best_party_slot);
         if (static_cast<int>(average_party_level) < monster_level) {
             float adjusted_knowledge =
                 static_cast<float>(health_knowledge) -

@@ -25,6 +25,7 @@
 #include "wiz8/local_screens/MGSUseItemSelect.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/wiz8_windows.h"
+#include "wiz8/world_cursor.h"
 
 #include "font.h"
 #include "FileMan.h"
@@ -70,7 +71,7 @@ extern void Function59B940(void);
 extern void Function59BDB0(void);
 extern void Function55F2C0(void);
 extern void ScrollTextBoxToCursor(void);
-extern void Function413FD0(int, int, int, int, int);
+extern void SetSurfaceClipBounds00413FD0(int, int, int, int, int);
 extern void ResetTransientRenderScenes(void);
 extern void Function482EA0(void);
 extern void Function482990(unsigned char enabled);
@@ -78,6 +79,8 @@ extern void Function425570(int enabled);
 extern void Function58AC00(int, const wchar_t*, int, int, int);
 extern void Function58AAD0(int, const wchar_t*, const wchar_t*);
 extern void Function55D3C0(void);
+extern void Function55EE70(int value);
+extern void ClearLevelDataFlag6(void);
 extern void Function55F160(int value);
 extern void Function53A320(int value);
 extern void Function587510(int value);
@@ -87,7 +90,6 @@ extern void Function59C930(int slot);
 extern void Function42B770(int, int);
 extern void Function4098F0(void);
 extern void Function490AF0(void);
-extern char Function4914C0(void);
 extern void Function5187E0(void);
 extern void Function56E800(int);
 extern void Function57D740(void);
@@ -217,9 +219,15 @@ unsigned char g_flag_0068edd9;
 extern unsigned char g_byte_00659a64;
 extern unsigned char g_level_runtime_flag_0065ba70;
 extern unsigned char g_debug_monster_cycle_0068f0fc;
+// GLOBAL: WIZ8 0x0068ee90
+W8MainScreenState g_screen_state_storage_0068ee90;
+// GLOBAL: WIZ8 0x00649f1c
+W8MainScreenState* g_screen_state_00649f1c = &g_screen_state_storage_0068ee90;
 // GLOBAL: WIZ8 0x0068f0fc
 unsigned char g_debug_monster_cycle_0068f0fc;
 extern W8IList* g_debug_monster_ids_0068f100;
+// GLOBAL: WIZ8 0x0068f100
+W8IList* g_debug_monster_ids_0068f100;
 extern unsigned char g_navigator_position_changed_659c11;
 // GLOBAL: WIZ8 0x00659c11
 unsigned char g_navigator_position_changed_659c11;
@@ -241,7 +249,7 @@ void Function5542E0(void);
 void Function4EDD20(void);
 void Function59A3A0(void);
 void MonsterForward453160(void);
-void Function41F0D0(void);
+void ResetLevelDataVectors0041F0D0(void);
 void Function575C50(void);
 void Function577560(void);
 void Function52DDD0(void);
@@ -282,15 +290,68 @@ void Function4F7480(void);
 void Function5A0BC0(void);
 void Function59D180(void);
 void Function56E510(void);
-void Function587960(void);
-void Function58A750(void);
+void Function586740(void);
+void Function589A80(void);
+void Function593360(void);
+void Function56C6D0(int, int, int, int, int);
+extern unsigned char g_flag_006875a5;
 unsigned char Function445140(W8World* world);
 unsigned char Function53A1D0(void);
 unsigned char Function4F8650(void);
 unsigned char Function57E3C0(void);
 unsigned char Function48EFC0(void);
-void Function427830(int enabled);
+void Function427830(char enabled);
 void Function4EF1F0(void);
+
+// FUNCTION: WIZ8 0x00587960
+void Function587960(void)
+{
+    Function586740();
+}
+
+// FUNCTION: WIZ8 0x0058A750
+void Function58A750(void)
+{
+    Function589A80();
+}
+
+// FUNCTION: WIZ8 0x00577850
+unsigned char Function577850(void)
+{
+    return g_flag_00683f97 != 0 && g_screen_state_00649f1c->flag_252 != 0;
+}
+
+// FUNCTION: WIZ8 0x00593330
+void Function593330(void)
+{
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
+        g_level_block->flag_314 != 0) {
+        Function593360();
+    }
+}
+
+// FUNCTION: WIZ8 0x00577540
+void Function577540(void)
+{
+    g_flag_006875a5 = 0;
+    ClearLevelDataFlag6();
+    Function55EE70(-1);
+}
+
+// FUNCTION: WIZ8 0x00577220
+void Function577220(void)
+{
+    Function56C6D0(g_screen_state_00649f1c->value_1d4, 0, -1, 0, 1);
+    g_screen_state_00649f1c->value_238 = g_screen_state_00649f1c->value_104;
+    g_screen_state_00649f1c->flag_234 = 1;
+}
+
+// FUNCTION: WIZ8 0x00577260
+void Function577260(void)
+{
+    Function56C6D0(g_screen_state_00649f1c->value_1d4, 0, -1, 0, 1);
+    g_screen_state_00649f1c->value_238 = g_screen_state_00649f1c->value_104;
+}
 
 struct W8StartupGridRow {
     int x1;
@@ -381,7 +442,7 @@ unsigned char MainGameScreenEnter(void)
     Function59BDB0();
     Function55F2C0();
     ScrollTextBoxToCursor();
-    Function413FD0(0x500, 0, 0, 0x280, 0x1e0);
+    SetSurfaceClipBounds00413FD0(0x500, 0, 0, 0x280, 0x1e0);
     SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
     g_flag_65970d = 1;
     g_monster_shadow_updates_enabled_0065970c = 1;
@@ -546,7 +607,7 @@ update_screen:
                 }
                 Function482990(0);
                 MonsterForward453160();
-                Function41F0D0();
+                ResetLevelDataVectors0041F0D0();
             }
             if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block) {
                 g_level_block->redraw_flags |= 0x8000;
@@ -609,7 +670,7 @@ update_screen:
     W8ScreenPoint current;
     unsigned int value;
     GetScreenPoint004284F0(&point);
-    if (!Function4914C0()) {
+    if (!IsWorldCursorVisible()) {
         if (!g_modal_owner_0068edd0) {
             if ((!Function525DF0(1) || !gXStatus.field_01f) &&
                 !g_status_685170.unknown_2429[12]) {
@@ -688,7 +749,7 @@ render_world:
         if (gXStatus.iCurrentCursor != -1 && gXStatus.iCurrentCursor != 7 &&
             g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].frame_count > 1 &&
             !ClockIsTicking(gXStatus.current_cursor_time) &&
-            !Function4914C0() && !g_flag_0068edd8) {
+            !IsWorldCursorVisible() && !g_flag_0068edd8) {
             ++gXStatus.current_cursor_frame;
             if (gXStatus.current_cursor_frame ==
                 g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].frame_count) {
@@ -751,7 +812,7 @@ render_world:
         if (gXStatus.field_06f == 4) {
             Function53B310();
         }
-        else if (gXStatus.field_06f == 3 && Function4914C0()) {
+        else if (gXStatus.field_06f == 3 && IsWorldCursorVisible()) {
             Function53B1D0();
         }
         else if (gXStatus.field_06f != 5 && g_level_block->refresh_party_panel) {
@@ -824,7 +885,7 @@ unsigned char MainGameScreenLeave(int leaving)
         g_flag_0068edd8 = 0;
         gfTrackMousePos = 0;
     }
-    if (Function4914C0()) {
+    if (IsWorldCursorVisible()) {
         Function490AF0();
     }
     Function59B270();
@@ -952,7 +1013,7 @@ extern unsigned char Function577850(void);
 extern void SetCombatSelection(int value);                              /* 0x00569F70 */
 extern void SetCombatTarget(int value);                                 /* 0x0056A2D0 */
 extern void SetCombatAction(int value);                                 /* 0x0056A480 */
-extern int Function53A3D0(int arg_1);
+extern unsigned int Function53A3D0(int arg_1);
 extern void Function55EE70(int arg_1);
 
 // FUNCTION: WIZ8 0x00560c30
@@ -1095,7 +1156,7 @@ unsigned char g_map_loading_00659757;
 extern void Function55EE70(int reason);
 extern void UpdateHeldItemCursor(void);
 extern void Function42B3E0(void);
-extern unsigned char Function42ACE0(const char* path);
+extern unsigned char UnloadLevel(const char* save_directory);
 extern void Function5879A0(int arg_1);
 extern void Function58A790(int arg_1);
 extern void Function59F2B0(void);
@@ -1126,7 +1187,7 @@ bool LoadCurrentLevelData(void)
         Function55EE70(9);
         g_map_loading_00659757 = 1;
         Function42B3E0();
-        loaded = Function42ACE0("MAP") != 0;
+        loaded = UnloadLevel("MAP") != 0;
         g_map_loading_00659757 = 0;
         UpdateHeldItemCursor();
     }

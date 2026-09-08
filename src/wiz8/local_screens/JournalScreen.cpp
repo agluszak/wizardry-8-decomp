@@ -47,11 +47,18 @@ extern void SetViewport(int left, int top, int right, int bottom);
 extern void UpdateHeldItemCursor(void);
 extern unsigned char GetFactionFlag(char faction);
 extern unsigned short g_level_name_indices_605820[];
-extern wchar_t g_default_level_0064d7b8[];
-extern wchar_t g_journal_page_format_0064d7f0[];
-extern wchar_t g_journal_alternate_page_0064df78[];
-extern signed char g_journal_factions_0064df40[12];
-extern int g_journal_faction_name_indices_0064df4c[11];
+// GLOBAL: WIZ8 0x0064d7b8
+wchar_t g_default_level_0064d7b8[] = L"Default Level";
+// GLOBAL: WIZ8 0x0064d7f0
+wchar_t g_journal_page_format_0064d7f0[] = L"%d / %d";
+// GLOBAL: WIZ8 0x0064df40
+signed char g_journal_factions_0064df40[12] = {4, 5, 6, 7, 8, 9, 12, 11, 13, 15, 16, 0};
+// GLOBAL: WIZ8 0x0064df4c
+int g_journal_faction_name_indices_0064df4c[11] = {
+    0x6e0, 0x6e1, 0x6e2, 0x6e3, 0x6e4, 0x6e5, 0x6e6, 0x6e7, 0x6e8, 0x6e9, 0x6ea,
+};
+// GLOBAL: WIZ8 0x0064df78
+wchar_t g_journal_alternate_page_0064df78[] = L"1 / 1";
 extern int g_journal_page_count_0064df3c;
 // GLOBAL: WIZ8 0x0064df3c
 int g_journal_page_count_0064df3c = -1;
@@ -66,7 +73,8 @@ extern void Function407650(int x, int y, const wchar_t* format, ...);
 W8JournalPanel005EF340* g_journal_panel_0069c4d4;
 W8GrowableVector<W8JournalEntry>* g_journal_entries_0069c4e4;
 unsigned int g_journal_region_set_0069c4dc;
-extern W8GrowableVector<W8JournalEntry> g_fact_journal_entries_0068de40;
+// GLOBAL: WIZ8 0x0068de40
+W8GrowableVector<W8JournalEntry> g_fact_journal_entries_0068de40;
 
 // FUNCTION: WIZ8 0x005bdd00
 void DrawJournalLine005BDD00(

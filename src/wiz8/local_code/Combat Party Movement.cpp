@@ -27,8 +27,8 @@ extern float g_movement_speed_step_005ed490;
 extern void SetPartyMoving(int moving);                                 /* 0x00420B40 */
 extern void ReleasePartyMovement(void);                                 /* 0x005A1890 */
 extern void HoldPartyMovement(void);                                    /* 0x005A1DD0 */
-extern void Function5A1E90(void);
-extern void Function41F0D0(void);
+extern void RedrawPanel69BF40(void);
+extern void ResetLevelDataVectors0041F0D0(void);
 extern void Function5354E0(void);
 extern void Function4F06B0(void);
 extern unsigned char GetLevelDataFlag6(void);                            /* 0x0041F140 */
@@ -134,8 +134,8 @@ void EndPartyMovementPhase(void)
     if (!GetLevelDataFlag6()) {
         ShowNotice(8, gppStringList[0x870 / 4], -1, -1, 0);
     }
-    Function41F0D0();
-    Function5A1E90();
+    ResetLevelDataVectors0041F0D0();
+    RedrawPanel69BF40();
     HoldPartyMovement();
     RefreshOutwardSightForAllMonsters();
     g_combat_state->turn_phase = 2;
@@ -146,7 +146,7 @@ void EndPartyMovementPhase(void)
 // FUNCTION: WIZ8 0x004f0630
 void BeginFreeTurnPhase(void)
 {
-    Function41F0D0();
+    ResetLevelDataVectors0041F0D0();
     g_combat_state->turn_phase = W8_TURN_PHASE_FREE;
     gXStatus.fPartyMovementMode = 0;
     Function5354E0();

@@ -14,10 +14,20 @@ enum { ATTR_COUNT = 7 };
 
 /* Per-attribute lookup tables. Each dialog reads its own pair, widening the
    16-bit entries into its 32-bit  */
-extern unsigned short g_attr_table_61E3A4[];
-extern unsigned short g_attr_table_61E4FC[];
-extern unsigned short g_attr_table_61E3C4[];
-extern unsigned short g_attr_table_61E50C[];
+extern unsigned short g_character_description_first_ids_61e3a4[];
+extern unsigned short g_character_skill_name_ids_61e454[];
+// GLOBAL: WIZ8 0x0061e4fc
+unsigned short g_attr_table_61E4FC[8] = {
+    0x6a0, 0x6a1, 0x6a2, 0x6a3, 0x6a4, 0x6a5, 0x6a6, 0,
+};
+// GLOBAL: WIZ8 0x0061e50c
+unsigned short g_attr_table_61E50C[50] = {
+    0x6a7, 0x6a8, 0x6a9, 0x6aa, 0x6ab, 0, 0x30b, 0x30c, 0x30d, 0x30e,
+    0x30f, 0x310, 0x311, 0x312, 0x313, 0x314, 0x315, 0x316, 0x328, 0x329,
+    0x32a, 0x32b, 0x32c, 0x32d, 0x32e, 0x32f, 0x330, 0x331, 0x332, 0x333,
+    0x334, 0x335, 0x336, 0x337, 0x338, 0x339, 0x33a, 0x33b, 0x33c, 0x33d,
+    0x33e, 0x33f, 0x340, 0x341, 0x342, 0x343, 0x344, 0x345, 0x346, 0x347,
+};
 
 // FUNCTION: WIZ8 0x005dfc70
 W8StatInfoDialog005DFC70::W8StatInfoDialog005DFC70(unsigned int uiIndex)
@@ -26,7 +36,7 @@ W8StatInfoDialog005DFC70::W8StatInfoDialog005DFC70(unsigned int uiIndex)
         srAssertFail("uiIndex < ATTR_COUNT", STAT_INFO_DIALOGS_CPP, 204, 0);
     }
     m_uiIndex = uiIndex;
-    m_value_140 = g_attr_table_61E3A4[uiIndex];
+    m_value_140 = g_character_description_first_ids_61e3a4[uiIndex];
     m_value_144 = g_attr_table_61E4FC[uiIndex];
 }
 
@@ -37,6 +47,6 @@ W8StatInfoDialog005E0180::W8StatInfoDialog005E0180(unsigned int uiIndex)
         srAssertFail("uiIndex < ATTR_COUNT", STAT_INFO_DIALOGS_CPP, 278, 0);
     }
     m_uiIndex = uiIndex;
-    m_value_140 = g_attr_table_61E3C4[uiIndex];
+    m_value_140 = g_character_description_first_ids_61e3a4[16 + uiIndex];
     m_value_144 = g_attr_table_61E50C[uiIndex];
 }

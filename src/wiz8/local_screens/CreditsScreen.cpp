@@ -32,7 +32,7 @@ extern unsigned char ReadWideTextLine004CEED0(
 extern void Function407650(int x, int y, const wchar_t* format, ...);
 extern void ResetTransientRenderScenes(void);
 extern void RenderFrame(void);
-extern char Function490180(const char* playlist);
+extern char IsCurrentMusicPlaylist(const char* playlist);
 
 W8GrowableVector<W8CreditLine>* g_credit_lines_0069c4a8;
 int g_credit_elapsed_steps_0069c494;
@@ -117,7 +117,7 @@ unsigned char CreditsScreenLeave(int)
     delete g_credit_lines_0069c4a8;
     ResetRegions();
     SetFlag603C60();
-    if (Function490180("EndCredit.MPL")) {
+    if (IsCurrentMusicPlaylist("EndCredit.MPL")) {
         StopMusicPlaylist(1);
     }
     return 1;

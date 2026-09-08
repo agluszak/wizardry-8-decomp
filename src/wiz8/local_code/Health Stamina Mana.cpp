@@ -293,9 +293,9 @@ extern char Function546F80(W8MonsterInfo* aggressor, W8MonsterInfo* monster_info
 
 /* Two effects the party is holding that a wounded character can no longer
    sustain, and the third that only the deeper threshold breaks. */
-extern void* g_effect_005ee594;
-extern void* g_effect_005ee590;
-extern void* g_effect_005ee5f8;
+extern int g_effect_005ee594;
+extern int g_effect_005ee590;
+extern int g_effect_005ee5f8;
 extern unsigned int g_effect_threshold_005ed904;
 // GLOBAL: WIZ8 0x005ed904
 unsigned int g_effect_threshold_005ed904 = 50;
@@ -366,18 +366,18 @@ void HealCharacter(int party_slot, int amount, char announce)
 
     fraction = (character->hp_current * 100) / (unsigned int)character->hp_max;
     if (fraction >= g_effect_threshold_005ed904) {
-        if (CharacterHasEffect(g_effect_005ee594, party_slot)) {
+        if (CharacterHasEffect(reinterpret_cast<void*>(g_effect_005ee594), party_slot)) {
             g_startup_runtime_state->SetEventCharacterMask(
-                reinterpret_cast<unsigned int>(g_effect_005ee594), party_slot, 0);
+                g_effect_005ee594, party_slot, 0);
         }
         if (fraction >= g_effect_threshold_005ed900) {
-            if (CharacterHasEffect(g_effect_005ee590, party_slot)) {
+            if (CharacterHasEffect(reinterpret_cast<void*>(g_effect_005ee590), party_slot)) {
                 g_startup_runtime_state->SetEventCharacterMask(
-                    reinterpret_cast<unsigned int>(g_effect_005ee590), party_slot, 0);
+                    g_effect_005ee590, party_slot, 0);
             }
-            if (CharacterHasEffect(g_effect_005ee5f8, party_slot)) {
+            if (CharacterHasEffect(reinterpret_cast<void*>(g_effect_005ee5f8), party_slot)) {
                 g_startup_runtime_state->SetEventCharacterMask(
-                    reinterpret_cast<unsigned int>(g_effect_005ee5f8), party_slot, 0);
+                    g_effect_005ee5f8, party_slot, 0);
             }
         }
     }
@@ -693,9 +693,9 @@ enum {
 };
 
 extern void ApplyCharacterEffect(
-    W8Character* character, void* effect, int arg_3, int arg_4, int arg_5);
+    W8Character* character, int effect, int arg_3, int arg_4, int arg_5);
 /* 0x0052E690 */
-extern void* g_effect_005ee598;
+extern int g_effect_005ee598;
 extern void ResetCombatSlot(W8CombatSlot* combat_slot);   /* 0x00536170 */
 extern void RecordCharacterDeath(int party_slot);
 extern void Function52F110(int party_slot);

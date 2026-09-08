@@ -48,6 +48,9 @@ extern unsigned char g_navigator_link_mode_00659c10;
 extern float g_rate_006068EC;
 extern const float g_world_scale_005ebc40;
 
+// GLOBAL: WIZ8 0x006598a4
+W8Octree* g_octree_6598a4;
+
 // GLOBAL: WIZ8 0x005ec02c
 static const float NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE = 50.0f;
 

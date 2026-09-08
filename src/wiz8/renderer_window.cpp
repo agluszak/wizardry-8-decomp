@@ -1032,3 +1032,51 @@ clear_viewport:
         SetWorldScenePosition004511D0(GetWorld(), &saved_world_position);
     }
 }
+// FUNCTION: WIZ8 0x00427440
+void Function427440(void)
+{
+    if (g_gerd_659634 != 0) {
+        g_gerd_659634->invalidateTextureCache();
+    }
+}
+
+// FUNCTION: WIZ8 0x00427230
+void SetRendererOption4Enabled(char enabled)
+{
+    if (g_gerd_659634 != 0) {
+        if ((!enabled && g_gerd_659634->isEnabled(static_cast<srGERD::e_enable>(4))) ||
+            (enabled && !g_gerd_659634->isEnabled(static_cast<srGERD::e_enable>(4)))) {
+            g_gerd_659634->toggle(static_cast<srGERD::e_enable>(4));
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x00428e20
+int Function428E20(void)
+{
+    MEMORYSTATUS status;
+    memset(&status, 0, sizeof(status));
+    status.dwLength = sizeof(status);
+    GlobalMemoryStatus(&status);
+    return status.dwTotalPageFile - status.dwAvailPageFile;
+}
+
+// FUNCTION: WIZ8 0x00427260
+unsigned char Function427260(void)
+{
+    srColorSurfaceIFace* surface = g_gerd_659634->lockBuffer();
+    if (surface != 0) {
+        g_gerd_659634->unlockBuffer();
+        return 1;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x00427830
+void Function427830(char enabled)
+{
+    g_flag_603c38 = enabled;
+    if (enabled == 0) {
+        g_current_model_instance_65962c = 0;
+    }
+}

@@ -78,7 +78,7 @@ extern void Function48C750(W8MonsterGroup* group);
    run before the header is read, so they read as teardown of whatever the
    previous level left behind. */
 extern void InitializeItemManagerState(void);
-extern void Function443A50(void);
+extern int Function443A50(void);
 
 /* The fixed 0x314-byte header every save begins with. Only the fields
    LoadStatusHeader forwards are established; the rest is read and kept. */

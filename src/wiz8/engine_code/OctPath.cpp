@@ -49,6 +49,9 @@ float g_float_005ec3d0 = -107374184.0f;
 #include <stdlib.h>
 #include <string.h>
 
+// GLOBAL: WIZ8 0x00659c60
+W8PathingService* g_pathing_00659c60;
+
 /* Engine Code\OctPath.cpp. The unit is named by its own assertions, which
    place every one of these bodies in OctPath.cpp rather than in Octree.cpp
    where the octree's own loader lives. */
@@ -68,6 +71,8 @@ unsigned char g_flag_00659c5c;
 extern unsigned char g_flag_00689b32;
 extern const float g_world_scale_005ebc40;
 extern void* g_path_scratch_00659c64;
+// GLOBAL: WIZ8 0x00659c64
+void* g_path_scratch_00659c64;
 extern void RegisterPathSurface004B7730(unsigned int index, const int* point);
 extern void RegisterPathVertex004B7830(
     unsigned int index, const int* point, const int* second);
@@ -108,13 +113,31 @@ extern float Function4BE420(
     const srVector3T<float>* source,
     const srVector3T<float>* target);
 extern float CalcRangeDistance(int range_category);
-extern unsigned char Function51B3F0(int mode);
+// FUNCTION: WIZ8 0x0051b3f0
+unsigned char Function51B3F0(int mode)
+{
+    switch (mode) {
+    case 0:
+    case 1:
+        return 0;
+    case 2:
+    case 3:
+        return 1;
+    default:
+        return static_cast<unsigned char>(mode);
+    }
+}
 extern void Function497690(int channel, const char* message);
 extern stModelInstance* CreateModelInstance0046F5C0(
     stMeshModel* model);
-extern srShader g_path_shader_00652dc4;
+// GLOBAL: WIZ8 0x00652dc4
+srShader g_path_shader_00652dc4;
 extern srTextureIFace* g_path_texture_00652dc0;
 extern srMaterialIFace* g_path_material_00652dbc;
+// GLOBAL: WIZ8 0x00652dc0
+srTextureIFace* g_path_texture_00652dc0;
+// GLOBAL: WIZ8 0x00652dbc
+srMaterialIFace* g_path_material_00652dbc;
 extern void SortPathCandidates004677A0(
     unsigned short* waypoints,
     unsigned int* distances,

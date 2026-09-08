@@ -29,6 +29,8 @@
 
 // GLOBAL: WIZ8 0x00686901
 unsigned int g_shared_item_pool_count;
+// GLOBAL
+unsigned char g_shared_item_pool[500 * 0xc];
 
 /* The twelve places an item can be worn or held. GetItemDefaultEquipSlot maps
    an equipment class onto one of these, and GetPairedEquipSlot swaps a hand
@@ -272,22 +274,22 @@ extern int Function40A910(const char* path);
 extern void PlaySound(const char* path, int flags);
 extern signed char GetFactionDispositionScore(signed char faction);
 extern unsigned char Function50B8F0(int npc_id);
-extern void Function52E690(
+extern int Function52E690(
     W8Character* character,
-    void* message,
-    int value,
-    void* value_2,
-    void* value_3);
-extern void* g_item_message_005ee6fc;
-extern void* g_item_message_005ee640;
-extern void* g_item_message_005ee644;
-extern void* g_item_message_005ee648;
-extern void* g_item_message_005ee64c;
-extern void* g_item_message_005ee690;
-extern void* g_item_message_005ee68c;
-extern void* g_item_message_005ee664;
-extern void* g_item_message_arg_005ed8c8;
-extern void* g_item_message_arg_005ed914;
+    int effect,
+    int argument,
+    int value_1,
+    unsigned int value_2);
+extern int g_item_message_005ee6fc;
+extern int g_item_message_005ee640;
+extern int g_item_message_005ee644;
+extern int g_item_message_005ee648;
+extern int g_item_message_005ee64c;
+extern int g_item_message_005ee690;
+extern int g_item_message_005ee68c;
+extern int g_item_message_005ee664;
+extern int g_effect_argument_005ed8c8;
+extern int g_effect_argument_005ed914;
 
 
 /* Whether a weapon and an off-hand item go together, named by its own error
@@ -2151,7 +2153,7 @@ void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item)
 void Function5227D0(
     W8ItemInstance* item, unsigned char choose_character, W8Character* character)
 {
-    void* message;
+    int message;
 
     if (g_current_screen_state.id == 5) {
         return;
@@ -2197,7 +2199,7 @@ void Function5227D0(
         signed char npc_slot = npc->group_index;
         Function52E690(
             &g_party_characters[npc_slot], g_item_message_005ee68c, 0,
-            g_item_message_arg_005ed8c8, g_item_message_arg_005ed914);
+            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
         return;
     }
     default:
@@ -2210,8 +2212,8 @@ void Function5227D0(
         break;
     }
 
-    Function52E690(character, message, 0, g_item_message_arg_005ed8c8,
-                   g_item_message_arg_005ed914);
+    Function52E690(character, message, 0, g_effect_argument_005ed8c8,
+                   g_effect_argument_005ed914);
     item->unknown_07[2] |= 1;
 }
 

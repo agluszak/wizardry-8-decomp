@@ -22,9 +22,13 @@ unsigned int g_character_page2_region_set_0069c530;
 extern unsigned int g_character_page4_region_set_0069c52c;
 // GLOBAL: WIZ8 0x0069c52c
 unsigned int g_character_page4_region_set_0069c52c;
-extern int g_character_page2_category_geometry_64ef90[5][2];
-extern int g_character_page2_category_frames_64efb8[5];
-extern unsigned short g_character_skill_name_ids_61e454[0x29];
+// GLOBAL: WIZ8 0x0064ef90
+int g_character_page2_category_geometry_64ef90[5][2] = {
+    {0xf9, 0x0a}, {0xf9, 0xcd}, {0x22, 0x0a}, {0x22, 0x87}, {0xf9, 0x120},
+};
+// GLOBAL: WIZ8 0x0064efb8
+int g_character_page2_category_frames_64efb8[5] = {2, 3, 0, 1, 4};
+extern unsigned short g_character_skill_name_ids_61e454[84];
 extern void Function558610(W8Character*);
 extern void ResetTransientRenderScenes(void);
 extern unsigned short Function402780(unsigned short key, unsigned char modifiers);

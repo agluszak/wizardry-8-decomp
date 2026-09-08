@@ -82,7 +82,7 @@ typedef struct W8CombatState {
     unsigned char flag_000;               /* 0x000: blocks ending combat while set */
     unsigned char flag_001;
     unsigned char unknown_002[2];
-    int value_004;                        /* 0x004: blocks ending combat while non-zero */
+    unsigned int value_004;               /* 0x004: blocks ending combat while non-zero */
     int round_counter;                    /* 0x008 */
     unsigned char unknown_00c[0x7a4];
     int selected_slot;                    /* 0x7b0: cleared with selected_monster */

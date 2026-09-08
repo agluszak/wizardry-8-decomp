@@ -763,8 +763,8 @@ void W8GrCycle::UpdateLights004A7150()
     }
 }
 
-extern void Function4A9720(void* path);
-extern void Function4A9110(void* path);
+extern void PathAIResetRecord004A9720(W8PathAI* path);
+extern void DestroyOwnedPathAI004A9110(W8PathAI* path);
 
 // FUNCTION: WIZ8 0x004a7dd0
 unsigned char W8GrCycle::GetAnimationBounds(
@@ -867,7 +867,7 @@ void W8GrCycle::ResetRepresentation004A7420()
     if (target == 0) {
         srAssertFail("pRep", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x3ae, 0);
     }
-    Function4A9720(m_pAI);
+    PathAIResetRecord004A9720((W8PathAI*)m_pAI);
     target->flag_06e = 1;
     target->flag_064 = 0;
     target->timer_068 =
@@ -1355,7 +1355,7 @@ srModelInstance* W8GrCycle::SelectCycleFrameLod004A8360(
 unsigned char W8GrCycle::ReplacePath004A8400(void* path)
 {
     if (m_pAI != 0) {
-        Function4A9110(m_pAI);
+        DestroyOwnedPathAI004A9110((W8PathAI*)m_pAI);
     }
     m_pAI = path;
     return 1;
@@ -1373,7 +1373,8 @@ void W8GrCycle::SubmitTargetValue004A84A0()
    witness names the element type, so it remains address-qualified. */
 
 /* Parallel registries: each name has one growable vector of cycle objects. */
-extern W8GrowableVector<char*> g_grcycle_names;                       /* 0x0065BDF0 */
+// GLOBAL: WIZ8 0x0065bdf0
+W8GrowableVector<char*> g_grcycle_names;
 // VTABLE: WIZ8 0x005ecedc
 // class W8GrowableVector<W8GrCycle*>
 
@@ -1383,8 +1384,8 @@ extern W8GrowableVector<char*> g_grcycle_names;                       /* 0x0065B
 // TEMPLATE: WIZ8 0x004a9070
 // W8GrowableVector<W8GrCycle*>::~W8GrowableVector<W8GrCycle*>
 
-extern W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
-                                                                    /* 0x0065BE00 */
+// GLOBAL: WIZ8 0x0065be00
+W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
 
 // VTABLE: WIZ8 0x005eced4
 // class W8GrowableVector<W8CameraShakeEffect*>

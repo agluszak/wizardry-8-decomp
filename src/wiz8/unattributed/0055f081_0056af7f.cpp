@@ -57,7 +57,7 @@ unsigned char g_table_647ccc[128];
 }
 extern void Function482990(unsigned char enabled);
 extern void MonsterForward453160(void);
-extern void Function41F0D0(void);
+extern void ResetLevelDataVectors0041F0D0(void);
 extern void MonsterForward4531A0(void);
 extern void ClearLevelDataFlag6(void);
 extern void Function5A1950(void);
@@ -79,7 +79,7 @@ void Function56AA30(void)
         }
         Function482990(0);
         MonsterForward453160();
-        Function41F0D0();
+        ResetLevelDataVectors0041F0D0();
     }
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
         g_level_block != 0) {

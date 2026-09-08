@@ -17,7 +17,7 @@
 
 /* The callee returns its byte value in an int-sized result; this wrapper is
    the narrowing boundary, as shown by its explicit `and eax, 0xff`. */
-extern int Function4B64F0(void* entry);                        /* 0x004B64F0 */
+extern unsigned char AniMeshValue004B64F0(W8AniMesh* mesh);
 extern const double g_anim_obj_world_scale_005ec150;
 extern const float g_world_scale_005ebc40;
 
@@ -409,7 +409,7 @@ W8AnimObj* CloneAnimObj004A0320(const W8AnimObj* source)
             srAssertFail("pao", ANIM_OBJ_CPP, 0x291, 0);
         }
         if (source->flag_05 == 0) {
-            frames = Function4B64F0(source->entries_18[2]) & 0xff;
+            frames = AniMeshValue004B64F0(source->entries_18[2]);
         }
         else {
             frames = source->value_16;
@@ -757,7 +757,7 @@ unsigned int AnimObjValue004A15D0(W8AnimObj* animation, signed char index)
         srAssertFail("pao", ANIM_OBJ_CPP, 0x291, 0);
     }
     if (animation->flag_05 == 0) {
-        return (unsigned char)Function4B64F0(animation->entries_18[index]);
+        return AniMeshValue004B64F0(animation->entries_18[index]);
     }
     return animation->value_16;
 }

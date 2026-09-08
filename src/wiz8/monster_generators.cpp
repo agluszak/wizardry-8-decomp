@@ -47,7 +47,8 @@ int g_random_encounter_limit = 10;
 extern int g_active_group_count;            /* 0x0065BA14 */
 // GLOBAL: WIZ8 0x0065ba14
 int g_active_group_count;
-extern W8MonsterGroup** g_active_groups;    /* 0x0065BA1C */
+// GLOBAL: WIZ8 0x0065ba1c
+W8MonsterGroup** g_active_groups;
 extern void RollRandomEncounters(void);     /* 0x0048CA20 */
 extern unsigned char g_generator_save_flag;                  /* 0x0065BA48 */
 // GLOBAL: WIZ8 0x0065ba48
@@ -239,6 +240,14 @@ void UpdateRandomEncounterBudget(unsigned char reset_budget)
 
 extern unsigned char IsSightRangeOverridden(void);          /* 0x00504910 */
 extern void DespawnMonsterGroup(W8MonsterGroup* group); /* 0x00510930 */
+
+// FUNCTION: WIZ8 0x0048c9f0
+void Function48C9F0(void)
+{
+    while (g_active_group_count > 0) {
+        DespawnMonsterGroup(g_active_groups[g_active_group_count - 1]);
+    }
+}
 extern unsigned char g_force_encounter_culling;     /* 0x00687500 */
 extern void GetPartyPosition(srVector3T<float>* position); /* 0x00421070 */
 

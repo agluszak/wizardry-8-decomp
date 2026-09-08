@@ -32,7 +32,12 @@ unsigned int g_value_0068c57c;
 extern unsigned int g_value_0068c554;
 // GLOBAL: WIZ8 0x0068c554
 unsigned int g_value_0068c554;
-extern int g_pose_transition_table_0061cb44[];
+// GLOBAL: WIZ8 0x0061cb44
+int g_pose_transition_table_0061cb44[30] = {
+    0x1380080, 0x1380080, 0x130013, 0x670067, 0xbc00bc,
+    0x1110111, 1, 3, 3, 4, 5, 3, 2, 3, 3,
+    3, 1, 2, 3, 4, 1, 1, 3, 3, 4, 1, 1, 1, 1, 1,
+};
 extern unsigned int g_value_005ed8fc;
 extern unsigned int g_flee_hp_fraction_005ed8f8;
 extern int g_effect_005ee594;
@@ -64,8 +69,28 @@ int g_effect_argument_005ed914 = 127;
 int g_effect_005ee590 = 2;
 // GLOBAL: WIZ8 0x005EE594
 int g_effect_005ee594 = 3;
+// GLOBAL: WIZ8 0x005ee598
+int g_effect_005ee598 = 4;
 // GLOBAL: WIZ8 0x005EE5F8
 int g_effect_005ee5f8 = 28;
+// GLOBAL: WIZ8 0x005ee610
+int g_effect_005ee610 = 34;
+// GLOBAL: WIZ8 0x005ee640
+int g_item_message_005ee640 = 46;
+// GLOBAL: WIZ8 0x005ee644
+int g_item_message_005ee644 = 47;
+// GLOBAL: WIZ8 0x005ee648
+int g_item_message_005ee648 = 48;
+// GLOBAL: WIZ8 0x005ee64c
+int g_item_message_005ee64c = 49;
+// GLOBAL: WIZ8 0x005ee664
+int g_item_message_005ee664 = 55;
+// GLOBAL: WIZ8 0x005ee68c
+int g_item_message_005ee68c = 65;
+// GLOBAL: WIZ8 0x005ee690
+int g_item_message_005ee690 = 66;
+// GLOBAL: WIZ8 0x005ee6fc
+int g_item_message_005ee6fc = 132;
 // GLOBAL: WIZ8 0x005EE70C
 unsigned int g_last_event_005ee70c = 146;
 // GLOBAL: WIZ8 0x005EE718

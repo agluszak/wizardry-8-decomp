@@ -32,7 +32,6 @@ double g_double_005ec030 = 2500.0;
 /* The world object the navigator notifies when it leaves a location, and
    the notification itself. 0x0042E880 sits outside every assertion-backed
    interval, so it keeps an address-qualified name. */
-extern void* g_object_6598a4;
 extern "C" void LeaveLocation0042E880(unsigned short location_id, int reason);
 /* Tracks the largest radius any navigator has been given. */
 extern float g_navigator_largest_extent_6081e8;
@@ -460,7 +459,7 @@ W8Navigator::~W8Navigator()
     g_registered_navigators.RemoveAt(g_registered_navigators.IndexOf(this));
     delete owned_object_0a0;
     owned_object_0a0 = 0;
-    if (movement_0c0.location_id_004 != 0 && g_object_6598a4 != 0) {
+    if (movement_0c0.location_id_004 != 0 && g_octree_6598a4 != 0) {
         LeaveLocation0042E880(movement_0c0.location_id_004, 0xd);
     }
     if (node_18c != 0) {
@@ -724,7 +723,8 @@ extern float g_navigator_minimum_speed_mode23_006081f0;
 // GLOBAL: WIZ8 0x006081f0
 float g_navigator_minimum_speed_mode23_006081f0 = 0.8999999761581421f;
 extern const float g_world_scale_005ebc40;
-extern W8GrowableVector<W8Navigator*> g_navigator_group_659bf8;
+// GLOBAL: WIZ8 0x00659bf8
+W8GrowableVector<W8Navigator*> g_navigator_group_659bf8;
 extern float Function4BE420(
     const srVector3T<float>* from, const srVector3T<float>* to);
 extern float Function4BE490(

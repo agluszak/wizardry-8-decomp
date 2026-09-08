@@ -152,8 +152,8 @@ void SetValue659668(int value);
 void UpdateHeldItemCursor(void);
 unsigned char SetFlag603C60(void);
 unsigned char ClearFlag603C60(void);
-unsigned char Function428070(void);
-unsigned char Function428230(srVector3T<float>* position);
+unsigned char IsCursorInsideViewport(void);
+unsigned char GetCursorPositionInViewport(srVector3T<float>* position);
 unsigned char Function584690(const InputAtom* input);
 void Function584250(const InputAtom* input);
 void Function581460(W8AutomapNote* note);
@@ -161,14 +161,14 @@ void Function582930(void);
 void Function5820F0(int tool);
 W8AutomapNote* Function582180(void);
 unsigned char Function582050(srVector3T<float>* position);
-unsigned char Function581000(int layer);
+unsigned char HasAutomapLayer(int layer);
 void Function57FFC0(const srVector3T<float>* position);
 void Function57FC70(const srVector3T<float>* position);
 void Function57FD90(int update);
 void Function57FE40(void);
 void Function427460(int x, int y);
 void Function581030(void);
-void Function584210(void);
+void RestoreAutomapCameraPosition(void);
 void Function46F760(W8World* world, int value);
 void Function427830(char enabled);
 void Function56AA30(void);
@@ -182,6 +182,64 @@ void RenderFrame(void);
 void Function425C90(int left, int top, int right, int bottom);
 void Function580380(void);
 void Function474FB0(int value);
+
+// FUNCTION: WIZ8 0x00581000
+unsigned char HasAutomapLayer(int layer)
+{
+    return layer >= 0 && layer < g_automap_layers.GetCount() &&
+           *g_automap_layers.GetAt(layer) != 0;
+}
+
+// FUNCTION: WIZ8 0x0057E490
+unsigned char Function57E490(void)
+{
+    if (g_flag_68f105 != 0) {
+        switch (g_automap_tool) {
+        case 6:
+        case 7:
+        case 15:
+        case 18:
+        case 23:
+        case 29:
+            return 0;
+        }
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00428070
+unsigned char IsCursorInsideViewport(void)
+{
+    int x = g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0;
+    int y = g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4;
+    return x >= g_viewport_left_6595e8 && y >= g_viewport_top_6595ec &&
+           x <= g_viewport_right_6595f0 && y <= g_viewport_bottom_6595f4;
+}
+
+// FUNCTION: WIZ8 0x00428230
+unsigned char GetCursorPositionInViewport(srVector3T<float>* position)
+{
+    int x = g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0;
+    int y = g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4;
+    if (x >= g_viewport_left_6595e8 && y >= g_viewport_top_6595ec &&
+        x <= g_viewport_right_6595f0 && y <= g_viewport_bottom_6595f4) {
+        position->x = static_cast<float>(x - g_viewport_left_6595e8) /
+                      static_cast<float>(g_viewport_right_6595f0 - g_viewport_left_6595e8);
+        position->y = static_cast<float>(y - g_viewport_top_6595ec) /
+                      static_cast<float>(g_viewport_bottom_6595f4 - g_viewport_top_6595ec);
+        position->z = 0.0f;
+        return 1;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x00584210
+void RestoreAutomapCameraPosition(void)
+{
+    g_automap_position.x = g_automap_saved_camera.position.x;
+    g_automap_position.z = g_automap_saved_camera.position.z;
+    Function57FC70(&g_automap_position);
+}
 
 // FUNCTION: WIZ8 0x0057e660
 unsigned char AutomapScreenEnter(void)
@@ -213,7 +271,7 @@ unsigned char AutomapScreenEnter(void)
     g_world->camera->setRotation(3.141592653589793 * (1.0f / 180.0f) * 90.0f, 0.0, 0.0);
     int layer_number = 1;
     g_world->camera->setProjectionType(static_cast<srCamera::e_project>(1));
-    Function584210();
+    RestoreAutomapCameraPosition();
     UpdateWorldMesh004BAF60(g_world);
     Function46F760(g_world, 1);
     g_light_update_flags_0060bfdc &= ~1u;
@@ -251,7 +309,7 @@ unsigned char AutomapScreenEnter(void)
         if (item->owner) item->owner->DetachMesh0049FA30(g_world);
     }
     gfTrackMousePos = 1;
-    g_automap_cursor_inside = Function428070();
+    g_automap_cursor_inside = IsCursorInsideViewport();
     g_automap_tool = 0;
     Function5820F0(0);
     Function5822C0();
@@ -424,7 +482,7 @@ void AutomapScreenFrame(void)
             continue;
         }
         if (Function584690(&input)) continue;
-        if (!Function428070()) {
+        if (!IsCursorInsideViewport()) {
             if (g_automap_cursor_inside) {
                 g_automap_cursor_inside = 0;
                 SetMouseCursorFromVideoObject(
@@ -466,9 +524,9 @@ void AutomapScreenFrame(void)
         if (input.usEvent == LEFT_BUTTON_UP) {
             srVector3T<float> point;
             if (g_automap_tool == 2) {
-                if (Function428230(&point)) {
+                if (GetCursorPositionInViewport(&point)) {
                     int layer = g_automap_layer + 1;
-                    if (Function581000(layer)) {
+                    if (HasAutomapLayer(layer)) {
                         (*g_automap_layers.GetAt(layer))->getLocationY();
                     }
                     srVector2T<float> location;
@@ -487,7 +545,7 @@ void AutomapScreenFrame(void)
                     if (g_automap_editing_note == note) g_automap_editing_note = 0;
                     g_automap_redraw = 1;
                 }
-            } else if (Function428230(&point)) {
+            } else if (GetCursorPositionInViewport(&point)) {
                 Function57FFC0(&point);
             }
         } else if (input.usEvent == RIGHT_BUTTON_UP) {

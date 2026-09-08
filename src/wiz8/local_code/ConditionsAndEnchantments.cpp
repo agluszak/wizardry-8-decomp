@@ -17,13 +17,30 @@ extern unsigned char g_flag_00683F94;
 unsigned char g_flag_00683F94;
 /* Condition-to-notice word table. Only the first word of each four-word
    stride is read, hence the multiplied index. */
-extern unsigned short g_condition_notices_0061E570[];
+// GLOBAL: WIZ8 0x0061e570
+unsigned short g_condition_notices_0061E570[128] = {
+    0x348, 0x349, 0x34a, 0x34b, 0x34c, 0x34d, 0x34e, 0x34f,
+    0x350, 0x351, 0x352, 0x353, 0x354, 0x355, 0x356, 0x357,
+    0x358, 0x359, 0x35a, 0x35b, 0x35c, 0x35d, 0x35e, 0x35f,
+    0x360, 0x361, 0x362, 0x363, 0x364, 0x365, 0x366, 0x367,
+    0x368, 0x369, 0x36a, 0x36b, 0x36c, 0x36d, 0x36e, 0x36f,
+    0x370, 0x371, 0x372, 0x373, 0x374, 0x375, 0x376, 0x377,
+    0x378, 0x379, 0x37a, 0x37b, 0x37c, 0x37d, 0x37e, 0x37f,
+    0x380, 0x381, 0x382, 0x383, 0x384, 0x385, 0x386, 0x387,
+    0x38c, 0x38d, 0x38e, 0x38f, 0x388, 0x389, 0x38a, 0x38b,
+    0x390, 0x391, 0x392, 0x393, 0x394, 0x395, 0x396, 0x397,
+    0x273, 0x65d, 0x65e, 0x65f, 0x660, 0x661, 0x662, 0x663,
+    0x664, 0x665, 0x666, 0x667, 0x668, 0x669, 0x66a, 0x66b,
+    0x66c, 0x66d, 0x66e, 0x66f, 0x398, 0x399, 0x39a, 0x39b,
+    0x39c, 0x39d, 0x39e, 0x39f, 0x273, 0x670, 0x671, 0x672,
+    0x673, 0x674, 0x675, 0x676, 0x3a0, 0x3a1, 0x3a2, 0x3a3,
+    0x3a4, 0x3a5, 0x3a6, 0x3a7, 0x3a8, 0x3a9, 0x3aa, 0x3ab,
+};
 extern wchar_t* GetMonsterName(
     W8MonsterInfo* monster_info, W8MonsterRecord* record, char arg_3);
 extern char Function42B740(int saved_level);
 extern char Function521060(
     int id, int* out_id, W8Character** out_character, int a, int b);
-extern W8Character* Function52C480(void);
 extern void Function536570(int party_slot, int a, int b);
 extern void Function52F790(void* character, int condition);
 extern unsigned char Function4E79A0(int party_slot, int a, int b, int c);
@@ -31,8 +48,34 @@ extern void Function53A930(int party_slot, W8CombatSlot* target);
 extern void Function547A50(int party_slot);
 extern void Function5237E0(int party_slot);
 extern unsigned char Function547940(const W8Character* character, int trait);
-extern void Function53AEB0(int party_slot);
+extern void Function53AEB0(unsigned int party_slot);
 extern void Function52F430(void* character);
+
+// FUNCTION: WIZ8 0x005248a0
+unsigned char Function5248A0(int party_slot, int condition)
+{
+    const unsigned char* character =
+        reinterpret_cast<const unsigned char*>(g_status_685170.buffers.characters + party_slot);
+    return character[condition * 0x11 + 0x181f];
+}
+
+// FUNCTION: WIZ8 0x0052C480
+W8Character* FindPartyMemberWithLowestResistance4(void)
+{
+    unsigned int lowest = 999;
+    int selected = 0;
+    for (int party_slot = 0; party_slot < 8; ++party_slot) {
+        W8Character* character = &g_party_characters[party_slot];
+        if (g_party_slot_rows[party_slot].occupied != 0 &&
+            character->unknown_0b01 < 0x12 &&
+            character->resistances[4].total < lowest) {
+            selected = party_slot;
+            lowest = character->resistances[4].total;
+        }
+    }
+    if (lowest == 999) return 0;
+    return &g_party_characters[selected];
+}
 extern void Function590950(int party_slot, const wchar_t* format, ...);
 extern bool FindItemOnCharacter(
     W8Character* character, int item_id, W8ItemInstance** found,
@@ -97,7 +140,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
                  && Function521060(0x243, &found_id, &found_character, 2, 0) != 0
                  && found_id != 0x6874CB) {
             if (found_character == 0) {
-                found_character = Function52C480();
+                found_character = FindPartyMemberWithLowestResistance4();
             }
             if (CharacterPointerToPartySlot(found_character)
                     == (unsigned int)party_slot

@@ -215,6 +215,28 @@ extern W8MainGameScreen005EEBD8* g_main_game_screen_0068f2d4;
 class W8DialogBase;
 extern W8DialogBase* g_modal_owner_0068edd0;
 extern W8DialogBase* g_pending_main_game_dialog_0068edd4;
+
+#pragma pack(push, 1)
+struct W8MainScreenState {
+    unsigned char unknown_000[0xf8];
+    int target_location_id_f8;
+    unsigned char unknown_0fc[8];
+    int value_104;
+    unsigned char unknown_108[0xcc];
+    int value_1d4;
+    unsigned char unknown_1d8[0x5c];
+    unsigned char flag_234;
+    unsigned char unknown_235[3];
+    int value_238;
+    unsigned char unknown_23c[0x16];
+    unsigned char flag_252;
+    unsigned char unknown_253[0x19];
+};
+#pragma pack(pop)
+static_assert(sizeof(W8MainScreenState) == 0x26c,
+              "W8MainScreenState_size");
+
+extern W8MainScreenState* g_screen_state_00649f1c;
 void OnQuitGameDialogClosed(W8DialogBase* dialog);
 
 void Function56AA30(void);

@@ -88,7 +88,7 @@ extern void Function512C40(void);
 extern void Function5092F0(int* level, int* entrance);
 extern void Function5063E0(void);
 extern unsigned char Function42AF60(int level, int entrance);
-extern void Function5159E0(int value);
+extern unsigned char AutoSaveIfAllowed(char forced);
 extern unsigned int LoadGame(const char* slot_name);
 extern void SetValue64D8AC(unsigned long value);
 extern unsigned char g_flag_689b2c;
@@ -97,7 +97,14 @@ extern unsigned char g_flag_689b2c;
    screen shows while that level loads. 0x00605820 indexes the level's name in
    the string list. Both are bounded by 0x2F, with 0xE4 as the backdrop the
    frame handler falls back to. */
-extern int g_level_backdrops_64bf8c[];
+// GLOBAL: WIZ8 0x0064bf8c
+int g_level_backdrops_64bf8c[47] = {
+    0x1bc, 0x1bd, 0x1be, 0x1bf, 0x1c0, 0x1c2, 0x1c1, 0x1c3, 0x1c4, 0x1c5,
+    0x1c6, 0xe4, 0x1c7, 0x1c8, 0x1c9, 0x1ca, 0x1cb, 0x1cc, 0x1cd, 0x1ce,
+    0x1cf, 0x1d0, 0x1d1, 0xe4, 0x1d2, 0x1d3, 0x1d4, 0x1d5, 0xe4, 0x1d6,
+    0xe4, 0x1d7, 0x1d8, 0x1d9, 0xe4, 0xe4, 0x1da, 0x1db, 0x1dc, 0xe4,
+    0, 0, 0, 0, 0, 0, 0,
+};
 extern unsigned short g_level_name_indices_605820[];
 
 /* The path the five assertions carry. */
@@ -347,7 +354,7 @@ void PleaseWaitScreenFrame(void)
                                 g_load_descriptor_69b7c8->parameter_2)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 320, 0);
             }
-            Function5159E0(1);
+            AutoSaveIfAllowed(1);
         }
     }
 

@@ -97,6 +97,12 @@ extern bool IsModalOpen(void);
 extern int Function55EF80(void);
 extern void Function55EE70(int value);
 void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason);
+
+// FUNCTION: WIZ8 0x0055ef80
+int Function55EF80(void)
+{
+    return 8;
+}
 extern void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason);
 
 static TextInputColors* pColors;

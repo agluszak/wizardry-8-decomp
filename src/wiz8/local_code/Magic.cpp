@@ -126,7 +126,7 @@ enum {
     W8_SPELL_USABLE_WHILE_CAMPED = 3,
     W8_SPELL_USABLE_WHILE_SHOPPING = 4
 };
-extern int Function53A2C0(W8MonsterInfo* monster_info, int location_id);
+extern void Function53A2C0(W8MonsterInfo* monster_info, int location_id);
 extern unsigned char Function53A300(W8MonsterInfo* monster_info, int spell_id);
 extern unsigned char Function519F80(
     W8MonsterInfo* monster_info,
@@ -389,7 +389,10 @@ enum {
 };
 
 /* 0x0068691F */
-extern W8ConditionSlot g_party_conditions[W8_PARTY_CONDITION_SLOTS];
+// GLOBAL
+W8ConditionSlot g_party_conditions[W8_PARTY_CONDITION_SLOTS];
+// GLOBAL
+W8GrowableVector<W8SpellEffectEntry*> g_spell_effects;
 /* Whether every queued effect still has time left on it. */
 // FUNCTION: WIZ8 0x00500e50
 bool AllSpellEffectsStillRunning(void)
@@ -654,7 +657,10 @@ extern void ReportActionFailed(int party_slot);                          /* 0x00
 extern unsigned char GetItemSpell(const W8ItemInstance* item);           /* 0x00520880 */
 extern void RecordItemOrigin(int party_slot, unsigned char origin, unsigned short slot);
 /* 0x00522180 */
-extern unsigned char g_profession_spellbooks[];
+// GLOBAL: WIZ8 0x0061634c
+unsigned char g_profession_spellbooks[15] = {
+    0, 2, 2, 4, 1, 4, 8, 0, 0, 0, 2, 4, 15, 8, 1,
+};
 
 /* Begin one character's spell. The recorded target is copied to the stack
    first because choosing the action overwrites it, and out of combat the
@@ -918,8 +924,9 @@ void LearnSpell(W8Character* character, int spell_id, char announce)
 
 extern void Function520070(
     W8ItemInstance* item, W8Character* character, unsigned char refresh);
-extern void Function52E690(
-    W8Character* character, int sound, int arg_3, float arg_4, float arg_5); /* 0x0052E690 */
+extern int Function52E690(
+    W8Character* character, int effect, int argument, int value_1,
+    unsigned int value_2); /* 0x0052E690 */
 extern int g_learn_sound_0068c510;
 // GLOBAL: WIZ8 0x0068c510
 int g_learn_sound_0068c510;

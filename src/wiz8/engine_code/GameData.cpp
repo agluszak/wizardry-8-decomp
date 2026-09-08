@@ -22,6 +22,9 @@ float g_float_005ec1a0 = 0.9959999918937683f;
 #include <windows.h>
 #include <new>
 
+// GLOBAL: WIZ8 0x00652dac
+W8LevelDataRecord* g_level_data_00652dac;
+
 // GLOBAL
 float g_float_00603ac8;
 // GLOBAL
@@ -53,6 +56,7 @@ enum {
 };
 
 extern unsigned char g_level_override_00652dba;
+extern unsigned char g_environment_load_flag_00603ad0;
 // GLOBAL: WIZ8 0x00652dba
 unsigned char g_level_override_00652dba;
 // GLOBAL: WIZ8 0x00652dce
@@ -402,6 +406,62 @@ unsigned char HasLevelDataVector(void)
 extern void Function449240(int handle);
 extern void Function497690(int channel, const char* message);
 extern W8EnvironRecord* g_environ_00652DB4;
+// GLOBAL: WIZ8 0x00652db4
+W8EnvironRecord* g_environ_00652DB4;
+
+// FUNCTION: WIZ8 0x0041AA40
+void ResetCurrentEnvironment0041AA40(void)
+{
+    if (g_environ_00652DB4 != 0) {
+        if (g_octree_game_data_00652db0 != 0 &&
+            g_octree_game_data_00652db0->environs_84 != 0) {
+            g_environ_00652DB4 = g_octree_game_data_00652db0->environs_84[0];
+        }
+        g_environ_00652DB4->value_24 = 0;
+        g_environ_00652DB4->value_28 = 0;
+        g_environ_00652DB4->value_2c = 0;
+        if (g_environment_load_flag_00603ad0 != 0) {
+            g_environ_00652DB4->value_20 = 1.0f;
+        }
+        g_environment_load_flag_00603ad0 =
+            g_environment_load_flag_00603ad0 == 0;
+        if (g_environment_load_flag_00603ad0 == 0) {
+            g_level_override_00652dba = 0;
+        }
+        return;
+    }
+    g_environment_load_flag_00603ad0 = 0;
+    g_level_override_00652dba = 0;
+}
+
+// FUNCTION: WIZ8 0x0041F0D0
+void ResetLevelDataVectors0041F0D0(void)
+{
+    if (g_level_data_00652dac != 0) {
+        g_level_data_00652dac->flags |= 0x40;
+        if ((g_level_data_00652dac->flags & 1) == 0) {
+            g_level_data_00652dac->vector_40.x = 0.0f;
+            g_level_data_00652dac->vector_40.y = 0.0f;
+            g_level_data_00652dac->vector_40.z = 0.0f;
+            g_level_data_00652dac->camera_forward_4c.x = 0.0f;
+            g_level_data_00652dac->camera_forward_4c.y = 0.0f;
+            g_level_data_00652dac->camera_forward_4c.z = 0.0f;
+            g_level_data_00652dac->vector_64.x = 0.0f;
+            g_level_data_00652dac->vector_64.y = 0.0f;
+            g_level_data_00652dac->vector_64.z = 0.0f;
+            g_level_data_00652dac->vector_70.x = 0.0f;
+            g_level_data_00652dac->vector_70.y = 0.0f;
+            g_level_data_00652dac->vector_70.z = 0.0f;
+            g_level_data_00652dac->scaled_camera_forward_7c.x = 0.0f;
+            g_level_data_00652dac->scaled_camera_forward_7c.y = 0.0f;
+            g_level_data_00652dac->scaled_camera_forward_7c.z = 0.0f;
+            g_level_data_00652dac->vector_a0.x = 0.0f;
+            g_level_data_00652dac->vector_a0.y = 0.0f;
+            g_level_data_00652dac->vector_a0.z = 0.0f;
+        }
+        g_level_data_00652dac->flags &= ~0x100U;
+    }
+}
 
 /* Builds the processed game-data record in place: zeroed storage, bound
    extremes, the shared engine-time object on first use, a default

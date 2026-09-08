@@ -47,6 +47,19 @@ static W8MaterialRecord004B8A70* g_read_mesh_material_records_65b9f4;
 static int g_read_mesh_scratch_count_65b9f8;
 static int g_read_mesh_material_count_65b9cc;
 
+// FUNCTION: WIZ8 0x00489A80
+unsigned char IsTextureInReadMeshScratch(const void* texture)
+{
+    if (g_read_mesh_textures_65b9ec != 0 && g_read_mesh_scratch_count_65b9f8 > 0) {
+        for (short index = 0; index < g_read_mesh_scratch_count_65b9f8; ++index) {
+            if (g_read_mesh_textures_65b9ec[index] == texture) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x00489AC0
 unsigned char IsReadMeshMaterial00489AC0(const srClass* material)
 {

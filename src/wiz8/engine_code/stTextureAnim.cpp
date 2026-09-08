@@ -6,7 +6,7 @@
 
 #include <stdlib.h>
 
-extern unsigned char Function489A80(const void* texture);
+extern unsigned char IsTextureInReadMeshScratch(const void* texture);
 extern float g_float_005ec128;
 
 // VTABLE: WIZ8 0x005EC9C0
@@ -85,7 +85,7 @@ stTextureAnim::stTextureAnim(const stTextureAnim& other)
 // FUNCTION: WIZ8 0x00485290
 stTextureAnim::~stTextureAnim()
 {
-    if (Function489A80(this) != 0) {
+    if (IsTextureInReadMeshScratch(this) != 0) {
         ReleaseReadMeshScratch004881D0();
     }
 

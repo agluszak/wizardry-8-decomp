@@ -63,6 +63,8 @@ extern unsigned char FindEntityByName(
 extern void SetTriggerVariableByName00444030(const char* name, int value);
 extern const float g_monster_rotation_offset_005ec04c;
 extern const float g_float_005ebcf8;
+// GLOBAL: WIZ8 0x005ebcf8
+const float g_float_005ebcf8 = 0.0055555556900799274f;
 extern const double g_monster_death_rotation_pi_005ed1f0;
 extern float g_light_scale_0060bfe0;
 // GLOBAL: WIZ8 0x0060bfe0
@@ -85,7 +87,7 @@ extern srVector3T<float> g_monster_attachment_offsets_0060e618[][8];
 extern float g_monster_attachment_scales_0060e914[];
 extern void SetChainValue15C(char* node, int value);
 extern float g_startup_depth_603ac8;
-extern const float g_monster_script_facing_tolerance_005ebc84;
+extern const float g_camera_transition_epsilon_005ebc84;
 extern const float g_world_scale_005ebc40;
 extern unsigned char g_force_encounter_culling; /* 0x00687500 */
 // GLOBAL
@@ -104,7 +106,7 @@ extern void Function48F650(
     W8MonsterInfo* monster_info, unsigned char value_1, unsigned char value_2);
 extern unsigned char RemoveMonster(
     unsigned int monster_list_index, unsigned char destroy_monster);
-extern const float g_monster_script_time_scale_005ec128;
+extern float g_float_005ec128;
 extern const double g_monster_script_direction_step_005ed2b8;
 extern const float g_monster_script_direction_scale_005ec150;
 extern const double g_monster_facing_tolerance_005ec2b0;
@@ -142,7 +144,7 @@ extern void Function50F720(W8MonsterGroup* monster_group);
 extern void Function56C5E0(
     void* item_list, int value_1, int value_2, int value_3, int value_4);
 extern void ResetTargetSource(W8TargetSource* source);
-extern void Function523C00(
+extern void SetMonsterCondition(
     int monster_id, int value_2, int value_3, int value_4,
     W8TargetSource* source, int value_6);
 extern srTextureIFace* LoadTexture004B9460(
@@ -870,14 +872,14 @@ void W8Monster::RandomizeAppearanceAndMotion004C1D20()
         random_value = Random(1000);
         m_pRep->scale_5f0 =
             (maximum - minimum) * (float)random_value *
-                g_monster_script_time_scale_005ec128 + minimum;
+                g_float_005ec128 + minimum;
     }
 
     if (m_pRep->flag_600 != 0) {
         int subcycle;
         float playback_scale =
             (m_pRep->value_60c - m_pRep->value_608) *
-                (float)Random(1000) * g_monster_script_time_scale_005ec128 +
+                (float)Random(1000) * g_float_005ec128 +
             m_pRep->value_608;
 
         for (subcycle = 0;
@@ -915,16 +917,16 @@ void W8Monster::RandomizeAppearanceAndMotion004C1D20()
 
     movement_0c0.vertical_base_07c =
         ((value_220 - value_21c) * (float)Random(1000) *
-             g_monster_script_time_scale_005ec128 +
+             g_float_005ec128 +
          value_21c) *
         g_world_scale_005ebc40;
     movement_0c0.vertical_amplitude_080 =
         ((value_228 - value_224) * (float)Random(1000) *
-             g_monster_script_time_scale_005ec128 +
+             g_float_005ec128 +
          value_224) *
         g_world_scale_005ebc40;
     movement_0c0.vertical_phase_084 =
-        (float)Random(1000) * g_monster_script_time_scale_005ec128;
+        (float)Random(1000) * g_float_005ec128;
     movement_0c0.vertical_offset_0c0 =
         (float)sin(
             (double)movement_0c0.vertical_phase_084 *
@@ -2453,7 +2455,7 @@ void W8Monster::ProcessScript004C80E0()
                 token = strtok(0, " \t");
                 if (token != 0 && (float)atof(token) != 0.0f) {
                     timer_254.SetDuration(
-                        (float)atof(token) * g_monster_script_time_scale_005ec128);
+                        (float)atof(token) * g_float_005ec128);
                     timer_254.Restart();
                     script_wait_240 = MONSCR_DELAY;
                 }
@@ -2498,7 +2500,7 @@ void W8Monster::ProcessScript004C80E0()
                             MonsterGetIndexByLocationID(
                                 0x1c3a, MONSTER_CPP, propagated_value_1e4, 1));
                         ResetTargetSource(&source);
-                        Function523C00(
+                        SetMonsterCondition(
                             monster_info->location_id, 0xf, 6, 0, &source, 1);
                     }
                     else if (_stricmp(token, "ENDBELAWALK") == 0) {
@@ -2715,7 +2717,7 @@ unsigned char W8Monster::CanContinueScript004CA0F0()
     case 2:
         if ((float)fabs(movement_0c0.target_yaw -
                         movement_0c0.yaw) >=
-            g_monster_script_facing_tolerance_005ebc84) {
+            g_camera_transition_epsilon_005ebc84) {
             return 0;
         }
         break;

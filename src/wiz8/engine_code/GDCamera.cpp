@@ -22,7 +22,7 @@ float g_float_005ebc7c;
 extern const double g_camera_view_factor_005ec300;
 extern const double g_camera_view_factor_005ec538;
 extern const double g_camera_view_factor_005ec568;
-extern const float g_zero_005ebb34;
+extern float g_float_005ebb34;
 extern const float g_negative_one_005ebc38;
 extern const float g_camera_snap_epsilon_005ebc2c;
 extern const float g_camera_transition_epsilon_005ebc84;
@@ -36,7 +36,7 @@ extern const float g_camera_half_period_005ec564;
 extern const float g_camera_angle_dead_zone_005ec578;
 extern const float g_camera_transition_duration_scale_005ec57c;
 extern const double g_camera_smoothing_scale_005ec580;
-extern const double g_camera_step_average_005ebe80;
+extern double g_double_005ebe80;
 extern const float g_camera_input_deceleration_005ec590;
 extern const float g_camera_negative_input_deceleration_005ec58c;
 extern const float g_camera_velocity_stop_scale_005ec588;
@@ -61,6 +61,8 @@ const float g_camera_snap_epsilon_005ebc2c = 0.009999999776482582f;
 const float g_camera_transition_epsilon_005ebc84 = 0.0010000000474974513f;
 // GLOBAL: WIZ8 0x005ec54c
 const float g_camera_angle_period_005ec54c = 6.2831854820251465f;
+// GLOBAL: WIZ8 0x005ec014
+extern const float g_camera_angle_period_005ec014 = 6.283185005187988f;
 // GLOBAL: WIZ8 0x005ec548
 const float g_camera_angle_lower_005ec548 = 0.0f;
 // GLOBAL: WIZ8 0x005ec550
@@ -117,6 +119,14 @@ extern float Function4BE490(
 
 // GLOBAL: WIZ8 0x0065A0FC
 srCamera* g_game_camera_65a0fc;
+// GLOBAL: WIZ8 0x0065a0f8
+GDCamera* g_gd_camera_65a0f8;
+
+// FUNCTION: WIZ8 0x00420e10
+unsigned char Function420E10(void)
+{
+    return g_gd_camera_65a0f8->m_transition_active;
+}
 
 // FUNCTION: WIZ8 0x00476140
 GDCamera::GDCamera()
@@ -157,7 +167,7 @@ GDCamera::GDCamera()
     }
     MarkRendererReady();
 
-    angle = g_zero_005ebb34;
+    angle = g_float_005ebb34;
     while (angle > g_camera_angle_period_005ec54c) {
         angle -= g_camera_angle_period_005ec54c;
     }
@@ -249,8 +259,8 @@ void GDCamera::ApplyRotationMatrix(
     float angle = 0.0f;
     float pitch = 0.0f;
 
-    if (forward_x != g_zero_005ebb34
-        || forward_y != g_zero_005ebb34
+    if (forward_x != g_float_005ebb34
+        || forward_y != g_float_005ebb34
         || forward_z != g_float_005ebb38) {
         if (context != 0) {
             context->camera_forward_4c.x =
@@ -286,7 +296,7 @@ void GDCamera::ApplyRotationMatrix(
             forward_z = g_negative_one_005ebc38;
         }
         angle = (float)acos((double)forward_z);
-        if (forward_x < g_zero_005ebb34) {
+        if (forward_x < g_float_005ebb34) {
             angle = g_camera_angle_period_005ec54c - angle;
         }
     }
@@ -344,7 +354,7 @@ void GDCamera::SnapToTarget(const srVector3T<float>* target)
         z = g_negative_one_005ebc38;
     }
     float angle = (float)acos((double)z);
-    if (x < g_zero_005ebb34) {
+    if (x < g_float_005ebb34) {
         angle = g_camera_angle_period_005ec014 - angle;
     }
 
@@ -452,7 +462,7 @@ unsigned char GDCamera::LookAt(
         z = g_negative_one_005ebc38;
     }
     float angle = (float)acos((double)z);
-    if (x < g_zero_005ebb34) {
+    if (x < g_float_005ebb34) {
         angle = g_camera_angle_period_005ec014 - angle;
     }
     return BeginOrientationTransition(pitch, angle, 0);
@@ -559,7 +569,7 @@ unsigned char GDCamera::BeginOrientationTransition(
     float raw_angle_distance =
         (float)fabs((double)(target_angle - m_yaw));
     m_angle_distance_0b0 = raw_angle_distance;
-    if (target_pitch != g_zero_005ebb34
+    if (target_pitch != g_float_005ebb34
         || raw_angle_distance >= g_camera_snap_epsilon_005ebc2c) {
         m_positional_000 = 0;
     } else {
@@ -679,7 +689,7 @@ void GDCamera::Update(float elapsed)
                 (double)phase * (double)g_camera_half_period_005ec564);
             step = (float)fabs(
                 (double)((next_weight + current_weight) * elapsed)
-                * g_camera_step_average_005ebe80);
+                * g_double_005ebe80);
         } else {
             step = elapsed;
         }
@@ -687,7 +697,7 @@ void GDCamera::Update(float elapsed)
         m_pitch += step * m_pitch_velocity_0ac;
         if (m_yaw > g_camera_angle_period_005ec014) {
             m_yaw -= g_camera_angle_period_005ec014;
-        } else if (m_yaw < g_zero_005ebb34) {
+        } else if (m_yaw < g_float_005ebb34) {
             m_yaw += g_camera_angle_period_005ec014;
         }
     } else {
@@ -709,7 +719,7 @@ void GDCamera::Update(float elapsed)
 // FUNCTION: WIZ8 0x00477B90
 void GDCamera::ApplyYawInput(float input)
 {
-    if (input != g_zero_005ebb34) {
+    if (input != g_float_005ebb34) {
         if (gXStatus.field_01f == 0 && g_flag_006875a5 == 0) {
             m_positional_000 |= 1;
             m_manual_input_timer->Arm();
@@ -722,11 +732,11 @@ void GDCamera::ApplyYawInput(float input)
     if (m_transition_active == 0 || (m_positional_000 & 0x20) != 0) {
         unsigned char decelerating_negative = 0;
         unsigned char decelerating_positive = 0;
-        if (input == g_zero_005ebb34) {
-            if (m_angle_velocity_0a8 < g_zero_005ebb34) {
+        if (input == g_float_005ebb34) {
+            if (m_angle_velocity_0a8 < g_float_005ebb34) {
                 input = g_camera_input_deceleration_005ec590;
                 decelerating_negative = 1;
-            } else if (m_angle_velocity_0a8 > g_zero_005ebb34) {
+            } else if (m_angle_velocity_0a8 > g_float_005ebb34) {
                 input = g_camera_negative_input_deceleration_005ec58c;
                 decelerating_positive = 1;
             } else {
@@ -738,9 +748,9 @@ void GDCamera::ApplyYawInput(float input)
 
         m_angle_velocity_0a8 += input * m_frame_elapsed;
         if ((decelerating_negative != 0
-             && m_angle_velocity_0a8 > g_zero_005ebb34)
+             && m_angle_velocity_0a8 > g_float_005ebb34)
             || (decelerating_positive != 0
-                && m_angle_velocity_0a8 < g_zero_005ebb34)) {
+                && m_angle_velocity_0a8 < g_float_005ebb34)) {
             m_angle_velocity_0a8 = 0.0f;
             m_positional_000 &= ~0x40UL;
             return;
@@ -769,7 +779,7 @@ void GDCamera::ApplyYawInput(float input)
 // FUNCTION: WIZ8 0x00477EB0
 void GDCamera::ApplyPitchInput(float input)
 {
-    if (input != g_zero_005ebb34
+    if (input != g_float_005ebb34
         && gXStatus.field_01f == 0 && g_flag_006875a5 == 0) {
         m_positional_000 |= 1;
         m_manual_input_timer->Arm();
@@ -780,16 +790,16 @@ void GDCamera::ApplyPitchInput(float input)
     if (m_transition_active != 0) {
         return;
     }
-    if (input > g_zero_005ebb34 && (m_positional_000 & 8) != 0) {
+    if (input > g_float_005ebb34 && (m_positional_000 & 8) != 0) {
         return;
     }
-    if (input < g_zero_005ebb34 && (m_positional_000 & 4) != 0) {
+    if (input < g_float_005ebb34 && (m_positional_000 & 4) != 0) {
         return;
     }
 
     unsigned char decelerating_negative = 0;
     unsigned char decelerating_positive = 0;
-    if (input == g_zero_005ebb34) {
+    if (input == g_float_005ebb34) {
         if (m_pitch_velocity_0ac < g_camera_negative_velocity_epsilon_005ec594) {
             input = g_camera_input_deceleration_005ec590;
             decelerating_negative = 1;
@@ -800,7 +810,7 @@ void GDCamera::ApplyPitchInput(float input)
             m_pitch_velocity_0ac = 0.0f;
             return;
         }
-    } else if (input <= g_zero_005ebb34) {
+    } else if (input <= g_float_005ebb34) {
         m_positional_000 &= ~0x38UL;
     } else {
         m_positional_000 &= ~0x34UL;
@@ -808,9 +818,9 @@ void GDCamera::ApplyPitchInput(float input)
 
     m_pitch_velocity_0ac += input * m_frame_elapsed;
     if ((decelerating_negative != 0
-         && m_pitch_velocity_0ac > g_zero_005ebb34)
+         && m_pitch_velocity_0ac > g_float_005ebb34)
         || (decelerating_positive != 0
-            && m_pitch_velocity_0ac < g_zero_005ebb34)) {
+            && m_pitch_velocity_0ac < g_float_005ebb34)) {
         m_pitch_velocity_0ac = 0.0f;
         return;
     }
@@ -825,11 +835,11 @@ void GDCamera::ApplyPitchInput(float input)
         m_pitch_velocity_0ac * g_camera_velocity_stop_scale_005ec588
         * g_camera_velocity_factor_005ec55c * m_pitch_velocity_0ac
         * g_float_005ebc7c;
-    if (m_pitch_velocity_0ac < g_zero_005ebb34) {
+    if (m_pitch_velocity_0ac < g_float_005ebb34) {
         stopping_distance = -stopping_distance;
     }
     m_pitch += m_frame_elapsed * m_pitch_velocity_0ac;
-    if (m_pitch >= g_zero_005ebb34) {
+    if (m_pitch >= g_float_005ebb34) {
         if (m_pitch + stopping_distance > g_camera_pitch_upper_005ec550) {
             m_positional_000 |= 0x18;
         }
@@ -855,12 +865,12 @@ void GDCamera::BrakePitchAtLimit()
     }
 
     float limit = g_camera_pitch_upper_005ec550;
-    if (m_pitch < g_zero_005ebb34) {
+    if (m_pitch < g_float_005ebb34) {
         limit = g_camera_pitch_lower_005ec554;
     }
     float braking_time =
         ((limit - m_pitch) / m_pitch_velocity_0ac) * 2.0f;
-    if (braking_time < g_zero_005ebb34) {
+    if (braking_time < g_float_005ebb34) {
         braking_time = -braking_time;
     }
     if (m_frame_elapsed <= braking_time) {
@@ -872,7 +882,7 @@ void GDCamera::BrakePitchAtLimit()
             * g_float_005ebc7c;
         m_pitch_velocity_0ac = next_velocity;
     } else {
-        if (m_pitch < g_zero_005ebb34) {
+        if (m_pitch < g_float_005ebb34) {
             m_pitch = g_camera_pitch_lower_005ec554;
         } else {
             m_pitch = g_camera_pitch_upper_005ec550;

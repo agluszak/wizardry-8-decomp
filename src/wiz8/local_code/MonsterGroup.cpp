@@ -9,6 +9,8 @@
 #include "wiz8/sr_api.h"
 
 #include <wchar.h>
+
+extern unsigned char g_in_combat_00683f94;
 #include <stdlib.h>
 
 static const char MONSTER_GROUP_CPP[] =
@@ -24,10 +26,14 @@ extern void RequestRedrawParty(void);                            /* 0x00565420 *
 extern void Function510590(W8MonsterGroup* monster_group);   /* 0x00510590 */
 extern void Function454C80(void);                            /* 0x00454C80 */
 extern void SetTargetToGroup(int group_id, int value);         /* 0x00538DB0 */
-extern unsigned char Function547510(void);                   /* 0x00547510 */
+// FUNCTION: WIZ8 0x00547510
+unsigned char Function547510(void)
+{
+    return g_in_combat_00683f94 != 0 && g_combat_state->flag_a54 == 0 &&
+           g_combat_state->value_004 <= 1;
+}
 extern void Function48C670(W8MonsterGroup* monster_group);   /* 0x0048C670 */
 extern void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info);
-extern void Function4C5730(W8Monster* monster, srVector3T<float>* position); /* 0x004C5730 */
 extern void Function48C750(W8MonsterGroup* monster_group);   /* 0x0048C750 */
 extern void Function50FD40(W8MonsterGroup* monster_group, int value); /* 0x0050FD40 */
 extern void Function547570(W8MonsterGroup* monster_group, unsigned char flag,
@@ -674,7 +680,7 @@ void GetMonsterGroupCentre(W8MonsterGroup* monster_group, srVector3T<float>* cen
         monster_group->centre.z = 0;
         count = ILLength(monster_group->monsters);
         for (index = 0; index < count; ++index) {
-            Function4C5730(
+            MonsterGetLocation(
                 MonsterGetScriptPartByLocationIndex(
                     MonsterGetIndexByLocationID(
                         0x379,

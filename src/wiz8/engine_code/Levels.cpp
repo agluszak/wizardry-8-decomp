@@ -81,6 +81,10 @@ W8LevelFolderRecord g_level_folders[47] = {
 
 // GLOBAL: WIZ8 0x00686A70
 int g_loaded_level_id;
+// GLOBAL: WIZ8 0x00604470
+int g_level_resource_state_00604470;
+// GLOBAL: WIZ8 0x006e0fa0
+char g_path_6e0fa0[260];
 
 extern void Function4EA310(int mode);
 extern void RenderFrame(void);
@@ -93,11 +97,47 @@ extern void Function4909C0(void);
 extern void Function489920(void);
 extern void ClearValue6834D4(void);
 extern unsigned char SaveLevelStatus(const char* path);
-extern int Function4D9700(int level);
+extern int NormalizeMasterFunctionValue004D9700(int value);
 extern void Function427440(void);
+extern unsigned char FindGameDataPath0042B590(char* path, int drive);
+extern void SetWorld659AB8(W8World* world);
+
+// FUNCTION: WIZ8 0x0042b720
+int Function42B720(int level)
+{
+    return g_level_folders[level].unknown_69;
+}
+
+// FUNCTION: WIZ8 0x0042b6f0
+unsigned char Function42B6F0(int level)
+{
+    return FindGameDataPath0042B590(g_path_6e0fa0, g_level_folders[level].unknown_69) == 0;
+}
+
+// FUNCTION: WIZ8 0x0042b740
+char Function42B740(int saved_level)
+{
+    int level = NormalizeMasterFunctionValue004D9700(saved_level);
+    if (level >= 0 && level < 48) {
+        return g_level_folders[level].unknown_6a;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x0042b3e0
+void Function42B3E0(void)
+{
+    W8World* world = GetWorld659AB8();
+    if (world != 0) {
+        Forward44FAF0(world);
+        SetWorld659AB8(0);
+        g_level_resource_state_00604470 = 0xff;
+        ResetEnvironment();
+    }
+}
 extern unsigned char Function42B020(int level, W8LevelInfo* info);
 extern void InitializeItemManagerState(void);
-extern void Function443A50(void);
+extern int Function443A50(void);
 extern void Function5817D0(void);
 extern unsigned char LoadLevelStatus(const char* path, int level);
 extern void BuildLevelStatusPath(char* path, int level);
@@ -109,7 +149,7 @@ extern void MoveWorldToPoint(
 extern void Function5115B0(void);
 extern void ResetMonsterGroupTurnState(void);
 extern unsigned char LoadAmbientSoundList0047AB40(char* filename);
-extern void Function41AA40(void);
+extern void ResetCurrentEnvironment0041AA40(void);
 extern void Function482410(void);
 extern void Function4D6C50(int level);
 extern void Function50AC60(void);
@@ -248,7 +288,7 @@ unsigned char LevelBuildInfoByID(int level, W8LevelInfo* info)
 unsigned char LoadLevel(
     int requested_level, int entrance, unsigned char restoring_game)
 {
-    int level = Function4D9700(requested_level);
+    int level = NormalizeMasterFunctionValue004D9700(requested_level);
     W8LevelInfo level_info;
     int previous_level;
     unsigned char first_visit = 0;
@@ -383,7 +423,7 @@ unsigned char LoadLevel(
         level_info.level_file_name, g_ambient_sound_filename_006059e0);
     LoadAmbientSoundList0047AB40(path);
     if (!g_environment_load_flag_00603ad0) {
-        Function41AA40();
+        ResetCurrentEnvironment0041AA40();
     }
     g_level_runtime_flag_0065ba70 = 0;
     Function482410();

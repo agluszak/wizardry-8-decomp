@@ -23,6 +23,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
+#include "wiz8/world_cursor.h"
 #include "surrender/srColorSurface.h"
 #include "surrender/srMaterial.h"
 #include "surrender/srMeshModel.h"
@@ -47,21 +48,22 @@ extern void SetValue60DFAC(void);
 extern unsigned char g_renderer_ready_00607d7c;
 // GLOBAL: WIZ8 0x00607d7c
 unsigned char g_renderer_ready_00607d7c = 1;
-extern void Function46DC90(srScene* scene);
+void SetSceneAmbientLightWhite(srScene* scene);
 extern int CheckLevelAssetSet0042CCC0(const char* level_path);
 extern void UpdateWorldMeshFromQuads004BAD40(W8World* world);
 extern void UpdateWorldMeshFromOctree004BAF50(W8World* world);
 extern void RenderFrame(void);
-extern void Function443A60(W8World* world);
+void DestroyAllWorldTriggers(W8World* world);
 extern void Function479030(void);
-extern void Function47A700(void* ambient_sound);
+class W8AmbientSound;
+extern void DestroyAmbientSound0047A700(W8AmbientSound* ambient_sound);
 extern void Function46E4A0(W8World* world);
-extern unsigned char Function4914C0(void);
 extern void Function490B90(void);
 extern unsigned char g_world_cleanup_flag_00659757;
 // GLOBAL
 unsigned char g_world_cleanup_flag_00659757;
-extern W8GrowableVector<W8World*> g_worlds_00659a80;
+// GLOBAL: WIZ8 0x00659a80
+W8GrowableVector<W8World*> g_worlds_00659a80;
 extern void Function46DE40(W8World* world);
 extern unsigned char g_monster_combat_timer_enabled_006f0531;
 // GLOBAL: WIZ8 0x006f0531
@@ -88,6 +90,30 @@ extern void RequestRefreshPartyState(void);
 extern void Function4AE310(void);
 extern void Function482770(void);
 extern void Function50D530(void);
+
+// FUNCTION: WIZ8 0x0046DC90
+void SetSceneAmbientLightWhite(srScene* scene)
+{
+    if (scene == 0) {
+        srAssertFail("psrScene", THREE_D_API_CPP, 0xf1, 0);
+    }
+    scene->setAmbientLight(1.0f, 1.0f, 1.0f);
+}
+
+// FUNCTION: WIZ8 0x00443A60
+void DestroyAllWorldTriggers(W8World* world)
+{
+    if (world != 0 && world->triggers != 0) {
+        while (world->triggers->GetCount() != 0) {
+            Trigger* trigger = *world->triggers->GetAt(0);
+            world->triggers->RemoveAt(0);
+            if (trigger != 0) {
+                trigger->release();
+            }
+        }
+        world->triggers->Clear();
+    }
+}
 
 // FUNCTION: WIZ8 0x00450B10
 void ConstructWorldCollections(W8World* world)
@@ -215,7 +241,7 @@ unsigned char LoadWorld(
         }
     }
 
-    Function46DC90(world->static_scene);
+    SetSceneAmbientLightWhite(world->static_scene);
     world->camera = CreateOrSetGameCamera(world->static_scene, 0);
     world->camera_light = CreateWorldLight0046E140(world, "CameraLight");
     world->camera_light->m_direction_60.x = 0.0f;
@@ -315,7 +341,7 @@ W8World* CreateWorld()
         return 0;
     }
     world->dynamic_scene->setName("Sir-Tech Dynamic Scene");
-    Function46DC90(world->static_scene);
+    SetSceneAmbientLightWhite(world->static_scene);
     ConstructWorldCollections(world);
     world->environment_range_end_018 = 1.0f;
     world->m_positional_01c = 1.0f;
@@ -450,7 +476,7 @@ void DestroyWorldCollections(W8World* world)
     }
     if (g_world_cleanup_flag_00659757 != 0) RenderFrame();
 
-    Function443A60(world);
+    DestroyAllWorldTriggers(world);
     if (world->triggers != 0) {
         delete world->triggers;
         world->triggers = 0;
@@ -474,7 +500,7 @@ void DestroyWorldCollections(W8World* world)
         while (PLLength(world->plsAmbientSounds) != 0) {
             void* ambient_sound = PLGet(world->plsAmbientSounds, 0);
             PLRemoveAt(world->plsAmbientSounds, 0);
-            Function47A700(ambient_sound);
+            DestroyAmbientSound0047A700((W8AmbientSound*)ambient_sound);
         }
         PLDestroy(world->plsAmbientSounds);
         world->plsAmbientSounds = 0;
@@ -538,7 +564,7 @@ void DestroyWorld(W8World* world)
     if (g_world_cleanup_flag_00659757 != 0) RenderFrame();
     DestroyWorldCollections(world);
     if (g_world_cleanup_flag_00659757 != 0) RenderFrame();
-    if (Function4914C0() != 0) Function490B90();
+    if (IsWorldCursorVisible() != 0) Function490B90();
 
     index = g_worlds_00659a80.IndexOf(world);
     if (index >= 0) {

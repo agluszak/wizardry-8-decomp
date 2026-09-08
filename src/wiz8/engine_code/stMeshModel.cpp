@@ -713,3 +713,7 @@ srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
     pipeline->PrepareSlot00475540();
     return pipe;
 }
+// FUNCTION: WIZ8 0x005aa400
+void stMeshModel::Function5AA400(stMeshModel*)
+{
+}

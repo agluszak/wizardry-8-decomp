@@ -1,11 +1,13 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/combat_state.h"
+#include "wiz8/dirty_tiles.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/magic.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/sgp_video.h"
 #include "wiz8/utility.h"
 #include "random.h"
 
@@ -51,7 +53,14 @@ extern const int g_effect_visual_table[][2];
 extern void DropMonsterVisual(W8Monster* monster, int visual, int arg_3);  /* 0x004ACD80 */
 extern void PostMonsterNotice(W8MonsterInfo* monster_info, void* notice);  /* 0x00590B40 */
 extern void Function50E700(void);
-extern void Function5AF2D0(void);
+// FUNCTION: WIZ8 0x005af2d0
+void Function5AF2D0(void)
+{
+    if (g_current_screen_state.id == 7) {
+        ClearSurfaceRect(0x7f, 0x14, 0x201, 0x28);
+        MarkScreenRectDirty(0x7f, 0x14, 0x201, 0x28, 0);
+    }
+}
 extern void RequestRedraw(int mask);
 extern void Function50E8C0(int location_id);
 

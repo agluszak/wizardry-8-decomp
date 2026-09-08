@@ -1,6 +1,8 @@
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_screens/MGSUseItemSelect.h"
+// GLOBAL: WIZ8 0x0069b998
+Controls* g_panel_69b998;
 extern "C" {
 // GLOBAL: WIZ8 0x0069b988
 int g_value_69b988;

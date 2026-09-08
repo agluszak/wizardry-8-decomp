@@ -7,7 +7,7 @@
 
 #include <string.h>
 
-extern unsigned char Function489A80(const void* texture);
+extern unsigned char IsTextureInReadMeshScratch(const void* texture);
 
 // VTABLE: WIZ8 0x005EC5F8
 // class stTextureFile
@@ -132,7 +132,7 @@ void stTextureFile::invalidate()
 // FUNCTION: WIZ8 0x0047C8E0
 stTextureFile::~stTextureFile()
 {
-    if (Function489A80(this) != 0) {
+    if (IsTextureInReadMeshScratch(this) != 0) {
         ReleaseReadMeshScratch004881D0();
     }
     invalidate();
