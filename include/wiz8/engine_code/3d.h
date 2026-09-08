@@ -10,6 +10,7 @@ class stModelInstance;
 
 void RemoveMonsterFromWorldList(W8World* unused, W8Monster* monster);
 void WorldAddToList00(W8World* unused, void* entry);
+void WorldRemoveFromList04(W8World* unused, void* entry);
 void SetChainValue15C(char* node, int value);
 stModelInstance* DuplicateModelInstance0046F680(
     stModelInstance* instance);

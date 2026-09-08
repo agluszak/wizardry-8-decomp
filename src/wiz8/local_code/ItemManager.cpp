@@ -2,6 +2,7 @@
 #include "wiz8/game_status.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/3d.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/character.h"
 #include "wiz8/engine_code/Octree.h"
@@ -461,7 +462,6 @@ unsigned int ItemIndex(int runtime_id)
 
 extern void GetPartyEyePosition(void* position);                         /* 0x00421070 */
 extern void GetWorldItemBounds(float* lower, float* upper);              /* 0x0049FB30 */
-extern void WorldRemoveFromList04(W8World* world);
 extern void RemoveItemFromSector(int sector, W8WorldItem* item);         /* 0x004B7B50 */
 extern void AddItemToSector(int sector, W8WorldItem* item);              /* 0x004B7AD0 */
 /* 0x0068EDCC: the level runtime block, which also carries the interface
@@ -520,7 +520,7 @@ void DeactivateWorldItem(W8WorldItem* item)
     item->entity_flags = static_cast<W8ItemRep*>(item->owner->m_pRep)->flags;
 
     item->owner->DetachMesh0049FA30(GetWorld());
-    WorldRemoveFromList04(GetWorld());
+    WorldRemoveFromList04(GetWorld(), item->owner);
     delete item->owner;
     item->owner = 0;
     item->unknown_08 = 0;
