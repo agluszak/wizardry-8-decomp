@@ -242,3 +242,17 @@ void RecalculateCharacterResistances(W8Character* character)
 }
 #include "wiz8/character.h"
 #include "wiz8/layouts/gameplay_databases.h"
+extern "C" {
+// GLOBAL: WIZ8 0x006161dc
+int g_profession_bonus_skills[15];
+// GLOBAL: WIZ8 0x00615570
+float g_profession_hit_point_factors[15];
+// GLOBAL: WIZ8 0x00616310
+int g_profession_magic_level_offsets[15];
+// GLOBAL: WIZ8 0x00615840
+int g_profession_skill_availability[0x29][15];
+// GLOBAL: WIZ8 0x00616218
+int g_profession_skills[15][4];
+// GLOBAL: WIZ8 0x006155b0
+W8SkillAttributes g_skill_attributes[0x29];
+}

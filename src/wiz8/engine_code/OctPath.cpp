@@ -8,6 +8,32 @@
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/float_constants.h"
+extern "C" {
+// GLOBAL: WIZ8 0x005ebc30
+double g_double_005ebc30 = 1.0;
+// GLOBAL: WIZ8 0x005ec020
+float g_float_005ec020 = 0.0f;
+// GLOBAL: WIZ8 0x005ec368
+double g_double_005ec368 = 25.00000037252903;
+// GLOBAL: WIZ8 0x005ec378
+double g_double_005ec378 = 4.0;
+// GLOBAL: WIZ8 0x005ec38c
+float g_float_005ec38c = 0.9847999811172485f;
+// GLOBAL: WIZ8 0x005ec384
+float g_float_005ec384 = 37500.0f;
+// GLOBAL: WIZ8 0x005ec370
+float g_float_005ec370 = 550.0f;
+// GLOBAL: WIZ8 0x005ec3b8
+float g_float_005ec3b8 = 1.5f;
+// GLOBAL: WIZ8 0x005ec3bc
+float g_float_005ec3bc = 0.5099999904632568f;
+// GLOBAL: WIZ8 0x005ec3c0
+float g_float_005ec3c0 = 1000000.0f;
+// GLOBAL: WIZ8 0x005ec3c8
+float g_float_005ec3c8 = -107374184.0f;
+// GLOBAL: WIZ8 0x005ec3d0
+float g_float_005ec3d0 = -107374184.0f;
+}
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/sr_api.h"
@@ -28,9 +54,17 @@
    where the octree's own loader lives. */
 
 extern unsigned short g_path_reserve_0060827a;
+// GLOBAL: WIZ8 0x0060827a
+unsigned short g_path_reserve_0060827a = 2000;
 extern float g_path_span_scale_005ec344;
+// GLOBAL: WIZ8 0x005ec344
+float g_path_span_scale_005ec344 = 1.5259254723787308e-05f;
 extern float g_path_limit_006081e8;
+// GLOBAL
+float g_path_limit_006081e8;
 extern unsigned char g_flag_00659c5c;
+// GLOBAL: WIZ8 0x00659c5c
+unsigned char g_flag_00659c5c;
 extern unsigned char g_flag_00689b32;
 extern const float g_world_scale_005ebc40;
 extern void* g_path_scratch_00659c64;
@@ -39,15 +73,35 @@ extern void RegisterPathVertex004B7830(
     unsigned int index, const int* point, const int* second);
 extern const double g_path_waypoint_snap_distance_005ec150;
 extern double g_double_005ec3a8;
+// GLOBAL: WIZ8 0x005ec3a8
+double g_double_005ec3a8 = 1.1;
 extern double g_double_005ec3a0;
+// GLOBAL: WIZ8 0x005ec3a0
+double g_double_005ec3a0 = 25000.0;
 extern double g_double_005ec3b0;
+// GLOBAL: WIZ8 0x005ec3b0
+double g_double_005ec3b0 = 0.1;
 extern float g_path_direction_threshold_0_005ec348;
+// GLOBAL: WIZ8 0x005ec348
+float g_path_direction_threshold_0_005ec348 = -0.9239000082015991f;
 extern float g_path_direction_threshold_1_005ec34c;
+// GLOBAL: WIZ8 0x005ec34c
+float g_path_direction_threshold_1_005ec34c = -0.38269999623298645f;
 extern float g_path_direction_threshold_2_005ec350;
+// GLOBAL: WIZ8 0x005ec350
+float g_path_direction_threshold_2_005ec350 = 0.38269999623298645f;
 extern float g_path_direction_threshold_3_005ec354;
+// GLOBAL: WIZ8 0x005ec354
+float g_path_direction_threshold_3_005ec354 = 0.9239000082015991f;
 extern float g_path_cardinal_scale_005ec358;
+// GLOBAL: WIZ8 0x005ec358
+float g_path_cardinal_scale_005ec358 = 1.4149999618530273f;
 extern float g_path_waypoint_query_vertical_005ec35c;
+// GLOBAL
+float g_path_waypoint_query_vertical_005ec35c;
 extern float g_path_waypoint_query_horizontal_005ec360;
+// GLOBAL
+float g_path_waypoint_query_horizontal_005ec360;
 extern float g_path_waypoint_exact_distance_005ebc64;
 extern double g_double_005ebe80;
 extern float Function4BE420(
@@ -68,7 +122,11 @@ extern void SortPathCandidates004677A0(
     int last);
 extern unsigned char g_flag_006081e4;
 extern unsigned int g_path_visualization_cell_00659c6c;
+// GLOBAL: WIZ8 0x00659c6c
+unsigned int g_path_visualization_cell_00659c6c;
 extern float g_path_search_visualization_limit_005ec380;
+// GLOBAL: WIZ8 0x005ec380
+float g_path_search_visualization_limit_005ec380 = 15000.0f;
 extern float g_path_endpoint_scale_005ec1a4;
 
 // GLOBAL: WIZ8 0x0060f9e8

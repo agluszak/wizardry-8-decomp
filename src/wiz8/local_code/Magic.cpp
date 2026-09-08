@@ -15,6 +15,9 @@
 #include "wiz8/utility.h"
 #include "random.h"
 
+// GLOBAL: WIZ8 0x0068510c
+unsigned char g_detailed_combat_messages_0068510c;
+
 #include <wchar.h>
 
 extern bool CanCharReBreathe(int party_slot);                             /* 0x004EBC80 */
@@ -918,6 +921,8 @@ extern void Function520070(
 extern void Function52E690(
     W8Character* character, int sound, int arg_3, float arg_4, float arg_5); /* 0x0052E690 */
 extern int g_learn_sound_0068c510;
+// GLOBAL: WIZ8 0x0068c510
+int g_learn_sound_0068c510;
 /* Learn the spell a scroll or book teaches, and consume it. The item has to
    carry a spell - the assertion names the field ubSpellNumber - and the
    character has to be able to take it on; failing that the item is left alone

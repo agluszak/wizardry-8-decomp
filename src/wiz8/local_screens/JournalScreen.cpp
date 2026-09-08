@@ -26,14 +26,22 @@ extern "C" {
 extern const wchar_t g_wchar_00689b34;
 extern int g_font_00683614;
 extern int g_journal_page_0064df38;
+// GLOBAL: WIZ8 0x0064df38
+int g_journal_page_0064df38 = -1;
 extern W8GrowableVector<W8JournalEntry>* g_journal_entries_0069c4e4;
 extern void RefreshJournalPanel005BD860(void);
 extern void RenderFrame(void);
 extern void Function577260(void);
 extern void ResetRegions(void);
 extern unsigned char g_camp_open_00683f9b;
+// GLOBAL: WIZ8 0x00683f9b
+unsigned char g_camp_open_00683f9b;
 extern unsigned char g_journal_show_all_0069c4e0;
+// GLOBAL: WIZ8 0x0069c4e0
+unsigned char g_journal_show_all_0069c4e0;
 extern int g_value_006850d5;
+// GLOBAL: WIZ8 0x006850d5
+int g_value_006850d5;
 extern void Function425570(int enabled);
 extern void SetViewport(int left, int top, int right, int bottom);
 extern void UpdateHeldItemCursor(void);
@@ -45,6 +53,8 @@ extern wchar_t g_journal_alternate_page_0064df78[];
 extern signed char g_journal_factions_0064df40[12];
 extern int g_journal_faction_name_indices_0064df4c[11];
 extern int g_journal_page_count_0064df3c;
+// GLOBAL: WIZ8 0x0064df3c
+int g_journal_page_count_0064df3c = -1;
 // GLOBAL: WIZ8 0x0069C4CC
 int g_journal_font_69c4cc;
 // GLOBAL: WIZ8 0x0069C4D0

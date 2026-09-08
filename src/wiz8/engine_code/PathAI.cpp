@@ -16,7 +16,7 @@ extern void NoOp(
     W8PathAI* path, W8AnimRepBase005EC1D8* representation);
 extern unsigned char Function4A4CF0(W8PathAI* path);
 extern void Function4A9FE0(W8PathAI* path, float value);
-extern float g_float_005ebc38;
+extern const float g_negative_one_005ebc38;
 extern double g_double_005ebe80;
 extern float g_float_005ec128;
 extern double g_double_005ec3b0;
@@ -525,7 +525,7 @@ int PathAITick004AA1F0(W8PathAI* path, signed char direction)
             amount = (now - path->tick_28) * g_float_005ec128 * direction * path->value_2c;
         }
         else {
-            amount = g_float_005ebc38;
+            amount = g_negative_one_005ebc38;
             if (direction > 0) {
                 amount = g_float_005ebb38;
             }

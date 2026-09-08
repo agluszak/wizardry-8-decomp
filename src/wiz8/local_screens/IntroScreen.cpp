@@ -19,6 +19,8 @@
 
 #include "wiz8/local_code/Configuration.h"
 extern unsigned char g_flag_689b2c;
+// GLOBAL: WIZ8 0x00689b2c
+unsigned char g_flag_689b2c;
 extern char g_path_6e0fa0[];
 
 extern unsigned char FindGameDataPath0042B590(char* path, int drive);

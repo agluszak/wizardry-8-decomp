@@ -9,6 +9,8 @@
    constants. */
 
 extern float g_rate_006068EC;            /* 0.1f in the shipped image */
+// GLOBAL
+float g_rate_006068EC;
 
 // GLOBAL: WIZ8 0x006598bc
 W8Object0043A910* g_object_6598bc;

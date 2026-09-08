@@ -67,7 +67,11 @@ extern int g_value_00685072;
 extern unsigned char g_flag_00685076;
 extern signed char g_value_00685077;
 extern int g_effect_005ee6ec;
+// GLOBAL: WIZ8 0x005ee6ec
+int g_effect_005ee6ec = 109;
 extern int g_effect_argument_005ed8cc;
+// GLOBAL: WIZ8 0x005ed8cc
+int g_effect_argument_005ed8cc = 1;
 extern int g_effect_argument_005ed914;
 
 unsigned char ClearPrimarySurface(void);

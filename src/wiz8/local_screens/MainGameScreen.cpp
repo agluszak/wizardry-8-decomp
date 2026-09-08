@@ -122,30 +122,70 @@ int IsScreenInputBlocked(void);
 void DisableCombatRegions(void);
 
 extern unsigned char g_flag_006840bc;
+// GLOBAL
+unsigned char g_flag_006840bc;
 extern unsigned short g_value_006840be;
+// GLOBAL: WIZ8 0x006840be
+unsigned short g_value_006840be;
 extern int g_held_item_source_006840c0;
 extern unsigned char g_held_item_origin_006840c4;
 extern unsigned short g_held_item_slot_006840c5;
 extern unsigned char g_flag_00685070;
+// GLOBAL: WIZ8 0x00685070
+unsigned char g_flag_00685070;
 extern unsigned char g_flag_00685071;
+// GLOBAL: WIZ8 0x00685071
+unsigned char g_flag_00685071;
 extern int g_value_00685072;
+// GLOBAL: WIZ8 0x00685072
+int g_value_00685072;
 extern unsigned char g_flag_00685076;
+// GLOBAL: WIZ8 0x00685076
+unsigned char g_flag_00685076;
 extern signed char g_value_00685077;
+// GLOBAL: WIZ8 0x00685077
+signed char g_value_00685077;
 extern int g_value_006850d5;
 extern unsigned char g_in_combat_00683f94;
 extern unsigned char g_flag_00683f95;
+// GLOBAL: WIZ8 0x00683f95
+unsigned char g_flag_00683f95;
 extern unsigned char g_flag_00683f96;
+// GLOBAL: WIZ8 0x00683f96
+unsigned char g_flag_00683f96;
 extern unsigned char g_flag_00683f97;
+// GLOBAL: WIZ8 0x00683f97
+unsigned char g_flag_00683f97;
 extern unsigned char g_flag_00683f98;
+// GLOBAL: WIZ8 0x00683f98
+unsigned char g_flag_00683f98;
 extern unsigned char g_flag_00683f99;
+// GLOBAL: WIZ8 0x00683f99
+unsigned char g_flag_00683f99;
 extern unsigned char g_flag_00683f9a;
+// GLOBAL: WIZ8 0x00683f9a
+unsigned char g_flag_00683f9a;
 extern unsigned char g_flag_00683fcd;
+// GLOBAL: WIZ8 0x00683fcd
+unsigned char g_flag_00683fcd;
 extern unsigned char g_flag_006850ce;
+// GLOBAL: WIZ8 0x006850ce
+unsigned char g_flag_006850ce;
 extern unsigned char g_flag_0068edbc;
+// GLOBAL: WIZ8 0x0068edbc
+unsigned char g_flag_0068edbc;
 extern unsigned char g_flag_0068edc8;
+// GLOBAL: WIZ8 0x0068edc8
+unsigned char g_flag_0068edc8;
 extern unsigned char g_flag_0068edc9;
+// GLOBAL: WIZ8 0x0068edc9
+unsigned char g_flag_0068edc9;
 extern unsigned char g_flag_0068edd8;
+// GLOBAL: WIZ8 0x0068edd8
+unsigned char g_flag_0068edd8;
 extern int g_main_game_mode_0068eddc;
+// GLOBAL: WIZ8 0x0068eddc
+int g_main_game_mode_0068eddc;
 
 struct W8MainGameResourceSlot {
     srClass* object;
@@ -165,15 +205,27 @@ W8MainGameResourceSlot g_main_game_resource_slots_64827c[17] = {
 };
 
 extern unsigned char g_build_level_links_0065bd2c;
+// GLOBAL: WIZ8 0x0065bd2c
+unsigned char g_build_level_links_0065bd2c;
 extern unsigned char g_flag_689b32;
 extern int g_next_link_level_0068ede8;
+// GLOBAL: WIZ8 0x0068ede8
+int g_next_link_level_0068ede8;
 extern unsigned char g_flag_0068edd9;
+// GLOBAL: WIZ8 0x0068edd9
+unsigned char g_flag_0068edd9;
 extern unsigned char g_byte_00659a64;
 extern unsigned char g_level_runtime_flag_0065ba70;
 extern unsigned char g_debug_monster_cycle_0068f0fc;
+// GLOBAL: WIZ8 0x0068f0fc
+unsigned char g_debug_monster_cycle_0068f0fc;
 extern W8IList* g_debug_monster_ids_0068f100;
 extern unsigned char g_navigator_position_changed_659c11;
+// GLOBAL: WIZ8 0x00659c11
+unsigned char g_navigator_position_changed_659c11;
 extern unsigned char g_flag_006840bb;
+// GLOBAL
+unsigned char g_flag_006840bb;
 
 void Function4314C0(int save);
 void Function5615F0(int level, int entry, int flag);
@@ -1038,6 +1090,8 @@ int IsScreenInputBlocked(void)
 }
 
 extern unsigned char g_map_loading_00659757;
+// GLOBAL
+unsigned char g_map_loading_00659757;
 extern void Function55EE70(int reason);
 extern void UpdateHeldItemCursor(void);
 extern void Function42B3E0(void);

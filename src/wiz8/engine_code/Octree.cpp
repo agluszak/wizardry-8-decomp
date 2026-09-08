@@ -36,13 +36,17 @@ void W8Octree::GetPathSurfaceNormal00433A70(
 
 
 extern unsigned long g_octree_storage_00659770;
+// GLOBAL: WIZ8 0x00659770
+unsigned long g_octree_storage_00659770;
 extern unsigned long g_octree_state_00659890;
+// GLOBAL: WIZ8 0x00659890
+unsigned long g_octree_state_00659890;
 extern void Function4331F0(void* value);
 extern void Function432D60(void* value);
 extern void Function434020(int value);
 extern unsigned char g_navigator_link_mode_00659c10;
 extern float g_rate_006068EC;
-extern float g_world_scale_005ebc40;
+extern const float g_world_scale_005ebc40;
 
 // GLOBAL: WIZ8 0x005ec02c
 static const float NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE = 50.0f;
@@ -226,6 +230,8 @@ extern char ResolveTraceHit004353F0(
     int value_7);
 extern int GetSectorForPosition00430BF0(const srVector3T<float>* position);
 extern float g_octree_cell_scale_005ebcd0;
+// GLOBAL: WIZ8 0x005ebcd0
+float g_octree_cell_scale_005ebcd0 = 100.0f;
 extern unsigned short g_path_reserve_0060827a;
 extern float g_path_span_scale_005ec344;
 extern float g_path_limit_006081e8;
@@ -233,6 +239,8 @@ extern void* CreatePathState004CAE40(void);
 /* 0x00659888 accumulates every byte the loader reads, and 0x00652DB0 caches the
    game-data block LoadWorld hands back through its out parameter. */
 extern unsigned long g_octree_bytes_read_00659888;
+// GLOBAL: WIZ8 0x00659888
+unsigned long g_octree_bytes_read_00659888;
 
 namespace {
 
@@ -1609,6 +1617,8 @@ W8Octree::~W8Octree()
 
 /* The node whose 0x1c is non-null is the only kind worth attaching. */
 extern int g_shared_mark_006598ac;
+// GLOBAL: WIZ8 0x006598ac
+int g_shared_mark_006598ac;
 
 extern unsigned int __stdcall OctreeTraverse(
     void* walker, void* arg_2, void* arg_3, int kind, unsigned int limit);   /* 0x0042F280 */

@@ -40,6 +40,10 @@
 extern "C" {
 extern unsigned char g_flag_68f104;
 extern unsigned char g_flag_68f105;
+// GLOBAL: WIZ8 0x0068f104
+unsigned char g_flag_68f104;
+// GLOBAL: WIZ8 0x0068f105
+unsigned char g_flag_68f105;
 }
 
 /* Lifecycle record 8's own state, all of it released by the finalizer below and

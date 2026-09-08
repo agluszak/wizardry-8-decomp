@@ -1,6 +1,10 @@
 #include "wiz8/fact_state.h"
 
 extern "C" int g_value_6834d4;
+extern "C" {
+// GLOBAL: WIZ8 0x006834d4
+int g_value_6834d4;
+}
 
 /* Predicate installed in the master-function callback table. */
 // FUNCTION: WIZ8 0x004D95F0

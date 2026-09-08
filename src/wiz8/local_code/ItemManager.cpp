@@ -267,6 +267,8 @@ int GenerateItemsFromTable(
 
 /* 0x00689B54: the cursor the iterator below resumes from. */
 extern int g_world_item_cursor;
+// GLOBAL: WIZ8 0x00689b54
+int g_world_item_cursor;
 
 
 /* Bit 0x20 of the item record's flag word, which is the only bit
@@ -464,7 +466,7 @@ extern void RemoveItemFromSector(int sector, W8WorldItem* item);         /* 0x00
 extern void AddItemToSector(int sector, W8WorldItem* item);              /* 0x004B7AD0 */
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
-extern float g_world_scale_005ebc40;
+extern const float g_world_scale_005ebc40;
 
 /* Flatten one item's whole group into a vector, the item itself first and then
    everything chained onto it. A failed append drops that entry and the walk

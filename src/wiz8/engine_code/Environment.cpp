@@ -29,9 +29,15 @@
 extern "C" float g_view_distance_0060a390;
 extern "C" unsigned char g_environment_flag_0060a394;
 extern int g_environment_value_0060a3a8;
+// GLOBAL: WIZ8 0x0060a3a8
+int g_environment_value_0060a3a8 = 2;
 extern "C" float g_environment_value_0060a3a4;
 extern unsigned char g_fog_enabled_0065b9ad;
+// GLOBAL: WIZ8 0x0065b9ad
+unsigned char g_fog_enabled_0065b9ad;
 extern unsigned char g_sky_enabled_0065b9ae;
+// GLOBAL: WIZ8 0x0065b9ae
+unsigned char g_sky_enabled_0065b9ae;
 extern "C" int g_light_direction_0065ad78;
 extern "C" int g_light_direction_0065ad7c;
 extern "C" int g_light_direction_0065ad80;

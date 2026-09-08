@@ -39,19 +39,39 @@ W8MonsterGenerator* FindMonGenByName(const char* name)
 }
 
 extern int g_random_encounter_budget;
+// GLOBAL: WIZ8 0x0060a6c4
+int g_random_encounter_budget = 20;
 extern int g_random_encounter_limit;
+// GLOBAL: WIZ8 0x0060a6c0
+int g_random_encounter_limit = 10;
 extern int g_active_group_count;            /* 0x0065BA14 */
+// GLOBAL: WIZ8 0x0065ba14
+int g_active_group_count;
 extern W8MonsterGroup** g_active_groups;    /* 0x0065BA1C */
 extern void RollRandomEncounters(void);     /* 0x0048CA20 */
 extern unsigned char g_generator_save_flag;                  /* 0x0065BA48 */
+// GLOBAL: WIZ8 0x0065ba48
+unsigned char g_generator_save_flag;
 extern unsigned char Function49F4A0(void* context, const char* name,
                                     void* out, int value);   /* 0x0049F4A0 */
 extern short g_generator_default_interval;                   /* 0x0060A6B6 */
+// GLOBAL: WIZ8 0x0060a6b6
+short g_generator_default_interval = 10;
 extern short g_generator_interval_min;                       /* 0x0060A6B4 */
+// GLOBAL: WIZ8 0x0060a6b4
+short g_generator_interval_min = 100;
 extern short g_generator_interval_max;                       /* 0x0060A6B8 */
+// GLOBAL: WIZ8 0x0060a6b8
+short g_generator_interval_max = -1;
 extern int g_saved_encounter_budget;                         /* 0x006850B6 */
+// GLOBAL: WIZ8 0x006850b6
+int g_saved_encounter_budget;
 extern int g_encounter_culling_time_seconds;
+// GLOBAL: WIZ8 0x0060a6c8
+int g_encounter_culling_time_seconds = 180;
 extern const float g_generator_jitter_fraction;              /* 0x005EC040 */
+// GLOBAL: WIZ8 0x005ec040
+const float g_generator_jitter_fraction = 0.20000000298023224f;
 
 // GLOBAL: WIZ8 0x0065ba20
 W8GrowableVector<W8EncounterTableRuntime*> g_encounter_tables;
@@ -227,8 +247,14 @@ extern void GetPartyPosition(srVector3T<float>* position); /* 0x00421070 */
    port has not established. */
 extern const float g_encounter_culling_scale;       /* 0x005EC254 */
 extern const float g_encounter_culling_scale_fast;  /* 0x0060A6CC */
+// GLOBAL: WIZ8 0x0060a6cc
+const float g_encounter_culling_scale_fast = 1.0f;
 extern const float g_encounter_culling_rate;        /* 0x005EC918 */
+// GLOBAL: WIZ8 0x005ec918
+const float g_encounter_culling_rate = 2880.0f;
 extern const float g_encounter_culling_distance;    /* 0x005ECA90 */
+// GLOBAL: WIZ8 0x005eca90
+const float g_encounter_culling_distance = 0.0f;
 
 /* Retires random encounters that have outlived their welcome.
  

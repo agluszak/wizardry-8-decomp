@@ -1,5 +1,11 @@
 extern "C" {
 extern float g_float_64b914;
+// GLOBAL: WIZ8 0x0064b914
+float g_float_64b914 = 2000.0f;
+// GLOBAL: WIZ8 0x0068f2b0
+int g_value_68f2b0;
+// GLOBAL: WIZ8 0x0068f2c4
+int g_value_68f2c4;
 extern int g_value_68f2b0;
 extern int g_value_68f2c4;
 }

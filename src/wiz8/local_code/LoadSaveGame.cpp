@@ -55,6 +55,8 @@ extern void Function516E20(W8WorldItem* item);
    load paths. It gates the bit-3 clear below. The meaning is not established
    beyond "a level restore is in progress", so the name stays positional. */
 extern unsigned char g_flag_659756;
+// GLOBAL
+unsigned char g_flag_659756;
 
 /* The object W8WorldItem::owner points at, and the entity it owns at +0x14.
    Method4B8890 is a 24-byte
@@ -746,7 +748,11 @@ report:
 enum { W8_SAVE_TAG_CHAR = 0x52414843, W8_SAVE_TAG_LVLS = 0x534c564c };
 
 extern unsigned char g_save_pending_00689f98;
+// GLOBAL: WIZ8 0x00689f98
+unsigned char g_save_pending_00689f98;
 extern unsigned char g_save_notice_shown_0068506b;
+// GLOBAL: WIZ8 0x0068506b
+unsigned char g_save_notice_shown_0068506b;
 /* 0x0061A144, the save-file extension. It sits in writable .data with 16
    reference sites across 10 functions rather than in .rdata with the format
    literals, so it is a variable the game can repoint rather than a constant;
@@ -793,6 +799,8 @@ void DeleteCurrentSaveFiles(void)
    both keep positional names. Both are zero in the shipped image. */
 extern unsigned char g_flag_006875a5;
 extern unsigned char g_flag_0068510d;
+// GLOBAL: WIZ8 0x0068510d
+unsigned char g_flag_0068510d;
 
 /* gXStatus.fCombatMode and gXStatus.fCampMode reach this unit through
    combat_state.h, so they are used rather than redeclared. 0x00683F97 has no

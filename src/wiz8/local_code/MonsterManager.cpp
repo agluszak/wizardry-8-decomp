@@ -8,6 +8,18 @@
 #include "wiz8/game_status.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/monster_runtime.h"
+extern "C" {
+// GLOBAL
+W8CharacterClassRecord* g_character_class_records;
+// GLOBAL: WIZ8 0x006840c7
+W8MonsterRecord* g_monster_record_cache[1000];
+// GLOBAL: WIZ8 0x005ed4f0
+float g_monster_record_float_scale = 20.0f;
+// GLOBAL: WIZ8 0x00683698
+int g_monster_info_iterator_index;
+// GLOBAL: WIZ8 0x006875ef
+unsigned char g_alternate_name_slot;
+}
 #include "wiz8/notices.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/utility.h"
@@ -54,6 +66,8 @@ void ResetCombatSlot(W8CombatSlot* combat_slot);   /* 0x00536170 */
 void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flag);
 void EndMonsterTurn(W8MonsterInfo* monster_info);
 extern int g_dword_6850be;
+// GLOBAL: WIZ8 0x006850be
+int g_dword_6850be;
 void DeactivateMonster(W8MonsterInfo* monster_info);
 void Function4ACF90(W8Monster* monster);
 void ReleaseMonToMonVisibilityList(W8MonsterInfo* monster_info);
@@ -186,6 +200,8 @@ extern int g_monster_cycle_registry_weight_0065ba4c;
 extern float g_float_005ec52c;
 extern unsigned char g_flag_689b32;
 extern unsigned char g_flag_6850d2;
+// GLOBAL: WIZ8 0x006850d2
+unsigned char g_flag_6850d2;
 
 static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(
     unsigned int monster_species);

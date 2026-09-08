@@ -13,6 +13,8 @@
 extern void Function5477D0(W8MonsterInfo* monster_info, int flag);
 extern void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
 extern unsigned char g_flag_00683F94;
+// GLOBAL
+unsigned char g_flag_00683F94;
 /* Condition-to-notice word table. Only the first word of each four-word
    stride is read, hence the multiplied index. */
 extern unsigned short g_condition_notices_0061E570[];
@@ -39,7 +41,11 @@ extern void SetTargetToCharacter(int character_slot, int context);
 extern void CharacterDies(int party_slot);
 extern void Function50E650(int party_slot);
 extern unsigned char g_byte_00687500;
+// GLOBAL
+unsigned char g_byte_00687500;
 extern unsigned char g_enchantment_six_cleared_006840bb;
+// GLOBAL
+unsigned char g_enchantment_six_cleared_006840bb;
 
 /* The enchantment slot whose clearing has a consequence beyond the slot
    itself. */

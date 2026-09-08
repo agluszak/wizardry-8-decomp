@@ -1,6 +1,10 @@
 extern "C" {
 extern int g_value_69da68;
 extern unsigned char g_flag_69da6c;
+// GLOBAL: WIZ8 0x0069da6c
+unsigned char g_flag_69da6c;
+// GLOBAL: WIZ8 0x0069da68
+int g_value_69da68;
 extern unsigned char g_table_650434[][8];
 }
 

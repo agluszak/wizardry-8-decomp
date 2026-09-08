@@ -14,6 +14,10 @@
    the existing compilation boundary is retained. */
 
 extern "C" int g_value_64c1c8;
+extern "C" {
+// GLOBAL: WIZ8 0x0064c1c8
+int g_value_64c1c8 = -1;
+}
 
 void ResetRegions(void);
 unsigned char ClearFlag603C60(void);

@@ -2,6 +2,13 @@
 
 #include <string.h>
 
+// GLOBAL
+int g_message_box_line_count;
+// GLOBAL: WIZ8 0x0068c4c4
+int g_message_box_line_capacity;
+// GLOBAL
+int g_message_sequence;
+
 // FUNCTION: WIZ8 0x00528a80
 void AddMessageBoxLine(int type, W8WideChar* text, void* extra)
 {

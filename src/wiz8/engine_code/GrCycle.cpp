@@ -1,6 +1,16 @@
 #include "wiz8/engine_code/SoundEvent.h"
 #include "wiz8/engine_code/GrCycle.h"
 #include "wiz8/float_constants.h"
+extern "C" {
+// GLOBAL: WIZ8 0x005ebc3c
+float g_float_005ebc3c = 0.10000000149011612f;
+// GLOBAL: WIZ8 0x005ec390
+float g_float_005ec390 = 0.8999999761581421f;
+// GLOBAL: WIZ8 0x005ec5c0
+float g_float_005ec5c0 = 0.30000001192092896f;
+// GLOBAL: WIZ8 0x005ec5c4
+float g_float_005ec5c4 = 0.699999988079071f;
+}
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/stLight.h"
 #include "wiz8/engine_code/stModelInstance.h"
@@ -50,6 +60,8 @@ srVector3T<double>* srVector3T<double>::method_004A90E0(
 
 // GLOBAL: WIZ8 0x005ecf98
 extern float g_float_005ecf98;
+// GLOBAL
+float g_float_005ecf98 = 0.02500000037252903f;
 // GLOBAL: WIZ8 0x0065be2c
 W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects_0065be2c;
 // GLOBAL: WIZ8 0x0065be30
@@ -183,7 +195,11 @@ extern int UpdateSoundEvents004D5890(
     unsigned int frame,
     int subcycle);
 extern float g_float_005ec128;
+// GLOBAL: WIZ8 0x005ec128
+float g_float_005ec128 = 0.0010000000474974513f;
 extern float g_float_005ebc64;
+// GLOBAL
+float g_float_005ebc64;
 extern int IncrementValue60DFAC(void);
 
 /* Build the two paths used while reading a .mon resource, verify its one-byte

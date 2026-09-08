@@ -1,5 +1,9 @@
 extern "C" {
 extern int g_value_69c1cc;
+// GLOBAL: WIZ8 0x0064d8ac
+unsigned long g_value_64d8ac = 6;
+// GLOBAL: WIZ8 0x0069c1cc
+int g_value_69c1cc;
 extern unsigned long g_value_64d8ac;
 }
 

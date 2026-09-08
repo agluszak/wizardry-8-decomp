@@ -17,9 +17,7 @@
    string in the image names this unit; the class ownership is nevertheless
    established by its definitions. */
 
-extern "C" {
 extern float g_light_scale_0060bfe0;
-}
 
 // GLOBAL: WIZ8 0x0060bfdc
 unsigned int g_light_update_flags_0060bfdc = 1;

@@ -45,6 +45,8 @@ extern void SetRendererReady(void);
 extern void Function421090(const float* location);
 extern void SetValue60DFAC(void);
 extern unsigned char g_renderer_ready_00607d7c;
+// GLOBAL: WIZ8 0x00607d7c
+unsigned char g_renderer_ready_00607d7c = 1;
 extern void Function46DC90(srScene* scene);
 extern int CheckLevelAssetSet0042CCC0(const char* level_path);
 extern void UpdateWorldMeshFromQuads004BAD40(W8World* world);
@@ -57,11 +59,19 @@ extern void Function46E4A0(W8World* world);
 extern unsigned char Function4914C0(void);
 extern void Function490B90(void);
 extern unsigned char g_world_cleanup_flag_00659757;
+// GLOBAL
+unsigned char g_world_cleanup_flag_00659757;
 extern W8GrowableVector<W8World*> g_worlds_00659a80;
 extern void Function46DE40(W8World* world);
 extern unsigned char g_monster_combat_timer_enabled_006f0531;
+// GLOBAL: WIZ8 0x006f0531
+unsigned char g_monster_combat_timer_enabled_006f0531;
 extern unsigned char g_navigator_vertical_enabled_006081f8;
+// GLOBAL: WIZ8 0x006081f8
+unsigned char g_navigator_vertical_enabled_006081f8 = 1;
 extern unsigned char g_world_mesh_update_enabled_00607d7d;
+// GLOBAL: WIZ8 0x00607d7d
+unsigned char g_world_mesh_update_enabled_00607d7d = 1;
 extern void Function444F70(int value, float duration, float intensity,
                           unsigned char reverse);
 extern void UpdateWorldMonsters0046DD70(W8World* world);

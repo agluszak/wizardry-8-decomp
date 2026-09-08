@@ -2,6 +2,12 @@
 #include "wiz8/startup_world.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/float_constants.h"
+extern "C" {
+// GLOBAL: WIZ8 0x005ec2f8
+float g_float_005ec2f8 = 5000.0f;
+// GLOBAL: WIZ8 0x005ec030
+double g_double_005ec030 = 2500.0;
+}
 
 #include "surrender/srNode.h"
 #include "surrender/srHeap.h"
@@ -616,16 +622,24 @@ void W8Navigator::configureStartupDepth(float near_depth, float far_depth)
     movement_0c0.secondary_height_offset_0bc = far_depth;
 }
 
-extern "C" {
 extern unsigned char g_navigator_position_changed_659c11;
-}
 
 extern float g_navigator_default_turn_rate_005ec2f4;
+// GLOBAL: WIZ8 0x005ec2f4
+float g_navigator_default_turn_rate_005ec2f4 = 4.398229598999023f;
 extern float g_frame_scale_006068ec;
+// GLOBAL
+float g_frame_scale_006068ec;
 extern const float g_negative_one_005ebc38;
 extern float g_navigator_snap_angle_005ec2f0;
+// GLOBAL: WIZ8 0x005ec2f0
+float g_navigator_snap_angle_005ec2f0 = 0.029999999329447746f;
 extern float g_navigator_mode3_scale_005ebca4;
+// GLOBAL: WIZ8 0x005ebca4
+float g_navigator_mode3_scale_005ebca4 = 0.4000000059604645f;
 extern unsigned char g_flag_006081e4;
+// GLOBAL: WIZ8 0x006081e4
+unsigned char g_flag_006081e4 = 1;
 
 // FUNCTION: WIZ8 0x004526c0
 unsigned short W8Navigator::Function4526C0(
@@ -689,12 +703,26 @@ void W8Navigator::StartPatrol(
 }
 extern unsigned char g_navigator_vertical_enabled_006081f8;
 extern unsigned char g_navigator_link_mode_00659c10;
+// GLOBAL: WIZ8 0x00659c10
+unsigned char g_navigator_link_mode_00659c10;
 extern float g_navigator_speed_006850ff;
+// GLOBAL: WIZ8 0x006850ff
+float g_navigator_speed_006850ff;
 extern float g_navigator_linked_radius_scale_005ebc98;
+// GLOBAL: WIZ8 0x005ebc98
+float g_navigator_linked_radius_scale_005ebc98 = 4.0f;
 extern float g_navigator_vertical_phase_step_005ebcc8;
+// GLOBAL: WIZ8 0x005ebcc8
+float g_navigator_vertical_phase_step_005ebcc8 = 0.25f;
 extern float g_navigator_startup_refresh_distance_005ec150;
+// GLOBAL: WIZ8 0x005ec150
+float g_navigator_startup_refresh_distance_005ec150 = 0.0f;
 extern float g_navigator_minimum_speed_006081ec;
+// GLOBAL: WIZ8 0x006081ec
+float g_navigator_minimum_speed_006081ec = 0.5f;
 extern float g_navigator_minimum_speed_mode23_006081f0;
+// GLOBAL: WIZ8 0x006081f0
+float g_navigator_minimum_speed_mode23_006081f0 = 0.8999999761581421f;
 extern const float g_world_scale_005ebc40;
 extern W8GrowableVector<W8Navigator*> g_navigator_group_659bf8;
 extern float Function4BE420(

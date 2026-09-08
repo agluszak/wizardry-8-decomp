@@ -41,10 +41,16 @@ int g_dword_650e00;
 bool g_flag_650e04;
 extern unsigned char g_flag_65970f;
 extern unsigned char g_flag_6598a8;
+// GLOBAL: WIZ8 0x006598a8
+unsigned char g_flag_6598a8;
 extern unsigned char g_flag_659711;
 extern unsigned char g_fullscreen_603c39;
 extern int g_dword_687595;
+// GLOBAL: WIZ8 0x00687595
+int g_dword_687595;
 extern unsigned char g_byte_68de44;
+// GLOBAL: WIZ8 0x0068de44
+unsigned char g_byte_68de44;
 extern unsigned char g_flag_65970f;
 extern unsigned char g_flag_6598a8;
 extern unsigned char g_flag_659711;

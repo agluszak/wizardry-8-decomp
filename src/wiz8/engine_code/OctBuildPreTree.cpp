@@ -1,4 +1,18 @@
 #include "wiz8/engine_code/OctBuildPreTree.h"
+extern "C" {
+// GLOBAL: WIZ8 0x0065be60
+int g_value_65be60;
+// GLOBAL: WIZ8 0x0065be58
+unsigned long g_value_65be58;
+// GLOBAL: WIZ8 0x0065be64
+W8GDSurface** g_pointer_65be64;
+// GLOBAL: WIZ8 0x0065be68
+W8GDSurface** g_pointer_65be68;
+// GLOBAL: WIZ8 0x0065be5c
+unsigned short* g_pointer_65be5c;
+// GLOBAL: WIZ8 0x0065be6c
+unsigned short g_value_65be6c;
+}
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/float_constants.h"
@@ -13,10 +27,18 @@
 
 extern void Function497690(int channel, const char* message);
 extern float g_float_005ed034;
+// GLOBAL: WIZ8 0x005ed034
+float g_float_005ed034 = -0.009999999776482582f;
 extern float g_float_005ed038;
+// GLOBAL: WIZ8 0x005ed038
+float g_float_005ed038 = 4000.0f;
 extern float g_float_005ec52c;
+// GLOBAL: WIZ8 0x005ec52c
+float g_float_005ec52c = 3.0f;
 extern const float g_world_scale_005ebc40;
-extern const float g_startup_near_limit_005ec000;
+/* 250.0f per startup_world.cpp's C++-linkage instance at the same address;
+   the header declares C linkage, so this TU provides the C instance. */
+extern "C" const float g_startup_near_limit_005ec000 = 250.0f;
 
 #define OCT_BUILD_PRE_TREE_CPP \
     "C:\\Projects\\Wizardry 8\\Engine Code\\OctBuildPreTree.cpp"

@@ -7,6 +7,12 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/IntervalGate.h"
 #include "wiz8/float_constants.h"
+extern "C" {
+// GLOBAL
+float g_float_005ebb38;
+// GLOBAL
+float g_float_005ebc7c;
+}
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/utility.h"
 
@@ -40,11 +46,70 @@ extern const double g_camera_pi_005ec2a0;
 extern const float g_camera_horizontal_margin_005ec574;
 extern const float g_camera_vertical_margin_005ec570;
 extern const float g_camera_half_pi_005ec3fc;
+
+// GLOBAL: WIZ8 0x005ec300
+const double g_camera_view_factor_005ec300 = 0.005555555555555556;
+// GLOBAL: WIZ8 0x005ec538
+const double g_camera_view_factor_005ec538 = 3.141592653589793;
+// GLOBAL: WIZ8 0x005ec568
+const double g_camera_view_factor_005ec568 = 90.0;
+// GLOBAL: WIZ8 0x005ebc38
+const float g_negative_one_005ebc38 = -1.0f;
+// GLOBAL: WIZ8 0x005ebc2c
+const float g_camera_snap_epsilon_005ebc2c = 0.009999999776482582f;
+// GLOBAL: WIZ8 0x005ebc84
+const float g_camera_transition_epsilon_005ebc84 = 0.0010000000474974513f;
+// GLOBAL: WIZ8 0x005ec54c
+const float g_camera_angle_period_005ec54c = 6.2831854820251465f;
+// GLOBAL: WIZ8 0x005ec548
+const float g_camera_angle_lower_005ec548 = 0.0f;
+// GLOBAL: WIZ8 0x005ec550
+const float g_camera_pitch_upper_005ec550 = 0.7853981852531433f;
+// GLOBAL: WIZ8 0x005ec554
+const float g_camera_pitch_lower_005ec554 = -0.7853981852531433f;
+// GLOBAL: WIZ8 0x005ec558
+const float g_camera_transition_duration_factor_005ec558 = 10.0f;
+// GLOBAL: WIZ8 0x005ec560
+const float g_camera_forced_speed_005ec560 = 6.2831854820251465f;
+// GLOBAL: WIZ8 0x005ec564
+const float g_camera_half_period_005ec564 = 3.1415927410125732f;
+// GLOBAL: WIZ8 0x005ec578
+const float g_camera_angle_dead_zone_005ec578 = 0.03141592815518379f;
+// GLOBAL: WIZ8 0x005ec57c
+const float g_camera_transition_duration_scale_005ec57c = 0.31830987334251404f;
+// GLOBAL: WIZ8 0x005ec580
+const double g_camera_smoothing_scale_005ec580 = 0.31830989161357204;
+// GLOBAL: WIZ8 0x005ec590
+const float g_camera_input_deceleration_005ec590 = 0.1745329350233078f;
+// GLOBAL: WIZ8 0x005ec58c
+const float g_camera_negative_input_deceleration_005ec58c = -0.1745329350233078f;
+// GLOBAL: WIZ8 0x005ec588
+const float g_camera_velocity_stop_scale_005ec588 = 5.729577541351318f;
+// GLOBAL: WIZ8 0x005ec594
+const float g_camera_negative_velocity_epsilon_005ec594 = -0.0010000000474974513f;
+// GLOBAL: WIZ8 0x005ec55c
+const float g_camera_velocity_factor_005ec55c = 2.0f;
+// GLOBAL: WIZ8 0x005ec2a0
+const double g_camera_pi_005ec2a0 = 3.1415926;
+// GLOBAL: WIZ8 0x005ec574
+const float g_camera_horizontal_margin_005ec574 = 0.5563237071037292f;
+// GLOBAL: WIZ8 0x005ec570
+const float g_camera_vertical_margin_005ec570 = 0.2168571501970291f;
+// GLOBAL: WIZ8 0x005ec3fc
+const float g_camera_half_pi_005ec3fc = 1.570796012878418f;
 extern float g_startup_depth_603ac8;
 extern float g_camera_transition_speed_65a0f4;
+// GLOBAL: WIZ8 0x0065a0f4
+float g_camera_transition_speed_65a0f4;
 extern float g_camera_max_yaw_velocity_609ea4;
+// GLOBAL: WIZ8 0x00609ea4
+float g_camera_max_yaw_velocity_609ea4 = 0.3490658700466156f;
 extern float g_camera_level_forward_scale_603aac;
+// GLOBAL: WIZ8 0x00603aac
+float g_camera_level_forward_scale_603aac = 375.0f;
 extern unsigned char g_flag_006875a5;
+// GLOBAL: WIZ8 0x006875a5
+unsigned char g_flag_006875a5;
 extern float Function4BE420(
     const srVector3T<float>* from, const srVector3T<float>* to);
 extern float Function4BE490(

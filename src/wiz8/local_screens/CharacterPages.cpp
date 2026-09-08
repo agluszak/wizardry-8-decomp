@@ -17,7 +17,11 @@
 
 extern wchar_t* FormatWideString(const wchar_t*, ...);
 extern unsigned int g_character_page2_region_set_0069c530;
+// GLOBAL: WIZ8 0x0069c530
+unsigned int g_character_page2_region_set_0069c530;
 extern unsigned int g_character_page4_region_set_0069c52c;
+// GLOBAL: WIZ8 0x0069c52c
+unsigned int g_character_page4_region_set_0069c52c;
 extern int g_character_page2_category_geometry_64ef90[5][2];
 extern int g_character_page2_category_frames_64efb8[5];
 extern unsigned short g_character_skill_name_ids_61e454[0x29];

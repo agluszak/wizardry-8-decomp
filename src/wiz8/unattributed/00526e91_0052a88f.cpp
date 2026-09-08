@@ -5,6 +5,12 @@ extern unsigned char g_flag_68c4f4;
 extern unsigned char g_flag_68c4f7;
 extern unsigned char g_flag_68c4fa;
 extern unsigned char g_flag_68c500;
+// GLOBAL: WIZ8 0x0068c4f4
+unsigned char g_flag_68c4f4;
+// GLOBAL: WIZ8 0x0068c4fa
+unsigned char g_flag_68c4fa;
+// GLOBAL: WIZ8 0x0068c500
+unsigned char g_flag_68c500;
 }
 
 /* Address quarantine 00526e91-0052a88f; bounds come from adjacent

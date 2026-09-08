@@ -5,12 +5,33 @@
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/float_constants.h"
+extern "C" {
+// GLOBAL: WIZ8 0x005ec1a8
+float g_float_005ec1a8 = -0.3333333432674408f;
+// GLOBAL: WIZ8 0x005ebc58
+float g_float_005ebc58 = 1.0000000116860974e-07f;
+// GLOBAL: WIZ8 0x005ec028
+float g_float_005ec028 = 1.0099999904632568f;
+// GLOBAL: WIZ8 0x005ec1a0
+float g_float_005ec1a0 = 0.9959999918937683f;
+}
 #include "wiz8/sr_api.h"
 
 #include <math.h>
 #include <stdlib.h>
 #include <windows.h>
 #include <new>
+
+// GLOBAL
+float g_float_00603ac8;
+// GLOBAL
+float g_float_00603aac;
+// GLOBAL: WIZ8 0x00603ab8
+float g_float_00603ab8 = 0.30000001192092896f;
+// GLOBAL: WIZ8 0x00603abc
+float g_float_00603abc = 112.5f;
+// GLOBAL
+float g_float_005ebc98;
 
 /*
  * Engine Code\GameData.cpp.
@@ -32,10 +53,14 @@ enum {
 };
 
 extern unsigned char g_level_override_00652dba;
+// GLOBAL: WIZ8 0x00652dba
+unsigned char g_level_override_00652dba;
 // GLOBAL: WIZ8 0x00652dce
 unsigned char g_flag_00652dce;
 extern const float g_world_scale_005ebc40;
 extern float g_path_endpoint_scale_005ec1a4;
+// GLOBAL: WIZ8 0x005ec1a4
+float g_path_endpoint_scale_005ec1a4 = 0.9900000095367432f;
 
 /* Resolve one surface's three vertex indices through the active processed
    GameData vertex table.  The retail comparison is signed and accepts an index

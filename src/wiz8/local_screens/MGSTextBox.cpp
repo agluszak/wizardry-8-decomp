@@ -1,6 +1,10 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+extern "C" {
+// GLOBAL: WIZ8 0x0068f2d4
+W8MainGameScreen005EEBD8* g_main_game_screen_0068f2d4;
+}
 #include "wiz8/local_code/ButtonSound.h"
 #include "wiz8/notices.h"
 #include "wiz8/xstatus.h"
@@ -24,8 +28,14 @@ enum { W8_REDRAW_TEXT_BOX = 0x800 };
 
 extern void RequestRedraw(int mask);                                    /* 0x00562A50 */
 extern unsigned char g_text_box_mode_0069b7b8;
+// GLOBAL: WIZ8 0x0069b7b8
+unsigned char g_text_box_mode_0069b7b8;
 extern int g_text_box_value_0064bd54;
+// GLOBAL: WIZ8 0x0064bd54
+int g_text_box_value_0064bd54 = 12;
 extern int g_text_line_cursor_00686905;
+// GLOBAL: WIZ8 0x00686905
+int g_text_line_cursor_00686905;
 /* 0x00689B17: one entry per line, how many messages that line holds. */
 extern const int g_text_line_counts[];
 extern void ScrollTextBoxTo(int line);                                  /* 0x0058BBC0 */

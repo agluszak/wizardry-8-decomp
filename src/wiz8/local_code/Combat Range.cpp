@@ -36,9 +36,13 @@ extern int CalcRangeCategoryToTarget(const W8Character* character, int hand);
 /* 0x00519AC0 */
 extern char CountRowsBetween(int from_position, int to_position);        /* 0x0051AEC0 */
 extern bool GetSightCondition37A(const void* conditions);               /* 0x00505E60 */
-extern float g_world_scale_005ebc40;
+extern const float g_world_scale_005ebc40;
 extern float g_range_constant_005ec360;
+// GLOBAL
+float g_range_constant_005ec360;
 extern float g_range_constant_005ec35c;
+// GLOBAL
+float g_range_constant_005ec35c;
 
 /* The formation. Three party positions per row at 0x00687511, and each
    position's own row number at 0x00687525 with a twelve-byte stride. -1 marks

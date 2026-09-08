@@ -61,6 +61,8 @@ extern float GetViewDistance(void);
 extern void Function452F50(int value);
 extern void Function48CBE0(void);
 extern float g_sight_default_005ec254;
+// GLOBAL: WIZ8 0x005ec254
+float g_sight_default_005ec254 = 12.0f;
 
 /* Put the sight subsystem back to its starting state. */
 // FUNCTION: WIZ8 0x005048e0

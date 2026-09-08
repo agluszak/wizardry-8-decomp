@@ -49,6 +49,12 @@ unsigned int Function568950(const InputAtom* input)
 
 extern unsigned char g_flag_006840bd;
 extern "C" unsigned char g_flag_6840bc;
+extern "C" {
+// GLOBAL
+unsigned char g_flag_6840bc;
+// GLOBAL: WIZ8 0x00647ccc
+unsigned char g_table_647ccc[128];
+}
 extern void Function482990(unsigned char enabled);
 extern void MonsterForward453160(void);
 extern void Function41F0D0(void);

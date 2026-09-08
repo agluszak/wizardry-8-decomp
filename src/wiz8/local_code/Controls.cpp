@@ -109,10 +109,18 @@ extern void RequestRedraw(unsigned int mask);
 const wchar_t g_W8TextSeparator0060CC74[] = L" ";
 const wchar_t g_W8TextBreakCharacters00617C88[] = L" \n";
 extern int g_W8TextClipTarget005FF5F4;
+// GLOBAL: WIZ8 0x005ff5f4
+int g_W8TextClipTarget005FF5F4 = -15;
 extern int g_W8TextClipFlags00650E38;
+// GLOBAL: WIZ8 0x00650e38
+int g_W8TextClipFlags00650E38;
 extern int g_W8FontStateTable0068EE1C[];
 extern float g_W8RangeEnd005EBB38;
+// GLOBAL: WIZ8 0x005ebb38
+float g_W8RangeEnd005EBB38 = 1.0f;
 extern float g_W8RangeHalfStep005EBC7C;
+// GLOBAL: WIZ8 0x005ebc7c
+float g_W8RangeHalfStep005EBC7C = 0.5f;
 
 
 // FUNCTION: WIZ8 0x004f30f0

@@ -18,7 +18,11 @@ extern "C" {
 #include <wchar.h>
 
 extern int g_font_00683614;
+// GLOBAL
+int g_font_00683614;
 extern int g_font_bold_0068368c;
+// GLOBAL: WIZ8 0x0068368c
+int g_font_bold_0068368c;
 extern void SetViewport(int left, int top, int right, int bottom);
 extern void ResetRegions(void);
 extern unsigned char ClearFlag603C60(void);

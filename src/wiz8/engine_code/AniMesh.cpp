@@ -1,4 +1,8 @@
 #include "wiz8/float_constants.h"
+extern "C" {
+// GLOBAL: WIZ8 0x005ebb34
+float g_float_005ebb34 = 0.0f;
+}
 #include "wiz8/engine_code/AniMesh.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stModelInstance.h"
@@ -25,10 +29,12 @@ extern void ExpandBounds0046F510(
     const srVector3T<float>* candidate_minimum,
     const srVector3T<float>* candidate_maximum);
 extern double g_double_005ebe80;
-extern "C" int g_storage_state_65be80;
-extern "C" int g_storage_state_65be84;
-extern "C" int g_storage_limit_65be88;
-extern "C" W8PList g_storage_list_65be90;
+// GLOBAL: WIZ8 0x005ebe80
+double g_double_005ebe80 = 0.5;
+extern int g_storage_state_65be80;
+extern int g_storage_state_65be84;
+extern int g_storage_limit_65be88;
+extern W8PList g_storage_list_65be90;
 
 // FUNCTION: WIZ8 0x004b57e0
 W8AniMesh* CreateAniMesh004B57E0()

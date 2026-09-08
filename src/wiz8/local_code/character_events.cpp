@@ -12,6 +12,10 @@
 #include "timer.h"
 
 extern "C" unsigned char g_flag_6850fc;
+extern "C" {
+// GLOBAL: WIZ8 0x006850fc
+unsigned char g_flag_6850fc;
+}
 
 extern void Function52F890(
     int party_slot, int active, int animation, int argument, int show_text);
@@ -23,7 +27,11 @@ extern void Function5E2F40(int sound_handle, unsigned char* state);
 extern unsigned char Function56EC90(unsigned int party_slot);
 extern void Function55EC90(unsigned int party_slot);
 extern unsigned int g_value_0068c57c;
+// GLOBAL: WIZ8 0x0068c57c
+unsigned int g_value_0068c57c;
 extern unsigned int g_value_0068c554;
+// GLOBAL: WIZ8 0x0068c554
+unsigned int g_value_0068c554;
 extern int g_pose_transition_table_0061cb44[];
 extern unsigned int g_value_005ed8fc;
 extern unsigned int g_flee_hp_fraction_005ed8f8;

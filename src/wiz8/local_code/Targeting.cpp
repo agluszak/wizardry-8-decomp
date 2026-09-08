@@ -6,6 +6,12 @@
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/factions.h"
 #include "wiz8/targeting.h"
+extern "C" {
+// GLOBAL: WIZ8 0x006840b7
+int g_picked_group_006840b7;
+// GLOBAL: WIZ8 0x006840b3
+int g_target_state_6840b3;
+}
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/game_status.h"
@@ -109,6 +115,8 @@ char TargetMatchesNeeded(W8CombatSlot* target, int needed);
 extern unsigned char Function519180(int party_slot, int arg_2, int context);
 extern unsigned char ItemClassNormalizesTarget(const W8ItemDatabaseRecord* record, int context);
 extern unsigned char g_targeting_flag_00685116;
+// GLOBAL: WIZ8 0x00685116
+unsigned char g_targeting_flag_00685116;
 
 /* Look a faction up by name, case-insensitively. -1 for a name that is not one
    of the twenty-one. */
@@ -232,6 +240,8 @@ extern void ShowTargetMarker(void* eye, void* lower, void* upper);       /* 0x00
 extern void Function492500(void* scratch);
 extern void RequestRefreshPartyState(void);
 extern unsigned char g_target_marker_00684073;
+// GLOBAL: WIZ8 0x00684073
+unsigned char g_target_marker_00684073;
 
 /* Aim at whatever the caller names, by kind. The other three fields are left
    at BAD_INDEX, so only the kind's own field is meaningful. */
@@ -1805,8 +1815,9 @@ void AimAtMonsterGroupMember(int party_slot, W8MonsterGroup* group)
 }
 
 /* 0x006840B7: the group the party currently has picked out, by id, and -1 when
-   none. It is where the sweep below starts from and wraps back to. */
-extern int g_picked_group_006840b7;
+   none. It is where the sweep below starts from and wraps back to. The
+   declaration lives in targeting.h (C linkage); the definition is with the
+   other targeting globals near the top of this file. */
 
 /* Which monster group the party should pick out next. The sweep starts at the
    one after whichever is currently picked and goes round until it comes back

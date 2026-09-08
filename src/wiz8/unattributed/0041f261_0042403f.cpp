@@ -17,6 +17,8 @@
    assertion-backed original translation-unit intervals. */
 
 extern unsigned char g_flag_00652da7;
+// GLOBAL: WIZ8 0x00652da7
+unsigned char g_flag_00652da7;
 extern const double g_double_005ebc18;
 extern const float g_float_005ebcf8;
 
@@ -155,6 +157,10 @@ IDirectDraw2* GetDirectDraw2(void)
 }
 
 extern "C" unsigned char g_flag_6596f4;
+extern "C" {
+// GLOBAL: WIZ8 0x006596f4
+unsigned char g_flag_6596f4;
+}
 int g_screenshot_index_659724;
 int g_screenshot_page_659728;
 

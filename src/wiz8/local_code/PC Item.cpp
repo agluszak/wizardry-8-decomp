@@ -27,6 +27,9 @@
 
 #include <stdio.h>
 
+// GLOBAL: WIZ8 0x00686901
+unsigned int g_shared_item_pool_count;
+
 /* The twelve places an item can be worn or held. GetItemDefaultEquipSlot maps
    an equipment class onto one of these, and GetPairedEquipSlot swaps a hand
    for the hand opposite it. Only the four hand slots have their pairing
@@ -325,6 +328,8 @@ void Function5227D0(
     W8Character* character);
 extern void Function55F160(int value);                       /* 0x0055F160 */
 extern unsigned char g_byte_652da6;
+// GLOBAL: WIZ8 0x00652da6
+unsigned char g_byte_652da6;
 
 /* Build the stable display form used by notices and inventory controls.  The
    generic unidentified names are allocated once, while this returned buffer

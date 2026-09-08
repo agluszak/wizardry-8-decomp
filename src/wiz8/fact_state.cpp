@@ -11,6 +11,13 @@
 #include <string.h>
 #include <wchar.h>
 
+// GLOBAL: WIZ8 0x00688290
+unsigned char g_log_fact_checks;
+// GLOBAL: WIZ8 0x0068de63
+unsigned char g_import_party_loaded;
+// GLOBAL: WIZ8 0x0068de5d
+int g_import_ending_choice;
+
 /* 0x005080F0, reviewed in evidence/reviewed/wiz8/claims.csv. */
 extern unsigned char EvaluateFact(int fact_id);
 /* 0x0055A0A0 and 0x00524CA0 tear down an NPC item list. */

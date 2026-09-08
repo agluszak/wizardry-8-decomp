@@ -297,8 +297,14 @@ extern void* g_effect_005ee594;
 extern void* g_effect_005ee590;
 extern void* g_effect_005ee5f8;
 extern unsigned int g_effect_threshold_005ed904;
+// GLOBAL: WIZ8 0x005ed904
+unsigned int g_effect_threshold_005ed904 = 50;
 extern unsigned int g_effect_threshold_005ed900;
+// GLOBAL: WIZ8 0x005ed900
+unsigned int g_effect_threshold_005ed900 = 70;
 extern unsigned char g_spell_points_free_00687500;
+// GLOBAL
+unsigned char g_spell_points_free_00687500;
 /* 0x0061E518: one notice index per spell realm, giving the realm's name. */
 extern const unsigned short g_spell_realm_notice[W8_SPELL_REALM_COUNT];
 

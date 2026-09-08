@@ -1,6 +1,12 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/combat_state.h"
+extern "C" {
+// GLOBAL
+W8CombatState* g_combat_state;
+// GLOBAL
+W8CombatCharacterRow* g_combat_character_rows;
+}
 #include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
@@ -26,6 +32,8 @@ extern unsigned char CharacterHasCondition(const W8Character* character, int con
 /* The per-character combat rows begin at the combat state's own address and
    run 0xd4 bytes apart, so the state's leading fields are the first row's. */
 extern unsigned char g_combat_log_enabled_0068d810;
+// GLOBAL: WIZ8 0x0068d810
+unsigned char g_combat_log_enabled_0068d810;
 extern const wchar_t g_combat_log_format_00617664;
 extern void RoundPhaseToStep(unsigned int* actor, int round);
 extern int GetCurrentTargetingContext(int party_slot);
@@ -260,7 +268,11 @@ extern void RequestRedraw(unsigned int mask);
 extern void* g_effect_005ee610;
 extern unsigned int g_flee_hp_fraction_005ed8f8;
 extern unsigned int g_flee_chance_005ed908;
+// GLOBAL: WIZ8 0x005ed908
+unsigned int g_flee_chance_005ed908 = 15;
 extern float g_movement_speed_step_005ed490;
+// GLOBAL: WIZ8 0x005ed490
+float g_movement_speed_step_005ed490 = 0.009999999776482582f;
 /* 0x00683FE7-adjacent: the per-character per-hand attack values combat saved
    when the round began, 0x35 dwords per character. */
 extern int g_saved_attack_values[];

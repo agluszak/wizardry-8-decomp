@@ -14,9 +14,15 @@
 #include <wchar.h>
 
 extern unsigned char g_region_help_force_enabled;
+// GLOBAL: WIZ8 0x006850d4
+unsigned char g_region_help_force_enabled;
 extern void HideRegionHelp(void);                           /* 0x00429770 */
 extern int g_help_box_width;                                /* 0x006548A0 */
+// GLOBAL: WIZ8 0x006548a0
+int g_help_box_width;
 extern int g_help_box_height;                               /* 0x00654ACC */
+// GLOBAL: WIZ8 0x00654acc
+int g_help_box_height;
 extern void SetHelpBoxText(void* text);                     /* 0x00429290 */
 extern void GetHelpBoxAnchor(W8ScreenPoint* anchor);        /* 0x004284F0 */
 extern void PlaceHelpBox(int x, int y);                     /* 0x00429210 */

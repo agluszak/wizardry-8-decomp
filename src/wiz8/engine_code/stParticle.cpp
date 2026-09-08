@@ -6,6 +6,20 @@
 #include "wiz8/engine_code/stTextureAnim.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/float_constants.h"
+extern "C" {
+// GLOBAL: WIZ8 0x005ebc60
+float g_float_005ebc60 = 0.0020000000949949026f;
+// GLOBAL: WIZ8 0x005ec438
+float g_float_005ec438 = 3.0517578125e-05f;
+// GLOBAL: WIZ8 0x005ec8d0
+double g_double_005ec8d0 = 0.001;
+// GLOBAL: WIZ8 0x005ecc38
+float g_float_005ecc38 = -0.0010000000474974513f;
+// GLOBAL: WIZ8 0x005ecc3c
+float g_float_005ecc3c = -1000.0f;
+// GLOBAL: WIZ8 0x005ecc40
+float g_float_005ecc40 = 0.00019174758926965296f;
+}
 #include "wiz8/geometry.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"

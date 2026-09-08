@@ -65,7 +65,11 @@ extern unsigned int GetCameraHeading(void);                 /* 0x00421550 */
 extern unsigned int SetCameraHeading(float degrees);        /* 0x00421000 */
 extern void SnapCameraHeading(float degrees);               /* 0x00420FD0 */
 extern double g_facing_tolerance_005ee858;
+// GLOBAL: WIZ8 0x005ee858
+double g_facing_tolerance_005ee858 = 2.3561944500000003;
 extern float g_facing_tolerance_005ebcf4;
+// GLOBAL
+float g_facing_tolerance_005ebcf4;
 
 /* Whether one character can hold a place in the formation at all: they have to
    be alive and in better shape than the party sweeps demand. */

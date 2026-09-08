@@ -130,13 +130,29 @@ extern void SetSkyNodeVisible(char visible);
 extern unsigned char g_world_cleanup_flag_00659757;
 extern float g_runtime_world_scale_6081e8;
 extern unsigned char g_flag_00659756;
+// GLOBAL
+unsigned char g_flag_00659756;
 extern float g_default_world_height_00603ac8;
+// GLOBAL: WIZ8 0x00603ac8
+float g_default_world_height_00603ac8 = 1000.0f;
 extern float g_position_height_epsilon_005ebfdc;
+// GLOBAL: WIZ8 0x005ebfdc
+float g_position_height_epsilon_005ebfdc = 2500.0f;
 extern unsigned char g_environment_load_flag_00603ad0;
+// GLOBAL: WIZ8 0x00603ad0
+unsigned char g_environment_load_flag_00603ad0 = 1;
 extern unsigned char g_level_runtime_flag_0065ba70;
+// GLOBAL: WIZ8 0x0065ba70
+unsigned char g_level_runtime_flag_0065ba70;
 extern unsigned char g_value_0068f0fd;
+// GLOBAL: WIZ8 0x0068f0fd
+unsigned char g_value_0068f0fd;
 extern int g_value_006850b0;
+// GLOBAL: WIZ8 0x006850b0
+int g_value_006850b0;
 extern unsigned char g_flag_00687607;
+// GLOBAL: WIZ8 0x00687607
+unsigned char g_flag_00687607;
 
 extern char g_ambient_sound_filename_006059e0[];
 extern const char* g_sky_names_00605880[];

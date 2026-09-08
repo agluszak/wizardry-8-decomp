@@ -23,6 +23,8 @@
 extern W8RPCSlot g_rpc_slots[8];
 extern W8RPCSlot g_rpc_slots_end[];
 extern int g_string_table_count;
+// GLOBAL: WIZ8 0x0068c098
+int g_string_table_count;
 extern char** g_string_table;
 // GLOBAL: WIZ8 0x0068c0a4
 int g_message_box_state;

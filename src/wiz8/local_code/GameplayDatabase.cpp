@@ -4,6 +4,12 @@
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/GameplayDatabase.h"
+extern "C" {
+// GLOBAL: WIZ8 0x006850b5
+unsigned char g_party_moving_006850b5;
+// GLOBAL: WIZ8 0x00685078
+unsigned char g_status_block_685078[56];
+}
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/startup_runtime_state.h"
 #include "wiz8/character.h"
@@ -71,6 +77,8 @@ extern void Function58FD30(void);
 extern void Function520070(
     W8ItemInstance* item, W8Character* character, unsigned char refresh);
 extern int g_dword_6875b7;
+// GLOBAL: WIZ8 0x006875b7
+int g_dword_6875b7;
 extern void Function5A9E70(void* target);
 extern void Function482720(int value);
 extern void Function482740(int value);

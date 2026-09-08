@@ -23,6 +23,12 @@
 #include "wiz8/engine_code/stScript.h"
 #include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/engine_code/World.h"
+extern "C" {
+// GLOBAL
+unsigned char g_flag_6081e4;
+// GLOBAL: WIZ8 0x00659c14
+int g_value_659c14;
+}
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/item_spawning.h"
@@ -59,8 +65,14 @@ extern const float g_monster_rotation_offset_005ec04c;
 extern const float g_float_005ebcf8;
 extern const double g_monster_death_rotation_pi_005ed1f0;
 extern float g_light_scale_0060bfe0;
+// GLOBAL: WIZ8 0x0060bfe0
+float g_light_scale_0060bfe0 = 1.0f;
 extern float g_monster_scale_transition_step_005ebcf4;
+// GLOBAL
+float g_monster_scale_transition_step_005ebcf4;
 extern unsigned char g_monster_model_value_enabled_00685111;
+// GLOBAL: WIZ8 0x00685111
+unsigned char g_monster_model_value_enabled_00685111;
 unsigned char g_monster_shadow_updates_enabled_0065970c;
 extern unsigned char g_monster_combat_timer_enabled_006f0531;
 extern const float g_monster_attachment_distance_scale_005ed2a8;
@@ -76,6 +88,8 @@ extern float g_startup_depth_603ac8;
 extern const float g_monster_script_facing_tolerance_005ebc84;
 extern const float g_world_scale_005ebc40;
 extern unsigned char g_force_encounter_culling; /* 0x00687500 */
+// GLOBAL
+unsigned char g_force_encounter_culling;
 extern W8WideChar* GetMonsterName(
     W8MonsterInfo* monster_info,
     W8MonsterRecord* record,
@@ -95,6 +109,29 @@ extern const double g_monster_script_direction_step_005ed2b8;
 extern const float g_monster_script_direction_scale_005ec150;
 extern const double g_monster_facing_tolerance_005ec2b0;
 extern const double g_monster_group_nearest_range_005ed2c0;
+
+// GLOBAL: WIZ8 0x005ec04c
+const float g_monster_rotation_offset_005ec04c = 3.141592502593994f;
+// GLOBAL: WIZ8 0x005ed1f0
+const double g_monster_death_rotation_pi_005ed1f0 = 3.141592653589793;
+// GLOBAL: WIZ8 0x005ed2a8
+const float g_monster_attachment_distance_scale_005ed2a8 = 0.00039999998989515007f;
+// GLOBAL: WIZ8 0x005eca84
+const float g_monster_attachment_vertical_scale_005eca84 = 30.0f;
+// GLOBAL: WIZ8 0x005ed2a0
+const double g_monster_attachment_group_spacing_005ed2a0 = 15.0;
+// GLOBAL: WIZ8 0x005ed29c
+const float g_monster_linked_vertical_scale_005ed29c = 255.0f;
+// GLOBAL: WIZ8 0x005ed298
+const float g_monster_poster_vertical_rate_005ed298 = 0.20000000298023224f;
+// GLOBAL: WIZ8 0x005ec3d8
+const double g_monster_poster_max_distance_005ec3d8 = 1000.0;
+// GLOBAL: WIZ8 0x005ed2b8
+const double g_monster_script_direction_step_005ed2b8 = 0.8975978857142857;
+// GLOBAL: WIZ8 0x005ec2b0
+const double g_monster_facing_tolerance_005ec2b0 = 0.78539815;
+// GLOBAL: WIZ8 0x005ed2c0
+const double g_monster_group_nearest_range_005ed2c0 = 12500.0;
 extern const char g_warning_missing_spell_vertex_0060f684[];
 extern unsigned char HasLineOfSightToBounds0046FD70(
     const srVector3T<float>* origin,
@@ -1243,10 +1280,14 @@ extern void Function4C4EF0(void);
 // W8Monster::`vector deleting destructor'`adjustor{24}' 
 
 extern int g_monster_cycle_registry_weight_0065ba4c;
+// GLOBAL: WIZ8 0x0065ba4c
+int g_monster_cycle_registry_weight_0065ba4c;
 extern void PrepareMonsterCycleForDestruction004ACF90(
     W8Monster* cycle);
 extern unsigned char Function420E10(void);
 extern unsigned char g_flag_00689b32;
+// GLOBAL
+unsigned char g_flag_00689b32;
 
 // FUNCTION: WIZ8 0x004bfb00
 W8Monster::W8Monster()
@@ -4319,7 +4360,11 @@ extern unsigned int MonsterCastsSpell(
 extern void FatigueMonster(
     W8MonsterInfo* monster_info, unsigned int amount, int report_to);
 extern int g_spell_effect_frame_0064c158;
+// GLOBAL: WIZ8 0x0064c158
+int g_spell_effect_frame_0064c158 = 1;
 extern int g_spell_index_0069b7dc;
+// GLOBAL: WIZ8 0x0069b7dc
+int g_spell_index_0069b7dc;
 extern void* CreateSpellEffect004AD8A0(
     const char* mls_name, int frame, W8Monster* parent, int value, int flags);
 extern void SetTargetSourceToMonster(

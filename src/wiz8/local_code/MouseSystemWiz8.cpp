@@ -7,11 +7,11 @@
 extern "C" {
 extern BOOLEAN gfShowFastHelp;
 extern MOUSE_REGION* MSYS_CurrRegion;
+}
 extern void SetHelpBoxText(void* text);
 extern void PlaceHelpBox(int x, int y);
 extern int g_help_box_width;
 extern int g_help_box_height;
-}
 
 /* Retail 0x00650E68: Wizardry's fast-help clock, written on every frame the
    mouse system runs. */

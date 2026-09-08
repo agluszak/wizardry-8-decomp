@@ -69,6 +69,8 @@ W8GrowableVector<int> g_location_variable_levels_006598e0;
 W8GrowableVector<char*> g_location_variable_names_006598f8;
 W8GrowableVector<int> g_location_variable_values_00659990;
 extern unsigned char g_flag_00606994;
+// GLOBAL: WIZ8 0x00606994
+unsigned char g_flag_00606994 = 1;
 extern unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all);
 extern int OpenLockInteraction00587510(Trigger* trigger);
 extern int OpenTrapInteraction0058A470(Trigger* trigger);
@@ -108,11 +110,23 @@ extern void MoveItem(
     W8ItemInstance* destination, W8ItemInstance* source,
     int argument_3, int argument_4);
 extern unsigned char g_flag_0068506e;
+// GLOBAL: WIZ8 0x0068506e
+unsigned char g_flag_0068506e;
 extern int g_value_0068c520;
+// GLOBAL: WIZ8 0x0068c520
+int g_value_0068c520;
 extern int g_value_0068c548;
+// GLOBAL: WIZ8 0x0068c548
+int g_value_0068c548;
 extern int g_value_005ee59c;
+// GLOBAL: WIZ8 0x005ee59c
+int g_value_005ee59c = 5;
 extern int g_value_005ee5a0;
+// GLOBAL: WIZ8 0x005ee5a0
+int g_value_005ee5a0 = 6;
 extern int g_value_005ed8c8;
+// GLOBAL
+int g_value_005ed8c8;
 
 Trigger* FindTriggerByName(const char* name)
 {

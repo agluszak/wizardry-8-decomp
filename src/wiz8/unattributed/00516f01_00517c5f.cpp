@@ -1,4 +1,8 @@
 extern "C" int g_value_689fac;
+extern "C" {
+// GLOBAL: WIZ8 0x00689fac
+int g_value_689fac;
+}
 
 /* Address quarantine 00516f01-00517c5f; bounds come from adjacent
    assertion-backed original translation-unit intervals. */

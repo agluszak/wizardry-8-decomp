@@ -1,6 +1,10 @@
 extern "C" {
 extern unsigned char g_flag_6850f6;
 extern unsigned char g_flag_6850fa;
+// GLOBAL: WIZ8 0x006850f6
+unsigned char g_flag_6850f6;
+// GLOBAL: WIZ8 0x006850fa
+unsigned char g_flag_6850fa;
 }
 
 /* Address quarantine 0047a791-0047b4ff; bounds come from adjacent
