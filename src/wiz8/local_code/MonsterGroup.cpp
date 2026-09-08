@@ -8,6 +8,7 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/character.h"
 #include "wiz8/monster_runtime.h"
+#include "wiz8/npc_state.h"
 #include "wiz8/utility.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
@@ -24,7 +25,6 @@ extern int Function50A440(unsigned int monster_list_index);  /* 0x0050A440 */
 /* Group list indices above this select the encounter list instead, biased by
    exactly this much - the same split the monster list uses. */
 enum { W8_ENCOUNTER_GROUP_INDEX_BIAS = 10000 };
-extern signed char GetNpcDispositionBand(int npc_record);           /* 0x0050A500 */
 
 extern void Function454C80(void);                            /* 0x00454C80 */
 // FUNCTION: WIZ8 0x00547510
@@ -98,7 +98,7 @@ unsigned char MonsterGroupAllMembersDying00511850(
 unsigned char MonsterGroupCalcDefaultDisposition(W8MonsterGroup* monster_group)
 {
     W8MonsterRecord* record;
-    int npc_record;
+    W8NpcState* npc_record;
     unsigned char disposition = W8_DISPOSITION_NEUTRAL;
 
     if (monster_group == 0) {
@@ -106,8 +106,10 @@ unsigned char MonsterGroupCalcDefaultDisposition(W8MonsterGroup* monster_group)
     }
     record = MonsterDBFromSpecies(monster_group->monster_id);
     if ((record->flags_0d0 & 1) != 0) {
-        npc_record = Function50A440(MonsterGetIndexByLocationID(
-            0x75a, MONSTER_GROUP_CPP, IListGetAt(monster_group->monsters, 0), 1));
+        npc_record = reinterpret_cast<W8NpcState*>(Function50A440(
+            MonsterGetIndexByLocationID(
+                0x75a, MONSTER_GROUP_CPP,
+                IListGetAt(monster_group->monsters, 0), 1)));
         if (npc_record == 0) {
             srAssertFail(
                 "FALSE",

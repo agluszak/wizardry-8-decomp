@@ -102,7 +102,6 @@ unsigned char g_force_encounter_culling;
 extern int Function50A440(unsigned int monster_list_index);
 extern void Function56C590(
     int npc_record, int value, int line, unsigned char suppress);
-
 extern void Function48F650(
     W8MonsterInfo* monster_info, unsigned char value_1, unsigned char value_2);
 extern float g_float_005ec128;

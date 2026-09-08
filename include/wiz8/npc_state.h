@@ -70,6 +70,7 @@ typedef struct W8NpcState {
 int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity);
 W8NpcState* GetNpcState(int index);
 W8NpcState* GetNpcStateByKind(int kind);
+unsigned char GetNpcDispositionBand(W8NpcState* npc);
 int AddNpcItemFromInstance(W8NpcState* npc, const W8ItemInstance* item, char quantity);
 int AddNpcItemWithDelay(W8NpcState* npc, int item_id, unsigned int quantity, int delay);
 char RateItemIdentifyDifficulty(W8NpcState* npc, int item_id);
