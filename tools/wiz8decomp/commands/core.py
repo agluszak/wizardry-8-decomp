@@ -236,12 +236,15 @@ def runtime_test_command() -> None:
             return run_runtime_suite(cli.settings())
         except RuntimeScenarioError as match_error:
             build_target(cli.settings(), "runtime-debug")
-            diagnosis = diagnose_runtime_failure(cli.settings(), match_error.scenario)
-            candidates = "\n".join(diagnosis.get("caller_candidates", []))
+            diagnosis = diagnose_runtime_failure(
+                cli.settings(), match_error.scenario, match_error.crash_signature
+            )
+            candidates = "\n".join(diagnosis.get("host_symbol_candidates", []))
             raise RuntimeError(
                 f"MATCH failure:\n{match_error}\n"
                 f"DEBUG classification={diagnosis['classification']}\n"
-                f"{diagnosis.get('crash', '')}\n{candidates}\n"
+                f"stop={diagnosis.get('stop_reason', '')}\n"
+                f"profile={diagnosis.get('profile_relationship', '')}\n{candidates}\n"
                 f"artifacts={diagnosis.get('artifacts', '')}"
             ) from match_error
 

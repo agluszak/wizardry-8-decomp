@@ -94,8 +94,7 @@ if(SGP_SOURCE)
     target_sources(WIZ8_RUNTIME_MATCH PRIVATE
         $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME>
     )
-    wiz8_add_sgp_objects(WIZ8_SGP_DEBUG ${WIZ8_SGP_RUNTIME_SOURCES})
-    target_compile_options(WIZ8_SGP_DEBUG PRIVATE /Od /Oy- /Ob0 /Z7)
+    wiz8_add_sgp_objects(WIZ8_SGP_DEBUG DEBUG ${WIZ8_SGP_RUNTIME_SOURCES})
     target_sources(WIZ8_RUNTIME_DEBUG PRIVATE
         $<TARGET_OBJECTS:WIZ8_SGP_DEBUG>
     )

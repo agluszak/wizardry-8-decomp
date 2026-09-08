@@ -113,7 +113,7 @@ static LONG WINAPI ReportUnhandledException(EXCEPTION_POINTERS* exception)
         GetModuleFileNameA((HMODULE)candidate_memory.AllocationBase,
                            module, sizeof(module));
         fprintf(stderr,
-                "runtime-test frame: stack=+%x address=%08lx module=%s+0x%lx\\n",
+                "runtime-test stack-candidate: stack=+%x address=%08lx module=%s+0x%lx\\n",
                 index * sizeof(*stack), candidate, module,
                 candidate - (unsigned long)candidate_memory.AllocationBase);
         ++found;

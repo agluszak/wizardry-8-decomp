@@ -48,7 +48,7 @@ so an unattended command cannot silently fall back to the desktop.
 `WIZ8_RUNTIME_DISPLAY=host` for visual debugging. A failure automatically reruns that scenario
 under GDB with `WIZ8_RUNTIME_DEBUG`. Raw debugger output stays under
 `build/runtime/wiz8/diagnostics`, while the command reports the classification and a short list of
-MAP-symbolized caller candidates. EXE, PDB, MAP, PE timestamp, and SHA-256 identity are staged
+MAP-symbolized host stack candidates. EXE, PDB, MAP, PE timestamp, and SHA-256 identity are staged
 together. Off-screen Wine is configured to own its windows because Xvfb has no window manager.
 Mouse and keyboard events still traverse released SGP input and the recovered region callbacks.
 Exiting the launcher terminates only this dedicated Wine prefix. The launcher stays attached to the
@@ -59,10 +59,9 @@ driver. It validates the checkout-local build directory and configures automatic
 CMake's generated dependency check handles later build-graph changes. `just prepare` separately
 owns idempotent source/input preparation.
 
-The recovered corpus is not link-complete. A strict-link audit found 1,254 unresolved references in
-the runtime object set (1,222 even when reachable translation units were archive-selected), so all
-three executable profiles still explicitly use `/FORCE:UNRESOLVED`; removing it requires recovering
-those live boundaries, not a linker-policy edit. The runtime exception record identifies image-base
+The recovered corpus is not link-complete, so the comparison and runtime executables still
+explicitly use `/FORCE:UNRESOLVED`; removing it requires recovering their live boundaries, not a
+linker-policy edit. The runtime exception record identifies image-base
 read/write/execute faults directly and the automatic diagnostic rerun resolves their callers. This
 is retained debt, not a claim that a forced executable is generally safe.
 

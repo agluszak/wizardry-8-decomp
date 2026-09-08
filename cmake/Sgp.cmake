@@ -75,13 +75,20 @@ set_source_files_properties("${SGP_SOURCE}/mousesystem.c" PROPERTIES
     COMPILE_DEFINITIONS "RenderFastHelp=SgpReleasedRenderFastHelp"
 )
 
-function(wiz8_add_sgp_objects target)
+function(wiz8_add_sgp_objects target profile)
     add_library(${target} OBJECT EXCLUDE_FROM_ALL ${ARGN})
     target_include_directories(${target} PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/sgp-compat"
         "${SGP_SOURCE}"
     )
-    target_compile_options(${target} PRIVATE /O2 /Ob2 /G5 /MD)
+    target_compile_options(${target} PRIVATE /nologo /Z7)
+    if(profile STREQUAL "MATCH")
+        target_compile_options(${target} PRIVATE /O2 /Ob2 /G5)
+    elseif(profile STREQUAL "DEBUG")
+        target_compile_options(${target} PRIVATE /Od /Oy- /Ob0)
+    else()
+        message(FATAL_ERROR "unknown SGP compile profile: ${profile}")
+    endif()
     target_compile_definitions(${target} PRIVATE
         gusAlphaMask=g_alpha_mask_650f48
         gusRedMask=g_red_mask_650f4a
@@ -94,5 +101,5 @@ function(wiz8_add_sgp_objects target)
     )
 endfunction()
 
-wiz8_add_sgp_objects(WIZ8_SGP_RUNTIME ${WIZ8_SGP_RUNTIME_SOURCES})
-wiz8_add_sgp_objects(WIZ8_SGP_ANALYSIS ${WIZ8_SGP_ANALYSIS_ONLY_SOURCES})
+wiz8_add_sgp_objects(WIZ8_SGP_RUNTIME MATCH ${WIZ8_SGP_RUNTIME_SOURCES})
+wiz8_add_sgp_objects(WIZ8_SGP_ANALYSIS MATCH ${WIZ8_SGP_ANALYSIS_ONLY_SOURCES})

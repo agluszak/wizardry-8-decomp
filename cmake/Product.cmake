@@ -6,29 +6,27 @@ if(NOT IJG_JPEG_SOURCE)
     message(FATAL_ERROR "IJG_JPEG_SOURCE must point at the pinned IJG release 6 tree")
 endif()
 
-add_library(wiz8_compile_settings INTERFACE)
-target_compile_options(wiz8_compile_settings INTERFACE
-    /nologo /O2 /G6 /MD
+add_library(wiz8_common_compile_settings INTERFACE)
+target_compile_options(wiz8_common_compile_settings INTERFACE
+    /nologo /Z7
     "/FI${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/compat/compiler.h"
 )
-target_compile_definitions(wiz8_compile_settings INTERFACE NOMINMAX WIN32_LEAN_AND_MEAN)
-target_include_directories(wiz8_compile_settings INTERFACE
+target_compile_definitions(wiz8_common_compile_settings INTERFACE
+    NDEBUG NOMINMAX WIN32_LEAN_AND_MEAN
+)
+target_include_directories(wiz8_common_compile_settings INTERFACE
     include
     include/wiz8/sgp-compat
     "${SGP_SOURCE}"
 )
 
+add_library(wiz8_compile_settings INTERFACE)
+target_link_libraries(wiz8_compile_settings INTERFACE wiz8_common_compile_settings)
+target_compile_options(wiz8_compile_settings INTERFACE /O2 /G6)
+
 add_library(wiz8_debug_compile_settings INTERFACE)
-target_compile_options(wiz8_debug_compile_settings INTERFACE
-    /nologo /Od /Oy- /Ob0 /MD /Z7
-    "/FI${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/compat/compiler.h"
-)
-target_compile_definitions(wiz8_debug_compile_settings INTERFACE NOMINMAX WIN32_LEAN_AND_MEAN)
-target_include_directories(wiz8_debug_compile_settings INTERFACE
-    include
-    include/wiz8/sgp-compat
-    "${SGP_SOURCE}"
-)
+target_link_libraries(wiz8_debug_compile_settings INTERFACE wiz8_common_compile_settings)
+target_compile_options(wiz8_debug_compile_settings INTERFACE /Od /Oy- /Ob0)
 
 function(wiz8_enable_cpp_compat TARGET)
     target_compile_options(${TARGET} PRIVATE

@@ -5,8 +5,10 @@ from wiz8decomp.config import Settings
 from wiz8decomp.display import runtime_display
 from wiz8decomp.runtime import (
     _configure_wine_window_management,
+    _parse_gdb_diagnostics,
     _parse_runtime_observation,
     _run_runtime_scenario,
+    _symbolize_addresses,
     stage_runtime,
 )
 
@@ -80,6 +82,58 @@ def test_runtime_observation_is_normalized_to_typed_fields() -> None:
 def test_runtime_observation_requires_one_owned_record() -> None:
     with pytest.raises(RuntimeError, match="expected one runtime observation"):
         _parse_runtime_observation("wine diagnostics only")
+
+
+def test_gdb_sigsegv_stop_extracts_numbered_backtrace_addresses() -> None:
+    diagnosis = _parse_gdb_diagnostics(
+        "Thread 1 received signal SIGSEGV, Segmentation fault.\n"
+        "#0  0x00401234 in first ()\n"
+        "#1  0x7bc45678 in second ()\n",
+        0,
+    )
+
+    assert diagnosis == {
+        "classification": "debug_crashed",
+        "stop_reason": "signal SIGSEGV",
+        "addresses": [0x00401234, 0x7BC45678],
+        "crash_signature": None,
+    }
+
+
+def test_gdb_normal_completion_is_a_debug_pass() -> None:
+    diagnosis = _parse_gdb_diagnostics("[Inferior 1 (process 42) exited normally]\n", 0)
+
+    assert diagnosis == {
+        "classification": "debug_passed",
+        "stop_reason": "normal exit",
+        "addresses": [],
+    }
+
+
+def test_map_symbolization_refuses_cross_function_lines_and_section_end(tmp_path: Path) -> None:
+    map_path = tmp_path / "synthetic.map"
+    map_path.write_text(
+        " Start         Length     Name                   Class\n"
+        " 0001:00000000 00000020H .text                   CODE\n"
+        " 0002:00000000 00000010H .text$x                 CODE\n"
+        "  Address         Publics by Value              Rva+Base     Lib:Object\n"
+        " 0001:00000000       _first                     00401000 f   first.obj\n"
+        " 0001:00000010       _second                    00401010 f   second.obj\n"
+        " 0002:00000000       _third                     00402000 f   third.obj\n"
+        "Line numbers for first.obj(Z:\\repo\\first.cpp) segment .text\n"
+        " 10 0001:00000008\n"
+        "Line numbers for third.obj(Z:\\repo\\third.cpp) segment .text$x\n"
+        " 30 0002:00000004\n",
+        encoding="cp1252",
+    )
+
+    symbols = _symbolize_addresses(map_path, [0x00401008, 0x00401012, 0x00401020, 0x00402004])
+
+    assert symbols == [
+        "00401008: _first+0x8 [first.obj] first.cpp:10",
+        "00401012: _second+0x2 [second.obj]",
+        "00402004: _third+0x4 [third.obj] third.cpp:30",
+    ]
 
 
 def test_runtime_timeout_preserves_in_process_diagnostics(

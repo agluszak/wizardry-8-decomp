@@ -5,17 +5,17 @@ import json
 import os
 import re
 import shutil
-import socket
 import struct
 import subprocess
 import time
-from bisect import bisect_right
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 from .binary.demangle import DemanglerMissing, demangle
 from .config import Settings
 from .display import runtime_display
+from .dynamic import _allocate_port, _listening, _terminate_process_group
 
 
 def _managed_link(source: Path, destination: Path) -> None:
@@ -30,8 +30,25 @@ def _managed_link(source: Path, destination: Path) -> None:
 
 RUNTIME_OBSERVATION = re.compile(r"^WIZ8_RUNTIME_TEST (?P<fields>.+)$")
 RUNTIME_CRASH = re.compile(r"^WIZ8_RUNTIME_CRASH (?P<fields>.+)$", re.MULTILINE)
-RUNTIME_FRAME = re.compile(
-    r"^runtime-test frame: .* address=(?P<address>[0-9a-fA-F]+)", re.MULTILINE
+RUNTIME_STACK_CANDIDATE = re.compile(
+    r"^runtime-test stack-candidate: .* address=(?P<address>[0-9a-fA-F]+)", re.MULTILINE
+)
+GDB_FRAME = re.compile(r"^#\d+\s+0x(?P<address>[0-9a-fA-F]+)\b", re.MULTILINE)
+GDB_SIGNAL = re.compile(
+    r"^(?:Thread .* )?(?:Program received|received|Program terminated with) signal "
+    r"(?P<signal>[A-Z][A-Z0-9]+)\b",
+    re.MULTILINE,
+)
+GDB_NORMAL_EXIT = re.compile(r"(?:exited normally|exited with code 0\b)", re.IGNORECASE)
+GDB_FAILED_EXIT = re.compile(r"exited with code (?!0\b)(?P<code>\S+)", re.IGNORECASE)
+GDB_TRANSPORT_FAILURE = re.compile(
+    r"(?:Connection (?:refused|timed out)|Remote communication error|"
+    r"Remote connection closed|The program is not being run)",
+    re.IGNORECASE,
+)
+MAP_SECTION = re.compile(
+    r"^\s+(?P<segment>[0-9a-fA-F]{4}):(?P<offset>[0-9a-fA-F]{8})\s+"
+    r"(?P<length>[0-9a-fA-F]{8})H\s+\S+\s+\S+\s*$"
 )
 MAP_FUNCTION = re.compile(
     r"^\s+(?P<segment>[0-9a-fA-F]{4}):(?P<offset>[0-9a-fA-F]{8})\s+(?P<symbol>\S+)\s+"
@@ -47,9 +64,28 @@ RUNTIME_SCENARIOS = (
 
 
 class RuntimeScenarioError(RuntimeError):
-    def __init__(self, scenario: str, message: str) -> None:
+    def __init__(
+        self, scenario: str, message: str, crash_signature: tuple[str, str, str] | None = None
+    ) -> None:
         super().__init__(message)
         self.scenario = scenario
+        self.crash_signature = crash_signature
+
+
+@dataclass(frozen=True)
+class _MapSection:
+    segment: str
+    start: int
+    end: int
+
+
+@dataclass(frozen=True)
+class _MapFunction:
+    address: int
+    segment: str
+    offset: int
+    symbol: str
+    owner: str
 
 
 def stage_runtime(settings: Settings, executable_name: str = "Wiz8Runtime.exe") -> dict[str, Any]:
@@ -115,21 +151,27 @@ def stage_runtime(settings: Settings, executable_name: str = "Wiz8Runtime.exe") 
     }
 
 
-def _map_functions(path: Path) -> list[tuple[int, str, str]]:
-    functions: list[tuple[int, str, str]] = []
+def _map_functions(path: Path) -> list[_MapFunction]:
+    functions: list[_MapFunction] = []
     if not path.is_file():
         return functions
     for line in path.read_text(encoding="cp1252", errors="replace").splitlines():
         if match := MAP_FUNCTION.match(line):
             functions.append(
-                (int(match.group("address"), 16), match.group("symbol"), match.group("object"))
+                _MapFunction(
+                    int(match.group("address"), 16),
+                    match.group("segment"),
+                    int(match.group("offset"), 16),
+                    match.group("symbol"),
+                    match.group("object"),
+                )
             )
-    return sorted(functions)
+    return sorted(functions, key=lambda function: function.address)
 
 
-def _map_lines(path: Path) -> list[tuple[int, str, int]]:
+def _map_sections(path: Path) -> tuple[list[_MapSection], dict[str, int]]:
     if not path.is_file():
-        return []
+        return [], {}
     lines = path.read_text(encoding="cp1252", errors="replace").splitlines()
     segment_bases: dict[str, int] = {}
     for line in lines:
@@ -138,7 +180,23 @@ def _map_lines(path: Path) -> list[tuple[int, str, int]]:
                 match.group("segment"),
                 int(match.group("address"), 16) - int(match.group("offset"), 16),
             )
-    entries: list[tuple[int, str, int]] = []
+    sections = [
+        _MapSection(
+            match.group("segment"),
+            int(match.group("offset"), 16),
+            int(match.group("offset"), 16) + int(match.group("length"), 16),
+        )
+        for line in lines
+        if (match := MAP_SECTION.match(line))
+    ]
+    return sections, segment_bases
+
+
+def _map_lines(path: Path, segment_bases: dict[str, int]) -> list[tuple[int, str, int, str]]:
+    if not path.is_file():
+        return []
+    lines = path.read_text(encoding="cp1252", errors="replace").splitlines()
+    entries: list[tuple[int, str, int, str]] = []
     source: str | None = None
     for line in lines:
         if header := MAP_LINE_HEADER.match(line):
@@ -154,6 +212,7 @@ def _map_lines(path: Path) -> list[tuple[int, str, int]]:
                         base + int(match.group("offset"), 16),
                         source,
                         int(match.group("line")),
+                        match.group("segment"),
                     )
                 )
     return sorted(entries)
@@ -161,31 +220,107 @@ def _map_lines(path: Path) -> list[tuple[int, str, int]]:
 
 def _symbolize_addresses(map_path: Path, addresses: list[int]) -> list[str]:
     functions = _map_functions(map_path)
-    starts = [function[0] for function in functions]
-    source_lines = _map_lines(map_path)
-    line_starts = [entry[0] for entry in source_lines]
+    sections, segment_bases = _map_sections(map_path)
+    source_lines = _map_lines(map_path, segment_bases)
+    resolved: list[tuple[int, _MapFunction, int, str]] = []
+    for address in addresses:
+        target_sections = [
+            (section, segment_bases[section.segment])
+            for section in sections
+            if section.segment in segment_bases
+            and segment_bases[section.segment] + section.start
+            <= address
+            < segment_bases[section.segment] + section.end
+        ]
+        if not target_sections:
+            continue
+        section, base = target_sections[0]
+        candidates = [
+            function
+            for function in functions
+            if function.segment == section.segment
+            and section.start <= function.offset < section.end
+            and function.address <= address
+        ]
+        if not candidates:
+            continue
+        function = candidates[-1]
+        offset = address - base
+        next_public = next(
+            (
+                item.offset
+                for item in functions
+                if item.segment == function.segment
+                and function.offset < item.offset
+                and item.offset < section.end
+            ),
+            section.end,
+        )
+        if offset >= next_public:
+            continue
+        location = ""
+        eligible_lines = [
+            entry
+            for entry in source_lines
+            if entry[3] == function.segment and function.address <= entry[0] <= address
+        ]
+        if eligible_lines:
+            _line_address, source, line, _segment = eligible_lines[-1]
+            location = f" {source}:{line}"
+        resolved.append((address, function, address - function.address, location))
     try:
-        demangled = demangle([function[1] for function in functions])
+        demangled = demangle([item[1].symbol for item in resolved])
     except (DemanglerMissing, RuntimeError):
         demangled = {}
     results: list[str] = []
-    for address in addresses:
-        index = bisect_right(starts, address) - 1
-        if index < 0:
-            continue
-        start, symbol, owner = functions[index]
-        displacement = address - start
-        if displacement > 0x10000:
-            continue
-        name = demangled.get(symbol) or symbol
-        location = ""
-        line_index = bisect_right(line_starts, address) - 1
-        if line_index >= 0:
-            line_address, source, line = source_lines[line_index]
-            if start <= line_address <= address:
-                location = f" {source}:{line}"
-        results.append(f"{address:08x}: {name}+0x{displacement:x} [{owner}]{location}")
+    for address, function, displacement, location in resolved:
+        name = demangled.get(function.symbol) or function.symbol
+        results.append(f"{address:08x}: {name}+0x{displacement:x} [{function.owner}]{location}")
     return results
+
+
+def _runtime_crash_signature(output: str) -> tuple[str, str, str] | None:
+    match = RUNTIME_CRASH.search(output)
+    if match is None:
+        return None
+    fields = dict(item.split("=", 1) for item in match.group("fields").split() if "=" in item)
+    code = fields.get("code")
+    operation = fields.get("operation")
+    access = fields.get("access")
+    return (code, operation, access) if code and operation and access else None
+
+
+def _parse_gdb_diagnostics(output: str, returncode: int) -> dict[str, Any]:
+    """Classify only stop and exit states explicitly reported by GDB."""
+
+    frames = [int(match.group("address"), 16) for match in GDB_FRAME.finditer(output)]
+    signal_match = GDB_SIGNAL.search(output)
+    if signal_match:
+        return {
+            "classification": "debug_crashed",
+            "stop_reason": f"signal {signal_match.group('signal')}",
+            "addresses": frames,
+            "crash_signature": _runtime_crash_signature(output),
+        }
+    if GDB_NORMAL_EXIT.search(output):
+        return {"classification": "debug_passed", "stop_reason": "normal exit", "addresses": []}
+    if failed_exit := GDB_FAILED_EXIT.search(output):
+        return {
+            "classification": "debug_failed",
+            "stop_reason": f"exit code {failed_exit.group('code')}",
+            "addresses": [],
+        }
+    if GDB_TRANSPORT_FAILURE.search(output) or returncode != 0:
+        return {
+            "classification": "debugger_transport_failure",
+            "stop_reason": "GDB transport did not produce a target stop or exit",
+            "addresses": frames,
+        }
+    return {
+        "classification": "debug_failed",
+        "stop_reason": "no explicit GDB target stop or exit",
+        "addresses": frames,
+    }
 
 
 def _runtime_failure(
@@ -202,19 +337,24 @@ def _runtime_failure(
     artifact.write_text(stdout + stderr, encoding="utf-8", errors="replace")
     combined = stdout + stderr
     crash = RUNTIME_CRASH.search(combined)
+    crash_signature = _runtime_crash_signature(combined)
     if crash:
         summary = crash.group(0)
     else:
         diagnostic_lines = [line for line in combined.splitlines() if line.strip()]
         last_diagnostic = diagnostic_lines[-1][-500:] if diagnostic_lines else "no diagnostics"
         summary = f"status={returncode if returncode is not None else 'timeout'}: {last_diagnostic}"
-    addresses = [int(match.group("address"), 16) for match in RUNTIME_FRAME.finditer(combined)]
+    addresses = [
+        int(match.group("address"), 16) for match in RUNTIME_STACK_CANDIDATE.finditer(combined)
+    ]
     symbols = _symbolize_addresses(executable.with_suffix(".map"), addresses[:10])[:5]
     detail = "\n".join(symbols)
     if detail:
-        detail = "\ncaller candidates:\n" + detail
+        detail = "\nhost stack candidates:\n" + detail
     return RuntimeScenarioError(
-        scenario, f"{scenario} failed: {summary}{detail}\nartifacts={artifact}"
+        scenario,
+        f"{scenario} failed: {summary}{detail}\nartifacts={artifact}",
+        crash_signature,
     )
 
 
@@ -300,7 +440,12 @@ def _run_runtime_scenario(
         raise _runtime_failure(
             scenario, completed.returncode, completed.stdout, completed.stderr, stage, executable
         )
-    observation = _parse_runtime_observation(completed.stdout)
+    try:
+        observation = _parse_runtime_observation(completed.stdout)
+    except RuntimeError as error:
+        raise _runtime_failure(
+            scenario, completed.returncode, completed.stdout, completed.stderr, stage, executable
+        ) from error
     if observation.get("scenario") != scenario:
         raise RuntimeError(f"runtime observation names the wrong scenario: {observation}")
     return observation
@@ -348,7 +493,11 @@ def run_runtime_suite(settings: Settings) -> dict[str, Any]:
     }
 
 
-def diagnose_runtime_failure(settings: Settings, scenario: str) -> dict[str, Any]:
+def diagnose_runtime_failure(
+    settings: Settings,
+    scenario: str,
+    match_crash_signature: tuple[str, str, str] | None = None,
+) -> dict[str, Any]:
     """Rerun one MATCH failure under GDB with the non-authoritative DEBUG profile."""
 
     staged = stage_runtime(settings, "Wiz8RuntimeDebug.exe")
@@ -367,9 +516,7 @@ def diagnose_runtime_failure(settings: Settings, scenario: str) -> dict[str, Any
         proxy_stream = None
         try:
             try:
-                with socket.socket() as listener:
-                    listener.bind(("127.0.0.1", 0))
-                    port = listener.getsockname()[1]
+                port = _allocate_port()
                 proxy_stream = proxy_artifact.open("w", encoding="utf-8")
                 proxy = subprocess.Popen(
                     [
@@ -387,10 +534,15 @@ def diagnose_runtime_failure(settings: Settings, scenario: str) -> dict[str, Any
                     stdout=proxy_stream,
                     stderr=subprocess.STDOUT,
                     text=True,
+                    start_new_session=True,
                 )
-                time.sleep(1)
-                if proxy.poll() is not None:
-                    raise RuntimeError(f"winedbg GDB proxy exited during launch: {proxy_artifact}")
+                if not _listening(port, time.monotonic() + 60):
+                    return {
+                        "classification": "debugger_transport_failure",
+                        "stop_reason": "winedbg --gdb never opened its port",
+                        "artifacts": str(proxy_artifact),
+                        **staged,
+                    }
                 remote = f"target remote localhost:{port}"
                 commands = [
                     "set pagination off",
@@ -416,21 +568,25 @@ def diagnose_runtime_failure(settings: Settings, scenario: str) -> dict[str, Any
                 )
                 output = completed.stdout + completed.stderr
                 artifact.write_text(output, encoding="utf-8", errors="replace")
-                crash = RUNTIME_CRASH.search(output)
-                addresses = [
-                    int(match.group("address"), 16) for match in RUNTIME_FRAME.finditer(output)
-                ]
-                symbols = _symbolize_addresses(executable.with_suffix(".map"), addresses)[:5]
-                if crash:
-                    return {
-                        "classification": "reproduced_in_debug",
-                        "crash": crash.group(0),
-                        "caller_candidates": symbols,
-                        "artifacts": str(artifact),
-                        **staged,
-                    }
+                diagnosis = _parse_gdb_diagnostics(output, completed.returncode)
+                symbols = _symbolize_addresses(
+                    executable.with_suffix(".map"), diagnosis.pop("addresses")
+                )[:5]
+                debug_signature = diagnosis.pop("crash_signature", None)
+                if match_crash_signature and diagnosis["classification"] == "debug_passed":
+                    relationship = "debug_profile_non_reproduction"
+                elif match_crash_signature and debug_signature:
+                    relationship = (
+                        "normalized_signature_match"
+                        if match_crash_signature == debug_signature
+                        else "normalized_signature_mismatch"
+                    )
+                else:
+                    relationship = "signature_unavailable"
                 return {
-                    "classification": "optimization_or_layout_sensitive",
+                    **diagnosis,
+                    "profile_relationship": relationship,
+                    "host_symbol_candidates": symbols,
                     "artifacts": str(artifact),
                     **staged,
                 }
@@ -438,14 +594,14 @@ def diagnose_runtime_failure(settings: Settings, scenario: str) -> dict[str, Any
                 output = _timeout_output(error.stdout) + _timeout_output(error.stderr)
                 artifact.write_text(output, encoding="utf-8", errors="replace")
                 return {
-                    "classification": "debugger_timeout",
+                    "classification": "debug_timeout",
+                    "stop_reason": "GDB timed out",
                     "artifacts": str(artifact),
                     **staged,
                 }
         finally:
-            if proxy is not None and proxy.poll() is None:
-                proxy.kill()
-                proxy.wait()
+            if proxy is not None:
+                _terminate_process_group(proxy)
             if proxy_stream is not None:
                 proxy_stream.close()
             subprocess.run(
