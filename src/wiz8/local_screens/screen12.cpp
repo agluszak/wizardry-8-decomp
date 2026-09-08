@@ -31,7 +31,7 @@ int GetValue64C1C8(void)
 }
 
 // GLOBAL: WIZ8 0x006F0628
-unsigned char g_flag_6f0628;
+unsigned char g_game_running;
 
 /* Lifecycle record 12's entry handler. It paints the whole 640x480 frame in the
    near-black 0x010101 and puts one video-object frame over it, which is the
@@ -65,18 +65,18 @@ void ExitScreenFrame(void)
         if (!DispatchRegionInput(&input)) {
             switch (input.usEvent) {
             case KEY_DOWN:
-                g_flag_6f0628 = 0;
+                g_game_running = 0;
                 break;
             }
         }
     }
     if (g_flag_6f04ed == 0 && g_flag_6f04e8 == 0) {
-        if (g_flag_6f0628 != 0) {
+        if (g_game_running != 0) {
             return;
         }
     }
     else {
-        g_flag_6f0628 = 0;
+        g_game_running = 0;
     }
     ClearFlag603C60();
     ClearPrimarySurface();

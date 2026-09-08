@@ -10,17 +10,100 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern unsigned char g_flag_650e50;
 extern unsigned int g_sound_memory_used_650e4c;
 extern unsigned int g_sound_memory_limit_5ff648;
+extern "C" {
 extern unsigned int guiSoundCacheThreshold;
 extern unsigned int guiSoundDefaultVolume;
+extern BOOLEAN gfEnableStartup;
+}
+extern char* g_sound_provider_650e54;
 
 unsigned int g_sound_id_counter_650e64;
 HDIGDRIVER g_sound_driver_6e4104;
 /* Retail 0x005FF650: direct-sound attempt flag, set for the first driver
    round and cleared before the wave-out fallback. */
 unsigned char g_direct_sound_5ff650;
+unsigned char g_flag_650e50;
+int g_dword_65a104;
+unsigned char g_flag_5ff652;
+/* Retail's canonical channel and sample tables. Their strides establish the
+   pinned soundman.h layouts (SOUNDTAG is 0x4c, SAMPLETAG is 0xd8). */
+SOUNDTAG g_sound_channels_6e4120[32];
+SAMPLETAG g_sound_samples_6e4aa0[128];
+unsigned int g_sound_memory_limit_5ff648;
+unsigned int g_sound_memory_used_650e4c;
+HPROVIDER g_provider_650e58;
+H3DPOBJECT g_listener_650e5c;
+
+/* Walks the Miles 3D providers for the one whose name matches the configured
+   string, opens it and its listener, and records whether the provider exposes
+   EAX environment selection. Any failure leaves the subsystem closed and still
+   reports success, so audio never blocks bring-up. */
+// FUNCTION: WIZ8 0x004086d0
+bool InitializeWiz8SoundManager(void)
+{
+    HPROENUM next;
+    HPROVIDER provider;
+    C8* name;
+    S32 attribute;
+
+    if (g_flag_650e50) {
+        g_flag_650e50 = 0;
+    }
+    memset(g_sound_channels_6e4120, 0, sizeof(g_sound_channels_6e4120));
+    if (gfEnableStartup && SoundInitHardware00409C50()) {
+        g_flag_650e50 = 1;
+    }
+    g_sound_memory_limit_5ff648 = 8048 * 1024;
+    memset(g_sound_samples_6e4aa0, 0, sizeof(g_sound_samples_6e4aa0));
+    g_sound_memory_used_650e4c = 0;
+    guiSoundCacheThreshold = 0x1f5800;
+    if (g_sound_provider_650e54 && g_provider_650e58 == 0) {
+        next = 0;
+        provider = 0;
+        if (g_flag_650e50 && g_sound_provider_650e54) {
+            do {
+                do {
+                    if (AIL_enumerate_3D_providers(&next, &provider, &name) == 0) {
+                        return true;
+                    }
+                } while (provider == 0);
+            } while (strcmp(g_sound_provider_650e54, name) != 0);
+            if (AIL_open_3D_provider(provider) == 0) {
+                g_provider_650e58 = provider;
+                g_listener_650e5c = AIL_open_3D_listener(provider);
+                if (g_listener_650e5c == 0) {
+                    AIL_close_3D_provider(g_provider_650e58);
+                    return true;
+                }
+                if (g_flag_650e50) {
+                    AIL_set_3D_position(g_listener_650e5c, 0, 0, 0);
+                }
+                AIL_3D_provider_attribute(g_provider_650e58, "EAX environment selection",
+                                          &attribute);
+                if (attribute != -1) {
+                    g_flag_5ff652 = 1;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+// FUNCTION: WIZ8 0x00408850
+void DisableSoundManager(void)
+{
+    g_flag_650e50 = 0;
+}
+
+/* Sets the sound cache threshold and clears its still-unidentified companion. */
+// FUNCTION: WIZ8 0x00479010
+void ConfigureSoundCache(void)
+{
+    SoundSetCacheThreshhold(0xc8000);
+    g_dword_65a104 = 0;
+}
 
 // FUNCTION: WIZ8 0x0041a7f0
 unsigned char Function41A7F0(void)

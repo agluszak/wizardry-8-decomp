@@ -18,6 +18,18 @@ target_include_directories(wiz8_compile_settings INTERFACE
     "${SGP_SOURCE}"
 )
 
+add_library(wiz8_debug_compile_settings INTERFACE)
+target_compile_options(wiz8_debug_compile_settings INTERFACE
+    /nologo /Od /Oy- /Ob0 /MD /Z7
+    "/FI${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/compat/compiler.h"
+)
+target_compile_definitions(wiz8_debug_compile_settings INTERFACE NOMINMAX WIN32_LEAN_AND_MEAN)
+target_include_directories(wiz8_debug_compile_settings INTERFACE
+    include
+    include/wiz8/sgp-compat
+    "${SGP_SOURCE}"
+)
+
 function(wiz8_enable_cpp_compat TARGET)
     target_compile_options(${TARGET} PRIVATE
         "$<$<COMPILE_LANGUAGE:CXX>:/FI${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/compat/compiler.h>"
@@ -81,16 +93,22 @@ function(wiz8_add_import_library NAME DEF_FILE)
 endfunction()
 
 function(wiz8_add_executable)
-    cmake_parse_arguments(ARG "OPT_REF;CONSOLE" "TARGET;OUTPUT;MAP" "LIBRARIES;SOURCES" ${ARGN})
+    cmake_parse_arguments(ARG "OPT_REF;CONSOLE;ALLOW_UNRESOLVED" "TARGET;OUTPUT;MAP;OBJECT_TARGET;COMPILE_SETTINGS" "LIBRARIES;SOURCES" ${ARGN})
+    if(NOT ARG_OBJECT_TARGET)
+        set(ARG_OBJECT_TARGET wiz8_recovered_objects)
+    endif()
+    if(NOT ARG_COMPILE_SETTINGS)
+        set(ARG_COMPILE_SETTINGS wiz8_compile_settings)
+    endif()
     if(ARG_CONSOLE)
         add_executable(${ARG_TARGET}
-            $<TARGET_OBJECTS:wiz8_recovered_objects>
+            $<TARGET_OBJECTS:${ARG_OBJECT_TARGET}>
             ${ARG_SOURCES}
         )
         set(subsystem /SUBSYSTEM:CONSOLE,4.0)
     else()
         add_executable(${ARG_TARGET} WIN32
-            $<TARGET_OBJECTS:wiz8_recovered_objects>
+            $<TARGET_OBJECTS:${ARG_OBJECT_TARGET}>
             ${ARG_SOURCES}
         )
         set(subsystem /SUBSYSTEM:WINDOWS,4.0)
@@ -101,7 +119,7 @@ function(wiz8_add_executable)
         ${WIZ8_BINKW32_IMPORT_TARGET}
     )
     target_link_libraries(${ARG_TARGET} PRIVATE
-        wiz8_compile_settings
+        ${ARG_COMPILE_SETTINGS}
         ${ARG_LIBRARIES}
         "${WIZ8_SR_IMPORT_LIBRARY}"
         "${WIZ8_MSS32_IMPORT_LIBRARY}"
@@ -115,12 +133,17 @@ function(wiz8_add_executable)
     else()
         set(opt_ref /OPT:NOREF)
     endif()
+    if(ARG_ALLOW_UNRESOLVED)
+        set(force_unresolved /FORCE:UNRESOLVED)
+    else()
+        set(force_unresolved)
+    endif()
     target_link_options(${ARG_TARGET} PRIVATE
         /DEBUG /DEBUGTYPE:CV /INCREMENTAL:NO ${opt_ref} /OPT:NOICF
-        /FORCE:UNRESOLVED /BASE:0x400000 /FILEALIGN:0x1000
+        ${force_unresolved} /BASE:0x400000 /FILEALIGN:0x1000
         /OSVERSION:4.0 ${subsystem}
         /STACK:0x100000,0x1000 /HEAP:0x100000,0x1000
-        "/MAP:${CMAKE_CURRENT_BINARY_DIR}/${ARG_MAP}"
+        "/MAP:${CMAKE_CURRENT_BINARY_DIR}/${ARG_MAP}" /MAPINFO:LINES
     )
     set_target_properties(${ARG_TARGET} PROPERTIES
         OUTPUT_NAME "${ARG_OUTPUT}"

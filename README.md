@@ -32,10 +32,11 @@ compile-checks the recovered C++ with Clang's virtual-override diagnostics while
 continues to use VC6. `build` configures automatically. `compare` is reccmp's live linked-image and
 exact-body diagnostic. Run Python tests directly with `uv run pytest -q PATH`.
 
-`just runtime-test` builds a separate test product and runs named main-menu scenarios inside the
-process. The real menu handlers execute on the UI thread; the host reruns the scenarios in reverse
-order and requires identical normalized observations. Test-only code is not linked into either
-matching image.
+`just runtime-test` runs named main-menu scenarios in the authoritative optimized MATCH profile.
+The real menu handlers execute on the UI thread; the host reruns the scenarios in reverse order and
+requires identical normalized observations. A failure is automatically repeated under GDB with the
+non-authoritative `/Od /Oy- /Ob0` DEBUG profile and returned as a concise MAP-symbolized diagnosis;
+raw debugger output is saved under `build/runtime/wiz8/diagnostics`.
 
 For focused recovery, one reccmp process compares several function selectors or all `FUNCTION`
 markers in a source file. A mismatch includes reccmp's structured first divergence and a bounded

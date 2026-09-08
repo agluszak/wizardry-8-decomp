@@ -1,7 +1,6 @@
 # Wiz8 executable target
 
-The CMake graph compiles the recovered first-party sources once in an internal object library and
-reuses those exact objects in three product surfaces:
+The CMake graph keeps matching and diagnostic runtime profiles explicit:
 
 * `WIZ8_BRINGUP` links the recovered objects, producing `Wiz8.exe` and
   `Wiz8.pdb` for PE, PDB, and reccmp integration.
@@ -9,6 +8,11 @@ reuses those exact objects in three product surfaces:
 * `WIZ8_RUNTIME` is the runnable vertical-slice image. It adds the vendored SGP probe objects and
   links with `/OPT:REF`, so only source-backed COMDAT functions reached by recovered Wizardry code
   survive. `WIZ8_BRINGUP` retains `/OPT:NOREF` and remains the whole-image comparison surface.
+* `WIZ8_RUNTIME_MATCH` runs the semantic scenarios with the same optimized recovered objects as the
+  comparison image. Its results are authoritative runtime evidence.
+* `WIZ8_RUNTIME_DEBUG` builds the same sources and link surface with `/Od /Oy- /Ob0 /MD /Z7`.
+  It is non-authoritative and runs under GDB only after a MATCH failure, to collect readable
+  all-thread stacks, registers, modules, and disassembly.
 
 Build and open the recovered main menu on the host display with:
 
@@ -40,8 +44,12 @@ depth differs from `3DVideo.CFG`. `WIZ8_RUNTIME_DISPLAY=:5` selects an already-r
 `host` explicitly selects the inherited display. Virtual mode fails closed if Xvfb is unavailable,
 so an unattended command cannot silently fall back to the desktop.
 
-`just runtime-test` defaults to the private display; set `WIZ8_RUNTIME_DISPLAY=host` for visual
-debugging. Off-screen Wine is configured to own its windows because Xvfb has no window manager.
+`just runtime-test` defaults to the private display and judges only `WIZ8_RUNTIME_MATCH`; set
+`WIZ8_RUNTIME_DISPLAY=host` for visual debugging. A failure automatically reruns that scenario
+under GDB with `WIZ8_RUNTIME_DEBUG`. Raw debugger output stays under
+`build/runtime/wiz8/diagnostics`, while the command reports the classification and a short list of
+MAP-symbolized caller candidates. EXE, PDB, MAP, PE timestamp, and SHA-256 identity are staged
+together. Off-screen Wine is configured to own its windows because Xvfb has no window manager.
 Mouse and keyboard events still traverse released SGP input and the recovered region callbacks.
 Exiting the launcher terminates only this dedicated Wine prefix. The launcher stays attached to the
 game and returns its status instead of guessing its lifetime from Wine's desktop helper.
@@ -51,10 +59,12 @@ driver. It validates the checkout-local build directory and configures automatic
 CMake's generated dependency check handles later build-graph changes. `just prepare` separately
 owns idempotent source/input preparation.
 
-The recovered corpus is not link-complete. `WIZ8_BRINGUP` therefore uses `/FORCE:UNRESOLVED` rather
-than contaminating matching source with invented globals or function bodies. LINK reports every
-unresolved first-party boundary and emits an inspectable PE/PDB. The bring-up entry only returns
-zero; it carries no address marker and is not part of the recovered source object list.
+The recovered corpus is not link-complete. A strict-link audit found 1,254 unresolved references in
+the runtime object set (1,222 even when reachable translation units were archive-selected), so all
+three executable profiles still explicitly use `/FORCE:UNRESOLVED`; removing it requires recovering
+those live boundaries, not a linker-policy edit. The runtime exception record identifies image-base
+read/write/execute faults directly and the automatic diagnostic rerun resolves their callers. This
+is retained debt, not a claim that a forced executable is generally safe.
 
 ## Platform and import libraries
 

@@ -6,7 +6,7 @@
 
 #include <string.h>
 
-extern unsigned char g_flag_6f0630;
+extern unsigned char g_application_active;
 extern unsigned char Function4229B0(void);
 extern unsigned char Function4229D0(void);
 extern void NoOp(void);
@@ -152,7 +152,7 @@ unsigned char InitializeInputManager00401EA0(void)
 // FUNCTION: WIZ8 0x00401b30
 long __stdcall Function401B30(int code, unsigned int key, long flags)
 {
-    if (code < 0 || g_flag_6f0630 == 0) {
+    if (code < 0 || g_application_active == 0) {
         return CallNextHookEx(g_keyboard_hook_6f04fc, code, key, flags);
     }
     if ((flags & 0x80000000) == 0) {
@@ -228,7 +228,7 @@ long __stdcall Function401C70(int code, unsigned int button, long info)
             outside = 1;
         }
     }
-    if (code >= 0 && g_flag_6f0630 != 0 && !outside &&
+    if (code >= 0 && g_application_active != 0 && !outside &&
         g_input_flag_650dba == 0) {
         switch (button - 0x200) {
         case 0:

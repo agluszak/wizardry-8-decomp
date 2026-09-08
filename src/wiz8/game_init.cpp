@@ -16,6 +16,7 @@
 #include "wiz8/local_code/CombatSound.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/slf_archives.h"
+#include "wiz8/sound_man.h"
 #include "Button System.h"
 #include "Container.h"
 #include "LibraryDataBase.h"
@@ -48,7 +49,6 @@ extern void ReleaseAllTriggers(void);
 
 extern unsigned char InitializeMenuFonts(void);
 extern void UpdateHeldItemCursor(void);
-extern void Function479010(void);
 
 extern unsigned short* g_font_state_palettes_68ee1c[15];
 
@@ -121,7 +121,7 @@ unsigned char InitializeGame(void)
         return 0;
     }
     InitializeItemVideoObjects();
-    Function479010();
+    ConfigureSoundCache();
     SetPendingScreenState(W8_SCREEN_INTRO);
     g_status_685170.current_level = -1;
     if (gfLoadAtStartup && FindStartupQuickSave(g_pending_screen_state.name)) {

@@ -228,11 +228,22 @@ def runtime_test_command() -> None:
     """Build and run deterministic in-process semantic scenarios."""
     from .. import command_support as cli
     from ..build import build_target
-    from ..runtime import run_runtime_suite
+    from ..runtime import RuntimeScenarioError, diagnose_runtime_failure, run_runtime_suite
 
     def action() -> Any:
         build_target(cli.settings(), "runtime-test")
-        return run_runtime_suite(cli.settings())
+        try:
+            return run_runtime_suite(cli.settings())
+        except RuntimeScenarioError as match_error:
+            build_target(cli.settings(), "runtime-debug")
+            diagnosis = diagnose_runtime_failure(cli.settings(), match_error.scenario)
+            candidates = "\n".join(diagnosis.get("caller_candidates", []))
+            raise RuntimeError(
+                f"MATCH failure:\n{match_error}\n"
+                f"DEBUG classification={diagnosis['classification']}\n"
+                f"{diagnosis.get('crash', '')}\n{candidates}\n"
+                f"artifacts={diagnosis.get('artifacts', '')}"
+            ) from match_error
 
     cli.run_action(action)
 

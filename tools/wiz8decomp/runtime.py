@@ -1,12 +1,19 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import re
 import shutil
+import socket
+import struct
 import subprocess
+import time
+from bisect import bisect_right
 from pathlib import Path
 from typing import Any
 
+from .binary.demangle import DemanglerMissing, demangle
 from .config import Settings
 from .display import runtime_display
 
@@ -22,7 +29,27 @@ def _managed_link(source: Path, destination: Path) -> None:
 
 
 RUNTIME_OBSERVATION = re.compile(r"^WIZ8_RUNTIME_TEST (?P<fields>.+)$")
-RUNTIME_SCENARIOS = ("main-menu-startup", "main-menu-new-game", "main-menu-exit")
+RUNTIME_CRASH = re.compile(r"^WIZ8_RUNTIME_CRASH (?P<fields>.+)$", re.MULTILINE)
+RUNTIME_FRAME = re.compile(
+    r"^runtime-test frame: .* address=(?P<address>[0-9a-fA-F]+)", re.MULTILINE
+)
+MAP_FUNCTION = re.compile(
+    r"^\s+(?P<segment>[0-9a-fA-F]{4}):(?P<offset>[0-9a-fA-F]{8})\s+(?P<symbol>\S+)\s+"
+    r"(?P<address>[0-9a-fA-F]{8})\s+f(?:\s+i)?\s+(?P<object>.+?)\s*$"
+)
+MAP_LINE_HEADER = re.compile(r"^Line numbers for .*\((?P<source>.+)\) segment ")
+MAP_LINE = re.compile(r"(?P<line>[0-9]+)\s+(?P<segment>[0-9a-fA-F]{4}):(?P<offset>[0-9a-fA-F]{8})")
+RUNTIME_SCENARIOS = (
+    "main-menu-startup",
+    "main-menu-new-game",
+    "main-menu-exit-auto-repeat",
+)
+
+
+class RuntimeScenarioError(RuntimeError):
+    def __init__(self, scenario: str, message: str) -> None:
+        super().__init__(message)
+        self.scenario = scenario
 
 
 def stage_runtime(settings: Settings, executable_name: str = "Wiz8Runtime.exe") -> dict[str, Any]:
@@ -60,7 +87,135 @@ def stage_runtime(settings: Settings, executable_name: str = "Wiz8Runtime.exe") 
     program_database = executable.with_suffix(".pdb")
     if program_database.is_file():
         shutil.copy2(program_database, stage / program_database.name)
-    return {"stage": str(stage), "links": links, "executable": str(stage / executable_name)}
+    map_file = executable.with_suffix(".map")
+    if map_file.is_file():
+        shutil.copy2(map_file, stage / map_file.name)
+    data = executable.read_bytes()
+    timestamp: str | None = None
+    if len(data) >= 0x40:
+        pe_offset = struct.unpack_from("<I", data, 0x3C)[0]
+        if pe_offset + 12 <= len(data):
+            timestamp = f"{struct.unpack_from('<I', data, pe_offset + 8)[0]:08x}"
+    identity = {
+        "executable": executable_name,
+        "sha256": hashlib.sha256(data).hexdigest(),
+        "pe_timestamp": timestamp,
+        "map": map_file.name if map_file.is_file() else None,
+    }
+    (stage / f"{Path(executable_name).stem}.symbols.json").write_text(
+        json.dumps(identity, indent=2) + "\n", encoding="utf-8"
+    )
+    return {
+        "stage": str(stage),
+        "links": links,
+        "executable": str(stage / executable_name),
+        "map": str(stage / map_file.name) if map_file.is_file() else None,
+        "sha256": identity["sha256"],
+        "pe_timestamp": timestamp,
+    }
+
+
+def _map_functions(path: Path) -> list[tuple[int, str, str]]:
+    functions: list[tuple[int, str, str]] = []
+    if not path.is_file():
+        return functions
+    for line in path.read_text(encoding="cp1252", errors="replace").splitlines():
+        if match := MAP_FUNCTION.match(line):
+            functions.append(
+                (int(match.group("address"), 16), match.group("symbol"), match.group("object"))
+            )
+    return sorted(functions)
+
+
+def _map_lines(path: Path) -> list[tuple[int, str, int]]:
+    if not path.is_file():
+        return []
+    lines = path.read_text(encoding="cp1252", errors="replace").splitlines()
+    segment_bases: dict[str, int] = {}
+    for line in lines:
+        if match := MAP_FUNCTION.match(line):
+            segment_bases.setdefault(
+                match.group("segment"),
+                int(match.group("address"), 16) - int(match.group("offset"), 16),
+            )
+    entries: list[tuple[int, str, int]] = []
+    source: str | None = None
+    for line in lines:
+        if header := MAP_LINE_HEADER.match(line):
+            source = header.group("source").replace("Z:\\repo\\", "").replace("\\", "/")
+            continue
+        if source is None:
+            continue
+        for match in MAP_LINE.finditer(line):
+            base = segment_bases.get(match.group("segment"))
+            if base is not None:
+                entries.append(
+                    (
+                        base + int(match.group("offset"), 16),
+                        source,
+                        int(match.group("line")),
+                    )
+                )
+    return sorted(entries)
+
+
+def _symbolize_addresses(map_path: Path, addresses: list[int]) -> list[str]:
+    functions = _map_functions(map_path)
+    starts = [function[0] for function in functions]
+    source_lines = _map_lines(map_path)
+    line_starts = [entry[0] for entry in source_lines]
+    try:
+        demangled = demangle([function[1] for function in functions])
+    except (DemanglerMissing, RuntimeError):
+        demangled = {}
+    results: list[str] = []
+    for address in addresses:
+        index = bisect_right(starts, address) - 1
+        if index < 0:
+            continue
+        start, symbol, owner = functions[index]
+        displacement = address - start
+        if displacement > 0x10000:
+            continue
+        name = demangled.get(symbol) or symbol
+        location = ""
+        line_index = bisect_right(line_starts, address) - 1
+        if line_index >= 0:
+            line_address, source, line = source_lines[line_index]
+            if start <= line_address <= address:
+                location = f" {source}:{line}"
+        results.append(f"{address:08x}: {name}+0x{displacement:x} [{owner}]{location}")
+    return results
+
+
+def _runtime_failure(
+    scenario: str,
+    returncode: int | None,
+    stdout: str,
+    stderr: str,
+    stage: Path,
+    executable: Path,
+) -> RuntimeScenarioError:
+    artifact_dir = stage / "diagnostics"
+    artifact_dir.mkdir(exist_ok=True)
+    artifact = artifact_dir / f"{scenario}-failure.txt"
+    artifact.write_text(stdout + stderr, encoding="utf-8", errors="replace")
+    combined = stdout + stderr
+    crash = RUNTIME_CRASH.search(combined)
+    if crash:
+        summary = crash.group(0)
+    else:
+        diagnostic_lines = [line for line in combined.splitlines() if line.strip()]
+        last_diagnostic = diagnostic_lines[-1][-500:] if diagnostic_lines else "no diagnostics"
+        summary = f"status={returncode if returncode is not None else 'timeout'}: {last_diagnostic}"
+    addresses = [int(match.group("address"), 16) for match in RUNTIME_FRAME.finditer(combined)]
+    symbols = _symbolize_addresses(executable.with_suffix(".map"), addresses[:10])[:5]
+    detail = "\n".join(symbols)
+    if detail:
+        detail = "\ncaller candidates:\n" + detail
+    return RuntimeScenarioError(
+        scenario, f"{scenario} failed: {summary}{detail}\nartifacts={artifact}"
+    )
 
 
 def _wine_environment(
@@ -120,6 +275,10 @@ def _parse_runtime_observation(stdout: str) -> dict[str, str | int]:
     return fields
 
 
+def _timeout_output(value: str | bytes | None) -> str:
+    return value.decode(errors="replace") if isinstance(value, bytes) else value or ""
+
+
 def _run_runtime_scenario(
     executable: Path, stage: Path, environment: dict[str, str], scenario: str
 ) -> dict[str, str | int]:
@@ -134,23 +293,12 @@ def _run_runtime_scenario(
             timeout=45,
         )
     except subprocess.TimeoutExpired as error:
-        stdout = (
-            error.stdout.decode(errors="replace")
-            if isinstance(error.stdout, bytes)
-            else error.stdout
-        )
-        stderr = (
-            error.stderr.decode(errors="replace")
-            if isinstance(error.stderr, bytes)
-            else error.stderr
-        )
-        raise RuntimeError(
-            f"{scenario} timed out inside the recovered runtime: {(stdout or '')}{(stderr or '')}"
-        ) from error
+        stdout = _timeout_output(error.stdout)
+        stderr = _timeout_output(error.stderr)
+        raise _runtime_failure(scenario, None, stdout, stderr, stage, executable) from error
     if completed.returncode:
-        raise RuntimeError(
-            f"{scenario} exited with status {completed.returncode}: "
-            f"{completed.stdout}{completed.stderr}"
+        raise _runtime_failure(
+            scenario, completed.returncode, completed.stdout, completed.stderr, stage, executable
         )
     observation = _parse_runtime_observation(completed.stdout)
     if observation.get("scenario") != scenario:
@@ -163,7 +311,7 @@ def run_runtime_suite(settings: Settings) -> dict[str, Any]:
 
     if shutil.which("wine") is None or shutil.which("wineserver") is None:
         raise RuntimeError("wine and wineserver are required to run WIZ8_RUNTIME_TEST")
-    staged = stage_runtime(settings, "Wiz8RuntimeTest.exe")
+    staged = stage_runtime(settings, "Wiz8RuntimeMatch.exe")
     stage = Path(staged["stage"])
     executable = Path(staged["executable"])
     prefix, environment = _wine_environment(settings, silent_audio=True)
@@ -198,6 +346,115 @@ def run_runtime_suite(settings: Settings) -> dict[str, Any]:
         "scenarios": runs["forward"],
         "deterministic": True,
     }
+
+
+def diagnose_runtime_failure(settings: Settings, scenario: str) -> dict[str, Any]:
+    """Rerun one MATCH failure under GDB with the non-authoritative DEBUG profile."""
+
+    staged = stage_runtime(settings, "Wiz8RuntimeDebug.exe")
+    stage = Path(staged["stage"])
+    executable = Path(staged["executable"])
+    _prefix, environment = _wine_environment(settings, silent_audio=True)
+    with runtime_display(
+        environment, default="virtual", log_path=stage / "xvfb-runtime-debug.log"
+    ) as display:
+        _configure_wine_window_management(environment, private_display=display is not None)
+        artifact_dir = stage / "diagnostics"
+        artifact_dir.mkdir(exist_ok=True)
+        artifact = artifact_dir / f"{scenario}-gdb.txt"
+        proxy_artifact = artifact_dir / f"{scenario}-gdb-proxy.txt"
+        proxy: subprocess.Popen[str] | None = None
+        proxy_stream = None
+        try:
+            try:
+                with socket.socket() as listener:
+                    listener.bind(("127.0.0.1", 0))
+                    port = listener.getsockname()[1]
+                proxy_stream = proxy_artifact.open("w", encoding="utf-8")
+                proxy = subprocess.Popen(
+                    [
+                        "winedbg",
+                        "--gdb",
+                        "--no-start",
+                        "--port",
+                        str(port),
+                        f"./{executable.name}",
+                        "--scenario",
+                        scenario,
+                    ],
+                    cwd=stage,
+                    env=environment,
+                    stdout=proxy_stream,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                )
+                time.sleep(1)
+                if proxy.poll() is not None:
+                    raise RuntimeError(f"winedbg GDB proxy exited during launch: {proxy_artifact}")
+                remote = f"target remote localhost:{port}"
+                commands = [
+                    "set pagination off",
+                    "handle SIGTRAP nostop noprint pass",
+                    remote,
+                    "continue",
+                    "thread apply all bt full",
+                    "info registers",
+                    "info sharedlibrary",
+                    "x/16i $pc-16",
+                ]
+                argv = ["gdb", "--batch"]
+                for command in commands:
+                    argv.extend(("-ex", command))
+                completed = subprocess.run(
+                    argv,
+                    cwd=stage,
+                    env=environment,
+                    capture_output=True,
+                    text=True,
+                    timeout=60,
+                    check=False,
+                )
+                output = completed.stdout + completed.stderr
+                artifact.write_text(output, encoding="utf-8", errors="replace")
+                crash = RUNTIME_CRASH.search(output)
+                addresses = [
+                    int(match.group("address"), 16) for match in RUNTIME_FRAME.finditer(output)
+                ]
+                symbols = _symbolize_addresses(executable.with_suffix(".map"), addresses)[:5]
+                if crash:
+                    return {
+                        "classification": "reproduced_in_debug",
+                        "crash": crash.group(0),
+                        "caller_candidates": symbols,
+                        "artifacts": str(artifact),
+                        **staged,
+                    }
+                return {
+                    "classification": "optimization_or_layout_sensitive",
+                    "artifacts": str(artifact),
+                    **staged,
+                }
+            except subprocess.TimeoutExpired as error:
+                output = _timeout_output(error.stdout) + _timeout_output(error.stderr)
+                artifact.write_text(output, encoding="utf-8", errors="replace")
+                return {
+                    "classification": "debugger_timeout",
+                    "artifacts": str(artifact),
+                    **staged,
+                }
+        finally:
+            if proxy is not None and proxy.poll() is None:
+                proxy.kill()
+                proxy.wait()
+            if proxy_stream is not None:
+                proxy_stream.close()
+            subprocess.run(
+                ["wineserver", "-k"],
+                cwd=stage,
+                env=environment,
+                check=False,
+                capture_output=True,
+            )
 
 
 def run_game(settings: Settings) -> dict[str, Any]:

@@ -2,6 +2,7 @@
 #include "wiz8/game_status.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/render_state.h"
+#include "wiz8/sound_man.h"
 #include "Button System.h"
 #include "Font.h"
 #include "input.h"
@@ -21,14 +22,14 @@
  */
 
 unsigned char g_flag_650dac;
-unsigned char g_flag_6f0630;
+// GLOBAL: WIZ8 0x006F0630
+unsigned char g_application_active;
 extern unsigned int g_mswheel_roll_message;
 int g_dword_650db0;
 extern bool g_flag_6505a9;
 extern bool g_teardown_done_650db4;
 
 extern void MSYS_Shutdown(void);
-extern void Function408850(void);
 extern void NoOp(void);
 extern void ShutdownVideoSurfaceState(void);
 
@@ -81,7 +82,7 @@ long __stdcall WindowProc4011E0(
             }
             ShutdownButtonSystem();
             MSYS_Shutdown();
-            Function408850();
+            DisableSoundManager();
             DestroyEnglishTransTable();
             ShutdownFontManager();
             ShutdownClockManager();
@@ -102,14 +103,14 @@ long __stdcall WindowProc4011E0(
         if (!VideoInspectorIsEnabled()) {
             RestoreVideoManager();
         }
-        g_flag_6f0630 = 1;
+        g_application_active = 1;
         return 0;
 
     case WM_KILLFOCUS:
         if (!VideoInspectorIsEnabled()) {
             SuspendVideoManager();
         }
-        g_flag_6f0630 = 0;
+        g_application_active = 0;
         FreeMouseCursor();
         g_dword_650db0 = 1;
         return 0;
@@ -121,7 +122,7 @@ long __stdcall WindowProc4011E0(
             }
             MoveTimer(1);
             g_dword_650db0 = 1;
-            g_flag_6f0630 = 0;
+            g_application_active = 0;
             return 0;
         }
         if (wparam != 1) {
@@ -135,7 +136,7 @@ long __stdcall WindowProc4011E0(
             RestoreVideoSurfaces();
         }
         MoveTimer(8);
-        g_flag_6f0630 = 1;
+        g_application_active = 1;
         return 0;
 
     case WM_MOUSEMOVE:

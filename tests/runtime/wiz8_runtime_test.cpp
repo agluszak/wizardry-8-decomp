@@ -60,44 +60,70 @@ static const char* g_scenario;
 
 static LONG WINAPI ReportUnhandledException(EXCEPTION_POINTERS* exception)
 {
+    EXCEPTION_RECORD* record = exception->ExceptionRecord;
     CONTEXT* context = exception->ContextRecord;
     const unsigned long* stack = (const unsigned long*)context->Esp;
+    MEMORY_BASIC_INFORMATION stack_memory;
+    unsigned int stack_words = 0;
+    const char* operation = "unknown";
+    unsigned long access_address = 0;
+
+    if (record->ExceptionCode == EXCEPTION_ACCESS_VIOLATION &&
+        record->NumberParameters >= 2) {
+        if (record->ExceptionInformation[0] == 0) {
+            operation = "read";
+        }
+        else if (record->ExceptionInformation[0] == 1) {
+            operation = "write";
+        }
+        else if (record->ExceptionInformation[0] == 8) {
+            operation = "execute";
+        }
+        access_address = (unsigned long)record->ExceptionInformation[1];
+    }
     fprintf(stderr,
-            "runtime-test exception: code=%08lx address=%p eip=%08lx esp=%08lx "
-            "stack=%08lx,%08lx,%08lx,%08lx\n",
-            exception->ExceptionRecord->ExceptionCode,
-            exception->ExceptionRecord->ExceptionAddress,
-            context->Eip, context->Esp,
-            stack[0], stack[1], stack[2], stack[3]);
-    fprintf(stderr, "runtime-test stack16=");
-    for (unsigned int word = 0; word < 16; ++word) {
-        fprintf(stderr, "%s%08lx", word ? "," : "", stack[word]);
+            "WIZ8_RUNTIME_CRASH code=%08lx thread=%08lx operation=%s "
+            "access=%08lx eip=%08lx esp=%08lx\\n",
+            record->ExceptionCode, GetCurrentThreadId(), operation,
+            access_address, context->Eip, context->Esp);
+
+    if (VirtualQuery(stack, &stack_memory, sizeof(stack_memory)) != 0 &&
+        stack_memory.State == MEM_COMMIT &&
+        (stack_memory.Protect & (PAGE_NOACCESS | PAGE_GUARD)) == 0) {
+        unsigned long available =
+            (unsigned long)stack_memory.BaseAddress + stack_memory.RegionSize - context->Esp;
+        stack_words = available / sizeof(*stack);
+        if (stack_words > 256) {
+            stack_words = 256;
+        }
     }
-    fprintf(stderr, "\n");
-    fprintf(stderr, "runtime-test module-stack=");
+
     unsigned int found = 0;
-    for (unsigned int index = 0; index < 256 && found < 24; ++index) {
-        if (stack[index] >= 0x00400000 && stack[index] < 0x00500000) {
-            fprintf(stderr, "%s%08lx@+%x", found ? "," : "",
-                    stack[index], index * sizeof(*stack));
-            ++found;
+    for (unsigned int index = 0; index < stack_words && found < 10; ++index) {
+        MEMORY_BASIC_INFORMATION candidate_memory;
+        unsigned long candidate = stack[index];
+        if (VirtualQuery((void*)candidate, &candidate_memory,
+                         sizeof(candidate_memory)) == 0 ||
+            candidate_memory.State != MEM_COMMIT ||
+            candidate_memory.Type != MEM_IMAGE) {
+            continue;
         }
-    }
-    fprintf(stderr, "\n");
-    {
-        int pending = g_pending_screen_state.id;
-        int current = g_current_screen_state.id;
-        unsigned long slot = 0xdeadbeef;
-        if (pending >= 0 && pending < W8_SCREEN_COUNT) {
-            slot = (unsigned long)g_screen_handlers[pending].enter;
-        }
+        char module[MAX_PATH];
+        module[0] = 0;
+        GetModuleFileNameA((HMODULE)candidate_memory.AllocationBase,
+                           module, sizeof(module));
         fprintf(stderr,
-                "runtime-test regs: eax=%08lx ebx=%08lx ecx=%08lx edx=%08lx "
-                "esi=%08lx edi=%08lx ebp=%08lx pending=%d current=%d slot=%08lx\n",
-                context->Eax, context->Ebx, context->Ecx, context->Edx,
-                context->Esi, context->Edi, context->Ebp,
-                pending, current, slot);
+                "runtime-test frame: stack=+%x address=%08lx module=%s+0x%lx\\n",
+                index * sizeof(*stack), candidate, module,
+                candidate - (unsigned long)candidate_memory.AllocationBase);
+        ++found;
     }
+    fprintf(stderr,
+            "runtime-test regs: eax=%08lx ebx=%08lx ecx=%08lx edx=%08lx "
+            "esi=%08lx edi=%08lx ebp=%08lx pending=%d current=%d\\n",
+            context->Eax, context->Ebx, context->Ecx, context->Edx,
+            context->Esi, context->Edi, context->Ebp,
+            g_pending_screen_state.id, g_current_screen_state.id);
     fflush(stderr);
     return EXCEPTION_CONTINUE_SEARCH;
 }
@@ -214,9 +240,9 @@ static DWORD WINAPI DriveScenario(void*)
             g_current_screen_state.id,
             ghWindow,
             g_region_sets[1].enabled,
-            g_flag_6f0628);
+            g_game_running);
         fflush(stderr);
-        g_flag_6f0628 = 0;
+        g_game_running = 0;
         if (ghWindow != NULL) {
             PostMessage(ghWindow, WM_CLOSE, 0, 0);
         }
@@ -271,7 +297,7 @@ static DWORD WINAPI DriveScenario(void*)
     fflush(stderr);
 
     if (strcmp(g_scenario, "main-menu-startup") == 0) {
-        g_flag_6f0628 = 0;
+        g_game_running = 0;
         return 0;
     }
 
@@ -283,7 +309,7 @@ static DWORD WINAPI DriveScenario(void*)
         while (GetTickCount() - started < 5000) {
             if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_PARTY_SELECTION) {
                 g_observation.transition_observed = 1;
-                g_flag_6f0628 = 0;
+                g_game_running = 0;
                 return 0;
             }
             Sleep(10);
@@ -308,7 +334,7 @@ static DWORD WINAPI DriveScenario(void*)
     QueueEvent(KEY_DOWN, ENTER, 0);
     started = GetTickCount();
     while (GetTickCount() - started < 5000) {
-        if (*(volatile unsigned char*)&g_flag_6f0628 == 0) {
+        if (*(volatile unsigned char*)&g_game_running == 0) {
             g_observation.exit_observed = 1;
             return 0;
         }
@@ -324,9 +350,9 @@ int main(int argc, char** argv)
     SetUnhandledExceptionFilter(ReportUnhandledException);
     if (argc != 3 || strcmp(argv[1], "--scenario") != 0 ||
         (strcmp(argv[2], "main-menu-startup") != 0 &&
-         strcmp(argv[2], "main-menu-exit") != 0 &&
+         strcmp(argv[2], "main-menu-exit-auto-repeat") != 0 &&
          strcmp(argv[2], "main-menu-new-game") != 0)) {
-        fprintf(stderr, "usage: Wiz8RuntimeTest --scenario main-menu-startup|main-menu-exit|main-menu-new-game\n");
+        fprintf(stderr, "usage: Wiz8RuntimeTest --scenario main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game\n");
         return 64;
     }
 

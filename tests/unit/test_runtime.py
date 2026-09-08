@@ -53,7 +53,7 @@ def test_stage_runtime_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> N
 
 def test_stage_runtime_selects_the_semantic_test_product(tmp_path: Path) -> None:
     settings = _settings(tmp_path)
-    executable = settings.repo_dir / "build/decomp/Wiz8RuntimeTest.exe"
+    executable = settings.repo_dir / "build/decomp/Wiz8RuntimeMatch.exe"
     executable.write_bytes(b"semantic tests")
 
     result = stage_runtime(settings, executable.name)
@@ -63,12 +63,12 @@ def test_stage_runtime_selects_the_semantic_test_product(tmp_path: Path) -> None
 
 def test_runtime_observation_is_normalized_to_typed_fields() -> None:
     observation = _parse_runtime_observation(
-        "noise\nWIZ8_RUNTIME_TEST scenario=main-menu-exit menu_seen=1 "
+        "noise\nWIZ8_RUNTIME_TEST scenario=main-menu-exit-auto-repeat menu_seen=1 "
         "menu_state=0 exit_observed=1 teardown=1 timed_out=0\n"
     )
 
     assert observation == {
-        "scenario": "main-menu-exit",
+        "scenario": "main-menu-exit-auto-repeat",
         "menu_seen": 1,
         "menu_state": 0,
         "exit_observed": 1,

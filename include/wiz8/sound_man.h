@@ -29,5 +29,8 @@ unsigned char SoundInitHardware00409C50(void);
 void SoundResetChannel00409F30(int channel);
 int SoundStartSample00409fe0(int sample, int channel, int* options);
 int SoundStopIndex0040a5c0(int channel);
+bool InitializeWiz8SoundManager(void);
+void DisableSoundManager(void);
+void ConfigureSoundCache(void);
 
 #endif

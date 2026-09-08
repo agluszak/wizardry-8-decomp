@@ -11,9 +11,7 @@
 #include "Button System.h"
 #include "Font.h"
 #include "FileMan.h"
-#include "Mss.h"
 #include "RegInst.h"
-#include "soundman.h"
 #include "input.h"
 #include "random.h"
 #include "sgp.h"
@@ -41,12 +39,10 @@ int g_dword_650df8;
 int g_dword_650dfc;
 int g_dword_650e00;
 bool g_flag_650e04;
-unsigned char g_flag_650e50;
 extern unsigned char g_flag_65970f;
 extern unsigned char g_flag_6598a8;
 extern unsigned char g_flag_659711;
 extern unsigned char g_fullscreen_603c39;
-int g_dword_65a104;
 extern int g_dword_687595;
 extern unsigned char g_byte_68de44;
 extern unsigned char g_flag_65970f;
@@ -153,17 +149,6 @@ void Function42BC00(void)
 }
 
 
-/* Takes the default unless the caller names a size. Nothing yet establishes
-   what consumes the value, so both it and its holder keep address-derived
-   names. */
-/* Sets the size above to 0x000C8000 and clears its companion. */
-// FUNCTION: WIZ8 0x00479010
-void Function479010(void)
-{
-    SoundSetCacheThreshhold(0xc8000);
-    g_dword_65a104 = 0;
-}
-
 /* Three more single-global writes, each in a different unit. The first stores a
    full dword and hands the same value back - it materializes the 1 in eax and
    stores through it - so its global is not the byte flag its one-bit use
@@ -193,13 +178,6 @@ void Function5588E0(unsigned char value)
 void ShutdownVideoSurfaceState(void)
 {
     g_flag_650e04 = false;
-}
-
-/* Clears the flag the 0x004086D0 environment selection leaves set. */
-// FUNCTION: WIZ8 0x00408850
-void Function408850(void)
-{
-    g_flag_650e50 = 0;
 }
 
 /* Empty in the shipped build: a single ret. InitializeStandardGamingPlatform still calls it. */
@@ -241,7 +219,6 @@ void Function404B00(void)
 
 /* These are retained SGP globals, named by the vendored declaration surface. */
 extern "C" HINSTANCE ghInstance;
-extern "C" unsigned char gfApplicationActive;
 
 /* The caller shifts the result right by ten and stores kilobytes. */
 // FUNCTION: WIZ8 0x00404bd0
@@ -255,371 +232,6 @@ unsigned int QueryAvailableMemory(void)
 }
 
 
-extern "C" {
-extern BOOLEAN gfEnableStartup;
-extern UINT32 guiSoundCacheThreshold;
-}
-
-unsigned char g_flag_5ff652;
-/* The retail channel and sample tables, typed from the pinned soundman.h
-   layouts their strides and field offsets prove (SOUNDTAG is 0x4c wide,
-   SAMPLETAG 0xd8). sound_man.cpp consumes them by these definitions. */
-SOUNDTAG g_sound_channels_6e4120[32];
-SAMPLETAG g_sound_samples_6e4aa0[128];
-unsigned int g_sound_memory_limit_5ff648;
-unsigned int g_sound_memory_used_650e4c;
-extern char* g_sound_provider_650e54;
-HPROVIDER g_provider_650e58;
-H3DPOBJECT g_listener_650e5c;
-
-/* Walks the Miles 3D providers for the one whose name matches the configured
-   string, opens it and its listener, and records whether the provider exposes
-   EAX environment selection. Any failure leaves the subsystem closed and still
-   reports success, so audio never blocks bring-up. */
-// FUNCTION: WIZ8 0x004086d0
-bool Function4086D0(void)
-{
-    HPROENUM next;
-    HPROVIDER provider;
-    C8* name;
-    S32 attribute;
-
-    if (g_flag_650e50) {
-        g_flag_650e50 = 0;
-    }
-    memset(g_sound_channels_6e4120, 0, sizeof(g_sound_channels_6e4120));
-    if (gfEnableStartup && SoundInitHardware00409C50()) {
-        g_flag_650e50 = 1;
-    }
-    g_sound_memory_limit_5ff648 = 8048 * 1024;
-    memset(g_sound_samples_6e4aa0, 0, sizeof(g_sound_samples_6e4aa0));
-    g_sound_memory_used_650e4c = 0;
-    guiSoundCacheThreshold = 0x1f5800;
-    if (g_sound_provider_650e54 && g_provider_650e58 == 0) {
-        next = 0;
-        provider = 0;
-        if (g_flag_650e50 && g_sound_provider_650e54) {
-            do {
-                do {
-                    if (AIL_enumerate_3D_providers(&next, &provider, &name) == 0) {
-                        return true;
-                    }
-                } while (provider == 0);
-            } while (strcmp(g_sound_provider_650e54, name) != 0);
-            if (AIL_open_3D_provider(provider) == 0) {
-                g_provider_650e58 = provider;
-                g_listener_650e5c = AIL_open_3D_listener(provider);
-                if (g_listener_650e5c == 0) {
-                    AIL_close_3D_provider(g_provider_650e58);
-                    return true;
-                }
-                if (g_flag_650e50) {
-                    AIL_set_3D_position(g_listener_650e5c, 0, 0, 0);
-                }
-                AIL_3D_provider_attribute(g_provider_650e58, "EAX environment selection",
-                                          &attribute);
-                if (attribute != -1) {
-                    g_flag_5ff652 = 1;
-                }
-            }
-        }
-    }
-    return true;
-}
-
-/* Builds the default key binding table: a head node carrying the count and a
-   0x1f8-byte array of 252 key codes. Neither allocation is checked, and the
-   codes are transcribed from the canonical encoding rather than by hand.
-
-   The cursor form is what the original uses: it gives the same 517 instructions
-   and the same tail, where an indexed write collapses to 269. What remains is a
-   one-byte-per-entry phase difference. The original pairs each entry as bump
-   then store through [eax]; this pairs it as store through [eax+2] then bump,
-   which is the same semantics and the same instruction count but one byte
-   longer, and it pushes the batched cdecl cleanup from just after the first
-   entry to the middle of the table. Post-increment, pre-increment, indexing,
-   and dropping the second cursor local all compile to one of these two shapes,
-   so the phase is not reachable by rewriting the loop body. */
-// FUNCTION: WIZ8 0x00407ec0
-FontTranslationTable* Function407EC0(void)
-{
-    FontTranslationTable* node;
-    unsigned short* codes;
-    unsigned short* cursor;
-
-    node = (FontTranslationTable*)malloc(sizeof(FontTranslationTable));
-    node->usNumberOfSymbols = 0xfc;
-    codes = (unsigned short*)malloc(0x1f8);
-    node->DynamicArrayOf16BitValues = codes;
-    cursor = codes;
-    *cursor++ = 0x41;
-    *cursor++ = 0x42;
-    *cursor++ = 0x43;
-    *cursor++ = 0x44;
-    *cursor++ = 0x45;
-    *cursor++ = 0x46;
-    *cursor++ = 0x47;
-    *cursor++ = 0x48;
-    *cursor++ = 0x49;
-    *cursor++ = 0x4a;
-    *cursor++ = 0x4b;
-    *cursor++ = 0x4c;
-    *cursor++ = 0x4d;
-    *cursor++ = 0x4e;
-    *cursor++ = 0x4f;
-    *cursor++ = 0x50;
-    *cursor++ = 0x51;
-    *cursor++ = 0x52;
-    *cursor++ = 0x53;
-    *cursor++ = 0x54;
-    *cursor++ = 0x55;
-    *cursor++ = 0x56;
-    *cursor++ = 0x57;
-    *cursor++ = 0x58;
-    *cursor++ = 0x59;
-    *cursor++ = 0x5a;
-    *cursor++ = 0x61;
-    *cursor++ = 0x62;
-    *cursor++ = 0x63;
-    *cursor++ = 0x64;
-    *cursor++ = 0x65;
-    *cursor++ = 0x66;
-    *cursor++ = 0x67;
-    *cursor++ = 0x68;
-    *cursor++ = 0x69;
-    *cursor++ = 0x6a;
-    *cursor++ = 0x6b;
-    *cursor++ = 0x6c;
-    *cursor++ = 0x6d;
-    *cursor++ = 0x6e;
-    *cursor++ = 0x6f;
-    *cursor++ = 0x70;
-    *cursor++ = 0x71;
-    *cursor++ = 0x72;
-    *cursor++ = 0x73;
-    *cursor++ = 0x74;
-    *cursor++ = 0x75;
-    *cursor++ = 0x76;
-    *cursor++ = 0x77;
-    *cursor++ = 0x78;
-    *cursor++ = 0x79;
-    *cursor++ = 0x7a;
-    *cursor++ = 0x30;
-    *cursor++ = 0x31;
-    *cursor++ = 0x32;
-    *cursor++ = 0x33;
-    *cursor++ = 0x34;
-    *cursor++ = 0x35;
-    *cursor++ = 0x36;
-    *cursor++ = 0x37;
-    *cursor++ = 0x38;
-    *cursor++ = 0x39;
-    *cursor++ = 0x21;
-    *cursor++ = 0x40;
-    *cursor++ = 0x23;
-    *cursor++ = 0x24;
-    *cursor++ = 0x25;
-    *cursor++ = 0x5e;
-    *cursor++ = 0x26;
-    *cursor++ = 0x2a;
-    *cursor++ = 0x28;
-    *cursor++ = 0x29;
-    *cursor++ = 0x2d;
-    *cursor++ = 0x5f;
-    *cursor++ = 0x2b;
-    *cursor++ = 0x3d;
-    *cursor++ = 0x7c;
-    *cursor++ = 0x5c;
-    *cursor++ = 0x7b;
-    *cursor++ = 0x7d;
-    *cursor++ = 0x5b;
-    *cursor++ = 0x5d;
-    *cursor++ = 0x3a;
-    *cursor++ = 0x3b;
-    *cursor++ = 0x22;
-    *cursor++ = 0x27;
-    *cursor++ = 0x3c;
-    *cursor++ = 0x3e;
-    *cursor++ = 0x2c;
-    *cursor++ = 0x2e;
-    *cursor++ = 0x3f;
-    *cursor++ = 0x2f;
-    *cursor++ = 0x20;
-    *cursor++ = 0xc1;
-    *cursor++ = 0xc0;
-    *cursor++ = 0xc1;
-    *cursor++ = 0xc4;
-    *cursor++ = 0xc3;
-    *cursor++ = 0xc5;
-    *cursor++ = 0xc7;
-    *cursor++ = 0xc9;
-    *cursor++ = 0xc8;
-    *cursor++ = 0xca;
-    *cursor++ = 0xcb;
-    *cursor++ = 0xcd;
-    *cursor++ = 0xcc;
-    *cursor++ = 0xce;
-    *cursor++ = 0xcf;
-    *cursor++ = 0xd1;
-    *cursor++ = 0xd3;
-    *cursor++ = 0xd2;
-    *cursor++ = 0xd4;
-    *cursor++ = 0xd6;
-    *cursor++ = 0xd5;
-    *cursor++ = 0xd8;
-    *cursor++ = 0xda;
-    *cursor++ = 0xd9;
-    *cursor++ = 0xdb;
-    *cursor++ = 0xdc;
-    *cursor++ = 0xdd;
-    *cursor++ = 0xe1;
-    *cursor++ = 0xe0;
-    *cursor++ = 0xe2;
-    *cursor++ = 0xe4;
-    *cursor++ = 0xe3;
-    *cursor++ = 0xe5;
-    *cursor++ = 0xe7;
-    *cursor++ = 0xe9;
-    *cursor++ = 0xe8;
-    *cursor++ = 0xea;
-    *cursor++ = 0xeb;
-    *cursor++ = 0xed;
-    *cursor++ = 0xec;
-    *cursor++ = 0xee;
-    *cursor++ = 0xef;
-    *cursor++ = 0xf1;
-    *cursor++ = 0xf3;
-    *cursor++ = 0xf2;
-    *cursor++ = 0xf4;
-    *cursor++ = 0xf6;
-    *cursor++ = 0xf5;
-    *cursor++ = 0xf8;
-    *cursor++ = 0xfa;
-    *cursor++ = 0xf9;
-    *cursor++ = 0xfb;
-    *cursor++ = 0xfc;
-    *cursor++ = 0xfe;
-    *cursor++ = 0xff;
-    *cursor++ = 0xdf;
-    *cursor++ = 0xfff0;
-    *cursor++ = 0xfff1;
-    *cursor++ = 0xfff2;
-    *cursor++ = 0xfff3;
-    *cursor++ = 0xfff4;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0x00;
-    *cursor++ = 0xbf;
-    *cursor++ = 0xa1;
-    return node;
-}
-
-/* Hands the translation table to SGP's font manager: FontManager's record
-   stays private to Font.c, so this delegates instead of rebuilding it. The
-   oracle zeroes the font slots, selects no font, and publishes the video
-   mode as the destination, which is what the retail body does around its
-   own GetDefaultScreenMode call. */
-// FUNCTION: WIZ8 0x00407d30
-unsigned char Function407D30(unsigned short code, FontTranslationTable* source)
-{
-    if (source == 0) {
-        return 0;
-    }
-    return InitializeFontManager(code, source);
-}
 
 /* Appends the subdirectory to the working directory and prepends the result to
    PATH, so plug-in DLLs load from the shipped subdirectory. Every string call
@@ -666,8 +278,8 @@ void ShutdownHandler(void)
         return;
     }
     g_shutdown_started_650db5 = true;
-    g_flag_6f0628 = 0;
-    Function408850();
+    g_game_running = 0;
+    DisableSoundManager();
     if (g_flag_6505a9) {
         GameloopExit(1);
     }
@@ -679,7 +291,7 @@ void ShutdownHandler(void)
         }
         ShutdownButtonSystem();
         MSYS_Shutdown();
-        Function408850();
+        DisableSoundManager();
         DestroyEnglishTransTable();
         ShutdownFontManager();
         ShutdownClockManager();
@@ -793,15 +405,15 @@ unsigned char InitializeStandardGamingPlatform(
         return 0;
     }
     InitializeClockManager00406BA0();
-    table = Function407EC0();
+    table = CreateDefaultFontTranslationTable();
     if (table == 0) {
         return 0;
     }
-    if (!Function407D30(8, table)) {
+    if (!InitializeWiz8FontManager(8, table)) {
         return 0;
     }
     free(table);
-    if (!Function4086D0()) {
+    if (!InitializeWiz8SoundManager()) {
         return 0;
     }
     InitializeRandom();
@@ -841,10 +453,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     if (!InitializeStandardGamingPlatform(hInstance, nShowCmd)) {
         return 0;
     }
-    gfApplicationActive = 1;
-    gfProgramIsRunning = 1;
-    g_flag_6f0630 = 1;
-    g_flag_6f0628 = 1;
+    g_application_active = 1;
+    g_game_running = 1;
     do {
         if (PeekMessageA(&message, NULL, 0, 0, 0)) {
             if (GetMessageA(&message, NULL, 0, 0) == 0) {
@@ -852,13 +462,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             }
             TranslateMessage(&message);
             DispatchMessageA(&message);
-        } else if (gfApplicationActive == 0) {
+        } else if (g_application_active == 0) {
             WaitMessage();
         } else {
             GameLoop();
             gfSGPInputReceived = 0;
         }
-    } while (g_flag_6f0628);
+    } while (g_game_running);
     PostQuitMessage(0);
     return message.wParam;
 }
