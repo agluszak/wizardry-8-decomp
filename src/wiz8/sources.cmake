@@ -100,7 +100,6 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/materials.cpp
     src/wiz8/engine_code/Monster.cpp
     src/wiz8/engine_code/stScript.cpp
-    src/wiz8/local_code/MouseSystemWiz8.cpp
     src/wiz8/local_code/Targeting.cpp
     src/wiz8/local_code/Viewport.cpp
     src/wiz8/3d_code/PList.cpp

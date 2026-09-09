@@ -48,7 +48,7 @@ UNITS = (
     {"id": "random", "source": "Random.c", "target": "WIZ8_SGP_RUNTIME"},
     {"id": "compression", "source": "Compression.c", "target": "WIZ8_SGP_ANALYSIS"},
     {"id": "fileman", "source": "FileMan.c", "target": "WIZ8_SGP_RUNTIME"},
-    {"id": "librarydatabase", "source": "LibraryDataBase.c", "target": "WIZ8_SGP_RUNTIME"},
+    {"id": "librarydatabase", "source": "LibraryDataBase.c", "target": "WIZ8_SGP_ANALYSIS"},
     {"id": "dbman", "source": "DbMan.c", "target": "WIZ8_SGP_ANALYSIS"},
     {"id": "container", "source": "Container.c", "target": "WIZ8_SGP_RUNTIME"},
     {"id": "debug", "source": "DEBUG.C", "target": "WIZ8_SGP_RUNTIME"},

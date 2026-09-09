@@ -57,7 +57,7 @@ def test_sgp_evaluation_rejects_a_flag_search_matrix() -> None:
 def test_vendored_sgp_source_retains_license_and_pinned_units() -> None:
     source = Path(__file__).resolve().parents[2] / "third_party/sfi-sgp/sgp"
     expected = {
-        "LibraryDataBase.c": "2e8fa434e31ff65477eff35740eb3bfe7afd7cdac40dd9c2a67d281fcd9d6bab",
+        "LibraryDataBase.c": "9322504f3557c8b704fb990d84fbe9be5640f5c34dcb1d9b8da632dfc0c2681a",
         "DbMan.c": "0d42da2c0be7e9c0f2935e0b5b619257997228a8f753aa5e0021793bd90b7d20",
         "SFI Source Code license agreement.txt": "f78ace6a6cfd40cb1b49de2e5fd4a113ebc58cab4864e4a4e5fffd428005c7fd",
     }

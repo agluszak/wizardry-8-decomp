@@ -9,7 +9,7 @@ set(WIZ8_SGP_RUNTIME_SOURCES
     "${SGP_SOURCE}/DirectDraw Calls.c"
     "${SGP_SOURCE}/DirectX Common.c"
     "${SGP_SOURCE}/FileMan.c"
-    "${SGP_SOURCE}/LibraryDataBase.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/wiz8/library_database.c"
     "${SGP_SOURCE}/Container.c"
     "${SGP_SOURCE}/Button System.c"
     "${SGP_SOURCE}/Font.c"
@@ -32,6 +32,7 @@ set(WIZ8_SGP_ANALYSIS_ONLY_SOURCES
     "${SGP_SOURCE}/Compression.c"
     "${SGP_SOURCE}/DbMan.c"
     "${SGP_SOURCE}/ExceptionHandling.cpp"
+    "${SGP_SOURCE}/LibraryDataBase.c"
 )
 
 set_source_files_properties(
@@ -43,21 +44,14 @@ set_source_files_properties("${SGP_SOURCE}/vsurface.c" PROPERTIES
     COMPILE_DEFINITIONS "FillSurfaceRect=SgpReleasedFillSurfaceRect"
     COMPILE_OPTIONS "/FI${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/sgp-compat/video2.h"
 )
-# Retail's font printers keep first-party bodies (they lock retail surfaces),
-# but the stateless accessors below are byte-identical to the oracle (see
-# build/reports/sgp/harness.csv) and link from it; only the modified palette
-# setter, the file-backed loader, and the two printers stay first-party.
-# The vanilla spellings of those stay available under SgpReleased names for
-# the untouched Font.c internals.
-set_source_files_properties("${SGP_SOURCE}/Font.c" PROPERTIES
-    COMPILE_DEFINITIONS
-        "SetFontObjectPalette16BPP=SgpReleasedSetFontObjectPalette16BPP;LoadFontFile=SgpReleasedLoadFontFile;gprintf=SgpReleasedGprintf;mprintf=SgpReleasedMprintf"
-)
 set_source_files_properties("${SGP_SOURCE}/himage.c" PROPERTIES
     COMPILE_DEFINITIONS WIZ8_EXTERNAL_PIXEL_FORMAT
 )
-set_source_files_properties("${SGP_SOURCE}/soundman.c" PROPERTIES
-    COMPILE_OPTIONS "/FI${SGP_SOURCE}/LibraryDataBase.h"
+set_source_files_properties(
+    "${SGP_SOURCE}/FileMan.c"
+    "${SGP_SOURCE}/soundman.c"
+    PROPERTIES COMPILE_OPTIONS
+        "/FI${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/sgp-compat/LibraryDataBase.h"
 )
 set_source_files_properties("${SGP_SOURCE}/DirectDraw Calls.c" PROPERTIES
     COMPILE_OPTIONS "/FI${SGP_SOURCE}/sgp.h"
@@ -70,9 +64,6 @@ set_source_files_properties("${SGP_SOURCE}/ExceptionHandling.cpp" PROPERTIES
 )
 set_source_files_properties("${SGP_SOURCE}/sgp.c" PROPERTIES
     COMPILE_DEFINITIONS "WinMain=SgpRetainedWinMain"
-)
-set_source_files_properties("${SGP_SOURCE}/mousesystem.c" PROPERTIES
-    COMPILE_DEFINITIONS "RenderFastHelp=SgpReleasedRenderFastHelp"
 )
 set_source_files_properties("${SGP_SOURCE}/FileMan.c" PROPERTIES
     # Retail uses two 520-byte stack buffers instead of the released heap

@@ -6,6 +6,7 @@
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/render_state.h"
 #include "wiz8/sgp_video.h"
+#include "surrender/srColorSurface.h"
 #include "Font.h"
 #include "himage.h"
 #include "vobject.h"
@@ -17,6 +18,12 @@
 
 // LIBRARY: WIZ8 0x0040cf60
 // InitButtonSystem
+
+/* The released source contains its explicit WIZ8 fast-help branch. Correct
+   global identities show that retail reads gfRenderHilights first and the
+   mousesystem-owned gfShowFastHelp after checking the active region. */
+// LIBRARY: WIZ8 0x0040C0B0
+// RenderFastHelp
 
 // LIBRARY: WIZ8 0x004018c0
 // GetRuntimeSettings
@@ -30,8 +37,17 @@
 // LIBRARY: WIZ8 0x00402a70
 // AddStandardVideoSurface
 
+// LIBRARY: WIZ8 0x00402B90
+// LockVideoSurface
+
+// LIBRARY: WIZ8 0x00402C30
+// UnLockVideoSurface
+
 // LIBRARY: WIZ8 0x00405ff0
 // BltVideoObjectFromIndex
+
+// LIBRARY: WIZ8 0x00406180
+// CreateVideoObject
 
 // LIBRARY: WIZ8 0x00402ed0
 // BltVideoSurface
@@ -325,8 +341,9 @@
 // LIBRARY: WIZ8 0x00412570
 // Blt16BPPBufferShadowRectAlternateTable
 
-/* Wizardry extends the LibraryDataBase record layouts and patch selection,
-   while these four released SGP bodies remain exact in the retail image. */
+/* Wizardry extends the LibraryDataBase record layouts and patch selection.
+   The pristine released unit independently identifies these four retail
+   bodies: one exact and three relocation-equivalent across comparable builds. */
 // LIBRARY: WIZ8 0x00412B10
 // ShutDownFileDatabase
 
@@ -435,11 +452,17 @@
 // LIBRARY: WIZ8 0x004068E0
 // SetObjectShade
 
+// LIBRARY: WIZ8 0x00406DC0
+// SetFontObjectPalette16BPP
+
 // LIBRARY: WIZ8 0x00406DE0
 // GetFontObjectPalette16BPP
 
 // LIBRARY: WIZ8 0x00406DF0
 // GetFontObject
+
+// LIBRARY: WIZ8 0x00406E00
+// LoadFontFile
 
 // LIBRARY: WIZ8 0x00407010
 // StringPixLength
@@ -455,6 +478,12 @@
 
 // LIBRARY: WIZ8 0x00407220
 // SetFontDestBuffer
+
+// LIBRARY: WIZ8 0x00407260
+// mprintf
+
+// LIBRARY: WIZ8 0x00407650
+// gprintf
 
 // LIBRARY: WIZ8 0x00407A10
 // gprintf_buffer
@@ -519,12 +548,12 @@ void UnlockFrameBuffer(void)
 
 void* LockMouseBuffer(unsigned int* pitch)
 {
-    return LockFrameBuffer(pitch);
+    *pitch = g_mouse_surface_659688->getPitch();
+    return g_mouse_surface_659688->getDataPtr();
 }
 
 void UnlockMouseBuffer(void)
 {
-    UnlockFrameBuffer();
 }
 
 unsigned char GetPrimaryRGBDistributionMasks(

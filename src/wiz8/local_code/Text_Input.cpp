@@ -1263,10 +1263,10 @@ void RenderInactiveTextFieldNode(TEXTINPUTNODE* field)
             field->region.RegionBottomRightY,
         };
         unsigned int pitch;
-        void* pixels = Function402B90(-14, &pitch);
+        void* pixels = LockVideoSurface(FRAME_BUFFER, &pitch);
         Blt16BPPBufferShadowRect(
             (unsigned short*)pixels, pitch, (SGPRect*)rectangle);
-        Function402C30(-14);
+        UnLockVideoSurface(FRAME_BUFFER);
     }
 }
 
