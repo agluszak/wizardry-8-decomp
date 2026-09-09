@@ -816,7 +816,7 @@ void stSound3D::BuildSoundOptions004AECC0(
 {
     float angle = -GetCameraYawRadians();
     unsigned int volume =
-        (value_140 * g_settings_6850c8.field_02e) / 0x7f;
+        (value_140 * g_settings_6850c8.sound_effects_volume) / 0x7f;
     srMatrix3T<float> rotation;
     srVector3T<float> node_position;
     srVector3T<float> offset;

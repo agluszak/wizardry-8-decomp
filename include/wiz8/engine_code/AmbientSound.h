@@ -60,6 +60,7 @@ static_assert(sizeof(W8AmbientSound) == 0x12c,
 
 void BuildFootstepPath0047A540(
     char* path, char surface, char material, char kind, int variant);
+int PlayFootstep0047A440(char surface, char material, int argument);
 void UpdateAmbientSounds0047A3E0(W8World* world);
 void RepositionAmbientSounds0047A600(W8World* world);
 unsigned char LoadAmbientSoundList0047AB40(char* filename);
@@ -71,8 +72,11 @@ void DestroyAmbientSound0047A700(W8AmbientSound* ambient);
 
 void SaveAmbientSoundList0047B140(HWFILE handle);
 
+bool IsAmbientSoundMuted(void);
+void SetAmbientSoundVolume0047AD00(unsigned char volume);
+void SetAmbientSoundMuted(unsigned char muted);
+
 extern unsigned char g_default_footstep_surface_65a108;
 extern unsigned char g_default_footstep_material_65a109;
 extern unsigned char g_footstep_alternate_65a10a;
 extern int g_previous_footstep_variant_65a10c;
-extern unsigned char g_footstep_option_6850f9;

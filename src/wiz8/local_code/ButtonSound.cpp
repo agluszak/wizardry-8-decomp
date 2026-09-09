@@ -77,7 +77,7 @@ void PlayButtonSound(int sound_id)
     for (int i = 0; i < 8; ++i) {
         options[i] = -1;
     }
-    options[2] = g_settings_6850c8.field_02e >> 1;
+    options[2] = g_settings_6850c8.sound_effects_volume >> 1;
     PlaySound00408860(path, options);
 }
 

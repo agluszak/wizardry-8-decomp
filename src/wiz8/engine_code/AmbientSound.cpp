@@ -141,8 +141,6 @@ unsigned char g_footstep_alternate_65a10a;
 // GLOBAL: WIZ8 0x0065a10c
 int g_previous_footstep_variant_65a10c;
 
-// GLOBAL: WIZ8 0x006850f9
-unsigned char g_footstep_option_6850f9;
 // GLOBAL: WIZ8 0x00609edc
 const char* g_footstep_names_609edc[] = {
     "None",       "Gritty",      "Grass",          "Stone",         "ShallowWater",
@@ -200,7 +198,7 @@ int PlayFootstep0047A440(char surface, char material, int argument)
     for (index = 0; index < 8; ++index) {
         options[index] = -1;
     }
-    options[2] = g_footstep_option_6850f9;
+    options[2] = g_settings_6850c8.footstep_volume;
     g_footstep_alternate_65a10a = g_footstep_alternate_65a10a == 0;
     return PlaySound00408860(path, options);
 }
@@ -444,7 +442,7 @@ unsigned char LoadAmbientSoundList0047AB40(char* filename)
                 direct[4] = direct_selector;
                 direct[5] = -16;
                 direct[2] =
-                    (g_settings_6850c8.field_02e * configured[5]) / 0x7f;
+                    (g_settings_6850c8.sound_effects_volume * configured[5]) / 0x7f;
                 PlaySound00408860(path, direct);
             }
         }
@@ -460,7 +458,7 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
     int count;
     int index;
 
-    g_settings_6850c8.field_02e = volume;
+    g_settings_6850c8.sound_effects_volume = volume;
     SoundSetDefaultVolume(volume);
     if (g_world != 0 && g_world->plsAmbientSounds != 0) {
         count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
@@ -470,7 +468,7 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
             if (sound != 0) {
                 if (sound->sound_handle_bc != -1) {
                     unsigned int adjusted =
-                        (sound->value_98 * g_settings_6850c8.field_02e) / 0x7f;
+                        (sound->value_98 * g_settings_6850c8.sound_effects_volume) / 0x7f;
                     sound->value_9c = adjusted;
                     sound->value_a0 = adjusted;
                     SoundSetVolume(sound->sound_handle_bc, adjusted);
@@ -508,29 +506,33 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
     }
 }
 
+// FUNCTION: WIZ8 0x0047ae80
+bool IsAmbientSoundMuted(void)
+{
+    return g_settings_6850c8.muted_sound_effects_volume != 0xff;
+}
+
 // FUNCTION: WIZ8 0x0047ae90
-void SetAmbientSoundMuted0047AE90(char muted)
+void SetAmbientSoundMuted(unsigned char muted)
 {
     W8World* world;
     int count;
     int index;
 
-    if (muted == 0) {
-        if (g_settings_6850c8.field_032 != 0xff) {
-            g_settings_6850c8.field_02e = g_settings_6850c8.field_032;
-            SoundSetDefaultVolume(g_settings_6850c8.field_032);
-            if (g_world != 0 &&
-                g_world->plsAmbientSounds != 0) {
-                count = static_cast<int>(
-                    PLLength(g_world->plsAmbientSounds));
+    if (muted != 0) {
+        if (g_settings_6850c8.muted_sound_effects_volume == 0xff) {
+            g_settings_6850c8.muted_sound_effects_volume = g_settings_6850c8.sound_effects_volume;
+            g_settings_6850c8.sound_effects_volume = 0;
+            SoundSetDefaultVolume(0);
+            if (g_world != 0 && g_world->plsAmbientSounds != 0) {
+                count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
                 for (index = 0; index < count; ++index) {
-                    W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                        PLGet(g_world->plsAmbientSounds, index));
+                    W8AmbientSound* sound =
+                        static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
                     if (sound != 0) {
                         if (sound->sound_handle_bc != -1) {
                             unsigned int adjusted =
-                                (sound->value_98 * g_settings_6850c8.field_02e) /
-                                0x7f;
+                                (sound->value_98 * g_settings_6850c8.sound_effects_volume) / 0x7f;
                             sound->value_9c = adjusted;
                             sound->value_a0 = adjusted;
                             SoundSetVolume(sound->sound_handle_bc, adjusted);
@@ -545,46 +547,31 @@ void SetAmbientSoundMuted0047AE90(char muted)
                 SoundServiceRandom();
                 count = static_cast<int>(PLLength(world->plsAmbientSounds));
                 for (index = 0; index < count; ++index) {
-                    W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                        PLGet(world->plsAmbientSounds, index));
+                    W8AmbientSound* sound =
+                        static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
                     if (sound != 0) {
                         srVector3T<float> position;
                         GetCameraPosition(&position);
                         sound->ApplyPosition00479350(&position);
                     }
                 }
-                SoundServiceRandom();
-                SoundServiceStreams();
-                count = static_cast<int>(PLLength(world->plsAmbientSounds));
-                for (index = 0; index < count; ++index) {
-                    W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                        PLGet(world->plsAmbientSounds, index));
-                    if (sound != 0) {
-                        sound->SetState00479970(0);
-                        sound->Update0047A310();
-                    }
-                }
-                AudioUpdateFinish004AEFD0();
+                UpdateAmbientSounds0047A3E0(world);
+                return;
             }
-            g_settings_6850c8.field_032 = 0xff;
         }
     }
-    else if (g_settings_6850c8.field_032 == 0xff) {
-        g_settings_6850c8.field_032 = g_settings_6850c8.field_02e;
-        g_settings_6850c8.field_02e = 0;
-        SoundSetDefaultVolume(0);
-        if (g_world != 0 &&
-            g_world->plsAmbientSounds != 0) {
-            count = static_cast<int>(
-                PLLength(g_world->plsAmbientSounds));
+    else if (g_settings_6850c8.muted_sound_effects_volume != 0xff) {
+        g_settings_6850c8.sound_effects_volume = g_settings_6850c8.muted_sound_effects_volume;
+        SoundSetDefaultVolume(g_settings_6850c8.muted_sound_effects_volume);
+        if (g_world != 0 && g_world->plsAmbientSounds != 0) {
+            count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
             for (index = 0; index < count; ++index) {
-                W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                    PLGet(g_world->plsAmbientSounds, index));
+                W8AmbientSound* sound =
+                    static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
                 if (sound != 0) {
                     if (sound->sound_handle_bc != -1) {
                         unsigned int adjusted =
-                            (sound->value_98 * g_settings_6850c8.field_02e) /
-                            0x7f;
+                            (sound->value_98 * g_settings_6850c8.sound_effects_volume) / 0x7f;
                         sound->value_9c = adjusted;
                         sound->value_a0 = adjusted;
                         SoundSetVolume(sound->sound_handle_bc, adjusted);
@@ -599,17 +586,28 @@ void SetAmbientSoundMuted0047AE90(char muted)
             SoundServiceRandom();
             count = static_cast<int>(PLLength(world->plsAmbientSounds));
             for (index = 0; index < count; ++index) {
-                W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                    PLGet(world->plsAmbientSounds, index));
+                W8AmbientSound* sound =
+                    static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
                 if (sound != 0) {
                     srVector3T<float> position;
                     GetCameraPosition(&position);
                     sound->ApplyPosition00479350(&position);
                 }
             }
-            UpdateAmbientSounds0047A3E0(world);
-            return;
+            SoundServiceRandom();
+            SoundServiceStreams();
+            count = static_cast<int>(PLLength(world->plsAmbientSounds));
+            for (index = 0; index < count; ++index) {
+                W8AmbientSound* sound =
+                    static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
+                if (sound != 0) {
+                    sound->SetState00479970(0);
+                    sound->Update0047A310();
+                }
+            }
+            AudioUpdateFinish004AEFD0();
         }
+        g_settings_6850c8.muted_sound_effects_volume = 0xff;
     }
 }
 

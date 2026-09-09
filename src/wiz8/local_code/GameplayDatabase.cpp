@@ -701,8 +701,8 @@ void Function54B100(void)
 void Function54B560(void)
 {
     memset(&g_settings_6850c8, 0, sizeof(g_settings_6850c8));
-    g_settings_6850c8.field_02e = 0x40;
-    g_settings_6850c8.field_030 = 0x40;
+    g_settings_6850c8.sound_effects_volume = 0x40;
+    g_settings_6850c8.voice_volume = 0x40;
     g_settings_6850c8.field_006 = 1;
     g_settings_6850c8.continuous_combat = 0;
     g_settings_6850c8.auto_advance_character = 0;
@@ -721,11 +721,11 @@ void Function54B560(void)
     g_settings_6850c8.camera_rotation_mode = 1;
     g_settings_6850c8.camera_rotation_style = 1;
     g_settings_6850c8.tooltip_delay_ms = 600;
-    g_settings_6850c8.field_02f = 0x1f;
-    g_settings_6850c8.field_031 = 0x13;
-    g_settings_6850c8.field_032 = 0xff;
-    g_settings_6850c8.field_033 = 0xff;
-    g_settings_6850c8.field_034 = 0xff;
+    g_settings_6850c8.music_volume = 0x1f;
+    g_settings_6850c8.footstep_volume = 0x13;
+    g_settings_6850c8.muted_sound_effects_volume = 0xff;
+    g_settings_6850c8.muted_music_volume = 0xff;
+    g_settings_6850c8.muted_voice_volume = 0xff;
     g_settings_6850c8.field_035 = 0xff;
     g_settings_6850c8.monster_movement_speed = 2.5f;
     g_settings_6850c8.gamma = 1.0f;

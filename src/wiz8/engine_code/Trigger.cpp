@@ -540,7 +540,7 @@ unsigned char Trigger::PlayActionSound(const char* sound_name, int volume)
             for (int index = 0; index < 8; ++index) {
                 options[index] = -1;
             }
-            options[2] = (g_settings_6850c8.field_02e * volume) / 0x7f;
+            options[2] = (g_settings_6850c8.sound_effects_volume * volume) / 0x7f;
             PlaySound00408860(sound_name, options);
             return 0;
         }

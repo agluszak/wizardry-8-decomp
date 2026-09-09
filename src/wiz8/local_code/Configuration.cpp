@@ -44,9 +44,36 @@ int GetRendererFamily(void)
 // FUNCTION: WIZ8 0x0048fe50
 void SetMusicVolume(unsigned char volume)
 {
-    g_settings_6850c8.field_02f = volume;
+    g_settings_6850c8.music_volume = volume;
     if (g_music_sample_handle_60aae0 != -1) {
         SoundSetVolume(g_music_sample_handle_60aae0, volume);
+    }
+}
+
+// FUNCTION: WIZ8 0x0048fe80
+bool IsMusicMuted(void)
+{
+    return g_settings_6850c8.muted_music_volume != 0xff;
+}
+
+// FUNCTION: WIZ8 0x0048fe90
+void SetMusicMuted(unsigned char muted)
+{
+    if (muted != 0) {
+        if (g_settings_6850c8.muted_music_volume == 0xff) {
+            g_settings_6850c8.muted_music_volume = g_settings_6850c8.music_volume;
+            g_settings_6850c8.music_volume = 0;
+            if (g_music_sample_handle_60aae0 != -1) {
+                SoundSetVolume(g_music_sample_handle_60aae0, 0);
+            }
+        }
+    }
+    else if (g_settings_6850c8.muted_music_volume != 0xff) {
+        g_settings_6850c8.music_volume = g_settings_6850c8.muted_music_volume;
+        if (g_music_sample_handle_60aae0 != -1) {
+            SoundSetVolume(g_music_sample_handle_60aae0, g_settings_6850c8.muted_music_volume);
+        }
+        g_settings_6850c8.muted_music_volume = 0xff;
     }
 }
 
@@ -89,8 +116,8 @@ void LoadGameConfiguration(void)
     if (!loaded) {
         Function54B560();
     }
-    SoundSetDefaultVolume(g_settings_6850c8.field_02e);
-    SetMusicVolume(g_settings_6850c8.field_02f);
+    SoundSetDefaultVolume(g_settings_6850c8.sound_effects_volume);
+    SetMusicVolume(g_settings_6850c8.music_volume);
     float gamma = g_settings_6850c8.gamma;
     if (gamma < 0.5f || gamma > 2.0f) {
         gamma = 1.0f;

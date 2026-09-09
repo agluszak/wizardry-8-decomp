@@ -12,9 +12,6 @@
 
 extern "C" {
 extern int g_value_65ba5c;
-extern unsigned char g_flag_6850fb;
-// GLOBAL: WIZ8 0x006850fb
-unsigned char g_flag_6850fb;
 // GLOBAL: WIZ8 0x0065ba5c
 int g_value_65ba5c;
 }
@@ -118,12 +115,6 @@ unsigned char Function48EFC0(void)
         }
     }
     return 0;
-}
-
-// FUNCTION: WIZ8 0x0048FE80
-bool IsFlag6850FBSet(void)
-{
-    return g_flag_6850fb != 0xff;
 }
 
 /* Hide the world cursor: detach its monster from the world lists, clear the

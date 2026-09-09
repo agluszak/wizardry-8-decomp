@@ -191,13 +191,13 @@ extern "C" unsigned char Function48FC10(
             }
             SoundSetVolume(handle, 0);
             SoundSetFadeVolume(
-                handle, g_settings_6850c8.field_02f, 5000, 0);
+                handle, g_settings_6850c8.music_volume, 5000, 0);
         }
         else {
             if (g_music_sample_handle_60aae0 != -1) {
                 SoundStop(g_music_sample_handle_60aae0);
             }
-            SoundSetVolume(handle, g_settings_6850c8.field_02f);
+            SoundSetVolume(handle, g_settings_6850c8.music_volume);
         }
         g_music_sample_handle_60aae0 = handle;
         return 1;

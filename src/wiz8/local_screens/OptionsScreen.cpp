@@ -17,8 +17,10 @@
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/Configuration.h"
+#include "wiz8/local_code/character_events.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/engine_code/AmbientSound.h"
+#include "wiz8/sound_man.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/geometry.h"
 #include "wiz8/music_playlist.h"
@@ -93,6 +95,8 @@ int g_options_difficulty_labels[3] = {0x7f8, 0x7f9, 0x7fa};
 int g_options_camera_rotation_labels[3] = {0x7fe, 0x7ff, 0x800};
 // GLOBAL: WIZ8 0x0064d748
 int g_options_combat_mode_labels[2] = {0x7f6, 0x7f5};
+// GLOBAL: WIZ8 0x0064d750
+int g_options_audio_labels[4] = {0x81e, 0x81f, 0x821, 0x820};
 
 W8OptionsPanelSet::W8OptionsPanelSet()
     : m_mode_000(0), m_compact_layout(0), m_hide_navigation(0), m_active(0), m_current_00c(0)
@@ -254,6 +258,164 @@ void W8OptionsInterfacePanel::OnPrimary(W8TextControl* control)
         (control->m_stateFlags & g_W8TextControlMask005ED570) == 0;
     m_tooltip_delay->SetEnabled(g_settings_6850c8.tooltips_enabled);
     m_tooltip_delay->Invalidate(0);
+}
+
+// FUNCTION: WIZ8 0x005aa480
+void W8OptionsAudioPanel::Populate()
+{
+    for (int index = 0; index < 4; ++index) {
+        int volume;
+        bool muted = false;
+
+        m_content_top_050 += 22;
+        W8OptionsSlider* slider = AddSlider(g_options_audio_labels[index], 0, 0);
+        switch (index) {
+        case 0:
+            if (IsMusicMuted()) {
+                volume = g_settings_6850c8.muted_music_volume;
+                muted = true;
+            }
+            else {
+                volume = g_settings_6850c8.music_volume;
+            }
+            break;
+        case 1:
+            if (IsAmbientSoundMuted()) {
+                volume = g_settings_6850c8.muted_sound_effects_volume;
+                muted = true;
+            }
+            else {
+                volume = g_settings_6850c8.sound_effects_volume;
+            }
+            break;
+        case 2:
+            if (GetRenderOptionState(15) == 0) {
+                muted = true;
+            }
+            volume = g_settings_6850c8.footstep_volume;
+            break;
+        case 3:
+            if (IsVoiceMuted()) {
+                volume = g_settings_6850c8.muted_voice_volume;
+                muted = true;
+            }
+            else {
+                volume = g_settings_6850c8.voice_volume;
+            }
+            break;
+        }
+        slider->m_minimumPosition = 0.0f;
+        slider->m_maximumPosition = 127.0f;
+        slider->UpdatePixelPosition();
+        slider->m_position = static_cast<float>(volume);
+        slider->UpdatePixelPosition();
+        slider->m_listener = this;
+        m_sliders[index] = slider;
+
+        m_mute_buttons[index] = AddChoiceButton(0x822);
+        m_mute_buttons[index]->m_listener = this;
+        if (muted) {
+            m_sliders[index]->SetEnabled(0);
+            m_mute_buttons[index]->EnableSecondaryState(0);
+        }
+    }
+    m_content_top_050 += 22;
+    AddCheckbox(0x823, &g_options_values.value_084);
+    AddCheckbox(0x824, &g_options_values.value_088);
+}
+
+// FUNCTION: WIZ8 0x005aa620
+void W8OptionsAudioPanel::OnDrag(W8HorizontalRangeThumb* thumb)
+{
+    int index;
+    for (index = 0; index < 4; ++index) {
+        if (thumb == m_sliders[index]) {
+            break;
+        }
+    }
+    switch (index) {
+    case 0:
+        SetMusicVolume(static_cast<unsigned char>(thumb->m_position));
+        return;
+    case 1:
+        SetAmbientSoundVolume0047AD00(
+            static_cast<unsigned char>(thumb->m_position));
+        return;
+    case 2:
+        g_settings_6850c8.footstep_volume =
+            static_cast<unsigned char>(thumb->m_position);
+        return;
+    case 3:
+        g_settings_6850c8.voice_volume =
+            static_cast<unsigned char>(thumb->m_position);
+        return;
+    }
+}
+
+// FUNCTION: WIZ8 0x005aa6a0
+void W8OptionsAudioPanel::OnDragEnd(W8HorizontalRangeThumb* thumb)
+{
+    int index;
+    for (index = 0; index < 4; ++index) {
+        if (thumb == m_sliders[index]) {
+            break;
+        }
+    }
+    if (index == 4) {
+        index = -1;
+    }
+    switch (index) {
+    case 1:
+        PlaySound00408860("Data\\Sound\\Misc\\Interface Swoosh 01.wav", 0);
+        break;
+    case 2:
+        PlayFootstep0047A440(5, 9, 0);
+        break;
+    case 3: {
+        int options[8];
+        memset(options, -1, sizeof(options));
+        options[2] = g_settings_6850c8.voice_volume;
+        PlaySound00408860("Data\\Sound\\Misc\\Interface Vox 01.wav", options);
+        break;
+    }
+    }
+}
+
+// FUNCTION: WIZ8 0x005aa730
+void W8OptionsAudioPanel::OnPrimary(W8TextControl* control)
+{
+    int index;
+    for (index = 0; index < 4; ++index) {
+        if (control == m_mute_buttons[index]) {
+            break;
+        }
+    }
+    if (index == 4) {
+        index = -1;
+    }
+    unsigned char muted = static_cast<unsigned char>(control->m_stateFlags) &
+                          g_W8TextControlMask005ED570;
+    switch (index) {
+    case 0:
+        SetMusicMuted(muted);
+        break;
+    case 1:
+        SetAmbientSoundMuted(muted);
+        break;
+    case 2:
+        if (muted != 0) {
+            DisableRenderOption(15);
+        }
+        else {
+            EnableRenderOption(15);
+        }
+        break;
+    case 3:
+        SetVoiceMuted(muted);
+        break;
+    }
+    m_sliders[index]->SetEnabled(muted == 0);
+    m_sliders[index]->Invalidate(0);
 }
 
 // FUNCTION: WIZ8 0x005aa310

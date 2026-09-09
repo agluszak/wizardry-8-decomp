@@ -13,12 +13,6 @@
 #include "random.h"
 #include "timer.h"
 
-extern "C" unsigned char g_flag_6850fc;
-extern "C" {
-// GLOBAL: WIZ8 0x006850fc
-unsigned char g_flag_6850fc;
-}
-
 extern void Function52F890(
     int party_slot, int active, int animation, int argument, int show_text);
 extern void Function5E2F40(int sound_handle, unsigned char* state);
@@ -113,9 +107,24 @@ int g_special_event_0068c568;
    translation-unit name is unknown; the existing unit is retained intact. */
 
 // FUNCTION: WIZ8 0x0052E360
-bool IsFlag6850FCSet(void)
+bool IsVoiceMuted(void)
 {
-    return g_flag_6850fc != 0xff;
+    return g_settings_6850c8.muted_voice_volume != 0xff;
+}
+
+// FUNCTION: WIZ8 0x0052E370
+void SetVoiceMuted(unsigned char muted)
+{
+    if (muted != 0) {
+        if (g_settings_6850c8.muted_voice_volume == 0xff) {
+            g_settings_6850c8.muted_voice_volume = g_settings_6850c8.voice_volume;
+            g_settings_6850c8.voice_volume = 0;
+        }
+    }
+    else if (g_settings_6850c8.muted_voice_volume != 0xff) {
+        g_settings_6850c8.voice_volume = g_settings_6850c8.muted_voice_volume;
+        g_settings_6850c8.muted_voice_volume = 0xff;
+    }
 }
 
 // FUNCTION: WIZ8 0x0052C810

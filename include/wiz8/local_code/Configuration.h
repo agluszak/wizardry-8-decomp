@@ -3,6 +3,8 @@
 void LoadGameConfiguration(void);
 void SetDisplayGamma(float value);
 void SetMusicVolume(unsigned char volume);
+bool IsMusicMuted(void);
+void SetMusicMuted(unsigned char muted);
 unsigned int GetTotalPhysicalMemory(void);
 
 /* Local Code\Configuration.cpp owns the persisted 0xa4-byte configuration
@@ -29,13 +31,13 @@ struct W8GameSettings {
     unsigned char field_02b;
     unsigned char field_02c;
     unsigned char unknown_02d[0x1];
-    unsigned char field_02e;
-    unsigned char field_02f;
-    unsigned char field_030;
-    unsigned char field_031;
-    unsigned char field_032;
-    unsigned char field_033;
-    unsigned char field_034;
+    unsigned char sound_effects_volume;
+    unsigned char music_volume;
+    unsigned char voice_volume;
+    unsigned char footstep_volume;
+    unsigned char muted_sound_effects_volume;
+    unsigned char muted_music_volume;
+    unsigned char muted_voice_volume;
     unsigned char field_035;
     unsigned char invert_mouse_y;
     float monster_movement_speed;

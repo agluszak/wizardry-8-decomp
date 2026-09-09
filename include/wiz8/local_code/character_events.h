@@ -1,5 +1,8 @@
 #pragma once
 
+bool IsVoiceMuted(void);
+void SetVoiceMuted(unsigned char muted);
+
 struct W8Character;
 
 int Function52E750(void);
