@@ -18,8 +18,8 @@ struct W8ProfRaceInfoRow {
 
 extern W8AttributeMinimums g_profession_attribute_minimums[];
 extern W8AttributeMinimums g_race_attribute_minimums[];
-extern W8ProfRaceInfoRow g_profession_info_rows[];
-extern W8ProfRaceInfoRow g_race_info_rows[];
+extern W8ProfRaceInfoRow g_profession_info_rows[15];
+extern W8ProfRaceInfoRow g_race_info_rows[16];
 
 /* Shared dialog storage constructed by 0x005DEAF0. Only the derived tail is
    known, so the base remains address-qualified and opaque. */

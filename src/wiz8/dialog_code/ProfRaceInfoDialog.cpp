@@ -39,6 +39,22 @@ enum { ATTR_COUNT = 7, PROF_COUNT = 15, RACE_COUNT = 16 };
    -1, which is the dialog's "no requirement" marker. */
 enum { RACE_MINIMUMS_COUNT = 11 };
 
+// GLOBAL: WIZ8 0x0064ffb0
+W8ProfRaceInfoRow g_profession_info_rows[15] = {
+    {676, 691, 10}, {677, 692, 24}, {678, 693, 8},  {679, 694, 2},
+    {680, 695, 16}, {681, 696, 20}, {682, 697, 12}, {683, 698, 28},
+    {684, 699, 6},  {685, 700, 0},  {686, 701, 18}, {687, 702, 22},
+    {688, 703, 4},  {689, 704, 14}, {690, 705, 26},
+};
+
+// GLOBAL: WIZ8 0x00650064
+W8ProfRaceInfoRow g_race_info_rows[16] = {
+    {644, 660, 8},  {645, 661, 4},  {646, 662, 12}, {647, 663, 16},
+    {648, 664, 14}, {649, 665, 20}, {650, 666, 0},  {651, 667, 10},
+    {652, 668, 2},  {653, 669, 18}, {654, 670, 6},  {655, 671, 30},
+    {656, 672, 24}, {657, 673, 22}, {658, 674, 26}, {659, 675, 28},
+};
+
 /* Copies the row straight out of the table: every profession has minimums, so
    there is no per-entry test the way the race dialog needs one. */
 // FUNCTION: WIZ8 0x005df0d0
