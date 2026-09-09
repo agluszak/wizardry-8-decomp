@@ -67,7 +67,6 @@ extern unsigned short g_profession_name_message_ids_61e3f0[];
 extern unsigned short g_race_name_message_ids_61e3d0[];
 extern unsigned short g_faction_name_message_rows_61e430[][4];
 extern unsigned short g_personality_message_ids_61e674[];
-extern int g_portrait_render_modes_6483dc[][4];
 
 /* Two ordinary growable vectors and the scroll origin account for all 0x24
    bytes allocated at state-5 entry. The second vector supplies the names this
@@ -926,9 +925,9 @@ void W8State5PartySlotRow005EF3E4::Redraw(int full_redraw)
         character = &g_party_characters[m_row + 2];
         int portrait = character->table_value_0079;
         int flags = 2;
-        if ((g_portrait_render_modes_6483dc[portrait][0] == 1 &&
+        if ((g_portrait_descriptors_6483d0[portrait].render_mode == 1 &&
              !(m_row & 1)) ||
-            (g_portrait_render_modes_6483dc[portrait][0] == 2 &&
+            (g_portrait_descriptors_6483d0[portrait].render_mode == 2 &&
              (m_row & 1))) {
             flags = 0x1002;
         }

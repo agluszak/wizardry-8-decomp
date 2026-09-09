@@ -351,6 +351,18 @@ int SumCharacterSpellPoints(const W8Character* character);
 
 }
 
+struct W8PortraitDescriptor {
+    int group;
+    int unknown_004;
+    int unknown_008;
+    int render_mode;
+};
+
+static_assert(sizeof(W8PortraitDescriptor) == 0x10,
+              "W8PortraitDescriptor_size");
+
+extern W8PortraitDescriptor g_portrait_descriptors_6483d0[80];
+
 int GetCharacterRealmSpellPoints(const W8Character* character, int realm);
 void GetCharacterHandDamageDice(const W8Character* character, int hand, W8Dice* dice);
 int GetCharacterHandDamageBonus(const W8Character* character, int hand);

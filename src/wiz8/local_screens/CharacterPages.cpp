@@ -32,17 +32,34 @@ int g_character_page2_category_frames_64efb8[5] = {2, 3, 0, 1, 4};
 extern unsigned short g_character_skill_name_ids_61e454[84];
 extern unsigned short Function402780(unsigned short key, unsigned char modifiers);
 
-struct W8PortraitDescriptor {
-    int group;
-    unsigned char unknown_004[0xc];
-};
 struct W8PortraitGroup {
     int count;
     int portraits[14];
 };
-static_assert(sizeof(W8PortraitDescriptor) == 0x10, "W8PortraitDescriptor_size");
 static_assert(sizeof(W8PortraitGroup) == 0x3c, "W8PortraitGroup_size");
-extern W8PortraitDescriptor g_portrait_descriptors_6483d0[];
+// GLOBAL: WIZ8 0x006483d0
+W8PortraitDescriptor g_portrait_descriptors_6483d0[80] = {
+    {0, 0, 0, 1}, {0, 0, 1, 0}, {0, 0, 2, 2}, {0, 0, 3, 0},
+    {0, 0, 3, 1}, {0, 0, 3, 2}, {0, 1, 0, 2}, {0, 1, 1, 0},
+    {0, 1, 2, 0}, {0, 1, 3, 1}, {0, 1, 3, 0}, {0, 1, 3, 0},
+    {1, 0, 0, 1}, {1, 0, 1, 1}, {1, 0, 2, 2}, {1, 1, 0, 1},
+    {1, 1, 1, 1}, {1, 1, 2, 0}, {2, 0, 0, 1}, {2, 0, 1, 2},
+    {2, 0, 2, 1}, {2, 1, 0, 1}, {2, 1, 1, 1}, {2, 1, 2, 2},
+    {3, 0, 1, 1}, {3, 0, 2, 2}, {3, 1, 0, 0}, {3, 1, 1, 1},
+    {4, 0, 0, 1}, {4, 0, 1, 1}, {4, 1, 0, 1}, {4, 1, 1, 0},
+    {5, 0, 0, 0}, {5, 0, 2, 1}, {5, 1, 0, 1}, {5, 1, 1, 0},
+    {6, 0, 0, 1}, {6, 0, 1, 2}, {6, 1, 0, 0}, {6, 1, 1, 2},
+    {7, 0, 0, 0}, {7, 0, 1, 2}, {7, 1, 0, 2}, {7, 1, 1, 2},
+    {8, 0, 0, 0}, {8, 0, 1, 2}, {8, 1, 0, 2}, {8, 1, 1, 1},
+    {9, 0, 1, 2}, {9, 0, 2, 1}, {9, 1, 0, 1}, {9, 1, 1, 1},
+    {10, 0, 0, 2}, {10, 0, 1, 1}, {10, 1, 0, 2}, {10, 1, 1, 1},
+    {11, 0, 4, 0}, {11, 1, 4, 2}, {10, 0, 3, 2}, {11, 0, 1, 1},
+    {11, 0, 0, 0}, {11, 0, 1, 0}, {12, 0, 3, 2}, {13, 0, 3, 1},
+    {13, 0, 3, 1}, {13, 0, 3, 2}, {13, 0, 3, 2}, {13, 0, 3, 1},
+    {13, 0, 3, 0}, {13, 0, 3, 1}, {13, 0, 3, 1}, {13, 0, 3, 2},
+    {13, 0, 3, 0}, {13, 0, 3, 1}, {13, 0, 3, 0}, {13, 0, 3, 0},
+    {0, 0, 3, 0}, {0, 1, 3, 2}, {1, 0, 3, 1}, {1, 1, 3, 0},
+};
 // GLOBAL: WIZ8 0x00648950
 W8PortraitGroup g_portrait_groups_648950[12] = {
     {14, {0, 1, 2, 3, 76, 4, 5, 6, 7, 8, 9, 77, 10, 11}},
