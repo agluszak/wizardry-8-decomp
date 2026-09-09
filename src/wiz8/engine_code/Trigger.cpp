@@ -38,6 +38,7 @@
 #include "wiz8/vector.h"
 #include "wiz8/xstatus.h"
 #include "Random.h"
+#include "FileMan.h"
 #include "surrender/srCore.h"
 #include "surrender/srMath.h"
 #include "surrender/srScene.h"
@@ -114,6 +115,86 @@ int g_value_005ee5a0 = 6;
 
 // GLOBAL
 int g_value_005ed8c8;
+
+// FUNCTION: WIZ8 0x0043cb30
+void Function43CB30(W8World* world, int handle, unsigned char restoring)
+{
+    int trigger_count = world->triggers->GetCount();
+    int saved_count = 0;
+    int index;
+    int version = 2;
+    int restoring_value = restoring;
+
+    for (index = 0; index < trigger_count; ++index) {
+        Trigger* trigger = *world->triggers->GetAt(index);
+        if (trigger->value_368 != 0) {
+            ++saved_count;
+        }
+    }
+
+    FileWrite(handle, &version, sizeof(version), 0);
+    FileWrite(handle, &saved_count, sizeof(saved_count), 0);
+    FileWrite(handle, &restoring_value, sizeof(restoring_value), 0);
+
+    for (index = 0; index < trigger_count; ++index) {
+        Trigger* trigger = *world->triggers->GetAt(index);
+        if (trigger->value_368 != 0) {
+            FileWrite(handle, &trigger->state_01c, 0x80, 0);
+            FileWrite(handle, &version, sizeof(version), 0);
+            if (restoring) {
+                FileWrite(handle, &trigger->value_368, sizeof(trigger->value_368), 0);
+                FileWrite(handle, &trigger->value_36c, sizeof(trigger->value_36c), 0);
+                FileWrite(handle, &trigger->state_370.state,
+                          sizeof(trigger->state_370.state), 0);
+                FileWrite(handle, &trigger->state_370.value_01,
+                          sizeof(trigger->state_370.value_01) +
+                              sizeof(trigger->state_370.value_05),
+                          0);
+                FileWrite(handle, &trigger->value_37c, sizeof(trigger->value_37c), 0);
+                FileWrite(handle, &trigger->value_380, sizeof(trigger->value_380), 0);
+                FileWrite(handle, &trigger->value_384, sizeof(trigger->value_384), 0);
+            }
+            else {
+                FileWrite(handle, &trigger->state_370.state,
+                          sizeof(trigger->state_370.state), 0);
+                FileWrite(handle, &trigger->state_370.value_01,
+                          sizeof(trigger->state_370.value_01) +
+                              sizeof(trigger->state_370.value_05),
+                          0);
+                FileWrite(handle, &trigger->value_384, sizeof(trigger->value_384), 0);
+                FileWrite(handle, &trigger->value_388, sizeof(trigger->value_388), 0);
+            }
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x0043d120
+void Function43D120(W8World* world, int handle)
+{
+    int trigger_count = world->triggers->GetCount();
+    int saved_count = 0;
+    int index;
+    int version = 1;
+
+    for (index = 0; index < trigger_count; ++index) {
+        Trigger* trigger = *world->triggers->GetAt(index);
+        if (trigger->inline_action_data_24c[0] != '\0') {
+            ++saved_count;
+        }
+    }
+
+    FileWrite(handle, &version, sizeof(version), 0);
+    FileWrite(handle, &saved_count, sizeof(saved_count), 0);
+
+    for (index = 0; index < trigger_count; ++index) {
+        Trigger* trigger = *world->triggers->GetAt(index);
+        if (trigger->inline_action_data_24c[0] != '\0') {
+            FileWrite(handle, &trigger->state_01c, 0x80, 0);
+            FileWrite(handle, trigger->inline_action_data_24c,
+                      sizeof(trigger->inline_action_data_24c), 0);
+        }
+    }
+}
 
 Trigger* FindTriggerByName(const char* name)
 {
