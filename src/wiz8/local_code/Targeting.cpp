@@ -105,7 +105,30 @@ unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indi
 
 /* The faction names, thirty bytes apart, in the same order as the faction ids.
    Twenty-one of them, which is the whole faction domain. */
-extern const char g_faction_names[][0x1e];               /* 0x0061CE74 */
+// GLOBAL: WIZ8 0x0061CE74
+extern const char g_faction_names[W8_FACTION_COUNT][0x1e] = {
+    "UNALIGNED",
+    "FACTION_PARTY",
+    "FACTION_DARK_SAVANT",
+    "FACTION_COSMIC_LORDS",
+    "FACTION_UMPANI",
+    "FACTION_TRANG",
+    "FACTION_MOOK",
+    "FACTION_RATTKIN_COMMON",
+    "FACTION_RATTKIN_MAFIA",
+    "FACTION_BROTHERHOOD",
+    "FACTION_HIGARDI_BANK",
+    "FACTION_HIGARDI_HLL",
+    "FACTION_HIGARDI_COMMON",
+    "FACTION_TRYNNIE",
+    "FACTION_MAD_MARTEN",
+    "FACTION_RAPAX_COMMON",
+    "FACTION_RAPAX_TEMPLAR",
+    "FACTION_RAPAX_ARMY",
+    "FACTION_KINGS_ASSASINS",
+    "FACTION_filler3",
+    "FACTION_filler4",
+};
 
 extern unsigned char Function519180(int party_slot, int arg_2, int context);
 extern unsigned char g_targeting_flag_00685116;

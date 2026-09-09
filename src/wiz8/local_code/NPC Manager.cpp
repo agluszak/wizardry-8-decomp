@@ -228,11 +228,19 @@ typedef struct W8NpcServiceRow {
     unsigned int bit;
     unsigned int unknown_08;
 } W8NpcServiceRow;
-extern const W8NpcServiceRow g_npc_services[];
+// GLOBAL: WIZ8 0x00619DFC
+extern const W8NpcServiceRow g_npc_services[] = {
+    {2, 1, 0x47},       {3, 2, 0x50},       {4, 0x400, 0x48},
+    {5, 4, 0x49},       {7, 8, 0x4d},       {8, 0x80, 0x4c},
+    {9, 0x40, 0x4b},    {10, 0x20, 0x4a},   {11, 0x10, 0x4e},
+    {12, 0x100, 0x51},  {13, 0x800, 0x4f},  {14, 0x200, 0x4d},
+    {15, 0x1000, 0x52}, {6, 0x2000, 0},     {0xffffffff, 0, 0x0f0e0c0d},
+};
 
 /* 0x00619F18: the name a fact substitutes, and 0x00689F60 the buffer it is
    copied into so the caller always gets a writable one. */
-extern const char g_substituted_npc_name[];
+// GLOBAL: WIZ8 0x00619F18
+extern const char g_substituted_npc_name[] = "RFS81B";
 extern char g_npc_name_buffer[];
 
 /* The name style that admits a substituted name. */

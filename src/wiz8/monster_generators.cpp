@@ -247,11 +247,6 @@ void Function48C9F0(void)
 extern unsigned char g_force_encounter_culling;     /* 0x00687500 */
 extern void GetPartyPosition(srVector3T<float>* position); /* 0x00421070 */
 
-/* Read rather than spelled as literals: each is a relocated .rdata load, so the
-   value does not affect the match and inventing one would claim a number the
-   port has not established. */
-extern const float g_encounter_culling_scale;       /* 0x005EC254 */
-
 // GLOBAL: WIZ8 0x0060a6cc
 const float g_encounter_culling_scale_fast = 1.0f;
 
@@ -283,7 +278,7 @@ void CullExpiredEncounters(void)
     GetPartyPosition(&party);
     if (IsSightRangeOverridden() == 0) {
         span = g_level_records[g_status_685170.current_level].encounter_culling_seconds *
-               g_encounter_culling_scale;
+               g_sight_default_005ec254;
     } else {
         span = g_level_records[g_status_685170.current_level].encounter_culling_seconds *
                g_encounter_culling_scale_fast * g_encounter_culling_rate;
