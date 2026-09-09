@@ -8,6 +8,7 @@
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_screens/screen8.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/game_status.h"
@@ -171,9 +172,6 @@ void Function509CD0(unsigned char value, int enabled, int location_id);
 extern int g_monster_cycle_registry_weight_0065ba4c;
 extern float g_float_005ec52c;
 extern unsigned char g_flag_689b32;
-extern unsigned char g_flag_6850d2;
-// GLOBAL: WIZ8 0x006850d2
-unsigned char g_flag_6850d2;
 
 static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(
     unsigned int monster_species);
@@ -1493,11 +1491,11 @@ void TogglePartyCombatStance(void)
     const wchar_t* message;
 
     if (g_status_685170.game_started == 0) {
-        g_flag_6850d2 = (g_flag_6850d2 == 0);
+        g_settings_6850c8.continuous_combat = (g_settings_6850c8.continuous_combat == 0);
         return;
     }
-    if (g_flag_6850d2 != 0) {
-        g_flag_6850d2 = 0;
+    if (g_settings_6850c8.continuous_combat != 0) {
+        g_settings_6850c8.continuous_combat = 0;
         if (gXStatus.fCombatMode != 0) {
             g_combat_state->flag_001 = (g_combat_state->flag_000 == 0);
             g_combat_state->flag_a62 = 1;
@@ -1507,7 +1505,7 @@ void TogglePartyCombatStance(void)
         }
         message = gppStringList[W8_NOTICE_COMBAT_STANCE_RELAXED];
     } else {
-        g_flag_6850d2 = 1;
+        g_settings_6850c8.continuous_combat = 1;
         if (gXStatus.fCombatMode != 0 && g_combat_state->flag_a62 != 0) {
             g_combat_state->flag_001 = 1;
             g_combat_state->flag_a62 = 0;

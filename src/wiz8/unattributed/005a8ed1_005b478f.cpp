@@ -20,21 +20,6 @@ extern unsigned long g_value_64d8ac;
 /* Address quarantine 005a8ed1-005b478f; bounds come from adjacent
    assertion-backed original translation-unit intervals. */
 
-// The review-screen panel sets torn down on leave: each set is a panel with
-// its button controls beside it. Their creators are not yet recovered, so the
-// members keep neutral names.
-// GLOBAL: WIZ8 0x0069c428
-Controls* g_panel_69c428;
-// GLOBAL: WIZ8 0x0069c43c
-W8TextControl* g_panel_controls_69c43c[2];
-// GLOBAL: WIZ8 0x0069c464
-Controls* g_panel_69c464;
-// GLOBAL: WIZ8 0x0069c468
-W8TextControl* g_panel_controls_69c468[2];
-// GLOBAL: WIZ8 0x0069c470
-W8TextControl* g_panel_controls_69c470[7];
-// GLOBAL: WIZ8 0x0069c48c
-Controls* g_panel_69c48c;
 // GLOBAL: WIZ8 0x0069c2ec
 Controls* g_panel_69c2ec;
 // GLOBAL: WIZ8 0x0069c344
@@ -88,62 +73,6 @@ void Function5B1C00(void)
     }
 }
 
-// FUNCTION: WIZ8 0x005B9220
-void Function5B9220(void)
-{
-    Controls* panel = g_panel_69c464;
-    if (panel != 0) {
-        panel->~Controls();
-        ::operator delete(panel);
-        g_panel_69c464 = 0;
-    }
-    W8TextControl** control = g_panel_controls_69c468;
-    do {
-        if (*control != 0) {
-            delete *control;
-            *control = 0;
-        }
-        ++control;
-    } while (control < g_panel_controls_69c468 + 2);
-}
-
-// FUNCTION: WIZ8 0x005B9760
-void Function5B9760(void)
-{
-    Controls* panel = g_panel_69c48c;
-    if (panel != 0) {
-        panel->~Controls();
-        ::operator delete(panel);
-        g_panel_69c48c = 0;
-    }
-    W8TextControl** control = g_panel_controls_69c470;
-    do {
-        if (*control != 0) {
-            delete *control;
-            *control = 0;
-        }
-        ++control;
-    } while (control < g_panel_controls_69c470 + 7);
-}
-
-// FUNCTION: WIZ8 0x005B9EA0
-void Function5B9EA0(void)
-{
-    Controls* panel = g_panel_69c428;
-    if (panel != 0) {
-        panel->~Controls();
-        ::operator delete(panel);
-        g_panel_69c428 = 0;
-    }
-    W8TextControl** control = g_panel_controls_69c43c;
-    do {
-        if (*control != 0) {
-            delete *control;
-            *control = 0;
-        }
-        ++control;
-    } while (control < g_panel_controls_69c43c + 2);
-}
 
 // FUNCTION: WIZ8 0x005B2580
 void Function5B2580(void)

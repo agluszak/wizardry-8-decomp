@@ -5,6 +5,7 @@
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_code/ControlsRect.h"
+#include "wiz8/input_hooks.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/Widget.h"
 #include "wiz8/local_code/TextControl.h"
@@ -45,7 +46,6 @@
 void SetValue64D8AC(unsigned long value);
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
-unsigned short Function402780(unsigned short key, unsigned char modifiers);
 void Function55EE70(int value);
 void RenderPartyPortrait0052EB00(int portrait, int left, int top,
                                 int flags, int value, int party_slot);
@@ -1194,7 +1194,7 @@ W8State5OptionPanel005EF4AC::W8State5OptionPanel005EF4AC()
                                       0xf1, 0, 4, 6, 5, 7, -1));
         top += 0x16;
     }
-    m_options_50.SetSelected(g_settings_6850c8.field_00d);
+    m_options_50.SetSelected(g_settings_6850c8.difficulty);
 
     top += 0x16;
     m_toggle_78 =
@@ -1203,7 +1203,7 @@ W8State5OptionPanel005EF4AC::W8State5OptionPanel005EF4AC()
                                   0xf1, 0, 2, 0, 3, 1, -1);
     m_toggle_78->AddLayoutFlags(
         g_W8TextControlMask005ED588 | g_W8TextControlMask005ED578);
-    if (g_settings_6850c8.field_050) {
+    if (g_settings_6850c8.simplified_npc_interaction) {
         m_toggle_78->ActivatePrimary(0);
     }
 
@@ -1256,7 +1256,7 @@ unsigned char W8State5InputHandler005C0E50::HandleInput(
 
     if (input->usParam != VK_ESCAPE) {
         if (input->usParam != VK_RETURN) {
-            unsigned short character = Function402780(
+            unsigned short character = TranslateKeyToCharacter(
                 static_cast<unsigned short>(input->usParam),
                 input->usKeyState);
             if (character != 0 &&
@@ -1903,9 +1903,9 @@ void W8State5Controller005EF4CC::OnPrimary(
             SetMode(2);
             return;
         case 2:
-            g_settings_6850c8.field_00d =
+            g_settings_6850c8.difficulty =
                 m_control_30->m_options_50.m_selectedIndex;
-            g_settings_6850c8.field_050 =
+            g_settings_6850c8.simplified_npc_interaction =
                 (unsigned char)(m_control_30->m_toggle_78->m_stateFlags &
                                 g_W8TextControlMask005ED570);
             if ((m_control_30->m_toggle_74->m_stateFlags &

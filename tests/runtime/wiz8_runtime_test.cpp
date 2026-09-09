@@ -130,6 +130,16 @@ static LONG WINAPI ReportUnhandledException(EXCEPTION_POINTERS* exception)
 
 static bool VerifyShadeTable(FLOAT coefficient)
 {
+    // The runtime uses ARGB1555. Check independent colour values before
+    // comparing tables that both depend on Get16BPPColor: unresolved SGP
+    // mask globals previously made both sides agree on the PE's MZ bytes.
+    if (Get16BPPColor(FROMRGB(255, 0, 0)) != 0xfc00 ||
+        Get16BPPColor(FROMRGB(0, 255, 0)) != 0x83e0 ||
+        Get16BPPColor(FROMRGB(0, 0, 255)) != 0x801f ||
+        Get16BPPColor(FROMRGB(255, 255, 255)) != 0xffff) {
+        fprintf(stderr, "SGP pixel-format conversion is not ARGB1555\n");
+        return false;
+    }
     static UINT16 expected[65536];
     unsigned int red;
     unsigned int green;

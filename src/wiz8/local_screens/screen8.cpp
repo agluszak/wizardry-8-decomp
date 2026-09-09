@@ -165,7 +165,6 @@ void Function581030(void);
 void Function46F760(W8World* world, int value);
 void Function5822C0(void);
 void Function583BC0(void);
-void Function425570(int value);
 void Function581200(void);
 void Function425C90(int left, int top, int right, int bottom);
 void Function580380(void);
@@ -316,7 +315,7 @@ unsigned char AutomapScreenEnter(void)
     }
     g_automap_redraw = 1;
     g_automap_overlay_redraw = 1;
-    Function425570(0);
+    SetPrimarySurfaceTextureHint2Enabled(0);
     ClearSurfaceRect(0, 0, 640, 480);
     ClearFlag603C60();
     DrawCatalogImageAndInvalidate(-14, 0x14a, 0, 0, 0, 0, 2, 0);

@@ -10,7 +10,6 @@ unsigned char InitializeSpellDatabase(void);
 
 extern "C" {
 
-extern unsigned char g_save_flag_00687599;
 extern unsigned char g_status_block_685078[56];
 class W8GameTimer;
 extern W8GameTimer* g_gameplay_timer_685067;

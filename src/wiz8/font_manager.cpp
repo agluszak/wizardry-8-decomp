@@ -10,6 +10,7 @@
 #include "DirectDraw Calls.h"
 #include "FileMan.h"
 #include "Font.h"
+#include "himage.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -167,14 +168,6 @@ struct W8StiHeader {
 /* The font table entries are the 0xFC-byte objects 0x00406180 builds. Their
    metrics array at +0x18 is an ETRLEObject array (stride 0x10), which is why
    the print path can hand these objects straight to the SGP blitters. */
-extern unsigned short g_alpha_mask_650f48;
-extern unsigned short g_red_mask_650f4a;
-extern unsigned short g_green_mask_650f4c;
-extern unsigned short g_blue_mask_650f4e;
-extern short g_red_shift_650f50;
-extern short g_blue_shift_650f52;
-extern short g_green_shift_650f54;
-
 // FUNCTION: WIZ8 0x00406dc0
 unsigned short* SetFontObjectPalette16BPP(int font, unsigned short* palette)
 {
@@ -417,14 +410,14 @@ unsigned char Function415250(
             if (ok != 0 && done == header->size_08) {
                 record->flags_06 |= 8;
                 if (header->type_2c == 0x10) {
-                    if ((g_red_mask_650f4a != header->format_18) ||
-                        (g_green_mask_650f4c != (unsigned short)header->format_1c) ||
-                        (g_blue_mask_650f4e != header->format_20)) {
-                        if (g_green_mask_650f4c < g_red_mask_650f4a &&
-                            g_blue_mask_650f4e < g_green_mask_650f4c) {
-                            if (g_red_mask_650f4a == 0x7c00) {
-                                if (g_green_mask_650f4c == 0x3e0 &&
-                                    g_blue_mask_650f4e == 0x1f) {
+                    if ((gusRedMask != header->format_18) ||
+                        (gusGreenMask != (unsigned short)header->format_1c) ||
+                        (gusBlueMask != header->format_20)) {
+                        if (gusGreenMask < gusRedMask &&
+                            gusBlueMask < gusGreenMask) {
+                            if (gusRedMask == 0x7c00) {
+                                if (gusGreenMask == 0x3e0 &&
+                                    gusBlueMask == 0x1f) {
                                     Function410620(
                                         (unsigned short*)buffer,
                                         (unsigned int)header->field_16 *
@@ -432,9 +425,9 @@ unsigned char Function415250(
                                     return 1;
                                 }
                             }
-                            else if (g_red_mask_650f4a == 0xfc00) {
-                                if (g_green_mask_650f4c == 0x3e0 &&
-                                    g_blue_mask_650f4e == 0x1f) {
+                            else if (gusRedMask == 0xfc00) {
+                                if (gusGreenMask == 0x3e0 &&
+                                    gusBlueMask == 0x1f) {
                                     Function410670(
                                         (unsigned short*)buffer,
                                         (unsigned int)header->field_16 *
@@ -442,9 +435,9 @@ unsigned char Function415250(
                                     return 1;
                                 }
                             }
-                            else if (g_red_mask_650f4a == 0xf800 &&
-                                     g_green_mask_650f4c == 0x7c0 &&
-                                     g_blue_mask_650f4e == 0x3f) {
+                            else if (gusRedMask == 0xf800 &&
+                                     gusGreenMask == 0x7c0 &&
+                                     gusBlueMask == 0x3f) {
                                 Function4106C0(
                                     (unsigned short*)buffer,
                                     (unsigned int)header->field_16 *
@@ -831,17 +824,17 @@ unsigned short* Function410190(int table)
         unsigned int blue = src[0];
         unsigned int packed;
 
-        red <<= (g_red_shift_650f50 & 31);
-        green <<= (g_green_shift_650f54 & 31);
-        blue <<= (((unsigned int)g_red_shift_650f50 >> 16) & 31);
-        packed = (red & ((unsigned int)g_red_mask_650f4a << 16)) |
-                 (green & (unsigned int)g_green_mask_650f4c) |
-                 (blue & (unsigned int)g_blue_mask_650f4e);
-        packed |= (unsigned int)g_alpha_mask_650f48;
+        red <<= (gusRedShift & 31);
+        green <<= (gusGreenShift & 31);
+        blue <<= (((unsigned int)gusRedShift >> 16) & 31);
+        packed = (red & ((unsigned int)gusRedMask << 16)) |
+                 (green & (unsigned int)gusGreenMask) |
+                 (blue & (unsigned int)gusBlueMask);
+        packed |= (unsigned int)gusAlphaMask;
         if ((unsigned short)packed == 0) {
             packed = 0;
             if (red + green + blue != 0) {
-                packed = (unsigned int)g_alpha_mask_650f48 | 1;
+                packed = (unsigned int)gusAlphaMask | 1;
             }
         }
         *dst++ = (unsigned short)packed;
@@ -901,7 +894,7 @@ void Function410620(unsigned short* pixels, int count)
                 ((unsigned int)(pixel >> 6) << 16) |
                 (unsigned short)(pixel << 11);
             unsigned short high = (unsigned short)((combined << 5) >> 16);
-            *pixels = g_alpha_mask_650f48 | high;
+            *pixels = gusAlphaMask | high;
         }
         ++pixels;
     }
@@ -946,51 +939,9 @@ void Function410700(unsigned short* pixels, int count)
         unsigned int expanded =
             ((unsigned int)(pixel >> 11) |
              ((((pixel & 0x1f) << 13) | (pixel & 0x7e0)) << 3));
-        *pixels = (unsigned short)Function4104B0(expanded);
+        *pixels = Get16BPPColor(expanded);
         ++pixels;
     }
-}
-
-// FUNCTION: WIZ8 0x004104b0
-unsigned int Function4104B0(int value)
-{
-    unsigned char byte0 = (unsigned char)value;
-    unsigned char byte1 = (unsigned char)((unsigned int)value >> 8);
-    unsigned char byte2 = (unsigned char)((unsigned int)value >> 16);
-    unsigned int red;
-    unsigned int green;
-    unsigned int blue;
-    unsigned int packed;
-
-    if (g_red_shift_650f50 >= 0) {
-        red = (unsigned int)byte0 << (g_red_shift_650f50 & 31);
-    }
-    else {
-        red = (unsigned int)(byte0 >> (-g_red_shift_650f50 & 31));
-    }
-    if (g_green_shift_650f54 >= 0) {
-        green = (unsigned int)byte1 << (g_green_shift_650f54 & 31);
-    }
-    else {
-        green = (unsigned int)(byte1 >> (-g_green_shift_650f54 & 31));
-    }
-    if (g_blue_shift_650f52 >= 0) {
-        blue = (unsigned int)byte2 << (g_blue_shift_650f52 & 31);
-    }
-    else {
-        blue = (unsigned int)(byte2 >> (-g_blue_shift_650f52 & 31));
-    }
-    packed = (red & g_red_mask_650f4a) | (green & g_green_mask_650f4c) |
-             (blue & g_blue_mask_650f4e);
-    if ((unsigned short)packed == 0) {
-        if (value == 0) {
-            return 0;
-        }
-        return ((unsigned int)g_red_mask_650f4a << 16) |
-               (unsigned int)g_alpha_mask_650f48 | 1;
-    }
-    return packed | ((unsigned int)g_red_mask_650f4a << 16) |
-           (unsigned int)g_alpha_mask_650f48;
 }
 
 /* Parses a font resource into its 0xfc-byte runtime object. */

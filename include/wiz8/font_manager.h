@@ -38,4 +38,3 @@ void Function410620(unsigned short* pixels, int count);
 void Function410670(unsigned short* pixels, int count);
 void Function4106C0(unsigned short* pixels, int count);
 void Function410700(unsigned short* pixels, int count);
-unsigned int Function4104B0(int value);

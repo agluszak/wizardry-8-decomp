@@ -1,6 +1,8 @@
 #pragma once
 
 void LoadGameConfiguration(void);
+void SetDisplayGamma(float value);
+void SetMusicVolume(unsigned char volume);
 unsigned int GetTotalPhysicalMemory(void);
 
 /* Local Code\Configuration.cpp owns the persisted 0xa4-byte configuration
@@ -9,19 +11,19 @@ unsigned int GetTotalPhysicalMemory(void);
 #pragma pack(push, 1)
 struct W8GameSettings {
     unsigned char field_000;
-    unsigned char field_001;
+    unsigned char numeric_hit_points;
     unsigned char unknown_002[0x4];
     int field_006;
-    unsigned char field_00a;
-    unsigned char field_00b;
-    unsigned char field_00c;
-    int field_00d;
-    int field_011;
-    int field_015;
+    unsigned char continuous_combat;
+    unsigned char auto_advance_character;
+    unsigned char tooltips_enabled;
+    int difficulty;
+    unsigned int text_display_delay_ms;
+    int combat_delay_ms;
     int field_019;
-    int field_01d;
-    int field_021;
-    int field_025;
+    int camera_rotation_mode;
+    int camera_rotation_style;
+    int tooltip_delay_ms;
     unsigned char field_029;
     unsigned char field_02a;
     unsigned char field_02b;
@@ -35,27 +37,27 @@ struct W8GameSettings {
     unsigned char field_033;
     unsigned char field_034;
     unsigned char field_035;
-    unsigned char field_036;
-    int field_037;
+    unsigned char invert_mouse_y;
+    float monster_movement_speed;
     unsigned char field_03b;
-    int field_03c;
+    float gamma;
     unsigned char field_040;
-    unsigned char field_041;
+    unsigned char mouselook_toggle;
     unsigned char field_042;
-    unsigned char field_043;
-    unsigned char unknown_044[0x1];
-    unsigned char field_045;
+    unsigned char mouselook_smoothing;
+    unsigned char verbose_combat_messages;
+    unsigned char auto_save;
     unsigned char intro_seen;
     unsigned char field_047;
     unsigned char field_048;
     unsigned char field_049;
     unsigned char field_04a;
-    unsigned char field_04b;
-    unsigned char field_04c;
-    unsigned char field_04d;
-    unsigned char field_04e;
-    unsigned char field_04f;
-    unsigned char field_050;
+    unsigned char skill_increase_messages;
+    unsigned char ctrl_right_click_info;
+    unsigned char autoswap_weapons;
+    unsigned char autotarget_spells;
+    unsigned char autoscroll_combat_messages;
+    unsigned char simplified_npc_interaction;
     unsigned char unknown_051[0x53];
 };
 #pragma pack(pop)

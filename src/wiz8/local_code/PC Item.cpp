@@ -2200,8 +2200,8 @@ void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item)
         if (GetFact(0x167)) {
             SetFact(0x167, 0, 0);
         }
-        g_status_685170.unknown_2429[0x61] = 1;
-        memcpy(&g_status_685170.unknown_2429[0x6a],
+        g_status_685170.unknown_244b[0x3f] = 1;
+        memcpy(&g_status_685170.unknown_244b[0x48],
                &g_status_685170.world_clock, 4);
         break;
     case 0x264:

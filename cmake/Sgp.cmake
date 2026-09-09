@@ -94,13 +94,6 @@ function(wiz8_add_sgp_target target kind)
     target_compile_options(${target} PRIVATE /nologo /Z7)
     target_compile_options(${target} PRIVATE /O2 /Ob2 /G5)
     target_compile_definitions(${target} PRIVATE
-        gusAlphaMask=g_alpha_mask_650f48
-        gusRedMask=g_red_mask_650f4a
-        gusGreenMask=g_green_mask_650f4c
-        gusBlueMask=g_blue_mask_650f4e
-        gusRedShift=g_red_shift_650f50
-        gusBlueShift=g_blue_shift_650f52
-        gusGreenShift=g_green_shift_650f54
         ghTinyMonoFont=g_tiny_mono_font_683690
     )
 endfunction()

@@ -1980,61 +1980,18 @@ void W8HelpTextControl::OnLeftButtonDoubleClick(int event)
    the movable thumb sprite and retains the remaining horizontal travel at
    +0x4c. The interaction methods independently prove that geometry: cursor X
    is converted through +0x4c into the normalized float range +0x60..+0x68. */
-class W8HorizontalRangeThumb;
-
-class W8HorizontalRangeThumbListener {
-public:
-    virtual void OnDrag(W8HorizontalRangeThumb* thumb) = 0;
-    virtual void OnDragEnd(W8HorizontalRangeThumb* thumb) = 0;
-};
-
-// VTABLE: WIZ8 0x005ed66c
-class W8HorizontalRangeThumb : public W8Widget {
-public:
-    virtual ~W8HorizontalRangeThumb() override;
-    W8HorizontalRangeThumb(Controls* panel, unsigned int region, int left, int top,
-                                   int render_arg_0, int render_arg_1, int background_sprite,
-                                   int normal_thumb_sprite, int hovered_thumb_sprite,
-                                   int disabled_thumb_sprite);
-    virtual void Redraw(int full_redraw) override;
-    void UpdatePixelPosition();
-    virtual void OnLeftButtonDown(int event) override;
-    virtual void OnLeftButtonUp(int event) override;
-    virtual void OnMouseEnter(int event) override;
-    virtual void OnMouseLeave(int event) override;
-    virtual void OnMouseMove(int event) override;
-
-protected:
-    int m_renderArg0;                    /* 0x34 */
-    int m_renderArg1;                    /* 0x38 */
-    int m_backgroundSprite;              /* 0x3c */
-    int m_normalThumbSprite;             /* 0x40 */
-    int m_hoveredThumbSprite;            /* 0x44 */
-    int m_disabledThumbSprite;           /* 0x48 */
-    int m_trackLength;                   /* 0x4c: horizontal travel */
-    int m_thumbWidth;                    /* 0x50 */
-    int m_pixelPosition;                 /* 0x54 */
-    int m_dragCoordinate;                /* 0x58 */
-    unsigned char m_hovered;             /* 0x5c */
-    unsigned char m_dragging;            /* 0x5d */
-    unsigned char pad_5e[2];
-    float m_minimumPosition;             /* 0x60 */
-    float m_maximumPosition;             /* 0x64 */
-    float m_position;                    /* 0x68 */
-    W8HorizontalRangeThumbListener* m_listener; /* 0x6c */
-
-    __forceinline void InvalidateThumb()
-    {
+__forceinline void W8HorizontalRangeThumb::InvalidateThumb()
+{
         if (m_pPanel != 0) {
             m_dirty = 1;
             m_pPanel->m_fLayoutDirty = 1;
             RequestRedraw(0x80000000);
             RequestRedraw(0x80000000);
         }
-    }
+}
 
-    __forceinline void ClampPositionAndInvalidate()
-    {
+__forceinline void W8HorizontalRangeThumb::ClampPositionAndInvalidate()
+{
         if (m_position < m_minimumPosition) {
             m_position = m_minimumPosition;
         }
@@ -2045,8 +2002,7 @@ protected:
                                  (m_maximumPosition - m_minimumPosition)) *
                                 m_trackLength);
         InvalidateThumb();
-    }
-};
+}
 
 // FUNCTION: WIZ8 0x004f5620
 W8HorizontalRangeThumb::W8HorizontalRangeThumb(

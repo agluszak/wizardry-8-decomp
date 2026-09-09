@@ -85,18 +85,85 @@ void Function5B9900(void);
 void Function5A45B0(void);
 void Function5A4770(void);
 void Function5B55F0(void);
-void Function5B9220(void);
-void Function5B9760(void);
-void Function5B9EA0(void);
 void Function4EF1F0(void);
 void Function5B6B30(unsigned int slot);
 void Function5B59B0(int page);
 void Function52DDD0(void);
 void Function5A42A0(void);
-void Function425570(int value);
 void Function5C5240(void);
 // GLOBAL: WIZ8 0x0069c428
 Controls* g_camp_secondary_panel_0069c428;
+
+// The review-screen panel sets torn down on leave: each set is a panel with
+// its button controls beside it. Their creators are not yet recovered, so the
+// members keep neutral names.
+// GLOBAL: WIZ8 0x0069c43c
+W8TextControl* g_panel_controls_69c43c[2];
+// GLOBAL: WIZ8 0x0069c464
+Controls* g_panel_69c464;
+// GLOBAL: WIZ8 0x0069c468
+W8TextControl* g_panel_controls_69c468[2];
+// GLOBAL: WIZ8 0x0069c470
+W8TextControl* g_panel_controls_69c470[7];
+// GLOBAL: WIZ8 0x0069c48c
+Controls* g_panel_69c48c;
+
+// FUNCTION: WIZ8 0x005B9220
+void Function5B9220(void)
+{
+    Controls* panel = g_panel_69c464;
+    if (panel != 0) {
+        panel->~Controls();
+        ::operator delete(panel);
+        g_panel_69c464 = 0;
+    }
+    W8TextControl** control = g_panel_controls_69c468;
+    do {
+        if (*control != 0) {
+            delete *control;
+            *control = 0;
+        }
+        ++control;
+    } while (control < g_panel_controls_69c468 + 2);
+}
+
+// FUNCTION: WIZ8 0x005B9760
+void Function5B9760(void)
+{
+    Controls* panel = g_panel_69c48c;
+    if (panel != 0) {
+        panel->~Controls();
+        ::operator delete(panel);
+        g_panel_69c48c = 0;
+    }
+    W8TextControl** control = g_panel_controls_69c470;
+    do {
+        if (*control != 0) {
+            delete *control;
+            *control = 0;
+        }
+        ++control;
+    } while (control < g_panel_controls_69c470 + 7);
+}
+
+// FUNCTION: WIZ8 0x005B9EA0
+void Function5B9EA0(void)
+{
+    Controls* panel = g_camp_secondary_panel_0069c428;
+    if (panel != 0) {
+        panel->~Controls();
+        ::operator delete(panel);
+        g_camp_secondary_panel_0069c428 = 0;
+    }
+    W8TextControl** control = g_panel_controls_69c43c;
+    do {
+        if (*control != 0) {
+            delete *control;
+            *control = 0;
+        }
+        ++control;
+    } while (control < g_panel_controls_69c43c + 2);
+}
 
 // FUNCTION: WIZ8 0x005b9ef0
 void InvalidateCampPanel005B9EF0(void)
@@ -674,7 +741,7 @@ show_equip_message:
     }
     g_camp_screen_0069c0f4->redraw_flags |= 0x0fffffff;
     ResetTransientRenderScenes();
-    Function425570(0);
+    SetPrimarySurfaceTextureHint2Enabled(0);
     if (!g_status_685170.game_started) {
         Function48FC10("MainMenu.MPL", 1, 1);
     }

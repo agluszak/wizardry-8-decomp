@@ -1,6 +1,7 @@
 #include "english.h"
 #include "input.h"
 #include "wiz8/utility.h"
+#include "wiz8/input_hooks.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -47,7 +48,7 @@ void ReportError00401920(const char* message)
 }
 
 // FUNCTION: WIZ8 0x00402780
-unsigned short Function402780(unsigned short key, unsigned char modifiers)
+unsigned short TranslateKeyToCharacter(unsigned short key, unsigned char modifiers)
 {
     if ((modifiers & (CTRL_DOWN | ALT_DOWN)) != 0) return 0;
     if ((modifiers & SHIFT_DOWN) != 0)

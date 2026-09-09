@@ -1,6 +1,8 @@
 #pragma once
 
 #include <stddef.h>
+#include "wiz8/wiz8_windows.h"
+#include "wiz8/vector.h"
 
 unsigned char VerifyDataSubdirs(void);
 unsigned char FindStartupQuickSave(char* slot_name);
@@ -18,6 +20,32 @@ struct W8SaveScreenshot {
 
 static_assert(sizeof(W8SaveScreenshot) == 0x2588,
               "W8SaveScreenshot_must_be_0x2588");
+
+/* Save-list entries are allocated as 0x2640 bytes by both the enumerator and
+   the Options controller. The SHOT chunk occupies the embedded screenshot. */
+struct W8SaveSlot {
+    wchar_t name[64];
+    FILETIME local_write_time;
+    SYSTEMTIME timestamp;
+    int game_time_days;
+    int game_time_ms;
+    int level_id;
+    unsigned char iron_man;
+    unsigned char unknown_0a5[3];
+    W8SaveScreenshot screenshot;
+    int version_major;
+    int version_minor;
+    int version_patch;
+    unsigned char flag_263c;
+    unsigned char unknown_263d[3];
+};
+
+static_assert(sizeof(W8SaveSlot) == 0x2640, "W8SaveSlot_size");
+static_assert(offsetof(W8SaveSlot, screenshot) == 0xa8, "W8SaveSlot_screenshot_offset");
+
+void CaptureSaveScreenshot(W8SaveScreenshot* screenshot);
+void FillCurrentSaveSlot(W8SaveSlot* slot);
+unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots);
 
 unsigned char SaveGame(const char* name, W8SaveScreenshot* screenshot);
 
@@ -42,4 +70,3 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status);
 extern unsigned char g_flag_659756;
 extern unsigned char g_save_pending_00689f98;
 extern unsigned char g_save_notice_shown_0068506b;
-extern unsigned char g_flag_0068510d;

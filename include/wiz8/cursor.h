@@ -30,5 +30,6 @@ void PositionMouseCursor(int x, int y, unsigned char reset_tick);
 void GetScreenPoint004284F0(W8ScreenPoint* point);
 void UpdateHeldItemCursor(void);
 void ClearHeldItemDisplay(void);
+void SetCurrentCursor(int cursor);
 
 #endif

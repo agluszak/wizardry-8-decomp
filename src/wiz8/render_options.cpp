@@ -75,7 +75,7 @@ void DestroyRenderQuality0047B570(void)
 }
 
 // FUNCTION: WIZ8 0x0047b590
-void EnableRenderOption0047B590(int option)
+void EnableRenderOption(int option)
 {
     if (option < 0x11) {
         SetRenderOption(option, 1);

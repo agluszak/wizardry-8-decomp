@@ -48,9 +48,6 @@ extern unsigned char g_flag_6598a8;
 unsigned char g_flag_6598a8;
 extern unsigned char g_flag_659711;
 extern unsigned char g_fullscreen_603c39;
-extern int g_dword_687595;
-// GLOBAL: WIZ8 0x00687595
-int g_dword_687595;
 extern unsigned char g_byte_68de44;
 // GLOBAL: WIZ8 0x0068de44
 unsigned char g_byte_68de44;
@@ -162,7 +159,7 @@ int Function443A50(void)
 // FUNCTION: WIZ8 0x00482740
 void Function482740(int value)
 {
-    g_dword_687595 = value;
+    g_status_685170.game_time_days = value;
 }
 
 // FUNCTION: WIZ8 0x005588e0

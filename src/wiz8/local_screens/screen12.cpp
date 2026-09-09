@@ -72,7 +72,7 @@ void ExitScreenFrame(void)
             }
         }
     }
-    if (g_flag_6f04ed == 0 && g_flag_6f04e8 == 0) {
+    if (gfLeftButtonState == 0 && gfRightButtonState == 0) {
         if (g_game_running != 0) {
             return;
         }

@@ -46,6 +46,7 @@ public:
     virtual void process(const ProcessInfo& info, e_processType type) override;
 
     void enableRendererFlag(unsigned int flag);
+    void setTextureHint2Enabled(unsigned char enabled);
     void invalidateTiles();
     void updateRectangle(srGERD* renderer, void* pixels, long pitch,
                          int left, int top, int right, int bottom);

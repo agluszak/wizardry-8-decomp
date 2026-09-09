@@ -71,9 +71,6 @@ char** g_item_table_category_names;
 W8SpellRuntimeRecord* g_spell_records;
 // GLOBAL: WIZ8 0x0065BE18
 unsigned int g_spell_database_version;
-extern int g_dword_6875b7;
-// GLOBAL: WIZ8 0x006875b7
-int g_dword_6875b7;
 extern void Function5A9E70(void* target);
 extern void Function509890(void);
 extern void Function509920(void);
@@ -499,16 +496,6 @@ void DestroyItemTables(void)
     }
 }
 
-/* Defined here because this unit holds the only site in the image that writes
-   it - the store below is the single `mov byte ptr [0x687599], 1` among its 16
-   reference sites, and the other fifteen are reads in seven other functions.
-   Sole-writer ownership is weaker than a proved layout boundary: the .bss run
-   around 0x00687599 is packed with no gap marking a unit edge, so this is the
-   best available evidence rather than a settled fact. Its canonical declaration
-   in GameplayDatabase.h keeps the byte width established by these stores. */
-// GLOBAL: WIZ8 0x00687599
-unsigned char g_save_flag_00687599;
-
 /* Raises three flags, optionally hands the caller's target to 0x005A9E70, then
    runs a fixed opening sequence. The two calls into 0x00482720 and 0x00482740
    share one stack cleanup, as consecutive cdecl calls do. */
@@ -517,10 +504,10 @@ void Function54B250(unsigned char notify, void* target)
 {
     g_status_685170.game_started = 1;
     if (target) {
-        g_save_flag_00687599 = 1;
+        g_status_685170.iron_man = 1;
         Function5A9E70(target);
     }
-    g_dword_6875b7 = g_settings_6850c8.field_00d;
+    g_status_685170.difficulty = g_settings_6850c8.difficulty;
     gXStatus.field_028 = true;
     Function482720(0x2932e00);
     Function482740(1);
@@ -717,47 +704,47 @@ void Function54B560(void)
     g_settings_6850c8.field_02e = 0x40;
     g_settings_6850c8.field_030 = 0x40;
     g_settings_6850c8.field_006 = 1;
-    g_settings_6850c8.field_00a = 0;
-    g_settings_6850c8.field_00b = 0;
-    g_settings_6850c8.field_00c = 1;
+    g_settings_6850c8.continuous_combat = 0;
+    g_settings_6850c8.auto_advance_character = 0;
+    g_settings_6850c8.tooltips_enabled = 1;
     g_settings_6850c8.field_029 = 1;
     g_settings_6850c8.field_02a = 1;
     g_settings_6850c8.field_02b = 1;
     g_settings_6850c8.field_02c = 1;
     g_settings_6850c8.field_000 = 0;
-    g_settings_6850c8.field_036 = 0;
+    g_settings_6850c8.invert_mouse_y = 0;
     g_settings_6850c8.field_03b = 0;
-    g_settings_6850c8.field_00d = 1;
-    g_settings_6850c8.field_011 = 0x9c4;
-    g_settings_6850c8.field_015 = 1000;
+    g_settings_6850c8.difficulty = 1;
+    g_settings_6850c8.text_display_delay_ms = 0x9c4;
+    g_settings_6850c8.combat_delay_ms = 1000;
     g_settings_6850c8.field_019 = 5000;
-    g_settings_6850c8.field_01d = 1;
-    g_settings_6850c8.field_021 = 1;
-    g_settings_6850c8.field_025 = 600;
+    g_settings_6850c8.camera_rotation_mode = 1;
+    g_settings_6850c8.camera_rotation_style = 1;
+    g_settings_6850c8.tooltip_delay_ms = 600;
     g_settings_6850c8.field_02f = 0x1f;
     g_settings_6850c8.field_031 = 0x13;
     g_settings_6850c8.field_032 = 0xff;
     g_settings_6850c8.field_033 = 0xff;
     g_settings_6850c8.field_034 = 0xff;
     g_settings_6850c8.field_035 = 0xff;
-    g_settings_6850c8.field_037 = 0x40200000;
-    g_settings_6850c8.field_03c = 0x3f800000;
+    g_settings_6850c8.monster_movement_speed = 2.5f;
+    g_settings_6850c8.gamma = 1.0f;
     g_settings_6850c8.field_040 = 1;
     g_settings_6850c8.field_042 = 1;
-    g_settings_6850c8.field_041 = 0;
-    g_settings_6850c8.field_043 = 1;
-    g_settings_6850c8.field_001 = 1;
-    g_settings_6850c8.field_045 = 0;
+    g_settings_6850c8.mouselook_toggle = 0;
+    g_settings_6850c8.mouselook_smoothing = 1;
+    g_settings_6850c8.numeric_hit_points = 1;
+    g_settings_6850c8.auto_save = 0;
     g_settings_6850c8.field_047 = 0;
     g_settings_6850c8.field_048 = 1;
     g_settings_6850c8.field_049 = 1;
     g_settings_6850c8.field_04a = 1;
-    g_settings_6850c8.field_04b = 1;
-    g_settings_6850c8.field_04c = 0;
-    g_settings_6850c8.field_04d = 1;
-    g_settings_6850c8.field_04e = 1;
-    g_settings_6850c8.field_04f = 0;
-    g_settings_6850c8.field_050 = 1;
+    g_settings_6850c8.skill_increase_messages = 1;
+    g_settings_6850c8.ctrl_right_click_info = 0;
+    g_settings_6850c8.autoswap_weapons = 1;
+    g_settings_6850c8.autotarget_spells = 1;
+    g_settings_6850c8.autoscroll_combat_messages = 0;
+    g_settings_6850c8.simplified_npc_interaction = 1;
     EnableAllRenderOptions();
     if (GetTotalPhysicalMemory() <= 0x4000000) {
         DisableRenderOption(0xb);

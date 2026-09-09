@@ -17,7 +17,8 @@ public:
     virtual ~W8NotificationDialog() override;         /* 0x005A8190 */
     virtual unsigned char ProcessInput() override; /* 0x005A81A0 */
 
-private:
+public:
+    /* OptionsScreen installs the notification receiver directly. */
     int notification_value;                          /* 0x98 */
     W8DialogCloseListener* notify_target;           /* 0x9c */
 };

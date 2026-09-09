@@ -175,6 +175,14 @@ extern "C" void PresentMenuOverlayFrame(void)
     g_gerd_659634->endFrame();
 }
 
+// FUNCTION: WIZ8 0x00425570
+void SetPrimarySurfaceTextureHint2Enabled(unsigned char enabled)
+{
+    if (g_surface_node_659664) {
+        g_surface_node_659664->setTextureHint2Enabled(enabled);
+    }
+}
+
 // FUNCTION: WIZ8 0x00424040
 unsigned char InitializeMouseSurface(void)
 {

@@ -43,7 +43,6 @@ unsigned char g_journal_show_all_0069c4e0;
 extern int g_value_006850d5;
 // GLOBAL: WIZ8 0x006850d5
 int g_value_006850d5;
-extern void Function425570(int enabled);
 // GLOBAL: WIZ8 0x0064d7b8
 wchar_t g_default_level_0064d7b8[] = L"Default Level";
 // GLOBAL: WIZ8 0x0064d7f0
@@ -344,7 +343,7 @@ unsigned char JournalScreenEnter(void)
     int index;
 
     SetViewport(0, 0, 0x280, 0x1e0);
-    Function425570(0);
+    SetPrimarySurfaceTextureHint2Enabled(0);
     MSYS_Init();
     ResetRegions();
     UpdateHeldItemCursor();

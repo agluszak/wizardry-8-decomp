@@ -78,15 +78,22 @@ struct W8GlobalStatus {
     unsigned char unknown_238b[0x16];
     W8PartyFormationState formation;
     int game_time_days;
-    unsigned char unknown_2429[0x1b];
+    unsigned char iron_man;
+    unsigned char unknown_242a[0x1a];
     /* Character creation skips the loose CHR collision check when set. */
     unsigned char skip_loose_character_check_2444;
-    unsigned char unknown_2445[0x52];
+    unsigned char unknown_2445[2];
+    int difficulty;
+    unsigned char unknown_244b[0x4c];
     unsigned char flag_2497;
     unsigned char unknown_2498[0x24ff];
     unsigned int text_box_lines_used_4997[4];
     unsigned int text_box_lines_shown_49a7[4];
-    unsigned char unknown_49b7[0x0b];
+    unsigned char unknown_49b7[6];
+    unsigned char flag_49bd;
+    unsigned char unknown_49be[2];
+    unsigned char flag_49c0;
+    unsigned char flag_49c1;
 };
 #pragma pack(pop)
 

@@ -60,3 +60,56 @@ public:
     unsigned char m_enabled;             /* 0x68 */
 };
 static_assert(sizeof(W8RangeControl) == 0x6c, "W8RangeControl_size");
+
+class W8HorizontalRangeThumb;
+
+class W8HorizontalRangeThumbListener {
+public:
+    virtual void OnDrag(W8HorizontalRangeThumb* thumb) = 0;
+    virtual void OnDragEnd(W8HorizontalRangeThumb* thumb) = 0;
+};
+
+// VTABLE: WIZ8 0x005ed66c
+class W8HorizontalRangeThumb : public W8Widget {
+public:
+    virtual ~W8HorizontalRangeThumb() override;
+    W8HorizontalRangeThumb(Controls* panel, unsigned int region, int left, int top,
+                          int render_arg_0, int render_arg_1, int background_sprite,
+                          int normal_thumb_sprite, int hovered_thumb_sprite,
+                          int disabled_thumb_sprite);
+    virtual void Redraw(int full_redraw) override;
+    void UpdatePixelPosition();
+    virtual void OnLeftButtonDown(int event) override;
+    virtual void OnLeftButtonUp(int event) override;
+    virtual void OnMouseEnter(int event) override;
+    virtual void OnMouseLeave(int event) override;
+    virtual void OnMouseMove(int event) override;
+
+protected:
+    int m_renderArg0;                    /* 0x34 */
+    int m_renderArg1;
+    int m_backgroundSprite;
+    int m_normalThumbSprite;
+    int m_hoveredThumbSprite;
+    int m_disabledThumbSprite;
+    int m_trackLength;                   /* 0x4c */
+    int m_thumbWidth;
+    int m_pixelPosition;
+    int m_dragCoordinate;
+    unsigned char m_hovered;
+    unsigned char m_dragging;
+    unsigned char pad_5e[2];
+
+public:
+    /* OptionsScreen.cpp sets these bounds and attaches the listener directly. */
+    float m_minimumPosition;             /* 0x60 */
+    float m_maximumPosition;
+    float m_position;
+    W8HorizontalRangeThumbListener* m_listener;
+
+protected:
+    __forceinline void InvalidateThumb();
+    __forceinline void ClampPositionAndInvalidate();
+};
+
+static_assert(sizeof(W8HorizontalRangeThumb) == 0x70, "W8HorizontalRangeThumb_size");

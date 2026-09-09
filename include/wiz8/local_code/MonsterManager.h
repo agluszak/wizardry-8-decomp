@@ -324,5 +324,6 @@ unsigned char RemoveMonster(
     unsigned char destroy_monster);
 void MonsterInfoEnterCombat(W8MonsterInfo* monster_info);
 void DeactivateMonster(W8MonsterInfo* monster_info);
+void TogglePartyCombatStance(void);
 
 #endif

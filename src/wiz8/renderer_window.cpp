@@ -18,6 +18,7 @@
 #include "wiz8/virtual_file_stream.h"
 #include "DirectDraw Calls.h"
 #include "input.h"
+#include "himage.h"
 #include "sgp.h"
 #include "soundman.h"
 #include "surrender/srConfig.h"
@@ -85,13 +86,20 @@ LPDIRECTDRAWSURFACE g_video_primary_surface1_6596ac;
 LPDIRECTDRAWSURFACE2 g_video_primary_surface2_6596b0;
 RECT g_window_rect_659610;
 
-unsigned short g_alpha_mask_650f48;
-unsigned short g_red_mask_650f4a;
-unsigned short g_green_mask_650f4c;
-unsigned short g_blue_mask_650f4e;
-short g_red_shift_650f50;
-short g_blue_shift_650f52;
-short g_green_shift_650f54;
+// GLOBAL: WIZ8 0x00650f48
+UINT16 gusAlphaMask;
+// GLOBAL: WIZ8 0x00650f4a
+UINT16 gusRedMask;
+// GLOBAL: WIZ8 0x00650f4c
+UINT16 gusGreenMask;
+// GLOBAL: WIZ8 0x00650f4e
+UINT16 gusBlueMask;
+// GLOBAL: WIZ8 0x00650f50
+INT16 gusRedShift;
+// GLOBAL: WIZ8 0x00650f52
+INT16 gusBlueShift;
+// GLOBAL: WIZ8 0x00650f54
+INT16 gusGreenShift;
 unsigned int g_color_key_600088;
 srModeler* g_modeler_65963c;
 srScene* g_scene_user_659640;
@@ -304,36 +312,36 @@ void Initialize16BitPixelFormatMasks(void)
     unsigned short bit;
 
     if (g_pixel_format_603c48 == 7) {
-        g_alpha_mask_650f48 = 0;
-        g_red_mask_650f4a = 0xf800;
-        g_green_mask_650f4c = 0x07e0;
+        gusAlphaMask = 0;
+        gusRedMask = 0xf800;
+        gusGreenMask = 0x07e0;
         g_color_key_600088 = 0x7bef;
     } else if (g_pixel_format_603c48 == 8) {
-        g_alpha_mask_650f48 = 0;
-        g_red_mask_650f4a = 0x7c00;
-        g_green_mask_650f4c = 0x03e0;
+        gusAlphaMask = 0;
+        gusRedMask = 0x7c00;
+        gusGreenMask = 0x03e0;
         g_color_key_600088 = 0x3def;
     } else if (g_pixel_format_603c48 == 9) {
-        g_alpha_mask_650f48 = 0x8000;
-        g_red_mask_650f4a = 0x7c00;
-        g_green_mask_650f4c = 0x03e0;
+        gusAlphaMask = 0x8000;
+        gusRedMask = 0x7c00;
+        gusGreenMask = 0x03e0;
         g_color_key_600088 = 0x3def;
     } else {
         return;
     }
 
-    g_blue_mask_650f4e = 0x001f;
-    g_red_shift_650f50 = 8;
-    for (bit = 0x8000; (g_red_mask_650f4a & bit) == 0; bit >>= 1) {
-        --g_red_shift_650f50;
+    gusBlueMask = 0x001f;
+    gusRedShift = 8;
+    for (bit = 0x8000; (gusRedMask & bit) == 0; bit >>= 1) {
+        --gusRedShift;
     }
-    g_green_shift_650f54 = 8;
-    for (bit = 0x8000; (g_green_mask_650f4c & bit) == 0; bit >>= 1) {
-        --g_green_shift_650f54;
+    gusGreenShift = 8;
+    for (bit = 0x8000; (gusGreenMask & bit) == 0; bit >>= 1) {
+        --gusGreenShift;
     }
-    g_blue_shift_650f52 = 8;
+    gusBlueShift = 8;
     for (bit = 0x8000; (0x001f & bit) == 0; bit >>= 1) {
-        --g_blue_shift_650f52;
+        --gusBlueShift;
     }
 }
 
@@ -435,9 +443,9 @@ unsigned char InitializePrimaryDirectDrawSurface(void)
     description.ddpfPixelFormat.dwSize = sizeof(description.ddpfPixelFormat);
     description.ddpfPixelFormat.dwFlags = DDPF_RGB;
     description.ddpfPixelFormat.dwRGBBitCount = 16;
-    description.ddpfPixelFormat.dwRBitMask = g_red_mask_650f4a;
-    description.ddpfPixelFormat.dwGBitMask = g_green_mask_650f4c;
-    description.ddpfPixelFormat.dwBBitMask = g_blue_mask_650f4e;
+    description.ddpfPixelFormat.dwRBitMask = gusRedMask;
+    description.ddpfPixelFormat.dwGBitMask = gusGreenMask;
+    description.ddpfPixelFormat.dwBBitMask = gusBlueMask;
 
     result = g_direct_draw2_6596a0->CreateSurface(
         &description, &g_primary_surface1_6596a4, NULL);

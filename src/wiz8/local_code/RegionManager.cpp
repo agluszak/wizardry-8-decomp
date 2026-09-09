@@ -13,9 +13,6 @@
 #include <new>
 #include <wchar.h>
 
-extern unsigned char g_region_help_force_enabled;
-// GLOBAL: WIZ8 0x006850d4
-unsigned char g_region_help_force_enabled;
 extern int g_help_box_width;                                /* 0x006548A0 */
 // GLOBAL: WIZ8 0x006548a0
 int g_help_box_width;
@@ -54,8 +51,7 @@ unsigned int g_current_region_index;
 wchar_t* g_default_help_text;
 unsigned int g_captured_region_index;
 unsigned int g_hover_region_index;
-unsigned short g_dword_689b48;
-unsigned int g_dword_689b50;
+unsigned int g_region_help_force_enabled;
 
 // GLOBAL: WIZ8 0x00689B32
 unsigned char g_flag_689b32;
@@ -63,6 +59,15 @@ unsigned char g_flag_689b32;
 extern unsigned short gfAltState;
 extern unsigned short gfCtrlState;
 extern unsigned short gfShiftState;
+
+// FUNCTION: WIZ8 0x004f27a0
+void SetRegionHelpDelay(int delay_ms)
+{
+    if (delay_ms == 0) {
+        delay_ms = g_settings_6850c8.tooltip_delay_ms;
+    }
+    g_region_help_delay = delay_ms;
+}
 
 // FUNCTION: WIZ8 0x004f1220
 void ReleasePointer689B40(void)
@@ -121,9 +126,9 @@ unsigned int UpdateRegionMousePosition(int x, int y)
                     previous->flags &= ~W8_REGION_HELP_SHOWN;
                 }
                 PlayButtonSound(1);
-                g_dword_689b48 = (unsigned short)g_settings_6850c8.field_025;
+                g_region_help_delay = (unsigned short)g_settings_6850c8.tooltip_delay_ms;
                 previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
-                g_dword_689b50 = 0;
+                g_region_help_force_enabled = 0;
             }
             if (previous_index != region_index) {
                 region->flags |= W8_REGION_MOUSE_ENTER;
@@ -133,10 +138,10 @@ unsigned int UpdateRegionMousePosition(int x, int y)
             region->callback(&event.event, region);
             if (g_current_region_index != previous_index) {
                 if (region->help_enabled != 0 &&
-                    (g_settings_6850c8.field_00c != 0 ||
-                     g_dword_689b50 != 0)) {
+                    (g_settings_6850c8.tooltips_enabled != 0 ||
+                     g_region_help_force_enabled != 0)) {
                     g_region_help_clock =
-                        SetCountdownClock(g_dword_689b48);
+                        SetCountdownClock(g_region_help_delay);
                 }
                 PlayButtonSound(0);
             }
@@ -157,8 +162,8 @@ unsigned int UpdateRegionMousePosition(int x, int y)
             previous->flags &= ~W8_REGION_HELP_SHOWN;
         }
         PlayButtonSound(1);
-        g_dword_689b48 = (unsigned short)g_settings_6850c8.field_025;
-        g_dword_689b50 = 0;
+        g_region_help_delay = (unsigned short)g_settings_6850c8.tooltip_delay_ms;
+        g_region_help_force_enabled = 0;
         previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
     }
     g_hover_region_index = g_current_region_index;
@@ -204,9 +209,9 @@ unsigned int FindRegionAtPoint(unsigned short x, unsigned short y)
                     ReleaseScreenTransitionObjects();
                     previous->flags &= ~W8_REGION_HELP_SHOWN;
                 }
-                g_dword_689b48 = (unsigned short)g_settings_6850c8.field_025;
+                g_region_help_delay = (unsigned short)g_settings_6850c8.tooltip_delay_ms;
                 previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
-                g_dword_689b50 = 0;
+                g_region_help_force_enabled = 0;
                 g_hover_region_index = 0;
                 g_current_region_index = 0;
             }
@@ -262,7 +267,7 @@ unsigned char DispatchRegionInput(const InputAtom* event)
 dispatch:
     W8Region* region = &g_regions[region_index];
     if (region->help_enabled != 0 &&
-        (g_settings_6850c8.field_00c != 0 ||
+        (g_settings_6850c8.tooltips_enabled != 0 ||
          g_region_help_force_enabled != 0) &&
         event->usEvent != MOUSE_POS) {
         if ((region->flags & W8_REGION_HELP_SHOWN) != 0) {
@@ -270,9 +275,9 @@ dispatch:
             region->flags &= ~W8_REGION_HELP_SHOWN;
         }
         if (region->help_enabled != 0 &&
-            (g_settings_6850c8.field_00c != 0 ||
+            (g_settings_6850c8.tooltips_enabled != 0 ||
              g_region_help_force_enabled != 0)) {
-            g_region_help_clock = SetCountdownClock(g_dword_689b48);
+            g_region_help_clock = SetCountdownClock(g_region_help_delay);
         }
     }
 
@@ -315,7 +320,7 @@ void ShowRegionHelp(unsigned int region_index)
     int width;
     int height;
 
-    if (g_settings_6850c8.field_00c == 0 && g_dword_689b50 == 0) {
+    if (g_settings_6850c8.tooltips_enabled == 0 && g_region_help_force_enabled == 0) {
         return;
     }
     region = &g_regions[region_index];
@@ -390,9 +395,9 @@ void ActivateDialogRegion(unsigned int region_index)
             ReleaseScreenTransitionObjects();
             g_regions[previous_index].flags &= ~W8_REGION_HELP_SHOWN;
         }
-        g_dword_689b48 = (unsigned short)g_settings_6850c8.field_025;
+        g_region_help_delay = (unsigned short)g_settings_6850c8.tooltip_delay_ms;
         g_regions[g_hover_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
-        g_dword_689b50 = 0;
+        g_region_help_force_enabled = 0;
         g_hover_region_index = 0;
     }
     g_regions[g_captured_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
@@ -604,12 +609,12 @@ void UpdateRegionHelp(void)
     if (g_captured_region_index == 0) {
         if (g_current_region_index != 0 &&
             g_regions[g_current_region_index].help_enabled != 0 &&
-            (g_settings_6850c8.field_00c != 0 || g_region_help_force_enabled != 0) &&
+            (g_settings_6850c8.tooltips_enabled != 0 || g_region_help_force_enabled != 0) &&
             ClockIsTicking(g_region_help_clock) == 0) {
             ShowRegionHelp(g_current_region_index);
         }
     } else if (g_regions[g_captured_region_index].help_enabled != 0 &&
-               (g_settings_6850c8.field_00c != 0 || g_region_help_force_enabled != 0) &&
+               (g_settings_6850c8.tooltips_enabled != 0 || g_region_help_force_enabled != 0) &&
                ClockIsTicking(g_region_help_clock) == 0) {
         ShowRegionHelp(g_captured_region_index);
     }
@@ -640,7 +645,7 @@ void ResetRegionHelp(unsigned char delayed)
     if (delayed == 0) {
         ShowRegionHelp(g_current_region_index);
     } else if (g_regions[g_current_region_index].help_enabled != 0 &&
-               (g_settings_6850c8.field_00c != 0 || g_region_help_force_enabled != 0)) {
+               (g_settings_6850c8.tooltips_enabled != 0 || g_region_help_force_enabled != 0)) {
         g_region_help_clock = SetCountdownClock(g_region_help_delay);
     }
 }
@@ -771,8 +776,8 @@ void ClearHotRegion004F2A80(void)
                 ReleaseScreenTransitionObjects();
                 g_regions[region_index].flags &= ~W8_REGION_HELP_SHOWN;
             }
-            g_dword_689b48 = (unsigned short)g_settings_6850c8.field_025;
-            g_dword_689b50 = 0;
+            g_region_help_delay = (unsigned short)g_settings_6850c8.tooltip_delay_ms;
+            g_region_help_force_enabled = 0;
             g_regions[g_current_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
             g_current_region_index = 0;
         }
@@ -854,6 +859,6 @@ void ResetRegions(void)
     g_current_region_index = 0;
     g_hover_region_index = 0;
     g_captured_region_index = 0;
-    g_dword_689b50 = 0;
-    g_dword_689b48 = (unsigned short)g_settings_6850c8.field_025;
+    g_region_help_force_enabled = 0;
+    g_region_help_delay = (unsigned short)g_settings_6850c8.tooltip_delay_ms;
 }

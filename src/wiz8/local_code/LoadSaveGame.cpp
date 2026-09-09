@@ -9,6 +9,7 @@
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/LoadSaveGame.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/local_code/Strings.h"
@@ -235,6 +236,97 @@ report:
         Function518510(notice);
     }
     return loaded;
+}
+
+// FUNCTION: WIZ8 0x00511df0
+void FillCurrentSaveSlot(W8SaveSlot* slot)
+{
+    slot->name[0] = 0;
+    slot->level_id = GetLoadedLevelID();
+    slot->game_time_ms = g_status_685170.game_time_ms;
+    slot->game_time_days = g_status_685170.game_time_days;
+    slot->iron_man = g_status_685170.iron_man;
+    GetLocalTime(&slot->timestamp);
+    CaptureSaveScreenshot(&slot->screenshot);
+    slot->version_major = 1;
+    slot->version_minor = 2;
+    slot->version_patch = 4;
+}
+
+// FUNCTION: WIZ8 0x00511e70
+unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots)
+{
+    W8Chunk chunks;
+    WIN32_FIND_DATAA find_data;
+    char path[260];
+    W8GlobalStatus status;
+
+    sprintf(path, "%s\\*.%s", "Saves", "SAV");
+    int first = slots->count;
+    memset(&find_data, 0, sizeof(find_data));
+    HANDLE search = FindFirstFileA(path, &find_data);
+    if (search != INVALID_HANDLE_VALUE) {
+        do {
+            sprintf(path, "%s\\%s", "Saves", find_data.cFileName);
+            if (strcmp(path, "Saves\\CurrentGame.SAV") != 0 &&
+                strlen(find_data.cFileName) < 64 && chunks.OpenRead(path)) {
+                W8SaveSlot* slot = new W8SaveSlot;
+                slot->screenshot.capture_result = 0;
+                slot->version_major = 1;
+                slot->version_minor = 0;
+                slot->version_patch = 0;
+                int count = chunks.ChunkCount();
+                for (int index = 0; index < count; ++index) {
+                    chunks.OpenChunk(0, 0);
+                    if (!chunks.CurrentChunkAtEnd()) {
+                        switch (chunks.CurrentChunkId()) {
+                        case 0x41545347:
+                            AllocateStatusBuffers(&status.buffers);
+                            LoadGameStatus(&chunks, &status);
+                            FreeStatusBuffers(&status.buffers);
+                            slot->flag_263c = status.flag_49c1;
+                            break;
+                        case 0x52455647:
+                            chunks.Read(&slot->version_major, 4, 0);
+                            chunks.Read(&slot->version_minor, 4, 0);
+                            chunks.Read(&slot->version_patch, 4, 0);
+                            break;
+                        case 0x544f4853:
+                            chunks.Read(&slot->screenshot, 0x2588, 0);
+                            break;
+                        }
+                    }
+                    chunks.SkipCurrentChunk();
+                    chunks.ReleaseCurrentChunk();
+                }
+                chunks.Close();
+                if (status.flag_49bd == 0 && status.flag_49c0 == 0) {
+                    char* extension = strrchr(find_data.cFileName, '.');
+                    if (extension != 0) {
+                        *extension = 0;
+                    }
+                    find_data.cFileName[63] = 0;
+                    swprintf(slot->name, L"%hs", find_data.cFileName);
+                    FileTimeToLocalFileTime(&find_data.ftLastWriteTime, &slot->local_write_time);
+                    FileTimeToSystemTime(&slot->local_write_time, &slot->timestamp);
+                    slot->level_id = status.current_level;
+                    slot->game_time_ms = status.game_time_ms;
+                    slot->iron_man = status.iron_man;
+                    slot->game_time_days = status.game_time_days;
+                    int position;
+                    for (position = first; position < slots->count; ++position) {
+                        if (CompareSGPFileTimes(&slot->local_write_time,
+                                &(*slots->GetAt(position))->local_write_time) > 0) {
+                            break;
+                        }
+                    }
+                    slots->InsertAt(position, slot);
+                }
+            }
+        } while (FindNextFileA(search, &find_data));
+    }
+    FindClose(search);
+    return 1;
 }
 
 /* Open one save slot and read only its game-status chunk. Startup needs the
@@ -796,9 +888,6 @@ void DeleteCurrentSaveFiles(void)
    both keep positional names. Both are zero in the shipped image. */
 extern unsigned char g_flag_006875a5;
 
-// GLOBAL: WIZ8 0x0068510d
-unsigned char g_flag_0068510d;
-
 /* gXStatus.fCombatMode and gXStatus.fCampMode reach this unit through
    combat_state.h, so they are used rather than redeclared. 0x00683F97 has no
    header owner and is declared here under the
@@ -812,7 +901,7 @@ unsigned char g_flag_0068510d;
    and one for the save. The chain breaks around each call because a call cannot
    be hoisted into a short-circuit, which is what the decompiler's nesting is.
 
-   g_save_flag_00687599 does double duty: it both admits a save that the
+   g_status_685170.iron_man does double duty: it both admits a save that the
    0x0068510d gate would otherwise refuse for a forced call, and selects the
    name, so a save made under it overwrites the current slot instead of the
    fixed AutoSave one. */
@@ -823,7 +912,7 @@ unsigned char AutoSaveIfAllowed(char forced)
 
     g_save_notice_shown_0068506b = 0;
     if (g_flag_006875a5 == 0 && AnyMonsterDying() == 0
-        && ((g_flag_0068510d != 0 && forced == 0) || g_save_flag_00687599 != 0)
+        && ((g_settings_6850c8.auto_save != 0 && forced == 0) || g_status_685170.iron_man != 0)
         && gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0
         && (char)IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.field_01f == 0
         && gXStatus.fCampMode == 0) {
@@ -832,7 +921,7 @@ unsigned char AutoSaveIfAllowed(char forced)
            arm's own destination `lea` and source load, which is the canonical
            encoding; funnelling both arms through one pointer costs the extra
            move that a selected argument needs. */
-        if (g_save_flag_00687599 != 0) {
+        if (g_status_685170.iron_man != 0) {
             strcpy(name, ConvertWideStringToString((const wchar_t*)GetAddress69C1CC()));
         } else {
             strcpy(name, "AutoSave");
@@ -869,7 +958,7 @@ unsigned char SaveSlotFileExists(const char* slot_name)
 // FUNCTION: WIZ8 0x00515ac0
 void ReportSaveFailed(char quiet)
 {
-    if (quiet == 0 || g_save_flag_00687599 != 0) {
+    if (quiet == 0 || g_status_685170.iron_man != 0) {
         g_save_notice_shown_0068506b = 1;
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
             ShowNotice(0xc, gppStringList[0x1e0c / 4], -1, -1, 0);

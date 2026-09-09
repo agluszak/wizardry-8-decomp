@@ -77,12 +77,12 @@ unsigned char InitializeGame(void)
     }
     InitButtonSystem();
     InitializeRegionHelpState();
-    if (g_settings_6850c8.field_00c) {
+    if (g_settings_6850c8.tooltips_enabled) {
         EnableMouseFastHelp();
     } else {
         DisableMouseFastHelp();
     }
-    SetFastHelpDelay((unsigned short)g_settings_6850c8.field_025);
+    SetFastHelpDelay((unsigned short)g_settings_6850c8.tooltip_delay_ms);
     Function54AF30(0);
     InitializeGameplayRuntimeObjects();
     UpdateHeldItemCursor();

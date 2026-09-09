@@ -173,6 +173,11 @@
 // LIBRARY: WIZ8 0x00402FA0
 // ColorFillVideoSurfaceArea
 
+/* The pinned himage.c owns this RGB-to-16-bit conversion. The recovered copy
+   incorrectly treated unspecified upper return-register bits as source code. */
+// LIBRARY: WIZ8 0x004104B0
+// Get16BPPColor
+
 // LIBRARY: WIZ8 0x004045B0
 // InternalShadowVideoSurfaceRect
 
@@ -434,10 +439,6 @@
 // mprintf_buffer
 
 extern unsigned char g_fullscreen_603c39;
-extern unsigned short g_red_mask_650f4a;
-extern unsigned short g_green_mask_650f4c;
-extern unsigned short g_blue_mask_650f4e;
-extern unsigned short g_alpha_mask_650f48;
 extern int g_screen_width_603c3c;
 extern int g_screen_height_603c40;
 extern int g_screen_depth_603c44;
@@ -505,9 +506,9 @@ void UnlockMouseBuffer(void)
 unsigned char GetPrimaryRGBDistributionMasks(
     unsigned int* red, unsigned int* green, unsigned int* blue)
 {
-    *red = g_red_mask_650f4a;
-    *green = g_green_mask_650f4c;
-    *blue = g_blue_mask_650f4e;
+    *red = gusRedMask;
+    *green = gusGreenMask;
+    *blue = gusBlueMask;
     return 1;
 }
 

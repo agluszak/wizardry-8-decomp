@@ -80,7 +80,6 @@ extern void Function59B940(void);
 extern void Function59BDB0(void);
 extern void Function55F2C0(void);
 extern void SetSurfaceClipBounds00413FD0(int, int, int, int, int);
-extern void Function425570(int enabled);
 extern void Function58AC00(int, const wchar_t*, int, int, int);
 extern void Function58AAD0(int, const wchar_t*, const wchar_t*);
 extern void Function55D3C0(void);
@@ -469,7 +468,7 @@ unsigned char MainGameScreenEnter(void)
         ClearHeldItemDisplay();
     }
     Function53A320(0);
-    Function425570(1);
+    SetPrimarySurfaceTextureHint2Enabled(1);
     if (gXStatus.field_024) {
         Function587510(0);
     }
@@ -647,7 +646,7 @@ update_screen:
     if (!IsWorldCursorVisible()) {
         if (!g_modal_owner_0068edd0) {
             if ((!Function525DF0(1) || !gXStatus.field_01f) &&
-                !g_status_685170.unknown_2429[12]) {
+                !g_status_685170.unknown_242a[11]) {
                 g_level_block->hover_region = UpdateRegionMousePosition(point.x, point.y);
             }
             else {

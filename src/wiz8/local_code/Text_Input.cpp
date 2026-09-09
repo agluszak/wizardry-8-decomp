@@ -1,4 +1,5 @@
 #include "wiz8/font_manager.h"
+#include "wiz8/input_hooks.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/dirty_tiles.h"
@@ -11,6 +12,7 @@
 #include "Types.h"
 #include "mousesystem.h"
 #include "vobject_blitters.h"
+#include "vsurface.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -91,8 +93,6 @@ extern "C" {
 unsigned char gfEditingText;
 }
 extern const wchar_t g_wchar_00689b34;
-extern unsigned char FillSurfaceRect(int surface_id, int left, int top,
-                                     int right, int bottom, int colour);
 extern void Function55EE70(int value);
 
 // FUNCTION: WIZ8 0x0055ef80
@@ -118,7 +118,6 @@ static unsigned char gubMouseDownPos;
 static int gsCursorX;
 static size_t guiVisibleCount;
 
-unsigned short Function402780(unsigned short key, unsigned char modifiers);
 unsigned short Function402800(unsigned short character);
 unsigned short Function402820(unsigned short character);
 unsigned short Function402840(unsigned short character);
@@ -689,7 +688,7 @@ unsigned int HandleTextInput(const InputAtom* input)
         break;
     }
 
-    unsigned int character = Function402780((unsigned short)input->usParam,
+    unsigned int character = TranslateKeyToCharacter((unsigned short)input->usParam,
                                             input->usKeyState);
     if (character == 0) return 1;
     if (character == 0x25 || character == 0x5c) return 0;
@@ -1079,8 +1078,8 @@ void RenderBackgroundField(TEXTINPUTNODE* field)
     int bottom = field->region.RegionBottomRightY;
 
     if (style->fBevelling != 0) {
-        FillSurfaceRect(-14, left, top, right, bottom, style->usDarkerColor);
-        FillSurfaceRect(-14, left + 1, top + 1, right, bottom, style->usBrighterColor);
+        ColorFillVideoSurfaceArea(-14, left, top, right, bottom, style->usDarkerColor);
+        ColorFillVideoSurfaceArea(-14, left + 1, top + 1, right, bottom, style->usBrighterColor);
     }
 
     unsigned short colour;
@@ -1091,7 +1090,7 @@ void RenderBackgroundField(TEXTINPUTNODE* field)
     if (field->flag_60 != 0 && field != gpActive)
         colour = style->usWizardryInactiveColor;
 
-    FillSurfaceRect(-14, left, top, right, bottom, colour);
+    ColorFillVideoSurfaceArea(-14, left, top, right, bottom, colour);
     MarkScreenRectDirty(left, top, right, bottom, 0);
 }
 
@@ -1197,7 +1196,7 @@ void RenderActiveTextField(void)
         int left = field->region.RegionTopLeftX +
                    gsCursorX;
         int top = field->region.RegionTopLeftY + vertical_offset;
-        FillSurfaceRect(-14, left, top, left + 1, top + font_height,
+        ColorFillVideoSurfaceArea(-14, left, top, left + 1, top + font_height,
                         pColors->usCursorColor);
     }
     RestoreFontSettings();

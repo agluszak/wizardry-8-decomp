@@ -601,14 +601,14 @@ unsigned int ScaleByCombatPace(int party_slot, unsigned int* value)
         return gXStatus.fCombatMode;
     }
 
-    if (g_settings_6850c8.field_00d == 0) {
+    if (g_settings_6850c8.difficulty == 0) {
         pace = 0x50;
     }
-    else if (g_settings_6850c8.field_00d == 1) {
+    else if (g_settings_6850c8.difficulty == 1) {
         pace = 0x3c;
     }
     else {
-        if (g_settings_6850c8.field_00d != 2) {
+        if (g_settings_6850c8.difficulty != 2) {
             srAssertFail("FALSE", MAGIC_CPP, 5352, 0);
         }
         pace = 0x28;

@@ -225,6 +225,26 @@ void stSurface2D::invalidateTiles()
     }
 }
 
+// FUNCTION: WIZ8 0x0047E370
+void stSurface2D::setTextureHint2Enabled(unsigned char enabled)
+{
+    if (!enabled) {
+        flags &= ~0x800000UL;
+        for (int index = 0; index < tile_count; ++index) {
+            tiles[index]->disableHint((srTextureIFace::e_hint)2);
+            tiles[index]->enableHint((srTextureIFace::e_hint)1);
+            tiles[index]->invalidate();
+        }
+    } else {
+        flags |= 0x800000UL;
+        for (int index = 0; index < tile_count; ++index) {
+            tiles[index]->disableHint((srTextureIFace::e_hint)1);
+            tiles[index]->enableHint((srTextureIFace::e_hint)2);
+            tiles[index]->invalidate();
+        }
+    }
+}
+
 /* Retail 0x0047E450. The locked surface and pitch are deliberately retained in
    the ABI even though SurRender obtains the pixels through each stTexture2D's
    source surface. Keeping the source locked brackets the immediate partial

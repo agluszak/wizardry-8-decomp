@@ -17,21 +17,29 @@ just build runtime
 just run
 ```
 
-`just run` does not build, invoke Python, configure the registry, or catch failures. It passes the
-released SGP `/WINDOW` option so a development run cannot take exclusive control of the desktop. It seeds the two
-reviewed CFG files when absent and creates one managed `Wiz8Runtime.exe` symlink in the retail
+`just run` does not build, invoke Python, configure Wine, or catch failures. It passes the released
+SGP `/WINDOW` option so a development run cannot take exclusive control of the desktop. It seeds the
+two reviewed CFG files when absent and creates one managed `Wiz8Runtime.exe` symlink in the retail
 directory; Wine otherwise searches beside the build-tree EXE and substitutes a fake `SR.dll`.
-It defaults `WINEDEBUG` to `-all`; set it explicitly to enable Wine tracing. A native crash is
-reported directly by Wine.
-Use the separate debugger only when debugging is intended:
+
+Use the retail executable as the runtime oracle in the same directory, with the same CFG files and
+arguments:
+
+```sh
+just run-original
+```
+
+If the retail executable fails, correct the shared Wine environment before diagnosing the recovered
+image. If retail succeeds and the recovered image fails, investigate the recovered code. Run that
+same recovered image under Wine's debugger with:
 
 ```sh
 just debug
 ```
 
-The debugger is interactive: there is no wrapper timeout, default backtrace, or command-forwarding
-syntax. Its small launcher owns the Wine process so quitting GDB does not leave the game running,
-and it resolves the sound-startup breakpoint from `build/decomp/Wiz8Runtime.map`.
+`just debug` clears stale wineserver state, feeds `cont`, `bt`, and `quit` to `winedbg` by default,
+and accepts a replacement script through `DEBUG_SCRIPT`. It uses no GDB proxy, MAP parsing, port
+allocation, or automatic subsystem-specific breakpoints.
 
 The runtime now reaches the main-menu state, but the recovered presentation remains visually
 incomplete. Continue that recovery in this order:
@@ -60,8 +68,9 @@ candidates in-process; Python symbolizes recovered-image candidates against `Wiz
 It never launches GDB or reruns a failed scenario. Off-screen Wine is configured to own its windows
 because Xvfb has no window manager.
 Mouse and keyboard events still traverse released SGP input and the recovered region callbacks.
-Exiting the launcher terminates only this dedicated Wine prefix. The launcher stays attached to the
-game and returns its status instead of guessing its lifetime from Wine's desktop helper.
+Exiting the runtime-test harness terminates only its dedicated Wine prefix. The harness stays
+attached to the game and returns its status instead of guessing its lifetime from Wine's desktop
+helper.
 
 `just build <target> --jobs <count>` invokes the pinned 32-bit JOM 1.1.3 through the Python build
 driver. It validates the checkout-local build directory and configures automatically when required;

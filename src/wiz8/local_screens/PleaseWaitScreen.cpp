@@ -74,7 +74,6 @@ unsigned char g_cd_marker_present_69b7d0;
 /* Engine Code\Levels.cpp owns this with C++ linkage. */
 
 #include "line.h"
-extern void Function425570(int value);
 /* 0x00412A10; the reviewed identity Ghidra carries. Nothing defines it yet. */
 extern void RefreshSlfArchives(void);
 extern int Function509750(void);
@@ -160,7 +159,7 @@ unsigned char PleaseWaitScreenEnter(void)
     ResetRegions();
     SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
     SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
-    Function425570(0);
+    SetPrimarySurfaceTextureHint2Enabled(0);
     ClearFlag603C60();
     g_load_descriptor_69b7c8->caption_y = 0;
     g_load_descriptor_69b7c8->entered_tick = GetTickCount();

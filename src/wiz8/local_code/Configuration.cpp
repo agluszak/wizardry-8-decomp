@@ -1,6 +1,7 @@
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "surrender/srGERD.h"
 #include "wiz8/local_code/Configuration.h"
+#include "wiz8/chunk.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/render_state.h"
 #include "wiz8/wiz8_windows.h"
@@ -10,6 +11,7 @@
 #include <string.h>
 
 
+// GLOBAL: WIZ8 0x006850c8
 W8GameSettings g_settings_6850c8;
 int g_music_sample_handle_60aae0 = -1;
 
@@ -58,48 +60,41 @@ void SetDisplayGamma(float value)
     g_gerd_659634->setGamma(gamma);
 }
 
-/* The 3D setup record is a 14-byte RIFF-like header followed by chunks with a
-   four-byte tag, two reserved bytes, a little-endian length and payload.  The
-   CNFG payload is the reviewed 0xa4-byte W8GameSettings block. */
+/* Configuration.cpp reads CNFG and QLTY through the ordinary chunk reader.
+   KEYM and the default-file save path remain unrecovered. */
 // FUNCTION: WIZ8 0x0054b810
 void LoadGameConfiguration(void)
 {
-    FILE* file = fopen("Wiz8.CFG", "rb");
-    unsigned char header[14];
+    W8Chunk file;
     bool loaded = false;
 
-    if (file && fread(header, sizeof(header), 1, file) == 1
-        && memcmp(header, "RIFF", 4) == 0) {
-        for (;;) {
-            char tag[4];
-            unsigned short reserved;
-            unsigned int size;
-            if (fread(tag, sizeof(tag), 1, file) != 1
-                || fread(&reserved, sizeof(reserved), 1, file) != 1
-                || fread(&size, sizeof(size), 1, file) != 1) {
-                break;
+    if (file.OpenRead("Wiz8.CFG")) {
+        int count = file.ChunkCount();
+        for (int index = 0; index < count; ++index) {
+            file.OpenChunk(0, 0);
+            unsigned int id = file.CurrentChunkId();
+            if (id == 0x47464e43) {
+                if (file.CurrentChunkExtent() == sizeof(g_settings_6850c8)) {
+                    file.Read(&g_settings_6850c8, sizeof(g_settings_6850c8), 0);
+                    loaded = true;
+                }
+            } else if (id == 0x59544c51) {
+                LoadRenderOptions0047B890(file.m_hFile);
             }
-            if (memcmp(tag, "CNFG", 4) == 0
-                && size == sizeof(g_settings_6850c8)) {
-                loaded = fread(&g_settings_6850c8, size, 1, file) == 1;
-                break;
-            }
-            fseek(file, size, SEEK_CUR);
+            file.SkipCurrentChunk();
+            file.ReleaseCurrentChunk();
         }
-    }
-    if (file) {
-        fclose(file);
+        file.Close();
     }
     if (!loaded) {
         Function54B560();
     }
     SoundSetDefaultVolume(g_settings_6850c8.field_02e);
     SetMusicVolume(g_settings_6850c8.field_02f);
-    float gamma;
-    memcpy(&gamma, &g_settings_6850c8.field_03c, sizeof(gamma));
+    float gamma = g_settings_6850c8.gamma;
     if (gamma < 0.5f || gamma > 2.0f) {
         gamma = 1.0f;
-        memcpy(&g_settings_6850c8.field_03c, &gamma, sizeof(gamma));
+        g_settings_6850c8.gamma = gamma;
     }
     SetDisplayGamma(gamma);
 }

@@ -40,7 +40,6 @@ extern "C" {
 
 #include "FileMan.h"
 
-extern void Function425570(int enabled);
 extern void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x,
                                         unsigned short y, char right_button,
                                         char left_button);
@@ -709,7 +708,7 @@ W8Character* W8CharacterScreen::GetOriginalCharacter()
 unsigned char CharacterScreenEnter(void)
 {
     SetViewport(0, 0, 0x280, 0x1e0);
-    Function425570(0);
+    SetPrimarySurfaceTextureHint2Enabled(0);
     MSYS_Init();
     ResetRegions();
     UpdateHeldItemCursor();

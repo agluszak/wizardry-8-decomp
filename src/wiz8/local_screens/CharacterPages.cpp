@@ -1,6 +1,7 @@
 #include "wiz8/character.h"
 #include "wiz8/render_state.h"
 #include "wiz8/local_code/ControlsRect.h"
+#include "wiz8/input_hooks.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/local_code/ControlSelection.h"
@@ -30,7 +31,6 @@ int g_character_page2_category_geometry_64ef90[5][2] = {
 // GLOBAL: WIZ8 0x0064efb8
 int g_character_page2_category_frames_64efb8[5] = {2, 3, 0, 1, 4};
 extern unsigned short g_character_skill_name_ids_61e454[84];
-extern unsigned short Function402780(unsigned short key, unsigned char modifiers);
 
 struct W8PortraitGroup {
     int count;
@@ -705,7 +705,7 @@ void W8CharacterPage005EF57C::HandleInput(InputAtom* input)
         return;
     }
 
-    unsigned short character = Function402780(
+    unsigned short character = TranslateKeyToCharacter(
         static_cast<unsigned short>(input->usParam), input->usKeyState);
     if (character != 0 &&
         strchr("\\/:*?\"<>|", static_cast<unsigned char>(character)) != 0) {
