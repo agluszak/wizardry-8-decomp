@@ -185,7 +185,8 @@ int g_value_006850b0;
 // GLOBAL: WIZ8 0x00687607
 unsigned char g_flag_00687607;
 
-extern char g_ambient_sound_filename_006059e0[];
+// GLOBAL: WIZ8 0x006059E0
+char g_ambient_sound_filename_006059e0[] = "SCF";
 extern const char* g_sky_names_00605880[];
 
 /* Resolve a database level number into all level and sky resource paths. The
