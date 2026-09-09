@@ -47,6 +47,7 @@ extern "C" stTextureAnim* g_environment_value_0065a168;
 extern "C" stTextureAnim* g_environment_value_0065a16c;
 extern "C" stTextureAnim* g_environment_value_0065a170;
 extern "C" srVector3T<float> g_environment_origin_65ad88;
+extern const double g_zero_5ebb40;
 unsigned long g_tick_65b9a8;
 /* 0x00659AB4: the world being rendered. Its sky node is the one field these
    two bodies reach, and it is the same W8World the 3d code walks. */
@@ -431,6 +432,67 @@ void EnableSky(void)
             reinterpret_cast<const int*>(&g_environment_colours_65ad98[phase]));
         g_environment_value_0060a3a8 = (int)phase;
     }
+}
+
+// GLOBAL: WIZ8 0x005ebc30
+const double g_double_005ebc30 = 1.0;
+
+// GLOBAL: WIZ8 0x0060a3b0
+int g_environment_value_0060a3b0 = -1;
+
+/* Advance the clock-driven sky and refresh the world's environment colour
+   from the day-phase table when the phase turns over. */
+// FUNCTION: WIZ8 0x00483560
+void RefreshEnvironment00483560(void)
+{
+    if (g_environment_flag_0060a394 != 0) {
+        unsigned long now = GetTickCount();
+        unsigned long elapsed = now < g_tick_65b9a8
+                                    ? now - g_tick_65b9a8 - 1
+                                    : now - g_tick_65b9a8;
+        if (elapsed != 0) {
+            Function482A20((int)((double)elapsed * g_view_distance_0060a390));
+        }
+    }
+    unsigned int phase =
+        (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) / 86400U;
+    if (phase != (unsigned int)g_environment_value_0060a3b0) {
+        EnvironmentColour colour = g_environment_colours_65a178[phase];
+        if (g_world == 0) {
+            srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
+            srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
+        }
+        SetWorldEnvironment00483BA0(
+            g_world, g_world->environment_intensity_024, &colour);
+        g_environment_value_0060a3b0 = (int)phase;
+    }
+}
+
+/* Set the world's environment intensity, clamped to the unit range, keeping
+   its current colour unless the world has no static scene to take it from. */
+// FUNCTION: WIZ8 0x00483AE0
+void SetWorldEnvironmentValue00483AE0(W8World* world, float value)
+{
+    EnvironmentColour colour;
+
+    if (world == 0) {
+        srAssertFail("pWorld", ENVIRONMENT_CPP, 0x298, 0);
+    }
+    if (g_double_005ebc30 <= value || g_zero_5ebb40 < value) {
+        if (g_double_005ebc30 <= value) {
+            value = (float)g_double_005ebc30;
+        }
+    }
+    else {
+        value = (float)g_zero_5ebb40;
+    }
+    if (world->static_scene == 0) {
+        colour.red = 0.0f;
+        colour.green = 0.0f;
+        SetWorldEnvironment00483BA0(world, value, &colour);
+        return;
+    }
+    SetWorldEnvironment00483BA0(world, value, &world->environment_colour_02c);
 }
 
 // FUNCTION: WIZ8 0x00482F60

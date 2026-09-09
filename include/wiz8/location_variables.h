@@ -11,5 +11,6 @@ extern "C" {
 extern int g_loaded_level_id;
 
 int GetLocationVarIDByName(const char* name);
+void SetTriggerVariableByName00444030(const char* name, int value);
 
 }

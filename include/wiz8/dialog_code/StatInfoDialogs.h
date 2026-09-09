@@ -1,6 +1,9 @@
 #pragma once
 
 #include "wiz8/dialog_code/DialogBase.h"
+#include "wiz8/dialog_code/DialogButton.h"
+#include "wiz8/dialog_code/DialogScrollBar.h"
+#include "wiz8/dialog_code/DialogTextArea.h"
 
 /* Shared storage for the two attribute-information dialogs. The base has no
    accepted original name yet, so its constructor address remains in the name. */
@@ -10,7 +13,9 @@ public:
     virtual ~W8StatInfoDialogBase005DF880() override;
 
 protected:
-    unsigned char unknown_054[0xec];
+    W8DialogScrollBar scrollbar_054;
+    W8DialogButton button_0a0;
+    W8DialogTextArea textarea_0e8;
 };
 
 class W8StatInfoDialog005DFC70 : public W8StatInfoDialogBase005DF880 {

@@ -1,4 +1,5 @@
 #include "wiz8/dialog_code/StatInfoDialogs.h"
+#include "wiz8/bringup_gates.h"
 #include "wiz8/sr_api.h"
 
 /* Dialog Code\StatInfoDialogs.cpp. Two attribute-info dialogs whose
@@ -28,6 +29,22 @@ unsigned short g_attr_table_61E50C[50] = {
     0x334, 0x335, 0x336, 0x337, 0x338, 0x339, 0x33a, 0x33b, 0x33c, 0x33d,
     0x33e, 0x33f, 0x340, 0x341, 0x342, 0x343, 0x344, 0x345, 0x346, 0x347,
 };
+
+// FUNCTION: WIZ8 0x005df880
+W8StatInfoDialogBase005DF880::W8StatInfoDialogBase005DF880()
+{
+    SetOrigin(0x9c, 0x69);
+    SetExtent(0x14a, 0x10e);
+    SetBackground("Data\\Dialogs\\popup_monsterinfo.sti", 0);
+}
+
+// FUNCTION: WIZ8 0x005DF940
+W8StatInfoDialogBase005DF880::~W8StatInfoDialogBase005DF880()
+{
+    scrollbar_054.DestroyControls();
+    W8DialogBase::DestroyControls();
+    NoOp();
+}
 
 // FUNCTION: WIZ8 0x005dfc70
 W8StatInfoDialog005DFC70::W8StatInfoDialog005DFC70(unsigned int uiIndex)

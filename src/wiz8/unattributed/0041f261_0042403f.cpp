@@ -27,7 +27,7 @@ const double g_double_005ebc18 = 3.141592653589793;
 // GLOBAL: WIZ8 0x00652940
 float g_origin_652940[3] = { 0.0f, 0.0f, 0.0f };
 // GLOBAL: WIZ8 0x005EBB40
-const double g_zero_5ebb40 = 0.0;
+extern const double g_zero_5ebb40 = 0.0;
 extern const float g_float_005ebcf8;
 
 // FUNCTION: WIZ8 0x00420b40

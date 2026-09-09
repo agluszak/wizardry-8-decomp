@@ -770,6 +770,35 @@ void Function445200(Trigger* trigger)
     }
 }
 
+/* Set a location variable by name when it belongs to the current level. An
+   unknown name fails the lookup assertion; the value only lands while the
+   value list still covers the found index. */
+// FUNCTION: WIZ8 0x00444030
+void SetTriggerVariableByName00444030(const char* name, int value)
+{
+    int count = g_location_variable_names_006598f8.GetCount();
+    int index;
+
+    for (index = 0; index < count; ++index) {
+        if (_stricmp(
+                *g_location_variable_names_006598f8.GetAt(index), name) == 0 &&
+            *g_location_variable_levels_006598e0.GetAt(index) ==
+                g_status_685170.current_level) {
+            break;
+        }
+    }
+    if (index >= count) {
+        index = -1;
+        srAssertFail(
+            "iVar != BAD_INDEX",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+            0x10c9, 0);
+    }
+    if (index < g_location_variable_values_00659990.GetCount()) {
+        *g_location_variable_values_00659990.GetAt(index) = value;
+    }
+}
+
 // VTABLE: WIZ8 0x005ec138
 // class W8TriggerActionData
 

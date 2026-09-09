@@ -26,6 +26,7 @@
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/engine_code/game_timer.h"
+#include "wiz8/location_variables.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/stTextureAnim.h"
@@ -69,7 +70,6 @@ extern unsigned char FindEntityByName(
     srVector3T<float>* position,
     int* value,
     srVector3T<float>* direction);
-extern void SetTriggerVariableByName00444030(const char* name, int value);
 extern const float g_monster_rotation_offset_005ec04c;
 // GLOBAL: WIZ8 0x005ebcf8
 const float g_float_005ebcf8 = 0.0055555556900799274f;

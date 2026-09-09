@@ -80,7 +80,6 @@ extern void FinalizeWorldTriggers00448840(void);
 extern void UpdateCameraView00450080(srCamera* camera, int mode);
 extern void FinalizeWorldScenes0046F410(
     srScene* static_scene, srNode* dynamic_scene);
-extern void RefreshEnvironment00483560(void);
 extern unsigned char ReadAutomapNodes00584DD0(int hFile);
 
 // FUNCTION: WIZ8 0x004BC060

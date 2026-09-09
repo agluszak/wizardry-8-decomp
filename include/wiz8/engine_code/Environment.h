@@ -27,6 +27,7 @@ unsigned char ReadEnvironmentColourTable004830D0(int hFile);
 void BuildEnvironmentColourRamp00483210(void);
 void BuildLightColourRamp00483360(void);
 void UpdateEnvironmentLight004834B0(void);
+void RefreshEnvironment00483560(void);
 void SetWorldEnvironment00483BA0(
     W8World* world, float intensity, const EnvironmentColour* colour);
 void SetWorldEnvironmentColour00483A60(

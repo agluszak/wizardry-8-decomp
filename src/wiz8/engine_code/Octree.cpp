@@ -1716,6 +1716,27 @@ void W8Octree::WorldPositionToCell00431440(
     (void)inside;
 }
 
+/* Clamp a position under the spatial ceiling, settle it to the ground through
+   the surface walk, and keep the settled height only when something was hit.
+   The walk reports through the flag; the height it wrote is discarded on a
+   miss. */
+// FUNCTION: WIZ8 0x00431DA0
+void W8Octree::AdjustPosition00431DA0(
+    srVector3T<float>* position, unsigned int mode)
+{
+    srVector3T<float> adjusted;
+    unsigned char hit = 0;
+
+    if (spatial_000.clipped_maximum_30.y < position->y) {
+        position->y = spatial_000.clipped_maximum_30.y;
+    }
+    adjusted = *position;
+    SettleToGround00433820(&adjusted, &hit, mode, 200.0f);
+    if (hit != 0) {
+        position->y = adjusted.y;
+    }
+}
+
 /* Step one navigator's movement tail towards its target.
 
    With a pathing service present the work belongs to that service, and which of

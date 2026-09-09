@@ -1,4 +1,5 @@
 #include "wiz8/dialog_code/ProfRaceInfoDialog.h"
+#include "wiz8/bringup_gates.h"
 
 // GLOBAL: WIZ8 0x00614cf0
 W8AttributeMinimums g_race_attribute_minimums[11] = {
@@ -57,6 +58,22 @@ W8ProfRaceInfoRow g_race_info_rows[16] = {
 
 /* Copies the row straight out of the table: every profession has minimums, so
    there is no per-entry test the way the race dialog needs one. */
+// FUNCTION: WIZ8 0x005DEAF0
+W8ProfRaceInfoDialogBase005DEAF0::W8ProfRaceInfoDialogBase005DEAF0()
+{
+    SetOrigin(0x85, 0x69);
+    SetExtent(0x177, 0x10e);
+    SetBackground("Data\\Dialogs\\popup_race_profession.sti", 0);
+}
+
+// FUNCTION: WIZ8 0x005DEBB0
+W8ProfRaceInfoDialogBase005DEAF0::~W8ProfRaceInfoDialogBase005DEAF0()
+{
+    scrollbar_084.DestroyControls();
+    W8DialogBase::DestroyControls();
+    NoOp();
+}
+
 // FUNCTION: WIZ8 0x005df0d0
 W8ProfessionInfoDialog005EFBFC::W8ProfessionInfoDialog005EFBFC(unsigned int uiIndex)
 {
