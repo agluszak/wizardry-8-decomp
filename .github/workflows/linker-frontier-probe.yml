@@ -23,15 +23,10 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p build/ci-sources
-
-          # WIZ8 itself links zlib, so use the exact confirmed source.
           curl -L --fail --retry 3 --max-time 120 -o build/ci-sources/zlib.tar.gz \
             https://zlib.net/fossils/zlib-1.0.4.tar.gz
           echo 'e5c260cd3db1370fb3e0c193e9cbd9f127a9bd055d622b3fb55b82747f6e5b24  build/ci-sources/zlib.tar.gz' | sha256sum -c -
           tar -C build/ci-sources -xzf build/ci-sources/zlib.tar.gz
-
-          # JPEG and Info-ZIP belong to separate DLL targets. CMake needs their
-          # source paths to exist at generation time, but WIZ8 never builds them.
           python - <<'PY'
           from pathlib import Path
 
@@ -45,16 +40,8 @@ jobs:
                       path.parent.mkdir(parents=True, exist_ok=True)
                       path.touch()
 
-          materialize(
-              'src/srext_jpegimporter/CMakeLists.txt',
-              'IJG_JPEG_UNITS',
-              'build/ci-sources/jpeg-6',
-          )
-          materialize(
-              'src/srext_unzip/CMakeLists.txt',
-              'INFOZIP_UNZIP_SOURCES',
-              'build/ci-sources/infozip',
-          )
+          materialize('src/srext_jpegimporter/CMakeLists.txt', 'IJG_JPEG_UNITS', 'build/ci-sources/jpeg-6')
+          materialize('src/srext_unzip/CMakeLists.txt', 'INFOZIP_UNZIP_SOURCES', 'build/ci-sources/infozip')
           PY
 
       - name: Build pinned VC6 image
@@ -102,19 +89,58 @@ jobs:
           uv run python - <<'PY'
           import json
           from pathlib import Path
-          from wiz8decomp.unresolved import unresolved_report
+          from wiz8decomp.unresolved import object_symbols, parse_map_publics, unresolved_report
 
-          report = unresolved_report(
-              Path('build/decomp/CMakeFiles/wiz8_recovered_objects.dir'),
-              Path('build/decomp/Wiz8.map'),
-          )
-          Path('build/unresolved-frontier.json').write_text(
-              json.dumps(report, indent=2) + '\n', encoding='utf-8'
-          )
+          root = Path('build/decomp/CMakeFiles/wiz8_recovered_objects.dir')
+          map_path = Path('build/decomp/Wiz8.map')
+          report = unresolved_report(root, map_path)
+
+          defined = set(parse_map_publics(map_path))
+          for obj in root.rglob('*.obj'):
+              if any(part.endswith('.dir') for part in obj.parts):
+                  provided, _ = object_symbols(obj)
+                  defined.update(provided)
+
+          def stem(symbol: str) -> str | None:
+              if symbol.startswith('?') and '@@' in symbol:
+                  return symbol.split('@@', 1)[0] + '@@'
+              if symbol.startswith('_') and symbol[1:].isidentifier():
+                  return symbol[1:]
+              return None
+
+          by_stem = {}
+          for symbol in defined:
+              key = stem(symbol)
+              if key:
+                  by_stem.setdefault(key, []).append(symbol)
+              if symbol.startswith('?') and '@@' in symbol:
+                  plain = symbol[1:].split('@@', 1)[0]
+                  if '@' not in plain:
+                      by_stem.setdefault(plain, []).append(symbol)
+
+          near = {}
+          for symbol in report['by_symbol']:
+              keys = []
+              key = stem(symbol)
+              if key:
+                  keys.append(key)
+              if symbol.startswith('?') and '@@' in symbol:
+                  plain = symbol[1:].split('@@', 1)[0]
+                  if '@' not in plain:
+                      keys.append(plain)
+              candidates = sorted({candidate for key in keys for candidate in by_stem.get(key, ()) if candidate != symbol})
+              if candidates:
+                  near[symbol] = candidates
+
+          payload = {'report': report, 'near_matches': near}
+          Path('build/unresolved-frontier.json').write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
           print(f"UNRESOLVED_SYMBOLS={report['unresolved_symbols']}")
           print(f"UNITS_WITH_UNRESOLVED={report['units_with_unresolved']}")
-          for row in report['ranked_units'][:20]:
-              print(f"{row['unresolved_count']:4d} {row['unit']}")
+          print(f"ABI_NEAR_MATCHES={len(near)}")
+          for symbol, candidates in list(sorted(near.items()))[:80]:
+              print(symbol)
+              for candidate in candidates:
+                  print(f"  -> {candidate}")
           PY
 
       - uses: actions/upload-artifact@v4
