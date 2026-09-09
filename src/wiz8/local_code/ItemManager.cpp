@@ -460,7 +460,7 @@ unsigned int ItemIndex(int runtime_id)
     return 0;
 }
 
-extern void GetPartyEyePosition(void* position);                         /* 0x00421070 */
+extern void GetCameraPosition(srVector3T<float>* position);               /* 0x00421070 */
 extern void GetWorldItemBounds(float* lower, float* upper);              /* 0x0049FB30 */
 extern void RemoveItemFromSector(int sector, W8WorldItem* item);         /* 0x004B7B50 */
 extern void AddItemToSector(int sector, W8WorldItem* item);              /* 0x004B7AD0 */
@@ -542,7 +542,7 @@ unsigned char IsWorldItemWithinReach(W8Item* owner, const float* from, float rad
     float dz;
 
     owner->m_pRep->GetLocation004B8890(&position);
-    GetPartyEyePosition(eye);
+    GetCameraPosition(reinterpret_cast<srVector3T<float>*>(eye));
 
     dx = position.x - from[0];
     dy = position.y - from[1];

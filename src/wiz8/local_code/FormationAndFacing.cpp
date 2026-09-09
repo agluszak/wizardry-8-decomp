@@ -14,7 +14,7 @@
 /* Original translation unit: Local Code\Formation & Facing.cpp. */
 
 /* Fills in the party's own world position. */
-extern void GetPartyPosition(srVector3T<float>* position);          /* 0x00421070 */
+extern void GetCameraPosition(srVector3T<float>* position);          /* 0x00421070 */
 /* A full turn, and the half-quadrant the bearing is biased by so that a
    quadrant is centred on its facing rather than starting at it. */
 enum { W8_DEGREES_PER_TURN = 360, W8_DEGREES_PER_QUADRANT = 90 };
@@ -30,7 +30,7 @@ int GetQuadrantForPosition(srVector3T<float> position)
     srVector3T<float> party;
     int bearing;
 
-    GetPartyPosition(&party);
+    GetCameraPosition(&party);
     bearing = static_cast<int>(NormalizeAngle(BearingBetween(party, position)));
     bearing -= g_status_685170.party_facing;
     if (bearing < 0) {
@@ -63,8 +63,8 @@ extern void Function5B1C80(void);
 extern void Function5A24A0(void);
 extern void Function5B1E70(void);
 extern unsigned int GetCameraHeading(void);                 /* 0x00421550 */
-extern unsigned int SetCameraHeading(float degrees);        /* 0x00421000 */
-extern void SnapCameraHeading(float degrees);               /* 0x00420FD0 */
+extern void SetCameraYawDegrees(float degrees);                            /* 0x00421000 */
+extern void TurnCameraToDegrees(float degrees);                            /* 0x00420FD0 */
 
 // GLOBAL: WIZ8 0x005ee858
 double g_facing_tolerance_005ee858 = 2.3561944500000003;
@@ -147,7 +147,7 @@ unsigned int TurnPartyTo(unsigned int degrees)
         Function5B1E70();
         previous = GetCameraHeading() / W8_DEGREES_PER_TURN;
         if (GetCameraHeading() % W8_DEGREES_PER_TURN != degrees) {
-            previous = SetCameraHeading((float)degrees);
+            SetCameraYawDegrees((float)degrees);
         }
     }
     return previous;
@@ -167,10 +167,10 @@ void TurnPartyToImmediate(unsigned int degrees, char snap)
         return;
     }
     if (snap) {
-        SnapCameraHeading((float)degrees);
+        TurnCameraToDegrees((float)degrees);
     }
     else {
-        SetCameraHeading((float)degrees);
+        SetCameraYawDegrees((float)degrees);
     }
 }
 

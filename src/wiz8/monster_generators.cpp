@@ -245,7 +245,7 @@ void Function48C9F0(void)
     }
 }
 extern unsigned char g_force_encounter_culling;     /* 0x00687500 */
-extern void GetPartyPosition(srVector3T<float>* position); /* 0x00421070 */
+extern void GetCameraPosition(srVector3T<float>* position); /* 0x00421070 */
 
 // GLOBAL: WIZ8 0x0060a6cc
 const float g_encounter_culling_scale_fast = 1.0f;
@@ -275,7 +275,7 @@ void CullExpiredEncounters(void)
     float span;
     int index;
 
-    GetPartyPosition(&party);
+    GetCameraPosition(&party);
     if (IsSightRangeOverridden() == 0) {
         span = g_level_records[g_status_685170.current_level].encounter_culling_seconds *
                g_sight_default_005ec254;

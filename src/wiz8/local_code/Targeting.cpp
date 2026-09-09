@@ -249,7 +249,7 @@ char GetTargetNeededForItem(const W8ItemInstance* item)
 
 extern void AimAtTarget(int actor, W8CombatSlot* target, int context);   /* 0x005387F0 */
 
-extern void GetPartyEyePosition(void* position);                         /* 0x00421070 */
+extern void GetCameraPosition(srVector3T<float>* position);               /* 0x00421070 */
 
 /* 0x004CA4F0 */
 extern void ShowTargetMarker(void* eye, void* lower, void* upper);       /* 0x0046F820 */
@@ -359,7 +359,7 @@ void ShowMonsterTargetMarker(W8MonsterInfo* monster_info)
     if (monster_info == 0) {
         srAssertFail("pMonsterInfo", TARGETING_CPP, 2040, 0);
     }
-    GetPartyEyePosition(eye);
+    GetCameraPosition(reinterpret_cast<srVector3T<float>*>(eye));
     GetMonsterBounds(monster_info->monster, lower, upper);
     ShowTargetMarker(eye, lower, upper);
 }
@@ -1645,7 +1645,7 @@ unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char
     }
 }
 
-extern void GetPartyPosition(srVector3T<float>* position);                      /* 0x00421070 */
+extern void GetCameraPosition(srVector3T<float>* position);                      /* 0x00421070 */
 extern float AngleFromPartyTo(const srVector3T<float>* from, const srVector3T<float>* to);
 /* 0x004BE420 */
 extern void AimAtTarget(int actor, const W8CombatSlot* target, int context);
@@ -1682,7 +1682,7 @@ int SelectNextGroupMemberByAngle(const W8GrowableVector<int>* candidates, int cu
     if (count == 0) {
         return BAD_INDEX;
     }
-    GetPartyPosition(&party);
+    GetCameraPosition(&party);
 
     sorted = (W8GroupMemberByAngle*)malloc(count * sizeof(W8GroupMemberByAngle));
     if (sorted == 0) {

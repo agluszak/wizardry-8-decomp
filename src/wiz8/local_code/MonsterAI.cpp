@@ -39,7 +39,7 @@ extern unsigned char AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int sp
 extern unsigned char Function5474B0(int spell_id);
 extern unsigned char Function5353E0(W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* slot);
 struct W8SpellEffectEntry;
-extern void GetPartyPosition(srVector3T<float>* position);                     /* 0x00421070 */
+extern void GetCameraPosition(srVector3T<float>* position);                     /* 0x00421070 */
 /* 0x0061EEFC: two dwords per AI kind; only the leading dword is read here. */
 // GLOBAL: WIZ8 0x0061EEFC
 extern const int g_ai_kind_table[32][2] = {
@@ -136,7 +136,7 @@ unsigned char AimFleeingMonster(W8MonsterInfo* monster_info, const W8MonsterReco
     srVector3T<float> party;
 
     if (g_ai_kind_table[record->ai_kind][0] == W8_AI_KIND_ROW_SPECIAL) {
-        GetPartyPosition(&party);
+        GetCameraPosition(&party);
         ResetCombatSlot(&monster_info->combat_slot_2ba);
         monster_info->combat_slot_2ba.iType = 6;
         monster_info->combat_slot_2ba.point = party;

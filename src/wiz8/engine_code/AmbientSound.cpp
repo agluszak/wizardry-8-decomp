@@ -13,7 +13,7 @@
 #include <string.h>
 #include <stdio.h>
 
-extern void GetPartyPosition(srVector3T<float>* position); /* 0x00421070 */
+extern void GetCameraPosition(srVector3T<float>* position); /* 0x00421070 */
 extern void AudioUpdateFinish004AEFD0();
 
 // FUNCTION: WIZ8 0x00479040
@@ -246,7 +246,7 @@ void RepositionAmbientSounds0047A600(W8World* world)
                 PLGet(world->plsAmbientSounds, index));
             if (sound != 0) {
                 srVector3T<float> position;
-                GetPartyPosition(&position);
+                GetCameraPosition(&position);
                 sound->ApplyPosition00479350(&position);
             }
         }
@@ -345,7 +345,7 @@ void PositionAmbientSoundByName0047A950(int /* unused */, const char* name)
             PLGet(g_world->plsAmbientSounds, index));
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
             srVector3T<float> position;
-            GetPartyPosition(&position);
+            GetCameraPosition(&position);
             sound->flag_84 = 0;
             sound->ApplyPosition00479350(&position);
             return;
@@ -384,7 +384,7 @@ void ToggleAmbientSoundByName0047AA70(int /* unused */, const char* name)
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
             if (sound->flag_84 != 0) {
                 srVector3T<float> position;
-                GetPartyPosition(&position);
+                GetCameraPosition(&position);
                 sound->flag_84 = 0;
                 sound->ApplyPosition00479350(&position);
                 return;
@@ -489,7 +489,7 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
                 PLGet(world->plsAmbientSounds, index));
             if (sound != 0) {
                 srVector3T<float> position;
-                GetPartyPosition(&position);
+                GetCameraPosition(&position);
                 sound->ApplyPosition00479350(&position);
             }
         }
@@ -549,7 +549,7 @@ void SetAmbientSoundMuted0047AE90(char muted)
                         PLGet(world->plsAmbientSounds, index));
                     if (sound != 0) {
                         srVector3T<float> position;
-                        GetPartyPosition(&position);
+                        GetCameraPosition(&position);
                         sound->ApplyPosition00479350(&position);
                     }
                 }
@@ -603,7 +603,7 @@ void SetAmbientSoundMuted0047AE90(char muted)
                     PLGet(world->plsAmbientSounds, index));
                 if (sound != 0) {
                     srVector3T<float> position;
-                    GetPartyPosition(&position);
+                    GetCameraPosition(&position);
                     sound->ApplyPosition00479350(&position);
                 }
             }
