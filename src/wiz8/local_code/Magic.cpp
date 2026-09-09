@@ -866,8 +866,11 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
 /* 0x0068C09C: the loaded message table, one wide string per entry. Bodies
    name entries by their byte offset into it, which is why the index is
    spelled as one. */
-/* 0x0061E518: one message-table byte offset per realm, for the realm's name. */
-extern const unsigned short g_realm_message_offsets[];
+/* One message-table index per realm, for the realm's name. */
+// GLOBAL: WIZ8 0x0061E518
+extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT] = {
+    0x30b, 0x30c, 0x30d, 0x30e, 0x30f, 0x310,
+};
 
 /* Take one spell on. The spell is marked known, its realm's known count goes
    up, the spell-point pools are recomputed, and - when the caller asks for it -
@@ -1706,7 +1709,11 @@ enum {
    offset rather than a string. A character indexes it by faction and a monster
    by its own name group at record+0x0cc, which is what makes the two one
    table. */
-extern const unsigned short g_name_prefix_messages[];
+// GLOBAL: WIZ8 0x0061E436
+extern const unsigned short g_name_prefix_messages[15] = {
+    0x2da, 0x2d2, 0x2d5, 0x2d8, 0x2db, 0x2d3, 0x2d6, 0x2d9,
+    0x2dc, 0x2dd, 0x2de, 0x2df, 0x2e0, 0x2e1, 0,
+};
 /* 0x00689B34: the empty string every no-target kind is described by. */
 extern const wchar_t g_wchar_00689b34;
 

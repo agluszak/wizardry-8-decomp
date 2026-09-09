@@ -296,7 +296,7 @@ extern unsigned char g_spell_points_free_00687500;
 // GLOBAL
 unsigned char g_spell_points_free_00687500;
 /* 0x0061E518: one notice index per spell realm, giving the realm's name. */
-extern const unsigned short g_spell_realm_notice[W8_SPELL_REALM_COUNT];
+extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
 
 /* Orders the six realms by how far short of full they are. The body lives at
    0x0052B8E0 and is reached only through qsort. */
@@ -449,7 +449,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
             SpendCharacterSpellPoints(party_slot, realm, taken);
             if (announce) {
                 WriteGameLog(8, (const wchar_t*)gppStringList[0x98c / 4], amount,
-                             gppStringList[g_spell_realm_notice[realm]]);
+                             gppStringList[g_realm_message_offsets[realm]]);
             }
             remaining = amount - taken;
             amount = remaining;
@@ -845,7 +845,7 @@ void DrainCharacterRealmSpellPoints(
 
     if (g_spell_points_free_00687500 != 0) {
         PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x988 / 4], amount,
-                            gppStringList[g_spell_realm_notice[realm]]);
+                            gppStringList[g_realm_message_offsets[realm]]);
         return;
     }
 
@@ -861,7 +861,7 @@ void DrainCharacterRealmSpellPoints(
     SpendCharacterSpellPoints(party_slot, realm, amount);
     if (announce) {
         WriteGameLog(8, (const wchar_t*)gppStringList[0x98c / 4], amount,
-                     gppStringList[g_spell_realm_notice[realm]]);
+                     gppStringList[g_realm_message_offsets[realm]]);
     }
 }
 
