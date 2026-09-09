@@ -61,7 +61,6 @@ extern int g_suspended_screen_id;
 /* Retail 0x006F0628: WinMain's loop flag, set with 0x006F0630 at startup and
    cleared by the exit screen, the state machine's stop paths, and shutdown. */
 extern unsigned char g_game_running;
-extern unsigned char g_application_active;
 
 static_assert(sizeof(W8ScreenStateRuntime) == 0x98, "W8ScreenStateRuntime_must_be_0x98");
 

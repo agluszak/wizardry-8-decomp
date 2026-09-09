@@ -98,21 +98,6 @@ FontTranslationTable* CreateDefaultFontTranslationTable(void)
     return table;
 }
 
-/* Hands the translation table to SGP's font manager: FontManager's record
-   stays private to Font.c, so this delegates instead of rebuilding it. The
-   oracle zeroes the font slots, selects no font, and publishes the video
-   mode as the destination, which is what the retail body does around its
-   own GetDefaultScreenMode call. */
-// FUNCTION: WIZ8 0x00407d30
-unsigned char InitializeWiz8FontManager(
-    unsigned short code, FontTranslationTable* source)
-{
-    if (source == 0) {
-        return 0;
-    }
-    return InitializeFontManager(code, source);
-}
-
 /* The file request 0x00406180 parses: a flag word selecting file-backed
    loading followed by the path. */
 struct W8FontLoadRequest {

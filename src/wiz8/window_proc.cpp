@@ -9,6 +9,7 @@
 #include "Button System.h"
 #include "Font.h"
 #include "input.h"
+#include "wiz8/sgp_input_private.h"
 #include "timer.h"
 #include "vsurface.h"
 
@@ -26,8 +27,6 @@
 
 // GLOBAL: WIZ8 0x00650dac
 unsigned char g_flag_650dac;
-// GLOBAL: WIZ8 0x006F0630
-unsigned char g_application_active;
 extern unsigned int g_mswheel_roll_message;
 int g_dword_650db0;
 extern bool g_flag_6505a9;
@@ -104,14 +103,14 @@ long __stdcall WindowProc4011E0(
         if (!VideoInspectorIsEnabled()) {
             RestoreVideoManager();
         }
-        g_application_active = 1;
+        gfApplicationActive = 1;
         return 0;
 
     case WM_KILLFOCUS:
         if (!VideoInspectorIsEnabled()) {
             SuspendVideoManager();
         }
-        g_application_active = 0;
+        gfApplicationActive = 0;
         FreeMouseCursor();
         g_dword_650db0 = 1;
         return 0;
@@ -123,7 +122,7 @@ long __stdcall WindowProc4011E0(
             }
             MoveTimer(1);
             g_dword_650db0 = 1;
-            g_application_active = 0;
+            gfApplicationActive = 0;
             return 0;
         }
         if (wparam != 1) {
@@ -137,7 +136,7 @@ long __stdcall WindowProc4011E0(
             RestoreVideoSurfaces();
         }
         MoveTimer(8);
-        g_application_active = 1;
+        gfApplicationActive = 1;
         return 0;
 
     case WM_MOUSEMOVE:

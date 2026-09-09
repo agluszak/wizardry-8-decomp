@@ -14,8 +14,6 @@
    pinned Font.h, whose signatures match. */
 
 FontTranslationTable* CreateDefaultFontTranslationTable(void);
-unsigned char InitializeWiz8FontManager(
-    unsigned short code, FontTranslationTable* source);
 
 struct W8FontLoadRequest;
 struct W8ImageRecord;

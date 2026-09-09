@@ -8,6 +8,7 @@
 #include "wiz8/render_state.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/input_hooks.h"
+#include "wiz8/sgp_input_private.h"
 #include "wiz8/font_manager.h"
 #include "wiz8/sound_man.h"
 #include "wiz8/sgp_vsurface_private.h"
@@ -110,7 +111,6 @@ unsigned char g_flag_6ef440;
 extern "C" {
 extern unsigned int guiMouseWheelMsg;
 }
-extern HWND g_window_6596cc;
 bool g_shutdown_started_650db5;
 bool g_teardown_done_650db4;
 char g_shutdown_message_6505ac[0x100];
@@ -331,40 +331,6 @@ bool CheckCdPresent(void)
     return true;
 }
 
-/* Retail 0x006EB708/0x006EB70C: the 10 ms timer driver's current and start
-   ticks. */
-// GLOBAL: WIZ8 0x006EB708
-unsigned int g_dword_6eb708;
-// GLOBAL: WIZ8 0x006EB70C
-unsigned int g_dword_6eb70c;
-
-/* A TIMERPROC: retail ends in `ret 0x10`, so it takes and cleans the four
-   timer arguments even though it only reads the tick count. */
-// FUNCTION: WIZ8 0x00406b70
-void __stdcall Clock00406B70(
-    HWND window, unsigned int message, unsigned int timer, unsigned long ticks)
-{
-    (void)window;
-    (void)message;
-    (void)timer;
-    (void)ticks;
-    unsigned int now = GetTickCount();
-    if (now < g_dword_6eb708) {
-        g_dword_6eb70c = now + (-1 - g_dword_6eb708);
-        return;
-    }
-    g_dword_6eb70c = now - g_dword_6eb708;
-}
-
-// FUNCTION: WIZ8 0x00406ba0
-unsigned char InitializeClockManager00406BA0(void)
-{
-    g_dword_6eb708 = GetTickCount();
-    g_dword_6eb70c = g_dword_6eb708;
-    SetTimer(g_window_6596cc, 1, 10, (TIMERPROC)Clock00406B70);
-    return 1;
-}
-
 /* The retail startup spine. Each gate that fails returns straight out; the
    window procedure and shutdown handler this installs are what the live
    runtime tears down through. */
@@ -386,7 +352,7 @@ unsigned char InitializeStandardGamingPlatform(
         return 0;
     }
     NoOp();
-    if (!InitializeInputManager00401EA0()) {
+    if (!InitializeInputManager()) {
         return 0;
     }
     if (!InitializeVideoManager(
@@ -400,12 +366,12 @@ unsigned char InitializeStandardGamingPlatform(
     if (!InitializeVideoSurfaceManager()) {
         return 0;
     }
-    InitializeClockManager00406BA0();
+    InitializeClockManager();
     table = CreateDefaultFontTranslationTable();
     if (table == 0) {
         return 0;
     }
-    if (!InitializeWiz8FontManager(8, table)) {
+    if (!InitializeFontManager(8, table)) {
         return 0;
     }
     free(table);
@@ -449,7 +415,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     if (!InitializeStandardGamingPlatform(hInstance, nShowCmd)) {
         return 0;
     }
-    g_application_active = 1;
+    gfApplicationActive = 1;
     g_game_running = 1;
     do {
         if (PeekMessageA(&message, NULL, 0, 0, 0)) {
@@ -458,7 +424,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             }
             TranslateMessage(&message);
             DispatchMessageA(&message);
-        } else if (g_application_active == 0) {
+        } else if (gfApplicationActive == 0) {
             WaitMessage();
         } else {
             GameLoop();
