@@ -150,6 +150,7 @@ set(WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
     src/wiz8/unattributed/00490c61_00497aef.cpp
     src/wiz8/engine_code/stLight.cpp
     src/wiz8/unattributed/004b6bd1_004b6f2f.cpp
+    src/wiz8/unattributed/004ef950_004efe70.cpp
     src/wiz8/engine_code/bounds.cpp
     src/wiz8/engine_code/OctRegionPolygon.cpp
     src/wiz8/version.cpp
