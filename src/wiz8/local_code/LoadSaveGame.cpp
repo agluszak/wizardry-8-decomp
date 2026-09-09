@@ -750,9 +750,10 @@ unsigned char g_save_pending_00689f98;
 unsigned char g_save_notice_shown_0068506b;
 /* 0x0061A144, the save-file extension. It sits in writable .data with 16
    reference sites across 10 functions rather than in .rdata with the format
-   literals, so it is a variable the game can repoint rather than a constant;
+   literals, so it is a mutable character array rather than a string literal;
    this build initialises it to "SAV". */
-extern char g_save_extension[];
+// GLOBAL: WIZ8 0x0061A144
+char g_save_extension[] = "SAV";
 
 /* Both are owned by address-quarantine units and have no header yet, so they
    are declared the way this unit declares every other cross-unit callee: the

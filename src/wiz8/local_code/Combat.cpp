@@ -38,7 +38,8 @@ extern unsigned char CharacterIsEngaged(unsigned int party_slot);        /* 0x00
    run 0xd4 bytes apart, so the state's leading fields are the first row's. */
 // GLOBAL: WIZ8 0x0068d810
 unsigned char g_combat_log_enabled_0068d810;
-extern const wchar_t g_combat_log_format_00617664;
+// GLOBAL: WIZ8 0x00617664
+const wchar_t g_combat_log_format_00617664[] = L"%hs";
 /* 0x0053AC30 */
 extern void NotifySpellPointsChanged(int party_slot);
 extern void Function4E8000(int party_slot, int action_kind, int action_detail, int a, int b);
@@ -125,7 +126,7 @@ void CombatLog(const char* format, ...)
     va_start(arguments, format);
     vsprintf(line, format, arguments);
     if (g_combat_log_enabled_0068d810 != 0) {
-        WriteGameLog(7, &g_combat_log_format_00617664, line);
+        WriteGameLog(7, g_combat_log_format_00617664, line);
     }
 }
 
