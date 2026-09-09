@@ -56,7 +56,11 @@ struct W8LevelRuntimeBlock {
     unsigned char unknown_26c[0x10];
     int pending_level;
     int pending_entry_id;
-    unsigned char unknown_284[0x3c];
+    unsigned char unknown_284[0x1c];
+    int unknown_2a0;
+    int unknown_2a4;
+    int unknown_2a8;
+    unsigned char unknown_2ac[0x14];
     unsigned char refresh_combat_panel;
     unsigned char unknown_2c1[3];
     unsigned int combat_panel_timer;

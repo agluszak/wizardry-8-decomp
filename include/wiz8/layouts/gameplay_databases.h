@@ -119,7 +119,10 @@ typedef struct W8NpcDatabaseRecord {
     /* 0x002: non-zero marks the record as carrying whatever the NPC manager's
        first predicate asks about. */
     short value_002;
-    unsigned char unknown_004[0x51];
+    unsigned char unknown_004[0x50];
+    /* 0x054: when set, releasing the NPC binding marks it before handing the
+       owned item-list handle to the teardown. */
+    unsigned char unknown_054;
     /* 0x055: gates the owned item-list teardown at 0x0055A5D0, which only
        releases the NPC's stock while this is set. */
     unsigned char flag_055;

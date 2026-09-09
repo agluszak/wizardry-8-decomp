@@ -54,7 +54,11 @@ typedef struct W8NpcState {
     unsigned char unknown_2f[0x5a];
     /* 0x089: five topics stored one more than their id so zero means empty. */
     int topics[5];
-    unsigned char unknown_9d[0x4c];
+    unsigned char unknown_9d[0x2a];
+    /* 0x0c7: set when the NPC binding is released while its record flag at
+       0x054 is set, and tested before handing the binding back out. */
+    unsigned char unknown_c7;
+    unsigned char unknown_c8[0x21];
     /* 0x0e9 and 0x114: two flags raised together when the NPC is marked. */
     unsigned char marked_e9;
     unsigned char unknown_ea[8];

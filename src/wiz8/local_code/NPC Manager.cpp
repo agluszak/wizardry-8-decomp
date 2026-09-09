@@ -384,3 +384,77 @@ const char* GetNpcDisplayName(W8NpcState* npc)
     }
     return npc->record->display_name;
 }
+
+extern void Function55A0A0(int handle);
+
+/* Release the NPC binding held at the given index: clear its monster link and
+   handle, then hand the handle to the owned item-list teardown. An index past
+   the end reads slot zero instead of stopping. */
+// FUNCTION: WIZ8 0x00509EA0
+void Function509EA0(int value)
+{
+    W8NpcState* npc;
+    W8NpcDatabaseRecord* record;
+    unsigned char flag;
+    int handle;
+
+    if (value == -1) {
+        return;
+    }
+    if (value < 0) {
+        return;
+    }
+    if (value > g_npc_states->count) {
+        return;
+    }
+    if (value < g_npc_states->count) {
+        npc = g_npc_states->data[value];
+    }
+    else {
+        npc = g_npc_states->data[0];
+    }
+    handle = npc->unknown_00;
+    npc->has_monster = 0;
+    record = npc->record;
+    npc->unknown_00 = 0;
+    flag = record->unknown_054;
+    Function55A0A0(handle);
+    if (flag != 0) {
+        npc->unknown_c7 = 1;
+    }
+}
+
+/* Hand back the NPC binding selected by a monster-list index, or null when
+   the monster carries no matching enchantment mark or the binding is not
+   released. The result travels as an integer and the caller casts it back. */
+// FUNCTION: WIZ8 0x0050A440
+int Function50A440(unsigned int monster_list_index)
+{
+    W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+    W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
+    const unsigned char* enchant;
+    W8NpcState* npc;
+
+    if (record == 0) {
+        return 0;
+    }
+    /* The fifth and third bytes of enchantment slot three; the slot itself is
+       three dwords, as the effect-slot clearing shows. */
+    enchant = (const unsigned char*)&monster_info->enchantments[3];
+    if ((enchant[5] & 1) == 0) {
+        return 0;
+    }
+    if (enchant[2] != 0xfa) {
+        return 0;
+    }
+    if (monster_info->runtime_value_2f1 >= g_npc_states->count) {
+        npc = g_npc_states->data[0];
+    }
+    else {
+        npc = g_npc_states->data[monster_info->runtime_value_2f1];
+    }
+    if (npc->unknown_c7 != 0) {
+        return reinterpret_cast<int>(npc);
+    }
+    return 0;
+}

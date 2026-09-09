@@ -16,6 +16,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/local_code/MonsterAI.cpp
     "src/wiz8/local_code/NPC Manager.cpp"
     "src/wiz8/local_code/Combat Attack.cpp"
+    "src/wiz8/local_code/Combat Hostility.cpp"
     "src/wiz8/local_code/Magic Effects.cpp"
     src/wiz8/local_code/VideoObjectManager.cpp
     "src/wiz8/local_screens/IntroScreen.cpp"
