@@ -99,8 +99,6 @@ int g_level_backdrops_64bf8c[47] = {
     0xe4, 0x1d7, 0x1d8, 0x1d9, 0xe4, 0xe4, 0x1da, 0x1db, 0x1dc, 0xe4,
     0, 0, 0, 0, 0, 0, 0,
 };
-extern unsigned short g_level_name_indices_605820[];
-
 /* The path the five assertions carry. */
 #define PLEASE_WAIT_SCREEN_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\PleaseWaitScreen.cpp"
 

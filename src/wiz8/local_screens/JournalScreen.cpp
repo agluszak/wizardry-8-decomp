@@ -7,6 +7,7 @@
 #include "wiz8/local_screens/JournalScreen.h"
 
 #include "wiz8/cursor.h"
+#include "wiz8/engine_code/Levels.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/factions.h"
 #include "wiz8/layouts/gameplay_databases.h"
@@ -43,7 +44,6 @@ extern int g_value_006850d5;
 // GLOBAL: WIZ8 0x006850d5
 int g_value_006850d5;
 extern void Function425570(int enabled);
-extern unsigned short g_level_name_indices_605820[];
 // GLOBAL: WIZ8 0x0064d7b8
 wchar_t g_default_level_0064d7b8[] = L"Default Level";
 // GLOBAL: WIZ8 0x0064d7f0

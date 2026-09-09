@@ -53,6 +53,8 @@ unsigned char GetLevelLocationCode(int level_id, char* location_code);
 int FindLevelIdByLocationCode(const char* location_code);
 }
 
+extern unsigned short g_level_name_indices_605820[47];
+
 unsigned char LevelBuildInfoByID(int level_id, W8LevelInfo* info);
 unsigned char LoadLevel(
     int requested_level, int entrance, unsigned char restoring_game);
