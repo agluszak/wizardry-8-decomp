@@ -21,7 +21,7 @@ uses the current inferred prototype: it cannot discover an omitted parameter, an
 list does not prove an argument is unused. Do not repeatedly query a known-bad model or ask for
 separate permission to correct it within the recovery task.
 
-Use `just context ADDRESS...` only when its joined source/provenance view helps. `just recover
+Use `wiz8 report context ADDRESS...` only when its joined source/provenance view helps. `just recover
 ADDRESS...` optionally generates source-aware candidate artifacts without editing source, building,
 or comparing. Inspect useful candidates, then integrate a connected batch with ordinary editing
 tools. Neither command is a prerequisite for direct analysis or editing. Uncertain placement blocks

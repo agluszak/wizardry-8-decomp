@@ -25,13 +25,6 @@ endif()
     # directory through GetFileFirst.
     target_link_libraries(wiz8_recovered_objects PRIVATE wiz8_compile_settings)
 
-    add_library(wiz8_debug_objects OBJECT
-        ${WIZ8_ORIGINAL_UNITS}
-        ${WIZ8_TEMPLATE_EMISSIONS}
-        ${WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS}
-    )
-    target_link_libraries(wiz8_debug_objects PRIVATE wiz8_debug_compile_settings)
-
     wiz8_add_import_library(WIZ8_SR src/wiz8/imports/sr.def
         IMPORT_OBJECTS "${CMAKE_CURRENT_BINARY_DIR}/sr-assert-import.lib")
     wiz8_add_import_library(WIZ8_MSS32 src/wiz8/imports/mss32.def PRESERVE_C_DECORATION)
@@ -41,14 +34,13 @@ endif()
     # /OPT:NOREF. Released SGP source belongs only to the /OPT:REF runtime
     # products; source-backed retail identities are compared by the SGP oracle.
     wiz8_add_executable(
-        TARGET WIZ8_BRINGUP
+        TARGET WIZ8
         OUTPUT Wiz8
         MAP Wiz8.map
         ALLOW_UNRESOLVED
         LIBRARIES ddraw.lib dxguid.lib gdi32.lib user32.lib
     )
-    reccmp_add_target(WIZ8_BRINGUP ID WIZ8)
-    add_custom_target(WIZ8 DEPENDS WIZ8_BRINGUP)
+    reccmp_add_target(WIZ8 ID WIZ8)
 
     wiz8_add_executable(
         TARGET WIZ8_RUNTIME
@@ -56,40 +48,24 @@ endif()
         MAP Wiz8Runtime.map
         OPT_REF
         ALLOW_UNRESOLVED
-        LIBRARIES ddraw.lib dxguid.lib gdi32.lib user32.lib
+        LIBRARIES ddraw.lib gdi32.lib user32.lib
     )
-    add_custom_target(WIZ8_RUNNABLE DEPENDS WIZ8_RUNTIME)
-
     # The semantic test product links the same recovered and retained runtime
     # objects, but owns a console entry point and test driver that never enter
     # either matching image.
     wiz8_add_executable(
-        TARGET WIZ8_RUNTIME_MATCH
-        OUTPUT Wiz8RuntimeMatch
-        MAP Wiz8RuntimeMatch.map
+        TARGET WIZ8_RUNTIME_TEST
+        OUTPUT Wiz8RuntimeTest
+        MAP Wiz8RuntimeTest.map
         OPT_REF
         CONSOLE
         ALLOW_UNRESOLVED
         SOURCES tests/runtime/wiz8_runtime_test.cpp
-        LIBRARIES ddraw.lib dxguid.lib gdi32.lib user32.lib
-    )
-    wiz8_add_executable(
-        TARGET WIZ8_RUNTIME_DEBUG
-        OUTPUT Wiz8RuntimeDebug
-        MAP Wiz8RuntimeDebug.map
-        OPT_REF
-        CONSOLE
-        ALLOW_UNRESOLVED
-        OBJECT_TARGET wiz8_debug_objects
-        COMPILE_SETTINGS wiz8_debug_compile_settings
-        SOURCES tests/runtime/wiz8_runtime_test.cpp
-        LIBRARIES ddraw.lib dxguid.lib gdi32.lib user32.lib
+        LIBRARIES ddraw.lib gdi32.lib user32.lib
     )
 if(SGP_SOURCE)
     include(cmake/Sgp.cmake)
 
     target_link_libraries(WIZ8_RUNTIME PRIVATE WIZ8_SGP_RUNTIME)
-    target_link_libraries(WIZ8_RUNTIME_MATCH PRIVATE WIZ8_SGP_RUNTIME)
-    wiz8_add_sgp_target(WIZ8_SGP_DEBUG STATIC DEBUG ${WIZ8_SGP_RUNTIME_SOURCES})
-    target_link_libraries(WIZ8_RUNTIME_DEBUG PRIVATE WIZ8_SGP_DEBUG)
+    target_link_libraries(WIZ8_RUNTIME_TEST PRIVATE WIZ8_SGP_RUNTIME)
 endif()

@@ -80,7 +80,7 @@ set_source_files_properties("${SGP_SOURCE}/FileMan.c" PROPERTIES
     COMPILE_DEFINITIONS "AddSubdirectoryToPath=SgpReleasedAddSubdirectoryToPath"
 )
 
-function(wiz8_add_sgp_target target kind profile)
+function(wiz8_add_sgp_target target kind)
     add_library(${target} ${kind} EXCLUDE_FROM_ALL ${ARGN})
     if(kind STREQUAL "STATIC")
         # DirectX Common.c supplies two DirectDraw IIDs itself; search the
@@ -92,13 +92,7 @@ function(wiz8_add_sgp_target target kind profile)
         "${SGP_SOURCE}"
     )
     target_compile_options(${target} PRIVATE /nologo /Z7)
-    if(profile STREQUAL "MATCH")
-        target_compile_options(${target} PRIVATE /O2 /Ob2 /G5)
-    elseif(profile STREQUAL "DEBUG")
-        target_compile_options(${target} PRIVATE /Od /Oy- /Ob0)
-    else()
-        message(FATAL_ERROR "unknown SGP compile profile: ${profile}")
-    endif()
+    target_compile_options(${target} PRIVATE /O2 /Ob2 /G5)
     target_compile_definitions(${target} PRIVATE
         gusAlphaMask=g_alpha_mask_650f48
         gusRedMask=g_red_mask_650f4a
@@ -113,5 +107,5 @@ endfunction()
 
 # Runtime consumers link the dependency archive. Oracle comparisons still use
 # the individual compiled objects, including the analysis-only units.
-wiz8_add_sgp_target(WIZ8_SGP_RUNTIME STATIC MATCH ${WIZ8_SGP_RUNTIME_SOURCES})
-wiz8_add_sgp_target(WIZ8_SGP_ANALYSIS OBJECT MATCH ${WIZ8_SGP_ANALYSIS_ONLY_SOURCES})
+wiz8_add_sgp_target(WIZ8_SGP_RUNTIME STATIC ${WIZ8_SGP_RUNTIME_SOURCES})
+wiz8_add_sgp_target(WIZ8_SGP_ANALYSIS OBJECT ${WIZ8_SGP_ANALYSIS_ONLY_SOURCES})

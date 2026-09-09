@@ -29,7 +29,7 @@ def restore_command(program: str = "wiz8") -> None:
         with open_project(settings, create=True) as project:
             return restore_seed(settings, project, program)
 
-    cli.run_action(action)
+    cli.emit(action())
 
 
 @app.command("import")
@@ -41,9 +41,7 @@ def import_command(
     from .. import command_support as cli
     from ..ghidra.import_programs import import_programs
 
-    cli.run_action(
-        lambda: import_programs(cli.settings(), requested_program=program, replace_existing=replace)
-    )
+    cli.emit(import_programs(cli.settings(), requested_program=program, replace_existing=replace))
 
 
 @seed_app.command("refresh")
@@ -52,7 +50,7 @@ def seed_refresh_command(program: str | None = typer.Argument(None)) -> None:
     from .. import command_support as cli
     from ..ghidra.export_programs import export_project
 
-    cli.run_action(lambda: export_project(cli.settings(), program))
+    cli.emit(export_project(cli.settings(), program))
 
 
 @fid_app.command("status")
@@ -60,7 +58,7 @@ def fid_status_command() -> None:
     from .. import command_support as cli
     from ..ghidra.fid import fid_status
 
-    cli.run_action(lambda: fid_status(cli.settings()))
+    cli.emit(fid_status(cli.settings()))
 
 
 @fid_app.command("inventory")
@@ -68,7 +66,7 @@ def fid_inventory_command() -> None:
     from .. import command_support as cli
     from ..ghidra.fid_seeds import static_inventory
 
-    cli.run_action(lambda: static_inventory(cli.settings()))
+    cli.emit(static_inventory(cli.settings()))
 
 
 @fid_app.command("fetch-sources")
@@ -76,7 +74,7 @@ def fid_fetch_sources_command() -> None:
     from .. import command_support as cli
     from ..ghidra.fid_seeds import fetch_seed_sources
 
-    cli.run_action(lambda: fetch_seed_sources(cli.settings()))
+    cli.emit(fetch_seed_sources(cli.settings()))
 
 
 @fid_app.command("build-image")
@@ -89,7 +87,7 @@ def fid_build_image_command(
     from .. import command_support as cli
     from ..ghidra.fid_seeds import build_toolchain_images
 
-    cli.run_action(lambda: build_toolchain_images(cli.settings(), toolchain))
+    cli.emit(build_toolchain_images(cli.settings(), toolchain))
 
 
 @fid_app.command("probe-toolchain")
@@ -102,7 +100,7 @@ def fid_probe_toolchain_command(
     from .. import command_support as cli
     from ..ghidra.fid_seeds import probe_toolchains
 
-    cli.run_action(lambda: probe_toolchains(cli.settings(), toolchain))
+    cli.emit(probe_toolchains(cli.settings(), toolchain))
 
 
 @fid_app.command("build-seeds")
@@ -119,7 +117,7 @@ def fid_build_seeds_command(
     from .. import command_support as cli
     from ..ghidra.fid_seeds import build_seed_objects
 
-    cli.run_action(lambda: build_seed_objects(cli.settings(), toolchain, library))
+    cli.emit(build_seed_objects(cli.settings(), toolchain, library))
 
 
 @fid_app.command("extract-libraries")
@@ -135,7 +133,7 @@ def fid_extract_libraries_command(
     from .. import command_support as cli
     from ..ghidra.fid_seeds import extract_precompiled_objects
 
-    cli.run_action(lambda: extract_precompiled_objects(cli.settings(), toolchain))
+    cli.emit(extract_precompiled_objects(cli.settings(), toolchain))
 
 
 @fid_app.command("build")
@@ -143,7 +141,7 @@ def fid_build_command() -> None:
     from .. import command_support as cli
     from ..ghidra.fid import build_fid
 
-    cli.run_action(lambda: build_fid(cli.settings()))
+    cli.emit(build_fid(cli.settings()))
 
 
 @fid_app.command("build-srs")
@@ -151,7 +149,7 @@ def fid_build_srs_command() -> None:
     from .. import command_support as cli
     from ..ghidra.fid import build_srs_fid
 
-    cli.run_action(lambda: build_srs_fid(cli.settings()))
+    cli.emit(build_srs_fid(cli.settings()))
 
 
 @fid_app.command("match")
@@ -163,4 +161,4 @@ def fid_match_command(
     from .. import command_support as cli
     from ..ghidra.fid import match_fid
 
-    cli.run_action(lambda: match_fid(cli.settings(), program, threshold, database))
+    cli.emit(match_fid(cli.settings(), program, threshold, database))

@@ -15,15 +15,15 @@ are available; this is not a required sequence. Follow `AGENTS.md` for change-sp
 ```sh
 uv sync --frozen
 just wiz8 doctor
-just prepare
-just build-lint-image             # once, or after the toolchain Dockerfile changes
+just wiz8 prepare
+just wiz8 toolchain build vc6-sp5 # once, or after the toolchain Dockerfile changes
 just check
-just lint
+just wiz8 lint
 just build
 just compare
 just run
 just runtime-test
-just verify
+just wiz8 verify
 ```
 
 `prepare` idempotently materializes configured inputs and pinned source dependencies.
@@ -32,11 +32,11 @@ compile-checks the recovered C++ with Clang's virtual-override diagnostics while
 continues to use VC6. `build` configures automatically. `compare` is reccmp's live linked-image and
 exact-body diagnostic. Run Python tests directly with `uv run pytest -q PATH`.
 
-`just runtime-test` runs named main-menu scenarios in the authoritative optimized MATCH profile.
+`just runtime-test` runs named main-menu scenarios in the optimized semantic-test executable.
 The real menu handlers execute on the UI thread; the host reruns the scenarios in reverse order and
-requires identical normalized observations. A failure is automatically repeated under GDB with the
-non-authoritative `/Od /Oy- /Ob0` DEBUG profile and returned as a concise MAP-symbolized diagnosis;
-raw debugger output is saved under `build/runtime/wiz8/diagnostics`.
+requires identical normalized observations. An abnormal exit or timeout is automatically repeated
+under GDB with the same executable and returned as a concise MAP-symbolized diagnosis; raw debugger
+output is saved under `build/runtime/wiz8/diagnostics`. Semantic mismatches are reported directly.
 
 For focused recovery, one reccmp process compares several function selectors or all `FUNCTION`
 markers in a source file. A mismatch includes reccmp's structured first divergence and a bounded
@@ -45,9 +45,9 @@ instruction window; no second triage run is needed.
 ```sh
 just compare 0x00406b70 0x00406ba0
 just compare --file src/wiz8/local_code/Combat.cpp
-just vtable W8Widget
-just datacmp
-just addr 0x00406b70
+just wiz8 vtable W8Widget
+just wiz8 datacmp
+just wiz8 addr 0x00406b70
 ```
 
 Generated reports and the CMake build directory (`build/decomp`) live under the gitignored `build/`
@@ -67,7 +67,7 @@ Python within that session; do not extend a custom command/query protocol to acc
 The [PyGhidra reference](.agents/skills/matching-decomp/references/pyghidra.md) contains inspection and
 transactional signature-edit examples. There is no required daemon or lifecycle choreography.
 
-`just context ADDRESS...` is an optional joined source/provenance view. `just recover ADDRESS...`
+`uv run wiz8 report context ADDRESS...` is an optional joined source/provenance view. `just recover ADDRESS...`
 is an optional source-aware candidate exporter. Neither is a prerequisite for investigation or
 editing. Keep useful recovery algorithms and compiler comparison separate from basic Ghidra access.
 Source-layout validation and rebuilt PDB import use their existing disposable derived projects;

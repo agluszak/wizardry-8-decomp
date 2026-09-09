@@ -13,7 +13,7 @@ translation unit, and recover only the immediate call graph needed to make that 
 Use [direct PyGhidra](../.agents/skills/matching-decomp/references/pyghidra.md) for native function,
 listing, reference, data-type, and vtable inspection and edits. The existing project opener handles
 startup and restores the seed when needed; do not run restore as a routine prerequisite.
-`just context ADDRESS...` is optional when its joined source/provenance view answers the question.
+`wiz8 report context ADDRESS...` is optional when its joined source/provenance view answers the question.
 Do not add a custom query or edit command to expose an existing Ghidra operation.
 
 ## Establish a class

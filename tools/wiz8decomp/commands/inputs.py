@@ -18,7 +18,7 @@ def scan_command() -> None:
     from .. import command_support as cli
     from ..inputs.scan import scan_inputs
 
-    cli.run_action(lambda: scan_inputs(cli.settings()).model_dump(mode="json", by_alias=True))
+    cli.emit(scan_inputs(cli.settings()).model_dump(mode="json", by_alias=True))
 
 
 @app.command("extract")
@@ -40,9 +40,9 @@ def extract_command(
     if not all_roles and not requested:
         raise typer.BadParameter("provide at least one ROLE or --all")
     if all_roles:
-        cli.run_action(lambda: extract_all(cli.settings()))
+        cli.emit(extract_all(cli.settings()))
     else:
-        cli.run_action(lambda: [extract_role(cli.settings(), role) for role in requested])
+        cli.emit([extract_role(cli.settings(), role) for role in requested])
 
 
 @app.command("materialize")
@@ -50,7 +50,7 @@ def materialize_command() -> None:
     from .. import command_support as cli
     from ..extract.variants import materialize_variants
 
-    cli.run_action(lambda: materialize_variants(cli.settings()))
+    cli.emit(materialize_variants(cli.settings()))
 
 
 @app.command("verify")
@@ -73,4 +73,4 @@ def clean_command(
     from .. import command_support as cli
     from ..pipeline import clean_pipeline
 
-    cli.run_action(lambda: clean_pipeline(cli.settings(), stage))
+    cli.emit(clean_pipeline(cli.settings(), stage))

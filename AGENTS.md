@@ -33,7 +33,7 @@ then use the native APIs directly. The [PyGhidra reference](.agents/skills/match
 shows startup, inspection, transactions, and saving. Do not add query/edit commands, dispatchers,
 schemas, or wrapper APIs for operations Ghidra already supports.
 
-`just context` and `just recover` remain optional source-aware conveniences, not prerequisites or
+`wiz8 report context` and `just recover` remain optional source-aware conveniences, not prerequisites or
 mandatory access paths. Keep useful recovery algorithms and compiler comparison; do not expand the
 custom Ghidra access protocol. Correct evidence-backed signature/type errors during recovery without
 requesting a separate permission round. Preserve unresolved facts as unknown; storing a type is not
@@ -81,9 +81,9 @@ the relevant failure:
 - Python implementation: relevant existing tests via `uv run pytest -q PATH` and relevant lint/type checks.
 - Recovered function body with unchanged ABI: focused `just compare ADDRESS...`; it builds by default.
 - Class layout, inheritance, virtual, or lifecycle changes: focused affected ABI bundle, relevant
-  `just vtable` checks, and declaration/ABI checks.
+  `wiz8 vtable` checks, and declaration/ABI checks.
 - Build system or shared validation machinery: broad checks appropriate to that machinery.
-- Repository-wide audit: `just verify` when that broad scope is deliberately requested or the change
+- Repository-wide audit: `wiz8 verify` when that broad scope is deliberately requested or the change
   affects shared validation machinery; it is not a publication prerequisite.
 
 A completed check remains sufficient until a relevant source, dependency, configuration, toolchain,

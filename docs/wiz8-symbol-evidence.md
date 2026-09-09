@@ -25,7 +25,7 @@ Open the existing project once, inspect native objects, and filter before
 printing. Large output belongs in disposable `build/` artifacts. A custom
 query dispatcher or report schema is not required for exploratory work.
 
-`just context ADDRESS...` remains an optional joined function/source/provenance
+`wiz8 report context ADDRESS...` remains an optional joined function/source/provenance
 view. `uv run wiz8 report translation-units` uses one `TranslationUnitResolver`.
 Direct ownership comes only from reviewed assertion call sites whose containing
 function Ghidra resolved. Bounded interval inference is explicitly labelled and

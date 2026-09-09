@@ -14,7 +14,7 @@ def doctor_command() -> None:
     from .. import command_support as cli
     from ..doctor import validate_environment
 
-    cli.run_action(lambda: validate_environment(cli.settings()))
+    cli.emit(validate_environment(cli.settings()))
 
 
 def prepare_command() -> None:
@@ -22,7 +22,7 @@ def prepare_command() -> None:
     from .. import command_support as cli
     from ..build import prepare
 
-    cli.run_action(lambda: prepare(cli.settings()))
+    cli.emit(prepare(cli.settings()))
 
 
 def check_command() -> None:
@@ -31,10 +31,7 @@ def check_command() -> None:
     from ..build import check
     from ..config import repository_root
 
-    def action():
-        return check(repository_root())
-
-    cli.run_action(action)
+    cli.emit(check(repository_root()))
 
 
 def lint_command() -> None:
@@ -42,10 +39,7 @@ def lint_command() -> None:
     from .. import command_support as cli
     from ..build import lint
 
-    def action():
-        return lint(cli.settings())
-
-    cli.run_action(action)
+    cli.emit(lint(cli.settings()))
 
 
 def diagnostics_command() -> None:
@@ -53,10 +47,7 @@ def diagnostics_command() -> None:
     from .. import command_support as cli
     from ..build import lint
 
-    def action():
-        return lint(cli.settings(), full_diagnostics=True)
-
-    cli.run_action(action)
+    cli.emit(lint(cli.settings(), full_diagnostics=True))
 
 
 def build_command(
@@ -67,10 +58,7 @@ def build_command(
     from .. import command_support as cli
     from ..build import build_target
 
-    def action():
-        return build_target(cli.settings(), target, jobs)
-
-    cli.run_action(action)
+    cli.emit(build_target(cli.settings(), target, jobs))
 
 
 def compare_command(
@@ -143,7 +131,7 @@ def compare_command(
             return result
         raise ValueError("select functions by address, --file, or --changed")
 
-    cli.run_action(action)
+    cli.emit(action())
 
 
 def vtable_command(
@@ -164,7 +152,7 @@ def vtable_command(
         result = compare_vtables(settings.repo_dir, target, class_filter)
         return result
 
-    cli.run_action(action)
+    cli.emit(action())
 
 
 def datacmp_command(
@@ -184,7 +172,7 @@ def datacmp_command(
         result = compare_data(settings.repo_dir, target)
         return result
 
-    cli.run_action(action)
+    cli.emit(action())
 
 
 def address_command(
@@ -208,7 +196,7 @@ def address_command(
         result = translate_addresses(settings.repo_dir, target, queries)
         return result
 
-    cli.run_action(action)
+    cli.emit(action())
 
 
 def run_command() -> None:
@@ -217,38 +205,20 @@ def run_command() -> None:
     from ..build import build_target
     from ..runtime import run_game
 
-    def action() -> Any:
-        build_target(cli.settings(), "runtime")
-        return run_game(cli.settings())
-
-    cli.run_action(action)
+    settings = cli.settings()
+    build_target(settings, "runtime")
+    run_game(settings)
 
 
 def runtime_test_command() -> None:
     """Build and run deterministic in-process semantic scenarios."""
     from .. import command_support as cli
     from ..build import build_target
-    from ..runtime import RuntimeScenarioError, diagnose_runtime_failure, run_runtime_suite
+    from ..runtime import run_runtime_suite
 
-    def action() -> Any:
-        build_target(cli.settings(), "runtime-test")
-        try:
-            return run_runtime_suite(cli.settings())
-        except RuntimeScenarioError as match_error:
-            build_target(cli.settings(), "runtime-debug")
-            diagnosis = diagnose_runtime_failure(
-                cli.settings(), match_error.scenario, match_error.crash_signature
-            )
-            candidates = "\n".join(diagnosis.get("host_symbol_candidates", []))
-            raise RuntimeError(
-                f"MATCH failure:\n{match_error}\n"
-                f"DEBUG classification={diagnosis['classification']}\n"
-                f"stop={diagnosis.get('stop_reason', '')}\n"
-                f"profile={diagnosis.get('profile_relationship', '')}\n{candidates}\n"
-                f"artifacts={diagnosis.get('artifacts', '')}"
-            ) from match_error
-
-    cli.run_action(action)
+    settings = cli.settings()
+    build_target(settings, "runtime-test")
+    cli.emit(run_runtime_suite(settings))
 
 
 def verify_command(
@@ -268,10 +238,7 @@ def verify_command(
     from .. import command_support as cli
     from ..build import verify
 
-    def action():
-        return verify(cli.settings(), compare_image=compare_image, against=against)
-
-    cli.run_action(action)
+    cli.emit(verify(cli.settings(), compare_image=compare_image, against=against))
 
 
 @toolchain_app.command("build")
@@ -281,7 +248,7 @@ def toolchain_build_command(
     from .. import command_support as cli
     from ..build import build_toolchain
 
-    cli.run_action(lambda: build_toolchain(cli.settings(), toolchain))
+    cli.emit(build_toolchain(cli.settings(), toolchain))
 
 
 def register(app: typer.Typer) -> None:
@@ -313,11 +280,7 @@ def source_index_command() -> None:
     from .. import command_support as cli
     from ..source_index import write_source_index
 
-    def action():
-        result = write_source_index(cli.settings())
-        return result
-
-    cli.run_action(action)
+    cli.emit(write_source_index(cli.settings()))
 
 
 def unresolved_report_command(
@@ -342,7 +305,7 @@ def unresolved_report_command(
             return write_unresolved_baseline(settings.repo_dir / DEFAULT_BASELINE, report)
         return report
 
-    cli.run_action(action)
+    cli.emit(action())
 
 
 def check_build_dir_command(
@@ -351,8 +314,8 @@ def check_build_dir_command(
     from .. import command_support as cli
     from ..build_dir import check_build_directory
 
-    cli.run_action(
-        lambda: check_build_directory(
+    cli.emit(
+        check_build_directory(
             build_dir or cli.settings().repo_dir / "build" / "decomp",
             cli.settings().repo_dir,
         )
@@ -365,14 +328,14 @@ def check_reccmp_command() -> None:
     from ..config import repository_root
     from ..reccmp_lint import validate_reccmp_annotations
 
-    cli.run_action(lambda: validate_reccmp_annotations(repository_root()))
+    cli.emit(validate_reccmp_annotations(repository_root()))
 
 
 def inventory_command() -> None:
     from .. import command_support as cli
     from ..binary.inventory import inventory
 
-    cli.run_action(lambda: inventory(cli.settings()))
+    cli.emit(inventory(cli.settings()))
 
 
 def trace_command(
@@ -404,7 +367,7 @@ def trace_command(
         )
         return write_report(result, settings.repo_dir / "build/reports/trace")
 
-    cli.run_action(action)
+    cli.emit(action())
 
 
 def verify_source_layouts_command(
@@ -435,4 +398,4 @@ def verify_source_layouts_command(
             return write_source_layout_baseline(settings.repo_dir / DEFAULT_BASELINE, report)
         return require_source_layouts(report)
 
-    cli.run_action(action)
+    cli.emit(action())

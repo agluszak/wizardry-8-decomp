@@ -17,7 +17,7 @@ def self_test_command() -> None:
     from .. import command_support as cli
     from ..ghidra.lifecycle_fixture import verify_lifecycle_fixture
 
-    cli.run_action(lambda: verify_lifecycle_fixture(cli.settings()))
+    cli.emit(verify_lifecycle_fixture(cli.settings()))
 
 
 @app.command("function")
@@ -32,9 +32,7 @@ def function_command(
     from .. import command_support as cli
     from ..recover import recover_candidates
 
-    cli.run_action(
-        lambda: recover_candidates(cli.settings(), list(selectors), program_selector=program)
-    )
+    cli.emit(recover_candidates(cli.settings(), list(selectors), program_selector=program))
 
 
 @app.command("sweep")
@@ -54,8 +52,8 @@ def sweep_command(
     from .. import command_support as cli
     from ..recover import sweep
 
-    cli.run_action(
-        lambda: sweep(
+    cli.emit(
+        sweep(
             cli.settings(),
             source_file=file,
             class_name=class_name,
@@ -77,10 +75,7 @@ def explain_command(
     from .. import command_support as cli
     from ..ghidra.recovery import explain_functions
 
-    def action():
-        return explain_functions(cli.settings(), selectors, program_selector=program)
-
-    cli.run_action(action)
+    cli.emit(explain_functions(cli.settings(), selectors, program_selector=program))
 
 
 @app.command("regress")
@@ -96,6 +91,4 @@ def regress_command(
     from .. import command_support as cli
     from ..recover import regress
 
-    cli.run_action(
-        lambda: regress(cli.settings(), list(addresses), target=target, program_selector=program)
-    )
+    cli.emit(regress(cli.settings(), list(addresses), target=target, program_selector=program))

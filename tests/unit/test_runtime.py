@@ -55,7 +55,7 @@ def test_stage_runtime_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> N
 
 def test_stage_runtime_selects_the_semantic_test_product(tmp_path: Path) -> None:
     settings = _settings(tmp_path)
-    executable = settings.repo_dir / "build/decomp/Wiz8RuntimeMatch.exe"
+    executable = settings.repo_dir / "build/decomp/Wiz8RuntimeTest.exe"
     executable.write_bytes(b"semantic tests")
 
     result = stage_runtime(settings, executable.name)
@@ -145,6 +145,15 @@ def test_runtime_timeout_preserves_in_process_diagnostics(
         )
 
     monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", time_out)
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.diagnose_runtime_failure",
+        lambda *_args: {
+            "classification": "debug_timeout",
+            "stop_reason": "GDB timed out",
+            "host_symbol_candidates": [],
+            "artifacts": str(tmp_path / "gdb.txt"),
+        },
+    )
 
     with pytest.raises(RuntimeError, match="menu reached; teardown stuck"):
         _run_runtime_scenario(tmp_path / "test.exe", tmp_path, {}, "main-menu-startup")

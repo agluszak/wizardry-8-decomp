@@ -1,7 +1,7 @@
 """Class-ABI audit over the Clang-backed source index.
 
 These rules encode only facts the compiler and the retail image have already
-settled. They exist because a source model can be wrong in ways `just lint`
+settled. They exist because a source model can be wrong in ways `wiz8 lint`
 cannot see: lint compiles the declarations, so it accepts a class that
 re-declares methods its base already emits, and it accepts a new virtual added
 to a dllimport class even when the linker then leaves that vtable slot null.

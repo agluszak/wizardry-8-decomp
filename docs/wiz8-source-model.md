@@ -208,7 +208,7 @@ Use the authoritative surfaces instead:
 - `just wiz8 report context 0x<address> --program <program>` for joined identity, ownership,
   assertion, and current Ghidra evidence;
 - `just wiz8 analyze source-layouts` for the current PDB-to-Ghidra layout audit;
-- `just verify-boundaries` for relocation-masked body proof;
+- `just compare <addresses>` for relocation-masked body proof;
 - reviewed claims under `evidence/` for why an accepted identity or layout is trusted.
 
 Historical recovery examples belong in commit and Bead history, not in a manually maintained

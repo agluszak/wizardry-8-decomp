@@ -66,7 +66,7 @@ def load_source_index(repository: Path) -> dict[str, Any]:
     path = repository / "build/source-index.json"
     if not path.is_file():
         raise SourceIndexError(
-            f"{path} is missing; run `just lint` then `wiz8 analyze source-index`"
+            f"{path} is missing; run `wiz8 lint` then `wiz8 analyze source-index`"
         )
     document = json.loads(path.read_text(encoding="utf-8"))
     if document.get("schema") != "reccmp-source-index-v1":

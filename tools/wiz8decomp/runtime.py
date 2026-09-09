@@ -40,7 +40,7 @@ GDB_SIGNAL = re.compile(
     re.MULTILINE,
 )
 GDB_NORMAL_EXIT = re.compile(r"(?:exited normally|exited with code 0\b)", re.IGNORECASE)
-GDB_FAILED_EXIT = re.compile(r"exited with code (?!0\b)(?P<code>\S+)", re.IGNORECASE)
+GDB_FAILED_EXIT = re.compile(r"exited with code (?!0\b)(?P<code>[^\]\s]+)", re.IGNORECASE)
 GDB_TRANSPORT_FAILURE = re.compile(
     r"(?:Connection (?:refused|timed out)|Remote communication error|"
     r"Remote connection closed|The program is not being run)",
@@ -61,15 +61,6 @@ RUNTIME_SCENARIOS = (
     "main-menu-new-game",
     "main-menu-exit-auto-repeat",
 )
-
-
-class RuntimeScenarioError(RuntimeError):
-    def __init__(
-        self, scenario: str, message: str, crash_signature: tuple[str, str, str] | None = None
-    ) -> None:
-        super().__init__(message)
-        self.scenario = scenario
-        self.crash_signature = crash_signature
 
 
 @dataclass(frozen=True)
@@ -296,9 +287,17 @@ def _parse_gdb_diagnostics(output: str, returncode: int) -> dict[str, Any]:
     frames = [int(match.group("address"), 16) for match in GDB_FRAME.finditer(output)]
     signal_match = GDB_SIGNAL.search(output)
     if signal_match:
+        location = re.search(
+            r"^0x(?P<address>[0-9a-fA-F]+) in (?P<name>.+)$",
+            output[signal_match.end() :],
+            re.MULTILINE,
+        )
+        stop_reason = f"signal {signal_match.group('signal')}"
+        if location:
+            stop_reason += f" at 0x{location.group('address')} in {location.group('name')}"
         return {
             "classification": "debug_crashed",
-            "stop_reason": f"signal {signal_match.group('signal')}",
+            "stop_reason": stop_reason,
             "addresses": frames,
             "crash_signature": _runtime_crash_signature(output),
         }
@@ -330,14 +329,13 @@ def _runtime_failure(
     stderr: str,
     stage: Path,
     executable: Path,
-) -> RuntimeScenarioError:
+) -> RuntimeError:
     artifact_dir = stage / "diagnostics"
     artifact_dir.mkdir(exist_ok=True)
     artifact = artifact_dir / f"{scenario}-failure.txt"
     artifact.write_text(stdout + stderr, encoding="utf-8", errors="replace")
     combined = stdout + stderr
     crash = RUNTIME_CRASH.search(combined)
-    crash_signature = _runtime_crash_signature(combined)
     if crash:
         summary = crash.group(0)
     else:
@@ -351,31 +349,32 @@ def _runtime_failure(
     detail = "\n".join(symbols)
     if detail:
         detail = "\nhost stack candidates:\n" + detail
-    return RuntimeScenarioError(
-        scenario,
-        f"{scenario} failed: {summary}{detail}\nartifacts={artifact}",
-        crash_signature,
-    )
+    return RuntimeError(f"{scenario} failed: {summary}{detail}\nartifacts={artifact}")
 
 
 def _wine_environment(
-    settings: Settings, *, silent_audio: bool = False
+    settings: Settings, *, silent_audio: bool = False, quiet: bool = False
 ) -> tuple[Path, dict[str, str]]:
     prefix = Path(os.environ.get("WIZ8_WINE_PREFIX", settings.work_dir / "wine" / "wiz8-runtime"))
     prefix.mkdir(parents=True, exist_ok=True)
-    overrides = "winemenubuilder.exe=d"
+    # Let a crashing process return to this orchestrator instead of blocking in
+    # Wine's automatic debugger. The explicit winedbg rerun removes this one
+    # override below.
+    overrides = "winedbg.exe=d;winemenubuilder.exe=d"
     if silent_audio:
         # Miles crashes inside Wine's stub audio drivers instead of reporting
         # no usable driver. The scenarios never assert audible output, so the
         # suite runs the soundless-machine path: every Miles open fails and
         # the game stays silent.
         overrides += ";winealsa.drv=d;wineoss.drv=d;winepulse.drv=d;winemm.drv=d"
-    return prefix, {
+    environment = {
         **os.environ,
         "WINEPREFIX": str(prefix),
         "WINEDLLOVERRIDES": overrides,
-        "WINEDEBUG": "-all",
     }
+    if quiet:
+        environment["WINEDEBUG"] = "-all"
+    return prefix, environment
 
 
 def _configure_wine_window_management(
@@ -397,7 +396,6 @@ def _configure_wine_window_management(
         ],
         env=environment,
         check=True,
-        capture_output=True,
         timeout=60,
     )
 
@@ -435,11 +433,27 @@ def _run_runtime_scenario(
     except subprocess.TimeoutExpired as error:
         stdout = _timeout_output(error.stdout)
         stderr = _timeout_output(error.stderr)
-        raise _runtime_failure(scenario, None, stdout, stderr, stage, executable) from error
+        failure = _runtime_failure(scenario, None, stdout, stderr, stage, executable)
+        diagnosis = diagnose_runtime_failure(
+            stage,
+            executable,
+            ["--scenario", scenario],
+            environment,
+            scenario,
+        )
+        raise RuntimeError(f"{failure}\n{_format_diagnosis(diagnosis)}") from error
     if completed.returncode:
-        raise _runtime_failure(
+        failure = _runtime_failure(
             scenario, completed.returncode, completed.stdout, completed.stderr, stage, executable
         )
+        diagnosis = diagnose_runtime_failure(
+            stage,
+            executable,
+            ["--scenario", scenario],
+            environment,
+            scenario,
+        )
+        raise RuntimeError(f"{failure}\n{_format_diagnosis(diagnosis)}")
     try:
         observation = _parse_runtime_observation(completed.stdout)
     except RuntimeError as error:
@@ -447,7 +461,9 @@ def _run_runtime_scenario(
             scenario, completed.returncode, completed.stdout, completed.stderr, stage, executable
         ) from error
     if observation.get("scenario") != scenario:
-        raise RuntimeError(f"runtime observation names the wrong scenario: {observation}")
+        raise _runtime_failure(
+            scenario, completed.returncode, completed.stdout, completed.stderr, stage, executable
+        )
     return observation
 
 
@@ -456,10 +472,10 @@ def run_runtime_suite(settings: Settings) -> dict[str, Any]:
 
     if shutil.which("wine") is None or shutil.which("wineserver") is None:
         raise RuntimeError("wine and wineserver are required to run WIZ8_RUNTIME_TEST")
-    staged = stage_runtime(settings, "Wiz8RuntimeMatch.exe")
+    staged = stage_runtime(settings, "Wiz8RuntimeTest.exe")
     stage = Path(staged["stage"])
     executable = Path(staged["executable"])
-    prefix, environment = _wine_environment(settings, silent_audio=True)
+    prefix, environment = _wine_environment(settings, silent_audio=True, quiet=True)
     runs: dict[str, dict[str, dict[str, str | int]]] = {}
     with runtime_display(
         environment, default="virtual", log_path=stage / "xvfb-runtime-test.log"
@@ -494,123 +510,109 @@ def run_runtime_suite(settings: Settings) -> dict[str, Any]:
 
 
 def diagnose_runtime_failure(
-    settings: Settings,
-    scenario: str,
-    match_crash_signature: tuple[str, str, str] | None = None,
+    stage: Path,
+    executable: Path,
+    arguments: list[str],
+    environment: dict[str, str],
+    label: str,
 ) -> dict[str, Any]:
-    """Rerun one MATCH failure under GDB with the non-authoritative DEBUG profile."""
+    """Rerun the failed staged executable under winedbg and GDB."""
 
-    staged = stage_runtime(settings, "Wiz8RuntimeDebug.exe")
-    stage = Path(staged["stage"])
-    executable = Path(staged["executable"])
-    _prefix, environment = _wine_environment(settings, silent_audio=True)
-    with runtime_display(
-        environment, default="virtual", log_path=stage / "xvfb-runtime-debug.log"
-    ) as display:
-        _configure_wine_window_management(environment, private_display=display is not None)
-        artifact_dir = stage / "diagnostics"
-        artifact_dir.mkdir(exist_ok=True)
-        artifact = artifact_dir / f"{scenario}-gdb.txt"
-        proxy_artifact = artifact_dir / f"{scenario}-gdb-proxy.txt"
-        proxy: subprocess.Popen[str] | None = None
-        proxy_stream = None
+    environment = {
+        **environment,
+        "WINEDLLOVERRIDES": environment.get("WINEDLLOVERRIDES", "").replace("winedbg.exe=d;", ""),
+    }
+    artifact_dir = stage / "diagnostics"
+    artifact_dir.mkdir(exist_ok=True)
+    artifact = artifact_dir / f"{label}-gdb.txt"
+    proxy_artifact = artifact_dir / f"{label}-gdb-proxy.txt"
+    proxy: subprocess.Popen[str] | None = None
+    proxy_stream = None
+    try:
         try:
-            try:
-                port = _allocate_port()
-                proxy_stream = proxy_artifact.open("w", encoding="utf-8")
-                proxy = subprocess.Popen(
-                    [
-                        "winedbg",
-                        "--gdb",
-                        "--no-start",
-                        "--port",
-                        str(port),
-                        f"./{executable.name}",
-                        "--scenario",
-                        scenario,
-                    ],
-                    cwd=stage,
-                    env=environment,
-                    stdout=proxy_stream,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    start_new_session=True,
-                )
-                if not _listening(port, time.monotonic() + 60):
-                    return {
-                        "classification": "debugger_transport_failure",
-                        "stop_reason": "winedbg --gdb never opened its port",
-                        "artifacts": str(proxy_artifact),
-                        **staged,
-                    }
-                remote = f"target remote localhost:{port}"
-                commands = [
-                    "set pagination off",
-                    "handle SIGTRAP nostop noprint pass",
-                    remote,
-                    "continue",
-                    "thread apply all bt full",
-                    "info registers",
-                    "info sharedlibrary",
-                    "x/16i $pc-16",
-                ]
-                argv = ["gdb", "--batch"]
-                for command in commands:
-                    argv.extend(("-ex", command))
-                completed = subprocess.run(
-                    argv,
-                    cwd=stage,
-                    env=environment,
-                    capture_output=True,
-                    text=True,
-                    timeout=60,
-                    check=False,
-                )
-                output = completed.stdout + completed.stderr
-                artifact.write_text(output, encoding="utf-8", errors="replace")
-                diagnosis = _parse_gdb_diagnostics(output, completed.returncode)
-                symbols = _symbolize_addresses(
-                    executable.with_suffix(".map"), diagnosis.pop("addresses")
-                )[:5]
-                debug_signature = diagnosis.pop("crash_signature", None)
-                if match_crash_signature and diagnosis["classification"] == "debug_passed":
-                    relationship = "debug_profile_non_reproduction"
-                elif match_crash_signature and debug_signature:
-                    relationship = (
-                        "normalized_signature_match"
-                        if match_crash_signature == debug_signature
-                        else "normalized_signature_mismatch"
-                    )
-                else:
-                    relationship = "signature_unavailable"
-                return {
-                    **diagnosis,
-                    "profile_relationship": relationship,
-                    "host_symbol_candidates": symbols,
-                    "artifacts": str(artifact),
-                    **staged,
-                }
-            except subprocess.TimeoutExpired as error:
-                output = _timeout_output(error.stdout) + _timeout_output(error.stderr)
-                artifact.write_text(output, encoding="utf-8", errors="replace")
-                return {
-                    "classification": "debug_timeout",
-                    "stop_reason": "GDB timed out",
-                    "artifacts": str(artifact),
-                    **staged,
-                }
-        finally:
-            if proxy is not None:
-                _terminate_process_group(proxy)
-            if proxy_stream is not None:
-                proxy_stream.close()
-            subprocess.run(
-                ["wineserver", "-k"],
+            port = _allocate_port()
+            proxy_stream = proxy_artifact.open("w", encoding="utf-8")
+            proxy = subprocess.Popen(
+                [
+                    "winedbg",
+                    "--gdb",
+                    "--no-start",
+                    "--port",
+                    str(port),
+                    f"./{executable.name}",
+                    *arguments,
+                ],
                 cwd=stage,
                 env=environment,
-                check=False,
-                capture_output=True,
+                stdout=proxy_stream,
+                stderr=subprocess.STDOUT,
+                text=True,
+                start_new_session=True,
             )
+            if not _listening(port, time.monotonic() + 60):
+                return {
+                    "classification": "debugger_transport_failure",
+                    "stop_reason": "winedbg --gdb never opened its port",
+                    "artifacts": str(proxy_artifact),
+                }
+            commands = [
+                "set pagination off",
+                "handle SIGTRAP stop print nopass",
+                f"target remote localhost:{port}",
+                "continue",
+                "thread apply all bt full",
+                "info registers",
+                "info sharedlibrary",
+                "x/16i $pc-16",
+            ]
+            argv = ["gdb", "--batch"]
+            for command in commands:
+                argv.extend(("-ex", command))
+            completed = subprocess.run(
+                argv,
+                cwd=stage,
+                env=environment,
+                capture_output=True,
+                text=True,
+                timeout=60,
+                check=False,
+            )
+            output = completed.stdout + completed.stderr
+            artifact.write_text(output, encoding="utf-8", errors="replace")
+            diagnosis = _parse_gdb_diagnostics(output, completed.returncode)
+            symbols = _symbolize_addresses(
+                executable.with_suffix(".map"), diagnosis.pop("addresses")
+            )[:5]
+            diagnosis.pop("crash_signature", None)
+            return {
+                **diagnosis,
+                "host_symbol_candidates": symbols,
+                "artifacts": str(artifact),
+            }
+        except subprocess.TimeoutExpired as error:
+            output = _timeout_output(error.stdout) + _timeout_output(error.stderr)
+            artifact.write_text(output, encoding="utf-8", errors="replace")
+            return {
+                "classification": "debug_timeout",
+                "stop_reason": "GDB timed out",
+                "host_symbol_candidates": [],
+                "artifacts": str(artifact),
+            }
+    finally:
+        if proxy is not None:
+            _terminate_process_group(proxy)
+        if proxy_stream is not None:
+            proxy_stream.close()
+
+
+def _format_diagnosis(diagnosis: dict[str, Any]) -> str:
+    symbols = "\n".join(diagnosis.get("host_symbol_candidates", []))
+    detail = f"\nstack candidates:\n{symbols}" if symbols else ""
+    return (
+        f"debugger classification={diagnosis['classification']} "
+        f"stop={diagnosis.get('stop_reason', '')}{detail}\n"
+        f"debugger artifact={diagnosis['artifacts']}"
+    )
 
 
 def run_game(settings: Settings) -> dict[str, Any]:
@@ -628,7 +630,13 @@ def run_game(settings: Settings) -> dict[str, Any]:
                 ["wine", "./Wiz8Runtime.exe"], cwd=stage, env=environment, check=False
             )
             if completed.returncode:
-                raise RuntimeError(f"Wiz8Runtime.exe exited with status {completed.returncode}")
+                diagnosis = diagnose_runtime_failure(
+                    stage, Path(staged["executable"]), [], environment, "run"
+                )
+                raise RuntimeError(
+                    f"Wiz8Runtime.exe exited with status {completed.returncode}\n"
+                    f"{_format_diagnosis(diagnosis)}"
+                )
         finally:
             subprocess.run(
                 ["wineserver", "-k"],

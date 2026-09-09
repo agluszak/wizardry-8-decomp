@@ -29,7 +29,7 @@ def instructions_command(
         atomic_write(artifact, str(result["listing"]).rstrip() + "\n")
         return {"selector": selector, "instructions": str(artifact.relative_to(settings.repo_dir))}
 
-    cli.run_action(action)
+    cli.emit(action())
 
 
 @app.command("flow")
@@ -47,7 +47,7 @@ def flow_command(
         with open_program(cli.settings(), program) as live:
             return query_many(live, [("field-accesses", [selector, root])])[0]["result"]
 
-    cli.run_action(action)
+    cli.emit(action())
 
 
 @app.command("class")
@@ -71,7 +71,7 @@ def class_command(
         }
         return result
 
-    cli.run_action(action)
+    cli.emit(action())
 
 
 @app.command("data")
@@ -108,7 +108,7 @@ def data_command(
 
         return result
 
-    cli.run_action(action)
+    cli.emit(action())
 
 
 @app.command("status")
@@ -117,10 +117,7 @@ def status_command() -> None:
     from .. import command_support as cli
     from ..reports.status import status_report
 
-    def action():
-        return status_report(cli.settings())
-
-    cli.run_action(action)
+    cli.emit(status_report(cli.settings()))
 
 
 @app.command("context")
@@ -134,13 +131,12 @@ def context_command(
     from .. import command_support as cli
     from ..reports.recovery_context import recovery_context_reports
 
-    def action():
-        return {
+    cli.emit(
+        {
             "schema": "wiz8.recovery-contexts",
             "functions": recovery_context_reports(cli.settings(), selectors, program),
         }
-
-    cli.run_action(action)
+    )
 
 
 @app.command("translation-units")
@@ -150,7 +146,4 @@ def translation_units_command() -> None:
     from .. import command_support as cli
     from ..reports.translation_units import translation_unit_report
 
-    def action():
-        return translation_unit_report(cli.settings())
-
-    cli.run_action(action)
+    cli.emit(translation_unit_report(cli.settings()))

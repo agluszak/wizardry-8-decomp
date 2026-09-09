@@ -27,8 +27,7 @@ DIAGNOSTICS_BUILD_DIR = "build/clang-diagnostics"
 TARGET_ALIASES = {
     "match": "WIZ8",
     "runtime": "WIZ8_RUNTIME",
-    "runtime-test": "WIZ8_RUNTIME_MATCH",
-    "runtime-debug": "WIZ8_RUNTIME_DEBUG",
+    "runtime-test": "WIZ8_RUNTIME_TEST",
 }
 PRODUCT_GENERATOR = "NMake Makefiles"
 
@@ -593,7 +592,7 @@ def verify(
     gate("check", lambda: check(settings.repo_dir))
     wiz8_build = gate("build_wiz8", lambda: build_target(settings, "WIZ8"))
     surrender_build = gate("build_surrender", lambda: build_target(settings, "SURRENDER"))
-    runtime_build = gate("build_runtime_test", lambda: build_target(settings, "WIZ8_RUNTIME_MATCH"))
+    runtime_build = gate("build_runtime_test", lambda: build_target(settings, "WIZ8_RUNTIME_TEST"))
 
     if wiz8_build is not None:
         gate("imports_wiz8", lambda: _check_product_imports(settings.repo_dir, "WIZ8"))
