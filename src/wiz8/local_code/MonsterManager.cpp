@@ -22,6 +22,8 @@ W8MonsterRecord* g_monster_record_cache[1000];
 float g_monster_record_float_scale = 20.0f;
 // GLOBAL: WIZ8 0x00683698
 int g_monster_info_iterator_index;
+// GLOBAL: WIZ8 0x006875c3
+W8WideChar g_monster_name_buffer[22];
 // GLOBAL: WIZ8 0x006875ef
 unsigned char g_alternate_name_slot;
 }
