@@ -13,51 +13,45 @@ jobs:
         run: |
           import csv, pathlib, re
 
-          root = pathlib.Path('.')
-          sources = [p for base in ('src', 'include') for p in (root / base).rglob('*') if p.suffix.lower() in {'.c', '.cc', '.cpp', '.h', '.hpp'}]
-          texts = {p: p.read_text(errors='ignore').splitlines() for p in sources}
-          symbols = []
+          source_suffixes = {'.c', '.cc', '.cpp', '.h', '.hpp'}
+          baseline = {}
           with open('config/verification/unresolved-baseline.csv', newline='') as f:
               for row in csv.DictReader(f):
                   mangled = row['symbol']
                   m = re.match(r'\?([A-Za-z_$][A-Za-z0-9_$]*)@@3', mangled)
+                  if not m:
+                      m = re.match(r'_(g_[A-Za-z0-9_$]+)$', mangled)
                   if m:
-                      symbols.append((m.group(1), mangled))
-                      continue
-                  m = re.match(r'_(g_[A-Za-z0-9_$]+)$', mangled)
-                  if m:
-                      symbols.append((m.group(1), mangled))
+                      baseline.setdefault(m.group(1), set()).add(mangled)
+
+          occ = {name: [] for name in baseline}
+          defined = set()
+          ident = re.compile(r'\b(?:g_[A-Za-z0-9_$]+|ghWindow)\b')
 
           def is_definition(line, name):
               s = line.strip()
-              if not s or s.startswith('//') or s.startswith('/*') or s.startswith('*') or s.startswith('#') or 'extern ' in s:
+              if not s or s.startswith(('/', '*', '#')) or 'extern ' in s:
                   return False
               pos = s.find(name)
-              if pos < 0:
-                  return False
               before = s[:pos].strip()
               after = s[pos + len(name):].lstrip()
               if not before or '(' in before or '=' in before:
                   return False
-              if not re.match(r'^(?:\[[^\]]*\]\s*)*(?:=|;)', after):
-                  return False
-              return True
+              return re.match(r'^(?:\[[^\]]*\]\s*)*(?:=|;)', after) is not None
 
-          missing = []
-          for name, mangled in sorted(set(symbols)):
-              occ = []
-              defined = False
-              for path, lines in texts.items():
-                  for no, line in enumerate(lines, 1):
-                      if re.search(rf'\b{re.escape(name)}\b', line):
-                          occ.append((path, no, line.strip()))
+          for base in ('src', 'include'):
+              for path in pathlib.Path(base).rglob('*'):
+                  if path.suffix.lower() not in source_suffixes:
+                      continue
+                  for no, line in enumerate(path.read_text(errors='ignore').splitlines(), 1):
+                      for name in set(ident.findall(line)) & baseline.keys():
+                          occ[name].append((path, no, line.strip()))
                           if is_definition(line, name):
-                              defined = True
-              if occ and not defined:
-                  missing.append((name, mangled, occ))
+                              defined.add(name)
 
+          missing = [(name, sorted(baseline[name]), occ[name]) for name in sorted(baseline) if occ[name] and name not in defined]
           print(f'candidate_count={len(missing)}')
-          for name, mangled, occ in missing:
-              print(f'\n{name}\t{mangled}')
-              for path, no, line in occ[:8]:
+          for name, mangled, uses in missing:
+              print(f'\n{name}\t{" | ".join(mangled)}')
+              for path, no, line in uses[:10]:
                   print(f'  {path}:{no}: {line}')
