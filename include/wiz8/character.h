@@ -287,7 +287,10 @@ typedef struct W8Character {
     /* 0x185b: the deep-fatigue effect is already on this character, which is
        what stops FatigueCharacter re-applying it every turn. */
     unsigned char deep_fatigue_applied;
-    unsigned char unknown_185c[5];
+    /* 0x185c: one cost per skill id 0x18..0x1b, read by the profession-change
+       cost diff with the skill id biased down. */
+    unsigned char skill_costs_185c[4];
+    unsigned char unknown_1860;
     /* 0x1861: the anchor above has been set. Recall does nothing without it. */
     unsigned char has_saved_location;
 } W8Character;                           /* 0x1862 */
