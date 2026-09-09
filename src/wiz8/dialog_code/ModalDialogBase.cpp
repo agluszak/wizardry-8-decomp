@@ -13,7 +13,6 @@
 #include <wchar.h>
 
 extern void Function40C710(int resource);
-extern "C" void Function407650(int x, int y, const wchar_t* text);
 extern "C" int g_dialog_font_64fde8;
 extern "C" unsigned char g_dialog_font_foreground_64fdec;
 extern "C" unsigned char g_dialog_font_background_64fded;
@@ -370,7 +369,7 @@ void W8ModalDialogBase::Draw()
             short width = StringPixLengthArg(
                 g_dialog_font_64fde8, wcslen(line),
                 reinterpret_cast<unsigned short*>(line), y, line);
-            Function407650(m_x + (m_width - width) / 2, y, line);
+            gprintf(m_x + (m_width - width) / 2, y, (unsigned short*)line);
             y += GetFontHeight(g_dialog_font_64fde8);
         }
         RestoreFontSettings();

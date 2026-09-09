@@ -26,8 +26,6 @@ extern int g_font_bold_0068368c;
 int g_font_bold_0068368c;
 extern unsigned char ReadWideTextLine004CEED0(
     int handle, wchar_t* destination, int capacity, unsigned char* more);
-extern void Function407650(int x, int y, const wchar_t* format, ...);
-
 W8GrowableVector<W8CreditLine>* g_credit_lines_0069c4a8;
 int g_credit_elapsed_steps_0069c494;
 unsigned char g_credit_redraw_0069c498;
@@ -161,14 +159,14 @@ void CreditsScreenFrame(void)
         if ((entry->flags & 4) == 0) {
             SetFont((entry->flags & 1) ? g_font_bold_0068368c : g_font_00683614);
             if ((entry->flags & 2) == 0) {
-                Function407650((0x280 - entry->pixel_width) / 2, y,
-                               L"%s", entry->primary);
+                gprintf((0x280 - entry->pixel_width) / 2, y,
+                        (unsigned short*)L"%s", entry->primary);
             }
             else {
-                Function407650(0x136 - entry->pixel_width, y,
-                               L"%s", entry->primary);
+                gprintf(0x136 - entry->pixel_width, y,
+                        (unsigned short*)L"%s", entry->primary);
                 if (entry->secondary != 0) {
-                    Function407650(0x14a, y, L"%s", entry->secondary);
+                    gprintf(0x14a, y, (unsigned short*)L"%s", entry->secondary);
                 }
             }
         }

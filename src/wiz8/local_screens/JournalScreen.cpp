@@ -65,8 +65,6 @@ int g_journal_font_69c4cc;
 unsigned short* g_journal_font_palette_69c4d0;
 // GLOBAL: WIZ8 0x0069C4D8
 unsigned short* g_journal_font_original_palette_69c4d8;
-extern void Function407650(int x, int y, const wchar_t* format, ...);
-
 W8JournalPanel005EF340* g_journal_panel_0069c4d4;
 W8GrowableVector<W8JournalEntry>* g_journal_entries_0069c4e4;
 unsigned int g_journal_region_set_0069c4dc;
@@ -110,7 +108,7 @@ void DrawJournalLine005BDD00(
         SetFontObjectPalette16BPP(
             g_journal_font_69c4cc, g_journal_font_palette_69c4d0);
     }
-    Function407650(left + x, y, L"%s", text);
+    gprintf(left + x, y, (unsigned short*)L"%s", text);
 }
 
 // FUNCTION: WIZ8 0x005bd860

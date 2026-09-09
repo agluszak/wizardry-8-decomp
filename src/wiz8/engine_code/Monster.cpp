@@ -132,7 +132,7 @@ const double g_monster_facing_tolerance_005ec2b0 = 0.78539815;
 // GLOBAL: WIZ8 0x005ed2c0
 const double g_monster_group_nearest_range_005ed2c0 = 12500.0;
 // GLOBAL: WIZ8 0x0060f684
-const char g_warning_missing_spell_vertex_0060f684[] =
+extern const char g_warning_missing_spell_vertex_0060f684[] =
     "WARNING: %ls does not have a SPELL vertex marked! --> Lee";
 extern unsigned char HasLineOfSightToBounds0046FD70(
     const srVector3T<float>* origin,

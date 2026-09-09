@@ -39,7 +39,7 @@ extern unsigned char CharacterIsEngaged(unsigned int party_slot);        /* 0x00
 // GLOBAL: WIZ8 0x0068d810
 unsigned char g_combat_log_enabled_0068d810;
 // GLOBAL: WIZ8 0x00617664
-const wchar_t g_combat_log_format_00617664[] = L"%hs";
+extern const wchar_t g_combat_log_format_00617664[] = L"%hs";
 /* 0x0053AC30 */
 extern void NotifySpellPointsChanged(int party_slot);
 extern void Function4E8000(int party_slot, int action_kind, int action_detail, int a, int b);

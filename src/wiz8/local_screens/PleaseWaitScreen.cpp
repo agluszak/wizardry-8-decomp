@@ -78,7 +78,6 @@ extern void Function425570(int value);
 /* 0x00412A10; the reviewed identity Ghidra carries. Nothing defines it yet. */
 extern void RefreshSlfArchives(void);
 extern int Function509750(void);
-extern void Function407650(int x, int y, const char* format, const wchar_t* text);
 extern void Function512C40(void);
 extern void Function5092F0(int* level, int* entrance);
 extern void Function5063E0(void);
@@ -217,8 +216,8 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
         DrawCatalogImage(-14, backdrop, 0, 0, 0, 0, 2, 0);                    \
         DrawCatalogImage(-14, 0x1de, 0, 0, 0, 0x1be, 2, 0);                   \
         SetFont(g_level_load_font_69b7c0);                             \
-        Function407650(0x6a, 0x1c7, "%",                                      \
-                       (const wchar_t*)g_load_descriptor_69b7c8);             \
+        gprintf(0x6a, 0x1c7, (unsigned short*)"%",                           \
+                (const wchar_t*)g_load_descriptor_69b7c8);                   \
         DrawCatalogImage(-14, 0x1dd, 0, g_load_descriptor_69b7c8->caption_y,  \
                        0, 0x185, 2, 0);                                       \
         ResetTransientRenderScenes();                                                     \

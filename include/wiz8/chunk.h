@@ -39,10 +39,8 @@ struct W8Chunk {
     int CurrentChunkExtent();
     int ChunkCount();
     unsigned char OpenChunk(unsigned int chunk_id, unsigned char grouped);
-    __forceinline unsigned char Read(void* buffer, unsigned int size,
-                                     unsigned int* transferred);
-    __forceinline unsigned char Write(const void* buffer, unsigned int size,
-                                      unsigned int* transferred);
+    unsigned char Read(void* buffer, unsigned int size, unsigned int* transferred);
+    unsigned char Write(const void* buffer, unsigned int size, unsigned int* transferred);
     void RewindCurrentChunk();
     unsigned char ReleaseCurrentChunk();
     unsigned char CurrentChunkAtEnd();

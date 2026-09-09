@@ -27,8 +27,8 @@ W8Chunk::~W8Chunk()
 }
 
 // FUNCTION: WIZ8 0x0055ca20
-__forceinline unsigned char W8Chunk::Read(void* buffer, unsigned int size,
-                                          unsigned int* transferred)
+unsigned char W8Chunk::Read(void* buffer, unsigned int size,
+                            unsigned int* transferred)
 {
     unsigned int done;
     unsigned char result;
@@ -44,8 +44,8 @@ __forceinline unsigned char W8Chunk::Read(void* buffer, unsigned int size,
 }
 
 // FUNCTION: WIZ8 0x0055ca80
-__forceinline unsigned char W8Chunk::Write(const void* buffer, unsigned int size,
-                                           unsigned int* transferred)
+unsigned char W8Chunk::Write(const void* buffer, unsigned int size,
+                             unsigned int* transferred)
 {
     unsigned int done;
     unsigned char result;
