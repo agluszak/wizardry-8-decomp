@@ -6,6 +6,9 @@
 
 struct W8IList;
 struct W8MonsterRecord;
+struct W8MonsterGroup;
+
+unsigned char DestroyMonsterGroup(W8MonsterGroup* monster_group, int value);
 
 #pragma pack(push, 1)
 /* The stride is the record LoadMonsterGroup allocates, zeroes and reads whole,

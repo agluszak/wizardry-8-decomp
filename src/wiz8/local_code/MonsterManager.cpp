@@ -48,7 +48,6 @@ unsigned char g_alternate_name_slot;
 
 void MonsterSetBehaviour(W8Monster* monster, int behavior);
 void MonsterSetSubCycle(W8Monster* monster, int subcycle);
-void DestroyMonsterGroup(W8MonsterGroup* monster_group, W8MonsterInfo* monster_info);
 void Function5103E0(W8MonsterGroup* monster_group);
 void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* entry);
 void DestroyMonsterActionQueue(W8MonsterInfo* monster_info);
@@ -1302,7 +1301,7 @@ unsigned char RemoveMonster(
         --monster_group->member_count;
         RequestRedrawParty();
         if (monster_group->member_count == 0) {
-            DestroyMonsterGroup(monster_group, monster_info);
+            DestroyMonsterGroup(monster_group, reinterpret_cast<int>(monster_info));
         } else {
             RecountActiveMonsterGroupMembers(monster_group);
             if (monster_group->value_9f == monster_info->location_id) {
