@@ -3,6 +3,8 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/npc_state.h"
+#include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/Levels.h"
 #include "wiz8/sr_api.h"
 
 /*
@@ -33,7 +35,7 @@ enum { W8_NPC_DISPOSITION_HOSTILE = 0x21, W8_NPC_DISPOSITION_FRIENDLY = 0x42 };
 W8GrowableVector<W8NpcState*>* g_npc_states;
 
 extern char GetNpcDisposition(W8NpcState* npc);                          /* 0x0050A280 */
-extern void UpdateNpcAt(W8NpcState* npc, int arg_2, void* scratch);      /* 0x0050B2F0 */
+extern unsigned char UpdateNpcAt(W8NpcState* npc, int arg_2, void* scratch); /* 0x0050B2F0 */
 
 /* Whether the NPC's database entry carries the value at 0x002 at all. */
 // FUNCTION: WIZ8 0x0050aa00
@@ -456,5 +458,38 @@ int Function50A440(unsigned int monster_list_index)
     if (npc->unknown_c7 != 0) {
         return reinterpret_cast<int>(npc);
     }
+    return 0;
+}
+
+extern void GetCameraPosition(srVector3T<float>* position);
+extern float GetCameraYawRadians(void);
+
+// GLOBAL: WIZ8 0x005EC29C
+const float g_float_005ec29c = 0.7853981256484985f;
+
+/* Probe the navigator from the party eye at three height bands, reporting
+   whether any band reaches. */
+// FUNCTION: WIZ8 0x0050B2F0
+unsigned char UpdateNpcAt(W8NpcState* /*npc*/, int /*arg_2*/, void* scratch)
+{
+    srVector3T<float> party_position;
+    float yaw;
+
+    GetCameraPosition(&party_position);
+    party_position.y = party_position.y - g_default_world_height_00603ac8;
+    yaw = GetCameraYawRadians() + g_float_005ec29c;
+    if (FindNavigatorPosition00437F30(
+            &party_position, yaw, 1000.0f, 1,
+            reinterpret_cast<srVector3T<float>*>(scratch), 1, 0, 1, 10, 0) > 0) {
+        return 1;
+    }
+    if (FindNavigatorPosition00437F30(
+            &party_position, yaw, 1000.0f, 1,
+            reinterpret_cast<srVector3T<float>*>(scratch), 1, 0, 1, 20, 0) > 0) {
+        return 1;
+    }
+    FindNavigatorPosition00437F30(
+        &party_position, yaw, 1000.0f, 1,
+        reinterpret_cast<srVector3T<float>*>(scratch), 1, 0, 1, 30, 0);
     return 0;
 }
