@@ -1,0 +1,118 @@
+name: Linker frontier probe
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install Python environment
+        run: uv sync --frozen
+
+      - name: Fetch public source oracles
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p build/ci-sources
+
+          curl -L --fail -o build/ci-sources/zlib.tar.gz \
+            https://zlib.net/fossils/zlib-1.0.4.tar.gz
+          echo 'e5c260cd3db1370fb3e0c193e9cbd9f127a9bd055d622b3fb55b82747f6e5b24  build/ci-sources/zlib.tar.gz' | sha256sum -c -
+          tar -C build/ci-sources -xzf build/ci-sources/zlib.tar.gz
+
+          curl -L --fail -o build/ci-sources/jpeg.tar.gz \
+            https://www.nic.funet.fi/pub/sci/graphics/packages/jpeg/jpegsrc.v6.tar.gz
+          echo '6311cbbb24b57bc7fb68bd788a9876bb63673302fded219070b39147fb124de7  build/ci-sources/jpeg.tar.gz' | sha256sum -c -
+          tar -C build/ci-sources -xzf build/ci-sources/jpeg.tar.gz
+
+          curl -L --fail -o build/ci-sources/unzip.zip \
+            https://ftpmirror.infania.net/sites/os2bbs.com/archive/unzip540.zip
+          echo 'b8c5a17798cd44050042fc1538df4102509d932dcab49eff3061f3065d00b45b  build/ci-sources/unzip.zip' | sha256sum -c -
+          mkdir -p build/ci-sources/infozip-raw
+          unzip -q build/ci-sources/unzip.zip -d build/ci-sources/infozip-raw
+          infozip_source=$(dirname "$(find build/ci-sources/infozip-raw -name api.c -print -quit)")
+          test -n "$infozip_source"
+          mkdir -p build/ci-sources/infozip
+          cp -a "$infozip_source"/. build/ci-sources/infozip/
+
+          curl -L --fail -o build/ci-sources/zcrypt.zip \
+            https://ftp.zx.net.nz/pub/mirror/ftp.leo.org/pub/comp/os/os2/leo/archiver/zcrypt28.zip
+          echo 'fb02bc8d818da7c27ca02bf0d51e9c51e49ddce5262356b87d15f32295c4a6b3  build/ci-sources/zcrypt.zip' | sha256sum -c -
+          mkdir -p build/ci-sources/zcrypt
+          unzip -q build/ci-sources/zcrypt.zip -d build/ci-sources/zcrypt
+          cp "$(find build/ci-sources/zcrypt -iname crypt.c -print -quit)" build/ci-sources/infozip/crypt.c
+          cp "$(find build/ci-sources/zcrypt -iname crypt.h -print -quit)" build/ci-sources/infozip/crypt.h
+
+      - name: Build pinned VC6 image
+        run: docker build -f docker/msvc600/Dockerfile -t wizardry8-msvc600:sp5 .
+
+      - name: Configure matching build
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p build/decomp/tmp
+          uv run python -c 'from pathlib import Path; from wiz8decomp.build import _write_sr_assert_import; _write_sr_assert_import(Path.cwd())'
+          docker run --rm --init --network none \
+            --volume "$PWD:/repo:ro" \
+            --volume "$PWD/build/ci-sources/jpeg-6:/jpeg:ro" \
+            --volume "$PWD/build/ci-sources/zlib-1.0.4:/zlib:ro" \
+            --volume "$PWD/build/ci-sources/infozip:/infozip:ro" \
+            --volume "$PWD/build/decomp:/out" \
+            wizardry8-msvc600:sp5 \
+            'C:\cmake\bin\cmake.exe' \
+            -S Z:/repo -B Z:/out -G 'NMake Makefiles' \
+            -DIJG_JPEG_SOURCE=Z:/jpeg \
+            -DZLIB_SOURCE=Z:/zlib \
+            -DINFOZIP_SOURCE=Z:/infozip \
+            -DSGP_SOURCE=Z:/repo/third_party/sfi-sgp/sgp \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Build comparison image
+        shell: bash
+        run: |
+          set -euxo pipefail
+          docker run --rm --init --network none \
+            --volume "$PWD:/repo:ro" \
+            --volume "$PWD/build/ci-sources/jpeg-6:/jpeg:ro" \
+            --volume "$PWD/build/ci-sources/zlib-1.0.4:/zlib:ro" \
+            --volume "$PWD/build/ci-sources/infozip:/infozip:ro" \
+            --volume "$PWD/build/decomp:/out" \
+            wizardry8-msvc600:sp5 \
+            'C:\cmake\bin\cmake.exe' -E env \
+            'TEMP=Z:\out\tmp' 'TMP=Z:\out\tmp' \
+            'C:\cmake\bin\cmake.exe' --build Z:/out --target WIZ8 --parallel 2
+
+      - name: Measure unresolved frontier
+        shell: bash
+        run: |
+          uv run python - <<'PY'
+          import json
+          from pathlib import Path
+          from wiz8decomp.unresolved import unresolved_report
+
+          report = unresolved_report(
+              Path('build/decomp/CMakeFiles/wiz8_recovered_objects.dir'),
+              Path('build/decomp/Wiz8.map'),
+          )
+          Path('build/unresolved-frontier.json').write_text(
+              json.dumps(report, indent=2) + '\n', encoding='utf-8'
+          )
+          print(f"UNRESOLVED_SYMBOLS={report['unresolved_symbols']}")
+          print(f"UNITS_WITH_UNRESOLVED={report['units_with_unresolved']}")
+          for row in report['ranked_units'][:20]:
+              print(f"{row['unresolved_count']:4d} {row['unit']}")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unresolved-frontier
+          path: build/unresolved-frontier.json
