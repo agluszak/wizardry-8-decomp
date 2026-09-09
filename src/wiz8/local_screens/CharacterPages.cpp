@@ -43,7 +43,21 @@ struct W8PortraitGroup {
 static_assert(sizeof(W8PortraitDescriptor) == 0x10, "W8PortraitDescriptor_size");
 static_assert(sizeof(W8PortraitGroup) == 0x3c, "W8PortraitGroup_size");
 extern W8PortraitDescriptor g_portrait_descriptors_6483d0[];
-extern W8PortraitGroup g_portrait_groups_648950[12];
+// GLOBAL: WIZ8 0x00648950
+W8PortraitGroup g_portrait_groups_648950[12] = {
+    {14, {0, 1, 2, 3, 76, 4, 5, 6, 7, 8, 9, 77, 10, 11}},
+    {8, {12, 13, 14, 78, 15, 16, 17, 79}},
+    {6, {18, 19, 20, 21, 22, 23}},
+    {4, {24, 25, 26, 27}},
+    {4, {28, 29, 30, 31}},
+    {4, {32, 33, 34, 35}},
+    {4, {36, 37, 38, 39}},
+    {4, {40, 41, 42, 43}},
+    {4, {44, 45, 46, 47}},
+    {4, {48, 49, 50, 51}},
+    {4, {52, 53, 54, 55}},
+    {2, {56, 57}},
+};
 
 // VTABLE: WIZ8 0x005ef1d8 W8CharacterPageEntry
 // class W8CharacterPageEntry
