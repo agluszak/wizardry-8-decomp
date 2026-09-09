@@ -288,7 +288,7 @@ unsigned char LoadWorld(
 
     world->m_positional_0d4[0] = 0;
     if (world->octree != 0) {
-        UpdateWorldMeshFromOctree004BAF50(world);
+        UpdateWorldOctree004BAF50(world);
     }
     else if (world->m_owned_06c != 0) {
         world->m_owned_06c->dirty = 1;
@@ -360,7 +360,7 @@ void UpdateWorlds0044F400(void)
     if (g_renderer_ready_00607d7c != 0 &&
         g_world_mesh_update_enabled_00607d7d != 0) {
         if (g_world->octree != 0) {
-            UpdateWorldMeshFromOctree004BAF50(g_world);
+            UpdateWorldOctree004BAF50(g_world);
         }
         else if (g_world->m_owned_06c != 0) {
             ++g_world->m_owned_06c->dirty;

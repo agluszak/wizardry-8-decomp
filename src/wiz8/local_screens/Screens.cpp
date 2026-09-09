@@ -110,9 +110,10 @@ unsigned char IsScreenTransitionPending(void)
     return 1;
 }
 
-/* Route one redraw bit to the active camp or main-game screen state. */
+/* Route one redraw bit to the active camp or main-game screen state. The slot
+   travels as an int: the body only ever reads its low byte for the shift. */
 // FUNCTION: WIZ8 0x0055EE30
-void Function55EE30(unsigned char bit)
+void Function55EE30(int bit)
 {
     if (g_current_screen_state.id == W8_SCREEN_CAMP) {
         g_camp_screen_0069c0f4->redraw_flags |= 0x100;

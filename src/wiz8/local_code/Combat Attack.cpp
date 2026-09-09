@@ -3,6 +3,7 @@
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/combat_state.h"
+#include "wiz8/npc_interaction.h"
 #include "wiz8/sr_api.h"
 #include "random.h"
 
@@ -49,7 +50,6 @@ enum { W8_ATTACK_MODE_COUNT = 9 };
 /* Bit two of the monster record's flag word: the monster attacks at all. */
 enum { W8_MONSTER_FLAG_ATTACKS = 4 };
 
-extern unsigned char CharacterIsEngaged(unsigned int party_slot);        /* 0x00524A10 */
 extern unsigned char RateMonsterAttack(
     W8MonsterInfo* monster_info, int target, unsigned int attack, int arg_4, int arg_5);
 /* 0x0053D4B0 */
@@ -115,7 +115,7 @@ bool CanCharacterAttack(int party_slot)
 {
     const W8Character* character = &g_party_characters[party_slot];
 
-    if (!CharacterIsEngaged(party_slot)) {
+    if (!IsPartySlotEligible00524A10(party_slot)) {
         return false;
     }
     if (character->unknown_0b01 > 0xb) {
@@ -289,7 +289,7 @@ bool CanCharacterAttackItsTarget(int party_slot)
     if (!TargetIsInPlay(party_slot, 0, 0)) {
         return false;
     }
-    if (!CharacterIsEngaged(party_slot)) {
+    if (!IsPartySlotEligible00524A10(party_slot)) {
         return false;
     }
     character = &g_party_characters[party_slot];

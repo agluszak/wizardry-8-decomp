@@ -186,7 +186,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
         }
     }
 }
-extern void NotifySpellPointsChanged(int party_slot);                    /* 0x0055EE30 */
+extern void Function55EE30(int bit);                                                /* 0x0055EE30 */
 
 extern void Function50E8C0(int location_id);
 extern void Function50E650(int party_slot);
@@ -689,7 +689,7 @@ void ClearCharacterEnchantmentSlot(int party_slot, int slot)
         }
     }
 
-    NotifySpellPointsChanged(party_slot);
+    Function55EE30(party_slot);
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         RequestRedraw(0x200000);
         RequestRedraw(0x8000);

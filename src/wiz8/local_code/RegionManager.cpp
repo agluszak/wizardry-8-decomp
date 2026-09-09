@@ -16,7 +16,6 @@
 extern unsigned char g_region_help_force_enabled;
 // GLOBAL: WIZ8 0x006850d4
 unsigned char g_region_help_force_enabled;
-extern void HideRegionHelp(void);                           /* 0x00429770 */
 extern int g_help_box_width;                                /* 0x006548A0 */
 // GLOBAL: WIZ8 0x006548a0
 int g_help_box_width;
@@ -24,7 +23,6 @@ extern int g_help_box_height;                               /* 0x00654ACC */
 // GLOBAL: WIZ8 0x00654acc
 int g_help_box_height;
 extern void SetHelpBoxText(void* text);                     /* 0x00429290 */
-extern void GetHelpBoxAnchor(W8ScreenPoint* anchor);        /* 0x004284F0 */
 extern void PlaceHelpBox(int x, int y);                     /* 0x00429210 */
 
 enum { W8_SCREEN_WIDTH = 640, W8_SCREEN_HEIGHT = 480, W8_HELP_MARGIN = 2 };
@@ -323,7 +321,7 @@ void ShowRegionHelp(unsigned int region_index)
     region = &g_regions[region_index];
     mode = region->flags & W8_REGION_MODE_MASK;
     if (mode != 1 && mode != 2 && (region->flags & W8_REGION_HELP_SHOWN) != 0) {
-        HideRegionHelp();
+        ReleaseScreenTransitionObjects();
         region->flags &= ~W8_REGION_HELP_SHOWN;
     }
     if ((region->flags & W8_REGION_HELP_SHOWN) != 0) {
@@ -340,7 +338,7 @@ void ShowRegionHelp(unsigned int region_index)
     SetHelpBoxText(text);
     width = g_help_box_width + W8_HELP_MARGIN;
     height = g_help_box_height + W8_HELP_MARGIN;
-    GetHelpBoxAnchor(&anchor);
+    GetScreenPoint004284F0(&anchor);
     anchor.y -= height;
     if (anchor.x < 0) {
         anchor.x = W8_HELP_MARGIN;
@@ -637,7 +635,7 @@ void ResetRegionHelp(unsigned char delayed)
 {
     unsigned int region_index = g_current_region_index;
 
-    HideRegionHelp();
+    ReleaseScreenTransitionObjects();
     g_regions[region_index].flags &= 0xfffffdff;
     if (delayed == 0) {
         ShowRegionHelp(g_current_region_index);

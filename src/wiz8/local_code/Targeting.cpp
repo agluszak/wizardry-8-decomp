@@ -855,9 +855,9 @@ extern unsigned char IsSlotActionChosen(int party_slot, int context, int arg_3, 
 /* 0x004E79A0 */
 extern unsigned char CanTargetMonsterWithAction(
     int party_slot, int location_id, int arg_3, int arg_4);              /* 0x00536AD0 */
-extern void ClearMonsterTargetNotice(void);                              /* 0x00547510 */
+extern unsigned char Function547510(void);                                  /* 0x00547510 */
 extern void SetTargetCursor(int cursor);                                 /* 0x0055EE70 */
-extern void ClearTargetCursor(void);                                     /* 0x0055EF90 */
+extern void UpdateHeldItemCursor(void);                                    /* 0x0055EF90 */
 
 /* The two cursors this body cares about: the one it puts up for a monster it
    can act on, and the one it takes down for a monster it cannot. */
@@ -896,12 +896,12 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
          CanTargetMonsterWithAction(party_slot, location_id, 1, 0))) {
         valid = 1;
     }
-    ClearMonsterTargetNotice();
+    Function547510();
 
     if (valid == 0) {
         SetMonsterHighlightColour(monster, 1.0f, 0.0f, 0.0f, 1.0f);
         if (g_modal_owner_0068edd0 == 0 && gXStatus.iCurrentCursor == W8_CURSOR_VALID_TARGET) {
-            ClearTargetCursor();
+            UpdateHeldItemCursor();
         }
         return 0;
     }

@@ -29,7 +29,6 @@ enum { W8_TURN_PHASE_FREE = 3 };
 extern float g_movement_speed_step_005ed490;
 extern void SetPartyMoving(int moving);                                 /* 0x00420B40 */
 extern void ReleasePartyMovement(void);                                 /* 0x005A1890 */
-extern void HoldPartyMovement(void);                                    /* 0x005A1DD0 */
 extern void Function5354E0(void);
 extern void Function4F06B0(void);
 extern unsigned char Function4F0010(unsigned int* out_steps);
@@ -75,7 +74,7 @@ void UpdatePartyMovementControl(void)
     }
     g_level_block->move_budget_2dc = 100;
     g_level_block->move_budget_2e0 = 100;
-    HoldPartyMovement();
+    RedrawPanel69BF4C();
 }
 
 /* Whether the party may move at all right now. Out of combat mode, or in the
@@ -134,7 +133,7 @@ void EndPartyMovementPhase(void)
     }
     ResetLevelDataVectors0041F0D0();
     RedrawPanel69BF40();
-    HoldPartyMovement();
+    RedrawPanel69BF4C();
     RefreshOutwardSightForAllMonsters();
     g_combat_state->turn_phase = 2;
 }
@@ -160,7 +159,7 @@ void BeginFreeTurnPhase(void)
     }
     g_level_block->move_budget_2dc = 100;
     g_level_block->move_budget_2e0 = 100;
-    HoldPartyMovement();
+    RedrawPanel69BF4C();
 }
 
 /* Round one combatant's phase to the ten it belongs in and clamp it into the

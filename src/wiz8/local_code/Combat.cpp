@@ -6,6 +6,7 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/combat_state.h"
+#include "wiz8/npc_interaction.h"
 extern "C" {
 // GLOBAL
 W8CombatState* g_combat_state;
@@ -31,7 +32,7 @@ W8CombatCharacterRow* g_combat_character_rows;
    watches for. */
 enum { W8_ACTION_LIFTED_AT_ROUND_END = 9, W8_ACTION_KIND_ONE = 1 };
 
-extern unsigned char CharacterIsEngaged(unsigned int party_slot);        /* 0x00524A10 */
+        /* 0x00524A10 */
 
 /* 0x00547940 */
 /* The per-character combat rows begin at the combat state's own address and
@@ -41,7 +42,7 @@ unsigned char g_combat_log_enabled_0068d810;
 // GLOBAL: WIZ8 0x00617664
 extern const wchar_t g_combat_log_format_00617664[] = L"%hs";
 /* 0x0053AC30 */
-extern void NotifySpellPointsChanged(int party_slot);
+extern void Function55EE30(int bit);
 extern void Function4E8000(int party_slot, int action_kind, int action_detail, int a, int b);
 
 /* Whether anybody in the party is engaged with something. */
@@ -51,7 +52,7 @@ unsigned char AnyCharacterEngaged(void)
     unsigned int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (CharacterIsEngaged(party_slot)) {
+        if (IsPartySlotEligible00524A10(party_slot)) {
             return 1;
         }
     }
@@ -187,7 +188,7 @@ void DropCharacterFromRound(int party_slot)
         ClearTargetHighlights(party_slot, &row->target_in_combat);
     }
     ResetCombatSlot(&row->target_in_combat);
-    NotifySpellPointsChanged(party_slot);
+    Function55EE30(party_slot);
     if (party_slot == g_status_685170.selected_character) {
         RequestRedrawParty();
     }

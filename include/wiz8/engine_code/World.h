@@ -169,7 +169,7 @@ void SetWorldEnvironmentValue00483AE0(W8World* world, float value);
 void Function48F280(W8World* world, const char* name, int active);
 Trigger* FindTriggerForProp00443830(W8World* world, W8Prop* prop);
 void UpdateWorldMeshFromQuads004BAD40(W8World* world);
-void UpdateWorldMeshFromOctree004BAF50(W8World* world);
+void UpdateWorldOctree004BAF50(W8World* world);
 void Function46E4A0(W8World* world);
 void Function46DE40(W8World* world);
 void Function4A27C0(W8World* world);
