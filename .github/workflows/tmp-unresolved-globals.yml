@@ -4,54 +4,83 @@ on:
     branches: [agent/reduce-unresolved-under-700]
 
 jobs:
-  scan:
+  ghidra:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Find baseline globals still lacking source definitions
-        shell: python
+      - name: Install uv and Ghidra 12.1.2
         run: |
-          import csv, pathlib, re
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          "$HOME/.local/bin/uv" python install 3.13
+          curl -L --fail --retry 3 -o /tmp/ghidra.zip \
+            https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_12.1.2_build/ghidra_12.1.2_PUBLIC_20260605.zip
+          unzip -q /tmp/ghidra.zip -d /tmp
+          mkdir -p /tmp/wiz8-input /tmp/wiz8-work
+      - name: Dump remaining original globals
+        env:
+          GHIDRA_INSTALL_DIR: /tmp/ghidra_12.1.2_PUBLIC
+          WIZ8_INPUT_DIR: /tmp/wiz8-input
+          WIZ8_WORK_DIR: /tmp/wiz8-work
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          uv run --no-dev python - <<'PY'
+          from wiz8decomp.config import load_settings
+          from wiz8decomp.ghidra.env import open_program
 
-          source_suffixes = {'.c', '.cc', '.cpp', '.h', '.hpp'}
-          baseline = {}
-          with open('config/verification/unresolved-baseline.csv', newline='') as f:
-              for row in csv.DictReader(f):
-                  mangled = row['symbol']
-                  m = re.match(r'\?([A-Za-z_$][A-Za-z0-9_$]*)@@3', mangled)
-                  if not m:
-                      m = re.match(r'_(g_[A-Za-z0-9_$]+)$', mangled)
-                  if m:
-                      baseline.setdefault(m.group(1), set()).add(mangled)
+          requested = {
+              'g_character_table_00616604': 0x00616604,
+              'g_effect_visual_table': 0x0060CFFC,
+              'g_ground_shadow_material_parameters_00683430': 0x00683430,
+              'g_monster_attachment_offsets_0060e618': 0x0060E618,
+              'g_monster_attachment_scales_0060e914': 0x0060E914,
+              'g_text_line_counts': None,
+          }
 
-          occ = {name: [] for name in baseline}
-          defined = set()
-          ident = re.compile(r'\b(?:g_[A-Za-z0-9_$]+|ghWindow)\b')
+          settings = load_settings()
+          with open_program(settings, 'wiz8') as program:
+              af = program.getAddressFactory().getDefaultAddressSpace()
+              listing = program.getListing()
+              symtab = program.getSymbolTable()
+              refs = program.getReferenceManager()
 
-          def is_definition(line, name):
-              s = line.strip()
-              if not s or s.startswith(('/', '*', '#')) or 'extern ' in s:
-                  return False
-              pos = s.find(name)
-              before = s[:pos].strip()
-              after = s[pos + len(name):].lstrip()
-              if not before or '(' in before or '=' in before:
-                  return False
-              return re.match(r'^(?:\[[^\]]*\]\s*)*(?:=|;)', after) is not None
+              found_by_name = {}
+              it = symtab.getAllSymbols(True)
+              while it.hasNext():
+                  sym = it.next()
+                  n = sym.getName()
+                  if n in requested and requested[n] is None:
+                      found_by_name[n] = int(sym.getAddress().getOffset())
 
-          for base in ('src', 'include'):
-              for path in pathlib.Path(base).rglob('*'):
-                  if path.suffix.lower() not in source_suffixes:
+              for name, raw_addr in requested.items():
+                  addr_int = raw_addr if raw_addr is not None else found_by_name.get(name)
+                  print(f'\n===== {name} =====')
+                  if addr_int is None:
+                      print('NO SYMBOL/ADDRESS FOUND')
                       continue
-                  for no, line in enumerate(path.read_text(errors='ignore').splitlines(), 1):
-                      for name in set(ident.findall(line)) & baseline.keys():
-                          occ[name].append((path, no, line.strip()))
-                          if is_definition(line, name):
-                              defined.add(name)
-
-          missing = [(name, sorted(baseline[name]), occ[name]) for name in sorted(baseline) if occ[name] and name not in defined]
-          print(f'candidate_count={len(missing)}')
-          for name, mangled, uses in missing:
-              print(f'\n{name}\t{" | ".join(mangled)}')
-              for path, no, line in uses[:10]:
-                  print(f'  {path}:{no}: {line}')
+                  addr = af.getAddress(addr_int)
+                  sym = symtab.getPrimarySymbol(addr)
+                  data = listing.getDataAt(addr)
+                  print(f'address=0x{addr_int:08x}')
+                  print(f'symbol={sym.getName(True) if sym else None}')
+                  if data is not None:
+                      print(f'type={data.getDataType().getDisplayName()} length={data.getLength()} value={data.getValue()} components={data.getNumComponents()}')
+                      count = min(data.getNumComponents(), 512)
+                      for i in range(count):
+                          c = data.getComponent(i)
+                          if c is None:
+                              continue
+                          print(f'  component[{i}] off={c.getParentOffset()} type={c.getDataType().getDisplayName()} len={c.getLength()} value={c.getValue()}')
+                      length = min(data.getLength(), 8192)
+                  else:
+                      print('data=None')
+                      length = 512
+                  bs = bytes((int(program.getMemory().getByte(addr.add(i))) & 0xff) for i in range(length))
+                  print(f'bytes[{length}]={bs.hex()}')
+                  r = refs.getReferencesTo(addr)
+                  sites = []
+                  while r.hasNext() and len(sites) < 40:
+                      ref = r.next()
+                      owner = program.getFunctionManager().getFunctionContaining(ref.getFromAddress())
+                      sites.append((str(ref.getFromAddress()), owner.getName(True) if owner else None))
+                  print('refs=' + repr(sites))
+          PY
