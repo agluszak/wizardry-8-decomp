@@ -127,7 +127,8 @@ extern void RebuildPartyStatus00555FA0(W8PartyFormationState* status);
    consulted only when it is set. The failure notice comes out of the shared
    notice array, and 0x00683678 is passed alongside; neither is established
    beyond that, so both keep positional names. */
-extern unsigned char g_flags_6874d7[];
+// GLOBAL: WIZ8 0x006874D7
+unsigned char g_flags_6874d7[32];
 
 /* Build the loose character/NPC path in the two forms used by the save code.
    The first accepts an already formatted filename or wildcard; the second

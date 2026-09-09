@@ -398,7 +398,8 @@ void ToggleAmbientSoundByName0047AA70(int /* unused */, const char* name)
     }
 }
 
-extern const unsigned short g_empty_ambient_name_65a110;
+// GLOBAL: WIZ8 0x0065A110
+unsigned short g_empty_ambient_name_65a110;
 
 // FUNCTION: WIZ8 0x0047ab40
 unsigned char LoadAmbientSoundList0047AB40(char* filename)

@@ -241,7 +241,8 @@ extern const W8NpcServiceRow g_npc_services[] = {
    copied into so the caller always gets a writable one. */
 // GLOBAL: WIZ8 0x00619F18
 extern const char g_substituted_npc_name[] = "RFS81B";
-extern char g_npc_name_buffer[];
+// GLOBAL: WIZ8 0x00689F60
+char g_npc_name_buffer[52];
 
 /* The name style that admits a substituted name. */
 enum { W8_NPC_NAME_STYLE_SUBSTITUTABLE = ' ' };
