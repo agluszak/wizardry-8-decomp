@@ -20,7 +20,7 @@ extern const float g_scale_x_5ebb1c;
 extern const float g_scale_y_5ebb20;
 extern const float g_one_5ebc30;
 
-extern void Function450080(srCamera* camera, int flag);
+extern void UpdateCameraView00450080(srCamera* camera, int flag);
 
 // FUNCTION: WIZ8 0x00426250
 void SetViewport(int left, int top, int right, int bottom)
@@ -63,7 +63,7 @@ void SetViewport(int left, int top, int right, int bottom)
             g_world_659ab8->camera->setViewPlane(plane, 1.0);
         }
         if (g_flag_652da4) {
-            Function450080(g_world->camera, 1);
+            UpdateCameraView00450080(g_world->camera, 1);
         }
     }
 }

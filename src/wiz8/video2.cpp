@@ -457,6 +457,22 @@ unsigned char SetFlag603C60(void)
     return 1;
 }
 
+/* Release a renderer-owned object, leaving the renderer in 2D mode, or in
+   the paired mode when its state byte says otherwise. The handle travels as
+   an int, matching the level-block slots that carry it. */
+// FUNCTION: WIZ8 0x004257F0
+void Function4257F0(int value)
+{
+    if ((*(unsigned char*)(value + 0x160) & 1) != 0) {
+        g_dword_6596ec = 2;
+    }
+    else {
+        g_dword_6596f0 = 2;
+        g_dword_6596ec = 2;
+    }
+    reinterpret_cast<srClass*>(value)->release();
+}
+
 // FUNCTION: WIZ8 0x00428A90
 void SetRendererMode6596EC(void)
 {

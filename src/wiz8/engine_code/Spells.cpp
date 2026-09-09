@@ -14,6 +14,7 @@
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/game_timer.h"
+#include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stLight.h"
@@ -881,4 +882,47 @@ unsigned char stSound3D::IsPlaying004AEC70()
         return 1;
     }
     return 0;
+}
+
+/* Detach every item visualisation the monster's cycle owns before the cycle
+   itself goes away. Each linked entry carries the item at +4; the item is
+   detached from the world, unlinked from the world's item list, and deleted,
+   and the entry storage is freed. */
+// FUNCTION: WIZ8 0x004ACF90
+void PrepareMonsterCycleForDestruction004ACF90(W8Monster* monster)
+{
+    if (monster == 0) {
+        srAssertFail(
+            "pMonster",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
+            0x852, 0);
+    }
+    W8MonsterRep* rep = monster->m_pRep;
+    if (rep == 0) {
+        srAssertFail(
+            "pMonRep",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
+            0x854, 0);
+    }
+    W8PList* list = rep->linked_objects_5e8;
+    if (list != 0) {
+        unsigned int count = PLLength(list);
+        for (int index = 0; index < (int)count; ++index) {
+            W8MonsterLinkedItem005E8* entry =
+                (W8MonsterLinkedItem005E8*)PLGet(list, index);
+            if (entry == 0) {
+                srAssertFail(
+                    "pSpellMI",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
+                    0x81b, 0);
+            }
+            if (entry->item_04 != 0) {
+                entry->item_04->DetachMesh0049FA30(g_world);
+                PListRemove(g_world->plsItems, entry->item_04);
+                delete entry->item_04;
+            }
+            free(entry);
+        }
+        PListClear(list);
+    }
 }

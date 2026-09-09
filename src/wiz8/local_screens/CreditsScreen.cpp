@@ -33,6 +33,52 @@ unsigned long g_credit_started_at_0069c49c;
 int g_credit_y_0069c4a0;
 int g_credit_line_0069c4a4;
 
+/* Read one wide line, stopping at a newline, capacity, or the end of the
+   stream. Answers whether the line ended at a newline; trailing carriage
+   returns are stripped. */
+// FUNCTION: WIZ8 0x004CEED0
+unsigned char ReadWideTextLine004CEED0(
+    int handle, wchar_t* destination, int capacity, unsigned char* more)
+{
+    wchar_t* write = destination;
+    wchar_t current = 0;
+    int count = 0;
+    unsigned char ok;
+
+    *destination = 0;
+    *more = 1;
+    for (;;) {
+        unsigned int bytes_read;
+        ok = ReadVirtualFile(handle, &current, sizeof(current), &bytes_read);
+        if (bytes_read == 0) {
+            ok = 0;
+            *more = 0;
+        }
+        else if (ok == 0) {
+            *more = 0;
+        }
+        else if (current == 10) {
+            break;
+        }
+        else {
+            *write++ = current;
+            ++count;
+        }
+        if (count >= capacity - 1) {
+            ok = 0;
+            break;
+        }
+        if (ok == 0) {
+            break;
+        }
+    }
+    destination[count] = 0;
+    if (count != 0 && destination[count - 1] == 0xd) {
+        destination[count - 1] = 0;
+    }
+    return ok;
+}
+
 // FUNCTION: WIZ8 0x005bc130
 unsigned char CreditsScreenEnter(void)
 {

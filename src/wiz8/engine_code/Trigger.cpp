@@ -37,6 +37,7 @@
 #include "wiz8/utility.h"
 #include "wiz8/vector.h"
 #include "wiz8/xstatus.h"
+#include "wiz8/save_game.h"
 #include "Random.h"
 #include "FileMan.h"
 #include "surrender/srCore.h"
@@ -116,6 +117,9 @@ int g_value_005ee5a0 = 6;
 // GLOBAL
 int g_value_005ed8c8;
 
+// GLOBAL: WIZ8 0x005ec124
+const float g_float_005ec124 = 64.0f;
+
 // FUNCTION: WIZ8 0x0043cb30
 void Function43CB30(W8World* world, int handle, unsigned char restoring)
 {
@@ -164,6 +168,124 @@ void Function43CB30(W8World* world, int handle, unsigned char restoring)
                 FileWrite(handle, &trigger->value_384, sizeof(trigger->value_384), 0);
                 FileWrite(handle, &trigger->value_388, sizeof(trigger->value_388), 0);
             }
+        }
+    }
+}
+
+/* Serialize one trigger for the save file. The header carries a version byte
+   and the action-state block; the action payload follows only when one is
+   attached, with its flag bits packed and the timed-event delay resolved from
+   the live event queue. Returns whether the header went out completely. */
+// FUNCTION: WIZ8 0x0043BE60
+unsigned char Trigger::Save0043BE60(int hFile)
+{
+    unsigned char version = 5;
+    unsigned char reserved[4];
+    unsigned char header_ok;
+    W8TriggerActionData* action_data;
+    unsigned char has_action_data;
+    unsigned char action_type;
+    unsigned short action_flags;
+    unsigned char action_kind;
+    unsigned int progress_delay;
+    unsigned char has_world_item;
+
+    if (hFile == 0) {
+        srAssertFail(
+            "hFile",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+            0x183, 0);
+    }
+    header_ok = FileWrite(hFile, &version, sizeof(version), 0) &&
+        FileWrite(hFile, reserved, sizeof(reserved), 0) &&
+        FileWrite(hFile, &state_01c, 0x80, 0) &&
+        FileWrite(hFile, &flags_0a0, sizeof(flags_0a0), 0) &&
+        FileWrite(hFile, &value_0b1, sizeof(value_0b1), 0) &&
+        FileWrite(hFile, &value_0b2, sizeof(value_0b2), 0) &&
+        FileWrite(hFile, &action_230, sizeof(action_230), 0) &&
+        FileWrite(hFile, &action_state_232, sizeof(action_state_232), 0) &&
+        FileWrite(hFile, &value_23c, sizeof(value_23c), 0);
+    action_data = m_pActionData;
+    has_action_data = action_data != 0;
+    FileWrite(hFile, &has_action_data, sizeof(has_action_data), 0);
+    if (action_data != 0) {
+        action_type = action_data->type_004;
+        FileWrite(hFile, &action_type, sizeof(action_type), 0);
+        if (action_type == 10) {
+            action_flags = 0;
+            progress_delay = 0;
+            action_kind = 2;
+            FileWrite(hFile, &action_kind, sizeof(action_kind), 0);
+            if ((action_data->flags_008 & 1) != 0) {
+                action_flags |= 1;
+            }
+            if ((action_data->flags_008 & 2) != 0) {
+                action_flags |= 2;
+            }
+            if ((action_data->flags_008 & 4) != 0) {
+                action_flags |= 4;
+            }
+            if ((action_data->flags_008 & 8) != 0) {
+                action_flags |= 8;
+            }
+            if ((action_data->flags_008 & 0x10) != 0) {
+                action_flags |= 0x10;
+            }
+            if ((action_data->flags_008 & 0x20) != 0) {
+                action_flags |= 0x20;
+            }
+            if ((action_data->flags_008 & 0x40) != 0) {
+                action_flags |= 0x40;
+            }
+            if ((action_data->flags_008 & 0x80) != 0) {
+                action_flags |= 0x80;
+            }
+            if ((action_data->flags_009 & 1) != 0) {
+                action_flags |= 0x100;
+            }
+            if (action_data->item_00a != 0) {
+                action_flags |= 0x200;
+            }
+            FileWrite(hFile, &action_flags, sizeof(action_flags), 0);
+            if (m_lData1 != 0 && m_pEvent != 0 &&
+                g_timed_events_006599b8.IndexOf(m_pEvent) != -1) {
+                float progress = m_pEvent->timer_008.GetProgress();
+                if (progress <= g_float_005ec124) {
+                    progress_delay = (unsigned int)m_pEvent->timer_008.GetProgress();
+                }
+                else {
+                    progress_delay = 64000;
+                }
+            }
+            FileWrite(hFile, &progress_delay, 2, 0);
+            {
+                unsigned short zero = 0;
+                FileWrite(hFile, &zero, sizeof(zero), 0);
+            }
+        }
+    }
+    has_world_item = world_item_group_34c != 0;
+    FileWrite(hFile, &has_world_item, sizeof(has_world_item), 0);
+    if (has_world_item != 0) {
+        SaveItemFile(hFile, world_item_group_34c);
+    }
+    FileWrite(hFile, &flag_350, sizeof(flag_350), 0);
+    FileWrite(hFile, &next_activation_time_354, sizeof(next_activation_time_354), 0);
+    FileWrite(hFile, &gold_358, sizeof(gold_358), 0);
+    FileWrite(hFile, &value_35c, sizeof(value_35c), 0);
+    return header_ok;
+}
+
+/* Write every trigger of a world for the save file's trigger chunk. A trigger
+   whose own serialization reports failure stops the walk. */
+// FUNCTION: WIZ8 0x0043C810
+void Function43C810(W8World* world, int hFile)
+{
+    W8GrowableVector<Trigger*>* triggers = world->triggers;
+
+    for (int index = 0; index < triggers->GetCount(); ++index) {
+        if (!(*triggers->GetAt(index))->Save0043BE60(hFile)) {
+            return;
         }
     }
 }
@@ -307,6 +429,35 @@ void Trigger::CompleteItemInteraction004447F0()
     state_370.state = 1;
     if (action_data != 0 && action_data->type_004 == 10) {
         action_data->flags_008 &= ~4;
+    }
+}
+
+/* Run the trigger now when its action data selects the immediate path, or
+   restart its timed-event clocks when it already owns a queued event. The
+   immediate path sets the running flag around Run so nested activation sees
+   it; the timed path only touches clocks for events still queued. */
+// FUNCTION: WIZ8 0x00444750
+void Trigger::Activate00444750()
+{
+    W8TriggerActionData* action_data = m_pActionData;
+    if (action_data != 0 && action_data->type_004 == 10 &&
+        (value_368 == 0 || state_370.state != 0) &&
+        (action_data->flags_008 & 4) == 0) {
+        if ((action_data->flags_008 & 1) == 0) {
+            flag_364 = 1;
+            Run(-1);
+            flag_364 = 0;
+        }
+        else {
+            W8TriggerEvent* event = m_pEvent;
+            if (event != 0 &&
+                g_timed_events_006599b8.IndexOf(event) != -1) {
+                event->timer_008.Restart();
+                if (event->auxiliary_timer_02c != 0) {
+                    event->auxiliary_timer_02c->Restart();
+                }
+            }
+        }
     }
 }
 

@@ -1697,6 +1697,25 @@ void W8Octree::QueueOctreeKind130042E810(
     object_registry->RegisterObjectCell(0xd, id + 1, point);
 }
 
+/* Convert a world position to cell coordinates, tracking whether it stays
+   inside the spatial minimum/maximum box. Callers only use the coordinates;
+   the in-range result the image also computes is not consumed. */
+// FUNCTION: WIZ8 0x00431440
+void W8Octree::WorldPositionToCell00431440(
+    const srVector3T<float>* position, int* point)
+{
+    unsigned char inside = 1;
+
+    for (int axis = 0; axis < 3; ++axis) {
+        point[axis] = (int)(&position->x)[axis];
+        if ((&position->x)[axis] < (&spatial_000.minimum_0c.x)[axis] ||
+            (&spatial_000.minimum_0c.x)[axis + 3] < (&position->x)[axis]) {
+            inside = 0;
+        }
+    }
+    (void)inside;
+}
+
 /* Step one navigator's movement tail towards its target.
 
    With a pathing service present the work belongs to that service, and which of

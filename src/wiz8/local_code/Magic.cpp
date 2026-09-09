@@ -1565,8 +1565,6 @@ unsigned int ChoosePowerLevelToRestore(
     return power_level;
 }
 
-extern unsigned int Function520C70(int item);                            /* 0x00520C70 */
-
 /* The spells whose power level is decided by how bad the target's condition
    is, and which condition each of them lifts. A spell that lifts more than one
    is decided by the worst of them. */

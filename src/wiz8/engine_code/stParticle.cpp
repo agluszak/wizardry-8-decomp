@@ -72,6 +72,12 @@ srShader stParticle::GetRenderFlags00498A10() const
     return render_flags_150;
 }
 
+// FUNCTION: WIZ8 0x004925A0
+void stParticle::SetRenderFlags004925A0(srShader flags)
+{
+    render_flags_150 = flags;
+}
+
 // FUNCTION: WIZ8 0x0049ADB0
 stParticle* FindRegisteredParticle0049ADB0(const char* name)
 {

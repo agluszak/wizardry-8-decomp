@@ -76,7 +76,6 @@ extern srVector3T<float> g_environment_offset_00659cd0;
 srVector3T<float> g_environment_offset_00659cd0;
 extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
-extern void UpdateSky00482EA0(void);
 extern void FinalizeWorldTriggers00448840(void);
 extern void UpdateCameraView00450080(srCamera* camera, int mode);
 extern void FinalizeWorldScenes0046F410(
@@ -1170,7 +1169,7 @@ unsigned char ReadLevel(
             DisableSky();
         }
         else {
-            UpdateSky00482EA0();
+            EnableSky();
         }
     }
     else {

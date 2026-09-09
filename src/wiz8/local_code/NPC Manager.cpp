@@ -162,6 +162,51 @@ W8NpcState* GetNpcStateByKind(int kind)
     return 0;
 }
 
+/* Whether the NPC attached to either of the first two party rows carries the
+   given name style with an unreleased binding, while that row's lead stays
+   under level fifteen. */
+// FUNCTION: WIZ8 0x0050B8F0
+unsigned char Function50B8F0(unsigned int kind)
+{
+    if (g_status_685170.buffers.party_rows[0].occupied != 0) {
+        W8NpcState* npc = 0;
+        if (g_npc_states != 0) {
+            int index = g_status_685170.buffers.party_rows[0].animation_0fa;
+            W8NpcState** slot = g_npc_states->data;
+            if (index < g_npc_states->count) {
+                slot += index;
+            }
+            npc = *slot;
+            if (npc != 0 && npc->unknown_c7 != 0) {
+                npc = 0;
+            }
+        }
+        if (npc->name_style == kind &&
+            g_status_685170.buffers.characters[0].unknown_0b01 < 0xf) {
+            return 1;
+        }
+    }
+    if (g_status_685170.buffers.party_rows[1].occupied != 0) {
+        W8NpcState* npc = 0;
+        if (g_npc_states != 0) {
+            int index = g_status_685170.buffers.party_rows[1].animation_0fa;
+            W8NpcState** slot = g_npc_states->data;
+            if (index < g_npc_states->count) {
+                slot += index;
+            }
+            npc = *slot;
+            if (npc != 0 && npc->unknown_c7 != 0) {
+                npc = 0;
+            }
+        }
+        if (npc->name_style == kind &&
+            g_status_685170.buffers.characters[1].unknown_0b01 < 0xf) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 /* The monster standing in the world for this NPC, if one is. */
 // FUNCTION: WIZ8 0x0050a3c0
 W8MonsterInfo* GetNpcMonsterInfo(W8NpcState* npc)

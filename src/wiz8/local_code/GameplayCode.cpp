@@ -341,7 +341,7 @@ void CalcAttacks(W8Character* character)
     int load_penalty = 0;
 
     for (hand = 0; hand < 2; ++hand) {
-        Function5201B0(character, hand + 6);
+        SetHandType(character, hand + 6);
         attacks[hand] = &character->hand_attacks[hand];
         equipment[hand] = &character->equipment[hand + 6];
         if (equipment[hand]->item_id == -1) {

@@ -18,6 +18,7 @@
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/music_playlist.h"
+#include "wiz8/sound_man.h"
 #include "wiz8/regions.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
@@ -75,7 +76,6 @@ int g_effect_005ee6ec = 109;
 // GLOBAL: WIZ8 0x005ed8cc
 int g_effect_argument_005ed8cc = 1;
 
-void PlaySound(const char* path, int flags);
 void Function5187E0(void);
 #include "line.h"
 void Function5B4EB0(void);
@@ -570,7 +570,7 @@ unsigned char CampScreenEnter(void)
     else {
         g_camp_entry_parameter_0069c0fc = g_current_screen_state.parameter_4;
         entry_mode = 2;
-        PlaySound("Data\\Spells\\Sounds\\GeneralMagic.wav", 0);
+        PlaySound00408860("Data\\Spells\\Sounds\\GeneralMagic.wav", 0);
         Function53A320(6);
     }
     g_flag_00685071 = 0;

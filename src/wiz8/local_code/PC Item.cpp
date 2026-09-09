@@ -25,6 +25,7 @@
 #include "wiz8/item_spawning.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/video_object_catalog.h"
+#include "wiz8/sound_man.h"
 
 #include <stdio.h>
 
@@ -289,8 +290,6 @@ extern void DropHeldItem(int arg_1);                         /* 0x004F7610 */
 /* 0x0051FE30 */
 extern void AddPartyGoldNotice(int channel, const wchar_t* notice, ...);
 extern int Function40A910(const char* path);
-extern void PlaySound(const char* path, int flags);
-extern unsigned char Function50B8F0(int npc_id);
 extern int g_item_message_005ee6fc;
 extern int g_item_message_005ee640;
 extern int g_item_message_005ee644;
@@ -1142,7 +1141,7 @@ void AddPartyGold(int amount, char announce)
                                 -1, -1, 0);
         ShowNotice(8, line);
         if (!Function40A910(sound_path)) {
-            PlaySound(sound_path, 0);
+            PlaySound00408860(sound_path, 0);
         }
     }
 }
@@ -1938,6 +1937,101 @@ void CopyItemInstance(
     }
 }
 
+/* Set the wield kind for one primary hand from the item it holds. An empty
+   hand wields nothing; otherwise the item's equipment class selects the kind,
+   with class two in the off hand deferring to the primary hand's item unless
+   that item carries the paired flag. */
+// FUNCTION: WIZ8 0x005201B0
+void SetHandType(W8Character* character, unsigned int slot)
+{
+    if (character == 0) {
+        srAssertFail("pPC != NULL", PC_ITEM_CPP, 3676, 0);
+    }
+    if (slot > 11) {
+        srAssertFail("uiSlot < SLOT_COUNT", PC_ITEM_CPP, 3677, 0);
+    }
+    int hand;
+    if (slot == W8_EQUIP_SLOT_PRIMARY_RIGHT) {
+        hand = 0;
+    }
+    else {
+        if (slot != W8_EQUIP_SLOT_PRIMARY_LEFT) {
+            char* message = FormatString(
+                "SetHandType: ERROR: uiSlot %d is not a hand/weapon slot!",
+                slot);
+            srAssertFail("FALSE", PC_ITEM_CPP, 3690, message);
+            return;
+        }
+        hand = 1;
+    }
+    int item_id = character->equipment[slot].item_id;
+    int wield_kind;
+    if (item_id == -1) {
+        wield_kind = 0;
+    }
+    else {
+        switch (g_item_records[item_id].equip_class) {
+        case 0:
+        case 1:
+        case 3:
+            wield_kind = 1;
+            break;
+        case 2:
+            wield_kind = 1;
+            if (slot != W8_EQUIP_SLOT_PRIMARY_LEFT ||
+                character->equipment[W8_EQUIP_SLOT_PRIMARY_RIGHT].item_id == -1 ||
+                g_item_records[character->equipment[W8_EQUIP_SLOT_PRIMARY_RIGHT]
+                                   .item_id]
+                        .unidentified_name_index != 0x83) {
+                break;
+            }
+            /* fall through */
+        case 4:
+            wield_kind = 3;
+            break;
+        case 5:
+            wield_kind = 2;
+            break;
+        default: {
+            char* message = FormatString(
+                "SetHandType: ERROR: invalid item %d type %d in hand %d!",
+                item_id, g_item_records[item_id].equip_class, hand);
+            srAssertFail("FALSE", PC_ITEM_CPP, 3731, message);
+            return;
+        }
+        }
+    }
+    character->hand_attacks[hand].wield_kind = wield_kind;
+}
+
+/* The binding difficulty of a character's worn items: the worst identify
+   difficulty among binds-on-equip pieces whose binding has not been announced
+   yet, in thirds rounded up. Cure spells consult it when the target's worn
+   items ask for more power than the condition does. */
+// FUNCTION: WIZ8 0x00520C70
+unsigned int Function520C70(int character_index)
+{
+    unsigned char max_difficulty = 0;
+    W8ItemInstance* slot =
+        g_status_685170.buffers.characters[character_index].equipment;
+
+    for (int remaining = 12; remaining != 0; --remaining) {
+        int item_id = slot->item_id;
+        if (item_id != -1 &&
+            g_item_records[item_id].binds_on_equip != 0 &&
+            slot->bind_announced == 0 &&
+            max_difficulty < g_item_records[item_id].identify_difficulty) {
+            max_difficulty = g_item_records[item_id].identify_difficulty;
+        }
+        ++slot;
+    }
+    unsigned int level = max_difficulty / 3;
+    if (level * 3 < max_difficulty) {
+        ++level;
+    }
+    return level;
+}
+
 /* Reconcile the character and combat state after one equipment record has
    been emptied.  With no character owner this intentionally does nothing;
    that is the path used while the new-game reset clears the carried pool. */
@@ -1952,12 +2046,12 @@ void Function520D10(
     unsigned char primary_right =
         item == &character->equipment[W8_EQUIP_SLOT_PRIMARY_RIGHT];
     if (primary_right) {
-        Function5201B0(character, W8_EQUIP_SLOT_PRIMARY_RIGHT);
+        SetHandType(character, W8_EQUIP_SLOT_PRIMARY_RIGHT);
     }
     unsigned char primary_left =
         item == &character->equipment[W8_EQUIP_SLOT_PRIMARY_LEFT];
     if (primary_left) {
-        Function5201B0(character, W8_EQUIP_SLOT_PRIMARY_LEFT);
+        SetHandType(character, W8_EQUIP_SLOT_PRIMARY_LEFT);
     }
 
     if (!character->in_party || !g_status_685170.game_started) {

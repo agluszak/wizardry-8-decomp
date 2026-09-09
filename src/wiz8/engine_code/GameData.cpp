@@ -232,6 +232,19 @@ unsigned char InitializeGameData004497C0(W8GameData* game_data)
     return 1;
 }
 
+/* Ensure the shared game-data object exists, then run its update. */
+// FUNCTION: WIZ8 0x0041F1F0
+void Function41F1F0()
+{
+    if (g_object_6598bc == 0) {
+        g_object_6598bc = new W8Object0043A910;
+        if (g_object_6598bc == 0) {
+            return;
+        }
+    }
+    g_object_6598bc->Update();
+}
+
 // FUNCTION: WIZ8 0x0041F260
 void Function41F260()
 {

@@ -8,7 +8,7 @@ extern "C" {
 int g_value_69b988;
 }
 
-extern void Function0059CAC0(void);
+extern void Function59CAC0(void);
 extern void ClearTargetingMode0053B050(int party_slot);
 extern void SelectUseItemLine0059DDC0(int line);
 
@@ -33,7 +33,7 @@ void RedrawPanel69B998(void)
 // FUNCTION: WIZ8 0x0059D950
 void CloseUseItemSelection0059D950(void)
 {
-    Function0059CAC0();
+    Function59CAC0();
     ClearTargetingMode0053B050(g_status_685170.selected_character);
 }
 

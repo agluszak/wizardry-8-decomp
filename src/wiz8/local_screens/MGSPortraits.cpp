@@ -10,6 +10,58 @@ Controls* g_panel_69b940;
 // GLOBAL: WIZ8 0x0069B920
 W8TextControl* g_portrait_controls_0069b920[8];
 
+// The condition-buttons panel and its eight buttons, created together by the
+// 0x0059BDB0 setup. The panel assert there names them gpConditionButtonsPanel
+// and gpConditionButtons_uiSlot.
+// GLOBAL: WIZ8 0x0069B900
+W8TextControl* g_condition_buttons_0069b900[8];
+// GLOBAL: WIZ8 0x0069B944
+Controls* g_condition_buttons_panel_0069b944;
+
+// FUNCTION: WIZ8 0x0059BAD0
+void Function59BAD0(void)
+{
+    RegionSetDisable(5);
+    W8TextControl** control = g_portrait_controls_0069b920;
+    do {
+        (*control)->SetActive(0);
+        ++control;
+    } while (control < g_portrait_controls_0069b920 + 8);
+    Controls* panel = g_panel_69b940;
+    if (panel != 0) {
+        panel->~Controls();
+        ::operator delete(panel);
+        g_panel_69b940 = 0;
+    }
+    control = g_portrait_controls_0069b920;
+    do {
+        if (*control != 0) {
+            delete *control;
+            *control = 0;
+        }
+        ++control;
+    } while (control < g_portrait_controls_0069b920 + 8);
+}
+
+// FUNCTION: WIZ8 0x0059BF70
+void Function59BF70(void)
+{
+    Controls* panel = g_condition_buttons_panel_0069b944;
+    if (panel != 0) {
+        panel->~Controls();
+        ::operator delete(panel);
+        g_condition_buttons_panel_0069b944 = 0;
+    }
+    W8TextControl** control = g_condition_buttons_0069b900;
+    do {
+        if (*control != 0) {
+            delete *control;
+            *control = 0;
+        }
+        ++control;
+    } while (control < g_condition_buttons_0069b900 + 8);
+}
+
 // FUNCTION: WIZ8 0x0059BB40
 void DisablePortraitControls0059BB40(void)
 {

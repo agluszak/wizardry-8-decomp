@@ -50,6 +50,7 @@ float GetViewDistance(void);
 void Function482720(int value);
 float GetWorldValue24(const void* world);
 void SetSkyNodeVisible(char visible);
+void Function4836A0(void);
 
 void SetViewDistance(float distance);
 

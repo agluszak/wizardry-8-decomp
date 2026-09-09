@@ -19,6 +19,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/music_playlist.h"
+#include "wiz8/sound_man.h"
 #include "wiz8/regions.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/fonts.h"
@@ -40,7 +41,6 @@ extern "C" {
 #include "FileMan.h"
 
 extern void Function425570(int enabled);
-extern void PlaySound(const char*, int);
 extern void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x,
                                         unsigned short y, char right_button,
                                         char left_button);
@@ -135,7 +135,7 @@ W8CharacterScreen::W8CharacterScreen(int mode, W8Character* character)
     }
     if (m_mode_008 == 3) {
         m_mode_008 = 2;
-        PlaySound("Data\\Sound\\Misc\\GainLevel.wav", 0);
+        PlaySound00408860("Data\\Sound\\Misc\\GainLevel.wav", 0);
         ShowMessage(FormatWideString(gppStringList[0x364 / 4],
                                      m_character_018.name, 0, 0), 0, 0);
     }
@@ -236,7 +236,7 @@ void W8CharacterScreen::UpdateNavigation(W8CharacterPage* page)
     unsigned char exit_enabled;
     page->GetNavigationState(&next_enabled, &exit_enabled);
     if (!m_next_1af8->m_enabled && next_enabled) {
-        PlaySound("Data\\Sound\\Misc\\Points Spent.wav", 0);
+        PlaySound00408860("Data\\Sound\\Misc\\Points Spent.wav", 0);
     }
     if (m_next_1af8->m_enabled != next_enabled) {
         m_next_1af8->SetEnabled(next_enabled);

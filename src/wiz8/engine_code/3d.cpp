@@ -258,7 +258,6 @@ void WorldUpdateLights(W8World* world)
 /* 0x00659AB4: the world being rendered, which the list wrappers below reach
    through. Every one of them ignores the caller's own first argument and uses
    this global instead. */
-extern void Function4836A0(void);
 extern void SetHeapFree(void* block);
 extern void Function46E750(void* target, int argument);
 extern void Function46E640(void* target, int argument);

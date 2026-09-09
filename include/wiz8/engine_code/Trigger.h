@@ -121,6 +121,7 @@ public:
     void CommitActionResult(unsigned char apply_state_changes);
     void CompleteItemInteraction004447F0();
     void Activate00444750();
+    unsigned char Save0043BE60(int hFile);
     void FinishAction();
     void GetPosition(srVector3T<float>* position) const;
     unsigned char CanRunLinkedTriggers();

@@ -57,7 +57,6 @@ void Function546E70(void);
 extern int g_dword_6850be;
 // GLOBAL: WIZ8 0x006850be
 int g_dword_6850be;
-void Function4ACF90(W8Monster* monster);
 /* Writes the monster's world position through an out-parameter; __cdecl, since
    0x004C5750 ends in a bare `ret`. */
 float Function4BE5C0(srVector3T<float>* position);
@@ -1363,7 +1362,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         monster_info->runtime_stat_current_33 = 0;
         monster_info->monster->state_088 = 0;
         monster_info->monster->flags_00c = 0x200000;
-        Function4ACF90(monster_info->monster);
+        PrepareMonsterCycleForDestruction004ACF90(monster_info->monster);
         ReleaseMonToMonVisibilityList(monster_info);
         MonsterGetLocalLocation(monster_info->monster, &position);
         monster_info->position_17.x = position.x;

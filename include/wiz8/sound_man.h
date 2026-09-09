@@ -24,6 +24,7 @@ extern HDIGDRIVER g_sound_driver_6e4104;
 extern unsigned int g_sound_id_counter_650e64;
 
 int PlaySound00408860(const char* path, int* options);
+void Function4098F0(void);
 int SoundLoadDisk00409970(const char* path);
 unsigned char SoundInitHardware00409C50(void);
 void SoundResetChannel00409F30(int channel);

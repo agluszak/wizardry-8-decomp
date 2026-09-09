@@ -19,7 +19,8 @@ extern unsigned int g_party_gold;
 extern unsigned char g_shared_item_pool[];
 extern unsigned int g_shared_item_pool_count;
 
-void Function5201B0(W8Character* character, unsigned int equip_slot);
+void SetHandType(W8Character* character, unsigned int equip_slot);
+unsigned int Function520C70(int character_index);
 unsigned char CompatiblePartnerItems(int weapon_item_id, int off_hand_item_id);
 bool ItemHasSingledOutGenericName(int item_id);
 int GetPairedEquipSlot(int equip_slot);

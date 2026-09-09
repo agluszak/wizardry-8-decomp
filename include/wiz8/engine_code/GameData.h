@@ -116,6 +116,7 @@ extern W8GameData* g_octree_game_data_00652db0;
 W8GameData* ReadGameData00447570(const char* path, void* parent); /* 0x00447570 */
 
 void Function41EF50(void);
+void Function41F1F0();
 void Function41F260();
 unsigned char LoadSurfaceVertices004214D0(
     srVector3T<float>* output, const int* vertex_indices);

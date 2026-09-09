@@ -208,6 +208,31 @@ int PlaySound00408860(const char* path, int* options)
     return -1;
 }
 
+/* Shut down sound output: stop the music channels, then release every locked
+   cached sample's data and clear its slot. Only the first twelve channels
+   and fourteen sample slots participate. */
+// FUNCTION: WIZ8 0x004098F0
+void Function4098F0(void)
+{
+    if (g_flag_650e50 != 0) {
+        for (int channel = 0; channel < 12; ++channel) {
+            if (g_sound_channels_6e4120[channel].fMusic == 0) {
+                SoundStopIndex0040a5c0(channel);
+            }
+        }
+    }
+    for (int sample = 0; sample < 14; ++sample) {
+        if ((g_sound_samples_6e4aa0[sample].uiFlags & 1) != 0) {
+            if (g_sound_samples_6e4aa0[sample].pData != 0) {
+                g_sound_memory_used_650e4c -=
+                    g_sound_samples_6e4aa0[sample].uiSize;
+                AIL_mem_free_lock(g_sound_samples_6e4aa0[sample].pData);
+            }
+            memset(&g_sound_samples_6e4aa0[sample], 0, sizeof(SAMPLETAG));
+        }
+    }
+}
+
 /* Removes the least-used unlocked sample that no channel is playing. The
    eviction scan repeats SoundFreeSampleIndex's body inline; both resistance
    loops below are the compiler's rotation of SoundLoadDisk's cleanup
@@ -625,6 +650,41 @@ int SoundStopIndex0040a5c0(int channel)
     }
     slot->fMusic = 0;
     return 1;
+}
+
+/* Whether any live channel is playing the named sample. Channels at rest
+   report done or stopped; the rest compare against the sample-name slots,
+   which retail strides at 0x36 rather than the sample-record stride - kept
+   as found. The scan covers channels 0 through 26. */
+// FUNCTION: WIZ8 0x0040A910
+int Function40A910(const char* path)
+{
+    unsigned int* slot = reinterpret_cast<unsigned int*>(
+        &g_sound_channels_6e4120[0].hMSSStream);
+
+    do {
+        int status = SMP_DONE;
+        if (g_flag_650e50 != 0) {
+            if (slot[-1] != 0) {
+                status = AIL_sample_status((HSAMPLE)slot[-1]);
+            }
+            if (*slot != 0) {
+                status = AIL_stream_status((HSTREAM)*slot);
+            }
+            if (slot[1] != 0) {
+                status = AIL_3D_sample_status((H3DSAMPLE)slot[1]);
+            }
+            if (status != SMP_DONE && status != SMP_STOPPED &&
+                _stricmp(
+                    reinterpret_cast<const char*>(g_sound_samples_6e4aa0) +
+                        slot[-2] * 0x36,
+                    path) == 0) {
+                return 1;
+            }
+        }
+        slot += 0x13;
+    } while (slot < (unsigned int*)&g_sound_channels_6e4120[27].hMSSStream);
+    return 0;
 }
 
 /* Brings up the Miles driver, preferring 44 kHz 16-bit stereo DirectSound

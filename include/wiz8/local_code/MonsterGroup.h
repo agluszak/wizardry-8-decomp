@@ -90,6 +90,7 @@ W8MonsterGroup* CreateGroup(
 
 
 void ResetMonsterGroupTurnState(void);
+void Function5115B0(void);
 
 void DespawnMonsterGroup(W8MonsterGroup* monster_group);
 void ActivateGroupMembers(W8MonsterGroup* monster_group, int mode);

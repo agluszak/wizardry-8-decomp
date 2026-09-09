@@ -1,6 +1,7 @@
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/targeting.h"
 #include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/engine_code/stScript.h"
 #include "wiz8/factions.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
@@ -646,6 +647,26 @@ void ResetMonsterGroupTurnState(void)
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         monster_info->value_354 = 0;
         monster_info->value_28e = 0;
+    }
+}
+
+/* On a level's first visit, rebind every group monster's script from the name
+   of the script it already carries, so reloaded monsters resume their
+   level-local script objects. */
+// FUNCTION: WIZ8 0x005115B0
+void Function5115B0(void)
+{
+    for (unsigned int index = 0;
+         index < PLLength(gXStatus.plsMonsterGroupList);
+         ++index) {
+        W8MonsterGroup* group = GetMonsterGroupByListIndex(index);
+        W8MonsterInfo* info = MonsterInfoFromID(
+            0x7f3, MONSTER_GROUP_CPP, group->value_9f, 1);
+        if (info->monster->script_238 != 0) {
+            char script_name[256];
+            strcpy(script_name, info->monster->script_238->getName());
+            info->monster->SetScript004C7F10(script_name, 1);
+        }
     }
 }
 

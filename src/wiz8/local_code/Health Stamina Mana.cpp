@@ -14,6 +14,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/targeting.h"
 #include "wiz8/utility.h"
+#include "wiz8/sound_man.h"
 #include "random.h"
 
 #include <stdlib.h>
@@ -685,7 +686,6 @@ enum {
 /* 0x0052E690 */
 extern int g_effect_005ee598;
 extern void Function52F110(int party_slot);
-extern void PlaySound(const char* path, int flags);
 
 /* Tire one character. The load they are carrying scales the cost - eased or
    worsened by the two load modifiers - and the result is taken out of their
@@ -896,7 +896,7 @@ void CharacterDies(int party_slot)
         RecordCharacterDeath(party_slot);
     }
     Function52F110(party_slot);
-    PlaySound("Data\\Sound\\Misc\\CharacterDead.wav", 0);
+    PlaySound00408860("Data\\Sound\\Misc\\CharacterDead.wav", 0);
 
     if (gXStatus.fCombatMode != 0) {
         if (g_combat_state->selected_character == party_slot) {

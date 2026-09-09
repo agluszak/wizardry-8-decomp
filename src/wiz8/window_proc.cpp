@@ -24,6 +24,7 @@
  * / 480 and (width * 480) / 640 compile to.
  */
 
+// GLOBAL: WIZ8 0x00650dac
 unsigned char g_flag_650dac;
 // GLOBAL: WIZ8 0x006F0630
 unsigned char g_application_active;

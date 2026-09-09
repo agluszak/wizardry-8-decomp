@@ -80,7 +80,6 @@ extern void Function59B940(void);
 extern void Function59BDB0(void);
 extern void Function55F2C0(void);
 extern void SetSurfaceClipBounds00413FD0(int, int, int, int, int);
-extern void Function482EA0(void);
 extern void Function425570(int enabled);
 extern void Function58AC00(int, const wchar_t*, int, int, int);
 extern void Function58AAD0(int, const wchar_t*, const wchar_t*);
@@ -223,7 +222,7 @@ unsigned char g_navigator_position_changed_659c11;
 unsigned char g_flag_006840bb;
 
 void Function4314C0(int save);
-void Function5615F0(int level, int entry, int flag);
+void RequestLevelTransition005615F0(int level, int entry, unsigned char flag);
 void Function568C40(void);
 void Function569CC0(void);
 void Function5A6970(void);
@@ -242,7 +241,6 @@ void Function59B390(void);
 void Function502650(void);
 void Function562A80(void);
 void Function515B00(void);
-void Function41F1F0(void);
 void Function4916C0(void);
 unsigned char Function5684E0(void);
 void Function561330(unsigned char value);
@@ -424,7 +422,7 @@ unsigned char MainGameScreenEnter(void)
     g_monster_shadow_updates_enabled_0065970c = 1;
     ClearPrimarySurface();
     if (IsFogEnabled()) {
-        Function482EA0();
+        EnableSky();
     }
     else {
         DisableSky();
@@ -520,7 +518,7 @@ void MainGameScreenFrame(void)
             if (LevelBuildInfoByID(g_next_link_level_0068ede8, &info)) {
                 if (g_next_link_level_0068ede8 < 47) {
                     int level = g_next_link_level_0068ede8++;
-                    Function5615F0(level, -1, 0);
+                    RequestLevelTransition005615F0(level, -1, 0);
                     goto update_screen;
                 }
                 break;

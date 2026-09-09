@@ -324,7 +324,6 @@ void W8Prop::SetSetting6C(unsigned char value)
    its observed arguments without describing the mismatch as compatibility. */
 typedef void (*AnimObjIntegerTailCall)(
     W8AnimObj* animation, int channel, unsigned char argument, int from, int to);
-extern void Function444750(void);
 
 // FUNCTION: WIZ8 0x0044d5f0
 void W8Prop::GetCenterPosition(srVector3T<float>* position)
@@ -668,7 +667,7 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
         return false;
     }
     if (notify) {
-        Function444750();
+        reinterpret_cast<Trigger*>(owner)->Activate00444750();
     }
     return true;
 }

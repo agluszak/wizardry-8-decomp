@@ -1,4 +1,6 @@
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/magic.h"
+#include "wiz8/sr_api.h"
 
 /*
  * Local Code\Combat Hostility.cpp.
@@ -48,4 +50,25 @@ char Function546F80(W8MonsterInfo* first, W8MonsterInfo* second)
         return 0;
     }
     return 1;
+}
+
+/* Whether a spell id can be aimed by monster AI: inside the spell table, not
+   one of the two self-only kinds, and carrying a middle target type. */
+// FUNCTION: WIZ8 0x005474B0
+unsigned char Function5474B0(int spell_id)
+{
+    if (spell_id > 0x95) {
+        srAssertFail(
+            "iType < SPELL_COUNT",
+            "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp",
+            0x1c2, 0);
+    }
+    if (spell_id != 3 && spell_id != 0x29) {
+        int target_type = GetSpellTargetType(spell_id, 0);
+        if (target_type > 2 && target_type < 8) {
+            return 1;
+        }
+        return 0;
+    }
+    return 0;
 }

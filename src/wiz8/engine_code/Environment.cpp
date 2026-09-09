@@ -404,7 +404,36 @@ unsigned char IsFogEnabled(void)
 
 /* The sky, whose flag has to be cleared alongside the work of turning it off,
    so the read and the clear are not symmetric. */
-// FUNCTION: WIZ8 0x00482f60
+// FUNCTION: WIZ8 0x00482EA0
+void EnableSky(void)
+{
+    SetSkyEnabled(1);
+    g_sky_enabled_0065b9ae = 1;
+    if (g_environment_flag_0060a394 != 0) {
+        unsigned long now = GetTickCount();
+        unsigned long elapsed = now < g_tick_65b9a8
+                                    ? now - g_tick_65b9a8 - 1
+                                    : now - g_tick_65b9a8;
+        if (elapsed != 0) {
+            Function482A20((int)((double)elapsed * g_view_distance_0060a390));
+        }
+    }
+    unsigned int phase =
+        (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) / 86400U;
+    if (phase != (unsigned int)g_environment_value_0060a3a8) {
+        g_light_direction_0065ad78 =
+            reinterpret_cast<const int*>(&g_environment_colours_65ad98[phase])[0];
+        g_light_direction_0065ad7c =
+            reinterpret_cast<const int*>(&g_environment_colours_65ad98[phase])[1];
+        g_light_direction_0065ad80 =
+            reinterpret_cast<const int*>(&g_environment_colours_65ad98[phase])[2];
+        PublishLightDirection(
+            reinterpret_cast<const int*>(&g_environment_colours_65ad98[phase]));
+        g_environment_value_0060a3a8 = (int)phase;
+    }
+}
+
+// FUNCTION: WIZ8 0x00482F60
 void DisableSky(void)
 {
     SetSkyEnabled(0);
@@ -415,6 +444,23 @@ void DisableSky(void)
 unsigned char IsSkyEnabled(void)
 {
     return g_sky_enabled_0065b9ae;
+}
+
+/* Refresh the two fog objects' ranges from the world's far clip. Runs after
+   the camera's clip range moves, so the fog tracks the same plane. */
+// FUNCTION: WIZ8 0x004836A0
+void Function4836A0(void)
+{
+    if (g_environment_object_0065b9b0 != 0 && g_world != 0) {
+        g_environment_object_0065b9b0->m_positional_double_20 =
+            WorldGetFarClip(g_world) * g_world->environment_range_end_018;
+        g_environment_object_0065b9b0->m_positional_double_18 =
+            WorldGetFarClip(g_world) * g_world->environment_range_start_014;
+        g_environment_object_0065b9b4->m_positional_double_18 =
+            WorldGetFarClip(g_world) * g_world->environment_range_start_014;
+        g_environment_object_0065b9b4->m_positional_double_20 =
+            WorldGetFarClip(g_world) * g_world->environment_range_end_018;
+    }
 }
 
 /* Clear the whole ambient block. The six globals reset together are what makes
