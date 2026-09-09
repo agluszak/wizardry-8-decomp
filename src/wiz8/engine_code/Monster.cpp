@@ -134,6 +134,18 @@ const double g_monster_group_nearest_range_005ed2c0 = 12500.0;
 // GLOBAL: WIZ8 0x0060f684
 extern const char g_warning_missing_spell_vertex_0060f684[] =
     "WARNING: %ls does not have a SPELL vertex marked! --> Lee";
+// GLOBAL: WIZ8 0x0060EA08
+W8CycleNameRow g_cycle_names[W8_MONSTER_CYCLE_COUNT] = {
+    {"BIRTH", 5},          {"IDLE", 4},           {"SPICE", 5},
+    {"TRANSITION", 10},    {"WALK", 4},           {"DRAW", 4},
+    {"ATTACK_CLOSE", 12},  {"ATTACK_RANGED", 13}, {"unused", 6},
+    {"ATTACK_SWING", 12},  {"ATTACK_THRUST", 13}, {"ATTACK_BASH", 11},
+    {"ATTACK_MELEE", 12},  {"ATTACK_THROW", 12},  {"ATTACK_PUNCH", 12},
+    {"ATTACK_KICK", 11},   {"ATTACK_LASH", 11},   {"ATTACK_SHOOT", 12},
+    {"ATTACK_SPECIAL", 14}, {"DODGE", 5},          {"GET_HIT", 7},
+    {"DIE", 3},            {"TURN", 4},            {"TALK_SPICE", 10},
+    {"TALK", 4},           {"SPELL", 5},           {"SPECIAL", 7},
+};
 extern unsigned char HasLineOfSightToBounds0046FD70(
     const srVector3T<float>* origin,
     srVector3T<float>* minimum,

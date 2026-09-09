@@ -40,8 +40,14 @@ extern unsigned char Function5474B0(int spell_id);
 extern unsigned char Function5353E0(W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* slot);
 struct W8SpellEffectEntry;
 extern void GetPartyPosition(srVector3T<float>* position);                     /* 0x00421070 */
-/* 0x0061EEFC: two bytes per AI kind; only the leading byte is read. */
-extern const unsigned char g_ai_kind_table[][2];
+/* 0x0061EEFC: two dwords per AI kind; only the leading dword is read here. */
+// GLOBAL: WIZ8 0x0061EEFC
+extern const int g_ai_kind_table[32][2] = {
+    {0, 0}, {1, 0}, {1, 0}, {2, 3}, {4, 0}, {1, 1}, {1, 1}, {1, 0},
+    {5, 4}, {5, 0}, {1, 5}, {1, 1}, {1, 0}, {1, 0}, {1, 0}, {1, 0},
+    {1, 0}, {1, 0}, {1, 0}, {1, 1}, {1, 5}, {1, 0}, {1, 1}, {1, 0},
+    {6, 0}, {6, 0}, {6, 0}, {6, 0}, {6, 0}, {6, 0}, {5, 0}, {6, 0},
+};
 
 /* Throw away the queue of actions a monster's AI had decided on. */
 // FUNCTION: WIZ8 0x00532330
