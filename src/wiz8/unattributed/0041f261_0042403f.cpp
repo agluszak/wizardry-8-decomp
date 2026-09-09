@@ -204,19 +204,19 @@ void Function4229E0(void)
     g_screenshot_page_659728 = (g_screenshot_page_659728 - 1) & 1;
 }
 
-/* Mark the renderer ready and copy the position into the game camera when it
+/* Mark the renderer ready and copy the point into the game camera when it
    sits anywhere but the origin. */
 // FUNCTION: WIZ8 0x00421090
-void Function421090(const float* position)
+void PlacePartyAtPoint(const srVector3T<float>* point)
 {
     if (sqrtf(
-            (position[0] - g_origin_652940[0]) * (position[0] - g_origin_652940[0]) +
-            (position[1] - g_origin_652940[1]) * (position[1] - g_origin_652940[1]) +
-            (position[2] - g_origin_652940[2]) * (position[2] - g_origin_652940[2])) !=
+            (point->x - g_origin_652940[0]) * (point->x - g_origin_652940[0]) +
+            (point->y - g_origin_652940[1]) * (point->y - g_origin_652940[1]) +
+            (point->z - g_origin_652940[2]) * (point->z - g_origin_652940[2])) !=
         g_zero_5ebb40) {
         MarkRendererReady();
-        g_gd_camera_65a0f8->m_position_08c.x = position[0];
-        g_gd_camera_65a0f8->m_position_08c.y = position[1];
-        g_gd_camera_65a0f8->m_position_08c.z = position[2];
+        g_gd_camera_65a0f8->m_position_08c.x = point->x;
+        g_gd_camera_65a0f8->m_position_08c.y = point->y;
+        g_gd_camera_65a0f8->m_position_08c.z = point->z;
     }
 }

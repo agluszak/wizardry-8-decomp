@@ -49,7 +49,7 @@
 #define THREE_D_API_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\3dapi.cpp"
 
 extern void SetRendererReady(void);
-extern void Function421090(const float* location);
+extern void PlacePartyAtPoint(const srVector3T<float>* point);
 extern void SetValue60DFAC(void);
 
 // GLOBAL: WIZ8 0x00607d7c
@@ -644,7 +644,7 @@ void SetWorldScenePosition004511D0(
         render_position.y = position.y;
         render_position.z = position.z;
         static_cast<srNode*>(world->camera)->setLocation(render_position);
-        Function421090(&position.x);
+        PlacePartyAtPoint(&position);
     }
     if (world->camera_light != 0) {
         render_position.x = position.x;
@@ -702,7 +702,7 @@ void WorldSetCameraLocation(W8World* world, const float* location)
         position.y = location[1];
         position.z = location[2];
         ((srNode*)world->camera)->setLocation(position);
-        Function421090(location);
+        PlacePartyAtPoint(reinterpret_cast<const srVector3T<float>*>(location));
     }
     if (world->camera_light != 0) {
         position.x = location[0];
