@@ -160,7 +160,10 @@ set(WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
     src/wiz8/unattributed/00526e91_0052a88f.cpp
     src/wiz8/local_code/character_events.cpp
     src/wiz8/local_code/formation_state.cpp
+    src/wiz8/unattributed/00553910_005545f0.cpp
+    src/wiz8/unattributed/00557bc0_005587c0.cpp
     src/wiz8/unattributed/0055f081_0056af7f.cpp
+    src/wiz8/unattributed/0056b270_00579900.cpp
     src/wiz8/local_screens/screen8.cpp
     src/wiz8/unattributed/00583bc1_0058abff.cpp
     src/wiz8/local_screens/screen12.cpp
