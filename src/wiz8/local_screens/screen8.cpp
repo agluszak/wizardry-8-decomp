@@ -748,3 +748,31 @@ unsigned char GetFlag68F104(void)
 {
     return g_flag_68f104;
 }
+
+/* Select which automap buttons are enabled for the update mode, then dirty
+   and redraw both and remember the mode. */
+// FUNCTION: WIZ8 0x0057FD90
+void Function57FD90(int update)
+{
+    if (g_automap_buttons == 0) {
+        g_automap_zoom_mode = update;
+        return;
+    }
+    if (update == 0) {
+        g_automap_buttons[0]->SetEnabled(1);
+        g_automap_buttons[1]->SetEnabled(0);
+    }
+    else if (update == 1) {
+        g_automap_buttons[0]->SetEnabled(1);
+        g_automap_buttons[1]->SetEnabled(1);
+    }
+    else if (update == 2) {
+        g_automap_buttons[0]->SetEnabled(0);
+        g_automap_buttons[1]->SetEnabled(1);
+    }
+    g_automap_buttons[0]->m_dirty = 1;
+    g_automap_buttons[0]->Draw();
+    g_automap_buttons[1]->m_dirty = 1;
+    g_automap_buttons[1]->Draw();
+    g_automap_zoom_mode = update;
+}
