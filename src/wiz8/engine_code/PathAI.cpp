@@ -12,8 +12,15 @@
 
 #define PATH_AI_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\PathAI.CPP"
 
-extern void NoOp(
-    W8PathAI* path, W8AnimRepBase005EC1D8* representation);
+/* As in Bink.cpp: retail shares one no-op stub at 0x004023a0 across arities
+   (PathAIApplyToRep004A91F0 calls it with two arguments), so this overload
+   only satisfies the local call and owns no separate address. */
+void NoOp(
+    W8PathAI* path, W8AnimRepBase005EC1D8* representation)
+{
+    (void)path;
+    (void)representation;
+}
 
 extern const float g_negative_one_005ebc38;
 extern double g_double_005ebe80;
