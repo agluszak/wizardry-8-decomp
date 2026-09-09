@@ -143,8 +143,20 @@ int g_previous_footstep_variant_65a10c;
 
 // GLOBAL: WIZ8 0x006850f9
 unsigned char g_footstep_option_6850f9;
-extern const char* g_footstep_names_609edc[];
-extern const char* g_footstep_surfaces_609eb8[];
+// GLOBAL: WIZ8 0x00609edc
+const char* g_footstep_names_609edc[] = {
+    "None",       "Gritty",      "Grass",          "Stone",         "ShallowWater",
+    "CreakyWood", "SolidWood",   "HollowWood",     "Metal",         "Gravel",
+    "RoughStone", "Marble",      "Mud",            "Sand",          "Leaves",
+    "Snow",       "Carpet",      "Magic",          "ClimbLadder",   "ClimbRock",
+    "ClimbRope",  "SwimSurface", "SwimUnderwater", "Crawl",         "Fly",
+    "",
+};
+// GLOBAL: WIZ8 0x00609eb8
+const char* g_footstep_surfaces_609eb8[] = {
+    "None",       "SmallCave", "MediumCave",   "LargeCave",      "SmallRoom",
+    "MediumRoom", "LargeRoom", "OutdoorsFlat", "OutdoorsCanyon",
+};
 // GLOBAL: WIZ8 0x00609f44
 const char* g_footstep_fixed_name_609f44 = "Jump";
 // GLOBAL: WIZ8 0x00609f48
