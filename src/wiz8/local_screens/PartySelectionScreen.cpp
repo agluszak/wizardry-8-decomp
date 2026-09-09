@@ -43,7 +43,6 @@
    spelling is not established; this descriptive name is provisional. */
 
 void SetValue64D8AC(unsigned long value);
-void GetSaveSlotName005D3CC0(int slot, wchar_t* name);
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
 unsigned short Function402780(unsigned short key, unsigned char modifiers);
@@ -1980,7 +1979,7 @@ void W8State5Controller005EF4CC::OnDecision(
 {
     if (!accepted) {
         wchar_t slot_name[64];
-        GetSaveSlotName005D3CC0(0, slot_name);
+        Get16BitStringFromField(0, slot_name);
         if (SaveSlotFileExists(ConvertWideStringToString(slot_name))) {
             OpenNotification(
                 gppStringList[0x20a4 / 4],
@@ -2141,7 +2140,7 @@ void W8State5Controller005EF4CC::Function5C26C0(
     }
     case 2: {
         wchar_t slot_name[64];
-        GetSaveSlotName005D3CC0(0, slot_name);
+        Get16BitStringFromField(0, slot_name);
         if (m_input_handler_64) {
             delete m_input_handler_64;
         }
