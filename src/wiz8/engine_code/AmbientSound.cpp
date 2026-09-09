@@ -145,8 +145,10 @@ int g_previous_footstep_variant_65a10c;
 unsigned char g_footstep_option_6850f9;
 extern const char* g_footstep_names_609edc[];
 extern const char* g_footstep_surfaces_609eb8[];
-extern const char* g_footstep_fixed_name_609f44;
-extern const char* g_footstep_scuff_name_609f48;
+// GLOBAL: WIZ8 0x00609f44
+const char* g_footstep_fixed_name_609f44 = "Jump";
+// GLOBAL: WIZ8 0x00609f48
+const char* g_footstep_scuff_name_609f48 = "Scuff";
 
 // FUNCTION: WIZ8 0x0047a440
 int PlayFootstep0047A440(char surface, char material, int argument)
