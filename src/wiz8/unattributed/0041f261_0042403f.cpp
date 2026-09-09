@@ -10,8 +10,10 @@
 #include "surrender/srExtension.h"
 #include "surrender/srGERD.h"
 #include "surrender/srImporter.h"
+#include "wiz8/engine_code/World.h"
 
 #include <stdio.h>
+#include <math.h>
 
 /* Address quarantine 0041f261-0042403f; bounds come from adjacent
    assertion-backed original translation-unit intervals. */
@@ -22,6 +24,10 @@ unsigned char g_flag_00652da7;
 extern const double g_double_005ebc18;
 // GLOBAL: WIZ8 0x005ebc18
 const double g_double_005ebc18 = 3.141592653589793;
+// GLOBAL: WIZ8 0x00652940
+float g_origin_652940[3] = { 0.0f, 0.0f, 0.0f };
+// GLOBAL: WIZ8 0x005EBB40
+const double g_zero_5ebb40 = 0.0;
 extern const float g_float_005ebcf8;
 
 // FUNCTION: WIZ8 0x00420b40
@@ -196,4 +202,21 @@ void Function4229E0(void)
         g_gerd_659634->unlockBuffer();
     }
     g_screenshot_page_659728 = (g_screenshot_page_659728 - 1) & 1;
+}
+
+/* Mark the renderer ready and copy the position into the game camera when it
+   sits anywhere but the origin. */
+// FUNCTION: WIZ8 0x00421090
+void Function421090(const float* position)
+{
+    if (sqrtf(
+            (position[0] - g_origin_652940[0]) * (position[0] - g_origin_652940[0]) +
+            (position[1] - g_origin_652940[1]) * (position[1] - g_origin_652940[1]) +
+            (position[2] - g_origin_652940[2]) * (position[2] - g_origin_652940[2])) !=
+        g_zero_5ebb40) {
+        MarkRendererReady();
+        g_gd_camera_65a0f8->m_position_08c.x = position[0];
+        g_gd_camera_65a0f8->m_position_08c.y = position[1];
+        g_gd_camera_65a0f8->m_position_08c.z = position[2];
+    }
 }
