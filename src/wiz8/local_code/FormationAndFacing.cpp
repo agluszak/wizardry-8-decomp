@@ -62,7 +62,7 @@ extern signed char DecideFacingForPosition(int position, int arg_2);  /* 0x00555
 extern void Function5B1C80(void);
 extern void Function5A24A0(void);
 extern void Function5B1E70(void);
-extern unsigned int GetCameraHeading(void);                 /* 0x00421550 */
+extern int GetCameraYawDegrees(void);                                   /* 0x00421550 */
 extern void SetCameraYawDegrees(float degrees);                            /* 0x00421000 */
 extern void TurnCameraToDegrees(float degrees);                            /* 0x00420FD0 */
 
@@ -145,8 +145,8 @@ unsigned int TurnPartyTo(unsigned int degrees)
     if (degrees != g_status_685170.party_heading) {
         g_status_685170.party_heading = degrees;
         Function5B1E70();
-        previous = GetCameraHeading() / W8_DEGREES_PER_TURN;
-        if (GetCameraHeading() % W8_DEGREES_PER_TURN != degrees) {
+        previous = (unsigned int)GetCameraYawDegrees() / W8_DEGREES_PER_TURN;
+        if ((unsigned int)GetCameraYawDegrees() % W8_DEGREES_PER_TURN != degrees) {
             SetCameraYawDegrees((float)degrees);
         }
     }
@@ -163,7 +163,7 @@ void TurnPartyToImmediate(unsigned int degrees, char snap)
     }
     g_status_685170.party_heading = degrees;
     Function5B1E70();
-    if (GetCameraHeading() % W8_DEGREES_PER_TURN == degrees) {
+    if ((unsigned int)GetCameraYawDegrees() % W8_DEGREES_PER_TURN == degrees) {
         return;
     }
     if (snap) {
