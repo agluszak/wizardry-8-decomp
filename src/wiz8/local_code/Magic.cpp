@@ -556,7 +556,9 @@ extern void ReportBreathFailed(int party_slot);                          /* 0x00
 /* 0x00616DF0: seventeen entries, indexed by the spell's own cost band. The
    monster power-level chooser reads the same table as a spell-point budget
    cost, so the one table serves both. */
-extern const int g_spell_failure_table[];
+const int g_spell_failure_table[] = {
+    30, 40, 50, 58, 64, 70, 76, 81, 86, 90, 94, 97, 100, 102, 105, 107, 110,
+};
 
 /* Start one character's breath attack. The assertion names the predicate it
    depends on outright - CanCharReBreathe - so a character who cannot is a
