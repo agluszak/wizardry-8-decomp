@@ -51,6 +51,9 @@ struct W8StartupRuntimeState {
         unsigned int event_type, unsigned int party_slot, unsigned char enabled);
     void ProcessOwnedEntry(W8StartupStateElement005EE748* entry);
     void ProcessNextPendingEntry();
+    /* Restarts the follow-up clock for entries of the middle event band while
+       the state flag selects it. QueueEntry reaches it for stolen entries. */
+    void RestartFollowUpClock(W8StartupStateElement005EE748* entry);
 
 };
 

@@ -43,8 +43,6 @@ extern int g_effect_005ee590;
 extern int g_effect_005ee5f8;
 extern unsigned int g_first_remapped_event_005ee718;
 extern unsigned int g_last_event_005ee70c;
-extern void Function52E4D0(W8StartupStateElement005EE748* entry);
-extern void Function52E160(W8StartupStateElement005EE748* entry);
 extern void Function52CA60(void);
 extern int g_special_event_0068c504;
 extern int g_special_event_0068c50c;
@@ -150,6 +148,27 @@ W8StartupStateElement005EE748::W8StartupStateElement005EE748(
     }
 }
 
+/* Restarts the follow-up clock for entries of the middle event band while the
+   state flag selects it. */
+// FUNCTION: WIZ8 0x0052E160
+void W8StartupRuntimeState::RestartFollowUpClock(W8StartupStateElement005EE748* entry)
+{
+    int flags = value_5c;
+    unsigned int type = entry->type_08;
+    int duration;
+
+    if ((flags & 1) == 0 || type < 14 || type >= 16) {
+        return;
+    }
+    if ((flags & 2) == 0) {
+        duration = Random(60000) + 300000;
+    }
+    else {
+        duration = Random(6000) + 2000;
+    }
+    unknown_60 = SetCountdownClock(duration);
+}
+
 // FUNCTION: WIZ8 0x0052D610
 int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
 {
@@ -172,8 +191,8 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
         W8MonsterManagerEntry* slot =
             &g_monster_manager_state.entries[party_slot];
         if (slot->field_071 != 0) {
-            Function52E4D0(slot->field_071);
-            Function52E160(slot->field_071);
+            vector_40.Remove(slot->field_071);
+            RestartFollowUpClock(slot->field_071);
             ProcessStartupStateEntry(slot->field_071);
             delete slot->field_071;
         }

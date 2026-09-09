@@ -136,6 +136,10 @@ public:
        value, while callers such as the dialog destructor delete it. */
     T RemoveAt(int position);
 
+    /* Removes the first matching entry, if any, and reports whether one was
+       there. The startup entry queues reach it through QueueEntry. */
+    unsigned char Remove(T entry);
+
     /* The image walks the array from a pointer loaded once rather than
        indexing through GetAt, which bounds-checks. Controls.cpp:2718 asserts on
        the -1 this returns, so the not-found value is the source's own. */
@@ -197,6 +201,36 @@ T W8GrowableVector<T>::RemoveAt(int position)
     }
     --count;
     return result;
+}
+
+template <class T>
+unsigned char W8GrowableVector<T>::Remove(T entry)
+{
+    int index = 0;
+
+    if (count <= 0) {
+        return 0;
+    }
+    do {
+        if (data[index] == entry) {
+            break;
+        }
+        ++index;
+    } while (index < count);
+    if (index >= count) {
+        return 0;
+    }
+    if (index < 0) {
+        return 0;
+    }
+    if (index >= count) {
+        return 1;
+    }
+    for (; index < count - 1; ++index) {
+        data[index] = data[index + 1];
+    }
+    --count;
+    return 1;
 }
 
 #endif
