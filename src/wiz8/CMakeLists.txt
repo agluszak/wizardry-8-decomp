@@ -45,7 +45,7 @@ endif()
         OUTPUT Wiz8
         MAP Wiz8.map
         ALLOW_UNRESOLVED
-        LIBRARIES ddraw.lib gdi32.lib user32.lib
+        LIBRARIES ddraw.lib dxguid.lib gdi32.lib user32.lib
     )
     reccmp_add_target(WIZ8_BRINGUP ID WIZ8)
     add_custom_target(WIZ8 DEPENDS WIZ8_BRINGUP)
@@ -56,7 +56,7 @@ endif()
         MAP Wiz8Runtime.map
         OPT_REF
         ALLOW_UNRESOLVED
-        LIBRARIES ddraw.lib gdi32.lib user32.lib
+        LIBRARIES ddraw.lib dxguid.lib gdi32.lib user32.lib
     )
     add_custom_target(WIZ8_RUNNABLE DEPENDS WIZ8_RUNTIME)
 
@@ -71,7 +71,7 @@ endif()
         CONSOLE
         ALLOW_UNRESOLVED
         SOURCES tests/runtime/wiz8_runtime_test.cpp
-        LIBRARIES ddraw.lib gdi32.lib user32.lib
+        LIBRARIES ddraw.lib dxguid.lib gdi32.lib user32.lib
     )
     wiz8_add_executable(
         TARGET WIZ8_RUNTIME_DEBUG
@@ -83,7 +83,7 @@ endif()
         OBJECT_TARGET wiz8_debug_objects
         COMPILE_SETTINGS wiz8_debug_compile_settings
         SOURCES tests/runtime/wiz8_runtime_test.cpp
-        LIBRARIES ddraw.lib gdi32.lib user32.lib
+        LIBRARIES ddraw.lib dxguid.lib gdi32.lib user32.lib
     )
 if(SGP_SOURCE)
     include(cmake/Sgp.cmake)
