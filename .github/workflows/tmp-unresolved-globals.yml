@@ -1,86 +1,42 @@
-name: tmp unresolved globals
+name: tmp unresolved count
 on:
   push:
     branches: [agent/reduce-unresolved-under-700]
 
 jobs:
-  ghidra:
+  unresolved:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install uv and Ghidra 12.1.2
+      - name: Install uv
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           "$HOME/.local/bin/uv" python install 3.13
-          curl -L --fail --retry 3 -o /tmp/ghidra.zip \
-            https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_12.1.2_build/ghidra_12.1.2_PUBLIC_20260605.zip
-          unzip -q /tmp/ghidra.zip -d /tmp
           mkdir -p /tmp/wiz8-input /tmp/wiz8-work
-      - name: Dump remaining original globals
+      - name: Build pinned VC6 image and source dependencies
         env:
-          GHIDRA_INSTALL_DIR: /tmp/ghidra_12.1.2_PUBLIC
+          GHIDRA_INSTALL_DIR: /tmp/unused-ghidra
           WIZ8_INPUT_DIR: /tmp/wiz8-input
           WIZ8_WORK_DIR: /tmp/wiz8-work
         run: |
           export PATH="$HOME/.local/bin:$PATH"
-          uv run --no-dev python - <<'PY'
+          uv run wiz8 toolchain build vc6-sp5
+          uv run python - <<'PY'
           from wiz8decomp.config import load_settings
-          from wiz8decomp.ghidra.env import open_program
-
-          requested = {
-              'g_character_table_00616604': 0x00616604,
-              'g_effect_visual_table': 0x0060CFFC,
-              'g_ground_shadow_material_parameters_00683430': 0x00683430,
-              'g_monster_attachment_offsets_0060e618': 0x0060E618,
-              'g_monster_attachment_scales_0060e914': 0x0060E914,
-              'g_text_line_counts': None,
-          }
-
-          settings = load_settings()
-          with open_program(settings, 'wiz8') as program:
-              af = program.getAddressFactory().getDefaultAddressSpace()
-              listing = program.getListing()
-              symtab = program.getSymbolTable()
-              refs = program.getReferenceManager()
-
-              found_by_name = {}
-              it = symtab.getAllSymbols(True)
-              while it.hasNext():
-                  sym = it.next()
-                  n = sym.getName()
-                  if n in requested and requested[n] is None:
-                      found_by_name[n] = int(sym.getAddress().getOffset())
-
-              for name, raw_addr in requested.items():
-                  addr_int = raw_addr if raw_addr is not None else found_by_name.get(name)
-                  print(f'\n===== {name} =====')
-                  if addr_int is None:
-                      print('NO SYMBOL/ADDRESS FOUND')
-                      continue
-                  addr = af.getAddress(addr_int)
-                  sym = symtab.getPrimarySymbol(addr)
-                  data = listing.getDataAt(addr)
-                  print(f'address=0x{addr_int:08x}')
-                  print(f'symbol={sym.getName(True) if sym else None}')
-                  if data is not None:
-                      print(f'type={data.getDataType().getDisplayName()} length={data.getLength()} value={data.getValue()} components={data.getNumComponents()}')
-                      count = min(data.getNumComponents(), 512)
-                      for i in range(count):
-                          c = data.getComponent(i)
-                          if c is None:
-                              continue
-                          print(f'  component[{i}] off={c.getParentOffset()} type={c.getDataType().getDisplayName()} len={c.getLength()} value={c.getValue()}')
-                      length = min(data.getLength(), 8192)
-                  else:
-                      print('data=None')
-                      length = 512
-                  bs = bytes((int(program.getMemory().getByte(addr.add(i))) & 0xff) for i in range(length))
-                  print(f'bytes[{length}]={bs.hex()}')
-                  r = refs.getReferencesTo(addr)
-                  sites = []
-                  while r.hasNext() and len(sites) < 40:
-                      ref = r.next()
-                      owner = program.getFunctionManager().getFunctionContaining(ref.getFromAddress())
-                      sites.append((str(ref.getFromAddress()), owner.getName(True) if owner else None))
-                  print('refs=' + repr(sites))
+          from wiz8decomp.ghidra.fid_seeds import fetch_seed_sources
+          from wiz8decomp.build import _write_sr_assert_import
+          from wiz8decomp.reccmp_data import write_wiz8_data_source
+          s = load_settings()
+          fetch_seed_sources(s)
+          write_wiz8_data_source(s.repo_dir)
+          _write_sr_assert_import(s.repo_dir)
           PY
+      - name: Build MATCH image and count unresolved symbols
+        env:
+          GHIDRA_INSTALL_DIR: /tmp/unused-ghidra
+          WIZ8_INPUT_DIR: /tmp/wiz8-input
+          WIZ8_WORK_DIR: /tmp/wiz8-work
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          uv run wiz8 build match -j 4
+          uv run wiz8 analyze unresolved
