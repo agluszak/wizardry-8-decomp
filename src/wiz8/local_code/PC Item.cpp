@@ -178,6 +178,10 @@ enum { W8_EQUIP_CLASS_FIRST_NON_WEAPON = 4 };
    pointer bound the release walk stops at. */
 enum { W8_GENERIC_ITEM_NAME_COUNT = 147 };
 W8WideChar* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
+// GLOBAL: WIZ8 0x00616e84
+const int g_item_spell_presentation[11] = {-1, 20, 20, -1, -1, -1, 12, 9, 23, 7, 0};
+// GLOBAL: WIZ8 0x00648c5c
+const int g_equip_slot_icons[6] = {0, 0, 0, 0, 0, 0};
 extern const unsigned short g_generic_item_name_notice[];
 /* Shared scratch returned by the item-name formatter. */
 // GLOBAL: WIZ8 0x0068C0B4

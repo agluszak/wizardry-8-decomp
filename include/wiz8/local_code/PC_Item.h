@@ -13,8 +13,8 @@ unsigned char CanCharacterActivateItem(
 
 #define g_game_started (g_status_685170.game_started)
 
-extern const int g_item_spell_presentation[];
-extern const int g_equip_slot_icons[];
+extern const int g_item_spell_presentation[11];
+extern const int g_equip_slot_icons[6];
 extern unsigned int g_party_gold;
 extern unsigned char g_shared_item_pool[];
 extern unsigned int g_shared_item_pool_count;
