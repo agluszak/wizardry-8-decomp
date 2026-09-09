@@ -196,7 +196,12 @@ unsigned char g_flag_00687607;
 
 // GLOBAL: WIZ8 0x006059E0
 char g_ambient_sound_filename_006059e0[] = "SCF";
-extern const char* g_sky_names_00605880[];
+// GLOBAL: WIZ8 0x00605880
+const char* g_sky_names_00605880[] = {
+    "DefaultSky", "RapaxSky",   "MountainPassSky", "RiftSky1",
+    "TrynnieSky1", "TrynnieSky2", "RatkinSky1",       "CampSky",
+    "BluffSky1",   "BluffSky2",   "CircleSky",
+};
 
 /* Resolve a database level number into all level and sky resource paths. The
    regular forty-seven levels use the database row directly; the ten test
