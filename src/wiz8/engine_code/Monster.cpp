@@ -91,8 +91,21 @@ extern const double g_monster_attachment_group_spacing_005ed2a0;
 extern const float g_monster_linked_vertical_scale_005ed29c;
 extern const float g_monster_poster_vertical_rate_005ed298;
 extern const double g_monster_poster_max_distance_005ec3d8;
-extern srVector3T<float> g_monster_attachment_offsets_0060e618[][8];
-extern float g_monster_attachment_scales_0060e914[];
+// GLOBAL: WIZ8 0x0060e618
+srVector3T<float> g_monster_attachment_offsets_0060e618[8][8] = {
+    { srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f) },
+    { srVector3T<float>(-75.0f, 0.0f, 0.0f), srVector3T<float>(75.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f) },
+    { srVector3T<float>(-75.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(75.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f) },
+    { srVector3T<float>(-112.5f, 0.0f, 0.0f), srVector3T<float>(-37.5f, 0.0f, 0.0f), srVector3T<float>(37.5f, 0.0f, 0.0f), srVector3T<float>(112.5f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f) },
+    { srVector3T<float>(-112.5f, 0.0f, 0.0f), srVector3T<float>(-37.5f, 0.0f, 0.0f), srVector3T<float>(37.5f, 0.0f, 0.0f), srVector3T<float>(112.5f, 0.0f, 0.0f), srVector3T<float>(0.0f, 75.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f) },
+    { srVector3T<float>(-112.5f, 0.0f, 0.0f), srVector3T<float>(-37.5f, 0.0f, 0.0f), srVector3T<float>(37.5f, 0.0f, 0.0f), srVector3T<float>(112.5f, 0.0f, 0.0f), srVector3T<float>(-37.5f, 75.0f, 0.0f), srVector3T<float>(37.5f, 75.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f) },
+    { srVector3T<float>(-112.5f, 0.0f, 0.0f), srVector3T<float>(-37.5f, 0.0f, 0.0f), srVector3T<float>(37.5f, 0.0f, 0.0f), srVector3T<float>(112.5f, 0.0f, 0.0f), srVector3T<float>(-75.0f, 75.0f, 0.0f), srVector3T<float>(0.0f, 75.0f, 0.0f), srVector3T<float>(75.0f, 75.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f) },
+    { srVector3T<float>(-112.5f, 0.0f, 0.0f), srVector3T<float>(-37.5f, 0.0f, 0.0f), srVector3T<float>(37.5f, 0.0f, 0.0f), srVector3T<float>(112.5f, 0.0f, 0.0f), srVector3T<float>(-112.5f, 75.0f, 0.0f), srVector3T<float>(-37.5f, 75.0f, 0.0f), srVector3T<float>(37.5f, 75.0f, 0.0f), srVector3T<float>(112.5f, 75.0f, 0.0f) }
+};
+// GLOBAL: WIZ8 0x0060e914
+float g_monster_attachment_scales_0060e914[9] = {
+    0.0f, 0.3f, 0.2f, 0.15f, 0.15f, 0.15f, 0.15f, 0.15f, 0.15f
+};
 extern float g_startup_depth_603ac8;
 extern const float g_camera_transition_epsilon_005ebc84;
 extern const float g_world_scale_005ebc40;
