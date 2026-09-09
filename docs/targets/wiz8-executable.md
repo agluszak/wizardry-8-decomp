@@ -10,42 +10,55 @@ The CMake graph contains the three actual products:
 * `WIZ8_RUNTIME_TEST` runs the semantic scenarios with the same optimized recovered objects. Its
   results are authoritative runtime evidence.
 
-Build and open the recovered main menu on the host display with:
+Build and open the recovered main menu from the retail install directory with:
 
 ```sh
+just build runtime
 just run
 ```
 
-For an unattended run that cannot map a window or steal focus from the host desktop:
+`just run` does not build, invoke Python, configure the registry, or catch failures. It passes the
+released SGP `/WINDOW` option so a development run cannot take exclusive control of the desktop. It seeds the two
+reviewed CFG files when absent and creates one managed `Wiz8Runtime.exe` symlink in the retail
+directory; Wine otherwise searches beside the build-tree EXE and substitutes a fake `SR.dll`.
+It defaults `WINEDEBUG` to `-all`; set it explicitly to enable Wine tracing. A native crash is
+reported directly by Wine.
+Use the separate debugger only when debugging is intended:
 
 ```sh
-WIZ8_RUNTIME_DISPLAY=virtual just run
+just debug
 ```
 
-Bare `just build` builds the `WIZ8` comparison image. `just run` builds the runtime image itself;
-pass an explicit target only for a library surface such as `just build SREXT_JPEGIMPORTER`.
+The debugger is interactive: there is no wrapper timeout, default backtrace, or command-forwarding
+syntax. Its small launcher owns the Wine process so quitting GDB does not leave the game running,
+and it resolves the sound-startup breakpoint from `build/decomp/Wiz8Runtime.map`.
 
-The launcher creates `build/runtime/wiz8` for the writable executable, video configuration, and
-save directory. It links the large shipped assets from `$WIZ8_WORK_DIR/variants/gog-base` without
-changing that canonical materialization. Wine state is reused at
-`$WIZ8_WORK_DIR/wine/wiz8-runtime`; set `WIZ8_WINE_PREFIX` to override it. On the first run it
-materializes the reviewed default `Wiz8.CFG` settings record, avoiding the still-incomplete
-first-party settings-discovery path; subsequent in-game configuration changes remain local to the
-staging directory.
+The runtime now reaches the main-menu state, but the recovered presentation remains visually
+incomplete. Continue that recovery in this order:
 
-The launcher uses a named 640x480 Wine desktop. Interactive `just run` inherits the host X display;
-`WIZ8_RUNTIME_DISPLAY=virtual` creates a private 640x480x16 Xvfb server and points Wine at it for the
-life of the run. The exact mode matters because SurRender rejects a virtual server whose geometry or
-depth differs from `3DVideo.CFG`. `WIZ8_RUNTIME_DISPLAY=:5` selects an already-running display, and
-`host` explicitly selects the inherited display. Virtual mode fails closed if Xvfb is unavailable,
-so an unattended command cannot silently fall back to the desktop.
+1. Reproduce the missing intro or brown main-menu frame with `just run` on the host display and
+   capture the first incorrect visible frame; Xvfb screenshots are not evidence because this
+   DirectDraw path captures black output there.
+2. For an intro failure, trace `BeginVideoPresentation` and the Bink frame copy into the target
+   surface. For a main-menu failure, trace `DrawCatalogImage`, `EnsureCatalogFrameLoaded`, and the
+   surrounding render transaction.
+3. After correcting the first proven presentation defect, validate both the visible transition and
+   the ordinary close/`WM_DESTROY` path so the launcher exits without leaving Wine processes behind.
+
+Bare `just build` builds the `WIZ8` comparison image; `just build runtime` builds the runnable image.
+Pass an explicit target only for a library surface such as `just build SREXT_JPEGIMPORTER`.
+
+The direct launcher uses `$WIZ8_WORK_DIR/variants/gog-base` as its working directory, so the game
+sees the extracted retail `Data`, `Dll`, `Levels`, Miles, Bink, and SurRender files without a mirror
+of that installation under `build/`. It refuses to replace an unmanaged file at the executable-link
+path.
 
 `just runtime-test` defaults to the private display and judges only `WIZ8_RUNTIME_TEST`; set
-`WIZ8_RUNTIME_DISPLAY=host` for visual debugging. An abnormal exit or timeout automatically reruns
-that scenario under GDB with the same `Wiz8RuntimeTest.exe`. Raw debugger output stays under
-`build/runtime/wiz8/diagnostics`, while the command reports the classification and a short list of
-MAP-symbolized host stack candidates. EXE, PDB, MAP, PE timestamp, and SHA-256 identity are staged
-together. Off-screen Wine is configured to own its windows because Xvfb has no window manager.
+`WIZ8_RUNTIME_DISPLAY=host` for visual debugging. Its controlled staging directory owns test config,
+saves, display, and audio policy. The native exception handler records the actual crash and stack
+candidates in-process; Python symbolizes recovered-image candidates against `Wiz8RuntimeTest.map`.
+It never launches GDB or reruns a failed scenario. Off-screen Wine is configured to own its windows
+because Xvfb has no window manager.
 Mouse and keyboard events still traverse released SGP input and the recovered region callbacks.
 Exiting the launcher terminates only this dedicated Wine prefix. The launcher stays attached to the
 game and returns its status instead of guessing its lifetime from Wine's desktop helper.
@@ -57,8 +70,8 @@ owns idempotent source/input preparation.
 
 The comparison image remains intentionally link-incomplete and uses `/FORCE:UNRESOLVED`. Removing it
 from either `/OPT:REF` runtime product currently exposes 603 unresolved externals, so both retain it
-until source recovery narrows that live boundary. The runtime exception record identifies image-base
-read/write/execute faults directly and the automatic diagnostic rerun resolves their callers. This
+until source recovery narrows that live boundary. The runtime-test exception record identifies
+image-base read/write/execute faults directly and MAP-symbolizes plausible stack values. This
 is retained debt, not a claim that a forced executable is generally safe.
 
 ## Platform and import libraries

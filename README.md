@@ -22,6 +22,7 @@ just wiz8 lint
 just build
 just compare
 just run
+just debug
 just runtime-test
 just wiz8 verify
 ```
@@ -32,11 +33,16 @@ compile-checks the recovered C++ with Clang's virtual-override diagnostics while
 continues to use VC6. `build` configures automatically. `compare` is reccmp's live linked-image and
 exact-body diagnostic. Run Python tests directly with `uv run pytest -q PATH`.
 
+`just run` directly executes the already-built `Wiz8Runtime.exe` from the extracted retail game
+directory with the original `/WINDOW` option. It does not build, stage, or debug the process.
+`just debug` opens an interactive GDB front end against the same windowed executable and owns the
+launched process so leaving the debugger cannot strand a full-screen game.
+
 `just runtime-test` runs named main-menu scenarios in the optimized semantic-test executable.
 The real menu handlers execute on the UI thread; the host reruns the scenarios in reverse order and
-requires identical normalized observations. An abnormal exit or timeout is automatically repeated
-under GDB with the same executable and returned as a concise MAP-symbolized diagnosis; raw debugger
-output is saved under `build/runtime/wiz8/diagnostics`. Semantic mismatches are reported directly.
+requires identical normalized observations. Its same-process exception handler reports native crash
+state and stack candidates, which Python symbolizes against the runtime-test MAP. Failures are not
+rerun under GDB.
 
 For focused recovery, one reccmp process compares several function selectors or all `FUNCTION`
 markers in a source file. A mismatch includes reccmp's structured first divergence and a bounded

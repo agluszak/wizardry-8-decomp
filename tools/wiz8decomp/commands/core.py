@@ -199,17 +199,6 @@ def address_command(
     cli.emit(action())
 
 
-def run_command() -> None:
-    """Build, stage, and run the recovered executable under Wine."""
-    from .. import command_support as cli
-    from ..build import build_target
-    from ..runtime import run_game
-
-    settings = cli.settings()
-    build_target(settings, "runtime")
-    run_game(settings)
-
-
 def runtime_test_command() -> None:
     """Build and run deterministic in-process semantic scenarios."""
     from .. import command_support as cli
@@ -262,7 +251,6 @@ def register(app: typer.Typer) -> None:
     app.command("vtable")(vtable_command)
     app.command("datacmp")(datacmp_command)
     app.command("addr")(address_command)
-    app.command("run")(run_command)
     app.command("runtime-test")(runtime_test_command)
     app.command("verify")(verify_command)
     app.add_typer(analyze_app, name="analyze")

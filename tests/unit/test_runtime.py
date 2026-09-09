@@ -5,11 +5,10 @@ from wiz8decomp.config import Settings
 from wiz8decomp.display import runtime_display
 from wiz8decomp.runtime import (
     _configure_wine_window_management,
-    _parse_gdb_diagnostics,
     _parse_runtime_observation,
     _run_runtime_scenario,
     _symbolize_addresses,
-    stage_runtime,
+    stage_runtime_test,
 )
 
 
@@ -19,7 +18,7 @@ def _settings(tmp_path: Path) -> Settings:
     for name in ("Data", "Dll", "Levels"):
         (work / "variants" / "gog-base" / name).mkdir(parents=True, exist_ok=True)
     (repo / "build" / "decomp").mkdir(parents=True)
-    (repo / "build" / "decomp" / "Wiz8Runtime.exe").write_bytes(b"runtime")
+    (repo / "build" / "decomp" / "Wiz8RuntimeTest.exe").write_bytes(b"semantic tests")
     (repo / "config" / "runtime").mkdir(parents=True)
     (repo / "config" / "runtime" / "3DVideo.CFG").write_text("video")
     (repo / "config" / "runtime" / "Wiz8.CFG.hex").write_text("00ff")
@@ -33,34 +32,24 @@ def _settings(tmp_path: Path) -> Settings:
     )
 
 
-def test_stage_runtime_uses_managed_links_and_materialized_cfg(tmp_path: Path) -> None:
+def test_stage_runtime_test_uses_managed_links_and_materialized_cfg(tmp_path: Path) -> None:
     settings = _settings(tmp_path)
 
-    result = stage_runtime(settings)
+    result = stage_runtime_test(settings)
     stage = Path(result["stage"])
 
     assert (stage / "Data").is_symlink()
     assert (stage / "Wiz8.CFG").read_bytes() == b"\x00\xff"
-    assert (stage / "Wiz8Runtime.exe").read_bytes() == b"runtime"
+    assert (stage / "Wiz8RuntimeTest.exe").read_bytes() == b"semantic tests"
 
 
-def test_stage_runtime_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> None:
+def test_stage_runtime_test_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> None:
     settings = _settings(tmp_path)
     unmanaged = settings.repo_dir / "build" / "runtime" / "wiz8" / "Data"
     unmanaged.mkdir(parents=True)
 
     with pytest.raises(RuntimeError, match="not a managed symlink"):
-        stage_runtime(settings)
-
-
-def test_stage_runtime_selects_the_semantic_test_product(tmp_path: Path) -> None:
-    settings = _settings(tmp_path)
-    executable = settings.repo_dir / "build/decomp/Wiz8RuntimeTest.exe"
-    executable.write_bytes(b"semantic tests")
-
-    result = stage_runtime(settings, executable.name)
-
-    assert Path(result["executable"]).read_bytes() == b"semantic tests"
+        stage_runtime_test(settings)
 
 
 def test_runtime_observation_is_normalized_to_typed_fields() -> None:
@@ -82,32 +71,6 @@ def test_runtime_observation_is_normalized_to_typed_fields() -> None:
 def test_runtime_observation_requires_one_owned_record() -> None:
     with pytest.raises(RuntimeError, match="expected one runtime observation"):
         _parse_runtime_observation("wine diagnostics only")
-
-
-def test_gdb_sigsegv_stop_extracts_numbered_backtrace_addresses() -> None:
-    diagnosis = _parse_gdb_diagnostics(
-        "Thread 1 received signal SIGSEGV, Segmentation fault.\n"
-        "#0  0x00401234 in first ()\n"
-        "#1  0x7bc45678 in second ()\n",
-        0,
-    )
-
-    assert diagnosis == {
-        "classification": "debug_crashed",
-        "stop_reason": "signal SIGSEGV",
-        "addresses": [0x00401234, 0x7BC45678],
-        "crash_signature": None,
-    }
-
-
-def test_gdb_normal_completion_is_a_debug_pass() -> None:
-    diagnosis = _parse_gdb_diagnostics("[Inferior 1 (process 42) exited normally]\n", 0)
-
-    assert diagnosis == {
-        "classification": "debug_passed",
-        "stop_reason": "normal exit",
-        "addresses": [],
-    }
 
 
 def test_map_symbolization_refuses_cross_function_lines_and_section_end(tmp_path: Path) -> None:
@@ -145,16 +108,6 @@ def test_runtime_timeout_preserves_in_process_diagnostics(
         )
 
     monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", time_out)
-    monkeypatch.setattr(
-        "wiz8decomp.runtime.diagnose_runtime_failure",
-        lambda *_args: {
-            "classification": "debug_timeout",
-            "stop_reason": "GDB timed out",
-            "host_symbol_candidates": [],
-            "artifacts": str(tmp_path / "gdb.txt"),
-        },
-    )
-
     with pytest.raises(RuntimeError, match="menu reached; teardown stuck"):
         _run_runtime_scenario(tmp_path / "test.exe", tmp_path, {}, "main-menu-startup")
 

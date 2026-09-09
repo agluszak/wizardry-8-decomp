@@ -112,15 +112,6 @@ unsigned char Function41A7F0(void)
     return 0;
 }
 
-/* AIL_digital_configuration leaves the queried status in eax, and retail
-   stores that word as the driver handle and branches on it. The pinned
-   header declares it void, so the call below reads eax through a
-   compatible prototype; the import decoration is return-type independent. */
-typedef unsigned int (__stdcall *DigitalConfigurationFn)(
-    HDIGDRIVER dig, int rate, int format, char* string);
-#define DigitalConfiguration \
-    ((DigitalConfigurationFn)AIL_digital_configuration)
-
 /* Inlined SoundPlayStreamed: samples at or above the streaming threshold
    never enter the cache. */
 // FUNCTION: WIZ8 0x00408860
@@ -665,8 +656,7 @@ unsigned char SoundInitHardware00409C50(void)
         for (index = 0x20; index != 0; --index) {
             *slot++ = 0;
         }
-        driver = (HDIGDRIVER)DigitalConfiguration(
-            driver, 0, 0, (char*)config);
+        AIL_digital_configuration(driver, 0, 0, (char*)config);
     }
     g_sound_driver_6e4104 = driver;
     if (driver != 0) {
@@ -681,8 +671,7 @@ unsigned char SoundInitHardware00409C50(void)
         for (index = 0x20; index != 0; --index) {
             *slot++ = 0;
         }
-        driver = (HDIGDRIVER)DigitalConfiguration(
-            driver, 0, 0, (char*)config);
+        AIL_digital_configuration(driver, 0, 0, (char*)config);
     }
     g_sound_driver_6e4104 = driver;
     if (driver != 0) {
@@ -697,8 +686,7 @@ unsigned char SoundInitHardware00409C50(void)
         for (index = 0x20; index != 0; --index) {
             *slot++ = 0;
         }
-        driver = (HDIGDRIVER)DigitalConfiguration(
-            driver, 0, 0, (char*)config);
+        AIL_digital_configuration(driver, 0, 0, (char*)config);
     }
     g_sound_driver_6e4104 = driver;
     if (driver != 0) {
@@ -713,8 +701,7 @@ unsigned char SoundInitHardware00409C50(void)
         for (index = 0x20; index != 0; --index) {
             *slot++ = 0;
         }
-        driver = (HDIGDRIVER)DigitalConfiguration(
-            driver, 0, 0, (char*)config);
+        AIL_digital_configuration(driver, 0, 0, (char*)config);
     }
     g_sound_driver_6e4104 = driver;
     if (driver == 0) {
