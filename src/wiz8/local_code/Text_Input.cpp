@@ -10,6 +10,7 @@
 #include "input.h"
 #include "Types.h"
 #include "mousesystem.h"
+#include "vobject_blitters.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -89,10 +90,9 @@ static_assert(sizeof(STACKTEXTINPUTNODE) == 0x0c,
 extern "C" {
 unsigned char gfEditingText;
 }
-extern wchar_t g_no_target_text[];
+extern const wchar_t g_wchar_00689b34;
 extern unsigned char FillSurfaceRect(int surface_id, int left, int top,
                                      int right, int bottom, int colour);
-extern int Function4124A0(void* pixels, unsigned int pitch, int* rectangle);
 extern void Function55EE70(int value);
 
 // FUNCTION: WIZ8 0x0055ef80
@@ -295,7 +295,7 @@ char AddTextInputField(int left, int top, int width, int height, int priority,
     field->szString = (wchar_t*)malloc((capacity + 1) * sizeof(wchar_t));
     if (text == 0) {
         field->ubStrLen = 0;
-        swprintf(field->szString, g_no_target_text);
+        swprintf(field->szString, &g_wchar_00689b34);
     }
     else {
         field->ubStrLen = (unsigned char)wcslen(text);
@@ -1265,7 +1265,8 @@ void RenderInactiveTextFieldNode(TEXTINPUTNODE* field)
         };
         unsigned int pitch;
         void* pixels = Function402B90(-14, &pitch);
-        Function4124A0(pixels, pitch, rectangle);
+        Blt16BPPBufferShadowRect(
+            (unsigned short*)pixels, pitch, (SGPRect*)rectangle);
         Function402C30(-14);
     }
 }
