@@ -4,7 +4,8 @@ The source index owns the current physical placement of a recovered function.
 The translation-unit layout owns the original translation unit the retail
 binary attributed to that address. This gate compares the two and fails only
 when the binary evidence is strong enough to place the function: a direct
-anchor, a hard hull, or a uniquely projected cross-build anchor.
+anchor, a hard hull, or a uniquely projected cross-build anchor. Advisory
+``cross-build-similar`` attributions are reported but never enforced.
 
 The CLI surface is dormant until the provisional Video2 fragment is resolved
 (its proven functions depend on unmarked static helpers across the unresolved
@@ -104,4 +105,5 @@ def validate_source_placement(settings: Any) -> dict[str, Any]:
         "cross_build_anchors": sum(
             1 for anchor in layout.unit_anchors if anchor.evidence == "cross-build"
         ),
+        "cross_build_advisory": layout.cross_build_advisory,
     }

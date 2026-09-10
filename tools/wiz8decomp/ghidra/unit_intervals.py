@@ -20,6 +20,10 @@ contribution, so the convex hull of a unit's direct anchors is hard-owned while
 everything outside every hull stays an explicit gap. Hulls of distinct units
 must not overlap; an overlap is a model contradiction, not something to paper
 over.
+
+Cross-build projection only extends a hard hull when the body match is unique.
+The mnemonic-similarity fallback stays advisory: it can name a likely owner for
+one function, but it never shrinks or grows an interval.
 """
 
 from __future__ import annotations
@@ -40,6 +44,7 @@ HEADER_SUFFIXES = (".h", ".hpp", ".hxx", ".inl")
 ASSERTION = "assertion"
 SOURCE_REFERENCE = "source-path-reference"
 CROSS_BUILD = "cross-build"
+SIMILAR_MATCH = "similar-body"
 
 _DIRECT_EVIDENCE = (ASSERTION, SOURCE_REFERENCE)
 
@@ -338,6 +343,8 @@ class TranslationUnitLayout:
             and not _inside_other_hull(anchor.function, anchor.source_path, native_hulls)
         ]
         self.cross_build_rejected = len(cross) - len(accepted_cross)
+        advisory_cross = [anchor for anchor in accepted_cross if anchor.match_kind == SIMILAR_MATCH]
+        self.cross_build_advisory = len(advisory_cross)
         self.unit_anchors = tuple(
             sorted([*native, *accepted_cross], key=lambda a: (a.function, a.source_path))
         )
@@ -346,7 +353,15 @@ class TranslationUnitLayout:
         self.anchors_by_unit = _group_by_unit(
             anchor for anchor in self.unit_anchors if anchor.function not in self.conflicts
         )
-        self.intervals = _hulls(self.anchors_by_unit)
+        # Only direct evidence and unique cross-build matches shape hard hulls.
+        # Advisory similarity matches still report a likely owner through
+        # anchors_by_function, but they cannot resize an interval.
+        self.hull_anchors_by_unit = _group_by_unit(
+            anchor
+            for anchor in (*native, *accepted_cross)
+            if anchor.match_kind != SIMILAR_MATCH and anchor.function not in self.conflicts
+        )
+        self.intervals = _hulls(self.hull_anchors_by_unit)
         self.interval_lowers = [interval.lower for interval in self.intervals]
         self._validate_hulls()
 
@@ -397,7 +412,12 @@ class TranslationUnitLayout:
         unit_anchors = [anchor for anchor in anchors if anchor.source_path == unit]
         evidence = sorted(unit_anchors, key=lambda anchor: _EVIDENCE_ORDER.index(anchor.evidence))
         direct = {anchor.evidence for anchor in unit_anchors}
-        attribution = "direct" if direct & set(_DIRECT_EVIDENCE) else "cross-build"
+        if direct & set(_DIRECT_EVIDENCE):
+            attribution = "direct"
+        elif any(anchor.match_kind != SIMILAR_MATCH for anchor in unit_anchors):
+            attribution = CROSS_BUILD
+        else:
+            attribution = "cross-build-similar"
         result: dict[str, Any] = {
             "source_path": unit,
             "attribution": attribution,

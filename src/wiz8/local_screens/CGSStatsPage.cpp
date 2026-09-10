@@ -8,7 +8,6 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/TextControl.h"
-#include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
@@ -111,14 +110,16 @@ const wchar_t g_zero_slash_zero_0064f2c0[] = L"0/0";
    frames; the profession bonus block's line height depends on how many traits
    the character has. */
 
-/* The 0xEF700 subpanel entry: one record of an expanded value row. */
+/* The 0xEF700 subpanel entry: one record of an expanded value row.
+   0x005C91C0 is the hierarchy's compiler-emitted destructor, so the class
+   leaves it defaulted. */
 // VTABLE: WIZ8 0x005ef700 W8CharacterStatsRecordControl005EF700
 class W8CharacterStatsRecordControl005EF700 : public W8TextControl {
 public:
     W8CharacterStatsRecordControl005EF700(
         Controls* owner, int top, int height,
         const W8CharacterStatsRecord* record, int variant);
-    virtual ~W8CharacterStatsRecordControl005EF700() override;
+    ~W8CharacterStatsRecordControl005EF700() override {}
     virtual void Redraw(int full_redraw) override;
     virtual void OnMouseEnter(int event) override;
     virtual void OnMouseLeave(int event) override;
@@ -149,11 +150,6 @@ W8CharacterStatsValue005EF6B0::W8CharacterStatsValue005EF6B0(
 
 // SYNTHETIC: WIZ8 0x005c8f40
 // W8CharacterStatsValue005EF6B0::`scalar deleting destructor'
-
-// FUNCTION: WIZ8 0x005c8f60
-W8CharacterStatsValue005EF6B0::~W8CharacterStatsValue005EF6B0()
-{
-}
 
 /* Store the record the value control displays. A null record selects the
    default the constructor was handed. */
@@ -235,11 +231,6 @@ W8CharacterStatsRecordControl005EF700::W8CharacterStatsRecordControl005EF700(
 
 // SYNTHETIC: WIZ8 0x005c91a0
 // W8CharacterStatsRecordControl005EF700::`scalar deleting destructor'
-
-// FUNCTION: WIZ8 0x005c91c0
-W8CharacterStatsRecordControl005EF700::~W8CharacterStatsRecordControl005EF700()
-{
-}
 
 /* Redraw the record's catalogue image over the entry's own background. */
 // FUNCTION: WIZ8 0x005c9220

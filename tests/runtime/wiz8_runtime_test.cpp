@@ -6,6 +6,8 @@
 #include "wiz8/bringup_gates.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
+#include "wiz8/local_screens/PartySelectionScreen.h"
+#include "wiz8/music_playlist.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/wiz8_windows.h"
@@ -28,14 +30,6 @@ extern int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous,
                           LPSTR command_line, int show_command);
 
 }
-
-extern unsigned int g_state5_character_region_set_69c4f0;
-extern unsigned char g_music_playlist_active_65ba7e;
-extern int g_music_playlist_weight_total_65ba80;
-extern int g_music_playlist_track_count_65ba84;
-extern int g_music_state_60aae8;
-extern int g_music_state_60aaec;
-extern int g_music_state_60aaf0;
 
 struct RuntimeObservation {
     int menu_state;
@@ -188,10 +182,38 @@ static bool VerifyShadeTable(FLOAT coefficient)
     return true;
 }
 
+/* Move the Wine pointer to a client point without clicking. */
+static void MoveScenarioMouse(int client_x, int client_y)
+{
+    POINT point;
+    point.x = client_x;
+    point.y = client_y;
+    if (ghWindow == NULL || !ClientToScreen(ghWindow, &point)) {
+        fprintf(stderr, "runtime-test ClientToScreen failed: %lu\n", GetLastError());
+        return;
+    }
+    int screen_width = GetSystemMetrics(SM_CXSCREEN);
+    int screen_height = GetSystemMetrics(SM_CYSCREEN);
+    if (screen_width < 2) screen_width = 2;
+    if (screen_height < 2) screen_height = 2;
+    INPUT event;
+    memset(&event, 0, sizeof(event));
+    event.type = INPUT_MOUSE;
+    event.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
+    event.mi.dx = (point.x * 65535) / (screen_width - 1);
+    event.mi.dy = (point.y * 65535) / (screen_height - 1);
+    SetForegroundWindow(ghWindow);
+    SendInput(1, &event, sizeof(INPUT));
+}
+
 /* SGP's queue belongs to the game thread. SendInput reaches its WH_KEYBOARD
-   hook; posting WM_KEYDOWN directly does not. */
+   hook; posting WM_KEYDOWN directly does not. The private display parks the
+   pointer at the window centre, which sits on the Load Game item, so every
+   key send first moves it off every menu region: otherwise hover overrules
+   the keyboard selection non-deterministically. */
 static void SendScenarioKey(WORD key, DWORD flags = 0)
 {
+    MoveScenarioMouse(600, 460);
     INPUT events[2];
     memset(events, 0, sizeof(events));
     events[0].type = INPUT_KEYBOARD;
@@ -209,29 +231,15 @@ static void SendScenarioKey(WORD key, DWORD flags = 0)
    target point before handing the absolute move to SendInput. */
 static void SendScenarioMouse(int client_x, int client_y)
 {
-    POINT point;
-    point.x = client_x;
-    point.y = client_y;
-    if (!ClientToScreen(ghWindow, &point)) {
-        fprintf(stderr, "runtime-test ClientToScreen failed: %lu\n", GetLastError());
-        return;
-    }
-    int screen_width = GetSystemMetrics(SM_CXSCREEN);
-    int screen_height = GetSystemMetrics(SM_CYSCREEN);
-    if (screen_width < 2) screen_width = 2;
-    if (screen_height < 2) screen_height = 2;
-    INPUT events[3];
+    MoveScenarioMouse(client_x, client_y);
+    INPUT events[2];
     memset(events, 0, sizeof(events));
     events[0].type = INPUT_MOUSE;
-    events[0].mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
-    events[0].mi.dx = (point.x * 65535) / (screen_width - 1);
-    events[0].mi.dy = (point.y * 65535) / (screen_height - 1);
+    events[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
     events[1].type = INPUT_MOUSE;
-    events[1].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-    events[2].type = INPUT_MOUSE;
-    events[2].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+    events[1].mi.dwFlags = MOUSEEVENTF_LEFTUP;
     SetForegroundWindow(ghWindow);
-    if (SendInput(3, events, sizeof(INPUT)) != 3) {
+    if (SendInput(2, events, sizeof(INPUT)) != 2) {
         fprintf(stderr, "runtime-test mouse injection failed: %lu\n", GetLastError());
     }
 }
@@ -397,13 +405,27 @@ static DWORD WINAPI DriveScenario(void*)
             return 2;
         }
 
-        /* The left action panel's first button is "Create Character". Its
-           extent comes from the same catalogue lookup the constructor uses, so
-           the click lands on the live control rather than a guessed pixel. */
-        short button_width = 0;
-        short button_height = 0;
-        GetCatalogImageSize(0xfe, 0, 0, &button_width, &button_height);
-        SendScenarioMouse(0x145 + button_width / 2, 0x137 + button_height / 2);
+        /* The left action panel registers its controls in creation order, so
+           the first region in its live set is "Create Character". Click the
+           centre of that region's current bounds rather than a fixed pixel. */
+        unsigned int left_action_set =
+            *(volatile unsigned int*)&g_state5_left_action_region_set_69c504;
+        if (left_action_set == 0 ||
+            left_action_set >= g_region_set_count) {
+            g_observation.timed_out = 1;
+            PostMessage(ghWindow, WM_CLOSE, 0, 0);
+            return 2;
+        }
+        unsigned int create_region =
+            *(volatile unsigned int*)&g_region_sets[left_action_set].first_region;
+        if (create_region >= g_region_count) {
+            g_observation.timed_out = 1;
+            PostMessage(ghWindow, WM_CLOSE, 0, 0);
+            return 2;
+        }
+        W8Region* create_bounds = &g_regions[create_region];
+        SendScenarioMouse((create_bounds->x1 + create_bounds->x2) / 2,
+                          (create_bounds->y1 + create_bounds->y2) / 2);
         started = GetTickCount();
         while (GetTickCount() - started < 5000) {
             W8CharacterScreen* screen =

@@ -121,14 +121,17 @@ static_assert(sizeof(W8CharacterStatsRecord) == 0x10,
               "W8CharacterStatsRecord_size");
 
 /* The 0xEF6B0 value control: it carries the record currently shown and the
-   record to fall back to when the character has none. */
+   record to fall back to when the character has none. 0x005C8F60 is the
+   hierarchy's compiler-emitted destructor, so the class leaves it defaulted. */
 // VTABLE: WIZ8 0x005ef6b0 W8CharacterStatsValue005EF6B0
 class W8CharacterStatsValue005EF6B0 : public W8TextControl {
 public:
     W8CharacterStatsValue005EF6B0(
         Controls* owner, int x, int y,
         const W8CharacterStatsRecord* default_record);
-    virtual ~W8CharacterStatsValue005EF6B0() override;
+    /* 0x005C8F60 is the hierarchy's compiler-emitted destructor, not an
+       authored body; the empty inline body lets VC6 emit it in place. */
+    ~W8CharacterStatsValue005EF6B0() override {}
     virtual void Redraw(int full_redraw) override;
     virtual void OnRightButtonUp(int event) override;
     void SetRecord(const W8CharacterStatsRecord* record);

@@ -92,7 +92,12 @@ struct W8GlobalStatus {
     unsigned char unknown_242f;
     /* 0x2430: one-shot gate for the NPC event pass. */
     unsigned char flag_2430;
-    unsigned char unknown_2431[0x13];
+    unsigned char unknown_2431[3];
+    /* 0x2434: index of the party member the main-game selection flow is on.
+       The screen reset writes 0xff and the 0x00526E90 handler reads and
+       updates it while walking the 0x1862-byte character records. */
+    unsigned char selected_party_member_2434;
+    unsigned char unknown_2435[0x0f];
     /* Character creation skips the loose CHR collision check when set. */
     unsigned char skip_loose_character_check_2444;
     unsigned char unknown_2445[2];
@@ -144,6 +149,8 @@ static_assert(offsetof(W8GlobalStatus, current_level) == 0x1900,
               "W8GlobalStatus_current_level_offset");
 static_assert(offsetof(W8GlobalStatus, formation) == 0x23a1,
               "W8GlobalStatus_formation_offset");
+static_assert(offsetof(W8GlobalStatus, selected_party_member_2434) == 0x2434,
+              "W8GlobalStatus_selected_party_member_offset");
 static_assert(offsetof(W8GlobalStatus, text_box_lines_used_4997) == 0x4997,
               "W8GlobalStatus_migrated_values_offset");
 static_assert(sizeof(W8GlobalStatus) == 0x49c2,

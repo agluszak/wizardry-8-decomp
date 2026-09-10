@@ -1157,7 +1157,8 @@ void ReadSaveChunks(W8Chunk* source, W8Chunk* destination)
 /* Walk every top-level chunk of an already-open save. A matching LVLS section
    is marked consumed in place, and the caller receives the percentage of the
    file that sits in at-end sections, which is what decides whether the save
-   is rolled into CleanUp. */
+   is rolled into CleanUp. Retail wraps the percentage in an unguarded DIV, so
+   a zero total would trap there as well. */
 // FUNCTION: WIZ8 0x00514df0
 unsigned char MeasureLevelStatusChunks00514DF0(
     W8Chunk* chunk, int level, unsigned int* empty_percent)

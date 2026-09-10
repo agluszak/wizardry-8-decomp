@@ -986,7 +986,12 @@ void RecalculateCharacterHitPoints(W8Character* character)
 
 /* Recompute the stamina ceiling from the three physical attributes and the
    level, subtract any outstanding penalty, carry the difference into the
-   current pool, and derive the fatigue band from what is left. */
+   current pool, and derive the fatigue band from what is left.
+
+   Retail compares the penalty with JNC and divides the scaled pool with DIV,
+   so the ceiling and its delta are unsigned values even though the stored
+   fields are ints. The divisor is unguarded in retail; a zero ceiling would
+   trap there too. */
 // FUNCTION: WIZ8 0x0052a3e0
 void Function52A3E0(W8Character* character)
 {

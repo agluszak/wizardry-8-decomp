@@ -56,6 +56,31 @@ def test_gap_function_is_not_a_violation(tmp_path: Path) -> None:
     )
 
 
+def test_similar_body_cross_build_does_not_enforce_placement(tmp_path: Path) -> None:
+    (tmp_path / "src/wiz8/local_code").mkdir(parents=True)
+    (tmp_path / "src/wiz8/local_code/Foo.cpp").write_text("", encoding="utf-8")
+    (tmp_path / "src/wiz8/local_code/Bar.cpp").write_text("", encoding="utf-8")
+    layout = TranslationUnitLayout(
+        [
+            UnitAnchor(
+                0x401000,
+                UNIT_A,
+                "cross-build",
+                origin_variant="demo",
+                origin_function=0x401234,
+                match_kind="similar-body",
+                score=0.9,
+            )
+        ]
+    )
+
+    violations = placement_violations(
+        tmp_path, layout, [_marker(0x401000, "src/wiz8/local_code/Bar.cpp")]
+    )
+
+    assert violations == []
+
+
 def test_external_and_header_markers_are_not_violations(tmp_path: Path) -> None:
     (tmp_path / "src/wiz8/local_code").mkdir(parents=True)
     (tmp_path / "src/wiz8/local_code/Foo.cpp").write_text("", encoding="utf-8")

@@ -6,7 +6,9 @@ whose retail filenames survive nowhere. This module matches functions between
 builds with a relocation-insensitive instruction fingerprint and keeps only
 signature groups that are unique on both sides; when a variant was compiled
 with assertions and retail without them, a unique near-identical instruction
-sequence is accepted as a weaker ``similar-body`` match with its score.
+sequence is accepted as a weaker ``similar-body`` match with its score. Those
+fuzzy matches stay advisory: only unique body matches may extend hard layout
+hulls (see :mod:`unit_intervals`).
 
 The matcher is deliberately narrow: every accepted pair must be unique, and an
 ambiguous or non-unique function stays unknown. Nothing is persisted; the
@@ -25,6 +27,7 @@ from typing import Any
 from .unit_intervals import (
     CROSS_BUILD,
     DEFAULT_ROOTS,
+    SIMILAR_MATCH,
     UnitAnchor,
     collect_program_anchors,
 )
@@ -32,7 +35,7 @@ from .unit_intervals import (
 DEFAULT_VARIANTS = ("demo", "gog-1261", "gog-128")
 _VARIANT_MODULES = {"wiz8.exe", "wiz8new.exe", "wiz8_v128.exe"}
 _UNIQUE_MATCH = "unique-body"
-_SIMILAR_MATCH = "similar-body"
+_SIMILAR_MATCH = SIMILAR_MATCH
 _MIN_RATIO = 0.85
 _MIN_MARGIN = 0.06
 

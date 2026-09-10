@@ -87,6 +87,35 @@ def test_cross_build_anchor_keeps_its_origin() -> None:
     assert owner["evidence"][0]["origin_function"] == "00401234"
 
 
+def test_similar_body_cross_build_is_advisory_not_a_hard_hull() -> None:
+    layout = TranslationUnitLayout(
+        [
+            _anchor(0x401000, UNIT_A, evidence=CROSS_BUILD, match_kind="similar-body"),
+            _anchor(0x401200, UNIT_A, evidence=CROSS_BUILD, match_kind="similar-body"),
+        ]
+    )
+
+    assert layout.intervals == []
+    assert layout.owner(0x401000)["attribution"] == "cross-build-similar"
+    assert layout.owner(0x401100)["attribution"] == "gap"
+
+
+def test_similar_body_anchor_cannot_extend_a_unique_hull() -> None:
+    layout = TranslationUnitLayout(
+        [
+            _anchor(0x401000, UNIT_A, evidence=CROSS_BUILD, match_kind="unique-body"),
+            _anchor(0x401100, UNIT_A, evidence=CROSS_BUILD, match_kind="unique-body"),
+            _anchor(0x401300, UNIT_A, evidence=CROSS_BUILD, match_kind="similar-body"),
+        ]
+    )
+
+    assert [(interval.lower, interval.upper) for interval in layout.intervals] == [
+        (0x401000, 0x401100)
+    ]
+    assert layout.owner(0x401200)["attribution"] == "gap"
+    assert layout.owner(0x401300)["attribution"] == "cross-build-similar"
+
+
 def test_header_spelling_is_not_a_unit_anchor() -> None:
     rows = [
         {
