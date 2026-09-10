@@ -10,6 +10,7 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/npc_state.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/sr_api.h"
@@ -440,6 +441,46 @@ const char* GetNpcDisplayName(W8NpcState* npc)
 }
 
 extern void Function55A0A0(int handle);
+
+/* Create the shared NPC-state vector the first time anything needs it. */
+// FUNCTION: WIZ8 0x00509890
+void InitializeNpcStates(void)
+{
+    if (g_npc_states == 0) {
+        g_npc_states = new W8GrowableVector<W8NpcState*>();
+    }
+}
+
+/* Empty the shared vector: release every state's monster binding and character,
+   hand its stock to the item-list teardown, and delete the state itself. Then
+   rebuild a runtime node for every database record that is not flagged at
+   0x054, which is the state a fresh game starts from. */
+// FUNCTION: WIZ8 0x00509920
+void ResetNpcStates(void)
+{
+    int index;
+    unsigned int npc_id;
+
+    if (g_npc_states != 0) {
+        for (index = 0; index < g_npc_states->count; ++index) {
+            W8NpcState* npc = *g_npc_states->GetAt(index);
+
+            Function55A0A0(npc->unknown_00);
+            npc->unknown_00 = 0;
+            if (npc->record != 0 && npc->record->flag_055 != 0) {
+                ClearNpcItems(npc);
+            }
+            delete npc->character;
+            delete npc;
+        }
+        g_npc_states->count = 0;
+    }
+    for (npc_id = 0; npc_id < gXStatus.uiNpcsInDatabase; ++npc_id) {
+        if (g_npc_records[npc_id].unknown_054 == 0) {
+            CreateNpcRuntimeNode(npc_id);
+        }
+    }
+}
 
 /* Release the NPC binding held at the given index: clear its monster link and
    handle, then hand the handle to the owned item-list teardown. An index past

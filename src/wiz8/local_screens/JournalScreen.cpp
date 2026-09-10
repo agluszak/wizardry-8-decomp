@@ -68,7 +68,20 @@ W8JournalPanel005EF340* g_journal_panel_0069c4d4;
 W8GrowableVector<W8JournalEntry>* g_journal_entries_0069c4e4;
 unsigned int g_journal_region_set_0069c4dc;
 // GLOBAL: WIZ8 0x0068de40
-W8GrowableVector<W8JournalEntry> g_fact_journal_entries_0068de40;
+W8GrowableVector<W8JournalEntry>* g_fact_journal_entries_0068de40;
+
+/* Create the fact journal on first use. An existing journal is only emptied,
+   which is what a new game does to the entries left by the previous one. */
+// FUNCTION: WIZ8 0x00558820
+void InitializeFactJournal(void)
+{
+    if (g_fact_journal_entries_0068de40 == 0) {
+        g_fact_journal_entries_0068de40 = new W8GrowableVector<W8JournalEntry>();
+    }
+    else {
+        g_fact_journal_entries_0068de40->count = 0;
+    }
+}
 
 // FUNCTION: WIZ8 0x005bdd00
 void DrawJournalLine005BDD00(
@@ -364,8 +377,8 @@ unsigned char JournalScreenEnter(void)
     }
 
     g_journal_entries_0069c4e4->count = 0;
-    for (index = 0; index < g_fact_journal_entries_0068de40.count; ++index) {
-        W8JournalEntry entry = *g_fact_journal_entries_0068de40.GetAt(index);
+    for (index = 0; index < g_fact_journal_entries_0068de40->count; ++index) {
+        W8JournalEntry entry = *g_fact_journal_entries_0068de40->GetAt(index);
         const unsigned char* fact =
             reinterpret_cast<const unsigned char*>(&g_fact_records[entry.fact]);
         if ((g_journal_show_all_0069c4e0 || fact[0x37] <= maximum_visibility) &&

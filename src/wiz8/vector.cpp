@@ -92,16 +92,26 @@ class W8SpellDamageReport;
 // TEMPLATE: WIZ8 0x00546df0
 // W8GrowableVector<W8TargetSource>::Grow
 
-class W8VectorElement005EE8A0;
+struct W8JournalEntry;
 
 // VTABLE: WIZ8 0x005ee8a0
-// class W8GrowableVector<W8VectorElement005EE8A0>
+// class W8GrowableVector<W8JournalEntry>
 
 // SYNTHETIC: WIZ8 0x00558c10
-// W8GrowableVector<W8VectorElement005EE8A0>::`scalar deleting destructor'
+// W8GrowableVector<W8JournalEntry>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x005be1f0
-// W8GrowableVector<W8VectorElement005EE8A0>::Grow
+// W8GrowableVector<W8JournalEntry>::Grow
+
+/* Direct W8GrowableVector specialization identified by its vtable. */
+
+struct W8NpcState;
+
+// VTABLE: WIZ8 0x005ed810
+// class W8GrowableVector<W8NpcState*>
+
+// SYNTHETIC: WIZ8 0x0050e510
+// W8GrowableVector<W8NpcState*>::`scalar deleting destructor'
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 

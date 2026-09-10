@@ -9,6 +9,10 @@
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_screens/OptionsScreen.h"
+#include "wiz8/local_screens/JournalScreen.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/factions.h"
+#include "wiz8/npc_state.h"
 extern "C" {
 // GLOBAL: WIZ8 0x006850b5
 unsigned char g_party_moving_006850b5;
@@ -72,11 +76,6 @@ char** g_item_table_category_names;
 W8SpellRuntimeRecord* g_spell_records;
 // GLOBAL: WIZ8 0x0065BE18
 unsigned int g_spell_database_version;
-extern void Function509890(void);
-extern void Function509920(void);
-extern void Function558820(void);
-extern void Function535920(void);
-extern void Function56C520(void);
 /* 0x004E8290, not yet identified; notified when a party slot is reset. */
 #define GAMEPLAY_DATABASE_CPP "C:\\Projects\\Wizardry 8\\Local Code\\GameplayDatabase.cpp"
 
@@ -514,10 +513,10 @@ void Function54B250(unsigned char notify, const wchar_t* target)
     if (notify) {
         RequestScreenTransition();
     }
-    Function509890();
-    Function509920();
-    Function558820();
-    Function535920();
+    InitializeNpcStates();
+    ResetNpcStates();
+    InitializeFactJournal();
+    ResetFactions();
     Function56C520();
     SetPendingScreenState(W8_SCREEN_GAME_START_ROUTER);
 }

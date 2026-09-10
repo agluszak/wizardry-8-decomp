@@ -236,16 +236,26 @@ struct W8MainScreenState {
     int value_104;
     unsigned char unknown_108[0xcc];
     int value_1d4;
-    unsigned char unknown_1d8[0x5c];
+    /* 0x1d8 and 0x1ec: two bytes the screen reset writes 0xff and 0. */
+    unsigned char flag_1d8;
+    unsigned char unknown_1d9[0x13];
+    unsigned char flag_1ec;
+    unsigned char unknown_1ed[0x47];
     unsigned char flag_234;
     unsigned char unknown_235[3];
     int value_238;
     unsigned char unknown_23c[0x16];
     unsigned char flag_252;
-    unsigned char unknown_253[0x19];
+    unsigned char unknown_253[5];
+    /* 0x258: the screen reset writes -1 here, the no-selection value. */
+    int value_258;
+    unsigned char unknown_25c[4];
+    /* 0x260: raised by the screen reset. */
+    unsigned char flag_260;
+    unsigned char unknown_261[7];
 };
 #pragma pack(pop)
-static_assert(sizeof(W8MainScreenState) == 0x26c,
+static_assert(sizeof(W8MainScreenState) == 0x268,
               "W8MainScreenState_size");
 
 extern W8MainScreenState* g_screen_state_00649f1c;
@@ -256,6 +266,12 @@ void Function56AAB0(void);
 void Function56C590(W8NpcState* npc, int value, int line, int suppress);
 unsigned char Function554540(void);
 void ResetMainGameScreenState(void);
+/* 0x0056C520: zero W8MainScreenState, write its reset values, and reload the
+   keyword lists through the loader below. */
+void Function56C520(void);
+/* 0x0056C200: replace the keyword lists with the contents of
+   Data\Strings\English_Keywords.txt and Data\Strings\translated_Keywords.txt. */
+void Function56C200(void);
 
 void Function577260(void);
 unsigned char Function577850(void);

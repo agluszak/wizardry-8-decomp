@@ -35,8 +35,15 @@ enum {
 };
 
 extern W8FactionRuntimeRecord g_factions[W8_FACTION_COUNT];
+/* 0x0068D528: the 21x21 byte relation matrix, one row per faction, saved and
+   loaded whole by the FATA state handlers and reset with g_factions. */
+extern unsigned char g_faction_relations[W8_FACTION_COUNT][W8_FACTION_COUNT];
 W8FactionDisposition GetFactionDisposition(signed char faction);
 
 signed char GetFactionDispositionScore(signed char faction);
+
+/* 0x00535920: zero both faction tables and seed the starting dispositions and
+   relations a fresh game begins with. */
+void ResetFactions(void);
 
 #endif

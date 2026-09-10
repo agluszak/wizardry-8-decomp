@@ -209,6 +209,10 @@ extern unsigned char g_byte_00659a64;
 W8MainScreenState g_screen_state_storage_0068ee90;
 // GLOBAL: WIZ8 0x00649f1c
 W8MainScreenState* g_screen_state_00649f1c = &g_screen_state_storage_0068ee90;
+/* 0x0068F0F9: the keyword subsystem's active flag, written absolutely by the
+   screen reset and by the keyword panel helpers. */
+// GLOBAL: WIZ8 0x0068F0F9
+unsigned char g_flag_68f0f9;
 // GLOBAL: WIZ8 0x0068f0fc
 unsigned char g_debug_monster_cycle_0068f0fc;
 
@@ -438,6 +442,24 @@ void ResetMainGameScreenState(void)
         g_value_00685077 = -1;
         ResetTargetingState();
     }
+}
+
+/* Reset the screen state block: zero its 0x268 bytes, write its reset values,
+   clear the keyword status byte, and reload the keyword lists. */
+// FUNCTION: WIZ8 0x0056c520
+void Function56C520(void)
+{
+    int unset = -1;
+
+    memset(g_screen_state_00649f1c, 0, sizeof(W8MainScreenState));
+    g_screen_state_00649f1c->flag_1d8 = unset;
+    g_screen_state_00649f1c->flag_1ec = 0;
+    g_screen_state_00649f1c->flag_234 = 0;
+    g_screen_state_00649f1c->value_258 = unset;
+    g_screen_state_00649f1c->flag_260 = 1;
+    g_status_685170.status_header_block_1904[0xb30] = unset;
+    g_flag_68f0f9 = 0;
+    Function56C200();
 }
 
 /* Enter the live game screen. The 0x330 allocation is the complete extent of

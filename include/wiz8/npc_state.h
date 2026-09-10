@@ -5,6 +5,8 @@
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
 
+struct W8Character;
+
 /* One entry in an NPC's stock list. This one is deliberately outside the
    pack(1) block below: AddNpcItem allocates 0x14 bytes for it, which the packed
    size of 0x11 cannot produce. An ordinary naturally-aligned struct places
@@ -45,7 +47,10 @@ typedef struct W8NpcState {
     unsigned char unknown_1c[9];
     unsigned char is_present;             /* 0x25 */
     unsigned char is_grouped;             /* 0x26 */
-    unsigned char unknown_27[4];
+    /* 0x27: the NPC's group-member character. CreateNpcRuntimeNode allocates
+       the 0x1862-byte block only when the record belongs to a group, and the
+       state reset deletes it here. */
+    W8Character* character;
     signed char group_index;              /* 0x2b */
     /* 0x2c: g_npc_states index whose monster binding this NPC's release
        follows. */
@@ -81,6 +86,13 @@ typedef struct W8NpcState {
 /* The NPC-side global frame operation: timed world events and the per-frame
    NPC state passes. */
 void UpdateNpcEvents0050D530(void);
+
+/* 0x00509890 and 0x00509920: lazily create and then empty the shared NPC-state
+   vector, recreating a runtime node for every database record still in use. */
+void InitializeNpcStates(void);
+void ResetNpcStates(void);
+/* 0x00509AA0: build one runtime state from its database record. */
+void CreateNpcRuntimeNode(int npc_id);
 
 int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity);
 W8NpcState* GetNpcState(int index);
