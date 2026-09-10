@@ -112,7 +112,7 @@ extern const float g_world_scale_005ebc40;
 extern unsigned char g_force_encounter_culling; /* 0x00687500 */
 // GLOBAL
 unsigned char g_force_encounter_culling;
-extern int Function50A440(unsigned int monster_list_index);
+extern W8NpcState* Function50A440(unsigned int monster_list_index);
 extern void Function48F650(
     W8MonsterInfo* monster_info, unsigned char value_1, unsigned char value_2);
 extern float g_float_005ec128;

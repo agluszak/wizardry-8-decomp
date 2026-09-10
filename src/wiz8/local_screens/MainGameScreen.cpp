@@ -1300,13 +1300,13 @@ void ShortenTextToWidth00577410(
 {
     wchar_t buffer[200];
     wcscpy(buffer, text);
-    if (static_cast<unsigned int>(StringPixLength((unsigned short*)buffer, font)) < width) {
+    if (static_cast<unsigned int>(StringPixLength(buffer, font)) < width) {
         wcscpy(output, buffer);
         return;
     }
     for (int index = 0; index < static_cast<int>(wcslen(buffer)); ++index) {
         if (width <= static_cast<unsigned int>(
-                StringPixLengthArg(font, index + 1, (unsigned short*)buffer))) {
+                StringPixLengthArg(font, index + 1, buffer))) {
             --index;
             while (index >= 0) {
                 if (buffer[index] != L' ' && buffer[index - 1] != L' ') {
@@ -1327,15 +1327,11 @@ extern void Function56C5E0(void* npc, int value, int line, int suppress, int arg
    busy or this NPC kind suppresses it. The suppress flag travels as an int:
    the body forwards the whole dword without masking. */
 // FUNCTION: WIZ8 0x0056C590
-void Function56C590(int npc_record, int value, int line, int suppress)
+void Function56C590(W8NpcState* npc, int value, int line, int suppress)
 {
-    W8NpcState* npc = reinterpret_cast<W8NpcState*>(npc_record); // reinterpret-ok: the original passes the NPC pointer through an int slot
-
     if (g_flag_00683f97 == 0 && g_in_combat_00683f94 == 0 &&
         (npc->record->kind != 7 || GetFact(0x1c) != 1)) {
-        Function56C5E0(
-            reinterpret_cast<void*>(npc_record), // reinterpret-ok: the callee takes the same pointer through void*
-            value, line, suppress, 0);
+        Function56C5E0(npc, value, line, suppress, 0);
     }
 }
 

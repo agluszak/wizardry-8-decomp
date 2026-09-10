@@ -9,6 +9,7 @@
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/LoadSaveGame.h"
+#include "wiz8/local_screens/OptionsScreen.h"
 #include "wiz8/local_code/Search.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/3d_code/IList.h"
@@ -845,20 +846,6 @@ unsigned char g_save_notice_shown_0068506b;
 // GLOBAL: WIZ8 0x0061A144
 char g_save_extension[] = "SAV";
 
-/* Both are owned by address-quarantine units and have no header yet, so they
-   are declared the way this unit declares every other cross-unit callee: the
-   canonical name and signature, with the owning address named. They are
-   deliberately kept local until their owning quarantine units gain direct
-   headers; giving them C linkage would relink the existing C++ definitions. */
-extern int* GetAddress69C1CC(void);                                     /* 0x005A9E90 */
-
-/* GetAddress69C1CC (0x005A9E90) hands back the current save name. Its canonical
-   declaration returns int* and is not restated or widened here; this call is
-   what establishes the buffer is wide characters, because the name is handed
-   straight to ConvertWideStringToString. Retyping the accessor and the global
-   behind it is a separate change to a proved body, so the evidence is recorded
-   here and the conversion is spelled as a cast, which costs no instruction. */
-
 /* Delete both files a current game occupies: the slot the current save name
    selects, and the fixed CurrentGame file. Each delete is preceded by the same
    read-only repair the rest of this unit makes - EACCES from _access is the one
@@ -869,7 +856,7 @@ void DeleteCurrentSaveFiles(void)
     char path[260];
 
     sprintf(path, "%s\\%s.%s", "Saves",
-            ConvertWideStringToString((const wchar_t*)GetAddress69C1CC()),
+            ConvertWideStringToString(GetAddress69C1CC()),
             g_save_extension);
     if (_access(path, 2) != 0 && errno == EACCES) {
         _chmod(path, _S_IREAD | _S_IWRITE);
@@ -919,7 +906,7 @@ unsigned char AutoSaveIfAllowed(char forced)
            encoding; funnelling both arms through one pointer costs the extra
            move that a selected argument needs. */
         if (g_status_685170.iron_man != 0) {
-            strcpy(name, ConvertWideStringToString((const wchar_t*)GetAddress69C1CC()));
+            strcpy(name, ConvertWideStringToString(GetAddress69C1CC()));
         } else {
             strcpy(name, "AutoSave");
         }

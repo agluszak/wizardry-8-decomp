@@ -6,9 +6,8 @@
 void Function558610(W8Character* character)
 {
     character->table_value_0079 = -1;
-    for (int index = 0; index < 8; ++index) {
-        character->unknown_007d[index] = 0xff;
-    }
+    character->unknown_007d = -1;
+    character->personality_0081 = -1;
     Function4EFA30(character);
     CalcCharacterTableValue(character);
 }

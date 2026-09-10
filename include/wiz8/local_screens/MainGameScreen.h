@@ -3,6 +3,7 @@
 #include "input.h"
 
 struct W8IList;
+struct W8NpcState;
 
 void RequestRedrawParty(void);
 void ClearHighlightIfItIs(const int* item);
@@ -252,7 +253,7 @@ void OnQuitGameDialogClosed(W8DialogBase* dialog);
 
 void Function56AA30(void);
 void Function56AAB0(void);
-void Function56C590(int npc_record, int value, int line, int suppress);
+void Function56C590(W8NpcState* npc, int value, int line, int suppress);
 unsigned char Function554540(void);
 void ResetMainGameScreenState(void);
 

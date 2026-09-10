@@ -480,9 +480,9 @@ void Function509EA0(int value)
 
 /* Hand back the NPC binding selected by a monster-list index, or null when
    the monster carries no matching enchantment mark or the binding is not
-   released. The result travels as an integer and the caller casts it back. */
+   released. */
 // FUNCTION: WIZ8 0x0050A440
-int Function50A440(unsigned int monster_list_index)
+W8NpcState* Function50A440(unsigned int monster_list_index)
 {
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
@@ -508,7 +508,7 @@ int Function50A440(unsigned int monster_list_index)
         npc = g_npc_states->data[monster_info->runtime_value_2f1];
     }
     if (npc->unknown_c7 != 0) {
-        return reinterpret_cast<int>(npc);
+        return npc;
     }
     return 0;
 }

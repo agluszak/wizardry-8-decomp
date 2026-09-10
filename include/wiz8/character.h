@@ -146,7 +146,9 @@ typedef struct W8Character {
        the disposition code reads or the table is sparse; the disagreement is
        recorded rather than resolved. */
     int table_value_0079;
-    unsigned char unknown_007d[4];
+    /* 0x007d: cleared by Function4EFA30 in both of its branches and set to -1
+       by the character rebuild; all three accesses are four-byte stores. */
+    int unknown_007d;
     int personality_0081;               /* indexes the state-5 descriptor text */
     int voice_0085;                     /* selected by the character voice control */
     unsigned int level;                   /* 0x0089: averaged across occupied slots */

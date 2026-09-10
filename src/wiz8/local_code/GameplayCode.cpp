@@ -789,5 +789,5 @@ void Function4EFA30(W8Character* character)
     else {
         character->voice_0085 = 1;
     }
-    *(int*)character->unknown_007d = 0;
+    character->unknown_007d = 0;
 }

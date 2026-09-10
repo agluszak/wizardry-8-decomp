@@ -459,10 +459,10 @@ void SetSceneAmbientLightWhite(srScene* scene)
 // GLOBAL: WIZ8 0x00652db0
 W8GameData* g_octree_game_data_00652db0;
 
-/* The octree builds read the level data through this slot; its setter keeps
-   the interface the same single-dword store the original emits. */
+/* The octree builds read the level data through this slot; the recovered
+   caller passes the W8GameData object it just read. */
 // FUNCTION: WIZ8 0x0046D7D0
-void __stdcall SetValue652DB0(int value)
+void __stdcall SetValue652DB0(W8GameData* value)
 {
-    g_octree_game_data_00652db0 = reinterpret_cast<W8GameData*>(value); // reinterpret-ok: the original stores the dword as a pointer
+    g_octree_game_data_00652db0 = value;
 }

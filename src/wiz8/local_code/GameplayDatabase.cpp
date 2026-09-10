@@ -8,6 +8,7 @@
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/local_screens/OptionsScreen.h"
 extern "C" {
 // GLOBAL: WIZ8 0x006850b5
 unsigned char g_party_moving_006850b5;
@@ -71,7 +72,6 @@ char** g_item_table_category_names;
 W8SpellRuntimeRecord* g_spell_records;
 // GLOBAL: WIZ8 0x0065BE18
 unsigned int g_spell_database_version;
-extern void Function5A9E70(void* target);
 extern void Function509890(void);
 extern void Function509920(void);
 extern void Function558820(void);
@@ -500,7 +500,7 @@ void DestroyItemTables(void)
    runs a fixed opening sequence. The two calls into 0x00482720 and 0x00482740
    share one stack cleanup, as consecutive cdecl calls do. */
 // FUNCTION: WIZ8 0x0054b250
-void Function54B250(unsigned char notify, void* target)
+void Function54B250(unsigned char notify, const wchar_t* target)
 {
     g_status_685170.game_started = 1;
     if (target) {

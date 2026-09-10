@@ -2211,17 +2211,14 @@ void OptionsScreenFrame()
 }
 
 // FUNCTION: WIZ8 0x005A9E70
-void Function5A9E70(void* target)
+void Function5A9E70(const wchar_t* target)
 {
-    wcsncpy(
-        g_options_last_save_name_0069c1cc,
-        static_cast<const wchar_t*>(target),
-        0x40);
+    wcsncpy(g_options_last_save_name_0069c1cc, target, 0x40);
     reinterpret_cast<char*>(g_options_last_save_name_0069c1cc)[0x7e] = 0; // reinterpret-ok: raw byte view of the wide name buffer
 }
 
 // FUNCTION: WIZ8 0x005A9E90
-int* GetAddress69C1CC(void)
+wchar_t* GetAddress69C1CC(void)
 {
-    return reinterpret_cast<int*>(g_options_last_save_name_0069c1cc); // reinterpret-ok: the original hands the buffer back through an int*
+    return g_options_last_save_name_0069c1cc;
 }
