@@ -27,6 +27,7 @@ extern int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous,
 
 }
 
+extern unsigned int g_state5_character_region_set_69c4f0;
 extern unsigned char g_music_playlist_active_65ba7e;
 extern int g_music_playlist_weight_total_65ba80;
 extern int g_music_playlist_track_count_65ba84;
@@ -43,6 +44,7 @@ struct RuntimeObservation {
     unsigned char shade_table_ok;
     unsigned char exit_observed;
     unsigned char transition_observed;
+    unsigned char return_observed;
     unsigned char timed_out;
     unsigned char playlist_active;
     int playlist_tracks;
@@ -337,10 +339,36 @@ static DWORD WINAPI DriveScenario(void*)
         SendScenarioKey(VK_PRIOR, KEYEVENTF_EXTENDEDKEY);
         SendScenarioKey(VK_DOWN, KEYEVENTF_EXTENDEDKEY);
         SendScenarioKey(VK_RETURN);
+        /* Entering is only complete after GameLoop clears the pending state and
+           the controller has built and enabled the mode-zero character panel.
+           The panel's shared region-set slot is the readiness marker. */
         unsigned int started = GetTickCount();
         while (GetTickCount() - started < 5000) {
-            if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_PARTY_SELECTION) {
+            unsigned int region_set =
+                *(volatile unsigned int*)&g_state5_character_region_set_69c4f0;
+            if (*(volatile int*)&g_current_screen_state.id ==
+                    W8_SCREEN_PARTY_SELECTION &&
+                *(volatile int*)&g_pending_screen_state.id == -1 &&
+                region_set != 0 &&
+                *(volatile unsigned int*)&g_region_sets[region_set].enabled) {
                 g_observation.transition_observed = 1;
+                break;
+            }
+            Sleep(10);
+        }
+        if (!g_observation.transition_observed) {
+            g_observation.timed_out = 1;
+            PostMessage(ghWindow, WM_CLOSE, 0, 0);
+            return 2;
+        }
+
+        SendScenarioKey(VK_ESCAPE);
+        started = GetTickCount();
+        while (GetTickCount() - started < 5000) {
+            if (*(volatile int*)&g_current_screen_state.id ==
+                    W8_SCREEN_MAIN_MENU &&
+                *(volatile int*)&g_pending_screen_state.id == -1) {
+                g_observation.return_observed = 1;
                 gfProgramIsRunning = 0;
                 return 0;
             }
@@ -420,7 +448,7 @@ int main(int argc, char** argv)
         "monster_database_count=%u npc_database_count=%u "
         "patch_precedence_ok=%u physical_fallback_ok=%u "
         "shade_table_ok=%u exit_observed=%u transition_observed=%u "
-        "teardown=%u timed_out=%u\n",
+        "return_observed=%u teardown=%u timed_out=%u\n",
         g_scenario,
         g_observation.menu_seen,
         g_observation.menu_state,
@@ -442,6 +470,7 @@ int main(int argc, char** argv)
         g_observation.shade_table_ok,
         g_observation.exit_observed,
         g_observation.transition_observed,
+        g_observation.return_observed,
         teardown_ok ? 1 : 0,
         g_observation.timed_out);
 
@@ -460,7 +489,7 @@ int main(int argc, char** argv)
         strcmp(g_scenario, "main-menu-startup") == 0 || g_observation.exit_observed;
     const bool transition_ok =
         strcmp(g_scenario, "main-menu-new-game") != 0 ||
-        g_observation.transition_observed;
+        (g_observation.transition_observed && g_observation.return_observed);
     const int result =
         driver_status == 0 && startup_ok &&
         (strcmp(g_scenario, "main-menu-new-game") == 0 || exit_ok) &&

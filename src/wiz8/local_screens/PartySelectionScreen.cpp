@@ -2274,7 +2274,7 @@ void W8State5Controller005EF4CC::Function5C2970()
 unsigned char PartySelectionScreenEnter(void)
 {
     SetViewport(0, 0, 0x280, 0x1e0);
-    NoOp();
+    SetPrimarySurfaceTextureHint2Enabled(0);
     MSYS_Init();
     ResetRegions();
     UpdateHeldItemCursor();
