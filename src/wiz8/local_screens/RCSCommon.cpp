@@ -12,6 +12,9 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/fonts.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
+#include "wiz8/cursor.h"
+#include "wiz8/regions.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "wiz8/xstatus.h"
@@ -304,3 +307,85 @@ void UpdateRcsDismissPanel(void)
     }
     g_dismiss_panel_0069c3c8->Redraw();
 }
+
+/* The camp-screen panel owners: one Controls object and the two fifteen-entry
+   text-control rows and three-control row the teardown walks. */
+
+// GLOBAL: WIZ8 0x0069c2ec
+Controls* g_panel_69c2ec;
+// GLOBAL: WIZ8 0x0069c344
+W8TextControl* g_panel_controls_69c344[15];
+// GLOBAL: WIZ8 0x0069c384
+W8TextControl* g_panel_controls_69c384[15];
+// GLOBAL: WIZ8 0x0069c2f8
+W8TextControl* g_panel_controls_69c2f8[3];
+
+extern void Function4257F0(int value);
+
+// FUNCTION: WIZ8 0x005B1C00
+void Function5B1C00(void)
+{
+    if (g_level_block->unknown_2a0 != 0) {
+        Function4257F0(g_level_block->unknown_2a0);
+        g_level_block->unknown_2a0 = 0;
+    }
+    if (g_level_block->unknown_2a4 != 0) {
+        Function4257F0(g_level_block->unknown_2a4);
+        g_level_block->unknown_2a4 = 0;
+    }
+    if (g_level_block->unknown_2a8 != 0) {
+        Function4257F0(g_level_block->unknown_2a8);
+        g_level_block->unknown_2a8 = 0;
+    }
+}
+
+
+// FUNCTION: WIZ8 0x005B2580
+void Function5B2580(void)
+{
+    Controls* panel = g_panel_69c2ec;
+    if (panel != 0) {
+        panel->~Controls();
+        ::operator delete(panel);
+        g_panel_69c2ec = 0;
+    }
+    for (int index = 0; index < 15; ++index) {
+        if (g_panel_controls_69c344[index] != 0) {
+            delete g_panel_controls_69c344[index];
+            g_panel_controls_69c344[index] = 0;
+        }
+        if (g_panel_controls_69c384[index] != 0) {
+            delete g_panel_controls_69c384[index];
+            g_panel_controls_69c384[index] = 0;
+        }
+    }
+    W8TextControl** control = g_panel_controls_69c2f8;
+    do {
+        if (*control != 0) {
+            delete *control;
+            *control = 0;
+        }
+        ++control;
+    } while (control < g_panel_controls_69c2f8 + 3);
+}
+
+// FUNCTION: WIZ8 0x005B2200
+void Function5B2200(void)
+{
+    Function5B2580();
+    g_flag_00683f9a = 0;
+    UpdateHeldItemCursor();
+    RegionSetDisable(0x1b);
+    RequestRedraw(0x200);
+    ClearSurfaceRect(0xd6, 0x3c, 0x1ab, 0x12f);
+    InvalidateRegion(0xd6, 0x3c, 0x1ab, 0x12f, 0);
+    Function56AAB0();
+}
+
+/* The 0x005EF214 vtable is a distinct derived vector class: the base
+   W8GrowableVector constructor writes 0x005EF218 into the CharacterPage
+   member at +0x4c and the derived constructor overwrites it with 0x005EF214.
+   Its deleting destructor is recorded here; the class itself is not yet
+   recovered. */
+// SYNTHETIC: WIZ8 0x005b1bc0
+// W8CharacterPageEntries005EF214::`scalar deleting destructor'

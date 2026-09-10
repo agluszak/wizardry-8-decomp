@@ -62,7 +62,6 @@ extern int CheckLevelAssetSet0042CCC0(const char* level_path);
 extern void Function479030(void);
 class W8AmbientSound;
 
-extern void HideWorldCursor00490B90(void);
 
 // GLOBAL
 unsigned char g_world_cleanup_flag_00659757;
@@ -81,15 +80,6 @@ extern void Function444F70(int value, float duration, float intensity,
                           unsigned char reverse);
 
 extern void Function500930(void);
-
-// FUNCTION: WIZ8 0x0046DC90
-void SetSceneAmbientLightWhite(srScene* scene)
-{
-    if (scene == 0) {
-        srAssertFail("psrScene", THREE_D_API_CPP, 0xf1, 0);
-    }
-    scene->setAmbientLight(1.0f, 1.0f, 1.0f);
-}
 
 // FUNCTION: WIZ8 0x00443A60
 void DestroyAllWorldTriggers(W8World* world)

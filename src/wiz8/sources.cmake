@@ -26,6 +26,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/local_screens/PleaseWaitScreen.cpp
     src/wiz8/local_screens/Screens.cpp
     src/wiz8/local_screens/ReviewCharacterScreen.cpp
+    src/wiz8/local_screens/MGSSpellIcons.cpp
     src/wiz8/local_screens/RCSCommon.cpp
     src/wiz8/local_screens/MGSTextBox.cpp
     src/wiz8/local_screens/MainGameScreen.cpp
@@ -49,7 +50,6 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/dialog_code/DialogBase.cpp
     src/wiz8/dialog_code/DialogFactoryDialogs.cpp
     src/wiz8/dialog_code/DialogTextEntry.cpp
-    src/wiz8/unattributed/00577410.cpp
     src/wiz8/dialog_code/StatInfoDialogs.cpp
     src/wiz8/dialog_code/ProfRaceInfoDialog.cpp
     src/wiz8/engine_code/Object0043A910.cpp
@@ -57,7 +57,6 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/BitArray.cpp
     src/wiz8/engine_code/GameData.cpp
     src/wiz8/engine_code/Octree.cpp
-    src/wiz8/unattributed/00430a71_0043acbf.cpp
     src/wiz8/engine_code/OctPath.cpp
     src/wiz8/engine_code/OctPreTree.cpp
     src/wiz8/engine_code/Levels.cpp
@@ -114,9 +113,9 @@ set(WIZ8_TEMPLATE_EMISSIONS
     src/wiz8/vector.cpp
 )
 
-# Original translation-unit names remain unproved for these units. A descriptive
-# filename records a coherent subsystem, not a claim about the original name.
-# Unknown fragments retain bounded address names under unattributed/.
+# These units keep the slots their content occupied while ownership was
+# unresolved; a descriptive or recovered original filename records a coherent
+# subsystem or an assertion-backed original translation unit.
 # Keep this single list in link order: renaming a unit must not move its slot.
 set(WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
     src/wiz8/imports/mss.cpp
@@ -137,36 +136,27 @@ set(WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
     src/wiz8/engine_code/registry_classes.cpp
     src/wiz8/engine_code/MonsterLight.cpp
     src/wiz8/engine_code/GDCamera.cpp
-    src/wiz8/unattributed/0041f261_0042403f.cpp
     src/wiz8/engine_code/world_selection.cpp
-    src/wiz8/unattributed/0046c0f1_0046dc8f.cpp
-    src/wiz8/unattributed/0048e7b1_00490c5f.cpp
-    src/wiz8/unattributed/00490c61_00497aef.cpp
+    src/wiz8/engine_code/stCube.cpp
+    src/wiz8/engine_code/Cursor3d.cpp
     src/wiz8/engine_code/stLight.cpp
-    src/wiz8/unattributed/004b6bd1_004b6f2f.cpp
-    src/wiz8/unattributed/004ef950_004efe70.cpp
     src/wiz8/engine_code/bounds.cpp
     src/wiz8/engine_code/OctRegionPolygon.cpp
     src/wiz8/version.cpp
     src/wiz8/local_code/party_encumbrance.cpp
     src/wiz8/local_code/Search.cpp
     src/wiz8/local_code/npc_interaction.cpp
-    src/wiz8/unattributed/00526e91_0052a88f.cpp
+    "src/wiz8/local_code/NPC Scripting.cpp"
     src/wiz8/local_code/character_events.cpp
     src/wiz8/local_code/formation_state.cpp
-    src/wiz8/unattributed/00553910_005545f0.cpp
-    src/wiz8/unattributed/00557bc0_005587c0.cpp
-    src/wiz8/unattributed/0055f081_0056af7f.cpp
-    src/wiz8/unattributed/0056b270_00579900.cpp
-    src/wiz8/local_screens/screen8.cpp
-    src/wiz8/unattributed/00583bc1_0058abff.cpp
+    src/wiz8/local_code/CharGeneration.cpp
+    src/wiz8/local_screens/AutomapScreen.cpp
     src/wiz8/local_screens/screen12.cpp
     src/wiz8/local_screens/MGSSpellCasting.cpp
-    src/wiz8/unattributed/005a8ed1_005b478f.cpp
     src/wiz8/local_screens/PartySelectionScreen.cpp
-    src/wiz8/unattributed/005c4341_005c87af.cpp
+    src/wiz8/local_screens/mipeEdit.cpp
     src/wiz8/local_code/Text_Input.cpp
-    src/wiz8/unattributed/005e2cc1_005e37ff.cpp
+    src/wiz8/local_code/Traps.cpp
     src/wiz8/frame_tick.cpp
     src/wiz8/game_init.cpp
     src/wiz8/gameplay_teardown.cpp
@@ -189,8 +179,7 @@ set(WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
 )
 
 # Keep logical ownership separate from original translation-unit certainty.
-# Descriptive paths are provisional; only numeric files under unattributed/
-# remain address-bounded quarantine units.
+# No address-bounded quarantine units remain.
 set(WIZ8_PROVISIONAL_UNITS)
 set(WIZ8_ADDRESS_QUARANTINE_UNITS)
 foreach(source IN LISTS WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS)

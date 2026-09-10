@@ -8,6 +8,7 @@ class srScene;
 class stMeshModel;
 class stModelInstance;
 
+void SetSceneAmbientLightWhite(srScene* scene);
 void RemoveMonsterFromWorldList(W8World* unused, W8Monster* monster);
 void WorldAddToList00(W8World* unused, void* entry);
 void WorldRemoveFromList04(W8World* unused, void* entry);

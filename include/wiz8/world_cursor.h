@@ -26,3 +26,5 @@ static_assert(sizeof(W8WorldCursorState) == 0xe0,
 extern W8WorldCursorState* g_world_cursor_0065ba8c;
 unsigned char IsWorldCursorVisible(void);
 void GetWorldCursorPosition00490BF0(srVector3T<float>* position);
+void SetWorldCursorNodesVisible0048ED70(unsigned char visible);
+void HideWorldCursor00490B90(void);

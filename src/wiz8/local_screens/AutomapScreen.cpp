@@ -1,7 +1,7 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/stHash.hpp"
-#include "wiz8/local_screens/screen8.h"
+#include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/vector.h"
 #include "surrender/srTypeRegistry.h"
@@ -774,4 +774,37 @@ void Function57FD90(int update)
     g_automap_buttons[1]->m_dirty = 1;
     g_automap_buttons[1]->Draw();
     g_automap_zoom_mode = update;
+}
+
+extern "C" {
+extern float g_float_64b914;
+// GLOBAL: WIZ8 0x0064b914
+float g_float_64b914 = 2000.0f;
+// GLOBAL: WIZ8 0x0068f2b0
+int g_value_68f2b0;
+// GLOBAL: WIZ8 0x0068f2c4
+int g_value_68f2c4;
+extern int g_value_68f2b0;
+extern int g_value_68f2c4;
+}
+
+// FUNCTION: WIZ8 0x00585300
+void SetFloat64B914(float value)
+{
+    g_float_64b914 = value;
+}
+// FUNCTION: WIZ8 0x00585310
+float GetFloat64B914(void)
+{
+    return g_float_64b914;
+}
+// FUNCTION: WIZ8 0x00587C10
+void SetValue68F2B0(int value)
+{
+    g_value_68f2b0 = value;
+}
+// FUNCTION: WIZ8 0x0058A870
+void SetValue68F2C4(int value)
+{
+    g_value_68f2c4 = value;
 }

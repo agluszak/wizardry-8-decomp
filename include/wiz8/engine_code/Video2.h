@@ -44,6 +44,9 @@ extern PTR                  LockMouseBuffer(UINT32 *uiPitch);
 extern void                 UnlockMouseBuffer(void);
 extern BOOLEAN              GetPrimaryRGBDistributionMasks(UINT32 *RedBitMask, UINT32 *GreenBitMask, UINT32 *BblueBitMask);
 extern void                 PrintScreen(void);
+extern unsigned char        g_flag_6596f4;
+extern int                  g_screenshot_index_659724;
+extern int                  g_screenshot_page_659728;
 
 void												VideoCaptureToggle( void );
 

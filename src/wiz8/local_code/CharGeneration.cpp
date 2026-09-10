@@ -1,9 +1,6 @@
 #include "wiz8/local_code/CharGeneration.h"
 #include "wiz8/character.h"
 
-/* Address quarantine 00557bc0-005587c0; bounds come from adjacent
-   assertion-backed original translation-unit intervals. */
-
 /* Refund every spent skill point through the per-skill commit helper. */
 // FUNCTION: WIZ8 0x00557F90
 void Function557F90(W8Character* character, W8CharacterCreationState* creation_state)

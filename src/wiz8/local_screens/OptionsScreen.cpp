@@ -513,7 +513,7 @@ void W8OptionsSaveLoadPanel::LoadSelectedSave()
     if (slot->version_major + slot->version_minor * 0.1f +
             slot->version_patch * 0.01f <= 1.24f) {
         wcsncpy(g_options_last_save_name_0069c1cc, slot->name, 0x40);
-        reinterpret_cast<char*>(g_options_last_save_name_0069c1cc)[0x7e] = 0;
+        reinterpret_cast<char*>(g_options_last_save_name_0069c1cc)[0x7e] = 0; // reinterpret-ok: raw byte view of the wide name buffer
         if (g_status_685170.game_started != 0) {
             ClearHeldItemDisplay();
         }
@@ -542,7 +542,7 @@ void W8OptionsSaveLoadPanel::SaveSelectedSave()
         return;
     }
     wcsncpy(g_options_last_save_name_0069c1cc, slot->name, 0x40);
-    reinterpret_cast<char*>(g_options_last_save_name_0069c1cc)[0x7e] = 0;
+    reinterpret_cast<char*>(g_options_last_save_name_0069c1cc)[0x7e] = 0; // reinterpret-ok: raw byte view of the wide name buffer
     RequestScreenTransition();
     g_pending_screen_state.mode = 2;
     strcpy(g_pending_screen_state.name, ConvertWideStringToString(slot->name));
@@ -2209,4 +2209,20 @@ void OptionsScreenFrame()
         g_options_first_frame = 0;
     }
     RenderFrame();
+}
+
+// FUNCTION: WIZ8 0x005A9E70
+void Function5A9E70(void* target)
+{
+    wcsncpy(
+        g_options_last_save_name_0069c1cc,
+        static_cast<const wchar_t*>(target),
+        0x40);
+    reinterpret_cast<char*>(g_options_last_save_name_0069c1cc)[0x7e] = 0; // reinterpret-ok: raw byte view of the wide name buffer
+}
+
+// FUNCTION: WIZ8 0x005A9E90
+int* GetAddress69C1CC(void)
+{
+    return reinterpret_cast<int*>(g_options_last_save_name_0069c1cc); // reinterpret-ok: the original hands the buffer back through an int*
 }

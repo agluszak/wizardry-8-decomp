@@ -25,9 +25,6 @@ unsigned char g_table_650434[15][8] = {
 };
 }
 
-/* Address quarantine 005e2cc1-005e37ff; bounds come from adjacent
-   assertion-backed original translation-unit intervals. */
-
 // FUNCTION: WIZ8 0x005E35F0
 void ClearValue69DA68(void)
 {

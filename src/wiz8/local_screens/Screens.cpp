@@ -178,3 +178,48 @@ void ClearHeldItemDisplay(void)
         gXStatus.current_cursor_time = 0;
     }
 }
+
+
+/* The item-cursor state: the string index table the camp screens read through
+   GetTable647CCCEntry, and the held-item cursor bookkeeping. */
+
+extern "C" {
+// GLOBAL: WIZ8 0x00647ccc
+unsigned char g_table_647ccc[128];
+}
+
+// FUNCTION: WIZ8 0x0055F2B0
+unsigned char GetTable647CCCEntry(char index)
+{
+    return g_table_647ccc[index];
+}
+
+// GLOBAL: WIZ8 0x006874CA
+unsigned char g_flag_006874ca;
+// GLOBAL: WIZ8 0x006874CB
+int g_value_006874cb;
+// GLOBAL: WIZ8 0x00683FDB
+int g_value_00683fdb;
+
+/* Point the mouse cursor at an item's video object, blitting it down as well.
+   A negative held item id means the cursor keeps whatever it has. */
+// FUNCTION: WIZ8 0x0055F160
+void Function55F160(int item_id)
+{
+    int object;
+    unsigned short y_offset;
+    unsigned int handle;
+
+    if (g_value_006874cb != -1) {
+        g_flag_006874ca = 1;
+        object = g_item_video_objects_68ec68.GetOrCreateVideoObject(g_value_006874cb);
+        y_offset = GetCatalogVideoObjectYOffset(object);
+        handle = GetCatalogVideoObjectHandle(object, 0);
+        SetMouseCursorFromVideoObject(handle, y_offset, 0, 0);
+        y_offset = GetCatalogVideoObjectYOffset(item_id);
+        handle = GetCatalogVideoObjectHandle(item_id, 0);
+        BlitToMouseCursor(handle, y_offset, 0, 0);
+        RefreshMouseCursorTexture();
+        g_value_00683fdb = 7;
+    }
+}

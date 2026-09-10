@@ -9,7 +9,7 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/Configuration.h"
-#include "wiz8/local_screens/screen8.h"
+#include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_screens/MainGameScreen.h"

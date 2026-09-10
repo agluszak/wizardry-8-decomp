@@ -74,8 +74,6 @@ WNDPROC g_window_proc_6595f8;
 unsigned char g_flag_659710;
 unsigned char g_flag_65970e;
 unsigned char g_flag_659711;
-unsigned char g_flag_6596f4;
-unsigned char g_flag_6840bc;
 unsigned char g_flag_65970f;
 srGERD* g_gerd_659634;
 LPDIRECTDRAW g_direct_draw_65969c;
@@ -228,7 +226,7 @@ unsigned char InitializeVideoManager(
     }
     InitializeRendererSceneObjects();
     if (!g_flag_659710) {
-        if (g_flag_6840bc) {
+        if (g_flag_006840bc) {
             Function56AAB0();
         }
         if (ghWindow && g_gerd_659634) {
@@ -692,7 +690,7 @@ unsigned char RestoreVideoManager(void)
     if (g_flag_659710) {
         return 1;
     }
-    if (g_flag_6840bc) {
+    if (g_flag_006840bc) {
         Function56AAB0();
     }
     if (ghWindow && g_gerd_659634) {

@@ -12,7 +12,7 @@
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
-#include "wiz8/local_screens/screen8.h"
+#include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/targeting.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/GameData.h"
@@ -117,7 +117,7 @@ extern void Function529510(void);
 extern short Function5698C0(void);
 extern void Function5618F0(unsigned short mode);
 
-// GLOBAL
+// GLOBAL: WIZ8 0x006840bc
 unsigned char g_flag_006840bc;
 
 // GLOBAL: WIZ8 0x006840be
@@ -1294,3 +1294,146 @@ unsigned int HitTestPartyPortrait(const InputAtom* event)
     }
     return 0;
 }
+
+#include "wiz8/utility.h"
+#include "Font.h"
+
+/* Shared by a main-game caller and dialog text entries. Original translation
+   unit is unresolved; keep this out of UtilityFunctions.cpp's proven interval. */
+// FUNCTION: WIZ8 0x00577410
+void ShortenTextToWidth00577410(
+    wchar_t* output, const wchar_t* text, unsigned int width, int font)
+{
+    wchar_t buffer[200];
+    wcscpy(buffer, text);
+    if (static_cast<unsigned int>(StringPixLength((unsigned short*)buffer, font)) < width) {
+        wcscpy(output, buffer);
+        return;
+    }
+    for (int index = 0; index < static_cast<int>(wcslen(buffer)); ++index) {
+        if (width <= static_cast<unsigned int>(
+                StringPixLengthArg(font, index + 1, (unsigned short*)buffer))) {
+            --index;
+            while (index >= 0) {
+                if (buffer[index] != L' ' && buffer[index - 1] != L' ') {
+                    buffer[index] = L'\0';
+                    swprintf(output, L"%s...", buffer);
+                    return;
+                }
+                --index;
+            }
+            return;
+        }
+    }
+}
+
+#include "wiz8/npc_state.h"
+#include "wiz8/fact_state.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_code/GameplayCode.h"
+
+extern void Function56C5E0(void* npc, int value, int line, int suppress, int arg);
+
+/* Forward a monster-script notice to the targeting layer unless the screen is
+   busy or this NPC kind suppresses it. The suppress flag travels as an int:
+   the body forwards the whole dword without masking. */
+// FUNCTION: WIZ8 0x0056C590
+void Function56C590(int npc_record, int value, int line, int suppress)
+{
+    W8NpcState* npc = reinterpret_cast<W8NpcState*>(npc_record); // reinterpret-ok: the original passes the NPC pointer through an int slot
+
+    if (g_flag_00683f97 == 0 && g_in_combat_00683f94 == 0 &&
+        (npc->record->kind != 7 || GetFact(0x1c) != 1)) {
+        Function56C5E0(
+            reinterpret_cast<void*>(npc_record), // reinterpret-ok: the callee takes the same pointer through void*
+            value, line, suppress, 0);
+    }
+}
+
+
+/* The panel flags and the modal-dialog frame hooks, from the MGS interval at
+   0x0056B270. The g_flag_006840bc state is defined with the header so the
+   renderer consumes the same object. */
+
+// FUNCTION: WIZ8 0x00568950
+unsigned int Function568950(const InputAtom* input)
+{
+    POINT point;
+    SGPMouseGetPos(&point);
+    switch (input->usEvent) {
+    case LEFT_BUTTON_DOWN:
+    case LEFT_BUTTON_UP:
+    case RIGHT_BUTTON_DOWN:
+    case RIGHT_BUTTON_UP:
+        MSYS_SGP_Mouse_Handler_Hook(
+            input->usEvent,
+            static_cast<unsigned short>(point.x),
+            static_cast<unsigned short>(point.y),
+            gfLeftButtonState,
+            gfRightButtonState);
+        return 1;
+    default:
+        return 0;
+    }
+}
+
+extern void Function5A1950(void);
+
+// FUNCTION: WIZ8 0x0056aa30
+void Function56AA30(void)
+{
+    g_flag_006840bc = 1;
+    if (gXStatus.field_055 != 0) {
+        DisableRegionSet1C();
+    }
+    if (gXStatus.fCombatMode == 0) {
+        if (g_flag_006840bd != 0) {
+            MoveTimer(1);
+            EnableRegionInput(0x137);
+            ActivateDialogRegion(0x137);
+        }
+        Function482990(0);
+        MonsterForward453160();
+        ResetLevelDataVectors0041F0D0();
+    }
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+        g_level_block != 0) {
+        g_level_block->redraw_flags |= 0x8000;
+    }
+}
+
+// FUNCTION: WIZ8 0x0056aab0
+void Function56AAB0(void)
+{
+    if (gXStatus.field_01d == 0 && gXStatus.field_01f == 0 &&
+        gXStatus.fItemSelectMode == 0 && gXStatus.field_022 == 0) {
+        if (gXStatus.fCombatMode == 0) {
+            if (g_flag_006840bd != 0) {
+                MoveTimer(4);
+                ClearActiveRegionIfMatches(0x137);
+                DisableRegionInput(0x137);
+            }
+            Function482990(1);
+            MonsterForward4531A0();
+            if (gXStatus.field_020 == 0 && gXStatus.field_021 == 0 &&
+                gXStatus.field_024 == 0 && gXStatus.field_025 == 0) {
+                ClearLevelDataFlag6();
+            }
+        }
+        g_flag_006840bc = 0;
+        g_flag_006840bd = 0;
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+            g_level_block->flag_327 == 0) {
+            if (gXStatus.field_055 != 0) {
+                Function5A1950();
+            }
+            ClearSurfaceRect(0xb1, 0x13f, 0x1cf, 0x153);
+            InvalidateRegion(0xb1, 0x13f, 0x1cf, 0x153, 0);
+            if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+                g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x8000;
+            }
+        }
+    }
+}
+

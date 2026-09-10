@@ -3,7 +3,6 @@
 struct W8World;
 class srScene;
 
-void SetSceneAmbientLightWhite(srScene* scene);
 void DestroyAllWorldTriggers(W8World* world);
 
 extern unsigned char g_renderer_ready_00607d7c;

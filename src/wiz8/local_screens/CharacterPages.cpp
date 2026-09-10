@@ -273,20 +273,11 @@ void W8CharacterPageEntry::OnSecondary(W8TextControl* control)
 // VTABLE: WIZ8 0x005ef1e4 W8CharacterPage
 // class W8CharacterPage
 
-// VTABLE: WIZ8 0x005ef214 W8GrowableVector<W8CharacterPageEntry*>
-// class W8GrowableVector<W8CharacterPageEntry*>
+// VTABLE: WIZ8 0x005ef214 W8CharacterPageEntries005EF214
+// class W8CharacterPageEntries005EF214
 
 // VTABLE: WIZ8 0x005ef218 W8GrowableVector<W8CharacterPageEntry*>
 // class W8GrowableVector<W8CharacterPageEntry*>
-
-// TEMPLATE: WIZ8 0x005b1b70
-// W8GrowableVector<W8CharacterPageEntry*>::~W8GrowableVector<W8CharacterPageEntry*>
-
-// SYNTHETIC: WIZ8 0x005b1b90
-// W8GrowableVector<W8CharacterPageEntry*>::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005b1bc0
-// W8GrowableVector<W8CharacterPageEntry*>::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005afd90
 W8CharacterPage::W8CharacterPage(int render_target)

@@ -1,3 +1,7 @@
+#include "wiz8/engine_code/game_timer.h"
+#include "surrender/srImporter.h"
+#include "surrender/srExtension.h"
+#include <stdio.h>
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/engine_code/Video2.h"
 #include "surrender/srColorSurface.h"
@@ -678,4 +682,47 @@ void VideoCaptureToggle(void)
 IDirectDraw2* GetDirectDraw2Object(void)
 {
     return g_direct_draw2_6596a0;
+}
+
+
+extern "C" unsigned char g_flag_6596f4;
+extern "C" {
+// GLOBAL: WIZ8 0x006596f4
+unsigned char g_flag_6596f4;
+}
+// GLOBAL: WIZ8 0x00659724
+int g_screenshot_index_659724;
+// GLOBAL: WIZ8 0x00659728
+int g_screenshot_page_659728;
+
+// FUNCTION: WIZ8 0x004229e0
+void Function4229E0(void)
+{
+    srSurfaceIOManager* surface_io_manager =
+        srCore.getSurfaceIOManager();
+    srExtension::load("JPEGImporter", 0);
+
+    srColorSurfaceIFace* surface = g_gerd_659634->lockBuffer();
+    int screenshot_index = g_screenshot_index_659724;
+    if (surface != 0) {
+        char filename[32];
+        srSurfaceIOManager::ExportInfo options;
+        options.unknown_00 = 0;
+        options.unknown_04 = 1;
+        options.option_string = 0;
+
+        ++g_screenshot_index_659724;
+        sprintf(filename, "Wiz8%5.5d.JPG", screenshot_index);
+        if (g_flag_6596f4 == 0) {
+            surface_io_manager->exportSurface(filename, *surface, options);
+        }
+        else {
+            options.option_string = "QUALITY=0.35";
+            Function439BC0();
+            surface_io_manager->exportSurface(filename, *surface, options);
+            Function439CA0();
+        }
+        g_gerd_659634->unlockBuffer();
+    }
+    g_screenshot_page_659728 = (g_screenshot_page_659728 - 1) & 1;
 }

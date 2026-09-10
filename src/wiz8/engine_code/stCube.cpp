@@ -10,6 +10,9 @@
 
 #include <math.h>
 
+/* Engine Code\stCube.cpp. The cursor's node table and the node selection
+   pass; the cursor state itself lives in Cursor3d.cpp. */
+
 extern "C" {
 extern int g_value_65ba5c;
 // GLOBAL: WIZ8 0x0065ba5c
@@ -19,31 +22,13 @@ int g_value_65ba5c;
 // GLOBAL: WIZ8 0x0065ba64
 int* g_array_65ba64;
 
+/* The double selection range at 0x005ECAC8: node distances below it select the
+   node. Read as 75000.0, not the zero a float view would give. */
 // GLOBAL: WIZ8 0x005ecac8
-const float g_float_005ecac8 = 0.0f;
+const double g_double_005ecac8 = 75000.0;
 
 // GLOBAL: WIZ8 0x0060a9b0
 int g_cursor_node_index_0060a9b0 = -1;
-
-// GLOBAL: WIZ8 0x0065ba8c
-W8WorldCursorState* g_world_cursor_0065ba8c;
-
-/* Address quarantine 0048e7b1-00490c5f; bounds come from adjacent
-   assertion-backed original translation-unit intervals. */
-
-/* The tracked cursor position, or the origin while there is no cursor. */
-// FUNCTION: WIZ8 0x00490BF0
-void GetWorldCursorPosition00490BF0(srVector3T<float>* position)
-{
-    if (g_world_cursor_0065ba8c != 0) {
-        *position = g_world_cursor_0065ba8c->position_28;
-    }
-    else {
-        position->x = 0.0f;
-        position->y = 0.0f;
-        position->z = 0.0f;
-    }
-}
 
 // FUNCTION: WIZ8 0x0048ED00
 int GetValue65BA5C(void)
@@ -99,7 +84,7 @@ unsigned char SelectWorldCursorNode0048EFC0(void)
                         (target.y - camera_position.y) +
                     (target.z - camera_position.z) *
                         (target.z - camera_position.z));
-                if (distance < g_float_005ecac8) {
+                if (distance < g_double_005ecac8) {
                     return 1;
                 }
             }
@@ -121,7 +106,7 @@ unsigned char SelectWorldCursorNode0048EFC0(void)
                         (target.y - camera_position.y) +
                     (target.z - camera_position.z) *
                         (target.z - camera_position.z));
-                if (distance < g_float_005ecac8) {
+                if (distance < g_double_005ecac8) {
                     g_cursor_node_index_0060a9b0 = index;
                     return 1;
                 }
@@ -129,28 +114,4 @@ unsigned char SelectWorldCursorNode0048EFC0(void)
         }
     }
     return 0;
-}
-
-/* Hide the world cursor: detach its monster from the world lists, clear the
-   visible flag, deactivate its particle, then refresh the party state. */
-// FUNCTION: WIZ8 0x00490B90
-void HideWorldCursor00490B90(void)
-{
-    W8World* world;
-    W8Monster* monster;
-    W8WorldCursorState* cursor = g_world_cursor_0065ba8c;
-
-    if (cursor == 0 || cursor->visible_40 == 0) {
-        return;
-    }
-    monster = cursor->monster_00;
-    world = g_world;
-    PListRemove(world->plsMonsters, monster);
-    Function4C59C0(monster, world);
-    cursor->visible_40 = 0;
-    if (cursor->particle_04 != 0) {
-        cursor->particle_04->SetActive(0);
-    }
-    SetFlag603C60();
-    RequestRefreshPartyState();
 }

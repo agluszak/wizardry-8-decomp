@@ -17,6 +17,7 @@
 #include "surrender/srClipPlane.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/world_cursor.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_code/Search.h"
 #include "wiz8/engine_code/ReadLevel.h"
@@ -148,7 +149,6 @@ extern float* RotateMatrixAroundAxis0042B910(
 extern void Function482410(void);
 extern void Function4D6C50(int level);
 extern void Function50AC60(void);
-extern void SetWorldCursorNodesVisible0048ED70(unsigned char value);
 extern void Function50E700(void);
 extern void Function50DB50(void);
 extern void Function50C270(void);

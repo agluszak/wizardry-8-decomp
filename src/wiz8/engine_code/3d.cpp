@@ -2,6 +2,7 @@
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/stLight.h"
@@ -444,4 +445,24 @@ double WorldGetFarClip(W8World* world)
 void RemoveMonsterFromWorldList(W8World* unused, W8Monster* monster)
 {
     PListRemove(g_world->plsMonsters, monster);
+}
+
+// FUNCTION: WIZ8 0x0046DC90
+void SetSceneAmbientLightWhite(srScene* scene)
+{
+    if (scene == 0) {
+        srAssertFail("psrScene", THREE_D_CPP, 0xf1, 0);
+    }
+    scene->setAmbientLight(1.0f, 1.0f, 1.0f);
+}
+
+// GLOBAL: WIZ8 0x00652db0
+W8GameData* g_octree_game_data_00652db0;
+
+/* The octree builds read the level data through this slot; its setter keeps
+   the interface the same single-dword store the original emits. */
+// FUNCTION: WIZ8 0x0046D7D0
+void __stdcall SetValue652DB0(int value)
+{
+    g_octree_game_data_00652db0 = reinterpret_cast<W8GameData*>(value); // reinterpret-ok: the original stores the dword as a pointer
 }
