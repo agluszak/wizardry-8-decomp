@@ -1,3 +1,4 @@
+#include "wiz8/local_screens/Screens.h"
 #include "soundman.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
@@ -50,7 +51,6 @@ enum { W8_CHARACTER_ELIGIBLE_LIMIT = 0x12 };
    restore computes by summing the whole spell-point ceiling. */
 enum { W8_RESTORE_EVERYTHING = -1 };
 
-extern void Function55EE30(int bit);                                  /* 0x0055EE30 */
 
 /* Roll the dice once per eligible party member and apply the result to each of
    them. The roll is separate per character rather than shared. */
@@ -117,7 +117,7 @@ void SpendCharacterSpellPoints(int party_slot, int realm, int amount)
                          HEALTH_STAMINA_MANA_CPP, 1067, 0);
         }
         character->sp_left[realm] -= amount;
-        Function55EE30(party_slot);
+        RequestPartySlotRedraw0055EE30(party_slot);
     }
 }
 
@@ -131,7 +131,7 @@ void RestoreCharacterRealmSpellPoints(int party_slot, int realm, int amount)
     if (character->sp_max[realm] < character->sp_left[realm]) {
         character->sp_left[realm] = character->sp_max[realm];
     }
-    Function55EE30(party_slot);
+    RequestPartySlotRedraw0055EE30(party_slot);
 }
 
 /* Drain spell points across the party. Unlike its neighbours this does not

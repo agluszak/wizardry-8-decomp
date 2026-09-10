@@ -1,3 +1,4 @@
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/character.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
@@ -61,7 +62,6 @@ unsigned char g_combat_log_enabled_0068d810;
 // GLOBAL: WIZ8 0x00617664
 extern const wchar_t g_combat_log_format_00617664[] = L"%hs";
 /* 0x0053AC30 */
-extern void Function55EE30(int bit);
 
 /* Whether anybody in the party is engaged with something. */
 // FUNCTION: WIZ8 0x004e7ca0
@@ -206,7 +206,7 @@ void DropCharacterFromRound(int party_slot)
         ClearTargetHighlights(party_slot, &row->target_in_combat);
     }
     ResetCombatSlot(&row->target_in_combat);
-    Function55EE30(party_slot);
+    RequestPartySlotRedraw0055EE30(party_slot);
     if (party_slot == g_status_685170.selected_character) {
         RequestRedrawParty();
     }
