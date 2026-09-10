@@ -152,10 +152,9 @@ int W8State5PartyCollection::FindPartySlot(int index)
 {
     W8Character* character = GetCharacter(index);
     if (character && character->in_party) {
-        unsigned char* occupied =
-            reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows);
+        W8PartySlotRow* rows = g_party_slot_rows;
         for (int slot = 0; slot < 6; ++slot) {
-            if (occupied[slot * 0x106 + 0x20c] &&
+            if (rows[slot + 2].occupied &&
                 &g_party_characters[slot + 2] == character) {
                 return slot;
             }
@@ -199,9 +198,7 @@ void W8State5PartyCollection::LoadExternalCharacters()
         else {
             int slot;
             for (slot = 2; slot < 8; ++slot) {
-                unsigned char* party_state =
-                    reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows);
-                if (party_state[slot * 0x106] != 0 &&
+                if (g_party_slot_rows[slot].occupied != 0 &&
                     wcscmp(g_party_characters[slot].name, character->name) == 0) {
                     break;
                 }
@@ -858,8 +855,7 @@ void W8State5CharacterPanel005EF3C8::Function5BF050(
     m_control_58.SetSelected(row);
     int slot;
     for (slot = 0; slot < 6; ++slot) {
-        if (reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)
-                [slot * 0x106 + 0x20c] &&
+        if (g_party_slot_rows[slot + 2].occupied &&
             &g_party_characters[slot + 2]
                 == g_state5_controller_69c4e8->m_character_18) {
             break;
@@ -913,9 +909,7 @@ void W8State5PartySlotRow005EF3E4::Redraw(int full_redraw)
     int left = m_pPanel->origin_x + m_left;
     int top = m_pPanel->origin_y + m_top;
     W8Character* character = 0;
-    unsigned char* party_state =
-        reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows);
-    if (!party_state[(m_row + 2) * 0x106]) {
+    if (!g_party_slot_rows[m_row + 2].occupied) {
         ColorFillVideoSurfaceArea(-14, left, top,
                                   m_pPanel->origin_x + m_right,
                                   m_pPanel->origin_y + m_bottom, 0x8000);
@@ -951,8 +945,7 @@ void W8State5PartySlotRow005EF3E4::OnRightButtonUp(int event)
     if (m_row == -1) {
         int slot;
         for (slot = 0; slot < 6; ++slot) {
-            if (reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)
-                    [slot * 0x106 + 0x20c] &&
+            if (g_party_slot_rows[slot + 2].occupied &&
                 &g_party_characters[slot + 2]
                     == g_state5_controller_69c4e8->m_character_18) {
                 break;
@@ -998,9 +991,7 @@ W8State5PartySlotPanel005EF438::W8State5PartySlotPanel005EF438()
     m_control_50.m_selectionListener = this;
     for (int slot = 0; slot < 6; ++slot) {
         W8TextControl* control = m_control_50.m_lsButtons.data[slot];
-        control->SetEnabled(
-            reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)
-                [slot * 0x106 + 0x20c]);
+        control->SetEnabled(g_party_slot_rows[slot + 2].occupied);
     }
     Invalidate(0);
 }
@@ -1674,8 +1665,7 @@ void W8State5Controller005EF4CC::SetMode(int mode)
         m_control_24->SetEnabled(1);
         for (int slot = 0; slot < 6; ++slot) {
             unsigned char occupied =
-                reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)
-                    [slot * 0x106 + 0x20c];
+                g_party_slot_rows[slot + 2].occupied;
             m_control_24->ControlAt(slot)->SetActive(
                 m_mode == 1 && occupied &&
                 IsCharacterReadyToAdvance(slot + 2));
@@ -1748,9 +1738,7 @@ void W8State5Controller005EF4CC::SetSelection(
             int selected_slot = -1;
             if (m_character_18 && m_character_18->in_party) {
                 for (int slot = 0; slot < 6; ++slot) {
-                    if (reinterpret_cast<unsigned char*>(
-                            g_status_685170.buffers.party_rows)
-                            [slot * 0x106 + 0x20c] &&
+                    if (g_party_slot_rows[slot + 2].occupied &&
                         &g_party_characters[slot + 2] == m_character_18) {
                         selected_slot = slot;
                         break;
@@ -1774,8 +1762,7 @@ void W8State5Controller005EF4CC::SetSelection(
         if (m_mode == 0) {
             int character_index = -1;
             if (selection >= 0 &&
-                reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)
-                    [(selection + 2) * 0x106]) {
+                g_party_slot_rows[selection + 2].occupied) {
                 for (int index = 0;
                      index < g_state5_party_collection_69c4ec->characters.count;
                      ++index) {
@@ -1867,8 +1854,7 @@ void W8State5Controller005EF4CC::OnPrimary(
     if (control == m_text_4c) {
         int slot;
         for (slot = 0; slot < 6; ++slot) {
-            if (reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)
-                    [slot * 0x106 + 0x20c] &&
+            if (g_party_slot_rows[slot + 2].occupied &&
                 &g_party_characters[slot + 2] == m_character_18) {
                 break;
             }
@@ -2206,15 +2192,13 @@ void W8State5Controller005EF4CC::Function5C2C60(int selection)
     int slot;
     for (slot = 0; slot < 6; ++slot) {
         unsigned char occupied =
-            reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)
-                [slot * 0x106 + 0x20c];
+            g_party_slot_rows[slot + 2].occupied;
         m_control_28->m_control_50.m_lsButtons.data[slot]->SetEnabled(occupied);
     }
     m_control_28->Invalidate(0);
     for (slot = 0; slot < 6; ++slot) {
         unsigned char occupied =
-            reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)
-                [slot * 0x106 + 0x20c];
+            g_party_slot_rows[slot + 2].occupied;
         m_control_24->ControlAt(slot)->SetActive(
             m_mode == 1 && occupied && IsCharacterReadyToAdvance(slot + 2));
     }
@@ -2260,8 +2244,7 @@ void W8State5Controller005EF4CC::Function5C2970()
                     break;
                 }
             }
-            if (reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)
-                    [(next_slot + 2) * 0x106]) {
+            if (g_party_slot_rows[next_slot + 2].occupied) {
                 found = true;
                 break;
             }
@@ -2277,8 +2260,7 @@ void W8State5Controller005EF4CC::Function5C2970()
 
     for (int slot = 0; slot < 6; ++slot) {
         unsigned char occupied =
-            reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)
-                [slot * 0x106 + 0x20c];
+            g_party_slot_rows[slot + 2].occupied;
         m_control_28->m_control_50.m_lsButtons.data[slot]->SetEnabled(occupied);
     }
     m_control_28->Invalidate(0);
@@ -2316,10 +2298,9 @@ unsigned char PartySelectionScreenEnter(void)
             }
         }
         collection->characters.count = 0;
-        unsigned char* party_state =
-            reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows);
+        W8PartySlotRow* rows = g_party_slot_rows;
         for (int slot = 2; slot < 8; ++slot) {
-            if (party_state[slot * 0x106]) {
+            if (rows[slot].occupied) {
                 collection->characters.Add(&g_party_characters[slot]);
             }
         }
@@ -2338,10 +2319,9 @@ unsigned char PartySelectionScreenEnter(void)
                 }
             }
             collection->characters.count = 0;
-            unsigned char* party_state =
-                reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows);
+            W8PartySlotRow* rows = g_party_slot_rows;
             for (int slot = 2; slot < 8; ++slot) {
-                if (party_state[slot * 0x106]) {
+                if (rows[slot].occupied) {
                     collection->characters.Add(&g_party_characters[slot]);
                 }
             }
