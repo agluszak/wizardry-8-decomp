@@ -568,15 +568,18 @@ void TriggerBelaVoice0050D480(W8Monster* monster)
     position.z = 0.0f;
     monster->SetPosition(&position);
 
+    W8NpcState* npc = 0;
+
     for (int index = 0; index < g_npc_states->GetCount(); ++index) {
-        W8NpcState* npc = *g_npc_states->GetAt(index);
-        if (npc->record->kind == 0x89) {
-            if (npc != 0) {
-                Function56C5E0(npc, 0, -1, 0, 0);
-                return;
-            }
+        W8NpcState* candidate = *g_npc_states->GetAt(index);
+        if (candidate->record->kind == 0x89) {
+            npc = candidate;
             break;
         }
+    }
+    if (npc != 0) {
+        Function56C5E0(npc, 0, -1, 0, 0);
+        return;
     }
     srAssertFail("pNPC", NPC_MANAGER_CPP, 0xbec, "Cannot find VOC_BELA_CC");
 }

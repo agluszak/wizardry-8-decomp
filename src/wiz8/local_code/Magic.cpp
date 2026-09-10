@@ -2233,7 +2233,7 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
     const unsigned short* band_text = g_spell_band_text_0061e57a;
 
     if (GetTextBoxMode() != 0) {
-        Function5905F0(effect->reported_124 == 0 ? L"-- " : L", ", -1);
+        Function5905F0(effect->reported_124 == 0 ? L" -- " : L", ", -1);
         SetTextBoxMode(1, -1);
     }
     if (effect->result_126.amount != 0) {
@@ -2254,58 +2254,55 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
         SetTextBoxMode(1, -1);
         effect->reported_124 = 1;
     }
-    for (int band = 1; band < 20; ++band, band_text += 4) {
-        int hits = effect->result_126.damage[band];
+    unsigned int* damage = &effect->result_126.damage[1];
 
-        if (hits == 0) {
-            continue;
-        }
-        if (effect->reported_124 != 0 && GetTextBoxMode() != 0) {
-            Function5905F0(L", ", -1);
-            SetTextBoxMode(1, -1);
-        }
-        if (hits == 1) {
-            if (effect->target.iType == 1) {
-                Function5905F0(
-                    FormatWideString(
-                        L"%s %s",
-                        (const wchar_t*)((const char*)
-                             g_status_685170.buffers.characters +
-                         effect->target.iChar * W8_CHARACTER_SERIALIZED_SIZE +
-                         5),
-                        gppStringList[band_text[0]]),
-                    -1);
+    do {
+        if (*damage != 0) {
+            if (effect->reported_124 != 0 && GetTextBoxMode() != 0) {
+                Function5905F0(L", ", -1);
+                SetTextBoxMode(1, -1);
             }
-            else if (effect->target.iType == 3) {
-                W8MonsterInfo* monster_info =
-                    MonsterInfoFromID(0x112a, MAGIC_CPP,
-                                      effect->target.iMonsterID, 1);
-                if (monster_info != 0) {
+            if (*damage == 1) {
+                if (effect->target.iType == 1) {
                     Function5905F0(
                         FormatWideString(
                             L"%s %s",
-                            GetMonsterName(monster_info, 0, 0),
+                            (const wchar_t*)((const char*)
+                                 g_status_685170.buffers.characters +
+                             effect->target.iChar *
+                                 W8_CHARACTER_SERIALIZED_SIZE +
+                             5),
                             gppStringList[band_text[0]]),
                         -1);
                 }
+                else if (effect->target.iType == 3) {
+                    W8MonsterInfo* monster_info =
+                        MonsterInfoFromID(0x112a, MAGIC_CPP,
+                                          effect->target.iMonsterID, 1);
+                    if (monster_info != 0) {
+                        Function5905F0(
+                            FormatWideString(
+                                L"%s %s",
+                                GetMonsterName(monster_info, 0, 0),
+                                gppStringList[band_text[0]]),
+                            -1);
+                    }
+                }
             }
-        }
-        else {
-            Function5905F0(
-                FormatWideString(
-                    L"%ld %s", hits, gppStringList[band_text[1]]),
-                -1);
-        }
-        SetTextBoxMode(1, -1);
-        effect->reported_124 = 1;
-    }
-    for (;;) {
-        if (effect->result_126.reports.GetCount() < 1) {
-            if (effect->reported_124 == 0) {
-                Function5905F0(gppStringList[0x694 / 4], -1);
+            else {
+                Function5905F0(
+                    FormatWideString(
+                        L"%ld %s", *damage, gppStringList[band_text[1]]),
+                    -1);
             }
-            return;
+            SetTextBoxMode(1, -1);
+            effect->reported_124 = 1;
         }
+        band_text += 4;
+        ++damage;
+    } while (band_text < g_spell_band_text_0061e57a + 76);
+
+    while (effect->result_126.reports.GetCount() > 0) {
         W8SpellDamageReport* report = *effect->result_126.reports.GetAt(0);
         effect->result_126.reports.RemoveAt(0);
         if (report != 0) {
@@ -2327,5 +2324,8 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
             }
             free(report);
         }
+    }
+    if (effect->reported_124 == 0) {
+        Function5905F0(gppStringList[0x694 / 4], -1);
     }
 }

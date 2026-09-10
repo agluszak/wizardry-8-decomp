@@ -26,7 +26,7 @@
 // atexit
 
 // LIBRARY: WIZ8 0x005e1c10
-// operator_delete
+// ??3@YAXPAX@Z
 
 // LIBRARY: WIZ8 0x005e1ca0
 // __allmul

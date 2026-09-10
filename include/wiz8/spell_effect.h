@@ -30,11 +30,12 @@ struct W8SpellDamageReport {
 /* What one missile or queued effect accumulates while it resolves: the total
    amount, the number of hits, the twenty-band damage table, and the report
    records handed to the message pass. Both the missile and the effect embed
-   this at their own offset. */
+   this at their own offset. The totals and bands are unsigned: the message
+   pass divides them with `div` and tests them with the unsigned branches. */
 struct W8SpellEffectResult {
-    int amount;                                         /* 0x00 */
-    int count;                                          /* 0x04 */
-    int damage[20];                                     /* 0x08 */
+    unsigned int amount;                                /* 0x00 */
+    unsigned int count;                                 /* 0x04 */
+    unsigned int damage[20];                            /* 0x08 */
     W8GrowableVector<W8SpellDamageReport*> reports;     /* 0x58 */
 };
 
