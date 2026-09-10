@@ -35,6 +35,9 @@ double g_double_005ec030 = 2500.0;
 extern "C" void LeaveLocation0042E880(unsigned short location_id, int reason);
 /* Tracks the largest radius any navigator has been given. */
 extern float g_navigator_largest_extent_6081e8;
+extern unsigned char g_flag_006081e4;
+extern unsigned char g_navigator_link_mode_00659c10;
+extern W8GrowableVector<W8Navigator*> g_navigator_group_659bf8;
 
 namespace {
 
@@ -146,6 +149,90 @@ void NavigatorDefaultCallback00451EA0(W8Navigator* navigator)
 {
     navigator->flag_025 = 1;
     navigator->movement_0c0.velocity_034.SetZero();
+}
+
+/* Switch every registered navigator to the requested link mode. Mode zero
+   clears their stop flags and resets their path state, then re-bases any
+   monster group already following a navigator onto that navigator's path and
+   position; every other mode stops them and clears their velocity. */
+// FUNCTION: WIZ8 0x00452F50
+void SetNavigatorLinkMode00452F50(unsigned char mode)
+{
+    if (g_navigator_link_mode_00659c10 == mode) {
+        return;
+    }
+    g_navigator_link_mode_00659c10 = mode;
+    if (mode == 0) {
+        for (int index = 0; index < g_registered_navigators.GetCount();
+             ++index) {
+            W8Navigator* navigator = *g_registered_navigators.GetAt(index);
+
+            navigator->flag_025 = 0;
+            if (navigator->path_ai_068 != 0) {
+                PathAIResetTick004A9C20(navigator->path_ai_068);
+            }
+            if (navigator->unknown_0bc[1] != 0) {
+                W8MonsterInfo* monster_info =
+                    MonsterGetScriptPartByLocationIndex(
+                        MonsterGetIndexByLocationID(
+                            0x4fe,
+                            "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp",
+                            navigator->movement_0c0.location_id_004,
+                            1));
+                if (monster_info->flag_14 != 0
+                    && monster_info->monster_group_id != 0) {
+                    W8MonsterGroup* group = GetMonsterGroupByListIndex(
+                        GetMonsterGroupIndexByID(
+                            0x508,
+                            "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp",
+                            monster_info->monster_group_id,
+                            1));
+                    srVector3T<float> position =
+                        navigator->movement_0c0.position_040;
+
+                    if ((group->flag_29 == 0
+                         || Function511050(
+                                group, 0.0f, navigator->movement_0c0.yaw,
+                                0) == 0)
+                        && (Function510CC0(
+                                group, &position, navigator->movement_0c0.yaw,
+                                0, 1, 0, 0),
+                            g_flag_006081e4 != 0)) {
+                        navigator->linked_update_time_0b8 = 0;
+                        g_navigator_group_659bf8.Clear();
+                        navigator->CollectGroupNavigators(
+                            &g_navigator_group_659bf8);
+                        for (int group_index = 0;
+                             group_index
+                             < g_navigator_group_659bf8.GetCount();
+                             ++group_index) {
+                            W8Navigator* group_navigator =
+                                *g_navigator_group_659bf8.GetAt(group_index);
+
+                            group_navigator->movement_0c0.attachment_0ac
+                                ->CopyPathFrom004564F0(
+                                    navigator->movement_0c0.attachment_0ac);
+                            group_navigator->position_03c =
+                                navigator->position_03c;
+                            group_navigator->movement_0c0.attachment_0ac
+                                ->flags_00 &= 0xff7effff;
+                            group_navigator->linked_update_time_0b8 = 0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else {
+        for (int index = 0; index < g_registered_navigators.GetCount();
+             ++index) {
+            W8Navigator* navigator = *g_registered_navigators.GetAt(index);
+
+            navigator->flag_025 = 1;
+            navigator->movement_0c0.velocity_034.SetZero();
+            navigator->unknown_0bc[1] = 0;
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x00453160

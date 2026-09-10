@@ -78,6 +78,9 @@ W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index);
 void Function510CC0(
     W8MonsterGroup* group, srVector3T<float>* position, float yaw, int a, int b,
     int c, int d); /* 0x00510CC0 */
+/* Returns the trailing Function510CC0 result; callers branch on it. */
+unsigned char Function511050(
+    W8MonsterGroup* group, float distance, float yaw, unsigned char flag); /* 0x00511050 */
 void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group);
 W8MonsterGroup* FindFirstMonsterByID(int monster_id);
 W8MonsterGroup* FindNextExistingMonsterByID(

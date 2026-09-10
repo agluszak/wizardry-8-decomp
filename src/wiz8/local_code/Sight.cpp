@@ -72,8 +72,6 @@ typedef struct W8VisibilityRow {
     unsigned char visible_28;            /* 0x28 */
 } W8VisibilityRow;
 
-extern void Function452F50(int value);
-
 // GLOBAL: WIZ8 0x005ec254
 float g_sight_default_005ec254 = 12.0f;
 
@@ -82,7 +80,7 @@ float g_sight_default_005ec254 = 12.0f;
 void ResetSight(void)
 {
     SetViewDistance(12.0f);
-    Function452F50(0);
+    SetNavigatorLinkMode00452F50(0);
     g_object_6598bc->ResetDurationScale();
     ResetMonsterGeneratorTimers0048CBE0();
 }
