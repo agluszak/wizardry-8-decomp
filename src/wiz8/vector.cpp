@@ -351,19 +351,6 @@ class W8VectorElement005ECEE4;
 // TEMPLATE: WIZ8 0x004aab10
 // W8GrowableVector<srVector3T<float>*>::~W8GrowableVector<srVector3T<float>*>
 
-// FUNCTION: WIZ8 0x004a9750
-W8PathAI* CreateRecord004A9750(int unused)
-{
-    W8PathAI* path;
-
-    path = (W8PathAI*)malloc(sizeof(W8PathAI));
-    if (!path) {
-        return 0;
-    }
-    memset(path, 0, sizeof(W8PathAI));
-    path->nodes_0c = new W8GrowableVector<srVector3T<float>*>();
-    return path;
-}
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 

@@ -68,7 +68,11 @@ def test_recover_candidates_preserves_source_and_writes_each_candidate(
     monkeypatch.setattr(
         recover,
         "resolve_source_placement",
-        lambda *_args: {"status": "placed", "source_file": "unit.cpp", "after_line": 1},
+        lambda *_args, **_kwargs: {
+            "status": "placed",
+            "source_file": "unit.cpp",
+            "after_line": 1,
+        },
     )
 
     result = recover_candidates(settings, ["0x00401000"])
@@ -320,7 +324,7 @@ def test_recovery_placement_uses_assertion_backed_unit_owner(tmp_path) -> None:
     placement = resolve_source_placement(tmp_path, [], 0x48DCA0)
     assert placement["status"] == "unplaced"
     assert placement["source_path"] == "Engine Code\\stCube.cpp"
-    assert placement["attribution"] == "interval-inference"
+    assert placement["attribution"] == "bounded"
     assert "no recovered physical source file" in placement["reason"]
 
 

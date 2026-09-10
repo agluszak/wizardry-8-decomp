@@ -141,9 +141,12 @@ def context_command(
 
 @app.command("translation-units")
 def translation_units_command() -> None:
-    """Generate source ownership and bounded address-quarantine projections."""
+    """Generate source ownership and hard-hull projections from the live layout."""
 
     from .. import command_support as cli
+    from ..ghidra.unit_intervals import translation_unit_layout
     from ..reports.translation_units import translation_unit_report
 
-    cli.emit(translation_unit_report(cli.settings()))
+    settings = cli.settings()
+    layout = translation_unit_layout(settings)
+    cli.emit(translation_unit_report(settings, layout=layout))

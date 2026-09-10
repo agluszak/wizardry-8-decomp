@@ -14,6 +14,7 @@
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/GrObject.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/virtual_file.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/Monster.h"
@@ -972,4 +973,100 @@ void PrepareMonsterCycleForDestruction004ACF90(W8Monster* monster)
         }
         PListClear(list);
     }
+}
+
+// FUNCTION: WIZ8 0x004aca60
+bool CanSpellBackfire(int spell_id)
+{
+    switch (g_spell_records[spell_id].target_type) {
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+        switch (spell_id) {
+        case 77:
+        case 118:
+        case 131:
+            break;
+        default:
+            return true;
+        }
+        break;
+    case 0:
+    case 1:
+    case 2:
+        switch (spell_id) {
+        case 3:
+        case 13:
+        case 16:
+        case 34:
+        case 44:
+        case 56:
+        case 58:
+        case 74:
+            return true;
+        }
+        break;
+    case 10:
+        return spell_id == 39;
+    }
+    return false;
+}
+
+// FUNCTION: WIZ8 0x004acc10
+unsigned char InitializeSpellDatabase(void)
+{
+    int handle;
+    unsigned int index;
+    int offset = 0;
+    unsigned char ok;
+    int allocation_count;
+    unsigned int row_count;
+
+    if (g_spell_records != 0) {
+        delete[] g_spell_records;
+        g_spell_records = 0;
+        g_spell_database_version = 0;
+    }
+    handle = FileOpen("Data\\Databases\\SpellTables.dbs", 0x41, 0);
+    if (handle == 0) {
+        return 0;
+    }
+    ok = 0;
+    if (FileRead(handle, &allocation_count, 4, 0) &&
+        FileRead(handle, &row_count, 4, 0)) {
+        ok = 1;
+    }
+    g_spell_records = new W8SpellRuntimeRecord[allocation_count];
+    if (g_spell_records == 0) {
+        srAssertFail(
+            "s_pSpellTable",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
+            0x774,
+            0);
+    }
+    for (index = 0; index < row_count; ++index) {
+        if (ok == 0) {
+            goto discard;
+        }
+        ok = 0;
+        if (FileSeek(handle, 0x101, FILE_SEEK_FROM_CURRENT) &&
+            FileRead(
+                handle,
+                reinterpret_cast<unsigned char*>(g_spell_records) + offset,
+                sizeof(W8SpellRuntimeRecord),
+                0)) {
+            ok = 1;
+        }
+        offset += sizeof(W8SpellRuntimeRecord);
+    }
+    if (ok == 0) {
+discard:
+        delete[] g_spell_records;
+        g_spell_records = 0;
+    }
+    FileClose(handle);
+    g_spell_database_version = row_count;
+    return ok;
 }

@@ -47,6 +47,23 @@ def test_increment_line_is_not_mistaken_for_a_file_header() -> None:
     assert [item["line"] for item in _added_casts(diff)] == [3]
 
 
+def test_moved_cast_is_not_a_new_cast() -> None:
+    diff = (
+        "diff --git a/src/wiz8/new.cpp b/src/wiz8/new.cpp\n"
+        "--- a/src/wiz8/new.cpp\n"
+        "+++ b/src/wiz8/new.cpp\n"
+        "@@ -0,0 +1 @@\n"
+        "+    return reinterpret_cast<int>(value);\n"
+        "diff --git a/src/wiz8/old.cpp b/src/wiz8/old.cpp\n"
+        "--- a/src/wiz8/old.cpp\n"
+        "+++ b/src/wiz8/old.cpp\n"
+        "@@ -1 +0,0 @@\n"
+        "-    return reinterpret_cast<int>(value);\n"
+    )
+
+    assert _added_casts(diff) == []
+
+
 def test_renamed_file_reports_the_new_path() -> None:
     diff = (
         "diff --git a/src/wiz8/old.cpp b/src/wiz8/new.cpp\n"

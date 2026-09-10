@@ -204,68 +204,6 @@ unsigned char IsCharacterSkillAvailable(
    the per-channel one, and only the total is clamped - the base is left as
    computed, which is why a subsequent pass over the same character produces the
    same answer rather than compounding. */
-// FUNCTION: WIZ8 0x00551a60
-void RecalculateCharacterResistances(W8Character* character)
-{
-    unsigned int index;
-    int channel;
-    unsigned int adjustment;
-
-    for (index = 0; index < W8_RESISTANCE_COUNT; ++index) {
-        W8CharacterResistance* resistance = &character->resistances[index];
-
-        resistance->base = 25;
-        resistance->base =
-            character->skills[W8_FIRST_RESISTANCE_SKILL + index].level / 10 + 25;
-        if (character->skills[W8_RESISTANCE_BONUS_SKILL].flag_00 != 0) {
-            resistance->base +=
-                character->skills[W8_RESISTANCE_BONUS_SKILL].level / 5 + 5;
-        }
-        if (character->current_profession == 14) {
-            resistance->base += 5;
-        }
-    }
-
-    if (character->race != -1) {
-        for (index = 0; index < W8_RESISTANCE_COUNT; ++index) {
-            channel = g_race_resistance_profiles[character->race]
-                          .adjustments[index].resistance_index;
-            if (channel == -1) {
-                break;
-            }
-            adjustment = g_race_resistance_profiles[character->race]
-                             .adjustments[index].adjustment_or_attribute;
-            if (static_cast<int>(adjustment) > W8_RACE_ADJUSTMENT_ATTRIBUTE_BIAS) {
-                adjustment =
-                    character->attributes[adjustment - W8_RACE_ADJUSTMENT_ATTRIBUTE_BIAS]
-                        .value / 5;
-            }
-            character->resistances[channel].base += adjustment;
-        }
-    }
-
-    if (character->attributes[1].effective > 0x50) {
-        character->resistances[4].base +=
-            (character->attributes[1].effective - 0x50) >> 1;
-    }
-    if (character->attributes[2].effective > 0x50) {
-        character->resistances[5].base +=
-            (character->attributes[2].effective - 0x50) >> 1;
-    }
-
-    for (index = 0; index < W8_RESISTANCE_COUNT; ++index) {
-        W8CharacterResistance* resistance = &character->resistances[index];
-
-        resistance->total = resistance->base;
-        resistance->total = resistance->base + character->resistance_bonus_all;
-        resistance->total += character->resistance_bonus[index];
-    }
-    for (index = 0; index < W8_RESISTANCE_COUNT; ++index) {
-        if (character->resistances[index].total > 100) {
-            character->resistances[index].total = 100;
-        }
-    }
-}
 #include "wiz8/character.h"
 #include "wiz8/layouts/gameplay_databases.h"
 extern "C" {

@@ -1,5 +1,7 @@
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/combat_state.h"
+#include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
 
@@ -72,4 +74,11 @@ unsigned char MonsterCanAimSpell005474B0(int spell_id)
         return 0;
     }
     return 0;
+}
+
+// FUNCTION: WIZ8 0x00547510
+unsigned char Function547510(void)
+{
+    return g_in_combat_00683f94 != 0 && g_combat_state->flag_a54 == 0 &&
+           g_combat_state->value_004 <= 1;
 }

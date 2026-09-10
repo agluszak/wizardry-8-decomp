@@ -1,4 +1,5 @@
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/targeting.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/engine_code/stScript.h"
@@ -28,12 +29,6 @@ extern W8NpcState* Function50A440(unsigned int monster_list_index);  /* 0x0050A4
 enum { W8_ENCOUNTER_GROUP_INDEX_BIAS = 10000 };
 
 extern void Function454C80(void);                            /* 0x00454C80 */
-// FUNCTION: WIZ8 0x00547510
-unsigned char Function547510(void)
-{
-    return g_in_combat_00683f94 != 0 && g_combat_state->flag_a54 == 0 &&
-           g_combat_state->value_004 <= 1;
-}
 
 /* A group of one is named in the singular; any other count uses the plural
    form, which is the second entry of each name set. */
@@ -887,4 +882,76 @@ void ApplyDefaultMonsterGroupSounds(void)
             lead->monster->SetScript004C7F10("Default.MSF", 1);
         }
     }
+}
+
+// FUNCTION: WIZ8 0x00510b60
+W8MonsterGroup* FindFirstMonsterByID(int monster_id)
+{
+    unsigned int index;
+    W8MonsterGroup* group;
+
+    for (index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
+        group = GetMonsterGroupByListIndex(index);
+        if (group->monster_id == monster_id) {
+            goto found;
+        }
+    }
+    for (index = 0; index < PLLength(gXStatus.plsMonsterGroupEncounterList); ++index) {
+        group = (W8MonsterGroup*)PLGet(gXStatus.plsMonsterGroupEncounterList, index);
+        if (group->monster_id == monster_id) {
+            goto found;
+        }
+    }
+    group = 0;
+
+found:
+    return group;
+}
+
+// FUNCTION: WIZ8 0x00510bf0
+W8MonsterGroup* FindNextExistingMonsterByID(int monster_id, W8MonsterGroup* previous)
+{
+    /* One variable carries both the PListIndexOf result and the loop index; the
+       original keeps them in the same register and steps it with a plain
+       increment rather than computing index = position + 1 separately. */
+    int index = 0;
+    W8MonsterGroup* group;
+
+    if (previous != 0) {
+        index = PListIndexOf(gXStatus.plsMonsterGroupList, previous);
+        if (index >= (int)PLLength(gXStatus.plsMonsterGroupList) - 1) {
+            goto reset_encounter;
+        }
+        if (index == -1) {
+            index = PListIndexOf(gXStatus.plsMonsterGroupEncounterList, previous);
+            if (index == -1) {
+                group = 0;
+                goto done;
+            }
+            ++index;
+            goto search_encounter;
+        }
+        ++index;
+    }
+    for (; (unsigned int)index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
+        group = GetMonsterGroupByListIndex((unsigned int)index);
+        if (group->monster_id == monster_id) {
+            goto done;
+        }
+    }
+
+reset_encounter:
+    index = 0;
+
+search_encounter:
+    for (; (unsigned int)index < PLLength(gXStatus.plsMonsterGroupEncounterList); ++index) {
+        group = (W8MonsterGroup*)PLGet(gXStatus.plsMonsterGroupEncounterList, (unsigned int)index);
+        if (group->monster_id == monster_id) {
+            goto done;
+        }
+    }
+    group = 0;
+
+done:
+    return group;
 }

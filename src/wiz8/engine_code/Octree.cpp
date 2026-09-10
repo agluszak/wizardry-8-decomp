@@ -2553,18 +2553,6 @@ void W8Octree::AdjustPortalDestination(
 
 /* Release the location-variable names and empty their parallel value and
    level vectors. Trigger.cpp creates the names as copied character arrays. */
-// FUNCTION: WIZ8 0x004445b0
-void ReleaseAllTriggers(void)
-{
-    int index;
-
-    for (index = 0; index < g_location_variable_names_006598f8.GetCount(); ++index) {
-        delete[] *g_location_variable_names_006598f8.GetAt(index);
-    }
-    g_location_variable_values_00659990.Clear();
-    g_location_variable_names_006598f8.Clear();
-    g_location_variable_levels_006598e0.Clear();
-}
 
 // FUNCTION: WIZ8 0x004374C0
 unsigned char ReadVector4Array004374C0(

@@ -241,16 +241,23 @@ def repository_source_file(repo_dir: Path, unit: str, markers: list[dict[str, An
 
 
 def resolve_source_placement(
-    repo_dir: Path, markers: list[dict[str, Any]], address: int
+    repo_dir: Path,
+    markers: list[dict[str, Any]],
+    address: int,
+    *,
+    layout: Any | None = None,
 ) -> dict[str, Any]:
-    """Resolve ownership with the same assertion-backed authority as context."""
+    """Resolve ownership with the shared translation-unit layout."""
 
-    from .ghidra.unit_intervals import TranslationUnitResolver
+    from .ghidra.unit_intervals import TranslationUnitLayout, assertion_anchors
 
-    assertion_path = repo_dir / "evidence/observations/wiz8/assertions.csv"
-    with assertion_path.open(newline="", encoding="utf-8") as stream:
-        assertions = list(csv.DictReader(stream))
-    ownership = TranslationUnitResolver(assertions).resolve(address)
+    if layout is None:
+        assertion_path = repo_dir / "evidence/observations/wiz8/assertions.csv"
+        with assertion_path.open(newline="", encoding="utf-8") as stream:
+            assertions = list(csv.DictReader(stream))
+        units, headers = assertion_anchors(assertions)
+        layout = TranslationUnitLayout(units, header_anchors=headers)
+    ownership = layout.owner(address)
     unit = str(ownership.get("source_path") or "")
     if not unit:
         return {
@@ -419,6 +426,11 @@ def recover_candidates(
     source_index = load_source_index(settings.repo_dir)
     markers = source_index["markers"]
     exported = recover_functions(settings, selections, program_selector=program_selector)
+    layout = None
+    if program_selector == "wiz8":
+        from .ghidra.unit_intervals import translation_unit_layout_if_available
+
+        layout = translation_unit_layout_if_available(settings)
     output_dir = settings.build_dir / "recover" / "candidates"
     output_dir.mkdir(parents=True, exist_ok=True)
     functions: list[dict[str, Any]] = []
@@ -429,7 +441,7 @@ def recover_candidates(
         source_candidates = item.get("source_candidates")
         if isinstance(source_candidates, list) and source_candidates:
             row["source_candidates"] = source_candidates
-        placement = resolve_source_placement(settings.repo_dir, markers, address)
+        placement = resolve_source_placement(settings.repo_dir, markers, address, layout=layout)
         row["placement"] = placement
         blockers = exported_blockers({"exports": [item]}).get(address, [])
         projections: list[dict[str, str]] = []

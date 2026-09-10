@@ -1,4 +1,5 @@
 #include "wiz8/character.h"
+#include "wiz8/local_code/CombatRange.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/xstatus.h"
@@ -253,4 +254,19 @@ float GetRangeConstant5EC360(void)
 float GetRangeConstant5EC35C(void)
 {
     return g_range_constant_005ec35c;
+}
+
+// FUNCTION: WIZ8 0x0051b3f0
+unsigned char Function51B3F0(int mode)
+{
+    switch (mode) {
+    case 0:
+    case 1:
+        return 0;
+    case 2:
+    case 3:
+        return 1;
+    default:
+        return static_cast<unsigned char>(mode);
+    }
 }

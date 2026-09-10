@@ -5,13 +5,13 @@ import io
 from pathlib import Path
 from typing import Any
 
-# The interval derivation is shared with Ghidra-backed recovery reports.
 from ..ghidra.unit_intervals import (
     TranslationUnitInterval,
+    TranslationUnitLayout,
     _address,
+    assertion_anchors,
     derive_intervals,
 )
-from ..ghidra.unit_intervals import source_path as _source_path
 from ..paths import atomic_write
 
 __all__ = [
@@ -22,6 +22,15 @@ __all__ = [
     "render_interval_csv",
     "translation_unit_report",
 ]
+
+ATTRIBUTION_KEYS = (
+    "direct",
+    "bounded",
+    "cross-build",
+    "inlined-or-conflicting",
+    "external/synthetic",
+    "gap",
+)
 
 
 def function_inventory(
@@ -49,11 +58,6 @@ def function_inventory(
             "source_path": function.source_file,
         }
     return list(by_address.values())
-
-
-def _read_rows(path: Path) -> list[dict[str, str]]:
-    with path.open(newline="", encoding="utf-8") as stream:
-        return list(csv.DictReader(stream))
 
 
 def _csv(rows: list[dict[str, str]], fields: list[str]) -> str:
@@ -115,90 +119,85 @@ def render_interval_csv(intervals: list[TranslationUnitInterval]) -> str:
     )
 
 
-def render_gameplay_map_csv(
-    assertions: list[dict[str, str]],
-    gameplay: list[dict[str, str]],
-    intervals: list[TranslationUnitInterval],
-    extra_anchors: dict[int, str] | None = None,
-) -> tuple[str, dict[str, int]]:
-    direct: dict[int, str] = {}
-    reviewed: set[int] = set()
-    for row in assertions:
-        source_path = _source_path(row["source_path"])
-        if source_path is not None and row["containing_function"]:
-            anchor = int(row["containing_function"], 16)
-            direct[anchor] = source_path
-            reviewed.add(anchor)
-    for anchor, source_path in (extra_anchors or {}).items():
-        direct.setdefault(anchor, source_path)
+def _owner_evidence(owner: dict[str, Any]) -> str:
+    evidence = owner.get("evidence") or []
+    if not evidence:
+        return str(owner.get("attribution") or "")
+    parts = []
+    for item in evidence:
+        if not isinstance(item, dict):
+            continue
+        if item.get("evidence") == "hard-hull":
+            parts.append(f"hard hull {item['lower']}-{item['upper']}")
+            continue
+        text = str(item.get("evidence"))
+        if item.get("function"):
+            text += f" at {item['function']}"
+        if item.get("line") is not None:
+            text += f":{item['line']}"
+        if item.get("origin_variant"):
+            text += f" from {item['origin_variant']} {item.get('origin_function', '')}".rstrip()
+            if item.get("match"):
+                text += f" ({item['match']}"
+                if item.get("score") is not None:
+                    text += f", {item['score']}"
+                text += ")"
+        parts.append(text)
+    return "; ".join(parts)
 
+
+def _bounds(owner: dict[str, Any], address: int) -> tuple[str, str, str]:
+    if owner.get("interval_lower") and owner.get("interval_upper"):
+        return str(owner["interval_lower"]), str(owner["interval_upper"]), "inclusive"
+    if owner.get("attribution") == "gap":
+        previous = owner.get("previous_hard_unit") or {}
+        following = owner.get("next_hard_unit") or {}
+        return str(previous.get("upper") or ""), str(following.get("lower") or ""), "exclusive"
+    return _address(address), _address(address), "source-marker"
+
+
+def render_gameplay_map_csv(
+    layout: TranslationUnitLayout,
+    gameplay: list[dict[str, str]],
+) -> tuple[str, dict[str, int]]:
     rows: list[dict[str, str]] = []
-    counts = {"direct": 0, "inferred": 0, "gap": 0, "external": 0}
+    counts = {key: 0 for key in ATTRIBUTION_KEYS}
     for function in sorted(gameplay, key=lambda row: int(row["address"], 16)):
         address = int(function["address"], 16)
-        containing = next(
-            (interval for interval in intervals if interval.lower <= address <= interval.upper),
-            None,
-        )
         if function.get("source_path"):
-            attribution = "direct"
-            source_path = function["source_path"]
-            lower = address
-            upper = address
-            bounds = "source-marker"
-            evidence = "physical source file owning the compiler-bound marker"
+            owner: dict[str, Any] = {
+                "source_path": function["source_path"],
+                "attribution": "direct",
+                "evidence": [{"evidence": "physical source file owning the compiler-bound marker"}],
+            }
         elif function["owner"] == "surrender-template":
-            attribution = "external"
-            source_path = ""
-            lower = 0
-            upper = 0
-            bounds = ""
-            evidence = (
-                "SurRender template body; reviewed vendor ownership overrides "
-                "address-range inference"
-            )
-        elif address in direct:
-            assert containing is not None and containing.source_path == direct[address]
-            attribution = "direct"
-            source_path = direct[address]
-            lower = containing.lower
-            upper = containing.upper
-            bounds = "inclusive"
-            evidence = "the function itself contains an assertion naming this source path"
-            if address not in reviewed:
-                evidence += "; anchor recovered statically from the call-site snapshot"
-        elif containing is not None:
-            attribution = "inferred"
-            source_path = containing.source_path
-            lower = containing.lower
-            upper = containing.upper
-            bounds = "inclusive"
-            evidence = "function start lies inside this unit's assertion-bounded interval"
+            owner = {
+                "source_path": "",
+                "attribution": "external/synthetic",
+                "evidence": [
+                    {
+                        "evidence": (
+                            "SurRender template body; reviewed vendor ownership overrides "
+                            "address-range inference"
+                        )
+                    }
+                ],
+            }
         else:
-            attribution = "gap"
-            source_path = ""
-            previous = next((item for item in reversed(intervals) if item.upper < address), None)
-            following = next((item for item in intervals if item.lower > address), None)
-            lower = previous.upper if previous is not None else 0
-            upper = following.lower if following is not None else 0
-            bounds = "exclusive"
-            previous_path = previous.source_path if previous is not None else "start of .text"
-            following_path = following.source_path if following is not None else "end of .text"
-            evidence = (
-                "outside every assertion-bounded interval; between "
-                f"{previous_path} and {following_path}"
-            )
-        counts[attribution] += 1
+            owner = layout.owner(address)
+        attribution = str(owner.get("attribution") or "gap")
+        lower, upper, bounds = _bounds(owner, address)
+        counts[attribution] = counts.get(attribution, 0) + 1
         rows.append(
             {
                 "address": _address(address),
                 "symbol": function["symbol"],
-                "source_path": source_path,
+                "source_path": str(owner.get("source_path") or ""),
                 "attribution": attribution,
-                "interval_lower": _address(lower) if lower else "",
-                "interval_upper": _address(upper) if upper else "",
+                "interval_lower": lower,
+                "interval_upper": upper,
                 "bounds": bounds,
-                "evidence": evidence,
+                "evidence": _owner_evidence(owner),
             }
         )
     return (
@@ -219,34 +218,43 @@ def render_gameplay_map_csv(
     )
 
 
-def translation_unit_report(settings: Any) -> dict[str, Any]:
+def assertion_only_layout(repo_dir: Path) -> TranslationUnitLayout:
+    assertions = _read_rows(repo_dir / "evidence/observations/wiz8/assertions.csv")
+    units, headers = assertion_anchors(assertions)
+    return TranslationUnitLayout(units, header_anchors=headers)
+
+
+def _read_rows(path: Path) -> list[dict[str, str]]:
+    with path.open(newline="", encoding="utf-8") as stream:
+        return list(csv.DictReader(stream))
+
+
+def translation_unit_report(
+    settings: Any, layout: TranslationUnitLayout | None = None
+) -> dict[str, Any]:
     from ..ghidra.query import function_inventory as ghidra_function_inventory
 
-    assertions = _read_rows(
-        settings.repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv"
-    )
+    if layout is None:
+        layout = assertion_only_layout(settings.repo_dir)
     gameplay = function_inventory(settings.repo_dir, ghidra_function_inventory(settings))
-    intervals = derive_intervals(assertions)
+    intervals = layout.projection()
     interval_csv = render_interval_csv(intervals)
-    gameplay_csv, counts = render_gameplay_map_csv(assertions, gameplay, intervals)
+    gameplay_csv, counts = render_gameplay_map_csv(layout, gameplay)
 
     report_dir = settings.build_dir / "reports" / "translation-units"
     interval_path = report_dir / "translation-unit-intervals.csv"
     gameplay_path = report_dir / "gameplay-translation-units.csv"
     atomic_write(interval_path, interval_csv)
     atomic_write(gameplay_path, gameplay_csv)
-    reviewed_anchors = {
-        int(row["containing_function"], 16)
-        for row in assertions
-        if _source_path(row["source_path"]) is not None and row["containing_function"]
-    }
     return {
         "translation_units": len(intervals),
         "gaps": max(len(intervals) - 1, 0),
         "gameplay_functions": len(gameplay),
         "attribution": counts,
         "anchors": {
-            "reviewed": len(reviewed_anchors),
+            "unit_anchors": len(layout.unit_anchors),
+            "conflicting_functions": len(layout.conflicts),
+            "header_anchors": len(layout.header_anchors),
         },
         "outputs": [
             str(interval_path.relative_to(settings.repo_dir)),

@@ -11,18 +11,7 @@ unsigned char ScreenLifecycleSuccess(void)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x00443a50
-int Function443A50(void)
-{
-    g_status_685170.next_trigger_id_2356 = 1;
-    return 1;
-}
 
-// FUNCTION: WIZ8 0x00482740
-void Function482740(int value)
-{
-    g_status_685170.game_time_days = value;
-}
 
 // FUNCTION: WIZ8 0x005588e0
 void Function5588E0(unsigned char value)

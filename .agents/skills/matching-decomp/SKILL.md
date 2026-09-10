@@ -25,6 +25,8 @@ resolve insufficient/contradictory documentation; fix stale invocation instructi
 
 1. Identify the requested entity and existing C++/header/TU owner. Search source and known oracles
    before recovering anything new; reuse evidence unless missing, stale, or contradictory.
+   Consult the normal recovery context for original-TU ownership before placing a recovered game
+   function; do not manually rediscover source ownership unless the returned evidence is ambiguous.
 2. Inspect only unanswered binary facts. Direct PyGhidra through
    `wiz8decomp.ghidra.env.open_program(settings, "wiz8")` is the normal native inspection/edit path.
 3. Correct demonstrably wrong Ghidra facts with native transactions; save the coherent batch and

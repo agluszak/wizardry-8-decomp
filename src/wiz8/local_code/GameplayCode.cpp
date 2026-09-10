@@ -791,3 +791,19 @@ void Function4EFA30(W8Character* character)
     }
     character->unknown_007d = 0;
 }
+
+// FUNCTION: WIZ8 0x004ef420
+unsigned int GetAveragePartyLevel(void)
+{
+    unsigned int total_level = 0;
+    unsigned int occupied_slots = 0;
+    int slot;
+
+    for (slot = 0; slot < 8; ++slot) {
+        if (g_party_slot_rows[slot].occupied != 0) {
+            total_level += g_party_characters[slot].level;
+            ++occupied_slots;
+        }
+    }
+    return total_level / occupied_slots;
+}

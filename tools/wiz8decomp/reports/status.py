@@ -5,9 +5,9 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+from ..ghidra.unit_intervals import TranslationUnitLayout, assertion_anchors
 from ..source_index import load_source_index, source_functions
 from .translation_units import (
-    derive_intervals,
     function_inventory,
     render_gameplay_map_csv,
 )
@@ -62,8 +62,9 @@ def derive_status(repo_dir: Path, ghidra_functions: list[dict[str, str]]) -> dic
     source_units = _rows(repo_dir / "evidence/observations/wiz8/source-tree.csv")
     assertions = _rows(repo_dir / "evidence/observations/wiz8/assertions.csv")
     gameplay = function_inventory(repo_dir, ghidra_functions)
-    intervals = derive_intervals(assertions)
-    gameplay_map, attribution = render_gameplay_map_csv(assertions, gameplay, intervals)
+    units, headers = assertion_anchors(assertions)
+    layout = TranslationUnitLayout(units, header_anchors=headers)
+    gameplay_map, attribution = render_gameplay_map_csv(layout, gameplay)
     attributed_rows = list(csv.DictReader(gameplay_map.splitlines()))
     attributed_units = {row["source_path"] for row in attributed_rows if row["source_path"]}
 

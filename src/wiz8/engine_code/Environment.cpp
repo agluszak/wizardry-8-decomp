@@ -745,3 +745,9 @@ void Function482720(int value)
 
 // TEMPLATE: WIZ8 0x004848d0
 // srMatrix3T<float>::RotateAboutY(double,double)
+
+// FUNCTION: WIZ8 0x00482740
+void Function482740(int value)
+{
+    g_status_685170.game_time_days = value;
+}

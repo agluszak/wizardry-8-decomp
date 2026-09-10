@@ -24,35 +24,8 @@ unsigned char g_flag_68c4f7;
    original translation-unit spelling is not established; this descriptive
    name is provisional. */
 
-// FUNCTION: WIZ8 0x00525E50
-bool IsValue68C4C0Clear(void)
-{
-    return g_value_68c4c0 == 0;
-}
 
-// FUNCTION: WIZ8 0x00525DD0
-unsigned char Function525DD0(void)
-{
-    return g_flag_68c4a0 != 0 || g_flag_68c4f6 != 0;
-}
 
-// FUNCTION: WIZ8 0x00525DF0
-unsigned char Function525DF0(unsigned char require_group_entry)
-{
-    if (g_flag_68c4f7 != 0) {
-        return 0;
-    }
-    if (g_flag_68c4a0 == 0 && g_flag_68c4f6 == 0 && g_value_68c4c0 == 0) {
-        return 0;
-    }
-    if (g_npc_state_68c4ac == 0) {
-        return 0;
-    }
-    if (GetNpcGroupEntry(g_npc_state_68c4ac) != 0 && require_group_entry == 0) {
-        return 0;
-    }
-    return 1;
-}
 
 /* Report whether a party slot can be picked: in range, its slot row occupied,
    the character still on its feet, and the 0x0b01 gate under 0x0d. That gate's

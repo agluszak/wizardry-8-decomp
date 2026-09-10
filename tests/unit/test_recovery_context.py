@@ -84,6 +84,12 @@ def test_context_batch_uses_one_session_and_never_compares(tmp_path, monkeypatch
     monkeypatch.setattr(
         recovery_context, "open_program", lambda *_args, **_kwargs: contextlib.nullcontext(object())
     )
+    monkeypatch.setattr(
+        recovery_context, "collect_program_anchors", lambda *_args, **_kwargs: ([], [])
+    )
+    monkeypatch.setattr(
+        recovery_context, "program_function_signatures", lambda *_args, **_kwargs: {}
+    )
     contexts = recovery_context.recovery_context_reports(settings, ["a", "b"])
 
     assert calls == 1

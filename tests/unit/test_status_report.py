@@ -155,9 +155,11 @@ def test_gameplay_attribution_separates_markers_assertions_and_gaps(repository: 
     # 0x404000 lies outside every assertion-bounded interval.
     assert gameplay["translation_unit_attribution"] == {
         "direct": 3,
-        "inferred": 0,
+        "bounded": 0,
+        "cross-build": 0,
+        "inlined-or-conflicting": 0,
+        "external/synthetic": 0,
         "gap": 1,
-        "external": 0,
     }
     assert gameplay["unowned_functions"] == 1
     # A marker attributes its recovered `src/` path while an assertion anchor

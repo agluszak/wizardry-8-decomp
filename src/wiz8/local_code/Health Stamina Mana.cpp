@@ -983,3 +983,21 @@ int SumCharacterSpellPoints(const W8Character* character)
     }
     return total;
 }
+
+// FUNCTION: WIZ8 0x0052C480
+W8Character* FindPartyMemberWithLowestResistance4(void)
+{
+    unsigned int lowest = 999;
+    int selected = 0;
+    for (int party_slot = 0; party_slot < 8; ++party_slot) {
+        W8Character* character = &g_party_characters[party_slot];
+        if (g_party_slot_rows[party_slot].occupied != 0 &&
+            character->unknown_0b01 < 0x12 &&
+            character->resistances[4].total < lowest) {
+            selected = party_slot;
+            lowest = character->resistances[4].total;
+        }
+    }
+    if (lowest == 999) return 0;
+    return &g_party_characters[selected];
+}

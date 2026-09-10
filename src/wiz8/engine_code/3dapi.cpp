@@ -80,20 +80,6 @@ extern void Function444F70(int value, float duration, float intensity,
 
 extern void Function500930(void);
 
-// FUNCTION: WIZ8 0x00443A60
-void DestroyAllWorldTriggers(W8World* world)
-{
-    if (world != 0 && world->triggers != 0) {
-        while (world->triggers->GetCount() != 0) {
-            Trigger* trigger = *world->triggers->GetAt(0);
-            world->triggers->RemoveAt(0);
-            if (trigger != 0) {
-                trigger->release();
-            }
-        }
-        world->triggers->Clear();
-    }
-}
 
 // FUNCTION: WIZ8 0x00450B10
 void ConstructWorldCollections(W8World* world)

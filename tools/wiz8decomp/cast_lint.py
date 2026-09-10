@@ -9,7 +9,8 @@ must say so where it is written::
 
 This gate inspects the added lines of the current Jujutsu change stack (or of a
 Git checkout against its baseline branch). Existing casts are not re-litigated;
-only ones introduced by the change need the comment. The gate covers the
+only ones introduced by the change need the comment, and a cast line that moved
+between files is recognized by its removed counterpart. The gate covers the
 recovered product headers and sources under ``src/wiz8`` and ``include/wiz8``.
 """
 
@@ -17,6 +18,7 @@ from __future__ import annotations
 
 import os
 import re
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -93,7 +95,8 @@ def _baseline(repository: Path) -> tuple[str, str]:
 
 
 def _added_casts(diff: str) -> list[dict[str, Any]]:
-    violations: list[dict[str, Any]] = []
+    added: list[dict[str, Any]] = []
+    removed: Counter[str] = Counter()
     current: str | None = None
     line_number = 0
     old_remaining = new_remaining = 0
@@ -103,18 +106,20 @@ def _added_casts(diff: str) -> list[dict[str, Any]]:
             # source line (``+++i`` for ``++i``) from a ``+++`` file header.
             if raw.startswith("+"):
                 content = raw[1:]
+                stripped = content.strip()
                 if (
                     current
                     and current.startswith(SCOPE_PREFIXES)
                     and _CAST in content
                     and not _MARKER.search(content)
                 ):
-                    violations.append(
-                        {"file": current, "line": line_number, "text": content.strip()[:200]}
-                    )
+                    added.append({"file": current, "line": line_number, "text": stripped[:200]})
                 new_remaining -= 1
                 line_number += 1
             elif raw.startswith("-"):
+                content = raw[1:]
+                if _CAST in content:
+                    removed[content.strip()] += 1
                 old_remaining -= 1
             elif raw.startswith(" "):
                 old_remaining -= 1
@@ -136,6 +141,12 @@ def _added_casts(diff: str) -> list[dict[str, Any]]:
                 old_remaining = int(hunk.group(2) or 1)
                 new_remaining = int(hunk.group(4) or 1)
                 line_number = int(hunk.group(3))
+    violations = []
+    for item in added:
+        if removed[item["text"]]:
+            removed[item["text"]] -= 1
+            continue
+        violations.append(item)
     return violations
 
 

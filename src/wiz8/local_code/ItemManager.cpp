@@ -1,4 +1,5 @@
 #include "wiz8/local_code/ItemManager.h"
+#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/game_status.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -126,21 +127,6 @@ static const W8ItemLevelScaleRange g_item_level_scale_ranges[7] = {
     {31, 1000, 1000000},
 };
 
-// FUNCTION: WIZ8 0x004ef420
-unsigned int GetAveragePartyLevel(void)
-{
-    unsigned int total_level = 0;
-    unsigned int occupied_slots = 0;
-    int slot;
-
-    for (slot = 0; slot < 8; ++slot) {
-        if (g_party_slot_rows[slot].occupied != 0) {
-            total_level += g_party_characters[slot].level;
-            ++occupied_slots;
-        }
-    }
-    return total_level / occupied_slots;
-}
 
 // FUNCTION: WIZ8 0x004f88a0
 int FindItemTableByName(const char* name)
@@ -611,4 +597,65 @@ void RebuildAllWorldItemInstances(void)
         item = ItemInfo(index);
         ReplaceOrCreateItem(&item->item, item->item.item_id, 0, 0, 0);
     }
+}
+
+// FUNCTION: WIZ8 0x004f6b90
+W8WorldItem* CreateWorldItem(
+    W8ItemInstance* item,
+    const srVector3T<float>* position,
+    int unknown,
+    unsigned char add_to_world)
+{
+    W8WorldItem* result = (W8WorldItem*)malloc(sizeof(W8WorldItem));
+
+    if (result == 0) {
+        return 0;
+    }
+
+    memset(result, 0, sizeof(W8WorldItem));
+    Function520070(&result->item, 0, 1);
+    result->runtime_id = g_status_685170.next_world_item_id_2352++;
+    result->unknown_08 = 0;
+    result->owner = 0;
+    result->position = *position;
+    result->sector_id = -1;
+    SettleWorldItem(result);
+    result->entity_flags = unknown;
+
+    if (item != 0) {
+        CopyItemInstance(&result->item, item, 0, 1);
+    }
+    if (add_to_world && PLAdoptAppend(gXStatus.plsItemList, result) == -1) {
+        return 0;
+    }
+    return result;
+}
+
+// FUNCTION: WIZ8 0x004f6c50
+W8WorldItem* SpawnItem(
+    int item_id,
+    const srVector3T<float>* position,
+    int unknown,
+    unsigned char add_to_world)
+{
+    W8ItemInstance local_item;
+    W8ItemInstance* item;
+    W8WorldItem* result;
+
+    if (item_id == -1) {
+        item = 0;
+    } else {
+        ReplaceOrCreateItem(&local_item, item_id, 0, 0, 0);
+        item = &local_item;
+    }
+
+    result = CreateWorldItem(item, position, unknown, add_to_world);
+    if (result == 0) {
+        srAssertFail(
+            "pItemInfo",
+            "C:\\Projects\\Wizardry 8\\Local Code\\ItemManager.cpp",
+            0x18e,
+            0);
+    }
+    return result;
 }

@@ -6,9 +6,14 @@ import csv
 from pathlib import Path
 from typing import Any
 
+from ..ghidra.cross_build import program_function_signatures
 from ..ghidra.env import open_program
 from ..ghidra.query import query_many, resolve_function_selectors
-from ..ghidra.unit_intervals import TranslationUnitResolver
+from ..ghidra.unit_intervals import (
+    TranslationUnitLayout,
+    assertion_anchors,
+    collect_program_anchors,
+)
 from ..ghidra.workspace import resolve_seed_program
 from ..paths import atomic_write
 from ..source_index import load_source_index, source_functions
@@ -66,9 +71,17 @@ def recovery_context_reports(
     canonical = program_name == resolve_seed_program(settings, "wiz8")
     assertions = _read(settings.repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv")
     source_model = source_functions(settings.repo_dir) if canonical else {}
+    external_entries = {
+        address
+        for address, marker in source_model.items()
+        if marker.marker_kind in {"TEMPLATE", "SYNTHETIC"}
+    }
+    assertion_units, assertion_headers = assertion_anchors(assertions)
 
     with open_program(settings, selector) as program:
         entries = resolve_function_selectors(program, selectors)
+        live_units, live_headers = collect_program_anchors(program) if canonical else ([], [])
+        signatures = program_function_signatures(program) if canonical else {}
         by_requested = {
             entry: [
                 row
@@ -110,6 +123,18 @@ def recovery_context_reports(
             if by_requested[entry] and entry not in source_model
         ]
         results = query_many(program, queries, function_seeds=seeds or None)
+
+    projected, cross_details = ([], [])
+    if signatures:
+        from ..ghidra.cross_build import collect_cross_build_anchors
+
+        projected, cross_details = collect_cross_build_anchors(settings, signatures)
+    layout = TranslationUnitLayout(
+        [*assertion_units, *live_units, *projected],
+        header_anchors=[*assertion_headers, *live_headers],
+        external_entries=external_entries,
+        cross_build_details=cross_details,
+    )
 
     boundaries = {
         int(address, 0): int(owner, 16) if owner is not None else None
@@ -168,12 +193,14 @@ def recovery_context_reports(
             }
             if marker is not None
             else {
-                "translation_unit": TranslationUnitResolver(assertions).resolve(entry),
+                "translation_unit": None,
                 "location": None,
                 "prototype": None,
                 "implementation": "unrecovered",
             }
         )
+        original_translation_unit = layout.context(entry)
+        header_origin = layout.header_owner(entry)
         calls = []
         for call in function.get("calls", []):
             target = call.get("function") or {}
@@ -212,6 +239,8 @@ def recovery_context_reports(
                 "program": program_name,
                 "identity": {"name": marker.name if marker is not None else function["name"]},
                 "source": source,
+                "original_translation_unit": original_translation_unit,
+                "header_origin": header_origin,
                 "retail": {
                     "prototype": _one_line(function["prototype"]),
                     "calling_convention": function.get("calling_convention"),

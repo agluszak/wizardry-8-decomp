@@ -8,10 +8,11 @@ This is a Jujutsu repository for evidence-driven matching decompilation.
   generated output, comparison scores, and workflow documentation. Correct errors at their owner;
   keep unresolved facts unknown.
 - Ghidra owns live analysis: signatures/parameter storage, symbols, references, types/fields, vtables,
-  comments, and decompiler state. Git/C++ owns recovered source, declarations, TU ownership/order,
-  matching annotations, compiler/build configuration, and provenance claims. Provenance explains
-  accepted identities and authority limits; do not duplicate either model into another database.
-  Generated `build/` projections are disposable.
+  comments, decompiler state, and the original binary translation-unit layout. Git/C++ owns recovered
+  source, declarations, current source placement, matching annotations, compiler/build configuration,
+  and provenance claims; current placement is checked against the Ghidra TU layout, not derived from
+  it. Provenance explains accepted identities and authority limits; do not duplicate either model into
+  another database. Generated `build/` projections are disposable.
 - Search source and accepted oracles before declaring or implementing. One entity has one canonical
   owner and one evidence-backed type. Cross-TU functions/globals are declared in the owning header;
   callers include it. No local `.cpp` externs, except actual C/OS/vendor interfaces without an

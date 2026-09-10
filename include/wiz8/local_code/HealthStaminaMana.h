@@ -2,6 +2,9 @@
 
 struct W8Dice;
 struct W8MonsterInfo;
+struct W8Character;
+
+W8Character* FindPartyMemberWithLowestResistance4(void);
 
 void HealCharacter(int party_slot, int amount, char announce);
 void RestoreCharacterStamina(int party_slot, int amount, char announce);

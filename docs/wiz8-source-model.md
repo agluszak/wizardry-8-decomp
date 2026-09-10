@@ -27,6 +27,30 @@ The older generated `build/evidence/source-paths.csv` is not authoritative for t
 its extractor truncates `.cpp` paths to `.c`. The tracked tree was rebuilt from raw NUL-terminated
 binary strings and retains the original extensions.
 
+## Translation-unit layout
+
+The reviewed assertion paths remain the strongest anchors, but the same absolute source strings also
+appear in allocation macros, diagnostics and error routines. `wiz8decomp.ghidra.unit_intervals`
+scans the live Ghidra program for references to Wizardry source paths, resolves the containing
+function, and treats each as a direct anchor; reviewed assertion rows stay a separate anchor kind
+that also carries their line. Header spellings such as `..\Engine Code\Include\AnimRep.hpp` are
+header-origin inline evidence, never unit anchors, and a function naming two distinct `.cpp` paths
+resolves to `inlined-or-conflicting` rather than one owner.
+
+Ordinary non-COMDAT functions emitted by one translation unit occupy one contiguous `.text`
+contribution, so the convex hull of a unit's direct anchors is hard-owned while everything outside
+every hull remains an explicit gap. Hulls of distinct units must not overlap; an overlap is a model
+contradiction, surfaced rather than papered over. A gap may contain a unit's unanchored tail, an
+invisible TU, or the next unit's head, and is never assigned heuristically. Other official builds
+(demo, 1.2.6, 1.2.8) contribute `cross-build` anchors through unique relocation-insensitive body
+matches, which can establish a retail hull for a unit whose retail path string is gone; ambiguous or
+non-unique matches stay unknown. The same layout drives `wiz8 report context`, `wiz8 recover`, and
+`wiz8 report translation-units`, and `wiz8 check-tu-placement` compares it against the current
+source-index placement. The placement check is dormant until the provisional Video2 fragment
+(`renderer_window.cpp`, `startup_cursor.cpp`, and the adjacent renderer/cursor units) is resolved:
+its proven functions still depend on unmarked static helpers that span the unresolved tail gap,
+and `build/reports/placement-violations.json` records the remaining contradictions.
+
 ## RTTI result
 
 The canonical executable contains no MSVC Type Descriptor strings beginning with `.?AV` or `.?AU`.

@@ -1,5 +1,6 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/3d.h"
+#include "wiz8/local_code/CombatRange.h"
 #include "wiz8/engine_code/OctPath.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/engine_code/Octree.h"
@@ -113,20 +114,6 @@ extern double g_double_005ebe80;
 extern float GetHeadingAngle004BE420(
     const srVector3T<float>* source,
     const srVector3T<float>* target);
-// FUNCTION: WIZ8 0x0051b3f0
-unsigned char Function51B3F0(int mode)
-{
-    switch (mode) {
-    case 0:
-    case 1:
-        return 0;
-    case 2:
-    case 3:
-        return 1;
-    default:
-        return static_cast<unsigned char>(mode);
-    }
-}
 extern void Function497690(int channel, const char* message);
 // GLOBAL: WIZ8 0x00652dc4
 srShader g_path_shader_00652dc4;

@@ -51,7 +51,7 @@ Two further columns apply where a layout rather than a name is at stake:
 | `sgp-source` | Released SGP ancestry of the reconstructed Wizardry component. |
 | `original-export` | A decorated export or import preserves the exact ABI name. |
 | `original-runtime-string` | The program itself names the entity at runtime, e.g. class registration. |
-| `original-source-path` | A `__FILE__`, assertion, or logging path assigns translation-unit ownership. |
+| `original-source-path` | A `__FILE__`, assertion, logging, or diagnostic path assigns translation-unit ownership. |
 | `official-demo` | Evidence carried by the official demo build. |
 | `official-cross-build` | Evidence carried by another official build, including protected retail. |
 | `fan-patch-signature` | A verified fan-patch signature database, currently CFAgent. |
