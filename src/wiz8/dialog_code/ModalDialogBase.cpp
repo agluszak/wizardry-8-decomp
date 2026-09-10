@@ -21,8 +21,7 @@ extern "C" unsigned char g_dialog_font_background_64fded;
 // FUNCTION: WIZ8 0x005d32c0
 void Function5D32C0(GUI_BUTTON* button, int reason)
 {
-    W8ModalDialogBase* dialog =
-        static_cast<W8ModalDialogBase*>(GetButtonUserData(button));
+    W8ModalDialogBase* dialog = GetButtonUserDataPointer<W8ModalDialogBase>(button);
     if (!dialog) {
         srAssertFail(
             "pDialog",
@@ -56,8 +55,7 @@ void Function5D32C0(GUI_BUTTON* button, int reason)
 // FUNCTION: WIZ8 0x005d3370
 void Function5D3370(GUI_BUTTON* button, int reason)
 {
-    W8ModalDialogBase* dialog =
-        static_cast<W8ModalDialogBase*>(GetButtonUserData(button));
+    W8ModalDialogBase* dialog = GetButtonUserDataPointer<W8ModalDialogBase>(button);
     if (!dialog) {
         srAssertFail(
             "pDialog",
@@ -244,8 +242,8 @@ int W8ModalDialogBase::CreateControls()
         int button_y;
         int button_x;
 
-        SetButtonUserData(m_field_5c, this);
-        SetButtonUserData(m_field_74, this);
+        SetButtonUserDataPointer(m_field_5c, this);
+        SetButtonUserDataPointer(m_field_74, this);
         button_width = GetButtonWidth(m_field_5c);
         button_y = m_y + m_height - GetButtonHeight(m_field_5c) - 0xf;
         if (allow_cancel) {
