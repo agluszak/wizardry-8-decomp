@@ -6,11 +6,11 @@
  * source-owned functions agree on the same three-field layout.
  */
 
-typedef struct W8IList {
+struct W8IList {
     int* data;                            /* 0x00 */
     int capacity;                         /* 0x04: IListInit allocates 10 */
     int count;                            /* 0x08 */
-} W8IList;
+};
 
 W8IList* ILCreate(void);
 unsigned char IListInit(W8IList* pls);

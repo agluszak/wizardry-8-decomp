@@ -114,15 +114,15 @@ extern unsigned int g_combat_countdown_6850b0;  /* 0x006850B0 */
 /* The 0x153-byte combat allocation has two adjacent runs of 0x11-byte records.
    ClearEffectSlot consumes a record whenever its leading active byte is set. */
 #pragma pack(push, 1)
-typedef struct W8EffectSlot {
+struct W8EffectSlot {
     signed char active;
     int visual_index;
     unsigned char unknown_05[8];
     /* 0x0d: the remaining duration the aging pass counts down. */
     float duration_0d;
-} W8EffectSlot;                            /* 0x11 */
+};                                         /* 0x11 */
 
-typedef struct W8MonsterCombatState {
+struct W8MonsterCombatState {
     /* 0x000: the phase of the round this monster next acts on, zero when it
        has finished acting. */
     unsigned int phase;
@@ -149,26 +149,26 @@ typedef struct W8MonsterCombatState {
        once per turn however often it is asked for. */
     unsigned char turn_started;
     unsigned char unknown_151[2];
-} W8MonsterCombatState;                    /* 0x153 */
+};                                         /* 0x153 */
 #pragma pack(pop)
 
 #pragma pack(push, 1)
 /* One initialization unit inside W8MonsterInfo. The creator clears all 0x67
    bytes in one constant-sized operation; later consumers independently name
    the damage reduction and per-attribute adjustments inside it. */
-typedef struct W8MonsterRuntimeBlock1DB {
+struct W8MonsterRuntimeBlock1DB {
     unsigned char unknown_00[6];
     signed char damage_reduction;              /* +0x06, W8MonsterInfo +0x1e1 */
     unsigned char unknown_07[5];
     signed char attribute_adjustments[7];      /* +0x0c, W8MonsterInfo +0x1e7 */
     unsigned char unknown_13[0x54];
-} W8MonsterRuntimeBlock1DB;                    /* 0x67 */
+};                                             /* 0x67 */
 
 /* 0x286: the party-side sight record for one monster. The live-threat gate,
    the clock and two position triples the player-sight pass stamps, the
    use-bounds flag IsVisibleToPlayer consumes, and its two sight flags. The
    per-turn reset zeroes all 0x30 bytes together, which fixes the extent. */
-typedef struct W8PartyThreatRecord {
+struct W8PartyThreatRecord {
     unsigned char unknown_00[4];
     unsigned char state_04;                 /* 0x28a: live-threat gate for the group sight query */
     unsigned char unknown_05[2];
@@ -179,14 +179,14 @@ typedef struct W8PartyThreatRecord {
     unsigned char threat_state_24;          /* 0x2aa: use-bounds flag handed to IsVisibleToPlayer */
     unsigned char flag_25;                  /* 0x2ab */
     unsigned char unknown_26[0x0a];
-} W8PartyThreatRecord;                        /* 0x30 */
+};                                            /* 0x30 */
 static_assert(sizeof(W8PartyThreatRecord) == 0x30, "W8PartyThreatRecord_size");
 
 /* 0x348: the player-visibility record for one monster. It mirrors the
    per-other-monster W8MonToMonVisibility record: state byte, four sight
    flags, the seen clock, two position triples and the line-of-sight byte.
    The reset zeroes exactly its 0x31 bytes; the following byte is outside. */
-typedef struct W8PlayerVisibility {
+struct W8PlayerVisibility {
     unsigned char unknown_00[4];
     unsigned char state_04;                 /* 0x34c */
     unsigned char sight_flags_05[4];        /* 0x34d: two flag pairs */
@@ -197,10 +197,10 @@ typedef struct W8PlayerVisibility {
     srVector3T<float> own_position_1c;      /* 0x364 */
     unsigned char line_of_sight_28;         /* 0x370 */
     unsigned char unknown_29[8];            /* 0x371; 0x379 lies outside the reset */
-} W8PlayerVisibility;                         /* 0x31 */
+};                                            /* 0x31 */
 static_assert(sizeof(W8PlayerVisibility) == 0x31, "W8PlayerVisibility_size");
 
-typedef struct W8MonsterInfo {
+struct W8MonsterInfo {
     int location_id;                      /* 0x00 */
     int monster_group_id;                 /* 0x04: group lookup input in 0x004e6020 */
     unsigned int monster_species;         /* 0x08 */
@@ -299,7 +299,7 @@ typedef struct W8MonsterInfo {
     unsigned char unknown_37b;
     unsigned char has_spell_37c;
     unsigned char unknown_37d[0xa8];
-} W8MonsterInfo;                          /* 0x425 */
+};                                        /* 0x425 */
 #pragma pack(pop)
 
 static_assert(sizeof(W8MonsterInfo) == 0x425, "W8MonsterInfo_size_must_be_0x425");

@@ -228,11 +228,11 @@ void NormalizeItemQuantityKind(W8ItemInstance* item)
    but the table walks 0x52 per entry. Values are the retail table at
    0x006171AA. */
 #pragma pack(push, 2)
-typedef struct W8ConditionImmunity {
+struct W8ConditionImmunity {
     unsigned char kind;
     unsigned char pad;
     int conditions[20];
-} W8ConditionImmunity;                          /* 0x52 */
+};                                              /* 0x52 */
 #pragma pack(pop)
 
 // GLOBAL: WIZ8 0x006171AA

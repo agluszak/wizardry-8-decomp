@@ -8,7 +8,7 @@ struct W8SightConditions;
    two directions read and write. The two position triples are stored as
    truncated integers, which is what the producer's float casts do. */
 #pragma pack(push, 1)
-typedef struct W8MonToMonVisibility {
+struct W8MonToMonVisibility {
     int about_location_id;               /* 0x00 */
     unsigned char state_04;              /* 0x04: zero, one or two */
     unsigned char sight_flags_05[4];     /* 0x05: two flag pairs plus two bytes */
@@ -23,7 +23,7 @@ typedef struct W8MonToMonVisibility {
     int target_z_24;
     unsigned char line_of_sight_28;      /* 0x28 */
     unsigned char unknown_29[8];
-} W8MonToMonVisibility;
+};
 #pragma pack(pop)
 
 static_assert(sizeof(W8MonToMonVisibility) == 0x31,

@@ -32,7 +32,7 @@
 /* One spell effect definition. The dice at 0x04 are rolled for the effect's
    size, the three values at 0x20 through 0x2c combine into its duration, and
    the percentage at 0x24 scales both. */
-typedef struct W8SpellEffectDefinition {
+struct W8SpellEffectDefinition {
     unsigned char unknown_00[4];
     W8Dice magnitude;                     /* 0x04 */
     unsigned char unknown_08[0x18];
@@ -40,7 +40,7 @@ typedef struct W8SpellEffectDefinition {
     unsigned int percent;                 /* 0x24 */
     int duration_base;                    /* 0x28 */
     int duration_per_power;               /* 0x2c */
-} W8SpellEffectDefinition;
+};
 
 #pragma pack(pop)
 

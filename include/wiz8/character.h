@@ -32,13 +32,13 @@ enum {
 
 /* One enchantment slot. Both a character and a monster carry eight of them,
    and both clear a slot by zeroing all three dwords at once. */
-typedef struct W8Enchantment {
+struct W8Enchantment {
     int value_00;
     int value_04;
     /* 0x08: the field the topmost-slot scan reads and the one the fatigue path
        consults on slot five. */
     int value_08;
-} W8Enchantment;                          /* 0x0c */
+};                                        /* 0x0c */
 
 /* The game's wide text format: fixed-size UINT16 arrays stored inline in
    records and manipulated through the CRT wide-string functions. Under VC6
@@ -47,18 +47,18 @@ typedef struct W8Enchantment {
 /* One attribute record. The array is indexed by skill id biased by 0x22, so the
    seven attribute ids sit at the top of the skill numbering; only the leading
    value, which IsCharacterSkillAvailable tests against 100, is established. */
-typedef struct W8CharacterAttribute {
+struct W8CharacterAttribute {
     unsigned int value;                   /* 0x00 */
     /* 0x04: the value after equipment and effects. Resistance recalculation
        reads this one, not the base, and only above a threshold of 0x50. */
     unsigned int effective;
     unsigned char unknown_08[0xc];
-} W8CharacterAttribute;                   /* 0x14 */
+};                                        /* 0x14 */
 
 /* One skill record, indexed directly by skill id. PracticeCharacterSkill
    establishes the stride and the leading flag it sets when a skill first
    becomes available; IsCharacterSkillAvailable reads the same flag. */
-typedef struct W8CharacterSkill {
+struct W8CharacterSkill {
     unsigned char flag_00;                /* 0x00 */
     unsigned char unknown_01;
     /* 0x02: a second figure the spell-learning ceiling divides by ten, the
@@ -73,16 +73,16 @@ typedef struct W8CharacterSkill {
        value_02. */
     unsigned int base_level_0a;
     unsigned char unknown_0e[0x18];
-} W8CharacterSkill;                       /* 0x26 */
+};                                        /* 0x26 */
 
 /* One resistance channel. Recalculation rebuilds `base` from scratch each time
    and then derives `total` from it, so the two are a computed pair rather than
    a stored value and a cache. */
-typedef struct W8CharacterResistance {
+struct W8CharacterResistance {
     unsigned int base;                    /* 0x00 */
     unsigned int total;                   /* 0x04: clamped to 100 */
     unsigned char unknown_08[8];
-} W8CharacterResistance;                  /* 0x10 */
+};                                        /* 0x10 */
 
 /* The six realms a spell point pool is kept per are W8SpellRealm's, declared
    with the spell record in wiz8/layouts/gameplay_databases.h. */
@@ -100,7 +100,7 @@ enum {
 
 /* One hand's derived attack block. CalcAttacks walks two at this stride, while
    the equipment refresh helper writes the leading wield kind at 0x00. */
-typedef struct W8HandAttack {
+struct W8HandAttack {
     int wield_kind;                       /* 0x00 */
     unsigned char in_play;                /* 0x04 */
     int weapon_skill;                     /* 0x05, unaligned */
@@ -122,9 +122,9 @@ typedef struct W8HandAttack {
     int value_3b;
     int value_3f;
     unsigned char unknown_43[0x18];
-} W8HandAttack;                           /* 0x5b */
+};                                        /* 0x5b */
 
-typedef struct W8Character {
+struct W8Character {
     /* 0x0000: SaveCharacter stamps 1 here before writing the record, so the
        leading dword is a saved-record version rather than runtime state. */
     unsigned int record_version;
@@ -306,18 +306,18 @@ typedef struct W8Character {
     unsigned char unknown_1860;
     /* 0x1861: the anchor above has been set. Recall does nothing without it. */
     unsigned char has_saved_location;
-} W8Character;                           /* 0x1862 */
+};                                       /* 0x1862 */
 
-typedef struct W8SkillAttributes {
+struct W8SkillAttributes {
     int category;
     int unknown_04;
     int unknown_08;
     int unknown_0c;
-} W8SkillAttributes;
+};
 
-typedef struct W8RPCSlot {
+struct W8RPCSlot {
     unsigned char opaque[0x118];
-} W8RPCSlot;
+};
 
 #pragma pack(pop)
 
@@ -330,13 +330,13 @@ extern W8SkillAttributes g_skill_attributes[0x29];
 
 /* Profession and race trait sets consulted by Function547940. Each entry is
    only its id list: three profession abilities, five race abilities. */
-typedef struct W8ProfessionAbilitySet {
+struct W8ProfessionAbilitySet {
     int ability_ids[3];
-} W8ProfessionAbilitySet;
+};
 
-typedef struct W8RaceAbilitySet {
+struct W8RaceAbilitySet {
     int ability_ids[5];
-} W8RaceAbilitySet;
+};
 
 extern W8ProfessionAbilitySet g_profession_abilities[15];
 extern W8RaceAbilitySet g_race_abilities[11];

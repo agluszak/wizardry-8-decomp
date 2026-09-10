@@ -7,7 +7,7 @@
 struct W8Item;
 
 #pragma pack(push, 1)
-typedef struct W8MonsterGenerator {
+struct W8MonsterGenerator {
     unsigned int flags;                   /* 0x00: bit 2 is cleared on teardown */
     unsigned char flag_04;                /* 0x04 */
     unsigned char unknown_05;
@@ -42,7 +42,7 @@ typedef struct W8MonsterGenerator {
     /* Loads the marker unconditionally, then applies the armed state. */
     void Reload(int unused, unsigned char active);
     ~W8MonsterGenerator();
-} W8MonsterGenerator;
+};
 #pragma pack(pop)
 
 W8MonsterGenerator* FindMonGenByName(const char* name);

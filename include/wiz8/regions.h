@@ -5,22 +5,22 @@
 
 #include "input.h"
 
-typedef struct W8RegionSet {
+struct W8RegionSet {
     unsigned int enabled;
     unsigned int first_region;
     unsigned int last_region;
-} W8RegionSet;                           /* 0x0c */
+};                                       /* 0x0c */
 
-typedef struct W8RegionEvent {
+struct W8RegionEvent {
     unsigned int time;
     unsigned short modifiers;
     unsigned short reason;
-} W8RegionEvent;
+};
 
-typedef struct W8RegionMouseEvent {
+struct W8RegionMouseEvent {
     W8RegionEvent event;
     unsigned int mouse_position;
-} W8RegionMouseEvent;
+};
 
 enum W8RegionFlags {
     W8_REGION_RECTANGLE = 0x01,
@@ -40,7 +40,7 @@ struct W8Region;
 typedef unsigned char (*W8RegionCallback)(
     const W8RegionEvent* event, struct W8Region* region);
 
-typedef struct W8Region {
+struct W8Region {
     unsigned int flags;
     short x1;
     short y1;
@@ -52,7 +52,7 @@ typedef struct W8Region {
     unsigned char unknown_13;
     int help_text_id;
     void* owner;
-} W8Region;                              /* 0x1c */
+};                                       /* 0x1c */
 
 void InitializeRegionHelpState(void);
 

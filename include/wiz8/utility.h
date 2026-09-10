@@ -17,12 +17,12 @@ class srVector3T;
 
 /* Local Code\UtilityFunctions.cpp. These signed screen-space shapes are
    distinct from W8ControlsRect even though the current layouts coincide. */
-typedef struct W8ScreenRect {
+struct W8ScreenRect {
     int left;
     int top;
     int right;
     int bottom;
-} W8ScreenRect;
+};
 
 
 void SetDice(W8Dice* dice, unsigned char count, unsigned char sides, short base);

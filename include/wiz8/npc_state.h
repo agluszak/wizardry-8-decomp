@@ -16,21 +16,21 @@ struct W8Character;
    0x14, so the allocation is the size evidence. Offsets are identical either
    way; only the tail padding differs. See wiz8-4of.8 for the wider packing
    rule. */
-typedef struct W8NpcItemEntry {
+struct W8NpcItemEntry {
     /* 0x00: the game-clock stamp before which the entry is not ordinary trade
        stock. Zero is the ordinary tradeable entry, and the restock helper at
        0x0055AA80 writes a clock reading plus a delay here. */
     unsigned int available_at;
     W8ItemInstance item;                 /* 0x04 */
     unsigned char quantity;              /* 0x10: non-stack remaining quantity */
-} W8NpcItemEntry;                        /* 0x14 by allocation */
+};                                       /* 0x14 by allocation */
 
 #pragma pack(push, 1)
 
 /* The database pointer sits unaligned at 0x06, which is what the byte-offset
    loads through it show, and everything reached by the recovered NPC bodies is
    placed off it. */
-typedef struct W8NpcState {
+struct W8NpcState {
     int unknown_00;
     unsigned short unknown_04;
     W8NpcDatabaseRecord* record;          /* 0x06 */
@@ -110,7 +110,7 @@ typedef struct W8NpcState {
     /* 0x115: the forty entry weights matching item_ids_30; only the slots
        whose table selector was set carry a weight. */
     unsigned char item_weights_115[40];
-} W8NpcState;                             /* 0x13d by allocation */
+};                                        /* 0x13d by allocation */
 
 #pragma pack(pop)
 

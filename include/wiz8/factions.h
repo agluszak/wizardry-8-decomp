@@ -5,13 +5,13 @@ enum { W8_FACTION_COUNT = 21 };
 
 #pragma pack(push, 1)
 
-typedef struct W8FactionRuntimeRecord {
+struct W8FactionRuntimeRecord {
     signed char disposition_score;
     unsigned char unknown_01[5];
     int value_06;
     unsigned char flag_0a;
     unsigned char unknown_0b[3];
-} W8FactionRuntimeRecord;
+};
 
 #pragma pack(pop)
 

@@ -12,7 +12,7 @@ struct W8MonsterInfo;
 #pragma pack(push, 1)
 /* One party slot row. Only the fields reached by recovered combat and
    targeting code are named. */
-typedef struct W8PartySlotRow {
+struct W8PartySlotRow {
     unsigned char occupied;               /* 0x00: gStatus.XChar[slot].fOccupied */
     int pending_action;
     int attack_mode[4];
@@ -53,7 +53,7 @@ typedef struct W8PartySlotRow {
     unsigned char flag_103;
     unsigned char action_is_kind_one;
     unsigned char flag_105;
-} W8PartySlotRow;
+};
 
 static_assert(sizeof(W8PartySlotRow) == 0x106,
               "W8PartySlotRow_must_be_0x106");
@@ -61,24 +61,24 @@ static_assert(sizeof(W8PartySlotRow) == 0x106,
 /* One record per character class, 0x1e5 bytes, indexed by the class index a
    combat actor carries at its +0x1d8. Only the flag the combat toggle reads is
    established. */
-typedef struct W8CharacterClassRecord {
+struct W8CharacterClassRecord {
     unsigned char unknown_000[0x154];
     unsigned char flag_154;               /* 0x154 */
     unsigned char unknown_155[0x90];
-} W8CharacterClassRecord;                 /* 0x1e5 */
+};                                        /* 0x1e5 */
 
 /* What the engaged-actor iterator at 0x004A2760 hands back. Only the class
    index is placed; the object is much larger and otherwise unrecovered. */
-typedef struct W8CombatActor {
+struct W8CombatActor {
     unsigned char unknown_000[0x1d8];
     int class_record_index;               /* 0x1d8 */
-} W8CombatActor;
+};
 
 /* One combat participant's row, 0xd4 bytes per character. The eight of them
    begin at the combat state's own address, so W8CombatState's leading fields
    are the first row's; only the fields the fatigue, death and engagement paths
    touch are established. */
-typedef struct W8CombatCharacterRow {
+struct W8CombatCharacterRow {
     unsigned char unknown_00[0x18];
     int value_18;                         /* 0x18: cleared when the character dies */
     unsigned char unknown_1c[0x30];
@@ -91,12 +91,12 @@ typedef struct W8CombatCharacterRow {
     unsigned char unknown_9a[0x22];
     unsigned char flag_bc;                /* 0xbc: raised when switching to an attack */
     unsigned char unknown_bd[0x17];
-} W8CombatCharacterRow;                  /* 0xd4 */
+};                                       /* 0xd4 */
 
 /* The block the pointer at 0x006836A8 addresses: the engine's combat state.
    Only what a ported body reaches is named, and only where the use establishes
    a meaning. */
-typedef struct W8CombatState {
+struct W8CombatState {
     unsigned char flag_000;               /* 0x000: blocks ending combat while set */
     unsigned char flag_001;
     unsigned char unknown_002[2];
@@ -127,7 +127,7 @@ typedef struct W8CombatState {
     unsigned char flag_a54;
     unsigned char unknown_a55[0xd];
     unsigned char flag_a62;               /* 0xa62: party combat-ready bit */
-} W8CombatState;
+};
 #pragma pack(pop)
 
 extern "C" {

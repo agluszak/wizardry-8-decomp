@@ -287,11 +287,11 @@ unsigned char CountLeadingPartySlots(void)
 
 /* 0x00619DFC: one three-dword row per service - the service id, the bit that
    stands for it, and one more field nothing here reads. -1 ends the table. */
-typedef struct W8NpcServiceRow {
+struct W8NpcServiceRow {
     unsigned int service_id;
     unsigned int bit;
     unsigned int unknown_08;
-} W8NpcServiceRow;
+};
 // GLOBAL: WIZ8 0x00619DFC
 extern const W8NpcServiceRow g_npc_services[] = {
     {2, 1, 0x47},       {3, 2, 0x50},       {4, 0x400, 0x48},

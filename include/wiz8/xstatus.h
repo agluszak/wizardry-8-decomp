@@ -11,7 +11,7 @@
    object continues beyond this prefix; no recovered body exposes its complete
    sizeof, so this type deliberately stops after iCurrentCursor's state. */
 #pragma pack(push, 1)
-typedef struct W8XStatus {
+struct W8XStatus {
     unsigned int uiItemsInDatabase;             /* 0x00: 0x00683F78 */
     unsigned int uiItemTablesInDatabase;         /* 0x04 */
     unsigned int uiItemTableCategories;          /* 0x08 */
@@ -51,7 +51,7 @@ typedef struct W8XStatus {
     int current_cursor_frame;                     /* 0x67 */
     int current_cursor_time;                      /* 0x6b */
     int field_06f;                                /* 0x6f: 0x00683FE7 */
-} W8XStatus;
+};
 #pragma pack(pop)
 
 static_assert(offsetof(W8XStatus, uiMonstersInDatabase) == 0x0c,

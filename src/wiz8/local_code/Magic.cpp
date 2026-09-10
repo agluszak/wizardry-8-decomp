@@ -390,11 +390,11 @@ enum { W8_SPELL_EFFECT_KIND_MONSTER_CONTROL = 0x26 };
 
 /* One condition slot, as both the party-wide table and the two per-side combat
    tables lay it out: an occupied flag ahead of the condition it names. */
-typedef struct W8ConditionSlot {
+struct W8ConditionSlot {
     unsigned char occupied;              /* 0x00 */
     int condition_id;                    /* 0x01 */
     unsigned char unknown_05[0xc];
-} W8ConditionSlot;                       /* 0x11 */
+};                                       /* 0x11 */
 
 enum {
     W8_PARTY_CONDITION_SLOTS = 12,

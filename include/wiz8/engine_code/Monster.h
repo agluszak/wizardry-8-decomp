@@ -22,7 +22,7 @@ class stSound3D;
 class Trigger;
 class W8Monster;
 
-typedef struct W8MonsterRep W8MonsterRep;
+struct W8MonsterRep;
 
 enum { W8_MONSTER_CYCLE_COUNT = 27 };
 

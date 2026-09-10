@@ -14,7 +14,7 @@ unsigned char DestroyMonsterGroup(W8MonsterGroup* monster_group, int value);
 /* The stride is the record LoadMonsterGroup allocates, zeroes and reads whole,
    and which its own assertion spells sizeof(*pMonsterGroup). Only the fields
    that loader establishes are named; the rest stays opaque. */
-typedef struct W8MonsterGroup {
+struct W8MonsterGroup {
     int group_id;                         /* 0x00: GroupIndex ID lookup key */
     int member_count;                     /* 0x04: decremented when members leave */
     struct W8IList* monsters;             /* 0x08: fresh IList per live group */
@@ -67,7 +67,7 @@ typedef struct W8MonsterGroup {
     int spawn_time;
     unsigned char flag_d3;                /* 0xd3: raised as flag_c3 is cleared */
     unsigned char unknown_d4[0x57];
-} W8MonsterGroup;                         /* 0x12b */
+};                                        /* 0x12b */
 #pragma pack(pop)
 
 unsigned int GetMonsterGroupIndexByID(    int caller_line,

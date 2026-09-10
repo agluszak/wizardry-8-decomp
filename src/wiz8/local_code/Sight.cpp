@@ -51,16 +51,16 @@
 /* The two lighting conditions the per-condition visibility table is indexed
    by. Their meaning is not established; only that each shifts the lookup one
    entry along. */
-typedef struct W8SightConditions {
+struct W8SightConditions {
     unsigned char unknown_000[0x37a];
     unsigned char condition_37a;         /* 0x37a */
     unsigned char unknown_37b;
     unsigned char condition_37c;         /* 0x37c */
-} W8SightConditions;
+};
 
 /* One row of per-visibility-kind flags. The two conditions above select
    between adjacent entries in the two pairs. */
-typedef struct W8VisibilityRow {
+struct W8VisibilityRow {
     unsigned char unknown_00[4];
     unsigned char visible_04;            /* 0x04 */
     unsigned char visible_05;            /* 0x05 */
@@ -70,7 +70,7 @@ typedef struct W8VisibilityRow {
     unsigned char visible_0b;            /* 0x0b */
     unsigned char unknown_0c[0x1c];
     unsigned char visible_28;            /* 0x28 */
-} W8VisibilityRow;
+};
 
 // GLOBAL: WIZ8 0x005ec254
 float g_sight_default_005ec254 = 12.0f;

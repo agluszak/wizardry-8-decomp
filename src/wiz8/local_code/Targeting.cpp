@@ -617,7 +617,7 @@ void UpdateAllMonsterHighlights(int party_slot, int location_id)
    ordering below reads out of it. The rest of the record is filled in as the
    candidate is built and is what makes the sort stable across the fields it
    does not compare. */
-typedef struct W8MonsterTargetCandidate {
+struct W8MonsterTargetCandidate {
     int location_id;                     /* 0x00 */
     int state_04;                        /* 0x04: the monster's own 0x107 */
     unsigned char in_reach;              /* 0x08: reachable with a real attack */
@@ -627,7 +627,7 @@ typedef struct W8MonsterTargetCandidate {
     unsigned char same_group;            /* 0x14: shares the caller's group */
     unsigned char pad_15[3];
     float distance;                      /* 0x18 */
-} W8MonsterTargetCandidate;              /* 0x1c */
+};                                       /* 0x1c */
 
 
 /* The order the candidates are taken in: the monster in the lowest state
@@ -1638,10 +1638,10 @@ extern void StartBreathCycle(int party_slot, int arg_2);                 /* 0x00
 /* One candidate in the angle sort: the screen angle to the monster and the
    monster itself. The angle leads so that the ordinary signed comparison sorts
    on it. */
-typedef struct W8GroupMemberByAngle {
+struct W8GroupMemberByAngle {
     int angle;                           /* 0x00 */
     int location_id;                     /* 0x04 */
-} W8GroupMemberByAngle;                  /* 0x08 */
+};                                       /* 0x08 */
 
 /* Step to the next member of a group, going round the party rather than
    through the list: the candidates are sorted by the angle from the party to

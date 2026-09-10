@@ -28,7 +28,7 @@ struct W8ItemInstance;
 
    This was modelled twice before, once from the assertions and once from
    SpellBackfires' stack frame, and they are one struct. */
-typedef struct W8TargetSource {
+struct W8TargetSource {
     int iType;                            /* 0x00 */
     int iChar;                            /* 0x04, -1 when empty */
     int iMonsterID;                       /* 0x08, -1 when empty */
@@ -41,11 +41,11 @@ typedef struct W8TargetSource {
     unsigned char fReflection;            /* 0x1b */
     unsigned char fBackfire;              /* 0x1c */
     unsigned char unknown_1d[0x17];
-} W8TargetSource;                         /* 0x34 */
+};                                        /* 0x34 */
 
 /* The shorter form a combatant carries inline, with one more field reset to
    -1 and no room for the tail. */
-typedef struct W8CombatSlot {
+struct W8CombatSlot {
     /* The four ids are named by the assertions that bound each of them -
        pTarget->iChar, pTarget->iMonsterID, pTarget->iGroupID and
        pTarget->pPCItem - and they are the same four the source block carries
@@ -60,12 +60,12 @@ typedef struct W8CombatSlot {
     srVector3T<float> point;               /* 0x10 */
     /* 0x1c: the item aimed at, for the one kind that aims at one. */
     W8ItemInstance* pPCItem;
-} W8CombatSlot;                           /* 0x20 */
+};                                        /* 0x20 */
 /* The two-word block an action carries beside itself. A spell's holds the
    power level and a spare word; an item use's holds the use kind and the item.
    It is the party slot row's own pair in both cases rather than a copy, which
    is why every reader takes a pointer to it. */
-typedef union W8ActionDetailBlock {
+union W8ActionDetailBlock {
     struct {
         int power_level;
         int unused;
@@ -74,7 +74,7 @@ typedef union W8ActionDetailBlock {
         int kind;
         W8ItemInstance* item;
     } item_use;
-} W8ActionDetailBlock;                    /* 0x08 */
+};                                        /* 0x08 */
 
 /* The targeting contexts. Six of them name a block the slot carries; the
    seventh, "current", is not a context at all but the request to work out
