@@ -11,6 +11,7 @@
 #include "surrender/srMath.h"
 
 #include <math.h>
+#include <string.h>
 
 /* Original translation unit: Local Code\Formation & Facing.cpp. */
 
@@ -48,7 +49,7 @@ int GetQuadrantForPosition(srVector3T<float> position)
    into its own state and compares against, and within it two per-position
    tables twelve bytes apart give each position's row and facing, plus a table
    of the three positions standing in each of the five rows. */
-enum { W8_FORMATION_BLOCK_DWORDS = 0x21, W8_FORMATION_ROWS = 5, W8_POSITIONS_PER_ROW = 3 };
+enum { W8_FORMATION_ROWS = 5, W8_POSITIONS_PER_ROW = 3 };
 
 /* The facing answer that means "no preference", which never disagrees with
    whatever a position is already facing. */
@@ -84,17 +85,11 @@ bool CanHoldFormationPlace(int party_slot)
 // FUNCTION: WIZ8 0x00554a20
 void SaveCombatFormation(void)
 {
-    int index;
-    int* saved;
-
     if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", FORMATION_CPP, 258, 0);
     }
-    saved = (int*)((char*)g_combat_state + 0x920);
-    for (index = 0; index < W8_FORMATION_BLOCK_DWORDS; ++index) {
-        saved[index] =
-            reinterpret_cast<int*>(&g_status_685170.formation)[index];
-    }
+    memcpy(&g_combat_state->saved_formation, &g_status_685170.formation,
+           sizeof(W8PartyFormationState));
 }
 
 /* Put the formation combat started with back, if anything moved. Comparing the
@@ -102,28 +97,14 @@ void SaveCombatFormation(void)
 // FUNCTION: WIZ8 0x00554a60
 void RestoreCombatFormation(void)
 {
-    int index;
-    const int* saved;
-    bool unchanged = true;
-
     if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", FORMATION_CPP, 266, 0);
     }
-    saved = (const int*)((char*)g_combat_state + 0x920);
-    for (index = 0; index < W8_FORMATION_BLOCK_DWORDS; ++index) {
-        unchanged =
-            reinterpret_cast<int*>(&g_status_685170.formation)[index] ==
-            saved[index];
-        if (!unchanged) {
-            break;
-        }
-    }
 
-    if (!unchanged) {
-        for (index = 0; index < W8_FORMATION_BLOCK_DWORDS; ++index) {
-            reinterpret_cast<int*>(&g_status_685170.formation)[index] =
-                saved[index];
-        }
+    if (memcmp(&g_combat_state->saved_formation, &g_status_685170.formation,
+               sizeof(W8PartyFormationState)) != 0) {
+        memcpy(&g_status_685170.formation, &g_combat_state->saved_formation,
+               sizeof(W8PartyFormationState));
         Function5B1C80();
         Function5A24A0();
         ShowNotice(8, gppStringList[0x92c / 4], 0, -1, 0);

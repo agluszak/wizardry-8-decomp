@@ -114,7 +114,7 @@ typedef struct W8CombatState {
     unsigned char unknown_914[4];
     int turn_phase;                       /* 0x918 */
     unsigned char unknown_91c[4];
-    int saved_formation[0x21];            /* 0x920 */
+    W8PartyFormationState saved_formation; /* 0x920 */
     unsigned char unknown_9a4[0xac];
     unsigned char flag_a50;
     unsigned char flag_a51;
