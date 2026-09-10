@@ -10,7 +10,8 @@ description: Recover Wizardry 8 C++ bodies and declarations against the pinned V
 - Ordinary linked recovered function: `just compare ADDRESS...` (examples below).
 - COFF contributions, relocations, folding/aliases, data, vtables, or address mapping:
   [comparison](references/comparison.md).
-- Native Ghidra reads/edits or divergent GZF checkpoints: [PyGhidra](references/pyghidra.md).
+- Native Ghidra reads/edits, divergent GZF checkpoints, or regenerating canonical state from the
+  source PDB: [PyGhidra](references/pyghidra.md).
 - Type/prototype/layout disagreement or Clang diagnostics:
   [type and layout evidence](references/type-and-layout-evidence.md).
 - Unexplained focused divergence: [mismatch patterns](references/mismatch-patterns.md).

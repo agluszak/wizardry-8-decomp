@@ -141,6 +141,48 @@ uv run wiz8 ghidra seed refresh wiz8
 This refreshes the tracked reviewed GZF checkpoint. It is a sharing/checkpoint operation, not a
 per-signature-edit ritual or a substitute for `program.save`.
 
+## Regenerate the canonical state from the source PDB
+
+When the task owner asks to update or regenerate the Ghidra state, the direction is source ->
+Ghidra: project the current compiled model into the canonical live program before refreshing the
+checkpoint. This is bulk, one-shot regeneration, distinct from both a checkpoint merge and an
+ordinary `seed refresh`.
+
+1. Commit or refresh the current checkpoint first; it is the rollback point.
+2. Build a current VC6 PDB:
+
+   ```sh
+   just build wiz8
+   ```
+
+3. Import the matched entities into the canonical project. `reccmp-ghidra-import` is the applier;
+   there is no CLI wrapper, so call the wired helper with the real settings:
+
+   ```sh
+   uv run python - <<'PY'
+   from wiz8decomp.config import load_settings
+   from wiz8decomp.ghidra.reccmp_import import import_reccmp_source
+
+   print(import_reccmp_source(load_settings(), "wiz8"))
+   PY
+   ```
+
+   It matches recompiled entities to original addresses and applies names, signatures, types and
+   source lines. Review the reported `Statistics` (successes/functions changed) and note the
+   tolerated `CodeUnitInsertionException`/`TypeNotImplementedError`/`ParameterMismatchError`
+   counts rather than demanding zero.
+4. Spot-check recovered identities with `uv run wiz8 report context ADDRESS`, then re-export and
+   commit the checkpoint:
+
+   ```sh
+   uv run wiz8 ghidra seed refresh wiz8
+   ```
+
+Do not point the importer at a derived or cached project, and do not run it speculatively: it
+mutates the reviewed program. `uv run wiz8 analyze source-layouts` uses the same importer against a
+hash-cached derived project under `build/ghidra-verify/` and deliberately leaves the canonical state
+untouched; use that when only the audit is wanted.
+
 ## Divergent GZF checkpoints
 
 Use the common reviewed ancestor as `BASE` and the other reviewed archive as `INCOMING`. Preview:
