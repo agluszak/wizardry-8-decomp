@@ -330,6 +330,228 @@ void W8Octree::MarkMeshLinksVisible00430A70(unsigned int mesh)
     }
 }
 
+/* The two per-frame visibility helpers behind the cell walk. Both take only
+   the receiver in ECX and their bodies are unrecovered, so they keep
+   address-qualified names. */
+extern void __fastcall Function004302E0(W8Octree* octree);
+extern void __fastcall Function004301C0(W8Octree* octree);
+/* Point the visibility filter at the octree so it answers over this frame's
+   cell set. */
+extern unsigned char Function0046D880(
+    const srVector3T<float>* point, const unsigned char* filter);
+
+/* Expand the camera box over the spatial levels and collect the regions the
+   camera can occupy.
+
+   The camera cell is quantized twice, once against the node extent and once
+   against the leaf cell size. The walk keeps the camera inside an expanding
+   box while the node extent shrinks per level; the deepest level looks the
+   camera cell up in the region-link table and adds every linked region to the
+   projected set. The leaf the walk ends on contributes its region list through
+   0x00431050. */
+// FUNCTION: WIZ8 0x00430d50
+unsigned char W8Octree::CollectVisibleRegions00430D50(
+    srVector3T<float>* location, int* cells, float* depth, unsigned char mode)
+{
+    int link_cell[3];
+    float box_min[3];
+    float box_max[3];
+    unsigned char inside = 1;
+
+    for (int axis = 0; axis < 3; ++axis) {
+        box_min[axis] = (&spatial_000.minimum_0c.x)[axis];
+        box_max[axis] = (&spatial_000.maximum_18.x)[axis];
+        cells[axis] =
+            (int)(((&location->x)[axis] - box_min[axis]) /
+                  spatial_000.node_extent_70);
+        link_cell[axis] =
+            (int)(((&location->x)[axis] - box_min[axis]) /
+                  spatial_000.positional_54);
+        if ((&location->x)[axis] < box_min[axis]) {
+            --cells[axis];
+            inside = 0;
+        }
+        if ((&location->x)[axis] > box_max[axis]) {
+            inside = 0;
+        }
+        if (depth != 0) {
+            depth[axis] =
+                ((&location->x)[axis] -
+                 ((float)cells[axis] * spatial_000.node_extent_70 +
+                  box_min[axis])) /
+                    spatial_000.node_extent_70 -
+                g_float_005ebc7c;
+        }
+    }
+    if (!inside) {
+        return 0;
+    }
+    if (mode == 0) {
+        return 1;
+    }
+    float span = spatial_000.extent_04 * g_float_005ebc7c;
+    int node = 1;
+    for (short level = 0; level < spatial_000.depth_44; ++level) {
+        unsigned int child_index = 0;
+        for (int axis = 0; axis < 3; ++axis) {
+            float edge = span + box_min[axis];
+            if ((&location->x)[axis] < edge) {
+                box_max[axis] = edge;
+            }
+            else {
+                box_min[axis] = edge;
+                child_index |= 1 << (2 - axis);
+            }
+        }
+        if (level == spatial_000.positional_52) {
+            unsigned int key =
+                ((m_positional_140 * 0x100 + link_cell[0]) * 0x100 +
+                 link_cell[1]) *
+                    0x100 +
+                link_cell[2];
+            int slot = m_pRegionLinks_150->FindNextEntry(&key, -1);
+            while (slot != -1) {
+                m_projected_regions_15c->Set(
+                    m_pRegionLinks_150->entries[slot].value);
+                slot = m_pRegionLinks_150->FindNextEntry(&key, slot);
+                m_projected_regions_valid_16a = 1;
+            }
+        }
+        if (node != 0) {
+            node = (int)m_owned_09c[node].children_04[child_index];
+        }
+        span *= g_float_005ebc7c;
+    }
+    if (node != 0) {
+        unsigned long region_offset = m_owned_0a0[node].region_offset_04;
+        if (region_offset != 0) {
+            Function00431050(location, m_owned_148 + region_offset);
+            return 1;
+        }
+    }
+    Function00431050(location, 0);
+    return 1;
+}
+
+/* Collect the cells around the camera into the current region set.
+
+   Two setup helpers refresh the frame state. The leaf cell radius comes from
+   the far clip over the cell size, and the camera cell is quantized against
+   the same size. Every cell within that radius of the camera cell that stays
+   inside the spatial extent is considered: the near cells descend the branch
+   array directly, while the far cells filter through 0x0046D880 first. Either
+   way the reached node contributes the region stored at its branch head. */
+// FUNCTION: WIZ8 0x0042fe90
+void W8Octree::CollectVisibleCells0042FE90()
+{
+    Function004302E0(this);
+    Function004301C0(this);
+    short radius =
+        (short)((int)(far_clip_200 / spatial_000.positional_54) + 1);
+    short center[3];
+
+    for (int axis = 0; axis < 3; ++axis) {
+        center[axis] =
+            (short)(int)(((&camera_location_1c0.x)[axis] -
+                          (&spatial_000.minimum_0c.x)[axis]) /
+                         spatial_000.positional_54);
+    }
+    unsigned int region_base = m_positional_140;
+    for (short x = -radius; x <= radius; ++x) {
+        short cell_x = center[0] + x;
+        if (cell_x < 0 || cell_x >= spatial_000.positional_50) {
+            continue;
+        }
+        for (short y = -radius; y <= radius; ++y) {
+            short cell_y = center[1] + y;
+            if (cell_y < 0 || cell_y >= spatial_000.positional_50) {
+                continue;
+            }
+            for (short z = -radius; z <= radius; ++z) {
+                short cell_z = center[2] + z;
+                if (cell_z < 0 || cell_z >= spatial_000.positional_50) {
+                    continue;
+                }
+                if (abs(x) < 2 && abs(y) < 2 && abs(z) < 2) {
+                    int node = 1;
+                    for (unsigned int mask = 1 << spatial_000.depth_44;
+                         mask != 0;
+                         mask >>= 1) {
+                        if (node == 0) {
+                            break;
+                        }
+                        if ((region_base & mask) != 0) {
+                            int child = 0;
+                            if (cell_x & mask) {
+                                child = 4;
+                            }
+                            if (cell_y & mask) {
+                                child += 2;
+                            }
+                            if (cell_z & mask) {
+                                ++child;
+                            }
+                            node = (int)m_owned_09c[node]
+                                       .children_04[child];
+                        }
+                    }
+                    if (node != 0) {
+                        unsigned short region =
+                            m_owned_09c[node].positional_02;
+                        if (region != 0) {
+                            m_current_regions_160->Set(region);
+                        }
+                    }
+                }
+                else {
+                    float offset =
+                        spatial_000.positional_54 * g_float_005ebc7c;
+                    srVector3T<float> point;
+                    point.x = (float)cell_x * spatial_000.positional_54 +
+                              offset + spatial_000.minimum_0c.x;
+                    point.y = (float)cell_y * spatial_000.positional_54 +
+                              spatial_000.minimum_0c.y + offset;
+                    point.z = (float)cell_z * spatial_000.positional_54 +
+                              spatial_000.minimum_0c.z + offset;
+                    if (Function0046D880(&point, m_positional_204 + 0x18) ==
+                        0) {
+                        continue;
+                    }
+                    int node = 1;
+                    for (unsigned int mask = 1 << spatial_000.depth_44;
+                         mask != 0;
+                         mask >>= 1) {
+                        if (node == 0) {
+                            break;
+                        }
+                        if ((region_base & mask) != 0) {
+                            int child = 0;
+                            if (cell_x & mask) {
+                                child = 4;
+                            }
+                            if (cell_y & mask) {
+                                child += 2;
+                            }
+                            if (cell_z & mask) {
+                                ++child;
+                            }
+                            node = (int)m_owned_09c[node]
+                                       .children_04[child];
+                        }
+                    }
+                    if (node != 0) {
+                        unsigned short region =
+                            m_owned_09c[node].positional_02;
+                        if (region != 0) {
+                            m_current_regions_160->Set(region);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 /* Write the octree's point array to a companion file.
 
    The level path supplies the base name and its existing extension is
@@ -1986,7 +2208,7 @@ void W8Octree::Initialize(const void* raw_header)
         m_owned_19c = new BitArray(ReadHeader<unsigned long>(header, 0x72));
 
         object_registry = new W8OctreeObjectRegistry;
-        m_pRegionLinks_150 = new W8HashTable<unsigned int, short>;
+        m_pRegionLinks_150 = new W8HashTable<unsigned int, unsigned short>;
 
         unsigned int visited_size = ReadHeader<unsigned short>(header, 0x64) + 1;
         m_pfRegsVisited = static_cast<unsigned char*>(malloc(visited_size));

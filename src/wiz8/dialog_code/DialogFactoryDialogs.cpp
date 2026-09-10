@@ -163,3 +163,33 @@ W8WorldItem* W8Dialog005CD710::ReturnItemsToGroup005CF110()
     } while (items_54.GetCount() != 0);
     return m_item_group_0ac;
 }
+
+/* Create the base controls first, then the thirteen button slots. A failed
+   button allocation is reported as the dialog's own error 7. */
+// FUNCTION: WIZ8 0x005cdc10
+int W8Dialog005CD710::CreateControls()
+{
+    if (W8DialogBase::CreateControls() != 0) {
+        return m_error;
+    }
+    if (CreateButtons005CD8D0() == 0) {
+        m_error = 7;
+        return 7;
+    }
+    return 0;
+}
+
+/* Release the base controls and every allocated button slot. */
+// FUNCTION: WIZ8 0x005cdc40
+void W8Dialog005CD710::DestroyControls()
+{
+    int index;
+
+    W8DialogBase::DestroyControls();
+    for (index = 0; index < 13; ++index) {
+        if (m_buttons_74[index] != 0) {
+            delete m_buttons_74[index];
+            m_buttons_74[index] = 0;
+        }
+    }
+}

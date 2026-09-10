@@ -1219,3 +1219,15 @@ fail_with_result:
     srAssertFail("fSuccess", PROP_CPP, fail_line, 0);
     return result;
 }
+
+/* The prop representation's current animation value, or -1 while it owns no
+   animation. */
+// FUNCTION: WIZ8 0x0044ebe0
+int __fastcall GetAnimationState0044EBE0(W8Prop* prop)
+{
+    W8AnimObj* animation = prop->Rep()->animation;
+    if (animation != 0) {
+        return (int)AnimObjValue004A15D0(animation, 2);
+    }
+    return -1;
+}

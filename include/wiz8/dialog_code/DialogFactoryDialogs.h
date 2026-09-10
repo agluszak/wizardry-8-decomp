@@ -74,6 +74,11 @@ public:
     W8WorldItem* ReturnItemsToGroup005CF110();
     void SetItemGroup005CF0C0(W8WorldItem* group);
 
+private:
+    unsigned char CreateButtons005CD8D0();
+
+public:
+
 public:
     W8GrowableVector<W8WorldItem*> items_54;
     W8GrowableVector<unsigned char> flags_64;

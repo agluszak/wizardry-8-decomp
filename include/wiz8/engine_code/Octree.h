@@ -162,9 +162,11 @@ public:
     int CountBadRegionMeshLinks00433B90(W8OctSpatialState0046CCC0* spatial);
     void ToggleUpdateSuspension00434020(W8World* world);
     void MarkMeshLinksVisible00430A70(unsigned int mesh);
-    void CollectVisibleRegions00430D50(
+    unsigned char CollectVisibleRegions00430D50(
         srVector3T<float>* location, int* cells, float* depth, unsigned char mode);
     void CollectVisibleCells0042FE90();
+    void Function00431050(
+        srVector3T<float>* location, unsigned short* regions);
 
     bool HasLoadError() const {
         return (spatial_000.flags_00 & 0x80000000) != 0;
@@ -230,7 +232,7 @@ public:
     unsigned long m_positional_144;
     unsigned short* m_owned_148;
     unsigned char* m_pfRegsVisited;
-    W8HashTable<unsigned int, short>* m_pRegionLinks_150;
+    W8HashTable<unsigned int, unsigned short>* m_pRegionLinks_150;
     BitArray* m_owned_154;
     unsigned long m_positional_158;
     BitArray* m_projected_regions_15c;
