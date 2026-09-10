@@ -69,6 +69,15 @@ void PositionAmbientSoundByName0047A950(int /* unused */, const char* name);
 void StopAmbientSoundByName0047A9E0(int /* unused */, const char* name);
 void ToggleAmbientSoundByName0047AA70(int /* unused */, const char* name);
 void DestroyAmbientSound0047A700(W8AmbientSound* ambient);
+unsigned char AddAmbientSound0047A790(
+    W8World* world, const char* name, const W8AmbientSoundConfig0047A790* config,
+    const srVector3T<float>* vector_88, const srVector3T<float>* vector_c8,
+    const srVector3T<float>* vector_d4, int value_94, int value_98,
+    int value_ac, int value_b0, int value_a4, int value_a8, int value_b4,
+    unsigned char flag_b9, unsigned char flag_c5,
+    const srVector3T<float>* vector_e0, int value_ec,
+    const srVector3T<float>* vector_f0, const srVector3T<float>* vector_fc,
+    unsigned char flag_c4);
 
 void SaveAmbientSoundList0047B140(HWFILE handle);
 

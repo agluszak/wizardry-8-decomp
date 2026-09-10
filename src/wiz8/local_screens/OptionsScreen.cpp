@@ -8,6 +8,7 @@
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/local_code/ControlSelection.h"
 #include "wiz8/local_screens/OptionsScreen.h"
+#include "wiz8/local_screens/JournalScreen.h"
 #include "wiz8/local_screens/MGSKeyboard.h"
 #include "wiz8/xstatus.h"
 
@@ -21,6 +22,7 @@
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/engine_code/AmbientSound.h"
+#include "wiz8/engine_code/Levels.h"
 #include "wiz8/sound_man.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/geometry.h"
@@ -37,9 +39,13 @@
 #include "vsurface.h"
 #include "himage.h"
 #include "wiz8/input_hooks.h"
+#include "FileMan.h"
+#include "surrender/srColorSurface.h"
 
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
+#include <wchar.h>
 
 // GLOBAL: WIZ8 0x0069C130
 unsigned int* g_options_panel_region_sets;
@@ -66,6 +72,8 @@ unsigned char g_options_first_frame;
 W8OptionsValues g_options_values;
 // GLOBAL: WIZ8 0x0069c254
 W8OptionsScreen* g_options_screen_0069c254;
+// GLOBAL: WIZ8 0x0069c1cc
+wchar_t g_options_last_save_name_0069c1cc[64];
 
 // GLOBAL: WIZ8 0x0064d72c
 int g_last_options_panel = 5;
@@ -186,8 +194,361 @@ W8OptionsSaveLoadPanel::W8OptionsSaveLoadPanel(int panel)
     m_renderTarget = 0xf7;
     m_renderArg_20 = 0;
 }
+// SYNTHETIC: WIZ8 0x005ace00
+// W8OptionsSaveLoadPanel::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x005ace20
+W8OptionsSaveLoadPanel::~W8OptionsSaveLoadPanel() {}
 W8OptionsUnavailablePanel::W8OptionsUnavailablePanel(int message)
     : W8OptionsPanel(13), m_message(message) {}
+
+// FUNCTION: WIZ8 0x005aa7d0
+void W8OptionsSaveLoadPanel::Populate()
+{
+    int top = 0x12;
+    for (int index = 0; index < 5; ++index) {
+        W8OptionsSaveRow* row = new W8OptionsSaveRow(this, top, m_panel == 12);
+        row->m_listener = this;
+        m_selection.AddEntry(row);
+        m_rows.Add(row);
+        top += 0x49;
+    }
+    m_selection.m_selectionListener = this;
+
+    if (m_panel == 11) {
+        m_delete_button = new W8TextControl(
+            this, 0xffffffff, 0xd, 0x1b0, 0, 0, 0xf8, 0, 0, 2, 1, -1, -1);
+        m_delete_button->m_listener = this;
+    }
+    else {
+        m_delete_button = 0;
+    }
+
+    int first_sprite = m_panel == 11 ? 3 : 0;
+    m_action_button = new W8TextControl(
+        this, 0xffffffff, 0xf5, 0x1b0, 0, 0, 0xf8, 0,
+        first_sprite, first_sprite + 2, first_sprite + 1, -1, -1);
+    m_action_button->m_listener = this;
+
+    if (m_panel == 11 && g_options_screen_0069c254->m_save_slots.count == 1) {
+        m_delete_button->SetEnabled(0);
+        m_action_button->SetEnabled(0);
+    }
+
+    int page = 0;
+    int selected = 0;
+    if (m_panel == 11 && g_options_last_save_name_0069c1cc[0] != 0) {
+        for (int index = 1;
+             index < g_options_screen_0069c254->m_save_slots.count; ++index) {
+            if (wcscmp(g_options_last_save_name_0069c1cc,
+                       g_options_screen_0069c254->m_save_slots.data[index]->name) == 0) {
+                page = (index - 1) / 5;
+                selected = (index - 1) % 5;
+            }
+        }
+    }
+    SetCurrent(page);
+    m_selection.SetSelected(selected);
+}
+
+// FUNCTION: WIZ8 0x005aaac0
+void W8OptionsSaveLoadPanel::SetActive(unsigned char active)
+{
+    EnableRegionSet(active);
+    SetEnabled(active);
+    Invalidate(0);
+    if (active != 0 && g_options_screen_0069c254->m_text_editor == 0 &&
+        m_panel == 12 && m_selection.m_selectedIndex == 0 && m_current_04c == 0) {
+        OnEditSaveName(m_rows.data[0]);
+    }
+}
+
+// FUNCTION: WIZ8 0x005aab30
+void W8OptionsSaveLoadPanel::SetCurrent(int current)
+{
+    if (g_options_screen_0069c254->m_text_editor != 0) {
+        W8OptionsTextEditor* editor = g_options_screen_0069c254->m_text_editor;
+        if (editor->m_listener != 0) {
+            editor->m_listener->OnTextEditComplete(editor, 1);
+        }
+        delete editor;
+        g_options_screen_0069c254->m_text_editor = 0;
+    }
+    m_current_04c = current;
+    Invalidate(0);
+
+    int first = current * 5 + (m_panel == 11 ? 1 : 0);
+    int limit = first + 5;
+    if (limit > g_options_screen_0069c254->m_save_slots.count) {
+        limit = g_options_screen_0069c254->m_save_slots.count;
+    }
+    int row = 0;
+    for (int slot = first; slot < limit; ++slot, ++row) {
+        m_rows.data[row]->m_save = g_options_screen_0069c254->m_save_slots.data[slot];
+        m_rows.data[row]->SetEnabled(m_rows.data[row]->m_save != 0);
+        m_rows.data[row]->Invalidate(0);
+    }
+    for (; row < 5; ++row) {
+        m_rows.data[row]->m_save = 0;
+        m_rows.data[row]->SetEnabled(0);
+        m_rows.data[row]->Invalidate(0);
+    }
+    m_selection.SetSelected(0);
+    if (g_options_screen_0069c254->m_text_editor == 0 && m_panel == 12 &&
+        m_selection.m_selectedIndex == 0 && m_current_04c == 0) {
+        OnEditSaveName(m_rows.data[0]);
+    }
+}
+
+// FUNCTION: WIZ8 0x005aace0
+void W8OptionsSaveLoadPanel::OnPrimary(W8TextControl* control)
+{
+    if (control == m_delete_button) {
+        g_options_screen_0069c254->ShowNotification(this, 1, 0x828, 1);
+        return;
+    }
+    if (control != m_action_button) {
+        return;
+    }
+    if (m_panel == 11) {
+        LoadSelectedSave();
+        return;
+    }
+
+    W8OptionsTextEditor* editor = g_options_screen_0069c254->m_text_editor;
+    if (editor != 0) {
+        if (editor->m_listener != 0) {
+            editor->m_listener->OnTextEditComplete(editor, 0);
+        }
+        delete editor;
+        g_options_screen_0069c254->m_text_editor = 0;
+    }
+    if (editor == 0 && m_current_04c == 0 && m_selection.m_selectedIndex == 0) {
+        SaveSelectedSave();
+    }
+    else {
+        g_options_screen_0069c254->ShowNotification(this, 1, 0x829, 2);
+    }
+}
+
+// FUNCTION: WIZ8 0x005aadd0
+void W8OptionsSaveLoadPanel::OnDialogClosed(unsigned char reason, int value)
+{
+    int selected_slot;
+    if (reason == 0) {
+        if (value == 2) {
+            if (g_options_screen_0069c254->m_text_editor != 0 ||
+                m_panel != 12 || m_selection.m_selectedIndex != 0) {
+                return;
+            }
+            selected_slot = m_current_04c;
+        }
+        else if (value == 3) {
+            selected_slot = m_current_04c * 5 + m_selection.m_selectedIndex;
+            wcscpy(g_options_screen_0069c254->m_save_slots.data[selected_slot]->name,
+                   m_previous_name);
+            W8OptionsSaveRow* row = m_rows.data[m_selection.m_selectedIndex];
+            row->m_save = g_options_screen_0069c254->m_save_slots.data[selected_slot];
+            row->SetEnabled(row->m_save != 0);
+            row->Invalidate(0);
+            if (g_options_screen_0069c254->m_text_editor != 0 ||
+                m_panel != 12 || m_selection.m_selectedIndex != 0) {
+                return;
+            }
+            selected_slot = m_current_04c;
+        }
+        else {
+            return;
+        }
+    }
+    else {
+        switch (value) {
+        case 1:
+            DeleteSelectedSave();
+            return;
+        case 3: {
+            char path[260];
+            sprintf(path, "%s\\%S.%s", "Saves", m_previous_name, "SAV");
+            if (DeleteFileA(path) == 0) {
+                g_options_screen_0069c254->ShowNotification(this, 0, 0x82e, 0);
+                return;
+            }
+        }
+        case 2:
+            SaveSelectedSave();
+            return;
+        case 4:
+            if (g_options_screen_0069c254->m_text_editor != 0 ||
+                m_panel != 12 || m_selection.m_selectedIndex != 0) {
+                return;
+            }
+            selected_slot = m_current_04c;
+            break;
+        default:
+            return;
+        }
+    }
+    if (selected_slot == 0) {
+        OnEditSaveName(m_rows.data[0]);
+    }
+}
+
+// FUNCTION: WIZ8 0x005aafc0
+void W8OptionsSaveLoadPanel::OnTextEditComplete(
+    W8OptionsTextEditor*, unsigned char cancelled)
+{
+    int selected_slot = m_current_04c * 5 + m_selection.m_selectedIndex;
+    m_rows.data[m_editing_row]->m_editing = 0;
+    if (cancelled != 0) {
+        m_rows.data[m_selection.m_selectedIndex]->Invalidate(0);
+        return;
+    }
+
+    W8SaveSlot* slot = g_options_screen_0069c254->m_save_slots.data[selected_slot];
+    wcscpy(m_previous_name, slot->name);
+    Get16BitStringFromField(0, slot->name);
+    if (wcslen(slot->name) == 0) {
+        wcscpy(slot->name, m_previous_name);
+        g_options_screen_0069c254->ShowNotification(this, 0, 0x82a, 4);
+        return;
+    }
+
+    W8OptionsSaveRow* row = m_rows.data[m_selection.m_selectedIndex];
+    row->m_save = slot;
+    row->SetEnabled(slot != 0);
+    row->Invalidate(0);
+    if (m_current_04c == 0 && m_selection.m_selectedIndex == 0) {
+        if (SaveSlotFileExists(ConvertWideStringToString(slot->name)) == 0) {
+            SaveSelectedSave();
+        }
+        else {
+            g_options_screen_0069c254->ShowNotification(this, 1, 0x829, 2);
+        }
+    }
+    else {
+        g_options_screen_0069c254->ShowNotification(this, 1, 0x829, 3);
+    }
+}
+
+// FUNCTION: WIZ8 0x005ab1b0
+void W8OptionsSaveLoadPanel::OnEditSaveName(W8OptionsSaveRow*)
+{
+    int selected_slot = m_current_04c * 5 + m_selection.m_selectedIndex;
+    g_options_screen_0069c254->BeginSaveNameEdit(
+        this, m_selection.m_selectedIndex,
+        g_options_screen_0069c254->m_save_slots.data[selected_slot]->name);
+    m_editing_row = m_selection.m_selectedIndex;
+    m_rows.data[m_editing_row]->m_editing = 1;
+}
+
+// FUNCTION: WIZ8 0x005ab230
+void W8OptionsSaveLoadPanel::OnActivateSave(W8OptionsSaveRow*)
+{
+    OnPrimary(m_action_button);
+}
+
+// FUNCTION: WIZ8 0x005ab250
+void W8OptionsSaveLoadPanel::OnSelectionChanged(W8ControlSelection*, int)
+{
+    if (g_options_screen_0069c254->m_text_editor != 0) {
+        W8OptionsTextEditor* editor = g_options_screen_0069c254->m_text_editor;
+        if (editor->m_listener != 0) {
+            editor->m_listener->OnTextEditComplete(editor, 1);
+        }
+        delete editor;
+        g_options_screen_0069c254->m_text_editor = 0;
+    }
+    if (m_panel == 12 && m_current_04c == 0 &&
+        m_selection.m_selectedIndex == 0) {
+        OnEditSaveName(m_rows.data[0]);
+    }
+}
+
+// FUNCTION: WIZ8 0x005ab2c0
+void W8OptionsSaveLoadPanel::DeleteSelectedSave()
+{
+    int selected_slot = m_current_04c * 5 + 1 + m_selection.m_selectedIndex;
+    W8SaveSlot* slot = g_options_screen_0069c254->m_save_slots.data[selected_slot];
+    char path[260];
+    sprintf(path, "%s\\%S.%s", "Saves", slot->name, "SAV");
+    if (DeleteFileA(path) == 0) {
+        g_options_screen_0069c254->ShowNotification(this, 0, 0x82f, 0);
+        return;
+    }
+
+    g_options_screen_0069c254->m_save_slots.RemoveAt(selected_slot);
+    if (g_options_screen_0069c254->m_save_slots.count == 1) {
+        selected_slot = -1;
+        if (m_panel == 11) {
+            m_delete_button->SetEnabled(0);
+            m_action_button->SetEnabled(0);
+        }
+    }
+    else if (selected_slot >= g_options_screen_0069c254->m_save_slots.count) {
+        --selected_slot;
+        if (m_selection.m_selectedIndex == 0) {
+            --m_current_04c;
+        }
+    }
+
+    if (g_options_screen_0069c254->m_selected_panel_020 == 4) {
+        g_options_screen_0069c254->m_panel_038[4]->m_mode_000 =
+            (g_options_screen_0069c254->m_save_slots.count - 2) / 5 + 1;
+    }
+    else if (g_options_screen_0069c254->m_selected_panel_020 == 5) {
+        g_options_screen_0069c254->m_panel_038[5]->m_mode_000 =
+            (g_options_screen_0069c254->m_save_slots.count - 1) / 5 + 1;
+    }
+    g_options_screen_0069c254->m_menu_set_028->UpdateMenuSet();
+    SetCurrent(m_current_04c);
+    m_selection.SetSelected(selected_slot == -1 ? -1 : (selected_slot - 1) % 5);
+}
+
+// FUNCTION: WIZ8 0x005ab460
+void W8OptionsSaveLoadPanel::LoadSelectedSave()
+{
+    int selected_slot = m_current_04c * 5 + 1 + m_selection.m_selectedIndex;
+    W8SaveSlot* slot = g_options_screen_0069c254->m_save_slots.data[selected_slot];
+    if (slot->version_major + slot->version_minor * 0.1f +
+            slot->version_patch * 0.01f <= 1.24f) {
+        wcsncpy(g_options_last_save_name_0069c1cc, slot->name, 0x40);
+        reinterpret_cast<char*>(g_options_last_save_name_0069c1cc)[0x7e] = 0;
+        if (g_status_685170.game_started != 0) {
+            ClearHeldItemDisplay();
+        }
+        RequestScreenTransition();
+        g_pending_screen_state.mode = 1;
+        g_pending_screen_state.parameter = slot->level_id;
+        strcpy(g_pending_screen_state.name, ConvertWideStringToString(slot->name));
+        SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
+    }
+}
+
+// FUNCTION: WIZ8 0x005ab590
+void W8OptionsSaveLoadPanel::SaveSelectedSave()
+{
+    int selected_slot = m_current_04c * 5 + m_selection.m_selectedIndex;
+    W8SaveSlot* slot = g_options_screen_0069c254->m_save_slots.data[selected_slot];
+    if (wcslen(slot->name) == 0) {
+        g_options_screen_0069c254->ShowNotification(this, 0, 0x82a, 0);
+        return;
+    }
+
+    char path[260];
+    sprintf(path, "%s\\%S.%s", "Saves", slot->name, "SAV");
+    if (FileExists(path) != 0 && DeleteFileA(path) == 0) {
+        g_options_screen_0069c254->ShowNotification(this, 0, 0x82e, 0);
+        return;
+    }
+    wcsncpy(g_options_last_save_name_0069c1cc, slot->name, 0x40);
+    reinterpret_cast<char*>(g_options_last_save_name_0069c1cc)[0x7e] = 0;
+    RequestScreenTransition();
+    g_pending_screen_state.mode = 2;
+    strcpy(g_pending_screen_state.name, ConvertWideStringToString(slot->name));
+    g_pending_screen_state.parameter_3 =
+        new W8SaveScreenshot(g_options_screen_0069c254->m_save_slots.data[0]->screenshot);
+    SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
+}
 
 __forceinline W8OptionsButton::W8OptionsButton(
     Controls* owner, int left, int top, int right, int bottom,
@@ -211,6 +572,119 @@ __forceinline W8OptionsKeyButton::W8OptionsKeyButton(
     m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED560 |
                                g_W8TextBufferLayoutMask005ED550 |
                                g_W8TextBufferLayoutMask005ED558);
+}
+
+__forceinline W8OptionsSaveRow::W8OptionsSaveRow(
+    Controls* owner, int top, unsigned char save_mode)
+    : W8TextControl(owner, 0xffffffff, 10, top, 0, 0, 0xf9, 0,
+                    save_mode ? 2 : 0, save_mode ? 3 : 1, -1, -1, 4),
+      m_save_mode(save_mode), m_editing(0), m_save(0), m_listener(0)
+{
+    AddLayoutFlags(g_W8TextControlMask005ED588 |
+                   g_W8TextControlMask005ED578);
+}
+
+// SYNTHETIC: WIZ8 0x005a7730
+// W8OptionsSaveRow::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x005a7750
+W8OptionsSaveRow::~W8OptionsSaveRow() {}
+
+// FUNCTION: WIZ8 0x005a77b0
+void W8OptionsSaveRow::Redraw(int full_redraw)
+{
+    if (m_active == 0 || (full_redraw == 0 && m_dirty == 0)) {
+        return;
+    }
+    W8TextControl::Redraw(full_redraw);
+    if (m_enabled == 0 || m_save == 0) {
+        return;
+    }
+
+    int x = m_pPanel->origin_x + m_left;
+    int y = m_pPanel->origin_y + m_top;
+    if (m_save->screenshot.capture_result == 0) {
+        DrawCatalogImage(-14, 0xf6, 0, 0, x + 6, y + 6, 2, 0);
+    }
+    else {
+        srColorSurface* portrait = new srColorSurface(
+            srPixelConvert::SURFACE_ARGB1555, m_save->screenshot.pixels,
+            0x50, 0x3c, 0xa0);
+        DrawColorSurface00425590(portrait, x + 6, y + 6);
+        portrait->release();
+    }
+
+    const wchar_t* level_name = m_save->level_id == 0x38
+        ? g_default_level_0064d7b8
+        : gppStringList[g_level_name_indices_605820[m_save->level_id]];
+    wchar_t timestamp[32];
+    swprintf(timestamp, L"%d-%2.2d-%2.2d %2d:%2.2d",
+             m_save->timestamp.wYear, m_save->timestamp.wMonth,
+             m_save->timestamp.wDay, m_save->timestamp.wHour,
+             m_save->timestamp.wMinute);
+
+    SetFont(g_font_683660);
+    int text_x = x + 0x5e;
+    if (m_save->version_major + m_save->version_minor * 0.1f +
+            m_save->version_patch * 0.01f <= 1.24f) {
+        gprintf(text_x, y + 9, (unsigned short*)L"%s", level_name);
+        gprintf(text_x, y + 0x16, (unsigned short*)L"%s %3d, %2d:%2.2d",
+                gppStringList[0x826], m_save->game_time_days,
+                m_save->game_time_ms / 3600000,
+                (m_save->game_time_ms / 60000) % 60);
+        gprintf(text_x, y + 0x23, (unsigned short*)L"%s", timestamp);
+    }
+    else {
+        gprintf(text_x, y + 9, (unsigned short*)L"%s", gppStringList[0x830]);
+        gprintf(text_x, y + 0x16, (unsigned short*)L"%s", gppStringList[0x831]);
+    }
+    gprintf(text_x, y + 0x34, (unsigned short*)L"%s", m_save->name);
+    if (m_save->iron_man != 0) {
+        gprintf(x + 0x156, y + 9, (unsigned short*)L"%s", gppStringList[0x827]);
+    }
+}
+
+// FUNCTION: WIZ8 0x005a7b10
+void W8OptionsSaveRow::OnLeftButtonUp(int event)
+{
+    if (m_active != 0 && m_enabled != 0 && m_editing == 0 &&
+        (m_stateFlags & g_W8TextControlMask005ED570) != 0) {
+        W8ScreenPoint point;
+        GetScreenPoint004284F0(&point);
+        point.x -= m_pPanel->origin_x + m_left;
+        point.y -= m_pPanel->origin_y + m_top;
+        if (m_save_mode != 0 && point.x >= 0x5c && point.y >= 0x33 &&
+            m_listener != 0) {
+            m_listener->OnEditSaveName(this);
+        }
+    }
+    W8TextControl::OnLeftButtonUp(event);
+}
+
+// FUNCTION: WIZ8 0x005a7bb0
+void W8OptionsSaveRow::OnLeftButtonDoubleClick(int event)
+{
+    if (m_active != 0 && m_enabled != 0 && m_editing == 0 &&
+        (m_stateFlags & g_W8TextControlMask005ED570) != 0 && m_listener != 0) {
+        m_listener->OnActivateSave(this);
+    }
+    W8TextControl::OnLeftButtonDoubleClick(event);
+}
+
+// SYNTHETIC: WIZ8 0x005a8050
+// W8OptionsTextEditor::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x005a9820
+void W8OptionsScreen::BeginSaveNameEdit(
+    W8OptionsTextEditor::Listener* listener, int row, const wchar_t* text)
+{
+    W8OptionsTextEditor* editor = new W8OptionsTextEditor;
+    InitTextInputModeWithScheme(1);
+    AddTextInputField(0x16b, row * 0x49 + 0x46, 0xfa, 0xc, 0x7f,
+                      text, 0x3b, 0xf, 1);
+    SetActiveField(0);
+    m_text_editor = editor;
+    editor->m_listener = listener;
 }
 
 // FUNCTION: WIZ8 0x005a7c20
@@ -521,9 +995,6 @@ void W8OptionsKeyboardPanel::ClearDuplicateBinding(unsigned short key)
         }
     }
 }
-
-// SYNTHETIC: WIZ8 0x005a8050
-// W8OptionsTextEditor::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005abfc0
 W8OptionsPanel* CreateOptionsPanel(int panel, unsigned char* compact, unsigned char* hide_navigation)

@@ -136,6 +136,8 @@ public:
     void AdjustPosition00431DA0(
         srVector3T<float>* position, unsigned int mode);
     void Function0042F7E0();
+    void UpdateVisibility004304A0();
+    void UpdateWorldTrace00433EB0();
 
     bool HasLoadError() const {
         return (spatial_000.flags_00 & 0x80000000) != 0;
@@ -236,12 +238,17 @@ public:
     unsigned long m_positional_1b0;
     unsigned long m_positional_1b4;
     unsigned long m_positional_1b8;
-    /* The two line-of-sight bodies hand this pair to their result test
-       together with the byte at +0x134, so 0x1bc is storage rather than
-       the GD object table that used to be declared here. */
-    unsigned long m_positional_1bc;
-    unsigned long* m_aulGDObjs;          /* 0x1c0 */
-    unsigned char m_positional_1c4[0xb8];
+    unsigned long* m_aulGDObjs;          /* 0x1bc */
+    srVector3T<float> camera_location_1c0;
+    srVector3T<float> camera_dof_1cc;
+    srVector3T<float> rotation_column_1d8;
+    srVector3T<float> rotation_column_1e4;
+    float horizontal_fov_1f0;
+    float vertical_fov_1f4;
+    float horizontal_fov_cosine_1f8;
+    float vertical_fov_cosine_1fc;
+    float far_clip_200;
+    unsigned char m_positional_204[0x78];
     unsigned long m_positional_27c;
     unsigned long m_positional_280;
     unsigned long m_positional_284;
@@ -305,3 +312,5 @@ extern unsigned long g_octree_state_00659890;
 extern float g_octree_cell_scale_005ebcd0;
 extern unsigned long g_octree_bytes_read_00659888;
 extern int g_shared_mark_006598ac;
+extern unsigned char g_octree_update_suspended_00659898;
+extern unsigned char g_octree_trace_enabled_00659899;

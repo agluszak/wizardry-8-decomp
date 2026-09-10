@@ -56,7 +56,6 @@ unsigned char TakePendingSaveFlag(void);
 struct W8Character;
 struct W8Chunk;
 struct W8GlobalStatus;
-
 unsigned char SaveSlotFileExists(const char* slot_name);
 unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
                             char report_failure);

@@ -102,3 +102,4 @@ void DestroyAllMissiles(W8World* world);             /* 0x004A4210 */
 void DetachMissileReferences005019A0(W8Missile* missile);
 
 extern float g_navigator_largest_extent_6081e8;
+extern unsigned int g_missile_table_count_65bddc;

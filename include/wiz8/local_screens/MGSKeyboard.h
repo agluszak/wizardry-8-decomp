@@ -17,12 +17,16 @@ static_assert(sizeof(MGSKeyBinding) == 0x0a, "MGSKeyBinding_size");
 /* Local Screens\MGSKeyboard.cpp owns the binding vector and its command-keyed
    lookup. The serialized record is exactly ten bytes; command lookups compare
    the unaligned integer at +0x06. */
+// VTABLE: WIZ8 0x005ee8f0
 class MGSKeyboard {
 public:
+    MGSKeyboard();
     virtual ~MGSKeyboard();
 
     int FindBinding(int command) const;
     MGSKeyBinding* GetBinding(int index) const;
+    void Clear();
+    unsigned char LoadDefaults(const char* path);
 
 private:
     W8GrowableVector<MGSKeyBinding*> m_bindings;

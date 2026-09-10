@@ -26,6 +26,7 @@
 #include "wiz8/engine_code/stTextureAnim.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/GameData.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/item_spawning.h"
@@ -76,7 +77,6 @@ extern srVector3T<float> g_environment_offset_00659cd0;
 srVector3T<float> g_environment_offset_00659cd0;
 extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
-extern void FinalizeWorldTriggers00448840(void);
 extern void UpdateCameraView00450080(srCamera* camera, int mode);
 extern void FinalizeWorldScenes0046F410(
     srScene* static_scene, srNode* dynamic_scene);
@@ -1183,8 +1183,8 @@ unsigned char ReadLevel(
                 Trigger::CreateAndLoadLevelTrigger(info.hFile, world);
             }
             if (world->m_owned_04c != 0 &&
-                *(int*)world->m_owned_04c != 0) {
-                FinalizeWorldTriggers00448840();
+                world->m_owned_04c->geometry_index_00 != 0) {
+                world->m_owned_04c->IntegrateTriggers();
             }
         }
     }

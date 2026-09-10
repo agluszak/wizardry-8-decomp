@@ -52,6 +52,19 @@ unsigned short TranslateKeyToCharacter(unsigned short key, unsigned char modifie
     return gsKeyTranslationTable[key];
 }
 
+// FUNCTION: WIZ8 0x004027C0
+unsigned short TranslateCharacterToKey(unsigned short character)
+{
+    unsigned int key = 0;
+    do {
+        if (gsKeyTranslationTable[key & 0xffff] == character) {
+            return static_cast<char>(key);
+        }
+        ++key;
+    } while (static_cast<unsigned short>(key) < 0x200);
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x00402800
 unsigned short Function402800(unsigned short character)
 {

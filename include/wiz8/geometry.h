@@ -6,7 +6,10 @@
 struct W8GDSurface {
     unsigned int flags_00;
     unsigned int index_04;
-    unsigned char positional_08[0x10];
+    int trigger_index_08;
+    int positional_0c;
+    int positional_10;
+    int positional_14;
     int vertex_indices_18[3];
     union {
         float plane_24[4];

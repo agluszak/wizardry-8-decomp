@@ -14,6 +14,7 @@
 class W8OptionsPanel;
 class W8OptionsSaveRow;
 
+// VTABLE: WIZ8 0x005eef68
 class W8OptionsTextEditor {
 public:
     class Listener {
@@ -28,6 +29,8 @@ public:
     Listener* m_listener;
 };
 
+static_assert(sizeof(W8OptionsTextEditor) == 8, "W8OptionsTextEditor_size");
+
 class W8OptionsKeyCapture {
 public:
     virtual unsigned char OnKey(unsigned short key, unsigned short modifiers) = 0;
@@ -38,6 +41,25 @@ public:
     virtual void OnEditSaveName(W8OptionsSaveRow* row) = 0;
     virtual void OnActivateSave(W8OptionsSaveRow* row) = 0;
 };
+
+// VTABLE: WIZ8 0x005eee2c
+class W8OptionsSaveRow : public W8TextControl {
+public:
+    __forceinline W8OptionsSaveRow(Controls* owner, int top,
+                                  unsigned char save_mode);
+    virtual ~W8OptionsSaveRow() override;
+    virtual void Redraw(int full_redraw) override;
+    virtual void OnLeftButtonUp(int event) override;
+    virtual void OnLeftButtonDoubleClick(int event) override;
+
+    unsigned char m_save_mode;
+    unsigned char m_editing;
+    unsigned char pad_0ba[2];
+    W8SaveSlot* m_save;
+    W8OptionsSaveRowListener* m_listener;
+};
+
+static_assert(sizeof(W8OptionsSaveRow) == 0xc4, "W8OptionsSaveRow_size");
 
 /* The settings transfer routines at 005A6E20/005A72F0/005A7320 share this
    receiver. The trailing direction flag is part of the record, not a global.
@@ -298,6 +320,7 @@ class W8OptionsSaveLoadPanel : public W8OptionsPanel,
     public W8ControlSelectionListener {
 public:
     explicit W8OptionsSaveLoadPanel(int panel);
+    virtual ~W8OptionsSaveLoadPanel() override;
     virtual void Populate() override;
     virtual void SetActive(unsigned char active) override;
     virtual void SetCurrent(int current) override;
@@ -307,6 +330,9 @@ public:
     virtual void OnEditSaveName(W8OptionsSaveRow* row) override;
     virtual void OnActivateSave(W8OptionsSaveRow* row) override;
     virtual void OnSelectionChanged(W8ControlSelection* selection, int selected) override;
+    void DeleteSelectedSave();
+    void LoadSelectedSave();
+    void SaveSelectedSave();
     int m_panel;
     W8GrowableVector<W8OptionsSaveRow*> m_rows;
     W8ControlSelection m_selection;
@@ -387,6 +413,8 @@ public:
     unsigned char ProcessInput(const InputAtom* input);
     void Redraw();
     void ShowNotification(W8DialogCloseListener* listener, int caption, int message, int value);
+    void BeginSaveNameEdit(W8OptionsTextEditor::Listener* listener, int row,
+                           const wchar_t* text);
     virtual void OnSelectionChanged(
         W8ControlSelection* control, int selected) override;
     virtual void OnPrimary(W8TextControl* control) override;
@@ -412,3 +440,4 @@ static_assert(sizeof(W8OptionsScreen) == 0x64,
               "W8OptionsScreen_must_be_0x64");
 
 extern W8OptionsScreen* g_options_screen_0069c254;
+extern wchar_t g_options_last_save_name_0069c1cc[64];

@@ -1,4 +1,5 @@
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/OptionsScreen.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/cursor.h"
@@ -9,11 +10,8 @@
 #include <wchar.h>
 
 extern "C" {
-extern int g_value_69c1cc;
 // GLOBAL: WIZ8 0x0064d8ac
 unsigned long g_value_64d8ac = 6;
-// GLOBAL: WIZ8 0x0069c1cc
-int g_value_69c1cc;
 extern unsigned long g_value_64d8ac;
 }
 
@@ -37,16 +35,16 @@ extern void Function4257F0(int value);
 void Function5A9E70(void* target)
 {
     wcsncpy(
-        reinterpret_cast<wchar_t*>(&g_value_69c1cc),
+        g_options_last_save_name_0069c1cc,
         static_cast<const wchar_t*>(target),
         0x40);
-    reinterpret_cast<char*>(&g_value_69c1cc)[0x7e] = 0;
+    reinterpret_cast<char*>(g_options_last_save_name_0069c1cc)[0x7e] = 0;
 }
 
 // FUNCTION: WIZ8 0x005A9E90
 int* GetAddress69C1CC(void)
 {
-    return &g_value_69c1cc;
+    return reinterpret_cast<int*>(g_options_last_save_name_0069c1cc);
 }
 // FUNCTION: WIZ8 0x005AE9C0
 void SetValue64D8AC(unsigned long value)

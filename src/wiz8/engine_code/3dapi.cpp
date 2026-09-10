@@ -214,7 +214,7 @@ unsigned char LoadWorld(
     world->m_owned_04c = 0;
 
     if (CheckLevelAssetSet0042CCC0(oct_path) >= 0) {
-        world->octree = new W8Octree(oct_path, &world->m_owned_04c);
+        world->octree = new W8Octree(oct_path, (void**)&world->m_owned_04c);
         if (world->octree != 0 && world->octree->HasLoadError()) {
             delete world->octree;
             world->octree = 0;
@@ -227,8 +227,7 @@ unsigned char LoadWorld(
     if (game_data_path[0] != '\0' && world->m_owned_04c == 0) {
         world->m_owned_04c = ReadGameData00447570(game_data_path, 0);
         if (world->m_owned_04c != 0 &&
-            InitializeGameData004497C0(
-                static_cast<W8GameData*>(world->m_owned_04c)) == 0) {
+            InitializeGameData004497C0(world->m_owned_04c) == 0) {
             return 0;
         }
     }
@@ -542,7 +541,7 @@ void DestroyWorld(W8World* world)
         world->update_mesh_source = 0;
     }
     if (world->m_owned_04c != 0) {
-        delete static_cast<W8GameData*>(world->m_owned_04c);
+        delete world->m_owned_04c;
         world->m_owned_04c = 0;
     }
     if (world->octree != 0) {

@@ -131,8 +131,7 @@ public:
     void Run(int source);
 
     int trigger_kind_018;
-    unsigned char state_01c;
-    unsigned char unknown_01d[0x7f];
+    char name_01c[0x80];
     int trigger_id_09c;
     union {
         unsigned int flags_0a0;
@@ -185,7 +184,8 @@ public:
     int m_lData2;
     int m_lData3;
     unsigned short value_0c8;
-    unsigned char unknown_0ca[0x32];
+    unsigned char unknown_0ca[2];
+    srVector3T<float> representation_vectors_0cc[4];
     float angle_0fc;
     float value_100;
     float value_104;
@@ -198,8 +198,8 @@ public:
     float position_11c;
     float position_120;
     W8World* m_pWorld;
-    unsigned char action_data_128[0x80];
-    unsigned char alternate_action_data_1a8[0x80];
+    char action_data_128[0x80];
+    char alternate_action_data_1a8[0x80];
     signed char action_data_mode_228;
     signed char value_229;
     unsigned short initial_action_22a;
@@ -239,6 +239,7 @@ void Function445200(Trigger* trigger);
 static_assert(sizeof(Trigger) == 0x38c, "Trigger_must_be_0x38c");
 
 Trigger* FindTriggerByName(const char* name);
+W8TriggerActionData* LoadTriggerActionData004417C0(int handle);
 
 extern unsigned char g_flag_00606994;
 extern unsigned char g_flag_0068506e;

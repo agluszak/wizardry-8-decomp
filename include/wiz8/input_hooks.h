@@ -7,5 +7,6 @@
 void Function402270(unsigned int key, unsigned int flags, char pressed);
 void Function4023B0(unsigned short key);
 unsigned short TranslateKeyToCharacter(unsigned short key, unsigned char modifiers);
+unsigned short TranslateCharacterToKey(unsigned short character);
 void Function427A70(RECT* rect);
 #endif

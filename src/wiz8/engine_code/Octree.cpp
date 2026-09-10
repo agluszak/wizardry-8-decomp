@@ -2,6 +2,7 @@
 #include <cstring>
 
 #include "surrender/srHeap.h"
+#include "surrender/srScene.h"
 #include "wiz8/engine_code/OctPath.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/location_variables.h"
@@ -39,6 +40,10 @@ unsigned long g_octree_storage_00659770;
 
 // GLOBAL: WIZ8 0x00659890
 unsigned long g_octree_state_00659890;
+// GLOBAL: WIZ8 0x00659898
+unsigned char g_octree_update_suspended_00659898;
+// GLOBAL: WIZ8 0x00659899
+unsigned char g_octree_trace_enabled_00659899;
 extern void Function4331F0(void* value);
 extern void Function432D60(void* value);
 extern void Function434020(int value);
@@ -51,6 +56,42 @@ W8Octree* g_octree_6598a4;
 
 // GLOBAL: WIZ8 0x005ec02c
 static const float NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE = 50.0f;
+
+// FUNCTION: WIZ8 0x0042f7e0
+void W8Octree::Function0042F7E0()
+{
+    W8World* world = GetWorld();
+    if (g_octree_update_suspended_00659898 != 0 || m_positional_294 != 0) {
+        return;
+    }
+
+    far_clip_200 = static_cast<float>(WorldGetFarClip(world));
+    world->camera->getLocation(camera_location_1c0);
+    horizontal_fov_1f0 = static_cast<float>(world->camera->getHorizontalFOV());
+    vertical_fov_1f4 = static_cast<float>(world->camera->getVerticalFOV());
+
+    srMatrix3T<float> rotation;
+    world->camera->getRotation(rotation);
+    rotation_column_1d8.x = 1.0f + rotation.vectors[0].x;
+    rotation_column_1d8.y = rotation.vectors[1].x;
+    rotation_column_1d8.z = rotation.vectors[2].x;
+    rotation_column_1e4.x = 1.0f + rotation.vectors[0].y;
+    rotation_column_1e4.y = rotation.vectors[1].y;
+    rotation_column_1e4.z = rotation.vectors[2].y;
+
+    srVector3T<double> dof = world->camera->getWorldSpaceDOF();
+    camera_dof_1cc.x = static_cast<float>(dof.x);
+    camera_dof_1cc.y = static_cast<float>(dof.y);
+    camera_dof_1cc.z = static_cast<float>(dof.z);
+    horizontal_fov_cosine_1f8 = (float)cos(horizontal_fov_1f0);
+    vertical_fov_cosine_1fc = (float)cos(vertical_fov_1f4);
+    m_owned_190->ClearAll();
+    m_owned_15c->ClearAll();
+    UpdateVisibility004304A0();
+    if (g_octree_trace_enabled_00659899 != 0) {
+        UpdateWorldTrace00433EB0();
+    }
+}
 
 // FUNCTION: WIZ8 0x00434250
 unsigned char W8Octree::PrepareNavigatorTarget00434250(
@@ -223,7 +264,8 @@ extern int ProbeCellForBlockers00435C40(const int* cell);
 extern unsigned char TestProbeResult00435F00(void* result);
 extern int ProbeCellForTrace00435B00(const int* cell);
 extern char TestTraceResult0041C330(
-    int value_1b8, int value_1bc, void* result, unsigned char value_134, int mode);
+    int value_1b8, unsigned long* objects, void* result,
+    unsigned char value_134, int mode);
 extern int TraceAgainstProps00436510(
     const srVector3T<float>* from, srVector3T<float>* to, int value_3, int value_4);
 extern char ResolveTraceHit004353F0(
@@ -454,11 +496,11 @@ short W8Octree::TraceLineOfSight(
         if (span < 2) {
             ProbeCellForTrace00435B00(cell);
             blocked = TestTraceResult0041C330(
-                m_positional_1b8, m_positional_1bc, result, m_positional_134, 0);
+                m_positional_1b8, m_aulGDObjs, result, m_positional_134, 0);
             if (blocked == 0 && span != 0) {
                 ProbeCellForTrace00435B00(&step[3]);
                 blocked = TestTraceResult0041C330(
-                    m_positional_1b8, m_positional_1bc, result, m_positional_134, 0);
+                    m_positional_1b8, m_aulGDObjs, result, m_positional_134, 0);
             }
         } else {
             BuildCellWalk(from, to, &walk);
@@ -484,7 +526,7 @@ short W8Octree::TraceLineOfSight(
                     }
                     if (ProbeCellForTrace00435B00(cell) != 0) {
                         blocked = TestTraceResult0041C330(
-                            m_positional_1b8, m_positional_1bc, result, m_positional_134, 0);
+                            m_positional_1b8, m_aulGDObjs, result, m_positional_134, 0);
                     }
                     if (error_0 < error_1) {
                         if (error_0 < 0 && blocked == 0) {
@@ -492,7 +534,7 @@ short W8Octree::TraceLineOfSight(
                             error_0 += walk.error_reset_30;
                             if (ProbeCellForTrace00435B00(cell) != 0) {
                                 blocked = TestTraceResult0041C330(
-                                    m_positional_1b8, m_positional_1bc, result,
+                                    m_positional_1b8, m_aulGDObjs, result,
                                     m_positional_134, 0);
                             }
                             if (error_1 < 0 && blocked == 0) {
@@ -500,7 +542,7 @@ short W8Octree::TraceLineOfSight(
                                 error_1 += walk.error_reset_3c;
                                 if (ProbeCellForTrace00435B00(cell) != 0) {
                                     blocked = TestTraceResult0041C330(
-                                        m_positional_1b8, m_positional_1bc, result,
+                                        m_positional_1b8, m_aulGDObjs, result,
                                         m_positional_134, 0);
                                 }
                             }
@@ -510,7 +552,7 @@ short W8Octree::TraceLineOfSight(
                         error_1 += walk.error_reset_3c;
                         if (ProbeCellForTrace00435B00(cell) != 0) {
                             blocked = TestTraceResult0041C330(
-                                m_positional_1b8, m_positional_1bc, result,
+                                m_positional_1b8, m_aulGDObjs, result,
                                 m_positional_134, 0);
                         }
                         if (error_0 < 0 && blocked == 0) {
@@ -518,7 +560,7 @@ short W8Octree::TraceLineOfSight(
                             error_0 += walk.error_reset_30;
                             if (ProbeCellForTrace00435B00(cell) != 0) {
                                 blocked = TestTraceResult0041C330(
-                                    m_positional_1b8, m_positional_1bc, result,
+                                    m_positional_1b8, m_aulGDObjs, result,
                                     m_positional_134, 0);
                             }
                         }

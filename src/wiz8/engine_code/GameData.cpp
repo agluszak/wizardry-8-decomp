@@ -4,6 +4,7 @@
 #include "wiz8/engine_code/Object0043A910.h"
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/game_timer.h"
+#include "wiz8/engine_code/Trigger.h"
 #include "wiz8/float_constants.h"
 extern "C" {
 // GLOBAL: WIZ8 0x005ec1a8
@@ -19,11 +20,14 @@ float g_float_005ec1a0 = 0.9959999918937683f;
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 #include <windows.h>
 #include <new>
 
 // GLOBAL: WIZ8 0x00652dac
 W8LevelDataRecord* g_level_data_00652dac;
+// GLOBAL: WIZ8 0x00659a58
+int g_integrated_trigger_count_00659a58;
 
 // GLOBAL
 float g_float_00603ac8;
@@ -230,6 +234,167 @@ unsigned char InitializeGameData004497C0(W8GameData* game_data)
         }
     }
     return 1;
+}
+
+// FUNCTION: WIZ8 0x00448310
+void W8GameData::AddTriggerPlane(
+    const srVector3T<float>* trigger_vertices, Trigger* trigger)
+{
+    int trigger_index = 0;
+    int index;
+    if (positional_04 != 0) {
+        if (trigger_table_50 == 0) {
+            g_integrated_trigger_count_00659a58 = 0;
+            trigger_table_50 = static_cast<Trigger**>(
+                malloc(total_surface_count_44 * sizeof(Trigger*) + 4));
+            if (trigger_table_50 == 0) {
+                srAssertFail("m_ppTriggers",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                    0x256, "AddTriggerPlane: Couldn't allocate trigger array.");
+            }
+        }
+        if (g_integrated_trigger_count_00659a58 >= total_surface_count_44) {
+            srAssertFail("iTriggerCount < m_iNumTriggers",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                0x259, "AddTriggerPlane: Too many triggers.");
+        }
+        trigger_table_50[g_integrated_trigger_count_00659a58++] = trigger;
+        return;
+    }
+
+    if (overflow_surfaces_48 == 0) {
+        overflow_surfaces_48 = static_cast<W8GDSurface*>(malloc(500 * sizeof(W8GDSurface)));
+        if (overflow_surfaces_48 == 0) {
+            srAssertFail("m_pTrigSurfaces",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                0x263, "AddTriggerPlane: Couldn't allocate trigger surfaces.");
+        }
+        overflow_vertices_4c = static_cast<srVector3T<float>*>(
+            srHeap.allocate(1000 * sizeof(srVector3T<float>)));
+        if (overflow_vertices_4c == 0) {
+            srAssertFail("m_pTrigVertices",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                0x265, "AddTriggerPlane: Couldn't allocate trigger vertices.");
+        }
+        trigger_table_50 = static_cast<Trigger**>(malloc(500 * sizeof(Trigger*)));
+        if (trigger_table_50 == 0) {
+            srAssertFail("m_ppTriggers",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                0x267, "AddTriggerPlane: Couldn't allocate trigger array.");
+        }
+        overflow_surface_count_3c = 0;
+        overflow_vertex_count_40 = 0;
+        total_surface_count_44 = 0;
+    }
+    if (overflow_surface_count_3c >= 500) {
+        srAssertFail("m_iNumTrigSurfaces < MAX_TRIG_SURFACES",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+            0x26c, 0);
+    }
+
+    for (index = 0; index < total_surface_count_44 && trigger_index == 0; ++index) {
+        if (trigger_table_50[index] == trigger) {
+            trigger_index = index;
+        }
+    }
+    if (trigger_index == 0) {
+        trigger_index = total_surface_count_44++;
+        trigger_table_50[trigger_index] = trigger;
+    }
+    for (index = 0; index < 4; ++index) {
+        overflow_vertices_4c[overflow_vertex_count_40++] = trigger_vertices[index];
+    }
+
+    W8GDSurface* surface = &overflow_surfaces_48[overflow_surface_count_3c];
+    surface->flags_00 = 0x80;
+    surface->index_04 = surface_count_28 + overflow_surface_count_3c;
+    surface->trigger_index_08 = trigger_index;
+    surface->value_40 = 1.1f;
+    surface->vertex_indices_18[0] = overflow_vertex_count_40 - 4;
+    surface->vertex_indices_18[1] = overflow_vertex_count_40 - 3;
+    surface->vertex_indices_18[2] = overflow_vertex_count_40 - 2;
+    ClassifySurfacePlane004498C0(overflow_vertices_4c, surface);
+    for (index = 0; index < 3; ++index) {
+        surface->vertex_indices_18[index] += vertex_count_20;
+    }
+    surface->positional_0c = -1;
+    surface->positional_10 = -1;
+    surface->positional_14 = -1;
+    surface->value_38 = 0;
+    ++overflow_surface_count_3c;
+
+    surface = &overflow_surfaces_48[overflow_surface_count_3c];
+    surface->flags_00 = 0x80;
+    surface->index_04 = surface_count_28 + overflow_surface_count_3c;
+    surface->trigger_index_08 = trigger_index;
+    surface->value_40 = 1.1f;
+    surface->vertex_indices_18[0] = overflow_vertex_count_40 - 2;
+    surface->vertex_indices_18[1] = overflow_vertex_count_40 - 1;
+    surface->vertex_indices_18[2] = overflow_vertex_count_40 - 4;
+    ClassifySurfacePlane004498C0(overflow_vertices_4c, surface);
+    for (index = 0; index < 3; ++index) {
+        surface->vertex_indices_18[index] += vertex_count_20;
+    }
+    surface->positional_0c = -1;
+    surface->positional_10 = -1;
+    surface->positional_14 = -1;
+    surface->value_38 = 0;
+    ++overflow_surface_count_3c;
+}
+
+// FUNCTION: WIZ8 0x00448840
+void W8GameData::IntegrateTriggers()
+{
+    if (overflow_vertex_count_40 == 0) {
+        return;
+    }
+
+    int combined_vertex_count = vertex_count_20 + overflow_vertex_count_40;
+    srVector3T<float>* combined_vertices =
+        static_cast<srVector3T<float>*>(srHeap.allocate(
+            (combined_vertex_count + 1) * sizeof(srVector3T<float>)));
+    if (combined_vertices == 0) {
+        srAssertFail(
+            "pNewVertices",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+            0x31b,
+            "IntegrateTriggers: Couldn't allocate new vertex array.");
+    }
+    memcpy(combined_vertices, vertices_24,
+           vertex_count_20 * sizeof(srVector3T<float>));
+    memcpy(combined_vertices + vertex_count_20, overflow_vertices_4c,
+           overflow_vertex_count_40 * sizeof(srVector3T<float>));
+    vertex_count_20 = combined_vertex_count;
+    srHeap.free(vertices_24);
+    srHeap.free(overflow_vertices_4c);
+    integrated_surface_count_34 = overflow_surface_count_3c;
+    vertices_24 = combined_vertices;
+    overflow_vertices_4c = 0;
+    overflow_vertex_count_40 = 0;
+
+    W8GDSurface* new_surfaces = static_cast<W8GDSurface*>(
+        malloc((overflow_surface_count_3c + 1) * sizeof(W8GDSurface)));
+    if (new_surfaces == 0) {
+        srAssertFail(
+            "pNewSurfaces",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+            0x32c,
+            "IntegrateTriggers: Couldn't allocate new surface array.");
+    }
+    memcpy(new_surfaces, overflow_surfaces_48,
+           overflow_surface_count_3c * sizeof(W8GDSurface));
+    free(overflow_surfaces_48);
+    overflow_surfaces_48 = new_surfaces;
+
+    int end = surface_count_28 + overflow_surface_count_3c;
+    for (int index = surface_count_28; index < end; ++index) {
+        W8GDSurface* surface = index < surface_count_28
+            ? &surfaces_38[index]
+            : &overflow_surfaces_48[index - surface_count_28];
+        geometry_index_00->InsertSurface00446820(surface, 3);
+    }
+    bits_58 = new BitArray(total_surface_count_44);
+    bits_5c = new BitArray(total_surface_count_44);
 }
 
 /* Ensure the shared game-data object exists, then run its update. */
@@ -487,17 +652,17 @@ W8GameData::W8GameData(int handle, void* parent)
     positional_04 = 0;
     vertex_count_20 = 0;
     vertices_24 = 0;
-    *(int*)&positional_2c[8] = 0;
+    integrated_surface_count_34 = 0;
     *(int*)&positional_2c[4] = 0;
     *(int*)&positional_2c[0] = 0;
     surface_count_28 = 0;
     surfaces_38 = 0;
     overflow_surfaces_48 = 0;
-    value_4c = 0;
-    block_50 = 0;
-    *(int*)&positional_3c[0] = 0;
-    *(int*)&positional_3c[4] = 0;
-    *(int*)&positional_3c[8] = 0;
+    overflow_vertices_4c = 0;
+    trigger_table_50 = 0;
+    overflow_surface_count_3c = 0;
+    overflow_vertex_count_40 = 0;
+    total_surface_count_44 = 0;
     bits_58 = 0;
     bits_5c = 0;
     value_54 = 0;
@@ -631,11 +796,11 @@ W8GameData::~W8GameData()
         block_6c = 0;
         value_68 = 0;
     }
-    if (block_50 != 0) {
-        free(block_50);
-        block_50 = 0;
+    if (trigger_table_50 != 0) {
+        free(trigger_table_50);
+        trigger_table_50 = 0;
     }
-    *(int*)&positional_3c[8] = 0;
+    total_surface_count_44 = 0;
     if (environs_84 != 0) {
         if (environ_count_80 > 0) {
             index = 0;

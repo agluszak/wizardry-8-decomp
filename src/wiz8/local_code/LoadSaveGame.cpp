@@ -9,6 +9,7 @@
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/LoadSaveGame.h"
+#include "wiz8/local_code/Search.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
@@ -54,10 +55,6 @@
    reports whether the flag word at +0x29 has any of the caller's bits set. The
    original spells the result through NEG/SBB/NEG, which is what VC6 emits for a
    bool conversion, so the return type is bool rather than the mask. */
-/* 0x00516E20, search.cpp line 293: appends the item to the global searchable
-   array. Not yet identified beyond that, so it keeps an address name. */
-extern void Function516E20(W8WorldItem* item);
-
 /* 0x00659756: set to 1 by LoadLevel (0x0042A6F0) around its restore call at
    0x005135D0 and cleared immediately after, and read only from the save and
    load paths. It gates the bit-3 clear below. The meaning is not established

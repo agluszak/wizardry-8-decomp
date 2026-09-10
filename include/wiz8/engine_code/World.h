@@ -23,6 +23,7 @@ class W8Prop;
 class Trigger;
 class stParticle;
 struct W8PathAI;
+struct W8GameData;
 struct W8NamedPosition {
     W8NamedPosition()
     {
@@ -84,7 +85,7 @@ struct W8World {
     srNode* dynamic_scene;
     srCamera* camera;
     srModelInstance** psrMeshes;
-    void* m_owned_04c;
+    W8GameData* m_owned_04c;
     W8Octree* octree;
     srLight* camera_light;
     unsigned char m_positional_058[0x11];

@@ -17,6 +17,7 @@
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Levels.h"
+#include "wiz8/local_code/Search.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
@@ -99,7 +100,6 @@ extern void Function4EA310(int mode);
 extern void Function50DA00(void);
 extern unsigned char ReleaseItemLists(void);
 extern void Function48DB30(void);
-extern void ClearValue689FAC(void);
 extern void Function4909C0(void);
 extern void Function489920(void);
 extern unsigned char SaveLevelStatus(const char* path);
@@ -524,7 +524,7 @@ unsigned char UnloadLevel(const char* save_directory)
     }
 
     Function48DB30();
-    ClearValue689FAC();
+    ClearSearchables005171B0();
     if (g_world_cleanup_flag_00659757 != 0) {
         RenderFrame();
     }

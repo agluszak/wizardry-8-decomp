@@ -33,6 +33,7 @@ struct W8LevelDataRecord {
 };
 
 struct W8OctBuildTree00446390;
+class Trigger;
 
 class BitArray;
 
@@ -80,12 +81,15 @@ struct W8GameData {
     int vertex_count_20;
     srVector3T<float>* vertices_24;
     int surface_count_28;
-    unsigned char positional_2c[0x0c];
+    unsigned char positional_2c[8];
+    int integrated_surface_count_34;
     W8GDSurface* surfaces_38;
-    unsigned char positional_3c[0x0c];
+    int overflow_surface_count_3c;
+    int overflow_vertex_count_40;
+    int total_surface_count_44;
     W8GDSurface* overflow_surfaces_48;
-    int value_4c;
-    void* block_50;
+    srVector3T<float>* overflow_vertices_4c;
+    Trigger** trigger_table_50;
     int value_54;
     BitArray* bits_58;
     BitArray* bits_5c;
@@ -101,6 +105,9 @@ struct W8GameData {
     W8EnvironRecord** environs_84;
     unsigned char value_88;
     unsigned char pad_89[3];
+
+    void IntegrateTriggers();
+    void AddTriggerPlane(const srVector3T<float>* vertices, Trigger* trigger);
 };
 
 static_assert(sizeof(W8GameData) == 0x8c, "W8GameData_must_be_0x8c");

@@ -43,6 +43,7 @@ public:
     int FindNextEntry(const Key* key, int previous) const;
     void Insert(const Key* key, const Value* value);
     void Remove(const Key* key, const Value* value);
+    void Remove(const Key* key);
     void Grow();
     int AllocateEntry();
 
@@ -75,6 +76,33 @@ Value W8HashTable<Key, Value>::Lookup(const Key* key) const
         slot = entries[slot].next_index;
     }
     return 0;
+}
+
+template <class Key, class Value>
+void W8HashTable<Key, Value>::Remove(const Key* key)
+{
+    Key wanted = *key;
+    int* bucket =
+        bucket_heads + (W8HashValue(wanted) & (bucket_count - 1));
+    int slot = *bucket;
+    int previous = -1;
+
+    while (slot != -1) {
+        W8HashEntry<Key, Value>* entry = entries + slot;
+        if (entry->key == wanted) {
+            if (previous == -1) {
+                *bucket = entry->next_index;
+            }
+            else {
+                entries[previous].next_index = entry->next_index;
+            }
+            entry->next_index = free_head;
+            free_head = slot;
+            return;
+        }
+        previous = slot;
+        slot = entry->next_index;
+    }
 }
 
 template <class Key, class Value>

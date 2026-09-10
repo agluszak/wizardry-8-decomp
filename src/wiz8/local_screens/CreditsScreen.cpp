@@ -24,8 +24,6 @@ int g_font_00683614;
 extern int g_font_bold_0068368c;
 // GLOBAL: WIZ8 0x0068368c
 int g_font_bold_0068368c;
-extern unsigned char ReadWideTextLine004CEED0(
-    int handle, wchar_t* destination, int capacity, unsigned char* more);
 W8GrowableVector<W8CreditLine>* g_credit_lines_0069c4a8;
 int g_credit_elapsed_steps_0069c494;
 unsigned char g_credit_redraw_0069c498;
