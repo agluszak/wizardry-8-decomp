@@ -71,6 +71,12 @@ const int g_character_table_00616604[480] = {
 // GLOBAL: WIZ8 0x00683F94
 unsigned char g_in_combat_00683f94;
 
+// GLOBAL: WIZ8 0x00683FAD
+W8IList* g_combat_monster_list_00683fad;
+
+// GLOBAL: WIZ8 0x00683FB1
+W8IList* g_combat_group_list_00683fb1;
+
 static const unsigned char g_armor_class_location_weights[5] = {
     15, 40, 30, 10, 5
 };

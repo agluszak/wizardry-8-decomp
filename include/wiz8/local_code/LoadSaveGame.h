@@ -92,3 +92,4 @@ void SaveMonsterStatus(W8Chunk* chunks);                         /* 0x005145A0 *
 
 void Function512C40(void);
 
+void ReportSaveFailed(char quiet);  /* 0x00515AC0 */

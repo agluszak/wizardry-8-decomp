@@ -18,6 +18,22 @@ W8CombatCharacterRow* g_combat_character_rows;
 #include "wiz8/utility.h"
 #include "random.h"
 #include "wiz8/local_code/CombatRange.h"
+#include "wiz8/local_code/CombatPartyMovement.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/FormationAndFacing.h"
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/LoadSaveGame.h"
+#include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/engine_code/Cursor3d.h"
+#include "wiz8/engine_code/GameData.h"
+#include "wiz8/local_screens/MGSPortraits.h"
+#include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/3d_code/IList.h"
+#include "wiz8/engine_code/Environment.h"
+#include "wiz8/location_variables.h"
+#include "wiz8/screen_state.h"
+#include "timer.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/engine_code/Navigator.h"
 
@@ -475,5 +491,109 @@ void SwitchCharacterTo(int party_slot, int action)
     RequestRedraw(1 << party_slot | 0x100000);
     if (action == 4 && row->action_03d != action) {
         g_combat_character_rows[party_slot].flag_bc = 1;
+    }
+}
+
+/* Take the party out of combat: end the free-turn phase and the current round,
+   drop the temporary conditions, finish every engaged monster group, fold the
+   surviving characters back into exploration state, release the combat state
+   and restore the main-game UI. The mode passes through to the end-of-combat
+   monster pass and gates the world reset when zero. */
+// FUNCTION: WIZ8 0x004ea310
+void EndCombat004EA310(int mode)
+{
+    if (g_flag_00683fce != 0) {
+        BeginFreeTurnPhase();
+    }
+    if (g_flag_00683fcd != 0) {
+        Function5A1890();
+    }
+    RequestRedrawCombatBar();
+    Function53AE00();
+    Function53A320(0);
+    RemoveConditionFromEveryone(5);
+    RemoveConditionFromParty(0xd);
+    Function524540();
+    Function552530();
+    ProcessMonstersAtCombatEnd(mode);
+    unsigned int group_count = ILLength(g_combat_group_list_00683fb1);
+    for (unsigned int group_index = 0;
+         group_index < group_count;
+         ++group_index) {
+        W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
+        if (group->flag_29 != 0) {
+            MonsterGroupLeaveCombat(group);
+        }
+        group_count = ILLength(g_combat_group_list_00683fb1);
+    }
+    if (g_combat_state->flag_a54 != 0) {
+        const wchar_t* message =
+            reinterpret_cast<const wchar_t*>(g_string_table[0x233]); /* reinterpret-ok: heterogeneous string table */
+        Function58AC00(0xc, message, 1, -1, 0);
+    }
+    unsigned int active = CountActiveCharacters();
+    if (active != 0 && g_combat_state->value_010 != 0) {
+        if (g_loaded_level_id < 0x2f) {
+            g_status_685170.level_progress[g_loaded_level_id]
+                .combat_end_count_01 += 1;
+        }
+        g_combat_state->value_010 /= active;
+        Function4EEF10(
+            g_combat_state->value_014 + g_combat_state->value_010, 1);
+        int* entry = reinterpret_cast<int*>(g_status_685170.unknown_2498 + 0xc89); /* reinterpret-ok: opaque packed status table */
+        int* end = reinterpret_cast<int*>(g_status_685170.unknown_2498 + 0x1c29); /* reinterpret-ok: opaque packed status table */
+        while (entry < end) {
+            if (*entry == 1) {
+                *entry = 2;
+            }
+            ++entry;
+        }
+    }
+    g_combat_countdown_6850b0 = SetCountdownClock(120000);
+    if (g_combat_state->pending_move_kind != 0) {
+        Function4F0560(-1);
+    }
+    UpdateScreenOverlays(0);
+    RestoreCombatFormation();
+    Function53CD60();
+    g_in_combat_00683f94 = 0;
+    if (g_combat_state->unknown_a55[0xc] != 0) {
+        Function517780();
+    }
+    Function5A3470();
+    EnablePortraitAdvanceRegions0059BB70();
+    DisableMainRegionSet();
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME
+        && g_level_block->flag_327 == 0) {
+        ClearSurfaceRect(0x17, 0x34, 0x2d, 0x159);
+        ClearSurfaceRect(0x253, 0x34, 0x269, 0x159);
+        RequestRedraw(0x810ff);
+    }
+    if (g_flag_00683f97 == 0 && g_flag_00683f95 == 0
+        && g_flag_00683f96 == 0) {
+        Function58F6B0(0);
+    }
+    free(g_combat_state);
+    g_combat_state = 0;
+    SetFlag6081E4(1);
+    MonsterForward4531A0();
+    if (mode == 0) {
+        Function482990(1);
+    }
+    ResetLivingMonstersAfterCombat();
+    for (int slot = 0; slot < 8; ++slot) {
+        if (g_party_slot_rows[slot].occupied != 0) {
+            CalcArmorClasses(&g_party_characters[slot]);
+        }
+    }
+    if (g_flag_006840bc != 0) {
+        Function56AAB0();
+    }
+    ClearLevelDataFlags5To7();
+    RequestRedrawParty();
+    SetFloat60AB48();
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+        Function4EA1F0();
+        ReportSaveFailed(1);
     }
 }

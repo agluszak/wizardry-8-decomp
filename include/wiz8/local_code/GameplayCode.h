@@ -19,3 +19,7 @@ void Function4EF1F0(void);
 int Function4EF4A0(W8Character* character, int slot);
 void Function4EF610(int party_slot, int value);
 
+struct W8IList;
+extern W8IList* g_combat_monster_list_00683fad; /* 0x00683FAD */
+extern W8IList* g_combat_group_list_00683fb1;   /* 0x00683FB1 */
+void Function4EEF10(int value, int mode);       /* 0x004EEF10 */

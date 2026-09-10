@@ -156,6 +156,9 @@ unsigned char g_flag_00683f9a;
 // GLOBAL: WIZ8 0x00683fcd
 unsigned char g_flag_00683fcd;
 
+// GLOBAL: WIZ8 0x00683fce
+unsigned char g_flag_00683fce;
+
 // GLOBAL: WIZ8 0x006850ce
 unsigned char g_flag_006850ce;
 

@@ -556,7 +556,7 @@ W8WideChar* GetMonsterGroupName(W8MonsterGroup* monster_group)
    Both assertions name what they guard - the global combat mode and the group's
    own fInCombat, which is what gives +0x29 its name. */
 // FUNCTION: WIZ8 0x0050fad0
-void MonsterGroupLeaveCombat(int unused, W8MonsterGroup* monster_group)
+void MonsterGroupLeaveCombat(W8MonsterGroup* monster_group)
 {
     unsigned int index;
     W8MonsterInfo* lead;

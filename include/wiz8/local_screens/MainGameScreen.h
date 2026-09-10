@@ -370,3 +370,7 @@ void SetCombatAction(int value);                                 /* 0x0056A480 *
 void SetCombatSelection(int value);                              /* 0x00569F70 */
 void SetCombatTarget(int value);                                 /* 0x0056A2D0 */
 
+void RequestRedrawCombatBar(void);      /* 0x005699B0 */
+void UpdateScreenOverlays(int frame);   /* 0x0056AF20 */
+void DisableMainRegionSet(void);        /* 0x00561FB0 */
+extern unsigned char g_flag_00683fce;

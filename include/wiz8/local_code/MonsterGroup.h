@@ -124,3 +124,4 @@ void Function50E700(void);
 void Function50E8C0(int location_id);
 
 #endif
+void MonsterGroupLeaveCombat(W8MonsterGroup* monster_group); /* 0x0050FAD0 */

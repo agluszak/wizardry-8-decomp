@@ -649,7 +649,7 @@ unsigned char LoadLevel(
 unsigned char UnloadLevel(const char* save_directory)
 {
     if (gXStatus.fCombatMode != 0) {
-        Function4EA310(1);
+        EndCombat004EA310(1);
     }
 
     if (g_status_685170.current_level < 47) {

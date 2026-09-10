@@ -16,3 +16,4 @@ void ApplyEffectToTarget(
 void Function54BA00(W8SpellEffectEntry* effect);         /* 0x0054BA00 */
 void Function54C930(W8SpellEffectEntry* effect);         /* 0x0054C930 */
 
+void Function552530(void);          /* 0x00552530 */

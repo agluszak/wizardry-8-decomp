@@ -161,3 +161,4 @@ float SettlePositionToGround00420BD0(
     const srVector3T<float>* position, unsigned char* hit);
 
 #endif // __cplusplus
+void ClearLevelDataFlags5To7(void); /* 0x0041F0C0 */

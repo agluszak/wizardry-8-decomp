@@ -65,3 +65,4 @@ int GetRandomCharacter(
     signed char excluded_faction);
 
 #endif
+extern char** g_string_table;       /* 0x0068C09C */

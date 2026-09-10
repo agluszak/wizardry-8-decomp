@@ -21,3 +21,6 @@ extern unsigned char g_enchantment_six_cleared_006840bb;
 void ApplyMonsterCondition(int location_id, int condition, int arg_3);
 void Function5237E0(int party_slot);
 
+void RemoveConditionFromEveryone(int condition); /* 0x005244A0 */
+void RemoveConditionFromParty(int condition);    /* 0x005246C0 */
+void Function524540(void);                       /* 0x00524540 */

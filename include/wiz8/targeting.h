@@ -167,3 +167,5 @@ void Function53B660(const srVector3T<float>* position, srVector3T<float>* target
 unsigned char TargetIsInPlay(int party_slot, int arg_2, int arg_3);   /* 0x00536F60 */
 
 #endif
+void Function53AE00(void);          /* 0x0053AE00 */
+void Function53CD60(void);          /* 0x0053CD60 */

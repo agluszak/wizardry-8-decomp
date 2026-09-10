@@ -38,3 +38,4 @@ void PostMonsterNotice(
     W8MonsterInfo* monster_info, const wchar_t* format, ...);
 void ScrollTextBoxTo(int line);                                  /* 0x0058BBC0 */
 
+void Function58F6B0(int value);     /* 0x0058F6B0 */

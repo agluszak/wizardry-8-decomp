@@ -108,6 +108,7 @@ extern "C" {
 W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);
 unsigned char LoadMonsterDatabaseRecord(
     unsigned int monster_species, W8MonsterRecord* record);
+extern unsigned int g_combat_countdown_6850b0;  /* 0x006850B0 */
 }
 
 /* The 0x153-byte combat allocation has two adjacent runs of 0x11-byte records.
