@@ -66,7 +66,10 @@ struct W8GlobalStatus {
     W8LevelProgressRow level_progress[47];
     unsigned char unknown_2013[0x294];
     W8SavedLocation pending_move_location;
-    unsigned char unknown_22e3[0x67];
+    unsigned char unknown_22e3[0x4a];
+    /* 0x232d: the light value the monster-sight threshold pass reads. */
+    unsigned char value_232d;
+    unsigned char unknown_232e[0x1c];
     int status_count_234a;
     int next_monster_location_id_234e;
     int next_world_item_id_2352;
@@ -75,7 +78,10 @@ struct W8GlobalStatus {
     W8ItemInstance item_in_hand_235b;
     unsigned char unknown_2367[0x20];
     int game_time_ms;
-    unsigned char unknown_238b[0x16];
+    unsigned char unknown_238b[4];
+    /* 0x238f: scales the monster-sight threshold while set. */
+    unsigned char flag_238f;
+    unsigned char unknown_2390[0x11];
     W8PartyFormationState formation;
     int game_time_days;
     unsigned char iron_man;

@@ -125,6 +125,8 @@ void Function536570(int party_slot, int context, int arg);
 void Function5387F0(int party_slot, int* action, int context);
 void Function53A930(int party_slot, W8CombatSlot* target);
 int Function53C990(int party_slot, int group_id, int arg);
+void SetFactionFlag(char faction, unsigned char flag);
+unsigned char ShowMonsterTargetMarker(W8MonsterInfo* monster_info);
 bool IsSpellTargetStillValidIn(int party_slot, int spell_id, int context);
 void ClearTargetHighlights(int party_slot, const W8CombatSlot* target);
 void Function53AEB0(unsigned int party_slot);

@@ -95,7 +95,9 @@ void ResetNpcStates(void);
 void CreateNpcRuntimeNode(int npc_id);
 
 int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity);
-W8NpcState* GetNpcState(int index);
+/* The NPC-side consequence pass the sight code runs when a marked NPC's
+   binding is released. */
+void Function50CF70(W8NpcState* npc, int mode);W8NpcState* GetNpcState(int index);
 W8NpcState* GetNpcStateByKind(int kind);
 unsigned char Function50B8F0(unsigned int kind);
 unsigned char GetNpcDispositionBand(W8NpcState* npc);

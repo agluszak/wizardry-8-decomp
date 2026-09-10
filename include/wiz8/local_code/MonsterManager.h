@@ -216,7 +216,12 @@ typedef struct W8MonsterInfo {
     unsigned char unknown_28b[2];
     unsigned char flag_28d;
     int value_28e;                          /* 0x28e: cleared by the per-turn reset */
-    unsigned char unknown_292[0x19];
+    /* 0x292: the two position triples the player-sight pass stamps once the
+       monster has seen the party: the camera position and its own. */
+    srVector3T<float> camera_sight_position_292;
+    srVector3T<float> own_sight_position_29e;
+    /* 0x2aa: the use-bounds flag the same pass hands to IsVisibleToPlayer. */
+    unsigned char threat_state_2aa;
     unsigned char flag_2ab;
     unsigned char unknown_2ac[0x0a];
     /* 0x2b6: what this monster can see of other monsters, one heap record per
@@ -255,7 +260,16 @@ typedef struct W8MonsterInfo {
     unsigned char state_34c;
     unsigned char unknown_34d[7];
     int value_354;                          /* 0x354 */
-    unsigned char unknown_358[0xcd];
+    /* 0x358: the same pair of position triples for the player-sight record,
+       followed by the line-of-sight byte and the two traced-weapon bytes. */
+    srVector3T<float> camera_position_358;
+    srVector3T<float> own_position_364;
+    unsigned char los_to_player_370;
+    unsigned char unknown_371[9];
+    unsigned char has_missile_37a;
+    unsigned char unknown_37b;
+    unsigned char has_spell_37c;
+    unsigned char unknown_37d[0xa8];
 } W8MonsterInfo;                          /* 0x425 */
 #pragma pack(pop)
 

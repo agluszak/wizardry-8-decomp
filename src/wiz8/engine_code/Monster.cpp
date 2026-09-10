@@ -1852,7 +1852,7 @@ unsigned char W8Monster::EvaluateScriptCondition004C9DC0(
                     g_world_scale_005ebc40 &&
             MonsterInfoFromID(
                 7533, MONSTER_CPP, propagated_value_1e4, 1)
-                    ->unknown_358[0x18] != 0) {
+                    ->los_to_player_370 != 0) {
             return 1;
         }
     }
@@ -2791,9 +2791,9 @@ unsigned char W8Monster::IsWithinWorldRange004CA2A0()
 }
 
 /* Exercise the inexpensive elevated-origin sight query from this Monster to
-   the player. The caller needs the trace side effects rather than its result. */
+   the player, and answer with the trace's own result. */
 // FUNCTION: WIZ8 0x004c4810
-void W8Monster::CheckLineOfSightToPlayer004C4810()
+unsigned char W8Monster::CheckLineOfSightToPlayer004C4810()
 {
     srVector3T<float> monster_position;
     srVector3T<float> player_position;
@@ -2803,7 +2803,7 @@ void W8Monster::CheckLineOfSightToPlayer004C4810()
                          movement_0c0.height_offset_0b8;
     monster_position.z = movement_0c0.position_040.z;
     GetCameraPosition(&player_position);
-    g_octree_6598a4->HasLineOfSight(
+    return g_octree_6598a4->HasLineOfSight(
         &monster_position, &player_position, 1);
 }
 

@@ -253,7 +253,8 @@ char GetTargetNeededForItem(const W8ItemInstance* item)
 extern void AimAtTarget(int actor, W8CombatSlot* target, int context);   /* 0x005387F0 */
 
 /* 0x004CA4F0 */
-extern void ShowTargetMarker(void* eye, void* lower, void* upper);       /* 0x0046F820 */
+extern unsigned char ShowTargetMarker(
+    void* eye, void* lower, void* upper);                               /* 0x0046F820 */
 extern void Function492500(void* scratch);
 extern unsigned char g_target_marker_00684073;
 // GLOBAL: WIZ8 0x00684073
@@ -351,7 +352,7 @@ void SetTargetToGroup(int group_id, int context)
 /* Put the on-screen marker over one monster, from the party's eye to the
    monster's own bounds. */
 // FUNCTION: WIZ8 0x00539870
-void ShowMonsterTargetMarker(W8MonsterInfo* monster_info)
+unsigned char ShowMonsterTargetMarker(W8MonsterInfo* monster_info)
 {
     srVector3T<float> eye;
     srVector3T<float> lower;
@@ -362,7 +363,7 @@ void ShowMonsterTargetMarker(W8MonsterInfo* monster_info)
     }
     GetCameraPosition(&eye);
     GetMonsterBounds(monster_info->monster, &lower, &upper);
-    ShowTargetMarker(&eye, &lower, &upper);
+    return ShowTargetMarker(&eye, &lower, &upper);
 }
 
 /* Whether a recorded target is of the kind a caller needs. Each needed kind

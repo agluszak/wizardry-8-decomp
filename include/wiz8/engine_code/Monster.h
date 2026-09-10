@@ -185,7 +185,7 @@ public:
     unsigned char SetScriptLabel004CA260(const char* label);
     unsigned char GetFlag216004CA290() const;
     unsigned char IsWithinWorldRange004CA2A0();
-    void CheckLineOfSightToPlayer004C4810();
+    unsigned char CheckLineOfSightToPlayer004C4810();
     void GetPlayerSightFlags004C4870(
         unsigned char* primary, unsigned char* secondary);
     unsigned char IsVisibleToPlayer004C4920(unsigned char use_bounds);

@@ -280,6 +280,8 @@ unsigned char Function577A40(void);
 unsigned int HitTestPartyPortrait(const InputAtom* event);
 void RequestRefreshPartyState(void);
 void Function593330(void);
+/* 0x0058AC00: post the wide message through the notice pane. */
+void Function58AC00(int a, const wchar_t* message, int b, int c, int d);
 int IsScreenIdle(void);
 bool IsModalOpen(void);
 
