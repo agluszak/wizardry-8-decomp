@@ -120,6 +120,7 @@ void Function53A2C0(W8MonsterInfo* monster_info, int location_id);
 unsigned char Function53A300(W8MonsterInfo* monster_info, int spell_id);
 W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context);
 void Function53B160(void);
+void Function53BF80(void);
 bool IsSpellTargetStillValidIn(int party_slot, int spell_id, int context);
 void ClearTargetHighlights(int party_slot, const W8CombatSlot* target);
 void Function53AEB0(unsigned int party_slot);

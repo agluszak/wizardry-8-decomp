@@ -6,12 +6,15 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
-#include "wiz8/monster_runtime.h"
+#include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/monster_runtime.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/targeting.h"
 #include "wiz8/utility.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 /*
  * Local Code\Sight.cpp.
@@ -55,9 +58,6 @@ typedef struct W8VisibilityRow {
     unsigned char visible_28;            /* 0x28 */
 } W8VisibilityRow;
 
-extern void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int arg_3);
-/* 0x005049C0 */
-extern void Function53BF80(void);
 extern void Function452F50(int value);
 extern void Function48CBE0(void);
 
@@ -319,4 +319,31 @@ W8MonToMonVisibility* FindMonToMonVisibility(
         }
     }
     return 0;
+}
+
+/* Bring every monster's sight up to date from a cleared starting state: the
+   two per-monster sight blocks are emptied first, then the outward pass, the
+   combat display notification it feeds, and finally the inward pass. */
+// FUNCTION: WIZ8 0x005060c0
+void ResetAndRefreshAllSight005060C0(void)
+{
+    unsigned int index;
+
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+        W8MonsterInfo* monster_info =
+            MonsterGetScriptPartByLocationIndex(index);
+
+        memset(monster_info->unknown_256 + 0x30, 0, 0x30);
+        memset(monster_info->unknown_348, 0, 0x31);
+    }
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+        UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 1, 0);
+    }
+    if (g_in_combat_00683f94 != 0) {
+        Function593330();
+        Function53BF80();
+    }
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+        UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 0, 0);
+    }
 }

@@ -342,7 +342,6 @@ extern void Function50DB50(void);
 extern void Function50C270(void);
 extern void Function50C2E0(void);
 extern void Function5777C0(void);
-extern void Function5060C0(void);
 
 extern float g_runtime_world_scale_6081e8;
 
@@ -637,7 +636,7 @@ unsigned char LoadLevel(
             UpdateRandomEncounterBudget(first_visit);
         }
         if (!first_visit) {
-            Function5060C0();
+            ResetAndRefreshAllSight005060C0();
             AgeAllMonsterSight();
         }
         for (int index = g_spell_effects.GetCount() - 1; index >= 0; --index) {
