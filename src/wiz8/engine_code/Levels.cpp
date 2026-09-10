@@ -324,7 +324,6 @@ extern float Function420BD0(const srVector3T<float>* position, unsigned char* hi
 extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
 
-extern void Function482410(void);
 extern void Function4D6C50(int level);
 extern void Function50E700(void);
 extern void Function5777C0(void);

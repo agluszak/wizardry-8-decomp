@@ -798,3 +798,99 @@ void Function482740(int value)
 {
     g_status_685170.game_time_days = value;
 }
+
+// GLOBAL: WIZ8 0x0060a398
+const char* g_sky_gradient_names_0060a398[3] = {
+    "SkyGrad0000.ifl", "Skytop0000.ifl", "Horizon0000.ifl"};
+
+/* Level-entry environment setup: locate the level's Sun and Moon props, derive
+   the environment origin and range from the distance between them, register
+   the three sky gradient textures, advance the day clock and publish the
+   current day phase's colour and light direction. */
+// FUNCTION: WIZ8 0x00482410
+void Function482410(void)
+{
+    if (g_world_659ab8 != 0) {
+        g_environment_value_0065a160 = FindPropByName(g_world_659ab8, "Sun");
+        g_environment_value_0065ad84 = FindPropByName(g_world_659ab8, "Moon");
+    }
+    if (g_environment_value_0060a3a4 < g_float_005ebb34) {
+        if (g_environment_value_0065a160 == 0
+            || g_environment_value_0065ad84 == 0) {
+            g_environment_value_0065a160 = 0;
+            g_environment_value_0065ad84 = 0;
+        }
+        else {
+            srVector3T<float> sun;
+            srVector3T<float> moon;
+            stTextureAnim** sky_gradient_slots[3] = {
+                &g_environment_value_0065a168, &g_environment_value_0065a16c,
+                &g_environment_value_0065a170};
+
+            static_cast<W8AnimRepBase005EC1D8*>(
+                g_environment_value_0065a160->m_pRep)
+                ->GetLocation004B8890(&sun);
+            static_cast<W8AnimRepBase005EC1D8*>(
+                g_environment_value_0065ad84->m_pRep)
+                ->GetLocation004B8890(&moon);
+            srVector3T<float> delta = sun - moon;
+            srVector3T<float> midpoint = (sun + moon) * 0.5;
+            g_environment_value_0060a3a4 = delta.Length() * 0.5f;
+            g_environment_origin_65ad88 = midpoint;
+            for (int index = 0; index < 3; ++index) {
+                const char* name = g_sky_gradient_names_0060a398[index];
+                srRegistry* registry = srCore.getRegistry();
+                srRegistry::ClassNode* node = registry->getClassNode(0x10000);
+
+                if (node == 0) {
+                    node = registry->registerClass(
+                        "stTextureAnim", stTextureAnim::sGetClassNode(), 0x10000,
+                        0);
+                }
+                stTextureAnim* animation = static_cast<stTextureAnim*>(
+                    registry->find(
+                        node, name, static_cast<const srRuntimeClass*>(0)));
+
+                *sky_gradient_slots[index] = animation;
+                if (animation != 0) {
+                    animation->flag_60 = 3;
+                }
+            }
+        }
+    }
+    if (g_environment_flag_0060a394 != 0) {
+        unsigned int now = GetTickCount();
+        unsigned int elapsed;
+
+        if (now < g_tick_65b9a8) {
+            elapsed = now - g_tick_65b9a8 - 1;
+        }
+        else {
+            elapsed = now - g_tick_65b9a8;
+        }
+        if (elapsed != 0) {
+            Function482A20(static_cast<int>(elapsed));
+        }
+    }
+    {
+        unsigned int phase =
+            ((unsigned int)g_status_685170.game_time_ms / 1000U << 8) / 0x15180;
+        EnvironmentColour colour = g_environment_colours_65a178[phase];
+
+        if (g_world == 0) {
+            srAssertFail("pWorld", ENVIRONMENT_CPP, 0x27a, 0);
+            srAssertFail("pWorld", ENVIRONMENT_CPP, 0x288, 0);
+        }
+        Function483BA0(g_world, g_world->environment_intensity_024, &colour);
+        {
+            const int* direction = reinterpret_cast<const int*>(
+                &g_environment_colours_65ad98[phase]); /* reinterpret-ok: the
+                    light directions are published as raw words */
+
+            g_light_direction_0065ad78 = direction[0];
+            g_light_direction_0065ad7c = direction[1];
+            g_light_direction_0065ad80 = direction[2];
+            PublishLightDirection(direction);
+        }
+    }
+}
