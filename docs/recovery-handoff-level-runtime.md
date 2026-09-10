@@ -176,3 +176,26 @@ the report gives):
   update every call site and the owner header in the same change.
 - Do not use `config/verification/unresolved-baseline.csv` as a work queue; it is stale.
   Decide whether a body is missing from current definitions plus current call sites.
+
+## Session log
+
+- The canonical Ghidra state was regenerated from the freshly built VC6 PDB with
+  `reccmp-ghidra-import` (`b8f37c59`): 1429 functions changed, 3626 entities imported,
+  function count 7701 -> 7737. Recovered names, signatures and types are now visible to
+  `report context` and the recovery decompiler; `FUN_` spellings in older `build/context`
+  dumps are pre-import output.
+- `Function452F50` was recovered as `SetNavigatorLinkMode00452F50` (`88b80ff0`) with the
+  bool-returning `Function511050` declaration added next to `Function510CC0`.
+- Item 2 owners: `SetFloat64B914`/`GetFloat64B914` and `g_float_64b914` (2000.0) are already
+  recovered in `AutomapScreen.cpp`. Of the remaining unnamed automap globals, `0x64B910` is
+  also read by `0x005809F0`, `0x64B91C` is also written by `0x00580380`, `0x00581E60` and
+  `0x00584690`, and `0x68F240` is also read by `0x00580380`, `0x005807B0` and `0x00581B30`;
+  the setup-only triples at `0x68F1C8`/`0x68F1D8`/`0x68F1F8` do not overlap the drawing
+  bounds `g_automap_bounds_min` (0x68F210) and `g_automap_bounds_max` (0x68F1B8).
+- Item 4 belongs to `Local Code\Gameplay Mods.cpp` (`0x0050E8C0` and `0x0050E980` report
+  that unit), which still has no source file, so it needs a unit container rather than a
+  transcription into `Magic Effects.cpp`. `Function50E700` additionally needs models for
+  the effect block at `0x687453`, its source list at `0x68691F`, the `W8GlobalStatus` bytes
+  at `0x22E3`..`0x232A`, and the dialog-state offsets `+0x7C6`/`+0x85A` reached through
+  `g_dialog_state_006836a8`. Block helper `0x0050F090` is the 0x67-byte field-wise adder.
+
