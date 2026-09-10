@@ -307,8 +307,6 @@ extern void Function50E5C0(int party_slot);
 
 extern void PostCharacterNotice(int party_slot, const wchar_t* notice, ...);
 extern unsigned char Function5458A0(int party_slot);
-extern unsigned char Function4E79A0(
-    int party_slot, int value_1, int value_2, int value_3);
 extern unsigned char Function536F60(int party_slot, int value);
 extern void Function536570(int party_slot, int value_1, int value_2);
 extern void Function595600(void);
@@ -2097,7 +2095,7 @@ void Function520D10(
         if (gXStatus.fCombatMode) {
             int action = row->action_03d;
             if (action == 0 || action == 1) {
-                if (!Function4E79A0(party_slot, 1, 1, 0)) {
+                if (!CharacterCanSwitchTo(party_slot, 1, 1, 0)) {
                     AimByKind(party_slot, 0, 1);
                 }
                 else if (!Function536F60(party_slot, 2)) {

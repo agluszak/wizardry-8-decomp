@@ -12,8 +12,8 @@ void UpdateWorldOctree004BAF50(W8World* world)
 }
 
 /* Rebuild the active-polygon table for the world's mesh and raise the control
-   bit consumed by SurRender. The original redundantly computes and stores the
-   same raised bit twice; the optimizer collapses the equivalent C++ here. */
+   changed bit through the canonical mesh setter; the retail site is the
+   mask-0 expansion of setControlMask. */
 // FUNCTION: WIZ8 0x004baf60
 void UpdateWorldMesh004BAF60(W8World* world)
 {
@@ -35,10 +35,6 @@ void UpdateWorldMesh004BAF60(W8World* world)
         for (index = 0; static_cast<long>(index) < polygon_count; ++index) {
             table[index] = index;
         }
-        if ((mesh->control_state_390 & 8) == 0) {
-            unsigned long state = mesh->control_state_390;
-            mesh->control_state_390 = state | 8;
-            mesh->control_state_390 = state | 8;
-        }
+        mesh->setControlMask(0);
     }
 }

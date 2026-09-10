@@ -557,9 +557,7 @@ bool PartySlotSpellTargetStillValid(int party_slot)
     return Function519180(party_slot, 0, 3) != 0;
 }
 
-extern void ChooseAction(int party_slot, int action, int detail, int a, int b, int c);
-/* 0x004E7CC0 */
-extern void AimAtTarget(int actor, W8CombatSlot* target, int context);   /* 0x005387F0 */
+extern void ChooseAction(int party_slot, int action, int detail, int a, int b, int c); /* 0x004E7CC0 */
 extern void StartBreathCycle(int party_slot, int arg_2);                 /* 0x0052FE80 */
 extern void ReportBreathFailed(int party_slot);                          /* 0x0056A770 */
 /* 0x00616DF0: seventeen entries, indexed by the spell's own cost band. The

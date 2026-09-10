@@ -129,9 +129,6 @@ public:
     W8CharacterStatsValue005EF6B0(
         Controls* owner, int x, int y,
         const W8CharacterStatsRecord* default_record);
-    /* 0x005C8F60 is the hierarchy's compiler-emitted destructor, not an
-       authored body; the empty inline body lets VC6 emit it in place. */
-    ~W8CharacterStatsValue005EF6B0() override {}
     virtual void Redraw(int full_redraw) override;
     virtual void OnRightButtonUp(int event) override;
     void SetRecord(const W8CharacterStatsRecord* record);

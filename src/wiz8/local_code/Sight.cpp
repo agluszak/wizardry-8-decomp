@@ -115,7 +115,7 @@ void RefreshOutwardSightForAllMonsters(void)
     }
     if (gXStatus.fCombatMode != 0) {
         Function593330();
-        Function53BF80();
+        RefreshAllPartyTargets0053BF80();
     }
 }
 
@@ -143,7 +143,7 @@ void RefreshAllSight(void)
     }
     if (gXStatus.fCombatMode != 0) {
         Function593330();
-        Function53BF80();
+        RefreshAllPartyTargets0053BF80();
     }
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 0, 0);
@@ -354,7 +354,7 @@ void ResetAndRefreshAllSight005060C0(void)
     }
     if (g_in_combat_00683f94 != 0) {
         Function593330();
-        Function53BF80();
+        RefreshAllPartyTargets0053BF80();
     }
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 0, 0);

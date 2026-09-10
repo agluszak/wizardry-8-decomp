@@ -246,8 +246,6 @@ int PartyAvoidsSurprise(void)
 extern void ChooseCombatAction(
     int party_slot, int is_monster_turn, int* out_kind, int a, int b, int c); /* 0x004E77B0 */
 
-extern unsigned char CharacterCanSwitchTo(int party_slot, int a, int b, int c);
-/* 0x004E79A0 */
 extern void SwitchCharacterTo(int party_slot, int action);               /* 0x004ED390 */
 extern void MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int arg_3);
 /* 0x0051AC30 */

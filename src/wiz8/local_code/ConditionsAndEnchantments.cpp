@@ -47,7 +47,6 @@ extern char Function521060(
     int id, int* out_id, W8Character** out_character, int a, int b);
 extern void Function536570(int party_slot, int a, int b);
 extern void Function52F790(void* character, int condition);
-extern unsigned char Function4E79A0(int party_slot, int a, int b, int c);
 extern void Function53A930(int party_slot, W8CombatSlot* target);
 extern void Function547A50(int party_slot);
 extern void Function5237E0(int party_slot);
@@ -164,7 +163,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
         if (!can_rest && party_slot > -1 && party_slot < 8
             && row->occupied != 0 && character->hp_current != 0
             && character->unknown_0b01 < 0xd && g_flag_00683F94 != 0
-            && Function4E79A0(party_slot, 1, 0, 0) != 0) {
+            && CharacterCanSwitchTo(party_slot, 1, 0, 0) != 0) {
             Function53A930(party_slot, &row->target_in_combat);
         }
     }

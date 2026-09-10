@@ -250,8 +250,6 @@ char GetTargetNeededForItem(const W8ItemInstance* item)
         record->spell_id, ItemClassNormalizesTarget(record), 6);
 }
 
-extern void AimAtTarget(int actor, W8CombatSlot* target, int context);   /* 0x005387F0 */
-
 /* 0x004CA4F0 */
 extern unsigned char ShowTargetMarker(
     void* eye, void* lower, void* upper);                               /* 0x0046F820 */
@@ -1644,10 +1642,7 @@ unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char
     }
 }
 
-extern float AngleFromPartyTo(const srVector3T<float>* from, const srVector3T<float>* to);
-/* 0x004BE420 */
-extern void AimAtTarget(int actor, const W8CombatSlot* target, int context);
-/* 0x005387F0 */
+extern float AngleFromPartyTo(const srVector3T<float>* from, const srVector3T<float>* to); /* 0x004BE420 */
 extern void StartBreathCycle(int party_slot, int arg_2);                 /* 0x0052FE80 */
 
 /* 0x004ECC80 */
@@ -1863,15 +1858,9 @@ int PickNextTargetableGroup(int party_slot)
 // FUNCTION: WIZ8 0x0053bf80
 void RefreshAllPartyTargets0053BF80(void)
 {
-    int party_slot = 0;
-    unsigned int character_offset = 0;
-
-    do {
-        W8PartySlotRow* row = g_status_685170.buffers.party_rows + party_slot;
-        W8Character* character = reinterpret_cast<W8Character*>(
-            reinterpret_cast<char*>(g_status_685170.buffers.characters)
-            + character_offset); /* reinterpret-ok: the party is stored at its
-                                    serialized 0x1862 stride, not sizeof */
+    for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+        W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
         if (row->occupied != 0
             && (character->hp_current != 0
@@ -1889,9 +1878,13 @@ void RefreshAllPartyTargets0053BF80(void)
                     Function536570(party_slot, 6, 0);
                 }
                 else if (target->iType != 0) {
-                    int action[8] = {0, -1, -1, -1, 0, 0, 0, 0};
+                    W8CombatSlot action;
 
-                    Function5387F0(party_slot, action, 6);
+                    memset(&action, 0, sizeof(action));
+                    action.iChar = BAD_INDEX;
+                    action.iMonsterID = BAD_INDEX;
+                    action.iGroupID = BAD_INDEX;
+                    AimAtTarget(party_slot, &action, 6);
                 }
             }
 
@@ -1913,13 +1906,16 @@ void RefreshAllPartyTargets0053BF80(void)
                 int selected = Function53C990(party_slot, group_id, 1);
 
                 if (selected != -1) {
-                    int action[8] = {3, -1, selected, -1, 0, 0, 0, 0};
+                    W8CombatSlot action;
 
-                    Function5387F0(party_slot, action, 1);
+                    memset(&action, 0, sizeof(action));
+                    action.iType = W8_TARGET_KIND_MONSTER;
+                    action.iChar = BAD_INDEX;
+                    action.iMonsterID = selected;
+                    action.iGroupID = BAD_INDEX;
+                    AimAtTarget(party_slot, &action, 1);
                 }
             }
         }
-        character_offset += 0x1862;
-        ++party_slot;
-    } while (character_offset < 0xc310);
+    }
 }

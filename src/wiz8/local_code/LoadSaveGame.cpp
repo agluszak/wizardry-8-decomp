@@ -1196,6 +1196,8 @@ unsigned char MeasureLevelStatusChunks00514DF0(
         } while (remaining != 0);
     }
     if (empty_percent != 0) {
+        /* The binary (0x00514DF0) divides by the accumulated extent with no
+           zero test; an empty chunk file reaches this unsigned DIV. */
         *empty_percent = empty_total * 100 / total;
     }
     return found;

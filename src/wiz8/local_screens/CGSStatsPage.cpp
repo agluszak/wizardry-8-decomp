@@ -119,7 +119,6 @@ public:
     W8CharacterStatsRecordControl005EF700(
         Controls* owner, int top, int height,
         const W8CharacterStatsRecord* record, int variant);
-    ~W8CharacterStatsRecordControl005EF700() override {}
     virtual void Redraw(int full_redraw) override;
     virtual void OnMouseEnter(int event) override;
     virtual void OnMouseLeave(int event) override;

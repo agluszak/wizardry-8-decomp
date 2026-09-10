@@ -120,9 +120,10 @@ void Function53A2C0(W8MonsterInfo* monster_info, int location_id);
 unsigned char Function53A300(W8MonsterInfo* monster_info, int spell_id);
 W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context);
 void Function53B160(void);
-void Function53BF80(void);
+void RefreshAllPartyTargets0053BF80(void);
 void Function536570(int party_slot, int context, int arg);
-void Function5387F0(int party_slot, int* action, int context);
+/* 0x005387F0 */
+void AimAtTarget(int actor, W8CombatSlot* target, int context);
 void Function53A930(int party_slot, W8CombatSlot* target);
 int Function53C990(int party_slot, int group_id, int arg);
 void SetFactionFlag(char faction, unsigned char flag);
