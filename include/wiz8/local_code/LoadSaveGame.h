@@ -66,6 +66,18 @@ void BuildCharacterPath00514EC0(char* destination, const wchar_t* name,
 unsigned char SaveGameExists(void);
 void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status);
 
+unsigned char SaveLevelStatus(const char* path);
+unsigned char LoadLevelStatus(const char* path, int level);
+void BuildLevelStatusPath(char* path, unsigned int level);
+unsigned char LoadStatusHeader(W8Chunk* chunk);
+unsigned char SaveStatusHeader(W8Chunk* chunks);
+/* The per-level section reader behind LoadLevelStatus, and the already-open
+   save scan behind SaveLevelStatus. Both keep their address names until a
+   reviewed body supplies a semantic one. */
+unsigned char LoadItemStatus(W8Chunk* chunk, int level);
+unsigned char MeasureLevelStatusChunks00514DF0(
+    W8Chunk* chunk, int level, unsigned int* empty_percent);
+
 extern unsigned char g_flag_659756;
 extern unsigned char g_save_pending_00689f98;
 extern unsigned char g_save_notice_shown_0068506b;

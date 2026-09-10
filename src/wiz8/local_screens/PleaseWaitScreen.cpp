@@ -180,7 +180,7 @@ unsigned char PleaseWaitScreenEnter(void)
 unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
 {
     if (!FileExistsNoDB("Levels\\Levels.slf") && g_cd_marker_present_69b7d0) {
-        if (Function42B6F0(level)) {
+        if (IsLevelCdMissing0042B6F0(level)) {
             g_load_descriptor_69b7c8->waiting = 1;
             g_load_descriptor_69b7c8->parameter = level;
             g_load_descriptor_69b7c8->entered_tick = GetTickCount();
@@ -192,7 +192,7 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
                 g_swap_disc_dialog_69b7cc->SetExtent(0xa0, 100);
             }
             wchar_t* message = FormatWideString(L"%s%d", gppStringList[0x1bb8 / 4],
-                                                Function42B720(level));
+                                                GetLevelCdNumber0042B720(level));
             g_swap_disc_dialog_69b7cc->SetMessage(message, 1, 0x32, 1, 1, 1, 0, 0, 0);
             SetFlag603C60();
             return 0;
@@ -247,7 +247,7 @@ void PleaseWaitScreenFrame(void)
             }
         }
         else if (GetTickCount() - g_load_descriptor_69b7c8->entered_tick > 200) {
-            if (!Function42B6F0(g_load_descriptor_69b7c8->parameter)) {
+            if (!IsLevelCdMissing0042B6F0(g_load_descriptor_69b7c8->parameter)) {
                 g_load_descriptor_69b7c8->waiting = 0;
                 RefreshSlfArchives();
                 g_swap_disc_dialog_69b7cc->is_open = 0;

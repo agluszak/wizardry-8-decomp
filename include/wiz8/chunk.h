@@ -31,6 +31,7 @@ struct W8Chunk {
     unsigned char OpenRead(char* path);
     unsigned char OpenWrite(char* path);
     unsigned char OpenReadWrite(char* path);
+    unsigned char OpenAppend(char* path);
     void Close();
     unsigned char CopyCurrentChunkFrom(W8Chunk* source);
     unsigned char SkipCurrentChunk();
@@ -43,6 +44,7 @@ struct W8Chunk {
     unsigned char Read(void* buffer, unsigned int size, unsigned int* transferred);
     unsigned char Write(const void* buffer, unsigned int size, unsigned int* transferred);
     void RewindCurrentChunk();
+    void SetCurrentChunkAtEnd();
     unsigned char ReleaseCurrentChunk();
     unsigned char CurrentChunkAtEnd();
 };

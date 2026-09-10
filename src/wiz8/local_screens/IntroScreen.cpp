@@ -19,11 +19,11 @@
    The canonical state-zero row owns this enter/frame/leave bundle. */
 
 #include "wiz8/local_code/Configuration.h"
+#include "wiz8/engine_code/Levels.h"
 extern unsigned char g_flag_689b2c;
 // GLOBAL: WIZ8 0x00689b2c
 unsigned char g_flag_689b2c;
 
-extern unsigned char FindGameDataPath0042B590(char* path, int drive);
 extern void ContinueAfterDarkEndingVideo005AE770(void);
 extern void ShowModalMessage005A6620(int a, int b, int c,
                                     void (*callback)(void), int d, int e);

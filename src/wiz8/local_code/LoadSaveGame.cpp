@@ -6,7 +6,9 @@
 #include "wiz8/bringup_gates.h"
 #include "wiz8/monster_generators.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/stParticle.h"
+#include "wiz8/location_variables.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_screens/OptionsScreen.h"
@@ -360,6 +362,38 @@ int GetSaveGameLevel(const char* slot_name)
     return 0;
 }
 
+/* Build the level-specific status path the save code falls back to when the
+   current-game save has no matching level section. The regular levels use the
+   database row's own folder and level names; level 56 is the shared default
+   test level. As in the level-info builder itself, levels 47 through 55 fall
+   through the regular branch even though the folder table does not describe
+   them. */
+// FUNCTION: WIZ8 0x00512e80
+void BuildLevelStatusPath(char* path, unsigned int level)
+{
+    W8LevelInfo info;
+
+    if (!LevelBuildInfoByID(level, &info)) {
+        srAssertFail("LevelFilesExist(ulLevel, &LevelName)",
+                     "C:\\Projects\\Wizardry 8\\Local Code\\LoadSaveGame.cpp",
+                     870, 0);
+    }
+    *strchr(info.level_file_name, '.') = '\0';
+    if (level < 57) {
+        if (level == 56) {
+            sprintf(path, "%s\\Test\\DefaultLevel.%s", "Levels", "STS");
+        }
+        else {
+            sprintf(path, "%s\\%s\\%s.%s", "Levels",
+                    g_level_folders[level].folder_name,
+                    g_level_folders[level].level_name, "STS");
+        }
+    }
+    else {
+        sprintf(path, "%s\\Test\\Level%c.%s", "Levels", level - 56, "STS");
+    }
+}
+
 /* Reads and validates the header, then publishes the four counts and the block
    it carries. The version gate is an equality test against 2.0f held in .rdata,
    not a range, so a save written by any other version is refused outright.
@@ -400,6 +434,42 @@ unsigned char LoadStatusHeader(W8Chunk* chunk)
     memcpy(g_status_685170.status_header_block_1904, header.status_block,
            sizeof(header.status_block));
     return 1;
+}
+
+/* Persist the current game status to one path. An existing current-game save
+   that holds more than half its bytes in already-consumed level sections is
+   first rolled into a CleanUp save and renamed into place; any other existing
+   file is reopened for append. A fresh path is created outright. */
+// FUNCTION: WIZ8 0x00513160
+unsigned char SaveLevelStatus(const char* path)
+{
+    W8Chunk chunk;
+    unsigned char opened;
+    unsigned char result = 0;
+
+    if (!chunk.OpenReadWrite(const_cast<char*>(path))) {
+        opened = chunk.OpenWrite(const_cast<char*>(path));
+    }
+    else {
+        unsigned int empty_percent;
+
+        MeasureLevelStatusChunks00514DF0(
+            &chunk, g_loaded_level_id, &empty_percent);
+        chunk.Close();
+        if (empty_percent > 0x32
+            && _stricmp(path, "Saves\\CurrentGame.SAV") == 0) {
+            SaveGame("CleanUp", 0);
+            FileDelete("Saves\\CurrentGame.SAV");
+            rename("Saves\\CleanUp.SAV", "Saves\\CurrentGame.SAV");
+            return 0;
+        }
+        opened = chunk.OpenAppend(const_cast<char*>(path));
+    }
+    if (opened != 0) {
+        result = SaveStatusHeader(&chunk);
+        chunk.Close();
+    }
+    return result;
 }
 
 /* Serialize the complete per-level group. LVLS is a grouped chunk: its level
@@ -515,6 +585,21 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     chunks->ReleaseGroup();
     chunks->ReleaseCurrentChunk();
     return 1;
+}
+
+/* Open a per-level status file and hand it to the section reader. A file that
+   cannot be opened reports failure without touching the live status. */
+// FUNCTION: WIZ8 0x005135d0
+unsigned char LoadLevelStatus(const char* path, int level)
+{
+    W8Chunk chunk;
+    unsigned char result = 0;
+
+    if (chunk.OpenRead(const_cast<char*>(path))) {
+        result = LoadItemStatus(&chunk, level);
+        chunk.Close();
+    }
+    return result;
 }
 
 /* Reads one saved monster group and files it under the species or the encounter
@@ -1067,6 +1152,49 @@ void ReadSaveChunks(W8Chunk* source, W8Chunk* destination)
             --remaining;
         } while (remaining != 0);
     }
+}
+
+/* Walk every top-level chunk of an already-open save. A matching LVLS section
+   is marked consumed in place, and the caller receives the percentage of the
+   file that sits in at-end sections, which is what decides whether the save
+   is rolled into CleanUp. */
+// FUNCTION: WIZ8 0x00514df0
+unsigned char MeasureLevelStatusChunks00514DF0(
+    W8Chunk* chunk, int level, unsigned int* empty_percent)
+{
+    unsigned char found = 0;
+    unsigned int total = 0;
+    unsigned int empty_total = 0;
+    int remaining = chunk->ChunkCount();
+
+    if (remaining > 0) {
+        do {
+            chunk->OpenChunk(0, 0);
+            total += chunk->CurrentChunkExtent();
+            if (chunk->CurrentChunkAtEnd() != 0) {
+                empty_total += chunk->CurrentChunkExtent();
+            }
+            else if (chunk->CurrentChunkId() == 0x534c564c) { /* LVLS */
+                int stored_level;
+
+                chunk->OpenGroup();
+                chunk->Read(&stored_level, 4, 0);
+                if (stored_level == level) {
+                    found = 1;
+                    chunk->SetCurrentChunkAtEnd();
+                }
+                chunk->SkipCurrentChunk();
+                chunk->ReleaseGroup();
+            }
+            chunk->SkipCurrentChunk();
+            chunk->ReleaseCurrentChunk();
+            --remaining;
+        } while (remaining != 0);
+    }
+    if (empty_percent != 0) {
+        *empty_percent = empty_total * 100 / total;
+    }
+    return found;
 }
 
 /* Read the complete GSTA payload and its two eight-record collections. The

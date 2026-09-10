@@ -35,6 +35,7 @@
 #include "wiz8/fact_state.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/spell_effect.h"
@@ -107,6 +108,9 @@ int g_loaded_level_id;
    sky is loaded. Every retail access is a byte access. */
 // GLOBAL: WIZ8 0x00604470
 signed char g_loaded_sky_index_00604470;
+/* The CD volume number of the drive the game-data path finder last matched. */
+// GLOBAL: WIZ8 0x00604474
+int g_cd_index_00604474;
 // GLOBAL: WIZ8 0x00659738
 W8MaterialMapper00482010 g_material_mapper_00659738;
 
@@ -116,19 +120,68 @@ extern unsigned char ReleaseItemLists(void);
 extern void Function48DB30(void);
 extern void Function4909C0(void);
 extern void Function489920(void);
-extern unsigned char SaveLevelStatus(const char* path);
-extern unsigned char FindGameDataPath0042B590(char* path, int drive);
 
 // FUNCTION: WIZ8 0x0042b720
-int Function42B720(int level)
+int GetLevelCdNumber0042B720(int level)
 {
-    return g_level_folders[level].unknown_69;
+    return g_level_folders[level].cd_number;
 }
 
 // FUNCTION: WIZ8 0x0042b6f0
-unsigned char Function42B6F0(int level)
+unsigned char IsLevelCdMissing0042B6F0(int level)
 {
-    return FindGameDataPath0042B590(gzCdDirectory, g_level_folders[level].unknown_69) == 0;
+    return FindGameDataPath0042B590(
+               gzCdDirectory, g_level_folders[level].cd_number) == 0;
+}
+
+/* Scan every logical drive for the CD whose volume label is WIZ8_<cd_number>,
+   write its root path into the caller's buffer and report whether it was
+   found. Only a CD-ROM drive is considered, and the volume query temporarily
+   suppresses the system's error dialog for a missing disc. */
+// FUNCTION: WIZ8 0x0042B590
+unsigned char FindGameDataPath0042B590(char* path, int cd_number)
+{
+    char expected_label[32];
+    char volume_name[32];
+    char drives[512];
+    DWORD length;
+    unsigned char found = 0;
+
+    length = GetLogicalDriveStringsA(sizeof(drives), drives);
+    if (length == 0) {
+        return 0;
+    }
+    for (DWORD index = 0; index < length; ++index) {
+        char drive[4];
+
+        if (drives[index] == '\0') {
+            continue;
+        }
+        drive[0] = drives[index];
+        drive[1] = drives[index + 1];
+        drive[2] = drives[index + 2];
+        drive[3] = '\0';
+        index += 2;
+
+        if (GetDriveTypeA(drive) != DRIVE_CDROM) {
+            continue;
+        }
+        strcpy(path, drive);
+        sprintf(expected_label, "WIZ8_%d", cd_number);
+
+        UINT previous_mode = SetErrorMode(1);
+        if (GetVolumeInformationA(
+                path, volume_name, 32, 0, 0, 0, 0, 0) != 0
+            && _stricmp(expected_label, volume_name) == 0) {
+            found = 1;
+            g_cd_index_00604474 = cd_number;
+        }
+        SetErrorMode(previous_mode);
+        if (found != 0) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 // FUNCTION: WIZ8 0x0042b740
@@ -283,8 +336,6 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
 }
 
 extern void Function5817D0(void);
-extern unsigned char LoadLevelStatus(const char* path, int level);
-extern void BuildLevelStatusPath(char* path, int level);
 extern float Function420BD0(const srVector3T<float>* position, unsigned char* hit);
 extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);

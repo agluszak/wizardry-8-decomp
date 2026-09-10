@@ -7,7 +7,7 @@ struct W8LevelFolderRecord {
     char level_name[50];
     char location_code[4];
     signed char sky_index;
-    signed char unknown_69;
+    signed char cd_number;
     signed char unknown_6a;
 };
 
@@ -61,8 +61,9 @@ unsigned char LoadLevel(
     int requested_level, int entrance, unsigned char restoring_game);
 unsigned char UnloadLevel(const char* save_directory);
 
-unsigned char Function42B6F0(int level);
-int Function42B720(int level);
+unsigned char IsLevelCdMissing0042B6F0(int level);
+unsigned char FindGameDataPath0042B590(char* path, int cd_number);
+int GetLevelCdNumber0042B720(int level);
 void Function42B3E0(void);
 char Function42B740(int saved_level);
 

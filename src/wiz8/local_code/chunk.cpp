@@ -376,6 +376,20 @@ void W8Chunk::RewindCurrentChunk()
     FileSeek(m_hFile, m_offsets.data[m_offsets.count - 1], FILE_SEEK_FROM_START);
 }
 
+/* Mark the active chunk's own at_end byte in the file. This is how the save
+   code invalidates a level section it has already consumed in place. */
+// FUNCTION: WIZ8 0x0055cb00
+void W8Chunk::SetCurrentChunkAtEnd()
+{
+    unsigned char value = 1;
+    int position = FileGetPos(m_hFile);
+
+    FileSeek(m_hFile, m_offsets.data[m_offsets.count - 1] - 5,
+             FILE_SEEK_FROM_START);
+    FileWrite(m_hFile, &value, 1, 0);
+    FileSeek(m_hFile, position, FILE_SEEK_FROM_START);
+}
+
 // FUNCTION: WIZ8 0x0055cb60
 unsigned char W8Chunk::CurrentChunkAtEnd()
 {
