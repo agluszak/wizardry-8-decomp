@@ -87,11 +87,6 @@ static int g_retained_material_count_65b9d4;
 static int g_retained_material_capacity_65b9d8;
 static srClass** g_retained_materials_65b9dc;
 
-extern void ReadMeshTransform004896C0(
-    int file, srVector3T<float>* location, srMatrix3T<float>* rotation,
-    srVector3T<float>* scale);
-extern void NormalizeMaterialRecord00489980(
-    W8MaterialRecord004B8A70* material);
 extern void UpdatePleaseWaitLoadFrame005915A0(void);
 
 namespace {

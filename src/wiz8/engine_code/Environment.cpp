@@ -17,6 +17,8 @@
 #include "surrender/srNode.h"
 #include "surrender/srScene.h"
 #include "surrender/srTypeRegistry.h"
+#include "wiz8/local_code/GameplayTime.h"
+#include "wiz8/renderer_window.h"
 
 /*
  * Engine Code\Environment.cpp.
@@ -67,8 +69,6 @@ srFog* g_environment_object_0065b9b4;
 
 W8GrowableVector<stLight*> g_environment_lights_0065b998(5);
 
-extern void PublishLightDirection(const int* direction);                 /* 0x00427380 */
-extern void Function502010(int elapsed);
 
 // GLOBAL: WIZ8 0x0065b9b8
 float g_environment_value_0065b9b8;

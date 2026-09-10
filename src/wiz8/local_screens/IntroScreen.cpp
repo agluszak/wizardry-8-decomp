@@ -20,13 +20,12 @@
 
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/engine_code/Levels.h"
+#include "wiz8/local_screens/OptionsScreen.h"
 extern unsigned char g_flag_689b2c;
 // GLOBAL: WIZ8 0x00689b2c
 unsigned char g_flag_689b2c;
 
 extern void ContinueAfterDarkEndingVideo005AE770(void);
-extern void ShowModalMessage005A6620(int a, int b, int c,
-                                    void (*callback)(void), int d, int e);
 
 int g_intro_video_index_0064d8ac = 6;
 static const char g_intro_video_names[7][40] = {

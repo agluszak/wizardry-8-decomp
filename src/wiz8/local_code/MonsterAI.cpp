@@ -9,6 +9,7 @@
 #include "wiz8/spell_effect.h"
 #include "wiz8/sr_api.h"
 #include "random.h"
+#include "wiz8/local_code/MonsterAI.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -34,11 +35,7 @@ enum { W8_AI_SPELL_PLACE = 0x77 };
 /* The monster action kinds the AI validates. */
 enum { W8_MONSTER_ACTION_ATTACK = 0, W8_MONSTER_ACTION_SPELL = 2, W8_MONSTER_ACTION_FLEE = 3 };
 
-extern void UpdateMonsterAI(W8MonsterInfo* monster_info);                /* 0x00531540 */
-extern unsigned char AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int spell_id);
-/* 0x005326F0 */
 
-extern unsigned char Function5353E0(W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* slot);
 struct W8SpellEffectEntry;
 /* 0x0061EEFC: two dwords per AI kind; only the leading dword is read here. */
 // GLOBAL: WIZ8 0x0061EEFC

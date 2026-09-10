@@ -32,6 +32,11 @@
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/OctPath.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/materials.h"
+#include "wiz8/engine_code/stCube.h"
+#include "wiz8/engine_code/3d.h"
+#include "wiz8/engine_code/Navigator.h"
 
 #include <math.h>
 
@@ -66,12 +71,7 @@ extern unsigned char g_navigator_link_mode_00659c10;
 
 /* Build a packed four-byte colour from four components and answer its
    address. The receiver is the output slot. */
-extern void* __fastcall PackColour00433FB0(
-    void* color, double red, double green, double blue, double alpha);
 /* Draw the probe box through the world camera. */
-extern void DrawWorldBox0048DF30(
-    W8World* world, srVector3T<float> minimum, srVector3T<float> maximum,
-    unsigned long color);
 
 extern const float g_world_scale_005ebc40;
 
@@ -338,8 +338,6 @@ void W8Octree::MarkMeshLinksVisible00430A70(unsigned int mesh)
    address-qualified names. */
 /* Point the visibility filter at the octree so it answers over this frame's
    cell set. */
-extern unsigned char Function0046D880(
-    const srVector3T<float>* point, const unsigned char* filter);
 
 /* Expand the camera box over the spatial levels and collect the regions the
    camera can occupy.
@@ -926,23 +924,9 @@ unsigned char W8Octree::LinkNavigatorTarget00434A00(
 
 /* ReadOctFile's own direct callees. Their bodies are not recovered, so they
    keep address-qualified names. */
-extern char BuildPreprocessedFiles00492E60(const char* level_path);
-extern void ReportStartupMessage004969D0(const char* message);
-extern unsigned char ReadLevelName00432E90(const char* name);
-extern void ApplyLevelName00432B80(const char* name);
 extern void ReadWaypointFile0043A0F0(void);
 /* The cell-walk probes and the trace helpers the two line-of-sight bodies use.
    None of their bodies are recovered, so they keep address-qualified names. */
-extern void SeedCellProbe00457640(const srVector3T<float>* from, const srVector3T<float>* to);
-extern int ProbeCellForBlockers00435C40(const int* cell);
-extern unsigned char TestProbeResult00435F00(void* result);
-extern int ProbeCellForTrace00435B00(const int* cell);
-extern int TraceAgainstProps00436510(
-    const srVector3T<float>* from, srVector3T<float>* to, int value_3, int value_4);
-extern char ResolveTraceHit004353F0(
-    void* result, srVector3T<float>* hit, int mode, int* out, int value_5, int value_6,
-    int value_7);
-extern int GetSectorForPosition00430BF0(const srVector3T<float>* position);
 
 // GLOBAL: WIZ8 0x005ebcd0
 float g_octree_cell_scale_005ebcd0 = 100.0f;

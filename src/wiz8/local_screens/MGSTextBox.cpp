@@ -11,6 +11,7 @@ W8MainGameScreen005EEBD8* g_main_game_screen_0068f2d4;
 #include "timer.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/AutomapScreen.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -40,7 +41,6 @@ int g_text_line_cursor_00686905;
 extern const int g_text_line_counts[];
 /* 0x0068F2D4: the screen the text box belongs to; its two panels sit at 0x0c
    and 0x14. */
-extern void RedrawTextBoxBody(void);                                    /* 0x00588E60 */
 
 /* Release every heap object owned by the four-by-350 message store, then
    return each record to its all-zero initial state.  The retail body walks

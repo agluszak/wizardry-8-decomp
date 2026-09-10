@@ -42,3 +42,6 @@ static_assert(sizeof(W8Item) == 0x20, "W8Item_must_be_0x20");
 unsigned char Function49F4A0(void* context, const char* name,
                                     void* out, int value);   /* 0x0049F4A0 */
 
+
+void GetWorldItemBounds(float* lower, float* upper);              /* 0x0049FB30 */
+

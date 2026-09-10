@@ -78,3 +78,6 @@ extern unsigned char g_flag_00687607;
 
 unsigned char Function42AF60(int level, int entrance);
 
+
+void Function42B770(int, int);
+

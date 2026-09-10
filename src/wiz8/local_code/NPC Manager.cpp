@@ -19,6 +19,9 @@
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/local_code/NPCManager.h"
+#include "wiz8/local_code/NPCScripting.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 
 #include <stdio.h>
 
@@ -49,7 +52,6 @@ enum { W8_NPC_DISPOSITION_HOSTILE = 0x21, W8_NPC_DISPOSITION_FRIENDLY = 0x42 };
 // GLOBAL: WIZ8 0x00689F94
 W8GrowableVector<W8NpcState*>* g_npc_states;
 
-extern char GetNpcDisposition(W8NpcState* npc);                          /* 0x0050A280 */
 extern unsigned char UpdateNpcAt(W8NpcState* npc, int arg_2, srVector3T<float>* scratch); /* 0x0050B2F0 */
 
 /* Whether the NPC's database entry carries the value at 0x002 at all. */
@@ -755,10 +757,6 @@ unsigned char UpdateNpcAt(W8NpcState* /*npc*/, int /*arg_2*/, srVector3T<float>*
 
 extern unsigned char g_flag_683fc5;
 extern void Function55A0A0(int value);                              /* 0x0055A0A0 */
-extern void Function56CA60(
-    W8NpcState* npc, int, int, int, int);                          /* 0x0056CA60 */
-extern void Function5289B0(int kind, int argument);                 /* 0x005289B0 */
-extern void Function509560(void);                                  /* 0x00509560 */
 extern void Function56C5E0(
     W8NpcState* npc, int, int, int, int);                          /* 0x0056C5E0 */
 

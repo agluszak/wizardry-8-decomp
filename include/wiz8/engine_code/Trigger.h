@@ -1,5 +1,7 @@
 #pragma once
 
+class stLight;
+
 #include "surrender/srMath.h"
 #include "surrender/srTypeRegistry.h"
 #include "wiz8/dice.h"
@@ -258,4 +260,8 @@ extern int g_value_005ed8c8;
 void Function444F70(int value, float duration, float intensity,
                           unsigned char reverse);
 unsigned char Function445140(W8World* world);
+
+
+stLight* FindLightByName00445A10(
+    const char* name, const srRuntimeClass* relative_to);
 

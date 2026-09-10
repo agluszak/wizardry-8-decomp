@@ -47,6 +47,8 @@ float g_float_005ec3d0 = -107374184.0f;
 #include "surrender/srModelInstance.h"
 #include "FileMan.h"
 #include "wiz8/engine_code/GDProp.h"
+#include "wiz8/engine_code/quad.h"
+#include "wiz8/engine_code/OctPreTree.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -108,9 +110,6 @@ float g_path_waypoint_query_vertical_005ec35c;
 float g_float_005ec360;
 extern float g_path_waypoint_exact_distance_005ebc64;
 extern double g_double_005ebe80;
-extern float GetHeadingAngle004BE420(
-    const srVector3T<float>* source,
-    const srVector3T<float>* target);
 extern void Function497690(int channel, const char* message);
 // GLOBAL: WIZ8 0x00652dc4
 srShader g_path_shader_00652dc4;
@@ -120,11 +119,6 @@ extern srMaterialIFace* g_path_material_00652dbc;
 srTextureIFace* g_path_texture_00652dc0;
 // GLOBAL: WIZ8 0x00652dbc
 srMaterialIFace* g_path_material_00652dbc;
-extern void SortPathCandidates004677A0(
-    unsigned short* waypoints,
-    unsigned int* distances,
-    int first,
-    int last);
 extern unsigned char g_flag_006081e4;
 extern unsigned int g_path_visualization_cell_00659c6c;
 // GLOBAL: WIZ8 0x00659c6c

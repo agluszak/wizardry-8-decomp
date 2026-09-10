@@ -89,3 +89,6 @@ extern unsigned char g_default_footstep_surface_65a108;
 extern unsigned char g_default_footstep_material_65a109;
 extern unsigned char g_footstep_alternate_65a10a;
 extern int g_previous_footstep_variant_65a10c;
+
+void Function479030(void);
+

@@ -17,6 +17,7 @@
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
 #include "wiz8/engine_code/Item.h"
+#include "wiz8/engine_code/MonGen.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -58,7 +59,6 @@ int g_random_encounter_limit = 10;
 int g_active_group_count;
 // GLOBAL: WIZ8 0x0065ba1c
 W8MonsterGroup** g_active_groups;
-extern void RollRandomEncounters(void);     /* 0x0048CA20 */
 
 // GLOBAL: WIZ8 0x0065ba48
 unsigned char g_generator_save_flag;

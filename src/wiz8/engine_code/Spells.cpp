@@ -34,12 +34,12 @@
 #include "wiz8/vector.h"
 #include "surrender/srTimer.h"
 #include "soundman.h"
+#include "wiz8/engine_code/Spells.h"
 
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
-extern int CountSpellsOfKind(int kind);                      /* 0x004AC8F0 */
 extern const float g_monster_rotation_offset_005ec04c;
 extern const double g_camera_pi_005ec2a0;
 extern float GetHeadingAngle004BE420(

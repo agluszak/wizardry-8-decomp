@@ -12,12 +12,13 @@
 #include "wiz8/startup_runtime_state.h"
 #include "random.h"
 #include "timer.h"
+#include "wiz8/local_code/character_events.h"
+#include "wiz8/local_screens/Screens.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "bink.h"
 
 extern void Function52F890(
     int party_slot, int active, int animation, int argument, int show_text);
-extern void Function5E2F40(int sound_handle, unsigned char* state);
-extern unsigned char Function56EC90(unsigned int party_slot);
-extern void Function55EC90(unsigned int party_slot);
 extern unsigned int g_value_0068c57c;
 // GLOBAL: WIZ8 0x0068c57c
 unsigned int g_value_0068c57c;
@@ -37,7 +38,6 @@ extern int g_effect_005ee590;
 extern int g_effect_005ee5f8;
 extern unsigned int g_first_remapped_event_005ee718;
 extern unsigned int g_last_event_005ee70c;
-extern void Function52CA60(void);
 extern int g_special_event_0068c504;
 extern int g_special_event_0068c50c;
 extern int g_special_event_0068c51c;

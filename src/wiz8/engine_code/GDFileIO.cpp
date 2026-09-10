@@ -6,6 +6,8 @@
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/engine_code/GDFileIO.h"
+#include "wiz8/engine_code/materials.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -49,8 +51,6 @@ extern float g_path_endpoint_scale_005ec1a4;
 // GLOBAL: WIZ8 0x005ec1a4
 float g_path_endpoint_scale_005ec1a4 = 0.9900000095367432f;
 
-extern void Function449240(int handle);
-extern void Function497690(int channel, const char* message);
 
 /* Opens a game-data file, builds its record, and pulls the polygon and
    vertex banks through the record reader. */

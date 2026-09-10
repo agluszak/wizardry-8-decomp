@@ -1,5 +1,7 @@
 #pragma once
 
+class Trigger;
+
 #include "input.h"
 #include "wiz8/vector.h"
 
@@ -342,3 +344,28 @@ extern W8IList* g_debug_monster_ids_0068f100;
 extern unsigned char g_navigator_position_changed_659c11;
 extern unsigned char g_flag_006840bb;
 extern unsigned char g_map_loading_00659757;
+
+void BeginLevelTransition(void);                                  /* 0x005611A0 */
+void Function5618F0(unsigned short mode);
+void Function563DD0(void);
+void Function565740(int slot);
+void Function568E10(void);
+short Function5698C0(void);
+void Function56CA60(
+    W8NpcState* npc, int, int, int, int);                          /* 0x0056CA60 */
+void Function56E800(int);
+unsigned char Function56EC90(unsigned int party_slot);
+void Function5777C0(void);
+void Function587510(int value);
+void Function5879A0(int);
+void Function58A470(int value);
+void Function58A790(int);
+void Function595600(void);
+int OpenLockInteraction00587510(Trigger* trigger);
+int OpenTrapInteraction0058A470(Trigger* trigger);
+void ReportActionFailed(int party_slot);                          /* 0x0056A770 */
+void ReportBreathFailed(int party_slot);                          /* 0x0056A770 */
+void SetCombatAction(int value);                                 /* 0x0056A480 */
+void SetCombatSelection(int value);                              /* 0x00569F70 */
+void SetCombatTarget(int value);                                 /* 0x0056A2D0 */
+

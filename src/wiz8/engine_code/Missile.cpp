@@ -25,6 +25,7 @@
 #include "surrender/srTimer.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/magic.h"
+#include "wiz8/engine_code/quad.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -211,8 +212,6 @@ void UpdateWorldMissiles004A27C0(W8World* world)
     }
 }
 
-extern float GetElevationAngle004BE490(
-    const srVector3T<float>* source, const srVector3T<float>* target);
 extern float GetHeadingAngle004BE420(
     const srVector3T<float>* source, const srVector3T<float>* target);
 

@@ -36,3 +36,7 @@ void Function5822C0(void);
 void Function582930(void);
 void Function583BC0(void);
 
+
+unsigned char ReadAutomapNodes00584DD0(int hFile);
+void RedrawTextBoxBody(void);                                    /* 0x00588E60 */
+

@@ -10,11 +10,11 @@
 #include "FileMan.h"
 #include "random.h"
 #include "soundman.h"
+#include "wiz8/engine_code/Spells.h"
 
 #include <string.h>
 #include <stdio.h>
 
-extern void AudioUpdateFinish004AEFD0();
 
 // FUNCTION: WIZ8 0x00479040
 W8AmbientSound::W8AmbientSound()

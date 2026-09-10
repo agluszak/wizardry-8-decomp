@@ -76,4 +76,7 @@ __declspec(dllimport) void __stdcall BinkNextFrame(HBINK bink);
 
 }
 
+
+void Function5E2F40(int sound_handle, unsigned char* state);
+
 #endif

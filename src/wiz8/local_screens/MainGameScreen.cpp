@@ -64,6 +64,18 @@
 #include "wiz8/local_screens/MGSUseItemSelect.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/MGSPartyMovement.h"
+#include "wiz8/engine_code/Levels.h"
+#include "wiz8/engine_code/Cursor3d.h"
+#include "wiz8/local_code/NPCScripting.h"
+#include "wiz8/local_screens/MGSKeyboard.h"
+#include "wiz8/local_screens/Screens.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/mipe.h"
+#include "wiz8/local_screens/MGSPortraits.h"
+#include "wiz8/local_screens/MGSUseItemSelect.h"
+#include "wiz8/local_screens/MGSSpellCasting.h"
+#include "wiz8/local_screens/ReviewCharacterScreen.h"
+#include "wiz8/local_screens/IntroScreen.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -90,41 +102,16 @@ W8DialogBase* g_modal_owner_0068edd0;
 // GLOBAL: WIZ8 0x0068edd4
 W8DialogBase* g_pending_main_game_dialog_0068edd4;
 
-extern void Function568E10(void);
 extern void Function598AB0(void);
-extern void Function5AE9D0(void);
-extern void Function59B940(void);
-extern void Function59BDB0(void);
-extern void Function55F2C0(void);
 extern void Function58AC00(int, const wchar_t*, int, int, int);
 extern void Function58AAD0(int, const wchar_t*, const wchar_t*);
-extern void Function55D3C0(void);
-extern void Function55EE70(int value);
-extern void Function587510(int value);
-extern void Function58A470(int value);
-extern void Function565740(int slot);
 extern void Function59C930(int slot);
-extern void Function42B770(int, int);
-extern void Function490AF0(void);
 extern void Function5187E0(void);
-extern void Function56E800(int);
-extern void Function57D740(void);
-extern void Function5879A0(int);
-extern void Function58A790(int);
-extern void Function592E60(void);
 extern void Function598AE0(void);
 extern void Function59B270(void);
 extern void Function59BAD0(void);
 extern void Function59BF70(void);
 extern void Function59C9C0(void);
-extern void Function59F2B0(void);
-extern void Function5A20E0(int);
-extern void Function5A23E0(void);
-extern void Function5AEB20(void);
-extern void Function563DD0(void);
-extern void Function529510(void);
-extern short Function5698C0(void);
-extern void Function5618F0(unsigned short mode);
 
 // GLOBAL: WIZ8 0x006840bc
 unsigned char g_flag_006840bc;
@@ -1198,9 +1185,6 @@ unsigned char MainGameScreenLeave(int leaving)
     return 1;
 }
 
-extern void SetCombatSelection(int value);                              /* 0x00569F70 */
-extern void SetCombatTarget(int value);                                 /* 0x0056A2D0 */
-extern void SetCombatAction(int value);                                 /* 0x0056A480 */
 extern void Function55EE70(int arg_1);
 
 // FUNCTION: WIZ8 0x00560c30
@@ -1524,7 +1508,6 @@ unsigned int Function568950(const InputAtom* input)
     }
 }
 
-extern void Function5A1950(void);
 
 // FUNCTION: WIZ8 0x0056aa30
 void Function56AA30(void)

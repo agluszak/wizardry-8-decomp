@@ -388,3 +388,18 @@ void __stdcall Function42E650(unsigned short location_id);
 unsigned int __stdcall OctreeTraverse(
     void* walker, void* arg_2, void* arg_3, int kind, unsigned int limit);   /* 0x0042F280 */
 extern "C" void LeaveLocation0042E880(unsigned short location_id, int reason);
+
+void ApplyLevelName00432B80(const char* name);
+int GetSectorForPosition00430BF0(const srVector3T<float>* position);
+void* __fastcall PackColour00433FB0(
+    void* color, double red, double green, double blue, double alpha);
+int ProbeCellForBlockers00435C40(const int* cell);
+int ProbeCellForTrace00435B00(const int* cell);
+unsigned char ReadLevelName00432E90(const char* name);
+char ResolveTraceHit004353F0(
+    void* result, srVector3T<float>* hit, int mode, int* out, int value_5, int value_6,
+    int value_7);
+unsigned char TestProbeResult00435F00(void* result);
+int TraceAgainstProps00436510(
+    const srVector3T<float>* from, srVector3T<float>* to, int value_3, int value_4);
+

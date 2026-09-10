@@ -33,6 +33,13 @@ int g_target_state_6840b3;
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/targeting.h"
 #include "wiz8/local_code/CombatHostility.h"
+#include "wiz8/engine_code/quad.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/engine_code/Cursor3d.h"
+#include "wiz8/engine_code/Spells.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_screens/Screens.h"
+#include "wiz8/engine_code/3d.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -254,9 +261,6 @@ char GetTargetNeededForItem(const W8ItemInstance* item)
 }
 
 /* 0x004CA4F0 */
-extern unsigned char ShowTargetMarker(
-    void* eye, void* lower, void* upper);                               /* 0x0046F820 */
-extern void Function492500(void* scratch);
 extern unsigned char g_target_marker_00684073;
 // GLOBAL: WIZ8 0x00684073
 unsigned char g_target_marker_00684073;
@@ -847,10 +851,7 @@ unsigned char IsTargetStillPresent(const W8CombatSlot* target)
     return 1;
 }
 
-extern unsigned char IsSlotActionChosen(int party_slot, int context, int arg_3, int arg_4);
-/* 0x004E79A0 */
 extern unsigned char Function547510(void);                                  /* 0x00547510 */
-extern void SetTargetCursor(int cursor);                                 /* 0x0055EE70 */
 
 /* The two cursors this body cares about: the one it puts up for a monster it
    can act on, and the one it takes down for a monster it cannot. */
@@ -1217,7 +1218,6 @@ unsigned int Function53A8D0(int party_slot, unsigned int context)
     return 0;
 }
 
-extern void Function4ADD30(int enabled);
 // GLOBAL: WIZ8 0x0068406F
 srVector3T<float> g_target_position_0068406f;
 // GLOBAL: WIZ8 0x0068407F
@@ -1485,8 +1485,6 @@ unsigned char CanTargetMonster(
     return CanReachTarget(party_slot, 2, monster_info, 6, reason) != 0;
 }
 
-extern unsigned char CanTargetPartySlot(int party_slot, const W8CombatSlot* target);
-/* 0x00545C20 */
 
 /* Whether a party slot's chosen action has anything at all to aim at. Each
    action asks its own question: an attack looks for one targetable monster, a
@@ -1633,7 +1631,6 @@ unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char
     }
 }
 
-extern float AngleFromPartyTo(const srVector3T<float>* from, const srVector3T<float>* to); /* 0x004BE420 */
 extern void StartBreathCycle(int party_slot, int arg_2);                 /* 0x0052FE80 */
 
 /* 0x004ECC80 */

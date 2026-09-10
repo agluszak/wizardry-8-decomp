@@ -30,6 +30,10 @@
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/ItemManager.h"
 #include "wiz8/targeting.h"
+#include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSTextBox.h"
 
 #include <stdio.h>
 
@@ -305,12 +309,8 @@ extern int g_item_message_005ee664;
    text at 0x0051C8F0. */
 extern unsigned char Function521060(
     int item_id, int value_1, int value_2, int value_3, int value_4);
-extern void Function50E5C0(int party_slot);
 
-extern void PostCharacterNotice(int party_slot, const wchar_t* notice, ...);
-extern unsigned char Function5458A0(int party_slot);
 extern void Function536570(int party_slot, int value_1, int value_2);
-extern void Function595600(void);
 
 // GLOBAL: WIZ8 0x00652da6
 unsigned char g_byte_652da6;

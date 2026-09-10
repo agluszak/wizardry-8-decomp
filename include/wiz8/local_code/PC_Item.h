@@ -98,3 +98,6 @@ void RecordItemOrigin(int party_slot, unsigned char origin, unsigned short slot)
 void RemoveCharacterItem(int party_slot, W8ItemInstance* item, int arg_3);
 unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all);
 
+
+unsigned char Function522A30(int party_slot, const W8ItemInstance* item);
+

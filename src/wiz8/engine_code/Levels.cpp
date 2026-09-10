@@ -51,6 +51,10 @@
 #include "FileMan.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/local_screens/AutomapScreen.h"
+#include "wiz8/engine_code/GameData.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/engine_code/Video2.h"
 
 #define LEVELS_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Levels.cpp"
 
@@ -117,7 +121,6 @@ int g_cd_index_00604474;
 // GLOBAL: WIZ8 0x00659738
 W8MaterialMapper00482010 g_material_mapper_00659738;
 
-extern void Function4EA310(int mode);
 
 // FUNCTION: WIZ8 0x0042b720
 int GetLevelCdNumber0042B720(int level)
@@ -321,12 +324,8 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
     return 1;
 }
 
-extern float Function420BD0(const srVector3T<float>* position, unsigned char* hit);
-extern float* RotateMatrixAroundAxis0042B910(
-    float* matrix, double sine, double cosine, float* axis);
 
 extern void Function50E700(void);
-extern void Function5777C0(void);
 
 extern float g_runtime_world_scale_6081e8;
 
@@ -545,7 +544,7 @@ unsigned char LoadLevel(
 
             trigger->GetPosition(&trigger_position);
             position = trigger_position;
-            position.y = Function420BD0(&trigger_position, 0)
+            position.y = SettlePositionToGround00420BD0(&trigger_position, 0)
                        + g_default_world_height_00603ac8;
             if (fabs(position.y - trigger_position.y)
                 > g_position_height_epsilon_005ebfdc) {

@@ -133,3 +133,8 @@ void Function5B7230(void);
 
 extern int g_effect_005ee6ec;
 extern int g_effect_argument_005ed8cc;
+
+void Function5A20E0(int);
+void Function5A23E0(void);
+void Function5A24A0(void);
+

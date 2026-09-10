@@ -75,12 +75,11 @@ unsigned char g_cd_marker_present_69b7d0;
 
 #include "line.h"
 #include "wiz8/engine_code/Levels.h"
+#include "wiz8/fact_state.h"
+#include "wiz8/local_code/NPCManager.h"
+#include "wiz8/local_code/LoadSaveGame.h"
 /* 0x00412A10; the reviewed identity Ghidra carries. Nothing defines it yet. */
 extern void RefreshSlfArchives(void);
-extern int Function509750(void);
-extern void Function512C40(void);
-extern void Function5092F0(int* level, int* entrance);
-extern void Function5063E0(void);
 extern unsigned int LoadGame(const char* slot_name);
 extern unsigned char g_flag_689b2c;
 

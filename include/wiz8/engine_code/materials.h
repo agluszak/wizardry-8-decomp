@@ -91,3 +91,8 @@ unsigned char CreateDefaultMaterial004B9280(
 srTextureIFace* LoadTexture004B9460(
     const char* path, unsigned char cached, unsigned char required);
 
+
+char BuildPreprocessedFiles00492E60(const char* level_path);
+void Function497690(int channel, const char* message);
+void ReportStartupMessage004969D0(const char* message);
+

@@ -79,4 +79,11 @@ static_assert(sizeof(W8OctSpatialState0046CCC0) == 0x9c,
 static_assert(sizeof(W8OctRegionVolume0049E460) == 0xe8,
               "W8OctRegionVolume0049E460_must_be_0xe8");
 
+
+void SortPathCandidates004677A0(
+    unsigned short* waypoints,
+    unsigned int* distances,
+    int first,
+    int last);
+
 #endif

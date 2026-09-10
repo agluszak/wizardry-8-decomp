@@ -17,4 +17,7 @@ void InitializeFactState(void);
 void LoadFactState(int save_handle);
 void SetFactNotificationsSuppressed(unsigned char suppressed);
 
+
+void Function5063E0(void);
+
 #endif

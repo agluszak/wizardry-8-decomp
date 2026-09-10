@@ -18,6 +18,8 @@ W8CombatCharacterRow* g_combat_character_rows;
 #include "wiz8/utility.h"
 #include "random.h"
 #include "wiz8/local_code/CombatRange.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/engine_code/Navigator.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -44,7 +46,6 @@ unsigned char g_combat_log_enabled_0068d810;
 extern const wchar_t g_combat_log_format_00617664[] = L"%hs";
 /* 0x0053AC30 */
 extern void Function55EE30(int bit);
-extern void Function4E8000(int party_slot, int action_kind, int action_detail, int a, int b);
 
 /* Whether anybody in the party is engaged with something. */
 // FUNCTION: WIZ8 0x004e7ca0
@@ -244,14 +245,9 @@ int PartyAvoidsSurprise(void)
     return 0;
 }
 
-extern void ChooseCombatAction(
-    int party_slot, int is_monster_turn, int* out_kind, int a, int b, int c); /* 0x004E77B0 */
 
-extern void SwitchCharacterTo(int party_slot, int action);               /* 0x004ED390 */
 
 /* 0x004C62C0 */
-extern unsigned char Function5323F0(W8MonsterInfo* monster_info, int a, int b, int c);
-extern void SetMonsterTurnSpeed(float speed);                            /* 0x00453C70 */
 extern int g_effect_005ee610;
 extern unsigned int g_flee_hp_fraction_005ed8f8;
 extern unsigned int g_flee_chance_005ed908;

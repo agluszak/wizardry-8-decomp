@@ -33,6 +33,12 @@
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/MonsterAI.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/engine_code/GameData.h"
+#include "wiz8/local_code/Strings.h"
 
 // GLOBAL: WIZ8 0x0068510c
 unsigned char g_detailed_combat_messages_0068510c;
@@ -145,10 +151,6 @@ enum {
     W8_SPELL_USABLE_WHILE_CAMPED = 3,
     W8_SPELL_USABLE_WHILE_SHOPPING = 4
 };
-extern unsigned char Function5327E0(
-    W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* combat_slot);
-extern unsigned char Function5330E0(
-    W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* combat_slot);
 
 /* Whether a spellcasting block stops this character casting this spell. The
    block stops everything except alchemy in the hands of someone who has the
@@ -505,8 +507,6 @@ bool CombatHasCondition(int condition_id)
     return false;
 }
 
-extern void Function4E7CC0(
-    int party_slot, int arg_2, int arg_3, void* arg_4, int arg_5, int arg_6);
 
 /* Record the spell one party slot is about to cast, at what strength, and at
    what, from a target block the caller already holds. */
@@ -557,9 +557,6 @@ bool PartySlotSpellTargetStillValid(int party_slot)
     return Function519180(party_slot, 0, 3) != 0;
 }
 
-extern void ChooseAction(int party_slot, int action, int detail, int a, int b, int c); /* 0x004E7CC0 */
-extern void StartBreathCycle(int party_slot, int arg_2);                 /* 0x0052FE80 */
-extern void ReportBreathFailed(int party_slot);                          /* 0x0056A770 */
 /* 0x00616DF0: seventeen entries, indexed by the spell's own cost band. The
    monster power-level chooser reads the same table as a spell-point budget
    cost, so the one table serves both. */
@@ -811,8 +808,6 @@ extern void Function58AAD0(
     int mode, const wchar_t* format, ...);                      /* 0x0058AAD0 */
 extern void PostCharacterNotice(
     int party_slot, const wchar_t* format, ...);                 /* 0x00590950 */
-extern float SettlePositionToGround00420BD0(
-    srVector3T<float>* position, unsigned char* hit);           /* 0x00420BD0 */
 
 /* The 0x4f spell's finalizer. Once its target is gone, the impact spell 0x76
    is cast at the target's last position and the matching notice is posted:
@@ -927,7 +922,6 @@ unsigned int GetSpellFailureChance(unsigned int skill, int spell_id, int factor)
     return chance;
 }
 
-extern void ReportActionFailed(int party_slot);                          /* 0x0056A770 */
 // GLOBAL: WIZ8 0x0061634c
 unsigned char g_profession_spellbooks[15] = {
     0, 2, 2, 4, 1, 4, 8, 0, 0, 0, 2, 4, 15, 8, 1,
@@ -1355,8 +1349,6 @@ int GetAffordableSpellPowerLevel(int party_slot)
 
 extern W8ItemInstance* FindCharacterItemAt(
     int party_slot, unsigned char origin, unsigned short slot);          /* 0x00522180 */
-extern unsigned char Function522A30(int party_slot, const W8ItemInstance* item);
-/* 0x00522A30 */
 
 /* The origin that means the item is worn or held rather than carried; in
    combat an equipped item is not re-fetched. */

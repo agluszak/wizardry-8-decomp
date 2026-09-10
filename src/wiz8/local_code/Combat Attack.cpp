@@ -7,6 +7,7 @@
 #include "wiz8/sr_api.h"
 #include "random.h"
 #include "wiz8/targeting.h"
+#include "wiz8/local_code/CombatAttack.h"
 
 #include <string.h>
 
@@ -51,9 +52,6 @@ enum { W8_ATTACK_MODE_COUNT = 9 };
 /* Bit two of the monster record's flag word: the monster attacks at all. */
 enum { W8_MONSTER_FLAG_ATTACKS = 4 };
 
-extern unsigned char RateMonsterAttack(
-    W8MonsterInfo* monster_info, int target, unsigned int attack, int arg_4, int arg_5);
-/* 0x0053D4B0 */
 
 /* Clear a forty-eight byte attack block. */
 // FUNCTION: WIZ8 0x00543260
@@ -193,10 +191,6 @@ enum { W8_SKILL_DAMAGE_REDUCTION = 0x25 };
 
 /* 0x00519AC0 */
 extern void PracticeCharacterSkill(W8Character* character, int skill, int amount, int arg_4);
-extern unsigned char MonsterHasAttackOn(W8MonsterInfo* monster_info, W8CombatSlot* target);
-/* 0x00545CF0 */
-extern unsigned char CharacterHasAttackOn(int party_slot, W8CombatSlot* target);
-/* 0x00545C20 */
 
 /* Whether one of a character's hands can reach the target it is aimed at: the
    hand has to be in play and to have a range category at all. */

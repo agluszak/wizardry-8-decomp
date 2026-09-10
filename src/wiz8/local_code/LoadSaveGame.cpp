@@ -34,6 +34,10 @@
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_screens/AutomapScreen.h"
+#include "wiz8/engine_code/stCube.h"
+#include "wiz8/engine_code/stLight.h"
+#include "wiz8/local_code/UtilityFunctions.h"
+#include "wiz8/local_code/FormationAndFacing.h"
 
 #include <windows.h>
 
@@ -105,11 +109,8 @@ static_assert(sizeof(W8StatusHeader) == 0x314,
 /* Established save-side callees without shared declarations yet. Their
    positional names preserve the current identity ceiling; the orchestration
    below establishes only their argument shape and section ownership. */
-extern void Function48EAD0(int handle);
-extern void Function48E6D0(int handle);
 
 
-extern void Function49D120(int handle);
 
 /* 0x005156C0, 0x00517A90 and 0x00518510, not yet identified; named by address
    as elsewhere in src/wiz8. The first loads a character from somewhere other
@@ -118,8 +119,6 @@ extern void Function49D120(int handle);
 /* FileWrite, FileExists, FileClearAttributes and FILE_IS_READONLY come from the
    vendored SGP FileMan.h already on this target's include path, so they are not
    restated here. */
-extern void Function518510(void* notice);
-extern void RebuildPartyStatus00555FA0(W8PartyFormationState* status);
 
 /* 0x0068517C selects where characters live, and 0x006874D7 is a per-slot byte
    consulted only when it is set. The failure notice comes out of the shared

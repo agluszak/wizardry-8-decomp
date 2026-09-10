@@ -35,6 +35,7 @@ unsigned char g_status_block_685078[56];
 #include "FileMan.h"
 #include "random.h"
 #include "timer.h"
+#include "wiz8/local_code/character_events.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -42,7 +43,6 @@ unsigned char g_status_block_685078[56];
 
 extern unsigned char IsSoundPlaying(int sound_handle);
 extern unsigned char StopSound(int sound_handle);
-extern void Function52F890(int party_slot, int value_1, int value_2, int value_3, int value_4);
 extern void QueueGameplayEvent(int event_type, int party_slot);
 extern void PostCharacterMessage(int party_slot, const W8WideChar* format, ...);
 /* 0x0054B300 resets one of eight slots. */

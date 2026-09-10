@@ -92,4 +92,8 @@ void Function4229E0(void);
 void Function4257F0(int value);
 #endif
 
+
+float* RotateMatrixAroundAxis0042B910(
+    float* matrix, double sine, double cosine, float* axis);
+
 #endif

@@ -153,4 +153,11 @@ char TestTraceResult0041C330(
     int value_1b8, unsigned long* objects, void* result,
     unsigned char value_134, int mode);
 
+
+/* 0x00420BD0: settle a world point onto the octree ground through the
+   GameData geometry index; the false branch reports the input height and
+   clears the caller's hit byte. */
+float SettlePositionToGround00420BD0(
+    const srVector3T<float>* position, unsigned char* hit);
+
 #endif // __cplusplus

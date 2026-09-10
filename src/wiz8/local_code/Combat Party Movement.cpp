@@ -11,6 +11,9 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/local_code/CombatPartyMovement.h"
+#include "wiz8/local_code/MonsterAI.h"
+#include "wiz8/local_screens/MGSSpellCasting.h"
 
 /*
  * Local Code\Combat Party Movement.cpp.
@@ -28,10 +31,6 @@ enum { W8_PHASES_PER_ROUND = 100 };
 /* The turn phase in which the party has its own movement back. */
 enum { W8_TURN_PHASE_FREE = 3 };
 extern float g_movement_speed_step_005ed490;
-extern void ReleasePartyMovement(void);                                 /* 0x005A1890 */
-extern void Function5354E0(void);
-extern void Function4F06B0(void);
-extern unsigned char Function4F0010(unsigned int* out_steps);
 
 /* Note that the party has started moving. */
 // FUNCTION: WIZ8 0x004efbe0

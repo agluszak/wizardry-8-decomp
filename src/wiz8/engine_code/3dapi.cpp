@@ -43,6 +43,7 @@
 
 #include "FileMan.h"
 #include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/AmbientSound.h"
 
 /*
  * Engine Code\3dapi.cpp.
@@ -60,7 +61,6 @@ extern void SetRendererReady(void);
 unsigned char g_renderer_ready_00607d7c = 1;
 extern int CheckLevelAssetSet0042CCC0(const char* level_path);
 
-extern void Function479030(void);
 class W8AmbientSound;
 
 

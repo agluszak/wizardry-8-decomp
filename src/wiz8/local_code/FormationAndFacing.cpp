@@ -42,6 +42,8 @@ int GetQuadrantForPosition(srVector3T<float> position)
 }
 
 #include "wiz8/sr_api.h"
+#include "wiz8/local_screens/ReviewCharacterScreen.h"
+#include "wiz8/local_screens/RCSCommon.h"
 
 #define FORMATION_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Formation & Facing.cpp"
 
@@ -59,9 +61,6 @@ enum { W8_FACING_ANY = 4 };
    Tighter than the eligibility window the party sweeps use. */
 enum { W8_FORMATION_ELIGIBLE_LIMIT = 0xd };
 
-extern void Function5B1C80(void);
-extern void Function5A24A0(void);
-extern void Function5B1E70(void);
 
 // GLOBAL: WIZ8 0x005ee858
 double g_facing_tolerance_005ee858 = 2.3561944500000003;

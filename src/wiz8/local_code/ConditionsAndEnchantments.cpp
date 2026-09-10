@@ -19,8 +19,10 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/character_events.h"
+#include "wiz8/character_skills.h"
 
-extern void Function5477D0(W8MonsterInfo* monster_info, int flag);
 
 // GLOBAL
 unsigned char g_flag_00683F94;
@@ -48,10 +50,7 @@ unsigned short g_condition_notices_0061E570[128] = {
 extern char Function521060(
     int id, int* out_id, W8Character** out_character, int a, int b);
 extern void Function536570(int party_slot, int a, int b);
-extern void Function52F790(void* character, int condition);
 extern void Function53A930(int party_slot, W8CombatSlot* target);
-extern void Function547A50(int party_slot);
-extern void Function52F430(void* character);
 
 // FUNCTION: WIZ8 0x005248a0
 unsigned char Function5248A0(int party_slot, int condition)
@@ -128,7 +127,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
             }
         }
         if (announce != 0) {
-            Function590950(
+            PostCharacterNotice(
                 party_slot, gppStringList[0x90c / 4],
                 gppStringList[g_condition_notices_0061E570[condition * 4]]);
         }
@@ -170,7 +169,6 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
 }
 extern void Function55EE30(int bit);                                                /* 0x0055EE30 */
 
-extern void Function50E8C0(int location_id);
 extern void Function50E650(int party_slot);
 
 /*
@@ -515,7 +513,7 @@ unsigned char SetCharacterCondition(
         break;
     }
     if (g_byte_00687500 != 0) {
-        Function590950(
+        PostCharacterNotice(
             party_slot, gppStringList[0x908 / 4],
             gppStringList[g_condition_notices_0061E570[condition * 4]]);
         return 0;
@@ -523,7 +521,7 @@ unsigned char SetCharacterCondition(
     switch (condition) {
     case 6:
         if (Function547940(character, 3) != 0) {
-            Function590950(party_slot, gppStringList[0x600 / 4]);
+            PostCharacterNotice(party_slot, gppStringList[0x600 / 4]);
             return 0;
         }
         /* fall through */
@@ -543,7 +541,7 @@ unsigned char SetCharacterCondition(
         /* fall through */
     case 0xd:
         if (Function547940(character, 0xe) != 0) {
-            Function590950(party_slot, gppStringList[0x604 / 4]);
+            PostCharacterNotice(party_slot, gppStringList[0x604 / 4]);
             return 0;
         }
         break;
@@ -584,10 +582,10 @@ unsigned char SetCharacterCondition(
     }
     if (value_6 != 0) {
         if (condition == 0x13 && value_5 != 0) {
-            Function590950(party_slot, gppStringList[0x754 / 4]);
+            PostCharacterNotice(party_slot, gppStringList[0x754 / 4]);
         }
         else {
-            Function590950(
+            PostCharacterNotice(
                 party_slot, L"%s!",
                 gppStringList[g_condition_notices_0061E570[condition * 4]]);
         }

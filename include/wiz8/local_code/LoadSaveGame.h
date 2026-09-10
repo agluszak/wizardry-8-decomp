@@ -87,3 +87,6 @@ char Function5156C0(const char* path, W8Character* character);
 void Function515B00(void);
 void SaveMonsterStatus(W8Chunk* chunks);                         /* 0x005145A0 */
 
+
+void Function512C40(void);
+

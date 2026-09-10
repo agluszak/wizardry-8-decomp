@@ -444,3 +444,7 @@ extern wchar_t g_options_last_save_name_0069c1cc[64];
 
 void Function5A9E70(const wchar_t* target);
 wchar_t* GetAddress69C1CC(void);
+
+void ShowModalMessage005A6620(int a, int b, int c,
+                                    void (*callback)(void), int d, int e);
+

@@ -10,3 +10,7 @@ void Function5B55F0(void);
 void Function5B59B0(int page);
 void Function5B6B30(unsigned int slot);
 
+
+void Function5B1C80(void);
+void Function5B1E70(void);
+

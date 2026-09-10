@@ -32,3 +32,13 @@ void FinalizeWorldScenes0046F410(
 void Function46E640(void* target, int argument);
 void Function46E750(void* target, int argument);
 
+
+unsigned char Function0046D880(
+    const srVector3T<float>* point, const unsigned char* filter);
+unsigned char HasLineOfSightToBounds0046FD70(
+    const srVector3T<float>* origin,
+    srVector3T<float>* minimum,
+    srVector3T<float>* maximum);
+unsigned char ShowTargetMarker(
+    void* eye, void* lower, void* upper);                               /* 0x0046F820 */
+

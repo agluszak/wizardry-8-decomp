@@ -17,6 +17,8 @@
 #include "random.h"
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_code/MonsterGroup.h"
 
 /*
  * Local Code\Magic Effects.cpp.
@@ -49,7 +51,6 @@ enum { W8_EFFECT_PERMANENT = 9999 };
 extern const int g_effect_visual_table[][2];
 
 extern void PostMonsterNotice(W8MonsterInfo* monster_info, void* notice);  /* 0x00590B40 */
-extern void Function50E700(void);
 // FUNCTION: WIZ8 0x005af2d0
 void Function5AF2D0(void)
 {
@@ -229,7 +230,6 @@ struct W8SpellQueueEntry {
 };
 
 /* 0x00450610 */
-extern void BeginLevelTransition(void);                                  /* 0x005611A0 */
 
 /* Return the casting character to the anchor they set earlier. Nothing happens
    unless the anchor was ever set. On the same level the party is moved there

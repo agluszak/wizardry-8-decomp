@@ -14,6 +14,7 @@
 #include "wiz8/utility.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/engine_code/Navigator.h"
 
 #include <wchar.h>
 
@@ -28,7 +29,6 @@ extern W8NpcState* Function50A440(unsigned int monster_list_index);  /* 0x0050A4
    exactly this much - the same split the monster list uses. */
 enum { W8_ENCOUNTER_GROUP_INDEX_BIAS = 10000 };
 
-extern void Function454C80(void);                            /* 0x00454C80 */
 
 /* A group of one is named in the singular; any other count uses the plural
    form, which is the second entry of each name set. */

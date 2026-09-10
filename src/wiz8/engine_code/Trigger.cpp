@@ -52,6 +52,10 @@
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/character_events.h"
+#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/engine_code/Spells.h"
 
 #include <windows.h>
 
@@ -71,8 +75,6 @@
 W8GrowableVector<W8TriggerEvent*> g_timed_events_006599b8;
 extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
-extern stLight* FindLightByName00445A10(
-    const char* name, const srRuntimeClass* relative_to);
 
 // GLOBAL: WIZ8 0x006599C8
 unsigned char g_trigger_action_active_006599c8;
@@ -86,8 +88,6 @@ W8GrowableVector<int> g_location_variable_values_00659990;
 
 // GLOBAL: WIZ8 0x00606994
 unsigned char g_flag_00606994 = 1;
-extern int OpenLockInteraction00587510(Trigger* trigger);
-extern int OpenTrapInteraction0058A470(Trigger* trigger);
 extern unsigned char FindEntityByName(
     const char* name,
     srVector3T<float>* position,
@@ -95,15 +95,11 @@ extern unsigned char FindEntityByName(
     srVector3T<float>* direction);
 extern void RequestLevelTransition005615F0(
     int location_id, int entrance, unsigned char show_message);
-extern void* SpawnSpellEffect004AD080(
-    const char* name, int animation, int value_1, int value_2);
 
 extern unsigned char Function521060(
     int item_id, int value_1, int value_2, int value_3, int value_4);
 extern void UpdateCameraView00450080(srCamera* camera, int mode);
 
-extern int ApplyItemEffectToRandomCharacter0052E5C0(
-    unsigned int item_id, int character_filter, int value_3, int value_4);
 
 // GLOBAL: WIZ8 0x0068506e
 unsigned char g_flag_0068506e;

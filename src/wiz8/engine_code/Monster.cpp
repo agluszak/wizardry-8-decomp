@@ -60,6 +60,9 @@ int g_value_659c14;
 #include "soundman.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/materials.h"
+#include "wiz8/engine_code/Spells.h"
+#include "wiz8/music_playlist.h"
+#include "wiz8/engine_code/3d.h"
 #include <windows.h>
 
 #include <string.h>
@@ -115,8 +118,6 @@ extern unsigned char g_force_encounter_culling; /* 0x00687500 */
 // GLOBAL
 unsigned char g_force_encounter_culling;
 extern W8NpcState* Function50A440(unsigned int monster_list_index);
-extern void Function48F650(
-    W8MonsterInfo* monster_info, unsigned char value_1, unsigned char value_2);
 extern float g_float_005ec128;
 extern const double g_monster_script_direction_step_005ed2b8;
 extern const double g_monster_facing_tolerance_005ec2b0;
@@ -159,10 +160,6 @@ W8CycleNameRow g_cycle_names[W8_MONSTER_CYCLE_COUNT] = {
     {"DIE", 3},            {"TURN", 4},            {"TALK_SPICE", 10},
     {"TALK", 4},           {"SPELL", 5},           {"SPECIAL", 7},
 };
-extern unsigned char HasLineOfSightToBounds0046FD70(
-    const srVector3T<float>* origin,
-    srVector3T<float>* minimum,
-    srVector3T<float>* maximum);
 
 extern void Function56C5E0(
     void* item_list, int value_1, int value_2, int value_3, int value_4);
@@ -4332,8 +4329,6 @@ int g_spell_effect_frame_0064c158 = 1;
 extern int g_spell_index_0069b7dc;
 // GLOBAL: WIZ8 0x0069b7dc
 int g_spell_index_0069b7dc;
-extern void* CreateSpellEffect004AD8A0(
-    const char* mls_name, int frame, W8Monster* parent, int value, int flags);
 extern int CalculateMonsterMissileAccuracy(
     W8MonsterInfo* monster_info, const W8MonsterAttack* attack,
     int attack_mode, int flags);

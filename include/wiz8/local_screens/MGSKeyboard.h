@@ -43,3 +43,7 @@ static_assert(sizeof(MGSKeyboard) == 0x24, "MGSKeyboard_size");
 extern MGSKeyboard* g_mgs_keyboard;
 
 void ResetMGSKeyboardBindings();
+
+void Function55D3C0(void);
+void Function592E60(void);
+

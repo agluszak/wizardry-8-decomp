@@ -22,6 +22,7 @@
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/CombatHostility.h"
+#include "wiz8/local_code/character_events.h"
 
 #include <stdlib.h>
 
@@ -263,7 +264,6 @@ enum { W8_STAMINA_TO_SHAKE_OFF_EXHAUSTION = 9 };
 
 extern void PostCharacterNotice(int party_slot, const wchar_t* notice, ...);
 /* 0x00590950 */
-extern unsigned char CharacterHasEffect(void* effect, int party_slot);   /* 0x0052DD90 */
 
 // FUNCTION: WIZ8 0x0052a710
 int GetCharacterRealmSpellPoints(const W8Character* character, int realm)
@@ -692,7 +692,6 @@ enum {
 
 /* 0x0052E690 */
 extern int g_effect_005ee598;
-extern void Function52F110(int party_slot);
 
 /* Tire one character. The load they are carrying scales the cost - eased or
    worsened by the two load modifiers - and the result is taken out of their

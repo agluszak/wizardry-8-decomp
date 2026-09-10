@@ -1,5 +1,7 @@
 #pragma once
 
+#include "surrender/srMath.h"
+
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
 
@@ -41,3 +43,11 @@ W8Quad* BuildWorldQuad004BE200(
     float positional_0c, float positional_10, float positional_14,
     float positional_18, float positional_1c, float positional_20,
     srScene* scene, int positional_28);
+
+float AngleFromPartyTo(const srVector3T<float>* from, const srVector3T<float>* to); /* 0x004BE420 */
+float GetElevationAngle004BE490(
+    const srVector3T<float>* source, const srVector3T<float>* target);
+float GetHeadingAngle004BE420(
+    const srVector3T<float>* source,
+    const srVector3T<float>* target);
+

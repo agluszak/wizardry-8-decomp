@@ -1,5 +1,7 @@
 #pragma once
 
+struct W8MonsterInfo;
+
 /* Engine Code\Navigator.cpp owns these declarations. */
 
 #include "surrender/srMath.h"
@@ -274,3 +276,9 @@ void Function4531A0(void);
 void NavigatorDefaultCallback00451EA0(W8Navigator* navigator);
 
 extern float g_navigator_vertical_phase_step_005ebcc8;
+
+void Function454C80(void);                            /* 0x00454C80 */
+unsigned char Function5323F0(W8MonsterInfo* monster_info, int a, int b, int c);
+void SeedCellProbe00457640(const srVector3T<float>* from, const srVector3T<float>* to);
+void SetMonsterTurnSpeed(float speed);                            /* 0x00453C70 */
+
