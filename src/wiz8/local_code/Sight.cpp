@@ -23,6 +23,7 @@
 #include "wiz8/npc_state.h"
 #include "wiz8/startup_runtime_state.h"
 #include "random.h"
+#include "wiz8/local_code/Strings.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/startup_world.h"
@@ -899,12 +900,7 @@ after_sight:
                                 || now - g_sight_fade_in_tick_00689b70 > 199)) {
                             g_sight_fade_in_tick_00689b70 = now;
                             Function58AC00(
-                                8,
-                                *reinterpret_cast<wchar_t**>(
-                                    reinterpret_cast<char*>(g_level_block)
-                                    + 0x774), /* reinterpret-ok: the runtime
-                                                 block stores the notice text */
-                                -1, -1, 0);
+                                8, gppStringList[0x774 / 4], -1, -1, 0);
                         }
                     }
                     monster_info->threat_28a = 1;
@@ -928,12 +924,7 @@ after_sight:
                     || now - g_sight_fade_out_tick_00689b74 > 199)) {
                 g_sight_fade_out_tick_00689b74 = now;
                 Function58AC00(
-                    8,
-                    *reinterpret_cast<wchar_t**>(
-                        reinterpret_cast<char*>(g_level_block)
-                        + 0x778), /* reinterpret-ok: the runtime block stores
-                                     the notice text */
-                    -1, -1, 0);
+                    8, gppStringList[0x778 / 4], -1, -1, 0);
             }
         }
         if (monster_info->value_28e == 0) {

@@ -364,10 +364,13 @@ int GetSaveGameLevel(const char* slot_name)
 
 /* Build the level-specific status path the save code falls back to when the
    current-game save has no matching level section. The regular levels use the
-   database row's own folder and level names; level 56 is the shared default
-   test level. As in the level-info builder itself, levels 47 through 55 fall
-   through the regular branch even though the folder table does not describe
-   them. */
+   database row's own folder and level names and level 56 is the shared default
+   test level. The binary is explicit here (0x00512E80): CMP ESI,0x39 branches
+   at level < 57, CMP ESI,0x38 handles 56, and every other level indexes the
+   table at 0x00604478 with stride 0x6B. That table has 47 entries, so levels
+   47-55 read the adjacent rdata, even though LevelBuildInfoByID treats those
+   ten slots as test levels. The recovered units disagree exactly as retail
+   does; no non-OOB branch exists at the call site. */
 // FUNCTION: WIZ8 0x00512e80
 void BuildLevelStatusPath(char* path, unsigned int level)
 {

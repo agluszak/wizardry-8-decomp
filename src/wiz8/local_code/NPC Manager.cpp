@@ -980,43 +980,26 @@ void UpdateNpcEvents0050D530(void)
 }
 
 /* Reset the NPC bindings of the first party slots at level entry: stamp the
-   sight clock mark, clear each bound NPC's release flag and the slot's own
-   flag, and run the per-slot companion reset. The index beyond the state
-   vector falls back to element zero, as the canonical bound does. */
+   sight clock mark, then for each occupied, living slot clear the bound NPC's
+   release flag and the slot's own flag and run the per-slot companion reset.
+   The lookup is GetNpcState's; the binary's own null test only zeroes the
+   result before the store still writes through it, so retail leaves that
+   invariant-violating path as a null write. */
 // FUNCTION: WIZ8 0x0050db50
 void ResetNpcBindingsForParty0050DB50(void)
 {
-    unsigned int character_offset = 0;
-    int party_slot = 0;
-
     g_status_685170.value_242a = g_status_685170.world_clock;
     g_status_685170.flag_242e = 1;
-    do {
-        W8PartySlotRow* row = g_status_685170.buffers.party_rows + party_slot;
-        W8Character* character = reinterpret_cast<W8Character*>( /* reinterpret-ok: serialized 0x1862 stride */
-            reinterpret_cast<char*>(g_status_685170.buffers.characters) /* reinterpret-ok: serialized stride */
-            + character_offset);
-        W8NpcState* npc = 0;
+    for (int party_slot = 0; party_slot < 2; ++party_slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+        W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
         if (row->occupied != 0 && character->hp_current != 0) {
-            if (g_npc_states != 0) {
-                W8NpcState** slot = g_npc_states->data;
-
-                if (row->animation_0fa < g_npc_states->count) {
-                    slot += row->animation_0fa;
-                }
-                npc = *slot;
-                if (npc != 0 && npc->unknown_c7 != 0) {
-                    npc = 0;
-                }
-            }
-            npc->flag_e8 = 0;
+            GetNpcState(row->animation_0fa)->flag_e8 = 0;
             row->flag_fe = 0;
             Function50E650(party_slot);
         }
-        character_offset += 0x1862;
-        ++party_slot;
-    } while (character_offset < 0x30c4);
+    }
 }
 
 /* Drop the pending-restore flag from every NPC bound to the loaded level whose

@@ -617,8 +617,7 @@ void Function56C520(void)
 unsigned char MainGameScreenEnter(void)
 {
     int display_mode;
-    int& saved_display_mode =
-        *reinterpret_cast<int*>(&g_status_685170.status_header_block_1904[0xb43]);
+    int difficulty = g_status_685170.difficulty;
 
     if (!g_level_block) {
         g_level_block = static_cast<W8LevelRuntimeBlock*>(malloc(sizeof(W8LevelRuntimeBlock)));
@@ -651,9 +650,9 @@ unsigned char MainGameScreenEnter(void)
     if (TakePendingSaveFlag()) {
         Function58AC00(0xc, gppStringList[0x1e08 / 4], -1, -1, 0);
     }
-    if (g_value_006850d5 != saved_display_mode) {
-        g_value_006850d5 = saved_display_mode;
-        switch (saved_display_mode) {
+    if (g_value_006850d5 != difficulty) {
+        g_value_006850d5 = difficulty;
+        switch (difficulty) {
         case 0:
             display_mode = 0x7f8;
             break;

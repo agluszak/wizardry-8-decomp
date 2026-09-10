@@ -330,23 +330,20 @@ def check_casts_command() -> None:
     cli.emit(validate_cast_markers(repository_root()))
 
 
-def check_tu_placement_command() -> None:
-    """Dormant until the provisional Video2 fragment is resolved."""
+def check_tu_placement_command(
+    live: Annotated[
+        bool,
+        typer.Option(
+            "--live", help="Use the live cross-build layout instead of assertion anchors."
+        ),
+    ] = False,
+) -> None:
+    """Fail when a recovered function sits in the wrong original translation unit."""
 
     from .. import command_support as cli
+    from ..placement import validate_source_placement
 
-    cli.emit(
-        {
-            "ok": True,
-            "gate": "translation-unit-placement",
-            "status": "disabled",
-            "reason": (
-                "the provisional Video2 fragment still holds proven functions whose "
-                "unmarked static helpers span the unresolved tail gap; "
-                "placement.py and its tests retain the check for later enablement"
-            ),
-        }
-    )
+    cli.emit(validate_source_placement(cli.settings(), live=live))
 
 
 def inventory_command() -> None:
