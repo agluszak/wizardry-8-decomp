@@ -22,6 +22,7 @@ just wiz8 lint
 just build
 just compare
 just run
+just run-original
 just debug
 just runtime-test
 just wiz8 verify
@@ -35,8 +36,8 @@ exact-body diagnostic. Run Python tests directly with `uv run pytest -q PATH`.
 
 `just run` directly executes the already-built `Wiz8Runtime.exe` from the extracted retail game
 directory with the original `/WINDOW` option. It does not build, stage, or debug the process.
-`just debug` opens an interactive GDB front end against the same windowed executable and owns the
-launched process so leaving the debugger cannot strand a full-screen game.
+`just run-original` launches retail with the same directory, CFG files, and arguments.
+`just debug` runs the recomp under native `winedbg`; `DEBUG_SCRIPT` supplies debugger commands.
 
 `just runtime-test` runs named main-menu scenarios in the optimized semantic-test executable.
 The real menu handlers execute on the UI thread; the host reruns the scenarios in reverse order and
@@ -44,17 +45,10 @@ requires identical normalized observations. Its same-process exception handler r
 state and stack candidates, which Python symbolizes against the runtime-test MAP. Failures are not
 rerun under GDB.
 
-For focused recovery, one reccmp process compares several function selectors or all `FUNCTION`
-markers in a source file. A mismatch includes reccmp's structured first divergence and a bounded
-instruction window; no second triage run is needed.
-
-```sh
-just compare 0x00406b70 0x00406ba0
-just compare --file src/wiz8/local_code/Combat.cpp
-just wiz8 vtable W8Widget
-just wiz8 datacmp
-just wiz8 addr 0x00406b70
-```
+Agent workflows live in the shared [matching-decomp](.agents/skills/matching-decomp/SKILL.md),
+[class-triage](.agents/skills/class-triage/SKILL.md), and
+[runtime-bringup](.agents/skills/runtime-bringup/SKILL.md) skills. The matching skill routes to native
+Ghidra, checkpoint reconciliation, comparison, types, and source-oracle references as needed.
 
 Generated reports and the CMake build directory (`build/decomp`) live under the gitignored `build/`
 directory. Extracted files, materialized variants, and Wine prefixes use `WIZ8_WORK_DIR`. Each existing
@@ -65,29 +59,10 @@ The distinction between configuration, observations, reviewed conclusions, gener
 exceptional proprietary-input snapshots is defined in
 [docs/evidence-policy.md](docs/evidence-policy.md).
 
-Ghidra owns operational analysis state: functions, symbols, signatures, structures, fields, vtables,
-comments, cross-references, and decompiler state. Use direct PyGhidra for exploratory reads and edits.
-The existing `wiz8decomp.ghidra.env.open_program` handles configuration, startup, seed restoration
-when needed, and the project lock, then yields a native `Program`. Perform related work in ordinary
-Python within that session; do not extend a custom command/query protocol to access native APIs.
-The [PyGhidra reference](.agents/skills/matching-decomp/references/pyghidra.md) contains inspection and
-transactional signature-edit examples. There is no required daemon or lifecycle choreography.
-
-`uv run wiz8 report context ADDRESS...` is an optional joined source/provenance view. `just recover ADDRESS...`
-is an optional source-aware candidate exporter. Neither is a prerequisite for investigation or
-editing. Keep useful recovery algorithms and compiler comparison separate from basic Ghidra access.
-Source-layout validation and rebuilt PDB import use their existing disposable derived projects;
-ordinary exploratory edits use transactions in the live project, not additional projects.
-
-Recovery tooling is agent-only. Select results before printing, use JSON when a consumer needs it,
-and write large code/listings to named disposable `build/` artifacts. No generator rewrites C++.
-Save accepted analysis edits once per coherent batch. `uv run wiz8 ghidra seed refresh wiz8` remains
-an intentional reviewed-checkpoint operation, not a per-edit ritual. See `AGENTS.md` and the
-`matching-decomp` skill for the recovery and verification rules.
-
-An address-marked C++ declaration is the authority for a recovered Wiz8 function's address, name,
-signature, and source ownership. Ghidra owns analysis-only functions that have no owned declaration;
-atomic `claims.csv` rows explain provenance without recreating the source model. Class relationships
+An address-marked C++ declaration owns a recovered Wiz8 function's source identity, signature, and
+placement. Ghidra owns live analysis for both recovered and analysis-only functions; disagreements
+are resolved from retail/source evidence at the canonical owners. Atomic `claims.csv` rows explain
+provenance without recreating the source model. Class relationships
 and virtual declarations live in C++ beside `// VTABLE` markers and `WIZ8_ASSERT_SIZE` gates. There
 is no tracked function, class, vtable, field, or signature catalogue. Full verification exports
 Ghidra state and uses it with the rebuilt PDB for source-layout checks.

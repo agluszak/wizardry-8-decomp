@@ -1,17 +1,16 @@
 ---
 name: class-triage
-description: Evaluate evidence for a new Wizardry 8 class boundary or a change to an existing hierarchy; not for implementing another method of an established class.
+description: Evaluate new Wizardry 8 class boundaries, inheritance/subobject changes, or whether lifecycle/vtable families are distinct authored classes; not ordinary method recovery.
 ---
 
 # Class triage
 
-Use this skill when proposing a new class boundary or revising an existing hierarchy. Do not rerun
-identity triage merely to implement another method of an established class.
+Use this skill for a proposed class boundary, inheritance/subobject change, or uncertain identity
+across lifecycle/vtable families. Do not rerun identity triage for ordinary methods of an established class.
 
 Inspect and edit native Ghidra objects through [direct PyGhidra](../matching-decomp/references/pyghidra.md).
-Search the actual data-type manager before declaring a type; missing fields in a wrapper report do
-not establish that the type is absent. Existing lifecycle and field-flow algorithms are optional
-helpers, not required command paths or a substitute for binary evidence.
+For field widths, prototypes, receiver normalization, or Clang consistency checks, read
+[type and layout evidence](../matching-decomp/references/type-and-layout-evidence.md) as needed.
 
 First test whether the canonical base or template explains the evidence. A distinct vtable,
 lifecycle body, deleting destructor, or registry family does not alone prove authored source.
@@ -25,4 +24,5 @@ form, or inherited virtual destructor required by the evidenced hierarchy.
 Read [template emission](references/template-emission.md) for `srClassSupport`, registry, clone, or
 deleting-destructor evidence. Read [inheritance evidence](references/inheritance-evidence.md) when
 receivers, subobject placement, or a hierarchy changes. Validate the affected lifecycle/vtable bundle
-when the model changes. Record unresolved identity concisely instead of inventing a wrapper.
+when the model changes, using `just compare ADDRESS...` and `just wiz8 vtable CLASS`.
+Record unresolved identity concisely; prefer an address-qualified name to unsupported semantics.

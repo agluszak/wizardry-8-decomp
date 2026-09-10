@@ -4,9 +4,9 @@ The CMake graph contains the three actual products:
 
 * `WIZ8` links the recovered objects, producing `Wiz8.exe` and `Wiz8.pdb` for PE, PDB, and reccmp
   integration.
-* `WIZ8_RUNTIME` is the runnable vertical-slice image. It adds the vendored SGP probe objects and
-  links with `/OPT:REF`, so only source-backed COMDAT functions reached by recovered Wizardry code
-  survive. `WIZ8` retains `/OPT:NOREF` and remains the whole-image comparison surface.
+* `WIZ8_RUNTIME` is the runnable vertical-slice image, linked with `/OPT:REF`.
+  All three products share the reconstructed `WIZ8_SGP` static archive from `src/sgp`.
+  `WIZ8` retains `/OPT:NOREF` for comparison; there is no separate SGP runtime override layer.
 * `WIZ8_RUNTIME_TEST` runs the semantic scenarios with the same optimized recovered objects. Its
   results are authoritative runtime evidence.
 
@@ -41,17 +41,9 @@ just debug
 and accepts a replacement script through `DEBUG_SCRIPT`. It uses no GDB proxy, MAP parsing, port
 allocation, or automatic subsystem-specific breakpoints.
 
-The runtime now reaches the main-menu state, but the recovered presentation remains visually
-incomplete. Continue that recovery in this order:
-
-1. Reproduce the missing intro or brown main-menu frame with `just run` on the host display and
-   capture the first incorrect visible frame; Xvfb screenshots are not evidence because this
-   DirectDraw path captures black output there.
-2. For an intro failure, trace `BeginVideoPresentation` and the Bink frame copy into the target
-   surface. For a main-menu failure, trace `DrawCatalogImage`, `EnsureCatalogFrameLoaded`, and the
-   surrounding render transaction.
-3. After correcting the first proven presentation defect, validate both the visible transition and
-   the ordinary close/`WM_DESTROY` path so the launcher exits without leaving Wine processes behind.
+For behavioral recovery and visual acceptance, use the
+[runtime-bringup skill](../../.agents/skills/runtime-bringup/SKILL.md). A semantic scenario result
+only establishes its observed behavior; it is not independent proof of visible presentation.
 
 Bare `just build` builds the `WIZ8` comparison image; `just build runtime` builds the runnable image.
 Pass an explicit target only for a library surface such as `just build SREXT_JPEGIMPORTER`.
@@ -67,7 +59,7 @@ saves, display, and audio policy. The native exception handler records the actua
 candidates in-process; Python symbolizes recovered-image candidates against `Wiz8RuntimeTest.map`.
 It never launches GDB or reruns a failed scenario. Off-screen Wine is configured to own its windows
 because Xvfb has no window manager.
-Mouse and keyboard events still traverse released SGP input and the recovered region callbacks.
+Mouse and keyboard events traverse reconstructed SGP input and the recovered region callbacks.
 Exiting the runtime-test harness terminates only its dedicated Wine prefix. The harness stays
 attached to the game and returns its status instead of guessing its lifetime from Wine's desktop
 helper.
@@ -108,9 +100,12 @@ detection records the original `Wiz8.exe`, while generated `reccmp-build.yml` po
 and PDB:
 
 ```sh
-just build WIZ8
-just compare WIZ8
+just compare 0x0044e010
 ```
+
+Selected comparison builds current inputs itself; `WIZ8` is not an address selector.
+Use the [comparison reference](../../.agents/skills/matching-decomp/references/comparison.md)
+when COFF contributions, folding, or relocation targets require a different modality.
 
 `src/wiz8/vc6_runtime.cpp` marks the twelve currently reviewed CRT/linker identities with
 `// LIBRARY: WIZ8 0x...`. These annotations let reccmp account for library-owned bodies without

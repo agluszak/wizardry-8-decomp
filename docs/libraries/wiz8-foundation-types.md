@@ -267,8 +267,11 @@ address marker for the surviving retail body.
 Callers spell the function that matches the operand type (`PLLength` on a `W8PList*`), never a cast
 that forces the retained address. While the comparison image links `/OPT:NOICF`, a call through
 `PLLength` is reported as a `call_target` mismatch against retail's folded `ILLength` call; that is
-the fold alias, not a source defect. Reccmp's relocation-masked object comparison is the authority
-for the body.
+consistent with the independently established fold above. An exact relocation-masked COFF comparison
+proves size/non-relocation byte equality, not the call target's identity or semantic equivalence.
+Use the [comparison reference](../../.agents/skills/matching-decomp/references/comparison.md) for the
+object command and relocation-target API; reconcile their observations with the source-type and
+folding evidence before classifying the mismatch.
 
 ## SurRender math templates
 

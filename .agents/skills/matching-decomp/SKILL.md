@@ -5,66 +5,80 @@ description: Recover Wizardry 8 C++ bodies and declarations against the pinned V
 
 # Matching decompilation
 
-Use existing source ownership and current evidence. Do not fetch the same evidence again unless
-it is missing, stale, or contradictory. Inferred signatures and generated bodies can be wrong;
-retail instructions and call sites decide.
+## Choose the primitive
 
-Use direct PyGhidra for the unanswered question: inspect native functions, parameter storage,
-callers, instructions/P-code, references, or data types in one open-program session. The
-[PyGhidra reference](references/pyghidra.md) has the bootstrap and edit recipe. Batch related work in
-ordinary Python; do not discover or extend the custom query command catalogue first.
+- Ordinary linked recovered function: `just compare ADDRESS...` (examples below).
+- COFF contributions, relocations, folding/aliases, data, vtables, or address mapping:
+  [comparison](references/comparison.md).
+- Native Ghidra reads/edits or divergent GZF checkpoints: [PyGhidra](references/pyghidra.md).
+- Type/prototype/layout disagreement or Clang diagnostics:
+  [type and layout evidence](references/type-and-layout-evidence.md).
+- Unexplained focused divergence: [mismatch patterns](references/mismatch-patterns.md).
+- Possible SGP, MSVC/runtime, zlib, IJG, or Info-ZIP source: [source oracles](references/source-oracles.md).
 
-When call sites or incoming storage contradict a prototype, correct its established parts in
-Ghidra with a native transaction, save the coherent edit, and regenerate affected caller/callee
-output. Keep uncertain types unknown and preserve already-established types. A rooted-flow query
-uses the current inferred prototype: it cannot discover an omitted parameter, and an empty access
-list does not prove an argument is unused. Do not repeatedly query a known-bad model or ask for
-separate permission to correct it within the recovery task.
+Read only the relevant reference. Prefer documented project/reccmp entry points. Do not inspect
+implementation code, `site-packages`, console-script metadata, or CLI parser internals merely to
+discover an already documented workflow. Inspect implementation only to debug the tool itself or
+resolve insufficient/contradictory documentation; fix stale invocation instructions at their owner.
 
-Use `wiz8 report context ADDRESS...` only when its joined source/provenance view helps. `just recover
-ADDRESS...` optionally generates source-aware candidate artifacts without editing source, building,
-or comparing. Inspect useful candidates, then integrate a connected batch with ordinary editing
-tools. Neither command is a prerequisite for direct analysis or editing. Uncertain placement blocks
-insertion, not investigation or candidate generation.
+## Recovery loop
 
-Recover ordinary C++ using canonical declarations. Make one coherent source-model change, then run
-focused comparison with `just compare ADDRESS...` or `just compare --changed`; comparison establishes
-incremental build freshness itself. Include unchanged callers when a header or ABI change affects
-them.
+1. Identify the requested entity and existing C++/header/TU owner. Search source and known oracles
+   before recovering anything new; reuse evidence unless missing, stale, or contradictory.
+2. Inspect only unanswered binary facts. Direct PyGhidra through
+   `wiz8decomp.ghidra.env.open_program(settings, "wiz8")` is the normal native inspection/edit path.
+3. Correct demonstrably wrong Ghidra facts with native transactions; save the coherent batch and
+   invalidate stale decompiler results. No separate permission round is needed within recovery.
+   Keep uncertain facts unknown; do not repeatedly query a known-bad prototype.
+4. Update one coherent source-model batch in its canonical owners, including affected declarations
+   and consumers. Another similar occurrence alone does not expand the task (`AGENTS.md`).
+5. Run focused linked comparison. Include callers affected by a shared declaration/layout/ABI change.
+6. If final linkage obscures the question, choose the modality in [comparison](references/comparison.md).
+   Stop when no evidence-backed source correction remains; report any unmet acceptance criterion.
 
-A comparison mismatch is not automatically a source defect. Interpret the result:
-
-- `exact` or `effective`: stop investigating the body unless the task requires more.
-- `mismatch`: inspect the first structural divergence. Test a concrete behavior, type, ABI, lifetime,
-  or source-ownership hypothesis only when supported by evidence, not just a different branch shape.
-- `inconclusive`: identify the missing evidence; do not assume a source defect.
-
-Equivalent compiler lowering is not a source correction. Preserve the ordinary source forms required
-by `AGENTS.md`; do not experiment with equivalent loop, scope, or return spellings to chase a score.
-When no evidence-backed correction is available, stop source-shape experiments and report the
-remaining mismatch. This does not establish equivalence or waive the task's acceptance criteria:
-classify a difference as codegen-only or relocation/classifier noise only with supporting evidence.
-
-A `mismatch` whose only difference is a `call_target` can be a linker artifact rather than a source
-defect. Retail's linker folded identical helper bodies (ICF), while the comparison image deliberately
-links `/OPT:NOICF`, so a source call by the correct name resolves to a different final address than
-retail's folded call. Before changing source to match one, check whether the two symbols are a known
-linker-equivalence class (for example `{PLLength, ILLength}`, retained at `0x005E2C70`) and verify the
-contribution with reccmp's relocation-masked object comparison:
+Optional source-aware conveniences, when their joined output helps:
 
 ```sh
-uv run reccmp-reccmp --target WIZ8 --object build/decomp/CMakeFiles/wiz8_recovered_objects.dir/src/wiz8/engine_code/Prop.cpp.obj \
-    --symbol '?UpdateWorldProps0044E010@@YAXPAUW8World@@@Z' --orig-address 0x0044E010 --size 133
+uv run wiz8 report context ADDRESS...
+just recover ADDRESS...
 ```
 
-If that reports `exact`/`relocation-masked-object`, the body, ABI, and argument handling already match
-and only the fold alias differs: keep the type-correct call. Never introduce a type-incorrect call,
-such as casting a `W8PList*` to `W8IList*`, to reproduce an ICF-folded address.
+`recover` writes candidate artifacts without editing source, building, or comparing. Neither command
+is a prerequisite. Uncertain placement blocks insertion, not investigation.
+If an incoming reviewed GZF diverges from the local checkpoint, use the
+[checkpoint merge procedure](references/pyghidra.md#divergent-gzf-checkpoints); never replace one side wholesale.
 
-Revert demonstrated regressions. Expand the comparison set only when shared layout, lifecycle,
-virtual dispatch, or inline visibility can affect other functions. Do not tune scratch registers or
-compiler scheduling. Validation and publication policy lives in `AGENTS.md`.
+## Compare the recovered function
 
-Read [mismatch patterns](references/mismatch-patterns.md) for an unexplained comparison divergence or
-[layout evidence](references/layout-evidence.md) when proving fields, widths, object size, or
-inheritance layout. Do not load either for an ordinary exact result.
+```sh
+just compare 0x0044e010
+just compare 0x0044e010 0x0044db60
+just compare --file src/wiz8/engine_code/Prop.cpp
+just compare --changed
+```
+
+This builds the comparison product itself; do not separately build first. It returns structured
+focused results, including the first reported divergence and available bounded instruction window.
+Use that result instead of a second homemade triage command.
+
+- `exact` / `effective`: stop investigating that body unless another task requirement remains.
+- `mismatch`: inspect the first meaningful divergence; formulate a concrete source/type/ABI/lifetime/
+  ownership hypothesis before editing. A percentage or changed CFG is not authored-source evidence.
+- `inconclusive` / `missing`: identify absent evidence, pairing, or unsupported analysis; do not assume
+  a source defect or claim equivalence.
+
+Do not tweak source spelling for scores. Revert demonstrated regressions; retain straightforward
+C++ when evidence supplies no correction, and report the unresolved result honestly.
+
+## Placement and output
+
+`FUNCTION` sits immediately above its declaration. `TEMPLATE` is immediately followed by a comment
+naming the emitted symbol and owns no body. `LIBRARY` is address-only. `SYNTHETIC` is immediately
+followed by its exact generated identity comment and owns no declaration/body; separate it from the
+next source entity or give that entity its own marker. An independently emitted ordinary destructor
+uses `FUNCTION`, a template emission uses `TEMPLATE`; absent a standalone body, use only the
+declaration/inline destructor required by the evidenced hierarchy. Keep `// GLOBAL` at canonical definitions.
+
+Batch related Ghidra reads in one session. Keep native objects while computing; filter before printing.
+Write large listings/decompilations to named `build/` artifacts and print the useful result/path.
+Do not repeatedly dump whole files or parse textual output when a structured API/result exists.

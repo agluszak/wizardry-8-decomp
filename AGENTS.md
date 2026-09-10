@@ -2,143 +2,110 @@
 
 This is a Jujutsu repository for evidence-driven matching decompilation.
 
-## Authority
+## Evidence and ownership
 
-- Ghidra owns live analysis state: functions, names, signatures, labels, types, fields, enums, vtables, references, comments, and decompiler state.
-- Retail instructions and call sites, plus pinned upstream source where available, outrank inferred Ghidra types, generated declarations, tool verdicts, and workflow descriptions. Treat this file and the skills as maintainable guidance, not evidence about the original program. Correct demonstrated errors at their owner.
-- Git owns recovered C++, declarations, translation-unit order, compiler settings, matching markers, and provenance claims. Generated `build/` projections are disposable.
-- Provenance records why an identity is accepted, its authority ceiling, aliases, confidence, and observations; it does not duplicate Ghidra's model.
-- Never commit binaries, extracted trees, live Ghidra projects, or build products. Only reviewed GZF checkpoints in `vendor/ghidra/exports/manifest.json` may be tracked.
-- Do not reverse engineer available source. Use pinned Windows/MSVC runtime, SGP, zlib, IJG, and Info-ZIP source/header oracles. SurRender remains recoverable.
-- Match oracle constants by their numeric values in the owning headers, not by enum names that
-  Ghidra happens to attach to equal-valued symbols. Before retaining a function from an oracle
-  translation unit, check whether that unit contains inline assembly. An assembly-containing unit
-  requires per-function code-generation comparison; structural similarity to nearby C is not
-  sufficient provenance.
-- SGP is the reconstructed source project in `src/sgp`, built once as `WIZ8_SGP` for every product. Search it before using an SGP interface and include its owning header. Reconstruct product C boundaries in their real owning headers; only genuinely unresolved original headers belong in `include/wiz8/sgp-compat`. Preserve SFI-SCLA, upstream notices, and dated modification notices.
-- Search before declaring anything. Extend the canonical owner; do not add duplicate externs, guessed aliases, raw vtable calls, wrappers, or parallel inventories.
-- Cross-translation-unit functions and globals have one canonical declaration in their owner's header; callers include it. Do not declare them locally in `.cpp` files. The only exception is an actual C, OS, or vendor interface for which no project or dependency header exists. This restriction does not prohibit externally linked definitions.
-- Repository-owned Wizardry and SurRender code is unconditional C++. Retain `extern "C"` only for proven C linkage; never add C fallback APIs.
+- Retail instructions/call sites and accepted original-source oracles outrank inferred Ghidra types,
+  generated output, comparison scores, and workflow documentation. Correct errors at their owner;
+  keep unresolved facts unknown.
+- Ghidra owns live analysis: signatures/parameter storage, symbols, references, types/fields, vtables,
+  comments, and decompiler state. Git/C++ owns recovered source, declarations, TU ownership/order,
+  matching annotations, compiler/build configuration, and provenance claims. Provenance explains
+  accepted identities and authority limits; do not duplicate either model into another database.
+  Generated `build/` projections are disposable.
+- Search source and accepted oracles before declaring or implementing. One entity has one canonical
+  owner and one evidence-backed type. Cross-TU functions/globals are declared in the owning header;
+  callers include it. No local `.cpp` externs, except actual C/OS/vendor interfaces without an
+  existing project or dependency header.
+- Type disagreement is a source-model defect, not a cast-site problem. Trace producers, consumers,
+  callers, callees, loads, and stores; correct the canonical declaration and Ghidra model. Do not use
+  casts, integer/pointer substitution, duplicate declarations, or wrapper types to conceal disagreement.
+- Do not invent wrappers, aliases, opaque replacement types, raw vtable calls, or parallel inventories.
+  Repository-owned Wizardry and SurRender code is unconditional C++; `extern "C"` requires proven
+  C linkage. Do not add C fallback APIs.
+- Never commit binaries, extracted trees, live Ghidra projects, or build products. Only reviewed GZF
+  checkpoints listed in `vendor/ghidra/exports/manifest.json` may be tracked. Preserve source licences
+  and required notices.
 
-## Recovery
+## Task skills
 
-Use `matching-decomp` for the operational recovery loop and comparison reasoning. Use `class-triage`
-only when proposing a new class boundary or changing an existing hierarchy, not merely to implement
-another method of an established class. Their targeted references own technical examples; this file
-owns repository policy.
+`.agents/skills` is the canonical shared tree; integrations consume it, never separate copies.
+Load the applicable skill and only the references needed for the question:
 
-Direct PyGhidra with native Ghidra objects is the default for exploratory analysis and edits, not an
-escape hatch. Use `wiz8decomp.ghidra.env.open_program` for the existing project bootstrap and lock;
-then use the native APIs directly. The [PyGhidra reference](.agents/skills/matching-decomp/references/pyghidra.md)
-shows startup, inspection, transactions, and saving. Do not add query/edit commands, dispatchers,
-schemas, or wrapper APIs for operations Ghidra already supports.
+- [matching-decomp](.agents/skills/matching-decomp/SKILL.md): source recovery, native Ghidra,
+  comparison, source oracles, and type investigation.
+- [class-triage](.agents/skills/class-triage/SKILL.md): new class boundaries, inheritance/subobjects,
+  or deciding whether lifecycle/vtable families are distinct authored classes; not ordinary methods.
+- [runtime-bringup](.agents/skills/runtime-bringup/SKILL.md): runtime behavior, UI/input, persistence,
+  loading, and startup.
 
-`wiz8 report context` and `just recover` remain optional source-aware conveniences, not prerequisites or
-mandatory access paths. Keep useful recovery algorithms and compiler comparison; do not expand the
-custom Ghidra access protocol. Correct evidence-backed signature/type errors during recovery without
-requesting a separate permission round. Preserve unresolved facts as unknown; storing a type is not
-proof of it. Retain valid observations when changing inspection tools.
+Recovery tooling is agent-only. Use existing primitives and native APIs; do not add query protocols,
+wrapper layers, report frameworks, inventories, or human/JSON modes. Filter before printing; put large
+listings in named `build/` files. Operational recipes belong in skills, not README duplicates.
 
-Recovery tooling is agent-only. Keep native objects while computing; print only the selected result
-and use JSON when a consumer needs it. Write large code/listings to named `build/` artifacts. Do not
-introduce human/JSON modes or serialize entire object graphs merely to inspect them in Python.
+## Source fidelity
 
-- Assume ordinary circa-2000 C++, VC6 ABI, and familiar container/lifecycle semantics unless evidence requires otherwise.
-- Never invent code absent from retail, and never omit, stub, or approximate code retail contains.
-- Do not invent wrapper types/APIs or speculative type boundaries to improve codegen. One object has one evidence-backed canonical type.
-- A new `reinterpret_cast` is a claim that the type system cannot express the storage: external ABI, raw serialized/pixel memory, tagged storage, deliberate address/bit reinterpretation, or an explicitly unresolved site. Declare it with a `reinterpret-ok: <reason>` comment on the same line; `just check` rejects unmarked additions. Prefer an evidence-backed typed replacement over a cast.
-- A distinct vtable, lifecycle body, address, or template emission does not alone prove authored source. Compare canonical bases/templates first. Record emitted instantiations with `TEMPLATE`; keep generic definitions in canonical headers.
-- Scalar and vector deleting destructors are compiler-generated MSVC ABI glue. Mark their addresses with `SYNTHETIC` and the exact generated identity comment, never with a source body, hidden flags parameter, manual `operator delete`, or destruct-and-maybe-free helper. Recover an independently emitted ordinary destructor with `FUNCTION`, or a template emission with `TEMPLATE`; when no standalone ordinary body exists, use only the declaration or inline destructor required by the evidenced hierarchy. Deleting wrappers do not prove authored destructor bodies or class boundaries.
-- Preserve proven translation-unit ownership and order in `src/wiz8/sources.cmake`. Keep address-qualified template emissions separate until ownership is proved.
+- Faithfulness is mandatory; exact byte identity is incremental. Recover plausible authored
+  circa-2000 C++ and VC6 ABI, not compiler lowering. Never invent, omit, stub, or approximate retail code.
+- Preserve counted `for` loops instead of reproducing guarded `do`/`while` lowering. Do not add
+  redundant counters, artificial scopes, duplicate cleanup, return temporaries, or rearranged
+  expressions merely to change registers, CFG, or score.
+- A vtable, lifecycle body, address, or template emission alone does not prove an authored class.
+  Compare canonical bases/templates first; generic definitions belong in canonical headers.
+- Scalar/vector deleting destructors are compiler-generated MSVC glue: marker-only `SYNTHETIC`
+  identities, never handwritten bodies, hidden flags parameters, or destruct-and-maybe-free helpers.
+- Preserve TU ownership/order in `src/wiz8/sources.cmake`; keep address-qualified template emissions
+  separate until ownership is proved. Recover placement before optimizer control: ordinary functions
+  stay unannotated; header bodies need cross-TU visibility evidence; inline controls need call-site
+  evidence plus improvement of the complete ABI bundle.
+- Legitimate `reinterpret_cast` sites express storage the type system cannot: external ABI, raw
+  serialized/pixel memory, tagged storage, deliberate address/bit reinterpretation, or an explicitly
+  unresolved site. New casts require a same-line `reinterpret-ok: <reason>` comment (`just check`
+  enforces this). A marker does not justify concealing known type disagreement.
 
-Faithfulness is absolute; byte identity is incremental. Recover plausible authored C++, not the
-compiler's lowered representation. Preserve conventional counted `for` loops; do not turn them into
-guarded `do`/`while` loops or add redundant countdown variables solely to match instructions. Do not
-introduce artificial scopes, duplicate cleanup, or reshuffle equivalent expressions for a better
-score. A different machine control-flow graph alone does not prove different source syntax.
-Retain straightforward source when no evidence-backed correction is available; report unresolved
-mismatches rather than declaring them harmless without evidence.
+## Scope and completion
 
-Marker rules enforced by `just check`: `FUNCTION` sits immediately above its declaration; `TEMPLATE` is followed immediately by a comment naming the emitted symbol and owns no body; `LIBRARY` is address-only.
-`SYNTHETIC` is followed immediately by its generated identity comment and owns no declaration or body; separate it from the next source entity or give that entity its own marker.
+Complete the requested coherent task. Do not turn focused recovery into a repository-wide cleanup
+merely because the pattern exists elsewhere. Expand only when a shared owner/ABI/layout requires it,
+the source model would otherwise become inconsistent, or the task explicitly requests an audit.
+Fix blockers at their existing owner with the smallest reliable change; keep exploratory scripts disposable.
 
-Recover source placement before optimizer control. Ordinary functions stay unannotated. Header/class bodies require cross-translation-unit visibility evidence. Inline-control annotations require call-site evidence and improvement of the complete ABI bundle.
-
-## Scope
-
-The deliverable is the requested recovery, behavior, or code change. Tooling, tests, documentation,
-and process changes support that work; they do not replace it. During recovery, do not introduce new
-commands, frameworks, schemas, inventories, generic abstractions, or policy gates unless an existing
-defect blocks the requested work and has no small reliable workaround. Fix a blocker at its existing
-owner. Keep exploratory scripts disposable unless they solve a recurring problem that warrants
-maintenance.
+Stop when the requested functions, ABI bundle, or behavior meet acceptance criteria. Exact/effective
+bodies need no independent rediscovery. If no evidence-backed correction remains, retain faithful
+source and report the unresolved mismatch or missing evidence; do not relabel uncertainty as success.
 
 ## Verification
 
-Validate a coherent change, not each textual edit. Use the smallest existing check that can detect
-the relevant failure:
+Use the smallest existing check capable of detecting the relevant failure. Validate coherent changes,
+not each textual edit. Reuse a successful result until a relevant input changes.
 
-- Prose-only documentation or skill changes: review the diff.
-- Python implementation: relevant existing tests via `uv run pytest -q PATH` and relevant lint/type checks.
-- Recovered function body with unchanged ABI: focused `just compare ADDRESS...`; it builds by default.
-- Class layout, inheritance, virtual, or lifecycle changes: focused affected ABI bundle, relevant
-  `wiz8 vtable` checks, and declaration/ABI checks.
-- Build system or shared validation machinery: broad checks appropriate to that machinery.
-- Repository-wide audit: `wiz8 verify` when that broad scope is deliberately requested or the change
-  affects shared validation machinery; it is not a publication prerequisite.
+- Normal recovered function: focused `just compare ADDRESS...` (builds itself).
+- Layout/vtable/lifecycle/ABI: affected comparison bundle plus relevant declaration/ABI and
+  `just wiz8 vtable CLASS` checks.
+- Behavior/runtime: relevant runtime scenario and the requested observable behavior.
+- Python/tooling: relevant existing tests (`uv run pytest -q PATH`) and lint/type checks; shared build
+  or validation machinery needs checks appropriate to its reach.
+- Prose/skill-only changes: inspect the diff.
 
-A completed check remains sufficient until a relevant source, dependency, configuration, toolchain,
-analysis input, incoming rebase change, or conflict resolution changes what it covered. Reuse results
-that cover the retained source and current inputs. A new change ID, description edit, bookmark move,
-or successful push does not require retesting.
+`just wiz8 verify` is deliberately broad, not a completion/publication ritual. Do not repeat unrelated
+baseline failures or rerun checks after descriptions, change IDs, bookmarks, or pushes alone.
 
-For a local recovery task, stop when the affected functions or ABI bundle meet the task's acceptance
-criteria. Exact/effective does not require an independent reconstruction of the same evidence.
-Investigate failures relevant to the change and report uncertainty when no sound baseline exists;
-do not reproduce unrelated baseline failures as a publication ritual. Deleting policy-only tests
-does not require a game build or a broad audit.
-
-Selected-function relocation-masked comparison is authoritative for byte identity, not authored source
-syntax; whole-image comparison is diagnostic.
-Preserve `/OPT:NOREF` comparison and `/OPT:REF` runtime modes. `just runtime-test` must not add test
-branches to matching bodies.
-
-## Tests
-
-Do not add tests by default.
-
-Add a test only when explicitly requested, or when reproducing a concrete observed correctness bug
-that existing checks do not detect. Use an independently justified expected result. A plausible
-hypothetical failure is not, by itself, a reason to add permanent test machinery.
-
-Do not add Python tests that inspect the recovered source.
-
-Do not add tests for exact source spelling, documentation wording, deleted filenames, current
-inventory counts, internal helper call order, or assertions over unchanged generated reports. Test
-fixtures may exercise live code; frozen outputs are not a substitute for exercising it.
-
-Do not introduce a framework, parser, report, baseline, command, or production abstraction merely
-to support a test.
-
-When removing obsolete code or policy, remove its tests and test-only helpers. Do not preserve the
-obsolete machinery to keep its tests green. Do not write tests asserting that the removed tests or
-files stay deleted.
+Do not add tests by default. Add them only when requested or for a concrete observed correctness bug
+existing checks miss, with independently justified expectations. Test behavior, not source spelling,
+documentation, inventory counts, generated snapshots, deleted files, or internal implementation details.
+Do not add Python tests inspecting recovered source. Remove obsolete tests/helpers with their machinery;
+do not create frameworks merely to support tests.
 
 ## Workspace and publication
 
-- Use Jujutsu in the provided checkout. Resume the current task change when appropriate. Never create
-  a worktree, workspace, clone, sibling, or baseline checkout unless explicitly requested. Preserve
-  unrelated work. Existing additional checkouts need unique absolute `WIZ8_WORK_DIR` values; never
-  share, copy, or hardlink a live Ghidra project.
-- Keep one mutable change per coherent task by default. Bookmarks are optional until publication.
-  Keep unfinished work off `main`. Only one agent may change repository state in a shared checkout;
-  other agents must not independently switch, rebase, or publish it.
-- Use `main@origin` as the upstream base. Fetch and rebase when upstream work is needed or immediately
-  before authorized direct integration, not repeatedly during implementation.
-- Use the assigned Bead when one exists. Create or update task records only when coordination or
-  durable findings require it. Do not block an explicit user task on tracker setup. Record
-  consequential discoveries and blockers, not command histories or routine failed experiments.
-- Publish once within the user's authorization. Move `main` only for completed authorized direct
-  integration. Never rewrite remote `main` or discard another contributor's changes. A successful
-  push completes publication; investigate an actual rejection instead of running routine post-push
-  proofs. The ordinary commands are in `docs/contributor-workflow.md`.
+- Use Jujutsu here; preserve unrelated work. Never create a worktree, workspace, clone, sibling, or
+  baseline checkout unless explicitly requested. Existing additional checkouts need unique absolute
+  `WIZ8_WORK_DIR` values; never share, copy, or hardlink a live Ghidra project.
+- Resume the task's mutable change; keep one per coherent task and unfinished work off `main`.
+  Bookmarks are optional until publication. Only one agent may switch, rebase, or publish a shared checkout.
+- Use `main@origin` as the upstream base; fetch/rebase when upstream work is needed or immediately
+  before authorized integration. Use an assigned Bead; update records only for coordination or durable
+  findings, never as a task prerequisite.
+- Publish once within authorization. Move `main` only for completed authorized direct integration;
+  never rewrite remote `main` or discard others' changes. Successful push completes publication;
+  investigate actual rejections without routine post-push proofs. Commands:
+  [contributor workflow](docs/contributor-workflow.md).
