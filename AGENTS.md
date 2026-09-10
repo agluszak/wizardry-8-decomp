@@ -47,6 +47,11 @@ listings in named `build/` files. Operational recipes belong in skills, not READ
 
 - Faithfulness is mandatory; exact byte identity is incremental. Recover plausible authored
   circa-2000 C++ and VC6 ABI, not compiler lowering. Never invent, omit, stub, or approximate retail code.
+- Establish behavior, then name it: an entity with understood behavior gets a descriptive,
+  evidence-backed name in the same change. `FunctionXXXXXX`, `FUN_...`, and `unknown_...` are
+  placeholders, not identities. Rename the definition, its declaration, every call site, and any
+  ownership/handoff record together; do not leave a body address-named after describing what it does.
+  Where the original spelling is unknown, use a behavior-descriptive name, not a made-up original one.
 - Preserve counted `for` loops instead of reproducing guarded `do`/`while` lowering. Do not add
   redundant counters, artificial scopes, duplicate cleanup, return temporaries, or rearranged
   expressions merely to change registers, CFG, or score.
