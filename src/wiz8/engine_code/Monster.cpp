@@ -335,10 +335,11 @@ unsigned char MonsterReadAllCycles004C0300(
     *monster = 0;
 
     if (handle == 0) {
+        W8GrCycle* loaded = 0;
         success = LoadGrCycle004A67E0(
-            context, monster_name,
-            reinterpret_cast<W8GrCycle**>(monster),
+            context, monster_name, &loaded,
             -1, load_value, "data\\monsters", 0);
+        *monster = static_cast<W8Monster*>(loaded);
         if ((*monster)->m_plsParticles != 0) {
             for (int index = 0;
                  index < (*monster)->m_plsParticles->GetCount();
@@ -566,11 +567,12 @@ unsigned char MonsterReadAllCycles004C0300(
                             sscanf(
                                 line, "%s %s %f",
                                 command, argument, &animation_scale);
+                            W8GrCycle* loaded = *monster;
                             success = LoadGrCycle004A67E0(
-                                context, argument,
-                                reinterpret_cast<W8GrCycle**>(monster),
+                                context, argument, &loaded,
                                 cycle, load_value,
                                 "data\\monsters", 0);
+                            *monster = static_cast<W8Monster*>(loaded);
                             if ((*monster)->m_plsParticles != 0) {
                                 for (int index = 0;
                                      index < (*monster)->m_plsParticles->GetCount();
@@ -5226,14 +5228,16 @@ unsigned char LoadMonsterCycle004C5910(
     int cycle,
     int value)
 {
+    W8GrCycle* loaded = *monster;
     unsigned char success = LoadGrCycle004A67E0(
         context,
         mon_name,
-        reinterpret_cast<W8GrCycle**>(monster),
+        &loaded,
         cycle,
         value,
         "data\\monsters",
         0);
+    *monster = static_cast<W8Monster*>(loaded);
 
     if ((*monster)->m_plsParticles != 0) {
         int count = (*monster)->m_plsParticles->GetCount();

@@ -13,6 +13,7 @@
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/Levels.h"
