@@ -28,6 +28,9 @@ extern BOOLEAN gfTrackMousePos;
 }
 
 void PositionMouseCursor(int x, int y, unsigned char reset_tick);
+/* 0x00428520: non-zero when the current cursor hotspot is inside the
+   inclusive rectangle (left, top, right, bottom). */
+unsigned char IsCursorInRectangle(int left, int top, int right, int bottom);
 unsigned char IsCursorInsideViewport(void);
 unsigned char GetCursorPositionInViewport(srVector3T<float>* position);
 void UpdateHeldItemCursor(void);

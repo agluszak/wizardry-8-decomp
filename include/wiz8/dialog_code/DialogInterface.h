@@ -5,6 +5,12 @@
 struct W8Character;
 
 extern "C" {
+/* ConfigureDialogFont writes these four; every dialog draw/text path reads
+   them. Declared here because this unit owns their definitions. */
+extern int g_dialog_font_64fde8;
+extern unsigned char g_dialog_font_enabled_69ca32;
+extern unsigned char g_dialog_font_foreground_64fdec;
+extern unsigned char g_dialog_font_background_64fded;
 void ConfigureDialogFont(
     int font,
     unsigned char enabled,

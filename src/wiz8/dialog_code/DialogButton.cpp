@@ -148,7 +148,7 @@ W8DialogButton::W8DialogButton()
     unknown_03a = 0;
     unknown_03b = 0;
     unknown_03c = 0;
-    unknown_040 = 0;
+    m_owner_040 = 0;
     unknown_004 = -1;
     unknown_008 = -1;
     unknown_00c = -1;
