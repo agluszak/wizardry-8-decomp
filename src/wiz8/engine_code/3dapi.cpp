@@ -8,7 +8,6 @@
 #include <cstdio>
 #include <cstring>
 
-#include "wiz8/3d_code/IList.h"
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/engine_code/Item.h"
@@ -400,7 +399,7 @@ void UpdateWorld0044F4E0(W8World* world)
 
     W8PList* nodes = &world->m_list_09c;
     int count = static_cast<short>(
-        ILLength(reinterpret_cast<W8IList*>(nodes)));
+        PLLength(nodes));
     for (int index = 0; index < count; ++index) {
         srNode* node = static_cast<srNode*>(PLGet(nodes, index));
         node->setFlag(srNode::FLAG_POSITIONAL_0);
@@ -456,7 +455,7 @@ void DestroyWorldCollections(W8World* world)
     }
     if (g_world_cleanup_flag_00659757 != 0) RenderFrame();
     if (world->plsProps != 0) {
-        while (ILLength(reinterpret_cast<W8IList*>(world->plsProps)) != 0) {
+        while (PLLength(world->plsProps) != 0) {
             W8Prop* object = static_cast<W8Prop*>(
                 PLGet(world->plsProps, 0));
             PLRemoveAt(world->plsProps, 0);

@@ -22,7 +22,7 @@ void Function516E20(W8WorldItem* item)
             "C:\\Projects\\Wizardry 8\\Local Code\\search.cpp",
             0x125, 0);
     }
-    searchable->value_00 = reinterpret_cast<int>(item);
+    searchable->value_00 = item;
     g_searchables_00689fa8.Add(searchable);
 }
 

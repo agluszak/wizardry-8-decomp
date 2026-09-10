@@ -103,7 +103,7 @@ public:
     bool IsSetting6FTwo();
     void ToggleSetting6E();
     int GetValue18();
-    int GetGDPropValue24();
+    Trigger* GetGDPropValue24();
     void GetCenterPosition(srVector3T<float>* position);
     void GetBounds0044DD60(
         srVector3T<float>* minimum, srVector3T<float>* maximum);

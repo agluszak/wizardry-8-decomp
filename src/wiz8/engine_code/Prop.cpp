@@ -7,7 +7,6 @@
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/engine_code/World.h"
-#include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
 
 #include <string.h>
@@ -197,7 +196,7 @@ void UpdateWorldProps0044E010(W8World* world)
     if (world == 0 || world->plsProps == 0) {
         srAssertFail("pWorld && pWorld->plsProps", "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp", 0x969, 0);
     }
-    count = ILLength(reinterpret_cast<W8IList*>(world->plsProps));
+    count = PLLength(world->plsProps);
     for (index = 0; index < static_cast<int>(count); ++index) {
         W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
         Trigger* trigger;
@@ -236,8 +235,7 @@ W8Prop* FindPropByName(W8World* world, const char* name)
     int index;
 
     if (world != 0 && name != 0) {
-        unsigned int count = ILLength(
-            reinterpret_cast<W8IList*>(world->plsProps));
+        unsigned int count = PLLength(world->plsProps);
 
         for (index = 0; index < (int)count; ++index) {
             W8Prop* prop = static_cast<W8Prop*>(
@@ -299,10 +297,10 @@ int W8Prop::GetValue18()
 /* One value out of the owned GDProp, but only once the flag that says it is
    there is up. */
 // FUNCTION: WIZ8 0x0044e0a0
-int W8Prop::GetGDPropValue24()
+Trigger* W8Prop::GetGDPropValue24()
 {
     if ((this->flags_1c & 0x80) != 0 && this->m_gd_prop != 0) {
-        return *(int*)((char*)this->m_gd_prop + 0x24);
+        return this->m_gd_prop->m_owner_24;
     }
     return 0;
 }

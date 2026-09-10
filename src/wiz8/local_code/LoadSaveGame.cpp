@@ -1155,19 +1155,20 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
 
         if (status == &g_status_685170) {
             W8ItemInstance* item = 0;
-            signed char origin = *reinterpret_cast<signed char*>(row + 0xcd);
-            short item_slot = *reinterpret_cast<short*>(row + 0xce);
-            if (row[0] != 0 && *reinterpret_cast<int*>(row + 1) == 8 &&
+            signed char origin =
+                static_cast<signed char>(party_row->item_origin);
+            short item_slot = static_cast<short>(party_row->item_slot);
+            if (party_row->occupied != 0 && party_row->pending_action == 8 &&
                 origin != -1 && item_slot != -1) {
                 item = FindCharacterItemAt(
                     slot, static_cast<unsigned char>(origin),
                     static_cast<unsigned short>(item_slot));
             }
-            *reinterpret_cast<W8ItemInstance**>(row + 0x19) = item;
-            *reinterpret_cast<void**>(row + 0x49) = 0;
-            *reinterpret_cast<void**>(row + 0x9d) = 0;
-            *reinterpret_cast<void**>(row + 0xc5) = 0;
-            *reinterpret_cast<void**>(row + 0xed) = 0;
+            party_row->pending_action_detail_015.item_use.item = item;
+            party_row->action_detail_045.item_use.item = 0;
+            party_row->spell_target.pPCItem = 0;
+            party_row->item_target.pPCItem = 0;
+            party_row->target_context_5.pPCItem = 0;
         }
     }
     RebuildPartyStatus00555FA0(&status->formation);

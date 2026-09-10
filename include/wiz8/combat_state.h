@@ -16,9 +16,17 @@ typedef struct W8PartySlotRow {
     unsigned char occupied;               /* 0x00: gStatus.XChar[slot].fOccupied */
     int pending_action;
     int attack_mode[4];
-    unsigned char unknown_015[8];
+    /* 0x15: the pending action's own two-word block, the same shape a chosen
+       action carries. GetSlotChosenAction returns it for the out-of-combat
+       context; its item member is restored from the saved item reference. */
+    W8ActionDetailBlock pending_action_detail_015;
     W8CombatSlot target_out_of_combat;
-    unsigned char unknown_03d[0x10];
+    /* 0x3d: the action chosen for the in-combat context, its detail word, and
+       the action's own two-word block. A use-item action holds the aimed item
+       in the block's item member. */
+    int action_03d;
+    int action_detail_041;
+    W8ActionDetailBlock action_detail_045;
     W8CombatSlot target_in_combat;
     int action_kind;
     int action_detail;
@@ -74,7 +82,9 @@ typedef struct W8CombatCharacterRow {
     unsigned char unknown_4d[0x37];
     int current_hand;                     /* 0x84: indexes the slot row's attack modes */
     int current_equip_slot;               /* 0x88: indexes the character's equipment */
-    unsigned char unknown_8c[0x48];
+    unsigned char unknown_8c[0x0d];
+    unsigned char flag_099;               /* 0x99: toggled when an attack action is chosen */
+    unsigned char unknown_9a[0x3a];
 } W8CombatCharacterRow;                  /* 0xd4 */
 
 /* The block the pointer at 0x006836A8 addresses: the engine's combat state.

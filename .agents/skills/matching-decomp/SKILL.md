@@ -45,6 +45,22 @@ When no evidence-backed correction is available, stop source-shape experiments a
 remaining mismatch. This does not establish equivalence or waive the task's acceptance criteria:
 classify a difference as codegen-only or relocation/classifier noise only with supporting evidence.
 
+A `mismatch` whose only difference is a `call_target` can be a linker artifact rather than a source
+defect. Retail's linker folded identical helper bodies (ICF), while the comparison image deliberately
+links `/OPT:NOICF`, so a source call by the correct name resolves to a different final address than
+retail's folded call. Before changing source to match one, check whether the two symbols are a known
+linker-equivalence class (for example `{PLLength, ILLength}`, retained at `0x005E2C70`) and verify the
+contribution with reccmp's relocation-masked object comparison:
+
+```sh
+uv run reccmp-reccmp --target WIZ8 --object build/decomp/CMakeFiles/wiz8_recovered_objects.dir/src/wiz8/engine_code/Prop.cpp.obj \
+    --symbol '?UpdateWorldProps0044E010@@YAXPAUW8World@@@Z' --orig-address 0x0044E010 --size 133
+```
+
+If that reports `exact`/`relocation-masked-object`, the body, ABI, and argument handling already match
+and only the fold alias differs: keep the type-correct call. Never introduce a type-incorrect call,
+such as casting a `W8PList*` to `W8IList*`, to reproduce an ICF-folded address.
+
 Revert demonstrated regressions. Expand the comparison set only when shared layout, lifecycle,
 virtual dispatch, or inline visibility can affect other functions. Do not tune scratch registers or
 compiler scheduling. Validation and publication policy lives in `AGENTS.md`.

@@ -10,7 +10,7 @@ struct W8WorldItem;
 struct W8Searchable {
     W8Searchable() : value_00(0), value_04(0), object_08(0) {}
 
-    int value_00;
+    W8WorldItem* value_00;
     int value_04;
     void* object_08;
 };

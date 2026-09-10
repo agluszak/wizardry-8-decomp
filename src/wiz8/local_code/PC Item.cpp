@@ -2071,33 +2071,32 @@ void Function520D10(
     }
     Function50E5C0(party_slot);
 
-    unsigned char* state =
-        reinterpret_cast<unsigned char*>(&g_party_slot_rows[party_slot]);
-    if (*reinterpret_cast<int*>(state + 0x3d) == 8 &&
-        *reinterpret_cast<W8ItemInstance**>(state + 0x49) == item) {
+    W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+    if (row->action_03d == 8 &&
+        row->action_detail_045.item_use.item == item) {
         DropCharacterFromRound(party_slot);
     }
 
     if (primary_right || primary_left) {
-        int hand_state = *reinterpret_cast<int*>(state + 0x6d);
+        int hand_state = row->action_kind;
         if (hand_state == 1) {
             if (!Function5458A0(party_slot)) {
-                *reinterpret_cast<int*>(state + 0x6d) = 0;
-                if (*reinterpret_cast<int*>(state + 0x3d) == 1) {
-                    *reinterpret_cast<int*>(state + 0x3d) = 0;
+                row->action_kind = 0;
+                if (row->action_03d == 1) {
+                    row->action_03d = 0;
                 }
             }
         }
-        else if (hand_state == 0 && state[0x104] &&
+        else if (hand_state == 0 && row->action_is_kind_one &&
                  Function5458A0(party_slot)) {
-            *reinterpret_cast<int*>(state + 0x6d) = 1;
-            if (*reinterpret_cast<int*>(state + 0x3d) == 0) {
-                *reinterpret_cast<int*>(state + 0x3d) = 1;
+            row->action_kind = 1;
+            if (row->action_03d == 0) {
+                row->action_03d = 1;
             }
         }
 
         if (gXStatus.fCombatMode) {
-            int action = *reinterpret_cast<int*>(state + 0x3d);
+            int action = row->action_03d;
             if (action == 0 || action == 1) {
                 if (!Function4E79A0(party_slot, 1, 1, 0)) {
                     AimByKind(party_slot, 0, 1);
@@ -2106,8 +2105,7 @@ void Function520D10(
                     Function536570(party_slot, 1, 0);
                 }
             }
-            reinterpret_cast<unsigned char*>(g_combat_character_rows)
-                [party_slot * 0xd4 + 0x99] ^= 1;
+            g_combat_character_rows[party_slot].flag_099 ^= 1;
             if (party_slot ==
                 static_cast<unsigned int>(
                     g_status_685170.selected_character)) {

@@ -696,25 +696,23 @@ unsigned char W8PathingService::Load00458CE0(int handle)
 void W8PathingService::LinkSurfaces00460020()
 {
     unsigned int index = 1;
-    int offset = 0x28;
     int point[2];
-    unsigned char* surface;
+    W8PathSurface* surface;
     int converted;
 
     if (m_ulNumSurfaces <= index) {
         return;
     }
     do {
-        surface = reinterpret_cast<unsigned char*>(m_pSurfaces_048) + offset;
-        if ((*surface & 0x40) != 0) {
-            converted = (int)((*reinterpret_cast<float*>(surface + 0xc) - level_bounds[2]) /
-                              grid_scale_01c);
-            point[0] = (int)((*reinterpret_cast<float*>(surface + 4) - level_bounds[0]) /
-                             grid_scale_01c);
+        surface = &m_pSurfaces_048[index];
+        if ((surface->flags_00 & 0x40) != 0) {
+            converted =
+                (int)((surface->position_04.z - level_bounds[2]) / grid_scale_01c);
+            point[0] =
+                (int)((surface->position_04.x - level_bounds[0]) / grid_scale_01c);
             point[1] = converted;
             RegisterPathSurface004B7730(index, point);
         }
-        offset += 0x28;
         ++index;
     } while (index < m_ulNumSurfaces);
 }
@@ -727,38 +725,33 @@ void W8PathingService::LinkSurfaces00460020()
 void W8PathingService::LinkEdges004600B0()
 {
     unsigned int index = 1;
-    int offset = 0xe;
     int first[2];
     int second[2];
-    unsigned char* edge;
-    unsigned char* surface;
-    unsigned int surface_index;
+    W8PathEdge* edge;
+    W8PathSurface* surface;
     int converted;
 
     if (m_ulNumEdges <= index) {
         return;
     }
     do {
-        edge = reinterpret_cast<unsigned char*>(m_pEdges_04c) + offset;
-        if ((*reinterpret_cast<unsigned int*>(edge) & 0x20000000) != 0) {
-            surface_index = *reinterpret_cast<unsigned short*>(edge + 4);
-            surface = reinterpret_cast<unsigned char*>(m_pSurfaces_048) + surface_index * 0x28;
-            converted = (int)((*reinterpret_cast<float*>(surface + 0xc) - level_bounds[2]) /
-                              grid_scale_01c);
-            first[0] = (int)((*reinterpret_cast<float*>(surface + 4) - level_bounds[0]) /
-                             grid_scale_01c);
+        edge = &m_pEdges_04c[index];
+        if ((edge->flags_00 & 0x20000000) != 0) {
+            surface = &m_pSurfaces_048[edge->source_04];
+            converted =
+                (int)((surface->position_04.z - level_bounds[2]) / grid_scale_01c);
+            first[0] =
+                (int)((surface->position_04.x - level_bounds[0]) / grid_scale_01c);
             first[1] = converted;
 
-            surface_index = *reinterpret_cast<unsigned short*>(edge + 6);
-            surface = reinterpret_cast<unsigned char*>(m_pSurfaces_048) + surface_index * 0x28;
-            converted = (int)((*reinterpret_cast<float*>(surface + 0xc) - level_bounds[2]) /
-                              grid_scale_01c);
-            second[0] = (int)((*reinterpret_cast<float*>(surface + 4) - level_bounds[0]) /
-                              grid_scale_01c);
+            surface = &m_pSurfaces_048[edge->destination_06];
+            converted =
+                (int)((surface->position_04.z - level_bounds[2]) / grid_scale_01c);
+            second[0] =
+                (int)((surface->position_04.x - level_bounds[0]) / grid_scale_01c);
             second[1] = converted;
             RegisterPathVertex004B7830(index, first, second);
         }
-        offset += 0xe;
         ++index;
     } while (index < m_ulNumEdges);
 }
@@ -4223,8 +4216,7 @@ void W8PathingService::ActivateMovementTrigger0045B880(
     Trigger* selected = 0;
     if (count == 1) {
         W8Prop* prop = *g_world->collidable_props->GetAt(candidates[0]);
-        Trigger* trigger =
-            reinterpret_cast<Trigger*>(prop->GetGDPropValue24());
+        Trigger* trigger = prop->GetGDPropValue24();
         if (prop->GetSetting6C() == 0 || trigger == 0 ||
             (trigger->flags_0a0 & 0x100) == 0) {
             return;
@@ -4244,8 +4236,7 @@ void W8PathingService::ActivateMovementTrigger0045B880(
         for (int index = 0; index < count; ++index) {
             W8Prop* prop =
                 *g_world->collidable_props->GetAt(candidates[index]);
-            Trigger* trigger =
-                reinterpret_cast<Trigger*>(prop->GetGDPropValue24());
+            Trigger* trigger = prop->GetGDPropValue24();
             if (prop->GetSetting6C() != 0 && trigger != 0 &&
                 (trigger->flags_0a0 & 0x100) != 0) {
                 srVector3T<float> center;
@@ -4283,7 +4274,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(
     const srVector3T<float>* destination)
 {
     W8World* world = GetWorld();
-    srNode* node = reinterpret_cast<srNode*>(m_owned_054);
+    srNode* node = m_owned_054;
 
     if (flag_1c8 != 0) {
         srVector3T<float> adjusted = *source;
@@ -4294,13 +4285,13 @@ void W8PathingService::UpdatePathVisualization0045BC40(
         if (CollectPathVisualization0045D880(&adjusted) != 0) {
             if (m_owned_054 != 0) {
                 BuildPathVisualization0045BE30();
-                reinterpret_cast<srNode*>(m_owned_054)->clearFlag(
+                m_owned_054->clearFlag(
                     srNode::FLAG_POSITIONAL_0);
                 return;
             }
 
             m_owned_054 = BuildPathVisualization0045BE30();
-            node = reinterpret_cast<srNode*>(m_owned_054);
+            node = m_owned_054;
             if (node != 0) {
                 node->setParent(world->dynamic_scene, 1);
                 node->clearFlag(srNode::FLAG_POSITIONAL_0);
@@ -4310,7 +4301,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(
             return;
         }
 
-        node = reinterpret_cast<srNode*>(m_owned_054);
+        node = m_owned_054;
         if (node != 0) {
             node->setFlag(srNode::FLAG_POSITIONAL_0);
             node->setFlag(srNode::FLAG_POSITIONAL_1);
@@ -4320,7 +4311,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(
 
     if (flag_1c9 == 0 && flag_1cb == 0) {
         DrawPathPosition0045C9A0(*source, 0);
-        node = reinterpret_cast<srNode*>(m_owned_054);
+        node = m_owned_054;
         if (node != 0) {
             node->setFlag(srNode::FLAG_POSITIONAL_0);
             node->setFlag(srNode::FLAG_POSITIONAL_1);
@@ -4331,7 +4322,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(
     if (flag_1cb != 0) {
         if (m_owned_054 == 0) {
             EnsurePathVisualization0045D530();
-            node = reinterpret_cast<srNode*>(m_owned_054);
+            node = m_owned_054;
             node->setParent(world->dynamic_scene, 1);
             node->setFlag(srNode::FLAG_POSITIONAL_1);
             if (m_owned_054 == 0) {
@@ -4345,7 +4336,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(
         DrawPathPosition0045C9A0(adjusted, 1);
     }
 
-    reinterpret_cast<srNode*>(m_owned_054)->clearFlag(
+    m_owned_054->clearFlag(
         srNode::FLAG_POSITIONAL_0);
 }
 

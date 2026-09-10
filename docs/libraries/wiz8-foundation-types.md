@@ -264,6 +264,12 @@ placement: with `IList.cpp` linked first, ICF keeps the count getter in the ILis
 both public names to it. The source therefore retains both typed functions; only `ILLength` owns the
 address marker for the surviving retail body.
 
+Callers spell the function that matches the operand type (`PLLength` on a `W8PList*`), never a cast
+that forces the retained address. While the comparison image links `/OPT:NOICF`, a call through
+`PLLength` is reported as a `call_target` mismatch against retail's folded `ILLength` call; that is
+the fold alias, not a source defect. Reccmp's relocation-masked object comparison is the authority
+for the body.
+
 ## SurRender math templates
 
 The vector and matrix types passed across the SR.DLL boundary are SurRender types, not Wizardry

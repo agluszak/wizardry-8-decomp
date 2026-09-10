@@ -39,11 +39,11 @@ public:
     virtual void OnNumericInputChanged(int value) override;
 
 private:
-    int m_fields_54[6];
-    int m_field_6c;
-    int m_field_70;
-    int m_field_74;
-    int m_field_78;
+    W8DialogButton* m_fields_54[6];
+    W8DialogButton* m_field_6c;
+    W8DialogButton* m_field_70;
+    W8DialogButton* m_field_74;
+    void* m_field_78;
     int m_field_7c;
     int m_field_80;
     int m_field_84;

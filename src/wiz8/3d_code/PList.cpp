@@ -270,7 +270,13 @@ done:
 }
 
 /* The retail linker folds this ordinary PList.cpp function with ILLength. The
-   retained body and address marker belong to the IList.cpp contribution. */
+   retained body and address marker belong to the IList.cpp contribution.
+   {PLLength, ILLength} is therefore one linker-equivalence class: callers may
+   spell either name, and the two differ only once /OPT:NOICF gives each body
+   its own address. The linked comparison reports that alias difference as a
+   call-target mismatch; reccmp's relocation-masked object comparison is the
+   authority for the body. Never cast a W8PList* to W8IList* to force a call to
+   the retained address. */
 unsigned int PLLength(W8PList* ppl)
 {
     if (!ppl) {

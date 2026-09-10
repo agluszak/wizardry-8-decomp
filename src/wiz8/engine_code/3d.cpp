@@ -1,5 +1,4 @@
 #include "wiz8/engine_code/3d.h"
-#include "wiz8/3d_code/IList.h"
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Prop.h"
@@ -53,8 +52,7 @@ void DetachWorldItemMeshes0046DE40(W8World* world)
     if (world->plsItems == 0) {
         srAssertFail("pWorld->plsItems", THREE_D_CPP, 0x136, 0);
     }
-    unsigned int count =
-        ILLength(reinterpret_cast<W8IList*>(world->plsItems));
+    unsigned int count = PLLength(world->plsItems);
     int index = 0;
     if (0 < static_cast<int>(count)) {
         do {
@@ -77,7 +75,7 @@ void DestroyWorldLights0046E4A0(W8World* world)
 {
     W8PList* lights = &world->m_lights_0a8;
 
-    while (ILLength(reinterpret_cast<W8IList*>(lights)) != 0) {
+    while (PLLength(lights) != 0) {
         stLight* light = static_cast<stLight*>(PLGet(lights, 0));
         if (world == 0) {
             srAssertFail("pWorld", THREE_D_CPP, 0x278, 0);
@@ -285,7 +283,7 @@ void WorldUpdateProps(W8World* world)
             0x158,
             0);
     }
-    count = (int)ILLength((W8IList*)world->plsProps);
+    count = (int)PLLength(world->plsProps);
     for (index = 0; index < count; index++) {
         prop = (W8Prop*)PLGet(world->plsProps, index);
         if (prop) {
@@ -342,7 +340,7 @@ void WorldRemoveFromList04(W8World* unused, void* entry)
 // FUNCTION: WIZ8 0x0046e600
 void WorldGetPropCount(void)
 {
-    ILLength((W8IList*)g_world->plsProps);
+    PLLength(g_world->plsProps);
 }
 
 // FUNCTION: WIZ8 0x0046e620
