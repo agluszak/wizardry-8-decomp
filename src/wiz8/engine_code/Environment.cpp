@@ -883,9 +883,8 @@ void Function482410(void)
         }
         Function483BA0(g_world, g_world->environment_intensity_024, &colour);
         {
-            const int* direction = reinterpret_cast<const int*>(
-                &g_environment_colours_65ad98[phase]); /* reinterpret-ok: the
-                    light directions are published as raw words */
+            const int* direction = reinterpret_cast<const int*>( /* reinterpret-ok: published as raw words */
+                &g_environment_colours_65ad98[phase]);
 
             g_light_direction_0065ad78 = direction[0];
             g_light_direction_0065ad7c = direction[1];
