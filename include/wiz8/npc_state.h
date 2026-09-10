@@ -66,7 +66,9 @@ typedef struct W8NpcState {
     /* 0x0c7: set when the NPC binding is released while its record flag at
        0x054 is set, and tested before handing the binding back out. */
     unsigned char unknown_c7;
-    unsigned char unknown_c8[0x21];
+    unsigned char unknown_c8[0x20];
+    /* 0x0e8: cleared by the level-entry NPC-binding reset. */
+    unsigned char flag_e8;
     /* 0x0e9 and 0x114: two flags raised together when the NPC is marked. */
     unsigned char marked_e9;
     /* 0x0ea: this NPC is a candidate for the scripted event pass. */
@@ -97,7 +99,10 @@ void CreateNpcRuntimeNode(int npc_id);
 int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity);
 /* The NPC-side consequence pass the sight code runs when a marked NPC's
    binding is released. */
-void Function50CF70(W8NpcState* npc, int mode);W8NpcState* GetNpcState(int index);
+void Function50CF70(W8NpcState* npc, int mode);
+/* 0x0050E650: the per-party-slot companion reset the binding reset runs. */
+void Function50E650(int party_slot);
+void ResetNpcBindingsForParty0050DB50(void);W8NpcState* GetNpcState(int index);
 W8NpcState* GetNpcStateByKind(int kind);
 unsigned char Function50B8F0(unsigned int kind);
 unsigned char GetNpcDispositionBand(W8NpcState* npc);

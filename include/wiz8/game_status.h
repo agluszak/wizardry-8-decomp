@@ -87,7 +87,9 @@ struct W8GlobalStatus {
     unsigned char iron_man;
     /* 0x242a: world-clock stamp the 0x2497 event compares against. */
     int value_242a;
-    unsigned char unknown_242e[2];
+    /* 0x242e: the mark the NPC-binding reset stamps next to the clock. */
+    unsigned char flag_242e;
+    unsigned char unknown_242f;
     /* 0x2430: one-shot gate for the NPC event pass. */
     unsigned char flag_2430;
     unsigned char unknown_2431[0x13];

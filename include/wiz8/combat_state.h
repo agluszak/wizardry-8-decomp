@@ -46,7 +46,9 @@ typedef struct W8PartySlotRow {
     unsigned char flag_0f5;
     unsigned char unknown_0f6[4];
     int animation_0fa;
-    unsigned char unknown_0fe[6];
+    /* 0x0fe: cleared by the level-entry NPC-binding reset. */
+    unsigned char flag_fe;
+    unsigned char unknown_ff[5];
     unsigned char action_is_kind_one;
     unsigned char flag_105;
 } W8PartySlotRow;

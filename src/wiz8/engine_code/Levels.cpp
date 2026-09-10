@@ -36,6 +36,7 @@
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/LoadSaveGame.h"
+#include "wiz8/npc_state.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/spell_effect.h"
@@ -338,7 +339,6 @@ extern void Function482410(void);
 extern void Function4D6C50(int level);
 extern void Function50AC60(void);
 extern void Function50E700(void);
-extern void Function50DB50(void);
 extern void Function50C270(void);
 extern void Function50C2E0(void);
 extern void Function5777C0(void);
@@ -622,7 +622,7 @@ unsigned char LoadLevel(
 
     if (!restoring_game) {
         if (level < 47) {
-            Function50DB50();
+            ResetNpcBindingsForParty0050DB50();
             Function50C270();
             Function50C2E0();
             Function5777C0();
