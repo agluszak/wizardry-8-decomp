@@ -322,6 +322,8 @@ W8TextControl* g_panel_controls_69c2f8[3];
 
 extern void Function4257F0(int value);
 
+/* Release the three level-runtime dialogue owners through the shared
+   teardown, then clear the slots. */
 // FUNCTION: WIZ8 0x005B1C00
 void Function5B1C00(void)
 {
@@ -338,7 +340,6 @@ void Function5B1C00(void)
         g_level_block->unknown_2a8 = 0;
     }
 }
-
 
 // FUNCTION: WIZ8 0x005B2580
 void Function5B2580(void)

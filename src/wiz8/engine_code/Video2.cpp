@@ -684,12 +684,8 @@ IDirectDraw2* GetDirectDraw2Object(void)
     return g_direct_draw2_6596a0;
 }
 
-
-extern "C" unsigned char g_flag_6596f4;
-extern "C" {
 // GLOBAL: WIZ8 0x006596f4
 unsigned char g_flag_6596f4;
-}
 // GLOBAL: WIZ8 0x00659724
 int g_screenshot_index_659724;
 // GLOBAL: WIZ8 0x00659728

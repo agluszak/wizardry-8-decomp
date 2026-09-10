@@ -4,6 +4,9 @@
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/magic.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/MonsterManager.h"
@@ -258,11 +261,6 @@ void RecallCasterToSavedLocation(W8SpellQueueEntry* pQueue)
         BeginLevelTransition();
     }
 }
-
-#include "wiz8/local_screens/MainGameScreen.h"
-#include "wiz8/local_code/GameplayCode.h"
-#include "wiz8/engine_code/Trigger.h"
-#include "wiz8/screen_state.h"
 
 /* Whether anything holds the screen busy: combat, a modal, the trigger flag,
    or a current state past the idle slot all answer yes; otherwise the idle

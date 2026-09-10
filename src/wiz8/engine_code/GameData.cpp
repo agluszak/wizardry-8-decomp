@@ -8,6 +8,14 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/float_constants.h"
+#include "wiz8/sr_api.h"
+
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
+#include <windows.h>
+#include <new>
+
 extern "C" {
 // GLOBAL: WIZ8 0x005ec1a8
 float g_float_005ec1a8 = -0.3333333432674408f;
@@ -18,13 +26,6 @@ float g_float_005ec028 = 1.0099999904632568f;
 // GLOBAL: WIZ8 0x005ec1a0
 float g_float_005ec1a0 = 0.9959999918937683f;
 }
-#include "wiz8/sr_api.h"
-
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <windows.h>
-#include <new>
 
 // GLOBAL: WIZ8 0x00652dac
 W8LevelDataRecord* g_level_data_00652dac;
@@ -849,19 +850,14 @@ W8GameData* ReadGameData00447570(const char* path, void* parent)
     return game_data;
 }
 
+/* Camera facade, move timer and the party placement entry. */
 
-/* Camera facade, move timer and the party placement entry recovered from the
-   GameData.cpp interval at 0x0041F261. */
-
-extern unsigned char g_flag_00652da7;
 // GLOBAL: WIZ8 0x00652da7
 unsigned char g_flag_00652da7;
-extern const double g_double_005ebc18;
 // GLOBAL: WIZ8 0x005ebc18
 const double g_double_005ebc18 = 3.141592653589793;
 // GLOBAL: WIZ8 0x00652940
 float g_origin_652940[3] = { 0.0f, 0.0f, 0.0f };
-extern const float g_float_005ebcf8;
 
 // FUNCTION: WIZ8 0x00420b40
 float MoveTimer(int value)
@@ -990,11 +986,6 @@ int GetCameraYawDegrees(void)
 {
     return (int)(g_gd_camera_65a0f8->m_yaw * 57.295784f);
 }
-
-
-
-/* Mark the renderer ready and copy the point into the game camera when it
-   sits anywhere but the origin. */
 
 /* Mark the renderer ready and copy the point into the game camera when it
    sits anywhere but the origin. */

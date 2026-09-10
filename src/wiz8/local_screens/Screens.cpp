@@ -179,14 +179,11 @@ void ClearHeldItemDisplay(void)
     }
 }
 
-
 /* The item-cursor state: the string index table the camp screens read through
    GetTable647CCCEntry, and the held-item cursor bookkeeping. */
 
-extern "C" {
 // GLOBAL: WIZ8 0x00647ccc
 unsigned char g_table_647ccc[128];
-}
 
 // FUNCTION: WIZ8 0x0055F2B0
 unsigned char GetTable647CCCEntry(char index)

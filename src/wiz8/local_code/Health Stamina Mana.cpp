@@ -919,6 +919,19 @@ void CharacterDies(int party_slot)
     }
 }
 
+/* Rebuilds the hit-point ceiling from scratch every time it is called: each
+   profession the character has levels in contributes its own per-level factor,
+   scaled by a figure derived from the fourth attribute record's effective
+   value, and the profession the character started in counts one level more
+   than it has taken. The running total lives in the x87 stack across the whole
+   loop, which is why the zero it starts from is loaded before the profession
+   guard and discarded by an `fstp` on the early return.
+   The level is unsigned - the emitted test is `jbe`, not `jle` - and the
+   attribute is widened through a zeroed high dword, which is the unsigned
+   conversion rather than the signed one.
+   Losing the last hit point applies condition 0x12 with the ceiling duration
+   the party notice uses, which is the one place this writes anything beyond
+   the two pools. */
 // FUNCTION: WIZ8 0x0052A2F0
 void RecalculateCharacterHitPoints(W8Character* character)
 {

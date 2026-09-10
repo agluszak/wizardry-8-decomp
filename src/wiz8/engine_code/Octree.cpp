@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 
 #include "surrender/srHeap.h"
+#include "surrender/srMath.h"
 #include "surrender/srScene.h"
 #include "wiz8/engine_code/OctPath.h"
 #include "wiz8/engine_code/Octree.h"
@@ -2582,9 +2583,6 @@ void ReleaseAllTriggers(void)
     g_location_variable_names_006598f8.Clear();
     g_location_variable_levels_006598e0.Clear();
 }
-
-#include "wiz8/virtual_file.h"
-#include "surrender/srMath.h"
 
 // FUNCTION: WIZ8 0x004374C0
 unsigned char ReadVector4Array004374C0(

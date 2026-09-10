@@ -118,11 +118,8 @@ unsigned char W8GrObject::AddSoundEvent(W8VectorElement005ED094* pse)
     return 1;
 }
 
-extern "C" int g_value_60dfac;
-extern "C" {
 // GLOBAL: WIZ8 0x0060dfac
 int g_value_60dfac = 1;
-}
 
 // FUNCTION: WIZ8 0x004B6D10
 int IncrementValue60DFAC(void)
@@ -130,6 +127,7 @@ int IncrementValue60DFAC(void)
     g_value_60dfac = g_value_60dfac + 1;
     return g_value_60dfac;
 }
+
 // FUNCTION: WIZ8 0x004B6D20
 void SetValue60DFAC(void)
 {

@@ -35,7 +35,6 @@
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/text_input.h"
-#include "Font.h"
 #include "wiz8/local_code/Strings.h"
 #include "vsurface.h"
 #include "himage.h"

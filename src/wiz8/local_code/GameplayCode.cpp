@@ -743,8 +743,6 @@ void CalcArmorClasses(W8Character* character)
                            : (weighted_total + 50) / 100;
 }
 
-#include "wiz8/character.h"
-
 /* 0x006164F4: personality and voice values by faction and profession class,
    two dwords per row. It ends exactly where the faction/race/profession table
    at 0x00616604 begins. */

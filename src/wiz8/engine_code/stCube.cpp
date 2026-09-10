@@ -13,11 +13,8 @@
 /* Engine Code\stCube.cpp. The cursor's node table and the node selection
    pass; the cursor state itself lives in Cursor3d.cpp. */
 
-extern "C" {
-extern int g_value_65ba5c;
 // GLOBAL: WIZ8 0x0065ba5c
 int g_value_65ba5c;
-}
 
 // GLOBAL: WIZ8 0x0065ba64
 int* g_array_65ba64;

@@ -36,17 +36,13 @@
 #include <stdio.h>
 #include <string.h>
 
-/* Lifecycle record 8. Its original screen and translation-unit names are
-   unknown; the existing compilation boundary is retained. */
+/* Lifecycle record 8; the automap screen. Its original screen-class name is
+   unknown, so the existing compilation boundary is retained. */
 
-extern "C" {
-extern unsigned char g_flag_68f104;
-extern unsigned char g_flag_68f105;
 // GLOBAL: WIZ8 0x0068f104
 unsigned char g_flag_68f104;
 // GLOBAL: WIZ8 0x0068f105
 unsigned char g_flag_68f105;
-}
 
 /* Lifecycle record 8's own state, all of it released by the finalizer below and
    nothing here naming what any of it holds. The list is vector.cpp's, created by
@@ -776,33 +772,31 @@ void Function57FD90(int update)
     g_automap_zoom_mode = update;
 }
 
-extern "C" {
-extern float g_float_64b914;
 // GLOBAL: WIZ8 0x0064b914
 float g_float_64b914 = 2000.0f;
 // GLOBAL: WIZ8 0x0068f2b0
 int g_value_68f2b0;
 // GLOBAL: WIZ8 0x0068f2c4
 int g_value_68f2c4;
-extern int g_value_68f2b0;
-extern int g_value_68f2c4;
-}
 
 // FUNCTION: WIZ8 0x00585300
 void SetFloat64B914(float value)
 {
     g_float_64b914 = value;
 }
+
 // FUNCTION: WIZ8 0x00585310
 float GetFloat64B914(void)
 {
     return g_float_64b914;
 }
+
 // FUNCTION: WIZ8 0x00587C10
 void SetValue68F2B0(int value)
 {
     g_value_68f2b0 = value;
 }
+
 // FUNCTION: WIZ8 0x0058A870
 void SetValue68F2C4(int value)
 {

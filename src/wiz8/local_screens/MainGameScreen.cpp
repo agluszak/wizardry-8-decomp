@@ -18,6 +18,8 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/npc_state.h"
+#include "wiz8/fact_state.h"
 #include "wiz8/local_screens/MGSKeyboard.h"
 #include "wiz8/render_state.h"
 #include "wiz8/engine_code/Video2.h"
@@ -1295,11 +1297,8 @@ unsigned int HitTestPartyPortrait(const InputAtom* event)
     return 0;
 }
 
-#include "wiz8/utility.h"
-#include "Font.h"
-
-/* Shared by a main-game caller and dialog text entries. Original translation
-   unit is unresolved; keep this out of UtilityFunctions.cpp's proven interval. */
+/* Shared by the main-game screen and dialog text entries; it lives with the
+   main-game text helpers, not with UtilityFunctions.cpp. */
 // FUNCTION: WIZ8 0x00577410
 void ShortenTextToWidth00577410(
     wchar_t* output, const wchar_t* text, unsigned int width, int font)
@@ -1327,11 +1326,6 @@ void ShortenTextToWidth00577410(
     }
 }
 
-#include "wiz8/npc_state.h"
-#include "wiz8/fact_state.h"
-#include "wiz8/local_screens/MainGameScreen.h"
-#include "wiz8/local_code/GameplayCode.h"
-
 extern void Function56C5E0(void* npc, int value, int line, int suppress, int arg);
 
 /* Forward a monster-script notice to the targeting layer unless the screen is
@@ -1350,10 +1344,8 @@ void Function56C590(int npc_record, int value, int line, int suppress)
     }
 }
 
-
-/* The panel flags and the modal-dialog frame hooks, from the MGS interval at
-   0x0056B270. The g_flag_006840bc state is defined with the header so the
-   renderer consumes the same object. */
+/* The panel flags and the modal-dialog frame hooks. The g_flag_006840bc state
+   is declared in MainGameScreen.h so the renderer consumes the same object. */
 
 // FUNCTION: WIZ8 0x00568950
 unsigned int Function568950(const InputAtom* input)

@@ -204,17 +204,11 @@ unsigned char IntroScreenRegionEvent(const W8RegionEvent* event, W8Region* regio
     return 1;
 }
 
-extern "C" {
 // GLOBAL: WIZ8 0x0064d8ac
 unsigned long g_value_64d8ac = 6;
-extern unsigned long g_value_64d8ac;
-}
 
 // FUNCTION: WIZ8 0x005AE9C0
 void SetValue64D8AC(unsigned long value)
 {
     g_value_64d8ac = value;
 }
-
-/* Release the three level-runtime dialogue owners through the shared
-   teardown, then clear the slots. */
