@@ -48,6 +48,7 @@ public:
     __forceinline int HasBuffer() const { return m_buffer != 0; }
     __forceinline void SetGeometryDirty() { m_geometryDirty = 1; }
     __forceinline void SetRenderMode(int mode) { m_renderMode = mode; }
+    __forceinline void SetFontStateIndex(int index) { m_fontStateIndex = index; }
     __forceinline void MarkGeometryDirty(int mode)
     {
         m_geometryDirty = 1;

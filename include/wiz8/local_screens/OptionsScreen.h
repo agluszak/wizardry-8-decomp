@@ -223,7 +223,36 @@ public:
     virtual void Populate() override;
 };
 
-class W8OptionsKeyButton;
+/* The 0xb8-byte options button is instantiated directly for Reset Defaults.
+   Key rows run the same inlined construction first, then install the derived
+   vtable and two binding ids at +0xb8/+0xbc. */
+// VTABLE: WIZ8 0x005eee80
+class W8OptionsButton : public W8TextControl {
+public:
+    __forceinline W8OptionsButton(Controls* owner, int left, int top, int right,
+                                 int bottom, const wchar_t* text);
+    virtual ~W8OptionsButton() override;
+    virtual void Redraw(int full_redraw) override;
+    virtual void OnMouseEnter(int event) override;
+    virtual void OnMouseLeave(int event) override;
+};
+
+// VTABLE: WIZ8 0x005eeed0
+class W8OptionsKeyButton : public W8OptionsButton {
+public:
+    __forceinline W8OptionsKeyButton(Controls* owner, int top,
+                                    int primary_binding, int secondary_binding);
+    virtual ~W8OptionsKeyButton() override;
+
+    void SetKey(unsigned short key);
+    void SetKeyText(unsigned short key);
+
+    int m_primary_binding;
+    int m_secondary_binding;
+};
+
+static_assert(sizeof(W8OptionsButton) == 0xb8, "W8OptionsButton_size");
+static_assert(sizeof(W8OptionsKeyButton) == 0xc0, "W8OptionsKeyButton_size");
 
 // VTABLE: WIZ8 0x005ef034
 // VTABLE: WIZ8 0x005ef02c W8TextControl::Listener
@@ -243,6 +272,7 @@ public:
     virtual void OnSelectionChanged(W8ControlSelection* selection, int selected) override;
     virtual unsigned char OnKey(unsigned short key, unsigned short modifiers) override;
     virtual void OnDialogClosed(unsigned char reason, int value) override;
+    void ClearDuplicateBinding(unsigned short key);
     int m_panel;
     W8ControlSelection m_selection;
     W8OptionsKeyButton* m_captured_button;

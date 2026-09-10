@@ -8,6 +8,7 @@
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/local_code/ControlSelection.h"
 #include "wiz8/local_screens/OptionsScreen.h"
+#include "wiz8/local_screens/MGSKeyboard.h"
 #include "wiz8/xstatus.h"
 
 #include "wiz8/combat_state.h"
@@ -38,6 +39,7 @@
 #include "wiz8/input_hooks.h"
 
 #include <string.h>
+#include <ctype.h>
 
 // GLOBAL: WIZ8 0x0069C130
 unsigned int* g_options_panel_region_sets;
@@ -98,6 +100,66 @@ int g_options_combat_mode_labels[2] = {0x7f6, 0x7f5};
 // GLOBAL: WIZ8 0x0064d750
 int g_options_audio_labels[4] = {0x81e, 0x81f, 0x821, 0x820};
 
+struct W8OptionsKeyName {
+    unsigned short key;
+    unsigned short reserved;
+    int label;
+};
+
+struct W8OptionsKeyRow {
+    int primary_binding;
+    int secondary_binding;
+    int label;
+};
+
+struct W8OptionsKeyboardPage {
+    int title;
+    int first_binding;
+    int last_binding;
+};
+
+// GLOBAL: WIZ8 0x0064d2f8
+W8OptionsKeyName g_options_key_names[] = {
+    {112, 0, 2158}, {113, 0, 2159}, {114, 0, 2160}, {115, 0, 2161}, {116, 0, 2162},
+    {117, 0, 2163}, {118, 0, 2164}, {119, 0, 2165}, {120, 0, 2166}, {121, 0, 2167},
+    {122, 0, 2168}, {123, 0, 2169}, {9, 0, 2170}, {144, 0, 2171}, {8, 0, 2172},
+    {45, 0, 2173}, {46, 0, 2174}, {35, 0, 2175}, {34, 0, 2176}, {33, 0, 2177},
+    {36, 0, 2178}, {13, 0, 2179}, {32, 0, 2180}, {40, 0, 2181}, {37, 0, 2182},
+    {39, 0, 2183}, {38, 0, 2184}, {19, 0, 2185}, {145, 0, 2186}, {20, 0, 2187},
+    {96, 0, 2188}, {97, 0, 2189}, {98, 0, 2190}, {99, 0, 2191}, {100, 0, 2192},
+    {101, 0, 2193}, {102, 0, 2194}, {103, 0, 2195}, {104, 0, 2196}, {105, 0, 2197},
+    {106, 0, 2198}, {107, 0, 2199}, {108, 0, 2200}, {109, 0, 2201}, {110, 0, 2202},
+    {111, 0, 2203}, {144, 0, 2171}, {192, 0, 2204}, {0, 0, 2157}
+};
+
+// GLOBAL: WIZ8 0x0064d480
+W8OptionsKeyRow g_options_key_rows[] = {
+    {200, 201, 2106}, {202, 203, 2107}, {204, 205, 2108},
+    {206, 207, 2109}, {208, 209, 2110}, {210, 211, 2111},
+    {212, -1, 2112}, {213, -1, 2113}, {214, -1, 2114},
+    {300, -1, 2115}, {301, 302, 2116}, {303, -1, 2117},
+    {304, -1, 2118}, {307, 308, 2121}, {309, 310, 2122},
+    {306, -1, 2120}, {311, -1, 2123}, {312, -1, 2124},
+    {313, -1, 2125}, {316, -1, 2127}, {314, 315, 2126},
+    {317, -1, 2128}, {318, 319, 2129}, {305, -1, 2119},
+    {402, -1, 2130}, {403, -1, 2131}, {404, -1, 2132},
+    {405, -1, 2133}, {406, -1, 2134}, {407, -1, 2135},
+    {400, -1, 2136}, {401, -1, 2137}, {500, -1, 2138},
+    {501, -1, 2139}, {502, -1, 2140}, {503, -1, 2141},
+    {504, -1, 2142}, {600, -1, 2143}, {601, -1, 2144},
+    {602, -1, 2145}, {603, -1, 2146}, {604, -1, 2147},
+    {605, -1, 2148}, {606, -1, 2149}, {607, -1, 2150},
+    {608, -1, 2151}, {609, -1, 2152}, {610, -1, 2153},
+    {611, -1, 2154}, {612, 613, 2155}, {614, -1, 2156},
+    {-1, -1, -1}
+};
+
+// GLOBAL: WIZ8 0x0064d6f0
+W8OptionsKeyboardPage g_options_keyboard_pages[5] = {
+    {0x835, 200, 214}, {0x836, 300, 305}, {0x837, 402, 401},
+    {0x838, 500, 504}, {0x839, 600, 614}
+};
+
 W8OptionsPanelSet::W8OptionsPanelSet()
     : m_mode_000(0), m_compact_layout(0), m_hide_navigation(0), m_active(0), m_current_00c(0)
 {
@@ -127,11 +189,338 @@ W8OptionsSaveLoadPanel::W8OptionsSaveLoadPanel(int panel)
 W8OptionsUnavailablePanel::W8OptionsUnavailablePanel(int message)
     : W8OptionsPanel(13), m_message(message) {}
 
+__forceinline W8OptionsButton::W8OptionsButton(
+    Controls* owner, int left, int top, int right, int bottom,
+    const wchar_t* text)
+    : W8TextControl(owner, 0xffffffff, left, top, right, bottom,
+                    -1, -1, -1, -1, -1, -1, -1)
+{
+    m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED558);
+    m_textBuffer.SetText(text, g_options_detail_font_683614);
+}
+
+__forceinline W8OptionsKeyButton::W8OptionsKeyButton(
+    Controls* owner, int top, int primary_binding, int secondary_binding)
+    : W8OptionsButton(owner, 100, top, 0x15e, top + 22,
+                      &g_wchar_00689b34),
+      m_primary_binding(primary_binding),
+      m_secondary_binding(secondary_binding)
+{
+    AddLayoutFlags(g_W8TextControlMask005ED588 |
+                   g_W8TextControlMask005ED578);
+    m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED560 |
+                               g_W8TextBufferLayoutMask005ED550 |
+                               g_W8TextBufferLayoutMask005ED558);
+}
+
+// FUNCTION: WIZ8 0x005a7c20
+W8OptionsButton::~W8OptionsButton()
+{
+}
+
+// SYNTHETIC: WIZ8 0x005a7c00
+// W8OptionsButton::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x005a7c70
+void W8OptionsButton::Redraw(int full_redraw)
+{
+    if (m_active != 0 &&
+        (static_cast<unsigned char>(full_redraw) != 0 || m_dirty != 0) &&
+        m_textBuffer.HasBuffer()) {
+        if (m_enabled != 0) {
+            int font_state;
+            if ((m_stateFlags & g_W8TextControlMask005ED56C) != 0) {
+                font_state = 13;
+            } else {
+                font_state = m_alternateTextEnabled != 0 ? 14 : -1;
+            }
+            m_textBuffer.SetFontStateIndex(font_state);
+        }
+        m_textBuffer.RenderToTarget(
+            0, static_cast<unsigned char>(full_redraw), -14);
+        m_dirty = 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x005a7ce0
+void W8OptionsButton::OnMouseEnter(int event)
+{
+    W8TextControl::OnMouseEnter(event);
+    SetAlternateTextEnabled(1);
+    Invalidate(static_cast<unsigned char>(event));
+}
+
+// FUNCTION: WIZ8 0x005a7d10
+void W8OptionsButton::OnMouseLeave(int event)
+{
+    W8TextControl::OnMouseLeave(event);
+    SetAlternateTextEnabled(0);
+    Invalidate(static_cast<unsigned char>(event));
+}
+
+// FUNCTION: WIZ8 0x005a7d60
+W8OptionsKeyButton::~W8OptionsKeyButton()
+{
+}
+
+// SYNTHETIC: WIZ8 0x005a7d40
+// W8OptionsKeyButton::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x005a7db0
+void W8OptionsKeyButton::SetKey(unsigned short key)
+{
+    m_textBuffer.SetFontStateIndex(m_alternateTextEnabled != 0 ? 14 : -1);
+    if (key == VK_ESCAPE) {
+        Invalidate(0);
+        return;
+    }
+
+    MGSKeyBinding* binding =
+        g_mgs_keyboard->GetBinding(g_mgs_keyboard->FindBinding(m_primary_binding));
+    if (binding != 0) {
+        binding->key = key;
+    }
+    if (m_secondary_binding != -1) {
+        binding = g_mgs_keyboard->GetBinding(
+            g_mgs_keyboard->FindBinding(m_secondary_binding));
+        if (binding != 0) {
+            binding->key = key;
+        }
+    }
+    SetKeyText(key);
+    Invalidate(1);
+}
+
+// FUNCTION: WIZ8 0x005a7e40
+void W8OptionsKeyButton::SetKeyText(unsigned short key)
+{
+    wchar_t character[2] = {0, 0};
+    int index = 0;
+    const wchar_t* text;
+
+    if (g_options_key_names[0].key != key) {
+        W8OptionsKeyName* name = g_options_key_names;
+        do {
+            unsigned short current = name->key;
+            ++index;
+            ++name;
+            if (current == 0) {
+                goto translate_key;
+            }
+        } while (name->key != key);
+    }
+
+    text = gppStringList[g_options_key_names[index].label];
+    if (text == 0) {
+translate_key:
+        character[0] = TranslateKeyToCharacter(key, 0);
+        if (character[0] == 0) {
+            m_textBuffer.SetText(gppStringList[0x86d],
+                                 g_options_detail_font_683614);
+            return;
+        }
+        character[0] = static_cast<wchar_t>(toupper(character[0]));
+        text = character;
+    }
+
+    if (m_secondary_binding != -1 && key != 0) {
+        text = FormatWideString(L"%s (%s)", gppStringList[0x89d], text);
+    }
+    m_textBuffer.SetText(text, g_options_detail_font_683614);
+}
+
 // FUNCTION: WIZ8 0x005ab810
 W8OptionsKeyboardPanel::~W8OptionsKeyboardPanel() {}
 
 // SYNTHETIC: WIZ8 0x005ab7f0
 // W8OptionsKeyboardPanel::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x005ab930
+void W8OptionsKeyboardPanel::Populate()
+{
+    m_selection.m_selectionListener = this;
+
+    W8OptionsKeyboardPage& page = g_options_keyboard_pages[m_panel - 6];
+    W8ControlsRect title_bounds = {
+        origin_x + 30, origin_y + m_content_top_050,
+        right - 30, origin_y + m_content_top_050 + 22
+    };
+    W8TextBuffer* title = new W8TextBuffer(
+        &title_bounds, gppStringList[page.title], g_options_detail_font_683614,
+        g_W8TextBufferLayoutMask005ED558 |
+        g_W8TextBufferLayoutMask005ED54C, 4);
+    m_text_buffers_058.Add(title);
+    m_content_top_050 += 44;
+
+    int first = 0;
+    while (g_options_key_rows[first].primary_binding != page.first_binding) {
+        ++first;
+    }
+
+    W8OptionsKeyRow* row = g_options_key_rows + first;
+    for (;;) {
+        W8ControlsRect label_bounds = {
+            origin_x + 20, origin_y + m_content_top_050,
+            right, origin_y + m_content_top_050 + 22
+        };
+        W8TextBuffer* label = new W8TextBuffer(
+            &label_bounds, gppStringList[row->label],
+            g_options_detail_font_683614,
+            g_W8TextBufferLayoutMask005ED558 |
+            g_W8TextBufferLayoutMask005ED548, 4);
+        m_text_buffers_058.Add(label);
+
+        W8OptionsKeyButton* button = new W8OptionsKeyButton(
+            this, m_content_top_050, row->primary_binding,
+            row->secondary_binding);
+        m_selection.AddEntry(button);
+        m_content_top_050 += 22;
+
+        int binding = row->primary_binding;
+        ++row;
+        if (binding == page.last_binding) {
+            wchar_t* reset_text = gppStringList[0x833];
+            short text_width = StringPixLength(
+                reinterpret_cast<unsigned short*>(reset_text),
+                g_options_detail_font_683614);
+            int left = (right - (text_width + 20) - origin_x) / 2;
+            W8OptionsButton* reset = new W8OptionsButton(
+                this, left, 0x18e, left + text_width + 20, 0x1a4,
+                reset_text);
+            reset->m_listener = this;
+            return;
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005abce0
+void W8OptionsKeyboardPanel::Invalidate(const W8ControlsRect* bounds)
+{
+    Controls::Invalidate(bounds);
+    g_options_screen_0069c254->m_menu_set_028->Invalidate(0);
+}
+
+// FUNCTION: WIZ8 0x005abd00
+void W8OptionsKeyboardPanel::OnPrimary(W8TextControl*)
+{
+    g_options_screen_0069c254->ShowNotification(this, 1, 0x834, 0);
+}
+
+// FUNCTION: WIZ8 0x005abd30
+void W8OptionsKeyboardPanel::OnSelectionChanged(
+    W8ControlSelection*, int selected)
+{
+    if (selected == -1) {
+        m_captured_button = 0;
+        g_options_screen_0069c254->m_key_capture = 0;
+        return;
+    }
+
+    W8Widget** control = m_controls.data;
+    if (selected < m_controls.count) {
+        control += selected;
+    }
+    m_captured_button = static_cast<W8OptionsKeyButton*>(*control);
+    g_options_screen_0069c254->m_key_capture = this;
+}
+
+// FUNCTION: WIZ8 0x005abd90
+void W8OptionsKeyboardPanel::SetActive(unsigned char active)
+{
+    EnableRegionSet(active);
+    SetEnabled(active);
+    Invalidate(0);
+    if (active != 0) {
+        int count = m_controls.count - 1;
+        for (int index = 0; index < count; ++index) {
+            W8OptionsKeyButton* button =
+                static_cast<W8OptionsKeyButton*>(ControlAt(index));
+            MGSKeyBinding* binding = g_mgs_keyboard->GetBinding(
+                g_mgs_keyboard->FindBinding(button->m_primary_binding));
+            if (binding != 0) {
+                button->SetKeyText(binding->key);
+            }
+        }
+    }
+    m_selection.SetSelected(-1);
+}
+
+// FUNCTION: WIZ8 0x005abe20
+unsigned char W8OptionsKeyboardPanel::OnKey(
+    unsigned short key, unsigned short modifiers)
+{
+    if (modifiers != 0) {
+        return 0;
+    }
+    if (key != VK_ESCAPE) {
+        ClearDuplicateBinding(key);
+    }
+    m_captured_button->SetKey(key);
+    m_selection.SetSelected(-1);
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x005abe60
+void W8OptionsKeyboardPanel::OnDialogClosed(unsigned char reason, int)
+{
+    m_selection.SetSelected(-1);
+    if (reason != 0) {
+        ResetMGSKeyboardBindings();
+        int count = m_controls.count - 1;
+        for (int index = 0; index < count; ++index) {
+            W8OptionsKeyButton* button =
+                static_cast<W8OptionsKeyButton*>(ControlAt(index));
+            MGSKeyBinding* binding = g_mgs_keyboard->GetBinding(
+                g_mgs_keyboard->FindBinding(button->m_primary_binding));
+            if (binding != 0) {
+                button->SetKeyText(binding->key);
+            }
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005abed0
+void W8OptionsKeyboardPanel::ClearDuplicateBinding(unsigned short key)
+{
+    int row_index = 0;
+    if (g_options_key_rows[0].primary_binding == -1) {
+        return;
+    }
+
+    W8OptionsKeyRow* row = g_options_key_rows;
+    for (;;) {
+        MGSKeyBinding* binding = g_mgs_keyboard->GetBinding(
+            g_mgs_keyboard->FindBinding(row->primary_binding));
+        if (binding != 0 && binding->key == key) {
+            binding->key = 0;
+            if (g_options_key_rows[row_index].secondary_binding != -1) {
+                binding = g_mgs_keyboard->GetBinding(g_mgs_keyboard->FindBinding(
+                    g_options_key_rows[row_index].secondary_binding));
+                if (binding != 0) {
+                    binding->key = 0;
+                }
+            }
+
+            int count = m_controls.count - 1;
+            for (int index = 0; index < count; ++index) {
+                W8OptionsKeyButton* button =
+                    static_cast<W8OptionsKeyButton*>(ControlAt(index));
+                binding = g_mgs_keyboard->GetBinding(
+                    g_mgs_keyboard->FindBinding(button->m_primary_binding));
+                if (binding != 0) {
+                    button->SetKeyText(binding->key);
+                }
+            }
+            return;
+        }
+
+        ++row_index;
+        ++row;
+        if (row->primary_binding == -1) {
+            return;
+        }
+    }
+}
 
 // SYNTHETIC: WIZ8 0x005a8050
 // W8OptionsTextEditor::`scalar deleting destructor'
