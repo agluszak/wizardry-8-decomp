@@ -247,8 +247,24 @@ void Function48C9F0(void)
 }
 extern unsigned char g_force_encounter_culling;     /* 0x00687500 */
 
+/* Put the encounter-culling scale back to its fast default and rearm every
+   loaded generator's interval timer. */
+// FUNCTION: WIZ8 0x0048cbe0
+void ResetMonsterGeneratorTimers0048CBE0(void)
+{
+    g_encounter_culling_scale_fast = 1.0f;
+    W8GrowableVector<W8MonsterGenerator*>* generators =
+        g_world->monster_generators;
+
+    for (int index = 0; index < generators->count; ++index) {
+        W8MonsterGenerator* generator = *generators->GetAt(index);
+
+        generator->m_pTimer->ResetDurationScale();
+    }
+}
+
 // GLOBAL: WIZ8 0x0060a6cc
-const float g_encounter_culling_scale_fast = 1.0f;
+float g_encounter_culling_scale_fast = 1.0f;
 
 // GLOBAL: WIZ8 0x005ec918
 const float g_encounter_culling_rate = 2880.0f;

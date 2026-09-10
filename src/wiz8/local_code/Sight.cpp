@@ -9,6 +9,7 @@
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/monster_runtime.h"
+#include "wiz8/monster_generators.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/targeting.h"
 #include "wiz8/utility.h"
@@ -59,7 +60,6 @@ typedef struct W8VisibilityRow {
 } W8VisibilityRow;
 
 extern void Function452F50(int value);
-extern void Function48CBE0(void);
 
 // GLOBAL: WIZ8 0x005ec254
 float g_sight_default_005ec254 = 12.0f;
@@ -71,7 +71,7 @@ void ResetSight(void)
     SetViewDistance(12.0f);
     Function452F50(0);
     g_object_6598bc->ResetDurationScale();
-    Function48CBE0();
+    ResetMonsterGeneratorTimers0048CBE0();
 }
 
 /* Whether the view distance has been moved off its default. */

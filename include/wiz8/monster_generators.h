@@ -13,6 +13,7 @@ void SaveEncounterState(int handle);
 void SaveMonsterGenerators(int handle);
 void RunMonsterGenerators(void);
 void Function48C9F0(void);
+void ResetMonsterGeneratorTimers0048CBE0(void);
 
 void UpdateRandomEncounterBudget(unsigned char reset_budget);
 
@@ -26,6 +27,6 @@ extern short g_generator_interval_max;
 extern int g_saved_encounter_budget;
 extern int g_encounter_culling_time_seconds;
 extern const float g_generator_jitter_fraction;
-extern const float g_encounter_culling_scale_fast;
+extern float g_encounter_culling_scale_fast;
 extern const float g_encounter_culling_rate;
 extern const float g_encounter_culling_distance;

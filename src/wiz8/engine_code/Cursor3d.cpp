@@ -45,8 +45,7 @@ void ReleaseWorldCursor004909C0(void)
     GetCameraPosition(&camera);
     camera.y = 0.0f;
     cursor->position_28.y = 0.0f;
-    delta = cursor->position_28;
-    delta -= camera;
+    delta = cursor->position_28 - camera;
     g_float_60ab48 = delta.Length();
 
     PListRemove(g_world->plsMonsters, cursor->monster_00);
