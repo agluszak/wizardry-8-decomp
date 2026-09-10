@@ -20,13 +20,19 @@ int GetMinimumCasterLevelForSpell(int spell_id);
 bool CanSpellBackfire(int spell_id);
 
 class W8VectorElement005EBFE4;
+struct W8EffectSlot;
+struct W8MonsterInfo;
 /* Create one spell visual from the spell's own record resource. Engine
    Code\Spells.cpp's factory, whose result the queued effect owns. */
+void Function5526F0(W8EffectSlot* slots, const int* args); /* 0x005526F0 */
+void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* slot);
+void ResetPartyEffectBlock(W8EffectSlot* slot);
 W8VectorElement005EBFE4* SpawnSpellEffect(
     const srVector3T<float>* position, const char* resource_name,
     int argument_3, int argument_4, int argument_5);
 
 struct W8MonsterInfo;
+struct W8EffectSlot;
 struct W8Character;
 struct W8ItemInstance;
 

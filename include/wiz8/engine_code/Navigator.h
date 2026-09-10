@@ -271,3 +271,5 @@ void Function453160(void);
 void Function4531A0(void);
 
 void NavigatorDefaultCallback00451EA0(W8Navigator* navigator);
+
+extern float g_navigator_vertical_phase_step_005ebcc8;

@@ -17,6 +17,8 @@
 extern "C" {
 extern float g_float_005ebb38;
 extern float g_float_005ebb34;
+/* 0x005EBC64: the vertical offset the sight probes add before tracing. */
+extern float g_float_005ebc64;
 extern double g_double_005ebc70;
 extern float g_float_005ebc90;
 extern double g_double_005ebc30;

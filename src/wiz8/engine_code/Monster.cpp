@@ -2657,7 +2657,7 @@ void W8Monster::ProcessScript004C80E0()
                 if (token != 0) {
                     look_frequency_2c8 = (float)atoi(token);
                     if (monster_info != 0) {
-                        monster_info->unknown_301[1] = (unsigned char)atoi(token);
+                        monster_info->look_timer_302 = (unsigned char)atoi(token);
                     }
                     token = strtok(0, " \t");
                     if (token != 0) {

@@ -90,6 +90,9 @@ void Function421150(float distance, srVector3T<float>* output);
 void SetCameraOrientation(
     float* angle, float* pitch, srMatrix3T<float>* rotation);
 void GetCameraPosition(srVector3T<float>* position);
+/* 0x004BE940: project one point through the camera and report whether it is
+   in front of it. */
+unsigned char Function4BE940(srVector3T<float>* position);
 int GetCameraYawDegrees(void);
 void PlacePartyAtPoint(const srVector3T<float>* point);
 

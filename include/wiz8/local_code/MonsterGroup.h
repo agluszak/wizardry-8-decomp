@@ -70,12 +70,14 @@ typedef struct W8MonsterGroup {
 } W8MonsterGroup;                         /* 0x12b */
 #pragma pack(pop)
 
-unsigned int GetMonsterGroupIndexByID(
-    int caller_line,
+unsigned int GetMonsterGroupIndexByID(    int caller_line,
     const char* caller_file,
     int group_id,
     unsigned char assert_on_failure);
 W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index);
+void Function510CC0(
+    W8MonsterGroup* group, srVector3T<float>* position, float yaw, int a, int b,
+    int c, int d); /* 0x00510CC0 */
 void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group);
 W8MonsterGroup* FindFirstMonsterByID(int monster_id);
 W8MonsterGroup* FindNextExistingMonsterByID(

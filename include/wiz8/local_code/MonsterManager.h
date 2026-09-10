@@ -116,7 +116,9 @@ unsigned char LoadMonsterDatabaseRecord(
 typedef struct W8EffectSlot {
     signed char active;
     int visual_index;
-    unsigned char unknown_05[0x0c];
+    unsigned char unknown_05[8];
+    /* 0x0d: the remaining duration the aging pass counts down. */
+    float duration_0d;
 } W8EffectSlot;                            /* 0x11 */
 
 typedef struct W8MonsterCombatState {
@@ -186,7 +188,13 @@ typedef struct W8MonsterInfo {
     int hp_current;                       /* 0x2b: reduced by canonical damage consumers */
     int runtime_stat_max_2f;              /* 0x02f: initialized from MONSTERS.DBS dice */
     int runtime_stat_current_33;          /* 0x033: initialized to the same roll */
-    unsigned char unknown_37[0x20];
+    unsigned char unknown_37[0x10];
+    /* 0x47/0x4b: the hit-point regeneration rate and its fractional
+       accumulator, styled on 0x0048c120's stamina pair below. */
+    float hp_regen_rate_47;
+    float hp_regen_accumulator_4b;
+    float stamina_regen_rate_4f;
+    float stamina_regen_accumulator_53;
     /* 0x057: the monster's copy of the character condition array, entry for
        entry - condition two doubles its action fatigue at 0x05f, eight blocks
        its spellcasting at 0x077, thirteen makes it hostile at 0x08b, fifteen
@@ -197,7 +205,7 @@ typedef struct W8MonsterInfo {
     /* 0x10b: the argument a condition carries when a monster's conditions are
        copied onto a character. */
     int condition_argument;
-    unsigned char unknown_10f[0xcc];
+    W8EffectSlot effect_slots_10f[12];
     W8MonsterRuntimeBlock1DB runtime_block_1db; /* 0x1db */
     int runtime_value_242;                /* 0x242: derived from runtime_stat_current_33 */
     unsigned char unknown_246;
@@ -251,7 +259,14 @@ typedef struct W8MonsterInfo {
     int sp_budget_bonus;
     unsigned char unknown_2f9[4];
     int control_state;                      /* 0x2fd: group-recomputed control state */
-    unsigned char unknown_301[0x37];
+    unsigned char unknown_301;
+    /* 0x302/0x303: the two alternating look-around timers the aging pass
+       counts down and rearms from the monster's look frequency/duration. */
+    unsigned char look_timer_302;
+    unsigned char look_timer_303;
+    /* 0x304: the condition's own target source, copied in whole by the
+       condition setter. */
+    W8TargetSource condition_target_304;
     int runtime_values_338[3];              /* 0x338: creator clears as one unit */
     int value_344;                          /* 0x344: creator initializes to -1 */
     unsigned char unknown_348[4];

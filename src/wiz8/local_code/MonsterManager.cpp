@@ -371,7 +371,7 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode)
 
     if (monster_info->scale_24f < g_float_005ebb34 ||
         g_status_685170.level_progress[g_status_685170.current_level].visited == 0) {
-        monster_info->unknown_301[0] =
+        monster_info->unknown_301 =
             MonsterGetCycle17State(monster_info->monster);
         monster_info->scale_24f = CalculateMonsterScale(monster_info);
         MonsterSetScale(monster_info->monster, monster_info->scale_24f);
@@ -379,7 +379,7 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode)
     else {
         MonsterSetScale(monster_info->monster, monster_info->scale_24f);
         MonsterSetCycle17State(
-            monster_info->monster, monster_info->unknown_301[0]);
+            monster_info->monster, monster_info->unknown_301);
     }
 
     Function4C5810(monster_info->monster);

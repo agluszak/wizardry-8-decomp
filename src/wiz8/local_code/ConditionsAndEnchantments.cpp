@@ -362,7 +362,7 @@ void SetMonsterCondition(
         if (target->fBackfire == 0 && target->fReflection == 0
             && target->unknown_1d[1] == 0) {
             for (index = 0; index < 13; ++index) {
-                ((int*)&monster_info->unknown_301[3])[index] =
+                ((int*)&monster_info->condition_target_304)[index] =
                     ((const int*)target)[index];
             }
         }
