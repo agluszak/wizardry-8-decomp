@@ -1,8 +1,13 @@
 #pragma once
 
 #include "Types.h"
+enum { TIMER_SUSPEND = 1, TIMER_RESUME = 8 };
+
+#ifdef __cplusplus
 extern "C" {
-#include <GameData.h>
+#endif
+float MoveTimer(INT32 action);
+#ifdef __cplusplus
 }
 
 extern unsigned char g_flag_00652dce;
@@ -138,3 +143,5 @@ int IsLevelDataFlag4EffectivelySet(void);
 void ResetCurrentEnvironment0041AA40(void);
 
 unsigned int GetLevelDataFlag6(void);
+
+#endif // __cplusplus

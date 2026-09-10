@@ -132,7 +132,7 @@ void W8DialogTextEntry::Draw(unsigned char force)
         mprintf(x, y, (unsigned short*)L"%s", line);
     }
 done:
-    MarkScreenRectDirty(m_layoutBounds.left, m_layoutBounds.top,
+    InvalidateRegion(m_layoutBounds.left, m_layoutBounds.top,
                         m_layoutBounds.right, m_layoutBounds.bottom, 0);
     SetFontDestBuffer(-14, 0, 0, 640, 480, 0);
     m_geometryDirty = 0;

@@ -211,11 +211,11 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
             goto report;
         }
         memset(character, 0, sizeof(W8Character));
-        if (ReadVirtualFile(handle, &size, 4, &transferred)
-            && ReadVirtualFile(handle, character, size, &transferred)) {
+        if (FileRead(handle, &size, 4, &transferred)
+            && FileRead(handle, character, size, &transferred)) {
             loaded = 1;
         }
-        CloseVirtualFile(handle);
+        FileClose(handle);
         /* The same read-only repair VerifyDataSubdirs makes, for the one errno
            that means exactly that. */
         if (_access(path, 2) != 0 && errno == EACCES) {
@@ -673,7 +673,7 @@ unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
         if (g_flag_659756 != 0) {
             first->entity_flags &= ~8;
         }
-        if (!WriteVirtualFile(handle, item, sizeof(W8WorldItem), (unsigned int*)&item_info)) {
+        if (!FileWrite(handle, item, sizeof(W8WorldItem), (unsigned int*)&item_info)) {
             return 0;
         }
         item = item->next;
@@ -698,7 +698,7 @@ W8WorldItem* LoadItem(int handle, char add_to_list)
         if (first == 0) {
             first = item;
         }
-        if (!ReadVirtualFile(handle, item, sizeof(W8WorldItem), &done)) {
+        if (!FileRead(handle, item, sizeof(W8WorldItem), &done)) {
             return 0;
         }
         item->sector_id = -2;
@@ -805,7 +805,7 @@ unsigned char SaveCharacter(W8Character* character, int slot, char report_failur
             FileWrite(handle, character, sizeof(W8Character), &transferred) == 0) {
             saved = 0;
         }
-        CloseVirtualFile(handle);
+        FileClose(handle);
     } else {
         saved = Function5155B0(path, slot, character);
     }

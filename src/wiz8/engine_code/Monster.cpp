@@ -548,7 +548,7 @@ unsigned char MonsterReadAllCycles004C0300(
                 if (damage_stage != -1 &&
                     (*monster)->ReplaceSkinTexture004C6700(
                         damage_stage, old_name, new_name) == 0) {
-                    ReportError00401920(reinterpret_cast<const char*>(String(
+                    ShutdownWithErrorBox(reinterpret_cast<const char*>(String(
                         "The skin texture %s not found in %s",
                         old_name, monster_name)));
                 }
@@ -687,7 +687,7 @@ unsigned char MonsterReadAllCycles004C0300(
                 }
             }
         }
-        CloseVirtualFile(handle);
+        FileClose(handle);
     }
 
     W8MonsterRep* representation = (*monster)->m_pRep;
@@ -733,7 +733,7 @@ unsigned char MonsterReadAllCycles004C0300(
         idle_fps_end = 3.0f;
     }
     if (representation->animations[1].GetCount() < 1) {
-        ReportError00401920(reinterpret_cast<const char*>(String(
+        ShutdownWithErrorBox(reinterpret_cast<const char*>(String(
             "Monster %s: Missing CYCLE %s sub %d",
             representation->name_5c0, "IDLE", 0)));
     }
@@ -910,7 +910,7 @@ void W8Monster::RandomizeAppearanceAndMotion004C1D20()
                 animation_index = m_pRep->current_subcycle;
             }
             if (animation_index >= m_pRep->animations[1].GetCount()) {
-                ReportError00401920(FormatString(
+                ShutdownWithErrorBox(FormatString(
                     "Monster %s: Missing CYCLE %s subcycle %d",
                     m_pRep->name_5c0,
                     g_cycle_names[1].name,
@@ -2035,7 +2035,7 @@ unsigned char W8Monster::GetCycleMappedPosition004C7960(
     }
     animations = &m_pRep->animations[cycle];
     if (animations->GetCount() <= subcycle) {
-        ReportError00401920(FormatString(
+        ShutdownWithErrorBox(FormatString(
             "Monster %s: Missing CYCLE %s subcycle %d",
             m_pRep->name_5c0, g_cycle_names[cycle].name, subcycle));
     }
@@ -5554,7 +5554,7 @@ void W8Monster::CollectModelInstances004C6350(
             W8AnimObj* animation;
 
             if (subcycle >= cycle_animations->GetCount()) {
-                ReportError00401920(FormatString(
+                ShutdownWithErrorBox(FormatString(
                     "Monster %s: Missing CYCLE %s subcycle %d",
                     m_pRep->name_5c0,
                     g_cycle_names[cycle].name,
@@ -5629,7 +5629,7 @@ unsigned char W8Monster::ReplaceSkinTexture004C6700(
     sprintf(path, "Data\\Monsters\\Bitmaps\\%s", new_name);
     srTextureIFace* texture = LoadTexture004B9460(path, 0, 1);
     if (texture == 0) {
-        ReportError00401920(FormatString("Missing skin texture: %s", new_name));
+        ShutdownWithErrorBox(FormatString("Missing skin texture: %s", new_name));
         return 0;
     }
 

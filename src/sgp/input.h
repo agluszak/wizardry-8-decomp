@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+   Declare Wizardry key translation in the owning input interface.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __INPUT_
 #define __INPUT_
 
@@ -63,6 +66,34 @@ typedef struct StringInput
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+extern UINT16 gusQueueCount;
+extern UINT16 gusHeadIndex;
+extern UINT16 gusTailIndex;
+extern UINT16 gfShiftState;
+extern UINT16 gfCtrlState;
+extern UINT16 gfAltState;
+extern UINT16 gusRecordedKeyState;
+extern BOOLEAN gfTrackMousePos;
+extern BOOLEAN gfTrackDblClick;
+extern BOOLEAN gfRecordedLeftButtonUp;
+extern UINT32 guiDoubleClkDelay;
+extern UINT32 guiSingleClickTimer;
+extern UINT32 guiLeftButtonRepeatTimer;
+extern UINT32 guiRightButtonRepeatTimer;
+extern BOOLEAN gfCurrentStringInputState;
+extern StringInput* gpCurrentStringDescriptor;
+
+void KeyChange(UINT32 key, UINT32 flags, UINT8 pressed);
+void RedirectToString(UINT16 key);
+UINT16 TranslateKeyToCharacter(UINT16 key, UINT8 modifiers);
+UINT16 TranslateCharacterToKey(UINT16 character);
+UINT16 Function402800(UINT16 character);
+UINT16 Function402820(UINT16 character);
+UINT16 Function402840(UINT16 character);
+INT32 Function402880(INT32 character);
+INT32 Function4028A0(INT32 character);
+INT32 CompareWideTextIgnoreAsciiCase00402920(const wchar_t* first, const wchar_t* second);
 
 extern BOOLEAN			InitializeInputManager(void);
 extern void					ShutdownInputManager(void);

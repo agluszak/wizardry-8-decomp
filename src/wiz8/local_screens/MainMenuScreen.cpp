@@ -13,7 +13,7 @@
 #include "wiz8/music_playlist.h"
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/game_status.h"
-#include "wiz8/sgp_video.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/wiz8_windows.h"
@@ -64,9 +64,6 @@ unsigned int g_main_menu_hover_region;
 wchar_t* g_pending_main_menu_message;
 // GLOBAL: WIZ8 0x0069c4c0
 W8ModalDialogBase* g_main_menu_dialog;
-extern unsigned short gfAltState;
-extern unsigned short gfCtrlState;
-extern unsigned short gfShiftState;
 
 
 /* Draws one of the six menu items. The first switch turns the item index into
@@ -111,7 +108,7 @@ unsigned char DrawMainMenuItem(short item, short state)
     case 3: DrawCatalogImage(-14, 0xed, 0, slot, 0x98, top, 2, 0); break;
     }
 
-    MarkScreenRectDirty(0x98, top, 0x1f2, bottom, 0);
+    InvalidateRegion(0x98, top, 0x1f2, bottom, 0);
     return 1;
 }
 
@@ -210,7 +207,7 @@ unsigned char MainMenuScreenEnter(void)
 // FUNCTION: WIZ8 0x005bcbf0
 void MainMenuScreenFrame()
 {
-    W8ScreenPoint point;
+    POINT point;
     InputAtom input;
 
     if (g_flag_689b32 != 0) {
@@ -236,7 +233,7 @@ void MainMenuScreenFrame()
         ProcessMessageBoxInput();
     }
     else {
-        GetScreenPoint004284F0(&point);
+        SGPMouseGetPos(&point);
         g_main_menu_hover_region = UpdateRegionMousePosition(point.x, point.y);
         while (DequeueEvent(&input) == 1) {
             if (!DispatchRegionInput(&input) &&
@@ -289,17 +286,17 @@ void MainMenuScreenFrame()
                     case 'X':
                         RequestExitScreen();
                         break;
-                    case HOME:
+                    case VK_PRIOR:
                         DrawMainMenuItem(g_main_menu_selected_item, 0);
                         g_main_menu_selected_item = 0;
                         DrawMainMenuItem(0, 1);
                         break;
-                    case KEY_END:
+                    case VK_NEXT:
                         DrawMainMenuItem(g_main_menu_selected_item, 0);
                         g_main_menu_selected_item = 5;
                         DrawMainMenuItem(5, 1);
                         break;
-                    case UPARROW:
+                    case VK_UP:
                         DrawMainMenuItem(g_main_menu_selected_item, 0);
                         if (g_main_menu_selected_item > 0) {
                             --g_main_menu_selected_item;
@@ -309,7 +306,7 @@ void MainMenuScreenFrame()
                         }
                         DrawMainMenuItem(g_main_menu_selected_item, 1);
                         break;
-                    case DNARROW:
+                    case VK_DOWN:
                         DrawMainMenuItem(g_main_menu_selected_item, 0);
                         if (g_main_menu_selected_item < 5) {
                             ++g_main_menu_selected_item;

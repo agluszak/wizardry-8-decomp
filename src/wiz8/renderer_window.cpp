@@ -13,7 +13,7 @@
 #include "wiz8/cursor.h"
 #include "wiz8/regions.h"
 #include "wiz8/render_state.h"
-#include "wiz8/sgp_video.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file_stream.h"
@@ -47,9 +47,8 @@
 
 /* The released SGP video unit owns this platform handle.  Wiz8 replaces the
    released video manager but keeps the same source-defined interface. */
-HWND ghWindow;
 // GLOBAL: WIZ8 0x006596CC
-HWND g_window_6596cc;
+HWND ghWindow;
 
 unsigned char g_flag_603c38 = 1;
 unsigned char g_flag_603c4c = 1;
@@ -87,20 +86,6 @@ LPDIRECTDRAWSURFACE g_video_primary_surface1_6596ac;
 LPDIRECTDRAWSURFACE2 g_video_primary_surface2_6596b0;
 RECT g_window_rect_659610;
 
-// GLOBAL: WIZ8 0x00650f48
-UINT16 gusAlphaMask;
-// GLOBAL: WIZ8 0x00650f4a
-UINT16 gusRedMask;
-// GLOBAL: WIZ8 0x00650f4c
-UINT16 gusGreenMask;
-// GLOBAL: WIZ8 0x00650f4e
-UINT16 gusBlueMask;
-// GLOBAL: WIZ8 0x00650f50
-INT16 gusRedShift;
-// GLOBAL: WIZ8 0x00650f52
-INT16 gusBlueShift;
-// GLOBAL: WIZ8 0x00650f54
-INT16 gusGreenShift;
 unsigned int g_color_key_600088;
 srModeler* g_modeler_65963c;
 srScene* g_scene_user_659640;
@@ -130,7 +115,6 @@ W8World* g_world_659ab8;
 unsigned char g_flag_652da4;
 extern const float g_scale_x_5ebb1c = 1.0f / 640.0f;
 extern const float g_scale_y_5ebb20 = 1.0f / 480.0f;
-extern const float g_one_5ebc30 = 1.0f;
 
 unsigned char g_block_652ddc[0x12c0];
 unsigned int g_index_6596e4;
@@ -203,7 +187,7 @@ void Function422B10(void)
     PurgeInactiveSceneInstances(g_scene_overlay0_659654);
     PurgeInactiveSceneInstances(g_scene_prerender1_659650);
     PurgeInactiveSceneInstances(g_scene_overlay1_659658);
-    MarkScreenRectDirty(0, 0, 640, 480, 0);
+    InvalidateRegion(0, 0, 640, 480, 0);
 }
 
 
@@ -266,7 +250,7 @@ unsigned char InitializeVideoManager(
             PurgeInactiveSceneInstances(g_scene_overlay0_659654);
             PurgeInactiveSceneInstances(g_scene_prerender1_659650);
             PurgeInactiveSceneInstances(g_scene_overlay1_659658);
-            MarkScreenRectDirty(0, 0, 0x280, 0x1e0, 0);
+            InvalidateRegion(0, 0, 0x280, 0x1e0, 0);
             g_dword_6596f0 = 2;
             g_dword_6596ec = 2;
         }
@@ -406,7 +390,6 @@ unsigned char CreateWizardryWindow(void)
     if (!ghWindow) {
         return 0;
     }
-    g_window_6596cc = ghWindow;
     SetFocus(ghWindow);
     return 1;
 }
@@ -676,7 +659,7 @@ void ResetTransientRenderScenes(void)
     PurgeInactiveSceneInstances(g_scene_overlay0_659654);
     PurgeInactiveSceneInstances(g_scene_prerender1_659650);
     PurgeInactiveSceneInstances(g_scene_overlay1_659658);
-    MarkScreenRectDirty(0, 0, 640, 480, 0);
+    InvalidateRegion(0, 0, 640, 480, 0);
 }
 
 // FUNCTION: WIZ8 0x004277e0
@@ -726,7 +709,7 @@ unsigned char RestoreVideoManager(void)
             PurgeInactiveSceneInstances(g_scene_overlay0_659654);
             PurgeInactiveSceneInstances(g_scene_prerender1_659650);
             PurgeInactiveSceneInstances(g_scene_overlay1_659658);
-            MarkScreenRectDirty(0, 0, 0x280, 0x1e0, 0);
+            InvalidateRegion(0, 0, 0x280, 0x1e0, 0);
             g_dword_6596f0 = 2;
             g_dword_6596ec = 2;
         }

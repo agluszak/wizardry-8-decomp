@@ -582,7 +582,7 @@ unsigned char W8Octree::SavePoints00432D60(char* path)
             unsigned char wrote_points =
                 FileWrite(file, m_sr_owned_174, m_positional_170 * 0xc, 0);
             result = wrote_count | wrote_points;
-            CloseVirtualFile(file);
+            FileClose(file);
         }
     }
     return result;
@@ -669,7 +669,7 @@ unsigned char W8Octree::SaveRegionLinks004331F0(char* path)
         result = wrote_keys | wrote_values;
     }
 cleanup:
-    CloseVirtualFile(file);
+    FileClose(file);
     if (keys != 0) {
         free(keys);
     }
@@ -1659,11 +1659,11 @@ W8Octree::W8Octree(const char* path, void** game_data)
         srAssertFail("hOctFile", OCTREE_CPP, 0xa3,
                      "ReadOctFile: Couldn't open octree file.");
     }
-    fSuccess = ReadVirtualFile(hOctFile, header, 0xf5, &uiRead);
+    fSuccess = FileRead(hOctFile, header, 0xf5, &uiRead);
     g_octree_bytes_read_00659888 += uiRead;
     fLoaded = 0;
     if (fSuccess != 0) {
-        fSuccess = ReadVirtualFile(hOctFile, &uiTerminator, 4, &uiRead);
+        fSuccess = FileRead(hOctFile, &uiTerminator, 4, &uiRead);
         if (fSuccess == 0 || uiTerminator != -1) {
             srAssertFail("fSuccess && (uiTerminator==0xffffffff)", OCTREE_CPP, 0xac,
                          "ReadOctFile: Header of Oct file longer than expected.");
@@ -1694,7 +1694,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                 fSuccess = 0;
                 strcpy(acMessage, "ReadOctFile: Couldn't allocate octree nodes.");
             } else {
-                fSuccess = ReadVirtualFile(
+                fSuccess = FileRead(
                     hOctFile, block, ReadHeader<unsigned long>(header, 0x6a) * 0x24, &uiRead);
                 if (fSuccess == 0) {
                     strcpy(acMessage, "ReadOctFile: Couldn't read octree nodes.");
@@ -1709,7 +1709,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                     fSuccess = 0;
                     strcpy(acMessage, "ReadOctFile: Couldn't allocate octree leaves.");
                 } else {
-                    fSuccess = ReadVirtualFile(
+                    fSuccess = FileRead(
                         hOctFile, block,
                         ReadHeader<unsigned long>(header, 0x6e) * 0x28, &uiRead);
                     if (fSuccess == 0) {
@@ -1726,7 +1726,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                         strcpy(acMessage,
                                "ReadOctFile: Couldn't allocate polygon index list for leaves.");
                     } else {
-                        fLoaded = ReadVirtualFile(
+                        fLoaded = FileRead(
                             hOctFile, block,
                             ReadHeader<unsigned long>(header, 0x82) * 4, &uiRead);
                         if (fLoaded == 0) {
@@ -1748,7 +1748,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
             strcpy(acMessage, "ReadOctFile: Couldn't allocate polygon index list for regions.");
             goto finish;
         }
-        fLoaded = ReadVirtualFile(
+        fLoaded = FileRead(
             hOctFile, block,
             m_positional_0a4 * m_positional_0a8 * m_positional_0ac * 4, &uiRead);
         if (fLoaded == 0) {
@@ -1767,7 +1767,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
             fSuccess = 0;
             strcpy(acMessage, "ReadOctFile: Couldn't allocate Poly Lookup table.");
         } else {
-            fLoaded = ReadVirtualFile(
+            fLoaded = FileRead(
                 hOctFile, block, ReadHeader<unsigned long>(header, 0x72) * 4, &uiRead);
             if (fLoaded == 0) {
                 strcpy(acMessage, "ReadOctFile: Couldn't read Poly Lookup table.");
@@ -1783,7 +1783,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                         strcpy(acMessage, "ReadOctFile: Couldn't allocate region list.");
                         goto finish;
                     }
-                    fLoaded = ReadVirtualFile(
+                    fLoaded = FileRead(
                         hOctFile, block,
                         ReadHeader<unsigned long>(header, 0x92) * 2, &uiRead);
                     if (fLoaded == 0) {
@@ -1801,7 +1801,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                             strcpy(acMessage, "ReadOctFile: Couldn't allocate GD Poly list.");
                             goto finish;
                         }
-                        fLoaded = ReadVirtualFile(
+                        fLoaded = FileRead(
                             hOctFile, block,
                             ReadHeader<unsigned long>(header, 0x86) * 4, &uiRead);
                         if (fLoaded == 0) {
@@ -1820,7 +1820,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                        "ReadOctFile: Couldn't allocate Trigger list.");
                                 goto finish;
                             }
-                            fLoaded = ReadVirtualFile(
+                            fLoaded = FileRead(
                                 hOctFile, block,
                                 ReadHeader<unsigned long>(header, 0x8a) * 2, &uiRead);
                             if (fLoaded == 0) {
@@ -1842,7 +1842,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                            "ReadOctFile: Couldn't allocate region array.");
                                     goto finish;
                                 }
-                                fLoaded = ReadVirtualFile(
+                                fLoaded = FileRead(
                                     hOctFile, block,
                                     ReadHeader<unsigned short>(header, 0x96) * 0xe8, &uiRead);
                                 if (fLoaded == 0) {
@@ -1853,7 +1853,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                             }
                             fSuccess = 0;
                             if (fLoaded != 0) {
-                                fLoaded = ReadVirtualFile(
+                                fLoaded = FileRead(
                                     hOctFile, &uiTerminator, 4, &uiRead);
                                 if (fLoaded == 0 || uiTerminator != -1) {
                                     srAssertFail(
@@ -1872,7 +1872,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                             strcpy(acMessage,
                                                    "ReadOctFile: Couldn't allocate submesh array.");
                                         } else {
-                                            fLoaded = ReadVirtualFile(
+                                            fLoaded = FileRead(
                                                 hOctFile, block,
                                                 (ReadHeader<unsigned long>(header, 0x66) + 1) * 0x10,
                                                 &uiRead);
@@ -1942,7 +1942,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                                     "ReadOctFile: Couldn't allocate Mesh Particle "
                                                     "Lookup Table.");
                                             }
-                                            fLoaded = ReadVirtualFile(
+                                            fLoaded = FileRead(
                                                 hOctFile, m_pusMeshParticleLookup,
                                                 m_meshCount_1b4 * 2 + 2, &uiRead);
                                             if (fLoaded == 0) {
@@ -1958,7 +1958,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                                     "ReadOctFile: Couldn't allocate Mesh Particle "
                                                     "Link Table.");
                                             }
-                                            fLoaded = ReadVirtualFile(
+                                            fLoaded = FileRead(
                                                 hOctFile, m_pusMeshParticles,
                                                 m_usMeshParticlesLen_0e8 * 2, &uiRead);
                                             if (fLoaded == 0) {
@@ -1975,7 +1975,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                                     "ReadOctFile: Couldn't allocate Mesh Prop "
                                                     "Lookup Table.");
                                             }
-                                            fLoaded = ReadVirtualFile(
+                                            fLoaded = FileRead(
                                                 hOctFile, m_pusMeshPropLookup,
                                                 m_meshCount_1b4 * 2 + 2, &uiRead);
                                             if (fLoaded == 0) {
@@ -1991,7 +1991,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                                     "ReadOctFile: Couldn't allocate Mesh Prop Link "
                                                     "Table.");
                                             }
-                                            fLoaded = ReadVirtualFile(
+                                            fLoaded = FileRead(
                                                 hOctFile, m_pusMeshProps,
                                                 m_usMeshPropsLen_0f4 * 2, &uiRead);
                                             if (fLoaded == 0) {
@@ -2002,7 +2002,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                     }
                                     fSuccess = 0;
                                     if (fLoaded != 0) {
-                                        fLoaded = ReadVirtualFile(
+                                        fLoaded = FileRead(
                                             hOctFile, &uiTerminator, 4, &uiRead);
                                         if (fLoaded == 0 || uiTerminator != -1) {
                                             srAssertFail(
@@ -2046,7 +2046,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                                             "Bits.");
                                                     }
                                                 }
-                                                fSuccess = ReadVirtualFile(
+                                                fSuccess = FileRead(
                                                     hOctFile, &uiTerminator, 4, &uiRead);
                                                 if (fSuccess == 0) {
                                                     strcpy(acMessage,
@@ -2080,14 +2080,14 @@ finish:
             strcpy(acMessage, "ReadOctFile: Couldn't allocate submesh array.");
             fSuccess = 0;
         } else {
-            fSuccess = ReadVirtualFile(hOctFile, &uiTerminator, 4, &uiRead);
+            fSuccess = FileRead(hOctFile, &uiTerminator, 4, &uiRead);
             if (fSuccess == 0 || uiTerminator != -1) {
                 srAssertFail("fSuccess && (uiTerminator==0xffffffff)", OCTREE_CPP, 0x1e2,
                              "ReadOctFile: GameData portion of Oct file longer than expected.");
             }
         }
     }
-    CloseVirtualFile(hOctFile);
+    FileClose(hOctFile);
     if (fSuccess != 0) {
         g_octree_6598a4 = this;
         *static_cast<W8Octree**>(pGameData) = this;

@@ -112,7 +112,7 @@ void SetFact(
 // FUNCTION: WIZ8 0x00506480
 void SaveFactState(int save_handle)
 {
-    WriteVirtualFile(save_handle, g_fact_values, 1000, (unsigned int*)&save_handle);
+    FileWrite(save_handle, g_fact_values, 1000, (unsigned int*)&save_handle);
 }
 
 /* Clears every fact, then seeds the ones a fresh party starts with. A party
@@ -188,7 +188,7 @@ void LoadFactState(int save_handle)
 {
     W8NpcState* npc;
 
-    ReadVirtualFile(save_handle, g_fact_values, 1000, (unsigned int*)&save_handle);
+    FileRead(save_handle, g_fact_values, 1000, (unsigned int*)&save_handle);
     if (CheckFactLogged(0x44)) {
         npc = GetNpcStateByKind(0x20);
         if (npc && npc->has_monster) {

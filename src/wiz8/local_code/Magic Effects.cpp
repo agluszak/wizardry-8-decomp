@@ -8,7 +8,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
-#include "wiz8/sgp_video.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/utility.h"
 #include "random.h"
 
@@ -49,7 +49,7 @@ void Function5AF2D0(void)
 {
     if (g_current_screen_state.id == 7) {
         ClearSurfaceRect(0x7f, 0x14, 0x201, 0x28);
-        MarkScreenRectDirty(0x7f, 0x14, 0x201, 0x28, 0);
+        InvalidateRegion(0x7f, 0x14, 0x201, 0x28, 0);
     }
 }
 extern void Function50E8C0(int location_id);

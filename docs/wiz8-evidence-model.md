@@ -48,7 +48,7 @@ Two further columns apply where a layout rather than a name is at stake:
 | Token | Meaning |
 | --- | --- |
 | `original-source` | A released or recovered original source file compiles to this body. |
-| `sgp-source` | Specifically the pinned SGP oracle tree, behind a Wizardry build branch. |
+| `sgp-source` | Released SGP ancestry of the reconstructed Wizardry component. |
 | `original-export` | A decorated export or import preserves the exact ABI name. |
 | `original-runtime-string` | The program itself names the entity at runtime, e.g. class registration. |
 | `original-source-path` | A `__FILE__`, assertion, or logging path assigns translation-unit ownership. |
@@ -59,8 +59,8 @@ Two further columns apply where a layout rather than a name is at stake:
 | `descriptive` | We named it from observed behaviour. No external source claims this name. |
 
 `sgp-source` is deliberately narrower than `original-source`: it also asserts the licence and
-vendored non-commercial handling described in
-[docs/libraries/sgp-source-oracle.md](libraries/sgp-source-oracle.md).
+non-commercial source handling described in
+[docs/libraries/sgp.md](libraries/sgp.md).
 
 ## `authority` vocabulary and its ceiling rule
 
@@ -132,7 +132,7 @@ address,claimed_name,owner,confidence,name_origin,authority,aliases
 Sir-Tech renamed it. Had the compile refuted the identity, the `sgp-source` token would simply never
 have been added and the row would have stayed at `external-semantic` — the ceiling rule makes that
 the only way to express the difference. See
-[docs/libraries/sgp-source-oracle.md](libraries/sgp-source-oracle.md).
+[docs/libraries/sgp.md](libraries/sgp.md).
 
 ## Authority ranking of the full source list
 

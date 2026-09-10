@@ -6,6 +6,7 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/stTextureAnim.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/sr_api.h"
@@ -47,11 +48,6 @@ extern "C" stTextureAnim* g_environment_value_0065a168;
 extern "C" stTextureAnim* g_environment_value_0065a16c;
 extern "C" stTextureAnim* g_environment_value_0065a170;
 extern "C" srVector3T<float> g_environment_origin_65ad88;
-extern const double g_zero_5ebb40;
-/* 0x005EBB34, the addressable zero the environment compares against. float_constants.h
-   cannot be included here because its non-const 0x005EBC30 declaration conflicts
-   with this unit's own const definition. */
-extern "C" float g_float_005ebb34;
 // GLOBAL: WIZ8 0x0065B9A8
 unsigned long g_tick_65b9a8;
 /* 0x00659AB4: the world being rendered. Its sky node is the one field these
@@ -282,7 +278,7 @@ unsigned char ReadLightColourTable00482F90(int hFile)
 
     memset(components, 0xff, sizeof(components));
     if (hFile == 0 ||
-        !ReadVirtualFile(hFile, components, sizeof(components), 0)) {
+        !FileRead(hFile, components, sizeof(components), 0)) {
         return 0;
     }
 
@@ -308,7 +304,7 @@ unsigned char ReadEnvironmentColourTable004830D0(int hFile)
 
     memset(components, 0xff, sizeof(components));
     if (hFile == 0 ||
-        !ReadVirtualFile(hFile, components, sizeof(components), 0)) {
+        !FileRead(hFile, components, sizeof(components), 0)) {
         return 0;
     }
 
@@ -522,9 +518,6 @@ void EnableSky(void)
     }
 }
 
-// GLOBAL: WIZ8 0x005ebc30
-const double g_double_005ebc30 = 1.0;
-
 // GLOBAL: WIZ8 0x0060a3b0
 int g_environment_value_0060a3b0 = -1;
 
@@ -566,13 +559,13 @@ void SetWorldEnvironmentValue00483AE0(W8World* world, float value)
     if (world == 0) {
         srAssertFail("pWorld", ENVIRONMENT_CPP, 0x298, 0);
     }
-    if (g_double_005ebc30 <= value || g_zero_5ebb40 < value) {
+    if (g_double_005ebc30 <= value || g_zero_005ebb40 < value) {
         if (g_double_005ebc30 <= value) {
             value = (float)g_double_005ebc30;
         }
     }
     else {
-        value = (float)g_zero_5ebb40;
+        value = (float)g_zero_005ebb40;
     }
     if (world->static_scene == 0) {
         colour.red = 0.0f;

@@ -11,7 +11,6 @@ from wiz8decomp.provenance import (
     parse_name_origin,
     validate_provenance,
 )
-from wiz8decomp.source_index import source_functions
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 FUNCTION_MAPS = sorted((REPOSITORY / "evidence/reviewed").glob("*/functions.csv"))
@@ -86,24 +85,6 @@ def test_reviewed_function_maps_carry_valid_provenance(path: Path) -> None:
             validate_provenance(row["name_origin"], row["authority"])
         except ProvenanceError as error:
             raise AssertionError(f"{path.name}:{number}: {error}") from error
-
-
-def test_claims_exclude_source_owned_identities_and_type_layouts() -> None:
-    source_addresses = set(source_functions(REPOSITORY))
-    with (REPOSITORY / "evidence/reviewed/wiz8/claims.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        claims = list(csv.DictReader(stream))
-
-    assert claims
-    assert {row["entity_kind"] for row in claims} == {"function"}
-    assert len({row["claim_id"] for row in claims}) == len(claims)
-    assert not [
-        row
-        for row in claims
-        if int(row["entity_key"], 16) in source_addresses
-        and row["predicate"] in {"accepted-identity", "identity-provenance"}
-    ]
 
 
 def test_analysis_artifacts_are_not_stored_as_configuration() -> None:

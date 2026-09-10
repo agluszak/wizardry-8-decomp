@@ -36,7 +36,7 @@ unsigned char W8Chunk::Read(void* buffer, unsigned int size,
     if (m_fWriting) {
         srAssertFail("!m_fWriting", CHUNK_CPP, 0x280, 0);
     }
-    result = ReadVirtualFile(m_hFile, buffer, size, &done);
+    result = FileRead(m_hFile, buffer, size, &done);
     if (transferred) {
         *transferred = done;
     }
@@ -53,7 +53,7 @@ unsigned char W8Chunk::Write(const void* buffer, unsigned int size,
     if (!m_fWriting) {
         srAssertFail("m_fWriting", CHUNK_CPP, 0x29d, 0);
     }
-    result = WriteVirtualFile(m_hFile, buffer, size, &done);
+    result = FileWrite(m_hFile, (PTR)buffer, size, &done);
     if (transferred) {
         *transferred = done;
     }

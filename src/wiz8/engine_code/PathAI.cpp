@@ -59,7 +59,7 @@ unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
     if (output == 0) {
         return 0;
     }
-    if (!ReadVirtualFile(handle, &version, 1, 0) || version != 0) {
+    if (!FileRead(handle, &version, 1, 0) || version != 0) {
         return 0;
     }
 
@@ -71,10 +71,10 @@ unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
     memset(path, 0, sizeof(W8PathAI));
     path->nodes_0c = new W8GrowableVector<srVector3T<float>*>(5);
 
-    success = ReadVirtualFile(handle, &path->unknown_01[0], 1, 0);
-    success = success && ReadVirtualFile(handle, &path->value_04, 4, 0);
-    success = success && ReadVirtualFile(handle, &path->unknown_08, 4, 0);
-    success = success && ReadVirtualFile(handle, &point_count, 4, 0);
+    success = FileRead(handle, &path->unknown_01[0], 1, 0);
+    success = success && FileRead(handle, &path->value_04, 4, 0);
+    success = success && FileRead(handle, &path->unknown_08, 4, 0);
+    success = success && FileRead(handle, &point_count, 4, 0);
 
     if (point_count == 0) {
         DestroyPathAI004A9810(path);
@@ -101,18 +101,18 @@ unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
             srVector3T<float> axis;
             srMatrix3T<float> rotation;
 
-            ReadVirtualFile(handle, &point->x, 4, 0);
-            ReadVirtualFile(handle, &point->y, 4, 0);
-            ReadVirtualFile(handle, &point->z, 4, 0);
+            FileRead(handle, &point->x, 4, 0);
+            FileRead(handle, &point->y, 4, 0);
+            FileRead(handle, &point->z, 4, 0);
             point->x = static_cast<float>(point->x * g_double_005ec150);
             point->y = static_cast<float>(point->y * g_double_005ec150);
             point->z = static_cast<float>(point->z * g_double_005ec150);
             PathAIAddPoint004A9C30(path, point);
 
-            ReadVirtualFile(handle, &angle, 4, 0);
-            ReadVirtualFile(handle, &axis.x, 4, 0);
-            ReadVirtualFile(handle, &axis.y, 4, 0);
-            ReadVirtualFile(handle, &axis.z, 4, 0);
+            FileRead(handle, &angle, 4, 0);
+            FileRead(handle, &axis.x, 4, 0);
+            FileRead(handle, &axis.y, 4, 0);
+            FileRead(handle, &axis.z, 4, 0);
             rotation.SetIdentity00467310();
             if ((double)angle != g_zero_005ebb40) {
                 RotateMatrixAroundAxis0042B910(
@@ -121,7 +121,7 @@ unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
             }
             path->rotations_14[index] = rotation;
             if (path->unknown_01[0] == 2) {
-                success = success && ReadVirtualFile(
+                success = success && FileRead(
                     handle, &path->scales_18[index],
                     sizeof(srVector3T<float>), 0);
             }

@@ -15,7 +15,7 @@ This is a Jujutsu repository for evidence-driven matching decompilation.
   translation unit, check whether that unit contains inline assembly. An assembly-containing unit
   requires per-function code-generation comparison; structural similarity to nearby C is not
   sufficient provenance.
-- Search `third_party/sfi-sgp/sgp` before using any SGP interface and include its owning header. Put missing product headers under `include/wiz8/sgp-compat` by their original names; never invent replacement interfaces. Preserve SFI-SCLA and upstream notices.
+- SGP is the reconstructed source project in `src/sgp`, built once as `WIZ8_SGP` for every product. Search it before using an SGP interface and include its owning header. Reconstruct product C boundaries in their real owning headers; only genuinely unresolved original headers belong in `include/wiz8/sgp-compat`. Preserve SFI-SCLA, upstream notices, and dated modification notices.
 - Search before declaring anything. Extend the canonical owner; do not add duplicate externs, guessed aliases, raw vtable calls, wrappers, or parallel inventories.
 - Cross-translation-unit functions and globals have one canonical declaration in their owner's header; callers include it. Do not declare them locally in `.cpp` files. The only exception is an actual C, OS, or vendor interface for which no project or dependency header exists. This restriction does not prohibit externally linked definitions.
 - Repository-owned Wizardry and SurRender code is unconditional C++. Retain `extern "C"` only for proven C linkage; never add C fallback APIs.

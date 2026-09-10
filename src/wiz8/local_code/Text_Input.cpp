@@ -1,5 +1,5 @@
-#include "wiz8/font_manager.h"
-#include "wiz8/input_hooks.h"
+#include "Font.h"
+#include "input.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/dirty_tiles.h"
@@ -22,11 +22,11 @@
  * Wizardry's product fork of Sir-Tech's released Utils/Text_Input.c.
  *
  * The unmodified released unit and header are retained at
- * third_party/sfi-sgp/utils/Text_Input.{c,h}.  This derivative is distributed
+ * third_party/sfi-ja2-utils/utils/Text_Input.{c,h}.  This derivative is distributed
  * under the SFI Source Code License Agreement retained with that source.
  * Modified 2026-09-07 to identify the released source and keep only
  * retail-evidenced Wizardry declarations and behavior in the product unit.
- * See third_party/sfi-sgp/WIZARDY_PATCHES.md for the demonstrated boundary.
+ * See third_party/sfi-ja2-utils/README.md for the demonstrated boundary.
  */
 
 typedef void (*INPUT_CALLBACK)(unsigned char index, int active);
@@ -118,11 +118,6 @@ static unsigned char gubMouseDownPos;
 static int gsCursorX;
 static size_t guiVisibleCount;
 
-unsigned short Function402800(unsigned short character);
-unsigned short Function402820(unsigned short character);
-unsigned short Function402840(unsigned short character);
-int Function402880(int character);
-int Function4028A0(int character);
 
 // FUNCTION: WIZ8 0x005D3520
 void InitTextInputModeWithScheme(int mode)
@@ -1091,7 +1086,7 @@ void RenderBackgroundField(TEXTINPUTNODE* field)
         colour = style->usWizardryInactiveColor;
 
     ColorFillVideoSurfaceArea(-14, left, top, right, bottom, colour);
-    MarkScreenRectDirty(left, top, right, bottom, 0);
+    InvalidateRegion(left, top, right, bottom, 0);
 }
 
 // FUNCTION: WIZ8 0x005D5390

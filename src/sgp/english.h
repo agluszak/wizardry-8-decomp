@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+   Declare the retail two-bank character table.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __ENGLISH_
 #define __ENGLISH_
 
@@ -134,7 +137,8 @@
 extern "C" {
 #endif
 
-extern UINT16 gsKeyTranslationTable[1024];
+/* Modified 2026-09-10: Wizardry retains the unmodified and Shift banks only. */
+extern UINT16 gsKeyTranslationTable[512];
 
 #ifdef __cplusplus
 }

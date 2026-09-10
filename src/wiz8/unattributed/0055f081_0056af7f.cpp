@@ -1,5 +1,5 @@
 #include "wiz8/engine_code/Monster.h"
-#include "wiz8/sgp_video.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/utility.h"
 #include "wiz8/engine_code/GameData.h"
@@ -33,8 +33,8 @@ unsigned char GetTable647CCCEntry(char index)
 // FUNCTION: WIZ8 0x00568950
 unsigned int Function568950(const InputAtom* input)
 {
-    W8ScreenPoint point;
-    GetScreenPoint004284F0(&point);
+    POINT point;
+    SGPMouseGetPos(&point);
     switch (input->usEvent) {
     case LEFT_BUTTON_DOWN:
     case LEFT_BUTTON_UP:
@@ -111,7 +111,7 @@ void Function56AAB0(void)
                 Function5A1950();
             }
             ClearSurfaceRect(0xb1, 0x13f, 0x1cf, 0x153);
-            MarkScreenRectDirty(0xb1, 0x13f, 0x1cf, 0x153, 0);
+            InvalidateRegion(0xb1, 0x13f, 0x1cf, 0x153, 0);
             if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
                 g_level_block != 0) {
                 g_level_block->redraw_flags |= 0x8000;

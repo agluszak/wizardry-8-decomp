@@ -40,16 +40,16 @@ unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record)
     W8WideChar wide[2000];
 
     total_sub_entries = 0;
-    ReadVirtualFile(handle, record, 0xc, &transferred);
+    FileRead(handle, record, 0xc, &transferred);
     if (transferred != 0xc) {
         return 0;
     }
 
     if (record->strings != 0) {
-        ReadVirtualFile(handle, record, 1, &transferred);
+        FileRead(handle, record, 1, &transferred);
         record->strings = static_cast<char**>(malloc(record->string_count * 4));
         for (index = 0; index < record->string_count; ++index) {
-            ReadVirtualFile(handle, &length, 2, &transferred);
+            FileRead(handle, &length, 2, &transferred);
             if (transferred != 2) {
                 return 0;
             }
@@ -58,7 +58,7 @@ unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record)
                 if (record->strings[index] == 0) {
                     return 0;
                 }
-                ReadVirtualFile(handle, wide, length * 2, &transferred);
+                FileRead(handle, wide, length * 2, &transferred);
                 wide[length] = 0;
                 sprintf(record->strings[index], "%S", wide);
             }
@@ -83,7 +83,7 @@ unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record)
         do {
             entry = reinterpret_cast<W8FileEntry0055A140*>(
                 offset + reinterpret_cast<char*>(record->entries));
-            ReadVirtualFile(handle, entry, 0x12, &transferred);
+            FileRead(handle, entry, 0x12, &transferred);
             if (transferred != 0x12) {
                 return 0;
             }
@@ -103,12 +103,12 @@ unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record)
                 if (entry->sub_entry_count != 0) {
                     do {
                         sub_entry = entry->sub_entries + sub_index;
-                        ReadVirtualFile(handle, sub_entry, 8, &transferred);
+                        FileRead(handle, sub_entry, 8, &transferred);
                         if (transferred != 8) {
                             return 0;
                         }
                         if (sub_entry->text != 0) {
-                            ReadVirtualFile(handle, &length, 2, &transferred);
+                            FileRead(handle, &length, 2, &transferred);
                             if (transferred != 2) {
                                 return 0;
                             }
@@ -117,7 +117,7 @@ unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record)
                             if (text == 0) {
                                 return 0;
                             }
-                            ReadVirtualFile(handle, text, length, &transferred);
+                            FileRead(handle, text, length, &transferred);
                             if (transferred != length) {
                                 return 0;
                             }
@@ -157,12 +157,12 @@ W8RecordFile0055A480* LoadRecordFile0055A480(char* path)
     if (file == 0) {
         return 0;
     }
-    ReadVirtualFile(handle, file, 0xe, &transferred);
+    FileRead(handle, file, 0xe, &transferred);
     if (transferred != 0xe) {
         return 0;
     }
     if (file->name != 0) {
-        ReadVirtualFile(handle, &length, 2, &transferred);
+        FileRead(handle, &length, 2, &transferred);
         if (transferred != 2) {
             return 0;
         }
@@ -172,7 +172,7 @@ W8RecordFile0055A480* LoadRecordFile0055A480(char* path)
             if (name == 0) {
                 return 0;
             }
-            ReadVirtualFile(handle, name, length, &transferred);
+            FileRead(handle, name, length, &transferred);
             if (transferred != length) {
                 return 0;
             }
@@ -189,6 +189,6 @@ W8RecordFile0055A480* LoadRecordFile0055A480(char* path)
             return 0;
         }
     }
-    CloseVirtualFile(handle);
+    FileClose(handle);
     return file;
 }

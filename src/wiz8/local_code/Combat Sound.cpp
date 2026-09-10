@@ -18,7 +18,7 @@ static unsigned char ReadHitSoundLine(int handle, char* line,
 
     while (length + 1 < capacity) {
         done = 0;
-        if (!ReadVirtualFile(handle, &value, 1, &done) || done == 0) {
+        if (!FileRead(handle, &value, 1, &done) || done == 0) {
             line[length] = '\0';
             return length != 0;
         }
@@ -89,7 +89,7 @@ unsigned char LoadHitSoundDatabase(void)
         }
     }
     if (row != 38) {
-        CloseVirtualFile(handle);
+        FileClose(handle);
         return 0;
     }
     row = 0;
@@ -104,13 +104,13 @@ unsigned char LoadHitSoundDatabase(void)
             continue;
         }
         if (column < 0 || column >= 12 || row >= 28) {
-            CloseVirtualFile(handle);
+            FileClose(handle);
             return 0;
         }
         g_material_impact_sounds_68d850[row++][column] =
             DuplicateHitSound(line);
     }
-    CloseVirtualFile(handle);
+    FileClose(handle);
     // Several impact materials intentionally provide one catch-all sound rather than one
     // entry per weapon class.  The retail loader accepts EOF after any valid final entry.
     return 1;

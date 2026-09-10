@@ -1,7 +1,5 @@
 set(ZLIB_SOURCE "" CACHE PATH "Pinned zlib 1.0.4 source tree used by recovered game code")
 set(INFOZIP_SOURCE "" CACHE PATH "Pinned Info-ZIP UnZip 5.4 source tree")
-set(SGP_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/sfi-sgp/sgp" CACHE PATH
-    "Vendored SFI-licensed Standard Gaming Platform source tree")
 if(NOT IJG_JPEG_SOURCE)
     message(FATAL_ERROR "IJG_JPEG_SOURCE must point at the pinned IJG release 6 tree")
 endif()
@@ -17,8 +15,10 @@ target_compile_definitions(wiz8_compile_settings INTERFACE
 )
 target_include_directories(wiz8_compile_settings INTERFACE
     include
+    include/wiz8
+    include/wiz8/engine_code
     include/wiz8/sgp-compat
-    "${SGP_SOURCE}"
+    src/sgp
 )
 
 function(wiz8_enable_cpp_compat TARGET)
@@ -146,5 +146,6 @@ endfunction()
 
 include(src/srext_jpegimporter/CMakeLists.txt)
 include(src/surrender/CMakeLists.txt)
+add_subdirectory(src/sgp)
 include(src/wiz8/CMakeLists.txt)
 include(src/srext_unzip/CMakeLists.txt)

@@ -4,9 +4,10 @@
 #include "wiz8/render_state.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"
-#include "wiz8/sgp_video.h"
+#include "wiz8/engine_code/Video2.h"
 
 #include "FileMan.h"
+#include "LibraryDataBase.h"
 #include "Font.h"
 #include "english.h"
 #include "input.h"
@@ -21,7 +22,6 @@
 extern unsigned char g_flag_689b2c;
 // GLOBAL: WIZ8 0x00689b2c
 unsigned char g_flag_689b2c;
-extern char g_path_6e0fa0[];
 
 extern unsigned char FindGameDataPath0042B590(char* path, int drive);
 extern void ContinueAfterDarkEndingVideo005AE770(void);
@@ -53,10 +53,10 @@ unsigned char IntroScreenEnter(void)
     }
     sprintf(path, "Data\\Flics\\Intro\\%s", g_intro_video_names[g_intro_video_index_0064d8ac]);
     if (!FileExists(path)) {
-        if (!FindGameDataPath0042B590(g_path_6e0fa0, 3)) {
+        if (!FindGameDataPath0042B590(gzCdDirectory, 3)) {
             return 1;
         }
-        sprintf(path, "%sData\\Flics\\Intro\\%s", g_path_6e0fa0,
+        sprintf(path, "%sData\\Flics\\Intro\\%s", gzCdDirectory,
                 g_intro_video_names[g_intro_video_index_0064d8ac]);
         if (!FileExists(path)) {
             return 1;
@@ -119,10 +119,10 @@ void AdvanceIntroScreen(void)
         g_intro_video_index_0064d8ac = 0;
         sprintf(path, "Data\\Flics\\Intro\\%s", g_intro_video_names[g_intro_video_index_0064d8ac]);
         if (!FileExists(path)) {
-            if (!FindGameDataPath0042B590(g_path_6e0fa0, 3)) {
+            if (!FindGameDataPath0042B590(gzCdDirectory, 3)) {
                 goto ordinary_destroy;
             }
-            sprintf(path, "%sData\\Flics\\Intro\\%s", g_path_6e0fa0,
+            sprintf(path, "%sData\\Flics\\Intro\\%s", gzCdDirectory,
                     g_intro_video_names[g_intro_video_index_0064d8ac]);
             if (!FileExists(path)) {
                 goto ordinary_destroy;

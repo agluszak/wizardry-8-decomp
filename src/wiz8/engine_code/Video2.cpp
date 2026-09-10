@@ -1,4 +1,5 @@
 #include "wiz8/dirty_tiles.h"
+#include "wiz8/engine_code/Video2.h"
 #include "surrender/srColorSurface.h"
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
@@ -14,18 +15,62 @@
 #include "wiz8/utility.h"
 #include "wiz8/wiz8_windows.h"
 #include "DirectDraw Calls.h"
+#include "himage.h"
 
 #include <string.h>
 
-extern srNode* Function424BA0(
-    srTextureIFace* texture,
-    float width,
-    float height,
-    unsigned char positional_3);
-extern unsigned char g_flag_603c60;
-extern unsigned char g_flag_603c4c;
-extern int g_value_659668;
-extern int g_screen_transition_object_count_654aac;
+// GLOBAL: WIZ8 0x00603c70
+char g_video_config_file[260] = "3DVideo.CFG";
+
+// GLOBAL: WIZ8 0x006598a8
+unsigned char g_flag_6598a8;
+
+// FUNCTION: WIZ8 0x004229d0
+void PrintScreen(void)
+{
+    g_flag_659711 = 1;
+}
+
+// FUNCTION: WIZ8 0x004277d0
+void VideoInspectorEnable(void)
+{
+    g_flag_65970f = 1;
+}
+
+// FUNCTION: WIZ8 0x0042bc00
+void NoOct(void)
+{
+    g_flag_6598a8 = 1;
+}
+
+// GLOBAL: WIZ8 0x006548a0
+INT32 g_help_box_width;
+// GLOBAL: WIZ8 0x00654acc
+INT32 g_help_box_height;
+
+// GLOBAL: WIZ8 0x00654aac
+int g_screen_transition_object_count_654aac;
+// GLOBAL: WIZ8 0x00654ab4
+srClass** g_screen_transition_objects_654ab4;
+
+// FUNCTION: WIZ8 0x00429770
+void VideoRemoveToolTip(void)
+{
+    int index;
+    srClass* object;
+
+    while (g_screen_transition_object_count_654aac != 0) {
+        object = g_screen_transition_objects_654ab4[0];
+        if (g_screen_transition_object_count_654aac > 0) {
+            for (index = 0; index < g_screen_transition_object_count_654aac - 1; ++index) {
+                g_screen_transition_objects_654ab4[index] =
+                    g_screen_transition_objects_654ab4[index + 1];
+            }
+            --g_screen_transition_object_count_654aac;
+        }
+        object->release();
+    }
+}
 
 // VTABLE: WIZ8 0x005EBE98
 // class srClassSupport<srMeshModel, class srMeshModel, 0, 8208>
@@ -556,4 +601,81 @@ void __fastcall ReleaseOwnedClass(srClass** owner)
     if (*owner) {
         (*owner)->release();
     }
+}
+
+// FUNCTION: WIZ8 0x00427a30
+void VideoSetConfigFile(const char* path)
+{
+    strcpy(g_video_config_file, path);
+}
+
+// FUNCTION: WIZ8 0x00427a60
+char* VideoGetConfigFile(void)
+{
+    return g_video_config_file;
+}
+
+// FUNCTION: WIZ8 0x004229b0
+unsigned char VideoIsFullScreen(void)
+{
+    return g_fullscreen_603c39;
+}
+
+// FUNCTION: WIZ8 0x00428b80
+int VideoDumpMemoryLeaks(void)
+{
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x0042b830
+BOOLEAN CheckCdPresent(void)
+{
+    return TRUE;
+}
+
+// FUNCTION: WIZ8 0x00427a70
+void VideoGetClientRect(RECT* rect)
+{
+    GetClientRect(ghWindow, rect);
+    ClientToScreen(ghWindow, (POINT*)rect);
+    ClientToScreen(ghWindow, (POINT*)&rect->right);
+}
+
+// FUNCTION: WIZ8 0x00421f20
+IDirectDrawSurface2* GetFrameBufferObject(void)
+{
+    return g_primary_surface_6596a8;
+}
+
+// FUNCTION: WIZ8 0x00421f40
+unsigned char GetPrimaryRGBDistributionMasks(
+    unsigned int* red, unsigned int* green, unsigned int* blue)
+{
+    *red = gusRedMask;
+    *green = gusGreenMask;
+    *blue = gusBlueMask;
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00421fd0
+void* LockMouseBuffer(unsigned int* pitch)
+{
+    *pitch = g_mouse_surface_659688->getPitch();
+    return g_mouse_surface_659688->getDataPtr();
+}
+
+/* The retail linker folds this empty body with other empty C functions. */
+void UnlockMouseBuffer(void)
+{
+}
+
+/* The retail empty video-capture entry folds with the shared 0x4023a0 ret. */
+void VideoCaptureToggle(void)
+{
+}
+
+// FUNCTION: WIZ8 0x00421f30
+IDirectDraw2* GetDirectDraw2Object(void)
+{
+    return g_direct_draw2_6596a0;
 }

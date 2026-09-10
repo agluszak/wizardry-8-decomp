@@ -52,33 +52,33 @@ unsigned char AnimObjReadFromFile004A05C0(
         srAssertFail("pInfo && pInfo->hFile && pao", ANIM_OBJ_CPP, 0xef, 0);
     }
     handle = info->hFile;
-    success = ReadVirtualFile(handle, &version, 1, 0);
-    success = success && ReadVirtualFile(handle, &animation->unknown_00[0], 1, 0);
-    success = success && ReadVirtualFile(handle, &animation->unknown_00[1], 1, 0);
-    success = success && ReadVirtualFile(handle, &animation->value_02, 1, 0);
-    success = success && ReadVirtualFile(handle, &animation->unknown_03[0], 1, 0);
-    success = success && ReadVirtualFile(handle, &animation->unknown_03[1], 1, 0);
-    success = success && ReadVirtualFile(handle, &animation->flag_05, 1, 0);
+    success = FileRead(handle, &version, 1, 0);
+    success = success && FileRead(handle, &animation->unknown_00[0], 1, 0);
+    success = success && FileRead(handle, &animation->unknown_00[1], 1, 0);
+    success = success && FileRead(handle, &animation->value_02, 1, 0);
+    success = success && FileRead(handle, &animation->unknown_03[0], 1, 0);
+    success = success && FileRead(handle, &animation->unknown_03[1], 1, 0);
+    success = success && FileRead(handle, &animation->flag_05, 1, 0);
 
     if (version < 3) {
         animation->playback_scale_08 = 15.0f;
     }
     else {
-        success = success && ReadVirtualFile(
+        success = success && FileRead(
             handle, &animation->playback_scale_08, 4, 0);
     }
     if (version < 5) {
         animation->start_frame_14 = 0;
     }
     else {
-        success = success && ReadVirtualFile(
+        success = success && FileRead(
             handle, &animation->start_frame_14, 1, 0);
     }
     if (version < 11) {
         animation->end_frame_15 = 0;
     }
     else {
-        success = success && ReadVirtualFile(
+        success = success && FileRead(
             handle, &animation->end_frame_15, 1, 0);
     }
     if (version < 6) {
@@ -86,21 +86,21 @@ unsigned char AnimObjReadFromFile004A05C0(
         animation->value_10 = 1.0f;
     }
     else {
-        success = success && ReadVirtualFile(
+        success = success && FileRead(
             handle, &animation->unknown_0c[0], 1, 0);
-        success = success && ReadVirtualFile(handle, &animation->value_10, 4, 0);
+        success = success && FileRead(handle, &animation->value_10, 4, 0);
     }
-    success = success && ReadVirtualFile(handle, discarded, sizeof(discarded), 0);
+    success = success && FileRead(handle, discarded, sizeof(discarded), 0);
     if (!success) {
         srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x117, 0);
     }
     for (index = 0; index < (signed char)animation->unknown_00[0]; ++index) {
-        success = success && ReadVirtualFile(handle, &channel_bytes[index], 1, 0);
+        success = success && FileRead(handle, &channel_bytes[index], 1, 0);
     }
 
     if (version > 6) {
         unsigned char frames;
-        ReadVirtualFile(handle, &frames, 1, 0);
+        FileRead(handle, &frames, 1, 0);
         if (animation->pfKnownBBoxFrames == 0 && frames != 0) {
             animation->pfKnownBBoxFrames =
                 static_cast<unsigned char*>(malloc(frames));
@@ -117,9 +117,9 @@ unsigned char AnimObjReadFromFile004A05C0(
             }
             memset(animation->pfKnownBBoxFrames, 1, frames);
             for (index = 0; index < frames; ++index) {
-                ReadVirtualFile(handle, &animation->pvecBoundMin[index],
+                FileRead(handle, &animation->pvecBoundMin[index],
                                 sizeof(srVector3T<float>), 0);
-                ReadVirtualFile(handle, &animation->pvecBoundMax[index],
+                FileRead(handle, &animation->pvecBoundMax[index],
                                 sizeof(srVector3T<float>), 0);
                 animation->pvecBoundMin[index] *=
                     static_cast<float>(g_double_005ec150);
@@ -132,7 +132,7 @@ unsigned char AnimObjReadFromFile004A05C0(
     if (version > 7) {
         unsigned char light_count;
         srVector3T<float> color(1.0f, 1.0f, 1.0f);
-        ReadVirtualFile(handle, &light_count, 1, 0);
+        FileRead(handle, &light_count, 1, 0);
         for (index = 0; index < (signed char)light_count; ++index) {
             unsigned char light_version;
             unsigned char definition_kind = 0;
@@ -142,35 +142,35 @@ unsigned char AnimObjReadFromFile004A05C0(
             float intensity;
             stLightDefinition* definition = 0;
 
-            ReadVirtualFile(handle, &light_version, 1, 0);
-            ReadVirtualFile(handle, &position, sizeof(position), 0);
-            ReadVirtualFile(handle, &color, sizeof(color), 0);
-            ReadVirtualFile(handle, &intensity, 4, 0);
-            ReadVirtualFile(handle, &range, 4, 0);
+            FileRead(handle, &light_version, 1, 0);
+            FileRead(handle, &position, sizeof(position), 0);
+            FileRead(handle, &color, sizeof(color), 0);
+            FileRead(handle, &intensity, 4, 0);
+            FileRead(handle, &range, 4, 0);
             position *= static_cast<float>(g_double_005ec150);
             if (light_version < 3) {
                 definition_kind = light_version == 2 ? 1 : 0;
             }
             else {
-                ReadVirtualFile(handle, &definition_kind, 1, 0);
+                FileRead(handle, &definition_kind, 1, 0);
             }
 
             if (definition_kind == 1) {
                 stLightDefinition005ECDBC* typed =
                     new stLightDefinition005ECDBC;
-                ReadVirtualFile(handle, &typed->flags_08, 4, 0);
-                ReadVirtualFile(handle, &typed->value_0c, 4, 0);
-                ReadVirtualFile(handle, &typed->color_10, 12, 0);
-                ReadVirtualFile(handle, &typed->value_1c, 4, 0);
-                ReadVirtualFile(handle, &typed->value_20, 4, 0);
-                ReadVirtualFile(handle, &typed->value_24, 4, 0);
-                ReadVirtualFile(handle, &typed->intensity_28, 4, 0);
-                ReadVirtualFile(handle, &typed->value_2c, 4, 0);
-                ReadVirtualFile(handle, &typed->value_30, 4, 0);
-                ReadVirtualFile(handle, &typed->value_34, 4, 0);
-                ReadVirtualFile(handle, &typed->path_value_38, 4, 0);
-                ReadVirtualFile(handle, &typed->value_3c, 4, 0);
-                ReadVirtualFile(handle, &typed->value_40, 4, 0);
+                FileRead(handle, &typed->flags_08, 4, 0);
+                FileRead(handle, &typed->value_0c, 4, 0);
+                FileRead(handle, &typed->color_10, 12, 0);
+                FileRead(handle, &typed->value_1c, 4, 0);
+                FileRead(handle, &typed->value_20, 4, 0);
+                FileRead(handle, &typed->value_24, 4, 0);
+                FileRead(handle, &typed->intensity_28, 4, 0);
+                FileRead(handle, &typed->value_2c, 4, 0);
+                FileRead(handle, &typed->value_30, 4, 0);
+                FileRead(handle, &typed->value_34, 4, 0);
+                FileRead(handle, &typed->path_value_38, 4, 0);
+                FileRead(handle, &typed->value_3c, 4, 0);
+                FileRead(handle, &typed->value_40, 4, 0);
                 definition = typed;
             }
             else if (definition_kind == 2) {
@@ -179,17 +179,17 @@ unsigned char AnimObjReadFromFile004A05C0(
                 int previous = 0;
                 int key;
 
-                ReadVirtualFile(handle, &ignored, 1, 0);
-                ReadVirtualFile(handle, &typed->value_50, 4, 0);
-                ReadVirtualFile(handle, &typed->value_54, 4, 0);
+                FileRead(handle, &ignored, 1, 0);
+                FileRead(handle, &typed->value_50, 4, 0);
+                FileRead(handle, &typed->value_54, 4, 0);
                 for (key = 0; key < 6; ++key) {
                     int frame;
                     float value;
                     srVector3T<float> vector;
 
-                    ReadVirtualFile(handle, &frame, 4, 0);
-                    ReadVirtualFile(handle, &value, 4, 0);
-                    ReadVirtualFile(handle, &vector, sizeof(vector), 0);
+                    FileRead(handle, &frame, 4, 0);
+                    FileRead(handle, &value, 4, 0);
+                    FileRead(handle, &vector, sizeof(vector), 0);
                     if (frame < previous) {
                         frame = previous + 1;
                     }
@@ -234,7 +234,7 @@ unsigned char AnimObjReadFromFile004A05C0(
 
     if (animation->flag_05 == 0 && version > 8) {
         unsigned char has_path;
-        ReadVirtualFile(handle, &has_path, 1, 0);
+        FileRead(handle, &has_path, 1, 0);
         if (has_path != 0) {
             W8PathAI* path = 0;
             success = LoadPathAI004A92A0(&path, handle);
@@ -251,7 +251,7 @@ unsigned char AnimObjReadFromFile004A05C0(
     }
     if (version > 9) {
         unsigned char ignored;
-        success = success && ReadVirtualFile(handle, &ignored, 1, 0);
+        success = success && FileRead(handle, &ignored, 1, 0);
     }
 
     if (animation->flag_05 == 0) {
@@ -261,7 +261,7 @@ unsigned char AnimObjReadFromFile004A05C0(
             W8AniMesh* mesh = CreateAniMesh004B57E0();
             signed char channel;
 
-            success = success && ReadVirtualFile(handle, &channel, 1, 0);
+            success = success && FileRead(handle, &channel, 1, 0);
             mesh->list_index_28 = channel;
             if (!LoadAniMeshFromInfo004B5B30(info, mesh, load_all)) {
                 animation->entries_18[channel] = 0;
@@ -281,7 +281,7 @@ unsigned char AnimObjReadFromFile004A05C0(
              group < (signed char)animation->unknown_00[0]; ++group) {
             signed char entry_count;
             int entry;
-            success = ReadVirtualFile(handle, &entry_count, 1, 0);
+            success = FileRead(handle, &entry_count, 1, 0);
             if (!success) {
                 srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x200, 0);
             }
@@ -291,7 +291,7 @@ unsigned char AnimObjReadFromFile004A05C0(
                 signed char channel;
                 const char* saved_filename;
 
-                if (!ReadVirtualFile(handle, &channel, 1, 0)) {
+                if (!FileRead(handle, &channel, 1, 0)) {
                     srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x208, 0);
                 }
                 mesh->list_index_28 = channel;

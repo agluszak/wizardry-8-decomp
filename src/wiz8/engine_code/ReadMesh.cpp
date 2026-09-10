@@ -421,7 +421,7 @@ int ReadMeshMaterials00487E10(
 
     short count;
     short index;
-    ReadVirtualFile(info->hFile, &count, sizeof(count), 0);
+    FileRead(info->hFile, &count, sizeof(count), 0);
     if (count < 1) {
         return 0;
     }
@@ -430,18 +430,18 @@ int ReadMeshMaterials00487E10(
         static_cast<W8MaterialRecord004B8A70*>(
             malloc(count * sizeof(W8MaterialRecord004B8A70)));
     memset(records, 0, count * sizeof(W8MaterialRecord004B8A70));
-    ReadVirtualFile(info->hFile, records, 0x11a, 0);
+    FileRead(info->hFile, records, 0x11a, 0);
     if (records[0].version_00 < 4) {
         for (index = 1; index < count; ++index) {
-            ReadVirtualFile(info->hFile, records + index, 0x11a, 0);
+            FileRead(info->hFile, records + index, 0x11a, 0);
         }
     }
     else {
-        ReadVirtualFile(info->hFile,
+        FileRead(info->hFile,
             reinterpret_cast<unsigned char*>(records) + 0x11a,
             0x10, 0);
         if (count > 1) {
-            ReadVirtualFile(info->hFile, records + 1,
+            FileRead(info->hFile, records + 1,
                 (count - 1) * sizeof(W8MaterialRecord004B8A70), 0);
         }
     }
@@ -557,10 +557,10 @@ unsigned char ReadSingleLevelMeshBody00485C10(
         srAssertFail("hFile", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0xd9, 0);
     }
 
-    ReadVirtualFile(file, &version, sizeof(version), 0);
-    ReadVirtualFile(file, &vertex_count, sizeof(vertex_count), 0);
+    FileRead(file, &version, sizeof(version), 0);
+    FileRead(file, &vertex_count, sizeof(vertex_count), 0);
     unsigned char success =
-        ReadVirtualFile(file, &face_count, sizeof(face_count), 0);
+        FileRead(file, &face_count, sizeof(face_count), 0);
     if (vertex_count < 1 || face_count < 1) {
         return 0;
     }
@@ -569,7 +569,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(
     srVector3T<float> scale;
     srMatrix3T<float> rotation;
     if (version > 2) {
-        success = ReadVirtualFile(file, &flags, sizeof(flags), 0);
+        success = FileRead(file, &flags, sizeof(flags), 0);
     }
     if (version > 1) {
         ReadMeshTransform004896C0(file, &location, &rotation, &scale);
@@ -580,13 +580,13 @@ unsigned char ReadSingleLevelMeshBody00485C10(
 
     if (version > 3) {
         signed char mapping_count;
-        success = ReadVirtualFile(file, &mapping_count, sizeof(mapping_count), 0);
+        success = FileRead(file, &mapping_count, sizeof(mapping_count), 0);
         for (short index = 0; index < mapping_count; ++index) {
             short value;
             short key;
             if (success == 0 ||
-                !ReadVirtualFile(file, &value, sizeof(value), 0) ||
-                !ReadVirtualFile(file, &key, sizeof(key), 0)) {
+                !FileRead(file, &value, sizeof(value), 0) ||
+                !FileRead(file, &key, sizeof(key), 0)) {
                 success = 0;
             }
             mapped_values.Add(value);
@@ -603,7 +603,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(
         if (vertices == 0) {
             srAssertFail("pstVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x139, 0);
         }
-        success = ReadVirtualFile(
+        success = FileRead(
             file, vertices, vertex_count * sizeof(*vertices), &bytes_read);
         if (success == 0) {
             srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x13b, 0);
@@ -616,10 +616,10 @@ unsigned char ReadSingleLevelMeshBody00485C10(
     }
     else {
         unsigned char compression_type;
-        ReadVirtualFile(file, &compression_type, sizeof(compression_type), 0);
-        ReadVirtualFile(file, &frame_count, sizeof(frame_count), 0);
+        FileRead(file, &compression_type, sizeof(compression_type), 0);
+        FileRead(file, &frame_count, sizeof(frame_count), 0);
         if (compression_type == 2) {
-            ReadVirtualFile(
+            FileRead(
                 file, &compression_scale, sizeof(compression_scale), 0);
         }
         if ((flags & 2) == 0) {
@@ -637,7 +637,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(
                 if (compressed_vertices[frame] == 0) {
                     srAssertFail("ppCompVertices[i]", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x114, 0);
                 }
-                success = ReadVirtualFile(file, compressed_vertices[frame],
+                success = FileRead(file, compressed_vertices[frame],
                     vertex_count * 3 * sizeof(short), &bytes_read);
                 if (success == 0) {
                     srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x118, 0);
@@ -652,7 +652,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(
         srAssertFail("pstFaces", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x148, 0);
     }
     if ((flags & 4) == 0) {
-        success = ReadVirtualFile(
+        success = FileRead(
             file, faces, face_count * sizeof(*faces), &bytes_read);
         if (success == 0) {
             srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x166, 0);
@@ -665,7 +665,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(
         if (compressed_faces == 0) {
             srAssertFail("pCompPoly", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x14e, 0);
         }
-        success = ReadVirtualFile(file, compressed_faces,
+        success = FileRead(file, compressed_faces,
             face_count * sizeof(*compressed_faces), &bytes_read);
         if (success == 0) {
             srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x152, 0);
@@ -833,10 +833,10 @@ unsigned char ReadMultipleLevelMeshes00488240(
         srAssertFail("hFile", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x323, 0);
     }
 
-    unsigned char success = ReadVirtualFile(
+    unsigned char success = FileRead(
         info->hFile, &mesh_count, sizeof(mesh_count), 0);
     if (success != 0) {
-        ReadVirtualFile(info->hFile, &root_count, sizeof(root_count), 0);
+        FileRead(info->hFile, &root_count, sizeof(root_count), 0);
     }
 
     g_read_mesh_material_count_65b9cc = ReadMeshMaterials00487E10(
@@ -847,7 +847,7 @@ unsigned char ReadMultipleLevelMeshes00488240(
         srAssertFail("uiMatCount", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x329, 0);
     }
 
-    ReadVirtualFile(info->hFile, &terminator, sizeof(terminator), 0);
+    FileRead(info->hFile, &terminator, sizeof(terminator), 0);
     if (terminator != -1) {
         srAssertFail("(uiTerminator == 0xffffffff)",
             "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x32c,
@@ -899,7 +899,7 @@ unsigned char ReadMultipleLevelMeshes00488240(
         }
     }
 
-    ReadVirtualFile(info->hFile, &terminator, sizeof(terminator), 0);
+    FileRead(info->hFile, &terminator, sizeof(terminator), 0);
     if (terminator != -1) {
         srAssertFail("(uiTerminator == 0xffffffff)",
             "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x35b,
@@ -970,22 +970,22 @@ unsigned char SkipSingleLevelMesh00487BD0(W8ReadLevelInfo *info) {
   if (info == 0 || info->world == 0 || info->hFile == 0) {
     return 0;
   }
-  if (!ReadVirtualFile(info->hFile, &version, 4, 0) ||
-      !ReadVirtualFile(info->hFile, &vertex_count, 4, 0) ||
-      !ReadVirtualFile(info->hFile, &face_count, 4, 0)) {
+  if (!FileRead(info->hFile, &version, 4, 0) ||
+      !FileRead(info->hFile, &vertex_count, 4, 0) ||
+      !FileRead(info->hFile, &face_count, 4, 0)) {
     return 0;
   }
   if (vertex_count < 1 || face_count < 1) {
     return 0;
   }
   if (version > 2) {
-    success = ReadVirtualFile(info->hFile, &flags, 1, 0);
+    success = FileRead(info->hFile, &flags, 1, 0);
   }
   if (version > 1) {
     FileSeek(info->hFile, 0x28, FILE_SEEK_FROM_CURRENT);
   }
   if (version > 3) {
-    if (success == 0 || !ReadVirtualFile(info->hFile, &count, 1, 0)) {
+    if (success == 0 || !FileRead(info->hFile, &count, 1, 0)) {
       success = 0;
     }
     if (count != 0) {
@@ -1000,8 +1000,8 @@ unsigned char SkipSingleLevelMesh00487BD0(W8ReadLevelInfo *info) {
     unsigned char ignored;
     short group_count;
 
-    ReadVirtualFile(info->hFile, &ignored, 1, 0);
-    ReadVirtualFile(info->hFile, &group_count, 2, 0);
+    FileRead(info->hFile, &ignored, 1, 0);
+    FileRead(info->hFile, &group_count, 2, 0);
     if ((flags & 2) == 0) {
       vertex_count = group_count * vertex_count * 0xc;
     } else {
@@ -1015,9 +1015,9 @@ unsigned char SkipSingleLevelMesh00487BD0(W8ReadLevelInfo *info) {
     face_count *= 0x21;
   }
   FileSeek(info->hFile, face_count, FILE_SEEK_FROM_CURRENT);
-  if (ReadVirtualFile(info->hFile, &item_count, 2, 0) && item_count > 0) {
+  if (FileRead(info->hFile, &item_count, 2, 0) && item_count > 0) {
     for (index = 0; index < item_count; ++index) {
-      ReadVirtualFile(info->hFile, &count, 1, 0);
+      FileRead(info->hFile, &count, 1, 0);
       FileSeek(info->hFile, 0x119, FILE_SEEK_FROM_CURRENT);
       if (count > 3) {
         FileSeek(info->hFile, 0x10, FILE_SEEK_FROM_CURRENT);

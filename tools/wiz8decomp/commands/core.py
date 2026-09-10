@@ -72,7 +72,7 @@ def compare_command(
         typer.Option("--file", help="Compare every FUNCTION marker in this source file."),
     ] = None,
     changed: bool = typer.Option(
-        False, "--changed", help="Compare all FUNCTION markers in C++ files changed in Jujutsu."
+        False, "--changed", help="Compare all FUNCTION markers in C/C++ files changed in Jujutsu."
     ),
     since: Annotated[
         str | None,
@@ -104,7 +104,7 @@ def compare_command(
             if changed:
                 selected_files.extend(changed_source_files(settings.repo_dir, since))
                 if not selected_files and not addresses:
-                    raise ValueError("no changed C++ files; no functions selected")
+                    raise ValueError("no changed C/C++ files; no functions selected")
             # Selection must see this source state, not the snapshot left by
             # an earlier check/test run. The indexer caches unchanged inputs.
             write_source_index(settings)

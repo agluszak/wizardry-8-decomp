@@ -71,6 +71,12 @@ speculative edit, explicitly roll back a native transaction instead of saving or
 Keep unresolved facts unknown. Refresh the existing tracked GZF checkpoint when sharing reviewed
 analysis, not after every parameter edit; do not create a signature ledger or replay framework.
 
+For a conflicting GZF checkpoint, `tools/ghidra-scripts/merge_checkpoint_functions.py BASE INCOMING`
+previews non-overlapping function-analysis changes against the canonical live program. Add `--apply`
+only after reviewing the preview, then refresh the tracked checkpoint. The script opens the two
+checkpoints immutably and refuses type changes, other analysis changes, and overlapping local edits;
+resolve those explicitly with native Ghidra instead of choosing one entire checkpoint over the other.
+
 ## Inspect only what the question needs
 
 Use native listing/reference/data-type managers and `DecompInterface`; reuse one interface for a

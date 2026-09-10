@@ -105,31 +105,31 @@ unsigned char LoadMissileDatabase(void)
     }
     handle = FileOpen(path, 0x41, 0);
     if (!handle ||
-        !ReadVirtualFile(handle, &allocated_count, 4, 0) ||
-        !ReadVirtualFile(handle, &record_count, 4, 0)) {
+        !FileRead(handle, &allocated_count, 4, 0) ||
+        !FileRead(handle, &record_count, 4, 0)) {
         if (handle) {
-            CloseVirtualFile(handle);
+            FileClose(handle);
         }
         return 0;
     }
     g_missile_table_65bde0 = new W8MissileTableRecord[allocated_count];
     if (!g_missile_table_65bde0) {
-        CloseVirtualFile(handle);
+        FileClose(handle);
         return 0;
     }
     for (index = 0; index < record_count; ++index) {
         if (!FileSeek(handle, 0x101, 4) ||
-            !ReadVirtualFile(handle, &g_missile_table_65bde0[index],
+            !FileRead(handle, &g_missile_table_65bde0[index],
                              sizeof(W8MissileTableRecord), 0)) {
             delete[] g_missile_table_65bde0;
             g_missile_table_65bde0 = 0;
             g_missile_table_count_65bddc = 0;
-            CloseVirtualFile(handle);
+            FileClose(handle);
             return 0;
         }
     }
     g_missile_table_count_65bddc = record_count;
-    CloseVirtualFile(handle);
+    FileClose(handle);
     return 1;
 }
 

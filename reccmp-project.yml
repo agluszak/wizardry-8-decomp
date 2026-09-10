@@ -3,6 +3,7 @@ targets:
     filename: Wiz8.exe
     source-root:
       - src/wiz8
+      - src/sgp
       - include/wiz8
     data-sources:
       - build/reccmp/wiz8-symbols.csv

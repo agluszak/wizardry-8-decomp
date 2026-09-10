@@ -1,9 +1,9 @@
+#include "wiz8/engine_code/Video2.h"
 #ifndef WIZ8_CURSOR_H
 #define WIZ8_CURSOR_H
 
 #include "Types.h"
 
-struct W8ScreenPoint;
 class srModelInstance;
 
 extern srModelInstance* g_cursor_node_659694;
@@ -27,7 +27,6 @@ extern BOOLEAN gfTrackMousePos;
 }
 
 void PositionMouseCursor(int x, int y, unsigned char reset_tick);
-void GetScreenPoint004284F0(W8ScreenPoint* point);
 void UpdateHeldItemCursor(void);
 void ClearHeldItemDisplay(void);
 void SetCurrentCursor(int cursor);

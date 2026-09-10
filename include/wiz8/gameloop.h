@@ -1,5 +1,5 @@
-#ifndef WIZ8_SGP_COMPAT_GAMELOOP_H
-#define WIZ8_SGP_COMPAT_GAMELOOP_H
+#ifndef WIZ8_GAMELOOP_H
+#define WIZ8_GAMELOOP_H
 
 #include "Types.h"
 

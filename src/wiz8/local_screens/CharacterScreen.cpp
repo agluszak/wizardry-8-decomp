@@ -1,3 +1,4 @@
+#include "soundman.h"
 #include "wiz8/character.h"
 #include "wiz8/bringup_gates.h"
 #include "wiz8/local_code/GameplayCode.h"
@@ -134,7 +135,7 @@ W8CharacterScreen::W8CharacterScreen(int mode, W8Character* character)
     }
     if (m_mode_008 == 3) {
         m_mode_008 = 2;
-        PlaySound00408860("Data\\Sound\\Misc\\GainLevel.wav", 0);
+        SoundPlay("Data\\Sound\\Misc\\GainLevel.wav", 0);
         ShowMessage(FormatWideString(gppStringList[0x364 / 4],
                                      m_character_018.name, 0, 0), 0, 0);
     }
@@ -235,7 +236,7 @@ void W8CharacterScreen::UpdateNavigation(W8CharacterPage* page)
     unsigned char exit_enabled;
     page->GetNavigationState(&next_enabled, &exit_enabled);
     if (!m_next_1af8->m_enabled && next_enabled) {
-        PlaySound00408860("Data\\Sound\\Misc\\Points Spent.wav", 0);
+        SoundPlay("Data\\Sound\\Misc\\Points Spent.wav", 0);
     }
     if (m_next_1af8->m_enabled != next_enabled) {
         m_next_1af8->SetEnabled(next_enabled);
@@ -751,9 +752,9 @@ unsigned char CharacterScreenLeave(int leaving)
 // FUNCTION: WIZ8 0x005b18e0
 void CharacterScreenFrame(void)
 {
-    W8ScreenPoint point;
+    POINT point;
     InputAtom input;
-    GetScreenPoint004284F0(&point);
+    SGPMouseGetPos(&point);
     g_character_screen_0069c2e8->UpdateDialog();
     MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, static_cast<unsigned short>(point.x),
                                 static_cast<unsigned short>(point.y),

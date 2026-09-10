@@ -77,7 +77,7 @@ def test_compare_changed_does_not_fall_back_to_whole_image(tmp_path, monkeypatch
     result = CliRunner().invoke(app, ["compare", "--changed"])
     assert result.exit_code != 0
     assert isinstance(result.exception, ValueError)
-    assert "no changed C++ files" in str(result.exception)
+    assert "no functions selected" in str(result.exception)
 
 
 def test_cli_groups_subcommands_instead_of_exposing_them_at_the_root() -> None:

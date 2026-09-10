@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+   Restore the original pixel-mask storage owner and record its retail addresses.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifdef JA2_PRECOMPILED_HEADERS
 	#include "JA2 SGP ALL.H"
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
@@ -24,13 +27,20 @@
 #define BLACK_SUBSTITUTE	0x0001
 
 
+// GLOBAL: WIZ8 0x00650f48
 UINT16 gusAlphaMask = 0;
+// GLOBAL: WIZ8 0x00650f4a
 UINT16 gusRedMask = 0;
+// GLOBAL: WIZ8 0x00650f4c
 UINT16 gusGreenMask = 0;
+// GLOBAL: WIZ8 0x00650f4e
 UINT16 gusBlueMask = 0;
-INT16  gusRedShift = 0;
-INT16  gusBlueShift = 0;
-INT16  gusGreenShift = 0;
+// GLOBAL: WIZ8 0x00650f50
+INT16 gusRedShift = 0;
+// GLOBAL: WIZ8 0x00650f52
+INT16 gusBlueShift = 0;
+// GLOBAL: WIZ8 0x00650f54
+INT16 gusGreenShift = 0;
 
 
 // this funky union is used for fast 16-bit pixel format conversions

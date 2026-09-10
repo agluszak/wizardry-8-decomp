@@ -153,7 +153,7 @@ void W8DialogScrollBar::Draw(unsigned char force)
         DrawButton(m_up_button);
         DrawButton(m_down_button);
         DrawButton(m_thumb_button);
-        MarkScreenRectDirty(
+        InvalidateRegion(
             GetButtonX(m_track_button), GetButtonY(m_track_button),
             GetButtonX(m_track_button) + GetButtonWidth(m_track_button),
             GetButtonY(m_track_button) + GetButtonHeight(m_track_button), 0);
@@ -192,8 +192,8 @@ void W8DialogScrollBar::ScrollToMouse()
 {
     if (m_view_height / m_entry_height < m_entry_count &&
         m_entry_count != -1 && m_first_visible_entry != -1) {
-        W8ScreenPoint mouse;
-        GetScreenPoint004284F0(&mouse);
+        POINT mouse;
+        SGPMouseGetPos(&mouse);
         if (mouse.y < m_track_bounds[1]) mouse.y = m_track_bounds[1];
         if (mouse.y > m_track_bounds[3]) mouse.y = m_track_bounds[3];
         int top = m_track_bounds[1];

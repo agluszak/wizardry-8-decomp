@@ -1,6 +1,6 @@
 #include "wiz8/bink_video.h"
 #include "wiz8/dirty_tiles.h"
-#include "wiz8/sgp_video.h"
+#include "wiz8/engine_code/Video2.h"
 
 #include "DirectDraw Calls.h"
 #include "soundman.h"
@@ -80,7 +80,7 @@ unsigned char W8BinkVideo::CopyFrameToPrimarySurface()
     int count = BinkGetRects(m_handle, 0);
     for (int index = 0; index < count; ++index) {
         const BINKRECT& rect = m_handle->FrameRects[index];
-        MarkScreenRectDirty(rect.Left, rect.Top,
+        InvalidateRegion(rect.Left, rect.Top,
                             rect.Left + rect.Width, rect.Top + rect.Height, 0);
     }
     return 1;

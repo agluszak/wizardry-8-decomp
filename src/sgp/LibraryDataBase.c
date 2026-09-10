@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+   Reconstruct Wizardry archive initialization, mapping, and patch lookup.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifdef JA2_PRECOMPILED_HEADERS
 	#include "JA2 SGP ALL.H"
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
@@ -38,6 +41,7 @@ INT16	gsCurrentLibrary = -1;
 
 
 //The location of the cdrom drive
+// GLOBAL: WIZ8 0x006e0fa0
 CHAR8	gzCdDirectory[ SGPFILENAME_LEN ];
 
 
@@ -52,75 +56,97 @@ INT32 CompareDirEntryFileNames( CHAR8 *arg1[], DIRENTRY **arg2 );
 
 //************************************************************************
 //
-//	 InitializeFileDatabase():  Call this function to initialize the file
-//	database.  It will use the gGameLibaries[] array for the list of libraries
-//	and the define NUMBER_OF_LIBRARIES for the number of libraries.  The gGameLibaries
-//	array is an array of structure, one of the fields determines if the library
-//	will be initialized and game start.
-//
-//************************************************************************
-BOOLEAN InitializeFileDatabase( )
+static void MapSlfArchive(int library_id)
 {
-	INT16			i;
-	UINT32		uiSize;
-	BOOLEAN		fLibraryInited = FALSE;
+    LibraryHeaderStruct* library = &gFileDataBase.pLibraries[library_id];
+    HANDLE mapping;
+    PTR view;
 
-#ifdef JA2
-	GetCDLocation( );
-#else
-	gzCdDirectory[ 0 ] = '.';
-#endif
+    if (!gGameLibaries[library_id].fMapFile || !library->fLibraryOpen) {
+        return;
+    }
 
-	//if all the libraries exist, set them up
-	gFileDataBase.usNumberOfLibraries = NUMBER_OF_LIBRARIES;
+    mapping = CreateFileMappingA(
+        library->hLibraryHandle, NULL, PAGE_READONLY, 0, 0, NULL);
+    if (mapping != NULL) {
+        view = MapViewOfFile(mapping, FILE_MAP_READ, 0, 0, 0);
+        if (view != NULL) {
+            library->hFileMapping = mapping;
+            library->pFileMapping = view;
+        }
+    }
+}
 
-	//allocate memory for the each of the library headers
-	uiSize = NUMBER_OF_LIBRARIES * sizeof( LibraryHeaderStruct );
-	if( uiSize )
-	{
-		gFileDataBase.pLibraries = MemAlloc( uiSize );
-		CHECKF( gFileDataBase.pLibraries );
+// FUNCTION: WIZ8 0x004126F0
+unsigned char InitializeFileDatabase(void)
+{
+    int library_id;
+    unsigned int size;
+    unsigned char library_initialized = 0;
 
-		//set all the memrory to 0
-		memset( gFileDataBase.pLibraries, 0, uiSize );
+    gzCdDirectory[0] = '.';
+    gzCdDirectory[1] = '\0';
+    gFileDataBase.usNumberOfLibraries = NUMBER_OF_LIBRARIES;
 
+    size = MAX_NUMBER_OF_LIBRARIES * sizeof(LibraryHeaderStruct);
+    gFileDataBase.pLibraries = (LibraryHeaderStruct*)MemAlloc(size);
+    if (gFileDataBase.pLibraries == NULL) {
+        return 0;
+    }
+    memset(gFileDataBase.pLibraries, 0, size);
 
-		//Load up each library
-		for( i=0; i< NUMBER_OF_LIBRARIES; i++ )
-		{
-			//if you want to init the library at the begining of the game
-			if( gGameLibaries[i].fInitOnStart )
-			{
-				//if the library exists
-				if( OpenLibrary( i ) )
-					fLibraryInited = TRUE;
+    for (library_id = 0; library_id < NUMBER_OF_LIBRARIES; ++library_id) {
+        if (gGameLibaries[library_id].fInitOnStart) {
+            if (OpenLibrary((short)library_id)) {
+                MapSlfArchive(library_id);
+                library_initialized = 1;
+            } else {
+                gFileDataBase.pLibraries[library_id].fLibraryOpen = 0;
+            }
+        }
+    }
+    gFileDataBase.fInitialized = library_initialized;
 
-				//else the library doesnt exist
-				else
-				{
-					FastDebugMsg( String("Warning in InitializeFileDatabase( ): Library Id #%d (%s) is to be loaded but cannot be found.\n", i, gGameLibaries[i].sLibraryName ));
-					gFileDataBase.pLibraries[ i ].fLibraryOpen = FALSE;
-				}
-			}
-		}
-		//signify that the database has been initialized ( only if there was a library loaded )
-		gFileDataBase.fInitialized = fLibraryInited;
-	}
+    size = INITIAL_NUM_HANDLES * sizeof(RealFileOpenStruct);
+    gFileDataBase.RealFiles.pRealFilesOpen =
+        (RealFileOpenStruct*)MemAlloc(size);
+    if (gFileDataBase.RealFiles.pRealFilesOpen == NULL) {
+        return 0;
+    }
+    memset(gFileDataBase.RealFiles.pRealFilesOpen, 0, size);
+    gFileDataBase.RealFiles.iSizeOfOpenFileArray = INITIAL_NUM_HANDLES;
+    return 1;
+}
 
-	//allocate memory for the handles of the 'real files' that will be open
-	//This is needed because the the code wouldnt be able to tell the difference between a 'real' handle and a made up one
-	uiSize = INITIAL_NUM_HANDLES * sizeof( RealFileOpenStruct );
-	gFileDataBase.RealFiles.pRealFilesOpen = MemAlloc( uiSize );
-	CHECKF( gFileDataBase.RealFiles.pRealFilesOpen );
+// FUNCTION: WIZ8 0x00412870
+int LoadPatchSlfArchives(const char* directory)
+{
+    char patch_path[260];
+    int patch_number;
+    int loaded = 0;
 
-	//clear the memory
-	memset( gFileDataBase.RealFiles.pRealFilesOpen, 0, uiSize);
+    for (patch_number = 0; patch_number < 50; ++patch_number) {
+        sprintf(patch_path, "%s\\Patch.%3.3d", directory, patch_number);
+        if (FileExistsNoDB(patch_path)) {
+            int library_id = gFileDataBase.usNumberOfLibraries;
+            strcpy(gGameLibaries[library_id].sLibraryName, patch_path);
+            ++gFileDataBase.usNumberOfLibraries;
+            gGameLibaries[library_id].fOnCDrom = 0;
+            gGameLibaries[library_id].fInitOnStart = 0;
 
-	//set the initial number how many files can be opened at the one time
-	gFileDataBase.RealFiles.iSizeOfOpenFileArray = INITIAL_NUM_HANDLES;
-
-
-	return(TRUE);
+            if (OpenLibrary((short)library_id)) {
+                MapSlfArchive(library_id);
+                ++loaded;
+                gFileDataBase.pLibraries[library_id].fPatchLibrary = 1;
+                if (!gFileDataBase.fInitialized) {
+                    gFileDataBase.fInitialized = 1;
+                }
+            } else {
+                --gFileDataBase.usNumberOfLibraries;
+            }
+        }
+    }
+    return loaded;
 }
 
 
@@ -134,6 +160,7 @@ BOOLEAN InitializeFileDatabase( )
 //
 // Created:  3/21/00 Derek Beland
 //*****************************************************************************************
+// FUNCTION: WIZ8 0x00412a10
 BOOLEAN ReopenCDLibraries(void)
 {
 INT16 i;
@@ -144,8 +171,11 @@ INT16 i;
 		if(gFileDataBase.pLibraries[ i ].fLibraryOpen && gGameLibaries[i].fOnCDrom)
 			CloseLibrary(i);
 
-		if(gGameLibaries[i].fOnCDrom)
-			OpenLibrary( i );
+		if(gGameLibaries[i].fOnCDrom && OpenLibrary( i ))
+		{
+			MapSlfArchive(i);
+			gFileDataBase.fInitialized = TRUE;
+		}
 	}
 
 	return(TRUE);
@@ -221,6 +251,7 @@ BOOLEAN CheckForLibraryExistence( STR pLibraryName )
 
 
 
+// FUNCTION: WIZ8 0x00412bb0
 BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BOOLEAN fCanBeOnCDrom )
 {
 	HANDLE	hFile;
@@ -233,7 +264,7 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 	CHAR8		zTempPath[ SGPFILENAME_LEN ];
 
 	//open the library for reading ( if it exists )
-	hFile = CreateFile( pLibraryName, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, NULL );
+	hFile = CreateFile( pLibraryName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, NULL );
 	if( hFile == INVALID_HANDLE_VALUE )
 	{
 		//if it failed finding the file on the hard drive, and the file can be on the cdrom
@@ -243,7 +274,7 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 			sprintf( zTempPath, "%s%s", gzCdDirectory, pLibraryName );
 
 			//look on the cdrom
-			hFile = CreateFile( zTempPath, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, NULL );
+			hFile = CreateFile( zTempPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, NULL );
 			if( hFile == INVALID_HANDLE_VALUE )
 			{
 				UINT32 uiLastError = GetLastError();
@@ -391,6 +422,8 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 	pLibHeader->fLibraryOpen = TRUE;
 	pLibHeader->iNumFilesOpen = 0;
 	pLibHeader->iSizeOfOpenFileArray = INITIAL_NUM_HANDLES;
+	pLibHeader->hFileMapping = NULL;
+	pLibHeader->pFileMapping = NULL;
 
 	return( TRUE );
 }
@@ -398,6 +431,41 @@ BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibHeader, BO
 
 
 
+/* Wizardry opens a separate, positioned OS handle for each Miles stream.
+   Its original source spelling is unresolved; retail callers establish this
+   LibraryDataBase contribution and its HWFILE input. */
+// FUNCTION: WIZ8 0x00412f10
+HANDLE OpenLibraryStream00412F10(HWFILE file)
+{
+    INT16 library_id = (INT16)DB_EXTRACT_LIBRARY(file);
+    UINT32 file_id = DB_EXTRACT_FILE_ID(file);
+    HANDLE handle;
+    CHAR8 path[SGPFILENAME_LEN];
+    CHAR error[1024];
+    DWORD error_id;
+
+    handle = CreateFile(gGameLibaries[library_id].sLibraryName, GENERIC_READ,
+        FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, NULL);
+    if (handle == INVALID_HANDLE_VALUE) {
+        if (!gGameLibaries[library_id].fOnCDrom) {
+            return INVALID_HANDLE_VALUE;
+        }
+        sprintf(path, "%s%s", gzCdDirectory, gGameLibaries[library_id].sLibraryName);
+        handle = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL,
+            OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, NULL);
+        if (handle == INVALID_HANDLE_VALUE) {
+            error_id = GetLastError();
+            FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, error_id, 0,
+                error, sizeof(error), NULL);
+            return INVALID_HANDLE_VALUE;
+        }
+    }
+    SetFilePointer(handle, gFileDataBase.pLibraries[library_id].pOpenFiles[file_id].pFileHeader->uiFileOffset,
+        NULL, FILE_BEGIN);
+    return handle;
+}
+
+// FUNCTION: WIZ8 0x00413010
 BOOLEAN LoadDataFromLibrary( INT16 sLibraryID, UINT32 uiFileNum, PTR pData, UINT32 uiBytesToRead, UINT32 *pBytesRead )
 {
 	UINT32	uiOffsetInLibrary, uiLength;
@@ -413,9 +481,6 @@ BOOLEAN LoadDataFromLibrary( INT16 sLibraryID, UINT32 uiFileNum, PTR pData, UINT
 	uiCurPos = gFileDataBase.pLibraries[ sLibraryID ].pOpenFiles[ uiFileNum ].uiFilePosInFile;
 
 
-	//set the file pointer to the right location
-	SetFilePointer( hLibraryFile, ( uiOffsetInLibrary + uiCurPos ), NULL, FILE_BEGIN );
-
 	//if we are trying to read more data then the size of the file, return an error
 	if( uiBytesToRead + uiCurPos > uiLength )
 	{
@@ -423,18 +488,20 @@ BOOLEAN LoadDataFromLibrary( INT16 sLibraryID, UINT32 uiFileNum, PTR pData, UINT
 		return( FALSE );
 	}
 
-	//get the data
-	if( !ReadFile( hLibraryFile, pData, uiBytesToRead, &uiNumBytesRead, NULL ) )
-		return( FALSE );
-
-	if( uiBytesToRead != uiNumBytesRead )
+	if( gFileDataBase.pLibraries[sLibraryID].hFileMapping )
 	{
-//		Gets the reason why the function failed
-//		UINT32 uiLastError = GetLastError();
-//		char zString[1024];
-//		FormatMessage( FORMAT_MESSAGE_FROM_SYSTEM, 0, uiLastError, 0, zString, 1024, NULL);
-
-		return( FALSE );
+		memcpy(pData, (UINT8*)gFileDataBase.pLibraries[sLibraryID].pFileMapping + uiOffsetInLibrary + uiCurPos,
+			uiBytesToRead);
+		uiNumBytesRead = uiBytesToRead;
+	}
+	else
+	{
+		SetFilePointer(hLibraryFile, 0, NULL, FILE_CURRENT);
+		SetFilePointer(hLibraryFile, uiOffsetInLibrary + uiCurPos, NULL, FILE_BEGIN);
+		if( !ReadFile(hLibraryFile, pData, uiBytesToRead, &uiNumBytesRead, NULL) )
+			return FALSE;
+		if( uiBytesToRead != uiNumBytesRead )
+			return FALSE;
 	}
 
 	gFileDataBase.pLibraries[ sLibraryID ].pOpenFiles[ uiFileNum ].uiFilePosInFile += uiNumBytesRead;
@@ -482,6 +549,8 @@ BOOLEAN CheckIfFileExistInLibrary( STR pFileName )
 INT16 GetLibraryIDFromFileName( STR pFileName )
 {
 INT16 sLoop1, sBestMatch=-1;
+	CHAR8 sFileNameWithPath[ FILENAME_SIZE ];
+	FileHeaderStruct **ppFileHeader;
 
 	//loop through all the libraries to check which library the file is in
 	for( sLoop1=0; sLoop1<gFileDataBase.usNumberOfLibraries; sLoop1++)
@@ -490,7 +559,7 @@ INT16 sLoop1, sBestMatch=-1;
 		if( IsLibraryOpened( sLoop1 ) )
 		{
 			//if the library path name is of size zero, ( the library is for the default path )
-			if( strlen( gFileDataBase.pLibraries[ sLoop1 ].sLibraryPath ) == 0 )
+			if( !gFileDataBase.pLibraries[ sLoop1 ].fPatchLibrary && strlen( gFileDataBase.pLibraries[ sLoop1 ].sLibraryPath ) == 0 )
 			{
 				//determine if there is a directory in the file name
 				if( strchr( pFileName, '\\' ) == NULL && strchr( pFileName, '//' ) == NULL )
@@ -509,6 +578,15 @@ INT16 sLoop1, sBestMatch=-1;
 					// if we've never matched, or this match's path is longer than the previous match (meaning it's more exact)
 					if((sBestMatch==(-1)) || (strlen(gFileDataBase.pLibraries[ sLoop1 ].sLibraryPath) > strlen(gFileDataBase.pLibraries[ sBestMatch ].sLibraryPath)))
 						sBestMatch = sLoop1;
+					else if( gFileDataBase.pLibraries[ sLoop1 ].fPatchLibrary )
+					{
+						strcpy( sFileNameWithPath, pFileName );
+						gsCurrentLibrary = sLoop1;
+						ppFileHeader = (FileHeaderStruct **) bsearch( (char *) &sFileNameWithPath, (FileHeaderStruct *) gFileDataBase.pLibraries[ sLoop1 ].pFileHeader, gFileDataBase.pLibraries[ sLoop1 ].usNumberOfEntries,
+																sizeof( FileHeaderStruct ), (int (*)(const void*, const void*))CompareFileNames );
+						if( ppFileHeader )
+							sBestMatch = sLoop1;
+					}
 				}
 			}
 		}
@@ -576,7 +654,6 @@ INT CompareFileNames( CHAR8 *arg1[], FileHeaderStruct **arg2 )
    /* Compare all of both strings: */
    return _stricmp( sSearchKey, sFileNameWithPath );
 }
-
 
 
 
@@ -901,6 +978,7 @@ BOOLEAN OpenLibrary( INT16 sLibraryID )
 
 
 
+// FUNCTION: WIZ8 0x004138a0
 BOOLEAN CloseLibrary( INT16 sLibraryID )
 {
 	UINT32	uiLoop1;
@@ -961,6 +1039,12 @@ BOOLEAN CloseLibrary( INT16 sLibraryID )
 
 	//set that the library isnt open
 	gFileDataBase.pLibraries[ sLibraryID ].fLibraryOpen = FALSE;
+	if (gFileDataBase.pLibraries[sLibraryID].hFileMapping)
+	{
+		UnmapViewOfFile(gFileDataBase.pLibraries[sLibraryID].pFileMapping);
+		CloseHandle(gFileDataBase.pLibraries[sLibraryID].hFileMapping);
+		gFileDataBase.pLibraries[sLibraryID].hFileMapping = NULL;
+	}
 
 	//close the file ( note libraries are to be closed by the Windows close function )
 	CloseHandle( gFileDataBase.pLibraries[ sLibraryID ].hLibraryHandle );
@@ -1121,4 +1205,3 @@ INT32 CompareDirEntryFileNames( CHAR8 *arg1[], DIRENTRY **arg2 )
    /* Compare all of both strings: */
    return _stricmp( sSearchKey, sFileNameWithPath );
 }
-

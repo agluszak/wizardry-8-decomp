@@ -10,6 +10,12 @@ set_source_files_properties(src/surrender/extension.cpp src/surrender/type_regis
     COMPILE_DEFINITIONS SURRENDER_BUILD)
 
 if(WIZ8_LINT_COMPILE_ONLY)
+    add_subdirectory(src/sgp)
+    target_include_directories(WIZ8_SGP BEFORE PRIVATE tools/lint/include)
+    target_compile_definitions(WIZ8_SGP PRIVATE WIZ8_CLANG_LINT NDEBUG)
+    target_compile_options(WIZ8_SGP PRIVATE
+        "/FI${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/compat/compiler.h"
+        /MD /U_DEBUG -Xclang -fno-wchar -fms-extensions)
     include(src/wiz8/sources.cmake)
     if(WIZ8_FULL_DIAGNOSTICS)
         set(wiz8_clang_target WIZ8_CLANG_DIAGNOSTICS)
@@ -32,7 +38,9 @@ if(WIZ8_LINT_COMPILE_ONLY)
         tools/lint/include
         include
         include/wiz8/sgp-compat
-        third_party/sfi-sgp/sgp
+        include/wiz8
+        include/wiz8/engine_code
+        src/sgp
         /zlib
     )
     target_compile_definitions(${wiz8_clang_target} PRIVATE

@@ -56,7 +56,7 @@ void Function4259B0(int cell, unsigned int flags)
 }
 
 // FUNCTION: WIZ8 0x00422d50
-void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags)
+void InvalidateRegion(int left, int top, int right, int bottom, unsigned int flags)
 {
     unsigned char cell_flags;
     unsigned int clipped_left;

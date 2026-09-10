@@ -468,10 +468,10 @@ unsigned char W8ModalDialogBase::HandleInput(
 // FUNCTION: WIZ8 0x005d3080
 unsigned char W8ModalDialogBase::ProcessInput()
 {
-    W8ScreenPoint mouse;
+    POINT mouse;
     InputAtom input;
 
-    GetScreenPoint004284F0(&mouse);
+    SGPMouseGetPos(&mouse);
     MSYS_SGP_Mouse_Handler_Hook(
         MOUSE_POS,
         mouse.x,

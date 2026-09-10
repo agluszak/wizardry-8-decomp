@@ -100,8 +100,8 @@ unsigned char InitializeFactDatabase(void)
     if (!handle) {
         return 0;
     }
-    if (!ReadVirtualFile(handle, &gXStatus.uiFactsInDatabase, 4, &transferred)) {
-        CloseVirtualFile(handle);
+    if (!FileRead(handle, &gXStatus.uiFactsInDatabase, 4, &transferred)) {
+        FileClose(handle);
         return 0;
     }
     g_fact_records = (W8FactDatabaseRecord*)malloc(gXStatus.uiFactsInDatabase * 0x1d8);
@@ -109,12 +109,12 @@ unsigned char InitializeFactDatabase(void)
         return 0;
     }
     for (index = 0; index < gXStatus.uiFactsInDatabase; ++index) {
-        if (!ReadVirtualFile(handle, &g_fact_records[index], 0x1d8, &transferred)) {
-            CloseVirtualFile(handle);
+        if (!FileRead(handle, &g_fact_records[index], 0x1d8, &transferred)) {
+            FileClose(handle);
             return 0;
         }
     }
-    CloseVirtualFile(handle);
+    FileClose(handle);
     return 1;
 }
 
@@ -138,8 +138,8 @@ unsigned char InitializeItemDatabase(void)
     if (!handle) {
         return 0;
     }
-    if (!ReadVirtualFile(handle, &gXStatus.uiItemsInDatabase, 4, &transferred)) {
-        CloseVirtualFile(handle);
+    if (!FileRead(handle, &gXStatus.uiItemsInDatabase, 4, &transferred)) {
+        FileClose(handle);
         return 0;
     }
     g_item_records = (W8ItemDatabaseRecord*)malloc(gXStatus.uiItemsInDatabase * 0x10d);
@@ -147,12 +147,12 @@ unsigned char InitializeItemDatabase(void)
         return 0;
     }
     for (index = 0; index < gXStatus.uiItemsInDatabase; ++index) {
-        if (!ReadVirtualFile(handle, &g_item_records[index], 0x10d, &transferred)) {
-            CloseVirtualFile(handle);
+        if (!FileRead(handle, &g_item_records[index], 0x10d, &transferred)) {
+            FileClose(handle);
             return 0;
         }
     }
-    CloseVirtualFile(handle);
+    FileClose(handle);
     return 1;
 }
 
@@ -169,8 +169,8 @@ unsigned char InitializeLevelDatabase(void)
     if (!handle) {
         return 0;
     }
-    if (!ReadVirtualFile(handle, &gXStatus.uiLevelsInDatabase, 4, &transferred)) {
-        CloseVirtualFile(handle);
+    if (!FileRead(handle, &gXStatus.uiLevelsInDatabase, 4, &transferred)) {
+        FileClose(handle);
         return 0;
     }
     g_level_records = (W8LevelDatabaseRecord*)malloc(gXStatus.uiLevelsInDatabase * 0xd8);
@@ -178,12 +178,12 @@ unsigned char InitializeLevelDatabase(void)
         return 0;
     }
     for (index = 0; index < gXStatus.uiLevelsInDatabase; ++index) {
-        if (!ReadVirtualFile(handle, &g_level_records[index], 0xd8, &transferred)) {
-            CloseVirtualFile(handle);
+        if (!FileRead(handle, &g_level_records[index], 0xd8, &transferred)) {
+            FileClose(handle);
             return 0;
         }
     }
-    CloseVirtualFile(handle);
+    FileClose(handle);
     return 1;
 }
 
@@ -205,8 +205,8 @@ unsigned char InitializeItemTables(void)
     if (!handle) {
         return 0;
     }
-    if (!ReadVirtualFile(handle, &gXStatus.uiItemTableCategories, 4, &transferred)) {
-        CloseVirtualFile(handle);
+    if (!FileRead(handle, &gXStatus.uiItemTableCategories, 4, &transferred)) {
+        FileClose(handle);
         return 0;
     }
     if (gXStatus.uiItemTableCategories) {
@@ -217,11 +217,11 @@ unsigned char InitializeItemTables(void)
         memset(g_item_table_category_names, 0, gXStatus.uiItemTableCategories * 4);
         for (index = 0; index < gXStatus.uiItemTableCategories; ++index) {
             g_item_table_category_names[index] = (char*)malloc(0x100);
-            ReadVirtualFile(handle, g_item_table_category_names[index], 0x100, &transferred);
+            FileRead(handle, g_item_table_category_names[index], 0x100, &transferred);
         }
     }
-    if (!ReadVirtualFile(handle, &gXStatus.uiItemTablesInDatabase, 4, &transferred)) {
-        CloseVirtualFile(handle);
+    if (!FileRead(handle, &gXStatus.uiItemTablesInDatabase, 4, &transferred)) {
+        FileClose(handle);
         return 0;
     }
     if (gXStatus.uiItemTablesInDatabase) {
@@ -236,13 +236,13 @@ unsigned char InitializeItemTables(void)
             if (!g_item_tables[index]) {
                 return 0;
             }
-            if (!ReadVirtualFile(handle, g_item_tables[index]->name, 0x1f1, &transferred)) {
-                CloseVirtualFile(handle);
+            if (!FileRead(handle, g_item_tables[index]->name, 0x1f1, &transferred)) {
+                FileClose(handle);
                 return 0;
             }
         }
     }
-    CloseVirtualFile(handle);
+    FileClose(handle);
     return 1;
 }
 
@@ -265,8 +265,8 @@ unsigned char InitializeNpcDatabase(void)
     if (!handle) {
         return 0;
     }
-    if (!ReadVirtualFile(handle, &gXStatus.uiNpcsInDatabase, 4, &transferred)) {
-        CloseVirtualFile(handle);
+    if (!FileRead(handle, &gXStatus.uiNpcsInDatabase, 4, &transferred)) {
+        FileClose(handle);
         return 0;
     }
     g_npc_records = (W8NpcDatabaseRecord*)malloc(gXStatus.uiNpcsInDatabase * 0x309);
@@ -274,15 +274,15 @@ unsigned char InitializeNpcDatabase(void)
         return 0;
     }
     for (index = 0; index < gXStatus.uiNpcsInDatabase; ++index) {
-        if (!ReadVirtualFile(handle, &g_npc_records[index], 0x309, &transferred)) {
-            CloseVirtualFile(handle);
+        if (!FileRead(handle, &g_npc_records[index], 0x309, &transferred)) {
+            FileClose(handle);
             return 0;
         }
         g_npc_records[index].item_stock_rules = 0;
         if (g_npc_records[index].flag_9d == 0 && g_npc_records[index].version > 1) {
             entry_count = 0;
-            if (!ReadVirtualFile(handle, &entry_count, 4, &transferred)) {
-                CloseVirtualFile(handle);
+            if (!FileRead(handle, &entry_count, 4, &transferred)) {
+                FileClose(handle);
                 return 0;
             }
             if (entry_count > 0) {
@@ -290,12 +290,12 @@ unsigned char InitializeNpcDatabase(void)
                 for (entry = 0; entry < entry_count; ++entry) {
                     element = new W8NpcItemStockRule;
                     if (!element) {
-                        CloseVirtualFile(handle);
+                        FileClose(handle);
                         return 0;
                     }
                     memset(element, 0, 6);
-                    if (!ReadVirtualFile(handle, element, 6, &transferred)) {
-                        CloseVirtualFile(handle);
+                    if (!FileRead(handle, element, 6, &transferred)) {
+                        FileClose(handle);
                         return 0;
                     }
                     PListInsert(
@@ -305,7 +305,7 @@ unsigned char InitializeNpcDatabase(void)
             }
         }
     }
-    CloseVirtualFile(handle);
+    FileClose(handle);
     return 1;
 }
 
@@ -362,11 +362,11 @@ unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRe
     if (!FileSeek(handle, index * 0x297 + 4, 1)) {
         return 0;
     }
-    if (!ReadVirtualFile(handle, record, 0x297, (unsigned int*)&uiMonsterIndex)) {
-        CloseVirtualFile(handle);
+    if (!FileRead(handle, record, 0x297, (unsigned int*)&uiMonsterIndex)) {
+        FileClose(handle);
         return 0;
     }
-    CloseVirtualFile(handle);
+    FileClose(handle);
     StripMonsterNameSuffix(record->name_00);
     StripMonsterNameSuffix(record->name_30);
     StripMonsterNameSuffix(record->name_60);
@@ -576,8 +576,8 @@ unsigned char Function54A760(W8MonsterRecord** records)
     if (!handle) {
         return 0;
     }
-    if (!ReadVirtualFile(handle, &gXStatus.uiMonstersInDatabase, 4, &transferred)) {
-        CloseVirtualFile(handle);
+    if (!FileRead(handle, &gXStatus.uiMonstersInDatabase, 4, &transferred)) {
+        FileClose(handle);
         return 0;
     }
     if (records) {
@@ -586,8 +586,8 @@ unsigned char Function54A760(W8MonsterRecord** records)
             return 0;
         }
         for (index = 0, cursor = block; index < gXStatus.uiMonstersInDatabase; ++index) {
-            if (!ReadVirtualFile(handle, cursor, 0x297, &transferred)) {
-                CloseVirtualFile(handle);
+            if (!FileRead(handle, cursor, 0x297, &transferred)) {
+                FileClose(handle);
                 free(block);
                 return 0;
             }
@@ -595,7 +595,7 @@ unsigned char Function54A760(W8MonsterRecord** records)
         }
         *records = (W8MonsterRecord*)block;
     }
-    CloseVirtualFile(handle);
+    FileClose(handle);
     return 1;
 }
 
@@ -624,13 +624,13 @@ unsigned char Function54A9A0(unsigned int uiStartIndex, unsigned int uiEndIndex,
     if (!FileSeek(handle, uiStartIndex * 0x297 + 4, 1)) {
         return 0;
     }
-    if (!ReadVirtualFile(handle, records,
+    if (!FileRead(handle, records,
                          (uiEndIndex + 1) * 0x297 - uiStartIndex * 0x297,
                          (unsigned int*)&uiEndIndex)) {
-        CloseVirtualFile(handle);
+        FileClose(handle);
         return 0;
     }
-    CloseVirtualFile(handle);
+    FileClose(handle);
     return 1;
 }
 
@@ -971,8 +971,8 @@ unsigned char InitializeSpellDatabase(void)
         return 0;
     }
     ok = 0;
-    if (ReadVirtualFile(handle, &allocation_count, 4, 0) &&
-        ReadVirtualFile(handle, &row_count, 4, 0)) {
+    if (FileRead(handle, &allocation_count, 4, 0) &&
+        FileRead(handle, &row_count, 4, 0)) {
         ok = 1;
     }
     g_spell_records = new W8SpellRuntimeRecord[allocation_count];
@@ -989,7 +989,7 @@ unsigned char InitializeSpellDatabase(void)
         }
         ok = 0;
         if (FileSeek(handle, 0x101, FILE_SEEK_FROM_CURRENT) &&
-            ReadVirtualFile(
+            FileRead(
                 handle,
                 reinterpret_cast<unsigned char*>(g_spell_records) + offset,
                 sizeof(W8SpellRuntimeRecord),
@@ -1003,7 +1003,7 @@ discard:
         delete[] g_spell_records;
         g_spell_records = 0;
     }
-    CloseVirtualFile(handle);
+    FileClose(handle);
     g_spell_database_version = row_count;
     return ok;
 }

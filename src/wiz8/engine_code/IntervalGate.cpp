@@ -68,7 +68,7 @@ unsigned char W8IntervalGate::Load(int handle)
     if ((m_flags & 2) == 0) {
         return W8GameTimer::Load(handle);
     }
-    unsigned char loaded = ReadVirtualFile(
+    unsigned char loaded = FileRead(
         handle, &m_duration_seconds, sizeof(m_duration_seconds), 0);
     if (loaded != 0) {
         m_start = ReadClock();

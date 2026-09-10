@@ -46,7 +46,7 @@ def addresses_from_files(repository: Path, target: str, paths: Iterable[Path]) -
 
 
 def changed_source_files(repository: Path, since: str | None = None) -> list[Path]:
-    """Use Jujutsu's diff to select current C++ files, including marked headers."""
+    """Use Jujutsu's diff to select current C/C++ files, including marked headers."""
 
     command = ["jj", "diff", "--name-only", "--color=never"]
     if since is not None:
@@ -56,7 +56,7 @@ def changed_source_files(repository: Path, since: str | None = None) -> list[Pat
         path
         for name in result.stdout.splitlines()
         if (path := repository / name).suffix.lower()
-        in {".cpp", ".cc", ".cxx", ".h", ".hpp", ".hxx"}
+        in {".c", ".cpp", ".cc", ".cxx", ".h", ".hpp", ".hxx"}
         and path.is_file()
     ]
 

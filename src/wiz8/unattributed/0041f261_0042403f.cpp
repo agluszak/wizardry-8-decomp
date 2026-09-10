@@ -26,8 +26,6 @@ extern const double g_double_005ebc18;
 const double g_double_005ebc18 = 3.141592653589793;
 // GLOBAL: WIZ8 0x00652940
 float g_origin_652940[3] = { 0.0f, 0.0f, 0.0f };
-// GLOBAL: WIZ8 0x005EBB40
-extern const double g_zero_5ebb40 = 0.0;
 extern const float g_float_005ebcf8;
 
 // FUNCTION: WIZ8 0x00420b40
@@ -158,11 +156,7 @@ int GetCameraYawDegrees(void)
     return (int)(g_gd_camera_65a0f8->m_yaw * 57.295784f);
 }
 
-// FUNCTION: WIZ8 0x00421F30
-IDirectDraw2* GetDirectDraw2(void)
-{
-    return g_direct_draw2_6596a0;
-}
+
 
 extern "C" unsigned char g_flag_6596f4;
 extern "C" {
@@ -213,7 +207,7 @@ void PlacePartyAtPoint(const srVector3T<float>* point)
             (point->x - g_origin_652940[0]) * (point->x - g_origin_652940[0]) +
             (point->y - g_origin_652940[1]) * (point->y - g_origin_652940[1]) +
             (point->z - g_origin_652940[2]) * (point->z - g_origin_652940[2])) !=
-        g_zero_5ebb40) {
+        g_zero_005ebb40) {
         MarkRendererReady();
         g_gd_camera_65a0f8->m_position_08c.x = point->x;
         g_gd_camera_65a0f8->m_position_08c.y = point->y;

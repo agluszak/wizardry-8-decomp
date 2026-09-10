@@ -397,10 +397,10 @@ unsigned char JournalScreenLeave(int)
 // FUNCTION: WIZ8 0x005be110
 void JournalScreenFrame(void)
 {
-    W8ScreenPoint point;
+    POINT point;
     InputAtom input;
 
-    GetScreenPoint004284F0(&point);
+    SGPMouseGetPos(&point);
     UpdateRegionMousePosition(point.x, point.y);
     while (DequeueEvent(&input) == 1) {
         if (!DispatchRegionInput(&input) && input.usEvent == KEY_DOWN) {

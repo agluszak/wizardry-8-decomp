@@ -277,7 +277,7 @@ unsigned char LoadWorld(
     }
     unsigned char success =
         ReadLevel(world, handle, use_octree, material_folder);
-    CloseVirtualFile(handle);
+    FileClose(handle);
     if (success == 0) {
         srAssertFail("fSuccess", THREE_D_API_CPP, 0x1dd,
                      "Problem loading level, please check files and versions.");

@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+   Restore MSVC's Miles startup cleanup registration, as called in retail.
+   Existing RAD and SFI notices and licence terms are retained. */
 //############################################################################
 //##                                                                        ##
 //##  Miles Sound System                                                    ##
@@ -2992,7 +2995,8 @@ int __cdecl MSS_auto_cleanup(void);
 #ifdef _MSC_VER
 // on MSVC, automatically register a cleanup function
 //ODCODENOTE Remove
-//#define AIL_startup() (MSS_auto_cleanup(),AIL_startup())
+/* Modified 2026-09-10: restore the MSVC cleanup registration present in Wizardry. */
+#define AIL_startup() (MSS_auto_cleanup(),AIL_startup())
 #endif
 
 #endif

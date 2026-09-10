@@ -124,7 +124,7 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
     unsigned char success;
     unsigned char path_success;
 
-    success = ReadVirtualFile(hFile, &light_count, sizeof(light_count), 0);
+    success = FileRead(hFile, &light_count, sizeof(light_count), 0);
     if (!success) {
         srAssertFail("fSuccess", READ_LEVEL_CPP, 486,
                      "Couldn't read number of lights");
@@ -137,30 +137,30 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
         stLight* light = 0;
         char name[20];
 
-        ReadVirtualFile(hFile, &record, sizeof(record), 0);
+        FileRead(hFile, &record, sizeof(record), 0);
         if (record.version >= 2) {
-            ReadVirtualFile(hFile, name, sizeof(name), 0);
+            FileRead(hFile, name, sizeof(name), 0);
             _strupr(name);
 
             if ((record.flags & 2) != 0) {
                 definition = new stLightDefinition005ECDBC;
                 record.create = 1;
 
-                ReadVirtualFile(hFile, &definition->flags_08, 4, 0);
-                ReadVirtualFile(hFile, &definition->value_0c, 4, 0);
-                ReadVirtualFile(hFile, &definition->color_10.x, 4, 0);
-                ReadVirtualFile(hFile, &definition->color_10.y, 4, 0);
-                ReadVirtualFile(hFile, &definition->color_10.z, 4, 0);
-                ReadVirtualFile(hFile, &definition->value_1c, 4, 0);
-                ReadVirtualFile(hFile, &definition->value_20, 4, 0);
-                ReadVirtualFile(hFile, &definition->value_24, 4, 0);
-                ReadVirtualFile(hFile, &definition->intensity_28, 4, 0);
-                ReadVirtualFile(hFile, &definition->value_2c, 4, 0);
-                ReadVirtualFile(hFile, &definition->value_30, 4, 0);
-                ReadVirtualFile(hFile, &definition->value_34, 4, 0);
-                ReadVirtualFile(hFile, &definition->path_value_38, 4, 0);
-                ReadVirtualFile(hFile, &definition->value_3c, 4, 0);
-                ReadVirtualFile(hFile, &definition->value_40, 4, 0);
+                FileRead(hFile, &definition->flags_08, 4, 0);
+                FileRead(hFile, &definition->value_0c, 4, 0);
+                FileRead(hFile, &definition->color_10.x, 4, 0);
+                FileRead(hFile, &definition->color_10.y, 4, 0);
+                FileRead(hFile, &definition->color_10.z, 4, 0);
+                FileRead(hFile, &definition->value_1c, 4, 0);
+                FileRead(hFile, &definition->value_20, 4, 0);
+                FileRead(hFile, &definition->value_24, 4, 0);
+                FileRead(hFile, &definition->intensity_28, 4, 0);
+                FileRead(hFile, &definition->value_2c, 4, 0);
+                FileRead(hFile, &definition->value_30, 4, 0);
+                FileRead(hFile, &definition->value_34, 4, 0);
+                FileRead(hFile, &definition->path_value_38, 4, 0);
+                FileRead(hFile, &definition->value_3c, 4, 0);
+                FileRead(hFile, &definition->value_40, 4, 0);
 
                 if ((definition->flags_08 & 0x10) != 0) {
                     path_success = LoadPathAI004A92A0(&path, hFile);
@@ -267,20 +267,20 @@ unsigned char ReadWorldEnvironment004BC9D0(
     unsigned char success;
 
     success =
-        ReadVirtualFile(pInfo->hFile, &fog_enabled, sizeof(fog_enabled), 0) &&
-        ReadVirtualFile(pInfo->hFile, &environment_colour.red,
+        FileRead(pInfo->hFile, &fog_enabled, sizeof(fog_enabled), 0) &&
+        FileRead(pInfo->hFile, &environment_colour.red,
                         sizeof(environment_colour.red), 0) &&
-        ReadVirtualFile(pInfo->hFile, &environment_colour.green,
+        FileRead(pInfo->hFile, &environment_colour.green,
                         sizeof(environment_colour.green), 0) &&
-        ReadVirtualFile(pInfo->hFile, &environment_colour.blue,
+        FileRead(pInfo->hFile, &environment_colour.blue,
                         sizeof(environment_colour.blue), 0) &&
-        ReadVirtualFile(pInfo->hFile, &intensity, sizeof(intensity), 0) &&
-        ReadVirtualFile(pInfo->hFile, &view_distance,
+        FileRead(pInfo->hFile, &intensity, sizeof(intensity), 0) &&
+        FileRead(pInfo->hFile, &view_distance,
                         sizeof(view_distance), 0) &&
-        ReadVirtualFile(pInfo->hFile, &camera_mode, sizeof(camera_mode), 0);
+        FileRead(pInfo->hFile, &camera_mode, sizeof(camera_mode), 0);
 
     if (camera_mode == 1) {
-        success = success && ReadVirtualFile(
+        success = success && FileRead(
             pInfo->hFile, &position, sizeof(position), 0);
         position.x *= g_world_scale_005ebc40;
         position.y *= g_world_scale_005ebc40;
@@ -289,11 +289,11 @@ unsigned char ReadWorldEnvironment004BC9D0(
     }
     else if (camera_mode == 2) {
         success = success &&
-            ReadVirtualFile(pInfo->hFile, &position, sizeof(position), 0) &&
-            ReadVirtualFile(pInfo->hFile, &angle, sizeof(angle), 0) &&
-            ReadVirtualFile(pInfo->hFile, &axis.x, sizeof(axis.x), 0) &&
-            ReadVirtualFile(pInfo->hFile, &axis.y, sizeof(axis.y), 0) &&
-            ReadVirtualFile(pInfo->hFile, &axis.z, sizeof(axis.z), 0);
+            FileRead(pInfo->hFile, &position, sizeof(position), 0) &&
+            FileRead(pInfo->hFile, &angle, sizeof(angle), 0) &&
+            FileRead(pInfo->hFile, &axis.x, sizeof(axis.x), 0) &&
+            FileRead(pInfo->hFile, &axis.y, sizeof(axis.y), 0) &&
+            FileRead(pInfo->hFile, &axis.z, sizeof(axis.z), 0);
         position.x *= g_world_scale_005ebc40;
         position.y *= g_world_scale_005ebc40;
         position.z *= g_world_scale_005ebc40;
@@ -309,7 +309,7 @@ unsigned char ReadWorldEnvironment004BC9D0(
         ApplyCameraRotation(&rotation);
     }
 
-    success = success && ReadVirtualFile(
+    success = success && FileRead(
         pInfo->hFile, &has_light_colours, sizeof(has_light_colours), 0);
     if (has_light_colours != 0) {
         ReadLightColourTable00482F90(pInfo->hFile);
@@ -318,7 +318,7 @@ unsigned char ReadWorldEnvironment004BC9D0(
         BuildLightColourRamp00483360();
     }
 
-    success = success && ReadVirtualFile(
+    success = success && FileRead(
         pInfo->hFile, &has_environment_colours,
         sizeof(has_environment_colours), 0);
     if (has_environment_colours != 0) {
@@ -380,7 +380,7 @@ unsigned char ReadWorldClipPlanes004BCE20(
         srAssertFail("pWorld", READ_LEVEL_CPP, 0x59d, 0);
     }
 
-    success = ReadVirtualFile(pInfo->hFile, &count, sizeof(count), 0);
+    success = FileRead(pInfo->hFile, &count, sizeof(count), 0);
     if (!success) {
         srAssertFail("fSuccess", READ_LEVEL_CPP, 0x5a2,
                      "Error reading num clipping planes");
@@ -390,7 +390,7 @@ unsigned char ReadWorldClipPlanes004BCE20(
         return 1;
     }
 
-    ReadVirtualFile(pInfo->hFile, &version, sizeof(version), 0);
+    FileRead(pInfo->hFile, &version, sizeof(version), 0);
     plane.x = 0.0f;
     plane.y = 1.0f;
     plane.z = 0.0f;
@@ -404,8 +404,8 @@ unsigned char ReadWorldClipPlanes004BCE20(
                          "out of memory creating clip plane");
         }
 
-        ReadVirtualFile(pInfo->hFile, name, sizeof(name), 0);
-        ReadVirtualFile(pInfo->hFile, &serialized_position,
+        FileRead(pInfo->hFile, name, sizeof(name), 0);
+        FileRead(pInfo->hFile, &serialized_position,
                         sizeof(serialized_position), 0);
         _strupr(name);
         clip_plane->setName(name);
@@ -450,7 +450,7 @@ unsigned char ReadWorldProps004BC5E0(
     if (pInfo == 0 || pInfo->hFile == 0 || pWorld == 0) {
         return 0;
     }
-    success = ReadVirtualFile(pInfo->hFile, &count, sizeof(count), 0);
+    success = FileRead(pInfo->hFile, &count, sizeof(count), 0);
     if (!success || count >= 100000) {
         return 0;
     }
@@ -521,7 +521,7 @@ unsigned char ReadWorldItems004BC380(
     if (pInfo == 0 || pInfo->hFile == 0 || pWorld == 0) {
         return 0;
     }
-    success = ReadVirtualFile(pInfo->hFile, &count, sizeof(count), 0);
+    success = FileRead(pInfo->hFile, &count, sizeof(count), 0);
     if (!success || count >= 100000) {
         return 0;
     }
@@ -532,42 +532,42 @@ unsigned char ReadWorldItems004BC380(
     for (index = 0; index < count; ++index) {
         item = 0;
         trigger = 0;
-        success = ReadVirtualFile(
+        success = FileRead(
             pInfo->hFile, record.item_name_1c,
             sizeof(record.item_name_1c), 0);
         if (success) {
-            ReadVirtualFile(pInfo->hFile, &record.position_04,
+            FileRead(pInfo->hFile, &record.position_04,
                             sizeof(record.position_04), 0);
             record.position_04.x *= g_world_scale_005ebc40;
             record.position_04.y *= g_world_scale_005ebc40;
             record.position_04.z *= g_world_scale_005ebc40;
-            ReadVirtualFile(
+            FileRead(
                 pInfo->hFile, &record.positional_00, sizeof(int), 0);
-            ReadVirtualFile(
+            FileRead(
                 pInfo->hFile, &record.positional_10, sizeof(int), 0);
-            ReadVirtualFile(
+            FileRead(
                 pInfo->hFile, &record.positional_14, sizeof(int), 0);
-            ReadVirtualFile(
+            FileRead(
                 pInfo->hFile, &record.positional_18, sizeof(int), 0);
-            ReadVirtualFile(
+            FileRead(
                 pInfo->hFile, &has_trigger, sizeof(has_trigger), 0);
             if (has_trigger != 0) {
                 trigger = Trigger::CreateAndLoadLevelTrigger(
                     pInfo->hFile, pInfo->world);
             }
-            ReadVirtualFile(
+            FileRead(
                 pInfo->hFile, &positional_byte, sizeof(positional_byte), 0);
-            ReadVirtualFile(
+            FileRead(
                 pInfo->hFile, &positional_byte, sizeof(positional_byte), 0);
-            ReadVirtualFile(
+            FileRead(
                 pInfo->hFile, &positional_byte, sizeof(positional_byte), 0);
-            ReadVirtualFile(
+            FileRead(
                 pInfo->hFile, &positional_value, sizeof(positional_value), 0);
-            ReadVirtualFile(
+            FileRead(
                 pInfo->hFile, &positional_value, sizeof(positional_value), 0);
-            ReadVirtualFile(
+            FileRead(
                 pInfo->hFile, &positional_value, sizeof(positional_value), 0);
-            ReadVirtualFile(
+            FileRead(
                 pInfo->hFile, &positional_value, sizeof(positional_value), 0);
 
             if (record.item_name_1c[0] >= '0' &&
@@ -624,7 +624,7 @@ unsigned char ReadMonsterPaths004BC140(
     if (pInfo == 0 || pInfo->hFile == 0 || pWorld == 0) {
         return 0;
     }
-    success = ReadVirtualFile(pInfo->hFile, &count, sizeof(count), 0);
+    success = FileRead(pInfo->hFile, &count, sizeof(count), 0);
     if (!success || count >= 100000) {
         return 0;
     }
@@ -638,7 +638,7 @@ unsigned char ReadMonsterPaths004BC140(
     for (index = 0; index < count; ++index) {
         update_representation = 1;
         active = 1;
-        success = success && ReadVirtualFile(
+        success = success && FileRead(
             pInfo->hFile, monster_name, sizeof(monster_name), 0);
         separator = strchr(monster_name, ':');
         if (separator != 0) {
@@ -716,7 +716,7 @@ unsigned char ReadWorldCameras004BC850(
     if (pInfo == 0 || (pInfo->hFile == 0 | pWorld == 0)) {
         return 0;
     }
-    success = ReadVirtualFile(pInfo->hFile, &count, sizeof(count), 0);
+    success = FileRead(pInfo->hFile, &count, sizeof(count), 0);
     if (!success || count >= 100000) {
         return 0;
     }
@@ -731,15 +731,15 @@ unsigned char ReadWorldCameras004BC850(
             return 0;
         }
         memset(entry, 0, sizeof(W8WorldCameraEntry));
-        ReadVirtualFile(pInfo->hFile, &positional_0,
+        FileRead(pInfo->hFile, &positional_0,
                         sizeof(positional_0), 0);
-        ReadVirtualFile(pInfo->hFile, &positional_1,
+        FileRead(pInfo->hFile, &positional_1,
                         sizeof(positional_1), 0);
-        ReadVirtualFile(pInfo->hFile, &has_scale, sizeof(has_scale), 0);
-        ReadVirtualFile(pInfo->hFile, entry->positional_00,
+        FileRead(pInfo->hFile, &has_scale, sizeof(has_scale), 0);
+        FileRead(pInfo->hFile, entry->positional_00,
                         sizeof(entry->positional_00), 0);
         if (has_scale > 0) {
-            ReadVirtualFile(pInfo->hFile, &scale, sizeof(scale), 0);
+            FileRead(pInfo->hFile, &scale, sizeof(scale), 0);
         }
         else {
             scale = 15.0f;
@@ -769,31 +769,31 @@ unsigned char ReadWorldParticles004BD0D0(
 
     material = 0;
     texture = 0;
-    ReadVirtualFile(pInfo->hFile, &count, sizeof(count), 0);
+    FileRead(pInfo->hFile, &count, sizeof(count), 0);
     for (index = 0; index < count; ++index) {
         unsigned char version;
         stParticle* particle;
         srVector3T<double> axis;
         srVector3T<double> location;
 
-        ReadVirtualFile(pInfo->hFile, &version, sizeof(version), 0);
+        FileRead(pInfo->hFile, &version, sizeof(version), 0);
         if (version == 4) {
-            ReadVirtualFile(pInfo->hFile, &record, 0x225, 0);
+            FileRead(pInfo->hFile, &record, 0x225, 0);
         }
         else if (version == 3) {
-            ReadVirtualFile(pInfo->hFile, &record, 0x21d, 0);
+            FileRead(pInfo->hFile, &record, 0x21d, 0);
             record.start_frame_21d = -1;
             record.end_frame_221 = -1;
         }
         else if (version == 2) {
-            ReadVirtualFile(pInfo->hFile, &record, 0x218, 0);
+            FileRead(pInfo->hFile, &record, 0x218, 0);
             record.state_218 = 0;
             record.value_21c = 0;
             record.start_frame_21d = -1;
             record.end_frame_221 = -1;
         }
         else if (version == 1) {
-            ReadVirtualFile(pInfo->hFile, &record, 0x216, 0);
+            FileRead(pInfo->hFile, &record, 0x216, 0);
             record.value_216 = -1;
             record.state_218 = 0;
             record.value_21c = 0;
@@ -1017,7 +1017,7 @@ unsigned char ReadNamedPositions004BDC90(
     W8NamedPosition* pNamedPos;
 
     hFile = pInfo->hFile;
-    ReadVirtualFile(hFile, &count, sizeof(count), 0);
+    FileRead(hFile, &count, sizeof(count), 0);
     for (index = 0; index < count; ++index) {
         pNamedPos = new W8NamedPosition;
         if (pNamedPos == 0) {
@@ -1025,30 +1025,30 @@ unsigned char ReadNamedPositions004BDC90(
                          "out of memory creating NamedPos");
         }
 
-        ReadVirtualFile(hFile, &version, sizeof(version), 0);
+        FileRead(hFile, &version, sizeof(version), 0);
         if (version != 1) {
             srAssertFail("bVersion == 1", READ_LEVEL_CPP, 0x6d6,
                          "Unknown Named Position version");
         }
 
-        ReadVirtualFile(hFile, pNamedPos->name,
+        FileRead(hFile, pNamedPos->name,
                         sizeof(pNamedPos->name), 0);
-        ReadVirtualFile(hFile, &pNamedPos->position.x,
+        FileRead(hFile, &pNamedPos->position.x,
                         sizeof(pNamedPos->position.x), 0);
-        ReadVirtualFile(hFile, &pNamedPos->position.y,
+        FileRead(hFile, &pNamedPos->position.y,
                         sizeof(pNamedPos->position.y), 0);
-        ReadVirtualFile(hFile, &pNamedPos->position.z,
+        FileRead(hFile, &pNamedPos->position.z,
                         sizeof(pNamedPos->position.z), 0);
         pNamedPos->position.x *= 500.0;
         pNamedPos->position.y *= 500.0;
         pNamedPos->position.z *= 500.0;
-        ReadVirtualFile(hFile, &pNamedPos->value_08c,
+        FileRead(hFile, &pNamedPos->value_08c,
                         sizeof(pNamedPos->value_08c), 0);
-        ReadVirtualFile(hFile, &pNamedPos->value_090,
+        FileRead(hFile, &pNamedPos->value_090,
                         sizeof(pNamedPos->value_090), 0);
-        ReadVirtualFile(hFile, &pNamedPos->value_094,
+        FileRead(hFile, &pNamedPos->value_094,
                         sizeof(pNamedPos->value_094), 0);
-        ReadVirtualFile(hFile, &pNamedPos->value_098,
+        FileRead(hFile, &pNamedPos->value_098,
                         sizeof(pNamedPos->value_098), 0);
         named_positions->Add(pNamedPos);
     }
@@ -1057,11 +1057,11 @@ unsigned char ReadNamedPositions004BDC90(
 
 #define CHECK_PVL_OFFSET(message)                                             \
     if (world->octree != 0 &&                                                \
-        (!ReadVirtualFile(handle, &section_end, sizeof(section_end), 0) ||    \
+        (!FileRead(handle, &section_end, sizeof(section_end), 0) ||    \
          section_end != -1)) {                                               \
         sprintf(error_message, "%s\nTry deleting .PVL file and reloading.", \
                 message);                                                    \
-        ReportError00401920(error_message);                         \
+        ShutdownWithErrorBox(error_message);                         \
     }
 
 // FUNCTION: WIZ8 0x004BAFF0
@@ -1122,7 +1122,7 @@ unsigned char ReadLevel(
     else {
         if (!ReadMultipleLevelMeshes00488240(
                 &info, world->psrMeshes, world->octree->GetMeshCount(), 0)) {
-            ReportError00401920(
+            ShutdownWithErrorBox(
                 "ReadLevel: Error reading multi-meshes.");
         }
         for (unsigned int mesh_index = 0;
@@ -1143,7 +1143,7 @@ unsigned char ReadLevel(
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after items.");
 
     if (!success || info.hFile == 0 ||
-        !ReadVirtualFile(info.hFile, &section_count,
+        !FileRead(info.hFile, &section_count,
                          sizeof(section_count), 0) ||
         section_count >= 100000) {
         success = 0;
@@ -1160,7 +1160,7 @@ unsigned char ReadLevel(
         return 0;
     }
 
-    ReadVirtualFile(info.hFile, &section_count, sizeof(section_count), 0);
+    FileRead(info.hFile, &section_count, sizeof(section_count), 0);
     if (section_count == 0) {
         WorldSetFarClip(world, 42500.0f);
         WorldSetValue74(world, 37500.0f);
@@ -1177,7 +1177,7 @@ unsigned char ReadLevel(
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after fog options.");
 
     if (success && info.hFile != 0) {
-        ReadVirtualFile(info.hFile, &section_count, sizeof(section_count), 0);
+        FileRead(info.hFile, &section_count, sizeof(section_count), 0);
         if (section_count != 0) {
             for (index = 0; index < section_count; ++index) {
                 Trigger::CreateAndLoadLevelTrigger(info.hFile, world);
@@ -1191,7 +1191,7 @@ unsigned char ReadLevel(
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after triggers.");
 
     UpdateWorldProps0044E010(world);
-    ReadVirtualFile(info.hFile, &camera_mode, sizeof(camera_mode), 0);
+    FileRead(info.hFile, &camera_mode, sizeof(camera_mode), 0);
     UpdateCameraView00450080(world->camera, camera_mode == 0 ? -1 : 1);
     if (world->octree == 0 && world != g_world) {
         FinalizeWorldScenes0046F410(world->static_scene, world->dynamic_scene);
@@ -1216,11 +1216,11 @@ unsigned char ReadLevel(
     FinalizeStaticScene0046F3A0(world->static_scene);
 
     if (!success ||
-        !ReadVirtualFile(handle, &environment_offset.x,
+        !FileRead(handle, &environment_offset.x,
                          sizeof(environment_offset.x), 0) ||
-        !ReadVirtualFile(handle, &environment_offset.y,
+        !FileRead(handle, &environment_offset.y,
                          sizeof(environment_offset.y), 0) ||
-        !ReadVirtualFile(handle, &environment_offset.z,
+        !FileRead(handle, &environment_offset.z,
                          sizeof(environment_offset.z), 0)) {
         success = 0;
     }

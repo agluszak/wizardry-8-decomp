@@ -295,8 +295,8 @@ unsigned char W8GameTimer::Load(int handle)
 {
     float progress;
     // Retail performs both reads and combines their results with bitwise OR.
-    unsigned char loaded = ReadVirtualFile(handle, &progress, sizeof(progress), 0);
-    loaded |= ReadVirtualFile(handle, &m_duration_scale, sizeof(m_duration_scale), 0);
+    unsigned char loaded = FileRead(handle, &progress, sizeof(progress), 0);
+    loaded |= FileRead(handle, &m_duration_scale, sizeof(m_duration_scale), 0);
     if (loaded != 0) {
         m_duration = (int)(m_duration_seconds * m_duration_scale * 10000.0f);
         m_end = m_start + m_duration;

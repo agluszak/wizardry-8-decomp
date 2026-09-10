@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+   Reconstruct Wizardry startup, shared shutdown, and fatal-error handling.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifdef JA2_PRECOMPILED_HEADERS
 	#include "JA2 SGP ALL.H"
 	#include "JA2 Splash.h"
@@ -49,26 +52,17 @@
 #endif
 
 
-extern UINT32 MemDebugCounter;
 #ifdef JA2
 extern BOOLEAN gfPauseDueToPlayerGamePause;
-#endif
-
 extern	BOOLEAN	CheckIfGameCdromIsInCDromDrive();
-extern  void    QueueEvent(UINT16 ubInputEvent, UINT32 usParam, UINT32 uiParam);
+#endif
 
 // Prototype Declarations
 
-INT32 FAR PASCAL WindowProcedure(HWND hWindow, UINT16 Message, WPARAM wParam, LPARAM lParam);
-BOOLEAN          InitializeStandardGamingPlatform(HINSTANCE hInstance, int sCommandShow);
-void             ShutdownStandardGamingPlatform(void);
-void						 GetRuntimeSettings( );
 
-int PASCAL HandledWinMain(HINSTANCE hInstance,  HINSTANCE hPrevInstance, LPSTR pCommandLine, int sCommandShow);
 
 
 #if !defined(JA2) && !defined(UTILS)
-void							ProcessCommandLine(CHAR8 *pCommandLine);
 BOOLEAN						RunSetup(void);
 
 // Should the game immediately load the quick save at startup?
@@ -113,9 +107,10 @@ BOOLEAN	gfIgnoreMessages=FALSE;
 // GLOBAL VARIBLE, SET TO DEFAULT BUT CAN BE CHANGED BY THE GAME IF INIT FILE READ
 UINT8		gbPixelDepth = PIXEL_DEPTH;
 
+// FUNCTION: WIZ8 0x004011e0
 INT32 FAR PASCAL WindowProcedure(HWND hWindow, UINT16 Message, WPARAM wParam, LPARAM lParam)
 {
-	static fRestore = FALSE;
+	static int fRestore = FALSE;
 
   if(gfIgnoreMessages)
 		return(DefWindowProc(hWindow, Message, wParam, lParam));
@@ -574,8 +569,6 @@ void ShutdownStandardGamingPlatform(void)
 	// Shut down the different components of the SGP
 	//
 
-	// TEST
-	SoundServiceStreams();
 
 	if (gfGameInitialized)
 	{
@@ -625,146 +618,63 @@ void ShutdownStandardGamingPlatform(void)
 }
 
 
-int PASCAL WinMain(HINSTANCE hInstance,  HINSTANCE hPrevInstance, LPSTR pCommandLine, int sCommandShow)
+// FUNCTION: WIZ8 0x00401670
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
+    MSG message;
+    HWND existing;
 
-//If we are to use exception handling
-#ifdef ENABLE_EXCEPTION_HANDLING
-	int Result = -1;
-
-
-	__try
-	{
-		Result = HandledWinMain(hInstance, hPrevInstance, pCommandLine, sCommandShow);
-	}
-	__except( RecordExceptionInfo( GetExceptionInformation() ))
-	{
-		// Do nothing here - RecordExceptionInfo() has already done
-		// everything that is needed. Actually this code won't even
-		// get called unless you return EXCEPTION_EXECUTE_HANDLER from
-		// the __except clause.
-
-
-	}
-	return Result;
-
+    existing = FindWindowExA(NULL, NULL, "Wizardry 8", "Wizardry 8");
+    if (existing) {
+        SetForegroundWindow(existing);
+        ShowWindow(existing, 9);
+        return 0;
+    }
+    ghInstance = hInstance;
+    ProcessCommandLine(lpCmdLine);
+    giStartMem = MemGetFree() >> 10;
+    if (!FileExists(VideoGetConfigFile())) {
+        _spawnl(0, "3DSetup.EXE", "3DSetup.EXE", VideoGetConfigFile(), NULL);
+    }
+    if (!FileExists(VideoGetConfigFile())) {
+        return 0;
+    }
+    if (!CheckCdPresent()) {
+        return 0;
+    }
+    ShowCursor(FALSE);
+    if (!InitializeStandardGamingPlatform(hInstance, nShowCmd)) {
+        return 0;
+    }
+    gfApplicationActive = 1;
+    gfProgramIsRunning = 1;
+    do {
+        if (PeekMessageA(&message, NULL, 0, 0, 0)) {
+            if (GetMessageA(&message, NULL, 0, 0) == 0) {
+                return message.wParam;
+            }
+            TranslateMessage(&message);
+            DispatchMessageA(&message);
+        } else if (gfApplicationActive == 0) {
+            WaitMessage();
+        } else {
+            GameLoop();
+            gfSGPInputReceived = 0;
+        }
+    } while (gfProgramIsRunning);
+    PostQuitMessage(0);
+    return message.wParam;
 }
 
 //Do not place code in between WinMain and Handled WinMain
 
 
 
-int PASCAL HandledWinMain(HINSTANCE hInstance,  HINSTANCE hPrevInstance, LPSTR pCommandLine, int sCommandShow)
-{
-//DO NOT REMOVE, used for exception handing list above in WinMain
-#endif
-  MSG				Message;
-	HWND			hPrevInstanceWindow;
-
-	// Make sure that only one instance of this application is running at once
-	// // Look for prev instance by searching for the window
-	hPrevInstanceWindow = FindWindowEx( NULL, NULL, APPLICATION_NAME, APPLICATION_NAME );
-
-	// One is found, bring it up!
-	if ( hPrevInstanceWindow != NULL )
-	{
-		SetForegroundWindow( hPrevInstanceWindow );
-		ShowWindow( hPrevInstanceWindow, SW_RESTORE );
-		return( 0 );
-	}
-
-	ghInstance = hInstance;
-
-		// Copy commandline!
-#ifdef JA2
-	strncpy( gzCommandLine, pCommandLine, 100);
-	gzCommandLine[99]='\0';
-
-	//Process the command line BEFORE initialization
-	ProcessJa2CommandLineBeforeInitialization( pCommandLine );
-#else
-	ProcessCommandLine(pCommandLine);
-#endif
-
-	// Mem Usage
-	giStartMem = MemGetFree(  ) / 1024;
-
-
-#ifdef JA2
-	// Handle Check for CD
-	if ( !HandleJA2CDCheck( ) )
-	{
-		return( 0 );
-	}
-#else
-
-	if(!RunSetup())
-		return(0);
-
-#endif
-
-  ShowCursor(FALSE);
-
-  // Inititialize the SGP
-  if (InitializeStandardGamingPlatform(hInstance, sCommandShow) == FALSE)
-  { // We failed to initialize the SGP
-    return 0;
-  }
-
-#ifdef JA2
-	#ifdef ENGLISH
-		SetIntroType( INTRO_SPLASH );
-	#endif
-#endif
-
-  gfApplicationActive = TRUE;
-  gfProgramIsRunning = TRUE;
-
-  FastDebugMsg("Running Game");
-
-  // At this point the SGP is set up, which means all I/O, Memory, tools, etc... are available. All we need to do is
-  // attend to the gaming mechanics themselves
-  while (gfProgramIsRunning)
-  {
-    if (PeekMessage(&Message, NULL, 0, 0, PM_NOREMOVE))
-    { // We have a message on the WIN95 queue, let's get it
-      if (!GetMessage(&Message, NULL, 0, 0))
-      { // It's quitting time
-        return Message.wParam;
-      }
-      // Ok, now that we have the message, let's handle it
-      TranslateMessage(&Message);
-      DispatchMessage(&Message);
-    }
-    else
-    { // Windows hasn't processed any messages, therefore we handle the rest
-      if (gfApplicationActive == FALSE)
-      { // Well we got nothing to do but to wait for a message to activate
-        WaitMessage();
-      }
-      else
-      { // Well, the game is active, so we handle the game stuff
-        GameLoop();
-
-				// After this frame, reset input given flag
-	      gfSGPInputReceived  =  FALSE;
-      }
-    }
-  }
-
-  // This is the normal exit point
-  FastDebugMsg("Exiting Game");
-  PostQuitMessage(0);
-
-	// SGPExit() will be called next through the atexit() mechanism...  This way we correctly process both normal exits and
-	// emergency aborts (such as those caused by a failed assertion).
-
-	// return wParam of the last message received
-	return Message.wParam;
-}
 
 
 
+
+// FUNCTION: WIZ8 0x004017f0
 void SGPExit(void)
 {
 	static BOOLEAN fAlreadyExiting = FALSE;
@@ -779,6 +689,7 @@ void SGPExit(void)
 
 	fAlreadyExiting = TRUE;
 	gfProgramIsRunning = FALSE;
+	ShutdownSoundManager();
 
 // Wizardry only
 #if !defined( JA2 ) && !defined( UTIL )
@@ -825,10 +736,11 @@ void GetRuntimeSettings( )
 
 }
 
-void ShutdownWithErrorBox(CHAR8 *pcMessage)
+// FUNCTION: WIZ8 0x00401920
+void ShutdownWithErrorBox(const CHAR8 *pcMessage)
 {
-	strncpy(gzErrorMsg, pcMessage, 255);
-	gzErrorMsg[255]='\0';
+	strncpy(gzErrorMsg, pcMessage, 2047);
+	gzErrorMsg[2047]='\0';
 	gfIgnoreMessages=TRUE;
 
 	exit(0);

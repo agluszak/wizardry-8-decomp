@@ -71,28 +71,6 @@ int g_previous_screen_id = -1;
 // GLOBAL: WIZ8 0x00647bc4
 int g_suspended_screen_id = -1;
 
-int g_screen_transition_object_count_654aac;
-srClass** g_screen_transition_objects_654ab4;
-
-// FUNCTION: WIZ8 0x00429770
-void ReleaseScreenTransitionObjects(void)
-{
-    int index;
-    srClass* object;
-
-    while (g_screen_transition_object_count_654aac != 0) {
-        object = g_screen_transition_objects_654ab4[0];
-        if (g_screen_transition_object_count_654aac > 0) {
-            for (index = 0; index < g_screen_transition_object_count_654aac - 1; ++index) {
-                g_screen_transition_objects_654ab4[index] =
-                    g_screen_transition_objects_654ab4[index + 1];
-            }
-            --g_screen_transition_object_count_654aac;
-        }
-        object->release();
-    }
-}
-
 // FUNCTION: WIZ8 0x004e3340
 void GameLoop(void)
 {
@@ -103,7 +81,7 @@ void GameLoop(void)
     state = g_current_screen_state.id;
     if (g_screen_return_requested) {
         g_previous_screen_id = state;
-        ReleaseScreenTransitionObjects();
+        VideoRemoveToolTip();
         if (!g_screen_handlers[g_current_screen_state.id].leave(1)) {
             gfProgramIsRunning = 0;
             g_current_screen_state.id = -1;
@@ -133,7 +111,7 @@ void GameLoop(void)
     }
     if (state != -1) {
         g_previous_screen_id = state;
-        ReleaseScreenTransitionObjects();
+        VideoRemoveToolTip();
         if (!g_screen_handlers[g_current_screen_state.id].leave(0)) {
             goto clear;
         }
@@ -183,7 +161,7 @@ void GameloopExit(unsigned char release_screens)
     for (;;) {
         if (g_current_screen_state.id != -1) {
             g_previous_screen_id = g_current_screen_state.id;
-            ReleaseScreenTransitionObjects();
+            VideoRemoveToolTip();
             g_screen_handlers[g_current_screen_state.id].leave(1);
             g_current_screen_state.id = -1;
         }

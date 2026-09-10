@@ -166,7 +166,7 @@ int PlayFootstep0047A440(char surface, char material, int argument)
     char selected_surface;
     char selected_material;
     char path[260];
-    int options[8];
+    SOUNDPARMS options;
     int attempts = 0;
     int index;
 
@@ -195,12 +195,10 @@ int PlayFootstep0047A440(char surface, char material, int argument)
             path, selected_surface, selected_material, argument, variant);
         g_previous_footstep_variant_65a10c = variant;
     }
-    for (index = 0; index < 8; ++index) {
-        options[index] = -1;
-    }
-    options[2] = g_settings_6850c8.footstep_volume;
+    memset(&options, -1, sizeof(options));
+    options.uiVolume = g_settings_6850c8.footstep_volume;
     g_footstep_alternate_65a10a = g_footstep_alternate_65a10a == 0;
-    return PlaySound00408860(path, options);
+    return SoundPlay(path, &options);
 }
 
 // FUNCTION: WIZ8 0x0047a540
@@ -409,7 +407,7 @@ unsigned char LoadAmbientSoundList0047AB40(char* filename)
     char path[260];
     char line[260];
     int configured[10];
-    int direct[8];
+    SOUNDPARMS direct;
     int direct_selector = 0;
 
     handle = FileOpen(filename, 0x41, 0);
@@ -422,9 +420,7 @@ unsigned char LoadAmbientSoundList0047AB40(char* filename)
         for (index = 0; index < 10; ++index) {
             configured[index] = -1;
         }
-        for (index = 0; index < 8; ++index) {
-            direct[index] = -1;
-        }
+        memset(&direct, -1, sizeof(direct));
         memset(line, 0, sizeof(line));
         ReadTextLine004CEE40(handle, line, sizeof(line), &more);
         if (strlen(line) != 0) {
@@ -439,15 +435,15 @@ unsigned char LoadAmbientSoundList0047AB40(char* filename)
                 SoundPlayRandom(path, (RANDOMPARMS*)configured);
             }
             else {
-                direct[4] = direct_selector;
-                direct[5] = -16;
-                direct[2] =
+                direct.uiLoop = direct_selector;
+                direct.uiPriority = -16;
+                direct.uiVolume =
                     (g_settings_6850c8.sound_effects_volume * configured[5]) / 0x7f;
-                PlaySound00408860(path, direct);
+                SoundPlay(path, &direct);
             }
         }
     }
-    CloseVirtualFile(handle);
+    FileClose(handle);
     return 1;
 }
 

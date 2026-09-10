@@ -22,7 +22,7 @@
 #include "surrender/srColorSurface.h"
 #include "wiz8/cursor.h"
 #include "wiz8/render_state.h"
-#include "wiz8/sgp_video.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/xstatus.h"
@@ -480,8 +480,8 @@ void AutomapScreenFrame(void)
                 gXStatus.iCurrentCursor = 7;
                 RefreshMouseCursorTexture();
             }
-            W8ScreenPoint point;
-            GetScreenPoint004284F0(&point);
+            POINT point;
+            SGPMouseGetPos(&point);
             MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, point.x, point.y,
                                        gfLeftButtonState, gfRightButtonState);
             unsigned short reason;

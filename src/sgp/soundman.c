@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+   Reconstruct Wizardry sound lifecycle, driver setup, channel reset, and sample loading.
+   Distributed under the accompanying SFI Source Code license agreement. */
 /*********************************************************************************
 * SGP Digital Sound Module
 *
@@ -14,6 +17,7 @@
 	#include <string.h>
 	#include "soundman.h"
 	#include "FileMan.h"
+	#include "LibraryDataBase.h"
 	#include "debug.h"
 	#include "MemMan.h"
 	#include "mss.h"
@@ -117,6 +121,7 @@ UINT32		SoundStartSample(UINT32 uiSample, UINT32 uiChannel, SOUNDPARMS *pParms);
 UINT32		SoundStartStream(STR pFilename, UINT32 uiChannel, SOUNDPARMS *pParms);
 UINT32		SoundGetUniqueID(void);
 BOOLEAN		SoundPlayStreamed(STR pFilename);
+void SoundResetChannel(UINT32 channel);
 BOOLEAN		SoundCleanCache(void);
 BOOLEAN		SoundSampleIsPlaying(UINT32 uiSample);
 BOOLEAN		SoundIndexIsPlaying(UINT32 uiSound);
@@ -138,8 +143,10 @@ BOOLEAN		fSoundSystemInit=FALSE;												// Startup called T/F
 BOOLEAN		gfEnableStartup=TRUE;													// Allow hardware to starup
 
 // Sample cache list for files loaded
+// GLOBAL: WIZ8 0x006e4aa0
 SAMPLETAG	pSampleList[SOUND_MAX_CACHED];
 // Sound channel list for output channels
+// GLOBAL: WIZ8 0x006e4120
 SOUNDTAG	pSoundList[SOUND_MAX_CHANNELS];
 
 // 3D sound globals
@@ -198,24 +205,22 @@ void SoundEnableSound(BOOLEAN fEnable)
 //	Returns:	TRUE always
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x004086d0
 BOOLEAN InitializeSoundManager(void)
 {
-UINT32 uiCount;
 
 	if(fSoundSystemInit)
 		ShutdownSoundManager();
 
-	for(uiCount=0; uiCount < SOUND_MAX_CHANNELS; uiCount++)
-		memset(&pSoundList[uiCount], 0, sizeof(SOUNDTAG));
+	memset(pSoundList, 0, sizeof(pSoundList));
 
 #ifndef SOUND_DISABLE
 	if(gfEnableStartup && SoundInitHardware())
 		fSoundSystemInit=TRUE;
 #endif
 
-	SoundInitCache();
-
 	guiSoundMemoryLimit=SOUND_DEFAULT_MEMORY;
+	SoundInitCache();
 	guiSoundMemoryUsed=0;
 	guiSoundCacheThreshold=SOUND_DEFAULT_THRESH;
 
@@ -232,19 +237,10 @@ UINT32 uiCount;
 //	and releases the sound hardware.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x00408850
 void ShutdownSoundManager(void)
 {
-	if(gh3DProvider)
-		Sound3DShutdownProvider();
-
-	SoundStopAll();
-	SoundStopMusic();
-	SoundShutdownCache();
-	Sleep(1000);
-	SoundShutdownHardware();
-	//Sleep(1000);
-	fSoundSystemInit=FALSE;
-
+    fSoundSystemInit = FALSE;
 }
 
 //*******************************************************************************
@@ -264,15 +260,32 @@ void ShutdownSoundManager(void)
 //
 //*******************************************************************************
 
+// FUNCTION: WIZ8 0x00408860
 UINT32 SoundPlay(STR pFilename, SOUNDPARMS *pParms)
 {
 	UINT32 uiSample, uiChannel;
+	CHAR8 filename[260];
 
 	if( fSoundSystemInit )
 	{
 		if( !SoundPlayStreamed(pFilename) )
 		{
-			if((uiSample=SoundLoadSample(pFilename))!=NO_SAMPLE)
+			strcpy(filename, pFilename);
+			strupr(filename);
+			if (!FileExists(filename))
+			{
+				if (strstr(filename, ".WAV"))
+				{
+					filename[strlen(filename) - 4] = 0;
+					strcat(filename, ".MP3");
+				}
+				else if (strstr(filename, ".MP3"))
+				{
+					filename[strlen(filename) - 4] = 0;
+					strcat(filename, ".WAV");
+				}
+			}
+			if((uiSample=SoundLoadSample(filename))!=NO_SAMPLE)
 			{
 				if((uiChannel=SoundGetFreeChannel())!=SOUND_ERROR)
 				{
@@ -315,6 +328,7 @@ UINT32	SoundPlayStreamedFile( STR pFilename, SOUNDPARMS *pParms )
 	UINT32	uiChannel;
 	HANDLE	hRealFileHandle;
 	CHAR8		pFileHandlefileName[ 128 ];
+	CHAR8 filename[260];
 	HWFILE	hFile;
 	UINT32	uiRetVal=FALSE;
 
@@ -322,8 +336,23 @@ UINT32	SoundPlayStreamedFile( STR pFilename, SOUNDPARMS *pParms )
 	{
 		if((uiChannel=SoundGetFreeChannel())!=SOUND_ERROR)
 		{
+			strcpy(filename, pFilename);
+			strupr(filename);
+			if (!FileExists(filename))
+			{
+				if (strstr(filename, ".WAV"))
+				{
+					filename[strlen(filename) - 4] = 0;
+					strcat(filename, ".MP3");
+				}
+				else if (strstr(filename, ".MP3"))
+				{
+					filename[strlen(filename) - 4] = 0;
+					strcat(filename, ".WAV");
+				}
+			}
 			//Open the file
-			hFile = FileOpen( pFilename, FILE_ACCESS_READ | FILE_OPEN_EXISTING, FALSE );
+			hFile = FileOpen( filename, FILE_ACCESS_READ | FILE_OPEN_EXISTING, FALSE );
 			if( !hFile )
 			{
 				FastDebugMsg(String("\n*******\nSoundPlayStreamedFile():  ERROR:  Couldnt open '%s' in SoundPlayStreamedFile()\n", pFilename ) );
@@ -335,12 +364,13 @@ UINT32	SoundPlayStreamedFile( STR pFilename, SOUNDPARMS *pParms )
 			if(DB_EXTRACT_LIBRARY(hFile) == REAL_FILE_LIBRARY_ID)
 			{
 				FileClose(hFile);
-				return(SoundStartStream( pFilename, uiChannel, pParms));
+				return(SoundStartStream( filename, uiChannel, pParms));
 			}
 
 			//Get the real file handle of the file
-			hRealFileHandle = GetRealFileHandleFromFileManFileHandle( hFile );
-			if( hRealFileHandle == 0 )
+			hRealFileHandle = OpenLibraryStream00412F10( hFile );
+			FileClose( hFile );
+			if( hRealFileHandle == INVALID_HANDLE_VALUE )
 			{
 				FastDebugMsg(String("\n*******\nSoundPlayStreamedFile():  ERROR:  Couldnt get a real file handle for '%s' in SoundPlayStreamedFile()\n", pFilename ) );
 				return( SOUND_ERROR );
@@ -354,9 +384,9 @@ UINT32	SoundPlayStreamedFile( STR pFilename, SOUNDPARMS *pParms )
 
 			//if it succeeded, record the file handle
 			if( uiRetVal != SOUND_ERROR )
-				pSoundList[uiChannel].hFile = hFile;
+				pSoundList[uiChannel].hFile = (HWFILE)hRealFileHandle;
 			else
-				FileClose( hFile );
+				CloseHandle( hRealFileHandle );
 
 			return( uiRetVal );
 		}
@@ -1379,10 +1409,8 @@ UINT32 uiSound;
 //*******************************************************************************
 BOOLEAN SoundInitCache(void)
 {
-UINT32 uiCount;
 
-	for(uiCount=0; uiCount < SOUND_MAX_CACHED; uiCount++)
-		memset(&pSampleList[uiCount], 0, sizeof(SAMPLETAG));
+	memset(pSampleList, 0, sizeof(pSampleList));
 
 	return(TRUE);
 }
@@ -1428,11 +1456,19 @@ BOOLEAN SoundSetCacheThreshhold(UINT32 uiThreshold)
 //	Returns: TRUE, always
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x004098f0
 BOOLEAN SoundEmptyCache(void)
 {
 UINT32 uiCount;
 
-	SoundStopAll();
+    if (fSoundSystemInit)
+    {
+        for (uiCount = 0; uiCount < SOUND_MAX_CHANNELS; ++uiCount)
+        {
+            if (!pSoundList[uiCount].fMusic)
+                SoundStopIndex(uiCount);
+        }
+    }
 
 	for(uiCount=0; uiCount < SOUND_MAX_CACHED; uiCount++)
 		SoundFreeSampleIndex(uiCount);
@@ -1584,6 +1620,7 @@ UINT32 uiCount;
 //						in the cache.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x00409970
 UINT32 SoundLoadDisk(STR pFilename)
 {
 HWFILE	hFile;
@@ -1821,9 +1858,9 @@ UINT32 uiCount;
 //	Returns:	TRUE if the hardware was initialized, FALSE otherwise.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x00409c50
 BOOLEAN SoundInitHardware(void)
 {
-UINT32 uiCount;
 CHAR8	cDriverName[128];
 
 	// Try to start up the Miles Sound System
@@ -1863,7 +1900,7 @@ CHAR8	cDriverName[128];
 		// code layer can slow us down by up to 40% under NT
 		if(strstr(cDriverName, "emulated"))
 		{
-			AIL_waveOutClose(hSoundDriver);
+			AIL_close_digital_driver(hSoundDriver);
 			hSoundDriver=NULL;
 		}
 	}
@@ -1886,8 +1923,7 @@ CHAR8	cDriverName[128];
 
 	if (hSoundDriver!=NULL)
 	{
-		for(uiCount = 0; uiCount < SOUND_MAX_CHANNELS; uiCount++)
-			memset(&pSoundList[uiCount], 0, sizeof(SOUNDTAG));
+		memset(pSoundList, 0, sizeof(pSoundList));
 
 		return(TRUE);
 	}
@@ -1939,26 +1975,15 @@ BOOLEAN SoundShutdownHardware(void)
 //*******************************************************************************
 static HDIGDRIVER SoundInitDriver(UINT32 uiRate, UINT16 uiBits, UINT16 uiChans)
 {
-static PCMWAVEFORMAT	sPCMWF;
-HDIGDRIVER						DIG;
-CHAR8									cBuf[128];
+    HDIGDRIVER DIG;
+    CHAR8 cBuf[128];
 
-	memset(&sPCMWF, 0, sizeof(PCMWAVEFORMAT));
-  sPCMWF.wf.wFormatTag      = WAVE_FORMAT_PCM;
-  sPCMWF.wf.nChannels       = uiChans;
-  sPCMWF.wf.nSamplesPerSec  = uiRate;
-  sPCMWF.wf.nAvgBytesPerSec = uiRate * (uiBits / 8) * uiChans;
-  sPCMWF.wf.nBlockAlign     =        (uiBits / 8) * uiChans;
-  sPCMWF.wBitsPerSample     = uiBits;
-
-  if(AIL_waveOutOpen(&DIG, NULL, 0, (LPWAVEFORMAT) &sPCMWF))
-		return(NULL);
-
-  memset(cBuf, 0, 128);
-  AIL_digital_configuration(DIG,0,0,cBuf);
-	FastDebugMsg(String("Sound Init: %dKHz, %d uiBits, %s %s\n", uiRate, uiBits, (uiChans==1)? "Mono": "Stereo", cBuf));
-
-	return(DIG);
+    DIG = AIL_open_digital_driver(uiRate, uiBits, uiChans, 0);
+    if (DIG == NULL)
+        return NULL;
+    memset(cBuf, 0, sizeof(cBuf));
+    AIL_digital_configuration(DIG, 0, 0, cBuf);
+    return DIG;
 }
 
 //*******************************************************************************
@@ -1989,6 +2014,31 @@ BOOLEAN SoundGetDriverName(HDIGDRIVER DIG, CHAR8 *cBuf)
 //	Returns:	Index of a sound channel if one was found, SOUND_ERROR if not.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x00409f30
+void SoundResetChannel(UINT32 channel)
+{
+    pSoundList[channel].pSample = 0;
+    pSoundList[channel].uiSample = NO_SAMPLE;
+    pSoundList[channel].hMSS = 0;
+    pSoundList[channel].hMSSStream = 0;
+    pSoundList[channel].hM3D = 0;
+    pSoundList[channel].uiFlags = 0;
+    pSoundList[channel].uiSoundID = NO_SAMPLE;
+    pSoundList[channel].uiPriority = PRIORITY_MAX;
+    pSoundList[channel].pCallback = 0;
+    pSoundList[channel].pData = 0;
+    pSoundList[channel].EOSCallback = 0;
+    pSoundList[channel].pCallbackData = 0;
+    pSoundList[channel].uiTimeStamp = GetTickCount();
+    pSoundList[channel].fLooping = 0;
+    pSoundList[channel].hFile = 0xffffffff;
+    pSoundList[channel].fMusic = 0;
+    pSoundList[channel].fStopAtZero = 1;
+    pSoundList[channel].uiFadeVolume = 0;
+    pSoundList[channel].uiFadeRate = 0;
+    pSoundList[channel].uiFadeTime = 0;
+}
+
 UINT32 SoundGetFreeChannel(void)
 {
 UINT32 uiCount;
@@ -2001,7 +2051,10 @@ UINT32 uiCount;
 		}
 
 		if((pSoundList[uiCount].hMSS==NULL) && (pSoundList[uiCount].hMSSStream==NULL) && (pSoundList[uiCount].hM3D==NULL))
+		{
+			SoundResetChannel(uiCount);
 			return(uiCount);
+		}
 	}
 
 	return(SOUND_ERROR);
@@ -2017,6 +2070,7 @@ UINT32 uiCount;
 //	Returns:	Unique sound ID if successful, SOUND_ERROR if not.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x00409fe0
 UINT32 SoundStartSample(UINT32 uiSample, UINT32 uiChannel, SOUNDPARMS *pParms)
 {
 UINT32 uiSoundID;
@@ -2073,9 +2127,15 @@ CHAR8 AILString[200];
 	}
 
 	if((pParms!=NULL) && (pParms->uiVolume!=SOUND_PARMS_DEFAULT))
-		AIL_set_sample_volume(pSoundList[uiChannel].hMSS, pParms->uiVolume);
+    {
+        AIL_set_sample_volume(pSoundList[uiChannel].hMSS, pParms->uiVolume);
+        pSoundList[uiChannel].uiFadeVolume = pParms->uiVolume;
+    }
 	else
-		AIL_set_sample_volume(pSoundList[uiChannel].hMSS, guiSoundDefaultVolume);
+    {
+        AIL_set_sample_volume(pSoundList[uiChannel].hMSS, guiSoundDefaultVolume);
+        pSoundList[uiChannel].uiFadeVolume = guiSoundDefaultVolume;
+    }
 
 	if((pParms!=NULL) && (pParms->uiLoop!=SOUND_PARMS_DEFAULT))
 	{
@@ -2115,6 +2175,7 @@ CHAR8 AILString[200];
 	pSoundList[uiChannel].uiTimeStamp=GetTickCount();
 	pSoundList[uiChannel].uiFadeVolume = SoundGetVolumeIndex(uiChannel);
 
+	pSoundList[uiChannel].fMusic=FALSE;
 	pSampleList[uiSample].uiCacheHits++;
 
 	AIL_start_sample(pSoundList[uiChannel].hMSS);
@@ -2259,6 +2320,7 @@ UINT32 uiFilesize;
 //	Returns:	TRUE if the sample was stopped, FALSE if it could not be found.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x0040a5c0
 BOOLEAN SoundStopIndex(UINT32 uiChannel)
 {
 UINT32 uiSample;
@@ -2317,15 +2379,16 @@ UINT32 uiSample;
 					pSoundList[uiChannel].uiSample=NO_SAMPLE;
 				}
 
-				if( pSoundList[uiChannel].hFile != 0 )
+				if( pSoundList[uiChannel].hFile != (HWFILE)INVALID_HANDLE_VALUE )
 				{
-					FileClose( pSoundList[uiChannel].hFile );
-					pSoundList[uiChannel].hFile = 0;
+					CloseHandle((HANDLE)pSoundList[uiChannel].hFile);
+					pSoundList[uiChannel].hFile = (HWFILE)INVALID_HANDLE_VALUE;
 
 					pSoundList[uiChannel].uiSample=NO_SAMPLE;
 				}
 
-				return(TRUE);
+				pSoundList[uiChannel].fMusic=FALSE;
+			return(TRUE);
 		}
 	}
 
@@ -2396,6 +2459,7 @@ UINT32 uiCount;
 //
 // Created:  2/24/00 Derek Beland
 //*****************************************************************************************
+// FUNCTION: WIZ8 0x0040a910
 BOOLEAN SoundFileIsPlaying(CHAR8 *pFilename)
 {
 UINT32 uiCount;

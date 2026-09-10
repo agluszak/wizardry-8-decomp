@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+   Restrict JA2-only includes to their product branch.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifdef JA2_PRECOMPILED_HEADERS
 	#include "JA2 SGP ALL.H"
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
@@ -6,8 +9,10 @@
 	#include "types.h"
 	#include "Button System.h"
 	#include "Button Sound Control.h"
-	#include "Sound Control.h"
-	#include "jascreens.h"
+	#ifdef JA2
+		#include "Sound Control.h"
+		#include "jascreens.h"
+	#endif
 #endif
 
 void SpecifyButtonSoundScheme( INT32 iButtonID, INT8 bSoundScheme )

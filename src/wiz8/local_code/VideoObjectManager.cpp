@@ -1388,7 +1388,7 @@ void InvalidateCatalogImageRect(int object, int frame, int image,
     }
 
     if (width != 0 && height != 0) {
-        MarkScreenRectDirty(
+        InvalidateRegion(
             left, top, left + width, top + height, flags);
     }
 }

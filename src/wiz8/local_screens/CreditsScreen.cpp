@@ -47,7 +47,7 @@ unsigned char ReadWideTextLine004CEED0(
     *more = 1;
     for (;;) {
         unsigned int bytes_read;
-        ok = ReadVirtualFile(handle, &current, sizeof(current), &bytes_read);
+        ok = FileRead(handle, &current, sizeof(current), &bytes_read);
         if (bytes_read == 0) {
             ok = 0;
             *more = 0;
@@ -92,7 +92,7 @@ unsigned char CreditsScreenEnter(void)
     handle = FileOpen((char*)"Data\\Options\\Credits.txt", FILE_ACCESS_READ, 0);
     if (handle != 0) {
         unsigned char more;
-        ReadVirtualFile(handle, line, sizeof(wchar_t), 0);
+        FileRead(handle, line, sizeof(wchar_t), 0);
         while (!FileCheckEndOfFile(handle)) {
             if (ReadWideTextLine004CEED0(handle, line, 128, &more) && line[0] != L'*') {
                 W8CreditLine entry = { 0, 0, 0, 0, 0 };
@@ -128,7 +128,7 @@ unsigned char CreditsScreenEnter(void)
                 g_credit_lines_0069c4a8->Add(entry);
             }
         }
-        CloseVirtualFile(handle);
+        FileClose(handle);
     }
     g_credit_line_0069c4a4 = 0;
     g_credit_elapsed_steps_0069c494 = 0;
@@ -162,10 +162,10 @@ unsigned char CreditsScreenLeave(int)
 // FUNCTION: WIZ8 0x005bc530
 void CreditsScreenFrame(void)
 {
-    W8ScreenPoint point;
+    POINT point;
     InputAtom input;
 
-    GetScreenPoint004284F0(&point);
+    SGPMouseGetPos(&point);
     UpdateRegionMousePosition(point.x, point.y);
     while (DequeueEvent(&input) == 1) {
         if (!DispatchRegionInput(&input) && input.usEvent == KEY_DOWN) {

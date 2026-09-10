@@ -18,7 +18,6 @@ extern unsigned char g_flush_pending_603c3a;
 extern unsigned char g_flag_652da4;
 extern const float g_scale_x_5ebb1c;
 extern const float g_scale_y_5ebb20;
-extern const float g_one_5ebc30;
 
 extern void UpdateCameraView00450080(srCamera* camera, int flag);
 
@@ -53,9 +52,9 @@ void SetViewport(int left, int top, int right, int bottom)
 
         plane.left = (double)fractional_left * (view.right - view.left) + view.left;
         plane.right = (double)fractional_right * (view.right - view.left) + view.left;
-        plane.bottom = (double)((g_one_5ebc30 - fractional_bottom)
+        plane.bottom = (double)((g_double_005ebc30 - fractional_bottom)
                                 * (float)(view.top - view.bottom) + (float)view.bottom);
-        plane.top = (double)((g_one_5ebc30 - fractional_top)
+        plane.top = (double)((g_double_005ebc30 - fractional_top)
                              * (float)(view.top - view.bottom) + (float)view.bottom);
 
         g_world->camera->setViewPlane(plane, 1.0);

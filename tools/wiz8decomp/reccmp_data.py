@@ -49,7 +49,7 @@ def render_wiz8_data_source(repository: Path) -> str:
             address=address,
             symbol=claim["value"].strip(),
             size=None,
-            kind=("library" if origin & {"original-source", "sgp-source"} else "function"),
+            kind=("library" if "original-source" in origin else "function"),
         )
 
     output = io.StringIO(newline="")

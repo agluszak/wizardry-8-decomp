@@ -156,7 +156,7 @@ void stTextureFile::loadSurface()
     int handle = FileOpen(file_name_58, 0x41, 0);
     if (handle != 0) {
         surface_5c = LoadSurface0047C090(handle, &image_type);
-        CloseVirtualFile(handle);
+        FileClose(handle);
     }
 
     if (surface_5c == 0) {

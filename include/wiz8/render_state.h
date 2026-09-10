@@ -2,7 +2,7 @@
 #define WIZ8_RENDER_STATE_H
 
 #include "wiz8/wiz8_windows.h"
-#include "wiz8/sgp_video.h"
+#include "wiz8/engine_code/Video2.h"
 
 class srColorSurface;
 class srCamera;
@@ -15,6 +15,12 @@ class srScene;
 class stSurface2D;
 
 extern int g_pixel_format_603c48;
+extern unsigned char g_fullscreen_603c39;
+extern unsigned char g_flag_659711;
+extern unsigned char g_flag_65970f;
+extern unsigned char g_flag_603c60;
+extern unsigned char g_flag_603c4c;
+extern int g_value_659668;
 extern srModeler* g_modeler_65963c;
 extern srScene* g_scene_user_659640;
 extern srScene* g_scene_fullscreen_659644;
@@ -56,8 +62,6 @@ extern unsigned char g_render_flag_60a20c;
    from outside it. */
 extern int g_dword_6596ec;
 extern int g_dword_6596f0;
-/* Defined by bringup_gates.cpp, written by a setter recovered outside it. */
-extern "C" int FontDefault;
 
 extern int g_surface_state_6595dc;
 extern int g_surface_state_654ad8;

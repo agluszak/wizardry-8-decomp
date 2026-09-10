@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+   Reconstruct Wizardry stack-buffer PATH setup in its original translation unit.
+   Distributed under the accompanying SFI Source Code license agreement. */
 //**************************************************************************
 //
 // Filename :	FileMan.c
@@ -95,6 +98,7 @@ typedef struct FileSystemTag
 
 
 //The FileDatabaseHeader
+// GLOBAL: WIZ8 0x006eb720
 DatabaseManagerHeaderStruct gFileDataBase;
 
 
@@ -494,6 +498,7 @@ HWFILE FileOpen( STR strFilename, UINT32 uiOptions, BOOLEAN fDeleteOnClose )
 //
 //**************************************************************************
 
+// FUNCTION: WIZ8 0x00404e10
 void FileClose( HWFILE hFile )
 {
 	INT16 sLibraryID;
@@ -505,7 +510,8 @@ void FileClose( HWFILE hFile )
 	if( sLibraryID == REAL_FILE_LIBRARY_ID )
 	{
 		//if its not already closed
-		if( gFileDataBase.RealFiles.pRealFilesOpen[ uiFileNum ].uiFileID != 0 )
+		if( gFileDataBase.RealFiles.pRealFilesOpen != NULL &&
+			gFileDataBase.RealFiles.pRealFilesOpen[ uiFileNum ].uiFileID != 0 )
 		{
 			CloseHandle( gFileDataBase.RealFiles.pRealFilesOpen[ uiFileNum ].hRealFileHandle );
 			gFileDataBase.RealFiles.pRealFilesOpen[ uiFileNum ].uiFileID = 0;
@@ -559,6 +565,7 @@ void FileClose( HWFILE hFile )
 	#include "Timer Control.h"
 #endif
 
+// FUNCTION: WIZ8 0x00404ea0
 BOOLEAN FileRead( HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, UINT32 *puiBytesRead )
 {
 	HANDLE	hRealFile;
@@ -1982,60 +1989,32 @@ HANDLE	GetRealFileHandleFromFileManFileHandle( HWFILE hFile )
 //		10June98:DB		-> creation
 //
 //**************************************************************************
-BOOLEAN AddSubdirectoryToPath(CHAR8 *pDirectory)
+// FUNCTION: WIZ8 0x00405740
+BOOLEAN AddSubdirectoryToPath(CHAR8* subdirectory)
 {
-CHAR8	*pSystemPath;
-CHAR8 *pPath;
-UINT32 uiPathLen;
+    char path[520];
+    CHAR environment[520];
+    unsigned int length;
 
-	// Check for NULL
-	if(!pDirectory)
-		return(FALSE);
-
-	// Check for zero length string
-	if(!strlen(pDirectory))
-		return(FALSE);
-
-	if((pSystemPath=(CHAR8 *)MemAlloc(_MAX_PATH))==NULL)
-		return(FALSE);
-
-	memset(pSystemPath, 0, _MAX_PATH);
-
-	if((pPath=(CHAR8 *)MemAlloc(_MAX_PATH))==NULL)
-	{
-		MemFree(pSystemPath);
-		return(FALSE);
-	}
-
-	memset(pPath, 0, _MAX_PATH);
-
-	// Builds a path to the directory with the SR DLL files.
-	_getcwd(pPath, _MAX_PATH);
-	uiPathLen=strlen(pPath);
-	if(uiPathLen)
-		uiPathLen--;
-	if(pPath[uiPathLen]!='\\')
-		strcat(pPath, "\\");
-
-	strcat(pPath, pDirectory);
-
-	// Appends it to the path for the current task
-	if(GetEnvironmentVariable("PATH", pSystemPath, _MAX_PATH))
-	{
-		strcat(pSystemPath, ";");
-		strcat(pSystemPath, pPath);
-		SetEnvironmentVariable("PATH", pSystemPath);
-		MemFree(pSystemPath);
-		MemFree(pPath);
-		return(TRUE);
-	}
-	else
-	{
-		MemFree(pSystemPath);
-		MemFree(pPath);
-		return(FALSE);
-	}
-
+    if (!subdirectory) {
+        return FALSE;
+    }
+    if (strlen(subdirectory) == 0) {
+        return FALSE;
+    }
+    _getcwd(path, 0x208);
+    length = strlen(path);
+    if (path[length != 0 ? length - 1 : 0] != '\\') {
+        strcat(path, "\\");
+    }
+    strcat(path, subdirectory);
+    if (GetEnvironmentVariableA("PATH", environment, 0x208) == 0) {
+        return FALSE;
+    }
+    strcat(environment, ";");
+    strcat(environment, path);
+    SetEnvironmentVariableA("PATH", environment);
+    return TRUE;
 }
 
 
@@ -2086,4 +2065,3 @@ UINT32 GetFreeSpaceOnHardDrive( STR pzDriveLetter )
 
 	return( uiBytesFree );
 }
-

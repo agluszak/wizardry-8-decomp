@@ -1,6 +1,8 @@
 #pragma once
 
+#ifdef __cplusplus
 unsigned char InitializeMenuFonts(void);
+#endif
 
 #include "vobject.h"
 #include "Types.h"
@@ -10,7 +12,9 @@ unsigned char InitializeMenuFonts(void);
    startup_subsystems.cpp owns the definitions; every consumer includes this
    header instead of redeclaring them, so all references keep the C linkage
    the definitions carry. */
+#ifdef __cplusplus
 extern "C" {
+#endif
 extern int g_calligraphy_shadow_font_6835f4;
 extern int g_calligraphy_font_6835f8;
 extern HVOBJECT g_button_font_object_6835fc;
@@ -50,7 +54,7 @@ extern HVOBJECT g_wiz_text_font_secondary_object_683680;
 extern HVOBJECT g_dialog_font_object_683684;
 extern HVOBJECT g_embossed_font_object_683688;
 extern int g_options_title_font_68368c;
-extern int g_tiny_mono_font_683690;
+extern int ghTinyMonoFont;
 extern int g_smfnt_font_683694;
 extern unsigned short* g_font_palette_calligraphy_68edfc;
 extern unsigned short* g_font_palette_options_detail_68ee00;
@@ -61,4 +65,6 @@ extern unsigned short* g_font_palette_smfnt_68ee10;
 extern unsigned short* g_font_palette_wiz_text_68ee14;
 extern unsigned short* g_font_palette_calligraphy_shadow_68ee18;
 extern unsigned short* g_font_state_palettes_68ee1c[15];
+#ifdef __cplusplus
 }
+#endif

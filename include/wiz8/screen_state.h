@@ -63,7 +63,6 @@ extern int g_suspended_screen_id;
 
 static_assert(sizeof(W8ScreenStateRuntime) == 0x98, "W8ScreenStateRuntime_must_be_0x98");
 
-void ReleaseScreenTransitionObjects(void);
 int GetPendingScreenState(void);
 void SetPendingScreenState(int value);
 void RequestScreenTransition(void);

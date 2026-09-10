@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+   Reconstruct Wizardry archive mapping and patch-library record layouts.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef _LIBRARY_DATABASE_H
 #define _LIBRARY_DATABASE_H
 
@@ -34,6 +37,7 @@ typedef struct
 	CHAR8 sLibraryName[ FILENAME_SIZE ];					// The name of the library file on the disk
 	BOOLEAN fOnCDrom;															// A flag specifying if its a cdrom library ( not implemented yet )
 	BOOLEAN fInitOnStart;													// Flag specifying if the library is to Initialized at the begining of the game
+	BOOLEAN fMapFile;														// Wizardry can memory map selected libraries
 
 } LibraryInitHeader;
 
@@ -49,8 +53,13 @@ typedef struct
 	#include "WizLibs.h"
 #endif
 
-extern LibraryInitHeader gGameLibaries[];
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern	CHAR8	gzCdDirectory[ SGPFILENAME_LEN ];
+#ifdef __cplusplus
+}
+#endif
 
 
 #define		REAL_LIBRARY_FILE	"RealFiles.slf"
@@ -87,12 +96,15 @@ typedef struct
 	HANDLE	hLibraryHandle;
 	UINT16	usNumberOfEntries;
 	BOOLEAN	fLibraryOpen;
+	BOOLEAN	fPatchLibrary;
 //	BOOLEAN	fAnotherFileAlreadyOpenedLibrary;				//this variable is set when a file is opened from the library and reset when the file is close.  No 2 files can have access to the library at 1 time.
 	UINT32	uiIdOfOtherFileAlreadyOpenedLibrary;				//this variable is set when a file is opened from the library and reset when the file is close.  No 2 files can have access to the library at 1 time.
 	INT32		iNumFilesOpen;
 	INT32		iSizeOfOpenFileArray;
 	FileHeaderStruct *pFileHeader;
 	FileOpenStruct	*pOpenFiles;
+	HANDLE	hFileMapping;
+	PTR		pFileMapping;
 
 //
 //	Temp:	Total memory used for each library ( all memory allocated
@@ -183,8 +195,10 @@ extern DatabaseManagerHeaderStruct gFileDataBase;
 
 BOOLEAN CheckForLibraryExistence( STR pLibraryName );
 BOOLEAN InitializeLibrary( STR pLibraryName, LibraryHeaderStruct *pLibheader, BOOLEAN fCanBeOnCDrom );
+HANDLE OpenLibraryStream00412F10(HWFILE file);
 
-BOOLEAN InitializeFileDatabase( );
+BOOLEAN InitializeFileDatabase(void);
+INT32 LoadPatchSlfArchives(const CHAR8* directory);
 BOOLEAN ReopenCDLibraries(void);
 BOOLEAN ShutDownFileDatabase( );
 BOOLEAN CheckIfFileExistInLibrary( STR pFileName );

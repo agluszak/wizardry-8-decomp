@@ -1,3 +1,5 @@
+#include "line.h"
+#include "soundman.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/bringup_gates.h"
@@ -18,7 +20,7 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/MGSKeyboard.h"
 #include "wiz8/render_state.h"
-#include "wiz8/sgp_video.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/3d_code/IList.h"
@@ -81,7 +83,6 @@ extern void Function5AE9D0(void);
 extern void Function59B940(void);
 extern void Function59BDB0(void);
 extern void Function55F2C0(void);
-extern void SetSurfaceClipBounds00413FD0(int, int, int, int, int);
 extern void Function58AC00(int, const wchar_t*, int, int, int);
 extern void Function58AAD0(int, const wchar_t*, const wchar_t*);
 extern void Function55D3C0(void);
@@ -92,7 +93,6 @@ extern void Function58A470(int value);
 extern void Function565740(int slot);
 extern void Function59C930(int slot);
 extern void Function42B770(int, int);
-extern void Function4098F0(void);
 extern void Function490AF0(void);
 extern void Function5187E0(void);
 extern void Function56E800(int);
@@ -246,12 +246,12 @@ void Function4916C0(void);
 unsigned char Function5684E0(void);
 void Function561330(unsigned char value);
 unsigned char GetFlag69DA6C(void);
-void Function57E0E0(int event, const W8ScreenPoint* point);
+void Function57E0E0(int event, const POINT* point);
 void Function44FC20(W8World* world, unsigned int flags);
 void Function450210(W8World* world, unsigned int flags);
 void Function59B2D0(void);
 void Function55F080(void);
-void Function5A1EB0(W8ScreenPoint* point, unsigned int* value);
+void Function5A1EB0(POINT* point, unsigned int* value);
 void Function5171C0(void);
 void Function4E8EA0(void);
 void StartCombat(int surprise);
@@ -469,7 +469,7 @@ unsigned char MainGameScreenEnter(void)
     Function59BDB0();
     Function55F2C0();
     ScrollTextBoxToCursor();
-    SetSurfaceClipBounds00413FD0(0x500, 0, 0, 0x280, 0x1e0);
+    SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
     SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
     g_flag_65970d = 1;
     g_monster_shadow_updates_enabled_0065970c = 1;
@@ -693,10 +693,10 @@ update_screen:
     if (GetWorld659AB8()) {
         WorldUpdateProps(GetWorld659AB8());
     }
-    W8ScreenPoint point;
-    W8ScreenPoint current;
+    POINT point;
+    POINT current;
     unsigned int value;
-    GetScreenPoint004284F0(&point);
+    SGPMouseGetPos(&point);
     if (!IsWorldCursorVisible()) {
         if (!g_modal_owner_0068edd0) {
             if ((!Function525DF0(1) || !gXStatus.field_01f) &&
@@ -752,7 +752,7 @@ update_screen:
             }
         }
         if (gfLeftButtonState && !g_modal_owner_0068edd0 && GetFlag68F105()) {
-            GetScreenPoint004284F0(&current);
+            SGPMouseGetPos(&current);
             Function57E0E0(0x400, &current);
         }
     }
@@ -1020,7 +1020,7 @@ unsigned char MainGameScreenLeave(int leaving)
                 return 0;
             }
         }
-        Function4098F0();
+        SoundEmptyCache();
         free(g_level_block);
         g_level_block = 0;
         ReleaseLoadedVideoFrames();
@@ -1153,7 +1153,7 @@ void ClearHighlightIfItIs(const int* item)
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
         g_level_block->highlighted_item != -1 &&
         *item == g_level_block->highlighted_item) {
-        ReleaseScreenTransitionObjects();
+        VideoRemoveToolTip();
     }
 }
 

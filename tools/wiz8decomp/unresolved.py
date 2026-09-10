@@ -21,12 +21,11 @@ from __future__ import annotations
 import csv
 import io
 import re
-import struct
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from reccmp.compare.exact import coff_name
+from reccmp.formats.coff import parse_coff_object
 
 from .paths import atomic_json, atomic_write
 
@@ -41,31 +40,17 @@ DEFAULT_BASELINE = Path("config/verification/unresolved-baseline.csv")
 def object_symbols(path: Path) -> tuple[set[str], set[str]]:
     """Return the externals this object defines and the ones it only refers to."""
 
-    data = path.read_bytes()
-    if len(data) < 20:
-        return set(), set()
-    machine, _section_count, _stamp, symbol_table, symbol_count, optional_size, _flags = (
-        struct.unpack_from("<HHIIIHH", data, 0)
-    )
-    if machine != 0x14C or optional_size != 0:
-        return set(), set()
-    string_table = symbol_table + symbol_count * 18
     defined: set[str] = set()
     referenced: set[str] = set()
-    index = 0
-    while index < symbol_count:
-        raw = data[symbol_table + index * 18 : symbol_table + index * 18 + 18]
-        name = coff_name(data, raw, string_table)
-        value, section, _type, storage, auxiliary = struct.unpack_from("<IhHBB", raw, 8)
-        if storage == 2:
+    for symbol in parse_coff_object(path).symbols:
+        if symbol.storage_class == 2:
             # Section zero with a zero value is the COFF spelling of "wanted but
             # not supplied here"; a nonzero value is a common block, which the
             # linker allocates rather than reports.
-            if section == 0 and value == 0:
-                referenced.add(name)
-            elif section > 0:
-                defined.add(name)
-        index += 1 + auxiliary
+            if symbol.section == 0 and symbol.value == 0:
+                referenced.add(symbol.name)
+            elif symbol.section > 0 or symbol.is_common:
+                defined.add(symbol.name)
     return defined, referenced
 
 

@@ -301,7 +301,7 @@ unsigned char LoadGrCycle004A67E0(
 
     int handle = FileOpen(mon_path, FILE_ACCESS_READ | FILE_OPEN_EXISTING, 0);
     if (handle == 0) {
-        ReportError00401920(FormatString("Couldn't open %s", mon_path));
+        ShutdownWithErrorBox(FormatString("Couldn't open %s", mon_path));
     }
 
     info.world_00 = context->world_00;
@@ -310,13 +310,13 @@ unsigned char LoadGrCycle004A67E0(
     info.mon_path_0c = mon_path;
     success = 1;
 
-    if (ReadVirtualFile(handle, &version, 1, 0) == 0 || version != 1 ||
+    if (FileRead(handle, &version, 1, 0) == 0 || version != 1 ||
         ReadGrCycleData004A6970(
             &info, cycle, cycle_index, value, object_type) == 0) {
         success = 0;
     }
 
-    CloseVirtualFile(handle);
+    FileClose(handle);
     if (success == 0) {
         srAssertFail(
             "fSuccess",
@@ -386,7 +386,7 @@ unsigned char ReadGrCycleData004A6970(
         (*cycle)->GetRepresentation()->current_cycle = -1;
     }
 
-    ReadVirtualFile(info->handle_04, &has_path, 1, 0);
+    FileRead(info->handle_04, &has_path, 1, 0);
     if (has_path != 0 &&
         LoadPathAI004A92A0(
             reinterpret_cast<W8PathAI**>(&(*cycle)->m_pAI),
@@ -398,7 +398,7 @@ unsigned char ReadGrCycleData004A6970(
             0);
     }
 
-    ReadVirtualFile(info->handle_04, &has_particles, 1, 0);
+    FileRead(info->handle_04, &has_particles, 1, 0);
     if (has_particles != 0) {
         W8GrowableVector<stParticle*> particles;
 
@@ -1310,7 +1310,7 @@ void W8GrCycle::SelectLOD004A7BE0(const float* position)
         pRep->SetCycleFrameLod(pRep->current_cycle, 0, 0) != 0;
 
     if (has_lod_2 == 0 && has_lod_1 == 0 && has_lod_0 == 0) {
-        ReportError00401920("Monster has no valid LODs!");
+        ShutdownWithErrorBox("Monster has no valid LODs!");
     }
     if (g_render_brightness_60a210 * pRep->lod_range_09c > distance) {
         if (has_lod_2 != 0) {

@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+   Consolidate the reconstructed platform declarations at their source owner.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifndef __SGP_
 #define __SGP_
 
@@ -47,9 +50,22 @@ extern BOOLEAN		gfCapturingVideo;
 
 #endif
 
+extern HINSTANCE ghInstance;
+extern BOOLEAN gfApplicationActive;
+extern BOOLEAN gfGameInitialized;
+extern BOOLEAN gfIgnoreMessages;
+extern UINT32 guiMouseWheelMsg;
+extern CHAR8 gzErrorMsg[2048];
+
+INT32 FAR PASCAL WindowProcedure(HWND window, UINT16 message, WPARAM wparam, LPARAM lparam);
+BOOLEAN InitializeStandardGamingPlatform(HINSTANCE instance, int show_command);
+void ShutdownStandardGamingPlatform(void);
+void ProcessCommandLine(CHAR8* command_line);
+void GetRuntimeSettings(void);
+
 // function prototypes
 void SGPExit(void);
-void ShutdownWithErrorBox(CHAR8 *pcMessage);
+void ShutdownWithErrorBox(const CHAR8 *pcMessage);
 
 #ifdef __cplusplus
 }

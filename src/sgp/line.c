@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+   Record the retail identities of the original clipping code and storage.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifdef JA2_PRECOMPILED_HEADERS
 	#include "JA2 SGP ALL.H"
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
@@ -25,10 +28,15 @@
 //
 //**************************************************************************
 
+// GLOBAL: WIZ8 0x00650f9c
 int giImageWidth=0;
+// GLOBAL: WIZ8 0x00650fa0
 int giClipXMin=0;
+// GLOBAL: WIZ8 0x00650fa4
 int giClipXMax=0;
+// GLOBAL: WIZ8 0x00650fa8
 int giClipYMin=0;
+// GLOBAL: WIZ8 0x00650fac
 int giClipYMax=0;
 
 void DrawHorizontalRun(char **ScreenPtr, int XAdvance, int RunLength,
@@ -42,6 +50,7 @@ void DrawVerticalRun8(char **ScreenPtr, int XAdvance,
    int RunLength, int Color, int ScreenWidth);
 
 
+// FUNCTION: WIZ8 0x00413fd0
 void SetClippingRegionAndImageWidth(
 	int iImageWidth,
 	int iClipStartX,

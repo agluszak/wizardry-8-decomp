@@ -346,7 +346,7 @@ unsigned char W8PathingService::WriteWaypointFile00459540()
             FileWrite(handle, m_pEdges_04c,
                       m_ulNumEdges * sizeof(W8PathEdge), 0);
     }
-    CloseVirtualFile(handle);
+    FileClose(handle);
     return result;
 }
 
@@ -364,12 +364,12 @@ unsigned char W8PathingService::ReadWaypointFile00459650()
     unsigned int handle = FileOpen(path, 1, 0);
     if (handle == 0) return 0;
 
-    success = ReadVirtualFile(handle, &version, 4, 0) |
-              ReadVirtualFile(handle, &m_positional_008, 4, 0) |
-              ReadVirtualFile(handle, &m_ulNumSurfaces, 4, 0) |
-              ReadVirtualFile(handle, &m_ulNumEdges, 4, 0);
+    success = FileRead(handle, &version, 4, 0) |
+              FileRead(handle, &m_positional_008, 4, 0) |
+              FileRead(handle, &m_ulNumSurfaces, 4, 0) |
+              FileRead(handle, &m_ulNumEdges, 4, 0);
     if (success == 0) {
-        CloseVirtualFile(handle);
+        FileClose(handle);
         return 0;
     }
     unsigned int surface_capacity = (m_ulNumSurfaces / 100 + 1) * 100;
@@ -388,24 +388,24 @@ unsigned char W8PathingService::ReadWaypointFile00459650()
         if (file_waypoints_050 != 0) free(file_waypoints_050);
         if (m_pSurfaces_048 != 0) free(m_pSurfaces_048);
         if (m_pEdges_04c != 0) free(m_pEdges_04c);
-        CloseVirtualFile(handle);
+        FileClose(handle);
         return 0;
     }
 
-    success = ReadVirtualFile(handle, file_waypoints_050,
+    success = FileRead(handle, file_waypoints_050,
         m_ulNumSurfaces * sizeof(W8FileWaypoint), 0);
     if (success != 0) {
         if (version == 1) {
             for (unsigned int edge = 0; edge < m_ulNumEdges; ++edge) {
                 W8PathEdge* item = &m_pEdges_04c[edge];
-                success &= ReadVirtualFile(handle, &item->flags_00, 4, 0);
-                success &= ReadVirtualFile(handle, &item->destination_06, 2, 0);
-                success &= ReadVirtualFile(handle, &item->distance_08, 4, 0);
-                success &= ReadVirtualFile(handle, &item->next_0c, 2, 0);
+                success &= FileRead(handle, &item->flags_00, 4, 0);
+                success &= FileRead(handle, &item->destination_06, 2, 0);
+                success &= FileRead(handle, &item->distance_08, 4, 0);
+                success &= FileRead(handle, &item->next_0c, 2, 0);
                 item->source_04 = 0;
             }
         } else {
-            success &= ReadVirtualFile(handle, m_pEdges_04c,
+            success &= FileRead(handle, m_pEdges_04c,
                 m_ulNumEdges * sizeof(W8PathEdge), 0);
         }
     }
@@ -413,7 +413,7 @@ unsigned char W8PathingService::ReadWaypointFile00459650()
         free(file_waypoints_050);
         free(m_pSurfaces_048);
         free(m_pEdges_04c);
-        CloseVirtualFile(handle);
+        FileClose(handle);
         return 0;
     }
 
@@ -447,7 +447,7 @@ unsigned char W8PathingService::ReadWaypointFile00459650()
     visible_waypoints_058->SetSize(surface_capacity);
     rendered_waypoints_05c->SetSize(surface_capacity);
     collected_waypoints_060->SetSize(surface_capacity);
-    CloseVirtualFile(handle);
+    FileClose(handle);
     g_path_scratch_00659c64 = malloc(surface_capacity * sizeof(unsigned short));
 
     if (version <= 2) {
@@ -598,7 +598,7 @@ unsigned char W8PathingService::Load00458CE0(int handle)
         if (m_pIndex_064 == 0 || buffer == 0) {
             strcpy(acMessage, "ReadPathNodes: Couldn't allocate path hash array.");
         } else {
-            fSuccess = ReadVirtualFile(handle, buffer, size_004 * 8, &uiRead);
+            fSuccess = FileRead(handle, buffer, size_004 * 8, &uiRead);
             if (fSuccess == 0) {
                 strcpy(acMessage, "ReadPathNodes: Couldn't read path hash array.");
                 free(buffer);
@@ -612,7 +612,7 @@ unsigned char W8PathingService::Load00458CE0(int handle)
             }
         }
     }
-    fSuccess = ReadVirtualFile(handle, block, 0x10, &uiRead);
+    fSuccess = FileRead(handle, block, 0x10, &uiRead);
     if (fSuccess == 0) {
         srAssertFail("fSuccess", OCTPATH_CPP, 0x8fa,
                      "ReadPathNodes: Couldn't write Conditional Counts.\n");
@@ -652,31 +652,31 @@ unsigned char W8PathingService::Load00458CE0(int handle)
         srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x90b,
                      "ReadPathNodes: Couldn't allocate Conditional Value array.\n");
     }
-    fSuccess = ReadVirtualFile(
+    fSuccess = FileRead(
         handle, m_pCondPaths, m_ulNumCondPaths * 0x44, &uiRead);
     if (fSuccess == 0) {
         srAssertFail("fSuccess", OCTPATH_CPP, 0x90e,
                      "ReadPathNodes: Couldn't write Conditional Prop array.\n");
     }
-    fSuccess = ReadVirtualFile(
+    fSuccess = FileRead(
         handle, m_pCondLookup, m_ulNumCondLookup << 2, &uiRead);
     if (fSuccess == 0) {
         srAssertFail("fSuccess", OCTPATH_CPP, 0x910,
                      "ReadPathNodes: Couldn't write Conditional Lookup array.\n");
     }
-    fSuccess = ReadVirtualFile(
+    fSuccess = FileRead(
         handle, m_pCondFrames, m_ulNumCondLookup << 1, &uiRead);
     if (fSuccess == 0) {
         srAssertFail("fSuccess", OCTPATH_CPP, 0x912,
                      "ReadPathNodes: Couldn't write Conditional Frame array.\n");
     }
-    fSuccess = ReadVirtualFile(
+    fSuccess = FileRead(
         handle, m_pCondKeys, m_ulNumCondKeys << 2, &uiRead);
     if (fSuccess == 0) {
         srAssertFail("fSuccess", OCTPATH_CPP, 0x914,
                      "ReadPathNodes: Couldn't write Conditional Frame array.\n");
     }
-    fSuccess = ReadVirtualFile(
+    fSuccess = FileRead(
         handle, m_pCondValues, m_ulNumCondKeys << 2, &uiRead);
     if (fSuccess == 0) {
         srAssertFail("fSuccess", OCTPATH_CPP, 0x916,
@@ -5883,7 +5883,7 @@ unsigned char LoadPathParameters004CCCB0()
     for (;;) {
         do {
             if (more == 0) {
-                CloseVirtualFile(handle);
+                FileClose(handle);
                 return 1;
             }
             ReadTextLine004CEE40(handle, line, sizeof(line), &more);

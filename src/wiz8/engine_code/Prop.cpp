@@ -762,11 +762,11 @@ int W8Prop::Function44DEA0()
         return 0;
     }
     if (AnimationIsRunning(Rep()->animation) != 1) {
-        ReportError00401920(
+        ShutdownWithErrorBox(
             "Collidable props can be of Transitive animation type only.");
     }
     if (AnimObjListCount004A1620(Rep()->animation, 2) != 1) {
-        ReportError00401920("Collideable props should have a single mesh.");
+        ShutdownWithErrorBox("Collideable props should have a single mesh.");
     }
     instance = AnimObjDispatchList004A1560(Rep()->animation, 2, 0);
     if (instance == 0) {
@@ -846,7 +846,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
             "pInfo && pInfo->hFile && pProp", PROP_CPP, 0xae, 0);
     }
     hFile = info->hFile;
-    success = ReadVirtualFile(hFile, &version, 1, 0);
+    success = FileRead(hFile, &version, 1, 0);
     if (version < 4) {
         unsigned char b0 = 0;
         unsigned char b1 = 0;
@@ -855,9 +855,9 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
         W8AniMesh* mesh;
 
         if (success == 0 ||
-            (success = ReadVirtualFile(hFile, &b0, 1, 0), success == 0) ||
-            (success = ReadVirtualFile(hFile, &b1, 1, 0), success == 0) ||
-            (success = ReadVirtualFile(hFile, &b2, 1, 0), success == 0)) {
+            (success = FileRead(hFile, &b0, 1, 0), success == 0) ||
+            (success = FileRead(hFile, &b1, 1, 0), success == 0) ||
+            (success = FileRead(hFile, &b2, 1, 0), success == 0)) {
             ok = 0;
         }
         else {
@@ -875,7 +875,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
                 fail_line = 0xcb;
                 goto fail;
             }
-            success = ReadVirtualFile(hFile, &playback_scale, 4, 0);
+            success = FileRead(hFile, &playback_scale, 4, 0);
             if (success == 0) {
                 fail_line = 0xcb;
                 goto fail;
@@ -912,17 +912,17 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
         flag_bits = 0.0f;
         info->mesh_filename = 0;
         if (success != 0) {
-            ReadVirtualFile(hFile, &frame_count, 1, 0);
+            FileRead(hFile, &frame_count, 1, 0);
         }
         if (version > 4) {
             float lx = 0.0f;
             float ly = 0.0f;
             float lz = 0.0f;
 
-            ReadVirtualFile(hFile, &option_byte, 1, 0);
-            ReadVirtualFile(hFile, &lx, 4, 0);
-            ReadVirtualFile(hFile, &ly, 4, 0);
-            ReadVirtualFile(hFile, &lz, 4, 0);
+            FileRead(hFile, &option_byte, 1, 0);
+            FileRead(hFile, &lx, 4, 0);
+            FileRead(hFile, &ly, 4, 0);
+            FileRead(hFile, &lz, 4, 0);
             lx *= g_double_005ec150;
             ly *= g_double_005ec150;
             lz *= g_double_005ec150;
@@ -934,7 +934,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
             this->location_004.z = lz;
         }
         if (version > 5) {
-            ReadVirtualFile(hFile, &flag_bits, 4, 0);
+            FileRead(hFile, &flag_bits, 4, 0);
             prop->flags_1c |= (unsigned int)flag_bits;
         }
         if (version > 6) {
@@ -942,7 +942,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
             int length = -1;
             char* scan = buffer;
 
-            ReadVirtualFile(hFile, buffer, 0x40, 0);
+            FileRead(hFile, buffer, 0x40, 0);
             do {
                 if (length == 0) {
                     break;
@@ -961,16 +961,16 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
         }
         if (version > 7) {
             slot_count = 0;
-            ReadVirtualFile(hFile, &slot_count, 1, 0);
+            FileRead(hFile, &slot_count, 1, 0);
             for (slot_i = 0; slot_i < slot_count; ++slot_i) {
                 unsigned short frame_tmp = 0;
                 unsigned short tag_tmp = 0;
                 unsigned char* slot =
                     new unsigned char[2];
 
-                ReadVirtualFile(hFile, &frame_tmp, 2, 0);
+                FileRead(hFile, &frame_tmp, 2, 0);
                 slot[0] = (unsigned char)frame_tmp;
-                ReadVirtualFile(hFile, &tag_tmp, 2, 0);
+                FileRead(hFile, &tag_tmp, 2, 0);
                 slot[1] = (unsigned char)tag_tmp;
                 if (frame_count <= frame_tmp) {
                     srAssertFail(
@@ -1132,7 +1132,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
             result = 0;
         }
         else {
-            success = ReadVirtualFile(hFile, &attach_flag, 1, 0);
+            success = FileRead(hFile, &attach_flag, 1, 0);
             result = success != 0 ? 1 : 0;
         }
         if (attach_flag != 0) {
@@ -1184,15 +1184,15 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
         unsigned char extra = 0;
 
         if (result != 0) {
-            success = ReadVirtualFile(hFile, &extra, 1, 0);
+            success = FileRead(hFile, &extra, 1, 0);
             result = success != 0 ? 1 : 0;
         }
         if (extra != 0) {
             if (result != 0 &&
-                (success = ReadVirtualFile(
+                (success = FileRead(
                      hFile, &this->flag_0c0, 1, 0),
                  success != 0) &&
-                (success = ReadVirtualFile(
+                (success = FileRead(
                      hFile, &this->flag_0c1, 1, 0),
                  success != 0)) {
                 result = 1;

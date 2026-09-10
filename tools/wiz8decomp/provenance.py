@@ -28,7 +28,7 @@ NAME_ORIGIN_CEILING = MappingProxyType(
     {
         # An original source body proves the name.
         "original-source": "source-backed",
-        # Specifically the pinned, licence-restricted SGP oracle tree.
+        # The released SGP source ancestry of the reconstructed component.
         "sgp-source": "source-backed",
         # An original decorated symbol: export table, import table, or library symbol table.
         "original-export": "abi-backed",

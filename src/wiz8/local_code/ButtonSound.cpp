@@ -1,3 +1,4 @@
+#include "soundman.h"
 #include "wiz8/local_code/ButtonSound.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/sound_man.h"
@@ -73,12 +74,10 @@ void PlayButtonSound(int sound_id)
         g_button_sound_cooldown_68de3c = SetCountdownClock(200);
     }
 
-    int options[8];
-    for (int i = 0; i < 8; ++i) {
-        options[i] = -1;
-    }
-    options[2] = g_settings_6850c8.sound_effects_volume >> 1;
-    PlaySound00408860(path, options);
+    SOUNDPARMS options;
+    memset(&options, -1, sizeof(options));
+    options.uiVolume = g_settings_6850c8.sound_effects_volume >> 1;
+    SoundPlay((STR)path, &options);
 }
 
 // FUNCTION: WIZ8 0x005587c0

@@ -119,6 +119,7 @@ set(WIZ8_TEMPLATE_EMISSIONS
 # Unknown fragments retain bounded address names under unattributed/.
 # Keep this single list in link order: renaming a unit must not move its slot.
 set(WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
+    src/wiz8/imports/mss.cpp
     src/wiz8/bringup_gates.cpp
     src/wiz8/renderer_window.cpp
     src/wiz8/startup_render_state.cpp
@@ -126,14 +127,9 @@ set(WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
     src/wiz8/startup_subsystems.cpp
     src/wiz8/startup_ui_state.cpp
     src/wiz8/startup_cursor.cpp
-    src/wiz8/slf_archives.cpp
-    src/wiz8/sgp_runtime_adapters.cpp
-    src/wiz8/input_hooks.cpp
     src/wiz8/sound_man.cpp
-    src/wiz8/font_manager.cpp
     src/wiz8/surface2d.cpp
-    src/wiz8/video2.cpp
-    src/wiz8/window_proc.cpp
+    src/wiz8/engine_code/Video2.cpp
     src/wiz8/character_skills.cpp
     src/wiz8/fact_state.cpp
     src/wiz8/dirty_tiles.cpp
@@ -141,7 +137,6 @@ set(WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
     src/wiz8/engine_code/registry_classes.cpp
     src/wiz8/engine_code/MonsterLight.cpp
     src/wiz8/engine_code/GDCamera.cpp
-    src/wiz8/unattributed/00401001_0041ab3f.cpp
     src/wiz8/unattributed/0041f261_0042403f.cpp
     src/wiz8/engine_code/world_selection.cpp
     src/wiz8/unattributed/0046c0f1_0046dc8f.cpp

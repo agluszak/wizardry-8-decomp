@@ -103,15 +103,15 @@ stMeshModel* OctMeshModel::Read0049E9A0(
     }
 
     unsigned char read_ok = 1;
-    read_ok &= ReadVirtualFile(file, &packed_header_3c, 4, 0);
-    read_ok &= ReadVirtualFile(file, &vertex_count_40, 4, 0);
-    read_ok &= ReadVirtualFile(file, &positional_10, 4, 0);
-    read_ok &= ReadVirtualFile(file, &polygon_count_44, 4, 0);
-    read_ok &= ReadVirtualFile(file, &link_index_04, 4, 0);
-    read_ok &= ReadVirtualFile(file, &uv_count_08, 4, 0);
-    read_ok &= ReadVirtualFile(file, &material_index_0c, 4, 0);
+    read_ok &= FileRead(file, &packed_header_3c, 4, 0);
+    read_ok &= FileRead(file, &vertex_count_40, 4, 0);
+    read_ok &= FileRead(file, &positional_10, 4, 0);
+    read_ok &= FileRead(file, &polygon_count_44, 4, 0);
+    read_ok &= FileRead(file, &link_index_04, 4, 0);
+    read_ok &= FileRead(file, &uv_count_08, 4, 0);
+    read_ok &= FileRead(file, &material_index_0c, 4, 0);
     if (read_ok == 0) {
-        ReportError00401920("OctMeshModel::Read -- Could not read Integer fields.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not read Integer fields.");
     }
 
     unsigned int header = packed_header_3c;
@@ -125,12 +125,12 @@ stMeshModel* OctMeshModel::Read0049E9A0(
     }
     allocated_1c = malloc(index_count * sizeof(int));
     if (allocated_1c == 0) {
-        ReportError00401920("OctMeshModel::Read -- Could not allocate m_plVertMats.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not allocate m_plVertMats.");
     }
 
     stMeshModel* model = new stMeshModel(polygon_count_44, vertex_count_40);
     if (model == 0) {
-        ReportError00401920("OctMeshModel::Read -- Could not create pstMeshModel.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not create pstMeshModel.");
     }
     model->autoRelease();
     if (unweighted) {
@@ -142,21 +142,21 @@ stMeshModel* OctMeshModel::Read0049E9A0(
 
     heap_14 = model->getVertexLoc();
     if (heap_14 == 0) {
-        ReportError00401920("OctMeshModel::Read -- Could not get vertex location array.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not get vertex location array.");
     }
     if (!ReadVector3Array004374E0(
             file, static_cast<srVector3T<float>*>(heap_14), vertex_count_40)) {
-        ReportError00401920("OctMeshModel::Read -- Could not read Integer fields.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not read Integer fields.");
     }
 
     model->setUVCount(positional_10);
     heap_18 = model->getVertexTexCoords(0, 0, 1);
     if (heap_18 == 0) {
-        ReportError00401920("OctMeshModel::Read -- Could not get vertex mapping array.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not get vertex mapping array.");
     }
     if (!ReadVector2Array00437510(
             file, static_cast<srVector2T<float>*>(heap_18), positional_10)) {
-        ReportError00401920("OctMeshModel::Read -- Could not read m_psrMap.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not read m_psrMap.");
     }
 
     int selected_material = material_index_0c;
@@ -166,11 +166,11 @@ stMeshModel* OctMeshModel::Read0049E9A0(
             model->getVertexMaterial(
                 0, static_cast<srMeshModel::e_side>(0), 1);
         if (vertex_materials == 0) {
-            ReportError00401920("OctMeshModel::Read -- Could not get vertex material array.");
+            ShutdownWithErrorBox("OctMeshModel::Read -- Could not get vertex material array.");
         }
-        if (!ReadVirtualFile(file, allocated_1c,
+        if (!FileRead(file, allocated_1c,
                 vertex_count_40 * sizeof(int), 0)) {
-            ReportError00401920("OctMeshModel::Read -- Could not read m_plVertMats.");
+            ShutdownWithErrorBox("OctMeshModel::Read -- Could not read m_plVertMats.");
         }
         selected_material = static_cast<int*>(allocated_1c)[0];
         for (index = 0; index < vertex_count_40; ++index) {
@@ -192,32 +192,32 @@ stMeshModel* OctMeshModel::Read0049E9A0(
 
     heap_24 = model->getPolyUVIndex(0, 1);
     if (heap_24 == 0) {
-        ReportError00401920("OctMeshModel::Read -- Could not get poly-UV array.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not get poly-UV array.");
     }
     if (!ReadVector3Array004374E0(
             file, reinterpret_cast<srVector3T<float>*>(heap_24),
             polygon_count_44)) {
-        ReportError00401920("OctMeshModel::Read -- Could not read m_psrPolyUVIndex.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not read m_psrPolyUVIndex.");
     }
 
     heap_20 = model->getPolyVertex();
     if (heap_20 == 0) {
-        ReportError00401920("OctMeshModel::Read -- Could not get poly-vertex array.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not get poly-vertex array.");
     }
     if (!ReadVector3Array004374E0(
             file, reinterpret_cast<srVector3T<float>*>(heap_20),
             polygon_count_44)) {
-        ReportError00401920("OctMeshModel::Read -- Could not read m_psrPolyVertex.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not read m_psrPolyVertex.");
     }
 
     srPtr<srTextureIFace>* polygon_textures =
         model->getPolyTexture(0, 0, 1);
     if (polygon_textures == 0) {
-        ReportError00401920("OctMeshModel::Read -- Could not get poly texture array.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not get poly texture array.");
     }
-    if (!ReadVirtualFile(file, allocated_1c,
+    if (!FileRead(file, allocated_1c,
             polygon_count_44 * sizeof(int), 0)) {
-        ReportError00401920("OctMeshModel::Read -- Could not read m_plPolyTextures.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not read m_plPolyTextures.");
     }
     for (index = 0; index < polygon_count_44; ++index) {
         int texture_index = static_cast<int*>(allocated_1c)[index];
@@ -231,43 +231,43 @@ stMeshModel* OctMeshModel::Read0049E9A0(
 
     heap_2c = model->getVertexNormal();
     if (heap_2c == 0) {
-        ReportError00401920("OctMeshModel::Read -- Could not get vertex normal array.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not get vertex normal array.");
     }
     if (!ReadVector3Array004374E0(
             file, static_cast<srVector3T<float>*>(heap_2c), vertex_count_40)) {
-        ReportError00401920("OctMeshModel::Read -- Could not read m_pVertNorms.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not read m_pVertNorms.");
     }
 
     heap_30 = model->GetVertexDIG00472100(1, -1);
     if (heap_30 == 0) {
-        ReportError00401920("OctMeshModel::Read -- Could not get static lighting array.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not get static lighting array.");
     }
     if (!ReadVector3Array004374E0(
             file, static_cast<srVector3T<float>*>(heap_30), vertex_count_40)) {
-        ReportError00401920("OctMeshModel::Read -- Could not read m_pVertLights.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not read m_pVertLights.");
     }
 
     heap_34 = model->getPolyEq();
     if (heap_34 == 0) {
-        ReportError00401920("OctMeshModel::Read -- Could not get poly equation array.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not get poly equation array.");
     }
     if (!ReadVector4Array004374C0(
             file, static_cast<srVector4T<float>*>(heap_34), polygon_count_44)) {
-        ReportError00401920("OctMeshModel::Read -- Could not read m_psrPolyEqtns.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not read m_psrPolyEqtns.");
     }
 
     float* weights = model->InitializeVertexWeights004721E0(1);
     if (weights == 0) {
-        ReportError00401920("OctMeshModel::Read -- Could not allocate intensity array.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not allocate intensity array.");
     }
     if (version_00 != 0 &&
-        !ReadVirtualFile(file, weights, vertex_count_40 * sizeof(float), 0)) {
-        ReportError00401920("OctMeshModel::Read -- Could not read Sunlight array.");
+        !FileRead(file, weights, vertex_count_40 * sizeof(float), 0)) {
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not read Sunlight array.");
     }
 
     unsigned long* shade_indices = model->getVertexShadeIndex(1);
     if (heap_14 == 0) {
-        ReportError00401920("OctMeshModel::Read -- Could not get vertex location array.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not get vertex location array.");
     }
     for (unsigned long shade_index = 0;
          shade_index < static_cast<unsigned long>(vertex_count_40);
@@ -276,9 +276,9 @@ stMeshModel* OctMeshModel::Read0049E9A0(
     }
 
     int terminator;
-    ReadVirtualFile(file, &terminator, sizeof(terminator), 0);
+    FileRead(file, &terminator, sizeof(terminator), 0);
     if (terminator != -1) {
-        ReportError00401920("Mesh Model in .pvl file is wrong length.");
+        ShutdownWithErrorBox("Mesh Model in .pvl file is wrong length.");
     }
 
     srShader shader;
@@ -288,7 +288,7 @@ stMeshModel* OctMeshModel::Read0049E9A0(
     model->setShader(shader, 0);
     if ((render_flags[selected_material] & 0x6000) == 0x4000) {
         if (unweighted) {
-            ReportError00401920("OctMeshModel::Read -- Wrong shader type.");
+            ShutdownWithErrorBox("OctMeshModel::Read -- Wrong shader type.");
         }
         else {
             model->enableStartupControls();

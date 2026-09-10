@@ -1,5 +1,5 @@
 #include "wiz8/local_screens/MGSKeyboard.h"
-#include "wiz8/input_hooks.h"
+#include "input.h"
 #include "wiz8/local_screens/CreditsScreen.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
@@ -122,10 +122,10 @@ unsigned char MGSKeyboard::Load(int handle, unsigned char clear)
     if (clear != 0) {
         Clear();
     }
-    ReadVirtualFile(handle, &count, sizeof(count), 0);
+    FileRead(handle, &count, sizeof(count), 0);
     for (int index = 0; index < count; ++index) {
         MGSKeyBinding* binding = new MGSKeyBinding;
-        ReadVirtualFile(handle, binding, sizeof(*binding), 0);
+        FileRead(handle, binding, sizeof(*binding), 0);
 
         int old_index = FindBinding(binding->command);
         if (old_index != -1) {
@@ -225,7 +225,7 @@ unsigned char MGSKeyboard::LoadDefaults(const char* path)
             m_command_index.Insert((const unsigned int*)&command, &binding);
         }
     }
-    CloseVirtualFile(handle);
+    FileClose(handle);
     return 1;
 }
 

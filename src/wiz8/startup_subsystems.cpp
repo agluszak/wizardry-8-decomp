@@ -65,7 +65,7 @@ HVOBJECT g_wiz_text_font_secondary_object_683680;
 HVOBJECT g_dialog_font_object_683684;
 HVOBJECT g_embossed_font_object_683688;
 int g_options_title_font_68368c;
-int g_tiny_mono_font_683690;
+int ghTinyMonoFont;
 // GLOBAL: WIZ8 0x00683694
 int g_smfnt_font_683694;
 
@@ -111,7 +111,7 @@ unsigned char InitializeMenuFonts(void)
     LOAD_FONT(g_calligraphy_shadow_font_6835f4,
               "Data\\Fonts\\CalligraphyFontFullShadow.sti");
     LOAD_FONT(g_smfnt_font_683694, "Data\\Fonts\\SmFnt.sti");
-    LOAD_FONT(g_tiny_mono_font_683690, "Data\\Fonts\\TinyMonoFont.sti");
+    LOAD_FONT(ghTinyMonoFont, "Data\\Fonts\\TinyMonoFont.sti");
     LOAD_FONT(g_button_font_683670, "Data\\Fonts\\ButtonFont.sti");
     LOAD_FONT(g_engraved_font_683600, "Data\\Fonts\\Engraved.sti");
     LOAD_FONT(g_embossed_font_683644, "Data\\Fonts\\Embossed.sti");
@@ -138,7 +138,7 @@ unsigned char InitializeMenuFonts(void)
     g_calligraphy_font_object_683628 = GetFontObject(g_calligraphy_font_6835f8);
     g_calligraphy_shadow_font_object_683610 = GetFontObject(g_calligraphy_shadow_font_6835f4);
     g_smfnt_font_object_683634 = GetFontObject(g_smfnt_font_683694);
-    g_tiny_mono_font_object_68360c = GetFontObject(g_tiny_mono_font_683690);
+    g_tiny_mono_font_object_68360c = GetFontObject(ghTinyMonoFont);
     g_button_font_object_6835fc = GetFontObject(g_button_font_683670);
     g_engraved_font_object_683624 = GetFontObject(g_engraved_font_683600);
     g_embossed_font_object_683688 = GetFontObject(g_embossed_font_683644);

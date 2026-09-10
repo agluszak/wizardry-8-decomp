@@ -1,3 +1,4 @@
+#include "soundman.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/GameplayDatabase.h"
@@ -289,7 +290,6 @@ extern void DropHeldItem(int arg_1);                         /* 0x004F7610 */
 
 /* 0x0051FE30 */
 extern void AddPartyGoldNotice(int channel, const wchar_t* notice, ...);
-extern int Function40A910(const char* path);
 extern int g_item_message_005ee6fc;
 extern int g_item_message_005ee640;
 extern int g_item_message_005ee644;
@@ -1140,8 +1140,8 @@ void AddPartyGold(int amount, char announce)
                                 gppStringList[0x57c / 4], amount, gppStringList[0x580 / 4],
                                 -1, -1, 0);
         ShowNotice(8, line);
-        if (!Function40A910(sound_path)) {
-            PlaySound00408860(sound_path, 0);
+        if (!SoundFileIsPlaying(sound_path)) {
+            SoundPlay(sound_path, 0);
         }
     }
 }

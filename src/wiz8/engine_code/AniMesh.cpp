@@ -202,9 +202,9 @@ unsigned char LoadAniMesh004B5D00(
         FileSeek(handle, mesh->file_offset_34, FILE_SEEK_FROM_START);
     }
 
-    if (!ReadVirtualFile(handle, &frame_count, sizeof(frame_count), 0)) {
+    if (!FileRead(handle, &frame_count, sizeof(frame_count), 0)) {
         srAssertFail("fSuccess", ANI_MESH_CPP, 0x1ad, 0);
-        CloseVirtualFile(handle);
+        FileClose(handle);
         return 0;
     }
     mesh->frame_count_01 = frame_count;
@@ -216,12 +216,12 @@ unsigned char LoadAniMesh004B5D00(
                 mesh->list_index_28);
     }
 
-    if (!ReadVirtualFile(handle, &frame_index, sizeof(frame_index), 0) ||
+    if (!FileRead(handle, &frame_index, sizeof(frame_index), 0) ||
         !ReadSingleLevelMesh00485B20(
             &info, &loaded_instance, 0, 0, instance_name, 1)) {
         srAssertFail("fSuccess", ANI_MESH_CPP, 0x1c5, 0);
         delete[] instance_name;
-        CloseVirtualFile(handle);
+        FileClose(handle);
         return 0;
     }
 
@@ -246,7 +246,7 @@ unsigned char LoadAniMesh004B5D00(
         }
         if (mesh->meshes_04 == 0) {
             delete[] instance_name;
-            CloseVirtualFile(handle);
+            FileClose(handle);
             return 0;
         }
         memset(mesh->meshes_04, 0, frame_count * sizeof(*mesh->meshes_04));
@@ -260,17 +260,17 @@ unsigned char LoadAniMesh004B5D00(
                         loaded_count, mesh->list_index_28);
             }
             if (!load_all ||
-                !ReadVirtualFile(handle, &frame_index, sizeof(frame_index), 0) ||
+                !FileRead(handle, &frame_index, sizeof(frame_index), 0) ||
                 !ReadSingleLevelMesh00485B20(
                     &info, &loaded_instance, 0, 0, instance_name, load_all)) {
                 srAssertFail("fSuccess", ANI_MESH_CPP, 0x1f1, 0);
                 delete[] instance_name;
-                CloseVirtualFile(handle);
+                FileClose(handle);
                 return 0;
             }
             if (frame_index >= frame_count) {
                 delete[] instance_name;
-                CloseVirtualFile(handle);
+                FileClose(handle);
                 return 0;
             }
             loaded_instance->setName("AniMeshReallyReadFromFile");
@@ -318,7 +318,7 @@ unsigned char LoadAniMesh004B5D00(
     mesh->flags_00 |= W8_ANI_MESH_RADIUS_LOADED;
 
     if (file == 0) {
-        CloseVirtualFile(handle);
+        FileClose(handle);
     }
     delete[] instance_name;
     if ((mesh->flags_00 & W8_ANI_MESH_KEEP_LOADED) != 0) {
@@ -386,19 +386,19 @@ static unsigned char LoadAniMeshFrameCount004B6290(int file, W8AniMesh* mesh)
     info.bitmap_folder = mesh->bitmap_directory_2c;
     info.mesh_filename = mesh->filename_30;
     if (file == 0) FileSeek(handle, mesh->file_offset_34, FILE_SEEK_FROM_START);
-    success = ReadVirtualFile(handle, &frame_count, 1, 0);
+    success = FileRead(handle, &frame_count, 1, 0);
     if (success == 0) {
         srAssertFail("fSuccess", ANI_MESH_CPP, 0x253, 0);
-        CloseVirtualFile(handle);
+        FileClose(handle);
         return 0;
     }
     mesh->flags_00 |= W8_ANI_MESH_FRAME_COUNT_LOADED;
     mesh->frame_count_01 = frame_count;
     for (loaded_count = 0; loaded_count < frame_count; ++loaded_count) {
-        if (success != 0) success = ReadVirtualFile(handle, &frame_index, 1, 0);
+        if (success != 0) success = FileRead(handle, &frame_index, 1, 0);
         if (success != 0 && SkipSingleLevelMesh00487BD0(&info) == 2) break;
     }
-    if (file == 0) CloseVirtualFile(handle);
+    if (file == 0) FileClose(handle);
     return success;
 }
 

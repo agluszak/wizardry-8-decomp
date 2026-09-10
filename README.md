@@ -5,8 +5,8 @@ Ghidra owns binary analysis, C++ owns recovered source, Python composes agent wo
 host/Docker/Wine orchestration, CMake owns compilation and linking, and `just` provides short aliases.
 
 The shared Standard Gaming Platform source is distributed under Strategy First's non-commercial
-SFI Source Code License Agreement in `third_party/sfi-sgp/sgp`. This project accepts those terms;
-the vendored subtree is not offered under broader or commercial-use terms.
+SFI Source Code License Agreement in `src/sgp`. This project accepts those terms;
+the reconstructed component is not offered under broader or commercial-use terms.
 
 For initial setup, copy `.env.example` to `.env`, set its absolute machine paths, and copy
 `config/local-inputs.example.yml` to the gitignored `config/local-inputs.yml`. The following commands

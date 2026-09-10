@@ -5,7 +5,7 @@
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_code/ControlsRect.h"
-#include "wiz8/input_hooks.h"
+#include "input.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/Widget.h"
 #include "wiz8/local_code/TextControl.h"
@@ -294,7 +294,7 @@ void W8State5PartyCollection::SortCharactersByWriteTime()
             SGP_FILETIME creation;
             SGP_FILETIME access;
             GetFileManFileTime(handle, &creation, &access, &times[index]);
-            CloseVirtualFile(handle);
+            FileClose(handle);
         }
     }
     SortState5CharactersByTime005C3520(
@@ -358,7 +358,7 @@ void W8State5ListControl005EF464::Redraw(int full_redraw)
         int right = m_pPanel->origin_x + m_right;
         int bottom = m_pPanel->origin_y + m_bottom;
 
-        MarkScreenRectDirty(left, top, right, bottom, 0);
+        InvalidateRegion(left, top, right, bottom, 0);
         BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
         SetFontDestBuffer(-14, left, top, right, bottom, 0);
 
@@ -397,8 +397,8 @@ void W8State5ListControl005EF464::OnMouseLeave(int event)
 // FUNCTION: WIZ8 0x005c00e0
 void W8State5ListControl005EF464::OnMouseMove(int)
 {
-    W8ScreenPoint point;
-    GetScreenPoint004284F0(&point);
+    POINT point;
+    SGPMouseGetPos(&point);
     int hovered = (point.x - m_pPanel->origin_y - m_top) / 0x0e
                   + m_first_visible;
     if (hovered != m_hovered) {
@@ -410,8 +410,8 @@ void W8State5ListControl005EF464::OnMouseMove(int)
 // FUNCTION: WIZ8 0x005c0140
 void W8State5ListControl005EF464::OnLeftButtonUp(int event)
 {
-    W8ScreenPoint point;
-    GetScreenPoint004284F0(&point);
+    POINT point;
+    SGPMouseGetPos(&point);
     int selection = (point.y - m_pPanel->origin_y - m_top) / 0x0e
                     + m_first_visible;
     if (selection != m_selection) {
@@ -1063,7 +1063,7 @@ void W8State5PlainPanel005EF4E0::Redraw()
     DrawCatalogImageAndInvalidate(-14, 0xfc, 0, 0, 0x7f, 0xc5, 2, 0);
     if (!m_character_4c) {
         BlitCatalogSurfaceRectTo16BPP(-14, 0x85, 0x30, 0x139, 0xbf, 0x1b6, 0, 0);
-        MarkScreenRectDirty(0x85, 0x30, 0x139, 0xbf, 0);
+        InvalidateRegion(0x85, 0x30, 0x139, 0xbf, 0);
         return;
     }
 
@@ -2388,14 +2388,14 @@ unsigned char PartySelectionScreenLeave(int leaving)
 // FUNCTION: WIZ8 0x005c3120
 void PartySelectionScreenFrame(void)
 {
-    W8ScreenPoint point;
-    W8ScreenPoint current;
+    POINT point;
+    POINT current;
     InputAtom input;
 
     if (g_flag_689b32) {
         RequestExitScreen();
     }
-    GetScreenPoint004284F0(&point);
+    SGPMouseGetPos(&point);
     W8State5Controller005EF4CC* controller = g_state5_controller_69c4e8;
     if (controller->m_dialog_68) {
         controller->m_dialog_68->ProcessInput();
@@ -2409,7 +2409,7 @@ void PartySelectionScreenFrame(void)
         }
     }
     if (controller->m_input_handler_64) {
-        GetScreenPoint004284F0(&current);
+        SGPMouseGetPos(&current);
         MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, static_cast<unsigned short>(current.x),
                        static_cast<unsigned short>(current.y),
                        gfLeftButtonState, gfRightButtonState);

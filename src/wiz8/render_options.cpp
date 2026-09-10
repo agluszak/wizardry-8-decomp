@@ -170,10 +170,10 @@ unsigned char LoadRenderOptions0047B890(int handle)
     unsigned char options[0x14];
     int option;
 
-    if (ReadVirtualFile(handle, &version, 4, &transferred) == 0 || version != 1) {
+    if (FileRead(handle, &version, 4, &transferred) == 0 || version != 1) {
         return 0;
     }
-    if (ReadVirtualFile(handle, options, 0x11, &transferred) == 0) {
+    if (FileRead(handle, options, 0x11, &transferred) == 0) {
         return 0;
     }
     option = 0;
@@ -185,7 +185,7 @@ unsigned char LoadRenderOptions0047B890(int handle)
 }
 
 // FUNCTION: WIZ8 0x0047b920
-bool SaveRenderOptions0047B920(HWFILE handle)
+bool SaveRenderOptions0047B920(int handle)
 {
     unsigned int transferred;
     int version = 1;

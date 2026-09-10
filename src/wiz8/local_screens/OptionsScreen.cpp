@@ -1,3 +1,4 @@
+#include "soundman.h"
 #include "Font.h"
 #include "Types.h"
 #include "mousesystem.h"
@@ -34,11 +35,11 @@
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/text_input.h"
-#include "wiz8/font_manager.h"
+#include "Font.h"
 #include "wiz8/local_code/Strings.h"
 #include "vsurface.h"
 #include "himage.h"
-#include "wiz8/input_hooks.h"
+#include "input.h"
 #include "FileMan.h"
 #include "surrender/srColorSurface.h"
 
@@ -649,8 +650,8 @@ void W8OptionsSaveRow::OnLeftButtonUp(int event)
 {
     if (m_active != 0 && m_enabled != 0 && m_editing == 0 &&
         (m_stateFlags & g_W8TextControlMask005ED570) != 0) {
-        W8ScreenPoint point;
-        GetScreenPoint004284F0(&point);
+        POINT point;
+        SGPMouseGetPos(&point);
         point.x -= m_pPanel->origin_x + m_left;
         point.y -= m_pPanel->origin_y + m_top;
         if (m_save_mode != 0 && point.x >= 0x5c && point.y >= 0x33 &&
@@ -1226,16 +1227,16 @@ void W8OptionsAudioPanel::OnDragEnd(W8HorizontalRangeThumb* thumb)
     }
     switch (index) {
     case 1:
-        PlaySound00408860("Data\\Sound\\Misc\\Interface Swoosh 01.wav", 0);
+        SoundPlay("Data\\Sound\\Misc\\Interface Swoosh 01.wav", 0);
         break;
     case 2:
         PlayFootstep0047A440(5, 9, 0);
         break;
     case 3: {
-        int options[8];
-        memset(options, -1, sizeof(options));
-        options[2] = g_settings_6850c8.voice_volume;
-        PlaySound00408860("Data\\Sound\\Misc\\Interface Vox 01.wav", options);
+        SOUNDPARMS options;
+        memset(&options, -1, sizeof(options));
+        options.uiVolume = g_settings_6850c8.voice_volume;
+        SoundPlay("Data\\Sound\\Misc\\Interface Vox 01.wav", &options);
         break;
     }
     }
@@ -2150,8 +2151,8 @@ unsigned char OptionsScreenEnter()
 // FUNCTION: WIZ8 0x005a9cc0
 void OptionsScreenFrame()
 {
-    W8ScreenPoint point;
-    W8ScreenPoint current;
+    POINT point;
+    POINT current;
     InputAtom input;
 
     if (g_flag_689b32) {
@@ -2160,11 +2161,11 @@ void OptionsScreenFrame()
     RepositionAmbientSounds0047A600(g_world);
     UpdateAmbientSounds0047A3E0(g_world);
     Function48F9E0();
-    GetScreenPoint004284F0(&point);
+    SGPMouseGetPos(&point);
 
     W8OptionsScreen* screen = g_options_screen_0069c254;
     if (screen->m_text_editor != 0) {
-        GetScreenPoint004284F0(&current);
+        SGPMouseGetPos(&current);
         MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, static_cast<unsigned short>(current.x),
                        static_cast<unsigned short>(current.y),
                        gfLeftButtonState, gfRightButtonState);

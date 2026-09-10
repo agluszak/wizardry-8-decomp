@@ -632,7 +632,7 @@ void W8TextBuffer::FillBounds(int colour)
 {
     ColorFillVideoSurfaceArea(-14, m_layoutBounds.left, m_layoutBounds.top,
                               m_layoutBounds.right, m_layoutBounds.bottom, colour);
-    MarkScreenRectDirty(m_layoutBounds.left, m_layoutBounds.top,
+    InvalidateRegion(m_layoutBounds.left, m_layoutBounds.top,
                    m_layoutBounds.right, m_layoutBounds.bottom, 0);
 }
 
@@ -765,7 +765,7 @@ void W8TextBuffer::RenderToTarget(
 
 done:
     SetFontObjectPalette16BPP(m_font, previous_state);
-    MarkScreenRectDirty(m_layoutBounds.left, m_layoutBounds.top,
+    InvalidateRegion(m_layoutBounds.left, m_layoutBounds.top,
                         m_layoutBounds.right, m_layoutBounds.bottom, 0);
     SetFontDestBuffer(-14, 0, 0, 640, 480, 0);
     m_geometryDirty = 0;
@@ -1742,8 +1742,8 @@ void W8VerticalRangeThumb::OnLeftButtonDown(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
     if (m_enabled != 0) {
-        W8ScreenPoint cursor;
-        GetScreenPoint004284F0(&cursor);
+        POINT cursor;
+        SGPMouseGetPos(&cursor);
         int y = cursor.y - m_pPanel->origin_y - m_top;
         if (m_hovered == 0) {
             m_hovered = 1;
@@ -1775,8 +1775,8 @@ void W8VerticalRangeThumb::OnMouseMove(int event)
         return;
     }
 
-    W8ScreenPoint cursor;
-    GetScreenPoint004284F0(&cursor);
+    POINT cursor;
+    SGPMouseGetPos(&cursor);
     int y = cursor.y - m_pPanel->origin_y - m_top;
     if (m_dragging != 0) {
         int half_height = m_thumbHeight / 2;
@@ -1833,7 +1833,7 @@ void W8VerticalRangeThumb::Redraw(int full_redraw)
     int top = m_pPanel->origin_y + m_top;
     int right = m_pPanel->origin_x + m_right;
     int bottom = m_pPanel->origin_y + m_bottom;
-    MarkScreenRectDirty(left, top, right, bottom, 0);
+    InvalidateRegion(left, top, right, bottom, 0);
     ColorFillVideoSurfaceArea(-14, left, top, right, bottom, 0x8000);
 
     int sprite;
@@ -2047,8 +2047,8 @@ void W8HorizontalRangeThumb::OnLeftButtonDown(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
     if (m_enabled != 0) {
-        W8ScreenPoint cursor;
-        GetScreenPoint004284F0(&cursor);
+        POINT cursor;
+        SGPMouseGetPos(&cursor);
         int x = cursor.x - m_pPanel->origin_x - m_left;
         if (m_hovered == 0) {
             m_hovered = 1;
@@ -2136,8 +2136,8 @@ void W8HorizontalRangeThumb::OnMouseMove(int event)
         return;
     }
 
-    W8ScreenPoint cursor;
-    GetScreenPoint004284F0(&cursor);
+    POINT cursor;
+    SGPMouseGetPos(&cursor);
     int x = cursor.x - m_pPanel->origin_x - m_left;
     if (m_dragging != 0) {
         if (x < 0 || m_trackLength + m_thumbWidth / 2 < x) {
@@ -2324,7 +2324,7 @@ void Controls::Redraw()
                                origin_x, origin_y, 2);
             }
         } else {
-            MarkScreenRectDirty(m_dirtyRect.left, m_dirtyRect.top,
+            InvalidateRegion(m_dirtyRect.left, m_dirtyRect.top,
                            m_dirtyRect.right, m_dirtyRect.bottom, 2);
         }
         m_fDirty = 0;

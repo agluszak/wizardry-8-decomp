@@ -2,7 +2,7 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/cursor.h"
-#include "wiz8/input_hooks.h"
+#include "input.h"
 #include "wiz8/render_state.h"
 
 #include "himage.h"

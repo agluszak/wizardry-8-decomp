@@ -54,9 +54,8 @@ exclude = [
   # objects. They need Protocol surfaces before useful static checking.
   "tools/wiz8decomp/binary/pe.py",
   "tools/wiz8decomp/binary/inventory.py",
-  "tools/wiz8decomp/sgp_oracle.py",
 ]
 typeCheckingMode = "basic"
 
 [tool.uv.sources]
-reccmp = { git = "https://github.com/agluszak/reccmp", rev = "bab61f0de4757110cac27cdb37e2ee67143170e6" }
+reccmp = { git = "https://github.com/agluszak/reccmp", rev = "50eb2769c0c7570f0b6f6aa20e009bf2787f5fe2" }

@@ -93,7 +93,6 @@ class ContainerBuild:
                 "-DIJG_JPEG_SOURCE=Z:/jpeg",
                 "-DZLIB_SOURCE=Z:/zlib",
                 "-DINFOZIP_SOURCE=Z:/infozip",
-                "-DSGP_SOURCE=Z:/repo/third_party/sfi-sgp/sgp",
                 "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
             )
         )

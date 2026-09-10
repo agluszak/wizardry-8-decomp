@@ -24,7 +24,7 @@ unsigned char ReadTextLine004CEE40(
     *more = 1;
 
     for (;;) {
-        result = ReadVirtualFile(handle, &character, 1, &transferred);
+        result = FileRead(handle, &character, 1, &transferred);
         if (transferred == 0) {
             result = length != 0;
             *more = 0;
@@ -136,13 +136,13 @@ unsigned char stScript::Load004CF3B0(const char* path)
 
     for (;;) {
         if (more == 0) {
-            CloseVirtualFile(handle);
+            FileClose(handle);
             return 1;
         }
         while (ReadTextLine004CEE40(
                    handle, buffer, sizeof(buffer), &more) == 0) {
             if (more == 0) {
-                CloseVirtualFile(handle);
+                FileClose(handle);
                 return 1;
             }
         }

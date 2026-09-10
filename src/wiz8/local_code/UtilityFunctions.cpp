@@ -8,7 +8,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/cursor.h"
 #include "wiz8/dirty_tiles.h"
-#include "wiz8/sgp_video.h"
+#include "wiz8/engine_code/Video2.h"
 #include "Button System.h"
 #include "input.h"
 #include "DEBUG.H"
@@ -311,7 +311,7 @@ void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second,
 }
 
 // FUNCTION: WIZ8 0x00517e70
-unsigned char ScreenPointInRect(const W8ScreenRect* rect, const W8ScreenPoint* point)
+unsigned char ScreenPointInRect(const W8ScreenRect* rect, const POINT* point)
 {
     if (rect != 0 && point != 0 && point->x >= rect->left && point->x < rect->right
         && point->y >= rect->top && point->y < rect->bottom) {
@@ -557,7 +557,7 @@ void RenderMessageBox(void)
             SGPRect rect;
             GetButtonArea(g_message_box_background_button, &rect);
             ClearSurfaceRect(rect.iLeft, rect.iTop, rect.iRight, rect.iBottom);
-            MarkScreenRectDirty(rect.iLeft, rect.iTop, rect.iRight, rect.iBottom, 1);
+            InvalidateRegion(rect.iLeft, rect.iTop, rect.iRight, rect.iBottom, 1);
             RemoveButton(g_message_box_background_button);
         }
         if (g_message_box_background_image != -1) {
@@ -594,9 +594,9 @@ void RenderMessageBox(void)
 // FUNCTION: WIZ8 0x00518b30
 void ProcessMessageBoxInput(void)
 {
-    W8ScreenPoint point;
+    POINT point;
     InputAtom input;
-    GetScreenPoint004284F0(&point);
+    SGPMouseGetPos(&point);
     MSYS_SGP_Mouse_Handler_Hook(
         MOUSE_POS, point.x, point.y, gfLeftButtonState, gfRightButtonState);
     while (DequeueEvent(&input) == 1) {

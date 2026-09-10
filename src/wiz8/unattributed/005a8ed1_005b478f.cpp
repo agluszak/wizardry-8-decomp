@@ -4,7 +4,7 @@
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/cursor.h"
 #include "wiz8/regions.h"
-#include "wiz8/sgp_video.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/dirty_tiles.h"
 
 #include <wchar.h>
@@ -110,6 +110,6 @@ void Function5B2200(void)
     RegionSetDisable(0x1b);
     RequestRedraw(0x200);
     ClearSurfaceRect(0xd6, 0x3c, 0x1ab, 0x12f);
-    MarkScreenRectDirty(0xd6, 0x3c, 0x1ab, 0x12f, 0);
+    InvalidateRegion(0xd6, 0x3c, 0x1ab, 0x12f, 0);
     Function56AAB0();
 }

@@ -1,3 +1,4 @@
+#include "soundman.h"
 #include "wiz8/engine_code/AmbientSound.h"
 #include "wiz8/dialog_code/DialogFactoryDialogs.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
@@ -620,12 +621,10 @@ unsigned char Trigger::PlayActionSound(const char* sound_name, int volume)
     }
     if (flag_0a0_11 == 0) {
         if (m_pProp == 0) {
-            int options[8];
-            for (int index = 0; index < 8; ++index) {
-                options[index] = -1;
-            }
-            options[2] = (g_settings_6850c8.sound_effects_volume * volume) / 0x7f;
-            PlaySound00408860(sound_name, options);
+            SOUNDPARMS options;
+            memset(&options, -1, sizeof(options));
+            options.uiVolume = (g_settings_6850c8.sound_effects_volume * volume) / 0x7f;
+            SoundPlay((STR)sound_name, &options);
             return 0;
         }
         m_pProp->GetCenterPosition(&position);
@@ -941,17 +940,17 @@ W8TriggerActionData* LoadTriggerActionData004417C0(int handle)
     unsigned char has_position;
     srVector3T<float> position;
     char linked_trigger[0x80];
-    ReadVirtualFile(handle, &version, 1, 0);
+    FileRead(handle, &version, 1, 0);
     for (int index = 0; index < 9; ++index) {
-        ReadVirtualFile(handle, &flags[index], 1, 0);
+        FileRead(handle, &flags[index], 1, 0);
     }
-    ReadVirtualFile(handle, &item, 2, 0);
-    ReadVirtualFile(handle, &has_position, 1, 0);
-    ReadVirtualFile(handle, &position, sizeof(position), 0);
+    FileRead(handle, &item, 2, 0);
+    FileRead(handle, &has_position, 1, 0);
+    FileRead(handle, &position, sizeof(position), 0);
     position.x *= 500.0f;
     position.y *= 500.0f;
     position.z *= 500.0f;
-    ReadVirtualFile(handle, linked_trigger, sizeof(linked_trigger), 0);
+    FileRead(handle, linked_trigger, sizeof(linked_trigger), 0);
 
     for (int bit = 0; bit < 8; ++bit) {
         if (flags[bit] != 0) {
@@ -986,8 +985,8 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         srAssertFail("hFile",
             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0xca3, 0);
     }
-    if (ReadVirtualFile(handle, &record_version, 1, 0) != 0) {
-        ReadVirtualFile(handle, &record_type, 1, 0);
+    if (FileRead(handle, &record_version, 1, 0) != 0) {
+        FileRead(handle, &record_type, 1, 0);
     }
 
     if (record_type != 3) {
@@ -1019,19 +1018,19 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         char recipients[0x100];
         char sound[0x80];
 
-        ReadVirtualFile(handle, &version, 1, 0);
-        ReadVirtualFile(handle, &byte_b3, 4, 0);
-        ReadVirtualFile(handle, &byte_b0, 4, 0);
-        ReadVirtualFile(handle, &flag_0, 4, 0);
-        ReadVirtualFile(handle, &range, 4, 0);
-        ReadVirtualFile(handle, &action, 4, 0);
-        ReadVirtualFile(handle, &value_ac, 4, 0);
-        ReadVirtualFile(handle, &flag_1, 4, 0);
-        ReadVirtualFile(handle, &packed_flags, 1, 0);
-        ReadVirtualFile(handle, &flag_8, 1, 0);
-        ReadVirtualFile(handle, trigger->name_01c, sizeof(trigger->name_01c), 0);
-        ReadVirtualFile(handle, recipients, sizeof(recipients), 0);
-        ReadVirtualFile(handle, sound, sizeof(sound), 0);
+        FileRead(handle, &version, 1, 0);
+        FileRead(handle, &byte_b3, 4, 0);
+        FileRead(handle, &byte_b0, 4, 0);
+        FileRead(handle, &flag_0, 4, 0);
+        FileRead(handle, &range, 4, 0);
+        FileRead(handle, &action, 4, 0);
+        FileRead(handle, &value_ac, 4, 0);
+        FileRead(handle, &flag_1, 4, 0);
+        FileRead(handle, &packed_flags, 1, 0);
+        FileRead(handle, &flag_8, 1, 0);
+        FileRead(handle, trigger->name_01c, sizeof(trigger->name_01c), 0);
+        FileRead(handle, recipients, sizeof(recipients), 0);
+        FileRead(handle, sound, sizeof(sound), 0);
         sprintf(trigger->action_data_128, "data\\sound\\%s", sound);
         _strupr(trigger->name_01c);
         _strupr(recipients);
@@ -1039,8 +1038,8 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         trigger->value_0b8 = -1;
         if (version > 1) {
             char surface_id[0x40];
-            ReadVirtualFile(handle, &minimum_range, 4, 0);
-            ReadVirtualFile(handle, surface_id, sizeof(surface_id), 0);
+            FileRead(handle, &minimum_range, 4, 0);
+            FileRead(handle, surface_id, sizeof(surface_id), 0);
             if (surface_id[0] == 0 && world->m_owned_04c != 0 &&
                 world->m_owned_04c->geometry_index_00 != 0) {
                 trigger->value_0b8 = atoi(surface_id + 1);
@@ -1048,10 +1047,10 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         }
         if (version > 2) {
             unsigned char has_action_data;
-            ReadVirtualFile(handle, &has_action_data, 1, 0);
+            FileRead(handle, &has_action_data, 1, 0);
             if (has_action_data != 0) {
                 unsigned char action_data_kind;
-                ReadVirtualFile(handle, &action_data_kind, 1, 0);
+                FileRead(handle, &action_data_kind, 1, 0);
                 if (action_data_kind == 1) {
                     trigger->m_pActionData = LoadTriggerActionData004417C0(handle);
                     trigger->value_0b1 =
@@ -1060,7 +1059,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             }
         }
         if (version > 3) {
-            ReadVirtualFile(handle, &action_value, 4, 0);
+            FileRead(handle, &action_value, 4, 0);
         }
 
         trigger->trigger_kind_018 = 1;
@@ -1101,22 +1100,22 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         unsigned char flag_3 = 0;
         int value_ac = 0;
 
-        ReadVirtualFile(handle, &version, 1, 0);
-        ReadVirtualFile(handle, &range, 4, 0);
-        ReadVirtualFile(handle, &x, 4, 0);
-        ReadVirtualFile(handle, &y, 4, 0);
-        ReadVirtualFile(handle, &z, 4, 0);
-        ReadVirtualFile(handle, &action, 4, 0);
-        ReadVirtualFile(handle, &value_c8, 4, 0);
-        ReadVirtualFile(handle, &flag_7, 1, 0);
-        ReadVirtualFile(handle, &flag_8, 1, 0);
-        ReadVirtualFile(handle, trigger->name_01c, sizeof(trigger->name_01c), 0);
-        ReadVirtualFile(handle, recipients, sizeof(recipients), 0);
+        FileRead(handle, &version, 1, 0);
+        FileRead(handle, &range, 4, 0);
+        FileRead(handle, &x, 4, 0);
+        FileRead(handle, &y, 4, 0);
+        FileRead(handle, &z, 4, 0);
+        FileRead(handle, &action, 4, 0);
+        FileRead(handle, &value_c8, 4, 0);
+        FileRead(handle, &flag_7, 1, 0);
+        FileRead(handle, &flag_8, 1, 0);
+        FileRead(handle, trigger->name_01c, sizeof(trigger->name_01c), 0);
+        FileRead(handle, recipients, sizeof(recipients), 0);
         _strupr(trigger->name_01c);
         _strupr(recipients);
         if (version > 1) {
-            ReadVirtualFile(handle, &packed_flag, 1, 0);
-            ReadVirtualFile(handle, trigger->representation_vectors_0cc,
+            FileRead(handle, &packed_flag, 1, 0);
+            FileRead(handle, trigger->representation_vectors_0cc,
                             sizeof(trigger->representation_vectors_0cc), 0);
             for (int vector = 0; vector < 4; ++vector) {
                 trigger->representation_vectors_0cc[vector].x *= 500.0f;
@@ -1127,12 +1126,12 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         if (version > 2) {
             unsigned char unused;
             char action_string[0x80];
-            ReadVirtualFile(handle, &trigger->angle_0fc, 4, 0);
-            ReadVirtualFile(handle, &trigger->value_100, 4, 0);
-            ReadVirtualFile(handle, &trigger->value_104, 4, 0);
-            ReadVirtualFile(handle, &trigger->value_108, 4, 0);
-            ReadVirtualFile(handle, &unused, 1, 0);
-            ReadVirtualFile(handle, action_string, sizeof(action_string), 0);
+            FileRead(handle, &trigger->angle_0fc, 4, 0);
+            FileRead(handle, &trigger->value_100, 4, 0);
+            FileRead(handle, &trigger->value_104, 4, 0);
+            FileRead(handle, &trigger->value_108, 4, 0);
+            FileRead(handle, &unused, 1, 0);
+            FileRead(handle, action_string, sizeof(action_string), 0);
             if (action == 17) {
                 W8TriggerActionData005EC158* data =
                     new W8TriggerActionData005EC158;
@@ -1145,29 +1144,29 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             }
         }
         if (version > 3) {
-            ReadVirtualFile(handle, &flag_3, 1, 0);
-            ReadVirtualFile(handle, &value_ac, 4, 0);
+            FileRead(handle, &flag_3, 1, 0);
+            FileRead(handle, &value_ac, 4, 0);
         }
         if (version > 4) {
             unsigned char has_legacy_geometry;
-            ReadVirtualFile(handle, &has_legacy_geometry, 1, 0);
+            FileRead(handle, &has_legacy_geometry, 1, 0);
             if (has_legacy_geometry != 0) {
                 unsigned char geometry_kind;
-                ReadVirtualFile(handle, &geometry_kind, 1, 0);
+                FileRead(handle, &geometry_kind, 1, 0);
                 if (geometry_kind == 2) {
                     unsigned char count;
                     srVector3T<float> legacy_vertices[36];
                     unsigned char legacy_flags[2];
-                    ReadVirtualFile(handle, &count, 1, 0);
+                    FileRead(handle, &count, 1, 0);
                     for (int index = 0; index < 36; ++index) {
-                        ReadVirtualFile(handle, &legacy_vertices[index],
+                        FileRead(handle, &legacy_vertices[index],
                                         sizeof(legacy_vertices[index]), 0);
                         legacy_vertices[index].x *= 500.0f;
                         legacy_vertices[index].y *= 500.0f;
                         legacy_vertices[index].z *= 500.0f;
                     }
-                    ReadVirtualFile(handle, &legacy_flags[0], 1, 0);
-                    ReadVirtualFile(handle, &legacy_flags[1], 1, 0);
+                    FileRead(handle, &legacy_flags[0], 1, 0);
+                    FileRead(handle, &legacy_flags[1], 1, 0);
                 }
             }
         }
@@ -1225,41 +1224,41 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         vector_f0.x = vector_f0.y = vector_f0.z = 0.0f;
         vector_fc.x = vector_fc.y = vector_fc.z = 0.0f;
 
-        ReadVirtualFile(handle, &version, 1, 0);
-        ReadVirtualFile(handle, &value_94, 4, 0);
-        ReadVirtualFile(handle, &value_98, 4, 0);
-        ReadVirtualFile(handle, &value_ac, 4, 0);
-        ReadVirtualFile(handle, &value_b0, 4, 0);
-        ReadVirtualFile(handle, &value_a4, 4, 0);
-        ReadVirtualFile(handle, &value_a8, 4, 0);
-        ReadVirtualFile(handle, &flag_b9, 4, 0);
-        ReadVirtualFile(handle, &value_b4, 4, 0);
-        ReadVirtualFile(handle, &vector_88, sizeof(vector_88), 0);
-        ReadVirtualFile(handle, &vector_c8, sizeof(vector_c8), 0);
-        ReadVirtualFile(handle, &vector_d4, sizeof(vector_d4), 0);
-        ReadVirtualFile(handle, sound, sizeof(sound), 0);
+        FileRead(handle, &version, 1, 0);
+        FileRead(handle, &value_94, 4, 0);
+        FileRead(handle, &value_98, 4, 0);
+        FileRead(handle, &value_ac, 4, 0);
+        FileRead(handle, &value_b0, 4, 0);
+        FileRead(handle, &value_a4, 4, 0);
+        FileRead(handle, &value_a8, 4, 0);
+        FileRead(handle, &flag_b9, 4, 0);
+        FileRead(handle, &value_b4, 4, 0);
+        FileRead(handle, &vector_88, sizeof(vector_88), 0);
+        FileRead(handle, &vector_c8, sizeof(vector_c8), 0);
+        FileRead(handle, &vector_d4, sizeof(vector_d4), 0);
+        FileRead(handle, sound, sizeof(sound), 0);
         W8AmbientSoundConfig0047A790 config;
         sprintf(config.match_name, "data\\sound\\%s", sound);
         if (version > 1) {
             unsigned char has_position;
-            ReadVirtualFile(handle, &has_position, 1, 0);
-            ReadVirtualFile(handle, &flag_c5, 1, 0);
+            FileRead(handle, &has_position, 1, 0);
+            FileRead(handle, &flag_c5, 1, 0);
         }
         if (version > 2) {
-            ReadVirtualFile(handle, &vector_e0, sizeof(vector_e0), 0);
-            ReadVirtualFile(handle, &value_ec, 4, 0);
-            ReadVirtualFile(handle, &vector_f0, sizeof(vector_f0), 0);
-            ReadVirtualFile(handle, &vector_fc, sizeof(vector_fc), 0);
+            FileRead(handle, &vector_e0, sizeof(vector_e0), 0);
+            FileRead(handle, &value_ec, 4, 0);
+            FileRead(handle, &vector_f0, sizeof(vector_f0), 0);
+            FileRead(handle, &vector_fc, sizeof(vector_fc), 0);
             vector_e0.x *= 500.0f;
             vector_e0.y *= 500.0f;
             vector_e0.z *= 500.0f;
         }
         if (version > 3) {
-            ReadVirtualFile(handle, name, sizeof(name), 0);
+            FileRead(handle, name, sizeof(name), 0);
             optional_name = name;
         }
         if (version > 4) {
-            ReadVirtualFile(handle, &flag_c4, 1, 0);
+            FileRead(handle, &flag_c4, 1, 0);
         }
         vector_88.x *= 500.0f; vector_88.y *= 500.0f; vector_88.z *= 500.0f;
         vector_c8.x *= 500.0f; vector_c8.y *= 500.0f; vector_c8.z *= 500.0f;
@@ -1298,46 +1297,46 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         unsigned char flag_23 = 0;
         unsigned char representation_kind = 0;
 
-        ReadVirtualFile(handle, &version, 1, 0);
-        ReadVirtualFile(handle, trigger->name_01c,
+        FileRead(handle, &version, 1, 0);
+        FileRead(handle, trigger->name_01c,
                         sizeof(trigger->name_01c), 0);
-        ReadVirtualFile(handle, &packed_flags, 1, 0);
-        ReadVirtualFile(handle, &flag_8, 1, 0);
-        ReadVirtualFile(handle, &flag_7, 1, 0);
-        ReadVirtualFile(handle, &flag_9, 1, 0);
-        ReadVirtualFile(handle, &flag_3, 1, 0);
-        ReadVirtualFile(handle, &flag_12, 1, 0);
-        ReadVirtualFile(handle, &flag_15, 1, 0);
-        ReadVirtualFile(handle, &initial_action, 4, 0);
-        ReadVirtualFile(handle, &alternate_action, 4, 0);
-        ReadVirtualFile(handle, &fallback_action, 4, 0);
-        ReadVirtualFile(handle, recipients, sizeof(recipients), 0);
-        ReadVirtualFile(handle, &searchable, 1, 0);
-        ReadVirtualFile(handle, location_variable,
+        FileRead(handle, &packed_flags, 1, 0);
+        FileRead(handle, &flag_8, 1, 0);
+        FileRead(handle, &flag_7, 1, 0);
+        FileRead(handle, &flag_9, 1, 0);
+        FileRead(handle, &flag_3, 1, 0);
+        FileRead(handle, &flag_12, 1, 0);
+        FileRead(handle, &flag_15, 1, 0);
+        FileRead(handle, &initial_action, 4, 0);
+        FileRead(handle, &alternate_action, 4, 0);
+        FileRead(handle, &fallback_action, 4, 0);
+        FileRead(handle, recipients, sizeof(recipients), 0);
+        FileRead(handle, &searchable, 1, 0);
+        FileRead(handle, location_variable,
                         sizeof(location_variable), 0);
-        ReadVirtualFile(handle, &flag_16, 1, 0);
-        ReadVirtualFile(handle, &action_value, 4, 0);
-        ReadVirtualFile(handle, &flag_1, 1, 0);
-        ReadVirtualFile(handle, sound, sizeof(sound), 0);
+        FileRead(handle, &flag_16, 1, 0);
+        FileRead(handle, &action_value, 4, 0);
+        FileRead(handle, &flag_1, 1, 0);
+        FileRead(handle, sound, sizeof(sound), 0);
         sprintf(trigger->action_data_128, "data\\sound\\%s", sound);
         _strupr(trigger->name_01c);
         _strupr(recipients);
         _strupr(location_variable);
 
         if (version > 1) {
-            ReadVirtualFile(handle, &trigger->m_lData1, 4, 0);
-            ReadVirtualFile(handle, &trigger->m_lData2, 4, 0);
-            ReadVirtualFile(handle, &trigger->m_lData3, 4, 0);
-            ReadVirtualFile(handle, &representation_scale, 4, 0);
-            ReadVirtualFile(handle, &initial_location_value, 1, 0);
-            ReadVirtualFile(handle, &flag_23, 1, 0);
-            ReadVirtualFile(handle, &trigger->action_data_mode_228, 1, 0);
-            ReadVirtualFile(handle, &trigger->value_229, 1, 0);
+            FileRead(handle, &trigger->m_lData1, 4, 0);
+            FileRead(handle, &trigger->m_lData2, 4, 0);
+            FileRead(handle, &trigger->m_lData3, 4, 0);
+            FileRead(handle, &representation_scale, 4, 0);
+            FileRead(handle, &initial_location_value, 1, 0);
+            FileRead(handle, &flag_23, 1, 0);
+            FileRead(handle, &trigger->action_data_mode_228, 1, 0);
+            FileRead(handle, &trigger->value_229, 1, 0);
             int unused;
-            ReadVirtualFile(handle, &unused, 4, 0);
-            ReadVirtualFile(handle, &unused, 4, 0);
-            ReadVirtualFile(handle, &unused, 4, 0);
-            ReadVirtualFile(handle, &unused, 4, 0);
+            FileRead(handle, &unused, 4, 0);
+            FileRead(handle, &unused, 4, 0);
+            FileRead(handle, &unused, 4, 0);
+            FileRead(handle, &unused, 4, 0);
         }
 
         trigger->trigger_kind_018 =
@@ -1382,14 +1381,14 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         char required_states[0x100];
         char state_to_modify[0x100];
         unsigned char value_b4;
-        ReadVirtualFile(handle, &value_b0, 1, 0);
-        ReadVirtualFile(handle, &flag_0, 1, 0);
-        ReadVirtualFile(handle, &value_b3, 1, 0);
-        ReadVirtualFile(handle, required_states,
+        FileRead(handle, &value_b0, 1, 0);
+        FileRead(handle, &flag_0, 1, 0);
+        FileRead(handle, &value_b3, 1, 0);
+        FileRead(handle, required_states,
                         sizeof(required_states), 0);
-        ReadVirtualFile(handle, state_to_modify,
+        FileRead(handle, state_to_modify,
                         sizeof(state_to_modify), 0);
-        ReadVirtualFile(handle, &value_b4, 1, 0);
+        FileRead(handle, &value_b4, 1, 0);
         _strupr(required_states);
         _strupr(state_to_modify);
         if (required_states[0] != 0) {
@@ -1453,28 +1452,28 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         }
 
         int unused_value;
-        ReadVirtualFile(handle, &trigger->range_minimum_0a4, 4, 0);
-        ReadVirtualFile(handle, &trigger->range_maximum_0a8, 4, 0);
-        ReadVirtualFile(handle, trigger->inline_action_data_24c,
+        FileRead(handle, &trigger->range_minimum_0a4, 4, 0);
+        FileRead(handle, &trigger->range_maximum_0a8, 4, 0);
+        FileRead(handle, trigger->inline_action_data_24c,
                         sizeof(trigger->inline_action_data_24c), 0);
-        ReadVirtualFile(handle, &unused_value, 4, 0);
+        FileRead(handle, &unused_value, 4, 0);
         _strupr(trigger->inline_action_data_24c);
         trigger->range_minimum_0a4 *= 500.0f;
         trigger->range_maximum_0a8 *= 500.0f;
         if (version > 2) {
-            ReadVirtualFile(handle, sound, sizeof(sound), 0);
+            FileRead(handle, sound, sizeof(sound), 0);
             sprintf(trigger->alternate_action_data_1a8,
                     "data\\sound\\%s", sound);
             if (flag_23 != 0) trigger->flags_0a0 |= 0x800000; else trigger->flags_0a0 &= ~0x800000U;
         }
 
         if ((packed_flags & 1) == 0) {
-            ReadVirtualFile(handle, &representation_kind, 1, 0);
+            FileRead(handle, &representation_kind, 1, 0);
             if (representation_kind == 1) {
-                ReadVirtualFile(handle, &trigger->position_118,
+                FileRead(handle, &trigger->position_118,
                                 sizeof(srVector3T<float>), 0);
-                ReadVirtualFile(handle, &trigger->angle_0fc, 4, 0);
-                ReadVirtualFile(handle, &trigger->value_100,
+                FileRead(handle, &trigger->angle_0fc, 4, 0);
+                FileRead(handle, &trigger->value_100,
                                 sizeof(srVector3T<float>), 0);
                 trigger->position_118 *= 500.0f;
                 trigger->position_11c *= 500.0f;
@@ -1482,7 +1481,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                 trigger->flags_0a0 |= 0x800;
             }
             else if (representation_kind == 2) {
-                ReadVirtualFile(handle, trigger->representation_vectors_0cc,
+                FileRead(handle, trigger->representation_vectors_0cc,
                                 sizeof(trigger->representation_vectors_0cc),
                                 0);
                 for (int vector = 0; vector < 4; ++vector) {
@@ -1492,21 +1491,21 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                 }
             }
             unsigned char has_legacy_action;
-            ReadVirtualFile(handle, &has_legacy_action, 1, 0);
+            FileRead(handle, &has_legacy_action, 1, 0);
             if (has_legacy_action != 0) {
                 unsigned char legacy_kind;
                 float legacy_value;
-                ReadVirtualFile(handle, &legacy_kind, 1, 0);
-                ReadVirtualFile(handle, &legacy_value, 4, 0);
-                ReadVirtualFile(handle, sound, sizeof(sound), 0);
+                FileRead(handle, &legacy_kind, 1, 0);
+                FileRead(handle, &legacy_value, 4, 0);
+                FileRead(handle, sound, sizeof(sound), 0);
             }
         }
 
         unsigned char has_action_data;
-        ReadVirtualFile(handle, &has_action_data, 1, 0);
+        FileRead(handle, &has_action_data, 1, 0);
         if (has_action_data != 0) {
             unsigned char action_data_kind;
-            ReadVirtualFile(handle, &action_data_kind, 1, 0);
+            FileRead(handle, &action_data_kind, 1, 0);
             if (action_data_kind == 1) {
                 trigger->m_pActionData = LoadTriggerActionData004417C0(handle);
                 trigger->value_0b1 =
@@ -1516,16 +1515,16 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                 unsigned char count;
                 srVector3T<float> legacy_vertices[36];
                 unsigned char legacy_flags[2];
-                ReadVirtualFile(handle, &count, 1, 0);
+                FileRead(handle, &count, 1, 0);
                 for (int index = 0; index < 36; ++index) {
-                    ReadVirtualFile(handle, &legacy_vertices[index],
+                    FileRead(handle, &legacy_vertices[index],
                                     sizeof(legacy_vertices[index]), 0);
                     legacy_vertices[index].x *= 500.0f;
                     legacy_vertices[index].y *= 500.0f;
                     legacy_vertices[index].z *= 500.0f;
                 }
-                ReadVirtualFile(handle, &legacy_flags[0], 1, 0);
-                ReadVirtualFile(handle, &legacy_flags[1], 1, 0);
+                FileRead(handle, &legacy_flags[0], 1, 0);
+                FileRead(handle, &legacy_flags[1], 1, 0);
             }
         }
 

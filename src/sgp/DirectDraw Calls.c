@@ -1,3 +1,7 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+   Include the declarations used by the Wizardry build explicitly.
+   Distributed under the accompanying SFI Source Code license agreement. */
+#include "sgp.h"
 #ifdef JA2_PRECOMPILED_HEADERS
 	#include "JA2 SGP ALL.H"
 #elif defined( WIZ8_PRECOMPILED_HEADERS )

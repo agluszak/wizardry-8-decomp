@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+   Reconstruct Wizardry physical-key mapping, raw-key string input, and character helpers.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifdef JA2_PRECOMPILED_HEADERS
 	#include "JA2 SGP ALL.H"
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
@@ -24,9 +27,9 @@
 // Make sure to refer to the translation table which is within one of the following files (depending
 // on the language used). ENGLISH.C, JAPANESE.C, FRENCH.C, GERMAN.C, SPANISH.C, etc...
 
-extern UINT16 gsKeyTranslationTable[1024];
 
-extern BOOLEAN gfApplicationActive;
+
+#include "sgp.h"
 
 #ifndef JA2
 
@@ -558,409 +561,57 @@ BOOLEAN DequeueEvent(InputAtom *Event)
 	}
 }
 
-void KeyChange(UINT32 usParam, UINT32 uiParam, UINT8 ufKeyState)
+// GLOBAL: WIZ8 0x005ff51c
+unsigned short g_key_remap_5ff51c[14] = {
+    0x0069, 0x0063, 0x0061, 0x0067, 0x0064, 0x0068, 0x0066,
+    0x0062, 0x0000, 0x0000, 0x0000, 0x0000, 0x0060, 0x006e
+};
+
+// FUNCTION: WIZ8 0x00402270
+void KeyChange(UINT32 key, UINT32 flags, UINT8 pressed)
 {
-  UINT32 ubKey;
-  UINT16 ubChar;
-  POINT  MousePos;
-  UINT32 uiTmpLParam;
+    POINT point;
+    unsigned int packed;
+    unsigned int code;
 
-  if ((usParam >= 96)&&(usParam <= 110))
-  { // Well this could be a NUMPAD character imitating the center console characters (when NUMLOCK is OFF). Well we
-    // gotta find out what was pressed and translate it to the actual physical key (i.e. if we think that HOME was
-    // pressed but NUM_7 was pressed, the we translate the key into NUM_7
-    switch(usParam)
-    { case 96 // NUM_0
-      : if (((uiParam & SCAN_CODE_MASK) >> 16) == 82)
-        { // Well its the NUM_9 key and not actually the PGUP key
-          ubKey = 223;
-        }
-        else
-        { // NOP, its the PGUP key all right
-          ubKey = usParam;
-        }
-        break;
-      case 110 // NUM_PERIOD
-      : if (((uiParam & SCAN_CODE_MASK) >> 16) == 83)
-        { // Well its the NUM_3 key and not actually the PGDN key
-          ubKey = 224;
-        }
-        else
-        { // NOP, its the PGDN key all right
-          ubKey = usParam;
-        }
-        break;
-      case 97 // NUM_1
-      : if (((uiParam & SCAN_CODE_MASK) >> 16) == 79)
-        { // Well its the NUM_1 key and not actually the END key
-          ubKey = 225;
-        }
-        else
-        { // NOP, its the END key all right
-          ubKey = usParam;
-        }
-        break;
-      case 98 // NUM_2
-      : if (((uiParam & SCAN_CODE_MASK) >> 16) == 80)
-        { // Well its the NUM_7 key and not actually the HOME key
-          ubKey = 226;
-        }
-        else
-        { // NOP, its the HOME key all right
-          ubKey = usParam;
-        }
-        break;
-      case 99 // NUM_3
-      : if (((uiParam & SCAN_CODE_MASK) >> 16) == 81)
-        { // Well its the NUM_4 key and not actually the LARROW key
-          ubKey = 227;
-        }
-        else
-        { // NOP, it's the LARROW key all right
-          ubKey = usParam;
-        }
-        break;
-      case 100 // NUM_4
-      : if (((uiParam & SCAN_CODE_MASK) >> 16) == 75)
-        { // Well its the NUM_8 key and not actually the UPARROW key
-          ubKey = 228;
-        }
-        else
-        { // NOP, it's the UPARROW key all right
-          ubKey = usParam;
-        }
-        break;
-      case 101 // NUM_5
-      : if (((uiParam & SCAN_CODE_MASK) >> 16) == 76)
-        { // Well its the NUM_6 key and not actually the RARROW key
-          ubKey = 229;
-        }
-        else
-        { // NOP, it's the RARROW key all right
-          ubKey = usParam;
-        }
-        break;
-      case 102 // NUM_6
-      : if (((uiParam & SCAN_CODE_MASK) >> 16) == 77)
-        { // Well its the NUM_2 key and not actually the DNARROW key
-          ubKey = 230;
-        }
-        else
-        { // NOP, it's the DNARROW key all right
-          ubKey = usParam;
-        }
-        break;
-      case 103 // NUM_7
-      : if (((uiParam & SCAN_CODE_MASK) >> 16) == 71)
-        { // Well its the NUM_0 key and not actually the INSERT key
-          ubKey = 231;
-        }
-        else
-        { // NOP, it's the INSERT key all right
-          ubKey = usParam;
-        }
-        break;
-      case 104 // NUM_8
-      : if (((uiParam & SCAN_CODE_MASK) >> 16) == 72)
-        { // Well its the NUM_PERIOD key and not actually the DELETE key
-          ubKey = 232;
-        }
-        else
-        { // NOP, it's the DELETE key all right
-          ubKey = usParam;
-        }
-        break;
-      case 105 // NUM_9
-      : if (((uiParam & SCAN_CODE_MASK) >> 16) == 73)
-        { // Well its the NUM_PERIOD key and not actually the DELETE key
-          ubKey = 233;
-        }
-        else
-        { // NOP, it's the DELETE key all right
-          ubKey = usParam;
-        }
-        break;
-      default
-      : ubKey = usParam;
-        break;
+    if (key == 0x0c) {
+        key = 0x65;
     }
-  }
-  else
-  {
-    if ((usParam >= 33)&&(usParam <= 46))
-    { // Well this could be a NUMPAD character imitating the center console characters (when NUMLOCK is OFF). Well we
-      // gotta find out what was pressed and translate it to the actual physical key (i.e. if we think that HOME was
-      // pressed but NUM_7 was pressed, the we translate the key into NUM_7
-      switch(usParam)
-      { case 45 // NUM_0
-        : if (((uiParam & SCAN_CODE_MASK) >> 16) == 82)
-          { // Is it the NUM_0 key or the INSERT key
-            if (((uiParam & EXT_CODE_MASK) >> 17) != 0)
-            { // It's the INSERT key
-              ubKey = 245;
-            }
-            else
-            { // Is the NUM_0 key with NUM lock off
-              ubKey = 234;
-            }
-          }
-          else
-          {
-            ubKey = usParam;
-          }
-          break;
-        case 46 // NUM_PERIOD
-        : if (((uiParam & SCAN_CODE_MASK) >> 16) == 83)
-          { // Is it the NUM_PERIOD key or the DEL key
-            if (((uiParam & EXT_CODE_MASK) >> 17) != 0)
-            { // It's the DELETE key
-              ubKey = 246;
-            }
-            else
-            { // Is the NUM_PERIOD key with NUM lock off
-              ubKey = 235;
-            }
-          }
-          else
-          {
-            ubKey = usParam;
-          }
-          break;
-        case 35 // NUM_1
-        : if (((uiParam & SCAN_CODE_MASK) >> 16) == 79)
-          { // Is it the NUM_1 key or the END key
-            if (((uiParam & EXT_CODE_MASK) >> 17) != 0)
-            { // It's the END key
-              ubKey = 247;
-            }
-            else
-            { // Is the NUM_1 key with NUM lock off
-              ubKey = 236;
-            }
-          }
-          else
-          {
-            ubKey = usParam;
-          }
-          break;
-        case 40 // NUM_2
-        : if (((uiParam & SCAN_CODE_MASK) >> 16) == 80)
-          { // Is it the NUM_2 key or the DOWN key
-            if (((uiParam & EXT_CODE_MASK) >> 17) != 0)
-            { // It's the DOWN key
-              ubKey = 248;
-            }
-            else
-            { // Is the NUM_2 key with NUM lock off
-              ubKey = 237;
-            }
-          }
-          else
-          {
-            ubKey = usParam;
-          }
-          break;
-        case 34 // NUM_3
-        : if (((uiParam & SCAN_CODE_MASK) >> 16) == 81)
-          { // Is it the NUM_3 key or the PGDN key
-            if (((uiParam & EXT_CODE_MASK) >> 17) != 0)
-            { // It's the PGDN key
-              ubKey = 249;
-            }
-            else
-            { // Is the NUM_3 key with NUM lock off
-              ubKey = 238;
-            }
-          }
-          else
-          {
-            ubKey = usParam;
-          }
-          break;
-        case 37 // NUM_4
-        : if (((uiParam & SCAN_CODE_MASK) >> 16) == 75)
-          { // Is it the NUM_4 key or the LEFT key
-            if (((uiParam & EXT_CODE_MASK) >> 17) != 0)
-            { // It's the LEFT key
-              ubKey = 250;
-            }
-            else
-            { // Is the NUM_4 key with NUM lock off
-              ubKey = 239;
-            }
-          }
-          else
-          {
-            ubKey = usParam;
-          }
-          break;
-        case 39 // NUM_6
-        : if (((uiParam & SCAN_CODE_MASK) >> 16) == 77)
-          { // Is it the NUM_6 key or the RIGHT key
-            if (((uiParam & EXT_CODE_MASK) >> 17) != 0)
-            { // It's the RIGHT key
-              ubKey = 251;
-            }
-            else
-            { // Is the NUM_6 key with NUM lock off
-              ubKey = 241;
-            }
-          }
-          else
-          {
-            ubKey = usParam;
-          }
-          break;
-        case 36 // NUM_7
-        : if (((uiParam & SCAN_CODE_MASK) >> 16) == 71)
-          { // Is it the NUM_7 key or the HOME key
-            if (((uiParam & EXT_CODE_MASK) >> 17) != 0)
-            { // It's the HOME key
-              ubKey = 252;
-            }
-            else
-            { // Is the NUM_7 key with NUM lock off
-              ubKey = 242;
-            }
-          }
-          else
-          {
-            ubKey = usParam;
-          }
-          break;
-        case 38 // NUM_8
-        : if (((uiParam & SCAN_CODE_MASK) >> 16) == 72)
-          { // Is it the NUM_8 key or the UP key
-            if (((uiParam & EXT_CODE_MASK) >> 17) != 0)
-            { // It's the UP key
-              ubKey = 253;
-            }
-            else
-            { // Is the NUM_8 key with NUM lock off
-              ubKey = 243;
-            }
-          }
-          else
-          {
-            ubKey = usParam;
-          }
-          break;
-        case 33 // NUM_9
-        : if (((uiParam & SCAN_CODE_MASK) >> 16) == 73)
-          { // Is it the NUM_9 key or the PGUP key
-            if (((uiParam & EXT_CODE_MASK) >> 17) != 0)
-            { // It's the PGUP key
-              ubKey = 254;
-            }
-            else
-            { // Is the NUM_9 key with NUM lock off
-              ubKey = 244;
-            }
-          }
-          else
-          {
-            ubKey = usParam;
-          }
-          break;
-        default
-        : ubKey = usParam;
-          break;
-      }
+    else if (key < 0x2f && key > 0x20 && (flags & 0x1000000) == 0) {
+        key = g_key_remap_5ff51c[key - 0x21];
     }
-    else
-    {
-      if (usParam == 12)
-      { // NUM_5 with NUM_LOCK off
-        ubKey = 240;
-      }
-      else
-      { // Normal key
-        ubKey = usParam;
-      }
+    else if (key == 0x0d && (flags & 0x1000000) != 0) {
+        key = 0x6c;
     }
-  }
-
-	// Find ucChar by translating ubKey using the gsKeyTranslationTable. If the SHIFT, ALT or CTRL key are down, then
-  // the index into the translation table us changed from ubKey to ubKey+256, ubKey+512 and ubKey+768 respectively
-  if (gfShiftState == TRUE)
-  { // SHIFT is pressed, hence we add 256 to ubKey before translation to ubChar
-    ubChar = gsKeyTranslationTable[ubKey+256];
-  }
-  else
-  {
-		//
-		// Even though gfAltState is checked as if it was a BOOLEAN, it really contains 0x02, which
-		// is NOT == to true.  This is broken, however to fix it would break Ja2 and Wizardry.
-		// The same thing goes for gfCtrlState and gfShiftState, howver gfShiftState is assigned 0x01 which IS == to TRUE.
-		// Just something i found, and thought u should know about.  DF.
-		//
-
-    if( gfAltState == TRUE )
-    { // ALT is pressed, hence ubKey is multiplied by 3 before translation to ubChar
-      ubChar = gsKeyTranslationTable[ubKey+512];
+    SGPMouseGetPos(&point);
+    packed = ((unsigned int)point.y << 0x10) | ((unsigned int)point.x & 0xffff);
+    if (pressed == 1) {
+        code = key & 0xffff;
+        if (gfKeyState[code] == 0) {
+            if (gfCurrentStringInputState == 0) {
+                gfKeyState[code] = 1;
+                QueueEvent(1, code, packed);
+                return;
+            }
+        }
+        else if (gfCurrentStringInputState == 0) {
+            QueueEvent(4, code, packed);
+            return;
+        }
+        RedirectToString((unsigned short)key);
+        return;
     }
-    else
-    {
-      if (gfCtrlState == TRUE)
-      { // CTRL is pressed, hence ubKey is multiplied by 4 before translation to ubChar
-        ubChar = gsKeyTranslationTable[ubKey+768];
-      }
-      else
-      { // None of the SHIFT, ALT or CTRL are pressed hence we have a default translation of ubKey
-        ubChar = gsKeyTranslationTable[ubKey];
-      }
+    code = key & 0xffff;
+    if (gfKeyState[code] == 1) {
+        gfKeyState[code] = 0;
+        QueueEvent(2, code, packed);
+        return;
     }
-  }
-
-  GetCursorPos(&MousePos);
-  uiTmpLParam = ((MousePos.y << 16) & 0xffff0000) | (MousePos.x & 0x0000ffff);
-
-  if (ufKeyState == TRUE)
-  { // Key has been PRESSED
-    // Find out if the key is already pressed and if not, queue an event and update the gfKeyState array
-    if (gfKeyState[ubKey] == FALSE)
-    { // Well the key has just been pressed, therefore we queue up and event and update the gsKeyState
-      if (gfCurrentStringInputState == FALSE)
-      {
-        // There is no string input going on right now, so we queue up the event
-        gfKeyState[ubKey] = TRUE;
-        QueueEvent(KEY_DOWN, ubChar, uiTmpLParam);
-			}
-      else
-      { // There is a current input string which will capture this event
-        RedirectToString(ubChar);
-        DbgMessage(TOPIC_INPUT, DBG_LEVEL_0, String("Pressed character %d (%d)", ubChar, ubKey));
-      }
+    if ((short)key == 9 && gfAltState != 0) {
+        ShowWindow(ghWindow, 6);
+        gfKeyState[0x12] = 0;
+        gfAltState = 0;
     }
-    else
-    { // Well the key gets repeated
-      if (gfCurrentStringInputState == FALSE)
-      { // There is no string input going on right now, so we queue up the event
-        QueueEvent(KEY_REPEAT, ubChar, uiTmpLParam);
-      }
-      else
-      { // There is a current input string which will capture this event
-        RedirectToString(ubChar);
-      }
-    }
-  }
-  else
-  { // Key has been RELEASED
-    // Find out if the key is already pressed and if so, queue an event and update the gfKeyState array
-    if (gfKeyState[ubKey] == TRUE)
-    { // Well the key has just been pressed, therefore we queue up and event and update the gsKeyState
-      gfKeyState[ubKey] = FALSE;
-      QueueEvent(KEY_UP, ubChar, uiTmpLParam);
-    }
-		//else if the alt tab key was pressed
-		else if( ubChar == TAB && gfAltState )
-		{
-			// therefore minimize the application
-			ShowWindow( ghWindow, SW_MINIMIZE );
-      gfKeyState[ ALT ] = FALSE;
-			gfAltState = FALSE;
-		}
-  }
 }
 
 void KeyDown(UINT32 usParam, UINT32 uiParam)
@@ -1203,6 +854,7 @@ BOOLEAN CharacterIsValid(UINT16 usCharacter, UINT16 *pFilter)
   return TRUE;
 }
 
+// FUNCTION: WIZ8 0x004023b0
 void    RedirectToString(UINT16 usInputCharacter)
 {
   UINT16 usIndex;
@@ -1234,27 +886,25 @@ void    RedirectToString(UINT16 usInputCharacter)
         gpCurrentStringDescriptor->usLastCharacter = usInputCharacter;
         gfCurrentStringInputState = FALSE;
         break;
-      case SHIFT_TAB
-      : // TAB was pressed, the last character field should be set to TAB
-        if (gpCurrentStringDescriptor->pPreviousString != NULL)
+      case TAB:
+        if (gfShiftState)
         {
+          if (gpCurrentStringDescriptor->pPreviousString == NULL)
+            return;
           gpCurrentStringDescriptor->fFocus = FALSE;
           gpCurrentStringDescriptor = gpCurrentStringDescriptor->pPreviousString;
-          gpCurrentStringDescriptor->fFocus = TRUE;
-          gpCurrentStringDescriptor->usLastCharacter = 0;
         }
-        break;
-      case TAB
-      : // TAB was pressed, the last character field should be set to TAB
-        if (gpCurrentStringDescriptor->pNextString != NULL)
+        else
         {
+          if (gpCurrentStringDescriptor->pNextString == NULL)
+            return;
           gpCurrentStringDescriptor->fFocus = FALSE;
           gpCurrentStringDescriptor = gpCurrentStringDescriptor->pNextString;
-          gpCurrentStringDescriptor->fFocus = TRUE;
-          gpCurrentStringDescriptor->usLastCharacter = 0;
         }
+        gpCurrentStringDescriptor->fFocus = TRUE;
+        gpCurrentStringDescriptor->usLastCharacter = 0;
         break;
-      case UPARROW
+      case 0x26
       : // The UPARROW was pressed, the last character field should be set to UPARROW
         if (gpCurrentStringDescriptor->pPreviousString != NULL)
         {
@@ -1264,7 +914,7 @@ void    RedirectToString(UINT16 usInputCharacter)
           gpCurrentStringDescriptor->usLastCharacter = 0;
         }
         break;
-      case DNARROW
+      case 0x28
       : // The DNARROW was pressed, the last character field should be set to DNARROW
         if (gpCurrentStringDescriptor->pNextString != NULL)
         {
@@ -1274,7 +924,7 @@ void    RedirectToString(UINT16 usInputCharacter)
           gpCurrentStringDescriptor->usLastCharacter = 0;
         }
         break;
-      case LEFTARROW
+      case 0x25
       : // The LEFTARROW was pressed, move one character to the left
         if (gpCurrentStringDescriptor->usStringOffset > 0)
         { // Decrement the offset
@@ -1282,7 +932,7 @@ void    RedirectToString(UINT16 usInputCharacter)
         }
         gpCurrentStringDescriptor->usLastCharacter = usInputCharacter;
         break;
-      case RIGHTARROW
+      case 0x27
       : // The RIGHTARROW was pressed, move one character to the right
         if (gpCurrentStringDescriptor->usStringOffset < gpCurrentStringDescriptor->usCurrentStringLength)
         { // Ok we can move the cursor one up without going past the end of string
@@ -1303,7 +953,7 @@ void    RedirectToString(UINT16 usInputCharacter)
         }
 
         break;
-      case DEL
+      case 0x2e
       : // Delete the character which follows the cursor
         if (gpCurrentStringDescriptor->usStringOffset < gpCurrentStringDescriptor->usCurrentStringLength)
         { // Ok we are not at the end of the string, so we may proceed
@@ -1315,7 +965,7 @@ void    RedirectToString(UINT16 usInputCharacter)
         }
         gpCurrentStringDescriptor->usLastCharacter = usInputCharacter;
         break;
-      case INSERT
+      case 0x2d
       : // Toggle insert mode
         if (gpCurrentStringDescriptor->fInsertMode == TRUE)
         {
@@ -1327,14 +977,14 @@ void    RedirectToString(UINT16 usInputCharacter)
         }
         gpCurrentStringDescriptor->usLastCharacter = usInputCharacter;
         break;
-      case HOME
+      case 0x24
       : // Go to the beginning of the input string
         gpCurrentStringDescriptor->usStringOffset = 0 ;
         gpCurrentStringDescriptor->usLastCharacter = usInputCharacter;
         break;
 #ifndef JA2
 // Stupid definition causes problems with headers that use the keyword END -- DB
-		case KEY_END
+		case 0x23
 #else
 		case END
 #endif
@@ -1346,6 +996,10 @@ void    RedirectToString(UINT16 usInputCharacter)
       : //
         // normal input
         //
+        usInputCharacter = TranslateKeyToCharacter(usInputCharacter,
+            (UINT8)(gfAltState | gfCtrlState | gfShiftState));
+        if (usInputCharacter == 0)
+          return;
         if (CharacterIsValid(usInputCharacter, gpCurrentStringDescriptor->pFilter) == TRUE)
         {
           if (gpCurrentStringDescriptor->fInsertMode == TRUE)
@@ -1650,4 +1304,80 @@ INT16 GetMouseWheelDeltaValue( UINT32 wParam )
 	INT16 sDelta = HIWORD( wParam );
 
 	return( sDelta / WHEEL_DELTA );
+}
+
+// FUNCTION: WIZ8 0x00402780
+unsigned short TranslateKeyToCharacter(unsigned short key, unsigned char modifiers)
+{
+    if ((modifiers & (CTRL_DOWN | ALT_DOWN)) != 0) return 0;
+    if ((modifiers & SHIFT_DOWN) != 0)
+        return gsKeyTranslationTable[key + 256];
+    return gsKeyTranslationTable[key];
+}
+
+// FUNCTION: WIZ8 0x004027C0
+unsigned short TranslateCharacterToKey(unsigned short character)
+{
+    UINT16 key;
+    for (key = 0; key < 0x200; ++key) {
+        if (gsKeyTranslationTable[key & 0xffff] == character) {
+            return (UINT8)key;
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x00402800
+unsigned short Function402800(unsigned short character)
+{
+    return character > L'@' && character < L'[';
+}
+
+// FUNCTION: WIZ8 0x00402820
+unsigned short Function402820(unsigned short character)
+{
+    return character > L'`' && character < L'{';
+}
+
+// FUNCTION: WIZ8 0x00402840
+unsigned short Function402840(unsigned short character)
+{
+    return (character >= L'!' && character <= L'/') ||
+           (character >= L':' && character <= L'@') ||
+           (character >= L'[' && character <= L'_') ||
+           (character >= L'{' && character <= L'}');
+}
+
+// FUNCTION: WIZ8 0x00402880
+int Function402880(int character)
+{
+    if ((unsigned short)character > L'`' &&
+        (unsigned short)character < L'{') {
+        character -= L'a' - L'A';
+    }
+    return character;
+}
+
+// FUNCTION: WIZ8 0x004028A0
+int Function4028A0(int character)
+{
+    if ((unsigned short)character > L'@' &&
+        (unsigned short)character < L'[') {
+        character += L'a' - L'A';
+    }
+    return character;
+}
+
+/* Unlike the pinned VC6 _wcsicmp, retail has no locale branch. The adjacent
+   character helpers provide the same ASCII-only case conversion. */
+// FUNCTION: WIZ8 0x00402920
+int CompareWideTextIgnoreAsciiCase00402920(const wchar_t* first, const wchar_t* second)
+{
+    unsigned short left;
+    unsigned short right;
+    do {
+        left = Function4028A0(*first++);
+        right = Function4028A0(*second++);
+    } while (left != 0 && left == right);
+    return (UINT32)left - (UINT32)right;
 }

@@ -1,10 +1,5 @@
 #pragma once
 
-extern "C" {
-
-void MarkScreenRectDirty(
-    int left, int top, int right, int bottom, int flags);
-
-}
+#include "wiz8/engine_code/Video2.h"
 
 extern "C" void Function425B40(void);

@@ -17,7 +17,7 @@ void W8DialogButton::Draw()
         int left = GetButtonX(m_resource_01c);
         int top = GetButtonY(m_resource_01c);
         DrawButton(m_resource_01c);
-        MarkScreenRectDirty(left, top,
+        InvalidateRegion(left, top,
                             left + GetButtonWidth(m_resource_01c),
                             top + GetButtonHeight(m_resource_01c), 0);
         m_dirty = 0;

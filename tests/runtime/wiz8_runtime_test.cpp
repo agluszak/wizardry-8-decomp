@@ -1,4 +1,8 @@
+/* Enable the pinned SDK's SendInput declarations for the harness only. */
+#define _WIN32_WINNT 0x0500
+
 #include "wiz8/regions.h"
+#include "wiz8/cursor.h"
 #include "wiz8/bringup_gates.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/screen_state.h"
@@ -20,7 +24,6 @@ extern "C" {
 
 extern int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous,
                           LPSTR command_line, int show_command);
-extern HWND ghWindow;
 
 }
 
@@ -179,6 +182,23 @@ static bool VerifyShadeTable(FLOAT coefficient)
     return true;
 }
 
+/* SGP's queue belongs to the game thread. SendInput reaches its WH_KEYBOARD
+   hook; posting WM_KEYDOWN directly does not. */
+static void SendScenarioKey(WORD key, DWORD flags = 0)
+{
+    INPUT events[2];
+    memset(events, 0, sizeof(events));
+    events[0].type = INPUT_KEYBOARD;
+    events[0].ki.wVk = key;
+    events[0].ki.dwFlags = flags;
+    events[1] = events[0];
+    events[1].ki.dwFlags |= KEYEVENTF_KEYUP;
+    SetForegroundWindow(ghWindow);
+    if (SendInput(2, events, sizeof(INPUT)) != 2) {
+        fprintf(stderr, "runtime-test keyboard injection failed: %lu\n", GetLastError());
+    }
+}
+
 static bool WaitForMainMenu(unsigned int timeout_ms)
 {
     unsigned int started = GetTickCount();
@@ -188,10 +208,12 @@ static bool WaitForMainMenu(unsigned int timeout_ms)
             *(HWND volatile*)&ghWindow != NULL && g_region_sets[1].enabled) {
             return true;
         }
-        if (!dismissed_intro &&
+        // State zero also exists before input initialization clears the queue.
+        // Wait until startup finishes before posting the intro-dismiss events.
+        if (!dismissed_intro && gfGameInitialized && gfApplicationActive &&
             *(volatile int*)&g_current_screen_state.id == W8_SCREEN_INTRO) {
-            QueueEvent(KEY_DOWN, ESC, 0);
-            QueueEvent(KEY_DOWN, ESC, 0);
+            SendScenarioKey(VK_ESCAPE);
+            SendScenarioKey(VK_ESCAPE);
             dismissed_intro = true;
         }
         Sleep(10);
@@ -312,9 +334,9 @@ static DWORD WINAPI DriveScenario(void*)
     }
 
     if (strcmp(g_scenario, "main-menu-new-game") == 0) {
-        QueueEvent(KEY_DOWN, HOME, 0);
-        QueueEvent(KEY_DOWN, DNARROW, 0);
-        QueueEvent(KEY_DOWN, ENTER, 0);
+        SendScenarioKey(VK_PRIOR, KEYEVENTF_EXTENDEDKEY);
+        SendScenarioKey(VK_DOWN, KEYEVENTF_EXTENDEDKEY);
+        SendScenarioKey(VK_RETURN);
         unsigned int started = GetTickCount();
         while (GetTickCount() - started < 5000) {
             if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_PARTY_SELECTION) {
@@ -329,8 +351,8 @@ static DWORD WINAPI DriveScenario(void*)
         return 2;
     }
 
-    QueueEvent(KEY_DOWN, KEY_END, 0);
-    QueueEvent(KEY_DOWN, ENTER, 0);
+    SendScenarioKey(VK_NEXT, KEYEVENTF_EXTENDEDKEY);
+    SendScenarioKey(VK_RETURN);
     unsigned int started = GetTickCount();
     while (GetTickCount() - started < 5000) {
         if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_EXIT) {
@@ -341,7 +363,7 @@ static DWORD WINAPI DriveScenario(void*)
     /* The exit screen only clears the loop flag for input its regions do
        not consume, so a key arriving after the transition ends the run the
        way a held key's auto-repeat does on retail. */
-    QueueEvent(KEY_DOWN, ENTER, 0);
+    SendScenarioKey(VK_RETURN);
     started = GetTickCount();
     while (GetTickCount() - started < 5000) {
         if (*(volatile unsigned char*)&gfProgramIsRunning == 0) {
@@ -385,6 +407,9 @@ int main(int argc, char** argv)
     /* TerminateProcess below deliberately bypasses the CRT atexit chain, so
        invoke the registered product exit hook explicitly. */
     SGPExit();
+    const bool teardown_ok = g_cursor_node_659694 == NULL &&
+        gFileDataBase.pLibraries == NULL &&
+        gFileDataBase.RealFiles.pRealFilesOpen == NULL;
 
     printf(
         "WIZ8_RUNTIME_TEST scenario=%s menu_seen=%u menu_state=%d "
@@ -417,7 +442,7 @@ int main(int argc, char** argv)
         g_observation.shade_table_ok,
         g_observation.exit_observed,
         g_observation.transition_observed,
-        g_sgp_shutdown_reentered ? 1 : 0,
+        teardown_ok ? 1 : 0,
         g_observation.timed_out);
 
     const bool startup_ok =
@@ -439,7 +464,7 @@ int main(int argc, char** argv)
     const int result =
         driver_status == 0 && startup_ok &&
         (strcmp(g_scenario, "main-menu-new-game") == 0 || exit_ok) &&
-        transition_ok && g_sgp_shutdown_reentered ? 0 : 1;
+        transition_ok && teardown_ok ? 0 : 1;
     fflush(stdout);
     TerminateProcess(GetCurrentProcess(), result);
     return result;

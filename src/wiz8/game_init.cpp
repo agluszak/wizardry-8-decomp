@@ -15,12 +15,12 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/fonts.h"
 #include "wiz8/regions.h"
-#include "wiz8/sgp_video.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/render_state.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/CombatSound.h"
 #include "wiz8/engine_code/Missile.h"
-#include "wiz8/slf_archives.h"
+#include "LibraryDataBase.h"
 #include "wiz8/sound_man.h"
 #include "Button System.h"
 #include "Container.h"
@@ -52,7 +52,7 @@ unsigned char InitializeGame(void)
     strcat(version, FormatString("v%d.%d.%d", 1, 2, 4));
     strcat(version, FormatString(" (build %d)", 0xdb));
     strcat(version, FormatString(" %s", "2001/12/24 15:36"));
-    InitializeSlfArchives();
+    InitializeFileDatabase();
     LoadPatchSlfArchives("Patches");
     LoadLocalizedStrings(gzStringDataOverride ? gzStringDataOverride : "Data\\Strings\\StringData.DAT");
     buffer = LockPrimarySurface(&count);

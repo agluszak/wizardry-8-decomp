@@ -140,13 +140,13 @@ void LoadParticleStates0049B3B0(int handle)
     int count = 0;
     char name[0x80] = "";
 
-    ReadVirtualFile(handle, &version, sizeof(version), 0);
-    ReadVirtualFile(handle, &count, sizeof(count), 0);
+    FileRead(handle, &version, sizeof(version), 0);
+    FileRead(handle, &count, sizeof(count), 0);
 
     for (int index = 0; index < count; ++index) {
         unsigned char active;
-        ReadVirtualFile(handle, name, sizeof(name), 0);
-        ReadVirtualFile(handle, &active, sizeof(active), 0);
+        FileRead(handle, name, sizeof(name), 0);
+        FileRead(handle, &active, sizeof(active), 0);
 
         stParticle* particle = static_cast<stParticle*>(
             srCore.getRegistry()->find(

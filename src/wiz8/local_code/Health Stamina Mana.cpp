@@ -1,3 +1,4 @@
+#include "soundman.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/startup_runtime_state.h"
@@ -896,7 +897,7 @@ void CharacterDies(int party_slot)
         RecordCharacterDeath(party_slot);
     }
     Function52F110(party_slot);
-    PlaySound00408860("Data\\Sound\\Misc\\CharacterDead.wav", 0);
+    SoundPlay("Data\\Sound\\Misc\\CharacterDead.wav", 0);
 
     if (gXStatus.fCombatMode != 0) {
         if (g_combat_state->selected_character == party_slot) {

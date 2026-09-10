@@ -11,7 +11,6 @@ from .commands.ghidra import app as ghidra_app
 from .commands.inputs import app as corpus_app
 from .commands.recover import app as recover_app
 from .commands.reports import app as report_app
-from .commands.sgp import app as sgp_app
 
 app = typer.Typer(
     help="Wizardry 8 reproducible decompilation bootstrap CLI.",
@@ -24,7 +23,6 @@ app.add_typer(recover_app, name="recover")
 app.add_typer(report_app, name="report")
 app.add_typer(toolchain_app, name="toolchain")
 app.add_typer(evidence_app, name="evidence")
-app.add_typer(sgp_app, name="sgp", hidden=True)
 register_core(app)
 
 

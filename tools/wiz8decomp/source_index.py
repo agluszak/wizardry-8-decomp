@@ -26,9 +26,9 @@ def validate_synthetic_marker_blocks(repository: Path) -> int:
         if not root.is_dir():
             continue
         for path in sorted(root.rglob("*")):
-            if path.suffix not in _SOURCE_SUFFIXES:
+            if path.suffix.lower() not in _SOURCE_SUFFIXES:
                 continue
-            lines = path.read_text(encoding="utf-8").splitlines()
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
             for index, line in enumerate(lines):
                 if not _SYNTHETIC_MARKER.match(line):
                     continue
@@ -136,6 +136,7 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
         for inventory in (
             "CMakeLists.txt",
             "src/wiz8/sources.cmake",
+            "src/sgp/CMakeLists.txt",
             "src/surrender/CMakeLists.txt",
         )
     )
@@ -151,7 +152,7 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
                 path
                 for source_root in _source_roots(project_targets(repository)[target])
                 for path in (repository / source_root).rglob("*")
-                if path.suffix in _SOURCE_SUFFIXES
+                if path.suffix.lower() in _SOURCE_SUFFIXES
             )
         )
         for target in _INDEXED_TARGETS
@@ -177,7 +178,6 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
                     "include",
                     "src",
                     "config",
-                    "third_party/sfi-sgp/sgp",
                 )
             ),
             settings.work_dir / "fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4",

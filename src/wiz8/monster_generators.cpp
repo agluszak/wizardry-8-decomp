@@ -99,21 +99,21 @@ unsigned int InitializeEncounterTables(void)
         return 0;
     }
     UnloadEncounterTables();
-    unsigned char success = ReadVirtualFile(handle, &name_count, 4, 0);
+    unsigned char success = FileRead(handle, &name_count, 4, 0);
     for (index = 0; index < name_count; ++index) {
         if (!success) {
-            CloseVirtualFile(handle);
+            FileClose(handle);
             return 0;
         }
         char* name = new char[0x100];
-        success = ReadVirtualFile(handle, name, 0x100, 0);
+        success = FileRead(handle, name, 0x100, 0);
         g_encounter_names.Add(name);
     }
     if (!success) {
-        CloseVirtualFile(handle);
+        FileClose(handle);
         return 0;
     }
-    ReadVirtualFile(handle, &table_count, 4, 0);
+    FileRead(handle, &table_count, 4, 0);
     for (index = 0; index < table_count; ++index) {
         unsigned char record_kind;
         char name[256];
@@ -125,21 +125,21 @@ unsigned int InitializeEncounterTables(void)
         unsigned char time[256];
         unsigned char challenge[256];
 
-        ReadVirtualFile(handle, &record_kind, 1, 0);
-        ReadVirtualFile(handle, name, sizeof(name), 0);
-        ReadVirtualFile(handle, &unknown_150, 4, 0);
-        ReadVirtualFile(handle, &version, 2, 0);
-        ReadVirtualFile(handle, &entry_count, 1, 0);
+        FileRead(handle, &record_kind, 1, 0);
+        FileRead(handle, name, sizeof(name), 0);
+        FileRead(handle, &unknown_150, 4, 0);
+        FileRead(handle, &version, 2, 0);
+        FileRead(handle, &entry_count, 1, 0);
         W8EncounterTableRuntime* table = new W8EncounterTableRuntime;
         if (!table) {
             srAssertFail("pTable",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\MonGen.cpp",
                          0xd3, "Out of memory allocating monster generation table.");
         }
-        ReadVirtualFile(handle, species, entry_count * 2, 0);
-        ReadVirtualFile(handle, rarity, entry_count, 0);
-        ReadVirtualFile(handle, time, entry_count, 0);
-        ReadVirtualFile(handle, challenge, entry_count, 0);
+        FileRead(handle, species, entry_count * 2, 0);
+        FileRead(handle, rarity, entry_count, 0);
+        FileRead(handle, time, entry_count, 0);
+        FileRead(handle, challenge, entry_count, 0);
         for (int entry = 0; entry < entry_count; ++entry) {
             W8EncounterScriptName* script = static_cast<W8EncounterScriptName*>(
                 malloc(sizeof(W8EncounterScriptName)));
@@ -148,7 +148,7 @@ unsigned int InitializeEncounterTables(void)
                              "C:\\Projects\\Wizardry 8\\Engine Code\\MonGen.cpp",
                              0xdd, 0);
             }
-            ReadVirtualFile(handle, script, sizeof(*script), 0);
+            FileRead(handle, script, sizeof(*script), 0);
             table->species_ids.Add(species[entry]);
             table->rarity_class.Add(rarity[entry]);
             table->time_condition.Add(time[entry]);
@@ -163,12 +163,12 @@ unsigned int InitializeEncounterTables(void)
         }
         else {
             unsigned char flags;
-            ReadVirtualFile(handle, &flags, 1, 0);
+            FileRead(handle, &flags, 1, 0);
             table->version_two_flags = flags;
         }
     }
     g_encounter_tables_level = g_status_685170.current_level;
-    CloseVirtualFile(handle);
+    FileClose(handle);
     return 1;
 }
 
@@ -468,19 +468,19 @@ unsigned char W8MonsterGenerator::Load(int handle)
     unsigned char ok;
     unsigned char loaded;
 
-    ok = ReadVirtualFile(handle, &version, 1, 0);
+    ok = FileRead(handle, &version, 1, 0);
     if (static_cast<signed char>(version) >= 3) {
-        ok = ok && ReadVirtualFile(handle, name, 0x20, 0);
-        ok = ok && ReadVirtualFile(handle, &flag_44, 1, 0);
+        ok = ok && FileRead(handle, name, 0x20, 0);
+        ok = ok && FileRead(handle, &flag_44, 1, 0);
     }
-    loaded = ok && ReadVirtualFile(handle, &flags, 4, 0) &&
-             ReadVirtualFile(handle, &flag_04, 1, 0) &&
-             ReadVirtualFile(handle, &value_06, 2, 0) &&
-             ReadVirtualFile(handle, &value_08, 2, 0) &&
-             ReadVirtualFile(handle, &state_0c, 4, 0) &&
-             ReadVirtualFile(handle, &state_10, 4, 0) &&
-             ReadVirtualFile(handle, &state_14, 4, 0) &&
-             ReadVirtualFile(handle, &value_1c, 4, 0);
+    loaded = ok && FileRead(handle, &flags, 4, 0) &&
+             FileRead(handle, &flag_04, 1, 0) &&
+             FileRead(handle, &value_06, 2, 0) &&
+             FileRead(handle, &value_08, 2, 0) &&
+             FileRead(handle, &state_0c, 4, 0) &&
+             FileRead(handle, &state_10, 4, 0) &&
+             FileRead(handle, &state_14, 4, 0) &&
+             FileRead(handle, &value_1c, 4, 0);
     Reset();
     if (static_cast<signed char>(version) > 1) {
         m_pTimer->Load(handle);

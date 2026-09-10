@@ -16,8 +16,6 @@
 #include "input.h"
 #include "mousesystem_macros.h"
 
-extern unsigned char Function577A40(void);
-
 // FUNCTION: WIZ8 0x005cd700
 int W8Dialog005CBB40::GetDialogType()
 {
@@ -234,10 +232,10 @@ int W8Dialog005CD710::AddItem005CE210(W8WorldItem* item)
 // FUNCTION: WIZ8 0x005cef00
 unsigned char W8Dialog005CD710::ProcessInput()
 {
-    W8ScreenPoint mouse;
+    POINT mouse;
     InputAtom input;
 
-    GetScreenPoint004284F0(&mouse);
+    SGPMouseGetPos(&mouse);
     MSYS_SGP_Mouse_Handler_Hook(
         MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
     while (DequeueEvent(&input)) {

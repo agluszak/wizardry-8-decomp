@@ -10,7 +10,7 @@
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
-#include "wiz8/sgp-compat/GameData.h"
+#include "wiz8/engine_code/GameData.h"
 
 /*
  * Local Code\Combat Party Movement.cpp.

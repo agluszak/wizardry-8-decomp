@@ -1,3 +1,4 @@
+#include "soundman.h"
 #include "wiz8/magic.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/npc_interaction.h"
@@ -637,7 +638,7 @@ unsigned char CampScreenEnter(void)
     else {
         g_camp_entry_parameter_0069c0fc = g_current_screen_state.parameter_4;
         entry_mode = 2;
-        PlaySound00408860("Data\\Spells\\Sounds\\GeneralMagic.wav", 0);
+        SoundPlay("Data\\Spells\\Sounds\\GeneralMagic.wav", 0);
         Function53A320(6);
     }
     g_flag_00685071 = 0;
@@ -769,8 +770,8 @@ void CampScreenFrame(void)
         !gXStatus.fCombatMode && !IsScreenTransitionPending()) {
         Function4EF1F0();
     }
-    W8ScreenPoint point;
-    GetScreenPoint004284F0(&point);
+    POINT point;
+    SGPMouseGetPos(&point);
     g_camp_screen_0069c0f4->hover_region = UpdateRegionMousePosition(point.x, point.y);
     InputAtom input;
     while (DequeueEvent(&input) == 1) {

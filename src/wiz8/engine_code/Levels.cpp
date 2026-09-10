@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/3dapi.h"
+#include "LibraryDataBase.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/local_code/ItemManager.h"
@@ -93,8 +94,6 @@ W8LevelFolderRecord g_level_folders[47] = {
 int g_loaded_level_id;
 // GLOBAL: WIZ8 0x00604470
 int g_level_resource_state_00604470;
-// GLOBAL: WIZ8 0x006e0fa0
-char g_path_6e0fa0[260];
 
 extern void Function4EA310(int mode);
 extern void Function50DA00(void);
@@ -114,7 +113,7 @@ int Function42B720(int level)
 // FUNCTION: WIZ8 0x0042b6f0
 unsigned char Function42B6F0(int level)
 {
-    return FindGameDataPath0042B590(g_path_6e0fa0, g_level_folders[level].unknown_69) == 0;
+    return FindGameDataPath0042B590(gzCdDirectory, g_level_folders[level].unknown_69) == 0;
 }
 
 // FUNCTION: WIZ8 0x0042b740

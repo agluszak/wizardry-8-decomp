@@ -1,7 +1,7 @@
 #include "wiz8/character.h"
 #include "wiz8/render_state.h"
 #include "wiz8/local_code/ControlsRect.h"
-#include "wiz8/input_hooks.h"
+#include "input.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/local_code/ControlSelection.h"

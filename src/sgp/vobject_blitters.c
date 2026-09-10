@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+   Spell out VC6's inferred byte operand so the Clang source index can parse it.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifdef JA2_PRECOMPILED_HEADERS
 	#include "JA2 SGP ALL.H"
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
@@ -12444,7 +12447,7 @@ BlitNewLine:
 		mov		ecx, width
 
 BlitLine:
-		cmp	[esi+ebx], 0
+		cmp	byte ptr [esi+ebx], 0
 		je	BlitLine2
 
 		mov		[edi], ax

@@ -256,6 +256,7 @@ void ResetMainGameScreenState(void);
 
 void Function577260(void);
 unsigned char Function577850(void);
+unsigned char Function577A40(void);
 /* Which party portrait the pointer is over, if any. */
 unsigned int HitTestPartyPortrait(const InputAtom* event);
 void RequestRefreshPartyState(void);

@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+   Use the Wizardry Video2 primary-surface locking interface.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifdef JA2_PRECOMPILED_HEADERS
 	#include "JA2 SGP ALL.H"
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
@@ -274,7 +277,7 @@ BYTE *LockVideoSurface( UINT32 uiVSurface, UINT32 *puiPitch )
 
   if ( uiVSurface == FRAME_BUFFER )
   {
-    return LockFrameBuffer( puiPitch );
+    return LockPrimarySurface( puiPitch );
   }
 
   if ( uiVSurface == MOUSE_BUFFER )
@@ -331,7 +334,7 @@ void UnLockVideoSurface( UINT32 uiVSurface )
 
   if ( uiVSurface == FRAME_BUFFER )
   {
-    UnlockFrameBuffer();
+    UnlockPrimarySurface();
     return;
   }
 
@@ -1174,7 +1177,7 @@ BYTE *LockVideoSurfaceBuffer( HVSURFACE hVSurface, UINT32 *pPitch )
 
 #ifndef JA2
 	if(hVSurface==ghFrameBuffer)
-		return(LockFrameBuffer(pPitch));
+		return(LockPrimarySurface(pPitch));
 #endif
 
 	DDLockSurface( (LPDIRECTDRAWSURFACE2)hVSurface->pSurfaceData, NULL, &SurfaceDescription, 0, NULL);
@@ -1191,7 +1194,7 @@ void UnLockVideoSurfaceBuffer( HVSURFACE hVSurface )
 #ifndef JA2
 	if(hVSurface==ghFrameBuffer)
 	{
-		UnlockFrameBuffer();
+		UnlockPrimarySurface();
 		return;
 	}
 #endif
@@ -1300,7 +1303,7 @@ BOOLEAN SetVideoSurfacePalette( HVSURFACE hVSurface, SGPPaletteEntry *pSrcPalett
 	// Create palette object if not already done so
 	if ( hVSurface->pPalette == NULL )
 	{
-		DDCreatePalette( GetDirectDraw2Object(), (DDPCAPS_8BIT | DDPCAPS_ALLOW256), (LPPALETTEENTRY)(&pSrcPalette[0]), &((LPDIRECTDRAWPALETTE)hVSurface->pPalette), NULL);
+		DDCreatePalette( GetDirectDraw2Object(), (DDPCAPS_8BIT | DDPCAPS_ALLOW256), (LPPALETTEENTRY)(&pSrcPalette[0]), (LPDIRECTDRAWPALETTE*)&hVSurface->pPalette, NULL);
 
 		// Set into surface
 		//DDSetSurfacePalette( (LPDIRECTDRAWSURFACE2)hVSurface->pSurfaceData, (LPDIRECTDRAWPALETTE)hVSurface->pPalette );
@@ -1467,14 +1470,14 @@ BOOLEAN DeleteVideoSurface( HVSURFACE hVSurface )
 	// Release surface
 	if ( hVSurface->pSurfaceData1 != NULL )
 	{
-		DDReleaseSurface( &(LPDIRECTDRAWSURFACE)hVSurface->pSurfaceData1, &lpDDSurface );
+		DDReleaseSurface( (LPDIRECTDRAWSURFACE*)&hVSurface->pSurfaceData1, &lpDDSurface );
 	}
 
 	// Release backup surface
 	if ( hVSurface->pSavedSurfaceData != NULL )
 	{
-		DDReleaseSurface( &(LPDIRECTDRAWSURFACE)hVSurface->pSavedSurfaceData1,
-								&(LPDIRECTDRAWSURFACE2)hVSurface->pSavedSurfaceData );
+		DDReleaseSurface( (LPDIRECTDRAWSURFACE*)&hVSurface->pSavedSurfaceData1,
+								(LPDIRECTDRAWSURFACE2*)&hVSurface->pSavedSurfaceData );
 	}
 
 	// Release region data
@@ -1526,7 +1529,7 @@ BOOLEAN SetClipList( HVSURFACE hVSurface, SGPRect *RegionData, UINT16 usNumRegio
 	}
 
 	// Create Clipper Object
-	DDCreateClipper( lpDD2Object, 0, &((LPDIRECTDRAWCLIPPER)hVSurface->pClipper) );
+	DDCreateClipper( lpDD2Object, 0, (LPDIRECTDRAWCLIPPER*)&hVSurface->pClipper );
 
 	// Allocate region data
 	pRgnData = ( LPRGNDATA )MemAlloc( sizeof( RGNDATAHEADER) + ( usNumRegions * sizeof( RECT ) ) );
@@ -2666,4 +2669,3 @@ BOOLEAN _AddAndRecordVSurface( VSURFACE_DESC *VSurfaceDesc, UINT32 *uiIndex, UIN
 }
 
 #endif
-

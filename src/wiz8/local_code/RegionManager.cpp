@@ -13,14 +13,6 @@
 #include <new>
 #include <wchar.h>
 
-extern int g_help_box_width;                                /* 0x006548A0 */
-// GLOBAL: WIZ8 0x006548a0
-int g_help_box_width;
-extern int g_help_box_height;                               /* 0x00654ACC */
-// GLOBAL: WIZ8 0x00654acc
-int g_help_box_height;
-extern void SetHelpBoxText(void* text);                     /* 0x00429290 */
-extern void PlaceHelpBox(int x, int y);                     /* 0x00429210 */
 
 enum { W8_SCREEN_WIDTH = 640, W8_SCREEN_HEIGHT = 480, W8_HELP_MARGIN = 2 };
 enum { W8_REGION_MODE_MASK = 0xf };
@@ -56,9 +48,6 @@ unsigned int g_region_help_force_enabled;
 // GLOBAL: WIZ8 0x00689B32
 unsigned char g_flag_689b32;
 
-extern unsigned short gfAltState;
-extern unsigned short gfCtrlState;
-extern unsigned short gfShiftState;
 
 // FUNCTION: WIZ8 0x004f27a0
 void SetRegionHelpDelay(int delay_ms)
@@ -122,7 +111,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
                 previous->flags = (previous->flags & 0xff0f) | W8_REGION_MOUSE_LEAVE;
                 previous->callback(&event.event, previous);
                 if ((previous->flags & W8_REGION_HELP_SHOWN) != 0) {
-                    ReleaseScreenTransitionObjects();
+                    VideoRemoveToolTip();
                     previous->flags &= ~W8_REGION_HELP_SHOWN;
                 }
                 PlayButtonSound(1);
@@ -158,7 +147,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
         previous->flags = (previous->flags & 0xff0f) | W8_REGION_MOUSE_LEAVE;
         previous->callback(&event.event, previous);
         if ((previous->flags & W8_REGION_HELP_SHOWN) != 0) {
-            ReleaseScreenTransitionObjects();
+            VideoRemoveToolTip();
             previous->flags &= ~W8_REGION_HELP_SHOWN;
         }
         PlayButtonSound(1);
@@ -206,7 +195,7 @@ unsigned int FindRegionAtPoint(unsigned short x, unsigned short y)
                 previous->flags = (previous->flags & 0xff0f) | W8_REGION_MOUSE_LEAVE;
                 previous->callback(&event.event, previous);
                 if ((previous->flags & W8_REGION_HELP_SHOWN) != 0) {
-                    ReleaseScreenTransitionObjects();
+                    VideoRemoveToolTip();
                     previous->flags &= ~W8_REGION_HELP_SHOWN;
                 }
                 g_region_help_delay = (unsigned short)g_settings_6850c8.tooltip_delay_ms;
@@ -222,7 +211,7 @@ unsigned int FindRegionAtPoint(unsigned short x, unsigned short y)
     if (g_hover_region_index != 0 &&
         (g_regions[g_hover_region_index].flags & W8_REGION_HELP_SHOWN) != 0) {
         unsigned int previous_index = g_hover_region_index;
-        ReleaseScreenTransitionObjects();
+        VideoRemoveToolTip();
         g_regions[previous_index].flags &= ~W8_REGION_HELP_SHOWN;
     }
     return 0;
@@ -271,7 +260,7 @@ dispatch:
          g_region_help_force_enabled != 0) &&
         event->usEvent != MOUSE_POS) {
         if ((region->flags & W8_REGION_HELP_SHOWN) != 0) {
-            ReleaseScreenTransitionObjects();
+            VideoRemoveToolTip();
             region->flags &= ~W8_REGION_HELP_SHOWN;
         }
         if (region->help_enabled != 0 &&
@@ -315,8 +304,8 @@ void ShowRegionHelp(unsigned int region_index)
 {
     W8Region* region;
     unsigned int mode;
-    void* text;
-    W8ScreenPoint anchor;
+    wchar_t* text;
+    POINT anchor;
     int width;
     int height;
 
@@ -326,7 +315,7 @@ void ShowRegionHelp(unsigned int region_index)
     region = &g_regions[region_index];
     mode = region->flags & W8_REGION_MODE_MASK;
     if (mode != 1 && mode != 2 && (region->flags & W8_REGION_HELP_SHOWN) != 0) {
-        ReleaseScreenTransitionObjects();
+        VideoRemoveToolTip();
         region->flags &= ~W8_REGION_HELP_SHOWN;
     }
     if ((region->flags & W8_REGION_HELP_SHOWN) != 0) {
@@ -340,10 +329,10 @@ void ShowRegionHelp(unsigned int region_index)
     } else {
         text = gppStringList[region->help_text_id];
     }
-    SetHelpBoxText(text);
+    VideoToolTip(text);
     width = g_help_box_width + W8_HELP_MARGIN;
     height = g_help_box_height + W8_HELP_MARGIN;
-    GetScreenPoint004284F0(&anchor);
+    SGPMouseGetPos(&anchor);
     anchor.y -= height;
     if (anchor.x < 0) {
         anchor.x = W8_HELP_MARGIN;
@@ -357,7 +346,7 @@ void ShowRegionHelp(unsigned int region_index)
     if (anchor.y + height > W8_SCREEN_HEIGHT - 1) {
         anchor.y = W8_SCREEN_HEIGHT - height;
     }
-    PlaceHelpBox(anchor.x, anchor.y);
+    VideoPositionToolTip(anchor.x, anchor.y);
     region->flags |= W8_REGION_HELP_SHOWN;
 }
 
@@ -392,7 +381,7 @@ void ActivateDialogRegion(unsigned int region_index)
         previous->callback(&event, previous);
         unsigned int previous_index = g_hover_region_index;
         if ((g_regions[previous_index].flags & W8_REGION_HELP_SHOWN) != 0) {
-            ReleaseScreenTransitionObjects();
+            VideoRemoveToolTip();
             g_regions[previous_index].flags &= ~W8_REGION_HELP_SHOWN;
         }
         g_region_help_delay = (unsigned short)g_settings_6850c8.tooltip_delay_ms;
@@ -640,7 +629,7 @@ void ResetRegionHelp(unsigned char delayed)
 {
     unsigned int region_index = g_current_region_index;
 
-    ReleaseScreenTransitionObjects();
+    VideoRemoveToolTip();
     g_regions[region_index].flags &= 0xfffffdff;
     if (delayed == 0) {
         ShowRegionHelp(g_current_region_index);
@@ -754,10 +743,10 @@ void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_te
 // FUNCTION: WIZ8 0x004f2a80
 void ClearHotRegion004F2A80(void)
 {
-    W8ScreenPoint mouse;
+    POINT mouse;
     W8RegionMouseEvent event;
 
-    GetScreenPoint004284F0(&mouse);
+    SGPMouseGetPos(&mouse);
     event.event.time = GetClock();
     event.event.modifiers = gfAltState | gfCtrlState | gfShiftState;
     event.event.reason = MOUSE_POS;
@@ -773,7 +762,7 @@ void ClearHotRegion004F2A80(void)
             region->callback(&event.event, region);
             unsigned int region_index = g_current_region_index;
             if ((g_regions[region_index].flags & W8_REGION_HELP_SHOWN) != 0) {
-                ReleaseScreenTransitionObjects();
+                VideoRemoveToolTip();
                 g_regions[region_index].flags &= ~W8_REGION_HELP_SHOWN;
             }
             g_region_help_delay = (unsigned short)g_settings_6850c8.tooltip_delay_ms;
@@ -825,17 +814,17 @@ void ResetRegions(void)
 
     index = g_current_region_index;
     if (g_current_region_index != 0 && (g_regions[g_current_region_index].flags & W8_REGION_HELP_SHOWN) != 0) {
-        ReleaseScreenTransitionObjects();
+        VideoRemoveToolTip();
         g_regions[index].flags &= ~W8_REGION_HELP_SHOWN;
     }
     index = g_hover_region_index;
     if (g_hover_region_index != 0 && (g_regions[g_hover_region_index].flags & W8_REGION_HELP_SHOWN) != 0) {
-        ReleaseScreenTransitionObjects();
+        VideoRemoveToolTip();
         g_regions[index].flags &= ~W8_REGION_HELP_SHOWN;
     }
     index = g_captured_region_index;
     if (g_captured_region_index != 0 && (g_regions[g_captured_region_index].flags & W8_REGION_HELP_SHOWN) != 0) {
-        ReleaseScreenTransitionObjects();
+        VideoRemoveToolTip();
         g_regions[index].flags &= ~W8_REGION_HELP_SHOWN;
     }
     if (g_region_set_count != 0) {

@@ -10,7 +10,7 @@
 #include "wiz8/render_state.h"
 #include "wiz8/utility.h"
 #include "himage.h"
-#include "video.h"
+#include "wiz8/engine_code/Video2.h"
 #include "vobject.h"
 
 namespace {
@@ -41,7 +41,6 @@ int g_cursor_image_height_6596b8;
 int g_cursor_hotspot_x_6596bc;
 int g_cursor_hotspot_y_6596c0;
 unsigned char g_system_cursor_visible_6596c4;
-extern unsigned char g_fullscreen_603c39;
 
 // SYNTHETIC: WIZ8 0x00424A50
 // srClassSupport<srMeshModel,srMeshModel,0,8208>::`scalar deleting destructor'
@@ -343,7 +342,7 @@ extern "C" void Function00428340(void)
    refresh that recomputes them. Fifty callers reach this; what the two pairs
    mean is not established beyond the sum, so both keep address-qualified names. */
 // FUNCTION: WIZ8 0x004284f0
-void GetScreenPoint004284F0(W8ScreenPoint* point)
+void SGPMouseGetPos(POINT* point)
 {
     if (point != 0) {
         Function00428340();

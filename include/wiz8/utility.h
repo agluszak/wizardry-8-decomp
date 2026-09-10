@@ -3,6 +3,8 @@
 
 #include "wiz8/local_code/ControlsRect.h"
 #include <wchar.h>
+#include "wiz8/wiz8_windows.h"
+#include "sgp.h"
 
 #include "wiz8/dice.h"
 
@@ -22,10 +24,6 @@ typedef struct W8ScreenRect {
     int bottom;
 } W8ScreenRect;
 
-typedef struct W8ScreenPoint {
-    int x;
-    int y;
-} W8ScreenPoint;
 
 void SetDice(W8Dice* dice, unsigned char count, unsigned char sides, short base);
 int RollDice(const W8Dice* dice);
@@ -44,7 +42,6 @@ char* ConvertWideStringToString(const wchar_t* string);
 wchar_t* FormatUnsignedIntegerWithCommas(
     wchar_t* output, unsigned int value);
 char* TitleCaseString(char* string);
-int CompareWideTextIgnoreAsciiCase00402920(const wchar_t* first, const wchar_t* second);
 void ShortenTextToWidth00577410(
     wchar_t* output, const wchar_t* text, unsigned int width, int font);
 float ShortestAngleDistance(float first, float second);
@@ -53,7 +50,7 @@ void UnionScreenRects(
     const W8ScreenRect* second,
     W8ScreenRect* result);
 unsigned char ScreenPointInRect(
-    const W8ScreenRect* rect, const W8ScreenPoint* point);
+    const W8ScreenRect* rect, const POINT* point);
 void WriteGameLog(int channel, const wchar_t* format, ...);
 void AdjustByteByPercent(unsigned char* value, unsigned int percent);
 void AdjustIntegerByPercent(unsigned int* value, unsigned int percent);
@@ -63,7 +60,6 @@ float BearingBetween(
 void FormatDebugMessage(int channel, const char* format, ...);
 /* The plain message reporter. ReadLevel.cpp uses it for load failures and
    GrCycle.cpp for a cycle with no usable LOD, so its name stays neutral. */
-void ReportError00401920(const char* message);
 int GetRandomCharacter(
     int require_primary, int require_secondary, int excluded_slot,
     signed char excluded_faction);

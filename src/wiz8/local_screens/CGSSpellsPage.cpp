@@ -119,7 +119,7 @@ void W8CharacterSpellList::Redraw(int force)
         int top = m_top + m_pPanel->origin_y;
         int right = m_right + m_pPanel->origin_x;
         int bottom = m_bottom + m_pPanel->origin_y;
-        MarkScreenRectDirty(left, top, right, bottom, 0);
+        InvalidateRegion(left, top, right, bottom, 0);
         BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
         int y = top + 1;
         SetFont(g_font_683660);
@@ -165,8 +165,8 @@ void W8CharacterSpellList::OnMouseLeave(int event)
 // FUNCTION: WIZ8 0x005c8120
 void W8CharacterSpellList::OnMouseMove(int)
 {
-    W8ScreenPoint mouse;
-    GetScreenPoint004284F0(&mouse);
+    POINT mouse;
+    SGPMouseGetPos(&mouse);
     int entry = (mouse.y - m_pPanel->origin_y - m_top) / 13 +
                 m_scroll_offset + m_first_entry;
     if (entry > m_first_entry + m_entry_count) entry = -1;
@@ -179,8 +179,8 @@ void W8CharacterSpellList::OnMouseMove(int)
 // FUNCTION: WIZ8 0x005c8190
 void W8CharacterSpellList::OnLeftButtonDown(int)
 {
-    W8ScreenPoint mouse;
-    GetScreenPoint004284F0(&mouse);
+    POINT mouse;
+    SGPMouseGetPos(&mouse);
     int entry = (mouse.y - m_pPanel->origin_y - m_top) / 13 +
                 m_scroll_offset + m_first_entry;
     if (entry >= m_first_entry + m_entry_count) {
@@ -191,8 +191,8 @@ void W8CharacterSpellList::OnLeftButtonDown(int)
 /* Folded with OnLeftButtonDown at 0x005C8190. */
 void W8CharacterSpellList::OnRightButtonDown(int)
 {
-    W8ScreenPoint mouse;
-    GetScreenPoint004284F0(&mouse);
+    POINT mouse;
+    SGPMouseGetPos(&mouse);
     int entry = (mouse.y - m_pPanel->origin_y - m_top) / 13 +
                 m_scroll_offset + m_first_entry;
     if (entry >= m_first_entry + m_entry_count) {
@@ -203,8 +203,8 @@ void W8CharacterSpellList::OnRightButtonDown(int)
 // FUNCTION: WIZ8 0x005c81f0
 void W8CharacterSpellList::OnLeftButtonUp(int event)
 {
-    W8ScreenPoint mouse;
-    GetScreenPoint004284F0(&mouse);
+    POINT mouse;
+    SGPMouseGetPos(&mouse);
     int entry = (mouse.y - m_pPanel->origin_y - m_top) / 13 +
                 m_scroll_offset + m_first_entry;
     if (entry >= m_first_entry + m_entry_count) {
@@ -220,8 +220,8 @@ void W8CharacterSpellList::OnLeftButtonUp(int event)
 // FUNCTION: WIZ8 0x005c8280
 void W8CharacterSpellList::OnRightButtonUp(int)
 {
-    W8ScreenPoint mouse;
-    GetScreenPoint004284F0(&mouse);
+    POINT mouse;
+    SGPMouseGetPos(&mouse);
     int entry = (mouse.y - m_pPanel->origin_y - m_top) / 13 +
                 m_scroll_offset + m_first_entry;
     if (entry >= m_first_entry + m_entry_count) {

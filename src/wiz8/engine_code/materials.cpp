@@ -388,7 +388,7 @@ srTexture* LoadTexture004B95D0(
                     g_gerd_659634->setTexture(0, 0);
                 }
                 if (texture->getTextureFrameHandle() == 0) {
-                    ReportError00401920(reinterpret_cast<const char*>(
+                    ShutdownWithErrorBox(reinterpret_cast<const char*>(
                         String("Missing texture file: %s", path)));
                 }
             }
@@ -398,7 +398,7 @@ srTexture* LoadTexture004B95D0(
                 *extension = '\0';
                 strcat(extension, "jpg");
                 if (!FileExists(path)) {
-                    ReportError00401920(reinterpret_cast<const char*>(
+                    ShutdownWithErrorBox(reinterpret_cast<const char*>(
                         String("Missing texture file: %s", path)));
                 }
             }
@@ -428,7 +428,7 @@ stTextureAnim* LoadAnimatedTexture004B98F0(
     strcat(buffer, name);
     handle = FileOpen(buffer, 0x41, 0);
     if (handle == 0) {
-        ReportError00401920(reinterpret_cast<const char*>(
+        ShutdownWithErrorBox(reinterpret_cast<const char*>(
             String("Cannot load/find material: %s", buffer)));
     }
 
@@ -452,7 +452,7 @@ stTextureAnim* LoadAnimatedTexture004B98F0(
         break;
     }
     animation->setupDefaultValues();
-    CloseVirtualFile(handle);
+    FileClose(handle);
     if (source != 0) {
         int frame = source->animation_frame_10e;
         animation->flag_60 = source->animation_mode_10d;

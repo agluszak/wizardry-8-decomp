@@ -19,10 +19,7 @@ endif()
         ${WIZ8_TEMPLATE_EMISSIONS}
         ${WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS}
     )
-    # The vendored SGP headers are on the path so recovered bodies that call
-    # into SGP declare its types from the real header rather than restating
-    # them. GETFILESTRUCT is the first: LoadSaveGame.cpp walks the save
-    # directory through GetFileFirst.
+    # Product code consumes the reconstructed SGP component's owning headers.
     target_link_libraries(wiz8_recovered_objects PRIVATE wiz8_compile_settings)
 
     wiz8_add_import_library(WIZ8_SR src/wiz8/imports/sr.def
@@ -30,15 +27,14 @@ endif()
     wiz8_add_import_library(WIZ8_MSS32 src/wiz8/imports/mss32.def PRESERVE_C_DECORATION)
     wiz8_add_import_library(WIZ8_BINKW32 src/wiz8/imports/binkw32.def PRESERVE_C_DECORATION)
 
-    # The comparison image retains every recovered first-party section with
-    # /OPT:NOREF. Released SGP source belongs only to the /OPT:REF runtime
-    # products; source-backed retail identities are compared by the SGP oracle.
+    # Every product uses the same SGP archive. Comparison can also inspect
+    # individual object contributions when a function is discarded at link.
     wiz8_add_executable(
         TARGET WIZ8
         OUTPUT Wiz8
         MAP Wiz8.map
         ALLOW_UNRESOLVED
-        LIBRARIES ddraw.lib dxguid.lib gdi32.lib user32.lib
+        LIBRARIES WIZ8_SGP ddraw.lib gdi32.lib user32.lib
     )
     reccmp_add_target(WIZ8 ID WIZ8)
 
@@ -48,7 +44,7 @@ endif()
         MAP Wiz8Runtime.map
         OPT_REF
         ALLOW_UNRESOLVED
-        LIBRARIES ddraw.lib gdi32.lib user32.lib
+        LIBRARIES WIZ8_SGP ddraw.lib gdi32.lib user32.lib
     )
     # The semantic test product links the same recovered and retained runtime
     # objects, but owns a console entry point and test driver that never enter
@@ -61,11 +57,5 @@ endif()
         CONSOLE
         ALLOW_UNRESOLVED
         SOURCES tests/runtime/wiz8_runtime_test.cpp
-        LIBRARIES ddraw.lib gdi32.lib user32.lib
+        LIBRARIES WIZ8_SGP ddraw.lib gdi32.lib user32.lib
     )
-if(SGP_SOURCE)
-    include(cmake/Sgp.cmake)
-
-    target_link_libraries(WIZ8_RUNTIME PRIVATE WIZ8_SGP_RUNTIME)
-    target_link_libraries(WIZ8_RUNTIME_TEST PRIVATE WIZ8_SGP_RUNTIME)
-endif()

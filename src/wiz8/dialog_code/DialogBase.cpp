@@ -1,5 +1,5 @@
 #include "wiz8/cursor.h"
-#include "wiz8/sgp_video.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/dialog_code/DialogBase.h"
 
 #include "wiz8/dirty_tiles.h"
@@ -80,7 +80,7 @@ void W8DialogBase::Draw()
             m_dirty_flags &= ~1u;
             return;
         }
-        MarkScreenRectDirty(
+        InvalidateRegion(
             m_x, m_y, m_x + m_width, m_y + m_height, 1);
     }
     m_dirty_flags &= ~1u;
@@ -128,7 +128,7 @@ void W8DialogBase::SetExtent(int width, int height)
         if (m_initialized && m_width > 0 && m_height > 0) {
             ClearSurfaceRect(m_x, m_y,
                              m_x + m_width + 1, m_y + m_height + 1);
-            MarkScreenRectDirty(m_x, m_y,
+            InvalidateRegion(m_x, m_y,
                                 m_x + m_width + 1, m_y + m_height + 1, 1);
         }
         m_width = width;
@@ -219,7 +219,7 @@ void W8DialogBase::DestroyControls()
         m_background_flags = 0;
     }
     ClearSurfaceRect(m_x, m_y, m_x + m_width + 1, m_y + m_height + 1);
-    MarkScreenRectDirty(
+    InvalidateRegion(
         m_x, m_y, m_x + m_width + 1, m_y + m_height + 1, 1);
     m_initialized = 0;
 }
@@ -227,10 +227,10 @@ void W8DialogBase::DestroyControls()
 // FUNCTION: WIZ8 0x005dcce0
 unsigned char W8DialogBase::ProcessInput()
 {
-    W8ScreenPoint mouse;
+    POINT mouse;
     InputAtom input;
 
-    GetScreenPoint004284F0(&mouse);
+    SGPMouseGetPos(&mouse);
     MSYS_SGP_Mouse_Handler_Hook(
         MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
     while (DequeueEvent(&input)) {

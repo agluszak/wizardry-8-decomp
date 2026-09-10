@@ -31,24 +31,24 @@ void LoadLocalizedStrings(const char* path)
                      "Failed to open localization string table.");
         return;
     }
-    if (!ReadVirtualFile(handle, &giStringListLen, 4, 0)
+    if (!FileRead(handle, &giStringListLen, 4, 0)
         || !giStringListLen) {
         srAssertFail("giStringListLen", source, 79, 0);
-        CloseVirtualFile(handle);
+        FileClose(handle);
         return;
     }
     gppStringList = static_cast<wchar_t**>(
         malloc(giStringListLen * sizeof(wchar_t*)));
     if (!gppStringList) {
         srAssertFail("gppStringList", source, 82, 0);
-        CloseVirtualFile(handle);
+        FileClose(handle);
         return;
     }
     memset(gppStringList, 0,
            giStringListLen * sizeof(wchar_t*));
     for (index = 0; index != giStringListLen; ++index) {
         unsigned int byte_count;
-        if (!ReadVirtualFile(handle, &byte_count, 4, 0)) {
+        if (!FileRead(handle, &byte_count, 4, 0)) {
             break;
         }
         gppStringList[index] =
@@ -57,11 +57,11 @@ void LoadLocalizedStrings(const char* path)
             srAssertFail("gppStringList[iCount]", source, 89, 0);
             break;
         }
-        if (!ReadVirtualFile(handle, gppStringList[index],
+        if (!FileRead(handle, gppStringList[index],
                              byte_count, 0)) {
             break;
         }
         DecodeLocalizedText(reinterpret_cast<unsigned short*>(gppStringList[index]), byte_count / 2);
     }
-    CloseVirtualFile(handle);
+    FileClose(handle);
 }
