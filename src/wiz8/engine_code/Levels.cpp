@@ -286,18 +286,8 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
             srModelInstance* instance = static_cast<srModelInstance*>(node);
             srMeshModel* mesh = static_cast<srMeshModel*>(instance->model());
 
-            mesh->control_state_394 |= 0x20;
-            if ((mesh->control_state_390 & 8) == 0) {
-                unsigned long state = mesh->control_state_390;
-                mesh->control_state_390 = state | 8;
-                mesh->control_state_390 = state | 8;
-            }
-            mesh->control_state_394 |= 0x10;
-            if ((mesh->control_state_390 & 8) == 0) {
-                unsigned long state = mesh->control_state_390;
-                mesh->control_state_390 = state | 8;
-                mesh->control_state_390 = state | 8;
-            }
+            mesh->setControlMask(0x20);
+            mesh->setControlMask(0x10);
         }
     }
 

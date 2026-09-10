@@ -129,6 +129,17 @@ public:
         control_state_390 |= 8;
         control_state_394 |= 0x30;
     }
+    /* Raise one 0x394 control bit and mark the 0x390 changed bit when it is
+       clear. The original stores the changed bit twice; VC6 emits that pair
+       at every expansion site, so the body keeps both stores. */
+    void setControlMask(unsigned long mask) {
+        control_state_394 |= mask;
+        if ((control_state_390 & 8) == 0) {
+            unsigned long state = control_state_390;
+            control_state_390 = state | 8;
+            control_state_390 = state | 8;
+        }
+    }
 
 protected:
     virtual ~srMeshModel() override;
