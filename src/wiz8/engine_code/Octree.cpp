@@ -78,6 +78,15 @@ extern const float g_world_scale_005ebc40;
 // GLOBAL: WIZ8 0x006598a4
 W8Octree* g_octree_6598a4;
 
+// GLOBAL: WIZ8 0x006598a8
+unsigned char g_flag_6598a8;
+
+// FUNCTION: WIZ8 0x0042bc00
+void NoOct(void)
+{
+    g_flag_6598a8 = 1;
+}
+
 // GLOBAL: WIZ8 0x005ec02c
 static const float NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE = 50.0f;
 

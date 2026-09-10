@@ -13,6 +13,7 @@
 #include "surrender/srClipPlane.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/geometry.h"
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Octree.h"
@@ -76,8 +77,6 @@ const float g_environment_near_scale_005ec0b0 = 2.0f;
 extern srVector3T<float> g_environment_offset_00659cd0;
 // GLOBAL: WIZ8 0x00659cd0
 srVector3T<float> g_environment_offset_00659cd0;
-extern float* RotateMatrixAroundAxis0042B910(
-    float* matrix, double sine, double cosine, float* axis);
 
 // FUNCTION: WIZ8 0x004BC060
 void AssociateWorldLights004BC060(W8World* world)

@@ -41,7 +41,6 @@ extern srGERD* g_gerd_659634;
 extern LPDIRECTDRAWSURFACE2 g_primary_surface_6596a8;
 extern stSurface2D* g_surface_node_659664;
 extern srMaterial* g_blit_material_65967c;
-extern float g_surface_scale_659680;
 extern srColorSurface* g_mouse_surface_659688;
 extern srNode* g_surface_nodes_654adc[0x12c0];
 extern unsigned char g_block_652ddc[0x12c0];
@@ -58,11 +57,15 @@ extern int g_renderer_mode_603d74;
 extern float g_render_brightness_60a210;
 extern float g_render_fog_distance_60e610;
 extern unsigned char g_render_flag_60a20c;
+/* Set by render-option 10; the frame body gates world rendering on it. */
+extern unsigned char g_render_flag_603c6c;
 /* The pair the mode-select bodies write together, promoted here for the same
-   reason: renderer_window.cpp defines them and the recovered setters read them
+   reason: Video2.cpp defines them and the recovered setters read them
    from outside it. */
 extern int g_dword_6596ec;
 extern int g_dword_6596f0;
+/* The cursor mapping scale Video2.cpp owns; render-option scaling writes it. */
+extern float g_surface_scale_659680;
 
 extern "C" {
 /* Engine Code\Quality.cpp seeds the clock, the mapper constructor reseeds it,

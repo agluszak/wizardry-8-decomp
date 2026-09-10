@@ -27,6 +27,7 @@
 #include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/geometry.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/Octree.h"
@@ -74,8 +75,6 @@
 
 // GLOBAL: WIZ8 0x006599B8
 W8GrowableVector<W8TriggerEvent*> g_timed_events_006599b8;
-extern float* RotateMatrixAroundAxis0042B910(
-    float* matrix, double sine, double cosine, float* axis);
 
 // GLOBAL: WIZ8 0x006599C8
 unsigned char g_trigger_action_active_006599c8;

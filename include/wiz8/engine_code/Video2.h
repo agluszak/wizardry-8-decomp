@@ -78,7 +78,6 @@ void VideoPositionToolTip(INT32 x, INT32 y);
 void VideoRemoveToolTip(void);
 
 void SGPMouseGetPos(POINT* point);
-void NoOct(void);
 void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom);
 
 #ifdef __cplusplus
@@ -101,16 +100,6 @@ unsigned char CopySurfaceWithBorder(
     float* scale_x, float* scale_y, float* mapping_x, float* mapping_y);
 srModelInstance* Video2DRectToPolygon(
     int* rect, void* source, int source_pitch, srNode* parent, unsigned char overlay);
-srModelInstance* MakePolygonBrush(
-    srNode* parent, srColorSurfaceIFace* surface,
-    double width, double height,
-    float mapping_x, float mapping_y,
-    float mapping_width, float mapping_height,
-    unsigned char overlay);
 #endif
-
-
-float* RotateMatrixAroundAxis0042B910(
-    float* matrix, double sine, double cosine, float* axis);
 
 #endif

@@ -66,6 +66,10 @@ public:
 
 public:
 };
+
+// SYNTHETIC: WIZ8 0x0042B890
+// srVertexProcessor::`scalar deleting destructor'
+
 #pragma pack(pop)
 
 static_assert(

@@ -363,6 +363,10 @@ unsigned int __stdcall OctreeTraverseKind12(
 
 extern W8Octree* g_octree_6598a4;
 
+/* The SGP /NOOCT startup switch sets this flag; an Octree-unit body reads it. */
+extern "C" void NoOct(void);
+extern unsigned char g_flag_6598a8;
+
 unsigned char __stdcall IsNavigatorAtTarget004347D0(W8NavigatorMovementState* movement);
 unsigned int __stdcall FindNavigatorPosition00437F30(
     const srVector3T<float>* source, float yaw, float radius, unsigned int count,

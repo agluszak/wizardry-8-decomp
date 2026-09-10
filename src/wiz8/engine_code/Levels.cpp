@@ -17,6 +17,7 @@
 #include "surrender/srClipPlane.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/geometry.h"
 #include "wiz8/world_cursor.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_code/Search.h"

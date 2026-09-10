@@ -43,4 +43,10 @@ unsigned char PointInsideBounds004BE870(
     const srVector3T<float>* minimum,
     const srVector3T<float>* maximum);
 
+/* Shared matrix-rotation helper. The body at 0x0042B910 sits in the
+   unanchored Levels tail and its precise owning unit is not established, so
+   the declaration lives with the recovered transform helpers. */
+float* RotateMatrixAroundAxis0042B910(
+    float* matrix, double sine, double cosine, float* axis);
+
 #endif

@@ -1,6 +1,7 @@
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/AnimRep.h"
 #include "wiz8/float_constants.h"
+#include "wiz8/geometry.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
@@ -26,8 +27,6 @@ extern const float g_negative_one_005ebc38;
 extern double g_double_005ebe80;
 extern float g_float_005ec128;
 extern double g_double_005ec3b0;
-extern float* RotateMatrixAroundAxis0042B910(
-    float* matrix, double sine, double cosine, float* axis);
 
 // FUNCTION: WIZ8 0x004a9260
 unsigned char PathAIUpdate004A9260(W8PathAI* path, signed char direction)

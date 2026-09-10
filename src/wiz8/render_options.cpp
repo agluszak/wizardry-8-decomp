@@ -22,7 +22,6 @@ float g_render_brightness_60a210;
 float g_render_fog_distance_60e610;
 unsigned char g_render_flag_60a20c;
 unsigned char g_render_flag_603c6c;
-int g_resident_texture_policy_659714;
 unsigned char g_swap_interval_enabled_659718;
 float g_surface_scale_659680;
 
@@ -38,16 +37,6 @@ static void SetSurfaceScale(float scale)
     }
     *(float*)((unsigned char*)g_surface_node_659664 + 0x190) = scale;
     g_surface_scale_659680 = scale;
-}
-
-// FUNCTION: WIZ8 0x004266e0
-void SetResidentTexturePolicy(int policy)
-{
-    if (policy != g_resident_texture_policy_659714) {
-        g_gerd_659634->invalidateResidentTextures();
-        g_gerd_659634->invalidateTextureCache();
-        g_resident_texture_policy_659714 = policy;
-    }
 }
 
 static void SetTextureCacheSize(unsigned long bytes)

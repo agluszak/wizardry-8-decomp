@@ -46,10 +46,9 @@ invisible TU, or the next unit's head, and is never assigned heuristically. Othe
 matches, which can establish a retail hull for a unit whose retail path string is gone; ambiguous or
 non-unique matches stay unknown. The same layout drives `wiz8 report context`, `wiz8 recover`, and
 `wiz8 report translation-units`, and `wiz8 check-tu-placement` compares it against the current
-source-index placement. The placement check is dormant until the provisional Video2 fragment
-(`renderer_window.cpp`, `startup_cursor.cpp`, and the adjacent renderer/cursor units) is resolved:
-its proven functions still depend on unmarked static helpers that span the unresolved tail gap,
-and `build/reports/placement-violations.json` records the remaining contradictions.
+source-index placement and enforces every anchored function. The earlier provisional Video2
+exemptions are gone: the cursor, window and dirty-tile bodies were consolidated into
+`src/wiz8/engine_code/Video2.cpp` rather than kept in invented semantic units.
 
 ## RTTI result
 

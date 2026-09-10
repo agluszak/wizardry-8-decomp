@@ -111,7 +111,6 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/engine_code/Monster.cpp
     src/wiz8/engine_code/stScript.cpp
     src/wiz8/local_code/Targeting.cpp
-    src/wiz8/local_code/Viewport.cpp
     src/wiz8/3d_code/PList.cpp
     src/wiz8/engine_code/3d.cpp
     src/wiz8/engine_code/Bink.cpp
@@ -119,19 +118,16 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/vector.cpp
     src/wiz8/imports/mss.cpp
     src/wiz8/bringup_gates.cpp
-    src/wiz8/renderer_window.cpp
     src/wiz8/engine_code/Quality.cpp
     src/wiz8/startup_render_state.cpp
     src/wiz8/startup_world.cpp
     src/wiz8/startup_subsystems.cpp
     src/wiz8/startup_ui_state.cpp
-    src/wiz8/startup_cursor.cpp
     src/wiz8/sound_man.cpp
     src/wiz8/surface2d.cpp
     src/wiz8/engine_code/Video2.cpp
     src/wiz8/character_skills.cpp
     src/wiz8/fact_state.cpp
-    src/wiz8/dirty_tiles.cpp
     src/wiz8/render_options.cpp
     src/wiz8/engine_code/registry_classes.cpp
     src/wiz8/engine_code/MonsterLight.cpp

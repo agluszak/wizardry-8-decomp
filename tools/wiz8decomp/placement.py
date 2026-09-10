@@ -9,8 +9,7 @@ anchor, a hard hull, or a uniquely projected cross-build anchor. Advisory
 
 The gate runs against the reviewed assertion anchors by default, so it stays
 fast and Ghidra-independent; ``live=True`` uses the richer live cross-build
-layout when a checkout has the project open. Exactly the four Video2-tail
-anchors below are exempt until that provisional fragment is resolved.
+layout when a checkout has the project open.
 """
 
 from __future__ import annotations
@@ -29,11 +28,6 @@ from .source_index import load_source_index
 
 PLACED_ATTRIBUTIONS = frozenset({"direct", "bounded", "cross-build"})
 _HEADER_SUFFIXES = (".h", ".hpp", ".hxx", ".inl")
-
-# The unresolved Video2 tail: these proven bodies still sit in the cursor,
-# window and dirty-tile units because their unmarked static helpers span the
-# gap. They are the only placement violations the assertion layout reports.
-VIDEO2_TAIL_EXCEPTIONS = frozenset({0x00424EB0, 0x00425B40, 0x00425EC0, 0x00426080})
 
 
 class PlacementGateError(RuntimeError):
@@ -56,8 +50,6 @@ def placement_violations(
         if source_file.casefold().endswith(_HEADER_SUFFIXES):
             continue
         address = int(marker["address"])
-        if address in VIDEO2_TAIL_EXCEPTIONS:
-            continue
         owner = layout.owner(address)
         if owner["attribution"] not in PLACED_ATTRIBUTIONS:
             continue
