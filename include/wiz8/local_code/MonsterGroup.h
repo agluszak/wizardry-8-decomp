@@ -120,7 +120,6 @@ void Function5103E0(W8MonsterGroup* monster_group);
 
 
 void Function50E5C0(int party_slot);
-void Function50E700(void);
 void Function50E8C0(int location_id);
 
 #endif

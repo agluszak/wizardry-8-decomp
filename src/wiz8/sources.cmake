@@ -15,6 +15,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/Sight.cpp
     "src/wiz8/local_code/Combat Party Movement.cpp"
     "src/wiz8/local_code/Combat Range.cpp"
+    "src/wiz8/local_code/Gameplay Mods.cpp"
     src/wiz8/local_code/GameplayCode.cpp
     src/wiz8/local_code/Combat.cpp
     "src/wiz8/local_code/Combat Sound.cpp"

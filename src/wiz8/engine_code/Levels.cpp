@@ -55,6 +55,7 @@
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/Video2.h"
+#include "wiz8/local_code/GameplayMods.h"
 
 #define LEVELS_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Levels.cpp"
 
@@ -325,7 +326,6 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
 }
 
 
-extern void Function50E700(void);
 
 extern float g_runtime_world_scale_6081e8;
 
@@ -602,7 +602,7 @@ unsigned char LoadLevel(
     Function4D6C50(level);
     RebindNpcLevelTriggers0050AC60();
     SetWorldCursorNodesVisible0048ED70(g_value_0068f0fd);
-    Function50E700();
+    RebuildPartyEffectBlock0050E700();
 
     if (!restoring_game) {
         if (level < 47) {

@@ -15,6 +15,7 @@
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/utility.h"
 #include "random.h"
+#include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -149,7 +150,7 @@ void ResetPartyEffectBlock(W8EffectSlot* slot)
     *(int*)(bytes + 1) = 0;
     *(int*)(bytes + 5) = 0;
     *(int*)(bytes + 0xd) = 0;
-    Function50E700();
+    RebuildPartyEffectBlock0050E700();
     Function5AF2D0();
     RequestRedraw(0x800100);
 }
