@@ -273,17 +273,13 @@ void W8CharacterPageEntry::OnSecondary(W8TextControl* control)
 // VTABLE: WIZ8 0x005ef1e4 W8CharacterPage
 // class W8CharacterPage
 
-// VTABLE: WIZ8 0x005ef214 W8CharacterPageEntries005EF214
-// class W8CharacterPageEntries005EF214
-
 // VTABLE: WIZ8 0x005ef218 W8GrowableVector<W8CharacterPageEntry*>
 // class W8GrowableVector<W8CharacterPageEntry*>
 
 // FUNCTION: WIZ8 0x005afd90
 W8CharacterPage::W8CharacterPage(int render_target)
     : Controls(0xc3, 0x2b, 0x280, 0x1c1, render_target, 0, 0),
-      m_screen_05c(0), m_character_060(0), m_creation_state_064(0),
-      m_mode_068(0), m_prepared_06c(0), m_dirty_06d(0)
+      m_screen_05c(0)
 {
 }
 

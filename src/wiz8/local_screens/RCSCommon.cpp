@@ -382,10 +382,5 @@ void Function5B2200(void)
     Function56AAB0();
 }
 
-/* The 0x005EF214 vtable is a distinct derived vector class: the base
-   W8GrowableVector constructor writes 0x005EF218 into the CharacterPage
-   member at +0x4c and the derived constructor overwrites it with 0x005EF214.
-   Its deleting destructor is recorded here; the class itself is not yet
-   recovered. */
-// SYNTHETIC: WIZ8 0x005b1bc0
-// W8CharacterPageEntries005EF214::`scalar deleting destructor'
+// SYNTHETIC: WIZ8 0x005b1b90
+// W8GrowableVector<W8CharacterPageEntry*>::`scalar deleting destructor'

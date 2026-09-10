@@ -7,6 +7,3 @@
 
 // TEMPLATE: WIZ8 0x005b1b70
 // W8GrowableVector<W8CharacterPageEntry*>::~W8GrowableVector<W8CharacterPageEntry*>
-
-// SYNTHETIC: WIZ8 0x005b1b90
-// W8GrowableVector<W8CharacterPageEntry*>::`scalar deleting destructor'
