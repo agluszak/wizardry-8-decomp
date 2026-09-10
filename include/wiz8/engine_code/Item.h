@@ -38,3 +38,7 @@ struct W8Item : public W8GrObject {
 /* Both sizes are the last proven member plus its width, not a proven extent. */
 static_assert(sizeof(W8ItemRep) == 0x94, "W8ItemRep_must_be_0x94");
 static_assert(sizeof(W8Item) == 0x20, "W8Item_must_be_0x20");
+
+unsigned char Function49F4A0(void* context, const char* name,
+                                    void* out, int value);   /* 0x0049F4A0 */
+

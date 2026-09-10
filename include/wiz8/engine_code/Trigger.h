@@ -254,3 +254,8 @@ extern int g_value_0068c548;
 extern int g_value_005ee59c;
 extern int g_value_005ee5a0;
 extern int g_value_005ed8c8;
+
+void Function444F70(int value, float duration, float intensity,
+                          unsigned char reverse);
+unsigned char Function445140(W8World* world);
+

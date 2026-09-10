@@ -7,6 +7,7 @@
 class srModelInstance;
 class W8Prop;
 class Trigger;
+struct W8WorldItem;
 
 /* Engine Code\GDProp.cpp. Prop.cpp allocates 0x58 bytes for this object,
    constructs it at 0x004B6E00, and owns it at Prop+0x38. Assertions in the
@@ -59,5 +60,12 @@ private:
     unsigned short m_path_bound_52;      /* 0x52 */
     W8PList* m_list_54;                  /* 0x54 */
 };                                       /* 0x58 */
+
+
+void AddItemToSector(int sector, W8WorldItem* item);              /* 0x004B7AD0 */
+void RegisterPathSurface004B7730(unsigned int index, const int* point);
+void RegisterPathVertex004B7830(
+    unsigned int index, const int* point, const int* second);
+void RemoveItemFromSector(int sector, W8WorldItem* item);         /* 0x004B7B50 */
 
 #endif

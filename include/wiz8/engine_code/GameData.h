@@ -147,4 +147,10 @@ void ResetCurrentEnvironment0041AA40(void);
 
 unsigned int GetLevelDataFlag6(void);
 
+
+void Function41C680(int interface_id, int state);
+char TestTraceResult0041C330(
+    int value_1b8, unsigned long* objects, void* result,
+    unsigned char value_134, int mode);
+
 #endif // __cplusplus

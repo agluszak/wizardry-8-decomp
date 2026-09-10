@@ -26,3 +26,13 @@ unsigned char GetFlag68F104(void);
 unsigned char HasAutomapLayer(int layer);
 void RestoreAutomapCameraPosition(void);
 unsigned char Function57E490(void);
+
+void Function5817D0(void);
+void Function581CE0(int handle);
+unsigned char Function582050(srVector3T<float>* position);
+void Function5820F0(int tool);
+W8AutomapNote* Function582180(void);
+void Function5822C0(void);
+void Function582930(void);
+void Function583BC0(void);
+

@@ -46,6 +46,7 @@ float g_float_005ec3d0 = -107374184.0f;
 #include "surrender/srNode.h"
 #include "surrender/srModelInstance.h"
 #include "FileMan.h"
+#include "wiz8/engine_code/GDProp.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -76,9 +77,6 @@ extern const float g_world_scale_005ebc40;
 extern void* g_path_scratch_00659c64;
 // GLOBAL: WIZ8 0x00659c64
 void* g_path_scratch_00659c64;
-extern void RegisterPathSurface004B7730(unsigned int index, const int* point);
-extern void RegisterPathVertex004B7830(
-    unsigned int index, const int* point, const int* second);
 extern double g_double_005ec3a8;
 // GLOBAL: WIZ8 0x005ec3a8
 double g_double_005ec3a8 = 1.1;

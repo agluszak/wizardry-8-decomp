@@ -163,6 +163,42 @@ typedef struct W8MonsterRuntimeBlock1DB {
     unsigned char unknown_13[0x54];
 } W8MonsterRuntimeBlock1DB;                    /* 0x67 */
 
+/* 0x286: the party-side sight record for one monster. The live-threat gate,
+   the clock and two position triples the player-sight pass stamps, the
+   use-bounds flag IsVisibleToPlayer consumes, and its two sight flags. The
+   per-turn reset zeroes all 0x30 bytes together, which fixes the extent. */
+typedef struct W8PartyThreatRecord {
+    unsigned char unknown_00[4];
+    unsigned char state_04;                 /* 0x28a: live-threat gate for the group sight query */
+    unsigned char unknown_05[2];
+    unsigned char flag_07;                  /* 0x28d */
+    int last_seen_clock_08;                 /* 0x28e: cleared by the per-turn reset */
+    srVector3T<float> camera_position_0c;   /* 0x292 */
+    srVector3T<float> own_position_18;      /* 0x29e */
+    unsigned char threat_state_24;          /* 0x2aa: use-bounds flag handed to IsVisibleToPlayer */
+    unsigned char flag_25;                  /* 0x2ab */
+    unsigned char unknown_26[0x0a];
+} W8PartyThreatRecord;                        /* 0x30 */
+static_assert(sizeof(W8PartyThreatRecord) == 0x30, "W8PartyThreatRecord_size");
+
+/* 0x348: the player-visibility record for one monster. It mirrors the
+   per-other-monster W8MonToMonVisibility record: state byte, four sight
+   flags, the seen clock, two position triples and the line-of-sight byte.
+   The reset zeroes exactly its 0x31 bytes; the following byte is outside. */
+typedef struct W8PlayerVisibility {
+    unsigned char unknown_00[4];
+    unsigned char state_04;                 /* 0x34c */
+    unsigned char sight_flags_05[4];        /* 0x34d: two flag pairs */
+    unsigned char unknown_09[2];
+    unsigned char flag_0b;                  /* 0x353 */
+    int last_seen_clock_0c;                 /* 0x354 */
+    srVector3T<float> camera_position_10;   /* 0x358 */
+    srVector3T<float> own_position_1c;      /* 0x364 */
+    unsigned char line_of_sight_28;         /* 0x370 */
+    unsigned char unknown_29[8];            /* 0x371; 0x379 lies outside the reset */
+} W8PlayerVisibility;                         /* 0x31 */
+static_assert(sizeof(W8PlayerVisibility) == 0x31, "W8PlayerVisibility_size");
+
 typedef struct W8MonsterInfo {
     int location_id;                      /* 0x00 */
     int monster_group_id;                 /* 0x04: group lookup input in 0x004e6020 */
@@ -217,21 +253,8 @@ typedef struct W8MonsterInfo {
     unsigned char flag_253;                 /* 0x253: set by 0x004e5c00 after processing */
     unsigned char unknown_254;
     unsigned char flag_255;                 /* 0x255: reset by 0x004e5ea0 and 0x004e6020 */
-    unsigned char unknown_256[0x34];
-    /* 0x28a: at one the monster counts as a live threat for the group-level
-       sight query, on top of being alive and not too far gone. */
-    unsigned char threat_28a;
-    unsigned char unknown_28b[2];
-    unsigned char flag_28d;
-    int value_28e;                          /* 0x28e: cleared by the per-turn reset */
-    /* 0x292: the two position triples the player-sight pass stamps once the
-       monster has seen the party: the camera position and its own. */
-    srVector3T<float> camera_sight_position_292;
-    srVector3T<float> own_sight_position_29e;
-    /* 0x2aa: the use-bounds flag the same pass hands to IsVisibleToPlayer. */
-    unsigned char threat_state_2aa;
-    unsigned char flag_2ab;
-    unsigned char unknown_2ac[0x0a];
+    unsigned char unknown_256[0x30];
+    W8PartyThreatRecord party_threat;       /* 0x286 */
     /* 0x2b6: what this monster can see of other monsters, one heap record per
        other monster. The two release paths own it: one drops every record
        about a departing monster, the other empties and destroys the whole
@@ -269,18 +292,8 @@ typedef struct W8MonsterInfo {
     W8TargetSource condition_target_304;
     int runtime_values_338[3];              /* 0x338: creator clears as one unit */
     int value_344;                          /* 0x344: creator initializes to -1 */
-    unsigned char unknown_348[4];
-    /* 0x34c: a combat-entry state byte 0x004e4390 raises to 2 when it is still
-       zero, stamping the global at 0x00686a48 into value_354 at the same time. */
-    unsigned char state_34c;
-    unsigned char unknown_34d[7];
-    int value_354;                          /* 0x354 */
-    /* 0x358: the same pair of position triples for the player-sight record,
-       followed by the line-of-sight byte and the two traced-weapon bytes. */
-    srVector3T<float> camera_position_358;
-    srVector3T<float> own_position_364;
-    unsigned char los_to_player_370;
-    unsigned char unknown_371[9];
+    W8PlayerVisibility player_visibility;   /* 0x348 */
+    unsigned char unknown_379;
     unsigned char has_missile_37a;
     unsigned char unknown_37b;
     unsigned char has_spell_37c;

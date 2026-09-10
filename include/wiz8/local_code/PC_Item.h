@@ -90,3 +90,11 @@ extern int g_held_item_source_006840c0;
 extern unsigned char g_held_item_origin_006840c4;
 extern unsigned short g_held_item_slot_006840c5;
 extern unsigned char g_byte_652da6;
+
+void BindCharacterItems(int party_slot, int arg_2);              /* 0x0051D2C0 */
+W8ItemInstance* FindCharacterItemAt(
+    int party_slot, unsigned char origin, unsigned short slot);          /* 0x00522180 */
+void RecordItemOrigin(int party_slot, unsigned char origin, unsigned short slot);
+void RemoveCharacterItem(int party_slot, W8ItemInstance* item, int arg_3);
+unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all);
+

@@ -17,6 +17,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "random.h"
+#include "wiz8/engine_code/GDProp.h"
 
 #include <string.h>
 
@@ -448,8 +449,6 @@ unsigned int ItemIndex(int runtime_id)
 }
 
 extern void GetWorldItemBounds(float* lower, float* upper);              /* 0x0049FB30 */
-extern void RemoveItemFromSector(int sector, W8WorldItem* item);         /* 0x004B7B50 */
-extern void AddItemToSector(int sector, W8WorldItem* item);              /* 0x004B7AD0 */
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
 extern const float g_world_scale_005ebc40;

@@ -78,4 +78,7 @@ public:
 
 enum { W8_BITS_PER_WORD = 32 };
 
+
+unsigned char BitArrayLoad0043AEC0(BitArray* bits, int handle);
+
 #endif

@@ -49,6 +49,9 @@
 #include "surrender/srCore.h"
 #include "surrender/srMath.h"
 #include "surrender/srScene.h"
+#include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/GameData.h"
+#include "wiz8/local_code/PC_Item.h"
 
 #include <windows.h>
 
@@ -68,9 +71,6 @@
 W8GrowableVector<W8TriggerEvent*> g_timed_events_006599b8;
 extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
-extern unsigned int FindMonsterLocationsInBox0042F280(
-    int** locations, const srVector3T<float>* lower,
-    const srVector3T<float>* upper, int kind, int excluded_location);
 extern stLight* FindLightByName00445A10(
     const char* name, const srRuntimeClass* relative_to);
 
@@ -86,7 +86,6 @@ W8GrowableVector<int> g_location_variable_values_00659990;
 
 // GLOBAL: WIZ8 0x00606994
 unsigned char g_flag_00606994 = 1;
-extern unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all);
 extern int OpenLockInteraction00587510(Trigger* trigger);
 extern int OpenTrapInteraction0058A470(Trigger* trigger);
 extern unsigned char FindEntityByName(
@@ -101,7 +100,6 @@ extern void* SpawnSpellEffect004AD080(
 
 extern unsigned char Function521060(
     int item_id, int value_1, int value_2, int value_3, int value_4);
-extern void Function41C680(int interface_id, int state);
 extern void UpdateCameraView00450080(srCamera* camera, int mode);
 
 extern int ApplyItemEffectToRandomCharacter0052E5C0(

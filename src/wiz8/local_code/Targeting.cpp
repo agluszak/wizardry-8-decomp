@@ -30,6 +30,9 @@ int g_target_state_6840b3;
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
 #include "Types.h"
+#include "wiz8/local_code/CombatRange.h"
+#include "wiz8/targeting.h"
+#include "wiz8/local_code/CombatHostility.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -421,8 +424,6 @@ char TargetMatchesNeeded(W8CombatSlot* target, int needed)
     return 0;
 }
 
-extern void NotifyMonsterHighlight(int party_slot, int location_id, int on);
-/* 0x004C5EB0 */
 
 /* What the interface has to ask the player to pick for one action. Most
    actions answer a fixed kind; casting asks the spell and using an item asks
@@ -624,11 +625,6 @@ typedef struct W8MonsterTargetCandidate {
     float distance;                      /* 0x18 */
 } W8MonsterTargetCandidate;              /* 0x1c */
 
-extern unsigned char MonsterIsHostileTo(int party_slot, W8MonsterInfo* monster_info);
-/* 0x00546F10 */
-extern unsigned char CanReachTarget(
-    int party_slot, int kind, W8MonsterInfo* monster_info, int context, int arg_5);
-/* 0x005194E0 */
 
 /* The order the candidates are taken in: the monster in the lowest state
    first, then the one that can actually be reached, then the nearest. Only
@@ -853,8 +849,6 @@ unsigned char IsTargetStillPresent(const W8CombatSlot* target)
 
 extern unsigned char IsSlotActionChosen(int party_slot, int context, int arg_3, int arg_4);
 /* 0x004E79A0 */
-extern unsigned char CanTargetMonsterWithAction(
-    int party_slot, int location_id, int arg_3, int arg_4);              /* 0x00536AD0 */
 extern unsigned char Function547510(void);                                  /* 0x00547510 */
 extern void SetTargetCursor(int cursor);                                 /* 0x0055EE70 */
 
@@ -1224,7 +1218,6 @@ unsigned int Function53A8D0(int party_slot, unsigned int context)
 }
 
 extern void Function4ADD30(int enabled);
-extern void Function53B660(const srVector3T<float>* position, srVector3T<float>* target, int enabled);
 // GLOBAL: WIZ8 0x0068406F
 srVector3T<float> g_target_position_0068406f;
 // GLOBAL: WIZ8 0x0068407F
@@ -1418,8 +1411,6 @@ unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
     }
     return reachable != 0;
 }
-extern unsigned char IsSlotInRangeOfGroup(
-    int party_slot, int group_id, int context, int arg_4);               /* 0x00519920 */
 
 /* Whether a party slot's chosen action can be aimed at one monster. The
    monster has to be live, standing and reachable; while the camp screen is up

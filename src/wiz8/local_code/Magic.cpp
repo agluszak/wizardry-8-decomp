@@ -26,6 +26,13 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "random.h"
+#include "wiz8/magic.h"
+#include "wiz8/local_code/CombatHostility.h"
+#include "wiz8/level_specific_code/MasterFunctionList.h"
+#include "wiz8/local_code/CombatRange.h"
+#include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_code/PC_Item.h"
 
 // GLOBAL: WIZ8 0x0068510c
 unsigned char g_detailed_combat_messages_0068510c;
@@ -138,12 +145,6 @@ enum {
     W8_SPELL_USABLE_WHILE_CAMPED = 3,
     W8_SPELL_USABLE_WHILE_SHOPPING = 4
 };
-extern unsigned char Function519F80(
-    W8MonsterInfo* monster_info,
-    W8MonsterRecord* record,
-    int arg_3,
-    W8CombatSlot* combat_slot);
-extern unsigned char Function4D9080(W8MonsterInfo* monster_info, int arg_2, int arg_3);
 extern unsigned char Function5327E0(
     W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* combat_slot);
 extern unsigned char Function5330E0(
@@ -506,7 +507,6 @@ bool CombatHasCondition(int condition_id)
 
 extern void Function4E7CC0(
     int party_slot, int arg_2, int arg_3, void* arg_4, int arg_5, int arg_6);
-extern unsigned char Function519180(int party_slot, int arg_2, int arg_3);
 
 /* Record the spell one party slot is about to cast, at what strength, and at
    what, from a target block the caller already holds. */
@@ -630,11 +630,7 @@ void AddSpellEffect(W8SpellEffectEntry* effect)
     g_spell_effects.Add(effect);
 }
 
-extern void CollectHostileMonsters00547120(
-    W8TargetSource* source, W8GrowableVector<int>* monsters);   /* 0x00547120 */
-extern void Function54BA00(W8SpellEffectEntry* effect);         /* 0x0054BA00 */
 void FinishSpellEffect00500F70(W8SpellEffectEntry* effect);     /* 0x00500F70 */
-extern void Function54C930(W8SpellEffectEntry* effect);         /* 0x0054C930 */
 extern float g_float_005ebc64;
 
 /* Advance every queued spell effect one frame. An effect first checks that
@@ -811,13 +807,6 @@ void DetachMissileReferences005019A0(W8Missile* missile)
     }
 }
 
-extern int CastSpellFromSource(
-    int spell_id, W8TargetSource* source, W8CombatSlot* target,
-    unsigned int power_level, int a, int b, int c, int d, int e, int f,
-    int g);                                                     /* 0x004FB4C0 */
-extern void PostMonsterNotice(
-    W8MonsterInfo* monster_info, void* notice);                 /* 0x00590B40 */
-extern void Function5905F0(const wchar_t* text, int mode);      /* 0x005905F0 */
 extern void Function58AAD0(
     int mode, const wchar_t* format, ...);                      /* 0x0058AAD0 */
 extern void PostCharacterNotice(
@@ -939,8 +928,6 @@ unsigned int GetSpellFailureChance(unsigned int skill, int spell_id, int factor)
 }
 
 extern void ReportActionFailed(int party_slot);                          /* 0x0056A770 */
-extern void RecordItemOrigin(int party_slot, unsigned char origin, unsigned short slot);
-/* 0x00522180 */
 // GLOBAL: WIZ8 0x0061634c
 unsigned char g_profession_spellbooks[15] = {
     0, 2, 2, 4, 1, 4, 8, 0, 0, 0, 2, 4, 15, 8, 1,

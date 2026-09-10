@@ -37,6 +37,7 @@
 #include "Font.h"
 #include "input.h"
 #include "vsurface.h"
+#include "wiz8/local_code/GameplayCode.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -49,8 +50,6 @@ void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigne
 void Function55EE70(int value);
 void RenderPartyPortrait0052EB00(int portrait, int left, int top,
                                 int flags, int value, int party_slot);
-void Function4EF610(int party_slot, int value);
-int Function4EF4A0(W8Character* character, int slot);
 int Function558C40(const char* path);
 
 extern "C" int g_font_683660;

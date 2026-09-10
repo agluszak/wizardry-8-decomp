@@ -75,3 +75,6 @@ extern unsigned char g_environment_load_flag_00603ad0;
 extern unsigned char g_value_0068f0fd;
 extern int g_value_006850b0;
 extern unsigned char g_flag_00687607;
+
+unsigned char Function42AF60(int level, int entrance);
+

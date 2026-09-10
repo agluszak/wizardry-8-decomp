@@ -1,6 +1,10 @@
 #pragma once
 
+#include <wchar.h>
+
 #include "wiz8/3d_code/PList.h"
+
+struct W8MonsterInfo;
 
 /* Local Screens\MGSTextBox.cpp owns the four message runs at 0x0068F2D8. */
 struct W8MessageStorageRecord {
@@ -23,3 +27,11 @@ void Function58FD30(void);
 void ScrollTextBoxToCursor(void);
 unsigned char GetTextBoxMode(void);
 void SetTextBoxMode(unsigned char mode, int value);
+
+void Function5905F0(const wchar_t* text, int mode);      /* 0x005905F0 */
+void Function590950(int party_slot, const wchar_t* format, ...);
+void PostCharacterNotice(int party_slot, void* notice);           /* 0x00590950 */
+void PostMonsterNotice(
+    W8MonsterInfo* monster_info, void* notice);                 /* 0x00590B40 */
+void ScrollTextBoxTo(int line);                                  /* 0x0058BBC0 */
+

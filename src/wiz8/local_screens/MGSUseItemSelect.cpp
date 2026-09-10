@@ -1,6 +1,8 @@
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_screens/MGSUseItemSelect.h"
+#include "wiz8/targeting.h"
+#include "wiz8/local_screens/MGSUseItemSelect.h"
 // GLOBAL: WIZ8 0x0069b998
 Controls* g_panel_69b998;
 extern "C" {
@@ -9,8 +11,6 @@ int g_value_69b988;
 }
 
 extern void Function59CAC0(void);
-extern void ClearTargetingMode0053B050(int party_slot);
-extern void SelectUseItemLine0059DDC0(int line);
 
 // GLOBAL: WIZ8 0x0069B95C
 int g_selected_use_item_line_0069b95c;

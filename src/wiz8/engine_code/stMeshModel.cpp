@@ -20,7 +20,6 @@
  * well: its vtable sits immediately after the mesh-model vector vftables.
  */
 
-extern void Function4729F0(void* model);
 
 // FUNCTION: WIZ8 0x00473fa0
 void stMeshModel::ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* excluded_textures)

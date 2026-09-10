@@ -49,6 +49,8 @@
 #include "surrender/srScene.h"
 
 #include "FileMan.h"
+#include "wiz8/level_specific_code/MasterFunctionList.h"
+#include "wiz8/local_screens/AutomapScreen.h"
 
 #define LEVELS_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Levels.cpp"
 
@@ -319,12 +321,10 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
     return 1;
 }
 
-extern void Function5817D0(void);
 extern float Function420BD0(const srVector3T<float>* position, unsigned char* hit);
 extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
 
-extern void Function4D6C50(int level);
 extern void Function50E700(void);
 extern void Function5777C0(void);
 

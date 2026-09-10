@@ -17,6 +17,7 @@ W8CombatCharacterRow* g_combat_character_rows;
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "random.h"
+#include "wiz8/local_code/CombatRange.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -247,8 +248,6 @@ extern void ChooseCombatAction(
     int party_slot, int is_monster_turn, int* out_kind, int a, int b, int c); /* 0x004E77B0 */
 
 extern void SwitchCharacterTo(int party_slot, int action);               /* 0x004ED390 */
-extern void MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int arg_3);
-/* 0x0051AC30 */
 
 /* 0x004C62C0 */
 extern unsigned char Function5323F0(W8MonsterInfo* monster_info, int a, int b, int c);

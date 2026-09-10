@@ -249,13 +249,6 @@ void UpdateShakeEffects004AE310()
     g_trigger_action_active_006599c8 = 0;
 }
 
-extern int UpdateSoundEvents004D5890(
-    W8GrowableVector<W8VectorElement005ED094*>* events,
-    const srVector3T<float>* position,
-    unsigned int event_mask,
-    int cycle,
-    unsigned int frame,
-    int subcycle);
 extern float g_float_005ec128;
 // GLOBAL: WIZ8 0x005ec128
 float g_float_005ec128 = 0.0010000000474974513f;

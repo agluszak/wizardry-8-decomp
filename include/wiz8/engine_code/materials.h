@@ -84,3 +84,10 @@ unsigned char MeshHasAnimatedTexture004B9AA0(srMeshModel* model);
 void SetModelAnimatedTextureFrame004B9B00(
     srModelInstance* instance, int frame);
 stTextureAnim* GetModelAnimatedTexture004B9B50(srModelInstance* instance);
+
+unsigned char CreateDefaultMaterial004B9280(
+    srMaterialIFace** material, srTextureIFace** texture,
+    unsigned long* render_flags);
+srTextureIFace* LoadTexture004B9460(
+    const char* path, unsigned char cached, unsigned char required);
+

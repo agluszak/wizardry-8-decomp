@@ -6,6 +6,7 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/local_code/CombatRange.h"
 
 /*
  * Local Code\Combat Range.cpp.
@@ -36,7 +37,6 @@ enum { W8_RANGE_FIRST_DISTANT = 2 };
 enum { W8_FORMATION_ROW_WIDTH = 3 };
 
 /* 0x00519AC0 */
-extern char CountRowsBetween(int from_position, int to_position);        /* 0x0051AEC0 */
 extern const float g_world_scale_005ebc40;
 extern float g_range_constant_005ec360;
 // GLOBAL

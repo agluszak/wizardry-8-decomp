@@ -377,3 +377,14 @@ extern unsigned long g_octree_bytes_read_00659888;
 extern int g_shared_mark_006598ac;
 extern unsigned char g_octree_update_suspended_00659898;
 extern unsigned char g_octree_trace_enabled_00659899;
+
+int CheckLevelAssetSet0042CCC0(const char* level_path);
+unsigned int FindMonsterLocationsInBox0042F280(
+    int** locations, const srVector3T<float>* lower,
+    const srVector3T<float>* upper, int kind, int excluded_location);
+void __fastcall Function004301C0(W8Octree* octree);
+void __fastcall Function004302E0(W8Octree* octree);
+void __stdcall Function42E650(unsigned short location_id);
+unsigned int __stdcall OctreeTraverse(
+    void* walker, void* arg_2, void* arg_3, int kind, unsigned int limit);   /* 0x0042F280 */
+extern "C" void LeaveLocation0042E880(unsigned short location_id, int reason);

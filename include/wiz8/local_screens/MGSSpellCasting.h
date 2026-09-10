@@ -4,3 +4,6 @@
 
 unsigned char Function5A1140(const InputAtom* input);
 void DisableRegionSet1C(void);
+
+void Function5A0BC0(void);
+

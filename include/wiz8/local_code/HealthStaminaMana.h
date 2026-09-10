@@ -30,3 +30,7 @@ void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short b
 void HealPartyByDice(unsigned char count, unsigned char sides, short base);
 void RestorePartySpellPoints(int amount);
 void RecalculateCharacterHitPoints(W8Character* character);
+
+void ApplyHealthChangeToCharacter(
+    int party_slot, int amount, int arg_3, int arg_4, int arg_5, int arg_6, int arg_7);
+

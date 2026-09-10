@@ -31,6 +31,9 @@
    than being restated: the 0x44-dword clear the body below opens with is exactly
    its 272 bytes. */
 #include "FileMan.h"
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/LoadSaveGame.h"
+#include "wiz8/local_screens/AutomapScreen.h"
 
 #include <windows.h>
 
@@ -102,26 +105,20 @@ static_assert(sizeof(W8StatusHeader) == 0x314,
 /* Established save-side callees without shared declarations yet. Their
    positional names preserve the current identity ceiling; the orchestration
    below establishes only their argument shape and section ownership. */
-extern void SaveMonsterStatus(W8Chunk* chunks);                         /* 0x005145A0 */
 extern void Function48EAD0(int handle);
 extern void Function48E6D0(int handle);
 
-extern void Function581CE0(int handle);
 
 extern void Function49D120(int handle);
 
 /* 0x005156C0, 0x00517A90 and 0x00518510, not yet identified; named by address
    as elsewhere in src/wiz8. The first loads a character from somewhere other
    than a loose file, the second builds the failure notice the third posts. */
-extern char Function5156C0(const char* path, W8Character* character);
-extern char Function5155B0(const char* path, int slot, W8Character* character);
 
 /* FileWrite, FileExists, FileClearAttributes and FILE_IS_READONLY come from the
    vendored SGP FileMan.h already on this target's include path, so they are not
    restated here. */
 extern void Function518510(void* notice);
-extern W8ItemInstance* FindCharacterItemAt(
-    int party_slot, unsigned char origin, unsigned short slot);          /* 0x00522180 */
 extern void RebuildPartyStatus00555FA0(W8PartyFormationState* status);
 
 /* 0x0068517C selects where characters live, and 0x006874D7 is a per-slot byte

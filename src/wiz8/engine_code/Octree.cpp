@@ -28,6 +28,10 @@
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/BitArray.h"
+#include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/OctPath.h"
+#include "wiz8/engine_code/GameData.h"
 
 #include <math.h>
 
@@ -332,8 +336,6 @@ void W8Octree::MarkMeshLinksVisible00430A70(unsigned int mesh)
 /* The two per-frame visibility helpers behind the cell walk. Both take only
    the receiver in ECX and their bodies are unrecovered, so they keep
    address-qualified names. */
-extern void __fastcall Function004302E0(W8Octree* octree);
-extern void __fastcall Function004301C0(W8Octree* octree);
 /* Point the visibility filter at the octree so it answers over this frame's
    cell set. */
 extern unsigned char Function0046D880(
@@ -924,10 +926,8 @@ unsigned char W8Octree::LinkNavigatorTarget00434A00(
 
 /* ReadOctFile's own direct callees. Their bodies are not recovered, so they
    keep address-qualified names. */
-extern int CheckLevelAssetSet0042CCC0(const char* level_path);
 extern char BuildPreprocessedFiles00492E60(const char* level_path);
 extern void ReportStartupMessage004969D0(const char* message);
-extern unsigned char BitArrayLoad0043AEC0(BitArray* bits, int handle);
 extern unsigned char ReadLevelName00432E90(const char* name);
 extern void ApplyLevelName00432B80(const char* name);
 extern void ReadWaypointFile0043A0F0(void);
@@ -937,9 +937,6 @@ extern void SeedCellProbe00457640(const srVector3T<float>* from, const srVector3
 extern int ProbeCellForBlockers00435C40(const int* cell);
 extern unsigned char TestProbeResult00435F00(void* result);
 extern int ProbeCellForTrace00435B00(const int* cell);
-extern char TestTraceResult0041C330(
-    int value_1b8, unsigned long* objects, void* result,
-    unsigned char value_134, int mode);
 extern int TraceAgainstProps00436510(
     const srVector3T<float>* from, srVector3T<float>* to, int value_3, int value_4);
 extern char ResolveTraceHit004353F0(
@@ -952,7 +949,6 @@ float g_octree_cell_scale_005ebcd0 = 100.0f;
 extern unsigned short g_path_reserve_0060827a;
 extern float g_path_span_scale_005ec344;
 extern float g_path_limit_006081e8;
-extern void* CreatePathState004CAE40(void);
 /* 0x00659888 accumulates every byte the loader reads, and 0x00652DB0 caches the
    game-data block LoadWorld hands back through its out parameter. */
 
@@ -2336,8 +2332,6 @@ W8Octree::~W8Octree()
 // GLOBAL: WIZ8 0x006598ac
 int g_shared_mark_006598ac;
 
-extern unsigned int __stdcall OctreeTraverse(
-    void* walker, void* arg_2, void* arg_3, int kind, unsigned int limit);   /* 0x0042F280 */
 
 /* Attach a visited set to the walker, but only one that has been built. */
 // FUNCTION: WIZ8 0x0042e3e0

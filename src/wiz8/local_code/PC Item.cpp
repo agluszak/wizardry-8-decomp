@@ -27,6 +27,9 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/sound_man.h"
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/ItemManager.h"
+#include "wiz8/targeting.h"
 
 #include <stdio.h>
 
@@ -286,7 +289,6 @@ int W8ItemVideoObjectCache::GetOrCreateVideoObject(int item_id)
     return frame;
 }
 
-extern void DropHeldItem(int arg_1);                         /* 0x004F7610 */
 
 /* 0x0051FE30 */
 extern void AddPartyGoldNotice(int channel, const wchar_t* notice, ...);
@@ -307,7 +309,6 @@ extern void Function50E5C0(int party_slot);
 
 extern void PostCharacterNotice(int party_slot, const wchar_t* notice, ...);
 extern unsigned char Function5458A0(int party_slot);
-extern unsigned char Function536F60(int party_slot, int value);
 extern void Function536570(int party_slot, int value_1, int value_2);
 extern void Function595600(void);
 
@@ -1428,8 +1429,6 @@ bool ItemHasHiddenProperties(int item_id)
 enum { W8_SKILL_IDENTIFY = 0x14 };
 
 extern void PracticeCharacterSkill(W8Character* character, int skill, int amount, int arg_4);
-extern void RemoveCharacterItem(int party_slot, W8ItemInstance* item, int arg_3);
-extern void BindCharacterItems(int party_slot, int arg_2);              /* 0x0051D2C0 */
 /* The most of one item a character can hold at once: the record's own quantity
    dice taken at their maximum. */
 static int MaximumQuantity(int item_id)

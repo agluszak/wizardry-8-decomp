@@ -24,6 +24,7 @@ double g_double_005ec030 = 2500.0;
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/utility.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/engine_code/Octree.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -32,7 +33,6 @@ double g_double_005ec030 = 2500.0;
 /* The world object the navigator notifies when it leaves a location, and
    the notification itself. 0x0042E880 sits outside every assertion-backed
    interval, so it keeps an address-qualified name. */
-extern "C" void LeaveLocation0042E880(unsigned short location_id, int reason);
 /* Tracks the largest radius any navigator has been given. */
 extern float g_navigator_largest_extent_6081e8;
 extern unsigned char g_flag_006081e4;

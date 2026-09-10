@@ -309,8 +309,6 @@ void WorldUpdateLights(W8World* world)
    through. Every one of them ignores the caller's own first argument and uses
    this global instead. */
 extern void SetHeapFree(void* block);
-extern void Function46E750(void* target, int argument);
-extern void Function46E640(void* target, int argument);
 
 /* Add to and remove from the world's two unnamed lists. The add on the first
    list has no matching remove here, which is what separates it from the

@@ -42,6 +42,7 @@
 #include "surrender/srScene.h"
 
 #include "FileMan.h"
+#include "wiz8/engine_code/Trigger.h"
 
 /*
  * Engine Code\3dapi.cpp.
@@ -76,8 +77,6 @@ unsigned char g_navigator_vertical_enabled_006081f8 = 1;
 
 // GLOBAL: WIZ8 0x00607d7d
 unsigned char g_world_mesh_update_enabled_00607d7d = 1;
-extern void Function444F70(int value, float duration, float intensity,
-                          unsigned char reverse);
 
 
 // FUNCTION: WIZ8 0x00450B10

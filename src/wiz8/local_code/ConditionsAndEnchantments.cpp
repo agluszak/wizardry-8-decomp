@@ -17,6 +17,8 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/utility.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_screens/MGSTextBox.h"
 
 extern void Function5477D0(W8MonsterInfo* monster_info, int flag);
 
@@ -49,7 +51,6 @@ extern void Function536570(int party_slot, int a, int b);
 extern void Function52F790(void* character, int condition);
 extern void Function53A930(int party_slot, W8CombatSlot* target);
 extern void Function547A50(int party_slot);
-extern void Function5237E0(int party_slot);
 extern void Function52F430(void* character);
 
 // FUNCTION: WIZ8 0x005248a0
@@ -60,7 +61,6 @@ unsigned char Function5248A0(int party_slot, int condition)
     return character[condition * 0x11 + 0x181f];
 }
 
-extern void Function590950(int party_slot, const wchar_t* format, ...);
 extern void Function50E650(int party_slot);
 
 // GLOBAL
@@ -360,10 +360,7 @@ void SetMonsterCondition(
         || TargetSourceIsMonster(target, 0) != 0) {
         if (target->fBackfire == 0 && target->fReflection == 0
             && target->unknown_1d[1] == 0) {
-            for (index = 0; index < 13; ++index) {
-                ((int*)&monster_info->condition_target_304)[index] =
-                    ((const int*)target)[index];
-            }
+            monster_info->condition_target_304 = *target;
         }
     }
     if ((unsigned int)argument > (unsigned int)monster_info->condition_argument) {
@@ -382,7 +379,7 @@ void SetMonsterCondition(
         return;
     }
     if (quiet != 0
-        && (g_flag_00683F94 != 0 || monster_info->flag_2ab != 0)) {
+        && (g_flag_00683F94 != 0 || monster_info->party_threat.flag_25 != 0)) {
         wchar_t* name = GetMonsterName(monster_info, 0, 0);
         WriteGameLog(9, L"%s %s!", name, g_condition_notices_0061E570[condition * 4]);
     }
@@ -421,7 +418,7 @@ void ClearMonsterCondition(int location_id, int condition)
             monster_group = GetMonsterGroupByListIndex(list_index);
             Function5477D0(monster_info, monster_group->flag_2a);
         }
-        if (g_flag_00683F94 != 0 || monster_info->flag_2ab != 0) {
+        if (g_flag_00683F94 != 0 || monster_info->party_threat.flag_25 != 0) {
             WriteGameLog(
                 9, gppStringList[0x910 / 4],
                 GetMonsterName(monster_info, 0, 0),

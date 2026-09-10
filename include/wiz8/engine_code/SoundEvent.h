@@ -1,5 +1,10 @@
 #pragma once
 
+#include "surrender/srMath.h"
+
+template <class T>
+class W8GrowableVector;
+
 /* Engine Code\SoundEvent.cpp. The unit's assertion-backed interval starts at
    the factory below. */
 
@@ -63,3 +68,12 @@ W8VectorElement005ED094* CreateSoundEvent004D57A0(
     int value_00c,
     const char* wave_name,
     unsigned char flag_025);
+
+int UpdateSoundEvents004D5890(
+    W8GrowableVector<W8VectorElement005ED094*>* events,
+    const srVector3T<float>* position,
+    unsigned int event_mask,
+    int cycle,
+    unsigned int frame,
+    int subcycle);
+

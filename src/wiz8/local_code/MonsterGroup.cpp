@@ -640,8 +640,8 @@ void ResetMonsterGroupTurnState(void)
     }
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        monster_info->value_354 = 0;
-        monster_info->value_28e = 0;
+        monster_info->player_visibility.last_seen_clock_0c = 0;
+        monster_info->party_threat.last_seen_clock_08 = 0;
     }
 }
 

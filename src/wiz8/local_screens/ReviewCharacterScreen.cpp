@@ -79,16 +79,13 @@ int g_effect_argument_005ed8cc = 1;
 
 void Function5187E0(void);
 #include "line.h"
-void Function5B4EB0(void);
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_screens/RCSCommon.h"
 void Function5B9070(void);
 void Function5B9350(void);
 void Function5B9900(void);
 void Function5A45B0(void);
 void Function5A4770(void);
-void Function5B55F0(void);
-void Function4EF1F0(void);
-void Function5B6B30(unsigned int slot);
-void Function5B59B0(int page);
 void Function52DDD0(void);
 void Function5A42A0(void);
 void Function5C5240(void);

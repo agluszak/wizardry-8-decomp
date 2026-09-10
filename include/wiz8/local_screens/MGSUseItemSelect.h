@@ -16,3 +16,7 @@ void CloseUseItemSelection0059D950(void);
 int GetSelectedOrFallbackValue0059E0D0(void);
 void SelectCurrentUseItemLine0059E0E0(void);
 void SetValue69B9A4(int value);
+
+void Function59D180(void);
+void SelectUseItemLine0059DDC0(int line);
+

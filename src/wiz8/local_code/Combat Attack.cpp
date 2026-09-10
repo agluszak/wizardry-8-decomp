@@ -6,6 +6,7 @@
 #include "wiz8/npc_interaction.h"
 #include "wiz8/sr_api.h"
 #include "random.h"
+#include "wiz8/targeting.h"
 
 #include <string.h>
 
@@ -196,7 +197,6 @@ extern unsigned char MonsterHasAttackOn(W8MonsterInfo* monster_info, W8CombatSlo
 /* 0x00545CF0 */
 extern unsigned char CharacterHasAttackOn(int party_slot, W8CombatSlot* target);
 /* 0x00545C20 */
-extern unsigned char TargetIsInPlay(int party_slot, int arg_2, int arg_3);   /* 0x00536F60 */
 
 /* Whether one of a character's hands can reach the target it is aimed at: the
    hand has to be in play and to have a range category at all. */

@@ -40,6 +40,9 @@ unsigned char g_alternate_name_slot;
 #include "wiz8/sr_api.h"
 #include "DEBUG.H"
 #include "random.h"
+#include "wiz8/engine_code/Octree.h"
+#include "wiz8/local_code/ItemManager.h"
+#include "wiz8/local_code/MonsterGroup.h"
 #include <math.h>
 #include <new>
 #include <stdlib.h>
@@ -51,7 +54,6 @@ unsigned char g_alternate_name_slot;
 
 void MonsterSetBehaviour(W8Monster* monster, int behavior);
 void MonsterSetSubCycle(W8Monster* monster, int subcycle);
-void Function5103E0(W8MonsterGroup* monster_group);
 void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* entry);
 void DestroyMonsterActionQueue(W8MonsterInfo* monster_info);
 void Function546E70(void);
@@ -156,10 +158,8 @@ void Function5248D0(W8MonsterInfo* monster_info);
 void Function58AB60(int value_1, int value_2, void* notice, W8WideChar* name);
 /* __stdcall, not __cdecl: 0x0042E650 ends in `ret 0x4`, and both callers here
    clean only three of the four dwords they push across the tail. */
-void __stdcall Function42E650(unsigned short location_id);
 void Function509EA0(int value);
 void Function508D70(unsigned int monster_list_index);
-void Function4F8CB0(W8MonsterInfo* monster_info, int value);
 unsigned char Function531920(W8MonsterGroup* monster_group);
 W8CombatActor* NextEngagedCharacter(int restart);
 unsigned char Function4A5790(void);
@@ -1414,9 +1414,9 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
     }
     memset(monster_info->pCombat, 0, 0x153);
     monster_info->fInCombat = 1;
-    if (monster_info->state_34c == 0) {
-        monster_info->state_34c = 2;
-        monster_info->value_354 = g_status_685170.world_clock;
+    if (monster_info->player_visibility.state_04 == 0) {
+        monster_info->player_visibility.state_04 = 2;
+        monster_info->player_visibility.last_seen_clock_0c = g_status_685170.world_clock;
     }
     ResetCombatSlot(&monster_info->combat_slot_2ba);
     MonsterSetRuntimeFlag5BC(monster_info->monster, 0);

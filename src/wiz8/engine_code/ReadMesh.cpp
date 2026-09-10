@@ -15,6 +15,8 @@
 #include "FileMan.h"
 #include "surrender/srCore.h"
 #include "surrender/srNode.h"
+#include "wiz8/engine_code/materials.h"
+#include "wiz8/engine_code/ReadMesh.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -88,13 +90,8 @@ static srClass** g_retained_materials_65b9dc;
 extern void ReadMeshTransform004896C0(
     int file, srVector3T<float>* location, srMatrix3T<float>* rotation,
     srVector3T<float>* scale);
-extern void UpdateMeshAfterVertexLoad004867F0(
-    srMeshModel* model, int frame);
 extern void NormalizeMaterialRecord00489980(
     W8MaterialRecord004B8A70* material);
-extern unsigned char CreateDefaultMaterial004B9280(
-    srMaterialIFace** material, srTextureIFace** texture,
-    unsigned long* render_flags);
 extern void UpdatePleaseWaitLoadFrame005915A0(void);
 
 namespace {

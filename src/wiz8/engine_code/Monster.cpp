@@ -58,6 +58,8 @@ int g_value_659c14;
 #include "Random.h"
 #include "FileMan.h"
 #include "soundman.h"
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/materials.h"
 #include <windows.h>
 
 #include <string.h>
@@ -164,8 +166,6 @@ extern unsigned char HasLineOfSightToBounds0046FD70(
 
 extern void Function56C5E0(
     void* item_list, int value_1, int value_2, int value_3, int value_4);
-extern srTextureIFace* LoadTexture004B9460(
-    const char* path, unsigned char cached, unsigned char required);
 // GLOBAL: WIZ8 0x0060e614
 unsigned char g_monster_gib_option_0060e614 = 1;
 // GLOBAL: WIZ8 0x005ed280
@@ -1279,7 +1279,6 @@ W8AnimRepBase005EC1D8* W8MonsterRep::Clone()
 }
 
 extern "C" {
-extern void Function4C4EF0(void);
 }
 
 // VTABLE: WIZ8 0x005ed22c W8Monster
@@ -1854,7 +1853,7 @@ unsigned char W8Monster::EvaluateScriptCondition004C9DC0(
                     g_world_scale_005ebc40 &&
             MonsterInfoFromID(
                 7533, MONSTER_CPP, propagated_value_1e4, 1)
-                    ->los_to_player_370 != 0) {
+                    ->player_visibility.line_of_sight_28 != 0) {
             return 1;
         }
     }
@@ -5047,7 +5046,6 @@ void W8Monster::GetMappedPosition004C72A0(srVector3T<float>* position)
    forward, or a single member read; nothing here says what the members and
    slots are for, so each is named for what it reaches. */
 
-extern void Function4C4DE0(int arg_1, int arg_2, int arg_3);
 /* Neither takes an argument nor reads ECX: both work entirely over the pair of
    globals at 0x00659B34 and 0x00659B3C, which is what makes them free
    functions rather than the Navigator methods their neighbours in the same
@@ -5711,10 +5709,10 @@ unsigned char W8Monster::IsRenderable004C7C00(char alternate)
         0x1977, MONSTER_CPP, location_id, 1));
     record = GetMonsterDataForInfo(monster_info);
     if (record->flag_248 > 0) {
-        return monster_info->flag_28d;
+        return monster_info->party_threat.flag_07;
     }
     if (alternate != 0) {
-        return monster_info->flag_2ab;
+        return monster_info->party_threat.flag_25;
     }
     return monster_info->flag_24d;
 }

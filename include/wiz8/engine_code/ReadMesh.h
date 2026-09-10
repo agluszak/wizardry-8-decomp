@@ -8,6 +8,7 @@ class srMaterialIFace;
 class srModelInstance;
 class srTextureIFace;
 class stMeshModel;
+class srMeshModel;
 
 unsigned char IsTextureInReadMeshScratch(const void* texture);
 unsigned char ReadSingleLevelMeshBody00485C10(
@@ -22,3 +23,7 @@ stMeshModel* BuildSingleLevelMesh00488650(
     unsigned int* vertex_map_count,
     W8GrowableVector<short>* mapped_values,
     W8GrowableVector<short>* mapped_keys);
+
+void UpdateMeshAfterVertexLoad004867F0(
+    srMeshModel* model, int frame);
+

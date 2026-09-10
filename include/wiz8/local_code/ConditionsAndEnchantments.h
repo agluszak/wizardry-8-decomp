@@ -17,3 +17,7 @@ void RemoveAllConditionsFromParty(void);
 extern unsigned char g_flag_00683F94;
 extern unsigned char g_byte_00687500;
 extern unsigned char g_enchantment_six_cleared_006840bb;
+
+void ApplyMonsterCondition(int location_id, int condition, int arg_3);
+void Function5237E0(int party_slot);
+

@@ -6,6 +6,10 @@ void ReleaseSpellDatabase(void);
 #include "wiz8/layouts/gameplay_databases.h"
 #include "surrender/srMath.h"
 
+struct W8TargetSource;
+struct W8CombatSlot;
+class W8Missile;
+
 extern W8SpellRuntimeRecord* g_spell_records;
 extern unsigned int g_spell_database_version;
 extern int g_effect_argument_005ed8c8;
@@ -50,5 +54,12 @@ void LearnSpell(W8Character* character, int spell_id, char announce);
 /* Zeroes the six per-realm learned-spell counters and recounts them from the
    spell_learned array. */
 void Function4F96A0(W8Character* character);
+
+
+int CastSpellFromSource(
+    int spell_id, W8TargetSource* source, W8CombatSlot* target,
+    unsigned int power_level, int a, int b, int c, int d, int e, int f,
+    int g);                                                     /* 0x004FB4C0 */
+void Function500460(W8Missile* missile);
 
 #endif

@@ -223,7 +223,7 @@ bool MonsterGroupHasVisibleThreat(W8MonsterGroup* group)
         monster_info = MonsterInfoFromID(1120, SIGHT_CPP, IListGetAt(group->monsters, index), 1);
         if (monster_info->flag_14 != 0 && !monster_info->monster->IsDying() &&
             monster_info->hp_current != 0 && (unsigned int)monster_info->value_107 < 0xc &&
-            monster_info->threat_28a == 1) {
+            monster_info->party_threat.state_04 == 1) {
             return true;
         }
     }
@@ -344,8 +344,10 @@ void ResetAndRefreshAllSight005060C0(void)
         W8MonsterInfo* monster_info =
             MonsterGetScriptPartByLocationIndex(index);
 
-        memset(monster_info->unknown_256 + 0x30, 0, 0x30);
-        memset(monster_info->unknown_348, 0, 0x31);
+        memset(&monster_info->party_threat, 0,
+               sizeof(monster_info->party_threat));
+        memset(&monster_info->player_visibility, 0,
+               sizeof(monster_info->player_visibility));
     }
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 1, 0);
@@ -576,23 +578,23 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
         unsigned char visible_to_player;
 
         monster_info->flag_24d = distance <= viewing_distance;
-        monster_info->unknown_34d[6] = 0;
-        monster_info->los_to_player_370 = 0;
+        monster_info->player_visibility.flag_0b = 0;
+        monster_info->player_visibility.line_of_sight_28 = 0;
         if (viewing_distance < distance) {
-            if (monster_info->value_354 == 0) {
-                monster_info->state_34c = 0;
+            if (monster_info->player_visibility.last_seen_clock_0c == 0) {
+                monster_info->player_visibility.state_04 = 0;
             }
             else {
-                monster_info->state_34c = static_cast<unsigned char>(
+                monster_info->player_visibility.state_04 = static_cast<unsigned char>(
                     (0xf0U < static_cast<unsigned int>(
-                        g_status_685170.world_clock - monster_info->value_354))
+                        g_status_685170.world_clock - monster_info->player_visibility.last_seen_clock_0c))
                         ? 0 : 2);
             }
             goto after_sight;
         }
-        monster_info->los_to_player_370 =
+        monster_info->player_visibility.line_of_sight_28 =
             monster->CheckLineOfSightToPlayer004C4810();
-        if (monster_info->los_to_player_370 == 0) {
+        if (monster_info->player_visibility.line_of_sight_28 == 0) {
             goto after_sight;
         }
         if (monster_info->hp_current == 0 || monster_info->value_107 > 0xe) {
@@ -648,7 +650,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                     monster_info->converted_attributes_247[4], fade_flag,
                     monster_info->condition_turns[0xc] != 0,
                     record->kind_0cb == 0xc, static_cast<int>(minimum_level),
-                    static_cast<int>(light), monster_info->state_34c, 0,
+                    static_cast<int>(light), monster_info->player_visibility.state_04, 0,
                     player_distance);
 
                 if (threshold < player_distance) {
@@ -659,28 +661,28 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                 }
             }
         }
-        monster_info->unknown_34d[6] = visible_to_player;
+        monster_info->player_visibility.flag_0b = visible_to_player;
         if (visible_to_player == 0) {
             goto after_sight;
         }
-        monster_info->state_34c = 1;
-        monster_info->value_354 = g_status_685170.world_clock;
-        monster_info->own_position_364.x = own_x;
-        monster_info->own_position_364.y = own_y;
-        monster_info->own_position_364.z = own_z;
-        monster_info->camera_position_358 = camera_position;
+        monster_info->player_visibility.state_04 = 1;
+        monster_info->player_visibility.last_seen_clock_0c = g_status_685170.world_clock;
+        monster_info->player_visibility.own_position_1c.x = own_x;
+        monster_info->player_visibility.own_position_1c.y = own_y;
+        monster_info->player_visibility.own_position_1c.z = own_z;
+        monster_info->player_visibility.camera_position_10 = camera_position;
     }
 
 after_sight:
-    if (monster_info->los_to_player_370 == 0) {
-        monster_info->unknown_34d[0] = 0;
-        monster_info->unknown_34d[1] = 0;
-        monster_info->unknown_34d[2] = 0;
-        monster_info->unknown_34d[3] = 0;
+    if (monster_info->player_visibility.line_of_sight_28 == 0) {
+        monster_info->player_visibility.sight_flags_05[0] = 0;
+        monster_info->player_visibility.sight_flags_05[1] = 0;
+        monster_info->player_visibility.sight_flags_05[2] = 0;
+        monster_info->player_visibility.sight_flags_05[3] = 0;
     }
     else {
         monster->GetPlayerSightFlags004C4870(
-            monster_info->unknown_34d, monster_info->unknown_34d + 2);
+            monster_info->player_visibility.sight_flags_05, monster_info->player_visibility.sight_flags_05 + 2);
         if (monster_info->has_missile_37a != 0) {
             unsigned char found =
                 monster->GetProjectilePosition004C77F0(&trace_position);
@@ -697,7 +699,7 @@ after_sight:
 
                 clear = (line != 0) ? 0 : 1;
             }
-            monster_info->unknown_34d[1] = clear;
+            monster_info->player_visibility.sight_flags_05[1] = clear;
         }
         if (monster_info->has_spell_37c != 0) {
             unsigned char found =
@@ -705,13 +707,13 @@ after_sight:
 
             if (found == 0) {
                 srAssertFail("fFoundSpellVertex", SIGHT_CPP, 0xa3, 0);
-                monster_info->unknown_34d[3] = 0;
+                monster_info->player_visibility.sight_flags_05[3] = 0;
             }
             else {
                 short line = g_octree_6598a4->TraceLineOfSight(
                     &trace_position, &camera_position, 1, -3, -3, 1, 0);
 
-                monster_info->unknown_34d[3] = (line == 1) ? 0 : 1;
+                monster_info->player_visibility.sight_flags_05[3] = (line == 1) ? 0 : 1;
             }
         }
     }
@@ -719,20 +721,20 @@ after_sight:
     {
         unsigned char in_range = monster_info->flag_24d;
 
-        monster_info->flag_28d = 0;
-        monster_info->flag_2ab = 0;
-        monster_info->threat_state_2aa = 0;
+        monster_info->party_threat.flag_07 = 0;
+        monster_info->party_threat.flag_25 = 0;
+        monster_info->party_threat.threat_state_24 = 0;
         if (in_range != 0) {
             bool seen_by_party;
 
-            if (monster_info->threat_28a != 0) {
+            if (monster_info->party_threat.state_04 != 0) {
                 use_bounds = 1;
             }
-            monster_info->threat_state_2aa =
+            monster_info->party_threat.threat_state_24 =
                 static_cast<unsigned char>(use_bounds);
             seen_by_party =
                 monster->IsVisibleToPlayer004C4920(use_bounds) != 0;
-            monster_info->flag_2ab = seen_by_party ? 1 : 0;
+            monster_info->party_threat.flag_25 = seen_by_party ? 1 : 0;
             if (seen_by_party) {
                 float yaw;
                 float distance;
@@ -772,7 +774,7 @@ after_sight:
                             character->condition_turns[12] != 0,
                             character->current_profession == 6,
                             record->missile_value_24f, npc_fade_flag,
-                            static_cast<int>(monster_info->threat_28a),
+                            static_cast<int>(monster_info->party_threat.state_04),
                             g_status_685170.value_232d, distance);
 
                         if (g_status_685170.flag_238f != 0) {
@@ -786,7 +788,7 @@ after_sight:
                     row_offset += 0x106;
                     character_offset += 0x1862;
                 } while (row_offset < 0x830);
-                monster_info->flag_28d = seen_by_party ? 1 : 0;
+                monster_info->party_threat.flag_07 = seen_by_party ? 1 : 0;
                 if (seen_by_party) {
                     if (GetViewDistance() == g_sight_default_005ec254) {
                         if (record == 0
@@ -797,10 +799,10 @@ after_sight:
                             unsigned int now = static_cast<unsigned int>(
                                 g_object_6598bc->GetValue30());
 
-                            if ((((monster_info->value_28e == 0)
+                            if ((((monster_info->party_threat.last_seen_clock_08 == 0)
                                   || (0x78U < static_cast<unsigned int>(
                                       g_status_685170.world_clock
-                                      - monster_info->value_28e)))
+                                      - monster_info->party_threat.last_seen_clock_08)))
                                  && (ShowMonsterTargetMarker(monster_info) == 0))
                                 && (monster_info->flag_16 == 1
                                     || monster_info->flag_16 == 0)
@@ -888,7 +890,7 @@ after_sight:
                             }
                         }
                     }
-                    if (monster_info->threat_28a != 1
+                    if (monster_info->party_threat.state_04 != 1
                         && record->flag_248 != 0) {
                         unsigned int now = static_cast<unsigned int>(
                             g_object_6598bc->GetValue30());
@@ -902,18 +904,18 @@ after_sight:
                                 8, gppStringList[0x774 / 4], -1, -1, 0);
                         }
                     }
-                    monster_info->threat_28a = 1;
-                    monster_info->value_28e = g_status_685170.world_clock;
-                    monster_info->camera_sight_position_292 = camera_position;
-                    monster_info->own_sight_position_29e.x = own_x;
-                    monster_info->own_sight_position_29e.y = own_y;
-                    monster_info->own_sight_position_29e.z = own_z;
+                    monster_info->party_threat.state_04 = 1;
+                    monster_info->party_threat.last_seen_clock_08 = g_status_685170.world_clock;
+                    monster_info->party_threat.camera_position_0c = camera_position;
+                    monster_info->party_threat.own_position_18.x = own_x;
+                    monster_info->party_threat.own_position_18.y = own_y;
+                    monster_info->party_threat.own_position_18.z = own_z;
                     goto final_sight_flags;
                 }
             }
             (void)seen_by_party;
         }
-        if (monster_info->threat_28a == 1 && record->flag_248 != 0) {
+        if (monster_info->party_threat.state_04 == 1 && record->flag_248 != 0) {
             unsigned int now = static_cast<unsigned int>(
                 g_object_6598bc->GetValue30());
 
@@ -926,13 +928,13 @@ after_sight:
                     8, gppStringList[0x778 / 4], -1, -1, 0);
             }
         }
-        if (monster_info->value_28e == 0) {
-            monster_info->threat_28a = 0;
+        if (monster_info->party_threat.last_seen_clock_08 == 0) {
+            monster_info->party_threat.state_04 = 0;
         }
         else {
-            monster_info->threat_28a = static_cast<unsigned char>(
+            monster_info->party_threat.state_04 = static_cast<unsigned char>(
                 (0x78U < static_cast<unsigned int>(
-                    g_status_685170.world_clock - monster_info->value_28e))
+                    g_status_685170.world_clock - monster_info->party_threat.last_seen_clock_08))
                     ? 0 : 2);
         }
         if (record != 0 && (record->flags_0d0 & 1) != 0) {
@@ -948,13 +950,13 @@ after_sight:
     }
 
 final_sight_flags:
-    if (monster_info->flag_2ab == 0) {
-        monster_info->unknown_28b[0] = 0;
-        monster_info->unknown_28b[1] = 0;
+    if (monster_info->party_threat.flag_25 == 0) {
+        monster_info->party_threat.unknown_05[0] = 0;
+        monster_info->party_threat.unknown_05[1] = 0;
         return;
     }
     monster->GetPlayerToMonsterSightFlags004C4A20(
-        monster_info->unknown_28b, monster_info->unknown_28b + 1, 0);
+        monster_info->party_threat.unknown_05, monster_info->party_threat.unknown_05 + 1, 0);
 }
 
 /* Advance one monster's whole aging cycle by the elapsed minutes: the
@@ -1056,7 +1058,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
 
                     if (g_pathing_00659c60->SnapWaypointPosition00462E60(
                             &navigator_position, 0) == 0
-                        && monster_info->flag_2ab == 0) {
+                        && monster_info->party_threat.flag_25 == 0) {
                         srVector3T<float> next_position;
 
                         monster->movement_0c0.attachment_0ac

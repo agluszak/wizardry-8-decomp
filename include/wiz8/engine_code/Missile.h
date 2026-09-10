@@ -109,3 +109,14 @@ void DetachMissileReferences005019A0(W8Missile* missile);
 
 extern float g_navigator_largest_extent_6081e8;
 extern unsigned int g_missile_table_count_65bddc;
+
+W8Missile* CreateMissile004A28D0(
+    unsigned int missile_table_index,
+    srVector3T<float>* source,
+    float value_3,
+    float value_4,
+    unsigned int value_5,
+    unsigned int value_6,
+    unsigned int value_7,
+    unsigned int value_8);
+

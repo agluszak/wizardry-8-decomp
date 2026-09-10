@@ -56,6 +56,14 @@
 #include "Types.h"
 #include "mousesystem.h"
 #include "surrender/srTypeRegistry.h"
+#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/3dapi.h"
+#include "wiz8/local_code/ItemManager.h"
+#include "wiz8/local_code/LoadSaveGame.h"
+#include "wiz8/targeting.h"
+#include "wiz8/local_screens/MGSUseItemSelect.h"
+#include "wiz8/local_screens/MGSSpellCasting.h"
+#include "wiz8/local_screens/MGSPartyMovement.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -253,37 +261,24 @@ void Function59B4C0(void);
 void Function59B390(void);
 void Function502650(void);
 void Function562A80(void);
-void Function515B00(void);
 void Function4916C0(void);
 unsigned char Function5684E0(void);
 void Function561330(unsigned char value);
 unsigned char GetFlag69DA6C(void);
 void Function57E0E0(int event, const POINT* point);
-void Function44FC20(W8World* world, unsigned int flags);
-void Function450210(W8World* world, unsigned int flags);
 void Function59B2D0(void);
 void Function55F080(void);
-void Function5A1EB0(POINT* point, unsigned int* value);
 void Function5171C0(void);
 void Function4E8EA0(void);
 void StartCombat(int surprise);
 void Function530110(void);
 void Function530150(int value);
-void Function5398D0(void);
-void Function53B310(void);
-void Function53B1D0(void);
-void Function4F7480(void);
-void Function5A0BC0(void);
-void Function59D180(void);
 void Function56E510(void);
 void Function586740(void);
 void Function589A80(void);
 void Function593360(void);
 void Function56C6D0(int, int, int, int, int);
 extern unsigned char g_flag_006875a5;
-unsigned char Function445140(W8World* world);
-unsigned char Function53A1D0(void);
-unsigned char Function4F8650(void);
 unsigned char Function57E3C0(void);
 void Function4EF1F0(void);
 

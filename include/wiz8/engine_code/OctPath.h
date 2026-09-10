@@ -448,3 +448,6 @@ static_assert(sizeof(W8PathingService) == 0x240,
               "W8PathingService_must_be_0x240");
 
 extern W8PathingService* g_pathing_00659c60;
+
+void* CreatePathState004CAE40(void);
+

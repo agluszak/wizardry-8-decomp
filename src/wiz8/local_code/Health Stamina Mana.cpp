@@ -19,6 +19,9 @@
 #include "wiz8/utility.h"
 #include "wiz8/sound_man.h"
 #include "random.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/CombatHostility.h"
 
 #include <stdlib.h>
 
@@ -46,9 +49,6 @@ enum { W8_CHARACTER_ELIGIBLE_LIMIT = 0x12 };
    restore computes by summing the whole spell-point ceiling. */
 enum { W8_RESTORE_EVERYTHING = -1 };
 
-extern void ApplyHealthChangeToCharacter(
-    int party_slot, int amount, int arg_3, int arg_4, int arg_5, int arg_6, int arg_7);
-/* 0x0052A890 */
 extern void Function55EE30(int bit);                                  /* 0x0055EE30 */
 
 /* Roll the dice once per eligible party member and apply the result to each of
@@ -288,10 +288,6 @@ extern void RecalculateCharacterHitPoints(W8Character* character);
 /* 0x0052AF50 */
 
 /* 0x00523C00 */
-extern void ApplyMonsterCondition(int location_id, int condition, int arg_3);
-/* 0x00524110 */
-extern char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info);
-/* 0x00546F10 */
 
 /* Two effects the party is holding that a wounded character can no longer
    sustain, and the third that only the deeper threshold breaks. */

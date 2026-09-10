@@ -34,6 +34,7 @@
 #include "wiz8/float_constants.h"
 #include "surrender/srScene.h"
 #include "wiz8/engine_code/stMeshModel.h"
+#include "wiz8/engine_code/3dapi.h"
 
 #define READ_LEVEL_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\ReadLevel.cpp"
 
@@ -76,9 +77,6 @@ extern srVector3T<float> g_environment_offset_00659cd0;
 srVector3T<float> g_environment_offset_00659cd0;
 extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
-extern void UpdateCameraView00450080(srCamera* camera, int mode);
-extern void FinalizeWorldScenes0046F410(
-    srScene* static_scene, srNode* dynamic_scene);
 extern unsigned char ReadAutomapNodes00584DD0(int hFile);
 
 // FUNCTION: WIZ8 0x004BC060

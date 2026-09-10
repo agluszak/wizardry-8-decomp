@@ -23,11 +23,12 @@
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
 #include "surrender/srTimer.h"
+#include "wiz8/engine_code/Missile.h"
+#include "wiz8/magic.h"
 
 #include <stdlib.h>
 #include <string.h>
 
-extern void Function500460(W8Missile* missile);
 extern void* g_dialog_state_006836a8;
 
 // GLOBAL
@@ -214,15 +215,6 @@ extern float GetElevationAngle004BE490(
     const srVector3T<float>* source, const srVector3T<float>* target);
 extern float GetHeadingAngle004BE420(
     const srVector3T<float>* source, const srVector3T<float>* target);
-extern W8Missile* CreateMissile004A28D0(
-    unsigned int missile_table_index,
-    srVector3T<float>* source,
-    float value_3,
-    float value_4,
-    unsigned int value_5,
-    unsigned int value_6,
-    unsigned int value_7,
-    unsigned int value_8);
 
 /* Derive the two launch angles from the source and target, then forward the
    remaining launch values to the missile factory. */

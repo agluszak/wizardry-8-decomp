@@ -111,4 +111,7 @@ void Function547570(W8MonsterGroup* monster_group, unsigned char flag,
                            int value);
 void Function50F720(W8MonsterGroup* monster_group);
 
+
+void Function5103E0(W8MonsterGroup* monster_group);
+
 #endif

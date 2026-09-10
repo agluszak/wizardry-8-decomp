@@ -15,6 +15,8 @@
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/utility.h"
 #include "random.h"
+#include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_screens/MGSTextBox.h"
 
 /*
  * Local Code\Magic Effects.cpp.
@@ -151,9 +153,6 @@ void ResetPartyEffectBlock(W8EffectSlot* slot)
     RequestRedraw(0x800100);
 }
 
-extern void PostCharacterNotice(int party_slot, void* notice);           /* 0x00590950 */
-extern void ApplyEffectToTarget(
-    int* result, W8CombatSlot* target, int arg_3, int arg_4);            /* 0x00552250 */
 #define MAGIC_EFFECTS_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Magic Effects.cpp"
 
 /* Say that whoever was aimed at shrugged the effect off. A monster target is

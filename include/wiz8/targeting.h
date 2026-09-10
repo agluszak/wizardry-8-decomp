@@ -154,4 +154,16 @@ unsigned char IsTargetSourceInRangeOfGroup(
     const W8TargetSource* source, W8MonsterGroup* group, int context);
 void NoteTargetChosen(const W8TargetSource* source, const W8CombatSlot* target);
 
+
+unsigned char CanTargetMonsterWithAction(
+    int party_slot, int location_id, int arg_3, int arg_4);              /* 0x00536AD0 */
+void ClearTargetingMode0053B050(int party_slot);
+unsigned char Function536F60(int party_slot, int value);
+void Function5398D0(void);
+unsigned char Function53A1D0(void);
+void Function53B1D0(void);
+void Function53B310(void);
+void Function53B660(const srVector3T<float>* position, srVector3T<float>* target, int enabled);
+unsigned char TargetIsInPlay(int party_slot, int arg_2, int arg_3);   /* 0x00536F60 */
+
 #endif

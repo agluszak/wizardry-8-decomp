@@ -16,6 +16,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
+#include "wiz8/engine_code/Item.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -61,8 +62,6 @@ extern void RollRandomEncounters(void);     /* 0x0048CA20 */
 
 // GLOBAL: WIZ8 0x0065ba48
 unsigned char g_generator_save_flag;
-extern unsigned char Function49F4A0(void* context, const char* name,
-                                    void* out, int value);   /* 0x0049F4A0 */
 
 // GLOBAL: WIZ8 0x0060a6b6
 short g_generator_default_interval = 10;
