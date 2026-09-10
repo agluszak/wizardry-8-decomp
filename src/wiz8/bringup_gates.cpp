@@ -9,6 +9,7 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/input_hooks.h"
 #include "wiz8/sgp_input_private.h"
+#include "wiz8/sgp_private.h"
 #include "wiz8/font_manager.h"
 #include "wiz8/sound_man.h"
 #include "wiz8/sgp_vsurface_private.h"
@@ -28,38 +29,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*
- * Gates called from InitializeStandardGamingPlatform at 0x00401570, in the
- * order the startup spine
- * records. Two of them the spine characterises from their imports and strings
- * and they are named accordingly; the rest it explicitly cannot, so they keep
- * address-derived names rather than invented meanings. Their globals are
- * likewise positional: the stores establish widths and initial values, nothing
- * establishes purpose.
- */
-
-int g_dword_650df4;
-int g_dword_650df8;
-int g_dword_650dfc;
-int g_dword_650e00;
-bool g_flag_650e04;
 extern unsigned char g_flag_65970f;
-extern unsigned char g_flag_6598a8;
 // GLOBAL: WIZ8 0x006598a8
 unsigned char g_flag_6598a8;
 extern unsigned char g_flag_659711;
 extern unsigned char g_fullscreen_603c39;
-extern unsigned char g_byte_68de44;
 // GLOBAL: WIZ8 0x0068de44
 unsigned char g_byte_68de44;
-extern unsigned char g_flag_65970f;
-extern unsigned char g_flag_6598a8;
-extern unsigned char g_flag_659711;
-extern unsigned char g_fullscreen_603c39;
 unsigned char g_flag_5ff5e8;
 
-unsigned int g_mswheel_roll_message;
-bool g_flag_6505a9;
 
 
 /* Retail's shared success return, also used by the screen lifecycle table. */
@@ -67,17 +45,6 @@ bool g_flag_6505a9;
 unsigned char ScreenLifecycleSuccess(void)
 {
     return 1;
-}
-
-// FUNCTION: WIZ8 0x00404ba0
-bool InitializeVideoSurfaceState(void)
-{
-    g_dword_650e00 = 0;
-    g_dword_650df4 = 0;
-    g_dword_650df8 = 0;
-    g_dword_650dfc = 0;
-    g_flag_650e04 = true;
-    return true;
 }
 
 // FUNCTION: WIZ8 0x00428b80
@@ -102,20 +69,10 @@ char* VideoGetConfigFile(void)
     return g_video_config_file;
 }
 
-unsigned short* g_pointer_table_6ed440[0x400];
-unsigned char g_flags_6ed040[0x400];
-bool g_flag_650de4;
-bool g_flag_5ff538;
-unsigned char g_flag_6ef440;
-
-extern "C" {
-extern unsigned int guiMouseWheelMsg;
-}
-bool g_shutdown_started_650db5;
-bool g_teardown_done_650db4;
-char g_shutdown_message_6505ac[0x100];
-
-
+// GLOBAL: WIZ8 0x00650DB4
+bool g_sgp_shutdown_reentered;
+// GLOBAL: WIZ8 0x00650DB5
+static bool fAlreadyExiting;
 
 /* Stores the byte 0x004086D0's environment selection consults. */
 /* Reports the byte at 0x00603C39; the only reader is 0x00421BB0. */
@@ -168,63 +125,10 @@ void Function5588E0(unsigned char value)
     g_byte_68de44 = value;
 }
 
-/* Clears the flag InitializeVideoSurfaceState raises. Both the window
-   procedure's teardown and the shutdown handler reach it. */
-// FUNCTION: WIZ8 0x00404bc0
-void ShutdownVideoSurfaceState(void)
-{
-    g_flag_650e04 = false;
-}
-
 /* Empty in the shipped build: a single ret. InitializeStandardGamingPlatform still calls it. */
 // FUNCTION: WIZ8 0x004023a0
 void NoOp(void)
 {
-}
-
-/* Clears the pointer table, then walks it releasing each entry. The walk can
-   never see a live entry because the clear precedes it, but both are in the
-   original and the compiler kept them, so both are reproduced. */
-// FUNCTION: WIZ8 0x00404b00
-void Function404B00(void)
-{
-    unsigned short** table;
-    unsigned char* flags;
-    unsigned short* entry;
-    int remaining;
-
-    memset(g_pointer_table_6ed440, 0, sizeof(g_pointer_table_6ed440));
-    table = g_pointer_table_6ed440;
-    flags = g_flags_6ed040;
-    remaining = 0x400;
-    do {
-        entry = *table;
-        *flags = 0;
-        if (entry) {
-            *entry = 0xffff;
-            *table = 0;
-        }
-        ++flags;
-        ++table;
-        --remaining;
-    } while (remaining);
-    g_flag_650de4 = true;
-    g_flag_5ff538 = true;
-    g_flag_6ef440 = 0;
-}
-
-/* These are retained SGP globals, named by the vendored declaration surface. */
-extern "C" HINSTANCE ghInstance;
-
-/* The caller shifts the result right by ten and stores kilobytes. */
-// FUNCTION: WIZ8 0x00404bd0
-unsigned int QueryAvailableMemory(void)
-{
-    MEMORYSTATUS status;
-
-    status.dwLength = sizeof(status);
-    GlobalMemoryStatus(&status);
-    return status.dwAvailPhys;
 }
 
 
@@ -260,34 +164,31 @@ BOOLEAN AddSubdirectoryToPath(CHAR8* subdirectory)
     return true;
 }
 
-/* Registered with atexit as InitializeStandardGamingPlatform's first act. Guarded twice: a once
-   flag so a second exit does nothing, and a separate teardown flag so the long
-   release sequence runs at most once. The engine flag startup sets on
-   success decides how much of it applies. Any message left in the buffer is
-   shown before handing off. */
+/* Wizardry's exit override omits released sound-stream servicing and shares
+   its teardown guard with the product window procedure. */
 // FUNCTION: WIZ8 0x004017f0
-void ShutdownHandler(void)
+extern "C" void SGPExit(void)
 {
     unsigned char engine_up;
 
-    if (g_shutdown_started_650db5) {
+    if (fAlreadyExiting) {
         return;
     }
-    g_shutdown_started_650db5 = true;
-    g_game_running = 0;
-    DisableSoundManager();
-    if (g_flag_6505a9) {
+    fAlreadyExiting = true;
+    gfProgramIsRunning = 0;
+    ShutdownSoundManager();
+    if (gfGameInitialized) {
         GameloopExit(1);
     }
-    if (!g_teardown_done_650db4) {
-        engine_up = g_flag_6505a9;
-        g_teardown_done_650db4 = true;
+    if (!g_sgp_shutdown_reentered) {
+        engine_up = gfGameInitialized;
+        g_sgp_shutdown_reentered = true;
         if (engine_up) {
             ShutdownGame();
         }
         ShutdownButtonSystem();
         MSYS_Shutdown();
-        DisableSoundManager();
+        ShutdownSoundManager();
         DestroyEnglishTransTable();
         ShutdownFontManager();
         ShutdownClockManager();
@@ -297,12 +198,12 @@ void ShutdownHandler(void)
         ShutdownInputManager();
         NoOp();
         NoOp();
-        ShutdownVideoSurfaceState();
+        ShutdownMemoryManager();
         NoOp();
     }
     ShowCursor(TRUE);
-    if (strlen(g_shutdown_message_6505ac) != 0) {
-        MessageBoxA(NULL, g_shutdown_message_6505ac, "Error", MB_ICONHAND);
+    if (strlen(gzErrorMsg) != 0) {
+        MessageBoxA(NULL, gzErrorMsg, "Error", MB_ICONHAND);
     }
     ReturnZero();
 }
@@ -331,62 +232,6 @@ bool CheckCdPresent(void)
     return true;
 }
 
-/* The retail startup spine. Each gate that fails returns straight out; the
-   window procedure and shutdown handler this installs are what the live
-   runtime tears down through. */
-// FUNCTION: WIZ8 0x00401570
-unsigned char InitializeStandardGamingPlatform(
-    HINSTANCE instance, int show_command)
-{
-    FontTranslationTable* table;
-
-    atexit(ShutdownHandler);
-    InitializeRegistryKeys("Wizardry8", "Wizardry8key");
-    AddSubdirectoryToPath("DLL");
-    GetRuntimeSettings();
-    Function404B00();
-    if (!InitializeVideoSurfaceState()) {
-        return 0;
-    }
-    if (!ScreenLifecycleSuccess()) {
-        return 0;
-    }
-    NoOp();
-    if (!InitializeInputManager()) {
-        return 0;
-    }
-    if (!InitializeVideoManager(
-            instance, (unsigned short)show_command,
-            (void*)WindowProc4011E0)) {
-        return 0;
-    }
-    if (!InitializeVideoObjectManager()) {
-        return 0;
-    }
-    if (!InitializeVideoSurfaceManager()) {
-        return 0;
-    }
-    InitializeClockManager();
-    table = CreateDefaultFontTranslationTable();
-    if (table == 0) {
-        return 0;
-    }
-    if (!InitializeFontManager(8, table)) {
-        return 0;
-    }
-    free(table);
-    if (!InitializeWiz8SoundManager()) {
-        return 0;
-    }
-    InitializeRandom();
-    if (!InitializeGame()) {
-        return 0;
-    }
-    guiMouseWheelMsg = RegisterWindowMessageA("MSWHEEL_ROLLMSG");
-    g_flag_6505a9 = 1;
-    return 1;
-}
-
 // FUNCTION: WIZ8 0x00401670
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
@@ -401,7 +246,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     }
     ghInstance = hInstance;
     ProcessCommandLine(lpCmdLine);
-    giStartMem = QueryAvailableMemory() >> 10;
+    giStartMem = MemGetFree() >> 10;
     if (!FileExists(VideoGetConfigFile())) {
         _spawnl(0, "3DSetup.EXE", "3DSetup.EXE", VideoGetConfigFile(), NULL);
     }
@@ -416,7 +261,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         return 0;
     }
     gfApplicationActive = 1;
-    g_game_running = 1;
+    gfProgramIsRunning = 1;
     do {
         if (PeekMessageA(&message, NULL, 0, 0, 0)) {
             if (GetMessageA(&message, NULL, 0, 0) == 0) {
@@ -430,7 +275,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             GameLoop();
             gfSGPInputReceived = 0;
         }
-    } while (g_game_running);
+    } while (gfProgramIsRunning);
     PostQuitMessage(0);
     return message.wParam;
 }

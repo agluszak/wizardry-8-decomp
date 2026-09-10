@@ -63,11 +63,14 @@ UNITS = (
         "source": "sgp.c",
         "target": "WIZ8_SGP_RUNTIME",
         "functions": (
-            "WindowProcedure",
+            "SgpReleasedWindowProcedure",
             "InitializeStandardGamingPlatform",
             "ShutdownStandardGamingPlatform",
+            "SgpReleasedWinMain",
+            "SgpReleasedSGPExit",
             "GetRuntimeSettings",
             "ProcessCommandLine",
+            "RunSetup",
         ),
     },
     {"id": "timer", "source": "timer.c", "target": "WIZ8_SGP_RUNTIME"},
@@ -97,6 +100,25 @@ UNITS = (
     },
     {"id": "vsurface", "source": "vsurface.c", "target": "WIZ8_SGP_RUNTIME"},
     {"id": "reginst", "source": "RegInst.c", "target": "WIZ8_SGP_RUNTIME"},
+    {"id": "memman", "source": "MemMan.c", "target": "WIZ8_SGP_RUNTIME"},
+    {"id": "buttons", "source": "Button System.c", "target": "WIZ8_SGP_RUNTIME"},
+    {"id": "himage", "source": "himage.c", "target": "WIZ8_SGP_RUNTIME"},
+    {"id": "stci", "source": "STCI.c", "target": "WIZ8_SGP_RUNTIME"},
+    {"id": "pcx", "source": "PCX.C", "target": "WIZ8_SGP_RUNTIME"},
+    {"id": "imptga", "source": "impTGA.c", "target": "WIZ8_SGP_RUNTIME"},
+    {
+        "id": "english",
+        "source": "English.c",
+        "target": "WIZ8_SGP_RUNTIME",
+        "expected_empty": True,
+    },
+    {"id": "line", "source": "line.c", "target": "WIZ8_SGP_RUNTIME"},
+    {"id": "shading", "source": "shading.c", "target": "WIZ8_SGP_RUNTIME"},
+    {
+        "id": "directx_common",
+        "source": "DirectX Common.c",
+        "target": "WIZ8_SGP_RUNTIME",
+    },
 )
 
 CLASSIFICATION_RANK = {

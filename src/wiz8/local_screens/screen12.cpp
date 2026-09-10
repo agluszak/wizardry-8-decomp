@@ -8,6 +8,7 @@
 #include "himage.h"
 #include "input.h"
 #include "vsurface.h"
+#include "sgp.h"
 
 /* Lifecycle record 12 is the exit screen selected by Main Menu's Exit row and
    its Escape/E/X shortcuts. The original translation-unit name is unknown, so
@@ -31,9 +32,6 @@ int GetValue64C1C8(void)
 {
     return g_value_64c1c8;
 }
-
-// GLOBAL: WIZ8 0x006F0628
-unsigned char g_game_running;
 
 /* Lifecycle record 12's entry handler. It paints the whole 640x480 frame in the
    near-black 0x010101 and puts one video-object frame over it, which is the
@@ -67,18 +65,18 @@ void ExitScreenFrame(void)
         if (!DispatchRegionInput(&input)) {
             switch (input.usEvent) {
             case KEY_DOWN:
-                g_game_running = 0;
+                gfProgramIsRunning = 0;
                 break;
             }
         }
     }
     if (gfLeftButtonState == 0 && gfRightButtonState == 0) {
-        if (g_game_running != 0) {
+        if (gfProgramIsRunning != 0) {
             return;
         }
     }
     else {
-        g_game_running = 0;
+        gfProgramIsRunning = 0;
     }
     ClearFlag603C60();
     ClearPrimarySurface();

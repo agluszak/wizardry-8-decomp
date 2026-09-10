@@ -16,7 +16,4 @@
 #include <windows.h>
 #include <ddraw.h>
 
-long __stdcall WindowProc4011E0(
-    void* window, int message, unsigned int wparam, long lparam);
-
 #endif

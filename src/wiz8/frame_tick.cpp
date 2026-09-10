@@ -105,7 +105,7 @@ void GameLoop(void)
         g_previous_screen_id = state;
         ReleaseScreenTransitionObjects();
         if (!g_screen_handlers[g_current_screen_state.id].leave(1)) {
-            g_game_running = 0;
+            gfProgramIsRunning = 0;
             g_current_screen_state.id = -1;
             return;
         }
@@ -158,7 +158,7 @@ finish:
 clear:
     g_current_screen_state.id = -1;
 stop:
-    g_game_running = 0;
+    gfProgramIsRunning = 0;
 }
 
 // FUNCTION: WIZ8 0x004e34b0

@@ -9,5 +9,3 @@
    relocation-equivalent to the released oracle (see
    build/reports/sgp/harness.csv) and link from Font.c. Their declarations
    remain in the pinned Font.h. */
-
-FontTranslationTable* CreateDefaultFontTranslationTable(void);

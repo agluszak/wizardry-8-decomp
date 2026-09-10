@@ -41,7 +41,6 @@ set_source_files_properties(
     PROPERTIES LANGUAGE C
 )
 set_source_files_properties("${SGP_SOURCE}/vsurface.c" PROPERTIES
-    COMPILE_DEFINITIONS "FillSurfaceRect=SgpReleasedFillSurfaceRect"
     COMPILE_OPTIONS "/FI${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/sgp-compat/video2.h"
 )
 set_source_files_properties("${SGP_SOURCE}/himage.c" PROPERTIES
@@ -53,17 +52,27 @@ set_source_files_properties(
     PROPERTIES COMPILE_OPTIONS
         "/FI${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/sgp-compat/LibraryDataBase.h"
 )
+set_source_files_properties("${SGP_SOURCE}/soundman.c" PROPERTIES
+    COMPILE_DEFINITIONS
+        "InitializeSoundManager=SgpReleasedInitializeSoundManager;ShutdownSoundManager=SgpReleasedShutdownSoundManager"
+)
 set_source_files_properties("${SGP_SOURCE}/DirectDraw Calls.c" PROPERTIES
     COMPILE_OPTIONS "/FI${SGP_SOURCE}/sgp.h"
 )
 set_source_files_properties("${SGP_SOURCE}/DEBUG.C" PROPERTIES
+    COMPILE_DEFINITIONS _NO_DEBUG_TXT
     COMPILE_OPTIONS "/FI${SGP_SOURCE}/VObject.h"
+)
+set_source_files_properties("${SGP_SOURCE}/Font.c" PROPERTIES
+    COMPILE_DEFINITIONS "CreateEnglishTransTable=SgpReleasedCreateEnglishTransTable"
 )
 set_source_files_properties("${SGP_SOURCE}/ExceptionHandling.cpp" PROPERTIES
     COMPILE_OPTIONS "/FIwindows.h"
 )
 set_source_files_properties("${SGP_SOURCE}/sgp.c" PROPERTIES
-    COMPILE_DEFINITIONS "WinMain=SgpRetainedWinMain"
+    COMPILE_DEFINITIONS "WinMain=SgpReleasedWinMain"
+    COMPILE_OPTIONS
+        "/FI${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/sgp_source_overrides.h"
 )
 set_source_files_properties("${SGP_SOURCE}/FileMan.c" PROPERTIES
     # Retail uses two 520-byte stack buffers instead of the released heap
@@ -79,6 +88,7 @@ function(wiz8_add_sgp_target target kind)
         target_link_libraries(${target} PUBLIC dxguid.lib)
     endif()
     target_include_directories(${target} PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/sgp-compat"
         "${SGP_SOURCE}"
     )

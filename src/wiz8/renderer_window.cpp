@@ -142,7 +142,6 @@ float g_frames_per_second_659704;
 float g_seconds_per_frame_659708;
 
 
-char* g_sound_provider_650e54;
 unsigned char* g_render_options_65a118;
 
 // FUNCTION: WIZ8 0x00428ab0

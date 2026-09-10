@@ -2,11 +2,10 @@
 #include "input.h"
 #include "wiz8/utility.h"
 #include "wiz8/input_hooks.h"
+#include "wiz8/sgp_input_private.h"
 
 #include <stdlib.h>
 #include <string.h>
-
-extern unsigned char g_flag_650dac;
 
 /* Address quarantine 00401001-0041ab3f; bounds come from adjacent
    assertion-backed original translation-unit intervals. */
@@ -33,17 +32,14 @@ void SetSurfaceClipBounds00413FD0(
     g_surface_clip_bottom_00650fac = top + height - 1;
 }
 
-// GLOBAL: WIZ8 0x006505ac
-char g_error_message_006505ac[0x800];
-
 /* Record a fatal error message for the window procedure, then leave. The
    message is truncated into the shared buffer with its terminator forced. */
 // FUNCTION: WIZ8 0x00401920
 void ReportError00401920(const char* message)
 {
-    strncpy(g_error_message_006505ac, message, 0x7ff);
-    g_error_message_006505ac[0x7ff] = 0;
-    g_flag_650dac = 1;
+    strncpy(gzErrorMsg, message, 0x7ff);
+    gzErrorMsg[0x7ff] = 0;
+    gfIgnoreMessages = 1;
     exit(0);
 }
 

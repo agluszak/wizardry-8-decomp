@@ -1,4 +1,5 @@
 #include "wiz8/regions.h"
+#include "wiz8/bringup_gates.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/wiz8_windows.h"
@@ -9,6 +10,7 @@
 #include "input.h"
 #include "LibraryDataBase.h"
 #include "shading.h"
+#include "sgp.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,8 +23,6 @@ extern int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous,
 extern HWND ghWindow;
 
 }
-
-extern bool g_teardown_done_650db4;
 
 extern unsigned char g_music_playlist_active_65ba7e;
 extern int g_music_playlist_weight_total_65ba80;
@@ -250,9 +250,9 @@ static DWORD WINAPI DriveScenario(void*)
             g_current_screen_state.id,
             ghWindow,
             g_region_sets[1].enabled,
-            g_game_running);
+            gfProgramIsRunning);
         fflush(stderr);
-        g_game_running = 0;
+        gfProgramIsRunning = 0;
         if (ghWindow != NULL) {
             PostMessage(ghWindow, WM_CLOSE, 0, 0);
         }
@@ -307,7 +307,7 @@ static DWORD WINAPI DriveScenario(void*)
     fflush(stderr);
 
     if (strcmp(g_scenario, "main-menu-startup") == 0) {
-        g_game_running = 0;
+        gfProgramIsRunning = 0;
         return 0;
     }
 
@@ -319,7 +319,7 @@ static DWORD WINAPI DriveScenario(void*)
         while (GetTickCount() - started < 5000) {
             if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_PARTY_SELECTION) {
                 g_observation.transition_observed = 1;
-                g_game_running = 0;
+                gfProgramIsRunning = 0;
                 return 0;
             }
             Sleep(10);
@@ -344,7 +344,7 @@ static DWORD WINAPI DriveScenario(void*)
     QueueEvent(KEY_DOWN, ENTER, 0);
     started = GetTickCount();
     while (GetTickCount() - started < 5000) {
-        if (*(volatile unsigned char*)&g_game_running == 0) {
+        if (*(volatile unsigned char*)&gfProgramIsRunning == 0) {
             g_observation.exit_observed = 1;
             return 0;
         }
@@ -382,9 +382,9 @@ int main(int argc, char** argv)
     GetExitCodeThread(driver, &driver_status);
     CloseHandle(driver);
 
-    if (IsWindow(ghWindow)) {
-        DestroyWindow(ghWindow);
-    }
+    /* TerminateProcess below deliberately bypasses the CRT atexit chain, so
+       invoke the registered product exit hook explicitly. */
+    SGPExit();
 
     printf(
         "WIZ8_RUNTIME_TEST scenario=%s menu_seen=%u menu_state=%d "
@@ -417,7 +417,7 @@ int main(int argc, char** argv)
         g_observation.shade_table_ok,
         g_observation.exit_observed,
         g_observation.transition_observed,
-        g_teardown_done_650db4 ? 1 : 0,
+        g_sgp_shutdown_reentered ? 1 : 0,
         g_observation.timed_out);
 
     const bool startup_ok =
@@ -439,7 +439,7 @@ int main(int argc, char** argv)
     const int result =
         driver_status == 0 && startup_ok &&
         (strcmp(g_scenario, "main-menu-new-game") == 0 || exit_ok) &&
-        transition_ok && g_teardown_done_650db4 ? 0 : 1;
+        transition_ok && g_sgp_shutdown_reentered ? 0 : 1;
     fflush(stdout);
     TerminateProcess(GetCurrentProcess(), result);
     return result;

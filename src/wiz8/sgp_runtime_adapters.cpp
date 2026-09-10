@@ -31,6 +31,21 @@
 // LIBRARY: WIZ8 0x00401950
 // ProcessCommandLine
 
+// LIBRARY: WIZ8 0x00404B00
+// DbgInitialize
+
+// LIBRARY: WIZ8 0x00404BA0
+// InitializeMemoryManager
+
+// LIBRARY: WIZ8 0x00404BC0
+// ShutdownMemoryManager
+
+// LIBRARY: WIZ8 0x00404BD0
+// MemGetFree
+
+// LIBRARY: WIZ8 0x00401570
+// InitializeStandardGamingPlatform
+
 // LIBRARY: WIZ8 0x00405ef0
 // AddStandardVideoObject
 

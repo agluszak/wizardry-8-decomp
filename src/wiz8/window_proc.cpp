@@ -10,32 +10,28 @@
 #include "Font.h"
 #include "input.h"
 #include "wiz8/sgp_input_private.h"
+#include "wiz8/sgp_private.h"
 #include "timer.h"
 #include "vsurface.h"
 
 
 /*
- * The window procedure InitializeStandardGamingPlatform hands to the renderer. Ghidra defines no
- * function at this address and the project lock could not be taken to create
- * one, so this is reconstructed from the canonical encoding and its two jump
- * tables rather than from decompiler output.
+ * The product window procedure InitializeStandardGamingPlatform hands to the
+ * renderer. It retains the released Wizardry message handling shape, but its
+ * WM_DESTROY path omits released sound-stream servicing.
  *
  * WM_SIZING holds the window to 4:3. The original divides by 480 and by 640
  * through the usual reciprocal-multiply sequences, which is what (height * 640)
  * / 480 and (width * 480) / 640 compile to.
  */
 
-// GLOBAL: WIZ8 0x00650dac
-unsigned char g_flag_650dac;
-extern unsigned int g_mswheel_roll_message;
-int g_dword_650db0;
-extern bool g_flag_6505a9;
-extern bool g_teardown_done_650db4;
+// GLOBAL: WIZ8 0x00650DB0
+static int fRestore;
 
 
 // FUNCTION: WIZ8 0x004011e0
-long __stdcall WindowProc4011E0(
-    void* window, int message, unsigned int wparam, long lparam)
+extern "C" INT32 FAR PASCAL WindowProcedure(
+    HWND window, UINT16 message, WPARAM wparam, LPARAM lparam)
 {
     RECT* rect;
     int right;
@@ -44,11 +40,11 @@ long __stdcall WindowProc4011E0(
     int height;
     unsigned char move_left;
 
-    if (g_flag_650dac) {
-        return DefWindowProcA((HWND)window, message & 0xffff, wparam, lparam);
+    if (gfIgnoreMessages) {
+        return DefWindowProcA(window, message & 0xffff, wparam, lparam);
     }
     message &= 0xffff;
-    if (message == g_mswheel_roll_message) {
+    if (message == guiMouseWheelMsg) {
         QueueEvent(0x800, wparam, lparam);
         return 0;
     }
@@ -75,14 +71,14 @@ long __stdcall WindowProc4011E0(
         return 0;
 
     case WM_DESTROY:
-        if (!g_teardown_done_650db4) {
-            g_teardown_done_650db4 = true;
-            if (g_flag_6505a9) {
+        if (!g_sgp_shutdown_reentered) {
+            g_sgp_shutdown_reentered = true;
+            if (gfGameInitialized) {
                 ShutdownGame();
             }
             ShutdownButtonSystem();
             MSYS_Shutdown();
-            DisableSoundManager();
+            ShutdownSoundManager();
             DestroyEnglishTransTable();
             ShutdownFontManager();
             ShutdownClockManager();
@@ -92,7 +88,7 @@ long __stdcall WindowProc4011E0(
             ShutdownInputManager();
             NoOp();
             NoOp();
-            ShutdownVideoSurfaceState();
+            ShutdownMemoryManager();
             NoOp();
         }
         ShowCursor(TRUE);
@@ -112,7 +108,7 @@ long __stdcall WindowProc4011E0(
         }
         gfApplicationActive = 0;
         FreeMouseCursor();
-        g_dword_650db0 = 1;
+        fRestore = 1;
         return 0;
 
     case WM_ACTIVATEAPP:
@@ -121,14 +117,14 @@ long __stdcall WindowProc4011E0(
                 SuspendVideoManager();
             }
             MoveTimer(1);
-            g_dword_650db0 = 1;
+            fRestore = 1;
             gfApplicationActive = 0;
             return 0;
         }
         if (wparam != 1) {
             return 0;
         }
-        if (g_dword_650db0 != 1) {
+        if (fRestore != 1) {
             return 0;
         }
         if (!VideoInspectorIsEnabled()) {
@@ -211,7 +207,7 @@ long __stdcall WindowProc4011E0(
         return 0;
 
     default:
-        return DefWindowProcA((HWND)window, message, wparam, lparam);
+        return DefWindowProcA(window, message, wparam, lparam);
     }
 
 

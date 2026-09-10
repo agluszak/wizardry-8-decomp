@@ -25,4 +25,8 @@ extern HHOOK ghMouseHook;
 extern BOOLEAN gfCurrentStringInputState;
 extern StringInput* gpCurrentStringDescriptor;
 extern BOOLEAN gfApplicationActive;
+extern BOOLEAN gfGameInitialized;
+extern BOOLEAN gfIgnoreMessages;
+extern UINT32 guiMouseWheelMsg;
+extern CHAR8 gzErrorMsg[2048];
 }

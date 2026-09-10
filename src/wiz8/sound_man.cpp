@@ -1,4 +1,5 @@
 #include "wiz8/sound_man.h"
+#include "wiz8/sgp_sound_private.h"
 
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
@@ -10,80 +11,61 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern unsigned int g_sound_memory_used_650e4c;
-extern unsigned int g_sound_memory_limit_5ff648;
 extern "C" {
 extern unsigned int guiSoundCacheThreshold;
 extern unsigned int guiSoundDefaultVolume;
 extern BOOLEAN gfEnableStartup;
 }
-extern char* g_sound_provider_650e54;
-
-unsigned int g_sound_id_counter_650e64;
-HDIGDRIVER g_sound_driver_6e4104;
-/* Retail 0x005FF650: direct-sound attempt flag, set for the first driver
-   round and cleared before the wave-out fallback. */
-unsigned char g_direct_sound_5ff650;
-unsigned char g_flag_650e50;
 int g_dword_65a104;
-unsigned char g_flag_5ff652;
-/* Retail's canonical channel and sample tables. Their strides establish the
-   pinned soundman.h layouts (SOUNDTAG is 0x4c, SAMPLETAG is 0xd8). */
-SOUNDTAG g_sound_channels_6e4120[32];
-SAMPLETAG g_sound_samples_6e4aa0[128];
-unsigned int g_sound_memory_limit_5ff648;
-unsigned int g_sound_memory_used_650e4c;
-HPROVIDER g_provider_650e58;
-H3DPOBJECT g_listener_650e5c;
 
 /* Walks the Miles 3D providers for the one whose name matches the configured
    string, opens it and its listener, and records whether the provider exposes
    EAX environment selection. Any failure leaves the subsystem closed and still
    reports success, so audio never blocks bring-up. */
 // FUNCTION: WIZ8 0x004086d0
-bool InitializeWiz8SoundManager(void)
+extern "C" BOOLEAN InitializeSoundManager(void)
 {
     HPROENUM next;
     HPROVIDER provider;
     C8* name;
     S32 attribute;
 
-    if (g_flag_650e50) {
-        g_flag_650e50 = 0;
+    if (fSoundSystemInit) {
+        fSoundSystemInit = 0;
     }
-    memset(g_sound_channels_6e4120, 0, sizeof(g_sound_channels_6e4120));
+    memset(pSoundList, 0, sizeof(pSoundList));
     if (gfEnableStartup && SoundInitHardware00409C50()) {
-        g_flag_650e50 = 1;
+        fSoundSystemInit = 1;
     }
-    g_sound_memory_limit_5ff648 = 8048 * 1024;
-    memset(g_sound_samples_6e4aa0, 0, sizeof(g_sound_samples_6e4aa0));
-    g_sound_memory_used_650e4c = 0;
+    guiSoundMemoryLimit = 8048 * 1024;
+    memset(pSampleList, 0, sizeof(pSampleList));
+    guiSoundMemoryUsed = 0;
     guiSoundCacheThreshold = 0x1f5800;
-    if (g_sound_provider_650e54 && g_provider_650e58 == 0) {
+    if (gpProviderName && gh3DProvider == 0) {
         next = 0;
         provider = 0;
-        if (g_flag_650e50 && g_sound_provider_650e54) {
+        if (fSoundSystemInit && gpProviderName) {
             do {
                 do {
                     if (AIL_enumerate_3D_providers(&next, &provider, &name) == 0) {
                         return true;
                     }
                 } while (provider == 0);
-            } while (strcmp(g_sound_provider_650e54, name) != 0);
+            } while (strcmp(gpProviderName, name) != 0);
             if (AIL_open_3D_provider(provider) == 0) {
-                g_provider_650e58 = provider;
-                g_listener_650e5c = AIL_open_3D_listener(provider);
-                if (g_listener_650e5c == 0) {
-                    AIL_close_3D_provider(g_provider_650e58);
+                gh3DProvider = provider;
+                gh3DListener = AIL_open_3D_listener(provider);
+                if (gh3DListener == 0) {
+                    AIL_close_3D_provider(gh3DProvider);
                     return true;
                 }
-                if (g_flag_650e50) {
-                    AIL_set_3D_position(g_listener_650e5c, 0, 0, 0);
+                if (fSoundSystemInit) {
+                    AIL_set_3D_position(gh3DListener, 0, 0, 0);
                 }
-                AIL_3D_provider_attribute(g_provider_650e58, "EAX environment selection",
+                AIL_3D_provider_attribute(gh3DProvider, "EAX environment selection",
                                           &attribute);
                 if (attribute != -1) {
-                    g_flag_5ff652 = 1;
+                    gfUsingEAX = 1;
                 }
             }
         }
@@ -92,9 +74,9 @@ bool InitializeWiz8SoundManager(void)
 }
 
 // FUNCTION: WIZ8 0x00408850
-void DisableSoundManager(void)
+extern "C" void ShutdownSoundManager(void)
 {
-    g_flag_650e50 = 0;
+    fSoundSystemInit = 0;
 }
 
 /* Sets the sound cache threshold and clears its still-unidentified companion. */
@@ -122,7 +104,7 @@ int PlaySound00408860(const char* path, int* options)
     int channel;
     int index;
 
-    if (g_flag_650e50 == 0) {
+    if (fSoundSystemInit == 0) {
         return -1;
     }
     int handle = FileOpen((STR)path, 1, 0);
@@ -150,7 +132,7 @@ int PlaySound00408860(const char* path, int* options)
        canonicalized name. */
     sample = -1;
     for (index = 0; index < 128; ++index) {
-        if (_stricmp(g_sound_samples_6e4aa0[index].pName, name) == 0) {
+        if (_stricmp(pSampleList[index].pName, name) == 0) {
             sample = index;
             break;
         }
@@ -162,11 +144,11 @@ int PlaySound00408860(const char* path, int* options)
     /* Inlined SoundGetFreeChannel/SoundIsPlaying/SoundIndexIsPlaying. */
     if (sample != -1) {
         for (channel = 0; channel < 32; ++channel) {
-            if (g_flag_650e50 != 0) {
+            if (fSoundSystemInit != 0) {
                 int found = -1;
                 for (index = 0; index < 32; ++index) {
-                    if (g_sound_channels_6e4120[index].uiSoundID ==
-                        g_sound_channels_6e4120[channel].uiSoundID) {
+                    if (pSoundList[index].uiSoundID ==
+                        pSoundList[channel].uiSoundID) {
                         found = index;
                         break;
                     }
@@ -175,7 +157,7 @@ int PlaySound00408860(const char* path, int* options)
                     SoundStopIndex0040a5c0(channel);
                 }
                 else {
-                    SOUNDTAG* occupant = &g_sound_channels_6e4120[found];
+                    SOUNDTAG* occupant = &pSoundList[found];
                     int status = SMP_DONE;
                     if (occupant->hMSS != 0) {
                         status = AIL_sample_status(occupant->hMSS);
@@ -194,9 +176,9 @@ int PlaySound00408860(const char* path, int* options)
             else {
                 SoundStopIndex0040a5c0(channel);
             }
-            if (g_sound_channels_6e4120[channel].hMSS == 0 &&
-                g_sound_channels_6e4120[channel].hMSSStream == 0 &&
-                g_sound_channels_6e4120[channel].hM3D == 0) {
+            if (pSoundList[channel].hMSS == 0 &&
+                pSoundList[channel].hMSSStream == 0 &&
+                pSoundList[channel].hM3D == 0) {
                 SoundResetChannel00409F30(channel);
                 if (channel != -1) {
                     return SoundStartSample00409fe0(sample, channel, options);
@@ -214,21 +196,21 @@ int PlaySound00408860(const char* path, int* options)
 // FUNCTION: WIZ8 0x004098F0
 void Function4098F0(void)
 {
-    if (g_flag_650e50 != 0) {
+    if (fSoundSystemInit != 0) {
         for (int channel = 0; channel < 12; ++channel) {
-            if (g_sound_channels_6e4120[channel].fMusic == 0) {
+            if (pSoundList[channel].fMusic == 0) {
                 SoundStopIndex0040a5c0(channel);
             }
         }
     }
     for (int sample = 0; sample < 14; ++sample) {
-        if ((g_sound_samples_6e4aa0[sample].uiFlags & 1) != 0) {
-            if (g_sound_samples_6e4aa0[sample].pData != 0) {
-                g_sound_memory_used_650e4c -=
-                    g_sound_samples_6e4aa0[sample].uiSize;
-                AIL_mem_free_lock(g_sound_samples_6e4aa0[sample].pData);
+        if ((pSampleList[sample].uiFlags & 1) != 0) {
+            if (pSampleList[sample].pData != 0) {
+                guiSoundMemoryUsed -=
+                    pSampleList[sample].uiSize;
+                AIL_mem_free_lock(pSampleList[sample].pData);
             }
-            memset(&g_sound_samples_6e4aa0[sample], 0, sizeof(SAMPLETAG));
+            memset(&pSampleList[sample], 0, sizeof(SAMPLETAG));
         }
     }
 }
@@ -250,18 +232,18 @@ int SoundLoadDisk00409970(const char* path)
     }
     unsigned int size = FileGetSize(handle);
     unsigned char removed = 1;
-    while (g_sound_memory_limit_5ff648 < g_sound_memory_used_650e4c + size &&
+    while (guiSoundMemoryLimit < guiSoundMemoryUsed + size &&
            removed != 0) {
         int best = -1;
         unsigned int best_hits = 0;
         for (index = 0; index < 128; ++index) {
-            SAMPLETAG* entry = &g_sound_samples_6e4aa0[index];
+            SAMPLETAG* entry = &pSampleList[index];
             if ((entry->uiFlags & SAMPLE_ALLOCATED) != 0 &&
                 (entry->uiFlags & SAMPLE_LOCKED) == 0 &&
                 (best == -1 || best_hits < entry->uiCacheHits)) {
                 int playing = 0;
                 for (probe = 0; probe < 32; ++probe) {
-                    if (g_sound_channels_6e4120[probe].uiSample ==
+                    if (pSoundList[probe].uiSample ==
                         static_cast<unsigned int>(index)) {
                         playing = 1;
                         break;
@@ -277,10 +259,10 @@ int SoundLoadDisk00409970(const char* path)
             removed = 0;
         }
         else {
-            slot = &g_sound_samples_6e4aa0[best];
+            slot = &pSampleList[best];
             if ((slot->uiFlags & SAMPLE_ALLOCATED) != 0) {
                 if (slot->pData != 0) {
-                    g_sound_memory_used_650e4c -= slot->uiSize;
+                    guiSoundMemoryUsed -= slot->uiSize;
                     AIL_mem_free_lock(slot->pData);
                 }
                 memset(slot, 0, sizeof(*slot));
@@ -288,13 +270,13 @@ int SoundLoadDisk00409970(const char* path)
             removed = 1;
         }
     }
-    if (g_sound_memory_used_650e4c + size > g_sound_memory_limit_5ff648) {
+    if (guiSoundMemoryUsed + size > guiSoundMemoryLimit) {
         CloseVirtualFile(handle);
         return -1;
     }
     sample = -1;
     for (index = 0; index < 128; ++index) {
-        if ((g_sound_samples_6e4aa0[index].uiFlags & SAMPLE_ALLOCATED) ==
+        if ((pSampleList[index].uiFlags & SAMPLE_ALLOCATED) ==
             0) {
             sample = index;
             break;
@@ -304,13 +286,13 @@ int SoundLoadDisk00409970(const char* path)
         int best = -1;
         unsigned int best_hits = 0;
         for (index = 0; index < 128; ++index) {
-            SAMPLETAG* entry = &g_sound_samples_6e4aa0[index];
+            SAMPLETAG* entry = &pSampleList[index];
             if ((entry->uiFlags & SAMPLE_ALLOCATED) != 0 &&
                 (entry->uiFlags & SAMPLE_LOCKED) == 0 &&
                 (best == -1 || best_hits < entry->uiCacheHits)) {
                 int playing = 0;
                 for (probe = 0; probe < 32; ++probe) {
-                    if (g_sound_channels_6e4120[probe].uiSample ==
+                    if (pSoundList[probe].uiSample ==
                         static_cast<unsigned int>(index)) {
                         playing = 1;
                         break;
@@ -327,17 +309,17 @@ int SoundLoadDisk00409970(const char* path)
             CloseVirtualFile(handle);
             return -1;
         }
-        slot = &g_sound_samples_6e4aa0[sample];
+        slot = &pSampleList[sample];
         if ((slot->uiFlags & SAMPLE_ALLOCATED) != 0) {
             if (slot->pData != 0) {
-                g_sound_memory_used_650e4c -= slot->uiSize;
+                guiSoundMemoryUsed -= slot->uiSize;
                 AIL_mem_free_lock(slot->pData);
             }
             memset(slot, 0, sizeof(*slot));
         }
         sample = -1;
         for (index = 0; index < 128; ++index) {
-            if ((g_sound_samples_6e4aa0[index].uiFlags & SAMPLE_ALLOCATED) ==
+            if ((pSampleList[index].uiFlags & SAMPLE_ALLOCATED) ==
                 0) {
                 sample = index;
                 break;
@@ -349,14 +331,14 @@ int SoundLoadDisk00409970(const char* path)
         }
     }
 
-    slot = &g_sound_samples_6e4aa0[sample];
+    slot = &pSampleList[sample];
     memset(slot, 0, sizeof(*slot));
     slot->pData = AIL_mem_alloc_lock(size);
     if (slot->pData == 0) {
         CloseVirtualFile(handle);
         return -1;
     }
-    g_sound_memory_used_650e4c += size;
+    guiSoundMemoryUsed += size;
     ReadVirtualFile(handle, slot->pData, size, 0);
     CloseVirtualFile(handle);
     strcpy(slot->pName, path);
@@ -370,26 +352,26 @@ int SoundLoadDisk00409970(const char* path)
 // FUNCTION: WIZ8 0x00409f30
 void SoundResetChannel00409F30(int channel)
 {
-    g_sound_channels_6e4120[channel].pSample = 0;
-    g_sound_channels_6e4120[channel].uiSample = NO_SAMPLE;
-    g_sound_channels_6e4120[channel].hMSS = 0;
-    g_sound_channels_6e4120[channel].hMSSStream = 0;
-    g_sound_channels_6e4120[channel].hM3D = 0;
-    g_sound_channels_6e4120[channel].uiFlags = 0;
-    g_sound_channels_6e4120[channel].uiSoundID = NO_SAMPLE;
-    g_sound_channels_6e4120[channel].uiPriority = PRIORITY_MAX;
-    g_sound_channels_6e4120[channel].pCallback = 0;
-    g_sound_channels_6e4120[channel].pData = 0;
-    g_sound_channels_6e4120[channel].EOSCallback = 0;
-    g_sound_channels_6e4120[channel].pCallbackData = 0;
-    g_sound_channels_6e4120[channel].uiTimeStamp = GetTickCount();
-    g_sound_channels_6e4120[channel].fLooping = 0;
-    g_sound_channels_6e4120[channel].hFile = 0xffffffff;
-    g_sound_channels_6e4120[channel].fMusic = 0;
-    g_sound_channels_6e4120[channel].fStopAtZero = 1;
-    g_sound_channels_6e4120[channel].uiFadeVolume = 0;
-    g_sound_channels_6e4120[channel].uiFadeRate = 0;
-    g_sound_channels_6e4120[channel].uiFadeTime = 0;
+    pSoundList[channel].pSample = 0;
+    pSoundList[channel].uiSample = NO_SAMPLE;
+    pSoundList[channel].hMSS = 0;
+    pSoundList[channel].hMSSStream = 0;
+    pSoundList[channel].hM3D = 0;
+    pSoundList[channel].uiFlags = 0;
+    pSoundList[channel].uiSoundID = NO_SAMPLE;
+    pSoundList[channel].uiPriority = PRIORITY_MAX;
+    pSoundList[channel].pCallback = 0;
+    pSoundList[channel].pData = 0;
+    pSoundList[channel].EOSCallback = 0;
+    pSoundList[channel].pCallbackData = 0;
+    pSoundList[channel].uiTimeStamp = GetTickCount();
+    pSoundList[channel].fLooping = 0;
+    pSoundList[channel].hFile = 0xffffffff;
+    pSoundList[channel].fMusic = 0;
+    pSoundList[channel].fStopAtZero = 1;
+    pSoundList[channel].uiFadeVolume = 0;
+    pSoundList[channel].uiFadeRate = 0;
+    pSoundList[channel].uiFadeTime = 0;
 }
 
 // FUNCTION: WIZ8 0x00409fe0
@@ -400,17 +382,17 @@ int SoundStartSample00409fe0(int sample, int channel, int* options)
     SAMPLETAG* entry;
     int volume;
 
-    if (g_flag_650e50 == 0) {
+    if (fSoundSystemInit == 0) {
         return -1;
     }
-    slot = &g_sound_channels_6e4120[channel];
-    slot->hMSS = AIL_allocate_sample_handle(g_sound_driver_6e4104);
+    slot = &pSoundList[channel];
+    slot->hMSS = AIL_allocate_sample_handle(hSoundDriver);
     if (slot->hMSS == 0) {
         sprintf(error, "Sample Error: %s", AIL_last_error());
         return -1;
     }
     AIL_init_sample(slot->hMSS);
-    entry = &g_sound_samples_6e4aa0[sample];
+    entry = &pSampleList[sample];
     if (AIL_set_named_sample_file(
             slot->hMSS, entry->pName, entry->pData, entry->uiSize,
             0) == 0) {
@@ -479,16 +461,12 @@ int SoundStartSample00409fe0(int sample, int channel, int* options)
             reinterpret_cast<void (*)(void*)>(options[6]);
         slot->pCallbackData = reinterpret_cast<void*>(options[7]);
     }
-    int sound_id = g_sound_id_counter_650e64;
-    if (sound_id == -1) {
-        sound_id = 0;
-    }
-    g_sound_id_counter_650e64 = sound_id + 1;
+    int sound_id = SoundGetUniqueID();
     slot->uiSoundID = sound_id;
     slot->uiSample = sample;
     slot->uiTimeStamp = GetTickCount();
     unsigned int fade;
-    if (g_flag_650e50 != 0) {
+    if (fSoundSystemInit != 0) {
         if (slot->hMSS != 0) {
             fade = AIL_sample_volume(slot->hMSS);
         }
@@ -523,17 +501,17 @@ int SoundStopIndex0040a5c0(int channel)
     int status;
     int in_use;
 
-    if (g_flag_650e50 == 0 || channel == -1) {
+    if (fSoundSystemInit == 0 || channel == -1) {
         return 0;
     }
-    slot = &g_sound_channels_6e4120[channel];
+    slot = &pSoundList[channel];
     if (slot->hMSS != 0) {
         AIL_stop_sample(slot->hMSS);
         AIL_release_sample_handle(slot->hMSS);
         slot->hMSS = 0;
         sample = slot->uiSample;
-        if ((g_sound_samples_6e4aa0[sample].uiFlags & SAMPLE_RANDOM) != 0) {
-            g_sound_samples_6e4aa0[sample].uiInstances -= 1;
+        if ((pSampleList[sample].uiFlags & SAMPLE_RANDOM) != 0) {
+            pSampleList[sample].uiInstances -= 1;
         }
         if (slot->EOSCallback != 0) {
             slot->EOSCallback(slot->pCallbackData);
@@ -543,12 +521,12 @@ int SoundStopIndex0040a5c0(int channel)
         if (slot->fLooping != 0) {
             in_use = 0;
             for (index = 0; index < 32 && in_use == 0; ++index) {
-                if (g_sound_channels_6e4120[index].uiSample ==
+                if (pSoundList[index].uiSample ==
                         static_cast<unsigned int>(channel) &&
-                    g_flag_650e50 != 0) {
+                    fSoundSystemInit != 0) {
                     found = -1;
                     for (probe = 0; probe < 32; ++probe) {
-                        if (g_sound_channels_6e4120[probe].uiSoundID ==
+                        if (pSoundList[probe].uiSoundID ==
                             static_cast<unsigned int>(index)) {
                             found = probe;
                             break;
@@ -556,7 +534,7 @@ int SoundStopIndex0040a5c0(int channel)
                     }
                     if (found != -1) {
                         SOUNDTAG* occupant =
-                            &g_sound_channels_6e4120[found];
+                            &pSoundList[found];
                         status = SMP_DONE;
                         if (occupant->hMSS != 0) {
                             status = AIL_sample_status(occupant->hMSS);
@@ -575,9 +553,9 @@ int SoundStopIndex0040a5c0(int channel)
                 }
             }
             if (in_use == 0 &&
-                (g_sound_samples_6e4aa0[sample].uiFlags &
+                (pSampleList[sample].uiFlags &
                  SAMPLE_ALLOCATED) != 0) {
-                g_sound_samples_6e4aa0[sample].uiFlags &= ~SAMPLE_LOCKED;
+                pSampleList[sample].uiFlags &= ~SAMPLE_LOCKED;
             }
         }
         slot->uiSample = NO_SAMPLE;
@@ -595,8 +573,8 @@ int SoundStopIndex0040a5c0(int channel)
         AIL_release_3D_sample_handle(slot->hM3D);
         slot->hM3D = 0;
         sample = slot->uiSample;
-        if ((g_sound_samples_6e4aa0[sample].uiFlags & SAMPLE_RANDOM) != 0) {
-            g_sound_samples_6e4aa0[sample].uiInstances -= 1;
+        if ((pSampleList[sample].uiFlags & SAMPLE_RANDOM) != 0) {
+            pSampleList[sample].uiInstances -= 1;
         }
         if (slot->EOSCallback != 0) {
             slot->EOSCallback(slot->pCallbackData);
@@ -604,12 +582,12 @@ int SoundStopIndex0040a5c0(int channel)
         if (slot->fLooping != 0) {
             in_use = 0;
             for (index = 0; index < 32 && in_use == 0; ++index) {
-                if (g_sound_channels_6e4120[index].uiSample ==
+                if (pSoundList[index].uiSample ==
                         static_cast<unsigned int>(channel) &&
-                    g_flag_650e50 != 0) {
+                    fSoundSystemInit != 0) {
                     found = -1;
                     for (probe = 0; probe < 32; ++probe) {
-                        if (g_sound_channels_6e4120[probe].uiSoundID ==
+                        if (pSoundList[probe].uiSoundID ==
                             static_cast<unsigned int>(index)) {
                             found = probe;
                             break;
@@ -617,7 +595,7 @@ int SoundStopIndex0040a5c0(int channel)
                     }
                     if (found != -1) {
                         SOUNDTAG* occupant =
-                            &g_sound_channels_6e4120[found];
+                            &pSoundList[found];
                         status = SMP_DONE;
                         if (occupant->hMSS != 0) {
                             status = AIL_sample_status(occupant->hMSS);
@@ -636,9 +614,9 @@ int SoundStopIndex0040a5c0(int channel)
                 }
             }
             if (in_use == 0 &&
-                (g_sound_samples_6e4aa0[sample].uiFlags &
+                (pSampleList[sample].uiFlags &
                  SAMPLE_ALLOCATED) != 0) {
-                g_sound_samples_6e4aa0[sample].uiFlags &= ~SAMPLE_LOCKED;
+                pSampleList[sample].uiFlags &= ~SAMPLE_LOCKED;
             }
         }
         slot->uiSample = NO_SAMPLE;
@@ -660,11 +638,11 @@ int SoundStopIndex0040a5c0(int channel)
 int Function40A910(const char* path)
 {
     unsigned int* slot = reinterpret_cast<unsigned int*>(
-        &g_sound_channels_6e4120[0].hMSSStream);
+        &pSoundList[0].hMSSStream);
 
     do {
         int status = SMP_DONE;
-        if (g_flag_650e50 != 0) {
+        if (fSoundSystemInit != 0) {
             if (slot[-1] != 0) {
                 status = AIL_sample_status((HSAMPLE)slot[-1]);
             }
@@ -676,14 +654,14 @@ int Function40A910(const char* path)
             }
             if (status != SMP_DONE && status != SMP_STOPPED &&
                 _stricmp(
-                    reinterpret_cast<const char*>(g_sound_samples_6e4aa0) +
+                    reinterpret_cast<const char*>(pSampleList) +
                         slot[-2] * 0x36,
                     path) == 0) {
                 return 1;
             }
         }
         slot += 0x13;
-    } while (slot < (unsigned int*)&g_sound_channels_6e4120[27].hMSSStream);
+    } while (slot < (unsigned int*)&pSoundList[27].hMSSStream);
     return 0;
 }
 
@@ -703,9 +681,9 @@ unsigned char SoundInitHardware00409C50(void)
     if (AIL_startup() == 0) {
         return 0;
     }
-    g_sound_driver_6e4104 = 0;
+    hSoundDriver = 0;
     AIL_set_preference(DIG_MIXER_CHANNELS, 32);
-    g_direct_sound_5ff650 = 1;
+    fDirectSound = 1;
     AIL_set_preference(DIG_USE_WAVEOUT, 0);
     driver = AIL_open_digital_driver(44100, 16, 2, 0);
     if (driver == 0) {
@@ -718,7 +696,7 @@ unsigned char SoundInitHardware00409C50(void)
         }
         AIL_digital_configuration(driver, 0, 0, (char*)config);
     }
-    g_sound_driver_6e4104 = driver;
+    hSoundDriver = driver;
     if (driver != 0) {
         goto fetch_config;
     }
@@ -733,7 +711,7 @@ unsigned char SoundInitHardware00409C50(void)
         }
         AIL_digital_configuration(driver, 0, 0, (char*)config);
     }
-    g_sound_driver_6e4104 = driver;
+    hSoundDriver = driver;
     if (driver != 0) {
         goto fetch_config;
     }
@@ -748,7 +726,7 @@ unsigned char SoundInitHardware00409C50(void)
         }
         AIL_digital_configuration(driver, 0, 0, (char*)config);
     }
-    g_sound_driver_6e4104 = driver;
+    hSoundDriver = driver;
     if (driver != 0) {
         goto fetch_config;
     }
@@ -763,23 +741,23 @@ unsigned char SoundInitHardware00409C50(void)
         }
         AIL_digital_configuration(driver, 0, 0, (char*)config);
     }
-    g_sound_driver_6e4104 = driver;
+    hSoundDriver = driver;
     if (driver == 0) {
         goto wave_out;
     }
 fetch_config:
     name[0] = 0;
-    AIL_digital_configuration(g_sound_driver_6e4104, 0, 0, name);
+    AIL_digital_configuration(hSoundDriver, 0, 0, name);
     _strlwr(name);
     if (strstr(name, "emulated") == 0) {
         goto started;
     }
-    AIL_close_digital_driver(g_sound_driver_6e4104);
-    g_sound_driver_6e4104 = 0;
+    AIL_close_digital_driver(hSoundDriver);
+    hSoundDriver = 0;
 wave_out:
-    g_direct_sound_5ff650 = 0;
+    fDirectSound = 0;
     AIL_set_preference(DIG_USE_WAVEOUT, 1);
-    if (g_sound_driver_6e4104 == 0) {
+    if (hSoundDriver == 0) {
         driver = AIL_open_digital_driver(44100, 16, 2, 0);
         if (driver == 0) {
             driver = 0;
@@ -791,7 +769,7 @@ wave_out:
             }
             AIL_digital_configuration(driver, 0, 0, (char*)config);
         }
-        g_sound_driver_6e4104 = driver;
+        hSoundDriver = driver;
         if (driver == 0) {
             driver = AIL_open_digital_driver(44100, 8, 2, 0);
             if (driver == 0) {
@@ -804,7 +782,7 @@ wave_out:
                 }
                 AIL_digital_configuration(driver, 0, 0, (char*)config);
             }
-            g_sound_driver_6e4104 = driver;
+            hSoundDriver = driver;
             if (driver == 0) {
                 driver = AIL_open_digital_driver(22050, 8, 2, 0);
                 if (driver == 0) {
@@ -817,7 +795,7 @@ wave_out:
                     }
                     AIL_digital_configuration(driver, 0, 0, (char*)config);
                 }
-                g_sound_driver_6e4104 = driver;
+                hSoundDriver = driver;
                 if (driver == 0) {
                     driver = AIL_open_digital_driver(11025, 8, 1, 0);
                     if (driver == 0) {
@@ -831,7 +809,7 @@ wave_out:
                         AIL_digital_configuration(
                             driver, 0, 0, (char*)config);
                     }
-                    g_sound_driver_6e4104 = driver;
+                    hSoundDriver = driver;
                     if (driver == 0) {
                         return 0;
                     }
@@ -840,6 +818,6 @@ wave_out:
         }
     }
 started:
-    memset(g_sound_channels_6e4120, 0, sizeof(g_sound_channels_6e4120));
+    memset(pSoundList, 0, sizeof(pSoundList));
     return 1;
 }

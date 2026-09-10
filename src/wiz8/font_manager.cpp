@@ -30,7 +30,7 @@ static const unsigned short g_default_font_translation[252] = {
 };
 
 // FUNCTION: WIZ8 0x00407ec0
-FontTranslationTable* CreateDefaultFontTranslationTable(void)
+extern "C" FontTranslationTable* CreateEnglishTransTable(void)
 {
     FontTranslationTable* table =
         (FontTranslationTable*)malloc(sizeof(FontTranslationTable));
