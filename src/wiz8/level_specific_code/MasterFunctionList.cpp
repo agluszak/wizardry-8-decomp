@@ -7,6 +7,28 @@ extern "C" {
 int g_value_6834d4;
 }
 
+// GLOBAL: WIZ8 0x006834d8
+W8GrowableVector<W8MasterFunction>* g_master_functions_006834d8;
+// GLOBAL: WIZ8 0x006834dc
+unsigned char g_flag_006834dc;
+
+/* Run every registered master function once with argument zero, dropping the
+   ones that set the removal flag while it runs. */
+// FUNCTION: WIZ8 0x004D8E40
+void RunMasterFunctions004D8E40(void)
+{
+    int count = g_master_functions_006834d8->GetCount();
+
+    for (int index = 0; index < count; ++index) {
+        (*g_master_functions_006834d8->GetAt(index))(0);
+        if (g_flag_006834dc != 0) {
+            g_master_functions_006834d8->RemoveAt(index);
+            --count;
+            --index;
+        }
+    }
+}
+
 /* Predicate installed in the master-function callback table. */
 // FUNCTION: WIZ8 0x004D95F0
 unsigned char IsMasterFunctionTypeEight004D95F0(int type)

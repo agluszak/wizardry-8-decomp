@@ -57,6 +57,10 @@ public:
         float duration, char preset, float intensity, int value_08,
         const srVector3T<float>* position);   /* 0x004ADED0 */
     W8CameraShakeEffect(const W8CameraShakeEffect& other); /* 0x004AE000 */
+    /* Per-frame evaluation: answers whether the effect is still active and
+       reports how much it contributes this frame. */
+    unsigned char Evaluate004AE4E0(
+        const srVector3T<float>* position, float* out_amount);
 
     unsigned int flags_00;               /* 0x00 */
     float intensity_04;                  /* 0x04 */
@@ -91,6 +95,9 @@ void TriggerShakeEffects004AE170(
    release the ones that list owned. */
 void StopShakeEffects004AE270(
     W8GrowableVector<W8CameraShakeEffect*>* effects);
+/* The per-frame shake update: retire finished live effects and turn the
+   accumulated intensity into Trigger's action camera offset. */
+void UpdateShakeEffects004AE310();
 
 /* 0x004A5F20 allocates 0x3c for each of these and copies them field by field:
    a leading dword, the byte after it, an owned stParticle rebuilt through

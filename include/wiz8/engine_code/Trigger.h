@@ -245,6 +245,10 @@ extern unsigned char g_flag_00606994;
 extern unsigned char g_flag_0068506e;
 /* Camera position cached by the per-frame trigger walk. */
 extern srVector3T<float> g_trigger_camera_006599a0;
+/* Trigger's action camera offset, added to the world scene position while an
+   action is active, and the flag that says one is. */
+extern unsigned char g_trigger_action_active_006599c8;
+extern srVector3T<float> g_trigger_action_scene_offset_006599ac;
 extern int g_value_0068c520;
 extern int g_value_0068c548;
 extern int g_value_005ee59c;

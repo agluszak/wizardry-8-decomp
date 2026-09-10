@@ -72,6 +72,10 @@ void Function5227D0(
     W8ItemInstance* item, unsigned char choose_character, W8Character* character);
 char PartyAttemptsToIdentifyItem(W8ItemInstance* item, int argument_2);
 
+/* Same equipment class, and same unidentified display name. */
+bool ItemsShareEquipClass(const W8ItemInstance* first, const W8ItemInstance* second);
+bool ItemsShareUnidentifiedName(const W8ItemInstance* first, const W8ItemInstance* second);
+
 bool CanCharacterUseItem(const W8Character* character, int item_id);
 
 unsigned int CountIdentifyAttemptsNeeded(

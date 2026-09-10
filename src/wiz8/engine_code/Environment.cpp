@@ -48,6 +48,11 @@ extern "C" stTextureAnim* g_environment_value_0065a16c;
 extern "C" stTextureAnim* g_environment_value_0065a170;
 extern "C" srVector3T<float> g_environment_origin_65ad88;
 extern const double g_zero_5ebb40;
+/* 0x005EBB34, the addressable zero the environment compares against. float_constants.h
+   cannot be included here because its non-const 0x005EBC30 declaration conflicts
+   with this unit's own const definition. */
+extern "C" float g_float_005ebb34;
+// GLOBAL: WIZ8 0x0065B9A8
 unsigned long g_tick_65b9a8;
 /* 0x00659AB4: the world being rendered. Its sky node is the one field these
    two bodies reach, and it is the same W8World the 3d code walks. */
@@ -66,6 +71,13 @@ W8GrowableVector<stLight*> g_environment_lights_0065b998(5);
 
 extern void PublishLightDirection(const int* direction);                 /* 0x00427380 */
 extern void Function502010(int elapsed);
+
+// GLOBAL: WIZ8 0x0065b9b8
+float g_environment_value_0065b9b8;
+// GLOBAL: WIZ8 0x0060a3ac
+int g_environment_value_0060a3ac = -1;
+// GLOBAL: WIZ8 0x0060a395
+unsigned char g_flag_0060a395 = 1;
 
 /* Advance the authoritative game clock and place the two celestial props on
    opposite sides of the world's recovered sky origin. The three animated sky
@@ -165,6 +177,82 @@ void Function482990(unsigned char enabled)
         unsigned long elapsed = now < g_tick_65b9a8
                                     ? now - g_tick_65b9a8 - 1
                                     : now - g_tick_65b9a8;
+        if (elapsed != 0) {
+            Function482A20((int)((double)elapsed * g_view_distance_0060a390));
+        }
+    }
+}
+
+/* The environment's per-frame update. A bypass value short-circuits to the
+   alternate body. Otherwise, in day/night mode the sky consumes the day phase
+   to pick the light direction, and the world colour table is refreshed from
+   the same phase whenever that flag is set; any other mode just advances the
+   clock. Every path that advances the clock converts the elapsed ticks with
+   the current view distance. */
+// FUNCTION: WIZ8 0x00482770
+void UpdateEnvironment482770(void)
+{
+    if (g_environment_value_0065b9b8 != g_float_005ebb34) {
+        UpdateEnvironmentLighting00484300();
+        return;
+    }
+    if (g_environment_flag_0060a394 == 0) {
+        return;
+    }
+    if (g_environment_value_0060a3a8 == 2) {
+        if (g_sky_enabled_0065b9ae != 0) {
+            unsigned long now = GetTickCount();
+            unsigned long elapsed = now < g_tick_65b9a8
+                                        ? now - g_tick_65b9a8 - 1
+                                        : now - g_tick_65b9a8;
+            if (elapsed != 0) {
+                Function482A20(
+                    (int)((double)elapsed * g_view_distance_0060a390));
+            }
+            unsigned int phase =
+                (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) /
+                86400U;
+            if (phase != (unsigned int)g_environment_value_0060a3ac) {
+                const int* direction = reinterpret_cast<const int*>(
+                    &g_environment_colours_65ad98[phase]);
+                g_light_direction_0065ad78 = direction[0];
+                g_light_direction_0065ad7c = direction[1];
+                g_light_direction_0065ad80 = direction[2];
+                PublishLightDirection(direction);
+                g_environment_value_0060a3ac = (int)phase;
+            }
+        }
+        if (g_flag_0060a395 != 0) {
+            if (g_environment_flag_0060a394 != 0) {
+                unsigned long now = GetTickCount();
+                unsigned long elapsed = now < g_tick_65b9a8
+                                            ? now - g_tick_65b9a8 - 1
+                                            : now - g_tick_65b9a8;
+                if (elapsed != 0) {
+                    Function482A20(
+                        (int)((double)elapsed * g_view_distance_0060a390));
+                }
+            }
+            unsigned int phase =
+                (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) /
+                86400U;
+            if (phase != (unsigned int)g_environment_value_0060a3b0) {
+                EnvironmentColour colour = g_environment_colours_65a178[phase];
+                if (g_world == 0) {
+                    srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
+                    srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
+                }
+                SetWorldEnvironment00483BA0(
+                    g_world, g_world->environment_intensity_024, &colour);
+                g_environment_value_0060a3b0 = (int)phase;
+                return;
+            }
+        }
+    }
+    else {
+        unsigned long now = GetTickCount();
+        unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1
+                                                    : now - g_tick_65b9a8;
         if (elapsed != 0) {
             Function482A20((int)((double)elapsed * g_view_distance_0060a390));
         }

@@ -49,6 +49,10 @@ void ReleaseEnvironmentObjects(void);
 void Function482990(unsigned char enabled);
 float GetViewDistance(void);
 void Function482720(int value);
+/* The per-frame environment update, and the alternate lighting transition it
+   hands off to when the bypass value is set. */
+void UpdateEnvironment482770(void);
+void UpdateEnvironmentLighting00484300(void);
 float GetWorldValue24(const void* world);
 void SetSkyNodeVisible(char visible);
 void Function4836A0(void);
@@ -57,3 +61,10 @@ void SetViewDistance(float distance);
 
 extern int g_environment_value_0060a3a8;
 extern unsigned char g_fog_enabled_0065b9ad;
+/* Zero unless the environment update is bypassed, in which case 0x00484300
+   runs instead. */
+extern float g_environment_value_0065b9b8;
+/* Last day phase the light direction and the world colour came from. */
+extern int g_environment_value_0060a3ac;
+extern int g_environment_value_0060a3b0;
+extern unsigned char g_flag_0060a395;

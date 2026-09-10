@@ -73,7 +73,9 @@ extern unsigned int FindMonsterLocationsInBox0042F280(
 extern stLight* FindLightByName00445A10(
     const char* name, const srRuntimeClass* relative_to);
 
+// GLOBAL: WIZ8 0x006599C8
 unsigned char g_trigger_action_active_006599c8;
+// GLOBAL: WIZ8 0x006599AC
 srVector3T<float> g_trigger_action_scene_offset_006599ac;
 // GLOBAL: WIZ8 0x00659908
 char g_trigger_parse_buffer_00659908[256];

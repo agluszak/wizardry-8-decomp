@@ -1,6 +1,9 @@
 #include "wiz8/engine_code/SoundEvent.h"
 #include "wiz8/engine_code/GrCycle.h"
+#include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/Trigger.h"
 #include "wiz8/float_constants.h"
+#include "random.h"
 extern "C" {
 // GLOBAL: WIZ8 0x005ebc3c
 float g_float_005ebc3c = 0.10000000149011612f;
@@ -62,6 +65,10 @@ srVector3T<double>* srVector3T<double>::method_004A90E0(
 extern float g_float_005ecf98;
 // GLOBAL
 float g_float_005ecf98 = 0.02500000037252903f;
+// GLOBAL: WIZ8 0x005ecf9c
+float g_float_005ecf9c = 250.0f;
+// GLOBAL: WIZ8 0x0060da88
+unsigned char g_flag_0060da88 = 1;
 // GLOBAL: WIZ8 0x0065be2c
 W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects_0065be2c;
 // GLOBAL: WIZ8 0x0065be30
@@ -186,6 +193,60 @@ void StopShakeEffects004AE270(W8GrowableVector<W8CameraShakeEffect*>* effects)
 
 // SYNTHETIC: WIZ8 0x004ae070
 // W8CameraShakeEffect::~W8CameraShakeEffect
+
+/* Evaluate every live shake effect once per frame. An effect that reports
+   itself finished is removed from the live list; the list releases it only
+   when it owns it, after running its completion callback. The accumulated
+   amounts are clamped and scaled into the three random components of the
+   Trigger action camera offset, which the renderer adds to the scene. */
+// FUNCTION: WIZ8 0x004ae310
+void UpdateShakeEffects004AE310()
+{
+    if (g_flag_0060da88 == 0 || g_shake_effects_0065be2c == 0 ||
+        g_shake_timer_0065be30->GetProgress() < g_float_005ebb38) {
+        return;
+    }
+    if (g_shake_effects_0065be2c->GetCount() != 0) {
+        float intensity = 0.0f;
+        srVector3T<float> camera;
+        GetCameraPosition(&camera);
+        for (int index = 0; index < g_shake_effects_0065be2c->GetCount();
+             ++index) {
+            W8CameraShakeEffect* effect =
+                *g_shake_effects_0065be2c->GetAt(index);
+            float amount;
+            if (effect->Evaluate004AE4E0(&camera, &amount) == 0) {
+                g_shake_effects_0065be2c->RemoveAt(index);
+                --index;
+                effect->flags_00 &= ~1u;
+                if (effect->value_48 != 0) {
+                    reinterpret_cast<void (*)()>(effect->value_48)();
+                }
+                if ((effect->flags_00 >> 1 & 1) != 0 && effect != 0) {
+                    delete effect;
+                }
+            }
+            else {
+                intensity += amount;
+            }
+        }
+        if (intensity > g_float_005ebb34) {
+            float amplitude =
+                intensity < g_float_005ebb38 ? intensity : g_float_005ebb38;
+            amplitude *= g_float_005ecf9c;
+            int span = static_cast<int>(amplitude) << 1;
+            g_trigger_action_scene_offset_006599ac.x =
+                static_cast<float>(Random(span)) - amplitude;
+            g_trigger_action_scene_offset_006599ac.y =
+                static_cast<float>(Random(span)) - amplitude;
+            g_trigger_action_scene_offset_006599ac.z =
+                static_cast<float>(Random(span)) - amplitude;
+            g_trigger_action_active_006599c8 = 1;
+            return;
+        }
+    }
+    g_trigger_action_active_006599c8 = 0;
+}
 
 extern int UpdateSoundEvents004D5890(
     W8GrowableVector<W8VectorElement005ED094*>* events,
