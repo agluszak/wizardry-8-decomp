@@ -9,6 +9,8 @@ extern W8GrowableVector<W8EncounterTableRuntime*> g_encounter_tables;
 extern W8GrowableVector<char*> g_encounter_names;
 extern int g_encounter_tables_level;
 
+struct W8MonsterGroup;
+
 void SaveEncounterState(int handle);
 void SaveMonsterGenerators(int handle);
 void RunMonsterGenerators(void);
@@ -19,7 +21,7 @@ void UpdateRandomEncounterBudget(unsigned char reset_budget);
 
 extern int g_random_encounter_budget;
 extern int g_random_encounter_limit;
-extern int g_active_group_count;
+extern W8GrowableVector<W8MonsterGroup*> g_active_groups;
 extern unsigned char g_generator_save_flag;
 extern short g_generator_default_interval;
 extern short g_generator_interval_min;

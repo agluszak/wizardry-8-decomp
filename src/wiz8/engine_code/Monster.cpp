@@ -118,7 +118,6 @@ extern unsigned char g_force_encounter_culling; /* 0x00687500 */
 // GLOBAL
 unsigned char g_force_encounter_culling;
 extern W8NpcState* Function50A440(unsigned int monster_list_index);
-extern float g_float_005ec128;
 extern const double g_monster_script_direction_step_005ed2b8;
 extern const double g_monster_facing_tolerance_005ec2b0;
 extern const double g_monster_group_nearest_range_005ed2c0;

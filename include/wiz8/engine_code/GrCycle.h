@@ -181,6 +181,10 @@ public:
 
 static_assert(sizeof(W8GrCycle) == 0x1d8, "W8GrCycle_size_must_be_0x1d8");
 
+/* 0x005EC128: hundredth-second scale shared by the monster and trigger
+   durations. */
+extern float g_float_005ec128;
+
 W8GrCycle* FindFirstGrCycleByName(const char* name);
 unsigned char UnregisterGrCycle(W8GrCycle* cycle);
 void RegisterGrCycle(const char* name, W8GrCycle* cycle);

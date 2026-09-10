@@ -13,18 +13,22 @@ struct W8World;
 struct W8WorldItem;
 
 /* Timed Trigger actions are ordinary polymorphic objects owned by Trigger.cpp.
-   The 0x38-byte event owns its embedded timer, but not auxiliary_timer_02c;
+   The 0x38-byte event owns its embedded timer, but not m_pCountdown;
    its destructor at 0x004409A0 tears down only timer_008. */
 class W8TriggerEvent {
 public:
-    W8TriggerEvent();
+    W8TriggerEvent()
+        : action_004(-1), timer_008(), m_pCountdown(0), trigger_030(0),
+          repeat_034(0), completed_035(0)
+    {
+    }
     virtual ~W8TriggerEvent();
     virtual void Update();
 
     short action_004;
     unsigned short unknown_006;
     W8GameTimer timer_008;
-    W8GameTimer* auxiliary_timer_02c;
+    W8GameTimer* m_pCountdown;
     Trigger* trigger_030;
     unsigned char repeat_034;
     unsigned char completed_035;
@@ -262,8 +266,9 @@ extern int g_value_005ee59c;
 extern int g_value_005ee5a0;
 extern int g_value_005ed8c8;
 
-void CreateTriggerShakeEvent00444F70(int value, float duration, float intensity,
-                          unsigned char reverse);
+unsigned char CreateTriggerShakeEvent00444F70(
+    int intensity, float duration, float countdown_duration,
+    unsigned char reverse);
 unsigned char Function445140(W8World* world);
 
 

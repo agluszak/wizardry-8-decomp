@@ -1129,3 +1129,16 @@ void GDCamera::SetManualControlActive(unsigned char enabled)
 
 // TEMPLATE: WIZ8 0x00478EB0
 // srMatrix3T<float>::RotateAboutX
+
+/* Project one world point through the active world's camera and report
+   whether it stays in front of it. */
+// FUNCTION: WIZ8 0x004BE940
+unsigned char ProjectPointThroughCamera004BE940(srVector3T<float>* position)
+{
+    srVector3T<float> projected;
+    srVector3T<double> input(
+        (double)position->x, (double)position->y, (double)position->z);
+
+    return g_world->camera->project(projected, input) ==
+           srCamera::PROJECTION_RESULT_POSITIONAL_0;
+}

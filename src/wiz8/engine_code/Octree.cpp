@@ -710,6 +710,23 @@ unsigned char W8Octree::UpdateWorldTrace00433EB0()
     return 1;
 }
 
+// GLOBAL: WIZ8 0x005ebf60
+const double g_double_005ebf60 = 255.0;
+
+/* Pack four filtered colour components into the caller's unsigned long: red
+   lands in the top byte and alpha in the low one. */
+// FUNCTION: WIZ8 0x00433fb0
+unsigned long* __fastcall PackColour00433FB0(
+    unsigned long* color, double red, double green, double blue, double alpha)
+{
+    unsigned char* bytes = reinterpret_cast<unsigned char*>(color); // reinterpret-ok: packed colour storage
+    bytes[3] = (unsigned char)(red * g_double_005ebf60);
+    bytes[2] = (unsigned char)(green * g_double_005ebf60);
+    bytes[1] = (unsigned char)(blue * g_double_005ebf60);
+    bytes[0] = (unsigned char)(alpha * g_double_005ebf60);
+    return color;
+}
+
 /* Validate the current octree's region-to-mesh links against a scratch copy
    of the spatial state. The scratch copy is flattened to the leaf level with
    all region bounds enabled, and every reported bad link is posted as one

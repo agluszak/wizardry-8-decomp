@@ -55,10 +55,8 @@ int g_random_encounter_budget = 20;
 // GLOBAL: WIZ8 0x0060a6c0
 int g_random_encounter_limit = 10;
 
-// GLOBAL: WIZ8 0x0065ba14
-int g_active_group_count;
-// GLOBAL: WIZ8 0x0065ba1c
-W8MonsterGroup** g_active_groups;
+// GLOBAL: WIZ8 0x0065ba10
+W8GrowableVector<W8MonsterGroup*> g_active_groups;
 
 // GLOBAL: WIZ8 0x0065ba48
 unsigned char g_generator_save_flag;
@@ -235,9 +233,8 @@ void UpdateRandomEncounterBudget(unsigned char reset_budget)
         RollRandomEncounters();
         return;
     }
-    for (index = 0; index < g_active_group_count; ++index) {
-        W8MonsterGroup* group =
-            index < g_active_group_count ? g_active_groups[index] : g_active_groups[0];
+    for (index = 0; index < g_active_groups.count; ++index) {
+        W8MonsterGroup* group = *g_active_groups.GetAt(index);
 
         group->spawn_time += elapsed;
     }
@@ -246,8 +243,8 @@ void UpdateRandomEncounterBudget(unsigned char reset_budget)
 // FUNCTION: WIZ8 0x0048c9f0
 void DespawnAllActiveMonsterGroups0048C9F0(void)
 {
-    while (g_active_group_count > 0) {
-        DespawnMonsterGroup(g_active_groups[g_active_group_count - 1]);
+    while (g_active_groups.count > 0) {
+        DespawnMonsterGroup(g_active_groups.data[g_active_groups.count - 1]);
     }
 }
 extern unsigned char g_force_encounter_culling;     /* 0x00687500 */
@@ -304,9 +301,8 @@ void CullExpiredEncounters(void)
         span = g_level_records[g_status_685170.current_level].encounter_culling_seconds *
                g_encounter_culling_scale_fast * g_encounter_culling_rate;
     }
-    for (index = 0; index < g_active_group_count; ++index) {
-        W8MonsterGroup* group =
-            index < g_active_group_count ? g_active_groups[index] : g_active_groups[0];
+    for (index = 0; index < g_active_groups.count; ++index) {
+        W8MonsterGroup* group = *g_active_groups.GetAt(index);
 
         if (span < static_cast<float>(
                        static_cast<unsigned int>(g_status_685170.world_clock - group->spawn_time))) {

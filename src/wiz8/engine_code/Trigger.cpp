@@ -5,6 +5,7 @@
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/magic.h"
 #include "wiz8/engine_code/Environment.h"
+#include "wiz8/engine_code/GrCycle.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_code/Configuration.h"
@@ -342,12 +343,6 @@ Trigger* FindTriggerByName(const char* name)
 // VTABLE: WIZ8 0x005ec12c
 // class W8TriggerEvent
 
-W8TriggerEvent::W8TriggerEvent()
-    : action_004(-1), timer_008(), auxiliary_timer_02c(0), trigger_030(0),
-      repeat_034(0), completed_035(0)
-{
-}
-
 // SYNTHETIC: WIZ8 0x00440980
 // W8TriggerEvent::`scalar deleting destructor'
 
@@ -358,7 +353,10 @@ W8TriggerEvent::~W8TriggerEvent()
 
 class W8TriggerShakeEvent : public W8TriggerEvent {
 public:
-    W8TriggerShakeEvent();
+    W8TriggerShakeEvent()
+        : effect_038(0), intensity_03c(1), reverse_040(0)
+    {
+    }
     virtual void Update() override;
 
     W8CameraShakeEffect* effect_038;
@@ -372,11 +370,6 @@ static_assert(sizeof(W8TriggerShakeEvent) == 0x44,
 
 // VTABLE: WIZ8 0x005ec140
 // class W8TriggerShakeEvent
-
-W8TriggerShakeEvent::W8TriggerShakeEvent()
-    : effect_038(0), intensity_03c(1), reverse_040(0)
-{
-}
 
 // GLOBAL: WIZ8 0x006599a0
 srVector3T<float> g_trigger_camera_006599a0;
@@ -482,7 +475,7 @@ void W8TriggerShakeEvent::Update()
             intensity = 1.0f;
         }
         effect_038 = CreateCameraShakeEffect004AE080(
-            auxiliary_timer_02c->m_duration_seconds, 0, intensity, 0, 0);
+            m_pCountdown->m_duration_seconds, 0, intensity, 0, 0);
         effect_038->flags_00 &= ~2;
         if (reverse_040 != 0) {
             effect_038->flags_00 |= 0x10;
@@ -499,6 +492,41 @@ void W8TriggerShakeEvent::Update()
             completed_035 = 1;
         }
     }
+}
+
+/* Create one shake-camera event and queue it on the world's timed-event list.
+   The caller passes the intensity, the effect duration and the optional
+   countdown duration, all scaled by the trigger unit's 0.001 factor. */
+// FUNCTION: WIZ8 0x00444F70
+unsigned char CreateTriggerShakeEvent00444F70(
+    int intensity, float duration, float countdown_duration,
+    unsigned char reverse)
+{
+    W8TriggerShakeEvent* pEvent = new W8TriggerShakeEvent;
+
+    if (pEvent == 0) {
+        srAssertFail(
+            "pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+            0x1372, "Out of memory creating shake camera event");
+    }
+    pEvent->repeat_034 = 1;
+    pEvent->intensity_03c = intensity;
+    if (pEvent->m_pCountdown != 0) {
+        delete pEvent->m_pCountdown;
+    }
+    pEvent->m_pCountdown = new W8GameTimer;
+    if (pEvent->m_pCountdown == 0) {
+        srAssertFail(
+            "m_pCountdown", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+            0x12de, 0);
+    }
+    pEvent->m_pCountdown->SetDuration(countdown_duration * g_float_005ec128);
+    pEvent->m_pCountdown->Restart();
+    pEvent->timer_008.SetDuration(duration * g_float_005ec128);
+    pEvent->timer_008.Restart();
+    pEvent->reverse_040 = reverse;
+    g_timed_events_006599b8.Add(pEvent);
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x004447F0
@@ -532,8 +560,8 @@ void Trigger::Activate00444750()
             if (event != 0 &&
                 g_timed_events_006599b8.IndexOf(event) != -1) {
                 event->timer_008.Restart();
-                if (event->auxiliary_timer_02c != 0) {
-                    event->auxiliary_timer_02c->Restart();
+                if (event->m_pCountdown != 0) {
+                    event->m_pCountdown->Restart();
                 }
             }
         }
@@ -2272,8 +2300,8 @@ void Trigger::Run(int source)
                 }
             }
             m_pEvent->timer_008.Restart();
-            if (m_pEvent->auxiliary_timer_02c != 0) {
-                m_pEvent->auxiliary_timer_02c->Restart();
+            if (m_pEvent->m_pCountdown != 0) {
+                m_pEvent->m_pCountdown->Restart();
             }
             g_timed_events_006599b8.Add(m_pEvent);
             flag_0a0_06 = 1;
@@ -2327,8 +2355,8 @@ void Trigger::Run(int source)
                 if (m_pEvent != 0 &&
                     g_timed_events_006599b8.IndexOf(m_pEvent) != -1) {
                     m_pEvent->timer_008.Restart();
-                    if (m_pEvent->auxiliary_timer_02c != 0) {
-                        m_pEvent->auxiliary_timer_02c->Restart();
+                    if (m_pEvent->m_pCountdown != 0) {
+                        m_pEvent->m_pCountdown->Restart();
                     }
                     goto commit_action;
                 }
@@ -2937,17 +2965,17 @@ toggle_item_prop:
             event->intensity_03c = m_lData1 == -1 ? 800 : m_lData1;
 
             if (m_lData3 != -1) {
-                delete event->auxiliary_timer_02c;
-                event->auxiliary_timer_02c = new W8GameTimer;
-                if (event->auxiliary_timer_02c == 0) {
+                delete event->m_pCountdown;
+                event->m_pCountdown = new W8GameTimer;
+                if (event->m_pCountdown == 0) {
                     srAssertFail(
                         "m_pCountdown",
                         "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
                         0x12de, 0);
                 }
-                event->auxiliary_timer_02c->SetDuration(
+                event->m_pCountdown->SetDuration(
                     (float)abs(m_lData3) * 0.001f);
-                event->auxiliary_timer_02c->Restart();
+                event->m_pCountdown->Restart();
                 if (m_lData3 < 0) {
                     event->reverse_040 = 1;
                 }
@@ -2956,8 +2984,8 @@ toggle_item_prop:
         else {
             event = static_cast<W8TriggerShakeEvent*>(m_pEvent);
             event->timer_008.Restart();
-            if (event->auxiliary_timer_02c != 0) {
-                event->auxiliary_timer_02c->Restart();
+            if (event->m_pCountdown != 0) {
+                event->m_pCountdown->Restart();
             }
         }
 
@@ -3046,8 +3074,8 @@ toggle_item_prop:
                     0x8ae, 0);
             }
             m_pEvent->timer_008.Restart();
-            if (m_pEvent->auxiliary_timer_02c != 0) {
-                m_pEvent->auxiliary_timer_02c->Restart();
+            if (m_pEvent->m_pCountdown != 0) {
+                m_pEvent->m_pCountdown->Restart();
             }
         }
         g_timed_events_006599b8.Add(m_pEvent);
@@ -3179,17 +3207,17 @@ toggle_item_prop:
         g_timed_events_006599b8.Add(m_pEvent);
         m_pEvent->trigger_030 = this;
         m_pEvent->action_004 = (short)action_230;
-        delete m_pEvent->auxiliary_timer_02c;
-        m_pEvent->auxiliary_timer_02c = new W8GameTimer;
-        if (m_pEvent->auxiliary_timer_02c == 0) {
+        delete m_pEvent->m_pCountdown;
+        m_pEvent->m_pCountdown = new W8GameTimer;
+        if (m_pEvent->m_pCountdown == 0) {
             srAssertFail(
                 "m_pCountdown",
                 "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
                 0x12de, 0);
         }
-        m_pEvent->auxiliary_timer_02c->SetDuration(
+        m_pEvent->m_pCountdown->SetDuration(
             m_lData1 == -1 ? 10.0f : m_lData1 * 0.001f);
-        m_pEvent->auxiliary_timer_02c->Restart();
+        m_pEvent->m_pCountdown->Restart();
         m_pEvent->repeat_034 = 1;
         break;
     }
@@ -3416,8 +3444,8 @@ unsigned char Trigger::SelectAction()
                 return 0;
             }
             m_pEvent->timer_008.Restart();
-            if (m_pEvent->auxiliary_timer_02c != 0) {
-                m_pEvent->auxiliary_timer_02c->Restart();
+            if (m_pEvent->m_pCountdown != 0) {
+                m_pEvent->m_pCountdown->Restart();
             }
             if (flag_364 == 0) {
                 g_flag_00606994 = 1;

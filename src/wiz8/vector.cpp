@@ -127,11 +127,21 @@ struct W8NpcState;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-/* 0x005EBFB4 is a W8GrowableVector<T*> specialization fed by ctor 0x0042A260
-   (AutomapScreen.cpp's g_releasable_68f1f4 and an unattributed static at
-   0x00654AA8); AutomapScreen's declaration suggests srClass*, but the emission
-   has no recovered source owner, so its element type stays unresolved and its
-   vtable/ctor/destructor facts stay in the pointer-vector ledger. */
+/* 0x005EBFB4 is AutomapScreen.cpp's g_releasable_68f1f4, declared
+   W8GrowableVector<srClass*>*; its initializer at 0x00582310 installs this
+   final table. The vtable is not emitted by recovered source yet because the
+   constructing body is still unrecovered. */
+// VTABLE: WIZ8 0x005ebfb4
+// class W8GrowableVector<srClass*>
+
+// TEMPLATE: WIZ8 0x0042a260
+// W8GrowableVector<srClass*>::W8GrowableVector
+
+// SYNTHETIC: WIZ8 0x0042a310
+// W8GrowableVector<srClass*>::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x0042a2c0
+// W8GrowableVector<srClass*>::~W8GrowableVector<srClass*>
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
@@ -222,12 +232,38 @@ class W8Navigator;
 // TEMPLATE: WIZ8 0x004561a0
 // W8GrowableVector<W8Navigator*>::~W8GrowableVector<W8Navigator*>
 
-/* Three unresolved pointer-vector specializations whose final tables sit in
-   this range: 0x005EC514 (ctor 0x00474BE0, deleting destructor 0x00474E10,
-   complete destructor 0x00474C40), 0x005ECA5C (ctor 0x00489ED0, deleting
-   destructor 0x0048A140, complete destructor 0x00489F30) and 0x005ECA98
-   (ctor 0x0048CDA0, deleting destructor 0x0048CF00, complete destructor
-   0x0048CE00). Their element types stay unresolved. */
+/* stMeshModel.cpp's mesh-model registry at 0x00659CB8: the destructor at
+   0x00470ED0 walks count 0x659CBC / data 0x659CC4 and unlinks the model. */
+// VTABLE: WIZ8 0x005ec514
+// class W8GrowableVector<stMeshModel*>
+
+// TEMPLATE: WIZ8 0x00474be0
+// W8GrowableVector<stMeshModel*>::W8GrowableVector
+
+// SYNTHETIC: WIZ8 0x00474e10
+// W8GrowableVector<stMeshModel*>::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x00474c40
+// W8GrowableVector<stMeshModel*>::~W8GrowableVector<stMeshModel*>
+
+/* 0x005ECA5C is an unresolved pointer-vector specialization (ctor 0x00489ED0,
+   deleting destructor 0x0048A140, complete destructor 0x00489F30). */
+
+/* MonGen.cpp's active monster-group list at 0x0065BA10, whose count and data
+   the source currently spells as g_active_group_count and g_active_groups.
+   GenerateEncounter at 0x0048AD20 stores W8MonsterGroup* elements through
+   it. */
+// VTABLE: WIZ8 0x005eca98
+// class W8GrowableVector<W8MonsterGroup*>
+
+// TEMPLATE: WIZ8 0x0048cda0
+// W8GrowableVector<W8MonsterGroup*>::W8GrowableVector
+
+// SYNTHETIC: WIZ8 0x0048cf00
+// W8GrowableVector<W8MonsterGroup*>::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x0048ce00
+// W8GrowableVector<W8MonsterGroup*>::~W8GrowableVector<W8MonsterGroup*>
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
