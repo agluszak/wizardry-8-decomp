@@ -926,7 +926,7 @@ unsigned char CharacterCanSwitchTo(
         if (Function547940(character, 0x1c) == 0
             || *reinterpret_cast<int*>(raw + 0xb1d)
                < static_cast<int>(
-                   *reinterpret_cast<unsigned int*>(raw + 0xb19) / 5)) {
+                   *reinterpret_cast<unsigned int*>(raw + 0xb19) / 5)) { /* reinterpret-ok: unmodelled character stat */
             return 0;
         }
         break;
