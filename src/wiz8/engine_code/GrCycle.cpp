@@ -277,7 +277,7 @@ unsigned char LoadGrCycle004A67E0(
     unsigned char object_type,
     const char* bitmap_directory)
 {
-    W8GrCycleReadInfo004A6970 info;
+    W8ReadLevelInfo info;
     char mon_path[128];
     char bitmap_path[1024];
     unsigned char version;
@@ -304,10 +304,10 @@ unsigned char LoadGrCycle004A67E0(
         ShutdownWithErrorBox(FormatString("Couldn't open %s", mon_path));
     }
 
-    info.world_00 = context->world_00;
-    info.handle_04 = handle;
-    info.bitmap_directory_08 = bitmap_path;
-    info.mon_path_0c = mon_path;
+    info.world = context->world_00;
+    info.hFile = handle;
+    info.bitmap_folder = bitmap_path;
+    info.mesh_filename = mon_path;
     success = 1;
 
     if (FileRead(handle, &version, 1, 0) == 0 || version != 1 ||
@@ -336,7 +336,7 @@ unsigned char LoadGrCycle004A67E0(
    while the particle node remains scene-owned. */
 // FUNCTION: WIZ8 0x004A6970
 unsigned char ReadGrCycleData004A6970(
-    W8GrCycleReadInfo004A6970* info,
+    W8ReadLevelInfo* info,
     W8GrCycle** cycle,
     int cycle_index,
     int value,
@@ -386,11 +386,11 @@ unsigned char ReadGrCycleData004A6970(
         (*cycle)->GetRepresentation()->current_cycle = -1;
     }
 
-    FileRead(info->handle_04, &has_path, 1, 0);
+    FileRead(info->hFile, &has_path, 1, 0);
     if (has_path != 0 &&
         LoadPathAI004A92A0(
             reinterpret_cast<W8PathAI**>(&(*cycle)->m_pAI),
-            info->handle_04) == 0) {
+            info->hFile) == 0) {
         srAssertFail(
             "fSuccess",
             "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
@@ -398,12 +398,12 @@ unsigned char ReadGrCycleData004A6970(
             0);
     }
 
-    FileRead(info->handle_04, &has_particles, 1, 0);
+    FileRead(info->hFile, &has_particles, 1, 0);
     if (has_particles != 0) {
         W8GrowableVector<stParticle*> particles;
 
         success = ReadWorldParticles004BD0D0(
-            reinterpret_cast<W8ReadLevelInfo*>(info),
+            info,
             g_world->dynamic_scene,
             &particles);
         if (particles.GetCount() != 0) {

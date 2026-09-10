@@ -370,7 +370,7 @@ W8AnimRepBase005EC1D8* W8MissileRep::Clone()
 
 // FUNCTION: WIZ8 0x004A3300
 unsigned char W8MissileRep::ReadCycleData004A3300(
-    W8GrCycleReadInfo004A6970* info,
+    W8ReadLevelInfo* info,
     W8Missile* missile,
     int,
     int emitter_index)
@@ -380,7 +380,7 @@ unsigned char W8MissileRep::ReadCycleData004A3300(
     unsigned char success;
     signed char emitter;
 
-    if (info == 0 || info->handle_04 == 0 || missile == 0) {
+    if (info == 0 || info->hFile == 0 || missile == 0) {
         srAssertFail(
             "pInfo && pInfo->hFile && pMissile",
             "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
@@ -389,7 +389,7 @@ unsigned char W8MissileRep::ReadCycleData004A3300(
     }
     animation = CreateAnimObj004A01A0();
     success = AnimObjReadFromFile004A05C0(
-        reinterpret_cast<W8ReadLevelInfo*>(info), animation, 1, lights, 1);
+        info, animation, 1, lights, 1);
     emitter = static_cast<signed char>(animation->unknown_03[1]);
 
     if (lights->GetCount() == 0) {

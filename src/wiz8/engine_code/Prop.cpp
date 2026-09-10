@@ -1107,12 +1107,12 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
         }
         {
             /* Retail writes the six floats in this interleaved order. */
-            *reinterpret_cast<float*>(&this->value_074.value_04) = minimum.y;
-            *reinterpret_cast<float*>(&this->value_080.value_00) = maximum.x;
-            *reinterpret_cast<float*>(&this->value_074.value_00) = minimum.x;
-            *reinterpret_cast<float*>(&this->value_080.value_08) = maximum.z;
-            *reinterpret_cast<float*>(&this->value_074.value_08) = minimum.z;
-            *reinterpret_cast<float*>(&this->value_080.value_04) = maximum.y;
+            this->value_074.y = minimum.y;
+            this->value_080.x = maximum.x;
+            this->value_074.x = minimum.x;
+            this->value_080.z = maximum.z;
+            this->value_074.z = minimum.z;
+            this->value_080.y = maximum.y;
         }
         extent = maximum.x - minimum.x;
         if (extent < maximum.y - minimum.y) {
@@ -1121,8 +1121,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
         if (extent < maximum.z - minimum.z) {
             extent = maximum.z - minimum.z;
         }
-        *reinterpret_cast<float*>(&this->value_08c) =
-            extent * g_float_005ebc7c;
+        this->value_08c = extent * g_float_005ebc7c;
     }
 
     if (version > 2) {

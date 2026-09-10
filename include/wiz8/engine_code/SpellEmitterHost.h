@@ -4,7 +4,7 @@
 #include "wiz8/engine_code/Emitter.h"
 #include "wiz8/vector.h"
 
-struct W8GrCycleReadInfo004A6970;
+struct W8ReadLevelInfo;
 class stLight;
 class W8SpellVisual;
 
@@ -24,7 +24,7 @@ public:
     virtual unsigned int ApplyEmitterSetting(char emitter) override;
     virtual W8AniMesh* GetEmitterAniMesh(char emitter) override;
     unsigned char ReadCycleData004AB340(
-        W8GrCycleReadInfo004A6970* info,
+        W8ReadLevelInfo* info,
         W8SpellVisual* visual,
         int positional_2,
         int emitter_index);

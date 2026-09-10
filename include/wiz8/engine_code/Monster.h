@@ -11,7 +11,7 @@
 #include "wiz8/local_code/MonsterGroup.h"
 
 struct W8AnimObj;
-struct W8GrCycleReadInfo004A6970;
+struct W8ReadLevelInfo;
 struct W8PList;
 struct W8Item;
 class stModelInstance;
@@ -61,7 +61,7 @@ struct W8MonsterRep : public W8EmitterHost {
         const W8MonsterRep* other,
         signed char other_cycle);
     unsigned char ReadCycleData004BF520(
-        W8GrCycleReadInfo004A6970* info,
+        W8ReadLevelInfo* info,
         W8Monster* monster,
         int cycle_index,
         int value);

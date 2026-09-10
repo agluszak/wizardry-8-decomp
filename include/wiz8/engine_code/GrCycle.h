@@ -14,6 +14,7 @@
 
 class srModelInstance;
 struct W8World;
+struct W8ReadLevelInfo;
 
 /* Callers build this pair as `{ GetWorld(), 0 }` before loading a .mon file.
    The loader carries the world into its four-field read record; the second
@@ -21,13 +22,6 @@ struct W8World;
 struct W8GrCycleLoadContext {
     W8World* world_00;
     int value_04;
-};
-
-struct W8GrCycleReadInfo004A6970 {
-    W8World* world_00;
-    int handle_04;
-    const char* bitmap_directory_08;
-    const char* mon_path_0c;
 };
 
 class stLight;
@@ -199,7 +193,7 @@ unsigned char LoadGrCycle004A67E0(
     unsigned char object_type,
     const char* bitmap_directory = 0);
 unsigned char ReadGrCycleData004A6970(
-    W8GrCycleReadInfo004A6970* info,
+    W8ReadLevelInfo* info,
     W8GrCycle** cycle,
     int cycle_index,
     int value,

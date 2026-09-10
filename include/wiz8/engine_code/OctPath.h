@@ -60,6 +60,18 @@ static_assert(sizeof(W8PathSurface) == 0x28, "W8PathSurface_must_be_0x28");
 static_assert(sizeof(W8PathEdge) == 0x0e, "W8PathEdge_must_be_0x0e");
 static_assert(sizeof(W8FileWaypoint) == 0x10, "W8FileWaypoint_must_be_0x10");
 
+/* One named conditional-path set. FindPathHandle compares path.name and then
+   walks the zero-terminated lookup run starting at lookup_index: each lookup
+   names a key, each key packs two region halfwords, and the key's parallel
+   value word carries the height in its low half. */
+struct W8ConditionalPath {
+    char name[0x40];
+    unsigned int lookup_index;           /* 0x40 */
+};
+
+static_assert(sizeof(W8ConditionalPath) == 0x44,
+              "W8ConditionalPath_must_be_0x44");
+
 /* The two-dimensional cell walk used by path-surface probing. It retains the
    three-component shape of the octree walker, but only X and Z participate in
    its Bresenham step; the remaining slots are zeroed by the builder. */
@@ -413,9 +425,9 @@ public:
     int m_positional_218;
     /* The conditional path tables. ReadPathNodes at 0x00458CE0 asserts on the
        first by name and names the other four in its own failure messages: a
-       lookup, a frame, a key and a value array, sized from the two counts. The
-       entries are 0x44 bytes and FindPathHandle scans them by name. */
-    unsigned char* m_pCondPaths;         /* 0x21c */
+       lookup, a frame, a key and a value array, sized from the two counts.
+       FindPathHandle scans the 0x44-byte path records by name. */
+    W8ConditionalPath* m_pCondPaths;     /* 0x21c */
     int m_ulNumCondPaths;                /* 0x220 */
     int m_ulNumCondLookup;               /* 0x224 */
     int m_ulNumCondKeys;                 /* 0x228 */

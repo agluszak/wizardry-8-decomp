@@ -5,16 +5,10 @@
 
 #pragma pack(push, 1)
 
-/* Copy constructors establish these aggregate boundaries, but no independent
-   witness yet establishes their original semantic types. Keep their names
-   positional until consumers prove whether they are vectors, matrices, or
-   another animation representation. */
-struct W8AnimRepValue3 {
-    unsigned int value_00;
-    unsigned int value_04;
-    unsigned int value_08;
-};
-
+/* Prop.cpp writes the triples at 0x074 and 0x080 as x/y/z bounds and the word
+   at 0x08c as a float extent, so those members take their actual scalar types.
+   The 0x10-byte block at 0x04c has no independent witness yet, so it keeps
+   positional names until a consumer proves its meaning. */
 struct W8AnimRepValue4 {
     unsigned int value_00;
     unsigned int value_04;
@@ -70,17 +64,15 @@ public:
     unsigned char flag_070;
     unsigned char behaviour_071;
     unsigned char unknown_072[2];
-    W8AnimRepValue3 value_074;
-    W8AnimRepValue3 value_080;
-    unsigned int value_08c;
+    srVector3T<float> value_074;
+    srVector3T<float> value_080;
+    float value_08c;
     unsigned int value_090;
     unsigned char counter_094;
     unsigned char counter_095;
     unsigned char unknown_096[2];
 };
 
-static_assert(sizeof(W8AnimRepValue3) == 0x0c,
-              "W8AnimRepValue3_size_must_be_0x0c");
 static_assert(sizeof(W8AnimRepValue4) == 0x10,
               "W8AnimRepValue4_size_must_be_0x10");
 static_assert(sizeof(W8AnimRepBase005EC1D8) == 0x64,

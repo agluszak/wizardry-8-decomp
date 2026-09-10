@@ -241,7 +241,8 @@ unsigned char W8PathingService::WritePathNodes00458AD0(unsigned int handle)
     if ((unsigned int)m_ulNumCondLookup > 1 &&
         (unsigned int)m_ulNumCondKeys > 1) {
         success = FileWrite(
-            handle, m_pCondPaths, m_ulNumCondPaths * 0x44, 0);
+            handle, m_pCondPaths,
+            m_ulNumCondPaths * sizeof(W8ConditionalPath), 0);
         if (success == 0) {
             srAssertFail("fSuccess", OCTPATH_CPP, 0x8b7,
                          "WritePathNodes: Couldn't write Conditional Prop array.\n");
@@ -627,7 +628,8 @@ unsigned char W8PathingService::Load00458CE0(int handle)
         m_ulNumCondKeys = 0;
         return fSuccess;
     }
-    m_pCondPaths = static_cast<unsigned char*>(malloc(block[0] * 0x44));
+    m_pCondPaths = static_cast<W8ConditionalPath*>(
+        malloc(block[0] * sizeof(W8ConditionalPath)));
     if (m_pCondPaths == 0) {
         srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x903,
                      "ReadPathNodes: Couldn't allocate Conditional Prop array.\n");
@@ -653,7 +655,8 @@ unsigned char W8PathingService::Load00458CE0(int handle)
                      "ReadPathNodes: Couldn't allocate Conditional Value array.\n");
     }
     fSuccess = FileRead(
-        handle, m_pCondPaths, m_ulNumCondPaths * 0x44, &uiRead);
+        handle, m_pCondPaths,
+        m_ulNumCondPaths * sizeof(W8ConditionalPath), &uiRead);
     if (fSuccess == 0) {
         srAssertFail("fSuccess", OCTPATH_CPP, 0x90e,
                      "ReadPathNodes: Couldn't write Conditional Prop array.\n");
@@ -5762,38 +5765,30 @@ unsigned int W8PathingService::FindPathHandle(
     unsigned short* path_bounds,
     float* path_range)
 {
-    const unsigned char* entry;
+    W8ConditionalPath* path;
     unsigned int index;
+    unsigned int lookup_index;
     unsigned short value;
     float height;
-    int outer;
-    int inner;
-    int outer_table;
-    int inner_table;
 
     if (path_name == 0 || *path_name == 0 || m_pCondPaths == 0 || m_ulNumCondPaths == 0) {
         return 0;
     }
     index = 0;
-    entry = m_pCondPaths;
+    path = m_pCondPaths;
     do {
-        if (strcmp(reinterpret_cast<const char*>(path_name),
-                   reinterpret_cast<const char*>(entry)) == 0) {
+        if (strcmp(reinterpret_cast<const char*>(path_name), path->name) == 0) {
             path_bounds[2] = 0xffff;
             path_bounds[0] = 0xffff;
             path_bounds[3] = 0;
             path_bounds[1] = 0;
             path_range[0] = 1e+08f;
             path_range[2] = -1e+08f;
-            outer = *reinterpret_cast<int*>(m_pCondPaths + index * 0x44 + 0x40) * 4;
-            outer_table = reinterpret_cast<int>(m_pCondLookup);
-            for (inner = *reinterpret_cast<int*>(outer_table + outer); inner != 0;
-                 inner = *reinterpret_cast<int*>(inner + outer_table)) {
-                inner = *reinterpret_cast<int*>(outer + outer_table) * 4;
-                inner_table = reinterpret_cast<int>(m_pCondKeys);
-                for (int node = *reinterpret_cast<int*>(inner_table + inner); node != 0;
-                     node = *reinterpret_cast<int*>(node + inner_table)) {
-                    value = *reinterpret_cast<unsigned short*>(inner + inner_table);
+            lookup_index = path->lookup_index;
+            while (m_pCondLookup[lookup_index] != 0) {
+                unsigned int key_index = m_pCondLookup[lookup_index];
+                while (m_pCondKeys[key_index] != 0) {
+                    value = (unsigned short)m_pCondKeys[key_index];
                     if (value < path_bounds[0]) {
                         path_bounds[0] = value;
                     }
@@ -5801,15 +5796,14 @@ unsigned int W8PathingService::FindPathHandle(
                         path_bounds[1] = value;
                     }
                     value = (unsigned short)
-                        (*reinterpret_cast<unsigned int*>(inner + inner_table) >> 0x10);
+                        ((unsigned int)m_pCondKeys[key_index] >> 0x10);
                     if (value < path_bounds[2]) {
                         path_bounds[2] = value;
                     }
                     if (path_bounds[3] < value) {
                         path_bounds[3] = value;
                     }
-                    height = (float)(*reinterpret_cast<unsigned int*>(
-                                         inner + reinterpret_cast<int>(m_pCondValues)) & 0xffff) *
+                    height = (float)((unsigned int)m_pCondValues[key_index] & 0xffff) *
                             span_020 + level_bounds[1];
                     if (height < path_range[0]) {
                         path_range[0] = height;
@@ -5817,16 +5811,14 @@ unsigned int W8PathingService::FindPathHandle(
                     if (path_range[2] < height) {
                         path_range[2] = height;
                     }
-                    inner_table = reinterpret_cast<int>(m_pCondKeys);
-                    inner += 4;
+                    ++key_index;
                 }
-                outer_table = reinterpret_cast<int>(m_pCondLookup);
-                outer += 4;
+                ++lookup_index;
             }
-            return *reinterpret_cast<unsigned int*>(m_pCondPaths + index * 0x44 + 0x40);
+            return path->lookup_index;
         }
         ++index;
-        entry += 0x44;
+        ++path;
     } while (index < (unsigned int)m_ulNumCondPaths);
     return 0;
 }

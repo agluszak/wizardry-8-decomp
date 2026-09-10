@@ -1036,7 +1036,7 @@ W8MonsterRep::W8MonsterRep()
    list occupy the two parallel vectors for the same cycle. */
 // FUNCTION: WIZ8 0x004BF520
 unsigned char W8MonsterRep::ReadCycleData004BF520(
-    W8GrCycleReadInfo004A6970* info,
+    W8ReadLevelInfo* info,
     W8Monster* monster,
     int cycle_index,
     int value)
@@ -1047,7 +1047,7 @@ unsigned char W8MonsterRep::ReadCycleData004BF520(
     signed char cycle;
     int subcycle;
 
-    if (info == 0 || info->handle_04 == 0 || monster == 0) {
+    if (info == 0 || info->hFile == 0 || monster == 0) {
         srAssertFail(
             "pInfo && pInfo->hFile && pMonster",
             "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp",
@@ -1057,7 +1057,7 @@ unsigned char W8MonsterRep::ReadCycleData004BF520(
 
     animation = CreateAnimObj004A01A0();
     success = AnimObjReadFromFile004A05C0(
-        reinterpret_cast<W8ReadLevelInfo*>(info),
+        info,
         animation,
         value,
         lights,

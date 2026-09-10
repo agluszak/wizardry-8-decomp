@@ -8,7 +8,7 @@ void ReleaseMissileDatabase(void);
 #include "wiz8/targeting.h"
 
 struct W8AIMissile;
-struct W8GrCycleReadInfo004A6970;
+struct W8ReadLevelInfo;
 class stLight;
 class W8Missile;
 
@@ -29,7 +29,7 @@ public:
     virtual unsigned int ApplyEmitterSetting(char emitter) override;
     virtual W8AniMesh* GetEmitterAniMesh(char emitter) override;
     unsigned char ReadCycleData004A3300(
-        W8GrCycleReadInfo004A6970* info,
+        W8ReadLevelInfo* info,
         W8Missile* missile,
         int positional_2,
         int emitter_index);
