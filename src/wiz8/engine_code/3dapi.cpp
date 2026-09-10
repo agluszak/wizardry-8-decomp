@@ -29,6 +29,7 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/stLight.h"
 #include "wiz8/engine_code/stParticle.h"
+#include "wiz8/spell_effect.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/sr_api.h"
@@ -77,8 +78,6 @@ unsigned char g_navigator_vertical_enabled_006081f8 = 1;
 unsigned char g_world_mesh_update_enabled_00607d7d = 1;
 extern void Function444F70(int value, float duration, float intensity,
                           unsigned char reverse);
-
-extern void Function500930(void);
 
 
 // FUNCTION: WIZ8 0x00450B10
@@ -363,7 +362,7 @@ void UpdateWorld0044F4E0(W8World* world)
         if (world->octree != 0) {
             RunMasterFunctions004D8E40();
         }
-        Function500930();
+        UpdateSpellEffects00500930();
     }
 
     W8PList* nodes = &world->m_list_09c;
