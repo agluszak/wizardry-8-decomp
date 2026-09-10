@@ -191,7 +191,7 @@ void SetNavigatorLinkMode00452F50(unsigned char mode)
                         navigator->movement_0c0.position_040;
 
                     if ((group->flag_29 == 0
-                         || Function511050(
+                         || PositionMonsterGroupNearCamera00511050(
                                 group, 0.0f, navigator->movement_0c0.yaw,
                                 0) == 0)
                         && (Function510CC0(

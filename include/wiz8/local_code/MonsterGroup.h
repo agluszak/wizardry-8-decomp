@@ -78,8 +78,12 @@ W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index);
 void Function510CC0(
     W8MonsterGroup* group, srVector3T<float>* position, float yaw, int a, int b,
     int c, int d); /* 0x00510CC0 */
-/* Returns the trailing Function510CC0 result; callers branch on it. */
-unsigned char Function511050(
+/* Place a monster group relative to the party camera: with flag clear the
+   group moves straight to the camera position, and with flag set it picks a
+   point at the requested distance on a random angle around the camera yaw,
+   widened to the largest allied-group radius. Answers the movement call's
+   result so callers can branch on success. */
+unsigned char PositionMonsterGroupNearCamera00511050(
     W8MonsterGroup* group, float distance, float yaw, unsigned char flag); /* 0x00511050 */
 void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group);
 W8MonsterGroup* FindFirstMonsterByID(int monster_id);

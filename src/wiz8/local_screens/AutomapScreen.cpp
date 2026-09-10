@@ -209,7 +209,7 @@ inline unsigned int PackAutomapCell(const srVector3T<float>& position)
    camera's own cell in the visited bitmap, retrying one cell higher when the
    packed cell misses the record table. */
 // FUNCTION: WIZ8 0x005817d0
-void Function5817D0(void)
+void ResetAutomapView005817D0(void)
 {
     if (g_automap_state == 0) {
         g_automap_state = (W8AutomapState*)malloc(sizeof(W8AutomapState));

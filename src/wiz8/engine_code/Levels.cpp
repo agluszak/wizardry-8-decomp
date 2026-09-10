@@ -521,7 +521,7 @@ unsigned char LoadLevel(
     }
 
     SetSkyNodeVisible(0);
-    Function5817D0();
+    ResetAutomapView005817D0();
     if (!LoadLevelStatus("Saves\\CurrentGame.SAV", level)) {
         BuildLevelStatusPath(path, level);
         g_flag_00659756 = 1;

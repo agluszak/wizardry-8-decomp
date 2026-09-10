@@ -82,7 +82,7 @@ Also: `Function514DF0` -> `MeasureLevelStatusChunks00514DF0`,
   missing producers should live in their current owner files.
 - This is a long transcription. Work level by level and compare after coherent chunks.
 
-### 2. `Function5817D0` (0x005817D0), `AutomapScreen.cpp`
+### 2. `ResetAutomapView005817D0` (0x005817D0), `AutomapScreen.cpp`
 
 - Decompile: `build/context/005817d0.cpp`.
 - Already modeled: `g_automap_state` (0x68F268, 0xFC), `g_automap_redraw` (0x68F25C),
