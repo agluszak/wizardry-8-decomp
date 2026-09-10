@@ -556,7 +556,7 @@ static __inline void LoadMonsterGeneratorMarkerInline(W8MonsterGenerator* genera
     }
     generator->node_18 = marker;
     if (marker != 0) {
-        marker->Function49F720(
+        marker->SetLocation0049F720(
             reinterpret_cast<const srVector3T<float>*>(&generator->state_0c));
         marker->ApplyRepTransform0049FAA0();
     }
@@ -584,7 +584,7 @@ void W8MonsterGenerator::SetActive(unsigned char active, W8Item* node)
     if (node_18 == 0) {
         LoadMonsterGeneratorMarkerInline(this);
     }
-    node_18->Function49F900(g_world);
+    node_18->AttachMesh0049F900(g_world);
 }
 
 /* Writes the encounter subsystem's own state to a save, ahead of the generator
@@ -640,7 +640,7 @@ void W8MonsterGenerator::SetState(const srVector3T<float>* state)
     state_10 = *reinterpret_cast<const int*>(&state->y);
     state_14 = *reinterpret_cast<const int*>(&state->z);
     if (node_18 != 0) {
-        node_18->Function49F720(state);
+        node_18->SetLocation0049F720(state);
         node_18->ApplyRepTransform0049FAA0();
     }
 }
@@ -669,5 +669,5 @@ void W8MonsterGenerator::Reload(int unused, unsigned char active)
     if (node_18 == 0) {
         LoadMonsterGeneratorMarkerInline(this);
     }
-    node_18->Function49F900(g_world);
+    node_18->AttachMesh0049F900(g_world);
 }

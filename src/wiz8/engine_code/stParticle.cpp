@@ -389,8 +389,8 @@ unsigned char stParticle::ActivateParticle00499A50(
         velocity.x = rotation.vectors[0].x * direction.x +
             rotation.vectors[0].y * direction.y +
             rotation.vectors[0].z * direction.z;
-        velocity.y = Function4218E0(rotation.vectors[1], direction);
-        velocity.z = Function4218E0(rotation.vectors[2], direction);
+        velocity.y = DotProduct004218E0(rotation.vectors[1], direction);
+        velocity.z = DotProduct004218E0(rotation.vectors[2], direction);
         break;
     }
 
@@ -589,11 +589,11 @@ void stParticle::Update00499FA0()
                 }
                 else {
                     float center_x =
-                        Function4218E0(rotation.vectors[0], value_234);
+                        DotProduct004218E0(rotation.vectors[0], value_234);
                     float center_y =
-                        Function4218E0(rotation.vectors[1], value_234);
+                        DotProduct004218E0(rotation.vectors[1], value_234);
                     float center_z =
-                        Function4218E0(rotation.vectors[2], value_234);
+                        DotProduct004218E0(rotation.vectors[2], value_234);
                     srVector3T<float> center(
                         center_x + node_location.x,
                         center_y + node_location.y,
@@ -990,9 +990,9 @@ void stParticle::Function4994D0(srGERD* renderer)
         }
         else {
             getRotation(rotation);
-            float x = Function4218E0(rotation.vectors[0], extent);
-            float y = Function4218E0(rotation.vectors[1], extent);
-            float z = Function4218E0(rotation.vectors[2], extent);
+            float x = DotProduct004218E0(rotation.vectors[0], extent);
+            float y = DotProduct004218E0(rotation.vectors[1], extent);
+            float z = DotProduct004218E0(rotation.vectors[2], extent);
             srVector3T<float> center(
                 x + position.x, position.y + y, position.z + z);
             visibility =
@@ -1005,15 +1005,15 @@ void stParticle::Function4994D0(srGERD* renderer)
 
     if (value_1a4 == 1) {
         getRotation(rotation);
-        float x = Function4218E0(rotation.vectors[0], minimum_21c);
-        float y = Function4218E0(rotation.vectors[1], minimum_21c);
-        float z = Function4218E0(rotation.vectors[2], minimum_21c);
+        float x = DotProduct004218E0(rotation.vectors[0], minimum_21c);
+        float y = DotProduct004218E0(rotation.vectors[1], minimum_21c);
+        float z = DotProduct004218E0(rotation.vectors[2], minimum_21c);
         srVector3T<float> minimum(
             x + position.x, position.y + y, position.z + z);
 
-        x = Function4218E0(rotation.vectors[0], maximum_228);
-        y = Function4218E0(rotation.vectors[1], maximum_228);
-        z = Function4218E0(rotation.vectors[2], maximum_228);
+        x = DotProduct004218E0(rotation.vectors[0], maximum_228);
+        y = DotProduct004218E0(rotation.vectors[1], maximum_228);
+        z = DotProduct004218E0(rotation.vectors[2], maximum_228);
         srVector3T<float> maximum(
             x + position.x, position.y + y, position.z + z);
 

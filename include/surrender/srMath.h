@@ -143,7 +143,7 @@ srVector3T<T>* srVector3T<T>::method_0049BA80(
 }
 
 template <class T>
-T Function4218E0(
+T DotProduct004218E0(
     const srVector3T<T>& first,
     const srVector3T<T>& second)
 {

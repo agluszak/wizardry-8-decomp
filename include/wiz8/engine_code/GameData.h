@@ -34,6 +34,7 @@ struct W8LevelDataRecord {
 
 struct W8OctBuildTree00446390;
 class Trigger;
+class srNode;
 
 class BitArray;
 
@@ -73,6 +74,8 @@ struct W8GameData {
     ~W8GameData();                                     /* 0x00449BB0 */
     unsigned char Function447660(void* file, int index);
     void Function41A9E0();
+    /* Builds the octree trace model and answers its scene node. */
+    srNode* CreateTraceModel0041C930();                          /* 0x0041c930 */
 
     W8OctBuildTree00446390* geometry_index_00;
     unsigned long positional_04;

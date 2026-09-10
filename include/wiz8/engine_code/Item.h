@@ -29,8 +29,9 @@ struct W8Item : public W8GrObject {
 
     void DetachMesh0049FA30(W8World* world);
     void ApplyRepTransform0049FAA0();
-    void Function49F900(W8World* world);
-    void Function49F720(const srVector3T<float>* location);
+    void AttachMesh0049F900(W8World* world);
+    void UpdateAnimation0049F730();
+    void SetLocation0049F720(const srVector3T<float>* location);
     srNode* GetMesh();
 };
 

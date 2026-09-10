@@ -370,7 +370,7 @@ unsigned char AutomapScreenEnter(void)
                     }
                 }
             }
-            for (unsigned int mesh = 0; mesh < g_world->octree->m_positional_1b4; ++mesh) {
+            for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount_1b4; ++mesh) {
                 for (stMeshModel* model = static_cast<stMeshModel*>(g_world->psrMeshes[mesh]->model());
                      model; model = model->next) {
                     model->ApplyAutomapPolygonFilter(&excluded_textures);
@@ -672,7 +672,7 @@ unsigned char AutomapScreenLeave(int)
     MSYS_Shutdown();
     UpdateHeldItemCursor();
     SetFlag603C60();
-    for (unsigned int mesh = 0; mesh < g_world->octree->m_positional_1b4; ++mesh) {
+    for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount_1b4; ++mesh) {
         for (stMeshModel* model = static_cast<stMeshModel*>(g_world->psrMeshes[mesh]->model());
              model; model = model->next) {
             model->ClearAutomapPolygonFilter();

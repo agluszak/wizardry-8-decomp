@@ -61,8 +61,12 @@ public:
     virtual W8AnimObj* GetCurrentAnimation() override;
     virtual void AdvanceAnimationFrame(int value, int flags) override;
     virtual W8AniMesh* GetCurrentAniMesh() override;
+    virtual void StartIfHostActive();    /* 0x004A4050 */
 
-    void Function4A5410(const float* values);
+    unsigned long GetAnimationState004A4640(int mode);
+    void Function4A49E0();
+
+    void SetLaunchValues004A5410(const float* values);
 
 public:
     int missile_table_index_1d8;
@@ -92,7 +96,7 @@ public:
 
 static_assert(sizeof(W8Missile) == 0x328, "W8Missile_size_must_be_0x328");
 
-W8Missile* Function4A2D30(
+W8Missile* FireMissile004A2D30(
     unsigned int missile_table_index, srVector3T<float>* source,
     srVector3T<float>* target, unsigned int value_4,
     unsigned int value_5, unsigned int value_6,

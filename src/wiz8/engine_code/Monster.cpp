@@ -1259,7 +1259,7 @@ void W8MonsterRep::Method004BF0F0(
                 copied_light->ConfigureMonsterCopy();
                 copied_light->setLocation(x, y, z);
                 copied_light->setParent(0, 0);
-                PLAdoptAppend(&g_world->m_list_0a8, copied_light);
+                PLAdoptAppend(&g_world->m_lights_0a8, copied_light);
                 copied_lights->Add(copied_light);
             }
         }
@@ -2323,7 +2323,7 @@ void W8Monster::ProcessScript004C80E0()
                 if (GetProjectilePosition004C77F0(&source) == 0) {
                     GetMappedPosition004C72A0(&source);
                 }
-                Function4A2D30(
+                FireMissile004A2D30(
                     owner, &source, &target,
                     0, 0, 1, 0x47435000);
                 break;
@@ -4159,9 +4159,9 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                     camera_rotation.vectors[1].y * offset.y +
                     camera_rotation.vectors[1].z * offset.z;
                 location.z = base_position.z +
-                    Function4218E0(camera_rotation.vectors[2], offset);
+                    DotProduct004218E0(camera_rotation.vectors[2], offset);
 
-                item->Function49F720(&location);
+                item->SetLocation0049F720(&location);
                 mesh = item->GetMesh();
                 mesh_scale = distance_scale *
                     g_monster_attachment_scales_0060e914[attachment_layout];
@@ -4223,9 +4223,9 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                     camera_rotation.vectors[1].y * offset.y +
                     camera_rotation.vectors[1].z * offset.z;
                 location.z = base_position.z +
-                    Function4218E0(camera_rotation.vectors[2], offset);
+                    DotProduct004218E0(camera_rotation.vectors[2], offset);
 
-                item->Function49F720(&location);
+                item->SetLocation0049F720(&location);
                 mesh = item->GetMesh();
                 mesh_scale = distance_scale *
                     g_monster_attachment_scales_0060e914[chunk_count];

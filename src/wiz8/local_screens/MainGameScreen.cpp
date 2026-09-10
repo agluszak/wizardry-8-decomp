@@ -273,7 +273,7 @@ unsigned char Function445140(W8World* world);
 unsigned char Function53A1D0(void);
 unsigned char Function4F8650(void);
 unsigned char Function57E3C0(void);
-unsigned char Function48EFC0(void);
+unsigned char SelectWorldCursorNode0048EFC0(void);
 void Function4EF1F0(void);
 
 // FUNCTION: WIZ8 0x00587960
@@ -859,7 +859,7 @@ render_world:
         if (gXStatus.field_021) Function58A750();
         int active;
         if (!Function445140(g_world) && !Function53A1D0() && !Function4F8650() &&
-            !Function57E3C0() && !Function48EFC0()) {
+            !Function57E3C0() && !SelectWorldCursorNode0048EFC0()) {
             active = 0;
         }
         else {

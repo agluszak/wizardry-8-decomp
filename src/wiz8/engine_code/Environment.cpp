@@ -118,11 +118,11 @@ void Function482A20(int elapsed)
     }
 
     srVector3T<float> position;
-    position.x = Function4218E0(rotation.vectors[0], direction) +
+    position.x = DotProduct004218E0(rotation.vectors[0], direction) +
                  g_environment_origin_65ad88.x;
-    position.y = Function4218E0(rotation.vectors[1], direction) +
+    position.y = DotProduct004218E0(rotation.vectors[1], direction) +
                  g_environment_origin_65ad88.y;
-    position.z = Function4218E0(rotation.vectors[2], direction) +
+    position.z = DotProduct004218E0(rotation.vectors[2], direction) +
                  g_environment_origin_65ad88.z;
 
     W8Prop* moving = day ? g_environment_value_0065a160

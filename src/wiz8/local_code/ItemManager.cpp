@@ -595,7 +595,7 @@ unsigned char SettleWorldItem(W8WorldItem* item)
         item->sector_id = sector;
     }
     if (item->owner != 0) {
-        item->owner->Function49F720(&start);
+        item->owner->SetLocation0049F720(&start);
     }
     item->position.x = start.x;
     item->position.y = start.y;

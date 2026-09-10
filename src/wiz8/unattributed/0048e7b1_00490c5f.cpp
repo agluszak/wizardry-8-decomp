@@ -31,6 +31,20 @@ W8WorldCursorState* g_world_cursor_0065ba8c;
 /* Address quarantine 0048e7b1-00490c5f; bounds come from adjacent
    assertion-backed original translation-unit intervals. */
 
+/* The tracked cursor position, or the origin while there is no cursor. */
+// FUNCTION: WIZ8 0x00490BF0
+void GetWorldCursorPosition00490BF0(srVector3T<float>* position)
+{
+    if (g_world_cursor_0065ba8c != 0) {
+        *position = g_world_cursor_0065ba8c->position_28;
+    }
+    else {
+        position->x = 0.0f;
+        position->y = 0.0f;
+        position->z = 0.0f;
+    }
+}
+
 // FUNCTION: WIZ8 0x0048ED00
 int GetValue65BA5C(void)
 {
@@ -41,7 +55,7 @@ int GetValue65BA5C(void)
    detach them when hidden. Levels.cpp drives this from the world-cursor
    flag. */
 // FUNCTION: WIZ8 0x0048ED70
-void Function48ED70(unsigned char visible)
+void SetWorldCursorNodesVisible0048ED70(unsigned char visible)
 {
     unsigned int count = g_value_65ba5c;
     unsigned int index = 0;
@@ -67,7 +81,7 @@ void Function48ED70(unsigned char visible)
 /* Select the cursor node nearest the camera within the selection distance,
    remembering it for the next call. Answers whether one was close enough. */
 // FUNCTION: WIZ8 0x0048EFC0
-unsigned char Function48EFC0(void)
+unsigned char SelectWorldCursorNode0048EFC0(void)
 {
     if (g_world != 0 && g_world->camera != 0) {
         srVector3T<float> camera_position;
@@ -120,7 +134,7 @@ unsigned char Function48EFC0(void)
 /* Hide the world cursor: detach its monster from the world lists, clear the
    visible flag, deactivate its particle, then refresh the party state. */
 // FUNCTION: WIZ8 0x00490B90
-void Function490B90(void)
+void HideWorldCursor00490B90(void)
 {
     W8World* world;
     W8Monster* monster;

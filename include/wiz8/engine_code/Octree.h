@@ -9,12 +9,30 @@ void ReleaseAllTriggers(void);
 #include "wiz8/vector.h"
 
 class GDProp;
+class W8Prop;
+class stParticle;
+class srNode;
 typedef W8HashTable<unsigned int, int> W8OctreeIndex;
 typedef W8HashEntry<unsigned int, int> W8OctreeEntry;
 
 class W8PathingService;
+struct W8World;
 struct W8NavigatorMovementState;
 struct W8OctBuildNode00446330;
+
+/* One 0x10-byte entry of the .oct file's submesh table. Field +4 is the index
+   into W8World::psrMeshes; the visibility update and UpdateMonsterLocation both
+   resolve a region through it, and the update's reset pass writes the owning
+   mesh back. Field +0 carries the render flags the visibility update sets and
+   clears. */
+struct W8OctSubmesh {
+    unsigned long flags_00;
+    int mesh_04;
+    unsigned long positional_08;
+    unsigned int positional_0c;
+};
+
+static_assert(sizeof(W8OctSubmesh) == 0x10, "W8OctSubmesh_must_be_0x10");
 
 class W8OctreeObjectRegistry {
 public:
@@ -135,9 +153,18 @@ public:
         int excluded);
     void AdjustPosition00431DA0(
         srVector3T<float>* position, unsigned int mode);
-    void Function0042F7E0();
+    void UpdateCameraVisibility0042F7E0();
     void UpdateVisibility004304A0();
-    void UpdateWorldTrace00433EB0();
+    unsigned char UpdateWorldTrace00433EB0();
+    unsigned char SavePoints00432D60(char* path);
+    unsigned char SaveRegionLinks004331F0(char* path);
+    unsigned char ValidateRegionMeshLinks00433AB0();
+    int CountBadRegionMeshLinks00433B90(W8OctSpatialState0046CCC0* spatial);
+    void ToggleUpdateSuspension00434020(W8World* world);
+    void MarkMeshLinksVisible00430A70(unsigned int mesh);
+    void CollectVisibleRegions00430D50(
+        srVector3T<float>* location, int* cells, float* depth, unsigned char mode);
+    void CollectVisibleCells0042FE90();
 
     bool HasLoadError() const {
         return (spatial_000.flags_00 & 0x80000000) != 0;
@@ -166,7 +193,7 @@ public:
     unsigned long m_positional_0cc;
     unsigned long* m_owned_0d0;
     void* m_owned_0d4;
-    void* m_owned_0d8;
+    W8OctSubmesh* m_pSubmeshes;
     /* Six original member names, from ReadOctFile's own assertion text at
        0x0042C68A, 0x0042C70C, 0x0042C7AB, 0x0042C850, 0x0042C8F5 and
        0x0042CAA4. The us prefix is the image's own, so the four lookup and
@@ -174,21 +201,21 @@ public:
     BitArray* m_pAlphaBits;              /* 0xdc */
     unsigned short* m_pusMeshParticleLookup; /* 0xe0 */
     unsigned short* m_pusMeshParticles;   /* 0xe4 */
-    unsigned short m_positional_0e8;
+    unsigned short m_usMeshParticlesLen_0e8;
     unsigned short m_padding_0ea;
     unsigned short* m_pusMeshPropLookup;  /* 0xec */
     unsigned short* m_pusMeshProps;       /* 0xf0 */
-    unsigned short m_positional_0f4;
+    unsigned short m_usMeshPropsLen_0f4;
     unsigned short m_padding_0f6;
     unsigned long m_ulNumParticles;
-    BitArray* m_owned_0fc;
-    BitArray* m_owned_100;
-    BitArray* m_owned_104;
-    BitArray* m_owned_108;
-    BitArray* m_owned_10c;
-    BitArray* m_owned_110;
-    void** m_papProps;
-    void** m_papParticles;
+    BitArray* m_linked_particles_0fc;
+    BitArray* m_visible_particles_100;
+    BitArray* m_linked_props_104;
+    BitArray* m_visible_props_108;
+    BitArray* m_particles_to_disable_10c;
+    BitArray* m_props_to_disable_110;
+    W8Prop** m_papProps;
+    stParticle** m_papParticles;
     unsigned short m_usNumPropsLoaded;
     unsigned short m_usNumParticlesLoaded;
     int current_sector;
@@ -203,16 +230,16 @@ public:
     unsigned long m_positional_144;
     unsigned short* m_owned_148;
     unsigned char* m_pfRegsVisited;
-    W8HashTable<unsigned int, short>* m_owned_150;
+    W8HashTable<unsigned int, short>* m_pRegionLinks_150;
     BitArray* m_owned_154;
     unsigned long m_positional_158;
-    BitArray* m_owned_15c;
-    BitArray* m_owned_160;
-    BitArray* m_owned_164;
-    unsigned char m_positional_168;
+    BitArray* m_projected_regions_15c;
+    BitArray* m_current_regions_160;
+    BitArray* m_previous_regions_164;
+    unsigned char m_reset_visibility_168;
     unsigned char m_positional_169;
-    unsigned char m_positional_16a;
-    unsigned char m_padding_16b;
+    unsigned char m_projected_regions_valid_16a;
+    unsigned char m_positional_16b;
     unsigned char m_positional_16c;
     unsigned char m_positional_16d;
     unsigned char m_padding_16e[2];
@@ -229,14 +256,14 @@ public:
     BitArray* m_pPropSunBits;            /* 0x18c */
     BitArray* m_owned_190;
     BitArray* m_owned_194;
-    BitArray* m_owned_198;
+    BitArray* m_accumulated_regions_198;
     BitArray* m_owned_19c;
     BitArray* m_owned_1a0;
     BitArray* m_owned_1a4;
     unsigned long m_positional_1a8;
     unsigned long m_positional_1ac;
     unsigned long m_positional_1b0;
-    unsigned long m_positional_1b4;
+    unsigned long m_meshCount_1b4;
     unsigned long m_positional_1b8;
     unsigned long* m_aulGDObjs;          /* 0x1bc */
     srVector3T<float> camera_location_1c0;
@@ -309,6 +336,7 @@ static_assert(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
 
 extern unsigned long g_octree_storage_00659770;
 extern unsigned long g_octree_state_00659890;
+extern srNode* g_octree_trace_node_00659894;
 extern float g_octree_cell_scale_005ebcd0;
 extern unsigned long g_octree_bytes_read_00659888;
 extern int g_shared_mark_006598ac;

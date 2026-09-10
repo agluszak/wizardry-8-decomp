@@ -1,6 +1,11 @@
 #pragma once
 
 #include "wiz8/dialog_code/DialogBase.h"
+#include "wiz8/dialog_code/DialogButton.h"
+#include "wiz8/vector.h"
+
+struct W8WorldItem;
+class Trigger;
 
 /* Factory kinds 3 and 5 each have a distinct primary vtable and complete
    lifecycle family. Their original names are not exposed by retail evidence. */
@@ -48,3 +53,34 @@ static_assert(sizeof(W8Dialog005CBB40) == 0xfc,
               "W8Dialog005CBB40_must_be_0xfc");
 static_assert(sizeof(W8Dialog005D97D0) == 0x90,
               "W8Dialog005D97D0_must_be_0x90");
+
+/* The trigger-owned item picker. Its constructor is 0x005CD710, its primary
+   table 0x005EF810, and its complete object 0xB0 bytes. The 13 button slots
+   and the two vectors are proven by the constructor, DestroyControls and the
+   item merge path; the item group at +0xac is what the trigger hands in and
+   the destroy callback hands back. */
+// VTABLE: WIZ8 0x005ef810
+class W8Dialog005CD710 : public W8DialogBase {
+public:
+    W8Dialog005CD710();                       /* 0x005CD710 */
+    virtual ~W8Dialog005CD710() override;     /* 0x005CD820 */
+    virtual int CreateControls() override;    /* 0x005CDC10 */
+    virtual void DestroyControls() override;  /* 0x005CDC40 */
+    virtual void Draw() override;             /* 0x005CDC70 */
+    virtual int GetDialogType() override;     /* 0x005CF240 */
+    virtual unsigned char ProcessInput() override; /* 0x005CEF00 */
+
+    void AddItem005CE210(W8WorldItem* item);
+    W8WorldItem* ReturnItemsToGroup005CF110();
+    void SetItemGroup005CF0C0(W8WorldItem* group);
+
+public:
+    W8GrowableVector<W8WorldItem*> items_54;
+    W8GrowableVector<unsigned char> flags_64;
+    W8DialogButton* m_buttons_74[13];
+    int m_first_item_0a8;
+    W8WorldItem* m_item_group_0ac;
+};
+
+static_assert(sizeof(W8Dialog005CD710) == 0xb0,
+              "W8Dialog005CD710_must_be_0xb0");

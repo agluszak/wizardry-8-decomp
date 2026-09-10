@@ -22,7 +22,7 @@ public:
     virtual void AdvanceAnimationFrame(int value, int flags) override;
     virtual W8AniMesh* GetCurrentAniMesh() override;
 
-    void StartIfHostActive();            /* 0x004ABDC0 */
+    virtual void StartIfHostActive();    /* 0x004ABDC0 */
 
     int value_1d8;
     int target_location_id_1dc;

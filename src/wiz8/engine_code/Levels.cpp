@@ -149,7 +149,7 @@ extern float* RotateMatrixAroundAxis0042B910(
 extern void Function482410(void);
 extern void Function4D6C50(int level);
 extern void Function50AC60(void);
-extern void Function48ED70(unsigned char value);
+extern void SetWorldCursorNodesVisible0048ED70(unsigned char value);
 extern void Function50E700(void);
 extern void Function50DB50(void);
 extern void Function50C270(void);
@@ -434,7 +434,7 @@ unsigned char LoadLevel(
     Function482410();
     Function4D6C50(level);
     Function50AC60();
-    Function48ED70(g_value_0068f0fd);
+    SetWorldCursorNodesVisible0048ED70(g_value_0068f0fd);
     Function50E700();
 
     if (!restoring_game) {

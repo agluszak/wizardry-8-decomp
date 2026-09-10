@@ -723,9 +723,9 @@ float g_navigator_minimum_speed_mode23_006081f0 = 0.8999999761581421f;
 extern const float g_world_scale_005ebc40;
 // GLOBAL: WIZ8 0x00659bf8
 W8GrowableVector<W8Navigator*> g_navigator_group_659bf8;
-extern float Function4BE420(
+extern float GetHeadingAngle004BE420(
     const srVector3T<float>* from, const srVector3T<float>* to);
-extern float Function4BE490(
+extern float GetElevationAngle004BE490(
     const srVector3T<float>* from, const srVector3T<float>* to);
 
 // GLOBAL: WIZ8 0x005ec2a8
@@ -1335,11 +1335,11 @@ void W8Navigator::Function454040(const srVector3T<float>* target)
     current.y = movement_0c0.position_040.y + movement_0c0.height_offset_0b8;
     current.z = movement_0c0.position_040.z;
     if (target->x != current.x || target->y != current.y || target->z != current.z) {
-        float angle = Function4BE420(&current, target);
+        float angle = GetHeadingAngle004BE420(&current, target);
         movement_0c0.yaw = NormalizeAngle(angle);
         movement_0c0.target_yaw = NormalizeAngle(angle);
         if (navigation_mode_008 == 2 || navigation_mode_008 == 3) {
-            angle = -Function4BE490(&current, target);
+            angle = -GetElevationAngle004BE490(&current, target);
             movement_0c0.pitch_020 = NormalizeAngle(angle);
             movement_0c0.target_pitch_024 = NormalizeAngle(angle);
         } else if (navigation_mode_008 == 5 || navigation_mode_008 == 6) {
@@ -1533,11 +1533,11 @@ void W8Navigator::AimAtPosition(const srVector3T<float>* target)
     if (target->x != current.x || target->y != current.y ||
         target->z != current.z) {
         movement_0c0.target_yaw = NormalizeAngle(
-            Function4BE420(&current, target));
+            GetHeadingAngle004BE420(&current, target));
         if (navigation_mode_008 == 2 ||
             navigation_mode_008 == 3) {
             movement_0c0.target_pitch_024 = NormalizeAngle(
-                -Function4BE490(&current, target));
+                -GetElevationAngle004BE490(&current, target));
         } else if (navigation_mode_008 == 5 ||
                    navigation_mode_008 == 6) {
             UpdateFacing(0);

@@ -131,4 +131,7 @@ unsigned char CreateAndLoadProp0044BF50(
     W8ReadLevelInfo* info, W8Prop** prop);
 
 char Function44D760(W8World* world);
+/* The named prop's current animation value; -1 when it has none. The receiver
+   arrives in ECX, so the recovered form is a two-argument fastcall. */
+int __fastcall GetAnimationState0044EBE0(W8Prop* prop);   /* 0x0044EBE0 */
 void UpdateWorldProps0044E010(W8World* world);

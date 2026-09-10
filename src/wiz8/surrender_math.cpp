@@ -21,7 +21,7 @@
 // srVector3T<float>::method_00421700
 
 // TEMPLATE: WIZ8 0x004218E0
-// Function4218E0<float>
+// DotProduct004218E0<float>
 
 // TEMPLATE: WIZ8 0x00438C00
 // operator+<float>(srVector3T<float> const &,srVector3T<float> const &)

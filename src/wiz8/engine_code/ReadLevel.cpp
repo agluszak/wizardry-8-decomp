@@ -928,9 +928,9 @@ unsigned char ReadWorldParticles004BD0D0(
             adjustment.method_004219F0(first, second, third);
             rotation.method_00421A40(adjustment);
             direction.method_00421680(0.0, 0.0, -1.0);
-            transformed.x = Function4218E0(rotation.vectors[0], direction);
-            transformed.y = Function4218E0(rotation.vectors[1], direction);
-            transformed.z = Function4218E0(rotation.vectors[2], direction);
+            transformed.x = DotProduct004218E0(rotation.vectors[0], direction);
+            transformed.y = DotProduct004218E0(rotation.vectors[1], direction);
+            transformed.z = DotProduct004218E0(rotation.vectors[2], direction);
             length = transformed.method_00421700();
             if (length != 0.0f) {
                 transformed /= length;
@@ -1126,7 +1126,7 @@ unsigned char ReadLevel(
                 "ReadLevel: Error reading multi-meshes.");
         }
         for (unsigned int mesh_index = 0;
-             mesh_index < world->octree->m_positional_1b4;
+             mesh_index < world->octree->m_meshCount_1b4;
              ++mesh_index) {
             if (world->psrMeshes[mesh_index] != 0) {
                 world->psrMeshes[mesh_index]->setParent(world->level, 1);

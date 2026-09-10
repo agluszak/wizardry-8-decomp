@@ -110,7 +110,7 @@ extern float g_path_waypoint_query_horizontal_005ec360;
 float g_path_waypoint_query_horizontal_005ec360;
 extern float g_path_waypoint_exact_distance_005ebc64;
 extern double g_double_005ebe80;
-extern float Function4BE420(
+extern float GetHeadingAngle004BE420(
     const srVector3T<float>* source,
     const srVector3T<float>* target);
 // FUNCTION: WIZ8 0x0051b3f0
@@ -1905,7 +1905,7 @@ unsigned short W8PathingService::PlanMovement00463460(
             if (flag_09c == 0 && direct_visibility_node == 0) {
                 srVector3T<float> trace_target = movement->target_position_04c;
                 trace_target.y += trace_height_offset_0bc;
-                float bearing = NormalizeAngle(Function4BE420(
+                float bearing = NormalizeAngle(GetHeadingAngle004BE420(
                     &m_owned_0c8[walk].position_20, &trace_target));
                 float target_yaw = NormalizeAngle(trace_target_yaw_0c4);
                 srMatrix3T<float> rotation;
@@ -1915,11 +1915,11 @@ unsigned short W8PathingService::PlanMovement00463460(
                     rotation.method_00438F90(sin(angle), cos(angle));
                 }
                 srVector3T<float> transformed;
-                transformed.x = Function4218E0(
+                transformed.x = DotProduct004218E0(
                     rotation.vectors[0], trace_offset_0ac);
-                transformed.y = Function4218E0(
+                transformed.y = DotProduct004218E0(
                     rotation.vectors[1], trace_offset_0ac);
-                transformed.z = Function4218E0(
+                transformed.z = DotProduct004218E0(
                     rotation.vectors[2], trace_offset_0ac);
                 srVector3T<float> trace_source;
                 trace_source.x = m_owned_0c8[walk].position_20.x + transformed.x;
@@ -1940,7 +1940,7 @@ unsigned short W8PathingService::PlanMovement00463460(
         if (flag_09c == 0 && direct_visibility_node == 0) {
             srVector3T<float> trace_target = movement->target_position_04c;
             trace_target.y += trace_height_offset_0bc;
-            float bearing = NormalizeAngle(Function4BE420(
+            float bearing = NormalizeAngle(GetHeadingAngle004BE420(
                 &m_owned_0c8[walk].position_20, &trace_target));
             float target_yaw = NormalizeAngle(trace_target_yaw_0c4);
             srMatrix3T<float> rotation;
@@ -1950,11 +1950,11 @@ unsigned short W8PathingService::PlanMovement00463460(
                 rotation.method_00438F90(sin(angle), cos(angle));
             }
             srVector3T<float> transformed;
-            transformed.x = Function4218E0(
+            transformed.x = DotProduct004218E0(
                 rotation.vectors[0], trace_offset_0ac);
-            transformed.y = Function4218E0(
+            transformed.y = DotProduct004218E0(
                 rotation.vectors[1], trace_offset_0ac);
-            transformed.z = Function4218E0(
+            transformed.z = DotProduct004218E0(
                 rotation.vectors[2], trace_offset_0ac);
             srVector3T<float> trace_source;
             trace_source.x = m_owned_0c8[walk].position_20.x + transformed.x;
@@ -2377,7 +2377,7 @@ unsigned char W8PathingService::TestSearchPositionVisibility00464CC0(
     }
 
     srVector3T<float> movement_target = movement->target_position_04c;
-    float bearing = NormalizeAngle(Function4BE420(position, &movement_target));
+    float bearing = NormalizeAngle(GetHeadingAngle004BE420(position, &movement_target));
     float target_yaw = NormalizeAngle(trace_target_yaw_0c4);
 
     srMatrix3T<float> rotation;
@@ -2390,9 +2390,9 @@ unsigned char W8PathingService::TestSearchPositionVisibility00464CC0(
     }
 
     srVector3T<float> transformed;
-    transformed.x = Function4218E0(rotation.vectors[0], trace_offset_0ac);
-    transformed.y = Function4218E0(rotation.vectors[1], trace_offset_0ac);
-    transformed.z = Function4218E0(rotation.vectors[2], trace_offset_0ac);
+    transformed.x = DotProduct004218E0(rotation.vectors[0], trace_offset_0ac);
+    transformed.y = DotProduct004218E0(rotation.vectors[1], trace_offset_0ac);
+    transformed.z = DotProduct004218E0(rotation.vectors[2], trace_offset_0ac);
 
     srVector3T<float> trace_source;
     trace_source.x = position->x + transformed.x;
@@ -5608,11 +5608,11 @@ unsigned char W8PathingService::HasDirectionalWaypointLink0045EF90(
                 second_edge_index = m_pEdges_04c[second_edge_index].next_0c;
             }
             if (second_edge_index != 0 &&
-                Function4218E0(neighbor_direction, destination_direction) >
+                DotProduct004218E0(neighbor_direction, destination_direction) >
                     g_float_005ec390) {
                 return 1;
             }
-            if (Function4218E0(neighbor_direction, destination_direction) >
+            if (DotProduct004218E0(neighbor_direction, destination_direction) >
                 g_float_005ec38c) {
                 return 1;
             }

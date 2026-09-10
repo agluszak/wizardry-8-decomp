@@ -8,6 +8,7 @@
  */
 
 #include "wiz8/engine_code/AnimObj.h"
+#include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stLight.h"
@@ -26,6 +27,8 @@
 #include <string.h>
 
 extern int IncrementValue60DFAC(void);
+extern void Function500460(W8Missile* missile);
+extern void* g_dialog_state_006836a8;
 
 // GLOBAL
 float g_navigator_largest_extent_6081e8;
@@ -71,7 +74,9 @@ W8AIMissile* CopyAIMissile004A53A0(const W8AIMissile* source)
 struct W8MissileTableRecord {
     unsigned char unknown_000[0x140];
     float value_140;
-    unsigned char unknown_144[0xa1];
+    unsigned char unknown_144[0x10];
+    unsigned char flag_154;
+    unsigned char unknown_155[0x90];
 };
 #pragma pack(pop)
 
@@ -151,7 +156,7 @@ static int g_missile_iterator_0065bde4;
 /* Iterate the world's missile vector. A nonzero argument restarts the shared
    cursor; a missing world or vector answers null. */
 // FUNCTION: WIZ8 0x004A2760
-W8Missile* Function4A2760(char restart)
+W8Missile* NextMissile004A2760(char restart)
 {
     W8Missile* missile = 0;
 
@@ -167,11 +172,49 @@ W8Missile* Function4A2760(char restart)
     return missile;
 }
 
-extern float Function4BE490(
+/* Step every live missile and drop the finished ones.
+
+   A missile still starting, or not yet marked for removal, detaches its
+   representation, starts if needed, and updates in place; a finished one
+   leaves the world collection and is destroyed. */
+// FUNCTION: WIZ8 0x004a27c0
+void UpdateWorldMissiles004A27C0(W8World* world)
+{
+    if (world == 0) {
+        srAssertFail(
+            "pWorld",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
+            200,
+            0);
+    }
+    srVector3T<double> camera_location = world->camera->getLocation();
+    int index = 0;
+    int count = world->missiles->GetCount();
+    while (index < count) {
+        W8Missile* missile = *world->missiles->GetAt(index);
+        if (missile != 0) {
+            missile->DetachRepresentation004A7A70(world);
+            if (missile->flag_1e0 == 0 || missile->flag_1e2 == 0) {
+                missile->StartIfHostActive();
+                missile->UpdateRepresentation(world);
+                missile->UpdateNavigation004553A0(0, 0);
+            }
+            else {
+                world->missiles->RemoveAt(world->missiles->IndexOf(missile));
+                DestroyMissile(missile);
+                --index;
+                --count;
+            }
+        }
+        ++index;
+    }
+}
+
+extern float GetElevationAngle004BE490(
     const srVector3T<float>* source, const srVector3T<float>* target);
-extern float Function4BE420(
+extern float GetHeadingAngle004BE420(
     const srVector3T<float>* source, const srVector3T<float>* target);
-extern W8Missile* Function4A28D0(
+extern W8Missile* CreateMissile004A28D0(
     unsigned int missile_table_index,
     srVector3T<float>* source,
     float value_3,
@@ -184,15 +227,15 @@ extern W8Missile* Function4A28D0(
 /* Derive the two launch angles from the source and target, then forward the
    remaining launch values to the missile factory. */
 // FUNCTION: WIZ8 0x004A2D30
-W8Missile* Function4A2D30(
+W8Missile* FireMissile004A2D30(
     unsigned int missile_table_index, srVector3T<float>* source,
     srVector3T<float>* target, unsigned int value_4,
     unsigned int value_5, unsigned int value_6,
     unsigned int value_7)
 {
-    return Function4A28D0(
+    return CreateMissile004A28D0(
         missile_table_index, source,
-        Function4BE420(source, target), Function4BE490(source, target),
+        GetHeadingAngle004BE420(source, target), GetElevationAngle004BE490(source, target),
         value_4, value_5, value_6, value_7);
 }
 
@@ -310,7 +353,7 @@ W8MissileRep::W8MissileRep(const W8MissileRep& other)
                     copied_light->ConfigureMonsterCopy();
                     copied_light->setLocation(x, y, z);
                     copied_light->setParent(0, 0);
-                    PLAdoptAppend(&g_world->m_list_0a8, copied_light);
+                    PLAdoptAppend(&g_world->m_lights_0a8, copied_light);
                     copied_lights->Add(copied_light);
                 }
             }
@@ -448,6 +491,39 @@ W8Missile::~W8Missile()
     UnregisterGrCycle(this);
 }
 
+/* Start or advance the missile while its launcher is live.
+
+   When no scripted phase claims it, the ordinary path hands control to the
+   missile's AI and ticks the animation. A scripted missile instead records
+   the start, fires the one-shot launch for its table kind, and lets the
+   combat boundary consume the animation once its table flag is set. */
+// FUNCTION: WIZ8 0x004a4050
+void W8Missile::StartIfHostActive()
+{
+    if (m_pRep->active == 0) {
+        return;
+    }
+    if (GetAnimationState004A4640(2) == 0 || flag_1e1 == 0) {
+        if (m_pAI != 0) {
+            PathAIUpdate004A9260(static_cast<W8PathAI*>(m_pAI), 1);
+        }
+        TickAnimation(1.0f);
+    }
+    else {
+        flag_1e0 = 1;
+        if (missile_table_index_1d8 == 0x23 &&
+            (g_dialog_state_006836a8 == 0 ||
+             *reinterpret_cast<unsigned char*>(
+                 static_cast<unsigned char*>(g_dialog_state_006836a8) + 0x8c4) !=
+                 2)) {
+            Function4A49E0();
+        }
+        if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 != 0) {
+            Function500460(this);
+        }
+    }
+}
+
 /* Remove a missile's world lights and AI allocation, then release the object. */
 // FUNCTION: WIZ8 0x004a4180
 void DestroyMissile(W8Missile* missile)
@@ -516,7 +592,7 @@ W8MissileRep::~W8MissileRep()
 /* Copy the twelve-word state block, then replace its first float from the
    selected 0x1e5-byte missile database row. */
 // FUNCTION: WIZ8 0x004A5410
-void W8Missile::Function4A5410(const float* values)
+void W8Missile::SetLaunchValues004A5410(const float* values)
 {
     memcpy(values_1fc, values, sizeof(values_1fc));
     values_1fc[0] = g_missile_table_65bde0[missile_table_index_1d8].value_140;

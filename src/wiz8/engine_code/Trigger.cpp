@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/AmbientSound.h"
+#include "wiz8/dialog_code/DialogFactoryDialogs.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/magic.h"
@@ -380,6 +381,83 @@ W8TriggerShakeEvent::W8TriggerShakeEvent()
 {
 }
 
+// GLOBAL: WIZ8 0x006599a0
+srVector3T<float> g_trigger_camera_006599a0;
+
+void OnItemDialogClosed004456C0(W8DialogBase* base);
+
+/* Advance every world trigger: raise the item picker when a prop-bearing
+   activation asks for one, then run proximity activations for kind-two
+   triggers. The camera position is cached when no trigger fired. */
+// FUNCTION: WIZ8 0x00443ae0
+void UpdateWorldTriggers00443AE0(W8World* world)
+{
+    srVector3T<float> camera;
+    bool activated = false;
+    bool running = false;
+
+    GetCameraPosition(&camera);
+    int count = world->triggers->GetCount();
+    for (int index = 0; index < count; ++index) {
+        Trigger* trigger = *world->triggers->GetAt(index);
+        if (trigger->flag_0a0_25 != 0 && trigger->m_pProp != 0 &&
+            (GetAnimationState0044EBE0(trigger->m_pProp) < 2 ||
+             trigger->m_pProp->Rep()->flag_06d == 0)) {
+            trigger->GenerateItemGroup();
+            if (g_modal_owner_0068edd0 == 0 &&
+                trigger->world_item_group_34c != 0) {
+                W8Dialog005CD710* dialog = new W8Dialog005CD710;
+                if (dialog != 0) {
+                    dialog->m_user_data = reinterpret_cast<int>(trigger);
+                    dialog->SetItemGroup005CF0C0(
+                        trigger->world_item_group_34c);
+                    dialog->m_destroy_callback = OnItemDialogClosed004456C0;
+                    g_flag_0068506e = 0;
+                    g_modal_owner_0068edd0 = dialog;
+                }
+            }
+        }
+        if (g_environment_load_flag_00603ad0 != 0 &&
+            trigger->trigger_kind_018 == 2 && trigger->flag_0a0_08 != 0 &&
+            trigger->flag_0a0_11 != 0 && trigger->flag_0a0_02 == 0) {
+            float dx = trigger->position_118 - camera.x;
+            float dy = trigger->position_11c - camera.y;
+            float dz = trigger->position_120 - camera.z;
+            float distance = (float)sqrt(dx * dx + dy * dy + dz * dz);
+            if (trigger->range_maximum_0a8 <= distance) {
+                if (trigger->flag_0a0_06 != 0) {
+                    trigger->FinishAction();
+                }
+            }
+            else if (trigger->flag_0a0_06 == 0 &&
+                     trigger->range_minimum_0a4 <= distance) {
+                activated = true;
+                if (trigger->flag_0a0_20 == 0 || !running) {
+                    trigger->Run(-1);
+                    running = true;
+                }
+            }
+        }
+    }
+    if (world == g_world && !activated) {
+        g_trigger_camera_006599a0 = camera;
+    }
+}
+
+/* The item picker's destroy callback: hand its items back to the owning
+   trigger and clear the trigger's pending-picker bit. */
+// FUNCTION: WIZ8 0x004456c0
+void OnItemDialogClosed004456C0(W8DialogBase* base)
+{
+    W8Dialog005CD710* dialog = static_cast<W8Dialog005CD710*>(base);
+
+    if (dialog != 0) {
+        dialog->ReturnItemsToGroup005CF110();
+        reinterpret_cast<Trigger*>(dialog->m_user_data)->flags_0a0 &=
+            0xfdffffff;
+    }
+}
+
 // FUNCTION: WIZ8 0x00443D30
 void UpdateTimedTriggerEvents00443D30(void)
 {
@@ -650,10 +728,10 @@ void W8TriggerEvent::Update()
                     &axis.x);
             }
 
-            transformed.x = Function4218E0(rotation.vectors[1], target);
-            transformed.y = Function4218E0(rotation.vectors[2], target);
-            transformed.z = Function4218E0(row_3, target);
-            Function4A2D30(
+            transformed.x = DotProduct004218E0(rotation.vectors[1], target);
+            transformed.y = DotProduct004218E0(rotation.vectors[2], target);
+            transformed.z = DotProduct004218E0(row_3, target);
+            FireMissile004A2D30(
                 (unsigned int)trigger_030->m_lData1,
                 &source, &transformed,
                 0, 1, 1, 0x47435000);
@@ -2657,13 +2735,13 @@ toggle_item_prop:
                     &rotation.vectors[0].x, sin(angle_0fc), cos(angle_0fc),
                     &axis.x);
             }
-            transformed.x = Function4218E0(
+            transformed.x = DotProduct004218E0(
                 rotation.vectors[0], target_position);
-            transformed.y = Function4218E0(
+            transformed.y = DotProduct004218E0(
                 rotation.vectors[1], target_position);
-            transformed.z = Function4218E0(
+            transformed.z = DotProduct004218E0(
                 rotation.vectors[2], target_position);
-            Function4A2D30(
+            FireMissile004A2D30(
                 (unsigned int)m_lData1, &source_position,
                 &transformed, 0, 1, 1, 0x47435000);
         }

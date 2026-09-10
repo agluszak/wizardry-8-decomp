@@ -112,9 +112,9 @@ float g_camera_level_forward_scale_603aac = 375.0f;
 extern unsigned char g_flag_006875a5;
 // GLOBAL: WIZ8 0x006875a5
 unsigned char g_flag_006875a5;
-extern float Function4BE420(
+extern float GetHeadingAngle004BE420(
     const srVector3T<float>* from, const srVector3T<float>* to);
-extern float Function4BE490(
+extern float GetElevationAngle004BE490(
     const srVector3T<float>* from, const srVector3T<float>* to);
 
 // GLOBAL: WIZ8 0x0065A0FC
@@ -480,11 +480,11 @@ unsigned char GDCamera::ComputeTrackingOrientation(
     }
 
     float angle_delta =
-        (NormalizeAngle(Function4BE420(&m_position_08c, target))
+        (NormalizeAngle(GetHeadingAngle004BE420(&m_position_08c, target))
          + g_camera_angle_period_005ec014)
         - (NormalizeAngle(m_yaw) + g_camera_angle_period_005ec014);
     float pitch_delta =
-        (Function4BE490(&m_position_08c, target)
+        (GetElevationAngle004BE490(&m_position_08c, target)
          + g_camera_angle_period_005ec014)
         - (m_pitch + g_camera_angle_period_005ec014);
     if ((double)fabs((double)angle_delta) > g_camera_pi_005ec2a0) {
@@ -935,11 +935,11 @@ void GDCamera::SetPitch(float pitch)
             column.y = rotation_values[index + 3];
             column.z = rotation_values[index + 6];
             result_values[index] =
-                Function4218E0(m_pitch_rotation.vectors[0], column);
+                DotProduct004218E0(m_pitch_rotation.vectors[0], column);
             result_values[index + 3] =
-                Function4218E0(m_pitch_rotation.vectors[1], column);
+                DotProduct004218E0(m_pitch_rotation.vectors[1], column);
             result_values[index + 6] =
-                Function4218E0(m_pitch_rotation.vectors[2], column);
+                DotProduct004218E0(m_pitch_rotation.vectors[2], column);
         }
         m_pitch_rotation.vectors[0].x = result[0].x;
         m_pitch_rotation.vectors[0].y = result[0].y;
@@ -1088,7 +1088,7 @@ void GDCamera::GetForwardPoint(float distance, srVector3T<float>* output)
     float y = m_rotation.vectors[1].x * m_direction_078.x
               + m_rotation.vectors[1].y * m_direction_078.y
               + m_rotation.vectors[1].z * m_direction_078.z;
-    float z = Function4218E0(m_rotation.vectors[2], m_direction_078);
+    float z = DotProduct004218E0(m_rotation.vectors[2], m_direction_078);
     m_direction_078.x = x;
     m_direction_078.y = y;
     m_direction_078.z = z;

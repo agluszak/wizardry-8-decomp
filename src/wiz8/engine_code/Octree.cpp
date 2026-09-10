@@ -1,12 +1,16 @@
 #include <cstdlib>
 #include <cstring>
+#include <io.h>
+#include <sys/stat.h>
 
 #include "surrender/srHeap.h"
 #include "surrender/srScene.h"
 #include "wiz8/engine_code/OctPath.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/location_variables.h"
+#include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/geometry.h"
 #include "wiz8/engine_code/Navigator.h"
@@ -15,6 +19,12 @@
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
 #include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/Prop.h"
+#include "wiz8/fonts.h"
+#include "wiz8/utility.h"
+#include "wiz8/world_cursor.h"
+#include "wiz8/engine_code/stModelInstance.h"
+#include "wiz8/engine_code/stParticle.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/engine_code/World.h"
 
@@ -40,14 +50,23 @@ unsigned long g_octree_storage_00659770;
 
 // GLOBAL: WIZ8 0x00659890
 unsigned long g_octree_state_00659890;
+// GLOBAL: WIZ8 0x00659894
+srNode* g_octree_trace_node_00659894;
 // GLOBAL: WIZ8 0x00659898
 unsigned char g_octree_update_suspended_00659898;
 // GLOBAL: WIZ8 0x00659899
 unsigned char g_octree_trace_enabled_00659899;
-extern void Function4331F0(void* value);
-extern void Function432D60(void* value);
-extern void Function434020(int value);
+extern void Function518510(void* notice);
 extern unsigned char g_navigator_link_mode_00659c10;
+
+/* Build a packed four-byte colour from four components and answer its
+   address. The receiver is the output slot. */
+extern void* __fastcall PackColour00433FB0(
+    void* color, double red, double green, double blue, double alpha);
+/* Draw the probe box through the world camera. */
+extern void DrawWorldBox0048DF30(
+    W8World* world, srVector3T<float> minimum, srVector3T<float> maximum,
+    unsigned long color);
 
 extern const float g_world_scale_005ebc40;
 
@@ -58,7 +77,7 @@ W8Octree* g_octree_6598a4;
 static const float NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE = 50.0f;
 
 // FUNCTION: WIZ8 0x0042f7e0
-void W8Octree::Function0042F7E0()
+void W8Octree::UpdateCameraVisibility0042F7E0()
 {
     W8World* world = GetWorld();
     if (g_octree_update_suspended_00659898 != 0 || m_positional_294 != 0) {
@@ -86,11 +105,457 @@ void W8Octree::Function0042F7E0()
     horizontal_fov_cosine_1f8 = (float)cos(horizontal_fov_1f0);
     vertical_fov_cosine_1fc = (float)cos(vertical_fov_1f4);
     m_owned_190->ClearAll();
-    m_owned_15c->ClearAll();
+    m_projected_regions_15c->ClearAll();
     UpdateVisibility004304A0();
     if (g_octree_trace_enabled_00659899 != 0) {
         UpdateWorldTrace00433EB0();
     }
+}
+
+/* Rebuild the sector-to-mesh visibility state, then publish this frame's
+   visible regions to the meshes, props and particles.
+
+   The reset pass only runs after a level load or a resumed update. It walks
+   the meshes, records each one's sector mapping, drops the visible flags, and
+   hides every prop and particle before clearing the previous frame's sets.
+
+   The frame pass clears the new sets, projects the camera through the octree,
+   publishes the union of the previous and current region sets, and finally
+   diffs the two frames so only the meshes, props and particles that changed
+   state are touched. */
+// FUNCTION: WIZ8 0x004304a0
+void W8Octree::UpdateVisibility004304A0()
+{
+    unsigned short mesh_index;
+    unsigned int index;
+    int bit;
+
+    if (m_reset_visibility_168 != 0) {
+        m_reset_visibility_168 = 0;
+        for (mesh_index = 0; mesh_index < m_meshCount_1b4; ++mesh_index) {
+            if (g_world->psrMeshes[mesh_index] != 0) {
+                m_pSubmeshes[static_cast<stModelInstance*>(
+                                g_world->psrMeshes[mesh_index])
+                                ->state_17c +
+                            1]
+                    .mesh_04 = mesh_index;
+                m_pSubmeshes[mesh_index + 1].flags_00 &= 0xffffffc7;
+                stModelInstance* mesh = static_cast<stModelInstance*>(
+                    g_world->psrMeshes[mesh_index]);
+                if (mesh != 0) {
+                    mesh->setFlag(srNode::FLAG_POSITIONAL_0);
+                    mesh->setFlag(srNode::FLAG_POSITIONAL_1);
+                }
+            }
+        }
+        for (index = 0; index < m_usNumPropsLoaded; ++index) {
+            m_papProps[index]->SetSetting6C(0);
+        }
+        if (m_pusMeshProps != 0) {
+            for (index = 0; m_pusMeshProps[index] != 0; ++index) {
+                m_papProps[m_pusMeshProps[index] - 1]->SetSetting6C(1);
+            }
+        }
+        for (index = 0; index < m_usNumParticlesLoaded; ++index) {
+            m_papParticles[index]->SetTraversalEnabled00498D90(0);
+        }
+        if (m_pusMeshParticles != 0) {
+            for (index = 0; m_pusMeshParticles[index] != 0; ++index) {
+                m_papParticles[m_pusMeshParticles[index] - 1]->SetTraversalEnabled00498D90(1);
+            }
+        }
+        ValidateRegionMeshLinks00433AB0();
+        m_previous_regions_164->ClearAll();
+        m_accumulated_regions_198->ClearAll();
+        if (m_ulNumParticles != 0) {
+            m_visible_particles_100->ClearAll();
+        }
+        if (m_ulNumProps != 0) {
+            m_visible_props_108->ClearAll();
+        }
+    }
+
+    m_current_regions_160->ClearAll();
+    m_projected_regions_15c->ClearAll();
+    if (m_ulNumParticles != 0) {
+        m_particles_to_disable_10c->ClearAll();
+        m_linked_particles_0fc->ClearAll();
+    }
+    if (m_ulNumProps != 0) {
+        m_linked_props_104->ClearAll();
+        m_props_to_disable_110->ClearAll();
+    }
+    m_projected_regions_valid_16a = 0;
+    m_positional_16b = 0;
+    CollectVisibleRegions00430D50(
+        &camera_location_1c0, reinterpret_cast<int*>(m_positional_204), 0, 1);
+    CollectVisibleCells0042FE90();
+    if (pathing_180 != 0) {
+        srVector3T<float> dof;
+        GetWorldCursorPosition00490BF0(&dof);
+        if (dof.x != g_float_005ebb34 || dof.y != g_float_005ebb34 ||
+            dof.z != g_float_005ebb34) {
+            srVector3T<float> probe = dof;
+            pathing_180->UpdatePathVisualization0045BC40(
+                &probe, &camera_dof_1cc);
+        }
+        else {
+            pathing_180->UpdatePathVisualization0045BC40(
+                &camera_location_1c0, &camera_dof_1cc);
+        }
+    }
+    if (m_projected_regions_valid_16a != 0) {
+        m_current_regions_160->IntersectWith(*m_projected_regions_15c);
+    }
+    m_accumulated_regions_198->UnionWith(*m_current_regions_160);
+    bit = m_previous_regions_164->NextSetBit(1);
+    while (bit != 0) {
+        --bit;
+        if (!m_current_regions_160->Test(bit) && bit != 0) {
+            W8OctSubmesh* submesh = &m_pSubmeshes[bit];
+            submesh->flags_00 &= 0xfffffff7;
+            stModelInstance* mesh = static_cast<stModelInstance*>(
+                g_world->psrMeshes[submesh->mesh_04]);
+            if (mesh != 0) {
+                mesh->setFlag(srNode::FLAG_POSITIONAL_0);
+                mesh->setFlag(srNode::FLAG_POSITIONAL_1);
+            }
+        }
+        bit = m_previous_regions_164->NextSetBit(0);
+    }
+    bit = m_current_regions_160->NextSetBit(1);
+    while (bit != 0) {
+        --bit;
+        if (!m_previous_regions_164->Test(bit) && bit != 0) {
+            W8OctSubmesh* submesh = &m_pSubmeshes[bit];
+            int mesh_index = submesh->mesh_04;
+            submesh->flags_00 |= 0x28;
+            stModelInstance* mesh = static_cast<stModelInstance*>(
+                g_world->psrMeshes[mesh_index]);
+            if (mesh != 0) {
+                mesh->clearFlag(srNode::FLAG_POSITIONAL_0);
+                mesh->clearFlag(srNode::FLAG_POSITIONAL_1);
+            }
+        }
+        MarkMeshLinksVisible00430A70(bit);
+        bit = m_current_regions_160->NextSetBit(0);
+    }
+    if (m_ulNumParticles != 0) {
+        for (index = 0; m_pusMeshParticles[index] != 0; ++index) {
+            m_linked_particles_0fc->Set(m_pusMeshParticles[index] - 1);
+        }
+        m_particles_to_disable_10c->SetToComplementOf(*m_linked_particles_0fc);
+        m_particles_to_disable_10c->IntersectWith(*m_visible_particles_100);
+        bit = m_linked_particles_0fc->NextSetBit(1);
+        while (bit != 0) {
+            --bit;
+            if (!m_visible_particles_100->Test(bit)) {
+                m_papParticles[bit]->SetTraversalEnabled00498D90(1);
+            }
+            bit = m_linked_particles_0fc->NextSetBit(0);
+        }
+        bit = m_particles_to_disable_10c->NextSetBit(1);
+        while (bit != 0) {
+            m_papParticles[bit - 1]->SetTraversalEnabled00498D90(0);
+            bit = m_particles_to_disable_10c->NextSetBit(0);
+        }
+        m_visible_particles_100->CopyFrom(*m_linked_particles_0fc);
+    }
+    if (m_ulNumProps != 0) {
+        for (index = 0; m_pusMeshProps[index] != 0; ++index) {
+            m_linked_props_104->Set(m_pusMeshProps[index] - 1);
+        }
+        m_props_to_disable_110->SetToComplementOf(*m_linked_props_104);
+        m_props_to_disable_110->IntersectWith(*m_visible_props_108);
+        bit = m_linked_props_104->NextSetBit(1);
+        while (bit != 0) {
+            --bit;
+            if (!m_visible_props_108->Test(bit)) {
+                m_papProps[bit]->SetSetting6C(1);
+            }
+            bit = m_linked_props_104->NextSetBit(0);
+        }
+        bit = m_props_to_disable_110->NextSetBit(1);
+        while (bit != 0) {
+            m_papProps[bit - 1]->SetSetting6C(0);
+            bit = m_props_to_disable_110->NextSetBit(0);
+        }
+        m_visible_props_108->CopyFrom(*m_linked_props_104);
+    }
+    m_previous_regions_164->CopyFrom(*m_current_regions_160);
+}
+
+/* Add every particle and prop linked to one mesh to the live visibility sets.
+
+   The lookup gives a 1-based start into a packed link table; each run is
+   terminated by a zero. A linked entry whose slot is empty is skipped. */
+// FUNCTION: WIZ8 0x00430a70
+void W8Octree::MarkMeshLinksVisible00430A70(unsigned int mesh)
+{
+    if (mesh > m_meshCount_1b4) {
+        return;
+    }
+    if (m_ulNumParticles != 0) {
+        unsigned short link = m_pusMeshParticleLookup[mesh];
+        if (link != 0 && m_pusMeshParticles[link] != 0) {
+            do {
+                if (m_usMeshParticlesLen_0e8 < link) {
+                    srAssertFail("usProp<=m_usMeshParticlesLen", OCTREE_CPP,
+                                 0xa07, "Particle lookup index out of range");
+                }
+                unsigned short particle = m_pusMeshParticles[link];
+                ++link;
+                if (particle <= m_usNumParticlesLoaded &&
+                    m_papParticles[particle] != 0) {
+                    m_linked_particles_0fc->Set(particle - 1);
+                }
+            } while (m_pusMeshParticles[link] != 0);
+        }
+    }
+    if (m_ulNumProps != 0) {
+        unsigned short link = m_pusMeshPropLookup[mesh];
+        if (link != 0 && m_pusMeshProps[link] != 0) {
+            do {
+                if (m_usMeshPropsLen_0f4 < link) {
+                    srAssertFail("usProp<=m_usMeshPropsLen", OCTREE_CPP, 0xa1b,
+                                 "Prop lookup index out of range");
+                }
+                unsigned short prop = m_pusMeshProps[link];
+                ++link;
+                if (prop <= m_usNumPropsLoaded && m_papProps[prop] != 0) {
+                    m_linked_props_104->Set(prop - 1);
+                }
+            } while (m_pusMeshProps[link] != 0);
+        }
+    }
+}
+
+/* Write the octree's point array to a companion file.
+
+   The level path supplies the base name and its existing extension is
+   replaced with the point-file extension. A read-only file is made writable
+   first. The count precedes the records, and the result reports either
+   write. */
+// FUNCTION: WIZ8 0x00432d60
+unsigned char W8Octree::SavePoints00432D60(char* path)
+{
+    char name[256];
+    unsigned char result = 0;
+
+    strcpy(name, path);
+    char* extension = strrchr(name, '.');
+    if (extension != 0) {
+        *extension = '\0';
+    }
+    strcat(name, ".pts");
+    if (FileExists(name) != 0) {
+        if (_access(name, 2) != 0) {
+            _chmod(name, 0x180);
+        }
+    }
+    int file = FileOpen(name, 2, 0);
+    if (file != 0) {
+        if (m_positional_170 != 0 && m_sr_owned_174 != 0) {
+            unsigned char wrote_count = FileWrite(file, &m_positional_170, 4, 0);
+            unsigned char wrote_points =
+                FileWrite(file, m_sr_owned_174, m_positional_170 * 0xc, 0);
+            result = wrote_count | wrote_points;
+            CloseVirtualFile(file);
+        }
+    }
+    return result;
+}
+
+/* Write the octree's region-link table to the .rlk companion file.
+
+   The collected keys are the region ids from one up to the spatial region
+   count, followed by the cell keys of the region grid offset by the link id.
+   Each key's table values are appended in chain order; the count is written
+   first, then the keys and their short values. */
+// FUNCTION: WIZ8 0x004331f0
+unsigned char W8Octree::SaveRegionLinks004331F0(char* path)
+{
+    unsigned char result = 1;
+    unsigned int* keys = 0;
+    unsigned short* values = 0;
+    int file = 0;
+
+    if (m_pRegionLinks_150 == 0) {
+        return 0;
+    }
+    if (path == 0) {
+        return 0;
+    }
+    unsigned int capacity = m_pRegionLinks_150->bucket_count;
+    if (capacity == 0) {
+        return 0;
+    }
+    char name[256];
+    strcpy(name, path);
+    char* extension = strrchr(name, '.');
+    if (extension != 0) {
+        *extension = '\0';
+    }
+    strcat(name, ".rlk");
+    if (FileExists(name) != 0) {
+        if (_access(name, 2) != 0) {
+            _chmod(name, 0x180);
+        }
+    }
+    file = FileOpen(name, 2, 0);
+    if (file == 0) {
+        goto cleanup;
+    }
+    keys = static_cast<unsigned int*>(malloc(capacity * 4));
+    values = static_cast<unsigned short*>(malloc(capacity * 2));
+    if (keys == 0 || values == 0) {
+        result = 0;
+        goto cleanup;
+    }
+    {
+        unsigned int count = 0;
+        for (unsigned int key = 1; key < spatial_000.positional_46; ++key) {
+            for (int slot = m_pRegionLinks_150->FindNextEntry(&key, -1);
+                 slot != -1;
+                 slot = m_pRegionLinks_150->FindNextEntry(&key, slot)) {
+                keys[count] = key;
+                values[count] = m_pRegionLinks_150->entries[slot].value;
+                ++count;
+            }
+        }
+        unsigned int extent = 1 << spatial_000.positional_52;
+        unsigned int base = m_positional_140 * 0x1000000;
+        for (unsigned int x = 0; x < extent; ++x) {
+            for (unsigned int y = 0; y < extent; ++y) {
+                for (unsigned int z = 0; z < extent; ++z) {
+                    unsigned int key = (x << 16) + (y << 8) + z + base;
+                    for (int slot = m_pRegionLinks_150->FindNextEntry(&key, -1);
+                         slot != -1;
+                         slot = m_pRegionLinks_150->FindNextEntry(&key, slot)) {
+                        keys[count] = key;
+                        values[count] = m_pRegionLinks_150->entries[slot].value;
+                        ++count;
+                    }
+                }
+            }
+        }
+        if (FileWrite(file, &count, 4, 0) == 0) {
+            return 0;
+        }
+        unsigned char wrote_keys = FileWrite(file, keys, count * 4, 0);
+        unsigned char wrote_values = FileWrite(file, values, count * 2, 0);
+        result = wrote_keys | wrote_values;
+    }
+cleanup:
+    CloseVirtualFile(file);
+    if (keys != 0) {
+        free(keys);
+    }
+    if (values != 0) {
+        free(values);
+    }
+    return result;
+}
+
+/* Draw the octree cell the camera currently occupies as a wire box. The cell
+   is derived on each axis by quantizing the camera position relative to the
+   spatial minimum, and the box spans one cell from there. */
+// FUNCTION: WIZ8 0x00433eb0
+unsigned char W8Octree::UpdateWorldTrace00433EB0()
+{
+    srVector3T<float> camera;
+    int cell[3];
+    srVector3T<float> minimum;
+    srVector3T<float> maximum;
+    unsigned long color;
+
+    GetCameraPosition(&camera);
+    for (int axis = 0; axis < 3; ++axis) {
+        cell[axis] = (int)(((&camera.x)[axis] -
+                            (&spatial_000.minimum_0c.x)[axis]) /
+                           spatial_000.node_extent_70);
+    }
+    minimum.x =
+        (float)cell[0] * spatial_000.node_extent_70 + spatial_000.minimum_0c.x;
+    minimum.y =
+        (float)cell[1] * spatial_000.node_extent_70 + spatial_000.minimum_0c.y;
+    minimum.z =
+        (float)cell[2] * spatial_000.node_extent_70 + spatial_000.minimum_0c.z;
+    maximum.x = minimum.x + spatial_000.node_extent_70;
+    maximum.y = minimum.y + spatial_000.node_extent_70;
+    maximum.z = minimum.z + spatial_000.node_extent_70;
+    void* packed = PackColour00433FB0(&color, 0.0, 1.0, 0.0, 0.0);
+    DrawWorldBox0048DF30(
+        g_world, minimum, maximum, *static_cast<unsigned long*>(packed));
+    return 1;
+}
+
+/* Validate the current octree's region-to-mesh links against a scratch copy
+   of the spatial state. The scratch copy is flattened to the leaf level with
+   all region bounds enabled, and every reported bad link is posted as one
+   notice. */
+// FUNCTION: WIZ8 0x00433ab0
+unsigned char W8Octree::ValidateRegionMeshLinks00433AB0()
+{
+    W8OctSpatialState0046CCC0 spatial(&spatial_000);
+    spatial.depth_44 = 0;
+    spatial.level_kind_6c = 1;
+    spatial.positional_94 = 1;
+    int bad_links = CountBadRegionMeshLinks00433B90(&spatial);
+    if (bad_links != 0) {
+        Function518510(FormatWideString(
+            L" %d Bad Region-Mesh Links!", bad_links, g_small_font_683678, 1,
+            1, 0, 0));
+        return 0;
+    }
+    return 1;
+}
+
+/* Flip or clear the octree update suspension.
+
+   A null world only clears the retained render node and the flag. A real world
+   toggles the flag: resuming forces the next update to rebuild all visibility
+   state, while suspending drops every mesh from view, clears the visited
+   region bytes, and lazily attaches the render node to the static scene. */
+// FUNCTION: WIZ8 0x00434020
+void W8Octree::ToggleUpdateSuspension00434020(W8World* world)
+{
+    if (world == 0) {
+        g_octree_trace_node_00659894 = 0;
+        g_octree_update_suspended_00659898 = 0;
+        return;
+    }
+    g_octree_update_suspended_00659898 =
+        (g_octree_update_suspended_00659898 == 0);
+    if (g_octree_update_suspended_00659898 == 0) {
+        g_octree_trace_node_00659894->setFlag(srNode::FLAG_POSITIONAL_0);
+        g_octree_trace_node_00659894->setFlag(srNode::FLAG_POSITIONAL_1);
+        m_reset_visibility_168 = 1;
+        MarkRendererReady();
+        return;
+    }
+    for (unsigned short mesh_index = 0; mesh_index < m_meshCount_1b4;
+         ++mesh_index) {
+        m_pSubmeshes[static_cast<stModelInstance*>(g_world->psrMeshes[mesh_index])
+                        ->state_17c +
+                    1]
+            .mesh_04 = mesh_index;
+        m_pSubmeshes[mesh_index + 1].flags_00 &= 0xffffffc7;
+        static_cast<stModelInstance*>(world->psrMeshes[mesh_index])
+            ->setFlag(srNode::FLAG_POSITIONAL_0);
+        static_cast<stModelInstance*>(world->psrMeshes[mesh_index])
+            ->setFlag(srNode::FLAG_POSITIONAL_1);
+    }
+    memset(m_pfRegsVisited, 0, spatial_000.positional_58 + 1);
+    if (g_octree_trace_node_00659894 == 0) {
+        g_octree_trace_node_00659894 =
+            g_octree_game_data_00652db0->CreateTraceModel0041C930();
+        g_octree_trace_node_00659894->setParent(world->static_scene, 1);
+        SetChainValue15C(
+            reinterpret_cast<char*>(g_octree_trace_node_00659894), 2);
+    }
+    g_octree_trace_node_00659894->clearFlag(srNode::FLAG_POSITIONAL_0);
+    g_octree_trace_node_00659894->clearFlag(srNode::FLAG_POSITIONAL_1);
 }
 
 // FUNCTION: WIZ8 0x00434250
@@ -374,7 +839,7 @@ bool W8Octree::HasLineOfSight(
     SeedCellProbe00457640(from, to);
     m_positional_1b8 = 0;
     m_owned_190->ClearAll();
-    m_owned_160->ClearAll();
+    m_current_regions_160->ClearAll();
     cell[0] = (int)((from->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
     step[3] = (int)((to->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
     cell[1] = (int)((from->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70);
@@ -909,7 +1374,7 @@ void W8Octree::UpdateMonsterLocation(
         sector = GetSectorForPosition00430BF0(position);
         if (sector == 0 ||
             (mesh = reinterpret_cast<int*>(g_world->psrMeshes)
-                 [reinterpret_cast<int*>(m_owned_0d8)[sector * 4 + 1]]) == 0) {
+                 [m_pSubmeshes[sector].mesh_04]) == 0) {
             monster->node_308 = 0;
         } else {
             monster->node_308 = reinterpret_cast<srNode*>(mesh);
@@ -1179,7 +1644,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                     if (ReadHeader<unsigned long>(header, 0x66) != 0) {
                                         block = malloc(
                                             (ReadHeader<unsigned long>(header, 0x66) + 1) * 0x10);
-                                        m_owned_0d8 = block;
+                                        m_pSubmeshes = static_cast<W8OctSubmesh*>(block);
                                         if (block == 0) {
                                             fLoaded = 0;
                                             strcpy(acMessage,
@@ -1199,8 +1664,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                                 unsigned int remaining;
 
                                                 limit = 0;
-                                                scan = reinterpret_cast<unsigned int*>(
-                                                    static_cast<unsigned char*>(m_owned_0d8) + 0xc);
+                                                scan = &m_pSubmeshes[0].positional_0c;
                                                 remaining =
                                                     ReadHeader<unsigned long>(header, 0x66) + 1;
                                                 do {
@@ -1232,8 +1696,8 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                                 }
                                             }
                                         }
-                                        if (m_positional_1b4 != 0) {
-                                            m_pAlphaBits = new BitArray(m_positional_1b4);
+                                        if (m_meshCount_1b4 != 0) {
+                                            m_pAlphaBits = new BitArray(m_meshCount_1b4);
                                             if (m_pAlphaBits == 0) {
                                                 srAssertFail(
                                                     "m_pAlphaBits", OCTREE_CPP, 0x18a,
@@ -1249,7 +1713,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                         if (fLoaded != 0 && m_ulNumParticles != 0) {
                                             m_pusMeshParticleLookup =
                                                 static_cast<unsigned short*>(
-                                                    malloc(m_positional_1b4 * 2 + 2));
+                                                    malloc(m_meshCount_1b4 * 2 + 2));
                                             if (m_pusMeshParticleLookup == 0) {
                                                 srAssertFail(
                                                     "m_pusMeshParticleLookup", OCTREE_CPP, 0x191,
@@ -1258,14 +1722,14 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                             }
                                             fLoaded = ReadVirtualFile(
                                                 hOctFile, m_pusMeshParticleLookup,
-                                                m_positional_1b4 * 2 + 2, &uiRead);
+                                                m_meshCount_1b4 * 2 + 2, &uiRead);
                                             if (fLoaded == 0) {
                                                 strcpy(acMessage,
                                                        "ReadOctFile: Couldn't read octree nodes.");
                                             }
                                             g_octree_bytes_read_00659888 += uiRead;
                                             m_pusMeshParticles = static_cast<unsigned short*>(
-                                                malloc(m_positional_0e8 * 2));
+                                                malloc(m_usMeshParticlesLen_0e8 * 2));
                                             if (m_pusMeshParticles == 0) {
                                                 srAssertFail(
                                                     "m_pusMeshParticles", OCTREE_CPP, 0x198,
@@ -1274,7 +1738,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                             }
                                             fLoaded = ReadVirtualFile(
                                                 hOctFile, m_pusMeshParticles,
-                                                m_positional_0e8 * 2, &uiRead);
+                                                m_usMeshParticlesLen_0e8 * 2, &uiRead);
                                             if (fLoaded == 0) {
                                                 strcpy(acMessage,
                                                        "ReadOctFile: Couldn't read octree nodes.");
@@ -1282,7 +1746,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                         }
                                         if (fLoaded != 0 && m_ulNumProps != 0) {
                                             m_pusMeshPropLookup = static_cast<unsigned short*>(
-                                                malloc(m_positional_1b4 * 2 + 2));
+                                                malloc(m_meshCount_1b4 * 2 + 2));
                                             if (m_pusMeshPropLookup == 0) {
                                                 srAssertFail(
                                                     "m_pusMeshPropLookup", OCTREE_CPP, 0x1a1,
@@ -1291,14 +1755,14 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                             }
                                             fLoaded = ReadVirtualFile(
                                                 hOctFile, m_pusMeshPropLookup,
-                                                m_positional_1b4 * 2 + 2, &uiRead);
+                                                m_meshCount_1b4 * 2 + 2, &uiRead);
                                             if (fLoaded == 0) {
                                                 strcpy(acMessage,
                                                        "ReadOctFile: Couldn't read octree nodes.");
                                             }
                                             g_octree_bytes_read_00659888 += uiRead;
                                             m_pusMeshProps = static_cast<unsigned short*>(
-                                                malloc(m_positional_0f4 * 2));
+                                                malloc(m_usMeshPropsLen_0f4 * 2));
                                             if (m_pusMeshProps == 0) {
                                                 srAssertFail(
                                                     "m_pusMeshProps", OCTREE_CPP, 0x1a8,
@@ -1307,7 +1771,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                             }
                                             fLoaded = ReadVirtualFile(
                                                 hOctFile, m_pusMeshProps,
-                                                m_positional_0f4 * 2, &uiRead);
+                                                m_usMeshPropsLen_0f4 * 2, &uiRead);
                                             if (fLoaded == 0) {
                                                 strcpy(acMessage,
                                                        "ReadOctFile: Couldn't read octree nodes.");
@@ -1477,7 +1941,7 @@ void W8Octree::Initialize(const void* raw_header)
         WriteMember(this, 0x74, ReadHeader<unsigned long>(header, 0x66));
         m_positional_1a8 = ReadHeader<unsigned long>(header, 0x9a);
         m_positional_1ac = ReadHeader<unsigned long>(header, 0xa2);
-        m_positional_1b4 = ReadHeader<unsigned long>(header, 0x9e);
+        m_meshCount_1b4 = ReadHeader<unsigned long>(header, 0x9e);
         WriteMember(this, 0xb4, ReadHeader<unsigned long>(header, 0x6a));
         WriteMember(this, 0xb8, ReadHeader<unsigned long>(header, 0x6e));
         WriteMember(this, 0x3c, ReadHeader<unsigned long>(header, 0x72));
@@ -1492,37 +1956,37 @@ void W8Octree::Initialize(const void* raw_header)
         m_positional_17c = ReadHeader<unsigned long>(header, 0xb4);
         WriteMember(this, 0x60, ReadHeader<unsigned long>(header, 0xb9));
         m_ulNumProps = ReadHeader<unsigned long>(header, 0xbd);
-        m_positional_0e8 = ReadHeader<unsigned short>(header, 0xc5);
-        m_positional_0f4 = ReadHeader<unsigned short>(header, 0xc7);
+        m_usMeshParticlesLen_0e8 = ReadHeader<unsigned short>(header, 0xc5);
+        m_usMeshPropsLen_0f4 = ReadHeader<unsigned short>(header, 0xc7);
         m_ulNumParticles = ReadHeader<unsigned long>(header, 0xc1);
 
         if (m_ulNumParticles != 0) {
-            m_owned_0fc = new BitArray(m_ulNumParticles);
-            m_owned_100 = new BitArray(m_ulNumParticles);
-            m_owned_10c = new BitArray(m_ulNumParticles);
-            m_papParticles = static_cast<void**>(malloc(m_ulNumParticles * 4 + 8));
+            m_linked_particles_0fc = new BitArray(m_ulNumParticles);
+            m_visible_particles_100 = new BitArray(m_ulNumParticles);
+            m_particles_to_disable_10c = new BitArray(m_ulNumParticles);
+            m_papParticles = static_cast<stParticle**>(malloc(m_ulNumParticles * 4 + 8));
         }
         if (m_ulNumProps != 0) {
-            m_owned_104 = new BitArray(m_ulNumProps);
-            m_owned_108 = new BitArray(m_ulNumProps);
-            m_owned_110 = new BitArray(m_ulNumProps);
-            m_papProps = static_cast<void**>(malloc(m_ulNumProps * 4 + 8));
+            m_linked_props_104 = new BitArray(m_ulNumProps);
+            m_visible_props_108 = new BitArray(m_ulNumProps);
+            m_props_to_disable_110 = new BitArray(m_ulNumProps);
+            m_papProps = static_cast<W8Prop**>(malloc(m_ulNumProps * 4 + 8));
         }
 
         m_owned_190 = new BitArray(ReadHeader<unsigned long>(header, 0x72));
         m_owned_154 = new BitArray(ReadHeader<unsigned short>(header, 0x64) + 1);
-        m_owned_15c = new BitArray(ReadHeader<unsigned long>(header, 0x66) + 1);
-        m_owned_160 = new BitArray(ReadHeader<unsigned long>(header, 0x66) + 1);
-        m_owned_164 = new BitArray(ReadHeader<unsigned long>(header, 0x66) + 1);
+        m_projected_regions_15c = new BitArray(ReadHeader<unsigned long>(header, 0x66) + 1);
+        m_current_regions_160 = new BitArray(ReadHeader<unsigned long>(header, 0x66) + 1);
+        m_previous_regions_164 = new BitArray(ReadHeader<unsigned long>(header, 0x66) + 1);
         m_owned_194 = new BitArray(
             ReadHeader<unsigned long>(header, 0x7a) < 5000
                 ? 5000
                 : ReadHeader<unsigned long>(header, 0x7a));
-        m_owned_198 = new BitArray(ReadHeader<unsigned long>(header, 0x66) + 1);
+        m_accumulated_regions_198 = new BitArray(ReadHeader<unsigned long>(header, 0x66) + 1);
         m_owned_19c = new BitArray(ReadHeader<unsigned long>(header, 0x72));
 
         object_registry = new W8OctreeObjectRegistry;
-        m_owned_150 = new W8HashTable<unsigned int, short>;
+        m_pRegionLinks_150 = new W8HashTable<unsigned int, short>;
 
         unsigned int visited_size = ReadHeader<unsigned short>(header, 0x64) + 1;
         m_pfRegsVisited = static_cast<unsigned char*>(malloc(visited_size));
@@ -1532,7 +1996,7 @@ void W8Octree::Initialize(const void* raw_header)
                          0x36a, "InitOctree: Couldn't allocate m_pfRegsVisited.");
         }
         memset(m_pfRegsVisited, 0, visited_size);
-        m_positional_168 = 1;
+        m_reset_visibility_168 = 1;
     }
 
     m_aulGDObjs = static_cast<unsigned long*>(malloc(40000));
@@ -1543,7 +2007,7 @@ void W8Octree::Initialize(const void* raw_header)
     }
     WriteMember(this, 0x6c, static_cast<unsigned short>(3));
     m_fAccumulating = 1;
-    Function434020(0);
+    ToggleUpdateSuspension00434020(0);
 }
 
 // FUNCTION: WIZ8 0x0042e440
@@ -1557,7 +2021,7 @@ void W8Octree::AddLoadedProp(void* prop)
                 0x485,
                 "Too many props loaded for Octree");
         }
-        m_papProps[m_usNumPropsLoaded] = prop;
+        m_papProps[m_usNumPropsLoaded] = static_cast<W8Prop*>(prop);
         m_usNumPropsLoaded++;
         m_papProps[m_usNumPropsLoaded] = 0;
     }
@@ -1574,7 +2038,7 @@ void W8Octree::AddLoadedParticle(void* particle)
                 0x49d,
                 "Too many particles loaded for Octree");
         }
-        m_papParticles[m_usNumParticlesLoaded] = particle;
+        m_papParticles[m_usNumParticlesLoaded] = static_cast<stParticle*>(particle);
         m_usNumParticlesLoaded++;
         m_papParticles[m_usNumParticlesLoaded] = 0;
     }
@@ -1586,10 +2050,10 @@ void W8Octree::AddLoadedParticle(void* particle)
 W8Octree::~W8Octree()
 {
     if (m_positional_16c != 0) {
-        Function4331F0(m_owned_0c0);
+        SaveRegionLinks004331F0(static_cast<char*>(m_owned_0c0));
     }
     if (m_positional_16d != 0) {
-        Function432D60(m_owned_0c0);
+        SavePoints00432D60(static_cast<char*>(m_owned_0c0));
     }
     if (pathing_180 != 0) {
         pathing_180->SaveWaypointSnapshot00459400(0);
@@ -1606,18 +2070,18 @@ W8Octree::~W8Octree()
     free(m_owned_148);
     free(m_owned_130);
 
-    if (m_owned_150 != 0) {
-        m_owned_150->Clear();
-        delete m_owned_150;
-        m_owned_150 = 0;
+    if (m_pRegionLinks_150 != 0) {
+        m_pRegionLinks_150->Clear();
+        delete m_pRegionLinks_150;
+        m_pRegionLinks_150 = 0;
     }
 
     free(m_pfRegsVisited);
     DestroyBitArray(m_owned_190);
     DestroyBitArray(m_owned_154);
-    DestroyBitArray(m_owned_15c);
-    DestroyBitArray(m_owned_160);
-    DestroyBitArray(m_owned_164);
+    DestroyBitArray(m_projected_regions_15c);
+    DestroyBitArray(m_current_regions_160);
+    DestroyBitArray(m_previous_regions_164);
 
     free(m_pusMeshParticleLookup);
     m_pusMeshParticleLookup = 0;
@@ -1630,12 +2094,12 @@ W8Octree::~W8Octree()
     free(m_papProps);
     free(m_papParticles);
 
-    DestroyBitArray(m_owned_0fc);
-    DestroyBitArray(m_owned_100);
-    DestroyBitArray(m_owned_104);
-    DestroyBitArray(m_owned_108);
-    DestroyBitArray(m_owned_10c);
-    DestroyBitArray(m_owned_110);
+    DestroyBitArray(m_linked_particles_0fc);
+    DestroyBitArray(m_visible_particles_100);
+    DestroyBitArray(m_linked_props_104);
+    DestroyBitArray(m_visible_props_108);
+    DestroyBitArray(m_particles_to_disable_10c);
+    DestroyBitArray(m_props_to_disable_110);
 
     m_positional_170 = 0;
     if (m_sr_owned_174 != 0) {
@@ -1643,14 +2107,14 @@ W8Octree::~W8Octree()
     }
     free(m_owned_0c0);
     DestroyBitArray(m_owned_194);
-    DestroyBitArray(m_owned_198);
+    DestroyBitArray(m_accumulated_regions_198);
     DestroyBitArray(m_owned_19c);
     DestroyBitArray(m_owned_1a0);
     DestroyBitArray(m_owned_1a4);
 
     delete object_registry;
 
-    free(m_owned_0d8);
+    free(m_pSubmeshes);
     if (pathing_180 != 0) {
         delete pathing_180;
         pathing_180 = 0;

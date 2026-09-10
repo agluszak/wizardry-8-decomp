@@ -42,7 +42,7 @@ W8DialogBase::W8DialogBase()
     m_initialized = 0;
     m_field_41 = 1;
     m_destroy_callback = 0;
-    m_field_48 = 0;
+    m_user_data = 0;
     ++g_dword_69ca28;
     m_field_50 = 0;
 }

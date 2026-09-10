@@ -60,7 +60,7 @@ void W8Item::ApplyRepTransform0049FAA0()
 }
 
 // FUNCTION: WIZ8 0x0049F900
-void W8Item::Function49F900(W8World* world)
+void W8Item::AttachMesh0049F900(W8World* world)
 {
     srNode* mesh;
     srNode* child;
@@ -125,7 +125,7 @@ unsigned int W8ItemRep::SetFlags(unsigned int mask, unsigned char enabled)
 
 /* Forward a new item location to the representation owned at +0x14. */
 // FUNCTION: WIZ8 0x0049F720
-void W8Item::Function49F720(const srVector3T<float>* location)
+void W8Item::SetLocation0049F720(const srVector3T<float>* location)
 {
     m_pRep->SetLocation004B8850(location);
 }

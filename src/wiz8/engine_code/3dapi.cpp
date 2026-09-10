@@ -59,7 +59,7 @@ extern int CheckLevelAssetSet0042CCC0(const char* level_path);
 extern void Function479030(void);
 class W8AmbientSound;
 
-extern void Function490B90(void);
+extern void HideWorldCursor00490B90(void);
 
 // GLOBAL
 unsigned char g_world_cleanup_flag_00659757;
@@ -210,7 +210,7 @@ unsigned char LoadWorld(
 
     world->m_loaded = 1;
     PListInit(&world->m_list_09c);
-    PListInit(&world->m_list_0a8);
+    PListInit(&world->m_lights_0a8);
     world->m_owned_04c = 0;
 
     if (CheckLevelAssetSet0042CCC0(oct_path) >= 0) {
@@ -386,12 +386,12 @@ void UpdateWorld0044F4E0(W8World* world)
 
     if (world != g_world_659ab8) {
         UpdateWorldMonsters0046DD70(world);
-        Function4A27C0(world);
-        Function4AAB80(world);
+        UpdateWorldMissiles004A27C0(world);
+        UpdateWorldSpellVisuals004AAB80(world);
         UpdateAmbientSounds0047A3E0(world);
         WorldUpdateLights(world);
         RunMonsterGenerators();
-        Function443AE0(world);
+        UpdateWorldTriggers00443AE0(world);
         if (world->octree != 0) {
             Function4D8E40();
         }
@@ -422,7 +422,7 @@ void DetachAllWorldItems(void)
     int count = g_worlds_00659a80.GetCount();
 
     for (int index = 0; index < count; ++index) {
-        Function46DE40(*g_worlds_00659a80.GetAt(index));
+        DetachWorldItemMeshes0046DE40(*g_worlds_00659a80.GetAt(index));
     }
 }
 
@@ -512,8 +512,8 @@ void DestroyWorldCollections(W8World* world)
 
     DestroyAllMissiles(world);
     DestroyAllSpellVisuals(world);
-    Function46E4A0(world);
-    PListFreeData(&world->m_list_0a8);
+    DestroyWorldLights0046E4A0(world);
+    PListFreeData(&world->m_lights_0a8);
     PListFreeData(&world->m_list_09c);
 
     delete world->lights_to_update;
@@ -555,7 +555,7 @@ void DestroyWorld(W8World* world)
     if (g_world_cleanup_flag_00659757 != 0) RenderFrame();
     DestroyWorldCollections(world);
     if (g_world_cleanup_flag_00659757 != 0) RenderFrame();
-    if (IsWorldCursorVisible() != 0) Function490B90();
+    if (IsWorldCursorVisible() != 0) HideWorldCursor00490B90();
 
     index = g_worlds_00659a80.IndexOf(world);
     if (index >= 0) {

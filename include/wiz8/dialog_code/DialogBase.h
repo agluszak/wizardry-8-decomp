@@ -62,10 +62,15 @@ protected:
 public:
     /* CharacterScreen closes a completed modal directly through this byte. */
     unsigned char m_field_41;            /* 0x41 */
-protected:
+public:
+    /* The trigger update installs its callback with a plain store, so this
+       slot is public rather than reachable only through the setter. */
     unsigned char unknown_042[2];
     W8DialogDestroyCallback m_destroy_callback; /* 0x44 */
-    int m_field_48;                      /* 0x48 */
+    /* Generic owner slot. The item dialog stores its Trigger here and the
+       destroy callback reads it back. */
+    int m_user_data;                     /* 0x48 */
+protected:
     int m_field_4c;                      /* 0x4c */
     unsigned char m_field_50;            /* 0x50 */
     unsigned char unknown_051[3];

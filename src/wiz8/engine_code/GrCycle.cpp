@@ -462,7 +462,7 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other)
             copied_light->ConfigureMonsterCopy();
             copied_light->setLocation(x, y, z);
             copied_light->setFlag(srNode::FLAG_POSITIONAL_1);
-            PLAdoptAppend(&g_world->m_list_0a8, copied_light);
+            PLAdoptAppend(&g_world->m_lights_0a8, copied_light);
             if (copied_light->definition() != 0) {
                 g_world->lights_to_update->Add(copied_light);
             }
@@ -1191,8 +1191,8 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
         placed.x = rotation.vectors[0].x * offset.x +
             rotation.vectors[0].y * offset.y +
             rotation.vectors[0].z * offset.z;
-        placed.y = Function4218E0(rotation.vectors[1], offset);
-        placed.z = Function4218E0(rotation.vectors[2], offset);
+        placed.y = DotProduct004218E0(rotation.vectors[1], offset);
+        placed.z = DotProduct004218E0(rotation.vectors[2], offset);
         location = current_model_instance_1a8->getLocation();
         placed.x = placed.x + (float)location.x;
         placed.y = (float)location.y + placed.y;

@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/3d_code/IList.h"
+#include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/stModelInstance.h"
@@ -37,6 +38,58 @@ void UpdateWorldMonsters0046DD70(W8World* world)
             monster->SelectLOD004A7BE0(position);
             monster->Update();
             monster->UpdateRepresentation(world);
+        }
+    }
+}
+
+/* Detach every item mesh in one world, refresh its animation, and reattach it
+   to the world's dynamic scene before the renderer transition. */
+// FUNCTION: WIZ8 0x0046de40
+void DetachWorldItemMeshes0046DE40(W8World* world)
+{
+    if (world == 0) {
+        srAssertFail("pWorld", THREE_D_CPP, 0x135, 0);
+    }
+    if (world->plsItems == 0) {
+        srAssertFail("pWorld->plsItems", THREE_D_CPP, 0x136, 0);
+    }
+    unsigned int count =
+        ILLength(reinterpret_cast<W8IList*>(world->plsItems));
+    int index = 0;
+    if (0 < static_cast<int>(count)) {
+        do {
+            W8Item* item =
+                static_cast<W8Item*>(PLGet(world->plsItems, index));
+            if (item != 0) {
+                item->DetachMesh0049FA30(world);
+                item->UpdateAnimation0049F730();
+                item->AttachMesh0049F900(world);
+            }
+            ++index;
+        } while (index < static_cast<int>(count));
+    }
+}
+
+/* Remove every light held in one world's list, drop it from the render update
+   set, and release it. */
+// FUNCTION: WIZ8 0x0046e4a0
+void DestroyWorldLights0046E4A0(W8World* world)
+{
+    W8PList* lights = &world->m_lights_0a8;
+
+    while (ILLength(reinterpret_cast<W8IList*>(lights)) != 0) {
+        stLight* light = static_cast<stLight*>(PLGet(lights, 0));
+        if (world == 0) {
+            srAssertFail("pWorld", THREE_D_CPP, 0x278, 0);
+        }
+        if (light == 0) {
+            srAssertFail("pLight", THREE_D_CPP, 0x279, 0);
+        }
+        PListRemove(lights, light);
+        world->lights_to_update->RemoveAt(
+            world->lights_to_update->IndexOf(light));
+        if (light != 0) {
+            light->release();
         }
     }
 }
@@ -163,7 +216,7 @@ stLight* CreateWorldLight0046E030(W8World* world, const char* name)
     light->m_positional_flags_5c |= 4;
 
     if (world != 0) {
-        PLAdoptAppend(&world->m_list_0a8, light);
+        PLAdoptAppend(&world->m_lights_0a8, light);
     }
     return light;
 }
@@ -198,7 +251,7 @@ stLight* CreateWorldLight0046E140(W8World* world, const char* name)
     light->m_range_170 = 1500.0;
     light->m_positional_1d4 = 5000.0f;
     light->setLinearAttenuation(1500.0f, 0.0019569471f);
-    PLAdoptAppend(&world->m_list_0a8, light);
+    PLAdoptAppend(&world->m_lights_0a8, light);
     return light;
 }
 

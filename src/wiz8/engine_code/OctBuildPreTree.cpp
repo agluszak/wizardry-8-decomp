@@ -1534,11 +1534,11 @@ W8OctPreTree004679E0* W8OctBuildPreTree004AFDA0::BuildOctPreTree004B4640()
     mesh_particle_lookup_104 = 0;
     tree->m_pusMeshParticles = mesh_particles_108;
     mesh_particles_108 = 0;
-    tree->m_positional_0e8 = mesh_particle_count_10c;
+    tree->m_usMeshParticlesLen_0e8 = mesh_particle_count_10c;
     tree->m_pusMeshPropLookup = mesh_prop_lookup_110;
     mesh_prop_lookup_110 = 0;
     tree->m_pusMeshProps = mesh_props_114;
-    tree->m_positional_0f4 = mesh_prop_count_118;
+    tree->m_usMeshPropsLen_0f4 = mesh_prop_count_118;
     mesh_props_114 = 0;
     tree->m_ulNumParticles = particle_count_11c;
     tree->m_ulNumProps = prop_count_120;

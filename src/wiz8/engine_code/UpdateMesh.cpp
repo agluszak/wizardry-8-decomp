@@ -8,7 +8,7 @@
 // FUNCTION: WIZ8 0x004BAF50
 void UpdateWorldOctree004BAF50(W8World* world)
 {
-    world->octree->Function0042F7E0();
+    world->octree->UpdateCameraVisibility0042F7E0();
 }
 
 /* Rebuild the active-polygon table for the world's mesh and raise the control

@@ -41,9 +41,9 @@ extern int IncrementValue60DFAC(void);
 extern int CountSpellsOfKind(int kind);                      /* 0x004AC8F0 */
 extern const float g_monster_rotation_offset_005ec04c;
 extern const double g_camera_pi_005ec2a0;
-extern float Function4BE420(
+extern float GetHeadingAngle004BE420(
     const srVector3T<float>* from, const srVector3T<float>* to);
-extern float Function4BE490(
+extern float GetElevationAngle004BE490(
     const srVector3T<float>* from, const srVector3T<float>* to);
 
 W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
@@ -333,7 +333,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
                         rotation.method_00438F90(
                             sin((double)angle), cos((double)angle));
                     }
-                    float pitch = Function4BE490(&position, &camera_position);
+                    float pitch = GetElevationAngle004BE490(&position, &camera_position);
                     if ((double)pitch != g_zero_005ebb40) {
                         rotation.method_00478EB0(
                             sin((double)pitch), cos((double)pitch));
@@ -355,7 +355,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
 
         billboard.SetIdentity00467310();
         camera_position = g_gd_camera_65a0f8->m_position_08c;
-        angle = Function4BE420(&visual_position, &camera_position) +
+        angle = GetHeadingAngle004BE420(&visual_position, &camera_position) +
             (float)g_camera_pi_005ec2a0;
         if ((double)angle != g_zero_005ebb40) {
             billboard.method_00438F90(
@@ -369,6 +369,53 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
         static_cast<stModelInstance*>(instance)->state_178 |= 0x10;
     }
     W8GrCycle::UpdateRepresentation(world);
+}
+
+/* Step every live spell visual and drop the finished ones.
+
+   A visual still starting, or not yet marked for removal, starts and updates
+   in place; a finished one is unlinked from the world collection, hands its
+   lights back through the world light boundary, and deletes itself. */
+// FUNCTION: WIZ8 0x004aab80
+void UpdateWorldSpellVisuals004AAB80(W8World* world)
+{
+    if (world == 0) {
+        srAssertFail(
+            "pWorld",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
+            0x130,
+            0);
+    }
+    srVector3T<double> camera_location = world->camera->getLocation();
+    int index = 0;
+    int count = world->spell_visuals->GetCount();
+    while (index < count) {
+        W8SpellVisual* visual = *world->spell_visuals->GetAt(index);
+        if (visual != 0) {
+            visual->DetachRepresentation004A7A70(world);
+            if (visual->started == 0 || visual->flag_1e6 == 0) {
+                visual->StartIfHostActive();
+                visual->UpdateRepresentation(world);
+                visual->UpdateNavigation004553A0(0, 0);
+            }
+            else {
+                world->spell_visuals->RemoveAt(
+                    world->spell_visuals->IndexOf(visual));
+                if (visual->m_plsLights != 0) {
+                    int light_count = visual->m_plsLights->GetCount();
+                    while (light_count != 0) {
+                        stLight* light = visual->m_plsLights->RemoveAt(0);
+                        WorldRemoveLight(g_world, light);
+                        --light_count;
+                    }
+                }
+                delete visual;
+                --index;
+                --count;
+            }
+        }
+        ++index;
+    }
 }
 
 W8SpellEmitterHost::W8SpellEmitterHost()
@@ -454,7 +501,7 @@ W8SpellEmitterHost::W8SpellEmitterHost(const W8SpellEmitterHost& other)
                     copied_light->ConfigureMonsterCopy();
                     copied_light->setLocation(x, y, z);
                     copied_light->setParent(0, 0);
-                    PLAdoptAppend(&g_world->m_list_0a8, copied_light);
+                    PLAdoptAppend(&g_world->m_lights_0a8, copied_light);
                     copied_lights->Add(copied_light);
                 }
             }
@@ -844,9 +891,9 @@ void stSound3D::BuildSoundOptions004AECC0(
         node_position.x - listener->x,
         node_position.y - listener->y,
         node_position.z - listener->z);
-    float x = Function4218E0(rotation.vectors[0], offset);
-    float y = Function4218E0(rotation.vectors[1], offset);
-    float z = Function4218E0(rotation.vectors[2], offset);
+    float x = DotProduct004218E0(rotation.vectors[0], offset);
+    float y = DotProduct004218E0(rotation.vectors[1], offset);
+    float z = DotProduct004218E0(rotation.vectors[2], offset);
 
     memset(options, 0xff, sizeof(*options));
     srVector3T<float> listener_offset(
