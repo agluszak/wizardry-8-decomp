@@ -62,12 +62,15 @@ protected:
     W8ControlsRect m_pendingBounds;       /* 0x14: mirrored pending bounds */
     int m_field_24;                      /* 0x24: the constructor steps over this one */
     int m_font;                          /* 0x28: font used for uncached line height */
-    int m_lineCount;
+public:
+    /* The tooltip builder in Video2.cpp reads the finished layout directly. */
+    int m_lineCount;                     /* 0x2c */
+protected:
     unsigned int m_lineHeight;           /* 0x30: cached height, zero means query font */
     wchar_t* m_buffer;                   /* 0x34: freed on teardown */
     int m_layoutMode;                    /* 0x38: 10 initially */
-    unsigned int m_maxLineWidth;
-
+public:
+    unsigned int m_maxLineWidth;         /* 0x3c */
 public:
     /* State-5's controller raises the alternate-renderer byte directly when
        it changes modes; retain that observed public storage access. */

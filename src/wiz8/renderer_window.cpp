@@ -751,7 +751,6 @@ unsigned char ClearPrimarySurface(void)
     return 1;
 }
 
-extern srScene* g_cursor_scene_659684;
 extern unsigned char g_render_flag_603c6c;
 
 extern "C" void UpdateRenderElapsedTime00482140(void);

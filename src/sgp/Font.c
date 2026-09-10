@@ -629,6 +629,7 @@ UINT32 GetHeight(HVOBJECT hSrcVObject, INT16 ssIndex)
 //	Returns the height of the first character in a font.
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x004071f0
 UINT16 GetFontHeight(INT32 FontNum)
 {
 	Assert(FontNum >= 0);

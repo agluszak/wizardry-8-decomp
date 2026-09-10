@@ -27,8 +27,6 @@ unsigned long float_bits(float value)
 
 }
 
-extern float g_surface_scale_659680;
-
 srScene* g_cursor_scene_659684;
 srMeshModel* g_cursor_model_65968c;
 srTexture* g_cursor_texture_659690;
@@ -46,7 +44,7 @@ unsigned char g_system_cursor_visible_6596c4;
 // srClassSupport<srMeshModel,srMeshModel,0,8208>::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00424EB0
-static srModelInstance* MakePolygonBrush(
+srModelInstance* MakePolygonBrush(
     srNode* parent, srColorSurfaceIFace* surface,
     double width, double height,
     float mapping_x, float mapping_y,

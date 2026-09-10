@@ -6879,6 +6879,7 @@ BlitDone:
 	etc. to their unblit buffer, for later reblitting. Does NOT clip.
 
 **********************************************************************************************/
+// FUNCTION: WIZ8 0x00411430
 BOOLEAN Blt16BPPTo16BPP(UINT16 *pDest, UINT32 uiDestPitch, UINT16 *pSrc, UINT32 uiSrcPitch, INT32 iDestXPos, INT32 iDestYPos, INT32 iSrcXPos, INT32 iSrcYPos, UINT32 uiWidth, UINT32 uiHeight)
 {
 UINT16 *pSrcPtr, *pDestPtr;

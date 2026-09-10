@@ -6,8 +6,10 @@
 #include "surrender/srMath.h"
 
 class srModelInstance;
+class srScene;
 
 extern srModelInstance* g_cursor_node_659694;
+extern srScene* g_cursor_scene_659684;
 unsigned char InitializeMouseCursorScene(void);
 
 extern "C" {

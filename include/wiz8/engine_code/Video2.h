@@ -86,10 +86,27 @@ void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom
 
 class srNode;
 class srTextureIFace;
+class srColorSurfaceIFace;
+class srColorSurface;
+class srModelInstance;
 srNode* Function424BA0(srTextureIFace* texture, float width, float height,
     unsigned char positional_3);
 void Function4229E0(void);
 void Function4257F0(int value);
+void __fastcall PackColour00429700(
+    unsigned char* colour, double red, double green, double blue, double alpha);
+void Function4255F0(srNode* node, int x, int y, char positional);
+unsigned char Function428B90(
+    srColorSurface* surface, int* rect, void* source, int source_pitch,
+    float* scale_x, float* scale_y, float* mapping_x, float* mapping_y);
+srModelInstance* Function424280(
+    int* rect, void* source, int source_pitch, srNode* parent, unsigned char overlay);
+srModelInstance* MakePolygonBrush(
+    srNode* parent, srColorSurfaceIFace* surface,
+    double width, double height,
+    float mapping_x, float mapping_y,
+    float mapping_width, float mapping_height,
+    unsigned char overlay);
 #endif
 
 

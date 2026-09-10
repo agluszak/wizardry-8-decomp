@@ -1,4 +1,10 @@
 #include "wiz8/engine_code/game_timer.h"
+#include "wiz8/float_constants.h"
+#include "wiz8/cursor.h"
+#include "wiz8/fonts.h"
+#include "wiz8/local_code/TextBuffer.h"
+#include "Font.h"
+#include "surrender/srFilter.h"
 #include "surrender/srImporter.h"
 #include "surrender/srExtension.h"
 #include <stdio.h>
@@ -20,7 +26,9 @@
 #include "wiz8/wiz8_windows.h"
 #include "DirectDraw Calls.h"
 #include "himage.h"
+#include "vobject_blitters.h"
 
+#include <math.h>
 #include <string.h>
 
 // GLOBAL: WIZ8 0x00603c70
@@ -715,4 +723,320 @@ void Function4229E0(void)
         g_gerd_659634->unlockBuffer();
     }
     g_screenshot_page_659728 = (g_screenshot_page_659728 - 1) & 1;
+}
+
+/* Tooltip placement state. The left/top pair records the last position the
+   tooltip builder used; the scale participates in the texture mapping. */
+// GLOBAL: WIZ8 0x00654ab8
+int g_help_box_x_654ab8;
+// GLOBAL: WIZ8 0x00654abc
+int g_help_box_y_654abc;
+// GLOBAL: WIZ8 0x006596e4
+unsigned char g_flag_6596e4;
+// GLOBAL: WIZ8 0x00654ab0
+int g_screen_transition_object_capacity_654ab0;
+// GLOBAL: WIZ8 0x006596ec
+int g_value_6596ec;
+// GLOBAL: WIZ8 0x006596f0
+int g_value_6596f0;
+
+extern "C" {
+// GLOBAL: WIZ8 0x005ebe88
+double g_double_005ebe88 = 0.0020833333333333333;
+// GLOBAL: WIZ8 0x005ebe90
+double g_double_005ebe90 = 0.0015625;
+// GLOBAL: WIZ8 0x005ebf40
+double g_double_005ebf40 = 0.75;
+}
+
+/* Packs four normalized colour components into the surface byte order:
+   red, green, blue, alpha from the high byte down. */
+// FUNCTION: WIZ8 0x00429700
+void __fastcall PackColour00429700(
+    unsigned char* colour, double red, double green, double blue, double alpha)
+{
+    colour[3] = (int)(red * 255.0);
+    colour[2] = (int)(green * 255.0);
+    colour[1] = (int)(blue * 255.0);
+    colour[0] = (int)(alpha * 255.0);
+}
+
+/* Places one tooltip node at a screen position in normalized coordinates.
+   With positional set, the position is snapped to the renderer's pixel grid;
+   the node keeps the screen x/y in its right/bottom extent fields. */
+// FUNCTION: WIZ8 0x004255F0
+void Function4255F0(srNode* node, int x, int y, char positional)
+{
+    stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
+    double position_x = (double)x * g_double_005ebe90;
+    double position_y = (double)y * g_double_005ebe88;
+
+    if (positional != 0 && g_gerd_659634 != 0) {
+        double whole;
+        long width = g_gerd_659634->getWidth();
+        double fraction = modf((double)width * position_x, &whole);
+        position_x -= fraction / (double)width;
+        long height = g_gerd_659634->getHeight();
+        fraction = modf((double)height * position_y, &whole);
+        position_y -= fraction / (double)height;
+    }
+
+    int width = instance->GetWidth00480EF0() & 0xffff;
+    double half_width = (double)width * g_double_005ebe90 * g_double_005ebe80;
+    int height = instance->GetHeight00480F70() & 0xffff;
+    double half_height = (double)height * g_double_005ebe88 * g_double_005ebe80;
+
+    srVector3T<double> location;
+    location.x = half_width + position_x;
+    location.z = -0.0001;
+    if ((instance->state_160 & 1U) == 0) {
+        location.y = g_double_005ebc30 - (half_height + position_y);
+        g_value_6596f0 = 2;
+    }
+    else {
+        location.y = g_double_005ebf40 - (half_height + position_y) * g_double_005ebf40;
+    }
+    node->setLocation(location);
+    g_value_6596ec = 2;
+    instance->right_16c = (short)x;
+    instance->bottom_16e = (short)y;
+}
+
+/* Positions every live tooltip object left to right starting at x, advancing
+   the cursor by each node's scaled width. With no live objects, just record
+   the requested position. */
+// FUNCTION: WIZ8 0x00429210
+void VideoPositionToolTip(INT32 x, INT32 y)
+{
+    if (g_screen_transition_object_count_654aac > 0) {
+        INT32 offset = x;
+        for (int index = 0; index < g_screen_transition_object_count_654aac; ++index) {
+            srNode* node =
+                static_cast<srNode*>(g_screen_transition_objects_654ab4[index]);
+            Function4255F0(node, offset, y, 1);
+            offset += static_cast<stModelInstance2D*>(node)->GetWidth00480EF0() & 0xffff;
+        }
+        g_help_box_y_654abc = y;
+        g_help_box_x_654ab8 = x;
+        return;
+    }
+    g_help_box_x_654ab8 = x;
+    g_help_box_y_654abc = y;
+}
+
+/* Copies the tooltip source rectangle into a size-rounded 16-bit surface,
+   repeating its border one pixel outward, and reports the texture mapping
+   scales for the resulting polygon brush. */
+// FUNCTION: WIZ8 0x00428B90
+unsigned char Function428B90(
+    srColorSurface* surface, int* rect, void* source, int source_pitch,
+    float* scale_x, float* scale_y, float* mapping_x, float* mapping_y)
+{
+    if (surface == 0 || rect == 0 || source == 0 || source_pitch == 0 ||
+        scale_x == 0 || scale_y == 0 || mapping_x == 0 || mapping_y == 0) {
+        return 0;
+    }
+    int width = (rect[2] > 0x27f ? 0x280 : rect[2]) - rect[0];
+    int height = (rect[3] > 0x1df ? 0x1e0 : rect[3]) - rect[1];
+    UINT16* dest = (UINT16*)surface->getDataPtr();
+    UINT32 dest_pitch = (UINT32)surface->getPitch();
+    UINT16* src = (UINT16*)source;
+    UINT32 src_pitch = (UINT32)source_pitch;
+    int right = width + 1;
+    int bottom = height + 1;
+
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 1, 1,
+                    rect[0], rect[1], width, height);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 1, 0,
+                    rect[0], rect[1], width, 1);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 1, bottom,
+                    rect[0], rect[1] - 1 + height, width, 1);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 0, 1,
+                    rect[0], rect[1], 1, height);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, right, 1,
+                    rect[0] - 1 + width, rect[1], 1, height);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 0, 0,
+                    rect[0], rect[1], 1, 1);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, right, 0,
+                    rect[0] - 1 + width, rect[1], 1, 1);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 0, bottom,
+                    rect[0], rect[1] - 1 + height, 1, 1);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, right, bottom,
+                    rect[0] - 1 + width, rect[1] - 1 + height, 1, 1);
+
+    float scale = 1.0f / (float)surface->getWidth();
+    *scale_x = scale;
+    *scale_x = scale * g_surface_scale_659680 + scale;
+    scale = 1.0f / (float)surface->getHeight();
+    *scale_y = scale;
+    *scale_y = scale * g_surface_scale_659680 + scale;
+    *mapping_x = (float)(rect[2] - rect[0]) / (float)surface->getWidth();
+    *mapping_y = (float)(rect[3] - rect[1]) / (float)surface->getHeight();
+    return 1;
+}
+
+/* Builds a polygon brush from a tooltip surface rectangle. The larger source
+   extent is rounded up to the next power of two between 16 and 256, the copy
+   repeats its border, and the node records the rectangle extents. */
+// FUNCTION: WIZ8 0x00424280
+srModelInstance* Function424280(
+    int* rect, void* source, int source_pitch, srNode* parent, unsigned char overlay)
+{
+    double left = (double)rect[0] * g_double_005ebe90;
+    int extent = rect[2] - rect[0];
+    double top = (double)rect[1] * g_double_005ebe88;
+    int rect_height = rect[3] - rect[1];
+    double width = (double)rect[2] * g_double_005ebe90 - left;
+    double height = (double)rect[3] * g_double_005ebe88 - top;
+
+    if (extent <= rect_height) {
+        extent = rect_height;
+    }
+    if (extent < 0x10) {
+        extent = 0x10;
+    }
+    else if (extent < 0x20) {
+        if (extent != 0x10) {
+            extent = 0x20;
+        }
+    }
+    else if (extent < 0x40) {
+        if (extent != 0x20) {
+            extent = 0x40;
+        }
+    }
+    else if (extent < 0x80) {
+        if (extent != 0x40) {
+            extent = 0x80;
+        }
+    }
+    else {
+        if (0x100 < extent) {
+            return 0;
+        }
+        if (extent != 0x80) {
+            extent = 0x100;
+        }
+    }
+
+    srColorSurface* surface = SR_NEW(srColorSurface)(
+        srPixelConvert::SURFACE_ARGB1555, (unsigned long)extent, (unsigned long)extent);
+    if (surface == 0) {
+        return 0;
+    }
+    surface->setFilter(&srBoxFilter);
+    float scale_x;
+    float scale_y;
+    float mapping_x;
+    float mapping_y;
+    if (!Function428B90(surface, rect, source, source_pitch,
+                        &scale_x, &scale_y, &mapping_x, &mapping_y)) {
+        surface->release();
+        return 0;
+    }
+    surface->getDataPtr();
+    srModelInstance* node = MakePolygonBrush(
+        parent, surface, width, height, scale_x, scale_y, mapping_x, mapping_y, overlay);
+    if (node != 0) {
+        stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
+        instance->state_160 = g_flag_6596e4;
+        instance->left_168 = (short)(rect[2] - rect[0]);
+        instance->top_16a = (short)(rect[3] - rect[1]);
+        instance->right_16c = (short)rect[0];
+        instance->bottom_16e = (short)rect[1];
+        srVector3T<double> location;
+        location.x = width * g_double_005ebe80 + left;
+        location.y = g_double_005ebc30 - (height * g_double_005ebe80 + top);
+        location.z = -0.0001;
+        node->setLocation(location);
+        instance->setName("Video2DRectToPolygon");
+    }
+    return node;
+}
+
+/* Builds the help box: renders the text into an ARGB1555 surface, draws the
+   border, converts the surface to a polygon brush, appends it to the live
+   tooltip objects and positions them above the cursor. Only one tooltip is
+   alive at a time. */
+// FUNCTION: WIZ8 0x00429290
+void VideoToolTip(UINT16* text)
+{
+    if (g_screen_transition_object_count_654aac != 0) {
+        return;
+    }
+    srColorSurface* surface = SR_NEW(srColorSurface)(
+        srPixelConvert::SURFACE_ARGB1555, 0xfeUL, 0xfeUL);
+    if (surface == 0) {
+        return;
+    }
+    W8ControlsRect bounds;
+    bounds.left = 0;
+    bounds.top = 0;
+    bounds.right = 0xfa;
+    bounds.bottom = 0xfa;
+    W8TextBuffer* buffer = new W8TextBuffer(
+        &bounds, (const wchar_t*)text, g_font10arial_683668,
+        g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED548, 4);
+    if (buffer == 0) {
+        return;
+    }
+    g_help_box_width = (int)buffer->m_maxLineWidth + 4;
+    g_help_box_height =
+        GetFontHeight(g_font10arial_683668) * buffer->m_lineCount + 2;
+    surface->fill(0);
+    void* data = surface->getDataPtr();
+    unsigned char colour[4];
+    for (int y = 0; y < g_help_box_height; ++y) {
+        PackColour00429700(colour, 1.0, 0.0, 0.0, 0.0);
+        surface->setHLine(0, y, g_help_box_width, *(unsigned long*)colour);
+    }
+    buffer->RenderText((int)data, (int)surface->getPitch(), 2, 1, 1);
+    surface->setHLine(0, 0, g_help_box_width, 0xffed9954);
+    surface->setHLine(0, g_help_box_height - 1, g_help_box_width, 0xffed9954);
+    surface->setVLine(0, 0, g_help_box_height, 0xffed9954);
+    surface->setVLine(g_help_box_width - 1, 0, g_help_box_height, 0xffed9954);
+
+    int rect[4];
+    rect[0] = 0;
+    rect[1] = 0;
+    rect[2] = 0xfe;
+    rect[3] = 0xfe;
+    srModelInstance* node = Function424280(
+        rect, data, (int)surface->getPitch(), g_cursor_scene_659684, 1);
+    if (node != 0) {
+        int count = g_screen_transition_object_count_654aac;
+        bool append = true;
+        if (g_screen_transition_object_capacity_654ab0 < count + 1) {
+            srClass** objects = new srClass*[count + 1];
+            if (objects == 0) {
+                append = false;
+            }
+            else {
+                for (int index = 0; index < count; ++index) {
+                    objects[index] = g_screen_transition_objects_654ab4[index];
+                }
+                delete[] g_screen_transition_objects_654ab4;
+                g_screen_transition_objects_654ab4 = objects;
+                g_screen_transition_object_capacity_654ab0 = count + 1;
+            }
+        }
+        if (append) {
+            g_screen_transition_objects_654ab4[count] = static_cast<srClass*>(node);
+            g_screen_transition_object_count_654aac = count + 1;
+        }
+    }
+
+    int position_y = g_cursor_height_654ad4 - g_help_box_height;
+    int position_x = g_cursor_width_654ad0;
+    int offset = position_x;
+    for (int index = 0; index < g_screen_transition_object_count_654aac; ++index) {
+        srNode* object =
+            static_cast<srNode*>(g_screen_transition_objects_654ab4[index]);
+        Function4255F0(object, offset, position_y, 1);
+        offset += static_cast<stModelInstance2D*>(object)->GetWidth00480EF0() & 0xffff;
+    }
+    g_help_box_x_654ab8 = position_x;
+    g_help_box_y_654abc = position_y;
+    surface->release();
+    delete buffer;
 }

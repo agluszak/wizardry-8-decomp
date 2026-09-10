@@ -118,6 +118,8 @@ public:
 
     srClass* vInstance() override;                 /* 0x00481E30 */
     void process(const ProcessInfo& info, e_processType type) override; /* 0x00480920 */
+    int GetWidth00480EF0();                        /* 0x00480EF0 */
+    int GetHeight00480F70();                       /* 0x00480F70 */
 
     unsigned char displayState() const { return state_170; }
     void configure2D(short width, short height)

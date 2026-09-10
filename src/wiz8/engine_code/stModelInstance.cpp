@@ -399,6 +399,29 @@ render_mesh:
     renderer->popMatrix();
 }
 
+/* Scaled 2D extent used by the tooltip and cursor placement code. A unit
+   scale returns the stored screen extent directly; otherwise the matching
+   axis scale from the node is applied and truncated. */
+// FUNCTION: WIZ8 0x00480EF0
+int stModelInstance2D::GetWidth00480EF0()
+{
+    srVector3T<double> scale = getScale();
+    if (scale.x == 1.0 && scale.y == 1.0 && scale.z == 1.0) {
+        return left_168;
+    }
+    return (int)(left_168 * scale.x);
+}
+
+// FUNCTION: WIZ8 0x00480F70
+int stModelInstance2D::GetHeight00480F70()
+{
+    srVector3T<double> scale = getScale();
+    if (scale.x == 1.0 && scale.y == 1.0 && scale.z == 1.0) {
+        return top_16a;
+    }
+    return (int)(top_16a * scale.y);
+}
+
 // FUNCTION: WIZ8 0x00481E30
 srClass* stModelInstance2D::vInstance()
 {
