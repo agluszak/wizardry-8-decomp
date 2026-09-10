@@ -124,7 +124,7 @@ function(wiz8_add_executable)
         set(force_unresolved)
     endif()
     target_link_options(${ARG_TARGET} PRIVATE
-        /DEBUG /DEBUGTYPE:CV /INCREMENTAL:NO ${opt_ref} /OPT:NOICF
+        /DEBUG /DEBUGTYPE:CV /INCREMENTAL:NO ${opt_ref} /OPT:NOICF /FIXED:NO
         ${force_unresolved} /BASE:0x400000 /FILEALIGN:0x1000
         /OSVERSION:4.0 ${subsystem}
         /STACK:0x100000,0x1000 /HEAP:0x100000,0x1000

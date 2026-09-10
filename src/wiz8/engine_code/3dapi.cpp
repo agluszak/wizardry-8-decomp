@@ -10,8 +10,11 @@
 
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/engine_code/Level.h"
+#include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/GrCycle.h"
+#include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Missile.h"
@@ -77,10 +80,7 @@ unsigned char g_world_mesh_update_enabled_00607d7d = 1;
 extern void Function444F70(int value, float duration, float intensity,
                           unsigned char reverse);
 
-extern void Function4D8E40(void);
 extern void Function500930(void);
-extern void Function4AE310(void);
-extern void Function482770(void);
 extern void Function50D530(void);
 
 // FUNCTION: WIZ8 0x0046DC90
@@ -371,8 +371,8 @@ void UpdateWorlds0044F400(void)
     }
 
     UpdateTimedTriggerEvents00443D30();
-    Function4AE310();
-    Function482770();
+    UpdateShakeEffects004AE310();
+    UpdateEnvironment482770();
     Function50D530();
 }
 
@@ -393,7 +393,7 @@ void UpdateWorld0044F4E0(W8World* world)
         RunMonsterGenerators();
         UpdateWorldTriggers00443AE0(world);
         if (world->octree != 0) {
-            Function4D8E40();
+            RunMasterFunctions004D8E40();
         }
         Function500930();
     }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "input.h"
+
 struct W8IList;
 
 void RequestRedrawParty(void);
@@ -254,6 +256,8 @@ void ResetMainGameScreenState(void);
 
 void Function577260(void);
 unsigned char Function577850(void);
+/* Which party portrait the pointer is over, if any. */
+unsigned int HitTestPartyPortrait(const InputAtom* event);
 void RequestRefreshPartyState(void);
 void Function593330(void);
 int IsScreenIdle(void);

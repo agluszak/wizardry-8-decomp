@@ -7,6 +7,7 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/cursor.h"
@@ -771,8 +772,6 @@ unsigned char ClearPrimarySurface(void)
 
 extern srScene* g_cursor_scene_659684;
 extern unsigned char g_render_flag_603c6c;
-extern unsigned char g_trigger_action_active_006599c8;
-extern srVector3T<float> g_trigger_action_scene_offset_006599ac;
 
 extern void Function4229E0(void);
 extern "C" void Function482140(void);

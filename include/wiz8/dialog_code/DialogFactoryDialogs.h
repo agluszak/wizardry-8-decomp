@@ -4,6 +4,8 @@
 #include "wiz8/dialog_code/DialogButton.h"
 #include "wiz8/vector.h"
 
+#include "input.h"
+
 struct W8WorldItem;
 class Trigger;
 
@@ -70,12 +72,17 @@ public:
     virtual int GetDialogType() override;     /* 0x005CF240 */
     virtual unsigned char ProcessInput() override; /* 0x005CEF00 */
 
-    void AddItem005CE210(W8WorldItem* item);
+    int AddItem005CE210(W8WorldItem* item);
     W8WorldItem* ReturnItemsToGroup005CF110();
     void SetItemGroup005CF0C0(W8WorldItem* group);
 
 private:
     unsigned char CreateButtons005CD8D0();
+    /* Sync the four scroll buttons' pressed/visible state with the scroll
+       offset and the per-item enable flags. */
+    void RefreshScrollButtons005CE420();
+    /* Handle one event the picker owns: keyboard list navigation and clicks. */
+    void HandleInputEvent005CEC20(const InputAtom* input);
 
 public:
 
