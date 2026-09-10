@@ -62,7 +62,10 @@ typedef struct W8NpcState {
     unsigned char unknown_2f[0x5a];
     /* 0x089: five topics stored one more than their id so zero means empty. */
     int topics[5];
-    unsigned char unknown_9d[0x2a];
+    unsigned char unknown_9d[0x28];
+    /* 0x0c5/0x0c6: the pending-restore flag and the level it belongs to. */
+    unsigned char flag_c5;
+    unsigned char flag_c6;
     /* 0x0c7: set when the NPC binding is released while its record flag at
        0x054 is set, and tested before handing the binding back out. */
     unsigned char unknown_c7;
@@ -102,7 +105,10 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity);
 void Function50CF70(W8NpcState* npc, int mode);
 /* 0x0050E650: the per-party-slot companion reset the binding reset runs. */
 void Function50E650(int party_slot);
-void ResetNpcBindingsForParty0050DB50(void);W8NpcState* GetNpcState(int index);
+/* 0x0050C560: the NPC-side check the pending-restore clear delegates to. */
+unsigned char Function50C560(W8NpcState* npc, void* data);
+void ResetNpcBindingsForParty0050DB50(void);
+void ClearPendingNpcLevelFlags0050C270(void);W8NpcState* GetNpcState(int index);
 W8NpcState* GetNpcStateByKind(int kind);
 unsigned char Function50B8F0(unsigned int kind);
 unsigned char GetNpcDispositionBand(W8NpcState* npc);

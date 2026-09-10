@@ -339,7 +339,6 @@ extern void Function482410(void);
 extern void Function4D6C50(int level);
 extern void Function50AC60(void);
 extern void Function50E700(void);
-extern void Function50C270(void);
 extern void Function50C2E0(void);
 extern void Function5777C0(void);
 
@@ -623,7 +622,7 @@ unsigned char LoadLevel(
     if (!restoring_game) {
         if (level < 47) {
             ResetNpcBindingsForParty0050DB50();
-            Function50C270();
+            ClearPendingNpcLevelFlags0050C270();
             Function50C2E0();
             Function5777C0();
             g_value_006850b0 = 0;

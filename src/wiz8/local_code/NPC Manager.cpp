@@ -9,6 +9,7 @@
 #include "random.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/fact_state.h"
+#include "wiz8/location_variables.h"
 #include "wiz8/npc_state.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/engine_code/Octree.h"
@@ -848,4 +849,33 @@ void ResetNpcBindingsForParty0050DB50(void)
         character_offset += 0x1862;
         ++party_slot;
     } while (character_offset < 0x30c4);
+}
+
+/* Drop the pending-restore flag from every NPC bound to the loaded level whose
+   restore check passes. The state vector is re-read after the check because it
+   can remove an entry. */
+// FUNCTION: WIZ8 0x0050c270
+void ClearPendingNpcLevelFlags0050C270(void)
+{
+    unsigned int count = g_npc_states->count;
+    unsigned int npc_index = 0;
+
+    if (count != 0) {
+        do {
+            W8NpcState** slot = g_npc_states->data;
+            if (npc_index < count) {
+                slot += npc_index;
+            }
+            W8NpcState* npc = *slot;
+
+            if (npc->flag_c5 != 0 && npc->unknown_c7 == 0
+                && npc->flag_c6 == g_loaded_level_id) {
+                if (Function50C560(npc, npc->unknown_9d) != 0) {
+                    npc->flag_c5 = 0;
+                }
+            }
+            count = g_npc_states->count;
+            ++npc_index;
+        } while (npc_index < count);
+    }
 }
