@@ -5,6 +5,7 @@
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/render_state.h"
+#include "wiz8/sgp-compat/zmouse.h"
 #include "wiz8/sgp_video.h"
 #include "surrender/srColorSurface.h"
 #include "Font.h"

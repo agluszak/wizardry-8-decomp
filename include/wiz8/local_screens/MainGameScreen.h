@@ -275,6 +275,9 @@ extern unsigned char g_flag_00685070;
 extern unsigned char g_flag_00683f95;
 extern unsigned char g_flag_00683f96;
 extern unsigned char g_flag_00683f97;
+
+void Function5929D0(void);
+void Function592A10(void);
 extern unsigned char g_flag_00683f98;
 extern unsigned char g_flag_00683f99;
 extern unsigned char g_flag_00683f9a;

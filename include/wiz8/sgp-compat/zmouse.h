@@ -13,6 +13,14 @@
 #define MSH_MOUSEWHEEL "MSWHEEL_ROLLMSG"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern BOOL SGPMouseGetPos(LPPOINT point);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

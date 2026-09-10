@@ -72,6 +72,7 @@ extern "C" unsigned char g_flag_65970d;
 
 void SetRenderOption(int option, int enabled);
 unsigned char LoadRenderOptions0047B890(int handle);
+bool SaveRenderOptions0047B920(int handle);
 void SetResidentTexturePolicy(int policy);
 void DisableRenderOption(int option);
 void EnableRenderOption(int option);

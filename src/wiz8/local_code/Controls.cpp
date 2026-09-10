@@ -745,7 +745,7 @@ void W8TextBuffer::RenderToTarget(
         line[span] = L'\0';
         int x = GetHorizontalPosition(
             StringPixLength((unsigned short*)line, m_font));
-        mprintf(x + offset, y + offset,
+        gprintf(x + offset, y + offset,
                 (unsigned short*)L"%s", line);
         y += GetLineHeight();
         line[span] = L'\n';
@@ -759,7 +759,7 @@ void W8TextBuffer::RenderToTarget(
     {
         int x = GetHorizontalPosition(
             StringPixLength((unsigned short*)line, m_font));
-        mprintf(x + offset, y + offset,
+        gprintf(x + offset, y + offset,
                 (unsigned short*)L"%s", line);
     }
 

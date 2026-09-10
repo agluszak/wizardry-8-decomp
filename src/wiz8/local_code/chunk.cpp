@@ -85,6 +85,22 @@ unsigned char W8Chunk::OpenRead(char* path)
     return 1;
 }
 
+// FUNCTION: WIZ8 0x0055be30
+unsigned char W8Chunk::OpenWrite(char* path)
+{
+    if (m_hFile != 0) {
+        return 0;
+    }
+    m_hFile = FileOpen(path, FILE_ACCESS_WRITE | FILE_CREATE_ALWAYS, 0);
+    if (m_hFile == 0) {
+        return 0;
+    }
+    m_fWriting = 1;
+    OpenChunk(W8_RIFF_CHUNK_ID, 0);
+    OpenGroup();
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x0055c080
 unsigned char W8Chunk::OpenReadWrite(char* path)
 {

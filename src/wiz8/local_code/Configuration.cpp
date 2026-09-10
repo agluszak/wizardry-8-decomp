@@ -1,6 +1,7 @@
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "surrender/srGERD.h"
 #include "wiz8/local_code/Configuration.h"
+#include "wiz8/local_screens/MGSKeyboard.h"
 #include "wiz8/chunk.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/render_state.h"
@@ -87,14 +88,13 @@ void SetDisplayGamma(float value)
     g_gerd_659634->setGamma(gamma);
 }
 
-/* Configuration.cpp reads CNFG and QLTY through the ordinary chunk reader.
-   KEYM and the default-file save path remain unrecovered. */
 // FUNCTION: WIZ8 0x0054b810
 void LoadGameConfiguration(void)
 {
     W8Chunk file;
     bool loaded = false;
 
+    ResetMGSKeyboardBindings();
     if (file.OpenRead("Wiz8.CFG")) {
         int count = file.ChunkCount();
         for (int index = 0; index < count; ++index) {
@@ -105,6 +105,8 @@ void LoadGameConfiguration(void)
                     file.Read(&g_settings_6850c8, sizeof(g_settings_6850c8), 0);
                     loaded = true;
                 }
+            } else if (id == 0x4d59454b) {
+                g_mgs_keyboard->Load(file.m_hFile, 0);
             } else if (id == 0x59544c51) {
                 LoadRenderOptions0047B890(file.m_hFile);
             }
@@ -115,6 +117,7 @@ void LoadGameConfiguration(void)
     }
     if (!loaded) {
         Function54B560();
+        SaveGameConfiguration();
     }
     SoundSetDefaultVolume(g_settings_6850c8.sound_effects_volume);
     SetMusicVolume(g_settings_6850c8.music_volume);
@@ -124,4 +127,25 @@ void LoadGameConfiguration(void)
         g_settings_6850c8.gamma = gamma;
     }
     SetDisplayGamma(gamma);
+}
+
+// FUNCTION: WIZ8 0x0054b6d0
+unsigned char SaveGameConfiguration(void)
+{
+    W8Chunk file;
+
+    if (!file.OpenWrite("Wiz8.CFG")) {
+        return 0;
+    }
+    file.OpenChunk(0x47464e43, 0);
+    file.Write(&g_settings_6850c8, sizeof(g_settings_6850c8), 0);
+    file.ReleaseCurrentChunk();
+    file.OpenChunk(0x59544c51, 0);
+    SaveRenderOptions0047B920(file.m_hFile);
+    file.ReleaseCurrentChunk();
+    file.OpenChunk(0x4d59454b, 0);
+    g_mgs_keyboard->Save(file.m_hFile);
+    file.ReleaseCurrentChunk();
+    file.Close();
+    return 1;
 }

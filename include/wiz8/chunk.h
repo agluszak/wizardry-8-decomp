@@ -29,6 +29,7 @@ struct W8Chunk {
     ~W8Chunk();
 
     unsigned char OpenRead(char* path);
+    unsigned char OpenWrite(char* path);
     unsigned char OpenReadWrite(char* path);
     void Close();
     unsigned char CopyCurrentChunkFrom(W8Chunk* source);

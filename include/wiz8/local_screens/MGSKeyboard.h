@@ -25,7 +25,10 @@ public:
 
     int FindBinding(int command) const;
     MGSKeyBinding* GetBinding(int index) const;
+    unsigned char IsCommandPressed(unsigned int command) const;
     void Clear();
+    unsigned char Load(int handle, unsigned char clear);
+    unsigned char Save(int handle) const;
     unsigned char LoadDefaults(const char* path);
 
 private:

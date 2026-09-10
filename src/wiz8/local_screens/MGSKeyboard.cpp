@@ -83,6 +83,28 @@ MGSKeyBinding* MGSKeyboard::GetBinding(int index) const
     return 0;
 }
 
+// FUNCTION: WIZ8 0x0055d320
+unsigned char MGSKeyboard::IsCommandPressed(unsigned int command) const
+{
+    MGSKeyBinding* binding = m_command_index.Lookup(&command);
+    if (binding != 0 && gfKeyState[binding->key] != 0) {
+        unsigned short modifiers = 0;
+        if (gfKeyState[VK_SHIFT] != 0) {
+            modifiers |= SHIFT_DOWN;
+        }
+        if (gfKeyState[VK_MENU] != 0) {
+            modifiers |= ALT_DOWN;
+        }
+        if (gfKeyState[VK_CONTROL] != 0) {
+            modifiers |= CTRL_DOWN;
+        }
+        if (modifiers == binding->modifiers) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x0055D3F0
 void MGSKeyboard::Clear()
 {
@@ -90,6 +112,44 @@ void MGSKeyboard::Clear()
         delete m_bindings.RemoveAt(index);
     }
     m_command_index.Clear();
+}
+
+// FUNCTION: WIZ8 0x0055d590
+unsigned char MGSKeyboard::Load(int handle, unsigned char clear)
+{
+    int count;
+
+    if (clear != 0) {
+        Clear();
+    }
+    ReadVirtualFile(handle, &count, sizeof(count), 0);
+    for (int index = 0; index < count; ++index) {
+        MGSKeyBinding* binding = new MGSKeyBinding;
+        ReadVirtualFile(handle, binding, sizeof(*binding), 0);
+
+        int old_index = FindBinding(binding->command);
+        if (old_index != -1) {
+            unsigned int command = binding->command;
+            delete m_bindings.RemoveAt(old_index);
+            m_command_index.Remove(&command);
+        }
+        if (m_bindings.Add(binding) != -1) {
+            unsigned int command = binding->command;
+            m_command_index.Insert(&command, &binding);
+        }
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x0055d7a0
+unsigned char MGSKeyboard::Save(int handle) const
+{
+    int count = m_bindings.GetCount();
+    FileWrite(handle, &count, sizeof(count), 0);
+    for (int index = 0; index < count; ++index) {
+        FileWrite(handle, *m_bindings.GetAt(index), sizeof(MGSKeyBinding), 0);
+    }
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x0055D800

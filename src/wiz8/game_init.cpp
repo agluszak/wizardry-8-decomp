@@ -154,6 +154,7 @@ void ShutdownGame(void)
         DeleteStack(g_screen_return_stack);
         g_screen_return_stack = 0;
     }
+    SaveGameConfiguration();
     ShutDownFileDatabase();
 
 }

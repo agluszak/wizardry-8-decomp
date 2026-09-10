@@ -14,7 +14,9 @@
 #include "wiz8/targeting.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSKeyboard.h"
 #include "wiz8/render_state.h"
 #include "wiz8/sgp_video.h"
 #include "wiz8/local_code/LoadSaveGame.h"
@@ -244,8 +246,6 @@ void Function4916C0(void);
 unsigned char Function5684E0(void);
 void Function561330(unsigned char value);
 unsigned char GetFlag69DA6C(void);
-void Function5929D0(void);
-void Function592A10(void);
 void Function57E0E0(int event, const W8ScreenPoint* point);
 void Function44FC20(W8World* world, unsigned int flags);
 void Function450210(W8World* world, unsigned int flags);
@@ -292,6 +292,60 @@ void Function58A750(void)
 unsigned char Function577850(void)
 {
     return g_flag_00683f97 != 0 && g_screen_state_00649f1c->flag_252 != 0;
+}
+
+// FUNCTION: WIZ8 0x005929d0
+void Function5929D0(void)
+{
+    if (g_modal_owner_0068edd0 == 0 && g_flag_00683f97 == 0) {
+        if (g_mgs_keyboard->IsCommandPressed(0x25a)) {
+            BeginManualCameraControl();
+        }
+        Function592A10();
+    }
+}
+
+// FUNCTION: WIZ8 0x00592a10
+void Function592A10(void)
+{
+    if (g_mgs_keyboard->IsCommandPressed(0xcc) ||
+        g_mgs_keyboard->IsCommandPressed(0xcd)) {
+        g_level_block->world_render_flags |= 0x100;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(0xce) ||
+        g_mgs_keyboard->IsCommandPressed(0xcf)) {
+        g_level_block->world_render_flags |= 0x200;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(0xc8)) {
+        g_level_block->world_render_flags |= 4;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(0xc9)) {
+        g_level_block->world_render_flags |= 0x84;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(0xca)) {
+        g_level_block->world_render_flags |= 8;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(0xcb)) {
+        g_level_block->world_render_flags |= 0x88;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(0xd4)) {
+        g_level_block->world_render_flags |= 0x400;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(0xd5)) {
+        g_level_block->world_render_flags |= 0x800;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(0xd0)) {
+        g_level_block->world_render_flags |= 1;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(0xd2)) {
+        g_level_block->world_render_flags |= 2;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(0xd1)) {
+        g_level_block->world_render_flags |= 0x81;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(0xd3)) {
+        g_level_block->world_render_flags |= 0x82;
+    }
 }
 
 // FUNCTION: WIZ8 0x00593330

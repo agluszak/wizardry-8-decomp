@@ -1,6 +1,7 @@
 #pragma once
 
 void LoadGameConfiguration(void);
+unsigned char SaveGameConfiguration(void);
 void SetDisplayGamma(float value);
 void SetMusicVolume(unsigned char volume);
 bool IsMusicMuted(void);
