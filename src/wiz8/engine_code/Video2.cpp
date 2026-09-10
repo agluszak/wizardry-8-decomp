@@ -256,7 +256,7 @@ unsigned char InitializeMouseSurface(void)
     }
 
     g_mouse_surface_659688 =
-        SR_NEW(srColorSurface)(
+        SR_NEW(W8ColorSurface)(
             type, 128UL, 128UL);
     if (!g_mouse_surface_659688) {
         srAssertFail("psrMouseSurface", "C:\\Projects\\Wizardry 8\\Engine Code\\Video2.cpp",
@@ -388,7 +388,7 @@ unsigned char InitializeRendererSceneObjects(void)
     DDLockSurface(g_primary_surface_6596a8, 0, &surface_description, 0, 0);
     DDUnlockSurface(g_primary_surface_6596a8, 0);
     g_primary_color_surface_659660 =
-        SR_NEW(srColorSurface)(
+        SR_NEW(W8ColorSurface)(
             srPixelConvert::SURFACE_ARGB1555, surface_description.lpSurface,
             640UL, 480UL,
             static_cast<unsigned long>(surface_description.lPitch));
@@ -765,7 +765,7 @@ void __fastcall PackColour00429700(
    With positional set, the position is snapped to the renderer's pixel grid;
    the node keeps the screen x/y in its right/bottom extent fields. */
 // FUNCTION: WIZ8 0x004255F0
-void Function4255F0(srNode* node, int x, int y, char positional)
+void PositionToolTipNode(srNode* node, int x, int y, char positional)
 {
     stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
     double position_x = (double)x * g_double_005ebe90;
@@ -813,7 +813,7 @@ void VideoPositionToolTip(INT32 x, INT32 y)
         for (int index = 0; index < g_screen_transition_object_count_654aac; ++index) {
             srNode* node =
                 static_cast<srNode*>(g_screen_transition_objects_654ab4[index]);
-            Function4255F0(node, offset, y, 1);
+            PositionToolTipNode(node, offset, y, 1);
             offset += static_cast<stModelInstance2D*>(node)->GetWidth00480EF0() & 0xffff;
         }
         g_help_box_y_654abc = y;
@@ -828,7 +828,7 @@ void VideoPositionToolTip(INT32 x, INT32 y)
    repeating its border one pixel outward, and reports the texture mapping
    scales for the resulting polygon brush. */
 // FUNCTION: WIZ8 0x00428B90
-unsigned char Function428B90(
+unsigned char CopySurfaceWithBorder(
     srColorSurface* surface, int* rect, void* source, int source_pitch,
     float* scale_x, float* scale_y, float* mapping_x, float* mapping_y)
 {
@@ -879,7 +879,7 @@ unsigned char Function428B90(
    extent is rounded up to the next power of two between 16 and 256, the copy
    repeats its border, and the node records the rectangle extents. */
 // FUNCTION: WIZ8 0x00424280
-srModelInstance* Function424280(
+srModelInstance* Video2DRectToPolygon(
     int* rect, void* source, int source_pitch, srNode* parent, unsigned char overlay)
 {
     double left = (double)rect[0] * g_double_005ebe90;
@@ -919,7 +919,7 @@ srModelInstance* Function424280(
         }
     }
 
-    srColorSurface* surface = SR_NEW(srColorSurface)(
+    srColorSurface* surface = SR_NEW(W8ColorSurface)(
         srPixelConvert::SURFACE_ARGB1555, (unsigned long)extent, (unsigned long)extent);
     if (surface == 0) {
         return 0;
@@ -929,7 +929,7 @@ srModelInstance* Function424280(
     float scale_y;
     float mapping_x;
     float mapping_y;
-    if (!Function428B90(surface, rect, source, source_pitch,
+    if (!CopySurfaceWithBorder(surface, rect, source, source_pitch,
                         &scale_x, &scale_y, &mapping_x, &mapping_y)) {
         surface->release();
         return 0;
@@ -964,7 +964,7 @@ void VideoToolTip(UINT16* text)
     if (g_screen_transition_object_count_654aac != 0) {
         return;
     }
-    srColorSurface* surface = SR_NEW(srColorSurface)(
+    srColorSurface* surface = SR_NEW(W8ColorSurface)(
         srPixelConvert::SURFACE_ARGB1555, 0xfeUL, 0xfeUL);
     if (surface == 0) {
         return;
@@ -1001,7 +1001,7 @@ void VideoToolTip(UINT16* text)
     rect[1] = 0;
     rect[2] = 0xfe;
     rect[3] = 0xfe;
-    srModelInstance* node = Function424280(
+    srModelInstance* node = Video2DRectToPolygon(
         rect, data, (int)surface->getPitch(), g_cursor_scene_659684, 1);
     if (node != 0) {
         int count = g_screen_transition_object_count_654aac;
@@ -1032,7 +1032,7 @@ void VideoToolTip(UINT16* text)
     for (int index = 0; index < g_screen_transition_object_count_654aac; ++index) {
         srNode* object =
             static_cast<srNode*>(g_screen_transition_objects_654ab4[index]);
-        Function4255F0(object, offset, position_y, 1);
+        PositionToolTipNode(object, offset, position_y, 1);
         offset += static_cast<stModelInstance2D*>(object)->GetWidth00480EF0() & 0xffff;
     }
     g_help_box_x_654ab8 = position_x;
