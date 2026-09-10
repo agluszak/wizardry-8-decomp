@@ -478,10 +478,10 @@ def regress(
     program_selector: str = "wiz8",
 ) -> dict[str, Any]:
     from .build import build_target
+    from .comparison import compare_selected
     from .ghidra.env import open_program
     from .ghidra.query import resolve_function_selectors as resolve_ghidra_selectors
     from .ghidra.recovery import recover_functions
-    from .reccmp_workflows import compare_selected
     from .source_index import load_source_index
 
     with open_program(settings, program_selector) as program:
@@ -774,8 +774,8 @@ def sweep(
     """
 
     from .build import build_target
+    from .comparison import compare_selected
     from .ghidra.recovery import recover_functions
-    from .reccmp_workflows import compare_selected
 
     markers = _sweep_selection(settings, source_file, class_name)
     addresses = [marker["address"] for marker in markers]

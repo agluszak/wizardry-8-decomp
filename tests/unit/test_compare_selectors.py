@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
-from wiz8decomp.reccmp_workflows import selected_addresses
+from wiz8decomp.comparison import selected_addresses
 
 
 def _index(repository: Path, names: list[tuple[int, str]]) -> None:

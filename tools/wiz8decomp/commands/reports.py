@@ -113,7 +113,7 @@ def data_command(
 
 @app.command("status")
 def status_command() -> None:
-    """Summarize canonical identities, ownership, matching, and source-unit coverage."""
+    """Report project-wide decomp and matching progress."""
     from .. import command_support as cli
     from ..reports.status import status_report
 

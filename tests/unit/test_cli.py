@@ -3,7 +3,6 @@ import re
 from pathlib import Path
 from types import SimpleNamespace
 
-import pytest
 from typer.testing import CliRunner
 from wiz8decomp import command_support
 from wiz8decomp.cli import app
@@ -13,7 +12,7 @@ REPOSITORY = Path(__file__).resolve().parents[2]
 
 
 def test_compare_refreshes_changed_file_selection_before_build(tmp_path, monkeypatch) -> None:
-    from wiz8decomp import build, reccmp_workflows, source_index
+    from wiz8decomp import build, comparison, source_index
 
     settings = SimpleNamespace(repo_dir=tmp_path)
     (tmp_path / "reccmp-project.yml").write_text(
@@ -52,10 +51,10 @@ def test_compare_refreshes_changed_file_selection_before_build(tmp_path, monkeyp
         return {"functions": [{"address": "0x00401000", "name": "added", "status": "exact"}]}
 
     monkeypatch.setattr(command_support, "settings", lambda: settings)
-    monkeypatch.setattr(reccmp_workflows, "changed_source_files", lambda *_args: [source])
+    monkeypatch.setattr(comparison, "changed_source_files", lambda *_args: [source])
     monkeypatch.setattr(source_index, "write_source_index", refresh)
     monkeypatch.setattr(build, "build_target", lambda *_args: events.append("build"))
-    monkeypatch.setattr(reccmp_workflows, "compare_selected", compare)
+    monkeypatch.setattr(comparison, "compare_selected", compare)
 
     result = CliRunner().invoke(app, ["compare", "--changed"])
     assert result.exit_code == 0, result.output
@@ -66,14 +65,13 @@ def test_compare_refreshes_changed_file_selection_before_build(tmp_path, monkeyp
 
 
 def test_compare_changed_does_not_fall_back_to_whole_image(tmp_path, monkeypatch) -> None:
-    from wiz8decomp import build, reccmp_workflows
+    from wiz8decomp import comparison
 
     (tmp_path / "reccmp-project.yml").write_text(
         "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
     )
     monkeypatch.setattr(command_support, "settings", lambda: SimpleNamespace(repo_dir=tmp_path))
-    monkeypatch.setattr(reccmp_workflows, "changed_source_files", lambda *_args: [])
-    monkeypatch.setattr(build, "compare", lambda *_args, **_kwargs: pytest.fail("whole image"))
+    monkeypatch.setattr(comparison, "changed_source_files", lambda *_args: [])
     result = CliRunner().invoke(app, ["compare", "--changed"])
     assert result.exit_code != 0
     assert isinstance(result.exception, ValueError)

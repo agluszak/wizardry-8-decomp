@@ -503,29 +503,6 @@ def build_analysis_target(
     }
 
 
-def compare(
-    settings: Settings,
-    target: str = "WIZ8",
-    arguments: list[str] | None = None,
-    *,
-    build_first: bool = True,
-) -> dict[str, Any]:
-    if build_first:
-        build_target(settings, target)
-    validate_build_directory(settings)
-    build_dir = settings.repo_dir / "build" / "decomp"
-    if (
-        not (build_dir / "CMakeCache.txt").is_file()
-        or not (build_dir / "reccmp-build.yml").is_file()
-    ):
-        configure(settings)
-    result = run(
-        ["reccmp-reccmp", "--target", target, "--no-color", *(arguments or [])],
-        cwd=settings.repo_dir / "build" / "decomp",
-    )
-    return {"target": target, "command": _result(result)}
-
-
 def build_toolchain(settings: Settings, toolchain_ids: list[str] | None = None) -> dict[str, Any]:
     from .ghidra.fid_seeds import build_toolchain_images
 
@@ -572,7 +549,7 @@ def verify(
     compare_image: bool = True,
     against: Path | None = None,
 ) -> dict[str, Any]:
-    from .reccmp_workflows import compare_vtables
+    from .comparison import compare_linked_image, compare_vtables
     from .runtime import run_runtime_suite
     from .source_layouts import (
         require_source_layout_delta,
@@ -632,9 +609,9 @@ def verify(
 
         gate("vtables", vtable_gate)
         if compare_image:
-            gate("compare_wiz8", lambda: compare(settings, "WIZ8", build_first=False))
+            gate("compare_wiz8", lambda: compare_linked_image(settings.repo_dir, "WIZ8"))
     if surrender_build is not None and compare_image:
-        gate("compare_surrender", lambda: compare(settings, "SURRENDER", build_first=False))
+        gate("compare_surrender", lambda: compare_linked_image(settings.repo_dir, "SURRENDER"))
     if runtime_build is not None:
         gate("runtime_tests", lambda: run_runtime_suite(settings))
 

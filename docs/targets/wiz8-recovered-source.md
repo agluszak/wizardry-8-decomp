@@ -62,8 +62,8 @@ Correct demonstrated disagreements at both owners, using the
 - Class relationships, fields, virtuals, and layout ownership: C++ declarations with compiler gates.
 - Native layouts and fields: the canonical Ghidra project, inspected through native PyGhidra.
 - Current pairing and exact/effective status: live reccmp results under `build/`.
-- Current totals, ownership, and source-unit coverage:
-  `build/reports/status.md`.
+- Current source/matching statistics: `just wiz8 report status`; translation-unit attribution:
+  `just wiz8 report translation-units`.
 
 Do not copy those inventories back into this document when another function lands. Add prose only
 when the recovery establishes a durable compiler, ABI, ownership, or reverse-engineering lesson.

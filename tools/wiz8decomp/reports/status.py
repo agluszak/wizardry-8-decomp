@@ -1,150 +1,168 @@
+"""Project-wide source and matching statistics from reccmp's project model."""
+
 from __future__ import annotations
 
-import csv
 from collections import Counter
-from pathlib import Path
+from collections.abc import Mapping
 from typing import Any
 
-from ..ghidra.unit_intervals import TranslationUnitLayout, assertion_anchors
-from ..source_index import load_source_index, source_functions
-from .translation_units import (
-    function_inventory,
-    render_gameplay_map_csv,
+from reccmp.compare import Compare
+from reccmp.parser.marker import MarkerType
+from reccmp.project.detect import RecCmpPartialTarget, RecCmpProject
+
+from ..build import build_target
+from ..ghidra.workspace import seed_records
+
+# Only FUNCTION markers are recovered authored source. The remaining kinds
+# have their own accounting row and are never counted as progress.
+_SOURCE_KINDS = (
+    (MarkerType.FUNCTION, "functions"),
+    (MarkerType.STUB, "stubs"),
+    (MarkerType.LIBRARY, "library"),
+    (MarkerType.SYNTHETIC, "synthetic"),
+    (MarkerType.TEMPLATE, "template"),
 )
 
 
-def _rows(path: Path) -> list[dict[str, str]]:
-    with path.open(newline="", encoding="utf-8") as stream:
-        return list(csv.DictReader(stream))
+def _source_statistics(engine: Compare) -> tuple[dict[str, int], set[int]]:
+    """Count function-like source markers by kind and return FUNCTION addresses."""
 
-
-def _counts(rows: list[dict[str, str]], field: str) -> dict[str, int]:
-    return dict(sorted(Counter(row[field] or "unassigned" for row in rows).items()))
-
-
-def derive_status(repo_dir: Path, ghidra_functions: list[dict[str, str]]) -> dict[str, Any]:
-    catalogs = sorted((repo_dir / "evidence" / "reviewed").glob("*/functions.csv"))
-    programs = []
-    for path in catalogs:
-        rows = _rows(path)
-        program = path.parent.name
-        programs.append(
-            {
-                "program": program,
-                "identities": len(rows),
-                "authority": _counts(rows, "authority"),
-                "confidence": _counts(rows, "confidence"),
-            }
-        )
-
-    claims = _rows(repo_dir / "evidence/reviewed/wiz8/claims.csv")
-    identity_claims = [
-        row
-        for row in claims
-        if row["entity_kind"] == "function"
-        and row["predicate"] in {"accepted-identity", "identity-provenance"}
-    ]
-    functions = source_functions(repo_dir)
-    function_addresses = set(functions) | {
-        int(row["entity_key"], 16)
-        for row in identity_claims
-        if row["predicate"] == "accepted-identity"
-    }
-    programs.append(
-        {
-            "program": "wiz8",
-            "identities": len(function_addresses),
-            "authority": _counts(identity_claims, "authority"),
-            "confidence": _counts(identity_claims, "confidence"),
-        }
+    codebase = engine.codebase
+    markers = (
+        [*codebase.iter_line_functions(), *codebase.iter_name_functions()]
+        if codebase is not None
+        else []
     )
-    classes = load_source_index(repo_dir)["classes"]
-    source_units = _rows(repo_dir / "evidence/observations/wiz8/source-tree.csv")
-    assertions = _rows(repo_dir / "evidence/observations/wiz8/assertions.csv")
-    gameplay = function_inventory(repo_dir, ghidra_functions)
-    units, headers = assertion_anchors(assertions)
-    layout = TranslationUnitLayout(units, header_anchors=headers)
-    gameplay_map, attribution = render_gameplay_map_csv(layout, gameplay)
-    attributed_rows = list(csv.DictReader(gameplay_map.splitlines()))
-    attributed_units = {row["source_path"] for row in attributed_rows if row["source_path"]}
+    source: dict[str, int] = {}
+    for marker_type, key in _SOURCE_KINDS:
+        count = len({marker.offset for marker in markers if marker.type == marker_type})
+        if count:
+            source[key] = count
+    source_addresses = {marker.offset for marker in markers if marker.type == MarkerType.FUNCTION}
+    return source, source_addresses
 
+
+def _comparison_statistics(
+    engine: Compare, target: RecCmpPartialTarget, source_addresses: set[int]
+) -> tuple[dict[str, Any], float]:
+    """Classify every recovered source function and total its effective score."""
+
+    ignore = set(target.report_config.ignore_functions) if target.report_config else set()
+    entities = {
+        entity.orig_addr: entity
+        for entity in engine.compare_addresses(
+            orig_addrs=sorted(source_addresses),
+            include_diff=False,
+            include_exact_diff=False,
+        )
+    }
+    ignored = {address for address, entity in entities.items() if entity.name in ignore}
+    counts: Counter[str] = Counter()
+    effective_score = 0.0
+    for address, entity in entities.items():
+        if address in ignored:
+            continue
+        counts[entity.analysis.status.value] += 1
+        effective_score += entity.effective_accuracy
+    paired = sum(counts.values())
+    return (
+        {
+            "paired": paired,
+            "exact": counts["exact"],
+            "effective": counts["effective"],
+            "mismatch": counts["mismatch"],
+            "inconclusive": counts["inconclusive"],
+            "unpaired": len(source_addresses - entities.keys()),
+            "ignored": len(ignored),
+            "accuracy": effective_score / paired if paired else 0.0,
+        },
+        effective_score,
+    )
+
+
+def _target_status(
+    project: RecCmpProject,
+    target_id: str,
+    known_functions_by_hash: Mapping[str, int],
+) -> tuple[dict[str, Any], float]:
+    partial = project.targets[target_id]
+    binary = {"binary": partial.filename}
+    if partial.recompiled_path is None or partial.recompiled_pdb is None:
+        return {**binary, "state": "original-only"}, 0.0
+
+    engine = Compare.from_target(project.get(target_id))
+    source, source_addresses = _source_statistics(engine)
+    comparison, effective_score = _comparison_statistics(engine, partial, source_addresses)
+    original_functions = known_functions_by_hash.get(partial.sha256)
+    row = {
+        **binary,
+        "state": "comparison",
+        "source": source,
+        "comparison": comparison,
+        "original_functions": original_functions,
+        "source_coverage": (
+            source.get("functions", 0) / original_functions if original_functions else None
+        ),
+        "progress": (effective_score / original_functions if original_functions else None),
+    }
+    return row, effective_score
+
+
+def _totals(targets: Mapping[str, dict[str, Any]], scores: Mapping[str, float]) -> dict[str, Any]:
+    """Aggregate summed numerators and denominators, never per-target means."""
+
+    comparison = [target_id for target_id, row in targets.items() if row["state"] == "comparison"]
+    known = [
+        target_id
+        for target_id in comparison
+        if targets[target_id]["original_functions"] is not None
+    ]
+    paired = sum(targets[target_id]["comparison"]["paired"] for target_id in comparison)
+    effective_score = sum(scores[target_id] for target_id in comparison)
+    known_functions = sum(targets[target_id]["original_functions"] for target_id in known)
+    known_source = sum(targets[target_id]["source"].get("functions", 0) for target_id in known)
+    known_score = sum(scores[target_id] for target_id in known)
     return {
-        "schema": "wiz8.recovery-status",
-        "programs": programs,
-        "wiz8": {
-            "function_identities": len(function_addresses),
-            "source_functions": len(functions),
-            "analysis_only_identities": len(function_addresses - set(functions)),
-            "claims": len(claims),
-            "authority": _counts(identity_claims, "authority"),
-            "classes": len(classes),
-            "source_units": len(source_units),
-            "source_units_by_subsystem": _counts(source_units, "subsystem"),
-            "gameplay": {
-                "functions": len(gameplay),
-                "owners": _counts(gameplay, "owner"),
-                "translation_unit_attribution": attribution,
-                "attributed_source_units": len(attributed_units),
-                "unowned_functions": attribution["gap"],
-            },
+        "targets": len(targets),
+        "comparison_targets": len(comparison),
+        "source_functions": sum(
+            targets[target_id]["source"].get("functions", 0) for target_id in comparison
+        ),
+        "paired": paired,
+        "exact": sum(targets[target_id]["comparison"]["exact"] for target_id in comparison),
+        "effective": sum(targets[target_id]["comparison"]["effective"] for target_id in comparison),
+        "mismatch": sum(targets[target_id]["comparison"]["mismatch"] for target_id in comparison),
+        "inconclusive": sum(
+            targets[target_id]["comparison"]["inconclusive"] for target_id in comparison
+        ),
+        "unpaired": sum(targets[target_id]["comparison"]["unpaired"] for target_id in comparison),
+        "ignored": sum(targets[target_id]["comparison"]["ignored"] for target_id in comparison),
+        "accuracy": effective_score / paired if paired else 0.0,
+        "known_original_scope": {
+            "targets": len(known),
+            "original_functions": known_functions,
+            "source_functions": known_source,
+            "source_coverage": (known_source / known_functions if known_functions else None),
+            "progress": known_score / known_functions if known_functions else None,
         },
     }
 
 
-def _table(counts: dict[str, int]) -> list[str]:
-    return [f"| `{name}` | {count} |" for name, count in counts.items()]
-
-
-def render_status_markdown(report: dict[str, Any]) -> str:
-    wiz8 = report["wiz8"]
-    gameplay = wiz8["gameplay"]
-    lines = [
-        "# Wizardry recovery status",
-        "",
-        "Generated from canonical configuration and evidence. Do not edit this report by hand.",
-        "",
-        "## Programs",
-        "",
-        "| Program | Canonical identities |",
-        "| --- | ---: |",
-    ]
-    lines.extend(
-        f"| `{program['program']}` | {program['identities']} |" for program in report["programs"]
-    )
-    lines.extend(
-        [
-            "",
-            "## Wiz8.exe",
-            "",
-            f"- Canonical function identities: {wiz8['function_identities']}",
-            f"- Source-owned functions: {wiz8['source_functions']}",
-            f"- Analysis-only identities: {wiz8['analysis_only_identities']}",
-            f"- Provenance claims: {wiz8['claims']}",
-            f"- Source classes: {wiz8['classes']}",
-            f"- Observed original source units: {wiz8['source_units']}",
-            "",
-            "### Name authority",
-            "",
-            "| Authority | Functions |",
-            "| --- | ---: |",
-            *_table(wiz8["authority"]),
-            "",
-            "### Owned gameplay matching",
-            "",
-            f"- Reviewed functions: {gameplay['functions']}",
-            f"- Functions outside an assertion-bounded source interval: {gameplay['unowned_functions']}",
-            f"- Original source units represented by attributed functions: {gameplay['attributed_source_units']}",
-            "",
-            "| Translation-unit attribution | Functions |",
-            "| --- | ---: |",
-            *_table(gameplay["translation_unit_attribution"]),
-            "",
-        ]
-    )
-    return "\n".join(lines)
-
-
 def status_report(settings: Any) -> dict[str, Any]:
-    from ..ghidra.query import function_inventory as ghidra_function_inventory
+    build_target(settings, "reccmp-products")
 
-    return derive_status(settings.repo_dir, ghidra_function_inventory(settings))
+    project = RecCmpProject.from_directory(settings.repo_dir / "build" / "decomp")
+    known_functions_by_hash = {
+        record["binary_sha256"]: record["function_count"] for record in seed_records(settings)
+    }
+    targets: dict[str, dict[str, Any]] = {}
+    scores: dict[str, float] = {}
+    for target_id in project.targets:
+        row, score = _target_status(project, target_id, known_functions_by_hash)
+        targets[target_id] = row
+        scores[target_id] = score
+    return {
+        "schema": "wiz8.status",
+        "totals": _totals(targets, scores),
+        "targets": targets,
+    }

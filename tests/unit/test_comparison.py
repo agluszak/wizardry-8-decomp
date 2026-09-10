@@ -3,26 +3,13 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from wiz8decomp import reccmp_workflows
-from wiz8decomp.reccmp_workflows import (
-    _sr_assert_alias_mismatch,
+from wiz8decomp import comparison
+from wiz8decomp.comparison import (
     addresses_from_files,
-    compare_rows,
-    run_report,
+    changed_source_files,
+    compare_selected,
     selected_addresses,
-    translate_rows,
-    triage_rows,
 )
-
-
-def _entity(address: int, status: str, **comparison):
-    return {
-        "address": f"0x{address:08x}",
-        "recomp": f"0x{address + 0x1000:08x}",
-        "name": f"Function{address:08X}",
-        "matching": 0.75,
-        "comparison": {"status": status, **comparison},
-    }
 
 
 @pytest.mark.parametrize("accuracy", [1.0, 0.0])
@@ -59,28 +46,12 @@ def test_vtable_comparison_keeps_native_slot_diff(tmp_path, monkeypatch, accurac
     monkeypatch.setattr(
         Compare, "from_target", lambda *_: SimpleNamespace(compare_vtables=compare_vtables)
     )
-    result = reccmp_workflows.compare_vtables(tmp_path, "WIZ8", "Widget")
+    result = comparison.compare_vtables(tmp_path, "WIZ8", "Widget")
 
     assert result["ok"] is (accuracy == 1.0)
     table = result["vtables"][0]
     assert table["accuracy"] == accuracy
     assert table["diff"][0][1][0]["both"] == [(slot[0], slot[1], slot[0])]
-
-
-def test_sr_assert_import_alias_requires_the_exact_known_pair() -> None:
-    row = _entity(
-        0x451160,
-        "mismatch",
-        difference={
-            "kind": "call_target",
-            "orig": {"facts": {"target_name": "SR.DLL::?srAssertFail@@YAXPBD0J0ZZ (IMPORT)"}},
-            "recomp": {"facts": {"target_name": "SR.dll::?srAssertFail@@YAXPBD0J0@Z (IMPORT)"}},
-        },
-    )
-
-    assert _sr_assert_alias_mismatch(row)
-    row["comparison"]["difference"]["orig"]["facts"]["target_name"] = "someOtherCall"
-    assert not _sr_assert_alias_mismatch(row)
 
 
 def test_source_selection_deduplicates_function_markers(tmp_path: Path) -> None:
@@ -168,92 +139,54 @@ def test_changed_source_files_preserves_spaces_and_ignores_removed_files(
         assert command == expected
         return SimpleNamespace(stdout="One.cpp\nTwo Words.h\nREADME.md\nremoved.cpp\n")
 
-    monkeypatch.setattr(reccmp_workflows, "run", fake_run)
-    assert reccmp_workflows.changed_source_files(tmp_path, since) == [
+    monkeypatch.setattr(comparison, "run", fake_run)
+    assert changed_source_files(tmp_path, since) == [
         tmp_path / "One.cpp",
         tmp_path / "Two Words.h",
     ]
 
 
-def test_compare_treats_semantically_effective_as_complete() -> None:
-    result = compare_rows(
-        [
-            _entity(0x401000, "exact"),
-            _entity(0x401010, "effective", effective_reasons=["register_allocation"]),
-        ],
-        [0x401000, 0x401010],
+def test_compare_selected_uses_one_in_process_comparison(tmp_path, monkeypatch):
+    from reccmp.compare.diagnosis import (
+        ComparisonAnalysis,
+        ComparisonDifference,
+        DifferenceSide,
     )
+    from reccmp.compare.report import ReccmpComparedEntity
+    from reccmp.types import EntityType
 
-    assert result["ok"] is True
-    assert result["exact"] == 1
-    assert result["effective"] == 1
-    assert result["functions"][1]["effective_matching"] == 1.0
-
-
-def test_triage_preserves_structured_difference_and_inconclusive_ceiling() -> None:
-    result = triage_rows(
-        [
-            _entity(
-                0x401000,
-                "mismatch",
-                difference={"kind": "call_argument", "orig": {}, "recomp": {}},
-            ),
-            _entity(0x401010, "inconclusive", inconclusive_reason="unsupported_control_flow"),
-        ],
-        [0x401000, 0x401010],
+    entity = ReccmpComparedEntity(
+        orig_addr=0x401000,
+        recomp_addr=0x501000,
+        name="Widget::Run",
+        type=EntityType.FUNCTION,
+        accuracy=0.9,
+        analysis=ComparisonAnalysis.mismatch(
+            ComparisonDifference(
+                kind="branch_target",
+                orig=DifferenceSide(instruction_index=1),
+                recomp=DifferenceSide(instruction_index=1),
+            )
+        ),
     )
-
-    assert result["functions"][0]["difference"]["kind"] == "call_argument"
-    assert result["functions"][1]["reason"] == "unsupported_control_flow"
-
-
-def test_address_translation_checks_both_spaces() -> None:
-    entity = _entity(0x401000, "exact")
-
-    result = translate_rows([entity], [0x401000, 0x402000, 0x999999])
-
-    assert result["translations"][0]["direction"] == "original-to-recompiled"
-    assert result["translations"][1]["direction"] == "recompiled-to-original"
-    assert result["translations"][2]["status"] == "missing"
-
-
-def test_one_report_process_receives_every_selected_address(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
     seen = []
 
-    def fake_run(command, *, cwd):
-        seen.append((command, cwd))
-        report = Path(command[command.index("--json") + 1])
-        report.write_text('{"format": 1, "data": []}', encoding="utf-8")
+    class Engine:
+        def compare_addresses(self, **kwargs):
+            seen.append(kwargs)
+            return iter([entity])
 
-    monkeypatch.setattr(reccmp_workflows, "run", fake_run)
-
-    assert run_report(tmp_path, "WIZ8", original_addresses=[0x401010, 0x401000]) == []
-    assert len(seen) == 1
-    assert seen[0][0].count("--orig-address") == 2
-    assert seen[0][1] == tmp_path / "build/decomp"
-
-
-def test_compare_mismatch_acquires_one_report_and_includes_triage(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    calls = 0
-
-    def fake_report(*_args, **_kwargs):
-        nonlocal calls
-        calls += 1
-        return [
-            _entity(
-                0x401000,
-                "mismatch",
-                difference={"kind": "branch_target", "orig": {}, "recomp": {}},
-            )
-        ]
-
-    monkeypatch.setattr(reccmp_workflows, "run_report", fake_report)
+    target = SimpleNamespace(
+        original_path=tmp_path / "orig.exe", recompiled_path=tmp_path / "recomp.exe"
+    )
     monkeypatch.setattr(
-        reccmp_workflows,
+        comparison,
+        "_project",
+        lambda _repository: SimpleNamespace(get=lambda _target: target),
+    )
+    monkeypatch.setattr(comparison.Compare, "from_target", lambda *_args, **_kwargs: Engine())
+    monkeypatch.setattr(
+        comparison,
         "_instruction_windows",
         lambda *_args, **_kwargs: {
             "original": [
@@ -266,9 +199,34 @@ def test_compare_mismatch_acquires_one_report_and_includes_triage(
         },
     )
 
-    result = reccmp_workflows.compare_selected(tmp_path, "WIZ8", [0x401000])
+    result = compare_selected(tmp_path, "WIZ8", [0x401000])
 
-    assert calls == 1
-    assert result["functions"][0]["difference"]["kind"] == "alignment_or_structure"
-    assert result["functions"][0]["reported_difference"]["kind"] == "branch_target"
-    assert result["functions"][0]["instruction_window"]["original"][0]["divergence"]
+    assert len(seen) == 1
+    row = result["functions"][0]
+    assert row["status"] == "mismatch"
+    assert row["effective_matching"] == 0.9
+    assert row["difference"]["kind"] == "alignment_or_structure"
+    assert row["reported_difference"]["kind"] == "branch_target"
+    assert row["instruction_window"]["original"][0]["divergence"]
+
+
+def test_compare_selected_marks_unpaired_addresses_missing(tmp_path, monkeypatch):
+    class Engine:
+        def compare_addresses(self, **_kwargs):
+            return iter(())
+
+    target = SimpleNamespace(
+        original_path=tmp_path / "orig.exe", recompiled_path=tmp_path / "recomp.exe"
+    )
+    monkeypatch.setattr(
+        comparison,
+        "_project",
+        lambda _repository: SimpleNamespace(get=lambda _target: target),
+    )
+    monkeypatch.setattr(comparison.Compare, "from_target", lambda *_args, **_kwargs: Engine())
+
+    result = compare_selected(tmp_path, "WIZ8", [0x401000])
+
+    assert result["ok"] is False
+    assert result["missing"] == 1
+    assert result["functions"] == [{"address": "0x00401000", "status": "missing"}]

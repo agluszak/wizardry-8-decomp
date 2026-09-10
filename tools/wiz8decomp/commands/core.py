@@ -83,7 +83,7 @@ def compare_command(
     """Build current inputs and compare a selected function set."""
     from .. import command_support as cli
     from ..build import build_target
-    from ..reccmp_workflows import (
+    from ..comparison import (
         changed_source_files,
         compare_selected,
         selected_addresses,
@@ -141,7 +141,7 @@ def vtable_command(
     """Compare vtables and refuse a vacuous zero-entity success."""
     from .. import command_support as cli
     from ..build import build_target
-    from ..reccmp_workflows import compare_vtables
+    from ..comparison import compare_vtables
 
     def action() -> Any:
         settings = cli.settings()
@@ -161,7 +161,7 @@ def datacmp_command(
     """Compare reviewed global data through reccmp."""
     from .. import command_support as cli
     from ..build import build_target
-    from ..reccmp_workflows import compare_data
+    from ..comparison import compare_data
 
     def action() -> Any:
         settings = cli.settings()
@@ -182,7 +182,7 @@ def address_command(
     """Translate paired original and recompiled addresses in one process."""
     from .. import command_support as cli
     from ..build import build_target
-    from ..reccmp_workflows import parse_address, translate_addresses
+    from ..comparison import parse_address, translate_addresses
 
     def action() -> Any:
         settings = cli.settings()

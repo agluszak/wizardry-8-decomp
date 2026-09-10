@@ -140,7 +140,9 @@
     )
     target_link_libraries(
         SREXT_JPEGIMPORTER
-        PRIVATE "${SREXT_JPEG_SR_IMPORT_LIBRARY}"
+        PRIVATE
+            wiz8_compile_settings
+            "${SREXT_JPEG_SR_IMPORT_LIBRARY}"
     )
     target_link_options(SREXT_JPEGIMPORTER PRIVATE
         /DEBUGTYPE:CV

@@ -1,167 +1,243 @@
-"""The status report is a pure projection of tracked evidence.
+"""Focused tests for project-wide source and matching statistics.
 
-Every assertion here runs against a synthetic repository so that the test
-states what the derivation *does* rather than restating whatever the current
-evidence tables happen to contain. Live counts belong in the generated report,
-never in a test.
+Every assertion here builds its own minimal reccmp surface, so the tests state
+what the derivation does rather than restating current repository counts.
 """
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
-from wiz8decomp.reports.status import derive_status
+from reccmp.compare.diagnosis import (
+    ComparisonAnalysis,
+    ComparisonDifference,
+    DifferenceSide,
+)
+from reccmp.compare.report import ReccmpComparedEntity
+from reccmp.parser.marker import MarkerType
+from reccmp.types import EntityType
+from wiz8decomp.reports import status
 
-_UNIT = r"C:\Projects\Wizardry 8\Local Code\A.cpp"
+
+class FakeCodebase:
+    def __init__(self, markers):
+        self._markers = list(markers)
+
+    def iter_line_functions(self):
+        return iter(self._markers)
+
+    def iter_name_functions(self):
+        return iter(())
 
 
-def _ghidra_functions() -> list[dict[str, str]]:
-    return [
-        {"entry": f"0x{address:08x}", "name": name}
-        for address, name in (
-            (0x00401000, "Owned"),
-            (0x00402000, "Foo"),
-            (0x00403000, "Baz"),
-            (0x00404000, "Bar"),
-        )
+def _marker(address: int, marker_type: MarkerType):
+    return SimpleNamespace(offset=address, type=marker_type)
+
+
+def _entity(
+    address: int,
+    analysis: ComparisonAnalysis,
+    *,
+    accuracy: float = 1.0,
+    name: str = "Function",
+) -> ReccmpComparedEntity:
+    return ReccmpComparedEntity(
+        orig_addr=address,
+        recomp_addr=address + 0x1000,
+        name=name,
+        type=EntityType.FUNCTION,
+        accuracy=accuracy,
+        analysis=analysis,
+    )
+
+
+def _engine(markers, entities):
+    return SimpleNamespace(
+        codebase=FakeCodebase(markers),
+        compare_addresses=lambda **_kwargs: entities,
+    )
+
+
+def test_function_markers_are_the_only_recovered_source() -> None:
+    markers = [
+        _marker(0x401000, MarkerType.FUNCTION),
+        _marker(0x401050, MarkerType.FUNCTION),
+        _marker(0x401010, MarkerType.STUB),
+        _marker(0x401020, MarkerType.LIBRARY),
+        _marker(0x401030, MarkerType.SYNTHETIC),
+        _marker(0x401040, MarkerType.TEMPLATE),
     ]
 
+    source, addresses = status._source_statistics(SimpleNamespace(codebase=FakeCodebase(markers)))
 
-def _write(path: Path, text: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
-
-
-@pytest.fixture
-def repository(tmp_path: Path) -> Path:
-    """A minimal repository whose every status input is known by construction."""
-
-    repo = tmp_path / "repo"
-    _write(
-        repo / "evidence/reviewed/cfagent-128/functions.csv",
-        "program,address,provisional_name,owner,confidence,name_origin,authority,evidence\n"
-        "cfagent-128,10004050,scan,,high,patch,fan-patch,seed\n"
-        "cfagent-128,10004810,seed,,medium,patch,fan-patch,seed\n",
-    )
-    _write(
-        repo / "evidence/reviewed/srext-unzip/functions.csv",
-        "program,address,provisional_name,owner,confidence,name_origin,authority,evidence\n"
-        "srext-unzip,10001000,unzip,,high,source,source-oracle,oracle\n",
-    )
-    _write(
-        repo / "evidence/reviewed/wiz8/claims.csv",
-        "claim_id,program,entity_kind,entity_key,predicate,value,origin,authority,confidence,"
-        "reference,details\n"
-        "c1,wiz8,function,00402000,accepted-identity,Foo,review,source-oracle,high,,\n"
-        "c2,wiz8,function,00404000,accepted-identity,Bar,review,fan-patch,medium,,\n"
-        "c3,wiz8,function,00402000,identity-provenance,Foo,review,source-oracle,high,,\n"
-        "c4,wiz8,class,BitArray,accepted-identity,BitArray,review,source-oracle,high,,\n",
-    )
-    _write(
-        repo / "evidence/observations/wiz8/source-tree.csv",
-        "relative_path,subsystem,canonical_absolute_path,demo_absolute_path,variants\n"
-        "Local Code/A.cpp,local_code,,,\n"
-        "Engine Code/B.cpp,engine_code,,,\n",
-    )
-    _write(
-        repo / "evidence/observations/wiz8/assertions.csv",
-        "call_site,call_kind,containing_function,source_path,line,expression,message\n"
-        f"00402010,direct,00402000,{_UNIT},10,x,m\n"
-        f"00403010,direct,00403000,{_UNIT},20,x,m\n",
-    )
-    _write(
-        repo / "build/source-index.json",
-        json.dumps(
-            {
-                "schema": "reccmp-source-index-v1",
-                "markers": [
-                    {
-                        "address": 0x00401000,
-                        "marker_kind": "FUNCTION",
-                        "source_file": "src/wiz8/local_code/A.cpp",
-                        "line": 12,
-                        "declaration": None,
-                        "marker_name": "Owned",
-                        "target": "WIZ8",
-                    }
-                ],
-                "declarations": [],
-                "classes": [
-                    {
-                        "semantic_id": "record:BitArray",
-                        "qualified_name": "BitArray",
-                        "bases": [],
-                        "fields": [],
-                        "virtual_declarations": [],
-                        "source_file": "include/wiz8/BitArray.h",
-                        "line": 1,
-                        "end_line": 2,
-                    }
-                ],
-            }
-        ),
-    )
-    return repo
-
-
-def test_every_reviewed_catalog_becomes_a_program_row(repository: Path) -> None:
-    report = derive_status(repository, _ghidra_functions())
-
-    assert report["schema"] == "wiz8.recovery-status"
-    assert [item["program"] for item in report["programs"]] == [
-        "cfagent-128",
-        "srext-unzip",
-        "wiz8",
-    ]
-    catalog = next(item for item in report["programs"] if item["program"] == "cfagent-128")
-    assert catalog["identities"] == 2
-    assert catalog["authority"] == {"fan-patch": 2}
-    assert catalog["confidence"] == {"high": 1, "medium": 1}
-
-
-def test_canonical_identities_union_source_markers_with_accepted_identity_claims(
-    repository: Path,
-) -> None:
-    """0x401000 is source-owned only, 0x402000 is both, 0x404000 is claim-only."""
-
-    report = derive_status(repository, _ghidra_functions())
-
-    assert report["wiz8"]["source_functions"] == 1
-    assert report["wiz8"]["function_identities"] == 3
-    assert report["wiz8"]["analysis_only_identities"] == 2
-    assert report["wiz8"]["claims"] == 4
-    # `identity-provenance` contributes authority, never a new address.
-    assert report["wiz8"]["authority"] == {"fan-patch": 1, "source-oracle": 2}
-
-
-def test_source_inventory_counts_come_from_the_observation_tables(repository: Path) -> None:
-    report = derive_status(repository, _ghidra_functions())
-
-    assert report["wiz8"]["classes"] == 1
-    assert report["wiz8"]["source_units"] == 2
-    assert report["wiz8"]["source_units_by_subsystem"] == {"engine_code": 1, "local_code": 1}
-
-
-def test_gameplay_attribution_separates_markers_assertions_and_gaps(repository: Path) -> None:
-    """Ghidra owns the inventory; markers and assertion anchors attribute it."""
-
-    gameplay = derive_status(repository, _ghidra_functions())["wiz8"]["gameplay"]
-
-    assert gameplay["functions"] == 4
-    assert gameplay["owners"] == {"source": 1, "unassigned": 3}
-    # 0x402000/0x403000 anchor the interval directly; 0x401000 is marker-direct;
-    # 0x404000 lies outside every assertion-bounded interval.
-    assert gameplay["translation_unit_attribution"] == {
-        "direct": 3,
-        "bounded": 0,
-        "cross-build": 0,
-        "inlined-or-conflicting": 0,
-        "external/synthetic": 0,
-        "gap": 1,
+    assert source == {
+        "functions": 2,
+        "stubs": 1,
+        "library": 1,
+        "synthetic": 1,
+        "template": 1,
     }
-    assert gameplay["unowned_functions"] == 1
-    # A marker attributes its recovered `src/` path while an assertion anchor
-    # attributes the original `Local Code\` spelling; both are counted.
-    assert gameplay["attributed_source_units"] == 2
+    assert addresses == {0x401000, 0x401050}
+
+
+def test_comparison_classification_and_effective_score() -> None:
+    addresses = {0x401000, 0x401010, 0x401020, 0x401030, 0x401040}
+    entities = [
+        _entity(0x401000, ComparisonAnalysis.exact(), accuracy=1.0),
+        _entity(
+            0x401010,
+            ComparisonAnalysis.effective(("register_allocation",)),
+            accuracy=0.2,
+        ),
+        _entity(
+            0x401020,
+            ComparisonAnalysis.mismatch(
+                ComparisonDifference(
+                    kind="call_argument",
+                    orig=DifferenceSide(),
+                    recomp=DifferenceSide(),
+                )
+            ),
+            accuracy=0.75,
+        ),
+        _entity(
+            0x401030,
+            ComparisonAnalysis.inconclusive("analysis_limit"),
+            accuracy=0.25,
+        ),
+    ]
+    target = SimpleNamespace(report_config=None)
+
+    comparison, effective_score = status._comparison_statistics(
+        _engine([], entities), target, addresses
+    )
+
+    assert comparison["exact"] == 1
+    assert comparison["effective"] == 1
+    assert comparison["mismatch"] == 1
+    assert comparison["inconclusive"] == 1
+    assert comparison["unpaired"] == 1
+    assert comparison["paired"] == 4
+    assert effective_score == pytest.approx(3.0)
+    assert comparison["accuracy"] == pytest.approx(0.75)
+
+
+def test_ignored_source_functions_are_counted_not_dropped() -> None:
+    addresses = {0x401000, 0x401010}
+    entities = [
+        _entity(0x401000, ComparisonAnalysis.exact()),
+        _entity(0x401010, ComparisonAnalysis.exact(), name="Ignored"),
+    ]
+    target = SimpleNamespace(report_config=SimpleNamespace(ignore_functions=["Ignored"]))
+
+    comparison, effective_score = status._comparison_statistics(
+        _engine([], entities), target, addresses
+    )
+
+    assert comparison["ignored"] == 1
+    assert comparison["paired"] == 1
+    assert comparison["exact"] == 1
+    assert effective_score == pytest.approx(1.0)
+
+
+def _target_row(*, functions: int, paired: int, original: int | None) -> dict:
+    return {
+        "state": "comparison",
+        "source": {"functions": functions},
+        "comparison": {
+            "paired": paired,
+            "exact": 0,
+            "effective": 0,
+            "mismatch": paired,
+            "inconclusive": 0,
+            "unpaired": 0,
+            "ignored": 0,
+            "accuracy": 0.0,
+        },
+        "original_functions": original,
+    }
+
+
+def test_project_totals_weight_by_function_count() -> None:
+    targets = {
+        "WIZ8": _target_row(functions=9, paired=9, original=100),
+        "SREXT_UNZIP": _target_row(functions=1, paired=1, original=10),
+        "SRDD_OPENGL": {"state": "original-only"},
+    }
+    scores = {"WIZ8": 0.0, "SREXT_UNZIP": 1.0}
+
+    totals = status._totals(targets, scores)
+
+    assert totals["targets"] == 3
+    assert totals["comparison_targets"] == 2
+    # Mean-of-percentages would be 0.5; summed-score coverage is 1/10.
+    assert totals["accuracy"] == pytest.approx(0.1)
+    assert totals["known_original_scope"] == {
+        "targets": 2,
+        "original_functions": 110,
+        "source_functions": 10,
+        "source_coverage": pytest.approx(10 / 110),
+        "progress": pytest.approx(1 / 110),
+    }
+
+
+def test_status_report_uses_hash_matched_original_denominator(tmp_path, monkeypatch) -> None:
+    marker = _marker(0x401000, MarkerType.FUNCTION)
+    engine = _engine([marker], [_entity(0x401000, ComparisonAnalysis.exact())])
+
+    def partial(filename, sha256, *, recompiled):
+        return SimpleNamespace(
+            filename=filename,
+            sha256=sha256,
+            recompiled_path=(tmp_path / filename if recompiled else None),
+            recompiled_pdb=(tmp_path / (filename + ".pdb") if recompiled else None),
+            report_config=None,
+        )
+
+    project = SimpleNamespace(
+        targets={
+            "WIZ8": partial("Wiz8.exe", "a" * 64, recompiled=True),
+            "SREXT_UNZIP": partial("srEXT_Unzip.dll", "b" * 64, recompiled=True),
+            "SRDD_OPENGL": partial("srDD_OpenGL.dll", "c" * 64, recompiled=False),
+        },
+        get=lambda target: SimpleNamespace(target_id=target),
+    )
+    built = []
+    monkeypatch.setattr(status, "build_target", lambda _settings, target: built.append(target))
+    monkeypatch.setattr(status.RecCmpProject, "from_directory", lambda _path: project)
+    monkeypatch.setattr(status.Compare, "from_target", lambda *_args, **_kwargs: engine)
+    monkeypatch.setattr(
+        status,
+        "seed_records",
+        lambda _settings: [{"binary_sha256": "a" * 64, "function_count": 7701}],
+    )
+
+    report = status.status_report(SimpleNamespace(repo_dir=tmp_path))
+
+    assert built == ["reccmp-products"]
+    assert set(report["targets"]) == {"WIZ8", "SREXT_UNZIP", "SRDD_OPENGL"}
+    assert report["targets"]["SRDD_OPENGL"] == {
+        "binary": "srDD_OpenGL.dll",
+        "state": "original-only",
+    }
+
+    wiz8 = report["targets"]["WIZ8"]
+    assert wiz8["state"] == "comparison"
+    assert wiz8["original_functions"] == 7701
+    assert wiz8["source_coverage"] == pytest.approx(1 / 7701)
+    assert wiz8["progress"] == pytest.approx(1 / 7701)
+
+    unzip = report["targets"]["SREXT_UNZIP"]
+    assert unzip["state"] == "comparison"
+    assert unzip["original_functions"] is None
+    assert unzip["source_coverage"] is None
+    assert unzip["progress"] is None
+
+    assert report["totals"]["known_original_scope"] == {
+        "targets": 1,
+        "original_functions": 7701,
+        "source_functions": 1,
+        "source_coverage": pytest.approx(1 / 7701),
+        "progress": pytest.approx(1 / 7701),
+    }

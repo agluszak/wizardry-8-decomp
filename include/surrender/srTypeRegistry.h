@@ -263,6 +263,40 @@ private:
 
 static_assert(sizeof(srClass) == 0x18, "srClass_must_be_0x18");
 
+/* VC6 leaves a relocated but unreachable call behind the constant
+   `if (!IsSelfType)` test in the self-support instantiation, so the object
+   still demands a registry import the retail consumer never had. Dispatch the
+   lifecycle through a fully specialized helper instead: the false case emits
+   no registry reference at all, and the registration-enabled case keeps the
+   imported lifecycle. */
+template <bool Register>
+struct srInstanceLifecycle {
+    template <class Support>
+    static void registerInstance(Support* instance)
+    {
+        srCore.getRegistry()->registerInstance(Support::sGetClassNode(), instance);
+    }
+
+    template <class Support>
+    static void unregisterInstance(Support* instance)
+    {
+        srCore.getRegistry()->unregisterInstance(Support::sGetClassNode(), instance);
+    }
+};
+
+template <>
+struct srInstanceLifecycle<false> {
+    template <class Support>
+    static void registerInstance(Support*)
+    {
+    }
+
+    template <class Support>
+    static void unregisterInstance(Support*)
+    {
+    }
+};
+
 /* SurRender's exported decorated vtable names establish this template's
    parameter order. It contributes no storage: it supplies registry identity,
    instance registration and the class hierarchy's clone slot for a class
@@ -328,10 +362,7 @@ public:
        instantiation over srMaterial; this is not only a base-class hook. */
     srClassSupport()
     {
-        if (!IsSelfType) {
-            srRegistry* registry = srCore.getRegistry();
-            registry->registerInstance(sGetClassNode(), this);
-        }
+        srInstanceLifecycle<RegisterInstances && !IsSelfType>::registerInstance(this);
     }
 
 public:
@@ -342,10 +373,7 @@ public:
     explicit srClassSupport(srNode* parent)
         : Base(parent)
     {
-        if (!IsSelfType) {
-            srRegistry* registry = srCore.getRegistry();
-            registry->registerInstance(sGetClassNode(), this);
-        }
+        srInstanceLifecycle<RegisterInstances && !IsSelfType>::registerInstance(this);
     }
 
     /* Wiz8's client-side srTextureMap support construction calls the exported
@@ -355,10 +383,7 @@ public:
     explicit srClassSupport(srColorSurfaceIFace* surface)
         : Base(surface)
     {
-        if (!IsSelfType) {
-            srRegistry* registry = srCore.getRegistry();
-            registry->registerInstance(sGetClassNode(), this);
-        }
+        srInstanceLifecycle<RegisterInstances && !IsSelfType>::registerInstance(this);
     }
 
     /* Client-emitted self-support constructions forward the canonical base
@@ -370,39 +395,27 @@ public:
     srClassSupport(A0 a0, A1 a1)
         : Base(a0, a1)
     {
-        if (!IsSelfType) {
-            srRegistry* registry = srCore.getRegistry();
-            registry->registerInstance(sGetClassNode(), this);
-        }
+        srInstanceLifecycle<RegisterInstances && !IsSelfType>::registerInstance(this);
     }
 
     template <class A0, class A1, class A2>
     srClassSupport(A0 a0, A1 a1, A2 a2)
         : Base(a0, a1, a2)
     {
-        if (!IsSelfType) {
-            srRegistry* registry = srCore.getRegistry();
-            registry->registerInstance(sGetClassNode(), this);
-        }
+        srInstanceLifecycle<RegisterInstances && !IsSelfType>::registerInstance(this);
     }
 
     template <class A0, class A1, class A2, class A3, class A4>
     srClassSupport(A0 a0, A1 a1, A2 a2, A3 a3, A4 a4)
         : Base(a0, a1, a2, a3, a4)
     {
-        if (!IsSelfType) {
-            srRegistry* registry = srCore.getRegistry();
-            registry->registerInstance(sGetClassNode(), this);
-        }
+        srInstanceLifecycle<RegisterInstances && !IsSelfType>::registerInstance(this);
     }
 
 protected:
     virtual ~srClassSupport() override
     {
-        if (!IsSelfType) {
-            srRegistry* registry = srCore.getRegistry();
-            registry->unregisterInstance(sGetClassNode(), this);
-        }
+        srInstanceLifecycle<RegisterInstances && !IsSelfType>::unregisterInstance(this);
     }
 
 public:

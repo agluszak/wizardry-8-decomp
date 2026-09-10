@@ -101,7 +101,7 @@ if(INFOZIP_SOURCE)
     )
     wiz8_enable_cpp_compat(SREXT_UNZIP)
     add_dependencies(SREXT_UNZIP ${SREXT_UNZIP_SR_IMPORT_TARGET})
-    target_compile_options(SREXT_UNZIP PRIVATE /nologo /W3 /GX /O2 /Zp4)
+    target_compile_options(SREXT_UNZIP PRIVATE /nologo /W3 /Z7 /GX /O2 /Zp4)
     target_compile_definitions(SREXT_UNZIP PRIVATE
         NDEBUG WIN32 _WINDOWS WINDLL USE_EF_UT_TIME DLL
     )

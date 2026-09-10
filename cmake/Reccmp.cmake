@@ -8,8 +8,11 @@ function(reccmp_add_target TARGET)
 endfunction()
 
 function(reccmp_configure)
-    set(content "project: '../..'\ntargets:\n")
     get_property(targets GLOBAL PROPERTY WIZ8_RECCMP_TARGETS)
+
+    add_custom_target(reccmp-products DEPENDS ${targets})
+
+    set(content "project: '../..'\ntargets:\n")
     foreach(target IN LISTS targets)
         get_property(id TARGET ${target} PROPERTY WIZ8_RECCMP_ID)
         string(APPEND content
