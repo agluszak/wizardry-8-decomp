@@ -548,6 +548,7 @@ def check(repository: Path) -> dict[str, Any]:
         ("sources", ["cmake", "-P", "cmake/ValidateWiz8Sources.cmake"]),
         ("tests", ["pytest", "tests/unit", "tests/repository"]),
         ("reccmp", ["wiz8", "check-reccmp"]),
+        ("casts", ["wiz8", "check-casts"]),
     )
     gates = []
     for name, command in commands:

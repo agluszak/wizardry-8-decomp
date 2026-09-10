@@ -256,6 +256,7 @@ def register(app: typer.Typer) -> None:
     app.add_typer(analyze_app, name="analyze")
     app.command("check-build-dir", hidden=True)(check_build_dir_command)
     app.command("check-reccmp", hidden=True)(check_reccmp_command)
+    app.command("check-casts", hidden=True)(check_casts_command)
     analyze_app.command("unresolved")(unresolved_report_command)
     analyze_app.command("inventory")(inventory_command)
     analyze_app.command("trace")(trace_command)
@@ -317,6 +318,15 @@ def check_reccmp_command() -> None:
     from ..reccmp_lint import validate_reccmp_annotations
 
     cli.emit(validate_reccmp_annotations(repository_root()))
+
+
+def check_casts_command() -> None:
+    """Require newly added reinterpret_cast lines to declare their boundary."""
+    from .. import command_support as cli
+    from ..cast_lint import validate_cast_markers
+    from ..config import repository_root
+
+    cli.emit(validate_cast_markers(repository_root()))
 
 
 def inventory_command() -> None:
