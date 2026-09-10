@@ -363,8 +363,9 @@ void Function58A790(int);
 void Function595600(void);
 int OpenLockInteraction00587510(Trigger* trigger);
 int OpenTrapInteraction0058A470(Trigger* trigger);
-void ReportActionFailed(int party_slot);                          /* 0x0056A770 */
-void ReportBreathFailed(int party_slot);                          /* 0x0056A770 */
+/* 0x0056A770: when a slot's committed action cannot execute, re-choose a
+   fallback hand, breath or character attack, or reroute spell/item aiming. */
+void FallbackFromUnreachableAction(int party_slot);
 void SetCombatAction(int value);                                 /* 0x0056A480 */
 void SetCombatSelection(int value);                              /* 0x00569F70 */
 void SetCombatTarget(int value);                                 /* 0x0056A2D0 */

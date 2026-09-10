@@ -22,14 +22,11 @@ unsigned char g_fact_values[1001];
 // GLOBAL
 unsigned char g_import_flags[0x60];
 
-/* 0x005080F0, reviewed in evidence/reviewed/wiz8/claims.csv. */
-extern unsigned char EvaluateFact(int fact_id);
 /* 0x0055A0A0 and 0x00524CA0 tear down an NPC item list. */
 extern void Function55A0A0(int handle);
 extern void Function524CA0(W8NpcState* npc);
 /* Provisional semantic name for the journal/notification path at 0x005588f0. */
 extern void RecordFactChangeForJournal(int fact_id);
-extern void HandleFactChange(int fact_id, unsigned char value);
 
 // FUNCTION: WIZ8 0x00506280
 unsigned char GetFact(int fact_id)

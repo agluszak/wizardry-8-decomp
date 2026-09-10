@@ -45,6 +45,7 @@ unsigned char g_detailed_combat_messages_0068510c;
 
 #include <cstdlib>
 #include <wchar.h>
+#include "wiz8/character_skills.h"
 
 extern void ReportSpellResult005005C0(W8SpellEffectEntry* effect);
 
@@ -581,7 +582,7 @@ void StartCharacterBreathAttack(int party_slot)
         StartBreathCycle(party_slot, 0);
         return;
     }
-    ReportBreathFailed(party_slot);
+    FallbackFromUnreachableAction(party_slot);
 }
 
 /* Fold one missile's accumulated damage and reports into the queued effect
@@ -959,7 +960,7 @@ void StartCharacterSpellCast(int party_slot, int power_level)
         StartBreathCycle(party_slot, 0);
         return;
     }
-    ReportActionFailed(party_slot);
+    FallbackFromUnreachableAction(party_slot);
 }
 
 /* The same for using an item. The item's own spell decides whether the target
@@ -982,7 +983,7 @@ void StartCharacterItemUse(int party_slot)
         StartBreathCycle(party_slot, 0);
         return;
     }
-    ReportActionFailed(party_slot);
+    FallbackFromUnreachableAction(party_slot);
 }
 
 /* A character's whole casting strength in one spellbook: their current
@@ -1028,10 +1029,6 @@ int GetTotalCasterLevel(
     }
     return total;
 }
-
-/* 0x00547940 */
-extern void PracticeCharacterSkill(
-    W8Character* character, unsigned int skill_id, int usage_points, int arg_4);
 
 /* The trait that stops a character learning anything at all. */
 enum { W8_TRAIT_CANNOT_LEARN = 0x1f };

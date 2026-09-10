@@ -36,6 +36,7 @@
 #include "wiz8/local_screens/MGSTextBox.h"
 
 #include <stdio.h>
+#include "wiz8/character_skills.h"
 
 // GLOBAL: WIZ8 0x00686901
 unsigned int g_shared_item_pool_count;
@@ -1428,7 +1429,6 @@ bool ItemHasHiddenProperties(int item_id)
    its strength - a sixth of it. */
 enum { W8_SKILL_IDENTIFY = 0x14 };
 
-extern void PracticeCharacterSkill(W8Character* character, int skill, int amount, int arg_4);
 /* The most of one item a character can hold at once: the record's own quantity
    dice taken at their maximum. */
 static int MaximumQuantity(int item_id)

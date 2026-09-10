@@ -10,6 +10,8 @@ extern int g_import_ending_choice;
 extern unsigned char g_import_flags[0x60];
 
 unsigned char GetFact(int fact_id);
+unsigned char EvaluateFact(int fact_id);                 /* 0x005080F0 */
+void HandleFactChange(int fact_id, unsigned char value);
 void SetFact(
     int fact_id, unsigned char value, unsigned char suppress_side_effects);
 void SaveFactState(int save_handle);

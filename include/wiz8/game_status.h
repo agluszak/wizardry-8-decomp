@@ -81,7 +81,9 @@ struct W8GlobalStatus {
     unsigned char unknown_238b[4];
     /* 0x238f: scales the monster-sight threshold while set. */
     unsigned char flag_238f;
-    unsigned char unknown_2390[0x11];
+    /* 0x2390: cleared by the main-game frame; the rest of the run is opaque. */
+    unsigned char value_2390;
+    unsigned char unknown_2391[0x10];
     W8PartyFormationState formation;
     int game_time_days;
     unsigned char iron_man;
@@ -97,7 +99,9 @@ struct W8GlobalStatus {
        The screen reset writes 0xff and the 0x00526E90 handler reads and
        updates it while walking the 0x1862-byte character records. */
     unsigned char selected_party_member_2434;
-    unsigned char unknown_2435[0x0f];
+    /* 0x2435: read as a gate by the main-game frame's world-cursor path. */
+    unsigned char value_2435;
+    unsigned char unknown_2436[0x0e];
     /* Character creation skips the loose CHR collision check when set. */
     unsigned char skip_loose_character_check_2444;
     unsigned char unknown_2445[2];
@@ -149,8 +153,12 @@ static_assert(offsetof(W8GlobalStatus, current_level) == 0x1900,
               "W8GlobalStatus_current_level_offset");
 static_assert(offsetof(W8GlobalStatus, formation) == 0x23a1,
               "W8GlobalStatus_formation_offset");
+static_assert(offsetof(W8GlobalStatus, value_2390) == 0x2390,
+              "W8GlobalStatus_value_2390_offset");
 static_assert(offsetof(W8GlobalStatus, selected_party_member_2434) == 0x2434,
               "W8GlobalStatus_selected_party_member_offset");
+static_assert(offsetof(W8GlobalStatus, value_2435) == 0x2435,
+              "W8GlobalStatus_value_2435_offset");
 static_assert(offsetof(W8GlobalStatus, text_box_lines_used_4997) == 0x4997,
               "W8GlobalStatus_migrated_values_offset");
 static_assert(sizeof(W8GlobalStatus) == 0x49c2,

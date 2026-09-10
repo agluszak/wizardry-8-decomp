@@ -65,6 +65,8 @@ void BuildCharacterPath00514EC0(char* destination, const wchar_t* name,
                                 int slot);
 unsigned char SaveGameExists(void);
 void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status);
+/* 0x00512920: load a save slot by name; the Please Wait screen drives it. */
+unsigned int LoadGame(const char* slot_name);
 
 unsigned char SaveLevelStatus(const char* path);
 unsigned char LoadLevelStatus(const char* path, int level);

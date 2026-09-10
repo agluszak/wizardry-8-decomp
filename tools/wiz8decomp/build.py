@@ -550,6 +550,8 @@ def check(repository: Path) -> dict[str, Any]:
         ("reccmp", ["wiz8", "check-reccmp"]),
         ("casts", ["wiz8", "check-casts"]),
         ("placement", ["wiz8", "check-tu-placement"]),
+        ("identities", ["wiz8", "check-identities"]),
+        ("structures", ["wiz8", "check-structures"]),
     )
     gates = []
     for name, command in commands:

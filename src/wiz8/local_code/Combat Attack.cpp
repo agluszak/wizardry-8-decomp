@@ -10,6 +10,7 @@
 #include "wiz8/local_code/CombatAttack.h"
 
 #include <string.h>
+#include "wiz8/character_skills.h"
 
 /*
  * Local Code\Combat Attack.cpp.
@@ -188,9 +189,6 @@ enum { W8_HAND_COUNT = 2 };
 
 /* The skill practised whenever the character's own damage reduction is used. */
 enum { W8_SKILL_DAMAGE_REDUCTION = 0x25 };
-
-/* 0x00519AC0 */
-extern void PracticeCharacterSkill(W8Character* character, int skill, int amount, int arg_4);
 
 /* Whether one of a character's hands can reach the target it is aimed at: the
    hand has to be in play and to have a range category at all. */

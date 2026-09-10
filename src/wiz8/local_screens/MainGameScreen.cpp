@@ -813,7 +813,7 @@ update_screen:
     if (gXStatus.fCombatMode) {
         Function59B4C0();
     }
-    g_status_685170.unknown_238b[5] = 0;
+    g_status_685170.value_2390 = 0;
     if (g_level_block->flag_314 || g_level_block->combat_slot != -1) {
         Function59B390();
     }
@@ -849,7 +849,7 @@ update_screen:
     if (!IsWorldCursorVisible()) {
         if (!g_modal_owner_0068edd0) {
             if ((!Function525DF0(1) || !gXStatus.field_01f) &&
-                !g_status_685170.unknown_2431[4]) {
+                !g_status_685170.value_2435) {
                 g_level_block->hover_region = UpdateRegionMousePosition(point.x, point.y);
             }
             else {

@@ -80,7 +80,6 @@ unsigned char g_cd_marker_present_69b7d0;
 #include "wiz8/local_code/LoadSaveGame.h"
 /* 0x00412A10; the reviewed identity Ghidra carries. Nothing defines it yet. */
 extern void RefreshSlfArchives(void);
-extern unsigned int LoadGame(const char* slot_name);
 extern unsigned char g_flag_689b2c;
 
 /* 0x0064BF8C: one video-object id per level, the backdrop the Please Wait

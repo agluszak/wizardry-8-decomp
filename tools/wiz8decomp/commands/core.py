@@ -258,6 +258,8 @@ def register(app: typer.Typer) -> None:
     app.command("check-reccmp", hidden=True)(check_reccmp_command)
     app.command("check-casts", hidden=True)(check_casts_command)
     app.command("check-tu-placement", hidden=True)(check_tu_placement_command)
+    app.command("check-identities", hidden=True)(check_identities_command)
+    app.command("check-structures", hidden=True)(check_structures_command)
     analyze_app.command("unresolved")(unresolved_report_command)
     analyze_app.command("inventory")(inventory_command)
     analyze_app.command("trace")(trace_command)
@@ -344,6 +346,26 @@ def check_tu_placement_command(
     from ..placement import validate_source_placement
 
     cli.emit(validate_source_placement(cli.settings(), live=live))
+
+
+def check_identities_command() -> None:
+    """Fail when one original address carries two function identities."""
+
+    from .. import command_support as cli
+    from ..config import repository_root
+    from ..identity_lint import validate_identity
+
+    cli.emit(validate_identity(repository_root()))
+
+
+def check_structures_command() -> None:
+    """Fail on constant byte offsets and out-of-bounds constant array indexes."""
+
+    from .. import command_support as cli
+    from ..config import repository_root
+    from ..structural_lint import validate_structures
+
+    cli.emit(validate_structures(repository_root()))
 
 
 def inventory_command() -> None:
