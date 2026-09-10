@@ -8,4 +8,6 @@ void RebuildAllWorldItemInstances(void);
 
 bool InitializeItemManagerState();
 
+unsigned char ReleaseItemLists(void);
+
 extern int g_world_item_cursor;

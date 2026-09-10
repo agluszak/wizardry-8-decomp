@@ -511,6 +511,58 @@ void DeactivateWorldItem(W8WorldItem* item)
     --gXStatus.item_manager_pending;
 }
 
+/* Push every live world item back to its sector and free the whole list. The
+   list is reduced from its head until empty and then destroyed; only the
+   destroy failure keeps the global pointing at it. */
+// FUNCTION: WIZ8 0x004f6a50
+unsigned char ReleaseItemLists(void)
+{
+    unsigned int count;
+
+    if (gXStatus.plsItemList == 0) {
+        srAssertFail("gXStatus.plsItemList != NULL", ITEM_MANAGER_CPP, 0x126, 0);
+    }
+    count = PLLength(gXStatus.plsItemList);
+    while ((int)count >= 1) {
+        W8WorldItem* item;
+
+        count = PLLength(gXStatus.plsItemList);
+        if (count == 0) {
+            srAssertFail(
+                "uiItemListIndex < (UINT32) PLLength(gXStatus.plsItemList)",
+                ITEM_MANAGER_CPP, 0x3c1, 0);
+        }
+        item = static_cast<W8WorldItem*>(PLGet(gXStatus.plsItemList, 0));
+        if (item == 0) {
+            srAssertFail(
+                "pItemInfo != NULL", ITEM_MANAGER_CPP, 0x3c5,
+                FormatString("ItemInfo: ERROR - PLGet failed, index %d, pList %d",
+                             0, gXStatus.plsItemList));
+        }
+        if (item->sector_id >= 0) {
+            RemoveItemFromSector(item->sector_id, item);
+        }
+        if (item->unknown_08 != 0) {
+            DeactivateWorldItem(item);
+        }
+        while (item != 0) {
+            W8WorldItem* next = item->next;
+
+            free(item);
+            item = next;
+        }
+        if (PLRemoveAt(gXStatus.plsItemList, 0) == 0) {
+            return 0;
+        }
+        count = PLLength(gXStatus.plsItemList);
+    }
+    if (PLDestroy(gXStatus.plsItemList) == 0) {
+        return 0;
+    }
+    gXStatus.plsItemList = 0;
+    return 1;
+}
+
 /* Whether one world item is close enough to a point to be reached, and in
    sight of the party's eye. The distance is compared before the trace, so a
    far item is never traced to. */

@@ -116,9 +116,6 @@ W8MaterialMapper00482010 g_material_mapper_00659738;
 
 extern void Function4EA310(int mode);
 extern void Function50DA00(void);
-extern unsigned char ReleaseItemLists(void);
-extern void Function48DB30(void);
-extern void Function4909C0(void);
 
 // FUNCTION: WIZ8 0x0042b720
 int GetLevelCdNumber0042B720(int level)
@@ -261,9 +258,7 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
     }
 
     srVector3T<double> position;
-    position.x = 0.0;
-    position.y = 0.0;
-    position.z = 0.0;
+    position.SetZero();
     static_cast<srNode*>(sky_world->camera)->setLocation(position);
 
     stMaterial* material = new stMaterial;
@@ -712,13 +707,13 @@ unsigned char UnloadLevel(const char* save_directory)
         }
     }
 
-    Function48DB30();
+    ReleaseWorldCursorNodes0048DB30();
     ClearSearchables005171B0();
     if (g_world_cleanup_flag_00659757 != 0) {
         RenderFrame();
     }
 
-    Function4909C0();
+    ReleaseWorldCursor004909C0();
     DisableSky();
     W8World* world = GetWorld();
     if (world != 0) {
