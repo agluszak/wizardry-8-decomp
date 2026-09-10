@@ -598,6 +598,29 @@ unsigned char W8CharacterScreen::CommitCharacter()
     return 1;
 }
 
+/* Skill-availability hooks raised by Function553CD0 while this screen is
+   current. They adjust the named skill through the page-2 helpers and then
+   refresh page 2, the skills list. */
+// FUNCTION: WIZ8 0x005b1af0
+void Function5B1AF0(int skill_id)
+{
+    W8CharacterScreen* screen = g_character_screen_0069c2e8;
+    Function557C90(&screen->m_character_018, &screen->m_creation_state_187c, skill_id);
+    if (screen->m_pages_1b0c[2] != 0) {
+        screen->m_pages_1b0c[2]->Refresh();
+    }
+}
+
+// FUNCTION: WIZ8 0x005b1b30
+void Function5B1B30(int skill_id)
+{
+    W8CharacterScreen* screen = g_character_screen_0069c2e8;
+    Function557D20(&screen->m_character_018, &screen->m_creation_state_187c, skill_id);
+    if (screen->m_pages_1b0c[2] != 0) {
+        screen->m_pages_1b0c[2]->Refresh();
+    }
+}
+
 // FUNCTION: WIZ8 0x005b1430
 void W8CharacterScreen::ShowMessage(wchar_t* text, int confirmation, int response)
 {

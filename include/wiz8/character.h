@@ -68,7 +68,11 @@ typedef struct W8CharacterSkill {
     /* 0x06: the skill's current level. Resistance recalculation divides it by
        ten for skills 28..33 and by five for skill 36, which is what places it. */
     unsigned int level;
-    unsigned char unknown_0a[0x1c];
+    /* 0x0a: the attribute-derived base the level-up reset recomputes and the
+       profession-skill assignment scales, before the spent points land on
+       value_02. */
+    unsigned int base_level_0a;
+    unsigned char unknown_0e[0x18];
 } W8CharacterSkill;                       /* 0x26 */
 
 /* One resistance channel. Recalculation rebuilds `base` from scratch each time
@@ -160,7 +164,11 @@ typedef struct W8Character {
     int level_band;
     int level_band_base;
     W8CharacterAttribute attributes[7];   /* 0x00e5, indexed by skill_id - 0x22 */
-    unsigned char unknown_0171[0x2c];
+    unsigned char unknown_0171[0x28];
+    /* 0x199: the attribute points the level-up reset still owes against the
+       profession's minimums. It accumulates as a negative debt and is drawn
+       back down one point at a time once the pool is positive. */
+    int attribute_point_deficit_0199;
     W8CharacterSkill skills[0x29];        /* 0x019d, indexed by skill_id */
     unsigned char unknown_07b3[0x23a];
     /* 0x09ed..0x09f8: experience, the goal for the next level, and the goal
@@ -202,7 +210,7 @@ typedef struct W8Character {
     int hp_adjustment;                    /* 0x0b15 */
     int stamina_max;                      /* 0x0b19 */
     int stamina;                          /* 0x0b1d */
-    unsigned char unknown_0b21[4];
+    unsigned int fatigue_penalty_0b21;    /* 0x0b21: taken off the stamina ceiling */
     /* 0x0b25 and 0x0b45: iSPMax and iSPLeft, one per spell realm, named by the
        Health Stamina Mana.cpp:1067 assertion pPC->iSPLeft[uiRealm] and bounded
        at six realms by the total the party-wide restore accumulates. */
@@ -352,6 +360,7 @@ unsigned char IsCharacterSkillAvailable(
     W8Character* character,
     unsigned int skill_id,
     const unsigned char* expert_realm_flags);
+void RecalculateCharacterResistances(W8Character* character);
 int SumCharacterSpellPoints(const W8Character* character);
 
 }
@@ -393,5 +402,14 @@ int GetSpellbookForSpell(
     const W8Character* character, int spell_id, int a, int b, int c);
 int Function52A540(W8Character* character);
 unsigned char CharacterHasCondition(const W8Character* character, int condition);
+
+/* Character generation and skill/encumbrance helpers whose bodies were split
+   across CharGeneration.cpp, character_skills.cpp and the encumbrance unit. */
+bool Function4EDC10(W8Character* character);
+void Function52A3E0(W8Character* character);
+void Function52A500(W8Character* character);
+void Function553C90(W8Character* character);
+void Function553CD0(W8Character* character);
+unsigned int Function553EE0(W8Character* character, int skill_id);
 
 #endif

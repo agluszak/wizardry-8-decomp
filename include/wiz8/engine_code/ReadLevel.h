@@ -94,4 +94,3 @@ unsigned char ReadWorldParticles004BD0D0(
 void ReleaseReadMeshScratch004881D0();
 unsigned char IsReadMeshMaterial00489AC0(const srClass* material);
 
-extern const float g_environment_near_scale_005ec0b0;

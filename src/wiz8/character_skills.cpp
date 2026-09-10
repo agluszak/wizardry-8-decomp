@@ -1,6 +1,9 @@
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/character.h"
 #include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/local_screens/CharacterScreen.h"
+#include "wiz8/magic.h"
+#include "wiz8/screen_state.h"
 
 // FUNCTION: WIZ8 0x00558610
 void Function558610(W8Character* character)
@@ -189,6 +192,72 @@ unsigned char IsCharacterSkillAvailable(
         }
     }
     return 1;
+}
+
+/* Average the two attribute values g_skill_attributes names for every skill
+   into the skill's 0x0a base level. 0x00557D80 and 0x00557B20 seed the
+   profession skill levels from these. */
+// FUNCTION: WIZ8 0x00553c90
+void Function553C90(W8Character* character)
+{
+    for (int index = 0; index < 0x29; ++index) {
+        int first = g_skill_attributes[index].unknown_04;
+        int second = g_skill_attributes[index].unknown_08;
+        character->skills[index].base_level_0a =
+            (character->attributes[first].value +
+             character->attributes[second].value) >> 1;
+    }
+}
+
+/* Re-scan every skill's availability and mirror each flag change onto the
+   open character screen's page 2. The realm flags array marks which expert
+   skills gained a spell since the last scan. */
+// FUNCTION: WIZ8 0x00553cd0
+void Function553CD0(W8Character* character)
+{
+    unsigned char expert_realm_flags[8];
+    int index;
+
+    for (index = 0; index < 8; ++index) {
+        expert_realm_flags[index] = 0;
+    }
+    for (index = 0; index < 0x72; ++index) {
+        if (character->spell_learned[index + 1] == -1 ||
+            character->spell_learned[index + 1] == 2) {
+            expert_realm_flags[g_spell_records[index].realm] = 1;
+        }
+    }
+    for (index = 0; index < 0x29; ++index) {
+        unsigned char available =
+            IsCharacterSkillAvailable(character, index, expert_realm_flags);
+        if (!available) {
+            if (character->skills[index].flag_00) {
+                character->skills[index].flag_00 = 0;
+                if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
+                    Function5B1B30(index);
+                }
+            }
+        }
+        else if (!character->skills[index].flag_00) {
+            character->skills[index].flag_00 = 1;
+            if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
+                Function5B1AF0(index);
+            }
+        }
+    }
+}
+
+/* A quarter of the skill's current value, never below one. The bonus skill's
+   level gets this added after the profession assignment. */
+// FUNCTION: WIZ8 0x00553ee0
+unsigned int Function553EE0(W8Character* character, int skill_id)
+{
+    unsigned int value =
+        (character->skills[skill_id].value_02 * 0x19) / 100;
+    if (value == 0) {
+        value = 1;
+    }
+    return value;
 }
 
 /* Rebuilds all six resistance channels from scratch.

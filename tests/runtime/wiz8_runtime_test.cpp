@@ -4,8 +4,10 @@
 #include "wiz8/regions.h"
 #include "wiz8/cursor.h"
 #include "wiz8/bringup_gates.h"
+#include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/video_object_catalog.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/xstatus.h"
 
@@ -44,6 +46,8 @@ struct RuntimeObservation {
     unsigned char shade_table_ok;
     unsigned char exit_observed;
     unsigned char transition_observed;
+    unsigned char character_entered;
+    unsigned char character_returned;
     unsigned char return_observed;
     unsigned char timed_out;
     unsigned char playlist_active;
@@ -198,6 +202,37 @@ static void SendScenarioKey(WORD key, DWORD flags = 0)
     SetForegroundWindow(ghWindow);
     if (SendInput(2, events, sizeof(INPUT)) != 2) {
         fprintf(stderr, "runtime-test keyboard injection failed: %lu\n", GetLastError());
+    }
+}
+
+/* SGP's mouse hook consumes client coordinates, so the scenario converts the
+   target point before handing the absolute move to SendInput. */
+static void SendScenarioMouse(int client_x, int client_y)
+{
+    POINT point;
+    point.x = client_x;
+    point.y = client_y;
+    if (!ClientToScreen(ghWindow, &point)) {
+        fprintf(stderr, "runtime-test ClientToScreen failed: %lu\n", GetLastError());
+        return;
+    }
+    int screen_width = GetSystemMetrics(SM_CXSCREEN);
+    int screen_height = GetSystemMetrics(SM_CYSCREEN);
+    if (screen_width < 2) screen_width = 2;
+    if (screen_height < 2) screen_height = 2;
+    INPUT events[3];
+    memset(events, 0, sizeof(events));
+    events[0].type = INPUT_MOUSE;
+    events[0].mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
+    events[0].mi.dx = (point.x * 65535) / (screen_width - 1);
+    events[0].mi.dy = (point.y * 65535) / (screen_height - 1);
+    events[1].type = INPUT_MOUSE;
+    events[1].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+    events[2].type = INPUT_MOUSE;
+    events[2].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+    SetForegroundWindow(ghWindow);
+    if (SendInput(3, events, sizeof(INPUT)) != 3) {
+        fprintf(stderr, "runtime-test mouse injection failed: %lu\n", GetLastError());
     }
 }
 
@@ -362,6 +397,64 @@ static DWORD WINAPI DriveScenario(void*)
             return 2;
         }
 
+        /* The left action panel's first button is "Create Character". Its
+           extent comes from the same catalogue lookup the constructor uses, so
+           the click lands on the live control rather than a guessed pixel. */
+        short button_width = 0;
+        short button_height = 0;
+        GetCatalogImageSize(0xfe, 0, 0, &button_width, &button_height);
+        SendScenarioMouse(0x145 + button_width / 2, 0x137 + button_height / 2);
+        started = GetTickCount();
+        while (GetTickCount() - started < 5000) {
+            W8CharacterScreen* screen =
+                *(W8CharacterScreen* volatile*)&g_character_screen_0069c2e8;
+            unsigned int page_region_set =
+                *(volatile unsigned int*)&g_character_stats_region_set_0069c550;
+            if (*(volatile int*)&g_current_screen_state.id ==
+                    W8_SCREEN_CHARACTER &&
+                *(volatile int*)&g_pending_screen_state.id == -1 &&
+                screen != 0 && screen->m_pages_1b0c[0] != 0 &&
+                page_region_set != 0 &&
+                *(volatile unsigned int*)&g_region_sets[page_region_set].enabled) {
+                g_observation.character_entered = 1;
+                break;
+            }
+            Sleep(10);
+        }
+        if (!g_observation.character_entered) {
+            g_observation.timed_out = 1;
+            PostMessage(ghWindow, WM_CLOSE, 0, 0);
+            return 2;
+        }
+
+        /* Escape raises the discard dialog; accept it once it is up. */
+        SendScenarioKey(VK_ESCAPE);
+        started = GetTickCount();
+        while (GetTickCount() - started < 2000) {
+            W8CharacterScreen* screen =
+                *(W8CharacterScreen* volatile*)&g_character_screen_0069c2e8;
+            if (screen != 0 && screen->m_dialog_1b1c != 0) {
+                break;
+            }
+            Sleep(10);
+        }
+        SendScenarioKey(VK_RETURN);
+        started = GetTickCount();
+        while (GetTickCount() - started < 5000) {
+            if (*(volatile int*)&g_current_screen_state.id ==
+                    W8_SCREEN_PARTY_SELECTION &&
+                *(volatile int*)&g_pending_screen_state.id == -1) {
+                g_observation.character_returned = 1;
+                break;
+            }
+            Sleep(10);
+        }
+        if (!g_observation.character_returned) {
+            g_observation.timed_out = 1;
+            PostMessage(ghWindow, WM_CLOSE, 0, 0);
+            return 2;
+        }
+
         SendScenarioKey(VK_ESCAPE);
         started = GetTickCount();
         while (GetTickCount() - started < 5000) {
@@ -448,6 +541,7 @@ int main(int argc, char** argv)
         "monster_database_count=%u npc_database_count=%u "
         "patch_precedence_ok=%u physical_fallback_ok=%u "
         "shade_table_ok=%u exit_observed=%u transition_observed=%u "
+        "character_entered=%u character_returned=%u "
         "return_observed=%u teardown=%u timed_out=%u\n",
         g_scenario,
         g_observation.menu_seen,
@@ -470,6 +564,8 @@ int main(int argc, char** argv)
         g_observation.shade_table_ok,
         g_observation.exit_observed,
         g_observation.transition_observed,
+        g_observation.character_entered,
+        g_observation.character_returned,
         g_observation.return_observed,
         teardown_ok ? 1 : 0,
         g_observation.timed_out);
@@ -489,7 +585,8 @@ int main(int argc, char** argv)
         strcmp(g_scenario, "main-menu-startup") == 0 || g_observation.exit_observed;
     const bool transition_ok =
         strcmp(g_scenario, "main-menu-new-game") != 0 ||
-        (g_observation.transition_observed && g_observation.return_observed);
+        (g_observation.transition_observed && g_observation.character_entered &&
+         g_observation.character_returned && g_observation.return_observed);
     const int result =
         driver_status == 0 && startup_ok &&
         (strcmp(g_scenario, "main-menu-new-game") == 0 || exit_ok) &&

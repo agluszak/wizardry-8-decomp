@@ -3,6 +3,8 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/local_code/party_encumbrance.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/character_events.h"
+#include "wiz8/magic.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/character.h"
 #include "wiz8/game_status.h"
@@ -10,9 +12,57 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 
+/* The "carrying too much" event id in camp. Outside camp the live special
+   event slot supplies it instead. */
+// GLOBAL: WIZ8 0x005ee5a8
+int g_int_005ee5a8 = 8;
+
 /* Party encumbrance redistribution. The original translation-unit spelling is
    not established; this descriptive name is provisional. */
 
+/* Carrying capacity from strength and the carrying trait. The two attributes
+   are the third and first effective values, the same pair the stamina
+   recomputation reads. */
+// FUNCTION: WIZ8 0x004edc10
+bool Function4EDC10(W8Character* character)
+{
+    unsigned int previous = character->carrying_capacity;
+    int base = character->attributes[3].effective +
+               character->attributes[0].effective * 2;
+    unsigned int capacity = base * 0xc;
+    if (Function547940(character, 0x18)) {
+        capacity = (unsigned int)(base * 0x18) / 3;
+    }
+    character->carrying_capacity = capacity;
+    return previous != capacity;
+}
+
+/* Sum the stack weights of everything the character carries. Crossing the
+   carrying capacity in the old-to-new direction raises the overloaded
+   notice. */
+// FUNCTION: WIZ8 0x004edc60
+bool Function4EDC60(W8Character* character)
+{
+    unsigned int previous = character->inventory_weight;
+    character->inventory_weight = 0;
+    for (int index = 0; index < 0xc; ++index) {
+        character->inventory_weight += GetItemStackWeight(&character->equipment[index]);
+    }
+    for (int backpack_index = 0; backpack_index < 8; ++backpack_index) {
+        character->inventory_weight +=
+            GetItemStackWeight(&character->backpack[backpack_index]);
+    }
+    if (previous < character->carrying_capacity &&
+        character->carrying_capacity < character->inventory_weight) {
+        int effect = g_int_005ee5a8;
+        if (g_current_screen_state.id != W8_SCREEN_CAMP) {
+            effect = g_special_event_0068c558;
+        }
+        Function52E690(character, effect, 0, g_effect_argument_005ed8c8,
+                       g_effect_argument_005ed914);
+    }
+    return previous != character->inventory_weight;
+}
 
 // FUNCTION: WIZ8 0x004edd20
 void Function4EDD20(void)

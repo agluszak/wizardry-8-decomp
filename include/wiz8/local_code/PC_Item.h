@@ -39,6 +39,7 @@ void GetOriginOfCharacterItem(
 
 void Function520070(
     W8ItemInstance* item, W8Character* character, unsigned char refresh);
+void Function520310(W8Character* character);
 unsigned char TryIdentifyItemFor(W8Character* character, W8ItemInstance* item);
 unsigned char GetItemSpell(const W8ItemInstance* item);
 W8WideChar* FormatItemDisplayName(

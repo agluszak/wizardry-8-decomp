@@ -6,6 +6,7 @@
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/layouts/item_tables.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/MonsterManager.h"
@@ -27,6 +28,15 @@
    worker. */
 
 #define HEALTH_STAMINA_MANA_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Health Stamina Mana.cpp"
+
+/* Stamina and realm spell-point constants the encodings keep as addressable
+   storage rather than immediates. */
+// GLOBAL: WIZ8 0x005ed8b8
+float g_float_005ed8b8 = 0.1f;
+// GLOBAL: WIZ8 0x005ec3f8
+float g_float_005ec3f8 = 125.0f;
+// GLOBAL: WIZ8 0x005ecbb4
+float g_float_005ecbb4 = 0.02f;
 
 /* The eligibility window the party sweeps use, the same one GetRandomCharacter
    and AnyPartyMemberCanUseItem apply. */
@@ -972,6 +982,124 @@ void RecalculateCharacterHitPoints(W8Character* character)
                 CharacterPointerToPartySlot(character), 0x12, 9999, 0, 0, 1);
         }
     }
+}
+
+/* Recompute the stamina ceiling from the three physical attributes and the
+   level, subtract any outstanding penalty, carry the difference into the
+   current pool, and derive the fatigue band from what is left. */
+// FUNCTION: WIZ8 0x0052a3e0
+void Function52A3E0(W8Character* character)
+{
+    unsigned int previous = character->stamina_max;
+    unsigned int value = (unsigned int)(
+        ((character->attributes[0].effective +
+          character->attributes[2].effective +
+          character->attributes[3].effective) *
+         (1.0f / 3.0f)) *
+            (character->level * g_float_005ed8b8 +
+             g_environment_near_scale_005ec0b0) +
+        g_double_005ebe80);
+    character->stamina_max = value;
+    if (character->fatigue_penalty_0b21 < value) {
+        character->stamina_max = value - character->fatigue_penalty_0b21;
+    }
+    else {
+        character->stamina_max = 0;
+    }
+    value = character->stamina_max;
+    if (value != previous) {
+        character->stamina += value - previous;
+    }
+    int fatigue = 100 - (int)((unsigned int)character->stamina * 100 / value);
+    if (fatigue < 0x32) {
+        character->fatigue_band = 0;
+        return;
+    }
+    if (fatigue < 0x46) {
+        character->fatigue_band = 1;
+        return;
+    }
+    if (fatigue < 0x55) {
+        character->fatigue_band = 2;
+        return;
+    }
+    character->fatigue_band = (fatigue > 0x5e) + 3;
+}
+
+/* The resistance bonus skill (36) is derived only for the professions whose
+   bodies can learn spells; a few fixed professions keep it at zero. */
+// FUNCTION: WIZ8 0x0052a500
+void Function52A500(W8Character* character)
+{
+    int profession = character->current_profession;
+    if (profession != 0 && (profession < 7 || profession > 9)) {
+        character->skill_unlocks[0x24] = Function52A540(character);
+        return;
+    }
+    character->skill_unlocks[0x24] = 0;
+}
+
+/* Rebuild the six realm spell-point ceilings from the learned spells, the
+   realm skill levels and the attributes. The weighted best four realm skills
+   are capped at 125 and added to every realm's own skill and school
+   attribute; the sum scales with the realm's learned-spell count, level and
+   one. */
+// FUNCTION: WIZ8 0x0052a540
+int Function52A540(W8Character* character)
+{
+    int max_spell_levels[6];
+    int realm_skills[4];
+    int index;
+    int best = 0;
+
+    Function4F96A0(character);
+    for (index = 0; index < 6; ++index) {
+        max_spell_levels[index] = 0;
+    }
+    for (index = 0; index < 0x72; ++index) {
+        if (character->spell_learned[index] == 1 ||
+            character->spell_learned[index] == 2) {
+            int realm = g_spell_records[index].realm;
+            int cost = g_spell_records[index].spell_point_cost;
+            if (max_spell_levels[realm] < cost) {
+                max_spell_levels[realm] = cost;
+            }
+        }
+    }
+    for (index = 0; index < 4; ++index) {
+        realm_skills[index] = character->skills[0x18 + index].level;
+    }
+    qsort(realm_skills, 4, 4, reinterpret_cast<int (__cdecl*)(const void*, const void*)>(CompareUnsignedDescending)); /* reinterpret-ok: qsort's untyped C comparator ABI */
+
+    float weighted = (float)(realm_skills[0] + (realm_skills[1] >> 1) +
+                             (realm_skills[2] >> 2) + (realm_skills[3] >> 3));
+    if (weighted > 125.0f) {
+        weighted = 125.0f;
+    }
+
+    for (index = 0; index < 6; ++index) {
+        unsigned int old = character->sp_max[index];
+        unsigned int learned = character->skill_unlocks[0x1c + index];
+        int computed = (int)(((weighted + character->skills[0x1c + index].level * 3 +
+                               character->attributes[2].effective) *
+                              g_float_005ecbb4) *
+                                 (learned + character->level + 1) +
+                             g_double_005ebe80);
+        if (best < computed) {
+            best = computed;
+        }
+        if (learned == 0) {
+            computed = 0;
+        }
+        character->sp_max[index] = computed;
+        if (computed < max_spell_levels[index]) {
+            character->sp_max[index] = max_spell_levels[index];
+        }
+        if (character->sp_max[index] != old) {
+            character->sp_left[index] += character->sp_max[index] - old;
+        }
+    }
+    return best;
 }
 
 // FUNCTION: WIZ8 0x0052a760

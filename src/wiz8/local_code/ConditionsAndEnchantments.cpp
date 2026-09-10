@@ -138,7 +138,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
         switch (condition) {
         case 1:
             character->hp_adjustment = 0;
-            *(int*)character->unknown_0b21 = 0;
+            character->fatigue_penalty_0b21 = 0;
             break;
         case 7:
             character->condition_argument = 0;

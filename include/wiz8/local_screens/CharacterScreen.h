@@ -49,6 +49,7 @@ public:
     void UpdateButtons();                               /* 0x005AFD10 */
     virtual void OnPrimary(W8TextControl* control) override; /* 0x005AFC50 */
     virtual void OnSecondary(W8TextControl* control) override; /* 0x005AFCB0 */
+    void SetHelpActive005AFAE0(unsigned char active);        /* 0x005AFAE0 */
 
     W8CharacterPageEntryListener* m_listener_004;
     W8TextControl* m_increment_008;
@@ -103,13 +104,119 @@ public:
 };
 static_assert(sizeof(W8CharacterPage) == 0x70, "W8CharacterPage_size");
 
-class W8CharacterPage005EF778 : public W8CharacterPage {
+class W8CharacterStatsRow005EF750;
+
+/* One record of the three stats-page row tables (profession, race, faction).
+   0x00 is the catalogue object id, 0x04/0x08 its two images, 0x0C the name
+   message id and 0x0E the selectable flag. */
+struct W8CharacterStatsRecord {
+    unsigned int unknown_00;
+    int unknown_04;
+    int unknown_08;
+    unsigned short name_id_0c;
+    unsigned char enabled_0e;
+    unsigned char pad_0f;
+};
+static_assert(sizeof(W8CharacterStatsRecord) == 0x10,
+              "W8CharacterStatsRecord_size");
+
+/* The 0xEF6B0 value control: it carries the record currently shown and the
+   record to fall back to when the character has none. */
+// VTABLE: WIZ8 0x005ef6b0 W8CharacterStatsValue005EF6B0
+class W8CharacterStatsValue005EF6B0 : public W8TextControl {
 public:
+    W8CharacterStatsValue005EF6B0(
+        Controls* owner, int x, int y,
+        const W8CharacterStatsRecord* default_record);
+    virtual ~W8CharacterStatsValue005EF6B0() override;
+    virtual void Redraw(int full_redraw) override;
+    virtual void OnRightButtonUp(int event) override;
+    void SetRecord(const W8CharacterStatsRecord* record);
+
+    const W8CharacterStatsRecord* m_record_0b8;
+    const W8CharacterStatsRecord* m_default_record_0bc;
+};
+static_assert(sizeof(W8CharacterStatsValue005EF6B0) == 0xc0,
+              "W8CharacterStatsValue005EF6B0_size");
+
+/* Stats-row callbacks installed at +0x70 of the page. The row itself raises
+   slots 0 and 3; the page's input handling raises slots 1 and 2. */
+class W8CharacterStatsRowListener005EF768 {
+public:
+    virtual void OnRowValueChanged(W8CharacterStatsRow005EF750* row, int value) = 0;
+    virtual void OnRowExpanded(W8CharacterStatsRow005EF750* row) = 0;
+    virtual void OnRowCollapsed(W8CharacterStatsRow005EF750* row) = 0;
+    virtual void OnRowInfoRequested(W8CharacterStatsRow005EF750* row, int value) = 0;
+};
+static_assert(sizeof(W8CharacterStatsRowListener005EF768) == 0x4,
+              "W8CharacterStatsRowListener005EF768_size");
+
+/* A stats-page value row: a decrement arrow, an increment arrow and a value
+   control whose current index indexes the row's 0x10-byte record table. */
+class W8CharacterStatsRow005EF750 : public W8TextControl::Listener {
+public:
+    W8CharacterStatsRow005EF750();
+    virtual void OnPrimary(W8TextControl* control) override;   /* 0x005c9760 */
+    virtual void OnSecondary(W8TextControl* control) override; /* 0x005c9a50 */
+    void Initialize(Controls* owner, unsigned int* region_set, int x, int y,
+                    int count, const W8CharacterStatsRecord* table,
+                    const W8CharacterStatsRecord* default_record, int help_first,
+                    int help_second, int help_value); /* 0x005c9310 */
+    void BuildSubpanel();                             /* 0x005c94e0 */
+    void SetValue(int index);                         /* 0x005c96c0 */
+
+    int m_value_004;
+    unsigned short m_count_008;
+    unsigned char pad_00a[2];
+    int m_x_00c;
+    int m_y_010;
+    unsigned int* m_region_set_014;
+    const W8CharacterStatsRecord* m_table_018;
+    W8TextControl* m_decrement_01c;
+    W8TextControl* m_increment_020;
+    W8CharacterStatsValue005EF6B0* m_value_control_024;
+    Controls* m_subpanel_028;
+    W8TextControl** m_subpanel_entries_02c;
+    W8CharacterStatsRowListener005EF768* m_listener_030;
+};
+static_assert(sizeof(W8CharacterStatsRow005EF750) == 0x34,
+              "W8CharacterStatsRow005EF750_size");
+
+class W8CharacterPage005EF778 : public W8CharacterPage,
+                                public W8CharacterStatsRowListener005EF768,
+                                public W8CharacterPageEntryListener,
+                                public W8TextControl::Listener {
+public:
+    W8CharacterPage005EF778() : W8CharacterPage(0x104) {}
+    virtual ~W8CharacterPage005EF778() override;
+    virtual void Redraw() override;
+    virtual void SetCharacter(W8Character*,
+                              W8CharacterCreationState*, int) override;
     virtual void Activate() override;
     virtual void Accept() override;
     virtual void GetNavigationState(unsigned char*, unsigned char*) override;
+    virtual void HandleInput(InputAtom*) override;
+    virtual void Refresh() override;
+    virtual void Prepare() override;
+    virtual void OnRowValueChanged(W8CharacterStatsRow005EF750* row, int value) override;
+    virtual void OnRowExpanded(W8CharacterStatsRow005EF750* row) override;
+    virtual void OnRowCollapsed(W8CharacterStatsRow005EF750* row) override;
+    virtual void OnRowInfoRequested(W8CharacterStatsRow005EF750* row, int value) override;
+    virtual void AdjustEntry(W8CharacterPageEntry*, int) override;
+    virtual void ShowEntryInfo(W8CharacterPageEntry*) override;
+    virtual void OnPrimary(W8TextControl*) override;
+    virtual void OnSecondary(W8TextControl*) override;
+
 private:
-    unsigned char unknown_070[0x30];
+    void UpdateRowValues(); /* 0x005ca200 */
+
+    W8CharacterStatsRow005EF750* m_profession_row_07c;
+    W8CharacterStatsRow005EF750* m_race_row_080;
+    W8CharacterStatsRow005EF750* m_faction_row_084;
+    unsigned char m_navigation_state_088;
+    unsigned char m_rows_initialized_089;
+    unsigned char pad_08a[2];
+    W8TextControl* m_attribute_controls_08c[5];
 };
 static_assert(sizeof(W8CharacterPage005EF778) == 0xa0, "W8CharacterPage005EF778_size");
 
@@ -218,6 +325,32 @@ W8CharacterPage005EF778* CreateCharacterPage005CBA90();
 W8CharacterPage005EF664* CreateCharacterPage005C8DE0();
 W8CharacterPage005EF5C8* CreateCharacterPage005C7CC0();
 W8CharacterPage005EF57C* CreateCharacterPage005C73F0();
+
+/* Realm animation records shared by the stats page's resistance icons and the
+   spells page's realm list. The stats page reads only initial_frame, through
+   the realm-1 offset the spells page's array lays out. */
+struct W8SpellRealmAnimation {
+    int image;
+    unsigned int frame_count;
+    unsigned int initial_frame;
+};
+extern W8SpellRealmAnimation g_spell_realm_animations_00648c90[6];
+
+/* One message id per character trait, indexed by trait id. */
+extern unsigned short g_character_trait_name_ids_61e530[0x20];
+
+/* Attribute-entry and skill-name message id tables shared by the stats and
+   skills pages. */
+extern unsigned short g_character_description_first_ids_61e3a4[22];
+extern unsigned short g_character_skill_name_ids_61e454[84];
+
+/* Page and per-row region sets. */
+extern unsigned int g_character_stats_region_set_0069c550;
+
+/* Skill-availability bookkeeping raised by Function553CD0 while the character
+   screen is open: adjust the named page-2 entry and refresh that page. */
+void Function5B1AF0(int skill_id);
+void Function5B1B30(int skill_id);
 
 /* Primary interface at 0x005EF224, used by the pages to raise the screen-owned
    dialogs and to query the current character. */

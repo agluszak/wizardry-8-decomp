@@ -13,7 +13,6 @@
 #include <stdlib.h>
 #include <wchar.h>
 
-extern void Function40C710(int resource);
 extern "C" int g_dialog_font_64fde8;
 extern "C" unsigned char g_dialog_font_foreground_64fdec;
 extern "C" unsigned char g_dialog_font_background_64fded;
@@ -407,11 +406,11 @@ void W8ModalDialogBase::DestroyControls()
         m_field_74 = -1;
     }
     if (m_field_60 != -1) {
-        Function40C710(m_field_60);
+        UnloadButtonImage(m_field_60);
         m_field_60 = -1;
     }
     if (m_field_78 != -1) {
-        Function40C710(m_field_78);
+        UnloadButtonImage(m_field_78);
         m_field_78 = -1;
     }
     if (m_lines) {

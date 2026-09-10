@@ -21,6 +21,7 @@ extern double g_double_005ebc70;
 extern float g_float_005ebc90;
 extern double g_double_005ebc30;
 extern const float g_float_005ec0a8;
+extern const float g_environment_near_scale_005ec0b0;
 extern float g_float_005ec020;
 extern float g_float_005ec1a8;
 extern float g_float_005ec2f8;
@@ -54,6 +55,10 @@ extern float g_float_005ecc38;
 extern float g_float_005ecc3c;
 extern float g_float_005ecc40;
 extern const float g_startup_near_limit_005ec000;
+extern double g_double_005ebe80;
+extern float g_float_005ec3f8;
+extern float g_float_005ecbb4;
+extern float g_float_005ed8b8;
 }
 
 extern float g_navigator_gravity_00603acc;

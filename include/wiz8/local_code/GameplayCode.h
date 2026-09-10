@@ -6,6 +6,7 @@ bool AnyCharacterActive(void);
 void CalcInitiative(W8Character* character);
 void CalcAttacks(W8Character* character);
 void CalcArmorClasses(W8Character* character);
+void CalcCharacterLevelBand(W8Character* character);
 
 void CalcCharacterTableValue(W8Character* character);
 int CountActiveCharacters(void);

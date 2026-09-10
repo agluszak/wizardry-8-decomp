@@ -1,5 +1,6 @@
 #pragma once
 
+struct W8Character;
 struct W8Dice;
 struct W8MonsterInfo;
 struct W8Character;
@@ -21,3 +22,4 @@ void ApplyRolledHealthChangeToParty(const W8Dice* dice, int arg_2, int arg_3);
 void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short base);
 void HealPartyByDice(unsigned char count, unsigned char sides, short base);
 void RestorePartySpellPoints(int amount);
+void RecalculateCharacterHitPoints(W8Character* character);

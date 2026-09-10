@@ -46,6 +46,7 @@ extern int g_special_event_0068c540;
 extern int g_special_event_0068c550;
 extern int g_special_event_0068c564;
 extern int g_special_event_0068c568;
+extern int g_special_event_0068c558;
 
 // GLOBAL: WIZ8 0x005ED8C8
 int g_effect_argument_005ed8c8 = 0;
@@ -98,6 +99,8 @@ int g_special_event_0068c538;
 int g_special_event_0068c540;
 // GLOBAL: WIZ8 0x0068C550
 int g_special_event_0068c550;
+// GLOBAL: WIZ8 0x0068C558
+int g_special_event_0068c558;
 // GLOBAL: WIZ8 0x0068C564
 int g_special_event_0068c564;
 // GLOBAL: WIZ8 0x0068C568

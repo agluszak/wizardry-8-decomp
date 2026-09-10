@@ -30,7 +30,6 @@ int g_character_page2_category_geometry_64ef90[5][2] = {
 };
 // GLOBAL: WIZ8 0x0064efb8
 int g_character_page2_category_frames_64efb8[5] = {2, 3, 0, 1, 4};
-extern unsigned short g_character_skill_name_ids_61e454[84];
 
 struct W8PortraitGroup {
     int count;
@@ -173,6 +172,12 @@ void W8CharacterPageEntry::SetEnabled(unsigned char enabled)
     m_decrement_00c->Invalidate(0);
     m_increment_008->Invalidate(0);
     m_dirty_039 = 1;
+}
+
+// FUNCTION: WIZ8 0x005afae0
+void W8CharacterPageEntry::SetHelpActive005AFAE0(unsigned char active)
+{
+    m_help_010->SetActive(active);
 }
 
 // FUNCTION: WIZ8 0x005afaf0

@@ -2169,6 +2169,84 @@ void Function520070(
     Function4EDD20();
 }
 
+/* Empty every item record a character carries. The per-record helper
+   0x00520070 was expanded at both loops, so this body repeats its logic
+   rather than calling it. */
+// FUNCTION: WIZ8 0x00520310
+void Function520310(W8Character* character)
+{
+    W8ItemInstance shifted[500];
+    unsigned int index;
+
+    for (index = 0; index < 12; ++index) {
+        W8ItemInstance* item = &character->equipment[index];
+        if (item == &g_status_685170.item_in_hand_235b) {
+            g_held_item_source_006840c0 = -1;
+            g_held_item_origin_006840c4 = 0xff;
+            g_held_item_slot_006840c5 = 0xffff;
+            ClearHeldItemDisplay();
+        }
+        else {
+            memset(item, 0, sizeof(*item));
+            item->item_id = -1;
+            Function520D10(item, character, 1);
+        }
+
+        W8ItemInstance* pool = g_status_685170.party_item_pool_0021;
+        if (item >= pool && item <= &pool[499]) {
+            unsigned int count = g_status_685170.party_item_count_1791;
+            unsigned int position = 0;
+            while (position < count && item != &pool[position]) {
+                ++position;
+            }
+            if (position < count && pool[position].item_id == -1) {
+                unsigned int bytes =
+                    (count - position - 1) * sizeof(W8ItemInstance);
+                memcpy(&shifted[position], &pool[position + 1], bytes);
+                memcpy(&pool[position], &shifted[position], bytes);
+                memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
+                pool[count - 1].item_id = -1;
+                --g_status_685170.party_item_count_1791;
+                Function4EDD20();
+            }
+        }
+    }
+
+    for (index = 0; index < 8; ++index) {
+        W8ItemInstance* item = &character->backpack[index];
+        if (item == &g_status_685170.item_in_hand_235b) {
+            g_held_item_source_006840c0 = -1;
+            g_held_item_origin_006840c4 = 0xff;
+            g_held_item_slot_006840c5 = 0xffff;
+            ClearHeldItemDisplay();
+        }
+        else {
+            memset(item, 0, sizeof(*item));
+            item->item_id = -1;
+            Function520D10(item, character, 1);
+        }
+
+        W8ItemInstance* pool = g_status_685170.party_item_pool_0021;
+        if (item >= pool && item <= &pool[499]) {
+            unsigned int count = g_status_685170.party_item_count_1791;
+            unsigned int position = 0;
+            while (position < count && item != &pool[position]) {
+                ++position;
+            }
+            if (position < count && pool[position].item_id == -1) {
+                unsigned int bytes =
+                    (count - position - 1) * sizeof(W8ItemInstance);
+                memcpy(&shifted[position], &pool[position + 1], bytes);
+                memcpy(&pool[position], &shifted[position], bytes);
+                memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
+                pool[count - 1].item_id = -1;
+                --g_status_685170.party_item_count_1791;
+                Function4EDD20();
+            }
+        }
+    }
+}
+
 /* Acquisition of a handful of plot items updates their paired facts. */
 // FUNCTION: WIZ8 0x00522640
 void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item)

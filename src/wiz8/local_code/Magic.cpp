@@ -1086,6 +1086,23 @@ static unsigned char SpellbookMaskForSpell(int spell_id)
                                 : W8_SPELLBOOK_NONE));
 }
 
+/* Recount the learned spells into the six per-realm slots (0x1c..0x21 of
+   skill_unlocks), where the expert-skill gate and the spell-point ceiling
+   both read them. */
+// FUNCTION: WIZ8 0x004f96a0
+void Function4F96A0(W8Character* character)
+{
+    for (int realm = 0; realm < 6; ++realm) {
+        character->skill_unlocks[0x1c + realm] = 0;
+    }
+    for (int index = 0; index < 0x72; ++index) {
+        if (character->spell_learned[index] == 1 ||
+            character->spell_learned[index] == 2) {
+            ++character->skill_unlocks[0x1c + g_spell_records[index].realm];
+        }
+    }
+}
+
 /* Whether a character is far enough along to take one spell on. Their whole
    caster level - the current profession's plus every other one that shares the
    spell's book - fixes the highest spell level they could ever hold, and their
