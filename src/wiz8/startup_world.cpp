@@ -2,6 +2,7 @@
 #include "surrender/srNode.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/Navigator.h"
+#include "wiz8/engine_code/Quality.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/render_state.h"
 

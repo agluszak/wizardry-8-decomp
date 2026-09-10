@@ -15,9 +15,7 @@ endif()
     # Compile recovered first-party sources once, then reuse those exact
     # objects in the comparison, runtime and semantic-test products.
     add_library(wiz8_recovered_objects OBJECT
-        ${WIZ8_ORIGINAL_UNITS}
-        ${WIZ8_TEMPLATE_EMISSIONS}
-        ${WIZ8_PROVISIONAL_UNITS}
+        ${WIZ8_SOURCE_UNITS}
     )
     # Product code consumes the reconstructed SGP component's owning headers.
     target_link_libraries(wiz8_recovered_objects PRIVATE wiz8_compile_settings)

@@ -18,6 +18,7 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/npc_state.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/local_screens/MGSKeyboard.h"
@@ -275,7 +276,6 @@ unsigned char Function445140(W8World* world);
 unsigned char Function53A1D0(void);
 unsigned char Function4F8650(void);
 unsigned char Function57E3C0(void);
-unsigned char SelectWorldCursorNode0048EFC0(void);
 void Function4EF1F0(void);
 
 // FUNCTION: WIZ8 0x00587960

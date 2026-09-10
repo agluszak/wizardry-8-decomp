@@ -117,8 +117,9 @@ unsigned char IsWorldCursorVisible(void)
            g_world_cursor_0065ba8c->visible_40 != 0;
 }
 
-/* Reset the cursor range to its default 4000 units; the camera-distance
-   update path overwrites the same slot while the cursor is tracked. */
+/* Reset the cursor range to its default 4000 units. The cursor release path
+   (ReleaseWorldCursor004909C0) writes the flattened camera distance to the
+   same slot before the cursor is freed. */
 // FUNCTION: WIZ8 0x00492530
 void SetFloat60AB48(void)
 {

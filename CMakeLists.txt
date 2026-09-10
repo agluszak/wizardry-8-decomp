@@ -23,9 +23,7 @@ if(WIZ8_LINT_COMPILE_ONLY)
         set(wiz8_clang_target WIZ8_CLANG_LINT)
     endif()
     add_library(${wiz8_clang_target} OBJECT
-        ${WIZ8_ORIGINAL_UNITS}
-        ${WIZ8_TEMPLATE_EMISSIONS}
-        ${WIZ8_PROVISIONAL_UNITS}
+        ${WIZ8_SOURCE_UNITS}
         src/surrender/core.cpp
         src/surrender/dynamic_library.cpp
         src/surrender/extension.cpp

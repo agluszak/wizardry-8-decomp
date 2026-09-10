@@ -20,6 +20,12 @@
 #include <string.h>
 #include <stdlib.h>
 
+/* Engine Code\MonGen.cpp. InitializeEncounterTables at 0x0048A7A0 asserts
+   this unit (line 211) and the 0x0048A7A0-0x0048C110 hard hull is bounded to
+   it. W8MonsterGenerator's destructor and helper before the hull and the
+   encounter/timer bodies after it are attribution gaps placed here
+   provisionally; no assertion names their unit. */
+
 // FUNCTION: WIZ8 0x0048bdc0
 W8MonsterGenerator* FindMonGenByName(const char* name)
 {

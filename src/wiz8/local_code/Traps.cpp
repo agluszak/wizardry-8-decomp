@@ -21,6 +21,10 @@ unsigned char g_table_650434[15][8] = {
     {1, 0, 0, 0, 0, 1, 1, 0},
 };
 
+/* Local Code\Traps.cpp. The three bodies at 0x5E35F0-0x5E3730 sit in the
+   attribution gap before the asserted Traps.cpp body at 0x5E3800 (line 148);
+   their placement here is provisional, not proven ownership. */
+
 // FUNCTION: WIZ8 0x005E35F0
 void ClearValue69DA68(void)
 {

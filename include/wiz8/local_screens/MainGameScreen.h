@@ -264,7 +264,6 @@ void OnQuitGameDialogClosed(W8DialogBase* dialog);
 void Function56AA30(void);
 void Function56AAB0(void);
 void Function56C590(W8NpcState* npc, int value, int line, int suppress);
-unsigned char Function554540(void);
 void ResetMainGameScreenState(void);
 /* 0x0056C520: zero W8MainScreenState, write its reset values, and reload the
    keyword lists through the loader below. */

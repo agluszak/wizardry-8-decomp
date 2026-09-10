@@ -11,6 +11,11 @@
 #include <string.h>
 
 /*
+ * Local Code\Gameloop.cpp. GameloopExit at 0x004E34B0 asserts this unit
+ * (Gameloop.cpp:630). GameLoop at 0x004E3340 immediately precedes it and no
+ * assertion names its unit, so it is placed here with its asserted companion
+ * rather than claimed as proven.
+ *
  * The per-frame tick WinMain calls when no message is waiting and the
  * application is active. It drives a screen-state stack: the current state
  * descriptor sits at 0x0068EC78 and the pending one immediately after it at

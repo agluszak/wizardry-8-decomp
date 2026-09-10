@@ -190,32 +190,6 @@ unsigned char Function57E490(void)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x00428070
-unsigned char IsCursorInsideViewport(void)
-{
-    int x = g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0;
-    int y = g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4;
-    return x >= g_viewport_left_6595e8 && y >= g_viewport_top_6595ec &&
-           x <= g_viewport_right_6595f0 && y <= g_viewport_bottom_6595f4;
-}
-
-// FUNCTION: WIZ8 0x00428230
-unsigned char GetCursorPositionInViewport(srVector3T<float>* position)
-{
-    int x = g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0;
-    int y = g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4;
-    if (x >= g_viewport_left_6595e8 && y >= g_viewport_top_6595ec &&
-        x <= g_viewport_right_6595f0 && y <= g_viewport_bottom_6595f4) {
-        position->x = static_cast<float>(x - g_viewport_left_6595e8) /
-                      static_cast<float>(g_viewport_right_6595f0 - g_viewport_left_6595e8);
-        position->y = static_cast<float>(y - g_viewport_top_6595ec) /
-                      static_cast<float>(g_viewport_bottom_6595f4 - g_viewport_top_6595ec);
-        position->z = 0.0f;
-        return 1;
-    }
-    return 0;
-}
-
 // FUNCTION: WIZ8 0x00584210
 void RestoreAutomapCameraPosition(void)
 {

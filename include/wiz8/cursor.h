@@ -1,8 +1,9 @@
-#include "wiz8/engine_code/Video2.h"
 #ifndef WIZ8_CURSOR_H
 #define WIZ8_CURSOR_H
 
 #include "Types.h"
+#include "wiz8/engine_code/Video2.h"
+#include "surrender/srMath.h"
 
 class srModelInstance;
 
@@ -27,6 +28,8 @@ extern BOOLEAN gfTrackMousePos;
 }
 
 void PositionMouseCursor(int x, int y, unsigned char reset_tick);
+unsigned char IsCursorInsideViewport(void);
+unsigned char GetCursorPositionInViewport(srVector3T<float>* position);
 void UpdateHeldItemCursor(void);
 void ClearHeldItemDisplay(void);
 void SetCurrentCursor(int cursor);

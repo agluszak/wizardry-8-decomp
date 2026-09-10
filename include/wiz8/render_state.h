@@ -90,7 +90,6 @@ void EnableRenderOption(int option);
 unsigned char GetRendererModeByte(void);
 unsigned char GetRenderOptionState(int option);
 void EnableAllRenderOptions(void);
-void InitializeRenderQuality(void);
 unsigned char InitializeEnvironmentColours(void);
 void SetViewport(int left, int top, int right, int bottom);
 unsigned char InitializeRendererSceneObjects(void);

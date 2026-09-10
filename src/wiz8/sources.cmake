@@ -1,4 +1,9 @@
-set(WIZ8_ORIGINAL_UNITS
+# Explicit link order for recovered first-party sources. Renaming or moving a
+# unit must not move its slot. src/wiz8/vector.cpp collects compiler-emitted
+# growable-vector specializations whose original translation-unit ownership is
+# not established; every other entry is recovered source whose placement
+# provenance lives in recovery evidence, not in this list.
+set(WIZ8_SOURCE_UNITS
     "src/wiz8/local_code/PC Item.cpp"
     src/wiz8/local_code/FormationAndFacing.cpp
     src/wiz8/local_code/Controls.cpp
@@ -107,21 +112,11 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/3d.cpp
     src/wiz8/engine_code/Bink.cpp
     src/wiz8/level_specific_code/MasterFunctionList.cpp
-)
-# Compiler-emitted growable-vector specializations whose original
-# translation-unit ownership is not established.
-set(WIZ8_TEMPLATE_EMISSIONS
     src/wiz8/vector.cpp
-)
-
-# These units keep the slots their content occupied while ownership was
-# unresolved; a descriptive or recovered original filename records a coherent
-# subsystem or an assertion-backed original translation unit.
-# Keep this single list in link order: renaming a unit must not move its slot.
-set(WIZ8_PROVISIONAL_UNITS
     src/wiz8/imports/mss.cpp
     src/wiz8/bringup_gates.cpp
     src/wiz8/renderer_window.cpp
+    src/wiz8/engine_code/Quality.cpp
     src/wiz8/startup_render_state.cpp
     src/wiz8/startup_world.cpp
     src/wiz8/startup_subsystems.cpp
@@ -158,7 +153,7 @@ set(WIZ8_PROVISIONAL_UNITS
     src/wiz8/local_screens/mipeEdit.cpp
     src/wiz8/local_code/Text_Input.cpp
     src/wiz8/local_code/Traps.cpp
-    src/wiz8/frame_tick.cpp
+    src/wiz8/local_code/Gameloop.cpp
     src/wiz8/game_init.cpp
     src/wiz8/gameplay_teardown.cpp
     src/wiz8/item_spawning.cpp
@@ -167,7 +162,7 @@ set(WIZ8_PROVISIONAL_UNITS
     src/wiz8/dialog_code/DialogTextArea.cpp
     src/wiz8/dialog_code/DialogButton.cpp
     src/wiz8/dialog_code/DialogScrollBar.cpp
-    src/wiz8/monster_generators.cpp
+    src/wiz8/engine_code/MonGen.cpp
     src/wiz8/monster_lookup.cpp
     src/wiz8/music_playlist.cpp
     src/wiz8/npc_items.cpp
@@ -179,26 +174,18 @@ set(WIZ8_PROVISIONAL_UNITS
     src/wiz8/vc6_runtime.cpp
 )
 
-# These explicit categories preserve matching-sensitive object order. The
-# glob is validation-only: it prevents a new recovered C++ source from
-# silently escaping ownership without using the filesystem to order or
-# populate the build.
-set(WIZ8_RECOVERED_SOURCE_CATEGORIES
-    WIZ8_ORIGINAL_UNITS
-    WIZ8_TEMPLATE_EMISSIONS
-    WIZ8_PROVISIONAL_UNITS
-)
+# Every recovered C++ source must appear exactly once. The glob is
+# validation-only: it prevents a new recovered source from silently escaping
+# ownership without using the filesystem to order or populate the build.
 set(WIZ8_CLASSIFIED_SOURCES)
-foreach(category IN LISTS WIZ8_RECOVERED_SOURCE_CATEGORIES)
-    foreach(source IN LISTS ${category})
-        if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${source}")
-            message(FATAL_ERROR "${category} names missing source: ${source}")
-        endif()
-        if(source IN_LIST WIZ8_CLASSIFIED_SOURCES)
-            message(FATAL_ERROR "Wiz8 source is classified more than once: ${source}")
-        endif()
-        list(APPEND WIZ8_CLASSIFIED_SOURCES "${source}")
-    endforeach()
+foreach(source IN LISTS WIZ8_SOURCE_UNITS)
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${source}")
+        message(FATAL_ERROR "WIZ8_SOURCE_UNITS names missing source: ${source}")
+    endif()
+    if(source IN_LIST WIZ8_CLASSIFIED_SOURCES)
+        message(FATAL_ERROR "Wiz8 source is classified more than once: ${source}")
+    endif()
+    list(APPEND WIZ8_CLASSIFIED_SOURCES "${source}")
 endforeach()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/wiz8/unattributed_helpers.cpp")
     message(FATAL_ERROR "Synthetic catch-all source is forbidden: unattributed_helpers.cpp")

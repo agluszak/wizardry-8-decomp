@@ -12,23 +12,33 @@
 #include <stdlib.h>
 
 /* Engine Code\stCube.cpp. The cursor's node table and the node selection
-   pass; the cursor state itself lives in Cursor3d.cpp. */
+   pass; the cursor state itself lives in Cursor3d.cpp. ReleaseWorldCursorNodes
+   at 0x0048DB30 lies inside the assertion-backed 0x0048D080-0x0048E7B0 hull;
+   0x0048ED00-0x0048EFC0 are the following attribution gap, so no assertion
+   names their unit. */
 
 // GLOBAL: WIZ8 0x0065ba5c
 int g_value_65ba5c;
 
-/* One record of the world cursor's node table. Only the members the table walk
-   and its teardown reach are modeled; the teardown's delete establishes the
-   virtual identity and the three fields around the scene node. No authored
-   name survives, so the release body's address names the class. */
+/* One record of the world cursor's node table. The 0x0048D080 constructor
+   allocates 0x44 bytes and installs the 0x005ECAB8 vtable; 0x0048DB30 frees
+   the buffer at 0x18 and clears the length at 0x1c. The 0x0048E6D0 save body
+   writes the 0x20 bytes at 0x24 and then that buffer and length; the three
+   dwords at 0x0c-0x14 and the field at 0x20 are not reached by the recovered
+   bodies. No authored name survives, so the release body's address names the
+   class. */
 class W8CursorNode0048DB30 {
 public:
     virtual ~W8CursorNode0048DB30() {}
     srNode* node_04;                      /* 0x04 */
     unsigned char unknown_08[0x10];
     void* buffer_18;                      /* 0x18 */
-    int value_1c;                         /* 0x1c */
+    int size_1c;                          /* 0x1c */
+    int value_20;                         /* 0x20 */
+    unsigned char unknown_24[0x20];       /* 0x24 */
 };
+static_assert(sizeof(W8CursorNode0048DB30) == 0x44,
+              "W8CursorNode0048DB30_size");
 
 // GLOBAL: WIZ8 0x0065ba64
 W8CursorNode0048DB30** g_array_65ba64;
@@ -126,7 +136,7 @@ void ReleaseWorldCursorNodes0048DB30(void)
                 free(entry->buffer_18);
                 entry->buffer_18 = 0;
             }
-            entry->value_1c = 0;
+            entry->size_1c = 0;
             entry->node_04->setParent(0, 1);
             entry->node_04->release();
             for (int index = 0; index < g_value_65ba5c; ++index) {
