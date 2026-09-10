@@ -339,7 +339,7 @@ struct W8RaceAbilitySet {
 };
 
 extern W8ProfessionAbilitySet g_profession_abilities[15];
-extern W8RaceAbilitySet g_race_abilities[11];
+extern W8RaceAbilitySet g_race_abilities[16];
 extern int g_profession_skills[15][4];
 extern int g_profession_magic_level_offsets[15];
 extern float g_profession_hit_point_factors[15];
