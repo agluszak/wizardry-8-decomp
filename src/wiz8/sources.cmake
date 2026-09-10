@@ -26,6 +26,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/VideoObjectManager.cpp
     "src/wiz8/local_screens/IntroScreen.cpp"
     "src/wiz8/local_screens/MainMenuScreen.cpp"
+    src/wiz8/local_code/InputMapper.cpp
     src/wiz8/local_screens/MGSKeyboard.cpp
     src/wiz8/local_screens/OptionsScreen.cpp
     src/wiz8/local_screens/PleaseWaitScreen.cpp
@@ -53,6 +54,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/ButtonSound.cpp
     src/wiz8/dialog_code/NotificationDialog.cpp
     src/wiz8/dialog_code/ModalDialogBase.cpp
+    src/wiz8/dialog_code/stMessageDialog.cpp
     src/wiz8/dialog_code/DialogBase.cpp
     src/wiz8/dialog_code/DialogFactoryDialogs.cpp
     src/wiz8/dialog_code/DialogTextEntry.cpp
@@ -62,6 +64,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/engine_code/IntervalGate.cpp
     src/wiz8/engine_code/BitArray.cpp
     src/wiz8/engine_code/GameData.cpp
+    src/wiz8/engine_code/GDFileIO.cpp
     src/wiz8/engine_code/Octree.cpp
     src/wiz8/engine_code/OctPath.cpp
     src/wiz8/engine_code/OctPreTree.cpp
@@ -75,7 +78,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/engine_code/stTextureAnim.cpp
     src/wiz8/engine_code/stTextureFile.cpp
     src/wiz8/engine_code/stParticle.cpp
-    src/wiz8/engine_code/OctMeshModel.cpp
+    src/wiz8/engine_code/OctSubMesh.cpp
     src/wiz8/engine_code/Trigger.cpp
     src/wiz8/engine_code/OctBuildTree.cpp
     src/wiz8/engine_code/Environment.cpp

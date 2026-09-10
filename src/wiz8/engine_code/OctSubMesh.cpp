@@ -14,6 +14,10 @@
 
 #include <stdlib.h>
 
+/* Engine Code\OctSubMesh.cpp. Read0049E9A0 at 0x0049E9A0 asserts this unit
+   (lines 0x1ad and 0x1d2); the constructor and destructor immediately before
+   it are the preceding attribution gap and stay here provisionally. */
+
 static stMaterial* g_oct_mesh_default_material_00652dbc;
 static srTextureIFace* g_oct_mesh_default_texture_00652dc0;
 static unsigned long* g_oct_mesh_default_render_flags_00652dc4;

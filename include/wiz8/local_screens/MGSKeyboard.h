@@ -14,8 +14,10 @@ struct MGSKeyBinding {
 
 static_assert(sizeof(MGSKeyBinding) == 0x0a, "MGSKeyBinding_size");
 
-/* Local Screens\MGSKeyboard.cpp owns the binding vector and its command-keyed
-   lookup. The serialized record is exactly ten bytes; command lookups compare
+/* Local Screens\MGSKeyboard.cpp owns the binding vector, its command-keyed
+   lookup and the singleton ResetMGSKeyboardBindings installs.
+   MGSKeyboard::LoadDefaults asserts Local Code\InputMapper.cpp and is defined
+   there. The serialized record is exactly ten bytes; command lookups compare
    the unaligned integer at +0x06. */
 // VTABLE: WIZ8 0x005ee8f0
 class MGSKeyboard {

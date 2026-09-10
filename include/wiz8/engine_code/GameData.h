@@ -127,6 +127,9 @@ static_assert(sizeof(W8LevelDataRecord) == 0xac,
 
 extern W8LevelDataRecord* g_level_data_00652dac;
 extern W8GameData* g_octree_game_data_00652db0;
+/* Read by the level-data reset and written by the GameData constructor, which
+   now lives in GDFileIO.cpp. */
+extern W8EnvironRecord* g_environ_00652DB4;
 
 W8GameData* ReadGameData00447570(const char* path, void* parent); /* 0x00447570 */
 
