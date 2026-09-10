@@ -7,6 +7,7 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/Strings.h"
+#include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/npc_state.h"
@@ -281,7 +282,6 @@ extern void ApplyMonsterCondition(int location_id, int condition, int arg_3);
 /* 0x00524110 */
 extern char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info);
 /* 0x00546F10 */
-extern char Function546F80(W8MonsterInfo* aggressor, W8MonsterInfo* monster_info);
 
 /* Two effects the party is holding that a wounded character can no longer
    sustain, and the third that only the deeper threshold breaks. */
@@ -664,7 +664,7 @@ void MonsterReactsToBeingStruck(
                 ApplyMonsterCondition(monster_info->location_id, 0xd, 1);
             }
         }
-        else if (Function546F80(
+        else if (MonsterHostility00546F80(
                      MonsterInfoFromID(1570, HEALTH_STAMINA_MANA_CPP,
                                        attacker->iMonsterID, 1),
                      monster_info) == 2) {

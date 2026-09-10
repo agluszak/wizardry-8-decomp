@@ -4,6 +4,7 @@ unsigned char LoadMissileDatabase(void);
 void ReleaseMissileDatabase(void);
 
 #include "wiz8/engine_code/GrCycle.h"
+#include "wiz8/spell_effect.h"
 #include "wiz8/targeting.h"
 
 struct W8AIMissile;
@@ -87,8 +88,9 @@ public:
     float values_1fc[12];
     unsigned char unknown_22c[0x34];
     W8CombatSlot combat_slot_260;
-    unsigned char unknown_280[0x58];
-    W8GrowableVector<void*> vector_2d8;
+    /* 0x280: the damage this missile has dealt, folded into the owning spell
+       effect by 0x00500460. */
+    W8SpellEffectResult result_280;
     unsigned char unknown_2e8[0x3a];
     unsigned char flag_322;
     unsigned char unknown_323[5];

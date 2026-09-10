@@ -79,17 +79,38 @@ struct W8GlobalStatus {
     W8PartyFormationState formation;
     int game_time_days;
     unsigned char iron_man;
-    unsigned char unknown_242a[0x1a];
+    /* 0x242a: world-clock stamp the 0x2497 event compares against. */
+    int value_242a;
+    unsigned char unknown_242e[2];
+    /* 0x2430: one-shot gate for the NPC event pass. */
+    unsigned char flag_2430;
+    unsigned char unknown_2431[0x13];
     /* Character creation skips the loose CHR collision check when set. */
     unsigned char skip_loose_character_check_2444;
     unsigned char unknown_2445[2];
     int difficulty;
-    unsigned char unknown_244b[0x4c];
+    unsigned char unknown_244b[0x3f];
+    /* 0x248a: armed by the long NPC reward event; the event also stamps
+       0x2493 with the world clock. */
+    unsigned char flag_248a;
+    unsigned char unknown_248b[8];
+    int value_2493;
     unsigned char flag_2497;
-    unsigned char unknown_2498[0x24ff];
+    unsigned char unknown_2498[0x24db];
+    /* 0x4973/0x4977: GetTickCount stamps that retire NPC 0x1b3 and then start
+       the 0x1b6 cycle. */
+    int value_4973;
+    int value_4977;
+    unsigned char unknown_497b[0x10];
+    /* 0x498b: NPC group event counter, cleared once the group event runs. */
+    int value_498b;
+    unsigned char unknown_498f[8];
     unsigned int text_box_lines_used_4997[4];
     unsigned int text_box_lines_shown_49a7[4];
-    unsigned char unknown_49b7[6];
+    /* 0x49b7: world-clock stamp the 0x49bb reward event compares against. */
+    int value_49b7;
+    unsigned char flag_49bb;
+    unsigned char unknown_49bc;
     unsigned char flag_49bd;
     unsigned char unknown_49be[2];
     unsigned char flag_49c0;

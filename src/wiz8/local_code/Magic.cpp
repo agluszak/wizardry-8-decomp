@@ -13,9 +13,14 @@
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/layouts/item_tables.h"
+#include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/Levels.h"
+#include "wiz8/engine_code/Missile.h"
 #include "wiz8/magic.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/spell_effect.h"
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/notices.h"
 #include "wiz8/sr_api.h"
@@ -25,7 +30,11 @@
 // GLOBAL: WIZ8 0x0068510c
 unsigned char g_detailed_combat_messages_0068510c;
 
+#include <cstdlib>
 #include <wchar.h>
+
+extern void ReportSpellResult005005C0(W8SpellEffectEntry* effect);
+
 
 /* Local Code\Magic.cpp, named by the assertion this body embeds. */
 
@@ -391,7 +400,7 @@ enum {
 /* 0x0068691F */
 // GLOBAL
 W8ConditionSlot g_party_conditions[W8_PARTY_CONDITION_SLOTS];
-// GLOBAL
+// GLOBAL: WIZ8 0x00689b58
 W8GrowableVector<W8SpellEffectEntry*> g_spell_effects;
 /* Whether every queued effect still has time left on it. */
 // FUNCTION: WIZ8 0x00500e50
@@ -580,11 +589,291 @@ void StartCharacterBreathAttack(int party_slot)
     ReportBreathFailed(party_slot);
 }
 
+/* Fold one missile's accumulated damage and reports into the queued effect
+   that owns it. The owning effect is the one whose missile list still names
+   the missile; nothing happens if it has already been detached. */
+// FUNCTION: WIZ8 0x00500460
+void AbsorbMissileDamage00500460(W8Missile* missile)
+{
+    for (int effect_index = 0; effect_index < g_spell_effects.GetCount();
+         ++effect_index) {
+        W8SpellEffectEntry* effect = *g_spell_effects.GetAt(effect_index);
+
+        for (int missile_index = 0;
+             missile_index < effect->missiles.GetCount(); ++missile_index) {
+            if (*effect->missiles.GetAt(missile_index) == missile) {
+                effect->result_126.count += missile->result_280.count;
+                effect->result_126.amount += missile->result_280.amount;
+                for (int band = 0; band < 20; ++band) {
+                    effect->result_126.damage[band] +=
+                        missile->result_280.damage[band];
+                }
+                while (missile->result_280.reports.GetCount() >= 1) {
+                    effect->result_126.reports.Add(
+                        missile->result_280.reports.RemoveAt(0));
+                }
+                return;
+            }
+        }
+    }
+}
+
+/* The queued effect's compiler-generated teardown: the five embedded lists
+   release their storage in reverse declaration order. */
+// FUNCTION: WIZ8 0x0042bac0
+W8SpellEffectEntry::~W8SpellEffectEntry()
+{
+}
+
 /* Append one effect to the shared queue. */
 // FUNCTION: WIZ8 0x005008a0
 void AddSpellEffect(W8SpellEffectEntry* effect)
 {
     g_spell_effects.Add(effect);
+}
+
+extern void CollectHostileMonsters00547120(
+    W8TargetSource* source, W8GrowableVector<int>* monsters);   /* 0x00547120 */
+extern void Function54BA00(W8SpellEffectEntry* effect);         /* 0x0054BA00 */
+void FinishSpellEffect00500F70(W8SpellEffectEntry* effect);     /* 0x00500F70 */
+extern void Function54C930(W8SpellEffectEntry* effect);         /* 0x0054C930 */
+extern float g_float_005ebc64;
+
+/* Advance every queued spell effect one frame. An effect first checks that
+   everything it owns is still live: its visuals have started, its missiles
+   carry their launch flag, and its monster list still points at live manager
+   entries. An effect whose activation byte is set turns its missiles into the
+   spell's own visuals and clears that byte; an already-active effect applies
+   its monster-control consequence to the combat selection. An effect that has
+   run out is finalized: a spell that needed aiming and is not in the singled
+   out set reports itself, its visuals and missiles are released, and the entry
+   is removed from the queue and deleted. */
+// FUNCTION: WIZ8 0x00500930
+void UpdateSpellEffects00500930(void)
+{
+    bool handled = false;
+    int index;
+
+    if (g_spell_effects.GetCount() <= 0) {
+        return;
+    }
+    for (index = 0; index < g_spell_effects.GetCount(); ++index) {
+        W8SpellEffectEntry* effect = *g_spell_effects.GetAt(index);
+        bool alive = true;
+
+        for (int visual_index = 0;
+             visual_index < effect->effects.GetCount() && alive;
+             ++visual_index) {
+            W8VectorElement005EBFE4* visual =
+                *effect->effects.GetAt(visual_index);
+            if (*(unsigned char*)((char*)visual + 0x1e4) == 0) {
+                alive = false;
+            }
+        }
+        for (int missile_index = 0;
+             missile_index < effect->missiles.GetCount() && alive;
+             ++missile_index) {
+            W8Missile* missile = *effect->missiles.GetAt(missile_index);
+            if (missile->flag_1e0 == 0) {
+                alive = false;
+            }
+        }
+        for (int monster_index = 0;
+             monster_index < effect->monster_indices_0f0.GetCount() && alive;
+             ++monster_index) {
+            int entry = *effect->monster_indices_0f0.GetAt(monster_index);
+            if (g_monster_manager_state.entries[entry].field_0bd != 0) {
+                alive = false;
+            }
+        }
+
+        if ((g_spell_records[effect->kind].field_144 != 0 ||
+             effect->flag_122 != 0) &&
+            effect->flag_121 == 0 && !alive) {
+            continue;
+        }
+        if (effect->flag_123 != 0) {
+            continue;
+        }
+
+        if (effect->flag_122 != 0) {
+            W8Missile* missile = 0;
+
+            for (int missile_index = 0;
+                 missile_index < effect->missiles.GetCount();
+                 ++missile_index) {
+                missile = *effect->missiles.GetAt(missile_index);
+                missile->flag_1e2 = 1;
+                effect->missiles.RemoveAt(missile_index);
+            }
+            if (missile != 0) {
+                srVector3T<float> position = missile->GetPosition();
+                position.y -= g_float_005ebc64;
+                W8VectorElement005EBFE4* visual = SpawnSpellEffect(
+                    &position, g_spell_records[effect->kind].resource_name,
+                    *(int*)&missile->values_1fc[8], 0, 0);
+                if (visual != 0) {
+                    *(unsigned char*)((char*)visual + 0x1e6) = 0;
+                    effect->effects.Add(visual);
+                    alive = false;
+                }
+            }
+            effect->flag_122 = 0;
+            handled = true;
+        }
+        else {
+            effect->flag_123 = 1;
+            if (MonsterCanAimSpell005474B0(effect->kind) != 0 &&
+                effect->target_source_05c.fBackfire == 0 &&
+                effect->target_source_05c.fReflection == 0) {
+                CollectHostileMonsters00547120(&effect->target_source_05c,
+                               &effect->values_0e0);
+            }
+            Function54BA00(effect);
+            if (TargetSourceIsMonster(&effect->source, 0) != 0) {
+                if (effect->source.iMonsterID == -1) {
+                    srAssertFail("pOrigSource->iMonsterID != -1",
+                                 MAGIC_CPP, 0x1504, 0);
+                }
+                unsigned int monster_list_index =
+                    MonsterGetIndexByLocationID(
+                        0x1505, MAGIC_CPP, effect->source.iMonsterID, 1);
+                W8MonsterInfo* monster_info =
+                    MonsterGetScriptPartByLocationIndex(monster_list_index);
+                if (g_in_combat_00683f94 != 0 &&
+                    g_combat_state->selected_slot != 0 &&
+                    g_combat_state->selected_monster != 0 &&
+                    *(int*)g_combat_state->selected_monster ==
+                        monster_info->location_id) {
+                    g_combat_state->selected_slot = 3;
+                }
+            }
+        }
+
+        if (effect->flag_121 != 0) {
+            if (effect->turns_remaining != 0) {
+                continue;
+            }
+        }
+        else if (!alive || effect->flag_123 == 0) {
+            continue;
+        }
+
+        if (!handled &&
+            g_spell_records[effect->kind].needs_aim_13f != 0 &&
+            !IsSpellInSingledOutSet(effect->kind)) {
+            int target_type = GetSpellTargetType(effect->kind, 0);
+            if (target_type != 6 && target_type != 2) {
+                if (g_detailed_combat_messages_0068510c == 0) {
+                    ReportSpellResult005005C0(effect);
+                }
+                Function54C930(effect);
+            }
+        }
+        if (effect->kind == 0x4f) {
+            FinishSpellEffect00500F70(effect);
+        }
+        for (int release_visual = 0;
+             release_visual < effect->effects.GetCount();
+             ++release_visual) {
+            W8VectorElement005EBFE4* visual =
+                *effect->effects.GetAt(release_visual);
+            *(unsigned char*)((char*)visual + 0x1e6) = 1;
+            if (effect->flag_121 != 0) {
+                *(unsigned char*)((char*)visual + 0x1e4) = 1;
+            }
+        }
+        for (int release_missile = 0;
+             release_missile < effect->missiles.GetCount();
+             ++release_missile) {
+            W8Missile* missile = *effect->missiles.GetAt(release_missile);
+            missile->flag_1e2 = 1;
+        }
+        g_spell_effects.RemoveAt(index);
+        if (effect != 0) {
+            delete effect;
+        }
+        --index;
+    }
+}
+
+/* Take one missile back off the spell effect that owns it. The first effect
+   whose missile list contains it drops the entry and stops the walk. */
+// FUNCTION: WIZ8 0x005019a0
+void DetachMissileReferences005019A0(W8Missile* missile)
+{
+    for (int index = 0; index < g_spell_effects.GetCount(); ++index) {
+        W8SpellEffectEntry* effect = *g_spell_effects.GetAt(index);
+        int missile_index = effect->missiles.IndexOf(missile);
+
+        if (missile_index != -1) {
+            effect->missiles.RemoveAt(missile_index);
+            return;
+        }
+    }
+}
+
+extern int CastSpellFromSource(
+    int spell_id, W8TargetSource* source, W8CombatSlot* target,
+    unsigned int power_level, int a, int b, int c, int d, int e, int f,
+    int g);                                                     /* 0x004FB4C0 */
+extern void PostMonsterNotice(
+    W8MonsterInfo* monster_info, void* notice);                 /* 0x00590B40 */
+extern void Function5905F0(const wchar_t* text, int mode);      /* 0x005905F0 */
+extern void Function58AAD0(
+    int mode, const wchar_t* format, ...);                      /* 0x0058AAD0 */
+extern void PostCharacterNotice(
+    int party_slot, const wchar_t* format, ...);                 /* 0x00590950 */
+extern float SettlePositionToGround00420BD0(
+    srVector3T<float>* position, unsigned char* hit);           /* 0x00420BD0 */
+
+/* The 0x4f spell's finalizer. Once its target is gone, the impact spell 0x76
+   is cast at the target's last position and the matching notice is posted:
+   the monster's own notice for a monster that has died, or the targeted
+   character's notice for a character whose row is empty. A text box is only
+   opened when the detailed combat messages are off, matching the ordinary
+   damage path. */
+// FUNCTION: WIZ8 0x00500F70
+void FinishSpellEffect00500F70(W8SpellEffectEntry* effect)
+{
+    W8MonsterInfo* monster_info = 0;
+    W8CombatSlot target;
+    srVector3T<float> position;
+
+    if (effect->target.iType == 3) {
+        monster_info = MonsterInfoFromID(
+            0x1279, MAGIC_CPP, effect->target.iMonsterID, 1);
+    }
+    if ((effect->target.iType == 3 && monster_info->hp_current == 0) ||
+        (effect->target.iType == 1 &&
+         *(unsigned int*)((char*)g_status_685170.buffers.characters +
+                          effect->target.iChar * W8_CHARACTER_SERIALIZED_SIZE +
+                          0xb11) == 0)) {
+        target.iType = 6;
+        if (effect->target.iType == 3) {
+            W8NavigatorMovementState* movement =
+                (W8NavigatorMovementState*)((char*)monster_info->monster +
+                                            0x18 + 0xc0);
+            position = movement->position_040;
+            position.y += movement->height_offset_0b8;
+            position.y =
+                SettlePositionToGround00420BD0(&position, 0);
+            PostMonsterNotice(monster_info, gppStringList[0x654 / 4]);
+        }
+        else {
+            GetCameraPosition(&position);
+            position.y -= g_default_world_height_00603ac8;
+            PostCharacterNotice(effect->target.iChar,
+                                gppStringList[0x654 / 4]);
+        }
+        if (g_detailed_combat_messages_0068510c == 0) {
+            SetTextBoxMode(1, -1);
+        }
+        target.point = position;
+        CastSpellFromSource(
+            0x76, &effect->target_source_05c, &target, effect->argument,
+            effect->value_0d4, 0, 0, 0, 0, 0, 0);
+    }
 }
 
 /* Scale a value by how far ahead of the difficulty's own pace one combatant
@@ -1198,9 +1487,6 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, int unuse
 }
 
 /* 0x0053C630 */
-extern int CastSpellFromSource(
-    int spell_id, W8TargetSource* source, W8CombatSlot* target, unsigned int power_level,
-    int a, int b, int c, int d, int e, int f, int g);                    /* 0x004FB4C0 */
 
 /* The target-block kind that means the cast comes from a point in the world
    rather than from a character or a monster. */
@@ -1899,5 +2185,147 @@ void SpawnLureEffects(W8SpellEffectEntry* owner, int arg_2, const W8CombatSlot* 
         *((unsigned char*)effect + 0x1e6) = 0;
         *(*(unsigned char**)((char*)effect + 0x1e0) + 0x71) = 3;
         owner->effects.Add(effect);
+    }
+}
+
+
+/* The loaded string table's four names per damage band, walked four entries at
+   a time. Only bands 1..19 are reported, and only the band's first two names
+   are used: the singular message takes the first, the plural the second. */
+// GLOBAL: WIZ8 0x0061e57a
+static const unsigned short g_spell_band_text_0061e57a[76] = {
+    0x34d, 0x34e, 0x34f, 0x350,
+    0x351, 0x352, 0x353, 0x354,
+    0x355, 0x356, 0x357, 0x358,
+    0x359, 0x35a, 0x35b, 0x35c,
+    0x35d, 0x35e, 0x35f, 0x360,
+    0x361, 0x362, 0x363, 0x364,
+    0x365, 0x366, 0x367, 0x368,
+    0x369, 0x36a, 0x36b, 0x36c,
+    0x36d, 0x36e, 0x36f, 0x370,
+    0x371, 0x372, 0x373, 0x374,
+    0x375, 0x376, 0x377, 0x378,
+    0x379, 0x37a, 0x37b, 0x37c,
+    0x37d, 0x37e, 0x37f, 0x380,
+    0x381, 0x382, 0x383, 0x384,
+    0x385, 0x386, 0x387, 0x38c,
+    0x38d, 0x38e, 0x38f, 0x388,
+    0x389, 0x38a, 0x38b, 0x390,
+    0x391, 0x392, 0x393, 0x394,
+    0x395, 0x396, 0x397, 0x273,
+};
+
+/* The band entry the queued report records name their text by, rather than a
+   damage band. */
+enum { W8_SPELL_REPORT_BAND = 17 };
+
+/* Post what an effect accumulated. The opening separator only appears once
+   the text box already has something in it; the total is reported as
+   "<count> <unit>" or, for a single hit, "<amount> points", and each nonzero
+   damage band appends its own hit count and band name. Records still queued on
+   the result are then drained: a character-slot record posts the named
+   character's notice, a text record formats its own "%s %s" line, and the box
+   is reset around each. With nothing reported at all the effect reports that
+   its target took no damage. */
+// FUNCTION: WIZ8 0x005005c0
+void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
+{
+    const unsigned short* band_text = g_spell_band_text_0061e57a;
+
+    if (GetTextBoxMode() != 0) {
+        Function5905F0(effect->reported_124 == 0 ? L"-- " : L", ", -1);
+        SetTextBoxMode(1, -1);
+    }
+    if (effect->result_126.amount != 0) {
+        if (effect->result_126.count == 1) {
+            Function5905F0(
+                FormatWideString(
+                    gppStringList[0x668 / 4], effect->result_126.amount),
+                -1);
+        }
+        else {
+            Function5905F0(
+                FormatWideString(
+                    gppStringList[0x664 / 4], effect->result_126.count,
+                    effect->result_126.amount / effect->result_126.count, -1),
+                -1);
+            SetTextBoxMode(1, -1);
+        }
+        SetTextBoxMode(1, -1);
+        effect->reported_124 = 1;
+    }
+    for (int band = 1; band < 20; ++band, band_text += 4) {
+        int hits = effect->result_126.damage[band];
+
+        if (hits == 0) {
+            continue;
+        }
+        if (effect->reported_124 != 0 && GetTextBoxMode() != 0) {
+            Function5905F0(L", ", -1);
+            SetTextBoxMode(1, -1);
+        }
+        if (hits == 1) {
+            if (effect->target.iType == 1) {
+                Function5905F0(
+                    FormatWideString(
+                        L"%s %s",
+                        (const wchar_t*)((const char*)
+                             g_status_685170.buffers.characters +
+                         effect->target.iChar * W8_CHARACTER_SERIALIZED_SIZE +
+                         5),
+                        gppStringList[band_text[0]]),
+                    -1);
+            }
+            else if (effect->target.iType == 3) {
+                W8MonsterInfo* monster_info =
+                    MonsterInfoFromID(0x112a, MAGIC_CPP,
+                                      effect->target.iMonsterID, 1);
+                if (monster_info != 0) {
+                    Function5905F0(
+                        FormatWideString(
+                            L"%s %s",
+                            GetMonsterName(monster_info, 0, 0),
+                            gppStringList[band_text[0]]),
+                        -1);
+                }
+            }
+        }
+        else {
+            Function5905F0(
+                FormatWideString(
+                    L"%ld %s", hits, gppStringList[band_text[1]]),
+                -1);
+        }
+        SetTextBoxMode(1, -1);
+        effect->reported_124 = 1;
+    }
+    for (;;) {
+        if (effect->result_126.reports.GetCount() < 1) {
+            if (effect->reported_124 == 0) {
+                Function5905F0(gppStringList[0x694 / 4], -1);
+            }
+            return;
+        }
+        W8SpellDamageReport* report = *effect->result_126.reports.GetAt(0);
+        effect->result_126.reports.RemoveAt(0);
+        if (report != 0) {
+            if (report->kind == 1) {
+                SetTextBoxMode(0, -1);
+                PostCharacterNotice(
+                    report->value, L"%s",
+                    gppStringList[g_spell_band_text_0061e57a
+                                      [W8_SPELL_REPORT_BAND * 4]]);
+                effect->reported_124 = 1;
+            }
+            else if (report->kind == 3) {
+                SetTextBoxMode(0, -1);
+                Function58AAD0(
+                    9, L"%s %s", report->text,
+                    gppStringList[g_spell_band_text_0061e57a
+                                      [W8_SPELL_REPORT_BAND * 4]]);
+                effect->reported_124 = 1;
+            }
+            free(report);
+        }
     }
 }

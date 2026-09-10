@@ -4,6 +4,7 @@
 void ReleaseSpellDatabase(void);
 
 #include "wiz8/layouts/gameplay_databases.h"
+#include "surrender/srMath.h"
 
 extern W8SpellRuntimeRecord* g_spell_records;
 extern unsigned int g_spell_database_version;
@@ -13,9 +14,17 @@ extern unsigned char g_detailed_combat_messages_0068510c;
 
 int GetSpellTargetType(
     int spell_id, unsigned char normalize_single_target);
+bool IsSpellInSingledOutSet(int spell_id);
 int MinimumCasterLevelForSpellLevel(int spell_level);
 int GetMinimumCasterLevelForSpell(int spell_id);
 bool CanSpellBackfire(int spell_id);
+
+class W8VectorElement005EBFE4;
+/* Create one spell visual from the spell's own record resource. Engine
+   Code\Spells.cpp's factory, whose result the queued effect owns. */
+W8VectorElement005EBFE4* SpawnSpellEffect(
+    const srVector3T<float>* position, const char* resource_name,
+    int argument_3, int argument_4, int argument_5);
 
 struct W8MonsterInfo;
 struct W8Character;

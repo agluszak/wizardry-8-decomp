@@ -92,7 +92,11 @@ typedef struct W8SpellRuntimeRecord {
     int usable_when;
     /* 0x13f: the spell has to be aimed before it can be cast. */
     unsigned char needs_aim_13f;
-    unsigned char unknown_140[0xb];
+    unsigned char unknown_140[4];
+    /* 0x144: gates the effect's activation message in the per-frame spell
+       update. */
+    unsigned char field_144;
+    unsigned char unknown_145[6];
     char sound_name[0x74];              /* 0x14b: relative to Data\Spells\Sounds */
 } W8SpellRuntimeRecord;                 /* 0x1bf */
 

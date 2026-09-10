@@ -47,7 +47,10 @@ typedef struct W8NpcState {
     unsigned char is_grouped;             /* 0x26 */
     unsigned char unknown_27[4];
     signed char group_index;              /* 0x2b */
-    unsigned char unknown_2c[2];
+    /* 0x2c: g_npc_states index whose monster binding this NPC's release
+       follows. */
+    unsigned char partner_index_2c;
+    unsigned char unknown_2d;
     /* 0x2e: the space character selects the naming style whose name a fact can
        substitute. */
     char name_style;
@@ -61,7 +64,11 @@ typedef struct W8NpcState {
     unsigned char unknown_c8[0x21];
     /* 0x0e9 and 0x114: two flags raised together when the NPC is marked. */
     unsigned char marked_e9;
-    unsigned char unknown_ea[8];
+    /* 0x0ea: this NPC is a candidate for the scripted event pass. */
+    unsigned char flag_ea;
+    /* 0x0eb: world clock of the last event that ran for this NPC. */
+    int event_clock_eb;
+    unsigned char unknown_ef[3];
     /* 0x0f2: fourteen facts, appended in order and terminated by zero. */
     short known_facts[14];
     unsigned char unknown_10e[6];
@@ -70,6 +77,10 @@ typedef struct W8NpcState {
 } W8NpcState;                             /* 0x12a partitioned */
 
 #pragma pack(pop)
+
+/* The NPC-side global frame operation: timed world events and the per-frame
+   NPC state passes. */
+void UpdateNpcEvents0050D530(void);
 
 int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity);
 W8NpcState* GetNpcState(int index);
