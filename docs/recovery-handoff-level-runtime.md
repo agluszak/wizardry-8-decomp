@@ -179,13 +179,30 @@ the report gives):
 
 ## Session log
 
+### Item 5 reconnaissance (next session can transcribe directly)
+
+`Function4EA310` (`EndCombat004EA310`, callers include `ToggleCombatMode`, `UnloadLevel` and
+`FUN_004E9F90`) reaches the monster-manager trailing storage through these already-modelled
+standalone globals: `[0x1C]` = `g_in_combat_00683F94` (0x683F94), `[0x1D]/[0x1E]/[0x1F]` =
+`g_flag_00683F95/96/97`, `[0x55]` = `g_flag_00683FCD` (0x683FCD), and `unknown_9C7[0x3D]` =
+`g_flag_006840BC` (0x6840BC). Still unmodelled: the two `W8IList*` at 0x683FAD (`_53_4_`, the
+combat monster list read by `MonsterChooseTarget`) and 0x683FB1 (`_57_4_`, the combat group
+list), the byte at 0x683FCE, and the int at 0x6850B0 that receives
+`SetCountdownClock(120000)`. The 1000-dword pass at 0x688291..0x689231 rewrites each `1` to
+`2`; it lives inside `W8GlobalStatus::unknown_2498` (offsets 0xC89..0x1C29). The combat-state
+fields used are `flag_a54`, `pending_move_kind` (0x90C) and `unknown_a55[0xC]` (0xA61);
+`DAT_0068C09C + 0x8CC` supplies `Function58AC00`'s notice string and still needs a model.
+
+### Earlier session work
+
 - The canonical Ghidra state was regenerated from the freshly built VC6 PDB with
   `reccmp-ghidra-import` (`b8f37c59`): 1429 functions changed, 3626 entities imported,
   function count 7701 -> 7737. Recovered names, signatures and types are now visible to
   `report context` and the recovery decompiler; `FUN_` spellings in older `build/context`
   dumps are pre-import output.
 - `Function452F50` was recovered as `SetNavigatorLinkMode00452F50` (`88b80ff0`) with the
-  bool-returning `Function511050` declaration added next to `Function510CC0`.
+  bool-returning `PositionMonsterGroupNearCamera00511050` declaration added next to
+  `Function510CC0`.
 - Item 2 owners: `SetFloat64B914`/`GetFloat64B914` and `g_float_64b914` (2000.0) are already
   recovered in `AutomapScreen.cpp`. Of the remaining unnamed automap globals, `0x64B910` is
   also read by `0x005809F0`, `0x64B91C` is also written by `0x00580380`, `0x00581E60` and
@@ -196,6 +213,8 @@ the report gives):
   that unit), which still has no source file, so it needs a unit container rather than a
   transcription into `Magic Effects.cpp`. `Function50E700` additionally needs models for
   the effect block at `0x687453`, its source list at `0x68691F`, the `W8GlobalStatus` bytes
-  at `0x22E3`..`0x232A`, and the dialog-state offsets `+0x7C6`/`+0x85A` reached through
-  `g_dialog_state_006836a8`. Block helper `0x0050F090` is the 0x67-byte field-wise adder.
+  at `0x22E3`..`0x232A`, and the combat-state offsets `+0x7C6`/`+0x85A` reached through
+  `g_combat_state` (0x006836A8; `Missile.cpp` used the wrong name `g_dialog_state_006836a8`
+  until `2f505727`). Block helper `0x0050F090` is the 0x67-byte field-wise adder.
+
 
