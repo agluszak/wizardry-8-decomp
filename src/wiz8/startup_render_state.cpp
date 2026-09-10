@@ -31,7 +31,9 @@ void InitializeRenderQuality(void)
 }
 
 extern "C" {
+// GLOBAL: WIZ8 0x0065a154
 unsigned int g_frame_tick_65a154;
+// GLOBAL: WIZ8 0x0065a158
 float g_frame_elapsed_65a158;
 }
 

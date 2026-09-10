@@ -7,10 +7,12 @@
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/stTextureAnim.h"
 #include "wiz8/float_constants.h"
+#include "wiz8/render_state.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
+#include "surrender/srCore.h"
 #include "surrender/srFog.h"
 #include "surrender/srNode.h"
 #include "surrender/srScene.h"
@@ -74,6 +76,51 @@ float g_environment_value_0065b9b8;
 int g_environment_value_0060a3ac = -1;
 // GLOBAL: WIZ8 0x0060a395
 unsigned char g_flag_0060a395 = 1;
+
+/* The mapper starts its scroll rate at 0.002 texture units per second on x
+   only and reseeds the shared frame clock, so the first scrolled frame uses
+   the interval since this object's construction rather than since startup. */
+// FUNCTION: WIZ8 0x00482010
+W8MaterialMapper00482010::W8MaterialMapper00482010()
+{
+    value_04 = 0.002f;
+    value_08 = 0.0f;
+    g_frame_tick_65a154 = GetTickCount();
+}
+
+// FUNCTION: WIZ8 0x00482040
+int W8MaterialMapper00482010::isActive(srVertexPipe&)
+{
+    return 1;
+}
+
+/* Add the frame-scaled rate to each axis and keep only the fractional part,
+   then shift the first texture coordinate set of every vertex by it. */
+// FUNCTION: WIZ8 0x00482050
+void W8MaterialMapper00482010::process(srVertexPipe& pipe)
+{
+    float offset_x;
+    float offset_y;
+
+    if (!pipe.isChannelAvailable(
+            static_cast<srVertexProcessor::e_channel>(5))) {
+        return;
+    }
+    unsigned long count = pipe.getVertexCount();
+    srCore.getStatisticsManager()->statistics_00
+        .texture_coordinate_operations_34 += count;
+    srVector2T<float>* coordinates = pipe.getST(0, 1);
+
+    offset_x = value_04 * g_frame_elapsed_65a158 + offset_14;
+    offset_14 = offset_x - static_cast<float>(floor(offset_x));
+    offset_y = value_08 * g_frame_elapsed_65a158 + offset_18;
+    offset_18 = offset_y - static_cast<float>(floor(offset_y));
+
+    for (unsigned long index = 0; index < count; ++index) {
+        coordinates[index].x += offset_14;
+        coordinates[index].y += offset_18;
+    }
+}
 
 /* Advance the authoritative game clock and place the two celestial props on
    opposite sides of the world's recovered sky origin. The three animated sky

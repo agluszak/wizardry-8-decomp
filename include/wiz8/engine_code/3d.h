@@ -21,5 +21,7 @@ void ExpandBounds0046F510(
     const srVector3T<float>* candidate_minimum,
     const srVector3T<float>* candidate_maximum);
 void UpdateWorldMonsters0046DD70(W8World* world);
+void ForwardThroughMember3C_46E750(void* owner, int argument);
+void ForwardThroughMember3C_46E640(void* owner, int argument);
 void FinalizeStaticScene0046F3A0(srScene* scene);
 stModelInstance* CreateModelInstance0046F5C0(stMeshModel* model);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "surrender/srVertexProcessor.h"
+
 struct W8World;
 
 struct EnvironmentColour {
@@ -18,6 +20,30 @@ struct EnvironmentColour {
 
 static_assert(sizeof(EnvironmentColour) == 0x0c,
               "EnvironmentColour_must_be_0x0c");
+
+/* Environment.cpp. The vertex processor that scrolls the first texture
+   coordinate set of the sky's AnimatedCloudMaterial by a fixed per-frame
+   rate. No authored name survives, so the constructor address names the
+   class; the global instance 0x00659738 is defined by the level loader. */
+// VTABLE: WIZ8 0x005EC8F8
+class W8MaterialMapper00482010 : public srVertexProcessor {
+public:
+    W8MaterialMapper00482010();
+    virtual ~W8MaterialMapper00482010() override {}
+    virtual int isActive(srVertexPipe& pipe) override;
+    virtual void process(srVertexPipe& pipe) override;
+
+    float value_04;                      /* 0x04 */
+    float value_08;                      /* 0x08 */
+    unsigned char unknown_0c[8];         /* 0x0c */
+    float offset_14;                     /* 0x14 */
+    float offset_18;                     /* 0x18 */
+};
+
+static_assert(sizeof(W8MaterialMapper00482010) == 0x1c,
+              "W8MaterialMapper00482010_must_be_0x1c");
+
+extern W8MaterialMapper00482010 g_material_mapper_00659738;
 
 extern "C" {
 extern EnvironmentColour g_environment_colours_65a178[256];
@@ -65,8 +91,7 @@ void Function4836A0(void);
 void SetViewDistance(float distance);
 
 extern int g_environment_value_0060a3a8;
-extern unsigned char g_fog_enabled_0065b9ad;
-/* Zero unless the environment update is bypassed, in which case 0x00484300
+extern unsigned char g_fog_enabled_0065b9ad;/* Zero unless the environment update is bypassed, in which case 0x00484300
    runs instead. */
 extern float g_environment_value_0065b9b8;
 /* Last day phase the light direction and the world colour came from. */

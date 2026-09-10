@@ -66,7 +66,10 @@ public:
     void getSpecular(srVector4T<float>& specular) const;
     float getTranslucency() const;
     int isEnabled(e_oper operation) const;
-    void setAmbient(const srVector4T<float>& ambient);
+    void setAmbient(const srVector4T<float>& ambient)
+    {
+        setVector(parms_18.ambient, ambient);
+    }
     void setAmbientAndDiffuse(const srVector4T<float>& color);
     inline void setDiffuse(const srVector4T<float>& diffuse)
     {

@@ -56,6 +56,7 @@ int FindLevelIdByLocationCode(const char* location_code);
 extern unsigned short g_level_name_indices_605820[47];
 
 unsigned char LevelBuildInfoByID(int level_id, W8LevelInfo* info);
+unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info);
 unsigned char LoadLevel(
     int requested_level, int entrance, unsigned char restoring_game);
 unsigned char UnloadLevel(const char* save_directory);

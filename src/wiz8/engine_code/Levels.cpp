@@ -23,6 +23,11 @@
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/3d.h"
+#include "wiz8/engine_code/Level.h"
+#include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/materials.h"
+#include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/game_status.h"
 #include "wiz8/location_variables.h"
 #include "wiz8/screen_state.h"
@@ -37,8 +42,13 @@
 #include "wiz8/targeting.h"
 #include "surrender/srCore.h"
 #include "surrender/srNode.h"
+#include "surrender/srLight.h"
+#include "surrender/srModelInstance.h"
+#include "surrender/srScene.h"
 
 #include "FileMan.h"
+
+#define LEVELS_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Levels.cpp"
 
 // GLOBAL: WIZ8 0x00604478
 W8LevelFolderRecord g_level_folders[47] = {
@@ -93,8 +103,12 @@ W8LevelFolderRecord g_level_folders[47] = {
 
 // GLOBAL: WIZ8 0x00686A70
 int g_loaded_level_id;
+/* The sky index of the world currently held in g_world_659ab8, or -1 when no
+   sky is loaded. Every retail access is a byte access. */
 // GLOBAL: WIZ8 0x00604470
-int g_level_resource_state_00604470;
+signed char g_loaded_sky_index_00604470;
+// GLOBAL: WIZ8 0x00659738
+W8MaterialMapper00482010 g_material_mapper_00659738;
 
 extern void Function4EA310(int mode);
 extern void Function50DA00(void);
@@ -134,11 +148,140 @@ void Function42B3E0(void)
     if (world != 0) {
         Forward44FAF0(world);
         SetWorld659AB8(0);
-        g_level_resource_state_00604470 = 0xff;
+        g_loaded_sky_index_00604470 = 0xff;
         ResetEnvironment();
     }
 }
-extern unsigned char Function42B020(int level, W8LevelInfo* info);
+/* As in Bink.cpp and PathAI.cpp: retail shares the no-op stub at 0x004023A0
+   across arities (this body passes the sky world and two zero arguments), so
+   this overload only satisfies the local call and owns no separate address. */
+void NoOp(W8World* world, int first, int second)
+{
+    (void)world;
+    (void)first;
+    (void)second;
+}
+
+/* Load or replace the sky world for a level. A level whose sky index already
+   matches the world held in g_world_659ab8 reuses it; a level with no sky
+   (-1) only tears the previous one down. The replacement sky receives the
+   animated-cloud material: its cloud meshes are marked for the renderer's
+   control bits and every CloudsN prop's mesh chain is rebound to it. */
+// FUNCTION: WIZ8 0x0042B020
+unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
+{
+    signed char sky_index;
+    W8LevelInfo local_info;
+    W8World* sky_world;
+
+    if (level < 47) {
+        sky_index = g_level_folders[level].sky_index;
+    }
+    else {
+        sky_index = 0;
+    }
+    if (sky_index == g_loaded_sky_index_00604470) {
+        return 1;
+    }
+    if (info == 0) {
+        if (!LevelBuildInfoByID(level, &local_info)) {
+            return 0;
+        }
+        info = &local_info;
+    }
+    if (GetWorld659AB8() != 0) {
+        Forward44FAF0(GetWorld659AB8());
+        SetWorld659AB8(0);
+        g_loaded_sky_index_00604470 = 0xff;
+        ResetEnvironment();
+    }
+    if (sky_index == -1) {
+        return 1;
+    }
+    sky_world = CreateWorld();
+    g_world_659ab8 = sky_world;
+    if (sky_world == 0) {
+        return 0;
+    }
+    if (!LoadWorld(sky_world, info->sky_file_name, info->sky_folder,
+                   info->sky_bitmap_folder, 0)) {
+        return 0;
+    }
+
+    srVector3T<double> position;
+    position.x = 0.0;
+    position.y = 0.0;
+    position.z = 0.0;
+    static_cast<srNode*>(sky_world->camera)->setLocation(position);
+
+    stMaterial* material = new stMaterial;
+    if (material == 0) {
+        srAssertFail("pMat", LEVELS_CPP, 899, 0);
+    }
+    material->setName("AnimatedCloudMaterial");
+    material->autoRelease();
+    srVector4T<float> colour;
+    colour.Set(1.0f, 1.0f, 1.0f, 1.0f);
+    material->setAmbient(colour);
+    colour.Set(0.0f, 0.0f, 0.0f, 0.0f);
+    material->setDiffuse(colour);
+    material->setSpecular(colour);
+    material->parms_18.shininess = 1.0f;
+    material->parms_18.diffuse.w = 1.0f;
+    material->parms_18.emissive = 0.0f;
+    material->dirty_74 = 1;
+    material->m_field_78 = 0;
+    material->setMapper(&g_material_mapper_00659738);
+
+    for (srNode* node = sky_world->level->firstChild();
+         node != 0; node = node->nextSibling()) {
+        if (node->getClassID() == 0x10004) {
+            srModelInstance* instance = static_cast<srModelInstance*>(node);
+            srMeshModel* mesh = static_cast<srMeshModel*>(instance->model());
+
+            mesh->control_state_394 |= 0x20;
+            if ((mesh->control_state_390 & 8) == 0) {
+                unsigned long state = mesh->control_state_390;
+                mesh->control_state_390 = state | 8;
+                mesh->control_state_390 = state | 8;
+            }
+            mesh->control_state_394 |= 0x10;
+            if ((mesh->control_state_390 & 8) == 0) {
+                unsigned long state = mesh->control_state_390;
+                mesh->control_state_390 = state | 8;
+                mesh->control_state_390 = state | 8;
+            }
+        }
+    }
+
+    for (int index = 1; index < 9; ++index) {
+        char prop_name[28];
+
+        sprintf(prop_name, "Clouds0%d", index);
+        W8Prop* prop = FindPropByName(sky_world, prop_name);
+        if (prop != 0) {
+            srModelInstance* instance = prop->ToggleRepAnimation(0);
+
+            if (instance != 0) {
+                for (stMeshModel* mesh =
+                         static_cast<stMeshModel*>(instance->model());
+                     mesh != 0; mesh = mesh->next) {
+                    mesh->setMaterial(
+                        material, 0, static_cast<srMeshModel::e_side>(0));
+                }
+            }
+        }
+    }
+
+    ForwardThroughMember3C_46E750(GetWorld659AB8(), 0);
+    ForwardThroughMember3C_46E640(GetWorld659AB8(), 1);
+    NoOp(sky_world, 0, 0);
+    WorldRemoveLight(sky_world, sky_world->camera_light);
+    sky_world->camera_light = 0;
+    g_loaded_sky_index_00604470 = sky_index;
+    return 1;
+}
+
 extern void Function5817D0(void);
 extern unsigned char LoadLevelStatus(const char* path, int level);
 extern void BuildLevelStatusPath(char* path, int level);
@@ -334,7 +477,7 @@ unsigned char LoadLevel(
     }
     Function48F9E0();
 
-    if (!Function42B020(level, &level_info)) {
+    if (!LoadSkyWorld0042B020(level, &level_info)) {
         return 0;
     }
     InitializeMonsterManagerState();

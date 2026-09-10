@@ -63,6 +63,13 @@ extern unsigned char g_render_flag_60a20c;
 extern int g_dword_6596ec;
 extern int g_dword_6596f0;
 
+extern "C" {
+/* Engine Code\Quality.cpp seeds the clock, the mapper constructor reseeds it,
+   and the texture scrollers read the shared scaled delta. */
+extern unsigned int g_frame_tick_65a154;
+extern float g_frame_elapsed_65a158;
+}
+
 extern int g_surface_state_6595dc;
 extern int g_surface_state_654ad8;
 extern int g_viewport_left_6595e8;
