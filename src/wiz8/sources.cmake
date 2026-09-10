@@ -117,7 +117,7 @@ set(WIZ8_TEMPLATE_EMISSIONS
 # unresolved; a descriptive or recovered original filename records a coherent
 # subsystem or an assertion-backed original translation unit.
 # Keep this single list in link order: renaming a unit must not move its slot.
-set(WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
+set(WIZ8_PROVISIONAL_UNITS
     src/wiz8/imports/mss.cpp
     src/wiz8/bringup_gates.cpp
     src/wiz8/renderer_window.cpp
@@ -178,18 +178,6 @@ set(WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
     src/wiz8/vc6_runtime.cpp
 )
 
-# Keep logical ownership separate from original translation-unit certainty.
-# No address-bounded quarantine units remain.
-set(WIZ8_PROVISIONAL_UNITS)
-set(WIZ8_ADDRESS_QUARANTINE_UNITS)
-foreach(source IN LISTS WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS)
-    if(source MATCHES "^src/wiz8/unattributed/[0-9a-f]+_[0-9a-f]+[.]cpp$")
-        list(APPEND WIZ8_ADDRESS_QUARANTINE_UNITS "${source}")
-    else()
-        list(APPEND WIZ8_PROVISIONAL_UNITS "${source}")
-    endif()
-endforeach()
-
 # These explicit categories preserve matching-sensitive object order. The
 # glob is validation-only: it prevents a new recovered C++ source from
 # silently escaping ownership without using the filesystem to order or
@@ -197,7 +185,7 @@ endforeach()
 set(WIZ8_RECOVERED_SOURCE_CATEGORIES
     WIZ8_ORIGINAL_UNITS
     WIZ8_TEMPLATE_EMISSIONS
-    WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
+    WIZ8_PROVISIONAL_UNITS
 )
 set(WIZ8_CLASSIFIED_SOURCES)
 foreach(category IN LISTS WIZ8_RECOVERED_SOURCE_CATEGORIES)
@@ -214,30 +202,6 @@ endforeach()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/wiz8/unattributed_helpers.cpp")
     message(FATAL_ERROR "Synthetic catch-all source is forbidden: unattributed_helpers.cpp")
 endif()
-foreach(source IN LISTS WIZ8_ADDRESS_QUARANTINE_UNITS)
-    if(source MATCHES "^src/wiz8/unattributed/([0-9a-f]+)_([0-9a-f]+)[.]cpp$")
-        set(lower "${CMAKE_MATCH_1}")
-        set(upper "${CMAKE_MATCH_2}")
-        string(LENGTH "${lower}" lower_length)
-        string(LENGTH "${upper}" upper_length)
-        if(NOT lower_length EQUAL 8 OR NOT upper_length EQUAL 8)
-            message(FATAL_ERROR "Quarantine bounds must be eight hex digits: ${source}")
-        endif()
-        file(READ "${CMAKE_CURRENT_SOURCE_DIR}/${source}" contents)
-        string(REGEX MATCHALL "// FUNCTION: WIZ8 0x[0-9A-Fa-f]+" markers "${contents}")
-        if(NOT markers)
-            message(FATAL_ERROR "Address quarantine has no FUNCTION markers: ${source}")
-        endif()
-        foreach(marker IN LISTS markers)
-            string(REGEX REPLACE ".*0x" "" address "${marker}")
-            string(TOLOWER "${address}" address)
-            if(address STRLESS lower OR upper STRLESS address)
-                message(FATAL_ERROR
-                    "${source} owns ${address}, outside its ${lower}-${upper} bounds")
-            endif()
-        endforeach()
-    endif()
-endforeach()
 if(CMAKE_SCRIPT_MODE_FILE)
     file(GLOB_RECURSE WIZ8_CPP_SOURCES
         RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
