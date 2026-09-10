@@ -61,17 +61,13 @@ struct PropModelInstanceAccess : srModelInstance {
         float scale;
 
         alignment_flags_148 |= 1;
-        align_axis_14c.x = 0.0f;
-        align_axis_14c.y = 1.0f;
-        align_axis_14c.z = 0.0f;
+        align_axis_14c.Set(0.0f, 1.0f, 0.0f);
         length_squared = align_axis_14c.z * align_axis_14c.z +
             align_axis_14c.y * align_axis_14c.y +
             align_axis_14c.x * align_axis_14c.x;
         if ((double)length_squared != g_zero_005ebb40) {
             scale = (float)(g_double_005ebc30 / sqrt((double)length_squared));
-            align_axis_14c.x *= scale;
-            align_axis_14c.y *= scale;
-            align_axis_14c.z *= scale;
+            align_axis_14c *= scale;
         }
         alignment_flags_148 |= 1;
     }
@@ -105,12 +101,8 @@ W8Prop::W8Prop()
     unknown_008 = IncrementValue60DFAC();
     m_pRep = new W8PropRepresentation();
     m_animation_timer = new W8GameTimer();
-    position_02c.x = 0.0f;
-    position_02c.y = 0.0f;
-    position_02c.z = 0.0f;
-    position_03c.x = 0.0f;
-    position_03c.y = 0.0f;
-    position_03c.z = 0.0f;
+    position_02c.SetZero();
+    position_03c.SetZero();
     rotation_048.vectors[0].x = 1.0f;
     rotation_048.vectors[0].y = 0.0f;
     rotation_048.vectors[0].z = 0.0f;
@@ -735,12 +727,8 @@ void W8Prop::Method44C670()
             PathAIApply004AA520(
                 path, reinterpret_cast<stModelInstance*>(mesh));
             reinterpret_cast<srNode*>(mesh)->getLocation(location);
-            position_02c.x = location.x;
-            position_02c.y = location.y;
-            position_02c.z = location.z;
-            position_03c.x = location.x;
-            position_03c.y = location.y;
-            position_03c.z = location.z;
+            position_02c = location;
+            position_03c = location;
         }
     }
     flags_1c |= 0x20;

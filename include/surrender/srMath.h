@@ -39,33 +39,41 @@ public:
         srHeap.free(allocation);
     }
 
-    void method_00421670();
-    srVector3T<T>* method_00421680(
+    void SetZero();
+    srVector3T<T>* Set(
         double source_0, double source_1, double source_2);
+    srVector3T<T>& operator=(const srVector3T<double>& source)
+    {
+        SetFromDouble(&source);
+        return *this;
+    }
     srVector3T<T>& operator+=(const srVector3T<T>& other);
+    srVector3T<T>& operator-=(const srVector3T<T>& other);
     srVector3T<T>& operator*=(double scalar);
     srVector3T<T>& operator/=(double scalar);
-    T method_00421700() const;
-    srVector3T<T>* method_00446110(const srVector3T<double>* source);
-    srVector3T<T>* method_004A90E0(const srVector3T<float>* source);
-    srVector3T<T>* method_00451A10(double sine, double cosine);
-    srVector3T<T>* method_0049BA80(double sine, double cosine);
+    T Length() const;
+    srVector3T<T>* SetFromDouble(const srVector3T<double>* source);
+    srVector3T<T>* SetFromFloat(const srVector3T<float>* source);
+    srVector3T<T>* RotateAboutY(double sine, double cosine);
+    srVector3T<T>* RotateAboutX(double sine, double cosine);
 
     T x;
     T y;
     T z;
 };
 
+// TEMPLATE: WIZ8 0x00421670
 template <class T>
-void srVector3T<T>::method_00421670()
+void srVector3T<T>::SetZero()
 {
     x = (T)0;
     y = (T)0;
     z = (T)0;
 }
 
+// TEMPLATE: WIZ8 0x00421680
 template <class T>
-srVector3T<T>* srVector3T<T>::method_00421680(
+srVector3T<T>* srVector3T<T>::Set(
     double source_0,
     double source_1,
     double source_2)
@@ -82,6 +90,15 @@ srVector3T<T>& srVector3T<T>::operator+=(const srVector3T<T>& other)
     x += other.x;
     y += other.y;
     z += other.z;
+    return *this;
+}
+
+template <class T>
+srVector3T<T>& srVector3T<T>::operator-=(const srVector3T<T>& other)
+{
+    x -= other.x;
+    y -= other.y;
+    z -= other.z;
     return *this;
 }
 
@@ -104,14 +121,16 @@ srVector3T<T>& srVector3T<T>::operator/=(double scalar)
     return *this;
 }
 
+// TEMPLATE: WIZ8 0x00421700
 template <class T>
-T srVector3T<T>::method_00421700() const
+T srVector3T<T>::Length() const
 {
     return (T)sqrt(x * x + y * y + z * z);
 }
 
+// TEMPLATE: WIZ8 0x00446110
 template <class T>
-srVector3T<T>* srVector3T<T>::method_00446110(
+srVector3T<T>* srVector3T<T>::SetFromDouble(
     const srVector3T<double>* source)
 {
     x = (T)source->x;
@@ -120,8 +139,9 @@ srVector3T<T>* srVector3T<T>::method_00446110(
     return this;
 }
 
+// TEMPLATE: WIZ8 0x00451A10
 template <class T>
-srVector3T<T>* srVector3T<T>::method_00451A10(
+srVector3T<T>* srVector3T<T>::RotateAboutY(
     double sine,
     double cosine)
 {
@@ -131,8 +151,9 @@ srVector3T<T>* srVector3T<T>::method_00451A10(
     return this;
 }
 
+// TEMPLATE: WIZ8 0x0049BA80
 template <class T>
-srVector3T<T>* srVector3T<T>::method_0049BA80(
+srVector3T<T>* srVector3T<T>::RotateAboutX(
     double sine,
     double cosine)
 {
@@ -143,7 +164,7 @@ srVector3T<T>* srVector3T<T>::method_0049BA80(
 }
 
 template <class T>
-T DotProduct004218E0(
+T DotProduct(
     const srVector3T<T>& first,
     const srVector3T<T>& second)
 {
@@ -159,6 +180,18 @@ srVector3T<T> operator+(
     result.x = first.x + second.x;
     result.y = first.y + second.y;
     result.z = first.z + second.z;
+    return result;
+}
+
+template <class T>
+srVector3T<T> operator-(
+    const srVector3T<T>& first,
+    const srVector3T<T>& second)
+{
+    srVector3T<T> result;
+    result.x = first.x - second.x;
+    result.y = first.y - second.y;
+    result.z = first.z - second.z;
     return result;
 }
 
@@ -188,9 +221,7 @@ class srVector4T {
 public:
     srVector4T<T>() {}
 
-    srVector4T<T>* method_004817E0(
-        double source_0, double source_1, double source_2, double source_3);
-    srVector4T<T>* method_004D6B30(
+    srVector4T<T>* Set(
         T source_0, T source_1, T source_2, T source_3);
 
     T x;
@@ -199,22 +230,9 @@ public:
     T w;
 };
 
+// TEMPLATE: WIZ8 0x004D6B30
 template <class T>
-srVector4T<T>* srVector4T<T>::method_004817E0(
-    double source_0,
-    double source_1,
-    double source_2,
-    double source_3)
-{
-    x = (T)source_0;
-    y = (T)source_1;
-    z = (T)source_2;
-    w = (T)source_3;
-    return this;
-}
-
-template <class T>
-srVector4T<T>* srVector4T<T>::method_004D6B30(
+srVector4T<T>* srVector4T<T>::Set(
     T source_0,
     T source_1,
     T source_2,
@@ -230,22 +248,23 @@ srVector4T<T>* srVector4T<T>::method_004D6B30(
 template <class T>
 class srMatrix3T {
 public:
-    srMatrix3T<T>* method_004219F0(
+    srMatrix3T<T>* SetRows(
         const srVector3T<T>& first,
         const srVector3T<T>& second,
         const srVector3T<T>& third);
-    srMatrix3T<T>* method_00421A40(const srMatrix3T<T>& other);
-    void SetIdentity00467310();
-    srMatrix3T<T>* method_00438F90(double sine, double cosine);
-    srMatrix3T<T>* method_004A5AB0(double angle);
-    srMatrix3T<T>* method_004CAB60(double angle);
-    srMatrix3T<T>* method_00478EB0(double sine, double cosine);
+    srMatrix3T<T>* MultiplyBy(const srMatrix3T<T>& other);
+    void SetIdentity();
+    srMatrix3T<T>* RotateAboutY(double sine, double cosine);
+    srMatrix3T<T>* RotatePitch(double angle);
+    srMatrix3T<T>* RotateRoll(double angle);
+    srMatrix3T<T>* RotateAboutX(double sine, double cosine);
 
     srVector3T<T> vectors[3];
 };
 
+// TEMPLATE: WIZ8 0x004219F0
 template <class T>
-srMatrix3T<T>* srMatrix3T<T>::method_004219F0(
+srMatrix3T<T>* srMatrix3T<T>::SetRows(
     const srVector3T<T>& first,
     const srVector3T<T>& second,
     const srVector3T<T>& third)
@@ -256,8 +275,9 @@ srMatrix3T<T>* srMatrix3T<T>::method_004219F0(
     return this;
 }
 
+// TEMPLATE: WIZ8 0x00421A40
 template <class T>
-srMatrix3T<T>* srMatrix3T<T>::method_00421A40(
+srMatrix3T<T>* srMatrix3T<T>::MultiplyBy(
     const srMatrix3T<T>& other)
 {
     T result[9];
@@ -287,7 +307,7 @@ srMatrix3T<T>* srMatrix3T<T>::method_00421A40(
 }
 
 template <class T>
-void srMatrix3T<T>::SetIdentity00467310()
+void srMatrix3T<T>::SetIdentity()
 {
     vectors[0].x = (T)1;
     vectors[0].y = (T)0;
@@ -300,8 +320,9 @@ void srMatrix3T<T>::SetIdentity00467310()
     vectors[2].z = (T)1;
 }
 
+// TEMPLATE: WIZ8 0x00438F90
 template <class T>
-srMatrix3T<T>* srMatrix3T<T>::method_00438F90(
+srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(
     double sine,
     double cosine)
 {
@@ -320,12 +341,13 @@ srMatrix3T<T>* srMatrix3T<T>::method_00438F90(
     rotation.vectors[0] = basis[0];
     rotation.vectors[1] = basis[1];
     rotation.vectors[2] = basis[2];
-    method_00421A40(rotation);
+    MultiplyBy(rotation);
     return this;
 }
 
+// TEMPLATE: WIZ8 0x00478EB0
 template <class T>
-srMatrix3T<T>* srMatrix3T<T>::method_00478EB0(
+srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(
     double sine,
     double cosine)
 {
@@ -344,7 +366,7 @@ srMatrix3T<T>* srMatrix3T<T>::method_00478EB0(
     rotation.vectors[0] = basis[0];
     rotation.vectors[1] = basis[1];
     rotation.vectors[2] = basis[2];
-    method_00421A40(rotation);
+    MultiplyBy(rotation);
     return this;
 }
 
@@ -353,23 +375,23 @@ class srMatrix4T {
 public:
     enum e_scaleType {};
 
-    srMatrix4T<T>* InvertMatrix0049BAB0();
-    T* Scale0049BD50(double scale);
-    void AdjugateFrom0049BF20(T* source);
-    T Det0049BDF0() const;
+    srMatrix4T<T>* Invert();
+    T* Scale(double scale);
+    void AdjugateFrom(T* source);
+    T Det() const;
 
     srVector4T<T> vectors[4];
 };
 
 template <class T>
-srMatrix4T<T>* srMatrix4T<T>::InvertMatrix0049BAB0()
+srMatrix4T<T>* srMatrix4T<T>::Invert()
 {
     srMatrix4T<T> inverse;
-    inverse.AdjugateFrom0049BF20(&vectors[0].x);
+    inverse.AdjugateFrom(&vectors[0].x);
 
-    T determinant = Det0049BDF0();
+    T determinant = Det();
     if (determinant != (T)1) {
-        inverse.Scale0049BD50(1.0 / determinant);
+        inverse.Scale(1.0 / determinant);
     }
 
     *this = inverse;
@@ -377,7 +399,7 @@ srMatrix4T<T>* srMatrix4T<T>::InvertMatrix0049BAB0()
 }
 
 template <class T>
-T* srMatrix4T<T>::Scale0049BD50(double scale)
+T* srMatrix4T<T>::Scale(double scale)
 {
     T* matrix = &vectors[0].x;
     T factor = (T)scale;
@@ -404,7 +426,7 @@ T* srMatrix4T<T>::Scale0049BD50(double scale)
 }
 
 template <class T>
-T srMatrix4T<T>::Det0049BDF0() const
+T srMatrix4T<T>::Det() const
 {
     const T* matrix = &vectors[0].x;
     T fVar1 = matrix[0];
@@ -444,7 +466,7 @@ T srMatrix4T<T>::Det0049BDF0() const
 }
 
 template <class T>
-void srMatrix4T<T>::AdjugateFrom0049BF20(T* source)
+void srMatrix4T<T>::AdjugateFrom(T* source)
 {
     T* param_1 = &vectors[0].x;
     T fVar7 = source[6];
@@ -500,7 +522,7 @@ void srMatrix4T<T>::AdjugateFrom0049BF20(T* source)
     param_1[15] = fVar5 * fVar3 + (fVar13 * fVar1 - fVar7 * fVar2);
 }
 
-float Det3_0049BD00(
+float Det3(
     float param_1,
     float param_2,
     float param_3,

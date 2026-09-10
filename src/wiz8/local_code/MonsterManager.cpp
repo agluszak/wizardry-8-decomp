@@ -1363,9 +1363,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         PrepareMonsterCycleForDestruction004ACF90(monster_info->monster);
         ReleaseMonToMonVisibilityList(monster_info);
         MonsterGetLocalLocation(monster_info->monster, &position);
-        monster_info->position_17.x = position.x;
-        monster_info->position_17.y = position.y;
-        monster_info->position_17.z = position.z;
+        monster_info->position_17 = position;
         monster_info->flag_14 = 0;
         --gXStatus.active_monster_count;
         if (gXStatus.fCombatMode != 0) {

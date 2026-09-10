@@ -212,23 +212,17 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
 
         if (light != 0) {
             if (_strnicmp(light->getName(), "Sun", 3) == 0) {
-                light->m_color_6c.x = 0.0f;
-                light->m_color_6c.y = 0.0f;
-                light->m_color_6c.z = 0.0f;
+                light->m_color_6c.SetZero();
                 light->m_direction_60 = record.colour;
                 light->setGroupMask(light->getGroupMask() | 4);
                 AddEnvironmentLight00483F30(light);
             }
             else {
                 light->m_color_6c = record.colour;
-                light->m_direction_60.x = 0.0f;
-                light->m_direction_60.y = 0.0f;
-                light->m_direction_60.z = 0.0f;
+                light->m_direction_60.SetZero();
             }
 
-            light->m_position_78.x = 0.0f;
-            light->m_position_78.y = 0.0f;
-            light->m_position_78.z = 0.0f;
+            light->m_position_78.SetZero();
             ConfigureWorldLight0046E300(
                 light, record.range * g_world_scale_005ebc40);
             light->m_positional_98 = record.intensity;
@@ -280,9 +274,7 @@ unsigned char ReadWorldEnvironment004BC9D0(
     if (camera_mode == 1) {
         success = success && FileRead(
             pInfo->hFile, &position, sizeof(position), 0);
-        position.x *= g_world_scale_005ebc40;
-        position.y *= g_world_scale_005ebc40;
-        position.z *= g_world_scale_005ebc40;
+        position *= g_world_scale_005ebc40;
         SetWorldScenePosition004511D0(pWorld, &position);
     }
     else if (camera_mode == 2) {
@@ -292,14 +284,12 @@ unsigned char ReadWorldEnvironment004BC9D0(
             FileRead(pInfo->hFile, &axis.x, sizeof(axis.x), 0) &&
             FileRead(pInfo->hFile, &axis.y, sizeof(axis.y), 0) &&
             FileRead(pInfo->hFile, &axis.z, sizeof(axis.z), 0);
-        position.x *= g_world_scale_005ebc40;
-        position.y *= g_world_scale_005ebc40;
-        position.z *= g_world_scale_005ebc40;
+        position *= g_world_scale_005ebc40;
         SetWorldScenePosition004511D0(GetWorld(), &position);
 
-        rotation.vectors[0].method_00421680(1.0f, 0.0f, 0.0f);
-        rotation.vectors[1].method_00421680(0.0f, 1.0f, 0.0f);
-        rotation.vectors[2].method_00421680(0.0f, 0.0f, 1.0f);
+        rotation.vectors[0].Set(1.0f, 0.0f, 0.0f);
+        rotation.vectors[1].Set(0.0f, 1.0f, 0.0f);
+        rotation.vectors[2].Set(0.0f, 0.0f, 1.0f);
         if (angle != 0.0f) {
             RotateMatrixAroundAxis0042B910(
                 &rotation.vectors[0].x, sin(angle), cos(angle), &axis.x);
@@ -326,9 +316,7 @@ unsigned char ReadWorldEnvironment004BC9D0(
         BuildEnvironmentColourRamp00483210();
     }
 
-    g_environment_offset_00659cd0.x = 0.0f;
-    g_environment_offset_00659cd0.y = 0.0f;
-    g_environment_offset_00659cd0.z = 0.0f;
+    g_environment_offset_00659cd0.SetZero();
     pWorld->view_distance_020 = view_distance * g_world_scale_005ebc40;
     white.red = 1.0f;
     white.green = 1.0f;
@@ -409,9 +397,9 @@ unsigned char ReadWorldClipPlanes004BCE20(
         clip_plane->setName(name);
         clip_plane->setClipPlane(plane);
 
-        position.x = serialized_position.x * g_world_scale_005ebc40;
-        position.y = serialized_position.y * g_world_scale_005ebc40;
-        position.z = serialized_position.z * g_world_scale_005ebc40;
+        position.Set(serialized_position.x * g_world_scale_005ebc40,
+                     serialized_position.y * g_world_scale_005ebc40,
+                     serialized_position.z * g_world_scale_005ebc40);
         clip_plane->setLocation(position);
         clip_plane->setFlag(srNode::FLAG_POSITIONAL_2);
         clip_plane->setClipType(srClipPlane::CLIP_POSITIONAL_0);
@@ -536,9 +524,7 @@ unsigned char ReadWorldItems004BC380(
         if (success) {
             FileRead(pInfo->hFile, &record.position_04,
                             sizeof(record.position_04), 0);
-            record.position_04.x *= g_world_scale_005ebc40;
-            record.position_04.y *= g_world_scale_005ebc40;
-            record.position_04.z *= g_world_scale_005ebc40;
+            record.position_04 *= g_world_scale_005ebc40;
             FileRead(
                 pInfo->hFile, &record.positional_00, sizeof(int), 0);
             FileRead(
@@ -630,9 +616,7 @@ unsigned char ReadMonsterPaths004BC140(
         return 1;
     }
 
-    origin.x = 0.0f;
-    origin.y = 0.0f;
-    origin.z = 0.0f;
+    origin.SetZero();
     for (index = 0; index < count; ++index) {
         update_representation = 1;
         active = 1;
@@ -660,11 +644,9 @@ unsigned char ReadMonsterPaths004BC140(
         {
             srVector3T<double> camera_location =
                 pWorld->camera->getLocation();
-            camera_position.x = static_cast<float>(camera_location.x);
-            camera_position.y = static_cast<float>(camera_location.y);
-            camera_position.z = static_cast<float>(camera_location.z);
+            camera_position = camera_location;
         }
-        monster->SelectLOD004A7BE0(&camera_position.x);
+        monster->SelectLOD004A7BE0(&camera_position);
 
         if (LoadPathAI004A92A0(&path, pInfo->hFile)) {
             monster->SetPathAI(path);
@@ -811,13 +793,10 @@ unsigned char ReadWorldParticles004BD0D0(
 
         _strupr(record.name);
         particle->setName(record.name);
-        axis.x = record.rotation_axis.x;
-        axis.y = record.rotation_axis.y;
-        axis.z = record.rotation_axis.z;
+        axis.SetFromFloat(&record.rotation_axis);
         particle->rotate(record.rotation_angle, axis);
-        location.x = record.location.x * g_world_scale_005ebc40;
-        location.y = record.location.y * g_world_scale_005ebc40;
-        location.z = record.location.z * g_world_scale_005ebc40;
+        location.SetFromFloat(&record.location);
+        location *= g_world_scale_005ebc40;
         particle->setLocation(location);
         particle->rotateX(1.5707963267948966);
 
@@ -829,19 +808,11 @@ unsigned char ReadWorldParticles004BD0D0(
             srVector3T<float> center;
             srVector3T<float> extent;
 
-            center.x = record.bounds_origin.x * g_world_scale_005ebc40;
-            center.y = record.bounds_origin.y * g_world_scale_005ebc40;
-            center.z = record.bounds_origin.z * g_world_scale_005ebc40;
-            extent.x = record.bounds_extent.x * 250.0f;
-            extent.y = record.bounds_extent.y * 250.0f;
-            extent.z = record.bounds_extent.z * 250.0f;
+            center = record.bounds_origin * g_world_scale_005ebc40;
+            extent = record.bounds_extent * 250.0f;
             particle->value_1a4 = 1;
-            particle->minimum_21c.x = center.x - extent.x;
-            particle->minimum_21c.y = center.y - extent.y;
-            particle->minimum_21c.z = center.z - extent.z;
-            particle->maximum_228.x = center.x + extent.x;
-            particle->maximum_228.y = center.y + extent.y;
-            particle->maximum_228.z = center.z + extent.z;
+            particle->minimum_21c = center - extent;
+            particle->maximum_228 = center + extent;
         }
         else if (record.bounds_mode == 2 && record.bounds_radius > 0.0f) {
             particle->value_1a4 = 2;
@@ -911,25 +882,25 @@ unsigned char ReadWorldParticles004BD0D0(
             float length;
             double angle = -1.5707963267948966;
 
-            rotation.vectors[0].method_00421680(1.0, 0.0, 0.0);
-            rotation.vectors[1].method_00421680(0.0, 1.0, 0.0);
-            rotation.vectors[2].method_00421680(0.0, 0.0, 1.0);
+            rotation.vectors[0].Set(1.0, 0.0, 0.0);
+            rotation.vectors[1].Set(0.0, 1.0, 0.0);
+            rotation.vectors[2].Set(0.0, 0.0, 1.0);
             if (record.rotation_angle != 0.0f) {
                 RotateMatrixAroundAxis0042B910(
                     &rotation.vectors[0].x,
                     sin(record.rotation_angle), cos(record.rotation_angle),
                     &record.rotation_axis.x);
             }
-            first.method_00421680(1.0, 0.0, 0.0);
-            second.method_00421680(0.0, cos(angle), -sin(angle));
-            third.method_00421680(0.0, sin(angle), cos(angle));
-            adjustment.method_004219F0(first, second, third);
-            rotation.method_00421A40(adjustment);
-            direction.method_00421680(0.0, 0.0, -1.0);
-            transformed.x = DotProduct004218E0(rotation.vectors[0], direction);
-            transformed.y = DotProduct004218E0(rotation.vectors[1], direction);
-            transformed.z = DotProduct004218E0(rotation.vectors[2], direction);
-            length = transformed.method_00421700();
+            first.Set(1.0, 0.0, 0.0);
+            second.Set(0.0, cos(angle), -sin(angle));
+            third.Set(0.0, sin(angle), cos(angle));
+            adjustment.SetRows(first, second, third);
+            rotation.MultiplyBy(adjustment);
+            direction.Set(0.0, 0.0, -1.0);
+            transformed.x = DotProduct(rotation.vectors[0], direction);
+            transformed.y = DotProduct(rotation.vectors[1], direction);
+            transformed.z = DotProduct(rotation.vectors[2], direction);
+            length = transformed.Length();
             if (length != 0.0f) {
                 transformed /= length;
             }
@@ -989,9 +960,7 @@ unsigned char ReadWorldParticles004BD0D0(
 
         if (strncmp(record.name, "CLOUD", 5) == 0) {
             srVector3T<double> current = particle->getLocation();
-            particle->camera_offset_244.x = static_cast<float>(current.x);
-            particle->camera_offset_244.y = static_cast<float>(current.y);
-            particle->camera_offset_244.z = static_cast<float>(current.z);
+            particle->camera_offset_244 = current;
             particle->value_1c4 = 1;
             particle->SetActive(1);
         }
@@ -1037,9 +1006,7 @@ unsigned char ReadNamedPositions004BDC90(
                         sizeof(pNamedPos->position.y), 0);
         FileRead(hFile, &pNamedPos->position.z,
                         sizeof(pNamedPos->position.z), 0);
-        pNamedPos->position.x *= 500.0;
-        pNamedPos->position.y *= 500.0;
-        pNamedPos->position.z *= 500.0;
+        pNamedPos->position *= 500.0;
         FileRead(hFile, &pNamedPos->value_08c,
                         sizeof(pNamedPos->value_08c), 0);
         FileRead(hFile, &pNamedPos->value_090,

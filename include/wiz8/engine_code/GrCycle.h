@@ -104,7 +104,7 @@ public:
     stParticle* particle_08;
     srVector3T<float> position_0c;
     /* 0x004A7E50 composes this into the model instance's own rotation with
-       method_00421A40, which is what makes it a matrix rather than 0x24
+       MultiplyBy, which is what makes it a matrix rather than 0x24
        opaque bytes. */
     srMatrix3T<float> rotation_18;
 };
@@ -149,7 +149,7 @@ public:
     /* Runs at the end of every representation update; its own body is the
        shake/particle event walk and is not recovered yet. */
     void UpdateParticleAttachments004A7E50();
-    void SelectLOD004A7BE0(const float* position);   /* 0x004A7BE0 */
+    void SelectLOD004A7BE0(const srVector3T<float>* position);   /* 0x004A7BE0 */
     void UpdateLights004A7150();
     srModelInstance* SelectCycleFrameLod004A8360(
         signed char cycle, signed char frame, signed char lod);

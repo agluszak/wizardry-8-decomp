@@ -665,9 +665,7 @@ unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
         if (item->unknown_08 != 0) {
             srVector3T<float> position;
             item->owner->m_pRep->GetLocation004B8890(&position);
-            item->position.x = position.x;
-            item->position.y = position.y;
-            item->position.z = position.z;
+            item->position = position;
             item->entity_flags =
                 static_cast<W8ItemRep*>(first->owner->m_pRep)->flags;
         }

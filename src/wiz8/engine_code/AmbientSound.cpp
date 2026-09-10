@@ -35,9 +35,7 @@ W8AmbientSound::W8AmbientSound()
       value_ec(0)
 {
     config_004.match_name[0] = 0;
-    vector_88.x = 0.0f;
-    vector_88.y = 0.0f;
-    vector_88.z = 0.0f;
+    vector_88.SetZero();
     pacSoundName = 0;
     flag_84 = 0;
 }

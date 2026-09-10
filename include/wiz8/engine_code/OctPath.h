@@ -378,12 +378,17 @@ public:
     BitArray* visible_waypoints_058;     /* 0x58 */
     BitArray* rendered_waypoints_05c;    /* 0x5c */
     BitArray* collected_waypoints_060;   /* 0x60 */
-    /* Two hash indexes the loader builds and 0x00457B10 destroys. */
-    W8HashTable<unsigned int, int>* m_pIndex_064; /* 0x64 */
+    /* Two hash indexes the loader builds and 0x00457B10 destroys. The path
+       value words are bitfields (height in the low half, state flags in the
+       high bits), so 0x64 takes unsigned values; 0x74 is the visited-cell set
+       and keeps the signed value the octree registry also instantiates. The
+       template only copies and compares values, so the two instantiations are
+       body-equivalent and retail's linker folds them. */
+    W8HashTable<unsigned int, unsigned int>* m_pPathValues_064; /* 0x64 */
     const char* level_name;                /* 0x68 */
     W8PathHeapHandle* path_heap_06c;     /* 0x6c */
     unsigned int m_positional_070;       /* 0x70: starts 0x501502f9 */
-    W8HashTable<unsigned int, int>* m_pIndex_074; /* 0x74 */
+    W8HashTable<unsigned int, int>* m_pVisitedCells_074; /* 0x74 */
     unsigned int probe_cell_key_078;     /* 0x78 */
     srVector3T<float> probe_position_07c; /* 0x7c */
     unsigned int probe_limit_088;        /* 0x88 */

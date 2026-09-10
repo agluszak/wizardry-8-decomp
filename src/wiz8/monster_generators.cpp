@@ -292,12 +292,9 @@ void CullExpiredEncounters(void)
             W8Monster* monster = GetMonsterByLocationID(group->value_9f);
 
             position = monster->GetPosition();
-            float dx = position.x - party.x;
-            float dy = position.y - party.y;
-            float dz = position.z - party.z;
+            srVector3T<float> delta = position - party;
 
-            if (g_encounter_culling_distance <
-                    static_cast<float>(sqrt(dx * dx + dy * dy + dz * dz)) ||
+            if (g_encounter_culling_distance < delta.Length() ||
                 g_force_encounter_culling != 0) {
                 DespawnMonsterGroup(group);
             }
@@ -448,9 +445,9 @@ void W8MonsterGenerator::Save(int handle)
     FileWrite(handle, &flag_04, 1, 0);
     FileWrite(handle, &value_06, 2, 0);
     FileWrite(handle, &value_08, 2, 0);
-    FileWrite(handle, &state_0c, 4, 0);
-    FileWrite(handle, &state_10, 4, 0);
-    FileWrite(handle, &state_14, 4, 0);
+    FileWrite(handle, &state_0c.x, 4, 0);
+    FileWrite(handle, &state_0c.y, 4, 0);
+    FileWrite(handle, &state_0c.z, 4, 0);
     FileWrite(handle, &value_1c, 4, 0);
     m_pTimer->Save(handle);
 }
@@ -477,9 +474,9 @@ unsigned char W8MonsterGenerator::Load(int handle)
              FileRead(handle, &flag_04, 1, 0) &&
              FileRead(handle, &value_06, 2, 0) &&
              FileRead(handle, &value_08, 2, 0) &&
-             FileRead(handle, &state_0c, 4, 0) &&
-             FileRead(handle, &state_10, 4, 0) &&
-             FileRead(handle, &state_14, 4, 0) &&
+             FileRead(handle, &state_0c.x, 4, 0) &&
+             FileRead(handle, &state_0c.y, 4, 0) &&
+             FileRead(handle, &state_0c.z, 4, 0) &&
              FileRead(handle, &value_1c, 4, 0);
     Reset();
     if (static_cast<signed char>(version) > 1) {
@@ -556,8 +553,7 @@ static __inline void LoadMonsterGeneratorMarkerInline(W8MonsterGenerator* genera
     }
     generator->node_18 = marker;
     if (marker != 0) {
-        marker->SetLocation0049F720(
-            reinterpret_cast<const srVector3T<float>*>(&generator->state_0c));
+        marker->SetLocation0049F720(&generator->state_0c);
         marker->ApplyRepTransform0049FAA0();
     }
 }
@@ -636,9 +632,7 @@ W8MonsterGenerator::~W8MonsterGenerator()
 // FUNCTION: WIZ8 0x0048b730
 void W8MonsterGenerator::SetState(const srVector3T<float>* state)
 {
-    state_0c = *reinterpret_cast<const int*>(&state->x);
-    state_10 = *reinterpret_cast<const int*>(&state->y);
-    state_14 = *reinterpret_cast<const int*>(&state->z);
+    state_0c = *state;
     if (node_18 != 0) {
         node_18->SetLocation0049F720(state);
         node_18->ApplyRepTransform0049FAA0();

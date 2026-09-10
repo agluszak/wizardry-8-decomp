@@ -514,9 +514,7 @@ void DeactivateWorldItem(W8WorldItem* item)
     }
 
     item->owner->m_pRep->GetLocation004B8890(&position);
-    item->position.x = position.x;
-    item->position.y = position.y;
-    item->position.z = position.z;
+    item->position = position;
     item->entity_flags = static_cast<W8ItemRep*>(item->owner->m_pRep)->flags;
 
     item->owner->DetachMesh0049FA30(GetWorld());
@@ -536,13 +534,13 @@ unsigned char IsWorldItemWithinReach(W8Item* owner, const float* from, float rad
     srVector3T<float> position;
     float lower[3];
     float upper[3];
-    unsigned char eye[12];
+    srVector3T<float> eye;
     float dx;
     float dy;
     float dz;
 
     owner->m_pRep->GetLocation004B8890(&position);
-    GetCameraPosition(reinterpret_cast<srVector3T<float>*>(eye));
+    GetCameraPosition(&eye);
 
     dx = position.x - from[0];
     dy = position.y - from[1];
@@ -555,7 +553,7 @@ unsigned char IsWorldItemWithinReach(W8Item* owner, const float* from, float rad
         upper[0] += position.x;
         upper[1] += position.y;
         upper[2] += position.z;
-        if (TraceToBounds(eye, lower, upper)) {
+        if (TraceToBounds(&eye, lower, upper)) {
             return 1;
         }
     }
@@ -597,9 +595,7 @@ unsigned char SettleWorldItem(W8WorldItem* item)
     if (item->owner != 0) {
         item->owner->SetLocation0049F720(&start);
     }
-    item->position.x = start.x;
-    item->position.y = start.y;
-    item->position.z = start.z;
+    item->position = start;
     return 1;
 }
 

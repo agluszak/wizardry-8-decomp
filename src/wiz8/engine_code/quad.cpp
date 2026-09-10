@@ -48,9 +48,7 @@ static W8QuadCell* GetPolygonQuadCell004BE100(
 
     for (vertex = 0; vertex < 3; ++vertex) {
         int index = (&polygon_vertices[polygon].x)[vertex];
-        center.x += vertices[index].x;
-        center.y += vertices[index].y;
-        center.z += vertices[index].z;
+        center += vertices[index];
     }
 
     center.x *= 0.33333334f;

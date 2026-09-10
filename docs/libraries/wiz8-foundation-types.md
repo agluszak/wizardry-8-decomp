@@ -307,10 +307,10 @@ instructions, so current evidence provides no third math library.
 Two exact bodies compiled into Wiz8.exe belong to `srVector3T<float>`. `0x00421680` converts three
 double arguments into the three float fields and returns `this`; `0x00446110` converts an
 `srVector3T<double>` into an `srVector3T<float>` and also returns `this`. SR.DLL does not export the
-inline member names, so the source uses the explicit positional placeholders `method_00421680` and
-`method_00446110`. The old CFAgent descriptions `VectorFromThreeFloats` and `Copy3DVector` remain
-aliases only. Translation-unit reporting classifies both bodies as external SurRender templates,
-not recovered first-party Wizardry functions.
+inline member names, so the source names them `Set` and `SetFromDouble`; the address markers in
+`surrender_math.cpp` keep their identity. The old CFAgent descriptions `VectorFromThreeFloats` and
+`Copy3DVector` remain aliases only. Translation-unit reporting classifies both bodies as external
+SurRender templates, not recovered first-party Wizardry functions.
 
 ## The SurRender inline string, and where it is allowed to appear
 

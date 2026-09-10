@@ -42,7 +42,7 @@ enum { W8_NPC_DISPOSITION_HOSTILE = 0x21, W8_NPC_DISPOSITION_FRIENDLY = 0x42 };
 W8GrowableVector<W8NpcState*>* g_npc_states;
 
 extern char GetNpcDisposition(W8NpcState* npc);                          /* 0x0050A280 */
-extern unsigned char UpdateNpcAt(W8NpcState* npc, int arg_2, void* scratch); /* 0x0050B2F0 */
+extern unsigned char UpdateNpcAt(W8NpcState* npc, int arg_2, srVector3T<float>* scratch); /* 0x0050B2F0 */
 
 /* Whether the NPC's database entry carries the value at 0x002 at all. */
 // FUNCTION: WIZ8 0x0050aa00
@@ -68,9 +68,9 @@ unsigned char GetNpcDispositionBand(W8NpcState* npc)
 // FUNCTION: WIZ8 0x0050b2d0
 void UpdateNpc(W8NpcState* npc)
 {
-    unsigned char scratch[12];
+    srVector3T<float> scratch;
 
-    UpdateNpcAt(npc, 0, scratch);
+    UpdateNpcAt(npc, 0, &scratch);
 }
 
 /* Whether the NPC will talk about one topic. Topics are stored one more than
@@ -519,7 +519,7 @@ const float g_float_005ec29c = 0.7853981256484985f;
 /* Probe the navigator from the party eye at three height bands, reporting
    whether any band reaches. */
 // FUNCTION: WIZ8 0x0050B2F0
-unsigned char UpdateNpcAt(W8NpcState* /*npc*/, int /*arg_2*/, void* scratch)
+unsigned char UpdateNpcAt(W8NpcState* /*npc*/, int /*arg_2*/, srVector3T<float>* scratch)
 {
     srVector3T<float> party_position;
     float yaw;
@@ -529,17 +529,17 @@ unsigned char UpdateNpcAt(W8NpcState* /*npc*/, int /*arg_2*/, void* scratch)
     yaw = GetCameraYawRadians() + g_float_005ec29c;
     if (FindNavigatorPosition00437F30(
             &party_position, yaw, 1000.0f, 1,
-            reinterpret_cast<srVector3T<float>*>(scratch), 1, 0, 1, 10, 0) > 0) {
+            scratch, 1, 0, 1, 10, 0) > 0) {
         return 1;
     }
     if (FindNavigatorPosition00437F30(
             &party_position, yaw, 1000.0f, 1,
-            reinterpret_cast<srVector3T<float>*>(scratch), 1, 0, 1, 20, 0) > 0) {
+            scratch, 1, 0, 1, 20, 0) > 0) {
         return 1;
     }
     FindNavigatorPosition00437F30(
         &party_position, yaw, 1000.0f, 1,
-        reinterpret_cast<srVector3T<float>*>(scratch), 1, 0, 1, 30, 0);
+        scratch, 1, 0, 1, 30, 0);
     return 0;
 }
 
@@ -561,9 +561,7 @@ void TriggerBelaVoice0050D480(W8Monster* monster)
     srVector3T<float> position;
 
     monster->flags_1dc |= 0x40;
-    position.x = 0.0f;
-    position.y = 0.0f;
-    position.z = 0.0f;
+    position.SetZero();
     monster->SetPosition(&position);
 
     W8NpcState* npc = 0;

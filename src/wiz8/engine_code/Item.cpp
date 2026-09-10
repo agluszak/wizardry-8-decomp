@@ -51,9 +51,7 @@ void W8Item::ApplyRepTransform0049FAA0()
     }
     mesh = static_cast<W8ItemRep*>(m_pRep)->m_psrMesh;
     m_pRep->GetLocation004B8890(&location);
-    widened.x = location.x;
-    widened.y = location.y;
-    widened.z = location.z;
+    widened.SetFromFloat(&location);
     mesh->setLocation(widened);
     m_pRep->GetRotation004B88F0(&rotation);
     mesh->setRotation(rotation);
@@ -86,17 +84,13 @@ void W8Item::AttachMesh0049F900(W8World* world)
     m_pRep->GetRotation004B88F0(&rotation);
     child = mesh->firstChild();
     if (child == 0) {
-        widened.x = location.x;
-        widened.y = location.y;
-        widened.z = location.z;
+        widened.SetFromFloat(&location);
         mesh->setLocation(widened);
         mesh->setRotation(rotation);
         return;
     }
     do {
-        widened.x = location.x;
-        widened.y = location.y;
-        widened.z = location.z;
+        widened.SetFromFloat(&location);
         child->setLocation(widened);
         child->setRotation(rotation);
         child = child->nextSibling();

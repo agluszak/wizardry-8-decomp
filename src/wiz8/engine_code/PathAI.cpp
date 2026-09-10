@@ -113,7 +113,7 @@ unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
             FileRead(handle, &axis.x, 4, 0);
             FileRead(handle, &axis.y, 4, 0);
             FileRead(handle, &axis.z, 4, 0);
-            rotation.SetIdentity00467310();
+            rotation.SetIdentity();
             if ((double)angle != g_zero_005ebb40) {
                 RotateMatrixAroundAxis0042B910(
                     &rotation.vectors[0].x,

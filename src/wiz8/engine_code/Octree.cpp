@@ -100,9 +100,7 @@ void W8Octree::UpdateCameraVisibility0042F7E0()
     rotation_column_1e4.z = rotation.vectors[2].y;
 
     srVector3T<double> dof = world->camera->getWorldSpaceDOF();
-    camera_dof_1cc.x = static_cast<float>(dof.x);
-    camera_dof_1cc.y = static_cast<float>(dof.y);
-    camera_dof_1cc.z = static_cast<float>(dof.z);
+    camera_dof_1cc = dof;
     horizontal_fov_cosine_1f8 = (float)cos(horizontal_fov_1f0);
     vertical_fov_cosine_1fc = (float)cos(vertical_fov_1f4);
     m_owned_190->ClearAll();
@@ -838,9 +836,7 @@ unsigned char W8Octree::PrepareNavigatorTarget00434250(
         }
         return result;
     }
-    delta.x = movement->target_position_04c.x - movement->position_040.x;
-    delta.y = movement->target_position_04c.y - movement->position_040.y;
-    delta.z = movement->target_position_04c.z - movement->position_040.z;
+    delta = movement->target_position_04c - movement->position_040;
     float squared_length = delta.x * delta.x + delta.y * delta.y + delta.z * delta.z;
     float gap = (float)sqrt(squared_length) - separation;
     if (gap < g_float_005ebb34) {
@@ -851,13 +847,9 @@ unsigned char W8Octree::PrepareNavigatorTarget00434250(
     if (gap < g_world_scale_005ebc40) {
         if (squared_length != g_zero_005ebb40) {
             float scale = (float)(gap * g_float_005ec028 / sqrt(squared_length));
-            delta.x *= scale;
-            delta.y *= scale;
-            delta.z *= scale;
+            delta *= scale;
         }
-        delta.x += movement->position_040.x;
-        delta.y += movement->position_040.y;
-        delta.z += movement->position_040.z;
+        delta += movement->position_040;
         movement->attachment_0ac->InitializeSegment004563E0(&movement->position_040, &delta);
         return 1;
     }
@@ -908,19 +900,13 @@ unsigned char W8Octree::PrepareNavigatorPatrol00434880(
         double step = movement->movement_scale_060 * g_world_scale_005ebc40;
         movement->attachment_0ac->GetNextPosition00456660(&movement->target_position_04c);
         srVector3T<float> delta;
-        delta.x = movement->target_position_04c.x - movement->position_040.x;
-        delta.y = movement->target_position_04c.y - movement->position_040.y;
-        delta.z = movement->target_position_04c.z - movement->position_040.z;
+        delta = movement->target_position_04c - movement->position_040;
         float squared_length = delta.x * delta.x + delta.y * delta.y + delta.z * delta.z;
         if (step < sqrt(squared_length) && squared_length != g_zero_005ebb40) {
             float scale = (float)(step / sqrt(squared_length));
-            delta.x *= scale;
-            delta.y *= scale;
-            delta.z *= scale;
+            delta *= scale;
         }
-        movement->target_position_04c.x = delta.x + movement->position_040.x;
-        movement->target_position_04c.y = delta.y + movement->position_040.y;
-        movement->target_position_04c.z = delta.z + movement->position_040.z;
+        movement->target_position_04c = delta + movement->position_040;
     }
     return result;
 }
@@ -2496,9 +2482,7 @@ unsigned int W8Octree::AdvanceNavigator(
     if (g_navigator_link_mode_00659c10 != 0) {
         return 1;
     }
-    vecDir.x = movement->target_position_04c.x - movement->position_040.x;
-    vecDir.y = movement->target_position_04c.y - movement->position_040.y;
-    vecDir.z = movement->target_position_04c.z - movement->position_040.z;
+    vecDir = movement->target_position_04c - movement->position_040;
     vecDir.y = 0.0f;
     distance = (float)sqrt(vecDir.x * vecDir.x + vecDir.z * vecDir.z);
     step = g_object_6598bc->GetValue28() * movement->movement_scale_060 *
@@ -2514,9 +2498,7 @@ unsigned int W8Octree::AdvanceNavigator(
         vecDir.x = vecDir.x * step;
         vecDir.z = vecDir.z * step;
     }
-    vecPos.x = vecDir.x + movement->position_040.x;
-    vecPos.y = vecDir.y + movement->position_040.y;
-    vecPos.z = vecDir.z + movement->position_040.z;
+    vecPos = vecDir + movement->position_040;
     movement->position_040 = vecPos;
     attachment = movement->attachment_0ac;
     *attachment->position_4c = vecPos;

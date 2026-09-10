@@ -141,9 +141,7 @@ GDCamera::GDCamera()
     m_positional_000 = 0;
     m_target_angle_098 = 0.0f;
     m_target_pitch_09c = 0.0f;
-    m_position_08c.x = 0.0f;
-    m_position_08c.y = 0.0f;
-    m_position_08c.z = 0.0f;
+    m_position_08c.SetZero();
     m_position_08c.y = g_startup_depth_603ac8;
     m_transition_active = 0;
 
@@ -156,14 +154,12 @@ GDCamera::GDCamera()
     }
     m_pitch = pitch;
 
-    temporary.x = 1.0f;
-    temporary.y = 0.0f;
-    temporary.z = 0.0f;
+    temporary.Set(1.0f, 0.0f, 0.0f);
     first_matrix->vectors[0] = temporary;
-    first_matrix->vectors[1] = *temporary.method_00421680(0.0, 1.0, 0.0);
-    first_matrix->vectors[2] = *temporary.method_00421680(0.0, 0.0, 1.0);
+    first_matrix->vectors[1] = *temporary.Set(0.0, 1.0, 0.0);
+    first_matrix->vectors[2] = *temporary.Set(0.0, 0.0, 1.0);
     if ((double)pitch != g_zero_005ebb40) {
-        first_matrix->method_00478EB0(sin((double)pitch), cos((double)pitch));
+        first_matrix->RotateAboutX(sin((double)pitch), cos((double)pitch));
     }
     MarkRendererReady();
 
@@ -176,11 +172,11 @@ GDCamera::GDCamera()
     }
     m_yaw = angle;
 
-    second_matrix->vectors[0] = *temporary.method_00421680(1.0, 0.0, 0.0);
-    second_matrix->vectors[1] = *temporary.method_00421680(0.0, 1.0, 0.0);
-    second_matrix->vectors[2] = *final_temporary.method_00421680(0.0, 0.0, 1.0);
+    second_matrix->vectors[0] = *temporary.Set(1.0, 0.0, 0.0);
+    second_matrix->vectors[1] = *temporary.Set(0.0, 1.0, 0.0);
+    second_matrix->vectors[2] = *final_temporary.Set(0.0, 0.0, 1.0);
     if ((double)angle != g_zero_005ebb40) {
-        second_matrix->method_00438F90(sin((double)angle), cos((double)angle));
+        second_matrix->RotateAboutY(sin((double)angle), cos((double)angle));
     }
     MarkRendererReady();
 
@@ -199,7 +195,7 @@ GDCamera::GDCamera()
     m_manual_input_timer = new W8IntervalGate(1.0f, 0, 1);
 
     m_rotation = *second_matrix;
-    m_rotation.method_00421A40(m_pitch_rotation);
+    m_rotation.MultiplyBy(m_pitch_rotation);
 }
 
 /* Creates the game camera when a parent is supplied, otherwise installs or
@@ -215,9 +211,7 @@ srCamera* GDCamera::CreateOrAttachCamera(
         g_game_camera_65a0fc =
             SR_NEW(srCamera)(parent);
         g_game_camera_65a0fc->setName("Sirtech Camera");
-        position.x = m_position_08c.x;
-        position.y = m_position_08c.y;
-        position.z = m_position_08c.z;
+        position.SetFromFloat(&m_position_08c);
         g_game_camera_65a0fc->setLocation(position);
         g_game_camera_65a0fc->setClipRange(250.0, 75000.0);
         g_game_camera_65a0fc->setRotation(0.0, 0.0, 0.0);
@@ -236,9 +230,7 @@ srCamera* GDCamera::CreateOrAttachCamera(
         } else {
             g_game_camera_65a0fc = camera;
         }
-        position.x = m_position_08c.x;
-        position.y = m_position_08c.y;
-        position.z = m_position_08c.z;
+        position.SetFromFloat(&m_position_08c);
         g_game_camera_65a0fc->setLocation(position);
         g_game_camera_65a0fc->setRotation(0.0, 0.0, 0.0);
     }
@@ -935,11 +927,11 @@ void GDCamera::SetPitch(float pitch)
             column.y = rotation_values[index + 3];
             column.z = rotation_values[index + 6];
             result_values[index] =
-                DotProduct004218E0(m_pitch_rotation.vectors[0], column);
+                DotProduct(m_pitch_rotation.vectors[0], column);
             result_values[index + 3] =
-                DotProduct004218E0(m_pitch_rotation.vectors[1], column);
+                DotProduct(m_pitch_rotation.vectors[1], column);
             result_values[index + 6] =
-                DotProduct004218E0(m_pitch_rotation.vectors[2], column);
+                DotProduct(m_pitch_rotation.vectors[2], column);
         }
         m_pitch_rotation.vectors[0].x = result[0].x;
         m_pitch_rotation.vectors[0].y = result[0].y;
@@ -975,7 +967,7 @@ void GDCamera::SetYaw(float angle)
     m_yaw_rotation.vectors[2].y = 0.0f;
     m_yaw_rotation.vectors[2].z = 1.0f;
     if ((double)angle != g_zero_005ebb40) {
-        m_yaw_rotation.method_00438F90(
+        m_yaw_rotation.RotateAboutY(
             sin((double)angle), cos((double)angle));
     }
     MarkRendererReady();
@@ -1001,7 +993,7 @@ void GDCamera::SetOrientation(float angle, float pitch)
     m_yaw_rotation.vectors[2].y = 0.0f;
     m_yaw_rotation.vectors[2].z = 1.0f;
     if ((double)angle != g_zero_005ebb40) {
-        m_yaw_rotation.method_00438F90(
+        m_yaw_rotation.RotateAboutY(
             sin((double)angle), cos((double)angle));
     }
 
@@ -1022,12 +1014,12 @@ void GDCamera::SetOrientation(float angle, float pitch)
     m_pitch_rotation.vectors[2].y = 0.0f;
     m_pitch_rotation.vectors[2].z = 1.0f;
     if ((double)pitch != g_zero_005ebb40) {
-        m_pitch_rotation.method_00478EB0(
+        m_pitch_rotation.RotateAboutX(
             sin((double)pitch), cos((double)pitch));
     }
 
     m_rotation = m_yaw_rotation;
-    m_rotation.method_00421A40(m_pitch_rotation);
+    m_rotation.MultiplyBy(m_pitch_rotation);
     MarkRendererReady();
 }
 
@@ -1077,10 +1069,8 @@ void GDCamera::BeginLeveling()
 void GDCamera::GetForwardPoint(float distance, srVector3T<float>* output)
 {
     m_rotation = m_yaw_rotation;
-    m_rotation.method_00421A40(m_pitch_rotation);
-    m_direction_078.x = 0.0f;
-    m_direction_078.y = 0.0f;
-    m_direction_078.z = 1.0f;
+    m_rotation.MultiplyBy(m_pitch_rotation);
+    m_direction_078.Set(0.0f, 0.0f, 1.0f);
 
     float x = m_rotation.vectors[0].x * m_direction_078.x
               + m_rotation.vectors[0].y * m_direction_078.y
@@ -1088,10 +1078,8 @@ void GDCamera::GetForwardPoint(float distance, srVector3T<float>* output)
     float y = m_rotation.vectors[1].x * m_direction_078.x
               + m_rotation.vectors[1].y * m_direction_078.y
               + m_rotation.vectors[1].z * m_direction_078.z;
-    float z = DotProduct004218E0(m_rotation.vectors[2], m_direction_078);
-    m_direction_078.x = x;
-    m_direction_078.y = y;
-    m_direction_078.z = z;
+    float z = DotProduct(m_rotation.vectors[2], m_direction_078);
+    m_direction_078.Set(x, y, z);
     output->x = x;
     output->y = y;
     output->z = z;
@@ -1123,4 +1111,4 @@ void GDCamera::SetManualControlActive(unsigned char enabled)
 }
 
 // TEMPLATE: WIZ8 0x00478EB0
-// srMatrix3T<float>::method_00478EB0
+// srMatrix3T<float>::RotateAboutX

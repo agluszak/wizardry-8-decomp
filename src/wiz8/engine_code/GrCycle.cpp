@@ -43,7 +43,7 @@ float g_float_005ec5c4 = 0.699999988079071f;
 #include <string.h>
 
 template <>
-srVector3T<double>* srVector3T<double>::method_004A90E0(
+srVector3T<double>* srVector3T<double>::SetFromFloat(
     const srVector3T<float>* source);
 
 /* Engine Code\GrCycle.cpp. BEHAVIOUR_FIRST and BEHAVIOUR_LAST come from the
@@ -430,9 +430,7 @@ unsigned char ReadGrCycleData004A6970(
                 event->subcycle_04 = -1;
                 event->particle_08 = particle;
                 location = particle->getLocation();
-                event->position_0c.x = static_cast<float>(location.x);
-                event->position_0c.y = static_cast<float>(location.y);
-                event->position_0c.z = static_cast<float>(location.z);
+                event->position_0c = location;
                 particle->getRotation(event->rotation_18);
                 (*cycle)->m_plsParticles->Add(event);
             }
@@ -998,7 +996,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             psrMesh->setLocation(location);
             pRep->GetRotation004B88F0(&rotation);
             psrMesh->getRotation(current);
-            rotation.method_00421A40(current);
+            rotation.MultiplyBy(current);
             psrMesh->setRotation(rotation);
             current_model_instance_1a8 = psrMesh;
         }
@@ -1050,9 +1048,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
     if (m_ground_shadow != 0) {
         srVector3T<float> position = GetPosition();
 
-        location.x = position.x;
-        location.y = position.y;
-        location.z = position.z;
+        location.SetFromFloat(&position);
         m_ground_shadow->setLocation(location);
         m_ground_shadow->angle_138 = GetYaw();
         m_ground_shadow->clearFlag(srNode::FLAG_POSITIONAL_1);
@@ -1252,34 +1248,28 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
         placed.x = rotation.vectors[0].x * offset.x +
             rotation.vectors[0].y * offset.y +
             rotation.vectors[0].z * offset.z;
-        placed.y = DotProduct004218E0(rotation.vectors[1], offset);
-        placed.z = DotProduct004218E0(rotation.vectors[2], offset);
+        placed.y = DotProduct(rotation.vectors[1], offset);
+        placed.z = DotProduct(rotation.vectors[2], offset);
         location = current_model_instance_1a8->getLocation();
         placed.x = placed.x + (float)location.x;
         placed.y = (float)location.y + placed.y;
         placed.z = (float)location.z + placed.z;
 
         if (unknown_1bf != 0 && particle->value_1b8 == 3) {
-            target.x = placed.x;
-            target.y = placed.y;
-            target.z = placed.z;
-            axis.x = m_axis_1c0.x;
-            axis.y = m_axis_1c0.y;
-            axis.z = m_axis_1c0.z;
+            target.SetFromFloat(&placed);
+            axis.SetFromFloat(&m_axis_1c0);
             particle->setRotation(axis, target, 0.0);
         } else if (particle->value_1b8 != 4) {
             combined = rotation;
-            combined.method_00421A40(attachment->rotation_18);
+            combined.MultiplyBy(attachment->rotation_18);
             world.vectors[0].x = combined.vectors[0].x;
             world.vectors[0].y = combined.vectors[0].y;
             world.vectors[0].z = combined.vectors[0].z;
-            world.vectors[1].method_004A90E0(&combined.vectors[1]);
-            world.vectors[2].method_004A90E0(&combined.vectors[2]);
+            world.vectors[1].SetFromFloat(&combined.vectors[1]);
+            world.vectors[2].SetFromFloat(&combined.vectors[2]);
             particle->setWorldSpaceRotation(world);
         }
-        location.x = placed.x;
-        location.y = placed.y;
-        location.z = placed.z;
+        location.SetFromFloat(&placed);
         particle->setLocation(location);
     }
 }
@@ -1294,14 +1284,11 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
    override the distance choice in either direction, but only towards a LOD the
    cycle has. */
 // FUNCTION: WIZ8 0x004a7be0
-void W8GrCycle::SelectLOD004A7BE0(const float* position)
+void W8GrCycle::SelectLOD004A7BE0(const srVector3T<float>* position)
 {
     W8EmitterHost* pRep = GetRepresentation();
-    srVector3T<float> vecLoc = pRep->location_004;
-    float dx = vecLoc.x - position[0];
-    float dy = vecLoc.y - position[1];
-    float dz = vecLoc.z - position[2];
-    float distance = (float)sqrt(dx * dx + dy * dy + dz * dz);
+    srVector3T<float> delta = pRep->location_004 - *position;
+    float distance = delta.Length();
     unsigned char has_lod_2 =
         pRep->SetCycleFrameLod(pRep->current_cycle, 0, 2) != 0;
     unsigned char has_lod_1 =
@@ -1710,7 +1697,7 @@ void W8GrCycle::SetGroundShadowVisible(char visible)
 }
 
 template <>
-srVector3T<double>* srVector3T<double>::method_004A90E0(
+srVector3T<double>* srVector3T<double>::SetFromFloat(
     const srVector3T<float>* source)
 {
     x = (double)source->x;
@@ -1720,4 +1707,4 @@ srVector3T<double>* srVector3T<double>::method_004A90E0(
 }
 
 // TEMPLATE: WIZ8 0x004a90e0
-// srVector3T<double>::method_004A90E0
+// srVector3T<double>::SetFromFloat

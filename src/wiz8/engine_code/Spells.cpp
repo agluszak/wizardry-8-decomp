@@ -272,14 +272,14 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
 
         GetCameraPosition(&position);
         SetPosition004A6DF0(&position);
-        rotation.SetIdentity00467310();
+        rotation.SetIdentity();
         angle = GetCameraYawRadians() - g_monster_rotation_offset_005ec04c;
         if ((double)angle != g_zero_005ebb40) {
-            rotation.method_00438F90(sin((double)angle), cos((double)angle));
+            rotation.RotateAboutY(sin((double)angle), cos((double)angle));
         }
         pitch = -GetCameraPitchRadians();
         if ((double)pitch != g_zero_005ebb40) {
-            rotation.method_00478EB0(sin((double)pitch), cos((double)pitch));
+            rotation.RotateAboutX(sin((double)pitch), cos((double)pitch));
         }
         apply_rotation = true;
     }
@@ -327,15 +327,15 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
                         SetPosition004A6DF0(&position);
                     }
 
-                    rotation.SetIdentity00467310();
+                    rotation.SetIdentity();
                     float angle = monster->GetYaw();
                     if ((double)angle != g_zero_005ebb40) {
-                        rotation.method_00438F90(
+                        rotation.RotateAboutY(
                             sin((double)angle), cos((double)angle));
                     }
                     float pitch = GetElevationAngle004BE490(&position, &camera_position);
                     if ((double)pitch != g_zero_005ebb40) {
-                        rotation.method_00478EB0(
+                        rotation.RotateAboutX(
                             sin((double)pitch), cos((double)pitch));
                     }
                     apply_rotation = true;
@@ -353,12 +353,12 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
         srVector3T<float> visual_position = GetPosition();
         float angle;
 
-        billboard.SetIdentity00467310();
+        billboard.SetIdentity();
         camera_position = g_gd_camera_65a0f8->m_position_08c;
         angle = GetHeadingAngle004BE420(&visual_position, &camera_position) +
             (float)g_camera_pi_005ec2a0;
         if ((double)angle != g_zero_005ebb40) {
-            billboard.method_00438F90(
+            billboard.RotateAboutY(
                 sin((double)angle), cos((double)angle));
         }
         host->SetRotation004B88D0(&billboard);
@@ -868,9 +868,9 @@ void stSound3D::BuildSoundOptions004AECC0(
     srVector3T<float> node_position;
     srVector3T<float> offset;
 
-    rotation.vectors[0].method_00421680(1.0, 0.0, 0.0);
-    rotation.vectors[1].method_00421680(0.0, 1.0, 0.0);
-    rotation.vectors[2].method_00421680(0.0, 0.0, 1.0);
+    rotation.vectors[0].Set(1.0, 0.0, 0.0);
+    rotation.vectors[1].Set(0.0, 1.0, 0.0);
+    rotation.vectors[2].Set(0.0, 0.0, 1.0);
     if ((double)angle != g_zero_005ebb40) {
         double cosine = cos(angle);
         double sine = sin(angle);
@@ -879,11 +879,11 @@ void stSound3D::BuildSoundOptions004AECC0(
         srVector3T<float> third;
         srMatrix3T<float> camera_rotation;
 
-        first.method_00421680(cosine, 0.0, sine);
-        second.method_00421680(0.0, 1.0, 0.0);
-        third.method_00421680(-sine, 0.0, cosine);
-        camera_rotation.method_004219F0(first, second, third);
-        rotation.method_00421A40(camera_rotation);
+        first.Set(cosine, 0.0, sine);
+        second.Set(0.0, 1.0, 0.0);
+        third.Set(-sine, 0.0, cosine);
+        camera_rotation.SetRows(first, second, third);
+        rotation.MultiplyBy(camera_rotation);
     }
 
     getLocation(node_position);
@@ -891,9 +891,9 @@ void stSound3D::BuildSoundOptions004AECC0(
         node_position.x - listener->x,
         node_position.y - listener->y,
         node_position.z - listener->z);
-    float x = DotProduct004218E0(rotation.vectors[0], offset);
-    float y = DotProduct004218E0(rotation.vectors[1], offset);
-    float z = DotProduct004218E0(rotation.vectors[2], offset);
+    float x = DotProduct(rotation.vectors[0], offset);
+    float y = DotProduct(rotation.vectors[1], offset);
+    float z = DotProduct(rotation.vectors[2], offset);
 
     memset(options, 0xff, sizeof(*options));
     srVector3T<float> listener_offset(
@@ -902,7 +902,7 @@ void stSound3D::BuildSoundOptions004AECC0(
         listener->z - node_position.z);
     options->uiVolume = static_cast<unsigned int>(
         (g_float_005ebb38 -
-         listener_offset.method_00421700() / value_144) * volume);
+         listener_offset.Length() / value_144) * volume);
     options->uiLoop = 1;
     options->Pos.flX = x;
     options->Pos.flY = y;

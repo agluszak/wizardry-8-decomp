@@ -222,7 +222,7 @@ stMeshModel* BuildSingleLevelMesh00488650(
                 vertex_indices[type].Insert(&key, &stored_vertex);
                 vertex_materials[type][vertex] = materials[face.material_index];
                 vertex_uvs[type][vertex] = face.texture_coordinates[corner];
-                reinterpret_cast<int*>(&poly)[corner] = vertex;
+                (corner == 0 ? poly.x : (corner == 1 ? poly.y : poly.z)) = vertex;
                 (*vertex_maps)[type][vertex] = original_vertex;
                 vertex_shades[type][vertex] = vertex;
                 ++vertex_counts[type];
@@ -236,16 +236,16 @@ stMeshModel* BuildSingleLevelMesh00488650(
             }
             else if (vertex_uvs[type][vertex].x == face.texture_coordinates[corner].x &&
                      vertex_uvs[type][vertex].y == face.texture_coordinates[corner].y) {
-                reinterpret_cast<int*>(&poly)[corner] = vertex;
+                (corner == 0 ? poly.x : (corner == 1 ? poly.y : poly.z)) = vertex;
             }
             else {
-                reinterpret_cast<int*>(&poly)[corner] =
+                (corner == 0 ? poly.x : (corner == 1 ? poly.y : poly.z)) =
                     -1 - extra_uv_counts[type];
                 extra_uvs[type][extra_uv_counts[type]] =
                     face.texture_coordinates[corner];
                 ++extra_uv_counts[type];
             }
-            reinterpret_cast<int*>(&shade)[corner] = vertex;
+            (corner == 0 ? shade.x : (corner == 1 ? shade.y : shade.z)) = vertex;
         }
         polygon_textures[type][polygon_counts[type]] =
             textures[face.material_index];
@@ -255,7 +255,8 @@ stMeshModel* BuildSingleLevelMesh00488650(
             srVector3i& split_poly = polygon_vertices[type][polygon_counts[type]];
             srVector3i& split_shade = polygon_shades[type][polygon_counts[type]];
             for (int corner = 0; corner < 3; ++corner) {
-                int source_vertex = reinterpret_cast<int*>(&shade)[corner];
+                int source_vertex =
+                    corner == 0 ? shade.x : (corner == 1 ? shade.y : shade.z);
                 int vertex = vertex_counts[type];
                 vertex_materials[type][vertex] = vertex_materials[type][source_vertex];
                 vertex_shades[type][vertex] = vertex;
@@ -263,8 +264,12 @@ stMeshModel* BuildSingleLevelMesh00488650(
                 vertex_uvs[type][vertex] = face.texture_coordinates[corner];
                 duplicated_from[type].Add(source_vertex);
                 duplicated_to[type].Add(vertex);
-                reinterpret_cast<int*>(&split_poly)[corner] = vertex;
-                reinterpret_cast<int*>(&split_shade)[corner] = vertex;
+                (corner == 0 ? split_poly.x
+                             : (corner == 1 ? split_poly.y : split_poly.z)) =
+                    vertex;
+                (corner == 0 ? split_shade.x
+                             : (corner == 1 ? split_shade.y : split_shade.z)) =
+                    vertex;
                 ++vertex_counts[type];
             }
             polygon_textures[type][polygon_counts[type]] =
@@ -333,12 +338,18 @@ stMeshModel* BuildSingleLevelMesh00488650(
         srVector3i* model_uv_indices = model->getPolyUVIndex(0, 1);
         for (int uv_polygon = 0; uv_polygon < polygon_counts[type]; ++uv_polygon) {
             for (int uv_corner = 0; uv_corner < 3; ++uv_corner) {
-                int index = reinterpret_cast<int*>(
-                    polygon_vertices[type] + uv_polygon)[uv_corner];
+                int index =
+                    uv_corner == 0
+                        ? polygon_vertices[type][uv_polygon].x
+                        : (uv_corner == 1 ? polygon_vertices[type][uv_polygon].y
+                                          : polygon_vertices[type][uv_polygon].z);
                 if (index < 0) {
                     index = vertex_counts[type] + (-1 - index);
                 }
-                reinterpret_cast<int*>(model_uv_indices + uv_polygon)[uv_corner] = index;
+                (uv_corner == 0
+                     ? model_uv_indices[uv_polygon].x
+                     : (uv_corner == 1 ? model_uv_indices[uv_polygon].y
+                                       : model_uv_indices[uv_polygon].z)) = index;
             }
         }
         unsigned long* model_shades = model->getVertexShadeIndex(1);
@@ -438,8 +449,8 @@ int ReadMeshMaterials00487E10(
     }
     else {
         FileRead(info->hFile,
-            reinterpret_cast<unsigned char*>(records) + 0x11a,
-            0x10, 0);
+            records[0].texture_modes_11a,
+            sizeof(records[0].texture_modes_11a), 0);
         if (count > 1) {
             FileRead(info->hFile, records + 1,
                 (count - 1) * sizeof(W8MaterialRecord004B8A70), 0);
@@ -714,8 +725,8 @@ unsigned char ReadSingleLevelMeshBody00485C10(
             srVector3T<float> second(0.0f, cosine, -sine);
             srVector3T<float> third(0.0f, sine, cosine);
             srMatrix3T<float> conversion;
-            conversion.method_004219F0(first, second, third);
-            rotation.method_00421A40(conversion);
+            conversion.SetRows(first, second, third);
+            rotation.MultiplyBy(conversion);
             srVector3T<double> translated(
                 location.x * 500.0, location.y * 500.0,
                 location.z * 500.0);

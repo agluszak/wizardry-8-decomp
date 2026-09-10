@@ -264,19 +264,11 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     value_1cc = 1500;
     value_1a4 = 2;
     value_1bc = 2;
-    minimum_1d0.x = -250.0f;
-    minimum_1d0.y = -250.0f;
-    minimum_1d0.z = -250.0f;
-    maximum_1dc.x = 250.0f;
-    maximum_1dc.y = 250.0f;
-    maximum_1dc.z = 250.0f;
-    direction_1e8.x = 0.0f;
-    direction_1e8.y = -1.0f;
-    direction_1e8.z = 0.0f;
+    minimum_1d0.Set(-250.0f, -250.0f, -250.0f);
+    maximum_1dc.Set(250.0f, 250.0f, 250.0f);
+    direction_1e8.Set(0.0f, -1.0f, 0.0f);
     value_210 = 500.0f;
-    acceleration_1f4.x = 0.0f;
-    acceleration_1f4.y = -4905.0f;
-    acceleration_1f4.z = 0.0f;
+    acceleration_1f4.Set(0.0f, -4905.0f, 0.0f);
     value_1c0 = 0;
     m_pflFlutterAngle = 0;
     value_200 = 0.0f;
@@ -285,15 +277,9 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     value_208 = 0.39269906f;
     value_20c = 0.39269906f;
     value_214 = 1000.0f;
-    minimum_21c.x = -1000.0f;
-    minimum_21c.y = -1000.0f;
-    minimum_21c.z = -1000.0f;
-    maximum_228.x = 1000.0f;
-    maximum_228.y = 1000.0f;
-    maximum_228.z = 1000.0f;
-    value_234.x = 0.0f;
-    value_234.y = 0.0f;
-    value_234.z = 0.0f;
+    minimum_21c.Set(-1000.0f, -1000.0f, -1000.0f);
+    maximum_228.Set(1000.0f, 1000.0f, 1000.0f);
+    value_234.SetZero();
     value_240 = 2000.0f;
     update_flags_250 = 0;
     activated_at_258 = g_shared_timer_base->getMsTime(
@@ -370,27 +356,25 @@ unsigned char stParticle::ActivateParticle00499A50(
 
     case 3: {
         srVector3T<float> direction;
-        direction.x = g_float_005ebb34;
-        direction.y = g_float_005ebb34;
-        direction.z = magnitude;
+        direction.Set(g_float_005ebb34, g_float_005ebb34, magnitude);
 
         double angle = ((float)(rand() & 0x7fff) * g_float_005ec438 -
                         g_float_005ebc7c) *
             value_20c;
-        direction.method_0049BA80(sin(angle), cos(angle));
+        direction.RotateAboutX(sin(angle), cos(angle));
 
         angle = ((float)(rand() & 0x7fff) * g_float_005ec438 -
                  g_float_005ebc7c) *
             value_208;
-        direction.method_00451A10(sin(angle), cos(angle));
+        direction.RotateAboutY(sin(angle), cos(angle));
 
         srMatrix3T<float> rotation;
         getWorldSpaceRotation(rotation);
         velocity.x = rotation.vectors[0].x * direction.x +
             rotation.vectors[0].y * direction.y +
             rotation.vectors[0].z * direction.z;
-        velocity.y = DotProduct004218E0(rotation.vectors[1], direction);
-        velocity.z = DotProduct004218E0(rotation.vectors[2], direction);
+        velocity.y = DotProduct(rotation.vectors[1], direction);
+        velocity.z = DotProduct(rotation.vectors[2], direction);
         break;
     }
 
@@ -408,9 +392,7 @@ unsigned char stParticle::ActivateParticle00499A50(
         if ((double)length_squared != g_zero_005ebb40) {
             float normalization = (float)(
                 g_double_005ebc30 / sqrt(length_squared));
-            direction.x *= normalization;
-            direction.y *= normalization;
-            direction.z *= normalization;
+            direction *= normalization;
         }
 
         velocity.x = direction.x * magnitude;
@@ -497,10 +479,10 @@ void stParticle::Update00499FA0()
         transform.vectors[3].w = 1.0f;
 
         srMatrix4T<float> inverse;
-        inverse.AdjugateFrom0049BF20(&transform.vectors[0].x);
-        float determinant = transform.Det0049BDF0();
+        inverse.AdjugateFrom(&transform.vectors[0].x);
+        float determinant = transform.Det();
         if (determinant != g_double_005ebc30) {
-            inverse.Scale0049BD50(g_double_005ebc30 / determinant);
+            inverse.Scale(g_double_005ebc30 / determinant);
         }
         transform = inverse;
 
@@ -509,7 +491,7 @@ void stParticle::Update00499FA0()
 
         double elapsed = (double)elapsed_ticks;
         srVector3T<float> acceleration_step;
-        acceleration_step.method_00421680(
+        acceleration_step.Set(
             acceleration_1f4.x * elapsed * g_double_005ec8d0,
             acceleration_1f4.y * elapsed * g_double_005ec8d0,
             acceleration_1f4.z * elapsed * g_double_005ec8d0);
@@ -567,15 +549,13 @@ void stParticle::Update00499FA0()
             }
 
             srVector3T<float> movement;
-            movement.method_00421680(
+            movement.Set(
                 allocation_198[index].x * elapsed * g_double_005ec8d0,
                 allocation_198[index].y * elapsed * g_double_005ec8d0,
                 allocation_198[index].z * elapsed * g_double_005ec8d0);
 
             srVector3T<float> candidate;
-            candidate.x = allocation_148[index].x + movement.x;
-            candidate.y = allocation_148[index].y + movement.y;
-            candidate.z = allocation_148[index].z + movement.z;
+            candidate = allocation_148[index] + movement;
 
             if (value_1a4 == 2) {
                 double distance;
@@ -589,11 +569,11 @@ void stParticle::Update00499FA0()
                 }
                 else {
                     float center_x =
-                        DotProduct004218E0(rotation.vectors[0], value_234);
+                        DotProduct(rotation.vectors[0], value_234);
                     float center_y =
-                        DotProduct004218E0(rotation.vectors[1], value_234);
+                        DotProduct(rotation.vectors[1], value_234);
                     float center_z =
-                        DotProduct004218E0(rotation.vectors[2], value_234);
+                        DotProduct(rotation.vectors[2], value_234);
                     srVector3T<float> center(
                         center_x + node_location.x,
                         center_y + node_location.y,
@@ -622,7 +602,7 @@ void stParticle::Update00499FA0()
                     candidate.z - node_location.z);
                 float* matrix = &transform.vectors[0].x;
                 srVector4T<float> transformed;
-                transformed.method_004D6B30(
+                transformed.Set(
                     local.x * matrix[0] + local.y * matrix[1] +
                         local.z * matrix[2] + matrix[3],
                     local.x * matrix[4] + local.y * matrix[5] +
@@ -632,9 +612,7 @@ void stParticle::Update00499FA0()
                     local.x * matrix[12] + local.y * matrix[13] +
                         local.z * matrix[14] + matrix[15]);
                 srVector3T<float> local_point;
-                local_point.x = transformed.x;
-                local_point.y = transformed.y;
-                local_point.z = transformed.z;
+                local_point.Set(transformed.x, transformed.y, transformed.z);
                 if (PointInsideBounds004BE870(
                         &local_point, &minimum_21c, &maximum_228) == 0) {
                     allocation_194[index] = 0;
@@ -830,7 +808,7 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
 
     for (unsigned int index = 0; index < 4; ++index) {
         srVector4T<float> transformed;
-        transformed.method_004D6B30(
+        transformed.Set(
             corners[index].y * matrix[1] + corners[index].x * matrix[0]
                 + corners[index].z * matrix[2] + matrix[3],
             corners[index].y * matrix[5] + corners[index].z * matrix[6]
@@ -889,9 +867,7 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
             position = allocation_148[particle_index];
         }
         else {
-            position.x = flutter;
-            position.y = 0.0f;
-            position.z = 0.0f;
+            position.Set(flutter, 0.0f, 0.0f);
 
             if (value_1c0 == 2) {
                 float scale = g_float_005ecc3c;
@@ -902,10 +878,8 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
             }
 
             double angle = m_pflFlutterAngle[particle_index];
-            position.method_00451A10(sin(angle), cos(angle));
-            position.x += allocation_148[particle_index].x;
-            position.y += allocation_148[particle_index].y;
-            position.z += allocation_148[particle_index].z;
+            position.RotateAboutY(sin(angle), cos(angle));
+            position += allocation_148[particle_index];
         }
 
         unsigned int vertex = particle_index * 4;
@@ -939,23 +913,17 @@ void stParticle::Function4994D0(srGERD* renderer)
     if (value_1c4 == 1) {
         srVector3T<float> camera_position;
         GetCameraPosition(&camera_position);
-        position.x = camera_position.x + camera_offset_244.x;
-        position.y = camera_position.y + camera_offset_244.y;
-        position.z = camera_position.z + camera_offset_244.z;
+        position = camera_position + camera_offset_244;
 
         srVector3T<double> placed;
-        placed.x = position.x;
-        placed.y = position.y;
-        placed.z = position.z;
+        placed.SetFromFloat(&position);
         setLocation(placed);
     }
     else {
         /* Bound rather than copied: the three conversions read through the
            returned buffer instead of through a named local's own address. */
         const srVector3T<double>& located = getLocation();
-        position.x = (float)located.x;
-        position.y = (float)located.y;
-        position.z = (float)located.z;
+        position = located;
     }
 
     Update00499FA0();
@@ -990,9 +958,9 @@ void stParticle::Function4994D0(srGERD* renderer)
         }
         else {
             getRotation(rotation);
-            float x = DotProduct004218E0(rotation.vectors[0], extent);
-            float y = DotProduct004218E0(rotation.vectors[1], extent);
-            float z = DotProduct004218E0(rotation.vectors[2], extent);
+            float x = DotProduct(rotation.vectors[0], extent);
+            float y = DotProduct(rotation.vectors[1], extent);
+            float z = DotProduct(rotation.vectors[2], extent);
             srVector3T<float> center(
                 x + position.x, position.y + y, position.z + z);
             visibility =
@@ -1005,15 +973,15 @@ void stParticle::Function4994D0(srGERD* renderer)
 
     if (value_1a4 == 1) {
         getRotation(rotation);
-        float x = DotProduct004218E0(rotation.vectors[0], minimum_21c);
-        float y = DotProduct004218E0(rotation.vectors[1], minimum_21c);
-        float z = DotProduct004218E0(rotation.vectors[2], minimum_21c);
+        float x = DotProduct(rotation.vectors[0], minimum_21c);
+        float y = DotProduct(rotation.vectors[1], minimum_21c);
+        float z = DotProduct(rotation.vectors[2], minimum_21c);
         srVector3T<float> minimum(
             x + position.x, position.y + y, position.z + z);
 
-        x = DotProduct004218E0(rotation.vectors[0], maximum_228);
-        y = DotProduct004218E0(rotation.vectors[1], maximum_228);
-        z = DotProduct004218E0(rotation.vectors[2], maximum_228);
+        x = DotProduct(rotation.vectors[0], maximum_228);
+        y = DotProduct(rotation.vectors[1], maximum_228);
+        z = DotProduct(rotation.vectors[2], maximum_228);
         srVector3T<float> maximum(
             x + position.x, position.y + y, position.z + z);
 
@@ -1042,7 +1010,7 @@ void stParticle::Function4994D0(srGERD* renderer)
 
     srMatrix4T<float> view;
     renderer->getMatrix(srGERD::MATRIX_MODE_POSITIONAL_0, view);
-    view.InvertMatrix0049BAB0();
+    view.Invert();
     PrepareRenderer00498DD0(view);
 
     if (value_138 != 0 && !renderer->isEnabled(srGERD::ENABLE_POSITIONAL_1)) {

@@ -23,10 +23,8 @@ void UpdateWorldMonsters0046DD70(W8World* world)
     }
 
     srVector3T<double> camera_location = world->camera->getLocation();
-    float position[3];
-    position[0] = static_cast<float>(camera_location.x);
-    position[1] = static_cast<float>(camera_location.y);
-    position[2] = static_cast<float>(camera_location.z);
+    srVector3T<float> position;
+    position = camera_location;
 
     unsigned int count = PLLength(world->plsMonsters);
     UpdateNearestMonsterGroupMembers004CA570();
@@ -35,7 +33,7 @@ void UpdateWorldMonsters0046DD70(W8World* world)
             static_cast<W8Monster*>(PLGet(world->plsMonsters, index));
         if (monster != 0) {
             monster->DetachRepresentation004A7A70(world);
-            monster->SelectLOD004A7BE0(position);
+            monster->SelectLOD004A7BE0(&position);
             monster->Update();
             monster->UpdateRepresentation(world);
         }

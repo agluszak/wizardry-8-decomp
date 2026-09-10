@@ -23,15 +23,9 @@ float g_lod_range_default_0060e60c = 8500.0f;
 // FUNCTION: WIZ8 0x004b86e0
 W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8()
 {
-    location_004.x = 0.0f;
-    location_004.y = 0.0f;
-    location_004.z = 0.0f;
-    local_location_010.x = 0.0f;
-    local_location_010.y = 0.0f;
-    local_location_010.z = 0.0f;
-    parent_location_01c.x = 0.0f;
-    parent_location_01c.y = 0.0f;
-    parent_location_01c.z = 0.0f;
+    location_004.SetZero();
+    local_location_010.SetZero();
+    parent_location_01c.SetZero();
     rotation_028.vectors[0].x = 1.0f;
     rotation_028.vectors[0].y = 0.0f;
     rotation_028.vectors[0].z = 0.0f;
@@ -90,9 +84,7 @@ void W8AnimRepBase005EC1D8::SetLocation004B8850(
     local_location_010.x = location->x;
     local_location_010.y = location->y;
     local_location_010.z = location->z;
-    location_004.x = parent_location_01c.x + local_location_010.x;
-    location_004.y = parent_location_01c.y + local_location_010.y;
-    location_004.z = parent_location_01c.z + local_location_010.z;
+    location_004 = parent_location_01c + local_location_010;
 }
 
 // FUNCTION: WIZ8 0x004b8890
@@ -139,12 +131,8 @@ W8AnimRep005ED050::W8AnimRep005ED050()
     flag_06f = 0;
     flag_070 = 0;
     behaviour_071 = -1;
-    value_074.x = 0;
-    value_074.y = 0;
-    value_074.z = 0;
-    value_080.x = 0;
-    value_080.y = 0;
-    value_080.z = 0;
+    value_074.SetZero();
+    value_080.SetZero();
     value_08c = 0;
     value_090 = 0;
     counter_094 = 0xff;

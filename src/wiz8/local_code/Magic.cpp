@@ -1523,9 +1523,7 @@ int PointCastSpell(float x, float y, float z, int spell_id, unsigned int power_l
 
     ResetTargetSource(&source);
     source.iType = W8_SOURCE_TYPE_POINT;
-    source.point.x = x;
-    source.point.y = y;
-    source.point.z = z;
+    source.point.Set(x, y, z);
 
     ResetCombatSlot(&target);
     switch (GetSpellTargetType(spell_id, 0)) {

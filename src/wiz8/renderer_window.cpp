@@ -756,18 +756,17 @@ extern unsigned char g_render_flag_603c6c;
 
 extern "C" void Function482140(void);
 
-/* Clamp the three components of a renderer colour independently. The input is
-   deliberately not treated as a generic vector operation: the reviewed body
-   performs these three scalar saturations in order and returns its argument. */
+/* Saturate the three components of a renderer colour in place and return it.
+   The reviewed body performs these three scalar saturations in order. */
 // FUNCTION: WIZ8 0x004299b0
-float* __fastcall Function4299B0(float* color)
+srVector3T<float>* __fastcall SaturateColor004299B0(srVector3T<float>* color)
 {
-    if (color[0] <= 0.0f) color[0] = 0.0f;
-    else if (color[0] >= 1.0f) color[0] = 1.0f;
-    if (color[1] <= 0.0f) color[1] = 0.0f;
-    else if (color[1] >= 1.0f) color[1] = 1.0f;
-    if (color[2] <= 0.0f) color[2] = 0.0f;
-    else if (color[2] >= 1.0f) color[2] = 1.0f;
+    if (color->x <= 0.0f) color->x = 0.0f;
+    else if (color->x >= 1.0f) color->x = 1.0f;
+    if (color->y <= 0.0f) color->y = 0.0f;
+    else if (color->y >= 1.0f) color->y = 1.0f;
+    if (color->z <= 0.0f) color->z = 0.0f;
+    else if (color->z >= 1.0f) color->z = 1.0f;
     return color;
 }
 
@@ -799,12 +798,10 @@ void Function427850(srScene* scene, srCamera* camera,
     if (!preserve_fog) {
         srVector3T<float> fog;
         if (g_world == 0) {
-            fog.x = 0.0f;
-            fog.y = 0.0f;
-            fog.z = 0.0f;
+            fog.SetZero();
         } else {
             g_world->static_scene->getFogColor(fog);
-            Function4299B0(&fog.x);
+            SaturateColor004299B0(&fog);
         }
         scene->setFogColor(fog);
     }
@@ -834,10 +831,8 @@ void RenderFrame(void)
     srScene* retire_prerender;
     srScene* retire_overlay;
 
-    clear_color.x = 0.0f;
-    clear_color.y = 0.0f;
-    clear_color.z = 0.0f;
-    Function4299B0(&clear_color.x);
+    clear_color.SetZero();
+    SaturateColor004299B0(&clear_color);
     if (!g_flag_659710) {
         return;
     }
@@ -857,7 +852,7 @@ void RenderFrame(void)
             GetWorldLightValue(g_world, reinterpret_cast<int*>(&clear_color));
         } else {
             g_world->static_scene->getFogColor(clear_color);
-            Function4299B0(&clear_color.x);
+            SaturateColor004299B0(&clear_color);
         }
     }
 

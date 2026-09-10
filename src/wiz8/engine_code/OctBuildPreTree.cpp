@@ -1169,9 +1169,7 @@ unsigned char W8OctBuildPreTree004AFDA0::BuildParticleRegions004B3820(
         ++particle_number;
         short particle_value = (short)particle_number;
         srVector3T<float> position;
-        position.x = particle.location.x * g_world_scale_005ebc40;
-        position.y = particle.location.y * g_world_scale_005ebc40;
-        position.z = particle.location.z * g_world_scale_005ebc40;
+        position = particle.location * g_world_scale_005ebc40;
 
         bool mapped = false;
         for (unsigned short region_index = 1;
@@ -1228,12 +1226,8 @@ unsigned char W8OctBuildPreTree004AFDA0::BuildParticleRegions004B3820(
             if (has_bounds) {
                 srVector3T<float> minimum;
                 srVector3T<float> maximum;
-                minimum.x = position.x - extent.x;
-                minimum.y = position.y - extent.y;
-                minimum.z = position.z - extent.z;
-                maximum.x = position.x + extent.x;
-                maximum.y = position.y + extent.y;
-                maximum.z = position.z + extent.z;
+                minimum = position - extent;
+                maximum = position + extent;
 
                 for (int x = 0; x != 2; ++x) {
                     for (int y = 0; y != 2; ++y) {
@@ -1409,9 +1403,7 @@ unsigned char W8OctBuildPreTree004AFDA0::BuildGeometryRegions004B3F90(
                 record.bounds_09b + bounds_index * 2;
             for (int endpoint = 0; endpoint != 2; ++endpoint) {
                 srVector3T<float> point;
-                point.x = bounds[endpoint].x * g_world_scale_005ebc40;
-                point.y = bounds[endpoint].y * g_world_scale_005ebc40;
-                point.z = bounds[endpoint].z * g_world_scale_005ebc40;
+                point = bounds[endpoint] * g_world_scale_005ebc40;
                 for (int axis = 0; axis != 3; ++axis) {
                     if ((&point.x)[axis] < (&aggregate[0].x)[axis]) {
                         (&aggregate[0].x)[axis] = (&point.x)[axis];

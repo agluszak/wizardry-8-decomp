@@ -9,19 +9,19 @@
 // srVector3T<float>::srVector3T(float,float,float)
 
 // TEMPLATE: WIZ8 0x00421670
-// srVector3T<float>::method_00421670
+// srVector3T<float>::SetZero
 
 // TEMPLATE: WIZ8 0x00421680
-// srVector3T<float>::method_00421680
+// srVector3T<float>::Set
 
 // TEMPLATE: WIZ8 0x004216A0
 // srVector3T<float>::operator+=
 
 // TEMPLATE: WIZ8 0x00421700
-// srVector3T<float>::method_00421700
+// srVector3T<float>::Length
 
 // TEMPLATE: WIZ8 0x004218E0
-// DotProduct004218E0<float>
+// DotProduct<float>
 
 // TEMPLATE: WIZ8 0x00438C00
 // operator+<float>(srVector3T<float> const &,srVector3T<float> const &)
@@ -39,37 +39,37 @@
 // srVector3T<float>::operator/=
 
 // TEMPLATE: WIZ8 0x00446110
-// srVector3T<float>::method_00446110
+// srVector3T<float>::SetFromDouble
 
 // TEMPLATE: WIZ8 0x00451A10
-// srVector3T<float>::method_00451A10
+// srVector3T<float>::RotateAboutY
 
 // TEMPLATE: WIZ8 0x0049BA80
-// srVector3T<float>::method_0049BA80
+// srVector3T<float>::RotateAboutX
 
 // TEMPLATE: WIZ8 0x004219F0
-// srMatrix3T<float>::method_004219F0
+// srMatrix3T<float>::SetRows
 
 // TEMPLATE: WIZ8 0x00421A40
-// srMatrix3T<float>::method_00421A40
+// srMatrix3T<float>::MultiplyBy
 
 // TEMPLATE: WIZ8 0x00467310
-// srMatrix3T<float>::SetIdentity00467310
+// srMatrix3T<float>::SetIdentity
 
 // TEMPLATE: WIZ8 0x00438F90
-// srMatrix3T<float>::method_00438F90
+// srMatrix3T<float>::RotateAboutY
 
 // TEMPLATE: WIZ8 0x004817E0
-// srVector4T<float>::method_004817E0
+// srVector4T<float>::Set (double arguments; no source caller retains it)
 
 // TEMPLATE: WIZ8 0x004D6B30
-// srVector4T<float>::method_004D6B30
+// srVector4T<float>::Set
 
 // TEMPLATE: WIZ8 0x0049BAB0
-// srMatrix4T<float>::InvertMatrix0049BAB0
+// srMatrix4T<float>::Invert
 
 // FUNCTION: WIZ8 0x0049BD00
-float Det3_0049BD00(
+float Det3(
     float param_1,
     float param_2,
     float param_3,
@@ -86,10 +86,10 @@ float Det3_0049BD00(
 }
 
 // TEMPLATE: WIZ8 0x0049BD50
-// srMatrix4T<float>::Scale0049BD50
+// srMatrix4T<float>::Scale
 
 // TEMPLATE: WIZ8 0x0049BDF0
-// srMatrix4T<float>::Det0049BDF0
+// srMatrix4T<float>::Det
 
 // TEMPLATE: WIZ8 0x0049BF20
-// srMatrix4T<float>::AdjugateFrom0049BF20
+// srMatrix4T<float>::AdjugateFrom

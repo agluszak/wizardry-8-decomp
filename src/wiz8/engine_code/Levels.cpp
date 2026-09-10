@@ -389,9 +389,9 @@ unsigned char LoadLevel(
                 axis.x = trigger->value_100;
                 axis.y = trigger->value_104;
                 axis.z = trigger->value_108;
-                rotation.vectors[0].method_00421680(1.0, 0.0, 0.0);
-                rotation.vectors[1].method_00421680(0.0, 1.0, 0.0);
-                rotation.vectors[2].method_00421680(0.0, 0.0, 1.0);
+                rotation.vectors[0].Set(1.0, 0.0, 0.0);
+                rotation.vectors[1].Set(0.0, 1.0, 0.0);
+                rotation.vectors[2].Set(0.0, 0.0, 1.0);
                 if (trigger->angle_0fc != 0.0f) {
                     RotateMatrixAroundAxis0042B910(
                         &rotation.vectors[0].x,
@@ -404,9 +404,7 @@ unsigned char LoadLevel(
         else {
             srVector3T<float> position;
 
-            position.x = 0.0f;
-            position.y = g_default_world_height_00603ac8;
-            position.z = 0.0f;
+            position.Set(0.0f, g_default_world_height_00603ac8, 0.0f);
             SetWorldScenePosition004511D0(GetWorld(), &position);
         }
     }

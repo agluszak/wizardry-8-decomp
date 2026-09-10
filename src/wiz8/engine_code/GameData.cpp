@@ -460,24 +460,12 @@ void Function41EF50(void)
     W8LevelDataRecord* data = g_level_data_00652dac;
 
     if (data != 0 && (data->flags & W8_LEVEL_FLAG_0) == 0) {
-        data->vector_40.x = 0;
-        data->vector_40.y = 0;
-        data->vector_40.z = 0;
-        data->camera_forward_4c.x = 0;
-        data->camera_forward_4c.y = 0;
-        data->camera_forward_4c.z = 0;
-        data->scaled_camera_forward_7c.x = 0;
-        data->scaled_camera_forward_7c.y = 0;
-        data->scaled_camera_forward_7c.z = 0;
-        data->vector_64.x = 0;
-        data->vector_64.y = 0;
-        data->vector_64.z = 0;
-        data->vector_70.x = 0;
-        data->vector_70.y = 0;
-        data->vector_70.z = 0;
-        data->vector_a0.x = 0;
-        data->vector_a0.y = 0;
-        data->vector_a0.z = 0;
+        data->vector_40.SetZero();
+        data->camera_forward_4c.SetZero();
+        data->scaled_camera_forward_7c.SetZero();
+        data->vector_64.SetZero();
+        data->vector_70.SetZero();
+        data->vector_a0.SetZero();
     }
 }
 
@@ -621,24 +609,12 @@ void ResetLevelDataVectors0041F0D0(void)
     if (g_level_data_00652dac != 0) {
         g_level_data_00652dac->flags |= 0x40;
         if ((g_level_data_00652dac->flags & 1) == 0) {
-            g_level_data_00652dac->vector_40.x = 0.0f;
-            g_level_data_00652dac->vector_40.y = 0.0f;
-            g_level_data_00652dac->vector_40.z = 0.0f;
-            g_level_data_00652dac->camera_forward_4c.x = 0.0f;
-            g_level_data_00652dac->camera_forward_4c.y = 0.0f;
-            g_level_data_00652dac->camera_forward_4c.z = 0.0f;
-            g_level_data_00652dac->vector_64.x = 0.0f;
-            g_level_data_00652dac->vector_64.y = 0.0f;
-            g_level_data_00652dac->vector_64.z = 0.0f;
-            g_level_data_00652dac->vector_70.x = 0.0f;
-            g_level_data_00652dac->vector_70.y = 0.0f;
-            g_level_data_00652dac->vector_70.z = 0.0f;
-            g_level_data_00652dac->scaled_camera_forward_7c.x = 0.0f;
-            g_level_data_00652dac->scaled_camera_forward_7c.y = 0.0f;
-            g_level_data_00652dac->scaled_camera_forward_7c.z = 0.0f;
-            g_level_data_00652dac->vector_a0.x = 0.0f;
-            g_level_data_00652dac->vector_a0.y = 0.0f;
-            g_level_data_00652dac->vector_a0.z = 0.0f;
+            g_level_data_00652dac->vector_40.SetZero();
+            g_level_data_00652dac->camera_forward_4c.SetZero();
+            g_level_data_00652dac->vector_64.SetZero();
+            g_level_data_00652dac->vector_70.SetZero();
+            g_level_data_00652dac->scaled_camera_forward_7c.SetZero();
+            g_level_data_00652dac->vector_a0.SetZero();
         }
         g_level_data_00652dac->flags &= ~0x100U;
     }
@@ -680,12 +656,8 @@ W8GameData::W8GameData(int handle, void* parent)
     environ_count_80 = 0;
     environs_84 = 0;
     value_88 = 0;
-    minimum_08.x = 1.0e8f;
-    minimum_08.y = 1.0e8f;
-    minimum_08.z = 1.0e8f;
-    maximum_14.x = -1.0e8f;
-    maximum_14.y = -1.0e8f;
-    maximum_14.z = -1.0e8f;
+    minimum_08.Set(1.0e8f, 1.0e8f, 1.0e8f);
+    maximum_14.Set(-1.0e8f, -1.0e8f, -1.0e8f);
     if (parent == 0) {
         MoveTimer(4);
         if (g_object_6598bc == 0) {

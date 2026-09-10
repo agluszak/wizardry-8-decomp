@@ -554,9 +554,7 @@ unsigned char Trigger::HasActorWithinRadius(
 
     if (flag_0a0_11 != 0 || m_pProp != 0) {
         if (m_pProp == 0) {
-            center.x = position_118;
-            center.y = position_11c;
-            center.z = position_120;
+            center.Set(position_118, position_11c, position_120);
         }
         else {
             m_pProp->GetCenterPosition(&center);
@@ -630,17 +628,13 @@ unsigned char Trigger::PlayActionSound(const char* sound_name, int volume)
         m_pProp->GetCenterPosition(&position);
     }
     else {
-        position.x = position_118;
-        position.y = position_11c;
-        position.z = position_120;
+        position.Set(position_118, position_11c, position_120);
     }
 
     stSound3D* sound = new stSound3D(sound_name, 0);
     if (sound != 0) {
         srVector3T<double> sound_position;
-        sound_position.x = position.x;
-        sound_position.y = position.y;
-        sound_position.z = position.z;
+        sound_position.SetFromFloat(&position);
         sound->value_140 = volume;
         sound->setLocation(sound_position);
         if (sound->Play004AEBF0(0, 1) != 0) {
@@ -711,9 +705,9 @@ void W8TriggerEvent::Update()
             target = source;
             target.z += 100.0f;
 
-            row_1.method_00421680(1.0, 0.0, 0.0);
-            row_2.method_00421680(0.0, 1.0, 0.0);
-            row_3.method_00421680(0.0, 0.0, 1.0);
+            row_1.Set(1.0, 0.0, 0.0);
+            row_2.Set(0.0, 1.0, 0.0);
+            row_3.Set(0.0, 0.0, 1.0);
             axis = row_3;
             rotation.vectors[0].x = trigger_030->value_100;
             rotation.vectors[0].y = trigger_030->value_104;
@@ -729,9 +723,9 @@ void W8TriggerEvent::Update()
                     &axis.x);
             }
 
-            transformed.x = DotProduct004218E0(rotation.vectors[1], target);
-            transformed.y = DotProduct004218E0(rotation.vectors[2], target);
-            transformed.z = DotProduct004218E0(row_3, target);
+            transformed.x = DotProduct(rotation.vectors[1], target);
+            transformed.y = DotProduct(rotation.vectors[2], target);
+            transformed.z = DotProduct(row_3, target);
             FireMissile004A2D30(
                 (unsigned int)trigger_030->m_lData1,
                 &source, &transformed,
@@ -930,9 +924,7 @@ W8TriggerActionData* LoadTriggerActionData004417C0(int handle)
     data->flags_009 &= ~1;
     data->item_00a = -1;
     data->linked_trigger_00c[0] = 0;
-    data->position_08c.x = 0.0f;
-    data->position_08c.y = 0.0f;
-    data->position_08c.z = 0.0f;
+    data->position_08c.SetZero();
 
     unsigned char version;
     unsigned char flags[9];
@@ -947,9 +939,7 @@ W8TriggerActionData* LoadTriggerActionData004417C0(int handle)
     FileRead(handle, &item, 2, 0);
     FileRead(handle, &has_position, 1, 0);
     FileRead(handle, &position, sizeof(position), 0);
-    position.x *= 500.0f;
-    position.y *= 500.0f;
-    position.z *= 500.0f;
+    position *= 500.0f;
     FileRead(handle, linked_trigger, sizeof(linked_trigger), 0);
 
     for (int bit = 0; bit < 8; ++bit) {
@@ -1249,9 +1239,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             FileRead(handle, &value_ec, 4, 0);
             FileRead(handle, &vector_f0, sizeof(vector_f0), 0);
             FileRead(handle, &vector_fc, sizeof(vector_fc), 0);
-            vector_e0.x *= 500.0f;
-            vector_e0.y *= 500.0f;
-            vector_e0.z *= 500.0f;
+            vector_e0 *= 500.0f;
         }
         if (version > 3) {
             FileRead(handle, name, sizeof(name), 0);
@@ -2042,16 +2030,14 @@ void Trigger::RunDestination00440DD0(const char* destination)
         angle = 0.0f;
     }
 
-    source_position.x = position_118;
-    source_position.y = position_11c;
-    source_position.z = position_120;
+    source_position.Set(position_118, position_11c, position_120);
     g_octree_6598a4->AdjustPortalDestination(
         &destination_position, &source_position);
     SetWorldScenePosition004511D0(GetWorld(), &destination_position);
 
-    rotation.vectors[0].method_00421680(1.0, 0.0, 0.0);
-    rotation.vectors[1].method_00421680(0.0, 1.0, 0.0);
-    rotation.vectors[2].method_00421680(0.0, 0.0, 1.0);
+    rotation.vectors[0].Set(1.0, 0.0, 0.0);
+    rotation.vectors[1].Set(0.0, 1.0, 0.0);
+    rotation.vectors[2].Set(0.0, 0.0, 1.0);
     if (angle != 0.0f) {
         RotateMatrixAroundAxis0042B910(
             &rotation.vectors[0].x, sin(angle), cos(angle),
@@ -2722,25 +2708,23 @@ toggle_item_prop:
             srVector3T<float> axis;
             srMatrix3T<float> rotation;
 
-            source_position.x = position_118;
-            source_position.y = position_11c;
-            source_position.z = position_120;
+            source_position.Set(position_118, position_11c, position_120);
             target_position = source_position;
             target_position.z += 100.0f;
-            rotation.vectors[0].method_00421680(1.0, 0.0, 0.0);
-            rotation.vectors[1].method_00421680(0.0, 1.0, 0.0);
-            rotation.vectors[2].method_00421680(0.0, 0.0, 1.0);
+            rotation.vectors[0].Set(1.0, 0.0, 0.0);
+            rotation.vectors[1].Set(0.0, 1.0, 0.0);
+            rotation.vectors[2].Set(0.0, 0.0, 1.0);
             axis = rotation.vectors[2];
             if (angle_0fc != 0.0f) {
                 RotateMatrixAroundAxis0042B910(
                     &rotation.vectors[0].x, sin(angle_0fc), cos(angle_0fc),
                     &axis.x);
             }
-            transformed.x = DotProduct004218E0(
+            transformed.x = DotProduct(
                 rotation.vectors[0], target_position);
-            transformed.y = DotProduct004218E0(
+            transformed.y = DotProduct(
                 rotation.vectors[1], target_position);
-            transformed.z = DotProduct004218E0(
+            transformed.z = DotProduct(
                 rotation.vectors[2], target_position);
             FireMissile004A2D30(
                 (unsigned int)m_lData1, &source_position,

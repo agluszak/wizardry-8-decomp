@@ -352,16 +352,16 @@ void SetTargetToGroup(int group_id, int context)
 // FUNCTION: WIZ8 0x00539870
 void ShowMonsterTargetMarker(W8MonsterInfo* monster_info)
 {
-    unsigned char eye[8];
-    unsigned char lower[12];
-    unsigned char upper[12];
+    srVector3T<float> eye;
+    srVector3T<float> lower;
+    srVector3T<float> upper;
 
     if (monster_info == 0) {
         srAssertFail("pMonsterInfo", TARGETING_CPP, 2040, 0);
     }
-    GetCameraPosition(reinterpret_cast<srVector3T<float>*>(eye));
-    GetMonsterBounds(monster_info->monster, lower, upper);
-    ShowTargetMarker(eye, lower, upper);
+    GetCameraPosition(&eye);
+    GetMonsterBounds(monster_info->monster, &lower, &upper);
+    ShowTargetMarker(&eye, &lower, &upper);
 }
 
 /* Whether a recorded target is of the kind a caller needs. Each needed kind
@@ -1263,9 +1263,7 @@ void Function53A320(int state)
     if (cursor != gXStatus.iCurrentCursor) {
         SetTargetCursor(cursor);
     }
-    g_target_position_0068407f.x = 0.0f;
-    g_target_position_0068407f.y = 0.0f;
-    g_target_position_0068407f.z = 0.0f;
+    g_target_position_0068407f.SetZero();
     RequestRefreshPartyState();
     if (state == 4) {
         Function4ADD30(1);

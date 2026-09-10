@@ -342,9 +342,8 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         }
 
         renderer->loadIdentity();
-        translation.x = transformed_location.x;
-        translation.y = transformed_location.y;
-        translation.z = transformed_location.z;
+        translation.Set(transformed_location.x, transformed_location.y,
+                        transformed_location.z);
         renderer->translate(translation);
         if (align_angle_158 != g_float_005ebb34) {
             renderer->rotate((double)align_angle_158, align_axis_14c);
@@ -439,9 +438,7 @@ stModelInstance::stModelInstance(srNode* parent)
     }
     damage_stage_184 = -1;
     retained_174 = 0;
-    scale_194.x = 1.0f;
-    scale_194.y = 1.0f;
-    scale_194.z = 1.0f;
+    scale_194.Set(1.0f, 1.0f, 1.0f);
     flag_1a0 = 0;
     value_1a4 = 0;
     flag_1a1 = 0;

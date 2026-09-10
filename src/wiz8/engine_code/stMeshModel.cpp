@@ -400,7 +400,7 @@ void srTriMeshPipeline::FlushSlots00475600()
         }
 
         srVector3T<float> center;
-        center.method_00421680(
+        center.Set(
             (value_44.x + value_50.x) * 0.5,
             (value_44.y + value_50.y) * 0.5,
             (value_44.z + value_50.z) * 0.5);

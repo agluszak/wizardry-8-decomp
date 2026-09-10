@@ -40,9 +40,7 @@ stLight::stLight(srNode* parent)
     m_positional_239 = 1;
     m_positional_248 = 0;
     m_positional_250 = 1;
-    m_positional_228.x = 0.0f;
-    m_positional_228.y = 0.0f;
-    m_positional_228.z = 0.0f;
+    m_positional_228.SetZero();
     m_positional_240 = 0;
     m_definition_234 = 0;
     m_positional_238 = 0;

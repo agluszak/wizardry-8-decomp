@@ -223,15 +223,9 @@ unsigned char LoadWorld(
     SetSceneAmbientLightWhite(world->static_scene);
     world->camera = CreateOrSetGameCamera(world->static_scene, 0);
     world->camera_light = CreateWorldLight0046E140(world, "CameraLight");
-    world->camera_light->m_direction_60.x = 0.0f;
-    world->camera_light->m_direction_60.y = 0.0f;
-    world->camera_light->m_direction_60.z = 0.0f;
-    world->camera_light->m_color_6c.x = 1.0f;
-    world->camera_light->m_color_6c.y = 0.85f;
-    world->camera_light->m_color_6c.z = 0.39f;
-    world->camera_light->m_position_78.x = 0.0f;
-    world->camera_light->m_position_78.y = 0.0f;
-    world->camera_light->m_position_78.z = 0.0f;
+    world->camera_light->m_direction_60.SetZero();
+    world->camera_light->m_color_6c.Set(1.0f, 0.85f, 0.39f);
+    world->camera_light->m_position_78.SetZero();
     world->camera_light->m_positional_98 = 1.0f;
     world->camera_light->setGroupMask(2);
     ConfigureWorldLight0046E300(world->camera_light, 4000.0f);
@@ -627,16 +621,12 @@ void SetWorldScenePosition004511D0(
     position.y = location->y;
     position.z = location->z;
     if (world->camera != 0) {
-        render_position.x = position.x;
-        render_position.y = position.y;
-        render_position.z = position.z;
+        render_position.SetFromFloat(&position);
         static_cast<srNode*>(world->camera)->setLocation(render_position);
         PlacePartyAtPoint(&position);
     }
     if (world->camera_light != 0) {
-        render_position.x = position.x;
-        render_position.y = position.y;
-        render_position.z = position.z;
+        render_position.SetFromFloat(&position);
         static_cast<srNode*>(world->camera_light)->setLocation(render_position);
     }
 }

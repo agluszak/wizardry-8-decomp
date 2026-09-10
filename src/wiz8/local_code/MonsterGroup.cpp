@@ -690,9 +690,7 @@ void GetMonsterGroupCentre(W8MonsterGroup* monster_group, srVector3T<float>* cen
         return;
     }
     if (monster_group->flag_28 != 0) {
-        monster_group->centre.x = 0;
-        monster_group->centre.y = 0;
-        monster_group->centre.z = 0;
+        monster_group->centre.SetZero();
         count = ILLength(monster_group->monsters);
         for (index = 0; index < count; ++index) {
             MonsterGetLocation(
@@ -704,14 +702,10 @@ void GetMonsterGroupCentre(W8MonsterGroup* monster_group, srVector3T<float>* cen
                         1))
                     ->monster,
                 &position);
-            monster_group->centre.x += position.x;
-            monster_group->centre.y += position.y;
-            monster_group->centre.z += position.z;
+            monster_group->centre += position;
         }
         divisor = static_cast<float>(count);
-        monster_group->centre.x /= divisor;
-        monster_group->centre.y /= divisor;
-        monster_group->centre.z /= divisor;
+        monster_group->centre /= divisor;
     }
     if (centre != 0) {
         centre->x = monster_group->centre.x;

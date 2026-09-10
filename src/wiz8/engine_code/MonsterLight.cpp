@@ -43,9 +43,7 @@ MonsterLight::MonsterLight(
     unknown_2c = 0;
     m_positional_16c = 0.0f;
     setLinearAttenuation(range, 0.0019569471f);
-    m_position_78.x = 0.0f;
-    m_position_78.y = 0.0f;
-    m_position_78.z = 0.0f;
+    m_position_78.SetZero();
     m_color_6c = *first_color;
     setFlag(srNode::FLAG_POSITIONAL_0);
     m_start_time_244 = g_object_6598bc->GetValue30();

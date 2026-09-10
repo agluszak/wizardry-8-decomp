@@ -14,11 +14,9 @@ typedef struct W8MonsterGenerator {
     unsigned short value_06;              /* 0x06 */
     unsigned short value_08;              /* 0x08 */
     unsigned char unknown_0a[2];
-    /* 0x0c..0x14: three dwords, saved individually and handed to
-       GenerateEncounter as a block. */
-    int state_0c;
-    int state_10;
-    int state_14;
+    /* 0x0c: the generator's world position, saved as three dwords and handed
+       to GenerateEncounter and SetLocation as a block. */
+    srVector3T<float> state_0c;
     W8Item* node_18;                      /* 0x18: loaded mongen.itm marker */
     int value_1c;                         /* 0x1c */
     /* 0x20: m_pTimer, named by the MonGen.cpp:535 assertion, whose message also

@@ -572,7 +572,7 @@ void AutomapScreenFrame(void)
                 point.y = 0.0f;
                 srVector3T<float> distance(point.x - g_automap_saved_camera.position.x,
                                            0.0f, point.z - g_automap_saved_camera.position.z);
-                if (distance.method_00421700() < g_automap_zoom * 0.05f &&
+                if (distance.Length() < g_automap_zoom * 0.05f &&
                     g_automap_tool == 0 && g_automap_zoom_mode != 2) {
                     ClearFlag603C60();
                     srVector3T<double> scale(0.44f, 0.44f, 0.44f);

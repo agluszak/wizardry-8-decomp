@@ -292,12 +292,8 @@ unsigned char LoadAniMesh004B5D00(
         }
     }
 
-    mesh->bounds_minimum_08.x = 0.0f;
-    mesh->bounds_minimum_08.y = 0.0f;
-    mesh->bounds_minimum_08.z = 0.0f;
-    mesh->bounds_maximum_14.x = 0.0f;
-    mesh->bounds_maximum_14.y = 0.0f;
-    mesh->bounds_maximum_14.z = 0.0f;
+    mesh->bounds_minimum_08.SetZero();
+    mesh->bounds_maximum_14.SetZero();
     for (frame_index = 0; frame_index < mesh->frame_count_01; ++frame_index) {
         stModelInstance* frame =
             GetAniMeshFrame004B6550(mesh, frame_index);

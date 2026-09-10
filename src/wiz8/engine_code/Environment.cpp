@@ -113,24 +113,24 @@ void Function482A20(int elapsed)
     }
 
     srVector3T<float> direction;
-    direction.method_00421680(0.0, g_environment_value_0060a3a4, 0.0);
+    direction.Set(0.0, g_environment_value_0060a3a4, 0.0);
 
     srMatrix3T<float> rotation;
-    rotation.vectors[0].method_00421680(1.0, 0.0, 0.0);
-    rotation.vectors[1].method_00421680(0.0, 1.0, 0.0);
-    rotation.vectors[2].method_00421680(0.0, 0.0, 1.0);
+    rotation.vectors[0].Set(1.0, 0.0, 0.0);
+    rotation.vectors[1].Set(0.0, 1.0, 0.0);
+    rotation.vectors[2].Set(0.0, 0.0, 1.0);
 
     angle -= 3.141592653589793 * (double)(1.0f / 180.0f) * 40.0;
     if (angle != 0.0) {
-        rotation.method_00438F90(sin(angle), cos(angle));
+        rotation.RotateAboutY(sin(angle), cos(angle));
     }
 
     srVector3T<float> position;
-    position.x = DotProduct004218E0(rotation.vectors[0], direction) +
+    position.x = DotProduct(rotation.vectors[0], direction) +
                  g_environment_origin_65ad88.x;
-    position.y = DotProduct004218E0(rotation.vectors[1], direction) +
+    position.y = DotProduct(rotation.vectors[1], direction) +
                  g_environment_origin_65ad88.y;
-    position.z = DotProduct004218E0(rotation.vectors[2], direction) +
+    position.z = DotProduct(rotation.vectors[2], direction) +
                  g_environment_origin_65ad88.z;
 
     W8Prop* moving = day ? g_environment_value_0065a160
@@ -748,4 +748,4 @@ void Function482720(int value)
 }
 
 // TEMPLATE: WIZ8 0x004848d0
-// srMatrix3T<float>::method_00438F90(double,double)
+// srMatrix3T<float>::RotateAboutY(double,double)
