@@ -13,8 +13,11 @@
 #include "wiz8/npc_state.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/sr_api.h"
+
+#include <stdio.h>
 
 /*
  * Local Code\NPC Manager.cpp.
@@ -961,4 +964,161 @@ void ReleaseNpcMonsterBindings0050C2E0(void)
         count = g_npc_states->count;
         ++npc_index;
     } while (npc_index < count);
+}
+
+/* Hand back the monster binding of every marked NPC, then find the companion
+   whose record kind matches the NPC's naming style and release its live
+   monster and its own binding. The state vector is re-read after every
+   callback. */
+// FUNCTION: WIZ8 0x0050da00
+void ReleaseMarkedNpcBindings0050DA00(void)
+{
+    unsigned int count = g_npc_states->count;
+    unsigned int npc_index = 0;
+
+    if (count == 0) {
+        return;
+    }
+    do {
+        W8NpcState** slot = g_npc_states->data;
+        if (npc_index < count) {
+            slot += npc_index;
+        }
+        W8NpcState* npc = *slot;
+
+        if (npc->unknown_c7 == 0) {
+            if (npc->marked_e9 != 0) {
+                Function50CF70(npc, 1);
+            }
+            if (npc->flag_c5 != 0) {
+                W8NpcState* companion = 0;
+                bool found = false;
+
+                for (unsigned int index = 0; index < count; ++index) {
+                    W8NpcState** candidate_slot = g_npc_states->data;
+
+                    if (index < count) {
+                        candidate_slot += index;
+                    }
+                    companion = *candidate_slot;
+                    if (static_cast<unsigned int>(companion->record->kind)
+                        == static_cast<unsigned char>(npc->name_style)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    companion = 0;
+                }
+                if (companion->has_monster != 0) {
+                    if (companion->is_present != 0) {
+                        unsigned int monster_index = MonsterGetIndexByLocationID(
+                            0x2a1, NPC_MANAGER_CPP, companion->location_id, 1);
+                        W8MonsterInfo* monster_info =
+                            MonsterGetScriptPartByLocationIndex(monster_index);
+
+                        if (monster_info != 0) {
+                            unsigned char destroy = 1;
+
+                            monster_index = MonsterGetIndexByLocationID(
+                                0x9bb, NPC_MANAGER_CPP,
+                                monster_info->location_id, 1);
+                            RemoveMonster(monster_index, destroy);
+                        }
+                    }
+                    {
+                        unsigned int partner_index =
+                            companion->partner_index_2c;
+
+                        if (partner_index != 0xffffffff
+                            && static_cast<int>(partner_index) <= count) {
+                            W8NpcState** target_slot = g_npc_states->data;
+
+                            if (static_cast<int>(partner_index) < count) {
+                                target_slot += partner_index;
+                            }
+                            W8NpcState* target = *target_slot;
+
+                            target->has_monster = 0;
+                            Function55A0A0(target->unknown_00);
+                            target->unknown_00 = 0;
+                            if (target->record->unknown_054 != 0) {
+                                target->unknown_c7 = 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        count = g_npc_states->count;
+        ++npc_index;
+    } while (npc_index < count);
+}
+
+/* Rebuild the level's NPC bindings: first drop the followers whose record or
+   presence rules changed, then re-install each NPC trigger's activation
+   callback and re-stamp the NPC from the loaded level. */
+// FUNCTION: WIZ8 0x0050ac60
+void RebindNpcLevelTriggers0050AC60(void)
+{
+    unsigned int count = g_npc_states->count;
+    unsigned int npc_index = 0;
+
+    if (count != 0) {
+        do {
+            W8NpcState** slot = g_npc_states->data;
+            if (npc_index < count) {
+                slot += npc_index;
+            }
+            W8NpcState* npc = *slot;
+
+            if (npc->has_monster != 0
+                && (npc->record->unknown_056 != 0
+                    || (npc->record->flag_2ea != 0
+                        && npc->is_present == 0))) {
+                npc->has_monster = 0;
+                Function55A0A0(npc->unknown_00);
+                npc->unknown_00 = 0;
+                if (npc->record->unknown_054 != 0) {
+                    npc->unknown_c7 = 1;
+                }
+            }
+            count = g_npc_states->count;
+            ++npc_index;
+        } while (npc_index < count);
+    }
+
+    count = g_npc_states->count;
+    npc_index = 0;
+    if (count != 0) {
+        do {
+            W8NpcState** slot = g_npc_states->data;
+            char trigger_name[40];
+
+            if (npc_index < count) {
+                slot += npc_index;
+            }
+            W8NpcState* npc = *slot;
+
+            if (npc->record->unknown_056 != 0
+                || npc->record->flag_2ea != 0) {
+                sprintf(trigger_name, "_%S", npc->record->source_name_004);
+                Trigger* trigger = FindTriggerByName(trigger_name);
+
+                if (trigger != 0) {
+                    trigger->activation_callback_360 = Function50ABF0;
+                    trigger->m_lData1 = static_cast<int>(npc_index);
+                    npc->has_monster = 1;
+                    npc->value_24 = static_cast<unsigned char>(
+                        Function42B740(g_loaded_level_id));
+                    npc->value_2f =
+                        static_cast<unsigned char>(g_loaded_level_id);
+                    Function524CA0(npc);
+                    npc->is_present = 0;
+                }
+            }
+            count = g_npc_states->count;
+            ++npc_index;
+        } while (npc_index < count);
+    }
 }

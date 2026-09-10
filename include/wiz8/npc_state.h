@@ -5,6 +5,8 @@
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
 
+class Trigger;
+
 struct W8Character;
 
 /* One entry in an NPC's stock list. This one is deliberately outside the
@@ -44,7 +46,9 @@ typedef struct W8NpcState {
     /* 0x1b: the NPC's disposition. Setting a band writes one of three
        representative values rather than a range. */
     unsigned char disposition;
-    unsigned char unknown_1c[9];
+    unsigned char unknown_1c[8];
+    /* 0x24: the level-band value the rebinding stamps from the level's own. */
+    unsigned char value_24;
     unsigned char is_present;             /* 0x25 */
     unsigned char is_grouped;             /* 0x26 */
     /* 0x27: the NPC's group-member character. CreateNpcRuntimeNode allocates
@@ -59,7 +63,9 @@ typedef struct W8NpcState {
     /* 0x2e: the space character selects the naming style whose name a fact can
        substitute. */
     char name_style;
-    unsigned char unknown_2f[0x5a];
+    /* 0x2f: the loaded level id the binding is stamped for. */
+    unsigned char value_2f;
+    unsigned char unknown_30[0x59];
     /* 0x089: five topics stored one more than their id so zero means empty. */
     int topics[5];
     unsigned char unknown_9d[0x28];
@@ -113,9 +119,16 @@ void Function50E650(int party_slot);
 unsigned char Function50C560(W8NpcState* npc, void* data);
 /* 0x0055A0A0: release one NPC's bound monster object. */
 void Function55A0A0(int binding);
+/* 0x0050ABF0: the activation callback the rebinding installs on the level's
+   NPC triggers. */
+unsigned char Function50ABF0(struct Trigger* trigger);
+/* 0x00524CA0: the NPC-side rebinding pass. */
+void Function524CA0(W8NpcState* npc);
 void ResetNpcBindingsForParty0050DB50(void);
 void ClearPendingNpcLevelFlags0050C270(void);
-void ReleaseNpcMonsterBindings0050C2E0(void);W8NpcState* GetNpcState(int index);
+void ReleaseNpcMonsterBindings0050C2E0(void);
+void ReleaseMarkedNpcBindings0050DA00(void);
+void RebindNpcLevelTriggers0050AC60(void);W8NpcState* GetNpcState(int index);
 W8NpcState* GetNpcStateByKind(int kind);
 unsigned char Function50B8F0(unsigned int kind);
 unsigned char GetNpcDispositionBand(W8NpcState* npc);

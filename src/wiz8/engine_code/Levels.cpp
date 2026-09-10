@@ -116,7 +116,6 @@ int g_cd_index_00604474;
 W8MaterialMapper00482010 g_material_mapper_00659738;
 
 extern void Function4EA310(int mode);
-extern void Function50DA00(void);
 
 // FUNCTION: WIZ8 0x0042b720
 int GetLevelCdNumber0042B720(int level)
@@ -337,7 +336,6 @@ extern float* RotateMatrixAroundAxis0042B910(
 
 extern void Function482410(void);
 extern void Function4D6C50(int level);
-extern void Function50AC60(void);
 extern void Function50E700(void);
 extern void Function5777C0(void);
 
@@ -614,7 +612,7 @@ unsigned char LoadLevel(
     g_level_runtime_flag_0065ba70 = 0;
     Function482410();
     Function4D6C50(level);
-    Function50AC60();
+    RebindNpcLevelTriggers0050AC60();
     SetWorldCursorNodesVisible0048ED70(g_value_0068f0fd);
     Function50E700();
 
@@ -674,7 +672,7 @@ unsigned char UnloadLevel(const char* save_directory)
         RenderFrame();
     }
 
-    Function50DA00();
+    ReleaseMarkedNpcBindings0050DA00();
     if (strcmp(save_directory, "") != 0) {
         SaveLevelStatus("Saves\\CurrentGame.SAV");
     }

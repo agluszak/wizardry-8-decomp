@@ -4,6 +4,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/dice.h"
 #include "wiz8/text_types.h"
+#include <wchar.h>
 
 /*
  * The on-disk gameplay records, as the matching source compiles them.
@@ -123,7 +124,9 @@ typedef struct W8NpcDatabaseRecord {
     /* 0x002: non-zero marks the record as carrying whatever the NPC manager's
        first predicate asks about. */
     short value_002;
-    unsigned char unknown_004[0x50];
+    /* 0x004: the wide source name the level-entry rebinding prefixes with an
+       underscore to build the NPC's trigger name. */
+    wchar_t source_name_004[0x28];
     /* 0x054: when set, releasing the NPC binding marks it before handing the
        owned item-list handle to the teardown. */
     unsigned char unknown_054;
@@ -148,7 +151,11 @@ typedef struct W8NpcDatabaseRecord {
     unsigned char deleted;               /* 0x0c7 */
     unsigned char unknown_0c8[0x202];
     W8PList* item_stock_rules;           /* 0x2ca: W8NpcItemStockRule* elements */
-    unsigned char unknown_2ce[0x3b];
+    unsigned char unknown_2ce[0x1c];
+    /* 0x2ea: the second half of the rebinding gate, tested together with the
+       record's 0x56 byte. */
+    unsigned char flag_2ea;
+    unsigned char unknown_2eb[0x1e];
 } W8NpcDatabaseRecord;                   /* 0x309 */
 
 /* One Data\Databases\LEVELS.DBS record. Only the disk and runtime stride is
