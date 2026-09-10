@@ -92,6 +92,18 @@ void W8OctSpatialState0046CCC0::Reset0046CDC0()
     memset(this, 0, sizeof(*this));
 }
 
+// FUNCTION: WIZ8 0x0046ce30
+void W8OctSpatialState0046CCC0::GetClippedBounds0046CE30(
+    srVector3T<float>* minimum, srVector3T<float>* maximum)
+{
+    minimum->x = clipped_minimum_24.x;
+    minimum->y = clipped_minimum_24.y;
+    minimum->z = clipped_minimum_24.z;
+    maximum->x = clipped_maximum_30.x;
+    maximum->y = clipped_maximum_30.y;
+    maximum->z = clipped_maximum_30.z;
+}
+
 // FUNCTION: WIZ8 0x0046cdd0
 W8OctSpatialState0046CCC0::~W8OctSpatialState0046CCC0()
 {

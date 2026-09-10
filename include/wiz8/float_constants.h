@@ -27,6 +27,9 @@ extern const float g_environment_near_scale_005ec0b0;
 extern float g_float_005ec020;
 extern float g_float_005ec1a8;
 extern float g_float_005ec2f8;
+/* 0x005EC360: 25000.0, read as a waypoint query half-extent by FindWaypoint
+   and as a range bound by GetRangeConstant5EC360. */
+extern float g_float_005ec360;
 extern double g_double_005ec030;
 extern double g_double_005ec318;
 extern double g_double_005ec368;

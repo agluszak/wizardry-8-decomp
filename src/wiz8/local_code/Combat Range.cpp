@@ -4,6 +4,7 @@
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/combat_state.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/local_code/CombatRange.h"
@@ -38,9 +39,6 @@ enum { W8_FORMATION_ROW_WIDTH = 3 };
 
 /* 0x00519AC0 */
 extern const float g_world_scale_005ebc40;
-extern float g_range_constant_005ec360;
-// GLOBAL
-float g_range_constant_005ec360;
 extern float g_range_constant_005ec35c;
 // GLOBAL
 float g_range_constant_005ec35c;
@@ -247,7 +245,7 @@ bool FrontRankScreens(unsigned int from_position, unsigned int to_position)
 // FUNCTION: WIZ8 0x0051b300
 float GetRangeConstant5EC360(void)
 {
-    return g_range_constant_005ec360;
+    return g_float_005ec360;
 }
 
 // FUNCTION: WIZ8 0x0051b310

@@ -11,12 +11,16 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/engine_code/stLight.h"
 #include "wiz8/engine_code/stScript.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/game_status.h"
+#include "wiz8/float_constants.h"
+#include "wiz8/location_variables.h"
+#include "wiz8/sr_api.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/dialog_code/DialogButton.h"
 #include "surrender/srColorSurface.h"
@@ -77,6 +81,8 @@ W8GrowableVector<srClass*>* g_releasable_68f1f4;
 
 }
 
+extern float g_float_64b914;
+
 // GLOBAL: WIZ8 0x0068f220
 W8GrowableVector<srClipPlane::ClientType*> g_automap_created_layers;
 // GLOBAL: WIZ8 0x0068f24c
@@ -95,8 +101,12 @@ srColorSurface* g_automap_surface;
 
 // GLOBAL: WIZ8 0x0064b8e4
 int g_automap_cursor_offsets[5][2] = {{0, 0}, {8, 7}, {1, 24}, {1, 24}, {8, 7}};
+// GLOBAL: WIZ8 0x0064b910
+float g_automap_range_0064b910;
 // GLOBAL: WIZ8 0x0064b918
 int g_automap_layer = -1;
+// GLOBAL: WIZ8 0x0064b91c
+unsigned char g_automap_bounds_dirty_0064b91c;
 // GLOBAL: WIZ8 0x0068f138
 EnvironmentColour g_automap_saved_light_direction;
 // GLOBAL: WIZ8 0x0068f144
@@ -117,14 +127,22 @@ int g_automap_saved_texture_policy;
 W8GrowableVector<srClipPlane::ClientType*> g_automap_layers;
 // GLOBAL: WIZ8 0x0068f1b8
 srVector3T<float> g_automap_bounds_max;
+// GLOBAL: WIZ8 0x0068f1c8
+srVector3T<float> g_automap_grid_max_0068f1c8;
+// GLOBAL: WIZ8 0x0068f1d8
+srVector3T<float> g_automap_grid_min_0068f1d8;
 // GLOBAL: WIZ8 0x0068f1e8
 srVector3T<float> g_automap_position;
+// GLOBAL: WIZ8 0x0068f1f8
+srVector3T<float> g_automap_grid_center_0068f1f8;
 // GLOBAL: WIZ8 0x0068f204
 float g_automap_top_y;
 // GLOBAL: WIZ8 0x0068f210
 srVector3T<float> g_automap_bounds_min;
 // GLOBAL: WIZ8 0x0068f230
 W8ScreenRect g_automap_viewport;
+// GLOBAL: WIZ8 0x0068f240
+srVector3T<float> g_automap_grid_origin_0068f240;
 // GLOBAL: WIZ8 0x0068f250
 int g_automap_tool;
 // GLOBAL: WIZ8 0x0068f254
@@ -166,6 +184,111 @@ unsigned char HasAutomapLayer(int layer)
 {
     return layer >= 0 && layer < g_automap_layers.GetCount() &&
            *g_automap_layers.GetAt(layer) != 0;
+}
+
+namespace {
+
+/* Pack a grid position into the record table's cell key: eleven bits of z,
+   then eleven of x, then ten of y, each scaled to grid cells. */
+inline unsigned int PackAutomapCell(const srVector3T<float>& position)
+{
+    return ((static_cast<unsigned int>(
+                 position.z / g_float_64b914) & 0x7ff)
+            | static_cast<unsigned int>(
+                position.x / g_float_64b914) << 11)
+           << 10
+           | (static_cast<unsigned int>(
+                  position.y / g_float_64b914) & 0x3ff);
+}
+
+}
+
+/* Rebuild the automap view for the level that just loaded: release every
+   note, size the query range from the level, seed the cell grid from the
+   octree bounds (or a fixed cube when there is no octree), and mark the
+   camera's own cell in the visited bitmap, retrying one cell higher when the
+   packed cell misses the record table. */
+// FUNCTION: WIZ8 0x005817d0
+void Function5817D0(void)
+{
+    if (g_automap_state == 0) {
+        g_automap_state = (W8AutomapState*)malloc(sizeof(W8AutomapState));
+        if (g_automap_state == 0) {
+            srAssertFail(
+                "gpAMSV",
+                "C:\\Projects\\Wizardry 8\\Local Screens\\AutomapScreen.cpp",
+                0x8b5, 0);
+        }
+        memset(g_automap_state, 0, sizeof(W8AutomapState));
+    }
+    while (g_automap_notes->count != 0) {
+        W8AutomapNote* note = *g_automap_notes->GetAt(0);
+        free(note->text);
+        delete note;
+        g_automap_notes->RemoveAt(0);
+    }
+    g_automap_redraw = 1;
+    if (g_loaded_level_id == 0x18
+        || (g_loaded_level_id > 0x1a && g_loaded_level_id <= 0x22)) {
+        g_automap_range_0064b910 = 30000.0f;
+    }
+    else {
+        g_automap_range_0064b910 = 10000.0f;
+    }
+    if (g_octree_6598a4 == 0) {
+        g_automap_grid_min_0068f1d8.x = -250000.0f;
+        g_automap_grid_min_0068f1d8.y = -250000.0f;
+        g_automap_grid_min_0068f1d8.z = -250000.0f;
+        g_automap_grid_max_0068f1c8.x = 250000.0f;
+        g_automap_grid_max_0068f1c8.y = 250000.0f;
+        g_automap_grid_max_0068f1c8.z = 250000.0f;
+    }
+    else {
+        g_octree_6598a4->spatial_000.GetClippedBounds0046CE30(
+            &g_automap_grid_min_0068f1d8, &g_automap_grid_max_0068f1c8);
+    }
+    g_automap_grid_origin_0068f240 = g_automap_grid_min_0068f1d8;
+    g_automap_grid_center_0068f1f8.x =
+        (g_automap_grid_min_0068f1d8.x + g_automap_grid_max_0068f1c8.x)
+        * g_W8RangeHalfStep005EBC7C;
+    g_automap_grid_center_0068f1f8.y = 0.0f;
+    g_automap_grid_center_0068f1f8.z =
+        (g_automap_grid_min_0068f1d8.z + g_automap_grid_max_0068f1c8.z)
+        * g_W8RangeHalfStep005EBC7C;
+    g_automap_bounds_dirty_0064b91c = 1;
+    float span_x =
+        g_automap_grid_max_0068f1c8.x - g_automap_grid_min_0068f1d8.x;
+    float span_z =
+        g_automap_grid_max_0068f1c8.z - g_automap_grid_min_0068f1d8.z;
+    float largest = span_z < span_x ? span_x : span_z;
+    if (largest <= g_float_005ec360) {
+        g_automap_top_y = 25000.0f;
+    }
+    else {
+        g_automap_top_y = largest;
+    }
+    g_automap_position_initialized = 0;
+    g_automap_layer = 0;
+
+    srVector3T<float> camera;
+    GetCameraPosition(&camera);
+    srVector3T<float> relative(
+        camera.x - g_automap_grid_origin_0068f240.x,
+        camera.y - g_automap_grid_origin_0068f240.y,
+        camera.z - g_automap_grid_origin_0068f240.z);
+    unsigned int key = PackAutomapCell(relative);
+    int cell = g_record_68f284->Lookup(&key);
+    if (cell > 1) {
+        g_bits_68f288->Set(cell - 1);
+        return;
+    }
+    relative.y = camera.y + g_float_64b914
+        - g_automap_grid_origin_0068f240.y;
+    key = PackAutomapCell(relative);
+    cell = g_record_68f284->Lookup(&key);
+    if (cell > 1) {
+        g_bits_68f288->Set(cell - 1);
+    }
 }
 
 // FUNCTION: WIZ8 0x0057E490

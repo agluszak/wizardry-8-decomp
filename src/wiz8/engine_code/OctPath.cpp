@@ -104,9 +104,8 @@ float g_path_cardinal_scale_005ec358 = 1.4149999618530273f;
 extern float g_path_waypoint_query_vertical_005ec35c;
 // GLOBAL
 float g_path_waypoint_query_vertical_005ec35c;
-extern float g_path_waypoint_query_horizontal_005ec360;
-// GLOBAL
-float g_path_waypoint_query_horizontal_005ec360;
+// GLOBAL: WIZ8 0x005ec360
+float g_float_005ec360;
 extern float g_path_waypoint_exact_distance_005ebc64;
 extern double g_double_005ebe80;
 extern float GetHeadingAngle004BE420(
@@ -3858,12 +3857,12 @@ unsigned short W8PathingService::FindWaypoint0045B120(
 
     srVector3T<float> lower;
     srVector3T<float> upper;
-    lower.x = query.x - g_path_waypoint_query_horizontal_005ec360;
+    lower.x = query.x - g_float_005ec360;
     lower.y = query.y - g_path_waypoint_query_vertical_005ec35c;
-    lower.z = query.z - g_path_waypoint_query_horizontal_005ec360;
-    upper.x = query.x + g_path_waypoint_query_horizontal_005ec360;
+    lower.z = query.z - g_float_005ec360;
+    upper.x = query.x + g_float_005ec360;
     upper.y = query.y + g_path_waypoint_query_vertical_005ec35c;
-    upper.z = query.z + g_path_waypoint_query_horizontal_005ec360;
+    upper.z = query.z + g_float_005ec360;
 
     int* candidates = 0;
     int count = g_octree_6598a4->QueryObjects0042F280(
