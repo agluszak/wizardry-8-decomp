@@ -475,7 +475,7 @@ W8Missile::W8Missile()
     }
 
     memset(values_1fc, 0, sizeof(values_1fc));
-    memset(unknown_280, 0, 0xa2);
+    memset(reinterpret_cast<void*>(&result_280), 0, 0xa2);
     ResetCombatSlot(&combat_slot_260);
 }
 

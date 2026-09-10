@@ -1,5 +1,11 @@
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/character_events.h"
+#include "wiz8/magic.h"
+#include "random.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/npc_state.h"
@@ -537,4 +543,229 @@ unsigned char UpdateNpcAt(W8NpcState* /*npc*/, int /*arg_2*/, void* scratch)
         &party_position, yaw, 1000.0f, 1,
         reinterpret_cast<srVector3T<float>*>(scratch), 1, 0, 1, 30, 0);
     return 0;
+}
+
+extern unsigned char g_flag_683fc5;
+extern void Function55A0A0(int value);                              /* 0x0055A0A0 */
+extern void Function56CA60(
+    W8NpcState* npc, int, int, int, int);                          /* 0x0056CA60 */
+extern void Function5289B0(int kind, int argument);                 /* 0x005289B0 */
+extern void Function509560(void);                                  /* 0x00509560 */
+extern void Function56C5E0(
+    W8NpcState* npc, int, int, int, int);                          /* 0x0056C5E0 */
+
+/* The frame-0x10 callback the 0x1b6 NPC cycle installs: mark the monster,
+   reset its navigator to the origin, and fire the VOC_BELA_CC voice event on
+   the 0x89 NPC kind sharing the queue. */
+// FUNCTION: WIZ8 0x0050D480
+void TriggerBelaVoice0050D480(W8Monster* monster)
+{
+    srVector3T<float> position;
+
+    monster->flags_1dc |= 0x40;
+    position.x = 0.0f;
+    position.y = 0.0f;
+    position.z = 0.0f;
+    monster->SetPosition(&position);
+
+    for (int index = 0; index < g_npc_states->GetCount(); ++index) {
+        W8NpcState* npc = *g_npc_states->GetAt(index);
+        if (npc->record->kind == 0x89) {
+            if (npc != 0) {
+                Function56C5E0(npc, 0, -1, 0, 0);
+                return;
+            }
+            break;
+        }
+    }
+    srAssertFail("pNPC", NPC_MANAGER_CPP, 0xbec, "Cannot find VOC_BELA_CC");
+}
+
+/* The NPC side of the global frame. Two timed world events first: one retires
+   NPC monster 0x1b3 through its dying state, the next starts the 0x1b6 cycle
+   with a callback. Then a one-shot pass over the NPC states releases the
+   monster binding of the partner each candidate names. Afterwards the group
+   event counter can consume a fact and run the NPC 0x8d teardown, the party's
+   portrait rows can trigger their NPC's spoken event, and two long reward
+   timers set their facts. */
+// FUNCTION: WIZ8 0x0050D530
+void UpdateNpcEvents0050D530(void)
+{
+    W8MonsterGroup* group;
+    W8MonsterInfo* monster_info;
+    W8NpcState* npc;
+    unsigned int index;
+
+    if (g_status_685170.flag_49bb != 0 &&
+        (unsigned int)(g_status_685170.world_clock -
+                       g_status_685170.value_49b7) > 0x2a30) {
+        if (GetFact(0x3c) != 0 && Random(100) < 6) {
+            SetFact(0x2f1, 1, 0);
+        }
+        g_status_685170.flag_49bb = 0;
+    }
+    if (g_status_685170.value_4973 != 0 &&
+        (unsigned int)(GetTickCount() - g_status_685170.value_4973) > 0x32) {
+        group = FindFirstMonsterByID(0x1b3);
+        if (group != 0) {
+            index = MonsterGetIndexByLocationID(
+                0xc17, NPC_MANAGER_CPP, group->value_9f, 1);
+            monster_info = MonsterGetScriptPartByLocationIndex(index);
+            MonsterStartsDying(monster_info, 1);
+        }
+        g_status_685170.value_4973 = 0;
+        g_status_685170.value_4977 = GetTickCount();
+    }
+    if (g_status_685170.value_4977 != 0 &&
+        (unsigned int)(GetTickCount() - g_status_685170.value_4977) > 0x1388) {
+        group = FindFirstMonsterByID(0x1b6);
+        if (group != 0) {
+            index = MonsterGetIndexByLocationID(
+                0xc2f, NPC_MANAGER_CPP, group->value_9f, 1);
+            monster_info = MonsterGetScriptPartByLocationIndex(index);
+            StartMonsterCycle(monster_info, 0x10, 1);
+            monster_info->monster->SetCycleCallback004CA340(
+                0x10, TriggerBelaVoice0050D480);
+        }
+        g_status_685170.value_4977 = 0;
+    }
+
+    if (g_status_685170.flag_2430 != 0) {
+        W8NpcState* partner = 0;
+
+        for (int slot = 0; slot < g_npc_states->GetCount(); ++slot) {
+            npc = *g_npc_states->GetAt(slot);
+            if (npc->unknown_c7 != 0 || npc->flag_ea == 0) {
+                g_status_685170.flag_2430 = 0;
+                continue;
+            }
+            unsigned int kind = (unsigned char)npc->name_style;
+
+            partner = 0;
+            for (int search = 0; search < g_npc_states->GetCount();
+                 ++search) {
+                W8NpcState* candidate = *g_npc_states->GetAt(search);
+                if ((unsigned int)candidate->record->kind == kind) {
+                    partner = candidate;
+                    break;
+                }
+            }
+            if (partner->has_monster == 0) {
+                g_status_685170.flag_2430 = 0;
+                continue;
+            }
+            if (partner->is_present != 0) {
+                index = MonsterGetIndexByLocationID(
+                    0x2a1, NPC_MANAGER_CPP, partner->location_id, 1);
+                monster_info = MonsterGetScriptPartByLocationIndex(index);
+                if (monster_info != 0) {
+                    index = MonsterGetIndexByLocationID(
+                        0x9bb, NPC_MANAGER_CPP,
+                        monster_info->location_id, 1);
+                    RemoveMonster(index, 1);
+                }
+            }
+            int partner_index = (unsigned char)partner->partner_index_2c;
+            if (partner_index != -1 &&
+                partner_index <= g_npc_states->GetCount()) {
+                W8NpcState* released = *g_npc_states->GetAt(partner_index);
+                released->has_monster = 0;
+                Function55A0A0(released->unknown_00);
+                released->unknown_00 = 0;
+                if (released->record->unknown_054 != 0) {
+                    released->unknown_c7 = 1;
+                }
+            }
+            g_status_685170.flag_2430 = 0;
+        }
+    }
+
+    if (g_in_combat_00683f94 == 0 && g_status_685170.value_498b > 1) {
+        bool run_event = GetFact(0x216) != 0;
+
+        if (!run_event) {
+            for (int search = 0; search < g_npc_states->GetCount();
+                 ++search) {
+                W8NpcState* candidate = *g_npc_states->GetAt(search);
+                if (candidate->record->kind == 99) {
+                    if (candidate != 0 &&
+                        *(unsigned char*)&candidate->unknown_04 != 0) {
+                        run_event = true;
+                    }
+                    break;
+                }
+            }
+        }
+        if (run_event) {
+            g_status_685170.value_498b = 0;
+            for (int search = 0; search < g_npc_states->GetCount();
+                 ++search) {
+                W8NpcState* candidate = *g_npc_states->GetAt(search);
+                if (candidate->record->kind == 0x8d) {
+                    if (candidate != 0) {
+                        Function56CA60(candidate, 0, 0, 0, 0);
+                    }
+                    break;
+                }
+            }
+            Function5289B0(0x42, 0);
+        }
+    }
+
+    if (g_flag_683fc5 == 0) {
+        unsigned int row_offset = 0;
+        unsigned int character_offset = 0;
+
+        do {
+            W8PartySlotRow* row =
+                (W8PartySlotRow*)((char*)g_status_685170.buffers.party_rows +
+                                  row_offset);
+            W8Character* character =
+                (W8Character*)((char*)g_status_685170.buffers.characters +
+                               character_offset);
+
+            if (row->occupied != 0 &&
+                *(int*)((char*)character + 0xb11) != 0) {
+                W8NpcState* npc_state = 0;
+                if (g_npc_states != 0) {
+                    npc_state = *g_npc_states->GetAt(row->animation_0fa);
+                    if (npc_state != 0 && npc_state->unknown_c7 != 0) {
+                        npc_state = 0;
+                    }
+                }
+                if (*(unsigned char*)&row->unknown_0fe[0] != 0 &&
+                    (int)(g_status_685170.world_clock -
+                          npc_state->event_clock_eb) > 0x168) {
+                    if (Random(2) == 0) {
+                        npc_state->event_clock_eb =
+                            g_status_685170.world_clock + Random(6) * 0x3c;
+                    }
+                    else {
+                        int event = Random(2) == 0 ? 0x57 : 0x58;
+                        Function52E690(
+                            character, event, 0,
+                            g_effect_argument_005ed8c8,
+                            g_effect_argument_005ed914);
+                        npc_state->event_clock_eb =
+                            g_status_685170.world_clock;
+                    }
+                }
+            }
+            row_offset += 0x106;
+            character_offset += 0x1862;
+        } while (row_offset < 0x20c);
+    }
+
+    if (g_status_685170.flag_248a != 0 &&
+        (unsigned int)(g_status_685170.world_clock -
+                       g_status_685170.value_2493) > 0x2a300) {
+        g_status_685170.flag_248a = 0;
+        SetFact(0xb8, 1, 0);
+    }
+    if (g_status_685170.flag_2497 != 0 &&
+        (int)(g_status_685170.world_clock -
+              g_status_685170.value_242a) > 0x3c) {
+        g_status_685170.flag_2497 = 0;
+        Function509560();
+    }
 }

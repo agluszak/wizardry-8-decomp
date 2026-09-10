@@ -1,3 +1,4 @@
+#include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
@@ -19,7 +20,7 @@ enum { W8_NEUTRAL_SPECIES_224 = 0x224 };
    only matching non-zero factions fall through to the condition-thirteen
    presence test. */
 // FUNCTION: WIZ8 0x00546F80
-char Function546F80(W8MonsterInfo* first, W8MonsterInfo* second)
+char MonsterHostility00546F80(W8MonsterInfo* first, W8MonsterInfo* second)
 {
     W8MonsterRecord* first_record;
     W8MonsterRecord* second_record;
@@ -55,7 +56,7 @@ char Function546F80(W8MonsterInfo* first, W8MonsterInfo* second)
 /* Whether a spell id can be aimed by monster AI: inside the spell table, not
    one of the two self-only kinds, and carrying a middle target type. */
 // FUNCTION: WIZ8 0x005474B0
-unsigned char Function5474B0(int spell_id)
+unsigned char MonsterCanAimSpell005474B0(int spell_id)
 {
     if (spell_id > 0x95) {
         srAssertFail(

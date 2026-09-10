@@ -61,6 +61,22 @@ class W8VectorElement005EBFE4;
 // SYNTHETIC: WIZ8 0x0042bba0
 // W8GrowableVector<W8VectorElement005EBFE4*>::`scalar deleting destructor'
 
+class W8Missile;
+
+// VTABLE: WIZ8 0x005ebfe8
+// class W8GrowableVector<W8Missile*>
+
+// SYNTHETIC: WIZ8 0x0042bbd0
+// W8GrowableVector<W8Missile*>::`scalar deleting destructor'
+
+class W8SpellDamageReport;
+
+// VTABLE: WIZ8 0x005ebfec
+// class W8GrowableVector<W8SpellDamageReport*>
+
+// SYNTHETIC: WIZ8 0x0042bb40
+// W8GrowableVector<W8SpellDamageReport*>::`scalar deleting destructor'
+
 // VTABLE: WIZ8 0x005ec51c
 // class W8GrowableVector<unsigned char>
 

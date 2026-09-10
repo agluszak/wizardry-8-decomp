@@ -10,6 +10,7 @@
 
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
+#include "wiz8/npc_state.h"
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GrCycle.h"
@@ -80,7 +81,6 @@ extern void Function444F70(int value, float duration, float intensity,
                           unsigned char reverse);
 
 extern void Function500930(void);
-extern void Function50D530(void);
 
 // FUNCTION: WIZ8 0x0046DC90
 void SetSceneAmbientLightWhite(srScene* scene)
@@ -372,7 +372,7 @@ void UpdateWorlds0044F400(void)
     UpdateTimedTriggerEvents00443D30();
     UpdateShakeEffects004AE310();
     UpdateEnvironment482770();
-    Function50D530();
+    UpdateNpcEvents0050D530();
 }
 
 // FUNCTION: WIZ8 0x0044F4E0

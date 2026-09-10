@@ -149,7 +149,6 @@ set(WIZ8_PROVISIONAL_AND_QUARANTINE_UNITS
     src/wiz8/engine_code/OctRegionPolygon.cpp
     src/wiz8/version.cpp
     src/wiz8/local_code/party_encumbrance.cpp
-    src/wiz8/local_code/missile_references.cpp
     src/wiz8/local_code/Search.cpp
     src/wiz8/local_code/npc_interaction.cpp
     src/wiz8/unattributed/00526e91_0052a88f.cpp

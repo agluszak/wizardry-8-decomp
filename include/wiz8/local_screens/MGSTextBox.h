@@ -21,4 +21,5 @@ extern W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
 
 void Function58FD30(void);
 void ScrollTextBoxToCursor(void);
+unsigned char GetTextBoxMode(void);
 void SetTextBoxMode(unsigned char mode, int value);
