@@ -1,4 +1,5 @@
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
@@ -511,9 +512,6 @@ int Function50A440(unsigned int monster_list_index)
     }
     return 0;
 }
-
-extern void GetCameraPosition(srVector3T<float>* position);
-extern float GetCameraYawRadians(void);
 
 // GLOBAL: WIZ8 0x005EC29C
 const float g_float_005ec29c = 0.7853981256484985f;

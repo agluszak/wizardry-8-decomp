@@ -1,5 +1,6 @@
 #include "wiz8/render_state.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/AmbientSound.h"
 #include "wiz8/engine_code/World.h"
@@ -13,7 +14,6 @@
 #include <string.h>
 #include <stdio.h>
 
-extern void GetCameraPosition(srVector3T<float>* position); /* 0x00421070 */
 extern void AudioUpdateFinish004AEFD0();
 
 // FUNCTION: WIZ8 0x00479040

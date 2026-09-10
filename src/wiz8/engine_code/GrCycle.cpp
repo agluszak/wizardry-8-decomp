@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/SoundEvent.h"
+#include "wiz8/engine_code/GrObject.h"
 #include "wiz8/engine_code/GrCycle.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Trigger.h"
@@ -261,7 +262,6 @@ float g_float_005ec128 = 0.0010000000474974513f;
 extern float g_float_005ebc64;
 // GLOBAL
 float g_float_005ebc64;
-extern int IncrementValue60DFAC(void);
 
 /* Build the two paths used while reading a .mon resource, verify its one-byte
    version, and hand the open file plus its resource context to the typed cycle

@@ -12,6 +12,7 @@
 #include "wiz8/character.h"
 #include "wiz8/engine_code/Emitter.h"
 #include "wiz8/engine_code/AnimObj.h"
+#include "wiz8/engine_code/GrObject.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/Item.h"
@@ -37,7 +38,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern int IncrementValue60DFAC(void);
 extern int CountSpellsOfKind(int kind);                      /* 0x004AC8F0 */
 extern const float g_monster_rotation_offset_005ec04c;
 extern const double g_camera_pi_005ec2a0;

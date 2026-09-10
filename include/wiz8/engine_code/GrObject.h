@@ -33,3 +33,7 @@ public:
        concrete payloads derive from this polymorphic animation root. */
     W8AnimRepBase005EC1D8* m_pRep;       /* 0x14 */
 };                                      /* 0x18 */
+
+/* The shared object-id counter both lifecycle callers advance. */
+int IncrementValue60DFAC(void);
+void SetValue60DFAC(void);

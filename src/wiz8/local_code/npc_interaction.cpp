@@ -5,11 +5,6 @@
 #include "wiz8/npc_interaction.h"
 #include "wiz8/npc_state.h"
 
-extern "C" {
-extern int g_value_68c4c0;
-extern unsigned char g_flag_68c4f7;
-}
-
 extern unsigned char g_flag_68c4a0;
 extern unsigned char g_flag_68c4f6;
 extern W8NpcState* g_npc_state_68c4ac;

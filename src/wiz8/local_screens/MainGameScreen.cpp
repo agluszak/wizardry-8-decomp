@@ -23,6 +23,7 @@
 #include "wiz8/local_screens/MGSKeyboard.h"
 #include "wiz8/render_state.h"
 #include "wiz8/engine_code/Video2.h"
+#include "wiz8/local_screens/RCSCommon.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/3d_code/IList.h"
@@ -89,7 +90,6 @@ extern void Function58AC00(int, const wchar_t*, int, int, int);
 extern void Function58AAD0(int, const wchar_t*, const wchar_t*);
 extern void Function55D3C0(void);
 extern void Function55EE70(int value);
-extern void Function55F160(int value);
 extern void Function587510(int value);
 extern void Function58A470(int value);
 extern void Function565740(int slot);
@@ -111,10 +111,7 @@ extern void Function59F2B0(void);
 extern void Function5A20E0(int);
 extern void Function5A23E0(void);
 extern void Function5AEB20(void);
-extern void Function5B1C00(void);
-extern void Function5B2200(void);
 extern void Function563DD0(void);
-extern void Function4257F0(int value);
 extern void Function529510(void);
 extern short Function5698C0(void);
 extern void Function5618F0(unsigned short mode);
@@ -232,7 +229,6 @@ void Function5A6970(void);
 unsigned char Function5A6790(void);
 void Function5A68C0(void);
 void Function50B3B0(int value);
-unsigned char Function554540(void);
 void Function5542E0(void);
 void Function59A3A0(void);
 void Function575C50(void);
@@ -1184,7 +1180,6 @@ extern void Function5879A0(int arg_1);
 extern void Function58A790(int arg_1);
 extern void Function59F2B0(void);
 extern void Function59CAC0(void);
-extern void Function5B2200(void);
 
 /* Whether the screen is idle - none of the six overlays is up. The same six
    flags the input block reads, but all of them and unconditionally. */

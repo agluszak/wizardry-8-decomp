@@ -312,7 +312,6 @@ extern unsigned char Function4E79A0(
 extern unsigned char Function536F60(int party_slot, int value);
 extern void Function536570(int party_slot, int value_1, int value_2);
 extern void Function595600(void);
-extern void Function55F160(int value);                       /* 0x0055F160 */
 
 // GLOBAL: WIZ8 0x00652da6
 unsigned char g_byte_652da6;

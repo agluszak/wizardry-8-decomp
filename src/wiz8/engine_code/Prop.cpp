@@ -1,6 +1,7 @@
 #include "wiz8/render_state.h"
 #include "wiz8/engine_code/GDProp.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/GrObject.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/engine_code/AnimObj.h"
@@ -41,8 +42,6 @@
 
    FindPropByName independently proves that +0x20 is the owned prop name.
    Unresolved members and the gaps between them remain positional. */
-
-extern int IncrementValue60DFAC(void);
 
 /* This byte is reset before the world Prop update and set when a collidable
    Prop rebuilds its pathing geometry.  Its three retail references establish

@@ -82,7 +82,6 @@ extern void Function5092F0(int* level, int* entrance);
 extern void Function5063E0(void);
 extern unsigned char Function42AF60(int level, int entrance);
 extern unsigned int LoadGame(const char* slot_name);
-extern void SetValue64D8AC(unsigned long value);
 extern unsigned char g_flag_689b2c;
 
 /* 0x0064BF8C: one video-object id per level, the backdrop the Please Wait

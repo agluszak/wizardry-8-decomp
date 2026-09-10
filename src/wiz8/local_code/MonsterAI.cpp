@@ -1,6 +1,7 @@
 #include "wiz8/targeting.h"
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
@@ -39,7 +40,6 @@ extern unsigned char AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int sp
 
 extern unsigned char Function5353E0(W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* slot);
 struct W8SpellEffectEntry;
-extern void GetCameraPosition(srVector3T<float>* position);                     /* 0x00421070 */
 /* 0x0061EEFC: two dwords per AI kind; only the leading dword is read here. */
 // GLOBAL: WIZ8 0x0061EEFC
 extern const int g_ai_kind_table[32][2] = {

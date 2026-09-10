@@ -33,8 +33,6 @@
 
 #include <wchar.h>
 
-void SetValue64D8AC(unsigned long value);
-
 /*
  * Local Screens\MainMenuScreen.cpp.
  *

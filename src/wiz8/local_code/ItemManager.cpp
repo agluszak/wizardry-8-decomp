@@ -1,5 +1,6 @@
 #include "wiz8/local_code/ItemManager.h"
 #include "wiz8/game_status.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/3d.h"
@@ -460,7 +461,6 @@ unsigned int ItemIndex(int runtime_id)
     return 0;
 }
 
-extern void GetCameraPosition(srVector3T<float>* position);               /* 0x00421070 */
 extern void GetWorldItemBounds(float* lower, float* upper);              /* 0x0049FB30 */
 extern void RemoveItemFromSector(int sector, W8WorldItem* item);         /* 0x004B7B50 */
 extern void AddItemToSector(int sector, W8WorldItem* item);              /* 0x004B7AD0 */

@@ -20,6 +20,11 @@ struct W8World;
 struct W8NavigatorMovementState;
 struct W8OctBuildNode00446330;
 
+/* Bulk vector-array reads the .oct submesh readers share. */
+unsigned char ReadVector4Array004374C0(int file, srVector4T<float>* values, int count);
+unsigned char ReadVector3Array004374E0(int file, srVector3T<float>* values, int count);
+unsigned char ReadVector2Array00437510(int file, srVector2T<float>* values, int count);
+
 /* One 0x10-byte entry of the .oct file's submesh table. Field +4 is the index
    into W8World::psrMeshes; the visibility update and UpdateMonsterLocation both
    resolve a region through it, and the update's reset pass writes the owning

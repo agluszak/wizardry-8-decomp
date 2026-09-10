@@ -88,6 +88,8 @@ class srNode;
 class srTextureIFace;
 srNode* Function424BA0(srTextureIFace* texture, float width, float height,
     unsigned char positional_3);
+void Function4229E0(void);
+void Function4257F0(int value);
 #endif
 
 #endif

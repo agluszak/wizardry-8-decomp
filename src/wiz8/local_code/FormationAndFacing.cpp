@@ -1,5 +1,6 @@
 #include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/local_code/Strings.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/xstatus.h"
@@ -14,7 +15,6 @@
 /* Original translation unit: Local Code\Formation & Facing.cpp. */
 
 /* Fills in the party's own world position. */
-extern void GetCameraPosition(srVector3T<float>* position);          /* 0x00421070 */
 /* A full turn, and the half-quadrant the bearing is biased by so that a
    quadrant is centred on its facing rather than starting at it. */
 enum { W8_DEGREES_PER_TURN = 360, W8_DEGREES_PER_QUADRANT = 90 };
@@ -62,9 +62,6 @@ extern signed char DecideFacingForPosition(int position, int arg_2);  /* 0x00555
 extern void Function5B1C80(void);
 extern void Function5A24A0(void);
 extern void Function5B1E70(void);
-extern int GetCameraYawDegrees(void);                                   /* 0x00421550 */
-extern void SetCameraYawDegrees(float degrees);                            /* 0x00421000 */
-extern void TurnCameraToDegrees(float degrees);                            /* 0x00420FD0 */
 
 // GLOBAL: WIZ8 0x005ee858
 double g_facing_tolerance_005ee858 = 2.3561944500000003;

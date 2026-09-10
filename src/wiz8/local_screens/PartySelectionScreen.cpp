@@ -43,7 +43,6 @@
 /* Party-selection and imported-character UI. The original translation-unit
    spelling is not established; this descriptive name is provisional. */
 
-void SetValue64D8AC(unsigned long value);
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
 void Function55EE70(int value);

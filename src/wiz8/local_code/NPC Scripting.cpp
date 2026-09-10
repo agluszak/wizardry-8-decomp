@@ -1,6 +1,5 @@
 #include "wiz8/character.h"
-
-extern unsigned char g_flag_68c4f7;
+#include "wiz8/npc_interaction.h"
 
 // GLOBAL: WIZ8 0x0068c4f4
 unsigned char g_flag_68c4f4;

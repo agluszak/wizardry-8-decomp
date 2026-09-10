@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/OctMeshModel.h"
+#include "wiz8/engine_code/Octree.h"
 
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/materials.h"
@@ -17,12 +18,6 @@ static stMaterial* g_oct_mesh_default_material_00652dbc;
 static srTextureIFace* g_oct_mesh_default_texture_00652dc0;
 static unsigned long* g_oct_mesh_default_render_flags_00652dc4;
 
-extern unsigned char ReadVector4Array004374C0(
-    int file, srVector4T<float>* values, int count);
-extern unsigned char ReadVector3Array004374E0(
-    int file, srVector3T<float>* values, int count);
-extern unsigned char ReadVector2Array00437510(
-    int file, srVector2T<float>* values, int count);
 // FUNCTION: WIZ8 0x0049E4C0
 OctMeshModel::OctMeshModel()
     : version_00(0),

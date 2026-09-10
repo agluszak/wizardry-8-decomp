@@ -30,5 +30,6 @@ void PositionMouseCursor(int x, int y, unsigned char reset_tick);
 void UpdateHeldItemCursor(void);
 void ClearHeldItemDisplay(void);
 void SetCurrentCursor(int cursor);
+void Function55F160(int item_id);
 
 #endif

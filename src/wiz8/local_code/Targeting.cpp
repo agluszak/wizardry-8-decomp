@@ -1,6 +1,8 @@
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/cursor.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/PList.h"
@@ -248,8 +250,6 @@ char GetTargetNeededForItem(const W8ItemInstance* item)
 }
 
 extern void AimAtTarget(int actor, W8CombatSlot* target, int context);   /* 0x005387F0 */
-
-extern void GetCameraPosition(srVector3T<float>* position);               /* 0x00421070 */
 
 /* 0x004CA4F0 */
 extern void ShowTargetMarker(void* eye, void* lower, void* upper);       /* 0x0046F820 */
@@ -857,7 +857,6 @@ extern unsigned char CanTargetMonsterWithAction(
     int party_slot, int location_id, int arg_3, int arg_4);              /* 0x00536AD0 */
 extern unsigned char Function547510(void);                                  /* 0x00547510 */
 extern void SetTargetCursor(int cursor);                                 /* 0x0055EE70 */
-extern void UpdateHeldItemCursor(void);                                    /* 0x0055EF90 */
 
 /* The two cursors this body cares about: the one it puts up for a monster it
    can act on, and the one it takes down for a monster it cannot. */
@@ -1645,7 +1644,6 @@ unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char
     }
 }
 
-extern void GetCameraPosition(srVector3T<float>* position);                      /* 0x00421070 */
 extern float AngleFromPartyTo(const srVector3T<float>* from, const srVector3T<float>* to);
 /* 0x004BE420 */
 extern void AimAtTarget(int actor, const W8CombatSlot* target, int context);

@@ -1,6 +1,7 @@
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/3dapi.h"
 #include "wiz8/engine_code/AmbientSound.h"
+#include "wiz8/engine_code/GrObject.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/monster_generators.h"
 #include "wiz8/render_state.h"
@@ -52,8 +53,6 @@
 #define THREE_D_API_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\3dapi.cpp"
 
 extern void SetRendererReady(void);
-extern void PlacePartyAtPoint(const srVector3T<float>* point);
-extern void SetValue60DFAC(void);
 
 // GLOBAL: WIZ8 0x00607d7c
 unsigned char g_renderer_ready_00607d7c = 1;

@@ -1,4 +1,5 @@
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_screens/RCSCommon.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
@@ -319,8 +320,6 @@ W8TextControl* g_panel_controls_69c344[15];
 W8TextControl* g_panel_controls_69c384[15];
 // GLOBAL: WIZ8 0x0069c2f8
 W8TextControl* g_panel_controls_69c2f8[3];
-
-extern void Function4257F0(int value);
 
 /* Release the three level-runtime dialogue owners through the shared
    teardown, then clear the slots. */

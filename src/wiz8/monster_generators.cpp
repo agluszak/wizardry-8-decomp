@@ -1,5 +1,6 @@
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/World.h"
@@ -245,7 +246,6 @@ void Function48C9F0(void)
     }
 }
 extern unsigned char g_force_encounter_culling;     /* 0x00687500 */
-extern void GetCameraPosition(srVector3T<float>* position); /* 0x00421070 */
 
 // GLOBAL: WIZ8 0x0060a6cc
 const float g_encounter_culling_scale_fast = 1.0f;

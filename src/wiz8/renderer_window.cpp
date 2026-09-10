@@ -754,7 +754,6 @@ unsigned char ClearPrimarySurface(void)
 extern srScene* g_cursor_scene_659684;
 extern unsigned char g_render_flag_603c6c;
 
-extern void Function4229E0(void);
 extern "C" void Function482140(void);
 
 /* Clamp the three components of a renderer colour independently. The input is

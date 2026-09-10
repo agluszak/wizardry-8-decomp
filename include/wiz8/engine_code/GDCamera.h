@@ -90,6 +90,8 @@ void Function421150(float distance, srVector3T<float>* output);
 void SetCameraOrientation(
     float* angle, float* pitch, srMatrix3T<float>* rotation);
 void GetCameraPosition(srVector3T<float>* position);
+int GetCameraYawDegrees(void);
+void PlacePartyAtPoint(const srVector3T<float>* point);
 
 static_assert(sizeof(GDCamera) == 0xc0, "GDCamera_must_be_0xc0");
 

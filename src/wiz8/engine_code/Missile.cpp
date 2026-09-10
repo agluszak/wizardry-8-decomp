@@ -8,6 +8,7 @@
  */
 
 #include "wiz8/engine_code/AnimObj.h"
+#include "wiz8/engine_code/GrObject.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/engine_code/ReadLevel.h"
@@ -26,7 +27,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern int IncrementValue60DFAC(void);
 extern void Function500460(W8Missile* missile);
 extern void* g_dialog_state_006836a8;
 

@@ -68,6 +68,7 @@ void SetPendingScreenState(int value);
 void RequestScreenTransition(void);
 unsigned char IsScreenTransitionPending(void);
 void RequestExitScreen(void);
+void SetValue64D8AC(unsigned long value);
 
 /* All records use this lifecycle contract. The shared success address occurs
    in retail, including the game-start router's unused leave slot. */

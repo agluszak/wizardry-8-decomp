@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/game_status.h"
@@ -229,7 +230,6 @@ struct W8SpellQueueEntry {
 };
 
 /* 0x00450610 */
-extern void PlacePartyAtPoint(const srVector3T<float>* point);                  /* 0x00421090 */
 extern void BeginLevelTransition(void);                                  /* 0x005611A0 */
 
 /* Return the casting character to the anchor they set earlier. Nothing happens
