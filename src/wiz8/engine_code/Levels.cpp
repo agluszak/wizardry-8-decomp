@@ -119,7 +119,6 @@ extern void Function50DA00(void);
 extern unsigned char ReleaseItemLists(void);
 extern void Function48DB30(void);
 extern void Function4909C0(void);
-extern void Function489920(void);
 
 // FUNCTION: WIZ8 0x0042b720
 int GetLevelCdNumber0042B720(int level)
@@ -349,7 +348,6 @@ extern void Function50C270(void);
 extern void Function50C2E0(void);
 extern void Function5777C0(void);
 extern void Function5060C0(void);
-extern void Function451020(void);
 
 extern float g_runtime_world_scale_6081e8;
 
@@ -508,7 +506,7 @@ unsigned char LoadLevel(
         Forward44FAF0(GetWorld());
         SetCurrentWorld(0);
     }
-    Function489920();
+    ReleaseRetainedMaterials00489920();
     Function427440();
     SetCurrentWorld(CreateWorld());
 
@@ -664,7 +662,7 @@ unsigned char LoadLevel(
         RebuildAllWorldItemInstances();
     }
     MarkRendererReady();
-    Function451020();
+    UpdateWorldMeshAfterLoad00451020();
     ReleaseReadMeshScratch004881D0();
     return 1;
 }
@@ -727,7 +725,7 @@ unsigned char UnloadLevel(const char* save_directory)
         Forward44FAF0(world);
         SetCurrentWorld(0);
     }
-    Function489920();
+    ReleaseRetainedMaterials00489920();
 
     if (g_world_cleanup_flag_00659757 != 0) {
         RenderFrame();

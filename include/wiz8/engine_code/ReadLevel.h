@@ -92,5 +92,6 @@ unsigned char ReadWorldParticles004BD0D0(
     srNode* scene,
     W8GrowableVector<stParticle*>* particles);
 void ReleaseReadMeshScratch004881D0();
+void ReleaseRetainedMaterials00489920();
 unsigned char IsReadMeshMaterial00489AC0(const srClass* material);
 

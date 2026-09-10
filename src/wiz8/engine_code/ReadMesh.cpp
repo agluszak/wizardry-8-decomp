@@ -946,6 +946,20 @@ unsigned char ReadMultipleLevelMeshes00488240(
     return 1;
 }
 
+// FUNCTION: WIZ8 0x00489920
+void ReleaseRetainedMaterials00489920()
+{
+    while (g_retained_material_count_65b9d4 != 0) {
+        g_retained_materials_65b9dc[0]->release();
+        for (int index = 0; index < g_retained_material_count_65b9d4 - 1;
+             ++index) {
+            g_retained_materials_65b9dc[index] =
+                g_retained_materials_65b9dc[index + 1];
+        }
+        --g_retained_material_count_65b9d4;
+    }
+}
+
 // FUNCTION: WIZ8 0x004881d0
 void ReleaseReadMeshScratch004881D0() {
   if (g_read_mesh_materials_65b9e8 != 0) {

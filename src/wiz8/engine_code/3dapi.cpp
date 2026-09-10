@@ -616,6 +616,24 @@ void SetWorldScenePosition004511D0(
     }
 }
 
+// FUNCTION: WIZ8 0x00451020
+void UpdateWorldMeshAfterLoad00451020(void)
+{
+    if (g_renderer_ready_00607d7c != 0 &&
+        g_world_mesh_update_enabled_00607d7d != 0) {
+        if (g_world->octree != 0) {
+            UpdateWorldOctree004BAF50(g_world);
+        }
+        else if (g_world->m_owned_06c != 0) {
+            ++g_world->m_owned_06c->dirty;
+            UpdateWorldMeshFromQuads004BAD40(g_world);
+        }
+        RepositionAmbientSounds0047A600(g_world);
+        RequestRefreshPartyState();
+        g_renderer_ready_00607d7c = 0;
+    }
+}
+
 // FUNCTION: WIZ8 0x00451110
 unsigned char ForwardLoadWorld(
     W8World* world, char* level_file_name, const char* level_folder,
