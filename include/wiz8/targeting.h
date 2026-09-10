@@ -121,7 +121,7 @@ unsigned char Function53A300(W8MonsterInfo* monster_info, int spell_id);
 W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context);
 void Function53B160(void);
 void RefreshAllPartyTargets0053BF80(void);
-void Function536570(int party_slot, int context, int arg);
+unsigned char Function536570(int party_slot, int context, int arg);
 /* 0x005387F0 */
 void AimAtTarget(int actor, W8CombatSlot* target, int context);
 void Function53A930(int party_slot, W8CombatSlot* target);
@@ -158,7 +158,7 @@ void NoteTargetChosen(const W8TargetSource* source, const W8CombatSlot* target);
 unsigned char CanTargetMonsterWithAction(
     int party_slot, int location_id, int arg_3, int arg_4);              /* 0x00536AD0 */
 void ClearTargetingMode0053B050(int party_slot);
-unsigned char Function536F60(int party_slot, int value);
+unsigned char Function536F60(int party_slot, int value, int context = 0);
 void Function5398D0(void);
 unsigned char Function53A1D0(void);
 void Function53B1D0(void);
@@ -169,3 +169,8 @@ unsigned char TargetIsInPlay(int party_slot, int arg_2, int arg_3);   /* 0x00536
 #endif
 void Function53AE00(void);          /* 0x0053AE00 */
 void Function53CD60(void);          /* 0x0053CD60 */
+/* Combat action-selection helpers used across the combat units. */
+unsigned char Function53C270(int party_slot);        /* 0x0053C270 */
+int Function53BC90(int party_slot);                  /* 0x0053BC90 */
+int GetValidatedTargetingContext(int party_slot, unsigned int context); /* 0x0053BBD0 */
+void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source); /* 0x0053A9D0 */

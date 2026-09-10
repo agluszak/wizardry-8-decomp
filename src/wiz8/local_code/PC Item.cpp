@@ -311,7 +311,6 @@ extern int g_item_message_005ee664;
 extern unsigned char Function521060(
     int item_id, int value_1, int value_2, int value_3, int value_4);
 
-extern void Function536570(int party_slot, int value_1, int value_2);
 
 // GLOBAL: WIZ8 0x00652da6
 unsigned char g_byte_652da6;

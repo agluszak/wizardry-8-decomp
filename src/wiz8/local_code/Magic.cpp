@@ -534,7 +534,7 @@ void SetCharacterSpell(const W8Character* character, int spell_id, int power_lev
 
     notify[0] = power_level;
     notify[1] = 0;
-    Function4E7CC0(party_slot, 7, spell_id, notify, 0, 1);
+    ChooseAction(party_slot, 7, spell_id, notify, 0, 1);
 
     row = &g_party_slot_rows[party_slot];
     row->spell_power_level = power_level;
@@ -953,7 +953,7 @@ void StartCharacterSpellCast(int party_slot, int power_level)
         named[1] = 0;
         target = named;
     }
-    ChooseAction(party_slot, 7, row->spell_id, (int)target, 0, 1);
+    ChooseAction(party_slot, 7, row->spell_id, target, 0, 1);
     AimAtTarget(party_slot, &saved_target, 6);
 
     if (IsSpellTargetStillValidIn(party_slot, row->spell_id, 3)) {
@@ -975,7 +975,7 @@ void StartCharacterItemUse(int party_slot)
     if (gXStatus.fCombatMode == 0) {
         AimAtTarget(party_slot, &row->item_target, 6);
     }
-    ChooseAction(party_slot, 8, -1, (int)&row->item_use_kind, 0, 1);
+    ChooseAction(party_slot, 8, -1, &row->item_use_kind, 0, 1);
     AimAtTarget(party_slot, &saved_target, 6);
     RecordItemOrigin(party_slot, row->item_origin, row->item_slot);
 

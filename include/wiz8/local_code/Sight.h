@@ -52,3 +52,10 @@ bool IsSightRangeOverridden(void);
 bool GetSightCondition37A(const W8SightConditions* conditions);
 
 extern float g_sight_default_005ec254;
+struct W8VisibilityRow;
+
+bool IsVisibleUnderConditions(
+    const W8SightConditions* conditions, const W8VisibilityRow* row,
+    int kind); /* 0x00504B00 */
+W8MonToMonVisibility* FindMonToMonVisibility(
+    W8MonsterInfo* source, int unused, W8MonsterInfo* target); /* 0x00504C20 */

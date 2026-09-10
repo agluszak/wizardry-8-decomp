@@ -19,5 +19,5 @@ unsigned char Function519F80(
     W8CombatSlot* combat_slot);
 unsigned char IsSlotInRangeOfGroup(
     int party_slot, int group_id, int context, int arg_4);               /* 0x00519920 */
-void MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int arg_3);
+float MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int kind);
 

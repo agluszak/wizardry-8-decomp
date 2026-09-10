@@ -18,6 +18,7 @@ W8CombatCharacterRow* g_combat_character_rows;
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "random.h"
+#include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/local_code/CombatPartyMovement.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
@@ -25,6 +26,7 @@ W8CombatCharacterRow* g_combat_character_rows;
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/engine_code/Cursor3d.h"
 #include "wiz8/engine_code/GameData.h"
@@ -596,4 +598,375 @@ void EndCombat004EA310(int mode)
         Function4EA1F0();
         ReportSaveFailed(1);
     }
+}
+
+/* Record a chosen action on the slot row: outside combat it fills the
+   pending-action block, inside combat it fills the chosen-action record and
+   dispatches the action's follow-up. */
+// FUNCTION: WIZ8 0x004e7cc0
+void ChooseAction(
+    int party_slot, int action, int detail, const void* data, int arg_5, int arg_6)
+{
+    W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+
+    if (g_in_combat_00683f94 == 0) {
+        row->pending_action = action;
+        row->attack_mode[0] = detail;
+        row->attack_mode[1] = -1;
+        if (data == 0) {
+            memset(&row->pending_action_detail_015, 0,
+                   sizeof(row->pending_action_detail_015));
+        }
+        else {
+            memcpy(&row->pending_action_detail_015, data,
+                   sizeof(row->pending_action_detail_015));
+        }
+        if (arg_5 == 0) {
+            Function4EA5C0(party_slot);
+        }
+        Function53AEB0(party_slot);
+    }
+    else {
+        Function4E7EE0(party_slot, action, detail, data, arg_6);
+        switch (action) {
+        case 0:
+        case 1:
+        case 4:
+        case 5:
+            row->action_kind = action;
+            row->action_detail = detail;
+            row->action_is_kind_one = (action == 1);
+            break;
+        default:
+            if (action != 10 && action != 0xb) {
+                row->flag_0d0 = (unsigned char)action;
+            }
+        }
+    }
+    switch (action) {
+    case 3:
+    case 4:
+    case 6:
+    case 9:
+        Function52FE80(party_slot, 0);
+        return;
+    case 10:
+    case 0xb:
+        Function52E5C0(g_special_event_0068c50c, -1, 0, g_effect_argument_005ed8c8);
+        break;
+    }
+}
+
+/* Record the chosen in-combat action on the slot row, copy its detail block,
+   then aim and validate that choice for a still-active character. */
+// FUNCTION: WIZ8 0x004e8000
+void Function4E8000(
+    int party_slot, int action_kind, int action_detail, int arg_4, void* data)
+{
+    if (g_flag_00683f95 == 0 && g_flag_00683f96 == 0) {
+        g_party_slot_rows[party_slot].action_03d = -1;
+        AimByKind(party_slot, 0, 6);
+    }
+    W8TargetSource source;
+    SetTargetSourceToCharacter(party_slot, &source);
+    if (action_kind > 0xb) {
+        srAssertFail("iAction < CHAR_ACTION_COUNT",
+                     "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x484, 0);
+    }
+    g_party_slot_rows[party_slot].action_03d = action_kind;
+    g_party_slot_rows[party_slot].action_detail_041 = arg_4;
+    if (data == 0) {
+        memset(&g_party_slot_rows[party_slot].action_detail_045, 0,
+               sizeof(g_party_slot_rows[party_slot].action_detail_045));
+    }
+    else {
+        memcpy(&g_party_slot_rows[party_slot].action_detail_045, data,
+               sizeof(g_party_slot_rows[party_slot].action_detail_045));
+    }
+    g_combat_character_rows[party_slot].unknown_bd[2] = 1;
+    W8Character* character = &g_party_characters[party_slot];
+    if (character->hp_current != 0 && character->unknown_0b01 < 0xd
+        && action_detail != -1) {
+        if (CharacterCanSwitchTo(party_slot, 1, 1, (char)(int)data) == 0) {
+            AimByKind(party_slot, 0, 1);
+        }
+        else if (Function536F60(party_slot, 2) == 0
+                 && Function536570(party_slot, 1, (int)data) == 1) {
+            Function4ECC80(&source,
+                reinterpret_cast<W8CombatSlot*>(
+                    &g_party_slot_rows[party_slot].target_in_combat));
+        }
+        if ((char)(int)data != 0) {
+            Function537540(party_slot);
+        }
+    }
+    if (g_in_combat_00683f94 == 0) {
+        return;
+    }
+    if (action_detail != action_kind && g_combat_state->flag_000 != 0
+        && g_combat_character_rows[party_slot].flag_4c == 0) {
+        int* type = reinterpret_cast<int*>(&source);
+        *type += g_combat_state->round_counter
+            - *reinterpret_cast<int*>(
+                reinterpret_cast<unsigned char*>(&source) + 0x9c);
+        ClampUnsignedInteger(reinterpret_cast<unsigned int*>(type),
+                             g_combat_state->round_counter, 100);
+        RoundPhaseToStep(reinterpret_cast<unsigned int*>(type),
+                         g_combat_state->round_counter);
+        *reinterpret_cast<int*>(
+            reinterpret_cast<unsigned char*>(&source) + 0x9c) =
+            g_combat_state->round_counter;
+    }
+    RequestRedraw(1 << (party_slot & 0x1f));
+    g_level_block->pick_changed_154 = 0;
+    if (action_detail == 9) {
+        PostCharacterNotice(party_slot,
+            reinterpret_cast<const wchar_t*>(g_string_table[0x225]));
+    }
+    else if (action_kind == 9
+             && !(g_combat_state->selected_character == party_slot
+                  && g_party_slot_rows[party_slot].pending_action == 9)) {
+        PostCharacterNotice(party_slot,
+            reinterpret_cast<const wchar_t*>(g_string_table[0x226]));
+    }
+    CalcArmorClasses(character);
+}
+
+/* Ask the slot's currently selected action which context its outputs hold:
+   the chosen action kind plus three context-dependent words. */
+// FUNCTION: WIZ8 0x004e77b0
+void ChooseCombatAction(
+    int party_slot, int context, int* out_kind, int* out_a, int* out_b,
+    int* out_c)
+{
+    unsigned char* row = reinterpret_cast<unsigned char*>(
+        &g_party_slot_rows[party_slot]);
+    int kind;
+    int value_a;
+    int value_b;
+    int value_c;
+
+    if (context == 6) {
+        context = Function53BC90(party_slot);
+    }
+    switch (context) {
+    case 0:
+        kind = *reinterpret_cast<int*>(row + 0x01);
+        value_a = *reinterpret_cast<int*>(row + 0x05);
+        value_b = *reinterpret_cast<int*>(row + 0x1d);
+        value_c = *reinterpret_cast<int*>(row + 0x15);
+        break;
+    case 1:
+        kind = *reinterpret_cast<int*>(row + 0x3d);
+        value_a = *reinterpret_cast<int*>(row + 0x41);
+        value_b = *reinterpret_cast<int*>(row + 0x4d);
+        value_c = *reinterpret_cast<int*>(row + 0x45);
+        break;
+    case 2:
+        if (g_flag_00683f95 == 0) {
+            if (g_flag_00683f96 == 0) {
+                srAssertFail("gXStatus.fItemSelectMode",
+                             "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp",
+                             0x2e0, 0);
+            }
+            *reinterpret_cast<int*>(
+                &g_monster_manager_state.unknown_9c7[48]) =
+                GetSelectedOrFallbackValue0059E0D0();
+            kind = 8;
+            value_a = -1;
+            value_b = 0x68408b;
+            value_c = 0x6840ab;
+        }
+        else {
+            kind = 7;
+            value_a = Function5A1350();
+            value_b = 0x68408b;
+            value_c = 0x6840ab;
+        }
+        break;
+    case 3:
+        value_a = *reinterpret_cast<int*>(row + 0x75);
+        kind = 7;
+        value_b = reinterpret_cast<int>(row + 0x81);
+        value_c = reinterpret_cast<int>(row + 0x79);
+        break;
+    case 4:
+        value_a = -1;
+        kind = 8;
+        value_b = reinterpret_cast<int>(row + 0xa9);
+        value_c = reinterpret_cast<int>(row + 0xa1);
+        break;
+    case 5:
+        value_a = -1;
+        value_b = reinterpret_cast<int>(row + 0xd1);
+        kind = 2;
+        value_c = 0;
+        break;
+    case 7:
+        kind = g_level_block->move_budget_2dc;
+        value_a = g_level_block->move_budget_2e0;
+        value_b = 0;
+        value_c = 0;
+        break;
+    case 8:
+        kind = 0;
+        value_a = -1;
+        value_b = 0;
+        value_c = 0;
+        break;
+    default:
+        srAssertFail("FALSE",
+                     "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp",
+                     0x310, 0);
+        value_a = context;
+        value_b = context;
+        value_c = context;
+        kind = context;
+        break;
+    }
+    if (Function53C270(context) == 0 && kind != 10 && kind != 0xb) {
+        kind = -1;
+        value_a = -1;
+        value_b = 0;
+        value_c = 0;
+    }
+    if (out_kind != 0) {
+        *out_kind = kind;
+    }
+    if (out_a != 0) {
+        *out_a = value_a;
+    }
+    if (out_b != 0) {
+        *out_b = value_b;
+    }
+    if (out_c != 0) {
+        *out_c = value_c;
+    }
+}
+
+/* Whether a slot may switch to the given action context, optionally repairing
+   the aim state first when the caller allows it. */
+// FUNCTION: WIZ8 0x004e79a0
+unsigned char CharacterCanSwitchTo(
+    int party_slot, int context, int arg_3, int arg_4)
+{
+    W8Character* character = &g_party_characters[party_slot];
+    unsigned char* raw = reinterpret_cast<unsigned char*>(character);
+
+    if (*reinterpret_cast<int*>(
+            &g_monster_manager_state.unknown_8c0[0x6f]) == 0
+        && IsScreenIdle() != 0) {
+        for (unsigned int slot = 0; slot < 8; ++slot) {
+            if (IsPartySlotEligible00524A10(slot) != 0) {
+                return 1;
+            }
+        }
+        return 0;
+    }
+    if (Function53C270(party_slot) == 0) {
+        return 0;
+    }
+    if (*reinterpret_cast<unsigned int*>(raw + 0xb01) > 0xd) {
+        return 0;
+    }
+    if (context == 6) {
+        context = Function53BC90(party_slot);
+    }
+    int chosen;
+    int value_a;
+    int value_b;
+    int value_c;
+    ChooseCombatAction(
+        party_slot, context, &chosen, &value_a, &value_b, &value_c);
+    if (chosen == -1) {
+        return 0;
+    }
+    switch (chosen) {
+    case 0:
+        if (CanAnyHandReachTarget(party_slot) == 0) {
+            if (arg_4 == 0) {
+                return 0;
+            }
+            if (*reinterpret_cast<int*>(raw + 0xfa5) != -1) {
+                if (*reinterpret_cast<int*>(raw + 0xfb1) == -1) {
+                    Function51EB90(character,
+                        reinterpret_cast<int>(raw + 0xfa5), -1, 7);
+                }
+                if (*reinterpret_cast<char*>(raw + 0xfaa) == 0) {
+                    Function51EA90(character,
+                        reinterpret_cast<int>(raw + 0xfa5));
+                }
+            }
+            if (CanAnyHandReachTarget(party_slot) == 0) {
+                return 0;
+            }
+        }
+        break;
+    case 1:
+        if (Function5458A0(party_slot) == 0) {
+            if (arg_4 == 0) {
+                return 0;
+            }
+            if (*reinterpret_cast<int*>(raw + 0xfa5) != -1) {
+                if (*reinterpret_cast<int*>(raw + 0xfb1) == -1) {
+                    Function51EB90(character,
+                        reinterpret_cast<int>(raw + 0xfa5), -1, 7);
+                }
+                if (*reinterpret_cast<char*>(raw + 0xfaa) == 0) {
+                    Function51EA90(character,
+                        reinterpret_cast<int>(raw + 0xfa5));
+                }
+            }
+            if (Function5458A0(party_slot) == 0) {
+                return 0;
+            }
+        }
+        break;
+    case 2:
+        if (Function547940(character, 0x1c) == 0
+            || *reinterpret_cast<int*>(raw + 0xb1d)
+               < static_cast<int>(
+                   *reinterpret_cast<unsigned int*>(raw + 0xb19) / 5)) {
+            return 0;
+        }
+        break;
+    case 4:
+        return 1;
+    case 5:
+        if (CanCharacterAttack(party_slot) == 0) {
+            return 0;
+        }
+        break;
+    case 7:
+        if (context == 7 && Function4F96F0(character) != 0) {
+            return 1;
+        }
+        if (value_a == 0) {
+            return 0;
+        }
+        if (Function4F9750(character, value_a) == 0) {
+            return 0;
+        }
+        break;
+    case 8:
+        if (context == 7 && value_c == 0) {
+            return 1;
+        }
+        if (*reinterpret_cast<W8ItemInstance**>(value_c + 4) == 0) { /* reinterpret-ok: packed item target */
+            return 0;
+        }
+        if (CanCharacterActivateItem(
+                character,
+                *reinterpret_cast<W8ItemInstance**>(value_c + 4)) == 0) { /* reinterpret-ok: packed item target */
+            return 0;
+        }
+        break;
+    }
+    if (arg_3 == 0) {
+        int validated = GetValidatedTargetingContext(party_slot, context);
+        if (Function536F60(party_slot, 2, validated) == 0) {
+            return 0;
+        }
+    }
+    return 1;
 }

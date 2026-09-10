@@ -50,7 +50,6 @@ unsigned short g_condition_notices_0061E570[128] = {
 };
 extern char Function521060(
     int id, int* out_id, W8Character** out_character, int a, int b);
-extern void Function536570(int party_slot, int a, int b);
 extern void Function53A930(int party_slot, W8CombatSlot* target);
 
 // FUNCTION: WIZ8 0x005248a0

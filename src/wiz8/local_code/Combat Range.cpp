@@ -1,5 +1,8 @@
 #include "wiz8/character.h"
 #include "wiz8/local_code/CombatRange.h"
+#include "wiz8/3d_code/IList.h"
+#include "wiz8/local_code/CombatHostility.h"
+#include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/xstatus.h"
@@ -267,4 +270,56 @@ unsigned char Function51B3F0(int mode)
     default:
         return static_cast<unsigned char>(mode);
     }
+}
+
+/* Choose what one monster aims at: the player when it can see them, otherwise
+   the nearest hostile visible monster. Answers the chosen distance and fills
+   the two-word target output. */
+// FUNCTION: WIZ8 0x0051ac30
+float MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int kind)
+{
+    float best = 1000000.0f;
+
+    *out = 0;
+    if (monster_info->flag_16 == 1
+        && IsVisibleUnderConditions(
+               reinterpret_cast<const W8SightConditions*>(monster_info),
+               reinterpret_cast<const W8VisibilityRow*>(
+                   &monster_info->player_visibility),
+               kind)
+        && (best = monster_info->monster->GetDistanceToPlayer004C7CB0(),
+            best < 1000000.0f)) {
+        *out = 2;
+    }
+    if (*out == 0 || monster_info->pCombat->unknown_151[1] == 0) {
+        unsigned int count = ILLength(g_combat_monster_list_00683fad);
+
+        for (unsigned int index = 0; index < count; ++index) {
+            W8MonsterInfo* other = MonsterGetScriptPartByLocationIndex(index);
+
+            if (other != monster_info && other->flag_14 != 0
+                && other->hp_current != 0 && other->fInCombat != 0
+                && MonsterHostility00546F80(monster_info, other) == 1) {
+                W8MonToMonVisibility* row =
+                    FindMonToMonVisibility(monster_info,
+                        reinterpret_cast<int>(other),
+                        reinterpret_cast<W8MonsterInfo*>(kind));
+                if (IsVisibleUnderConditions(
+                        reinterpret_cast<const W8SightConditions*>(
+                            monster_info),
+                        reinterpret_cast<const W8VisibilityRow*>(row), kind)) {
+                    float distance =
+                        monster_info->monster->GetDistanceToMonster004C7DD0(
+                            other->monster);
+                    if (distance < best) {
+                        *out = 3;
+                        out[2] = other->location_id;
+                        best = distance;
+                    }
+                }
+            }
+            count = ILLength(g_combat_monster_list_00683fad);
+        }
+    }
+    return best;
 }
