@@ -48,7 +48,9 @@ typedef struct W8PartySlotRow {
     int animation_0fa;
     /* 0x0fe: cleared by the level-entry NPC-binding reset. */
     unsigned char flag_fe;
-    unsigned char unknown_ff[5];
+    unsigned char unknown_ff[4];
+    /* 0x103: portrait advance is only allowed while this is set. */
+    unsigned char flag_103;
     unsigned char action_is_kind_one;
     unsigned char flag_105;
 } W8PartySlotRow;

@@ -35,7 +35,6 @@ unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record)
     unsigned int block_size;
     int index;
     int sub_index;
-    int offset;
     int total_sub_entries;
     W8WideChar wide[2000];
 
@@ -79,10 +78,8 @@ unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record)
 
     index = 0;
     if (record->entry_count != 0) {
-        offset = 0;
         do {
-            entry = reinterpret_cast<W8FileEntry0055A140*>(
-                offset + reinterpret_cast<char*>(record->entries));
+            entry = &record->entries[index];
             FileRead(handle, entry, 0x12, &transferred);
             if (transferred != 0x12) {
                 return 0;
@@ -128,7 +125,6 @@ unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record)
                 }
             }
             ++index;
-            offset = offset + 0x12;
         } while (index < record->entry_count);
     }
     return 1;

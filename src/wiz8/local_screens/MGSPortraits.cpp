@@ -1,5 +1,6 @@
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/character.h"
+#include "wiz8/combat_state.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/regions.h"
@@ -79,7 +80,7 @@ void EnablePortraitAdvanceRegions0059BB70(void)
     int party_slot = 0;
     do {
         if (!IsCharacterReadyToAdvance(party_slot) ||
-            reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)[state_offset + 0x103] == 0) {
+            g_status_685170.buffers.party_rows[party_slot].flag_103 == 0) {
             DisableRegionInput(party_slot + 0x12);
         } else {
             EnableRegionInput(party_slot + 0x12);
@@ -92,8 +93,8 @@ void EnablePortraitAdvanceRegions0059BB70(void)
 // FUNCTION: WIZ8 0x0059BBD0
 void InvalidatePortraitControl0059BBD0(unsigned int party_slot)
 {
-    unsigned char* state = reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows);
-    if (party_slot < 8 && state[party_slot * 0x106]) {
+    if (party_slot < 8 &&
+        g_status_685170.buffers.party_rows[party_slot].occupied) {
         g_portrait_controls_0069b920[party_slot]->Invalidate(0);
     }
 }

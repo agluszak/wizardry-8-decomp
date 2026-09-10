@@ -549,8 +549,7 @@ void W8MonsterGenerator::Reset()
                 0x217,
                 "MonGen::Reset() out of memory allocating m_pTimer");
         }
-        *reinterpret_cast<unsigned short*>(
-            reinterpret_cast<unsigned char*>(m_pTimer) + 8) &= 0xfffd;
+        m_pTimer->m_flags &= 0xfffd;
     }
     interval = (flags & W8_MONGEN_USE_DEFAULT_INTERVAL) != 0
                    ? value_06
