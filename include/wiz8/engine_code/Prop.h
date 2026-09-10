@@ -102,7 +102,7 @@ public:
     void SetAnimationSpeed(float speed);
     bool IsSetting6FTwo();
     void ToggleSetting6E();
-    int GetValue18();
+    Trigger* GetValue18();
     Trigger* GetGDPropValue24();
     void GetCenterPosition(srVector3T<float>* position);
     void GetBounds0044DD60(

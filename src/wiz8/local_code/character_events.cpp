@@ -251,7 +251,7 @@ void W8StartupRuntimeState::SetEventCharacterMask(
 }
 
 // FUNCTION: WIZ8 0x0052E690
-int Function52E690(
+W8StartupStateElement005EE748* Function52E690(
     W8Character* character, int effect, int argument, int value_1,
     unsigned int value_2)
 {
@@ -275,7 +275,7 @@ int Function52E690(
     if (entry != 0 && g_startup_runtime_state->QueueEntry(entry) == 0) {
         return 0;
     }
-    return reinterpret_cast<int>(entry);
+    return entry;
 }
 
 /* Remove one queued character event from the owned vector before dispatching

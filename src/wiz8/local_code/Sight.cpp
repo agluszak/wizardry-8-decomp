@@ -21,6 +21,7 @@
 #include "wiz8/monster_generators.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/npc_state.h"
+#include "wiz8/startup_runtime_state.h"
 #include "random.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"
@@ -816,20 +817,20 @@ after_sight:
                                     if (Random(2) == 0) {
                                         effect = g_sight_effect_005ee698;
                                     }
-                                    int notice = Function52E690(
-                                        reinterpret_cast<W8Character*>(
-                                            reinterpret_cast<char*>(
-                                                g_status_685170.buffers
-                                                    .characters)
-                                            + party_slot * 0x1862),
-                                        effect, 0, g_effect_argument_005ed8c8,
-                                        g_effect_argument_005ed914);
+                                    W8StartupStateElement005EE748* notice =
+                                        Function52E690(
+                                            reinterpret_cast<W8Character*>(
+                                                reinterpret_cast<char*>(
+                                                    g_status_685170.buffers
+                                                        .characters)
+                                                + party_slot * 0x1862),
+                                            effect, 0,
+                                            g_effect_argument_005ed8c8,
+                                            g_effect_argument_005ed914);
 
                                     if (notice != 0) {
-                                        *reinterpret_cast<int*>(notice + 0x30) =
-                                            0x5dc;
-                                        *reinterpret_cast<unsigned int*>(
-                                            notice + 0x34) = GetTickCount();
+                                        notice->value_30 = 0x5dc;
+                                        notice->clock_34 = GetTickCount();
                                     }
                                 }
                             }
@@ -866,21 +867,20 @@ after_sight:
                                             && GetFact(0x2ee) != 0) {
                                             effect = g_sight_effect_005ee66c;
                                         }
-                                        int notice = Function52E690(
-                                            reinterpret_cast<W8Character*>(
-                                                reinterpret_cast<char*>(
-                                                    g_status_685170.buffers
-                                                        .characters)
-                                                + party_slot * 0x1862),
-                                            effect, 0,
-                                            g_effect_argument_005ed8c8,
-                                            g_effect_argument_005ed914);
+                                        W8StartupStateElement005EE748* notice =
+                                            Function52E690(
+                                                reinterpret_cast<W8Character*>(
+                                                    reinterpret_cast<char*>(
+                                                        g_status_685170.buffers
+                                                            .characters)
+                                                    + party_slot * 0x1862),
+                                                effect, 0,
+                                                g_effect_argument_005ed8c8,
+                                                g_effect_argument_005ed914);
 
                                         if (notice != 0) {
-                                            *reinterpret_cast<int*>(
-                                                notice + 0x30) = 0x5dc;
-                                            *reinterpret_cast<unsigned int*>(
-                                                notice + 0x34) =
+                                            notice->value_30 = 0x5dc;
+                                            notice->clock_34 =
                                                 GetTickCount();
                                         }
                                     }

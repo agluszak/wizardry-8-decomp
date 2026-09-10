@@ -278,11 +278,11 @@ void W8Prop::ToggleSetting6E()
     this->Rep()->flag_06e = this->Rep()->flag_06e == 1 ? 3 : 1;
 }
 
-/* The prop's own value at 0x18. */
+/* The prop's own trigger at 0x18. */
 // FUNCTION: WIZ8 0x0044d5a0
-int W8Prop::GetValue18()
+Trigger* W8Prop::GetValue18()
 {
-    return reinterpret_cast<int>(this->trigger_18);
+    return this->trigger_18;
 }
 
 /* One value out of the owned GDProp, but only once the flag that says it is
@@ -697,7 +697,7 @@ void W8Prop::Method44C670()
                 reinterpret_cast<W8PathAI*>(
                     static_cast<W8PropRepresentation*>(m_pRep)
                         ->animation->path_24),
-                reinterpret_cast<stModelInstance*>(mesh));
+                static_cast<stModelInstance*>(mesh));
         }
         return;
     }
@@ -725,8 +725,8 @@ void W8Prop::Method44C670()
                 path,
                 (float)static_cast<W8PropRepresentation*>(m_pRep)->flag_064);
             PathAIApply004AA520(
-                path, reinterpret_cast<stModelInstance*>(mesh));
-            reinterpret_cast<srNode*>(mesh)->getLocation(location);
+                path, static_cast<stModelInstance*>(mesh));
+            static_cast<srNode*>(mesh)->getLocation(location);
             position_02c = location;
             position_03c = location;
         }
