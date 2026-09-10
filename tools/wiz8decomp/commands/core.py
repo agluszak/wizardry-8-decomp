@@ -261,6 +261,7 @@ def register(app: typer.Typer) -> None:
     app.command("check-identities", hidden=True)(check_identities_command)
     app.command("check-structures", hidden=True)(check_structures_command)
     analyze_app.command("unresolved")(unresolved_report_command)
+    analyze_app.command("crash")(crash_report_command)
     analyze_app.command("inventory")(inventory_command)
     analyze_app.command("trace")(trace_command)
     analyze_app.command("source-layouts")(verify_source_layouts_command)
@@ -296,6 +297,36 @@ def unresolved_report_command(
         if write_baseline:
             return write_unresolved_baseline(settings.repo_dir / DEFAULT_BASELINE, report)
         return report
+
+    cli.emit(action())
+
+
+def crash_report_command(
+    log: Annotated[
+        Path,
+        typer.Option("--log", exists=True, dir_okay=False, readable=True),
+    ],
+    link_map: Annotated[
+        Path | None,
+        typer.Option("--map", help="Linker MAP of the crashed runnable image."),
+    ] = None,
+    objects: Annotated[
+        Path | None,
+        typer.Option(help="Object root used to correlate unresolved externals."),
+    ] = None,
+) -> None:
+    """Symbolize a captured runnable-image crash through its link MAP."""
+    from .. import command_support as cli
+    from ..runtime import analyze_runtime_crash
+
+    def action() -> Any:
+        settings = cli.settings()
+        build = settings.repo_dir / "build" / "decomp"
+        return analyze_runtime_crash(
+            log,
+            link_map or build / "Wiz8Runtime.map",
+            objects or build / "CMakeFiles" / "wiz8_recovered_objects.dir",
+        )
 
     cli.emit(action())
 

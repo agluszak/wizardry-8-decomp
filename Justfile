@@ -37,7 +37,23 @@ run *args:
     fi
     ln -sfn "$exe" "$runtime_exe"
     cd "$game_dir"
-    exec wine ./Wiz8Runtime.exe /WINDOW "$@"
+    log="$(mktemp)"
+    trap 'rm -f "$log"' EXIT
+    # Wine's emergency printer cannot unwind the PE-header stub that
+    # /FORCE:UNRESOLVED jumps into, so keep the process output and ask the
+    # MAP symbolizer for the consumed return address after the process exits.
+    set +e
+    wine ./Wiz8Runtime.exe /WINDOW "$@" 2>&1 | tee "$log"
+    status=${PIPESTATUS[0]}
+    set -e
+    if grep -q "WIZ8_RUNTIME_CRASH" "$log"; then
+        (
+            cd "{{justfile_directory()}}"
+            uv run wiz8 analyze crash --log "$log" \
+                --map "$PWD/build/decomp/Wiz8Runtime.map" || true
+        )
+    fi
+    exit "$status"
 
 run-original *args:
     #!/usr/bin/env bash

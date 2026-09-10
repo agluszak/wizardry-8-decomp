@@ -20,6 +20,13 @@ or stale. Currently even `run-original` checks that `Wiz8Runtime.exe` exists for
 `debug` uses native `winedbg` with `cont`, `bt`, `quit` by default; set `DEBUG_SCRIPT` for chosen debugger
 commands. For visual harness debugging use `WIZ8_RUNTIME_DISPLAY=host just runtime-test`.
 
+Both runnable products install the same in-process exception filter. An unresolved first-party call
+jumps to the PE header, where the "MZ" stub corrupts the frame pointer and pops the return address
+into EDX before the fault. The filter records every general-purpose register, scans registers as well
+as stack words for image addresses, and `just run`/`runtime-test` symbolize the record through the
+product MAP, including the unresolved externals of the caller's object. Do not chase Wine's one-frame
+`+0x7` MZ backtrace by hand.
+
 ## Recover the failing behavior
 
 1. Establish the requested transition/observation with `just run-original`, then compare `just run`

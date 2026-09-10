@@ -12,6 +12,7 @@
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/xstatus.h"
+#include "wiz8_crash_report.h"
 
 #include "english.h"
 #include "FileMan.h"
@@ -61,74 +62,11 @@ struct RuntimeObservation {
 static RuntimeObservation g_observation;
 static const char* g_scenario;
 
-static LONG WINAPI ReportUnhandledException(EXCEPTION_POINTERS* exception)
+static void WriteRuntimeTestContext(FILE* stream)
 {
-    EXCEPTION_RECORD* record = exception->ExceptionRecord;
-    CONTEXT* context = exception->ContextRecord;
-    const unsigned long* stack = (const unsigned long*)context->Esp;
-    MEMORY_BASIC_INFORMATION stack_memory;
-    unsigned int stack_words = 0;
-    const char* operation = "unknown";
-    unsigned long access_address = 0;
-
-    if (record->ExceptionCode == EXCEPTION_ACCESS_VIOLATION &&
-        record->NumberParameters >= 2) {
-        if (record->ExceptionInformation[0] == 0) {
-            operation = "read";
-        }
-        else if (record->ExceptionInformation[0] == 1) {
-            operation = "write";
-        }
-        else if (record->ExceptionInformation[0] == 8) {
-            operation = "execute";
-        }
-        access_address = (unsigned long)record->ExceptionInformation[1];
-    }
-    fprintf(stderr,
-            "WIZ8_RUNTIME_CRASH code=%08lx thread=%08lx operation=%s "
-            "access=%08lx eip=%08lx esp=%08lx\\n",
-            record->ExceptionCode, GetCurrentThreadId(), operation,
-            access_address, context->Eip, context->Esp);
-
-    if (VirtualQuery(stack, &stack_memory, sizeof(stack_memory)) != 0 &&
-        stack_memory.State == MEM_COMMIT &&
-        (stack_memory.Protect & (PAGE_NOACCESS | PAGE_GUARD)) == 0) {
-        unsigned long available =
-            (unsigned long)stack_memory.BaseAddress + stack_memory.RegionSize - context->Esp;
-        stack_words = available / sizeof(*stack);
-        if (stack_words > 256) {
-            stack_words = 256;
-        }
-    }
-
-    unsigned int found = 0;
-    for (unsigned int index = 0; index < stack_words && found < 10; ++index) {
-        MEMORY_BASIC_INFORMATION candidate_memory;
-        unsigned long candidate = stack[index];
-        if (VirtualQuery((void*)candidate, &candidate_memory,
-                         sizeof(candidate_memory)) == 0 ||
-            candidate_memory.State != MEM_COMMIT ||
-            candidate_memory.Type != MEM_IMAGE) {
-            continue;
-        }
-        char module[MAX_PATH];
-        module[0] = 0;
-        GetModuleFileNameA((HMODULE)candidate_memory.AllocationBase,
-                           module, sizeof(module));
-        fprintf(stderr,
-                "runtime-test stack-candidate: stack=+%x address=%08lx module=%s+0x%lx\\n",
-                index * sizeof(*stack), candidate, module,
-                candidate - (unsigned long)candidate_memory.AllocationBase);
-        ++found;
-    }
-    fprintf(stderr,
-            "runtime-test regs: eax=%08lx ebx=%08lx ecx=%08lx edx=%08lx "
-            "esi=%08lx edi=%08lx ebp=%08lx pending=%d current=%d\\n",
-            context->Eax, context->Ebx, context->Ecx, context->Edx,
-            context->Esi, context->Edi, context->Ebp,
+    fprintf(stream,
+            "runtime-test context: pending=%d current=%d\n",
             g_pending_screen_state.id, g_current_screen_state.id);
-    fflush(stderr);
-    return EXCEPTION_CONTINUE_SEARCH;
 }
 
 static bool VerifyShadeTable(FLOAT coefficient)
@@ -522,7 +460,7 @@ static DWORD WINAPI DriveScenario(void*)
 
 int main(int argc, char** argv)
 {
-    SetUnhandledExceptionFilter(ReportUnhandledException);
+    W8SetCrashContextWriter(WriteRuntimeTestContext);
     if (argc != 3 || strcmp(argv[1], "--scenario") != 0 ||
         (strcmp(argv[2], "main-menu-startup") != 0 &&
          strcmp(argv[2], "main-menu-exit-auto-repeat") != 0 &&

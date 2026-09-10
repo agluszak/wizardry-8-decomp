@@ -17,10 +17,12 @@ just build runtime
 just run
 ```
 
-`just run` does not build, invoke Python, configure Wine, or catch failures. It passes the released
-SGP `/WINDOW` option so a development run cannot take exclusive control of the desktop. It seeds the
-two reviewed CFG files when absent and creates one managed `Wiz8Runtime.exe` symlink in the retail
-directory; Wine otherwise searches beside the build-tree EXE and substitutes a fake `SR.dll`.
+`just run` passes the released SGP `/WINDOW` option so a development run cannot take exclusive
+control of the desktop. It seeds the two reviewed CFG files when absent and creates one managed
+`Wiz8Runtime.exe` symlink in the retail directory; Wine otherwise searches beside the build-tree
+EXE and substitutes a fake `SR.dll`. The launcher tees process output and, when the in-process
+crash filter fires, feeds the record through `wiz8 analyze crash` and the link MAP before returning
+the child status.
 
 Use the retail executable as the runtime oracle in the same directory, with the same CFG files and
 arguments:
@@ -55,10 +57,11 @@ path.
 
 `just runtime-test` defaults to the private display and judges only `WIZ8_RUNTIME_TEST`; set
 `WIZ8_RUNTIME_DISPLAY=host` for visual debugging. Its controlled staging directory owns test config,
-saves, display, and audio policy. The native exception handler records the actual crash and stack
-candidates in-process; Python symbolizes recovered-image candidates against `Wiz8RuntimeTest.map`.
-It never launches GDB or reruns a failed scenario. Off-screen Wine is configured to own its windows
-because Xvfb has no window manager.
+saves, display, and audio policy. The native exception filter records every general-purpose register
+in-process and scans registers as well as stack words for recovered-image candidates; Python
+symbolizes them against `Wiz8RuntimeTest.map` and reports the unresolved externals of each owning
+object. It never launches GDB or reruns a failed scenario. Off-screen Wine is configured to own its
+windows because Xvfb has no window manager.
 Mouse and keyboard events traverse reconstructed SGP input and the recovered region callbacks.
 Exiting the runtime-test harness terminates only its dedicated Wine prefix. The harness stays
 attached to the game and returns its status instead of guessing its lifetime from Wine's desktop
@@ -71,9 +74,11 @@ owns idempotent source/input preparation.
 
 The comparison image remains intentionally link-incomplete and uses `/FORCE:UNRESOLVED`. Removing it
 from either `/OPT:REF` runtime product currently exposes 603 unresolved externals, so both retain it
-until source recovery narrows that live boundary. The runtime-test exception record identifies
-image-base read/write/execute faults directly and MAP-symbolizes plausible stack values. This
-is retained debt, not a claim that a forced executable is generally safe.
+until source recovery narrows that live boundary. Both runnable products link the shared exception
+filter; it identifies image-header read/write/execute faults as forced-unresolved calls and names
+the register that consumed the return address when the PE "MZ" stub ran. Python then MAP-symbolizes
+the recorded candidates and correlates the owner with `wiz8 analyze unresolved`. This is retained
+debt, not a claim that a forced executable is generally safe.
 
 ## Platform and import libraries
 

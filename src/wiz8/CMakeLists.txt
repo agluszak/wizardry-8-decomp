@@ -42,6 +42,7 @@ endif()
         MAP Wiz8Runtime.map
         OPT_REF
         ALLOW_UNRESOLVED
+        SOURCES tests/runtime/wiz8_crash_report.cpp
         LIBRARIES WIZ8_SGP ddraw.lib gdi32.lib user32.lib
     )
     # The semantic test product links the same recovered and retained runtime
@@ -54,6 +55,6 @@ endif()
         OPT_REF
         CONSOLE
         ALLOW_UNRESOLVED
-        SOURCES tests/runtime/wiz8_runtime_test.cpp
+        SOURCES tests/runtime/wiz8_runtime_test.cpp tests/runtime/wiz8_crash_report.cpp
         LIBRARIES WIZ8_SGP ddraw.lib gdi32.lib user32.lib
     )

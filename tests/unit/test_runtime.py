@@ -5,6 +5,8 @@ from wiz8decomp.config import Settings
 from wiz8decomp.display import runtime_display
 from wiz8decomp.runtime import (
     _configure_wine_window_management,
+    _crash_detail,
+    _parse_runtime_crash,
     _parse_runtime_observation,
     _run_runtime_scenario,
     _symbolize_addresses,
@@ -96,6 +98,43 @@ def test_map_symbolization_refuses_cross_function_lines_and_section_end(tmp_path
         "00401008: _first+0x8 [first.obj] first.cpp:10",
         "00401012: _second+0x2 [second.obj]",
         "00402004: _third+0x4 [third.obj] third.cpp:30",
+    ]
+
+
+def test_runtime_crash_prioritizes_the_consumed_return_address(tmp_path: Path) -> None:
+    map_path = tmp_path / "crash.map"
+    map_path.write_text(
+        " Start         Length     Name                   Class\n"
+        " 0001:00000000 00000100H .text                   CODE\n"
+        "  Address         Publics by Value              Rva+Base     Lib:Object\n"
+        " 0001:00000000       _ShowRegionHelp            00462810 f   RegionManager.cpp.obj\n"
+        "Line numbers for RegionManager.cpp.obj(Z:\\repo\\RegionManager.cpp) segment .text\n"
+        " 746 0001:0000007d\n",
+        encoding="cp1252",
+    )
+    output = (
+        "WIZ8_RUNTIME_CRASH code=c0000005 thread=00000124 operation=write "
+        "access=0d958280 eip=00400007 esp=0067fdf0 ebp=fffffffe eax=06cac140 "
+        "ebx=004dfa04 ecx=00000001 edx=00462892 esi=79b68290 edi=79b683a0\n"
+        "WIZ8_RUNTIME_IMAGE_BASE_FAULT base=00400000 eip=00400007 mz=1 "
+        "forced-unresolved=1 consumed=edx:00462892\n"
+        "WIZ8_RUNTIME_CANDIDATE source=reg:edx address=00462892 offset=00062892\n"
+        "WIZ8_RUNTIME_CANDIDATE source=stack+0x0 address=00462d2a offset=00062d2a\n"
+    )
+
+    crash = _parse_runtime_crash(output)
+
+    assert crash is not None
+    assert crash.base_fault is not None and crash.base_fault.mz
+    assert crash.candidates[0].source == "return:edx"
+    assert [candidate.address for candidate in crash.candidates] == [0x00462892, 0x00462D2A]
+    assert _crash_detail(map_path, None, crash).splitlines()[1:4] == [
+        "forced-unresolved call: target=00400000 fault=00400007",
+        "PE DOS header executed as code; edx holds the consumed return address",
+        (
+            "  return:edx: 00462892: _ShowRegionHelp+0x82 [RegionManager.cpp.obj] "
+            "RegionManager.cpp:746"
+        ),
     ]
 
 

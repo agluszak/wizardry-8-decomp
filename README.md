@@ -34,16 +34,20 @@ compile-checks the recovered C++ with Clang's virtual-override diagnostics while
 continues to use VC6. `build` configures automatically. `compare` is reccmp's live linked-image and
 exact-body diagnostic. Run Python tests directly with `uv run pytest -q PATH`.
 
-`just run` directly executes the already-built `Wiz8Runtime.exe` from the extracted retail game
-directory with the original `/WINDOW` option. It does not build, stage, or debug the process.
+`just run` executes the already-built `Wiz8Runtime.exe` from the extracted retail game directory
+with the original `/WINDOW` option, tees the process output, and on an unhandled-exception marker
+prints a MAP-symbolized report. The report names the caller recovered from the return address the
+PE-header stub consumed and the unresolved externals of its object. `just run` does not build,
+stage, or debug the process.
 `just run-original` launches retail with the same directory, CFG files, and arguments.
 `just debug` runs the recomp under native `winedbg`; `DEBUG_SCRIPT` supplies debugger commands.
 
 `just runtime-test` runs named main-menu scenarios in the optimized semantic-test executable.
 The real menu handlers execute on the UI thread; the host reruns the scenarios in reverse order and
-requires identical normalized observations. Its same-process exception handler reports native crash
-state and stack candidates, which Python symbolizes against the runtime-test MAP. Failures are not
-rerun under GDB.
+requires identical normalized observations. Its same-process exception handler records every
+general-purpose register and scans registers as well as stack words for first-party image addresses;
+Python symbolizes the candidates against the runtime-test MAP and correlates their objects with the
+unresolved-symbol report. Failures are not rerun under GDB.
 
 Agent workflows live in the shared [matching-decomp](.agents/skills/matching-decomp/SKILL.md),
 [class-triage](.agents/skills/class-triage/SKILL.md), and
