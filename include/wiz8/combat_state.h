@@ -88,7 +88,9 @@ typedef struct W8CombatCharacterRow {
     int current_equip_slot;               /* 0x88: indexes the character's equipment */
     unsigned char unknown_8c[0x0d];
     unsigned char flag_099;               /* 0x99: toggled when an attack action is chosen */
-    unsigned char unknown_9a[0x3a];
+    unsigned char unknown_9a[0x22];
+    unsigned char flag_bc;                /* 0xbc: raised when switching to an attack */
+    unsigned char unknown_bd[0x17];
 } W8CombatCharacterRow;                  /* 0xd4 */
 
 /* The block the pointer at 0x006836A8 addresses: the engine's combat state.

@@ -26,11 +26,10 @@
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/magic.h"
 #include "wiz8/engine_code/quad.h"
+#include "wiz8/combat_state.h"
 
 #include <stdlib.h>
 #include <string.h>
-
-extern void* g_dialog_state_006836a8;
 
 // GLOBAL
 float g_navigator_largest_extent_6081e8;
@@ -503,10 +502,7 @@ void W8Missile::StartIfHostActive()
     else {
         flag_1e0 = 1;
         if (missile_table_index_1d8 == 0x23 &&
-            (g_dialog_state_006836a8 == 0 ||
-             *reinterpret_cast<unsigned char*>(
-                 static_cast<unsigned char*>(g_dialog_state_006836a8) + 0x8c4) !=
-                 2)) {
+            (g_combat_state == 0 || g_combat_state->unknown_8c4[0] != 2)) {
             Function4A49E0();
         }
         if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 != 0) {

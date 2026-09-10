@@ -246,7 +246,6 @@ int PartyAvoidsSurprise(void)
 }
 
 
-
 /* 0x004C62C0 */
 extern int g_effect_005ee610;
 extern unsigned int g_flee_hp_fraction_005ed8f8;
@@ -437,7 +436,7 @@ unsigned char TryCharacterAction(int party_slot, int action, char commit)
     if (g_combat_character_rows[party_slot].flag_4c != 0) {
         return g_party_slot_rows[party_slot].pending_action == action;
     }
-    if (*(int*)((char*)&g_party_slot_rows[party_slot] + 0x3d) != action) {
+    if (g_party_slot_rows[party_slot].action_03d != action) {
         if (action != 4) {
             return 0;
         }
@@ -449,4 +448,32 @@ unsigned char TryCharacterAction(int party_slot, int action, char commit)
         SwitchCharacterTo(party_slot, action);
     }
     return 1;
+}
+
+/* Put one character on the defend or protect action: record the action on the
+   slot row, clear both hands' chosen attack modes, and mark the combat row so
+   the target display rebuilds. Protect additionally copies the current target
+   into the out-of-combat target slot, and a switch to defend raises the
+   combat row's attack flag unless the row is already on that action. */
+// FUNCTION: WIZ8 0x004ed390
+void SwitchCharacterTo(int party_slot, int action)
+{
+    if (action != 4 && action != 5) {
+        srAssertFail(
+            "(iCharAction == CHAR_ACTION_DEFEND) || (iCharAction == CHAR_ACTION_PROTECT)",
+            "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x1686, 0);
+    }
+    W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+
+    row->pending_action = action;
+    row->attack_mode[0] = -1;
+    row->attack_mode[1] = -1;
+    if (action == 5) {
+        row->target_out_of_combat = row->target_in_combat;
+    }
+    g_combat_character_rows[party_slot].flag_4c = 1;
+    RequestRedraw(1 << party_slot | 0x100000);
+    if (action == 4 && row->action_03d != action) {
+        g_combat_character_rows[party_slot].flag_bc = 1;
+    }
 }
