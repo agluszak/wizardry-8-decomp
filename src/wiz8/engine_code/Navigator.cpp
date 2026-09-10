@@ -1178,6 +1178,68 @@ unsigned short W8Navigator::ConfigureMovementToNavigator004529A0(
     return result;
 }
 
+// FUNCTION: WIZ8 0x00452c90
+void W8Navigator::Function452C90()
+{
+    movement_target_018.SetZero();
+    W8Navigator* linked = linked_navigator_05c;
+    collision_margin_010 = 0.0;
+    target_navigator_04c = 0;
+    if (linked != 0) {
+        movement_0c0.flag_06c |= 2;
+        if (g_flag_006081e4 == 0) {
+            return;
+        }
+        flags_00c = 0x201;
+    }
+    else {
+        if (g_flag_006081e4 == 0) {
+            return;
+        }
+        flags_00c &= 0xfffffdfe;
+        if (flags_00c == 0) {
+            movement_0c0.attachment_0ac->InitializeSegment004563E0(
+                &movement_0c0.position_040, &movement_0c0.position_040);
+            if (flag_024 == 0) {
+                int mode = navigation_mode_008;
+                flag_024 = 1;
+                if (mode != 5 && mode != 6) {
+                    movement_0c0.target_pitch_024 = NormalizeAngle(0.0f);
+                }
+            }
+        }
+        if (g_flag_006081e4 != 0) {
+            linked_update_time_0b8 = 0;
+            g_navigator_group_659bf8.Clear();
+            CollectGroupNavigators(&g_navigator_group_659bf8);
+            for (int index = 0; index < g_navigator_group_659bf8.GetCount(); ++index) {
+                W8Navigator* navigator = *g_navigator_group_659bf8.GetAt(index);
+                navigator->movement_0c0.attachment_0ac->CopyPathFrom004564F0(
+                    movement_0c0.attachment_0ac);
+                navigator->position_03c = position_03c;
+                navigator->movement_0c0.attachment_0ac->flags_00 &= 0xff7effff;
+                navigator->linked_update_time_0b8 = 0;
+            }
+        }
+        if (flag_024 == 0) {
+            flag_024 = 0;
+            if (g_flag_006081e4 == 0) {
+                return;
+            }
+            if (linked_navigator_05c == 0) {
+                g_navigator_group_659bf8.Clear();
+                CollectGroupNavigators(&g_navigator_group_659bf8);
+                for (int index = 0; index < g_navigator_group_659bf8.GetCount(); ++index) {
+                    (*g_navigator_group_659bf8.GetAt(index))->flag_024 = 0;
+                }
+            }
+        }
+    }
+    if (g_flag_006081e4 != 0) {
+        movement_0c0.attachment_0ac->flags_00 &= 0xfffeffff;
+    }
+}
+
 // FUNCTION: WIZ8 0x00453d20
 unsigned char W8Navigator::ConfigureMovement00453D20(float minimum, float maximum)
 {
