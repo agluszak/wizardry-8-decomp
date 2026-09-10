@@ -1,4 +1,5 @@
 #include "wiz8/dialog_code/DialogScrollBar.h"
+#include "wiz8/dialog_code/ButtonUserData.h"
 #include "wiz8/cursor.h"
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/utility.h"
@@ -76,10 +77,10 @@ unsigned char W8DialogScrollBar::CreateControls(const Resources* resources)
     }
     if (m_track_button != -1 && m_thumb_button != -1 &&
         m_down_button != -1 && m_up_button != -1) {
-        MSYS_SetBtnUserData(m_up_button, 0, reinterpret_cast<int>(this));
-        MSYS_SetBtnUserData(m_down_button, 0, reinterpret_cast<int>(this));
-        MSYS_SetBtnUserData(m_thumb_button, 0, reinterpret_cast<int>(this));
-        MSYS_SetBtnUserData(m_track_button, 0, reinterpret_cast<int>(this));
+        SetButtonUserData(m_up_button, this);
+        SetButtonUserData(m_down_button, this);
+        SetButtonUserData(m_thumb_button, this);
+        SetButtonUserData(m_track_button, this);
         m_on_scroll = resources->on_scroll;
         m_initialized = 1;
         m_visible = 0;
@@ -210,7 +211,8 @@ void W8DialogScrollBar::ScrollToMouse()
 // FUNCTION: WIZ8 0x005e1280
 void W8DialogScrollBar::UpButtonCallback(GUI_BUTTON* button, INT32 reason)
 {
-    W8DialogScrollBar* bar = reinterpret_cast<W8DialogScrollBar*>(MSYS_GetBtnUserData(button, 0));
+    W8DialogScrollBar* bar =
+        static_cast<W8DialogScrollBar*>(GetButtonUserData(button));
     if (bar) {
         if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
             bar->ScrollUp();
@@ -236,7 +238,8 @@ void W8DialogScrollBar::UpButtonCallback(GUI_BUTTON* button, INT32 reason)
 // FUNCTION: WIZ8 0x005e1320
 void W8DialogScrollBar::DownButtonCallback(GUI_BUTTON* button, INT32 reason)
 {
-    W8DialogScrollBar* bar = reinterpret_cast<W8DialogScrollBar*>(MSYS_GetBtnUserData(button, 0));
+    W8DialogScrollBar* bar =
+        static_cast<W8DialogScrollBar*>(GetButtonUserData(button));
     if (bar) {
         if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
             bar->ScrollDown();
@@ -262,7 +265,8 @@ void W8DialogScrollBar::DownButtonCallback(GUI_BUTTON* button, INT32 reason)
 // FUNCTION: WIZ8 0x005e13d0
 void W8DialogScrollBar::TrackButtonCallback(GUI_BUTTON* button, INT32 reason)
 {
-    W8DialogScrollBar* bar = reinterpret_cast<W8DialogScrollBar*>(MSYS_GetBtnUserData(button, 0));
+    W8DialogScrollBar* bar =
+        static_cast<W8DialogScrollBar*>(GetButtonUserData(button));
     if (bar && (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN)) {
         bar->ScrollToMouse();
     }

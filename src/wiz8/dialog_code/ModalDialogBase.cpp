@@ -1,4 +1,5 @@
 #include "wiz8/dialog_code/ModalDialogBase.h"
+#include "wiz8/dialog_code/ButtonUserData.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/cursor.h"
 #include "wiz8/utility.h"
@@ -20,8 +21,8 @@ extern "C" unsigned char g_dialog_font_background_64fded;
 // FUNCTION: WIZ8 0x005d32c0
 void Function5D32C0(GUI_BUTTON* button, int reason)
 {
-    W8ModalDialogBase* dialog = reinterpret_cast<W8ModalDialogBase*>(
-        MSYS_GetBtnUserData(button, 0));
+    W8ModalDialogBase* dialog =
+        static_cast<W8ModalDialogBase*>(GetButtonUserData(button));
     if (!dialog) {
         srAssertFail(
             "pDialog",
@@ -55,8 +56,8 @@ void Function5D32C0(GUI_BUTTON* button, int reason)
 // FUNCTION: WIZ8 0x005d3370
 void Function5D3370(GUI_BUTTON* button, int reason)
 {
-    W8ModalDialogBase* dialog = reinterpret_cast<W8ModalDialogBase*>(
-        MSYS_GetBtnUserData(button, 0));
+    W8ModalDialogBase* dialog =
+        static_cast<W8ModalDialogBase*>(GetButtonUserData(button));
     if (!dialog) {
         srAssertFail(
             "pDialog",
@@ -145,9 +146,7 @@ unsigned int W8ModalDialogBase::WrapMessage(wchar_t* message)
     size_t word_length = wcscspn(remaining, L" ");
     while (remaining[word_length] != L'\0') {
         remaining[word_length] = L'\0';
-        int word_width = StringPixLength(
-            reinterpret_cast<unsigned short*>(remaining),
-            g_dialog_font_64fde8);
+        int word_width = StringPixLength(remaining, g_dialog_font_64fde8);
         if (line_width + word_width > maximum_width) {
             if (words_on_line != 0) {
                 ++line_index;
@@ -174,8 +173,7 @@ unsigned int W8ModalDialogBase::WrapMessage(wchar_t* message)
         word_length = wcscspn(remaining, L" ");
     }
 
-    int word_width = StringPixLength(
-        reinterpret_cast<unsigned short*>(remaining), g_dialog_font_64fde8);
+    int word_width = StringPixLength(remaining, g_dialog_font_64fde8);
     if (line_width + word_width > m_width) {
         ++line_index;
         wcscpy(lines[line_index], remaining);
@@ -246,8 +244,8 @@ int W8ModalDialogBase::CreateControls()
         int button_y;
         int button_x;
 
-        MSYS_SetBtnUserData(m_field_5c, 0, reinterpret_cast<int>(this));
-        MSYS_SetBtnUserData(m_field_74, 0, reinterpret_cast<int>(this));
+        SetButtonUserData(m_field_5c, this);
+        SetButtonUserData(m_field_74, this);
         button_width = GetButtonWidth(m_field_5c);
         button_y = m_y + m_height - GetButtonHeight(m_field_5c) - 0xf;
         if (allow_cancel) {
@@ -311,8 +309,7 @@ void W8ModalDialogBase::SetMessage(
 
         for (index = 0; index < m_line_count; ++index) {
             short line_width = StringPixLength(
-                reinterpret_cast<unsigned short*>(m_lines[index]),
-                g_dialog_font_64fde8);
+                m_lines[index], g_dialog_font_64fde8);
             if (width < static_cast<unsigned int>(line_width)) {
                 width = line_width;
             }
@@ -367,9 +364,8 @@ void W8ModalDialogBase::Draw()
         for (index = 0; index < m_line_count; ++index) {
             wchar_t* line = m_lines[index];
             short width = StringPixLengthArg(
-                g_dialog_font_64fde8, wcslen(line),
-                reinterpret_cast<unsigned short*>(line), y, line);
-            gprintf(m_x + (m_width - width) / 2, y, (unsigned short*)line);
+                g_dialog_font_64fde8, wcslen(line), line, y, line);
+            gprintf(m_x + (m_width - width) / 2, y, line);
             y += GetFontHeight(g_dialog_font_64fde8);
         }
         RestoreFontSettings();

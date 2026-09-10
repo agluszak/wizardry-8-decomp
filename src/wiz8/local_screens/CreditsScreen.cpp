@@ -121,7 +121,7 @@ unsigned char CreditsScreenEnter(void)
                 }
                 if (!blank) {
                     entry.pixel_width = StringPixLength(
-                        reinterpret_cast<unsigned short*>(entry.primary),
+                        entry.primary,
                         bold ? g_font_bold_0068368c : g_font_00683614);
                 }
                 entry.line_height = 0x14 + (bold ? 5 : 0);

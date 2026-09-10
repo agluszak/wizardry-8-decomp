@@ -91,7 +91,7 @@ void DrawJournalLine005BDD00(
     }
     else {
         x = (right - StringPixLength(
-                         reinterpret_cast<unsigned short*>(const_cast<wchar_t*>(text)),
+                         const_cast<unsigned short*>(text),
                          g_journal_font_69c4cc)) / 2;
         if (x < 0) {
             x = 0;

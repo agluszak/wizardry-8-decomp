@@ -1091,8 +1091,7 @@ void W8State5PlainPanel005EF4E0::Redraw()
         g_profession_name_message_ids_61e3f0[character->current_profession]];
     wchar_t* level_line = FormatWideString(
         L"%s %d %s", level_text, character->level, profession);
-    int width = StringPixLength(
-        reinterpret_cast<unsigned short*>(level_line), g_font_683660);
+    int width = StringPixLength(level_line, g_font_683660);
     mprintf((0xbf - width) / 2 + 0x78, 0xef,
             L"%s %d %s", level_text, character->level, profession);
 
@@ -1101,8 +1100,7 @@ void W8State5PlainPanel005EF4E0::Redraw()
     const wchar_t* race =
         gppStringList[g_race_name_message_ids_61e3d0[character->race]];
     wchar_t* race_line = FormatWideString(L"%s %s", faction, race);
-    width = StringPixLength(
-        reinterpret_cast<unsigned short*>(race_line), g_font_683660);
+    width = StringPixLength(race_line, g_font_683660);
     mprintf((0xbf - width) / 2 + 0x7f, 0xfd, L"%s %s", faction, race);
 
     const wchar_t* personality = gppStringList[

@@ -856,8 +856,7 @@ void W8OptionsKeyboardPanel::Populate()
         if (binding == page.last_binding) {
             wchar_t* reset_text = gppStringList[0x833];
             short text_width = StringPixLength(
-                reinterpret_cast<unsigned short*>(reset_text),
-                g_options_detail_font_683614);
+                reset_text, g_options_detail_font_683614);
             int left = (right - (text_width + 20) - origin_x) / 2;
             W8OptionsButton* reset = new W8OptionsButton(
                 this, left, 0x18e, left + text_width + 20, 0x1a4,

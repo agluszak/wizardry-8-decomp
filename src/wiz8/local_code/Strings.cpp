@@ -61,7 +61,7 @@ void LoadLocalizedStrings(const char* path)
                              byte_count, 0)) {
             break;
         }
-        DecodeLocalizedText(reinterpret_cast<unsigned short*>(gppStringList[index]), byte_count / 2);
+        DecodeLocalizedText(gppStringList[index], byte_count / 2);
     }
     FileClose(handle);
 }

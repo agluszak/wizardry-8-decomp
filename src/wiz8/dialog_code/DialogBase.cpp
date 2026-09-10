@@ -101,10 +101,7 @@ void W8DialogBase::SetText(const wchar_t* text)
         }
     }
     if (m_resource != -1) {
-        SpecifyButtonText(
-            m_resource,
-            const_cast<unsigned short*>(
-                reinterpret_cast<const unsigned short*>(text)));
+        SpecifyButtonText(m_resource, const_cast<unsigned short*>(text));
     }
     m_dirty_flags |= 1;
 }
