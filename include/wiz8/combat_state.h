@@ -139,6 +139,10 @@ extern W8CharacterClassRecord* g_character_class_records; /* 0x0065BDE0 */
 
 void RecordCharacterDeath(int party_slot);
 void DropCharacterFromRound(int party_slot);
+/* 0x004E79A0: whether one party slot may switch to the given targeting
+   context, in the two forms the target-refresh pass asks. */
+unsigned char CharacterCanSwitchTo(
+    int party_slot, int context, int arg_3, int arg_4);
 unsigned char TryCharacterAction(int party_slot, int action, char commit);
 void NotifyNearbyMonsters(int what);
 void CombatLog(const char* format, ...);

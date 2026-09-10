@@ -11,6 +11,7 @@
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/factions.h"
 #include "wiz8/targeting.h"
+#include "wiz8/npc_interaction.h"
 extern "C" {
 // GLOBAL: WIZ8 0x006840b7
 int g_picked_group_006840b7;
@@ -1853,4 +1854,71 @@ int PickNextTargetableGroup(int party_slot)
     } while (index != start);
 
     return BAD_INDEX;
+}
+
+/* Re-evaluate every party slot's combat target after a sight or range change:
+   re-run the two context switches, keep the current target block when neither
+   applies, and choose the fallback action when the slot is eligible. */
+// FUNCTION: WIZ8 0x0053bf80
+void RefreshAllPartyTargets0053BF80(void)
+{
+    int party_slot = 0;
+    unsigned int character_offset = 0;
+
+    do {
+        W8PartySlotRow* row = g_status_685170.buffers.party_rows + party_slot;
+        W8Character* character = reinterpret_cast<W8Character*>(
+            reinterpret_cast<char*>(g_status_685170.buffers.characters)
+            + character_offset); /* reinterpret-ok: the party is stored at its
+                                    serialized 0x1862 stride, not sizeof */
+
+        if (row->occupied != 0
+            && (character->hp_current != 0
+                || character->unknown_0b01 < 0x12)) {
+            W8CombatSlot* target = GetTargetBlockForContext(party_slot, 6);
+            unsigned char can_switch =
+                CharacterCanSwitchTo(party_slot, 6, 0, 0);
+
+            if (can_switch != 0) {
+                Function53A930(party_slot, target);
+            }
+            else {
+                can_switch = CharacterCanSwitchTo(party_slot, 6, 1, 0);
+                if (can_switch != 0) {
+                    Function536570(party_slot, 6, 0);
+                }
+                else if (target->iType != 0) {
+                    int action[8] = {0, -1, -1, -1, 0, 0, 0, 0};
+
+                    Function5387F0(party_slot, action, 6);
+                }
+            }
+
+            if (IsPartySlotEligible00524A10(party_slot) != 0
+                && (row->action_03d == 0 || row->action_03d == 1)
+                && (row->flag_105 != 0
+                    || CharacterCanSwitchTo(party_slot, 1, 0, 0) != 0)) {
+                int group_id = -1;
+
+                if (row->target_in_combat.iMonsterID != -1) {
+                    unsigned int monster_index = MonsterGetIndexByLocationID(
+                        0xf40, TARGETING_CPP, row->target_in_combat.iMonsterID, 0);
+
+                    if (monster_index != 0xffffffff) {
+                        group_id = MonsterGetScriptPartByLocationIndex(monster_index)
+                                       ->monster_group_id;
+                    }
+                }
+                int selected = Function53C990(party_slot, group_id, 1);
+
+                if (selected != -1) {
+                    int action[8] = {3, -1, selected, -1, 0, 0, 0, 0};
+
+                    Function5387F0(party_slot, action, 1);
+                }
+            }
+        }
+        character_offset += 0x1862;
+        ++party_slot;
+    } while (character_offset < 0xc310);
 }
