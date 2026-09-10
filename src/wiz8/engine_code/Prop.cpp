@@ -461,13 +461,13 @@ unsigned char W8PropRepresentation::SelectAnimationSlot(unsigned char tag)
             if (selected < 0) {
                 return 0;
             }
-            reinterpret_cast<unsigned char*>(&timer_068)[0] = counter_094;
-            reinterpret_cast<unsigned char*>(&timer_068)[1] = (unsigned char)selected;
+            value_068 = counter_094;
+            value_069 = (unsigned char)selected;
             if (selected < (signed char)counter_094) {
-                reinterpret_cast<unsigned char*>(&timer_068)[0] = (unsigned char)selected;
-                reinterpret_cast<unsigned char*>(&timer_068)[1] = counter_094;
+                value_068 = (unsigned char)selected;
+                value_069 = counter_094;
             }
-            if (reinterpret_cast<unsigned char*>(&timer_068)[1] <= counter_094) {
+            if (value_069 <= counter_094) {
                 flag_06e = 3;
             }
             else {

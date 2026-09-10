@@ -4,6 +4,8 @@ class srMaterialIFace;
 class srTextureIFace;
 class stMeshModel;
 
+#include "surrender/srMath.h"
+
 /* Engine Code\OctSubMesh.cpp's serialized mesh workspace. The assertion in
    its write method names the original class OctMeshModel; the adjacent
    constructor, destructor, read, and write bodies all use this same 0x48-byte
@@ -26,15 +28,15 @@ public:
     int uv_count_08;
     int material_index_0c;
     int positional_10;
-    void* heap_14;
-    void* heap_18;
+    srVector3T<float>* heap_14;
+    srVector2T<float>* heap_18;
     void* allocated_1c;
-    void* heap_20;
-    void* heap_24;
+    srVector3i* heap_20;
+    srVector3i* heap_24;
     void* allocated_28;
-    void* heap_2c;
-    void* heap_30;
-    void* heap_34;
+    srVector3T<float>* heap_2c;
+    srVector3T<float>* heap_30;
+    srVector4T<float>* heap_34;
     void** allocated_rows_38;
     unsigned int packed_header_3c;
     int vertex_count_40;

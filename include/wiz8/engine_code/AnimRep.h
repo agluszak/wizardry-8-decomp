@@ -56,7 +56,17 @@ public:
     unsigned char flag_064;
     unsigned char unknown_065;
     unsigned short value_066;
-    unsigned int timer_068;
+    /* 0x68: a millisecond timestamp while the animation runs;
+       SelectAnimationSlot reads its low two bytes as the transition's ordered
+       animation-value pair. */
+    union {
+        unsigned int timer_068;
+        struct {
+            unsigned char value_068;
+            unsigned char value_069;
+            unsigned char animation_padding_06a[2];
+        };
+    };
     unsigned char active;
     unsigned char flag_06d;
     unsigned char flag_06e;

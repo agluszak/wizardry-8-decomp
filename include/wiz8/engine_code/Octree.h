@@ -25,6 +25,34 @@ unsigned char ReadVector4Array004374C0(int file, srVector4T<float>* values, int 
 unsigned char ReadVector3Array004374E0(int file, srVector3T<float>* values, int count);
 unsigned char ReadVector2Array00437510(int file, srVector2T<float>* values, int count);
 
+/* The mesh's polygon index arrays are the same raw 12-byte records as the
+   float vectors and retail routes both through 0x004374E0; the inline integer
+   view keeps that one cast at the boundary. */
+inline unsigned char ReadVectorArray(
+    int file, srVector3i* values, int count)
+{
+    return ReadVector3Array004374E0(
+        file,
+        reinterpret_cast<srVector3T<float>*>(values), /* reinterpret-ok: the
+            float reader's raw 12-byte record is the index-triple record */
+        count);
+}
+inline unsigned char ReadVectorArray(
+    int file, srVector3T<float>* values, int count)
+{
+    return ReadVector3Array004374E0(file, values, count);
+}
+inline unsigned char ReadVectorArray(
+    int file, srVector4T<float>* values, int count)
+{
+    return ReadVector4Array004374C0(file, values, count);
+}
+inline unsigned char ReadVectorArray(
+    int file, srVector2T<float>* values, int count)
+{
+    return ReadVector2Array00437510(file, values, count);
+}
+
 /* One 0x10-byte entry of the .oct file's submesh table. Field +4 is the index
    into W8World::psrMeshes; the visibility update and UpdateMonsterLocation both
    resolve a region through it, and the update's reset pass writes the owning
