@@ -330,18 +330,14 @@ void BuildEnvironmentColourRamp00483210(void)
 
     for (index = 0; index < 128; ++index) {
         value = index * (1.0f / 255.0f);
-        g_environment_colours_65a178[index].red = value;
-        g_environment_colours_65a178[index].green = value;
-        g_environment_colours_65a178[index].blue = value;
+        g_environment_colours_65a178[index] = value;
         CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].red);
         CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].green);
         CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].blue);
     }
     for (; index < 256; ++index) {
         value = (255 - index) * (1.0f / 255.0f);
-        g_environment_colours_65a178[index].red = value;
-        g_environment_colours_65a178[index].green = value;
-        g_environment_colours_65a178[index].blue = value;
+        g_environment_colours_65a178[index] = value;
         CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].red);
         CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].green);
         CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].blue);

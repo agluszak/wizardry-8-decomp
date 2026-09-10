@@ -377,10 +377,7 @@ unsigned char ReadWorldClipPlanes004BCE20(
     }
 
     FileRead(pInfo->hFile, &version, sizeof(version), 0);
-    plane.x = 0.0f;
-    plane.y = 1.0f;
-    plane.z = 0.0f;
-    plane.w = 0.0f;
+    plane.Set(0.0f, 1.0f, 0.0f, 0.0f);
     for (index = 0; index < count; ++index) {
         clip_plane =
             SR_NEW(srClipPlane)(
@@ -1236,10 +1233,7 @@ unsigned char ReadLevel(
                         srMaterial* copy = static_cast<srMaterial*>(material->clone());
                         copy->setName("Unsunlit Prop Material");
                         copy->autoRelease();
-                        copy->parms_18.ambient.x = 0.0f;
-                        copy->parms_18.ambient.y = 0.0f;
-                        copy->parms_18.ambient.z = 0.0f;
-                        copy->parms_18.ambient.w = 0.0f;
+                        copy->parms_18.ambient = 0.0f;
                         copy->dirty_74 = 1;
                         copy->parms_18.emissive.x +=
                             g_environment_offset_00659cd0.x;

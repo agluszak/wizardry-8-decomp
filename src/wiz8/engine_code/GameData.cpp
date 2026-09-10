@@ -656,8 +656,8 @@ W8GameData::W8GameData(int handle, void* parent)
     environ_count_80 = 0;
     environs_84 = 0;
     value_88 = 0;
-    minimum_08.Set(1.0e8f, 1.0e8f, 1.0e8f);
-    maximum_14.Set(-1.0e8f, -1.0e8f, -1.0e8f);
+    minimum_08 = 1.0e8f;
+    maximum_14 = -1.0e8f;
     if (parent == 0) {
         MoveTimer(4);
         if (g_object_6598bc == 0) {

@@ -438,7 +438,7 @@ stModelInstance::stModelInstance(srNode* parent)
     }
     damage_stage_184 = -1;
     retained_174 = 0;
-    scale_194.Set(1.0f, 1.0f, 1.0f);
+    scale_194 = 1.0f;
     flag_1a0 = 0;
     value_1a4 = 0;
     flag_1a1 = 0;

@@ -96,21 +96,13 @@ unsigned char InitializeEnvironmentColours(void)
 
     for (index = 0; index != 128; ++index) {
         value = normalized_colour(index);
-        g_environment_colours_65a178[index].red = value;
-        g_environment_colours_65a178[index].green = value;
-        g_environment_colours_65a178[index].blue = value;
-        g_environment_colours_65ad98[index].red = value;
-        g_environment_colours_65ad98[index].green = value;
-        g_environment_colours_65ad98[index].blue = value;
+        g_environment_colours_65a178[index] = value;
+        g_environment_colours_65ad98[index] = value;
     }
     for (index = 128; index != 256; ++index) {
         value = normalized_colour(255 - index);
-        g_environment_colours_65a178[index].red = value;
-        g_environment_colours_65a178[index].green = value;
-        g_environment_colours_65a178[index].blue = value;
-        g_environment_colours_65ad98[index].red = value;
-        g_environment_colours_65ad98[index].green = value;
-        g_environment_colours_65ad98[index].blue = value;
+        g_environment_colours_65a178[index] = value;
+        g_environment_colours_65ad98[index] = value;
     }
     g_environment_value_0065a168 = 0;
     g_environment_value_0065a16c = 0;

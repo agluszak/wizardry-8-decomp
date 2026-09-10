@@ -134,10 +134,9 @@ void stMaterial::getMaterialInfo(srVertexProcessor::MaterialInfo& info)
         info.diffuse.w *= g_material_diffuse_scale_0065baa0;
     }
     if (g_material_emissive_override_enabled_0065baa4 != 0) {
-        info.emissive.x = g_material_emissive_override_0065baa8;
-        info.emissive.y = g_material_emissive_override_0065baa8;
-        info.emissive.z = g_material_emissive_override_0065baa8;
-        info.emissive.w = 1.0f;
+        info.emissive.Set(g_material_emissive_override_0065baa8,
+                          g_material_emissive_override_0065baa8,
+                          g_material_emissive_override_0065baa8, 1.0f);
     }
 }
 
@@ -292,10 +291,9 @@ unsigned char LoadMaterial004B8A70(
             concrete->setName(material_name);
             concrete->autoRelease();
 
-            concrete->parms_18.specular.x = source->specular_0ed[0];
-            concrete->parms_18.specular.y = source->specular_0ed[1];
-            concrete->parms_18.specular.z = source->specular_0ed[2];
-            concrete->parms_18.specular.w = 0.0f;
+            concrete->parms_18.specular.Set(
+                source->specular_0ed[0], source->specular_0ed[1],
+                source->specular_0ed[2], 0.0f);
             concrete->dirty_74 = 1;
             concrete->parms_18.shininess = 1.0f;
             concrete->dirty_74 = 1;
@@ -310,26 +308,20 @@ unsigned char LoadMaterial004B8A70(
                 source->opacity_0fd == 0.0f ? 0.7 : source->opacity_0fd);
 
             if (texture_path[0] == '\0') {
-                concrete->parms_18.ambient.x = source->diffuse_0d5[0];
-                concrete->parms_18.ambient.y = source->diffuse_0d5[1];
-                concrete->parms_18.ambient.z = source->diffuse_0d5[2];
-                concrete->parms_18.ambient.w = 1.0f;
+                concrete->parms_18.ambient.Set(
+                    source->diffuse_0d5[0], source->diffuse_0d5[1],
+                    source->diffuse_0d5[2], 1.0f);
                 concrete->dirty_74 = 1;
-                concrete->parms_18.emissive.x = 0.0f;
-                concrete->parms_18.emissive.y = 0.0f;
-                concrete->parms_18.emissive.z = 0.0f;
-                concrete->parms_18.emissive.w = 0.0f;
+                concrete->parms_18.emissive = 0.0f;
             }
             else {
-                concrete->parms_18.ambient.x = source->ambient_0c9[0];
-                concrete->parms_18.ambient.y = source->ambient_0c9[1];
-                concrete->parms_18.ambient.z = source->ambient_0c9[2];
-                concrete->parms_18.ambient.w = 0.0f;
+                concrete->parms_18.ambient.Set(
+                    source->ambient_0c9[0], source->ambient_0c9[1],
+                    source->ambient_0c9[2], 0.0f);
                 concrete->dirty_74 = 1;
-                concrete->parms_18.emissive.x = source->emission_101;
-                concrete->parms_18.emissive.y = source->emission_101;
-                concrete->parms_18.emissive.z = source->emission_101;
-                concrete->parms_18.emissive.w = 1.0f;
+                concrete->parms_18.emissive.Set(
+                    source->emission_101, source->emission_101,
+                    source->emission_101, 1.0f);
             }
             concrete->dirty_74 = 1;
             concrete->m_field_78 = source->shader_flags_116;

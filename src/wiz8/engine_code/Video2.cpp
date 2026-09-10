@@ -358,15 +358,9 @@ unsigned char InitializeRendererSceneObjects(void)
         SR_NEW(srMaterial);
     g_blit_material_65967c = material;
     material->setName("Blit Rect Material");
-    material_value.x = 1.0f;
-    material_value.y = 1.0f;
-    material_value.z = 1.0f;
-    material_value.w = 1.0f;
+    material_value = 1.0f;
     material->setEmissive(material_value);
-    material_value.x = 0.0f;
-    material_value.y = 0.0f;
-    material_value.z = 0.0f;
-    material_value.w = 0.0f;
+    material_value = 0.0f;
     material->setDiffuse(material_value);
     material->setSpecular(material_value);
     material->setOpacity(1.0);

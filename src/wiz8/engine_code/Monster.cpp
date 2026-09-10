@@ -1480,7 +1480,7 @@ void W8Monster::Update()
              ++index) {
             stModelInstance* model =
                 *g_monster_model_instances_682fd0.GetAt(index);
-            model->scale_194.Set(0.75f, 0.75f, 0.75f);
+            model->scale_194 = 0.75f;
         }
         target_scale_2fc = 0.75f;
         timer_2d8.SetDuration(0.025f);
@@ -1543,7 +1543,7 @@ void W8Monster::Update()
              ++index) {
             stModelInstance* model =
                 *g_monster_model_instances_682fd0.GetAt(index);
-            model->scale_194.Set(current_scale_300, current_scale_300, current_scale_300);
+            model->scale_194 = current_scale_300;
         }
         timer_2d8.Restart();
     }
@@ -3570,11 +3570,12 @@ void W8Monster::UpdateRepresentation(W8World* world)
     {
         float angle = GetPitch();
         if (angle != g_float_005ebb34) {
-            rotation.RotatePitch((double)angle);
+            rotation.RotateAboutX(sin((double)angle), cos((double)angle));
         }
     }
     if (movement_0c0.roll_028 != g_float_005ebb34) {
-        rotation.RotateRoll((double)movement_0c0.roll_028);
+        rotation.RotateAboutZ(sin((double)movement_0c0.roll_028),
+                              cos((double)movement_0c0.roll_028));
     }
     m_pRep->SetRotation004B88D0(&rotation);
 
@@ -3952,7 +3953,7 @@ void W8Monster::SetCycle(signed char cycle)
          ++index) {
         stModelInstance* model =
             *g_monster_model_instances_682fd0.GetAt(index);
-        model->scale_194.Set(current_scale_300, current_scale_300, current_scale_300);
+        model->scale_194 = current_scale_300;
     }
 
     if (cycle == 0x15) {
@@ -4125,7 +4126,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                 mesh = item->GetMesh();
                 mesh_scale = distance_scale *
                     g_monster_attachment_scales_0060e914[attachment_layout];
-                widened_scale.Set(mesh_scale, mesh_scale, mesh_scale);
+                widened_scale = mesh_scale;
                 mesh->setScale(widened_scale);
                 if ((flags_1dc & 0x400) == 0) {
                     mesh->clearFlag(srNode::FLAG_POSITIONAL_0);
@@ -4187,7 +4188,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                 mesh = item->GetMesh();
                 mesh_scale = distance_scale *
                     g_monster_attachment_scales_0060e914[chunk_count];
-                widened.Set(mesh_scale, mesh_scale, mesh_scale);
+                widened = mesh_scale;
                 mesh->setScale(widened);
                 widened.SetFromFloat(&location);
                 mesh->setLocation(widened);

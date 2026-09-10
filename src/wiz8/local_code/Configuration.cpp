@@ -82,7 +82,7 @@ void SetMusicMuted(unsigned char muted)
 void SetDisplayGamma(float value)
 {
     srVector3T<float> gamma;
-    gamma.Set(value, value, value);
+    gamma = value;
     g_gerd_659634->setGamma(gamma);
 }
 

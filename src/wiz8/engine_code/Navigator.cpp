@@ -110,8 +110,8 @@ W8Navigator::W8Navigator()
     unknown_064 = 0;
     target_navigator_04c = 0;
     path_ai_068 = 0;
-    minimum_06c.Set(-500.0f, -500.0f, -500.0f);
-    maximum_078.Set(500.0f, 500.0f, 500.0f);
+    minimum_06c = -500.0f;
+    maximum_078 = 500.0f;
     movement_0c0.vertical_offset_0c0 = 0.0f;
     state_088 = 1;
     unknown_090 = 0;

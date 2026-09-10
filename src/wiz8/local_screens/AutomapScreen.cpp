@@ -241,7 +241,7 @@ unsigned char AutomapScreenEnter(void)
     g_automap_saved_render_flags[3] = g_flag_65970d;
     g_automap_saved_texture_policy = g_resident_texture_policy_659714;
     EnvironmentColour direction;
-    direction.Set(0.0, 0.0, 0.0);
+    direction = 0.0;
     SetLightDirection(reinterpret_cast<const int*>(&direction));
     SetWorldEnvironmentColour00483A60(g_world, EnvironmentColour(0.0, 0.0, 0.0));
     DisableSky();
@@ -350,10 +350,7 @@ unsigned char AutomapScreenEnter(void)
                         sprintf(layer_name, "LAYER_%d", layer_number);
                         clip->setName(layer_name);
                         srVector4T<float> plane;
-                        plane.x = 0.0f;
-                        plane.y = 1.0f;
-                        plane.z = 0.0f;
-                        plane.w = 0.0f;
+                        plane.Set(0.0f, 1.0f, 0.0f, 0.0f);
                         clip->setClipPlane(plane);
                         srVector3T<double> position(0.0, static_cast<double>(height * 500.0f), 0.0);
                         clip->setLocation(position);
@@ -513,8 +510,9 @@ void AutomapScreenFrame(void)
                         (*g_automap_layers.GetAt(layer))->getLocationY();
                     }
                     srVector2T<float> location;
-                    location.x = (point.x - 0.5f) * g_automap_zoom + g_automap_position.x;
-                    location.y = g_automap_position.z - (point.y - 0.5f) * g_automap_zoom;
+                    location.Set(
+                        (point.x - 0.5f) * g_automap_zoom + g_automap_position.x,
+                        g_automap_position.z - (point.y - 0.5f) * g_automap_zoom);
                     g_automap_editing_note = CreateAutomapNote(&location, g_automap_layer, L"_");
                 }
             } else if (g_automap_tool == 3) {

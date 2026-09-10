@@ -5,6 +5,11 @@ struct W8World;
 struct EnvironmentColour {
     EnvironmentColour() {}
     EnvironmentColour(double red_value, double green_value, double blue_value);
+    EnvironmentColour& operator=(double value)
+    {
+        Set(value, value, value);
+        return *this;
+    }
     void Set(double red_value, double green_value, double blue_value);
     float red;
     float green;

@@ -946,8 +946,6 @@ symbol
 ?g_zero_005ebb34@@3MB
 ?g_zero_005ebb40@@3NB
 ?ghWindow@@3PAUHWND__@@A
-?RotatePitch@?$srMatrix3T@M@@QAEPAV1@N@Z
-?RotateRoll@?$srMatrix3T@M@@QAEPAV1@N@Z
 ?process@srClipPlane@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
 ?process@srIlluminator@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
 ?process@stModelInstance2D@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z

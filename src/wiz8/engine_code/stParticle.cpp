@@ -264,8 +264,8 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     value_1cc = 1500;
     value_1a4 = 2;
     value_1bc = 2;
-    minimum_1d0.Set(-250.0f, -250.0f, -250.0f);
-    maximum_1dc.Set(250.0f, 250.0f, 250.0f);
+    minimum_1d0 = -250.0f;
+    maximum_1dc = 250.0f;
     direction_1e8.Set(0.0f, -1.0f, 0.0f);
     value_210 = 500.0f;
     acceleration_1f4.Set(0.0f, -4905.0f, 0.0f);
@@ -277,8 +277,8 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     value_208 = 0.39269906f;
     value_20c = 0.39269906f;
     value_214 = 1000.0f;
-    minimum_21c.Set(-1000.0f, -1000.0f, -1000.0f);
-    maximum_228.Set(1000.0f, 1000.0f, 1000.0f);
+    minimum_21c = -1000.0f;
+    maximum_228 = 1000.0f;
     value_234.SetZero();
     value_240 = 2000.0f;
     update_flags_250 = 0;
@@ -461,22 +461,13 @@ void stParticle::Update00499FA0()
         getRotation(rotation);
 
         srMatrix4T<float> transform;
-        transform.vectors[0].x = rotation.vectors[0].x;
-        transform.vectors[0].y = rotation.vectors[0].y;
-        transform.vectors[0].z = rotation.vectors[0].z;
-        transform.vectors[0].w = 0.0f;
-        transform.vectors[1].x = rotation.vectors[1].x;
-        transform.vectors[1].y = rotation.vectors[1].y;
-        transform.vectors[1].z = rotation.vectors[1].z;
-        transform.vectors[1].w = 0.0f;
-        transform.vectors[2].x = rotation.vectors[2].x;
-        transform.vectors[2].y = rotation.vectors[2].y;
-        transform.vectors[2].z = rotation.vectors[2].z;
-        transform.vectors[2].w = 0.0f;
-        transform.vectors[3].x = 0.0f;
-        transform.vectors[3].y = 0.0f;
-        transform.vectors[3].z = 0.0f;
-        transform.vectors[3].w = 1.0f;
+        transform.vectors[0].Set(rotation.vectors[0].x, rotation.vectors[0].y,
+                                 rotation.vectors[0].z, 0.0f);
+        transform.vectors[1].Set(rotation.vectors[1].x, rotation.vectors[1].y,
+                                 rotation.vectors[1].z, 0.0f);
+        transform.vectors[2].Set(rotation.vectors[2].x, rotation.vectors[2].y,
+                                 rotation.vectors[2].z, 0.0f);
+        transform.vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
 
         srMatrix4T<float> inverse;
         inverse.AdjugateFrom(&transform.vectors[0].x);
