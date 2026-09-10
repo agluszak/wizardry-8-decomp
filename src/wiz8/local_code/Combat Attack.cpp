@@ -265,7 +265,7 @@ bool CanMonsterAttackItsTarget(W8MonsterInfo* monster_info)
         monster_info->hp_current != 0 && (unsigned int)monster_info->value_107 < 0xc &&
         (record->flags_0d0 & W8_MONSTER_FLAG_ATTACKS) != 0 &&
         record->attacks[0].fHasAttack != 0) {
-        return MonsterHasAttackOn(monster_info, &monster_info->combat_slot_2ba) != 0;
+        return MonsterHasAttackOn(monster_info, &monster_info->Target) != 0;
     }
     return false;
 }

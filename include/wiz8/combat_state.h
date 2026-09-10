@@ -74,28 +74,51 @@ struct W8CombatActor {
     int class_record_index;               /* 0x1d8 */
 };
 
-/* One combat participant's row, 0xd4 bytes per character. The eight of them
-   begin at the combat state's own address, so W8CombatState's leading fields
-   are the first row's; only the fields the fatigue, death and engagement paths
-   touch are established. */
+/* One packed combat effect slot, 0x11 bytes: an active byte, the unaligned
+   32-bit visual index the party-effect fold tests against 0x31, and the byte
+   amount it subtracts. Nine live at +0x7c1 and six more at +0x85a. */
+struct W8CombatEffectSlot {
+    unsigned char active;                 /* 0x00 */
+    int visual_index;                     /* 0x01 */
+    unsigned char amount;                 /* 0x05 */
+    unsigned char unknown_06[0x0b];
+};                                        /* 0x11 */
+
+static_assert(sizeof(W8CombatEffectSlot) == 0x11,
+              "W8CombatEffectSlot_must_be_0x11");
+
+/* One combat participant's row, 0xd4 bytes per character. The eight rows live
+   at +0x18 of the combat state, 0xd4 apart, so a row's offsets are
+   element-relative: the +0x18 that once prefixed this record is the state's
+   header, not part of every row. Only the fields the fatigue, death and
+   engagement paths touch are established. */
 struct W8CombatCharacterRow {
-    unsigned char unknown_00[0x18];
-    int value_18;                         /* 0x18: cleared when the character dies */
-    unsigned char unknown_1c[0x30];
-    unsigned char flag_4c;                /* 0x4c: raised when the character dies */
-    unsigned char unknown_4d[0x37];
-    int current_hand;                     /* 0x84: indexes the slot row's attack modes */
-    int current_equip_slot;               /* 0x88: indexes the character's equipment */
-    unsigned char unknown_8c[0x0d];
-    unsigned char flag_099;               /* 0x99: toggled when an attack action is chosen */
-    unsigned char unknown_9a[0x22];
-    unsigned char flag_bc;                /* 0xbc: raised when switching to an attack */
-    unsigned char unknown_bd[0x17];
-};                                       /* 0xd4 */
+    unsigned int value_00;                /* 0x00: cleared when the character dies */
+    unsigned char unknown_04[0x30];
+    unsigned char flag_34;                /* 0x34: raised when the character dies */
+    unsigned char unknown_35[0x33];
+    unsigned int uiSwingsRemaining;       /* 0x68: exact name from the attack assertions */
+    int current_hand;                     /* 0x6c: indexes the slot row's attack modes */
+    int current_equip_slot;               /* 0x70: indexes the character's equipment */
+    unsigned char unknown_74[0x0d];
+    unsigned char flag_81;                /* 0x81: toggled when an attack action is chosen */
+    unsigned char unknown_82[0x1a];
+    /* 0x9c: the combat clock value when CatchUpCombatActor last advanced this
+       row's phase (its inlined copies stamp g_combat_state->round_counter
+       here); the spell-scaling paths read it as the character's combat pace. */
+    unsigned int phase_clock_stamp;
+    unsigned char unknown_a0[4];
+    unsigned char flag_a4;                /* 0xa4: raised when switching to an attack */
+    unsigned char unknown_a5[0x2f];
+};                                        /* 0xd4 */
+
+static_assert(sizeof(W8CombatCharacterRow) == 0xd4,
+              "W8CombatCharacterRow_must_be_0xd4");
 
 /* The block the pointer at 0x006836A8 addresses: the engine's combat state.
-   Only what a ported body reaches is named, and only where the use establishes
-   a meaning. */
+   The allocation is 0xa64 bytes and the eight per-character rows live at
+   +0x18, 0xd4 apart. Only what a ported body reaches is named, and only where
+   the use establishes a meaning. */
 struct W8CombatState {
     unsigned char flag_000;               /* 0x000: blocks ending combat while set */
     unsigned char flag_001;
@@ -105,19 +128,28 @@ struct W8CombatState {
     unsigned char unknown_00c[4];
     int value_010;
     int value_014;
-    unsigned char unknown_018[0x798];
-    int selected_slot;                    /* 0x7b0: cleared with selected_monster */
-    int selected_character;               /* 0x7b4: -1 when nobody's turn */
-    struct W8MonsterInfo* selected_monster; /* 0x7b8 */
-    unsigned char unknown_7bc[0x104];
+    W8CombatCharacterRow characters[8];   /* 0x018, 0xd4 stride */
+    unsigned char unknown_6b8[0xf8];
+    /* 0x7b0: the exact member names the Combat.cpp action assertions report. */
+    int eCombatActionStatus;              /* 0x7b0 */
+    int iActionChar;                      /* 0x7b4: -1 when nobody's turn */
+    struct W8MonsterInfo* pActionMonsterInfo; /* 0x7b8 */
+    unsigned char unknown_7bc[5];
+    W8CombatEffectSlot effect_slots[9];   /* 0x7c1, 0x11 stride */
+    W8CombatEffectSlot effect_slots_tail[6]; /* 0x85a, 0x11 stride */
     W8CombatActor* engaged_actor;         /* 0x8c0 */
-    unsigned char unknown_8c4[0x24];
+    unsigned char unknown_8c4;            /* 0x8c4 */
+    /* 0x8c5: exact name from the attack assertions; the slot is unaligned
+       after the byte above, which packing makes representable. */
+    W8CombatSlot TargetHit;
+    unsigned char unknown_8e5[3];
     int pending_deaths[8];                /* 0x8e8 */
     int pending_death_count;              /* 0x908 */
-    int pending_move_kind;                /* 0x90c */
-    int movement_mode;                    /* 0x910 */
-    unsigned char unknown_914[4];
-    int turn_phase;                       /* 0x918 */
+    /* 0x90c: the party-action fields the movement assertions pin. */
+    unsigned int uiNextPartyAction;       /* 0x90c */
+    unsigned int uiCurrentPartyAction;    /* 0x910 */
+    unsigned int uiPartyActionPhase;      /* 0x914 */
+    unsigned int uiCurrentPartyActionStatus; /* 0x918 */
     unsigned char unknown_91c[4];
     W8PartyFormationState saved_formation; /* 0x920 */
     unsigned char unknown_9a4[0xac];
@@ -127,13 +159,16 @@ struct W8CombatState {
     unsigned char flag_a54;
     unsigned char unknown_a55[0xd];
     unsigned char flag_a62;               /* 0xa62: party combat-ready bit */
-};
+    unsigned char unknown_a63;            /* 0xa63: the allocation is 0xa64 bytes */
+};                                        /* 0xa64 */
+
+static_assert(sizeof(W8CombatState) == 0xa64, "W8CombatState_must_be_0xa64");
 #pragma pack(pop)
 
 extern "C" {
 
 extern W8CombatState* g_combat_state;    /* 0x006836A8 */
-extern W8CombatCharacterRow* g_combat_character_rows;
+extern unsigned int g_combat_countdown_6850b0; /* 0x006850B0 */
 extern W8CharacterClassRecord* g_character_class_records; /* 0x0065BDE0 */
 
 }

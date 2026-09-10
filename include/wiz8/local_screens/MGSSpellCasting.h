@@ -9,5 +9,4 @@ void Function5A0BC0(void);
 
 
 void Function5A1950(void);
-void ReleasePartyMovement(void);                                 /* 0x005A1890 */
 

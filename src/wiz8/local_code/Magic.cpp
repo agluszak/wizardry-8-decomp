@@ -225,7 +225,7 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
         return false;
     }
 
-    combat_slot = &monster_info->combat_slot_2ba;
+    combat_slot = &monster_info->Target;
     if (!Function519F80(monster_info, record, 0, combat_slot) &&
         !ClearMonsterCombatSlot(monster_info)) {
         return false;
@@ -733,11 +733,11 @@ void UpdateSpellEffects00500930(void)
                 W8MonsterInfo* monster_info =
                     MonsterGetScriptPartByLocationIndex(monster_list_index);
                 if (g_in_combat_00683f94 != 0 &&
-                    g_combat_state->selected_slot != 0 &&
-                    g_combat_state->selected_monster != 0 &&
-                    *(int*)g_combat_state->selected_monster ==
+                    g_combat_state->eCombatActionStatus != 0 &&
+                    g_combat_state->pActionMonsterInfo != 0 &&
+                    *(int*)g_combat_state->pActionMonsterInfo ==
                         monster_info->location_id) {
-                    g_combat_state->selected_slot = 3;
+                    g_combat_state->eCombatActionStatus = 3;
                 }
             }
         }
@@ -866,7 +866,7 @@ void FinishSpellEffect00500F70(W8SpellEffectEntry* effect)
 unsigned int ScaleByCombatPace(int party_slot, unsigned int* value)
 {
     unsigned int pace;
-    unsigned int speed;
+    unsigned int phase_clock;
     int scaled;
 
     if (gXStatus.fCombatMode == 0) {
@@ -886,12 +886,12 @@ unsigned int ScaleByCombatPace(int party_slot, unsigned int* value)
         pace = 0x28;
     }
 
-    speed = *(unsigned int*)((char*)&g_combat_character_rows[party_slot] + 0xb4);
-    if (pace <= speed) {
-        scaled = ((0x32 - pace) + speed) * *value;
+    phase_clock = g_combat_state->characters[party_slot].phase_clock_stamp;
+    if (pace <= phase_clock) {
+        scaled = ((0x32 - pace) + phase_clock) * *value;
         *value = scaled / 50;
     }
-    return speed;
+    return phase_clock;
 }
 
 /* How likely a spell is to fail outright. The spell's own cost band picks a
@@ -2110,7 +2110,7 @@ unsigned int MonsterCastsSpell(
             9, gppStringList[W8_MESSAGE_MONSTER_CAST / 4],
             GetMonsterName(monster_info, record, 0),
             g_spell_records[spell_id].display_name,
-            SpellTargetString((int)&source, &monster_info->combat_slot_2ba));
+            SpellTargetString((int)&source, &monster_info->Target));
         SetTextBoxMode(1, 9);
     }
     else {
@@ -2118,7 +2118,7 @@ unsigned int MonsterCastsSpell(
             9, gppStringList[W8_MESSAGE_MONSTER_CAST_VERBOSE / 4],
             GetMonsterName(monster_info, record, 0),
             g_spell_records[spell_id].display_name, power_level,
-            SpellTargetString((int)&source, &monster_info->combat_slot_2ba));
+            SpellTargetString((int)&source, &monster_info->Target));
     }
 
     record = GetMonsterDataForInfo(monster_info);
@@ -2134,7 +2134,7 @@ unsigned int MonsterCastsSpell(
     failure = GetSpellFailureChance(budget, spell_id, (int)power_level);
 
     CastSpellFromSource(
-        spell_id, &source, &monster_info->combat_slot_2ba, power_level, 0, failure, 0,
+        spell_id, &source, &monster_info->Target, power_level, 0, failure, 0,
         (int)&result, 0, 0, 0);
     return SpellCastFatigueCost(spell_id, result);
 }

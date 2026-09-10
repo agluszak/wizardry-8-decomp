@@ -1765,9 +1765,9 @@ void W8Monster::Update()
         (m_pRep->pending_cycle == -1 ||
          m_pRep->pending_cycle == 1 ||
          m_pRep->pending_cycle == 2) &&
-        (g_combat_state->selected_slot != 2 ||
-         g_combat_state->selected_monster == 0 ||
-         g_combat_state->selected_monster->location_id != propagated_value_1e4)) {
+        (g_combat_state->eCombatActionStatus != 2 ||
+         g_combat_state->pActionMonsterInfo == 0 ||
+         g_combat_state->pActionMonsterInfo->location_id != propagated_value_1e4)) {
         m_pRep->timer_068 = g_shared_timer_base->getUTime(
             srTimer::TIMER_READ_DEFAULT);
     }
@@ -4433,17 +4433,17 @@ void W8Monster::HandleAnimationThreshold004C75C0()
     SetTargetSourceToMonster(monster_info, &source);
 
     if (gXStatus.fCombatMode != 0 &&
-        g_combat_state->selected_slot == 2 &&
-        g_combat_state->selected_monster == monster_info) {
+        g_combat_state->eCombatActionStatus == 2 &&
+        g_combat_state->pActionMonsterInfo == monster_info) {
         attack_index = monster_info->pCombat->attack_index_11;
         selected_attack = 1;
         goto prepare_attack;
     }
 
-    monster_info->combat_slot_2ba.iType = W8_TARGET_KIND_CHARACTER;
-    monster_info->combat_slot_2ba.iChar = GetRandomCharacter(1, 1, -1, -1);
-    monster_info->combat_slot_2ba.iMonsterID = -1;
-    if (monster_info->combat_slot_2ba.iChar == -1) {
+    monster_info->Target.iType = W8_TARGET_KIND_CHARACTER;
+    monster_info->Target.iChar = GetRandomCharacter(1, 1, -1, -1);
+    monster_info->Target.iMonsterID = -1;
+    if (monster_info->Target.iChar == -1) {
         return;
     }
 
@@ -4497,7 +4497,7 @@ prepare_attack:
 fire_missile:
     monster_info->unknown_2df[0] = 1;
     FireMissileSourceToTarget(
-        missile_type, &source, &monster_info->combat_slot_2ba, &attack_block,
+        missile_type, &source, &monster_info->Target, &attack_block,
         selected_attack == 0, range_category, accuracy);
 }
 

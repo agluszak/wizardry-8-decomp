@@ -369,7 +369,7 @@ void SetMonsterCondition(
         return;
     }
     if ((unsigned int)condition >= 0xD) {
-        ResetCombatSlot(&monster_info->combat_slot_2ba);
+        ResetCombatSlot(&monster_info->Target);
     }
     if ((unsigned int)condition >= 0x12) {
         MonsterStartsDying(monster_info, quiet);

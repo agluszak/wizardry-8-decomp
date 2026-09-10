@@ -120,7 +120,7 @@ unsigned char CanMonsterAimSpell(W8MonsterInfo* monster_info, int spell_id)
         return AimMonsterAtSpellTarget(monster_info, spell_id);
     }
     if (g_spell_records[spell_id].needs_aim_13f != 0) {
-        return Function53C630(&monster_info->combat_slot_2ba, 0);
+        return Function53C630(&monster_info->Target, 0);
     }
     return 1;
 }
@@ -134,9 +134,9 @@ unsigned char AimFleeingMonster(W8MonsterInfo* monster_info, const W8MonsterReco
 
     if (g_ai_kind_table[record->ai_kind][0] == W8_AI_KIND_ROW_SPECIAL) {
         GetCameraPosition(&party);
-        ResetCombatSlot(&monster_info->combat_slot_2ba);
-        monster_info->combat_slot_2ba.iType = 6;
-        monster_info->combat_slot_2ba.point = party;
+        ResetCombatSlot(&monster_info->Target);
+        monster_info->Target.iType = 6;
+        monster_info->Target.point = party;
         return 1;
     }
     return AimMonsterAtSpellTarget(monster_info, W8_AI_SPELL_PLACE) != 0;
@@ -153,13 +153,13 @@ unsigned char IsMonsterActionUsable(W8MonsterInfo* monster_info)
 
     switch (monster_info->action_kind) {
     case W8_MONSTER_ACTION_ATTACK:
-        return monster_info->combat_slot_2ba.iType == 1;
+        return monster_info->Target.iType == 1;
     case W8_MONSTER_ACTION_SPELL:
         spell_id = monster_info->action_detail;
         if (!MonsterCanAimSpell005474B0(spell_id)) {
             return 0;
         }
-        switch (monster_info->combat_slot_2ba.iType) {
+        switch (monster_info->Target.iType) {
         case 1:
         case 2:
             return 1;
@@ -180,7 +180,7 @@ unsigned char IsMonsterActionUsable(W8MonsterInfo* monster_info)
     default:
         return 0;
     }
-    return Function5353E0(monster_info, spell_id, &monster_info->combat_slot_2ba) != 0;
+    return Function5353E0(monster_info, spell_id, &monster_info->Target) != 0;
 }
 
 /* How near the nearest member of a group has come. */

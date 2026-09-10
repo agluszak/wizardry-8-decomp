@@ -35,20 +35,17 @@ void RebuildPartyEffectBlock0050E700(void)
     Function50EDC0(
         g_effect_source_list_0068691f, g_party_effect_block_00687453);
     if (g_in_combat_00683f94 != 0) {
-        unsigned char* slot =
-            reinterpret_cast<unsigned char*>(g_combat_state) + 0x7c6; /* reinterpret-ok: packed combat effect slots */
         unsigned char value = g_status_685170.unknown_22e3[5];
 
         for (int index = 0; index < 9; ++index) {
-            if (slot[-5] != 0 && *reinterpret_cast<int*>(slot - 4) == 0x31) /* reinterpret-ok: packed effect slot type */
-            {
-                value -= *slot;
+            W8CombatEffectSlot* slot = &g_combat_state->effect_slots[index];
+            if (slot->active != 0 && slot->visual_index == 0x31) {
+                value -= slot->amount;
                 g_status_685170.unknown_22e3[5] = value;
             }
-            slot += 0x11;
         }
         Function50EF50(
-            reinterpret_cast<unsigned char*>(g_combat_state) + 0x85a, /* reinterpret-ok: packed combat effect slots */
+            reinterpret_cast<unsigned char*>(g_combat_state->effect_slots_tail), /* reinterpret-ok: packed effect slots feed the block helper */
             g_party_effect_block_00687453);
     }
     int active = 0;

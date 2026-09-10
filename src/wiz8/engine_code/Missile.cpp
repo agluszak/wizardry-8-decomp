@@ -502,7 +502,7 @@ void W8Missile::StartIfHostActive()
     else {
         flag_1e0 = 1;
         if (missile_table_index_1d8 == 0x23 &&
-            (g_combat_state == 0 || g_combat_state->unknown_8c4[0] != 2)) {
+            (g_combat_state == 0 || g_combat_state->unknown_8c4 != 2)) {
             Function4A49E0();
         }
         if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 != 0) {

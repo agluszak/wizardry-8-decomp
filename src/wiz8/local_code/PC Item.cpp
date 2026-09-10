@@ -2100,7 +2100,7 @@ void Function520D10(
                     Function536570(party_slot, 1, 0);
                 }
             }
-            g_combat_character_rows[party_slot].flag_099 ^= 1;
+            g_combat_state->characters[party_slot].flag_81 ^= 1;
             if (party_slot ==
                 static_cast<unsigned int>(
                     g_status_685170.selected_character)) {

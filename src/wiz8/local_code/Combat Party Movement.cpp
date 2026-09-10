@@ -28,8 +28,9 @@
 /* PHASES_PER_ROUND, named by the assertion that bounds the phase. */
 enum { W8_PHASES_PER_ROUND = 100 };
 
-/* The turn phase in which the party has its own movement back. */
-enum { W8_TURN_PHASE_FREE = 3 };
+/* The finished party-action status hands movement back to the party; the
+   assertion corpus names this value ACTION_STATUS_FINISHED. */
+enum { W8_ACTION_STATUS_FINISHED = 3 };
 extern float g_movement_speed_step_005ed490;
 
 /* Note that the party has started moving. */
@@ -45,7 +46,7 @@ void BeginPartyMovement(void)
 // FUNCTION: WIZ8 0x004f0500
 char GetPhaseStep(void)
 {
-    return g_combat_state->movement_mode != 0 ? 10 : 1;
+    return g_combat_state->uiCurrentPartyAction != 0 ? 10 : 1;
 }
 
 /* Note what kind of move is pending. Only one value is singled out; everything
@@ -56,7 +57,7 @@ void SetPendingMoveKind(int kind)
     if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", COMBAT_MOVEMENT_CPP, 435, 0);
     }
-    g_combat_state->pending_move_kind = (kind != 10) + 1;
+    g_combat_state->uiNextPartyAction = (kind != 10) + 1;
 }
 
 /* Hand movement back to the party, or take it away and fill both budgets. The
@@ -65,9 +66,9 @@ void SetPendingMoveKind(int kind)
 // FUNCTION: WIZ8 0x004f0aa0
 void UpdatePartyMovementControl(void)
 {
-    if ((g_combat_state->movement_mode == 0 ||
-         g_combat_state->turn_phase == W8_TURN_PHASE_FREE) &&
-        g_combat_state->pending_move_kind == 0) {
+    if ((g_combat_state->uiCurrentPartyAction == 0 ||
+         g_combat_state->uiCurrentPartyActionStatus == W8_ACTION_STATUS_FINISHED) &&
+        g_combat_state->uiNextPartyAction == 0) {
         ReleasePartyMovement();
         return;
     }
@@ -82,19 +83,20 @@ void UpdatePartyMovementControl(void)
 // FUNCTION: WIZ8 0x004f0800
 unsigned char CanPartyMove(void)
 {
-    unsigned int phase;
+    unsigned int status;
 
     if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", COMBAT_MOVEMENT_CPP, 613, 0);
     }
-    phase = g_combat_state->turn_phase;
-    if (g_combat_state->movement_mode == 0 || phase == W8_TURN_PHASE_FREE) {
-        if (g_combat_state->pending_move_kind != 0) {
+    status = g_combat_state->uiCurrentPartyActionStatus;
+    if (g_combat_state->uiCurrentPartyAction == 0 ||
+        status == W8_ACTION_STATUS_FINISHED) {
+        if (g_combat_state->uiNextPartyAction != 0) {
             return 1;
         }
         return 0;
     }
-    if (phase == 0) {
+    if (status == 0) {
         return 1;
     }
     return 0;
@@ -108,7 +110,7 @@ float GetPartyMovementSpeed(void)
     float speed = 1.0f;
     unsigned int steps;
 
-    if (g_combat_state->movement_mode == 2) {
+    if (g_combat_state->uiCurrentPartyAction == 2) {
         speed = 1.5f;
     }
     if (Function4F0010(&steps)) {
@@ -123,8 +125,8 @@ float GetPartyMovementSpeed(void)
 // FUNCTION: WIZ8 0x004efd30
 void EndPartyMovementPhase(void)
 {
-    if (g_combat_state->movement_mode != 1 && g_combat_state->movement_mode != 2) {
-        g_combat_state->turn_phase = 2;
+    if (g_combat_state->uiCurrentPartyAction != 1 && g_combat_state->uiCurrentPartyAction != 2) {
+        g_combat_state->uiCurrentPartyActionStatus = 2;
         return;
     }
     if (!GetLevelDataFlag6()) {
@@ -134,7 +136,7 @@ void EndPartyMovementPhase(void)
     RedrawPanel69BF40();
     RedrawPanel69BF4C();
     RefreshOutwardSightForAllMonsters();
-    g_combat_state->turn_phase = 2;
+    g_combat_state->uiCurrentPartyActionStatus = 2;
 }
 
 /* Enter the free phase: everything that was waiting on the party is released,
@@ -143,16 +145,16 @@ void EndPartyMovementPhase(void)
 void BeginFreeTurnPhase(void)
 {
     ResetLevelDataVectors0041F0D0();
-    g_combat_state->turn_phase = W8_TURN_PHASE_FREE;
+    g_combat_state->uiCurrentPartyActionStatus = W8_ACTION_STATUS_FINISHED;
     gXStatus.fPartyMovementMode = 0;
     Function5354E0();
     Function4F06B0();
     NotifyNearbyMonsters(0);
     /* The tail is UpdatePartyMovementControl written out again rather than
        called, which is why this body is twice the size of a forwarder. */
-    if ((g_combat_state->movement_mode == 0 ||
-         g_combat_state->turn_phase == W8_TURN_PHASE_FREE) &&
-        g_combat_state->pending_move_kind == 0) {
+    if ((g_combat_state->uiCurrentPartyAction == 0 ||
+         g_combat_state->uiCurrentPartyActionStatus == W8_ACTION_STATUS_FINISHED) &&
+        g_combat_state->uiNextPartyAction == 0) {
         ReleasePartyMovement();
         return;
     }
@@ -166,7 +168,7 @@ void BeginFreeTurnPhase(void)
 // FUNCTION: WIZ8 0x004f0480
 void RoundPhaseToStep(unsigned int* phase, unsigned int base)
 {
-    if (g_combat_state->movement_mode != 0) {
+    if (g_combat_state->uiCurrentPartyAction != 0) {
         *phase = (*phase + 5) - (*phase + 5) % 10;
         if (base % 10 != 0) {
             base += 10 - base % 10;

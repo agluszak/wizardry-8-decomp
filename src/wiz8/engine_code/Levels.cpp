@@ -356,9 +356,6 @@ unsigned char g_level_runtime_flag_0065ba70;
 // GLOBAL: WIZ8 0x0068f0fd
 unsigned char g_value_0068f0fd;
 
-// GLOBAL: WIZ8 0x006850b0
-int g_value_006850b0;
-
 // GLOBAL: WIZ8 0x00687607
 unsigned char g_flag_00687607;
 
@@ -610,7 +607,7 @@ unsigned char LoadLevel(
             ClearPendingNpcLevelFlags0050C270();
             ReleaseNpcMonsterBindings0050C2E0();
             Function5777C0();
-            g_value_006850b0 = 0;
+            g_combat_countdown_6850b0 = 0;
         }
         if (g_flag_00687607
             && (GetFact(0x4c) || GetFact(0x4b))) {

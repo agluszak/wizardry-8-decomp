@@ -773,7 +773,7 @@ void FatigueCharacter(int party_slot, int amount, char scale_by_load, int load_p
 unsigned int CharacterActionFatigueCost(int party_slot, int action_kind)
 {
     unsigned int cost = 0;
-    W8CombatCharacterRow* combat_row = &g_combat_character_rows[party_slot];
+    W8CombatCharacterRow* combat_row = &g_combat_state->characters[party_slot];
     int attack_mode;
     int item_id;
     int weight_bands;
@@ -905,13 +905,13 @@ void CharacterDies(int party_slot)
     SoundPlay("Data\\Sound\\Misc\\CharacterDead.wav", 0);
 
     if (gXStatus.fCombatMode != 0) {
-        if (g_combat_state->selected_character == party_slot) {
-            g_combat_state->selected_slot = 0;
-            g_combat_state->selected_character = -1;
+        if (g_combat_state->iActionChar == party_slot) {
+            g_combat_state->eCombatActionStatus = 0;
+            g_combat_state->iActionChar = -1;
         }
         row->pending_action = -1;
-        g_combat_character_rows[party_slot].value_18 = 0;
-        g_combat_character_rows[party_slot].flag_4c = 1;
+        g_combat_state->characters[party_slot].value_00 = 0;
+        g_combat_state->characters[party_slot].flag_34 = 1;
         DropCharacterFromRound(party_slot);
     }
 

@@ -108,7 +108,6 @@ extern "C" {
 W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);
 unsigned char LoadMonsterDatabaseRecord(
     unsigned int monster_species, W8MonsterRecord* record);
-extern unsigned int g_combat_countdown_6850b0;  /* 0x006850B0 */
 }
 
 /* The 0x153-byte combat allocation has two adjacent runs of 0x11-byte records.
@@ -264,7 +263,7 @@ struct W8MonsterInfo {
     /* 0x2ba: passed by address to 0x00536170 when combat begins; extent runs to
        the next established field, so the array bound is a partition of the
        unknown run rather than a proven size. */
-    W8CombatSlot combat_slot_2ba;
+    W8CombatSlot Target;
     int value_2da;                          /* 0x2da: nonzero gate in 0x004e5c00 */
     /* 0x2de: the monster is under the effect the magic code clears by name;
        clearing it posts a notice and drops the visual. */

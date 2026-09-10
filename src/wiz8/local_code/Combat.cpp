@@ -11,8 +11,8 @@
 extern "C" {
 // GLOBAL
 W8CombatState* g_combat_state;
-// GLOBAL
-W8CombatCharacterRow* g_combat_character_rows;
+// GLOBAL: WIZ8 0x006850b0
+unsigned int g_combat_countdown_6850b0;
 }
 #include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
@@ -32,6 +32,7 @@ W8CombatCharacterRow* g_combat_character_rows;
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/local_screens/MGSPortraits.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/MGSPartyMovement.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/location_variables.h"
@@ -57,8 +58,8 @@ enum { W8_ACTION_LIFTED_AT_ROUND_END = 9, W8_ACTION_KIND_ONE = 1 };
         /* 0x00524A10 */
 
 /* 0x00547940 */
-/* The per-character combat rows begin at the combat state's own address and
-   run 0xd4 bytes apart, so the state's leading fields are the first row's. */
+/* The per-character combat rows live at +0x18 of the combat state and run
+   0xd4 bytes apart; the state's leading 0x18 bytes are its own header. */
 // GLOBAL: WIZ8 0x0068d810
 unsigned char g_combat_log_enabled_0068d810;
 // GLOBAL: WIZ8 0x00617664
@@ -84,10 +85,10 @@ unsigned char AnyCharacterEngaged(void)
 // FUNCTION: WIZ8 0x004ed2b0
 int GetEngagementCount(void)
 {
-    if (g_combat_state->turn_phase != 0) {
-        return g_combat_state->pending_move_kind;
+    if (g_combat_state->uiCurrentPartyActionStatus != 0) {
+        return g_combat_state->uiNextPartyAction;
     }
-    return g_combat_state->movement_mode;
+    return g_combat_state->uiCurrentPartyAction;
 }
 
 /* Whether the party is engaged at all. Being told so outright settles it;
@@ -98,15 +99,15 @@ int IsPartyEngaged(void)
 {
     unsigned int party_slot;
 
-    if (g_combat_state->turn_phase != 0) {
+    if (g_combat_state->uiCurrentPartyActionStatus != 0) {
         return 1;
     }
-    if (g_combat_state->movement_mode == 0) {
+    if (g_combat_state->uiCurrentPartyAction == 0) {
         for (party_slot = 0; party_slot < 8; ++party_slot) {
             if (g_party_slot_rows[party_slot].occupied != 0 &&
                 g_party_characters[party_slot].hp_current != 0 &&
                 g_party_characters[party_slot].unknown_0b01 < 0xf &&
-                g_combat_character_rows[party_slot].flag_4c != 0) {
+                g_combat_state->characters[party_slot].flag_34 != 0) {
                 return 1;
             }
         }
@@ -284,25 +285,25 @@ int g_saved_attack_values[8 * 0x35];
 // FUNCTION: WIZ8 0x004ec860
 int GetCharacterTurnValue(int party_slot)
 {
-    W8CombatCharacterRow* row = &g_combat_character_rows[party_slot];
+    W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
     int chosen;
     int total = 0;
     unsigned int hand;
     int value;
 
-    ChooseCombatAction(party_slot, row->flag_4c == 0, &chosen, 0, 0, 0);
+    ChooseCombatAction(party_slot, row->flag_34 == 0, &chosen, 0, 0, 0);
     if (chosen != 0 && chosen != 1) {
         return 1;
     }
 
     for (hand = 0; hand < 2; ++hand) {
-        if (row->flag_4c == 0) {
+        if (row->flag_34 == 0) {
             value = GetHandAttackValue(party_slot, hand);
         }
         else {
             value = g_saved_attack_values[party_slot * 0x35 + hand];
         }
-        if (row->value_18 == 100) {
+        if (row->value_00 == 100) {
             value = 1;
         }
         total += value;
@@ -419,8 +420,8 @@ void EndMonsterAttack(W8MonsterInfo* monster_info)
     GetMonsterDataForInfo(monster_info);
     FatigueMonster(monster_info, MonsterActionFatigueCost(monster_info), 0);
     MonsterSetNavigatorFlag25(monster_info->monster, 1);
-    g_combat_state->selected_slot = 0;
-    g_combat_state->selected_monster = 0;
+    g_combat_state->eCombatActionStatus = 0;
+    g_combat_state->pActionMonsterInfo = 0;
 
     if (combat->active == 0) {
         return;
@@ -451,7 +452,7 @@ unsigned char TryCharacterAction(int party_slot, int action, char commit)
     if (character->hp_current == 0 || character->unknown_0b01 >= 0xf) {
         return 0;
     }
-    if (g_combat_character_rows[party_slot].flag_4c != 0) {
+    if (g_combat_state->characters[party_slot].flag_34 != 0) {
         return g_party_slot_rows[party_slot].pending_action == action;
     }
     if (g_party_slot_rows[party_slot].action_03d != action) {
@@ -489,10 +490,10 @@ void SwitchCharacterTo(int party_slot, int action)
     if (action == 5) {
         row->target_out_of_combat = row->target_in_combat;
     }
-    g_combat_character_rows[party_slot].flag_4c = 1;
+    g_combat_state->characters[party_slot].flag_34 = 1;
     RequestRedraw(1 << party_slot | 0x100000);
     if (action == 4 && row->action_03d != action) {
-        g_combat_character_rows[party_slot].flag_bc = 1;
+        g_combat_state->characters[party_slot].flag_a4 = 1;
     }
 }
 
@@ -508,7 +509,7 @@ void EndCombat004EA310(int mode)
         BeginFreeTurnPhase();
     }
     if (g_flag_00683fcd != 0) {
-        Function5A1890();
+        ReleasePartyMovement();
     }
     RequestRedrawCombatBar();
     Function53AE00();
@@ -552,7 +553,7 @@ void EndCombat004EA310(int mode)
         }
     }
     g_combat_countdown_6850b0 = SetCountdownClock(120000);
-    if (g_combat_state->pending_move_kind != 0) {
+    if (g_combat_state->uiNextPartyAction != 0) {
         Function4F0560(-1);
     }
     UpdateScreenOverlays(0);
@@ -648,7 +649,7 @@ void ChooseAction(
     case 4:
     case 6:
     case 9:
-        Function52FE80(party_slot, 0);
+        StartBreathCycle(party_slot, 0);
         return;
     case 10:
     case 0xb:
@@ -668,6 +669,7 @@ void Function4E8000(
         AimByKind(party_slot, 0, 6);
     }
     W8TargetSource source;
+    W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
     SetTargetSourceToCharacter(party_slot, &source);
     if (action_kind > 0xb) {
         srAssertFail("iAction < CHAR_ACTION_COUNT",
@@ -683,7 +685,7 @@ void Function4E8000(
         memcpy(&g_party_slot_rows[party_slot].action_detail_045, data,
                sizeof(g_party_slot_rows[party_slot].action_detail_045));
     }
-    g_combat_character_rows[party_slot].unknown_bd[2] = 1;
+    row->unknown_a5[2] = 1;
     W8Character* character = &g_party_characters[party_slot];
     if (character->hp_current != 0 && character->unknown_0b01 < 0xd
         && action_detail != -1) {
@@ -704,18 +706,11 @@ void Function4E8000(
         return;
     }
     if (action_detail != action_kind && g_combat_state->flag_000 != 0
-        && g_combat_character_rows[party_slot].flag_4c == 0) {
-        int* type = reinterpret_cast<int*>(&source);
-        *type += g_combat_state->round_counter
-            - *reinterpret_cast<int*>(
-                reinterpret_cast<unsigned char*>(&source) + 0x9c);
-        ClampUnsignedInteger(reinterpret_cast<unsigned int*>(type),
-                             g_combat_state->round_counter, 100);
-        RoundPhaseToStep(reinterpret_cast<unsigned int*>(type),
-                         g_combat_state->round_counter);
-        *reinterpret_cast<int*>(
-            reinterpret_cast<unsigned char*>(&source) + 0x9c) =
-            g_combat_state->round_counter;
+        && row->flag_34 == 0) {
+        row->value_00 += g_combat_state->round_counter - row->phase_clock_stamp;
+        ClampUnsignedInteger(&row->value_00, g_combat_state->round_counter, 100);
+        RoundPhaseToStep(&row->value_00, g_combat_state->round_counter);
+        row->phase_clock_stamp = g_combat_state->round_counter;
     }
     RequestRedraw(1 << (party_slot & 0x1f));
     g_level_block->pick_changed_154 = 0;
@@ -724,7 +719,7 @@ void Function4E8000(
             reinterpret_cast<const wchar_t*>(g_string_table[0x225]));
     }
     else if (action_kind == 9
-             && !(g_combat_state->selected_character == party_slot
+             && !(g_combat_state->iActionChar == party_slot
                   && g_party_slot_rows[party_slot].pending_action == 9)) {
         PostCharacterNotice(party_slot,
             reinterpret_cast<const wchar_t*>(g_string_table[0x226]));

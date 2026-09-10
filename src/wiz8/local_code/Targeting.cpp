@@ -8,6 +8,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/factions.h"
 #include "wiz8/targeting.h"
@@ -211,7 +212,7 @@ void ResetCombatSlot(W8CombatSlot* slot)
 // FUNCTION: WIZ8 0x005369f0
 bool ClearMonsterCombatSlot(W8MonsterInfo* monster_info)
 {
-    ResetCombatSlot(&monster_info->combat_slot_2ba);
+    ResetCombatSlot(&monster_info->Target);
     return false;
 }
 
@@ -1130,7 +1131,7 @@ extern unsigned char CanReachTarget(
 // FUNCTION: WIZ8 0x0053A2C0
 void Function53A2C0(W8MonsterInfo* monster_info, int location_id)
 {
-    W8CombatSlot* target = &monster_info->combat_slot_2ba;
+    W8CombatSlot* target = &monster_info->Target;
 
     memset(target, 0, sizeof(*target));
     target->iType = 0;
@@ -1148,7 +1149,7 @@ void Function53A2C0(W8MonsterInfo* monster_info, int location_id)
 unsigned char Function53A300(W8MonsterInfo* monster_info, int spell_id)
 {
     return TargetMatchesNeeded(
-        &monster_info->combat_slot_2ba, GetTargetNeededForSpellHostile(spell_id));
+        &monster_info->Target, GetTargetNeededForSpellHostile(spell_id));
 }
 
 /* Map the current screen state to the targeting context used by this path.
@@ -1630,8 +1631,6 @@ unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char
         return 1;
     }
 }
-
-extern void StartBreathCycle(int party_slot, int arg_2);                 /* 0x0052FE80 */
 
 /* 0x004ECC80 */
 

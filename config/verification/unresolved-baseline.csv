@@ -932,7 +932,6 @@ symbol
 ?g_value_005ed8c8@@3HA
 ?g_value_005ee59c@@3HA
 ?g_value_005ee5a0@@3HA
-?g_value_006850b0@@3HA
 ?g_value_0068c520@@3HA
 ?g_value_0068c548@@3HA
 ?g_value_0068f0fd@@3EA
@@ -1097,7 +1096,6 @@ _g_clip_bottom_600084
 _g_clip_left_600078
 _g_clip_right_600080
 _g_clip_top_60007c
-_g_combat_character_rows
 _g_combat_state
 _g_current_level
 _g_detailed_combat_messages_0068510c

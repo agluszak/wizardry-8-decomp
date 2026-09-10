@@ -24,8 +24,6 @@ float g_monster_record_float_scale = 20.0f;
 // GLOBAL: WIZ8 0x00683698
 int g_monster_info_iterator_index;
 
-// GLOBAL: WIZ8 0x006850b0
-unsigned int g_combat_countdown_6850b0;
 // GLOBAL: WIZ8 0x006875c3
 W8WideChar g_monster_name_buffer[22];
 // GLOBAL: WIZ8 0x006875ef
@@ -1140,8 +1138,8 @@ void TryStartMonsterCycle2(
                 if (cycle == 2 ||
                     monster->IsCycleInterruptable(cycle) == 0 ||
                     (gXStatus.fCombatMode != 0 &&
-                     g_combat_state->selected_slot != 0 &&
-                     g_combat_state->selected_monster == monster_info)) {
+                     g_combat_state->eCombatActionStatus != 0 &&
+                     g_combat_state->pActionMonsterInfo == monster_info)) {
                     return;
                 }
                 W8MonsterGroup* group = GetMonsterGroupByListIndex(
@@ -1374,9 +1372,9 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
             SetTargetToMonster(monster_info->location_id, 0);
             Function593330();
             Function546E70();
-            if (g_combat_state->selected_monster == monster_info) {
-                g_combat_state->selected_slot = 0;
-                g_combat_state->selected_monster = 0;
+            if (g_combat_state->pActionMonsterInfo == monster_info) {
+                g_combat_state->eCombatActionStatus = 0;
+                g_combat_state->pActionMonsterInfo = 0;
             }
         }
     }
@@ -1421,7 +1419,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
         monster_info->player_visibility.state_04 = 2;
         monster_info->player_visibility.last_seen_clock_0c = g_status_685170.world_clock;
     }
-    ResetCombatSlot(&monster_info->combat_slot_2ba);
+    ResetCombatSlot(&monster_info->Target);
     MonsterSetRuntimeFlag5BC(monster_info->monster, 0);
     monster_info->monster->flags_00c = 0;
     if (monster_info->flag_16 == 1) {
@@ -1452,9 +1450,9 @@ void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info)
     if (monster_info->fInCombat == 0) {
         srAssertFail("pMonsterInfo->fInCombat", MONSTER_MANAGER_CPP, 0x2c8, 0);
     }
-    if (g_combat_state->selected_monster == monster_info) {
-        g_combat_state->selected_slot = 0;
-        g_combat_state->selected_monster = 0;
+    if (g_combat_state->pActionMonsterInfo == monster_info) {
+        g_combat_state->eCombatActionStatus = 0;
+        g_combat_state->pActionMonsterInfo = 0;
     }
     /* The record cursor is spelled (base + offset) + constant, not
        (base + constant) + offset: the first form leaves the block pointer as
