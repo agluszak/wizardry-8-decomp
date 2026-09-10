@@ -345,8 +345,7 @@ void Function5B2580(void)
 {
     Controls* panel = g_panel_69c2ec;
     if (panel != 0) {
-        panel->~Controls();
-        ::operator delete(panel);
+        delete panel;
         g_panel_69c2ec = 0;
     }
     for (int index = 0; index < 15; ++index) {

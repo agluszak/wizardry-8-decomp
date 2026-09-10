@@ -29,8 +29,7 @@ void Function59BAD0(void)
     } while (control < g_portrait_controls_0069b920 + 8);
     Controls* panel = g_panel_69b940;
     if (panel != 0) {
-        panel->~Controls();
-        ::operator delete(panel);
+        delete panel;
         g_panel_69b940 = 0;
     }
     control = g_portrait_controls_0069b920;
@@ -48,8 +47,7 @@ void Function59BF70(void)
 {
     Controls* panel = g_condition_buttons_panel_0069b944;
     if (panel != 0) {
-        panel->~Controls();
-        ::operator delete(panel);
+        delete panel;
         g_condition_buttons_panel_0069b944 = 0;
     }
     W8TextControl** control = g_condition_buttons_0069b900;

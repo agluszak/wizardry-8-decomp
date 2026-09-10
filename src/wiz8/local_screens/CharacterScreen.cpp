@@ -739,7 +739,7 @@ unsigned char CharacterScreenLeave(int leaving)
             }
             screen->m_controls_1af0->DestroyAllControls();
             delete screen->m_controls_1af0;
-            ::operator delete(screen);
+            delete screen;
         }
         g_character_screen_0069c2e8 = 0;
     }

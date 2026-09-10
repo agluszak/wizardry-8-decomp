@@ -114,8 +114,7 @@ void Function5B9220(void)
 {
     Controls* panel = g_panel_69c464;
     if (panel != 0) {
-        panel->~Controls();
-        ::operator delete(panel);
+        delete panel;
         g_panel_69c464 = 0;
     }
     W8TextControl** control = g_panel_controls_69c468;
@@ -133,8 +132,7 @@ void Function5B9760(void)
 {
     Controls* panel = g_panel_69c48c;
     if (panel != 0) {
-        panel->~Controls();
-        ::operator delete(panel);
+        delete panel;
         g_panel_69c48c = 0;
     }
     W8TextControl** control = g_panel_controls_69c470;
@@ -152,8 +150,7 @@ void Function5B9EA0(void)
 {
     Controls* panel = g_camp_secondary_panel_0069c428;
     if (panel != 0) {
-        panel->~Controls();
-        ::operator delete(panel);
+        delete panel;
         g_camp_secondary_panel_0069c428 = 0;
     }
     W8TextControl** control = g_panel_controls_69c43c;
