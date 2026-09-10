@@ -178,7 +178,7 @@ symbol
 ?Function451020@@YAXXZ
 ?Function452630@W8Navigator@@QAEEPBV?$srVector3T@M@@@Z
 ?Function4526C0@@YAFPAXHN@Z
-?Function452C90@@YIXPAVW8Navigator@@@Z
+?Function452C90@W8Navigator@@QAEXXZ
 ?Function452F50@@YAXH@Z
 ?Function453160@@YAXXZ
 ?Function4531A0@@YAXXZ
@@ -193,9 +193,9 @@ symbol
 ?Function46DC90@@YAXPAVsrScene@@@Z
 ?Function46E4A0@@YAXPAUW8World@@@Z
 ?Function46E5A0@@YAXPAUW8World@@@Z
-?Function46E640@@YAXPAXH@Z
-?Function46E750@@YAXPAXH@Z
-?Function4729F0@@YAXPAX@Z
+?Function46E640@@YAXPAVsrScene@@H@Z
+?Function46E750@@YAXPAVsrScene@@H@Z
+?ReleaseMeshModelInternal004729F0@@YAXPAVstMeshModel@@@Z
 ?Function479030@@YAXXZ
 ?Function47A700@@YAXPAX@Z
 ?Function482410@@YAXXZ
@@ -552,7 +552,7 @@ symbol
 ?ShutdownDisplayList@@YAXXZ
 ?SnapCameraHeading@@YAXM@Z
 ?SpawnSpellEffect004AD080@@YAPAXPBDHHH@Z
-?SpawnSpellEffect@@YAPAVW8VectorElement005EBFE4@@PBV?$srVector3T@M@@PBDHHH@Z
+?SpawnSpellEffect@@YAPAVW8SpellVisual@@PBV?$srVector3T@M@@PBDHHH@Z
 ?StartBreathCycle@@YAXHH@Z
 ?StartCombat@@YAXH@Z
 ?StepAlongPath004669B0@W8Pathing00457CF0@@QAEIPAUW8NavigatorMovement004572C0@@MM@Z
@@ -578,7 +578,7 @@ symbol
 ?UpdateNpcAt@@YAXPAUW8NpcState@@HPAX@Z
 ?UpdateRepresentation@W8GrCycle@@UAEXPAUW8World@@@Z
 ?UpdateSky00482EA0@@YAXXZ
-?UpdateSoundEvents004D5890@@YAHPAV?$W8GrowableVector@PAVW8VectorElement005ED094@@@@PBV?$srVector3T@M@@IHIH@Z
+?UpdateSoundEvents004D5890@@YAHPAV?$W8GrowableVector@PAVW8SoundEvent@@@@PBV?$srVector3T@M@@IHIH@Z
 ?UpdateWorldMeshFromOctree004BAF50@@YAXPAUW8World@@@Z
 ?UpdateWorldMeshFromQuads004BAD40@@YAXPAUW8World@@@Z
 ?WorldRemoveFromList04@@YAXPAUW8World@@@Z

@@ -839,7 +839,7 @@ update_screen:
         return;
     }
     Function515B00();
-    Function41F1F0();
+    UpdateSharedGameDataObject0041F1F0();
     g_byte_00659a64 = 0;
     WorldUpdateProps(GetWorld());
     if (GetWorld659AB8()) {

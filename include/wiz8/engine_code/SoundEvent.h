@@ -8,19 +8,19 @@ class W8GrowableVector;
 /* Engine Code\SoundEvent.cpp. The unit's assertion-backed interval starts at
    the factory below. */
 
-/* GrObject.cpp calls these sound events `pse`/`m_plsSoundEvents`; no stronger
-   source witness for the concrete event class name is available yet. Its whole
-   lifecycle belongs to Engine Code\SoundEvent.cpp, which is what establishes
-   the layout below: the factory at 0x004D57A0 allocates 0x38 and initialises
-   every field, and the destructor at 0x004D5770 releases the name and the
-   handle. Only m_pacWaveName is named by original source, through
-   SoundEvent.cpp's `pSndEvent->m_pacWaveName` assertion. */
-class W8VectorElement005ED094 {
+/* One queued sound: Engine Code\SoundEvent.cpp's whole lifecycle for it. The
+   original concrete class name is unknown, so this descriptive name is used
+   throughout; only the factory's and assertions' `pSndEvent` and
+   m_pacWaveName spellings are original. The layout below is established by the
+   unit itself: the factory at 0x004D57A0 allocates 0x38 and initialises every
+   field, and the destructor at 0x004D5770 releases the name and the handle.
+   GrObject.cpp calls these `pse`/`m_plsSoundEvents` at its own sites. */
+class W8SoundEvent {
 public:
     /* In the class body because 0x004D57A0 expands it: VC6 at /Ob1 inlines
        only what is marked inline or defined here, and the retail factory has
        no call to a constructor. */
-    W8VectorElement005ED094()
+    W8SoundEvent()
     {
         value_000 = 0;
         value_004 = -1;
@@ -38,7 +38,7 @@ public:
         value_034 = 30;
     }
 
-    ~W8VectorElement005ED094();          /* 0x004D5770 */
+    ~W8SoundEvent();                     /* 0x004D5770 */
 
     int value_000;                       /* 0x00 */
     int value_004;                       /* 0x04: starts -1 */
@@ -58,10 +58,10 @@ public:
     int value_034;                       /* 0x34: starts 30 */
 };
 
-static_assert(sizeof(W8VectorElement005ED094) == 0x38,
-              "W8VectorElement005ED094_must_be_0x38");
+static_assert(sizeof(W8SoundEvent) == 0x38,
+              "W8SoundEvent_must_be_0x38");
 
-W8VectorElement005ED094* CreateSoundEvent004D57A0(
+W8SoundEvent* CreateSoundEvent004D57A0(
     int value_000,
     int value_004,
     int value_008,
@@ -70,7 +70,7 @@ W8VectorElement005ED094* CreateSoundEvent004D57A0(
     unsigned char flag_025);
 
 int UpdateSoundEvents004D5890(
-    W8GrowableVector<W8VectorElement005ED094*>* events,
+    W8GrowableVector<W8SoundEvent*>* events,
     const srVector3T<float>* position,
     unsigned int event_mask,
     int cycle,

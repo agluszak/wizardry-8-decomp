@@ -236,7 +236,7 @@ void SetNavigatorLinkMode00452F50(unsigned char mode)
 }
 
 // FUNCTION: WIZ8 0x00453160
-void Function453160(void)
+void StopAllNavigators00453160(void)
 {
     int count = g_registered_navigators.GetCount();
     for (int index = 0; index < count; ++index) {
@@ -247,7 +247,7 @@ void Function453160(void)
 }
 
 // FUNCTION: WIZ8 0x004531a0
-void Function4531A0(void)
+void ResumeAllNavigators004531A0(void)
 {
     int count = g_registered_navigators.GetCount();
     for (int index = 0; index < count; ++index) {
@@ -1032,7 +1032,8 @@ void W8NavigatorAttachment::GetNextPosition00456660(srVector3T<float>* position)
 }
 
 // FUNCTION: WIZ8 0x00452630
-unsigned char W8Navigator::Function452630(const srVector3T<float>* position)
+unsigned char W8Navigator::ConfigureMovementToPosition00452630(
+    const srVector3T<float>* position)
 {
     flags_00c = 6;
     movement_0c0.value_010 = -1;

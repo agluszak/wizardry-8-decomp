@@ -1494,7 +1494,7 @@ void W8GrCycle::AddShakeEffect004A8530(W8CameraShakeEffect* effect)
 }
 
 // FUNCTION: WIZ8 0x004a8650
-const char* __fastcall GetGrCycleName(W8GrCycle* cycle)
+const char* W8GrCycle::GetRegisteredName004A8650() const
 {
     int name_index;
 
@@ -1508,7 +1508,7 @@ const char* __fastcall GetGrCycleName(W8GrCycle* cycle)
                 0x6c4,
                 0);
         }
-        if (cycles->IndexOf(cycle) != -1) {
+        if (cycles->IndexOf(const_cast<W8GrCycle*>(this)) != -1) {
             return *g_grcycle_names.GetAt(name_index);
         }
     }
@@ -1516,7 +1516,7 @@ const char* __fastcall GetGrCycleName(W8GrCycle* cycle)
 }
 
 // FUNCTION: WIZ8 0x004a8700
-unsigned char __fastcall IsSoleGrCycleForName(W8GrCycle* cycle)
+unsigned char W8GrCycle::IsSoleRegisteredCycleForName004A8700() const
 {
     int name_index;
 
@@ -1530,7 +1530,7 @@ unsigned char __fastcall IsSoleGrCycleForName(W8GrCycle* cycle)
                 0x6e6,
                 0);
         }
-        if (cycles->IndexOf(cycle) != -1) {
+        if (cycles->IndexOf(const_cast<W8GrCycle*>(this)) != -1) {
             return cycles->GetCount() == 1;
         }
     }

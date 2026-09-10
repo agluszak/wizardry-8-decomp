@@ -205,7 +205,7 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
         if (slot->field_071 != 0) {
             vector_40.Remove(slot->field_071);
             RestartFollowUpClock(slot->field_071);
-            ProcessStartupStateEntry(slot->field_071);
+            slot->field_071->Process0052CED0();
             delete slot->field_071;
         }
         Function52CA60();
@@ -297,7 +297,7 @@ void W8StartupRuntimeState::ProcessOwnedEntry(W8StartupStateElement005EE748* ent
             unknown_60 = SetCountdownClock(Random(6000) + 2000);
         }
     }
-    ProcessStartupStateEntry(entry);
+    entry->Process0052CED0();
     delete entry;
 }
 

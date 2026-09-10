@@ -494,12 +494,12 @@ unsigned char LoadLevel(
         sprintf(
             music_path, "%s.MPL",
             g_level_folders[g_status_685170.current_level].folder_name);
-        Function48FC10(music_path, 1, 1);
+        StartMusicResource0048FC10(music_path, 1, 1);
     }
     else {
-        Function48FC10("", 1, 1);
+        StartMusicResource0048FC10("", 1, 1);
     }
-    Function48F9E0();
+    ServiceMusicPlaylist0048F9E0();
 
     if (!LoadSkyWorld0042B020(level, &level_info)) {
         return 0;
@@ -595,8 +595,8 @@ unsigned char LoadLevel(
         ResetCurrentEnvironment0041AA40();
     }
     g_level_runtime_flag_0065ba70 = 0;
-    Function482410();
-    Function4D6C50(level);
+    InitializeLevelEnvironment00482410();
+    InitializeLevelMasterFunctions004D6C50(level);
     RebindNpcLevelTriggers0050AC60();
     SetWorldCursorNodesVisible0048ED70(g_value_0068f0fd);
     RebuildPartyEffectBlock0050E700();
@@ -611,7 +611,7 @@ unsigned char LoadLevel(
         }
         if (g_flag_00687607
             && (GetFact(0x4c) || GetFact(0x4b))) {
-            Function48C9F0();
+            DespawnAllActiveMonsterGroups0048C9F0();
         }
         else {
             UpdateRandomEncounterBudget(first_visit);

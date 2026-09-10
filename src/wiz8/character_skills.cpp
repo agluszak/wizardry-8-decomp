@@ -6,7 +6,7 @@
 #include "wiz8/screen_state.h"
 
 // FUNCTION: WIZ8 0x00558610
-void Function558610(W8Character* character)
+void InvalidateAndRecalculateCharacterClassData00558610(W8Character* character)
 {
     character->table_value_0079 = -1;
     character->unknown_007d = -1;
@@ -82,7 +82,7 @@ W8RaceResistanceProfile g_race_resistance_profiles[16] = {
    -1 both mean absent and skip their tables. Read-only, so callers agree
    on a const character. */
 // FUNCTION: WIZ8 0x00547940
-unsigned char Function547940(const W8Character* character, int trait)
+unsigned char CharacterHasTrait00547940(const W8Character* character, int trait)
 {
     unsigned int index;
 
@@ -130,7 +130,7 @@ unsigned char IsCharacterSkillAvailable(
     if (g_profession_skill_availability[skill_id][character->current_profession] == 0) {
         return 0;
     }
-    if (Function547940(character, 0x1f)) {
+    if (CharacterHasTrait00547940(character, 0x1f)) {
         if (skill_id >= 0x18 && skill_id <= 0x1b) {
             return 0;
         }

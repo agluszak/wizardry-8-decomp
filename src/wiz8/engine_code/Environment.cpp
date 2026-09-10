@@ -127,7 +127,7 @@ void W8MaterialMapper00482010::process(srVertexPipe& pipe)
    gradients consume the same 8-bit day phase, so the clock, prop placement,
    and gradient animation remain one update rather than parallel timers. */
 // FUNCTION: WIZ8 0x00482a20
-void Function482A20(int elapsed)
+void AdvanceEnvironmentTime00482A20(int elapsed)
 {
     unsigned int time = (unsigned int)(g_status_685170.game_time_ms + elapsed);
     if (time > 86399999U) {
@@ -221,7 +221,7 @@ void Function482990(unsigned char enabled)
                                     ? now - g_tick_65b9a8 - 1
                                     : now - g_tick_65b9a8;
         if (elapsed != 0) {
-            Function482A20((int)((double)elapsed * g_view_distance_0060a390));
+            AdvanceEnvironmentTime00482A20((int)((double)elapsed * g_view_distance_0060a390));
         }
     }
 }
@@ -249,7 +249,7 @@ void UpdateEnvironment482770(void)
                                         ? now - g_tick_65b9a8 - 1
                                         : now - g_tick_65b9a8;
             if (elapsed != 0) {
-                Function482A20(
+                AdvanceEnvironmentTime00482A20(
                     (int)((double)elapsed * g_view_distance_0060a390));
             }
             unsigned int phase =
@@ -272,7 +272,7 @@ void UpdateEnvironment482770(void)
                                             ? now - g_tick_65b9a8 - 1
                                             : now - g_tick_65b9a8;
                 if (elapsed != 0) {
-                    Function482A20(
+                    AdvanceEnvironmentTime00482A20(
                         (int)((double)elapsed * g_view_distance_0060a390));
                 }
             }
@@ -297,7 +297,7 @@ void UpdateEnvironment482770(void)
         unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1
                                                     : now - g_tick_65b9a8;
         if (elapsed != 0) {
-            Function482A20((int)((double)elapsed * g_view_distance_0060a390));
+            AdvanceEnvironmentTime00482A20((int)((double)elapsed * g_view_distance_0060a390));
         }
     }
 }
@@ -543,7 +543,7 @@ void EnableSky(void)
                                     ? now - g_tick_65b9a8 - 1
                                     : now - g_tick_65b9a8;
         if (elapsed != 0) {
-            Function482A20((int)((double)elapsed * g_view_distance_0060a390));
+            AdvanceEnvironmentTime00482A20((int)((double)elapsed * g_view_distance_0060a390));
         }
     }
     unsigned int phase =
@@ -575,7 +575,7 @@ void RefreshEnvironment00483560(void)
                                     ? now - g_tick_65b9a8 - 1
                                     : now - g_tick_65b9a8;
         if (elapsed != 0) {
-            Function482A20((int)((double)elapsed * g_view_distance_0060a390));
+            AdvanceEnvironmentTime00482A20((int)((double)elapsed * g_view_distance_0060a390));
         }
     }
     unsigned int phase =
@@ -808,7 +808,7 @@ const char* g_sky_gradient_names_0060a398[3] = {
    the three sky gradient textures, advance the day clock and publish the
    current day phase's colour and light direction. */
 // FUNCTION: WIZ8 0x00482410
-void Function482410(void)
+void InitializeLevelEnvironment00482410(void)
 {
     if (g_world_659ab8 != 0) {
         g_environment_value_0065a160 = FindPropByName(g_world_659ab8, "Sun");
@@ -869,7 +869,7 @@ void Function482410(void)
             elapsed = now - g_tick_65b9a8;
         }
         if (elapsed != 0) {
-            Function482A20(static_cast<int>(elapsed));
+            AdvanceEnvironmentTime00482A20(static_cast<int>(elapsed));
         }
     }
     {
@@ -881,7 +881,7 @@ void Function482410(void)
             srAssertFail("pWorld", ENVIRONMENT_CPP, 0x27a, 0);
             srAssertFail("pWorld", ENVIRONMENT_CPP, 0x288, 0);
         }
-        Function483BA0(g_world, g_world->environment_intensity_024, &colour);
+        ApplyEnvironmentColour00483BA0(g_world, g_world->environment_intensity_024, &colour);
         {
             const int* direction = reinterpret_cast<const int*>( /* reinterpret-ok: published as raw words */
                 &g_environment_colours_65ad98[phase]);

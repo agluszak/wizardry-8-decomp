@@ -390,7 +390,7 @@ void UpdatePleaseWaitLoadFrame005915A0(void)
     unsigned long tick;
 
     SoundServiceStreams();
-    Function48F9E0();
+    ServiceMusicPlaylist0048F9E0();
     tick = GetTickCount();
     if (tick - g_load_descriptor_69b7c8->entered_tick > 499) {
         g_load_descriptor_69b7c8->caption_y =

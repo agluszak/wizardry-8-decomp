@@ -215,7 +215,7 @@ extern "C" void PresentMenuOverlayFrame(void)
 {
     srNode::ProcessInfo process;
 
-    Function425B40();
+    FlushDirtyTiles00425B40();
     g_gerd_659634->beginFrame();
     process.renderer = g_gerd_659634;
     g_surface_node_659664->process(
@@ -594,7 +594,7 @@ unsigned char HasEnoughFreeDiskSpace(void)
 }
 
 // FUNCTION: WIZ8 0x00429AF0
-void __fastcall ReleaseOwnedClass(srClass** owner)
+void __fastcall ReleaseOwnedClass00429AF0(srClass** owner)
 {
     if (*owner) {
         (*owner)->release();
@@ -708,9 +708,9 @@ void Function4229E0(void)
         }
         else {
             options.option_string = "QUALITY=0.35";
-            Function439BC0();
+            PauseSharedGameTimers00439BC0();
             surface_io_manager->exportSurface(filename, *surface, options);
-            Function439CA0();
+            ResumeSharedGameTimers00439CA0();
         }
         g_gerd_659634->unlockBuffer();
     }

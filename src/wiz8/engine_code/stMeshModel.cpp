@@ -258,9 +258,9 @@ void stMeshModel::RemoveSkinTablesForCycle00473780(const char* cycle_name)
 
 /* Thirteen-byte forwarder onto the model release path. */
 // FUNCTION: WIZ8 0x00473180
-void ReleaseMeshModel(void* model)
+void ReleaseMeshModel(stMeshModel* model)
 {
-    Function4729F0(model);
+    ReleaseMeshModelInternal004729F0(model);
 }
 
 // TEMPLATE: WIZ8 0x004741E0

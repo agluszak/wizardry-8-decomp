@@ -44,7 +44,7 @@ void Function4B5780(int primary_limit, int secondary_limit)
 
 /* Builds the startup navigation state after the renderer graph is open. */
 // FUNCTION: WIZ8 0x0044f060
-unsigned char Function44F060(void)
+unsigned char InitializeStartupNavigation0044F060(void)
 {
     W8Navigator* navigator;
 

@@ -6,6 +6,7 @@
 #include "wiz8/bringup_gates.h"
 #include "wiz8/monster_generators.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/location_variables.h"
@@ -530,11 +531,11 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
         chunks->ReleaseCurrentChunk();
 
         chunks->OpenChunk(0x4b434f4c, 0); /* LOCK */
-        Function43CB30(g_world, chunks->m_hFile, g_flag_659756);
+        SaveTriggerRuntimeStates0043CB30(g_world, chunks->m_hFile, g_flag_659756);
         chunks->ReleaseCurrentChunk();
 
         chunks->OpenChunk(0x53455254, 0); /* TRES */
-        Function43D120(g_world, chunks->m_hFile);
+        SaveTriggerActionData0043D120(g_world, chunks->m_hFile);
         chunks->ReleaseCurrentChunk();
         if (g_flag_659756) {
             chunks->ReleaseGroup();
@@ -549,7 +550,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
 
     if (g_world->triggers->count != 0) {
         chunks->OpenChunk(0x47495254, 0); /* TRIG */
-        Function43C810(g_world, chunks->m_hFile);
+        SaveWorldTriggers0043C810(g_world, chunks->m_hFile);
         chunks->ReleaseCurrentChunk();
     }
 
@@ -566,7 +567,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     chunks->ReleaseCurrentChunk();
 
     chunks->OpenChunk(0x534b434c, 0); /* LCKS */
-    Function43CB30(g_world, chunks->m_hFile, g_flag_659756);
+    SaveTriggerRuntimeStates0043CB30(g_world, chunks->m_hFile, g_flag_659756);
     chunks->ReleaseCurrentChunk();
 
     chunks->OpenChunk(0x53424d41, 0); /* AMBS */
@@ -788,7 +789,7 @@ W8WorldItem* LoadItem(int handle, char add_to_list)
         item->unknown_08 = 0;
         item->owner = 0;
         if (ItemHasFlags(item, 1)) {
-            Function516E20(item);
+            RegisterSearchableWorldItem00516E20(item);
         }
         if (previous != 0) {
             previous->next = item;

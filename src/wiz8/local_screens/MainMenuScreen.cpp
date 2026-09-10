@@ -152,7 +152,7 @@ unsigned char MainMenuScreenEnter(void)
     DrawMainMenuItem(5, 0);
     DrawMainMenuItem(g_main_menu_selected_item, 1);
 
-    Function4E3620(text, 0, 0, 0);
+    FormatVersionBanner004E3620(text, 0, 0, 0);
     wcscpy(wide, ConvertStringToWide(text));
     SetFont(g_font_683660);
     SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes_68ee1c[8]);
@@ -170,7 +170,7 @@ unsigned char MainMenuScreenEnter(void)
             0);
     }
     if (g_previous_screen_id != 10) {
-        Function48FC10("MainMenu.MPL", 0, 1);
+        StartMusicResource0048FC10("MainMenu.MPL", 0, 1);
     }
     UpdateHeldItemCursor();
 

@@ -18,7 +18,7 @@ float g_frame_elapsed_65a158;
    this body seeds the same clock; every consumer reads the single scaled
    elapsed value rather than maintaining a parallel frame timer. */
 // FUNCTION: WIZ8 0x00482140
-extern "C" void Function482140(void)
+extern "C" void UpdateRenderElapsedTime00482140(void)
 {
     unsigned int now = GetTickCount();
     unsigned int elapsed = now - g_frame_tick_65a154;

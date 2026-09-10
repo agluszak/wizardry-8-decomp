@@ -738,7 +738,7 @@ show_equip_message:
     ResetTransientRenderScenes();
     SetPrimarySurfaceTextureHint2Enabled(0);
     if (!g_status_685170.game_started) {
-        Function48FC10("MainMenu.MPL", 1, 1);
+        StartMusicResource0048FC10("MainMenu.MPL", 1, 1);
     }
     return 1;
 }
@@ -752,7 +752,7 @@ void CampScreenFrame(void)
     if (IsMessageBoxActive()) {
         ProcessMessageBoxInput();
     }
-    Function48F9E0();
+    ServiceMusicPlaylist0048F9E0();
     if (g_camp_screen_0069c0f4->dialog &&
         !ProcessDialogInput(g_camp_screen_0069c0f4->dialog)) {
         ClearActiveRegionIfMatches(0x138);

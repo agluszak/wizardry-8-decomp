@@ -426,7 +426,7 @@ unsigned char ApplyToMonsterGroupLeader(
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(
                 0x21e, MONSTER_GROUP_CPP, monster_group->value_9f, 1));
-        monster_info->monster->Function452630(position);
+        monster_info->monster->ConfigureMovementToPosition00452630(position);
     }
     return 1;
 }

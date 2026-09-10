@@ -519,7 +519,7 @@ void Function5579E0(W8Character* character, W8CharacterCreationState* creation_s
 complete:
     RecalculateCharacterHitPoints(character);
     Function52A3E0(character);
-    Function4EDC10(character);
+    RecalculateCarryingCapacity004EDC10(character);
     Function4EDC60(character);
     Function52A500(character);
     CalcArmorClasses(character);
@@ -978,7 +978,7 @@ void Function556EB0(W8Character* character, W8CharacterCreationState* creation_s
             }
             Function553CD0(character);
             Function558070(character, creation_state);
-            Function4F96A0(character);
+            RecountLearnedSpellsByRealm004F96A0(character);
             Function558180(character, creation_state);
             Function553CD0(character);
             Function557B20(character, creation_state);
@@ -991,7 +991,7 @@ void Function556EB0(W8Character* character, W8CharacterCreationState* creation_s
         }
         RecalculateCharacterHitPoints(character);
         Function52A3E0(character);
-        Function4EDC10(character);
+        RecalculateCarryingCapacity004EDC10(character);
         Function4EDC60(character);
         Function52A500(character);
         CalcArmorClasses(character);

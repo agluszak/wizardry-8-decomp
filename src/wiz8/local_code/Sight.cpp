@@ -999,7 +999,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
 
             probe.y += g_float_005ebc64;
             GetCameraPosition(&camera);
-            if (Function4BE940(&probe) == 0
+            if (ProjectPointThroughCamera004BE940(&probe) == 0
                 && g_octree_6598a4->HasLineOfSight(&camera, &probe, 1) == 0) {
                 srVector3T<float> notify_position = last_seen;
                 unsigned int group_index = GetMonsterGroupIndexByID(
@@ -1072,7 +1072,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
                             srVector3T<float> probe = next_position;
 
                             GetCameraPosition(&camera);
-                            if (Function4BE940(&probe) == 0
+                            if (ProjectPointThroughCamera004BE940(&probe) == 0
                                 && g_octree_6598a4->HasLineOfSight(
                                        &camera, &probe, 1) == 0) {
                                 srVector3T<float> notify_position =
@@ -1116,7 +1116,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
                 location2 = monster->GetPosition();
                 probe = location2;
                 probe.y += g_float_005ebc64;
-                if (Function4BE940(&location2) == 0
+                if (ProjectPointThroughCamera004BE940(&location2) == 0
                     && g_octree_6598a4->HasLineOfSight(&camera, &probe, 1)
                            == 0) {
                     if (monster->formation.x == g_float_005ebb34
@@ -1126,7 +1126,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
                     }
                     probe = monster->formation;
                     probe.y += g_float_005ebc64;
-                    if (Function4BE940(&location2) == 0
+                    if (ProjectPointThroughCamera004BE940(&location2) == 0
                         && g_octree_6598a4->HasLineOfSight(
                                &camera, &probe, 1) == 0) {
                         if (monster->formation.x == g_float_005ebb34

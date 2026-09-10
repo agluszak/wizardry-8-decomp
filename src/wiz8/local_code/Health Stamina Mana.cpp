@@ -1052,7 +1052,7 @@ int Function52A540(W8Character* character)
     int index;
     int best = 0;
 
-    Function4F96A0(character);
+    RecountLearnedSpellsByRealm004F96A0(character);
     for (index = 0; index < 6; ++index) {
         max_spell_levels[index] = 0;
     }

@@ -2158,7 +2158,7 @@ void OptionsScreenFrame()
     }
     RepositionAmbientSounds0047A600(g_world);
     UpdateAmbientSounds0047A3E0(g_world);
-    Function48F9E0();
+    ServiceMusicPlaylist0048F9E0();
     SGPMouseGetPos(&point);
 
     W8OptionsScreen* screen = g_options_screen_0069c254;

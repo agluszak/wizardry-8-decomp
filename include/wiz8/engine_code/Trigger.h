@@ -236,12 +236,17 @@ public:
     int value_388;
 };
 
-void Function445200(Trigger* trigger);
+void InitializeStateDrivenPropVariables00445200(Trigger* trigger);
 
 static_assert(sizeof(Trigger) == 0x38c, "Trigger_must_be_0x38c");
 
 Trigger* FindTriggerByName(const char* name);
 W8TriggerActionData* LoadTriggerActionData004417C0(int handle);
+/* The TRES save chunk: the world's triggers, their runtime states, and their
+   action data. */
+void SaveWorldTriggers0043C810(W8World* world, int handle);
+void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, unsigned char restoring);
+void SaveTriggerActionData0043D120(W8World* world, int handle);
 
 extern unsigned char g_flag_00606994;
 extern unsigned char g_flag_0068506e;
@@ -257,7 +262,7 @@ extern int g_value_005ee59c;
 extern int g_value_005ee5a0;
 extern int g_value_005ed8c8;
 
-void Function444F70(int value, float duration, float intensity,
+void CreateTriggerShakeEvent00444F70(int value, float duration, float intensity,
                           unsigned char reverse);
 unsigned char Function445140(W8World* world);
 

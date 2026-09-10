@@ -1128,7 +1128,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
             trigger->m_bRepType = 2;
             trigger->m_pProp = prop;
             if (trigger->initial_action_22a == 0x40) {
-                Function445200(trigger);
+                InitializeStateDrivenPropVariables00445200(trigger);
             }
             if (trigger->trigger_kind_018 == 1 &&
                 trigger->initial_action_22a == 8) {
@@ -1207,9 +1207,9 @@ fail_with_result:
 /* The prop representation's current animation value, or -1 while it owns no
    animation. */
 // FUNCTION: WIZ8 0x0044ebe0
-int __fastcall GetAnimationState0044EBE0(W8Prop* prop)
+int W8Prop::GetAnimationState0044EBE0() const
 {
-    W8AnimObj* animation = prop->Rep()->animation;
+    W8AnimObj* animation = Rep()->animation;
     if (animation != 0) {
         return (int)AnimObjValue004A15D0(animation, 2);
     }

@@ -840,7 +840,7 @@ void W8StartupRuntimeState::ClearOwnedEntries()
     count = vector_40.count;
     while (count > 0) {
         entry = vector_40.RemoveAt(0);
-        ProcessStartupStateEntry(entry);
+        entry->Process0052CED0();
         count = vector_40.count;
     }
     count = vector_30.count;
@@ -879,32 +879,32 @@ void W8StartupRuntimeState::ProcessNextPendingEntry()
                 unknown_60 = SetCountdownClock(Random(60000) + 300000);
             }
         }
-        ProcessStartupStateEntry(entry);
+        entry->Process0052CED0();
         delete entry;
     }
 }
 
 // FUNCTION: WIZ8 0x0052ced0
-void __fastcall ProcessStartupStateEntry(W8StartupStateElement005EE748* entry)
+void W8StartupStateElement005EE748::Process0052CED0()
 {
     W8MonsterManagerEntry* slot;
     int party_slot;
     unsigned char sound_was_active;
 
-    party_slot = CharacterPointerToPartySlot(entry->character_04);
+    party_slot = CharacterPointerToPartySlot(character_04);
     slot = &g_monster_manager_state.entries[party_slot];
     sound_was_active = slot->field_000;
     slot->field_071 = 0;
     if (sound_was_active != 0) {
         if (IsSoundPlaying(slot->field_001) != 0) {
-            entry->handled_00 = 1;
+            handled_00 = 1;
             StopSound(slot->field_001);
         }
         Function52F890(party_slot, 0, -1, 0, 1);
     }
-    if (entry->type_08 == 23 || entry->type_08 == 24) {
-        if ((entry->flags_10 & 0x40) == 0) {
-            if (entry->item_id_24 == -1) {
+    if (type_08 == 23 || type_08 == 24) {
+        if ((flags_10 & 0x40) == 0) {
+            if (item_id_24 == -1) {
                 PostCharacterMessage(
                     party_slot,
                     gppStringList[0x1dc4 / 4]);
@@ -914,11 +914,12 @@ void __fastcall ProcessStartupStateEntry(W8StartupStateElement005EE748* entry)
                     party_slot,
                     gppStringList[0x1dc8 / 4],
                     GetItemDisplayName(
-                        reinterpret_cast<const W8ItemInstance*>(&entry->item_id_24)));
+                        reinterpret_cast<const W8ItemInstance*>( // reinterpret-ok: item_id_24 embeds the item record
+                            &item_id_24)));
             }
         }
     }
-    else if (entry->type_08 == 51) {
+    else if (type_08 == 51) {
         QueueGameplayEvent(30, party_slot);
     }
 }

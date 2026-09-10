@@ -123,9 +123,26 @@ srCamera* g_game_camera_65a0fc;
 GDCamera* g_gd_camera_65a0f8;
 
 // FUNCTION: WIZ8 0x00420e10
-unsigned char Function420E10(void)
+unsigned char IsCameraTransitionActive00420E10(void)
 {
     return g_gd_camera_65a0f8->m_transition_active;
+}
+
+/* Two thin GDCamera wrappers over GetForwardPoint, placed here because their
+   GameData.cpp ownership was never evidence-backed; they keep their address
+   names until body-level evidence names the operations. */
+// FUNCTION: WIZ8 0x00421100
+void Function421100(float distance, srVector3T<float>* output)
+{
+    srVector3T<float> result = *output;
+    g_gd_camera_65a0f8->GetForwardPoint(distance, &result);
+    *output = result;
+}
+
+// FUNCTION: WIZ8 0x00421150
+void Function421150(float distance, srVector3T<float>* output)
+{
+    g_gd_camera_65a0f8->GetForwardPoint(distance, output);
 }
 
 // FUNCTION: WIZ8 0x00476140

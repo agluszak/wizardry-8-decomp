@@ -2,4 +2,4 @@
 
 #include "wiz8/engine_code/Video2.h"
 
-extern "C" void Function425B40(void);
+extern "C" void FlushDirtyTiles00425B40(void);

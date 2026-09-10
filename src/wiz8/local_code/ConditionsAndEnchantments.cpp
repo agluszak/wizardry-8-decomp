@@ -493,7 +493,7 @@ unsigned char SetCharacterCondition(
         return 0;
     }
     if (condition == 0x12
-        && Function547940(character, 2) != 0
+        && CharacterHasTrait00547940(character, 2) != 0
         && character->condition_turns[17] < 7) {
         Function547A50(party_slot);
         return 0;
@@ -519,7 +519,7 @@ unsigned char SetCharacterCondition(
     }
     switch (condition) {
     case 6:
-        if (Function547940(character, 3) != 0) {
+        if (CharacterHasTrait00547940(character, 3) != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x600 / 4]);
             return 0;
         }
@@ -529,7 +529,7 @@ unsigned char SetCharacterCondition(
     case 4:
     case 7:
     case 0xf:
-        if (Function547940(character, 0x1e) != 0) {
+        if (CharacterHasTrait00547940(character, 0x1e) != 0) {
             return 0;
         }
         break;
@@ -539,7 +539,7 @@ unsigned char SetCharacterCondition(
         }
         /* fall through */
     case 0xd:
-        if (Function547940(character, 0xe) != 0) {
+        if (CharacterHasTrait00547940(character, 0xe) != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x604 / 4]);
             return 0;
         }

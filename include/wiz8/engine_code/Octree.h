@@ -198,6 +198,8 @@ public:
     unsigned char CollectVisibleRegions00430D50(
         srVector3T<float>* location, int* cells, float* depth, unsigned char mode);
     void CollectVisibleCells0042FE90();
+    void Function004301C0();                 /* 0x004301C0 */
+    void Function004302E0();                 /* 0x004302E0 */
     void Function00431050(
         srVector3T<float>* location, unsigned short* regions);
 
@@ -382,8 +384,6 @@ int CheckLevelAssetSet0042CCC0(const char* level_path);
 unsigned int FindMonsterLocationsInBox0042F280(
     int** locations, const srVector3T<float>* lower,
     const srVector3T<float>* upper, int kind, int excluded_location);
-void __fastcall Function004301C0(W8Octree* octree);
-void __fastcall Function004302E0(W8Octree* octree);
 void __stdcall Function42E650(unsigned short location_id);
 unsigned int __stdcall OctreeTraverse(
     void* walker, void* arg_2, void* arg_3, int kind, unsigned int limit);   /* 0x0042F280 */
@@ -391,8 +391,8 @@ extern "C" void LeaveLocation0042E880(unsigned short location_id, int reason);
 
 void ApplyLevelName00432B80(const char* name);
 int GetSectorForPosition00430BF0(const srVector3T<float>* position);
-void* __fastcall PackColour00433FB0(
-    void* color, double red, double green, double blue, double alpha);
+unsigned long* __fastcall PackColour00433FB0(
+    unsigned long* color, double red, double green, double blue, double alpha);
 int ProbeCellForBlockers00435C40(const int* cell);
 int ProbeCellForTrace00435B00(const int* cell);
 unsigned char ReadLevelName00432E90(const char* name);

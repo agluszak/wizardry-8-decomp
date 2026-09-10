@@ -88,6 +88,8 @@ public:
     void Method44C030();
     void Method44C670();                 /* 0x0044C670 */
     int Function44DEA0();                /* 0x0044DEA0 */
+    /* The prop's current animation value; -1 when it has none. */
+    int GetAnimationState0044EBE0() const; /* 0x0044EBE0 */
     void Method44C830(W8World* world);
     unsigned char GetSetting6C();
     srModelInstance* ToggleRepAnimation(int argument);
@@ -131,7 +133,4 @@ unsigned char CreateAndLoadProp0044BF50(
     W8ReadLevelInfo* info, W8Prop** prop);
 
 char Function44D760(W8World* world);
-/* The named prop's current animation value; -1 when it has none. The receiver
-   arrives in ECX, so the recovered form is a two-argument fastcall. */
-int __fastcall GetAnimationState0044EBE0(W8Prop* prop);   /* 0x0044EBE0 */
 void UpdateWorldProps0044E010(W8World* world);

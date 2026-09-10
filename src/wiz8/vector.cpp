@@ -32,11 +32,18 @@ class stLight;
 // VTABLE: WIZ8 0x005ebfe0
 // class W8GrowableVector<int>
 
-// VTABLE: WIZ8 0x005ec280
+/* 0x005EBFE4 is W8SpellEffectEntry::effects' final table; CastSpellFromSource
+   0x004FB4C0 writes 0x005EC280 while the entry is under construction and
+   0x005EBFE4 once it is complete, so 0x005EC280 is that same specialization's
+   construction-phase table, not a second W8SpellVisual vector. */
+// VTABLE: WIZ8 0x005ebfe4
 // class W8GrowableVector<W8SpellVisual*>
 
-// SYNTHETIC: WIZ8 0x00451ac0
+// SYNTHETIC: WIZ8 0x0042bba0
 // W8GrowableVector<W8SpellVisual*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x00451ac0
+// W8GrowableVector<W8SpellVisual*>::`scalar deleting destructor' (construction-phase copy)
 
 // SYNTHETIC: WIZ8 0x0042bb70
 // W8GrowableVector<int>::`scalar deleting destructor'
@@ -53,21 +60,26 @@ class stLight;
 // VTABLE: WIZ8 0x005ec15c
 // class W8GrowableVector<W8WorldItem*>
 
-class W8VectorElement005EBFE4;
-
-// VTABLE: WIZ8 0x005ebfe4
-// class W8GrowableVector<W8VectorElement005EBFE4*>
-
-// SYNTHETIC: WIZ8 0x0042bba0
-// W8GrowableVector<W8VectorElement005EBFE4*>::`scalar deleting destructor'
-
 class W8Missile;
 
-// VTABLE: WIZ8 0x005ebfe8
+/* 0x005EBFE8 is the construction-phase table of this specialization; the
+   final table is 0x005EC27C, which CastSpellFromSource 0x004FB4C0 writes into
+   W8SpellEffectEntry::missiles and ConstructWorldCollections writes into
+   W8World::missiles. */
+// VTABLE: WIZ8 0x005ec27c
 // class W8GrowableVector<W8Missile*>
 
-// SYNTHETIC: WIZ8 0x0042bbd0
+// TEMPLATE: WIZ8 0x00501e50
+// W8GrowableVector<W8Missile*>::W8GrowableVector
+
+// SYNTHETIC: WIZ8 0x00451b00
 // W8GrowableVector<W8Missile*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x0042bbd0
+// W8GrowableVector<W8Missile*>::`scalar deleting destructor' (construction-phase copy)
+
+// TEMPLATE: WIZ8 0x00451b20
+// W8GrowableVector<W8Missile*>::~W8GrowableVector<W8Missile*>
 
 class W8SpellDamageReport;
 
@@ -115,19 +127,11 @@ struct W8NpcState;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-class W8VectorElement005EBFB4;
-
-// VTABLE: WIZ8 0x005ebfb4
-// class W8GrowableVector<W8VectorElement005EBFB4*>
-
-// TEMPLATE: WIZ8 0x0042a260
-// W8GrowableVector<W8VectorElement005EBFB4*>::W8GrowableVector
-
-// SYNTHETIC: WIZ8 0x0042a310
-// W8GrowableVector<W8VectorElement005EBFB4*>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x0042a2c0
-// W8GrowableVector<W8VectorElement005EBFB4*>::~W8GrowableVector<W8VectorElement005EBFB4*>
+/* 0x005EBFB4 is a W8GrowableVector<T*> specialization fed by ctor 0x0042A260
+   (AutomapScreen.cpp's g_releasable_68f1f4 and an unattributed static at
+   0x00654AA8); AutomapScreen's declaration suggests srClass*, but the emission
+   has no recovered source owner, so its element type stays unresolved and its
+   vtable/ctor/destructor facts stay in the pointer-vector ledger. */
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
@@ -163,35 +167,18 @@ struct W8EncounterScriptName;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-class W8VectorElement005EC16C;
-
+/* Engine Code\Trigger.cpp's g_timed_events_006599b8. */
 // VTABLE: WIZ8 0x005ec16c
-// class W8GrowableVector<W8VectorElement005EC16C*>
+// class W8GrowableVector<W8TriggerEvent*>
 
 // TEMPLATE: WIZ8 0x00446090
-// W8GrowableVector<W8VectorElement005EC16C*>::W8GrowableVector
+// W8GrowableVector<W8TriggerEvent*>::W8GrowableVector
 
 // SYNTHETIC: WIZ8 0x00446230
-// W8GrowableVector<W8VectorElement005EC16C*>::`scalar deleting destructor'
+// W8GrowableVector<W8TriggerEvent*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004460f0
-// W8GrowableVector<W8VectorElement005EC16C*>::~W8GrowableVector<W8VectorElement005EC16C*>
-
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005EC27C;
-
-// VTABLE: WIZ8 0x005ec27c
-// class W8GrowableVector<W8VectorElement005EC27C*>
-
-// TEMPLATE: WIZ8 0x00501e50
-// W8GrowableVector<W8VectorElement005EC27C*>::W8GrowableVector
-
-// SYNTHETIC: WIZ8 0x00451b00
-// W8GrowableVector<W8VectorElement005EC27C*>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x00451b20
-// W8GrowableVector<W8VectorElement005EC27C*>::~W8GrowableVector<W8VectorElement005EC27C*>
+// W8GrowableVector<W8TriggerEvent*>::~W8GrowableVector<W8TriggerEvent*>
 
 /* Emitted lifecycle bodies belong directly to the template specialization. */
 
@@ -206,19 +193,18 @@ class W8VectorElement005EC27C;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-class W8VectorElement005EC2B8;
-
+/* Engine Code\3dapi.cpp's g_worlds_00659a80. */
 // VTABLE: WIZ8 0x005ec2b8
-// class W8GrowableVector<W8VectorElement005EC2B8*>
+// class W8GrowableVector<W8World*>
 
 // TEMPLATE: WIZ8 0x00451a40
-// W8GrowableVector<W8VectorElement005EC2B8*>::W8GrowableVector
+// W8GrowableVector<W8World*>::W8GrowableVector
 
 // SYNTHETIC: WIZ8 0x00451b70
-// W8GrowableVector<W8VectorElement005EC2B8*>::`scalar deleting destructor'
+// W8GrowableVector<W8World*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00451aa0
-// W8GrowableVector<W8VectorElement005EC2B8*>::~W8GrowableVector<W8VectorElement005EC2B8*>
+// W8GrowableVector<W8World*>::~W8GrowableVector<W8World*>
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
@@ -236,85 +222,30 @@ class W8Navigator;
 // TEMPLATE: WIZ8 0x004561a0
 // W8GrowableVector<W8Navigator*>::~W8GrowableVector<W8Navigator*>
 
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005EC514;
-
-// VTABLE: WIZ8 0x005ec514
-// class W8GrowableVector<W8VectorElement005EC514*>
-
-// TEMPLATE: WIZ8 0x00474be0
-// W8GrowableVector<W8VectorElement005EC514*>::W8GrowableVector
-
-// SYNTHETIC: WIZ8 0x00474e10
-// W8GrowableVector<W8VectorElement005EC514*>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x00474c40
-// W8GrowableVector<W8VectorElement005EC514*>::~W8GrowableVector<W8VectorElement005EC514*>
+/* Three unresolved pointer-vector specializations whose final tables sit in
+   this range: 0x005EC514 (ctor 0x00474BE0, deleting destructor 0x00474E10,
+   complete destructor 0x00474C40), 0x005ECA5C (ctor 0x00489ED0, deleting
+   destructor 0x0048A140, complete destructor 0x00489F30) and 0x005ECA98
+   (ctor 0x0048CDA0, deleting destructor 0x0048CF00, complete destructor
+   0x0048CE00). Their element types stay unresolved. */
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-class W8VectorElement005ECA5C;
-
-// VTABLE: WIZ8 0x005eca5c
-// class W8GrowableVector<W8VectorElement005ECA5C*>
-
-// TEMPLATE: WIZ8 0x00489ed0
-// W8GrowableVector<W8VectorElement005ECA5C*>::W8GrowableVector
-
-// SYNTHETIC: WIZ8 0x0048a140
-// W8GrowableVector<W8VectorElement005ECA5C*>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x00489f30
-// W8GrowableVector<W8VectorElement005ECA5C*>::~W8GrowableVector<W8VectorElement005ECA5C*>
-
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005ECA98;
-
-// VTABLE: WIZ8 0x005eca98
-// class W8GrowableVector<W8VectorElement005ECA98*>
-
-// TEMPLATE: WIZ8 0x0048cda0
-// W8GrowableVector<W8VectorElement005ECA98*>::W8GrowableVector
-
-// SYNTHETIC: WIZ8 0x0048cf00
-// W8GrowableVector<W8VectorElement005ECA98*>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x0048ce00
-// W8GrowableVector<W8VectorElement005ECA98*>::~W8GrowableVector<W8VectorElement005ECA98*>
-
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005ECAA0;
-
+/* Engine Code\MonGen.cpp's g_encounter_tables. */
 // VTABLE: WIZ8 0x005ecaa0
-// class W8GrowableVector<W8VectorElement005ECAA0*>
+// class W8GrowableVector<W8EncounterTableRuntime*>
 
 // TEMPLATE: WIZ8 0x0048ce20
-// W8GrowableVector<W8VectorElement005ECAA0*>::W8GrowableVector
+// W8GrowableVector<W8EncounterTableRuntime*>::W8GrowableVector
 
 // SYNTHETIC: WIZ8 0x0048cf50
-// W8GrowableVector<W8VectorElement005ECAA0*>::`scalar deleting destructor'
+// W8GrowableVector<W8EncounterTableRuntime*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x0048ce80
-// W8GrowableVector<W8VectorElement005ECAA0*>::~W8GrowableVector<W8VectorElement005ECAA0*>
+// W8GrowableVector<W8EncounterTableRuntime*>::~W8GrowableVector<W8EncounterTableRuntime*>
 
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005ECAD0;
-
-// VTABLE: WIZ8 0x005ecad0
-// class W8GrowableVector<W8VectorElement005ECAD0*>
-
-// TEMPLATE: WIZ8 0x0048f190
-// W8GrowableVector<W8VectorElement005ECAD0*>::W8GrowableVector
-
-// SYNTHETIC: WIZ8 0x0048f240
-// W8GrowableVector<W8VectorElement005ECAD0*>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x0048f1f0
-// W8GrowableVector<W8VectorElement005ECAD0*>::~W8GrowableVector<W8VectorElement005ECAD0*>
+/* 0x005ECAD0 is another unresolved specialization that ctor 0x0048F190 builds
+   (deleting destructor 0x0048F240, complete destructor 0x0048F1F0). */
 
 /* The emitted lifecycle and both reviewed vtables belong directly to the
    ordinary light-vector template specializations. */
@@ -336,19 +267,18 @@ class W8VectorElement005ECAD0;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-class W8VectorElement005ECEE4;
-
+/* Engine Code\GrCycle.cpp's g_grcycles_by_name. */
 // VTABLE: WIZ8 0x005ecee4
-// class W8GrowableVector<W8VectorElement005ECEE4*>
+// class W8GrowableVector<W8GrowableVector<W8GrCycle*>*>
 
 // TEMPLATE: WIZ8 0x004a8e70
-// W8GrowableVector<W8VectorElement005ECEE4*>::W8GrowableVector
+// W8GrowableVector<W8GrowableVector<W8GrCycle*>*>::W8GrowableVector
 
 // SYNTHETIC: WIZ8 0x004a8f20
-// W8GrowableVector<W8VectorElement005ECEE4*>::`scalar deleting destructor'
+// W8GrowableVector<W8GrowableVector<W8GrCycle*>*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004a8ed0
-// W8GrowableVector<W8VectorElement005ECEE4*>::~W8GrowableVector<W8VectorElement005ECEE4*>
+// W8GrowableVector<W8GrowableVector<W8GrCycle*>*>::~W8GrowableVector<W8GrowableVector<W8GrCycle*>*>
 
 /* Emitted W8GrowableVector instantiation identified by its vtable. */
 
@@ -364,19 +294,18 @@ class W8VectorElement005ECEE4;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-class W8VectorElement005ED018;
-
+/* Engine Code\Spells.cpp's g_sound3d_instances_65be40. */
 // VTABLE: WIZ8 0x005ed018
-// class W8GrowableVector<W8VectorElement005ED018*>
+// class W8GrowableVector<stSound3D*>
 
 // TEMPLATE: WIZ8 0x004af690
-// W8GrowableVector<W8VectorElement005ED018*>::W8GrowableVector
+// W8GrowableVector<stSound3D*>::W8GrowableVector
 
 // SYNTHETIC: WIZ8 0x004af740
-// W8GrowableVector<W8VectorElement005ED018*>::`scalar deleting destructor'
+// W8GrowableVector<stSound3D*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004af6f0
-// W8GrowableVector<W8VectorElement005ED018*>::~W8GrowableVector<W8VectorElement005ED018*>
+// W8GrowableVector<stSound3D*>::~W8GrowableVector<stSound3D*>
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
@@ -394,53 +323,39 @@ class srClipPlane;
 // TEMPLATE: WIZ8 0x004bdfe0
 // W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>::~W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>
 
-/* Direct W8GrowableVector specialization identified by its vtable. */
-
-class W8VectorElement005ED2C8;
-
-// VTABLE: WIZ8 0x005ed2c8
-// class W8GrowableVector<W8VectorElement005ED2C8*>
-
-// TEMPLATE: WIZ8 0x004cad00
-// W8GrowableVector<W8VectorElement005ED2C8*>::W8GrowableVector
-
-// SYNTHETIC: WIZ8 0x004cae10
-// W8GrowableVector<W8VectorElement005ED2C8*>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x004cad60
-// W8GrowableVector<W8VectorElement005ED2C8*>::~W8GrowableVector<W8VectorElement005ED2C8*>
+/* 0x005ED2C8 is the embedded vector W8MonsterRep's constructor at 0x004BEA20
+   initialises at +0xAC (ctor 0x004CAD00, deleting destructor 0x004CAE10,
+   complete destructor 0x004CAD60); its element type stays unresolved. */
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-class W8VectorElement005ED7D4;
-
+/* Local Code\Magic.cpp's g_spell_effects. */
 // VTABLE: WIZ8 0x005ed7d4
-// class W8GrowableVector<W8VectorElement005ED7D4*>
+// class W8GrowableVector<W8SpellEffectEntry*>
 
 // TEMPLATE: WIZ8 0x00501eb0
-// W8GrowableVector<W8VectorElement005ED7D4*>::W8GrowableVector
+// W8GrowableVector<W8SpellEffectEntry*>::W8GrowableVector
 
 // SYNTHETIC: WIZ8 0x00501f60
-// W8GrowableVector<W8VectorElement005ED7D4*>::`scalar deleting destructor'
+// W8GrowableVector<W8SpellEffectEntry*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00501f10
-// W8GrowableVector<W8VectorElement005ED7D4*>::~W8GrowableVector<W8VectorElement005ED7D4*>
+// W8GrowableVector<W8SpellEffectEntry*>::~W8GrowableVector<W8SpellEffectEntry*>
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-class W8VectorElement005ED840;
-
+/* Local Code\Search.cpp's g_searchables_00689fa8. */
 // VTABLE: WIZ8 0x005ed840
-// class W8GrowableVector<W8VectorElement005ED840*>
+// class W8GrowableVector<W8Searchable*>
 
 // TEMPLATE: WIZ8 0x00517810
-// W8GrowableVector<W8VectorElement005ED840*>::W8GrowableVector
+// W8GrowableVector<W8Searchable*>::W8GrowableVector
 
 // SYNTHETIC: WIZ8 0x005178c0
-// W8GrowableVector<W8VectorElement005ED840*>::`scalar deleting destructor'
+// W8GrowableVector<W8Searchable*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00517870
-// W8GrowableVector<W8VectorElement005ED840*>::~W8GrowableVector<W8VectorElement005ED840*>
+// W8GrowableVector<W8Searchable*>::~W8GrowableVector<W8Searchable*>
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
@@ -477,16 +392,7 @@ unsigned char AutomapScreenInitialize(void)
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-class W8VectorElement005EF08C;
-
-// VTABLE: WIZ8 0x005ef08c
-// class W8GrowableVector<W8VectorElement005EF08C*>
-
-// TEMPLATE: WIZ8 0x005acfc0
-// W8GrowableVector<W8VectorElement005EF08C*>::W8GrowableVector
-
-// SYNTHETIC: WIZ8 0x005ad1b0
-// W8GrowableVector<W8VectorElement005EF08C*>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x005ad020
-// W8GrowableVector<W8VectorElement005EF08C*>::~W8GrowableVector<W8VectorElement005EF08C*>
+/* 0x005EF08C is the final table of a vector constructed inside the
+   OptionsScreen factory at 0x005ABFC0 (the 0x005AD020/0x005AD1B0 destructor
+   pair belongs to it); its element type is unresolved, so the emission stays
+   in the pointer-vector ledger rather than naming an element class. */

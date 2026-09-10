@@ -4,7 +4,7 @@
 #include "wiz8/text_types.h"
 #include "wiz8/vector.h"
 
-class W8VectorElement005EBFE4;
+class W8SpellVisual;
 class W8Missile;
 
 /* Local Code\Magic.cpp. FindMonsterControlSpellEffect returns this same object
@@ -63,7 +63,7 @@ struct W8SpellEffectEntry {
     /* Two integer lists this body walks against the monster manager entries. */
     W8GrowableVector<int> values_0e0;                   /* 0x0e0 */
     W8GrowableVector<int> monster_indices_0f0;          /* 0x0f0 */
-    W8GrowableVector<W8VectorElement005EBFE4*> effects; /* 0x100 */
+    W8GrowableVector<W8SpellVisual*> effects;           /* 0x100 */
     W8GrowableVector<W8Missile*> missiles;              /* 0x110 */
     unsigned char flag_120;                             /* 0x120 */
     unsigned char flag_121;                             /* 0x121 */

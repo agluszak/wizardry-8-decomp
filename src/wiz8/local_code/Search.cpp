@@ -13,7 +13,7 @@ W8GrowableVector<W8Searchable*> g_searchables_00689fa8;
    first slot, which is what distinguishes the item entries from the trigger
    entries registered by the sibling below. */
 // FUNCTION: WIZ8 0x00516e20
-void Function516E20(W8WorldItem* item)
+void RegisterSearchableWorldItem00516E20(W8WorldItem* item)
 {
     W8Searchable* searchable = new W8Searchable;
     if (searchable == 0) {

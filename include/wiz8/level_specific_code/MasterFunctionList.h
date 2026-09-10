@@ -20,7 +20,7 @@ int NormalizeMasterFunctionValue004D9700(int value);
    ones that set the removal flag while it runs. */
 void RunMasterFunctions004D8E40(void);
 
-void Function4D6C50(int level);
+void InitializeLevelMasterFunctions004D6C50(int level);
 unsigned char Function4D9080(W8MonsterInfo* monster_info, int arg_2, int arg_3);
 
 /* Master-function helpers installed by the per-level setup. */

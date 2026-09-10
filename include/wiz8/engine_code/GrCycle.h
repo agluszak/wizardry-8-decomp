@@ -130,6 +130,9 @@ public:
     virtual float GetCurrentAnimationScale() = 0;
     virtual W8EmitterHost* GetRepresentation() = 0;
     void SetPosition004A6DF0(srVector3T<float>* position);
+    /* Registry-wide lookups answered from this cycle's identity. */
+    const char* GetRegisteredName004A8650() const;       /* 0x004A8650 */
+    unsigned char IsSoleRegisteredCycleForName004A8700() const; /* 0x004A8700 */
     virtual unsigned char GetAnimationBounds(
         srVector3T<float>* minimum, srVector3T<float>* maximum);
     virtual unsigned char GetAnimationRadius(float* radius);
@@ -178,11 +181,9 @@ public:
 
 static_assert(sizeof(W8GrCycle) == 0x1d8, "W8GrCycle_size_must_be_0x1d8");
 
-unsigned char __fastcall IsSoleGrCycleForName(W8GrCycle* cycle);
 W8GrCycle* FindFirstGrCycleByName(const char* name);
 unsigned char UnregisterGrCycle(W8GrCycle* cycle);
 void RegisterGrCycle(const char* name, W8GrCycle* cycle);
-const char* __fastcall GetGrCycleName(W8GrCycle* cycle);
 unsigned char LoadGrCycle004A67E0(
     const W8GrCycleLoadContext* context,
     const char* mon_name,

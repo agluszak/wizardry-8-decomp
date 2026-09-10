@@ -260,7 +260,7 @@ done:
         srExtension::load("INSPECTOR", 0);
         _chdir(".");
     }
-    if (!Function44F060()) {
+    if (!InitializeStartupNavigation0044F060()) {
         return 0;
     }
     EnableAllRenderOptions();
@@ -754,7 +754,7 @@ unsigned char ClearPrimarySurface(void)
 extern srScene* g_cursor_scene_659684;
 extern unsigned char g_render_flag_603c6c;
 
-extern "C" void Function482140(void);
+extern "C" void UpdateRenderElapsedTime00482140(void);
 
 /* Saturate the three components of a renderer colour in place and return it.
    The reviewed body performs these three scalar saturations in order. */
@@ -861,13 +861,13 @@ void RenderFrame(void)
     Function00428340();
     RenderFastHelp();
     UpdateRegionHelp();
-    Function425B40();
+    FlushDirtyTiles00425B40();
     if (g_gerd_659634 != 0) {
         g_gerd_659634->resetStatistics();
     }
     srCore.getStatisticsManager()->reset();
     g_gerd_659634->beginFrame();
-    Function482140();
+    UpdateRenderElapsedTime00482140();
 
     if (!g_monster_shadow_updates_enabled_0065970c) {
         if (g_flag_65970e) {

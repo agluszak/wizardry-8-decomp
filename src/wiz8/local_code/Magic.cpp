@@ -19,6 +19,7 @@
 #include "wiz8/magic.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/spell_effect.h"
+#include "wiz8/engine_code/SpellVisual.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/MonsterManager.h"
@@ -656,9 +657,9 @@ void UpdateSpellEffects00500930(void)
         for (int visual_index = 0;
              visual_index < effect->effects.GetCount() && alive;
              ++visual_index) {
-            W8VectorElement005EBFE4* visual =
+            W8SpellVisual* visual =
                 *effect->effects.GetAt(visual_index);
-            if (*(unsigned char*)((char*)visual + 0x1e4) == 0) {
+            if (visual->started == 0) {
                 alive = false;
             }
         }
@@ -701,11 +702,11 @@ void UpdateSpellEffects00500930(void)
             if (missile != 0) {
                 srVector3T<float> position = missile->GetPosition();
                 position.y -= g_float_005ebc64;
-                W8VectorElement005EBFE4* visual = SpawnSpellEffect(
+                W8SpellVisual* visual = SpawnSpellEffect(
                     &position, g_spell_records[effect->kind].resource_name,
                     *(int*)&missile->values_1fc[8], 0, 0);
                 if (visual != 0) {
-                    *(unsigned char*)((char*)visual + 0x1e6) = 0;
+                    visual->flag_1e6 = 0;
                     effect->effects.Add(visual);
                     alive = false;
                 }
@@ -768,11 +769,11 @@ void UpdateSpellEffects00500930(void)
         for (int release_visual = 0;
              release_visual < effect->effects.GetCount();
              ++release_visual) {
-            W8VectorElement005EBFE4* visual =
+            W8SpellVisual* visual =
                 *effect->effects.GetAt(release_visual);
-            *(unsigned char*)((char*)visual + 0x1e6) = 1;
+            visual->flag_1e6 = 1;
             if (effect->flag_121 != 0) {
-                *(unsigned char*)((char*)visual + 0x1e4) = 1;
+                visual->started = 1;
             }
         }
         for (int release_missile = 0;
@@ -1066,7 +1067,7 @@ static unsigned char SpellbookMaskForSpell(int spell_id)
    skill_unlocks), where the expert-skill gate and the spell-point ceiling
    both read them. */
 // FUNCTION: WIZ8 0x004f96a0
-void Function4F96A0(W8Character* character)
+void RecountLearnedSpellsByRealm004F96A0(W8Character* character)
 {
     for (int realm = 0; realm < 6; ++realm) {
         character->skill_unlocks[0x1c + realm] = 0;
@@ -1104,7 +1105,7 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
     if ((g_profession_spellbooks[character->current_profession] & book) == W8_SPELLBOOK_NONE) {
         return 0;
     }
-    if (Function547940(character, W8_TRAIT_CANNOT_LEARN)) {
+    if (CharacterHasTrait00547940(character, W8_TRAIT_CANNOT_LEARN)) {
         return 0;
     }
 
@@ -2139,9 +2140,6 @@ unsigned int MonsterCastsSpell(
     return SpellCastFatigueCost(spell_id, result);
 }
 
-extern W8VectorElement005EBFE4* SpawnSpellEffect(
-    const srVector3T<float>* position, const char* resource_name, int arg_3, int arg_4, int arg_5);
-
 /* The lure spell, and how far under the target the first of its two effects is
    placed. */
 enum { W8_SPELL_LURE = 0x26 };
@@ -2155,7 +2153,7 @@ enum { W8_SPELL_LURE = 0x26 };
 void SpawnLureEffects(W8SpellEffectEntry* owner, int arg_2, const W8CombatSlot* target)
 {
     srVector3T<float> position;
-    W8VectorElement005EBFE4* effect;
+    W8SpellVisual* effect;
 
     position.x = target->point.x;
     position.y = target->point.y - 1000.0f;
@@ -2164,14 +2162,14 @@ void SpawnLureEffects(W8SpellEffectEntry* owner, int arg_2, const W8CombatSlot* 
     effect = SpawnSpellEffect(
         &position, g_spell_records[W8_SPELL_LURE].resource_name, arg_2, 0, 0);
     if (effect != 0) {
-        *((unsigned char*)effect + 0x1e6) = 0;
+        effect->flag_1e6 = 0;
         owner->effects.Add(effect);
     }
 
     position = target->point;
     effect = SpawnSpellEffect(&position, "hyp_lure2", arg_2, 0, 0);
     if (effect != 0) {
-        *((unsigned char*)effect + 0x1e6) = 0;
+        effect->flag_1e6 = 0;
         *(*(unsigned char**)((char*)effect + 0x1e0) + 0x71) = 3;
         owner->effects.Add(effect);
     }

@@ -12,7 +12,7 @@ extern int g_encounter_tables_level;
 void SaveEncounterState(int handle);
 void SaveMonsterGenerators(int handle);
 void RunMonsterGenerators(void);
-void Function48C9F0(void);
+void DespawnAllActiveMonsterGroups0048C9F0(void);
 void ResetMonsterGeneratorTimers0048CBE0(void);
 
 void UpdateRandomEncounterBudget(unsigned char reset_budget);

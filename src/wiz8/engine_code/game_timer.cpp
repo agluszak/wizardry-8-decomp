@@ -25,7 +25,7 @@ unsigned char g_shared_timer_flag_d2;                /* 0x006598D2 */
 extern "C" const float g_float_005ec0a8 = 10000.0f;
 
 // FUNCTION: WIZ8 0x00439bc0
-void Function439BC0(void)
+void PauseSharedGameTimers00439BC0(void)
 {
     g_shared_timer_paused = 1;
     if (g_shared_timer == 0) {
@@ -66,7 +66,7 @@ void Function439BC0(void)
 }
 
 // FUNCTION: WIZ8 0x00439ca0
-void Function439CA0(void)
+void ResumeSharedGameTimers00439CA0(void)
 {
     g_shared_timer_paused = 0;
     g_shared_timer_flag_d1 = 0;

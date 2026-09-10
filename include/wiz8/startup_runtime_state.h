@@ -25,6 +25,9 @@ struct W8StartupStateElement005EE748 {
     int value_30;
     /* 0x34: the GetTickCount stamp the sight code pairs with value_30. */
     unsigned int clock_34;
+
+    /* Applies this entry's queued runtime consequence. */
+    void Process0052CED0();          /* 0x0052CED0 */
 };
 
 static_assert(sizeof(W8StartupStateElement005EE748) == 0x38,

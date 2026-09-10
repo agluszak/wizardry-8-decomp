@@ -162,9 +162,6 @@ static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");
 
 void SetWorld659AB8(W8World* world);
 
-void Function43CB30(W8World* world, int handle, unsigned char restoring);
-void Function43D120(W8World* world, int handle);
-void Function43C810(W8World* world, int handle);
 void Function44E830(W8World* world, int handle);
 void MoveWorldToPoint(W8World* destination, W8World* source, const srVector3T<float>* point);
 void SetWorldEnvironmentValue00483AE0(W8World* world, float value);

@@ -745,7 +745,7 @@ unsigned char CharacterScreenEnter(void)
     g_character_screen_0069c2e8->BuildControls();
     if (!g_status_685170.game_started &&
         (g_current_screen_state.mode == 0 || g_current_screen_state.mode == 2)) {
-        Function48FC10("Menus.MPL", 1, 1);
+        StartMusicResource0048FC10("Menus.MPL", 1, 1);
     }
     return 1;
 }

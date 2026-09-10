@@ -6,7 +6,7 @@
 /* Version-banner formatting. The original translation-unit name is unknown. */
 
 // FUNCTION: WIZ8 0x004E3620
-void Function4E3620(char* out, char with_title, char with_build, char with_date)
+void FormatVersionBanner004E3620(char* out, char with_title, char with_build, char with_date)
 {
     out[0] = '\0';
     if (with_title) {

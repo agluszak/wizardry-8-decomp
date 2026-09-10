@@ -1106,7 +1106,7 @@ void W8CharacterPage005EF778::Redraw()
             unsigned char available[0x20];
             unsigned int available_count = 0;
             for (int trait = 0; trait < 0x20; ++trait) {
-                if (Function547940(m_character_060, trait)) {
+                if (CharacterHasTrait00547940(m_character_060, trait)) {
                     available[trait] = 1;
                     ++available_count;
                 }

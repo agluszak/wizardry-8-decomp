@@ -75,9 +75,9 @@ void SetLightDirection(const int* direction);
 void GetLightDirection(int* direction);
 extern unsigned char g_sky_enabled_0065b9ae;
 void ResetEnvironment(void);
-void Function482410(void);
+void InitializeLevelEnvironment00482410(void);
 /* 0x00483BA0: apply one day-phase colour and intensity to the world. */
-void Function483BA0(W8World* world, float intensity, const EnvironmentColour* colour);
+void ApplyEnvironmentColour00483BA0(W8World* world, float intensity, const EnvironmentColour* colour);
 void ReleaseEnvironmentObjects(void);
 
 void Function482990(unsigned char enabled);

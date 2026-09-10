@@ -244,7 +244,7 @@ void UpdateRandomEncounterBudget(unsigned char reset_budget)
 }
 
 // FUNCTION: WIZ8 0x0048c9f0
-void Function48C9F0(void)
+void DespawnAllActiveMonsterGroups0048C9F0(void)
 {
     while (g_active_group_count > 0) {
         DespawnMonsterGroup(g_active_groups[g_active_group_count - 1]);

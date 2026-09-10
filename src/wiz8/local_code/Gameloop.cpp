@@ -82,7 +82,7 @@ void GameLoop(void)
     int state;
 
     SoundServiceStreams();
-    Function48F9E0();
+    ServiceMusicPlaylist0048F9E0();
     state = g_current_screen_state.id;
     if (g_screen_return_requested) {
         g_previous_screen_id = state;

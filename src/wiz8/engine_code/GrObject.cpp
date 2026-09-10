@@ -40,13 +40,13 @@ W8GrObject::W8GrObject(const W8GrObject& other)
         int count;
         int index;
 
-        m_plsSoundEvents = new W8GrowableVector<W8VectorElement005ED094*>();
+        m_plsSoundEvents = new W8GrowableVector<W8SoundEvent*>();
         if (m_plsSoundEvents == 0) {
             srAssertFail("m_plsSoundEvents", GROBJECT_CPP, 0x42, 0);
         }
         count = other.m_plsSoundEvents->GetCount();
         for (index = 0; index < count; ++index) {
-            W8VectorElement005ED094* pse =
+            W8SoundEvent* pse =
                 *other.m_plsSoundEvents->GetAt(index);
 
             m_plsSoundEvents->Add(CreateSoundEvent004D57A0(
@@ -80,18 +80,18 @@ W8GrObject::~W8GrObject()
     }
 }
 
-/* Engine Code\GrObject.cpp. The element type is unproven, so it is named for
-   the specialization vtable. The member name m_plsSoundEvents comes from the
-   canonical assertion in this translation unit. */
+/* Engine Code\GrObject.cpp. The member name m_plsSoundEvents comes from the
+   canonical assertion in this translation unit; the element class is
+   Engine Code\SoundEvent.cpp's W8SoundEvent. */
 
 // VTABLE: WIZ8 0x005ed094
-// class W8GrowableVector<W8VectorElement005ED094*>
+// class W8GrowableVector<W8SoundEvent*>
 
 // SYNTHETIC: WIZ8 0x004b6dc0
-// W8GrowableVector<W8VectorElement005ED094*>::`scalar deleting destructor'
+// W8GrowableVector<W8SoundEvent*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004b6de0
-// W8GrowableVector<W8VectorElement005ED094*>::~W8GrowableVector<W8VectorElement005ED094*>
+// W8GrowableVector<W8SoundEvent*>::~W8GrowableVector<W8SoundEvent*>
 
 /* Creates the list on first use and appends one event to it. Only one argument
    reaches this from its three call sites, each of which builds the event with
@@ -103,13 +103,13 @@ W8GrObject::~W8GrObject()
    both leave this returning the same value, and only a null event returns
    zero. Preserved as found. */
 // FUNCTION: WIZ8 0x004b6bd0
-unsigned char W8GrObject::AddSoundEvent(W8VectorElement005ED094* pse)
+unsigned char W8GrObject::AddSoundEvent(W8SoundEvent* pse)
 {
     if (!pse) {
         return 0;
     }
     if (!m_plsSoundEvents) {
-        m_plsSoundEvents = new W8GrowableVector<W8VectorElement005ED094*>();
+        m_plsSoundEvents = new W8GrowableVector<W8SoundEvent*>();
         if (!m_plsSoundEvents) {
             srAssertFail("m_plsSoundEvents", GROBJECT_CPP, 0x8b, 0);
         }

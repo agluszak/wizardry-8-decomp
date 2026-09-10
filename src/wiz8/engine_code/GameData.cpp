@@ -69,7 +69,7 @@ unsigned char LoadSurfaceVertices004214D0(
 
 /* Ensure the shared game-data object exists, then run its update. */
 // FUNCTION: WIZ8 0x0041F1F0
-void Function41F1F0()
+void UpdateSharedGameDataObject0041F1F0()
 {
     if (g_object_6598bc == 0) {
         g_object_6598bc = new W8Object0043A910;
@@ -81,7 +81,7 @@ void Function41F1F0()
 }
 
 // FUNCTION: WIZ8 0x0041F260
-void Function41F260()
+void UpdateGameDataRuntime0041F260()
 {
     if (g_gd_camera_65a0f8 == 0) {
         g_gd_camera_65a0f8 = new GDCamera;
@@ -101,7 +101,7 @@ void Function41F260()
         }
     }
     if (g_flag_00652dce != 0) {
-        Function439CA0();
+        ResumeSharedGameTimers00439CA0();
         g_flag_00652dce = 0;
     }
     g_object_6598bc->Update();
@@ -122,7 +122,7 @@ void CopyLevelDataHandle(int* destination, const int* source)
 // vector constructor iterator
 
 // FUNCTION: WIZ8 0x0041ef50
-void Function41EF50(void)
+void ResetInactiveLevelDataVectors0041EF50(void)
 {
     W8LevelDataRecord* data = g_level_data_00652dac;
 
@@ -306,7 +306,7 @@ float MoveTimer(int value)
     }
     if (g_flag_00652dce != 0) {
         if ((value == 8 && g_current_screen_state.id == 7) || value == 4) {
-            Function439CA0();
+            ResumeSharedGameTimers00439CA0();
             g_flag_00652dce = 0;
         }
         else {
@@ -314,7 +314,7 @@ float MoveTimer(int value)
         }
     }
     if (value == 1) {
-        Function439BC0();
+        PauseSharedGameTimers00439BC0();
         g_flag_00652dce = 1;
     }
     return g_object_6598bc->GetValue28();
@@ -388,20 +388,6 @@ void ApplyCameraRotation(srMatrix3T<float>* rotation)
 void GetCameraPosition(srVector3T<float>* position)
 {
     *position = g_gd_camera_65a0f8->m_position_08c;
-}
-
-// FUNCTION: WIZ8 0x00421100
-void Function421100(float distance, srVector3T<float>* output)
-{
-    srVector3T<float> result = *output;
-    g_gd_camera_65a0f8->GetForwardPoint(distance, &result);
-    *output = result;
-}
-
-// FUNCTION: WIZ8 0x00421150
-void Function421150(float distance, srVector3T<float>* output)
-{
-    g_gd_camera_65a0f8->GetForwardPoint(distance, output);
 }
 
 // FUNCTION: WIZ8 0x004213E0

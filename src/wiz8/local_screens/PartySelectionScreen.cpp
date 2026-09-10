@@ -2328,7 +2328,7 @@ unsigned char PartySelectionScreenEnter(void)
         }
         g_state5_controller_69c4e8->SetMode(g_state5_controller_69c4e8->m_mode);
     }
-    Function48FC10("MainMenu.MPL", 1, 1);
+    StartMusicResource0048FC10("MainMenu.MPL", 1, 1);
     return 1;
 }
 

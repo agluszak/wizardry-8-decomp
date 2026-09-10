@@ -153,9 +153,11 @@ public:
     float GetPitch();                           /* 0x00453980 */
     void SetValue120(float value);                         /* 0x00453C50 */
     float GetValue120();                                  /* 0x00453C60 */
-    unsigned char Function452630(const srVector3T<float>* position); /* 0x00452630 */
+    unsigned char ConfigureMovementToPosition00452630(
+        const srVector3T<float>* position); /* 0x00452630 */
     unsigned short Function4526C0(
         W8Navigator* target, double separation); /* 0x004526C0 */
+    void Function452C90();                               /* 0x00452C90 */
     unsigned short ConfigureMovementToNavigator004529A0(
         W8Navigator* target,
         float separation,
@@ -270,8 +272,8 @@ static_assert(sizeof(W8Navigator) == 0x190,
               "W8Navigator_size_must_be_0x190");
 
 void SetNavigatorLinkMode00452F50(unsigned char mode);
-void Function453160(void);
-void Function4531A0(void);
+void StopAllNavigators00453160(void);
+void ResumeAllNavigators004531A0(void);
 
 void NavigatorDefaultCallback00451EA0(W8Navigator* navigator);
 

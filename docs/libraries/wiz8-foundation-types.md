@@ -8,9 +8,11 @@ Two separately-named structs in this repository — `W8NPCItemListVector` and
 element type through that template: `g_npc_item_lists` is a
 `W8GrowableVector<W8NPCItemList*>*`, `W8World::monster_generators` is a
 `W8GrowableVector<W8MonsterGenerator*>*`, and the dialog member at `0x005D14D0` embeds two
-`W8GrowableVector<W8DialogOwned005D14D0*>` subobjects. An owner whose element type is not yet
-recovered names it positionally rather than erasing it to `void*`, because one erased spelling
-shared by unrelated owners would merge element types the consumers keep apart.
+`W8GrowableVector<W8DialogOwned005D14D0*>` subobjects. When an owner's element type is not yet
+recovered, its specialization is not given a placeholder element class; the emitted vtable and
+lifecycle facts stay in `evidence/observations/wiz8/ptr-vector-instantiations.csv` until an owner or
+element operation proves the type. Erasing an unknown element to `void*` is equally wrong: one
+erased spelling shared by unrelated owners would merge element types the consumers keep apart.
 
 The vtable a constructor installs identifies one emitted copy, not necessarily one specialization.
 Reviewed Ghidra references identify those copies per site. Targeting's local
@@ -94,19 +96,24 @@ The source index follows the same convention used by ISLE: a standalone vtable a
 template specialization directly, without inventing an empty address-qualified derived class:
 
 ```cpp
-// VTABLE: WIZ8 0x005ec294
-// class W8GrowableVector<W8VectorElement005EC294*>
+// VTABLE: WIZ8 0x005ebfe4
+// class W8GrowableVector<W8SpellVisual*>
 ```
+
+The element types above are the source's own. When no producer or owner proves an element type, no
+address-qualified `W8VectorElement...` class is manufactured for the annotation; the raw vtable,
+constructor and destructor facts remain in the pointer-vector ledger instead.
 
 Template constructor and complete-destructor emissions use `TEMPLATE`; compiler-generated deleting
 destructors use `SYNTHETIC`. These annotations account for emitted code without claiming that the
 original source contained wrapper lifecycle bodies. The specialization annotations are consolidated
 in `src/wiz8/vector.cpp`.
 
-Some constructors write an adjacent vtable before the specialization table. That observation remains
-real, but it does not justify manufacturing a base for the vector template. Until independent
-evidence names the adjacent owner, it remains unresolved rather than being projected as a base or
-derived wrapper.
+Some constructors first write a construction-phase table and only then the specialization's final
+table (`CastSpellFromSource` at `0x004FB4C0` does this for the spell-visual and missile vectors).
+That observation remains real, but it does not justify manufacturing a base or a second
+specialization: the construction-phase table is compiler emission of the same element type, and
+only the final table gets the class's `VTABLE` marker.
 
 ## Everything else the image repeats is not a first-party template
 

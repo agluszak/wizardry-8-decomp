@@ -15,12 +15,12 @@ extern int g_music_state_60aaf0;
 extern "C" {
 
 unsigned char InitializeMusicPlaylist(void);
-unsigned char Function48FC10(
-    const char* playlist, int immediate, int replace_current);
+unsigned char StartMusicResource0048FC10(
+    const char* resource, int immediate, int replace_current);
 
 }
 
-void Function48F9E0(void);
+void ServiceMusicPlaylist0048F9E0(void);
 void StopMusicPlaylist(unsigned char fade);
 
 

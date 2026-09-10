@@ -346,18 +346,17 @@ void WorldGetPropAt(W8World* unused, int index)
     PLGet(g_world->plsProps, index);
 }
 
-/* Two wrappers that reach one member along before forwarding, which is what
-   places that member at 0x3c of whatever they are called on. */
+/* Two wrappers that reach the world's static scene along before forwarding. */
 // FUNCTION: WIZ8 0x0046e860
-void ForwardThroughMember3C_46E750(void* owner, int argument)
+void ForwardThroughMember3C_46E750(W8World* owner, int argument)
 {
-    Function46E750(*(void**)((char*)owner + 0x3c), argument);
+    Function46E750(owner->static_scene, argument);
 }
 
 // FUNCTION: WIZ8 0x0046e880
-void ForwardThroughMember3C_46E640(void* owner, int argument)
+void ForwardThroughMember3C_46E640(W8World* owner, int argument)
 {
-    Function46E640(*(void**)((char*)owner + 0x3c), argument);
+    Function46E640(owner->static_scene, argument);
 }
 
 /* Release one block back to the renderer's heap rather than the CRT's. */
@@ -458,7 +457,7 @@ W8GameData* g_octree_game_data_00652db0;
 /* The octree builds read the level data through this slot; the recovered
    caller passes the W8GameData object it just read. */
 // FUNCTION: WIZ8 0x0046D7D0
-void __stdcall SetValue652DB0(W8GameData* value)
+void __stdcall SetOctreeGameData0046D7D0(W8GameData* value)
 {
     g_octree_game_data_00652db0 = value;
 }

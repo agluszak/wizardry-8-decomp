@@ -85,7 +85,7 @@ int AnalyzeMusicPlaylist0048FF50(stScript* playlist, int* total_weight)
 }
 
 // FUNCTION: WIZ8 0x0048F9E0
-void Function48F9E0(void)
+void ServiceMusicPlaylist0048F9E0(void)
 {
     int failures = 0;
 
@@ -146,7 +146,7 @@ void Function48F9E0(void)
             *weight = 0;
         }
 
-        if (Function48FC10(track, g_music_fade_60aae4, 1) == 0) {
+        if (StartMusicResource0048FC10(track, g_music_fade_60aae4, 1) == 0) {
             ++failures;
         }
         if (failures > 4 || g_music_sample_handle_60aae0 != -1) {
@@ -157,19 +157,19 @@ void Function48F9E0(void)
 }
 
 // FUNCTION: WIZ8 0x0048FC10
-extern "C" unsigned char Function48FC10(
-    const char* playlist, int fade, int replace_current)
+extern "C" unsigned char StartMusicResource0048FC10(
+    const char* resource, int fade, int replace_current)
 {
     char path[260];
 
-    if (playlist == 0) {
+    if (resource == 0) {
         return 0;
     }
     if (g_flag_689b32 != 0) {
         RequestExitScreen();
     }
 
-    sprintf(path, "Data\\Music\\%s", playlist);
+    sprintf(path, "Data\\Music\\%s", resource);
     _strupr(path);
     g_music_fade_60aae4 = static_cast<unsigned char>(fade);
 
@@ -203,7 +203,7 @@ extern "C" unsigned char Function48FC10(
         return 1;
     }
 
-    if (_stricmp(playlist, g_music_playlist_65ba74->getName()) == 0) {
+    if (_stricmp(resource, g_music_playlist_65ba74->getName()) == 0) {
         return 1;
     }
 
@@ -234,7 +234,7 @@ extern "C" unsigned char Function48FC10(
         g_music_playlist_65ba74,
         &g_music_playlist_weight_total_65ba80);
     if (g_music_playlist_track_count_65ba84 != 0) {
-        g_music_playlist_65ba74->setName(playlist);
+        g_music_playlist_65ba74->setName(resource);
         g_music_playlist_active_65ba7e = 1;
         g_music_force_next_60aae5 = 1;
     }

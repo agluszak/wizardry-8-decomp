@@ -443,8 +443,8 @@ unsigned char W8Octree::CollectVisibleRegions00430D50(
 // FUNCTION: WIZ8 0x0042fe90
 void W8Octree::CollectVisibleCells0042FE90()
 {
-    Function004302E0(this);
-    Function004301C0(this);
+    Function004302E0();
+    Function004301C0();
     short radius =
         (short)((int)(far_clip_200 / spatial_000.positional_54) + 1);
     short center[3];
@@ -705,9 +705,8 @@ unsigned char W8Octree::UpdateWorldTrace00433EB0()
     maximum.x = minimum.x + spatial_000.node_extent_70;
     maximum.y = minimum.y + spatial_000.node_extent_70;
     maximum.z = minimum.z + spatial_000.node_extent_70;
-    void* packed = PackColour00433FB0(&color, 0.0, 1.0, 0.0, 0.0);
-    DrawWorldBox0048DF30(
-        g_world, minimum, maximum, *static_cast<unsigned long*>(packed));
+    unsigned long* packed = PackColour00433FB0(&color, 0.0, 1.0, 0.0, 0.0);
+    DrawWorldBox0048DF30(g_world, minimum, maximum, *packed);
     return 1;
 }
 

@@ -273,7 +273,7 @@ unsigned char MonsterReadAllCycles004C0300(
         return 1;
     }
 
-    Function439BC0();
+    PauseSharedGameTimers00439BC0();
 
     unsigned char more = 1;
     unsigned char success = 1;
@@ -317,7 +317,7 @@ unsigned char MonsterReadAllCycles004C0300(
     int footstep_falloff = 0;
     srVector3T<float> light_first;
     srVector3T<float> light_second;
-    W8VectorElement005ED094* last_sound = 0;
+    W8SoundEvent* last_sound = 0;
     int damage_stage = -1;
     int skin_stage = 0;
 
@@ -813,7 +813,7 @@ unsigned char MonsterReadAllCycles004C0300(
 
     (*monster)->RandomizeAppearanceAndMotion004C1D20();
     RegisterGrCycle(monster_name, *monster);
-    Function439CA0();
+    ResumeSharedGameTimers00439CA0();
     ReleaseReadMeshScratch004881D0();
     return success;
 }
@@ -1406,7 +1406,7 @@ W8Monster::~W8Monster()
         PrepareMonsterCycleForDestruction004ACF90(this);
         PLDestroy(m_pRep->linked_objects_5e8);
     }
-    if (IsSoleGrCycleForName(this)) {
+    if (IsSoleRegisteredCycleForName004A8700()) {
         g_monster_cycle_registry_weight_0065ba4c -= registry_weight_27c;
         RemoveCycleSkinTables004C6B10();
     }
@@ -2180,7 +2180,7 @@ void W8Monster::ProcessScript004C80E0()
                     Function4526C0(g_startup_world_659c0c, 5.0);
                 }
                 else {
-                    Function452630(&position);
+                    ConfigureMovementToPosition00452630(&position);
                 }
                 token = strtok(0, " \t");
                 if (token == 0 || _stricmp(token, "NOBLOCK") != 0) {
@@ -3378,7 +3378,7 @@ unsigned char W8Monster::CanEnterCycle(signed char cycle)
     W8MonsterInfo* monster_info =
         MonsterGetScriptPartByLocationIndex(monster_index);
 
-    if (gXStatus.fCombatMode != 0 && Function420E10() != 0) {
+    if (gXStatus.fCombatMode != 0 && IsCameraTransitionActive00420E10() != 0) {
         return 0;
     }
     if (m_pRep->flag_06d == 0) {
@@ -4686,7 +4686,7 @@ void MonsterPropagateValue004C5870(W8Monster* monster, int value)
         if (count > 0) {
             do {
                 int propagated_value = monster->propagated_value_1e4;
-                W8VectorElement005ED094* object =
+                W8SoundEvent* object =
                     *monster->m_plsSoundEvents->GetAt(index);
                 ++index;
                 object->value_028 = propagated_value;
@@ -5256,13 +5256,13 @@ unsigned char LoadMonsterCycle004C5910(
 // FUNCTION: WIZ8 0x004c61e0
 void MonsterForward453160(void)
 {
-    Function453160();
+    StopAllNavigators00453160();
 }
 
 // FUNCTION: WIZ8 0x004c61f0
 void MonsterForward4531A0(void)
 {
-    Function4531A0();
+    ResumeAllNavigators004531A0();
 }
 
 /*
@@ -5295,7 +5295,7 @@ float MonsterGetNavigatorValue120(W8Monster* monster)
 unsigned char MonsterForward452630(W8Monster* monster, const srVector3T<float>* position)
 {
     if (monster != 0) {
-        return monster->Function452630(position);
+        return monster->ConfigureMovementToPosition00452630(position);
     }
     return 0;
 }
@@ -5630,7 +5630,7 @@ int W8Monster::AddDamageStage004C6880(const char* base_name, int stage)
 // FUNCTION: WIZ8 0x004c6b10
 void W8Monster::RemoveCycleSkinTables004C6B10()
 {
-    const char* cycle_name = GetGrCycleName(this);
+    const char* cycle_name = GetRegisteredName004A8650();
     W8GrowableVector<stModelInstance*> instances;
 
     if (cycle_name != 0) {

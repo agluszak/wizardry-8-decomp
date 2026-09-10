@@ -24,13 +24,13 @@ int g_int_005ee5a8 = 8;
    are the third and first effective values, the same pair the stamina
    recomputation reads. */
 // FUNCTION: WIZ8 0x004edc10
-bool Function4EDC10(W8Character* character)
+bool RecalculateCarryingCapacity004EDC10(W8Character* character)
 {
     unsigned int previous = character->carrying_capacity;
     int base = character->attributes[3].effective +
                character->attributes[0].effective * 2;
     unsigned int capacity = base * 0xc;
-    if (Function547940(character, 0x18)) {
+    if (CharacterHasTrait00547940(character, 0x18)) {
         capacity = (unsigned int)(base * 0x18) / 3;
     }
     character->carrying_capacity = capacity;

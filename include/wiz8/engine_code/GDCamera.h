@@ -92,10 +92,10 @@ void SetCameraOrientation(
 void GetCameraPosition(srVector3T<float>* position);
 /* 0x004BE940: project one point through the camera and report whether it is
    in front of it. */
-unsigned char Function4BE940(srVector3T<float>* position);
+unsigned char ProjectPointThroughCamera004BE940(srVector3T<float>* position);
 int GetCameraYawDegrees(void);
 void PlacePartyAtPoint(const srVector3T<float>* point);
 
 static_assert(sizeof(GDCamera) == 0xc0, "GDCamera_must_be_0xc0");
 
-unsigned char Function420E10(void);
+unsigned char IsCameraTransitionActive00420E10(void);

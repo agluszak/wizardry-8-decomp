@@ -133,9 +133,9 @@ extern W8EnvironRecord* g_environ_00652DB4;
 
 W8GameData* ReadGameData00447570(const char* path, void* parent); /* 0x00447570 */
 
-void Function41EF50(void);
-void Function41F1F0();
-void Function41F260();
+void ResetInactiveLevelDataVectors0041EF50(void);
+void UpdateSharedGameDataObject0041F1F0();
+void UpdateGameDataRuntime0041F260();
 unsigned char LoadSurfaceVertices004214D0(
     srVector3T<float>* output, const int* vertex_indices);
 unsigned char InitializeGameData004497C0(W8GameData* game_data);

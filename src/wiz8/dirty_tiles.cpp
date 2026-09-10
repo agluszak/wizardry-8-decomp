@@ -29,7 +29,8 @@ unsigned char g_flag_6596ea;
    tile table.  Preserve that complete empty-slot path here; the non-empty path
    remains owned by the 2D-node recovery rather than pretending a partial
    release/recursive invalidation is complete. */
-void Function4259B0(int cell, unsigned int flags)
+// FUNCTION: WIZ8 0x004259b0
+void InvalidateDirtyTile004259B0(int cell, unsigned int flags)
 {
     int left;
     int top;
@@ -104,7 +105,7 @@ void InvalidateRegion(int left, int top, int right, int bottom, unsigned int fla
                 if ((int)clipped_left < (int)clipped_right) {
                     x = clipped_left;
                     do {
-                        Function4259B0((int)x / 8 + (top / 8) * 0x50, cell_flags);
+                        InvalidateDirtyTile004259B0((int)x / 8 + (top / 8) * 0x50, cell_flags);
                         x = x + 8;
                     } while ((int)x < (int)clipped_right);
                 }
@@ -117,7 +118,7 @@ void InvalidateRegion(int left, int top, int right, int bottom, unsigned int fla
    software surface locked for the complete batch and clears only the uploaded
    bit, preserving the lower per-cell state for the page lifecycle. */
 // FUNCTION: WIZ8 0x00425b40
-void Function425B40(void)
+void FlushDirtyTiles00425B40(void)
 {
     DDSURFACEDESC description;
 

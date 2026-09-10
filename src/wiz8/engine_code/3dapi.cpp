@@ -347,7 +347,7 @@ void UpdateWorld0044F4E0(W8World* world)
 {
     if (world == 0) {
         srAssertFail("pWorld", THREE_D_API_CPP, 0x106, 0);
-        Function444F70(0x6a4, 70.0f, 5000.0f, 1);
+        CreateTriggerShakeEvent00444F70(0x6a4, 70.0f, 5000.0f, 1);
     }
 
     if (world != g_world_659ab8) {

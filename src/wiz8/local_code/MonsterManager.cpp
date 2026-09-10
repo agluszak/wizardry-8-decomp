@@ -80,7 +80,6 @@ int CalculateMonsterHealthTier(int current, int maximum)
 enum { W8_CYCLE_NONE = 0xff, W8_CYCLE_STOP = 0x14, W8_CYCLE_DEATH = 0x15 };
 enum { W8_BEHAVIOUR_NEVER_STOP = 3 };
 void MonsterDies(W8MonsterInfo* monster_info, int display_message);
-void __fastcall Function452C90(W8Navigator* navigator);
 /* The character array the alternate-name form indexes, and the slot it uses. */
 
 // FUNCTION: WIZ8 0x004e3930
@@ -847,7 +846,7 @@ void ResetLivingMonstersAfterCombat(void)
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
         if (static_cast<unsigned int>(monster_info->hp_current) > 0) {
-            Function452C90(monster_info->monster);
+            monster_info->monster->Function452C90();
             if (monster_info->flag_255 > 0 && monster_info->flag_255 <= 3) {
                 monster_info->flag_255 = 0;
             }

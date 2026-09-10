@@ -123,7 +123,7 @@ int g_value_005ed8c8;
 const float g_float_005ec124 = 64.0f;
 
 // FUNCTION: WIZ8 0x0043cb30
-void Function43CB30(W8World* world, int handle, unsigned char restoring)
+void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, unsigned char restoring)
 {
     int trigger_count = world->triggers->GetCount();
     int saved_count = 0;
@@ -281,7 +281,7 @@ unsigned char Trigger::Save0043BE60(int hFile)
 /* Write every trigger of a world for the save file's trigger chunk. A trigger
    whose own serialization reports failure stops the walk. */
 // FUNCTION: WIZ8 0x0043C810
-void Function43C810(W8World* world, int hFile)
+void SaveWorldTriggers0043C810(W8World* world, int hFile)
 {
     W8GrowableVector<Trigger*>* triggers = world->triggers;
 
@@ -293,7 +293,7 @@ void Function43C810(W8World* world, int hFile)
 }
 
 // FUNCTION: WIZ8 0x0043d120
-void Function43D120(W8World* world, int handle)
+void SaveTriggerActionData0043D120(W8World* world, int handle)
 {
     int trigger_count = world->triggers->GetCount();
     int saved_count = 0;
@@ -398,7 +398,7 @@ void UpdateWorldTriggers00443AE0(W8World* world)
     for (int index = 0; index < count; ++index) {
         Trigger* trigger = *world->triggers->GetAt(index);
         if (trigger->flag_0a0_25 != 0 && trigger->m_pProp != 0 &&
-            (GetAnimationState0044EBE0(trigger->m_pProp) < 2 ||
+            (trigger->m_pProp->GetAnimationState0044EBE0() < 2 ||
              trigger->m_pProp->Rep()->flag_06d == 0)) {
             trigger->GenerateItemGroup();
             if (g_modal_owner_0068edd0 == 0 &&
@@ -791,7 +791,7 @@ void W8TriggerEvent::Update()
    the complete set exists for the loaded level and select slot zero as the
    initial active state. */
 // FUNCTION: WIZ8 0x00445200
-void Function445200(Trigger* trigger)
+void InitializeStateDrivenPropVariables00445200(Trigger* trigger)
 {
     int slot;
 
@@ -1977,7 +1977,7 @@ void Trigger::RunDestination00440DD0(const char* destination)
         return;
     }
 
-    Function41EF50();
+    ResetInactiveLevelDataVectors0041EF50();
     current_location = g_status_685170.current_level;
     named_entity = FindEntityByName(
         destination, &destination_position, &entity_value,
@@ -2000,7 +2000,7 @@ void Trigger::RunDestination00440DD0(const char* destination)
         entrance_code[2] = '\0';
         entrance = atoi(entrance_code);
     }
-    Function41EF50();
+    ResetInactiveLevelDataVectors0041EF50();
 
     if (location_id != current_location) {
         RequestLevelTransition005615F0(

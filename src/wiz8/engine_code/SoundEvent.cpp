@@ -11,7 +11,7 @@
    playing handle, but only when the event was created with the flag that says
    it started one. */
 // FUNCTION: WIZ8 0x004d5770
-W8VectorElement005ED094::~W8VectorElement005ED094()
+W8SoundEvent::~W8SoundEvent()
 {
     if (m_pacWaveName != 0) {
         delete[] m_pacWaveName;
@@ -24,7 +24,7 @@ W8VectorElement005ED094::~W8VectorElement005ED094()
 /* The wave name is copied into storage the event owns and its destructor
    releases. */
 // FUNCTION: WIZ8 0x004d57a0
-W8VectorElement005ED094* CreateSoundEvent004D57A0(
+W8SoundEvent* CreateSoundEvent004D57A0(
     int value_000,
     int value_004,
     int value_008,
@@ -32,7 +32,7 @@ W8VectorElement005ED094* CreateSoundEvent004D57A0(
     const char* wave_name,
     unsigned char flag_025)
 {
-    W8VectorElement005ED094* pSndEvent = new W8VectorElement005ED094();
+    W8SoundEvent* pSndEvent = new W8SoundEvent();
 
     if (pSndEvent == 0) {
         srAssertFail(

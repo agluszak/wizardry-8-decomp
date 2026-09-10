@@ -328,7 +328,7 @@ extern int g_profession_skill_availability[0x29][15];
 extern int g_profession_bonus_skills[15];
 extern W8SkillAttributes g_skill_attributes[0x29];
 
-/* Profession and race trait sets consulted by Function547940. Each entry is
+/* Profession and race trait sets consulted by CharacterHasTrait00547940. Each entry is
    only its id list: three profession abilities, five race abilities. */
 struct W8ProfessionAbilitySet {
     int ability_ids[3];
@@ -384,8 +384,8 @@ int GetCharacterRealmSpellPoints(const W8Character* character, int realm);
 void GetCharacterHandDamageDice(const W8Character* character, int hand, W8Dice* dice);
 int GetCharacterHandDamageBonus(const W8Character* character, int hand);
 
-void Function558610(W8Character* character);
-unsigned char Function547940(const W8Character* character, int trait);
+void InvalidateAndRecalculateCharacterClassData00558610(W8Character* character);
+unsigned char CharacterHasTrait00547940(const W8Character* character, int trait);
 
 void Function4EFA30(W8Character* character);
 int Function557FD0(W8Character* original, W8Character* edited);
@@ -408,7 +408,7 @@ unsigned char CharacterHasCondition(const W8Character* character, int condition)
 
 /* Character generation and skill/encumbrance helpers whose bodies were split
    across CharGeneration.cpp, character_skills.cpp and the encumbrance unit. */
-bool Function4EDC10(W8Character* character);
+bool RecalculateCarryingCapacity004EDC10(W8Character* character);
 /* 0x004ED9D0: the full derived-stat recompute, and the two equipment-bonus
    passes an NPC character's initialization runs. */
 void Function4ED9D0(W8Character* character);

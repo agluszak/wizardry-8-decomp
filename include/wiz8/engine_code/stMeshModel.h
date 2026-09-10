@@ -69,5 +69,6 @@ static_assert(sizeof(stMeshModel) == 0x464,
 int FindMappedIndexInMeshChain(
     stMeshModel** mesh, int key);          /* 0x004A8D10 */
 
-void Function4729F0(void* model);
+void ReleaseMeshModelInternal004729F0(stMeshModel* model); /* 0x004729F0 */
+void ReleaseMeshModel(stMeshModel* model);                 /* 0x00473180 */
 

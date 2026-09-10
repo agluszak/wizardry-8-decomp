@@ -10,8 +10,8 @@ extern unsigned char g_shared_timer_flag_d1;
 extern unsigned char g_shared_timer_flag_d2;
 extern srTimer* g_shared_timer_base;
 
-void Function439BC0(void);
-void Function439CA0(void);
+void PauseSharedGameTimers00439BC0(void);
+void ResumeSharedGameTimers00439CA0(void);
 
 class W8GameTimer {
 public:

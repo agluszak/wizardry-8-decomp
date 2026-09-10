@@ -77,7 +77,7 @@ unsigned char g_flag_652da5;
 
 /* Install the level's trigger callbacks and master-function helpers. */
 // FUNCTION: WIZ8 0x004D6C50
-void Function4D6C50(int level)
+void InitializeLevelMasterFunctions004D6C50(int level)
 {
     Trigger* pTrigger;
 

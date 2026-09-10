@@ -661,7 +661,7 @@ void CalcArmorClasses(W8Character* character)
     }
 
     if (character->unknown_0b01 <= 0x11) {
-        if (Function547940(character, 0x16)) {
+        if (CharacterHasTrait00547940(character, 0x16)) {
             character->armor_class_components[0] += 2;
         }
         unsigned int speed = character->attributes[5].effective;

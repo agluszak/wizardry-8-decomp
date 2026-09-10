@@ -650,7 +650,7 @@ void W8CharacterPage005EF57C::Deactivate()
 void W8CharacterPage005EF57C::Accept()
 {
     if (m_mode_068 == 0) {
-        Function558610(m_character_060);
+        InvalidateAndRecalculateCharacterClassData00558610(m_character_060);
     }
     else {
         W8Character* original = m_screen_05c->GetOriginalCharacter();

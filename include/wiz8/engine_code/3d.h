@@ -22,15 +22,15 @@ void ExpandBounds0046F510(
     const srVector3T<float>* candidate_minimum,
     const srVector3T<float>* candidate_maximum);
 void UpdateWorldMonsters0046DD70(W8World* world);
-void ForwardThroughMember3C_46E750(void* owner, int argument);
-void ForwardThroughMember3C_46E640(void* owner, int argument);
+void ForwardThroughMember3C_46E750(W8World* owner, int argument);
+void ForwardThroughMember3C_46E640(W8World* owner, int argument);
 void FinalizeStaticScene0046F3A0(srScene* scene);
 stModelInstance* CreateModelInstance0046F5C0(stMeshModel* model);
 
 void FinalizeWorldScenes0046F410(
     srScene* static_scene, srNode* dynamic_scene);
-void Function46E640(void* target, int argument);
-void Function46E750(void* target, int argument);
+void Function46E640(srScene* scene, int argument);
+void Function46E750(srScene* scene, int argument);
 
 
 unsigned char Function0046D880(
