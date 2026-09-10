@@ -879,3 +879,86 @@ void ClearPendingNpcLevelFlags0050C270(void)
         } while (npc_index < count);
     }
 }
+
+/* Release the monster binding of every NPC whose stamped release flag matches
+   the loaded level. The companion NPC is found by the record kind matching the
+   NPC's naming style; its live monster is destroyed and its own binding is
+   handed back. */
+// FUNCTION: WIZ8 0x0050c2e0
+void ReleaseNpcMonsterBindings0050C2E0(void)
+{
+    unsigned int count = g_npc_states->count;
+    unsigned int npc_index = 0;
+
+    if (count == 0) {
+        return;
+    }
+    do {
+        W8NpcState** slot = g_npc_states->data;
+        if (npc_index < count) {
+            slot += npc_index;
+        }
+        W8NpcState* npc = *slot;
+
+        if (npc->flag_112 != 0 && npc->unknown_c7 == 0
+            && npc->flag_113 == g_loaded_level_id) {
+            W8NpcState* companion = 0;
+            bool found = false;
+
+            for (unsigned int index = 0; index < count; ++index) {
+                W8NpcState** candidate_slot = g_npc_states->data;
+
+                if (index < count) {
+                    candidate_slot += index;
+                }
+                companion = *candidate_slot;
+                if (static_cast<unsigned int>(companion->record->kind)
+                    == static_cast<unsigned char>(npc->name_style)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                companion = 0;
+            }
+            if (companion->has_monster != 0) {
+                if (companion->is_present != 0) {
+                    unsigned int monster_index = MonsterGetIndexByLocationID(
+                        0x2a1, NPC_MANAGER_CPP, companion->location_id, 1);
+                    W8MonsterInfo* monster_info =
+                        MonsterGetScriptPartByLocationIndex(monster_index);
+
+                    if (monster_info != 0) {
+                        unsigned char destroy = 1;
+
+                        monster_index = MonsterGetIndexByLocationID(
+                            0x9bb, NPC_MANAGER_CPP, monster_info->location_id, 1);
+                        RemoveMonster(monster_index, destroy);
+                    }
+                }
+                {
+                    unsigned int partner_index = companion->partner_index_2c;
+
+                    if (partner_index != 0xffffffff
+                        && static_cast<int>(partner_index) <= count) {
+                        W8NpcState** target_slot = g_npc_states->data;
+
+                        if (static_cast<int>(partner_index) < count) {
+                            target_slot += partner_index;
+                        }
+                        W8NpcState* target = *target_slot;
+
+                        target->has_monster = 0;
+                        Function55A0A0(target->unknown_00);
+                        target->unknown_00 = 0;
+                        if (target->record->unknown_054 != 0) {
+                            target->unknown_c7 = 1;
+                        }
+                    }
+                }
+            }
+        }
+        count = g_npc_states->count;
+        ++npc_index;
+    } while (npc_index < count);
+}

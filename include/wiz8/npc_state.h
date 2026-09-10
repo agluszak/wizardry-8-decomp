@@ -81,7 +81,11 @@ typedef struct W8NpcState {
     unsigned char unknown_ef[3];
     /* 0x0f2: fourteen facts, appended in order and terminated by zero. */
     short known_facts[14];
-    unsigned char unknown_10e[6];
+    unsigned char unknown_10e[4];
+    /* 0x112/0x113: the monster-binding release flag and the level it is
+       stamped for. */
+    unsigned char flag_112;
+    unsigned char flag_113;
     unsigned char marked_114;
     unsigned char unknown_115[0x15];
 } W8NpcState;                             /* 0x12a partitioned */
@@ -107,8 +111,11 @@ void Function50CF70(W8NpcState* npc, int mode);
 void Function50E650(int party_slot);
 /* 0x0050C560: the NPC-side check the pending-restore clear delegates to. */
 unsigned char Function50C560(W8NpcState* npc, void* data);
+/* 0x0055A0A0: release one NPC's bound monster object. */
+void Function55A0A0(int binding);
 void ResetNpcBindingsForParty0050DB50(void);
-void ClearPendingNpcLevelFlags0050C270(void);W8NpcState* GetNpcState(int index);
+void ClearPendingNpcLevelFlags0050C270(void);
+void ReleaseNpcMonsterBindings0050C2E0(void);W8NpcState* GetNpcState(int index);
 W8NpcState* GetNpcStateByKind(int kind);
 unsigned char Function50B8F0(unsigned int kind);
 unsigned char GetNpcDispositionBand(W8NpcState* npc);
