@@ -269,7 +269,10 @@ typedef struct W8Character {
     /* 0x169e: the fatigue band, zero through four, recomputed from the stamina
        fraction whenever it moves; a change re-runs the armour class pass. */
     int fatigue_band;
-    unsigned char unknown_16a2[0xce];
+    unsigned char unknown_16a2[0x67];
+    /* 0x1709: the equipment bonus block 0x0050E980 accumulates from the worn
+       items and 0x0050F030 folds into the final bonuses at 0x1770. */
+    char equipment_bonus_1709[0x67];
     signed char bonus_1770;
     signed char bonus_1771;
     signed char bonus_1772;
@@ -406,6 +409,11 @@ unsigned char CharacterHasCondition(const W8Character* character, int condition)
 /* Character generation and skill/encumbrance helpers whose bodies were split
    across CharGeneration.cpp, character_skills.cpp and the encumbrance unit. */
 bool Function4EDC10(W8Character* character);
+/* 0x004ED9D0: the full derived-stat recompute, and the two equipment-bonus
+   passes an NPC character's initialization runs. */
+void Function4ED9D0(W8Character* character);
+void Function50E980(W8Character* character, char* equipment_bonus);
+void Function50F030(W8Character* character);
 void Function52A3E0(W8Character* character);
 void Function52A500(W8Character* character);
 void Function553C90(W8Character* character);

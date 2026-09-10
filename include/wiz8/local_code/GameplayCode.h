@@ -2,6 +2,7 @@
 
 struct W8Character;
 
+void AdvanceCharacterToLevel(W8Character* character, unsigned int level);
 bool AnyCharacterActive(void);
 void CalcInitiative(W8Character* character);
 void CalcAttacks(W8Character* character);

@@ -45,6 +45,7 @@ int PointCastSpell(float x, float y, float z, int spell_id, unsigned int power_l
 bool CanCastFromItem(const W8Character* caster, const W8ItemInstance* item);
 
 char CanCharacterLearnSpell(W8Character* character, int spell_id);
+void LearnSpell(W8Character* character, int spell_id, char announce);
 
 /* Zeroes the six per-realm learned-spell counters and recounts them from the
    spell_learned array. */

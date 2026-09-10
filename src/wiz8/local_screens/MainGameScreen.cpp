@@ -57,6 +57,7 @@
 #include "mousesystem.h"
 #include "surrender/srTypeRegistry.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -210,6 +211,14 @@ extern unsigned char g_byte_00659a64;
 W8MainScreenState g_screen_state_storage_0068ee90;
 // GLOBAL: WIZ8 0x00649f1c
 W8MainScreenState* g_screen_state_00649f1c = &g_screen_state_storage_0068ee90;
+/* 0x0068EE80: the dialogue keyword tables. Element zero is the English file
+   list and element one the translated one; each file list holds one line list
+   per line and each line list one word per field. */
+// GLOBAL: WIZ8 0x0068EE80
+W8GrowableVector<W8GrowableVector<W8GrowableVector<wchar_t*>*>*> g_keyword_lists;
+/* 0x0068F0F8: both keyword files are loaded and the tables are usable. */
+// GLOBAL: WIZ8 0x0068F0F8
+unsigned char g_keyword_lists_loaded_68f0f8;
 /* 0x0068F0F9: the keyword subsystem's active flag, written absolutely by the
    screen reset and by the keyword panel helpers. */
 // GLOBAL: WIZ8 0x0068F0F9
@@ -444,6 +453,145 @@ void ResetMainGameScreenState(void)
     }
 }
 
+/* Copy the next '/'-terminated field of a keyword line into the caller's
+   buffer, trimming the leading and trailing spaces and stopping at a newline
+   or at the end of the line. A field reached at a slash position, or a line
+   that ends before any field, answers null; otherwise the returned cursor
+   sits past the terminating slash so the next call continues the line. */
+// FUNCTION: WIZ8 0x0056be40
+wchar_t* ParseKeywordToken(wchar_t* line, wchar_t* field)
+{
+    wchar_t* cursor = line;
+    wchar_t* out = field;
+    int length = 0;
+
+    *out = 0;
+    while (*cursor == L' ' && *cursor != 0) {
+        ++cursor;
+    }
+    if (*cursor == L'/') {
+        return 0;
+    }
+    while (*cursor != 0 && *cursor != L'\n' && *cursor != L'\r') {
+        *out = *cursor;
+        ++cursor;
+        ++length;
+        ++out;
+        if (*cursor == L'/') {
+            break;
+        }
+    }
+    if (length == 0) {
+        return 0;
+    }
+    while (field[length - 1] == L' ') {
+        --length;
+        if (length < 1) {
+            return 0;
+        }
+    }
+    field[length] = 0;
+    if (*cursor == L'/') {
+        ++cursor;
+    }
+    return cursor;
+}
+
+/* Load one keyword file into a file list: a fresh line list per line and a
+   malloc'd wide copy of every '/'-separated field. The first line is read only
+   to prime the end-of-file test, and parsing starts eleven wide characters
+   into every line - retail's own offset, whose prefix meaning is not
+   resolved. A file that cannot be opened answers zero; otherwise every line
+   adds a list, an empty one included, and the loader answers one. */
+// FUNCTION: WIZ8 0x0056bed0
+unsigned char LoadKeywordFile(
+    const char* path,
+    W8GrowableVector<W8GrowableVector<wchar_t*>*>* file)
+{
+    wchar_t line[1000];
+    wchar_t field[1000];
+    W8GrowableVector<wchar_t*>* entry;
+    wchar_t* cursor;
+    wchar_t* word;
+    FILE* stream;
+    size_t length;
+
+    stream = fopen(path, "rb");
+    if (stream == 0) {
+        return 0;
+    }
+    memset(line, 0, sizeof(line));
+    fgetws(line, 1000, stream);
+    while (!feof(stream)) {
+        memset(line, 0, sizeof(line));
+        fgetws(line, 1000, stream);
+        entry = new W8GrowableVector<wchar_t*>;
+        cursor = line + 11;
+        while ((cursor = ParseKeywordToken(cursor, field)) != 0) {
+            length = wcslen(field);
+            word = static_cast<wchar_t*>(malloc(length * 2 + 2));
+            wcscpy(word, field);
+            entry->Add(word);
+        }
+        file->Add(entry);
+    }
+    fclose(stream);
+    return 1;
+}
+
+/* Release every keyword file list: its words through free, each line list and
+   each file list through its deleting destructor. The loaded flag is lowered
+   either way and the outer count is cleared. */
+// FUNCTION: WIZ8 0x0056c130
+void ClearKeywordLists(void)
+{
+    W8GrowableVector<W8GrowableVector<wchar_t*>*>* file;
+    W8GrowableVector<wchar_t*>* entry;
+    int file_index;
+    int entry_index;
+    int word_index;
+
+    for (file_index = 0; file_index < g_keyword_lists.count; ++file_index) {
+        file = *g_keyword_lists.GetAt(file_index);
+        for (entry_index = 0; entry_index < file->count; ++entry_index) {
+            entry = *file->GetAt(entry_index);
+            for (word_index = 0; word_index < entry->count; ++word_index) {
+                free(*entry->GetAt(word_index));
+            }
+            entry->count = 0;
+            delete entry;
+        }
+        delete file;
+    }
+    g_keyword_lists.count = 0;
+    g_keyword_lists_loaded_68f0f8 = 0;
+}
+
+/* Replace the keyword tables: release the current pair, then load the English
+   file into element zero and the translated file into element one. A failed
+   first load leaves an empty table; a failed second load releases the first
+   list again. Only a complete pair raises the loaded flag. */
+// FUNCTION: WIZ8 0x0056c200
+void ReloadKeywordLists(void)
+{
+    W8GrowableVector<W8GrowableVector<wchar_t*>*>* english;
+    W8GrowableVector<W8GrowableVector<wchar_t*>*>* translated;
+
+    ClearKeywordLists();
+    english = new W8GrowableVector<W8GrowableVector<wchar_t*>*>;
+    if (!LoadKeywordFile("Data\\Strings\\English_Keywords.txt", english)) {
+        return;
+    }
+    g_keyword_lists.Add(english);
+    translated = new W8GrowableVector<W8GrowableVector<wchar_t*>*>;
+    if (!LoadKeywordFile("Data\\Strings\\translated_Keywords.txt", translated)) {
+        ClearKeywordLists();
+        return;
+    }
+    g_keyword_lists.Add(translated);
+    g_keyword_lists_loaded_68f0f8 = 1;
+}
+
 /* Reset the screen state block: zero its 0x268 bytes, write its reset values,
    clear the keyword status byte, and reload the keyword lists. */
 // FUNCTION: WIZ8 0x0056c520
@@ -457,9 +605,9 @@ void Function56C520(void)
     g_screen_state_00649f1c->flag_234 = 0;
     g_screen_state_00649f1c->value_258 = unset;
     g_screen_state_00649f1c->flag_260 = 1;
-    g_status_685170.status_header_block_1904[0xb30] = unset;
+    g_status_685170.selected_party_member_2434 = 0xff;
     g_flag_68f0f9 = 0;
-    Function56C200();
+    ReloadKeywordLists();
 }
 
 /* Enter the live game screen. The 0x330 allocation is the complete extent of

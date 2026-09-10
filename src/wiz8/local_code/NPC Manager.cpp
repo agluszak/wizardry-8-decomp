@@ -1,4 +1,7 @@
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/character.h"
+#include "wiz8/item_spawning.h"
+#include "wiz8/layouts/item_tables.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/local_code/MonsterGroup.h"
@@ -126,7 +129,7 @@ bool NpcKnowsFact(W8NpcState* npc, unsigned int fact)
     return false;
 }
 
-/* The NPC state at one index, skipping deleted database entries. Out-of-range
+/* The NPC state at one index, skipping a released binding. Out-of-range
    indices are clamped to the front by the shared vector rather than refused. */
 // FUNCTION: WIZ8 0x0050b800
 W8NpcState* GetNpcState(int index)
@@ -140,7 +143,7 @@ W8NpcState* GetNpcState(int index)
     if (npc == 0) {
         return 0;
     }
-    if (npc->record->deleted != 0) {
+    if (npc->unknown_c7 != 0) {
         return 0;
     }
     return npc;
@@ -484,6 +487,168 @@ void ResetNpcStates(void)
             CreateNpcRuntimeNode(npc_id);
         }
     }
+}
+
+/* Build one runtime state from its database record: clear the 0x13d-byte
+   block, bind the record, build the group-member character and stock, copy the
+   item table, and insert the node into the shared vector. A node whose binding
+   was released keeps its slot for the newcomer, which is placed at the same
+   index and then removed; otherwise the node is appended. Either way the node
+   records its own slot at 0x2c, and a failed append leaves the not-found
+   value. */
+// FUNCTION: WIZ8 0x00509aa0
+W8NpcState* CreateNpcRuntimeNode(int npc_id)
+{
+    W8NpcState* npc;
+    W8NpcState* released;
+    int index;
+
+    npc = new W8NpcState;
+    memset(npc, 0, sizeof(*npc));
+    npc->name_style = (char)npc_id;
+    npc->record = &g_npc_records[npc_id];
+    if (npc->record->has_group != 0) {
+        npc->character = new W8Character;
+        InitializeNpcCharacter(npc, npc->character);
+    }
+    if (npc->record->flag_055 != 0) {
+        PopulateNpcStock(npc);
+    }
+    InitializeNpcItemTable(npc);
+    npc->location_id = 0;
+    npc->is_present = 0;
+    npc->disposition = g_npc_records[npc_id].disposition;
+    npc->gold_80 = g_npc_records[npc_id].gold;
+    npc->unknown_1d = 1;
+    npc->unknown_ca = g_npc_records[npc_id].value_002;
+
+    for (index = 0; index < g_npc_states->count; ++index) {
+        released = *g_npc_states->GetAt(index);
+        if (released != 0 && released->unknown_c7 != 0) {
+            g_npc_states->InsertAt(index, npc);
+            g_npc_states->Remove(released);
+            npc->partner_index_2c = (unsigned char)index;
+            return npc;
+        }
+    }
+    if (g_npc_states->Add(npc) == -1) {
+        npc->partner_index_2c = 0xff;
+        return npc;
+    }
+    npc->partner_index_2c = (unsigned char)(g_npc_states->count - 1);
+    return npc;
+}
+
+/* Expand the record's character block into a fresh group-member character:
+   the name, profession and starting level, attributes, skills, known spells
+   and worn/carried items, then the derived passes a level advance settles. */
+// FUNCTION: WIZ8 0x0050aed0
+unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character)
+{
+    W8NpcDatabaseRecord* record = npc->record;
+    W8NpcCharacterTemplate* source;
+    W8ItemInstance item;
+    int index;
+
+    if (record->has_group == 0) {
+        return 0;
+    }
+    source = &record->character;
+    memset(character, 0, sizeof(*character));
+    character->level_band_base = 0;
+    character->attribute_point_deficit_0199 = 0;
+    character->unknown_0b01 = 0;
+    character->enchantment_top = 0;
+    character->unknown_007d = -1;
+    character->personality_0081 = -1;
+    for (index = 0; index < 12; ++index) {
+        Function520070(&character->equipment[index], 0, 1);
+    }
+    for (index = 0; index < 8; ++index) {
+        Function520070(&character->backpack[index], 0, 1);
+    }
+    wcscpy(character->name, source->name);
+    wcscpy(character->name_part_2, source->name_part_2);
+    character->current_profession = source->profession;
+    character->original_profession = source->profession;
+    character->profession_levels[source->profession] = source->level;
+    character->race = source->race;
+    character->faction = source->faction;
+    character->table_value_0079 = source->table_value;
+    for (index = 0; index < 7; ++index) {
+        character->attributes[index].value = source->attributes[index];
+    }
+    for (index = 0; index < 0x29; ++index) {
+        character->skills[index].value_02 = source->skills[index];
+    }
+    for (index = 0; index < 12; ++index) {
+        if (source->equipment_present[index] != 0 &&
+            source->equipment_ids[index] != 0xffff) {
+            ReplaceOrCreateItem(
+                &item, (short)source->equipment_ids[index], 1, 1, 0);
+            character->equipment[index] = item;
+        }
+    }
+    for (index = 0; index < 8; ++index) {
+        if (source->backpack_present[index] != 0 &&
+            source->backpack_ids[index] != 0xffff) {
+            ReplaceOrCreateItem(
+                &item, (short)source->backpack_ids[index], 1, 1, 0);
+            character->backpack[index] = item;
+        }
+    }
+    AdvanceCharacterToLevel(character, source->level);
+    Function50E980(character, character->equipment_bonus_1709);
+    Function50F030(character);
+    CalcCharacterLevelBand(character);
+    Function553CD0(character);
+    Function4ED9D0(character);
+    for (index = 1; index < 0x73; ++index) {
+        if (source->spells[index - 1] != 0 &&
+            CanCharacterLearnSpell(character, index)) {
+            LearnSpell(character, index, 0);
+        }
+        else {
+            character->spell_learned[index] = 0;
+        }
+    }
+    character->hp_current = character->hp_max;
+    character->stamina = character->stamina_max;
+    for (index = 0; index < W8_SPELL_REALM_COUNT; ++index) {
+        character->sp_left[index] = character->sp_max[index];
+    }
+    return 1;
+}
+
+/* Copy the record's one-based item table into the state's runtime arrays: the
+   forty entry item ids and weights, and the table's item-count dice. A record
+   whose table id is zero or past the table database keeps the -1 ids and
+   leaves the dice untouched. */
+// FUNCTION: WIZ8 0x0050b9e0
+void InitializeNpcItemTable(W8NpcState* npc)
+{
+    unsigned int index;
+
+    memset(npc->item_ids_30, 0xff, sizeof(npc->item_ids_30));
+    if (npc->record->item_table_id >= (int)gXStatus.uiItemTablesInDatabase) {
+        return;
+    }
+    if (npc->record->item_table_id == 0) {
+        return;
+    }
+    for (index = 0; index < 40; ++index) {
+        if (g_item_tables[npc->record->item_table_id - 1]
+                ->entries[index].selector_00 != 0) {
+            npc->item_ids_30[index] =
+                g_item_tables[npc->record->item_table_id - 1]
+                    ->entries[index].item_id;
+            npc->item_weights_115[index] =
+                g_item_tables[npc->record->item_table_id - 1]
+                    ->entries[index].weight;
+        }
+    }
+    npc->item_count_dice_10e =
+        g_item_tables[npc->record->item_table_id - 1]->item_count_dice;
 }
 
 /* Release the NPC binding held at the given index: clear its monster link and

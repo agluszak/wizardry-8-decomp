@@ -1,6 +1,8 @@
 #ifndef WIZ8_LAYOUTS_GAMEPLAY_DATABASES_H
 #define WIZ8_LAYOUTS_GAMEPLAY_DATABASES_H
 
+#include <stddef.h>
+
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/dice.h"
 #include "wiz8/text_types.h"
@@ -117,12 +119,39 @@ typedef struct W8NpcItemStockRule {
     unsigned char persistent;             /* 0x05: retain and replenish this item */
 } W8NpcItemStockRule;                     /* 0x06 */
 
+/* The RPC-character block a record with has_group carries, from the record's
+   0x0c4 up to the stock-rule list at 0x2ca. 0x0050AED0 expands it into a
+   W8Character and is what establishes the field extents; its biased record
+   base independently shows the block as one object. */
+typedef struct W8NpcCharacterTemplate {
+    wchar_t name[10];                    /* 0x000, record 0x0c4 */
+    wchar_t name_part_2[6];              /* 0x014, record 0x0d8 */
+    unsigned char unknown_01a[0x44];
+    int profession;                      /* 0x064, record 0x128: index into profession_levels[15] */
+    int race;                            /* 0x068, record 0x12c */
+    int table_value;                     /* 0x06c, record 0x130: the value 0x004EF950 otherwise computes */
+    unsigned int level;                  /* 0x070, record 0x134: starting profession level */
+    int attributes[7];                   /* 0x074, record 0x138: W8CharacterAttribute::value per attribute */
+    int skills[0x29];                    /* 0x090, record 0x154: W8CharacterSkill::value_02 per skill */
+    unsigned char spells[0x72];          /* 0x134, record 0x1f8: one flag per learnable spell, indexed from one */
+    unsigned short equipment_present[12];/* 0x1a6, record 0x26a: zero leaves the slot empty */
+    unsigned short equipment_ids[12];    /* 0x1be, record 0x282: Items.dbs index, 0xffff empty */
+    unsigned short backpack_present[8];  /* 0x1d6, record 0x29a */
+    unsigned short backpack_ids[8];      /* 0x1e6, record 0x2aa */
+    signed char faction;                 /* 0x1f6, record 0x2ba */
+    unsigned char unknown_1f7[0xf];
+} W8NpcCharacterTemplate;                /* 0x206, record 0x0c4..0x2c9 */
+
+static_assert(sizeof(W8NpcCharacterTemplate) == 0x206,
+              "W8NpcCharacterTemplate_size_must_be_0x206");
+
 /* One Data\Databases\NPC.DBS record. Only source-consumed fields are modelled
    here; Ghidra owns the wider operational field inventory. */
 typedef struct W8NpcDatabaseRecord {
     unsigned short version;              /* 0x000: two in the corpus; the rule tail loads only when this exceeds 1 */
     /* 0x002: non-zero marks the record as carrying whatever the NPC manager's
-       first predicate asks about. */
+       first predicate asks about. CreateNpcRuntimeNode copies it into the
+       runtime state's word at 0x0ca. */
     short value_002;
     /* 0x004: the wide source name the level-entry rebinding prefixes with an
        underscore to build the NPC's trigger name. */
@@ -134,29 +163,40 @@ typedef struct W8NpcDatabaseRecord {
        releases the NPC's stock while this is set. */
     unsigned char flag_055;
     unsigned char unknown_056;
-    /* 0x057: the NPC belongs to a monster group, which is what makes the group
-       index on its runtime state meaningful. */
+    /* 0x057: the NPC carries an RPC character and can join a monster group,
+       which is what makes the group index on its runtime state meaningful. */
     unsigned char has_group;
     /* 0x058: the NPC's kind. Twenty is the one value a recovered body singles
        out, refusing to trade with it. */
     int kind;
-    unsigned char unknown_05c[0xc];
+    /* 0x05c: the disposition byte CreateNpcRuntimeNode starts the state with. */
+    unsigned char disposition;
+    unsigned char unknown_05d[7];
+    /* 0x064: one-based index into g_item_tables selecting the record's item
+       table; 0x0050B9E0 copies that table into the runtime state. The zero and
+       past-the-end tests compare it signed. */
+    int item_table_id;
     /* 0x068: one bit per service the NPC offers, matched against the table at
        0x00619DFC that pairs each service id with its bit. */
     unsigned int service_flags;
     unsigned char unknown_06c[0x31];
     unsigned char flag_9d;               /* 0x09d: and only when this is clear */
-    /* 0x09e: what the NPC is called, unless a fact substitutes another name. */
-    char display_name[0x29];
-    unsigned char deleted;               /* 0x0c7 */
-    unsigned char unknown_0c8[0x202];
+    /* 0x09e: what the NPC is called, unless a fact substitutes another name.
+       The wide RPC-character name at 0x0c4 bounds the string extent. */
+    char display_name[0x26];
+    W8NpcCharacterTemplate character;    /* 0x0c4 */
     W8PList* item_stock_rules;           /* 0x2ca: W8NpcItemStockRule* elements */
     unsigned char unknown_2ce[0x1c];
     /* 0x2ea: the second half of the rebinding gate, tested together with the
        record's 0x56 byte. */
     unsigned char flag_2ea;
-    unsigned char unknown_2eb[0x1e];
+    /* 0x2eb: the purse the NPC carries; 0x004F8CB0 hands it to AddPartyGold
+       when the NPC's monster dies. */
+    int gold;
+    unsigned char unknown_2ef[0x1a];
 } W8NpcDatabaseRecord;                   /* 0x309 */
+
+static_assert(sizeof(W8NpcDatabaseRecord) == 0x309, "W8NpcDatabaseRecord_size_must_be_0x309");
 
 /* One Data\Databases\LEVELS.DBS record. Only the disk and runtime stride is
    established; the leading field is a display name. */

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "input.h"
+#include "wiz8/vector.h"
 
 struct W8IList;
 struct W8NpcState;
@@ -268,9 +269,29 @@ void ResetMainGameScreenState(void);
 /* 0x0056C520: zero W8MainScreenState, write its reset values, and reload the
    keyword lists through the loader below. */
 void Function56C520(void);
+
+/* 0x0068EE80: the dialogue keyword tables, one file list per language;
+   element zero is English_Keywords.txt and element one the translated list.
+   A file list holds one line list per line, and a line list one malloc'd wide
+   word per '/'-separated field. */
+extern W8GrowableVector<W8GrowableVector<W8GrowableVector<wchar_t*>*>*>
+    g_keyword_lists;
+/* 0x0068F0F8: both files are loaded and the tables are usable. Raised once the
+   second file loads and lowered whenever the tables are released. */
+extern unsigned char g_keyword_lists_loaded_68f0f8;
+
 /* 0x0056C200: replace the keyword lists with the contents of
    Data\Strings\English_Keywords.txt and Data\Strings\translated_Keywords.txt. */
-void Function56C200(void);
+void ReloadKeywordLists(void);
+/* 0x0056C130: release every file list, its lines and its words. */
+void ClearKeywordLists(void);
+/* 0x0056BED0: load one keyword file into a file list. */
+unsigned char LoadKeywordFile(
+    const char* path,
+    W8GrowableVector<W8GrowableVector<wchar_t*>*>* file);
+/* 0x0056BE40: copy the next '/'-terminated field out of a keyword line into
+   the caller's buffer and return the cursor past it, or null at the end. */
+wchar_t* ParseKeywordToken(wchar_t* line, wchar_t* field);
 
 void Function577260(void);
 unsigned char Function577850(void);

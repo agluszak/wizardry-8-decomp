@@ -46,7 +46,10 @@ typedef struct W8NpcState {
     /* 0x1b: the NPC's disposition. Setting a band writes one of three
        representative values rather than a range. */
     unsigned char disposition;
-    unsigned char unknown_1c[8];
+    unsigned char unknown_1c;
+    /* 0x1d: set by CreateNpcRuntimeNode when the node is built. */
+    unsigned char unknown_1d;
+    unsigned char unknown_1e[6];
     /* 0x24: the level-band value the rebinding stamps from the level's own. */
     unsigned char value_24;
     unsigned char is_present;             /* 0x25 */
@@ -56,8 +59,9 @@ typedef struct W8NpcState {
        state reset deletes it here. */
     W8Character* character;
     signed char group_index;              /* 0x2b */
-    /* 0x2c: g_npc_states index whose monster binding this NPC's release
-       follows. */
+    /* 0x2c: this node's own slot in g_npc_states, written by
+       CreateNpcRuntimeNode; the release pass follows the index a partner
+       names. */
     unsigned char partner_index_2c;
     unsigned char unknown_2d;
     /* 0x2e: the space character selects the naming style whose name a fact can
@@ -65,7 +69,13 @@ typedef struct W8NpcState {
     char name_style;
     /* 0x2f: the loaded level id the binding is stamped for. */
     unsigned char value_2f;
-    unsigned char unknown_30[0x59];
+    /* 0x30: the forty item ids 0x0050B9E0 copies out of the record's item
+       table, -1 for an unused slot. */
+    unsigned short item_ids_30[40];
+    /* 0x80: the purse 0x004F8CB0 hands to AddPartyGold, from the record's
+       gold field. */
+    int gold_80;
+    unsigned char unknown_84[5];
     /* 0x089: five topics stored one more than their id so zero means empty. */
     int topics[5];
     unsigned char unknown_9d[0x28];
@@ -75,7 +85,10 @@ typedef struct W8NpcState {
     /* 0x0c7: set when the NPC binding is released while its record flag at
        0x054 is set, and tested before handing the binding back out. */
     unsigned char unknown_c7;
-    unsigned char unknown_c8[0x20];
+    unsigned char unknown_c8[2];
+    /* 0x0ca: the record's word at 0x002, copied by CreateNpcRuntimeNode. */
+    unsigned short unknown_ca;
+    unsigned char unknown_cc[0x1c];
     /* 0x0e8: cleared by the level-entry NPC-binding reset. */
     unsigned char flag_e8;
     /* 0x0e9 and 0x114: two flags raised together when the NPC is marked. */
@@ -87,14 +100,17 @@ typedef struct W8NpcState {
     unsigned char unknown_ef[3];
     /* 0x0f2: fourteen facts, appended in order and terminated by zero. */
     short known_facts[14];
-    unsigned char unknown_10e[4];
+    /* 0x10e: the item-count dice of the item table 0x0050B9E0 copied. */
+    W8Dice item_count_dice_10e;
     /* 0x112/0x113: the monster-binding release flag and the level it is
        stamped for. */
     unsigned char flag_112;
     unsigned char flag_113;
     unsigned char marked_114;
-    unsigned char unknown_115[0x15];
-} W8NpcState;                             /* 0x12a partitioned */
+    /* 0x115: the forty entry weights matching item_ids_30; only the slots
+       whose table selector was set carry a weight. */
+    unsigned char item_weights_115[40];
+} W8NpcState;                             /* 0x13d by allocation */
 
 #pragma pack(pop)
 
@@ -106,8 +122,13 @@ void UpdateNpcEvents0050D530(void);
    vector, recreating a runtime node for every database record still in use. */
 void InitializeNpcStates(void);
 void ResetNpcStates(void);
-/* 0x00509AA0: build one runtime state from its database record. */
-void CreateNpcRuntimeNode(int npc_id);
+/* 0x00509AA0: build one runtime state from its database record and return it,
+   reusing the slot of a released node when one is free. */
+W8NpcState* CreateNpcRuntimeNode(int npc_id);
+/* 0x0050AED0: expand the record's character block into a fresh character. */
+unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character);
+/* 0x0050B9E0: copy the record's item table into the state's runtime arrays. */
+void InitializeNpcItemTable(W8NpcState* npc);
 
 int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity);
 /* The NPC-side consequence pass the sight code runs when a marked NPC's
