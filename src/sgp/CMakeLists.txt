@@ -57,3 +57,7 @@ target_include_directories(WIZ8_SGP PRIVATE
 # DirectX Common.c owns the two DirectDraw IIDs; search the SDK archive after
 # extracting the SGP objects for the remaining GUIDs.
 target_link_libraries(WIZ8_SGP PUBLIC dxguid.lib)
+
+# The retained vendor library keeps its own diagnostics profile in the clang
+# lane: only decompilation-correctness warnings gate it.
+wiz8_lint_target(WIZ8_SGP VENDOR)

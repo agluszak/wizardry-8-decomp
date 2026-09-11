@@ -8,7 +8,6 @@ import typer
 
 toolchain_app = typer.Typer(help="Build the pinned analysis toolchain.", no_args_is_help=True)
 analyze_app = typer.Typer(help="Run project-specific binary analysis.", no_args_is_help=True)
-generate_app = typer.Typer(help="Generate build-time projections.", no_args_is_help=True)
 
 
 def doctor_command() -> None:
@@ -212,24 +211,31 @@ def runtime_test_command() -> None:
     cli.emit(run_runtime_suite(settings))
 
 
-def verify_command(
-    compare_image: Annotated[bool, typer.Option("--compare/--no-compare")] = True,
-    against: Annotated[
-        Path | None,
-        typer.Option(
-            "--against",
-            exists=True,
-            dir_okay=False,
-            readable=True,
-            help="Alternate normalized source-layout baseline CSV.",
-        ),
+def run_command(
+    arguments: Annotated[
+        list[str] | None,
+        typer.Argument(help="Game arguments; /WINDOW is always passed."),
     ] = None,
+    original: Annotated[
+        bool,
+        typer.Option("--original", help="Run the retail executable instead of the recomp."),
+    ] = False,
 ) -> None:
-    """Run compiler, source-model, linked-image, unit, and runtime validation."""
+    """Stage the primary game under build/runtime and run it under Wine."""
     from .. import command_support as cli
-    from ..build import verify
+    from ..runtime import run_product
 
-    cli.emit(verify(cli.settings(), compare_image=compare_image, against=against))
+    result = run_product(cli.settings(), list(arguments or []), original=original)
+    cli.emit(
+        {
+            "status": result["status"],
+            "stage": result["stage"],
+            "executable": result["executable"],
+            "crash": result["crash"],
+        }
+    )
+    if result["status"]:
+        raise typer.Exit(result["status"])
 
 
 @toolchain_app.command("build")
@@ -254,25 +260,15 @@ def register(app: typer.Typer) -> None:
     app.command("datacmp")(datacmp_command)
     app.command("addr")(address_command)
     app.command("runtime-test")(runtime_test_command)
-    app.command("verify")(verify_command)
+    app.command("run")(run_command)
     app.command("debug")(debug_command)
     app.add_typer(analyze_app, name="analyze")
-    app.add_typer(generate_app, name="generate")
-    app.command("check-build-dir", hidden=True)(check_build_dir_command)
-    app.command("check-reccmp", hidden=True)(check_reccmp_command)
-    app.command("check-casts", hidden=True)(check_casts_command)
-    app.command("check-vectors", hidden=True)(check_vectors_command)
-    app.command("check-c-linkage", hidden=True)(check_c_linkage_command)
-    app.command("check-tu-placement", hidden=True)(check_tu_placement_command)
-    app.command("check-identities", hidden=True)(check_identities_command)
-    app.command("check-structures", hidden=True)(check_structures_command)
     analyze_app.command("unresolved")(unresolved_report_command)
     analyze_app.command("crash")(crash_report_command)
     analyze_app.command("inventory")(inventory_command)
     analyze_app.command("trace")(trace_command)
     analyze_app.command("source-layouts")(verify_source_layouts_command)
     analyze_app.command("source-index")(source_index_command)
-    generate_app.command("runtime-stubs")(runtime_stubs_command)
 
 
 def source_index_command() -> None:
@@ -296,24 +292,15 @@ def unresolved_report_command(
 
     def action():
         settings = cli.settings()
-        build = settings.repo_dir / "build" / "decomp"
         report = unresolved_report(
-            objects or build / "CMakeFiles" / "wiz8_recovered_objects.dir",
-            link_map or build / "Wiz8.map",
+            objects or settings.recovered_objects_dir,
+            link_map or settings.product_build_dir / "Wiz8.map",
         )
         if write_baseline:
             return write_unresolved_baseline(settings.repo_dir / DEFAULT_BASELINE, report)
         return report
 
     cli.emit(action())
-
-
-def runtime_stubs_command() -> None:
-    """Generate the runtime fallback traps for unresolved first-party calls."""
-    from .. import command_support as cli
-    from ..runtime_stubs import write_runtime_stubs
-
-    cli.emit(write_runtime_stubs(cli.settings()))
 
 
 def debug_command(
@@ -351,100 +338,13 @@ def crash_report_command(
 
     def action() -> Any:
         settings = cli.settings()
-        build = settings.repo_dir / "build" / "decomp"
         return analyze_runtime_crash(
             log,
-            link_map or build / "Wiz8Runtime.map",
-            objects or build / "CMakeFiles" / "wiz8_recovered_objects.dir",
+            link_map or settings.product_build_dir / "Wiz8Runtime.map",
+            objects or settings.recovered_objects_dir,
         )
 
     cli.emit(action())
-
-
-def check_build_dir_command(
-    build_dir: Annotated[Path | None, typer.Option(help="CMake build directory.")] = None,
-) -> None:
-    from .. import command_support as cli
-    from ..build_dir import check_build_directory
-
-    cli.emit(
-        check_build_directory(
-            build_dir or cli.settings().repo_dir / "build" / "decomp",
-            cli.settings().repo_dir,
-        )
-    )
-
-
-def check_reccmp_command() -> None:
-    """Run reccmp's annotation parser and project lint policy."""
-    from .. import command_support as cli
-    from ..config import repository_root
-    from ..reccmp_lint import validate_reccmp_annotations
-
-    cli.emit(validate_reccmp_annotations(repository_root()))
-
-
-def check_casts_command() -> None:
-    """Require newly added reinterpret_cast lines to declare their boundary."""
-    from .. import command_support as cli
-    from ..cast_lint import validate_cast_markers
-    from ..config import repository_root
-
-    cli.emit(validate_cast_markers(repository_root()))
-
-
-def check_vectors_command() -> None:
-    """Require newly added W8GrowableVector<void*> lines to justify the type."""
-    from .. import command_support as cli
-    from ..config import repository_root
-    from ..vector_lint import validate_void_vector_elements
-
-    cli.emit(validate_void_vector_elements(repository_root()))
-
-
-def check_c_linkage_command() -> None:
-    """Fail on extern "C" outside the SGP bridge or a marked C boundary."""
-    from .. import command_support as cli
-    from ..config import repository_root
-    from ..linkage_lint import validate_c_linkage
-
-    cli.emit(validate_c_linkage(repository_root()))
-
-
-def check_tu_placement_command(
-    live: Annotated[
-        bool,
-        typer.Option(
-            "--live", help="Use the live cross-build layout instead of assertion anchors."
-        ),
-    ] = False,
-) -> None:
-    """Fail when a recovered function sits in the wrong original translation unit."""
-
-    from .. import command_support as cli
-    from ..placement import validate_source_placement
-
-    cli.emit(validate_source_placement(cli.settings(), live=live))
-
-
-def check_identities_command() -> None:
-    """Fail when one original address carries two function identities."""
-
-    from .. import command_support as cli
-    from ..config import repository_root
-    from ..identity_lint import validate_identity
-
-    cli.emit(validate_identity(repository_root()))
-
-
-def check_structures_command() -> None:
-    """Fail on constant byte offsets and out-of-bounds constant array indexes."""
-
-    from .. import command_support as cli
-    from ..config import repository_root
-    from ..structural_lint import validate_structures
-
-    cli.emit(validate_structures(repository_root()))
 
 
 def inventory_command() -> None:

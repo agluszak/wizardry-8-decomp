@@ -12,9 +12,17 @@ from __future__ import annotations
 import shutil
 import subprocess
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
-from wiz8decomp.runtime_stubs import ResolvedStub, render_alias_object, render_source
+from wiz8decomp.runtime_stubs import (
+    COMPARISON_LINK_DIR,
+    COMPARISON_RESPONSE,
+    ResolvedStub,
+    linked_objects,
+    render_alias_object,
+    render_source,
+)
 
 VC6_IMAGE = "wizardry8-msvc600:sp5"
 HAVE_TOOLCHAIN = shutil.which("docker") is not None and shutil.which("wine") is not None
@@ -49,6 +57,26 @@ def _stubs() -> list[ResolvedStub]:
             identity="address-name",
             reason="",
         ),
+    ]
+
+
+def test_linked_objects_resolves_tokens_from_the_component_binary_dir(tmp_path: Path) -> None:
+    build = tmp_path / "build" / "decomp"
+    response = build / COMPARISON_RESPONSE
+    response.parent.mkdir(parents=True)
+    obj = build / COMPARISON_LINK_DIR / "CMakeFiles" / "unit.dir" / "one.cpp.obj"
+    obj.parent.mkdir(parents=True)
+    obj.write_bytes(b"object")
+    response.write_text(
+        "CMakeFiles/unit.dir/one.cpp.obj CMakeFiles/unit.dir/absent.cpp.obj",
+        encoding="utf-8",
+    )
+
+    objects = linked_objects(SimpleNamespace(product_build_dir=build))
+
+    assert objects == [
+        obj.resolve(),
+        (build / COMPARISON_LINK_DIR / "CMakeFiles" / "unit.dir" / "absent.cpp.obj").resolve(),
     ]
 
 

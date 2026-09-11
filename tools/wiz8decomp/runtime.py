@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -101,26 +102,32 @@ class _RuntimeCrash:
     candidates: list[_CrashCandidate]
 
 
-def stage_runtime_test(settings: Settings) -> dict[str, Any]:
-    source = settings.work_dir / "variants" / "gog-base"
-    stage = settings.repo_dir / "build" / "runtime" / "wiz8"
-    executable_name = "Wiz8RuntimeTest.exe"
-    executable = settings.repo_dir / "build" / "decomp" / executable_name
-    for name in ("Data", "Dll", "Levels"):
-        if not (source / name).is_dir():
-            raise RuntimeError(f"missing retail asset directory: {source / name}")
-    if not executable.is_file():
-        raise RuntimeError(f"runtime executable is not built: {executable}")
-    stage.mkdir(parents=True, exist_ok=True)
-    (stage / "Saves").mkdir(exist_ok=True)
-    for name in ("Data", "Dll", "Levels", "Patches"):
-        candidate = source / name
-        if candidate.exists():
-            _managed_link(candidate, stage / name)
-    for candidate in sorted(path for path in source.iterdir() if path.is_file()):
-        if candidate.name in {"Wiz8.exe", "Wiz8Runtime.exe", "3DVideo.CFG", "Wiz8.CFG"}:
-            continue
-        _managed_link(candidate, stage / candidate.name)
+RUNTIME_CRASH_MARKER = re.compile(
+    r"WIZ8_RUNTIME_CRASH|Unhandled exception|Unhandled page fault|Register dump:",
+    re.IGNORECASE,
+)
+RUNTIME_EXECUTABLES = frozenset({"Wiz8.exe", "Wiz8Runtime.exe", "Wiz8RuntimeTest.exe"})
+
+
+@dataclass(frozen=True)
+class StagedGame:
+    """One writable build/runtime tree assembled from an immutable variant."""
+
+    root: Path
+    executable: Path
+    map: Path | None
+    objects: Path | None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "stage": str(self.root),
+            "executable": str(self.executable),
+            "map": str(self.map) if self.map is not None else None,
+            "objects": str(self.objects) if self.objects is not None else None,
+        }
+
+
+def _materialize_config(settings: Settings, stage: Path) -> None:
     video_cfg = stage / "3DVideo.CFG"
     if not video_cfg.exists():
         shutil.copy2(settings.repo_dir / "config" / "runtime" / "3DVideo.CFG", video_cfg)
@@ -128,18 +135,97 @@ def stage_runtime_test(settings: Settings) -> dict[str, Any]:
     if not game_cfg.exists():
         encoded = (settings.repo_dir / "config" / "runtime" / "Wiz8.CFG.hex").read_text()
         game_cfg.write_bytes(bytes.fromhex(encoded))
-    shutil.copy2(executable, stage / executable_name)
+
+
+def stage_game(
+    settings: Settings,
+    *,
+    name: str,
+    executable: Path,
+    objects: Path | None = None,
+    reset_saves: bool = False,
+) -> StagedGame:
+    """Materialize one build/runtime game tree around a chosen executable.
+
+    The prepared variant is an immutable input: asset directories are linked,
+    config files and the executable are copied, and every writable path lives
+    under build/. Every runnable entry point shares this primitive.
+    """
+
+    source = settings.work_dir / "variants" / "gog-base"
+    for asset in ("Data", "Dll", "Levels"):
+        if not (source / asset).is_dir():
+            raise RuntimeError(f"missing retail asset directory: {source / asset}")
+    if not executable.is_file():
+        raise RuntimeError(f"runtime executable is not built: {executable}")
+    stage = settings.runtime_stage(name)
+    stage.mkdir(parents=True, exist_ok=True)
+    if reset_saves:
+        shutil.rmtree(stage / "Saves", ignore_errors=True)
+        (stage / "Saves" / "Characters").mkdir(parents=True, exist_ok=True)
+        (stage / "Saves" / "NPCs").mkdir(parents=True, exist_ok=True)
+    for asset in ("Data", "Dll", "Levels", "Patches"):
+        candidate = source / asset
+        if candidate.exists():
+            _managed_link(candidate, stage / asset)
+    for candidate in sorted(path for path in source.iterdir() if path.is_file()):
+        if candidate.name in RUNTIME_EXECUTABLES or candidate.name == executable.name:
+            continue
+        if candidate.name in {"3DVideo.CFG", "Wiz8.CFG"}:
+            continue
+        _managed_link(candidate, stage / candidate.name)
+    _materialize_config(settings, stage)
+    staged_executable = stage / executable.name
+    if staged_executable.is_symlink():
+        staged_executable.unlink()
+    shutil.copy2(executable, staged_executable)
     map_file = executable.with_suffix(".map")
-    if map_file.is_file():
-        shutil.copy2(map_file, stage / map_file.name)
-    return {
-        "stage": str(stage),
-        "executable": str(stage / executable_name),
-        "map": str(stage / map_file.name) if map_file.is_file() else None,
-        "objects": str(
-            settings.repo_dir / "build" / "decomp" / "CMakeFiles" / "wiz8_recovered_objects.dir"
-        ),
-    }
+    staged_map = stage / map_file.name if map_file.is_file() else None
+    if staged_map is not None:
+        shutil.copy2(map_file, staged_map)
+    return StagedGame(stage, staged_executable, staged_map, objects)
+
+
+def run_product(
+    settings: Settings, arguments: list[str] | None = None, *, original: bool = False
+) -> dict[str, Any]:
+    """Stage and launch one game process, symbolizing a crash when it happens."""
+
+    if shutil.which("wine") is None:
+        raise RuntimeError("wine is required to run the game")
+    if original:
+        staged = stage_game(
+            settings,
+            name="original",
+            executable=settings.work_dir / "variants" / "gog-base" / "Wiz8.exe",
+        )
+        map_path = None
+    else:
+        staged = stage_game(
+            settings,
+            name="wiz8",
+            executable=settings.product_build_dir / "Wiz8Runtime.exe",
+            objects=settings.recovered_objects_dir,
+        )
+        map_path = settings.product_build_dir / "Wiz8Runtime.map"
+    completed = subprocess.run(
+        ["wine", f"./{staged.executable.name}", "/WINDOW", *(arguments or [])],
+        cwd=staged.root,
+        check=False,
+        capture_output=True,
+        text=True,
+        errors="replace",
+    )
+    output = completed.stdout + completed.stderr
+    if output:
+        sys.stderr.write(output)
+    crash: dict[str, Any] | None = None
+    if map_path is not None and RUNTIME_CRASH_MARKER.search(output):
+        log_path = staged.root / "diagnostics" / "run.log"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        log_path.write_text(output, encoding="utf-8", errors="replace")
+        crash = analyze_runtime_crash(log_path, map_path, staged.objects)
+    return {**staged.as_dict(), "status": completed.returncode, "crash": crash}
 
 
 def _map_functions(path: Path) -> list[_MapFunction]:
@@ -657,10 +743,16 @@ def run_runtime_suite(settings: Settings) -> dict[str, Any]:
 
     if shutil.which("wine") is None or shutil.which("wineserver") is None:
         raise RuntimeError("wine and wineserver are required to run WIZ8_RUNTIME_TEST")
-    staged = stage_runtime_test(settings)
-    stage = Path(staged["stage"])
-    executable = Path(staged["executable"])
-    object_root = Path(staged["objects"])
+    staged = stage_game(
+        settings,
+        name="runtime-test",
+        executable=settings.product_build_dir / "Wiz8RuntimeTest.exe",
+        objects=settings.recovered_objects_dir,
+        reset_saves=True,
+    )
+    stage = staged.root
+    executable = staged.executable
+    object_root = staged.objects
     prefix, environment = _runtime_test_environment(settings)
     runs: dict[str, dict[str, dict[str, str | int]]] = {}
     with runtime_display(
@@ -689,7 +781,7 @@ def run_runtime_suite(settings: Settings) -> dict[str, Any]:
     if runs["forward"] != runs["reverse"]:
         raise RuntimeError("runtime observations depend on scenario order")
     return {
-        **staged,
+        **staged.as_dict(),
         "wine_prefix": str(prefix),
         "display": display or "host",
         "scenarios": runs["forward"],

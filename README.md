@@ -2,7 +2,8 @@
 
 This repository contains reproducible tooling and analysis metadata, not Wizardry 8 game files.
 Ghidra owns binary analysis, C++ owns recovered source, Python composes agent workflows and
-host/Docker/Wine orchestration, CMake owns compilation and linking, and `just` provides short aliases.
+host/Docker/Wine orchestration, CMake owns compilation and linking, and `uv run wiz8` is the single
+workflow interface.
 
 The shared Standard Gaming Platform source is distributed under Strategy First's non-commercial
 SFI Source Code License Agreement in `src/sgp`. This project accepts those terms;
@@ -14,35 +15,38 @@ are available; this is not a required sequence. Follow `AGENTS.md` for change-sp
 
 ```sh
 uv sync --frozen
-just wiz8 doctor
-just wiz8 prepare
-just wiz8 toolchain build vc6-sp5 # once, or after the toolchain Dockerfile changes
-just check
-just wiz8 lint
-just build
-just compare
-just run
-just run-original
-just debug
-just runtime-test
-just wiz8 verify
+uv run wiz8 doctor
+uv run wiz8 prepare
+uv run wiz8 toolchain build vc6-sp5 # once, or after the toolchain Dockerfile changes
+uv run wiz8 check
+uv run wiz8 lint
+uv run wiz8 build
+uv run wiz8 compare
+uv run wiz8 run
+uv run wiz8 run --original
+uv run wiz8 debug
+uv run wiz8 runtime-test
 ```
 
-`prepare` idempotently materializes configured inputs and pinned source dependencies.
-`build-lint-image` builds the pinned VC6 image with its native Clang lane. `lint`
-compile-checks the recovered C++ with Clang's virtual-override diagnostics while the matching build
-continues to use VC6. `build` configures automatically. `compare` is reccmp's live linked-image and
-exact-body diagnostic. Run Python tests directly with `uv run pytest -q PATH`.
+`prepare` idempotently materializes the primary game's extraction and `gog-base` variant plus pinned
+source dependencies; optional corpus variants stay behind explicit `wiz8 corpus` operations. `build`
+configures automatically. `compare` is reccmp's live linked-image and exact-body diagnostic. Run
+Python tests directly with `uv run pytest -q PATH`.
 
-`just run` executes the already-built `Wiz8Runtime.exe` from the extracted retail game directory
-with the original `/WINDOW` option, tees the process output, and on an unhandled-exception marker
-prints a MAP-symbolized report. The report names the caller recovered from the return address the
-PE-header stub consumed and the unresolved externals of its object. `just run` does not build,
-stage, or debug the process.
-`just run-original` launches retail with the same directory, CFG files, and arguments.
-`just debug` runs the recomp under native `winedbg`; `DEBUG_SCRIPT` supplies debugger commands.
+`lint` compile-checks the recovered C++ with clang-cl diagnostics, over the same component object
+targets the VC6 product build links; `diagnostics` is its non-gating variant. `check` is the fast
+public lane: ruff, pyright, repository validators and Python tests, with no compiler build.
 
-`just runtime-test` runs named main-menu scenarios in the optimized semantic-test executable.
+`uv run wiz8 run` stages the prepared game under `build/runtime/wiz8`, copies the already-built
+`Wiz8Runtime.exe` into it, and launches it with `/WINDOW`. Source variants stay immutable. The process
+output is forwarded, and when a crash marker appears the MAP-symbolized report is included in the
+command result. `uv run wiz8 run --original` stages and launches the retail `Wiz8.exe` the same way;
+`run` does not build the product.
+`uv run wiz8 debug` stages the recomp under `build/runtime/debug` and drives it through Wine's GDB
+proxy with a deterministic stop policy, then symbolizes the captured frames. `WIZ8_DEBUG_GDB`
+supplies extra GDB commands.
+
+`uv run wiz8 runtime-test` runs named main-menu scenarios in the optimized semantic-test executable.
 The real menu handlers execute on the UI thread; the host reruns the scenarios in reverse order and
 requires identical normalized observations. Its same-process exception handler records every
 general-purpose register and scans registers as well as stack words for first-party image addresses;
@@ -68,8 +72,8 @@ placement. Ghidra owns live analysis for both recovered and analysis-only functi
 are resolved from retail/source evidence at the canonical owners. Atomic `claims.csv` rows explain
 provenance without recreating the source model. Class relationships
 and virtual declarations live in C++ beside `// VTABLE` markers and `WIZ8_ASSERT_SIZE` gates. There
-is no tracked function, class, vtable, field, or signature catalogue. Full verification exports
-Ghidra state and uses it with the rebuilt PDB for source-layout checks.
+is no tracked function, class, vtable, field, or signature catalogue. Source-layout checks export
+Ghidra state and use it with the rebuilt PDB.
 
 The FID workflow and current VC6 evidence are recorded in [docs/fid.md](docs/fid.md).
 Active source recovery starts with the byte-identical SurRender JPEG extension; its address-backed
@@ -105,12 +109,12 @@ version or migration layer.
 
 Extraction and variant trees are published only after successful construction in a temporary
 sibling directory. Their receipts bind input hashes, configuration, implementation source hashes,
-extractor identities, and the complete output tree. `just wiz8 corpus verify` rehashes those trees.
+extractor identities, and the complete output tree. `uv run wiz8 corpus verify` rehashes those trees.
 A rejected generated tree must be removed explicitly with either:
 
 ```sh
-just wiz8 corpus clean --stage variants
-just wiz8 corpus clean --stage extractions
+uv run wiz8 corpus clean --stage variants
+uv run wiz8 corpus clean --stage extractions
 ```
 
 Cleaning `extractions` also removes downstream variants; neither command touches configured inputs.

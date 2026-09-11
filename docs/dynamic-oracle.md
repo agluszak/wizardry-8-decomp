@@ -65,9 +65,9 @@ Nothing here touches the desktop: the game renders into the virtual server.
 ## Running
 
 ```sh
-just wiz8 analyze trace bring-up --seconds 90       # WinMain through the first frame
-just wiz8 analyze trace screens --seconds 180       # plus every dispatcher handler
-just wiz8 analyze trace bring-up --plan-only        # the breakpoints, no run
+uv run wiz8 analyze trace bring-up --seconds 90       # WinMain through the first frame
+uv run wiz8 analyze trace screens --seconds 180       # plus every dispatcher handler
+uv run wiz8 analyze trace bring-up --plan-only        # the breakpoints, no run
 ```
 
 The bring-up selection is generated from compiler-bound startup translation units; screen targets

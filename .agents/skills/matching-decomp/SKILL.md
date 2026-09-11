@@ -7,7 +7,7 @@ description: Recover Wizardry 8 C++ bodies and declarations against the pinned V
 
 ## Choose the primitive
 
-- Ordinary linked recovered function: `just compare ADDRESS...` (examples below).
+- Ordinary linked recovered function: `uv run wiz8 compare ADDRESS...` (examples below).
 - COFF contributions, relocations, folding/aliases, data, vtables, or address mapping:
   [comparison](references/comparison.md).
 - Native Ghidra reads/edits, divergent GZF checkpoints, or regenerating canonical state from the
@@ -43,7 +43,7 @@ Optional source-aware conveniences, when their joined output helps:
 
 ```sh
 uv run wiz8 report context ADDRESS...
-just recover ADDRESS...
+uv run wiz8 recover function ADDRESS...
 ```
 
 `recover` writes candidate artifacts without editing source, building, or comparing. Neither command
@@ -54,10 +54,10 @@ If an incoming reviewed GZF diverges from the local checkpoint, use the
 ## Compare the recovered function
 
 ```sh
-just compare 0x0044e010
-just compare 0x0044e010 0x0044db60
-just compare --file src/wiz8/engine_code/Prop.cpp
-just compare --changed
+uv run wiz8 compare 0x0044e010
+uv run wiz8 compare 0x0044e010 0x0044db60
+uv run wiz8 compare --file src/wiz8/engine_code/Prop.cpp
+uv run wiz8 compare --changed
 ```
 
 This builds the comparison product itself; do not separately build first. It returns structured

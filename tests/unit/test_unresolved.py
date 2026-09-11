@@ -3,10 +3,8 @@ from pathlib import Path
 import pytest
 import wiz8decomp.unresolved as unresolved_module
 from wiz8decomp.unresolved import (
-    compare_unresolved_reports,
     load_unresolved_baseline,
     parse_map_publics,
-    require_unresolved_delta,
     unresolved_report,
     write_unresolved_baseline,
 )
@@ -81,27 +79,6 @@ def test_imports_are_reported_separately_and_units_are_ranked(
         "__imp__CreateFileA@28": ["recovered.dir/src/first.cpp.obj"]
     }
     assert "__imp__CreateFileA@28" not in report["by_symbol"]
-
-
-def test_unresolved_delta_reports_progress_and_regression() -> None:
-    baseline = {"symbols": [{"symbol": "missing-a"}, {"symbol": "missing-b"}]}
-    current = {
-        "by_symbol": {"missing-b": ["b.obj"], "missing-c": ["c.obj"]},
-        "ranked_units": [],
-        "near_link_complete_units": [],
-        "canonical_import_symbols": 1,
-        "canonical_imports_by_symbol": {"__imp_x": ["b.obj"]},
-    }
-
-    delta = compare_unresolved_reports(current, baseline, baseline_name="baseline.csv")
-
-    assert not delta["ok"]
-    assert delta["introduced"] == ["missing-c"]
-    assert delta["resolved"] == ["missing-a"]
-    assert delta["unchanged"] == ["missing-b"]
-    delta["report"] = "delta.json"
-    with pytest.raises(ValueError, match="introduced 1"):
-        require_unresolved_delta(delta)
 
 
 def test_unresolved_baseline_can_only_shrink(tmp_path: Path) -> None:

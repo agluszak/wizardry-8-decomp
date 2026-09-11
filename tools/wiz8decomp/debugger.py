@@ -14,7 +14,6 @@ from __future__ import annotations
 import json
 import os
 import re
-import shutil
 import signal
 import socket
 import subprocess
@@ -185,50 +184,26 @@ def _text(value: str | bytes | None) -> str:
     return value or ""
 
 
-def _stage_runtime_product(settings: Settings) -> tuple[Path, Path]:
-    """Set up the retail game directory and return it with managed executable."""
-
-    game_dir = settings.work_dir / "variants" / "gog-base"
-    executable = settings.repo_dir / "build/decomp/Wiz8Runtime.exe"
-    if not executable.is_file():
-        raise RuntimeError(f"runtime executable is not built: {executable}")
-    if not (game_dir / "Data").is_dir():
-        raise RuntimeError(f"missing retail game data in {game_dir}")
-    video_cfg = game_dir / "3DVideo.CFG"
-    if not video_cfg.exists():
-        shutil.copy2(settings.repo_dir / "config/runtime/3DVideo.CFG", video_cfg)
-    game_cfg = game_dir / "Wiz8.CFG"
-    if not game_cfg.exists():
-        encoded = (settings.repo_dir / "config/runtime/Wiz8.CFG.hex").read_text()
-        game_cfg.write_bytes(bytes.fromhex(encoded))
-    managed = game_dir / "Wiz8Runtime.exe"
-    if managed.is_symlink():
-        if managed.resolve() != executable.resolve():
-            raise RuntimeError(f"runtime symlink points at the wrong source: {managed}")
-    elif managed.exists():
-        raise RuntimeError(f"refusing to replace unmanaged {managed}")
-    else:
-        managed.symlink_to(executable)
-    return game_dir, managed
-
-
 def run_debugger(
     settings: Settings,
     arguments: list[str] | None = None,
     *,
-    executable: Path | None = None,
     extra_gdb: str | None = None,
     timeout: int = GDB_TIMEOUT_SECONDS,
 ) -> dict[str, Any]:
     """Run one deterministic GDB session and return its symbolized report."""
 
-    game_dir, managed = _stage_runtime_product(settings)
+    from .runtime import stage_game
+
+    staged = stage_game(
+        settings,
+        name="debug",
+        executable=settings.product_build_dir / "Wiz8Runtime.exe",
+        objects=settings.recovered_objects_dir,
+    )
+    game_dir = staged.root
     run_dir = game_dir
-    if executable is not None:
-        managed = executable
-        run_dir = managed.parent
-    if not managed.is_file():
-        raise RuntimeError(f"runtime executable is missing: {managed}")
+    managed = staged.executable
     if extra_gdb is None:
         extra_gdb = os.environ.get("WIZ8_DEBUG_GDB", "")
     map_path = settings.repo_dir / RUNTIME_MAP

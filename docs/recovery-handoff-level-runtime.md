@@ -13,7 +13,7 @@ not backed by retail evidence, treat it as a lead to confirm, not as truth.
   owner. Other agents commit to `main` concurrently: always
   `jj git fetch --remote origin` and rebase before pushing.
 - Load the `matching-decomp` skill first. The comparison policy for this batch is
-  **structural exactness, not byte exactness**: `just compare ADDRESS...` is the compile and
+  **structural exactness, not byte exactness**: `uv run wiz8 compare ADDRESS...` is the compile and
   sanity check, and compiler-shape differences are acceptable and expected.
 - Recompiling runs both clang and the pinned VC6 product. VC6 catches things clang does not:
   `goto` across an initialization, duplicate `for (int index = ...)` names in one function,
@@ -162,7 +162,7 @@ the report gives):
   `HandleInputEvent005CEC20`.
 - `W8Dialog005CBB40` (type-3 "ListBox Dialog", vtable 0x005EF7C8, size 0xFC, only
   `GetDialogType` present): constructor, destructor, `CreateControls`, `DestroyControls`,
-  `Draw`, `SetText`, `ProcessInput`. Use `just wiz8 vtable 0x005EF7C8` for the slot map.
+  `Draw`, `SetText`, `ProcessInput`. Use `uv run wiz8 vtable 0x005EF7C8` for the slot map.
 - `W8Dialog005D97D0`: `CreateControls`, `Draw`, `ProcessInput`, `OnNumericInputChanged`
   (ctor/dtor/`DestroyControls` already present).
 - Locate each class under `src/wiz8/dialog_code/`; the factory dispatch table in

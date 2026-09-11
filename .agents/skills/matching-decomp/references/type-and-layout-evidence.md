@@ -48,15 +48,15 @@ Changing a declared type changes caller argument conversion even when the parame
 read differently, so settle fields and virtual families as one bundle: all overrides of a virtual
 predicate/setter take the same type, and byte locals that feed a newly logical parameter usually
 become `bool` in the same change. Validate with focused comparison (the canonical return/store
-sequence, not the score) and `just wiz8 vtable CLASS` for the affected hierarchy.
+sequence, not the score) and `uv run wiz8 vtable CLASS` for the affected hierarchy.
 
 ## Clang consistency checks
 
 Clang is a consistency detector, not binary evidence.
 
 ```sh
-just wiz8 lint
-just wiz8 diagnostics
+uv run wiz8 lint
+uv run wiz8 diagnostics
 ```
 
 `lint` is the structural clang-cl compile lane: use it for incompatible declarations, conversions,

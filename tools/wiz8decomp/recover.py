@@ -11,7 +11,7 @@ restores the file afterwards. Nothing is written permanently; the
 deliverable is the per-function report.
 
 The harness needs the live Ghidra project and the pinned VC6 toolchain, so it
-is a manual/milestone gate, not part of ``just check`` or ``just test``.
+is a manual/milestone gate, not part of ``uv run wiz8 check`` or the pytest lane.
 """
 
 from __future__ import annotations
@@ -89,7 +89,7 @@ def marker_span(marker: dict[str, Any]) -> tuple[str, int, int] | None:
     exported block replaces.
 
     The source index records the declaration's own line span; the marker
-    policy (enforced by ``just check``) places ``// FUNCTION:`` on the line
+    policy (enforced by ``uv run wiz8 check``) places ``// FUNCTION:`` on the line
     immediately above the declaration, so the block's span is exactly
     ``declaration line - 1`` through ``end_line``. ``verify_marker_adjacency``
     proves that assumption against the file before any splice trusts it.

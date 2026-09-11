@@ -4,7 +4,7 @@ The executable recovery target contains source-owned identities and compiler-enf
 Current identities and ownership coverage are generated from the source index, Ghidra and reccmp by:
 
 ```sh
-just wiz8 report status
+uv run wiz8 report status
 ```
 
 Owned definitions are split by original translation unit where ownership is established.
@@ -15,7 +15,7 @@ detail, not a separate supported product or a claim that the functions shared on
 Compare a selected recovered function (builds current inputs itself):
 
 ```sh
-just compare 0x0044e010
+uv run wiz8 compare 0x0044e010
 ```
 
 The common first-party profile is the pinned VC6 SP5 `/O2 /G6 /MD` configuration. Compiler options
@@ -28,7 +28,7 @@ Assertion paths provide bounded translation-unit intervals without pretending to
 object boundaries:
 
 ```sh
-just wiz8 report translation-units
+uv run wiz8 report translation-units
 ```
 
 The command writes `build/reports/translation-units/translation-unit-intervals.csv` and
@@ -62,8 +62,8 @@ Correct demonstrated disagreements at both owners, using the
 - Class relationships, fields, virtuals, and layout ownership: C++ declarations with compiler gates.
 - Native layouts and fields: the canonical Ghidra project, inspected through native PyGhidra.
 - Current pairing and exact/effective status: live reccmp results under `build/`.
-- Current source/matching statistics: `just wiz8 report status`; translation-unit attribution:
-  `just wiz8 report translation-units`.
+- Current source/matching statistics: `uv run wiz8 report status`; translation-unit attribution:
+  `uv run wiz8 report translation-units`.
 
 Do not copy those inventories back into this document when another function lands. Add prose only
 when the recovery establishes a durable compiler, ABI, ownership, or reverse-engineering lesson.

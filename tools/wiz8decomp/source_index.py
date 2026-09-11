@@ -176,9 +176,14 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
         repository / inventory
         for inventory in (
             "CMakeLists.txt",
+            "cmake/clang-cl-i686.cmake",
+            "cmake/CompileSettings.cmake",
+            "cmake/Lint.cmake",
             "src/wiz8/sources.cmake",
             "src/sgp/CMakeLists.txt",
             "src/surrender/CMakeLists.txt",
+            "src/srext_jpegimporter/CMakeLists.txt",
+            "src/srext_unzip/CMakeLists.txt",
         )
     )
     if not database.is_file() or any(

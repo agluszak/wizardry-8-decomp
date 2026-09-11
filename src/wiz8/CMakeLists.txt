@@ -1,3 +1,66 @@
+set(ZLIB_SOURCE "" CACHE PATH "Pinned zlib 1.0.4 source tree used by recovered game code")
+
+function(wiz8_collect_zlib_units RESULT SOURCE_ROOT)
+    file(GLOB units CONFIGURE_DEPENDS RELATIVE "${SOURCE_ROOT}" "${SOURCE_ROOT}/*.c")
+    list(REMOVE_ITEM units example.c minigzip.c)
+    list(SORT units)
+    set(${RESULT} ${units} PARENT_SCOPE)
+endfunction()
+
+function(wiz8_add_executable)
+    cmake_parse_arguments(ARG "OPT_REF;CONSOLE;ALLOW_UNRESOLVED" "TARGET;OUTPUT;MAP" "LIBRARIES;SOURCES" ${ARGN})
+    if(ARG_CONSOLE)
+        add_executable(${ARG_TARGET}
+            $<TARGET_OBJECTS:wiz8_recovered_objects>
+            ${ARG_SOURCES}
+        )
+        set(subsystem /SUBSYSTEM:CONSOLE,4.0)
+    else()
+        add_executable(${ARG_TARGET} WIN32
+            $<TARGET_OBJECTS:wiz8_recovered_objects>
+            ${ARG_SOURCES}
+        )
+        set(subsystem /SUBSYSTEM:WINDOWS,4.0)
+    endif()
+    add_dependencies(${ARG_TARGET}
+        ${WIZ8_SR_IMPORT_TARGET}
+        ${WIZ8_MSS32_IMPORT_TARGET}
+        ${WIZ8_BINKW32_IMPORT_TARGET}
+    )
+    target_link_libraries(${ARG_TARGET} PRIVATE
+        wiz8_compile_settings
+        ${ARG_LIBRARIES}
+        "${WIZ8_SR_IMPORT_LIBRARY}"
+        "${WIZ8_MSS32_IMPORT_LIBRARY}"
+        "${WIZ8_BINKW32_IMPORT_LIBRARY}"
+    )
+    if(TARGET WIZ8_ZLIB_1_0_4)
+        target_link_libraries(${ARG_TARGET} PRIVATE WIZ8_ZLIB_1_0_4)
+    endif()
+    if(ARG_OPT_REF)
+        set(opt_ref /OPT:REF)
+    else()
+        set(opt_ref /OPT:NOREF)
+    endif()
+    if(ARG_ALLOW_UNRESOLVED)
+        set(force_unresolved /FORCE:UNRESOLVED)
+    else()
+        set(force_unresolved)
+    endif()
+    target_link_options(${ARG_TARGET} PRIVATE
+        /DEBUG /DEBUGTYPE:CV /INCREMENTAL:NO ${opt_ref} /OPT:NOICF /FIXED:NO
+        ${force_unresolved} /BASE:0x400000 /FILEALIGN:0x1000
+        /OSVERSION:4.0 ${subsystem}
+        /STACK:0x100000,0x1000 /HEAP:0x100000,0x1000
+        "/MAP:${CMAKE_BINARY_DIR}/${ARG_MAP}" /MAPINFO:LINES
+    )
+    set_target_properties(${ARG_TARGET} PROPERTIES
+        OUTPUT_NAME "${ARG_OUTPUT}"
+        PREFIX ""
+        PDB_NAME "${ARG_OUTPUT}"
+    )
+endfunction()
+
 if(ZLIB_SOURCE)
     # The canonical executable statically links pristine zlib 1.0.4; 46 of its
     # bodies are already reviewed by their source markers and provenance claims.
@@ -11,47 +74,42 @@ if(ZLIB_SOURCE)
     target_include_directories(WIZ8_ZLIB_1_0_4 PRIVATE "${ZLIB_SOURCE}")
 endif()
 
-    include(src/wiz8/sources.cmake)
-    # Compile recovered first-party sources once, then reuse those exact
-    # objects in the comparison, runtime and semantic-test products.
-    add_library(wiz8_recovered_objects OBJECT
-        ${WIZ8_SOURCE_UNITS}
-    )
-    # Product code consumes the reconstructed SGP component's owning headers.
-    target_link_libraries(wiz8_recovered_objects PRIVATE wiz8_compile_settings)
+include(sources.cmake)
+set(WIZ8_SOURCE_FILES ${WIZ8_SOURCE_UNITS})
+list(TRANSFORM WIZ8_SOURCE_FILES PREPEND "${PROJECT_SOURCE_DIR}/")
 
-    wiz8_add_import_library(WIZ8_SR src/wiz8/imports/sr.def
-        IMPORT_OBJECTS "${CMAKE_CURRENT_BINARY_DIR}/sr-assert-import.lib")
-    wiz8_add_import_library(WIZ8_MSS32 src/wiz8/imports/mss32.def PRESERVE_C_DECORATION)
-    wiz8_add_import_library(WIZ8_BINKW32 src/wiz8/imports/binkw32.def PRESERVE_C_DECORATION)
+# Compile recovered first-party sources once, then reuse those exact objects in
+# every product; the lint lane registers the same target instead of a parallel
+# source list.
+add_library(wiz8_recovered_objects OBJECT ${WIZ8_SOURCE_FILES})
+target_link_libraries(wiz8_recovered_objects PRIVATE wiz8_compile_settings)
+wiz8_lint_target(wiz8_recovered_objects)
+
+if(WIZ8_BUILD_PRODUCTS)
+    wiz8_add_import_library(WIZ8_SR imports/sr.def
+        IMPORT_OBJECTS "${CMAKE_BINARY_DIR}/sr-assert-import.lib")
+    wiz8_add_import_library(WIZ8_MSS32 imports/mss32.def PRESERVE_C_DECORATION)
+    wiz8_add_import_library(WIZ8_BINKW32 imports/binkw32.def PRESERVE_C_DECORATION)
 
     # Runtime-only fallback traps for calls recovery has not reached yet. The
     # generated source aliases the exact unresolved linker symbols to
     # non-returning debugger-friendly thunks, so the runnable products link
     # without /FORCE:UNRESOLVED. The matching image never links this object.
-    set(wiz8_runtime_stub_source
-        "${CMAKE_CURRENT_BINARY_DIR}/generated/runtime-stubs/runtime_stubs.cpp")
-    set(wiz8_runtime_stub_object
-        "${CMAKE_CURRENT_BINARY_DIR}/generated/runtime-stubs/runtime_stubs.obj")
-    if(NOT EXISTS "${wiz8_runtime_stub_source}")
-        file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/generated/runtime-stubs")
-        file(WRITE "${wiz8_runtime_stub_source}"
-            "// Generated before the runtime link by wiz8 generate runtime-stubs.\n")
-    endif()
-    if(NOT EXISTS "${wiz8_runtime_stub_object}")
-        file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/generated/runtime-stubs")
-        file(WRITE "${wiz8_runtime_stub_object}" "")
-    endif()
+    # Both inputs are build-time generated by the Python driver; configuration
+    # must not fabricate placeholders for them.
+    set(wiz8_runtime_stubs "${CMAKE_BINARY_DIR}/generated/runtime-stubs")
+    set(wiz8_runtime_stub_source "${wiz8_runtime_stubs}/runtime_stubs.cpp")
+    set(wiz8_runtime_stub_object "${wiz8_runtime_stubs}/runtime_stubs.obj")
     set_source_files_properties(
         "${wiz8_runtime_stub_source}" "${wiz8_runtime_stub_object}"
         PROPERTIES GENERATED TRUE)
     set_source_files_properties(
         "${wiz8_runtime_stub_object}" PROPERTIES EXTERNAL_OBJECT TRUE)
     add_library(wiz8_runtime_stub_objects OBJECT
-        tests/runtime/wiz8_unrecovered.cpp
+        "${PROJECT_SOURCE_DIR}/tests/runtime/wiz8_unrecovered.cpp"
         "${wiz8_runtime_stub_source}"
     )
-    target_include_directories(wiz8_runtime_stub_objects PRIVATE include)
+    target_include_directories(wiz8_runtime_stub_objects PRIVATE "${PROJECT_SOURCE_DIR}/include")
     target_compile_definitions(wiz8_runtime_stub_objects
         PRIVATE NDEBUG NOMINMAX WIN32_LEAN_AND_MEAN)
     target_compile_options(wiz8_runtime_stub_objects
@@ -66,7 +124,7 @@ endif()
         ALLOW_UNRESOLVED
         LIBRARIES WIZ8_SGP ddraw.lib gdi32.lib user32.lib
     )
-    reccmp_add_target(WIZ8 ID WIZ8)
+    reccmp_add_target(WIZ8)
 
     wiz8_add_executable(
         TARGET WIZ8_RUNTIME
@@ -76,7 +134,7 @@ endif()
         SOURCES
             "$<TARGET_OBJECTS:wiz8_runtime_stub_objects>"
             "${wiz8_runtime_stub_object}"
-            tests/runtime/wiz8_crash_report.cpp
+            "${PROJECT_SOURCE_DIR}/tests/runtime/wiz8_crash_report.cpp"
         LIBRARIES WIZ8_SGP ddraw.lib gdi32.lib user32.lib
     )
     # The semantic test product links the same recovered and retained runtime
@@ -91,7 +149,8 @@ endif()
         SOURCES
             "$<TARGET_OBJECTS:wiz8_runtime_stub_objects>"
             "${wiz8_runtime_stub_object}"
-            tests/runtime/wiz8_runtime_test.cpp
-            tests/runtime/wiz8_crash_report.cpp
+            "${PROJECT_SOURCE_DIR}/tests/runtime/wiz8_runtime_test.cpp"
+            "${PROJECT_SOURCE_DIR}/tests/runtime/wiz8_crash_report.cpp"
         LIBRARIES WIZ8_SGP ddraw.lib gdi32.lib user32.lib
     )
+endif()

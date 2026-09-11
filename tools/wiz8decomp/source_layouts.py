@@ -11,7 +11,6 @@ from typing import Any
 
 from .paths import atomic_json, atomic_write
 
-REVIEW_STATE_FAILURES = frozenset({"missing-ghidra-class", "missing-field"})
 BASELINE_COLUMNS = ("kind", "class", "field", "expected", "actual")
 DEFAULT_BASELINE = Path("config/verification/source-layout-baseline.csv")
 
@@ -118,57 +117,6 @@ def layout_failure_key(failure: dict[str, Any]) -> tuple[str, str, str, str, str
     )
 
 
-def compare_source_layout_reports(
-    current: dict[str, Any],
-    baseline: dict[str, Any],
-    *,
-    baseline_name: str,
-) -> dict[str, Any]:
-    """Compare two red-or-green reports without blessing either failure set."""
-
-    current_by_key = {
-        layout_failure_key(item): normalize_layout_failure(item) for item in current["failures"]
-    }
-    baseline_by_key = {
-        layout_failure_key(item): normalize_layout_failure(item) for item in baseline["failures"]
-    }
-    introduced_keys = sorted(current_by_key.keys() - baseline_by_key.keys())
-    fixed_keys = sorted(baseline_by_key.keys() - current_by_key.keys())
-    unchanged_keys = sorted(current_by_key.keys() & baseline_by_key.keys())
-    introduced = [current_by_key[key] for key in introduced_keys]
-    fixed = [baseline_by_key[key] for key in fixed_keys]
-
-    def signature(item: dict[str, str]) -> tuple[str, str, str]:
-        return item["kind"], item["expected"], item["actual"]
-
-    fixed_by_signature: dict[tuple[str, str, str], list[dict[str, str]]] = {}
-    for item in fixed:
-        fixed_by_signature.setdefault(signature(item), []).append(item)
-    spelling_changes = [
-        {"baseline": old, "current": item}
-        for item in introduced
-        for old in fixed_by_signature.get(signature(item), [])
-        if (old["class"], old["field"]) != (item["class"], item["field"])
-    ]
-    new_review_state = [item for item in introduced if item["kind"] in REVIEW_STATE_FAILURES]
-    new_contradictions = [item for item in introduced if item["kind"] not in REVIEW_STATE_FAILURES]
-    return {
-        "schema": "wiz8.source-layout-delta",
-        "ok": not introduced,
-        "baseline": baseline_name,
-        "baseline_failure_count": len(baseline_by_key),
-        "current_failure_count": len(current_by_key),
-        "introduced_count": len(introduced),
-        "fixed_count": len(fixed),
-        "unchanged_count": len(unchanged_keys),
-        "introduced": introduced,
-        "new_contradictions": new_contradictions,
-        "new_review_state": new_review_state,
-        "fixed": fixed,
-        "spelling_changes": spelling_changes,
-    }
-
-
 def load_source_layout_baseline(path: Path) -> dict[str, Any]:
     if not path.is_file():
         raise ValueError(
@@ -205,32 +153,3 @@ def write_source_layout_baseline(path: Path, report: dict[str, Any]) -> dict[str
     writer.writerows(normalized)  # pyright: ignore[reportArgumentType]
     atomic_write(path, output.getvalue())
     return {"baseline": str(path), "failure_count": len(normalized)}
-
-
-def verify_source_layout_delta(
-    settings: Any,
-    current: dict[str, Any],
-    against: Path | None = None,
-) -> dict[str, Any]:
-    baseline_path = against or (settings.repo_dir / DEFAULT_BASELINE)
-    if not baseline_path.is_absolute():
-        baseline_path = settings.repo_dir / baseline_path
-    baseline = load_source_layout_baseline(baseline_path)
-    delta = compare_source_layout_reports(
-        current,
-        baseline,
-        baseline_name=str(baseline_path),
-    )
-    destination = settings.build_dir / "reports/source-layouts/delta.json"
-    atomic_json(destination, delta)
-    delta["report"] = str(destination)
-    return delta
-
-
-def require_source_layout_delta(report: dict[str, Any]) -> dict[str, Any]:
-    if not report["ok"]:
-        raise ValueError(
-            f"source-layout verification introduced {report['introduced_count']} failures "
-            f"against {report['baseline']}; see {report['report']}"
-        )
-    return report

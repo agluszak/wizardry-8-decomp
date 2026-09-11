@@ -24,5 +24,5 @@ form, or inherited virtual destructor required by the evidenced hierarchy.
 Read [template emission](references/template-emission.md) for `srClassSupport`, registry, clone, or
 deleting-destructor evidence. Read [inheritance evidence](references/inheritance-evidence.md) when
 receivers, subobject placement, or a hierarchy changes. Validate the affected lifecycle/vtable bundle
-when the model changes, using `just compare ADDRESS...` and `just wiz8 vtable CLASS`.
+when the model changes, using `uv run wiz8 compare ADDRESS...` and `uv run wiz8 vtable CLASS`.
 Record unresolved identity concisely; prefer an address-qualified name to unsupported semantics.

@@ -152,7 +152,7 @@ ordinary `seed refresh`.
 2. Build a current VC6 PDB:
 
    ```sh
-   just build wiz8
+   uv run wiz8 build WIZ8
    ```
 
 3. Import the matched entities into the canonical project. `reccmp-ghidra-import` is the applier;

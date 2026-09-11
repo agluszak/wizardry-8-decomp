@@ -1,7 +1,7 @@
 # Recovery handoff: spell visuals, sound events, dirty tiles, shader walks
 
 State at `14528d78` (`Recover the dirty-tile recursion and the scene shader
-walkers`). `just check` is green. This is the continuation of the change stack
+walkers`). `uv run wiz8 check` is green. This is the continuation of the change stack
 
 | Change | Title |
 | --- | --- |
@@ -127,16 +127,16 @@ that as the reference example for "missing virtual slot" triage.
   `Function44D760`, `Function44E830`, `W8Prop::Function44DEA0`,
   `Function479030`, `Function4836A0`, `Function48F280`, `Function4B5780`,
   `Function4D9080`, `Function5588E0` remain deliberately unchanged.
-- Verification debt: `wiz8 verify` is broad and not run; the unresolved
-  baseline (`config/verification/unresolved-baseline.csv`) is stale, and the
-  global vtable gate has ~20 pre-existing mismatches in classes untouched by
-  this work.
+- Verification debt: the unresolved baseline
+  (`config/verification/unresolved-baseline.csv`) is stale, and the global
+  vtable gate has ~20 pre-existing mismatches in classes untouched by this
+  work.
 
 ## Working notes
 
 - Recovery loop and verification live in `AGENTS.md` and
-  `.agents/skills/matching-decomp/SKILL.md`. Use `just compare ADDRESS...` for
-  focused checks, `just check` for the fast lane, and
+  `.agents/skills/matching-decomp/SKILL.md`. Use `uv run wiz8 compare ADDRESS...` for
+  focused checks, `uv run wiz8 check` for the fast lane, and
   `uv run wiz8 report context ADDRESS...` for TU placement.
 - Native binary inspection uses
   `wiz8decomp.ghidra.env.open_program(settings, "wiz8")`; the helper serialises

@@ -45,6 +45,20 @@ class Settings(BaseModel):
         return self.repo_dir / "build"
 
     @property
+    def product_build_dir(self) -> Path:
+        """Disposable CMake output; CMake owns its contents, never Python."""
+        return self.build_dir / "decomp"
+
+    @property
+    def recovered_objects_dir(self) -> Path:
+        """Objects the completed comparison link consumed, for stub derivation."""
+        return self.product_build_dir / "src/wiz8/CMakeFiles/wiz8_recovered_objects.dir"
+
+    def runtime_stage(self, name: str) -> Path:
+        """Writable game tree under build/runtime; source variants stay immutable."""
+        return self.build_dir / "runtime" / name
+
+    @property
     def project_dir(self) -> Path:
         # Ghidra writes the project in place, so every checkout must own its
         # project. The in-repo default (gitignored) guarantees that; the

@@ -9,34 +9,34 @@ description: Recover or debug Wizardry runtime behavior, UI flows, input, persis
 
 | Need | Command |
 | --- | --- |
-| Recomp | `just run` |
-| Retail behavioral oracle | `just run-original` |
-| Recomp under Wine debugger | `just debug` |
-| Deterministic semantic scenarios (builds itself) | `just runtime-test` |
+| Recomp | `uv run wiz8 run` |
+| Retail behavioral oracle | `uv run wiz8 run --original` |
+| Recomp under Wine debugger | `uv run wiz8 debug` |
+| Deterministic semantic scenarios (builds itself) | `uv run wiz8 runtime-test` |
 
-Launchers use the retail directory/CFG files and `/WINDOW`; do not reinvent Wine staging or launch
-commands. They launch an already-built product: use `just build runtime` when that product is missing
-or stale. Currently even `run-original` checks that `Wiz8Runtime.exe` exists for the shared setup.
-`debug` uses native `winedbg` with `cont`, `bt`, `quit` by default; set `DEBUG_SCRIPT` for chosen debugger
-commands. For visual harness debugging use `WIZ8_RUNTIME_DISPLAY=host just runtime-test`.
+Launchers stage one writable tree under `build/runtime/<product>` from the immutable `gog-base`
+variant, seed the reviewed CFG files, and pass `/WINDOW`; do not reinvent Wine staging or launch
+commands. They launch an already-built product: use `uv run wiz8 build runtime` when that product is
+missing or stale. `run --original` stages retail; `run` and `debug` stage the recomp; `runtime-test`
+stages and builds its own semantic-test image. `debug` drives Wine's GDB proxy with a deterministic
+stop policy and symbolizes the captured frames; `WIZ8_DEBUG_GDB` supplies extra GDB commands. For
+visual harness debugging use `WIZ8_RUNTIME_DISPLAY=host uv run wiz8 runtime-test`.
 
-Both runnable products install the same in-process exception filter. An unresolved first-party call
-jumps to the PE header, where the "MZ" stub corrupts the frame pointer and pops the return address
-into EDX before the fault. The filter records every general-purpose register, scans registers as well
-as stack words for image addresses, and `just run`/`runtime-test` symbolize the record through the
-product MAP, including the unresolved externals of the caller's object. Do not chase Wine's one-frame
-`+0x7` MZ backtrace by hand.
+Both runnable products install the same in-process exception filter. The filter records every
+general-purpose register, scans registers as well as stack words for image addresses, and
+`uv run wiz8 run`/`runtime-test` symbolize the record through the product MAP, including the
+unresolved externals of the caller's object. Do not chase a bare Wine backtrace by hand.
 
 `Wiz8Runtime.exe` and `Wiz8RuntimeTest.exe` link without `/FORCE:UNRESOLVED`. Unrecovered calls enter
 a build-generated `// STUB:` trap that prints
 `WIZ8_RUNTIME_STUB address=... symbol=... name=...` and breaks before touching the caller's stack.
-`just build runtime`/`runtime-test` regenerate the stub set automatically; recovering a retail body
+`uv run wiz8 build runtime`/`runtime-test` regenerate the stub set automatically; recovering a retail body
 removes its stub on the next build. If stubgen reports an unresolved identity at an already recovered
 address, fix the declaration/linkage/signature; never add a handwritten fake body.
 
 ## Recover the failing behavior
 
-1. Establish the requested transition/observation with `just run-original`, then compare `just run`
+1. Establish the requested transition/observation with `uv run wiz8 run --original`, then compare `uv run wiz8 run`
    under the shared setup. If retail also fails, investigate the environment before blaming recovery.
 2. Drive real product pathways: input queue/hooks, screen dispatch, callbacks, persistence, resource
    loading. The harness may inject input/events externally; matching source must never gain test-only

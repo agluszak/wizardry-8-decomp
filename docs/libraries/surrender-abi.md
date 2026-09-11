@@ -301,7 +301,7 @@ The body itself stays unclaimed, because the complete destructor it calls is not
 compiler will not emit a deleting destructor for a class nothing constructs. And the complete destructor at `0x00492A30` opens a question the current model does not answer.
 Across its 425 bytes it unregisters the instance three times, restoring a first-party vtable before
 each - `0x005ECB6C`, then `0x005EBF68`, then `0x005EBF94` - before calling the imported
-`srClass::~srClass`. `just wiz8 report class-family` puts every write in that family at `this+0x00`,
+`srClass::~srClass`. `uv run wiz8 report class-family` puts every write in that family at `this+0x00`,
 so this is single-inheritance vtable churn rather than subobjects, and the slot counts ascend 8, 11,
 13, 13 in construction order the way an inheritance ladder does.
 

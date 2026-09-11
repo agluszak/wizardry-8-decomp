@@ -22,3 +22,11 @@ target_include_directories(wiz8_compile_settings INTERFACE
     include/wiz8/sgp-compat
     src/sgp
 )
+
+# Source reconstruction relies on the compat header being force-included in
+# every recovered C++ translation unit, in the product and lint lanes alike.
+function(wiz8_enable_cpp_compat TARGET)
+    target_compile_options(${TARGET} PRIVATE
+        "$<$<COMPILE_LANGUAGE:CXX>:/FI${PROJECT_SOURCE_DIR}/include/wiz8/compat/compiler.h>"
+    )
+endfunction()

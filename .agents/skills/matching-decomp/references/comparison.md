@@ -2,12 +2,12 @@
 
 | Question | Existing primitive |
 | --- | --- |
-| Does the actual recomp-linked function match? | `just compare ADDRESS...` |
+| Does the actual recomp-linked function match? | `uv run wiz8 compare ADDRESS...` |
 | Is a COFF code/data contribution identical independently of final linkage? | `uv run reccmp-reccmp --object ...` below |
 | Which original absolute targets correspond to COFF relocations in an exact pair? | `original_absolute_relocation_targets` below |
-| Do class vtable slots and targets agree? | `just wiz8 vtable CLASS` compares matching class names and refuses zero-entity success. |
-| Does reviewed global data agree? | `just wiz8 datacmp` compares reviewed globals through reccmp. |
-| What is the paired original/recompiled address? | `just wiz8 addr ADDRESS...` translates either side in one process. |
+| Do class vtable slots and targets agree? | `uv run wiz8 vtable CLASS` compares matching class names and refuses zero-entity success. |
+| Does reviewed global data agree? | `uv run wiz8 datacmp` compares reviewed globals through reccmp. |
+| What is the paired original/recompiled address? | `uv run wiz8 addr ADDRESS...` translates either side in one process. |
 
 Use the project command where one exists; use reccmp directly for capabilities the project does not
 wrap. Do not build a generic comparison framework or wrap all of reccmp.
@@ -15,7 +15,7 @@ wrap. Do not build a generic comparison framework or wrap all of reccmp.
 ## Linked-image selected function
 
 ```sh
-just compare 0x0044e010
+uv run wiz8 compare 0x0044e010
 ```
 
 The normal recovered-Wizardry path builds current inputs and returns structured selected results.

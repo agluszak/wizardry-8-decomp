@@ -27,7 +27,7 @@ from typing import Any
 
 from reccmp.formats.coff import parse_coff_object
 
-from .paths import atomic_json, atomic_write
+from .paths import atomic_write
 
 # The linker prefixes an imported symbol's thunk this way. It is never a name a
 # recovered unit writes, so matching on it cannot hide a real gap.
@@ -134,35 +134,6 @@ def unresolved_report(
     }
 
 
-def compare_unresolved_reports(
-    current: dict[str, Any], baseline: dict[str, Any], *, baseline_name: str
-) -> dict[str, Any]:
-    """Compare the current first-party missing-symbol frontier to reviewed debt."""
-
-    current_symbols = set(current["by_symbol"])
-    baseline_symbols = {str(row["symbol"]) for row in baseline["symbols"]}
-    introduced = sorted(current_symbols - baseline_symbols)
-    resolved = sorted(baseline_symbols - current_symbols)
-    unchanged = sorted(current_symbols & baseline_symbols)
-    return {
-        "schema": "wiz8.unresolved-delta",
-        "ok": not introduced,
-        "baseline": baseline_name,
-        "baseline_symbol_count": len(baseline_symbols),
-        "current_symbol_count": len(current_symbols),
-        "introduced_count": len(introduced),
-        "resolved_count": len(resolved),
-        "unchanged_count": len(unchanged),
-        "introduced": introduced,
-        "resolved": resolved,
-        "unchanged": unchanged,
-        "ranked_units": current["ranked_units"],
-        "near_link_complete_units": current["near_link_complete_units"],
-        "canonical_import_symbols": current["canonical_import_symbols"],
-        "canonical_imports_by_symbol": current["canonical_imports_by_symbol"],
-    }
-
-
 def load_unresolved_baseline(path: Path) -> dict[str, Any]:
     if not path.is_file():
         raise ValueError(
@@ -199,29 +170,3 @@ def write_unresolved_baseline(path: Path, report: dict[str, Any]) -> dict[str, A
     writer.writerows(rows)  # pyright: ignore[reportArgumentType]
     atomic_write(path, output.getvalue())
     return {"baseline": str(path), "symbol_count": len(rows)}
-
-
-def verify_unresolved_delta(
-    settings: Any, current: dict[str, Any], against: Path | None = None
-) -> dict[str, Any]:
-    baseline_path = against or (settings.repo_dir / DEFAULT_BASELINE)
-    if not baseline_path.is_absolute():
-        baseline_path = settings.repo_dir / baseline_path
-    delta = compare_unresolved_reports(
-        current,
-        load_unresolved_baseline(baseline_path),
-        baseline_name=str(baseline_path),
-    )
-    destination = settings.build_dir / "reports/unresolved/delta.json"
-    atomic_json(destination, delta)
-    delta["report"] = str(destination)
-    return delta
-
-
-def require_unresolved_delta(report: dict[str, Any]) -> dict[str, Any]:
-    if not report["ok"]:
-        raise ValueError(
-            f"link verification introduced {report['introduced_count']} first-party "
-            f"unresolved symbols against {report['baseline']}; see {report['report']}"
-        )
-    return report

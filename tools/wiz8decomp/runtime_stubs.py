@@ -42,14 +42,9 @@ from .identity_lint import _declaration_address, _declaration_lines
 from .paths import atomic_write
 from .unresolved import unresolved_report
 
-PRODUCT_BUILD = Path("build/decomp")
-OBJECT_ROOT = PRODUCT_BUILD / "CMakeFiles/wiz8_recovered_objects.dir"
-COMPARISON_MAP = PRODUCT_BUILD / "Wiz8.map"
-COMPARISON_RESPONSE = PRODUCT_BUILD / "CMakeFiles/WIZ8.dir/objects1.rsp"
-GENERATED_ROOT = PRODUCT_BUILD / "generated/runtime-stubs"
-GENERATED_SOURCE = GENERATED_ROOT / "runtime_stubs.cpp"
-GENERATED_OBJECT = GENERATED_ROOT / "runtime_stubs.obj"
-GENERATED_MANIFEST = GENERATED_ROOT / "runtime_stubs.json"
+COMPARISON_RESPONSE = Path("src/wiz8/CMakeFiles/WIZ8.dir/objects1.rsp")
+COMPARISON_LINK_DIR = Path("src/wiz8")
+GENERATED_ROOT = Path("generated/runtime-stubs")
 SOURCE_INDEX = Path("build/source-index.json")
 
 # Compiler/CRT support the runtime support object supplies directly. They are
@@ -163,17 +158,21 @@ class ResolvedStub:
     reason: str
 
 
-def linked_objects(repo_dir: Path) -> list[Path]:
-    """The recovered objects the completed comparison link actually consumed."""
+def linked_objects(settings: Settings) -> list[Path]:
+    """The recovered objects the completed comparison link actually consumed.
 
-    build_dir = repo_dir / PRODUCT_BUILD
-    response = repo_dir / COMPARISON_RESPONSE
+    The NMake link runs in the owning component's binary directory, so
+    response-file tokens are relative to it, not to the build root.
+    """
+
+    build_dir = settings.product_build_dir
+    response = build_dir / COMPARISON_RESPONSE
     if not response.is_file():
         raise RuntimeStubError(
             f"the comparison link response is missing: {response}; build WIZ8 first"
         )
     objects = [
-        (build_dir / token).resolve()
+        (build_dir / COMPARISON_LINK_DIR / token).resolve()
         for token in response.read_text(encoding="utf-8").split()
         if token.endswith(".obj")
     ]
@@ -508,20 +507,20 @@ def render_manifest(stubs: list[ResolvedStub]) -> dict[str, Any]:
 
 def write_runtime_stubs(settings: Settings, *, force: bool = False) -> dict[str, Any]:
     repo_dir = settings.repo_dir
-    output_dir = repo_dir / GENERATED_ROOT
+    output_dir = settings.product_build_dir / GENERATED_ROOT
     output_dir.mkdir(parents=True, exist_ok=True)
     stubs = resolve_stubs(
         settings,
-        object_root=repo_dir / OBJECT_ROOT,
-        map_path=repo_dir / COMPARISON_MAP,
-        objects=linked_objects(repo_dir),
+        object_root=settings.recovered_objects_dir,
+        map_path=settings.product_build_dir / "Wiz8.map",
+        objects=linked_objects(settings),
     )
     source = render_source(stubs)
     alias_object = render_alias_object(stubs)
     manifest = render_manifest(stubs)
-    source_path = repo_dir / GENERATED_SOURCE
-    object_path = repo_dir / GENERATED_OBJECT
-    manifest_path = repo_dir / GENERATED_MANIFEST
+    source_path = output_dir / "runtime_stubs.cpp"
+    object_path = output_dir / "runtime_stubs.obj"
+    manifest_path = output_dir / "runtime_stubs.json"
     source_changed = force or not source_path.is_file() or source_path.read_text() != source
     object_changed = force or not object_path.is_file() or object_path.read_bytes() != alias_object
     manifest_text = json.dumps(manifest, indent=1) + "\n"
@@ -537,9 +536,9 @@ def write_runtime_stubs(settings: Settings, *, force: bool = False) -> dict[str,
     if manifest_changed:
         atomic_write(manifest_path, manifest_text)
     return {
-        "source": str(GENERATED_SOURCE),
-        "object": str(GENERATED_OBJECT),
-        "manifest": str(GENERATED_MANIFEST),
+        "source": str(source_path.relative_to(repo_dir)),
+        "object": str(object_path.relative_to(repo_dir)),
+        "manifest": str(manifest_path.relative_to(repo_dir)),
         "stubs": len(stubs),
         "annotated": sum(stub.address is not None for stub in stubs),
         "unmapped": sum(stub.address is None for stub in stubs),

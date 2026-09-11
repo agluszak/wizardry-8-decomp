@@ -182,7 +182,7 @@ together; keep the address suffix until the original spelling is known.
 
 Each unit below is missing only the listed first-party symbol(s); everything
 else in the TU already links. Port the body, place it in the owning header by
-the retail address order, then run `just compare ADDRESS`.
+the retail address order, then run `uv run wiz8 compare ADDRESS`.
 WorldRemoveLight (0x0046E250) from this list was recovered and is no longer a
 gap.
 
@@ -207,8 +207,8 @@ gap.
 - Genuine boundaries to leave alone: button userdata pointer/`INT32`,
   dynamic-library symbol to function pointer, DirectDraw/pixel buffers, SGP
   APIs declared with `UINT8*`, packed-colour byte access.
-- The older `check-casts`, `check-vectors` and identity gates stay until the
-  Clang lane is proven to catch their injected bad cases; the index-based
-  cross-TU check currently covers marked functions, not external variable
-  declarations (see `wiz8-source-model.md`).
+- The cast, void-vector and identity validators in `uv run wiz8 check` stay
+  until the Clang lane is proven to catch their injected bad cases; the
+  index-based cross-TU check currently covers marked functions, not external
+  variable declarations (see `wiz8-source-model.md`).
 

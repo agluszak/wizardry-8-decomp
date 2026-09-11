@@ -36,8 +36,8 @@ DELETING_DESTRUCTORS = (
 def _index() -> dict[str, Any]:
     """Load the generated index.
 
-    These rules require a current index. `just check` refreshes it before the
-    repository suite; for a direct run after source changes, refresh with
+    These rules require a current index. `uv run wiz8 check` refreshes it before
+    the repository suite; for a direct run after source changes, refresh with
     `uv run wiz8 analyze source-index` first.
 
     Do not add an mtime-based staleness assert here: the writer preserves the

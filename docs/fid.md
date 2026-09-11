@@ -9,7 +9,7 @@ the resulting FID database are tracked.
 ## Rebuild
 
 ```sh
-just wiz8 toolchain build
+uv run wiz8 toolchain build
 # Advanced/internal corpus regeneration:
 uv run wiz8 ghidra fid build-seeds
 uv run wiz8 ghidra fid extract-libraries

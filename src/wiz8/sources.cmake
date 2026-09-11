@@ -178,9 +178,10 @@ set(WIZ8_SOURCE_UNITS
 # Every recovered C++ source must appear exactly once. The glob is
 # validation-only: it prevents a new recovered source from silently escaping
 # ownership without using the filesystem to order or populate the build.
+# Names stay repository-relative so tooling can share this single inventory.
 set(WIZ8_CLASSIFIED_SOURCES)
 foreach(source IN LISTS WIZ8_SOURCE_UNITS)
-    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${source}")
+    if(NOT EXISTS "${PROJECT_SOURCE_DIR}/${source}")
         message(FATAL_ERROR "WIZ8_SOURCE_UNITS names missing source: ${source}")
     endif()
     if(source IN_LIST WIZ8_CLASSIFIED_SOURCES)
@@ -188,20 +189,13 @@ foreach(source IN LISTS WIZ8_SOURCE_UNITS)
     endif()
     list(APPEND WIZ8_CLASSIFIED_SOURCES "${source}")
 endforeach()
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/wiz8/unattributed_helpers.cpp")
+if(EXISTS "${PROJECT_SOURCE_DIR}/src/wiz8/unattributed_helpers.cpp")
     message(FATAL_ERROR "Synthetic catch-all source is forbidden: unattributed_helpers.cpp")
 endif()
-if(CMAKE_SCRIPT_MODE_FILE)
-    file(GLOB_RECURSE WIZ8_CPP_SOURCES
-        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/wiz8/*.cpp"
-    )
-else()
-    file(GLOB_RECURSE WIZ8_CPP_SOURCES CONFIGURE_DEPENDS
-        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/wiz8/*.cpp"
-    )
-endif()
+file(GLOB_RECURSE WIZ8_CPP_SOURCES CONFIGURE_DEPENDS
+    RELATIVE "${PROJECT_SOURCE_DIR}"
+    "${PROJECT_SOURCE_DIR}/src/wiz8/*.cpp"
+)
 set(WIZ8_UNCLASSIFIED_SOURCES ${WIZ8_CPP_SOURCES})
 list(REMOVE_ITEM WIZ8_UNCLASSIFIED_SOURCES ${WIZ8_CLASSIFIED_SOURCES})
 if(WIZ8_UNCLASSIFIED_SOURCES)

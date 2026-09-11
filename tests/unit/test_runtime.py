@@ -12,7 +12,7 @@ from wiz8decomp.runtime import (
     _run_runtime_scenario,
     _symbolize_addresses,
     analyze_runtime_crash,
-    stage_runtime_test,
+    stage_game,
 )
 
 
@@ -36,24 +36,34 @@ def _settings(tmp_path: Path) -> Settings:
     )
 
 
-def test_stage_runtime_test_uses_managed_links_and_materialized_cfg(tmp_path: Path) -> None:
+def test_stage_game_uses_managed_links_and_materialized_cfg(tmp_path: Path) -> None:
     settings = _settings(tmp_path)
 
-    result = stage_runtime_test(settings)
-    stage = Path(result["stage"])
+    result = stage_game(
+        settings,
+        name="runtime-test",
+        executable=settings.product_build_dir / "Wiz8RuntimeTest.exe",
+        reset_saves=True,
+    )
+    stage = result.root
 
     assert (stage / "Data").is_symlink()
     assert (stage / "Wiz8.CFG").read_bytes() == b"\x00\xff"
     assert (stage / "Wiz8RuntimeTest.exe").read_bytes() == b"semantic tests"
+    assert (stage / "Saves" / "Characters").is_dir()
 
 
-def test_stage_runtime_test_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> None:
+def test_stage_game_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> None:
     settings = _settings(tmp_path)
-    unmanaged = settings.repo_dir / "build" / "runtime" / "wiz8" / "Data"
+    unmanaged = settings.runtime_stage("runtime-test") / "Data"
     unmanaged.mkdir(parents=True)
 
     with pytest.raises(RuntimeError, match="not a managed symlink"):
-        stage_runtime_test(settings)
+        stage_game(
+            settings,
+            name="runtime-test",
+            executable=settings.product_build_dir / "Wiz8RuntimeTest.exe",
+        )
 
 
 def test_runtime_observation_is_normalized_to_typed_fields() -> None:

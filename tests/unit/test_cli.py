@@ -106,9 +106,9 @@ def test_cli_groups_subcommands_instead_of_exposing_them_at_the_root() -> None:
     assert analyze.exit_code == 0
     assert "inventory" in analyze.stdout
 
-    verify = CliRunner().invoke(app, ["verify", "--help"], terminal_width=120)
-    assert verify.exit_code == 0
-    assert "--against" in re.sub(r"\x1b\[[0-9;]*m", "", verify.stdout)
+    run = CliRunner().invoke(app, ["run", "--help"], terminal_width=120)
+    assert run.exit_code == 0
+    assert "--original" in re.sub(r"\x1b\[[0-9;]*m", "", run.stdout)
 
 
 def test_corpus_extract_accepts_multiple_roles(monkeypatch) -> None:

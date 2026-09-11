@@ -457,16 +457,19 @@ def verify_variant(
     }
 
 
-def materialize_variants(settings: Settings) -> dict[str, Any]:
+def materialize_variants(settings: Settings, *, only: list[str] | None = None) -> dict[str, Any]:
+    """Materialize selected variants; optional corpus inputs stay opt-in."""
+
+    selected = list(VARIANT_SPECS) if only is None else list(only)
+    unknown = [variant for variant in selected if variant not in VARIANT_SPECS]
+    if unknown:
+        raise RuntimeError(f"unknown variants: {', '.join(unknown)}")
     extracted = settings.work_dir / "extracted"
     variants = settings.work_dir / "variants"
     variants.mkdir(parents=True, exist_ok=True)
     input_receipts: dict[str, ExtractionReceipt] = {}
     for name in dict.fromkeys(
-        name
-        for base_name, patch_name in VARIANT_SPECS.values()
-        for name in (base_name, patch_name)
-        if name is not None
+        name for variant in selected for name in VARIANT_SPECS[variant] if name is not None
     ):
         role = _role_for_extraction_name(name)
         verification = verify_extraction(settings, role)
@@ -477,7 +480,8 @@ def materialize_variants(settings: Settings) -> dict[str, Any]:
             )
         input_receipts[name] = _load_extraction_receipt(extracted / name)
     records: list[VariantProvenance] = []
-    for variant, (base_name, patch_name) in VARIANT_SPECS.items():
+    for variant in selected:
+        base_name, patch_name = VARIANT_SPECS[variant]
         inputs = [input_receipts[name] for name in (base_name, patch_name) if name is not None]
         destination = variants / variant
         marker = destination / ".wiz8-variant.json"

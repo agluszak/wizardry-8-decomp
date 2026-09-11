@@ -65,7 +65,7 @@ listings in named `build/` files. Operational recipes belong in skills, not READ
   evidence plus improvement of the complete ABI bundle.
 - Legitimate `reinterpret_cast` sites express storage the type system cannot: external ABI, raw
   serialized/pixel memory, tagged storage, deliberate address/bit reinterpretation, or an explicitly
-  unresolved site. New casts require a same-line `reinterpret-ok: <reason>` comment (`just check`
+  unresolved site. New casts require a same-line `reinterpret-ok: <reason>` comment (`uv run wiz8 check`
   enforces this). A marker does not justify concealing known type disagreement.
 
 ## Scope and completion
@@ -85,8 +85,9 @@ source and report the unresolved mismatch or missing evidence; do not relabel un
 - An unrecovered retail function may be represented by a build-generated
   `// STUB:` trap in the runnable products only. `STUB` is not source recovery;
   `FUNCTION` means a body has actually been recovered.
-- `wiz8 generate runtime-stubs` derives the stub set from the real unresolved
-  symbols and runs automatically for `just build runtime`/`runtime-test`.
+- `uv run wiz8 build runtime`/`runtime-test` derives the stub set from the real
+  unresolved symbols before the runnable link; stub generation is an internal
+  build phase, not a public command.
 - If stubgen reports an unresolved identity that maps to an already recovered
   address, fix the declaration/linkage/signature mismatch; do not suppress the
   diagnostic.
@@ -98,16 +99,17 @@ source and report the unresolved mismatch or missing evidence; do not relabel un
 Use the smallest existing check capable of detecting the relevant failure. Validate coherent changes,
 not each textual edit. Reuse a successful result until a relevant input changes.
 
-- Normal recovered function: focused `just compare ADDRESS...` (builds itself).
+- Normal recovered function: focused `uv run wiz8 compare ADDRESS...` (builds itself).
 - Layout/vtable/lifecycle/ABI: affected comparison bundle plus relevant declaration/ABI and
-  `just wiz8 vtable CLASS` checks.
+  `uv run wiz8 vtable CLASS` checks.
 - Behavior/runtime: relevant runtime scenario and the requested observable behavior.
 - Python/tooling: relevant existing tests (`uv run pytest -q PATH`) and lint/type checks; shared build
   or validation machinery needs checks appropriate to its reach.
 - Prose/skill-only changes: inspect the diff.
 
-`just wiz8 verify` is deliberately broad, not a completion/publication ritual. Do not repeat unrelated
-baseline failures or rerun checks after descriptions, change IDs, bookmarks, or pushes alone.
+`uv run wiz8 check` is the fast public lane (ruff, pyright, validators, tests); `uv run wiz8 lint` is
+the clang-cl compile lane. Do not repeat unrelated baseline failures or rerun checks after
+descriptions, change IDs, bookmarks, or pushes alone.
 
 Do not add tests by default. Add them only when requested or for a concrete observed correctness bug
 existing checks miss, with independently justified expectations. Test behavior, not source spelling,

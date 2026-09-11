@@ -45,8 +45,8 @@ invisible TU, or the next unit's head, and is never assigned heuristically. Othe
 (demo, 1.2.6, 1.2.8) contribute `cross-build` anchors through unique relocation-insensitive body
 matches, which can establish a retail hull for a unit whose retail path string is gone; ambiguous or
 non-unique matches stay unknown. The same layout drives `wiz8 report context`, `wiz8 recover`, and
-`wiz8 report translation-units`, and `wiz8 check-tu-placement` compares it against the current
-source-index placement and enforces every anchored function. The earlier provisional Video2
+`wiz8 report translation-units`; the placement validator in `uv run wiz8 check` compares it against
+the current source-index placement and enforces every anchored function. The earlier provisional Video2
 exemptions are gone: the cursor, window and dirty-tile bodies were consolidated into
 `src/wiz8/engine_code/Video2.cpp` rather than kept in invented semantic units.
 
@@ -262,10 +262,10 @@ Use the authoritative surfaces instead:
 
 - C++ declarations, inheritance, `static_assert` layout checks, and function markers for the
   source-owned model;
-- `just wiz8 report context 0x<address> --program <program>` for joined identity, ownership,
+- `uv run wiz8 report context 0x<address> --program <program>` for joined identity, ownership,
   assertion, and current Ghidra evidence;
-- `just wiz8 analyze source-layouts` for the current PDB-to-Ghidra layout audit;
-- `just compare <addresses>` for relocation-masked body proof;
+- `uv run wiz8 analyze source-layouts` for the current PDB-to-Ghidra layout audit;
+- `uv run wiz8 compare <addresses>` for relocation-masked body proof;
 - reviewed claims under `evidence/` for why an accepted identity or layout is trusted.
 
 Historical recovery examples belong in commit and Bead history, not in a manually maintained
