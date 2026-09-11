@@ -73,6 +73,12 @@ void CopyItemInstance(
 void SortPartyItemPool(void);
 void Function520D10(
     W8ItemInstance* item, W8Character* character, unsigned char refresh);
+void ReplaceOrCreateItem(
+    W8ItemInstance* item, int item_id, unsigned char maximum_quantity,
+    unsigned char force_identified, unsigned char mark_special);
+void Function51FD20(
+    W8ItemInstance* item, W8ItemInstance* destination, W8Character* character,
+    unsigned char flag); /* 0x0051FD20 */
 unsigned char Function51F900(
     W8ItemInstance* destination,
     W8ItemInstance* source,

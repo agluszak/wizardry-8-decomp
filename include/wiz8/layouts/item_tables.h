@@ -52,7 +52,14 @@ struct W8ItemDatabaseRecord {
     W8Dice initial_quantity;              /* 0x067 */
     /* The stack merge path clamps quantity-kind 1 items to this byte. */
     unsigned char maximum_quantity;      /* 0x06b */
-    unsigned char unknown_06c[0xa];
+    /* 0x06c..0x06e: three per-item modifier bytes the equipment fold adds to
+       the derived block's own unknowns; 0x06f..0x074 are the six resistance
+       bonuses it sums and clamps. */
+    unsigned char modifier_06c;
+    unsigned char modifier_06d;
+    unsigned char modifier_06e;
+    signed char resistance_bonus_06f[6]; /* 0x06f .. 0x074 */
+    unsigned char unknown_075;
     unsigned short profession_mask;       /* 0x076 */
     unsigned int race_mask;               /* 0x078 */
     /* 0x07c: one bit per sex; three admits either, and
@@ -64,7 +71,14 @@ struct W8ItemDatabaseRecord {
     unsigned int value;                   /* 0x086 */
     unsigned short weight;                /* 0x08a */
     unsigned char binds_on_equip;         /* 0x08c */
-    char internal_name[0x40];             /* 0x08d */
+    char internal_name[0x24];             /* 0x08d .. 0x0b0 */
+    /* 0x0b1/0x0b3: the item's (index, value) modifier pairs the equipment
+       fold adds to the derived block's two byte tables. 0xff is no pair. */
+    signed char modifier_0b1_index;
+    unsigned char modifier_0b1_value;
+    signed char modifier_0b3_index;
+    unsigned char modifier_0b3_value;
+    unsigned char unknown_0b5[0x18];      /* 0x0b5 .. 0x0cc */
     /* GetOrCreateVideoObject treats this fixed buffer as the item image name. */
     char video_object_name[0x40];         /* 0x0cd */
 };                                        /* 0x10d */

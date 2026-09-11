@@ -342,6 +342,9 @@ extern unsigned short g_character_trait_name_ids_61e530[0x20];
    skills pages. */
 extern unsigned short g_character_description_first_ids_61e3a4[22];
 extern unsigned short g_character_skill_name_ids_61e454[84];
+/* 0x0061E430: one row per gender, the third entry the possessive the item
+   notices print. */
+extern unsigned short g_gender_name_message_rows_61e430[4][4];
 /* One message id per final-page personality slot; the array's terminating zero
    keeps its ten-entry extent. */
 extern unsigned short g_personality_message_ids_61e674[10];

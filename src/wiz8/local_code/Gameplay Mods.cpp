@@ -4,6 +4,7 @@
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/game_status.h"
+#include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/MonsterManager.h"
 
@@ -80,4 +81,132 @@ void RebuildPartyEffectBlock0050E700(void)
     SetSkyNodeValue1D0(
         (int)((float)g_status_685170.party_modifiers_22e3.light_47
               + g_environment_near_scale_005ec0b0));
+}
+
+/* Fold the worn items into one character's equipment bonus block: the twelve
+   equipment slots are walked, the two alternate hand slots are skipped, the
+   two hand slots contribute no attack values, and the six per-item
+   resistance bytes are summed and clamped into the block's resistance run. */
+// FUNCTION: WIZ8 0x0050e980
+void AccumulateEquipmentModifiers(W8Character* character,
+                                  W8GameplayModifierBlock* equipment_bonus)
+{
+    int resistance_totals[6] = {0};
+    unsigned int slot;
+    int index;
+
+    for (slot = 0; slot < 12; ++slot) {
+        int item_id = character->equipment[slot].item_id;
+        if (slot == 8 || slot == 9 || item_id == -1) {
+            continue;
+        }
+        const W8ItemDatabaseRecord* record = &g_item_records[item_id];
+        if (slot != 6 && slot != 7) {
+            equipment_bonus->value_00 += record->attack_damage_bonus;
+            equipment_bonus->value_01 += record->attack_hit_bonus;
+        }
+        equipment_bonus->unknown_08[1] += record->modifier_06c;
+        equipment_bonus->unknown_08[2] += record->modifier_06d;
+        equipment_bonus->unknown_08[3] += record->modifier_06e;
+        if (record->modifier_0b1_index != -1) {
+            equipment_bonus->unknown_13[record->modifier_0b1_index] +=
+                record->modifier_0b1_value;
+        }
+        if (record->modifier_0b3_index != -1) {
+            equipment_bonus->unknown_0c[record->modifier_0b3_index] +=
+                record->modifier_0b3_value;
+        }
+        for (index = 0; index < 6; ++index) {
+            resistance_totals[index] += record->resistance_bonus_06f[index];
+        }
+    }
+
+    for (index = 0; index < 6; ++index) {
+        int value = resistance_totals[index];
+        if (value < -0x7c) {
+            value = -0x7d;
+        }
+        else if (value > 0x7c) {
+            value = 0x7d;
+        }
+        equipment_bonus->resistance_bonus[index] = (signed char)value;
+    }
+}
+
+/* Add one modifier block into another: the byte fields sum, the six flags
+   latch, and the light and max-combined bytes keep the larger source. */
+// FUNCTION: WIZ8 0x0050f090
+void ApplyModifierBlock(W8GameplayModifierBlock* target,
+                        const W8GameplayModifierBlock* source)
+{
+    unsigned int index;
+
+    target->value_00 += source->value_00;
+    target->value_01 += source->value_01;
+    target->value_02 += source->value_02;
+    target->value_03 += source->value_03;
+    target->value_4b += source->value_4b;
+    target->armor_bonus_04 += source->armor_bonus_04;
+    target->armor_bonus_05 += source->armor_bonus_05;
+    target->value_06 += source->value_06;
+    target->resistance_bonus_all += source->resistance_bonus_all;
+    target->unknown_08[0] += source->unknown_08[0];
+    target->unknown_08[1] += source->unknown_08[1];
+    target->unknown_08[2] += source->unknown_08[2];
+    target->unknown_08[3] += source->unknown_08[3];
+    for (index = 0; index < 7; ++index) {
+        target->unknown_0c[index] += source->unknown_0c[index];
+    }
+    for (index = 0; index < 0x29; ++index) {
+        target->unknown_13[index] += source->unknown_13[index];
+    }
+    for (index = 0; index < 6; ++index) {
+        target->resistance_bonus[index] += source->resistance_bonus[index];
+    }
+    if (source->flag_42 != 0) {
+        target->flag_42 = 1;
+    }
+    if (source->flag_43 != 0) {
+        target->flag_43 = 1;
+    }
+    if (source->flag_44 != 0) {
+        target->flag_44 = 1;
+    }
+    if (source->out_of_formation != 0) {
+        target->out_of_formation = 1;
+    }
+    if (source->flag_46 != 0) {
+        target->flag_46 = 1;
+    }
+    if (source->flag_4a != 0) {
+        target->flag_4a = 1;
+    }
+    if (target->light_47 < source->light_47) {
+        target->light_47 = source->light_47;
+    }
+    if (target->value_48 < source->value_48) {
+        target->value_48 = source->value_48;
+    }
+    if (target->value_49 < source->value_49) {
+        target->value_49 = source->value_49;
+    }
+}
+
+/* Rebuild one character's equipment bonus block from its worn items, then its
+   derived block from the equipment, persistent and party blocks, and
+   recompute the derived stats. The standalone form character creation runs. */
+// FUNCTION: WIZ8 0x0050e540
+void Function50E540(W8Character* character)
+{
+    memset(&character->equipment_bonus_1709, 0, sizeof(W8GameplayModifierBlock));
+    AccumulateEquipmentModifiers(character, &character->equipment_bonus_1709);
+
+    memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
+    ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
+    ApplyModifierBlock(&character->bonus_1770, &character->unknown_16a2);
+    if (character->in_party != 0) {
+        ApplyModifierBlock(&character->bonus_1770,
+                           &g_status_685170.party_modifiers_22e3);
+    }
+    Function4ED9D0(character);
 }

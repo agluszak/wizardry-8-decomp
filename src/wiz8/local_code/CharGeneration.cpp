@@ -2,6 +2,7 @@
 #include "wiz8/character.h"
 #include "wiz8/dialog_code/ProfRaceInfoDialog.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/magic.h"
@@ -1142,4 +1143,78 @@ void Function557580(W8Character* character, W8CharacterCreationState* creation_s
     character->experience_previous_goal = character->experience_goal;
     CalcXPGoal(character);
     CalcCharacterLevelBand(character);
+}
+
+/* The six starting item ids each profession hands out, with the faerie race's
+   own row last; -1 is an empty slot. */
+// GLOBAL: WIZ8 0x0061635c
+int g_starting_equipment_61635c[0x10][6] = {
+    {143, 153, 203, 246, -1, -1},
+    {35, 1, 158, 204, 247, 210},
+    {75, 170, 197, 246, 215, -1},
+    {110, 125, 157, 188, 247, -1},
+    {38, 49, 165, 192, 246, -1},
+    {105, 230, 180, 209, 253, -1},
+    {79, 105, 165, 192, 246, -1},
+    {0, 0, 99, 156, 187, 247},
+    {132, 156, 187, 246, -1, -1},
+    {769, 116, 132, 156, 187, -1},
+    {165, 192, 246, 335, -1, -1},
+    {28, 165, 192, 246, 350, -1},
+    {82, 165, 192, 246, 223, -1},
+    {0, 165, 192, 246, 347, -1},
+    {28, 165, 192, 246, 385, -1},
+    {63, 169, 196, 335, 358, 0},
+};
+
+/* Hand out the race or profession's six-item starting set and then the extra
+   item the profession's own skill pair selects, and settle the character's
+   modifiers once the equipment is on. */
+// FUNCTION: WIZ8 0x00557430
+void AddCharacterStartingEquipment(W8Character* character)
+{
+    W8ItemInstance item;
+    unsigned int slot;
+    unsigned int set;
+
+    Function520310(character);
+
+    set = character->race == 5 ? 15 : character->current_profession;
+    for (slot = 0; slot < 6; ++slot) {
+        if (g_starting_equipment_61635c[set][slot] == -1) {
+            continue;
+        }
+        ReplaceOrCreateItem(&item, g_starting_equipment_61635c[set][slot], 1, 1, 1);
+        AddItemToCharacter(character, &item, 1, 0, 0);
+    }
+
+    switch (character->current_profession) {
+    case 0:
+        if (character->skills[1].level > character->skills[0].level) {
+            ReplaceOrCreateItem(&item, 0x12, 1, 1, 1);
+        }
+        else {
+            ReplaceOrCreateItem(&item, 7, 1, 1, 1);
+        }
+        break;
+    case 8:
+        ReplaceOrCreateItem(&item, 599, 1, 1, 1);
+        break;
+    case 9:
+        ReplaceOrCreateItem(&item, 0x144, 1, 1, 1);
+        break;
+    case 10:
+        if (character->skills[5].level > character->skills[3].level) {
+            ReplaceOrCreateItem(&item, 0x16, 1, 1, 1);
+        }
+        else {
+            ReplaceOrCreateItem(&item, 0x52, 1, 1, 1);
+        }
+        break;
+    default:
+        Function50E540(character);
+        return;
+    }
+    AddItemToCharacter(character, &item, 1, 0, 0);
+    Function50E540(character);
 }

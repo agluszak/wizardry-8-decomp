@@ -4,7 +4,13 @@
 
 /* Local Code\Gameplay Mods.cpp. */
 
+struct W8Character;
+
 void RebuildPartyEffectBlock0050E700(void);
+
+/* 0x0050E540: fold the character's equipment, persistent and party modifier
+   blocks into the derived bonus block and then recompute the derived stats. */
+void Function50E540(W8Character* character);
 
 /* The unit's unrecovered block helpers. Each folds its source into the
    shared modifier block; the party-wide block is their target. */

@@ -33,6 +33,7 @@
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 
 #include <stdio.h>
@@ -1408,12 +1409,12 @@ bool ItemHasHiddenProperties(int item_id)
         return true;
     }
     for (index = 0; index < 6; ++index) {
-        if (record->unknown_06c[3 + index] != 0) {
+        if (record->resistance_bonus_06f[index] != 0) {
             return true;
         }
     }
-    if (record->binds_on_equip != 0 || record->unknown_06c[0] != 0 ||
-        record->unknown_06c[1] != 0 || record->unknown_06c[2] != 0) {
+    if (record->binds_on_equip != 0 || record->modifier_06c != 0 ||
+        record->modifier_06d != 0 || record->modifier_06e != 0) {
         return true;
     }
     return false;
@@ -2419,4 +2420,151 @@ bool AddItemToParty(
     UpdateFactsAfterAcquiringItem(stored_item);
     Function5227D0(stored_item, 1, 0);
     return stored;
+}
+
+/* An equipped item the character can no longer use is announced and moved
+   into the backpack, or into the party pool when the backpack is full. The
+   item record's two requirement pairs choose the attribute or skill name the
+   message carries; an item whose requirements are still met gets the generic
+   notice instead. The announcement runs before the move, and the party row's
+   item is not refreshed by the temporary instance the move builds. */
+// FUNCTION: WIZ8 0x0051d960
+void Function51D960(W8Character* character)
+{
+    if (!IsPartyCharacterPointer(character)) {
+        return;
+    }
+
+    for (int slot = 0; slot < 12; ++slot) {
+        W8ItemInstance* item = &character->equipment[slot];
+        if (item->item_id == -1) {
+            continue;
+        }
+        if (CanCharacterUseItem(character, item->item_id)) {
+            continue;
+        }
+
+        unsigned int party_slot = CharacterPointerToPartySlot(character);
+        const W8ItemDatabaseRecord* record = &g_item_records[item->item_id];
+        unsigned short message_id = 0;
+        W8ItemInstance destination;
+        unsigned int index;
+
+        for (index = 0; index < 2; ++index) {
+            if (record->attribute_requirements[index].stat_id != W8_ITEM_REQUIREMENT_NONE &&
+                character
+                        ->attributes[(signed char)record->attribute_requirements[index].stat_id]
+                        .effective < record->attribute_requirements[index].minimum) {
+                message_id = g_character_description_first_ids_61e3a4
+                                 [(signed char)record->attribute_requirements[index].stat_id];
+                goto announce_requirement;
+            }
+        }
+        for (index = 0; index < 2; ++index) {
+            if (record->skill_requirements[index].stat_id != W8_ITEM_REQUIREMENT_NONE &&
+                character->skills[(signed char)record->skill_requirements[index].stat_id]
+                        .level < record->skill_requirements[index].minimum) {
+                message_id = g_character_skill_name_ids_61e454
+                                 [(signed char)record->skill_requirements[index].stat_id];
+                goto announce_requirement;
+            }
+        }
+        PostCharacterNotice(
+            party_slot, gppStringList[0x7c0 / 4],
+            gppStringList[g_gender_name_message_rows_61e430[character->gender][2]],
+            FormatItemDisplayName(item, 1), item, 1);
+        goto move_item;
+
+    announce_requirement:
+        PostCharacterNotice(
+            party_slot, gppStringList[0x7bc / 4],
+            gppStringList[g_gender_name_message_rows_61e430[character->gender][2]],
+            FormatItemDisplayName(item, 1),
+            gppStringList[g_gender_name_message_rows_61e430[character->gender][2]],
+            gppStringList[message_id]);
+
+    move_item:
+        destination.item_id = -1;
+        destination.stack_count = 0;
+        destination.uses_or_charges = 0;
+        destination.identified = 0;
+        Function520D10(&destination, 0, 1);
+        Function51FD20(item, &destination, character, 1);
+        if (!AddItemToCharacter(character, &destination, 0, 0, 0)) {
+            AddItemToParty(&destination, 0, 0);
+        }
+    }
+}
+
+/* Pick the equipment slot a newly acquired item goes into. Before the game
+   has started the two hand pairs are special-cased: a dual-wield-capable
+   item can displace the right hand's item into the left hand, class-three
+   gear fills a free pair before anything else, and class-four gear looks for
+   a two-handed holder and otherwise fails. */
+// FUNCTION: WIZ8 0x0051c5a0
+int Function51C5A0(W8Character* character, int item_id)
+{
+    int slot = GetItemDefaultEquipSlot(item_id);
+    if (g_status_685170.game_started != 0 || (slot != 6 && slot != 7)) {
+        return slot;
+    }
+
+    int primary_right = character->equipment[6].item_id;
+    int alternate_right = character->equipment[8].item_id;
+    int primary_left = character->equipment[7].item_id;
+    int alternate_left = character->equipment[9].item_id;
+    switch (g_item_records[item_id].equip_class) {
+    case 0:
+    case 1:
+        if (character->skills[0x12].value_02 != 0) {
+            if (CanEquipItemInSlot(character, item_id, 7, 0)) {
+                if (primary_right != -1 && primary_left == -1 &&
+                    (g_item_records[primary_right].equip_class == 0 ||
+                     g_item_records[primary_right].equip_class == 1) &&
+                    (g_item_records[primary_right].flags_041 & 4) == 0) {
+                    slot = 7;
+                }
+                if (alternate_right != -1 && alternate_left == -1 &&
+                    (g_item_records[alternate_right].equip_class == 0 ||
+                     g_item_records[alternate_right].equip_class == 1) &&
+                    (g_item_records[alternate_right].flags_041 & 4) == 0) {
+                    return 9;
+                }
+            }
+            else {
+                if (primary_right != -1 && primary_left == -1 &&
+                    CanEquipItemInSlot(character, primary_right, 7, 0)) {
+                    CopyItemInstance(&character->equipment[7],
+                                     &character->equipment[6], 0, 1);
+                    return 6;
+                }
+                if (alternate_right != -1 && alternate_left == -1 &&
+                    CanEquipItemInSlot(character, alternate_right, 9, 0)) {
+                    CopyItemInstance(&character->equipment[9],
+                                     &character->equipment[8], 0, 1);
+                    return 8;
+                }
+            }
+        }
+        break;
+    case 3:
+        if (primary_right == -1 && primary_left == -1) {
+            return 6;
+        }
+        if (alternate_right == -1 && alternate_left == -1) {
+            return 8;
+        }
+        break;
+    case 4:
+        if (primary_right != -1 &&
+            g_item_records[primary_right].equip_class == 3) {
+            return 7;
+        }
+        if (alternate_right != -1 &&
+            g_item_records[alternate_right].equip_class == 3) {
+            return 9;
+        }
+        return W8_EQUIP_SLOT_NONE;
+    }
+    return slot;
 }
