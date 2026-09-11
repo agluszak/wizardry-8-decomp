@@ -155,9 +155,13 @@ public:
     float GetValue120();                                  /* 0x00453C60 */
     unsigned char ConfigureMovementToPosition00452630(
         const srVector3T<float>* position); /* 0x00452630 */
-    unsigned short Function4526C0(
+    /* Point the movement target at another navigator's position and enter the
+       moving mode; the result is nonzero once the target was accepted. */
+    unsigned short SetMovementTargetToNavigator004526C0(
         W8Navigator* target, double separation); /* 0x004526C0 */
-    void Function452C90();                               /* 0x00452C90 */
+    /* Stop this navigator, clear its movement/target state, and either mark
+       the linked movement stopped or re-sync the collected group. */
+    void ResetMovementAndGroupState00452C90();       /* 0x00452C90 */
     unsigned short ConfigureMovementToNavigator004529A0(
         W8Navigator* target,
         float separation,

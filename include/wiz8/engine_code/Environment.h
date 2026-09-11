@@ -59,8 +59,6 @@ void BuildEnvironmentColourRamp00483210(void);
 void BuildLightColourRamp00483360(void);
 void UpdateEnvironmentLight004834B0(void);
 void RefreshEnvironment00483560(void);
-void SetWorldEnvironment00483BA0(
-    W8World* world, float intensity, const EnvironmentColour* colour);
 void SetWorldEnvironmentColour00483A60(
     W8World* world, EnvironmentColour colour);
 
@@ -76,8 +74,10 @@ void GetLightDirection(int* direction);
 extern unsigned char g_sky_enabled_0065b9ae;
 void ResetEnvironment(void);
 void InitializeLevelEnvironment00482410(void);
-/* 0x00483BA0: apply one day-phase colour and intensity to the world. */
-void ApplyEnvironmentColour00483BA0(W8World* world, float intensity, const EnvironmentColour* colour);
+/* Apply one day-phase colour and intensity to the world, its environment
+   lights, and the animated cloud material. */
+void ApplyEnvironmentColour00483BA0(
+    W8World* world, float intensity, const EnvironmentColour* colour);
 void ReleaseEnvironmentObjects(void);
 
 void Function482990(unsigned char enabled);

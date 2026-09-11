@@ -3,6 +3,7 @@
 
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/stLight.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/stTextureAnim.h"
@@ -14,6 +15,7 @@
 #include "wiz8/virtual_file.h"
 #include "surrender/srCore.h"
 #include "surrender/srFog.h"
+#include "surrender/srMaterial.h"
 #include "surrender/srNode.h"
 #include "surrender/srScene.h"
 #include "surrender/srTypeRegistry.h"
@@ -285,7 +287,7 @@ void UpdateEnvironment482770(void)
                     srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
                     srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
                 }
-                SetWorldEnvironment00483BA0(
+                ApplyEnvironmentColour00483BA0(
                     g_world, g_world->environment_intensity_024, &colour);
                 g_environment_value_0060a3b0 = (int)phase;
                 return;
@@ -586,7 +588,7 @@ void RefreshEnvironment00483560(void)
             srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
             srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
         }
-        SetWorldEnvironment00483BA0(
+        ApplyEnvironmentColour00483BA0(
             g_world, g_world->environment_intensity_024, &colour);
         g_environment_value_0060a3b0 = (int)phase;
     }
@@ -613,10 +615,10 @@ void SetWorldEnvironmentValue00483AE0(W8World* world, float value)
     if (world->static_scene == 0) {
         colour.red = 0.0f;
         colour.green = 0.0f;
-        SetWorldEnvironment00483BA0(world, value, &colour);
+        ApplyEnvironmentColour00483BA0(world, value, &colour);
         return;
     }
-    SetWorldEnvironment00483BA0(world, value, &world->environment_colour_02c);
+    ApplyEnvironmentColour00483BA0(world, value, &world->environment_colour_02c);
 }
 
 // FUNCTION: WIZ8 0x00482F60
@@ -751,8 +753,106 @@ void SetWorldEnvironmentColour00483A60(
         srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
         srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
     }
-    SetWorldEnvironment00483BA0(
+    ApplyEnvironmentColour00483BA0(
         world, world->environment_intensity_024, &colour);
+}
+
+// GLOBAL: WIZ8 0x005ec980
+const double g_double_005ec980 = 0.25;
+// GLOBAL: WIZ8 0x005ec988
+const double g_double_005ec988 = 2.3148148148148148e-08;
+// GLOBAL: WIZ8 0x005ec990
+const double g_double_005ec990 = 43200000.0;
+
+/* Scale one colour triple by a double factor and clamp every component to the
+   unit range in place. */
+// FUNCTION: WIZ8 0x00483d70
+srVector3T<float>* __fastcall ScaleColourAndSaturate00483D70(
+    srVector3T<float>* colour, double scale)
+{
+    float x = colour->x * (float)scale;
+    colour->x = x;
+    float y = colour->y * (float)scale;
+    colour->y = y;
+    float z = colour->z * (float)scale;
+    colour->z = z;
+    if (x <= g_float_005ebb34) {
+        colour->x = 0.0f;
+    }
+    else if (x >= g_float_005ebb38) {
+        colour->x = 1.0f;
+    }
+    if (y <= g_float_005ebb34) {
+        colour->y = 0.0f;
+    }
+    else if (y >= g_float_005ebb38) {
+        colour->y = 1.0f;
+    }
+    if (z <= g_float_005ebb34) {
+        colour->z = 0.0f;
+    }
+    else if (z >= g_float_005ebb38) {
+        colour->z = 1.0f;
+    }
+    return colour;
+}
+
+/* Push one day-phase colour and intensity into the world's static scene, every
+   registered environment light, and the animated cloud material. */
+// FUNCTION: WIZ8 0x00483ba0
+void ApplyEnvironmentColour00483BA0(
+    W8World* world, float intensity, const EnvironmentColour* colour)
+{
+    if (world == 0) {
+        srAssertFail("pWorld", ENVIRONMENT_CPP, 0x2b0, 0);
+    }
+    if (world->static_scene != 0) {
+        srVector3T<float> ambient(colour->red, colour->green, colour->blue);
+
+        ScaleColourAndSaturate00483D70(&ambient, (double)intensity);
+        world->static_scene->setAmbientLight(
+            ambient.x, ambient.y, ambient.z);
+        world->environment_colour_02c = *colour;
+        world->environment_intensity_024 = intensity;
+    }
+    for (int index = 0; index < g_environment_lights_0065b998.count; ++index) {
+        stLight* light = *g_environment_lights_0065b998.GetAt(index);
+        srVector3T<float> scaled(colour->red, colour->green, colour->blue);
+
+        scaled *= (double)intensity;
+        SaturateColor004299B0(&scaled);
+        light->m_direction_60 = scaled;
+    }
+    {
+        srRegistry* registry = srCore.getRegistry();
+        srRegistry::ClassNode* node = registry->getClassNode(0x10002);
+
+        if (node == 0) {
+            node = registry->registerClass(
+                "stMaterial",
+                srClassSupport<srMaterial, srMaterial, false,
+                               8720>::sGetClassNode(),
+                0x10002, 0);
+        }
+        srMaterial* material = static_cast<srMaterial*>(
+            registry->find(
+                node, "AnimatedCloudMaterial",
+                static_cast<const srRuntimeClass*>(0)));
+        if (material != 0) {
+            double brightness =
+                g_double_005ebc30 -
+                fabs((double)g_status_685170.game_time_ms -
+                     g_double_005ec990) * g_double_005ec988;
+
+            material->parms_18.ambient.x = (float)brightness;
+            material->parms_18.ambient.y = (float)brightness;
+            material->parms_18.ambient.z = (float)brightness;
+            material->parms_18.ambient.w = (float)brightness;
+            material->parms_18.diffuse.w = (float)(
+                brightness * g_double_005ebf40 + g_double_005ec980);
+            material->dirty_74 = 1;
+        }
+    }
 }
 
 /* Write one field of the sky node, if the sky has one. */

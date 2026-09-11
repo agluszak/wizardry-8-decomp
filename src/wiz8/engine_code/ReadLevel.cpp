@@ -318,7 +318,7 @@ unsigned char ReadWorldEnvironment004BC9D0(
     white.red = 1.0f;
     white.green = 1.0f;
     white.blue = 1.0f;
-    SetWorldEnvironment00483BA0(pWorld, intensity, &white);
+    ApplyEnvironmentColour00483BA0(pWorld, intensity, &white);
     WorldSetFarClip(pWorld, pWorld->view_distance_020);
     distance_scale = view_distance < g_octree_cell_scale_005ebcd0
         ? g_environment_near_scale_005ec0b0

@@ -681,7 +681,7 @@ extern unsigned char g_flag_006081e4;
 unsigned char g_flag_006081e4 = 1;
 
 // FUNCTION: WIZ8 0x004526c0
-unsigned short W8Navigator::Function4526C0(
+unsigned short W8Navigator::SetMovementTargetToNavigator004526C0(
     W8Navigator* target, double separation)
 {
     unsigned short result = 0;
@@ -1126,7 +1126,7 @@ unsigned short W8Navigator::ConfigureMovementToNavigator004529A0(
         return 0;
     }
     if (g_flag_006081e4 != 0) {
-        return Function4526C0(target, separation);
+        return SetMovementTargetToNavigator004526C0(target, separation);
     }
     movement_0c0.attachment_0ac->flags_00 |= 0x10000;
     movement_target_018.SetZero();
@@ -1179,7 +1179,7 @@ unsigned short W8Navigator::ConfigureMovementToNavigator004529A0(
 }
 
 // FUNCTION: WIZ8 0x00452c90
-void W8Navigator::Function452C90()
+void W8Navigator::ResetMovementAndGroupState00452C90()
 {
     movement_target_018.SetZero();
     W8Navigator* linked = linked_navigator_05c;

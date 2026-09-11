@@ -2176,7 +2176,7 @@ void W8Monster::ProcessScript004C80E0()
                     break;
                 }
                 if (_stricmp(token, "PARTY") == 0) {
-                    Function4526C0(g_startup_world_659c0c, 5.0);
+                    SetMovementTargetToNavigator004526C0(g_startup_world_659c0c, 5.0);
                 }
                 else {
                     ConfigureMovementToPosition00452630(&position);
@@ -5344,7 +5344,7 @@ unsigned short MonsterApproachStartupNavigator004C5FF0(
     unsigned short result;
 
     if (monster != 0) {
-        result = monster->Function4526C0(
+        result = monster->SetMovementTargetToNavigator004526C0(
             g_startup_world_659c0c, separation);
         if (result != 0) {
             monster->movement_0c0.unknown_076[0] = 0;

@@ -846,7 +846,7 @@ void ResetLivingMonstersAfterCombat(void)
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
         if (static_cast<unsigned int>(monster_info->hp_current) > 0) {
-            monster_info->monster->Function452C90();
+            monster_info->monster->ResetMovementAndGroupState00452C90();
             if (monster_info->flag_255 > 0 && monster_info->flag_255 <= 3) {
                 monster_info->flag_255 = 0;
             }

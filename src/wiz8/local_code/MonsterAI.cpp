@@ -228,7 +228,7 @@ short IsMonsterControlPointInRange(W8MonsterInfo* monster_info)
     }
     W8Navigator* anchor_navigator = reinterpret_cast<W8Navigator*>(
         static_cast<char*>(*anchor) + 0x18);
-    in_range = monster_info->monster->Function4526C0(anchor_navigator, 2500.0);
+    in_range = monster_info->monster->SetMovementTargetToNavigator004526C0(anchor_navigator, 2500.0);
     if (in_range == 0) {
         party = anchor_navigator->GetPosition();
         monster_info->monster->AimAtPosition(&party);
