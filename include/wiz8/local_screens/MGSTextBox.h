@@ -29,6 +29,8 @@ unsigned char GetTextBoxMode(void);
 void SetTextBoxMode(unsigned char mode, int value);
 
 void Function5905F0(const wchar_t* text, int mode);      /* 0x005905F0 */
+/* 0x0058FB30: the number of lines the notice pane can scroll. */
+int GetTextBoxScrollRange(void);
 /* 0x00590950/0x00590B40: the two variadic notice formatters. The binary
    builds a va_list in each and passes the format on. */
 void PostCharacterNotice(

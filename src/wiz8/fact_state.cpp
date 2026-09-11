@@ -1,10 +1,14 @@
 #include "wiz8/fact_state.h"
 #include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/local_code/Strings.h"
+#include "wiz8/local_screens/JournalScreen.h"
 #include "wiz8/utility.h"
 #include "wiz8/npc_state.h"
 #include "wiz8/virtual_file.h"
 #include "wiz8/xstatus.h"
+
+#include "soundman.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,8 +29,6 @@ unsigned char g_import_flags[0x60];
 /* 0x0055A0A0 and 0x00524CA0 tear down an NPC item list. */
 extern void Function55A0A0(int handle);
 extern void Function524CA0(W8NpcState* npc);
-/* Provisional semantic name for the journal/notification path at 0x005588f0. */
-extern void RecordFactChangeForJournal(int fact_id);
 
 // FUNCTION: WIZ8 0x00506280
 unsigned char GetFact(int fact_id)

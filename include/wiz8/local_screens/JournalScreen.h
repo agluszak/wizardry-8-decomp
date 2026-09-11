@@ -48,3 +48,6 @@ void RefreshJournalPanel005BD860(void);
    appended to whenever a fact changes. */
 extern W8GrowableVector<W8JournalEntry>* g_fact_journal_entries_0068de40;
 void InitializeFactJournal(void);
+/* 0x005588F0: append one changed fact to the journal and, unless notices are
+   suppressed, post the fact's own journal entry. */
+void RecordFactChangeForJournal(int fact_id);

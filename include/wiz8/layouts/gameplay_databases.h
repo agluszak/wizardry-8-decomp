@@ -104,9 +104,16 @@ struct W8SpellRuntimeRecord {
 };                                      /* 0x1bf */
 
 struct W8FactDatabaseRecord {
-    unsigned int identifier;
-    char symbolic_name[256];             /* 0x004 */
-    W8WideChar description[106];         /* 0x104 */
+    unsigned int identifier;             /* 0x000 */
+    char symbolic_name[0x32];            /* 0x004 .. 0x035 */
+    /* 0x036: the journal shades this fact's text when its value is true. */
+    unsigned char highlight_when_true_036;
+    /* 0x037: the visibility level the journal entry needs. */
+    signed char visibility_037;
+    /* 0x038 and 0x100: the alternate and normal journal descriptions, wide,
+       selected by the fact's current value. */
+    W8WideChar alternate_description_038[0x64];
+    W8WideChar description_100[0x6c];
 };                                       /* 0x1d8 */
 
 /* One optional NPC stock-rule entry appended after its database record.

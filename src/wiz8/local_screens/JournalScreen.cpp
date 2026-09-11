@@ -11,13 +11,16 @@
 #include "wiz8/fact_state.h"
 #include "wiz8/factions.h"
 #include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/local_code/Strings.h"
+#include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/regions.h"
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/vector.h"
 
 #include "Font.h"
+#include "soundman.h"
 
 #include "input.h"
 #include "Types.h"
@@ -79,6 +82,56 @@ void InitializeFactJournal(void)
     else {
         g_fact_journal_entries_0068de40->count = 0;
     }
+}
+
+/* Append one changed fact to the journal and, when notices are not suppressed
+   and the fact is visible at the current notice setting, post the fact's own
+   description through the notice pane with its sound. */
+// FUNCTION: WIZ8 0x005588f0
+void RecordFactChangeForJournal(int fact_id)
+{
+    if (g_fact_journal_entries_0068de40 == 0) {
+        InitializeFactJournal();
+    }
+    W8JournalEntry entry;
+    entry.level = g_status_685170.current_level;
+    entry.fact = fact_id;
+    entry.alternate_text = GetFact(fact_id);
+    g_fact_journal_entries_0068de40->Add(entry);
+
+    if (g_fact_notifications_suppressed != 0) {
+        return;
+    }
+    int visibility;
+    if (g_value_006850d5 == 0) {
+        visibility = 2;
+    }
+    else if (g_value_006850d5 == 1) {
+        visibility = 1;
+    }
+    else {
+        visibility = fact_id;
+        if (g_value_006850d5 == 2) {
+            visibility = 0;
+        }
+    }
+    const W8FactDatabaseRecord* record = &g_fact_records[fact_id];
+    if (record->visibility_037 > visibility) {
+        return;
+    }
+    const W8WideChar* description = GetFact(fact_id)
+        ? record->alternate_description_038
+        : record->description_100;
+    if (*description == 0 || g_level_block == 0) {
+        return;
+    }
+    if (g_flag_00683f97 != 0) {
+        Function5289B0(8, 0);
+        return;
+    }
+    int range = GetTextBoxScrollRange();
+    Function58AC00(3, gppStringList[0x1d28 / 4], 2, range, 0);
+    SoundPlay("Data\\Sound\\Misc\\Journal Entry.wav", 0);
 }
 
 // FUNCTION: WIZ8 0x005bdd00
@@ -155,11 +208,11 @@ void RefreshJournalPanel005BD860(void)
         int y = 0x39;
         for (int index = first; index <= last; ++index, y += 0x1e) {
             const W8JournalEntry* entry = g_journal_entries_0069c4e4->GetAt(index);
-            const unsigned char* fact =
-                reinterpret_cast<const unsigned char*>(&g_fact_records[entry->fact]);
-            int active = fact[0x36] && GetFact(entry->fact);
-            const wchar_t* description = reinterpret_cast<const wchar_t*>(
-                fact + (entry->alternate_text ? 0x38 : 0x100));
+            const W8FactDatabaseRecord* fact = &g_fact_records[entry->fact];
+            int active = fact->highlight_when_true_036 && GetFact(entry->fact);
+            const wchar_t* description = entry->alternate_text
+                ? fact->alternate_description_038
+                : fact->description_100;
             const wchar_t* level_name;
             if (entry->level == 0x38) {
                 level_name = g_default_level_0064d7b8;
@@ -377,10 +430,12 @@ unsigned char JournalScreenEnter(void)
     g_journal_entries_0069c4e4->count = 0;
     for (index = 0; index < g_fact_journal_entries_0068de40->count; ++index) {
         W8JournalEntry entry = *g_fact_journal_entries_0068de40->GetAt(index);
-        const unsigned char* fact =
-            reinterpret_cast<const unsigned char*>(&g_fact_records[entry.fact]);
-        if ((g_journal_show_all_0069c4e0 || fact[0x37] <= maximum_visibility) &&
-            *reinterpret_cast<const short*>(fact + (entry.alternate_text ? 0x38 : 0x100)) != 0) {
+        const W8FactDatabaseRecord* fact = &g_fact_records[entry.fact];
+        const W8WideChar* description = entry.alternate_text
+            ? fact->alternate_description_038
+            : fact->description_100;
+        if ((g_journal_show_all_0069c4e0 || fact->visibility_037 <= maximum_visibility) &&
+            *description != 0) {
             g_journal_entries_0069c4e4->Add(entry);
         }
     }
