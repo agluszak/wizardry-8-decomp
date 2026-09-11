@@ -134,7 +134,7 @@ def test_runtime_crash_prioritizes_the_consumed_return_address(tmp_path: Path) -
         "forced-unresolved call: target=00400000 fault=00400007",
         "PE DOS header executed as code; edx holds the consumed return address",
         (
-            "  return:edx: 00462892: _ShowRegionHelp+0x82 [RegionManager.cpp.obj] "
+            "#0 return:edx: 00462892: _ShowRegionHelp+0x82 [RegionManager.cpp.obj] "
             "RegionManager.cpp:746"
         ),
     ]
@@ -154,6 +154,8 @@ def _wine_crash_fixture(tmp_path: Path) -> tuple[Path, str]:
         encoding="cp1252",
     )
     output = (
+        "wine: Unhandled page fault on write access to 0x00000001 at address 0x00400003 "
+        "(thread 0124), starting debugger...\n"
         "Unhandled exception: page fault on write access to 0x00000001 in 32-bit code "
         "(0x00400003).\n"
         "Register dump:\n"
@@ -161,9 +163,15 @@ def _wine_crash_fixture(tmp_path: Path) -> tuple[Path, str]:
         " EIP:00400003 ESP:0032fabc EBP:fffffffe EFLAGS:00210246(  R- --  I   - -P- )\n"
         " EAX:00000000 EBX:00000001 ECX:00000000 EDX:0041fe14\n"
         " ESI:00400000 EDI:00400000\n"
+        "Stack dump:\n"
+        "0x0032fabc:  0041fe14 00000000 0032fae0 00400abc\n"
         "Backtrace:\n"
         "=>0 0x00400003 (0x0032fabc)\n"
         "  1 0x0041fe14 (0x0032fae0)\n"
+        "Modules:\n"
+        "Module  Address                 Debug info      Name (104 modules)\n"
+        "PE        00400000-0067a000       Export          wiz8runtime\n"
+        "PE        7b000000-7b0e5000       Deferred        kernelbase\n"
     )
     return map_path, output
 
@@ -184,7 +192,9 @@ def test_wine_dump_is_recognized_without_product_markers(tmp_path: Path) -> None
     )
 
 
-def test_wine_dump_normalizes_a_relocated_image(tmp_path: Path) -> None:
+def test_wine_dump_keeps_runtime_addresses_with_a_relocated_module(
+    tmp_path: Path,
+) -> None:
     map_path, output = _wine_crash_fixture(tmp_path)
     relocated = (
         output.replace("00400003", "00600003")
@@ -204,9 +214,11 @@ def test_wine_dump_normalizes_a_relocated_image(tmp_path: Path) -> None:
     assert crash is not None
     assert crash.base_fault is not None
     assert crash.base_fault.base == 0x00600000
-    assert crash.base_fault.consumed_address == 0x0041FE14
-    assert crash.candidates[0].address == 0x0041FE14
-    assert "return:edx: 0041fe14: _CharacterScreenFrame+0x164" in _crash_detail(
+    assert crash.load_base == 0x00600000
+    # The parser keeps the addresses Wine logged; the MAP lookup rebases them.
+    assert crash.base_fault.consumed_address == 0x0061FE14
+    assert crash.candidates[0].address == 0x0061FE14
+    assert "return:edx: 0061fe14: _CharacterScreenFrame+0x164" in _crash_detail(
         map_path, None, crash
     )
 
@@ -223,6 +235,96 @@ def test_analyze_runtime_crash_falls_back_to_a_wine_dump(tmp_path: Path) -> None
         "address": "0041fe14",
     }
     assert result["crashes"][0]["candidates"][0]["symbol"].startswith("_CharacterScreenFrame+0x164")
+
+
+def test_wine_stack_dump_and_modules_table_drive_candidates(tmp_path: Path) -> None:
+    map_path, output = _wine_crash_fixture(tmp_path)
+
+    crash = _parse_wine_dump(output, map_path)
+
+    assert crash is not None
+    assert crash.load_base == 0x00400000
+    sources = {candidate.source: candidate.address for candidate in crash.candidates}
+    assert sources["stack+0xc"] == 0x00400ABC
+    assert sources["return:edx"] == 0x0041FE14
+    assert "page fault on write access" in crash.fields["operation"]
+
+
+def test_wine_wow64_stack_rows_accept_wide_addresses(tmp_path: Path) -> None:
+    map_path, output = _wine_crash_fixture(tmp_path)
+    wide = output.replace(
+        "0x0032fabc:  0041fe14 00000000 0032fae0 00400abc\n",
+        "0x000000000032fabc:  0041fe14 00000000 0032fae0 00400abc\n",
+    )
+
+    crash = _parse_wine_dump(wide, map_path)
+
+    assert crash is not None
+    sources = {candidate.source: candidate.address for candidate in crash.candidates}
+    assert sources["stack+0xc"] == 0x00400ABC
+
+
+def test_wine_rebased_module_range_uses_the_load_time_base(tmp_path: Path) -> None:
+    map_path = tmp_path / "rebased.map"
+    map_path.write_text(
+        "Wiz8Runtime\n"
+        " Preferred load address is 10000000\n"
+        " Start         Length     Name                   Class\n"
+        " 0001:00000000 00010000H .text                   CODE\n"
+        "  Address         Publics by Value              Rva+Base     Lib:Object\n"
+        " 0001:00000000       _RebasedTarget             10000000 f   Rebased.cpp.obj\n",
+        encoding="cp1252",
+    )
+    output = (
+        "Unhandled exception: page fault on execute access to 0x00000000 in 32-bit code "
+        "(0x00500003).\n"
+        "Register dump:\n"
+        " CS:0023 SS:002b DS:002b ES:002b FS:0063 GS:006b\n"
+        " EIP:00500003 ESP:0032fabc EBP:fffffffe EFLAGS:00210246(  R- --  I   - -P- )\n"
+        " EAX:00000000 EBX:00500001 ECX:00000000 EDX:00501234\n"
+        " ESI:00500000 EDI:00500000\n"
+        "Stack dump:\n"
+        "0x0032fabc:  00501234 00000000 0032fae0 00000000\n"
+        "Backtrace:\n"
+        "=>0 0x00500003 (0x0032fabc)\n"
+        "Modules:\n"
+        "Module  Address                 Debug info      Name (104 modules)\n"
+        "PE        00500000-0077a000       Export          wiz8runtime\n"
+    )
+
+    crash = _parse_wine_dump(output, map_path)
+
+    assert crash is not None
+    assert crash.base_fault is not None and crash.base_fault.mz
+    assert crash.base_fault.base == 0x00500000
+    assert crash.base_fault.consumed_address == 0x00501234
+    assert crash.candidates[0].source == "return:edx"
+    assert _symbolize_addresses(map_path, [0x00501234], load_base=0x00500000) == [
+        "00501234: _RebasedTarget+0x1234 [Rebased.cpp.obj]"
+    ]
+
+
+def test_unhandled_exception_without_register_dump_reports_parse_failure(
+    tmp_path: Path,
+) -> None:
+    log = tmp_path / "winedbg.log"
+    log.write_text(
+        "wine: Unhandled page fault on write access to 0x00000001 at address 0x00400003 "
+        "(thread 0124), starting debugger...\n",
+        encoding="utf-8",
+    )
+
+    result = analyze_runtime_crash(log, tmp_path / "missing.map")
+
+    assert result["crashes"] == []
+    failure = result["parse_failure"]
+    assert "no crash could be localized" in failure["reason"]
+    assert failure["missing"] == [
+        "EIP register dump",
+        "wiz8runtime entry in the Modules table",
+    ]
+    assert "Unhandled page fault" in failure["exception"]
+    assert "0x00400003" in failure["log_tail"]
 
 
 def test_runtime_timeout_preserves_in_process_diagnostics(

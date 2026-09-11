@@ -116,15 +116,21 @@ debug *args:
     wineserver -k 2>/dev/null || true
     sleep 1
     cd "$game_dir"
-    # just run localizes /FORCE:UNRESOLVED crashes through the in-process
-    # reporter; this recipe is for targeted DEBUG_SCRIPT breakpoints. Its
-    # output still feeds the same MAP symbolizer, which recognizes a Wine
-    # register dump even when the frame walk cannot follow the header stub.
-    script="${DEBUG_SCRIPT:-$'cont\nquit\n'}"
+    # WineDbg consumes stdin one command per stop.  `cont` reaches the
+    # exception, and the queued commands then run at that stop before `quit`
+    # ends the session: Wine's own exception dump can be cut short when the
+    # debugger is told to leave immediately, so ask for the register file,
+    # the frame walk and enough raw stack words to recover return addresses
+    # explicitly.  `info reg`/`bt`/`info stack` are WineDbg commands, not GDB
+    # spellings; `info stack 96` prints the same `Stack dump:` format Wine's
+    # automatic dump uses.
+    script="${DEBUG_SCRIPT:-$'cont\ninfo reg\nbt\ninfo stack 96\nquit\n'}"
     log="$(mktemp)"
     trap 'rm -f "$log"' EXIT
     set +e
     printf '%s' "$script" | winedbg ./Wiz8Runtime.exe /WINDOW "$@" 2>&1 | tee "$log"
+    # The pipeline is printf | winedbg | tee, so index 1 owns the debugger's
+    # status; PIPESTATUS[0] only reports printf.
     status=${PIPESTATUS[1]}
     set -e
     # winedbg stops print "Exception c0000005" and only a DEBUG_SCRIPT that
@@ -132,8 +138,12 @@ debug *args:
     # "Unhandled page fault"/"Unhandled exception", and the product reporter
     # writes WIZ8_RUNTIME_CRASH. Symbolize any of those.
     if grep -qiE "WIZ8_RUNTIME_CRASH|Unhandled exception|Unhandled page fault|Register dump:" "$log"; then
-        (cd "{{justfile_directory()}}" && uv run wiz8 analyze crash --log "$log" \
-            --map "{{justfile_directory()}}/build/decomp/Wiz8Runtime.map") || true
+        (
+            cd "{{justfile_directory()}}"
+            uv run wiz8 analyze crash --log "$log" \
+                --map "$PWD/build/decomp/Wiz8Runtime.map" \
+                --objects "$PWD/build/decomp/CMakeFiles/wiz8_recovered_objects.dir" || true
+        )
     fi
     exit "$status"
 

@@ -33,12 +33,18 @@ RUNTIME_CANDIDATE = re.compile(
     re.MULTILINE,
 )
 WINE_REGISTER = re.compile(
-    r"\b(?P<name>EIP|ESP|EBP|EAX|EBX|ECX|EDX|ESI|EDI)\s*:\s*(?P<value>[0-9a-fA-F]{8})\b"
+    r"\b(?P<name>EIP|ESP|EBP|EAX|EBX|ECX|EDX|ESI|EDI)\s*:\s*(?P<value>[0-9a-fA-F]{8,16})\b"
 )
 WINE_EXCEPTION = re.compile(r"Unhandled exception:\s*(?P<operation>[^\n]*)", re.IGNORECASE)
+WINE_FAULT = re.compile(r"Unhandled page fault", re.IGNORECASE)
 WINE_FRAME = re.compile(r"^\s*(?:=>)?\d+\s+0x(?P<address>[0-9a-fA-F]+)", re.MULTILINE)
+WINE_STACK_LINE = re.compile(
+    r"0x(?P<address>[0-9a-fA-F]{8,16}):\s+"
+    r"(?P<words>[0-9a-fA-F]{1,16}(?:\s+[0-9a-fA-F]{1,16})*)\s*$",
+    re.MULTILINE,
+)
 WINE_MODULE = re.compile(
-    r"^\s*PE\s+(?P<start>[0-9a-fA-F]{1,8})\s*-\s*(?P<end>[0-9a-fA-F]{1,8})"
+    r"^\s*(?P<kind>PE|ELF)\s+(?P<start>[0-9a-fA-F]{1,16})\s*-\s*(?P<end>[0-9a-fA-F]{1,16})"
     r"\s+\S+\s+(?P<name>\S+)\s*$",
     re.MULTILINE,
 )
@@ -112,6 +118,7 @@ class _RuntimeCrash:
     fields: dict[str, str]
     base_fault: _ImageBaseFault | None
     candidates: list[_CrashCandidate]
+    load_base: int | None = None
 
 
 def stage_runtime_test(settings: Settings) -> dict[str, Any]:
@@ -222,18 +229,23 @@ def _map_lines(path: Path, segment_bases: dict[str, int]) -> list[tuple[int, str
     return sorted(entries)
 
 
-def _resolve_addresses(map_path: Path, addresses: list[int]) -> list[_ResolvedAddress | None]:
+def _resolve_addresses(
+    map_path: Path, addresses: list[int], load_base: int | None = None
+) -> list[_ResolvedAddress | None]:
     functions = _map_functions(map_path)
     sections, segment_bases = _map_sections(map_path)
     source_lines = _map_lines(map_path, segment_bases)
+    preferred_base = _preferred_load_base(map_path)
+    rebase = load_base - preferred_base if load_base is not None else 0
     matches: list[tuple[_MapFunction, int, str] | None] = []
     for address in addresses:
+        lookup = address - rebase
         target_sections = [
             (section, segment_bases[section.segment])
             for section in sections
             if section.segment in segment_bases
             and segment_bases[section.segment] + section.start
-            <= address
+            <= lookup
             < segment_bases[section.segment] + section.end
         ]
         if not target_sections:
@@ -245,13 +257,13 @@ def _resolve_addresses(map_path: Path, addresses: list[int]) -> list[_ResolvedAd
             for function in functions
             if function.segment == section.segment
             and section.start <= function.offset < section.end
-            and function.address <= address
+            and function.address <= lookup
         ]
         if not candidates:
             matches.append(None)
             continue
         function = candidates[-1]
-        offset = address - base
+        offset = lookup - base
         next_public = next(
             (
                 item.offset
@@ -269,12 +281,12 @@ def _resolve_addresses(map_path: Path, addresses: list[int]) -> list[_ResolvedAd
         eligible_lines = [
             entry
             for entry in source_lines
-            if entry[3] == function.segment and function.address <= entry[0] <= address
+            if entry[3] == function.segment and function.address <= entry[0] <= lookup
         ]
         if eligible_lines:
             _line_address, source, line, _segment = eligible_lines[-1]
             location = f" {source}:{line}"
-        matches.append((function, address - function.address, location))
+        matches.append((function, lookup - function.address, location))
     names = [match[0].symbol for match in matches if match is not None]
     try:
         demangled = demangle(names)
@@ -298,8 +310,14 @@ def _resolve_addresses(map_path: Path, addresses: list[int]) -> list[_ResolvedAd
     return resolved
 
 
-def _symbolize_addresses(map_path: Path, addresses: list[int]) -> list[str]:
-    return [item.format() for item in _resolve_addresses(map_path, addresses) if item is not None]
+def _symbolize_addresses(
+    map_path: Path, addresses: list[int], load_base: int | None = None
+) -> list[str]:
+    return [
+        item.format()
+        for item in _resolve_addresses(map_path, addresses, load_base)
+        if item is not None
+    ]
 
 
 def _parse_diagnostic_fields(fields: str) -> dict[str, str]:
@@ -358,34 +376,30 @@ def _preferred_load_base(map_path: Path | None) -> int:
     return 0x00400000
 
 
-def _wine_image_extent(output: str) -> tuple[int, int] | None:
-    """The runtime extent Wine reports for the game module, when it lists one."""
+def _runtime_module_range(output: str) -> tuple[int, int] | None:
+    """Read the runnable image's actual load range from Wine's Modules table.
+
+    The MAP's preferred load address is not proof of where Wine mapped the
+    image; a rebased load relocates every logged address. The module table is
+    the load-time authority.
+    """
 
     for match in WINE_MODULE.finditer(output):
-        if match.group("name").lower().startswith("wiz8runtime"):
+        name = match.group("name").lower()
+        if name.startswith("wiz8runtime"):
             return int(match.group("start"), 16), int(match.group("end"), 16)
     return None
-
-
-def _normalize_wine_address(
-    address: int, extent: tuple[int, int] | None, preferred_base: int
-) -> int:
-    """Map a module-relative runtime address back onto the MAP's preferred base."""
-
-    if extent is not None and extent[0] <= address < extent[1]:
-        return address - extent[0] + preferred_base
-    return address
 
 
 def _parse_wine_dump(output: str, map_path: Path | None = None) -> _RuntimeCrash | None:
     """Recognize a winedbg/Wine unhandled-exception dump without product markers.
 
-    Wine's native dump still carries the register file even when its frame walk
-    is useless. When EIP executes the mapped PE header (the forced-unresolved
-    stub), EDX holds the return address the stub's ``pop edx`` consumed, the
-    same fact the in-process reporter records. The image can load away from the
-    MAP's preferred address, so the Modules section's actual extent normalizes
-    every in-image register back to the address space the MAP describes.
+    Wine's native dump still carries the register file, the ordinary ``Stack
+    dump:`` word rows and the frame walk. When EIP executes the mapped PE
+    header (the forced-unresolved stub), EDX holds the return address the
+    stub's ``pop edx`` consumed, the same fact the in-process reporter
+    records. The image range comes from the Modules table, because a rebased
+    load moves every logged address away from the MAP's preferred base.
     """
 
     registers: dict[str, int] = {}
@@ -394,15 +408,36 @@ def _parse_wine_dump(output: str, map_path: Path | None = None) -> _RuntimeCrash
     eip = registers.get("eip")
     if eip is None:
         return None
-    preferred_base = _preferred_load_base(map_path)
-    extent = _wine_image_extent(output)
-    base = extent[0] if extent is not None else preferred_base
+    module_range = _runtime_module_range(output)
+    preferred = _preferred_load_base(map_path)
+    sections, segment_bases = _map_sections(map_path) if map_path is not None else ([], {})
+    regions = [
+        (
+            segment_bases[section.segment] + section.start,
+            segment_bases[section.segment] + section.end,
+        )
+        for section in sections
+        if section.segment in segment_bases
+    ]
+    if module_range is not None:
+        base, end = module_range
+        regions = [(base, end)]
+        load_base: int | None = base
+    else:
+        base, end = preferred, None
+        load_base = None
     mz = base <= eip < base + 0x1000
+
+    def in_image(address: int) -> bool:
+        if not regions:
+            return True
+        return any(start <= address < stop for start, stop in regions)
+
     consumed_register: str | None = None
     consumed_address: int | None = None
     if mz and eip >= base + 2 and "edx" in registers:
         consumed_register = "edx"
-        consumed_address = _normalize_wine_address(registers["edx"], extent, preferred_base)
+        consumed_address = registers["edx"]
     fields: dict[str, str] = {
         "code": "wine",
         "thread": "",
@@ -418,24 +453,37 @@ def _parse_wine_dump(output: str, map_path: Path | None = None) -> _RuntimeCrash
     base_fault = _ImageBaseFault(base, eip, mz, consumed_register, consumed_address) if mz else None
     candidates: list[_CrashCandidate] = []
     seen: set[int] = set()
+
+    def add(source: str, address: int) -> None:
+        if not in_image(address):
+            return
+        if address in seen:
+            return
+        seen.add(address)
+        candidates.append(_CrashCandidate(source, address))
+
     if consumed_address is not None:
-        candidates.append(_CrashCandidate("return:edx", consumed_address))
-        seen.add(consumed_address)
+        add("return:edx", consumed_address)
     for name in ("eax", "ebx", "ecx", "edx", "esi", "edi", "ebp"):
-        address = registers.get(name)
-        if address is not None:
-            address = _normalize_wine_address(address, extent, preferred_base)
-            if address not in seen:
-                seen.add(address)
-                candidates.append(_CrashCandidate(f"reg:{name}", address))
+        if name in registers:
+            add(f"reg:{name}", registers[name])
     for match in WINE_FRAME.finditer(output):
-        address = _normalize_wine_address(int(match.group("address"), 16), extent, preferred_base)
-        if address not in seen:
-            seen.add(address)
-            candidates.append(_CrashCandidate("frame", address))
+        add("frame", int(match.group("address"), 16))
+    esp = registers.get("esp")
+    for line_index, match in enumerate(WINE_STACK_LINE.finditer(output)):
+        line_address = int(match.group("address"), 16)
+        for word_index, word in enumerate(match.group("words").split()):
+            address = int(word, 16)
+            if address >= 0x100000000:
+                continue
+            if esp is not None:
+                offset = line_address - esp + word_index * 4
+            else:
+                offset = line_index * 16 + word_index * 4
+            add(f"stack+0x{offset:x}", address)
     if not candidates:
         return None
-    return _RuntimeCrash("", fields, base_fault, candidates)
+    return _RuntimeCrash("", fields, base_fault, candidates, load_base)
 
 
 _ADDRESS_PLACEHOLDER = re.compile(r"^\??Function[0-9A-Fa-f]+(?:@|$)")
@@ -473,7 +521,9 @@ def _unresolved_for_owners(
 
 
 def _crash_detail(map_path: Path, object_root: Path | None, crash: _RuntimeCrash) -> str:
-    resolved = _resolve_addresses(map_path, [candidate.address for candidate in crash.candidates])
+    resolved = _resolve_addresses(
+        map_path, [candidate.address for candidate in crash.candidates], crash.load_base
+    )
     lines: list[str] = []
     if crash.base_fault is not None:
         lines.append(
@@ -485,17 +535,41 @@ def _crash_detail(map_path: Path, object_root: Path | None, crash: _RuntimeCrash
                 "PE DOS header executed as code; "
                 f"{crash.base_fault.consumed_register or '?'} holds the consumed return address"
             )
-    for candidate, item in list(zip(crash.candidates, resolved))[:8]:
+    for index, (candidate, item) in enumerate(list(zip(crash.candidates, resolved))[:8]):
         if item is None:
             continue
-        lines.append(f"  {candidate.source}: {item.format()}")
+        lines.append(f"#{index} {candidate.source}: {item.format()}")
     owners = [item.owner for item in resolved if item is not None]
     for owner, symbols in _unresolved_for_owners(object_root, map_path, owners).items():
-        shown = ", ".join(symbols[:8])
-        if len(symbols) > 8:
-            shown += f", ... (+{len(symbols) - 8} more)"
-        lines.append(f"unresolved in {owner}: {shown}")
+        lines.append(f"unresolved references from {owner}:")
+        for symbol in symbols[:12]:
+            lines.append(f"  {symbol}")
+        if len(symbols) > 12:
+            lines.append(f"  ... (+{len(symbols) - 12} more)")
     return "\n" + "\n".join(lines) if lines else ""
+
+
+def _parse_failure_report(
+    output: str, reason: str, exception: str, missing: list[str]
+) -> dict[str, Any]:
+    """Report an unhandled exception whose dump could not be parsed.
+
+    Returning an empty crash list for a recognized exception hides the
+    failure; keep the raw context so the next debugging step has the input
+    that actually defeated the parser.
+    """
+
+    lines = output.splitlines()
+    return {
+        "schema": "wiz8.runtime-crash",
+        "crashes": [],
+        "parse_failure": {
+            "reason": reason,
+            "exception": exception[:200],
+            "missing": missing,
+            "log_tail": "\n".join(lines[-40:])[-4000:],
+        },
+    }
 
 
 def analyze_runtime_crash(
@@ -508,9 +582,32 @@ def analyze_runtime_crash(
     if crash is None:
         crash = _parse_wine_dump(output, map_path)
     if crash is None:
+        exception = WINE_EXCEPTION.search(output)
+        fault = WINE_FAULT.search(output)
+        if exception is not None or fault is not None:
+            detail = exception.group(0) if exception is not None else ""
+            if not detail and fault is not None:
+                detail = fault.group(0)
+            missing: list[str] = []
+            if not WINE_REGISTER.search(output):
+                missing.append("EIP register dump")
+            else:
+                missing.append("image address in the register file, stack dump or backtrace")
+            if _runtime_module_range(output) is None:
+                missing.append("wiz8runtime entry in the Modules table")
+            return _parse_failure_report(
+                output,
+                "unhandled exception present but no crash could be localized",
+                detail,
+                missing,
+            )
         return {"schema": "wiz8.runtime-crash", "crashes": []}
     resolved = (
-        _resolve_addresses(map_path, [candidate.address for candidate in crash.candidates])
+        _resolve_addresses(
+            map_path,
+            [candidate.address for candidate in crash.candidates],
+            crash.load_base,
+        )
         if map_path is not None
         else [None] * len(crash.candidates)
     )
@@ -540,7 +637,7 @@ def analyze_runtime_crash(
                 "address": f"{crash.base_fault.consumed_address:08x}",
             }
     owners = [item.owner for item in resolved if item is not None]
-    return {
+    report: dict[str, Any] = {
         "schema": "wiz8.runtime-crash",
         "crashes": [
             {
@@ -554,12 +651,14 @@ def analyze_runtime_crash(
                     name: crash.fields.get(name, "")
                     for name in ("ebp", "eax", "ebx", "ecx", "edx", "esi", "edi")
                 },
+                "module_base": f"{crash.load_base:08x}" if crash.load_base is not None else "",
                 "image_base_fault": image_base_fault,
                 "candidates": candidates,
                 "unresolved_by_owner": _unresolved_for_owners(object_root, map_path, owners),
             }
         ],
     }
+    return report
 
 
 def _runtime_failure(
