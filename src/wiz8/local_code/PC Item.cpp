@@ -1652,6 +1652,68 @@ bool FindItemOnCharacter(
     return false;
 }
 
+/* The whole-party find for one item: the item in hand first, then every
+   occupied slot, and - when the caller asks for the pool - the party item
+   pool. The resume item skips everything up to and including itself, which
+   is how a caller walks a stack of matches. */
+// FUNCTION: WIZ8 0x00521060
+bool FindItemOnParty(
+    int item_id,
+    W8ItemInstance** found,
+    W8Character** found_character,
+    int include_backpack,
+    const W8ItemInstance* resume_after)
+{
+    if (found_character != 0) {
+        *found_character = 0;
+    }
+    if ((resume_after == 0 ||
+         resume_after == &g_status_685170.item_in_hand_235b) &&
+        g_status_685170.item_in_cursor != 0 &&
+        g_status_685170.item_in_hand_235b.item_id == item_id) {
+        if (found != 0) {
+            *found = &g_status_685170.item_in_hand_235b;
+        }
+        return true;
+    }
+
+    for (int party_slot = 0; party_slot < 8; ++party_slot) {
+        if (g_party_slot_rows[party_slot].occupied != 0 &&
+            FindItemOnCharacter(&g_party_characters[party_slot], item_id, found,
+                                include_backpack, resume_after)) {
+            if (found_character != 0) {
+                *found_character = &g_party_characters[party_slot];
+            }
+            return true;
+        }
+    }
+
+    if (include_backpack == 2) {
+        unsigned int index = 0;
+        if (resume_after != 0) {
+            while (index < (unsigned int)g_status_685170.party_item_count_1791 &&
+                   &g_status_685170.party_item_pool_0021[index] != resume_after) {
+                ++index;
+            }
+            ++index;
+        }
+        for (; index < (unsigned int)g_status_685170.party_item_count_1791; ++index) {
+            W8ItemInstance* item = &g_status_685170.party_item_pool_0021[index];
+            if (item->item_id == item_id) {
+                if (found != 0) {
+                    *found = item;
+                }
+                return true;
+            }
+        }
+    }
+
+    if (found != 0) {
+        *found = 0;
+    }
+    return false;
+}
+
 /* How many of one item a character holds, counting a stack as its count and
    anything else as one, and optionally reporting the first slot it is in. */
 // FUNCTION: WIZ8 0x005211a0
@@ -1679,6 +1741,58 @@ int CountItemOnCharacter(
                              : character->backpack[slot].stack_count;
                 if (first != 0 && *first == 0) {
                     *first = &character->backpack[slot];
+                }
+            }
+        }
+    }
+    return total;
+}
+
+/* The whole-party counterpart of the count: the item in hand, every occupied
+   slot, and the party item pool when the caller asks for it. */
+// FUNCTION: WIZ8 0x00521240
+unsigned int CountItemOnParty(
+    int item_id, W8ItemInstance** found, W8Character** first_holder,
+    int include_backpack)
+{
+    unsigned int total = 0;
+
+    if (first_holder != 0) {
+        *first_holder = 0;
+    }
+    if (found != 0) {
+        *found = 0;
+    }
+    if (g_status_685170.item_in_cursor != 0 &&
+        g_status_685170.item_in_hand_235b.item_id == item_id) {
+        total = g_status_685170.item_in_hand_235b.stack_count;
+        if (found != 0 && *found == 0) {
+            *found = &g_status_685170.item_in_hand_235b;
+        }
+    }
+
+    for (int party_slot = 0; party_slot < 8; ++party_slot) {
+        if (g_party_slot_rows[party_slot].occupied != 0) {
+            int count = CountItemOnCharacter(&g_party_characters[party_slot],
+                                             item_id, found, include_backpack);
+            if (count != 0) {
+                total += count;
+                if (first_holder != 0 && *first_holder == 0) {
+                    *first_holder = &g_party_characters[party_slot];
+                }
+            }
+        }
+    }
+
+    if (include_backpack == 2) {
+        for (unsigned int index = 0;
+             index < (unsigned int)g_status_685170.party_item_count_1791;
+             ++index) {
+            W8ItemInstance* item = &g_status_685170.party_item_pool_0021[index];
+            if (item->item_id == item_id) {
+                total += item->stack_count == 0 ? 1 : item->stack_count;
+                if (found != 0 && *found == 0) {
+                    *found = item;
                 }
             }
         }

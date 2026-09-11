@@ -61,6 +61,15 @@ bool FindItemOnParty(
     W8Character** found_character,
     int include_backpack,
     const W8ItemInstance* resume_after); /* 0x00521060 */
+/* 0x00521240: the whole-party item count; the pool joins the scan when the
+   caller asks for it. */
+unsigned int CountItemOnParty(
+    int item_id,
+    W8ItemInstance** found,
+    W8Character** first_holder,
+    int include_backpack);
+/* 0x00521360: whether every occupied party slot carries one item. */
+bool EveryCharacterHasItem(int item_id, int include_backpack);
 unsigned int GetItemStackWeight(const W8ItemInstance* item);
 void CreateItemIntoHandOrPool(int item_id, unsigned char quality);
 void AddPartyGold(int amount, char announce);
