@@ -655,6 +655,79 @@ void W8SpellVisual::StartIfHostActive()
     TickAnimation(1.0f);
 }
 
+/* Search backward from a subcycle for the first cycle this visual supports,
+   seven cycles per group; -1 when none does. */
+// FUNCTION: WIZ8 0x004ac530
+int W8SpellVisual::FindSupportedCycle004AC530(
+    signed char group, signed char subcycle)
+{
+    for (signed char index = subcycle; index >= 0; --index) {
+        signed char cycle = (signed char)(group * 7 + index);
+
+        if (IsCycleSupported(cycle)) {
+            return cycle;
+        }
+    }
+    return -1;
+}
+
+/* Create one spell visual from a named bitmap resource, falling back to the
+   Generic visual when the named one is missing or has no supported cycle.
+   The visual joins the world's list, is positioned, and carries the caller's
+   two extra arguments. */
+// FUNCTION: WIZ8 0x004ad430
+W8SpellVisual* SpawnSpellEffect(
+    const srVector3T<float>* position, const char* resource_name,
+    int argument_3, int argument_4, int argument_5)
+{
+    if (resource_name == 0 || resource_name[0] == '\0') {
+        srAssertFail(
+            "pMLS && strlen(pMLS)",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x8b4, 0);
+    }
+    W8SpellVisualLoadContext context = {
+        g_world, "Data\\Spells\\Bitmaps\\"};
+    W8SpellVisual* visual = 0;
+    unsigned char loaded = 0;
+    int cycle = -1;
+
+    if (resource_name != 0) {
+        loaded = LoadSpellVisualResource004AB580(
+            &context, resource_name, 1, &visual, 1);
+    }
+    if (loaded) {
+        visual->SetNavigationMode(4);
+        visual->state_088 = 0;
+        visual->SetPitchRollEnabled00453CA0(1, 1);
+        g_world->spell_visuals->Add(visual);
+        cycle = visual->FindSupportedCycle004AC530(1, argument_3 - 1);
+        if (cycle == -1) {
+            delete visual;
+            loaded = 0;
+        }
+    }
+    if (!loaded) {
+        loaded = LoadSpellVisualResource004AB580(
+            &context, "Generic", 1, &visual, 1);
+        if (loaded) {
+            visual->SetNavigationMode(4);
+            visual->state_088 = 0;
+            visual->SetPitchRollEnabled00453CA0(1, 1);
+            g_world->spell_visuals->Add(visual);
+            cycle = visual->FindSupportedCycle004AC530(1, argument_3 - 1);
+        }
+    }
+    if (visual != 0) {
+        visual->value_1d8 = 1;
+        visual->host->pending_cycle = (signed char)cycle;
+        visual->host->flag_378 = 1;
+        visual->value_1f0 = argument_4;
+        visual->value_1f4 = argument_5;
+        visual->SetPositionInternal00453590(position);
+    }
+    return visual;
+}
+
 /* Send something to one named emitter. The arguments are handed on in the
    reverse of the order they arrive. */
 // FUNCTION: WIZ8 0x004ab290

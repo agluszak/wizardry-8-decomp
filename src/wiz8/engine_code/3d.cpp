@@ -485,6 +485,10 @@ unsigned char PointInsideFrustum0046D880(
 /* Build the normalized plane through three points. The normal is the cross
    product of the two edges from the first point; d averages the three point
    distances. */
+// TODO: the srVector3T API form below (Length/DotProduct/Set) matches retail
+// at only 0.10 because the original keeps compiler-lowered counted loops (the
+// three-point copy and the cyclic normal sum) that the straight-line API
+// cannot express. Revisit with the loop form when byte fidelity matters.
 // FUNCTION: WIZ8 0x0046d660
 void BuildPlaneFromPoints0046D660(
     srVector4T<float>* plane,

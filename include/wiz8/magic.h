@@ -33,7 +33,7 @@ void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* slot);
 void ResetPartyEffectBlock(W8EffectSlot* slot);
 W8SpellVisual* SpawnSpellEffect(
     const srVector3T<float>* position, const char* resource_name,
-    int argument_3, int argument_4, int argument_5);
+    int argument_3, int argument_4, int argument_5);      /* 0x004AD430 */
 
 struct W8MonsterInfo;
 struct W8EffectSlot;

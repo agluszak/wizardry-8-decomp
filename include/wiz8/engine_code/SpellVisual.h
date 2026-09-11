@@ -23,6 +23,10 @@ public:
     virtual W8AniMesh* GetCurrentAniMesh() override;
 
     virtual void StartIfHostActive();    /* 0x004ABDC0 */
+    /* Search backward from a subcycle for the first cycle this visual
+       supports; returns -1 when none does. */
+    virtual int FindSupportedCycle004AC530(
+        signed char group, signed char subcycle);
 
     int value_1d8;
     int target_location_id_1dc;
@@ -33,7 +37,8 @@ public:
     unsigned char flag_1e7;
     float value_1e8;
     int value_1ec;
-    unsigned char unknown_1f0[8];
+    int value_1f0;                       /* 0x1f0 */
+    int value_1f4;                       /* 0x1f4 */
 };
 
 static_assert(sizeof(W8SpellVisual) == 0x1f8,

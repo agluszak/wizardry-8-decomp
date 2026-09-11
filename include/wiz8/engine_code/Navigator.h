@@ -162,6 +162,7 @@ public:
     /* Stop this navigator, clear its movement/target state, and either mark
        the linked movement stopped or re-sync the collected group. */
     void ResetMovementAndGroupState00452C90();       /* 0x00452C90 */
+    void SetPitchRollEnabled00453CA0(char pitch, char roll); /* 0x00453CA0 */
     unsigned short ConfigureMovementToNavigator004529A0(
         W8Navigator* target,
         float separation,
