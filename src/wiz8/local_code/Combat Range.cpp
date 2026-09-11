@@ -73,10 +73,10 @@ int GetBestHandRangeCategory(const W8Character* character)
 /* Whether the first lighting condition applies at distant or extreme range. */
 // FUNCTION: WIZ8 0x00519be0
 unsigned char RangeCategoryUsesSightCondition(
-    const W8SightConditions* conditions, int range_category)
+    const W8MonsterInfo* monster, int range_category)
 {
     if (range_category >= W8_RANGE_FIRST_DISTANT && range_category <= W8_RANGE_EXTREME) {
-        return GetSightCondition37A(conditions);
+        return GetSightCondition37A(monster);
     }
     return false;
 }
@@ -283,10 +283,7 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int kind)
     *out = 0;
     if (monster_info->flag_16 == 1
         && IsVisibleUnderConditions(
-               reinterpret_cast<const W8SightConditions*>(monster_info),
-               reinterpret_cast<const W8VisibilityRow*>(
-                   &monster_info->player_visibility),
-               kind)
+               monster_info, &monster_info->player_visibility, kind)
         && (best = monster_info->monster->GetDistanceToPlayer004C7CB0(),
             best < 1000000.0f)) {
         *out = 2;
@@ -300,14 +297,9 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int kind)
             if (other != monster_info && other->flag_14 != 0
                 && other->hp_current != 0 && other->fInCombat != 0
                 && MonsterHostility00546F80(monster_info, other) == 1) {
-                W8MonToMonVisibility* row =
-                    FindMonToMonVisibility(monster_info,
-                        reinterpret_cast<int>(other),
-                        reinterpret_cast<W8MonsterInfo*>(kind));
-                if (IsVisibleUnderConditions(
-                        reinterpret_cast<const W8SightConditions*>(
-                            monster_info),
-                        reinterpret_cast<const W8VisibilityRow*>(row), kind)) {
+                W8VisibilityRecord* row =
+                    FindMonToMonVisibility(monster_info, other);
+                if (IsVisibleUnderConditions(monster_info, row, kind)) {
                     float distance =
                         monster_info->monster->GetDistanceToMonster004C7DD0(
                             other->monster);

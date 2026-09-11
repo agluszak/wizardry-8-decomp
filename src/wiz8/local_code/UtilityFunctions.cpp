@@ -493,12 +493,12 @@ void FormatDebugMessage(int channel, const char* format, ...)
 }
 
 // FUNCTION: WIZ8 0x00518310
-int RPCPtrToPCSlot(const W8RPCSlot* rpc)
+int RPCPtrToPCSlot(const W8MonsterManagerEntry* rpc)
 {
     int slot = 0;
-    W8RPCSlot* g_rpc_slots = reinterpret_cast<W8RPCSlot*>(&g_monster_manager_state);
 
-    for (W8RPCSlot* current = g_rpc_slots; current < g_rpc_slots + 8; ++current) {
+    for (const W8MonsterManagerEntry* current = g_monster_manager_state.entries;
+         current < &g_monster_manager_state.entries[8]; ++current) {
         if (rpc == current) {
             return slot;
         }

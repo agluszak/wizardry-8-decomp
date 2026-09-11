@@ -18,7 +18,7 @@ struct W8PartySlotRow {
     int pending_action;
     int attack_mode[4];
     /* 0x15: the pending action's own two-word block, the same shape a chosen
-       action carries. GetSlotChosenAction returns it for the out-of-combat
+       action carries. ChooseCombatAction returns it for the out-of-combat
        context; its item member is restored from the saved item reference. */
     W8ActionDetailBlock pending_action_detail_015;
     W8CombatSlot target_out_of_combat;

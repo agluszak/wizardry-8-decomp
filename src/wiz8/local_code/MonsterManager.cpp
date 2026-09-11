@@ -270,8 +270,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
 
     WorldGetCameraLocation(GetWorld(), &camera_position);
     MonsterForward4A7BE0(monster_info->monster, &camera_position);
-    MonsterCallSlot10(
-        monster_info->monster, reinterpret_cast<int>(GetWorld()));
+    UpdateCycleRepresentation004C59B0(monster_info->monster, GetWorld());
     g_octree_6598a4->VisitPointCopy0042E620(
         static_cast<unsigned short>(monster_info->location_id),
         &monster_info->position_17);

@@ -48,30 +48,6 @@
 
 #define SIGHT_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Sight.cpp"
 
-/* The two lighting conditions the per-condition visibility table is indexed
-   by. Their meaning is not established; only that each shifts the lookup one
-   entry along. */
-struct W8SightConditions {
-    unsigned char unknown_000[0x37a];
-    unsigned char condition_37a;         /* 0x37a */
-    unsigned char unknown_37b;
-    unsigned char condition_37c;         /* 0x37c */
-};
-
-/* One row of per-visibility-kind flags. The two conditions above select
-   between adjacent entries in the two pairs. */
-struct W8VisibilityRow {
-    unsigned char unknown_00[4];
-    unsigned char visible_04;            /* 0x04 */
-    unsigned char visible_05;            /* 0x05 */
-    unsigned char unknown_06;
-    unsigned char visible_07;            /* 0x07 */
-    unsigned char unknown_08[3];
-    unsigned char visible_0b;            /* 0x0b */
-    unsigned char unknown_0c[0x1c];
-    unsigned char visible_28;            /* 0x28 */
-};
-
 // GLOBAL: WIZ8 0x005ec254
 float g_sight_default_005ec254 = 12.0f;
 
@@ -155,7 +131,7 @@ void ReleaseMonToMonVisibilityInfoAbout(int location_id)
     unsigned int monster_index;
     int index;
     W8MonsterInfo* monster_info;
-    W8MonToMonVisibility* visibility;
+    W8VisibilityRecord* visibility;
 
     for (monster_index = 0; monster_index < PLLength(gXStatus.plsMonsterList);
          ++monster_index) {
@@ -167,12 +143,12 @@ void ReleaseMonToMonVisibilityInfoAbout(int location_id)
              index < (int)PLLength(monster_info->mon_to_mon_visibility);
              ++index) {
             visibility =
-                (W8MonToMonVisibility*)PLGet(monster_info->mon_to_mon_visibility, index);
+                (W8VisibilityRecord*)PLGet(monster_info->mon_to_mon_visibility, index);
             if (visibility == 0) {
                 return;
             }
             if (visibility->about_location_id == location_id) {
-                visibility = (W8MonToMonVisibility*)PLRemoveAt(
+                visibility = (W8VisibilityRecord*)PLRemoveAt(
                     monster_info->mon_to_mon_visibility, index);
                 if (visibility == 0) {
                     srAssertFail(
@@ -193,11 +169,11 @@ void ReleaseMonToMonVisibilityInfoAbout(int location_id)
 // FUNCTION: WIZ8 0x00505c80
 void ReleaseMonToMonVisibilityList(W8MonsterInfo* monster_info)
 {
-    W8MonToMonVisibility* visibility;
+    W8VisibilityRecord* visibility;
 
     while ((int)PLLength(monster_info->mon_to_mon_visibility) > 0) {
         visibility =
-            (W8MonToMonVisibility*)PLRemoveAt(monster_info->mon_to_mon_visibility, 0);
+            (W8VisibilityRecord*)PLRemoveAt(monster_info->mon_to_mon_visibility, 0);
         if (visibility == 0) {
             srAssertFail(
                 "pVisibility != NULL", SIGHT_CPP, 990,
@@ -233,44 +209,44 @@ bool MonsterGroupHasVisibleThreat(W8MonsterGroup* group)
 /* Which of the two adjacent visibility entries the first lighting condition
    selects. */
 // FUNCTION: WIZ8 0x00505e60
-bool GetSightCondition37A(const W8SightConditions* conditions)
+bool GetSightCondition37A(const W8MonsterInfo* monster)
 {
-    return conditions->condition_37a != 0;
+    return monster->has_missile_37a != 0;
 }
 
 /* The second condition, answered as the entry index it picks rather than as a
    flag - two or three. */
 // FUNCTION: WIZ8 0x00505e80
-char GetSightCondition37CIndex(const W8SightConditions* conditions)
+char GetSightCondition37CIndex(const W8MonsterInfo* monster)
 {
-    return (conditions->condition_37c != 0) + 2;
+    return (monster->has_spell_37c != 0) + 2;
 }
 
-/* Read one flag out of a visibility row. Two of the seven kinds are pairs that
-   the lighting conditions choose between; the rest are fixed, and anything
-   past the named kinds falls back to the last flag. */
+/* Read one flag out of a visibility record. Two of the seven kinds are pairs
+   that the monster's missile and spell conditions choose between; the rest are
+   fixed, and anything past the named kinds falls back to the last flag. */
 // FUNCTION: WIZ8 0x00505dd0
 bool IsVisibleUnderConditions(
-    const W8SightConditions* conditions, const W8VisibilityRow* row, int kind)
+    const W8MonsterInfo* monster, const W8VisibilityRecord* row, int kind)
 {
     if (row == 0) {
         return false;
     }
     switch (kind) {
     case 0:
-        return row->visible_04 != 0;
+        return row->state_04 != 0;
     case 1:
-        return row->visible_0b != 0;
+        return row->flag_0b != 0;
     case 2:
-        return row->visible_05 != 0;
+        return row->sight_flags_05[0] != 0;
     case 3:
-        return row->visible_07 != 0;
+        return row->sight_flags_05[2] != 0;
     case 4:
-        return (&row->visible_05)[conditions->condition_37a != 0] != 0;
+        return row->sight_flags_05[monster->has_missile_37a != 0] != 0;
     case 5:
-        return (&row->visible_07)[conditions->condition_37c != 0] != 0;
+        return row->sight_flags_05[2 + (monster->has_spell_37c != 0)] != 0;
     default:
-        return row->visible_28 != 0;
+        return row->line_of_sight_28 != 0;
     }
 }
 
@@ -306,11 +282,11 @@ unsigned int AgeAllMonsterSight(void)
    to be in the world - the two assertions name that field fActive - and a null
    entry in the list is itself an error rather than an end marker. */
 // FUNCTION: WIZ8 0x00505d20
-W8MonToMonVisibility* FindMonToMonVisibility(
-    W8MonsterInfo* source, int unused, W8MonsterInfo* target)
+W8VisibilityRecord* FindMonToMonVisibility(
+    W8MonsterInfo* source, W8MonsterInfo* target)
 {
     int index;
-    W8MonToMonVisibility* visibility;
+    W8VisibilityRecord* visibility;
 
     if (source->flag_14 == 0) {
         srAssertFail("pSourceMonsterInfo->fActive", SIGHT_CPP, 1020, 0);
@@ -321,7 +297,7 @@ W8MonToMonVisibility* FindMonToMonVisibility(
 
     for (index = 0; index < (int)PLLength(source->mon_to_mon_visibility); ++index) {
         visibility =
-            (W8MonToMonVisibility*)PLGet(source->mon_to_mon_visibility, index);
+            (W8VisibilityRecord*)PLGet(source->mon_to_mon_visibility, index);
         if (visibility == 0) {
             srAssertFail("FALSE", SIGHT_CPP, 1030, 0);
         }
@@ -432,14 +408,14 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
 
             if (other != monster_info && other->fInCombat != 0
                 && other->flag_14 != 0 && other->hp_current != 0) {
-                W8MonToMonVisibility* entry = 0;
+                W8VisibilityRecord* entry = 0;
                 bool found = false;
                 unsigned int record_index;
 
                 for (record_index = 0;
                      record_index < PLLength(monster_info->mon_to_mon_visibility);
                      ++record_index) {
-                    entry = static_cast<W8MonToMonVisibility*>(
+                    entry = static_cast<W8VisibilityRecord*>(
                         PLGet(monster_info->mon_to_mon_visibility, record_index));
                     if (entry == 0) {
                         return;
@@ -450,7 +426,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                     }
                 }
                 if (!found) {
-                    entry = static_cast<W8MonToMonVisibility*>(
+                    entry = static_cast<W8VisibilityRecord*>(
                         malloc(sizeof(*entry)));
                     if (entry == 0) {
                         return;
@@ -492,15 +468,12 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                                 entry->state_04 = 1;
                                 entry->last_seen_clock_0c =
                                     g_status_685170.world_clock;
-                                entry->subject_x_10 = static_cast<int>(own_x);
-                                entry->subject_y_14 = static_cast<int>(own_y);
-                                entry->subject_z_18 = static_cast<int>(own_z);
-                                entry->target_x_1c =
-                                    static_cast<int>(other_position.x);
-                                entry->target_y_20 =
-                                    static_cast<int>(other_position.y);
-                                entry->target_z_24 =
-                                    static_cast<int>(other_position.z);
+                                entry->subject_position_10.x = own_x;
+                                entry->subject_position_10.y = own_y;
+                                entry->subject_position_10.z = own_z;
+                                entry->target_position_1c.x = other_position.x;
+                                entry->target_position_1c.y = other_position.y;
+                                entry->target_position_1c.z = other_position.z;
                                 goto sight_flags;
                             }
                         }
@@ -604,8 +577,6 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
             float yaw = GetCameraYawRadians();
             unsigned int light;
             unsigned int minimum_level = 9999;
-            unsigned int character_offset = 0;
-            int row_offset = 0;
             unsigned char fade_flag;
             float player_distance;
 
@@ -615,24 +586,16 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
             else {
                 light = 0;
             }
-            do {
-                W8PartySlotRow* row = reinterpret_cast<W8PartySlotRow*>(
-                    reinterpret_cast<char*>(g_status_685170.buffers.party_rows)
-                    + row_offset); /* reinterpret-ok: party rows are stored at
-                                      their serialized 0x106 stride */
-                W8Character* character = reinterpret_cast<W8Character*>(
-                    reinterpret_cast<char*>(g_status_685170.buffers.characters)
-                    + character_offset); /* reinterpret-ok: the party is stored
-                                            at its serialized 0x1862 stride */
+            for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
+                W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+                W8Character* character = &g_status_685170.buffers.characters[slot];
 
                 if (row->occupied != 0 && character->hp_current != 0
                     && character->unknown_0b01 < 0xf
                     && character->level < minimum_level) {
                     minimum_level = character->level;
                 }
-                row_offset += 0x106;
-                character_offset += 0x1862;
-            } while (character_offset < 0xc310);
+            }
 
             player_distance = monster->GetDistanceToPlayer004C7CB0();
             if (record->kind_0cb == 4) {
@@ -667,10 +630,10 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
         }
         monster_info->player_visibility.state_04 = 1;
         monster_info->player_visibility.last_seen_clock_0c = g_status_685170.world_clock;
-        monster_info->player_visibility.own_position_1c.x = own_x;
-        monster_info->player_visibility.own_position_1c.y = own_y;
-        monster_info->player_visibility.own_position_1c.z = own_z;
-        monster_info->player_visibility.camera_position_10 = camera_position;
+        monster_info->player_visibility.target_position_1c.x = own_x;
+        monster_info->player_visibility.target_position_1c.y = own_y;
+        monster_info->player_visibility.target_position_1c.z = own_z;
+        monster_info->player_visibility.subject_position_10 = camera_position;
     }
 
 after_sight:
@@ -739,8 +702,6 @@ after_sight:
                 float yaw;
                 float distance;
                 unsigned char npc_fade_flag;
-                unsigned int character_offset;
-                int row_offset;
 
                 record = GetMonsterDataForInfo(monster_info);
                 GetCameraPosition(&camera_position);
@@ -750,18 +711,10 @@ after_sight:
                 if (monster_info->fInCombat == 0) {
                     npc_fade_flag = record->flag_248;
                 }
-                character_offset = 0;
-                row_offset = 0;
                 seen_by_party = false;
-                do {
-                    W8PartySlotRow* row = reinterpret_cast<W8PartySlotRow*>(
-                        reinterpret_cast<char*>(
-                            g_status_685170.buffers.party_rows)
-                        + row_offset); /* reinterpret-ok: serialized stride */
-                    W8Character* character = reinterpret_cast<W8Character*>(
-                        reinterpret_cast<char*>(
-                            g_status_685170.buffers.characters)
-                        + character_offset); /* reinterpret-ok: serialized stride */
+                for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
+                    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+                    W8Character* character = &g_status_685170.buffers.characters[slot];
 
                     if (row->occupied != 0 && character->hp_current != 0
                         && character->unknown_0b01 < 0xf) {
@@ -785,9 +738,7 @@ after_sight:
                             break;
                         }
                     }
-                    row_offset += 0x106;
-                    character_offset += 0x1862;
-                } while (row_offset < 0x830);
+                }
                 monster_info->party_threat.flag_07 = seen_by_party ? 1 : 0;
                 if (seen_by_party) {
                     if (GetViewDistance() == g_sight_default_005ec254) {

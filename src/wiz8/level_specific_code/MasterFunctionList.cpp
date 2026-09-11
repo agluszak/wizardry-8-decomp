@@ -372,7 +372,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP,
                 0xdc, "Missing trigger 'ScannerDoor'! It's not in the LVL file!");
         }
-        *reinterpret_cast<unsigned int*>((unsigned char*)pTrigger + 0xbc) = 0; /* reinterpret-ok: unresolved base-class field */
+        pTrigger->m_lData1 = 0;
         pTrigger->activation_callback_360 = Function4E0A80;
         Function4E06D0();
         return;

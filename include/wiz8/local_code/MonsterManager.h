@@ -172,23 +172,23 @@ struct W8PartyThreatRecord {
 };                                            /* 0x30 */
 static_assert(sizeof(W8PartyThreatRecord) == 0x30, "W8PartyThreatRecord_size");
 
-/* 0x348: the player-visibility record for one monster. It mirrors the
-   per-other-monster W8MonToMonVisibility record: state byte, four sight
-   flags, the seen clock, two position triples and the line-of-sight byte.
-   The reset zeroes exactly its 0x31 bytes; the following byte is outside. */
-struct W8PlayerVisibility {
-    unsigned char unknown_00[4];
-    unsigned char state_04;                 /* 0x34c */
-    unsigned char sight_flags_05[4];        /* 0x34d: two flag pairs */
+/* One 0x31-byte visibility record. W8MonsterInfo embeds the party-facing one
+   at 0x348 and the mon-to-mon list allocates one per other monster; both store
+   the observer's position at 0x10 and the observed entity's at 0x1c as
+   ordinary floats. The reset zeroes exactly its 0x31 bytes. */
+struct W8VisibilityRecord {
+    int about_location_id;                  /* 0x00; always zero in the party record */
+    unsigned char state_04;                 /* 0x04 */
+    unsigned char sight_flags_05[4];        /* 0x05: two flag pairs */
     unsigned char unknown_09[2];
-    unsigned char flag_0b;                  /* 0x353 */
-    int last_seen_clock_0c;                 /* 0x354 */
-    srVector3T<float> camera_position_10;   /* 0x358 */
-    srVector3T<float> own_position_1c;      /* 0x364 */
-    unsigned char line_of_sight_28;         /* 0x370 */
-    unsigned char unknown_29[8];            /* 0x371; 0x379 lies outside the reset */
+    unsigned char flag_0b;                  /* 0x0b */
+    int last_seen_clock_0c;                 /* 0x0c */
+    srVector3T<float> subject_position_10;  /* 0x10: the observer */
+    srVector3T<float> target_position_1c;   /* 0x1c: the observed */
+    unsigned char line_of_sight_28;         /* 0x28 */
+    unsigned char unknown_29[8];            /* 0x29 */
 };                                            /* 0x31 */
-static_assert(sizeof(W8PlayerVisibility) == 0x31, "W8PlayerVisibility_size");
+static_assert(sizeof(W8VisibilityRecord) == 0x31, "W8VisibilityRecord_size");
 
 struct W8MonsterInfo {
     int location_id;                      /* 0x00 */
@@ -283,7 +283,7 @@ struct W8MonsterInfo {
     W8TargetSource condition_target_304;
     int runtime_values_338[3];              /* 0x338: creator clears as one unit */
     int value_344;                          /* 0x344: creator initializes to -1 */
-    W8PlayerVisibility player_visibility;   /* 0x348 */
+    W8VisibilityRecord player_visibility;   /* 0x348 */
     unsigned char unknown_379;
     unsigned char has_missile_37a;
     unsigned char unknown_37b;

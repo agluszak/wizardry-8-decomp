@@ -1987,7 +1987,8 @@ extern const wchar_t g_wchar_00689b34;
    is resolved twice. Everything else is a fixed word. Its error
    text names the function. */
 // FUNCTION: WIZ8 0x004f97a0
-wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
+wchar_t* SpellTargetString(
+    const W8TargetSource* source, const W8CombatSlot* target)
 {
     unsigned short name_prefix;
 
@@ -2005,8 +2006,8 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
         if (target->iChar == -1) {
             srAssertFail("pTarget->iChar != BAD_INDEX", MAGIC_CPP, 0xad, 0);
         }
-        if (!TargetSourceIsCharacter((const W8TargetSource*)target, 0)
-            || reinterpret_cast<const unsigned char*>(&target->point)[9] != 0) {
+        if (!TargetSourceIsCharacter(source, 0) || source->unknown_18[1] != 0
+            || source->iChar != target->iChar) {
             return FormatWideString(
                 gppStringList[W8_MESSAGE_TARGET_AT / 4],
                 g_party_characters[target->iChar].name);
@@ -2028,7 +2029,8 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0xc0, MAGIC_CPP, target->iMonsterID, 1));
         record = GetMonsterDataForInfo(monster_info);
-        if (!TargetSourceIsMonster((const W8TargetSource*)target, 0)) {
+        if (!TargetSourceIsMonster(source, 0)
+            || source->iMonsterID != target->iMonsterID) {
             return FormatWideString(
                 gppStringList[W8_MESSAGE_TARGET_AT / 4],
                 GetMonsterName(monster_info, record, 0));
@@ -2096,7 +2098,7 @@ unsigned int MonsterCastsSpell(
             9, gppStringList[W8_MESSAGE_MONSTER_CAST / 4],
             GetMonsterName(monster_info, record, 0),
             g_spell_records[spell_id].display_name,
-            SpellTargetString((int)&source, &monster_info->Target));
+            SpellTargetString(&source, &monster_info->Target));
         SetTextBoxMode(1, 9);
     }
     else {
@@ -2104,7 +2106,7 @@ unsigned int MonsterCastsSpell(
             9, gppStringList[W8_MESSAGE_MONSTER_CAST_VERBOSE / 4],
             GetMonsterName(monster_info, record, 0),
             g_spell_records[spell_id].display_name, power_level,
-            SpellTargetString((int)&source, &monster_info->Target));
+            SpellTargetString(&source, &monster_info->Target));
     }
 
     record = GetMonsterDataForInfo(monster_info);

@@ -1113,13 +1113,6 @@ W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context)
     return 0;
 }
 
-/* 0x004E77B0: hands back what the slot has chosen - the action, the detail
-   qualifying it, and a pointer to the action's own two-word block, which is
-   the party slot row's own pair rather than a copy. */
-extern void GetSlotChosenAction(
-    int party_slot, unsigned int context, int* action, int* detail, void* unused,
-    const W8ActionDetailBlock** detail_block);
-
 extern unsigned char CanReachTarget(
     int party_slot, int kind, W8MonsterInfo* monster_info, int context, int arg_5);
 
@@ -1203,8 +1196,8 @@ unsigned int Function53A8D0(int party_slot, unsigned int context)
     int detail;
     const W8ActionDetailBlock* detail_block;
 
-    GetSlotChosenAction(
-        party_slot, context, &action, &detail, 0, &detail_block);
+    ChooseCombatAction(
+        party_slot, context, &action, &detail, 0, reinterpret_cast<int*>(&detail_block)); // reinterpret-ok: the accessor stores the detail-block address in a generic int output
     if (action == 2) {
         return 0x77;
     }
@@ -1385,8 +1378,8 @@ unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
         needed = 0;
     }
     else {
-        GetSlotChosenAction(
-            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, &detail_block);
+        ChooseCombatAction(
+            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, reinterpret_cast<int*>(&detail_block)); // reinterpret-ok: the accessor stores the detail-block address in a generic int output
         needed = GetTargetNeededForAction(action, detail, detail_block);
     }
 
@@ -1453,8 +1446,8 @@ unsigned char CanTargetMonster(
         }
     }
     else {
-        GetSlotChosenAction(
-            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, &detail_block);
+        ChooseCombatAction(
+            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, reinterpret_cast<int*>(&detail_block)); // reinterpret-ok: the accessor stores the detail-block address in a generic int output
         needed = GetTargetNeededForAction(action, detail, detail_block);
 
         if (needed != 2 && needed != 5) {
@@ -1500,13 +1493,13 @@ unsigned char SlotHasAnyValidTarget(int party_slot)
     int action;
     int detail;
     const W8ActionDetailBlock* detail_block;
-    unsigned char unused[4];
+    int unused_target;
     W8CombatSlot target;
     unsigned int index;
     unsigned int other_slot;
 
-    GetSlotChosenAction(
-        party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, unused, &detail_block);
+    ChooseCombatAction(
+        party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, &unused_target, reinterpret_cast<int*>(&detail_block)); // reinterpret-ok: the accessor stores the detail-block address in a generic int output
 
     switch (action) {
     case 0:
@@ -1735,8 +1728,8 @@ void AimAtMonsterGroupMember(int party_slot, W8MonsterGroup* group)
     int previous;
 
     if (ResolveTargetingContext(party_slot, W8_TARGETING_CONTEXT_CURRENT) != 0) {
-        GetSlotChosenAction(
-            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, &detail_block);
+        ChooseCombatAction(
+            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, reinterpret_cast<int*>(&detail_block)); // reinterpret-ok: the accessor stores the detail-block address in a generic int output
         if (GetTargetNeededForAction(action, detail, detail_block) == 5) {
             memset(&target, 0, sizeof(target));
             target.iChar = BAD_INDEX;

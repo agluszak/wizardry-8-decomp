@@ -52,9 +52,8 @@ extern void Function53A930(int party_slot, W8CombatSlot* target);
 // FUNCTION: WIZ8 0x005248a0
 unsigned char Function5248A0(int party_slot, int condition)
 {
-    const unsigned char* character =
-        reinterpret_cast<const unsigned char*>(g_status_685170.buffers.characters + party_slot);
-    return character[condition * 0x11 + 0x181f];
+    return g_status_685170.buffers.characters[party_slot]
+        .conditions_1817[condition].value_08;
 }
 
 extern void Function50E650(int party_slot);

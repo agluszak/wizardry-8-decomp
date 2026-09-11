@@ -37,7 +37,8 @@ struct W8TargetSource {
        point - that one has a group id at 0x0c and the point at 0x10 - so the
        two blocks are related but not the same shape. */
     srVector3T<float> point;
-    unsigned char unknown_18[3];
+    unsigned char unknown_18[3];         /* 0x18..0x1a; [1] is the name-known flag
+                                            SpellTargetString reads */
     unsigned char fReflection;            /* 0x1b */
     unsigned char fBackfire;              /* 0x1c */
     unsigned char unknown_1d[0x17];

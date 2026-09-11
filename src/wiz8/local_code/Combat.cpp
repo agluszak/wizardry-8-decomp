@@ -732,8 +732,7 @@ void ChooseCombatAction(
     int party_slot, int context, int* out_kind, int* out_a, int* out_b,
     int* out_c)
 {
-    unsigned char* row = reinterpret_cast<unsigned char*>(
-        &g_party_slot_rows[party_slot]);
+    W8PartySlotRow* row = &g_party_slot_rows[party_slot];
     int kind;
     int value_a;
     int value_b;
@@ -744,16 +743,16 @@ void ChooseCombatAction(
     }
     switch (context) {
     case 0:
-        kind = *reinterpret_cast<int*>(row + 0x01);
-        value_a = *reinterpret_cast<int*>(row + 0x05);
-        value_b = *reinterpret_cast<int*>(row + 0x1d);
-        value_c = *reinterpret_cast<int*>(row + 0x15);
+        kind = row->pending_action;
+        value_a = row->attack_mode[0];
+        value_b = reinterpret_cast<int>(&row->target_out_of_combat); // reinterpret-ok: generic machine-word output slot
+        value_c = reinterpret_cast<int>(&row->pending_action_detail_015); // reinterpret-ok: generic machine-word output slot
         break;
     case 1:
-        kind = *reinterpret_cast<int*>(row + 0x3d);
-        value_a = *reinterpret_cast<int*>(row + 0x41);
-        value_b = *reinterpret_cast<int*>(row + 0x4d);
-        value_c = *reinterpret_cast<int*>(row + 0x45);
+        kind = row->action_03d;
+        value_a = row->action_detail_041;
+        value_b = reinterpret_cast<int>(&row->target_in_combat); // reinterpret-ok: generic machine-word output slot
+        value_c = reinterpret_cast<int>(&row->action_detail_045); // reinterpret-ok: generic machine-word output slot
         break;
     case 2:
         if (g_flag_00683f95 == 0) {
@@ -778,20 +777,20 @@ void ChooseCombatAction(
         }
         break;
     case 3:
-        value_a = *reinterpret_cast<int*>(row + 0x75);
+        value_a = row->spell_id;
         kind = 7;
-        value_b = reinterpret_cast<int>(row + 0x81);
-        value_c = reinterpret_cast<int>(row + 0x79);
+        value_b = reinterpret_cast<int>(&row->spell_target); // reinterpret-ok: generic machine-word output slot
+        value_c = reinterpret_cast<int>(&row->spell_power_level); // reinterpret-ok: generic machine-word output slot
         break;
     case 4:
         value_a = -1;
         kind = 8;
-        value_b = reinterpret_cast<int>(row + 0xa9);
-        value_c = reinterpret_cast<int>(row + 0xa1);
+        value_b = reinterpret_cast<int>(&row->item_target); // reinterpret-ok: generic machine-word output slot
+        value_c = reinterpret_cast<int>(&row->item_use_kind); // reinterpret-ok: generic machine-word output slot
         break;
     case 5:
         value_a = -1;
-        value_b = reinterpret_cast<int>(row + 0xd1);
+        value_b = reinterpret_cast<int>(&row->target_context_5); // reinterpret-ok: generic machine-word output slot
         kind = 2;
         value_c = 0;
         break;

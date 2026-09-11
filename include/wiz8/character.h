@@ -7,6 +7,8 @@
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/saved_location.h"
 
+struct W8MonsterManagerEntry;
+
 #pragma pack(push, 1)
 
 /* The eighteen conditions a character can be under, indexed directly into
@@ -124,6 +126,16 @@ struct W8HandAttack {
     int value_3f;
     unsigned char unknown_43[0x18];
 };                                        /* 0x5b */
+
+/* One 0x11-byte condition record from 0x1817. Function5248A0 reads byte 8 of
+   one of the four; the rest is not yet named. */
+struct W8CharacterConditionRecord {
+    unsigned char unknown_00[8];
+    unsigned char value_08;
+    unsigned char unknown_09[8];
+};                                            /* 0x11 */
+static_assert(sizeof(W8CharacterConditionRecord) == 0x11,
+              "W8CharacterConditionRecord_size");
 
 struct W8Character {
     /* 0x0000: SaveCharacter stamps 1 here before writing the record, so the
@@ -287,7 +299,7 @@ struct W8Character {
     /* 0x1813: which level that anchor belongs to. The recall compares it
        against g_status_685170.current_level and takes a different path when they differ. */
     int saved_level;                     /* 0x1813 */
-    unsigned char unknown_1817[0x44];
+    W8CharacterConditionRecord conditions_1817[4]; /* 0x1817 .. 0x185a */
     /* 0x185b: the deep-fatigue effect is already on this character, which is
        what stops FatigueCharacter re-applying it every turn. */
     unsigned char deep_fatigue_applied;
@@ -304,10 +316,6 @@ struct W8SkillAttributes {
     int unknown_04;
     int unknown_08;
     int unknown_0c;
-};
-
-struct W8RPCSlot {
-    unsigned char opaque[0x118];
 };
 
 #pragma pack(pop)
@@ -336,7 +344,7 @@ extern float g_profession_hit_point_factors[15];
 
 int GetNextCharacter(
     int require_primary, int require_secondary, int previous_slot);
-int RPCPtrToPCSlot(const W8RPCSlot* rpc);
+int RPCPtrToPCSlot(const W8MonsterManagerEntry* rpc);
 void StripMonsterNameSuffix(W8WideChar* name);
 unsigned int CharacterPointerToPartySlot(const W8Character* character);
 unsigned char SetCharacterCondition(

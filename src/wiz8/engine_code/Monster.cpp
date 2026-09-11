@@ -5741,11 +5741,11 @@ void W8Monster::InitializeAnimatedTexture004C51D0()
     }
 }
 
-/* Forward to the object's own vtable slot four. */
+/* Advance a cycle's representation through its own virtual layout. */
 // FUNCTION: WIZ8 0x004c59b0
-void MonsterCallSlot10(void* object, int argument)
+void UpdateCycleRepresentation004C59B0(W8GrCycle* cycle, W8World* world)
 {
-    (*(void(**)(void*, int))(*(void***)object + 4))(object, argument);
+    cycle->UpdateRepresentation(world);
 }
 
 // FUNCTION: WIZ8 0x004C5810

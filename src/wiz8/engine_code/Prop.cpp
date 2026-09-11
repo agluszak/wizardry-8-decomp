@@ -631,23 +631,23 @@ void W8Prop::SetRepresentationActive(
 // FUNCTION: WIZ8 0x0044e0c0
 bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
 {
-    char* owner;
-    char* state;
+    Trigger* owner;
+    W8TriggerActionData* action;
 
     if ((flags_1c & 0x80) == 0 || m_gd_prop == 0) {
         return false;
     }
-    owner = *(char**)((char*)m_gd_prop + 0x24);
+    owner = m_gd_prop->m_owner_24;
     if (owner == 0) {
         return false;
     }
 
-    state = *(char**)(owner + 0x234);
-    if (state == 0 || state[4] != 10) {
-        state = 0;
+    action = owner->m_pActionData;
+    if (action == 0 || action->type_004 != 10) {
+        action = 0;
     }
-    if ((*(int*)(owner + 0x368) != 0 && owner[0x370] == 0) ||
-        (state != 0 && (state[8] & 5) != 0)) {
+    if ((owner->value_368 != 0 && owner->state_370.state == 0) ||
+        (action != 0 && (action->flags_008 & 5) != 0)) {
         return false;
     }
     if (!m_gd_prop->ContainsPathCoordinate004B75F0(
@@ -656,7 +656,7 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
         return false;
     }
     if (notify) {
-        reinterpret_cast<Trigger*>(owner)->Activate00444750();
+        owner->Activate00444750();
     }
     return true;
 }

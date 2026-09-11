@@ -1260,14 +1260,13 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
 
     W8PartySlotRow* party_row = party_rows;
     for (slot = 0; slot != 8; ++slot, ++party_row) {
-        unsigned char* row = reinterpret_cast<unsigned char*>(party_row);
-        memset(row, 0, sizeof(W8PartySlotRow));
+        memset(party_row, 0, sizeof(W8PartySlotRow));
         chunks->Read(&size, sizeof(size), 0);
         if (size > sizeof(W8PartySlotRow)) {
             srAssertFail("uiSize <= sizeof(*&pStatus->XChar[uiChar])",
                          LOADSAVEGAME_CPP, 0xcf2, 0);
         }
-        chunks->Read(row, size, 0);
+        chunks->Read(party_row, size, 0);
 
         if (status == &g_status_685170) {
             W8ItemInstance* item = 0;

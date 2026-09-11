@@ -398,7 +398,10 @@ void DeleteMonster004C5860(W8Monster* monster);
 void Function4C5ED0(W8Monster* monster);
 void MonsterPropagateValue004C5870(W8Monster* monster, int value);
 void MonsterForward4A7BE0(W8Monster* monster, const srVector3T<float>* position);
-void MonsterCallSlot10(void* object, int argument);
+/* The shared forwarder four call sites use to advance a cycle's
+   representation; it stays free because its callers pass the object on the
+   stack. */
+void UpdateCycleRepresentation004C59B0(W8GrCycle* cycle, W8World* world);
 void MonsterSetNavigatorFlag25(W8Monster* monster, char value);
 void MonsterForward4531A0(void);
 
