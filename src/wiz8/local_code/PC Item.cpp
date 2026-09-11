@@ -517,6 +517,130 @@ bool CanEquipItemInSlot(
                                  primary_main_hand_free, alternate_main_hand_free)) != 0;
 }
 
+#define PC_ITEM_CPP "C:\\Projects\\Wizardry 8\\Local Code\\PC Item.cpp"
+
+/* The name-index pairs that may be held together; a zero first entry ends
+   the run. */
+// GLOBAL: WIZ8 0x00616e6c
+short g_compatible_partner_pairs_616e6c[6][2] = {
+    {114, 113},
+    {110, 132},
+    {104, 132},
+    {144, 143},
+    {145, 146},
+    {0, 0},
+};
+
+/* Whether an off-hand item may pair with a ranged item when the two are held
+   together. A handful of name indices name one partner directly, the
+   two-weapon name indices fall back to the pair table, and the specialised
+   ranged items carry their own accepted classes. Anything not named is
+   refused. */
+// FUNCTION: WIZ8 0x0051c8f0
+unsigned char CompatiblePartnerItems(int ranged_item_id, int other_item_id)
+{
+    if ((unsigned int)ranged_item_id >= gXStatus.uiItemsInDatabase) {
+        srAssertFail(
+            "uiRangedItem < gXStatus.uiItemsInDatabase", PC_ITEM_CPP, 0x3fd,
+            FormatString(
+                "CompatiblePartnerItems: ERROR - Illegal RANGED item index %d",
+                ranged_item_id));
+    }
+    if ((unsigned int)other_item_id >= gXStatus.uiItemsInDatabase) {
+        srAssertFail(
+            "uiOtherItem < gXStatus.uiItemsInDatabase", PC_ITEM_CPP, 0x3fe,
+            FormatString(
+                "CompatiblePartnerItems: ERROR - Illegal OTHER item index %d",
+                other_item_id));
+    }
+
+    short ranged_name =
+        (short)g_item_records[ranged_item_id].unidentified_name_index;
+    short other_name =
+        (short)g_item_records[other_item_id].unidentified_name_index;
+
+    switch (ranged_name) {
+    case 0xb:
+    case 0x25:
+        if (other_name == 0x16) {
+            return 1;
+        }
+        break;
+    case 0xc:
+        if (other_name == 0x53) {
+            return 1;
+        }
+        break;
+    case 0xd:
+        if (other_name == 0x17) {
+            return 1;
+        }
+        break;
+    case 0x68:
+    case 0x6e:
+    case 0x72:
+        if (g_item_records[other_item_id].equip_class > 3 ||
+            g_item_records[ranged_item_id].wield_group ==
+                g_item_records[other_item_id].wield_group) {
+            if (ranged_item_id != -1 && g_compatible_partner_pairs_616e6c[0][0] != 0) {
+                int index = 0;
+                short name = g_compatible_partner_pairs_616e6c[0][0];
+
+                while (name != ranged_name) {
+                    ++index;
+                    name = g_compatible_partner_pairs_616e6c[index][0];
+                    if (name == 0) {
+                        return 1;
+                    }
+                }
+                if (other_name != g_compatible_partner_pairs_616e6c[index][1]) {
+                    return 0;
+                }
+            }
+            return 1;
+        }
+        break;
+    case 0x83:
+        switch (ranged_item_id) {
+        case 599:
+            if (other_name == 0x17 || other_name == 0x71) {
+                return 1;
+            }
+            break;
+        case 600:
+        case 0x259:
+            if (other_name == 0x17 || other_name == 0x71 || other_name == 0x70) {
+                return 1;
+            }
+            break;
+        case 0x25a:
+        case 0x25b:
+        case 0x25c:
+        case 0x25d:
+            if (other_name == 0x17 || other_name == 0x71 || other_name == 0x70 ||
+                other_name == 0x15 || other_name == 0x7e ||
+                (g_item_records[other_item_id].equip_class == 2 && other_name == 0)) {
+                return 1;
+            }
+            break;
+        case 0x25e:
+        case 0x25f:
+        case 0x260:
+        case 0x261:
+        case 0x262:
+            if (other_name == 0x17 || other_name == 0x71 || other_name == 0x70 ||
+                other_name == 0x15 || other_name == 0x7e ||
+                (g_item_records[other_item_id].equip_class == 2 && other_name == 0) ||
+                other_name == 0x16 || other_name == 0x53) {
+                return 1;
+            }
+            return 0;
+        }
+        break;
+    }
+    return 0;
+}
+
 /* Whether two items may be held at the same time. Nothing pairs with a
    two-handed item. A weapon beside an off-hand item is decided by the weapon
    rule, which takes them in weapon-first order whichever way round they were
@@ -573,8 +697,6 @@ enum {
     W8_CASTER_PROFESSION_CATEGORY_8 = 8,
     W8_CASTER_PROFESSION_CATEGORY_6 = 9
 };
-
-#define PC_ITEM_CPP "C:\\Projects\\Wizardry 8\\Local Code\\PC Item.cpp"
 
 /* 0x00521EF0 */
 
