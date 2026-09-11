@@ -1,0 +1,20 @@
+# The gating clang-tidy profile. It deliberately stays much narrower than the
+# compiler lane and contains only checks that find reconstruction/type errors;
+# style, naming and modernize checks are not applicable to decompiled source.
+#
+# Exclusions, with the binary/source evidence:
+# - bugprone-narrowing-conversions / cppcoreguidelines-narrowing-conversions:
+#   VC6 source and the recovered corpus narrow implicitly everywhere (GUI code
+#   int -> INT16), so as errors they demand hundreds of suppressions without
+#   finding reconstruction errors.
+# - bugprone-sizeof-expression: the recovered allocators deliberately size
+#   pointer arrays, which the check reports as "pointer to aggregate".
+# - readability-redundant-casting is what this profile wants next, but the
+#   pinned Debian bookworm image ships clang-tidy 14, which does not have it
+#   (added in LLVM 15). Add it here when the base image's LLVM moves.
+Checks: >
+  -*,
+  bugprone-misplaced-widening-cast
+WarningsAsErrors: '*'
+HeaderFilterRegex: '^(include/wiz8|src/wiz8|src/surrender|src/srext_jpegimporter|src/srext_unzip)/'
+FormatStyle: none

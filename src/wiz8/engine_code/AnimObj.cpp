@@ -40,6 +40,11 @@ unsigned char AnimObjReadFromFile004A05C0(
     W8GrowableVector<stLight*>* light_list,
     int unused)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+/* The decompiled body reads this storage only after the same short-circuit
+   chain that clang's flow analysis cannot see through; retail leaves it
+   uninitialised on the failed-read path. Suppress only this diagnostic. */
     unsigned char version = 0;
     unsigned char success;
     unsigned char discarded[50];
@@ -338,6 +343,7 @@ unsigned char AnimObjReadFromFile004A05C0(
         }
     }
     return success;
+#pragma clang diagnostic pop
 }
 
 /* A deep copy of everything the record owns. Every mesh - the three entries and

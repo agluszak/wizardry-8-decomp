@@ -1033,7 +1033,7 @@ void Function52A500(W8Character* character)
 {
     int profession = character->current_profession;
     if (profession != 0 && (profession < 7 || profession > 9)) {
-        character->skill_unlocks[0x24] = Function52A540(character);
+        character->skill_unlocks[0x24] = RebuildRealmSpellPointCeilings0052A540(character);
         return;
     }
     character->skill_unlocks[0x24] = 0;
@@ -1045,8 +1045,13 @@ void Function52A500(W8Character* character)
    attribute; the sum scales with the realm's learned-spell count, level and
    one. */
 // FUNCTION: WIZ8 0x0052a540
-int Function52A540(W8Character* character)
+int RebuildRealmSpellPointCeilings0052A540(W8Character* character)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail compiled this comparison with VC6's mixed-sign operands; the
+   signedness is part of the recovered body and changing it would change
+   the compare and branch. Suppress only this diagnostic here. */
     int max_spell_levels[6];
     int realm_skills[4];
     int index;
@@ -1100,6 +1105,7 @@ int Function52A540(W8Character* character)
         }
     }
     return best;
+#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x0052a760

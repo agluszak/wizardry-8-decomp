@@ -386,6 +386,11 @@ void Function557890(W8Character* character, W8CharacterCreationState* creation_s
 // FUNCTION: WIZ8 0x00557200
 void Function557200(W8Character* character, W8CharacterCreationState* creation_state)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail compiled this comparison with VC6's mixed-sign operands; the
+   signedness is part of the recovered body and changing it would change
+   the compare and branch. Suppress only this diagnostic here. */
     int deficits[7][2];
     int index;
 
@@ -434,6 +439,7 @@ void Function557200(W8Character* character, W8CharacterCreationState* creation_s
     }
     creation_state->attribute_points_total = character->attribute_point_deficit_0199;
     character->level_band_base = character->level;
+#pragma clang diagnostic pop
 }
 
 /* Which of the fifteen professions the current attribute budget can still
@@ -537,7 +543,7 @@ complete:
 // FUNCTION: WIZ8 0x00557b20
 void Function557B20(W8Character* character, W8CharacterCreationState* creation_state)
 {
-    Function553C90(character);
+    InitializeSkillBaseLevels00553C90(character);
     int step = (creation_state->skill_points_total + 2) / 3;
     creation_state->skill_step_limit = step;
 
@@ -760,7 +766,7 @@ void Function557D80(W8Character* character, W8CharacterCreationState* creation_s
         character->skills[index].value_02 = 0;
         character->skills[index].level = 0;
     }
-    Function553C90(character);
+    InitializeSkillBaseLevels00553C90(character);
 
     int profession = character->current_profession;
     int count = 1;
@@ -791,7 +797,7 @@ void Function557D80(W8Character* character, W8CharacterCreationState* creation_s
             creation_state->skill_points_spent[index];
         character->skills[index].level = character->skills[index].value_02;
     }
-    character->skills[bonus_skill].level += Function553EE0(character, bonus_skill);
+    character->skills[bonus_skill].level += GetSkillQuarterValue00553EE0(character, bonus_skill);
 }
 
 /* Compute how many spell points the level-up summary can award from the

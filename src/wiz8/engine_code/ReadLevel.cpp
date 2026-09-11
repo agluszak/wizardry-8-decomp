@@ -239,6 +239,11 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
 unsigned char ReadWorldEnvironment004BC9D0(
     W8ReadLevelInfo* pInfo, W8World* pWorld)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+/* The decompiled body reads this storage only after the same short-circuit
+   chain that clang's flow analysis cannot see through; retail leaves it
+   uninitialised on the failed-read path. Suppress only this diagnostic. */
     EnvironmentColour environment_colour;
     EnvironmentColour white;
     srVector3T<float> position;
@@ -334,6 +339,7 @@ unsigned char ReadWorldEnvironment004BC9D0(
         UpdateEnvironmentLight004834B0();
     }
     return success;
+#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x004BCE20

@@ -80,6 +80,11 @@ void W8DialogTextArea::Draw(unsigned char force)
 // FUNCTION: WIZ8 0x005d1a30
 void W8DialogTextArea::SetFirstVisibleLine(int requested_line)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail compiled this comparison with VC6's mixed-sign operands; the
+   signedness is part of the recovered body and changing it would change
+   the compare and branch. Suppress only this diagnostic here. */
     int position = 0;
     unsigned int font_height = GetFontHeight(unknown_010);
     for (unsigned int index = 0; index < static_cast<unsigned int>(m_visible_lines_02c.count); ++index) {
@@ -97,6 +102,7 @@ void W8DialogTextArea::SetFirstVisibleLine(int requested_line)
             }
         }
     }
+#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x005d1cb0

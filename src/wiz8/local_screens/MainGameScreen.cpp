@@ -666,7 +666,7 @@ unsigned char MainGameScreenEnter(void)
     }
     Function55D3C0();
     if (g_status_685170.item_in_hand_235b.item_id != -1) {
-        Function55F160(0);
+        SetItemCursor0055F160(0);
     }
     else {
         ClearHeldItemDisplay();
@@ -702,6 +702,11 @@ unsigned char MainGameScreenEnter(void)
 // FUNCTION: WIZ8 0x0055fb30
 void MainGameScreenFrame(void)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail compiled this comparison with VC6's mixed-sign operands; the
+   signedness is part of the recovered body and changing it would change
+   the compare and branch. Suppress only this diagnostic here. */
     if (g_flag_689b32) {
         RequestExitScreen();
     }
@@ -1031,6 +1036,7 @@ render_world:
         }
     }
     Function562A80();
+#pragma clang diagnostic pop
 }
 
 /* Suspension retains the allocation and resource strip. A full leave also

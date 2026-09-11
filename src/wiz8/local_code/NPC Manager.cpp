@@ -185,6 +185,11 @@ W8NpcState* GetNpcStateByKind(int kind)
 // FUNCTION: WIZ8 0x0050B8F0
 unsigned char Function50B8F0(unsigned int kind)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail compiled this comparison with VC6's mixed-sign operands; the
+   signedness is part of the recovered body and changing it would change
+   the compare and branch. Suppress only this diagnostic here. */
     if (g_status_685170.buffers.party_rows[0].occupied != 0) {
         W8NpcState* npc = 0;
         if (g_npc_states != 0) {
@@ -222,6 +227,7 @@ unsigned char Function50B8F0(unsigned int kind)
         }
     }
     return 0;
+#pragma clang diagnostic pop
 }
 
 /* The monster standing in the world for this NPC, if one is. */
@@ -1034,6 +1040,11 @@ void ClearPendingNpcLevelFlags0050C270(void)
 // FUNCTION: WIZ8 0x0050c2e0
 void ReleaseNpcMonsterBindings0050C2E0(void)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail compiled this comparison with VC6's mixed-sign operands; the
+   signedness is part of the recovered body and changing it would change
+   the compare and branch. Suppress only this diagnostic here. */
     unsigned int count = g_npc_states->count;
     unsigned int npc_index = 0;
 
@@ -1108,6 +1119,7 @@ void ReleaseNpcMonsterBindings0050C2E0(void)
         count = g_npc_states->count;
         ++npc_index;
     } while (npc_index < count);
+#pragma clang diagnostic pop
 }
 
 /* Hand back the monster binding of every marked NPC, then find the companion
@@ -1117,6 +1129,11 @@ void ReleaseNpcMonsterBindings0050C2E0(void)
 // FUNCTION: WIZ8 0x0050da00
 void ReleaseMarkedNpcBindings0050DA00(void)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail compiled this comparison with VC6's mixed-sign operands; the
+   signedness is part of the recovered body and changing it would change
+   the compare and branch. Suppress only this diagnostic here. */
     unsigned int count = g_npc_states->count;
     unsigned int npc_index = 0;
 
@@ -1197,6 +1214,7 @@ void ReleaseMarkedNpcBindings0050DA00(void)
         count = g_npc_states->count;
         ++npc_index;
     } while (npc_index < count);
+#pragma clang diagnostic pop
 }
 
 /* Rebuild the level's NPC bindings: first drop the followers whose record or

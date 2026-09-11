@@ -1161,7 +1161,7 @@ void LearnSpell(W8Character* character, int spell_id, char announce)
     character->spell_learned[spell_id] = 1;
     realm = g_spell_records[spell_id].realm;
     ++character->skill_unlocks[W8_SKILL_FIRST_REALM + realm];
-    character->skill_unlocks[W8_RESISTANCE_BONUS_SKILL] = Function52A540(character);
+    character->skill_unlocks[W8_RESISTANCE_BONUS_SKILL] = RebuildRealmSpellPointCeilings0052A540(character);
 
     if (announce == 0) {
         return;

@@ -201,7 +201,7 @@ int g_value_00683fdb;
 /* Point the mouse cursor at an item's video object, blitting it down as well.
    A negative held item id means the cursor keeps whatever it has. */
 // FUNCTION: WIZ8 0x0055F160
-void Function55F160(int item_id)
+void SetItemCursor0055F160(int item_id)
 {
     int object;
     unsigned short y_offset;

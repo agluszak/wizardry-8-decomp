@@ -468,6 +468,11 @@ unsigned char SetCharacterCondition(
     int party_slot, int condition, int duration, int argument,
     char value_5, char value_6)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail compiled this comparison with VC6's mixed-sign operands; the
+   signedness is part of the recovered body and changing it would change
+   the compare and branch. Suppress only this diagnostic here. */
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
     W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
     int old_b01;
@@ -592,6 +597,7 @@ unsigned char SetCharacterCondition(
         Function53AEB0(party_slot);
     }
     return 1;
+#pragma clang diagnostic pop
 }
 
 /* Copy every condition a character is under onto something else in the world.

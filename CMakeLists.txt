@@ -9,21 +9,18 @@ option(WIZ8_FULL_DIAGNOSTICS "Report recovery warnings without making them error
 set_source_files_properties(src/surrender/extension.cpp src/surrender/type_registry.cpp src/surrender/vector_processor.cpp PROPERTIES
     COMPILE_DEFINITIONS SURRENDER_BUILD)
 
+include(cmake/CompileSettings.cmake)
+
 if(WIZ8_LINT_COMPILE_ONLY)
+    # One source-model projection per component: the same sources, headers,
+    # defines and per-source properties as the product build, compiled by
+    # clang-cl. WIZ8_CLANG_LINT is an umbrella over all of them, so SGP and
+    # the recovered extension adaptors are linted too.
     add_subdirectory(src/sgp)
-    target_include_directories(WIZ8_SGP BEFORE PRIVATE tools/lint/include)
-    target_compile_definitions(WIZ8_SGP PRIVATE WIZ8_CLANG_LINT NDEBUG)
-    target_compile_options(WIZ8_SGP PRIVATE
-        "/FI${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/compat/compiler.h"
-        /MD /U_DEBUG -Xclang -fno-wchar -fms-extensions)
     include(src/wiz8/sources.cmake)
-    if(WIZ8_FULL_DIAGNOSTICS)
-        set(wiz8_clang_target WIZ8_CLANG_DIAGNOSTICS)
-    else()
-        set(wiz8_clang_target WIZ8_CLANG_LINT)
-    endif()
-    add_library(${wiz8_clang_target} OBJECT
-        ${WIZ8_SOURCE_UNITS}
+
+    set(WIZ8_LINT_GAME_SOURCES ${WIZ8_SOURCE_UNITS})
+    set(WIZ8_LINT_SURRENDER_SOURCES
         src/surrender/core.cpp
         src/surrender/dynamic_library.cpp
         src/surrender/extension.cpp
@@ -32,24 +29,27 @@ if(WIZ8_LINT_COMPILE_ONLY)
         src/surrender/type_registry.cpp
         src/surrender/vector_processor.cpp
     )
-    target_include_directories(${wiz8_clang_target} PRIVATE
-        tools/lint/include
-        include
-        include/wiz8/sgp-compat
-        include/wiz8
-        include/wiz8/engine_code
-        src/sgp
-        /zlib
+    # Only the recovered/adapted code around the vendored codecs; the pristine
+    # IJG and Info-ZIP trees keep their upstream warnings.
+    set(WIZ8_LINT_JPEG_SOURCES
+        src/srext_jpegimporter/codec_adapter.cpp
+        src/srext_jpegimporter/stream_bridge.cpp
+        src/srext_jpegimporter/plugin.cpp
+        src/srext_jpegimporter/surface_transfer.cpp
     )
-    target_compile_definitions(${wiz8_clang_target} PRIVATE
-        NOMINMAX WIN32_LEAN_AND_MEAN NDEBUG WIZ8_CLANG_LINT
+    set(WIZ8_LINT_UNZIP_SOURCES
+        src/srext_unzip/api_subset.c
+        src/srext_unzip/windll_subset.c
+        src/srext_unzip/infozip_adapter.c
+        src/srext_unzip/plugin.cpp
     )
-    target_compile_options(${wiz8_clang_target} PRIVATE
-        "/FI${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/compat/compiler.h"
-        /W4
-        -Xclang
-        -fno-wchar
+
+    # clang-cl/VC6 compatibility noise from the reconstructed corpus. No
+    # decompilation-correctness diagnostic belongs in this list.
+    set(WIZ8_LINT_COMPAT_FLAGS
+        -Xclang -fno-wchar
         -fms-extensions
+        -ferror-limit=0
         -fdiagnostics-parseable-fixits
         -Wno-unknown-pragmas
         -Wno-ignored-pragmas
@@ -73,46 +73,92 @@ if(WIZ8_LINT_COMPILE_ONLY)
         -Wno-non-virtual-dtor
         -Wno-tautological-compare
         -Wno-unknown-escape-sequence
+        -Wno-visibility
         -Wno-writable-strings
     )
+    # The decompilation-correctness diagnostics. The gating lane makes them
+    # errors; the diagnostics lane reports them without failing. Suspicious
+    # original behavior gets a local, evidence-backed suppression at its site.
     set(WIZ8_RECOVERY_WARNINGS
         -Wsometimes-uninitialized
         -Wswitch
         -Warray-bounds
         -Wsign-compare
         -Wmissing-field-initializers
+        $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual>
+        $<$<COMPILE_LANGUAGE:CXX>:-Winconsistent-missing-override>
     )
-    target_compile_options(${wiz8_clang_target} PRIVATE ${WIZ8_RECOVERY_WARNINGS})
-    if(NOT WIZ8_FULL_DIAGNOSTICS)
-        # These remain report-only for the unrecovered corpus. Promote a unit
-        # below once its warning debt has been reviewed; intentional original
-        # behavior should then carry a local, evidence-backed suppression.
-        target_compile_options(${wiz8_clang_target} PRIVATE
-            -Werror
-            -Werror=inconsistent-missing-override
-            -Werror=suggest-override
-            -Werror=suggest-destructor-override
-            -Werror=overloaded-virtual
-            -Wno-error=array-bounds
-            -Wno-error=missing-field-initializers
-            -Wno-error=sign-compare
-            -Wno-error=sometimes-uninitialized
-            -Wno-error=switch
-        )
-        set(WIZ8_STRICT_WARNING_UNITS
-            src/wiz8/engine_code/BitArray.cpp
-        )
-        set(WIZ8_STRICT_RECOVERY_WARNINGS
-            -Werror=sometimes-uninitialized
-            -Werror=switch
-            -Werror=array-bounds
-            -Werror=sign-compare
-            -Werror=missing-field-initializers
-        )
-        set_property(SOURCE ${WIZ8_STRICT_WARNING_UNITS} APPEND PROPERTY
-            COMPILE_OPTIONS ${WIZ8_STRICT_RECOVERY_WARNINGS}
-        )
+
+    function(wiz8_configure_lint_target target)
+        target_link_libraries(${target} PRIVATE wiz8_compile_settings)
+        target_include_directories(${target} BEFORE PRIVATE tools/lint/include)
+        target_compile_definitions(${target} PRIVATE WIZ8_CLANG_LINT)
+        target_compile_options(${target} PRIVATE /W4 ${WIZ8_LINT_COMPAT_FLAGS})
+        if(NOT WIZ8_FULL_DIAGNOSTICS)
+            target_compile_options(${target} PRIVATE -Werror)
+        endif()
+        target_compile_options(${target} PRIVATE ${WIZ8_RECOVERY_WARNINGS})
+    endfunction()
+
+    add_library(wiz8_clang_game OBJECT ${WIZ8_LINT_GAME_SOURCES})
+    wiz8_configure_lint_target(wiz8_clang_game)
+    target_include_directories(wiz8_clang_game PRIVATE /zlib)
+
+    add_library(wiz8_clang_surrender OBJECT ${WIZ8_LINT_SURRENDER_SOURCES})
+    wiz8_configure_lint_target(wiz8_clang_surrender)
+
+    add_library(wiz8_clang_jpeg OBJECT ${WIZ8_LINT_JPEG_SOURCES})
+    wiz8_configure_lint_target(wiz8_clang_jpeg)
+    target_include_directories(wiz8_clang_jpeg PRIVATE
+        include
+        src/srext_jpegimporter
+        config/fid-overlays/ijg-jpeg-6
+        ${IJG_JPEG_SOURCE}
+    )
+
+    add_library(wiz8_clang_unzip OBJECT ${WIZ8_LINT_UNZIP_SOURCES})
+    wiz8_configure_lint_target(wiz8_clang_unzip)
+    target_compile_definitions(wiz8_clang_unzip PRIVATE
+        WIN32 _WINDOWS WINDLL USE_EF_UT_TIME DLL
+    )
+    target_include_directories(wiz8_clang_unzip PRIVATE
+        include
+        src/srext_unzip
+        ${INFOZIP_SOURCE}
+        ${INFOZIP_SOURCE}/windll
+        ${INFOZIP_SOURCE}/win32
+    )
+
+    # WIZ8_SGP is the retained SFI C library. It compiles through the same
+    # headers and defines, but only the decompilation-correctness diagnostics
+    # gate it: its upstream C style warnings (pointer-sign, unused-but-set,
+    # incompatible pointer types, ...) are vendor behavior and stay report-only
+    # in `wiz8 diagnostics`. Signed comparisons are included in that vendor
+    # exception because the reconstructed callers already fix their own side.
+    target_include_directories(WIZ8_SGP BEFORE PRIVATE tools/lint/include)
+    target_link_libraries(WIZ8_SGP PRIVATE wiz8_compile_settings)
+    target_compile_definitions(WIZ8_SGP PRIVATE WIZ8_CLANG_LINT)
+    target_compile_options(WIZ8_SGP PRIVATE
+        /W4 ${WIZ8_LINT_COMPAT_FLAGS} /MD /U_DEBUG
+        -Werror=sometimes-uninitialized
+        -Werror=switch
+        -Werror=array-bounds
+        -Werror=missing-field-initializers
+    )
+
+    if(WIZ8_FULL_DIAGNOSTICS)
+        set(wiz8_clang_target WIZ8_CLANG_DIAGNOSTICS)
+    else()
+        set(wiz8_clang_target WIZ8_CLANG_LINT)
     endif()
+    add_custom_target(${wiz8_clang_target}
+        DEPENDS
+            wiz8_clang_game
+            wiz8_clang_surrender
+            WIZ8_SGP
+            wiz8_clang_jpeg
+            wiz8_clang_unzip
+    )
     return()
 endif()
 

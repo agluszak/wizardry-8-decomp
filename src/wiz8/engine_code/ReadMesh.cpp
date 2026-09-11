@@ -532,6 +532,11 @@ unsigned char ReadSingleLevelMeshBody00485C10(
     int positional_0, int positional_1, const char* name,
     unsigned char load_materials)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+/* The decompiled body reads this storage only after the same short-circuit
+   chain that clang's flow analysis cannot see through; retail leaves it
+   uninitialised on the failed-read path. Suppress only this diagnostic. */
     W8GrowableVector<short> mapped_values;
     W8GrowableVector<short> mapped_keys;
     int version = 0;
@@ -814,6 +819,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(
         first_model->getBoundingBox(minimum, maximum);
     }
     return 1;
+#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x00488240
@@ -821,6 +827,11 @@ unsigned char ReadMultipleLevelMeshes00488240(
     W8ReadLevelInfo* info, srModelInstance** instances,
     unsigned long count, const char* name)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail compiled this comparison with VC6's mixed-sign operands; the
+   signedness is part of the recovered body and changing it would change
+   the compare and branch. Suppress only this diagnostic here. */
     OctMeshModel reader;
     unsigned int mesh_count;
     unsigned int root_count;
@@ -936,6 +947,7 @@ unsigned char ReadMultipleLevelMeshes00488240(
 
     free(meshes);
     return 1;
+#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x00489920
@@ -975,6 +987,11 @@ void ReleaseReadMeshScratch004881D0() {
 
 // FUNCTION: WIZ8 0x00487bd0
 unsigned char SkipSingleLevelMesh00487BD0(W8ReadLevelInfo *info) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+/* The decompiled body reads this storage only after the same short-circuit
+   chain that clang's flow analysis cannot see through; retail leaves it
+   uninitialised on the failed-read path. Suppress only this diagnostic. */
   int version;
   int vertex_count;
   int face_count;
@@ -1045,4 +1062,5 @@ unsigned char SkipSingleLevelMesh00487BD0(W8ReadLevelInfo *info) {
     success = 2;
   }
   return success;
+#pragma clang diagnostic pop
 }

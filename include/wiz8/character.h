@@ -164,7 +164,7 @@ struct W8Character {
     /* 0x0079: looked up from the table at 0x00616604 by gender, race and
        profession together. */
     int table_value_0079;
-    /* 0x007d: cleared by Function4EFA30 in both of its branches and set to -1
+    /* 0x007d: cleared by DeriveCharacterPersonality004EFA30 in both of its branches and set to -1
        by the character rebuild; all three accesses are four-byte stores. */
     int unknown_007d;
     int personality_0081;               /* indexes the state-5 descriptor text */
@@ -385,7 +385,7 @@ int GetCharacterHandDamageBonus(const W8Character* character, int hand);
 void InvalidateAndRecalculateCharacterClassData00558610(W8Character* character);
 bool CharacterHasTrait00547940(const W8Character* character, int trait);
 
-void Function4EFA30(W8Character* character);
+void DeriveCharacterPersonality004EFA30(W8Character* character);
 int Function557FD0(W8Character* original, W8Character* edited);
 void Function4EF7E0(W8Character*, W8Character*, int);
 int Function558640(W8Character*);
@@ -401,7 +401,7 @@ bool Function4EDC60(W8Character* character);
 void CalcXPGoal(W8Character* character);
 int GetSpellbookForSpell(
     const W8Character* character, int spell_id, int a, int b, int c);
-int Function52A540(W8Character* character);
+int RebuildRealmSpellPointCeilings0052A540(W8Character* character);
 unsigned char CharacterHasCondition(const W8Character* character, int condition);
 
 /* Character generation and skill/encumbrance helpers whose bodies were split
@@ -415,8 +415,8 @@ void AccumulateEquipmentModifiers(
 void RebuildCharacterModifierBlock(W8Character* character);
 void Function52A3E0(W8Character* character);
 void Function52A500(W8Character* character);
-void Function553C90(W8Character* character);
+void InitializeSkillBaseLevels00553C90(W8Character* character);
 void RefreshCharacterSkillAvailability00553CD0(W8Character* character);
-unsigned int Function553EE0(W8Character* character, int skill_id);
+unsigned int GetSkillQuarterValue00553EE0(W8Character* character, int skill_id);
 
 #endif

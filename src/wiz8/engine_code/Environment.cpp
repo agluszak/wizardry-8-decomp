@@ -639,7 +639,7 @@ bool IsSkyEnabled(void)
 /* Refresh the two fog objects' ranges from the world's far clip. Runs after
    the camera's clip range moves, so the fog tracks the same plane. */
 // FUNCTION: WIZ8 0x004836A0
-void Function4836A0(void)
+void RefreshFogRanges004836A0(void)
 {
     if (g_environment_object_0065b9b0 != 0 && g_world != 0) {
         g_environment_object_0065b9b0->m_positional_double_20 =

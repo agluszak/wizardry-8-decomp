@@ -122,7 +122,48 @@ def validate_source_index(repository: Path) -> dict[str, int]:
         "surrender_functions": counts["SURRENDER"],
         "classes": len(index.classes),
         "vtable_classes": sum(item.vtable_address is not None for item in index.classes),
+        "c_linkage_symbols": validate_cross_tu_declarations(repository),
     }
+
+
+def validate_cross_tu_declarations(repository: Path) -> int:
+    """Require one canonical type per external symbol in the Clang index.
+
+    C++ mangling already encodes the complete type, so two declarations that
+    disagree about an overloaded C++ function cannot share a ``semantic_id``.
+    Unmangled/C-linkage symbols carry no type in the symbol, and that is where
+    a writer/reader disagreement survives separate compilation undetected.
+    Group those by their undecorated source name and require one signature.
+    """
+    document = load_source_index(repository)
+    signatures: dict[str, dict[tuple[Any, ...], list[str]]] = {}
+    for item in document.get("declarations") or ():
+        semantic_id = str(item.get("semantic_id", ""))
+        if not semantic_id or semantic_id.startswith("?"):
+            continue
+        name = re.sub(r"@\d+$", "", semantic_id.lstrip("_@"))
+        if not name:
+            continue
+        signature = (
+            item.get("semantic_kind", ""),
+            item.get("calling_convention", ""),
+            item.get("return_type", ""),
+            tuple(item.get("parameter_types") or ()),
+        )
+        location = f"{item.get('source_file', '?')}:{item.get('line', '?')}"
+        signatures.setdefault(name, {}).setdefault(signature, []).append(location)
+    conflicts = {name: variants for name, variants in signatures.items() if len(variants) > 1}
+    if conflicts:
+        rendered = []
+        for name, variants in sorted(conflicts.items()):
+            rendered.append(name)
+            for signature, locations in variants.items():
+                rendered.append(f"  {' | '.join(str(part) for part in signature)}")
+                rendered.extend(f"    {location}" for location in locations[:4])
+        raise SourceIndexError(
+            "external symbols have divergent declarations:\n" + "\n".join(rendered)
+        )
+    return len(signatures)
 
 
 def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, Any]:
@@ -169,6 +210,8 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
             repository: "/repo",
             repository / LINT_BUILD_DIR: "/out",
             settings.work_dir / "fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4": "/zlib",
+            settings.work_dir / "fid/sources/unpacked/ijg-jpeg-6/jpeg-6": "/jpeg",
+            settings.work_dir / "fid/sources/unpacked/infozip-unzip-5.4": "/infozip",
         },
         cache_dir=repository / "build/source-index-cache",
         cache_inputs=(
@@ -181,13 +224,17 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
                 )
             ),
             settings.work_dir / "fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4",
+            settings.work_dir / "fid/sources/unpacked/ijg-jpeg-6/jpeg-6",
+            settings.work_dir / "fid/sources/unpacked/infozip-unzip-5.4",
         ),
         force=force,
     )
     index.write(repository / "build/source-index.json")
+    c_linkage_symbols = validate_cross_tu_declarations(repository)
     return {
         "path": "build/source-index.json",
         "markers": len(index.markers),
         "declarations": len(index.declarations),
         "classes": len(index.classes),
+        "c_linkage_symbols": c_linkage_symbols,
     }

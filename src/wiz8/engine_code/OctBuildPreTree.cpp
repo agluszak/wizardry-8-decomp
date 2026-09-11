@@ -343,6 +343,11 @@ unsigned char W8OctBuildPreTree004AFDA0::UpdateRegionMap004B07E0(
     short value,
     short mode)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+/* The decompiled body reads this storage only after the same short-circuit
+   chain that clang's flow analysis cannot see through; retail leaves it
+   uninitialised on the failed-read path. Suppress only this diagnostic. */
     W8OctSpatialState0046CCC0 child(spatial);
     unsigned char changed = 0;
 
@@ -424,6 +429,7 @@ unsigned char W8OctBuildPreTree004AFDA0::UpdateRegionMap004B07E0(
         }
     }
     return changed;
+#pragma clang diagnostic pop
 }
 
 /* Choose the region-tree depth that fits the requested path capacity, build

@@ -11,7 +11,7 @@ void InvalidateAndRecalculateCharacterClassData00558610(W8Character* character)
     character->table_value_0079 = -1;
     character->unknown_007d = -1;
     character->personality_0081 = -1;
-    Function4EFA30(character);
+    DeriveCharacterPersonality004EFA30(character);
     CalcCharacterTableValue(character);
 }
 
@@ -208,7 +208,7 @@ bool IsCharacterSkillAvailable(
    into the skill's 0x0a base level. 0x00557D80 and 0x00557B20 seed the
    profession skill levels from these. */
 // FUNCTION: WIZ8 0x00553c90
-void Function553C90(W8Character* character)
+void InitializeSkillBaseLevels00553C90(W8Character* character)
 {
     for (int index = 0; index < 0x29; ++index) {
         int first = g_skill_attributes[index].unknown_04;
@@ -260,7 +260,7 @@ void RefreshCharacterSkillAvailability00553CD0(W8Character* character)
 /* A quarter of the skill's current value, never below one. The bonus skill's
    level gets this added after the profession assignment. */
 // FUNCTION: WIZ8 0x00553ee0
-unsigned int Function553EE0(W8Character* character, int skill_id)
+unsigned int GetSkillQuarterValue00553EE0(W8Character* character, int skill_id)
 {
     unsigned int value =
         (character->skills[skill_id].value_02 * 0x19) / 100;

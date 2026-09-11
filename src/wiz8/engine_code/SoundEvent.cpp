@@ -89,6 +89,11 @@ unsigned char UpdateSoundEvents004D5890(
     unsigned int frame,
     int subcycle)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail compiled this comparison with VC6's mixed-sign operands; the
+   signedness is part of the recovered body and changing it would change
+   the compare and branch. Suppress only this diagnostic here. */
     unsigned int bit = 1;
 
     if (events == 0) {
@@ -150,6 +155,7 @@ unsigned char UpdateSoundEvents004D5890(
         bit <<= 1;
     } while (bit != 0);
     return 1;
+#pragma clang diagnostic pop
 }
 
 /* Resolve one event into a positional 3D play: decide the base volume from

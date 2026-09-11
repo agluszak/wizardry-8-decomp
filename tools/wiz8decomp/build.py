@@ -394,6 +394,14 @@ def configure_clang(
             settings.work_dir / "fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4",
             "/zlib",
         ),
+        Mount(
+            settings.work_dir / "fid/sources/unpacked/ijg-jpeg-6/jpeg-6",
+            "/jpeg",
+        ),
+        Mount(
+            settings.work_dir / "fid/sources/unpacked/infozip-unzip-5.4",
+            "/infozip",
+        ),
     )
 
     def prefix() -> list[str]:
@@ -416,6 +424,9 @@ def configure_clang(
         "Ninja",
         "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
         "-DCMAKE_TOOLCHAIN_FILE=/repo/cmake/clang-cl-i686.cmake",
+        "-DIJG_JPEG_SOURCE=/jpeg",
+        "-DZLIB_SOURCE=/zlib",
+        "-DINFOZIP_SOURCE=/infozip",
     ]
     if full_diagnostics:
         configure_command.append("-DWIZ8_FULL_DIAGNOSTICS=ON")
@@ -430,10 +441,38 @@ def configure_clang(
     return output, prefix()
 
 
+def run_clang_tidy(prefix: list[str], output: Path) -> None:
+    """Gate first-party code with the narrow reconstruction-error profile."""
+    import json
+
+    database = json.loads((output / "compile_commands.json").read_text(encoding="utf-8"))
+    files = sorted(
+        {entry["file"] for entry in database if not entry["file"].startswith("/repo/src/sgp/")}
+    )
+    if not files:
+        raise RuntimeError("clang-tidy: compile database has no first-party sources")
+    run(
+        [
+            *prefix,
+            "--entrypoint",
+            "clang-tidy",
+            VC6_IMAGE,
+            "--quiet",
+            "-p",
+            "/out",
+            "--config-file",
+            "/repo/.clang-tidy",
+            *files,
+        ],
+        cwd=output,
+        log_path=output.parent / "logs" / "clang-tidy.json",
+    )
+
+
 def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any]:
     """Compile recovered C++ with structural or full recovery diagnostics."""
 
-    _output, prefix = configure_clang(settings, full_diagnostics=full_diagnostics)
+    output, prefix = configure_clang(settings, full_diagnostics=full_diagnostics)
     target = "WIZ8_CLANG_DIAGNOSTICS" if full_diagnostics else "WIZ8_CLANG_LINT"
     run(
         [
@@ -455,6 +494,8 @@ def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any
         / "logs"
         / ("clang-full-diagnostics.json" if full_diagnostics else "clang-lint-build.json"),
     )
+    if not full_diagnostics:
+        run_clang_tidy(prefix, output)
     return {
         "mode": "full-diagnostics" if full_diagnostics else "gating",
         "status": "passed",

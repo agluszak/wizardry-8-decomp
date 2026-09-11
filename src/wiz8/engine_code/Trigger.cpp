@@ -993,6 +993,11 @@ W8TriggerActionData* LoadTriggerActionData004417C0(int handle)
 // FUNCTION: WIZ8 0x00441a20
 Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+/* The decompiled body reads this storage only after the same short-circuit
+   chain that clang's flow analysis cannot see through; retail leaves it
+   uninitialised on the failed-read path. Suppress only this diagnostic. */
     Trigger* trigger = 0;
     unsigned char record_version;
     unsigned char record_type;
@@ -1606,6 +1611,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
     }
     }
     return trigger;
+#pragma clang diagnostic pop
 }
 
 // VTABLE: WIZ8 0x005ec0e4
@@ -1993,6 +1999,11 @@ action_complete:
 // FUNCTION: WIZ8 0x00440dd0
 void Trigger::RunDestination00440DD0(const char* destination)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+/* The decompiled body reads this storage only after the same short-circuit
+   chain that clang's flow analysis cannot see through; retail leaves it
+   uninitialised on the failed-read path. Suppress only this diagnostic. */
     srVector3T<float> destination_position;
     srVector3T<float> destination_direction;
     srVector3T<float> source_position;
@@ -2068,6 +2079,7 @@ void Trigger::RunDestination00440DD0(const char* destination)
     }
     ApplyCameraRotation(&rotation);
     SpawnSpellEffect004AD080("set_portal", 1, 0, 0);
+#pragma clang diagnostic pop
 }
 
 /* Materialize this trigger's item table once. The two dice fields are the

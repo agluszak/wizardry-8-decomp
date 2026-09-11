@@ -32,6 +32,6 @@ unsigned char GetCursorPositionInViewport(srVector3T<float>* position);
 void UpdateHeldItemCursor(void);
 void ClearHeldItemDisplay(void);
 void SetCurrentCursor(int cursor);
-void Function55F160(int item_id);
+void SetItemCursor0055F160(int item_id);
 
 #endif

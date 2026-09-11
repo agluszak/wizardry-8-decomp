@@ -405,6 +405,11 @@ float PathAIGetValue004A9E70(W8PathAI* path)
 // FUNCTION: WIZ8 0x004a9e90
 unsigned char PathAINextPoint004A9E90(W8PathAI* path, srVector3T<float>* point)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail compiled this comparison with VC6's mixed-sign operands; the
+   signedness is part of the recovered body and changing it would change
+   the compare and branch. Suppress only this diagnostic here. */
     srVector3T<float>* source;
 
     if (path == 0 || path->nodes_0c == 0) {
@@ -424,16 +429,23 @@ unsigned char PathAINextPoint004A9E90(W8PathAI* path, srVector3T<float>* point)
     *point = *source;
     ++path->value_20;
     return 1;
+#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x004a9ef0
 unsigned char PathAIIsComplete004A9EF0(W8PathAI* path)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail compiled this comparison with VC6's mixed-sign operands; the
+   signedness is part of the recovered body and changing it would change
+   the compare and branch. Suppress only this diagnostic here. */
     if (path != 0 && path->nodes_0c != 0 &&
         (path->value_20 < path->nodes_0c->count || path->flag_38 != 0)) {
         return 0;
     }
     return 1;
+#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x004a9f20

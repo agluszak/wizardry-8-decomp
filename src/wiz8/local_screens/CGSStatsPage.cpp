@@ -777,6 +777,11 @@ next_race:
 void W8CharacterPage005EF778::AdjustEntry(
     W8CharacterPageEntry* entry, int delta)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail compiled this comparison with VC6's mixed-sign operands; the
+   signedness is part of the recovered body and changing it would change
+   the compare and branch. Suppress only this diagnostic here. */
     entry->MarkDirty();
     m_dirty_06d = 1;
     Function5579E0(m_character_060, m_creation_state_064, entry->m_id_02c,
@@ -791,6 +796,7 @@ void W8CharacterPage005EF778::AdjustEntry(
             }
         }
     }
+#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x005ca7e0

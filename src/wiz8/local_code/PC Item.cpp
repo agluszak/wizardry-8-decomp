@@ -1923,7 +1923,7 @@ void CopyItemInstance(
         g_held_item_source_006840c0 = held_character;
         g_held_item_origin_006840c4 = held_origin;
         g_held_item_slot_006840c5 = held_slot;
-        Function55F160(0);
+        SetItemCursor0055F160(0);
     }
 }
 

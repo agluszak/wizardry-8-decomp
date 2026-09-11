@@ -490,7 +490,7 @@ void W8CharacterScreen::SyncCharacterForPage(int index)
         Function558180(&m_character_018, &m_creation_state_187c);
     }
     else if (index == 3) {
-        if (m_character_018.table_value_0079 < 0) Function4EFA30(&m_character_018);
+        if (m_character_018.table_value_0079 < 0) DeriveCharacterPersonality004EFA30(&m_character_018);
         if (m_character_018.current_profession < 0) CalcCharacterTableValue(&m_character_018);
     }
 }

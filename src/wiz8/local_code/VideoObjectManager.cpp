@@ -27,6 +27,13 @@
 static_assert(sizeof(W8VideoObjectSlot) == 8, "W8VideoObjectSlot_size_must_be_8");
 static_assert(sizeof(W8VideoFrame) == 0x3c, "W8VideoFrame_size_must_be_0x3c");
 
+/* The retail catalog's omitted fields - the loaded flag, its alignment bytes
+   and the handle - are zero in the data image; only the path and mode are
+   explicit. clang's -Wmissing-field-initializers fires once per omitted field
+   per row, so the table is wrapped rather than spelling 1600 zero literals
+   that the original source did not write. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-field-initializers"
 // GLOBAL: WIZ8 0x0062c430
 W8VideoFrame g_video_frames_62c430[1658] = {
     {"Data\\Cursors\\2D-Cursors.sti", 0},
@@ -687,7 +694,10 @@ W8VideoFrame g_video_frames_62c430[1658] = {
     {"Data\\Level Load\\BlowOut.sti", 1},
     {"Data\\Options\\Falcon.sti", 0},
 };
+#pragma clang diagnostic pop
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-field-initializers"
 // GLOBAL: WIZ8 0x006448c8
 W8VideoObjectSlot g_video_slots_6448c8[494] = {
     {0, 0},
@@ -1183,6 +1193,7 @@ W8VideoObjectSlot g_video_slots_6448c8[494] = {
     {570, 0},
     {571, 0},
 };
+#pragma clang diagnostic pop
 
 
 /* The two loaders consume the released SGP object and surface request records.

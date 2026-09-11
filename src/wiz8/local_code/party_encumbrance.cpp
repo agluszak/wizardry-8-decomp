@@ -43,6 +43,11 @@ bool RecalculateCarryingCapacity004EDC10(W8Character* character)
 // FUNCTION: WIZ8 0x004edc60
 bool Function4EDC60(W8Character* character)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail compiled this comparison with VC6's mixed-sign operands; the
+   signedness is part of the recovered body and changing it would change
+   the compare and branch. Suppress only this diagnostic here. */
     unsigned int previous = character->inventory_weight;
     character->inventory_weight = 0;
     for (int index = 0; index < 0xc; ++index) {
@@ -62,6 +67,7 @@ bool Function4EDC60(W8Character* character)
                        g_effect_argument_005ed914);
     }
     return previous != character->inventory_weight;
+#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x004edd20

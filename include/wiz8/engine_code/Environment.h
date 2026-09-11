@@ -90,7 +90,7 @@ void UpdateEnvironmentLighting00484300(void);
 float GetWorldValue24(const void* world);
 void SetSkyNodeVisible(bool visible);
 void SetSkyNodeValue1D0(int value);
-void Function4836A0(void);
+void RefreshFogRanges004836A0(void);
 
 void SetViewDistance(float distance);
 

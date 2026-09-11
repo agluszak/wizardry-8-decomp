@@ -862,6 +862,11 @@ unsigned short ChooseDifferentMonsterDirection004C2E00(
 // FUNCTION: WIZ8 0x004c1d20
 void W8Monster::RandomizeAppearanceAndMotion004C1D20()
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail compiled this comparison with VC6's mixed-sign operands; the
+   signedness is part of the recovered body and changing it would change
+   the compare and branch. Suppress only this diagnostic here. */
     unsigned int random_value;
 
     unknown_1be = Random(100) < m_pRep->value_610;
@@ -947,6 +952,7 @@ void W8Monster::RandomizeAppearanceAndMotion004C1D20()
         m_pRep->value_05c = scale_1cc;
         m_pRep->flag_061 = 1;
     }
+#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x004C2010

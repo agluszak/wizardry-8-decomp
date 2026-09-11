@@ -218,6 +218,40 @@ class name was `Controls`. Likewise, matching four-integer layouts do not establ
 that `W8ControlsRect` and `W8ScreenRect` were one source type; that identity remains
 unresolved. Similar UI responsibilities alone do not justify merging classes.
 
+## Compiler-backed type gate
+
+`wiz8 lint` is the authoritative source-model/type gate. It configures the
+same CMake source lists as the product build, compiles every manually owned
+translation unit with clang-cl at `/W4 -Werror` plus the recovery diagnostics
+(`-Wsometimes-uninitialized -Wswitch -Warray-bounds -Wsign-compare
+-Wmissing-field-initializers -Woverloaded-virtual
+-Winconsistent-missing-override`), and then runs the narrow clang-tidy profile
+from `.clang-tidy`. `WIZ8_CLANG_LINT` is an umbrella over the Wizardry game
+sources, SurRender, `WIZ8_SGP`, and the recovered/adapted JPEG and UnZip
+plugin code; the pristine IJG and Info-ZIP trees keep their upstream warnings.
+`wiz8 diagnostics` runs the same projection with the recovery diagnostics
+report-only.
+
+The product VC6 build and the clang-cl lint lane share one interface target
+(`cmake/CompileSettings.cmake`) for includes, forced compatibility header and
+product definitions, so the lint lane cannot drift into a parallel
+approximation of the product build. `/G6` is the only setting that stays
+VC6-only.
+
+An intentional original behavior that trips a recovery diagnostic gets a
+function-local `#pragma clang diagnostic` with the binary/source evidence in
+the comment. The retained SGP C library is the one target-level exception: its
+upstream C style warnings stay report-only because fixing them would mean
+rewriting vendor source.
+
+The same Clang projection feeds `build/source-index.json`. C++ mangling
+already encodes the complete type, so divergent C++ declarations cannot share
+a symbol; the index validation groups the unmangled/C-linkage symbols by their
+undecorated source name and requires one canonical signature per symbol. The
+pinned reccmp indexer records marked functions, not external variable
+declarations or linkage, so the full writer/reader global check still needs an
+upstream indexer extension rather than another repository-local checker.
+
 ## Live recovery state
 
 This document does not inventory current classes, layouts, match counts, or unresolved

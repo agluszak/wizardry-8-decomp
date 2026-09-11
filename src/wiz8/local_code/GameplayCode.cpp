@@ -765,7 +765,7 @@ const int g_character_value_table_006164f4[34][2] = {
 /* Derive the character's personality and voice from sex and profession.
    Unaligned characters pick a class through the race shortcut first. */
 // FUNCTION: WIZ8 0x004EFA30
-void Function4EFA30(W8Character* character)
+void DeriveCharacterPersonality004EFA30(W8Character* character)
 {
     int gender = character->gender;
     int value = character->current_profession;

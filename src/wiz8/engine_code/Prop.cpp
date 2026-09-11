@@ -486,6 +486,11 @@ unsigned char W8PropRepresentation::SelectAnimationSlot(unsigned char tag)
 // FUNCTION: WIZ8 0x0044bae0
 int W8PropRepresentation::FindCurrentAnimationSlot()
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail compiled this comparison with VC6's mixed-sign operands; the
+   signedness is part of the recovered body and changing it would change
+   the compare and branch. Suppress only this diagnostic here. */
     int index;
 
     for (index = 0; index < slots.count; ++index) {
@@ -494,11 +499,17 @@ int W8PropRepresentation::FindCurrentAnimationSlot()
         }
     }
     return -1;
+#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x0044bb20
 unsigned char W8PropRepresentation::AdvanceAnimationSegment()
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail compiled this comparison with VC6's mixed-sign operands; the
+   signedness is part of the recovered body and changing it would change
+   the compare and branch. Suppress only this diagnostic here. */
     int segment;
 
     if (slots.count < 3) {
@@ -530,6 +541,7 @@ unsigned char W8PropRepresentation::AdvanceAnimationSegment()
     flag_06d = 1;
     flag_064 = counter_094;
     return (unsigned char)segment;
+#pragma clang diagnostic pop
 }
 
 /* The same toggle reached through the prop rather than through the member. */

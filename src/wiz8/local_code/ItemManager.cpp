@@ -133,6 +133,11 @@ static const W8ItemLevelScaleRange g_item_level_scale_ranges[7] = {
 // FUNCTION: WIZ8 0x004f88a0
 int FindItemTableByName(const char* name)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail compiled this comparison with VC6's mixed-sign operands; the
+   signedness is part of the recovered body and changing it would change
+   the compare and branch. Suppress only this diagnostic here. */
     int index;
 
     for (index = 0; index < (int)gXStatus.uiItemTablesInDatabase; ++index) {
@@ -141,17 +146,23 @@ int FindItemTableByName(const char* name)
         }
     }
     return -1;
+#pragma clang diagnostic pop
 }
 
 static __forceinline W8WorldItem* CreateTableItem(
     unsigned int item_id,
     const srVector3T<float>* position)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+/* Retail tests the item id against the -1 sentinel with VC6's mixed-sign
+   compare; the caller-side id domain keeps the unsigned parameter. */
     W8ItemInstance item;
     W8ItemInstance* item_pointer;
     W8WorldItem* result;
 
     if (item_id == -1) {
+#pragma clang diagnostic pop
         item_pointer = 0;
     }
     else {

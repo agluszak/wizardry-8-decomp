@@ -113,8 +113,8 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(
             for (unsigned long x = 0; x < width; ++x) {
                 const unsigned long pixel = *source++;
                 *destination_pixel++ =
-                    ((pixel & 0x00ff0000UL | pixel >> 16) >> 8)
-                    | ((pixel << 16 | pixel & 0x0000ff00UL) << 8);
+                    (((pixel & 0x00ff0000UL) | (pixel >> 16)) >> 8)
+                    | (((pixel << 16) | (pixel & 0x0000ff00UL)) << 8);
             }
             break;
         }
