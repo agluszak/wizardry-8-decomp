@@ -1,17 +1,12 @@
 /*
  * Shared in-process crash diagnostics for the runnable Wizardry 8 images.
  *
- * The matching comparison image does not link this unit. Both runnable
- * products link /FORCE:UNRESOLVED, and link.exe redirects an unresolved call
- * to the image base. The bytes there are the PE DOS header, so the processor
- * executes "MZ" as code: "dec ebp" destroys the frame chain and the following
- * "pop edx" consumes the return address before the first faulting access.
- * That is why a generic post-mortem frame walk cannot recover the caller.
- *
- * This filter records the register file, scans registers as well as stack
- * words for addresses inside the main image, and names EDX when EIP is inside
- * the mapped PE headers. The host-side MAP symbolizer then turns the consumed
- * return address and the owning object's unresolved externals into a report.
+ * The matching comparison image does not link this unit. The runnable images
+ * use the generated runtime trap stubs instead of /FORCE:UNRESOLVED, so a
+ * missing body stops in W8UnrecoveredFunctionTrap with the caller's stack
+ * intact. This filter remains for a genuine unhandled fault outside a
+ * debugger: it records the register file and every stack word that points
+ * into the main image, and the host-side MAP symbolizer names them.
  */
 
 #include "wiz8_crash_report.h"
@@ -25,24 +20,6 @@ const unsigned int kMaxCandidates = 32;
 W8CrashContextWriter g_context_writer = 0;
 unsigned long g_main_image_base = 0;
 unsigned int g_candidate_count = 0;
-
-unsigned long ImageHeadersSize(unsigned long base)
-{
-    const IMAGE_DOS_HEADER* dos = (const IMAGE_DOS_HEADER*)base;
-    const IMAGE_NT_HEADERS* nt;
-
-    if (dos->e_magic != IMAGE_DOS_SIGNATURE) {
-        return 0;
-    }
-    if (dos->e_lfanew < (long)sizeof(IMAGE_DOS_HEADER) || dos->e_lfanew > 0x1000) {
-        return 0;
-    }
-    nt = (const IMAGE_NT_HEADERS*)(base + (unsigned long)dos->e_lfanew);
-    if (nt->Signature != IMAGE_NT_SIGNATURE) {
-        return 0;
-    }
-    return nt->OptionalHeader.SizeOfHeaders;
-}
 
 int IsMainImageAddress(unsigned long address, unsigned long* offset)
 {
@@ -113,10 +90,6 @@ LONG WINAPI ReportUnhandledException(EXCEPTION_POINTERS* exception)
     CONTEXT* context = exception->ContextRecord;
     const char* operation = "unknown";
     unsigned long access_address = 0;
-    unsigned long headers_size;
-    int image_base_fault;
-    int mz_stub = 0;
-    int consumed_return = 0;
 
     if (record->ExceptionCode == EXCEPTION_ACCESS_VIOLATION &&
         record->NumberParameters >= 2) {
@@ -139,18 +112,6 @@ LONG WINAPI ReportUnhandledException(EXCEPTION_POINTERS* exception)
 
     g_candidate_count = 0;
     g_main_image_base = (unsigned long)GetModuleHandleA(0);
-    headers_size = g_main_image_base != 0 ? ImageHeadersSize(g_main_image_base) : 0;
-    image_base_fault =
-        g_main_image_base != 0 &&
-        (unsigned long)context->Eip >= g_main_image_base &&
-        (unsigned long)context->Eip < g_main_image_base + headers_size;
-    if (image_base_fault) {
-        mz_stub = *(const unsigned short*)g_main_image_base == IMAGE_DOS_SIGNATURE;
-        /* The DOS stub begins "4d 5a": dec ebp, then pop edx. Once EIP is
-           past those two bytes, EDX holds the return address the bogus stub
-           stole from the stack. */
-        consumed_return = mz_stub && (unsigned long)context->Eip >= g_main_image_base + 2;
-    }
 
     fprintf(stderr,
             "WIZ8_RUNTIME_CRASH code=%08lx thread=%08lx operation=%s "
@@ -163,20 +124,6 @@ LONG WINAPI ReportUnhandledException(EXCEPTION_POINTERS* exception)
             (unsigned long)context->Ebx, (unsigned long)context->Ecx,
             (unsigned long)context->Edx, (unsigned long)context->Esi,
             (unsigned long)context->Edi);
-
-    if (image_base_fault) {
-        fprintf(stderr,
-                "WIZ8_RUNTIME_IMAGE_BASE_FAULT base=%08lx eip=%08lx mz=%u "
-                "forced-unresolved=1",
-                g_main_image_base, (unsigned long)context->Eip, mz_stub ? 1u : 0u);
-        if (consumed_return) {
-            fprintf(stderr, " consumed=edx:%08lx", (unsigned long)context->Edx);
-        }
-        fprintf(stderr, "\n");
-        if (consumed_return) {
-            ReportCandidate("return:edx", (unsigned long)context->Edx);
-        }
-    }
 
     ReportCandidate("reg:eax", (unsigned long)context->Eax);
     ReportCandidate("reg:ebx", (unsigned long)context->Ebx);

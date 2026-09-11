@@ -103,7 +103,7 @@ def test_map_symbolization_refuses_cross_function_lines_and_section_end(tmp_path
     ]
 
 
-def test_runtime_crash_prioritizes_the_consumed_return_address(tmp_path: Path) -> None:
+def test_runtime_crash_symbolizes_reported_candidates(tmp_path: Path) -> None:
     map_path = tmp_path / "crash.map"
     map_path.write_text(
         " Start         Length     Name                   Class\n"
@@ -118,8 +118,6 @@ def test_runtime_crash_prioritizes_the_consumed_return_address(tmp_path: Path) -
         "WIZ8_RUNTIME_CRASH code=c0000005 thread=00000124 operation=write "
         "access=0d958280 eip=00400007 esp=0067fdf0 ebp=fffffffe eax=06cac140 "
         "ebx=004dfa04 ecx=00000001 edx=00462892 esi=79b68290 edi=79b683a0\n"
-        "WIZ8_RUNTIME_IMAGE_BASE_FAULT base=00400000 eip=00400007 mz=1 "
-        "forced-unresolved=1 consumed=edx:00462892\n"
         "WIZ8_RUNTIME_CANDIDATE source=reg:edx address=00462892 offset=00062892\n"
         "WIZ8_RUNTIME_CANDIDATE source=stack+0x0 address=00462d2a offset=00062d2a\n"
     )
@@ -127,16 +125,9 @@ def test_runtime_crash_prioritizes_the_consumed_return_address(tmp_path: Path) -
     crash = _parse_runtime_crash(output)
 
     assert crash is not None
-    assert crash.base_fault is not None and crash.base_fault.mz
-    assert crash.candidates[0].source == "return:edx"
     assert [candidate.address for candidate in crash.candidates] == [0x00462892, 0x00462D2A]
-    assert _crash_detail(map_path, None, crash).splitlines()[1:4] == [
-        "forced-unresolved call: target=00400000 fault=00400007",
-        "PE DOS header executed as code; edx holds the consumed return address",
-        (
-            "#0 return:edx: 00462892: _ShowRegionHelp+0x82 [RegionManager.cpp.obj] "
-            "RegionManager.cpp:746"
-        ),
+    assert _crash_detail(map_path, None, crash).splitlines()[1:] == [
+        "#0 reg:edx: 00462892: _ShowRegionHelp+0x82 [RegionManager.cpp.obj] RegionManager.cpp:746",
     ]
 
 
@@ -144,7 +135,6 @@ def _wine_crash_fixture(tmp_path: Path) -> tuple[Path, str]:
     map_path = tmp_path / "wine.map"
     map_path.write_text(
         "Wiz8Runtime\n"
-        " Preferred load address is 00400000\n"
         " Start         Length     Name                   Class\n"
         " 0001:00000000 000b1f70H .text                   CODE\n"
         "  Address         Publics by Value              Rva+Base     Lib:Object\n"
@@ -168,59 +158,20 @@ def _wine_crash_fixture(tmp_path: Path) -> tuple[Path, str]:
         "Backtrace:\n"
         "=>0 0x00400003 (0x0032fabc)\n"
         "  1 0x0041fe14 (0x0032fae0)\n"
-        "Modules:\n"
-        "Module  Address                 Debug info      Name (104 modules)\n"
-        "PE        00400000-0067a000       Export          wiz8runtime\n"
-        "PE        7b000000-7b0e5000       Deferred        kernelbase\n"
     )
     return map_path, output
 
 
-def test_wine_dump_is_recognized_without_product_markers(tmp_path: Path) -> None:
+def test_wine_dump_candidates_are_symbolized_without_product_markers(tmp_path: Path) -> None:
     map_path, output = _wine_crash_fixture(tmp_path)
 
-    crash = _parse_wine_dump(output, map_path)
+    crash = _parse_wine_dump(output)
 
     assert crash is not None
-    assert crash.base_fault is not None and crash.base_fault.mz
-    assert crash.base_fault.consumed_register == "edx"
-    assert crash.base_fault.consumed_address == 0x0041FE14
-    assert crash.candidates[0].source == "return:edx"
-    assert crash.candidates[0].address == 0x0041FE14
-    assert "return:edx: 0041fe14: _CharacterScreenFrame+0x164" in _crash_detail(
-        map_path, None, crash
-    )
-
-
-def test_wine_dump_keeps_runtime_addresses_with_a_relocated_module(
-    tmp_path: Path,
-) -> None:
-    map_path, output = _wine_crash_fixture(tmp_path)
-    relocated = (
-        output.replace("00400003", "00600003")
-        .replace("0041fe14", "0061fe14")
-        .replace("00400000", "00600000")
-        .replace(
-            "Backtrace:\n",
-            "Modules:\n"
-            "PE        600000-  6b1f70       Deferred        wiz8runtime\n"
-            "PE        7bc00000-7be00000       Deferred        ntdll\n"
-            "Backtrace:\n",
-        )
-    )
-
-    crash = _parse_wine_dump(relocated, map_path)
-
-    assert crash is not None
-    assert crash.base_fault is not None
-    assert crash.base_fault.base == 0x00600000
-    assert crash.load_base == 0x00600000
-    # The parser keeps the addresses Wine logged; the MAP lookup rebases them.
-    assert crash.base_fault.consumed_address == 0x0061FE14
-    assert crash.candidates[0].address == 0x0061FE14
-    assert "return:edx: 0061fe14: _CharacterScreenFrame+0x164" in _crash_detail(
-        map_path, None, crash
-    )
+    sources = {candidate.source: candidate.address for candidate in crash.candidates}
+    assert sources["reg:edx"] == 0x0041FE14
+    assert sources["frame"] == 0x00400003
+    assert "reg:edx: 0041fe14: _CharacterScreenFrame+0x164" in _crash_detail(map_path, None, crash)
 
 
 def test_analyze_runtime_crash_falls_back_to_a_wine_dump(tmp_path: Path) -> None:
@@ -230,78 +181,44 @@ def test_analyze_runtime_crash_falls_back_to_a_wine_dump(tmp_path: Path) -> None
 
     result = analyze_runtime_crash(log, map_path)
 
-    assert result["crashes"][0]["image_base_fault"]["consumed_return"] == {
-        "register": "edx",
-        "address": "0041fe14",
-    }
-    assert result["crashes"][0]["candidates"][0]["symbol"].startswith("_CharacterScreenFrame+0x164")
+    crash = result["crashes"][0]
+    assert "image_base_fault" not in crash
+    assert any(
+        candidate.get("symbol", "").startswith("_CharacterScreenFrame+0x164")
+        for candidate in crash["candidates"]
+    )
 
 
-def test_wine_stack_dump_and_modules_table_drive_candidates(tmp_path: Path) -> None:
-    map_path, output = _wine_crash_fixture(tmp_path)
+def test_wine_stack_dump_drives_wide_candidates(tmp_path: Path) -> None:
+    _map_path, output = _wine_crash_fixture(tmp_path)
 
-    crash = _parse_wine_dump(output, map_path)
+    crash = _parse_wine_dump(output)
 
     assert crash is not None
-    assert crash.load_base == 0x00400000
     sources = {candidate.source: candidate.address for candidate in crash.candidates}
     assert sources["stack+0xc"] == 0x00400ABC
-    assert sources["return:edx"] == 0x0041FE14
+    assert sources["reg:edx"] == 0x0041FE14
     assert "page fault on write access" in crash.fields["operation"]
 
 
-def test_wine_wow64_stack_rows_accept_wide_addresses(tmp_path: Path) -> None:
-    map_path, output = _wine_crash_fixture(tmp_path)
-    wide = output.replace(
-        "0x0032fabc:  0041fe14 00000000 0032fae0 00400abc\n",
-        "0x000000000032fabc:  0041fe14 00000000 0032fae0 00400abc\n",
+def test_wine_wow64_stack_rows_accept_wide_addresses() -> None:
+    output = (
+        "Unhandled exception: page fault on read access to 0x00000000 in 32-bit code "
+        "(0x00400003).\n"
+        "Register dump:\n"
+        " CS:0023 SS:002b DS:002b ES:002b FS:0063 GS:006b\n"
+        " EIP:00400003 ESP:0032fabc EBP:fffffffe EFLAGS:00210246(  R- --  I   - -P- )\n"
+        " EAx:00000000 EBX:00000001 ECX:00000000 EDX:0041fe14\n"
+        " ESI:00400000 EDI:00400000\n"
+        "Stack dump:\n"
+        "0x000000000032fabc:  0041fe14 00000000 0032fae0 00400abc\n"
     )
 
-    crash = _parse_wine_dump(wide, map_path)
+    crash = _parse_wine_dump(output)
 
     assert crash is not None
     sources = {candidate.source: candidate.address for candidate in crash.candidates}
     assert sources["stack+0xc"] == 0x00400ABC
-
-
-def test_wine_rebased_module_range_uses_the_load_time_base(tmp_path: Path) -> None:
-    map_path = tmp_path / "rebased.map"
-    map_path.write_text(
-        "Wiz8Runtime\n"
-        " Preferred load address is 10000000\n"
-        " Start         Length     Name                   Class\n"
-        " 0001:00000000 00010000H .text                   CODE\n"
-        "  Address         Publics by Value              Rva+Base     Lib:Object\n"
-        " 0001:00000000       _RebasedTarget             10000000 f   Rebased.cpp.obj\n",
-        encoding="cp1252",
-    )
-    output = (
-        "Unhandled exception: page fault on execute access to 0x00000000 in 32-bit code "
-        "(0x00500003).\n"
-        "Register dump:\n"
-        " CS:0023 SS:002b DS:002b ES:002b FS:0063 GS:006b\n"
-        " EIP:00500003 ESP:0032fabc EBP:fffffffe EFLAGS:00210246(  R- --  I   - -P- )\n"
-        " EAX:00000000 EBX:00500001 ECX:00000000 EDX:00501234\n"
-        " ESI:00500000 EDI:00500000\n"
-        "Stack dump:\n"
-        "0x0032fabc:  00501234 00000000 0032fae0 00000000\n"
-        "Backtrace:\n"
-        "=>0 0x00500003 (0x0032fabc)\n"
-        "Modules:\n"
-        "Module  Address                 Debug info      Name (104 modules)\n"
-        "PE        00500000-0077a000       Export          wiz8runtime\n"
-    )
-
-    crash = _parse_wine_dump(output, map_path)
-
-    assert crash is not None
-    assert crash.base_fault is not None and crash.base_fault.mz
-    assert crash.base_fault.base == 0x00500000
-    assert crash.base_fault.consumed_address == 0x00501234
-    assert crash.candidates[0].source == "return:edx"
-    assert _symbolize_addresses(map_path, [0x00501234], load_base=0x00500000) == [
-        "00501234: _RebasedTarget+0x1234 [Rebased.cpp.obj]"
-    ]
 
 
 def test_unhandled_exception_without_register_dump_reports_parse_failure(
@@ -319,10 +236,7 @@ def test_unhandled_exception_without_register_dump_reports_parse_failure(
     assert result["crashes"] == []
     failure = result["parse_failure"]
     assert "no crash could be localized" in failure["reason"]
-    assert failure["missing"] == [
-        "EIP register dump",
-        "wiz8runtime entry in the Modules table",
-    ]
+    assert failure["missing"] == ["EIP register dump"]
     assert "Unhandled page fault" in failure["exception"]
     assert "0x00400003" in failure["log_tail"]
 
