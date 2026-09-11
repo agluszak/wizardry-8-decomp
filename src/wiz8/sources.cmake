@@ -12,6 +12,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/Magic.cpp
     "src/wiz8/local_code/Health Stamina Mana.cpp"
     src/wiz8/local_code/ConditionsAndEnchantments.cpp
+    src/wiz8/local_code/GameplayTime.cpp
     src/wiz8/local_code/Sight.cpp
     "src/wiz8/local_code/Combat Party Movement.cpp"
     "src/wiz8/local_code/Combat Range.cpp"

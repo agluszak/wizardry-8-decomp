@@ -112,6 +112,21 @@ bool CharacterHasTrait00547940(const W8Character* character, int trait)
     return false;
 }
 
+/* Scale a trait's flat value by the character's level in their current
+   profession: full value above twenty levels, sixty percent at zero and two
+   percent per level in between. The trait id is carried by the call but the
+   body never reads it. */
+// FUNCTION: WIZ8 0x005479b0
+float ScaleValueByProfessionLevel005479B0(W8Character* character, int, float base)
+{
+    unsigned int level = character->profession_levels[character->current_profession];
+
+    if (level > 0x14) {
+        return base;
+    }
+    return (level + level + 60.0f) * base * 0.01f;
+}
+
 /* Skill ids fall into three bands. Below 0x18 and at 0x1c..0x21 they are
    ordinary skills resolved against the profession; 0x18..0x1b are the magic
    realms, gated by the profession's magic-level offset; 0x22..0x28 index the

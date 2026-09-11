@@ -43,6 +43,9 @@ void Function557200(W8Character*, W8CharacterCreationState*);
 void DetermineEligibleProfessions(
     W8Character*, W8CharacterCreationState*, unsigned char*);
 void Function557580(W8Character*, W8CharacterCreationState*, unsigned char);
+/* 0x00557430: hand out the starting equipment table the race or profession
+   selects, then the profession's own extra item. */
+void AddCharacterStartingEquipment(W8Character*);
 void Function557730(W8Character*, W8CharacterCreationState*);
 void Function557800(W8Character*, W8CharacterCreationState*);
 void Function557890(W8Character*, W8CharacterCreationState*);

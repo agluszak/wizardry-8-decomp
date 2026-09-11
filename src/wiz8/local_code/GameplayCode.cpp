@@ -1,4 +1,5 @@
 #include "wiz8/character.h"
+#include "wiz8/utility.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/xstatus.h"
@@ -155,6 +156,74 @@ void AdvanceCharacterToLevel(W8Character* character, unsigned int level)
         CalcXPGoal(character);
     }
     character->experience = character->experience_previous_goal;
+}
+
+/* The next level's goal: the goal the previous level had plus the profession's
+   weight, doubled for every level up to ten and grown ten percent per level
+   above it. */
+// FUNCTION: WIZ8 0x004ef090
+void CalcXPGoal(W8Character* character)
+{
+    int weight;
+    unsigned int value;
+
+    if (character == 0) {
+        srAssertFail("pPC != NULL", GAMEPLAY_CODE_CPP, 0x725, 0);
+    }
+    if (character->level == 0) {
+        srAssertFail("pPC->uiExpLevel > 0", GAMEPLAY_CODE_CPP, 0x726, 0);
+    }
+    if (character->current_profession < 0 ||
+        character->current_profession >= W8_PROF_COUNT) {
+        srAssertFail("(pPC->iProfession >= 0) && (pPC->iProfession < PROF_COUNT)",
+                     GAMEPLAY_CODE_CPP, 0x727, 0);
+    }
+    switch (character->current_profession) {
+    case 0:
+    case 7:
+    case 8:
+    case 9:
+        weight = 1000;
+        break;
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 6:
+        weight = 0x578;
+        break;
+    case 5:
+    case 0xc:
+        weight = 0x640;
+        break;
+    case 10:
+    case 0xb:
+    case 0xd:
+    case 0xe:
+        weight = 0x4b0;
+        break;
+    default:
+        srAssertFail("FALSE", GAMEPLAY_CODE_CPP, 0x74c,
+                     "CalcXPGoal: ERROR - Invalid profession");
+        return;
+    }
+
+    if (character->level == 1) {
+        character->experience_goal = character->experience_previous_goal + weight;
+        return;
+    }
+    if (character->level <= 10) {
+        character->experience_goal = character->experience_previous_goal +
+            IntegerPower(2, character->level - 2) * weight;
+        return;
+    }
+    value = IntegerPower(2, 8) * weight;
+    unsigned int current = 10;
+    do {
+        value = value * 12 / 10;
+        ++current;
+    } while (current < character->level);
+    character->experience_goal = character->experience_previous_goal + value;
 }
 
 /* Whether one party slot has earned its next level: occupied, alive, in shape

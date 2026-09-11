@@ -4,6 +4,10 @@
 #include "wiz8/local_code/party_encumbrance.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/character_events.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_code/GameplayTime.h"
+#include "wiz8/character_skills.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/magic.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/character.h"
@@ -19,6 +23,98 @@ int g_int_005ee5a8 = 8;
 
 /* Party encumbrance redistribution. The original translation-unit spelling is
    not established; this descriptive name is provisional. */
+
+/* The full derived-stat recompute: clamp the level and the fifteen profession
+   levels, rebuild the attributes, skills and pools, the damage reduction, the
+   resistances, the encumbrance and load category, and then the initiative,
+   attacks and armor classes. A character whose profession, race or gender is
+   still unset is left alone. */
+// FUNCTION: WIZ8 0x004ed9d0
+void Function4ED9D0(W8Character* character)
+{
+    int index;
+
+    if (character->current_profession >= 0xf ||
+        character->race >= 0x10 ||
+        character->gender == -1) {
+        return;
+    }
+    if (character->level > 0x32) {
+        character->level = 0x32;
+    }
+    for (index = 0; index < 0xf; ++index) {
+        if ((unsigned int)character->profession_levels[index] > 0x32) {
+            character->profession_levels[index] = 0x32;
+        }
+    }
+
+    ResetCharacterAttributes005539E0(character);
+    ResetCharacterSkills00553A60(character);
+    RecalculateCharacterHitPoints(character);
+    Function52A3E0(character);
+    Function52A500(character);
+    CalcArmorClasses(character);
+    RebuildCharacterRegenRates00502B50(character);
+
+    character->damage_reduction = 0;
+    if (CharacterHasTrait00547940(character, 0x1d)) {
+        character->damage_reduction += character->attributes[3].effective / 10;
+    }
+    if (CharacterHasTrait00547940(character, 6)) {
+        character->damage_reduction +=
+            (int)ScaleValueByProfessionLevel005479B0(character, 6, 30.0f);
+    }
+    if (character->skills[0x25].flag_00 != 0) {
+        character->damage_reduction += (character->skills[0x25].level >> 2) + 5;
+    }
+    character->damage_reduction +=
+        static_cast<signed char>(character->bonus_1770.value_06);
+    RecalculateCharacterResistances(character);
+
+    int base = character->attributes[3].effective +
+               character->attributes[0].effective * 2;
+    unsigned int previous_capacity = character->carrying_capacity;
+    unsigned int capacity = base * 0xc;
+    if (CharacterHasTrait00547940(character, 0x18)) {
+        capacity = capacity * 2 / 3;
+    }
+    bool changed = previous_capacity != capacity;
+    character->carrying_capacity = capacity;
+    bool recalculated = Function4EDC60(character);
+    if (g_status_685170.game_started == 0) {
+        character->party_weight_share = 0;
+    }
+    else if (changed || recalculated) {
+        Function4EDD20();
+    }
+    character->total_carried_weight =
+        character->party_weight_share + character->inventory_weight;
+
+    unsigned int load = (unsigned int)(character->total_carried_weight * 100) /
+                        character->carrying_capacity;
+    if (load < 0x32) {
+        character->load_category = 0;
+    }
+    else if (load < 0x46) {
+        character->load_category = 1;
+    }
+    else if (load < 0x55) {
+        character->load_category = 2;
+    }
+    else if (load <= 100) {
+        character->load_category = 3;
+    }
+    else {
+        character->load_category = 4;
+    }
+
+    CalcInitiative(character);
+    CalcAttacks(character);
+    CalcArmorClasses(character);
+    if (character->in_party != 0 && g_current_screen_state.id != 3) {
+        RequestPartySlotRedraw0055EE30(CharacterPointerToPartySlot(character));
+    }
+}
 
 /* Carrying capacity from strength and the carrying trait. The two attributes
    are the third and first effective values, the same pair the stamina

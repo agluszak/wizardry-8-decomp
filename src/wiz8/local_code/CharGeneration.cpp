@@ -1055,3 +1055,91 @@ complete:
     Function557B20(character, creation_state);
     RecalculateCharacterResistances(character);
 }
+
+/* Finalize a created character: recompute the derived stats, hand out the
+   starting equipment when the caller asked for it, settle the attribute magic
+   skill bonus against the skill costs of the chosen spells, turn every chosen
+   spell into a learned one, reset the ones left over, rebuild the spell-point
+   ceilings and re-derive the experience goal and level band. The spell the
+   creation flow marks as chosen but does not charge for is skipped by its
+   retail index, not by anything a record says. */
+// FUNCTION: WIZ8 0x00557580
+void Function557580(W8Character* character, W8CharacterCreationState* creation_state,
+                    unsigned char mode)
+{
+    unsigned int realm;
+    unsigned int spell;
+
+    Function4ED9D0(character);
+    if (mode != 0) {
+        AddCharacterStartingEquipment(character);
+    }
+
+    if (character->current_profession == 0xc) {
+        character->unknown_1860 += creation_state->magic_skill_bonus;
+    }
+    else {
+        for (realm = 0x18; realm <= 0x1b; ++realm) {
+            if (character->skills[realm].flag_00 != 0) {
+                character->skill_costs_185c[realm - 0x18] +=
+                    creation_state->magic_skill_bonus;
+                break;
+            }
+        }
+    }
+
+    for (spell = 0; spell < 0x72; ++spell) {
+        if (character->spell_learned[spell] != 2) {
+            continue;
+        }
+        character->spell_learned[spell] = 1;
+        if (spell == 0x49) {
+            continue;
+        }
+        for (realm = 0x18; realm <= 0x1b; ++realm) {
+            switch (realm) {
+            case 0x18:
+                if (g_spell_records[spell].wizardry_spell == 0) continue;
+                break;
+            case 0x19:
+                if (g_spell_records[spell].divinity_spell == 0) continue;
+                break;
+            case 0x1a:
+                if (g_spell_records[spell].alchemy_spell == 0) continue;
+                break;
+            case 0x1b:
+                if (g_spell_records[spell].psionics_spell == 0) continue;
+                break;
+            }
+            if (character->skills[realm].flag_00 != 0 &&
+                character->skill_costs_185c[realm - 0x18] > 0) {
+                --character->skill_costs_185c[realm - 0x18];
+                goto spell_done;
+            }
+        }
+        if (character->unknown_1860 > 0) {
+            --character->unknown_1860;
+        }
+        else if (character->current_profession == 0xc) {
+            for (realm = 0x18; realm <= 0x1b; ++realm) {
+                if (character->skills[realm].flag_00 != 0 &&
+                    character->skill_costs_185c[realm - 0x18] > 0) {
+                    --character->skill_costs_185c[realm - 0x18];
+                    break;
+                }
+            }
+        }
+    spell_done:;
+    }
+
+    for (spell = 0; spell < 0x72; ++spell) {
+        if (character->spell_learned[spell] == 2) {
+            character->spell_learned[spell] = 1;
+        }
+    }
+
+    RebuildRealmSpellPointCeilings0052A540(character);
+    character->experience_previous_goal = character->experience_goal;
+    CalcXPGoal(character);
+    CalcCharacterLevelBand(character);
+}

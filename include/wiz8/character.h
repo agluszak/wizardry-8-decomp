@@ -231,7 +231,16 @@ struct W8Character {
     int sp_max[W8_SPELL_REALM_COUNT];     /* 0x0b25 */
     unsigned char unknown_0b3d[8];
     int sp_left[W8_SPELL_REALM_COUNT];    /* 0x0b45 */
-    unsigned char unknown_0b5d[0x5c];
+    unsigned char unknown_0b5d[0xc];
+    /* 0x0b69, 0x0b71 and 0x0b79: the per-tick regeneration rates rebuilt from
+       the pool ceilings, one each for hit points and stamina and one per spell
+       realm at a two-float stride. */
+    float health_regen_rate_0b69;
+    unsigned char unknown_0b6d[4];
+    float stamina_regen_rate_0b71;
+    unsigned char unknown_0b75[4];
+    float spell_regen_rates_0b79[12];
+    unsigned char unknown_0ba9[0x10];
     int inventory_weight;               /* 0x0bb9 */
     int party_weight_share;              /* 0x0bbd */
     int total_carried_weight;            /* 0x0bc1 */
