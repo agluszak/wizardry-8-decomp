@@ -2291,10 +2291,10 @@ double g_double_005ebf40 = 0.75;
 void __fastcall PackColour00429700(
     unsigned char* colour, double red, double green, double blue, double alpha)
 {
-    colour[3] = (int)(red * 255.0);
-    colour[2] = (int)(green * 255.0);
-    colour[1] = (int)(blue * 255.0);
-    colour[0] = (int)(alpha * 255.0);
+    colour[3] = (int)(red * g_double_005ebf60);
+    colour[2] = (int)(green * g_double_005ebf60);
+    colour[1] = (int)(blue * g_double_005ebf60);
+    colour[0] = (int)(alpha * g_double_005ebf60);
 }
 
 /* Places one tooltip node at a screen position in normalized coordinates.

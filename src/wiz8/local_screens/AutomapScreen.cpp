@@ -395,7 +395,7 @@ unsigned char AutomapScreenEnter(void)
         g_flag_65970d = 0;
         g_monster_shadow_updates_enabled_0065970c = 0;
         if (!g_automap_surface) {
-            srColorSurface* surface = SR_NEW(srColorSurface)(
+            srColorSurface* surface = SR_NEW(W8ColorSurface)(
                 srPixelConvert::SURFACE_ARGB1555, 640, 480);
             g_automap_surface = surface;
             if (surface) surface->setFilter(&srBoxFilter);

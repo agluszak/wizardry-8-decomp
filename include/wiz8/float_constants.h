@@ -64,6 +64,7 @@ extern double g_double_005ebe80;
 extern double g_double_005ebe88;
 extern double g_double_005ebe90;
 extern double g_double_005ebf40;
+extern const double g_double_005ebf60;
 extern float g_float_005ec3f8;
 extern float g_float_005ecbb4;
 extern float g_float_005ed8b8;
