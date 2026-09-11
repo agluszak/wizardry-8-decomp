@@ -87,7 +87,7 @@ struct W8World {
     srModelInstance** psrMeshes;
     W8GameData* m_owned_04c;
     W8Octree* octree;
-    srLight* camera_light;
+    stLight* camera_light;
     unsigned char m_positional_058[0x11];
     unsigned char m_loaded;
     unsigned char m_padding_06a[2];
@@ -154,7 +154,7 @@ stLight* CreateLight0046DF90(srNode* parent, const char* name);
 stLight* CreateWorldLight0046E030(W8World* world, const char* name);
 stLight* CreateWorldLight0046E140(W8World* world, const char* name);
 void ConfigureWorldLight0046E300(srLight* light, float range);
-void WorldRemoveLight(W8World* world, srNode* light); /* 0x0046E250 */
+void WorldRemoveLight(W8World* world, stLight* light); /* 0x0046E250 */
 
 static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");
 

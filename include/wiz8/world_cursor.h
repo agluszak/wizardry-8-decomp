@@ -5,6 +5,7 @@
 class W8Monster;
 class stParticle;
 class srNode;
+class stLight;
 
 #pragma pack(push, 1)
 struct W8WorldCursorState {
@@ -16,7 +17,7 @@ struct W8WorldCursorState {
     unsigned char flag_09;
     unsigned char unknown_0a[0x1a];
     /* 0x24: the light node the complete teardown removes from the world. */
-    srNode* light_24;
+    stLight* light_24;
     /* 0x28: read back by the path-visualization update as a world point. */
     srVector3T<float> position_28;
     unsigned char unknown_34[0xc];

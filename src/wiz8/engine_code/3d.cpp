@@ -253,6 +253,24 @@ stLight* CreateWorldLight0046E140(W8World* world, const char* name)
     return light;
 }
 
+/* Take a light out of both of the world's light collections and release it.
+   The update list's Remove is the inlined growable-vector search-and-shift. */
+// FUNCTION: WIZ8 0x0046e250
+void WorldRemoveLight(W8World* world, stLight* light)
+{
+    if (world == 0) {
+        srAssertFail("pWorld", THREE_D_CPP, 0x278, 0);
+    }
+    if (light == 0) {
+        srAssertFail("pLight", THREE_D_CPP, 0x279, 0);
+    }
+    PListRemove(&world->m_lights_0a8, light);
+    world->lights_to_update->Remove(light);
+    if (light != 0) {
+        light->release();
+    }
+}
+
 // FUNCTION: WIZ8 0x0046E300
 void ConfigureWorldLight0046E300(srLight* light, float range)
 {

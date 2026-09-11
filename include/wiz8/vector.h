@@ -207,20 +207,14 @@ unsigned char W8GrowableVector<T>::Remove(T entry)
     if (count <= 0) {
         return 0;
     }
-    do {
+    while (index < count) {
         if (data[index] == entry) {
             break;
         }
         ++index;
-    } while (index < count);
-    if (index >= count) {
-        return 0;
     }
-    if (index < 0) {
+    if (index < 0 || index >= count) {
         return 0;
-    }
-    if (index >= count) {
-        return 1;
     }
     for (; index < count - 1; ++index) {
         data[index] = data[index + 1];
