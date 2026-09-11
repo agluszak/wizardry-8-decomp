@@ -317,9 +317,9 @@ void W8CampCharacterInfo::Redraw()
             unsigned int maximum = ((dice.base + dice.count * dice.sides) * (100 + damage_bonus) + 50) / 100;
             if (minimum < 2) minimum = 1;
             if (maximum < 2) maximum = 1;
-            int hit_bonus = attack->hit_bonus + g_value_0069c0f8->bonus_1771;
+            int hit_bonus = attack->hit_bonus + g_value_0069c0f8->bonus_1770.value_01;
             int skill_bonus = (attack->attack_score < 0 ? attack->attack_score - 2 : attack->attack_score + 2) / 5;
-            swprintf(g_camp_screen_0069c0f4->caption, L"%+d", attack->damage_bonus + g_value_0069c0f8->bonus_1770);
+            swprintf(g_camp_screen_0069c0f4->caption, L"%+d", attack->damage_bonus + g_value_0069c0f8->bonus_1770.value_00);
             DrawRcsText(g_camp_screen_0069c0f4->caption, x, 0x30, 0x20,
                         g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
             swprintf(g_camp_screen_0069c0f4->caption, L"%d-%d", minimum, maximum);
@@ -349,7 +349,7 @@ void W8CampCharacterInfo::Redraw()
             swprintf(g_camp_screen_0069c0f4->caption, L"%+d", hit_bonus);
             DrawRcsText(g_camp_screen_0069c0f4->caption, x, 0x76, 0x20,
                         g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
-            swprintf(g_camp_screen_0069c0f4->caption, L"%+d", attack->value_25 + g_value_0069c0f8->bonus_1772);
+            swprintf(g_camp_screen_0069c0f4->caption, L"%+d", attack->value_25 + g_value_0069c0f8->bonus_1770.value_02);
             DrawRcsText(g_camp_screen_0069c0f4->caption, x, 0x84, 0x20,
                         g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
             swprintf(g_camp_screen_0069c0f4->caption, L"%+d%%", damage_bonus);

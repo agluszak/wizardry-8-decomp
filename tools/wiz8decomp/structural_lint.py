@@ -1,15 +1,23 @@
-"""Cheap structural invariants for recovered source.
+"""Exact structural invariants for recovered source.
 
-Two checks that need no data flow:
+The gate keeps the one check that a regular expression can decide exactly:
+a constant index past the end of a fixed-size array field declared in the
+recovered headers.
 
-- constant byte-offset arithmetic over ``reinterpret_cast<char*>(...)``: a
-  complete object should be indexed or have its fields named, not walked by a
-  hard-coded byte offset;
-- constant indexing past the end of a fixed-size array declared in the
-  recovered tree (``unsigned char block[0x100];`` then ``block[0x1ff]``).
+The earlier constant-byte-offset regex was removed deliberately. It inspected
+one source line at a time, recognized only ``reinterpret_cast<char*>(x) + N``,
+and therefore could not see the equivalent escapes it claimed to protect
+against (a typed pointer plus one, a cast split across lines, a byte field
+reached through a member name). A partial regex invites false confidence at the
+wrong level.
 
-The checks are deliberately shallow: they flag only literal constants and
-only arrays whose declaration and use spell the same identifier.
+The replacement invariant is a review criterion rather than a rewrite of that
+regex: a cast from a complete recovered object type to a byte pointer is only
+allowed at an explicitly designated serialization/ABI boundary, and a byte
+pointer must not walk an object by constant offsets outside such a boundary.
+New casts must carry their ``reinterpret-ok: reason`` marker (the cast gate
+enforces that on the change diff), and substantial new bodies are reviewed
+against the typed-object-escape rule before acceptance.
 """
 
 from __future__ import annotations
@@ -20,10 +28,6 @@ from typing import Any
 
 SCOPE_PREFIXES = ("src/wiz8/", "include/wiz8/")
 
-_BYTE_CAST_OFFSET = re.compile(
-    r"reinterpret_cast<\s*(?:const\s+)?(?:unsigned\s+)?char\s*\*>\s*\("
-    r"[^;{}]*?\)\s*\+\s*(0[xX][0-9a-fA-F]+|\d+)"
-)
 _ARRAY_DECLARATION = re.compile(
     r"\b(?:unsigned\s+char|signed\s+char|char|short|unsigned\s+short|int|"
     r"unsigned\s+int|long|unsigned\s+long|float|double|wchar_t)\s+"
@@ -44,7 +48,7 @@ def _scoped(path: Path, repo_dir: Path) -> bool:
 
 
 class StructuralGateError(RuntimeError):
-    """A hard-coded byte offset or an out-of-bounds constant index."""
+    """A constant index past a fixed-size array field."""
 
 
 def validate_structures(repo_dir: Path) -> dict[str, Any]:
@@ -54,8 +58,7 @@ def validate_structures(repo_dir: Path) -> dict[str, Any]:
             f"{item['file']}:{item['line']} {item['kind']}: {item['detail']}" for item in violations
         ]
         raise StructuralGateError(
-            "recovered source walks constant byte offsets or past array bounds:\n  "
-            + "\n  ".join(rendered)
+            "recovered source indexes a fixed-size array past its end:\n  " + "\n  ".join(rendered)
         )
     return {"ok": True, "gate": "structural-invariants"}
 
@@ -65,12 +68,17 @@ def structural_violations(repo_dir: Path) -> list[dict[str, Any]]:
         path
         for path in list((repo_dir / "src/wiz8").rglob("*.cpp"))
         + list((repo_dir / "include/wiz8").rglob("*.h"))
+        + list((repo_dir / "include/wiz8").rglob("*.hpp"))
     ]
 
     # Fixed-size array fields are declared in headers; collect every declared
     # size per name so an ambiguous name is skipped rather than guessed.
     fields: dict[str, set[int]] = {}
     for path in (repo_dir / "include/wiz8").rglob("*.h"):
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        for name, size in _ARRAY_DECLARATION.findall(text):
+            fields.setdefault(name, set()).add(_number(size))
+    for path in (repo_dir / "include/wiz8").rglob("*.hpp"):
         text = path.read_text(encoding="utf-8", errors="ignore")
         for name, size in _ARRAY_DECLARATION.findall(text):
             fields.setdefault(name, set()).add(_number(size))
@@ -83,15 +91,6 @@ def structural_violations(repo_dir: Path) -> list[dict[str, Any]]:
         for number, line in enumerate(
             path.read_text(encoding="utf-8", errors="ignore").splitlines(), 1
         ):
-            for match in _BYTE_CAST_OFFSET.finditer(line):
-                violations.append(
-                    {
-                        "kind": "constant-byte-offset",
-                        "file": relative,
-                        "line": number,
-                        "detail": match.group(0)[:120],
-                    }
-                )
             for match in _ARRAY_INDEX.finditer(line):
                 name, index_text = match.group(1), match.group(2)
                 sizes = fields.get(name)

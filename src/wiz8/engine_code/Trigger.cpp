@@ -95,8 +95,6 @@ extern unsigned char FindEntityByName(
 extern void RequestLevelTransition005615F0(
     int location_id, int entrance, unsigned char show_message);
 
-extern unsigned char Function521060(
-    int item_id, int value_1, int value_2, int value_3, int value_4);
 extern void UpdateCameraView00450080(srCamera* camera, int mode);
 
 
@@ -2329,8 +2327,7 @@ void Trigger::Run(int source)
             }
             if (action_data != 0 && (action_data->flags_008 & 4) != 0 &&
                 action_data->item_00a != -1) {
-                if (Function521060(
-                        action_data->item_00a, 0, 2, 0, 0) == 0) {
+                if (FindItemOnParty(action_data->item_00a, 0, 0, 2, 0) == 0) {
                     return;
                 }
                 action_data->flags_008 &= ~4;
@@ -2456,8 +2453,7 @@ void Trigger::Run(int source)
             }
             if (action_data != 0 && (action_data->flags_008 & 4) != 0 &&
                 action_data->item_00a != -1) {
-                if (Function521060(
-                        action_data->item_00a, 0, 2, 0, 0) == 0) {
+                if (FindItemOnParty(action_data->item_00a, 0, 0, 2, 0) == 0) {
                     return;
                 }
                 action_data->flags_008 &= ~4;

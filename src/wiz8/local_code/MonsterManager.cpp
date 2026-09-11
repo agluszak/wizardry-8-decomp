@@ -166,7 +166,6 @@ unsigned char Function4A5790(void);
 void StartCombat(int surprise);
 void EndCombat(unsigned char reason);
 void Function595570(void);
-void Function50E8C0(int location_id);
 void Function51B420(W8MonsterInfo* monster_info, W8MonsterRecord* record);
 void Function509CD0(unsigned char value, int enabled, int location_id);
 extern int g_monster_cycle_registry_weight_0065ba4c;

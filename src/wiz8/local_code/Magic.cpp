@@ -389,23 +389,12 @@ bool CanPartySlotReBreathe(int party_slot)
 /* The kind whose expiry hands every monster back its own control. */
 enum { W8_SPELL_EFFECT_KIND_MONSTER_CONTROL = 0x26 };
 
-/* One condition slot, as both the party-wide table and the two per-side combat
-   tables lay it out: an occupied flag ahead of the condition it names. */
-struct W8ConditionSlot {
-    unsigned char occupied;              /* 0x00 */
-    int condition_id;                    /* 0x01 */
-    unsigned char unknown_05[0xc];
-};                                       /* 0x11 */
-
 enum {
     W8_PARTY_CONDITION_SLOTS = 12,
     W8_COMBAT_CONDITION_SLOTS = 9
 };
 
-/* 0x0068691F */
-// GLOBAL
-W8ConditionSlot g_party_conditions[W8_PARTY_CONDITION_SLOTS];
-// GLOBAL: WIZ8 0x00689b58
+/* 0x00689b58 */
 W8GrowableVector<W8SpellEffectEntry*> g_spell_effects;
 /* Whether every queued effect still has time left on it. */
 // FUNCTION: WIZ8 0x00500e50
@@ -473,11 +462,12 @@ void TickSpellEffects(void)
 // FUNCTION: WIZ8 0x005012b0
 bool PartyHasCondition(int condition_id)
 {
-    W8ConditionSlot* slot = g_party_conditions;
+    W8EffectSlot* slot = g_status_685170.effect_slots_17af;
 
-    while (slot->occupied == 0 || slot->condition_id != condition_id) {
+    while (slot->active == 0 || slot->effect_id != condition_id) {
         ++slot;
-        if (slot > &g_party_conditions[W8_PARTY_CONDITION_SLOTS - 1]) {
+        if (slot
+            > &g_status_685170.effect_slots_17af[W8_PARTY_CONDITION_SLOTS - 1]) {
             return false;
         }
     }
@@ -489,19 +479,19 @@ bool PartyHasCondition(int condition_id)
 // FUNCTION: WIZ8 0x00501250
 bool CombatHasCondition(int condition_id)
 {
-    W8ConditionSlot* slot;
+    W8EffectSlot* slot;
     unsigned int index;
 
     if (g_combat_state != 0) {
-        slot = (W8ConditionSlot*)((char*)g_combat_state + 0x7c1);
+        slot = g_combat_state->effect_slots;
         for (index = 0; index < W8_COMBAT_CONDITION_SLOTS; ++index, ++slot) {
-            if (slot->occupied != 0 && slot->condition_id == condition_id) {
+            if (slot->active != 0 && slot->effect_id == condition_id) {
                 return true;
             }
         }
-        slot = (W8ConditionSlot*)((char*)g_combat_state + 0x85a);
+        slot = g_combat_state->effect_slots_tail;
         for (index = 0; index < W8_COMBAT_CONDITION_SLOTS; ++index, ++slot) {
-            if (slot->occupied != 0 && slot->condition_id == condition_id) {
+            if (slot->active != 0 && slot->effect_id == condition_id) {
                 return true;
             }
         }
@@ -805,11 +795,6 @@ void DetachMissileReferences005019A0(W8Missile* missile)
         }
     }
 }
-
-extern void Function58AAD0(
-    int mode, const wchar_t* format, ...);                      /* 0x0058AAD0 */
-extern void PostCharacterNotice(
-    int party_slot, const wchar_t* format, ...);                 /* 0x00590950 */
 
 /* The 0x4f spell's finalizer. Once its target is gone, the impact spell 0x76
    is cast at the target's last position and the matching notice is posted:

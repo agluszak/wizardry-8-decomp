@@ -308,9 +308,6 @@ extern int g_item_message_005ee664;
 
 /* Whether a weapon and an off-hand item go together, named by its own error
    text at 0x0051C8F0. */
-extern unsigned char Function521060(
-    int item_id, int value_1, int value_2, int value_3, int value_4);
-
 
 // GLOBAL: WIZ8 0x00652da6
 unsigned char g_byte_652da6;
@@ -1235,8 +1232,6 @@ void ReplaceOrCreateItem(
     }
 }
 
-/* 0x005208F0 */
-
 /* Bind one worn item to its wearer. A binding that has not been announced yet
    is announced as it takes hold; one already announced just takes hold. A slot
    with no interface position binds nothing. */
@@ -2062,7 +2057,7 @@ void Function520D10(
     }
 
     if (item == &character->equipment[11]) {
-        g_byte_652da6 = Function521060(0x254, 0, 0, 0, 0);
+        g_byte_652da6 = FindItemOnParty(0x254, 0, 0, 0, 0);
     }
     Function50E5C0(party_slot);
 

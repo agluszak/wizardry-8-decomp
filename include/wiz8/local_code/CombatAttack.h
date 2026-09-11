@@ -1,5 +1,8 @@
 #pragma once
 
+struct W8CombatSlot;
+struct W8MonsterInfo;
+
 unsigned char CanTargetPartySlot(int party_slot, const W8CombatSlot* target);
 unsigned char CharacterHasAttackOn(int party_slot, W8CombatSlot* target);
 unsigned char Function5458A0(int party_slot);

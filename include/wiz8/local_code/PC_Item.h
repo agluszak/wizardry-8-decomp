@@ -52,6 +52,15 @@ bool FindItemOnCharacter(
     W8ItemInstance** found,
     int include_backpack,
     const W8ItemInstance* resume_after);
+/* 0x00521060: the whole-party counterpart. It tests the item in hand and the
+   party item pool as well as the character slots, and reports which character
+   held the match through the second output. */
+bool FindItemOnParty(
+    int item_id,
+    W8ItemInstance** found,
+    W8Character** found_character,
+    int include_backpack,
+    const W8ItemInstance* resume_after); /* 0x00521060 */
 unsigned int GetItemStackWeight(const W8ItemInstance* item);
 void CreateItemIntoHandOrPool(int item_id, unsigned char quality);
 void AddPartyGold(int amount, char announce);

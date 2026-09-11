@@ -155,8 +155,8 @@ unsigned char IsTargetSourceInRangeOfGroup(
 void NoteTargetChosen(const W8TargetSource* source, const W8CombatSlot* target);
 
 
-unsigned char CanTargetMonsterWithAction(
-    int party_slot, int location_id, int arg_3, int arg_4);              /* 0x00536AD0 */
+unsigned char CanTargetMonster(
+    int party_slot, int location_id, int allow_single_target, int reason); /* 0x00536AD0 */
 void ClearTargetingMode0053B050(int party_slot);
 unsigned char Function536F60(int party_slot, int value, int context = 0);
 void Function5398D0(void);

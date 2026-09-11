@@ -199,7 +199,7 @@ bool AnyoneStandsAhead(unsigned char position)
 
     for (index = 0; index < W8_FORMATION_ROW_WIDTH; ++index) {
         slot = g_status_685170.formation.rows[position].slots[index];
-        if (slot != -1 && g_party_characters[slot].out_of_formation == 0) {
+        if (slot != -1 && g_party_characters[slot].bonus_1770.out_of_formation == 0) {
             ++found;
         }
     }
@@ -237,7 +237,7 @@ bool FrontRankScreens(unsigned int from_position, unsigned int to_position)
     found = 0;
     for (index = 0; index < W8_FORMATION_ROW_WIDTH; ++index) {
         slot = g_status_685170.formation.rows[4].slots[index];
-        if (slot != -1 && g_party_characters[slot].out_of_formation == 0) {
+        if (slot != -1 && g_party_characters[slot].bonus_1770.out_of_formation == 0) {
             ++found;
         }
     }

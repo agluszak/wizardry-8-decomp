@@ -2,8 +2,11 @@
 
 void ChooseAction(int party_slot, int action, int detail, const void* data, int a, int b); /* 0x004E7CC0 */
 void ChooseCombatAction(
-    int party_slot, int is_monster_turn, int* out_kind, int a, int b, int c); /* 0x004E77B0 */
-void Function4E8000(int party_slot, int action_kind, int action_detail, int a, int b);
+    int party_slot, int context, int* out_kind, int* out_a, int* out_b,
+    int* out_c); /* 0x004E77B0 */
+void Function4E8000(
+    int party_slot, int action_kind, int action_detail, int arg_4,
+    void* data); /* 0x004E8000 */
 void EndCombat004EA310(int mode);  /* 0x004EA310 */
 unsigned char IsSlotActionChosen(int party_slot, int context, int arg_3, int arg_4);
 void SwitchCharacterTo(int party_slot, int action);               /* 0x004ED390 */

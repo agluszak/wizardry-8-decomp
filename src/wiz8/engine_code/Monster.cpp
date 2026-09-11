@@ -160,8 +160,6 @@ W8CycleNameRow g_cycle_names[W8_MONSTER_CYCLE_COUNT] = {
     {"TALK", 4},           {"SPELL", 5},           {"SPECIAL", 7},
 };
 
-extern void Function56C5E0(
-    void* item_list, int value_1, int value_2, int value_3, int value_4);
 // GLOBAL: WIZ8 0x0060e614
 unsigned char g_monster_gib_option_0060e614 = 1;
 // GLOBAL: WIZ8 0x005ed280

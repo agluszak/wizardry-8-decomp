@@ -356,7 +356,7 @@ void Function5B1B30(int skill_id);
    dialogs and to query the current character. */
 class W8CharacterPageHost {
 public:
-    virtual void UpdateNavigation(W8CharacterPage* page) = 0; /* 0x005B0580 */
+    virtual void UpdateNavigation(W8CharacterPage* page) = 0;
     virtual void ShowDialog005B0610(int value) = 0;
     virtual void ShowProfessionInfo(unsigned int profession) = 0;
     virtual void ShowRaceInfo(unsigned int race) = 0;

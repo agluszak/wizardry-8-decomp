@@ -610,7 +610,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
             float player_distance;
 
             if (g_in_combat_00683f94 == 0) {
-                light = g_status_685170.value_232d;
+                light = g_status_685170.party_modifiers_22e3.flag_4a;
             }
             else {
                 light = 0;
@@ -775,7 +775,7 @@ after_sight:
                             character->current_profession == 6,
                             record->missile_value_24f, npc_fade_flag,
                             static_cast<int>(monster_info->party_threat.state_04),
-                            g_status_685170.value_232d, distance);
+                            g_status_685170.party_modifiers_22e3.flag_4a, distance);
 
                         if (g_status_685170.flag_238f != 0) {
                             threshold *= g_sight_threat_scale_005ed7f8;

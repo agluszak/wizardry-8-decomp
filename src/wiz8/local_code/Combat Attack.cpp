@@ -44,7 +44,7 @@ void GetCharacterHandDamageDice(const W8Character* character, int hand, W8Dice* 
 // FUNCTION: WIZ8 0x00546b10
 int GetCharacterHandDamageBonus(const W8Character* character, int hand)
 {
-    return character->hand_attacks[hand].value_29 + character->bonus_1773;
+    return character->hand_attacks[hand].value_29 + character->bonus_1770.value_03;
 }
 
 /* Nine attack modes, one bit each, held in the low half of a word. */

@@ -6,6 +6,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/character.h"
 #include "wiz8/engine_code/Monster.h"
+#include "wiz8/gameplay_modifiers.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/targeting.h"
 #include "wiz8/vector.h"
@@ -113,14 +114,6 @@ unsigned char LoadMonsterDatabaseRecord(
 /* The 0x153-byte combat allocation has two adjacent runs of 0x11-byte records.
    ClearEffectSlot consumes a record whenever its leading active byte is set. */
 #pragma pack(push, 1)
-struct W8EffectSlot {
-    signed char active;
-    int visual_index;
-    unsigned char unknown_05[8];
-    /* 0x0d: the remaining duration the aging pass counts down. */
-    float duration_0d;
-};                                         /* 0x11 */
-
 struct W8MonsterCombatState {
     /* 0x000: the phase of the round this monster next acts on, zero when it
        has finished acting. */

@@ -2,6 +2,7 @@
 #define WIZ8_CHARACTER_H
 
 #include "surrender/srMath.h"
+#include "wiz8/gameplay_modifiers.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/saved_location.h"
@@ -269,25 +270,15 @@ struct W8Character {
     /* 0x169e: the fatigue band, zero through four, recomputed from the stamina
        fraction whenever it moves; a change re-runs the armour class pass. */
     int fatigue_band;
-    unsigned char unknown_16a2[0x67];
+    /* 0x16a2: a persistent 0x67-byte modifier source the party-effect rebuild
+       folds into the derived block; what writes it is not yet recovered. */
+    W8GameplayModifierBlock unknown_16a2;
     /* 0x1709: the equipment bonus block 0x0050E980 accumulates from the worn
-       items and 0x0050F030 folds into the final bonuses at 0x1770. */
-    char equipment_bonus_1709[0x67];
-    signed char bonus_1770;
-    signed char bonus_1771;
-    signed char bonus_1772;
-    signed char bonus_1773;
-    signed char armor_bonus_1774;
-    signed char armor_bonus_1775;
-    unsigned char unknown_1776;
-    signed char resistance_bonus_all;     /* 0x1777: added to every resistance */
-    unsigned char unknown_1778[0x34];
-    signed char resistance_bonus[W8_RESISTANCE_COUNT];      /* 0x17ac */
-    unsigned char unknown_17b2[3];
-    /* 0x17b5: the character is out of the formation, which is what the
-       front-rank counts skip. */
-    unsigned char out_of_formation;
-    unsigned char unknown_17b6[0x21];
+       items and 0x0050F030 folds into the derived block at 0x1770. */
+    W8GameplayModifierBlock equipment_bonus_1709;
+    /* 0x1770: the derived modifier block the rebuild clears and folds the
+       equipment, persistent and party blocks into. */
+    W8GameplayModifierBlock bonus_1770;
     /* 0x17d7: where the character was last anchored, restored by the recall
        effect in Magic Effects.cpp. Its extent is proven rather than assumed:
        the cross-level path copies exactly 0x3c bytes from here with one
@@ -412,8 +403,9 @@ bool RecalculateCarryingCapacity004EDC10(W8Character* character);
 /* 0x004ED9D0: the full derived-stat recompute, and the two equipment-bonus
    passes an NPC character's initialization runs. */
 void Function4ED9D0(W8Character* character);
-void Function50E980(W8Character* character, char* equipment_bonus);
-void Function50F030(W8Character* character);
+void AccumulateEquipmentModifiers(
+    W8Character* character, W8GameplayModifierBlock* equipment_bonus);
+void RebuildCharacterModifierBlock(W8Character* character);
 void Function52A3E0(W8Character* character);
 void Function52A500(W8Character* character);
 void Function553C90(W8Character* character);

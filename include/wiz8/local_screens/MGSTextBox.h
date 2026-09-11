@@ -33,9 +33,12 @@ void SetTextBoxMode(unsigned char mode, int value);
 void Function5905F0(const wchar_t* text, int mode);      /* 0x005905F0 */
 /* 0x00590950/0x00590B40: the two variadic notice formatters. The binary
    builds a va_list in each and passes the format on. */
-void PostCharacterNotice(int party_slot, const wchar_t* format, ...);
+void PostCharacterNotice(
+    int party_slot, const wchar_t* format, ...); /* 0x00590950 */
 void PostMonsterNotice(
-    W8MonsterInfo* monster_info, const wchar_t* format, ...);
+    W8MonsterInfo* monster_info, const wchar_t* format, ...); /* 0x00590B40 */
+/* 0x0058AAD0: the variadic formatter both notice helpers post through. */
+void Function58AAD0(int mode, const wchar_t* format, ...);
 void ScrollTextBoxTo(int line);                                  /* 0x0058BBC0 */
 
 void Function58F6B0(int value);     /* 0x0058F6B0 */

@@ -50,7 +50,6 @@ enum { W8_EFFECT_PERMANENT = 9999 };
 /* 0x0060CFFC: eight bytes per visual, whose leading dword names it. */
 extern const int g_effect_visual_table[][2];
 
-extern void PostMonsterNotice(W8MonsterInfo* monster_info, void* notice);  /* 0x00590B40 */
 // FUNCTION: WIZ8 0x005af2d0
 void Function5AF2D0(void)
 {
@@ -59,7 +58,6 @@ void Function5AF2D0(void)
         InvalidateRegion(0x7f, 0x14, 0x201, 0x28, 0);
     }
 }
-extern void Function50E8C0(int location_id);
 
 /* How big the effect lands. A permanent magnitude is taken as it is; anything
    else is scaled by the definition's percentage. */
@@ -128,7 +126,7 @@ void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* slot)
 
     if (slot->active != 0) {
         DropMonsterVisual(monster_info->monster,
-                          g_effect_visual_table[slot->visual_index][0], 0);
+                          g_effect_visual_table[slot->effect_id][0], 0);
     }
     for (index = 0; index < 9; ++index) {
         bytes[index] = 0;
@@ -335,8 +333,8 @@ void RecalculateCharacterResistances(W8Character* character)
         W8CharacterResistance* resistance = &character->resistances[index];
 
         resistance->total = resistance->base;
-        resistance->total = resistance->base + character->resistance_bonus_all;
-        resistance->total += character->resistance_bonus[index];
+        resistance->total = resistance->base + character->bonus_1770.resistance_bonus_all;
+        resistance->total += character->bonus_1770.resistance_bonus[index];
     }
     for (index = 0; index < W8_RESISTANCE_COUNT; ++index) {
         if (character->resistances[index].total > 100) {

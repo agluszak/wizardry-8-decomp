@@ -3,6 +3,7 @@
 
 void RoundPhaseToStep(unsigned int* phase, unsigned int base);
 
+#include "wiz8/gameplay_modifiers.h"
 #include "wiz8/targeting.h"
 #include "wiz8/game_status.h"
 
@@ -74,18 +75,10 @@ struct W8CombatActor {
     int class_record_index;               /* 0x1d8 */
 };
 
-/* One packed combat effect slot, 0x11 bytes: an active byte, the unaligned
-   32-bit visual index the party-effect fold tests against 0x31, and the byte
-   amount it subtracts. Nine live at +0x7c1 and six more at +0x85a. */
-struct W8CombatEffectSlot {
-    unsigned char active;                 /* 0x00 */
-    int visual_index;                     /* 0x01 */
-    unsigned char amount;                 /* 0x05 */
-    unsigned char unknown_06[0x0b];
-};                                        /* 0x11 */
-
-static_assert(sizeof(W8CombatEffectSlot) == 0x11,
-              "W8CombatEffectSlot_must_be_0x11");
+/* The combat effect run: nine live slots at +0x7c1 and six more at +0x85a.
+   The condition predicate still scans nine of the second run, so it reads
+   past the member into the fields below, exactly as retail does. */
+static_assert(sizeof(W8EffectSlot) == 0x11, "W8EffectSlot_must_be_0x11");
 
 /* One combat participant's row, 0xd4 bytes per character. The eight rows live
    at +0x18 of the combat state, 0xd4 apart, so a row's offsets are
@@ -135,8 +128,8 @@ struct W8CombatState {
     int iActionChar;                      /* 0x7b4: -1 when nobody's turn */
     struct W8MonsterInfo* pActionMonsterInfo; /* 0x7b8 */
     unsigned char unknown_7bc[5];
-    W8CombatEffectSlot effect_slots[9];   /* 0x7c1, 0x11 stride */
-    W8CombatEffectSlot effect_slots_tail[6]; /* 0x85a, 0x11 stride */
+    W8EffectSlot effect_slots[9];         /* 0x7c1, 0x11 stride */
+    W8EffectSlot effect_slots_tail[6];    /* 0x85a, 0x11 stride */
     W8CombatActor* engaged_actor;         /* 0x8c0 */
     unsigned char unknown_8c4;            /* 0x8c4 */
     /* 0x8c5: exact name from the attack assertions; the slot is unaligned

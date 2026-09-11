@@ -48,10 +48,7 @@ unsigned short g_condition_notices_0061E570[128] = {
     0x673, 0x674, 0x675, 0x676, 0x3a0, 0x3a1, 0x3a2, 0x3a3,
     0x3a4, 0x3a5, 0x3a6, 0x3a7, 0x3a8, 0x3a9, 0x3aa, 0x3ab,
 };
-extern char Function521060(
-    int id, int* out_id, W8Character** out_character, int a, int b);
 extern void Function53A930(int party_slot, W8CombatSlot* target);
-
 // FUNCTION: WIZ8 0x005248a0
 unsigned char Function5248A0(int party_slot, int condition)
 {
@@ -82,7 +79,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
 {
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
     W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
-    int found_id;
+    W8ItemInstance* found_item;
     W8Character* found_character;
     unsigned char can_rest;
 
@@ -115,8 +112,9 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
             }
         }
         else if (condition == 0xb
-                 && Function521060(0x243, &found_id, &found_character, 2, 0) != 0
-                 && found_id != 0x6874CB) {
+                 && FindItemOnParty(
+                        0x243, &found_item, &found_character, 2, 0) != 0
+                 && found_item != &g_status_685170.item_in_hand_235b) {
             if (found_character == 0) {
                 found_character = FindPartyMemberWithLowestResistance4();
             }

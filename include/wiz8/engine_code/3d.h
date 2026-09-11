@@ -31,8 +31,8 @@ stModelInstance* CreateModelInstance0046F5C0(stMeshModel* model);
 
 void FinalizeWorldScenes0046F410(
     srScene* static_scene, srNode* dynamic_scene);
-void Function46E640(srScene* scene, int argument);
-void Function46E750(srScene* scene, int argument);
+void Function46E640(srNode* node, int argument);
+void Function46E750(srNode* node, int argument);
 
 
 void BuildPlaneFromPoints0046D660(

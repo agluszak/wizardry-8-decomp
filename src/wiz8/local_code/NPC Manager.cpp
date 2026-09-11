@@ -600,8 +600,8 @@ unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character)
         }
     }
     AdvanceCharacterToLevel(character, source->level);
-    Function50E980(character, character->equipment_bonus_1709);
-    Function50F030(character);
+    AccumulateEquipmentModifiers(character, &character->equipment_bonus_1709);
+    RebuildCharacterModifierBlock(character);
     CalcCharacterLevelBand(character);
     Function553CD0(character);
     Function4ED9D0(character);
@@ -757,8 +757,6 @@ unsigned char UpdateNpcAt(W8NpcState* /*npc*/, int /*arg_2*/, srVector3T<float>*
 
 extern unsigned char g_flag_683fc5;
 extern void Function55A0A0(int value);                              /* 0x0055A0A0 */
-extern void Function56C5E0(
-    W8NpcState* npc, int, int, int, int);                          /* 0x0056C5E0 */
 
 /* The frame-0x10 callback the 0x1b6 NPC cycle installs: mark the monster,
    reset its navigator to the origin, and fire the VOC_BELA_CC voice event on

@@ -1,13 +1,22 @@
 """Reject multiple C++ identities for one original address.
 
-The canonical model is one address, one function identity. A duplicate appears
-when an address-qualified declaration and a FUNCTION marker (or two
-declarations) name the same address differently. Names are compared by their
-last ``::`` component so a class-qualified method matches its marker.
+The canonical model is one address, one function identity: one name, one
+normalized prototype and one calling convention. A duplicate appears when an
+address-qualified declaration and a FUNCTION marker (or two declarations) name
+the same address differently.
 
-The scan reads the source index for markers and declaration spans, then
-re-reads the files only to resolve the address comment adjacent to each
-declaration: the declaration's own lines, or a bare comment on the line after.
+Names are compared by their last ``::`` component so a class-qualified method
+matches its marker. Prototypes are compared by the Clang semantic id (the
+VC6-mangled name), which folds calling convention, return type and parameter
+types together; the declarations carry it in the source index. Overloads of a
+method are exempt from the cross-declaration comparison because their qualified
+name does not include the parameter list; only free functions are compared by
+qualified name. A declaration explicitly marked ``identity-alias:`` is a
+documented fold onto another address and is exempt from that comparison.
+
+The scan reads the source index for markers and declarations, then re-reads the
+files only to resolve the address comment adjacent to each declaration and to
+spot identity-alias markers.
 """
 
 from __future__ import annotations
@@ -20,10 +29,34 @@ from typing import Any
 
 _ADDRESS = re.compile(r"/\*\s*(0x[0-9a-fA-F]{6,8})\s*\*/")
 _BARE_ADDRESS = re.compile(r"^\s*/\*\s*0x[0-9a-fA-F]{6,8}\s*\*/\s*$")
+_IDENTITY_ALIAS = re.compile(r"identity-alias\s*:")
 
 
 def _last_component(name: str) -> str:
     return name.split("::")[-1].strip()
+
+
+def _prototype(declaration: dict[str, Any]) -> str:
+    """The ABI-normalized prototype key of one declaration."""
+
+    semantic_id = declaration.get("semantic_id") or ""
+    if semantic_id:
+        return str(semantic_id)
+    parameters = ",".join(declaration.get("parameter_types") or [])
+    return "|".join(
+        (
+            declaration.get("calling_convention") or "",
+            declaration.get("return_type") or "",
+            parameters,
+            "this" if declaration.get("has_this") else "",
+        )
+    )
+
+
+def _linkage_prefix(semantic_id: str) -> str:
+    """Separate C and C++ linkage so a C library name does not match C++."""
+
+    return semantic_id[:1]
 
 
 def _declaration_address(lines: list[str], start: int, end: int) -> str | None:
@@ -41,6 +74,13 @@ def _declaration_address(lines: list[str], start: int, end: int) -> str | None:
     return None
 
 
+def _declaration_lines(repo_dir: Path, entry: dict[str, Any]) -> list[str] | None:
+    path = repo_dir / entry["source_file"]
+    if not path.is_file():
+        return None
+    return path.read_text(encoding="utf-8", errors="ignore").splitlines()
+
+
 class IdentityGateError(RuntimeError):
     """One address carries more than one function identity."""
 
@@ -48,7 +88,7 @@ class IdentityGateError(RuntimeError):
 def validate_identity(repo_dir: Path) -> dict[str, Any]:
     violations = identity_violations(repo_dir)
     if violations:
-        rendered = [f"{item['address']}: " + ", ".join(item["names"]) for item in violations]
+        rendered = [item["detail"] for item in violations]
         raise IdentityGateError(
             "one address carries multiple function identities:\n  " + "\n  ".join(rendered)
         )
@@ -61,40 +101,126 @@ def validate_identity(repo_dir: Path) -> dict[str, Any]:
 def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
     index = json.loads((repo_dir / "build/source-index.json").read_text(encoding="utf-8"))
 
-    claims: dict[str, set[tuple[str, str, str]]] = defaultdict(set)
+    claims: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for marker in index["markers"]:
         if marker["marker_kind"] != "FUNCTION":
             continue
-        name = marker.get("marker_name") or ""
+        declaration = marker.get("declaration") or {}
+        name = marker.get("marker_name") or declaration.get("qualified_name") or ""
         if not name:
             continue
-        claims[f"{marker['address']:08x}"].add(
-            (_last_component(name), "marker", marker["source_file"])
+        claims[f"{marker['address']:08x}"].append(
+            {
+                "name": _last_component(name),
+                "qualified_name": declaration.get("qualified_name") or "",
+                "prototype": _prototype(declaration),
+                "semantic_id": declaration.get("semantic_id") or "",
+                "kind": "marker",
+                "source": marker["source_file"],
+            }
         )
 
+    address_declaration_keys: set[tuple[str, int, int]] = set()
     for entry in index["declarations"]:
-        path = repo_dir / entry["source_file"]
-        if not path.is_file():
+        lines = _declaration_lines(repo_dir, entry)
+        if lines is None:
             continue
-        lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
         address = _declaration_address(lines, entry["line"], entry["end_line"])
         if address is None:
             continue
-        claims[address].add(
-            (_last_component(entry["qualified_name"]), "declaration", entry["source_file"])
+        claims[address].append(
+            {
+                "name": _last_component(entry["qualified_name"]),
+                "qualified_name": entry["qualified_name"],
+                "prototype": _prototype(entry),
+                "semantic_id": entry.get("semantic_id") or "",
+                "kind": "declaration",
+                "source": entry["source_file"],
+            }
+        )
+        address_declaration_keys.add((entry["source_file"], entry["line"], entry["end_line"]))
+
+    violations: list[dict[str, Any]] = []
+    for address, entries in sorted(claims.items()):
+        names = {entry["name"] for entry in entries}
+        prototypes = {entry["prototype"] for entry in entries if entry["prototype"]}
+        if len(names) == 1 and len(prototypes) <= 1:
+            continue
+        details = sorted(
+            f"{entry['kind']}:{entry['name']} [{entry['prototype']}] ({entry['source']})"
+            for entry in entries
+        )
+        if len(names) > 1:
+            reason = "multiple names"
+        else:
+            reason = "multiple prototypes"
+        violations.append(
+            {
+                "address": f"0x{address}",
+                "kind": "address-identity",
+                "reason": reason,
+                "names": sorted(names),
+                "detail": f"0x{address}: {reason}: " + ", ".join(details),
+            }
         )
 
-    violations = []
-    for address, entries in sorted(claims.items()):
-        names = {name for name, _, _ in entries}
-        if len(names) > 1:
-            violations.append(
-                {
-                    "address": f"0x{address}",
-                    "names": sorted(names),
-                    "entries": sorted(
-                        f"{kind}:{name} ({source})" for name, kind, source in entries
-                    ),
-                }
+    violations.extend(_consumer_violations(repo_dir, index, claims, address_declaration_keys))
+    return violations
+
+
+def _consumer_violations(
+    repo_dir: Path,
+    index: dict[str, Any],
+    claims: dict[str, list[dict[str, Any]]],
+    address_declaration_keys: set[tuple[str, int, int]],
+) -> list[dict[str, Any]]:
+    """Callers must redeclare the canonical free function with its prototype."""
+
+    canonical: dict[tuple[str, str], set[tuple[str, str]]] = defaultdict(set)
+    for address, entries in claims.items():
+        for entry in entries:
+            if not entry["qualified_name"] or not entry["semantic_id"]:
+                continue
+            key = (
+                entry["qualified_name"],
+                _linkage_prefix(entry["semantic_id"]),
             )
+            canonical[key].add((address, entry["prototype"]))
+    unique = {key: next(iter(value)) for key, value in canonical.items() if len(value) == 1}
+
+    violations: list[dict[str, Any]] = []
+    for entry in index["declarations"]:
+        if entry.get("semantic_kind") != "free_function":
+            continue
+        key = (
+            entry["qualified_name"],
+            _linkage_prefix(entry.get("semantic_id") or ""),
+        )
+        if key not in unique:
+            continue
+        if (entry["source_file"], entry["line"], entry["end_line"]) in address_declaration_keys:
+            continue
+        canonical_address, canonical_prototype = unique[key]
+        prototype = _prototype(entry)
+        if prototype == canonical_prototype:
+            continue
+        lines = _declaration_lines(repo_dir, entry)
+        if lines is None:
+            continue
+        window = lines[max(0, entry["line"] - 6) : entry["end_line"]]
+        if any(_IDENTITY_ALIAS.search(line) for line in window):
+            continue
+        violations.append(
+            {
+                "address": f"0x{canonical_address}",
+                "kind": "consumer-prototype",
+                "reason": "redeclared prototype",
+                "names": [entry["qualified_name"]],
+                "detail": (
+                    f"0x{canonical_address}: {entry['qualified_name']} redeclared "
+                    f"as [{prototype}] in {entry['source_file']}:{entry['line']}, "
+                    f"canonical [{canonical_prototype}]"
+                ),
+            }
+        )
     return violations

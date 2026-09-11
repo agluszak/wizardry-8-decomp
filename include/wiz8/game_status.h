@@ -7,6 +7,7 @@ extern "C" {
 }
 
 #include "wiz8/engine_code/Levels.h"
+#include "wiz8/gameplay_modifiers.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/saved_location.h"
@@ -55,7 +56,10 @@ struct W8GlobalStatus {
     int party_item_count_1791;
     unsigned char unknown_1795[2];
     unsigned int legacy_text_box_lines_1797[2][3];
-    unsigned char unknown_17af[0x121];
+    /* 0x17af: the party's twelve effect slots, the same 0x11-byte records the
+       monster and combat tables hold. The trailing run is opaque. */
+    W8EffectSlot effect_slots_17af[12];
+    unsigned char unknown_187b[0x55];
     int party_facing;
     unsigned int party_heading;
     int world_clock;
@@ -66,10 +70,10 @@ struct W8GlobalStatus {
     W8LevelProgressRow level_progress[47];
     unsigned char unknown_2013[0x294];
     W8SavedLocation pending_move_location;
-    unsigned char unknown_22e3[0x4a];
-    /* 0x232d: the light value the monster-sight threshold pass reads. */
-    unsigned char value_232d;
-    unsigned char unknown_232e[0x1c];
+    /* 0x22e3: the party-wide modifier block the effect rebuild clears and
+       refills. Its +0x4a flag is the light gate the monster-sight threshold
+       pass reads. */
+    W8GameplayModifierBlock party_modifiers_22e3;
     int status_count_234a;
     int next_monster_location_id_234e;
     int next_world_item_id_2352;

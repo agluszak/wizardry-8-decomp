@@ -207,9 +207,10 @@ void Function42B3E0(void)
         ResetEnvironment();
     }
 }
-/* As in Bink.cpp and PathAI.cpp: retail shares the no-op stub at 0x004023A0
-   across arities (this body passes the sky world and two zero arguments), so
-   this overload only satisfies the local call and owns no separate address. */
+/* identity-alias: as in Bink.cpp and PathAI.cpp, retail shares the no-op stub
+   at 0x004023A0 across arities (this body passes the sky world and two zero
+   arguments), so this overload only satisfies the local call and owns no
+   separate address. */
 void NoOp(W8World* world, int first, int second)
 {
     (void)world;

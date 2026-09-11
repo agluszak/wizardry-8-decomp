@@ -888,7 +888,7 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
 
     if (party_slot == BAD_INDEX ||
         (IsSlotActionChosen(party_slot, 6, 1, 0) &&
-         CanTargetMonsterWithAction(party_slot, location_id, 1, 0))) {
+         CanTargetMonster(party_slot, location_id, 1, 0))) {
         valid = 1;
     }
     Function547510();

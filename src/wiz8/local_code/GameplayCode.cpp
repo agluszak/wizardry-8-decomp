@@ -312,7 +312,7 @@ void CalcInitiative(W8Character* character)
         character->initiative += character->skills[39].level / 10 + 1;
     }
     character->initiative +=
-        character->bonus_1770;
+        character->bonus_1770.value_00;
 
     switch (character->load_category) {
     case 0:
@@ -698,9 +698,9 @@ void CalcArmorClasses(W8Character* character)
         }
 
         character->armor_class_components[5] +=
-            character->armor_bonus_1774;
+            character->bonus_1770.armor_bonus_04;
         character->armor_class_components[8] +=
-            static_cast<signed char>(character->unknown_17b6[5]);
+            static_cast<signed char>(character->bonus_1770.value_4b);
         if (defensive_action) {
             character->armor_class_components[10] += 2;
         }
@@ -718,7 +718,7 @@ void CalcArmorClasses(W8Character* character)
         character->armor_class_components[9] -=
             FatigueArmorPenalty(character->fatigue_band) / 10;
         character->armor_class_components[6] +=
-            character->armor_bonus_1775;
+            character->bonus_1770.armor_bonus_05;
     }
 
     character->armor_class_total = 0;
@@ -728,7 +728,8 @@ void CalcArmorClasses(W8Character* character)
                 character->armor_class_components[index];
         }
     }
-    if (character->out_of_formation && character->armor_class_total > -5) {
+    if (character->bonus_1770.out_of_formation
+        && character->armor_class_total > -5) {
         character->armor_class_total = -5;
     }
 

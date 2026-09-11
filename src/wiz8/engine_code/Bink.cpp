@@ -9,7 +9,7 @@
 
 static_assert(offsetof(BINK, FrameRects) == 0x34, "BINK_FrameRects_at_0x34");
 
-/* The retail build routes every arity of this no-op through the single
+/* identity-alias: retail routes every arity of this no-op through the single
    shared stub at 0x004023a0; a distinct overload exists here only so the
    existing call below links. It owns no separate retail address. */
 void NoOp(int result, int line, const char* source)

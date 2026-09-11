@@ -73,6 +73,23 @@ Use that result instead of a second homemade triage command.
 Do not tweak source spelling for scores. Revert demonstrated regressions; retain straightforward
 C++ when evidence supplies no correction, and report the unresolved result honestly.
 
+## Accepting a substantial new body
+
+A large newly recovered body - a dispatcher, a multi-branch switch, anything long enough that one
+mismatch can hide another - is accepted only after all of the following hold:
+
+- the cast, identity and structural gates are green for the affected tree;
+- no unexplained byte-pointer escape survives from an object whose fields are already typed;
+- every pre-existing address identity is reconciled to one name, one normalized prototype and one
+  calling convention;
+- the comparison is meaningful, or every inconclusive region has explicit manual CFG verification
+  against retail: instruction stream, call targets and branch roles.
+
+This is exactly the "inconclusive is acceptable" boundary that needs tightening. Inconclusive
+comparison status is matching evidence, not semantic acceptance: it never excuses wrong assertion
+control flow, a wrong field read, or an unverified branch. A 700-line dispatcher needs the manual
+CFG pass; a small wrapper or a straightforward body does not.
+
 ## Placement and output
 
 `FUNCTION` sits immediately above its declaration. `TEMPLATE` is immediately followed by a comment

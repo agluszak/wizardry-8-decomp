@@ -103,8 +103,6 @@ W8DialogBase* g_modal_owner_0068edd0;
 W8DialogBase* g_pending_main_game_dialog_0068edd4;
 
 extern void Function598AB0(void);
-extern void Function58AC00(int, const wchar_t*, int, int, int);
-extern void Function58AAD0(int, const wchar_t*, const wchar_t*);
 extern void Function59C930(int slot);
 extern void Function5187E0(void);
 extern void Function598AE0(void);
@@ -1471,8 +1469,6 @@ void ShortenTextToWidth00577410(
         }
     }
 }
-
-extern void Function56C5E0(void* npc, int value, int line, int suppress, int arg);
 
 /* Forward a monster-script notice to the targeting layer unless the screen is
    busy or this NPC kind suppresses it. The suppress flag travels as an int:
