@@ -113,8 +113,20 @@ debug *args:
     wineserver -k 2>/dev/null || true
     sleep 1
     cd "$game_dir"
-    script="${DEBUG_SCRIPT:-$'cont\nbt\nquit\n'}"
-    printf '%s' "$script" | winedbg ./Wiz8Runtime.exe /WINDOW "$@"
+    # just run localizes /FORCE:UNRESOLVED crashes through the in-process
+    # reporter; this recipe is for targeted DEBUG_SCRIPT breakpoints. Its
+    # output still feeds the same MAP symbolizer, which recognizes a Wine
+    # register dump even when the frame walk cannot follow the header stub.
+    script="${DEBUG_SCRIPT:-$'cont\nquit\n'}"
+    log="$(mktemp)"
+    trap 'rm -f "$log"' EXIT
+    set +e
+    printf '%s' "$script" | winedbg ./Wiz8Runtime.exe /WINDOW "$@" 2>&1 | tee "$log"
+    status=${PIPESTATUS[0]}
+    set -e
+    (cd "{{justfile_directory()}}" && uv run wiz8 analyze crash --log "$log" \
+        --map "{{justfile_directory()}}/build/decomp/Wiz8Runtime.map") || true
+    exit "$status"
 
 runtime-test:
     uv run wiz8 runtime-test

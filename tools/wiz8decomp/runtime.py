@@ -32,6 +32,12 @@ RUNTIME_CANDIDATE = re.compile(
     r"^WIZ8_RUNTIME_CANDIDATE source=(?P<source>\S+) address=(?P<address>[0-9a-fA-F]+)",
     re.MULTILINE,
 )
+WINE_REGISTER = re.compile(
+    r"\b(?P<name>EIP|ESP|EBP|EAX|EBX|ECX|EDX|ESI|EDI)\s*:\s*(?P<value>[0-9a-fA-F]{8})\b"
+)
+WINE_EXCEPTION = re.compile(r"Unhandled exception:\s*(?P<operation>[^\n]*)", re.IGNORECASE)
+WINE_FRAME = re.compile(r"^\s*(?:=>)?\d+\s+0x(?P<address>[0-9a-fA-F]+)", re.MULTILINE)
+MAP_PREFERRED_BASE = re.compile(r"Preferred load address is (?P<base>[0-9a-fA-F]{8})")
 MAP_SECTION = re.compile(
     r"^\s+(?P<segment>[0-9a-fA-F]{4}):(?P<offset>[0-9a-fA-F]{8})\s+"
     r"(?P<length>[0-9a-fA-F]{8})H\s+\S+\s+\S+\s*$"
@@ -339,6 +345,69 @@ def _parse_runtime_crash(output: str) -> _RuntimeCrash | None:
     return _RuntimeCrash(match.group(0), fields, base_fault, candidates)
 
 
+def _preferred_load_base(map_path: Path | None) -> int:
+    if map_path is not None and map_path.is_file():
+        text = map_path.read_text(encoding="cp1252", errors="replace")
+        if match := MAP_PREFERRED_BASE.search(text):
+            return int(match.group("base"), 16)
+    return 0x00400000
+
+
+def _parse_wine_dump(output: str, map_path: Path | None = None) -> _RuntimeCrash | None:
+    """Recognize a winedbg/Wine unhandled-exception dump without product markers.
+
+    Wine's native dump still carries the register file even when its frame walk
+    is useless. When EIP executes the mapped PE header (the forced-unresolved
+    stub), EDX holds the return address the stub's ``pop edx`` consumed, the
+    same fact the in-process reporter records.
+    """
+
+    registers: dict[str, int] = {}
+    for match in WINE_REGISTER.finditer(output):
+        registers.setdefault(match.group("name").lower(), int(match.group("value"), 16))
+    eip = registers.get("eip")
+    if eip is None:
+        return None
+    base = _preferred_load_base(map_path)
+    mz = base <= eip < base + 0x1000
+    consumed_register: str | None = None
+    consumed_address: int | None = None
+    if mz and eip >= base + 2 and "edx" in registers:
+        consumed_register = "edx"
+        consumed_address = registers["edx"]
+    fields: dict[str, str] = {
+        "code": "wine",
+        "thread": "",
+        "operation": "",
+        "access": "",
+        "eip": f"{eip:08x}",
+        "esp": f"{registers.get('esp', 0):08x}",
+    }
+    for name in ("ebp", "eax", "ebx", "ecx", "edx", "esi", "edi"):
+        fields[name] = f"{registers[name]:08x}" if name in registers else ""
+    if match := WINE_EXCEPTION.search(output):
+        fields["operation"] = match.group("operation").strip()[:120]
+    base_fault = _ImageBaseFault(base, eip, mz, consumed_register, consumed_address) if mz else None
+    candidates: list[_CrashCandidate] = []
+    seen: set[int] = set()
+    if consumed_address is not None:
+        candidates.append(_CrashCandidate("return:edx", consumed_address))
+        seen.add(consumed_address)
+    for name in ("eax", "ebx", "ecx", "edx", "esi", "edi", "ebp"):
+        address = registers.get(name)
+        if address is not None and address not in seen:
+            seen.add(address)
+            candidates.append(_CrashCandidate(f"reg:{name}", address))
+    for match in WINE_FRAME.finditer(output):
+        address = int(match.group("address"), 16)
+        if address not in seen:
+            seen.add(address)
+            candidates.append(_CrashCandidate("frame", address))
+    if not candidates:
+        return None
+    return _RuntimeCrash("", fields, base_fault, candidates)
+
+
 _ADDRESS_PLACEHOLDER = re.compile(r"^\??Function[0-9A-Fa-f]+(?:@|$)")
 
 
@@ -406,6 +475,8 @@ def analyze_runtime_crash(
 
     output = log_path.read_text(encoding="utf-8", errors="replace")
     crash = _parse_runtime_crash(output)
+    if crash is None:
+        crash = _parse_wine_dump(output, map_path)
     if crash is None:
         return {"schema": "wiz8.runtime-crash", "crashes": []}
     resolved = (

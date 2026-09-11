@@ -8,8 +8,10 @@ from wiz8decomp.runtime import (
     _crash_detail,
     _parse_runtime_crash,
     _parse_runtime_observation,
+    _parse_wine_dump,
     _run_runtime_scenario,
     _symbolize_addresses,
+    analyze_runtime_crash,
     stage_runtime_test,
 )
 
@@ -136,6 +138,64 @@ def test_runtime_crash_prioritizes_the_consumed_return_address(tmp_path: Path) -
             "RegionManager.cpp:746"
         ),
     ]
+
+
+def _wine_crash_fixture(tmp_path: Path) -> tuple[Path, str]:
+    map_path = tmp_path / "wine.map"
+    map_path.write_text(
+        "Wiz8Runtime\n"
+        " Preferred load address is 00400000\n"
+        " Start         Length     Name                   Class\n"
+        " 0001:00000000 000b1f70H .text                   CODE\n"
+        "  Address         Publics by Value              Rva+Base     Lib:Object\n"
+        " 0001:0001ecb0       _CharacterScreenFrame      0041fcb0 f   CharacterScreen.cpp.obj\n"
+        "Line numbers for CharacterScreen.cpp.obj(Z:\\repo\\CharacterScreen.cpp) segment .text\n"
+        " 776 0001:0001fe14\n",
+        encoding="cp1252",
+    )
+    output = (
+        "Unhandled exception: page fault on write access to 0x00000001 in 32-bit code "
+        "(0x00400003).\n"
+        "Register dump:\n"
+        " CS:0023 SS:002b DS:002b ES:002b FS:0063 GS:006b\n"
+        " EIP:00400003 ESP:0032fabc EBP:fffffffe EFLAGS:00210246(  R- --  I   - -P- )\n"
+        " EAX:00000000 EBX:00000001 ECX:00000000 EDX:0041fe14\n"
+        " ESI:00400000 EDI:00400000\n"
+        "Backtrace:\n"
+        "=>0 0x00400003 (0x0032fabc)\n"
+        "  1 0x0041fe14 (0x0032fae0)\n"
+    )
+    return map_path, output
+
+
+def test_wine_dump_is_recognized_without_product_markers(tmp_path: Path) -> None:
+    map_path, output = _wine_crash_fixture(tmp_path)
+
+    crash = _parse_wine_dump(output, map_path)
+
+    assert crash is not None
+    assert crash.base_fault is not None and crash.base_fault.mz
+    assert crash.base_fault.consumed_register == "edx"
+    assert crash.base_fault.consumed_address == 0x0041FE14
+    assert crash.candidates[0].source == "return:edx"
+    assert crash.candidates[0].address == 0x0041FE14
+    assert "return:edx: 0041fe14: _CharacterScreenFrame+0x164" in _crash_detail(
+        map_path, None, crash
+    )
+
+
+def test_analyze_runtime_crash_falls_back_to_a_wine_dump(tmp_path: Path) -> None:
+    map_path, output = _wine_crash_fixture(tmp_path)
+    log = tmp_path / "winedbg.log"
+    log.write_text(output, encoding="utf-8")
+
+    result = analyze_runtime_crash(log, map_path)
+
+    assert result["crashes"][0]["image_base_fault"]["consumed_return"] == {
+        "register": "edx",
+        "address": "0041fe14",
+    }
+    assert result["crashes"][0]["candidates"][0]["symbol"].startswith("_CharacterScreenFrame+0x164")
 
 
 def test_runtime_timeout_preserves_in_process_diagnostics(
