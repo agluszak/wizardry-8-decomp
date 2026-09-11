@@ -283,6 +283,13 @@ class W8Navigator;
 /* 0x005ECAD0 is another unresolved specialization that ctor 0x0048F190 builds
    (deleting destructor 0x0048F240, complete destructor 0x0048F1F0). */
 
+/* 0x005ED43C is the W8MasterFunction (void (*)(int)) pointer-vector
+   specialization emitted by MasterFunctionList.cpp: ctor 0x004D9A70 (its only
+   caller is InitializeLevelMasterFunctions004D6C50's five-element
+   construction) and scalar deleting destructor 0x004D9A40. No other
+   specialization shares the vtable, which is what identifies the
+   DialogFactoryDialogs.cpp member embedded at +0x64. */
+
 /* The emitted lifecycle and both reviewed vtables belong directly to the
    ordinary light-vector template specializations. */
 

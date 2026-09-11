@@ -526,6 +526,7 @@ def check(repository: Path) -> dict[str, Any]:
         ("tests", ["pytest", "tests/unit", "tests/repository"]),
         ("reccmp", ["wiz8", "check-reccmp"]),
         ("casts", ["wiz8", "check-casts"]),
+        ("vectors", ["wiz8", "check-vectors"]),
         ("placement", ["wiz8", "check-tu-placement"]),
         ("identities", ["wiz8", "check-identities"]),
         ("structures", ["wiz8", "check-structures"]),

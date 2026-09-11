@@ -304,12 +304,6 @@ public:
     srVector3T<T> vectors[3];
 };
 
-/* The retail call sites never inline this rotation; its one out-of-line float
-   specialization is emitted by surrender_math.cpp. */
-template <>
-srMatrix3T<float>* srMatrix3T<float>::RotateAroundAxis(
-    double sine, double cosine, const srVector3T<float>& axis);
-
 // TEMPLATE: WIZ8 0x004219F0
 template <class T>
 srMatrix3T<T>* srMatrix3T<T>::SetRows(
@@ -435,6 +429,33 @@ srMatrix3T<T>* srMatrix3T<T>::RotateAboutZ(
     basis[2].x = (T)0;
     basis[2].y = (T)0;
     basis[2].z = (T)1;
+    rotation.vectors[0] = basis[0];
+    rotation.vectors[1] = basis[1];
+    rotation.vectors[2] = basis[2];
+    MultiplyBy(rotation);
+    return this;
+}
+
+// TEMPLATE: WIZ8 0x0042B910
+template <class T>
+srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(
+    double sine,
+    double cosine,
+    const srVector3T<T>& axis)
+{
+    srVector3T<T> basis[3];
+    srMatrix3T<T> rotation;
+    T one_minus_cosine = (T)1 - (T)cosine;
+
+    basis[0].x = axis.x * axis.x + ((T)1 - axis.x * axis.x) * (T)cosine;
+    basis[0].y = axis.x * axis.y * one_minus_cosine - axis.z * (T)sine;
+    basis[0].z = axis.x * axis.z * one_minus_cosine + axis.y * (T)sine;
+    basis[1].x = axis.y * axis.x * one_minus_cosine + axis.z * (T)sine;
+    basis[1].y = axis.y * axis.y + ((T)1 - axis.y * axis.y) * (T)cosine;
+    basis[1].z = axis.y * axis.z * one_minus_cosine - axis.x * (T)sine;
+    basis[2].x = axis.z * axis.x * one_minus_cosine - axis.y * (T)sine;
+    basis[2].y = axis.z * axis.y * one_minus_cosine + axis.x * (T)sine;
+    basis[2].z = axis.z * axis.z + ((T)1 - axis.z * axis.z) * (T)cosine;
     rotation.vectors[0] = basis[0];
     rotation.vectors[1] = basis[1];
     rotation.vectors[2] = basis[2];

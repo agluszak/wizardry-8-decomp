@@ -75,9 +75,12 @@ private:
 public:
     /* 0x054: the displayed text lines; the dialog owns and frees each one. */
     W8GrowableVector<W8WideChar*> m_lines_054;
-    /* 0x064: second pointer vector, only constructed, cleared and destroyed
-       here; no element use survives in this translation unit. */
-    W8GrowableVector<void*> m_field_064;
+    /* 0x064: pointer vector of the W8MasterFunction (void (*)(int)) pointer
+       specialization emitted by MasterFunctionList.cpp (vtable 0x005ED43C,
+       ctor 0x004D9A70, scalar deleting destructor 0x004D9A40). This unit only
+       constructs, clears and destroys it; `void*` would erase the proven
+       element type. */
+    W8GrowableVector<void (*)(int)> m_field_064;
     int m_field_074;                /* 0x074 */
     float m_field_078;              /* 0x078: 0.05 */
     float m_field_07c;              /* 0x07c: 0.2 */
@@ -192,21 +195,8 @@ public:
 private:
     unsigned char CreateButtons005CD8D0();
     /* Clamp and apply the first visible item row. Fewer than five items force
-       the first row. Out-of-range input is ignored, not clamped. Retail inlines
-       this at every call in HandleInputEvent005CEC20, so the body lives in the
-       class declaration. */
-    void SetFirstVisible(int index)
-    {
-        if (items_54.GetCount() <= 4) {
-            m_first_item_0a8 = 0;
-            return;
-        }
-        if (index < 0 || index > items_54.GetCount() - 4) {
-            return;
-        }
-        m_first_item_0a8 = index;
-        m_dirty_flags |= 1;
-    }
+       the first row. Out-of-range input is ignored, not clamped. */
+    void SetFirstVisible(int index);
     /* Sync the four scroll buttons' pressed/visible state with the scroll
        offset and the per-item enable flags. */
     void RefreshScrollButtons005CE420();

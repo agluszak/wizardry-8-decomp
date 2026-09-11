@@ -257,6 +257,7 @@ def register(app: typer.Typer) -> None:
     app.command("check-build-dir", hidden=True)(check_build_dir_command)
     app.command("check-reccmp", hidden=True)(check_reccmp_command)
     app.command("check-casts", hidden=True)(check_casts_command)
+    app.command("check-vectors", hidden=True)(check_vectors_command)
     app.command("check-tu-placement", hidden=True)(check_tu_placement_command)
     app.command("check-identities", hidden=True)(check_identities_command)
     app.command("check-structures", hidden=True)(check_structures_command)
@@ -361,6 +362,15 @@ def check_casts_command() -> None:
     from ..config import repository_root
 
     cli.emit(validate_cast_markers(repository_root()))
+
+
+def check_vectors_command() -> None:
+    """Require newly added W8GrowableVector<void*> lines to justify the type."""
+    from .. import command_support as cli
+    from ..config import repository_root
+    from ..vector_lint import validate_void_vector_elements
+
+    cli.emit(validate_void_vector_elements(repository_root()))
 
 
 def check_tu_placement_command(

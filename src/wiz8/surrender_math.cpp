@@ -59,32 +59,8 @@
 // TEMPLATE: WIZ8 0x00438F90
 // srMatrix3T<float>::RotateAboutY
 
-// FUNCTION: WIZ8 0x0042b910
-template <>
-srMatrix3T<float>* srMatrix3T<float>::RotateAroundAxis(
-    double sine,
-    double cosine,
-    const srVector3T<float>& axis)
-{
-    srVector3T<float> basis[3];
-    srMatrix3T<float> rotation;
-    float one_minus_cosine = 1.0f - (float)cosine;
-
-    basis[0].x = axis.x * axis.x + (1.0f - axis.x * axis.x) * (float)cosine;
-    basis[0].y = axis.x * axis.y * one_minus_cosine - axis.z * (float)sine;
-    basis[0].z = axis.x * axis.z * one_minus_cosine + axis.y * (float)sine;
-    basis[1].x = axis.y * axis.x * one_minus_cosine + axis.z * (float)sine;
-    basis[1].y = axis.y * axis.y + (1.0f - axis.y * axis.y) * (float)cosine;
-    basis[1].z = axis.y * axis.z * one_minus_cosine - axis.x * (float)sine;
-    basis[2].x = axis.z * axis.x * one_minus_cosine - axis.y * (float)sine;
-    basis[2].y = axis.z * axis.y * one_minus_cosine + axis.x * (float)sine;
-    basis[2].z = axis.z * axis.z + (1.0f - axis.z * axis.z) * (float)cosine;
-    rotation.vectors[0] = basis[0];
-    rotation.vectors[1] = basis[1];
-    rotation.vectors[2] = basis[2];
-    MultiplyBy(rotation);
-    return this;
-}
+// TEMPLATE: WIZ8 0x0042B910
+// srMatrix3T<float>::RotateAroundAxis
 
 // TEMPLATE: WIZ8 0x004817E0
 // srVector4T<float>::Set (double arguments; no source caller retains it)

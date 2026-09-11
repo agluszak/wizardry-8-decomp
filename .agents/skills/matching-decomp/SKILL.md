@@ -99,6 +99,21 @@ next source entity or give that entity its own marker. An independently emitted 
 uses `FUNCTION`, a template emission uses `TEMPLATE`; absent a standalone body, use only the
 declaration/inline destructor required by the evidenced hierarchy. Keep `// GLOBAL` at canonical definitions.
 
+## Header visibility and inline
+
+An inlined copy by itself does not place a body in a header or make it `inline` in the source:
+
+- inlined copies in one proven translation unit only: no conclusion about header/source placement;
+- inlined copies in multiple independently proven units with no out-of-line body: strong evidence the
+  body was header-visible;
+- an out-of-line emission plus some inlined copies: ordinary compiler behavior; do not restructure
+  source to reproduce which calls were inlined;
+- never manually inline a body at individual call sites, and never use an explicit specialization,
+  explicit instantiation, or similar mechanism only to force an out-of-line copy.
+
+SGP/DLL exports are declared, never defined inline in a product header: an exported symbol in the
+import surface proves the original call went out of line.
+
 Batch related Ghidra reads in one session. Keep native objects while computing; filter before printing.
 Write large listings/decompilations to named `build/` artifacts and print the useful result/path.
 Do not repeatedly dump whole files or parse textual output when a structured API/result exists.

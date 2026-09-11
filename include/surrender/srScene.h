@@ -34,10 +34,7 @@ public:
     void enable(e_enable option);
     void getAmbientLight(srVector3T<float>& color) const;
     srVector3T<float> getAmbientLight() const;
-    inline void getFogColor(srVector3T<float>& color) const
-    {
-        color = fog_color_180;
-    }
+    void getFogColor(srVector3T<float>& color) const;
     srVector3T<float> getFogColor() const;
     void getStatistics(Statistics& statistics);
     int isEnabled(e_enable option) const;
@@ -63,10 +60,7 @@ public:
         fog_color_180.y = green;
         fog_color_180.z = blue;
     }
-    inline void setFogColor(const srVector3T<float>& color)
-    {
-        fog_color_180 = color;
-    }
+    void setFogColor(const srVector3T<float>& color);
 protected:
     srFlags<e_enable> enabled_138;          /* 0x138 */
     Statistics statistics_140;              /* 0x140 */

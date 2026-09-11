@@ -339,6 +339,12 @@ Trigger* FindTriggerByName(const char* name)
 // VTABLE: WIZ8 0x005ec12c
 // class W8TriggerEvent
 
+W8TriggerEvent::W8TriggerEvent()
+    : action_004(-1), timer_008(), m_pCountdown(0), trigger_030(0),
+      repeat_034(0), completed_035(0)
+{
+}
+
 // SYNTHETIC: WIZ8 0x00440980
 // W8TriggerEvent::`scalar deleting destructor'
 
@@ -349,10 +355,7 @@ W8TriggerEvent::~W8TriggerEvent()
 
 class W8TriggerShakeEvent : public W8TriggerEvent {
 public:
-    W8TriggerShakeEvent()
-        : effect_038(0), intensity_03c(1), reverse_040(0)
-    {
-    }
+    W8TriggerShakeEvent();
     virtual void Update() override;
 
     W8CameraShakeEffect* effect_038;
@@ -366,6 +369,11 @@ static_assert(sizeof(W8TriggerShakeEvent) == 0x44,
 
 // VTABLE: WIZ8 0x005ec140
 // class W8TriggerShakeEvent
+
+W8TriggerShakeEvent::W8TriggerShakeEvent()
+    : effect_038(0), intensity_03c(1), reverse_040(0)
+{
+}
 
 // GLOBAL: WIZ8 0x006599a0
 srVector3T<float> g_trigger_camera_006599a0;

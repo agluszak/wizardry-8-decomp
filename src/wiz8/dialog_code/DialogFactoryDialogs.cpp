@@ -939,6 +939,21 @@ void W8Dialog005CD710::RefreshScrollButtons005CE420()
     }
 }
 
+/* Inlined into HandleInputEvent005CEC20 in this unit; no out-of-line emission
+   survives, so this definition stays in the owning unit rather than the header. */
+void W8Dialog005CD710::SetFirstVisible(int index)
+{
+    if (items_54.GetCount() <= 4) {
+        m_first_item_0a8 = 0;
+        return;
+    }
+    if (index < 0 || index > items_54.GetCount() - 4) {
+        return;
+    }
+    m_first_item_0a8 = index;
+    m_dirty_flags |= 1;
+}
+
 /* Keyboard list navigation. The up/down keys move the first visible row, the
    paging keys jump, the digit keys toggle one of the four visible flags and
    ESC closes the picker. */

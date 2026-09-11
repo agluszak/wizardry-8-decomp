@@ -26,11 +26,11 @@ from .subprocesses import run
 
 MARKER = "reinterpret-ok"
 SCOPE_PREFIXES = ("src/wiz8/", "include/wiz8/")
-_CAST = "reinterpret_cast"
 _GIT_BASES: tuple[str, ...] = ("@{upstream}", "origin/main", "origin/master", "main", "master")
 
 _HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 _MARKER = re.compile(r"reinterpret-ok:\s*\S", re.IGNORECASE)
+_CAST = re.compile(r"reinterpret_cast")
 
 
 class CastGateError(RuntimeError):
@@ -73,7 +73,7 @@ def _jj_base(repository: Path) -> str:
     raise CastGateError("no Jujutsu baseline found; cannot tell which casts the change introduces")
 
 
-def _baseline(repository: Path) -> tuple[str, str]:
+def baseline_diff(repository: Path) -> tuple[str, str]:
     """Return the baseline name and the unified diff from it to the current tree."""
     if (repository / ".jj").is_dir():
         base = _jj_base(repository)
@@ -94,7 +94,14 @@ def _baseline(repository: Path) -> tuple[str, str]:
     return base, diff.stdout
 
 
-def _added_casts(diff: str) -> list[dict[str, Any]]:
+def added_lines_without_marker(
+    diff: str, needle: re.Pattern[str], marker: re.Pattern[str]
+) -> list[dict[str, Any]]:
+    """Added source lines matching ``needle`` that lack ``marker``.
+
+    A line moved between files is recognized by its removed counterpart, so a
+    relocation does not read as a new occurrence.
+    """
     added: list[dict[str, Any]] = []
     removed: Counter[str] = Counter()
     current: str | None = None
@@ -110,15 +117,15 @@ def _added_casts(diff: str) -> list[dict[str, Any]]:
                 if (
                     current
                     and current.startswith(SCOPE_PREFIXES)
-                    and _CAST in content
-                    and not _MARKER.search(content)
+                    and needle.search(content)
+                    and not marker.search(content)
                 ):
                     added.append({"file": current, "line": line_number, "text": stripped[:200]})
                 new_remaining -= 1
                 line_number += 1
             elif raw.startswith("-"):
                 content = raw[1:]
-                if _CAST in content:
+                if needle.search(content):
                     removed[content.strip()] += 1
                 old_remaining -= 1
             elif raw.startswith(" "):
@@ -151,8 +158,8 @@ def _added_casts(diff: str) -> list[dict[str, Any]]:
 
 
 def validate_cast_markers(repository: Path) -> dict[str, Any]:
-    base, diff = _baseline(repository)
-    violations = _added_casts(diff)
+    base, diff = baseline_diff(repository)
+    violations = added_lines_without_marker(diff, _CAST, _MARKER)
     if violations:
         rendered = [f"{item['file']}:{item['line']}: {item['text']}" for item in violations]
         raise CastGateError(

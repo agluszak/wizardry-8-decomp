@@ -17,11 +17,7 @@ struct W8WorldItem;
    its destructor at 0x004409A0 tears down only timer_008. */
 class W8TriggerEvent {
 public:
-    W8TriggerEvent()
-        : action_004(-1), timer_008(), m_pCountdown(0), trigger_030(0),
-          repeat_034(0), completed_035(0)
-    {
-    }
+    W8TriggerEvent();
     virtual ~W8TriggerEvent();
     virtual void Update();
 

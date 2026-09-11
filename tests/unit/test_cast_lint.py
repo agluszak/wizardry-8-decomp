@@ -4,7 +4,17 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from wiz8decomp.cast_lint import CastGateError, _added_casts, validate_cast_markers
+from wiz8decomp.cast_lint import (
+    _CAST,
+    _MARKER,
+    CastGateError,
+    added_lines_without_marker,
+    validate_cast_markers,
+)
+
+
+def _added_casts(diff: str) -> list[dict[str, object]]:
+    return added_lines_without_marker(diff, _CAST, _MARKER)
 
 
 def _diff(path: str, *body: str) -> str:
