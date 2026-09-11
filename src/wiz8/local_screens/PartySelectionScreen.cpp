@@ -2504,6 +2504,10 @@ unsigned char g_portrait_frame_flags_0061cbc0[0x50] = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 };
 
+/* The eight per-slot portrait animation records, cleared at startup. */
+// GLOBAL: WIZ8 0x0068372d
+W8PortraitAnimationState g_portrait_animation_states_68372d[8];
+
 /* Draw one party member's portrait at a screen position. When the caller asks
    for the animated form the frame blitter runs first, and the death,
    in-combat or exhausted state adds the darkened overlay. */
@@ -2526,4 +2530,106 @@ void RenderPartyPortrait0052EB00(
         value != 0) {
         Function4048A0(-0xe, left, top, left + 0x59, top + 0x47);
     }
+}
+
+/* Blit the two animated frame tracks for one party slot and mark the union
+   of each track's old and new frames dirty. The B track draws the current
+   frame and its blend predecessor; the A track draws the frame the animation
+   is moving to, and a dead character stops after the B track. */
+// FUNCTION: WIZ8 0x0052ebe0
+char Function52EBE0(
+    int portrait, int left, int top, int flags, int party_slot, char animate)
+{
+    W8PortraitAnimationState* state =
+        &g_portrait_animation_states_68372d[party_slot];
+    W8ScreenRect rect;
+    W8ScreenRect other;
+    short width;
+    short height;
+    short image_x;
+    short image_y;
+    char drawn = 0;
+
+    if (g_portrait_frame_flags_0061cbc0[portrait] == 0) {
+        return drawn;
+    }
+    if (state->dirty_b_25 != 0 || state->current_b_14 != state->previous_b_10 ||
+        (animate != 0 && state->current_b_14 != 1)) {
+        GetCatalogImageSize(0x12, portrait, state->current_b_14, &width, &height);
+        GetCatalogImagePosition00549700(0x12, portrait, state->current_b_14,
+                                        &image_x, &image_y);
+        rect.left = image_x + left;
+        rect.top = image_y + top;
+        rect.right = width + rect.left;
+        rect.bottom = height + rect.top;
+        if (animate == 0 &&
+            ((g_in_combat_00683f94 != 0 &&
+              g_combat_state->characters[party_slot].flag_34 != 0) ||
+             g_sight_messages_enabled_00683fc5 != 0)) {
+            RenderPartyPortrait0052EB00(portrait, left, top, flags, 0, party_slot);
+        }
+        if (g_party_characters[party_slot].hp_current == 0) {
+            return 1;
+        }
+        DrawCatalogImage(-0xe, 0x12, portrait, state->current_b_14, left, top,
+                         flags | 0x200, 0);
+        drawn = 1;
+        if (state->previous_b_10 != -1) {
+            GetCatalogImageSize(0x12, portrait, state->previous_b_10, &width,
+                                &height);
+            GetCatalogImagePosition00549700(0x12, portrait, state->previous_b_10,
+                                            &image_x, &image_y);
+            other.left = image_x + left;
+            other.top = image_y + top;
+            other.right = width + other.left;
+            other.bottom = height + other.top;
+            UnionScreenRects(&other, &rect, &rect);
+        }
+        Function422EC0(&rect, 1, 0);
+        state->previous_b_10 = state->current_b_14;
+        state->dirty_b_25 = 0;
+    }
+    if (state->dirty_a_26 == 0 && state->current_a_04 == state->previous_a_00 &&
+        (animate == 0 || state->current_a_04 == 6)) {
+        if (drawn == 0) {
+            return 0;
+        }
+    }
+    else {
+        GetCatalogImageSize(0x12, portrait, state->current_a_04, &width, &height);
+        GetCatalogImagePosition00549700(0x12, portrait, state->current_a_04,
+                                        &image_x, &image_y);
+        if (animate == 0 && drawn == 0 && g_in_combat_00683f94 != 0 &&
+            g_combat_state->characters[party_slot].flag_34 != 0) {
+            RenderPartyPortrait0052EB00(portrait, left, top, flags, 0, party_slot);
+        }
+        DrawCatalogImage(-0xe, 0x12, portrait, state->current_a_04, left, top,
+                         flags, 0);
+        rect.left = image_x + left;
+        rect.top = image_y + top;
+        rect.right = width + rect.left;
+        rect.bottom = height + rect.top;
+        drawn = 1;
+        if (state->previous_a_00 != -1) {
+            GetCatalogImageSize(0x12, portrait, state->previous_a_00, &width,
+                                &height);
+            GetCatalogImagePosition00549700(0x12, portrait, state->previous_a_00,
+                                            &image_x, &image_y);
+            other.left = image_x + left;
+            other.top = image_y + top;
+            other.right = width + other.left;
+            other.bottom = height + other.top;
+            UnionScreenRects(&other, &rect, &rect);
+        }
+        Function422EC0(&rect, 1, 0);
+        state->previous_a_00 = state->current_a_04;
+        state->dirty_a_26 = 0;
+    }
+    if (((g_in_combat_00683f94 != 0 &&
+          g_combat_state->characters[party_slot].flag_34 != 0) ||
+         g_sight_messages_enabled_00683fc5 != 0) ||
+        g_party_characters[party_slot].unknown_0b01 == 0x13) {
+        Function4048A0(-0xe, left, top, left + 0x59, top + 0x47);
+    }
+    return drawn;
 }

@@ -1442,6 +1442,32 @@ void GetCatalogImageSize(int object, int frame, int image,
     }
 }
 
+/* The image's own offset inside its frame, read from the video object's ETRLE
+   table; only uncompressed frames carry one. */
+// FUNCTION: WIZ8 0x00549700
+void GetCatalogImagePosition00549700(
+    int object, int frame, int image, short* x, short* y)
+{
+    W8VideoObjectSlot* slot;
+    W8VideoFrame* record;
+    HVOBJECT video_object;
+    short subimage;
+
+    EnsureCatalogFrameLoaded(object, frame);
+    slot = &g_video_slots_6448c8[object];
+    subimage = slot->y_offset + image;
+    record = &g_video_frames_62c430[slot->first_frame + frame];
+    if (!gfVideoObjectsInit) {
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
+                     0xdd, 0);
+    }
+    if (record->mode == 0) {
+        GetVideoObject(&video_object, record->handle);
+        *x = video_object->pETRLEObject[subimage].sOffsetX;
+        *y = video_object->pETRLEObject[subimage].sOffsetY;
+    }
+}
+
 /* Copy a rectangle from one catalog-owned 8-bit surface into a 16-bit target.
    The source rectangle has the destination's extent and begins at the two
    caller-provided source coordinates. Both surfaces remain locked for exactly

@@ -1714,6 +1714,21 @@ void InvalidateRegion(int left, int top, int right, int bottom, unsigned int fla
     }
 }
 
+/* Invalidate each rectangle in a run; a flagged region cancels the rest. */
+// FUNCTION: WIZ8 0x00422ec0
+void Function422EC0(W8ScreenRect* rects, unsigned int count, int flags)
+{
+    unsigned int index;
+
+    for (index = 0; index < count; ++index) {
+        if (g_flags_6596e8[g_index_6596e4] != 0) {
+            return;
+        }
+        InvalidateRegion(rects[index].left, rects[index].top, rects[index].right,
+                         rects[index].bottom, flags);
+    }
+}
+
 /* Coalesces dirty 8x8 cells into rectangular texture updates. Retail keeps the
    software surface locked for the complete batch and clears only the uploaded
    bit, preserving the lower per-cell state for the page lifecycle. */
