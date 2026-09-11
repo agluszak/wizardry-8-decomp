@@ -360,6 +360,98 @@ void ForwardThroughMember3C_46E640(W8World* owner, int argument)
     Function46E640(owner->static_scene, argument);
 }
 
+/* Walk one scene subtree and toggle shader bit 3 on every mesh model of every
+   model instance; the instance's flags_3a0 bit zero selects the off state. */
+// FUNCTION: WIZ8 0x0046e640
+void Function46E640(srNode* node, int argument)
+{
+    Function00424A40();
+    for (; node != 0; node = node->nextSibling()) {
+        if (node->getClassID() == 0x10004) {
+            stModelInstance* instance = static_cast<stModelInstance*>(node);
+            for (stMeshModel* mesh =
+                     static_cast<stMeshModel*>(instance->model());
+                 mesh != 0; mesh = mesh->next) {
+                srShader* polygon_shader = mesh->getPolyShader(0, 0);
+                bool clear = argument == 0 || (mesh->flags_3a0 & 1) != 0;
+
+                if (polygon_shader == 0) {
+                    srShader shader = mesh->getShader(0);
+                    if (clear) {
+                        shader.value &= 0xfffffff7;
+                    }
+                    else {
+                        shader.value |= 8;
+                    }
+                    mesh->setShader(shader, 0);
+                }
+                else if (clear) {
+                    for (long index = 0; index < mesh->polygon_count_230;
+                         ++index) {
+                        polygon_shader[index].value &= 0xfffffff7;
+                    }
+                }
+                else {
+                    for (long index = 0; index < mesh->polygon_count_230;
+                         ++index) {
+                        polygon_shader[index].value |= 8;
+                    }
+                }
+            }
+        }
+        if (node->firstChild() != 0) {
+            Function46E640(node->firstChild(), argument);
+        }
+    }
+}
+
+/* The sibling walker that leaves shader bit 2 clear and writes the low three
+   bits: seven when the argument is zero, otherwise three. */
+// FUNCTION: WIZ8 0x0046e750
+void Function46E750(srNode* node, int argument)
+{
+    Function00424A40();
+    for (; node != 0; node = node->nextSibling()) {
+        if (node->getClassID() == 0x10004) {
+            stModelInstance* instance = static_cast<stModelInstance*>(node);
+            for (stMeshModel* mesh =
+                     static_cast<stMeshModel*>(instance->model());
+                 mesh != 0; mesh = mesh->next) {
+                if ((mesh->flags_3a0 & 1) != 0) {
+                    continue;
+                }
+                srShader* polygon_shader = mesh->getPolyShader(0, 0);
+                if (polygon_shader == 0) {
+                    srShader shader = mesh->getShader(0);
+                    if (argument == 0) {
+                        shader.value |= 7;
+                    }
+                    else {
+                        shader.value = (shader.value & 0xfffffffb) | 3;
+                    }
+                    mesh->setShader(shader, 0);
+                }
+                else if (argument == 0) {
+                    for (long index = 0; index < mesh->polygon_count_230;
+                         ++index) {
+                        polygon_shader[index].value |= 7;
+                    }
+                }
+                else {
+                    for (long index = 0; index < mesh->polygon_count_230;
+                         ++index) {
+                        polygon_shader[index].value =
+                            (polygon_shader[index].value & 0xfffffffb) | 3;
+                    }
+                }
+            }
+        }
+        if (node->firstChild() != 0) {
+            Function46E750(node->firstChild(), argument);
+        }
+    }
+}
+
 /* Release one block back to the renderer's heap rather than the CRT's. */
 // FUNCTION: WIZ8 0x0046f3f0
 void FreeThroughRenderHeap(void* block)

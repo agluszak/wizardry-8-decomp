@@ -1593,32 +1593,59 @@ unsigned char g_flag_65970d;
 // GLOBAL: WIZ8 0x6596ea
 unsigned char g_flag_6596ea;
 /* The initial full-screen invalidation runs before any 2D node occupies the
-   tile table.  Preserve that complete empty-slot path here; the non-empty path
-   remains owned by the 2D-node recovery rather than pretending a partial
-   release/recursive invalidation is complete. */
+   tile table. A cell occupied by a 2D instance releases that instance and
+   recursively invalidates the cells its extent covers; the flags the caller
+   passes only mark this cell. */
 // FUNCTION: WIZ8 0x004259b0
 static void InvalidateDirtyTile004259B0(int cell, unsigned int flags)
 {
-    int left;
-    int top;
-    int right;
-    int bottom;
+    stModelInstance2D* node =
+        static_cast<stModelInstance2D*>(g_surface_nodes_654adc[cell]);
 
-    if (g_surface_nodes_654adc[cell]) {
-        return;
+    if (node != 0) {
+        short position_x = node->right_16c;
+        short position_y = node->bottom_16e;
+        int columns = node->GetWidth00480EF0() >> 3;
+        int rows = node->GetHeight00480F70() >> 3;
+
+        for (int index = 0; index != 0x12c0; ++index) {
+            if (g_surface_nodes_654adc[index] == node) {
+                g_surface_nodes_654adc[index] = 0;
+                g_block_652ddc[index] = 0;
+            }
+        }
+        srMeshModel* model = static_cast<srMeshModel*>(node->model());
+        if (model != 0) {
+            srTextureIFace* texture = model->getTexture(0, 0);
+            if (texture != 0) {
+                texture->invalidate();
+            }
+        }
+        node->release();
+        int start = (position_y >> 3) * 0x50 + (position_x >> 3);
+        for (int row = rows; row != 0; --row) {
+            int row_cell = start;
+            for (int column = columns; column != 0; --column) {
+                InvalidateDirtyTile004259B0(row_cell, 0);
+                ++row_cell;
+            }
+            start += 0x50;
+        }
     }
-    g_block_652ddc[cell] |= static_cast<unsigned char>(flags | 0x40);
+    unsigned char state =
+        g_block_652ddc[cell] | static_cast<unsigned char>(flags) | 0x40;
+    g_block_652ddc[cell] = state;
     ++g_dword_6596d8;
-    top = (cell / 0x50) * 8;
-    bottom = top + 8;
-    left = (cell % 0x50) * 8;
-    right = left + 8;
+    int bottom = (cell / 0x50) * 8 + 8;
+    int top = (cell / 0x50) * 8;
+    int right = (cell % 0x50) * 8 + 8;
+    int left = (cell % 0x50) * 8;
     if (g_flag_65970d
         && ((g_viewport_left_6595e8 <= left && left <= g_viewport_right_6595f0)
             || (g_viewport_left_6595e8 <= right && right <= g_viewport_right_6595f0))
         && ((g_viewport_top_6595ec <= top && top <= g_viewport_bottom_6595f4)
             || (g_viewport_top_6595ec <= bottom && bottom <= g_viewport_bottom_6595f4))) {
-        g_block_652ddc[cell] |= 3;
+        g_block_652ddc[cell] = state | 3;
         g_flag_6596ea = 1;
     }
 }

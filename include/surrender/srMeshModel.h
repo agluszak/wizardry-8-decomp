@@ -119,6 +119,8 @@ public:
     srTextureIFace* getTexture(long polygon, long layer) const;
     void setMaterial(srMaterialIFace* material, long polygon, e_side side);
     void setTexture(srTextureIFace* texture, long polygon, long layer);
+    srShader* getPolyShader(long polygon, long layer);
+    srShader getShader(long polygon) const;
     void setShader(srShader shader, long pass);
     void setUVCount(long count);
     void setActivePolygonCount(long count);
