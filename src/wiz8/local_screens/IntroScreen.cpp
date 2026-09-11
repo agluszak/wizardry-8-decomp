@@ -27,7 +27,8 @@ unsigned char g_flag_689b2c;
 
 extern void ContinueAfterDarkEndingVideo005AE770(void);
 
-int g_intro_video_index_0064d8ac = 6;
+// GLOBAL: WIZ8 0x0064d8ac
+unsigned long g_intro_video_index_0064d8ac = 6;
 static const char g_intro_video_names[7][40] = {
     "Wizardry8.bik",
     "unaligned.bik",
@@ -203,11 +204,8 @@ unsigned char IntroScreenRegionEvent(const W8RegionEvent* event, W8Region* regio
     return 1;
 }
 
-// GLOBAL: WIZ8 0x0064d8ac
-unsigned long g_value_64d8ac = 6;
-
 // FUNCTION: WIZ8 0x005AE9C0
 void SetValue64D8AC(unsigned long value)
 {
-    g_value_64d8ac = value;
+    g_intro_video_index_0064d8ac = value;
 }
