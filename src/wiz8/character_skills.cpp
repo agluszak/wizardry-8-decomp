@@ -1,4 +1,5 @@
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/character.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/local_screens/CharacterScreen.h"
@@ -217,6 +218,68 @@ bool IsCharacterSkillAvailable(
         }
     }
     return true;
+}
+
+/* Rebuild each attribute's effective value from its base and the modifier
+   block's seven adjustment bytes, clamped to one through 125, and then every
+   skill's base level from the attribute pair g_skill_attributes names. The
+   equipment refresh runs after each attribute so its use checks see the new
+   value. */
+// FUNCTION: WIZ8 0x005539e0
+void ResetCharacterAttributes005539E0(W8Character* character)
+{
+    unsigned int index;
+
+    for (index = 0; index < 7; ++index) {
+        int value =
+            static_cast<signed char>(character->bonus_1770.unknown_0c[index]) +
+            character->attributes[index].value;
+        if (value > 0x7d) {
+            value = 0x7d;
+        }
+        else if (value < 1) {
+            value = 1;
+        }
+        character->attributes[index].effective = value;
+        Function51D960(character);
+    }
+    for (index = 0; index < 0x29; ++index) {
+        int first = g_skill_attributes[index].unknown_04;
+        int second = g_skill_attributes[index].unknown_08;
+        character->skills[index].base_level_0a =
+            (character->attributes[first].value +
+             character->attributes[second].value) >> 1;
+    }
+}
+
+/* Rebuild every skill level from the value already spent on it, the
+   profession's bonus skill and the race and profession adjustment bytes the
+   modifier block carries, clamped to zero through 125. The equipment refresh
+   runs after each skill for the same reason. */
+// FUNCTION: WIZ8 0x00553a60
+void ResetCharacterSkills00553A60(W8Character* character)
+{
+    unsigned int index;
+
+    for (index = 0; index < 0x29; ++index) {
+        int value = character->skills[index].value_02;
+        if (index == (unsigned int)g_profession_bonus_skills[character->current_profession]) {
+            unsigned int bonus = (unsigned int)(value * 0x19) / 100;
+            if (bonus == 0) {
+                bonus = 1;
+            }
+            value += bonus;
+        }
+        value += static_cast<signed char>(character->bonus_1770.unknown_13[index]);
+        if (value > 0x7d) {
+            value = 0x7d;
+        }
+        else if (value < 0) {
+            value = 0;
+        }
+        character->skills[index].level = value;
+        Function51D960(character);
+    }
 }
 
 /* Average the two attribute values g_skill_attributes names for every skill
