@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -254,6 +255,7 @@ def register(app: typer.Typer) -> None:
     app.command("addr")(address_command)
     app.command("runtime-test")(runtime_test_command)
     app.command("verify")(verify_command)
+    app.command("debug")(debug_command)
     app.add_typer(analyze_app, name="analyze")
     app.add_typer(generate_app, name="generate")
     app.command("check-build-dir", hidden=True)(check_build_dir_command)
@@ -312,6 +314,21 @@ def runtime_stubs_command() -> None:
     from ..runtime_stubs import write_runtime_stubs
 
     cli.emit(write_runtime_stubs(cli.settings()))
+
+
+def debug_command(
+    arguments: Annotated[
+        list[str] | None,
+        typer.Argument(help="Runtime product arguments."),
+    ] = None,
+) -> None:
+    """Debug the runtime product through a deterministic GDB session."""
+    from .. import command_support as cli
+    from ..debugger import run_debugger
+
+    result = run_debugger(cli.settings(), list(arguments or []))
+    sys.stdout.write(result["report"])
+    sys.stderr.write(f"reason: {result['reason']}\nraw gdb: {result['log']}\n")
 
 
 def crash_report_command(
