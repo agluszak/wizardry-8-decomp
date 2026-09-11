@@ -349,7 +349,7 @@ void MonsterAimAtMonster004C62C0(
 void MonsterSetCycle(W8Monster* monster, signed char cycle);
 void SetFlag6081E4(unsigned char value);
 void UpdateNearestMonsterGroupMembers004CA570();
-extern "C" void Function4C5810(W8Monster* monster);
+void Function4C5810(W8Monster* monster);
 
 static_assert(
     sizeof(W8Monster) == 0x348,

@@ -21,7 +21,6 @@
    bodies are the surrounding attribution gaps placed with their asserted
    companion. */
 
-extern "C" {
 // GLOBAL: WIZ8 0x005ec1a8
 float g_float_005ec1a8 = -0.3333333432674408f;
 // GLOBAL: WIZ8 0x005ebc58
@@ -30,7 +29,6 @@ float g_float_005ebc58 = 1.0000000116860974e-07f;
 float g_float_005ec028 = 1.0099999904632568f;
 // GLOBAL: WIZ8 0x005ec1a0
 float g_float_005ec1a0 = 0.9959999918937683f;
-}
 
 // GLOBAL: WIZ8 0x00659a58
 int g_integrated_trigger_count_00659a58;

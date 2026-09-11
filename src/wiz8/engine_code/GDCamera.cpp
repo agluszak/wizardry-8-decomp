@@ -7,12 +7,10 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/IntervalGate.h"
 #include "wiz8/float_constants.h"
-extern "C" {
 // GLOBAL
 float g_float_005ebb38;
 // GLOBAL
 float g_float_005ebc7c;
-}
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/utility.h"
 

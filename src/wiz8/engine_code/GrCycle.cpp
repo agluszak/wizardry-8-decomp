@@ -5,7 +5,6 @@
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/float_constants.h"
 #include "random.h"
-extern "C" {
 // GLOBAL: WIZ8 0x005ebc3c
 float g_float_005ebc3c = 0.10000000149011612f;
 // GLOBAL: WIZ8 0x005ec390
@@ -14,7 +13,6 @@ float g_float_005ec390 = 0.8999999761581421f;
 float g_float_005ec5c0 = 0.30000001192092896f;
 // GLOBAL: WIZ8 0x005ec5c4
 float g_float_005ec5c4 = 0.699999988079071f;
-}
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/stLight.h"
 #include "wiz8/engine_code/stModelInstance.h"

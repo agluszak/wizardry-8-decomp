@@ -13,12 +13,10 @@
 #include "wiz8/factions.h"
 #include "wiz8/targeting.h"
 #include "wiz8/npc_interaction.h"
-extern "C" {
 // GLOBAL: WIZ8 0x006840b7
 int g_picked_group_006840b7;
 // GLOBAL: WIZ8 0x006840b3
 int g_target_state_6840b3;
-}
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/game_status.h"

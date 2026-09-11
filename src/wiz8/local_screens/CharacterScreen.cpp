@@ -27,11 +27,9 @@
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
 
-extern "C" {
 #include "input.h"
 #include "Types.h"
 #include "mousesystem.h"
-}
 
 #include "Font.h"
 

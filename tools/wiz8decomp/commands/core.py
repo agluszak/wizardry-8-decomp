@@ -258,6 +258,7 @@ def register(app: typer.Typer) -> None:
     app.command("check-reccmp", hidden=True)(check_reccmp_command)
     app.command("check-casts", hidden=True)(check_casts_command)
     app.command("check-vectors", hidden=True)(check_vectors_command)
+    app.command("check-c-linkage", hidden=True)(check_c_linkage_command)
     app.command("check-tu-placement", hidden=True)(check_tu_placement_command)
     app.command("check-identities", hidden=True)(check_identities_command)
     app.command("check-structures", hidden=True)(check_structures_command)
@@ -371,6 +372,15 @@ def check_vectors_command() -> None:
     from ..vector_lint import validate_void_vector_elements
 
     cli.emit(validate_void_vector_elements(repository_root()))
+
+
+def check_c_linkage_command() -> None:
+    """Fail on extern "C" outside the SGP bridge or a marked C boundary."""
+    from .. import command_support as cli
+    from ..config import repository_root
+    from ..linkage_lint import validate_c_linkage
+
+    cli.emit(validate_c_linkage(repository_root()))
 
 
 def check_tu_placement_command(

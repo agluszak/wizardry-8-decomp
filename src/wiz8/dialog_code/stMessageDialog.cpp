@@ -13,9 +13,9 @@
 #include <stdlib.h>
 #include <wchar.h>
 
-extern "C" int g_dialog_font_64fde8;
-extern "C" unsigned char g_dialog_font_foreground_64fdec;
-extern "C" unsigned char g_dialog_font_background_64fded;
+extern int g_dialog_font_64fde8;
+extern unsigned char g_dialog_font_foreground_64fdec;
+extern unsigned char g_dialog_font_background_64fded;
 
 /* Dialog Code\stMessageDialog.cpp. SetMessage and WrapMessage assert this
    unit (lines 131 and 213); the two button callbacks are proven by their

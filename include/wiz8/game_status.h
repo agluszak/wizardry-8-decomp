@@ -2,9 +2,7 @@
 
 #include "Types.h"
 
-extern "C" {
 #include "gameloop.h"
-}
 
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/gameplay_modifiers.h"

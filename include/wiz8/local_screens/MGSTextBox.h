@@ -21,9 +21,7 @@ struct W8MessageStorageRecord {
 static_assert(sizeof(W8MessageStorageRecord) == 0x24,
               "W8MessageStorageRecord_must_be_0x24");
 
-extern "C" {
 extern W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
-}
 
 void Function58FD30(void);
 void ScrollTextBoxToCursor(void);

@@ -25,7 +25,7 @@
 #define VIDEO_NO_CURSOR				0xFFFF
 
 #ifdef __cplusplus
-extern "C" {
+extern "C" {  // C-LINKAGE: the SGP video manager interface that src/sgp/*.c references
 #endif
 
 extern HWND										ghWindow;

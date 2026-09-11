@@ -1,7 +1,6 @@
 #include "wiz8/engine_code/OctPreTree.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/float_constants.h"
-extern "C" {
 // GLOBAL: WIZ8 0x005ebc70
 double g_double_005ebc70 = 0.0001;
 // GLOBAL: WIZ8 0x005ebc90
@@ -10,16 +9,13 @@ float g_float_005ebc90 = 9.999999747378752e-05f;
 float g_float_005ec410 = 0.3333333432674408f;
 // GLOBAL: WIZ8 0x005ec414
 float g_float_005ec414 = 0.9998999834060669f;
-}
 
 #include <math.h>
 #include <string.h>
 
-extern "C" W8OctPreTree004679E0* g_oct_pre_tree_659c74;
-extern "C" {
+extern W8OctPreTree004679E0* g_oct_pre_tree_659c74;
 // GLOBAL: WIZ8 0x00659c74
-W8OctPreTree004679E0* g_oct_pre_tree_659c74;
-}
+extern W8OctPreTree004679E0* g_oct_pre_tree_659c74;
 
 /* The build-time runtime tree extends the ordinary 0x29c octree with transfer
    bookkeeping and one separately owned pointer vector.  Its only recovered

@@ -31,7 +31,7 @@ char IsCurrentMusicPlaylist(const char* playlist)
 
 /* Builds the named playlist object before the screen loop begins. */
 // FUNCTION: WIZ8 0x0048f940
-extern "C" unsigned char InitializeMusicPlaylist(void)
+unsigned char InitializeMusicPlaylist(void)
 {
     g_music_playlist_65ba74 = new stScript();
     if (g_music_playlist_65ba74) {
@@ -157,7 +157,7 @@ void ServiceMusicPlaylist0048F9E0(void)
 }
 
 // FUNCTION: WIZ8 0x0048FC10
-extern "C" unsigned char StartMusicResource0048FC10(
+unsigned char StartMusicResource0048FC10(
     const char* resource, int fade, int replace_current)
 {
     char path[260];

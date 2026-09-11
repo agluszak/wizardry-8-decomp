@@ -285,7 +285,6 @@ unsigned int Function553EE0(W8Character* character, int skill_id)
    same answer rather than compounding. */
 #include "wiz8/character.h"
 #include "wiz8/layouts/gameplay_databases.h"
-extern "C" {
 /* The profession databases and per-skill attribute records. Contents are the
    retail tables at 0x00615570..0x0061634c; the five profession arrays share
    one contiguous block with the skill-attribute records. -1 in a skill slot
@@ -409,4 +408,3 @@ int g_profession_skills[15][4] = {
 int g_profession_magic_level_offsets[15] = {
     -255, -4, -4, -4, -4, -4, -4, -255, -255, -255, 0, 0, 0, 0, 0,
 };
-}

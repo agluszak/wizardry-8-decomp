@@ -370,7 +370,7 @@ unsigned int __stdcall OctreeTraverseKind12(
 extern W8Octree* g_octree_6598a4;
 
 /* The SGP /NOOCT startup switch sets this flag; an Octree-unit body reads it. */
-extern "C" void NoOct(void);
+extern "C" void NoOct(void);  // C-LINKAGE: src/sgp/sgp.c invokes the /NOOCT switch
 extern unsigned char g_flag_6598a8;
 
 unsigned char __stdcall IsNavigatorAtTarget004347D0(W8NavigatorMovementState* movement);
@@ -397,7 +397,7 @@ unsigned int FindMonsterLocationsInBox0042F280(
 void __stdcall Function42E650(unsigned short location_id);
 unsigned int __stdcall OctreeTraverse(
     void* walker, void* arg_2, void* arg_3, int kind, unsigned int limit);   /* 0x0042F280 */
-extern "C" void LeaveLocation0042E880(unsigned short location_id, int reason);
+void LeaveLocation0042E880(unsigned short location_id, int reason);
 
 void ApplyLevelName00432B80(const char* name);
 int GetSectorForPosition00430BF0(const srVector3T<float>* position);

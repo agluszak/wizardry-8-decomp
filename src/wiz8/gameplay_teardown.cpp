@@ -3,7 +3,6 @@
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/startup_runtime_state.h"
 
-extern "C" {
 
 // FUNCTION: WIZ8 0x0054b0b0
 void DestroyGameplayObjects(void)
@@ -20,4 +19,3 @@ void DestroyGameplayObjects(void)
     }
 }
 
-}

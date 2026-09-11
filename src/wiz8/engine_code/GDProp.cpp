@@ -6,10 +6,8 @@
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/float_constants.h"
-extern "C" {
 // GLOBAL: WIZ8 0x005ebccc
 float g_float_005ebccc = 0.75f;
-}
 #include "wiz8/item_spawning.h"
 #include "wiz8/engine_code/stMeshModel.h"
 

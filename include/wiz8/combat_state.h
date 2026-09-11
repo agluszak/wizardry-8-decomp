@@ -158,13 +158,11 @@ struct W8CombatState {
 static_assert(sizeof(W8CombatState) == 0xa64, "W8CombatState_must_be_0xa64");
 #pragma pack(pop)
 
-extern "C" {
 
 extern W8CombatState* g_combat_state;    /* 0x006836A8 */
 extern unsigned int g_combat_countdown_6850b0; /* 0x006850B0 */
 extern W8CharacterClassRecord* g_character_class_records; /* 0x0065BDE0 */
 
-}
 
 /* These are the two heap-buffer fields at the head of gXStatus, not separate
    globals.  Their retail addresses are the addresses of those pointer fields. */

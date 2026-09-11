@@ -17,7 +17,6 @@ struct W8VideoFrame {
 };
 #pragma pack(pop)
 
-extern "C" {
 
 extern W8VideoObjectSlot g_video_slots_6448c8[494];
 extern W8VideoFrame g_video_frames_62c430[1658];
@@ -38,7 +37,6 @@ unsigned char BlitCatalogSurfaceRectTo16BPP(
 void EnsureCatalogFrameLoaded(int object, int frame);
 unsigned short* CopyCatalogImagePalette16BPP(int object, int frame);
 
-}
 
 void ReleaseLoadedVideoFrames(void);
 

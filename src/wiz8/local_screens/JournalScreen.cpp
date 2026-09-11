@@ -19,11 +19,9 @@
 
 #include "Font.h"
 
-extern "C" {
 #include "input.h"
 #include "Types.h"
 #include "mousesystem.h"
-}
 
 #include <new>
 #include <stdlib.h>

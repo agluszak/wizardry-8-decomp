@@ -46,13 +46,11 @@ static_assert(sizeof(W8MaterialMapper00482010) == 0x1c,
 
 extern W8MaterialMapper00482010 g_material_mapper_00659738;
 
-extern "C" {
 extern EnvironmentColour g_environment_colours_65a178[256];
 extern EnvironmentColour g_environment_colours_65ad98[256];
 
 class stLight;
 void AddEnvironmentLight00483F30(stLight* light);
-}
 
 BOOLEAN ReadLightColourTable00482F90(int hFile);
 BOOLEAN ReadEnvironmentColourTable004830D0(int hFile);

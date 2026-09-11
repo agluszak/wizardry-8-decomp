@@ -68,12 +68,10 @@ extern int g_dword_6596f0;
 /* The cursor mapping scale Video2.cpp owns; render-option scaling writes it. */
 extern float g_surface_scale_659680;
 
-extern "C" {
 /* Engine Code\Quality.cpp seeds the clock, the mapper constructor reseeds it,
    and the texture scrollers read the shared scaled delta. */
 extern unsigned int g_frame_tick_65a154;
 extern float g_frame_elapsed_65a158;
-}
 
 extern int g_surface_state_6595dc;
 extern int g_surface_state_654ad8;
@@ -84,7 +82,7 @@ extern int g_viewport_bottom_6595f4;
 extern int g_dword_6596d8;
 extern int g_resident_texture_policy_659714;
 extern unsigned char g_monster_shadow_updates_enabled_0065970c;
-extern "C" unsigned char g_flag_65970d;
+extern unsigned char g_flag_65970d;
 
 void SetRenderOption(int option, int enabled);
 unsigned char LoadRenderOptions0047B890(int handle);

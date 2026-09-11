@@ -17,7 +17,6 @@
 // GLOBAL: WIZ8 0x0065beaf
 unsigned char g_flag_65beaf;
 
-extern "C" {
 
 // GLOBAL: WIZ8 0x006835f4
 int g_calligraphy_shadow_font_6835f4;
@@ -87,7 +86,6 @@ unsigned short* g_font_palette_wiz_text_68ee14;
 unsigned short* g_font_palette_calligraphy_shadow_68ee18;
 unsigned short* g_font_state_palettes_68ee1c[15];
 
-}
 
 /* The game-specific font catalog layered over SGP's source-owned font and
    video-object managers.  The individual globals are intentional: consumers

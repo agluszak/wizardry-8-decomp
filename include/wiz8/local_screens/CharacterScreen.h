@@ -14,9 +14,7 @@
 #include "wiz8/local_code/CharGeneration.h"
 #include "wiz8/vector.h"
 
-extern "C" {
 #include "input.h"
-}
 
 class W8DialogBase;
 class W8CharacterScreen;

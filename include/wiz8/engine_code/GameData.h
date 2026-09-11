@@ -1,14 +1,8 @@
 #pragma once
 
-#include "Types.h"
-enum { TIMER_SUSPEND = 1, TIMER_RESUME = 8 };
+#include "wiz8/sgp_bridge.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-float MoveTimer(INT32 action);
-#ifdef __cplusplus
-}
+#include "Types.h"
 
 extern unsigned char g_flag_00652dce;
 
@@ -161,5 +155,3 @@ float SettlePositionToGround00420BD0(
     const srVector3T<float>* position, unsigned char* hit);
 
 void ClearLevelDataFlags5To7(void); /* 0x0041F0C0 */
-
-#endif // __cplusplus

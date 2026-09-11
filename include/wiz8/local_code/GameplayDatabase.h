@@ -8,7 +8,6 @@ void InitializeGameplayRuntimeObjects(void);
 unsigned char Function54A760(W8MonsterRecord** records);
 unsigned char InitializeSpellDatabase(void);
 
-extern "C" {
 
 extern unsigned char g_status_block_685078[56];
 class W8GameTimer;
@@ -36,6 +35,5 @@ void Function54B100(void);
 void Function54B300(unsigned int slot);
 void Function54B560(void);
 
-}
 
 void Function54B250(unsigned char notify, const wchar_t* target);

@@ -90,20 +90,26 @@ that as the reference example for "missing virtual slot" triage.
   `IsAmbientSoundMuted`, `GetMonsterByLocationID`, `GetCameraPosition`,
   `GetCameraYawRadians`, and `W8CameraMatrixRow004D6930`.
 
-## Open item 3: `ReleaseMeshModelInternal004729F0`
+## Open item 3: `FinalizeVertexFrameInternal004729F0`
 
-- Declared in `stMeshModel.h` as `void ReleaseMeshModelInternal004729F0(
-  stMeshModel*)`; called by the `ReleaseMeshModel` forwarder at `0x473180`.
-- Decomp: `build/cleanup/recovery2/004729f0.c` (270 lines).
-- **Signature blocker**: Ghidra reports
-  `__thiscall(srMeshModel* param_1, int param_2, undefined4 param_3)` with two
-  stack arguments, while the existing declaration and forwarder pass one.
-  Disassemble `0x473180` first and reconcile the real argument list.
-- Body outline: allocates a polygon remap through
-  `getPolyVertex` / `srHeap::allocate(polygon_count_230 * 0xc)`, rebuilds the
-  vertex remap via helper `FUN_00471930`, and rewrites the polygon/vertex
-  tables under `param_1[1].unknown_1c_ + 0x20`. Several `stMeshModel` table
-  fields are only partly modelled, so type those before transcription.
+- The forwarder at `0x473180` is `__thiscall stMeshModel::
+  FinalizeVertexFrame00473180(int frame)`, not a `ReleaseMeshModel` free
+  function. Its body (`MOV EAX,[ESP+4]; PUSH EAX; CALL 0x4729F0; RET 4`) is
+  now recovered and exact; the stale `ReleaseMeshModel` /
+  `ReleaseMeshModelInternal004729F0` declarations were retired.
+- The single caller, `ReadSingleLevelMeshBody00485C10` at `0x486580`, sets
+  `ECX` to the mesh model and pushes the frame index, so the target
+  `0x4729F0` takes exactly one stack argument (`this, int frame`). Ghidra's
+  old third parameter was an artifact of the missing frame pointer; the live
+  prototypes have been corrected.
+- Decomp: `build/cleanup/finalizer-004729f0.c` (586 instructions).
+- Body outline: computes face normals and packs them into the model's
+  per-frame tables at `param_2`, allocating a polygon remap through
+  `getPolyVertex` / `srHeap::allocate(polygon_count_230 * 0xc)`, rebuilding
+  the vertex remap via helper `FUN_00471930(this, frame, 1, table)`, and
+  writing the packed tables through the `vp_exref` virtual interface.
+  Several `stMeshModel` table fields at `+0x3d4`, `+0x30`, and `+0x34` are
+  only partly modelled, so type those before transcription.
 
 ## Backlog (lower priority)
 

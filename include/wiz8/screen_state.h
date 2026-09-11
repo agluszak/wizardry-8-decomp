@@ -2,9 +2,7 @@
 
 #include "vobject.h"
 #include "Types.h"
-extern "C" {
 #include "gameloop.h"
-}
 
 enum {
     W8_SCREEN_INTRO = 0,

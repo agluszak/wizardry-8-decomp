@@ -82,6 +82,7 @@ unsigned char AddAmbientSound0047A790(
 void SaveAmbientSoundList0047B140(HWFILE handle);
 
 bool IsAmbientSoundMuted(void);
+unsigned char GetFlag6850F6(void);
 void SetAmbientSoundVolume0047AD00(unsigned char volume);
 void SetAmbientSoundMuted(unsigned char muted);
 

@@ -222,10 +222,8 @@ public:
 static_assert(sizeof(W8MainGameScreen005EEBD8) == 0x178,
               "W8MainGameScreen005EEBD8_size");
 
-extern "C" {
 extern W8LevelRuntimeBlock* g_level_block;
 extern W8MainGameScreen005EEBD8* g_main_game_screen_0068f2d4;
-}
 
 class W8DialogBase;
 extern W8DialogBase* g_modal_owner_0068edd0;

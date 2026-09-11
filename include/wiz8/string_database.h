@@ -2,7 +2,6 @@
 
 #include "wiz8/text_types.h"
 
-extern "C" {
 
 unsigned char GetStringFromStringDatabase(
     const char* path,
@@ -12,4 +11,3 @@ unsigned char GetStringFromStringDatabase(
     unsigned int* metadata_00);
 void ShowString(W8WideChar* text);
 
-}

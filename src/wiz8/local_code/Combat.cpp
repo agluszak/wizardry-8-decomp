@@ -8,12 +8,10 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/npc_interaction.h"
-extern "C" {
 // GLOBAL
 W8CombatState* g_combat_state;
 // GLOBAL: WIZ8 0x006850b0
 unsigned int g_combat_countdown_6850b0;
-}
 #include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"

@@ -312,7 +312,6 @@ struct W8RPCSlot {
 
 #pragma pack(pop)
 
-extern "C" {
 
 extern W8RaceResistanceProfile g_race_resistance_profiles[];
 extern int g_profession_skill_availability[0x29][15];
@@ -357,7 +356,6 @@ unsigned char IsCharacterSkillAvailable(
 void RecalculateCharacterResistances(W8Character* character);
 int SumCharacterSpellPoints(const W8Character* character);
 
-}
 
 struct W8PortraitDescriptor {
     int group;

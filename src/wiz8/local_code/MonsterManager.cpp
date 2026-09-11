@@ -14,7 +14,6 @@
 #include "wiz8/game_status.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/monster_runtime.h"
-extern "C" {
 // GLOBAL
 W8CharacterClassRecord* g_character_class_records;
 // GLOBAL: WIZ8 0x006840c7
@@ -28,7 +27,6 @@ int g_monster_info_iterator_index;
 W8WideChar g_monster_name_buffer[22];
 // GLOBAL: WIZ8 0x006875ef
 unsigned char g_alternate_name_slot;
-}
 #include "wiz8/notices.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/utility.h"

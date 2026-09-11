@@ -107,11 +107,9 @@ enum {
 unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect);
 unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect);
 
-extern "C" {
 extern int g_target_state_6840b3;
 extern int g_picked_group_006840b7;
 void ResetTargetingState(void);
-}
 
 
 unsigned char GetFactionFlag(char faction);

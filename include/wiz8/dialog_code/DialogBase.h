@@ -5,7 +5,7 @@
 
 class W8DialogBase;
 typedef void (*W8DialogDestroyCallback)(W8DialogBase* dialog);
-extern "C" void SetDialogDestroyCallback(
+void SetDialogDestroyCallback(
     W8DialogBase* dialog, W8DialogDestroyCallback callback);
 
 /* Names describe recovered roles; retail does not expose their original

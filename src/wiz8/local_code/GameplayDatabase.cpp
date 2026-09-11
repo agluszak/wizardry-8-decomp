@@ -13,12 +13,10 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/factions.h"
 #include "wiz8/npc_state.h"
-extern "C" {
 // GLOBAL: WIZ8 0x006850b5
 unsigned char g_party_moving_006850b5;
 // GLOBAL: WIZ8 0x00685078
 unsigned char g_status_block_685078[56];
-}
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/startup_runtime_state.h"
 #include "wiz8/character.h"

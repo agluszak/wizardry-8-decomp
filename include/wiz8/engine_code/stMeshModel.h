@@ -33,6 +33,7 @@ public:
     void Function5AA400(stMeshModel* linked_model);
     void InitializeVertexFrames00473B00(int frame_count);
     void FinalizeVertexFrame00473180(int frame);
+    void FinalizeVertexFrameInternal004729F0(int frame);
     void ClearAutomapPolygonFilter();
     void ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* excluded_textures);
 
@@ -68,7 +69,4 @@ static_assert(sizeof(stMeshModel) == 0x464,
 
 int FindMappedIndexInMeshChain(
     stMeshModel** mesh, int key);          /* 0x004A8D10 */
-
-void ReleaseMeshModelInternal004729F0(stMeshModel* model); /* 0x004729F0 */
-void ReleaseMeshModel(stMeshModel* model);                 /* 0x00473180 */
 
