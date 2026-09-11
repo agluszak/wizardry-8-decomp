@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Types.h"
 #include "surrender/srVertexProcessor.h"
 
 struct W8World;
@@ -53,8 +54,8 @@ class stLight;
 void AddEnvironmentLight00483F30(stLight* light);
 }
 
-unsigned char ReadLightColourTable00482F90(int hFile);
-unsigned char ReadEnvironmentColourTable004830D0(int hFile);
+BOOLEAN ReadLightColourTable00482F90(int hFile);
+BOOLEAN ReadEnvironmentColourTable004830D0(int hFile);
 void BuildEnvironmentColourRamp00483210(void);
 void BuildLightColourRamp00483360(void);
 void UpdateEnvironmentLight004834B0(void);
@@ -62,16 +63,16 @@ void RefreshEnvironment00483560(void);
 void SetWorldEnvironmentColour00483A60(
     W8World* world, EnvironmentColour colour);
 
-void SetSkyEnabled(unsigned char enabled);
+void SetSkyEnabled(bool enabled);
 void EnableSky(void);
-void SetFogEnabled(unsigned char enabled);
-unsigned char IsFogEnabled(void);
+void SetFogEnabled(bool enabled);
+bool IsFogEnabled(void);
 void DisableSky(void);
-unsigned char IsSkyEnabled(void);
+bool IsSkyEnabled(void);
 void GetWorldLightValue(const void* world, int* light_value);
 void SetLightDirection(const int* direction);
 void GetLightDirection(int* direction);
-extern unsigned char g_sky_enabled_0065b9ae;
+extern bool g_sky_enabled_0065b9ae;
 void ResetEnvironment(void);
 void InitializeLevelEnvironment00482410(void);
 /* Apply one day-phase colour and intensity to the world, its environment
@@ -95,7 +96,7 @@ void Function4836A0(void);
 void SetViewDistance(float distance);
 
 extern int g_environment_value_0060a3a8;
-extern unsigned char g_fog_enabled_0065b9ad;/* Zero unless the environment update is bypassed, in which case 0x00484300
+extern bool g_fog_enabled_0065b9ad;/* Zero unless the environment update is bypassed, in which case 0x00484300
    runs instead. */
 extern float g_environment_value_0065b9b8;
 /* Last day phase the light direction and the world colour came from. */

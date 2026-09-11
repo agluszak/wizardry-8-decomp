@@ -106,7 +106,7 @@ srNode* W8Item::GetMesh()
 /* Raise or clear the selected representation flags and return the resulting
    flag word. */
 // FUNCTION: WIZ8 0x0049F310
-unsigned int W8ItemRep::SetFlags(unsigned int mask, unsigned char enabled)
+unsigned int W8ItemRep::SetFlags(unsigned int mask, bool enabled)
 {
     if (enabled != 0) {
         flags |= mask;

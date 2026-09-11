@@ -1,6 +1,7 @@
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/dialog_code/DialogBase.h"
+#include "wiz8/dialog_code/DialogInterface.h"
 
 #include "wiz8/utility.h"
 
@@ -14,10 +15,6 @@
 
 // GLOBAL: WIZ8 0x0069CA28
 int g_dword_69ca28;
-extern "C" int g_dialog_font_64fde8;
-extern "C" unsigned char g_dialog_font_enabled_69ca32;
-extern "C" unsigned char g_dialog_font_foreground_64fdec;
-extern "C" unsigned char g_dialog_font_background_64fded;
 
 
 // FUNCTION: WIZ8 0x005dc7a0

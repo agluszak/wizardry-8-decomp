@@ -13,4 +13,4 @@ extern W8NpcState* g_npc_state_68c4ac;
 unsigned char Function525DD0(void);
 unsigned char Function525DF0(unsigned char require_group_entry);
 
-unsigned char IsPartySlotEligible00524A10(int slot);
+bool IsPartySlotEligible00524A10(int slot);

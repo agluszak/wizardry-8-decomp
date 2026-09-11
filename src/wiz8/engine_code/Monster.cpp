@@ -3766,7 +3766,7 @@ signed char W8Monster::GetNumSubCycles()
 /* W8Monster stores its animation object immediately after the shared
    0x1d8-byte GrCycle base. */
 // FUNCTION: WIZ8 0x004c3740
-unsigned char W8Monster::IsCycleSupported(signed char cycle)
+bool W8Monster::IsCycleSupported(signed char cycle)
 {
     if (cycle >= W8_MONSTER_CYCLE_COUNT) {
         srAssertFail(
@@ -4732,13 +4732,13 @@ void UpdateMonster(W8Monster* monster)
 }
 
 // FUNCTION: WIZ8 0x004c5a80
-unsigned char MonsterIsCycleSupported(
+bool MonsterIsCycleSupported(
     W8Monster* monster, signed char cycle)
 {
     if (monster != 0) {
         return monster->IsCycleSupported(cycle);
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x004c5b10

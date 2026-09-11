@@ -50,11 +50,11 @@ public:
 class W8CampCharacterInfo : public Controls, public W8TextControl::Listener {
 public:
     W8CampCharacterInfo();
-    virtual void SetEnabled(unsigned char enabled) override;
+    virtual void SetEnabled(bool enabled) override;
     virtual void Redraw() override;
     virtual void OnPrimary(W8TextControl* control) override;
-    void SetCombatView(unsigned char enabled);
-    unsigned char m_combat_view;
+    void SetCombatView(bool enabled);
+    bool m_combat_view;
     unsigned char m_pad_051[3];
     W8TextControl* m_button_054;
     W8TextControl* m_button_058;

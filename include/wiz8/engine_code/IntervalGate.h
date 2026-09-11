@@ -8,17 +8,17 @@ class W8IntervalGate : public W8GameTimer {
 public:
     W8IntervalGate();                                  /* 0x0043A4E0 */
     W8IntervalGate(
-        float duration, unsigned char raw_time, unsigned char set_flag_2);
+        float duration, unsigned char raw_time, bool set_flag_2);
                                                         /* 0x0043A500 */
     virtual ~W8IntervalGate() override;               /* 0x004218D0 */
     void Arm();                              /* 0x0043A530 */
     unsigned int PollElapsedIntervals();                      /* 0x0043A5D0 */
-    unsigned char IsFinished() const { return m_finished; }
-    unsigned char Load(int handle);
-    unsigned char Save(int handle);
+    bool IsFinished() const { return m_finished; }
+    BOOLEAN Load(int handle);
+    BOOLEAN Save(int handle);
 
 private:
-    unsigned char m_finished;                     /* 0x024 */
+    bool m_finished;                     /* 0x024 */
     unsigned char m_padding_025[3];
 };
 

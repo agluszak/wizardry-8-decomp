@@ -13,7 +13,7 @@ class srTextureIFace;
 class stMeshModel;
 class srMeshModel;
 
-unsigned char IsTextureInReadMeshScratch(const void* texture);
+bool IsTextureInReadMeshScratch(const void* texture);
 unsigned char ReadSingleLevelMeshBody00485C10(
     W8ReadLevelInfo* info, srModelInstance** instance,
     int positional_0, int positional_1, const char* name,

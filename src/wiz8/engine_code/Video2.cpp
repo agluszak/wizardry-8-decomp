@@ -1409,7 +1409,7 @@ extern "C" void RefreshMouseCursorTexture(void)
    two automap callers use it, but nothing names the viewport as automap-only
    state; placed here with the neighbouring cursor bodies. */
 // FUNCTION: WIZ8 0x00428070
-unsigned char IsCursorInsideViewport(void)
+bool IsCursorInsideViewport(void)
 {
     int x = g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0;
     int y = g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4;

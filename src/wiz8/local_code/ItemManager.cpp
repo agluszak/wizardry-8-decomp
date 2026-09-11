@@ -52,7 +52,7 @@ bool ItemHasFlags(W8WorldItem* item, unsigned int mask)
 }
 
 // FUNCTION: WIZ8 0x004f8170
-void SetItemFlags(W8WorldItem* item, unsigned int mask, unsigned char enabled)
+void SetItemFlags(W8WorldItem* item, unsigned int mask, bool enabled)
 {
     if (item == 0) {
         srAssertFail("pItemInfo", ITEM_MANAGER_CPP, 1004, 0);
@@ -65,7 +65,7 @@ void SetItemFlags(W8WorldItem* item, unsigned int mask, unsigned char enabled)
 }
 
 // FUNCTION: WIZ8 0x004f81c0
-void SetItemAndEntityFlags(W8WorldItem* item, unsigned int mask, unsigned char enabled)
+void SetItemAndEntityFlags(W8WorldItem* item, unsigned int mask, bool enabled)
 {
     if (item == 0) {
         srAssertFail("pItemInfo", ITEM_MANAGER_CPP, 1019, 0);

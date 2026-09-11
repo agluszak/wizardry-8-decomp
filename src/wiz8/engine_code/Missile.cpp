@@ -655,7 +655,7 @@ signed char W8Missile::GetNumSubCycles()
 }
 
 // FUNCTION: WIZ8 0x004a42b0
-unsigned char W8Missile::IsCycleSupported(signed char cycle)
+bool W8Missile::IsCycleSupported(signed char cycle)
 {
     if (cycle >= 2) {
         srAssertFail(

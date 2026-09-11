@@ -120,7 +120,7 @@ public:
     virtual unsigned char CanEnterCycle(signed char cycle) override;
     virtual void UpdateRepresentation(W8World* world) override;
     virtual signed char GetNumSubCycles() override;
-    virtual unsigned char IsCycleSupported(signed char cycle) override;
+    virtual bool IsCycleSupported(signed char cycle) override;
     virtual signed char GetTotalAnimationCount() override;
     virtual float GetCurrentAnimationScale() override;
     virtual W8EmitterHost* GetRepresentation() override;
@@ -312,7 +312,7 @@ void MonsterGetLocation(
 void MonsterGetLocalLocation(
     W8Monster* monster, srVector3T<float>* location);
 void UpdateMonster(W8Monster* monster);
-unsigned char MonsterIsCycleSupported(
+bool MonsterIsCycleSupported(
     W8Monster* monster, signed char cycle);
 unsigned char MonsterReplacePath(W8Monster* monster, void* path);
 unsigned char MonsterGetAnimationRadius(

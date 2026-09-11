@@ -52,8 +52,8 @@ struct W8NpcState {
     unsigned char unknown_1e[6];
     /* 0x24: the level-band value the rebinding stamps from the level's own. */
     unsigned char value_24;
-    unsigned char is_present;             /* 0x25 */
-    unsigned char is_grouped;             /* 0x26 */
+    bool is_present;             /* 0x25 */
+    bool is_grouped;             /* 0x26 */
     /* 0x27: the NPC's group-member character. CreateNpcRuntimeNode allocates
        the 0x1862-byte block only when the record belongs to a group, and the
        state reset deletes it here. */

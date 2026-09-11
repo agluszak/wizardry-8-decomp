@@ -40,10 +40,10 @@ int g_environment_value_0060a3a8 = 2;
 extern "C" float g_environment_value_0060a3a4;
 
 // GLOBAL: WIZ8 0x0065b9ad
-unsigned char g_fog_enabled_0065b9ad;
+bool g_fog_enabled_0065b9ad;
 
 // GLOBAL: WIZ8 0x0065b9ae
-unsigned char g_sky_enabled_0065b9ae;
+bool g_sky_enabled_0065b9ae;
 extern "C" int g_light_direction_0065ad78;
 extern "C" int g_light_direction_0065ad7c;
 extern "C" int g_light_direction_0065ad80;
@@ -319,7 +319,7 @@ void UpdateEnvironment482770(void)
     } while (0)
 
 // FUNCTION: WIZ8 0x00482F90
-unsigned char ReadLightColourTable00482F90(int hFile)
+BOOLEAN ReadLightColourTable00482F90(int hFile)
 {
     unsigned char components[256 * 3];
     int index;
@@ -345,7 +345,7 @@ unsigned char ReadLightColourTable00482F90(int hFile)
 }
 
 // FUNCTION: WIZ8 0x004830D0
-unsigned char ReadEnvironmentColourTable004830D0(int hFile)
+BOOLEAN ReadEnvironmentColourTable004830D0(int hFile)
 {
     unsigned char components[256 * 3];
     int index;
@@ -437,7 +437,7 @@ void BuildLightColourRamp00483360(void)
 // srClassSupport<srFog,srFog,0,4624>::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00483750
-void SetSkyEnabled(unsigned char enabled)
+void SetSkyEnabled(bool enabled)
 {
     if (enabled != 0) {
         if (g_world == 0 || g_world->dynamic_scene == 0 ||
@@ -520,13 +520,13 @@ int GetEnvironmentValue0060A3A8(void)
 
 /* Fog, which is a plain flag with a matched pair of accessors. */
 // FUNCTION: WIZ8 0x00482e80
-void SetFogEnabled(unsigned char enabled)
+void SetFogEnabled(bool enabled)
 {
     g_fog_enabled_0065b9ad = enabled;
 }
 
 // FUNCTION: WIZ8 0x00482e90
-unsigned char IsFogEnabled(void)
+bool IsFogEnabled(void)
 {
     return g_fog_enabled_0065b9ad;
 }
@@ -628,7 +628,7 @@ void DisableSky(void)
 }
 
 // FUNCTION: WIZ8 0x00482f80
-unsigned char IsSkyEnabled(void)
+bool IsSkyEnabled(void)
 {
     return g_sky_enabled_0065b9ae;
 }

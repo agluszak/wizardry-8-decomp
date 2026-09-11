@@ -111,7 +111,7 @@ void HideWorldCursor00490B90(void)
 }
 
 // FUNCTION: WIZ8 0x004914C0
-unsigned char IsWorldCursorVisible(void)
+bool IsWorldCursorVisible(void)
 {
     return g_world_cursor_0065ba8c != 0 &&
            g_world_cursor_0065ba8c->visible_40 != 0;

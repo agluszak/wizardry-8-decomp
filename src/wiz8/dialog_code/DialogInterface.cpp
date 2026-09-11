@@ -18,7 +18,7 @@ extern const wchar_t g_wchar_00689b34;
 extern "C" {
 
 int g_dialog_font_64fde8;
-unsigned char g_dialog_font_enabled_69ca32;
+BOOLEAN g_dialog_font_enabled_69ca32;
 unsigned char g_dialog_font_foreground_64fdec;
 unsigned char g_dialog_font_background_64fded;
 
@@ -59,7 +59,7 @@ W8DialogBase* CreateDialogByKind(int kind)
 }
 
 // FUNCTION: WIZ8 0x005cf250
-void ConfigureDialogFont(int font, unsigned char enabled,
+void ConfigureDialogFont(int font, BOOLEAN enabled,
                          unsigned char foreground, unsigned char background)
 {
     g_dialog_font_64fde8 = font;

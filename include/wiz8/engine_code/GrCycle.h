@@ -125,7 +125,7 @@ public:
     virtual unsigned char ApplyPendingCycle();           /* 0x004A6FC0 */
     virtual void UpdateRepresentation(W8World* world); /* 0x004A7470 */
     virtual signed char GetNumSubCycles() = 0;
-    virtual unsigned char IsCycleSupported(signed char cycle) = 0;
+    virtual bool IsCycleSupported(signed char cycle) = 0;
     virtual signed char GetTotalAnimationCount() = 0;
     virtual float GetCurrentAnimationScale() = 0;
     virtual W8EmitterHost* GetRepresentation() = 0;

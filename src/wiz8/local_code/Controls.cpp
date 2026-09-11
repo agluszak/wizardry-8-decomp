@@ -121,7 +121,7 @@ float g_W8RangeEnd005EBB38 = 1.0f;
 float g_W8RangeHalfStep005EBC7C = 0.5f;
 
 // FUNCTION: WIZ8 0x004f30f0
-void Controls::EnableRegionSet(unsigned char enable)
+void Controls::EnableRegionSet(bool enable)
 {
     if (m_uiRegionSetId == REGSET_NULL) {
         srAssertFail(
@@ -1459,7 +1459,7 @@ void W8TextControl::UpdateTextBounds(int left, int top, int right, int bottom)
 }
 
 // FUNCTION: WIZ8 0x004f5410
-void W8TextControl::SetEnabled(unsigned char enabled)
+void W8TextControl::SetEnabled(bool enabled)
 {
     m_enabled = enabled;
     if (enabled == 0) {
@@ -2203,7 +2203,7 @@ W8TextControl::~W8TextControl()
    and each child's region follows - mode 4 restores the disabled region and
    clearing the mode bits re-arms it. */
 // FUNCTION: WIZ8 0x004f2d50
-void Controls::SetEnabled(unsigned char enable)
+void Controls::SetEnabled(bool enable)
 {
     int index;
 
@@ -2408,7 +2408,7 @@ void W8Widget::Invalidate(unsigned char immediate)
 }
 
 // FUNCTION: WIZ8 0x004f40f0
-void W8Widget::SetActive(unsigned char active)
+void W8Widget::SetActive(bool active)
 {
     m_active = active;
     if (m_region != -1) {
@@ -2421,7 +2421,7 @@ void W8Widget::SetActive(unsigned char active)
 }
 
 // FUNCTION: WIZ8 0x004f6950
-void W8Widget::SetEnabled(unsigned char enabled)
+void W8Widget::SetEnabled(bool enabled)
 {
     m_enabled = enabled;
 }

@@ -291,11 +291,11 @@ void W8GameTimer::SetProgress(float progress)
 }
 
 // FUNCTION: WIZ8 0x0043a330
-unsigned char W8GameTimer::Load(int handle)
+BOOLEAN W8GameTimer::Load(int handle)
 {
     float progress;
     // Retail performs both reads and combines their results with bitwise OR.
-    unsigned char loaded = FileRead(handle, &progress, sizeof(progress), 0);
+    BOOLEAN loaded = FileRead(handle, &progress, sizeof(progress), 0);
     loaded |= FileRead(handle, &m_duration_scale, sizeof(m_duration_scale), 0);
     if (loaded != 0) {
         m_duration = (int)(m_duration_seconds * m_duration_scale * 10000.0f);

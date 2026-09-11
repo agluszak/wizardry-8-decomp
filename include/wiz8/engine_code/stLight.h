@@ -12,7 +12,7 @@ class stLightDefinition {
 public:
     virtual ~stLightDefinition();
     virtual stLightDefinition* Clone() const = 0;
-    virtual unsigned char IsEnabledForSubcycle(unsigned char subcycle) = 0;
+    virtual bool IsEnabledForSubcycle(unsigned char subcycle) = 0;
 
     int type_04;
 };
@@ -52,13 +52,13 @@ public:
     }
 
     // FUNCTION: WIZ8 0x004A21E0
-    virtual unsigned char IsEnabledForSubcycle(
+    virtual bool IsEnabledForSubcycle(
         unsigned char subcycle) override
     {
         if (subcycle >= value_3c && subcycle <= value_40) {
-            return 1;
+            return true;
         }
-        return 0;
+        return false;
     }
 
     unsigned int flags_08;
@@ -90,7 +90,7 @@ public:
     }
     virtual ~stLightDefinition005ECDA0() override;
     virtual stLightDefinition* Clone() const override;
-    virtual unsigned char IsEnabledForSubcycle(
+    virtual bool IsEnabledForSubcycle(
         unsigned char subcycle) override;
 
     W8GrowableVector<int> values_08;

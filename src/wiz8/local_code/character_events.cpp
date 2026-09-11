@@ -235,7 +235,7 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
 
 // FUNCTION: WIZ8 0x0052DD20
 void W8StartupRuntimeState::SetEventCharacterMask(
-    unsigned int event_type, unsigned int party_slot, unsigned char enabled)
+    unsigned int event_type, unsigned int party_slot, bool enabled)
 {
     unsigned char mask = (unsigned char)(1 << (party_slot & 31));
 

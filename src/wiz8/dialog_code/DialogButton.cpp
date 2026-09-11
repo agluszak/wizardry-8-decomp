@@ -59,10 +59,10 @@ int W8DialogButton::GetY()
 }
 
 // FUNCTION: WIZ8 0x005db8d0
-void W8DialogButton::SetEnabled(unsigned char enabled)
+void W8DialogButton::SetEnabled(bool enabled)
 {
     GUI_BUTTON* button = GetButtonPtr(m_resource_01c);
-    unknown_035 = enabled;
+    m_enabled_035 = enabled;
     if (button) {
         if (enabled) {
             if (!(button->uiFlags & BUTTON_ENABLED)) {
@@ -78,14 +78,14 @@ void W8DialogButton::SetEnabled(unsigned char enabled)
 }
 
 // FUNCTION: WIZ8 0x005db920
-unsigned char W8DialogButton::IsEnabled()
+bool W8DialogButton::IsEnabled()
 {
     GUI_BUTTON* button = GetButtonPtr(m_resource_01c);
-    return button ? static_cast<unsigned char>(button->uiFlags & BUTTON_ENABLED) : 0;
+    return button ? (button->uiFlags & BUTTON_ENABLED) != 0 : false;
 }
 
 // FUNCTION: WIZ8 0x005db950
-void W8DialogButton::SetPressed(unsigned char pressed)
+void W8DialogButton::SetPressed(bool pressed)
 {
     GUI_BUTTON* button = GetButtonPtr(m_resource_01c);
     if (button) {
@@ -109,7 +109,7 @@ unsigned char W8DialogButton::IsPressed()
 }
 
 // FUNCTION: WIZ8 0x005db9d0
-void W8DialogButton::SetVisible(unsigned char visible)
+void W8DialogButton::SetVisible(bool visible)
 {
     if (visible) {
         if (!(GetButtonPtr(m_resource_01c)->Area.uiFlags & MSYS_REGION_ENABLED)) {
@@ -139,7 +139,7 @@ W8DialogButton::W8DialogButton()
     unknown_02c = 0;
     unknown_030 = 0;
     unknown_034 = 0;
-    unknown_035 = 1;
+    m_enabled_035 = 1;
     unknown_036 = 0;
     unknown_037 = 0;
     unknown_020 = -1;

@@ -35,7 +35,7 @@ unsigned char g_flag_68c4f7;
    The two status buffers are read as what their sizes say they are: 0xc310 is
    eight W8Character at the 0x1862 stride and 0x830 is eight 0x106-byte rows. */
 // FUNCTION: WIZ8 0x00524a10
-unsigned char IsPartySlotEligible00524A10(int slot)
+bool IsPartySlotEligible00524A10(int slot)
 {
     W8Character* character;
     bool eligible;

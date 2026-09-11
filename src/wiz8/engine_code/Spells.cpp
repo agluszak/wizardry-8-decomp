@@ -153,7 +153,7 @@ signed char W8SpellVisual::GetNumSubCycles()
 }
 
 // FUNCTION: WIZ8 0x004ac4e0
-unsigned char W8SpellVisual::IsCycleSupported(signed char cycle)
+bool W8SpellVisual::IsCycleSupported(signed char cycle)
 {
     if (cycle >= 28) {
         srAssertFail(
@@ -996,13 +996,13 @@ void stSound3D::BuildSoundOptions004AECC0(
 }
 
 // FUNCTION: WIZ8 0x004AEC70
-unsigned char stSound3D::IsPlaying004AEC70()
+bool stSound3D::IsPlaying004AEC70()
 {
     if (sound_handle_13c != -1 &&
         SoundIsPlaying(sound_handle_13c) != 0) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Detach every item visualisation the monster's cycle owns before the cycle

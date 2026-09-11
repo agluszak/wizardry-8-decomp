@@ -29,13 +29,13 @@ public:
     void SetPanel(Controls* panel);
     void SetRegion(unsigned int region);
     void Invalidate(unsigned char immediate);
-    void SetActive(unsigned char active);
+    void SetActive(bool active);
     void EnableRegionHelp(int help_text_id);
     void DisableRegionHelp();
 
     virtual ~W8Widget();
 
-    virtual void SetEnabled(unsigned char enabled);
+    virtual void SetEnabled(bool enabled);
     /* Slots 2 and 5..17 share the retail ret-4 no-op at 0x005B1BE0.
        These are default hooks, not missing implementations. */
     // FUNCTION: WIZ8 0x005b1be0
@@ -58,9 +58,9 @@ public:
 
     /* Read from outside the class by Local Screens\RCSCommon.cpp, which is what
        keeps the three flags reachable rather than protected. */
-    unsigned char m_enabled;            /* 0x04: interaction and enabled appearance */
-    unsigned char m_active;             /* 0x05: panel participation and region input */
-    unsigned char m_dirty;              /* 0x06: pending widget redraw */
+    bool m_enabled;            /* 0x04: interaction and enabled appearance */
+    bool m_active;             /* 0x05: panel participation and region input */
+    bool m_dirty;              /* 0x06: pending widget redraw */
     unsigned char pad_007;
     /* 0x08: the widget's rectangle, relative to the owner's origin. The
        constructor adds the origin to all four before handing them to the

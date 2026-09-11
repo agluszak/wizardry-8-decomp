@@ -187,7 +187,7 @@ W8CampCharacterInfo::W8CampCharacterInfo()
 }
 
 // FUNCTION: WIZ8 0x005b33a0
-void W8CampCharacterInfo::SetEnabled(unsigned char enabled)
+void W8CampCharacterInfo::SetEnabled(bool enabled)
 {
     EnableRegionSet(enabled);
     Controls::SetEnabled(enabled);
@@ -195,7 +195,7 @@ void W8CampCharacterInfo::SetEnabled(unsigned char enabled)
 }
 
 // FUNCTION: WIZ8 0x005b33d0
-void W8CampCharacterInfo::SetCombatView(unsigned char enabled)
+void W8CampCharacterInfo::SetCombatView(bool enabled)
 {
     m_combat_view = enabled;
     m_button_058->SetActive(enabled);

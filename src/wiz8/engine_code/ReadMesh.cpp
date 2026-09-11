@@ -52,7 +52,7 @@ static int g_read_mesh_scratch_count_65b9f8;
 static int g_read_mesh_material_count_65b9cc;
 
 // FUNCTION: WIZ8 0x00489A80
-unsigned char IsTextureInReadMeshScratch(const void* texture)
+bool IsTextureInReadMeshScratch(const void* texture)
 {
     if (g_read_mesh_textures_65b9ec != 0 && g_read_mesh_scratch_count_65b9f8 > 0) {
         for (short index = 0; index < g_read_mesh_scratch_count_65b9f8; ++index) {

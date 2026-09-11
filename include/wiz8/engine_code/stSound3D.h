@@ -17,7 +17,7 @@ public:
     stSound3D(const char* sound_name, srNode* parent); /* 0x004AE6D0 */
     virtual ~stSound3D() override;
     virtual srClass* vInstance() override;
-    unsigned char IsPlaying004AEC70();                   /* 0x004AEC70 */
+    bool IsPlaying004AEC70();                   /* 0x004AEC70 */
     unsigned char Play004AEBF0(unsigned char value_1, unsigned char value_2);
     void BuildSoundOptions004AECC0(
         const srVector3T<float>* listener, SOUND3DPARMS* options);

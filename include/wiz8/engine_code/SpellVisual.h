@@ -13,7 +13,7 @@ public:
 
     virtual void UpdateRepresentation(W8World* world) override;
     virtual signed char GetNumSubCycles() override;
-    virtual unsigned char IsCycleSupported(signed char cycle) override;
+    virtual bool IsCycleSupported(signed char cycle) override;
     virtual signed char GetTotalAnimationCount() override;
     virtual float GetCurrentAnimationScale() override;
     virtual W8EmitterHost* GetRepresentation() override;

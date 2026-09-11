@@ -18,7 +18,7 @@ struct W8ItemRep : public W8AnimRepBase005EC1D8 {
     unsigned char unknown_68[0x28];
     unsigned int flags;                   /* 0x90 */
 
-    unsigned int SetFlags(unsigned int mask, unsigned char enabled); /* 0x0049F310 */
+    unsigned int SetFlags(unsigned int mask, bool enabled); /* 0x0049F310 */
 };
 
 struct W8Item : public W8GrObject {

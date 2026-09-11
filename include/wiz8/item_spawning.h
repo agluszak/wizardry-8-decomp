@@ -58,8 +58,8 @@ void ReplaceOrCreateItem(
     unsigned char mark_special);
 
 bool ItemHasFlags(W8WorldItem* item, unsigned int mask);
-void SetItemFlags(W8WorldItem* item, unsigned int mask, unsigned char enabled);
-void SetItemAndEntityFlags(W8WorldItem* item, unsigned int mask, unsigned char enabled);
+void SetItemFlags(W8WorldItem* item, unsigned int mask, bool enabled);
+void SetItemAndEntityFlags(W8WorldItem* item, unsigned int mask, bool enabled);
 int ItemInfoGetNumInGroup(W8WorldItem* item);
 void ItemInfoAddToGroup(W8WorldItem* group, W8WorldItem* item);
 W8WorldItem* ItemInfoRemoveFromGroup(

@@ -699,7 +699,7 @@ void W8CharacterPage005EF778::GetNavigationState(
     if (*next_enabled != m_navigation_state_088) {
         for (int index = 0; index < m_entries_04c.count; ++index) {
             m_entries_04c.data[index]->SetIncrementAllowed(
-                static_cast<unsigned char>(*next_enabled == 0));
+                *next_enabled == 0);
         }
         m_navigation_state_088 = *next_enabled;
     }

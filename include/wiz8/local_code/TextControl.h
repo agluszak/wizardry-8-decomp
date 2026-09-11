@@ -34,7 +34,7 @@ public:
     unsigned char MeasureText004F4800();
     void GetTextOrigin(int unused, int* px, int* py);
     void Invalidate(unsigned char immediate);
-    virtual void SetEnabled(unsigned char enabled) override;
+    virtual void SetEnabled(bool enabled) override;
     virtual void Redraw(int full_redraw) override;
     void SetFlaggedRegionBounds(short left, short top, unsigned short right);
     virtual void AddLayoutFlags(unsigned int flags) override;

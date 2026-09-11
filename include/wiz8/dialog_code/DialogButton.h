@@ -18,11 +18,11 @@ public:
     int GetHeight();
     int GetX();
     int GetY();
-    void SetEnabled(unsigned char enabled);
-    unsigned char IsEnabled();
-    void SetPressed(unsigned char pressed);
+    void SetEnabled(bool enabled);
+    bool IsEnabled();
+    void SetPressed(bool pressed);
     unsigned char IsPressed();
-    void SetVisible(unsigned char visible);
+    void SetVisible(bool visible);
     int GetUserData();
     /* 0x005DB3E0: load the frame images, create the SGP button, and store the
        per-button callbacks, auto-repeat value, priority and tooltip index. */
@@ -50,13 +50,13 @@ private:
     int unknown_02c;
     int unknown_030;
     unsigned char unknown_034;
-    unsigned char unknown_035;
+    bool m_enabled_035;
     unsigned char unknown_036;
 public:
     /* 0x37: raised by the dialog factories on their item-row buttons; the SGP
        dispatch callback tests it while handling toggle events. */
     unsigned char unknown_037;
-    unsigned char m_dirty;                /* 0x38: set by owning screens before Draw */
+    bool m_dirty;                /* 0x38: set by owning screens before Draw */
 private:
     unsigned char unknown_039;
     unsigned char unknown_03a;

@@ -40,7 +40,7 @@ public:
     /* Both are read and written on this object from outside the class by the
        Please Wait screen's frame handler, which is what puts them here. */
     unsigned char close_result;            /* 0x54: cleared; a derived close passes it on */
-    unsigned char is_open;            /* 0x55: set, and gates the close path */
+    bool is_open;            /* 0x55: set, and gates the close path */
 
 protected:
     short m_field_56;                    /* 0x56 */

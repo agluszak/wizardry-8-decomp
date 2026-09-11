@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Types.h"
 #include "wiz8/game_status.h"
 #include "surrender/srTimer.h"
 
@@ -41,7 +42,7 @@ public:
     void SetProgress(float progress);
     void SetDurationScale(float scale);
     void ResetDurationScale();
-    unsigned char Load(int handle);
+    BOOLEAN Load(int handle);
     float GetElapsedSeconds();
 
     int m_clock_mode;                          /* 0x04: 1 reads the game clock */

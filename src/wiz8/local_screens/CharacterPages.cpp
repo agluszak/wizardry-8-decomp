@@ -83,10 +83,10 @@ W8PortraitGroup g_portrait_groups_648950[12] = {
 
 // FUNCTION: WIZ8 0x005af690
 W8CharacterPageEntry::W8CharacterPageEntry(
-    Controls* owner, int x, int y, unsigned char compact)
+    Controls* owner, int x, int y, bool compact)
     : m_listener_004(0), m_first_020(0), m_second_024(0), m_third_028(0),
       m_id_02c(-1), m_draw_background_038(compact), m_dirty_039(1),
-      m_enabled_03a(0), m_flag_03b(1)
+      m_enabled_03a(0), m_increment_allowed_03b(1)
 {
     m_x_030 = owner->origin_x + x;
     m_y_034 = owner->origin_y + y;
@@ -153,9 +153,9 @@ void W8CharacterPageEntry::SetContent(
 }
 
 // FUNCTION: WIZ8 0x005afc20
-void W8CharacterPageEntry::SetIncrementAllowed(unsigned char allowed)
+void W8CharacterPageEntry::SetIncrementAllowed(bool allowed)
 {
-    m_flag_03b = allowed;
+    m_increment_allowed_03b = allowed;
     UpdateButtons();
     m_decrement_00c->Invalidate(0);
     m_increment_008->Invalidate(0);
@@ -163,7 +163,7 @@ void W8CharacterPageEntry::SetIncrementAllowed(unsigned char allowed)
 }
 
 // FUNCTION: WIZ8 0x005afa90
-void W8CharacterPageEntry::SetEnabled(unsigned char enabled)
+void W8CharacterPageEntry::SetEnabled(bool enabled)
 {
     m_enabled_03a = enabled;
     m_increment_008->SetActive(enabled);
@@ -223,13 +223,12 @@ void W8CharacterPageEntry::MarkDirty()
 void W8CharacterPageEntry::UpdateButtons()
 {
     if (m_enabled_03a) {
-        unsigned char enabled = static_cast<unsigned char>(*m_second_024 > 0);
+        bool enabled = *m_second_024 > 0;
         if (m_decrement_00c->m_enabled != enabled) {
             m_decrement_00c->SetEnabled(enabled);
             m_decrement_00c->Invalidate(0);
         }
-        enabled = static_cast<unsigned char>(
-            m_flag_03b && *m_second_024 < *m_third_028);
+        enabled = m_increment_allowed_03b && *m_second_024 < *m_third_028;
         if (m_increment_008->m_enabled != enabled) {
             m_increment_008->SetEnabled(enabled);
             m_increment_008->Invalidate(0);
@@ -408,7 +407,7 @@ void W8CharacterPage005EF5C8::GetNavigationState(
     if (*next_enabled != m_navigation_state_076) {
         for (int index = 0; index < m_entries_04c.count; ++index) {
             m_entries_04c.data[index]->SetIncrementAllowed(
-                static_cast<unsigned char>(*next_enabled == 0));
+                *next_enabled == 0);
         }
         m_navigation_state_076 = *next_enabled;
     }

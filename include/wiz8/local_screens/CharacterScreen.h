@@ -32,7 +32,7 @@ public:
 class W8CharacterPageEntry : public W8TextControl::Listener {
 public:
     W8CharacterPageEntry(Controls* owner, int x, int y,
-                         unsigned char compact);        /* 0x005AF690 */
+                         bool compact);        /* 0x005AF690 */
     virtual ~W8CharacterPageEntry()
     {
         delete m_label_014;
@@ -41,8 +41,8 @@ public:
     }
     void SetContent(unsigned int id, const wchar_t* label, unsigned int* first,
                     int* second, int* third, int help_id); /* 0x005AF9E0 */
-    void SetEnabled(unsigned char enabled);             /* 0x005AFA90 */
-    void SetIncrementAllowed(unsigned char allowed);    /* 0x005AFC20 */
+    void SetEnabled(bool enabled);             /* 0x005AFA90 */
+    void SetIncrementAllowed(bool allowed);    /* 0x005AFC20 */
     void Redraw();                                      /* 0x005AFAF0 */
     void SetLabelFontState(int state);                  /* 0x005AFBF0 */
     void MarkDirty();                                   /* 0x005AFC00 */
@@ -64,10 +64,10 @@ public:
     unsigned int m_id_02c;
     int m_x_030;
     int m_y_034;
-    unsigned char m_draw_background_038;
-    unsigned char m_dirty_039;
-    unsigned char m_enabled_03a;
-    unsigned char m_flag_03b;
+    bool m_draw_background_038;
+    bool m_dirty_039;
+    bool m_enabled_03a;
+    bool m_increment_allowed_03b;
 };
 static_assert(sizeof(W8CharacterPageEntry) == 0x3c,
               "W8CharacterPageEntry_size");

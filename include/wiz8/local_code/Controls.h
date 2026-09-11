@@ -31,15 +31,15 @@ struct Controls {
              int render_target, int render_arg_1c, int render_arg_20);
     __forceinline ~Controls();
 
-    virtual void SetEnabled(unsigned char enable);
+    virtual void SetEnabled(bool enable);
     virtual void Invalidate(const W8ControlsRect* rect);
     virtual void Redraw();
     /* 0x04 and 0x05 travel together: SetEnabled writes the panel's own state to
        the first and mirrors it into every child's m_active, and the redraw
        requests raise the second. 0x06 is raised on its own by 0x004F2F00. */
-    unsigned char m_fEnabled;               /* 0x04 */
-    unsigned char m_fDirty;                 /* 0x05 */
-    unsigned char m_fLayoutDirty;           /* 0x06 */
+    bool m_fEnabled;               /* 0x04 */
+    bool m_fDirty;                 /* 0x05 */
+    bool m_fLayoutDirty;           /* 0x06 */
     unsigned char pad_07;
     int origin_x;                           /* 0x08: widget rectangles are relative to this */
     int origin_y;                           /* 0x0c */
@@ -49,12 +49,12 @@ struct Controls {
     int m_renderArg_1c;                     /* 0x1c: forwarded with the target */
     int m_renderArg_20;                     /* 0x20: forwarded with the target */
     W8ControlsRect m_dirtyRect;             /* 0x24 */
-    unsigned char m_fWholeAreaDirty;        /* 0x34: set when a caller passes no rectangle */
+    bool m_fWholeAreaDirty;        /* 0x34: set when a caller passes no rectangle */
     unsigned char unknown_35[3];
     W8GrowableVector<W8Widget*> m_controls; /* 0x38 */
     unsigned int m_uiRegionSetId;           /* 0x48 */
 
-    void EnableRegionSet(unsigned char enable);
+    void EnableRegionSet(bool enable);
     void RemoveControl(W8Widget* control);
     void DestroyAllControls();
     void InvalidateLayout();

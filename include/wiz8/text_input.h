@@ -11,7 +11,7 @@ void KillTextInputMode(void);
 char AddTextInputField(
     int left, int top, int width, int height, int priority,
     const wchar_t* text, unsigned char capacity, short input_type,
-    unsigned char enabled);
+    unsigned char flag);
 void RemoveTextInputField(int index);
 unsigned char GetTextInputFieldLength(int index);
 void SetActiveField(char index);

@@ -22,7 +22,7 @@ W8IntervalGate::W8IntervalGate()
 
 // FUNCTION: WIZ8 0x0043a500
 W8IntervalGate::W8IntervalGate(
-    float duration, unsigned char raw_time, unsigned char set_flag_2)
+    float duration, unsigned char raw_time, bool set_flag_2)
     : W8GameTimer(duration, raw_time), m_finished(0)
 {
     if (set_flag_2) {
@@ -63,12 +63,12 @@ unsigned int W8IntervalGate::PollElapsedIntervals()
 }
 
 // FUNCTION: WIZ8 0x0043a690
-unsigned char W8IntervalGate::Load(int handle)
+BOOLEAN W8IntervalGate::Load(int handle)
 {
     if ((m_flags & 2) == 0) {
         return W8GameTimer::Load(handle);
     }
-    unsigned char loaded = FileRead(
+    BOOLEAN loaded = FileRead(
         handle, &m_duration_seconds, sizeof(m_duration_seconds), 0);
     if (loaded != 0) {
         m_start = ReadClock();
@@ -79,7 +79,7 @@ unsigned char W8IntervalGate::Load(int handle)
 }
 
 // FUNCTION: WIZ8 0x0043a770
-unsigned char W8IntervalGate::Save(int handle)
+BOOLEAN W8IntervalGate::Save(int handle)
 {
     float elapsed;
     if ((m_flags & 2) == 0) {
@@ -87,7 +87,7 @@ unsigned char W8IntervalGate::Save(int handle)
         float progress = (float)(unsigned int)(sample - m_start) /
                          (float)(unsigned int)(m_end - m_start);
         // The on-disk pair and its OR-combined result mirror W8GameTimer::Load.
-        unsigned char saved = FileWrite(handle, &progress, sizeof(progress), 0);
+        BOOLEAN saved = FileWrite(handle, &progress, sizeof(progress), 0);
         saved |= FileWrite(handle, &m_duration_scale, sizeof(m_duration_scale), 0);
         return saved;
     }
