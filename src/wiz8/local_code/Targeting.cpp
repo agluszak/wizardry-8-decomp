@@ -2,6 +2,7 @@
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/quad.h"
 #include "wiz8/cursor.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/xstatus.h"
@@ -1667,7 +1668,7 @@ int SelectNextGroupMemberByAngle(const W8GrowableVector<int>* candidates, int cu
         srVector3T<float> position = monster_info->monster->GetPosition();
 
         sorted[index].location_id = location_id;
-        sorted[index].angle = (int)NormalizeAngle(AngleFromPartyTo(&party, &position));
+        sorted[index].angle = (int)NormalizeAngle(GetHeadingAngle(&party, &position));
     }
     qsort(sorted, count, sizeof(W8GroupMemberByAngle), CompareSignedAscending);
 

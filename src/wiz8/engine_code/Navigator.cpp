@@ -16,6 +16,7 @@ double g_double_005ec030 = 2500.0;
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/OctPath.h"
 #include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/quad.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/local_code/MonsterGroup.h"
@@ -760,13 +761,10 @@ float g_navigator_minimum_speed_mode23_006081f0 = 0.8999999761581421f;
 extern const float g_world_scale_005ebc40;
 // GLOBAL: WIZ8 0x00659bf8
 W8GrowableVector<W8Navigator*> g_navigator_group_659bf8;
-extern float GetHeadingAngle004BE420(
-    const srVector3T<float>* from, const srVector3T<float>* to);
-extern float GetElevationAngle004BE490(
-    const srVector3T<float>* from, const srVector3T<float>* to);
 
+/* 0x005EC2A8: a quarter turn, shared with the world elevation helper. */
 // GLOBAL: WIZ8 0x005ec2a8
-static const float NAVIGATOR_QUARTER_TURN = 1.57079625f;
+const float g_float_005ec2a8 = 1.57079625f;
 // GLOBAL: WIZ8 0x005ec314
 static const float NAVIGATOR_THREE_QUARTER_TURN = 4.712389f;
 // GLOBAL: WIZ8 0x005ec310
@@ -959,10 +957,10 @@ void W8Navigator::UpdateFacing(char immediate)
     g_octree_6598a4->GetPathSurfaceNormal00433A70(&movement_0c0.position_040, &normal);
     if (movement_0c0.pitch_enabled_074 != 0) {
         float angle = (float)acos(normal.x * forward.x + normal.y * forward.y + normal.z * forward.z);
-        if (angle < NAVIGATOR_QUARTER_TURN) {
+        if (angle < g_float_005ec2a8) {
             angle += NAVIGATOR_THREE_QUARTER_TURN;
         } else {
-            angle -= NAVIGATOR_QUARTER_TURN;
+            angle -= g_float_005ec2a8;
         }
         if (immediate != 0) {
             movement_0c0.pitch_020 = NormalizeAngle((float)angle);
@@ -972,10 +970,10 @@ void W8Navigator::UpdateFacing(char immediate)
     if (movement_0c0.roll_enabled_075 != 0) {
         srVector3T<float> side(-forward.z, 0.0f, forward.x);
         float angle = (float)acos(side.x * normal.x + side.z * normal.z);
-        if (angle < NAVIGATOR_QUARTER_TURN) {
+        if (angle < g_float_005ec2a8) {
             angle += NAVIGATOR_THREE_QUARTER_TURN;
         } else {
-            angle -= NAVIGATOR_QUARTER_TURN;
+            angle -= g_float_005ec2a8;
         }
         if (immediate != 0) {
             movement_0c0.roll_028 = NormalizeAngle((float)angle);
@@ -1426,11 +1424,11 @@ void W8Navigator::Function454040(const srVector3T<float>* target)
     current.y = movement_0c0.position_040.y + movement_0c0.height_offset_0b8;
     current.z = movement_0c0.position_040.z;
     if (target->x != current.x || target->y != current.y || target->z != current.z) {
-        float angle = GetHeadingAngle004BE420(&current, target);
+        float angle = GetHeadingAngle(&current, target);
         movement_0c0.yaw = NormalizeAngle(angle);
         movement_0c0.target_yaw = NormalizeAngle(angle);
         if (navigation_mode_008 == 2 || navigation_mode_008 == 3) {
-            angle = -GetElevationAngle004BE490(&current, target);
+            angle = -GetElevationAngle(&current, target);
             movement_0c0.pitch_020 = NormalizeAngle(angle);
             movement_0c0.target_pitch_024 = NormalizeAngle(angle);
         } else if (navigation_mode_008 == 5 || navigation_mode_008 == 6) {
@@ -1624,11 +1622,11 @@ void W8Navigator::AimAtPosition(const srVector3T<float>* target)
     if (target->x != current.x || target->y != current.y ||
         target->z != current.z) {
         movement_0c0.target_yaw = NormalizeAngle(
-            GetHeadingAngle004BE420(&current, target));
+            GetHeadingAngle(&current, target));
         if (navigation_mode_008 == 2 ||
             navigation_mode_008 == 3) {
             movement_0c0.target_pitch_024 = NormalizeAngle(
-                -GetElevationAngle004BE490(&current, target));
+                -GetElevationAngle(&current, target));
         } else if (navigation_mode_008 == 5 ||
                    navigation_mode_008 == 6) {
             UpdateFacing(0);

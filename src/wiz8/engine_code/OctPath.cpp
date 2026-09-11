@@ -1851,7 +1851,7 @@ unsigned short W8PathingService::PlanMovement00463460(
             if (flag_09c == 0 && direct_visibility_node == 0) {
                 srVector3T<float> trace_target = movement->target_position_04c;
                 trace_target.y += trace_height_offset_0bc;
-                float bearing = NormalizeAngle(GetHeadingAngle004BE420(
+                float bearing = NormalizeAngle(GetHeadingAngle(
                     &m_owned_0c8[walk].position_20, &trace_target));
                 float target_yaw = NormalizeAngle(trace_target_yaw_0c4);
                 srMatrix3T<float> rotation;
@@ -1884,7 +1884,7 @@ unsigned short W8PathingService::PlanMovement00463460(
         if (flag_09c == 0 && direct_visibility_node == 0) {
             srVector3T<float> trace_target = movement->target_position_04c;
             trace_target.y += trace_height_offset_0bc;
-            float bearing = NormalizeAngle(GetHeadingAngle004BE420(
+            float bearing = NormalizeAngle(GetHeadingAngle(
                 &m_owned_0c8[walk].position_20, &trace_target));
             float target_yaw = NormalizeAngle(trace_target_yaw_0c4);
             srMatrix3T<float> rotation;
@@ -2307,7 +2307,7 @@ unsigned char W8PathingService::TestSearchPositionVisibility00464CC0(
     }
 
     srVector3T<float> movement_target = movement->target_position_04c;
-    float bearing = NormalizeAngle(GetHeadingAngle004BE420(position, &movement_target));
+    float bearing = NormalizeAngle(GetHeadingAngle(position, &movement_target));
     float target_yaw = NormalizeAngle(trace_target_yaw_0c4);
 
     srMatrix3T<float> rotation;

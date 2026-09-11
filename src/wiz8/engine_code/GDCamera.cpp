@@ -1,6 +1,7 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/quad.h"
 
 #include "surrender/srNode.h"
 #include "surrender/srScene.h"
@@ -43,7 +44,6 @@ extern const float g_camera_velocity_factor_005ec55c;
 extern const double g_camera_pi_005ec2a0;
 extern const float g_camera_horizontal_margin_005ec574;
 extern const float g_camera_vertical_margin_005ec570;
-extern const float g_camera_half_pi_005ec3fc;
 
 // GLOBAL: WIZ8 0x005ec300
 const double g_camera_view_factor_005ec300 = 0.005555555555555556;
@@ -110,10 +110,6 @@ float g_camera_level_forward_scale_603aac = 375.0f;
 extern unsigned char g_flag_006875a5;
 // GLOBAL: WIZ8 0x006875a5
 unsigned char g_flag_006875a5;
-extern float GetHeadingAngle004BE420(
-    const srVector3T<float>* from, const srVector3T<float>* to);
-extern float GetElevationAngle004BE490(
-    const srVector3T<float>* from, const srVector3T<float>* to);
 
 // GLOBAL: WIZ8 0x0065A0FC
 srCamera* g_game_camera_65a0fc;
@@ -487,11 +483,11 @@ unsigned char GDCamera::ComputeTrackingOrientation(
     }
 
     float angle_delta =
-        (NormalizeAngle(GetHeadingAngle004BE420(&m_position_08c, target))
+        (NormalizeAngle(GetHeadingAngle(&m_position_08c, target))
          + g_camera_angle_period_005ec014)
         - (NormalizeAngle(m_yaw) + g_camera_angle_period_005ec014);
     float pitch_delta =
-        (GetElevationAngle004BE490(&m_position_08c, target)
+        (GetElevationAngle(&m_position_08c, target)
          + g_camera_angle_period_005ec014)
         - (m_pitch + g_camera_angle_period_005ec014);
     if ((double)fabs((double)angle_delta) > g_camera_pi_005ec2a0) {

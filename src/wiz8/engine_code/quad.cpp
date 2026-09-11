@@ -1,8 +1,11 @@
 #include "wiz8/engine_code/quad.h"
+#include "wiz8/float_constants.h"
 
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <float.h>
+#include <math.h>
 
 #include "surrender/srMeshModel.h"
 #include "surrender/srModelInstance.h"
@@ -127,4 +130,54 @@ W8Quad* BuildWorldQuad004BE200(
     quad->origin_x = positional_0c;
     quad->origin_z = positional_14;
     return quad;
+}
+
+/* 0x005ED1E8: the negative half turn the axis-aligned heading case returns. */
+// GLOBAL: WIZ8 0x005ed1e8
+const float g_float_005ed1e8 = -1.570796012878418f;
+
+/* 0x004BE420: the heading angle from source to target. The angle is measured
+   in the x/z plane; an exactly axis-aligned target answers one of the two
+   half turns instead of the atan2 of a zero denominator. */
+// FUNCTION: WIZ8 0x004BE420
+float GetHeadingAngle(const srVector3T<float>* source, const srVector3T<float>* target)
+{
+    float x = target->x - source->x;
+    float z = target->z - source->z;
+
+    if (z == g_float_005ebb34) {
+        if (x > g_float_005ebb34) {
+            return g_camera_half_pi_005ec3fc;
+        }
+        return g_float_005ed1e8;
+    }
+    {
+        float angle = static_cast<float>(atan2(x, z));
+        if (!_finite(angle)) {
+            return g_float_005ebb34;
+        }
+        return angle;
+    }
+}
+
+/* 0x004BE490: the elevation from source to target against the horizontal.
+   acos of the vertical fraction is measured from straight up, so the half
+   turn comes off it to put the horizon at zero. */
+// FUNCTION: WIZ8 0x004BE490
+float GetElevationAngle(const srVector3T<float>* source, const srVector3T<float>* target)
+{
+    float x = target->x - source->x;
+    float y = target->y - source->y;
+    float z = target->z - source->z;
+    float length = sqrt(x * x + y * y + z * z);
+    float angle;
+
+    if (length == g_float_005ebb34) {
+        return g_float_005ebb34;
+    }
+    angle = static_cast<float>(acos(y / length));
+    if (!_finite(angle)) {
+        return g_float_005ebb34;
+    }
+    return angle - g_float_005ec2a8;
 }

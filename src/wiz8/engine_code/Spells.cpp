@@ -18,6 +18,7 @@
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/quad.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stLight.h"
 #include "wiz8/engine_code/stParticle.h"
@@ -42,10 +43,6 @@
 
 extern const float g_monster_rotation_offset_005ec04c;
 extern const double g_camera_pi_005ec2a0;
-extern float GetHeadingAngle004BE420(
-    const srVector3T<float>* from, const srVector3T<float>* to);
-extern float GetElevationAngle004BE490(
-    const srVector3T<float>* from, const srVector3T<float>* to);
 
 W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
 
@@ -334,7 +331,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
                         rotation.RotateAboutY(
                             sin((double)angle), cos((double)angle));
                     }
-                    float pitch = GetElevationAngle004BE490(&position, &camera_position);
+                    float pitch = GetElevationAngle(&position, &camera_position);
                     if ((double)pitch != g_zero_005ebb40) {
                         rotation.RotateAboutX(
                             sin((double)pitch), cos((double)pitch));
@@ -356,7 +353,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
 
         billboard.SetIdentity();
         camera_position = g_gd_camera_65a0f8->m_position_08c;
-        angle = GetHeadingAngle004BE420(&visual_position, &camera_position) +
+        angle = GetHeadingAngle(&visual_position, &camera_position) +
             (float)g_camera_pi_005ec2a0;
         if ((double)angle != g_zero_005ebb40) {
             billboard.RotateAboutY(

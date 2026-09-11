@@ -44,10 +44,11 @@ W8Quad* BuildWorldQuad004BE200(
     float positional_18, float positional_1c, float positional_20,
     srScene* scene, int positional_28);
 
-float AngleFromPartyTo(const srVector3T<float>* from, const srVector3T<float>* to); /* 0x004BE420 */
-float GetElevationAngle004BE490(
+/* World-angle helpers: the yaw from one point to another and the elevation
+   measured against the horizontal plane. Both read the shared quarter-turn
+   constants. */
+float GetHeadingAngle(
     const srVector3T<float>* source, const srVector3T<float>* target);
-float GetHeadingAngle004BE420(
-    const srVector3T<float>* source,
-    const srVector3T<float>* target);
+float GetElevationAngle(
+    const srVector3T<float>* source, const srVector3T<float>* target);
 

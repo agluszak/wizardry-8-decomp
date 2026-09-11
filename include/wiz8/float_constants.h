@@ -68,6 +68,14 @@ extern float g_float_005ec3f8;
 extern float g_float_005ecbb4;
 extern float g_float_005ed8b8;
 
+/* The three quarter-turn values the world heading/elevation helpers read:
+   0x005EC3FC and 0x005ED1E8 are the positive and negative half turns returned
+   when the heading is exactly on the axis, and 0x005EC2A8 is the slightly
+   different half turn the elevation helper subtracts. */
+extern const float g_camera_half_pi_005ec3fc;
+extern const float g_float_005ec2a8;
+extern const float g_float_005ed1e8;
+
 extern float g_navigator_gravity_00603acc;
 extern float g_float_00603ac8;
 extern float g_float_00603aac;

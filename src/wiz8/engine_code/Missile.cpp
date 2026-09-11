@@ -10,6 +10,7 @@
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/GrObject.h"
 #include "wiz8/engine_code/PathAI.h"
+#include "wiz8/engine_code/quad.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stLight.h"
@@ -211,9 +212,6 @@ void UpdateWorldMissiles004A27C0(W8World* world)
     }
 }
 
-extern float GetHeadingAngle004BE420(
-    const srVector3T<float>* source, const srVector3T<float>* target);
-
 /* Derive the two launch angles from the source and target, then forward the
    remaining launch values to the missile factory. */
 // FUNCTION: WIZ8 0x004A2D30
@@ -225,7 +223,7 @@ W8Missile* FireMissile004A2D30(
 {
     return CreateMissile004A28D0(
         missile_table_index, source,
-        GetHeadingAngle004BE420(source, target), GetElevationAngle004BE490(source, target),
+        GetHeadingAngle(source, target), GetElevationAngle(source, target),
         value_4, value_5, value_6, value_7);
 }
 
