@@ -193,8 +193,8 @@ def test_wine_dump_normalizes_a_relocated_image(tmp_path: Path) -> None:
         .replace(
             "Backtrace:\n",
             "Modules:\n"
-            "PE\t00600000-006b1f70\tDeferred\twiz8runtime\n"
-            "PE\t7bc00000-7be00000\tDeferred\tntdll\n"
+            "PE        600000-  6b1f70       Deferred        wiz8runtime\n"
+            "PE        7bc00000-7be00000       Deferred        ntdll\n"
             "Backtrace:\n",
         )
     )

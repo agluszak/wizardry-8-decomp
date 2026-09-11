@@ -38,8 +38,8 @@ WINE_REGISTER = re.compile(
 WINE_EXCEPTION = re.compile(r"Unhandled exception:\s*(?P<operation>[^\n]*)", re.IGNORECASE)
 WINE_FRAME = re.compile(r"^\s*(?:=>)?\d+\s+0x(?P<address>[0-9a-fA-F]+)", re.MULTILINE)
 WINE_MODULE = re.compile(
-    r"^\s*PE\s+(?P<start>[0-9a-fA-F]{8})-(?P<end>[0-9a-fA-F]{8})\s+\S+\s+"
-    r"(?P<name>\S+)\s*$",
+    r"^\s*PE\s+(?P<start>[0-9a-fA-F]{1,8})\s*-\s*(?P<end>[0-9a-fA-F]{1,8})"
+    r"\s+\S+\s+(?P<name>\S+)\s*$",
     re.MULTILINE,
 )
 MAP_PREFERRED_BASE = re.compile(r"Preferred load address is (?P<base>[0-9a-fA-F]{8})")

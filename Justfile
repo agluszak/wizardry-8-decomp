@@ -46,7 +46,10 @@ run *args:
     wine ./Wiz8Runtime.exe /WINDOW "$@" 2>&1 | tee "$log"
     status=${PIPESTATUS[0]}
     set -e
-    if grep -q "WIZ8_RUNTIME_CRASH" "$log"; then
+    # The in-process reporter writes the product markers, while a hard crash
+    # leaves Wine's own report; winedbg sessions expose the Registers section.
+    # Only symbolize one of those, never an empty log.
+    if grep -qiE "WIZ8_RUNTIME_CRASH|Unhandled exception|Unhandled page fault|Register dump:" "$log"; then
         (
             cd "{{justfile_directory()}}"
             uv run wiz8 analyze crash --log "$log" \
@@ -124,7 +127,11 @@ debug *args:
     printf '%s' "$script" | winedbg ./Wiz8Runtime.exe /WINDOW "$@" 2>&1 | tee "$log"
     status=${PIPESTATUS[1]}
     set -e
-    if grep -qE "WIZ8_RUNTIME_CRASH|Unhandled exception" "$log"; then
+    # winedbg stops print "Exception c0000005" and only a DEBUG_SCRIPT that
+    # asks for state leaves a Register dump; Wine's own hard-crash report says
+    # "Unhandled page fault"/"Unhandled exception", and the product reporter
+    # writes WIZ8_RUNTIME_CRASH. Symbolize any of those.
+    if grep -qiE "WIZ8_RUNTIME_CRASH|Unhandled exception|Unhandled page fault|Register dump:" "$log"; then
         (cd "{{justfile_directory()}}" && uv run wiz8 analyze crash --log "$log" \
             --map "{{justfile_directory()}}/build/decomp/Wiz8Runtime.map") || true
     fi
