@@ -260,11 +260,6 @@ char GetTargetNeededForItem(const W8ItemInstance* item)
         record->spell_id, ItemClassNormalizesTarget(record), 6);
 }
 
-/* 0x004CA4F0 */
-extern unsigned char g_target_marker_00684073;
-// GLOBAL: WIZ8 0x00684073
-unsigned char g_target_marker_00684073;
-
 /* Aim at whatever the caller names, by kind. The other three fields are left
    at BAD_INDEX, so only the kind's own field is meaningful. */
 // FUNCTION: WIZ8 0x00538620
@@ -309,7 +304,7 @@ void AimAtPlace(int actor)
     target.iType = W8_TARGET_KIND_PLACE;
     Function492500(scratch);
     AimAtTarget(actor, &target, W8_TARGET_KIND_PLACE);
-    g_target_marker_00684073 = 0;
+    g_monster_manager_state.vector_9b7.Clear();
     RequestRefreshPartyState();
 }
 
@@ -1013,12 +1008,10 @@ void CollectMonstersWithinRadius(
         }
     }
 }
-/* 0x0068408B: the target block context two answers with, shared by the whole
-   party rather than kept per slot - which is what makes it the odd one out
-   among the six. */
-extern W8CombatSlot g_shared_target_0068408b;
 // GLOBAL: WIZ8 0x0068408b
 W8CombatSlot g_shared_target_0068408b;
+// GLOBAL: WIZ8 0x006840ab
+W8ActionDetailBlock g_shared_action_detail_006840ab;
 
 /* The two dialogue selections that have a targeting context of their own, and
    they are the same two action kinds - casting and using an item. */
@@ -1195,10 +1188,10 @@ unsigned int Function53A8D0(int party_slot, unsigned int context)
 {
     int action;
     int detail;
-    const W8ActionDetailBlock* detail_block;
+    W8ActionDetailBlock* detail_block;
 
     ChooseCombatAction(
-        party_slot, context, &action, &detail, 0, reinterpret_cast<int*>(&detail_block)); // reinterpret-ok: the accessor stores the detail-block address in a generic int output
+        party_slot, context, &action, &detail, 0, &detail_block);
     if (action == 2) {
         return 0x77;
     }
@@ -1211,8 +1204,6 @@ unsigned int Function53A8D0(int party_slot, unsigned int context)
     return 0;
 }
 
-// GLOBAL: WIZ8 0x0068406F
-srVector3T<float> g_target_position_0068406f;
 // GLOBAL: WIZ8 0x0068407F
 srVector3T<float> g_target_position_0068407f;
 
@@ -1291,11 +1282,11 @@ void Function53AEB0(unsigned int party_slot)
 // FUNCTION: WIZ8 0x0053B160
 void Function53B160(void)
 {
-    g_target_marker_00684073 = 0;
+    g_monster_manager_state.vector_9b7.Clear();
     RequestRefreshPartyState();
 }
 
-/* Recompute the target point and hand it to the marker only when it differs
+/* Recompute the target point and refresh the marker only when it differs
    from the cached three-float position. */
 // FUNCTION: WIZ8 0x0053B170
 void Function53B170(void)
@@ -1307,7 +1298,8 @@ void Function53B170(void)
         position.y != g_target_position_0068407f.y ||
         position.z != g_target_position_0068407f.z) {
         g_target_position_0068407f = position;
-        Function53B660(&position, &g_target_position_0068406f, 1);
+        Function53B660(
+            &position, &g_monster_manager_state.vector_9b7, 1);
     }
 }
 
@@ -1366,7 +1358,7 @@ unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
     W8TargetSource source;
     int action;
     int detail;
-    const W8ActionDetailBlock* detail_block;
+    W8ActionDetailBlock* detail_block;
     char needed;
     unsigned int index;
     int reachable;
@@ -1380,7 +1372,7 @@ unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
     }
     else {
         ChooseCombatAction(
-            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, reinterpret_cast<int*>(&detail_block)); // reinterpret-ok: the accessor stores the detail-block address in a generic int output
+            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, &detail_block);
         needed = GetTargetNeededForAction(action, detail, detail_block);
     }
 
@@ -1423,7 +1415,7 @@ unsigned char CanTargetMonster(
     W8MonsterRecord* record;
     int action;
     int detail;
-    const W8ActionDetailBlock* detail_block;
+    W8ActionDetailBlock* detail_block;
     char needed;
 
     if (monster_info->flag_14 == 0) {
@@ -1448,7 +1440,7 @@ unsigned char CanTargetMonster(
     }
     else {
         ChooseCombatAction(
-            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, reinterpret_cast<int*>(&detail_block)); // reinterpret-ok: the accessor stores the detail-block address in a generic int output
+            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, &detail_block);
         needed = GetTargetNeededForAction(action, detail, detail_block);
 
         if (needed != 2 && needed != 5) {
@@ -1493,14 +1485,13 @@ unsigned char SlotHasAnyValidTarget(int party_slot)
 {
     int action;
     int detail;
-    const W8ActionDetailBlock* detail_block;
-    int unused_target;
+    W8ActionDetailBlock* detail_block;
     W8CombatSlot target;
     unsigned int index;
     unsigned int other_slot;
 
     ChooseCombatAction(
-        party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, &unused_target, reinterpret_cast<int*>(&detail_block)); // reinterpret-ok: the accessor stores the detail-block address in a generic int output
+        party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, &detail_block);
 
     switch (action) {
     case 0:
@@ -1724,13 +1715,13 @@ void AimAtMonsterGroupMember(int party_slot, W8MonsterGroup* group)
     W8TargetSource source;
     int action;
     int detail;
-    const W8ActionDetailBlock* detail_block;
+    W8ActionDetailBlock* detail_block;
     int picked;
     int previous;
 
     if (ResolveTargetingContext(party_slot, W8_TARGETING_CONTEXT_CURRENT) != 0) {
         ChooseCombatAction(
-            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, reinterpret_cast<int*>(&detail_block)); // reinterpret-ok: the accessor stores the detail-block address in a generic int output
+            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, &detail_block);
         if (GetTargetNeededForAction(action, detail, detail_block) == 5) {
             memset(&target, 0, sizeof(target));
             target.iChar = BAD_INDEX;

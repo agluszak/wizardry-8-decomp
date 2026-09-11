@@ -1056,7 +1056,7 @@ unsigned char MainGameScreenLeave(int leaving)
     }
     else if (g_main_game_mode_0068eddc == 6) {
         if (g_level_block->dialogue_owner != 0) {
-            ReleaseRendererObject004257F0(reinterpret_cast<int>(g_level_block->dialogue_owner)); /* reinterpret-ok: level-block handle slots store the renderer object as int */
+            ReleaseRendererObject004257F0(g_level_block->dialogue_owner);
             g_level_block->dialogue_owner = 0;
         }
         Function563DD0();

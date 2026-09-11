@@ -47,11 +47,7 @@ float g_view_distance_0060a390;
 // GLOBAL: WIZ8 0x0060A3A4
 float g_environment_value_0060a3a4;
 // GLOBAL: WIZ8 0x0065AD78
-int g_light_direction_0065ad78;
-// GLOBAL: WIZ8 0x0065AD7C
-int g_light_direction_0065ad7c;
-// GLOBAL: WIZ8 0x0065AD80
-int g_light_direction_0065ad80;
+EnvironmentColour g_light_direction_0065ad78;
 // GLOBAL: WIZ8 0x0065A170
 stTextureAnim* g_environment_value_0065a170;
 

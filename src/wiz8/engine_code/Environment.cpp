@@ -44,9 +44,6 @@ bool g_fog_enabled_0065b9ad;
 
 // GLOBAL: WIZ8 0x0065b9ae
 bool g_sky_enabled_0065b9ae;
-extern int g_light_direction_0065ad78;
-extern int g_light_direction_0065ad7c;
-extern int g_light_direction_0065ad80;
 extern W8Prop* g_environment_value_0065ad84;
 extern W8Prop* g_environment_value_0065a160;
 extern stTextureAnim* g_environment_value_0065a168;
@@ -260,12 +257,8 @@ void UpdateEnvironment482770(void)
                 (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) /
                 86400U;
             if (phase != (unsigned int)g_environment_value_0060a3ac) {
-                const int* direction = reinterpret_cast<const int*>(
-                    &g_environment_colours_65ad98[phase]);
-                g_light_direction_0065ad78 = direction[0];
-                g_light_direction_0065ad7c = direction[1];
-                g_light_direction_0065ad80 = direction[2];
-                PublishLightDirection(direction);
+                g_light_direction_0065ad78 = g_environment_colours_65ad98[phase];
+                PublishLightDirection(&g_light_direction_0065ad78);
                 g_environment_value_0060a3ac = (int)phase;
             }
         }
@@ -487,8 +480,9 @@ void SetSkyEnabled(bool enabled)
     g_environment_object_0065b9b0 = 0;
     g_environment_object_0065b9b4 = 0;
 
-    int direction[3] = {0, 0, 0};
-    PublishLightDirection(direction);
+    EnvironmentColour direction;
+    direction = 0.0;
+    PublishLightDirection(&direction);
     if (g_world == 0 || g_world->camera == 0) {
         return;
     }
@@ -553,14 +547,8 @@ void EnableSky(void)
     unsigned int phase =
         (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) / 86400U;
     if (phase != (unsigned int)g_environment_value_0060a3a8) {
-        g_light_direction_0065ad78 =
-            reinterpret_cast<const int*>(&g_environment_colours_65ad98[phase])[0];
-        g_light_direction_0065ad7c =
-            reinterpret_cast<const int*>(&g_environment_colours_65ad98[phase])[1];
-        g_light_direction_0065ad80 =
-            reinterpret_cast<const int*>(&g_environment_colours_65ad98[phase])[2];
-        PublishLightDirection(
-            reinterpret_cast<const int*>(&g_environment_colours_65ad98[phase]));
+        g_light_direction_0065ad78 = g_environment_colours_65ad98[phase];
+        PublishLightDirection(&g_light_direction_0065ad78);
         g_environment_value_0060a3a8 = (int)phase;
     }
 }
@@ -669,20 +657,16 @@ void ResetEnvironment(void)
 /* The direction light comes from. Setting it also hands the new direction to
    the renderer, so the two are not a plain field pair. */
 // FUNCTION: WIZ8 0x00483650
-void SetLightDirection(const int* direction)
+void SetLightDirection(const EnvironmentColour* direction)
 {
-    g_light_direction_0065ad78 = direction[0];
-    g_light_direction_0065ad7c = direction[1];
-    g_light_direction_0065ad80 = direction[2];
+    g_light_direction_0065ad78 = *direction;
     PublishLightDirection(direction);
 }
 
 // FUNCTION: WIZ8 0x00483680
-void GetLightDirection(int* direction)
+void GetLightDirection(EnvironmentColour* direction)
 {
-    direction[0] = g_light_direction_0065ad78;
-    direction[1] = g_light_direction_0065ad7c;
-    direction[2] = g_light_direction_0065ad80;
+    *direction = g_light_direction_0065ad78;
 }
 
 /* The ambient light the world contributes, or nothing at all when the world's
@@ -690,7 +674,7 @@ void GetLightDirection(int* direction)
    names the world and line 617 names the out-parameter pLightValue, which is
    what makes the three writes a colour triple rather than three  */
 // FUNCTION: WIZ8 0x004839e0
-void GetWorldLightValue(const void* world, int* light_value)
+void GetWorldLightValue(const W8World* world, int* light_value)
 {
     if (world == 0) {
         srAssertFail("pWorld", ENVIRONMENT_CPP, 616, 0);
@@ -698,10 +682,9 @@ void GetWorldLightValue(const void* world, int* light_value)
     if (light_value == 0) {
         srAssertFail("pLightValue", ENVIRONMENT_CPP, 617, 0);
     }
-    if (*(const int*)((const char*)world + 0x3c) != 0) {
-        light_value[0] = *(const int*)((const char*)world + 0x2c);
-        light_value[1] = *(const int*)((const char*)world + 0x30);
-        light_value[2] = *(const int*)((const char*)world + 0x34);
+    if (world->static_scene != 0) {
+        memcpy(light_value, &world->environment_colour_02c,
+               sizeof(world->environment_colour_02c));
     } else {
         light_value[0] = 0;
         light_value[1] = 0;
@@ -930,9 +913,11 @@ void InitializeLevelEnvironment00482410(void)
                 &g_environment_value_0065a168, &g_environment_value_0065a16c,
                 &g_environment_value_0065a170};
 
-            g_environment_value_0065a160->m_pRep
+            static_cast<W8AnimRepBase005EC1D8*>(
+                g_environment_value_0065a160->m_pRep)
                 ->GetLocation004B8890(&sun);
-            g_environment_value_0065ad84->m_pRep
+            static_cast<W8AnimRepBase005EC1D8*>(
+                g_environment_value_0065ad84->m_pRep)
                 ->GetLocation004B8890(&moon);
             srVector3T<float> delta = sun - moon;
             srVector3T<float> midpoint = (sun + moon) * 0.5;
@@ -984,13 +969,8 @@ void InitializeLevelEnvironment00482410(void)
         }
         ApplyEnvironmentColour00483BA0(g_world, g_world->environment_intensity_024, &colour);
         {
-            const int* direction = reinterpret_cast<const int*>( /* reinterpret-ok: published as raw words */
-                &g_environment_colours_65ad98[phase]);
-
-            g_light_direction_0065ad78 = direction[0];
-            g_light_direction_0065ad7c = direction[1];
-            g_light_direction_0065ad80 = direction[2];
-            PublishLightDirection(direction);
+            g_light_direction_0065ad78 = g_environment_colours_65ad98[phase];
+            PublishLightDirection(&g_light_direction_0065ad78);
         }
     }
 }

@@ -142,7 +142,7 @@ void ScrollTextBoxToCursor(void)
 unsigned char GetOpenDialogueFlag(void)
 {
     if (g_level_block->dialogue_open != 0 && g_level_block->dialogue_owner != 0) {
-        return g_level_block->dialogue_owner[0x2d];
+        return reinterpret_cast<unsigned char*>(g_level_block->dialogue_owner)[0x2d]; /* reinterpret-ok: flag byte in the unrecovered renderer-object tail */
     }
     return 0;
 }

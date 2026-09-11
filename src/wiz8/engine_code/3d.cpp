@@ -478,7 +478,12 @@ void FreeThroughRenderHeap(void* block)
 }
 
 /* Walk a chain through its link at 0x134 and set the same field on every node
-   of it. */
+   of it. The link is srNode::first_child_ (+0x134), but the +0x15c store
+   lies past the 0x138-byte plain srNode base, inside the srModelInstance
+   tail (exclusion_mask_15c). Proven callers hand model instances, but the
+   trace-model node from CreateTraceModel0041C930 is only established as an
+   srNode, so the helper stays a raw walker until every chain member proves
+   the tail. */
 // FUNCTION: WIZ8 0x0046f4f0
 void SetChainValue15C(char* node, int value)
 {

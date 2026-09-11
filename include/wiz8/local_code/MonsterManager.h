@@ -2,6 +2,8 @@
 #ifndef WIZ8_LOCAL_CODE_MONSTER_MANAGER_H
 #define WIZ8_LOCAL_CODE_MONSTER_MANAGER_H
 
+#include <stddef.h>
+
 #include "surrender/srMath.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/character.h"
@@ -82,32 +84,52 @@ struct W8MonsterManagerEntry {
     unsigned char unknown_117;
 };                                       /* 0x118 */
 
-/* 0x004E6900 passes 0x006836B8 as this constructor's receiver. The constructor
-   builds the entry array and the vector at +0x9B7; 0x0054AFD0 then clears the
-   full 0x1A0A-byte object from that same address. That clear proves the
-   remaining extent, but not any internal boundaries in the trailing storage. */
+/* 0x004E6910 runs this constructor for 0x006836B8 at startup (with an
+   atexit 0x004E6940 teardown). 0x004E6970 builds entries[8] through the
+   0x004E6A30 element constructor and constructs the vector at +0x9B7
+   (vtable 0x5EBFE0 with a five-int backing store); the destructor tears
+   exactly those two down. Neither lifecycle function touches
+   +0x8C0..+0x9B6, so those bytes are not members: gXStatus starts at +0x8C0
+   (0x00683F78) and further globals follow. The padding below reserves the
+   vector's relative offset only; never access storage through it. (An older
+   comment blamed 0x004E6900, but that address is a branch inside
+   AnyMonsterDying, not a constructor caller.) */
 struct W8MonsterManagerState {
     W8MonsterManagerState();
     ~W8MonsterManagerState();
 
     W8MonsterManagerEntry entries[8];     /* 0x000 .. 0x8c0 */
-    unsigned char unknown_8c0[0xf7];
-    W8GrowableVector<int> vector_9b7;      /* 0x9b7 */
-    unsigned char unknown_9c7[0x1043];
-};                                       /* 0x1a0a */
+    unsigned char unowned_8c0[0xf7];      /* +0x8c0..+0x9b6: gXStatus and other globals, not members */
+    W8GrowableVector<int> vector_9b7;      /* 0x9b7, ABS 0x0068406F */
+};                                       /* 0x9c7 */
 #pragma pack(pop)
 
 static_assert(sizeof(W8GrowableVector<int>) == 0x10, "W8GrowableVector_int_size_must_be_0x10");
 static_assert(sizeof(W8MonsterManagerEntry) == 0x118,
               "W8MonsterManagerEntry_size_must_be_0x118");
-static_assert(sizeof(W8MonsterManagerState) == 0x1a0a,
-              "W8MonsterManagerState_size_must_be_0x1a0a");
+static_assert(sizeof(W8MonsterManagerState) == 0x9c7,
+              "W8MonsterManagerState_size_must_be_0x9c7");
+static_assert(offsetof(W8MonsterManagerState, vector_9b7) == 0x9b7,
+              "W8MonsterManagerState_vector_offset");
 
 extern W8MonsterManagerState g_monster_manager_state;
 
 W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);
 unsigned char LoadMonsterDatabaseRecord(
     unsigned int monster_species, W8MonsterRecord* record);
+
+/* One queued monster action, 0x30 bytes: the kind/detail pair, the attack
+   index the plain attack alone carries, an inline combat slot whose type and
+   id words QueueMonsterAction fills by target kind, and a random 1..100
+   tie-break so equal decisions do not always resolve the same way. */
+struct W8MonsterAction {
+    int action_kind;                /* 0x00 */
+    int action_detail;              /* 0x04 */
+    int attack_index;               /* 0x08 */
+    W8CombatSlot target;            /* 0x0c */
+    unsigned char tie_break;        /* 0x2c */
+    unsigned char unknown_2d[3];
+};                                  /* 0x30 */
 
 /* The 0x153-byte combat allocation has two adjacent runs of 0x11-byte records.
    ClearEffectSlot consumes a record whenever its leading active byte is set. */
@@ -127,8 +149,8 @@ struct W8MonsterCombatState {
        indexing the database record. */
     unsigned int attack_index_11;
     unsigned char unknown_015;
-    /* 0x016: the queue of actions the monster's AI has decided on, one 0x30
-       byte record each. The AI owns the list and destroys it outright. */
+    /* 0x016: the queue of actions the monster's AI has decided on, one
+       W8MonsterAction each. The AI owns the list and destroys it outright. */
     W8PList* pending_actions;
     unsigned char unknown_01a[0x24];
     W8EffectSlot entries_3e[9];             /* 0x03e .. 0x0d7 */

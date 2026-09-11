@@ -407,7 +407,7 @@ void Function557200(W8Character* character, W8CharacterCreationState* creation_s
         deficits[index][1] = index;
         total -= deficit;
     }
-    qsort(deficits, 7, 8, reinterpret_cast<int (__cdecl*)(const void*, const void*)>(CompareSignedDescending)); /* reinterpret-ok: qsort's untyped C comparator ABI */
+    qsort(deficits, 7, 8, CompareSignedDescending);
     if (character->attribute_point_deficit_0199 != total) {
         character->attribute_point_deficit_0199 = total;
     }
@@ -833,7 +833,7 @@ int Function558330(W8Character* character, W8CharacterCreationState* creation_st
                 pools[index][0] = character->sp_max[index];
                 pools[index][1] = index;
             }
-            qsort(pools, 6, 8, reinterpret_cast<int (__cdecl*)(const void*, const void*)>(CompareSignedDescending)); /* reinterpret-ok: qsort's untyped C comparator ABI */
+            qsort(pools, 6, 8, CompareSignedDescending);
             int count = creation_state->spell_points_total < 7
                             ? creation_state->spell_points_total
                             : 6;

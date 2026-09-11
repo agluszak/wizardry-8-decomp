@@ -34,6 +34,7 @@ struct W8LevelDataRecord {
 struct W8OctBuildTree00446390;
 class Trigger;
 class srNode;
+class W8Octree;
 
 class BitArray;
 
@@ -77,7 +78,10 @@ struct W8GameData {
     srNode* CreateTraceModel0041C930();                          /* 0x0041c930 */
 
     W8OctBuildTree00446390* geometry_index_00;
-    unsigned long positional_04;
+    /* +0x04: the loading octree's back-pointer, stored by W8Octree's file-load
+       finish path (retail writes [ESI+4], not +0) and tested by trigger
+       integration. geometry_index_00 above is untouched by that store. */
+    W8Octree* positional_04;
     srVector3T<float> minimum_08;
     srVector3T<float> maximum_14;
     int vertex_count_20;

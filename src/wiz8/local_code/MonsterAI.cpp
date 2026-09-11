@@ -85,26 +85,26 @@ void QueueMonsterAction(
     int target_kind,
     int target_value)
 {
-    int* entry = (int*)malloc(0x30);
+    W8MonsterAction* entry = (W8MonsterAction*)malloc(0x30);
 
     if (entry == 0) {
         return;
     }
     memset(entry, 0, 0x30);
-    entry[0] = action_kind;
-    entry[1] = action_detail;
+    entry->action_kind = action_kind;
+    entry->action_detail = action_detail;
     if (action_kind == W8_MONSTER_ACTION_ATTACK) {
-        entry[2] = attack_index;
+        entry->attack_index = attack_index;
     }
-    ResetCombatSlot((W8CombatSlot*)(entry + 3));
-    entry[3] = target_kind;
+    ResetCombatSlot(&entry->target);
+    entry->target.iType = target_kind;
     if (target_kind == 1) {
-        entry[4] = target_value;
+        entry->target.iChar = target_value;
     }
     else if (target_kind == 3) {
-        entry[5] = target_value;
+        entry->target.iMonsterID = target_value;
     }
-    *(char*)(entry + 0xb) = (char)Random(100) + 1;
+    entry->tie_break = (unsigned char)Random(100) + 1;
     PLAdoptAppend(monster_info->pCombat->pending_actions, entry);
 }
 

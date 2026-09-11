@@ -359,7 +359,7 @@ unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRe
     if (!FileSeek(handle, index * 0x297 + 4, 1)) {
         return 0;
     }
-    if (!FileRead(handle, record, 0x297, (&uiMonsterIndex))) {
+    if (!FileRead(handle, record, 0x297, (unsigned int*)&uiMonsterIndex)) {
         FileClose(handle);
         return 0;
     }
@@ -623,7 +623,7 @@ unsigned char Function54A9A0(unsigned int uiStartIndex, unsigned int uiEndIndex,
     }
     if (!FileRead(handle, records,
                          (uiEndIndex + 1) * 0x297 - uiStartIndex * 0x297,
-                         (&uiEndIndex))) {
+                         (unsigned int*)&uiEndIndex)) {
         FileClose(handle);
         return 0;
     }
@@ -902,7 +902,7 @@ void W8StartupStateElement005EE748::Process0052CED0()
     }
     if (type_08 == 23 || type_08 == 24) {
         if ((flags_10 & 0x40) == 0) {
-            if (item_id_24 == -1) {
+            if (item_24.item_id == -1) {
                 PostCharacterMessage(
                     party_slot,
                     gppStringList[0x1dc4 / 4]);
@@ -911,9 +911,7 @@ void W8StartupStateElement005EE748::Process0052CED0()
                 PostCharacterMessage(
                     party_slot,
                     gppStringList[0x1dc8 / 4],
-                    GetItemDisplayName(
-                        reinterpret_cast<const W8ItemInstance*>( // reinterpret-ok: item_id_24 embeds the item record
-                            &item_id_24)));
+                    GetItemDisplayName(&item_24));
             }
         }
     }
@@ -922,17 +920,29 @@ void W8StartupStateElement005EE748::Process0052CED0()
     }
 }
 
-/* The manager constructor establishes the non-trivial members inside this
-   object; this full-size clear deliberately wipes them along with the rest of
-   its runtime state. */
+/* The static initializer constructs the manager's entries and vector before
+   this runs; the bulk reset below deliberately wipes them along with the
+   neighbouring runtime state. That matches retail exactly, including the
+   wiped container headers: every later use is non-virtual (Clear, GetCount,
+   direct teardown of a null backing store), so no reconstruction runs. */
 W8StartupRuntimeState* g_startup_runtime_state;
 W8GameTimer* g_gameplay_timer_685067;
 
+/* The bulk reset below spans the manager object and its neighbours; see the
+   note at the function. */
 // FUNCTION: WIZ8 0x0054afd0
 void InitializeGameplayRuntimeObjects(void)
 {
-    memset(static_cast<void*>(&g_monster_manager_state), 0,
-           sizeof(W8MonsterManagerState));
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfortify-source"
+/* Retail 0x0054AFD0 zeroes ECX=0x682 dwords plus 0x6C words from 0x006836B8:
+   a 0x1AE0-byte bulk reset spanning the manager object, gXStatus, the
+   targeting globals and further runtime state up to 0x00685098. That span is
+   a reset region, not one C++ object; only the manager extent is owned here.
+   Suppress only this diagnostic: the size argument deliberately exceeds the
+   struct because retail clears the neighbours too. */
+    memset(static_cast<void*>(&g_monster_manager_state), 0, 0x1ae0);
+#pragma clang diagnostic pop
     g_startup_runtime_state = new W8StartupRuntimeState();
     g_gameplay_timer_685067 = new W8GameTimer(300.0f, 0);
 }

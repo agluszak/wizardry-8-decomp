@@ -208,7 +208,7 @@ int g_dword_6596ec;
 // GLOBAL: WIZ8 0x006596f0
 int g_dword_6596f0;
 // GLOBAL: WIZ8 0x659668
-int g_value_659668;
+const int* g_value_659668;
 // GLOBAL: WIZ8 0x65409c
 unsigned int g_tick_65409c;
 // GLOBAL: WIZ8 0x659704
@@ -329,7 +329,7 @@ unsigned char InitializeVideoManager(
     g_dword_6596e0 = 0;
     g_flags_6596e8[0] = 0;
     g_flags_6596e8[1] = 0;
-    g_instance_654ac4 = instance;
+    g_instance_654ac4 = (HINSTANCE)instance;
     g_show_command_659620 = show_command;
     g_window_proc_6595f8 = (WNDPROC)window_proc;
     Initialize16BitPixelFormatMasks();
@@ -349,14 +349,14 @@ unsigned char InitializeVideoManager(
         }
         if (ghWindow && g_gerd_659634) {
             g_flag_659710 = 1;
-            ShowWindow(ghWindow, 9);
+            ShowWindow((HWND)ghWindow, 9);
             if (g_gerd_659634->isWindowOpen() == 0) {
                 if (!Function422800()) {
                     goto done;
                 }
             }
-            OpenIcon(ghWindow);
-            SetFocus(ghWindow);
+            OpenIcon((HWND)ghWindow);
+            SetFocus((HWND)ghWindow);
             memset(g_block_652ddc, 0, sizeof(g_block_652ddc));
             active = g_index_6596e4;
             g_flags_6596e8[g_index_6596e4 ^ 1] = 0;
@@ -1058,8 +1058,7 @@ clear_viewport:
 
     g_gerd_659634->setTextureReduction(0);
     if (g_flag_603c6d) {
-        const int* overlay_viewport =
-            reinterpret_cast<const int*>(g_value_659668);
+        const int* overlay_viewport = g_value_659668;
         if (!g_flag_603c4c) {
             Function427850(g_scene_fullscreen_659644,
                            g_overlay_camera_659670, overlay_viewport, 0);
@@ -1133,10 +1132,10 @@ void Function427440(void)
    both static scenes consume as the fog colour. The renderer is flushed before
    the new colour lands. */
 // FUNCTION: WIZ8 0x00427380
-void PublishLightDirection(const int* direction)
+void PublishLightDirection(const EnvironmentColour* direction)
 {
     const srVector3T<float>* color =
-        reinterpret_cast<const srVector3T<float>*>(direction); // reinterpret-ok: the three light words are the fog vector
+        reinterpret_cast<const srVector3T<float>*>(direction); // reinterpret-ok: the renderer consumes the light triple as a fog vector
     if (g_gerd_659634 != 0) {
         g_gerd_659634->flush();
         g_gerd_659634->setFogColor(*color);
@@ -1611,8 +1610,8 @@ static void InvalidateDirtyTile004259B0(int cell, unsigned int flags)
     if (node != 0) {
         short position_x = node->right_16c;
         short position_y = node->bottom_16e;
-        int columns = (node->GetWidth00480EF0() & 0xffff) >> 3;
-        int rows = (node->GetHeight00480F70() & 0xffff) >> 3;
+        int columns = node->GetWidth00480EF0() >> 3;
+        int rows = node->GetHeight00480F70() >> 3;
 
         for (int index = 0; index != 0x12c0; ++index) {
             if (g_surface_nodes_654adc[index] == node) {
@@ -1628,8 +1627,7 @@ static void InvalidateDirtyTile004259B0(int cell, unsigned int flags)
             }
         }
         node->release();
-        int start = ((position_y & 0xffff) >> 3) * 0x50
-                  + ((position_x & 0xffff) >> 3);
+        int start = (position_y >> 3) * 0x50 + (position_x >> 3);
         for (int row = rows; row != 0; --row) {
             int row_cell = start;
             for (int column = columns; column != 0; --column) {
@@ -2204,19 +2202,21 @@ unsigned char SetFlag603C60(void)
 }
 
 /* Release a renderer-owned object, leaving the renderer in 2D mode, or in
-   the paired mode when its state byte says otherwise. The handle travels as
-   an int, matching the level-block slots that carry it. */
+   the paired mode when its state byte says otherwise. The +0x160 flag lives
+   past the 0x160-byte srModelInstance base, so the object is a larger
+   derivative (stModelInstance-family shape); the filling producer is
+   unrecovered, hence the offset read stays marked. */
 // FUNCTION: WIZ8 0x004257F0
-void ReleaseRendererObject004257F0(int value)
+void ReleaseRendererObject004257F0(srClass* object)
 {
-    if ((*(unsigned char*)(value + 0x160) & 1) != 0) {
+    if ((reinterpret_cast<unsigned char*>(object)[0x160] & 1) != 0) { /* reinterpret-ok: unrecovered derivative tail past the srModelInstance base */
         g_dword_6596ec = 2;
     }
     else {
         g_dword_6596f0 = 2;
         g_dword_6596ec = 2;
     }
-    reinterpret_cast<srClass*>(value)->release();
+    object->release();
 }
 
 // FUNCTION: WIZ8 0x00428A90
@@ -2239,7 +2239,7 @@ unsigned char GetRendererModeByte(void)
 }
 
 // FUNCTION: WIZ8 0x00429200
-void SetValue659668(int value)
+void SetValue659668(const int* value)
 {
     g_value_659668 = value;
 }

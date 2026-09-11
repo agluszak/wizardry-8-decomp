@@ -110,6 +110,12 @@ unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indi
 
 extern int g_target_state_6840b3;
 extern int g_picked_group_006840b7;
+/* ABS 0x0068408B: the shared combat slot the context-2 outputs name. */
+extern W8CombatSlot g_shared_target_0068408b;
+/* ABS 0x006840AB: one action-detail block following the shared slot; the
+   eight bytes fit exactly before g_target_state_6840b3. Context 2 hands out
+   both addresses and stores the selected use-item value in the block. */
+extern W8ActionDetailBlock g_shared_action_detail_006840ab;
 void ResetTargetingState(void);
 
 
@@ -162,7 +168,11 @@ void Function5398D0(void);
 unsigned char Function53A1D0(void);
 void Function53B1D0(void);
 void Function53B310(void);
-void Function53B660(const srVector3T<float>* position, srVector3T<float>* target, int enabled);
+/* 0x0053B660 is unrecovered. Retail passes a 12-byte scratch buffer, the
+   manager's +0x9B7 vector, and a flag; the body treats the vector as three
+   opaque dwords (zeroing the middle one, i.e. its count) and forwards them.
+   Both pointer parameters stay untyped until its recovery types them. */
+void Function53B660(const void* position, void* target, int enabled);
 unsigned char TargetIsInPlay(int party_slot, int arg_2, int arg_3);   /* 0x00536F60 */
 
 #endif

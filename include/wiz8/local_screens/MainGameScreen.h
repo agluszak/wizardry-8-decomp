@@ -1,6 +1,7 @@
 #pragma once
 
 class Trigger;
+class srClass;
 
 #include "input.h"
 #include "wiz8/vector.h"
@@ -44,7 +45,11 @@ struct W8LevelRuntimeBlock {
     int text_slots_1e8[4];
     unsigned char dialogue_open;
     unsigned char unknown_1f9[3];
-    unsigned char* dialogue_owner;
+    /* The live dialogue's renderer object (an srClass derivative with state
+       at +0x160, stModelInstance-family shape; the filling producer is
+       unrecovered) and three more renderer-object slots the teardown drains.
+       MGSTextBox reads a still-unnamed flag byte at +0x2d through it. */
+    srClass* dialogue_owner;
     unsigned char unknown_200[0x44];
     unsigned int world_update_flags;     /* 0x244 */
     unsigned int world_render_flags;     /* 0x248 */
@@ -63,9 +68,9 @@ struct W8LevelRuntimeBlock {
     int pending_level;
     int pending_entry_id;
     unsigned char unknown_284[0x1c];
-    int unknown_2a0;
-    int unknown_2a4;
-    int unknown_2a8;
+    srClass* unknown_2a0;
+    srClass* unknown_2a4;
+    srClass* unknown_2a8;
     unsigned char unknown_2ac[0x14];
     unsigned char refresh_combat_panel;
     unsigned char unknown_2c1[3];

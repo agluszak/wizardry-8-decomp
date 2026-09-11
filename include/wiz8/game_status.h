@@ -117,7 +117,16 @@ struct W8GlobalStatus {
     unsigned char unknown_248b[8];
     int value_2493;
     unsigned char flag_2497;
-    unsigned char unknown_2498[0x24db];
+    unsigned char unknown_2498[0xc89];
+    /* +0xc89 (ABS 0x688291): 1000 consecutive dwords. EndCombat walks exactly
+       this run flipping 1 -> 2; the extent is representation-proven even
+       though the semantics are not. */
+    int status_ints_3121[1000];
+    /* +0x1c29: the remainder of the old byte blob, starting with the flag
+       byte the 0x88 fact reads and writes. The int slot at +0x1da5 that the
+       0x14c fact reads stays a marked access until its own extent is
+       established. */
+    unsigned char status_suffix_40ab[0x8b2];
     /* 0x4973/0x4977: GetTickCount stamps that retire NPC 0x1b3 and then start
        the 0x1b6 cycle. */
     int value_4973;

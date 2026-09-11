@@ -46,6 +46,12 @@ static_assert(sizeof(W8MaterialMapper00482010) == 0x1c,
 
 extern W8MaterialMapper00482010 g_material_mapper_00659738;
 
+/* ABS 0x0065AD78: the three light-direction words as one colour triple.
+   Produced from the day-phase colour table and consumed as fog-vector
+   floats; the word copies below move it without reinterpreting it. */
+extern EnvironmentColour g_light_direction_0065ad78;
+
+
 extern EnvironmentColour g_environment_colours_65a178[256];
 extern EnvironmentColour g_environment_colours_65ad98[256];
 
@@ -67,9 +73,12 @@ void SetFogEnabled(bool enabled);
 bool IsFogEnabled(void);
 void DisableSky(void);
 bool IsSkyEnabled(void);
-void GetWorldLightValue(const void* world, int* light_value);
-void SetLightDirection(const int* direction);
-void GetLightDirection(int* direction);
+/* The ambient light the world contributes, as three raw words: the two callers
+   keep them as EnvironmentColour and srVector3T<float> respectively, so the
+   untyped word triple is retail's own answer, not a recovered gap. */
+void GetWorldLightValue(const W8World* world, int* light_value);
+void SetLightDirection(const EnvironmentColour* direction);
+void GetLightDirection(EnvironmentColour* direction);
 extern bool g_sky_enabled_0065b9ae;
 void ResetEnvironment(void);
 void InitializeLevelEnvironment00482410(void);

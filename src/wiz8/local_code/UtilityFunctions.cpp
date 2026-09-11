@@ -147,10 +147,10 @@ int CompareSignedAscending(const void* first, const void* second)
 }
 
 // FUNCTION: WIZ8 0x00517a50
-int CompareSignedDescending(const int* first, const int* second)
+int CompareSignedDescending(const void* first, const void* second)
 {
-    int left = *first;
-    int right = *second;
+    int left = *static_cast<const int*>(first);
+    int right = *static_cast<const int*>(second);
 
     if (left > right) {
         return -1;

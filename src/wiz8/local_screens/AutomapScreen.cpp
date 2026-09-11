@@ -319,7 +319,7 @@ unsigned char AutomapScreenEnter(void)
 {
     stScript script;
     MSYS_Init();
-    GetLightDirection(reinterpret_cast<int*>(&g_automap_saved_light_direction));
+    GetLightDirection(&g_automap_saved_light_direction);
     GetWorldLightValue(g_world, reinterpret_cast<int*>(&g_automap_saved_ambient_light));
     GetWorldCameraState(GetWorld(), &g_automap_saved_camera);
     g_automap_saved_far_clip = static_cast<float>(WorldGetFarClip(g_world));
@@ -332,7 +332,7 @@ unsigned char AutomapScreenEnter(void)
     g_automap_saved_texture_policy = g_resident_texture_policy_659714;
     EnvironmentColour direction;
     direction = 0.0;
-    SetLightDirection(reinterpret_cast<const int*>(&direction));
+    SetLightDirection(&direction);
     SetWorldEnvironmentColour00483A60(g_world, EnvironmentColour(0.0, 0.0, 0.0));
     DisableSky();
     DisableRenderOption(10);
@@ -703,7 +703,7 @@ void AutomapScreenFrame(void)
 void RestoreAutomapWorldSettings(void)
 {
     SetWorldEnvironmentColour00483A60(g_world, g_automap_saved_ambient_light);
-    SetLightDirection(reinterpret_cast<const int*>(&g_automap_saved_light_direction));
+    SetLightDirection(&g_automap_saved_light_direction);
     RestoreWorldCameraState(GetWorld(), 0, &g_automap_saved_camera);
     WorldSetFarClip(g_world, g_automap_saved_far_clip);
     WorldSetValue74(g_world, g_automap_saved_world_value);

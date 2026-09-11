@@ -308,11 +308,11 @@ unsigned char EvaluateFact(int fact_id)
             }
             return 0;
         case 0x88:
-            if (g_status_685170.unknown_2498[0x1c29] == 0) {
+            if (g_status_685170.status_suffix_40ab[0] == 0) {
                 if (CountItemOnParty(0x1c4, 0, 0, 2) < 5) {
                     return 0;
                 }
-                g_status_685170.unknown_2498[0x1c29] = 1;
+                g_status_685170.status_suffix_40ab[0] = 1;
                 return 1;
             }
             break;
@@ -394,7 +394,7 @@ unsigned char EvaluateFact(int fact_id)
             return GetFactionDisposition(5) == W8_FACTION_FRIENDLY;
         case 0x14c:
             if (g_status_685170.unknown_244b[0x3e] != 0) {
-                int* marked_slot = reinterpret_cast<int*>(g_status_685170.unknown_2498 + 0x1da5); /* reinterpret-ok: packed status table */
+                int* marked_slot = reinterpret_cast<int*>(&g_status_685170.status_suffix_40ab[0x17c]); /* reinterpret-ok: single int slot inside the unrecovered suffix */
                 unsigned int slot = 0;
                 do {
                     if (g_party_slot_rows[slot].occupied != 0 &&
