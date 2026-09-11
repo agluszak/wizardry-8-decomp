@@ -79,6 +79,9 @@ void SGPMouseGetPos(POINT* point);
 #ifdef __cplusplus
 }
 
+/* Tooltip ownership query: nonzero while a VideoToolTip object is alive. */
+bool HasScreenTransitionObjects(void); /* 0x004297D0 */
+
 #endif
 
 /* Renderer state and helpers with only product C++ consumers. The C block

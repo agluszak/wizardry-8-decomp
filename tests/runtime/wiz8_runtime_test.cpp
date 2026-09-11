@@ -4,6 +4,7 @@
 #include "wiz8/regions.h"
 #include "wiz8/cursor.h"
 #include "wiz8/bringup_gates.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/local_screens/PartySelectionScreen.h"
@@ -47,6 +48,13 @@ struct RuntimeObservation {
     unsigned char final_page_redrawn;
     unsigned char return_observed;
     unsigned char timed_out;
+    int character_page_start;
+    int character_page_after;
+    unsigned char tooltip_shown;
+    unsigned char tooltip_removed;
+    unsigned char skill_tooltip_shown;
+    unsigned char skill_tooltip_removed;
+    unsigned char skill_interacted;
     unsigned char playlist_active;
     int playlist_tracks;
     int playlist_weight;
@@ -204,6 +212,50 @@ static DWORD FailScenario()
         PostMessage(ghWindow, WM_CLOSE, 0, 0);
     }
     return 2;
+}
+
+/* Walk a live region's current bounds instead of a fixed pixel. */
+static bool RegionCenter(int region_index, int* x, int* y)
+{
+    if (region_index < 0 || static_cast<unsigned int>(region_index) >= g_region_count) {
+        return false;
+    }
+    W8Region* region = &g_regions[region_index];
+    *x = (region->x1 + region->x2) / 2;
+    *y = (region->y1 + region->y2) / 2;
+    return true;
+}
+
+static void HoverRegion(int region_index)
+{
+    int x;
+    int y;
+    if (RegionCenter(region_index, &x, &y)) {
+        MoveScenarioMouse(x, y);
+    }
+}
+
+static void ClickRegion(int region_index)
+{
+    int x;
+    int y;
+    if (RegionCenter(region_index, &x, &y)) {
+        SendScenarioMouse(x, y);
+    }
+}
+
+/* The tooltip's owning object count is the structural marker; the pixel
+   output is not part of this assertion. */
+static bool WaitForTooltip(bool present, unsigned int timeout_ms)
+{
+    unsigned int started = GetTickCount();
+    while (GetTickCount() - started < timeout_ms) {
+        if (HasScreenTransitionObjects() == present) {
+            return true;
+        }
+        Sleep(5);
+    }
+    return false;
 }
 
 static bool WaitForMainMenu(unsigned int timeout_ms)
@@ -483,6 +535,17 @@ static DWORD WINAPI DriveScenario(void*)
             return FailScenario();
         }
 
+        /* Hover the Next control long enough to raise its help box and move
+           off it to take the box down before using it. */
+        HoverRegion(screen->m_next_1af8->m_region);
+        if (WaitForTooltip(true, 2000)) {
+            g_observation.tooltip_shown = 1;
+        }
+        MoveScenarioMouse(636, 4);
+        if (WaitForTooltip(false, 2000)) {
+            g_observation.tooltip_removed = 1;
+        }
+
         ClickControl(screen->m_next_1af8);
         started = GetTickCount();
         while (*(volatile int*)&screen->m_page_index_00c != 2) {
@@ -505,6 +568,25 @@ static DWORD WINAPI DriveScenario(void*)
         if (skills_page == 0 || skills_page->m_entries_04c.count == 0) {
             return FailScenario();
         }
+
+        /* The skills page's first enabled row raises and clears its own help
+           box through the row's help control. */
+        for (int index = 0; index < skills_page->m_entries_04c.count; ++index) {
+            W8CharacterPageEntry* entry = skills_page->m_entries_04c.data[index];
+            if (entry == 0 || !entry->m_enabled_03a) {
+                continue;
+            }
+            HoverRegion(entry->m_help_010->m_region);
+            if (WaitForTooltip(true, 2000)) {
+                g_observation.skill_tooltip_shown = 1;
+            }
+            MoveScenarioMouse(636, 4);
+            if (WaitForTooltip(false, 2000)) {
+                g_observation.skill_tooltip_removed = 1;
+            }
+            break;
+        }
+
         progress = true;
         started = GetTickCount();
         while (creation->skills_complete == 0 && progress &&
@@ -526,6 +608,9 @@ static DWORD WINAPI DriveScenario(void*)
                     Sleep(5);
                 }
                 if (*spent != before) progress = true;
+                if (*spent != before) {
+                    g_observation.skill_interacted = 1;
+                }
                 if (creation->skills_complete != 0) break;
             }
         }
@@ -553,6 +638,9 @@ static DWORD WINAPI DriveScenario(void*)
         if (!g_observation.final_page_entered) {
             return FailScenario();
         }
+
+        g_observation.character_page_start = 0;
+        g_observation.character_page_after = screen->m_page_index_00c;
 
         /* Escape raises the discard dialog; accept it once it is up. */
         SendScenarioKey(VK_ESCAPE);
@@ -666,7 +754,11 @@ int main(int argc, char** argv)
         "shade_table_ok=%u exit_observed=%u transition_observed=%u "
         "character_entered=%u character_returned=%u "
         "final_page_entered=%u final_page_redrawn=%u "
-        "return_observed=%u teardown=%u timed_out=%u\n",
+        "return_observed=%u teardown=%u timed_out=%u "
+        "character_page_start=%d character_page_after=%d "
+        "tooltip_shown=%u tooltip_removed=%u "
+        "skill_tooltip_shown=%u skill_tooltip_removed=%u "
+        "skill_interacted=%u\n",
         g_scenario,
         g_observation.menu_seen,
         g_observation.menu_state,
@@ -694,7 +786,14 @@ int main(int argc, char** argv)
         g_observation.final_page_redrawn,
         g_observation.return_observed,
         teardown_ok ? 1 : 0,
-        g_observation.timed_out);
+        g_observation.timed_out,
+        g_observation.character_page_start,
+        g_observation.character_page_after,
+        g_observation.tooltip_shown,
+        g_observation.tooltip_removed,
+        g_observation.skill_tooltip_shown,
+        g_observation.skill_tooltip_removed,
+        g_observation.skill_interacted);
 
     const bool startup_ok =
         g_observation.menu_seen && g_observation.menu_state == W8_SCREEN_MAIN_MENU &&
@@ -714,10 +813,19 @@ int main(int argc, char** argv)
         (g_observation.transition_observed && g_observation.character_entered &&
          g_observation.final_page_entered && g_observation.final_page_redrawn &&
          g_observation.character_returned && g_observation.return_observed);
+    const bool character_ok =
+        strcmp(g_scenario, "main-menu-new-game") != 0 ||
+        (g_observation.character_page_start == 0 &&
+         g_observation.character_page_after > g_observation.character_page_start &&
+         g_observation.tooltip_shown && g_observation.tooltip_removed);
+    const bool skills_ok =
+        strcmp(g_scenario, "main-menu-new-game") != 0 ||
+        (g_observation.skill_tooltip_shown && g_observation.skill_tooltip_removed &&
+         g_observation.skill_interacted);
     const int result =
         driver_status == 0 && startup_ok &&
         (strcmp(g_scenario, "main-menu-new-game") == 0 || exit_ok) &&
-        transition_ok && teardown_ok ? 0 : 1;
+        transition_ok && character_ok && skills_ok && teardown_ok ? 0 : 1;
     fflush(stdout);
     TerminateProcess(GetCurrentProcess(), result);
     return result;
