@@ -22,6 +22,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+  "clang-format==21.1.8",
   "cmake>=3.26,<5",
   "pytest>=8.4,<10",
   "pytest-cov>=6.2,<8",

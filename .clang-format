@@ -1,0 +1,22 @@
+---
+BasedOnStyle: LLVM
+
+IndentWidth: 4
+ContinuationIndentWidth: 4
+AccessModifierOffset: -4
+ColumnLimit: 100
+
+PointerAlignment: Left
+DerivePointerAlignment: false
+
+SortIncludes: Never
+ReflowComments: false
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true
+
+AllowShortFunctionsOnASingleLine: Empty
+
+Standard: c++03
+...

@@ -111,6 +111,13 @@ not each textual edit. Reuse a successful result until a relevant input changes.
 the clang-cl compile lane. Do not repeat unrelated baseline failures or rerun checks after
 descriptions, change IDs, bookmarks, or pushes alone.
 
+Format manually owned C/C++ files you changed with
+`uv run clang-format --style=file -i <paths>` and check with
+`uv run clang-format --style=file --dry-run --Werror --fail-on-incomplete-format <paths>`
+before completion. Do not reformat imported/vendor source such as `src/sgp`. Formatting alone
+does not require another build or comparison run. Use `// clang-format off` / `on` only around
+genuinely formatter-hostile declarations, tables, or macros.
+
 Do not add tests by default. Add them only when requested or for a concrete observed correctness bug
 existing checks miss, with independently justified expectations. Test behavior, not source spelling,
 documentation, inventory counts, generated snapshots, deleted files, or internal implementation details.
