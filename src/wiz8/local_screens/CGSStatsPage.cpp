@@ -717,12 +717,12 @@ void W8CharacterPage005EF778::HandleInput(InputAtom* input)
     if (row->m_subpanel_028 != 0 && row->m_subpanel_028->m_fEnabled) {
         unsigned int index = 0;
         while (index < row->m_count_008) {
-            if (row->m_subpanel_entries_02c[index]->m_active != 0) {
+            if (row->m_subpanel_entries_02c[index]->m_active) {
                 goto next_profession;
             }
             ++index;
         }
-        if (row->m_value_control_024->m_active == 0) {
+        if (!row->m_value_control_024->m_active) {
             row->m_subpanel_028->SetEnabled(0);
             row->m_subpanel_028->EnableRegionSet(0);
             row->m_value_control_024->DisableSecondaryState(1);
@@ -736,12 +736,12 @@ next_profession:
     if (row->m_subpanel_028 != 0 && row->m_subpanel_028->m_fEnabled) {
         unsigned int index = 0;
         while (index < row->m_count_008) {
-            if (row->m_subpanel_entries_02c[index]->m_active != 0) {
+            if (row->m_subpanel_entries_02c[index]->m_active) {
                 goto next_race;
             }
             ++index;
         }
-        if (row->m_value_control_024->m_active == 0) {
+        if (!row->m_value_control_024->m_active) {
             row->m_subpanel_028->SetEnabled(0);
             row->m_subpanel_028->EnableRegionSet(0);
             row->m_value_control_024->DisableSecondaryState(1);
@@ -755,12 +755,12 @@ next_race:
     if (row->m_subpanel_028 != 0 && row->m_subpanel_028->m_fEnabled) {
         unsigned int index = 0;
         while (index < row->m_count_008) {
-            if (row->m_subpanel_entries_02c[index]->m_active != 0) {
+            if (row->m_subpanel_entries_02c[index]->m_active) {
                 return;
             }
             ++index;
         }
-        if (row->m_value_control_024->m_active == 0) {
+        if (!row->m_value_control_024->m_active) {
             row->m_subpanel_028->SetEnabled(0);
             row->m_subpanel_028->EnableRegionSet(0);
             row->m_value_control_024->DisableSecondaryState(1);

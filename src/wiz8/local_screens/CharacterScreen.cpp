@@ -398,14 +398,14 @@ void W8CharacterScreen::AdvancePage(unsigned char forward)
                 }
                 return;
             }
-            m_page_enabled_1b08[1] = static_cast<unsigned char>(
-                m_creation_state_187c.spell_points_total > 0);
+            m_page_enabled_1b08[1] =
+                m_creation_state_187c.spell_points_total > 0;
         }
         m_block_advance_1aec = 0;
         m_confirm_profession_1aed = 0;
         do {
             ++index;
-        } while (index < 4 && m_page_enabled_1b08[index] == 0);
+        } while (index < 4 && !m_page_enabled_1b08[index]);
         if (index < 4) {
             SelectPage(index);
         }
@@ -452,10 +452,10 @@ void W8CharacterScreen::SelectPage(int index)
     page->SetEnabled(1);
 
     int previous = index - 1;
-    while (previous >= 0 && m_page_enabled_1b08[previous] == 0) --previous;
-    m_previous_1af4->SetActive(static_cast<unsigned char>(previous != -1));
+    while (previous >= 0 && !m_page_enabled_1b08[previous]) --previous;
+    m_previous_1af4->SetActive(previous != -1);
     int next = index + 1;
-    while (next < 4 && m_page_enabled_1b08[next] == 0) ++next;
+    while (next < 4 && !m_page_enabled_1b08[next]) ++next;
     if (next == 4) {
         m_next_1af8->m_normalSprite = 0x10;
         m_next_1af8->m_pressedSprite = 0x12;

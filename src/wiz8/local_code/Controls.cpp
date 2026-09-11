@@ -369,7 +369,7 @@ void W8Widget::SetRegion(unsigned int region)
     }
     bound = m_region;
     if (bound != 0xffffffff) {
-        if (m_active != 0) {
+        if (m_active) {
             EnableRegionInput(bound);
             return;
         }
@@ -968,7 +968,7 @@ plain:
 // FUNCTION: WIZ8 0x004f4990
 void W8TextControl::Redraw(int full_redraw)
 {
-    if (m_active == 0 || m_pPanel == 0) {
+    if (!m_active || m_pPanel == 0) {
         return;
     }
 
@@ -977,7 +977,7 @@ void W8TextControl::Redraw(int full_redraw)
         text_state = m_pressedTextOffset;
     }
 
-    if (full_redraw == 0 && m_dirty == 0) {
+    if (full_redraw == 0 && !m_dirty) {
         if (m_textBuffer.HasBuffer()) {
             m_textBuffer.RenderToTarget(text_state, 0, -14);
         }
@@ -993,7 +993,7 @@ void W8TextControl::Redraw(int full_redraw)
     }
 
     int sprite;
-    if (m_enabled == 0) {
+    if (!m_enabled) {
         sprite = m_disabledSprite;
         if (sprite == -1) {
             if (m_textBuffer.HasBuffer()) {
@@ -1187,10 +1187,10 @@ void W8TextControl::DisableSecondaryState(unsigned char immediate)
 // FUNCTION: WIZ8 0x004f4d30
 void W8TextControl::OnMouseEnter(int event)
 {
-    if (m_active == 0) {
+    if (!m_active) {
         return;
     }
-    if (m_enabled == 0) {
+    if (!m_enabled) {
         PushButtonSoundScheme005587C0(0, 1);
         SetAlternateTextEnabled(1);
         return;
@@ -1214,10 +1214,10 @@ void W8TextControl::OnMouseEnter(int event)
 // FUNCTION: WIZ8 0x004f4e00
 void W8TextControl::OnMouseLeave(int event)
 {
-    if (m_active == 0) {
+    if (!m_active) {
         return;
     }
-    if (m_enabled == 0) {
+    if (!m_enabled) {
         PushButtonSoundScheme005587C0(0, 1);
         if ((m_flags_38 & 1) == 0) {
             m_stateFlags &= ~g_W8TextControlMask005ED56C;
@@ -1256,14 +1256,14 @@ void W8TextControl::OnMouseLeave(int event)
 // FUNCTION: WIZ8 0x004f4f70
 void W8TextControl::OnLeftButtonDown(int event)
 {
-    if (m_active == 0) {
-        if (m_enabled != 0) {
+    if (!m_active) {
+        if (m_enabled) {
             return;
         }
         PushButtonSoundScheme005587C0(0, 1);
         return;
     }
-    if (m_enabled == 0) {
+    if (!m_enabled) {
         PushButtonSoundScheme005587C0(0, 1);
         return;
     }
@@ -1292,7 +1292,7 @@ void W8TextControl::OnLeftButtonDown(int event)
 // FUNCTION: WIZ8 0x004f5070
 void W8TextControl::OnRightButtonDown(int)
 {
-    if ((m_active != 0 && m_enabled != 0)) {
+    if ((m_active && m_enabled)) {
         if ((m_flags_38 & 0x20) != 0) {
             PushButtonSoundScheme005587C0(0, 1);
         }
@@ -1301,7 +1301,7 @@ void W8TextControl::OnRightButtonDown(int)
         }
         return;
     }
-    if (m_active == 0 && m_enabled != 0) {
+    if (!m_active && m_enabled) {
         return;
     }
     PushButtonSoundScheme005587C0(0, 1);
@@ -1310,10 +1310,10 @@ void W8TextControl::OnRightButtonDown(int)
 // FUNCTION: WIZ8 0x004f50c0
 void W8TextControl::OnLeftButtonUp(int event)
 {
-    if (m_active == 0) {
+    if (!m_active) {
         return;
     }
-    if (m_enabled == 0) {
+    if (!m_enabled) {
         PushButtonSoundScheme005587C0(0, 1);
         if ((m_flags_38 & 1) == 0) {
             m_stateFlags &= ~g_W8TextControlMask005ED56C;
@@ -1359,14 +1359,14 @@ void W8TextControl::OnLeftButtonUp(int event)
 // FUNCTION: WIZ8 0x004f5290
 void W8TextControl::OnRightButtonUp(int)
 {
-    if (m_active == 0) {
-        if (m_enabled != 0) {
+    if (!m_active) {
+        if (m_enabled) {
             return;
         }
         PushButtonSoundScheme005587C0(0, 1);
         return;
     }
-    if (m_enabled == 0) {
+    if (!m_enabled) {
         PushButtonSoundScheme005587C0(0, 1);
         return;
     }
@@ -1389,7 +1389,7 @@ void W8TextControl::OnRightButtonUp(int)
 // FUNCTION: WIZ8 0x004f5230
 void W8TextControl::ActivatePrimary(int)
 {
-    if ((m_flags_38 & 0x100) != 0 && m_active != 0 && m_enabled != 0 &&
+    if ((m_flags_38 & 0x100) != 0 && m_active && m_enabled &&
         (m_stateFlags & 1) != 0) {
         m_stateFlags |= 4;
         if ((m_flags_38 & 0x20) == 0) {
@@ -1407,7 +1407,7 @@ void W8TextControl::ActivatePrimary(int)
 // FUNCTION: WIZ8 0x004f5310
 void W8TextControl::OnLeftButtonDoubleClick(int)
 {
-    if (m_active != 0 && m_enabled != 0) {
+    if (m_active && m_enabled) {
         if ((m_flags_38 & 0x20) != 0) {
             PushButtonSoundScheme005587C0(0, 1);
         }
@@ -1419,7 +1419,7 @@ void W8TextControl::OnLeftButtonDoubleClick(int)
         }
         return;
     }
-    if (m_active == 0 && m_enabled != 0) {
+    if (!m_active && m_enabled) {
         return;
     }
     PushButtonSoundScheme005587C0(0, 1);
@@ -1428,7 +1428,7 @@ void W8TextControl::OnLeftButtonDoubleClick(int)
 // FUNCTION: WIZ8 0x004f5360
 void W8TextControl::ActivateSecondary(int)
 {
-    if ((m_flags_38 & 0x100) != 0 && m_active != 0 && m_enabled != 0) {
+    if ((m_flags_38 & 0x100) != 0 && m_active && m_enabled) {
         m_stateFlags |= 4;
         if ((m_flags_38 & 0x20) == 0) {
             PlayButtonSound(3);
@@ -1740,7 +1740,7 @@ W8VerticalRangeThumb::W8VerticalRangeThumb(
 void W8VerticalRangeThumb::OnLeftButtonDown(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
-    if (m_enabled != 0) {
+    if (m_enabled) {
         POINT cursor;
         SGPMouseGetPos(&cursor);
         int y = cursor.y - m_pPanel->origin_y - m_top;
@@ -1761,7 +1761,7 @@ void W8VerticalRangeThumb::OnLeftButtonDown(int event)
 void W8VerticalRangeThumb::OnLeftButtonUp(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
-    if (m_enabled != 0 && m_dragging != 0) {
+    if (m_enabled && m_dragging != 0) {
         m_dragging = 0;
         ClearActiveRegionIfMatches(m_region);
     }
@@ -1770,7 +1770,7 @@ void W8VerticalRangeThumb::OnLeftButtonUp(int event)
 // FUNCTION: WIZ8 0x004f5d70
 void W8VerticalRangeThumb::OnMouseMove(int event)
 {
-    if (m_enabled == 0) {
+    if (!m_enabled) {
         return;
     }
 
@@ -1825,7 +1825,7 @@ void W8VerticalRangeThumb::AdjustValue(int steps)
 // FUNCTION: WIZ8 0x004f5f60
 void W8VerticalRangeThumb::Redraw(int full_redraw)
 {
-    if (m_active == 0 || (static_cast<unsigned char>(full_redraw) == 0 && m_dirty == 0)) {
+    if (!m_active || (static_cast<unsigned char>(full_redraw) == 0 && !m_dirty)) {
         return;
     }
     int left = m_pPanel->origin_x + m_left;
@@ -1836,7 +1836,7 @@ void W8VerticalRangeThumb::Redraw(int full_redraw)
     ColorFillVideoSurfaceArea(-14, left, top, right, bottom, 0x8000);
 
     int sprite;
-    if (m_enabled == 0) {
+    if (!m_enabled) {
         sprite = m_disabledSprite;
         if (sprite == -1) {
             return;
@@ -1853,7 +1853,7 @@ void W8VerticalRangeThumb::Redraw(int full_redraw)
 void W8RangeButton::OnLeftButtonDown(int event)
 {
     W8TextControl::OnLeftButtonDown(event);
-    if (m_active != 0 && m_enabled != 0) {
+    if (m_active && m_enabled) {
         if (m_direction == 0) {
             m_range->Decrement();
         } else {
@@ -1866,7 +1866,7 @@ void W8RangeButton::OnLeftButtonDown(int event)
 void W8RangeButton::ActivatePrimary(int event)
 {
     W8TextControl::ActivatePrimary(event);
-    if (m_active != 0 && m_enabled != 0) {
+    if (m_active && m_enabled) {
         if (m_direction == 0) {
             m_range->Decrement();
         } else {
@@ -1944,7 +1944,7 @@ void W8HelpTextControl::OnRightButtonUp(int)
     if (m_secondaryActivationCallback == 0) {
         PushButtonSoundScheme005587C0(0, 1);
     }
-    if (m_active != 0 && m_enabled != 0) {
+    if (m_active && m_enabled) {
         if ((m_flags_38 & 0x20) != 0) {
             PushButtonSoundScheme005587C0(0, 1);
         }
@@ -1961,7 +1961,7 @@ void W8HelpTextControl::OnRightButtonUp(int)
         }
         return;
     }
-    if (m_active == 0 && m_enabled != 0) {
+    if (!m_active && m_enabled) {
         return;
     }
     PushButtonSoundScheme005587C0(0, 1);
@@ -2045,7 +2045,7 @@ void W8HorizontalRangeThumb::UpdatePixelPosition()
 void W8HorizontalRangeThumb::OnLeftButtonDown(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
-    if (m_enabled != 0) {
+    if (m_enabled) {
         POINT cursor;
         SGPMouseGetPos(&cursor);
         int x = cursor.x - m_pPanel->origin_x - m_left;
@@ -2068,7 +2068,7 @@ void W8HorizontalRangeThumb::OnLeftButtonDown(int event)
 void W8HorizontalRangeThumb::OnLeftButtonUp(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
-    if (m_enabled != 0 && m_dragging != 0) {
+    if (m_enabled && m_dragging != 0) {
         m_dragging = 0;
         ClearActiveRegionIfMatches(m_region);
         if (m_listener != 0) {
@@ -2131,7 +2131,7 @@ void W8HorizontalRangeThumb::OnMouseLeave(int event)
 // FUNCTION: WIZ8 0x004f5940
 void W8HorizontalRangeThumb::OnMouseMove(int event)
 {
-    if (m_enabled == 0) {
+    if (!m_enabled) {
         return;
     }
 
@@ -2164,7 +2164,7 @@ void W8HorizontalRangeThumb::OnMouseMove(int event)
 // FUNCTION: WIZ8 0x004f5a80
 void W8HorizontalRangeThumb::Redraw(int full_redraw)
 {
-    if (m_active == 0 || ((unsigned char)full_redraw == 0 && m_dirty == 0)) {
+    if (!m_active || ((unsigned char)full_redraw == 0 && !m_dirty)) {
         return;
     }
 
@@ -2174,7 +2174,7 @@ void W8HorizontalRangeThumb::Redraw(int full_redraw)
                    x, y, 2, 0);
 
     int sprite;
-    if (m_enabled == 0 && m_disabledThumbSprite != -1) {
+    if (!m_enabled && m_disabledThumbSprite != -1) {
         sprite = m_disabledThumbSprite;
     } else if (m_hovered != 0 && m_hoveredThumbSprite != -1) {
         sprite = m_hoveredThumbSprite;
@@ -2309,15 +2309,15 @@ void Controls::Redraw()
     int redrawn = 0;
     int index;
 
-    if (m_fEnabled == 0) {
+    if (!m_fEnabled) {
         return;
     }
-    if (m_fDirty != 0) {
+    if (m_fDirty) {
         if (m_renderTarget != -1) {
             DrawCatalogImage(-14, m_renderTarget, m_renderArg_1c, m_renderArg_20,
                            origin_x, origin_y, 2, 0);
         }
-        if (m_fWholeAreaDirty != 0) {
+        if (m_fWholeAreaDirty) {
             if (m_renderTarget != -1) {
                 InvalidateCatalogImageRect(m_renderTarget, m_renderArg_1c, m_renderArg_20,
                                origin_x, origin_y, 2);
@@ -2329,11 +2329,11 @@ void Controls::Redraw()
         m_fDirty = 0;
         m_dirtyRect.left = -1;
         redrawn = 1;
-    } else if (m_fLayoutDirty == 0) {
+    } else if (!m_fLayoutDirty) {
         return;
     }
     for (index = 0; index < m_controls.count; ++index) {
-        if (ControlAt(index)->m_active != 0) {
+        if (ControlAt(index)->m_active) {
             ControlAt(index)->Redraw(redrawn);
         }
     }

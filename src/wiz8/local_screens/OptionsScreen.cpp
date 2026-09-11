@@ -593,11 +593,11 @@ W8OptionsSaveRow::~W8OptionsSaveRow() {}
 // FUNCTION: WIZ8 0x005a77b0
 void W8OptionsSaveRow::Redraw(int full_redraw)
 {
-    if (m_active == 0 || (full_redraw == 0 && m_dirty == 0)) {
+    if (!m_active || (full_redraw == 0 && !m_dirty)) {
         return;
     }
     W8TextControl::Redraw(full_redraw);
-    if (m_enabled == 0 || m_save == 0) {
+    if (!m_enabled || m_save == 0) {
         return;
     }
 
@@ -647,7 +647,7 @@ void W8OptionsSaveRow::Redraw(int full_redraw)
 // FUNCTION: WIZ8 0x005a7b10
 void W8OptionsSaveRow::OnLeftButtonUp(int event)
 {
-    if (m_active != 0 && m_enabled != 0 && m_editing == 0 &&
+    if (m_active && m_enabled && m_editing == 0 &&
         (m_stateFlags & g_W8TextControlMask005ED570) != 0) {
         POINT point;
         SGPMouseGetPos(&point);
@@ -664,7 +664,7 @@ void W8OptionsSaveRow::OnLeftButtonUp(int event)
 // FUNCTION: WIZ8 0x005a7bb0
 void W8OptionsSaveRow::OnLeftButtonDoubleClick(int event)
 {
-    if (m_active != 0 && m_enabled != 0 && m_editing == 0 &&
+    if (m_active && m_enabled && m_editing == 0 &&
         (m_stateFlags & g_W8TextControlMask005ED570) != 0 && m_listener != 0) {
         m_listener->OnActivateSave(this);
     }
@@ -698,10 +698,10 @@ W8OptionsButton::~W8OptionsButton()
 // FUNCTION: WIZ8 0x005a7c70
 void W8OptionsButton::Redraw(int full_redraw)
 {
-    if (m_active != 0 &&
-        (static_cast<unsigned char>(full_redraw) != 0 || m_dirty != 0) &&
+    if (m_active &&
+        (static_cast<unsigned char>(full_redraw) != 0 || m_dirty) &&
         m_textBuffer.HasBuffer()) {
-        if (m_enabled != 0) {
+        if (m_enabled) {
             int font_state;
             if ((m_stateFlags & g_W8TextControlMask005ED56C) != 0) {
                 font_state = 13;
@@ -1725,9 +1725,9 @@ void W8OptionsSlider::OnMouseMove(int event)
 // FUNCTION: WIZ8 0x005a7f90
 void W8OptionsSlider::Redraw(int full_redraw)
 {
-    if (m_active != 0 && (static_cast<unsigned char>(full_redraw) != 0 || m_dirty != 0)) {
+    if (m_active && (static_cast<unsigned char>(full_redraw) != 0 || m_dirty)) {
         W8HorizontalRangeThumb::Redraw(full_redraw);
-        if (m_enabled != 0 && m_pixelPosition > 13) {
+        if (m_enabled && m_pixelPosition > 13) {
             int left = m_pPanel->origin_x + m_left;
             int top = m_pPanel->origin_y + m_top;
             unsigned short color = Get16BPPColor(0x00ff00);
@@ -1833,7 +1833,7 @@ void W8OptionsPanel::AddChoices(int label, int count, const int* choices, int* v
 // FUNCTION: WIZ8 0x005a7590
 void W8OptionsMenuButton::Redraw(int full_redraw)
 {
-    if ((static_cast<unsigned char>(full_redraw) != 0 || m_dirty != 0) &&
+    if ((static_cast<unsigned char>(full_redraw) != 0 || m_dirty) &&
         (m_stateFlags & g_W8TextControlMask005ED570) != 0 && m_item_id_0bc != -1) {
         DrawCatalogImageAndInvalidate(-14, 0xf0, 0, m_item_id_0bc, 12, 15, 2, 0);
     }
@@ -1843,7 +1843,7 @@ void W8OptionsMenuButton::Redraw(int full_redraw)
 // FUNCTION: WIZ8 0x005a8470
 void W8OptionsPanel::Redraw()
 {
-    bool redraw_text = m_fDirty != 0 && m_fEnabled != 0;
+    bool redraw_text = m_fDirty && m_fEnabled;
     Controls::Redraw();
     if (redraw_text) {
         for (int index = 0; index < m_text_buffers_058.count; ++index) {
@@ -1855,7 +1855,7 @@ void W8OptionsPanel::Redraw()
 // FUNCTION: WIZ8 0x005a9020
 void W8OptionsMenuSet::Redraw()
 {
-    if (m_fEnabled != 0 && (m_fDirty != 0 || m_fLayoutDirty != 0)) {
+    if (m_fEnabled && (m_fDirty || m_fLayoutDirty)) {
         Controls::Redraw();
         m_page_text_05c->RenderToTarget(0, 1, -14);
     }
@@ -2002,7 +2002,7 @@ void W8OptionsMenuSet::UpdateMenuSet()
     m_page_text_05c->SetLayoutBounds(&bounds, 1, 1);
     SetEnabled(panel_set->m_hide_navigation == 0 &&
                        (panel_set->m_compact_layout != 0 || count > 1));
-    if (m_fEnabled != 0) {
+    if (m_fEnabled) {
         m_next_054->SetEnabled(current < count - 1);
         m_previous_058->SetEnabled(current > 0);
         wchar_t text[0x10];

@@ -299,12 +299,12 @@ void UpdateRcsDismissPanel(void)
 {
     if ((g_rcs_mode_0064cbe8 == 0 || g_rcs_mode_0064cbe8 == 1) &&
         gXStatus.fCombatMode == 0 && gXStatus.fCampMode == 0) {
-        if (g_dismiss_button_0069c400->m_active == 0) {
+        if (!g_dismiss_button_0069c400->m_active) {
             g_dismiss_button_0069c400->SetActive(1);
             g_dismiss_panel_0069c3c8->Invalidate(0);
         }
     }
-    else if (g_dismiss_button_0069c400->m_active != 0) {
+    else if (g_dismiss_button_0069c400->m_active) {
         g_dismiss_button_0069c400->SetActive(0);
     }
     g_dismiss_panel_0069c3c8->Redraw();

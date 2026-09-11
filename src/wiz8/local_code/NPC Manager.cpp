@@ -235,7 +235,7 @@ unsigned char Function50B8F0(unsigned int kind)
 // FUNCTION: WIZ8 0x0050a3c0
 W8MonsterInfo* GetNpcMonsterInfo(W8NpcState* npc)
 {
-    if (npc->has_monster == 0 || npc->is_present == 0) {
+    if (!npc->has_monster || !npc->is_present) {
         return 0;
     }
     return MonsterGetScriptPartByLocationIndex(
@@ -250,7 +250,7 @@ W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc)
     if (npc->record->has_group == 0) {
         return 0;
     }
-    if (npc->is_grouped == 0) {
+    if (!npc->is_grouped) {
         return 0;
     }
     return &g_monster_manager_state.entries[npc->group_index];
@@ -327,7 +327,7 @@ W8Monster* GetNpcMonster(W8NpcState* npc)
 {
     W8MonsterInfo* monster_info;
 
-    if (npc->has_monster == 0 || npc->is_present == 0) {
+    if (!npc->has_monster || !npc->is_present) {
         return 0;
     }
     monster_info = MonsterGetScriptPartByLocationIndex(
@@ -861,11 +861,11 @@ void UpdateNpcEvents0050D530(void)
                     break;
                 }
             }
-            if (partner->has_monster == 0) {
+            if (!partner->has_monster) {
                 g_status_685170.flag_2430 = 0;
                 continue;
             }
-            if (partner->is_present != 0) {
+            if (partner->is_present) {
                 index = MonsterGetIndexByLocationID(
                     0x2a1, NPC_MANAGER_CPP, partner->location_id, 1);
                 monster_info = MonsterGetScriptPartByLocationIndex(index);
@@ -1079,8 +1079,8 @@ void ReleaseNpcMonsterBindings0050C2E0(void)
             if (!found) {
                 companion = 0;
             }
-            if (companion->has_monster != 0) {
-                if (companion->is_present != 0) {
+            if (companion->has_monster) {
+                if (companion->is_present) {
                     unsigned int monster_index = MonsterGetIndexByLocationID(
                         0x2a1, NPC_MANAGER_CPP, companion->location_id, 1);
                     W8MonsterInfo* monster_info =
@@ -1171,8 +1171,8 @@ void ReleaseMarkedNpcBindings0050DA00(void)
                 if (!found) {
                     companion = 0;
                 }
-                if (companion->has_monster != 0) {
-                    if (companion->is_present != 0) {
+                if (companion->has_monster) {
+                    if (companion->is_present) {
                         unsigned int monster_index = MonsterGetIndexByLocationID(
                             0x2a1, NPC_MANAGER_CPP, companion->location_id, 1);
                         W8MonsterInfo* monster_info =
@@ -1234,10 +1234,10 @@ void RebindNpcLevelTriggers0050AC60(void)
             }
             W8NpcState* npc = *slot;
 
-            if (npc->has_monster != 0
+            if (npc->has_monster
                 && (npc->record->unknown_056 != 0
                     || (npc->record->flag_2ea != 0
-                        && npc->is_present == 0))) {
+                        && !npc->is_present))) {
                 npc->has_monster = 0;
                 Function55A0A0(npc->unknown_00);
                 npc->unknown_00 = 0;

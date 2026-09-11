@@ -697,7 +697,7 @@ void W8Dialog005D97D0::Draw()
         W8DialogBase::Draw();
         DrawCatalogImage(-0xe, 0x1ac, 0, 0, m_x + 0x18, m_y + 0x1a, 2, 0);
     }
-    if (m_fields_54[3]->m_dirty != 0) {
+    if (m_fields_54[3]->m_dirty) {
         W8DialogNumericInput* numeric = m_field_78;
         numeric->m_dirty = 1;
         numeric->m_button->m_dirty = 1;
@@ -1215,7 +1215,7 @@ void W8Dialog005CD710::Draw()
         m_buttons_74[9]->SetVisible(1);
         m_buttons_74[10]->SetVisible(1);
         m_buttons_74[11]->SetVisible(1);
-        if (m_buttons_74[12]->m_dirty != 0) {
+        if (m_buttons_74[12]->m_dirty) {
             m_buttons_74[9]->m_dirty = 1;
             m_buttons_74[10]->m_dirty = 1;
             m_buttons_74[11]->m_dirty = 1;
@@ -1285,7 +1285,7 @@ void W8Dialog005CD710::Draw()
         button->SetVisible(1);
         button->SetPosition(m_x + 7,
                             m_y + button->GetHeight() * row + 7);
-        if (button->m_dirty == 0) {
+        if (!button->m_dirty) {
             continue;
         }
         button->Draw();
