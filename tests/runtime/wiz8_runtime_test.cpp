@@ -8,6 +8,8 @@
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/local_screens/PartySelectionScreen.h"
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/video_object_catalog.h"
@@ -46,6 +48,9 @@ struct RuntimeObservation {
     unsigned char character_returned;
     unsigned char final_page_entered;
     unsigned char final_page_redrawn;
+    unsigned char character_committed;
+    unsigned char character_in_party;
+    unsigned char main_game_entered;
     unsigned char return_observed;
     unsigned char timed_out;
     int character_page_start;
@@ -399,7 +404,8 @@ static DWORD WINAPI DriveScenario(void*)
         return 0;
     }
 
-    if (strcmp(g_scenario, "main-menu-new-game") == 0) {
+    if (strcmp(g_scenario, "main-menu-new-game") == 0 ||
+        strcmp(g_scenario, "main-game-start") == 0) {
         SendScenarioKey(VK_PRIOR, KEYEVENTF_EXTENDEDKEY);
         SendScenarioKey(VK_DOWN, KEYEVENTF_EXTENDEDKEY);
         SendScenarioKey(VK_RETURN);
@@ -649,6 +655,118 @@ static DWORD WINAPI DriveScenario(void*)
         g_observation.character_page_start = 0;
         g_observation.character_page_after = screen->m_page_index_00c;
 
+        if (strcmp(g_scenario, "main-game-start") == 0) {
+            /* The loose-character save on commit needs a writable file name;
+               a fresh creation starts empty. */
+            if (screen->m_character_018.name[0] == 0) {
+                wcscpy(screen->m_character_018.name, L"Probe");
+            }
+            /* Commit the character: on the final page the next control runs
+               AdvancePage, which commits and returns to party selection. */
+            ClickControl(screen->m_next_1af8);
+            Sleep(300);
+            fprintf(stderr,
+                    "game-start: after click page=%d mode=%d force=%u dialog=%u "
+                    "next_enabled=%u next_region=%d name=%ls\n",
+                    screen->m_page_index_00c, screen->m_mode_008,
+                    screen->m_force_transition_1aee, screen->m_dialog_1b1c != 0,
+                    screen->m_next_1af8->m_enabled, screen->m_next_1af8->m_region,
+                    screen->m_character_018.name);
+            fflush(stderr);
+            if (screen->m_page_index_00c == 3 && screen->m_dialog_1b1c == 0) {
+                screen->AdvancePage(0);
+                Sleep(300);
+                fprintf(stderr,
+                        "game-start: after direct advance page=%d dialog=%u state=%d "
+                        "pending=%d\n",
+                        screen->m_page_index_00c, screen->m_dialog_1b1c != 0,
+                        *(volatile int*)&g_current_screen_state.id,
+                        *(volatile int*)&g_pending_screen_state.id);
+                fflush(stderr);
+            }
+            fprintf(stderr, "game-start: commit click sent\n");
+            fflush(stderr);
+            started = GetTickCount();
+            while (GetTickCount() - started < 5000) {
+                if (*(volatile int*)&g_current_screen_state.id ==
+                        W8_SCREEN_PARTY_SELECTION &&
+                    *(volatile int*)&g_pending_screen_state.id == -1) {
+                    g_observation.character_committed = 1;
+                    break;
+                }
+                Sleep(10);
+            }
+            fprintf(stderr, "game-start: committed=%u state=%d pending=%d\n",
+                    g_observation.character_committed,
+                    *(volatile int*)&g_current_screen_state.id,
+                    *(volatile int*)&g_pending_screen_state.id);
+            fflush(stderr);
+            if (!g_observation.character_committed) {
+                return FailScenario();
+            }
+
+            /* Return toggles the selected roster row into the active party
+               through the party builder's toggle. With a fresh party this is
+               the first gameplay-blocking unresolved call. */
+            SendScenarioKey(VK_RETURN);
+            fprintf(stderr, "game-start: party toggle key sent\n");
+            fflush(stderr);
+            started = GetTickCount();
+            while (GetTickCount() - started < 5000) {
+                if (CountActiveCharacters() != 0) {
+                    g_observation.character_in_party = 1;
+                    break;
+                }
+                Sleep(10);
+            }
+            fprintf(stderr, "game-start: in_party=%u count=%d\n",
+                    g_observation.character_in_party, CountActiveCharacters());
+            fflush(stderr);
+            if (!g_observation.character_in_party) {
+                return FailScenario();
+            }
+
+            /* Function54B250 is the product's own new-game entry: it settles
+               the party status and routes through the intro into the game. */
+            Function54B250(1, 0);
+            fprintf(stderr, "game-start: new-game entry called\n");
+            fflush(stderr);
+            started = GetTickCount();
+            while (GetTickCount() - started < 30000) {
+                if (*(volatile int*)&g_current_screen_state.id ==
+                        W8_SCREEN_MAIN_GAME &&
+                    *(volatile int*)&g_pending_screen_state.id == -1) {
+                    g_observation.main_game_entered = 1;
+                    break;
+                }
+                if (*(volatile int*)&g_current_screen_state.id ==
+                    W8_SCREEN_INTRO) {
+                    SendScenarioKey(VK_ESCAPE);
+                    Sleep(250);
+                    continue;
+                }
+                if ((GetTickCount() - started) % 5000 < 12) {
+                    fprintf(stderr, "game-start: waiting state=%d pending=%d\n",
+                            *(volatile int*)&g_current_screen_state.id,
+                            *(volatile int*)&g_pending_screen_state.id);
+                    fflush(stderr);
+                    Sleep(2000);
+                    continue;
+                }
+                Sleep(10);
+            }
+            fprintf(stderr, "game-start: main_game=%u state=%d pending=%d\n",
+                    g_observation.main_game_entered,
+                    *(volatile int*)&g_current_screen_state.id,
+                    *(volatile int*)&g_pending_screen_state.id);
+            fflush(stderr);
+            if (!g_observation.main_game_entered) {
+                return FailScenario();
+            }
+            gfProgramIsRunning = 0;
+            return 0;
+        }
+
         /* Escape raises the discard dialog; accept it once it is up. */
         SendScenarioKey(VK_ESCAPE);
         started = GetTickCount();
@@ -722,8 +840,9 @@ int main(int argc, char** argv)
     if (argc != 3 || strcmp(argv[1], "--scenario") != 0 ||
         (strcmp(argv[2], "main-menu-startup") != 0 &&
          strcmp(argv[2], "main-menu-exit-auto-repeat") != 0 &&
+         strcmp(argv[2], "main-game-start") != 0 &&
          strcmp(argv[2], "main-menu-new-game") != 0)) {
-        fprintf(stderr, "usage: Wiz8RuntimeTest --scenario main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game\n");
+        fprintf(stderr, "usage: Wiz8RuntimeTest --scenario main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start\n");
         return 64;
     }
 
@@ -738,7 +857,7 @@ int main(int argc, char** argv)
 
     char command_line[] = "";
     WinMain(GetModuleHandle(NULL), NULL, command_line, SW_SHOWNORMAL);
-    WaitForSingleObject(driver, 60000);
+    WaitForSingleObject(driver, 120000);
     DWORD driver_status = 2;
     GetExitCodeThread(driver, &driver_status);
     CloseHandle(driver);
@@ -761,6 +880,7 @@ int main(int argc, char** argv)
         "shade_table_ok=%u exit_observed=%u transition_observed=%u "
         "character_entered=%u character_returned=%u "
         "final_page_entered=%u final_page_redrawn=%u "
+        "character_committed=%u character_in_party=%u main_game_entered=%u "
         "return_observed=%u teardown=%u timed_out=%u "
         "character_page_start=%d character_page_after=%d "
         "tooltip_shown=%u tooltip_removed=%u "
@@ -791,6 +911,9 @@ int main(int argc, char** argv)
         g_observation.character_returned,
         g_observation.final_page_entered,
         g_observation.final_page_redrawn,
+        g_observation.character_committed,
+        g_observation.character_in_party,
+        g_observation.main_game_entered,
         g_observation.return_observed,
         teardown_ok ? 1 : 0,
         g_observation.timed_out,
@@ -815,24 +938,32 @@ int main(int argc, char** argv)
         g_observation.physical_fallback_ok && g_observation.shade_table_ok;
     const bool exit_ok =
         strcmp(g_scenario, "main-menu-startup") == 0 || g_observation.exit_observed;
+    const bool character_flow =
+        strcmp(g_scenario, "main-menu-new-game") == 0 ||
+        strcmp(g_scenario, "main-game-start") == 0;
     const bool transition_ok =
-        strcmp(g_scenario, "main-menu-new-game") != 0 ||
+        !character_flow ||
         (g_observation.transition_observed && g_observation.character_entered &&
          g_observation.final_page_entered && g_observation.final_page_redrawn &&
-         g_observation.character_returned && g_observation.return_observed);
+         (strcmp(g_scenario, "main-game-start") == 0
+              ? (g_observation.character_committed && g_observation.main_game_entered)
+              : (g_observation.character_returned && g_observation.return_observed)));
     const bool character_ok =
-        strcmp(g_scenario, "main-menu-new-game") != 0 ||
+        !character_flow ||
         (g_observation.character_page_start == 0 &&
          g_observation.character_page_after > g_observation.character_page_start &&
          g_observation.tooltip_shown && g_observation.tooltip_removed);
     const bool skills_ok =
-        strcmp(g_scenario, "main-menu-new-game") != 0 ||
+        !character_flow ||
         (g_observation.skill_tooltip_shown && g_observation.skill_tooltip_removed &&
          g_observation.skill_interacted);
+    const bool gameplay_ok =
+        strcmp(g_scenario, "main-game-start") != 0 ||
+        (g_observation.character_committed && g_observation.character_in_party &&
+         g_observation.main_game_entered);
     const int result =
-        driver_status == 0 && startup_ok &&
-        (strcmp(g_scenario, "main-menu-new-game") == 0 || exit_ok) &&
-        transition_ok && character_ok && skills_ok && teardown_ok ? 0 : 1;
+        driver_status == 0 && startup_ok && (character_flow || exit_ok) &&
+        transition_ok && character_ok && skills_ok && gameplay_ok && teardown_ok ? 0 : 1;
     fflush(stdout);
     TerminateProcess(GetCurrentProcess(), result);
     return result;
