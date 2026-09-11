@@ -359,7 +359,7 @@ unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRe
     if (!FileSeek(handle, index * 0x297 + 4, 1)) {
         return 0;
     }
-    if (!FileRead(handle, record, 0x297, (unsigned int*)&uiMonsterIndex)) {
+    if (!FileRead(handle, record, 0x297, (&uiMonsterIndex))) {
         FileClose(handle);
         return 0;
     }
@@ -623,7 +623,7 @@ unsigned char Function54A9A0(unsigned int uiStartIndex, unsigned int uiEndIndex,
     }
     if (!FileRead(handle, records,
                          (uiEndIndex + 1) * 0x297 - uiStartIndex * 0x297,
-                         (unsigned int*)&uiEndIndex)) {
+                         (&uiEndIndex))) {
         FileClose(handle);
         return 0;
     }

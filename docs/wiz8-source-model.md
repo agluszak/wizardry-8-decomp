@@ -236,21 +236,45 @@ The product VC6 build and the clang-cl lint lane share one interface target
 (`cmake/CompileSettings.cmake`) for includes, forced compatibility header and
 product definitions, so the lint lane cannot drift into a parallel
 approximation of the product build. `/G6` is the only setting that stays
-VC6-only.
+VC6-only. Each component additionally compiles its recovered sources once as
+an object target (`wiz8_recovered_objects`, `wiz8_surrender_objects`, the
+`wiz8_jpeg_*_objects` and `wiz8_unzip_*_objects` groups) that both the product
+link and the lint lane consume; components register those targets with
+`wiz8_lint_target()` in `cmake/Lint.cmake`, which applies the modern
+diagnostics to the exact same sources, headers, defines and per-source
+properties. `/Zp4` for UnZip is layout and rides along in both lanes, while
+`/GX` is VC6 codegen only and stays behind a compiler-id guard (Clang rejects
+it as unused and never reproduces EH bytes).
 
 An intentional original behavior that trips a recovery diagnostic gets a
 function-local `#pragma clang diagnostic` with the binary/source evidence in
 the comment. The retained SGP C library is the one target-level exception: its
 upstream C style warnings stay report-only because fixing them would mean
-rewriting vendor source.
+rewriting vendor source. `wiz8 diagnostics` is fully non-gating: SGP gets its
+four recovery warnings report-only there and promotes them to errors only in
+the gating lane.
 
-The same Clang projection feeds `build/source-index.json`. C++ mangling
-already encodes the complete type, so divergent C++ declarations cannot share
-a symbol; the index validation groups the unmangled/C-linkage symbols by their
-undecorated source name and requires one canonical signature per symbol. The
-pinned reccmp indexer records marked functions, not external variable
-declarations or linkage, so the full writer/reader global check still needs an
-upstream indexer extension rather than another repository-local checker.
+The same Clang projection feeds `build/source-index.json`. Index targets
+derive from every reccmp target with a `source-root` that has compile-database
+coverage, so the first-party JPEG and UnZip sources are indexed alongside
+`WIZ8` and `SURRENDER`. Each target is its own link namespace, so collection
+is partitioned by source root with a separate cache: the same unmangled
+symbol may legitimately be defined in several binaries (both extension DLLs
+define `DllMain` as `_DllMain@12`), and one shared collector would keep only
+one of those definitions and leave the other target's marker unbound.
+
+C++ mangling already encodes the complete type, so divergent C++ declarations
+cannot share a symbol. The reccmp indexer records variable declarations with
+canonical type, linkage, and definition kind alongside function linkage, and
+retains every distinct spelling it saw per identity. The cross-TU consistency
+gate over those records (`validate_cross_tu_declarations`) is parked for B:
+its remaining hits are the legal extern-array completion idiom (`extern T g[]`
+completed by `T g[N]`), which needs an array-aware compatibility rule before
+it can gate. It stays tested but uncalled in the meantime.
+
+The lint lane itself runs on the trixie image with LLVM 19, and the
+clang-tidy profile includes `readability-redundant-casting` alongside
+`bugprone-misplaced-widening-cast`.
 
 ## Live recovery state
 

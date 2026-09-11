@@ -314,12 +314,30 @@ def configure_clang(
     return output, prefix()
 
 
-def run_clang_tidy(prefix: list[str], output: Path) -> None:
-    """Gate first-party code with the narrow reconstruction-error profile."""
+def run_clang_tidy(prefix: list[str], output: Path, repository: Path) -> None:
+    """Gate first-party code with the narrow reconstruction-error profile.
+
+    Only translation units under a reccmp source root are tidied: the compile
+    database also covers the pristine zlib/Info-ZIP static libraries, which
+    keep their upstream warnings by policy, and the retained SGP C library,
+    whose C idioms are outside the reconstruction-error profile.
+    """
+    from .source_index import indexed_targets
+
     database = json.loads((output / "compile_commands.json").read_text(encoding="utf-8"))
-    files = sorted(
-        {entry["file"] for entry in database if not entry["file"].startswith("/repo/src/sgp/")}
-    )
+    roots = {
+        root.rstrip("/")
+        for source_roots in indexed_targets(repository).values()
+        for root in source_roots
+    }
+
+    def first_party(path: str) -> bool:
+        if path.startswith("/repo/src/sgp/"):
+            return False
+        candidate = path.removeprefix("/repo/")
+        return any(candidate == root or candidate.startswith(root + "/") for root in roots)
+
+    files = sorted({entry["file"] for entry in database if first_party(entry["file"])})
     if not files:
         raise RuntimeError("clang-tidy: compile database has no first-party sources")
     run(
@@ -366,7 +384,7 @@ def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any
         / ("clang-full-diagnostics.json" if full_diagnostics else "clang-lint-build.json"),
     )
     if not full_diagnostics:
-        run_clang_tidy(prefix, output)
+        run_clang_tidy(prefix, output, settings.repo_dir)
     return {
         "status": "ok",
         "mode": "full-diagnostics" if full_diagnostics else "gating",

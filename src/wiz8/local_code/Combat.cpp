@@ -193,7 +193,7 @@ unsigned char CanCharReBreathe(int party_slot)
     if (!CharacterHasCondition(character, 0x1c)) {
         return 0;
     }
-    return (int)(character->stamina_max / 5) <= character->stamina;
+    return (character->stamina_max / 5) <= character->stamina;
 }
 
 /* Take one character out of the round: hand back whatever they were aiming at,
@@ -693,8 +693,7 @@ void Function4E8000(
         else if (Function536F60(party_slot, 2) == 0
                  && Function536570(party_slot, 1, (int)data) == 1) {
             Function4ECC80(&source,
-                reinterpret_cast<W8CombatSlot*>(
-                    &g_party_slot_rows[party_slot].target_in_combat));
+                (&g_party_slot_rows[party_slot].target_in_combat));
         }
         if ((char)(int)data != 0) {
             Function537540(party_slot);

@@ -1202,7 +1202,7 @@ unsigned char W8PathingService::CanReachSearchNode00465AF0(
         int cell_z = (int)((probe.z - level_bounds[2]) / grid_scale_01c);
         unsigned int key = cell_z * 0x10000 + cell_x;
         unsigned int hash = (key >> 10 ^ key) >> 10 ^ key;
-        int slot = static_cast<int*>(visited->bucket_heads)[
+        int slot = visited->bucket_heads[
             hash & (visited->bucket_count - 1)];
         unsigned int node_index = 0;
         W8OctreeEntry* entries =
@@ -1532,7 +1532,7 @@ unsigned short W8PathingService::PlanMovement00463460(
     attachment->flags_00 &= 0xfffffff0;
     W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pVisitedCells_074);
     if (visited->bucket_count != 0) {
-        delete[] static_cast<int*>(visited->bucket_heads);
+        delete[] visited->bucket_heads;
         delete[] static_cast<W8OctreeEntry*>(visited->entries);
     }
     visited->bucket_count = 0;
@@ -1621,7 +1621,7 @@ unsigned short W8PathingService::PlanMovement00463460(
     visited->free_head = visited_entries[root_slot].next_index;
     unsigned int root_hash =
         (root_key >> 10 ^ root_key) >> 10 ^ root_key;
-    int* visited_buckets = static_cast<int*>(visited->bucket_heads);
+    int* visited_buckets = visited->bucket_heads;
     visited_entries[root_slot].key = root_key;
     visited_entries[root_slot].value = root_index;
     visited_entries[root_slot].next_index =
@@ -1683,7 +1683,7 @@ unsigned short W8PathingService::PlanMovement00463460(
 
             visited_entries =
                 static_cast<W8OctreeEntry*>(visited->entries);
-            visited_buckets = static_cast<int*>(visited->bucket_heads);
+            visited_buckets = visited->bucket_heads;
             unsigned int hash = (key >> 10 ^ key) >> 10 ^ key;
             int slot = visited_buckets[hash & (visited->bucket_count - 1)];
             unsigned int existing_index = 0;
@@ -1746,7 +1746,7 @@ unsigned short W8PathingService::PlanMovement00463460(
             }
             visited_entries =
                 static_cast<W8OctreeEntry*>(visited->entries);
-            visited_buckets = static_cast<int*>(visited->bucket_heads);
+            visited_buckets = visited->bucket_heads;
             int new_slot = visited->free_head;
             visited->free_head = visited_entries[new_slot].next_index;
             visited_entries[new_slot].key = key;
@@ -2455,7 +2455,7 @@ unsigned char W8PathingService::ResolvePathCell004648D0(
     unsigned char* dynamic)
 {
     W8HashTable<unsigned int, unsigned int>* index = m_pPathValues_064;
-    int* buckets = static_cast<int*>(index->bucket_heads);
+    int* buckets = index->bucket_heads;
     W8HashEntry<unsigned int, unsigned int>* entries = index->entries;
     unsigned int hash = (key >> 10 ^ key) >> 10 ^ key;
     int slot = buckets[hash & (index->bucket_count - 1)];
@@ -2669,7 +2669,7 @@ unsigned int W8PathingService::ClassifyWaypoint00459C00(
         W8HashTable<unsigned int, unsigned int>* index = m_pPathValues_064;
         W8HashEntry<unsigned int, unsigned int>* entries = index->entries;
         unsigned int hash = (key >> 10 ^ key) >> 10 ^ key;
-        int slot = static_cast<int*>(index->bucket_heads)[hash & (index->bucket_count - 1)];
+        int slot = index->bucket_heads[hash & (index->bucket_count - 1)];
         int height = (int)((position->y - level_bounds[1]) / span_020) + 1;
         int nearest = 0x0fffffff;
 
@@ -2717,7 +2717,7 @@ unsigned char W8PathingService::SnapWaypointPosition00462E60(
     W8HashTable<unsigned int, unsigned int>* index = m_pPathValues_064;
     W8HashEntry<unsigned int, unsigned int>* entries = index->entries;
     unsigned int hash = (key >> 10 ^ key) >> 10 ^ key;
-    int slot = static_cast<int*>(index->bucket_heads)[hash & (index->bucket_count - 1)];
+    int slot = index->bucket_heads[hash & (index->bucket_count - 1)];
 
     while (slot != -1 && found == 0) {
         W8HashEntry<unsigned int, unsigned int>* entry = &entries[slot];
@@ -2767,7 +2767,7 @@ unsigned char W8PathingService::TestPathCellClearance00463040(
     W8HashTable<unsigned int, unsigned int>* index = m_pPathValues_064;
     W8HashEntry<unsigned int, unsigned int>* entries = index->entries;
     unsigned int hash = (key >> 10 ^ key) >> 10 ^ key;
-    int slot = static_cast<int*>(index->bucket_heads)[hash & (index->bucket_count - 1)];
+    int slot = index->bucket_heads[hash & (index->bucket_count - 1)];
 
     while (slot != -1 && found == 0) {
         W8HashEntry<unsigned int, unsigned int>* entry = &entries[slot];
@@ -2826,7 +2826,7 @@ unsigned char W8PathingService::SnapToLowerPathCell00463290(
     W8HashTable<unsigned int, unsigned int>* index = m_pPathValues_064;
     W8HashEntry<unsigned int, unsigned int>* entries = index->entries;
     unsigned int hash = (key >> 10 ^ key) >> 10 ^ key;
-    int slot = static_cast<int*>(index->bucket_heads)[hash & (index->bucket_count - 1)];
+    int slot = index->bucket_heads[hash & (index->bucket_count - 1)];
 
     while (slot != -1) {
         W8HashEntry<unsigned int, unsigned int>* entry = &entries[slot];
@@ -2875,7 +2875,7 @@ unsigned char W8PathingService::ProbeAttachmentPath00462360(
     flag_08c = 0;
     W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pVisitedCells_074);
     if (visited->bucket_count != 0) {
-        delete[] static_cast<int*>(visited->bucket_heads);
+        delete[] visited->bucket_heads;
         delete[] static_cast<W8OctreeEntry*>(visited->entries);
     }
     visited->bucket_count = 0;
@@ -3144,7 +3144,7 @@ unsigned char W8PathingService::ProbeWaypointSegment00462750(
             static_cast<W8OctreeIndex*>(m_pVisitedCells_074);
         W8OctreeEntry* visited_entries =
             static_cast<W8OctreeEntry*>(visited_index->entries);
-        int slot = static_cast<int*>(visited_index->bucket_heads)[
+        int slot = visited_index->bucket_heads[
             hash & (visited_index->bucket_count - 1)];
         unsigned int visited = 0;
 
@@ -3170,7 +3170,7 @@ unsigned char W8PathingService::ProbeWaypointSegment00462750(
             W8HashTable<unsigned int, unsigned int>* path_index = m_pPathValues_064;
             W8HashEntry<unsigned int, unsigned int>* path_entries =
                 path_index->entries;
-            slot = static_cast<int*>(path_index->bucket_heads)[
+            slot = path_index->bucket_heads[
                 hash & (path_index->bucket_count - 1)];
 
             while (slot != -1) {
@@ -3233,8 +3233,8 @@ unsigned char W8PathingService::ProbeWaypointSegment00462750(
                     unsigned int bucket =
                         hash & (visited_index->bucket_count - 1);
                     entries[inserted].next_index =
-                        static_cast<int*>(visited_index->bucket_heads)[bucket];
-                    static_cast<int*>(visited_index->bucket_heads)[bucket] = inserted;
+                        visited_index->bucket_heads[bucket];
+                    visited_index->bucket_heads[bucket] = inserted;
                 }
                 else {
                     unsigned int step_cost = (unsigned int)(int)(
@@ -3247,7 +3247,7 @@ unsigned char W8PathingService::ProbeWaypointSegment00462750(
                         probe_position_07c = position;
                     }
 
-                    int* bucket = static_cast<int*>(visited_index->bucket_heads) +
+                    int* bucket = visited_index->bucket_heads +
                         (hash & (visited_index->bucket_count - 1));
                     int removed = *bucket;
                     int previous = -1;
@@ -3283,8 +3283,8 @@ unsigned char W8PathingService::ProbeWaypointSegment00462750(
                     unsigned int bucket_index =
                         hash & (visited_index->bucket_count - 1);
                     entries[inserted].next_index =
-                        static_cast<int*>(visited_index->bucket_heads)[bucket_index];
-                    static_cast<int*>(visited_index->bucket_heads)[bucket_index] = inserted;
+                        visited_index->bucket_heads[bucket_index];
+                    visited_index->bucket_heads[bucket_index] = inserted;
                 }
             }
         }
@@ -3355,7 +3355,7 @@ unsigned int W8PathingService::ComputeWaypointNeighborMask004667A0(
             W8HashTable<unsigned int, unsigned int>* index = m_pPathValues_064;
             W8HashEntry<unsigned int, unsigned int>* entries =
                 index->entries;
-            int slot = static_cast<int*>(index->bucket_heads)[
+            int slot = index->bucket_heads[
                 hash & (index->bucket_count - 1)];
             unsigned char found = 0;
 
@@ -3439,7 +3439,7 @@ unsigned char W8PathingService::TestWaypointSpan0045A1B0(
         unsigned int height =
             (unsigned int)(int)((source->y - level_bounds[1]) / span_020) + 1;
         unsigned int hash = (cell_key >> 10 ^ cell_key) >> 10 ^ cell_key;
-        int slot = static_cast<int*>(path_index->bucket_heads)[
+        int slot = path_index->bucket_heads[
             hash & (path_index->bucket_count - 1)];
         unsigned int source_value = 0;
         unsigned char found = 0;
@@ -3467,7 +3467,7 @@ unsigned char W8PathingService::TestWaypointSpan0045A1B0(
             ComputeWaypointNeighborMask004667A0(cell, source_value);
         height = (unsigned int)(int)(
             (destination->y - level_bounds[1]) / span_020) + 1;
-        slot = static_cast<int*>(path_index->bucket_heads)[
+        slot = path_index->bucket_heads[
             hash & (path_index->bucket_count - 1)];
         found = 0;
 
@@ -3512,7 +3512,7 @@ unsigned char W8PathingService::TestWaypointSpan0045A1B0(
 
     while (iteration < walk.count_24 && blocked == 0) {
         unsigned int hash = (cell_key >> 10 ^ cell_key) >> 10 ^ cell_key;
-        int slot = static_cast<int*>(path_index->bucket_heads)[
+        int slot = path_index->bucket_heads[
             hash & (path_index->bucket_count - 1)];
         unsigned int direction_mask = 0;
         unsigned int path_value;
@@ -3801,7 +3801,7 @@ float W8PathingService::MeasureDirectionalPath0045AC70(
         W8HashTable<unsigned int, unsigned int>* index = m_pPathValues_064;
         W8HashEntry<unsigned int, unsigned int>* entries =
             index->entries;
-        int slot = static_cast<int*>(index->bucket_heads)[
+        int slot = index->bucket_heads[
             hash & (index->bucket_count - 1)];
         unsigned int path_value;
         unsigned char found = 0;
@@ -3933,7 +3933,7 @@ unsigned short W8PathingService::FindWaypoint0045B120(
 
         W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pVisitedCells_074);
         if (visited->bucket_count != 0) {
-            delete[] static_cast<int*>(visited->bucket_heads);
+            delete[] visited->bucket_heads;
             delete[] static_cast<W8OctreeEntry*>(visited->entries);
         }
         visited->bucket_count = 0;
@@ -3953,7 +3953,7 @@ unsigned short W8PathingService::FindWaypoint0045B120(
             visited = static_cast<W8OctreeIndex*>(m_pVisitedCells_074);
             flag_08c = 0;
             if (visited->bucket_count != 0) {
-                delete[] static_cast<int*>(visited->bucket_heads);
+                delete[] visited->bucket_heads;
                 delete[] static_cast<W8OctreeEntry*>(visited->entries);
             }
             visited->bucket_count = 0;
@@ -4000,7 +4000,7 @@ void W8PathingService::SnapPathHeight0045B5A0(
     W8HashTable<unsigned int, unsigned int>* index = m_pPathValues_064;
     W8HashEntry<unsigned int, unsigned int>* entries = index->entries;
     unsigned int hash = (key >> 10 ^ key) >> 10 ^ key;
-    int slot = static_cast<int*>(index->bucket_heads)[
+    int slot = index->bucket_heads[
         hash & (index->bucket_count - 1)];
     int height =
         (int)((position->y - level_bounds[1]) / span_020) + 1;
@@ -4565,7 +4565,7 @@ void W8PathingService::DrawPathPosition0045C9A0(
 
     W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pVisitedCells_074);
     if (visited->bucket_count != 0) {
-        delete[] static_cast<int*>(visited->bucket_heads);
+        delete[] visited->bucket_heads;
         delete[] static_cast<W8OctreeEntry*>(visited->entries);
     }
     visited->bucket_count = 0;
@@ -4636,7 +4636,7 @@ void W8PathingService::DrawPathPosition0045C9A0(
 
             unsigned int key = neighbor_z * 0x10000 + neighbor_x;
             unsigned int hash = ((key >> 10 ^ key) >> 10 ^ key);
-            int slot = static_cast<int*>(visited->bucket_heads)[
+            int slot = visited->bucket_heads[
                 (visited->bucket_count - 1) & hash];
             while (slot != -1) {
                 W8OctreeEntry* entry = &visited->entries[slot];
@@ -4653,7 +4653,7 @@ void W8PathingService::DrawPathPosition0045C9A0(
             }
 
             W8HashTable<unsigned int, unsigned int>* paths = m_pPathValues_064;
-            int path_slot = static_cast<int*>(paths->bucket_heads)[
+            int path_slot = paths->bucket_heads[
                 (paths->bucket_count - 1) & hash];
             while (path_slot != -1) {
                 W8HashEntry<unsigned int, unsigned int>* path_entry =
@@ -4679,8 +4679,8 @@ void W8PathingService::DrawPathPosition0045C9A0(
                         visited_entries[inserted].key = key;
                         visited_entries[inserted].value = node_index;
                         visited_entries[inserted].next_index =
-                            static_cast<int*>(visited->bucket_heads)[bucket];
-                        static_cast<int*>(visited->bucket_heads)[bucket] =
+                            visited->bucket_heads[bucket];
+                        visited->bucket_heads[bucket] =
                             inserted;
 
                         W8PathSearchNode* node = &m_owned_0c8[node_index];

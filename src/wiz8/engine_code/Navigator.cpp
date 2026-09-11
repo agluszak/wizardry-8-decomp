@@ -963,9 +963,9 @@ void W8Navigator::UpdateFacing(char immediate)
             angle -= g_float_005ec2a8;
         }
         if (immediate != 0) {
-            movement_0c0.pitch_020 = NormalizeAngle((float)angle);
+            movement_0c0.pitch_020 = NormalizeAngle(angle);
         }
-        movement_0c0.target_pitch_024 = NormalizeAngle((float)angle);
+        movement_0c0.target_pitch_024 = NormalizeAngle(angle);
     }
     if (movement_0c0.roll_enabled_075 != 0) {
         srVector3T<float> side(-forward.z, 0.0f, forward.x);
@@ -976,9 +976,9 @@ void W8Navigator::UpdateFacing(char immediate)
             angle -= g_float_005ec2a8;
         }
         if (immediate != 0) {
-            movement_0c0.roll_028 = NormalizeAngle((float)angle);
+            movement_0c0.roll_028 = NormalizeAngle(angle);
         }
-        movement_0c0.target_roll_02c = NormalizeAngle((float)angle);
+        movement_0c0.target_roll_02c = NormalizeAngle(angle);
     }
 }
 

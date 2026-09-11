@@ -1,9 +1,13 @@
 """Reject multiple C++ identities for one original address.
 
-The canonical model is one address, one function identity: one name, one
-normalized prototype and one calling convention. A duplicate appears when an
-address-qualified declaration and a FUNCTION marker (or two declarations) name
-the same address differently.
+The canonical model is one address, one function identity per binary: one
+name, one normalized prototype and one calling convention. A duplicate appears
+when an address-qualified declaration and a FUNCTION marker (or two
+declarations) name the same address differently.
+
+Each reccmp target links its own image, so claims are grouped by
+(target, address): `0x10001000` in srEXT_JPEGImporter.dll and the same RVA in
+srEXT_Unzip.dll are unrelated functions, not a collision.
 
 Names are compared by their last ``::`` component so a class-qualified method
 matches its marker. Prototypes are compared by the Clang semantic id (the
@@ -99,9 +103,27 @@ def validate_identity(repo_dir: Path) -> dict[str, Any]:
 
 
 def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
-    index = json.loads((repo_dir / "build/source-index.json").read_text(encoding="utf-8"))
+    from .source_index import project_targets
 
-    claims: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    index = json.loads((repo_dir / "build/source-index.json").read_text(encoding="utf-8"))
+    targets = project_targets(repo_dir)
+
+    def namespace(source_file: str, target: str | None = None) -> str:
+        """The link namespace owning a claim. Markers carry their target;
+        declarations resolve it through their source root."""
+        if target:
+            return target
+        for name, config in targets.items():
+            roots = config.get("source-root", ())
+            roots = (roots,) if isinstance(roots, str) else tuple(roots)
+            if any(
+                source_file == root or source_file.startswith(root.rstrip("/") + "/")
+                for root in roots
+            ):
+                return name
+        return ""
+
+    claims: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for marker in index["markers"]:
         if marker["marker_kind"] != "FUNCTION":
             continue
@@ -109,7 +131,9 @@ def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
         name = marker.get("marker_name") or declaration.get("qualified_name") or ""
         if not name:
             continue
-        claims[f"{marker['address']:08x}"].append(
+        claims[
+            (namespace(marker["source_file"], marker.get("target")), f"{marker['address']:08x}")
+        ].append(
             {
                 "name": _last_component(name),
                 "qualified_name": declaration.get("qualified_name") or "",
@@ -128,7 +152,7 @@ def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
         address = _declaration_address(lines, entry["line"], entry["end_line"])
         if address is None:
             continue
-        claims[address].append(
+        claims[(namespace(entry["source_file"]), address)].append(
             {
                 "name": _last_component(entry["qualified_name"]),
                 "qualified_name": entry["qualified_name"],
@@ -141,7 +165,7 @@ def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
         address_declaration_keys.add((entry["source_file"], entry["line"], entry["end_line"]))
 
     violations: list[dict[str, Any]] = []
-    for address, entries in sorted(claims.items()):
+    for (ns, address), entries in sorted(claims.items()):
         names = {entry["name"] for entry in entries}
         prototypes = {entry["prototype"] for entry in entries if entry["prototype"]}
         if len(names) == 1 and len(prototypes) <= 1:
@@ -154,13 +178,14 @@ def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
             reason = "multiple names"
         else:
             reason = "multiple prototypes"
+        label = f"{ns}:0x{address}" if ns else f"0x{address}"
         violations.append(
             {
                 "address": f"0x{address}",
                 "kind": "address-identity",
                 "reason": reason,
                 "names": sorted(names),
-                "detail": f"0x{address}: {reason}: " + ", ".join(details),
+                "detail": f"{label}: {reason}: " + ", ".join(details),
             }
         )
 
@@ -171,13 +196,13 @@ def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
 def _consumer_violations(
     repo_dir: Path,
     index: dict[str, Any],
-    claims: dict[str, list[dict[str, Any]]],
+    claims: dict[tuple[str, str], list[dict[str, Any]]],
     address_declaration_keys: set[tuple[str, int, int]],
 ) -> list[dict[str, Any]]:
     """Callers must redeclare the canonical free function with its prototype."""
 
     canonical: dict[tuple[str, str], set[tuple[str, str]]] = defaultdict(set)
-    for address, entries in claims.items():
+    for (_, address), entries in claims.items():
         for entry in entries:
             if not entry["qualified_name"] or not entry["semantic_id"]:
                 continue

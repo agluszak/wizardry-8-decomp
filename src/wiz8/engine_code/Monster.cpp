@@ -1555,7 +1555,7 @@ void W8Monster::Update()
                 fade_state_330 = 0;
                 timer_30c.SetDuration(3.0f);
                 timer_30c.Restart();
-                if ((signed char)fade_state_330 < 1) {
+                if (fade_state_330 < 1) {
                     m_pRep->value_05c = g_float_005ebb38;
                     m_pRep->flag_061 = 1;
                     fade_state_330 = -1;
@@ -1568,7 +1568,7 @@ void W8Monster::Update()
             }
         }
         else {
-            if ((signed char)fade_state_330 < 1) {
+            if (fade_state_330 < 1) {
                 m_pRep->value_05c =
                     g_float_005ebb38 - progress;
             }
@@ -1577,7 +1577,7 @@ void W8Monster::Update()
             }
             m_pRep->flag_061 = 1;
             if (progress == g_float_005ebb38) {
-                if ((signed char)fade_state_330 < 0) {
+                if (fade_state_330 < 0) {
                     flags_1dc |= 0x400;
                 }
                 fade_state_330 = 0;
@@ -2540,10 +2540,10 @@ void W8Monster::ProcessScript004C80E0()
             }
             case MONSCR_FADEOUT:
                 flags_1dc |= 0x100;
-                if ((signed char)fade_state_330 >= 0) {
+                if (fade_state_330 >= 0) {
                     timer_30c.SetDuration(3.0f);
                     timer_30c.Restart();
-                    if ((signed char)fade_state_330 < 1) {
+                    if (fade_state_330 < 1) {
                         m_pRep->value_05c = 1.0f;
                         m_pRep->flag_061 = 1;
                     }
@@ -3519,9 +3519,9 @@ srModelInstance* W8MonsterRep::SetCycleFrameLod(
     }
     animation = *animation_slot;
     if (animation->flag_05 == 0) {
-        return AnimObjDispatch004A14D0(animation, (signed char)lod, frame);
+        return AnimObjDispatch004A14D0(animation, lod, frame);
     }
-    return AnimObjDispatchList004A1560(animation, (signed char)lod, 0);
+    return AnimObjDispatchList004A1560(animation, lod, 0);
 }
 
 /* The selected subcycle's AniMesh for one animation cycle. */
@@ -5517,7 +5517,7 @@ void W8Monster::CollectModelInstances004C6350(
 
                 for (list_index = 0; list_index < 3; ++list_index) {
                     W8AniMesh* mesh =
-                        static_cast<W8AniMesh*>(animation->entries_18[list_index]);
+                        animation->entries_18[list_index];
                     if (mesh != 0) {
                         int frame_count = AniMeshValue004B64F0(mesh);
 

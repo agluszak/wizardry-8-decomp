@@ -930,11 +930,9 @@ void InitializeLevelEnvironment00482410(void)
                 &g_environment_value_0065a168, &g_environment_value_0065a16c,
                 &g_environment_value_0065a170};
 
-            static_cast<W8AnimRepBase005EC1D8*>(
-                g_environment_value_0065a160->m_pRep)
+            g_environment_value_0065a160->m_pRep
                 ->GetLocation004B8890(&sun);
-            static_cast<W8AnimRepBase005EC1D8*>(
-                g_environment_value_0065ad84->m_pRep)
+            g_environment_value_0065ad84->m_pRep
                 ->GetLocation004B8890(&moon);
             srVector3T<float> delta = sun - moon;
             srVector3T<float> midpoint = (sun + moon) * 0.5;

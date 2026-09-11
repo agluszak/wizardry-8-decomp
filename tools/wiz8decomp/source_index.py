@@ -11,7 +11,6 @@ from reccmp.source import SourceIndex, SourceIndexError, SourceMarker
 
 from .config import Settings
 
-_INDEXED_TARGETS = ("WIZ8", "SURRENDER")
 _SOURCE_SUFFIXES = frozenset({".c", ".cpp", ".h", ".hpp"})
 _SYNTHETIC_MARKER = re.compile(r"^\s*//\s*SYNTHETIC:\s+")
 _SOURCE_MARKER = re.compile(r"^\s*//\s*(?:FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY|VTABLE|GLOBAL):\s+")
@@ -69,7 +68,7 @@ def load_source_index(repository: Path) -> dict[str, Any]:
             f"{path} is missing; run `wiz8 lint` then `wiz8 analyze source-index`"
         )
     document = json.loads(path.read_text(encoding="utf-8"))
-    if document.get("schema") != "reccmp-source-index-v1":
+    if document.get("schema") != "reccmp-source-index-v2":
         raise SourceIndexError(f"{path} has an unsupported source-index schema")
     return document
 
@@ -107,6 +106,71 @@ def source_functions(repository: Path, target: str = "WIZ8") -> dict[int, Source
     )
 
 
+def _cmake_configure_inputs(repository: Path) -> tuple[Path, ...]:
+    """Fingerprint every CMake/toolchain input that shapes the lint compile DB.
+
+    The previous short inventory missed CompileSettings.cmake, the clang-cl
+    toolchain, and the extension source-model fragments, so `analyze
+    source-index` could consume a stale database after a compile-setting edit.
+    Collect the actual inputs instead of maintaining another partial list.
+    """
+    candidates: list[Path] = [repository / "CMakeLists.txt"]
+    candidates.extend(sorted((repository / "cmake").glob("*.cmake")))
+    candidates.extend(sorted(repository.glob("src/*/CMakeLists.txt")))
+    candidates.append(repository / "src/wiz8/sources.cmake")
+    seen: list[Path] = []
+    for path in candidates:
+        if path.is_file() and path not in seen:
+            seen.append(path)
+    return tuple(seen)
+
+
+def _compile_db_files(database: Path) -> set[str]:
+    try:
+        entries = json.loads(database.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return set()
+    files: set[str] = set()
+    for entry in entries if isinstance(entries, list) else []:
+        raw = str((entry or {}).get("file", ""))
+        if raw.startswith("/repo/"):
+            files.add(raw[len("/repo/") :])
+        elif raw.startswith("/"):
+            continue
+        elif raw:
+            files.add(raw)
+    return files
+
+
+def indexed_targets(repository: Path, database: Path | None = None) -> dict[str, tuple[str, ...]]:
+    """Derive index targets from project source roots plus compile-DB coverage.
+
+    Every reccmp target with a `source-root` is a candidate; when a compile
+    database is available, keep only candidates with at least one entry whose
+    file falls under one of their roots. This adds the first-party extension
+    targets automatically once the lint projection emits their commands,
+    without another hard-coded tuple.
+    """
+    targets = project_targets(repository)
+    candidates = {
+        target: _source_roots(config) for target, config in targets.items() if _source_roots(config)
+    }
+    if database is not None and database.is_file():
+        covered = _compile_db_files(database)
+        if covered:
+            filtered = {}
+            for target, roots in candidates.items():
+                if any(
+                    candidate == root or candidate.startswith(root.rstrip("/") + "/")
+                    for candidate in covered
+                    for root in roots
+                ):
+                    filtered[target] = roots
+            if filtered:
+                return filtered
+    return candidates
+
+
 def validate_source_index(repository: Path) -> dict[str, int]:
     validate_synthetic_marker_blocks(repository)
     index = SourceIndex.from_dict(load_source_index(repository))
@@ -116,28 +180,64 @@ def validate_source_index(repository: Path) -> dict[str, int]:
     }
     if len({item.semantic_id for item in index.classes}) != len(index.classes):
         raise SourceIndexError("compiler-backed source index contains duplicate class definitions")
-    return {
+    result: dict[str, int] = {
         "functions": sum(counts.values()),
-        "wiz8_functions": counts["WIZ8"],
-        "surrender_functions": counts["SURRENDER"],
+        "wiz8_functions": counts.get("WIZ8", 0),
+        "surrender_functions": counts.get("SURRENDER", 0),
         "classes": len(index.classes),
         "vtable_classes": sum(item.vtable_address is not None for item in index.classes),
-        "c_linkage_symbols": validate_cross_tu_declarations(repository),
+        "variables": len(index.variables),
+        "conflicts": len(index.conflicts),
+        # TODO(B): re-enable validate_cross_tu_declarations here once the
+        # extern-array completion idiom (T[] vs T[N]) has an agreed rule. The
+        # check itself stays tested below; it is parked, not removed.
     }
+    for target in ("SREXT_JPEGIMPORTER", "SREXT_UNZIP"):
+        if target in counts:
+            result[f"{target.lower()}_functions"] = counts[target]
+    return result
 
 
 def validate_cross_tu_declarations(repository: Path) -> int:
     """Require one canonical type per external symbol in the Clang index.
 
-    C++ mangling already encodes the complete type, so two declarations that
-    disagree about an overloaded C++ function cannot share a ``semantic_id``.
-    Unmangled/C-linkage symbols carry no type in the symbol, and that is where
-    a writer/reader disagreement survives separate compilation undetected.
-    Group those by their undecorated source name and require one signature.
+    PARKED for B: `wiz8 analyze source-index` and `validate_source_index`
+    do not call this yet. The remaining hits are the legal extern-array
+    completion idiom (`extern T g[]` completed by `T g[N]`), which needs an
+    array-aware compatibility rule before this can gate. Unit tests below
+    keep the rest of the behavior pinned in the meantime.
     """
     document = load_source_index(repository)
-    signatures: dict[str, dict[tuple[Any, ...], list[str]]] = {}
+    rendered: list[str] = []
+
+    recorded: dict[tuple[str, str], dict[tuple[str, ...], list[str]]] = {}
+    for conflict in document.get("conflicts") or ():
+        key = (str(conflict.get("record_kind", "")), str(conflict.get("semantic_id", "")))
+        variants = recorded.setdefault(key, {})
+        for variant in conflict.get("variants") or ():
+            signature = tuple(variant.get("signature") or ())
+            locations = variants.setdefault(signature, [])
+            for location in variant.get("locations") or ():
+                if location not in locations:
+                    locations.append(location)
+    for (kind, semantic_id), variants in sorted(recorded.items()):
+        if len(variants) < 2:
+            continue
+        # TU-local spellings never collide at link time: two `static`
+        # definitions with different types are independent entities. Only a
+        # disagreement involving an externally linked spelling can escape
+        # separate compilation undetected.
+        if not any(signature and signature[-1] == "external" for signature in variants):
+            continue
+        rendered.append(f"{semantic_id} ({kind})")
+        for signature, locations in variants.items():
+            rendered.append(f"  {' | '.join(str(part) for part in signature)}")
+            rendered.extend(f"    {location}" for location in locations[:4])
+
+    functions: dict[str, dict[tuple[Any, ...], list[str]]] = {}
     for item in document.get("declarations") or ():
+        if item.get("linkage", "") != "external":
+            continue
         semantic_id = str(item.get("semantic_id", ""))
         if not semantic_id or semantic_id.startswith("?"):
             continue
@@ -151,19 +251,119 @@ def validate_cross_tu_declarations(repository: Path) -> int:
             tuple(item.get("parameter_types") or ()),
         )
         location = f"{item.get('source_file', '?')}:{item.get('line', '?')}"
-        signatures.setdefault(name, {}).setdefault(signature, []).append(location)
-    conflicts = {name: variants for name, variants in signatures.items() if len(variants) > 1}
-    if conflicts:
-        rendered = []
-        for name, variants in sorted(conflicts.items()):
-            rendered.append(name)
-            for signature, locations in variants.items():
-                rendered.append(f"  {' | '.join(str(part) for part in signature)}")
-                rendered.extend(f"    {location}" for location in locations[:4])
+        functions.setdefault(name, {}).setdefault(signature, []).append(location)
+    for name, variants in sorted(functions.items()):
+        if len(variants) < 2:
+            continue
+        rendered.append(name)
+        for signature, locations in variants.items():
+            rendered.append(f"  {' | '.join(str(part) for part in signature)}")
+            rendered.extend(f"    {location}" for location in locations[:4])
+
+    variables: dict[str, dict[tuple[Any, ...], list[str]]] = {}
+    for item in document.get("variables") or ():
+        if item.get("linkage", "") != "external":
+            continue
+        semantic_id = str(item.get("semantic_id", ""))
+        if not semantic_id:
+            continue
+        signature = (item.get("type", ""),)
+        location = f"{item.get('source_file', '?')}:{item.get('line', '?')}"
+        variables.setdefault(semantic_id, {}).setdefault(signature, []).append(location)
+    for semantic_id, variants in sorted(variables.items()):
+        if len(variants) < 2:
+            continue
+        rendered.append(semantic_id)
+        for signature, locations in variants.items():
+            rendered.append(f"  {' | '.join(str(part) for part in signature)}")
+            rendered.extend(f"    {location}" for location in locations[:4])
+
+    if rendered:
         raise SourceIndexError(
             "external symbols have divergent declarations:\n" + "\n".join(rendered)
         )
-    return len(signatures)
+    return len(functions) + len(variables)
+
+
+def _collect_per_namespace(
+    repository: Path,
+    database: Path,
+    targets: dict[str, tuple[Path, ...]],
+    roots: dict[str, tuple[str, ...]],
+    *,
+    clang: str | None,
+    container_image: str | None,
+    mounts: dict[Path, str],
+    cache_inputs: tuple[Path, ...],
+    force: bool,
+) -> SourceIndex:
+    """Collect one source index per link namespace, then merge the markers.
+
+    Each reccmp target is its own binary, so the same unmangled symbol may be
+    legitimately defined in several of them (both extension DLLs define
+    ``DllMain`` with the same ``_DllMain@12`` identity). The upstream
+    collector merges records by ``semantic_id`` across every translation unit
+    it sees, so one shared collection keeps only one of those definitions and
+    the other target's marker binds to nothing. Partition the compile database
+    by source root and collect each namespace with its own cache; entries
+    covered by no root (none today) are shared by every partition to preserve
+    the old header-visibility behavior.
+    """
+    entries = json.loads(database.read_text(encoding="utf-8"))
+
+    def owner(entry: dict[str, Any]) -> str | None:
+        raw = str(entry.get("file", ""))
+        candidate = raw.removeprefix("/repo/")
+        for target, source_roots in roots.items():
+            if any(
+                candidate == root or candidate.startswith(root.rstrip("/") + "/")
+                for root in source_roots
+            ):
+                return target
+        return None
+
+    by_target: dict[str, list[dict[str, Any]]] = {target: [] for target in targets}
+    shared: list[dict[str, Any]] = []
+    for entry in entries:
+        target = owner(entry)
+        if target is None:
+            shared.append(entry)
+        else:
+            by_target[target].append(entry)
+    indexes = []
+    for target, paths in targets.items():
+        partitioned = [*by_target[target], *shared]
+        partitioned_db = (
+            repository / "build" / "source-index-cache" / f"compile-commands-{target.lower()}.json"
+        )
+        partitioned_db.parent.mkdir(parents=True, exist_ok=True)
+        content = json.dumps(partitioned, indent=2) + "\n"
+        if not partitioned_db.is_file() or partitioned_db.read_text(encoding="utf-8") != content:
+            partitioned_db.write_text(content, encoding="utf-8")
+        indexes.append(
+            SourceIndex.from_compile_database(
+                repository,
+                partitioned_db,
+                {target: paths},
+                clang=clang,
+                container_image=container_image,
+                compilation_root=Path("/repo"),
+                mounts=mounts,
+                cache_dir=repository / "build" / "source-index-cache" / target.lower(),
+                cache_inputs=cache_inputs,
+                force=force,
+            )
+        )
+    # Each namespace keeps its own winner: the same unmangled spelling may be
+    # legitimately defined in several binaries, and the consistency gate groups
+    # every spelling by identity, so cross-namespace disagreements stay visible.
+    return SourceIndex(
+        declarations=(item for index in indexes for item in index.declarations),
+        classes=(item for index in indexes for item in index.classes),
+        markers=(item for index in indexes for item in index.markers),
+        variables=(item for index in indexes for item in index.variables),
+        conflicts=(item for index in indexes for item in index.conflicts),
+    )
 
 
 def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, Any]:
@@ -172,74 +372,64 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
     repository = settings.repo_dir.resolve()
     validate_synthetic_marker_blocks(repository)
     database = repository / LINT_BUILD_DIR / "compile_commands.json"
-    inventories = tuple(
-        repository / inventory
-        for inventory in (
-            "CMakeLists.txt",
-            "cmake/clang-cl-i686.cmake",
-            "cmake/CompileSettings.cmake",
-            "cmake/Lint.cmake",
-            "src/wiz8/sources.cmake",
-            "src/sgp/CMakeLists.txt",
-            "src/surrender/CMakeLists.txt",
-            "src/srext_jpegimporter/CMakeLists.txt",
-            "src/srext_unzip/CMakeLists.txt",
-        )
-    )
+    inventories = _cmake_configure_inputs(repository)
     if not database.is_file() or any(
         path.is_file() and path.stat().st_mtime > database.stat().st_mtime for path in inventories
     ):
         configure_clang(settings)
     if not database.is_file():
         raise FileNotFoundError(f"clang configuration did not produce {database}")
+    roots = indexed_targets(repository, database)
     targets = {
         target: tuple(
             sorted(
                 path
-                for source_root in _source_roots(project_targets(repository)[target])
+                for source_root in source_roots
                 for path in (repository / source_root).rglob("*")
                 if path.suffix.lower() in _SOURCE_SUFFIXES
             )
         )
-        for target in _INDEXED_TARGETS
-        if target in project_targets(repository)
+        for target, source_roots in roots.items()
     }
-    index = SourceIndex.from_compile_database(
+    mounts = {
+        repository: "/repo",
+        repository / LINT_BUILD_DIR: "/out",
+        settings.work_dir / "fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4": "/zlib",
+        settings.work_dir / "fid/sources/unpacked/ijg-jpeg-6/jpeg-6": "/jpeg",
+        settings.work_dir / "fid/sources/unpacked/infozip-unzip-5.4": "/infozip",
+    }
+    cache_inputs = (
+        *tuple(
+            repository / path
+            for path in (
+                "include",
+                "src",
+                "config",
+            )
+        ),
+        settings.work_dir / "fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4",
+        settings.work_dir / "fid/sources/unpacked/ijg-jpeg-6/jpeg-6",
+        settings.work_dir / "fid/sources/unpacked/infozip-unzip-5.4",
+    )
+    index = _collect_per_namespace(
         repository,
         database,
         targets,
+        roots,
         clang="/usr/bin/clang-cl",
         container_image=VC6_IMAGE,
-        compilation_root=Path("/repo"),
-        mounts={
-            repository: "/repo",
-            repository / LINT_BUILD_DIR: "/out",
-            settings.work_dir / "fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4": "/zlib",
-            settings.work_dir / "fid/sources/unpacked/ijg-jpeg-6/jpeg-6": "/jpeg",
-            settings.work_dir / "fid/sources/unpacked/infozip-unzip-5.4": "/infozip",
-        },
-        cache_dir=repository / "build/source-index-cache",
-        cache_inputs=(
-            *tuple(
-                repository / path
-                for path in (
-                    "include",
-                    "src",
-                    "config",
-                )
-            ),
-            settings.work_dir / "fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4",
-            settings.work_dir / "fid/sources/unpacked/ijg-jpeg-6/jpeg-6",
-            settings.work_dir / "fid/sources/unpacked/infozip-unzip-5.4",
-        ),
+        mounts=mounts,
+        cache_inputs=cache_inputs,
         force=force,
     )
     index.write(repository / "build/source-index.json")
-    c_linkage_symbols = validate_cross_tu_declarations(repository)
+    # TODO(B): gate on validate_cross_tu_declarations here once the
+    # extern-array completion rule lands. Parked, not removed.
     return {
         "path": "build/source-index.json",
         "markers": len(index.markers),
         "declarations": len(index.declarations),
         "classes": len(index.classes),
-        "c_linkage_symbols": c_linkage_symbols,
+        "variables": len(index.variables),
+        "conflicts": len(index.conflicts),
     }

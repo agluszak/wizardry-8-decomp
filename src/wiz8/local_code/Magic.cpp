@@ -286,7 +286,7 @@ unsigned char SpellUsableNow(
         return !shopping;
     case W8_SPELL_USABLE_WHILE_SHOPPING:
         if (spell_id != 0x27) {
-            return spell_id == 0x12 ? (unsigned char)gXStatus.field_025 : 0;
+            return spell_id == 0x12 ? gXStatus.field_025 : 0;
         }
         if (gXStatus.field_024 != 0) {
             return 1;
@@ -1601,7 +1601,7 @@ unsigned int GetBestSpellbookSkillForSpell(
             band = g_spell_records[spell_id].spell_point_cost / 2 +
                    g_spell_records[spell_id].spell_level;
             skill_figure =
-                (unsigned int)(character->skills[unlocked_skill].level +
+                (character->skills[unlocked_skill].level +
                                character
                                        ->skills[W8_SKILL_FIRST_REALM +
                                                 g_spell_records[spell_id].realm]
@@ -1680,7 +1680,7 @@ unsigned int GetSpellFailureChanceForCast(
     skill = GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level, 0);
     party_slot = CharacterPointerToPartySlot(character);
     skill_figure =
-        (unsigned int)(character->skills[skill].level +
+        (character->skills[skill].level +
                        character->skills[W8_SKILL_FIRST_REALM + g_spell_records[spell_id].realm]
                                .level *
                            4) /

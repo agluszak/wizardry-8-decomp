@@ -490,14 +490,14 @@ unsigned char GDCamera::ComputeTrackingOrientation(
         (GetElevationAngle(&m_position_08c, target)
          + g_camera_angle_period_005ec014)
         - (m_pitch + g_camera_angle_period_005ec014);
-    if ((double)fabs((double)angle_delta) > g_camera_pi_005ec2a0) {
+    if (fabs((double)angle_delta) > g_camera_pi_005ec2a0) {
         if (angle_delta >= 0.0f) {
             angle_delta -= g_camera_angle_period_005ec014;
         } else {
             angle_delta += g_camera_angle_period_005ec014;
         }
     }
-    if ((double)fabs((double)pitch_delta) > g_camera_pi_005ec2a0) {
+    if (fabs((double)pitch_delta) > g_camera_pi_005ec2a0) {
         if (pitch_delta >= 0.0f) {
             pitch_delta -= g_camera_angle_period_005ec014;
         } else {

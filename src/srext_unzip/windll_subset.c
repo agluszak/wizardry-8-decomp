@@ -66,7 +66,7 @@ BOOL WINAPI Wiz_Init(zvoid* pG, LPUSERFUNCTIONS callbacks)
 int win_fprintf(zvoid* pG, FILE* file, unsigned int size, char far* buffer)
 {
     if (file != stderr && file != stdout) {
-        return write(fileno(file), (char far*)buffer, size);
+        return write(fileno(file), buffer, size);
     }
     if (!fNoPrinting) {
         return G.lpUserFunctions->print((LPSTR)buffer, size);

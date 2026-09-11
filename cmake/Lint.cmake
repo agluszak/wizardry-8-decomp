@@ -20,7 +20,10 @@ function(wiz8_lint_target target)
 endfunction()
 
 # clang-cl/VC6 compatibility noise from the reconstructed corpus. No
-# decompilation-correctness diagnostic belongs in this list.
+# decompilation-correctness diagnostic belongs in this list. Clang 19
+# promotes several legacy idioms the corpus deliberately preserves to
+# errors: the reviewed raw-callback casts, Info-ZIP K&R definitions, and
+# VC6-era implicit copies.
 set(WIZ8_LINT_COMPAT_FLAGS
     -Xclang -fno-wchar
     -fms-extensions
@@ -34,7 +37,10 @@ set(WIZ8_LINT_COMPAT_FLAGS
     -Wno-unused-private-field
     -Wno-undefined-inline
     -Wno-invalid-offsetof
+    -Wno-cast-function-type-mismatch
     -Wno-char-subscripts
+    -Wno-deprecated-copy
+    -Wno-deprecated-non-prototype
     -Wno-deprecated-register
     -Wno-delete-non-abstract-non-virtual-dtor
     -Wno-inconsistent-dllimport
@@ -80,18 +86,33 @@ endfunction()
 # upstream C style warnings (pointer-sign, unused-but-set, incompatible pointer
 # types, ...) are vendor behavior and stay report-only in `wiz8 diagnostics`.
 # Signed comparisons are included in that vendor exception because the
-# reconstructed callers already fix their own side.
+# reconstructed callers already fix their own side. The recovery warnings below
+# are report-only in the diagnostics lane and errors in the gating lane, so
+# `wiz8 diagnostics` never fails on what it is supposed to report. Clang 19
+# additionally promotes implicit declarations and mismatched callback pointers
+# to errors by default; those stay demoted to warnings here for the same
+# vendor reason instead of rewriting retained C.
 function(wiz8_configure_vendor_lint_target target)
     target_include_directories(${target} BEFORE PRIVATE tools/lint/include)
     target_link_libraries(${target} PRIVATE wiz8_compile_settings)
     target_compile_definitions(${target} PRIVATE WIZ8_CLANG_LINT)
     target_compile_options(${target} PRIVATE
         /W4 ${WIZ8_LINT_COMPAT_FLAGS} /MD /U_DEBUG
-        -Werror=sometimes-uninitialized
-        -Werror=switch
-        -Werror=array-bounds
-        -Werror=missing-field-initializers
+        -Wsometimes-uninitialized
+        -Wswitch
+        -Warray-bounds
+        -Wmissing-field-initializers
+        -Wno-error=implicit-function-declaration
+        -Wno-error=incompatible-function-pointer-types
     )
+    if(NOT WIZ8_FULL_DIAGNOSTICS)
+        target_compile_options(${target} PRIVATE
+            -Werror=sometimes-uninitialized
+            -Werror=switch
+            -Werror=array-bounds
+            -Werror=missing-field-initializers
+        )
+    endif()
 endfunction()
 
 function(wiz8_configure_lint_targets)

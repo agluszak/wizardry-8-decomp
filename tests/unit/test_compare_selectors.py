@@ -15,7 +15,7 @@ def _index(repository: Path, names: list[tuple[int, str]]) -> None:
     (repository / "build/source-index.json").write_text(
         json.dumps(
             {
-                "schema": "reccmp-source-index-v1",
+                "schema": "reccmp-source-index-v2",
                 "classes": [],
                 "declarations": [],
                 "markers": [

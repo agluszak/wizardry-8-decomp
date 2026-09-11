@@ -876,7 +876,7 @@ void UpdateNpcEvents0050D530(void)
                     RemoveMonster(index, 1);
                 }
             }
-            int partner_index = (unsigned char)partner->partner_index_2c;
+            int partner_index = partner->partner_index_2c;
             if (partner_index != -1 &&
                 partner_index <= g_npc_states->GetCount()) {
                 W8NpcState* released = *g_npc_states->GetAt(partner_index);
@@ -944,8 +944,8 @@ void UpdateNpcEvents0050D530(void)
                         npc_state = 0;
                     }
                 }
-                if (*(unsigned char*)&row->flag_fe != 0 &&
-                    (int)(g_status_685170.world_clock -
+                if (*(&row->flag_fe) != 0 &&
+                    (g_status_685170.world_clock -
                           npc_state->event_clock_eb) > 0x168) {
                     if (Random(2) == 0) {
                         npc_state->event_clock_eb =
@@ -974,7 +974,7 @@ void UpdateNpcEvents0050D530(void)
         SetFact(0xb8, 1, 0);
     }
     if (g_status_685170.flag_2497 != 0 &&
-        (int)(g_status_685170.world_clock -
+        (g_status_685170.world_clock -
               g_status_685170.value_242a) > 0x3c) {
         g_status_685170.flag_2497 = 0;
         Function509560();

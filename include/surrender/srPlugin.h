@@ -10,10 +10,13 @@ public:
     virtual const char* getDescription() const = 0;
 };
 
-// Undecorated exports at ordinals 1 and 2. These zero-argument x86 calls
-// cannot distinguish authored cdecl from stdcall: both use plain RET.
-// Keep both spellings explicit; JPEG uses cdecl, ZIP currently uses stdcall.
+// Undecorated exports at ordinals 1 and 2. Retail exports these names
+// undecorated in every srEXT_* DLL
+// (evidence/snapshots/surrender-abi/exports.csv), which an extern "C"
+// __stdcall definition could not produce (it decorates as _name@0), and the
+// host below calls them through the cdecl pointers. Both extension
+// recoveries and the host therefore use __cdecl. These zero-argument x86
+// calls use plain RET under either convention, so the convention is
+// invisible in the emitted bodies and only the export/host agreement pins it.
 typedef unsigned long (__cdecl *srGetLibraryVersionCdeclFn)();
-typedef unsigned long (__stdcall *srGetLibraryVersionStdcallFn)();
 typedef srPlugin* (__cdecl *srInitPluginCdeclFn)();
-typedef srPlugin* (__stdcall *srInitPluginStdcallFn)();
