@@ -81,6 +81,9 @@ void SGPMouseGetPos(POINT* point);
 
 /* Tooltip ownership query: nonzero while a VideoToolTip object is alive. */
 bool HasScreenTransitionObjects(void); /* 0x004297D0 */
+/* 0x00422EC0: invalidate each rectangle in a run. */
+struct W8ScreenRect;
+void Function422EC0(W8ScreenRect* rects, unsigned int count, int flags);
 
 #endif
 
@@ -91,5 +94,8 @@ extern unsigned char g_flag_6596f4;
 extern int g_screenshot_index_659724;
 extern int g_screenshot_page_659728;
 void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom);
+/* 0x004048A0: fill one rectangle of the target surface through the
+   locked primary-surface blitter. */
+void Function4048A0(int target, int left, int top, int right, int bottom);
 
 #endif

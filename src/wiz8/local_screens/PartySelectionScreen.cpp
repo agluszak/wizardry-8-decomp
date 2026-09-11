@@ -12,11 +12,13 @@
 #include "wiz8/local_code/RangeControl.h"
 #include "wiz8/local_code/ControlSelection.h"
 #include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/local_code/Sight.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/cursor.h"
 #include "wiz8/dialog_code/ModalDialogBase.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/geometry.h"
@@ -47,8 +49,6 @@
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
 void Function55EE70(int value);
-void RenderPartyPortrait0052EB00(int portrait, int left, int top,
-                                int flags, int value, int party_slot);
 int Function558C40(const char* path);
 
 extern int g_font_683660;
@@ -2492,4 +2492,38 @@ void GameStartRouterFrame(void)
     }
     SetValue64D8AC(code);
     SetPendingScreenState(W8_SCREEN_INTRO);
+}
+
+/* One byte per portrait; the retail table is one for every portrait. */
+// GLOBAL: WIZ8 0x0061cbc0
+unsigned char g_portrait_frame_flags_0061cbc0[0x50] = {
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+};
+
+/* Draw one party member's portrait at a screen position. When the caller asks
+   for the animated form the frame blitter runs first, and the death,
+   in-combat or exhausted state adds the darkened overlay. */
+// FUNCTION: WIZ8 0x0052eb00
+void RenderPartyPortrait0052EB00(
+    int portrait, int left, int top, int flags, int value, int party_slot)
+{
+    DrawCatalogImage(-0xe, 0x12, portrait, 0, left, top, flags | 0x200, 0);
+    if (party_slot == -1) {
+        return;
+    }
+    if (value != 0 && g_portrait_frame_flags_0061cbc0[portrait] != 0) {
+        char drawn = Function52EBE0(portrait, left, top, flags, party_slot, 1);
+        value = drawn == 0;
+    }
+    if ((((g_in_combat_00683f94 != 0 &&
+            g_combat_state->characters[party_slot].flag_34 != 0) ||
+          g_sight_messages_enabled_00683fc5 != 0) ||
+         g_party_characters[party_slot].unknown_0b01 == 0x13) &&
+        value != 0) {
+        Function4048A0(-0xe, left, top, left + 0x59, top + 0x47);
+    }
 }

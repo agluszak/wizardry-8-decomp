@@ -25,6 +25,10 @@ unsigned int GetCatalogVideoObjectHandle(int object, int frame);
 short GetCatalogVideoObjectYOffset(int object);
 void GetCatalogImageSize(int object, int frame, int image,
                          short* width, short* height);
+/* 0x00549700: the image's own offset inside its frame, read from the locked
+   surface rather than the ETRLE subregion table. */
+void GetCatalogImagePosition00549700(
+    int object, int frame, int image, short* x, short* y);
 void DrawCatalogImage(int target, int object, int frame, short image,
                       int left, int top, int mode, int flags);
 void InvalidateCatalogImageRect(int object, int frame, int image,
