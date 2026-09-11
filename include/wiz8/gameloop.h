@@ -4,7 +4,7 @@
 #include "Types.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C" {  // C-LINKAGE: src/sgp/sgp.c calls these four game-lifecycle entries
 #endif
 
 BOOLEAN InitializeGame(void);

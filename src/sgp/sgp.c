@@ -29,7 +29,7 @@
 		#include "Timer Control.h"
 	#endif
 	#if !defined( JA2 ) && !defined( UTIL )
-		#include "GameData.h"               // for MoveTimer() [Wizardry specific]
+		#include "wiz8/sgp_bridge.h"       // for MoveTimer() [Wizardry specific]
 	#endif
 #endif
 

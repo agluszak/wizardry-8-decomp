@@ -493,13 +493,13 @@ unsigned char W8Dialog005CBB40::ProcessInput()
         if (m_selected_line_0f4 != -1 &&
             IsCursorInRectangle(m_ok_rect_0c4.left, m_ok_rect_0c4.top,
                                 m_ok_rect_0c4.right,
-                                m_ok_rect_0c4.bottom) != 0) {
+                                m_ok_rect_0c4.bottom)) {
             m_field_41 = 0;
             return 0;
         }
         if (IsCursorInRectangle(m_cancel_rect_0dc.left, m_cancel_rect_0dc.top,
                                 m_cancel_rect_0dc.right,
-                                m_cancel_rect_0dc.bottom) != 0) {
+                                m_cancel_rect_0dc.bottom)) {
             m_selected_line_0f4 = -1;
             m_field_41 = 0;
             return 0;

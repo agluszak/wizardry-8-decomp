@@ -82,19 +82,19 @@ W8RaceResistanceProfile g_race_resistance_profiles[16] = {
    -1 both mean absent and skip their tables. Read-only, so callers agree
    on a const character. */
 // FUNCTION: WIZ8 0x00547940
-unsigned char CharacterHasTrait00547940(const W8Character* character, int trait)
+bool CharacterHasTrait00547940(const W8Character* character, int trait)
 {
     unsigned int index;
 
     if (character == 0) {
-        return 0;
+        return false;
     }
     if (character->current_profession != -1) {
         const int* abilities =
             g_profession_abilities[character->current_profession].ability_ids;
         for (index = 0; index < 3; ++index) {
             if (abilities[index] == trait) {
-                return 1;
+                return true;
             }
         }
     }
@@ -102,14 +102,14 @@ unsigned char CharacterHasTrait00547940(const W8Character* character, int trait)
         const int* abilities = g_race_abilities[character->race].ability_ids;
         for (index = 0; index < 5; ++index) {
             if (abilities[index] == trait) {
-                return 1;
+                return true;
             }
         }
     }
     if (trait == 0x1c && character->enchantments[1].value_08 != 0) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Skill ids fall into three bands. Below 0x18 and at 0x1c..0x21 they are
@@ -118,7 +118,7 @@ unsigned char CharacterHasTrait00547940(const W8Character* character, int trait)
    attribute records instead, and count as available only once the attribute has
    reached its cap. */
 // FUNCTION: WIZ8 0x00553d90
-unsigned char IsCharacterSkillAvailable(
+bool IsCharacterSkillAvailable(
     W8Character* character,
     unsigned int skill_id,
     const unsigned char* expert_realm_flags)
@@ -128,14 +128,14 @@ unsigned char IsCharacterSkillAvailable(
     int magic_offset;
 
     if (g_profession_skill_availability[skill_id][character->current_profession] == 0) {
-        return 0;
+        return false;
     }
     if (CharacterHasTrait00547940(character, 0x1f)) {
         if (skill_id >= 0x18 && skill_id <= 0x1b) {
-            return 0;
+            return false;
         }
         if (skill_id >= 0x1c && skill_id <= 0x21) {
-            return 0;
+            return false;
         }
     }
     if (skill_id >= 0x1c && skill_id <= 0x21) {
@@ -145,22 +145,22 @@ unsigned char IsCharacterSkillAvailable(
             }
         }
         if (index > 0x1b) {
-            return 0;
+            return false;
         }
         if (character->skill_unlocks[skill_id] > 0) {
-            return 1;
+            return true;
         }
         if (expert_realm_flags && expert_realm_flags[skill_id - 0x1c]) {
-            return 1;
+            return true;
         }
-        return 0;
+        return false;
     }
 
     profession = character->current_profession;
     if (skill_id != (unsigned int)g_profession_bonus_skills[profession]) {
         for (index = 0; index < 4; ++index) {
             if (skill_id == (unsigned int)g_profession_skills[profession][index]) {
-                return 1;
+                return true;
             }
         }
         if (skill_id >= 0x22 && skill_id <= 0x28) {
@@ -201,7 +201,7 @@ unsigned char IsCharacterSkillAvailable(
             break;
         }
     }
-    return 1;
+    return true;
 }
 
 /* Average the two attribute values g_skill_attributes names for every skill
@@ -223,7 +223,7 @@ void Function553C90(W8Character* character)
    open character screen's page 2. The realm flags array marks which expert
    skills gained a spell since the last scan. */
 // FUNCTION: WIZ8 0x00553cd0
-void Function553CD0(W8Character* character)
+void RefreshCharacterSkillAvailability00553CD0(W8Character* character)
 {
     unsigned char expert_realm_flags[8];
     int index;
@@ -238,7 +238,7 @@ void Function553CD0(W8Character* character)
         }
     }
     for (index = 0; index < 0x29; ++index) {
-        unsigned char available =
+        bool available =
             IsCharacterSkillAvailable(character, index, expert_realm_flags);
         if (!available) {
             if (character->skills[index].flag_00) {
@@ -285,7 +285,6 @@ unsigned int Function553EE0(W8Character* character, int skill_id)
    same answer rather than compounding. */
 #include "wiz8/character.h"
 #include "wiz8/layouts/gameplay_databases.h"
-extern "C" {
 /* The profession databases and per-skill attribute records. Contents are the
    retail tables at 0x00615570..0x0061634c; the five profession arrays share
    one contiguous block with the skill-attribute records. -1 in a skill slot
@@ -409,4 +408,3 @@ int g_profession_skills[15][4] = {
 int g_profession_magic_level_offsets[15] = {
     -255, -4, -4, -4, -4, -4, -4, -255, -255, -255, 0, 0, 0, 0, 0,
 };
-}

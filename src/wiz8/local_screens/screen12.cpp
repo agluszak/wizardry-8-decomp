@@ -14,11 +14,9 @@
    its Escape/E/X shortcuts. The original translation-unit name is unknown, so
    the existing compilation boundary is retained. */
 
-extern "C" int g_value_64c1c8;
-extern "C" {
+extern int g_value_64c1c8;
 // GLOBAL: WIZ8 0x0064c1c8
 int g_value_64c1c8 = -1;
-}
 
 
 // FUNCTION: WIZ8 0x00591780

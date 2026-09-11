@@ -256,11 +256,11 @@ void stMeshModel::RemoveSkinTablesForCycle00473780(const char* cycle_name)
     }
 }
 
-/* Thirteen-byte forwarder onto the model release path. */
+/* Thirteen-byte forwarder onto the per-frame normal finalizer. */
 // FUNCTION: WIZ8 0x00473180
-void ReleaseMeshModel(stMeshModel* model)
+void stMeshModel::FinalizeVertexFrame00473180(int frame)
 {
-    ReleaseMeshModelInternal004729F0(model);
+    FinalizeVertexFrameInternal004729F0(frame);
 }
 
 // TEMPLATE: WIZ8 0x004741E0

@@ -7,18 +7,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern "C" {
 // GLOBAL: WIZ8 0x0065a154
 unsigned int g_frame_tick_65a154;
 // GLOBAL: WIZ8 0x0065a158
 float g_frame_elapsed_65a158;
-}
 
 /* The renderer's shared millisecond delta. The constructor immediately before
    this body seeds the same clock; every consumer reads the single scaled
    elapsed value rather than maintaining a parallel frame timer. */
 // FUNCTION: WIZ8 0x00482140
-extern "C" void UpdateRenderElapsedTime00482140(void)
+void UpdateRenderElapsedTime00482140(void)
 {
     unsigned int now = GetTickCount();
     unsigned int elapsed = now - g_frame_tick_65a154;
@@ -26,7 +24,6 @@ extern "C" void UpdateRenderElapsedTime00482140(void)
     g_frame_elapsed_65a158 = static_cast<float>(elapsed) * 0.001f;
 }
 
-extern "C" {
 // GLOBAL: WIZ8 0x0065A178
 EnvironmentColour g_environment_colours_65a178[256];
 // GLOBAL: WIZ8 0x0065AD98
@@ -57,7 +54,6 @@ int g_light_direction_0065ad7c;
 int g_light_direction_0065ad80;
 // GLOBAL: WIZ8 0x0065A170
 stTextureAnim* g_environment_value_0065a170;
-}
 
 static float normalized_colour(unsigned int component)
 {

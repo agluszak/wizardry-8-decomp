@@ -500,6 +500,12 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
     }
 }
 
+// FUNCTION: WIZ8 0x0047ae70
+unsigned char GetFlag6850F6(void)
+{
+    return g_settings_6850c8.sound_effects_volume;
+}
+
 // FUNCTION: WIZ8 0x0047ae80
 bool IsAmbientSoundMuted(void)
 {

@@ -40,7 +40,6 @@
  * state are what place them; no assertion names them individually.
  */
 
-extern "C" {
 
 /* The screen's descriptor. The entry handler mallocs it, clears it and fills the
    tail from the screen-state record it was entered with; the frame handler reads
@@ -69,7 +68,6 @@ W8ModalDialogBase* g_swap_disc_dialog_69b7cc;
 unsigned char g_cd_marker_present_69b7d0;
 
 
-}
 
 /* Engine Code\Levels.cpp owns this with C++ linkage. */
 

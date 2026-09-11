@@ -9,7 +9,7 @@
 // GLOBAL: WIZ8 0x005ecd4c
 float g_monster_light_cycle_rate_005ecd4c = 0.025f;
 // GLOBAL: WIZ8 0x005ec318
-extern "C" double g_double_005ec318 = 6.2831852;
+double g_double_005ec318 = 6.2831852;
 
 /* Monster's fixed light is a regular srLight specialization.  Its two colours
    are retained for the optional cycle, while the first colour is also the

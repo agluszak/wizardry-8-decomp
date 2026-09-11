@@ -47,14 +47,12 @@ struct W8LevelInfo {
 static_assert(sizeof(W8LevelInfo) == 0x458,
               "W8LevelInfo_must_be_0x458");
 
-extern "C" {
 extern W8LevelFolderRecord g_level_folders[47];
 
 int GetLoadedLevelID(void);
 const char* GetLevelFolderName(int level_id);
 unsigned char GetLevelLocationCode(int level_id, char* location_code);
 int FindLevelIdByLocationCode(const char* location_code);
-}
 
 extern unsigned short g_level_name_indices_605820[47];
 

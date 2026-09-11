@@ -25,7 +25,7 @@
 #define VIDEO_NO_CURSOR				0xFFFF
 
 #ifdef __cplusplus
-extern "C" {
+extern "C" {  // C-LINKAGE: the SGP video manager interface that src/sgp/*.c references
 #endif
 
 extern HWND										ghWindow;
@@ -44,9 +44,6 @@ extern PTR                  LockMouseBuffer(UINT32 *uiPitch);
 extern void                 UnlockMouseBuffer(void);
 extern BOOLEAN              GetPrimaryRGBDistributionMasks(UINT32 *RedBitMask, UINT32 *GreenBitMask, UINT32 *BblueBitMask);
 extern void                 PrintScreen(void);
-extern unsigned char        g_flag_6596f4;
-extern int                  g_screenshot_index_659724;
-extern int                  g_screenshot_page_659728;
 
 void												VideoCaptureToggle( void );
 
@@ -78,11 +75,18 @@ void VideoPositionToolTip(INT32 x, INT32 y);
 void VideoRemoveToolTip(void);
 
 void SGPMouseGetPos(POINT* point);
-void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom);
 
 #ifdef __cplusplus
 }
 
 #endif
+
+/* Renderer state and helpers with only product C++ consumers. The C block
+   above is the SGP video-manager surface the SGP C translation units
+   reference; these stay ordinary C++ linkage because no C unit names them. */
+extern unsigned char g_flag_6596f4;
+extern int g_screenshot_index_659724;
+extern int g_screenshot_page_659728;
+void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom);
 
 #endif

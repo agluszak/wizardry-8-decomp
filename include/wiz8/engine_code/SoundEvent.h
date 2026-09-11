@@ -40,6 +40,16 @@ public:
 
     ~W8SoundEvent();                     /* 0x004D5770 */
 
+    /* Play this event at one position through the 3D sound boundary. The
+       cycle is the animation cycle that triggered it; the remaining call-site
+       values are accepted but not needed by this body. */
+    unsigned char Play004D5A10(
+        unsigned int mask,
+        const srVector3T<float>* position,
+        int cycle,
+        unsigned int frame,
+        int subcycle);
+
     int value_000;                       /* 0x00 */
     int value_004;                       /* 0x04: starts -1 */
     int value_008;                       /* 0x08: starts -1 */
@@ -69,11 +79,17 @@ W8SoundEvent* CreateSoundEvent004D57A0(
     const char* wave_name,
     unsigned char flag_025);
 
-int UpdateSoundEvents004D5890(
+unsigned char UpdateSoundEvents004D5890(
     W8GrowableVector<W8SoundEvent*>* events,
     const srVector3T<float>* position,
     unsigned int event_mask,
     int cycle,
     unsigned int frame,
     int subcycle);
+
+/* Reports the ground surface and material at one position. Its original
+   translation unit is not yet attributed; only this unit's player consumes
+   it, so its seam lives here until that owner is established. */
+float Function420CA0(
+    const srVector3T<float>* position, char* surface, char* material);
 

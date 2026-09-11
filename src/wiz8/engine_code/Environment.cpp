@@ -32,27 +32,27 @@
 
 #define ENVIRONMENT_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Environment.cpp"
 
-extern "C" float g_view_distance_0060a390;
-extern "C" unsigned char g_environment_flag_0060a394;
+extern float g_view_distance_0060a390;
+extern unsigned char g_environment_flag_0060a394;
 
 // GLOBAL: WIZ8 0x0060a3a8
 int g_environment_value_0060a3a8 = 2;
-extern "C" float g_environment_value_0060a3a4;
+extern float g_environment_value_0060a3a4;
 
 // GLOBAL: WIZ8 0x0065b9ad
 bool g_fog_enabled_0065b9ad;
 
 // GLOBAL: WIZ8 0x0065b9ae
 bool g_sky_enabled_0065b9ae;
-extern "C" int g_light_direction_0065ad78;
-extern "C" int g_light_direction_0065ad7c;
-extern "C" int g_light_direction_0065ad80;
-extern "C" W8Prop* g_environment_value_0065ad84;
-extern "C" W8Prop* g_environment_value_0065a160;
-extern "C" stTextureAnim* g_environment_value_0065a168;
-extern "C" stTextureAnim* g_environment_value_0065a16c;
-extern "C" stTextureAnim* g_environment_value_0065a170;
-extern "C" srVector3T<float> g_environment_origin_65ad88;
+extern int g_light_direction_0065ad78;
+extern int g_light_direction_0065ad7c;
+extern int g_light_direction_0065ad80;
+extern W8Prop* g_environment_value_0065ad84;
+extern W8Prop* g_environment_value_0065a160;
+extern stTextureAnim* g_environment_value_0065a168;
+extern stTextureAnim* g_environment_value_0065a16c;
+extern stTextureAnim* g_environment_value_0065a170;
+extern srVector3T<float> g_environment_origin_65ad88;
 // GLOBAL: WIZ8 0x0065B9A8
 unsigned long g_tick_65b9a8;
 /* 0x00659AB4: the world being rendered. Its sky node is the one field these
@@ -206,10 +206,13 @@ void AdvanceEnvironmentTime00482A20(int elapsed)
     }
 }
 
+/* Turn environment time progression on or off. Enabling it resets the
+   elapsed-tick baseline and moves the world clock on by the current view
+   distance's share of the time since that baseline. */
 // FUNCTION: WIZ8 0x00482990
-void Function482990(unsigned char enabled)
+void SetEnvironmentTimeEnabled00482990(bool enabled)
 {
-    if (enabled == 0) {
+    if (!enabled) {
         g_environment_flag_0060a394 = 0;
         return;
     }
@@ -764,7 +767,8 @@ const double g_double_005ec988 = 2.3148148148148148e-08;
 const double g_double_005ec990 = 43200000.0;
 
 /* Scale one colour triple by a double factor and clamp every component to the
-   unit range in place. */
+   unit range in place. A product helper like SaturateColor004299B0: no matching
+   srVector3T method survives in the SurRender headers. */
 // FUNCTION: WIZ8 0x00483d70
 srVector3T<float>* __fastcall ScaleColourAndSaturate00483D70(
     srVector3T<float>* colour, double scale)
@@ -868,7 +872,7 @@ void SetSkyNodeValue1D0(int value)
 /* Show or hide the sky node, which is the renderer's flag zero the other way
    round: showing it clears the flag. */
 // FUNCTION: WIZ8 0x00483e50
-void SetSkyNodeVisible(char visible)
+void SetSkyNodeVisible(bool visible)
 {
     srNode* sky = (srNode*)g_world->camera_light;
 

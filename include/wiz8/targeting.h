@@ -107,11 +107,9 @@ enum {
 unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect);
 unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect);
 
-extern "C" {
 extern int g_target_state_6840b3;
 extern int g_picked_group_006840b7;
 void ResetTargetingState(void);
-}
 
 
 unsigned char GetFactionFlag(char faction);
@@ -149,8 +147,8 @@ bool ClearMonsterCombatSlot(W8MonsterInfo* monster_info);
 unsigned char Function53C630(W8CombatSlot* slot, int arg_2);
 void AimCombatSlotAtParty(W8CombatSlot* combat_slot, int hostile);
 void ApplyTarget(W8CombatSlot* target, int context);
-unsigned char TargetIsReachable(W8CombatSlot* target);
-unsigned char IsTargetSourceInRangeOfGroup(
+bool IsTargetStillPresent(const W8CombatSlot* target);
+bool IsTargetSourceInRangeOfGroup(
     const W8TargetSource* source, W8MonsterGroup* group, int context);
 void NoteTargetChosen(const W8TargetSource* source, const W8CombatSlot* target);
 

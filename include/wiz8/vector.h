@@ -71,22 +71,18 @@ public:
 
     T* GetAt(int position)
     {
-        T* result = data;
-
         if (position < count) {
-            result = data + position;
+            return data + position;
         }
-        return result;
+        return data;
     }
 
     const T* GetAt(int position) const
     {
-        const T* result = data;
-
         if (position < count) {
-            result = data + position;
+            return data + position;
         }
-        return result;
+        return data;
     }
 
     T SetAt(int position, T value)

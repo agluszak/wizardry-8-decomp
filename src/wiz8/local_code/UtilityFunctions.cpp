@@ -310,13 +310,13 @@ void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second,
 }
 
 // FUNCTION: WIZ8 0x00517e70
-unsigned char ScreenPointInRect(const W8ScreenRect* rect, const POINT* point)
+bool ScreenPointInRect(const W8ScreenRect* rect, const POINT* point)
 {
     if (rect != 0 && point != 0 && point->x >= rect->left && point->x < rect->right
         && point->y >= rect->top && point->y < rect->bottom) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x00517ea0
@@ -360,18 +360,18 @@ unsigned int CharacterPointerToPartySlot(const W8Character* character)
 }
 
 // FUNCTION: WIZ8 0x00517f30
-unsigned char IsPartyCharacterPointer(const W8Character* character)
+bool IsPartyCharacterPointer(const W8Character* character)
 {
     W8Character* party_character = g_party_characters;
     unsigned int slot;
 
     for (slot = 0; slot < 8; ++slot, ++party_character) {
         if (character == party_character) {
-            return 1;
+            return true;
         }
     }
 
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x00517f60

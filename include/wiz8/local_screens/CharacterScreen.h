@@ -14,9 +14,7 @@
 #include "wiz8/local_code/CharGeneration.h"
 #include "wiz8/vector.h"
 
-extern "C" {
 #include "input.h"
-}
 
 class W8DialogBase;
 class W8CharacterScreen;
@@ -49,7 +47,7 @@ public:
     void UpdateButtons();                               /* 0x005AFD10 */
     virtual void OnPrimary(W8TextControl* control) override; /* 0x005AFC50 */
     virtual void OnSecondary(W8TextControl* control) override; /* 0x005AFCB0 */
-    void SetHelpActive005AFAE0(unsigned char active);        /* 0x005AFAE0 */
+    void SetHelpActive005AFAE0(bool active);        /* 0x005AFAE0 */
 
     W8CharacterPageEntryListener* m_listener_004;
     W8TextControl* m_increment_008;
@@ -350,7 +348,7 @@ extern unsigned short g_personality_message_ids_61e674[10];
 /* Page and per-row region sets. */
 extern unsigned int g_character_stats_region_set_0069c550;
 
-/* Skill-availability bookkeeping raised by Function553CD0 while the character
+/* Skill-availability bookkeeping raised by RefreshCharacterSkillAvailability00553CD0 while the character
    screen is open: adjust the named page-2 entry and refresh that page. */
 void Function5B1AF0(int skill_id);
 void Function5B1B30(int skill_id);
@@ -421,7 +419,7 @@ public:
     W8TextControl* m_exit_1afc;
     W8TextControl* m_accept_1b00;
     W8TextControl* m_reset_1b04;
-    unsigned char m_page_enabled_1b08[4];
+    bool m_page_enabled_1b08[4];
     W8CharacterPage* m_pages_1b0c[4];
     W8DialogBase* m_dialog_1b1c;
     unsigned int m_dialog_response_1b20;

@@ -13,12 +13,10 @@
 #include "wiz8/factions.h"
 #include "wiz8/targeting.h"
 #include "wiz8/npc_interaction.h"
-extern "C" {
 // GLOBAL: WIZ8 0x006840b7
 int g_picked_group_006840b7;
 // GLOBAL: WIZ8 0x006840b3
 int g_target_state_6840b3;
-}
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/game_status.h"
@@ -391,16 +389,16 @@ char TargetMatchesNeeded(W8CombatSlot* target, int needed)
             matched = 1;
         }
         if (target->iType == W8_TARGET_KIND_MONSTER && target->iMonsterID != BAD_INDEX) {
-            return TargetIsReachable(target);
+            return IsTargetStillPresent(target);
         }
         if (matched) {
-            return TargetIsReachable(target);
+            return IsTargetStillPresent(target);
         }
         break;
     case 3:
     case 4:
         if (target->iType == W8_TARGET_KIND_PLACE) {
-            return TargetIsReachable(target);
+            return IsTargetStillPresent(target);
         }
         break;
     case 5:
@@ -408,21 +406,21 @@ char TargetMatchesNeeded(W8CombatSlot* target, int needed)
             matched = 1;
         }
         if (target->iType == W8_TARGET_KIND_PARTY) {
-            return TargetIsReachable(target);
+            return IsTargetStillPresent(target);
         }
         if (matched) {
-            return TargetIsReachable(target);
+            return IsTargetStillPresent(target);
         }
         break;
     case 6:
         if (target->iType == W8_TARGET_KIND_ITEM && target->pPCItem != 0) {
-            return TargetIsReachable(target);
+            return IsTargetStillPresent(target);
         }
         break;
     case 7:
         if (target->iType == W8_TARGET_KIND_CHARACTER_INDIRECT &&
             target->iChar != BAD_INDEX) {
-            return TargetIsReachable(target);
+            return IsTargetStillPresent(target);
         }
         break;
     }
@@ -764,10 +762,10 @@ enum { W8_CONDITION_REACHABLE_WHEN_DOWN = 18, W8_CONDITION_BEYOND_REACH = 19 };
    they can still be reached. Everything else - a place, the party as a whole -
    is always there and is not answered here at all. */
 // FUNCTION: WIZ8 0x00536190
-unsigned char IsTargetStillPresent(const W8CombatSlot* target)
+bool IsTargetStillPresent(const W8CombatSlot* target)
 {
     if (target == 0) {
-        return 0;
+        return false;
     }
 
     switch (target->iType) {
@@ -778,7 +776,7 @@ unsigned char IsTargetStillPresent(const W8CombatSlot* target)
         if (g_party_slot_rows[target->iChar].occupied == 0 ||
             g_party_characters[target->iChar].hp_current == 0 ||
             g_party_characters[target->iChar].unknown_0b01 > 0x11) {
-            return 0;
+            return false;
         }
         break;
 
@@ -790,7 +788,7 @@ unsigned char IsTargetStillPresent(const W8CombatSlot* target)
             g_party_characters[target->iChar].hp_current != 0 ||
             g_party_characters[target->iChar].condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] == 0 ||
             g_party_characters[target->iChar].condition_turns[W8_CONDITION_BEYOND_REACH] != 0) {
-            return 0;
+            return false;
         }
         break;
 
@@ -803,7 +801,7 @@ unsigned char IsTargetStillPresent(const W8CombatSlot* target)
         }
         index = MonsterGetIndexByLocationID(0x80, TARGETING_CPP, target->iMonsterID, 0);
         if (index == BAD_INDEX) {
-            return 0;
+            return false;
         }
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info == 0) {
@@ -811,7 +809,7 @@ unsigned char IsTargetStillPresent(const W8CombatSlot* target)
         }
         if (monster_info->hp_current == 0 || monster_info->condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0 ||
             monster_info->flag_14 == 0) {
-            return 0;
+            return false;
         }
         break;
     }
@@ -825,14 +823,14 @@ unsigned char IsTargetStillPresent(const W8CombatSlot* target)
         }
         group_list_index = GetMonsterGroupIndexByID(0x9b, TARGETING_CPP, target->iGroupID, 0);
         if (group_list_index == 0xffffffff) {
-            return 0;
+            return false;
         }
         group = GetMonsterGroupByListIndex(group_list_index);
         if (group == 0) {
             srAssertFail("pMonsterGroup != NULL", TARGETING_CPP, 0xa3, 0);
         }
         if (group->member_count == 0 || group->flag_28 == 0) {
-            return 0;
+            return false;
         }
         break;
     }
@@ -842,14 +840,14 @@ unsigned char IsTargetStillPresent(const W8CombatSlot* target)
             srAssertFail("pTarget->pPCItem != NULL", TARGETING_CPP, 0xb4, 0);
         }
         if (target->pPCItem->item_id == BAD_INDEX) {
-            return 0;
+            return false;
         }
         break;
 
     default:
         break;
     }
-    return 1;
+    return true;
 }
 
 extern unsigned char Function547510(void);                                  /* 0x00547510 */
@@ -1395,7 +1393,7 @@ unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
     SetTargetSourceToCharacter(party_slot, &source);
 
     if (needed == 5) {
-        return IsTargetSourceInRangeOfGroup(&source, group, 6) != 0;
+        return IsTargetSourceInRangeOfGroup(&source, group, 6);
     }
     if (needed != 2 && needed != 1) {
         return 0;

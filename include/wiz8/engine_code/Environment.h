@@ -46,13 +46,11 @@ static_assert(sizeof(W8MaterialMapper00482010) == 0x1c,
 
 extern W8MaterialMapper00482010 g_material_mapper_00659738;
 
-extern "C" {
 extern EnvironmentColour g_environment_colours_65a178[256];
 extern EnvironmentColour g_environment_colours_65ad98[256];
 
 class stLight;
 void AddEnvironmentLight00483F30(stLight* light);
-}
 
 BOOLEAN ReadLightColourTable00482F90(int hFile);
 BOOLEAN ReadEnvironmentColourTable004830D0(int hFile);
@@ -81,7 +79,8 @@ void ApplyEnvironmentColour00483BA0(
     W8World* world, float intensity, const EnvironmentColour* colour);
 void ReleaseEnvironmentObjects(void);
 
-void Function482990(unsigned char enabled);
+/* Turn the environment clock on or off; enabling resets its tick baseline. */
+void SetEnvironmentTimeEnabled00482990(bool enabled);
 float GetViewDistance(void);
 void Function482720(int value);
 /* The per-frame environment update, and the alternate lighting transition it
@@ -89,7 +88,7 @@ void Function482720(int value);
 void UpdateEnvironment482770(void);
 void UpdateEnvironmentLighting00484300(void);
 float GetWorldValue24(const void* world);
-void SetSkyNodeVisible(char visible);
+void SetSkyNodeVisible(bool visible);
 void SetSkyNodeValue1D0(int value);
 void Function4836A0(void);
 

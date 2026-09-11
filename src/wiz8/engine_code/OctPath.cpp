@@ -11,7 +11,6 @@
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/float_constants.h"
-extern "C" {
 // GLOBAL: WIZ8 0x005ebc30
 double g_double_005ebc30 = 1.0;
 // GLOBAL: WIZ8 0x005ec020
@@ -36,7 +35,6 @@ float g_float_005ec3c0 = 1000000.0f;
 float g_float_005ec3c8 = -107374184.0f;
 // GLOBAL: WIZ8 0x005ec3d0
 float g_float_005ec3d0 = -107374184.0f;
-}
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/sr_api.h"

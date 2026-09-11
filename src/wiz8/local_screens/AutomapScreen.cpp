@@ -54,7 +54,6 @@ unsigned char g_flag_68f105;
    this record's initializer at 0x0057E5D0. */
 /* vector.cpp defines this with C++ linkage; the spelling has to agree or the
    reference resolves to the image base under /FORCE. */
-extern "C" {
 
 /* Two owned index arrays, released through BitArray's destructor. */
 // GLOBAL: WIZ8 0x0068F288
@@ -79,7 +78,6 @@ srClass* g_class_68f2a8;
 // GLOBAL: WIZ8 0x0068F1F4
 W8GrowableVector<srClass*>* g_releasable_68f1f4;
 
-}
 
 extern float g_float_64b914;
 

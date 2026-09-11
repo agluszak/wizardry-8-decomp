@@ -312,7 +312,6 @@ struct W8RPCSlot {
 
 #pragma pack(pop)
 
-extern "C" {
 
 extern W8RaceResistanceProfile g_race_resistance_profiles[];
 extern int g_profession_skill_availability[0x29][15];
@@ -347,17 +346,16 @@ unsigned char SetCharacterCondition(
     int argument,
     char value_5,
     char value_6);
-unsigned char IsPartyCharacterPointer(const W8Character* character);
+bool IsPartyCharacterPointer(const W8Character* character);
 bool IsCharacterReadyToAdvance(int party_slot);
 int GetProfessionCasterLevel(W8Character* character, int profession_id);
-unsigned char IsCharacterSkillAvailable(
+bool IsCharacterSkillAvailable(
     W8Character* character,
     unsigned int skill_id,
     const unsigned char* expert_realm_flags);
 void RecalculateCharacterResistances(W8Character* character);
 int SumCharacterSpellPoints(const W8Character* character);
 
-}
 
 struct W8PortraitDescriptor {
     int group;
@@ -376,7 +374,7 @@ void GetCharacterHandDamageDice(const W8Character* character, int hand, W8Dice* 
 int GetCharacterHandDamageBonus(const W8Character* character, int hand);
 
 void InvalidateAndRecalculateCharacterClassData00558610(W8Character* character);
-unsigned char CharacterHasTrait00547940(const W8Character* character, int trait);
+bool CharacterHasTrait00547940(const W8Character* character, int trait);
 
 void Function4EFA30(W8Character* character);
 int Function557FD0(W8Character* original, W8Character* edited);
@@ -409,7 +407,7 @@ void RebuildCharacterModifierBlock(W8Character* character);
 void Function52A3E0(W8Character* character);
 void Function52A500(W8Character* character);
 void Function553C90(W8Character* character);
-void Function553CD0(W8Character* character);
+void RefreshCharacterSkillAvailability00553CD0(W8Character* character);
 unsigned int Function553EE0(W8Character* character, int skill_id);
 
 #endif

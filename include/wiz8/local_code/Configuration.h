@@ -68,8 +68,6 @@ struct W8GameSettings {
 static_assert(sizeof(W8GameSettings) == 0xa4,
               "W8GameSettings_must_be_0xa4");
 
-extern "C" {
 extern W8GameSettings g_settings_6850c8;
-}
 
 int GetRendererFamily(void);

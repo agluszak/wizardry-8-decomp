@@ -9,11 +9,9 @@
 
 #include "Debug.h"
 
-extern "C" int g_value_6834d4;
-extern "C" {
+extern int g_value_6834d4;
 // GLOBAL: WIZ8 0x006834d4
 int g_value_6834d4;
-}
 
 // GLOBAL: WIZ8 0x006834d8
 W8GrowableVector<W8MasterFunction>* g_master_functions_006834d8;

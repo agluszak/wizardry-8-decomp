@@ -27,11 +27,9 @@
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
 
-extern "C" {
 #include "input.h"
 #include "Types.h"
 #include "mousesystem.h"
-}
 
 #include "Font.h"
 
@@ -139,10 +137,10 @@ W8CharacterScreen::W8CharacterScreen(int mode, W8Character* character)
         ShowMessage(FormatWideString(gppStringList[0x364 / 4],
                                      m_character_018.name, 0, 0), 0, 0);
     }
-    m_page_enabled_1b08[0] = static_cast<unsigned char>(m_mode_008 != 1);
-    m_page_enabled_1b08[1] = static_cast<unsigned char>(m_mode_008 != 1);
-    m_page_enabled_1b08[2] = static_cast<unsigned char>(m_mode_008 != 1);
-    m_page_enabled_1b08[3] = static_cast<unsigned char>(m_mode_008 != 2);
+    m_page_enabled_1b08[0] = m_mode_008 != 1;
+    m_page_enabled_1b08[1] = m_mode_008 != 1;
+    m_page_enabled_1b08[2] = m_mode_008 != 1;
+    m_page_enabled_1b08[3] = m_mode_008 != 2;
 }
 
 // FUNCTION: WIZ8 0x005b0140
@@ -195,7 +193,7 @@ void W8CharacterScreen::BuildControls()
 
     m_page_index_00c = -1;
     int index = 0;
-    while (index < 4 && m_page_enabled_1b08[index] == 0) {
+    while (index < 4 && !m_page_enabled_1b08[index]) {
         ++index;
     }
     SelectPage(index < 4 ? index : -1);
@@ -323,7 +321,7 @@ void W8CharacterScreen::OnPrimary(W8TextControl* control)
     }
     else if (control == m_previous_1af4) {
         int index = m_page_index_00c - 1;
-        while (index >= 0 && m_page_enabled_1b08[index] == 0) {
+        while (index >= 0 && !m_page_enabled_1b08[index]) {
             --index;
         }
         if (index != -1) {
@@ -598,7 +596,7 @@ unsigned char W8CharacterScreen::CommitCharacter()
     return 1;
 }
 
-/* Skill-availability hooks raised by Function553CD0 while this screen is
+/* Skill-availability hooks raised by RefreshCharacterSkillAvailability00553CD0 while this screen is
    current. They adjust the named skill through the page-2 helpers and then
    refresh page 2, the skills list. */
 // FUNCTION: WIZ8 0x005b1af0

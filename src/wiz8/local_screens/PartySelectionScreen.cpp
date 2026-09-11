@@ -51,15 +51,15 @@ void RenderPartyPortrait0052EB00(int portrait, int left, int top,
                                 int flags, int value, int party_slot);
 int Function558C40(const char* path);
 
-extern "C" int g_font_683660;
-extern "C" int g_wiz_text_bold_font_683664;
-extern "C" unsigned short* g_colour_68ee08;
-extern "C" unsigned short* g_font_palette_wiz_text_bold_68ee0c;
-extern "C" unsigned short* g_font_state_palettes_68ee1c[15];
+extern int g_font_683660;
+extern int g_wiz_text_bold_font_683664;
+extern unsigned short* g_colour_68ee08;
+extern unsigned short* g_font_palette_wiz_text_bold_68ee0c;
+extern unsigned short* g_font_state_palettes_68ee1c[15];
 extern unsigned char g_flag_689b32;
-extern "C" HVOBJECT g_wiz_text_font_secondary_object_683680;
-extern "C" int g_options_title_font_68368c;
-extern "C" int g_options_detail_font_683614;
+extern HVOBJECT g_wiz_text_font_secondary_object_683680;
+extern int g_options_title_font_68368c;
+extern int g_options_detail_font_683614;
 extern unsigned short g_profession_name_message_ids_61e3f0[];
 extern unsigned short g_race_name_message_ids_61e3d0[];
 extern unsigned short g_faction_name_message_rows_61e430[][4];

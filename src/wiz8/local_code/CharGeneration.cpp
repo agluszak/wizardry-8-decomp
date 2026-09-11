@@ -528,7 +528,7 @@ complete:
         Function557D80(character, creation_state);
     }
     Function558180(character, creation_state);
-    Function553CD0(character);
+    RefreshCharacterSkillAvailability00553CD0(character);
     Function557B20(character, creation_state);
 }
 
@@ -976,11 +976,11 @@ void Function556EB0(W8Character* character, W8CharacterCreationState* creation_s
             else {
                 Function557890(character, creation_state);
             }
-            Function553CD0(character);
+            RefreshCharacterSkillAvailability00553CD0(character);
             Function558070(character, creation_state);
             RecountLearnedSpellsByRealm004F96A0(character);
             Function558180(character, creation_state);
-            Function553CD0(character);
+            RefreshCharacterSkillAvailability00553CD0(character);
             Function557B20(character, creation_state);
         }
         if (character->level == 1) {
@@ -1045,7 +1045,7 @@ void Function557BC0(W8Character* character, W8CharacterCreationState* creation_s
     creation_state->skills_complete = 1;
 complete:
     Function558180(character, creation_state);
-    Function553CD0(character);
+    RefreshCharacterSkillAvailability00553CD0(character);
     Function557B20(character, creation_state);
     RecalculateCharacterResistances(character);
 }

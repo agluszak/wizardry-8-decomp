@@ -1,6 +1,8 @@
 #pragma once
 
 bool IsVoiceMuted(void);
+/* The audio panels pass the raw W8TextControl mask bit (0 or 2) through, so the
+   transition is binary but the argument stays byte-valued. */
 void SetVoiceMuted(unsigned char muted);
 
 struct W8Character;

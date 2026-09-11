@@ -14,7 +14,6 @@
    as a clamp bound by another and as a threshold by a third, so no role name
    is true of it. */
 
-extern "C" {
 extern float g_float_005ebb38;
 extern float g_float_005ebb34;
 /* 0x005EBC64: the vertical offset the sight probes add before tracing. */
@@ -68,7 +67,6 @@ extern const double g_double_005ebf60;
 extern float g_float_005ec3f8;
 extern float g_float_005ecbb4;
 extern float g_float_005ed8b8;
-}
 
 extern float g_navigator_gravity_00603acc;
 extern float g_float_00603ac8;

@@ -652,7 +652,7 @@ unsigned char MainGameScreenEnter(void)
     ResetTransientRenderScenes();
     MoveTimer(4);
     if (!g_flag_006840bc && !g_in_combat_00683f94) {
-        Function482990(1);
+        SetEnvironmentTimeEnabled00482990(1);
     }
     {
         W8GameTimer* timer = g_gameplay_timer_685067;
@@ -782,7 +782,7 @@ update_screen:
                     EnableRegionInput(0x137);
                     ActivateDialogRegion(0x137);
                 }
-                Function482990(0);
+                SetEnvironmentTimeEnabled00482990(0);
                 MonsterForward453160();
                 ResetLevelDataVectors0041F0D0();
             }
@@ -1079,7 +1079,7 @@ unsigned char MainGameScreenLeave(int leaving)
     Function529510();
     if (GetFlag68F105()) Function57D740();
     MoveTimer(1);
-    Function482990(0);
+    SetEnvironmentTimeEnabled00482990(0);
 
     if ((g_gameplay_timer_685067->m_flags & 8) == 0) {
         g_gameplay_timer_685067->m_flags |= 8;
@@ -1521,7 +1521,7 @@ void Function56AA30(void)
             EnableRegionInput(0x137);
             ActivateDialogRegion(0x137);
         }
-        Function482990(0);
+        SetEnvironmentTimeEnabled00482990(0);
         MonsterForward453160();
         ResetLevelDataVectors0041F0D0();
     }
@@ -1542,7 +1542,7 @@ void Function56AAB0(void)
                 ClearActiveRegionIfMatches(0x137);
                 DisableRegionInput(0x137);
             }
-            Function482990(1);
+            SetEnvironmentTimeEnabled00482990(1);
             MonsterForward4531A0();
             if (gXStatus.field_020 == 0 && gXStatus.field_021 == 0 &&
                 gXStatus.field_024 == 0 && gXStatus.field_025 == 0) {

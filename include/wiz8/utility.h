@@ -49,7 +49,7 @@ void UnionScreenRects(
     const W8ScreenRect* first,
     const W8ScreenRect* second,
     W8ScreenRect* result);
-unsigned char ScreenPointInRect(
+bool ScreenPointInRect(
     const W8ScreenRect* rect, const POINT* point);
 void WriteGameLog(int channel, const wchar_t* format, ...);
 void AdjustByteByPercent(unsigned char* value, unsigned int percent);

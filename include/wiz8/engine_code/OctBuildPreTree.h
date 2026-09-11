@@ -36,14 +36,12 @@ static_assert(sizeof(W8OctRegionVertex004B2A20) == 0x18,
 static_assert(sizeof(W8OctRegionPolygon) == 0x74,
               "W8OctRegionPolygon_must_be_0x74");
 
-extern "C" {
 extern int g_value_65be60;
 extern unsigned long g_value_65be58;
 extern W8GDSurface** g_pointer_65be64;
 extern W8GDSurface** g_pointer_65be68;
 extern unsigned short* g_pointer_65be5c;
 extern unsigned short g_value_65be6c;
-}
 
 #pragma pack(push, 1)
 

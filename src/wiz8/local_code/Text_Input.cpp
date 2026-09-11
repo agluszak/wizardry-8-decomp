@@ -89,9 +89,7 @@ static_assert(sizeof(TextInputColors) == 0x18,
 static_assert(sizeof(STACKTEXTINPUTNODE) == 0x0c,
               "text input session must match the retail allocation");
 
-extern "C" {
 unsigned char gfEditingText;
-}
 extern const wchar_t g_wchar_00689b34;
 extern void Function55EE70(int value);
 

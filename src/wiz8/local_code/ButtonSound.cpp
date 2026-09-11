@@ -9,7 +9,6 @@ extern char g_button_click_1_62a51c[];
 extern char g_button_click_2_62a544[];
 extern char g_button_whoosh_62a56c[];
 
-extern "C" {
 // GLOBAL: WIZ8 0x0062A458
 const char* g_button_sound_paths_62a458[4][4] = {
     {0, 0, 0, 0},
@@ -23,7 +22,6 @@ const char* g_button_sound_paths_62a458[4][4] = {
 int g_button_sound_scheme_stack_62a498[32] = {1};
 // GLOBAL: WIZ8 0x0062A518
 int g_button_sound_override_62a518 = -1;
-}
 
 // GLOBAL: WIZ8 0x0062A51C
 char g_button_click_1_62a51c[] =
@@ -38,12 +36,10 @@ char g_button_whoosh_62a56c[] =
 /* Local Code\ButtonSound.cpp's fixed scheme stack. The assertion supplies the
    original top name and the SCHEME_STACK_SIZE spelling; the body establishes
    the 32-entry capacity and pre-increment push convention. */
-extern "C" {
 // GLOBAL: WIZ8 0x0068DE38
 int g_button_sound_scheme_stack_top_68de38;
 // GLOBAL: WIZ8 0x0068DE3C
 unsigned int g_button_sound_cooldown_68de3c;
-}
 
 // FUNCTION: WIZ8 0x00558720
 void PlayButtonSound(int sound_id)

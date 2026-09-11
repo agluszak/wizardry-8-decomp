@@ -68,12 +68,10 @@ extern int g_dword_6596f0;
 /* The cursor mapping scale Video2.cpp owns; render-option scaling writes it. */
 extern float g_surface_scale_659680;
 
-extern "C" {
 /* Engine Code\Quality.cpp seeds the clock, the mapper constructor reseeds it,
    and the texture scrollers read the shared scaled delta. */
 extern unsigned int g_frame_tick_65a154;
 extern float g_frame_elapsed_65a158;
-}
 
 extern int g_surface_state_6595dc;
 extern int g_surface_state_654ad8;
@@ -84,7 +82,7 @@ extern int g_viewport_bottom_6595f4;
 extern int g_dword_6596d8;
 extern int g_resident_texture_policy_659714;
 extern unsigned char g_monster_shadow_updates_enabled_0065970c;
-extern "C" unsigned char g_flag_65970d;
+extern unsigned char g_flag_65970d;
 
 void SetRenderOption(int option, int enabled);
 unsigned char LoadRenderOptions0047B890(int handle);
@@ -111,7 +109,9 @@ unsigned char FinishVideoPresentation(void);
    product internals, not part of the released SGP video interface, so they are
    declared here rather than in Video2.h. */
 void PublishLightDirection(const int* direction);
-/* Clamp a colour triple to the unit range in place and return it. */
+/* Clamp a colour triple to the unit range in place and return it. No
+   srVector3T saturation method survives in the SurRender headers, so this stays
+   the product's free fastcall. */
 srVector3T<float>* __fastcall SaturateColor004299B0(srVector3T<float>* color);
 /* Release a renderer-owned object, leaving the renderer in its 2D mode. */
 void ReleaseRendererObject004257F0(int value);
@@ -123,8 +123,6 @@ unsigned char CreateWizardryWindow(void);
 unsigned char InitializePrimaryDirectDrawSurface(void);
 unsigned char InitializeVideoDevice(void);
 unsigned char Function422800(void);
-unsigned char InitializeVideoManager(
-    HINSTANCE instance, unsigned short show_command, void* window_proc);
 void Function427440(void);
 
 void AssertFailureHandler(const char* expression, const char* file,

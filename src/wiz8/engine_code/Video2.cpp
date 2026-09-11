@@ -59,7 +59,7 @@
 srNode* Function424BA0(srTextureIFace* texture, float width, float height,
     unsigned char positional_3);
 void Function4229E0(void);
-extern "C" void FlushDirtyTiles00425B40(void);
+void FlushDirtyTiles00425B40(void);
 
 /*
  * The renderer window and extension loading gate InitializeStandardGamingPlatform calls after the
@@ -869,7 +869,7 @@ unsigned char ClearPrimarySurface(void)
     return 1;
 }
 
-extern "C" void UpdateRenderElapsedTime00482140(void);
+void UpdateRenderElapsedTime00482140(void);
 
 /* Saturate the three components of a renderer colour in place and return it.
    The reviewed body performs these three scalar saturations in order. */
@@ -1363,7 +1363,7 @@ static BOOLEAN ResizeMouseCursorSurface(int width, int height)
 }
 
 // FUNCTION: WIZ8 0x00427ab0
-extern "C" BOOLEAN SetMouseCursorFromVideoObject(
+BOOLEAN SetMouseCursorFromVideoObject(
     UINT32 video_object, UINT16 region, INT16 offset_x, INT16 offset_y)
 {
     ETRLEObject properties;
@@ -1398,7 +1398,7 @@ extern "C" BOOLEAN SetMouseCursorFromVideoObject(
 }
 
 // FUNCTION: WIZ8 0x00427fc0
-extern "C" void BlitToMouseCursor(
+void BlitToMouseCursor(
     UINT32 video_object, UINT16 region, UINT16 x, UINT16 y)
 {
     BlitVideoObjectToColorSurface(
@@ -1406,7 +1406,7 @@ extern "C" void BlitToMouseCursor(
 }
 
 // FUNCTION: WIZ8 0x00427ff0
-extern "C" void RefreshMouseCursorTexture(void)
+void RefreshMouseCursorTexture(void)
 {
     g_mouse_surface_659688->touch();
     g_cursor_texture_659690->invalidate();
@@ -1470,7 +1470,7 @@ unsigned char GetCursorPositionInViewport(srVector3T<float>* position)
    the OS cursor is visible outside the client area and hidden while the game
    owns it; fullscreen coordinates are clamped to the 640x480 game surface. */
 // FUNCTION: WIZ8 0x00428340
-extern "C" void Function00428340(void)
+void Function00428340(void)
 {
     POINT cursor;
     RECT client;
@@ -1594,7 +1594,6 @@ unsigned char InitializeMouseCursorScene(void)
  * are only known by which bits they set.
  */
 
-extern "C" {
 // GLOBAL: WIZ8 0x65970d
 unsigned char g_flag_65970d;
 // GLOBAL: WIZ8 0x6596ea
@@ -1763,7 +1762,6 @@ void FlushDirtyTiles00425B40(void)
     g_dword_6596d8 = 0;
 }
 
-}
 
 /* Viewport. */
 /*
@@ -1892,7 +1890,7 @@ srNode* VideoMakePoster(
     return Function424BA0(texture, width, height, positional_3);
 }
 
-extern "C" void PresentMenuOverlayFrame(void)
+void PresentMenuOverlayFrame(void)
 {
     srNode::ProcessInfo process;
 
@@ -2092,7 +2090,7 @@ unsigned char InitializeRendererSceneObjects(void)
    Unlike the other lock site in this unit, the descriptor is not cleared before
    locking. That is the original's own sequence, reproduced. */
 // FUNCTION: WIZ8 0x004263f0
-extern "C" void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom)
+void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom)
 {
     DDSURFACEDESC surface_description;
     unsigned char* row;
@@ -2410,14 +2408,12 @@ int g_help_box_y_654abc;
 // GLOBAL: WIZ8 0x00654ab0
 int g_screen_transition_object_capacity_654ab0;
 
-extern "C" {
 // GLOBAL: WIZ8 0x005ebe88
 double g_double_005ebe88 = 0.0020833333333333333;
 // GLOBAL: WIZ8 0x005ebe90
 double g_double_005ebe90 = 0.0015625;
 // GLOBAL: WIZ8 0x005ebf40
 double g_double_005ebf40 = 0.75;
-}
 
 /* Packs four normalized colour components into the surface byte order:
    red, green, blue, alpha from the high byte down. */

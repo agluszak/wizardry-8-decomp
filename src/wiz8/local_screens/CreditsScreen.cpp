@@ -9,11 +9,9 @@
 #include "wiz8/virtual_file.h"
 #include "wiz8/wiz8_windows.h"
 
-extern "C" {
 #include "FileMan.h"
 #include "Font.h"
 #include "input.h"
-}
 
 #include <stdlib.h>
 #include <wchar.h>

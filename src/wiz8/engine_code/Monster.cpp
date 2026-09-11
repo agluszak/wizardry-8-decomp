@@ -33,12 +33,10 @@
 #include "wiz8/engine_code/stScript.h"
 #include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/engine_code/World.h"
-extern "C" {
 // GLOBAL
 unsigned char g_flag_6081e4;
 // GLOBAL: WIZ8 0x00659c14
 int g_value_659c14;
-}
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/item_spawning.h"
@@ -1272,8 +1270,6 @@ W8AnimRepBase005EC1D8* W8MonsterRep::Clone()
     return new W8MonsterRep(*this);
 }
 
-extern "C" {
-}
 
 // VTABLE: WIZ8 0x005ed22c W8Monster
 // VTABLE: WIZ8 0x005ed218 W8Navigator
@@ -5752,12 +5748,10 @@ void MonsterCallSlot10(void* object, int argument)
     (*(void(**)(void*, int))(*(void***)object + 4))(object, argument);
 }
 
-extern "C" {
 // FUNCTION: WIZ8 0x004C5810
 void Function4C5810(W8Monster* target)
 {
     target->Method4C5290();
-}
 }
 // FUNCTION: WIZ8 0x004C5860
 void DeleteMonster004C5860(W8Monster* monster)

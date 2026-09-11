@@ -603,7 +603,7 @@ unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character)
     AccumulateEquipmentModifiers(character, &character->equipment_bonus_1709);
     RebuildCharacterModifierBlock(character);
     CalcCharacterLevelBand(character);
-    Function553CD0(character);
+    RefreshCharacterSkillAvailability00553CD0(character);
     Function4ED9D0(character);
     for (index = 1; index < 0x73; ++index) {
         if (source->spells[index - 1] != 0 &&

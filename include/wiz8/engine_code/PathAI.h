@@ -49,7 +49,7 @@ void PathAIApplyToRep004A91F0(
     W8PathAI* path, W8AnimRepBase005EC1D8* representation);
 /* Places one model instance through a path. AnimObj.cpp and GrCycle.cpp are
    both callers, so the declaration lives with the path's owner. */
-extern "C" void PathAIApply004AA520(
+void PathAIApply004AA520(
     W8PathAI* path, stModelInstance* instance);   /* 0x004AA520 */
 void DestroyPathAI004A9810(W8PathAI* path);
 void PathAIClearOwned004A9BB0(W8PathAI* path);

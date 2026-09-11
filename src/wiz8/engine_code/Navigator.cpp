@@ -2,12 +2,10 @@
 #include "wiz8/startup_world.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/float_constants.h"
-extern "C" {
 // GLOBAL: WIZ8 0x005ec2f8
 float g_float_005ec2f8 = 5000.0f;
 // GLOBAL: WIZ8 0x005ec030
 double g_double_005ec030 = 2500.0;
-}
 
 #include "surrender/srNode.h"
 #include "surrender/srHeap.h"

@@ -22,7 +22,7 @@ unsigned char g_shared_timer_flag_d1;                /* 0x006598D1 */
 unsigned char g_shared_timer_flag_d2;                /* 0x006598D2 */
 
 // GLOBAL: WIZ8 0x005ec0a8
-extern "C" const float g_float_005ec0a8 = 10000.0f;
+const float g_float_005ec0a8 = 10000.0f;
 
 // FUNCTION: WIZ8 0x00439bc0
 void PauseSharedGameTimers00439BC0(void)

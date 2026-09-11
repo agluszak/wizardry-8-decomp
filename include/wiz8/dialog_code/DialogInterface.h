@@ -4,7 +4,6 @@
 
 struct W8Character;
 
-extern "C" {
 /* ConfigureDialogFont writes these four; every dialog draw/text path reads
    them. Declared here because this unit owns their definitions. */
 extern int g_dialog_font_64fde8;
@@ -23,4 +22,3 @@ void DrawDialog(W8DialogBase* dialog);
 unsigned char ProcessDialogInput(W8DialogBase* dialog);
 void SetDialogDestroyCallback(
     W8DialogBase* dialog, W8DialogDestroyCallback callback);
-}

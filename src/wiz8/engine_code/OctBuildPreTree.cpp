@@ -1,5 +1,4 @@
 #include "wiz8/engine_code/OctBuildPreTree.h"
-extern "C" {
 // GLOBAL: WIZ8 0x0065be60
 int g_value_65be60;
 // GLOBAL: WIZ8 0x0065be58
@@ -12,7 +11,6 @@ W8GDSurface** g_pointer_65be68;
 unsigned short* g_pointer_65be5c;
 // GLOBAL: WIZ8 0x0065be6c
 unsigned short g_value_65be6c;
-}
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/float_constants.h"
@@ -36,9 +34,6 @@ extern float g_float_005ec52c;
 // GLOBAL: WIZ8 0x005ec52c
 float g_float_005ec52c = 3.0f;
 extern const float g_world_scale_005ebc40;
-/* 250.0f per startup_world.cpp's C++-linkage instance at the same address;
-   the header declares C linkage, so this TU provides the C instance. */
-extern "C" const float g_startup_near_limit_005ec000 = 250.0f;
 
 #define OCT_BUILD_PRE_TREE_CPP \
     "C:\\Projects\\Wizardry 8\\Engine Code\\OctBuildPreTree.cpp"

@@ -116,7 +116,6 @@ unsigned char Function005BBBB0(const W8RegionEvent*, W8Region*);
 unsigned char Function005BBC70(const W8RegionEvent*, W8Region*);
 unsigned char Function005BC7A0(const W8RegionEvent*, W8Region*);
 
-extern "C" {
 
 extern unsigned int g_region_set_count;  /* guiRegsetCount */
 extern W8RegionSet g_region_sets[];
@@ -172,7 +171,6 @@ void ActivateDialogRegion(unsigned int region_index); /* 0x004F2040 */
 /* 0x004F1910 returns the byte produced by the selected region callback. */
 unsigned char DispatchRegionInput(const InputAtom* event);
 
-}
 
 unsigned int Function568950(const InputAtom* input);
 

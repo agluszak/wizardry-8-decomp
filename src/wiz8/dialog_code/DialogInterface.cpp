@@ -15,7 +15,6 @@ extern const wchar_t g_wchar_00689b34;
  * operation remains unconditional after its null check.
  */
 
-extern "C" {
 
 int g_dialog_font_64fde8;
 BOOLEAN g_dialog_font_enabled_69ca32;
@@ -104,4 +103,3 @@ void SetDialogDestroyCallback(
     dialog->m_destroy_callback = callback;
 }
 
-}

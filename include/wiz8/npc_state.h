@@ -42,7 +42,7 @@ struct W8NpcState {
     int restock_clock;                    /* 0x0e */
     int maintenance_clock;                /* 0x12 */
     int location_id;                      /* 0x16 */
-    unsigned char has_monster;            /* 0x1a */
+    bool has_monster;                     /* 0x1a */
     /* 0x1b: the NPC's disposition. Setting a band writes one of three
        representative values rather than a range. */
     unsigned char disposition;
