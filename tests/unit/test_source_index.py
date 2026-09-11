@@ -363,3 +363,53 @@ def test_cross_tu_gate_ignores_conflicts_without_external_spelling(tmp_path: Pat
         ],
     )
     assert source_index.validate_cross_tu_declarations(tmp_path) == 0
+
+
+def test_cross_tu_gate_allows_extern_array_completion(tmp_path: Path) -> None:
+    _cross_tu_index(
+        tmp_path,
+        [],
+        [
+            _variable("_gTable", "const unsigned short[]", "src/wiz8/a.cpp", 1),
+            _variable("_gTable", "const unsigned short[2]", "src/wiz8/b.cpp", 2),
+        ],
+    )
+    assert source_index.validate_cross_tu_declarations(tmp_path) == 1
+
+
+def test_cross_tu_gate_allows_nested_array_completion(tmp_path: Path) -> None:
+    _cross_tu_index(
+        tmp_path,
+        [],
+        [
+            _variable("_gGrid", "unsigned short[][4]", "src/wiz8/a.cpp", 1),
+            _variable("_gGrid", "unsigned short[4][4]", "src/wiz8/b.cpp", 2),
+        ],
+    )
+    assert source_index.validate_cross_tu_declarations(tmp_path) == 1
+
+
+def test_cross_tu_gate_rejects_conflicting_array_extents(tmp_path: Path) -> None:
+    _cross_tu_index(
+        tmp_path,
+        [],
+        [
+            _variable("_gTable", "char[3]", "src/wiz8/a.cpp", 1),
+            _variable("_gTable", "char[4]", "src/wiz8/b.cpp", 2),
+        ],
+    )
+    with pytest.raises(SourceIndexError, match="_gTable"):
+        source_index.validate_cross_tu_declarations(tmp_path)
+
+
+def test_cross_tu_gate_rejects_mismatched_array_element_type(tmp_path: Path) -> None:
+    _cross_tu_index(
+        tmp_path,
+        [],
+        [
+            _variable("_gTable", "char[]", "src/wiz8/a.cpp", 1),
+            _variable("_gTable", "int[4]", "src/wiz8/b.cpp", 2),
+        ],
+    )
+    with pytest.raises(SourceIndexError, match="_gTable"):
+        source_index.validate_cross_tu_declarations(tmp_path)

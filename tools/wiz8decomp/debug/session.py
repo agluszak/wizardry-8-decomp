@@ -15,9 +15,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TypeVar
 
+from .gdb_report import symbolize_gdb_report
 from .mi_process import DebuggerTransportError, GdbMiProcess
 from .mi_protocol import MiRecord
-from .symbols import symbolize_gdb_report
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 PROXY_START_TIMEOUT_SECONDS = 45.0
@@ -32,6 +32,7 @@ __all__ = [
     "allocate_port",
     "is_terminal_stop",
     "stop_event_from_record",
+    "terminal_stop_summary",
 ]
 
 
@@ -72,6 +73,24 @@ def stop_event_from_record(record: MiRecord) -> StopEvent | None:
 
 def is_terminal_stop(event: StopEvent) -> bool:
     return event.reason in {"exited", "exited-normally", "exited-signalled"}
+
+
+def terminal_stop_summary(event: StopEvent, lifecycle: DebuggerLifecycle) -> tuple[str, str]:
+    """Classify a terminal inferior stop as (reason, report).
+
+    Only a normal exit is success. ``exited`` carries the process exit code and
+    ``exited-signalled`` the terminating signal, so a killed or crashed
+    inferior is never reported as a normal exit.
+    """
+    if event.reason == "exited-normally":
+        return "exited normally", "process exited normally"
+    if event.reason == "exited-signalled":
+        signal = lifecycle.inferior_signal or event.signal_name or "unknown"
+        return f"terminated by signal {signal}", f"process terminated by signal {signal}"
+    code = lifecycle.inferior_exit_code
+    if code is None:
+        return "exited with unknown code", "process exited with an unknown code"
+    return f"exited with code {code}", f"process exited with code {code}"
 
 
 def _parse_exit_code(value: object) -> int | None:

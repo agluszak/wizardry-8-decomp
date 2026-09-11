@@ -7,11 +7,12 @@ import os
 from pathlib import Path
 from typing import Any
 
+from ..binary.linker_map import SymbolResolution, demangle_names
 from ..config import Settings
 from ..display import runtime_display
+from .gdb_report import resolve_gdb_report
 from .mi_process import DebuggerTransportError
-from .session import GdbSession, is_terminal_stop
-from .symbols import SymbolResolution, resolve_gdb_report
+from .session import GdbSession, is_terminal_stop, terminal_stop_summary
 
 
 def _load_manifest(manifest_path: Path) -> dict[str, dict[str, Any]]:
@@ -47,15 +48,7 @@ def find_runtime_stub(
 
 
 def _demangled_names(symbols: list[str]) -> dict[str, str]:
-    unique = sorted({name for name in symbols if name.startswith("?")})
-    if not unique:
-        return {}
-    from ..binary.demangle import DemanglerMissing, demangle
-
-    try:
-        return demangle(unique)
-    except (DemanglerMissing, RuntimeError):
-        return {}
+    return demangle_names(symbols)
 
 
 def _format_frames(frames: list[tuple[int, SymbolResolution]]) -> list[str]:
@@ -117,11 +110,11 @@ def run_debugger(
             if event is None:
                 raise DebuggerTransportError("runtime did not stop or exit")
             if is_terminal_stop(event):
-                report = "process exited normally\n"
+                reason, report = terminal_stop_summary(event, session.lifecycle())
                 return {
-                    "report": report,
+                    "report": report + "\n",
                     "stopped": False,
-                    "reason": "exited normally",
+                    "reason": reason,
                     "frames": [],
                     "unrecovered": None,
                     "display": display or "host",

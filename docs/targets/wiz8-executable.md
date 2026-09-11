@@ -44,8 +44,7 @@ uv run wiz8 debug
 starts Wine's GDB proxy on a free port, and connects system GDB with a deterministic stop policy
 (`SIGTRAP` stop/print, `SIGSEGV` pass, full backtrace, registers, shared libraries, code and stack).
 The captured frames are symbolized through `Wiz8Runtime.map` and matched against the runtime-stub
-manifest; `WIZ8_DEBUG_GDB` prepends extra GDB commands. The report and raw session are written under
-`build/debug/`.
+manifest. The report and raw session are written under `build/debug/`.
 
 For behavioral recovery and visual acceptance, use the
 [runtime-bringup skill](../../.agents/skills/runtime-bringup/SKILL.md). A semantic scenario result

@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .binary.demangle import DemanglerMissing, demangle
+from .binary.linker_map import LinkerMap, SymbolResolution
 from .config import Settings
 from .display import runtime_display
 
@@ -41,52 +41,17 @@ WINE_STACK_LINE = re.compile(
     r"(?P<words>[0-9a-fA-F]{1,16}(?:\s+[0-9a-fA-F]{1,16})*)\s*$",
     re.MULTILINE,
 )
-MAP_SECTION = re.compile(
-    r"^\s+(?P<segment>[0-9a-fA-F]{4}):(?P<offset>[0-9a-fA-F]{8})\s+"
-    r"(?P<length>[0-9a-fA-F]{8})H\s+\S+\s+\S+\s*$"
-)
-MAP_FUNCTION = re.compile(
-    r"^\s+(?P<segment>[0-9a-fA-F]{4}):(?P<offset>[0-9a-fA-F]{8})\s+(?P<symbol>\S+)\s+"
-    r"(?P<address>[0-9a-fA-F]{8})\s+f(?:\s+i)?\s+(?P<object>.+?)\s*$"
-)
-MAP_LINE_HEADER = re.compile(r"^Line numbers for .*\((?P<source>.+)\) segment ")
-MAP_LINE = re.compile(r"(?P<line>[0-9]+)\s+(?P<segment>[0-9a-fA-F]{4}):(?P<offset>[0-9a-fA-F]{8})")
 RUNTIME_SCENARIOS = (
     "main-menu-startup",
     "main-menu-new-game",
+    "main-game-start",
     "main-menu-exit-auto-repeat",
 )
-
-
-@dataclass(frozen=True)
-class _MapSection:
-    segment: str
-    start: int
-    end: int
-
-
-@dataclass(frozen=True)
-class _MapFunction:
-    address: int
-    segment: str
-    offset: int
-    symbol: str
-    owner: str
-
-
-@dataclass(frozen=True)
-class _ResolvedAddress:
-    address: int
-    symbol: str
-    displacement: int
-    owner: str
-    location: str
-
-    def format(self) -> str:
-        return (
-            f"{self.address:08x}: {self.symbol}+0x{self.displacement:x} "
-            f"[{self.owner}]{self.location}"
-        )
+# The in-process harness owns each scenario's budget (``kScenarioBudgetMs`` in
+# tests/runtime/wiz8_runtime_test.cpp). This outer kill only exists to reap a
+# wedged Wine process, so it stays above the harness budget rather than
+# pre-empting the harness's own timeout report.
+RUNTIME_SCENARIO_TIMEOUT_SECONDS = 135
 
 
 @dataclass(frozen=True)
@@ -228,148 +193,8 @@ def run_product(
     return {**staged.as_dict(), "status": completed.returncode, "crash": crash}
 
 
-def _map_functions(path: Path) -> list[_MapFunction]:
-    functions: list[_MapFunction] = []
-    if not path.is_file():
-        return functions
-    for line in path.read_text(encoding="cp1252", errors="replace").splitlines():
-        if match := MAP_FUNCTION.match(line):
-            functions.append(
-                _MapFunction(
-                    int(match.group("address"), 16),
-                    match.group("segment"),
-                    int(match.group("offset"), 16),
-                    match.group("symbol"),
-                    match.group("object"),
-                )
-            )
-    return sorted(functions, key=lambda function: function.address)
-
-
-def _map_sections(path: Path) -> tuple[list[_MapSection], dict[str, int]]:
-    if not path.is_file():
-        return [], {}
-    lines = path.read_text(encoding="cp1252", errors="replace").splitlines()
-    segment_bases: dict[str, int] = {}
-    for line in lines:
-        if match := MAP_FUNCTION.match(line):
-            segment_bases.setdefault(
-                match.group("segment"),
-                int(match.group("address"), 16) - int(match.group("offset"), 16),
-            )
-    sections = [
-        _MapSection(
-            match.group("segment"),
-            int(match.group("offset"), 16),
-            int(match.group("offset"), 16) + int(match.group("length"), 16),
-        )
-        for line in lines
-        if (match := MAP_SECTION.match(line))
-    ]
-    return sections, segment_bases
-
-
-def _map_lines(path: Path, segment_bases: dict[str, int]) -> list[tuple[int, str, int, str]]:
-    if not path.is_file():
-        return []
-    lines = path.read_text(encoding="cp1252", errors="replace").splitlines()
-    entries: list[tuple[int, str, int, str]] = []
-    source: str | None = None
-    for line in lines:
-        if header := MAP_LINE_HEADER.match(line):
-            source = header.group("source").replace("Z:\\repo\\", "").replace("\\", "/")
-            continue
-        if source is None:
-            continue
-        for match in MAP_LINE.finditer(line):
-            base = segment_bases.get(match.group("segment"))
-            if base is not None:
-                entries.append(
-                    (
-                        base + int(match.group("offset"), 16),
-                        source,
-                        int(match.group("line")),
-                        match.group("segment"),
-                    )
-                )
-    return sorted(entries)
-
-
-def _resolve_addresses(map_path: Path, addresses: list[int]) -> list[_ResolvedAddress | None]:
-    functions = _map_functions(map_path)
-    sections, segment_bases = _map_sections(map_path)
-    source_lines = _map_lines(map_path, segment_bases)
-    matches: list[tuple[_MapFunction, int, str] | None] = []
-    for address in addresses:
-        lookup = address
-        target_sections = [
-            (section, segment_bases[section.segment])
-            for section in sections
-            if section.segment in segment_bases
-            and segment_bases[section.segment] + section.start
-            <= lookup
-            < segment_bases[section.segment] + section.end
-        ]
-        if not target_sections:
-            matches.append(None)
-            continue
-        section, base = target_sections[0]
-        candidates = [
-            function
-            for function in functions
-            if function.segment == section.segment
-            and section.start <= function.offset < section.end
-            and function.address <= lookup
-        ]
-        if not candidates:
-            matches.append(None)
-            continue
-        function = candidates[-1]
-        offset = lookup - base
-        next_public = next(
-            (
-                item.offset
-                for item in functions
-                if item.segment == function.segment
-                and function.offset < item.offset
-                and item.offset < section.end
-            ),
-            section.end,
-        )
-        if offset >= next_public:
-            matches.append(None)
-            continue
-        location = ""
-        eligible_lines = [
-            entry
-            for entry in source_lines
-            if entry[3] == function.segment and function.address <= entry[0] <= lookup
-        ]
-        if eligible_lines:
-            _line_address, source, line, _segment = eligible_lines[-1]
-            location = f" {source}:{line}"
-        matches.append((function, lookup - function.address, location))
-    names = [match[0].symbol for match in matches if match is not None]
-    try:
-        demangled = demangle(names)
-    except (DemanglerMissing, RuntimeError):
-        demangled = {}
-    resolved: list[_ResolvedAddress | None] = []
-    for address, match in zip(addresses, matches):
-        if match is None:
-            resolved.append(None)
-            continue
-        function, displacement, location = match
-        resolved.append(
-            _ResolvedAddress(
-                address,
-                demangled.get(function.symbol) or function.symbol,
-                displacement,
-                function.owner,
-                location,
-            )
-        )
-    return resolved
+def _resolve_addresses(map_path: Path, addresses: list[int]) -> list[SymbolResolution | None]:
+    return LinkerMap.read(map_path).resolve_many(addresses)
 
 
 def _symbolize_addresses(map_path: Path, addresses: list[int]) -> list[str]:
@@ -572,8 +397,8 @@ def analyze_runtime_crash(
             "source": candidate.source,
             "address": f"{candidate.address:08x}",
         }
-        if item is not None:
-            entry["symbol"] = f"{item.symbol}+0x{item.displacement:x}"
+        if item is not None and item.symbol is not None:
+            entry["symbol"] = f"{item.name or item.symbol.decorated_name}+0x{item.displacement:x}"
             entry["owner"] = item.owner
             if item.location:
                 entry["source_location"] = item.location.strip()
@@ -695,7 +520,7 @@ def _run_runtime_scenario(
             check=False,
             capture_output=True,
             text=True,
-            timeout=75,
+            timeout=RUNTIME_SCENARIO_TIMEOUT_SECONDS,
         )
     except subprocess.TimeoutExpired as error:
         stdout = _timeout_output(error.stdout)

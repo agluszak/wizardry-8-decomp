@@ -573,6 +573,7 @@ void ShutdownStandardGamingPlatform(void)
 	if (gfGameInitialized)
 	{
 		ShutdownGame();
+		gfGameInitialized = FALSE;
 	}
 
 

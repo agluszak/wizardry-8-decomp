@@ -175,6 +175,7 @@ def indexed_targets(repository: Path, database: Path | None = None) -> dict[str,
 
 def validate_source_index(repository: Path) -> dict[str, int]:
     validate_synthetic_marker_blocks(repository)
+    validate_cross_tu_declarations(repository)
     index = SourceIndex.from_dict(load_source_index(repository))
     counts = {
         target: len(index.functions_by_address(target=target))
@@ -190,9 +191,6 @@ def validate_source_index(repository: Path) -> dict[str, int]:
         "vtable_classes": sum(item.vtable_address is not None for item in index.classes),
         "variables": len(index.variables),
         "conflicts": len(index.conflicts),
-        # TODO(B): re-enable validate_cross_tu_declarations here once the
-        # extern-array completion idiom (T[] vs T[N]) has an agreed rule. The
-        # check itself stays tested below; it is parked, not removed.
     }
     for target in ("SREXT_JPEGIMPORTER", "SREXT_UNZIP"):
         if target in counts:
@@ -200,21 +198,64 @@ def validate_source_index(repository: Path) -> dict[str, int]:
     return result
 
 
-def validate_cross_tu_declarations(repository: Path) -> int:
-    """Require one canonical type per external symbol in the Clang index.
+_ARRAY_DIMENSION = re.compile(r"\[(\d*)\]$")
 
-    PARKED for B: `wiz8 analyze source-index` and `validate_source_index`
-    do not call this yet. The remaining hits are the legal extern-array
-    completion idiom (`extern T g[]` completed by `T g[N]`), which needs an
-    array-aware compatibility rule before this can gate. Unit tests below
-    keep the rest of the behavior pinned in the meantime.
+
+def _split_array_type(type_name: str) -> tuple[str, tuple[str, ...]]:
+    """Split a C array type into its base element type and its dimensions.
+
+    ``unsigned short[4][4]`` becomes ``("unsigned short", ("4", "4"))`` and an
+    incomplete extent is the empty string, so ``char[]`` is ``("char", ("",))``.
     """
+    dimensions: list[str] = []
+    base = type_name.strip()
+    while match := _ARRAY_DIMENSION.search(base):
+        dimensions.append(match.group(1))
+        base = base[: match.start()].rstrip()
+    return base, tuple(reversed(dimensions))
+
+
+def _array_types_compatible(types: list[str]) -> bool:
+    """Whether every spelling describes the same array.
+
+    An incomplete extent (``T[]``) is compatible with any complete extent at
+    that dimension; two different known extents are not; the base element type
+    and its qualifiers must match, and the array ranks must agree.
+    """
+    parsed = [_split_array_type(item) for item in types]
+    base = parsed[0][0]
+    if any(item[0] != base for item in parsed):
+        return False
+    shapes = [item[1] for item in parsed]
+    if len({len(shape) for shape in shapes}) != 1:
+        return False
+    for level in range(len(shapes[0])):
+        known = {shape[level] for shape in shapes if shape[level]}
+        if len(known) > 1:
+            return False
+    return True
+
+
+def _signatures_compatible(kind: str, signatures: list[tuple[Any, ...]]) -> bool:
+    if kind == "variable" and all(len(signature) >= 1 for signature in signatures):
+        if len({signature[1:] for signature in signatures}) > 1:
+            return False
+        return _array_types_compatible([str(signature[0]) for signature in signatures])
+    return len(set(signatures)) <= 1
+
+
+def validate_cross_tu_declarations(repository: Path) -> int:
+    """Require one canonical type per external symbol in the Clang index."""
     document = load_source_index(repository)
     rendered: list[str] = []
 
-    recorded: dict[tuple[str, str], dict[tuple[str, ...], list[str]]] = {}
+    recorded: dict[tuple[str, str, str], dict[tuple[str, ...], list[str]]] = {}
     for conflict in document.get("conflicts") or ():
-        key = (str(conflict.get("record_kind", "")), str(conflict.get("semantic_id", "")))
+        key = (
+            str(conflict.get("target") or ""),
+            str(conflict.get("record_kind", "")),
+            str(conflict.get("semantic_id", "")),
+        )
         variants = recorded.setdefault(key, {})
         for variant in conflict.get("variants") or ():
             signature = tuple(variant.get("signature") or ())
@@ -222,7 +263,7 @@ def validate_cross_tu_declarations(repository: Path) -> int:
             for location in variant.get("locations") or ():
                 if location not in locations:
                     locations.append(location)
-    for (kind, semantic_id), variants in sorted(recorded.items()):
+    for (target, kind, semantic_id), variants in sorted(recorded.items()):
         if len(variants) < 2:
             continue
         # TU-local spellings never collide at link time: two `static`
@@ -231,15 +272,18 @@ def validate_cross_tu_declarations(repository: Path) -> int:
         # separate compilation undetected.
         if not any(signature and signature[-1] == "external" for signature in variants):
             continue
-        rendered.append(f"{semantic_id} ({kind})")
+        if _signatures_compatible(kind, list(variants)):
+            continue
+        rendered.append(f"{semantic_id} ({kind}) [{target or 'shared'}]")
         for signature, locations in variants.items():
             rendered.append(f"  {' | '.join(str(part) for part in signature)}")
             rendered.extend(f"    {location}" for location in locations[:4])
 
-    functions: dict[str, dict[tuple[Any, ...], list[str]]] = {}
+    functions: dict[tuple[str, str], dict[tuple[Any, ...], list[str]]] = {}
     for item in document.get("declarations") or ():
         if item.get("linkage", "") != "external":
             continue
+        target = str(item.get("target") or "")
         semantic_id = str(item.get("semantic_id", ""))
         if not semantic_id or semantic_id.startswith("?"):
             continue
@@ -253,29 +297,32 @@ def validate_cross_tu_declarations(repository: Path) -> int:
             tuple(item.get("parameter_types") or ()),
         )
         location = f"{item.get('source_file', '?')}:{item.get('line', '?')}"
-        functions.setdefault(name, {}).setdefault(signature, []).append(location)
-    for name, variants in sorted(functions.items()):
+        functions.setdefault((target, name), {}).setdefault(signature, []).append(location)
+    for (target, name), variants in sorted(functions.items()):
         if len(variants) < 2:
             continue
-        rendered.append(name)
+        rendered.append(f"{name} [{target or 'shared'}]")
         for signature, locations in variants.items():
             rendered.append(f"  {' | '.join(str(part) for part in signature)}")
             rendered.extend(f"    {location}" for location in locations[:4])
 
-    variables: dict[str, dict[tuple[Any, ...], list[str]]] = {}
+    variables: dict[tuple[str, str], dict[tuple[Any, ...], list[str]]] = {}
     for item in document.get("variables") or ():
         if item.get("linkage", "") != "external":
             continue
+        target = str(item.get("target") or "")
         semantic_id = str(item.get("semantic_id", ""))
         if not semantic_id:
             continue
         signature = (item.get("type", ""),)
         location = f"{item.get('source_file', '?')}:{item.get('line', '?')}"
-        variables.setdefault(semantic_id, {}).setdefault(signature, []).append(location)
-    for semantic_id, variants in sorted(variables.items()):
+        variables.setdefault((target, semantic_id), {}).setdefault(signature, []).append(location)
+    for (target, semantic_id), variants in sorted(variables.items()):
         if len(variants) < 2:
             continue
-        rendered.append(semantic_id)
+        if _signatures_compatible("variable", list(variants)):
+            continue
+        rendered.append(f"{semantic_id} [{target or 'shared'}]")
         for signature, locations in variants.items():
             rendered.append(f"  {' | '.join(str(part) for part in signature)}")
             rendered.extend(f"    {location}" for location in locations[:4])
@@ -385,8 +432,8 @@ def _seed_collector_binary(source: Path, destination: Path) -> None:
     for name in ("indexer", "indexer.sha256"):
         origin = source / name
         target = destination / name
-        if origin.is_file() and not target.is_file():
-            shutil.copyfile(origin, target)
+        if origin.is_file():
+            shutil.copy2(origin, target)
 
 
 def _collect_per_namespace(
@@ -524,8 +571,7 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
         force=force,
     )
     index.write(repository / "build/source-index.json")
-    # TODO(B): gate on validate_cross_tu_declarations here once the
-    # extern-array completion rule lands. Parked, not removed.
+    validate_cross_tu_declarations(repository)
     return {
         "path": "build/source-index.json",
         "markers": len(index.markers),

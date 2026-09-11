@@ -19,8 +19,8 @@ variant, seed the reviewed CFG files, and pass `/WINDOW`; do not reinvent Wine s
 commands. They launch an already-built product: use `uv run wiz8 build runtime` when that product is
 missing or stale. `run --original` stages retail; `run` and `debug` stage the recomp; `runtime-test`
 stages and builds its own semantic-test image. `debug` drives Wine's GDB proxy with a deterministic
-stop policy and symbolizes the captured frames; `WIZ8_DEBUG_GDB` supplies extra GDB commands. For
-visual harness debugging use `WIZ8_RUNTIME_DISPLAY=host uv run wiz8 runtime-test`.
+stop policy and symbolizes the captured frames. For visual harness debugging use
+`WIZ8_RUNTIME_DISPLAY=host uv run wiz8 runtime-test`.
 
 Both runnable products install the same in-process exception filter. The filter records every
 general-purpose register, scans registers as well as stack words for image addresses, and

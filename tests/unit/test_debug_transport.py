@@ -3,10 +3,16 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from wiz8decomp.binary.linker_map import LinkerMap
 from wiz8decomp.debug.debugger import find_runtime_stub
+from wiz8decomp.debug.gdb_report import resolve_gdb_report
 from wiz8decomp.debug.mi_protocol import parse_mi_record
-from wiz8decomp.debug.session import is_terminal_stop, stop_event_from_record
-from wiz8decomp.debug.symbols import LinkerMap, resolve_gdb_report
+from wiz8decomp.debug.session import (
+    DebuggerLifecycle,
+    is_terminal_stop,
+    stop_event_from_record,
+    terminal_stop_summary,
+)
 
 
 def test_sigtrap_stop_is_structured() -> None:
@@ -25,6 +31,39 @@ def test_normal_exit_is_terminal() -> None:
     event = stop_event_from_record(parse_mi_record('*stopped,reason="exited-normally"'))
     assert event is not None
     assert is_terminal_stop(event)
+
+
+def _lifecycle(*, exit_code: int | None = None, signal: str | None = None) -> DebuggerLifecycle:
+    return DebuggerLifecycle(
+        proxy_pid=None,
+        proxy_exit_code=None,
+        gdb_pid=None,
+        gdb_exit_code=None,
+        inferior_pid=None,
+        inferior_exit_code=exit_code,
+        inferior_terminal_reason=None,
+        inferior_signal=signal,
+        inferior_active=False,
+    )
+
+
+def test_terminal_stop_reports_abnormal_exit_and_signal() -> None:
+    normal = stop_event_from_record(parse_mi_record('*stopped,reason="exited-normally"'))
+    assert normal is not None
+    assert terminal_stop_summary(normal, _lifecycle())[0] == "exited normally"
+
+    exited = stop_event_from_record(parse_mi_record('*stopped,reason="exited",exit-code="03"'))
+    assert exited is not None
+    assert terminal_stop_summary(exited, _lifecycle(exit_code=3))[0] == "exited with code 3"
+
+    killed = stop_event_from_record(
+        parse_mi_record('*stopped,reason="exited-signalled",signal-name="SIGKILL"')
+    )
+    assert killed is not None
+    assert (
+        terminal_stop_summary(killed, _lifecycle(signal="SIGKILL"))[0]
+        == "terminated by signal SIGKILL"
+    )
 
 
 def test_map_resolves_inside_function_but_not_across_symbol(tmp_path: Path) -> None:

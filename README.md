@@ -43,8 +43,7 @@ output is forwarded, and when a crash marker appears the MAP-symbolized report i
 command result. `uv run wiz8 run --original` stages and launches the retail `Wiz8.exe` the same way;
 `run` does not build the product.
 `uv run wiz8 debug` stages the recomp under `build/runtime/debug` and drives it through Wine's GDB
-proxy with a deterministic stop policy, then symbolizes the captured frames. `WIZ8_DEBUG_GDB`
-supplies extra GDB commands.
+proxy with a deterministic stop policy, then symbolizes the captured frames.
 
 `uv run wiz8 runtime-test` runs named main-menu scenarios in the optimized semantic-test executable.
 The real menu handlers execute on the UI thread; the host reruns the scenarios in reverse order and
