@@ -559,9 +559,9 @@ enum {
     W8_ITEM_CATEGORY_CASTER_ITEM_8 = 8
 };
 
-/* The faction mask value that admits every faction rather than the two its
-   bits would otherwise name. */
-enum { W8_ITEM_FACTION_MASK_ANY = 3 };
+/* The sex mask value that admits either sex rather than the one bit a
+   restrictive record names. */
+enum { W8_ITEM_GENDER_MASK_ANY = 3 };
 
 /* An unused requirement slot. */
 enum { W8_ITEM_REQUIREMENT_NONE = 0xff };
@@ -595,8 +595,8 @@ bool CanCharacterUseItem(const W8Character* character, int item_id)
     if ((record->race_mask & (1 << character->race)) == 0) {
         return false;
     }
-    if (record->faction_mask != W8_ITEM_FACTION_MASK_ANY &&
-        (record->faction_mask & (1 << character->faction)) == 0) {
+    if (record->gender_mask != W8_ITEM_GENDER_MASK_ANY &&
+        (record->gender_mask & (1 << character->gender)) == 0) {
         return false;
     }
 

@@ -16,8 +16,10 @@ W8StartupStateElement005EE748* Function52E690(
     unsigned int value_2);
 
 /* 0x0052D0B0: format one character quote for the given event type into the
-   shared wide text buffer. The full body is not recovered yet. */
-int Function52D0B0(W8Character* character, unsigned int type, int* selected);
+   shared wide text buffer. Returns zero and empties it when the type has no
+   quote. */
+unsigned char FormatCharacterQuoteText(
+    W8Character* character, unsigned int type, unsigned int* metadata);
 extern int g_effect_005ee588;
 
 int ApplyItemEffectToRandomCharacter0052E5C0(

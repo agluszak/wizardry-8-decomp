@@ -55,7 +55,9 @@ struct W8ItemDatabaseRecord {
     unsigned char unknown_06c[0xa];
     unsigned short profession_mask;       /* 0x076 */
     unsigned int race_mask;               /* 0x078 */
-    unsigned char faction_mask;           /* 0x07c */
+    /* 0x07c: one bit per sex; three admits either, and
+       CanCharacterUseItem indexes it with the character's own field. */
+    unsigned char gender_mask;
     W8ItemRequirement attribute_requirements[2]; /* 0x07d */
     W8ItemRequirement skill_requirements[2]; /* 0x081 */
     unsigned char identify_difficulty;    /* 0x085 */

@@ -1965,7 +1965,7 @@ enum {
     W8_MESSAGE_TARGET_UNKNOWN = 0x624
 };
 /* 0x0061E436: the name-prefix table, eight-byte rows, holding a message-table
-   offset rather than a string. A character indexes it by faction and a monster
+   offset rather than a string. A character indexes it by sex and a monster
    by its own name group at record+0x0cc, which is what makes the two one
    table. */
 // GLOBAL: WIZ8 0x0061E436
@@ -1981,7 +1981,7 @@ extern const wchar_t g_wchar_00689b34;
    name two different fields of one block rather than one field twice.
 
    A character or a monster whose name the party does not have is described by
-   its name-prefix instead, looked up in the table at 0x0061E436 - by faction
+   its name-prefix instead, looked up in the table at 0x0061E436 - by sex
    for a character and by name group for a monster, which is what makes the two
    one table. The entry is a message-table offset rather than a string, so it
    is resolved twice. Everything else is a fixed word. Its error
@@ -2013,7 +2013,7 @@ wchar_t* SpellTargetString(
                 g_party_characters[target->iChar].name);
         }
         name_prefix =
-            g_name_prefix_messages[g_party_characters[target->iChar].faction * 4];
+            g_name_prefix_messages[g_party_characters[target->iChar].gender * 4];
         break;
 
     case 2:

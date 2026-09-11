@@ -37,6 +37,11 @@ WINE_REGISTER = re.compile(
 )
 WINE_EXCEPTION = re.compile(r"Unhandled exception:\s*(?P<operation>[^\n]*)", re.IGNORECASE)
 WINE_FRAME = re.compile(r"^\s*(?:=>)?\d+\s+0x(?P<address>[0-9a-fA-F]+)", re.MULTILINE)
+WINE_MODULE = re.compile(
+    r"^\s*PE\s+(?P<start>[0-9a-fA-F]{8})-(?P<end>[0-9a-fA-F]{8})\s+\S+\s+"
+    r"(?P<name>\S+)\s*$",
+    re.MULTILINE,
+)
 MAP_PREFERRED_BASE = re.compile(r"Preferred load address is (?P<base>[0-9a-fA-F]{8})")
 MAP_SECTION = re.compile(
     r"^\s+(?P<segment>[0-9a-fA-F]{4}):(?P<offset>[0-9a-fA-F]{8})\s+"
@@ -353,13 +358,34 @@ def _preferred_load_base(map_path: Path | None) -> int:
     return 0x00400000
 
 
+def _wine_image_extent(output: str) -> tuple[int, int] | None:
+    """The runtime extent Wine reports for the game module, when it lists one."""
+
+    for match in WINE_MODULE.finditer(output):
+        if match.group("name").lower().startswith("wiz8runtime"):
+            return int(match.group("start"), 16), int(match.group("end"), 16)
+    return None
+
+
+def _normalize_wine_address(
+    address: int, extent: tuple[int, int] | None, preferred_base: int
+) -> int:
+    """Map a module-relative runtime address back onto the MAP's preferred base."""
+
+    if extent is not None and extent[0] <= address < extent[1]:
+        return address - extent[0] + preferred_base
+    return address
+
+
 def _parse_wine_dump(output: str, map_path: Path | None = None) -> _RuntimeCrash | None:
     """Recognize a winedbg/Wine unhandled-exception dump without product markers.
 
     Wine's native dump still carries the register file even when its frame walk
     is useless. When EIP executes the mapped PE header (the forced-unresolved
     stub), EDX holds the return address the stub's ``pop edx`` consumed, the
-    same fact the in-process reporter records.
+    same fact the in-process reporter records. The image can load away from the
+    MAP's preferred address, so the Modules section's actual extent normalizes
+    every in-image register back to the address space the MAP describes.
     """
 
     registers: dict[str, int] = {}
@@ -368,13 +394,15 @@ def _parse_wine_dump(output: str, map_path: Path | None = None) -> _RuntimeCrash
     eip = registers.get("eip")
     if eip is None:
         return None
-    base = _preferred_load_base(map_path)
+    preferred_base = _preferred_load_base(map_path)
+    extent = _wine_image_extent(output)
+    base = extent[0] if extent is not None else preferred_base
     mz = base <= eip < base + 0x1000
     consumed_register: str | None = None
     consumed_address: int | None = None
     if mz and eip >= base + 2 and "edx" in registers:
         consumed_register = "edx"
-        consumed_address = registers["edx"]
+        consumed_address = _normalize_wine_address(registers["edx"], extent, preferred_base)
     fields: dict[str, str] = {
         "code": "wine",
         "thread": "",
@@ -395,11 +423,13 @@ def _parse_wine_dump(output: str, map_path: Path | None = None) -> _RuntimeCrash
         seen.add(consumed_address)
     for name in ("eax", "ebx", "ecx", "edx", "esi", "edi", "ebp"):
         address = registers.get(name)
-        if address is not None and address not in seen:
-            seen.add(address)
-            candidates.append(_CrashCandidate(f"reg:{name}", address))
+        if address is not None:
+            address = _normalize_wine_address(address, extent, preferred_base)
+            if address not in seen:
+                seen.add(address)
+                candidates.append(_CrashCandidate(f"reg:{name}", address))
     for match in WINE_FRAME.finditer(output):
-        address = int(match.group("address"), 16)
+        address = _normalize_wine_address(int(match.group("address"), 16), extent, preferred_base)
         if address not in seen:
             seen.add(address)
             candidates.append(_CrashCandidate("frame", address))
@@ -626,7 +656,7 @@ def _run_runtime_scenario(
             check=False,
             capture_output=True,
             text=True,
-            timeout=45,
+            timeout=75,
         )
     except subprocess.TimeoutExpired as error:
         stdout = _timeout_output(error.stdout)

@@ -184,6 +184,33 @@ def test_wine_dump_is_recognized_without_product_markers(tmp_path: Path) -> None
     )
 
 
+def test_wine_dump_normalizes_a_relocated_image(tmp_path: Path) -> None:
+    map_path, output = _wine_crash_fixture(tmp_path)
+    relocated = (
+        output.replace("00400003", "00600003")
+        .replace("0041fe14", "0061fe14")
+        .replace("00400000", "00600000")
+        .replace(
+            "Backtrace:\n",
+            "Modules:\n"
+            "PE\t00600000-006b1f70\tDeferred\twiz8runtime\n"
+            "PE\t7bc00000-7be00000\tDeferred\tntdll\n"
+            "Backtrace:\n",
+        )
+    )
+
+    crash = _parse_wine_dump(relocated, map_path)
+
+    assert crash is not None
+    assert crash.base_fault is not None
+    assert crash.base_fault.base == 0x00600000
+    assert crash.base_fault.consumed_address == 0x0041FE14
+    assert crash.candidates[0].address == 0x0041FE14
+    assert "return:edx: 0041fe14: _CharacterScreenFrame+0x164" in _crash_detail(
+        map_path, None, crash
+    )
+
+
 def test_analyze_runtime_crash_falls_back_to_a_wine_dump(tmp_path: Path) -> None:
     map_path, output = _wine_crash_fixture(tmp_path)
     log = tmp_path / "winedbg.log"

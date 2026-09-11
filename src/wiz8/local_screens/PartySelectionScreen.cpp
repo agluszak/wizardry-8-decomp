@@ -62,7 +62,7 @@ extern int g_options_title_font_68368c;
 extern int g_options_detail_font_683614;
 extern unsigned short g_profession_name_message_ids_61e3f0[];
 extern unsigned short g_race_name_message_ids_61e3d0[];
-extern unsigned short g_faction_name_message_rows_61e430[][4];
+extern unsigned short g_gender_name_message_rows_61e430[][4];
 extern unsigned short g_personality_message_ids_61e674[];
 
 /* Two ordinary growable vectors and the scroll origin account for all 0x24
@@ -689,7 +689,7 @@ void W8State5CharacterRow005EF364::Redraw(int full_redraw)
                 character->current_profession]]);
     mprintf(left, top + 0x18, L"%s %s",
             gppStringList[
-                g_faction_name_message_rows_61e430[character->faction][0]],
+                g_gender_name_message_rows_61e430[character->gender][0]],
             gppStringList[g_race_name_message_ids_61e3d0[character->race]]);
     SetObjectShade(g_wiz_text_font_secondary_object_683680, 4);
 }
@@ -1093,13 +1093,13 @@ void W8State5PlainPanel005EF4E0::Redraw()
     mprintf((0xbf - width) / 2 + 0x78, 0xef,
             L"%s %d %s", level_text, character->level, profession);
 
-    const wchar_t* faction = gppStringList[
-        g_faction_name_message_rows_61e430[character->faction][0]];
+    const wchar_t* gender = gppStringList[
+        g_gender_name_message_rows_61e430[character->gender][0]];
     const wchar_t* race =
         gppStringList[g_race_name_message_ids_61e3d0[character->race]];
-    wchar_t* race_line = FormatWideString(L"%s %s", faction, race);
+    wchar_t* race_line = FormatWideString(L"%s %s", gender, race);
     width = StringPixLength(race_line, g_font_683660);
-    mprintf((0xbf - width) / 2 + 0x7f, 0xfd, L"%s %s", faction, race);
+    mprintf((0xbf - width) / 2 + 0x7f, 0xfd, L"%s %s", gender, race);
 
     const wchar_t* personality = gppStringList[
         g_personality_message_ids_61e674[character->personality_0081]];

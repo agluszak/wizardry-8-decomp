@@ -69,7 +69,7 @@ int Function557FD0(W8Character* original, W8Character* edited)
 
 /* Character generation state. The four dwords below accumulate the pools a
    reset or level-up hands to the editing state; the byte at 0x34 records that
-   a profession change forced the faction to one. */
+   a profession change forced the sex to one. */
 // GLOBAL: WIZ8 0x0068de28
 int g_attribute_point_bonus_0068de28;
 // GLOBAL: WIZ8 0x0068de2c
@@ -77,7 +77,7 @@ int g_skill_point_bonus_0068de2c;
 // GLOBAL: WIZ8 0x0068de30
 int g_spell_point_bonus_0068de30;
 // GLOBAL: WIZ8 0x0068de34
-unsigned char g_faction_locked_0068de34;
+unsigned char g_gender_locked_0068de34;
 
 /* Empty every item record the character carries. 0x00520070 expands the
    per-slot helper at both loops, which is why the body lives in PC Item.cpp
@@ -91,9 +91,9 @@ void Function556DC0(W8Character* character, W8CharacterCreationState* creation_s
     g_attribute_point_bonus_0068de28 = 0;
     g_skill_point_bonus_0068de2c = 0;
     g_spell_point_bonus_0068de30 = 0;
-    g_faction_locked_0068de34 = 0;
+    g_gender_locked_0068de34 = 0;
     memset(character, 0, sizeof(*character));
-    character->faction = -1;
+    character->gender = -1;
     character->current_profession = -1;
     character->race = -1;
     character->level = 1;
@@ -141,7 +141,7 @@ void Function556CC0(W8Character* character, W8CharacterCreationState* creation_s
     g_attribute_point_bonus_0068de28 = 0;
     g_skill_point_bonus_0068de2c = 0;
     g_spell_point_bonus_0068de30 = 0;
-    g_faction_locked_0068de34 = 0;
+    g_gender_locked_0068de34 = 0;
     ++character->level;
     ++character->profession_levels[character->current_profession];
     memset(creation_state, 0, sizeof(*creation_state));
@@ -438,7 +438,7 @@ void Function557200(W8Character* character, W8CharacterCreationState* creation_s
 
 /* Which of the fifteen professions the current attribute budget can still
    reach: the character's own profession is always eligible, profession two
-   needs the matching faction, and every other one has to clear the
+   needs the matching sex, and every other one has to clear the
    profession's minimums within the remaining pool and limits. */
 // FUNCTION: WIZ8 0x00557350
 void DetermineEligibleProfessions(W8Character* character,
@@ -452,7 +452,7 @@ void DetermineEligibleProfessions(W8Character* character,
         if (profession == (unsigned int)character->current_profession) {
             eligibility[profession] = 1;
         }
-        else if (profession == 2 && character->faction != 1) {
+        else if (profession == 2 && character->gender != 1) {
             eligibility[2] = 0;
         }
         else {
@@ -863,14 +863,14 @@ void Function557060(W8Character* character, W8CharacterCreationState* creation_s
     character->current_profession = profession;
 
     if (profession == 2) {
-        if (character->faction == 0) {
-            g_faction_locked_0068de34 = 1;
-            character->faction = 1;
+        if (character->gender == 0) {
+            g_gender_locked_0068de34 = 1;
+            character->gender = 1;
         }
     }
-    else if (g_faction_locked_0068de34) {
-        g_faction_locked_0068de34 = 0;
-        character->faction = 0;
+    else if (g_gender_locked_0068de34) {
+        g_gender_locked_0068de34 = 0;
+        character->gender = 0;
     }
 
     if (character->level > 1) {
@@ -924,13 +924,13 @@ void Function5571C0(W8Character* character, W8CharacterCreationState* creation_s
 
 // FUNCTION: WIZ8 0x005571e0
 void Function5571E0(W8Character* character, W8CharacterCreationState* creation_state,
-                    int faction)
+                    int gender)
 {
-    character->faction = faction;
+    character->gender = gender;
     Function556EB0(character, creation_state);
 }
 
-/* Apply the race and profession tables once race, profession and faction are
+/* Apply the race and profession tables once race, profession and sex are
    all set, rebuilding every derived pool on the way. */
 // FUNCTION: WIZ8 0x00556eb0
 void Function556EB0(W8Character* character, W8CharacterCreationState* creation_state)
@@ -998,7 +998,7 @@ void Function556EB0(W8Character* character, W8CharacterCreationState* creation_s
     }
     RecalculateCharacterResistances(character);
     if (character->level == 1) {
-        if (character->faction != -1 && character->current_profession != -1 &&
+        if (character->gender != -1 && character->current_profession != -1 &&
             character->race != -1) {
             Function557D80(character, creation_state);
         }

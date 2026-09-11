@@ -26,7 +26,7 @@ unsigned int g_character_stats_profession_region_set_0069c554;
 // GLOBAL: WIZ8 0x0069c558
 unsigned int g_character_stats_race_region_set_0069c558;
 // GLOBAL: WIZ8 0x0069c55c
-unsigned int g_character_stats_faction_region_set_0069c55c;
+unsigned int g_character_stats_gender_region_set_0069c55c;
 
 // GLOBAL: WIZ8 0x0064f028
 W8CharacterStatsRecord g_character_profession_records_0064f028[15] = {
@@ -61,7 +61,7 @@ W8CharacterStatsRecord g_character_race_records_0064f118[11] = {
     {0x0000010c, 0x00000006, 0x00000007, 0x028e, 1, 0},
 };
 // GLOBAL: WIZ8 0x0064f218
-W8CharacterStatsRecord g_character_faction_records_0064f218[2] = {
+W8CharacterStatsRecord g_character_gender_records_0064f218[2] = {
     {0x0000010d, 0x00000000, 0x00000001, 0x02d1, 0, 0},
     {0x0000010d, 0x00000002, 0x00000003, 0x02d2, 0, 0},
 };
@@ -74,7 +74,7 @@ W8CharacterStatsRecord g_character_race_default_record_0064f258 = {
     0x0000010e, 0x00000000, 0x00000001, 0x0090, 1, 0,
 };
 // GLOBAL: WIZ8 0x0064f268
-W8CharacterStatsRecord g_character_faction_default_record_0064f268 = {
+W8CharacterStatsRecord g_character_gender_default_record_0064f268 = {
     0x0000010e, 0x00000004, 0x00000005, 0x0091, 1, 0,
 };
 
@@ -554,7 +554,7 @@ void W8CharacterPage005EF778::Activate()
 }
 
 /* Rebuild the three row displays from the character's current profession,
-   race and faction. In creation mode the profession list is opened up
+   race and sex. In creation mode the profession list is opened up
    entirely; in level-up mode only the eligible professions stay enabled. */
 // FUNCTION: WIZ8 0x005ca200
 void W8CharacterPage005EF778::UpdateRowValues()
@@ -563,11 +563,11 @@ void W8CharacterPage005EF778::UpdateRowValues()
 
     if (m_mode_068 == 0) {
         if (m_character_060->current_profession == 2) {
-            g_character_faction_records_0064f218[0].enabled_0e = 0;
+            g_character_gender_records_0064f218[0].enabled_0e = 0;
         }
         else {
-            g_character_faction_records_0064f218[0].enabled_0e = 1;
-            g_character_faction_records_0064f218[1].enabled_0e = 1;
+            g_character_gender_records_0064f218[0].enabled_0e = 1;
+            g_character_gender_records_0064f218[1].enabled_0e = 1;
         }
     }
     else if (m_mode_068 == 2) {
@@ -626,19 +626,19 @@ void W8CharacterPage005EF778::UpdateRowValues()
         row->m_subpanel_028->Invalidate(0);
     }
 
-    int faction = m_character_060->faction;
-    row = m_faction_row_084;
-    if (faction == -1) {
+    int gender = m_character_060->gender;
+    row = m_gender_row_084;
+    if (gender == -1) {
         row->m_value_control_024->SetRecord(0);
     }
     else {
-        row->m_value_control_024->SetRecord(&row->m_table_018[faction]);
+        row->m_value_control_024->SetRecord(&row->m_table_018[gender]);
     }
     previous = row->m_value_004;
-    row->m_value_004 = faction;
+    row->m_value_004 = gender;
     row->m_value_control_024->Invalidate(1);
-    if (row->m_listener_030 != 0 && previous != faction) {
-        row->m_listener_030->OnRowValueChanged(row, faction);
+    if (row->m_listener_030 != 0 && previous != gender) {
+        row->m_listener_030->OnRowValueChanged(row, gender);
     }
     row->m_decrement_01c->Invalidate(0);
     row->m_increment_020->Invalidate(0);
@@ -687,7 +687,7 @@ void W8CharacterPage005EF778::GetNavigationState(
     if (m_creation_state_064->attributes_complete == 0 ||
         m_character_060->current_profession == -1 ||
         m_character_060->race == -1 ||
-        m_character_060->faction == -1) {
+        m_character_060->gender == -1) {
         *next_enabled = 0;
     }
     else {
@@ -751,7 +751,7 @@ next_profession:
         }
     }
 next_race:
-    row = m_faction_row_084;
+    row = m_gender_row_084;
     if (row->m_subpanel_028 != 0 && row->m_subpanel_028->m_fEnabled) {
         unsigned int index = 0;
         while (index < row->m_count_008) {
@@ -800,7 +800,7 @@ void W8CharacterPage005EF778::ShowEntryInfo(W8CharacterPageEntry* entry)
 }
 
 /* A value row moved: rerun the whole creation rebuild for the new
-   profession, race or faction, then refresh the row controls. */
+   profession, race or sex, then refresh the row controls. */
 // FUNCTION: WIZ8 0x005ca800
 void W8CharacterPage005EF778::OnRowValueChanged(
     W8CharacterStatsRow005EF750* row, int value)
@@ -836,14 +836,14 @@ void W8CharacterPage005EF778::OnRowExpanded(W8CharacterStatsRow005EF750* row)
     if (row == m_profession_row_07c) {
         m_profession_row_07c->m_increment_020->SetActive(0);
         m_race_row_080->m_increment_020->SetActive(0);
-        m_faction_row_084->m_increment_020->SetActive(0);
+        m_gender_row_084->m_increment_020->SetActive(0);
     }
     else if (row == m_race_row_080) {
         m_race_row_080->m_increment_020->SetActive(0);
-        m_faction_row_084->m_increment_020->SetActive(0);
+        m_gender_row_084->m_increment_020->SetActive(0);
     }
     else {
-        m_faction_row_084->m_increment_020->SetActive(0);
+        m_gender_row_084->m_increment_020->SetActive(0);
     }
     for (int entry_index = 0; entry_index < m_entries_04c.count; ++entry_index) {
         m_entries_04c.data[entry_index]->SetHelpActive005AFAE0(0);
@@ -860,14 +860,14 @@ void W8CharacterPage005EF778::OnRowCollapsed(W8CharacterStatsRow005EF750* row)
     if (row == m_profession_row_07c) {
         m_profession_row_07c->m_increment_020->SetActive(1);
         m_race_row_080->m_increment_020->SetActive(1);
-        m_faction_row_084->m_increment_020->SetActive(1);
+        m_gender_row_084->m_increment_020->SetActive(1);
     }
     else if (row == m_race_row_080) {
         m_race_row_080->m_increment_020->SetActive(1);
-        m_faction_row_084->m_increment_020->SetActive(1);
+        m_gender_row_084->m_increment_020->SetActive(1);
     }
     else {
-        m_faction_row_084->m_increment_020->SetActive(1);
+        m_gender_row_084->m_increment_020->SetActive(1);
     }
     for (int entry_index = 0; entry_index < m_entries_04c.count; ++entry_index) {
         m_entries_04c.data[entry_index]->SetHelpActive005AFAE0(1);
@@ -909,7 +909,7 @@ void W8CharacterPage005EF778::Prepare()
 {
     W8CharacterPage::Prepare();
     W8CharacterStatsRow005EF750* rows[3] = {
-        m_profession_row_07c, m_race_row_080, m_faction_row_084,
+        m_profession_row_07c, m_race_row_080, m_gender_row_084,
     };
     for (int index = 0; index < 3; ++index) {
         rows[index]->m_decrement_01c->Invalidate(0);
@@ -922,7 +922,7 @@ void W8CharacterPage005EF778::Prepare()
 }
 
 /* The whole page: three value rows, seven attribute entries, five attribute
-   corner controls, then the profession/race/faction list state. */
+   corner controls, then the profession/race/sex list state. */
 // FUNCTION: WIZ8 0x005c9c80
 void W8CharacterPage005EF778::SetCharacter(
     W8Character* character, W8CharacterCreationState* creation_state, int mode)
@@ -930,7 +930,7 @@ void W8CharacterPage005EF778::SetCharacter(
     W8CharacterPage::SetCharacter(character, creation_state, mode);
     m_profession_row_07c = new W8CharacterStatsRow005EF750;
     m_race_row_080 = new W8CharacterStatsRow005EF750;
-    m_faction_row_084 = new W8CharacterStatsRow005EF750;
+    m_gender_row_084 = new W8CharacterStatsRow005EF750;
     AcquireRegionSet(&g_character_stats_region_set_0069c550);
     m_profession_row_07c->Initialize(
         this, &g_character_stats_profession_region_set_0069c554, 0x16, 10,
@@ -940,17 +940,17 @@ void W8CharacterPage005EF778::SetCharacter(
         this, &g_character_stats_race_region_set_0069c558, 0x16, 0x3d,
         0xb, g_character_race_records_0064f118,
         &g_character_race_default_record_0064f258, 0xfa, 0xf9, 0xfb);
-    m_faction_row_084->Initialize(
-        this, &g_character_stats_faction_region_set_0069c55c, 0x16, 0x70,
-        2, g_character_faction_records_0064f218,
-        &g_character_faction_default_record_0064f268, 0xfd, 0xfc, 0xfe);
+    m_gender_row_084->Initialize(
+        this, &g_character_stats_gender_region_set_0069c55c, 0x16, 0x70,
+        2, g_character_gender_records_0064f218,
+        &g_character_gender_default_record_0064f268, 0xfd, 0xfc, 0xfe);
     m_profession_row_07c->m_listener_030 = this;
     m_race_row_080->m_listener_030 = this;
-    m_faction_row_084->m_listener_030 = this;
+    m_gender_row_084->m_listener_030 = this;
 
     if (mode == 0) {
         W8CharacterStatsRow005EF750* rows[3] = {
-            m_profession_row_07c, m_race_row_080, m_faction_row_084,
+            m_profession_row_07c, m_race_row_080, m_gender_row_084,
         };
         for (int row_index = 0; row_index < 3; ++row_index) {
             rows[row_index]->m_decrement_01c->SetEnabled(1);
@@ -960,7 +960,7 @@ void W8CharacterPage005EF778::SetCharacter(
     }
     else if (mode == 1) {
         W8CharacterStatsRow005EF750* rows[3] = {
-            m_profession_row_07c, m_race_row_080, m_faction_row_084,
+            m_profession_row_07c, m_race_row_080, m_gender_row_084,
         };
         for (int row_index = 0; row_index < 3; ++row_index) {
             rows[row_index]->m_decrement_01c->SetEnabled(0);
@@ -982,9 +982,9 @@ void W8CharacterPage005EF778::SetCharacter(
         m_race_row_080->m_decrement_01c->SetEnabled(0);
         m_race_row_080->m_increment_020->SetEnabled(0);
         m_race_row_080->m_value_control_024->SetEnabled(0);
-        m_faction_row_084->m_decrement_01c->SetEnabled(0);
-        m_faction_row_084->m_increment_020->SetEnabled(0);
-        m_faction_row_084->m_value_control_024->SetEnabled(0);
+        m_gender_row_084->m_decrement_01c->SetEnabled(0);
+        m_gender_row_084->m_increment_020->SetEnabled(0);
+        m_gender_row_084->m_value_control_024->SetEnabled(0);
     }
 
     for (int attribute_index = 0; attribute_index < 7; ++attribute_index) {
@@ -1022,7 +1022,7 @@ void W8CharacterPage005EF778::SetCharacter(
 W8CharacterPage005EF778::~W8CharacterPage005EF778()
 {
     W8CharacterStatsRow005EF750* rows[3] = {
-        m_profession_row_07c, m_race_row_080, m_faction_row_084,
+        m_profession_row_07c, m_race_row_080, m_gender_row_084,
     };
     for (int index = 0; index < 3; ++index) {
         W8CharacterStatsRow005EF750* row = rows[index];
@@ -1386,7 +1386,7 @@ void W8CharacterPage005EF778::Redraw()
     }
 
     W8CharacterStatsRow005EF750* rows[3] = {
-        m_profession_row_07c, m_race_row_080, m_faction_row_084,
+        m_profession_row_07c, m_race_row_080, m_gender_row_084,
     };
     for (int row_index = 0; row_index < 3; ++row_index) {
         W8CharacterStatsRow005EF750* row = rows[row_index];

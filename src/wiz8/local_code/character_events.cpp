@@ -3,6 +3,8 @@
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/Monster.h"
+#include "wiz8/npc_state.h"
+#include "wiz8/string_database.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/Configuration.h"
@@ -16,6 +18,10 @@
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "bink.h"
+#include "FileMan.h"
+
+#include <stdio.h>
+#include <wchar.h>
 
 extern void Function52F890(
     int party_slot, int active, int animation, int argument, int show_text);
@@ -23,9 +29,17 @@ extern unsigned int g_value_0068c57c;
 // GLOBAL: WIZ8 0x0068c57c
 unsigned int g_value_0068c57c;
 /* 0x0068C580: the shared wide buffer formatted character text lands in. The
-   next recovered global starts at 0x0068D520, which bounds it. */
+   message reader admits at most 0x7D0 code units, so the buffer holds exactly
+   the two thousand characters that reach the next global at 0x0068D520. */
 // GLOBAL: WIZ8 0x0068C580
 wchar_t g_character_text_0068c580[2000];
+/* 0x005ED91C: the quote file-name stem per personality, a twenty-byte fixed
+   buffer each. The nine personas end exactly at the next global; the quote
+   lookup composes Data\Quotes\PCs\<m|f>_<stem><1|2>0.MSG from them. */
+// GLOBAL: WIZ8 0x005ed91c
+const char g_quote_personality_names_005ed91c[9][0x14] = {
+    "aggr", "intell", "burly", "chaos", "cun", "ecc", "kind", "laid", "loner",
+};
 extern unsigned int g_value_0068c554;
 // GLOBAL: WIZ8 0x0068c554
 unsigned int g_value_0068c554;
@@ -166,12 +180,71 @@ W8StartupStateElement005EE748::W8StartupStateElement005EE748(
     }
 }
 
+/* 0x0052D0B0: format one character quote for the given event type into the
+   shared wide text buffer. A party member on any screen but the character
+   screen takes the text from the NPC bound to its slot; otherwise the type
+   selects an entry of the sex/personality/voice quote file, which is then
+   wrapped in quotes. Clears the buffer and answers zero when no quote exists. */
+// FUNCTION: WIZ8 0x0052D0B0
+unsigned char FormatCharacterQuoteText(
+    W8Character* character, unsigned int type, unsigned int* metadata)
+{
+    char path[80];
+    wchar_t text[500];
+    int npc_index;
+    unsigned char has_npc;
+
+    if (type >= 0x92) {
+        return 0;
+    }
+    if (metadata != 0) {
+        *metadata = 0xffffffff;
+    }
+    npc_index = -1;
+    has_npc = 0;
+    if (character->in_party != 0 &&
+        g_current_screen_state.id != W8_SCREEN_CHARACTER) {
+        unsigned int slot = CharacterPointerToPartySlot(character);
+        npc_index = g_status_685170.buffers.party_rows[slot].animation_0fa;
+        has_npc = npc_index != -1;
+    }
+    if (!has_npc) {
+        char gender_code =
+            static_cast<char>(((character->gender != 0) - 1U & 7) + 0x66);
+        sprintf(path, "Data\\Quotes\\PCs\\%c_%s%d0.MSG",
+                gender_code,
+                g_quote_personality_names_005ed91c[character->personality_0081],
+                (character->voice_0085 != 0) + 1);
+        if (!FileExists(path)) {
+            g_character_text_0068c580[0] = 0;
+            return 0;
+        }
+        GetStringFromStringDatabase(
+            path, type, g_character_text_0068c580, 0, metadata);
+        g_character_text_0068c580[wcslen(g_character_text_0068c580) - 1] = 0;
+    }
+    else {
+        W8NpcState* npc = GetNpcState(npc_index);
+        if (GetNpcQuoteText(npc, type, g_character_text_0068c580) == 0) {
+            g_character_text_0068c580[0] = 0;
+            return 0;
+        }
+    }
+
+    if (wcslen(g_character_text_0068c580) == 0) {
+        return 0;
+    }
+    swprintf(text, L"\"%s\"", g_character_text_0068c580);
+    wcscpy(g_character_text_0068c580, text);
+    return 1;
+}
+
 /* The quote text builder fills the shared wide buffer; the final character
    page's description area displays it. */
 // FUNCTION: WIZ8 0x0052D240
 wchar_t* W8StartupStateElement005EE748::GetQuoteText()
 {
-    Function52D0B0(character_04, type_08, 0);
+    FormatCharacterQuoteText(character_04, type_08, 0);
     return g_character_text_0068c580;
 }
 

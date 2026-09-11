@@ -62,7 +62,7 @@ void FormatDebugMessage(int channel, const char* format, ...);
    GrCycle.cpp for a cycle with no usable LOD, so its name stays neutral. */
 int GetRandomCharacter(
     int require_primary, int require_secondary, int excluded_slot,
-    signed char excluded_faction);
+    signed char excluded_gender);
 
 #endif
 extern char** g_string_table;       /* 0x0068C09C */

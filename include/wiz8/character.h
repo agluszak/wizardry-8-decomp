@@ -156,12 +156,13 @@ struct W8Character {
     int current_profession;               /* 0x0069 */
     int original_profession;              /* 0x006d */
     int race;                             /* 0x0071: indexes the race resistance table */
-    int faction;                          /* 0x0075: compared against the caller's faction */
-    /* 0x0079: looked up from the table at 0x00616604 by faction, race and
-       profession together. Note that the index multiplies 0x0075 by sixteen
-       against an eleven-race domain, so either that field is not the faction
-       the disposition code reads or the table is sparse; the disagreement is
-       recorded rather than resolved. */
+    /* 0x0075: zero is male and one is female. The quote lookup names the
+       Data\Quotes\PCs files m_ or f_ from it, the item record's two-bit mask
+       admits exactly one sex, and the female-only profession at index two
+       forces the field to one. */
+    int gender;
+    /* 0x0079: looked up from the table at 0x00616604 by gender, race and
+       profession together. */
     int table_value_0079;
     /* 0x007d: cleared by Function4EFA30 in both of its branches and set to -1
        by the character rebuild; all three accesses are four-byte stores. */

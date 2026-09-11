@@ -31,7 +31,7 @@ enum {
     W8_PHYS_COMBAT_WEIGHT_CASTER = 2
 };
 
-/* 0x00616604: one entry per faction, race and profession together. */
+/* 0x00616604: one entry per sex, race and profession together. */
 // GLOBAL: WIZ8 0x00616604
 const int g_character_table_00616604[480] = {
     3, 1, 0, 0, 3, 56, 4, 2, 1, 2, 5, 4, 24, 4, 5,
@@ -229,7 +229,7 @@ void CalcCharacterLevelBand(W8Character* character)
     }
 }
 
-/* Look up the value that faction, race and profession together select. */
+/* Look up the value that sex, race and profession together select. */
 // FUNCTION: WIZ8 0x004ef950
 void CalcCharacterTableValue(W8Character* character)
 {
@@ -237,7 +237,7 @@ void CalcCharacterTableValue(W8Character* character)
         srAssertFail("pPC->iRace < PC_RACE_COUNT", GAMEPLAY_CODE_CPP, 2359, 0);
     }
     character->table_value_0079 =
-        g_character_table_00616604[(character->faction * 0x10 + character->race) * W8_PROF_COUNT +
+        g_character_table_00616604[(character->gender * 0x10 + character->race) * W8_PROF_COUNT +
                                    character->current_profession];
 }
 
@@ -750,8 +750,8 @@ void CalcArmorClasses(W8Character* character)
                            : (weighted_total + 50) / 100;
 }
 
-/* 0x006164F4: personality and voice values by faction and profession class,
-   two dwords per row. It ends exactly where the faction/race/profession table
+/* 0x006164F4: personality and voice values by sex and profession class,
+   two dwords per row. It ends exactly where the sex/race/profession table
    at 0x00616604 begins. */
 // GLOBAL: WIZ8 0x006164F4
 const int g_character_value_table_006164f4[34][2] = {
@@ -762,17 +762,17 @@ const int g_character_value_table_006164f4[34][2] = {
     {2, 2}, {2, 2}
 };
 
-/* Derive the character's personality and voice from faction and profession.
+/* Derive the character's personality and voice from sex and profession.
    Unaligned characters pick a class through the race shortcut first. */
 // FUNCTION: WIZ8 0x004EFA30
 void Function4EFA30(W8Character* character)
 {
-    int faction = character->faction;
+    int gender = character->gender;
     int value = character->current_profession;
     int index;
     int flag;
 
-    if (faction == 0) {
+    if (gender == 0) {
         switch (value) {
         case 0:
         case 1:
@@ -787,7 +787,7 @@ void Function4EFA30(W8Character* character)
             break;
         }
     }
-    index = faction + value * 2;
+    index = gender + value * 2;
     flag = g_character_value_table_006164f4[index][1];
     character->personality_0081 = g_character_value_table_006164f4[index][0];
     if (flag == 1) {

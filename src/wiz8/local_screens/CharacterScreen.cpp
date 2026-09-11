@@ -66,7 +66,7 @@ unsigned short g_profession_name_message_ids_61e3f0[32] = {
     0x2ca, 0x2cb, 0x2cc, 0x2cd, 0x2ce, 0x2cf, 0x2d0, 0,
 };
 // GLOBAL: WIZ8 0x0061e430
-unsigned short g_faction_name_message_rows_61e430[4][4] = {
+unsigned short g_gender_name_message_rows_61e430[4][4] = {
     {0x2d1, 0x2d4, 0x2d7, 0x2da}, {0x2d2, 0x2d5, 0x2d8, 0x2db},
     {0x2d3, 0x2d6, 0x2d9, 0x2dc}, {0x2dd, 0x2de, 0x2df, 0x2e0},
 };
@@ -536,8 +536,8 @@ void W8CharacterScreen::DrawHeader()
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(FormatWideString(
             L"%s %s",
-            gppStringList[g_faction_name_message_rows_61e430[
-                m_character_018.faction][0]],
+            gppStringList[g_gender_name_message_rows_61e430[
+                m_character_018.gender][0]],
             gppStringList[g_race_name_message_ids_61e3d0[m_character_018.race]]),
             g_font_683660);
         text.RenderToTarget(0, 1, -14);

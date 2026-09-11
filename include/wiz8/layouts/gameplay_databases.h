@@ -138,7 +138,7 @@ struct W8NpcCharacterTemplate {
     unsigned short equipment_ids[12];    /* 0x1be, record 0x282: Items.dbs index, 0xffff empty */
     unsigned short backpack_present[8];  /* 0x1d6, record 0x29a */
     unsigned short backpack_ids[8];      /* 0x1e6, record 0x2aa */
-    signed char faction;                 /* 0x1f6, record 0x2ba */
+    signed char gender;                  /* 0x1f6, record 0x2ba: copied into the character's own sex field */
     unsigned char unknown_1f7[0xf];
 };                                       /* 0x206, record 0x0c4..0x2c9 */
 
@@ -232,7 +232,7 @@ struct W8MonsterRecord {
        five and thirteen and no others, which is the only body that reads it. */
     unsigned char kind_0cb;
     /* 0x0cc: selects this monster's row in the name-prefix table at 0x0061E436,
-       the same table a character indexes by faction. */
+       the same table a character indexes by sex. */
     unsigned char name_group_0cc;
     unsigned char unknown_0cd[2];
     /* 0x0cf: the monster's own percentage reduction on incoming damage. */

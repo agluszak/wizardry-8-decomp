@@ -388,7 +388,7 @@ void AdjustIntegerByPercent(unsigned int* value, unsigned int percent)
 
 // FUNCTION: WIZ8 0x00518150
 int GetRandomCharacter(int require_primary, int require_secondary, int excluded_slot,
-                       signed char excluded_faction)
+                       signed char excluded_gender)
 {
     int skip;
     unsigned int slot;
@@ -406,7 +406,7 @@ retry:
             character = &g_party_characters[slot];
             if ((character->hp_current > 0 && character->unknown_0b01 < 0x12)
                 || require_primary == 2) {
-                if (excluded_faction == -1 || excluded_faction != character->faction) {
+                if (excluded_gender == -1 || excluded_gender != character->gender) {
                     if (character->unknown_0b01 < 0xf || require_secondary == 2) {
                         matched = 1;
                         if (skip == 0) {

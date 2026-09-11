@@ -104,7 +104,7 @@ static_assert(sizeof(W8CharacterPage) == 0x70, "W8CharacterPage_size");
 
 class W8CharacterStatsRow005EF750;
 
-/* One record of the three stats-page row tables (profession, race, faction).
+/* One record of the three stats-page row tables (profession, race, sex).
    0x00 is the catalogue object id, 0x04/0x08 its two images, 0x0C the name
    message id and 0x0E the selectable flag. */
 struct W8CharacterStatsRecord {
@@ -208,9 +208,10 @@ public:
 private:
     void UpdateRowValues(); /* 0x005ca200 */
 
+public:
     W8CharacterStatsRow005EF750* m_profession_row_07c;
     W8CharacterStatsRow005EF750* m_race_row_080;
-    W8CharacterStatsRow005EF750* m_faction_row_084;
+    W8CharacterStatsRow005EF750* m_gender_row_084;
     unsigned char m_navigation_state_088;
     unsigned char m_rows_initialized_089;
     unsigned char pad_08a[2];

@@ -43,6 +43,8 @@ struct RuntimeObservation {
     unsigned char transition_observed;
     unsigned char character_entered;
     unsigned char character_returned;
+    unsigned char final_page_entered;
+    unsigned char final_page_redrawn;
     unsigned char return_observed;
     unsigned char timed_out;
     unsigned char playlist_active;
@@ -180,6 +182,28 @@ static void SendScenarioMouse(int client_x, int client_y)
     if (SendInput(2, events, sizeof(INPUT)) != 2) {
         fprintf(stderr, "runtime-test mouse injection failed: %lu\n", GetLastError());
     }
+}
+
+/* Click the live centre of a product control through its registered region,
+   the same rectangle the input dispatch uses. */
+static void ClickControl(W8TextControl* control)
+{
+    if (control == 0 || control->m_region < 0 ||
+        static_cast<unsigned int>(control->m_region) >= g_region_count) {
+        return;
+    }
+    W8Region* bounds = &g_regions[control->m_region];
+    SendScenarioMouse((bounds->x1 + bounds->x2) / 2,
+                      (bounds->y1 + bounds->y2) / 2);
+}
+
+static DWORD FailScenario()
+{
+    g_observation.timed_out = 1;
+    if (ghWindow != NULL) {
+        PostMessage(ghWindow, WM_CLOSE, 0, 0);
+    }
+    return 2;
 }
 
 static bool WaitForMainMenu(unsigned int timeout_ms)
@@ -382,17 +406,158 @@ static DWORD WINAPI DriveScenario(void*)
             Sleep(10);
         }
         if (!g_observation.character_entered) {
-            g_observation.timed_out = 1;
-            PostMessage(ghWindow, WM_CLOSE, 0, 0);
-            return 2;
+            return FailScenario();
+        }
+
+        /* Walk the creation pages through their real controls. The first
+           profession record is a non-caster, so the spell page is skipped. */
+        W8CharacterScreen* screen =
+            *(W8CharacterScreen* volatile*)&g_character_screen_0069c2e8;
+        if (screen == 0 || screen->m_page_index_00c != 0 ||
+            screen->m_pages_1b0c[0] == 0) {
+            return FailScenario();
+        }
+        W8CharacterPage005EF778* stats_page =
+            static_cast<W8CharacterPage005EF778*>(screen->m_pages_1b0c[0]);
+        W8CharacterCreationState* creation = &screen->m_creation_state_187c;
+
+        /* Take the first profession, race and sex record. */
+        ClickControl(stats_page->m_profession_row_07c->m_increment_020);
+        started = GetTickCount();
+        while (stats_page->m_profession_row_07c->m_value_004 == -1) {
+            if (GetTickCount() - started > 3000) return FailScenario();
+            Sleep(10);
+        }
+        ClickControl(stats_page->m_race_row_080->m_increment_020);
+        started = GetTickCount();
+        while (stats_page->m_race_row_080->m_value_004 == -1) {
+            if (GetTickCount() - started > 3000) return FailScenario();
+            Sleep(10);
+        }
+        ClickControl(stats_page->m_gender_row_084->m_increment_020);
+        started = GetTickCount();
+        while (stats_page->m_gender_row_084->m_value_004 == -1) {
+            if (GetTickCount() - started > 3000) return FailScenario();
+            Sleep(10);
+        }
+
+        /* The row callback enables the attribute entries once profession and
+           race exist. */
+        started = GetTickCount();
+        while (!stats_page->m_entries_04c.data[0]->m_enabled_03a) {
+            if (GetTickCount() - started > 3000) return FailScenario();
+            Sleep(10);
+        }
+
+        /* Spend the whole attribute pool through each entry's own increment
+           control until the page itself reports the allocation complete. */
+        bool progress = true;
+        started = GetTickCount();
+        while (creation->attributes_complete == 0 && progress &&
+               GetTickCount() - started < 20000) {
+            progress = false;
+            for (int index = 0; index < stats_page->m_entries_04c.count; ++index) {
+                W8CharacterPageEntry* entry = stats_page->m_entries_04c.data[index];
+                if (entry == 0 || !entry->m_enabled_03a) {
+                    continue;
+                }
+                while (true) {
+                    volatile int* spent = entry->m_second_024;
+                    volatile int* limit = entry->m_third_028;
+                    if (*spent >= *limit) break;
+                    int before = *spent;
+                    ClickControl(entry->m_increment_008);
+                    unsigned int click_started = GetTickCount();
+                    while (*spent == before &&
+                           GetTickCount() - click_started < 1000) {
+                        Sleep(5);
+                    }
+                    if (*spent == before) break;
+                    progress = true;
+                    if (creation->attributes_complete != 0) break;
+                }
+                if (creation->attributes_complete != 0) break;
+            }
+        }
+        if (creation->attributes_complete == 0) {
+            return FailScenario();
+        }
+
+        ClickControl(screen->m_next_1af8);
+        started = GetTickCount();
+        while (*(volatile int*)&screen->m_page_index_00c != 2) {
+            if (GetTickCount() - started > 5000) return FailScenario();
+            Sleep(10);
+        }
+
+        /* Spend the skill pool the same way on the skill page. */
+        W8CharacterPage005EF5C8* skills_page = 0;
+        started = GetTickCount();
+        while (GetTickCount() - started < 5000) {
+            skills_page =
+                static_cast<W8CharacterPage005EF5C8*>(screen->m_pages_1b0c[2]);
+            if (skills_page != 0 && skills_page->m_entries_04c.count > 0 &&
+                skills_page->m_entries_04c.data[0]->m_enabled_03a) {
+                break;
+            }
+            Sleep(10);
+        }
+        if (skills_page == 0 || skills_page->m_entries_04c.count == 0) {
+            return FailScenario();
+        }
+        progress = true;
+        started = GetTickCount();
+        while (creation->skills_complete == 0 && progress &&
+               GetTickCount() - started < 20000) {
+            progress = false;
+            for (int index = 0; index < skills_page->m_entries_04c.count; ++index) {
+                W8CharacterPageEntry* entry = skills_page->m_entries_04c.data[index];
+                if (entry == 0 || !entry->m_enabled_03a ||
+                    !entry->m_increment_allowed_03b) {
+                    continue;
+                }
+                volatile int* spent = entry->m_second_024;
+                volatile int* limit = entry->m_third_028;
+                if (*spent >= *limit) continue;
+                int before = *spent;
+                ClickControl(entry->m_increment_008);
+                unsigned int click_started = GetTickCount();
+                while (*spent == before && GetTickCount() - click_started < 1000) {
+                    Sleep(5);
+                }
+                if (*spent != before) progress = true;
+                if (creation->skills_complete != 0) break;
+            }
+        }
+        if (creation->skills_complete == 0) {
+            return FailScenario();
+        }
+
+        /* Enter the final page and let its redraw complete: the prepared block
+           clearing is the product-side proof that a frame ran. */
+        ClickControl(screen->m_next_1af8);
+        started = GetTickCount();
+        while (GetTickCount() - started < 5000) {
+            W8CharacterPage005EF57C* final_page =
+                *(W8CharacterPage005EF57C* volatile*)&screen->m_pages_1b0c[3];
+            if (*(volatile int*)&screen->m_page_index_00c == 3 &&
+                final_page != 0) {
+                g_observation.final_page_entered = 1;
+                if (final_page->m_prepared_06c == 0) {
+                    g_observation.final_page_redrawn = 1;
+                    break;
+                }
+            }
+            Sleep(10);
+        }
+        if (!g_observation.final_page_entered) {
+            return FailScenario();
         }
 
         /* Escape raises the discard dialog; accept it once it is up. */
         SendScenarioKey(VK_ESCAPE);
         started = GetTickCount();
         while (GetTickCount() - started < 2000) {
-            W8CharacterScreen* screen =
-                *(W8CharacterScreen* volatile*)&g_character_screen_0069c2e8;
             if (screen != 0 && screen->m_dialog_1b1c != 0) {
                 break;
             }
@@ -410,9 +575,7 @@ static DWORD WINAPI DriveScenario(void*)
             Sleep(10);
         }
         if (!g_observation.character_returned) {
-            g_observation.timed_out = 1;
-            PostMessage(ghWindow, WM_CLOSE, 0, 0);
-            return 2;
+            return FailScenario();
         }
 
         SendScenarioKey(VK_ESCAPE);
@@ -480,7 +643,7 @@ int main(int argc, char** argv)
 
     char command_line[] = "";
     WinMain(GetModuleHandle(NULL), NULL, command_line, SW_SHOWNORMAL);
-    WaitForSingleObject(driver, 35000);
+    WaitForSingleObject(driver, 60000);
     DWORD driver_status = 2;
     GetExitCodeThread(driver, &driver_status);
     CloseHandle(driver);
@@ -502,6 +665,7 @@ int main(int argc, char** argv)
         "patch_precedence_ok=%u physical_fallback_ok=%u "
         "shade_table_ok=%u exit_observed=%u transition_observed=%u "
         "character_entered=%u character_returned=%u "
+        "final_page_entered=%u final_page_redrawn=%u "
         "return_observed=%u teardown=%u timed_out=%u\n",
         g_scenario,
         g_observation.menu_seen,
@@ -526,6 +690,8 @@ int main(int argc, char** argv)
         g_observation.transition_observed,
         g_observation.character_entered,
         g_observation.character_returned,
+        g_observation.final_page_entered,
+        g_observation.final_page_redrawn,
         g_observation.return_observed,
         teardown_ok ? 1 : 0,
         g_observation.timed_out);
@@ -546,6 +712,7 @@ int main(int argc, char** argv)
     const bool transition_ok =
         strcmp(g_scenario, "main-menu-new-game") != 0 ||
         (g_observation.transition_observed && g_observation.character_entered &&
+         g_observation.final_page_entered && g_observation.final_page_redrawn &&
          g_observation.character_returned && g_observation.return_observed);
     const int result =
         driver_status == 0 && startup_ok &&

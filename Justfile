@@ -122,10 +122,12 @@ debug *args:
     trap 'rm -f "$log"' EXIT
     set +e
     printf '%s' "$script" | winedbg ./Wiz8Runtime.exe /WINDOW "$@" 2>&1 | tee "$log"
-    status=${PIPESTATUS[0]}
+    status=${PIPESTATUS[1]}
     set -e
-    (cd "{{justfile_directory()}}" && uv run wiz8 analyze crash --log "$log" \
-        --map "{{justfile_directory()}}/build/decomp/Wiz8Runtime.map") || true
+    if grep -qE "WIZ8_RUNTIME_CRASH|Unhandled exception" "$log"; then
+        (cd "{{justfile_directory()}}" && uv run wiz8 analyze crash --log "$log" \
+            --map "{{justfile_directory()}}/build/decomp/Wiz8Runtime.map") || true
+    fi
     exit "$status"
 
 runtime-test:
