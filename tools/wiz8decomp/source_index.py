@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import re
+import shlex
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -285,6 +287,108 @@ def validate_cross_tu_declarations(repository: Path) -> int:
     return len(functions) + len(variables)
 
 
+_INCLUDE_FLAGS_WITH_ARGUMENT = frozenset({"-I", "-isystem", "-iquote", "-idirafter"})
+
+
+def _compile_command_include_dirs(entry: dict[str, Any]) -> list[str]:
+    """The include search directories one compile command adds.
+
+    The lint projection emits POSIX ``-I`` flags, so only the two spellings it
+    can produce are recognized; everything else stays out of the dependency
+    fingerprint.
+    """
+    arguments = entry.get("arguments")
+    if isinstance(arguments, list):
+        tokens = [str(token) for token in arguments]
+    else:
+        tokens = shlex.split(str(entry.get("command", "")))
+    found: list[str] = []
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if token in _INCLUDE_FLAGS_WITH_ARGUMENT:
+            if index + 1 < len(tokens):
+                found.append(tokens[index + 1])
+            index += 2
+            continue
+        for flag in ("-isystem", "-iquote", "-idirafter", "-I"):
+            if token.startswith(flag) and len(token) > len(flag):
+                found.append(token[len(flag) :])
+                break
+        index += 1
+    return found
+
+
+def _guest_to_host(guest: str, mounts: dict[Path, str]) -> Path | None:
+    """Translate one compile-database path back to a host directory."""
+    if not guest.startswith("/"):
+        return None
+    matches = sorted(
+        ((mount_guest, host) for host, mount_guest in mounts.items()),
+        key=lambda item: len(item[0]),
+        reverse=True,
+    )
+    for mount_guest, host in matches:
+        trimmed = mount_guest.rstrip("/")
+        if guest == trimmed:
+            return host
+        if guest.startswith(trimmed + "/"):
+            return host / guest[len(trimmed) + 1 :]
+    return None
+
+
+def _cache_inputs_by_target(
+    repository: Path,
+    targets: dict[str, tuple[Path, ...]],
+    entries_by_target: dict[str, list[dict[str, Any]]],
+    mounts: dict[Path, str],
+) -> dict[str, tuple[Path, ...]]:
+    """Derive each namespace's dependency fingerprint from its own compile
+    commands.
+
+    reccmp fingerprints a namespace from its marker targets plus ``cache_inputs``
+    and reads every file below each entry. Handing every namespace the whole
+    repository therefore re-hashes every tree four times and makes a WIZ8 source
+    edit invalidate the extension namespaces. The include directories of the
+    namespace's own compile commands are the actual header dependencies, so each
+    namespace fingerprints only the headers it can include.
+    """
+    result: dict[str, tuple[Path, ...]] = {}
+    for target, entries in entries_by_target.items():
+        unique: list[Path] = []
+        seen: set[Path] = set()
+        for entry in entries:
+            for guest in _compile_command_include_dirs(entry):
+                host = _guest_to_host(guest, mounts)
+                if host is None or host in seen or not host.is_dir():
+                    continue
+                seen.add(host)
+                unique.append(host)
+        result[target] = tuple(unique)
+    for target in targets:
+        result.setdefault(target, ())
+    return result
+
+
+def _seed_collector_binary(source: Path, destination: Path) -> None:
+    """Reuse one compiled collector across the per-namespace projections.
+
+    reccmp keeps the compiled ``indexer`` beside the projection in ``cache_dir``,
+    so each namespace compiles the identical Clang collector on a cold cache.
+    Copy the built executable and its digest into the next namespace's cache
+    before its first lookup. The long-term fix belongs in reccmp (one batch with
+    a namespace-aware identity); this keeps the Wizardry side from paying for it.
+    """
+    if source == destination:
+        return
+    destination.mkdir(parents=True, exist_ok=True)
+    for name in ("indexer", "indexer.sha256"):
+        origin = source / name
+        target = destination / name
+        if origin.is_file() and not target.is_file():
+            shutil.copyfile(origin, target)
+
+
 def _collect_per_namespace(
     repository: Path,
     database: Path,
@@ -294,7 +398,6 @@ def _collect_per_namespace(
     clang: str | None,
     container_image: str | None,
     mounts: dict[Path, str],
-    cache_inputs: tuple[Path, ...],
     force: bool,
 ) -> SourceIndex:
     """Collect one source index per link namespace, then merge the markers.
@@ -305,9 +408,12 @@ def _collect_per_namespace(
     collector merges records by ``semantic_id`` across every translation unit
     it sees, so one shared collection keeps only one of those definitions and
     the other target's marker binds to nothing. Partition the compile database
-    by source root and collect each namespace with its own cache; entries
-    covered by no root (none today) are shared by every partition to preserve
-    the old header-visibility behavior.
+    by source root and collect each namespace with its own cache.
+
+    Entries outside every source root are external/vendor translation units
+    (``/zlib``, ``/infozip``); their headers are already parsed through the
+    first-party units that include them, so running them standalone only
+    multiplies work. An unowned ``/repo`` entry is a configuration error.
     """
     entries = json.loads(database.read_text(encoding="utf-8"))
 
@@ -323,23 +429,30 @@ def _collect_per_namespace(
         return None
 
     by_target: dict[str, list[dict[str, Any]]] = {target: [] for target in targets}
-    shared: list[dict[str, Any]] = []
     for entry in entries:
         target = owner(entry)
-        if target is None:
-            shared.append(entry)
-        else:
+        if target is not None:
             by_target[target].append(entry)
+            continue
+        raw = str(entry.get("file", ""))
+        if raw.startswith("/repo/"):
+            raise SourceIndexError(
+                f"compile database entry is outside every configured source-root: {raw}"
+            )
+    cache_inputs = _cache_inputs_by_target(repository, targets, by_target, mounts)
     indexes = []
+    binary_source: Path | None = None
     for target, paths in targets.items():
-        partitioned = [*by_target[target], *shared]
         partitioned_db = (
             repository / "build" / "source-index-cache" / f"compile-commands-{target.lower()}.json"
         )
         partitioned_db.parent.mkdir(parents=True, exist_ok=True)
-        content = json.dumps(partitioned, indent=2) + "\n"
+        content = json.dumps(by_target[target], indent=2) + "\n"
         if not partitioned_db.is_file() or partitioned_db.read_text(encoding="utf-8") != content:
             partitioned_db.write_text(content, encoding="utf-8")
+        cache_dir = repository / "build" / "source-index-cache" / target.lower()
+        if binary_source is not None:
+            _seed_collector_binary(binary_source, cache_dir)
         indexes.append(
             SourceIndex.from_compile_database(
                 repository,
@@ -349,11 +462,13 @@ def _collect_per_namespace(
                 container_image=container_image,
                 compilation_root=Path("/repo"),
                 mounts=mounts,
-                cache_dir=repository / "build" / "source-index-cache" / target.lower(),
-                cache_inputs=cache_inputs,
+                cache_dir=cache_dir,
+                cache_inputs=(*cache_inputs[target], database),
                 force=force,
             )
         )
+        if binary_source is None:
+            binary_source = cache_dir
     # Each namespace keeps its own winner: the same unmangled spelling may be
     # legitimately defined in several binaries, and the consistency gate groups
     # every spelling by identity, so cross-namespace disagreements stay visible.
@@ -398,19 +513,6 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
         settings.work_dir / "fid/sources/unpacked/ijg-jpeg-6/jpeg-6": "/jpeg",
         settings.work_dir / "fid/sources/unpacked/infozip-unzip-5.4": "/infozip",
     }
-    cache_inputs = (
-        *tuple(
-            repository / path
-            for path in (
-                "include",
-                "src",
-                "config",
-            )
-        ),
-        settings.work_dir / "fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4",
-        settings.work_dir / "fid/sources/unpacked/ijg-jpeg-6/jpeg-6",
-        settings.work_dir / "fid/sources/unpacked/infozip-unzip-5.4",
-    )
     index = _collect_per_namespace(
         repository,
         database,
@@ -419,7 +521,6 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
         clang="/usr/bin/clang-cl",
         container_image=VC6_IMAGE,
         mounts=mounts,
-        cache_inputs=cache_inputs,
         force=force,
     )
     index.write(repository / "build/source-index.json")

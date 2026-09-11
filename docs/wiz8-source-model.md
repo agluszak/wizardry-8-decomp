@@ -262,6 +262,12 @@ is partitioned by source root with a separate cache: the same unmangled
 symbol may legitimately be defined in several binaries (both extension DLLs
 define `DllMain` as `_DllMain@12`), and one shared collector would keep only
 one of those definitions and leave the other target's marker unbound.
+External vendor translation units (`/zlib`, `/infozip`) are not collected
+standalone: their headers are already parsed through the first-party units
+that include them. Each namespace fingerprints only the include directories
+its own compile commands reference, so a `src/wiz8` edit does not invalidate
+the SURRENDER or extension caches, and the compiled Clang collector is built
+once and reused across the per-namespace caches.
 
 C++ mangling already encodes the complete type, so divergent C++ declarations
 cannot share a symbol. The reccmp indexer records variable declarations with
