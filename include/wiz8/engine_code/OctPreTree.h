@@ -9,7 +9,13 @@
 struct W8OctRegionVolume0049E460 {
     unsigned long positional_00;
     unsigned short region_04;
-    unsigned char positional_06[0x82];
+    unsigned char positional_06[6];
+    /* The bit the visibility pass tests and sets for this volume. */
+    unsigned int region_bit_0c;
+    unsigned char positional_10[0xc];
+    /* Nine 12-byte points from +0x1c to +0x88; 0x004301C0 projects the first
+       against the camera and falls back to the other eight. */
+    srVector3T<float> points_1c[9];
     srVector4T<float> planes_88[6];
 
     unsigned char ContainsPoint0049E460(

@@ -33,6 +33,11 @@ void Function46E640(srScene* scene, int argument);
 void Function46E750(srScene* scene, int argument);
 
 
+void BuildPlaneFromPoints0046D660(
+    srVector4T<float>* plane,
+    const srVector3T<float>* first,
+    const srVector3T<float>* second,
+    const srVector3T<float>* third);
 unsigned char Function0046D880(
     const srVector3T<float>* point, const unsigned char* filter);
 unsigned char HasLineOfSightToBounds0046FD70(

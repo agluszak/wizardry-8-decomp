@@ -441,6 +441,103 @@ unsigned char W8Octree::CollectVisibleRegions00430D50(
     return 1;
 }
 
+/* Project each candidate region volume against the camera frustum and add the
+   visible ones to the current region set. The first corner is tested against
+   the far-clip sphere before the eight remaining corners are projected. */
+// FUNCTION: WIZ8 0x004301c0
+void W8Octree::Function004301C0()
+{
+    float radius = far_clip_200;
+    float radius_squared = radius * radius;
+    const unsigned char* frustum =
+        reinterpret_cast<const unsigned char*>(m_frustum_planes_21c); // reinterpret-ok: frustum plane words
+
+    for (int index = 1; index < spatial_000.positional_46; ++index) {
+        W8OctRegionVolume0049E460* volume = &spatial_000.owned_5c[index];
+
+        if (m_projected_regions_valid_16a != 0 &&
+            !m_projected_regions_15c->Test(volume->region_bit_0c)) {
+            continue;
+        }
+        float dx = camera_location_1c0.x - volume->points_1c[0].x;
+        float dy = camera_location_1c0.y - volume->points_1c[0].y;
+        float dz = camera_location_1c0.z - volume->points_1c[0].z;
+
+        if (dx * dx + dy * dy + dz * dz >= radius_squared) {
+            continue;
+        }
+        unsigned char visible = Function0046D880(
+            &volume->points_1c[0], frustum);
+
+        for (int point = 1; !visible && point < 9; ++point) {
+            visible = Function0046D880(
+                &volume->points_1c[point], frustum);
+        }
+        if (visible != 0 && volume->region_bit_0c != 0) {
+            m_current_regions_160->Set(volume->region_bit_0c);
+        }
+    }
+}
+
+/* Build the four side frustum planes from the camera basis and far clip, and
+   accumulate the two far-plane offsets the region projection reads. */
+// FUNCTION: WIZ8 0x004302e0
+void W8Octree::Function004302E0()
+{
+    float fov = horizontal_fov_1f0 * g_float_005ebc7c;
+    float extent = spatial_000.positional_60;
+    float far_clip = far_clip_200;
+    float sine = (float)sin(fov);
+    float cosine = (float)cos(fov);
+    float ratio = extent / cosine;
+    float tangent = (float)tan(fov);
+    float tangent_vertical = (float)tan(vertical_fov_1f4 * g_float_005ebc7c);
+    srVector3T<float> corners[8];
+
+    m_positional_268 = 0.0f;
+    m_positional_278 = 0.0f;
+    for (int axis = 0; axis < 3; ++axis) {
+        float dof = (&camera_dof_1cc.x)[axis];
+        float column1 = (&rotation_column_1d8.x)[axis];
+        float column2 = (&rotation_column_1e4.x)[axis];
+        float w = far_clip * dof;
+        float a = (tangent * far_clip + ratio) * column1;
+        float b = (tangent_vertical * far_clip + ratio) * column2;
+
+        (&corners[0].x)[axis] =
+            (&camera_location_1c0.x)[axis] - (extent / sine) * dof;
+        (&corners[1].x)[axis] = a;
+        (&corners[2].x)[axis] = b;
+        (&corners[3].x)[axis] = w;
+        (&corners[4].x)[axis] = (w - a) + b;
+        (&corners[5].x)[axis] = (w + b) + a;
+        (&corners[6].x)[axis] = (w - a) - b;
+        (&corners[7].x)[axis] = (w + a) - b;
+        (&corners[4].x)[axis] += (&camera_location_1c0.x)[axis];
+        (&corners[5].x)[axis] += (&camera_location_1c0.x)[axis];
+        (&corners[6].x)[axis] += (&camera_location_1c0.x)[axis];
+        (&corners[7].x)[axis] += (&camera_location_1c0.x)[axis];
+        (&m_positional_25c.x)[axis] = dof;
+        m_positional_268 -= dof * (&corners[0].x)[axis];
+        (&m_positional_26c.x)[axis] = -dof;
+        m_positional_278 -= -dof * (&corners[4].x)[axis];
+    }
+    BuildPlaneFromPoints0046D660(
+        &m_frustum_planes_21c[0], &corners[0], &corners[5], &corners[4]);
+    BuildPlaneFromPoints0046D660(
+        &m_frustum_planes_21c[1], &corners[0], &corners[4], &corners[6]);
+    BuildPlaneFromPoints0046D660(
+        &m_frustum_planes_21c[2], &corners[0], &corners[7], &corners[5]);
+    BuildPlaneFromPoints0046D660(
+        &m_frustum_planes_21c[3], &corners[0], &corners[6], &corners[7]);
+    m_frustum_planes_21c[0].w += spatial_000.positional_54;
+    m_frustum_planes_21c[1].w += spatial_000.positional_54;
+    m_frustum_planes_21c[2].w += spatial_000.positional_54;
+    m_frustum_planes_21c[3].w += spatial_000.positional_54;
+    m_positional_268 += spatial_000.positional_54;
+    m_positional_278 += spatial_000.positional_54;
+}
+
 /* Collect the cells around the camera into the current region set.
 
    Two setup helpers refresh the frame state. The leaf cell radius comes from
@@ -514,6 +611,8 @@ void W8Octree::CollectVisibleCells0042FE90()
                 else {
                     float offset =
                         spatial_000.positional_54 * g_float_005ebc7c;
+                    const unsigned char* frustum =
+                        reinterpret_cast<const unsigned char*>(m_frustum_planes_21c); // reinterpret-ok: frustum plane words
                     srVector3T<float> point;
                     point.x = (float)cell_x * spatial_000.positional_54 +
                               offset + spatial_000.minimum_0c.x;
@@ -521,7 +620,7 @@ void W8Octree::CollectVisibleCells0042FE90()
                               spatial_000.minimum_0c.y + offset;
                     point.z = (float)cell_z * spatial_000.positional_54 +
                               spatial_000.minimum_0c.z + offset;
-                    if (Function0046D880(&point, m_positional_204 + 0x18) ==
+                    if (Function0046D880(&point, frustum) ==
                         0) {
                         continue;
                     }

@@ -312,7 +312,15 @@ public:
     float horizontal_fov_cosine_1f8;
     float vertical_fov_cosine_1fc;
     float far_clip_200;
-    unsigned char m_positional_204[0x78];
+    unsigned char m_positional_204[0x18];
+    /* The four side planes 0x004302E0 builds and 0x004301C0 tests points
+       against, then the far-plane corner offsets and two accumulators it
+       carries beside them. */
+    srVector4T<float> m_frustum_planes_21c[4];   /* 0x21c */
+    srVector3T<float> m_positional_25c;          /* 0x25c */
+    float m_positional_268;                      /* 0x268 */
+    srVector3T<float> m_positional_26c;          /* 0x26c */
+    float m_positional_278;                      /* 0x278 */
     unsigned long m_positional_27c;
     unsigned long m_positional_280;
     unsigned long m_positional_284;
