@@ -76,8 +76,7 @@ unsigned char g_cd_marker_present_69b7d0;
 #include "wiz8/fact_state.h"
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/LoadSaveGame.h"
-/* 0x00412A10; the reviewed identity Ghidra carries. Nothing defines it yet. */
-extern void RefreshSlfArchives(void);
+#include "LibraryDataBase.h"
 extern unsigned char g_flag_689b2c;
 
 /* 0x0064BF8C: one video-object id per level, the backdrop the Please Wait
@@ -193,7 +192,7 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
             SetFlag603C60();
             return 0;
         }
-        RefreshSlfArchives();
+        ReopenCDLibraries();
     }
     return 1;
 }
@@ -245,7 +244,7 @@ void PleaseWaitScreenFrame(void)
         else if (GetTickCount() - g_load_descriptor_69b7c8->entered_tick > 200) {
             if (!IsLevelCdMissing0042B6F0(g_load_descriptor_69b7c8->parameter)) {
                 g_load_descriptor_69b7c8->waiting = 0;
-                RefreshSlfArchives();
+                ReopenCDLibraries();
                 g_swap_disc_dialog_69b7cc->is_open = 0;
             }
             else if (!g_swap_disc_dialog_69b7cc->is_open

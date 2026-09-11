@@ -16,7 +16,7 @@ public:
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
     virtual SR_DLL_IMPORT void verify(srRuntimeClass::e_verify mode) override;
 
-protected:
+    /* Retail exports the destructor under its public spelling. */
     virtual SR_DLL_IMPORT ~srFog() override;
 
 public:

@@ -13,9 +13,8 @@ float g_float_005ec414 = 0.9998999834060669f;
 #include <math.h>
 #include <string.h>
 
-extern W8OctPreTree004679E0* g_oct_pre_tree_659c74;
 // GLOBAL: WIZ8 0x00659c74
-extern W8OctPreTree004679E0* g_oct_pre_tree_659c74;
+W8OctPreTree004679E0* g_oct_pre_tree_659c74 = 0;
 
 /* The build-time runtime tree extends the ordinary 0x29c octree with transfer
    bookkeeping and one separately owned pointer vector.  Its only recovered

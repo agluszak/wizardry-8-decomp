@@ -696,6 +696,7 @@ EXPORTS
     ?setUpdatesTime@srClass@@QAEXN@Z
     ?touch@srClass@@QAEXXZ
     ?verify@srClass@@UAEXW4e_verify@srRuntimeClass@@@Z
+    ??0srMaterialIFace@@QAE@XZ
     ??1srMaterialIFace@@UAE@XZ
     ?sGetClassName@srMaterialIFace@@SAPBDXZ
     ??1srMaterial@@MAE@XZ
@@ -811,6 +812,7 @@ EXPORTS
     ?setModel@Client@srModel@@UAEXPAV2@@Z
     ?updateClient@Client@srModel@@UAEXW4e_update@12@@Z
     ??0srModelInstance@@QAE@PAVsrNode@@@Z
+    ?setExclusionMask@srModelInstance@@QAEXK@Z
     ?setLocation@srNode@@QAEXABV?$srVector3T@N@@@Z
     ??1srModelInstance@@MAE@XZ
     ?dump@srModelInstance@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z

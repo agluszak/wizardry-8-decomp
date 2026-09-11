@@ -12,6 +12,7 @@
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/quad.h"
 #include "wiz8/engine_code/Missile.h"
+#include "wiz8/spell_effect.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stLight.h"
 #include "wiz8/engine_code/stParticle.h"
@@ -504,7 +505,7 @@ void W8Missile::StartIfHostActive()
             Function4A49E0();
         }
         if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 != 0) {
-            Function500460(this);
+            AbsorbMissileDamage00500460(this);
         }
     }
 }

@@ -345,6 +345,13 @@ static DWORD WINAPI DriveScenario(void*)
     g_observation.region_set_enabled = g_region_sets[1].enabled;
     g_observation.first_region = g_region_sets[1].first_region;
     g_observation.last_region = g_region_sets[1].last_region;
+    /* The menu music starts on a later frame than the menu state and its
+       regions; the observation is only stable once the list is live. */
+    unsigned int playlist_started = GetTickCount();
+    while (*(volatile unsigned char*)&g_music_playlist_active_65ba7e == 0 &&
+           GetTickCount() - playlist_started < 3000) {
+        Sleep(10);
+    }
     g_observation.playlist_active = g_music_playlist_active_65ba7e;
     g_observation.playlist_tracks = g_music_playlist_track_count_65ba84;
     g_observation.playlist_weight = g_music_playlist_weight_total_65ba80;

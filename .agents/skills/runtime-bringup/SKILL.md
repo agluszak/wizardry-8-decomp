@@ -27,6 +27,13 @@ as stack words for image addresses, and `just run`/`runtime-test` symbolize the 
 product MAP, including the unresolved externals of the caller's object. Do not chase Wine's one-frame
 `+0x7` MZ backtrace by hand.
 
+`Wiz8Runtime.exe` and `Wiz8RuntimeTest.exe` link without `/FORCE:UNRESOLVED`. Unrecovered calls enter
+a build-generated `// STUB:` trap that prints
+`WIZ8_RUNTIME_STUB address=... symbol=... name=...` and breaks before touching the caller's stack.
+`just build runtime`/`runtime-test` regenerate the stub set automatically; recovering a retail body
+removes its stub on the next build. If stubgen reports an unresolved identity at an already recovered
+address, fix the declaration/linkage/signature; never add a handwritten fake body.
+
 ## Recover the failing behavior
 
 1. Establish the requested transition/observation with `just run-original`, then compare `just run`

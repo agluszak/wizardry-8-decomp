@@ -60,6 +60,5 @@ int CastSpellFromSource(
     int spell_id, W8TargetSource* source, W8CombatSlot* target,
     unsigned int power_level, int a, int b, int c, int d, int e, int f,
     int g);                                                     /* 0x004FB4C0 */
-void Function500460(W8Missile* missile);
 
 #endif

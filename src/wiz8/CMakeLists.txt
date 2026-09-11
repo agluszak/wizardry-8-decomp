@@ -25,6 +25,38 @@ endif()
     wiz8_add_import_library(WIZ8_MSS32 src/wiz8/imports/mss32.def PRESERVE_C_DECORATION)
     wiz8_add_import_library(WIZ8_BINKW32 src/wiz8/imports/binkw32.def PRESERVE_C_DECORATION)
 
+    # Runtime-only fallback traps for calls recovery has not reached yet. The
+    # generated source aliases the exact unresolved linker symbols to
+    # non-returning debugger-friendly thunks, so the runnable products link
+    # without /FORCE:UNRESOLVED. The matching image never links this object.
+    set(wiz8_runtime_stub_source
+        "${CMAKE_CURRENT_BINARY_DIR}/generated/runtime-stubs/runtime_stubs.cpp")
+    set(wiz8_runtime_stub_object
+        "${CMAKE_CURRENT_BINARY_DIR}/generated/runtime-stubs/runtime_stubs.obj")
+    if(NOT EXISTS "${wiz8_runtime_stub_source}")
+        file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/generated/runtime-stubs")
+        file(WRITE "${wiz8_runtime_stub_source}"
+            "// Generated before the runtime link by wiz8 generate runtime-stubs.\n")
+    endif()
+    if(NOT EXISTS "${wiz8_runtime_stub_object}")
+        file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/generated/runtime-stubs")
+        file(WRITE "${wiz8_runtime_stub_object}" "")
+    endif()
+    set_source_files_properties(
+        "${wiz8_runtime_stub_source}" "${wiz8_runtime_stub_object}"
+        PROPERTIES GENERATED TRUE)
+    set_source_files_properties(
+        "${wiz8_runtime_stub_object}" PROPERTIES EXTERNAL_OBJECT TRUE)
+    add_library(wiz8_runtime_stub_objects OBJECT
+        tests/runtime/wiz8_unrecovered.cpp
+        "${wiz8_runtime_stub_source}"
+    )
+    target_include_directories(wiz8_runtime_stub_objects PRIVATE include)
+    target_compile_definitions(wiz8_runtime_stub_objects
+        PRIVATE NDEBUG NOMINMAX WIN32_LEAN_AND_MEAN)
+    target_compile_options(wiz8_runtime_stub_objects
+        PRIVATE /nologo /Z7 /Od /Ob0 /Oy-)
+
     # Every product uses the same SGP archive. Comparison can also inspect
     # individual object contributions when a function is discarded at link.
     wiz8_add_executable(
@@ -41,8 +73,10 @@ endif()
         OUTPUT Wiz8Runtime
         MAP Wiz8Runtime.map
         OPT_REF
-        ALLOW_UNRESOLVED
-        SOURCES tests/runtime/wiz8_crash_report.cpp
+        SOURCES
+            "$<TARGET_OBJECTS:wiz8_runtime_stub_objects>"
+            "${wiz8_runtime_stub_object}"
+            tests/runtime/wiz8_crash_report.cpp
         LIBRARIES WIZ8_SGP ddraw.lib gdi32.lib user32.lib
     )
     # The semantic test product links the same recovered and retained runtime
@@ -54,7 +88,10 @@ endif()
         MAP Wiz8RuntimeTest.map
         OPT_REF
         CONSOLE
-        ALLOW_UNRESOLVED
-        SOURCES tests/runtime/wiz8_runtime_test.cpp tests/runtime/wiz8_crash_report.cpp
+        SOURCES
+            "$<TARGET_OBJECTS:wiz8_runtime_stub_objects>"
+            "${wiz8_runtime_stub_object}"
+            tests/runtime/wiz8_runtime_test.cpp
+            tests/runtime/wiz8_crash_report.cpp
         LIBRARIES WIZ8_SGP ddraw.lib gdi32.lib user32.lib
     )

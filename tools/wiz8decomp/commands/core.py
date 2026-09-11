@@ -7,6 +7,7 @@ import typer
 
 toolchain_app = typer.Typer(help="Build the pinned analysis toolchain.", no_args_is_help=True)
 analyze_app = typer.Typer(help="Run project-specific binary analysis.", no_args_is_help=True)
+generate_app = typer.Typer(help="Generate build-time projections.", no_args_is_help=True)
 
 
 def doctor_command() -> None:
@@ -254,6 +255,7 @@ def register(app: typer.Typer) -> None:
     app.command("runtime-test")(runtime_test_command)
     app.command("verify")(verify_command)
     app.add_typer(analyze_app, name="analyze")
+    app.add_typer(generate_app, name="generate")
     app.command("check-build-dir", hidden=True)(check_build_dir_command)
     app.command("check-reccmp", hidden=True)(check_reccmp_command)
     app.command("check-casts", hidden=True)(check_casts_command)
@@ -268,6 +270,7 @@ def register(app: typer.Typer) -> None:
     analyze_app.command("trace")(trace_command)
     analyze_app.command("source-layouts")(verify_source_layouts_command)
     analyze_app.command("source-index")(source_index_command)
+    generate_app.command("runtime-stubs")(runtime_stubs_command)
 
 
 def source_index_command() -> None:
@@ -301,6 +304,14 @@ def unresolved_report_command(
         return report
 
     cli.emit(action())
+
+
+def runtime_stubs_command() -> None:
+    """Generate the runtime fallback traps for unresolved first-party calls."""
+    from .. import command_support as cli
+    from ..runtime_stubs import write_runtime_stubs
+
+    cli.emit(write_runtime_stubs(cli.settings()))
 
 
 def crash_report_command(

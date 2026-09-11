@@ -65,16 +65,29 @@ def parse_map_publics(path: Path) -> set[str]:
     return publics
 
 
-def unresolved_report(object_root: Path, map_path: Path | None = None) -> dict[str, Any]:
-    """Group every unsatisfied first-party external by the unit that wants it."""
+def unresolved_report(
+    object_root: Path, map_path: Path | None = None, objects: list[Path] | None = None
+) -> dict[str, Any]:
+    """Group every unsatisfied first-party external by the unit that wants it.
+
+    ``objects`` restricts the scan to an explicit object list, which callers use
+    when the object directory still holds files a previous source layout left
+    behind and only the linked objects are authoritative.
+    """
 
     if not object_root.is_dir():
         raise RuntimeError(f"no built objects to report on: {object_root}")
+    if objects is None:
+        candidates = [
+            obj
+            for obj in sorted(object_root.rglob("*.obj"))
+            if any(part.endswith(".dir") for part in obj.parts)
+        ]
+    else:
+        candidates = [path for path in objects if path.is_file()]
     defined: set[str] = set()
     wanted: dict[str, set[str]] = {}
-    for obj in sorted(object_root.rglob("*.obj")):
-        if not any(part.endswith(".dir") for part in obj.parts):
-            continue
+    for obj in candidates:
         provides, refers = object_symbols(obj)
         defined |= provides
         if refers:

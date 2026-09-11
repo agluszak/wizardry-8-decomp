@@ -21,6 +21,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/NPCScripting.h"
+#include "wiz8/local_code/Sight.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 
 #include <stdio.h>
@@ -761,7 +762,6 @@ unsigned char UpdateNpcAt(W8NpcState* /*npc*/, int /*arg_2*/, srVector3T<float>*
     return 0;
 }
 
-extern unsigned char g_flag_683fc5;
 extern void Function55A0A0(int value);                              /* 0x0055A0A0 */
 
 /* The frame-0x10 callback the 0x1b6 NPC cycle installs: mark the monster,
@@ -923,7 +923,7 @@ void UpdateNpcEvents0050D530(void)
         }
     }
 
-    if (g_flag_683fc5 == 0) {
+    if (g_sight_messages_enabled_00683fc5 == 0) {
         unsigned int row_offset = 0;
         unsigned int character_offset = 0;
 

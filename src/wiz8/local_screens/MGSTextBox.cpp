@@ -35,8 +35,10 @@ int g_text_box_value_0064bd54 = 12;
 extern int g_text_line_cursor_00686905;
 // GLOBAL: WIZ8 0x00686905
 int g_text_line_cursor_00686905;
-/* 0x00689B17: one entry per line, how many messages that line holds. */
-extern const int g_text_line_counts[];
+/* 0x00689B17: one entry per line, how many messages that line holds.
+   Five dwords reach the next global at 0x00689B2C. */
+// GLOBAL: WIZ8 0x00689b17
+int g_text_line_counts[5] = {0, 0, 0, 0, 0};
 /* 0x0068F2D4: the screen the text box belongs to; its two panels sit at 0x0c
    and 0x14. */
 

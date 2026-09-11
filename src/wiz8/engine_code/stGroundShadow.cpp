@@ -20,7 +20,10 @@ srMaterial* g_ground_shadow_material_006834d0;
 extern unsigned long g_ground_shadow_shader_006834c8;
 // GLOBAL: WIZ8 0x006834c8
 unsigned long g_ground_shadow_shader_006834c8;
-extern unsigned char g_ground_shadow_material_parameters_00683430[];
+/* 0x00683430: the vertex-processor parameters the material mapper is
+   installed with; the next recovered global begins at 0x006834C8. */
+// GLOBAL: WIZ8 0x00683430
+unsigned char g_ground_shadow_material_parameters_00683430[0x98] = {0};
 
 
 // SYNTHETIC: WIZ8 0x004D6340

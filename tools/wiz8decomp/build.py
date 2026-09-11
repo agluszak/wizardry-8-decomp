@@ -368,6 +368,20 @@ def build_target(
             )
         if not _product_cache_ready(build.build_dir):
             _configure(settings)
+        if resolved_target in {"WIZ8_RUNTIME", "WIZ8_RUNTIME_TEST"}:
+            # The runnable products must link without /FORCE:UNRESOLVED, so the
+            # comparison MAP and the generated trap thunks must be current
+            # before their link runs. The comparison product keeps /FORCE.
+            run(
+                build.build_command("WIZ8", jobs or max(1, os.cpu_count() or 1)),
+                cwd=settings.repo_dir,
+                log_path=settings.repo_dir / "build" / "logs" / "runtime-prereq.json",
+            )
+            from .runtime_stubs import write_runtime_stubs
+            from .source_index import write_source_index
+
+            write_source_index(settings)
+            write_runtime_stubs(settings)
         run(
             build.build_command(resolved_target, jobs or max(1, os.cpu_count() or 1)),
             cwd=settings.repo_dir,

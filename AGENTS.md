@@ -79,6 +79,20 @@ Stop when the requested functions, ABI bundle, or behavior meet acceptance crite
 bodies need no independent rediscovery. If no evidence-backed correction remains, retain faithful
 source and report the unresolved mismatch or missing evidence; do not relabel uncertainty as success.
 
+## Runtime linking
+
+- Never add handwritten fake implementations to make a runtime link succeed.
+- An unrecovered retail function may be represented by a build-generated
+  `// STUB:` trap in the runnable products only. `STUB` is not source recovery;
+  `FUNCTION` means a body has actually been recovered.
+- `wiz8 generate runtime-stubs` derives the stub set from the real unresolved
+  symbols and runs automatically for `just build runtime`/`runtime-test`.
+- If stubgen reports an unresolved identity that maps to an already recovered
+  address, fix the declaration/linkage/signature mismatch; do not suppress the
+  diagnostic.
+- `Wiz8.exe` may keep `/FORCE:UNRESOLVED` for matching. `Wiz8Runtime.exe` and
+  `Wiz8RuntimeTest.exe` must link without it.
+
 ## Verification
 
 Use the smallest existing check capable of detecting the relevant failure. Validate coherent changes,
