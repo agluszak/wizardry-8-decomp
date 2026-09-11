@@ -376,7 +376,7 @@ void W8CharacterPage005EF5C8::SetCharacter(
         entry->m_listener_004 = this;
         ++category_count[category];
     }
-    m_navigation_state_076 = 0;
+    m_navigation_state_076 = false;
 }
 
 // FUNCTION: WIZ8 0x005c76a0
@@ -402,7 +402,7 @@ void W8CharacterPage005EF5C8::Accept()
 
 // FUNCTION: WIZ8 0x005c7720
 void W8CharacterPage005EF5C8::GetNavigationState(
-    unsigned char* next_enabled, unsigned char* exit_enabled)
+    bool* next_enabled, bool* exit_enabled)
 {
     *next_enabled = m_creation_state_064->skills_complete;
     *exit_enabled = m_creation_state_064->skill_points_remaining <
@@ -410,7 +410,7 @@ void W8CharacterPage005EF5C8::GetNavigationState(
     if (*next_enabled != m_navigation_state_076) {
         for (int index = 0; index < m_entries_04c.count; ++index) {
             m_entries_04c.data[index]->SetIncrementAllowed(
-                *next_enabled == 0);
+                !*next_enabled);
         }
         m_navigation_state_076 = *next_enabled;
     }
@@ -669,13 +669,13 @@ void W8CharacterPage005EF57C::Accept()
 
 // FUNCTION: WIZ8 0x005c69a0
 void W8CharacterPage005EF57C::GetNavigationState(
-    unsigned char* next_enabled, unsigned char* exit_enabled)
+    bool* next_enabled, bool* exit_enabled)
 {
-    *next_enabled = static_cast<unsigned char>(
-        GetTextInputFieldLength(0) != 0 && GetTextInputFieldLength(1) != 0);
+    *next_enabled =
+        GetTextInputFieldLength(0) != 0 && GetTextInputFieldLength(1) != 0;
     if (m_mode_068 != 0) {
         W8Character* original = m_screen_05c->GetOriginalCharacter();
-        *exit_enabled = 0;
+        *exit_enabled = false;
         if (m_character_060->personality_0081 == original->personality_0081 &&
             m_character_060->table_value_0079 == original->table_value_0079 &&
             m_character_060->voice_0085 == original->voice_0085 &&
@@ -683,10 +683,10 @@ void W8CharacterPage005EF57C::GetNavigationState(
             wcscmp(m_character_060->name, original->name) == 0) {
             return;
         }
-        *exit_enabled = 1;
+        *exit_enabled = true;
     }
     else {
-        *exit_enabled = 1;
+        *exit_enabled = true;
     }
 }
 

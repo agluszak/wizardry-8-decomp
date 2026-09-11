@@ -10,7 +10,7 @@ struct W8CharacterCreationState {
     int attribute_values_008[7];          /* 0x008 */
     int attribute_step_limit;             /* 0x024 */
     int attribute_limits_028[7];          /* 0x028 */
-    unsigned char attributes_complete;    /* 0x044 */
+    bool attributes_complete;             /* 0x044: set once every attribute choice validates */
     unsigned char unknown_045[3];
     int attribute_baselines_048[7];       /* 0x048 */
     int skill_points_remaining;           /* 0x064 */
@@ -18,7 +18,7 @@ struct W8CharacterCreationState {
     int skill_points_spent[0x29];         /* 0x06c */
     int skill_step_limit;                 /* 0x110 */
     int skill_limits[0x29];               /* 0x114 */
-    unsigned char skills_complete;        /* 0x1b8 */
+    bool skills_complete;                 /* 0x1b8: set once every skill choice validates */
     unsigned char unknown_1b9[3];
     /* 0x1bc: the per-skill counterpart of attribute_baselines_048. The
        level-up reset zeroes it, and a profession change refunds whatever each
@@ -42,7 +42,7 @@ void Function5571E0(W8Character*, W8CharacterCreationState*, int);
 void Function557200(W8Character*, W8CharacterCreationState*);
 void DetermineEligibleProfessions(
     W8Character*, W8CharacterCreationState*, unsigned char*);
-void Function557580(W8Character*, W8CharacterCreationState*, unsigned char);
+void Function557580(W8Character*, W8CharacterCreationState*, bool);
 /* 0x00557430: hand out the starting equipment table the race or profession
    selects, then the profession's own extra item. */
 void AddCharacterStartingEquipment(W8Character*);

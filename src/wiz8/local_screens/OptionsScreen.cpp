@@ -169,7 +169,7 @@ W8OptionsKeyboardPage g_options_keyboard_pages[5] = {
 };
 
 W8OptionsPanelSet::W8OptionsPanelSet()
-    : m_mode_000(0), m_compact_layout(0), m_hide_navigation(0), m_active(0), m_current_00c(0)
+    : m_mode_000(0), m_compact_layout(0), m_hide_navigation(0), m_active(false), m_current_00c(0)
 {
 }
 
@@ -1406,7 +1406,7 @@ void W8OptionsScreen::SelectPanel(int selected, unsigned char notify)
     if (m_selected_panel_020 != -1) {
         W8OptionsPanelSet* previous = m_panel_038[m_selected_panel_020];
         (*previous->m_panels_010.GetAt(previous->m_current_00c))->SetActive(0);
-        previous->m_active = 0;
+        previous->m_active = false;
     }
     m_selected_panel_020 = selected;
     if (selected != -1) {
@@ -1422,11 +1422,11 @@ void W8OptionsScreen::SelectPanel(int selected, unsigned char notify)
             }
         }
         W8OptionsPanelSet* current = m_panel_038[m_selected_panel_020];
-        if (current->m_active == 0) {
+        if (!current->m_active) {
             current->m_current_00c = 0;
         }
         (*current->m_panels_010.GetAt(current->m_current_00c))->SetActive(1);
-        current->m_active = 1;
+        current->m_active = true;
         m_menu_set_028->m_pMenuSet = m_panel_038[m_selected_panel_020];
         m_menu_set_028->UpdateMenuSet();
         if (m_selected_panel_020 == 4) {
@@ -1511,7 +1511,7 @@ void W8OptionsScreen::Redraw()
     }
     if (m_selected_panel_020 != -1) {
         W8OptionsPanelSet* panel_set = m_panel_038[m_selected_panel_020];
-        if (panel_set->m_active != 0) {
+        if (panel_set->m_active) {
             (*panel_set->m_panels_010.GetAt(panel_set->m_current_00c))->Redraw();
         }
     }
@@ -1717,7 +1717,7 @@ W8OptionsSlider::~W8OptionsSlider()
 void W8OptionsSlider::OnMouseMove(int event)
 {
     W8HorizontalRangeThumb::OnMouseMove(event);
-    if (m_dragging != 0 && m_value != 0) {
+    if (m_dragging && m_value != 0) {
         *m_value = m_position;
     }
 }
@@ -2182,7 +2182,7 @@ void OptionsScreenFrame()
             if (screen->m_selected_panel_020 != -1) {
                 W8OptionsPanelSet* panel_set =
                     screen->m_panel_038[screen->m_selected_panel_020];
-                if (panel_set->m_active != 0) {
+                if (panel_set->m_active) {
                     (*panel_set->m_panels_010.GetAt(panel_set->m_current_00c))
                         ->Invalidate(0);
                 }

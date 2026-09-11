@@ -48,7 +48,7 @@ public:
     void SetValue(int value);
     void Decrement();
     void Increment();
-    void SetRangeEnabled(unsigned char enabled);
+    void SetRangeEnabled(bool enabled);
 
     int m_minimum;                       /* 0x4c */
     int m_maximum;                       /* 0x50 */
@@ -57,7 +57,7 @@ public:
     W8Widget* m_increment;   /* 0x5c */
     W8VerticalRangeThumb* m_thumb; /* 0x60 */
     W8RangeListener* m_listener;         /* 0x64 */
-    unsigned char m_enabled;             /* 0x68 */
+    bool m_enabled;                      /* 0x68: binary enable gating Decrement/Increment */
 };
 static_assert(sizeof(W8RangeControl) == 0x6c, "W8RangeControl_size");
 
@@ -96,8 +96,8 @@ protected:
     int m_thumbWidth;
     int m_pixelPosition;
     int m_dragCoordinate;
-    unsigned char m_hovered;
-    unsigned char m_dragging;
+    bool m_hovered;                      /* cursor over the thumb */
+    bool m_dragging;                     /* thumb drag in progress */
     unsigned char pad_5e[2];
 
 public:

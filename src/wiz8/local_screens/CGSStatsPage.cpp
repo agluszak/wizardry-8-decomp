@@ -682,24 +682,24 @@ void W8CharacterPage005EF778::Accept()
    once any points are committed. */
 // FUNCTION: WIZ8 0x005ca550
 void W8CharacterPage005EF778::GetNavigationState(
-    unsigned char* next_enabled, unsigned char* exit_enabled)
+    bool* next_enabled, bool* exit_enabled)
 {
-    if (m_creation_state_064->attributes_complete == 0 ||
+    if (!m_creation_state_064->attributes_complete ||
         m_character_060->current_profession == -1 ||
         m_character_060->race == -1 ||
         m_character_060->gender == -1) {
-        *next_enabled = 0;
+        *next_enabled = false;
     }
     else {
-        *next_enabled = 1;
+        *next_enabled = true;
     }
-    *exit_enabled = static_cast<unsigned char>(
+    *exit_enabled =
         m_creation_state_064->attribute_points_remaining <
-        m_creation_state_064->attribute_points_total);
+        m_creation_state_064->attribute_points_total;
     if (*next_enabled != m_navigation_state_088) {
         for (int index = 0; index < m_entries_04c.count; ++index) {
             m_entries_04c.data[index]->SetIncrementAllowed(
-                *next_enabled == 0);
+                !*next_enabled);
         }
         m_navigation_state_088 = *next_enabled;
     }
@@ -1007,7 +1007,7 @@ void W8CharacterPage005EF778::SetCharacter(
             &creation_state->attribute_limits_028[attribute_index], 0x101);
         entry->SetEnabled(0);
     }
-    m_navigation_state_088 = 0;
+    m_navigation_state_088 = false;
     m_rows_initialized_089 = 0;
 
     for (int control_index = 0; control_index < 5; ++control_index) {

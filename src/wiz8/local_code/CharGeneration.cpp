@@ -1066,13 +1066,13 @@ complete:
    retail index, not by anything a record says. */
 // FUNCTION: WIZ8 0x00557580
 void Function557580(W8Character* character, W8CharacterCreationState* creation_state,
-                    unsigned char mode)
+                    bool give_starting_equipment)
 {
     unsigned int realm;
     unsigned int spell;
 
     Function4ED9D0(character);
-    if (mode != 0) {
+    if (give_starting_equipment) {
         AddCharacterStartingEquipment(character);
     }
 

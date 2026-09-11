@@ -264,7 +264,7 @@ void W8CharacterPage005EF664::Deactivate()
 
 // FUNCTION: WIZ8 0x005c8770
 void W8CharacterPage005EF664::GetNavigationState(
-    unsigned char* next_enabled, unsigned char* exit_enabled)
+    bool* next_enabled, bool* exit_enabled)
 {
     *next_enabled = 1;
     *exit_enabled = m_creation_state_064->spell_points_remaining <

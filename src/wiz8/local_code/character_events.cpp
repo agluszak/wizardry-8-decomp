@@ -330,7 +330,7 @@ void W8StartupRuntimeState::SetEventCharacterMask(
     if (event_type >= g_first_remapped_event_005ee718) {
         event_type += g_last_event_005ee70c - g_first_remapped_event_005ee718;
     }
-    if (enabled == 0) {
+    if (!enabled) {
         bytes_68[event_type] &= (unsigned char)~mask;
     }
     else {

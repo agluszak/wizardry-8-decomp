@@ -113,7 +113,7 @@ public:
     int unknown_004;
     unsigned char m_compact_layout;
     unsigned char m_hide_navigation;
-    unsigned char m_active;
+    bool m_active;                       /* set once the set's panels are built */
     unsigned char pad_00b;
     int m_current_00c;
     W8GrowableVector<W8OptionsPanel*> m_panels_010;

@@ -230,8 +230,8 @@ void W8CharacterScreen::UpdateDialog()
 // FUNCTION: WIZ8 0x005b0580
 void W8CharacterScreen::UpdateNavigation(W8CharacterPage* page)
 {
-    unsigned char next_enabled;
-    unsigned char exit_enabled;
+    bool next_enabled;
+    bool exit_enabled;
     page->GetNavigationState(&next_enabled, &exit_enabled);
     if (!m_next_1af8->m_enabled && next_enabled) {
         SoundPlay("Data\\Sound\\Misc\\Points Spent.wav", 0);
@@ -569,7 +569,7 @@ unsigned char W8CharacterScreen::CommitCharacter()
     memcpy(&backup, &m_character_018, sizeof(backup));
     if (mode != 1) {
         Function557580(&m_character_018, &m_creation_state_187c,
-                       static_cast<unsigned char>(mode == 0));
+                       mode == 0);
     }
     if (!g_status_685170.game_started &&
         !g_status_685170.skip_loose_character_check_2444) {

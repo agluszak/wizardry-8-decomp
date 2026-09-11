@@ -1462,7 +1462,7 @@ void W8TextControl::UpdateTextBounds(int left, int top, int right, int bottom)
 void W8TextControl::SetEnabled(bool enabled)
 {
     m_enabled = enabled;
-    if (enabled == 0) {
+    if (!enabled) {
         if (m_disabledSprite != -1) {
             m_textBuffer.SetRenderMode(7);
         }
@@ -1534,8 +1534,8 @@ protected:
     int m_thumbHeight;                   /* 0x50 */
     int m_trackLength;                   /* 0x54 */
     int m_dragCoordinate;                /* 0x58 */
-    unsigned char m_hovered;             /* 0x5c */
-    unsigned char m_dragging;            /* 0x5d */
+    bool m_hovered;                      /* 0x5c: cursor over the thumb */
+    bool m_dragging;                     /* 0x5d: thumb drag in progress */
     unsigned char pad_5e[2];
     float m_minimumPosition;             /* 0x60 */
     float m_maximumPosition;             /* 0x64 */
@@ -1639,7 +1639,7 @@ void W8RangeControl::SetValue(int value)
 // FUNCTION: WIZ8 0x004f6540
 void W8RangeControl::Decrement()
 {
-    if (m_enabled != 0) {
+    if (m_enabled) {
         SetValue(m_value - 1);
         if (m_listener != 0) {
             m_listener->OnRangeChanged(this);
@@ -1650,7 +1650,7 @@ void W8RangeControl::Decrement()
 // FUNCTION: WIZ8 0x004f6570
 void W8RangeControl::Increment()
 {
-    if (m_enabled != 0) {
+    if (m_enabled) {
         SetValue(m_value + 1);
         if (m_listener != 0) {
             m_listener->OnRangeChanged(this);
@@ -1659,7 +1659,7 @@ void W8RangeControl::Increment()
 }
 
 // FUNCTION: WIZ8 0x004f65a0
-void W8RangeControl::SetRangeEnabled(unsigned char enabled)
+void W8RangeControl::SetRangeEnabled(bool enabled)
 {
     m_enabled = enabled;
     m_decrement->SetEnabled(enabled);
@@ -1717,8 +1717,8 @@ W8VerticalRangeThumb::W8VerticalRangeThumb(
     m_renderArg = render_arg;
     m_renderArg38 = 0;
     m_normalSprite = normal_sprite;
-    m_hovered = 0;
-    m_dragging = 0;
+    m_hovered = false;
+    m_dragging = false;
     m_minimumPosition = 0.0f;
     m_maximumPosition = 1.0f;
     m_position = 0.0f;
@@ -1744,15 +1744,15 @@ void W8VerticalRangeThumb::OnLeftButtonDown(int event)
         POINT cursor;
         SGPMouseGetPos(&cursor);
         int y = cursor.y - m_pPanel->origin_y - m_top;
-        if (m_hovered == 0) {
-            m_hovered = 1;
+        if (!m_hovered) {
+            m_hovered = true;
             m_position = ((float)(y - m_thumbHeight / 2) / (float)m_trackLength) *
                          (m_maximumPosition - m_minimumPosition) + m_minimumPosition;
             ClampPositionAndInvalidate();
             SynchronizeRangeValue();
         }
         m_dragCoordinate = y;
-        m_dragging = 1;
+        m_dragging = true;
         ActivateDialogRegion(m_region);
     }
 }
@@ -1761,8 +1761,8 @@ void W8VerticalRangeThumb::OnLeftButtonDown(int event)
 void W8VerticalRangeThumb::OnLeftButtonUp(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
-    if (m_enabled && m_dragging != 0) {
-        m_dragging = 0;
+    if (m_enabled && m_dragging) {
+        m_dragging = false;
         ClearActiveRegionIfMatches(m_region);
     }
 }
@@ -1777,7 +1777,7 @@ void W8VerticalRangeThumb::OnMouseMove(int event)
     POINT cursor;
     SGPMouseGetPos(&cursor);
     int y = cursor.y - m_pPanel->origin_y - m_top;
-    if (m_dragging != 0) {
+    if (m_dragging) {
         int half_height = m_thumbHeight / 2;
         if (y <= half_height) {
             m_position = 0.0f;
@@ -1794,7 +1794,7 @@ void W8VerticalRangeThumb::OnMouseMove(int event)
         return;
     }
 
-    unsigned char hovered =
+    bool hovered =
         (m_pixelPosition <= y && y <= m_pixelPosition + m_thumbHeight);
     if (hovered != m_hovered && m_pPanel != 0) {
         m_dirty = 1;
@@ -1841,7 +1841,7 @@ void W8VerticalRangeThumb::Redraw(int full_redraw)
         if (sprite == -1) {
             return;
         }
-    } else if (m_hovered == 0 || (sprite = m_hoveredSprite) == -1) {
+    } else if (!m_hovered || (sprite = m_hoveredSprite) == -1) {
         sprite = m_normalSprite;
     }
     DrawCatalogImage(-14, m_renderArg, m_renderArg38, sprite,
@@ -2020,8 +2020,8 @@ W8HorizontalRangeThumb::W8HorizontalRangeThumb(
     m_renderArg1 = render_arg_1;
     m_backgroundSprite = background_sprite;
     m_pixelPosition = 0;
-    m_hovered = 0;
-    m_dragging = 0;
+    m_hovered = false;
+    m_dragging = false;
     m_minimumPosition = 0.0f;
     m_maximumPosition = 1.0f;
     m_position = 0.0f;
@@ -2049,8 +2049,8 @@ void W8HorizontalRangeThumb::OnLeftButtonDown(int event)
         POINT cursor;
         SGPMouseGetPos(&cursor);
         int x = cursor.x - m_pPanel->origin_x - m_left;
-        if (m_hovered == 0) {
-            m_hovered = 1;
+        if (!m_hovered) {
+            m_hovered = true;
             m_position = ((float)(x - m_thumbWidth / 2) / (float)m_trackLength) *
                          (m_maximumPosition - m_minimumPosition) + m_minimumPosition;
             ClampPositionAndInvalidate();
@@ -2059,7 +2059,7 @@ void W8HorizontalRangeThumb::OnLeftButtonDown(int event)
             }
         }
         m_dragCoordinate = x;
-        m_dragging = 1;
+        m_dragging = true;
         ActivateDialogRegion(m_region);
     }
 }
@@ -2068,8 +2068,8 @@ void W8HorizontalRangeThumb::OnLeftButtonDown(int event)
 void W8HorizontalRangeThumb::OnLeftButtonUp(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
-    if (m_enabled && m_dragging != 0) {
-        m_dragging = 0;
+    if (m_enabled && m_dragging) {
+        m_dragging = false;
         ClearActiveRegionIfMatches(m_region);
         if (m_listener != 0) {
             m_listener->OnDragEnd(this);
@@ -2092,8 +2092,8 @@ void W8VerticalRangeThumb::OnMouseEnter(int)
 void W8VerticalRangeThumb::OnMouseLeave(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
-    if (m_hovered != 0 && m_dragging == 0) {
-        m_hovered = 0;
+    if (m_hovered && !m_dragging) {
+        m_hovered = false;
         if (m_pPanel != 0) {
             m_dirty = 1;
             if (static_cast<unsigned char>(event) != 0) {
@@ -2112,8 +2112,8 @@ void W8VerticalRangeThumb::OnMouseLeave(int event)
 void W8HorizontalRangeThumb::OnMouseLeave(int event)
 {
     PushButtonSoundScheme005587C0(0, 1);
-    if (m_hovered != 0 && m_dragging == 0) {
-        m_hovered = 0;
+    if (m_hovered && !m_dragging) {
+        m_hovered = false;
         if (m_pPanel != 0) {
             m_dirty = 1;
             if (static_cast<unsigned char>(event) != 0) {
@@ -2138,7 +2138,7 @@ void W8HorizontalRangeThumb::OnMouseMove(int event)
     POINT cursor;
     SGPMouseGetPos(&cursor);
     int x = cursor.x - m_pPanel->origin_x - m_left;
-    if (m_dragging != 0) {
+    if (m_dragging) {
         if (x < 0 || m_trackLength + m_thumbWidth / 2 < x) {
             return;
         }
@@ -2153,7 +2153,7 @@ void W8HorizontalRangeThumb::OnMouseMove(int event)
         return;
     }
 
-    unsigned char hovered =
+    bool hovered =
         (m_pixelPosition <= x && x <= m_pixelPosition + m_thumbWidth);
     if (m_hovered != hovered && m_pPanel != 0) {
         InvalidateThumb();
@@ -2176,7 +2176,7 @@ void W8HorizontalRangeThumb::Redraw(int full_redraw)
     int sprite;
     if (!m_enabled && m_disabledThumbSprite != -1) {
         sprite = m_disabledThumbSprite;
-    } else if (m_hovered != 0 && m_hoveredThumbSprite != -1) {
+    } else if (m_hovered && m_hoveredThumbSprite != -1) {
         sprite = m_hoveredThumbSprite;
     } else {
         sprite = m_normalThumbSprite;

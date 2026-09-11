@@ -199,7 +199,7 @@ void W8CampCharacterInfo::SetCombatView(bool enabled)
 {
     m_combat_view = enabled;
     m_button_058->SetActive(enabled);
-    m_button_054->SetActive(enabled == 0);
+    m_button_054->SetActive(!enabled);
     m_values[0]->SetActive(enabled);
     m_values[1]->SetActive(enabled);
     m_values[2]->SetActive(enabled);

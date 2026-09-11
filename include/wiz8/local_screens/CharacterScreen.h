@@ -84,8 +84,8 @@ public:
     virtual void Activate() = 0;
     virtual void Deactivate();                          /* 0x005CA1F0 */
     virtual void Accept() = 0;
-    virtual void GetNavigationState(unsigned char* next_enabled,
-                                    unsigned char* exit_enabled) = 0;
+    virtual void GetNavigationState(bool* next_enabled,
+                                    bool* exit_enabled) = 0;
     virtual void HandleInput(InputAtom* input);         /* 0x005B1BE0 */
     virtual void Refresh();                            /* 0x005B1BF0 */
     virtual void Prepare();                            /* 0x005AFFA0 */
@@ -192,7 +192,7 @@ public:
                               W8CharacterCreationState*, int) override;
     virtual void Activate() override;
     virtual void Accept() override;
-    virtual void GetNavigationState(unsigned char*, unsigned char*) override;
+    virtual void GetNavigationState(bool*, bool*) override;
     virtual void HandleInput(InputAtom*) override;
     virtual void Refresh() override;
     virtual void Prepare() override;
@@ -212,7 +212,7 @@ public:
     W8CharacterStatsRow005EF750* m_profession_row_07c;
     W8CharacterStatsRow005EF750* m_race_row_080;
     W8CharacterStatsRow005EF750* m_gender_row_084;
-    unsigned char m_navigation_state_088;
+    bool m_navigation_state_088;
     unsigned char m_rows_initialized_089;
     unsigned char pad_08a[2];
     W8TextControl* m_attribute_controls_08c[5];
@@ -248,7 +248,7 @@ public:
     virtual void Activate() override;
     virtual void Deactivate() override;
     virtual void Accept() override;
-    virtual void GetNavigationState(unsigned char*, unsigned char*) override;
+    virtual void GetNavigationState(bool*, bool*) override;
     virtual void Refresh() override;
     virtual void SelectSpell(unsigned int entry) override;
     virtual void ShowSpellInfo(unsigned int entry) override;
@@ -271,7 +271,7 @@ public:
     virtual void SetCharacter(W8Character*, W8CharacterCreationState*, int) override;
     virtual void Activate() override;
     virtual void Accept() override;
-    virtual void GetNavigationState(unsigned char*, unsigned char*) override;
+    virtual void GetNavigationState(bool*, bool*) override;
     virtual void AdjustEntry(W8CharacterPageEntry*, int) override;
     virtual void ShowEntryInfo(W8CharacterPageEntry*) override;
     virtual void Refresh() override;
@@ -279,7 +279,7 @@ private:
     void UpdateEntries();                               /* 0x005C7B50 */
     unsigned char m_force_redraw_074;
     unsigned char m_show_fifth_category_075;
-    unsigned char m_navigation_state_076;
+    bool m_navigation_state_076;
     unsigned char unknown_077;
 };
 static_assert(sizeof(W8CharacterPage005EF5C8) == 0x78, "W8CharacterPage005EF5C8_size");
@@ -298,7 +298,7 @@ public:
     virtual void Activate() override;
     virtual void Deactivate() override;
     virtual void Accept() override;
-    virtual void GetNavigationState(unsigned char*, unsigned char*) override;
+    virtual void GetNavigationState(bool*, bool*) override;
     virtual void HandleInput(InputAtom*) override;
     virtual void Refresh() override;
     virtual void OnSelectionChanged(W8ControlSelection*, int) override;
