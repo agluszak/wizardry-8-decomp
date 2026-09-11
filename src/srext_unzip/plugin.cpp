@@ -465,14 +465,21 @@ srInlineString operator+(
     return result;
 }
 
+// __cdecl like the sibling JPEG importer: retail exports this name
+// undecorated in every srEXT_* DLL (evidence/snapshots/surrender-abi/exports.csv),
+// which a __stdcall extern "C" definition could not produce, and the SurRender
+// host calls it through srInitPluginCdeclFn.
 // FUNCTION: SREXT_UNZIP 0x10011190
-extern "C" srPlugin* __stdcall srInitPlugin()
+extern "C" srPlugin* __cdecl srInitPlugin()
 {
     return new srUnzipPlugin;
 }
 
+// __cdecl for the same undecorated-export evidence; the host calls through
+// srGetLibraryVersionCdeclFn. Zero-parameter x86 bodies use plain RET under
+// either convention, so the emitted bytes are unchanged.
 // FUNCTION: SREXT_UNZIP 0x10011630
-extern "C" unsigned long __stdcall srGetLibraryVersion()
+extern "C" unsigned long __cdecl srGetLibraryVersion()
 {
     return 0x012A0209UL;
 }

@@ -22,7 +22,7 @@ def test_compare_refreshes_changed_file_selection_before_build(tmp_path, monkeyp
     source.write_text("// FUNCTION: WIZ8 0x00401000\nvoid added() {}\n")
     (tmp_path / "build").mkdir()
     index = tmp_path / "build/source-index.json"
-    stale = {"schema": "reccmp-source-index-v1", "markers": []}
+    stale = {"schema": "reccmp-source-index-v2", "markers": []}
     index.write_text(json.dumps(stale))
     events = []
 

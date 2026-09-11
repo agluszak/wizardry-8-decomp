@@ -329,7 +329,7 @@ unsigned char InitializeVideoManager(
     g_dword_6596e0 = 0;
     g_flags_6596e8[0] = 0;
     g_flags_6596e8[1] = 0;
-    g_instance_654ac4 = (HINSTANCE)instance;
+    g_instance_654ac4 = instance;
     g_show_command_659620 = show_command;
     g_window_proc_6595f8 = (WNDPROC)window_proc;
     Initialize16BitPixelFormatMasks();
@@ -349,14 +349,14 @@ unsigned char InitializeVideoManager(
         }
         if (ghWindow && g_gerd_659634) {
             g_flag_659710 = 1;
-            ShowWindow((HWND)ghWindow, 9);
+            ShowWindow(ghWindow, 9);
             if (g_gerd_659634->isWindowOpen() == 0) {
                 if (!Function422800()) {
                     goto done;
                 }
             }
-            OpenIcon((HWND)ghWindow);
-            SetFocus((HWND)ghWindow);
+            OpenIcon(ghWindow);
+            SetFocus(ghWindow);
             memset(g_block_652ddc, 0, sizeof(g_block_652ddc));
             active = g_index_6596e4;
             g_flags_6596e8[g_index_6596e4 ^ 1] = 0;

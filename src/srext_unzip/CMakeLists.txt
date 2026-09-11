@@ -88,29 +88,26 @@ if(INFOZIP_SOURCE)
         "${INFOZIP_SOURCE}/api.c"
         "${INFOZIP_SOURCE}/windll/windll.c")
 
+    include("${CMAKE_CURRENT_SOURCE_DIR}/src/srext_unzip/first_party_sources.cmake")
+
     # The original image places the Info-ZIP object sequence before Sir-Tech's
     # narrowed WinDLL front end, memory wrapper, and SurRender plug-in object.
+    # Build that order from the shared first-party list: the api_subset head
+    # stays first, the retained Info-ZIP objects follow, then the tail.
+    list(GET SREXT_UNZIP_FIRST_PARTY_SOURCES 0 _srext_unzip_head)
+    list(SUBLIST SREXT_UNZIP_FIRST_PARTY_SOURCES 1 -1 _srext_unzip_tail)
     add_library(SREXT_UNZIP SHARED
-        src/srext_unzip/api_subset.c
+        ${_srext_unzip_head}
         ${SREXT_UNZIP_INFOZIP_SOURCES}
-        src/srext_unzip/windll_subset.c
-        src/srext_unzip/infozip_adapter.c
-        src/srext_unzip/plugin.cpp
+        ${_srext_unzip_tail}
         src/srext_unzip/srEXT_Unzip.def
         "${SREXT_UNZIP_RESOURCE_OBJECT}"
     )
     wiz8_enable_cpp_compat(SREXT_UNZIP)
+    srext_unzip_configure_first_party_compile_model(SREXT_UNZIP)
     add_dependencies(SREXT_UNZIP ${SREXT_UNZIP_SR_IMPORT_TARGET})
-    target_compile_options(SREXT_UNZIP PRIVATE /nologo /W3 /Z7 /GX /O2 /Zp4)
-    target_compile_definitions(SREXT_UNZIP PRIVATE
-        NDEBUG WIN32 _WINDOWS WINDLL USE_EF_UT_TIME DLL
-    )
-    target_include_directories(SREXT_UNZIP PRIVATE
-        include
-        "${INFOZIP_SOURCE}"
-        "${INFOZIP_SOURCE}/windll"
-        "${INFOZIP_SOURCE}/win32"
-    )
+    target_compile_options(SREXT_UNZIP PRIVATE /nologo /W3 /Z7 /GX /O2)
+    target_compile_definitions(SREXT_UNZIP PRIVATE NDEBUG)
     target_link_libraries(SREXT_UNZIP PRIVATE "${SREXT_UNZIP_SR_IMPORT_LIBRARY}")
     target_link_options(SREXT_UNZIP PRIVATE
         /DEBUGTYPE:CV

@@ -1415,7 +1415,7 @@ unsigned char W8OctreeObjectRegistry::RegisterObjectCell(
 
     object_key = (kind & 0xffff) * 0x10000 + (id & 0xffff);
     hash = (object_key >> 10 ^ object_key) >> 10 ^ object_key;
-    slot = static_cast<int*>(by_object->bucket_heads)[hash & (by_object->bucket_count - 1)];
+    slot = by_object->bucket_heads[hash & (by_object->bucket_count - 1)];
     while (slot != -1) {
         entries = static_cast<W8OctreeEntry*>(by_object->entries);
         if (entries[slot].key == object_key) {
@@ -1424,11 +1424,11 @@ unsigned char W8OctreeObjectRegistry::RegisterObjectCell(
                 break;
             }
             if (point[0] == 0 &&
-                (int)(((occupied - 1) & 0xff00) << 8) == point[1] &&
+                (((occupied - 1) & 0xff00) << 8) == point[1] &&
                 ((occupied - 1) & 0xff) == point[2]) {
                 return 1;
             }
-            bucket = static_cast<int*>(by_object->bucket_heads) +
+            bucket = by_object->bucket_heads +
                 (hash & (by_object->bucket_count - 1));
             slot = *bucket;
             if (slot != -1) {
@@ -1454,7 +1454,7 @@ unsigned char W8OctreeObjectRegistry::RegisterObjectCell(
                 }
             }
             by_cell = this->by_cell;
-            bucket = static_cast<int*>(by_cell->bucket_heads) +
+            bucket = by_cell->bucket_heads +
                 ((((unsigned int)occupied >> 10 ^ occupied) >> 10 ^ occupied) &
                  (by_cell->bucket_count - 1));
             if (*bucket != -1) {
@@ -1493,8 +1493,8 @@ unsigned char W8OctreeObjectRegistry::RegisterObjectCell(
             (by_object->bucket_count - 1);
         entries[slot].key = tagged_key;
         entries[slot].value = cell_key;
-        entries[slot].next_index = static_cast<int*>(by_object->bucket_heads)[hash];
-        static_cast<int*>(by_object->bucket_heads)[hash] = slot;
+        entries[slot].next_index = by_object->bucket_heads[hash];
+        by_object->bucket_heads[hash] = slot;
         this->by_cell->Remove((const unsigned int*)&cell_key, (const int*)&tagged_key);
         this->by_cell->Insert((const unsigned int*)&cell_key, (const int*)&tagged_key);
     }
@@ -1557,8 +1557,8 @@ void W8Octree::AddCollidablePropBounds(
                     (by_prop->bucket_count - 1);
                 entries[slot].key = prop_key;
                 entries[slot].value = cell_key;
-                entries[slot].next_index = static_cast<int*>(by_prop->bucket_heads)[hash];
-                static_cast<int*>(by_prop->bucket_heads)[hash] = slot;
+                entries[slot].next_index = by_prop->bucket_heads[hash];
+                by_prop->bucket_heads[hash] = slot;
 
                 by_cell = object_registry->by_cell;
                 by_cell->Remove(&cell_key, (const int*)&prop_key);
@@ -1572,8 +1572,8 @@ void W8Octree::AddCollidablePropBounds(
                 entries[slot].value = prop_key;
                 hash = ((cell_key >> 10 ^ cell_key) >> 10 ^ cell_key) &
                     (by_cell->bucket_count - 1);
-                entries[slot].next_index = static_cast<int*>(by_cell->bucket_heads)[hash];
-                static_cast<int*>(by_cell->bucket_heads)[hash] = slot;
+                entries[slot].next_index = by_cell->bucket_heads[hash];
+                by_cell->bucket_heads[hash] = slot;
             }
         }
     }

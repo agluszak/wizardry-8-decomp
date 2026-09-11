@@ -699,16 +699,14 @@ void W8Prop::Method44C670()
         if (mesh == 0) {
             srAssertFail("psrMesh", PROP_CPP, 0x581, 0);
         }
-        path = reinterpret_cast<W8PathAI*>(
-            static_cast<W8PropRepresentation*>(m_pRep)->animation->path_24);
+        path = static_cast<W8PropRepresentation*>(m_pRep)->animation->path_24;
         if (path != 0) {
             PathAISetValue004A9F60(
                 path,
                 (float)static_cast<W8PropRepresentation*>(m_pRep)->flag_064);
             PathAIApply004AA520(
-                reinterpret_cast<W8PathAI*>(
-                    static_cast<W8PropRepresentation*>(m_pRep)
-                        ->animation->path_24),
+                static_cast<W8PropRepresentation*>(m_pRep)
+                        ->animation->path_24,
                 static_cast<stModelInstance*>(mesh));
         }
         return;

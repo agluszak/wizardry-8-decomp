@@ -814,7 +814,7 @@ srModelInstance* AnimObjDispatch004A14D0(
         srAssertFail("pao", ANIM_OBJ_CPP, 0x243, 0);
     }
     if (animation->flag_05 == 0) {
-        entry = (W8AniMesh*)animation->entries_18[list_index];
+        entry = animation->entries_18[list_index];
         if (entry != (W8AniMesh*)0xdddddddd && entry != 0) {
             entry->list_index_28 = list_index;
             return GetAniMeshFrame004B6550(entry, value);

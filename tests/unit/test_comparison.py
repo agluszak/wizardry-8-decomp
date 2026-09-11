@@ -71,7 +71,7 @@ def test_source_selection_deduplicates_function_markers(tmp_path: Path) -> None:
     (tmp_path / "build/source-index.json").write_text(
         json.dumps(
             {
-                "schema": "reccmp-source-index-v1",
+                "schema": "reccmp-source-index-v2",
                 "classes": [],
                 "declarations": [],
                 "markers": [

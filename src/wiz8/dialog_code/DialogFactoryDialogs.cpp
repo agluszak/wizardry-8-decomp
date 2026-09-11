@@ -393,7 +393,7 @@ void W8Dialog005CBB40::Draw()
                  GetButtonHeight(m_text_button_08c) +
                  GetButtonY(m_second_text_button_090);
     unsigned int visible_lines;
-    if ((int)m_lines_054.GetCount() <
+    if (m_lines_054.GetCount() <
         height / (int)(unsigned int)GetFontHeight(g_dialog_font_64fde8)) {
         m_field_0ec = 0;
         visible_lines = m_lines_054.GetCount();
@@ -401,7 +401,7 @@ void W8Dialog005CBB40::Draw()
     else {
         int rows = height /
                    (int)(unsigned int)GetFontHeight(g_dialog_font_64fde8);
-        if ((int)m_lines_054.GetCount() > rows) {
+        if (m_lines_054.GetCount() > rows) {
             width = width + (-7 - GetButtonWidth(m_up_button_09c));
             m_field_0ec = 1;
             visible_lines = rows;
@@ -426,7 +426,7 @@ void W8Dialog005CBB40::Draw()
                 ((height - GetButtonHeight(m_up_button_09c) -
                   GetButtonHeight(m_down_button_0a4) - 7) *
                  m_selected_line_0f4) /
-                    (int)m_lines_054.GetCount() +
+                    m_lines_054.GetCount() +
                 m_y + 3 + dy);
         ColorFillVideoSurfaceArea(
             -0xe, m_x + width + dx,
@@ -455,7 +455,7 @@ void W8Dialog005CBB40::Draw()
     SaveFontSettings();
     SetFontDestBuffer(-0xe, rect.iLeft + 3, rect.iTop + 3, rect.iRight - 3,
                       rect.iBottom - 3, 0);
-    if ((int)m_lines_054.GetCount() <=
+    if (m_lines_054.GetCount() <=
         (int)(visible_lines + m_first_visible_line_0f0)) {
         visible_lines = m_lines_054.GetCount() - m_first_visible_line_0f0;
     }

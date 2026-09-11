@@ -750,7 +750,7 @@ unsigned char W8GrCycle::ApplyPendingCycle()
         }
 
         signed char subcycle_count = GetNumSubCycles();
-        if ((unsigned char)representation->flag_064 >=
+        if (representation->flag_064 >=
             (unsigned char)subcycle_count) {
             representation->flag_064 = subcycle_count - 1;
         }
@@ -995,7 +995,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             (stModelInstance*)SelectCycleFrameLod004A8360(
                 pRep->current_cycle,
                 pRep->flag_064,
-                (signed char)pRep->m_bLOD);
+                pRep->m_bLOD);
         srNode* child;
 
         if (psrMesh == 0) {
@@ -1176,7 +1176,7 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
             psrMesh = SelectCycleFrameLod004A8360(
                 rep->current_cycle,
                 rep->flag_064,
-                (signed char)rep->m_bLOD);
+                rep->m_bLOD);
         }
     }
     pRep = GetRepresentation();
@@ -1356,7 +1356,7 @@ srModelInstance* W8GrCycle::GetCurrentModelInstance004A8250()
     return SelectCycleFrameLod004A8360(
         representation->current_cycle,
         representation->flag_064,
-        (signed char)representation->m_bLOD);
+        representation->m_bLOD);
 }
 
 // FUNCTION: WIZ8 0x004a8360

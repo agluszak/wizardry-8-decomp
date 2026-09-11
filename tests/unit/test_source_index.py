@@ -83,10 +83,12 @@ def test_source_index_configures_missing_or_stale_compile_database(
         markers: tuple[()] = ()
         declarations: tuple[()] = ()
         classes: tuple[()] = ()
+        variables: tuple[()] = ()
+        conflicts: tuple[()] = ()
 
         def write(self, path: Path) -> None:
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text('{"schema": "reccmp-source-index-v1"}\n', encoding="utf-8")
+            path.write_text('{"schema": "reccmp-source-index-v2"}\n', encoding="utf-8")
 
     import wiz8decomp.build as build_module
 
@@ -124,7 +126,7 @@ def test_source_functions_keep_definition_as_owner_of_folded_alias(tmp_path: Pat
     build.mkdir()
     (build / "source-index.json").write_text(
         """{
-  "schema": "reccmp-source-index-v1",
+  "schema": "reccmp-source-index-v2",
   "markers": [
     {
       "address": 4878656,
@@ -179,7 +181,7 @@ def test_source_functions_reject_two_non_folded_owners(tmp_path: Path) -> None:
     build.mkdir()
     (build / "source-index.json").write_text(
         """{
-  "schema": "reccmp-source-index-v1",
+  "schema": "reccmp-source-index-v2",
   "markers": [
     {
       "address": 1,
@@ -208,3 +210,156 @@ def test_source_functions_reject_two_non_folded_owners(tmp_path: Path) -> None:
 
     with pytest.raises(SourceIndexError, match="more than one source owner"):
         source_functions(tmp_path)
+
+
+def _cross_tu_index(
+    tmp_path: Path,
+    declarations: list[dict],
+    variables: list[dict],
+    conflicts: list[dict] | None = None,
+) -> None:
+    (tmp_path / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
+    )
+    build = tmp_path / "build"
+    build.mkdir(exist_ok=True)
+    import json
+
+    (build / "source-index.json").write_text(
+        json.dumps(
+            {
+                "schema": "reccmp-source-index-v2",
+                "markers": [],
+                "declarations": declarations,
+                "classes": [],
+                "variables": variables,
+                "conflicts": conflicts or [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
+def _declaration(
+    semantic_id: str,
+    source_file: str,
+    line: int,
+    *,
+    linkage: str = "external",
+    return_type: str = "void",
+    parameters: list[str] | None = None,
+) -> dict:
+    return {
+        "semantic_id": semantic_id,
+        "qualified_name": semantic_id,
+        "semantic_kind": "free_function",
+        "calling_convention": "__cdecl",
+        "return_type": return_type,
+        "parameter_types": parameters or [],
+        "owning_class": None,
+        "has_this": False,
+        "is_virtual": False,
+        "source_file": source_file,
+        "line": line,
+        "end_line": line,
+        "is_definition": True,
+        "linkage": linkage,
+        "storage_class": "none",
+    }
+
+
+def _variable(
+    semantic_id: str, type: str, source_file: str, line: int, *, linkage: str = "external"
+) -> dict:
+    return {
+        "semantic_id": semantic_id,
+        "qualified_name": semantic_id,
+        "type": type,
+        "linkage": linkage,
+        "storage_class": "none",
+        "definition_kind": "definition",
+        "source_file": source_file,
+        "line": line,
+        "end_line": line,
+    }
+
+
+def test_cross_tu_gate_covers_agreeing_functions_and_globals(tmp_path: Path) -> None:
+    _cross_tu_index(
+        tmp_path,
+        [_declaration("_helper", "src/wiz8/a.cpp", 10)],
+        [_variable("_gShared", "int", "src/wiz8/a.cpp", 3)],
+    )
+    assert source_index.validate_cross_tu_declarations(tmp_path) == 2
+
+
+def test_cross_tu_gate_reports_conflicting_global_spellings(tmp_path: Path) -> None:
+    _cross_tu_index(
+        tmp_path,
+        [],
+        [
+            _variable("_gThing", "Foo *", "src/wiz8/a.cpp", 3),
+            _variable("_gThing", "int", "src/wiz8/b.cpp", 7),
+        ],
+    )
+    with pytest.raises(SourceIndexError, match="_gThing"):
+        source_index.validate_cross_tu_declarations(tmp_path)
+
+
+def test_cross_tu_gate_ignores_tu_local_definitions(tmp_path: Path) -> None:
+    _cross_tu_index(
+        tmp_path,
+        [
+            _declaration("_helper", "src/wiz8/a.c", 10, linkage="internal"),
+            _declaration("_helper", "src/wiz8/b.c", 4, linkage="internal"),
+        ],
+        [_variable("_counter", "int", "src/wiz8/a.c", 3, linkage="internal")],
+    )
+    assert source_index.validate_cross_tu_declarations(tmp_path) == 0
+
+
+def test_cross_tu_gate_reports_recorded_collector_conflicts(tmp_path: Path) -> None:
+    _cross_tu_index(
+        tmp_path,
+        [_declaration("_helper", "src/wiz8/a.c", 10)],
+        [],
+        [
+            {
+                "semantic_id": "_gThing",
+                "qualified_name": "gThing",
+                "record_kind": "variable",
+                "variants": [
+                    {
+                        "signature": ["Foo *", "external"],
+                        "locations": ["src/wiz8/a.cpp:3"],
+                    },
+                    {"signature": ["int", "external"], "locations": ["src/wiz8/b.cpp:7"]},
+                ],
+            }
+        ],
+    )
+    with pytest.raises(SourceIndexError, match="_gThing"):
+        source_index.validate_cross_tu_declarations(tmp_path)
+
+
+def test_cross_tu_gate_ignores_conflicts_without_external_spelling(tmp_path: Path) -> None:
+    _cross_tu_index(
+        tmp_path,
+        [],
+        [],
+        [
+            {
+                "semantic_id": "_buffer",
+                "qualified_name": "buffer",
+                "record_kind": "variable",
+                "variants": [
+                    {"signature": ["int[64]", "internal"], "locations": ["src/wiz8/a.c:3"]},
+                    {
+                        "signature": ["char[64]", "internal"],
+                        "locations": ["src/wiz8/b.c:5"],
+                    },
+                ],
+            }
+        ],
+    )
+    assert source_index.validate_cross_tu_declarations(tmp_path) == 0

@@ -156,9 +156,9 @@ void RefreshJournalPanel005BD860(void)
         for (int index = first; index <= last; ++index, y += 0x1e) {
             const W8JournalEntry* entry = g_journal_entries_0069c4e4->GetAt(index);
             const unsigned char* fact =
-                reinterpret_cast<const unsigned char*>(&g_fact_records[entry->fact]);
+                reinterpret_cast<const unsigned char*>(&g_fact_records[entry->fact]); // reinterpret-ok: journal reads fact records as raw bytes at retail offsets
             int active = fact[0x36] && GetFact(entry->fact);
-            const wchar_t* description = reinterpret_cast<const wchar_t*>(
+            const wchar_t* description = reinterpret_cast<const wchar_t*>( // reinterpret-ok: embedded text at 0x38/0x100 of the raw fact record
                 fact + (entry->alternate_text ? 0x38 : 0x100));
             const wchar_t* level_name;
             if (entry->level == 0x38) {
@@ -378,9 +378,9 @@ unsigned char JournalScreenEnter(void)
     for (index = 0; index < g_fact_journal_entries_0068de40->count; ++index) {
         W8JournalEntry entry = *g_fact_journal_entries_0068de40->GetAt(index);
         const unsigned char* fact =
-            reinterpret_cast<const unsigned char*>(&g_fact_records[entry.fact]);
+            reinterpret_cast<const unsigned char*>(&g_fact_records[entry.fact]); // reinterpret-ok: journal reads fact records as raw bytes at retail offsets
         if ((g_journal_show_all_0069c4e0 || fact[0x37] <= maximum_visibility) &&
-            *reinterpret_cast<const short*>(fact + (entry.alternate_text ? 0x38 : 0x100)) != 0) {
+            *reinterpret_cast<const short*>(fact + (entry.alternate_text ? 0x38 : 0x100)) != 0) { // reinterpret-ok: embedded text at 0x38/0x100 of the raw fact record
             g_journal_entries_0069c4e4->Add(entry);
         }
     }

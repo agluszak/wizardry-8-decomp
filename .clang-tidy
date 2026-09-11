@@ -9,12 +9,10 @@
 #   finding reconstruction errors.
 # - bugprone-sizeof-expression: the recovered allocators deliberately size
 #   pointer arrays, which the check reports as "pointer to aggregate".
-# - readability-redundant-casting is what this profile wants next, but the
-#   pinned Debian bookworm image ships clang-tidy 14, which does not have it
-#   (added in LLVM 15). Add it here when the base image's LLVM moves.
 Checks: >
   -*,
-  bugprone-misplaced-widening-cast
+  bugprone-misplaced-widening-cast,
+  readability-redundant-casting
 WarningsAsErrors: '*'
-HeaderFilterRegex: '^(include/wiz8|src/wiz8|src/surrender|src/srext_jpegimporter|src/srext_unzip)/'
+HeaderFilterRegex: '^/repo/(include/wiz8|include/surrender|src/wiz8|src/surrender|src/srext_jpegimporter|src/srext_unzip)/'
 FormatStyle: none

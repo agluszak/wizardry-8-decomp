@@ -102,14 +102,13 @@
         OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/srext_jpegimporter/ijg_stdio_override.h"
         COMPILE_OPTIONS "/FI${CMAKE_CURRENT_SOURCE_DIR}/src/srext_jpegimporter/ijg_stdio_override.h"
     )
+    include("${CMAKE_CURRENT_SOURCE_DIR}/src/srext_jpegimporter/first_party_sources.cmake")
     # The simple lifetime functions (constructors, destructors, accessors) have
     # no C++ EH prologue in the original; getSurfaceDesc/importSurface/
     # exportSurface do have one (a synthesized SEH frame installed via
     # fs:[0]). They are split into surface_transfer.cpp, compiled at the
-    # project default /GX, so plugin.cpp can keep /GX- for the rest.
-    set_source_files_properties(src/srext_jpegimporter/plugin.cpp PROPERTIES
-        COMPILE_OPTIONS "/GX-"
-    )
+    # project default /GX, so plugin.cpp can keep /GX- for the rest. The
+    # per-source property itself lives in the shared first-party model.
 
     wiz8_add_import_library(
         SREXT_JPEG_SR
@@ -118,25 +117,23 @@
 
     # Source ordering is intentional: the original DLL links the Sir-Tech codec
     # adapter first, IJG release 6 next, and the SurRender plug-in code last.
+    # Build that order from the shared first-party list so a new unit cannot
+    # drift one lane: the head stays first, the vendored objects follow, then
+    # the remaining first-party tail.
+    list(GET SREXT_JPEG_FIRST_PARTY_SOURCES 0 _srext_jpeg_head)
+    list(SUBLIST SREXT_JPEG_FIRST_PARTY_SOURCES 1 -1 _srext_jpeg_tail)
     add_library(SREXT_JPEGIMPORTER SHARED
-        src/srext_jpegimporter/codec_adapter.cpp
+        ${_srext_jpeg_head}
         ${IJG_JPEG_SOURCES}
-        src/srext_jpegimporter/stream_bridge.cpp
-        src/srext_jpegimporter/plugin.cpp
-        src/srext_jpegimporter/surface_transfer.cpp
+        ${_srext_jpeg_tail}
         src/srext_jpegimporter/srEXT_JPEGImporter.def
         src/srext_jpegimporter/srEXT_JPEGImporter.rc
     )
     wiz8_enable_cpp_compat(SREXT_JPEGIMPORTER)
+    srext_jpeg_configure_first_party_compile_model(SREXT_JPEGIMPORTER)
     add_dependencies(
         SREXT_JPEGIMPORTER
         ${SREXT_JPEG_SR_IMPORT_TARGET}
-    )
-    target_include_directories(SREXT_JPEGIMPORTER PRIVATE
-        include
-        src/srext_jpegimporter
-        config/fid-overlays/ijg-jpeg-6
-        "${IJG_JPEG_SOURCE}"
     )
     target_link_libraries(
         SREXT_JPEGIMPORTER

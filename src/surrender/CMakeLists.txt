@@ -1,19 +1,9 @@
+include("${CMAKE_CURRENT_SOURCE_DIR}/src/surrender/sources.cmake")
 add_library(SURRENDER SHARED
-    src/surrender/core.cpp
-    src/surrender/dynamic_library.cpp
-    src/surrender/extension.cpp
-    src/surrender/string_table.cpp
-    src/surrender/system.cpp
-    src/surrender/type_registry.cpp
-    src/surrender/vector_processor.cpp
+    ${SURRENDER_SOURCES}
     src/surrender/sr.def
 )
-target_compile_definitions(SURRENDER PRIVATE SURRENDER_BUILD)
-target_compile_options(SURRENDER PRIVATE /GX-)
-set_source_files_properties(
-    src/surrender/extension.cpp
-    src/surrender/type_registry.cpp
-    PROPERTIES COMPILE_OPTIONS /GX)
+surrender_configure_compile_model(SURRENDER)
 target_link_libraries(SURRENDER PRIVATE wiz8_compile_settings version.lib)
 target_link_options(SURRENDER PRIVATE
     /DEBUG /DEBUGTYPE:CV /INCREMENTAL:NO

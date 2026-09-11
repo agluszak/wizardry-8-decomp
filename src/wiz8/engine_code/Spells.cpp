@@ -732,7 +732,7 @@ srModelInstance* W8SpellEmitterHost::SetCycleFrameLod(
     signed char emitter, signed char frame, signed char lod)
 {
     return AnimObjDispatch004A14D0(
-        this->emitters[emitter], (signed char)lod, frame);
+        this->emitters[emitter], lod, frame);
 }
 
 /* Apply the host setting to one required emitter.  The source assertion names
