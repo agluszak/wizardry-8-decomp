@@ -153,14 +153,14 @@ struct W8Character {
        assertion that bounds it against PROF_COUNT, and the profession the
        character started in. The level band subtracts a base only while the two
        agree. */
-    int current_profession;               /* 0x0069 */
-    int original_profession;              /* 0x006d */
+    W8Profession current_profession;      /* 0x0069 */
+    W8Profession original_profession;     /* 0x006d */
     int race;                             /* 0x0071: indexes the race resistance table */
     /* 0x0075: zero is male and one is female. The quote lookup names the
        Data\Quotes\PCs files m_ or f_ from it, the item record's two-bit mask
        admits exactly one sex, and the female-only profession at index two
        forces the field to one. */
-    int gender;
+    W8Gender gender;
     /* 0x0079: looked up from the table at 0x00616604 by gender, race and
        profession together. */
     int table_value_0079;
@@ -170,7 +170,7 @@ struct W8Character {
     int personality_0081;               /* indexes the state-5 descriptor text */
     int voice_0085;                     /* selected by the character voice control */
     unsigned int level;                   /* 0x0089: averaged across occupied slots */
-    int profession_levels[15];            /* 0x008d */
+    int profession_levels[W8_PROFESSION_COUNT];  /* 0x008d */
     unsigned char unknown_00c9[0x14];
     /* 0x00dd: the eight-band ladder over the character's level in their
        current profession, and the base subtracted from it while they are still
@@ -332,8 +332,8 @@ struct W8SkillAttributes {
 
 
 extern W8RaceResistanceProfile g_race_resistance_profiles[];
-extern int g_profession_skill_availability[0x29][15];
-extern int g_profession_bonus_skills[15];
+extern int g_profession_skill_availability[0x29][W8_PROFESSION_COUNT];
+extern int g_profession_bonus_skills[W8_PROFESSION_COUNT];
 extern W8SkillAttributes g_skill_attributes[0x29];
 
 /* Profession and race trait sets consulted by CharacterHasTrait00547940. Each entry is
@@ -346,11 +346,11 @@ struct W8RaceAbilitySet {
     int ability_ids[5];
 };
 
-extern W8ProfessionAbilitySet g_profession_abilities[15];
+extern W8ProfessionAbilitySet g_profession_abilities[W8_PROFESSION_COUNT];
 extern W8RaceAbilitySet g_race_abilities[16];
-extern int g_profession_skills[15][4];
-extern int g_profession_magic_level_offsets[15];
-extern float g_profession_hit_point_factors[15];
+extern int g_profession_skills[W8_PROFESSION_COUNT][4];
+extern int g_profession_magic_level_offsets[W8_PROFESSION_COUNT];
+extern float g_profession_hit_point_factors[W8_PROFESSION_COUNT];
 
 int GetNextCharacter(
     int require_primary, int require_secondary, int previous_slot);

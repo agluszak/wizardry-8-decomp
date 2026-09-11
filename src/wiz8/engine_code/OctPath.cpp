@@ -2338,7 +2338,7 @@ unsigned char W8PathingService::TestSearchPositionVisibility00464CC0(
     trace_target.y += trace_height_offset_0bc;
 
     unsigned char range_mode = 0;
-    if (CalcRangeDistance(0) < distance && trace_mode_0b8 == 1) {
+    if (CalcRangeDistance(W8_RANGE_TOUCH) < distance && trace_mode_0b8 == 1) {
         range_mode = 1;
     }
     short trace = g_octree_6598a4->TraceLineOfSight(

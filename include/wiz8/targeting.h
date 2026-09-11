@@ -5,7 +5,6 @@ struct W8CombatSlot;
 struct W8MonsterInfo;
 struct W8MonsterGroup;
 void ResetCombatSlot(W8CombatSlot* slot);
-int GetCurrentTargetingContext(int party_slot);
 
 #include "wiz8/geometry.h"
 
@@ -17,9 +16,6 @@ struct W8ItemInstance;
    from the asserting bodies. iType 1 selects the character, 2 the monster, and
    3 either, which is why the type-3 path additionally requires a backfire or
    reflection flag. */
-/* The block a spell or attack records its target in. Only the leading three
-   fields are established; the two resets that build an empty one agree on the
-   extent and on which of them start at -1 rather than zero. */
 /* Where a spell or an attack comes from. Targeting.cpp's assertions name every
    field here - iType, iChar, iMonsterID, fBackfire and fReflection - and the
    three source kinds are a character, a monster and a point in the world; a
@@ -28,8 +24,20 @@ struct W8ItemInstance;
 
    This was modelled twice before, once from the assertions and once from
    SpellBackfires' stack frame, and they are one struct. */
+/* The source-kind domain. Zero is the empty source, one a character, two a
+   monster, and three a source that keeps the original's character or monster
+   id while reading as a point - which is what a backfire or a reflection
+   produces, and what the two flags distinguish. This is a different domain
+   from W8TargetKind even though both name a leading field. */
+enum W8TargetSourceKind {
+    W8_TARGET_SOURCE_NONE = 0,
+    W8_TARGET_SOURCE_CHARACTER = 1,
+    W8_TARGET_SOURCE_MONSTER = 2,
+    W8_TARGET_SOURCE_INDIRECT = 3
+};
+
 struct W8TargetSource {
-    int iType;                            /* 0x00 */
+    W8TargetSourceKind iType;             /* 0x00 */
     int iChar;                            /* 0x04, -1 when empty */
     int iMonsterID;                       /* 0x08, -1 when empty */
     /* 0x0c: the world point, for a source that is a place rather than
@@ -44,6 +52,25 @@ struct W8TargetSource {
     unsigned char unknown_1d[0x17];
 };                                        /* 0x34 */
 
+/* The target-kind domain a combat slot's leading field takes. The kinds that
+   name something put it in their own field, which is what pairs each kind with
+   the field the aiming wrappers fill in. Five and eight are switched on by
+   consumers but have no agreed meaning yet, so they keep positional names the
+   way W8_TARGETING_CONTEXT_FIVE does. This is a different domain from
+   W8TargetSourceKind even though both name a leading field. */
+enum W8TargetKind {
+    W8_TARGET_KIND_NONE = 0,
+    W8_TARGET_KIND_CHARACTER = 1,
+    W8_TARGET_KIND_PARTY = 2,
+    W8_TARGET_KIND_MONSTER = 3,
+    W8_TARGET_KIND_GROUP = 4,
+    W8_TARGET_KIND_FIVE = 5,
+    W8_TARGET_KIND_PLACE = 6,
+    W8_TARGET_KIND_ITEM = 7,
+    W8_TARGET_KIND_EIGHT = 8,
+    W8_TARGET_KIND_CHARACTER_INDIRECT = 9
+};
+
 /* The shorter form a combatant carries inline, with one more field reset to
    -1 and no room for the tail. */
 struct W8CombatSlot {
@@ -51,7 +78,7 @@ struct W8CombatSlot {
        pTarget->iChar, pTarget->iMonsterID, pTarget->iGroupID and
        pTarget->pPCItem - and they are the same four the source block carries
        under the same names, one per target kind. */
-    int iType;                            /* 0x00 */
+    W8TargetKind iType;                   /* 0x00 */
     int iChar;                            /* 0x04, -1 when empty */
     int iMonsterID;                       /* 0x08, -1 when empty */
     int iGroupID;                         /* 0x0c, -1 when empty */
@@ -79,8 +106,9 @@ union W8ActionDetailBlock {
 
 /* The targeting contexts. Six of them name a block the slot carries; the
    seventh, "current", is not a context at all but the request to work out
-   which of the others applies right now. */
-enum {
+   which of the others applies right now. Value five is unobserved and keeps
+   its number rather than being given a meaning. */
+enum W8TargetingContext {
     W8_TARGETING_CONTEXT_OUT_OF_COMBAT = 0,
     W8_TARGETING_CONTEXT_IN_COMBAT = 1,
     W8_TARGETING_CONTEXT_SHARED = 2,
@@ -90,20 +118,11 @@ enum {
     W8_TARGETING_CONTEXT_CURRENT = 6,
     W8_TARGETING_CONTEXT_DIALOGUE = 7
 };
-
-/* The target kinds a combat slot's leading field takes. The four that name
-   something put it in their own field, which is what pairs each kind with the
-   field the aiming wrappers fill in. */
-enum {
-    W8_TARGET_KIND_CHARACTER = 1,
-    W8_TARGET_KIND_PARTY = 2,
-    W8_TARGET_KIND_MONSTER = 3,
-    W8_TARGET_KIND_GROUP = 4,
-    W8_TARGET_KIND_PLACE = 6,
-    W8_TARGET_KIND_ITEM = 7,
-    W8_TARGET_KIND_CHARACTER_INDIRECT = 9
-};
 #pragma pack(pop)
+
+/* Answer which of the real contexts applies right now. Kept after the enum so
+   its result type is the domain rather than a plain int. */
+W8TargetingContext GetCurrentTargetingContext(int party_slot);
 
 unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect);
 unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect);
@@ -120,50 +139,52 @@ void ResetTargetingState(void);
 
 
 unsigned char GetFactionFlag(char faction);
-void AimByKind(int actor, int kind, int context);
+void AimByKind(int actor, W8TargetKind kind, W8TargetingContext context);
 void Function53A2C0(W8MonsterInfo* monster_info, int location_id);
 unsigned char Function53A300(W8MonsterInfo* monster_info, int spell_id);
-W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context);
+W8CombatSlot* GetTargetBlockForContext(int party_slot, W8TargetingContext context);
 void Function53B160(void);
 void RefreshAllPartyTargets0053BF80(void);
-unsigned char Function536570(int party_slot, int context, int arg);
+unsigned char Function536570(int party_slot, W8TargetingContext context, int arg);
 /* 0x005387F0 */
-void AimAtTarget(int actor, W8CombatSlot* target, int context);
+void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context);
 void Function53A930(int party_slot, W8CombatSlot* target);
 int Function53C990(int party_slot, int group_id, int arg);
 void SetFactionFlag(char faction, unsigned char flag);
 unsigned char ShowMonsterTargetMarker(W8MonsterInfo* monster_info);
-bool IsSpellTargetStillValidIn(int party_slot, int spell_id, int context);
+bool IsSpellTargetStillValidIn(int party_slot, int spell_id, W8TargetingContext context);
 void ClearTargetHighlights(int party_slot, const W8CombatSlot* target);
 void Function53AEB0(unsigned int party_slot);
-void SetTargetToCharacter(int character_slot, int context);
+void SetTargetToCharacter(int character_slot, W8TargetingContext context);
 
 void Function53A320(int state);
 void UpdateAllMonsterHighlights(int party_slot, int location_id);
 unsigned int Function53A3D0(int alternate);
 void ResetTargetSource(W8TargetSource* source);
 void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8TargetSource* source);
-int ResolveTargetingContext(int party_slot, unsigned int context);
+W8TargetingContext ResolveTargetingContext(int party_slot, W8TargetingContext context);
 char TargetMatchesNeeded(W8CombatSlot* target, int needed);
 unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char normalize);
-void SetTargetToMonster(int monster_id, int context);
-void SetTargetToGroup(int group_id, int context);
+void SetTargetToMonster(int monster_id, W8TargetingContext context);
+void SetTargetToGroup(int group_id, W8TargetingContext context);
 
 bool ClearMonsterCombatSlot(W8MonsterInfo* monster_info);
 
 unsigned char Function53C630(W8CombatSlot* slot, int arg_2);
 void AimCombatSlotAtParty(W8CombatSlot* combat_slot, int hostile);
-void ApplyTarget(W8CombatSlot* target, int context);
+void ApplyTarget(W8CombatSlot* target, W8TargetingContext context);
 bool IsTargetStillPresent(const W8CombatSlot* target);
 bool IsTargetSourceInRangeOfGroup(
-    const W8TargetSource* source, W8MonsterGroup* group, int context);
+    const W8TargetSource* source, W8MonsterGroup* group, W8TargetingContext context);
 void NoteTargetChosen(const W8TargetSource* source, const W8CombatSlot* target);
 
 
 unsigned char CanTargetMonster(
     int party_slot, int location_id, int allow_single_target, int reason); /* 0x00536AD0 */
 void ClearTargetingMode0053B050(int party_slot);
-unsigned char Function536F60(int party_slot, int value, int context = 0);
+unsigned char Function536F60(
+    int party_slot, int value,
+    W8TargetingContext context = W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
 void Function5398D0(void);
 unsigned char Function53A1D0(void);
 void Function53B1D0(void);
@@ -180,6 +201,7 @@ void Function53AE00(void);          /* 0x0053AE00 */
 void Function53CD60(void);          /* 0x0053CD60 */
 /* Combat action-selection helpers used across the combat units. */
 unsigned char Function53C270(int party_slot);        /* 0x0053C270 */
-int Function53BC90(int party_slot);                  /* 0x0053BC90 */
-int GetValidatedTargetingContext(int party_slot, unsigned int context); /* 0x0053BBD0 */
+W8TargetingContext Function53BC90(int party_slot);                  /* 0x0053BC90 */
+W8TargetingContext GetValidatedTargetingContext(
+    int party_slot, W8TargetingContext context); /* 0x0053BBD0 */
 void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source); /* 0x0053A9D0 */

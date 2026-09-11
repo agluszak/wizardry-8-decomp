@@ -2325,11 +2325,13 @@ void Function520D10(
         if (gXStatus.fCombatMode) {
             int action = row->action_03d;
             if (action == 0 || action == 1) {
-                if (!CharacterCanSwitchTo(party_slot, 1, 1, 0)) {
-                    AimByKind(party_slot, 0, 1);
+                if (!CharacterCanSwitchTo(
+                        party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, 0)) {
+                    AimByKind(party_slot, W8_TARGET_KIND_NONE,
+                              W8_TARGETING_CONTEXT_IN_COMBAT);
                 }
                 else if (!Function536F60(party_slot, 2)) {
-                    Function536570(party_slot, 1, 0);
+                    Function536570(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0);
                 }
             }
             g_combat_state->characters[party_slot].flag_81 ^= 1;
@@ -2559,7 +2561,7 @@ void Function5227D0(
         message = g_item_message_005ee644;
         break;
     case 0x244:
-        message = GetFactionDispositionScore(6) != 0
+        message = GetFactionDispositionScore(W8_FACTION_MOOK) != 0
                       ? g_item_message_005ee648
                       : g_item_message_005ee64c;
         break;

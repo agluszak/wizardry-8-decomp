@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/layouts/gameplay_databases.h"
+
 struct W8Character;
 
 /* CharGeneration.cpp's transient editing state, embedded by the Character
@@ -36,9 +38,9 @@ static_assert(sizeof(W8CharacterCreationState) == 0x270,
 void Function556DC0(W8Character*, W8CharacterCreationState*);
 void Function556CC0(W8Character*, W8CharacterCreationState*);
 void Function556EB0(W8Character*, W8CharacterCreationState*);
-void Function557060(W8Character*, W8CharacterCreationState*, int);
+void Function557060(W8Character*, W8CharacterCreationState*, W8Profession);
 void Function5571C0(W8Character*, W8CharacterCreationState*, int);
-void Function5571E0(W8Character*, W8CharacterCreationState*, int);
+void Function5571E0(W8Character*, W8CharacterCreationState*, W8Gender);
 void Function557200(W8Character*, W8CharacterCreationState*);
 void DetermineEligibleProfessions(
     W8Character*, W8CharacterCreationState*, unsigned char*);

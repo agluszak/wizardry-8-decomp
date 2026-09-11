@@ -149,9 +149,9 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
             }
             break;
         case 0xd:
-            SetTargetToCharacter(party_slot, 1);
-            Function536570(party_slot, 0, 0);
-            Function536570(party_slot, 1, 0);
+            SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT);
+            Function536570(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0);
+            Function536570(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0);
             break;
         }
         Function50E650(party_slot);
@@ -159,7 +159,8 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
         if (!can_rest && party_slot > -1 && party_slot < 8
             && row->occupied != 0 && character->hp_current != 0
             && character->unknown_0b01 < 0xd && g_flag_00683F94 != 0
-            && CharacterCanSwitchTo(party_slot, 1, 0, 0) != 0) {
+            && CharacterCanSwitchTo(
+                   party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) != 0) {
             Function53A930(party_slot, &row->target_in_combat);
         }
     }
@@ -556,7 +557,7 @@ unsigned char SetCharacterCondition(
                 g_enchantment_six_cleared_006840bb = 1;
             }
             else if (condition == 0xd) {
-                SetTargetToCharacter(party_slot, 1);
+                SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT);
             }
         }
         handled = 1;
@@ -576,7 +577,7 @@ unsigned char SetCharacterCondition(
         CharacterDies(party_slot);
     }
     else if (!(condition < 0x12)) {
-        SetTargetToCharacter(party_slot, 0);
+        SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
     }
     if (old_b01 != character->unknown_0b01) {
         Function52F430(character);

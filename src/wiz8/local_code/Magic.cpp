@@ -136,23 +136,10 @@ enum {
     W8_SKILL_PSIONICS = 0x1b
 };
 
-/* SPELL_COUNT and SPELL_USAGE_COUNT, both named by the SpellUsableNow
-   assertions that bound their arguments. */
-enum {
-    W8_SPELL_COUNT = 0x96,
-    W8_SPELL_USAGE_COUNT = 5
-};
-
-/* The five uiSpellUsableWhen values, numbered by the switch that consumes
-   them. Only the conditions each one imposes are established, not a name the
-   original gave them. */
-enum {
-    W8_SPELL_USABLE_ANY_TIME = 0,
-    W8_SPELL_USABLE_IN_COMBAT = 1,
-    W8_SPELL_USABLE_OUT_OF_COMBAT = 2,
-    W8_SPELL_USABLE_WHILE_CAMPED = 3,
-    W8_SPELL_USABLE_WHILE_SHOPPING = 4
-};
+/* SPELL_COUNT, named by the SpellUsableNow assertion that bounds its
+   argument. The usable-when domain is W8SpellUsage, declared with the spell
+   record. */
+enum { W8_SPELL_COUNT = 0x96 };
 
 /* Whether a spellcasting block stops this character casting this spell. The
    block stops everything except alchemy in the hands of someone who has the
@@ -248,7 +235,7 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
 unsigned char SpellUsableNow(
     int spell_id, int unused, char allow_out_of_combat, unsigned char fallback)
 {
-    int usable_when;
+    W8SpellUsage usable_when;
     bool shopping;
 
     if (spell_id >= W8_SPELL_COUNT) {
@@ -309,7 +296,7 @@ unsigned char SpellUsableNow(
    the selection owner only needs a pick when there is nothing selected already
    and the caller is not in one of the two contexts that supply it. */
 // FUNCTION: WIZ8 0x005010f0
-char GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize, int context)
+char GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize, W8TargetingContext context)
 {
     if (spell_id != 0) {
         switch (GetSpellTargetType(spell_id, normalize)) {
@@ -331,7 +318,8 @@ char GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize, int 
         case 8:
             return 3;
         case 9:
-            if (g_level_block == 0 || context == 3 || context == 4) {
+            if (g_level_block == 0 || context == W8_TARGETING_CONTEXT_SPELL ||
+                context == W8_TARGETING_CONTEXT_ITEM) {
                 return 6;
             }
             break;
@@ -541,12 +529,12 @@ void SetCharacterSpell(const W8Character* character, int spell_id, int power_lev
 bool PartySlotSpellTargetStillValid(int party_slot)
 {
     char needed = GetTargetNeededForSpellFriendly(
-        g_party_slot_rows[party_slot].spell_id, 0, 6);
+        g_party_slot_rows[party_slot].spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
 
     if (!TargetMatchesNeeded(GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_SPELL), needed)) {
         return false;
     }
-    return Function519180(party_slot, 0, 3) != 0;
+    return Function519180(party_slot, 0, W8_TARGETING_CONTEXT_SPELL) != 0;
 }
 
 /* 0x00616DF0: seventeen entries, indexed by the spell's own cost band. The
@@ -568,8 +556,8 @@ void StartCharacterBreathAttack(int party_slot)
         srAssertFail("CanCharReBreathe(uiChar)", MAGIC_CPP, 5320, 0);
     }
     ChooseAction(party_slot, 2, -1, 0, 0, 1);
-    AimAtTarget(party_slot, &row->target_context_5, 6);
-    if (IsSpellTargetStillValidIn(party_slot, 0x77, 5)) {
+    AimAtTarget(party_slot, &row->target_context_5, W8_TARGETING_CONTEXT_CURRENT);
+    if (IsSpellTargetStillValidIn(party_slot, 0x77, W8_TARGETING_CONTEXT_FIVE)) {
         StartBreathCycle(party_slot, 0);
         return;
     }
@@ -809,17 +797,17 @@ void FinishSpellEffect00500F70(W8SpellEffectEntry* effect)
     W8CombatSlot target;
     srVector3T<float> position;
 
-    if (effect->target.iType == 3) {
+    if (effect->target.iType == W8_TARGET_KIND_MONSTER) {
         monster_info = MonsterInfoFromID(
             0x1279, MAGIC_CPP, effect->target.iMonsterID, 1);
     }
-    if ((effect->target.iType == 3 && monster_info->hp_current == 0) ||
-        (effect->target.iType == 1 &&
+    if ((effect->target.iType == W8_TARGET_KIND_MONSTER && monster_info->hp_current == 0) ||
+        (effect->target.iType == W8_TARGET_KIND_CHARACTER &&
          *(unsigned int*)((char*)g_status_685170.buffers.characters +
                           effect->target.iChar * W8_CHARACTER_SERIALIZED_SIZE +
                           0xb11) == 0)) {
-        target.iType = 6;
-        if (effect->target.iType == 3) {
+        target.iType = W8_TARGET_KIND_PLACE;
+        if (effect->target.iType == W8_TARGET_KIND_MONSTER) {
             W8NavigatorMovementState* movement =
                 (W8NavigatorMovementState*)((char*)monster_info->monster +
                                             0x18 + 0xc0);
@@ -928,7 +916,7 @@ void StartCharacterSpellCast(int party_slot, int power_level)
     const W8ActionDetailBlock* target;
 
     if (gXStatus.fCombatMode == 0) {
-        AimAtTarget(party_slot, &row->spell_target, 6);
+        AimAtTarget(party_slot, &row->spell_target, W8_TARGETING_CONTEXT_CURRENT);
     }
 
     if (power_level == 0) {
@@ -940,9 +928,9 @@ void StartCharacterSpellCast(int party_slot, int power_level)
         target = &named;
     }
     ChooseAction(party_slot, 7, row->spell_id, target, 0, 1);
-    AimAtTarget(party_slot, &saved_target, 6);
+    AimAtTarget(party_slot, &saved_target, W8_TARGETING_CONTEXT_CURRENT);
 
-    if (IsSpellTargetStillValidIn(party_slot, row->spell_id, 3)) {
+    if (IsSpellTargetStillValidIn(party_slot, row->spell_id, W8_TARGETING_CONTEXT_SPELL)) {
         StartBreathCycle(party_slot, 0);
         return;
     }
@@ -959,13 +947,13 @@ void StartCharacterItemUse(int party_slot)
     W8CombatSlot saved_target = row->item_target;
 
     if (gXStatus.fCombatMode == 0) {
-        AimAtTarget(party_slot, &row->item_target, 6);
+        AimAtTarget(party_slot, &row->item_target, W8_TARGETING_CONTEXT_CURRENT);
     }
     ChooseAction(party_slot, 8, -1, &row->item_detail, 0, 1);
-    AimAtTarget(party_slot, &saved_target, 6);
+    AimAtTarget(party_slot, &saved_target, W8_TARGETING_CONTEXT_CURRENT);
     RecordItemOrigin(party_slot, row->item_origin, row->item_slot);
 
-    if (IsSpellTargetStillValidIn(party_slot, GetItemSpell(row->item_detail.item_use.item), 4)) {
+    if (IsSpellTargetStillValidIn(party_slot, GetItemSpell(row->item_detail.item_use.item), W8_TARGETING_CONTEXT_ITEM)) {
         StartBreathCycle(party_slot, 0);
         return;
     }
@@ -1278,7 +1266,7 @@ bool CanPartySlotCastRecordedSpell(int party_slot)
     if (!SpellUsableNow(spell_id, 0, 0, 0)) {
         return false;
     }
-    if (gXStatus.fCombatMode == 0 && !IsSpellTargetStillValidIn(party_slot, spell_id, 3)) {
+    if (gXStatus.fCombatMode == 0 && !IsSpellTargetStillValidIn(party_slot, spell_id, W8_TARGETING_CONTEXT_SPELL)) {
         return false;
     }
     return true;
@@ -1312,7 +1300,7 @@ int GetAffordableSpellPowerLevel(int party_slot)
     if (!SpellUsableNow(spell_id, 0, 0, 0)) {
         return 0;
     }
-    if (gXStatus.fCombatMode == 0 && !IsSpellTargetStillValidIn(party_slot, spell_id, 3)) {
+    if (gXStatus.fCombatMode == 0 && !IsSpellTargetStillValidIn(party_slot, spell_id, W8_TARGETING_CONTEXT_SPELL)) {
         return 0;
     }
 
@@ -1380,7 +1368,7 @@ bool CanPartySlotUseRecordedItem(int party_slot)
     if (!SpellUsableNow(spell_id, 0, 0, 0)) {
         return false;
     }
-    if (gXStatus.fCombatMode == 0 && !IsSpellTargetStillValidIn(party_slot, spell_id, 4)) {
+    if (gXStatus.fCombatMode == 0 && !IsSpellTargetStillValidIn(party_slot, spell_id, W8_TARGETING_CONTEXT_ITEM)) {
         return false;
     }
     return true;
@@ -1465,16 +1453,8 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, int unuse
 
 /* 0x0053C630 */
 
-/* The target-block kind that means the cast comes from a point in the world
-   rather than from a character or a monster. */
-enum { W8_SOURCE_TYPE_POINT = 3 };
-
-/* Where the cast lands, by the spell's own target type. */
-enum {
-    W8_TARGET_KIND_ONE_CHARACTER = 1,
-    W8_TARGET_KIND_WHOLE_PARTY = 2,
-    W8_TARGET_KIND_PARTY_SIDE = 6
-};
+/* Where the cast lands, by the spell's own target type. The kind values are
+   W8TargetKind's; the source-kind values are W8TargetSourceKind's. */
 
 /* Cast one spell at the party from a point in the world - a trap, a rune, a
    scripted effect. The caller gives the point and the power level; who it hits
@@ -1499,7 +1479,7 @@ int PointCastSpell(float x, float y, float z, int spell_id, unsigned int power_l
     }
 
     ResetTargetSource(&source);
-    source.iType = W8_SOURCE_TYPE_POINT;
+    source.iType = W8_TARGET_SOURCE_INDIRECT;
     source.point.Set(x, y, z);
 
     ResetCombatSlot(&target);
@@ -1507,25 +1487,25 @@ int PointCastSpell(float x, float y, float z, int spell_id, unsigned int power_l
     case 0:
     case 1:
     case 3:
-        target.iType = W8_TARGET_KIND_ONE_CHARACTER;
+        target.iType = W8_TARGET_KIND_CHARACTER;
         target.iChar = GetRandomCharacter(0, 1, -1, -1);
         break;
     case 2:
     case 4:
-        target.iType = W8_TARGET_KIND_WHOLE_PARTY;
+        target.iType = W8_TARGET_KIND_PARTY;
         break;
     case 5:
         hostile = 0;
-        target.iType = W8_TARGET_KIND_WHOLE_PARTY;
+        target.iType = W8_TARGET_KIND_PARTY;
         AimCombatSlotAtParty(&target, hostile);
-        target.iType = W8_TARGET_KIND_PARTY_SIDE;
+        target.iType = W8_TARGET_KIND_PLACE;
         break;
     case 6:
     case 8:
         hostile = 1;
-        target.iType = W8_TARGET_KIND_WHOLE_PARTY;
+        target.iType = W8_TARGET_KIND_PARTY;
         AimCombatSlotAtParty(&target, hostile);
-        target.iType = W8_TARGET_KIND_PARTY_SIDE;
+        target.iType = W8_TARGET_KIND_PLACE;
         break;
     default:
         srAssertFail(
@@ -1863,11 +1843,11 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
     unsigned int power_level;
     unsigned int worst;
 
-    if (row->spell_target.iType == W8_TARGET_KIND_ONE_CHARACTER) {
+    if (row->spell_target.iType == W8_TARGET_KIND_CHARACTER) {
         target_character = &g_party_characters[row->spell_target.iChar];
         conditions = target_character->condition_turns;
     }
-    else if (row->spell_target.iType == W8_SOURCE_TYPE_POINT) {
+    else if (row->spell_target.iType == W8_TARGET_KIND_MONSTER) {
         W8MonsterInfo* monster_info =
             MonsterInfoFromID(0xb83, MAGIC_CPP, row->spell_target.iMonsterID, 1);
         conditions = monster_info->condition_turns;
@@ -1908,7 +1888,7 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
             /* The one case where the target being a character says something
                the condition does not: the item they are carrying asks for more
                than the condition does. */
-            if (row->spell_target.iType == W8_TARGET_KIND_ONE_CHARACTER &&
+            if (row->spell_target.iType == W8_TARGET_KIND_CHARACTER &&
                 power_level <= Function520C70(row->spell_target.iChar)) {
                 power_level = Function520C70(row->spell_target.iChar);
             }
@@ -2045,7 +2025,7 @@ wchar_t* SpellTargetString(
             GetMonsterGroupName(GetMonsterGroupByListIndex(
                 GetMonsterGroupIndexByID(0xcf, MAGIC_CPP, target->iGroupID, 1))));
 
-    case 5:
+    case W8_TARGET_KIND_FIVE:
         return gppStringList[W8_MESSAGE_TARGET_PLACE / 4];
 
     case 7:
@@ -2053,7 +2033,7 @@ wchar_t* SpellTargetString(
             gppStringList[W8_MESSAGE_TARGET_ITEM / 4],
             FormatItemDisplayName(target->pPCItem, 0));
 
-    case 8:
+    case W8_TARGET_KIND_EIGHT:
         return gppStringList[W8_MESSAGE_TARGET_DIRECTION / 4];
 
     default:
@@ -2237,7 +2217,7 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
                 SetTextBoxMode(1, -1);
             }
             if (*damage == 1) {
-                if (effect->target.iType == 1) {
+                if (effect->target.iType == W8_TARGET_KIND_CHARACTER) {
                     Function5905F0(
                         FormatWideString(
                             L"%s %s",
@@ -2249,7 +2229,7 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
                             gppStringList[band_text[0]]),
                         -1);
                 }
-                else if (effect->target.iType == 3) {
+                else if (effect->target.iType == W8_TARGET_KIND_MONSTER) {
                     W8MonsterInfo* monster_info =
                         MonsterInfoFromID(0x112a, MAGIC_CPP,
                                           effect->target.iMonsterID, 1);

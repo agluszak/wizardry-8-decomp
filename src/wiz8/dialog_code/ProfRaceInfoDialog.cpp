@@ -12,7 +12,7 @@ W8AttributeMinimums g_race_attribute_minimums[11] = {
 };
 
 // GLOBAL: WIZ8 0x00614e24
-W8AttributeMinimums g_profession_attribute_minimums[15] = {
+W8AttributeMinimums g_profession_attribute_minimums[W8_PROFESSION_COUNT] = {
     {{55, 0, 0, 50, 50, 0, 0}},  {{55, 0, 55, 55, 50, 50, 0}},
     {{50, 0, 55, 55, 50, 50, 0}}, {{50, 50, 0, 50, 55, 0, 55}},
     {{50, 55, 0, 50, 55, 55, 0}}, {{50, 50, 0, 50, 55, 55, 50}},
@@ -34,14 +34,14 @@ W8AttributeMinimums g_profession_attribute_minimums[15] = {
 static const char PROF_RACE_INFO_DIALOG_CPP[] =
     "C:\\Projects\\Wizardry 8\\Dialog Code\\ProfRaceInfoDialog.cpp";
 
-enum { ATTR_COUNT = 7, PROF_COUNT = 15, RACE_COUNT = 16 };
+enum { ATTR_COUNT = 7, RACE_COUNT = 16 };
 
 /* Only the first eleven races have their own minimums; the rest are shown as
    -1, which is the dialog's "no requirement" marker. */
 enum { RACE_MINIMUMS_COUNT = 11 };
 
 // GLOBAL: WIZ8 0x0064ffb0
-W8ProfRaceInfoRow g_profession_info_rows[15] = {
+W8ProfRaceInfoRow g_profession_info_rows[W8_PROFESSION_COUNT] = {
     {676, 691, 10}, {677, 692, 24}, {678, 693, 8},  {679, 694, 2},
     {680, 695, 16}, {681, 696, 20}, {682, 697, 12}, {683, 698, 28},
     {684, 699, 6},  {685, 700, 0},  {686, 701, 18}, {687, 702, 22},
@@ -77,7 +77,7 @@ W8ProfRaceInfoDialogBase005DEAF0::~W8ProfRaceInfoDialogBase005DEAF0()
 // FUNCTION: WIZ8 0x005df0d0
 W8ProfessionInfoDialog005EFBFC::W8ProfessionInfoDialog005EFBFC(unsigned int uiIndex)
 {
-    if (uiIndex >= PROF_COUNT) {
+    if (uiIndex >= W8_PROFESSION_COUNT) {
         srAssertFail("uiIndex < PROF_COUNT", PROF_RACE_INFO_DIALOG_CPP, 0x123, 0);
     }
     m_uiIndex = uiIndex;

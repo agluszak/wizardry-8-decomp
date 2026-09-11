@@ -582,7 +582,7 @@ unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character)
     character->original_profession = source->profession;
     character->profession_levels[source->profession] = source->level;
     character->race = source->race;
-    character->gender = source->gender;
+    character->gender = static_cast<W8Gender>(source->gender);
     character->table_value_0079 = source->table_value;
     for (index = 0; index < 7; ++index) {
         character->attributes[index].value = source->attributes[index];

@@ -22,19 +22,9 @@
 
 #define COMBAT_RANGE_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Combat Range.cpp"
 
-/* The five range categories, and the distance each stands for before the world
-   scale is applied. Category -1 is no range at all. */
-enum {
-    W8_RANGE_NONE = -1,
-    W8_RANGE_TOUCH = 0,
-    W8_RANGE_SHORT = 1,
-    W8_RANGE_LONG = 2,
-    W8_RANGE_EXTREME = 3
-};
-
-/* Above this category an attack is out of the close-quarters band the melee
-   rule restricts itself to. */
-enum { W8_RANGE_FIRST_DISTANT = 2 };
+/* The range categories are W8RangeCategory, declared with the spell record
+   that shares the domain. Above W8_RANGE_SHORT an attack is out of the
+   close-quarters band the melee rule restricts itself to. */
 
 /* Three party positions per formation row, and the row stride of the formation
    table. */
@@ -53,15 +43,16 @@ float g_range_constant_005ec35c;
 
 /* The furthest range category any of this character's hands can reach at. */
 // FUNCTION: WIZ8 0x00519ba0
-int GetBestHandRangeCategory(const W8Character* character)
+W8RangeCategory GetBestHandRangeCategory(const W8Character* character)
 {
-    int best = W8_RANGE_NONE;
-    int category;
+    W8RangeCategory best = W8_RANGE_NONE;
+    W8RangeCategory category;
     unsigned int hand;
 
     for (hand = 0; hand < 2; ++hand) {
         if (character->hand_attacks[hand].in_play != 0) {
-            category = CalcRangeCategoryToTarget(character, hand);
+            category = static_cast<W8RangeCategory>(
+                CalcRangeCategoryToTarget(character, hand));
             if (category > best) {
                 best = category;
             }
@@ -73,9 +64,9 @@ int GetBestHandRangeCategory(const W8Character* character)
 /* Whether the first lighting condition applies at distant or extreme range. */
 // FUNCTION: WIZ8 0x00519be0
 unsigned char RangeCategoryUsesSightCondition(
-    const W8MonsterInfo* monster, int range_category)
+    const W8MonsterInfo* monster, W8RangeCategory range_category)
 {
-    if (range_category >= W8_RANGE_FIRST_DISTANT && range_category <= W8_RANGE_EXTREME) {
+    if (range_category >= W8_RANGE_LONG && range_category <= W8_RANGE_EXTREME) {
         return GetSightCondition37A(monster);
     }
     return false;
@@ -84,18 +75,18 @@ unsigned char RangeCategoryUsesSightCondition(
 /* The furthest range category among a monster's three attacks. Asking for the
    close-quarters band only considers the two categories inside it. */
 // FUNCTION: WIZ8 0x0051a800
-int GetBestMonsterAttackRange(const W8MonsterRecord* record, char close_quarters_only)
+W8RangeCategory GetBestMonsterAttackRange(const W8MonsterRecord* record, char close_quarters_only)
 {
-    int best = W8_RANGE_NONE;
+    W8RangeCategory best = W8_RANGE_NONE;
     int attack;
     unsigned char category;
 
     for (attack = 0; attack < W8_MAX_MONSTER_ATTACKS; ++attack) {
         if (record->attacks[attack].fHasAttack != 0) {
             category = record->attacks[attack].range_category;
-            if ((close_quarters_only == 0 || category < W8_RANGE_FIRST_DISTANT) &&
+            if ((close_quarters_only == 0 || category < W8_RANGE_LONG) &&
                 (int)category > best) {
-                best = category;
+                best = static_cast<W8RangeCategory>(category);
             }
         }
     }
@@ -106,7 +97,7 @@ int GetBestMonsterAttackRange(const W8MonsterRecord* record, char close_quarters
    the spell record; two of the actions have a fixed answer and the rest have
    none. A plain attack takes it from the attack itself, which has to exist. */
 // FUNCTION: WIZ8 0x0051a730
-unsigned int GetMonsterActionRangeCategory(
+W8RangeCategory GetMonsterActionRangeCategory(
     const W8MonsterInfo* monster_info, const W8MonsterRecord* record, unsigned int attack)
 {
     switch (monster_info->action_kind) {
@@ -119,7 +110,7 @@ unsigned int GetMonsterActionRangeCategory(
     case 8:
         return W8_RANGE_TOUCH;
     default:
-        return (unsigned int)W8_RANGE_NONE;
+        return W8_RANGE_NONE;
     }
 
     if (attack >= W8_MAX_MONSTER_ATTACKS) {
@@ -128,13 +119,13 @@ unsigned int GetMonsterActionRangeCategory(
     if (record->attacks[attack].fHasAttack == 0) {
         srAssertFail("pMonsterDB->Attack[uiAttack].fHasAttack", COMBAT_RANGE_CPP, 950, 0);
     }
-    return record->attacks[attack].range_category;
+    return static_cast<W8RangeCategory>(record->attacks[attack].range_category);
 }
 
 /* How far a range category actually is. The four categories step 2, 4, 25, 50
    before the world scale multiplies them; no range at all is zero distance. */
 // FUNCTION: WIZ8 0x0051a9a0
-float CalcRangeDistance(int range_category)
+float CalcRangeDistance(W8RangeCategory range_category)
 {
     unsigned int steps = 0;
 

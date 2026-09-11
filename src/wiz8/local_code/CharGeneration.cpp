@@ -94,8 +94,8 @@ void Function556DC0(W8Character* character, W8CharacterCreationState* creation_s
     g_spell_point_bonus_0068de30 = 0;
     g_gender_locked_0068de34 = 0;
     memset(character, 0, sizeof(*character));
-    character->gender = -1;
-    character->current_profession = -1;
+    character->gender = W8_GENDER_UNSET;
+    character->current_profession = W8_PROFESSION_NONE;
     character->race = -1;
     character->level = 1;
     character->level_band_base = 0;
@@ -454,13 +454,14 @@ void DetermineEligibleProfessions(W8Character* character,
 {
     int attribute;
 
-    for (unsigned int profession = 0; profession < 15; ++profession) {
+    for (unsigned int profession = 0; profession < W8_PROFESSION_COUNT; ++profession) {
         eligibility[profession] = 1;
         if (profession == (unsigned int)character->current_profession) {
             eligibility[profession] = 1;
         }
-        else if (profession == 2 && character->gender != 1) {
-            eligibility[2] = 0;
+        else if (profession == W8_PROFESSION_VALKYRIE &&
+                 character->gender != W8_GENDER_FEMALE) {
+            eligibility[W8_PROFESSION_VALKYRIE] = 0;
         }
         else {
             int deficit = 0;
@@ -859,25 +860,25 @@ int Function558330(W8Character* character, W8CharacterCreationState* creation_st
    baseline the previous profession's assignment had granted. */
 // FUNCTION: WIZ8 0x00557060
 void Function557060(W8Character* character, W8CharacterCreationState* creation_state,
-                    int profession)
+                    W8Profession profession)
 {
     int index;
 
-    if (character->current_profession != -1) {
+    if (character->current_profession != W8_PROFESSION_NONE) {
         --character->profession_levels[character->current_profession];
     }
     ++character->profession_levels[profession];
     character->current_profession = profession;
 
-    if (profession == 2) {
-        if (character->gender == 0) {
+    if (profession == W8_PROFESSION_VALKYRIE) {
+        if (character->gender == W8_GENDER_MALE) {
             g_gender_locked_0068de34 = 1;
-            character->gender = 1;
+            character->gender = W8_GENDER_FEMALE;
         }
     }
     else if (g_gender_locked_0068de34) {
         g_gender_locked_0068de34 = 0;
-        character->gender = 0;
+        character->gender = W8_GENDER_MALE;
     }
 
     if (character->level > 1) {
@@ -931,7 +932,7 @@ void Function5571C0(W8Character* character, W8CharacterCreationState* creation_s
 
 // FUNCTION: WIZ8 0x005571e0
 void Function5571E0(W8Character* character, W8CharacterCreationState* creation_state,
-                    int gender)
+                    W8Gender gender)
 {
     character->gender = gender;
     Function556EB0(character, creation_state);

@@ -229,7 +229,7 @@ void NotifyNearbyMonsters(int what)
             (unsigned int)monster_info->value_107 < 0xe &&
             monster_info->condition_turns[12] == 0 && monster_info->flag_16 == 1) {
             if (monster_info->monster->GetDistanceToPlayer004C7CB0() <=
-                CalcRangeDistance(1)) {
+                CalcRangeDistance(W8_RANGE_SHORT)) {
                 NotifyMonsterOfSound(monster_info->monster, what);
             }
         }
@@ -457,7 +457,7 @@ unsigned char TryCharacterAction(int party_slot, int action, char commit)
         if (action != 4) {
             return 0;
         }
-        if (CharacterCanSwitchTo(party_slot, 1, 0, 0)) {
+        if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0)) {
             return 0;
         }
     }
@@ -664,7 +664,7 @@ void Function4E8000(
 {
     if (gXStatus.field_01d == 0 && gXStatus.fItemSelectMode == 0) {
         g_party_slot_rows[party_slot].action_03d = -1;
-        AimByKind(party_slot, 0, 6);
+        AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_CURRENT);
     }
     W8TargetSource source;
     W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
@@ -687,11 +687,12 @@ void Function4E8000(
     W8Character* character = &g_party_characters[party_slot];
     if (character->hp_current != 0 && character->unknown_0b01 < 0xd
         && action_detail != -1) {
-        if (CharacterCanSwitchTo(party_slot, 1, 1, (char)(int)data) == 0) {
-            AimByKind(party_slot, 0, 1);
+        if (CharacterCanSwitchTo(
+                party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, (char)(int)data) == 0) {
+            AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);
         }
         else if (Function536F60(party_slot, 2) == 0
-                 && Function536570(party_slot, 1, (int)data) == 1) {
+                 && Function536570(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, (int)data) == 1) {
             Function4ECC80(&source,
                 reinterpret_cast<W8CombatSlot*>(
                     &g_party_slot_rows[party_slot].target_in_combat));
@@ -740,7 +741,7 @@ void ChooseCombatAction(
     W8CombatSlot* target;
     W8ActionDetailBlock* detail;
 
-    if (context == 6) {
+    if (context == W8_TARGETING_CONTEXT_CURRENT) {
         context = Function53BC90(party_slot);
     }
     switch (context) {
@@ -841,7 +842,7 @@ void ChooseCombatAction(
    the aim state first when the caller allows it. */
 // FUNCTION: WIZ8 0x004e79a0
 unsigned char CharacterCanSwitchTo(
-    int party_slot, int context, int arg_3, int arg_4)
+    int party_slot, W8TargetingContext context, int arg_3, int arg_4)
 {
     W8Character* character = &g_party_characters[party_slot];
 
@@ -859,7 +860,7 @@ unsigned char CharacterCanSwitchTo(
     if (character->unknown_0b01 > 0xd) {
         return 0;
     }
-    if (context == 6) {
+    if (context == W8_TARGETING_CONTEXT_CURRENT) {
         context = Function53BC90(party_slot);
     }
     int chosen;
@@ -927,7 +928,7 @@ unsigned char CharacterCanSwitchTo(
         }
         break;
     case 7:
-        if (context == 7 && Function4F96F0(character) != 0) {
+        if (context == W8_TARGETING_CONTEXT_DIALOGUE && Function4F96F0(character) != 0) {
             return 1;
         }
         if (value_a == 0) {
@@ -938,7 +939,7 @@ unsigned char CharacterCanSwitchTo(
         }
         break;
     case 8:
-        if (context == 7 && detail == 0) {
+        if (context == W8_TARGETING_CONTEXT_DIALOGUE && detail == 0) {
             return 1;
         }
         if (detail->item_use.item == 0) {
@@ -952,7 +953,8 @@ unsigned char CharacterCanSwitchTo(
         break;
     }
     if (arg_3 == 0) {
-        int validated = GetValidatedTargetingContext(party_slot, context);
+        W8TargetingContext validated =
+            GetValidatedTargetingContext(party_slot, context);
         if (Function536F60(party_slot, 2, validated) == 0) {
             return 0;
         }

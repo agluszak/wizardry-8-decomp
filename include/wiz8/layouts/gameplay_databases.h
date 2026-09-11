@@ -17,6 +17,40 @@
  * rather than incidental layout.
  */
 
+/* The fifteen professions, in the game's fixed class order. A character's
+   current and original profession are one of these and index the
+   per-profession tables; a generated character carries NONE until the player
+   picks one. The NPC character block stores the same value. */
+enum W8Profession {
+    W8_PROFESSION_FIGHTER = 0,
+    W8_PROFESSION_LORD = 1,
+    W8_PROFESSION_VALKYRIE = 2,
+    W8_PROFESSION_RANGER = 3,
+    W8_PROFESSION_SAMURAI = 4,
+    W8_PROFESSION_NINJA = 5,
+    W8_PROFESSION_MONK = 6,
+    W8_PROFESSION_ROGUE = 7,
+    W8_PROFESSION_GADGETEER = 8,
+    W8_PROFESSION_BARD = 9,
+    W8_PROFESSION_PRIEST = 10,
+    W8_PROFESSION_ALCHEMIST = 11,
+    W8_PROFESSION_BISHOP = 12,
+    W8_PROFESSION_PSIONIC = 13,
+    W8_PROFESSION_MAGE = 14,
+    W8_PROFESSION_COUNT = 15,
+    W8_PROFESSION_NONE = -1
+};
+
+/* A character's sex. Zero is male and one is female, which is what the quote
+   lookup, the item record's sex mask and the female-only profession all agree
+   on. A character or template that has not been assigned one carries UNSET. */
+enum W8Gender {
+    W8_GENDER_MALE = 0,
+    W8_GENDER_FEMALE = 1,
+    W8_GENDER_COUNT = 2,
+    W8_GENDER_UNSET = -1
+};
+
 #pragma pack(push, 1)
 
 enum { W8_MAX_MONSTER_ATTACKS = 3 };
@@ -46,6 +80,29 @@ enum W8SpellRealm {
     W8_SPELL_REALM_MENTAL = 4,
     W8_SPELL_REALM_DIVINE = 5,
     W8_SPELL_REALM_COUNT = 6
+};
+
+/* The five situations a spell record can admit, numbered by the switch in
+   SpellUsableNow. A spell usable at any time imposes no condition; the other
+   four admit exactly one of combat, the field, camping or a shop. */
+enum W8SpellUsage {
+    W8_SPELL_USABLE_ANY_TIME = 0,
+    W8_SPELL_USABLE_IN_COMBAT = 1,
+    W8_SPELL_USABLE_OUT_OF_COMBAT = 2,
+    W8_SPELL_USABLE_WHILE_CAMPED = 3,
+    W8_SPELL_USABLE_WHILE_SHOPPING = 4,
+    W8_SPELL_USAGE_COUNT = 5
+};
+
+/* The range bands an attack or spell works at, and the one value that means it
+   has no range at all. CalcRangeDistance is the one place the band and a
+   world distance are related. */
+enum W8RangeCategory {
+    W8_RANGE_NONE = -1,
+    W8_RANGE_TOUCH = 0,
+    W8_RANGE_SHORT = 1,
+    W8_RANGE_LONG = 2,
+    W8_RANGE_EXTREME = 3
 };
 
 /* Which spellbooks a profession may draw on, and which a spell belongs to. The
@@ -86,13 +143,12 @@ struct W8SpellRuntimeRecord {
     unsigned char monster_castable;
     unsigned char unknown_127[8];
     /* 0x12f: the range category a monster casting this spell needs. */
-    int range_category;
+    W8RangeCategory range_category;
     W8SpellRealm realm;                 /* 0x133 */
     int target_type;                    /* 0x137 */
-    /* 0x13b: when the spell may be cast, zero through four. SpellUsableNow
-       switches on it and its assertion calls it uiSpellUsableWhen with a
-       SPELL_USAGE_COUNT of five. */
-    int usable_when;
+    /* 0x13b: when the spell may be cast. SpellUsableNow switches on it and its
+       assertion calls it uiSpellUsableWhen with a SPELL_USAGE_COUNT of five. */
+    W8SpellUsage usable_when;
     /* 0x13f: the spell has to be aimed before it can be cast. */
     unsigned char needs_aim_13f;
     unsigned char unknown_140[4];
@@ -134,7 +190,7 @@ struct W8NpcCharacterTemplate {
     wchar_t name[10];                    /* 0x000, record 0x0c4 */
     wchar_t name_part_2[6];              /* 0x014, record 0x0d8 */
     unsigned char unknown_01a[0x44];
-    int profession;                      /* 0x064, record 0x128: index into profession_levels[15] */
+    W8Profession profession;             /* 0x064, record 0x128: index into profession_levels[W8_PROFESSION_COUNT] */
     int race;                            /* 0x068, record 0x12c */
     int table_value;                     /* 0x06c, record 0x130: the value 0x004EF950 otherwise computes */
     unsigned int level;                  /* 0x070, record 0x134: starting profession level */

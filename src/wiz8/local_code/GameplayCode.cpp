@@ -27,9 +27,9 @@
 
 #define GAMEPLAY_CODE_CPP "C:\\Projects\\Wizardry 8\\Local Code\\GameplayCode.cpp"
 
-/* PROF_COUNT and PC_RACE_COUNT, both named by the assertions that bound their
-    */
-enum { W8_PROF_COUNT = 15, W8_PC_RACE_COUNT = 11 };
+/* PC_RACE_COUNT, named by the assertion that bounds the race field, and the
+   eleven playable races out of the sixteen the race tables carry. */
+enum { W8_PC_RACE_COUNT = 11 };
 
 /* How much one level in a profession is worth towards physical combat
    experience. The professions split three ways. */
@@ -181,7 +181,7 @@ void CalcXPGoal(W8Character* character)
         srAssertFail("pPC->uiExpLevel > 0", GAMEPLAY_CODE_CPP, 0x726, 0);
     }
     if (character->current_profession < 0 ||
-        character->current_profession >= W8_PROF_COUNT) {
+        character->current_profession >= W8_PROFESSION_COUNT) {
         srAssertFail("(pPC->iProfession >= 0) && (pPC->iProfession < PROF_COUNT)",
                      GAMEPLAY_CODE_CPP, 0x727, 0);
     }
@@ -313,7 +313,7 @@ void CalcCharacterTableValue(W8Character* character)
         srAssertFail("pPC->iRace < PC_RACE_COUNT", GAMEPLAY_CODE_CPP, 2359, 0);
     }
     character->table_value_0079 =
-        g_character_table_00616604[(character->gender * 0x10 + character->race) * W8_PROF_COUNT +
+        g_character_table_00616604[(character->gender * 0x10 + character->race) * W8_PROFESSION_COUNT +
                                    character->current_profession];
 }
 
@@ -339,7 +339,7 @@ int CalcPhysCombatExperience(W8Character* character)
                      GAMEPLAY_CODE_CPP, 399, 0);
     }
 
-    for (profession = 0; profession < W8_PROF_COUNT; ++profession) {
+    for (profession = 0; profession < W8_PROFESSION_COUNT; ++profession) {
         levels = character->profession_levels[profession];
         if (levels != 0) {
             switch (profession) {

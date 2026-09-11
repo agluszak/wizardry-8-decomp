@@ -4,6 +4,7 @@
 #include "wiz8/dialog_code/DialogButton.h"
 #include "wiz8/dialog_code/DialogScrollBar.h"
 #include "wiz8/dialog_code/DialogTextArea.h"
+#include "wiz8/layouts/gameplay_databases.h"
 
 enum { W8_DIALOG_ATTRIBUTE_COUNT = 7 };
 
@@ -21,7 +22,7 @@ struct W8ProfRaceInfoRow {
 
 extern W8AttributeMinimums g_profession_attribute_minimums[];
 extern W8AttributeMinimums g_race_attribute_minimums[];
-extern W8ProfRaceInfoRow g_profession_info_rows[15];
+extern W8ProfRaceInfoRow g_profession_info_rows[W8_PROFESSION_COUNT];
 extern W8ProfRaceInfoRow g_race_info_rows[16];
 
 /* Shared dialog storage constructed by 0x005DEAF0. Only the derived tail is

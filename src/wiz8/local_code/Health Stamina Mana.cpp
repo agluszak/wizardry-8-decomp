@@ -945,11 +945,11 @@ void RecalculateCharacterHitPoints(W8Character* character)
     int hit_points;
     int remaining;
 
-    if (character->current_profession == -1) {
+    if (character->current_profession == W8_PROFESSION_NONE) {
         return;
     }
 
-    for (profession = 0; profession < 15; profession++) {
+    for (profession = 0; profession < W8_PROFESSION_COUNT; profession++) {
         unsigned int levels = character->profession_levels[profession];
         if (profession == character->original_profession) {
             levels++;

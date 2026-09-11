@@ -224,7 +224,7 @@ unsigned char EvaluateFact(int fact_id)
 
     if (fact_id < 0xcc) {
         if (fact_id == 0xcb) {
-            return GetFactionDisposition(10) == W8_FACTION_FRIENDLY;
+            return GetFactionDisposition(W8_FACTION_HIGARDI_BANK) == W8_FACTION_FRIENDLY;
         }
         switch (fact_id) {
         case 0x2c:
@@ -343,18 +343,18 @@ unsigned char EvaluateFact(int fact_id)
         case 0xc3:
             return Function50B8F0(0x18) != 0;
         case 0xc9:
-            return GetFactionDisposition(11) == W8_FACTION_FRIENDLY;
+            return GetFactionDisposition(W8_FACTION_HIGARDI_HLL) == W8_FACTION_FRIENDLY;
         case 0xca:
-            return GetFactionDisposition(12) == W8_FACTION_FRIENDLY;
+            return GetFactionDisposition(W8_FACTION_HIGARDI_COMMON) == W8_FACTION_FRIENDLY;
         }
     }
     else if (fact_id < 0x195) {
         if (fact_id == 0x194) {
-            return GetFactionDisposition(13) == W8_FACTION_FRIENDLY;
+            return GetFactionDisposition(W8_FACTION_TRYNNIE) == W8_FACTION_FRIENDLY;
         }
         switch (fact_id) {
         case 0xcc:
-            return GetFactionDisposition(9) == W8_FACTION_FRIENDLY;
+            return GetFactionDisposition(W8_FACTION_BROTHERHOOD) == W8_FACTION_FRIENDLY;
         case 0xce:
             return FindItemOnParty(0x294, 0, 0, 2, 0);
         case 0xd1:
@@ -391,7 +391,7 @@ unsigned char EvaluateFact(int fact_id)
             }
             return 0;
         case 0x11e:
-            return GetFactionDisposition(5) == W8_FACTION_FRIENDLY;
+            return GetFactionDisposition(W8_FACTION_TRANG) == W8_FACTION_FRIENDLY;
         case 0x14c:
             if (g_status_685170.unknown_244b[0x3e] != 0) {
                 int* marked_slot = reinterpret_cast<int*>(&g_status_685170.status_suffix_40ab[0x17c]); /* reinterpret-ok: single int slot inside the unrecovered suffix */
@@ -408,7 +408,7 @@ unsigned char EvaluateFact(int fact_id)
         case 0x172:
             return FindItemOnParty(0x239, 0, 0, 2, 0);
         case 0x183:
-            return GetFactionDisposition(4) == W8_FACTION_FRIENDLY;
+            return GetFactionDisposition(W8_FACTION_UMPANI) == W8_FACTION_FRIENDLY;
         }
     }
     else if (fact_id < 0x26a) {
@@ -419,7 +419,7 @@ unsigned char EvaluateFact(int fact_id)
         case 0x19a:
             return Function50B8F0(0x38) != 0;
         case 0x1a8:
-            return GetFactionDisposition(15) == W8_FACTION_FRIENDLY;
+            return GetFactionDisposition(W8_FACTION_RAPAX_COMMON) == W8_FACTION_FRIENDLY;
         case 0x216: {
             if (Function50B8F0(0x18) == 0) {
                 return g_fact_values[fact_id];
@@ -476,7 +476,7 @@ unsigned char EvaluateFact(int fact_id)
             return 0;
         }
         if (fact_id == 0x314) {
-            return GetFactionDisposition(16) == W8_FACTION_FRIENDLY;
+            return GetFactionDisposition(W8_FACTION_RAPAX_TEMPLAR) == W8_FACTION_FRIENDLY;
         }
         if (fact_id == 0x31a) {
             value = EvaluateFact(0x156);

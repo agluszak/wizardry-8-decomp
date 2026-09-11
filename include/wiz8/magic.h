@@ -4,6 +4,7 @@
 void ReleaseSpellDatabase(void);
 
 #include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/targeting.h"
 #include "surrender/srMath.h"
 
 struct W8TargetSource;
@@ -40,7 +41,7 @@ struct W8EffectSlot;
 struct W8Character;
 struct W8ItemInstance;
 
-char GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize, int context);
+char GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize, W8TargetingContext context);
 int GetTargetNeededForSpellHostile(int spell_id);
 unsigned int MonsterCastsSpell(
     W8MonsterInfo* monster_info, int spell_id, unsigned int power_level);

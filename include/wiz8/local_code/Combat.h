@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/targeting.h"
+
 void ChooseAction(int party_slot, int action, int detail, const void* data, int a, int b); /* 0x004E7CC0 */
 void ChooseCombatAction(
     int party_slot, int context, int* out_kind, int* out_action,

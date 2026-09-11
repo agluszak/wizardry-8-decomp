@@ -82,7 +82,7 @@ void QueueMonsterAction(
     int action_kind,
     int action_detail,
     int attack_index,
-    int target_kind,
+    W8TargetKind target_kind,
     int target_value)
 {
     W8MonsterAction* entry = (W8MonsterAction*)malloc(0x30);
@@ -98,10 +98,10 @@ void QueueMonsterAction(
     }
     ResetCombatSlot(&entry->target);
     entry->target.iType = target_kind;
-    if (target_kind == 1) {
+    if (target_kind == W8_TARGET_KIND_CHARACTER) {
         entry->target.iChar = target_value;
     }
-    else if (target_kind == 3) {
+    else if (target_kind == W8_TARGET_KIND_MONSTER) {
         entry->target.iMonsterID = target_value;
     }
     entry->tie_break = (unsigned char)Random(100) + 1;
@@ -135,7 +135,7 @@ unsigned char AimFleeingMonster(W8MonsterInfo* monster_info, const W8MonsterReco
     if (g_ai_kind_table[record->ai_kind][0] == W8_AI_KIND_ROW_SPECIAL) {
         GetCameraPosition(&party);
         ResetCombatSlot(&monster_info->Target);
-        monster_info->Target.iType = 6;
+        monster_info->Target.iType = W8_TARGET_KIND_PLACE;
         monster_info->Target.point = party;
         return 1;
     }
@@ -153,18 +153,18 @@ unsigned char IsMonsterActionUsable(W8MonsterInfo* monster_info)
 
     switch (monster_info->action_kind) {
     case W8_MONSTER_ACTION_ATTACK:
-        return monster_info->Target.iType == 1;
+        return monster_info->Target.iType == W8_TARGET_KIND_CHARACTER;
     case W8_MONSTER_ACTION_SPELL:
         spell_id = monster_info->action_detail;
         if (!MonsterCanAimSpell005474B0(spell_id)) {
             return 0;
         }
         switch (monster_info->Target.iType) {
-        case 1:
-        case 2:
+        case W8_TARGET_KIND_CHARACTER:
+        case W8_TARGET_KIND_PARTY:
             return 1;
-        case 5:
-        case 6:
+        case W8_TARGET_KIND_FIVE:
+        case W8_TARGET_KIND_PLACE:
             break;
         default:
             return 0;
