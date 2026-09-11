@@ -32,6 +32,7 @@ struct W8LevelDataRecord {
 };
 
 struct W8OctBuildTree00446390;
+class W8Octree;
 class Trigger;
 class srNode;
 
@@ -76,7 +77,10 @@ struct W8GameData {
     /* Builds the octree trace model and answers its scene node. */
     srNode* CreateTraceModel0041C930();                          /* 0x0041c930 */
 
-    W8OctBuildTree00446390* geometry_index_00;
+    union {
+        W8OctBuildTree00446390* geometry_index_00;
+        W8Octree* octree_00;
+    };
     unsigned long positional_04;
     srVector3T<float> minimum_08;
     srVector3T<float> maximum_14;

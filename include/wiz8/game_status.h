@@ -115,7 +115,10 @@ struct W8GlobalStatus {
     unsigned char unknown_248b[8];
     int value_2493;
     unsigned char flag_2497;
-    unsigned char unknown_2498[0x24db];
+    unsigned char unknown_2498[0xc89];
+    /* 0x3121: one thousand event-state dwords; EndCombat promotes 1 to 2. */
+    int event_states_3121[1000];
+    unsigned char unknown_40c1[0x8b2];
     /* 0x4973/0x4977: GetTickCount stamps that retire NPC 0x1b3 and then start
        the 0x1b6 cycle. */
     int value_4973;

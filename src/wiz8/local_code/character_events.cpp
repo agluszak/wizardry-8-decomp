@@ -156,8 +156,9 @@ W8StartupStateElement005EE748::W8StartupStateElement005EE748(
     unsigned int flags, int value_14_arg)
     : handled_00(0), character_04(character), type_08(type),
       value_0c(value_0c_arg), flags_10(flags), value_14(value_14_arg),
-      item_id_24(-1), value_30(0)
+      value_30(0)
 {
+    item_24.item_id = -1;
     switch (type) {
     case 2:
     case 3:

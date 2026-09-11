@@ -509,8 +509,8 @@ void SetPartySlotSpell(
     W8PartySlotRow* row = &g_party_slot_rows[party_slot];
 
     row->spell_id = spell_id;
-    row->spell_power_level = power_level;
-    row->spell_power_extra = 0;
+    row->spell_detail.spell.power_level = power_level;
+    row->spell_detail.spell.unused = 0;
     row->spell_target = *target;
 }
 
@@ -528,9 +528,9 @@ void SetCharacterSpell(const W8Character* character, int spell_id, int power_lev
     ChooseAction(party_slot, 7, spell_id, notify, 0, 1);
 
     row = &g_party_slot_rows[party_slot];
-    row->spell_power_level = power_level;
+    row->spell_detail.spell.power_level = power_level;
     row->spell_id = spell_id;
-    row->spell_power_extra = 0;
+    row->spell_detail.spell.unused = 0;
     row->spell_target = *GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
 }
 
@@ -932,7 +932,7 @@ void StartCharacterSpellCast(int party_slot, int power_level)
     }
 
     if (power_level == 0) {
-        target = &row->spell_power_level;
+        target = &row->spell_detail.spell.power_level;
     }
     else {
         named[0] = power_level;
@@ -961,11 +961,11 @@ void StartCharacterItemUse(int party_slot)
     if (gXStatus.fCombatMode == 0) {
         AimAtTarget(party_slot, &row->item_target, 6);
     }
-    ChooseAction(party_slot, 8, -1, &row->item_use_kind, 0, 1);
+    ChooseAction(party_slot, 8, -1, &row->item_detail.item_use.kind, 0, 1);
     AimAtTarget(party_slot, &saved_target, 6);
     RecordItemOrigin(party_slot, row->item_origin, row->item_slot);
 
-    if (IsSpellTargetStillValidIn(party_slot, GetItemSpell(row->item_in_use), 4)) {
+    if (IsSpellTargetStillValidIn(party_slot, GetItemSpell(row->item_detail.item_use.item), 4)) {
         StartBreathCycle(party_slot, 0);
         return;
     }
@@ -1252,7 +1252,7 @@ bool CanPartySlotCastRecordedSpell(int party_slot)
 {
     const W8PartySlotRow* row = &g_party_slot_rows[party_slot];
     int spell_id = row->spell_id;
-    int power_level = row->spell_power_level;
+    int power_level = row->spell_detail.spell.power_level;
 
     if (spell_id == 0) {
         return false;
@@ -1263,7 +1263,7 @@ bool CanPartySlotCastRecordedSpell(int party_slot)
     if (g_party_characters[party_slot].spell_learned[spell_id] != 1) {
         return false;
     }
-    if (row->spell_power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
+    if (row->spell_detail.spell.power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
         g_spell_records[spell_id].unknown_125 == 1 && gXStatus.fCombatMode != 0) {
         return false;
     }
@@ -1293,7 +1293,7 @@ int GetAffordableSpellPowerLevel(int party_slot)
 {
     const W8PartySlotRow* row = &g_party_slot_rows[party_slot];
     int spell_id = row->spell_id;
-    int power_level = row->spell_power_level;
+    int power_level = row->spell_detail.spell.power_level;
     int cost;
 
     if (spell_id == 0) {
@@ -1305,7 +1305,7 @@ int GetAffordableSpellPowerLevel(int party_slot)
     if (g_party_characters[party_slot].spell_learned[spell_id] != 1) {
         return 0;
     }
-    if (row->spell_power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
+    if (row->spell_detail.spell.power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
         g_spell_records[spell_id].unknown_125 == 1 && gXStatus.fCombatMode != 0) {
         return 0;
     }
@@ -1357,7 +1357,7 @@ bool CanPartySlotUseRecordedItem(int party_slot)
     }
 
     item = FindCharacterItemAt(party_slot, row->item_origin, row->item_slot);
-    row->item_in_use = item;
+    row->item_detail.item_use.item = item;
 
     if (row->item_origin == W8_ITEM_ORIGIN_EQUIPPED && gXStatus.fCombatMode != 0) {
         return false;

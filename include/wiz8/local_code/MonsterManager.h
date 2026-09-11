@@ -82,26 +82,23 @@ struct W8MonsterManagerEntry {
     unsigned char unknown_117;
 };                                       /* 0x118 */
 
-/* 0x004E6900 passes 0x006836B8 as this constructor's receiver. The constructor
-   builds the entry array and the vector at +0x9B7; 0x0054AFD0 then clears the
-   full 0x1A0A-byte object from that same address. That clear proves the
-   remaining extent, but not any internal boundaries in the trailing storage. */
+/* The manager-owned array ends at 0x00683F78: eight 0x118-byte records
+   starting at 0x006836B8. 0x00683F78 is independently gXStatus, so the
+   contiguous reset that reaches farther does not make those following globals
+   members of this object. */
 struct W8MonsterManagerState {
     W8MonsterManagerState();
     ~W8MonsterManagerState();
 
     W8MonsterManagerEntry entries[8];     /* 0x000 .. 0x8c0 */
-    unsigned char unknown_8c0[0xf7];
-    W8GrowableVector<int> vector_9b7;      /* 0x9b7 */
-    unsigned char unknown_9c7[0x1043];
-};                                       /* 0x1a0a */
+};                                       /* 0x8c0 */
 #pragma pack(pop)
 
 static_assert(sizeof(W8GrowableVector<int>) == 0x10, "W8GrowableVector_int_size_must_be_0x10");
 static_assert(sizeof(W8MonsterManagerEntry) == 0x118,
               "W8MonsterManagerEntry_size_must_be_0x118");
-static_assert(sizeof(W8MonsterManagerState) == 0x1a0a,
-              "W8MonsterManagerState_size_must_be_0x1a0a");
+static_assert(sizeof(W8MonsterManagerState) == 0x8c0,
+              "W8MonsterManagerState_size_must_be_0x8c0");
 
 extern W8MonsterManagerState g_monster_manager_state;
 

@@ -541,13 +541,10 @@ void EndCombat004EA310(int mode)
         g_combat_state->value_010 /= active;
         Function4EEF10(
             g_combat_state->value_014 + g_combat_state->value_010, 1);
-        int* entry = reinterpret_cast<int*>(g_status_685170.unknown_2498 + 0xc89); /* reinterpret-ok: opaque packed status table */
-        int* end = reinterpret_cast<int*>(g_status_685170.unknown_2498 + 0x1c29); /* reinterpret-ok: opaque packed status table */
-        while (entry < end) {
-            if (*entry == 1) {
-                *entry = 2;
+        for (int event = 0; event < 1000; ++event) {
+            if (g_status_685170.event_states_3121[event] == 1) {
+                g_status_685170.event_states_3121[event] = 2;
             }
-            ++entry;
         }
     }
     g_combat_countdown_6850b0 = SetCountdownClock(120000);
@@ -693,8 +690,7 @@ void Function4E8000(
         else if (Function536F60(party_slot, 2) == 0
                  && Function536570(party_slot, 1, (int)data) == 1) {
             Function4ECC80(&source,
-                reinterpret_cast<W8CombatSlot*>(
-                    &g_party_slot_rows[party_slot].target_in_combat));
+                &g_party_slot_rows[party_slot].target_in_combat);
         }
         if ((char)(int)data != 0) {
             Function537540(party_slot);
@@ -729,98 +725,89 @@ void Function4E8000(
    the chosen action kind plus three context-dependent words. */
 // FUNCTION: WIZ8 0x004e77b0
 void ChooseCombatAction(
-    int party_slot, int context, int* out_kind, int* out_a, int* out_b,
-    int* out_c)
+    int party_slot, int context, int* out_kind, int* out_a,
+    W8CombatSlot** out_target, W8ActionDetailBlock** out_detail)
 {
     W8PartySlotRow* row = &g_party_slot_rows[party_slot];
     int kind;
     int value_a;
-    int value_b;
-    int value_c;
+    W8CombatSlot* target = 0;
+    W8ActionDetailBlock* detail_block = 0;
 
-    if (context == 6) {
+    if (context == W8_TARGETING_CONTEXT_CURRENT) {
         context = Function53BC90(party_slot);
     }
     switch (context) {
-    case 0:
+    case W8_TARGETING_CONTEXT_OUT_OF_COMBAT:
         kind = row->pending_action;
         value_a = row->attack_mode[0];
-        value_b = reinterpret_cast<int>(&row->target_out_of_combat); // reinterpret-ok: generic machine-word output slot
-        value_c = reinterpret_cast<int>(&row->pending_action_detail_015); // reinterpret-ok: generic machine-word output slot
+        target = &row->target_out_of_combat;
+        detail_block = &row->pending_action_detail_015;
         break;
-    case 1:
+    case W8_TARGETING_CONTEXT_IN_COMBAT:
         kind = row->action_03d;
         value_a = row->action_detail_041;
-        value_b = reinterpret_cast<int>(&row->target_in_combat); // reinterpret-ok: generic machine-word output slot
-        value_c = reinterpret_cast<int>(&row->action_detail_045); // reinterpret-ok: generic machine-word output slot
+        target = &row->target_in_combat;
+        detail_block = &row->action_detail_045;
         break;
-    case 2:
+    case W8_TARGETING_CONTEXT_SHARED:
         if (g_flag_00683f95 == 0) {
             if (g_flag_00683f96 == 0) {
                 srAssertFail("gXStatus.fItemSelectMode",
                              "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp",
                              0x2e0, 0);
             }
-            *reinterpret_cast<int*>(
-                &g_monster_manager_state.unknown_9c7[48]) =
-                GetSelectedOrFallbackValue0059E0D0();
+            g_shared_action_detail_006840ab.item_use.item =
+                reinterpret_cast<W8ItemInstance*>(
+                    GetSelectedOrFallbackValue0059E0D0()); // reinterpret-ok: legacy item-selection helper returns the 32-bit item pointer word
             kind = 8;
             value_a = -1;
-            value_b = 0x68408b;
-            value_c = 0x6840ab;
         }
         else {
             kind = 7;
             value_a = Function5A1350();
-            value_b = 0x68408b;
-            value_c = 0x6840ab;
         }
+        target = &g_shared_target_0068408b;
+        detail_block = &g_shared_action_detail_006840ab;
         break;
-    case 3:
+    case W8_TARGETING_CONTEXT_SPELL:
         value_a = row->spell_id;
         kind = 7;
-        value_b = reinterpret_cast<int>(&row->spell_target); // reinterpret-ok: generic machine-word output slot
-        value_c = reinterpret_cast<int>(&row->spell_power_level); // reinterpret-ok: generic machine-word output slot
+        target = &row->spell_target;
+        detail_block = &row->spell_detail;
         break;
-    case 4:
+    case W8_TARGETING_CONTEXT_ITEM:
         value_a = -1;
         kind = 8;
-        value_b = reinterpret_cast<int>(&row->item_target); // reinterpret-ok: generic machine-word output slot
-        value_c = reinterpret_cast<int>(&row->item_use_kind); // reinterpret-ok: generic machine-word output slot
+        target = &row->item_target;
+        detail_block = &row->item_detail;
         break;
-    case 5:
+    case W8_TARGETING_CONTEXT_FIVE:
         value_a = -1;
-        value_b = reinterpret_cast<int>(&row->target_context_5); // reinterpret-ok: generic machine-word output slot
+        target = &row->target_context_5;
         kind = 2;
-        value_c = 0;
         break;
-    case 7:
+    case W8_TARGETING_CONTEXT_DIALOGUE:
         kind = g_level_block->move_budget_2dc;
         value_a = g_level_block->move_budget_2e0;
-        value_b = 0;
-        value_c = 0;
         break;
     case 8:
         kind = 0;
         value_a = -1;
-        value_b = 0;
-        value_c = 0;
         break;
     default:
         srAssertFail("FALSE",
                      "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp",
                      0x310, 0);
         value_a = context;
-        value_b = context;
-        value_c = context;
         kind = context;
         break;
     }
     if (Function53C270(context) == 0 && kind != 10 && kind != 0xb) {
         kind = -1;
         value_a = -1;
-        value_b = 0;
-        value_c = 0;
+        target = 0;
+        detail_block = 0;
     }
     if (out_kind != 0) {
         *out_kind = kind;
@@ -828,13 +815,14 @@ void ChooseCombatAction(
     if (out_a != 0) {
         *out_a = value_a;
     }
-    if (out_b != 0) {
-        *out_b = value_b;
+    if (out_target != 0) {
+        *out_target = target;
     }
-    if (out_c != 0) {
-        *out_c = value_c;
+    if (out_detail != 0) {
+        *out_detail = detail_block;
     }
 }
+
 
 /* Whether a slot may switch to the given action context, optionally repairing
    the aim state first when the caller allows it. */
@@ -843,11 +831,8 @@ unsigned char CharacterCanSwitchTo(
     int party_slot, int context, int arg_3, int arg_4)
 {
     W8Character* character = &g_party_characters[party_slot];
-    unsigned char* raw = reinterpret_cast<unsigned char*>(character);
 
-    if (*reinterpret_cast<int*>(
-            &g_monster_manager_state.unknown_8c0[0x6f]) == 0
-        && IsScreenIdle() != 0) {
+    if (gXStatus.field_06f == 0 && IsScreenIdle() != 0) {
         for (unsigned int slot = 0; slot < 8; ++slot) {
             if (IsPartySlotEligible00524A10(slot) != 0) {
                 return 1;
@@ -858,18 +843,17 @@ unsigned char CharacterCanSwitchTo(
     if (Function53C270(party_slot) == 0) {
         return 0;
     }
-    if (*reinterpret_cast<unsigned int*>(raw + 0xb01) > 0xd) {
+    if (character->unknown_0b01 > 0xd) {
         return 0;
     }
-    if (context == 6) {
+    if (context == W8_TARGETING_CONTEXT_CURRENT) {
         context = Function53BC90(party_slot);
     }
     int chosen;
     int value_a;
-    int value_b;
-    int value_c;
+    W8ActionDetailBlock* detail_block;
     ChooseCombatAction(
-        party_slot, context, &chosen, &value_a, &value_b, &value_c);
+        party_slot, context, &chosen, &value_a, 0, &detail_block);
     if (chosen == -1) {
         return 0;
     }
@@ -879,14 +863,12 @@ unsigned char CharacterCanSwitchTo(
             if (arg_4 == 0) {
                 return 0;
             }
-            if (*reinterpret_cast<int*>(raw + 0xfa5) != -1) {
-                if (*reinterpret_cast<int*>(raw + 0xfb1) == -1) {
-                    Function51EB90(character,
-                        reinterpret_cast<int>(raw + 0xfa5), -1, 7);
+            if (character->equipment[6].item_id != -1) {
+                if (character->equipment[7].item_id == -1) {
+                    Function51EB90(character, &character->equipment[6], -1, 7);
                 }
-                if (*reinterpret_cast<char*>(raw + 0xfaa) == 0) {
-                    Function51EA90(character,
-                        reinterpret_cast<int>(raw + 0xfa5));
+                if (character->equipment[6].uses_or_charges == 0) {
+                    Function51EA90(character, &character->equipment[6]);
                 }
             }
             if (CanAnyHandReachTarget(party_slot) == 0) {
@@ -899,14 +881,12 @@ unsigned char CharacterCanSwitchTo(
             if (arg_4 == 0) {
                 return 0;
             }
-            if (*reinterpret_cast<int*>(raw + 0xfa5) != -1) {
-                if (*reinterpret_cast<int*>(raw + 0xfb1) == -1) {
-                    Function51EB90(character,
-                        reinterpret_cast<int>(raw + 0xfa5), -1, 7);
+            if (character->equipment[6].item_id != -1) {
+                if (character->equipment[7].item_id == -1) {
+                    Function51EB90(character, &character->equipment[6], -1, 7);
                 }
-                if (*reinterpret_cast<char*>(raw + 0xfaa) == 0) {
-                    Function51EA90(character,
-                        reinterpret_cast<int>(raw + 0xfa5));
+                if (character->equipment[6].uses_or_charges == 0) {
+                    Function51EA90(character, &character->equipment[6]);
                 }
             }
             if (Function5458A0(party_slot) == 0) {
@@ -916,9 +896,7 @@ unsigned char CharacterCanSwitchTo(
         break;
     case 2:
         if (CharacterHasTrait00547940(character, 0x1c) == 0
-            || *reinterpret_cast<int*>(raw + 0xb1d)
-               < static_cast<int>(
-                   *reinterpret_cast<unsigned int*>(raw + 0xb19) / 5)) { /* reinterpret-ok: unmodelled character stat */
+            || character->stamina < character->stamina_max / 5) {
             return 0;
         }
         break;
@@ -930,7 +908,7 @@ unsigned char CharacterCanSwitchTo(
         }
         break;
     case 7:
-        if (context == 7 && Function4F96F0(character) != 0) {
+        if (context == W8_TARGETING_CONTEXT_DIALOGUE && Function4F96F0(character) != 0) {
             return 1;
         }
         if (value_a == 0) {
@@ -941,15 +919,13 @@ unsigned char CharacterCanSwitchTo(
         }
         break;
     case 8:
-        if (context == 7 && value_c == 0) {
+        if (context == W8_TARGETING_CONTEXT_DIALOGUE && detail_block == 0) {
             return 1;
         }
-        if (*reinterpret_cast<W8ItemInstance**>(value_c + 4) == 0) { /* reinterpret-ok: packed item target */
+        if (detail_block == 0 || detail_block->item_use.item == 0) {
             return 0;
         }
-        if (CanCharacterActivateItem(
-                character,
-                *reinterpret_cast<W8ItemInstance**>(value_c + 4)) == 0) { /* reinterpret-ok: packed item target */
+        if (CanCharacterActivateItem(character, detail_block->item_use.item) == 0) {
             return 0;
         }
         break;

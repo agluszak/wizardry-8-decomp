@@ -77,6 +77,9 @@ union W8ActionDetailBlock {
     } item_use;
 };                                        /* 0x08 */
 
+extern W8CombatSlot g_shared_target_0068408b;
+extern W8ActionDetailBlock g_shared_action_detail_006840ab;
+
 /* The targeting contexts. Six of them name a block the slot carries; the
    seventh, "current", is not a context at all but the request to work out
    which of the others applies right now. */

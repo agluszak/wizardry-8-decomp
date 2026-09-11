@@ -186,7 +186,7 @@ unsigned char LoadWorld(
     world->m_owned_04c = 0;
 
     if (CheckLevelAssetSet0042CCC0(oct_path) >= 0) {
-        world->octree = new W8Octree(oct_path, (void**)&world->m_owned_04c);
+        world->octree = new W8Octree(oct_path, &world->m_owned_04c);
         if (world->octree != 0 && world->octree->HasLoadError()) {
             delete world->octree;
             world->octree = 0;

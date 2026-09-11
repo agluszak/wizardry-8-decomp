@@ -1019,6 +1019,8 @@ void CollectMonstersWithinRadius(
 extern W8CombatSlot g_shared_target_0068408b;
 // GLOBAL: WIZ8 0x0068408b
 W8CombatSlot g_shared_target_0068408b;
+// GLOBAL: WIZ8 0x006840ab
+W8ActionDetailBlock g_shared_action_detail_006840ab;
 
 /* The two dialogue selections that have a targeting context of their own, and
    they are the same two action kinds - casting and using an item. */
@@ -1198,7 +1200,7 @@ unsigned int Function53A8D0(int party_slot, unsigned int context)
     const W8ActionDetailBlock* detail_block;
 
     ChooseCombatAction(
-        party_slot, context, &action, &detail, 0, reinterpret_cast<int*>(&detail_block)); // reinterpret-ok: the accessor stores the detail-block address in a generic int output
+        party_slot, context, &action, &detail, 0, &detail_block);
     if (action == 2) {
         return 0x77;
     }
@@ -1380,7 +1382,7 @@ unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
     }
     else {
         ChooseCombatAction(
-            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, reinterpret_cast<int*>(&detail_block)); // reinterpret-ok: the accessor stores the detail-block address in a generic int output
+            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, &detail_block);
         needed = GetTargetNeededForAction(action, detail, detail_block);
     }
 
@@ -1448,7 +1450,7 @@ unsigned char CanTargetMonster(
     }
     else {
         ChooseCombatAction(
-            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, reinterpret_cast<int*>(&detail_block)); // reinterpret-ok: the accessor stores the detail-block address in a generic int output
+            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, &detail_block);
         needed = GetTargetNeededForAction(action, detail, detail_block);
 
         if (needed != 2 && needed != 5) {
@@ -1500,7 +1502,7 @@ unsigned char SlotHasAnyValidTarget(int party_slot)
     unsigned int other_slot;
 
     ChooseCombatAction(
-        party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, &unused_target, reinterpret_cast<int*>(&detail_block)); // reinterpret-ok: the accessor stores the detail-block address in a generic int output
+        party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, &unused_target, &detail_block);
 
     switch (action) {
     case 0:
@@ -1730,7 +1732,7 @@ void AimAtMonsterGroupMember(int party_slot, W8MonsterGroup* group)
 
     if (ResolveTargetingContext(party_slot, W8_TARGETING_CONTEXT_CURRENT) != 0) {
         ChooseCombatAction(
-            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, reinterpret_cast<int*>(&detail_block)); // reinterpret-ok: the accessor stores the detail-block address in a generic int output
+            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, &detail_block);
         if (GetTargetNeededForAction(action, detail, detail_block) == 5) {
             memset(&target, 0, sizeof(target));
             target.iChar = BAD_INDEX;

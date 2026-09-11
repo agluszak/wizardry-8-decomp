@@ -32,11 +32,9 @@ struct W8PartySlotRow {
     int action_kind;
     int action_detail;
     int spell_id;
-    int spell_power_level;
-    int spell_power_extra;
+    W8ActionDetailBlock spell_detail;
     W8CombatSlot spell_target;
-    int item_use_kind;
-    W8ItemInstance* item_in_use;
+    W8ActionDetailBlock item_detail;
     W8CombatSlot item_target;
     int item_id_0c9;
     unsigned char item_origin;

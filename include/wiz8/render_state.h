@@ -13,6 +13,7 @@ class srModelInstance;
 class srNode;
 class srScene;
 class stSurface2D;
+struct EnvironmentColour;
 template <class T> class srVector3T;
 
 extern int g_pixel_format_603c48;
@@ -21,7 +22,7 @@ extern unsigned char g_flag_659711;
 extern unsigned char g_flag_65970f;
 extern unsigned char g_flag_603c60;
 extern unsigned char g_flag_603c4c;
-extern int g_value_659668;
+extern const int* g_value_659668;
 extern srModeler* g_modeler_65963c;
 extern srScene* g_scene_user_659640;
 extern srScene* g_scene_fullscreen_659644;
@@ -108,7 +109,7 @@ unsigned char FinishVideoPresentation(void);
 /* Renderer helpers Video2.cpp defines and other recovered units call. They are
    product internals, not part of the released SGP video interface, so they are
    declared here rather than in Video2.h. */
-void PublishLightDirection(const int* direction);
+void PublishLightDirection(const EnvironmentColour* direction);
 /* Clamp a colour triple to the unit range in place and return it. No
    srVector3T saturation method survives in the SurRender headers, so this stays
    the product's free fastcall. */
@@ -129,7 +130,7 @@ void AssertFailureHandler(const char* expression, const char* file,
                          long line, const char* message);
 unsigned char ClearFlag603C60(void);
 unsigned char SetFlag603C60(void);
-void SetValue659668(int value);
+void SetValue659668(const int* value);
 void Function427830(char enabled);
 unsigned char Function427260(void);
 void SetRendererOption4Enabled(char enabled);

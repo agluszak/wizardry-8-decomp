@@ -1705,7 +1705,7 @@ void W8Octree::UpdateMonsterLocation(
    A null path builds an empty octree, and a level whose preprocessed files
    cannot be built runs on the LVL file alone with the same error bit set. */
 // FUNCTION: WIZ8 0x0042bc10
-W8Octree::W8Octree(const char* path, void** game_data)
+W8Octree::W8Octree(const char* path, W8GameData** game_data)
 {
     unsigned char header[0xf5];
     char acMessage[256];
@@ -1719,7 +1719,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
     unsigned int limit;
     unsigned int name_length;
     char* extension;
-    void* pGameData = 0;
+    W8GameData* pGameData = 0;
 
     Reset();
     if (path == 0) {
@@ -2175,9 +2175,9 @@ finish:
     FileClose(hOctFile);
     if (fSuccess != 0) {
         g_octree_6598a4 = this;
-        *static_cast<W8Octree**>(pGameData) = this;
+        pGameData->octree_00 = this;
         *game_data = pGameData;
-        g_octree_game_data_00652db0 = static_cast<W8GameData*>(pGameData);
+        g_octree_game_data_00652db0 = pGameData;
         m_positional_169 = ReadLevelName00432E90(static_cast<char*>(m_owned_0c0));
         ApplyLevelName00432B80(static_cast<char*>(m_owned_0c0));
         if (pathing_180 != 0) {

@@ -36,6 +36,20 @@ enum { W8_AI_SPELL_PLACE = 0x77 };
 enum { W8_MONSTER_ACTION_ATTACK = 0, W8_MONSTER_ACTION_SPELL = 2, W8_MONSTER_ACTION_FLEE = 3 };
 
 
+#pragma pack(push, 1)
+struct W8MonsterAction {
+    int action_kind;
+    int action_detail;
+    int attack_index;
+    W8CombatSlot target;
+    unsigned char tie_break;
+    unsigned char unknown_2d[3];
+};
+#pragma pack(pop)
+static_assert(sizeof(W8MonsterAction) == 0x30,
+              "W8MonsterAction_must_be_0x30");
+
+
 struct W8SpellEffectEntry;
 /* 0x0061EEFC: two dwords per AI kind; only the leading dword is read here. */
 // GLOBAL: WIZ8 0x0061EEFC
@@ -85,28 +99,30 @@ void QueueMonsterAction(
     int target_kind,
     int target_value)
 {
-    int* entry = (int*)malloc(0x30);
+    W8MonsterAction* entry = static_cast<W8MonsterAction*>(
+        malloc(sizeof(W8MonsterAction)));
 
     if (entry == 0) {
         return;
     }
-    memset(entry, 0, 0x30);
-    entry[0] = action_kind;
-    entry[1] = action_detail;
+    memset(entry, 0, sizeof(W8MonsterAction));
+    entry->action_kind = action_kind;
+    entry->action_detail = action_detail;
     if (action_kind == W8_MONSTER_ACTION_ATTACK) {
-        entry[2] = attack_index;
+        entry->attack_index = attack_index;
     }
-    ResetCombatSlot((W8CombatSlot*)(entry + 3));
-    entry[3] = target_kind;
-    if (target_kind == 1) {
-        entry[4] = target_value;
+    ResetCombatSlot(&entry->target);
+    entry->target.iType = target_kind;
+    if (target_kind == W8_TARGET_KIND_CHARACTER) {
+        entry->target.iChar = target_value;
     }
-    else if (target_kind == 3) {
-        entry[5] = target_value;
+    else if (target_kind == W8_TARGET_KIND_MONSTER) {
+        entry->target.iMonsterID = target_value;
     }
-    *(char*)(entry + 0xb) = (char)Random(100) + 1;
+    entry->tie_break = static_cast<unsigned char>(Random(100) + 1);
     PLAdoptAppend(monster_info->pCombat->pending_actions, entry);
 }
+
 
 /* Whether a monster can aim the spell it wants to cast. The two area target
    types aim at the world; anything else either needs no aim at all or has to

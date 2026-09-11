@@ -208,7 +208,7 @@ int g_dword_6596ec;
 // GLOBAL: WIZ8 0x006596f0
 int g_dword_6596f0;
 // GLOBAL: WIZ8 0x659668
-int g_value_659668;
+const int* g_value_659668;
 // GLOBAL: WIZ8 0x65409c
 unsigned int g_tick_65409c;
 // GLOBAL: WIZ8 0x659704
@@ -964,7 +964,11 @@ void RenderFrame(void)
     }
     if (g_world != 0) {
         if (!IsSkyEnabled()) {
-            GetWorldLightValue(g_world, reinterpret_cast<int*>(&clear_color));
+            EnvironmentColour ambient_light;
+            GetWorldLightValue(g_world, &ambient_light);
+            clear_color.x = ambient_light.red;
+            clear_color.y = ambient_light.green;
+            clear_color.z = ambient_light.blue;
         } else {
             g_world->static_scene->getFogColor(clear_color);
             SaturateColor004299B0(&clear_color);
@@ -1058,8 +1062,7 @@ clear_viewport:
 
     g_gerd_659634->setTextureReduction(0);
     if (g_flag_603c6d) {
-        const int* overlay_viewport =
-            reinterpret_cast<const int*>(g_value_659668);
+        const int* overlay_viewport = g_value_659668;
         if (!g_flag_603c4c) {
             Function427850(g_scene_fullscreen_659644,
                            g_overlay_camera_659670, overlay_viewport, 0);
@@ -1133,21 +1136,24 @@ void Function427440(void)
    both static scenes consume as the fog colour. The renderer is flushed before
    the new colour lands. */
 // FUNCTION: WIZ8 0x00427380
-void PublishLightDirection(const int* direction)
+void PublishLightDirection(const EnvironmentColour* direction)
 {
-    const srVector3T<float>* color =
-        reinterpret_cast<const srVector3T<float>*>(direction); // reinterpret-ok: the three light words are the fog vector
+    srVector3T<float> color;
+    color.x = direction->red;
+    color.y = direction->green;
+    color.z = direction->blue;
     if (g_gerd_659634 != 0) {
         g_gerd_659634->flush();
-        g_gerd_659634->setFogColor(*color);
+        g_gerd_659634->setFogColor(color);
     }
     if (g_world != 0) {
-        g_world->static_scene->setFogColor(*color);
+        g_world->static_scene->setFogColor(color);
     }
     if (g_world_659ab8 != 0) {
-        g_world_659ab8->static_scene->setFogColor(*color);
+        g_world_659ab8->static_scene->setFogColor(color);
     }
 }
+
 
 // FUNCTION: WIZ8 0x00427230
 void SetRendererOption4Enabled(char enabled)
@@ -2223,7 +2229,7 @@ unsigned char GetRendererModeByte(void)
 }
 
 // FUNCTION: WIZ8 0x00429200
-void SetValue659668(int value)
+void SetValue659668(const int* value)
 {
     g_value_659668 = value;
 }

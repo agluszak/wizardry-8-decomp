@@ -2,6 +2,7 @@
 #define WIZ8_STARTUP_RUNTIME_STATE_H
 
 #include "wiz8/vector.h"
+#include "wiz8/item_instance.h"
 
 struct W8Character;
 
@@ -20,8 +21,7 @@ struct W8StartupStateElement005EE748 {
     int value_18;
     int value_1c;
     unsigned char unknown_20[4];
-    int item_id_24;
-    unsigned char unknown_28[8];
+    W8ItemInstance item_24;
     int value_30;
     /* 0x34: the GetTickCount stamp the sight code pairs with value_30. */
     unsigned int clock_34;

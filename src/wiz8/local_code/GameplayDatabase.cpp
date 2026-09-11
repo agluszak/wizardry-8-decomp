@@ -902,7 +902,7 @@ void W8StartupStateElement005EE748::Process0052CED0()
     }
     if (type_08 == 23 || type_08 == 24) {
         if ((flags_10 & 0x40) == 0) {
-            if (item_id_24 == -1) {
+            if (item_24.item_id == -1) {
                 PostCharacterMessage(
                     party_slot,
                     gppStringList[0x1dc4 / 4]);
@@ -911,9 +911,7 @@ void W8StartupStateElement005EE748::Process0052CED0()
                 PostCharacterMessage(
                     party_slot,
                     gppStringList[0x1dc8 / 4],
-                    GetItemDisplayName(
-                        reinterpret_cast<const W8ItemInstance*>( // reinterpret-ok: item_id_24 embeds the item record
-                            &item_id_24)));
+                    GetItemDisplayName(&item_24));
             }
         }
     }

@@ -17,6 +17,7 @@ typedef W8HashEntry<unsigned int, int> W8OctreeEntry;
 
 class W8PathingService;
 struct W8World;
+struct W8GameData;
 struct W8NavigatorMovementState;
 struct W8OctBuildNode00446330;
 
@@ -135,7 +136,7 @@ static_assert(sizeof(W8OctPreTreeLeaf) == 0x28,
    0x0042DE60 and then operator delete separately. */
 class W8Octree {
 public:
-    W8Octree(const char* path, void** game_data);
+    W8Octree(const char* path, W8GameData** game_data);
     void Reset();
     void Initialize(const void* header);
     ~W8Octree();
