@@ -7,6 +7,7 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/stLight.h"
 #include "wiz8/engine_code/stMeshModel.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srScene.h"
 
@@ -460,4 +461,52 @@ W8GameData* g_octree_game_data_00652db0;
 void __stdcall SetOctreeGameData0046D7D0(W8GameData* value)
 {
     g_octree_game_data_00652db0 = value;
+}
+
+/* Test one point against all six frustum planes: outside if any signed
+   distance is negative. */
+// FUNCTION: WIZ8 0x0046d880
+unsigned char PointInsideFrustum0046D880(
+    const srVector3T<float>* point, const srVector4T<float>* planes)
+{
+    for (int index = 0; index < 6; ++index) {
+        float distance = planes[index].x * point->x +
+                         planes[index].y * point->y +
+                         planes[index].z * point->z +
+                         planes[index].w;
+
+        if (distance < g_float_005ebb34) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+/* Build the normalized plane through three points. The normal is the cross
+   product of the two edges from the first point; d averages the three point
+   distances. */
+// FUNCTION: WIZ8 0x0046d660
+void BuildPlaneFromPoints0046D660(
+    srVector4T<float>* plane,
+    const srVector3T<float>* first,
+    const srVector3T<float>* second,
+    const srVector3T<float>* third)
+{
+    srVector3T<float> a = *first;
+    srVector3T<float> b = *second;
+    srVector3T<float> c = *third;
+    srVector3T<float> normal;
+
+    normal.x = a.y * (b.z - c.z) + b.y * (c.z - a.z) + c.y * (a.z - b.z);
+    normal.y = a.z * (b.x - c.x) + b.z * (c.x - a.x) + c.z * (a.x - b.x);
+    normal.z = a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y);
+    float scale = g_float_005ebb38 / normal.Length();
+    normal.x *= scale;
+    normal.y *= scale;
+    normal.z *= scale;
+    plane->Set(
+        normal.x, normal.y, normal.z,
+        (DotProduct(normal, a) + DotProduct(normal, b) +
+         DotProduct(normal, c)) *
+            g_float_005ec1a8);
 }

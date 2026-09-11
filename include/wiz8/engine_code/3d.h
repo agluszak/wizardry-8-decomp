@@ -38,8 +38,9 @@ void BuildPlaneFromPoints0046D660(
     const srVector3T<float>* first,
     const srVector3T<float>* second,
     const srVector3T<float>* third);
-unsigned char Function0046D880(
-    const srVector3T<float>* point, const unsigned char* filter);
+/* Report whether a point satisfies all six frustum planes. */
+unsigned char PointInsideFrustum0046D880(
+    const srVector3T<float>* point, const srVector4T<float>* planes);
 unsigned char HasLineOfSightToBounds0046FD70(
     const srVector3T<float>* origin,
     srVector3T<float>* minimum,

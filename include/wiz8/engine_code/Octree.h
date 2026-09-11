@@ -198,8 +198,11 @@ public:
     unsigned char CollectVisibleRegions00430D50(
         srVector3T<float>* location, int* cells, float* depth, unsigned char mode);
     void CollectVisibleCells0042FE90();
-    void Function004301C0();                 /* 0x004301C0 */
-    void Function004302E0();                 /* 0x004302E0 */
+    /* Project every candidate region volume against the frustum planes and
+       mark the visible ones in the current region set. */
+    void MarkVisibleRegions004301C0();       /* 0x004301C0 */
+    /* Build the six frustum planes from the camera basis and far clip. */
+    void BuildFrustumPlanes004302E0();       /* 0x004302E0 */
     void Function00431050(
         srVector3T<float>* location, unsigned short* regions);
 
@@ -313,14 +316,9 @@ public:
     float vertical_fov_cosine_1fc;
     float far_clip_200;
     unsigned char m_positional_204[0x18];
-    /* The four side planes 0x004302E0 builds and 0x004301C0 tests points
-       against, then the far-plane corner offsets and two accumulators it
-       carries beside them. */
-    srVector4T<float> m_frustum_planes_21c[4];   /* 0x21c */
-    srVector3T<float> m_positional_25c;          /* 0x25c */
-    float m_positional_268;                      /* 0x268 */
-    srVector3T<float> m_positional_26c;          /* 0x26c */
-    float m_positional_278;                      /* 0x278 */
+    /* The six frustum planes 0x004302E0 builds; 0x0046D880 tests a point
+       against all six. */
+    srVector4T<float> m_frustum_planes_21c[6];   /* 0x21c */
     unsigned long m_positional_27c;
     unsigned long m_positional_280;
     unsigned long m_positional_284;
