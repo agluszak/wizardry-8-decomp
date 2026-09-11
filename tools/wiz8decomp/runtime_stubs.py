@@ -6,9 +6,9 @@ must not, because the linker's fallback leaves the call targeting the PE image
 base, where the CPU executes the ``MZ`` header and destroys EBP/ESP before the
 fault. Every unresolved callable external instead receives one generated trap
 thunk here: an ordinary uniquely named cdecl function that prints the retail
-identity and breaks. The exact decorated COFF symbol is aliased to it with
-``/alternatename``, so no prototype is guessed and the caller's stack is still
-intact when the debugger stops.
+identity and breaks. The exact decorated symbols are defined by a generated
+COFF object as five-byte ``jmp`` thunks into that trap, so no prototype is
+guessed and the caller's stack is still intact when the debugger stops.
 
 Only objects that the completed comparison link actually used are scanned, so
 objects left behind by earlier source layouts cannot invent stubs. The MAP

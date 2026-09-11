@@ -8,7 +8,7 @@ function(wiz8_collect_zlib_units RESULT SOURCE_ROOT)
 endfunction()
 
 function(wiz8_add_executable)
-    cmake_parse_arguments(ARG "OPT_REF;CONSOLE;ALLOW_UNRESOLVED" "TARGET;OUTPUT;MAP" "LIBRARIES;SOURCES" ${ARGN})
+    cmake_parse_arguments(ARG "OPT_REF;CONSOLE;ALLOW_UNRESOLVED;FIXED_BASE" "TARGET;OUTPUT;MAP" "LIBRARIES;SOURCES" ${ARGN})
     if(ARG_CONSOLE)
         add_executable(${ARG_TARGET}
             $<TARGET_OBJECTS:wiz8_recovered_objects>
@@ -47,8 +47,13 @@ function(wiz8_add_executable)
     else()
         set(force_unresolved)
     endif()
+    if(ARG_FIXED_BASE)
+        set(fixed_base /FIXED)
+    else()
+        set(fixed_base /FIXED:NO)
+    endif()
     target_link_options(${ARG_TARGET} PRIVATE
-        /DEBUG /DEBUGTYPE:CV /INCREMENTAL:NO ${opt_ref} /OPT:NOICF /FIXED:NO
+        /DEBUG /DEBUGTYPE:CV /INCREMENTAL:NO ${opt_ref} /OPT:NOICF ${fixed_base}
         ${force_unresolved} /BASE:0x400000 /FILEALIGN:0x1000
         /OSVERSION:4.0 ${subsystem}
         /STACK:0x100000,0x1000 /HEAP:0x100000,0x1000
@@ -131,6 +136,7 @@ if(WIZ8_BUILD_PRODUCTS)
         OUTPUT Wiz8Runtime
         MAP Wiz8Runtime.map
         OPT_REF
+        FIXED_BASE
         SOURCES
             "$<TARGET_OBJECTS:wiz8_runtime_stub_objects>"
             "${wiz8_runtime_stub_object}"
@@ -146,6 +152,7 @@ if(WIZ8_BUILD_PRODUCTS)
         MAP Wiz8RuntimeTest.map
         OPT_REF
         CONSOLE
+        FIXED_BASE
         SOURCES
             "$<TARGET_OBJECTS:wiz8_runtime_stub_objects>"
             "${wiz8_runtime_stub_object}"

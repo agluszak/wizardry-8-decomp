@@ -311,7 +311,7 @@ def debug_command(
 ) -> None:
     """Debug the runtime product through a deterministic GDB session."""
     from .. import command_support as cli
-    from ..debugger import run_debugger
+    from ..debug.debugger import run_debugger
 
     result = run_debugger(cli.settings(), list(arguments or []))
     sys.stdout.write(result["report"])
