@@ -54,6 +54,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Video2-internal helpers. Their only recovered callers are in this unit, so
+   they are declared here instead of the released Video2 header. */
+srNode* Function424BA0(srTextureIFace* texture, float width, float height,
+    unsigned char positional_3);
+void Function4229E0(void);
+extern "C" void FlushDirtyTiles00425B40(void);
+
 /*
  * The renderer window and extension loading gate InitializeStandardGamingPlatform calls after the
  * input manager. Its callees and globals are almost all unidentified, so they
@@ -2186,7 +2193,7 @@ unsigned char SetFlag603C60(void)
    the paired mode when its state byte says otherwise. The handle travels as
    an int, matching the level-block slots that carry it. */
 // FUNCTION: WIZ8 0x004257F0
-void Function4257F0(int value)
+void ReleaseRendererObject004257F0(int value)
 {
     if ((*(unsigned char*)(value + 0x160) & 1) != 0) {
         g_dword_6596ec = 2;

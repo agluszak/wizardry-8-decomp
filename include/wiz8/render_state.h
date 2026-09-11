@@ -13,6 +13,7 @@ class srModelInstance;
 class srNode;
 class srScene;
 class stSurface2D;
+template <class T> class srVector3T;
 
 extern int g_pixel_format_603c48;
 extern unsigned char g_fullscreen_603c39;
@@ -105,6 +106,15 @@ void ResetTransientRenderScenes(void);
 void RenderFrame(void);
 IDirectDrawSurface2* BeginVideoPresentation(void);
 unsigned char FinishVideoPresentation(void);
+
+/* Renderer helpers Video2.cpp defines and other recovered units call. They are
+   product internals, not part of the released SGP video interface, so they are
+   declared here rather than in Video2.h. */
+void PublishLightDirection(const int* direction);
+/* Clamp a colour triple to the unit range in place and return it. */
+srVector3T<float>* __fastcall SaturateColor004299B0(srVector3T<float>* color);
+/* Release a renderer-owned object, leaving the renderer in its 2D mode. */
+void ReleaseRendererObject004257F0(int value);
 
 
 

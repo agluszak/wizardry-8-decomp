@@ -16,6 +16,7 @@
 #include "wiz8/cursor.h"
 #include "wiz8/regions.h"
 #include "wiz8/engine_code/Video2.h"
+#include "wiz8/render_state.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "wiz8/xstatus.h"
@@ -327,15 +328,15 @@ W8TextControl* g_panel_controls_69c2f8[3];
 void Function5B1C00(void)
 {
     if (g_level_block->unknown_2a0 != 0) {
-        Function4257F0(g_level_block->unknown_2a0);
+        ReleaseRendererObject004257F0(g_level_block->unknown_2a0);
         g_level_block->unknown_2a0 = 0;
     }
     if (g_level_block->unknown_2a4 != 0) {
-        Function4257F0(g_level_block->unknown_2a4);
+        ReleaseRendererObject004257F0(g_level_block->unknown_2a4);
         g_level_block->unknown_2a4 = 0;
     }
     if (g_level_block->unknown_2a8 != 0) {
-        Function4257F0(g_level_block->unknown_2a8);
+        ReleaseRendererObject004257F0(g_level_block->unknown_2a8);
         g_level_block->unknown_2a8 = 0;
     }
 }
