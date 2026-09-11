@@ -405,13 +405,15 @@ def render_source(stubs: list[ResolvedStub]) -> str:
     return "\n".join(lines)
 
 
-def render_alias_object(stubs: list[ResolvedStub]) -> bytes:
+def render_alias_object(stubs: list[ResolvedStub], *, include_crt_support: bool = True) -> bytes:
     """One COFF object defining every unresolved symbol at a five-byte thunk.
 
     VC6's LINK has no ``/alternatename``, so the exact decorated symbols cannot
     be aliased with a pragma. A generated COFF object is the equivalent: each
     symbol is defined as ``jmp _wiz8_runtime_stub_...``, which enters the
-    generated C++ trap with the caller's stack untouched.
+    generated C++ trap with the caller's stack untouched. The runtime products
+    also need the CRT's absolute ``__except_list`` zero; probe fixtures that
+    link a full CRT pass ``include_crt_support=False``.
     """
 
     import struct
@@ -429,7 +431,8 @@ def render_alias_object(stubs: list[ResolvedStub]) -> bytes:
         relocations.append((thunk_offset + 1, target_index))
     # The CRT's dllsupp/exsup object normally provides the SEH chain head as an
     # absolute zero, which the startup's `mov eax, fs:[0]` prologue needs.
-    symbols.append(("__except_list", 0, -1))
+    if include_crt_support:
+        symbols.append(("__except_list", 0, -1))
 
     section_name = b".text\x00\x00\x00"
     string_table = bytearray(b"\x00\x00\x00\x00")
