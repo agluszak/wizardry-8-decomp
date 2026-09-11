@@ -103,6 +103,7 @@ void Function422B10(void);
 void SetPrimarySurfaceTextureHint2Enabled(unsigned char enabled);
 unsigned char ClearPrimarySurface(void);
 void ResetTransientRenderScenes(void);
+void RenderScene(srScene* scene, srCamera* camera, const int* viewport, char preserve_fog);
 void RenderFrame(void);
 IDirectDrawSurface2* BeginVideoPresentation(void);
 unsigned char FinishVideoPresentation(void);
@@ -121,8 +122,6 @@ srVector3T<float>* __fastcall SaturateColor004299B0(srVector3T<float>* color);
    producer is unrecovered, hence the offset read stays marked. */
 void ReleaseRendererObject004257F0(srClass* object);
 
-
-
 void Initialize16BitPixelFormatMasks(void);
 unsigned char CreateWizardryWindow(void);
 unsigned char InitializePrimaryDirectDrawSurface(void);
@@ -130,8 +129,7 @@ unsigned char InitializeVideoDevice(void);
 unsigned char Function422800(void);
 void Function427440(void);
 
-void AssertFailureHandler(const char* expression, const char* file,
-                         long line, const char* message);
+void AssertFailureHandler(const char* expression, const char* file, long line, const char* message);
 unsigned char ClearFlag603C60(void);
 unsigned char SetFlag603C60(void);
 void SetValue659668(const int* value);

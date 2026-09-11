@@ -336,7 +336,7 @@ int g_selected_prop_index_00607b98;
    permits selection, and the prop centre lies inside the trigger's distance
    interval. */
 // FUNCTION: WIZ8 0x0044d760
-char Function44D760(W8World* world)
+char ResolvePickedProp(W8World* world)
 {
     srModelInstance* selected;
     srVector3T<float> camera_position;

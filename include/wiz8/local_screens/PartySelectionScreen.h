@@ -42,3 +42,6 @@ void RenderPartyPortrait0052EB00(
    whether a frame was drawn. */
 char Function52EBE0(
     int portrait, int left, int top, int flags, int party_slot, char animate);
+
+/* Refresh one party-selection list portrait after a slot change. */
+void RefreshPartySelectionPortrait(unsigned int party_slot); /* 0x005C33C0 */

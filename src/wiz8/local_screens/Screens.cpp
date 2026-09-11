@@ -3,6 +3,12 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_screens/Screens.h"
+#include "wiz8/local_screens/CharacterScreen.h"
+#include "wiz8/local_screens/PartySelectionScreen.h"
+#include "wiz8/local_screens/MGSPortraits.h"
+#include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/RCSCommon.h"
+#include "wiz8/notices.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/cursor.h"
 #include "wiz8/item_video_object_vector.h"
@@ -11,7 +17,11 @@
 #include "wiz8/dialog_code/DialogTextArea.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/engine_code/stTextureAnim.h"
+#include "wiz8/fonts.h"
+#include "wiz8/regions.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/utility.h"
+#include "wiz8/wiz8_windows.h"
 #include "Container.h"
 #include "timer.h"
 
@@ -123,6 +133,92 @@ void RequestPartySlotRedraw(int bit)
     } else if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         RequestRedraw(1 << (bit & 31));
     }
+}
+
+/* Refresh one party slot's on-screen presentation for the active screen:
+   character and party-selection forward into their own helpers; camp marks
+   the review panels dirty; main game redraws the portrait overlay. */
+// FUNCTION: WIZ8 0x0055EC90
+void RefreshPartySlotDisplay(unsigned int party_slot)
+{
+    unsigned int top;
+    unsigned char overlay_ready;
+    char highlighted;
+
+    switch (g_current_screen_state.id) {
+    case W8_SCREEN_CHARACTER:
+        RefreshCharacterScreenPartySlot(party_slot);
+        return;
+    case W8_SCREEN_PLEASE_WAIT:
+        break;
+    case W8_SCREEN_PARTY_SELECTION:
+        RefreshPartySelectionPortrait(party_slot);
+        break;
+    case W8_SCREEN_CAMP:
+        if (g_rcs_mode_0064cbe8 == static_cast<int>(party_slot) &&
+            g_camp_screen_0069c0f4->input_mode == 0) {
+            if (g_camp_screen_0069c0f4->unknown_d40[0] != 0) {
+                g_camp_screen_0069c0f4->redraw_flags |= 0x100;
+                return;
+            }
+            g_camp_screen_0069c0f4->redraw_flags |= 0x100;
+            RedrawRcsLevelUpPanel();
+            RedrawRcsDismissPanel();
+            return;
+        }
+        break;
+    case W8_SCREEN_MAIN_GAME:
+        if (*reinterpret_cast<int*>(&g_level_block->unknown_0f8[4]) == 0 ||
+            g_level_block->unknown_108[1 + party_slot] !=
+                0) { /* reinterpret-ok: int gate at +0xfc in opaque 0xf8 range */
+            switch (party_slot) {
+            case 0:
+            case 1:
+                top = 0x12;
+                break;
+            case 2:
+            case 3:
+                top = 0x67;
+                break;
+            case 4:
+            case 5:
+                top = 0xbc;
+                break;
+            case 6:
+            case 7:
+                top = 0x111;
+                break;
+            default:
+                top = party_slot;
+                break;
+            }
+            overlay_ready =
+                PreparePartyPortraitOverlay(party_slot, (party_slot & 1) << 9 | 0x14, top);
+            highlighted = 0;
+            if (party_slot == static_cast<unsigned int>(g_level_block->highlight_override) ||
+                party_slot == *reinterpret_cast<unsigned int*>(&g_level_block->unknown_170[0x1c]) ||
+                party_slot == static_cast<unsigned int>(g_level_block->held_item_display_190)) {
+                /* reinterpret-ok: int at +0x18c in opaque unknown_170 */
+                highlighted = 1;
+            }
+            RedrawPartyPortraitOverlay(party_slot, highlighted, overlay_ready,
+                                       g_level_block->unknown_108[1 + party_slot] == 0);
+            reinterpret_cast<unsigned char*>(
+                &g_portrait_animation_states_68372d[party_slot])[0x5c] =
+                1; /* reinterpret-ok: dirty byte at +0x5c in portrait animation state */
+            InvalidatePortraitControl0059BBD0(party_slot);
+            return;
+        }
+        break;
+    }
+}
+
+/* Text-input mode installs cursor id 8. Lives here because the address sits
+   in the Screens translation unit. */
+// FUNCTION: WIZ8 0x0055EF80
+int GetTextInputCursor(void)
+{
+    return 8;
 }
 
 /* Install a named cursor, or restore the held-item / default cursor when the
@@ -277,4 +373,140 @@ void SetItemCursor(int item_id)
         RefreshMouseCursorTexture();
         gXStatus.iCurrentCursor = 7;
     }
+}
+
+/* Dispatch one already-built notice line to the camp or main-game dialog. */
+// FUNCTION: WIZ8 0x0055F260
+void ShowNoticeLine(const wchar_t* text, int a, int b, int c)
+{
+    if (g_current_screen_state.id == W8_SCREEN_CAMP) {
+        ShowCampNoticeLine(text, a, b, c);
+    } else if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+        ShowMainGameNoticeLine(text, a, b, c);
+    }
+}
+
+/* Default the live main-game level block after ResetMainGameScreenState: clear
+   selection and text-box state, arm the timers, size the text regions, and
+   reset message storage. */
+// FUNCTION: WIZ8 0x0055F2C0
+void InitializeMainGameLevelBlock(void)
+{
+    int previous_mode;
+    int slot;
+    unsigned int offset;
+
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+        g_level_block->redraw_flags = static_cast<unsigned int>(-1);
+    }
+    g_level_block->transition_pending = 0;
+    g_level_block->camera_mode_100 = 7;
+    g_level_block->unknown_000[0xf0] = IsMessageBoxActive();
+    g_level_block->unknown_108[0] = 0;
+    g_level_block->unknown_200[0x10] = 0;
+    *reinterpret_cast<int*>(g_level_block->unknown_194) = -1; /* reinterpret-ok: int at +0x194 */
+    g_level_block->highlight_override = -1;
+    *reinterpret_cast<int*>(&g_level_block->unknown_170[0x00]) =
+        -1; /* reinterpret-ok: opaque ints */
+    *reinterpret_cast<int*>(&g_level_block->unknown_170[0x04]) = -1;
+    *reinterpret_cast<int*>(&g_level_block->unknown_170[0x08]) = -1;
+    *reinterpret_cast<int*>(&g_level_block->unknown_170[0x0c]) = -1;
+    *reinterpret_cast<int*>(&g_level_block->unknown_170[0x14]) = -1;
+    *reinterpret_cast<int*>(&g_level_block->unknown_170[0x10]) = -1;
+    *reinterpret_cast<int*>(&g_level_block->unknown_170[0x18]) = 0;
+    *reinterpret_cast<int*>(&g_level_block->unknown_170[0x1c]) = -1;
+    g_level_block->held_item_display_190 = -1;
+    *reinterpret_cast<int*>(&g_level_block->unknown_200[0x3c]) = -1; /* reinterpret-ok: +0x23c */
+    *reinterpret_cast<int*>(&g_level_block->unknown_200[0x40]) = 0;  /* +0x240 */
+    *reinterpret_cast<int*>(&g_level_block->unknown_194[0x04]) = 0x35;
+    *reinterpret_cast<int*>(&g_level_block->unknown_200[0x00]) = -1;
+    *reinterpret_cast<int*>(&g_level_block->unknown_200[0x04]) = -1;
+    *reinterpret_cast<int*>(&g_level_block->unknown_200[0x08]) = -1;
+    *reinterpret_cast<int*>(&g_level_block->unknown_200[0x0c]) = -1;
+    *reinterpret_cast<int*>(&g_level_block->unknown_194[0x0c]) =
+        CurrentTextLineHasContent() ? 0x57 : -1;
+    *reinterpret_cast<int*>(&g_level_block->unknown_194[0x10]) =
+        CurrentDialogueLineHasContent() ? 0x5a : -1;
+    g_level_block->world_update_flags = 0;
+    g_level_block->world_render_flags = 0;
+    g_level_block->highlighted_item = -1;
+    g_level_block->selected_item = -1;
+    *reinterpret_cast<unsigned int*>(&g_level_block->unknown_200[0x14]) = GetClock(); /* +0x214 */
+    g_level_block->unknown_200[0x18] = 0;
+    slot = 0;
+    offset = 0x134;
+    do {
+        g_level_block->unknown_108[1 + slot] = 0;
+        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset - 0x20) =
+            0; /* reinterpret-ok: parallel int arrays at +0x114/+0x134 */
+        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset) = 0;
+        offset += 4;
+        ++slot;
+    } while (offset < 0x154);
+    g_level_block->combat_end_notification = -1;
+    previous_mode = g_flag_006850ce;
+    g_flag_006850ce = -1;
+    ApplyMainGameModeFlag(previous_mode, 1);
+    g_level_block->character_update_timer = SetCountdownClock(0);
+    g_level_block->world_update_timer = SetCountdownClock(0);
+    *reinterpret_cast<unsigned int*>(&g_level_block->unknown_258[0]) =
+        SetCountdownClock(60000); /* reinterpret-ok: timer dword at +0x258 */
+    *reinterpret_cast<unsigned int*>(&g_level_block->unknown_258[4]) = SetCountdownClock(0);
+    *reinterpret_cast<unsigned int*>(&g_level_block->unknown_26c[0]) = SetCountdownClock(0xfa);
+    g_level_block->unknown_26c[4] = 1;
+    g_level_block->unknown_26c[5] = 1;
+    g_level_block->dialogue_open = 0;
+    g_level_block->unknown_26c[6] = 0;
+    g_level_block->dialogue_owner = 0;
+    *reinterpret_cast<int*>(&g_level_block->unknown_26c[0x0c]) = 0;
+    *reinterpret_cast<unsigned int*>(&g_level_block->unknown_26c[8]) = GetTickCount();
+    *reinterpret_cast<int*>(&g_level_block->unknown_284[0]) = 0;
+    *reinterpret_cast<int*>(&g_level_block->unknown_284[4]) = 0;
+    DisableRegionInput(0xe5);
+    *reinterpret_cast<int*>(&g_level_block->unknown_284[8]) = -1;
+    *reinterpret_cast<int*>(&g_level_block->unknown_2ac[0]) = 0;
+    *reinterpret_cast<int*>(&g_level_block->unknown_2ac[8]) = 0;
+    *reinterpret_cast<int*>(&g_level_block->unknown_2ac[4]) = 0;
+    g_level_block->text_lines[4 + g_text_line_cursor_00686905] = FindStoppedTextLine();
+    g_level_block->refresh_combat_panel = 1;
+    g_level_block->combat_panel_timer = SetCountdownClock(0);
+    g_level_block->refresh_party_panel = 1;
+    g_level_block->unknown_158[1] = 1;
+    SetTextBoxRegionBounds(0xa8, 0x16e, 0x1c4, 0x1ba);
+    offset = 0x1b8;
+    do {
+        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset - 0x10) =
+            0; /* reinterpret-ok: text_lines / text_slots clear loop */
+        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset) = 0;
+        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset + 0x10) =
+            0;
+        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset + 0x20) =
+            -1;
+        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset + 0x30) =
+            -1;
+        offset += 4;
+    } while (offset < 0x1c8);
+    g_level_block->unknown_2e4[0] = 0;
+    g_level_block->value_2e8 = g_font_683660;
+    *reinterpret_cast<unsigned short**>(g_level_block->unknown_2ec) =
+        g_colour_68ee08; /* reinterpret-ok: palette pointer at +0x2ec */
+    g_level_block->selection_kind = -1;
+    *reinterpret_cast<int*>(g_level_block->unknown_2f4) = -1;
+    g_level_block->selection_settled = 0;
+    g_level_block->tooltip_since = 0;
+    g_level_block->tooltip_pending = 0;
+    g_level_block->tooltip_subject = -1;
+    g_level_block->tooltip_kind = -1;
+    *reinterpret_cast<unsigned int*>(g_level_block->unknown_30c) = SetCountdownClock(0);
+    g_level_block->combat_slot = -1;
+    g_level_block->flag_314 = 0;
+    g_level_block->hover_combat_slot = -1;
+    g_level_block->unknown_31c[0] = 0;
+    *reinterpret_cast<unsigned int*>(&g_level_block->unknown_31c[4]) = SetCountdownClock(0);
+    g_level_block->unknown_31c[8] = 0;
+    g_level_block->unknown_31c[9] = 0;
+    g_level_block->unknown_31c[10] = 0;
+    g_level_block->flag_327 = 0;
+    *reinterpret_cast<unsigned int*>(&g_level_block->unknown_329[3]) = SetCountdownClock(0);
+    ResetMessageStorage();
 }

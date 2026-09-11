@@ -555,7 +555,7 @@ int Function52E750(void)
             }
             if ((record->field_099 != 0 || record->field_09a != 0) &&
                 record->field_0cf == 0) {
-                Function55EC90(party_slot);
+                RefreshPartySlotDisplay(party_slot);
             }
         }
     }

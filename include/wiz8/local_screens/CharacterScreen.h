@@ -433,3 +433,6 @@ public:
 static_assert(sizeof(W8CharacterScreen) == 0x1b28, "W8CharacterScreen_size");
 
 extern W8CharacterScreen* g_character_screen_0069c2e8;
+
+/* Refresh the character-screen response when a party slot changes. */
+void RefreshCharacterScreenPartySlot(unsigned int party_slot); /* 0x005B1AD0 */

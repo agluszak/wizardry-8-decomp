@@ -91,12 +91,6 @@ static_assert(sizeof(STACKTEXTINPUTNODE) == 0x0c,
 unsigned char gfEditingText;
 extern const wchar_t g_wchar_00689b34;
 
-// FUNCTION: WIZ8 0x0055ef80
-int GetTextInputCursor(void)
-{
-    return 8;
-}
-
 static TextInputColors* pColors;
 static STACKTEXTINPUTNODE* pInputStack;
 static TEXTINPUTNODE* gpTextInputHead;

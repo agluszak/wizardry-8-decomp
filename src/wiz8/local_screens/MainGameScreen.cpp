@@ -158,7 +158,7 @@ unsigned char g_flag_00683fcd;
 unsigned char g_flag_00683fce;
 
 // GLOBAL: WIZ8 0x006850ce
-unsigned char g_flag_006850ce;
+int g_flag_006850ce;
 
 // GLOBAL: WIZ8 0x0068edbc
 unsigned char g_flag_0068edbc;
@@ -604,7 +604,7 @@ unsigned char MainGameScreenEnter(void)
     Function5AE9D0();
     Function59B940();
     Function59BDB0();
-    Function55F2C0();
+    InitializeMainGameLevelBlock();
     ScrollTextBoxToCursor();
     SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
     SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);

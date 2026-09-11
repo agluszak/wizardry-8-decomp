@@ -874,7 +874,7 @@ srVector3T<float>* __fastcall SaturateColor004299B0(srVector3T<float>* color)
    Scene fog follows the current world's static scene for ordinary overlays;
    the world passes retain their own fog by selecting preserve_fog. */
 // FUNCTION: WIZ8 0x00427850
-void Function427850(srScene* scene, srCamera* camera, const int* viewport, char preserve_fog)
+void RenderScene(srScene* scene, srCamera* camera, const int* viewport, char preserve_fog)
 {
     unsigned long width = g_gerd_659634->getWidth();
     unsigned long height = g_gerd_659634->getHeight();
@@ -982,13 +982,13 @@ void RenderFrame(void)
 
     first_page = g_index_6596e4 ? g_scene_prerender0_65964c : g_scene_prerender1_659650;
     second_page = g_index_6596e4 ? g_scene_prerender1_659650 : g_scene_prerender0_65964c;
-    Function427850(first_page, g_overlay_camera_659670, 0, 0);
-    Function427850(second_page, g_overlay_camera_659670, 0, 0);
+    RenderScene(first_page, g_overlay_camera_659670, 0, 0);
+    RenderScene(second_page, g_overlay_camera_659670, 0, 0);
     g_gerd_659634->setTextureReduction(g_resident_texture_policy_659714);
 
     if (g_render_flag_603c6c && g_world_659ab8 != 0 && g_monster_shadow_updates_enabled_0065970c) {
-        Function427850(g_world_659ab8->static_scene, g_world_659ab8->camera,
-                       &g_viewport_left_6595e8, 0);
+        RenderScene(g_world_659ab8->static_scene, g_world_659ab8->camera, &g_viewport_left_6595e8,
+                    0);
     }
     if (g_world != 0 && g_flag_65970d) {
         g_gerd_659634->setTextureReduction(g_resident_texture_policy_659714);
@@ -997,7 +997,7 @@ void RenderFrame(void)
             g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4 < g_viewport_top_6595ec ||
             g_viewport_right_6595f0 < g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0 ||
             g_viewport_bottom_6595f4 < g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4) {
-            Function427850(g_world->static_scene, g_world->camera, &g_viewport_left_6595e8, 1);
+            RenderScene(g_world->static_scene, g_world->camera, &g_viewport_left_6595e8, 1);
         } else {
             int half_width = (g_viewport_right_6595f0 - g_viewport_left_6595e8) / 2;
             int half_height = (g_viewport_bottom_6595f4 - g_viewport_top_6595ec) / 2;
@@ -1013,10 +1013,10 @@ void RenderFrame(void)
             pick.value_10 = 0;
             g_gerd_659634->setPickKey(0);
             g_gerd_659634->pushPick(pick);
-            Function427850(g_world->static_scene, g_world->camera, &g_viewport_left_6595e8, 1);
+            RenderScene(g_world->static_scene, g_world->camera, &g_viewport_left_6595e8, 1);
             g_gerd_659634->popPick(pick);
             g_current_model_instance_65962c = pick.selected_model_0c;
-            Function44D760(g_world);
+            ResolvePickedProp(g_world);
         }
     }
 
@@ -1024,16 +1024,16 @@ void RenderFrame(void)
     if (g_flag_603c6d) {
         const int* overlay_viewport = g_value_659668;
         if (!g_flag_603c4c) {
-            Function427850(g_scene_fullscreen_659644, g_overlay_camera_659670, overlay_viewport, 0);
+            RenderScene(g_scene_fullscreen_659644, g_overlay_camera_659670, overlay_viewport, 0);
         }
-        Function427850(g_scene_overlay0_659654, g_overlay_camera_659670, 0, 0);
-        Function427850(g_scene_user_659640, g_overlay_camera_659670, 0, 0);
-        Function427850(g_scene_square_65965c, g_square_camera_659674, overlay_viewport, 0);
+        RenderScene(g_scene_overlay0_659654, g_overlay_camera_659670, 0, 0);
+        RenderScene(g_scene_user_659640, g_overlay_camera_659670, 0, 0);
+        RenderScene(g_scene_square_65965c, g_square_camera_659674, overlay_viewport, 0);
         if (g_flag_603c4c) {
-            Function427850(g_scene_fullscreen_659644, g_overlay_camera_659670, overlay_viewport, 0);
+            RenderScene(g_scene_fullscreen_659644, g_overlay_camera_659670, overlay_viewport, 0);
         }
         if (g_flag_603c60) {
-            Function427850(g_cursor_scene_659684, g_overlay_camera_659670, 0, 0);
+            RenderScene(g_cursor_scene_659684, g_overlay_camera_659670, 0, 0);
         }
     }
     g_gerd_659634->endFrame();

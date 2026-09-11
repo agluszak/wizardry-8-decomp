@@ -124,7 +124,7 @@ that as the reference example for "missing virtual slot" triage.
   loop form if byte fidelity there matters.
 - Intentionally address-named, body known-faithful but not exact:
   `Function421100`/`Function421150` (GDCamera wrappers), `Function443A50`,
-  `Function44D760`, `Function44E830`, `W8Prop::Function44DEA0`,
+  `Function44E830`, `W8Prop::Function44DEA0`,
   `Function479030`, `Function4836A0`, `Function48F280`, `Function4B5780`,
   `Function4D9080`, `Function5588E0` remain deliberately unchanged.
 - Verification debt: the unresolved baseline

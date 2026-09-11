@@ -19,8 +19,11 @@ enum W8NoticeId {
    0x0058AC00. The short form is source-level default arguments: the retail
    AddPartyGold caller leaves -1, -1 and 0 from its preceding formatter call
    on the stack and supplies only the channel and formatted line afterward. */
-void ShowNotice(
-    int channel, const wchar_t* text, int a = -1, int b = -1, int c = 0);
+void ShowNotice(int channel, const wchar_t* text, int a = -1, int b = -1, int c = 0);
 
 /* 0x0055F260 dispatches one already-built line to the active screen. */
 void ShowNoticeLine(const wchar_t* text, int a, int b, int c);
+
+/* Camp and main-game notice dialogs ShowNoticeLine forwards into. */
+void ShowCampNoticeLine(const wchar_t* text, int a, int b, int c);     /* 0x005A4C00 */
+void ShowMainGameNoticeLine(const wchar_t* text, int a, int b, int c); /* 0x00569A50 */

@@ -30,14 +30,11 @@ together; keep the address suffix until the original spelling is known.
 
 ### `src/wiz8/engine_code/Prop.cpp`
 
-- `char Function44D760` — Resolve the renderer's picked model instance back to the prop and trigger that own it.
 - `int W8Prop::Function44DEA0` — Build or refresh the pathing representation for a collidable Prop.
 
 ### `src/wiz8/engine_code/Video2.cpp`
 
 - `unsigned char Function422800` — Applies the configured window style, asks SurRender for the matching display mode in fullscreen operation, and opens the renderer output window.
-- `void Function427850` — Render one scene into either the full output or a logical 640x480 viewport.
-- `void Function00428340` — Keep the rendered cursor synchronized with the OS cursor.
 
 ### `src/wiz8/engine_code/stParticle.cpp`
 

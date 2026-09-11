@@ -339,7 +339,7 @@ extern unsigned char g_flag_00683f98;
 extern unsigned char g_flag_00683f99;
 extern unsigned char g_flag_00683f9a;
 extern unsigned char g_flag_00683fcd;
-extern unsigned char g_flag_006850ce;
+extern int g_flag_006850ce;
 extern unsigned char g_flag_0068edbc;
 extern unsigned char g_flag_0068edc8;
 extern unsigned char g_flag_0068edc9;
@@ -356,6 +356,8 @@ extern unsigned char g_map_loading_00659757;
 
 void BeginLevelTransition(void); /* 0x005611A0 */
 void Function5618F0(unsigned short mode);
+/* Apply a change to the main-game mode flag at 0x006850CE. */
+void ApplyMainGameModeFlag(int previous_mode, char enable); /* 0x00562580 */
 /* 0x00561EC0: the region-mode pass the party-add entry runs while the
    main-game screen is current. */
 void Function561EC0(void);
