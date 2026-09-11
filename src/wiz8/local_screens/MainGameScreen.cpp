@@ -175,21 +175,13 @@ unsigned char g_flag_0068edd8;
 // GLOBAL: WIZ8 0x0068eddc
 int g_main_game_mode_0068eddc;
 
-struct W8MainGameResourceSlot {
-    srClass* object;
-    unsigned int frame_count;
-    int field_08;
-    int field_0c;
-    int image_id;
-};
 // GLOBAL: WIZ8 0x0064827c
 W8MainGameResourceSlot g_main_game_resource_slots_64827c[17] = {
-    {0, 1, 0, 0, 2}, {0, 5, 0, 0, 3}, {0, 1, 0, 0, 4},
-    {0, 1, 0, 0, 5}, {0, 1, 0, 0, 6}, {0, 4, 0, 0, 7},
-    {0, 4, 0, 0, 0}, {0, 0, 0, 0, 8}, {0, 1, 0, 0, 9},
-    {0, 1, 0, 0, 10}, {0, 5, 0, 0, 11}, {0, 1, 0, 0, 12},
-    {0, 1, 0, 0, 13}, {0, 4, 0, 0, 15}, {0, 1, 0, 0, 14},
-    {0, 1, 0, 0, 16}, {0, 1, 0, 0, 0}
+    {0, 1, 0, 0, 0, 0, 2},  {0, 5, 0, 0, 0, 0, 3},  {0, 1, 0, 0, 0, 0, 4},  {0, 1, 0, 0, 0, 0, 5},
+    {0, 1, 0, 0, 0, 0, 6},  {0, 4, 0, 0, 0, 0, 7},  {0, 4, 0, 0, 0, 0, 0},  {0, 0, 0, 0, 0, 0, 8},
+    {0, 1, 0, 0, 0, 0, 9},  {0, 1, 0, 0, 0, 0, 10}, {0, 5, 0, 0, 0, 0, 11}, {0, 1, 0, 0, 0, 0, 12},
+    {0, 1, 0, 0, 0, 0, 13}, {0, 4, 0, 0, 0, 0, 15}, {0, 1, 0, 0, 0, 0, 14}, {0, 1, 0, 0, 0, 0, 16},
+    {0, 1, 0, 0, 0, 0, 0},
 };
 
 // GLOBAL: WIZ8 0x0065bd2c
@@ -255,7 +247,6 @@ void Function561330(unsigned char value);
 unsigned char GetFlag69DA6C(void);
 void Function57E0E0(int event, const POINT* point);
 void Function59B2D0(void);
-void Function55F080(void);
 void Function5171C0(void);
 void Function4E8EA0(void);
 void StartCombat(int surprise);
@@ -302,12 +293,10 @@ void Function5929D0(void)
 // FUNCTION: WIZ8 0x00592a10
 void Function592A10(void)
 {
-    if (g_mgs_keyboard->IsCommandPressed(0xcc) ||
-        g_mgs_keyboard->IsCommandPressed(0xcd)) {
+    if (g_mgs_keyboard->IsCommandPressed(0xcc) || g_mgs_keyboard->IsCommandPressed(0xcd)) {
         g_level_block->world_render_flags |= 0x100;
     }
-    if (g_mgs_keyboard->IsCommandPressed(0xce) ||
-        g_mgs_keyboard->IsCommandPressed(0xcf)) {
+    if (g_mgs_keyboard->IsCommandPressed(0xce) || g_mgs_keyboard->IsCommandPressed(0xcf)) {
         g_level_block->world_render_flags |= 0x200;
     }
     if (g_mgs_keyboard->IsCommandPressed(0xc8)) {
@@ -356,7 +345,7 @@ void Function577540(void)
 {
     g_flag_006875a5 = 0;
     ClearLevelDataFlag6();
-    Function55EE70(-1);
+    SetTargetCursor(-1);
 }
 
 // FUNCTION: WIZ8 0x00577220
@@ -487,9 +476,7 @@ wchar_t* ParseKeywordToken(wchar_t* line, wchar_t* field)
    resolved. A file that cannot be opened answers zero; otherwise every line
    adds a list, an empty one included, and the loader answers one. */
 // FUNCTION: WIZ8 0x0056bed0
-unsigned char LoadKeywordFile(
-    const char* path,
-    W8GrowableVector<W8GrowableVector<wchar_t*>*>* file)
+unsigned char LoadKeywordFile(const char* path, W8GrowableVector<W8GrowableVector<wchar_t*>*>* file)
 {
     wchar_t line[1000];
     wchar_t field[1000];
@@ -626,8 +613,7 @@ unsigned char MainGameScreenEnter(void)
     ClearPrimarySurface();
     if (IsFogEnabled()) {
         EnableSky();
-    }
-    else {
+    } else {
         DisableSky();
     }
     if (TakePendingSaveFlag()) {
@@ -646,8 +632,7 @@ unsigned char MainGameScreenEnter(void)
             display_mode = 0x7fa;
             break;
         }
-        Function58AAD0(0xc, gppStringList[0x1e30 / 4],
-                       gppStringList[display_mode]);
+        Function58AAD0(0xc, gppStringList[0x1e30 / 4], gppStringList[display_mode]);
     }
     ResetTransientRenderScenes();
     MoveTimer(4);
@@ -656,8 +641,7 @@ unsigned char MainGameScreenEnter(void)
     }
     {
         W8GameTimer* timer = g_gameplay_timer_685067;
-        if ((timer->m_flags & 8) != 0 ||
-            (g_shared_timer_paused && (timer->m_flags & 1) == 0) ||
+        if ((timer->m_flags & 8) != 0 || (g_shared_timer_paused && (timer->m_flags & 1) == 0) ||
             g_shared_timer_flag_d1) {
             timer->m_flags &= ~8;
             timer->m_start = timer->Method00439A60() - timer->m_start;
@@ -666,9 +650,8 @@ unsigned char MainGameScreenEnter(void)
     }
     Function55D3C0();
     if (g_status_685170.item_in_hand_235b.item_id != -1) {
-        SetItemCursor0055F160(0);
-    }
-    else {
+        SetItemCursor(0);
+    } else {
         ClearHeldItemDisplay();
     }
     Function53A320(0);
@@ -684,8 +667,7 @@ unsigned char MainGameScreenEnter(void)
             Function565740(g_value_00685077);
             Function59C930(g_value_00685077);
             SelectCurrentUseItemLine0059E0E0();
-        }
-        else {
+        } else {
             g_flag_00685071 = 0;
             g_value_00685072 = 0;
             g_flag_00685076 = 0xff;
@@ -704,7 +686,7 @@ void MainGameScreenFrame(void)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
-/* Retail compiled this comparison with VC6's mixed-sign operands; the
+    /* Retail compiled this comparison with VC6's mixed-sign operands; the
    signedness is part of the recovered body and changing it would change
    the compare and branch. Suppress only this diagnostic here. */
     if (g_flag_689b32) {
@@ -753,8 +735,7 @@ update_screen:
             Function5A6970();
             return;
         }
-    }
-    else if (Function5A6790()) {
+    } else if (Function5A6790()) {
         return;
     }
     if (!AnyCharacterActive() || g_party_moving_006850b5) {
@@ -826,12 +807,10 @@ update_screen:
     Function502650();
     if (gXStatus.fCombatMode) {
         for (int slot = 0; slot < 8; ++slot) {
-            if (!g_party_slot_rows[slot].occupied ||
-                g_party_characters[slot].unknown_0b01 > 0x11 ||
+            if (!g_party_slot_rows[slot].occupied || g_party_characters[slot].unknown_0b01 > 0x11 ||
                 (g_level_block->flag_314 && g_level_block->combat_slot == slot)) {
                 DisableRegionInput(slot + 10);
-            }
-            else {
+            } else {
                 EnableRegionInput(slot + 10);
             }
         }
@@ -854,18 +833,15 @@ update_screen:
     SGPMouseGetPos(&point);
     if (!IsWorldCursorVisible()) {
         if (!g_modal_owner_0068edd0) {
-            if ((!Function525DF0(1) || !gXStatus.field_01f) &&
-                !g_status_685170.value_2435) {
+            if ((!Function525DF0(1) || !gXStatus.field_01f) && !g_status_685170.value_2435) {
                 g_level_block->hover_region = UpdateRegionMousePosition(point.x, point.y);
-            }
-            else {
+            } else {
                 g_level_block->hover_region = FindRegionAtPoint(
                     static_cast<unsigned short>(point.x), static_cast<unsigned short>(point.y));
             }
-        }
-        else {
-            g_level_block->hover_region = FindRegionAtPoint(
-                static_cast<unsigned short>(point.x), static_cast<unsigned short>(point.y));
+        } else {
+            g_level_block->hover_region = FindRegionAtPoint(static_cast<unsigned short>(point.x),
+                                                            static_cast<unsigned short>(point.y));
             for (int portrait = 0; portrait < 8; ++portrait) {
                 if (g_party_slot_rows[portrait].occupied &&
                     (g_level_block->hover_region == portrait * 6 + 0x24U ||
@@ -875,8 +851,7 @@ update_screen:
                 }
             }
         }
-    }
-    else {
+    } else {
         Function4916C0();
     }
     if (!g_level_block->flag_314 && g_level_block->hover_combat_slot != -1 &&
@@ -887,8 +862,7 @@ update_screen:
     if (!GetFlag69DA6C()) {
         if (!GetFlag68F105() || GetFlag68F104()) {
             Function5929D0();
-        }
-        else if (Function57E490()) {
+        } else if (Function57E490()) {
             Function592A10();
         }
     }
@@ -897,8 +871,7 @@ update_screen:
             if (g_flag_0068edd9) {
                 if (!gfKeyState[0x10]) {
                     g_level_block->world_render_flags |= 4;
-                }
-                else {
+                } else {
                     g_level_block->world_render_flags |= 0x84;
                 }
             }
@@ -930,38 +903,37 @@ render_world:
         }
         if (gXStatus.iCurrentCursor != -1 && gXStatus.iCurrentCursor != 7 &&
             g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].frame_count > 1 &&
-            !ClockIsTicking(gXStatus.current_cursor_time) &&
-            !IsWorldCursorVisible() && !g_flag_0068edd8) {
+            !ClockIsTicking(gXStatus.current_cursor_time) && !IsWorldCursorVisible() &&
+            !g_flag_0068edd8) {
             ++gXStatus.current_cursor_frame;
             if (gXStatus.current_cursor_frame ==
                 g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].frame_count) {
                 gXStatus.current_cursor_frame = 0;
             }
-            Function55F080();
+            ApplyCurrentCursor();
         }
         ProcessMonsterManagerFrame();
         if (g_debug_monster_cycle_0068f0fc) {
-            W8Monster* monster = GetMonsterByLocationID(IListGetAt(g_debug_monster_ids_0068f100, 0));
+            W8Monster* monster =
+                GetMonsterByLocationID(IListGetAt(g_debug_monster_ids_0068f100, 0));
             if (monster) {
                 ClearSurfaceRect(0x122, 0x159, 0x226, 0x168);
                 SetFont(g_font_683660);
                 unsigned char frame = monster->m_pRep->flag_064;
                 const char* cycle = g_cycle_names[monster->Query(6)].name;
                 unsigned char subcycles = static_cast<unsigned char>(monster->GetNumSubCycles());
-                mprintf(0x122, 0x159, (UINT16*)L"%2d/%2d %hs",
-                        frame, subcycles, cycle);
+                mprintf(0x122, 0x159, (UINT16*)L"%2d/%2d %hs", frame, subcycles, cycle);
             }
         }
         if (!gXStatus.fCombatMode) {
             Function5A1EB0(&current, &value);
             Function5171C0();
-        }
-        else if (!g_level_block->transition_active && !gXStatus.field_01d &&
-                 !gXStatus.field_01f && !gXStatus.fItemSelectMode) {
+        } else if (!g_level_block->transition_active && !gXStatus.field_01d &&
+                   !gXStatus.field_01f && !gXStatus.fItemSelectMode) {
             Function4E8EA0();
         }
-        if (IsSightRangeOverridden() && !gXStatus.fCombatMode &&
-            AnyCharacterActive() && gXStatus.field_02d) {
+        if (IsSightRangeOverridden() && !gXStatus.fCombatMode && AnyCharacterActive() &&
+            gXStatus.field_02d) {
             StartCombat(0);
         }
         if (!ClockIsTicking(g_level_block->character_update_timer)) {
@@ -970,8 +942,8 @@ render_world:
         }
         if (!g_flag_006840bc) {
             Function530150(1);
-            if (!gXStatus.fCombatMode && AnyCharacterActive() &&
-                gXStatus.field_02d && !gXStatus.field_01f) {
+            if (!gXStatus.fCombatMode && AnyCharacterActive() && gXStatus.field_02d &&
+                !gXStatus.field_01f) {
                 StartCombat(0);
             }
             if (g_navigator_position_changed_659c11) {
@@ -993,11 +965,9 @@ render_world:
         }
         if (gXStatus.field_06f == 4) {
             Function53B310();
-        }
-        else if (gXStatus.field_06f == 3 && IsWorldCursorVisible()) {
+        } else if (gXStatus.field_06f == 3 && IsWorldCursorVisible()) {
             Function53B1D0();
-        }
-        else if (gXStatus.field_06f != 5 && g_level_block->refresh_party_panel) {
+        } else if (gXStatus.field_06f != 5 && g_level_block->refresh_party_panel) {
             UpdateAllMonsterHighlights(g_status_685170.selected_character,
                                        g_level_block->highlighted_item);
             g_level_block->refresh_party_panel = 0;
@@ -1007,17 +977,21 @@ render_world:
             DetachAllWorldItems();
             g_level_block->world_update_timer = SetCountdownClock(50);
         }
-        if (gXStatus.field_01d) Function5A0BC0();
-        if (gXStatus.fItemSelectMode) Function59D180();
-        if (gXStatus.field_01f) Function56E510();
-        if (gXStatus.field_020) Function587960();
-        if (gXStatus.field_021) Function58A750();
+        if (gXStatus.field_01d)
+            Function5A0BC0();
+        if (gXStatus.fItemSelectMode)
+            Function59D180();
+        if (gXStatus.field_01f)
+            Function56E510();
+        if (gXStatus.field_020)
+            Function587960();
+        if (gXStatus.field_021)
+            Function58A750();
         int active;
         if (!Function445140(g_world) && !Function53A1D0() && !Function4F8650() &&
             !Function57E3C0() && !SelectWorldCursorNode0048EFC0()) {
             active = 0;
-        }
-        else {
+        } else {
             active = 1;
         }
         Function427830(active);
@@ -1029,8 +1003,8 @@ render_world:
             int next = GetNextCharacter(1, 1, -1);
             if (next == -1) {
                 srAssertFail("iNextChar != BAD_INDEX",
-                             "C:\\Projects\\Wizardry 8\\Local Screens\\MainGameScreen.cpp",
-                             0x1047, 0);
+                             "C:\\Projects\\Wizardry 8\\Local Screens\\MainGameScreen.cpp", 0x1047,
+                             0);
             }
             Function565740(next);
         }
@@ -1050,11 +1024,9 @@ unsigned char MainGameScreenLeave(int leaving)
         if (g_flag_00683f97) {
             Function56E800(0);
         }
-    }
-    else if (g_main_game_mode_0068eddc == 5) {
+    } else if (g_main_game_mode_0068eddc == 5) {
         Function5187E0();
-    }
-    else if (g_main_game_mode_0068eddc == 6) {
+    } else if (g_main_game_mode_0068eddc == 6) {
         if (g_level_block->dialogue_owner != 0) {
             ReleaseRendererObject004257F0(g_level_block->dialogue_owner);
             g_level_block->dialogue_owner = 0;
@@ -1072,26 +1044,34 @@ unsigned char MainGameScreenLeave(int leaving)
         Function490AF0();
     }
     Function59B270();
-    if (g_flag_00683f98) Function5879A0(0);
-    if (g_flag_00683f99) Function58A790(0);
-    if (g_flag_00683f95) Function59F2B0();
-    if (g_flag_00683f96) Function59C9C0();
-    if (g_flag_00683f9a) Function5B2200();
-    if (g_flag_00683f97) Function56E800(0);
-    if (g_level_block->flag_314) Function592E60();
+    if (g_flag_00683f98)
+        Function5879A0(0);
+    if (g_flag_00683f99)
+        Function58A790(0);
+    if (g_flag_00683f95)
+        Function59F2B0();
+    if (g_flag_00683f96)
+        Function59C9C0();
+    if (g_flag_00683f9a)
+        Function5B2200();
+    if (g_flag_00683f97)
+        Function56E800(0);
+    if (g_level_block->flag_314)
+        Function592E60();
     Function59BAD0();
     Function59BF70();
-    if (g_flag_00683fcd) DisableRegionSet1C();
+    if (g_flag_00683fcd)
+        DisableRegionSet1C();
     Function529510();
-    if (GetFlag68F105()) Function57D740();
+    if (GetFlag68F105())
+        Function57D740();
     MoveTimer(1);
     SetEnvironmentTimeEnabled00482990(0);
 
     if ((g_gameplay_timer_685067->m_flags & 8) == 0) {
         g_gameplay_timer_685067->m_flags |= 8;
         g_gameplay_timer_685067->m_start =
-            g_gameplay_timer_685067->Method00439A60() -
-            g_gameplay_timer_685067->m_start;
+            g_gameplay_timer_685067->Method00439A60() - g_gameplay_timer_685067->m_start;
     }
 
     if (static_cast<unsigned char>(leaving)) {
@@ -1118,23 +1098,18 @@ unsigned char MainGameScreenLeave(int leaving)
         }
         if (g_flag_0068edc9) {
             unsigned short mode;
-            if (!IsScreenInputBlocked() && !g_level_block->flag_155 &&
-                g_level_block->flag_156 && g_level_block->flag_157 &&
-                g_flag_006850ce == 0) {
+            if (!IsScreenInputBlocked() && !g_level_block->flag_155 && g_level_block->flag_156 &&
+                g_level_block->flag_157 && g_flag_006850ce == 0) {
                 mode = 4;
-            }
-            else if (!IsScreenInputBlocked() &&
-                     (!g_level_block->flag_156 || !g_level_block->flag_157 ||
-                      !g_level_block->flag_155)) {
+            } else if (!IsScreenInputBlocked() &&
+                       (!g_level_block->flag_156 || !g_level_block->flag_157 ||
+                        !g_level_block->flag_155)) {
                 mode = 0;
-            }
-            else if (g_flag_006850ce == 1) {
+            } else if (g_flag_006850ce == 1) {
                 mode = 1;
-            }
-            else if (g_flag_006850ce == 2) {
+            } else if (g_flag_006850ce == 2) {
                 mode = 0;
-            }
-            else {
+            } else {
                 mode = 2;
             }
             Function5618F0(mode);
@@ -1191,8 +1166,6 @@ unsigned char MainGameScreenLeave(int leaving)
     Function5AEB20();
     return 1;
 }
-
-extern void Function55EE70(int arg_1);
 
 // FUNCTION: WIZ8 0x00560c30
 void OnQuitGameDialogClosed(W8DialogBase* dialog)
@@ -1296,7 +1269,7 @@ void ClearCombatSelection(void)
     SetCombatSelection(-1);
     SetCombatTarget(-1);
     SetCombatAction(-1);
-    Function55EE70(Function53A3D0(0));
+    SetTargetCursor(Function53A3D0(0));
 }
 
 /* Drop the highlight when the thing being highlighted is the one going away. */
@@ -1304,8 +1277,7 @@ void ClearCombatSelection(void)
 void ClearHighlightIfItIs(const int* item)
 {
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
-        g_level_block->highlighted_item != -1 &&
-        *item == g_level_block->highlighted_item) {
+        g_level_block->highlighted_item != -1 && *item == g_level_block->highlighted_item) {
         VideoRemoveToolTip();
     }
 }
@@ -1330,7 +1302,6 @@ int IsScreenInputBlocked(void)
 
 // GLOBAL
 unsigned char g_map_loading_00659757;
-extern void Function55EE70(int reason);
 extern void Function5879A0(int arg_1);
 extern void Function58A790(int arg_1);
 extern void Function59F2B0(void);
@@ -1357,7 +1328,7 @@ bool LoadCurrentLevelData(void)
     bool loaded = true;
 
     if (g_status_685170.current_level != -1) {
-        Function55EE70(9);
+        SetTargetCursor(9);
         g_map_loading_00659757 = 1;
         Function42B3E0();
         loaded = UnloadLevel("MAP") != 0;
@@ -1450,8 +1421,7 @@ unsigned int HitTestPartyPortrait(const InputAtom* event)
 /* Shared by the main-game screen and dialog text entries; it lives with the
    main-game text helpers, not with UtilityFunctions.cpp. */
 // FUNCTION: WIZ8 0x00577410
-void ShortenTextToWidth00577410(
-    wchar_t* output, const wchar_t* text, unsigned int width, int font)
+void ShortenTextToWidth00577410(wchar_t* output, const wchar_t* text, unsigned int width, int font)
 {
     wchar_t buffer[200];
     wcscpy(buffer, text);
@@ -1460,8 +1430,7 @@ void ShortenTextToWidth00577410(
         return;
     }
     for (int index = 0; index < static_cast<int>(wcslen(buffer)); ++index) {
-        if (width <= static_cast<unsigned int>(
-                StringPixLengthArg(font, index + 1, buffer))) {
+        if (width <= static_cast<unsigned int>(StringPixLengthArg(font, index + 1, buffer))) {
             --index;
             while (index >= 0) {
                 if (buffer[index] != L' ' && buffer[index - 1] != L' ') {
@@ -1501,18 +1470,14 @@ unsigned int Function568950(const InputAtom* input)
     case LEFT_BUTTON_UP:
     case RIGHT_BUTTON_DOWN:
     case RIGHT_BUTTON_UP:
-        MSYS_SGP_Mouse_Handler_Hook(
-            input->usEvent,
-            static_cast<unsigned short>(point.x),
-            static_cast<unsigned short>(point.y),
-            gfLeftButtonState,
-            gfRightButtonState);
+        MSYS_SGP_Mouse_Handler_Hook(input->usEvent, static_cast<unsigned short>(point.x),
+                                    static_cast<unsigned short>(point.y), gfLeftButtonState,
+                                    gfRightButtonState);
         return 1;
     default:
         return 0;
     }
 }
-
 
 // FUNCTION: WIZ8 0x0056aa30
 void Function56AA30(void)
@@ -1531,8 +1496,7 @@ void Function56AA30(void)
         MonsterForward453160();
         ResetLevelDataVectors0041F0D0();
     }
-    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-        g_level_block != 0) {
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->redraw_flags |= 0x8000;
     }
 }
@@ -1540,8 +1504,8 @@ void Function56AA30(void)
 // FUNCTION: WIZ8 0x0056aab0
 void Function56AAB0(void)
 {
-    if (gXStatus.field_01d == 0 && gXStatus.field_01f == 0 &&
-        gXStatus.fItemSelectMode == 0 && gXStatus.field_022 == 0) {
+    if (gXStatus.field_01d == 0 && gXStatus.field_01f == 0 && gXStatus.fItemSelectMode == 0 &&
+        gXStatus.field_022 == 0) {
         if (gXStatus.fCombatMode == 0) {
             if (g_flag_006840bd != 0) {
                 MoveTimer(4);
@@ -1550,25 +1514,22 @@ void Function56AAB0(void)
             }
             SetEnvironmentTimeEnabled00482990(1);
             MonsterForward4531A0();
-            if (gXStatus.field_020 == 0 && gXStatus.field_021 == 0 &&
-                gXStatus.field_024 == 0 && gXStatus.field_025 == 0) {
+            if (gXStatus.field_020 == 0 && gXStatus.field_021 == 0 && gXStatus.field_024 == 0 &&
+                gXStatus.field_025 == 0) {
                 ClearLevelDataFlag6();
             }
         }
         g_flag_006840bc = 0;
         g_flag_006840bd = 0;
-        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-            g_level_block->flag_327 == 0) {
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block->flag_327 == 0) {
             if (gXStatus.field_055 != 0) {
                 Function5A1950();
             }
             ClearSurfaceRect(0xb1, 0x13f, 0x1cf, 0x153);
             InvalidateRegion(0xb1, 0x13f, 0x1cf, 0x153, 0);
-            if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                g_level_block != 0) {
+            if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
                 g_level_block->redraw_flags |= 0x8000;
             }
         }
     }
 }
-

@@ -117,7 +117,7 @@ void SpendCharacterSpellPoints(int party_slot, int realm, int amount)
                          HEALTH_STAMINA_MANA_CPP, 1067, 0);
         }
         character->sp_left[realm] -= amount;
-        RequestPartySlotRedraw0055EE30(party_slot);
+        RequestPartySlotRedraw(party_slot);
     }
 }
 
@@ -131,7 +131,7 @@ void RestoreCharacterRealmSpellPoints(int party_slot, int realm, int amount)
     if (character->sp_max[realm] < character->sp_left[realm]) {
         character->sp_left[realm] = character->sp_max[realm];
     }
-    RequestPartySlotRedraw0055EE30(party_slot);
+    RequestPartySlotRedraw(party_slot);
 }
 
 /* Drain spell points across the party. Unlike its neighbours this does not

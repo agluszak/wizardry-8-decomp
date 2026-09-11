@@ -207,7 +207,7 @@ void DropCharacterFromRound(int party_slot)
         ClearTargetHighlights(party_slot, &row->target_in_combat);
     }
     ResetCombatSlot(&row->target_in_combat);
-    RequestPartySlotRedraw0055EE30(party_slot);
+    RequestPartySlotRedraw(party_slot);
     if (party_slot == g_status_685170.selected_character) {
         RequestRedrawParty();
     }

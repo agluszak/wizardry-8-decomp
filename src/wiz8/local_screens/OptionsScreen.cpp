@@ -1485,7 +1485,7 @@ unsigned char W8OptionsScreen::ProcessInput(const InputAtom* input)
                 HandleTextInput(input);
                 return 0;
             }
-            SetCurrentCursor(-1);
+            SetTargetCursor(-1);
             if (editor->m_listener != 0) {
                 editor->m_listener->OnTextEditComplete(editor, input->usParam == VK_ESCAPE);
             }

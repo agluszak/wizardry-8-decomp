@@ -11,6 +11,22 @@ struct W8NpcState;
 
 void RequestRedrawParty(void);
 void ClearHighlightIfItIs(const int* item);
+
+/* One animated cursor resource the main-game / camp screens can install. The
+   object is an stTextureAnim; size and hotspot are the unsigned shorts
+   ApplyCurrentCursor feeds to the mouse-cursor surface helpers. */
+struct W8MainGameResourceSlot {
+    srClass* object;
+    unsigned int frame_count;
+    unsigned short size_x;
+    unsigned short size_y;
+    unsigned short hotspot_x;
+    unsigned short hotspot_y;
+    int image_id;
+};
+static_assert(sizeof(W8MainGameResourceSlot) == 0x14, "W8MainGameResourceSlot_size");
+extern W8MainGameResourceSlot g_main_game_resource_slots_64827c[17];
+
 #include "wiz8/screen_state.h"
 
 #include "wiz8/local_code/ControlsRect.h"
@@ -51,16 +67,16 @@ struct W8LevelRuntimeBlock {
        MGSTextBox reads a still-unnamed flag byte at +0x2d through it. */
     srClass* dialogue_owner;
     unsigned char unknown_200[0x44];
-    unsigned int world_update_flags;     /* 0x244 */
-    unsigned int world_render_flags;     /* 0x248 */
+    unsigned int world_update_flags; /* 0x244 */
+    unsigned int world_render_flags; /* 0x248 */
     unsigned char unknown_24c;
     unsigned char flag_24d;
     unsigned char unknown_24e[2];
     unsigned int character_update_timer; /* 0x250 */
     unsigned int world_update_timer;     /* 0x254 */
     unsigned char unknown_258[8];
-    unsigned char transition_active;     /* 0x260 */
-    unsigned char transition_pending;    /* 0x261 */
+    unsigned char transition_active;  /* 0x260 */
+    unsigned char transition_pending; /* 0x261 */
     unsigned char unknown_262[2];
     int highlighted_item;
     int selected_item;
@@ -97,10 +113,10 @@ struct W8LevelRuntimeBlock {
     int tooltip_subject;
     int tooltip_kind;
     unsigned char unknown_30c[4];
-    int combat_slot;                      /* 0x310 */
+    int combat_slot; /* 0x310 */
     unsigned char flag_314;
     unsigned char unknown_315[3];
-    int hover_combat_slot;                /* 0x318 */
+    int hover_combat_slot; /* 0x318 */
     unsigned char unknown_31c[0xb];
     unsigned char flag_327;
     unsigned char flag_328;
@@ -108,8 +124,7 @@ struct W8LevelRuntimeBlock {
 };
 #pragma pack(pop)
 
-static_assert(sizeof(W8LevelRuntimeBlock) == 0x330,
-              "W8LevelRuntimeBlock_must_be_0x330");
+static_assert(sizeof(W8LevelRuntimeBlock) == 0x330, "W8LevelRuntimeBlock_must_be_0x330");
 
 class W8MainGameScreen005EEBD8;
 
@@ -117,9 +132,7 @@ class W8MainGameScreen005EEBD8;
    W8Widget table extended by one entry: slot 0x48 points at
    0x00588170 and accepts the key code forwarded by TextBoxHandleKey. */
 // VTABLE: WIZ8 0x005eeafc
-class W8MainGameTextKeyHandler005EEAFC
-    : public W8Widget,
-      public W8RangeListener {
+class W8MainGameTextKeyHandler005EEAFC : public W8Widget, public W8RangeListener {
 public:
     virtual char HandleKey(unsigned short key);
     virtual void OnRangeChanged(W8RangeControl* control) override;
@@ -140,13 +153,12 @@ static_assert(sizeof(W8MainGameTextKeyHandler005EEAFC) == 0xc0,
    The two secondary bases are installed at 0x4c and 0x50, before its own
    fields. */
 // VTABLE: WIZ8 0x005eeba8
-class W8MainGameTextPanel005EEBA8
-    : public Controls,
-      public W8TextControl::Listener,
-      public W8RangeListener {
+class W8MainGameTextPanel005EEBA8 : public Controls,
+                                    public W8TextControl::Listener,
+                                    public W8RangeListener {
 public:
-    W8MainGameTextPanel005EEBA8();                    /* 0x005884D0 */
-    virtual ~W8MainGameTextPanel005EEBA8();           /* 0x00588770 */
+    W8MainGameTextPanel005EEBA8();          /* 0x005884D0 */
+    virtual ~W8MainGameTextPanel005EEBA8(); /* 0x00588770 */
     virtual void Redraw() override;
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSecondary(W8TextControl*) override {}
@@ -168,15 +180,14 @@ public:
     unsigned char m_flag_141;
     unsigned char m_pad_142[2];
 };
-static_assert(sizeof(W8MainGameTextPanel005EEBA8) == 0x144,
-              "W8MainGameTextPanel005EEBA8_size");
+static_assert(sizeof(W8MainGameTextPanel005EEBA8) == 0x144, "W8MainGameTextPanel005EEBA8_size");
 
 /* The 0x00588A90 constructor establishes a Controls-derived status panel. */
 // VTABLE: WIZ8 0x005eebc0
 class W8MainGameStatusPanel005EEBC0 : public Controls {
 public:
-    W8MainGameStatusPanel005EEBC0();                  /* 0x00588A90 */
-    virtual ~W8MainGameStatusPanel005EEBC0();         /* 0x00588D90 */
+    W8MainGameStatusPanel005EEBC0();          /* 0x00588A90 */
+    virtual ~W8MainGameStatusPanel005EEBC0(); /* 0x00588D90 */
     virtual void Redraw() override;
 
     W8TextBuffer* m_text_04c;
@@ -188,8 +199,7 @@ public:
     W8TextBuffer* m_text_064;
     int m_target_068;
 };
-static_assert(sizeof(W8MainGameStatusPanel005EEBC0) == 0x6c,
-              "W8MainGameStatusPanel005EEBC0_size");
+static_assert(sizeof(W8MainGameStatusPanel005EEBC0) == 0x6c, "W8MainGameStatusPanel005EEBC0_size");
 
 /* The primary base supplies the pure virtual destructor table installed at
    the start of 0x00589160.  W8TextControl::Listener is the proven
@@ -201,12 +211,11 @@ public:
 };
 
 // VTABLE: WIZ8 0x005eebd8
-class W8MainGameScreen005EEBD8
-    : public W8MainGameScreenBase005EEBDC,
-      public W8TextControl::Listener {
+class W8MainGameScreen005EEBD8 : public W8MainGameScreenBase005EEBDC,
+                                 public W8TextControl::Listener {
 public:
-    W8MainGameScreen005EEBD8(void* owner);            /* 0x00589160 */
-    virtual ~W8MainGameScreen005EEBD8() override;     /* 0x005894B0 */
+    W8MainGameScreen005EEBD8(void* owner);        /* 0x00589160 */
+    virtual ~W8MainGameScreen005EEBD8() override; /* 0x005894B0 */
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSecondary(W8TextControl*) override {}
 
@@ -224,8 +233,7 @@ public:
     int m_field_150;
     W8GameTimer m_timer_154;
 };
-static_assert(sizeof(W8MainGameScreen005EEBD8) == 0x178,
-              "W8MainGameScreen005EEBD8_size");
+static_assert(sizeof(W8MainGameScreen005EEBD8) == 0x178, "W8MainGameScreen005EEBD8_size");
 
 extern W8LevelRuntimeBlock* g_level_block;
 extern W8MainGameScreen005EEBD8* g_main_game_screen_0068f2d4;
@@ -261,8 +269,7 @@ struct W8MainScreenState {
     unsigned char unknown_261[7];
 };
 #pragma pack(pop)
-static_assert(sizeof(W8MainScreenState) == 0x268,
-              "W8MainScreenState_size");
+static_assert(sizeof(W8MainScreenState) == 0x268, "W8MainScreenState_size");
 
 extern W8MainScreenState* g_screen_state_00649f1c;
 void OnQuitGameDialogClosed(W8DialogBase* dialog);
@@ -270,9 +277,7 @@ void OnQuitGameDialogClosed(W8DialogBase* dialog);
 void Function56AA30(void);
 void Function56AAB0(void);
 void Function56C590(W8NpcState* npc, int value, int line, int suppress);
-void Function56C5E0(
-    W8NpcState* npc, int value, int line, int suppress,
-    int arg); /* 0x0056C5E0 */
+void Function56C5E0(W8NpcState* npc, int value, int line, int suppress, int arg); /* 0x0056C5E0 */
 void ResetMainGameScreenState(void);
 /* 0x0056C520: zero W8MainScreenState, write its reset values, and reload the
    keyword lists through the loader below. */
@@ -282,8 +287,7 @@ void Function56C520(void);
    element zero is English_Keywords.txt and element one the translated list.
    A file list holds one line list per line, and a line list one malloc'd wide
    word per '/'-separated field. */
-extern W8GrowableVector<W8GrowableVector<W8GrowableVector<wchar_t*>*>*>
-    g_keyword_lists;
+extern W8GrowableVector<W8GrowableVector<W8GrowableVector<wchar_t*>*>*> g_keyword_lists;
 /* 0x0068F0F8: both files are loaded and the tables are usable. Raised once the
    second file loads and lowered whenever the tables are released. */
 extern unsigned char g_keyword_lists_loaded_68f0f8;
@@ -294,9 +298,8 @@ void ReloadKeywordLists(void);
 /* 0x0056C130: release every file list, its lines and its words. */
 void ClearKeywordLists(void);
 /* 0x0056BED0: load one keyword file into a file list. */
-unsigned char LoadKeywordFile(
-    const char* path,
-    W8GrowableVector<W8GrowableVector<wchar_t*>*>* file);
+unsigned char LoadKeywordFile(const char* path,
+                              W8GrowableVector<W8GrowableVector<wchar_t*>*>* file);
 /* 0x0056BE40: copy the next '/'-terminated field out of a keyword line into
    the caller's buffer and return the cursor past it, or null at the end. */
 wchar_t* ParseKeywordToken(wchar_t* line, wchar_t* field);
@@ -351,7 +354,7 @@ extern unsigned char g_navigator_position_changed_659c11;
 extern unsigned char g_flag_006840bb;
 extern unsigned char g_map_loading_00659757;
 
-void BeginLevelTransition(void);                                  /* 0x005611A0 */
+void BeginLevelTransition(void); /* 0x005611A0 */
 void Function5618F0(unsigned short mode);
 /* 0x00561EC0: the region-mode pass the party-add entry runs while the
    main-game screen is current. */
@@ -360,8 +363,7 @@ void Function563DD0(void);
 void Function565740(int slot);
 void Function568E10(void);
 short Function5698C0(void);
-void Function56CA60(
-    W8NpcState* npc, int, int, int, int);                          /* 0x0056CA60 */
+void Function56CA60(W8NpcState* npc, int, int, int, int); /* 0x0056CA60 */
 void Function56E800(int);
 unsigned char Function56EC90(unsigned int party_slot);
 void Function5777C0(void);
@@ -375,11 +377,11 @@ int OpenTrapInteraction0058A470(Trigger* trigger);
 /* 0x0056A770: when a slot's committed action cannot execute, re-choose a
    fallback hand, breath or character attack, or reroute spell/item aiming. */
 void FallbackFromUnreachableAction(int party_slot);
-void SetCombatAction(int value);                                 /* 0x0056A480 */
-void SetCombatSelection(int value);                              /* 0x00569F70 */
-void SetCombatTarget(int value);                                 /* 0x0056A2D0 */
+void SetCombatAction(int value);    /* 0x0056A480 */
+void SetCombatSelection(int value); /* 0x00569F70 */
+void SetCombatTarget(int value);    /* 0x0056A2D0 */
 
-void RequestRedrawCombatBar(void);      /* 0x005699B0 */
-void UpdateScreenOverlays(int frame);   /* 0x0056AF20 */
-void DisableMainRegionSet(void);        /* 0x00561FB0 */
+void RequestRedrawCombatBar(void);    /* 0x005699B0 */
+void UpdateScreenOverlays(int frame); /* 0x0056AF20 */
+void DisableMainRegionSet(void);      /* 0x00561FB0 */
 extern unsigned char g_flag_00683fce;

@@ -8,10 +8,8 @@ struct TEXTINPUTNODE;
 
 void InitTextInputModeWithScheme(int mode);
 void KillTextInputMode(void);
-char AddTextInputField(
-    int left, int top, int width, int height, int priority,
-    const wchar_t* text, unsigned char capacity, short input_type,
-    unsigned char flag);
+char AddTextInputField(int left, int top, int width, int height, int priority, const wchar_t* text,
+                       unsigned char capacity, short input_type, unsigned char flag);
 void RemoveTextInputField(int index);
 unsigned char GetTextInputFieldLength(int index);
 void SetActiveField(char index);
@@ -23,12 +21,12 @@ unsigned int HandleTextInput(const InputAtom* input);
 void RenderActiveTextField(void);
 void RenderAllTextFields(void);
 
-int Function55EF80(void);
+int GetTextInputCursor(void); /* 0x0055EF80 */
 void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason);
 void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason);
 void SetTextInputScheme(int mode);
-unsigned int CalculateCursorPos(int width, int cursor, const wchar_t* text,
-                           int* cursor_width, size_t* visible_count);
+unsigned int CalculateCursorPos(int width, int cursor, const wchar_t* text, int* cursor_width,
+                                size_t* visible_count);
 void RenderBackgroundField(TEXTINPUTNODE* field);
 void RenderInactiveTextFieldNode(TEXTINPUTNODE* field);
 void SelectAllText(void);

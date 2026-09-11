@@ -669,7 +669,7 @@ void ClearCharacterEnchantmentSlot(int party_slot, int slot)
         }
     }
 
-    RequestPartySlotRedraw0055EE30(party_slot);
+    RequestPartySlotRedraw(party_slot);
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         RequestRedraw(0x200000);
         RequestRedraw(0x8000);

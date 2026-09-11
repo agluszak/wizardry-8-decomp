@@ -2,6 +2,7 @@
 #include "wiz8/game_status.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/cursor.h"
 #include "wiz8/item_video_object_vector.h"
@@ -9,7 +10,10 @@
 #include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/dialog_code/DialogTextArea.h"
 #include "wiz8/local_code/Controls.h"
+#include "wiz8/engine_code/stTextureAnim.h"
+#include "wiz8/sr_api.h"
 #include "Container.h"
+#include "timer.h"
 
 #include <string.h>
 
@@ -21,7 +25,6 @@
  * the default cursor back and forgets what was held. The screen ids and the
  * cursor ids are the numbers the original uses, and nothing here names them.
  */
-
 
 /* Constructor 0x0055DE40 builds Controls, constructs the dialog member at
    +0x64, installs vtable 0x005EE920, and is the only value stored into the camp
@@ -113,13 +116,53 @@ unsigned char IsScreenTransitionPending(void)
 /* Route one redraw bit to the active camp or main-game screen state. The slot
    travels as an int: the body only ever reads its low byte for the shift. */
 // FUNCTION: WIZ8 0x0055EE30
-void RequestPartySlotRedraw0055EE30(int bit)
+void RequestPartySlotRedraw(int bit)
 {
     if (g_current_screen_state.id == W8_SCREEN_CAMP) {
         g_camp_screen_0069c0f4->redraw_flags |= 0x100;
-    }
-    else if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+    } else if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         RequestRedraw(1 << (bit & 31));
+    }
+}
+
+/* Install a named cursor, or restore the held-item / default cursor when the
+   caller passes -1. Unchanged ids are ignored; a new id resets the frame and
+   applies through ApplyCurrentCursor. */
+// FUNCTION: WIZ8 0x0055EE70
+void SetTargetCursor(int cursor)
+{
+    int object;
+
+    if (cursor == gXStatus.iCurrentCursor) {
+        return;
+    }
+    if (cursor == -1) {
+        if ((g_current_screen_state.id == W8_SCREEN_MAIN_GAME ||
+             g_current_screen_state.id == W8_SCREEN_CAMP) &&
+            g_status_685170.item_in_cursor) {
+            if (g_status_685170.item_in_hand_235b.item_id != -1) {
+                g_status_685170.item_in_cursor = 1;
+                object = g_item_video_objects_68ec68.GetOrCreateVideoObject(
+                    g_status_685170.item_in_hand_235b.item_id);
+                SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(object, 0),
+                                              GetCatalogVideoObjectYOffset(object), 0, 0);
+                BlitToMouseCursor(GetCatalogVideoObjectHandle(0, 0),
+                                  GetCatalogVideoObjectYOffset(0), 0, 0);
+                RefreshMouseCursorTexture();
+                gXStatus.iCurrentCursor = 7;
+            }
+        } else if (gXStatus.iCurrentCursor != -1) {
+            SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0, 0),
+                                          GetCatalogVideoObjectYOffset(0), 0, 0);
+            RefreshMouseCursorTexture();
+            gXStatus.iCurrentCursor = -1;
+            gXStatus.current_cursor_frame = 0;
+            gXStatus.current_cursor_time = 0;
+        }
+    } else {
+        gXStatus.iCurrentCursor = cursor;
+        gXStatus.current_cursor_frame = 0;
+        ApplyCurrentCursor();
     }
 }
 
@@ -135,21 +178,17 @@ void UpdateHeldItemCursor(void)
             g_status_685170.item_in_cursor = 1;
             object = g_item_video_objects_68ec68.GetOrCreateVideoObject(
                 g_status_685170.item_in_hand_235b.item_id);
-            SetMouseCursorFromVideoObject(
-                GetCatalogVideoObjectHandle(object, 0), 0, 0,
-                GetCatalogVideoObjectYOffset(object));
-            BlitToMouseCursor(
-                GetCatalogVideoObjectHandle(0, 0), 0, 0,
-                GetCatalogVideoObjectYOffset(0));
+            SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(object, 0),
+                                          GetCatalogVideoObjectYOffset(object), 0, 0);
+            BlitToMouseCursor(GetCatalogVideoObjectHandle(0, 0), GetCatalogVideoObjectYOffset(0), 0,
+                              0);
             RefreshMouseCursorTexture();
             gXStatus.iCurrentCursor = 7;
             return;
         }
-    }
-    else if (gXStatus.iCurrentCursor != -1) {
-        SetMouseCursorFromVideoObject(
-            GetCatalogVideoObjectHandle(0, 0), 0, 0,
-            GetCatalogVideoObjectYOffset(0));
+    } else if (gXStatus.iCurrentCursor != -1) {
+        SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0, 0),
+                                      GetCatalogVideoObjectYOffset(0), 0, 0);
         RefreshMouseCursorTexture();
         gXStatus.iCurrentCursor = -1;
         gXStatus.current_cursor_frame = 0;
@@ -157,21 +196,46 @@ void UpdateHeldItemCursor(void)
     }
 }
 
-/* Empty the item-in-hand record and restore the normal cursor.  The held item
-   is the 0x0c-byte record embedded in gXStatus at 0x006874CB; the byte directly
-   before it is the cursor-visible flag. */
+/* Drive the mouse cursor from gXStatus.iCurrentCursor against the main-game
+   resource-slot table: resize, install the slot's texture anim, select the
+   current frame, and refresh the hotspot. Multi-frame cursors also arm the
+   animation countdown. */
+// FUNCTION: WIZ8 0x0055F080
+void ApplyCurrentCursor(void)
+{
+    if (gXStatus.iCurrentCursor == -1) {
+        srAssertFail("gXStatus.iCurrentCursor != -1",
+                     "C:\\Projects\\Wizardry 8\\Local Screens\\Screens.cpp", 0x18d, 0);
+    }
+    if (g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].object != 0) {
+        ResizeMouseCursorSurface(g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].size_x,
+                                 g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].size_y);
+        SetMouseCursorTexture(static_cast<stTextureAnim*>(
+            g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].object));
+        static_cast<stTextureAnim*>(
+            g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].object)
+            ->SetFrame00485400(gXStatus.current_cursor_frame);
+        SetMouseCursorHotspot(g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].hotspot_x,
+                              g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].hotspot_y);
+    }
+    if (g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].frame_count > 1) {
+        gXStatus.current_cursor_time = SetCountdownClock(0xfa);
+    }
+}
+
+/* Empty the item-in-hand record and restore the normal cursor. The held item is
+   the 0x0c-byte record at g_status_685170.item_in_hand_235b (0x006874CB); the
+   byte directly before it is item_in_cursor. */
 // FUNCTION: WIZ8 0x0055f1e0
 void ClearHeldItemDisplay(void)
 {
-    memset(&g_status_685170.item_in_hand_235b, 0,
-           sizeof(g_status_685170.item_in_hand_235b));
+    memset(&g_status_685170.item_in_hand_235b, 0, sizeof(g_status_685170.item_in_hand_235b));
     g_status_685170.item_in_cursor = 0;
     g_status_685170.item_in_hand_235b.item_id = -1;
 
     if (gXStatus.iCurrentCursor != -1) {
-        SetMouseCursorFromVideoObject(
-            GetCatalogVideoObjectHandle(0, 0), 0, 0,
-            GetCatalogVideoObjectYOffset(0));
+        SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0, 0),
+                                      GetCatalogVideoObjectYOffset(0), 0, 0);
         RefreshMouseCursorTexture();
         gXStatus.iCurrentCursor = -1;
         gXStatus.current_cursor_frame = 0;
@@ -191,25 +255,19 @@ unsigned char GetTable647CCCEntry(char index)
     return g_table_647ccc[index];
 }
 
-// GLOBAL: WIZ8 0x006874CA
-unsigned char g_flag_006874ca;
-// GLOBAL: WIZ8 0x006874CB
-int g_value_006874cb;
-// GLOBAL: WIZ8 0x00683FDB
-int g_value_00683fdb;
-
 /* Point the mouse cursor at an item's video object, blitting it down as well.
    A negative held item id means the cursor keeps whatever it has. */
 // FUNCTION: WIZ8 0x0055F160
-void SetItemCursor0055F160(int item_id)
+void SetItemCursor(int item_id)
 {
     int object;
     unsigned short y_offset;
     unsigned int handle;
 
-    if (g_value_006874cb != -1) {
-        g_flag_006874ca = 1;
-        object = g_item_video_objects_68ec68.GetOrCreateVideoObject(g_value_006874cb);
+    if (g_status_685170.item_in_hand_235b.item_id != -1) {
+        g_status_685170.item_in_cursor = 1;
+        object = g_item_video_objects_68ec68.GetOrCreateVideoObject(
+            g_status_685170.item_in_hand_235b.item_id);
         y_offset = GetCatalogVideoObjectYOffset(object);
         handle = GetCatalogVideoObjectHandle(object, 0);
         SetMouseCursorFromVideoObject(handle, y_offset, 0, 0);
@@ -217,6 +275,6 @@ void SetItemCursor0055F160(int item_id)
         handle = GetCatalogVideoObjectHandle(item_id, 0);
         BlitToMouseCursor(handle, y_offset, 0, 0);
         RefreshMouseCursorTexture();
-        g_value_00683fdb = 7;
+        gXStatus.iCurrentCursor = 7;
     }
 }

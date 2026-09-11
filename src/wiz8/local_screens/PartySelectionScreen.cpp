@@ -48,7 +48,6 @@
 
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
-void Function55EE70(int value);
 int Function558C40(const char* path);
 
 extern int g_font_683660;
@@ -1261,7 +1260,7 @@ unsigned char W8State5InputHandler005C0E50::HandleInput(
         }
     }
 
-    Function55EE70(-1);
+    SetTargetCursor(-1);
     if (m_listener) {
         m_listener->OnDecision(
             reinterpret_cast<int>(this), input->usParam == VK_ESCAPE);

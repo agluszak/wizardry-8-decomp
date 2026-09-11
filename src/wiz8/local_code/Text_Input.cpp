@@ -5,6 +5,7 @@
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/fonts.h"
 #include "wiz8/text_input.h"
+#include "wiz8/local_screens/Screens.h"
 
 #include "Font.h"
 #include "himage.h"
@@ -82,19 +83,16 @@ struct STACKTEXTINPUTNODE {
     STACKTEXTINPUTNODE* next;
 };
 
-static_assert(sizeof(TEXTINPUTNODE) == 0x6c,
-              "text input field must match the retail allocation");
-static_assert(sizeof(TextInputColors) == 0x18,
-              "text input style must match the retail allocation");
+static_assert(sizeof(TEXTINPUTNODE) == 0x6c, "text input field must match the retail allocation");
+static_assert(sizeof(TextInputColors) == 0x18, "text input style must match the retail allocation");
 static_assert(sizeof(STACKTEXTINPUTNODE) == 0x0c,
               "text input session must match the retail allocation");
 
 unsigned char gfEditingText;
 extern const wchar_t g_wchar_00689b34;
-extern void Function55EE70(int value);
 
 // FUNCTION: WIZ8 0x0055ef80
-int Function55EF80(void)
+int GetTextInputCursor(void)
 {
     return 8;
 }
@@ -116,19 +114,16 @@ static unsigned char gubMouseDownPos;
 static int gsCursorX;
 static size_t guiVisibleCount;
 
-
 // FUNCTION: WIZ8 0x005D3520
 void InitTextInputModeWithScheme(int mode)
 {
     if (gpTextInputHead != 0) {
-        STACKTEXTINPUTNODE* session =
-            (STACKTEXTINPUTNODE*)malloc(sizeof(STACKTEXTINPUTNODE));
+        STACKTEXTINPUTNODE* session = (STACKTEXTINPUTNODE*)malloc(sizeof(STACKTEXTINPUTNODE));
         session->head = gpTextInputHead;
         session->pColors = pColors;
         session->next = pInputStack;
         pInputStack = session;
-        for (TEXTINPUTNODE* field = gpTextInputHead;
-             field != 0; field = field->next) {
+        for (TEXTINPUTNODE* field = gpTextInputHead; field != 0; field = field->next) {
             if (field->fEnabled != 0) {
                 MSYS_DisableRegion(&field->region);
                 field->fEnabled = 0;
@@ -137,8 +132,7 @@ void InitTextInputModeWithScheme(int mode)
         gpActive = 0;
     }
     gpTextInputHead = 0;
-    pColors =
-        (TextInputColors*)malloc(sizeof(TextInputColors));
+    pColors = (TextInputColors*)malloc(sizeof(TextInputColors));
     gfTextInputMode = 1;
     gfEditingText = 0;
     pColors->fBevelling = 0;
@@ -161,8 +155,7 @@ void SetTextInputScheme(int mode)
         pColors->ubForeColor = 0x8d;
         pColors->ubShadowColor = 0;
         pColors->ubHiForeColor = 0xd0;
-    }
-    else if (mode == 1) {
+    } else if (mode == 1) {
         pColors->usFont = (short)g_wiz_text_mono_font_683630;
         pColors->usTextFieldColor = Get16BPPColor(0x632a1e);
         pColors->usWizardryInactiveColor = Get16BPPColor(0x0a0a0a);
@@ -176,8 +169,7 @@ void SetTextInputScheme(int mode)
         pColors->ubHiBackColor = 3;
         pColors->usCursorColor = Get16BPPColor(0xffffff);
         return;
-    }
-    else if (mode == 2) {
+    } else if (mode == 2) {
         pColors->usFont = (short)g_wiz_text_mono_font_683630;
         pColors->usTextFieldColor = Get16BPPColor(0xffffff);
         pColors->usWizardryInactiveColor = Get16BPPColor(0xffffff);
@@ -187,8 +179,7 @@ void SetTextInputScheme(int mode)
         pColors->ubForeColor = 0x8d;
         pColors->ubShadowColor = 0;
         pColors->ubHiForeColor = 0xd0;
-    }
-    else {
+    } else {
         return;
     }
     pColors->ubHiShadowColor = 0xcd;
@@ -200,7 +191,8 @@ void SetTextInputScheme(int mode)
 void KillTextInputMode(void)
 {
     TEXTINPUTNODE* field = gpTextInputHead;
-    if (field == 0) return;
+    if (field == 0)
+        return;
     do {
         gpTextInputHead = field->next;
         if (field->szString != 0) {
@@ -236,60 +228,55 @@ void KillTextInputMode(void)
     if (gpActive == 0)
         gpActive = gpTextInputHead;
     for (; field != 0; field = field->next) {
-        if (field != gpActive || field->ubID != 0 ||
-            field->fEnabled == 0)
+        if (field != gpActive || field->ubID != 0 || field->fEnabled == 0)
             continue;
         gpActive = field;
         if (field->szString == 0) {
             gfHiliteMode = 0;
             gfEditingText = 0;
-            if (field->InputCallback != 0) field->InputCallback(field->ubID, 1);
-        }
-        else {
+            if (field->InputCallback != 0)
+                field->InputCallback(field->ubID, 1);
+        } else {
             gubStartHilite = 0;
             gubEndHilite = field->ubStrLen;
             gubCursorPos = field->ubStrLen;
             gubParkingPos = CalculateCursorPos(
-                field->region.RegionBottomRightX - field->region.RegionTopLeftX - 10,
-                gubCursorPos, field->szString,
-                &gsCursorX,
-                &guiVisibleCount);
+                field->region.RegionBottomRightX - field->region.RegionTopLeftX - 10, gubCursorPos,
+                field->szString, &gsCursorX, &guiVisibleCount);
             gubCursorPos = gpActive->ubStrLen;
             gfHiliteMode = 1;
             gfEditingText = 1;
         }
         break;
     }
-    if (gpTextInputHead == 0) gpActive = 0;
+    if (gpTextInputHead == 0)
+        gpActive = 0;
 }
 
 // FUNCTION: WIZ8 0x005D39B0
-char AddTextInputField(int left, int top, int width, int height, int priority,
-                    const wchar_t* text, unsigned char capacity,
-                    short input_type, unsigned char flag)
+char AddTextInputField(int left, int top, int width, int height, int priority, const wchar_t* text,
+                       unsigned char capacity, short input_type, unsigned char flag)
 {
-    TEXTINPUTNODE* field =
-        (TEXTINPUTNODE*)malloc(sizeof(TEXTINPUTNODE));
+    TEXTINPUTNODE* field = (TEXTINPUTNODE*)malloc(sizeof(TEXTINPUTNODE));
     memset(field, 0, sizeof(TEXTINPUTNODE));
     if (gpTextInputHead == 0) {
         gpTextInputHead = field;
         gpTextInputTail = field;
         field->ubID = 0;
-    }
-    else {
+    } else {
         gpTextInputTail->next = field;
         field->prev = gpTextInputTail;
         field->ubID = gpTextInputTail->ubID + 1;
         gpTextInputTail = field;
     }
     field->usInputType = input_type;
-    if (input_type == 0x1002) capacity = 6;
+    if (input_type == 0x1002)
+        capacity = 6;
     field->szString = (wchar_t*)malloc((capacity + 1) * sizeof(wchar_t));
     if (text == 0) {
         field->ubStrLen = 0;
         swprintf(field->szString, &g_wchar_00689b34);
-    }
-    else {
+    } else {
         field->ubStrLen = (unsigned char)wcslen(text);
         swprintf(field->szString, text);
     }
@@ -300,19 +287,16 @@ char AddTextInputField(int left, int top, int width, int height, int priority,
         gubCursorPos = field->ubStrLen;
         if (gpActive != 0) {
             gubParkingPos = CalculateCursorPos(
-                gpActive->region.RegionBottomRightX -
-                    gpActive->region.RegionTopLeftX - 10,
-                gubCursorPos, gpActive->szString,
-                &gsCursorX,
-                &guiVisibleCount);
+                gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
+                gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
         }
         gfHiliteMode = 1;
     }
     field->fEnabled = 1;
     MSYS_DefineRegion(&field->region, (unsigned short)left, (unsigned short)top,
                       (unsigned short)(left + width), (unsigned short)(top + height),
-                      (signed char)priority, MSYS_NO_CURSOR,
-                      MouseMovedInTextRegionCallback, MouseClickedInTextRegionCallback);
+                      (signed char)priority, MSYS_NO_CURSOR, MouseMovedInTextRegionCallback,
+                      MouseClickedInTextRegionCallback);
     MSYS_SetRegionUserData(&field->region, 0, field->ubID);
     field->flag_60 = flag;
     return field->ubID;
@@ -322,18 +306,25 @@ char AddTextInputField(int left, int top, int width, int height, int priority,
 void RemoveTextInputField(int index)
 {
     TEXTINPUTNODE* field = gpTextInputHead;
-    while (field != 0 && field->ubID != index) field = field->next;
-    if (field == 0) return;
-    if (field == gpTextInputHead) gpTextInputHead = field->next;
-    if (field == gpTextInputTail) gpTextInputTail = field->prev;
-    if (field->next != 0) field->next->prev = field->prev;
-    if (field->prev != 0) field->prev->next = field->next;
+    while (field != 0 && field->ubID != index)
+        field = field->next;
+    if (field == 0)
+        return;
+    if (field == gpTextInputHead)
+        gpTextInputHead = field->next;
+    if (field == gpTextInputTail)
+        gpTextInputTail = field->prev;
+    if (field->next != 0)
+        field->next->prev = field->prev;
+    if (field->prev != 0)
+        field->prev->next = field->next;
     if (field->szString != 0) {
         free(field->szString);
         field->szString = 0;
         MSYS_RemoveRegion(&field->region);
     }
-    if (field == gpActive) gpActive = 0;
+    if (field == gpActive)
+        gpActive = 0;
     free(field);
     if (gpTextInputHead == 0) {
         gfTextInputMode = 0;
@@ -350,8 +341,7 @@ void SetInputFieldStringWith16BitString(unsigned char index, wchar_t* text)
             if (text != 0) {
                 field->ubStrLen = (unsigned char)wcslen(text);
                 wcsncpy(field->szString, text, field->ubMaxChars);
-            }
-            else if (!field->fUserField) {
+            } else if (!field->fUserField) {
                 field->ubStrLen = 0;
                 wcscpy(field->szString, L"");
             }
@@ -359,9 +349,8 @@ void SetInputFieldStringWith16BitString(unsigned char index, wchar_t* text)
             gubStartHilite = 0;
             if (gpActive != 0) {
                 gubParkingPos = CalculateCursorPos(
-                    gpActive->region.RegionBottomRightX -
-                        gpActive->region.RegionTopLeftX - 10,
-                    0, gpActive->szString, &gsCursorX, &guiVisibleCount);
+                    gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10, 0,
+                    gpActive->szString, &gsCursorX, &guiVisibleCount);
             }
             return;
         }
@@ -372,7 +361,8 @@ void SetInputFieldStringWith16BitString(unsigned char index, wchar_t* text)
 // FUNCTION: WIZ8 0x005D3BF0
 short GetActiveTextInputField(void)
 {
-    if (gpActive != 0) return gpActive->ubID;
+    if (gpActive != 0)
+        return gpActive->ubID;
     return -1;
 }
 
@@ -393,9 +383,9 @@ void Get16BitStringFromField(unsigned char index, wchar_t* text)
 // FUNCTION: WIZ8 0x005D3D00
 unsigned char GetTextInputFieldLength(int index)
 {
-    for (TEXTINPUTNODE* field = gpTextInputHead;
-         field != 0; field = field->next) {
-        if (field->ubID == index) return field->ubStrLen;
+    for (TEXTINPUTNODE* field = gpTextInputHead; field != 0; field = field->next) {
+        if (field->ubID == index)
+            return field->ubStrLen;
     }
     return 0;
 }
@@ -404,22 +394,19 @@ unsigned char GetTextInputFieldLength(int index)
 void SetActiveField(char index)
 {
     TEXTINPUTNODE* field = gpTextInputHead;
-    while (field != 0 &&
-           (field == gpActive || field->ubID != index ||
-            field->fEnabled == 0)) {
+    while (field != 0 && (field == gpActive || field->ubID != index || field->fEnabled == 0)) {
         field = field->next;
     }
-    if (field == 0) return;
+    if (field == 0)
+        return;
     gpActive = field;
     if (field->szString != 0) {
         gubStartHilite = 0;
         gubEndHilite = field->ubStrLen;
         gubCursorPos = field->ubStrLen;
-        gubParkingPos = CalculateCursorPos(
-            field->region.RegionBottomRightX - field->region.RegionTopLeftX - 10,
-            gubCursorPos, field->szString,
-            &gsCursorX,
-            &guiVisibleCount);
+        gubParkingPos =
+            CalculateCursorPos(field->region.RegionBottomRightX - field->region.RegionTopLeftX - 10,
+                               gubCursorPos, field->szString, &gsCursorX, &guiVisibleCount);
         gubCursorPos = gpActive->ubStrLen;
         gfHiliteMode = 1;
         gfEditingText = 1;
@@ -427,18 +414,20 @@ void SetActiveField(char index)
     }
     gfHiliteMode = 0;
     gfEditingText = 0;
-    if (field->InputCallback != 0) field->InputCallback(field->ubID, 1);
+    if (field->InputCallback != 0)
+        field->InputCallback(field->ubID, 1);
 }
 
 // FUNCTION: WIZ8 0x005D3DF0
 void SelectNextField(void)
 {
-    if (gpActive == 0) return;
+    if (gpActive == 0)
+        return;
     TEXTINPUTNODE* previous = gpActive;
     if (previous->szString == 0) {
-        if (previous->InputCallback != 0) previous->InputCallback(previous->ubID, 0);
-    }
-    else {
+        if (previous->InputCallback != 0)
+            previous->InputCallback(previous->ubID, 0);
+    } else {
         RenderInactiveTextFieldNode(previous);
     }
 
@@ -453,25 +442,22 @@ void SelectNextField(void)
                 gfHiliteMode = 0;
                 gfEditingText = 0;
                 if (gpActive->InputCallback != 0)
-                    gpActive->InputCallback(
-                        gpActive->ubID, 1);
-            }
-            else {
+                    gpActive->InputCallback(gpActive->ubID, 1);
+            } else {
                 gubStartHilite = 0;
                 gubEndHilite = gpActive->ubStrLen;
                 gubCursorPos = gpActive->ubStrLen;
                 gubParkingPos = CalculateCursorPos(
-                    gpActive->region.RegionBottomRightX -
-                        gpActive->region.RegionTopLeftX - 10,
-                    gubCursorPos, gpActive->szString,
-                    &gsCursorX,
-                    &guiVisibleCount);
+                    gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
+                    gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
                 gfHiliteMode = 1;
                 gfEditingText = 1;
             }
         }
-        if (gpActive == previous) break;
-        if (found) return;
+        if (gpActive == previous)
+            break;
+        if (found)
+            return;
     } while (true);
     gfEditingText = 0;
 }
@@ -479,13 +465,12 @@ void SelectNextField(void)
 // FUNCTION: WIZ8 0x005D3F00
 void ClearActiveField(void)
 {
-    if (gpActive == 0) return;
+    if (gpActive == 0)
+        return;
     if (gpActive->szString != 0) {
         RenderInactiveTextFieldNode(gpActive);
-    }
-    else if (gpActive->InputCallback != 0) {
-        gpActive->InputCallback(
-            gpActive->ubID, 0);
+    } else if (gpActive->InputCallback != 0) {
+        gpActive->InputCallback(gpActive->ubID, 0);
     }
     gfEditingText = 0;
     gpActive = 0;
@@ -495,13 +480,11 @@ void ClearActiveField(void)
 unsigned int HandleTextInput(const InputAtom* input)
 {
     gfHorizontalKey = 0;
-    if (gfTextInputMode == 0 || gfEditingText == 0 ||
-        gpActive == 0 ||
-        (input->usEvent != KEY_DOWN && input->usEvent != KEY_REPEAT) ||
-        input->usParam == 0x1b || input->usParam == 0x0d || input->usParam == 9 ||
-        (input->usKeyState & ALT_DOWN) != 0 ||
-        ((input->usKeyState & CTRL_DOWN) != 0 && input->usParam != 0x2e &&
-         input->usParam != 0x27 && input->usParam != 0x25) ||
+    if (gfTextInputMode == 0 || gfEditingText == 0 || gpActive == 0 ||
+        (input->usEvent != KEY_DOWN && input->usEvent != KEY_REPEAT) || input->usParam == 0x1b ||
+        input->usParam == 0x0d || input->usParam == 9 || (input->usKeyState & ALT_DOWN) != 0 ||
+        ((input->usKeyState & CTRL_DOWN) != 0 && input->usParam != 0x2e && input->usParam != 0x27 &&
+         input->usParam != 0x25) ||
         (input->usParam > 0x6f && input->usParam < 0x7c)) {
         return 0;
     }
@@ -513,20 +496,14 @@ unsigned int HandleTextInput(const InputAtom* input)
             if (gubCursorPos != 0) {
                 --gubCursorPos;
                 gubParkingPos = CalculateCursorPos(
-                    gpActive->region.RegionBottomRightX -
-                        gpActive->region.RegionTopLeftX - 10,
-                    gubCursorPos, gpActive->szString,
-                    &gsCursorX,
-                    &guiVisibleCount);
-                memmove(gpActive->szString + gubCursorPos,
-                        gpActive->szString + gubCursorPos + 1,
-                        (gpActive->ubStrLen -
-                         gubCursorPos) * sizeof(wchar_t));
+                    gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
+                    gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
+                memmove(gpActive->szString + gubCursorPos, gpActive->szString + gubCursorPos + 1,
+                        (gpActive->ubStrLen - gubCursorPos) * sizeof(wchar_t));
                 --gpActive->ubStrLen;
                 return 1;
             }
-        }
-        else if (gubStartHilite != selection_end) {
+        } else if (gubStartHilite != selection_end) {
             unsigned char first = gubStartHilite;
             unsigned char last = selection_end;
             if (last < first) {
@@ -534,18 +511,14 @@ unsigned int HandleTextInput(const InputAtom* input)
                 first = last;
                 last = swap;
             }
-            memmove(gpActive->szString + first,
-                    gpActive->szString + last,
+            memmove(gpActive->szString + first, gpActive->szString + last,
                     (gpActive->ubStrLen - last + 1) * sizeof(wchar_t));
             gpActive->ubStrLen -= last - first;
             gubCursorPos = first;
             gubStartHilite = 0;
             gubParkingPos = CalculateCursorPos(
-                gpActive->region.RegionBottomRightX -
-                    gpActive->region.RegionTopLeftX - 10,
-                first, gpActive->szString,
-                &gsCursorX,
-                &guiVisibleCount);
+                gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10, first,
+                gpActive->szString, &gsCursorX, &guiVisibleCount);
             gfHiliteMode = 0;
             return 1;
         }
@@ -554,37 +527,29 @@ unsigned int HandleTextInput(const InputAtom* input)
     case 0x23: /* End */
         if ((input->usKeyState & SHIFT_DOWN) == 0) {
             gfHiliteMode = 0;
-        }
-        else if (gfHiliteMode == 0) {
+        } else if (gfHiliteMode == 0) {
             gfHiliteMode = 1;
             gubStartHilite = gubCursorPos;
         }
         gubCursorPos = gpActive->ubStrLen;
         gubEndHilite = gubCursorPos;
         gubParkingPos = CalculateCursorPos(
-            gpActive->region.RegionBottomRightX -
-                gpActive->region.RegionTopLeftX - 10,
-            gubCursorPos, gpActive->szString,
-            &gsCursorX,
-            &guiVisibleCount);
+            gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
+            gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
         return 1;
 
     case 0x24: /* Home */
         if ((input->usKeyState & SHIFT_DOWN) == 0) {
             gfHiliteMode = 0;
-        }
-        else if (gfHiliteMode == 0) {
+        } else if (gfHiliteMode == 0) {
             gfHiliteMode = 1;
             gubStartHilite = gubCursorPos;
         }
         gubCursorPos = 0;
         gubEndHilite = 0;
-        gubParkingPos = CalculateCursorPos(
-            gpActive->region.RegionBottomRightX -
-                gpActive->region.RegionTopLeftX - 10,
-            0, gpActive->szString,
-            &gsCursorX,
-            &guiVisibleCount);
+        gubParkingPos = CalculateCursorPos(gpActive->region.RegionBottomRightX -
+                                               gpActive->region.RegionTopLeftX - 10,
+                                           0, gpActive->szString, &gsCursorX, &guiVisibleCount);
         return 1;
 
     case 0x25: /* Left */
@@ -594,22 +559,18 @@ unsigned int HandleTextInput(const InputAtom* input)
                 gfHiliteMode = 1;
                 gubStartHilite = gubCursorPos;
             }
-            if (gubCursorPos != 0) --gubCursorPos;
+            if (gubCursorPos != 0)
+                --gubCursorPos;
             gubEndHilite = gubCursorPos;
-        }
-        else if (gfHiliteMode != 0) {
+        } else if (gfHiliteMode != 0) {
             gubCursorPos = gubStartHilite;
             gfHiliteMode = 0;
-        }
-        else if (gubCursorPos != 0) {
+        } else if (gubCursorPos != 0) {
             --gubCursorPos;
         }
         gubParkingPos = CalculateCursorPos(
-            gpActive->region.RegionBottomRightX -
-                gpActive->region.RegionTopLeftX - 10,
-            gubCursorPos, gpActive->szString,
-            &gsCursorX,
-            &guiVisibleCount);
+            gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
+            gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
         return 1;
 
     case 0x27: /* Right */
@@ -622,20 +583,15 @@ unsigned int HandleTextInput(const InputAtom* input)
             if (gubCursorPos < gpActive->ubStrLen)
                 ++gubCursorPos;
             gubEndHilite = gubCursorPos;
-        }
-        else if (gfHiliteMode != 0) {
+        } else if (gfHiliteMode != 0) {
             gubCursorPos = selection_end;
             gfHiliteMode = 0;
-        }
-        else if (gubCursorPos < gpActive->ubStrLen) {
+        } else if (gubCursorPos < gpActive->ubStrLen) {
             ++gubCursorPos;
         }
         gubParkingPos = CalculateCursorPos(
-            gpActive->region.RegionBottomRightX -
-                gpActive->region.RegionTopLeftX - 10,
-            gubCursorPos, gpActive->szString,
-            &gsCursorX,
-            &guiVisibleCount);
+            gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
+            gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
         return 1;
 
     case 0x2e: /* Delete */
@@ -649,8 +605,7 @@ unsigned int HandleTextInput(const InputAtom* input)
             SetTextInputCursor(0);
             return 1;
         }
-        if (gfHiliteMode != 0 &&
-            gubStartHilite != selection_end) {
+        if (gfHiliteMode != 0 && gubStartHilite != selection_end) {
             unsigned char first = gubStartHilite;
             unsigned char last = selection_end;
             if (last < first) {
@@ -658,8 +613,7 @@ unsigned int HandleTextInput(const InputAtom* input)
                 first = last;
                 last = swap;
             }
-            memmove(gpActive->szString + first,
-                    gpActive->szString + last,
+            memmove(gpActive->szString + first, gpActive->szString + last,
                     (gpActive->ubStrLen - last + 1) * sizeof(wchar_t));
             gpActive->ubStrLen -= last - first;
             gubCursorPos = first;
@@ -668,10 +622,8 @@ unsigned int HandleTextInput(const InputAtom* input)
             return 1;
         }
         if (gubCursorPos < gpActive->ubStrLen) {
-            memmove(gpActive->szString + gubCursorPos,
-                    gpActive->szString + gubCursorPos + 1,
-                    (gpActive->ubStrLen -
-                     gubCursorPos) * sizeof(wchar_t));
+            memmove(gpActive->szString + gubCursorPos, gpActive->szString + gubCursorPos + 1,
+                    (gpActive->ubStrLen - gubCursorPos) * sizeof(wchar_t));
             --gpActive->ubStrLen;
         }
         SetTextInputCursor(gubCursorPos);
@@ -681,13 +633,14 @@ unsigned int HandleTextInput(const InputAtom* input)
         break;
     }
 
-    unsigned int character = TranslateKeyToCharacter((unsigned short)input->usParam,
-                                            input->usKeyState);
-    if (character == 0) return 1;
-    if (character == 0x25 || character == 0x5c) return 0;
+    unsigned int character =
+        TranslateKeyToCharacter((unsigned short)input->usParam, input->usKeyState);
+    if (character == 0)
+        return 1;
+    if (character == 0x25 || character == 0x5c)
+        return 0;
 
-    if (gfHiliteMode != 0 &&
-        gubStartHilite != gubEndHilite) {
+    if (gfHiliteMode != 0 && gubStartHilite != gubEndHilite) {
         unsigned char first = gubStartHilite;
         unsigned char last = gubEndHilite;
         if (last < first) {
@@ -695,8 +648,7 @@ unsigned int HandleTextInput(const InputAtom* input)
             first = last;
             last = swap;
         }
-        memmove(gpActive->szString + first,
-                gpActive->szString + last,
+        memmove(gpActive->szString + first, gpActive->szString + last,
                 (gpActive->ubStrLen - last + 1) * sizeof(wchar_t));
         gpActive->ubStrLen -= last - first;
         gubCursorPos = first;
@@ -722,12 +674,14 @@ unsigned int HandleTextInput(const InputAtom* input)
     }
     if ((input_type & 2) != 0) {
         if (Function402800((unsigned short)character) != 0) {
-            if ((input_type & 0x20) != 0) character = Function4028A0(character);
+            if ((input_type & 0x20) != 0)
+                character = Function4028A0(character);
             AddChar((unsigned short)character);
             return 1;
         }
         if (Function402820((unsigned short)character) != 0) {
-            if ((input_type & 0x10) != 0) character = Function402880(character);
+            if ((input_type & 0x10) != 0)
+                character = Function402880(character);
             AddChar((unsigned short)character);
             return 1;
         }
@@ -744,8 +698,7 @@ void HandleExclusiveInput(unsigned short character)
     short input_type = gpActive->usInputType;
     if (input_type == 0x1000) {
         if (Function402800(character) == 0 && Function402820(character) == 0 &&
-            (character < L'0' || character > L'9') && character != L'_' &&
-            character != L'.') {
+            (character < L'0' || character > L'9') && character != L'_' && character != L'.') {
             return;
         }
         if (gubCursorPos == 0 && character >= L'0' && character <= L'9')
@@ -759,16 +712,20 @@ void HandleExclusiveInput(unsigned short character)
                 AddChar(character);
                 return;
             }
-            if (Function402800(character) == 0) return;
+            if (Function402800(character) == 0)
+                return;
             AddChar((unsigned short)Function4028A0(character));
             return;
         }
-        if (character >= L'0' && character <= L'9') AddChar(character);
+        if (character >= L'0' && character <= L'9')
+            AddChar(character);
         return;
     }
-    if (input_type != 0x1002) return;
+    if (input_type != 0x1002)
+        return;
     if (gubCursorPos == 0) {
-        if (character >= L'0' && character <= L'2') AddChar(character);
+        if (character >= L'0' && character <= L'2')
+            AddChar(character);
         return;
     }
     if (gubCursorPos == 1) {
@@ -789,17 +746,18 @@ void HandleExclusiveInput(unsigned short character)
             AddChar(L':');
             return;
         }
-        if (character < L'0' || character > L'9') return;
+        if (character < L'0' || character > L'9')
+            return;
         AddChar(L':');
         AddChar(character);
         return;
     }
     if (gubCursorPos == 3) {
-        if (character >= L'0' && character <= L'5') AddChar(character);
+        if (character >= L'0' && character <= L'5')
+            AddChar(character);
         return;
     }
-    if (gubCursorPos == 4 &&
-        character >= L'0' && character <= L'9') {
+    if (gubCursorPos == 4 && character >= L'0' && character <= L'9') {
         AddChar(character);
     }
 }
@@ -810,10 +768,8 @@ void AddChar(unsigned short character)
     unsigned char length = gpActive->ubStrLen;
     if (gpActive->ubMaxChars <= length) {
         gpActive->ubStrLen = gpActive->ubMaxChars;
-        gpActive->szString[
-            gpActive->ubStrLen - 1] = character;
-        gpActive->szString[
-            gpActive->ubStrLen] = L'\0';
+        gpActive->szString[gpActive->ubStrLen - 1] = character;
+        gpActive->szString[gpActive->ubStrLen] = L'\0';
         return;
     }
     if (gubCursorPos == length) {
@@ -821,61 +777,51 @@ void AddChar(unsigned short character)
         gpActive->szString[length + 1] = L'\0';
         ++gpActive->ubStrLen;
         gubCursorPos = gpActive->ubStrLen;
-    }
-    else {
-        for (int position = length;
-             position >= gubCursorPos; --position) {
-            gpActive->szString[position + 1] =
-                gpActive->szString[position];
+    } else {
+        for (int position = length; position >= gubCursorPos; --position) {
+            gpActive->szString[position + 1] = gpActive->szString[position];
         }
         gpActive->szString[gubCursorPos] = character;
         ++gpActive->ubStrLen;
         ++gubCursorPos;
     }
     gubParkingPos = CalculateCursorPos(
-        gpActive->region.RegionBottomRightX -
-            gpActive->region.RegionTopLeftX - 10,
-        gubCursorPos, gpActive->szString,
-        &gsCursorX,
-        &guiVisibleCount);
+        gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10, gubCursorPos,
+        gpActive->szString, &gsCursorX, &guiVisibleCount);
 }
 
 // FUNCTION: WIZ8 0x005D4CB0
 void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason)
 {
-    if (IsModalOpen()) return;
+    if (IsModalOpen())
+        return;
 
     int field_index = MSYS_GetRegionUserData(region, 0);
-    for (TEXTINPUTNODE* field = gpTextInputHead;
-         field != 0; field = field->next) {
+    for (TEXTINPUTNODE* field = gpTextInputHead; field != 0; field = field->next) {
         if (field->ubID == field_index && field->blocks_mouse_callback != 0)
             return;
     }
 
     if ((reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) != 0)
-        Function55EE70(Function55EF80());
+        SetTargetCursor(GetTextInputCursor());
     if ((reason & MSYS_CALLBACK_REASON_LOST_MOUSE) != 0)
-        Function55EE70(-1);
+        SetTargetCursor(-1);
 
-    if (gfLeftButtonState == 0 || gpActive == 0 ||
-        (reason & MSYS_CALLBACK_REASON_MOVE) == 0) {
+    if (gfLeftButtonState == 0 || gpActive == 0 || (reason & MSYS_CALLBACK_REASON_MOVE) == 0) {
         return;
     }
 
     field_index = MSYS_GetRegionUserData(region, 0);
     if (field_index != gpActive->ubID) {
         RenderInactiveTextFieldNode(gpActive);
-        for (TEXTINPUTNODE* field = gpTextInputHead;
-             field != 0; field = field->next) {
+        for (TEXTINPUTNODE* field = gpTextInputHead; field != 0; field = field->next) {
             if (field->ubID == field_index) {
                 gubMouseDownPos = 0;
                 gubCursorPos = 0;
                 gpActive = field;
                 gubParkingPos = CalculateCursorPos(
-                    field->region.RegionBottomRightX -
-                        field->region.RegionTopLeftX - 10,
-                    0, field->szString, &gsCursorX,
-                    &guiVisibleCount);
+                    field->region.RegionBottomRightX - field->region.RegionTopLeftX - 10, 0,
+                    field->szString, &gsCursorX, &guiVisibleCount);
                 gfHiliteMode = 0;
                 gubStartHilite = 0;
                 gubEndHilite = 0;
@@ -885,27 +831,28 @@ void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason)
     }
 
     TEXTINPUTNODE* current_field = gpActive;
-    if (current_field->szString == 0 || gfLeftButtonState == 0) return;
+    if (current_field->szString == 0 || gfLeftButtonState == 0)
+        return;
 
     unsigned char position = gubParkingPos;
     int mouse_offset = gusMouseXPos - current_field->region.RegionTopLeftX;
     unsigned int start = gubParkingPos;
-    short width = StringPixLengthArg(
-        pColors->usFont, 1,
-        (unsigned short*)(current_field->szString + start));
+    short width =
+        StringPixLengthArg(pColors->usFont, 1, (unsigned short*)(current_field->szString + start));
     if ((width / 2) / 2 < mouse_offset) {
         int count = 1;
         int previous_width = width / 2;
         do {
-            if (current_field->ubStrLen <= position) break;
+            if (current_field->ubStrLen <= position)
+                break;
             ++position;
             ++count;
-            width = StringPixLengthArg(
-                pColors->usFont, count,
-                (unsigned short*)(current_field->szString + start));
+            width = StringPixLengthArg(pColors->usFont, count,
+                                       (unsigned short*)(current_field->szString + start));
             int midpoint = (width - previous_width) / 2 + previous_width;
             previous_width = width;
-            if (mouse_offset <= midpoint) break;
+            if (mouse_offset <= midpoint)
+                break;
         } while (true);
     }
 
@@ -916,60 +863,56 @@ void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason)
     if (gubMouseDownPos < position) {
         gubStartHilite = gubMouseDownPos;
         gubEndHilite = position;
-    }
-    else {
+    } else {
         gubEndHilite = gubMouseDownPos;
         gubStartHilite = position;
     }
     gfHiliteMode = 1;
     gubCursorPos = position;
     gubParkingPos = CalculateCursorPos(
-        current_field->region.RegionBottomRightX -
-            current_field->region.RegionTopLeftX - 10,
-        position, current_field->szString, &gsCursorX,
-        &guiVisibleCount);
+        current_field->region.RegionBottomRightX - current_field->region.RegionTopLeftX - 10,
+        position, current_field->szString, &gsCursorX, &guiVisibleCount);
 }
 
 // FUNCTION: WIZ8 0x005D4F10
 void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason)
 {
     int field_index = MSYS_GetRegionUserData(region, 0);
-    if (IsModalOpen()) return;
+    if (IsModalOpen())
+        return;
 
-    for (TEXTINPUTNODE* field = gpTextInputHead;
-         field != 0; field = field->next) {
+    for (TEXTINPUTNODE* field = gpTextInputHead; field != 0; field = field->next) {
         if (field->ubID == field_index && field->blocks_mouse_callback != 0)
             return;
     }
 
     if ((reason & MSYS_CALLBACK_REASON_LBUTTON_DOUBLECLICK) != 0) {
-        if (gpActive != 0) SelectAllText();
+        if (gpActive != 0)
+            SelectAllText();
         return;
     }
 
     if ((reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) != 0) {
         TEXTINPUTNODE* field = gpActive;
-        if (field == 0 || field_index != field->ubID) return;
+        if (field == 0 || field_index != field->ubID)
+            return;
 
         unsigned char position = gubParkingPos;
         if (field->szString == 0) {
             position = 0;
-        }
-        else {
+        } else {
             int mouse_offset = gusMouseXPos - field->region.RegionTopLeftX;
             unsigned int start = gubParkingPos;
-            short width = StringPixLengthArg(
-                pColors->usFont, 1,
-                (unsigned short*)(field->szString + start));
+            short width =
+                StringPixLengthArg(pColors->usFont, 1, (unsigned short*)(field->szString + start));
             if ((width / 2) / 2 < mouse_offset) {
                 int count = 1;
                 int previous_width = width / 2;
                 do {
                     position = (unsigned char)(position + 1);
                     ++count;
-                    width = StringPixLengthArg(
-                        pColors->usFont, count,
-                        (unsigned short*)(field->szString + start));
+                    width = StringPixLengthArg(pColors->usFont, count,
+                                               (unsigned short*)(field->szString + start));
                     int midpoint = (width - previous_width) / 2 + previous_width;
                     previous_width = width;
                     if (field->ubStrLen <= position || mouse_offset <= midpoint)
@@ -983,7 +926,8 @@ void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason)
         return;
     }
 
-    if ((reason & MSYS_CALLBACK_REASON_LBUTTON_UP) == 0) return;
+    if ((reason & MSYS_CALLBACK_REASON_LBUTTON_UP) == 0)
+        return;
     MSYS_ReleaseMouse(region);
 
     TEXTINPUTNODE* clicked = gpTextInputHead;
@@ -998,16 +942,16 @@ void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason)
     if (clicked != gpActive) {
         while (clicked != 0 && clicked->ubID != field_index)
             clicked = clicked->next;
-        if (clicked == 0) return;
+        if (clicked == 0)
+            return;
 
         TEXTINPUTNODE* candidate = gpTextInputHead;
-        while (candidate != 0 &&
-               (candidate == gpActive ||
-                candidate->ubID != clicked->ubID ||
-                candidate->fEnabled == 0)) {
+        while (candidate != 0 && (candidate == gpActive || candidate->ubID != clicked->ubID ||
+                                  candidate->fEnabled == 0)) {
             candidate = candidate->next;
         }
-        if (candidate == 0) return;
+        if (candidate == 0)
+            return;
 
         gpActive = candidate;
         if (candidate->szString == 0) {
@@ -1031,27 +975,26 @@ void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason)
     if (gfLeftButtonState != 0) {
         if (gpActive->szString == 0) {
             position = 0;
-        }
-        else {
+        } else {
             TEXTINPUTNODE* field = gpActive;
             int mouse_offset = gusMouseXPos - field->region.RegionTopLeftX;
             unsigned int start = gubParkingPos;
-            short width = StringPixLengthArg(
-                pColors->usFont, 1,
-                (unsigned short*)(field->szString + start));
+            short width =
+                StringPixLengthArg(pColors->usFont, 1, (unsigned short*)(field->szString + start));
             if ((width / 2) / 2 < mouse_offset) {
                 int count = 1;
                 int previous_width = width / 2;
                 do {
-                    if (field->ubStrLen <= position) break;
+                    if (field->ubStrLen <= position)
+                        break;
                     position = (unsigned char)(position + 1);
                     ++count;
-                    width = StringPixLengthArg(
-                        pColors->usFont, count,
-                        (unsigned short*)(field->szString + start));
+                    width = StringPixLengthArg(pColors->usFont, count,
+                                               (unsigned short*)(field->szString + start));
                     int midpoint = (width - previous_width) / 2 + previous_width;
                     previous_width = width;
-                    if (mouse_offset <= midpoint) break;
+                    if (mouse_offset <= midpoint)
+                        break;
                 } while (true);
             }
         }
@@ -1091,62 +1034,50 @@ void RenderBackgroundField(TEXTINPUTNODE* field)
 void RenderActiveTextField(void)
 {
     TEXTINPUTNODE* field = gpActive;
-    if (field == 0 || field->szString == 0) return;
+    if (field == 0 || field->szString == 0)
+        return;
 
     if (gfLeftButtonState != 0) {
         if ((int)gusMouseXPos < field->region.RegionTopLeftX) {
             if (gubCursorPos != 0) {
                 --gubCursorPos;
                 gubParkingPos = CalculateCursorPos(
-                    field->region.RegionBottomRightX -
-                        field->region.RegionTopLeftX - 10,
-                    gubCursorPos, field->szString,
-                    &gsCursorX,
-                    &guiVisibleCount);
+                    field->region.RegionBottomRightX - field->region.RegionTopLeftX - 10,
+                    gubCursorPos, field->szString, &gsCursorX, &guiVisibleCount);
             }
             if (gfHiliteMode != 0)
-                gubStartHilite =
-                    gubVisibleStart;
-        }
-        else if (field->region.RegionBottomRightX < (int)gusMouseXPos) {
+                gubStartHilite = gubVisibleStart;
+        } else if (field->region.RegionBottomRightX < (int)gusMouseXPos) {
             if (gubCursorPos < field->ubStrLen) {
                 ++gubCursorPos;
                 gubParkingPos = CalculateCursorPos(
-                    field->region.RegionBottomRightX -
-                        field->region.RegionTopLeftX - 10,
-                    gubCursorPos, field->szString,
-                    &gsCursorX,
-                    &guiVisibleCount);
+                    field->region.RegionBottomRightX - field->region.RegionTopLeftX - 10,
+                    gubCursorPos, field->szString, &gsCursorX, &guiVisibleCount);
             }
             if (gfHiliteMode != 0)
-                gubEndHilite =
-                    (unsigned char)(guiVisibleCount +
-                                    gubVisibleStart);
+                gubEndHilite = (unsigned char)(guiVisibleCount + gubVisibleStart);
         }
     }
 
     SaveFontSettings();
     SetFont(pColors->usFont);
-    unsigned short font_height =
-        GetFontHeight(pColors->usFont);
+    unsigned short font_height = GetFontHeight(pColors->usFont);
     unsigned int vertical_offset =
-        (field->region.RegionBottomRightY - field->region.RegionTopLeftY -
-         font_height) / 2;
+        (field->region.RegionBottomRightY - field->region.RegionTopLeftY - font_height) / 2;
     RenderBackgroundField(field);
 
     wchar_t escaped[256];
     wchar_t visible[512];
     int escaped_length = 0;
     for (const wchar_t* source = field->szString; *source != L'\0'; ++source) {
-        if (*source == L'%') escaped[escaped_length++] = L'%';
+        if (*source == L'%')
+            escaped[escaped_length++] = L'%';
         escaped[escaped_length++] = *source;
     }
     escaped[escaped_length] = L'\0';
     wcscpy(visible, escaped + gubParkingPos);
 
-    bool has_selection =
-        gfHiliteMode != 0 &&
-        gubStartHilite != gubEndHilite;
+    bool has_selection = gfHiliteMode != 0 && gubStartHilite != gubEndHilite;
     unsigned char selection_first = gubEndHilite;
     unsigned char selection_last = gubStartHilite;
     if (gubStartHilite < gubEndHilite) {
@@ -1154,21 +1085,14 @@ void RenderActiveTextField(void)
         selection_last = gubEndHilite;
     }
 
-    for (size_t index = 0; index < guiVisibleCount;
-         ++index) {
-        short prefix = StringPixLengthArg(
-            pColors->usFont, index,
-            (unsigned short*)visible);
-        if (has_selection &&
-            (int)(selection_first - gubParkingPos) <=
-                (int)index &&
-            (int)index <
-                (int)(selection_last - gubParkingPos)) {
+    for (size_t index = 0; index < guiVisibleCount; ++index) {
+        short prefix = StringPixLengthArg(pColors->usFont, index, (unsigned short*)visible);
+        if (has_selection && (int)(selection_first - gubParkingPos) <= (int)index &&
+            (int)index < (int)(selection_last - gubParkingPos)) {
             SetFontForeground(pColors->ubHiForeColor);
             SetFontBackground(pColors->ubHiShadowColor);
             SetFontShadow(pColors->ubHiBackColor);
-        }
-        else {
+        } else {
             SetFontForeground(pColors->ubForeColor);
             SetFontBackground(pColors->ubShadowColor);
             SetFontShadow(0);
@@ -1176,21 +1100,18 @@ void RenderActiveTextField(void)
         if (visible[index] == L'%') {
             mprintf(field->region.RegionTopLeftX + prefix + 3,
                     field->region.RegionTopLeftY + vertical_offset, L"%%");
-        }
-        else {
+        } else {
             mprintf(field->region.RegionTopLeftX + prefix + 3,
-                    field->region.RegionTopLeftY + vertical_offset, L"%c",
-                    visible[index]);
+                    field->region.RegionTopLeftY + vertical_offset, L"%c", visible[index]);
         }
     }
 
     if (gfEditingText != 0 && field->szString != 0 && gfLeftButtonState == 0 &&
         GetTickCount() % 1000 < 500) {
-        int left = field->region.RegionTopLeftX +
-                   gsCursorX;
+        int left = field->region.RegionTopLeftX + gsCursorX;
         int top = field->region.RegionTopLeftY + vertical_offset;
         ColorFillVideoSurfaceArea(-14, left, top, left + 1, top + font_height,
-                        pColors->usCursorColor);
+                                  pColors->usCursorColor);
     }
     RestoreFontSettings();
 }
@@ -1198,52 +1119,45 @@ void RenderActiveTextField(void)
 // FUNCTION: WIZ8 0x005D5770
 void RenderInactiveTextFieldNode(TEXTINPUTNODE* field)
 {
-    if (field == 0 || field->szString == 0) return;
+    if (field == 0 || field->szString == 0)
+        return;
 
     SaveFontSettings();
     SetFont(pColors->usFont);
-    bool disabled = field->fEnabled == 0 &&
-                    pColors->fUseDisabledAutoShade != 0;
+    bool disabled = field->fEnabled == 0 && pColors->fUseDisabledAutoShade != 0;
     if (disabled) {
         SetFontForeground(pColors->ubDisabledForeColor);
         SetFontBackground(pColors->ubDisabledShadowColor);
-    }
-    else {
+    } else {
         SetFontForeground(pColors->ubForeColor);
         SetFontBackground(pColors->ubShadowColor);
     }
-    unsigned short font_height =
-        GetFontHeight(pColors->usFont);
+    unsigned short font_height = GetFontHeight(pColors->usFont);
     unsigned int vertical_offset =
-        (field->region.RegionBottomRightY - field->region.RegionTopLeftY -
-         font_height) / 2;
+        (field->region.RegionBottomRightY - field->region.RegionTopLeftY - font_height) / 2;
     SetFontShadow(0);
     RenderBackgroundField(field);
 
     wchar_t escaped[256];
     int escaped_length = 0;
     for (const wchar_t* source = field->szString; *source != L'\0'; ++source) {
-        if (*source == L'%') escaped[escaped_length++] = L'%';
+        if (*source == L'%')
+            escaped[escaped_length++] = L'%';
         escaped[escaped_length++] = *source;
     }
     escaped[escaped_length] = L'\0';
 
     for (size_t index = 0; index < wcslen(escaped); ++index) {
-        short prefix = StringPixLengthArg(
-            pColors->usFont, index,
-            (unsigned short*)escaped);
-        if (field->region.RegionBottomRightX -
-                field->region.RegionTopLeftX - 10 < prefix + 3) {
+        short prefix = StringPixLengthArg(pColors->usFont, index, (unsigned short*)escaped);
+        if (field->region.RegionBottomRightX - field->region.RegionTopLeftX - 10 < prefix + 3) {
             break;
         }
         if (escaped[index] == L'%') {
             mprintf(field->region.RegionTopLeftX + prefix + 3,
                     field->region.RegionTopLeftY + vertical_offset, L"%%");
-        }
-        else {
+        } else {
             mprintf(field->region.RegionTopLeftX + prefix + 3,
-                    field->region.RegionTopLeftY + vertical_offset, L"%c",
-                    escaped[index]);
+                    field->region.RegionTopLeftY + vertical_offset, L"%c", escaped[index]);
         }
     }
     RestoreFontSettings();
@@ -1257,8 +1171,7 @@ void RenderInactiveTextFieldNode(TEXTINPUTNODE* field)
         };
         unsigned int pitch;
         void* pixels = LockVideoSurface(FRAME_BUFFER, &pitch);
-        Blt16BPPBufferShadowRect(
-            (unsigned short*)pixels, pitch, (SGPRect*)rectangle);
+        Blt16BPPBufferShadowRect((unsigned short*)pixels, pitch, (SGPRect*)rectangle);
         UnLockVideoSurface(FRAME_BUFFER);
     }
 }
@@ -1266,16 +1179,12 @@ void RenderInactiveTextFieldNode(TEXTINPUTNODE* field)
 // FUNCTION: WIZ8 0x005D59A0
 void RenderAllTextFields(void)
 {
-    for (STACKTEXTINPUTNODE* session =
-             pInputStack;
-         session != 0; session = session->next) {
-        for (TEXTINPUTNODE* field = session->head;
-             field != 0; field = field->next) {
+    for (STACKTEXTINPUTNODE* session = pInputStack; session != 0; session = session->next) {
+        for (TEXTINPUTNODE* field = session->head; field != 0; field = field->next) {
             RenderInactiveTextFieldNode(field);
         }
     }
-    for (TEXTINPUTNODE* field = gpTextInputHead;
-         field != 0; field = field->next) {
+    for (TEXTINPUTNODE* field = gpTextInputHead; field != 0; field = field->next) {
         if (field == gpActive)
             RenderActiveTextField();
         else
@@ -1290,8 +1199,8 @@ unsigned char EditingText(void)
 }
 
 // FUNCTION: WIZ8 0x005D5A10
-unsigned int CalculateCursorPos(int width, int cursor, const wchar_t* text,
-                           int* cursor_width, size_t* visible_count)
+unsigned int CalculateCursorPos(int width, int cursor, const wchar_t* text, int* cursor_width,
+                                size_t* visible_count)
 {
     wchar_t buffer[512];
     if (cursor < gubVisibleStart)
@@ -1300,8 +1209,7 @@ unsigned int CalculateCursorPos(int width, int cursor, const wchar_t* text,
     unsigned int start = gubVisibleStart;
     wcscpy(buffer, text + start);
     buffer[cursor - start] = L'\0';
-    int measured = StringPixLength((unsigned short*)buffer,
-                                   pColors->usFont);
+    int measured = StringPixLength((unsigned short*)buffer, pColors->usFont);
     size_t count = wcslen(buffer);
     unsigned char retained_start;
 
@@ -1310,8 +1218,7 @@ unsigned int CalculateCursorPos(int width, int cursor, const wchar_t* text,
         do {
             ++suffix;
             ++start;
-            measured = StringPixLength((unsigned short*)suffix,
-                                       pColors->usFont);
+            measured = StringPixLength((unsigned short*)suffix, pColors->usFont);
         } while (width < measured);
         retained_start = (unsigned char)start;
 
@@ -1320,25 +1227,24 @@ unsigned int CalculateCursorPos(int width, int cursor, const wchar_t* text,
             size_t length = wcslen(buffer);
             count = length;
             for (size_t index = 0; index < wcslen(buffer); ++index) {
-                short prefix = StringPixLengthArg(pColors->usFont,
-                                                  index, (unsigned short*)buffer);
+                short prefix = StringPixLengthArg(pColors->usFont, index, (unsigned short*)buffer);
                 count = index;
-                if (width < prefix + 3) break;
+                if (width < prefix + 3)
+                    break;
                 count = length;
             }
         }
-    }
-    else {
+    } else {
         wcscpy(buffer, text + start);
         size_t length = wcslen(buffer);
         count = length;
         retained_start = gubVisibleStart;
         for (size_t index = 0; index < wcslen(buffer); ++index) {
-            short prefix = StringPixLengthArg(pColors->usFont,
-                                              index, (unsigned short*)buffer);
+            short prefix = StringPixLengthArg(pColors->usFont, index, (unsigned short*)buffer);
             retained_start = gubVisibleStart;
             count = index;
-            if (width < prefix + 3) break;
+            if (width < prefix + 3)
+                break;
             count = length;
         }
     }
@@ -1355,11 +1261,8 @@ void SetTextInputCursor(unsigned char cursor)
     gubCursorPos = cursor;
     if (gpActive != 0) {
         gubParkingPos = CalculateCursorPos(
-            gpActive->region.RegionBottomRightX -
-                gpActive->region.RegionTopLeftX - 10,
-            cursor, gpActive->szString,
-            &gsCursorX,
-            &guiVisibleCount);
+            gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10, cursor,
+            gpActive->szString, &gsCursorX, &guiVisibleCount);
     }
 }
 
@@ -1370,31 +1273,31 @@ void SelectAllText(void)
     unsigned char position = gubParkingPos;
     if (field->szString == 0) {
         position = 0;
-    }
-    else {
+    } else {
         int mouse_offset = gusMouseXPos - field->region.RegionTopLeftX;
         unsigned int start = gubParkingPos;
-        short width = StringPixLengthArg(
-            pColors->usFont, 1,
-            (unsigned short*)(field->szString + start));
+        short width =
+            StringPixLengthArg(pColors->usFont, 1, (unsigned short*)(field->szString + start));
         if ((width / 2) / 2 < mouse_offset) {
             int count = 1;
             int previous_width = width / 2;
             do {
-                if (field->ubStrLen <= position) break;
+                if (field->ubStrLen <= position)
+                    break;
                 ++position;
                 ++count;
-                width = StringPixLengthArg(
-                    pColors->usFont, count,
-                    (unsigned short*)(field->szString + start));
+                width = StringPixLengthArg(pColors->usFont, count,
+                                           (unsigned short*)(field->szString + start));
                 int midpoint = (width - previous_width) / 2 + previous_width;
                 previous_width = width;
-                if (mouse_offset <= midpoint) break;
+                if (mouse_offset <= midpoint)
+                    break;
             } while (true);
         }
     }
 
-    if (field->szString[position] == L' ') return;
+    if (field->szString[position] == L' ')
+        return;
     unsigned char first = 0;
     if (position != 0) {
         unsigned int scan = position;

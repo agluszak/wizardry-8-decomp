@@ -112,7 +112,7 @@ void Function4ED9D0(W8Character* character)
     CalcAttacks(character);
     CalcArmorClasses(character);
     if (character->in_party != 0 && g_current_screen_state.id != 3) {
-        RequestPartySlotRedraw0055EE30(CharacterPointerToPartySlot(character));
+        RequestPartySlotRedraw(CharacterPointerToPartySlot(character));
     }
 }
 

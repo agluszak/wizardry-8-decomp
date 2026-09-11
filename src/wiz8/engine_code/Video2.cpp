@@ -57,7 +57,7 @@
 /* Video2-internal helpers. Their only recovered callers are in this unit, so
    they are declared here instead of the released Video2 header. */
 srNode* Function424BA0(srTextureIFace* texture, float width, float height,
-    unsigned char positional_3);
+                       unsigned char positional_3);
 void Function4229E0(void);
 void FlushDirtyTiles00425B40(void);
 
@@ -216,7 +216,6 @@ float g_frames_per_second_659704;
 // GLOBAL: WIZ8 0x659708
 float g_seconds_per_frame_659708;
 
-
 // GLOBAL: WIZ8 0x65a118
 unsigned char* g_render_options_65a118;
 
@@ -246,14 +245,12 @@ int g_cursor_hotspot_y_6596c0;
 unsigned char g_system_cursor_visible_6596c4;
 
 // FUNCTION: WIZ8 0x00428ab0
-void AssertFailureHandler(const char* expression, const char* file,
-                         long line, const char* message)
+void AssertFailureHandler(const char* expression, const char* file, long line, const char* message)
 {
     char text[2048];
-    strcpy(text,
-           "ERROR: You are viewing a message intended for the developers of "
-           "Wizardry 8. Please report the following information to technical "
-           "support. We apologize for this inconvenience.\n\n");
+    strcpy(text, "ERROR: You are viewing a message intended for the developers of "
+                 "Wizardry 8. Please report the following information to technical "
+                 "support. We apologize for this inconvenience.\n\n");
     if (message != 0 && *message != '\0') {
         _snprintf(text + strlen(text), 0x6d3,
                   "Debug assertion in module %s line %d failed:\n\n"
@@ -306,14 +303,13 @@ void Function422B10(void)
     InvalidateRegion(0, 0, 640, 480, 0);
 }
 
-
 /* Brings the renderer up, shows the window and, when the INSPECTOR switch was
    given, loads that extension from the DLL subdirectory before returning to the
    original working directory. Each gate that fails returns straight out with
    the callee's own false still in AL. */
 // FUNCTION: WIZ8 0x00421bb0
-unsigned char InitializeVideoManager(
-    HINSTANCE instance, unsigned short show_command, void* window_proc)
+unsigned char InitializeVideoManager(HINSTANCE instance, unsigned short show_command,
+                                     void* window_proc)
 {
     MEMORYSTATUS status;
     unsigned int active;
@@ -490,18 +486,16 @@ unsigned char CreateWizardryWindow(void)
     if (!g_fullscreen_603c39) {
         style = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
         AdjustWindowRect(&g_window_rect_659610, style, FALSE);
-        ghWindow = CreateWindowExA(
-            0, "Wizardry 8", "Wizardry 8", style,
-            g_window_rect_659610.left, g_window_rect_659610.top,
-            g_window_rect_659610.right - g_window_rect_659610.left,
-            g_window_rect_659610.bottom - g_window_rect_659610.top,
-            NULL, NULL, g_instance_654ac4, NULL);
+        ghWindow = CreateWindowExA(0, "Wizardry 8", "Wizardry 8", style, g_window_rect_659610.left,
+                                   g_window_rect_659610.top,
+                                   g_window_rect_659610.right - g_window_rect_659610.left,
+                                   g_window_rect_659610.bottom - g_window_rect_659610.top, NULL,
+                                   NULL, g_instance_654ac4, NULL);
     } else {
         style = WS_POPUP | WS_VISIBLE;
-        ghWindow = CreateWindowExA(
-            0, "Wizardry 8", "Wizardry 8", style, 0, 0,
-            GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN),
-            NULL, NULL, g_instance_654ac4, NULL);
+        ghWindow = CreateWindowExA(0, "Wizardry 8", "Wizardry 8", style, 0, 0,
+                                   GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN),
+                                   NULL, NULL, g_instance_654ac4, NULL);
     }
     if (!ghWindow) {
         return 0;
@@ -523,8 +517,7 @@ unsigned char InitializePrimaryDirectDrawSurface(void)
     if (FAILED(result)) {
         return 0;
     }
-    result = g_direct_draw_65969c->QueryInterface(
-        IID_IDirectDraw2, (void**)&g_direct_draw2_6596a0);
+    result = g_direct_draw_65969c->QueryInterface(IID_IDirectDraw2, (void**)&g_direct_draw2_6596a0);
     if (FAILED(result)) {
         return 0;
     }
@@ -546,13 +539,12 @@ unsigned char InitializePrimaryDirectDrawSurface(void)
     description.ddpfPixelFormat.dwGBitMask = gusGreenMask;
     description.ddpfPixelFormat.dwBBitMask = gusBlueMask;
 
-    result = g_direct_draw2_6596a0->CreateSurface(
-        &description, &g_primary_surface1_6596a4, NULL);
+    result = g_direct_draw2_6596a0->CreateSurface(&description, &g_primary_surface1_6596a4, NULL);
     if (FAILED(result)) {
         return 0;
     }
-    result = g_primary_surface1_6596a4->QueryInterface(
-        IID_IDirectDrawSurface2, (void**)&g_primary_surface_6596a8);
+    result = g_primary_surface1_6596a4->QueryInterface(IID_IDirectDrawSurface2,
+                                                       (void**)&g_primary_surface_6596a8);
     if (FAILED(result)) {
         return 0;
     }
@@ -608,21 +600,16 @@ unsigned char InitializeVideoDevice(void)
 
     _chdir("DLL");
     srInit();
-    srConfig.set(
-        "DD_DIRECTX7",
-        "DisablePrimaryHEL=1 DisableAttachedSecondaryDevices=1 "
-        "DisableDetachedSecondaryDevices=1 DisableNonDisplayDevices=1");
-    srConfig.set(
-        "DD_DIRECTX6",
-        "DisablePrimaryHEL=1 DisableAttachedSecondaryDevices=1 "
-        "DisableDetachedSecondaryDevices=1 DisableNonDisplayDevices=1");
+    srConfig.set("DD_DIRECTX7", "DisablePrimaryHEL=1 DisableAttachedSecondaryDevices=1 "
+                                "DisableDetachedSecondaryDevices=1 DisableNonDisplayDevices=1");
+    srConfig.set("DD_DIRECTX6", "DisablePrimaryHEL=1 DisableAttachedSecondaryDevices=1 "
+                                "DisableDetachedSecondaryDevices=1 DisableNonDisplayDevices=1");
     sprintf(driver_name, "srDD_%s", device);
     devices.addString(driver_name);
     g_gerd_659634 = srGERD::loadDevice(devices, 0);
     _chdir("..");
     if (!g_gerd_659634) {
-        ShutdownWithErrorBox(
-            "Video device cannot be started. Please re-run 3DSetup.");
+        ShutdownWithErrorBox("Video device cannot be started. Please re-run 3DSetup.");
         return 0;
     }
 
@@ -648,21 +635,18 @@ unsigned char Function422800(void)
     if (!g_fullscreen_603c39) {
         SetWindowLongA(ghWindow, GWL_STYLE,
                        WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
-        SetWindowPos(
-            ghWindow, NULL, g_window_rect_659610.left, g_window_rect_659610.top,
-            g_window_rect_659610.right - g_window_rect_659610.left,
-            g_window_rect_659610.bottom - g_window_rect_659610.top, 0);
+        SetWindowPos(ghWindow, NULL, g_window_rect_659610.left, g_window_rect_659610.top,
+                     g_window_rect_659610.right - g_window_rect_659610.left,
+                     g_window_rect_659610.bottom - g_window_rect_659610.top, 0);
         error = g_gerd_659634->openWindow();
     } else {
         SetWindowLongA(ghWindow, GWL_STYLE, WS_POPUP | WS_VISIBLE);
         SetWindowPos(ghWindow, NULL, 0, 0, GetSystemMetrics(SM_CXSCREEN),
                      GetSystemMetrics(SM_CYSCREEN), 0);
-        mode = g_gerd_659634->getDisplayMode(
-            g_screen_width_603c3c, g_screen_height_603c40,
-            g_screen_depth_603c44);
+        mode = g_gerd_659634->getDisplayMode(g_screen_width_603c3c, g_screen_height_603c40,
+                                             g_screen_depth_603c44);
         if (mode == -1) {
-            ShutdownWithErrorBox(
-                "Video device does not support video resolution.");
+            ShutdownWithErrorBox("Video device does not support video resolution.");
             return 0;
         }
         SetEnvironmentVariableA("FX_GLIDE_NO_SPLASH", "1");
@@ -676,7 +660,6 @@ unsigned char Function422800(void)
     return 1;
 }
 
-
 // FUNCTION: WIZ8 0x00423390
 IDirectDrawSurface2* BeginVideoPresentation(void)
 {
@@ -687,8 +670,8 @@ IDirectDrawSurface2* BeginVideoPresentation(void)
         g_gerd_659634->closeWindow((srGERD::e_closeHint)1);
         g_gerd_659634->deleteContext();
     }
-    if (g_direct_draw2_6596a0->SetCooperativeLevel(
-            ghWindow, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN) != DD_OK) {
+    if (g_direct_draw2_6596a0->SetCooperativeLevel(ghWindow, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN) !=
+        DD_OK) {
         NoOp();
         return 0;
     }
@@ -700,14 +683,13 @@ IDirectDrawSurface2* BeginVideoPresentation(void)
     description.dwSize = sizeof(description);
     description.dwFlags = DDSD_CAPS;
     description.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE;
-    if (g_direct_draw2_6596a0->CreateSurface(
-            &description, &g_video_primary_surface1_6596ac, 0) != DD_OK) {
+    if (g_direct_draw2_6596a0->CreateSurface(&description, &g_video_primary_surface1_6596ac, 0) !=
+        DD_OK) {
         NoOp();
         return 0;
     }
     if (g_video_primary_surface1_6596ac->QueryInterface(
-            IID_IDirectDrawSurface2,
-            (void**)&g_video_primary_surface2_6596b0) != DD_OK) {
+            IID_IDirectDrawSurface2, (void**)&g_video_primary_surface2_6596b0) != DD_OK) {
         NoOp();
         return 0;
     }
@@ -736,8 +718,7 @@ unsigned char FinishVideoPresentation(void)
 // FUNCTION: WIZ8 0x00422550
 unsigned char VideoResizeWindow(void)
 {
-    if (g_fullscreen_603c39 || !ghWindow || !g_gerd_659634 ||
-        !g_flush_pending_603c3a) {
+    if (g_fullscreen_603c39 || !ghWindow || !g_gerd_659634 || !g_flush_pending_603c3a) {
         return 0;
     }
     g_flush_pending_603c3a = 0;
@@ -845,14 +826,12 @@ void UnlockPrimarySurface(void)
 /* The mode the engine falls back to: 640x480 at 16bpp, reported height first.
    Nothing here reads a configuration - the three constants are inline. */
 // FUNCTION: WIZ8 0x00422af0
-void GetCurrentVideoSettings(
-    unsigned short* height, unsigned short* width, unsigned char* depth)
+void GetCurrentVideoSettings(unsigned short* height, unsigned short* width, unsigned char* depth)
 {
     *height = 0x1e0;
     *width = 0x280;
     *depth = 0x10;
 }
-
 
 /* Clears the primary surface. The dword count the original computes - the pitch
    times fifteen, masked, shifted left three - is VC6's inline memset over
@@ -876,12 +855,18 @@ void UpdateRenderElapsedTime00482140(void);
 // FUNCTION: WIZ8 0x004299b0
 srVector3T<float>* __fastcall SaturateColor004299B0(srVector3T<float>* color)
 {
-    if (color->x <= 0.0f) color->x = 0.0f;
-    else if (color->x >= 1.0f) color->x = 1.0f;
-    if (color->y <= 0.0f) color->y = 0.0f;
-    else if (color->y >= 1.0f) color->y = 1.0f;
-    if (color->z <= 0.0f) color->z = 0.0f;
-    else if (color->z >= 1.0f) color->z = 1.0f;
+    if (color->x <= 0.0f)
+        color->x = 0.0f;
+    else if (color->x >= 1.0f)
+        color->x = 1.0f;
+    if (color->y <= 0.0f)
+        color->y = 0.0f;
+    else if (color->y >= 1.0f)
+        color->y = 1.0f;
+    if (color->z <= 0.0f)
+        color->z = 0.0f;
+    else if (color->z >= 1.0f)
+        color->z = 1.0f;
     return color;
 }
 
@@ -889,8 +874,7 @@ srVector3T<float>* __fastcall SaturateColor004299B0(srVector3T<float>* color)
    Scene fog follows the current world's static scene for ordinary overlays;
    the world passes retain their own fog by selecting preserve_fog. */
 // FUNCTION: WIZ8 0x00427850
-void Function427850(srScene* scene, srCamera* camera,
-                    const int* viewport, char preserve_fog)
+void Function427850(srScene* scene, srCamera* camera, const int* viewport, char preserve_fog)
 {
     unsigned long width = g_gerd_659634->getWidth();
     unsigned long height = g_gerd_659634->getHeight();
@@ -901,14 +885,10 @@ void Function427850(srScene* scene, srCamera* camera,
     if (viewport != 0) {
         unsigned long left = viewport[0] * width / 640;
         unsigned long top = viewport[1] * height / 480;
-        unsigned long viewport_width =
-            (viewport[2] - viewport[0]) * width / 640;
-        unsigned long viewport_height =
-            (viewport[3] - viewport[1]) * height / 480;
-        g_gerd_659634->setViewPort(
-            left, top, viewport_width, viewport_height);
-        g_gerd_659634->setScissor(
-            left, top, viewport_width, viewport_height);
+        unsigned long viewport_width = (viewport[2] - viewport[0]) * width / 640;
+        unsigned long viewport_height = (viewport[3] - viewport[1]) * height / 480;
+        g_gerd_659634->setViewPort(left, top, viewport_width, viewport_height);
+        g_gerd_659634->setScissor(left, top, viewport_width, viewport_height);
     }
     if (!preserve_fog) {
         srVector3T<float> fog;
@@ -971,9 +951,8 @@ void RenderFrame(void)
         }
     }
 
-    g_gerd_659634->setClearColor(
-        clear_color.x, clear_color.y, clear_color.z, 1.0f);
-    Function00428340();
+    g_gerd_659634->setClearColor(clear_color.x, clear_color.y, clear_color.z, 1.0f);
+    SyncSystemCursor();
     RenderFastHelp();
     UpdateRegionHelp();
     FlushDirtyTiles00425B40();
@@ -989,67 +968,52 @@ void RenderFrame(void)
             goto clear_viewport;
         }
     } else if (g_flag_65970e || !g_render_flag_603c6c || g_world_659ab8 == 0) {
-clear_viewport:
-        {
-            unsigned long height = g_gerd_659634->getHeight();
-            unsigned long width = g_gerd_659634->getWidth();
-            g_gerd_659634->setScissor(
-                g_viewport_left_6595e8 * width / 640,
-                g_viewport_top_6595ec * height / 480,
-                (g_viewport_right_6595f0 - g_viewport_left_6595e8) * width / 640,
-                (g_viewport_bottom_6595f4 - g_viewport_top_6595ec) * height / 480);
-            g_gerd_659634->clear(srFlags<srGERD::e_buffer>(3));
-            g_gerd_659634->setScissor(0, 0, width, height);
-        }
+    clear_viewport: {
+        unsigned long height = g_gerd_659634->getHeight();
+        unsigned long width = g_gerd_659634->getWidth();
+        g_gerd_659634->setScissor(
+            g_viewport_left_6595e8 * width / 640, g_viewport_top_6595ec * height / 480,
+            (g_viewport_right_6595f0 - g_viewport_left_6595e8) * width / 640,
+            (g_viewport_bottom_6595f4 - g_viewport_top_6595ec) * height / 480);
+        g_gerd_659634->clear(srFlags<srGERD::e_buffer>(3));
+        g_gerd_659634->setScissor(0, 0, width, height);
+    }
     }
 
-    first_page = g_index_6596e4 ? g_scene_prerender0_65964c
-                                : g_scene_prerender1_659650;
-    second_page = g_index_6596e4 ? g_scene_prerender1_659650
-                                 : g_scene_prerender0_65964c;
+    first_page = g_index_6596e4 ? g_scene_prerender0_65964c : g_scene_prerender1_659650;
+    second_page = g_index_6596e4 ? g_scene_prerender1_659650 : g_scene_prerender0_65964c;
     Function427850(first_page, g_overlay_camera_659670, 0, 0);
     Function427850(second_page, g_overlay_camera_659670, 0, 0);
     g_gerd_659634->setTextureReduction(g_resident_texture_policy_659714);
 
-    if (g_render_flag_603c6c && g_world_659ab8 != 0 &&
-        g_monster_shadow_updates_enabled_0065970c) {
+    if (g_render_flag_603c6c && g_world_659ab8 != 0 && g_monster_shadow_updates_enabled_0065970c) {
         Function427850(g_world_659ab8->static_scene, g_world_659ab8->camera,
                        &g_viewport_left_6595e8, 0);
     }
     if (g_world != 0 && g_flag_65970d) {
         g_gerd_659634->setTextureReduction(g_resident_texture_policy_659714);
         if (!g_flag_603c38 ||
-            g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0 <
-                g_viewport_left_6595e8 ||
-            g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4 <
-                g_viewport_top_6595ec ||
-            g_viewport_right_6595f0 <
-                g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0 ||
-            g_viewport_bottom_6595f4 <
-                g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4) {
-            Function427850(g_world->static_scene, g_world->camera,
-                           &g_viewport_left_6595e8, 1);
+            g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0 < g_viewport_left_6595e8 ||
+            g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4 < g_viewport_top_6595ec ||
+            g_viewport_right_6595f0 < g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0 ||
+            g_viewport_bottom_6595f4 < g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4) {
+            Function427850(g_world->static_scene, g_world->camera, &g_viewport_left_6595e8, 1);
         } else {
-            int half_width =
-                (g_viewport_right_6595f0 - g_viewport_left_6595e8) / 2;
-            int half_height =
-                (g_viewport_bottom_6595f4 - g_viewport_top_6595ec) / 2;
+            int half_width = (g_viewport_right_6595f0 - g_viewport_left_6595e8) / 2;
+            int half_height = (g_viewport_bottom_6595f4 - g_viewport_top_6595ec) / 2;
             srGERD::Pick pick;
-            pick.value_00 = static_cast<float>(
-                (g_cursor_hotspot_x_6596bc - half_width -
-                 g_viewport_left_6595e8 + g_cursor_width_654ad0)) /
-                static_cast<float>(half_width);
-            pick.value_04 = -static_cast<float>(
-                g_cursor_hotspot_y_6596c0 - half_height -
-                g_viewport_top_6595ec + g_cursor_height_654ad4) /
-                static_cast<float>(half_height);
+            pick.value_00 = static_cast<float>((g_cursor_hotspot_x_6596bc - half_width -
+                                                g_viewport_left_6595e8 + g_cursor_width_654ad0)) /
+                            static_cast<float>(half_width);
+            pick.value_04 = -static_cast<float>(g_cursor_hotspot_y_6596c0 - half_height -
+                                                g_viewport_top_6595ec + g_cursor_height_654ad4) /
+                            static_cast<float>(half_height);
             pick.value_08 = 1.0f;
             pick.selected_model_0c = 0;
             pick.value_10 = 0;
             g_gerd_659634->setPickKey(0);
             g_gerd_659634->pushPick(pick);
-            Function427850(g_world->static_scene, g_world->camera,
-                           &g_viewport_left_6595e8, 1);
+            Function427850(g_world->static_scene, g_world->camera, &g_viewport_left_6595e8, 1);
             g_gerd_659634->popPick(pick);
             g_current_model_instance_65962c = pick.selected_model_0c;
             Function44D760(g_world);
@@ -1060,21 +1024,16 @@ clear_viewport:
     if (g_flag_603c6d) {
         const int* overlay_viewport = g_value_659668;
         if (!g_flag_603c4c) {
-            Function427850(g_scene_fullscreen_659644,
-                           g_overlay_camera_659670, overlay_viewport, 0);
+            Function427850(g_scene_fullscreen_659644, g_overlay_camera_659670, overlay_viewport, 0);
         }
-        Function427850(g_scene_overlay0_659654,
-                       g_overlay_camera_659670, 0, 0);
+        Function427850(g_scene_overlay0_659654, g_overlay_camera_659670, 0, 0);
         Function427850(g_scene_user_659640, g_overlay_camera_659670, 0, 0);
-        Function427850(g_scene_square_65965c,
-                       g_square_camera_659674, overlay_viewport, 0);
+        Function427850(g_scene_square_65965c, g_square_camera_659674, overlay_viewport, 0);
         if (g_flag_603c4c) {
-            Function427850(g_scene_fullscreen_659644,
-                           g_overlay_camera_659670, overlay_viewport, 0);
+            Function427850(g_scene_fullscreen_659644, g_overlay_camera_659670, overlay_viewport, 0);
         }
         if (g_flag_603c60) {
-            Function427850(g_cursor_scene_659684,
-                           g_overlay_camera_659670, 0, 0);
+            Function427850(g_cursor_scene_659684, g_overlay_camera_659670, 0, 0);
         }
     }
     g_gerd_659634->endFrame();
@@ -1085,8 +1044,7 @@ clear_viewport:
     }
     if (g_flag_6596f4) {
         now = GetTickCount();
-        if (now < g_tick_65409c ||
-            g_tick_65409c + g_frame_reset_interval_603c68 < now) {
+        if (now < g_tick_65409c || g_tick_65409c + g_frame_reset_interval_603c68 < now) {
             g_flag_659711 = 1;
             g_tick_65409c = now;
         }
@@ -1094,21 +1052,20 @@ clear_viewport:
 
     next_page = g_index_6596e4 ^ 1;
     g_index_6596e4 = next_page;
-    if (next_page == 0) g_dword_6596dc = 0;
-    else g_dword_6596e0 = 0;
+    if (next_page == 0)
+        g_dword_6596dc = 0;
+    else
+        g_dword_6596e0 = 0;
     g_flags_6596e8[next_page] = 0;
     ++g_dword_6596fc;
-    retire_prerender = next_page ? g_scene_prerender1_659650
-                                 : g_scene_prerender0_65964c;
-    retire_overlay = next_page ? g_scene_overlay1_659658
-                               : g_scene_overlay0_659654;
+    retire_prerender = next_page ? g_scene_prerender1_659650 : g_scene_prerender0_65964c;
+    retire_overlay = next_page ? g_scene_overlay1_659658 : g_scene_overlay0_659654;
     PurgeInactiveSceneInstances(retire_prerender);
     PurgeInactiveSceneInstances(retire_overlay);
 
     now = GetTickCount();
     elapsed = static_cast<float>(now - g_tick_659700);
-    frames_per_second =
-        static_cast<float>(g_dword_6596fc) / elapsed * 1000.0f;
+    frames_per_second = static_cast<float>(g_dword_6596fc) / elapsed * 1000.0f;
     if (g_dword_6596fc > 50) {
         g_tick_659700 = GetTickCount();
         g_dword_6596fc = 0;
@@ -1134,8 +1091,8 @@ void Function427440(void)
 // FUNCTION: WIZ8 0x00427380
 void PublishLightDirection(const EnvironmentColour* direction)
 {
-    const srVector3T<float>* color =
-        reinterpret_cast<const srVector3T<float>*>(direction); // reinterpret-ok: the renderer consumes the light triple as a fog vector
+    const srVector3T<float>* color = reinterpret_cast<const srVector3T<float>*>(
+        direction); // reinterpret-ok: the renderer consumes the light triple as a fog vector
     if (g_gerd_659634 != 0) {
         g_gerd_659634->flush();
         g_gerd_659634->setFogColor(*color);
@@ -1202,15 +1159,13 @@ unsigned long float_bits(float value)
     return representation.bits;
 }
 
-}
+} // namespace
 
 // FUNCTION: WIZ8 0x00424EB0
-static srModelInstance* MakePolygonBrush(
-    srNode* parent, srColorSurfaceIFace* surface,
-    double width, double height,
-    float mapping_x, float mapping_y,
-    float mapping_width, float mapping_height,
-    unsigned char overlay)
+static srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, double width,
+                                         double height, float mapping_x, float mapping_y,
+                                         float mapping_width, float mapping_height,
+                                         unsigned char overlay)
 {
     srMeshModel* model;
     srTextureMap* texture;
@@ -1219,8 +1174,7 @@ static srModelInstance* MakePolygonBrush(
     srVector3T<float> scale;
     srShader shader;
 
-    model =
-        SR_NEW(srMeshModel)(0L, 0L);
+    model = SR_NEW(srMeshModel)(0L, 0L);
     if (!model) {
         return 0;
     }
@@ -1246,9 +1200,7 @@ static srModelInstance* MakePolygonBrush(
     if (!surface) {
         shader.value &= 0xffff7fff;
     } else {
-        texture =
-            SR_NEW(srTextureMap)(
-                static_cast<srColorSurfaceIFace*>(0));
+        texture = SR_NEW(srTextureMap)(static_cast<srColorSurfaceIFace*>(0));
         texture->autoRelease();
         texture->setName("Video2DMakePolygonBrush");
         texture->setSurfacePtr(surface);
@@ -1258,8 +1210,7 @@ static srModelInstance* MakePolygonBrush(
         texture->setMipmap(static_cast<srTextureIFace::e_mipmap>(0));
         texture->setWrapS(static_cast<srTextureIFace::e_wrap>(1));
         texture->setWrapT(static_cast<srTextureIFace::e_wrap>(1));
-        model->setMaterial(g_blit_material_65967c, 0,
-                           static_cast<srMeshModel::e_side>(0));
+        model->setMaterial(g_blit_material_65967c, 0, static_cast<srMeshModel::e_side>(0));
         model->setTexture(texture, 0, 0);
         texture->enableHint(static_cast<srTextureIFace::e_hint>(overlay ? 2 : 1));
         texture->enableHint(static_cast<srTextureIFace::e_hint>(3));
@@ -1269,15 +1220,12 @@ static srModelInstance* MakePolygonBrush(
     instance = new stModelInstance2D(parent);
     instance->setName("Video2DMakePolygonBrush");
     instance->SetModel0047F3A0(model);
-    instance->configure2D(
-        static_cast<short>(width * 640.0),
-        static_cast<short>(height * 480.0));
+    instance->configure2D(static_cast<short>(width * 640.0), static_cast<short>(height * 480.0));
     return instance;
 }
 
-static BOOLEAN BlitVideoObjectToColorSurface(
-    UINT32 video_object, UINT16 region, srColorSurface* destination,
-    UINT16 x, UINT16 y)
+static BOOLEAN BlitVideoObjectToColorSurface(UINT32 video_object, UINT16 region,
+                                             srColorSurface* destination, UINT16 x, UINT16 y)
 {
     HVOBJECT object;
     ETRLEObject properties;
@@ -1288,10 +1236,9 @@ static BOOLEAN BlitVideoObjectToColorSurface(
     if (!GetVideoObjectETRLEProperties(object, &properties, region)) {
         return FALSE;
     }
-    return BltVideoObjectToBuffer(
-        static_cast<UINT16*>(destination->getDataPtr()),
-        destination->getPitch(), object, region, x, y,
-        VO_BLT_SRCTRANSPARENCY, 0);
+    return BltVideoObjectToBuffer(static_cast<UINT16*>(destination->getDataPtr()),
+                                  destination->getPitch(), object, region, x, y,
+                                  VO_BLT_SRCTRANSPARENCY, 0);
 }
 
 static void MoveSystemCursor(int x, int y)
@@ -1314,22 +1261,28 @@ static void MoveSystemCursor(int x, int y)
     SetCursorPos(x, y);
 }
 
-static BOOLEAN ResizeMouseCursorSurface(int width, int height)
+// FUNCTION: WIZ8 0x00427c90
+BOOLEAN ResizeMouseCursorSurface(int width, int height)
 {
     int extent;
     float mapping_scale;
 
-    if (g_cursor_image_width_6596b4 == width &&
-        g_cursor_image_height_6596b8 == height) {
+    if (g_cursor_image_width_6596b4 == width && g_cursor_image_height_6596b8 == height) {
         return TRUE;
     }
     extent = width > height ? width : height;
-    if (extent <= 16) extent = 16;
-    else if (extent <= 32) extent = 32;
-    else if (extent <= 64) extent = 64;
-    else if (extent <= 128) extent = 128;
-    else if (extent <= 256) extent = 256;
-    else extent = -1;
+    if (extent <= 16)
+        extent = 16;
+    else if (extent <= 32)
+        extent = 32;
+    else if (extent <= 64)
+        extent = 64;
+    else if (extent <= 128)
+        extent = 128;
+    else if (extent <= 256)
+        extent = 256;
+    else
+        extent = -1;
     if (!g_mouse_surface_659688->resize(extent, extent)) {
         return FALSE;
     }
@@ -1341,29 +1294,44 @@ static BOOLEAN ResizeMouseCursorSurface(int width, int height)
     }
     mapping_scale = g_surface_scale_659680 / extent;
     g_cursor_node_659694 = MakePolygonBrush(
-        g_cursor_scene_659684, g_mouse_surface_659688,
-        static_cast<double>(extent) / 640.0,
-        static_cast<double>(extent) / 480.0,
-        mapping_scale, mapping_scale, 1.0f, 1.0f, 1);
+        g_cursor_scene_659684, g_mouse_surface_659688, static_cast<double>(extent) / 640.0,
+        static_cast<double>(extent) / 480.0, mapping_scale, mapping_scale, 1.0f, 1.0f, 1);
     g_cursor_node_659694->setName("MouseResize");
     PositionMouseCursor(g_cursor_width_654ad0, g_cursor_height_654ad4, 0);
     g_cursor_model_65968c = static_cast<srMeshModel*>(g_cursor_node_659694->model());
     g_cursor_model_65968c->enableStartupControls();
-    static_cast<stModelInstance2D*>(g_cursor_node_659694)->setRenderDepth(
-        0xc7c35000);
+    static_cast<stModelInstance2D*>(g_cursor_node_659694)->setRenderDepth(0xc7c35000);
     g_cursor_model_65968c->enableStartupControls();
     g_cursor_model_65968c->setName("Mouse Cursor Mesh");
-    g_cursor_texture_659690 = static_cast<srTexture*>(
-        g_cursor_model_65968c->getTexture(0, 0));
+    g_cursor_texture_659690 = static_cast<srTexture*>(g_cursor_model_65968c->getTexture(0, 0));
     g_cursor_texture_659690->setWrapS(static_cast<srTextureIFace::e_wrap>(1));
     g_cursor_texture_659690->setWrapT(static_cast<srTextureIFace::e_wrap>(1));
     g_cursor_texture_659690->addReference();
     return TRUE;
 }
 
+/* Move the OS/system cursor when the hotspot changes, then resync the rendered
+   cursor. Unlike SetMouseCursorFromVideoObject this path refreshes through
+   SyncSystemCursor rather than PositionMouseCursor. */
+// FUNCTION: WIZ8 0x00427f00
+void SetMouseCursorHotspot(short hotspot_x, short hotspot_y)
+{
+    int x;
+    int y;
+
+    if (g_cursor_hotspot_x_6596bc != hotspot_x || g_cursor_hotspot_y_6596c0 != hotspot_y) {
+        x = g_cursor_width_654ad0 - hotspot_x + g_cursor_hotspot_x_6596bc;
+        y = g_cursor_height_654ad4 - hotspot_y + g_cursor_hotspot_y_6596c0;
+        MoveSystemCursor(x, y);
+        SyncSystemCursor();
+        g_cursor_hotspot_x_6596bc = hotspot_x;
+        g_cursor_hotspot_y_6596c0 = hotspot_y;
+    }
+}
+
 // FUNCTION: WIZ8 0x00427ab0
-BOOLEAN SetMouseCursorFromVideoObject(
-    UINT32 video_object, UINT16 region, INT16 offset_x, INT16 offset_y)
+BOOLEAN SetMouseCursorFromVideoObject(UINT32 video_object, UINT16 region, INT16 offset_x,
+                                      INT16 offset_y)
 {
     ETRLEObject properties;
     int x;
@@ -1372,16 +1340,13 @@ BOOLEAN SetMouseCursorFromVideoObject(
     if (!gfVideoObjectsInit) {
         return FALSE;
     }
-    if (!GetVideoObjectETRLEPropertiesFromIndex(
-            video_object, &properties, region)) {
+    if (!GetVideoObjectETRLEPropertiesFromIndex(video_object, &properties, region)) {
         return FALSE;
     }
-    if (!ResizeMouseCursorSurface(properties.usWidth + 1,
-                                  properties.usHeight + 1)) {
+    if (!ResizeMouseCursorSurface(properties.usWidth + 1, properties.usHeight + 1)) {
         return FALSE;
     }
-    if (g_cursor_hotspot_x_6596bc != offset_x ||
-        g_cursor_hotspot_y_6596c0 != offset_y) {
+    if (g_cursor_hotspot_x_6596bc != offset_x || g_cursor_hotspot_y_6596c0 != offset_y) {
         x = g_cursor_width_654ad0 - offset_x + g_cursor_hotspot_x_6596bc;
         y = g_cursor_height_654ad4 - offset_y + g_cursor_hotspot_y_6596c0;
         MoveSystemCursor(x, y);
@@ -1392,16 +1357,13 @@ BOOLEAN SetMouseCursorFromVideoObject(
     g_cursor_image_width_6596b4 = properties.usWidth;
     g_cursor_image_height_6596b8 = properties.usHeight;
     g_mouse_surface_659688->fill(0);
-    return BlitVideoObjectToColorSurface(
-        video_object, region, g_mouse_surface_659688, 0, 0);
+    return BlitVideoObjectToColorSurface(video_object, region, g_mouse_surface_659688, 0, 0);
 }
 
 // FUNCTION: WIZ8 0x00427fc0
-void BlitToMouseCursor(
-    UINT32 video_object, UINT16 region, UINT16 x, UINT16 y)
+void BlitToMouseCursor(UINT32 video_object, UINT16 region, UINT16 x, UINT16 y)
 {
-    BlitVideoObjectToColorSurface(
-        video_object, region, g_mouse_surface_659688, x, y);
+    BlitVideoObjectToColorSurface(video_object, region, g_mouse_surface_659688, x, y);
 }
 
 // FUNCTION: WIZ8 0x00427ff0
@@ -1432,11 +1394,10 @@ void PositionMouseCursor(int width, int height, unsigned char reset_tick)
         g_cursor_width_654ad0 = width < 641 ? width : 640;
         g_cursor_height_654ad4 = height < 481 ? height : 480;
         if (g_cursor_node_659694) {
-            location.x = static_cast<double>(g_cursor_width_654ad0) / 640.0
-                       + static_cast<double>(g_mouse_surface_659688->getWidth()) / 1280.0;
-            location.y = 1.0
-                       - static_cast<double>(g_cursor_height_654ad4) / 480.0
-                       - static_cast<double>(g_mouse_surface_659688->getHeight()) / 960.0;
+            location.x = static_cast<double>(g_cursor_width_654ad0) / 640.0 +
+                         static_cast<double>(g_mouse_surface_659688->getWidth()) / 1280.0;
+            location.y = 1.0 - static_cast<double>(g_cursor_height_654ad4) / 480.0 -
+                         static_cast<double>(g_mouse_surface_659688->getHeight()) / 960.0;
             location.z = 0.0;
             g_cursor_node_659694->setLocation(location);
             if (reset_tick) {
@@ -1453,8 +1414,8 @@ unsigned char GetCursorPositionInViewport(srVector3T<float>* position)
 {
     int x = g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0;
     int y = g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4;
-    if (x >= g_viewport_left_6595e8 && y >= g_viewport_top_6595ec &&
-        x <= g_viewport_right_6595f0 && y <= g_viewport_bottom_6595f4) {
+    if (x >= g_viewport_left_6595e8 && y >= g_viewport_top_6595ec && x <= g_viewport_right_6595f0 &&
+        y <= g_viewport_bottom_6595f4) {
         position->x = static_cast<float>(x - g_viewport_left_6595e8) /
                       static_cast<float>(g_viewport_right_6595f0 - g_viewport_left_6595e8);
         position->y = static_cast<float>(y - g_viewport_top_6595ec) /
@@ -1469,7 +1430,7 @@ unsigned char GetCursorPositionInViewport(srVector3T<float>* position)
    the OS cursor is visible outside the client area and hidden while the game
    owns it; fullscreen coordinates are clamped to the 640x480 game surface. */
 // FUNCTION: WIZ8 0x00428340
-void Function00428340(void)
+void SyncSystemCursor(void)
 {
     POINT cursor;
     RECT client;
@@ -1485,8 +1446,8 @@ void Function00428340(void)
         bottom_right.y = client.bottom;
         ClientToScreen(ghWindow, &top_left);
         ClientToScreen(ghWindow, &bottom_right);
-        if (cursor.x < top_left.x || cursor.x >= bottom_right.x ||
-            cursor.y < top_left.y || cursor.y >= bottom_right.y) {
+        if (cursor.x < top_left.x || cursor.x >= bottom_right.x || cursor.y < top_left.y ||
+            cursor.y >= bottom_right.y) {
             if (g_system_cursor_visible_6596c4 != 1) {
                 g_system_cursor_visible_6596c4 = 1;
                 ShowCursor(TRUE);
@@ -1495,8 +1456,7 @@ void Function00428340(void)
         }
         cursor.x -= top_left.x;
         cursor.y -= top_left.y;
-        if (cursor.x != g_cursor_width_654ad0 ||
-            cursor.y != g_cursor_height_654ad4) {
+        if (cursor.x != g_cursor_width_654ad0 || cursor.y != g_cursor_height_654ad4) {
             PositionMouseCursor(cursor.x, cursor.y, 1);
         }
         if (g_system_cursor_visible_6596c4 != 0) {
@@ -1506,12 +1466,15 @@ void Function00428340(void)
         return;
     }
 
-    if (cursor.x < 1) cursor.x = 0;
-    else if (cursor.x >= 640) cursor.x = 640;
-    if (cursor.y < 1) cursor.y = 0;
-    else if (cursor.y >= 480) cursor.y = 480;
-    if (cursor.x != g_cursor_width_654ad0 ||
-        cursor.y != g_cursor_height_654ad4) {
+    if (cursor.x < 1)
+        cursor.x = 0;
+    else if (cursor.x >= 640)
+        cursor.x = 640;
+    if (cursor.y < 1)
+        cursor.y = 0;
+    else if (cursor.y >= 480)
+        cursor.y = 480;
+    if (cursor.x != g_cursor_width_654ad0 || cursor.y != g_cursor_height_654ad4) {
         PositionMouseCursor(cursor.x, cursor.y, 1);
         if (!g_fullscreen_603c39) {
             GetClientRect(ghWindow, &client);
@@ -1535,7 +1498,7 @@ void Function00428340(void)
 void SGPMouseGetPos(POINT* point)
 {
     if (point != 0) {
-        Function00428340();
+        SyncSystemCursor();
         point->x = g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0;
         point->y = g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4;
     }
@@ -1545,9 +1508,7 @@ void SGPMouseGetPos(POINT* point)
 // FUNCTION: WIZ8 0x004285c0
 unsigned char InitializeMouseCursorScene(void)
 {
-    srScene* cursor_scene =
-        SR_NEW(srScene)(
-            static_cast<srNode*>(0));
+    srScene* cursor_scene = SR_NEW(srScene)(static_cast<srNode*>(0));
     cursor_scene->setAmbientLight(0.0f, 0.0f, 0.0f);
     cursor_scene->setFogColor(0.0f, 0.0f, 0.0f);
     g_cursor_scene_659684 = cursor_scene;
@@ -1559,19 +1520,15 @@ unsigned char InitializeMouseCursorScene(void)
     if (g_cursor_texture_659690) {
         g_cursor_texture_659690->release();
     }
-    g_cursor_node_659694 = MakePolygonBrush(
-        g_cursor_scene_659684, g_mouse_surface_659688,
-        0.2, 0.26666666666666666,
-        g_surface_scale_659680 / 128.0f, g_surface_scale_659680 / 128.0f,
-        1.0f, 1.0f, 1);
+    g_cursor_node_659694 = MakePolygonBrush(g_cursor_scene_659684, g_mouse_surface_659688, 0.2,
+                                            0.26666666666666666, g_surface_scale_659680 / 128.0f,
+                                            g_surface_scale_659680 / 128.0f, 1.0f, 1.0f, 1);
     if (g_cursor_node_659694) {
         g_cursor_node_659694->setName("MouseInit");
         g_cursor_model_65968c = static_cast<srMeshModel*>(g_cursor_node_659694->model());
         g_cursor_model_65968c->enableStartupControls();
-        static_cast<stModelInstance2D*>(g_cursor_node_659694)->setRenderDepth(
-            0xc7c35000);
-        g_cursor_texture_659690 = static_cast<srTexture*>(
-            g_cursor_model_65968c->getTexture(0, 0));
+        static_cast<stModelInstance2D*>(g_cursor_node_659694)->setRenderDepth(0xc7c35000);
+        g_cursor_texture_659690 = static_cast<srTexture*>(g_cursor_model_65968c->getTexture(0, 0));
         g_cursor_texture_659690->setWrapS(static_cast<srTextureIFace::e_wrap>(1));
         g_cursor_texture_659690->setWrapT(static_cast<srTextureIFace::e_wrap>(1));
         g_cursor_texture_659690->addReference();
@@ -1604,8 +1561,7 @@ unsigned char g_flag_6596ea;
 // FUNCTION: WIZ8 0x004259b0
 static void InvalidateDirtyTile004259B0(int cell, unsigned int flags)
 {
-    stModelInstance2D* node =
-        static_cast<stModelInstance2D*>(g_surface_nodes_654adc[cell]);
+    stModelInstance2D* node = static_cast<stModelInstance2D*>(g_surface_nodes_654adc[cell]);
 
     if (node != 0) {
         short position_x = node->right_16c;
@@ -1637,19 +1593,18 @@ static void InvalidateDirtyTile004259B0(int cell, unsigned int flags)
             start += 0x50;
         }
     }
-    unsigned char state =
-        g_block_652ddc[cell] | static_cast<unsigned char>(flags) | 0x40;
+    unsigned char state = g_block_652ddc[cell] | static_cast<unsigned char>(flags) | 0x40;
     g_block_652ddc[cell] = state;
     ++g_dword_6596d8;
     int bottom = (cell / 0x50) * 8 + 8;
     int top = (cell / 0x50) * 8;
     int right = (cell % 0x50) * 8 + 8;
     int left = (cell % 0x50) * 8;
-    if (g_flag_65970d
-        && ((g_viewport_left_6595e8 <= left && left <= g_viewport_right_6595f0)
-            || (g_viewport_left_6595e8 <= right && right <= g_viewport_right_6595f0))
-        && ((g_viewport_top_6595ec <= top && top <= g_viewport_bottom_6595f4)
-            || (g_viewport_top_6595ec <= bottom && bottom <= g_viewport_bottom_6595f4))) {
+    if (g_flag_65970d &&
+        ((g_viewport_left_6595e8 <= left && left <= g_viewport_right_6595f0) ||
+         (g_viewport_left_6595e8 <= right && right <= g_viewport_right_6595f0)) &&
+        ((g_viewport_top_6595ec <= top && top <= g_viewport_bottom_6595f4) ||
+         (g_viewport_top_6595ec <= bottom && bottom <= g_viewport_bottom_6595f4))) {
         g_block_652ddc[cell] = state | 3;
         g_flag_6596ea = 1;
     }
@@ -1750,20 +1705,17 @@ void FlushDirtyTiles00425B40(void)
             }
 
             int width = 0;
-            while (column + width < 80
-                   && (g_block_652ddc[cell + width] & 0x40) != 0) {
+            while (column + width < 80 && (g_block_652ddc[cell + width] & 0x40) != 0) {
                 ++width;
             }
             int height = 0;
-            while (row + height < 60
-                   && (g_block_652ddc[cell + height * 80] & 0x40) != 0) {
+            while (row + height < 60 && (g_block_652ddc[cell + height * 80] & 0x40) != 0) {
                 ++height;
             }
 
-            g_surface_node_659664->updateRectangle(
-                g_gerd_659634, description.lpSurface, description.lPitch,
-                column * 8, row * 8,
-                (column + width) * 8, (row + height) * 8);
+            g_surface_node_659664->updateRectangle(g_gerd_659634, description.lpSurface,
+                                                   description.lPitch, column * 8, row * 8,
+                                                   (column + width) * 8, (row + height) * 8);
             for (int y = 0; y != height; ++y) {
                 for (int x = 0; x != width; ++x) {
                     g_block_652ddc[cell + y * 80 + x] &= 0x3f;
@@ -1775,7 +1727,6 @@ void FlushDirtyTiles00425B40(void)
     DDUnlockSurface(g_primary_surface_6596a8, 0);
     g_dword_6596d8 = 0;
 }
-
 
 /* Viewport. */
 /*
@@ -1812,17 +1763,18 @@ void SetViewport(int left, int top, int right, int bottom)
     fractional_bottom = (float)g_viewport_bottom_6595f4 * g_scale_y_5ebb20;
 
     if (g_world != 0 && g_world->camera != 0) {
-        g_world->camera->setViewPlane(
-            3.14159265358979323846 * g_float_005ebcf8 * 85.0f,
-            3.14159265358979323846 * g_float_005ebcf8 * 71.0f);
+        g_world->camera->setViewPlane(3.14159265358979323846 * g_float_005ebcf8 * 85.0f,
+                                      3.14159265358979323846 * g_float_005ebcf8 * 71.0f);
         g_world->camera->getViewPlane(view, depth);
 
         plane.left = (double)fractional_left * (view.right - view.left) + view.left;
         plane.right = (double)fractional_right * (view.right - view.left) + view.left;
-        plane.bottom = (double)((g_double_005ebc30 - fractional_bottom)
-                                * (float)(view.top - view.bottom) + (float)view.bottom);
-        plane.top = (double)((g_double_005ebc30 - fractional_top)
-                             * (float)(view.top - view.bottom) + (float)view.bottom);
+        plane.bottom =
+            (double)((g_double_005ebc30 - fractional_bottom) * (float)(view.top - view.bottom) +
+                     (float)view.bottom);
+        plane.top =
+            (double)((g_double_005ebc30 - fractional_top) * (float)(view.top - view.bottom) +
+                     (float)view.bottom);
 
         g_world->camera->setViewPlane(plane, 1.0);
         if (g_world_659ab8 != 0) {
@@ -1879,16 +1831,11 @@ void VideoRemoveToolTip(void)
 }
 
 // FUNCTION: WIZ8 0x00424A90
-srNode* VideoMakePoster(
-    srColorSurfaceIFace* surface,
-    float width,
-    float height,
-    unsigned char positional_3)
+srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
+                        unsigned char positional_3)
 {
     srTextureIFace::e_hint hint;
-    srTextureMap* texture =
-        SR_NEW(srTextureMap)(
-            static_cast<srColorSurfaceIFace*>(0));
+    srTextureMap* texture = SR_NEW(srTextureMap)(static_cast<srColorSurfaceIFace*>(0));
     texture->setMipmapBias(-8.0f);
     texture->autoRelease();
     texture->setName("VideoMakePoster");
@@ -1911,8 +1858,7 @@ void PresentMenuOverlayFrame(void)
     FlushDirtyTiles00425B40();
     g_gerd_659634->beginFrame();
     process.renderer = g_gerd_659634;
-    g_surface_node_659664->process(
-        process, (srNode::e_processType)0);
+    g_surface_node_659664->process(process, (srNode::e_processType)0);
     g_gerd_659634->flushRenderers();
     g_gerd_659634->endFrame();
 }
@@ -1940,12 +1886,10 @@ unsigned char InitializeMouseSurface(void)
         return 0;
     }
 
-    g_mouse_surface_659688 =
-        SR_NEW(W8ColorSurface)(
-            type, 128UL, 128UL);
+    g_mouse_surface_659688 = SR_NEW(W8ColorSurface)(type, 128UL, 128UL);
     if (!g_mouse_surface_659688) {
-        srAssertFail("psrMouseSurface", "C:\\Projects\\Wizardry 8\\Engine Code\\Video2.cpp",
-                     0x635, 0);
+        srAssertFail("psrMouseSurface", "C:\\Projects\\Wizardry 8\\Engine Code\\Video2.cpp", 0x635,
+                     0);
     }
     g_mouse_surface_659688->setFilter(&srBoxFilter);
     g_mouse_surface_659688->fill(0);
@@ -1963,65 +1907,47 @@ unsigned char InitializeRendererSceneObjects(void)
 
     InitializeMouseSurface();
     g_modeler_65963c = new srModeler;
-    g_scene_permanent_659648 =
-        SR_NEW(srScene)(
-            static_cast<srNode*>(0));
+    g_scene_permanent_659648 = SR_NEW(srScene)(static_cast<srNode*>(0));
     g_scene_permanent_659648->setName("2D Permanent Overlay Scene");
     g_scene_permanent_659648->setAmbientLight(0.0f, 0.0f, 0.0f);
     g_scene_permanent_659648->setFogColor(0.0f, 0.0f, 0.0f);
 
-    g_scene_user_659640 =
-        SR_NEW(srScene)(
-            static_cast<srNode*>(0));
+    g_scene_user_659640 = SR_NEW(srScene)(static_cast<srNode*>(0));
     g_scene_user_659640->setName("2D User Overlay Scene");
     g_scene_user_659640->setAmbientLight(0.0f, 0.0f, 0.0f);
     g_scene_user_659640->setFogColor(0.0f, 0.0f, 0.0f);
 
-    g_scene_fullscreen_659644 =
-        SR_NEW(srScene)(
-            static_cast<srNode*>(0));
+    g_scene_fullscreen_659644 = SR_NEW(srScene)(static_cast<srNode*>(0));
     g_scene_fullscreen_659644->setName("Full Screen Overlay Scene");
     g_scene_fullscreen_659644->setAmbientLight(0.0f, 0.0f, 0.0f);
     g_scene_fullscreen_659644->setFogColor(0.0f, 0.0f, 0.0f);
 
-    g_scene_overlay0_659654 =
-        SR_NEW(srScene)(
-            static_cast<srNode*>(0));
+    g_scene_overlay0_659654 = SR_NEW(srScene)(static_cast<srNode*>(0));
     g_scene_overlay0_659654->setName("2D Overlay Scene (0)");
     g_scene_overlay0_659654->setAmbientLight(0.0f, 0.0f, 0.0f);
     g_scene_overlay0_659654->setFogColor(0.0f, 0.0f, 0.0f);
 
-    g_scene_overlay1_659658 =
-        SR_NEW(srScene)(
-            static_cast<srNode*>(0));
+    g_scene_overlay1_659658 = SR_NEW(srScene)(static_cast<srNode*>(0));
     g_scene_overlay1_659658->setName("2D Overlay Scene (1)");
     g_scene_overlay1_659658->setAmbientLight(0.0f, 0.0f, 0.0f);
     g_scene_overlay1_659658->setFogColor(0.0f, 0.0f, 0.0f);
 
-    g_scene_square_65965c =
-        SR_NEW(srScene)(
-            static_cast<srNode*>(0));
+    g_scene_square_65965c = SR_NEW(srScene)(static_cast<srNode*>(0));
     g_scene_square_65965c->setName("2D Square Overlay Scene");
     g_scene_square_65965c->setAmbientLight(0.0f, 0.0f, 0.0f);
     g_scene_square_65965c->setFogColor(0.0f, 0.0f, 0.0f);
 
-    g_scene_prerender0_65964c =
-        SR_NEW(srScene)(
-            static_cast<srNode*>(0));
+    g_scene_prerender0_65964c = SR_NEW(srScene)(static_cast<srNode*>(0));
     g_scene_prerender0_65964c->setName("2D Pre-render Overlay Scene (0)");
     g_scene_prerender0_65964c->setAmbientLight(0.0f, 0.0f, 0.0f);
     g_scene_prerender0_65964c->setFogColor(0.0f, 0.0f, 0.0f);
 
-    g_scene_prerender1_659650 =
-        SR_NEW(srScene)(
-            static_cast<srNode*>(0));
+    g_scene_prerender1_659650 = SR_NEW(srScene)(static_cast<srNode*>(0));
     g_scene_prerender1_659650->setName("2D Pre-render Overlay Scene (1)");
     g_scene_prerender1_659650->setAmbientLight(0.0f, 0.0f, 0.0f);
     g_scene_prerender1_659650->setFogColor(0.0f, 0.0f, 0.0f);
 
-    g_overlay_camera_659670 =
-        SR_NEW(srCamera)(
-            static_cast<srNode*>(0));
+    g_overlay_camera_659670 = SR_NEW(srCamera)(static_cast<srNode*>(0));
     g_overlay_camera_659670->setName("2D Overlay Camera");
     g_overlay_camera_659670->setClipRange(0.01, 2.0);
     g_overlay_camera_659670->setLocation(0.0, 0.0, -1.0);
@@ -2033,9 +1959,7 @@ unsigned char InitializeRendererSceneObjects(void)
     g_overlay_camera_659670->setViewPlane(view, 1.0);
     g_overlay_camera_659670->setEnvironmentRange(0.0f, 0.0f);
 
-    g_square_camera_659674 =
-        SR_NEW(srCamera)(
-            g_scene_square_65965c);
+    g_square_camera_659674 = SR_NEW(srCamera)(g_scene_square_65965c);
     g_square_camera_659674->setName("2D Square Overlay Camera");
     g_square_camera_659674->setClipRange(0.01, 2.0);
     g_square_camera_659674->setLocation(0.0, 0.0, -1.0);
@@ -2047,8 +1971,7 @@ unsigned char InitializeRendererSceneObjects(void)
     g_square_camera_659674->setViewPlane(view, 1.0);
     g_square_camera_659674->setEnvironmentRange(0.0f, 0.0f);
 
-    material =
-        SR_NEW(srMaterial);
+    material = SR_NEW(srMaterial);
     g_blit_material_65967c = material;
     material->setName("Blit Rect Material");
     material_value = 1.0f;
@@ -2072,17 +1995,16 @@ unsigned char InitializeRendererSceneObjects(void)
     surface_description.dwSize = sizeof(surface_description);
     DDLockSurface(g_primary_surface_6596a8, 0, &surface_description, 0, 0);
     DDUnlockSurface(g_primary_surface_6596a8, 0);
-    g_primary_color_surface_659660 =
-        SR_NEW(W8ColorSurface)(
-            srPixelConvert::SURFACE_ARGB1555, surface_description.lpSurface,
-            640UL, 480UL,
-            static_cast<unsigned long>(surface_description.lPitch));
-    if (!g_primary_color_surface_659660) return 0;
+    g_primary_color_surface_659660 = SR_NEW(W8ColorSurface)(
+        srPixelConvert::SURFACE_ARGB1555, surface_description.lpSurface, 640UL, 480UL,
+        static_cast<unsigned long>(surface_description.lPitch));
+    if (!g_primary_color_surface_659660)
+        return 0;
 
-    g_surface_node_659664 = new stSurface2D(
-        g_primary_color_surface_659660, 640, 480,
-        g_scene_overlay0_659654, 128);
-    if (!g_surface_node_659664) return 0;
+    g_surface_node_659664 =
+        new stSurface2D(g_primary_color_surface_659660, 640, 480, g_scene_overlay0_659654, 128);
+    if (!g_surface_node_659664)
+        return 0;
 
     strncpy(renderer_name, g_gerd_659634->getName(), 127);
     renderer_name[127] = 0;
@@ -2090,10 +2012,8 @@ unsigned char InitializeRendererSceneObjects(void)
     if (strstr(renderer_name, "GLIDE")) {
         g_surface_node_659664->enableRendererFlag(1);
     }
-    g_renderer_mode_603d74 =
-        strstr(renderer_name, "DIRECT3D") ||
-        strstr(renderer_name, "GLIDE") ||
-        strstr(renderer_name, "SOFTWARE2");
+    g_renderer_mode_603d74 = strstr(renderer_name, "DIRECT3D") || strstr(renderer_name, "GLIDE") ||
+                             strstr(renderer_name, "SOFTWARE2");
     return 1;
 }
 
@@ -2113,8 +2033,8 @@ void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom
     DDLockSurface(g_primary_surface_6596a8, 0, &surface_description, 0, 0);
     if (surface_description.lpSurface != 0) {
         if (top < bottom) {
-            row = reinterpret_cast<unsigned char*>(surface_description.lpSurface) +
-                  left * 2 + surface_description.lPitch * top;
+            row = reinterpret_cast<unsigned char*>(surface_description.lpSurface) + left * 2 +
+                  surface_description.lPitch * top;
             rows = bottom - top;
             do {
                 memset(row, 0, (right - left) * 2);
@@ -2131,7 +2051,8 @@ void PurgeInactiveSceneInstances(srScene* scene)
 {
     srNode* node;
 
-    if (!scene) return;
+    if (!scene)
+        return;
     node = scene->firstChild();
     while (node) {
         srNode* next = node->nextSibling();
@@ -2140,12 +2061,10 @@ void PurgeInactiveSceneInstances(srScene* scene)
         unsigned char display_state = 0;
         if (class_id == 0x10004) {
             display_state = static_cast<stModelInstance*>(node)->displayState();
-        }
-        else if (class_id == 0x10005) {
+        } else if (class_id == 0x10005) {
             display_state = static_cast<stModelInstance2D*>(node)->displayState();
         }
-        if ((class_id == 0x10004 || class_id == 0x10005) &&
-            display_state != 3) {
+        if ((class_id == 0x10004 || class_id == 0x10005) && display_state != 3) {
             int index;
             for (index = 0; index != 0x12c0; ++index) {
                 if (g_surface_nodes_654adc[index] == node) {
@@ -2154,11 +2073,11 @@ void PurgeInactiveSceneInstances(srScene* scene)
                 }
             }
             if (instance->model()) {
-                srMeshModel* model =
-                    static_cast<srMeshModel*>(instance->model());
+                srMeshModel* model = static_cast<srMeshModel*>(instance->model());
                 if (model) {
                     srTextureIFace* texture = model->getTexture(0, 0);
-                    if (texture) texture->invalidate();
+                    if (texture)
+                        texture->invalidate();
                 }
             }
             node->release();
@@ -2209,10 +2128,10 @@ unsigned char SetFlag603C60(void)
 // FUNCTION: WIZ8 0x004257F0
 void ReleaseRendererObject004257F0(srClass* object)
 {
-    if ((reinterpret_cast<unsigned char*>(object)[0x160] & 1) != 0) { /* reinterpret-ok: unrecovered derivative tail past the srModelInstance base */
+    if ((reinterpret_cast<unsigned char*>(object)[0x160] & 1) !=
+        0) { /* reinterpret-ok: unrecovered derivative tail past the srModelInstance base */
         g_dword_6596ec = 2;
-    }
-    else {
+    } else {
         g_dword_6596f0 = 2;
         g_dword_6596ec = 2;
     }
@@ -2230,6 +2149,22 @@ void SetRendererModePair(void)
 {
     g_dword_6596f0 = 2;
     g_dword_6596ec = 2;
+}
+
+/* Install a texture (often an stTextureAnim) on the mouse-cursor mesh. A null
+   argument reuses the current cursor texture. */
+// FUNCTION: WIZ8 0x00429170
+void SetMouseCursorTexture(srTextureIFace* texture)
+{
+    if (texture == 0) {
+        texture = g_cursor_texture_659690;
+    }
+    g_cursor_model_65968c->setTexture(texture, 0, 0);
+    if ((g_cursor_model_65968c->control_state_390 & 8) == 0) {
+        unsigned long state = g_cursor_model_65968c->control_state_390;
+        g_cursor_model_65968c->control_state_390 = state | 8;
+        g_cursor_model_65968c->control_state_390 = state | 8;
+    }
 }
 
 // FUNCTION: WIZ8 0x004291C0
@@ -2270,20 +2205,18 @@ unsigned char HasEnoughFreeDiskSpace(void)
     unsigned int megabytes;
     unsigned char enough;
 
-    extended = GetProcAddress(GetModuleHandleA("kernel32.dll"),
-                              "GetDiskFreeSpaceExA");
+    extended = GetProcAddress(GetModuleHandleA("kernel32.dll"), "GetDiskFreeSpaceExA");
     if (extended != NULL) {
-        GetDiskFreeSpaceExA(NULL, (PULARGE_INTEGER)&available,
-                            (PULARGE_INTEGER)&capacity,
+        GetDiskFreeSpaceExA(NULL, (PULARGE_INTEGER)&available, (PULARGE_INTEGER)&capacity,
                             (PULARGE_INTEGER)&free_bytes);
         megabytes = (unsigned int)(free_bytes.QuadPart / 0x100000);
         enough = megabytes >= 0x100;
         return enough;
     }
-    GetDiskFreeSpaceA(NULL, &sectors_per_cluster, &bytes_per_sector,
-                      &free_clusters, &total_clusters);
-    megabytes = (unsigned int)((__int64)sectors_per_cluster * bytes_per_sector
-                               * free_clusters / 0x400 / 0x400);
+    GetDiskFreeSpaceA(NULL, &sectors_per_cluster, &bytes_per_sector, &free_clusters,
+                      &total_clusters);
+    megabytes = (unsigned int)((__int64)sectors_per_cluster * bytes_per_sector * free_clusters /
+                               0x400 / 0x400);
     enough = megabytes >= 0x100;
     return enough;
 }
@@ -2344,8 +2277,8 @@ IDirectDrawSurface2* GetFrameBufferObject(void)
 }
 
 // FUNCTION: WIZ8 0x00421f40
-unsigned char GetPrimaryRGBDistributionMasks(
-    unsigned int* red, unsigned int* green, unsigned int* blue)
+unsigned char GetPrimaryRGBDistributionMasks(unsigned int* red, unsigned int* green,
+                                             unsigned int* blue)
 {
     *red = gusRedMask;
     *green = gusGreenMask;
@@ -2361,14 +2294,10 @@ void* LockMouseBuffer(unsigned int* pitch)
 }
 
 /* The retail linker folds this empty body with other empty C functions. */
-void UnlockMouseBuffer(void)
-{
-}
+void UnlockMouseBuffer(void) {}
 
 /* The retail empty video-capture entry folds with the shared 0x4023a0 ret. */
-void VideoCaptureToggle(void)
-{
-}
+void VideoCaptureToggle(void) {}
 
 // FUNCTION: WIZ8 0x00421f30
 IDirectDraw2* GetDirectDraw2Object(void)
@@ -2386,8 +2315,7 @@ int g_screenshot_page_659728;
 // FUNCTION: WIZ8 0x004229e0
 void Function4229E0(void)
 {
-    srSurfaceIOManager* surface_io_manager =
-        srCore.getSurfaceIOManager();
+    srSurfaceIOManager* surface_io_manager = srCore.getSurfaceIOManager();
     srExtension::load("JPEGImporter", 0);
 
     srColorSurfaceIFace* surface = g_gerd_659634->lockBuffer();
@@ -2403,8 +2331,7 @@ void Function4229E0(void)
         sprintf(filename, "Wiz8%5.5d.JPG", screenshot_index);
         if (g_flag_6596f4 == 0) {
             surface_io_manager->exportSurface(filename, *surface, options);
-        }
-        else {
+        } else {
             options.option_string = "QUALITY=0.35";
             PauseSharedGameTimers00439BC0();
             surface_io_manager->exportSurface(filename, *surface, options);
@@ -2434,8 +2361,8 @@ double g_double_005ebf40 = 0.75;
 /* Packs four normalized colour components into the surface byte order:
    red, green, blue, alpha from the high byte down. */
 // FUNCTION: WIZ8 0x00429700
-void __fastcall PackColour00429700(
-    unsigned char* colour, double red, double green, double blue, double alpha)
+void __fastcall PackColour00429700(unsigned char* colour, double red, double green, double blue,
+                                   double alpha)
 {
     colour[3] = (int)(red * g_double_005ebf60);
     colour[2] = (int)(green * g_double_005ebf60);
@@ -2474,8 +2401,7 @@ void PositionToolTipNode(srNode* node, int x, int y, char positional)
     if ((instance->state_160 & 1U) == 0) {
         location.y = g_double_005ebc30 - (half_height + position_y);
         g_dword_6596f0 = 2;
-    }
-    else {
+    } else {
         location.y = g_double_005ebf40 - (half_height + position_y) * g_double_005ebf40;
     }
     node->setLocation(location);
@@ -2493,8 +2419,7 @@ void VideoPositionToolTip(INT32 x, INT32 y)
     if (g_screen_transition_object_count_654aac > 0) {
         INT32 offset = x;
         for (int index = 0; index < g_screen_transition_object_count_654aac; ++index) {
-            srNode* node =
-                static_cast<srNode*>(g_screen_transition_objects_654ab4[index]);
+            srNode* node = static_cast<srNode*>(g_screen_transition_objects_654ab4[index]);
             PositionToolTipNode(node, offset, y, 1);
             offset += static_cast<stModelInstance2D*>(node)->GetWidth00480EF0() & 0xffff;
         }
@@ -2510,12 +2435,12 @@ void VideoPositionToolTip(INT32 x, INT32 y)
    repeating its border one pixel outward, and reports the texture mapping
    scales for the resulting polygon brush. */
 // FUNCTION: WIZ8 0x00428B90
-unsigned char CopySurfaceWithBorder(
-    srColorSurface* surface, int* rect, void* source, int source_pitch,
-    float* scale_x, float* scale_y, float* mapping_x, float* mapping_y)
+unsigned char CopySurfaceWithBorder(srColorSurface* surface, int* rect, void* source,
+                                    int source_pitch, float* scale_x, float* scale_y,
+                                    float* mapping_x, float* mapping_y)
 {
-    if (surface == 0 || rect == 0 || source == 0 || source_pitch == 0 ||
-        scale_x == 0 || scale_y == 0 || mapping_x == 0 || mapping_y == 0) {
+    if (surface == 0 || rect == 0 || source == 0 || source_pitch == 0 || scale_x == 0 ||
+        scale_y == 0 || mapping_x == 0 || mapping_y == 0) {
         return 0;
     }
     int width = (rect[2] > 0x27f ? 0x280 : rect[2]) - rect[0];
@@ -2527,24 +2452,19 @@ unsigned char CopySurfaceWithBorder(
     int right = width + 1;
     int bottom = height + 1;
 
-    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 1, 1,
-                    rect[0], rect[1], width, height);
-    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 1, 0,
-                    rect[0], rect[1], width, 1);
-    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 1, bottom,
-                    rect[0], rect[1] - 1 + height, width, 1);
-    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 0, 1,
-                    rect[0], rect[1], 1, height);
-    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, right, 1,
-                    rect[0] - 1 + width, rect[1], 1, height);
-    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 0, 0,
-                    rect[0], rect[1], 1, 1);
-    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, right, 0,
-                    rect[0] - 1 + width, rect[1], 1, 1);
-    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 0, bottom,
-                    rect[0], rect[1] - 1 + height, 1, 1);
-    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, right, bottom,
-                    rect[0] - 1 + width, rect[1] - 1 + height, 1, 1);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 1, 1, rect[0], rect[1], width, height);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 1, 0, rect[0], rect[1], width, 1);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 1, bottom, rect[0], rect[1] - 1 + height,
+                    width, 1);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 0, 1, rect[0], rect[1], 1, height);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, right, 1, rect[0] - 1 + width, rect[1], 1,
+                    height);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 0, 0, rect[0], rect[1], 1, 1);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, right, 0, rect[0] - 1 + width, rect[1], 1, 1);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, 0, bottom, rect[0], rect[1] - 1 + height, 1,
+                    1);
+    Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, right, bottom, rect[0] - 1 + width,
+                    rect[1] - 1 + height, 1, 1);
 
     float scale = 1.0f / (float)surface->getWidth();
     *scale_x = scale;
@@ -2561,8 +2481,8 @@ unsigned char CopySurfaceWithBorder(
    extent is rounded up to the next power of two between 16 and 256, the copy
    repeats its border, and the node records the rectangle extents. */
 // FUNCTION: WIZ8 0x00424280
-srModelInstance* Video2DRectToPolygon(
-    int* rect, void* source, int source_pitch, srNode* parent, unsigned char overlay)
+srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch, srNode* parent,
+                                      unsigned char overlay)
 {
     double left = (double)rect[0] * g_double_005ebe90;
     int extent = rect[2] - rect[0];
@@ -2576,23 +2496,19 @@ srModelInstance* Video2DRectToPolygon(
     }
     if (extent < 0x10) {
         extent = 0x10;
-    }
-    else if (extent < 0x20) {
+    } else if (extent < 0x20) {
         if (extent != 0x10) {
             extent = 0x20;
         }
-    }
-    else if (extent < 0x40) {
+    } else if (extent < 0x40) {
         if (extent != 0x20) {
             extent = 0x40;
         }
-    }
-    else if (extent < 0x80) {
+    } else if (extent < 0x80) {
         if (extent != 0x40) {
             extent = 0x80;
         }
-    }
-    else {
+    } else {
         if (0x100 < extent) {
             return 0;
         }
@@ -2601,8 +2517,8 @@ srModelInstance* Video2DRectToPolygon(
         }
     }
 
-    srColorSurface* surface = SR_NEW(W8ColorSurface)(
-        srPixelConvert::SURFACE_ARGB1555, (unsigned long)extent, (unsigned long)extent);
+    srColorSurface* surface = SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_ARGB1555,
+                                                     (unsigned long)extent, (unsigned long)extent);
     if (surface == 0) {
         return 0;
     }
@@ -2611,14 +2527,14 @@ srModelInstance* Video2DRectToPolygon(
     float scale_y;
     float mapping_x;
     float mapping_y;
-    if (!CopySurfaceWithBorder(surface, rect, source, source_pitch,
-                        &scale_x, &scale_y, &mapping_x, &mapping_y)) {
+    if (!CopySurfaceWithBorder(surface, rect, source, source_pitch, &scale_x, &scale_y, &mapping_x,
+                               &mapping_y)) {
         surface->release();
         return 0;
     }
     surface->getDataPtr();
-    srModelInstance* node = MakePolygonBrush(
-        parent, surface, width, height, scale_x, scale_y, mapping_x, mapping_y, overlay);
+    srModelInstance* node = MakePolygonBrush(parent, surface, width, height, scale_x, scale_y,
+                                             mapping_x, mapping_y, overlay);
     if (node != 0) {
         stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
         instance->state_160 = g_index_6596e4;
@@ -2646,8 +2562,8 @@ void VideoToolTip(UINT16* text)
     if (g_screen_transition_object_count_654aac != 0) {
         return;
     }
-    srColorSurface* surface = SR_NEW(W8ColorSurface)(
-        srPixelConvert::SURFACE_ARGB1555, 0xfeUL, 0xfeUL);
+    srColorSurface* surface =
+        SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_ARGB1555, 0xfeUL, 0xfeUL);
     if (surface == 0) {
         return;
     }
@@ -2656,15 +2572,14 @@ void VideoToolTip(UINT16* text)
     bounds.top = 0;
     bounds.right = 0xfa;
     bounds.bottom = 0xfa;
-    W8TextBuffer* buffer = new W8TextBuffer(
-        &bounds, (const wchar_t*)text, g_font10arial_683668,
-        g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED548, 4);
+    W8TextBuffer* buffer =
+        new W8TextBuffer(&bounds, (const wchar_t*)text, g_font10arial_683668,
+                         g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED548, 4);
     if (buffer == 0) {
         return;
     }
     g_help_box_width = (int)buffer->m_maxLineWidth + 4;
-    g_help_box_height =
-        GetFontHeight(g_font10arial_683668) * buffer->m_lineCount + 2;
+    g_help_box_height = GetFontHeight(g_font10arial_683668) * buffer->m_lineCount + 2;
     surface->fill(0);
     void* data = surface->getDataPtr();
     unsigned char colour[4];
@@ -2683,8 +2598,8 @@ void VideoToolTip(UINT16* text)
     rect[1] = 0;
     rect[2] = 0xfe;
     rect[3] = 0xfe;
-    srModelInstance* node = Video2DRectToPolygon(
-        rect, data, (int)surface->getPitch(), g_cursor_scene_659684, 1);
+    srModelInstance* node =
+        Video2DRectToPolygon(rect, data, (int)surface->getPitch(), g_cursor_scene_659684, 1);
     if (node != 0) {
         int count = g_screen_transition_object_count_654aac;
         bool append = true;
@@ -2692,8 +2607,7 @@ void VideoToolTip(UINT16* text)
             srClass** objects = new srClass*[count + 1];
             if (objects == 0) {
                 append = false;
-            }
-            else {
+            } else {
                 for (int index = 0; index < count; ++index) {
                     objects[index] = g_screen_transition_objects_654ab4[index];
                 }
@@ -2712,8 +2626,7 @@ void VideoToolTip(UINT16* text)
     int position_x = g_cursor_width_654ad0;
     int offset = position_x;
     for (int index = 0; index < g_screen_transition_object_count_654aac; ++index) {
-        srNode* object =
-            static_cast<srNode*>(g_screen_transition_objects_654ab4[index]);
+        srNode* object = static_cast<srNode*>(g_screen_transition_objects_654ab4[index]);
         PositionToolTipNode(object, offset, position_y, 1);
         offset += static_cast<stModelInstance2D*>(object)->GetWidth00480EF0() & 0xffff;
     }
@@ -2758,9 +2671,12 @@ int GetRendererFamily(void)
     strncpy(name, g_gerd_659634->getName(), sizeof(name) - 1);
     name[sizeof(name) - 1] = '\0';
     _strupr(name);
-    if (strstr(name, "OPENGL")) return 0;
-    if (strstr(name, "GLIDE")) return 2;
-    if (strstr(name, "DIRECT3D")) return 1;
+    if (strstr(name, "OPENGL"))
+        return 0;
+    if (strstr(name, "GLIDE"))
+        return 2;
+    if (strstr(name, "DIRECT3D"))
+        return 1;
     return strstr(name, "SOFTWARE") ? 3 : 4;
 }
 
