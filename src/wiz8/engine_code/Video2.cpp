@@ -1611,8 +1611,8 @@ static void InvalidateDirtyTile004259B0(int cell, unsigned int flags)
     if (node != 0) {
         short position_x = node->right_16c;
         short position_y = node->bottom_16e;
-        int columns = node->GetWidth00480EF0() >> 3;
-        int rows = node->GetHeight00480F70() >> 3;
+        int columns = (node->GetWidth00480EF0() & 0xffff) >> 3;
+        int rows = (node->GetHeight00480F70() & 0xffff) >> 3;
 
         for (int index = 0; index != 0x12c0; ++index) {
             if (g_surface_nodes_654adc[index] == node) {
@@ -1628,7 +1628,8 @@ static void InvalidateDirtyTile004259B0(int cell, unsigned int flags)
             }
         }
         node->release();
-        int start = (position_y >> 3) * 0x50 + (position_x >> 3);
+        int start = ((position_y & 0xffff) >> 3) * 0x50
+                  + ((position_x & 0xffff) >> 3);
         for (int row = rows; row != 0; --row) {
             int row_cell = start;
             for (int column = columns; column != 0; --column) {
