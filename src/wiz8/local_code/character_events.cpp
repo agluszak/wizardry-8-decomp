@@ -22,6 +22,10 @@ extern void Function52F890(
 extern unsigned int g_value_0068c57c;
 // GLOBAL: WIZ8 0x0068c57c
 unsigned int g_value_0068c57c;
+/* 0x0068C580: the shared wide buffer formatted character text lands in. The
+   next recovered global starts at 0x0068D520, which bounds it. */
+// GLOBAL: WIZ8 0x0068C580
+wchar_t g_character_text_0068c580[2000];
 extern unsigned int g_value_0068c554;
 // GLOBAL: WIZ8 0x0068c554
 unsigned int g_value_0068c554;
@@ -62,6 +66,8 @@ int g_effect_005ee590 = 2;
 int g_effect_005ee594 = 3;
 // GLOBAL: WIZ8 0x005ee598
 int g_effect_005ee598 = 4;
+// GLOBAL: WIZ8 0x005ee588
+int g_effect_005ee588 = 0;
 // GLOBAL: WIZ8 0x005EE5F8
 int g_effect_005ee5f8 = 28;
 // GLOBAL: WIZ8 0x005ee610
@@ -158,6 +164,15 @@ W8StartupStateElement005EE748::W8StartupStateElement005EE748(
         value_1c = character->unknown_0b01;
         break;
     }
+}
+
+/* The quote text builder fills the shared wide buffer; the final character
+   page's description area displays it. */
+// FUNCTION: WIZ8 0x0052D240
+wchar_t* W8StartupStateElement005EE748::GetQuoteText()
+{
+    Function52D0B0(character_04, type_08, 0);
+    return g_character_text_0068c580;
 }
 
 /* Restarts the follow-up clock for entries of the middle event band while the

@@ -343,6 +343,9 @@ extern unsigned short g_character_trait_name_ids_61e530[0x20];
    skills pages. */
 extern unsigned short g_character_description_first_ids_61e3a4[22];
 extern unsigned short g_character_skill_name_ids_61e454[84];
+/* One message id per final-page personality slot; the array's terminating zero
+   keeps its ten-entry extent. */
+extern unsigned short g_personality_message_ids_61e674[10];
 
 /* Page and per-row region sets. */
 extern unsigned int g_character_stats_region_set_0069c550;

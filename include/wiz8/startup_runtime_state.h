@@ -28,6 +28,9 @@ struct W8StartupStateElement005EE748 {
 
     /* Applies this entry's queued runtime consequence. */
     void Process0052CED0();          /* 0x0052CED0 */
+
+    /* Returns this entry's formatted quote text in the shared wide buffer. */
+    wchar_t* GetQuoteText();         /* 0x0052D240 */
 };
 
 static_assert(sizeof(W8StartupStateElement005EE748) == 0x38,
