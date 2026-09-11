@@ -36,11 +36,14 @@ static_assert(sizeof(W8TriggerEvent) == 0x38,
 
 void UpdateTimedTriggerEvents00443D30(void);
 
-/* Trigger's m_pActionData points at this polymorphic payload. The concrete
-   object created by Trigger::Run has a distinct final vtable at 0x005EC148
-   and returns to the base table at 0x005EC138 during destruction. The payload
-   is shared by multiple actions: type 5 stores the previous environment value
-   as a float, while type 10 uses the flag/item view. */
+/* Trigger's m_pActionData points at this polymorphic payload. Type-5 and
+   type-10 actions share the same 0x0c-byte layout: type 5 stores the previous
+   environment value as a float, while type 10 uses the flag/item view.
+   Retail installs final vtable 0x005EC148 for the type-5 allocation in
+   Trigger::Run and returns to the base table at 0x005EC138 during destruction;
+   that distinct final table plus its scalar deleting destructor are ABI
+   artifacts without added storage or non-lifecycle behavior, so they do not
+   justify a separate authored subclass. */
 class W8TriggerActionData {
 public:
     W8TriggerActionData();
@@ -62,12 +65,6 @@ public:
 
 static_assert(sizeof(W8TriggerActionData) == 0x0c,
               "W8TriggerActionData_must_be_0x0c");
-
-class W8TriggerActionData005EC148 : public W8TriggerActionData {
-};
-
-static_assert(sizeof(W8TriggerActionData005EC148) == 0x0c,
-              "W8TriggerActionData005EC148_must_be_0x0c");
 
 /* The level loader allocates 0x98 bytes for type 10. Its first twelve bytes
    are the common polymorphic payload above; the remaining bytes are the

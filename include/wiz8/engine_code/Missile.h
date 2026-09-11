@@ -68,6 +68,8 @@ public:
     void Function4A49E0();
 
     void SetLaunchValues004A5410(const float* values);
+    /* 0x004A5790: true while this in-flight missile still blocks ending combat. */
+    unsigned char BlocksEndingCombat004A5790();
 
 public:
     int missile_table_index_1d8;
@@ -109,6 +111,25 @@ void DetachMissileReferences005019A0(W8Missile* missile);
 
 extern float g_navigator_largest_extent_6081e8;
 extern unsigned int g_missile_table_count_65bddc;
+
+/* One 0x1e5-byte MissileTables.dbs runtime row. Only the fields reached by
+   recovered consumers are named. */
+#pragma pack(push, 1)
+struct W8MissileTableRecord {
+    unsigned char unknown_000[0x140];
+    float value_140;
+    unsigned char unknown_144[0x10];
+    unsigned char flag_154;               /* 0x154: blocks ending combat while set */
+    unsigned char unknown_155[0x90];
+};
+#pragma pack(pop)
+
+static_assert(sizeof(W8MissileTableRecord) == 0x1e5,
+              "W8MissileTableRecord_must_be_0x1e5");
+
+extern W8MissileTableRecord* g_missile_table_65bde0;
+
+W8Missile* NextMissile004A2760(char restart);
 
 W8Missile* CreateMissile004A28D0(
     unsigned int missile_table_index,

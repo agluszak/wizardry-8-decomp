@@ -304,7 +304,7 @@ void AimAtPlace(int actor)
     target.iType = W8_TARGET_KIND_PLACE;
     Function492500(scratch);
     AimAtTarget(actor, &target, W8_TARGETING_CONTEXT_CURRENT);
-    g_monster_manager_state.vector_9b7.Clear();
+    g_target_marker_vector_0068406f.Clear();
     RequestRefreshPartyState();
 }
 
@@ -918,7 +918,7 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
 // FUNCTION: WIZ8 0x0053ac30
 void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
 {
-    W8MonsterManagerEntry* slot = &g_monster_manager_state.entries[party_slot];
+    W8MonsterManagerEntry* slot = &g_monster_manager_entries[party_slot];
     unsigned int index;
 
     if (slot->highlighted_monsters.count > 0) {
@@ -1286,7 +1286,7 @@ void Function53AEB0(unsigned int party_slot)
 // FUNCTION: WIZ8 0x0053B160
 void Function53B160(void)
 {
-    g_monster_manager_state.vector_9b7.Clear();
+    g_target_marker_vector_0068406f.Clear();
     RequestRefreshPartyState();
 }
 
@@ -1303,7 +1303,7 @@ void Function53B170(void)
         position.z != g_target_position_0068407f.z) {
         g_target_position_0068407f = position;
         Function53B660(
-            &position, &g_monster_manager_state.vector_9b7, 1);
+            &position, &g_target_marker_vector_0068406f, 1);
     }
 }
 

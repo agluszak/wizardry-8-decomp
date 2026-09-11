@@ -290,7 +290,7 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
     }
     if (entry->type_08 > 0x91 && (entry->flags_10 & 0x20) == 0) {
         W8MonsterManagerEntry* slot =
-            &g_monster_manager_state.entries[party_slot];
+            &g_monster_manager_entries[party_slot];
         if (slot->field_071 != 0) {
             vector_40.Remove(slot->field_071);
             RestartFollowUpClock(slot->field_071);
@@ -427,7 +427,7 @@ int Function52E750(void)
     int any_active = 0;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        W8MonsterManagerEntry* record = &g_monster_manager_state.entries[party_slot];
+        W8MonsterManagerEntry* record = &g_monster_manager_entries[party_slot];
         unsigned char sound_active = 0;
 
         if (g_party_slot_rows[party_slot].occupied == 0) {
@@ -454,7 +454,7 @@ int Function52E750(void)
             unsigned int scan;
             for (scan = 0; scan < 8; ++scan) {
                 if (g_party_slot_rows[scan].occupied != 0 &&
-                    g_monster_manager_state.entries[scan].field_000 != 0) {
+                    g_monster_manager_entries[scan].field_000 != 0) {
                     break;
                 }
             }
@@ -472,7 +472,7 @@ int Function52E750(void)
                 unsigned int scan;
                 for (scan = 0; scan < 8; ++scan) {
                     if (g_party_slot_rows[scan].occupied != 0 &&
-                        g_monster_manager_state.entries[scan].field_000 != 0) {
+                        g_monster_manager_entries[scan].field_000 != 0) {
                         break;
                     }
                 }

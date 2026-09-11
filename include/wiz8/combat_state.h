@@ -9,6 +9,7 @@ void RoundPhaseToStep(unsigned int* phase, unsigned int base);
 
 struct W8Character;
 struct W8MonsterInfo;
+class W8Missile;
 
 #pragma pack(push, 1)
 /* One party slot row. Only the fields reached by recovered combat and
@@ -62,22 +63,6 @@ struct W8PartySlotRow {
 
 static_assert(sizeof(W8PartySlotRow) == 0x106,
               "W8PartySlotRow_must_be_0x106");
-
-/* One record per character class, 0x1e5 bytes, indexed by the class index a
-   combat actor carries at its +0x1d8. Only the flag the combat toggle reads is
-   established. */
-struct W8CharacterClassRecord {
-    unsigned char unknown_000[0x154];
-    unsigned char flag_154;               /* 0x154 */
-    unsigned char unknown_155[0x90];
-};                                        /* 0x1e5 */
-
-/* What the engaged-actor iterator at 0x004A2760 hands back. Only the class
-   index is placed; the object is much larger and otherwise unrecovered. */
-struct W8CombatActor {
-    unsigned char unknown_000[0x1d8];
-    int class_record_index;               /* 0x1d8 */
-};
 
 /* The combat effect run: nine live slots at +0x7c1 and six more at +0x85a.
    The condition predicate still scans nine of the second run, so it reads
@@ -134,7 +119,7 @@ struct W8CombatState {
     unsigned char unknown_7bc[5];
     W8EffectSlot effect_slots[9];         /* 0x7c1, 0x11 stride */
     W8EffectSlot effect_slots_tail[6];    /* 0x85a, 0x11 stride */
-    W8CombatActor* engaged_actor;         /* 0x8c0 */
+    W8Missile* engaged_missile;           /* 0x8c0: live missile that blocks ending combat */
     unsigned char unknown_8c4;            /* 0x8c4 */
     /* 0x8c5: exact name from the attack assertions; the slot is unaligned
        after the byte above, which packing makes representable. */
@@ -165,7 +150,6 @@ static_assert(sizeof(W8CombatState) == 0xa64, "W8CombatState_must_be_0xa64");
 
 extern W8CombatState* g_combat_state;    /* 0x006836A8 */
 extern unsigned int g_combat_countdown_6850b0; /* 0x006850B0 */
-extern W8CharacterClassRecord* g_character_class_records; /* 0x0065BDE0 */
 
 
 /* These are the two heap-buffer fields at the head of gXStatus, not separate

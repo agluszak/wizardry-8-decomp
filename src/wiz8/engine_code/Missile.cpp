@@ -73,22 +73,10 @@ W8AIMissile* CopyAIMissile004A53A0(const W8AIMissile* source)
     return copy;
 }
 
-#pragma pack(push, 1)
-struct W8MissileTableRecord {
-    unsigned char unknown_000[0x140];
-    float value_140;
-    unsigned char unknown_144[0x10];
-    unsigned char flag_154;
-    unsigned char unknown_155[0x90];
-};
-#pragma pack(pop)
-
 // GLOBAL: WIZ8 0x0065bde0
 W8MissileTableRecord* g_missile_table_65bde0;
 // GLOBAL: WIZ8 0x0065bddc
 unsigned int g_missile_table_count_65bddc;
-
-static_assert(sizeof(W8MissileTableRecord) == 0x1e5, "W8MissileTableRecord_must_be_0x1e5");
 
 /* Engine Code\\Missile.cpp's startup database load.  Each disk row has a
    0x101-byte editor prefix followed by the 0x1e5-byte runtime record. */
@@ -145,6 +133,20 @@ void ReleaseMissileDatabase(void)
         g_missile_table_65bde0 = 0;
         g_missile_table_count_65bddc = 0;
     }
+}
+
+/* True while this missile is still an in-flight engagement that must finish
+   before combat can end: either it has not been marked done, or its animation
+   state for mode 6 is not the terminal value. */
+// FUNCTION: WIZ8 0x004a5790
+unsigned char W8Missile::BlocksEndingCombat004A5790()
+{
+    if (flag_1e0 == 0) {
+        if (GetAnimationState004A4640(6) != 1) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 // VTABLE: WIZ8 0x005ecde0 W8MissileRep

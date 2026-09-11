@@ -14,8 +14,7 @@
 #include "wiz8/game_status.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/monster_runtime.h"
-// GLOBAL
-W8CharacterClassRecord* g_character_class_records;
+#include "wiz8/engine_code/Missile.h"
 // GLOBAL: WIZ8 0x006840c7
 W8MonsterRecord* g_monster_record_cache[1000];
 // GLOBAL: WIZ8 0x005ed4f0
@@ -159,8 +158,6 @@ void Function58AB60(int value_1, int value_2, void* notice, W8WideChar* name);
 void Function509EA0(int value);
 void Function508D70(unsigned int monster_list_index);
 unsigned char Function531920(W8MonsterGroup* monster_group);
-W8CombatActor* NextEngagedCharacter(int restart);
-unsigned char Function4A5790(void);
 void StartCombat(int surprise);
 void EndCombat(unsigned char reason);
 void Function595570(void);
@@ -1527,7 +1524,7 @@ void ToggleCombatMode(void)
 {
     unsigned int group_list_index;
     W8MonsterGroup* monster_group;
-    W8CombatActor* character;
+    W8Missile* missile;
 
     if (gXStatus.fCombatMode == 0) {
         StartCombat(1);
@@ -1551,11 +1548,11 @@ void ToggleCombatMode(void)
             }
         }
     }
-    for (character = NextEngagedCharacter(1); character != 0;
-         character = NextEngagedCharacter(0)) {
-        if ((character == g_combat_state->engaged_actor ||
-             g_character_class_records[character->class_record_index].flag_154 != 0) &&
-            Function4A5790() != 0) {
+    for (missile = NextMissile004A2760(1); missile != 0;
+         missile = NextMissile004A2760(0)) {
+        if ((missile == g_combat_state->engaged_missile ||
+             g_missile_table_65bde0[missile->missile_table_index_1d8].flag_154 != 0) &&
+            missile->BlocksEndingCombat004A5790() != 0) {
             ShowNotice(
                 0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END_ENGAGED], -1, -1, 0);
             return;
@@ -1892,17 +1889,15 @@ void FormatMonsterHealth(
 }
 
 // GLOBAL: WIZ8 0x006836B8
-W8MonsterManagerState g_monster_manager_state;
+W8MonsterManagerEntry g_monster_manager_entries[8];
 
-// FUNCTION: WIZ8 0x004e6940
-W8MonsterManagerState::~W8MonsterManagerState()
-{
-}
+// GLOBAL: WIZ8 0x0068406F
+W8GrowableVector<int> g_target_marker_vector_0068406f;
 
-// FUNCTION: WIZ8 0x004e6970
-W8MonsterManagerState::W8MonsterManagerState()
-{
-}
+// SYNTHETIC: WIZ8 0x004e6970
+// `dynamic initializer for 'g_monster_manager_entries' / 'g_target_marker_vector_0068406f''
+// SYNTHETIC: WIZ8 0x004e6940
+// `dynamic atexit destructor for 'g_monster_manager_entries' / 'g_target_marker_vector_0068406f''
 
 // FUNCTION: WIZ8 0x004e6a10
 W8MonsterManagerEntry::~W8MonsterManagerEntry()

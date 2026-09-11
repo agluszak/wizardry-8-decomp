@@ -653,7 +653,7 @@ void UpdateSpellEffects00500930(void)
              monster_index < effect->monster_indices_0f0.GetCount() && alive;
              ++monster_index) {
             int entry = *effect->monster_indices_0f0.GetAt(monster_index);
-            if (g_monster_manager_state.entries[entry].field_0bd != 0) {
+            if (g_monster_manager_entries[entry].field_0bd != 0) {
                 alive = false;
             }
         }

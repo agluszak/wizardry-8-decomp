@@ -761,7 +761,7 @@ void Function54B560(void)
 // FUNCTION: WIZ8 0x0054b300
 void Function54B300(unsigned int slot)
 {
-    W8MonsterManagerEntry* record = &g_monster_manager_state.entries[slot];
+    W8MonsterManagerEntry* record = &g_monster_manager_entries[slot];
     int tier;
 
     memset(static_cast<void*>(record), 0, sizeof(W8MonsterManagerEntry));
@@ -890,7 +890,7 @@ void W8StartupStateElement005EE748::Process0052CED0()
     unsigned char sound_was_active;
 
     party_slot = CharacterPointerToPartySlot(character_04);
-    slot = &g_monster_manager_state.entries[party_slot];
+    slot = &g_monster_manager_entries[party_slot];
     sound_was_active = slot->field_000;
     slot->field_071 = 0;
     if (sound_was_active != 0) {
@@ -928,7 +928,7 @@ void W8StartupStateElement005EE748::Process0052CED0()
 W8StartupRuntimeState* g_startup_runtime_state;
 W8GameTimer* g_gameplay_timer_685067;
 
-/* The bulk reset below spans the manager object and its neighbours; see the
+/* The bulk reset below spans the entries array and its neighbours; see the
    note at the function. */
 // FUNCTION: WIZ8 0x0054afd0
 void InitializeGameplayRuntimeObjects(void)
@@ -936,12 +936,12 @@ void InitializeGameplayRuntimeObjects(void)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfortify-source"
 /* Retail 0x0054AFD0 zeroes ECX=0x682 dwords plus 0x6C words from 0x006836B8:
-   a 0x1AE0-byte bulk reset spanning the manager object, gXStatus, the
+   a 0x1AE0-byte bulk reset spanning g_monster_manager_entries, gXStatus, the
    targeting globals and further runtime state up to 0x00685098. That span is
-   a reset region, not one C++ object; only the manager extent is owned here.
+   a reset region, not one C++ object; the start address is the entries array.
    Suppress only this diagnostic: the size argument deliberately exceeds the
-   struct because retail clears the neighbours too. */
-    memset(static_cast<void*>(&g_monster_manager_state), 0, 0x1ae0);
+   array because retail clears the neighbours too. */
+    memset(static_cast<void*>(g_monster_manager_entries), 0, 0x1ae0);
 #pragma clang diagnostic pop
     g_startup_runtime_state = new W8StartupRuntimeState();
     g_gameplay_timer_685067 = new W8GameTimer(300.0f, 0);

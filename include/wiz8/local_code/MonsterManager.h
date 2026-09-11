@@ -25,12 +25,17 @@ struct W8CycleNameRow {
 
 extern W8CycleNameRow g_cycle_names[];
 
-/* The object constructed at 0x006836B8 begins with eight of these records.
-   Its generated element constructor and destructor at 0x004E6A30 and
-   0x004E6A10 exist because the record owns the ordinary vector at +0x0D8.
-   The reset at 0x0054B300 clears the record wholesale despite that non-trivial
-   member; that source behavior does not turn the vector into a second layout
-   projection. */
+/* Eight party-slot records at 0x006836B8. The element constructor and
+   destructor at 0x004E6A30 and 0x004E6A10 exist because each record owns the
+   ordinary vector at +0x0D8. The reset at 0x0054B300 clears a record wholesale
+   despite that non-trivial member; that source behavior does not turn the
+   vector into a second layout projection.
+
+   These are not members of a larger "manager state" object: gXStatus begins
+   immediately after the array at 0x00683F78, and a separate targeting vector
+   lives at 0x0068406F. Startup 0x004E6970 / atexit 0x004E6940 are the TU
+   dynamic initializer and destructor for those two globals, not a class
+   constructor/destructor over contiguous BSS. */
 #pragma pack(push, 1)
 struct W8MonsterManagerEntry {
     W8MonsterManagerEntry();
@@ -83,36 +88,16 @@ struct W8MonsterManagerEntry {
     unsigned int field_113;
     unsigned char unknown_117;
 };                                       /* 0x118 */
-
-/* 0x004E6910 runs this constructor for 0x006836B8 at startup (with an
-   atexit 0x004E6940 teardown). 0x004E6970 builds entries[8] through the
-   0x004E6A30 element constructor and constructs the vector at +0x9B7
-   (vtable 0x5EBFE0 with a five-int backing store); the destructor tears
-   exactly those two down. Neither lifecycle function touches
-   +0x8C0..+0x9B6, so those bytes are not members: gXStatus starts at +0x8C0
-   (0x00683F78) and further globals follow. The padding below reserves the
-   vector's relative offset only; never access storage through it. (An older
-   comment blamed 0x004E6900, but that address is a branch inside
-   AnyMonsterDying, not a constructor caller.) */
-struct W8MonsterManagerState {
-    W8MonsterManagerState();
-    ~W8MonsterManagerState();
-
-    W8MonsterManagerEntry entries[8];     /* 0x000 .. 0x8c0 */
-    unsigned char unowned_8c0[0xf7];      /* +0x8c0..+0x9b6: gXStatus and other globals, not members */
-    W8GrowableVector<int> vector_9b7;      /* 0x9b7, ABS 0x0068406F */
-};                                       /* 0x9c7 */
 #pragma pack(pop)
 
 static_assert(sizeof(W8GrowableVector<int>) == 0x10, "W8GrowableVector_int_size_must_be_0x10");
 static_assert(sizeof(W8MonsterManagerEntry) == 0x118,
               "W8MonsterManagerEntry_size_must_be_0x118");
-static_assert(sizeof(W8MonsterManagerState) == 0x9c7,
-              "W8MonsterManagerState_size_must_be_0x9c7");
-static_assert(offsetof(W8MonsterManagerState, vector_9b7) == 0x9b7,
-              "W8MonsterManagerState_vector_offset");
 
-extern W8MonsterManagerState g_monster_manager_state;
+extern W8MonsterManagerEntry g_monster_manager_entries[8];
+/* Cleared with the target marker and handed to Function53B660; sits
+   immediately before g_target_position_0068407f. */
+extern W8GrowableVector<int> g_target_marker_vector_0068406f;
 
 W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);
 unsigned char LoadMonsterDatabaseRecord(
