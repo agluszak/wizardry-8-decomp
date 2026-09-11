@@ -110,6 +110,7 @@ public:
     long getWidth() const;
     void resetStatistics();
     void setClearColor(float red, float green, float blue, float alpha);
+    void setFogColor(const srVector3T<float>& color);
     void setScissor(unsigned long x, unsigned long y,
                     unsigned long width, unsigned long height);
     void setTextureReduction(long reduction);

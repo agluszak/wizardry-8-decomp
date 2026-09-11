@@ -17,7 +17,6 @@
 #include "surrender/srClipPlane.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
-#include "wiz8/geometry.h"
 #include "wiz8/world_cursor.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_code/Search.h"
@@ -561,10 +560,8 @@ unsigned char LoadLevel(
                 rotation.vectors[1].Set(0.0, 1.0, 0.0);
                 rotation.vectors[2].Set(0.0, 0.0, 1.0);
                 if (trigger->angle_0fc != 0.0f) {
-                    RotateMatrixAroundAxis0042B910(
-                        &rotation.vectors[0].x,
-                        sin(trigger->angle_0fc), cos(trigger->angle_0fc),
-                        &axis.x);
+                    rotation.RotateAroundAxis(
+                        sin(trigger->angle_0fc), cos(trigger->angle_0fc), axis);
                 }
                 ApplyCameraRotation(&rotation);
             }

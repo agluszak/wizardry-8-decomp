@@ -13,7 +13,6 @@
 #include "surrender/srClipPlane.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
-#include "wiz8/geometry.h"
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Octree.h"
@@ -288,8 +287,7 @@ unsigned char ReadWorldEnvironment004BC9D0(
         rotation.vectors[1].Set(0.0f, 1.0f, 0.0f);
         rotation.vectors[2].Set(0.0f, 0.0f, 1.0f);
         if (angle != 0.0f) {
-            RotateMatrixAroundAxis0042B910(
-                &rotation.vectors[0].x, sin(angle), cos(angle), &axis.x);
+            rotation.RotateAroundAxis(sin(angle), cos(angle), axis);
         }
         ApplyCameraRotation(&rotation);
     }
@@ -880,10 +878,9 @@ unsigned char ReadWorldParticles004BD0D0(
             rotation.vectors[1].Set(0.0, 1.0, 0.0);
             rotation.vectors[2].Set(0.0, 0.0, 1.0);
             if (record.rotation_angle != 0.0f) {
-                RotateMatrixAroundAxis0042B910(
-                    &rotation.vectors[0].x,
+                rotation.RotateAroundAxis(
                     sin(record.rotation_angle), cos(record.rotation_angle),
-                    &record.rotation_axis.x);
+                    record.rotation_axis);
             }
             first.Set(1.0, 0.0, 0.0);
             second.Set(0.0, cos(angle), -sin(angle));

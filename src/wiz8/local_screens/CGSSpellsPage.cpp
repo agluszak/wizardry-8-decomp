@@ -3,7 +3,6 @@
 #include "wiz8/local_screens/CharacterScreen.h"
 
 #include "wiz8/cursor.h"
-#include "wiz8/dirty_tiles.h"
 #include "wiz8/local_code/ButtonSound.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/magic.h"

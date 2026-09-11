@@ -27,7 +27,6 @@
 #include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GameData.h"
-#include "wiz8/geometry.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/Octree.h"
@@ -737,11 +736,10 @@ void W8TriggerEvent::Update()
             rotation.vectors[2] = row_2;
 
             if (trigger_030->angle_0fc != 0.0f) {
-                RotateMatrixAroundAxis0042B910(
-                    &rotation.vectors[0].x,
+                rotation.RotateAroundAxis(
                     sin(trigger_030->angle_0fc),
                     cos(trigger_030->angle_0fc),
-                    &axis.x);
+                    axis);
             }
 
             transformed.x = DotProduct(rotation.vectors[1], target);
@@ -2060,9 +2058,7 @@ void Trigger::RunDestination00440DD0(const char* destination)
     rotation.vectors[1].Set(0.0, 1.0, 0.0);
     rotation.vectors[2].Set(0.0, 0.0, 1.0);
     if (angle != 0.0f) {
-        RotateMatrixAroundAxis0042B910(
-            &rotation.vectors[0].x, sin(angle), cos(angle),
-            &destination_direction.x);
+        rotation.RotateAroundAxis(sin(angle), cos(angle), destination_direction);
     }
     ApplyCameraRotation(&rotation);
     SpawnSpellEffect004AD080("set_portal", 1, 0, 0);
@@ -2737,9 +2733,7 @@ toggle_item_prop:
             rotation.vectors[2].Set(0.0, 0.0, 1.0);
             axis = rotation.vectors[2];
             if (angle_0fc != 0.0f) {
-                RotateMatrixAroundAxis0042B910(
-                    &rotation.vectors[0].x, sin(angle_0fc), cos(angle_0fc),
-                    &axis.x);
+                rotation.RotateAroundAxis(sin(angle_0fc), cos(angle_0fc), axis);
             }
             transformed.x = DotProduct(
                 rotation.vectors[0], target_position);

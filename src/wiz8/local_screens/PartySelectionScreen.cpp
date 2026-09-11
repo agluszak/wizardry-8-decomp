@@ -17,7 +17,6 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/cursor.h"
 #include "wiz8/dialog_code/ModalDialogBase.h"
-#include "wiz8/dirty_tiles.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/geometry.h"

@@ -2,7 +2,6 @@
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/dialog_code/DialogBase.h"
 
-#include "wiz8/dirty_tiles.h"
 #include "wiz8/utility.h"
 
 #include "input.h"

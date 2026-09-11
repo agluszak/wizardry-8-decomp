@@ -1,5 +1,4 @@
 #include "wiz8/bink_video.h"
-#include "wiz8/dirty_tiles.h"
 #include "wiz8/engine_code/Video2.h"
 
 #include "DirectDraw Calls.h"

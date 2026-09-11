@@ -1,7 +1,6 @@
 #include "wiz8/dialog_code/DialogScrollBar.h"
 #include "wiz8/dialog_code/ButtonUserData.h"
 #include "wiz8/cursor.h"
-#include "wiz8/dirty_tiles.h"
 #include "wiz8/utility.h"
 
 /* Reconstructed logical owner; original translation-unit identity is unproven. */

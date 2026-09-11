@@ -11,7 +11,6 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/music_playlist.h"
-#include "wiz8/dirty_tiles.h"
 #include "wiz8/game_status.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/sr_api.h"

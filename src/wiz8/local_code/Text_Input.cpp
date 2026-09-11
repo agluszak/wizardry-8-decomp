@@ -2,7 +2,7 @@
 #include "input.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/wiz8_windows.h"
-#include "wiz8/dirty_tiles.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/fonts.h"
 #include "wiz8/text_input.h"
 

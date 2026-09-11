@@ -20,7 +20,6 @@
 #include "surrender/srScene.h"
 #include "surrender/srTypeRegistry.h"
 #include "wiz8/local_code/GameplayTime.h"
-#include "wiz8/renderer_window.h"
 
 /*
  * Engine Code\Environment.cpp.

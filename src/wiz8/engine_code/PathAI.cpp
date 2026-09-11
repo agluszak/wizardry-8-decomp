@@ -1,7 +1,6 @@
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/AnimRep.h"
 #include "wiz8/float_constants.h"
-#include "wiz8/geometry.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
@@ -114,9 +113,7 @@ unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
             FileRead(handle, &axis.z, 4, 0);
             rotation.SetIdentity();
             if ((double)angle != g_zero_005ebb40) {
-                RotateMatrixAroundAxis0042B910(
-                    &rotation.vectors[0].x,
-                    sin(angle), cos(angle), &axis.x);
+                rotation.RotateAroundAxis(sin(angle), cos(angle), axis);
             }
             path->rotations_14[index] = rotation;
             if (path->unknown_01[0] == 2) {

@@ -7,7 +7,6 @@
 #include "wiz8/fonts.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/cursor.h"
-#include "wiz8/dirty_tiles.h"
 #include "wiz8/engine_code/Video2.h"
 #include "Button System.h"
 #include "input.h"

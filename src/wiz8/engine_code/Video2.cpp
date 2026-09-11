@@ -1,7 +1,6 @@
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/bringup_gates.h"
 #include "wiz8/cursor.h"
-#include "wiz8/dirty_tiles.h"
 #include "wiz8/engine_code/3dapi.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
@@ -67,97 +66,176 @@
 // GLOBAL: WIZ8 0x006596CC
 HWND ghWindow;
 
+// GLOBAL: WIZ8 0x603c38
 unsigned char g_flag_603c38 = 1;
+// GLOBAL: WIZ8 0x603c4c
 unsigned char g_flag_603c4c = 1;
+// GLOBAL: WIZ8 0x603c60
 unsigned char g_flag_603c60 = 1;
+// GLOBAL: WIZ8 0x603c6d
 unsigned char g_flag_603c6d = 1;
+// GLOBAL: WIZ8 0x603c68
 int g_frame_reset_interval_603c68 = 50;
+// GLOBAL: WIZ8 0x603c39
 unsigned char g_fullscreen_603c39 = 1;
+// GLOBAL: WIZ8 0x603c3a
 unsigned char g_flush_pending_603c3a = 1;
+// GLOBAL: WIZ8 0x603c3c
 int g_screen_width_603c3c = 640;
+// GLOBAL: WIZ8 0x603c40
 int g_screen_height_603c40 = 480;
+// GLOBAL: WIZ8 0x603c44
 int g_screen_depth_603c44 = 16;
+// GLOBAL: WIZ8 0x603c48
 int g_pixel_format_603c48 = 9;
+// GLOBAL: WIZ8 0x603d74
 int g_renderer_mode_603d74;
+// GLOBAL: WIZ8 0x65962c
 srModelInstance* g_current_model_instance_65962c;
+// GLOBAL: WIZ8 0x6596fc
 int g_dword_6596fc;
+// GLOBAL: WIZ8 0x659700
 unsigned int g_tick_659700;
+// GLOBAL: WIZ8 0x6596dc
 int g_dword_6596dc;
+// GLOBAL: WIZ8 0x6596e0
 int g_dword_6596e0;
+// GLOBAL: WIZ8 0x6596e8
 unsigned char g_flags_6596e8[2];
+// GLOBAL: WIZ8 0x654ac4
 HINSTANCE g_instance_654ac4;
+// GLOBAL: WIZ8 0x659620
 unsigned short g_show_command_659620;
+// GLOBAL: WIZ8 0x6595f8
 WNDPROC g_window_proc_6595f8;
+// GLOBAL: WIZ8 0x659710
 unsigned char g_flag_659710;
+// GLOBAL: WIZ8 0x65970e
 unsigned char g_flag_65970e;
+// GLOBAL: WIZ8 0x659711
 unsigned char g_flag_659711;
+// GLOBAL: WIZ8 0x65970f
 unsigned char g_flag_65970f;
+// GLOBAL: WIZ8 0x00659634
 srGERD* g_gerd_659634;
+// GLOBAL: WIZ8 0x65969c
 LPDIRECTDRAW g_direct_draw_65969c;
+// GLOBAL: WIZ8 0x6596a0
 LPDIRECTDRAW2 g_direct_draw2_6596a0;
+// GLOBAL: WIZ8 0x6596a4
 LPDIRECTDRAWSURFACE g_primary_surface1_6596a4;
+// GLOBAL: WIZ8 0x6596a8
 LPDIRECTDRAWSURFACE2 g_primary_surface_6596a8;
+// GLOBAL: WIZ8 0x6596ac
 LPDIRECTDRAWSURFACE g_video_primary_surface1_6596ac;
+// GLOBAL: WIZ8 0x6596b0
 LPDIRECTDRAWSURFACE2 g_video_primary_surface2_6596b0;
+// GLOBAL: WIZ8 0x659610
 RECT g_window_rect_659610;
 
+// GLOBAL: WIZ8 0x600088
 unsigned int g_color_key_600088;
+// GLOBAL: WIZ8 0x65963c
 srModeler* g_modeler_65963c;
+// GLOBAL: WIZ8 0x659640
 srScene* g_scene_user_659640;
+// GLOBAL: WIZ8 0x659644
 srScene* g_scene_fullscreen_659644;
+// GLOBAL: WIZ8 0x659648
 srScene* g_scene_permanent_659648;
+// GLOBAL: WIZ8 0x65964c
 srScene* g_scene_prerender0_65964c;
+// GLOBAL: WIZ8 0x659650
 srScene* g_scene_prerender1_659650;
+// GLOBAL: WIZ8 0x659654
 srScene* g_scene_overlay0_659654;
+// GLOBAL: WIZ8 0x659658
 srScene* g_scene_overlay1_659658;
+// GLOBAL: WIZ8 0x65965c
 srScene* g_scene_square_65965c;
+// GLOBAL: WIZ8 0x659660
 srColorSurface* g_primary_color_surface_659660;
+// GLOBAL: WIZ8 0x659664
 class stSurface2D* g_surface_node_659664;
+// GLOBAL: WIZ8 0x659670
 srCamera* g_overlay_camera_659670;
+// GLOBAL: WIZ8 0x659674
 srCamera* g_square_camera_659674;
+// GLOBAL: WIZ8 0x659688
 srColorSurface* g_mouse_surface_659688;
+// GLOBAL: WIZ8 0x65967c
 srMaterial* g_blit_material_65967c;
+// GLOBAL: WIZ8 0x654adc
 srNode* g_surface_nodes_654adc[0x12c0];
+// GLOBAL: WIZ8 0x6595dc
 int g_surface_state_6595dc;
+// GLOBAL: WIZ8 0x654ad8
 int g_surface_state_654ad8;
+// GLOBAL: WIZ8 0x6595e8
 int g_viewport_left_6595e8;
+// GLOBAL: WIZ8 0x6595ec
 int g_viewport_top_6595ec;
+// GLOBAL: WIZ8 0x6595f0
 int g_viewport_right_6595f0;
+// GLOBAL: WIZ8 0x6595f4
 int g_viewport_bottom_6595f4;
 // GLOBAL: WIZ8 0x00659AB4
 W8World* g_world;
+// GLOBAL: WIZ8 0x00659AB8
 W8World* g_world_659ab8;
+// GLOBAL: WIZ8 0x652da4
 unsigned char g_flag_652da4;
+// GLOBAL: WIZ8 0x5ebb1c
 extern const float g_scale_x_5ebb1c = 1.0f / 640.0f;
+// GLOBAL: WIZ8 0x5ebb20
 extern const float g_scale_y_5ebb20 = 1.0f / 480.0f;
 
+// GLOBAL: WIZ8 0x652ddc
 unsigned char g_block_652ddc[0x12c0];
 // GLOBAL: WIZ8 0x006596e4
 unsigned int g_index_6596e4;
+// GLOBAL: WIZ8 0x6596d8
 int g_dword_6596d8;
 // GLOBAL: WIZ8 0x006596ec
 int g_dword_6596ec;
 // GLOBAL: WIZ8 0x006596f0
 int g_dword_6596f0;
+// GLOBAL: WIZ8 0x659668
 int g_value_659668;
+// GLOBAL: WIZ8 0x65409c
 unsigned int g_tick_65409c;
+// GLOBAL: WIZ8 0x659704
 float g_frames_per_second_659704;
+// GLOBAL: WIZ8 0x659708
 float g_seconds_per_frame_659708;
 
 
+// GLOBAL: WIZ8 0x65a118
 unsigned char* g_render_options_65a118;
 
+// GLOBAL: WIZ8 0x659684
 srScene* g_cursor_scene_659684;
+// GLOBAL: WIZ8 0x65968c
 srMeshModel* g_cursor_model_65968c;
+// GLOBAL: WIZ8 0x659690
 srTexture* g_cursor_texture_659690;
+// GLOBAL: WIZ8 0x659694
 srModelInstance* g_cursor_node_659694;
+// GLOBAL: WIZ8 0x659698
 unsigned int g_cursor_move_tick_659698;
+// GLOBAL: WIZ8 0x654ad0
 int g_cursor_width_654ad0;
+// GLOBAL: WIZ8 0x654ad4
 int g_cursor_height_654ad4;
+// GLOBAL: WIZ8 0x6596b4
 int g_cursor_image_width_6596b4;
+// GLOBAL: WIZ8 0x6596b8
 int g_cursor_image_height_6596b8;
+// GLOBAL: WIZ8 0x6596bc
 int g_cursor_hotspot_x_6596bc;
+// GLOBAL: WIZ8 0x6596c0
 int g_cursor_hotspot_y_6596c0;
+// GLOBAL: WIZ8 0x6596c4
 unsigned char g_system_cursor_visible_6596c4;
 
 // FUNCTION: WIZ8 0x00428ab0
@@ -1044,6 +1122,26 @@ void Function427440(void)
     }
 }
 
+/* The light direction travels as three raw 32-bit words that the renderer and
+   both static scenes consume as the fog colour. The renderer is flushed before
+   the new colour lands. */
+// FUNCTION: WIZ8 0x00427380
+void PublishLightDirection(const int* direction)
+{
+    const srVector3T<float>* color =
+        reinterpret_cast<const srVector3T<float>*>(direction); // reinterpret-ok: the three light words are the fog vector
+    if (g_gerd_659634 != 0) {
+        g_gerd_659634->flush();
+        g_gerd_659634->setFogColor(*color);
+    }
+    if (g_world != 0) {
+        g_world->static_scene->setFogColor(*color);
+    }
+    if (g_world_659ab8 != 0) {
+        g_world_659ab8->static_scene->setFogColor(*color);
+    }
+}
+
 // FUNCTION: WIZ8 0x00427230
 void SetRendererOption4Enabled(char enabled)
 {
@@ -1490,7 +1588,9 @@ unsigned char InitializeMouseCursorScene(void)
  */
 
 extern "C" {
+// GLOBAL: WIZ8 0x65970d
 unsigned char g_flag_65970d;
+// GLOBAL: WIZ8 0x6596ea
 unsigned char g_flag_6596ea;
 /* The initial full-screen invalidation runs before any 2D node occupies the
    tile table.  Preserve that complete empty-slot path here; the non-empty path
@@ -2579,6 +2679,7 @@ void VideoToolTip(UINT16* text)
 
 /* Renderer configuration helpers reached from the video device, not the
    persisted configuration block. */
+// GLOBAL: WIZ8 0x659714
 int g_resident_texture_policy_659714;
 
 // FUNCTION: WIZ8 0x004266e0

@@ -298,9 +298,17 @@ public:
     srMatrix3T<T>* RotateAboutY(double sine, double cosine);
     srMatrix3T<T>* RotateAboutX(double sine, double cosine);
     srMatrix3T<T>* RotateAboutZ(double sine, double cosine);
+    srMatrix3T<T>* RotateAroundAxis(
+        double sine, double cosine, const srVector3T<T>& axis);
 
     srVector3T<T> vectors[3];
 };
+
+/* The retail call sites never inline this rotation; its one out-of-line float
+   specialization is emitted by surrender_math.cpp. */
+template <>
+srMatrix3T<float>* srMatrix3T<float>::RotateAroundAxis(
+    double sine, double cosine, const srVector3T<float>& axis);
 
 // TEMPLATE: WIZ8 0x004219F0
 template <class T>

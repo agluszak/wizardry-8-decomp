@@ -36,6 +36,7 @@ extern void                 SuspendVideoManager(void);
 extern BOOLEAN              RestoreVideoManager(void);
 extern void                 GetCurrentVideoSettings(UINT16 *usWidth, UINT16 *usHeight, UINT8 *ubBitDepth);
 extern void                 InvalidateRegion(INT32 iLeft, INT32 iTop, INT32 iRight, INT32 iBottom, UINT32 uiFlags);
+extern void                 FlushDirtyTiles00425B40(void);
 extern LPDIRECTDRAW2        GetDirectDraw2Object(void);
 extern LPDIRECTDRAWSURFACE2 GetFrameBufferObject(void);
 extern PTR                  LockPrimarySurface(UINT32 *uiPitch);
@@ -88,10 +89,14 @@ class srTextureIFace;
 class srColorSurfaceIFace;
 class srColorSurface;
 class srModelInstance;
+template <class T> class srVector3T;
 srNode* Function424BA0(srTextureIFace* texture, float width, float height,
     unsigned char positional_3);
 void Function4229E0(void);
 void Function4257F0(int value);
+void PublishLightDirection(const int* direction);
+/* Clamp a colour triple to the unit range in place and return it. */
+srVector3T<float>* __fastcall SaturateColor004299B0(srVector3T<float>* color);
 void __fastcall PackColour00429700(
     unsigned char* colour, double red, double green, double blue, double alpha);
 void PositionToolTipNode(srNode* node, int x, int y, char positional);

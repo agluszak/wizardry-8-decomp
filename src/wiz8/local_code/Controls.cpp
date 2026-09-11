@@ -8,7 +8,6 @@
 #include "wiz8/float_constants.h"
 #include "wiz8/fonts.h"
 #include "wiz8/cursor.h"
-#include "wiz8/dirty_tiles.h"
 #include "wiz8/local_code/ButtonSound.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/regions.h"
