@@ -47,7 +47,9 @@ struct W8PartyFormationState {
 struct W8GlobalStatus {
     W8StatusBuffers buffers;
     unsigned char game_started;          /* 0x000c */
-    unsigned char unknown_000d[0x0c];
+    /* 0x000d..0x0018: the three join counters the party-add entry advances:
+       the regular-member, auxiliary and total counts. */
+    int unknown_000d[3];
     unsigned int party_gold;
     int selected_character;
     W8ItemInstance party_item_pool_0021[500];

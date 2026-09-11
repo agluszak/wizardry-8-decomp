@@ -43,7 +43,9 @@ struct W8PartySlotRow {
     unsigned short item_slot;
     unsigned char flag_0d0;
     W8CombatSlot target_context_5;
-    unsigned char unknown_0f1[4];
+    /* 0x0f1: the slot's place in the marching order, the index of its entry
+       in g_status_685170.dwords_18e0. */
+    int party_order_0f1;
     unsigned char flag_0f5;
     unsigned char unknown_0f6[4];
     int animation_0fa;

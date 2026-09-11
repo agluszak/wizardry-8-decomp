@@ -192,6 +192,20 @@ void ApplyModifierBlock(W8GameplayModifierBlock* target,
     }
 }
 
+/* Rebuild one character's derived modifier block from the equipment,
+   persistent and party blocks without rerunning the derived stats. */
+// FUNCTION: WIZ8 0x0050f030
+void RebuildCharacterModifierBlock(W8Character* character)
+{
+    memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
+    ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
+    ApplyModifierBlock(&character->bonus_1770, &character->unknown_16a2);
+    if (character->in_party != 0) {
+        ApplyModifierBlock(&character->bonus_1770,
+                           &g_status_685170.party_modifiers_22e3);
+    }
+}
+
 /* Rebuild one character's equipment bonus block from its worn items, then its
    derived block from the equipment, persistent and party blocks, and
    recompute the derived stats. The standalone form character creation runs. */

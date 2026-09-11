@@ -348,6 +348,9 @@ extern unsigned char g_map_loading_00659757;
 
 void BeginLevelTransition(void);                                  /* 0x005611A0 */
 void Function5618F0(unsigned short mode);
+/* 0x00561EC0: the region-mode pass the party-add entry runs while the
+   main-game screen is current. */
+void Function561EC0(void);
 void Function563DD0(void);
 void Function565740(int slot);
 void Function568E10(void);

@@ -1,7 +1,14 @@
 #include "wiz8/character.h"
 #include "wiz8/utility.h"
+#include "wiz8/game_status.h"
+#include "wiz8/local_code/FormationAndFacing.h"
+#include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/Strings.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/combat_state.h"
@@ -882,4 +889,78 @@ unsigned int GetAveragePartyLevel(void)
         }
     }
     return total_level / occupied_slots;
+}
+
+/* 0x00684000: one twelve-byte record per party slot; the join entry stamps
+   the record's first byte once the game is already running. */
+// GLOBAL: WIZ8 0x00684000
+unsigned char g_party_slot_state_684000[8][0xc];
+
+/* Add one character to the party: find a free slot in the requested band,
+   copy the record, mark it in party, rebuild its row and formation position
+   and enter it in the marching order. The band is 2..7 for a regular member
+   and 0..1 for the two auxiliary slots. */
+// FUNCTION: WIZ8 0x004ef4a0
+int Function4EF4A0(W8Character* character, int slot_kind)
+{
+    unsigned int slot;
+
+    if (slot_kind == -1) {
+        slot = 2;
+        while (g_party_slot_rows[slot].occupied != 0) {
+            ++slot;
+            if (slot > 7) {
+                return -1;
+            }
+        }
+    }
+    else {
+        slot = 0;
+        while (g_party_slot_rows[slot].occupied != 0) {
+            ++slot;
+            if (slot > 1) {
+                return -1;
+            }
+        }
+    }
+    if ((int)slot < 0) {
+        return -1;
+    }
+
+    W8Character* destination = &g_party_characters[slot];
+    memcpy(destination, character, sizeof(W8Character));
+    destination->in_party = 1;
+    ResetPartySlotRow(slot);
+    Function54B300(slot);
+
+    W8PartySlotRow* row = &g_party_slot_rows[slot];
+    row->animation_0fa = slot_kind;
+    for (unsigned int index = 0; index < 8; ++index) {
+        if (g_status_685170.dwords_18e0[index] == (unsigned int)-1) {
+            g_status_685170.dwords_18e0[index] = slot;
+            row->party_order_0f1 = index;
+            break;
+        }
+    }
+    Function554AE0(&g_status_685170.formation, slot);
+    g_status_685170.formation.positions[slot].unknown_01[0] = 0xff;
+
+    if (g_status_685170.game_started != 0) {
+        g_party_slot_state_684000[slot][0] = 0xff;
+        PostCharacterNotice(slot, gppStringList[0x940 / 4]);
+    }
+    ++g_status_685170.unknown_000d[2];
+    if (slot_kind == -1) {
+        ++g_status_685170.unknown_000d[0];
+    }
+    else {
+        ++g_status_685170.unknown_000d[1];
+    }
+
+    RebuildCharacterModifierBlock(destination);
+    Function4ED9D0(destination);
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+        Function561EC0();
+    }
+    return slot;
 }
