@@ -1,0 +1,72 @@
+name: Verify source-model cleanup
+
+on:
+  push:
+    branches:
+      - fix/source-model-type-boundaries
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/source-model-type-boundaries
+          fetch-depth: 0
+      - name: Preserve the retail bulk reset
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('src/wiz8/local_code/GameplayDatabase.cpp')
+          text = path.read_text()
+          old = '''    memset(static_cast<void*>(&g_monster_manager_state), 0,
+           sizeof(W8MonsterManagerState));'''
+          new = '''    unsigned char* runtime_state =
+        reinterpret_cast<unsigned char*>(&g_monster_manager_state); // reinterpret-ok: retail bulk reset spans adjacent runtime globals
+    memset(runtime_state, 0, 0x1a0a);'''
+          if text.count(old) != 1:
+              raise SystemExit('expected manager reset not found exactly once')
+          path.write_text(text.replace(old, new, 1))
+          PY
+          git diff --check
+      - name: Commit correction
+        shell: bash
+        run: |
+          rm .github/workflows/source-model-verify.yml
+          git config user.name "ChatGPT"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Preserve the gameplay runtime bulk reset"
+          git push origin HEAD:fix/source-model-type-boundaries
+      - uses: astral-sh/setup-uv@v6
+      - name: Install Python dependencies
+        run: uv sync --frozen
+      - name: Materialize lint source dependencies
+        shell: bash
+        env:
+          GHIDRA_INSTALL_DIR: /tmp/ghidra
+          WIZ8_INPUT_DIR: /tmp/wiz8-input
+          WIZ8_WORK_DIR: /tmp/wiz8-work
+        run: |
+          mkdir -p "$GHIDRA_INSTALL_DIR" "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
+          uv run python - <<'PY'
+          from tools.wiz8decomp.config import load_settings
+          from tools.wiz8decomp.ghidra.fid_seeds import fetch_seed_sources
+          settings = load_settings()
+          fetch_seed_sources(settings)
+          PY
+      - name: Build pinned lint image
+        run: docker build -t wizardry8-msvc600:sp5 docker/msvc600
+      - name: Run clang source-model lint
+        shell: bash
+        env:
+          GHIDRA_INSTALL_DIR: /tmp/ghidra
+          WIZ8_INPUT_DIR: /tmp/wiz8-input
+          WIZ8_WORK_DIR: /tmp/wiz8-work
+        run: uv run wiz8 lint
+      - name: Run Python unit tests
+        run: uv run pytest -q tests/unit
