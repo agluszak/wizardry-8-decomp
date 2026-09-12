@@ -330,7 +330,7 @@ void srTriMeshPipeline::PrepareSlot00475540()
     current_pass_18->value_10 = 0;
     current_pass_18->shader_14 = 0;
     current_pass_18->st_18 = 0;
-    current_pass_18->triangle_count_1c = 0;
+    current_pass_18->value_1c = 0;
 }
 
 // FUNCTION: WIZ8 0x00475510
@@ -380,7 +380,7 @@ void srTriMeshPipeline::Reset004753F0(srGERD* renderer)
     current_pass_18->value_10 = 0;
     current_pass_18->shader_14 = 0;
     current_pass_18->st_18 = 0;
-    current_pass_18->triangle_count_1c = 0;
+    current_pass_18->value_1c = 0;
 }
 
 srTriMeshPipeline::srTriMeshPipeline()
