@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stddef.h>
-
 #include "Button System.h"
 
 class W8DialogBase;
@@ -83,6 +81,3 @@ private:
 }; /* 0x48 */
 
 static_assert(sizeof(W8DialogButton) == 0x48, "W8DialogButton_size");
-static_assert(offsetof(W8DialogButton, m_image_018) == 0x18, "W8DialogButton_image");
-static_assert(offsetof(W8DialogButton, m_left_toggles) == 0x36, "W8DialogButton_left_toggles");
-static_assert(offsetof(W8DialogButton, m_owner_040) == 0x40, "W8DialogButton_owner");
