@@ -276,8 +276,22 @@ def extract_role(settings: Settings, role: str) -> dict[str, Any]:
     return receipt.model_dump(mode="json", by_alias=True)
 
 
+def available_roles(settings: Settings) -> list[str]:
+    """Extraction roles with exactly one configured input actually present.
+
+    Only inputs named in config/local-inputs.yml and found under WIZ8_INPUT_DIR
+    are extractable, so the pipeline runs on whatever the user supplied instead
+    of requiring the whole corpus."""
+    manifest = load_manifest(settings)
+    counts: dict[str, int] = {}
+    for item in manifest.files:
+        if item.configured_role:
+            counts[item.configured_role] = counts.get(item.configured_role, 0) + 1
+    return [role for role in EXTRACTED_NAMES if counts.get(role) == 1]
+
+
 def extract_all(settings: Settings) -> list[dict[str, Any]]:
-    return [extract_role(settings, role) for role in EXTRACTED_NAMES]
+    return [extract_role(settings, role) for role in available_roles(settings)]
 
 
 def _copy_tree(source: Path, destination: Path) -> None:
