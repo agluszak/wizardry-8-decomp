@@ -1,14 +1,14 @@
-#ifndef WIZ8_STARTUP_RUNTIME_STATE_H
-#define WIZ8_STARTUP_RUNTIME_STATE_H
+#ifndef WIZ8_CHARACTER_EVENT_QUEUE_H
+#define WIZ8_CHARACTER_EVENT_QUEUE_H
 
 #include "wiz8/item_instance.h"
 #include "wiz8/vector.h"
 
 struct W8Character;
 
-struct W8StartupStateElement005EE748 {
-    W8StartupStateElement005EE748(W8Character* character, unsigned int type, int value_0c,
-                                  unsigned int flags, int value_14);
+struct W8CharacterEvent {
+    W8CharacterEvent(W8Character* character, unsigned int type, int value_0c, unsigned int flags,
+                     int value_14);
 
     unsigned char handled_00;
     unsigned char unknown_01[3];
@@ -19,7 +19,9 @@ struct W8StartupStateElement005EE748 {
     int value_14;
     int value_18;
     int value_1c;
-    unsigned char unknown_20[4];
+    /* 0x20: the pending event type TryAdjustQueuedEvent stores before rewriting
+       type_08 to the shared follow-up id 10. */
+    unsigned int pending_event_type_20;
     /* 0x24: an embedded item instance: the event consumer passes it to
        GetItemDisplayName, which reads both the id and the identified flag.
        Only the id is ever established here; the remaining bytes keep whatever
@@ -34,17 +36,19 @@ struct W8StartupStateElement005EE748 {
 
     /* Returns this entry's formatted quote text in the shared wide buffer. */
     wchar_t* GetQuoteText(); /* 0x0052D240 */
+
+    /* Starts portrait/voice dispatch for this queued entry. */
+    unsigned char DispatchCharacterEventEntry(); /* 0x0052CA60 */
 };
 
-static_assert(sizeof(W8StartupStateElement005EE748) == 0x38,
-              "W8StartupStateElement005EE748_must_be_0x38");
+static_assert(sizeof(W8CharacterEvent) == 0x38, "W8CharacterEvent_must_be_0x38");
 
-struct W8StartupRuntimeState {
-    W8GrowableVector<W8StartupStateElement005EE748*> vector_00;
-    W8GrowableVector<W8StartupStateElement005EE748*> vector_10;
-    W8GrowableVector<W8StartupStateElement005EE748*> vector_20;
-    W8GrowableVector<W8StartupStateElement005EE748*> vector_30;
-    W8GrowableVector<W8StartupStateElement005EE748*> vector_40;
+struct W8CharacterEventQueue {
+    W8GrowableVector<W8CharacterEvent*> vector_00;
+    W8GrowableVector<W8CharacterEvent*> vector_10;
+    W8GrowableVector<W8CharacterEvent*> vector_20;
+    W8GrowableVector<W8CharacterEvent*> vector_30;
+    W8GrowableVector<W8CharacterEvent*> vector_40;
     int value_50;
     int value_54;
     int unknown_58;
@@ -53,23 +57,21 @@ struct W8StartupRuntimeState {
     int value_64;
     unsigned char* bytes_68;
 
-    W8StartupRuntimeState();
-    ~W8StartupRuntimeState();
+    W8CharacterEventQueue();
+    ~W8CharacterEventQueue();
     void ClearOwnedEntries();
-    int QueueEntry(W8StartupStateElement005EE748* entry);
+    int QueueEntry(W8CharacterEvent* entry);
     void SetEventCharacterMask(unsigned int event_type, unsigned int party_slot, bool enabled);
     bool HasEventCharacter(unsigned int event_type, unsigned int party_slot); /* 0x0052DD90 */
     void ProcessDeferredCharacterEvents();                                    /* 0x0052DDD0 */
-    unsigned char TryAdjustQueuedEvent(W8StartupStateElement005EE748* entry); /* 0x0052DC80 */
-    void ProcessOwnedEntry(W8StartupStateElement005EE748* entry);
+    unsigned char TryAdjustQueuedEvent(W8CharacterEvent* entry);              /* 0x0052DC80 */
+    void ProcessOwnedEntry(W8CharacterEvent* entry);
     void ProcessNextPendingEntry();
     /* Restarts the follow-up clock for entries of the middle event band while
        the state flag selects it. QueueEntry reaches it for stolen entries. */
-    void RestartFollowUpClock(W8StartupStateElement005EE748* entry);
+    void RestartFollowUpClock(W8CharacterEvent* entry);
 };
 
-static_assert(sizeof(W8StartupRuntimeState) == 0x6c, "W8StartupRuntimeState_must_be_0x6c");
-
-extern W8StartupRuntimeState* g_startup_runtime_state;
+static_assert(sizeof(W8CharacterEventQueue) == 0x6c, "W8CharacterEventQueue_must_be_0x6c");
 
 #endif

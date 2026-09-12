@@ -12,7 +12,7 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/npc_interaction.h"
-#include "wiz8/startup_runtime_state.h"
+#include "wiz8/character_event_queue.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "soundman.h"
 #include "random.h"
@@ -113,16 +113,108 @@ unsigned int g_remapped_event_count_005ee710 = 31;
 // GLOBAL: WIZ8 0x005EE718
 unsigned int g_first_remapped_event_005ee718 = 500;
 
-/* 0x005EE004: eight-byte dispatch records indexed by remapped event type.
-   TryAdjustQueuedEvent reads field_00; ProcessDeferredCharacterEvents reads
-   field_01 before attempting to hand an entry to the owned queue. */
+/* 0x005EE000: eight-byte dispatch records indexed by remapped event type.
+   The table ends at 0x005EE588 where g_effect_005ee588 begins. TryAdjustQueuedEvent
+   reads field_00 at +4; ProcessDeferredCharacterEvents reads field_01 at +5. */
 struct W8EventDispatchRecord {
+    int value_00;
     unsigned char field_00;
     unsigned char field_01;
-    unsigned char unknown_02[6];
+    unsigned char unknown_06[2];
 };
-// GLOBAL: WIZ8 0x005EE004
-W8EventDispatchRecord g_event_dispatch_records_005ee004[0xb1];
+static_assert(sizeof(W8EventDispatchRecord) == 8, "W8EventDispatchRecord_must_be_8");
+// GLOBAL: WIZ8 0x005EE000
+W8EventDispatchRecord g_event_dispatch_records_005ee000[0xb1] = {
+    {0x00000001, 0x00, 0x00, {0x00, 0x00}}, {0x00000005, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000004, 0x00, 0x01, {0x00, 0x00}}, {0x00000002, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000003, 0x01, 0x01, {0x00, 0x00}}, {0x00000003, 0x01, 0x01, {0x00, 0x00}},
+    {0x00000003, 0x01, 0x01, {0x00, 0x00}}, {0x00000003, 0x01, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x01, 0x00, {0x00, 0x00}}, {0x00000001, 0x01, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000005, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000004, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000004, 0x00, 0x01, {0x00, 0x00}}, {0x00000004, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000004, 0x00, 0x01, {0x00, 0x00}}, {0x00000004, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000004, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000004, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000005, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000005, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000005, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000005, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x00, {0x00, 0x00}},
+    {0x00000004, 0x00, 0x01, {0x00, 0x00}}, {0x00000005, 0x00, 0x00, {0x00, 0x00}},
+    {0x00000005, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000005, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x00, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x01, 0x00}}, {0x00000001, 0x00, 0x01, {0x01, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000004, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000005, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}}, {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+    {0x00000001, 0x00, 0x01, {0x00, 0x00}},
+};
 
 // GLOBAL: WIZ8 0x0068C504
 int g_special_event_0068c504;
@@ -171,9 +263,8 @@ void SetVoiceMuted(unsigned char muted)
 }
 
 // FUNCTION: WIZ8 0x0052C810
-W8StartupStateElement005EE748::W8StartupStateElement005EE748(W8Character* character,
-                                                             unsigned int type, int value_0c_arg,
-                                                             unsigned int flags, int value_14_arg)
+W8CharacterEvent::W8CharacterEvent(W8Character* character, unsigned int type, int value_0c_arg,
+                                   unsigned int flags, int value_14_arg)
     : handled_00(0), character_04(character), type_08(type), value_0c(value_0c_arg),
       flags_10(flags), value_14(value_14_arg), value_30(0)
 {
@@ -257,7 +348,7 @@ unsigned char FormatCharacterQuoteText(W8Character* character, unsigned int type
 /* The quote text builder fills the shared wide buffer; the final character
    page's description area displays it. */
 // FUNCTION: WIZ8 0x0052D240
-wchar_t* W8StartupStateElement005EE748::GetQuoteText()
+wchar_t* W8CharacterEvent::GetQuoteText()
 {
     FormatCharacterQuoteText(character_04, type_08, 0);
     return g_character_text_0068c580;
@@ -269,7 +360,7 @@ wchar_t* W8StartupStateElement005EE748::GetQuoteText()
    allocation and field shape without inventing semantic names. */
 
 // FUNCTION: WIZ8 0x0052d460
-W8StartupRuntimeState::W8StartupRuntimeState()
+W8CharacterEventQueue::W8CharacterEventQueue()
     : value_50(-1), value_54(-1), value_5c(0), value_64(-1)
 {
     bytes_68 = new unsigned char[0xb1];
@@ -277,15 +368,15 @@ W8StartupRuntimeState::W8StartupRuntimeState()
 }
 
 // FUNCTION: WIZ8 0x0052d5b0
-W8StartupRuntimeState::~W8StartupRuntimeState()
+W8CharacterEventQueue::~W8CharacterEventQueue()
 {
     delete[] bytes_68;
 }
 
 // FUNCTION: WIZ8 0x0052db80
-void W8StartupRuntimeState::ClearOwnedEntries()
+void W8CharacterEventQueue::ClearOwnedEntries()
 {
-    W8StartupStateElement005EE748* entry;
+    W8CharacterEvent* entry;
     int count;
 
     count = vector_40.count;
@@ -315,9 +406,9 @@ void W8StartupRuntimeState::ClearOwnedEntries()
 }
 
 // FUNCTION: WIZ8 0x0052e3b0
-void W8StartupRuntimeState::ProcessNextPendingEntry()
+void W8CharacterEventQueue::ProcessNextPendingEntry()
 {
-    W8StartupStateElement005EE748* entry;
+    W8CharacterEvent* entry;
 
     if (vector_40.count > 0) {
         entry = *vector_40.GetAt(0);
@@ -335,7 +426,7 @@ void W8StartupRuntimeState::ProcessNextPendingEntry()
 }
 
 // FUNCTION: WIZ8 0x0052ced0
-void W8StartupStateElement005EE748::Process0052CED0()
+void W8CharacterEvent::Process0052CED0()
 {
     W8MonsterManagerEntry* slot;
     int party_slot;
@@ -367,7 +458,7 @@ void W8StartupStateElement005EE748::Process0052CED0()
 }
 
 // FUNCTION: WIZ8 0x0052CA60
-unsigned char DispatchCharacterEventEntry(W8StartupStateElement005EE748* entry)
+unsigned char W8CharacterEvent::DispatchCharacterEventEntry()
 {
     unsigned int party_slot;
     unsigned int event_type;
@@ -380,8 +471,8 @@ unsigned char DispatchCharacterEventEntry(W8StartupStateElement005EE748* entry)
     unsigned char has_quote;
 
     metadata = 0xffffffff;
-    party_slot = CharacterPointerToPartySlot(entry->character_04);
-    event_type = entry->type_08;
+    party_slot = CharacterPointerToPartySlot(character_04);
+    event_type = type_08;
     if (g_last_event_005ee70c <= event_type) {
         if (event_type < g_first_remapped_event_005ee718) {
             return 0;
@@ -390,18 +481,18 @@ unsigned char DispatchCharacterEventEntry(W8StartupStateElement005EE748* entry)
             return 0;
         }
     }
-    if (entry->character_04 == 0) {
+    if (character_04 == 0) {
         return 0;
     }
-    if ((entry->flags_10 & 4) == 0) {
-        if (Function52CFB0(party_slot, event_type, entry->flags_10) == 0 ||
+    if ((flags_10 & 4) == 0) {
+        if (Function52CFB0(party_slot, event_type, flags_10) == 0 ||
             Function52C910(event_type) == 0) {
             goto finish_without_dispatch;
         }
-        event_type = entry->type_08;
+        event_type = type_08;
         if (event_type != (unsigned int)g_special_event_0068c578 &&
             event_type != (unsigned int)g_special_event_0068c508) {
-            character = entry->character_04;
+            character = character_04;
             if (character->condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
                 QueueCharacterEvent(character, g_special_event_0068c508, 0, 1, 0x7f);
                 return 0;
@@ -419,105 +510,106 @@ unsigned char DispatchCharacterEventEntry(W8StartupStateElement005EE748* entry)
         }
         row = &g_status_685170.buffers.party_rows[party_slot];
         npc_index = row->animation_0fa;
-        if (npc_index != -1 && entry->type_08 < 0x93) {
+        if (npc_index != -1 && type_08 < 0x93) {
             npc = GetNpcState(npc_index);
-            *reinterpret_cast<unsigned int*>(row->unknown_ff) = entry->type_08;
+            *reinterpret_cast<unsigned int*>(row->unknown_ff) = type_08; /* reinterpret-ok: W8PartySlotRow pending event type at +0xff */
             if (npc == 0) {
                 return 1;
             }
-            if (npc->name_style == 0x18 && entry->type_08 > 0x8b && entry->type_08 < 0x92 &&
+            if (npc->name_style == 0x18 && type_08 > 0x8b && type_08 < 0x92 &&
                 g_status_685170.current_level != 0) {
                 return 0;
             }
-            if ((entry->flags_10 & 0x40) != 0) {
+            if ((flags_10 & 0x40) != 0) {
                 SetFlag68C500(1);
                 ReleaseRecordFile0055A0A0(npc->record_file);
                 Function524CA0(npc);
             }
             Function525110(npc, 1);
-            Function525FA0(entry->type_08, (unsigned char)(entry->flags_10 & 0x40));
-            if ((entry->flags_10 & 0x40) != 0) {
+            Function525FA0(type_08, (unsigned char)(flags_10 & 0x40));
+            if ((flags_10 & 0x40) != 0) {
                 SetFlag68C500(0);
                 ReleaseRecordFile0055A0A0(npc->record_file);
                 Function524CA0(npc);
             }
-            slot->field_071 = entry;
-            event_type = entry->type_08;
+            slot->field_071 = this;
+            event_type = type_08;
             if (event_type > 1 && (event_type < 4 || event_type == 0x1c)) {
-                g_startup_runtime_state->SetEventCharacterMask(event_type, party_slot, 1);
+                gXStatus.character_event_queue->SetEventCharacterMask(event_type, party_slot, 1);
             }
-            if (entry->type_08 != 10) {
-                g_startup_runtime_state->value_50 = entry->type_08;
-                g_startup_runtime_state->value_54 = party_slot;
+            if (type_08 != 10) {
+                gXStatus.character_event_queue->value_50 = type_08;
+                gXStatus.character_event_queue->value_54 = party_slot;
             }
-            g_startup_runtime_state->unknown_58 = SetCountdownClock(5000);
+            gXStatus.character_event_queue->unknown_58 = SetCountdownClock(5000);
             return 1;
         }
-        has_quote = FormatCharacterQuoteText(entry->character_04, entry->type_08, &metadata);
+        has_quote = FormatCharacterQuoteText(character_04, type_08, &metadata);
         if (Function52D260() != 0) {
-            event_type = entry->type_08;
+            event_type = type_08;
             if (event_type > 1 && (event_type < 4 || event_type == 0x1c)) {
-                g_startup_runtime_state->SetEventCharacterMask(event_type, party_slot, 1);
+                gXStatus.character_event_queue->SetEventCharacterMask(event_type, party_slot, 1);
             }
-            if (entry->type_08 != 10) {
-                g_startup_runtime_state->value_50 = entry->type_08;
-                g_startup_runtime_state->value_54 = party_slot;
+            if (type_08 != 10) {
+                gXStatus.character_event_queue->value_50 = type_08;
+                gXStatus.character_event_queue->value_54 = party_slot;
             }
-            g_startup_runtime_state->unknown_58 = SetCountdownClock(5000);
-            event_type = entry->type_08;
+            gXStatus.character_event_queue->unknown_58 = SetCountdownClock(5000);
+            event_type = type_08;
             if (event_type < 0x92) {
-                Function52F890(party_slot, 1, event_type, (int)g_character_text_0068c580,
-                               1 - (((unsigned char)entry->flags_10 &
-                                     g_character_event_flags_mask_005ed8e4) != 0));
-                slot->field_071 = entry;
-                *reinterpret_cast<unsigned int*>(row->unknown_ff) = entry->type_08;
+                Function52F890(
+                    party_slot, 1, event_type, (int)g_character_text_0068c580,
+                    1 - (((unsigned char)flags_10 & g_character_event_flags_mask_005ed8e4) != 0));
+                slot->field_071 = this;
+                *reinterpret_cast<unsigned int*>(row->unknown_ff) = type_08; /* reinterpret-ok: W8PartySlotRow pending event type at +0xff */
                 *reinterpret_cast<unsigned int*>(
-                    reinterpret_cast<unsigned char*>(&slot->field_113) + 1) = entry->type_08;
+                    reinterpret_cast<unsigned char*>(&slot->field_113) + /* reinterpret-ok: retail stores event type in slot->field_114 */
+                    1) = type_08;
                 return 1;
             }
             Function52F890(party_slot, 1, event_type, 0, 1);
             *reinterpret_cast<unsigned int*>(reinterpret_cast<unsigned char*>(&slot->field_113) +
-                                             1) = entry->type_08;
+                                             1) = type_08; /* reinterpret-ok: retail stores event type in slot->field_114 */
             return 1;
         }
-        entry->Process0052CED0();
+        Process0052CED0();
         if (has_quote == 0) {
             return 0;
         }
-        event_type = entry->type_08;
+        event_type = type_08;
         if (event_type > 1 && (event_type < 4 || event_type == 0x1c)) {
-            g_startup_runtime_state->SetEventCharacterMask(event_type, party_slot, 1);
+            gXStatus.character_event_queue->SetEventCharacterMask(event_type, party_slot, 1);
         }
-        if (entry->type_08 != 10) {
-            g_startup_runtime_state->value_50 = entry->type_08;
-            g_startup_runtime_state->value_54 = party_slot;
+        if (type_08 != 10) {
+            gXStatus.character_event_queue->value_50 = type_08;
+            gXStatus.character_event_queue->value_54 = party_slot;
         }
-        g_startup_runtime_state->unknown_58 = SetCountdownClock(5000);
-        if ((g_startup_runtime_state->value_5c & 1) == 0) {
+        gXStatus.character_event_queue->unknown_58 = SetCountdownClock(5000);
+        if ((gXStatus.character_event_queue->value_5c & 1) == 0) {
             return 0;
         }
-        if (entry->type_08 < 14) {
+        if (type_08 < 14) {
             return 0;
         }
-        if (entry->type_08 >= 16) {
+        if (type_08 >= 16) {
             return 0;
         }
-        if ((g_startup_runtime_state->value_5c & 2) != 0) {
-            g_startup_runtime_state->unknown_60 = SetCountdownClock(Random(6000) + 2000);
+        if ((gXStatus.character_event_queue->value_5c & 2) != 0) {
+            gXStatus.character_event_queue->unknown_60 = SetCountdownClock(Random(6000) + 2000);
             return 0;
         }
-        g_startup_runtime_state->unknown_60 = SetCountdownClock(Random(60000) + 300000);
+        gXStatus.character_event_queue->unknown_60 = SetCountdownClock(Random(60000) + 300000);
         return 0;
     }
 finish_without_dispatch:
-    entry->Process0052CED0();
+    Process0052CED0();
     return 0;
 }
 
 /* Restarts the follow-up clock for entries of the middle event band while the
    state flag selects it. */
 // FUNCTION: WIZ8 0x0052E160
-void W8StartupRuntimeState::RestartFollowUpClock(W8StartupStateElement005EE748* entry)
+void W8CharacterEventQueue::RestartFollowUpClock(W8CharacterEvent* entry)
 {
     int flags = value_5c;
     unsigned int type = entry->type_08;
@@ -535,7 +627,7 @@ void W8StartupRuntimeState::RestartFollowUpClock(W8StartupStateElement005EE748* 
 }
 
 // FUNCTION: WIZ8 0x0052D610
-int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
+int W8CharacterEventQueue::QueueEntry(W8CharacterEvent* entry)
 {
     unsigned int party_slot;
 
@@ -556,7 +648,7 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
             slot->field_071->Process0052CED0();
             delete slot->field_071;
         }
-        DispatchCharacterEventEntry(entry);
+        entry->DispatchCharacterEventEntry();
         return 1;
     }
     if (entry->type_08 == 0x21) {
@@ -581,7 +673,7 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
 }
 
 // FUNCTION: WIZ8 0x0052DD20
-void W8StartupRuntimeState::SetEventCharacterMask(unsigned int event_type, unsigned int party_slot,
+void W8CharacterEventQueue::SetEventCharacterMask(unsigned int event_type, unsigned int party_slot,
                                                   bool enabled)
 {
     unsigned char mask = (unsigned char)(1 << (party_slot & 31));
@@ -597,7 +689,7 @@ void W8StartupRuntimeState::SetEventCharacterMask(unsigned int event_type, unsig
 }
 
 // FUNCTION: WIZ8 0x0052DD90
-bool W8StartupRuntimeState::HasEventCharacter(unsigned int event_type, unsigned int party_slot)
+bool W8CharacterEventQueue::HasEventCharacter(unsigned int event_type, unsigned int party_slot)
 {
     if (event_type >= g_first_remapped_event_005ee718) {
         event_type += g_last_event_005ee70c - g_first_remapped_event_005ee718;
@@ -609,7 +701,7 @@ bool W8StartupRuntimeState::HasEventCharacter(unsigned int event_type, unsigned 
 }
 
 // FUNCTION: WIZ8 0x0052DC80
-unsigned char W8StartupRuntimeState::TryAdjustQueuedEvent(W8StartupStateElement005EE748* entry)
+unsigned char W8CharacterEventQueue::TryAdjustQueuedEvent(W8CharacterEvent* entry)
 {
     if (entry == 0 || value_50 == -1 || entry->type_08 != (unsigned int)value_50) {
         return 1;
@@ -635,12 +727,11 @@ unsigned char W8StartupRuntimeState::TryAdjustQueuedEvent(W8StartupStateElement0
     if (event_type >= g_first_remapped_event_005ee718) {
         event_index = (g_last_event_005ee70c - g_first_remapped_event_005ee718) + event_type;
     }
-    if (g_event_dispatch_records_005ee004[event_index].field_00 == 0) {
+    if (g_event_dispatch_records_005ee000[event_index].field_00 == 0) {
         return 1;
     }
 
-    *reinterpret_cast<unsigned int*>(entry->unknown_20) =
-        event_type; /* reinterpret-ok: retail stores the pending type at +0x20 */
+    entry->pending_event_type_20 = event_type;
     if (event_type == 4) {
         return 0;
     }
@@ -657,10 +748,10 @@ static unsigned int RemapEventIndex(unsigned int event_type)
 }
 
 // FUNCTION: WIZ8 0x0052DDD0
-void W8StartupRuntimeState::ProcessDeferredCharacterEvents()
+void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
 {
-    W8StartupStateElement005EE748* entry;
-    W8StartupStateElement005EE748* baseline;
+    W8CharacterEvent* entry;
+    W8CharacterEvent* baseline;
     int index;
     int scan;
     int conflict_count;
@@ -727,7 +818,7 @@ void W8StartupRuntimeState::ProcessDeferredCharacterEvents()
         event_type = entry->type_08;
         if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME &&
             event_type <= g_last_event_005ee70c) {
-            if (g_event_dispatch_records_005ee004[RemapEventIndex(event_type)].field_01 != 0) {
+            if (g_event_dispatch_records_005ee000[RemapEventIndex(event_type)].field_01 != 0) {
                 ++index;
                 continue;
             }
@@ -748,7 +839,7 @@ void W8StartupRuntimeState::ProcessDeferredCharacterEvents()
                     delete entry;
                     return;
                 }
-                if (DispatchCharacterEventEntry(entry) == 0) {
+                if (entry->DispatchCharacterEventEntry() == 0) {
                     return;
                 }
                 vector_40.Add(entry);
@@ -767,10 +858,10 @@ void W8StartupRuntimeState::ProcessDeferredCharacterEvents()
 }
 
 // FUNCTION: WIZ8 0x0052E690
-W8StartupStateElement005EE748* QueueCharacterEvent(W8Character* character, int effect, int argument,
-                                                   int value_1, unsigned int value_2)
+W8CharacterEvent* QueueCharacterEvent(W8Character* character, int effect, int argument, int value_1,
+                                      unsigned int value_2)
 {
-    W8StartupStateElement005EE748* entry;
+    W8CharacterEvent* entry;
 
     if (g_settings_6850c8.pc_confirmations == 0 &&
         (effect == g_special_event_0068c50c || effect == g_special_event_0068c568)) {
@@ -781,8 +872,8 @@ W8StartupStateElement005EE748* QueueCharacterEvent(W8Character* character, int e
         effect != g_special_event_0068c540 && effect != g_special_event_0068c564) {
         value_2 = value_2 * 70 / 100;
     }
-    entry = new W8StartupStateElement005EE748(character, effect, argument, value_1, value_2);
-    if (entry != 0 && g_startup_runtime_state->QueueEntry(entry) == 0) {
+    entry = new W8CharacterEvent(character, effect, argument, value_1, value_2);
+    if (entry != 0 && gXStatus.character_event_queue->QueueEntry(entry) == 0) {
         return 0;
     }
     return entry;
@@ -792,7 +883,7 @@ W8StartupStateElement005EE748* QueueCharacterEvent(W8Character* character, int e
    and deleting it. Event types 14 and 15 also restart the runtime state's
    follow-up clock; bit 1 selects the short interval. */
 // FUNCTION: WIZ8 0x0052D8D0
-void W8StartupRuntimeState::ProcessOwnedEntry(W8StartupStateElement005EE748* entry)
+void W8CharacterEventQueue::ProcessOwnedEntry(W8CharacterEvent* entry)
 {
     int index = vector_40.IndexOf(entry);
 
@@ -831,7 +922,7 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
     }
     if (effect != -1 && QueueCharacterEvent(character, effect, 0, g_effect_argument_005ed8c8,
                                             g_effect_argument_005ed914) != 0) {
-        g_startup_runtime_state->SetEventCharacterMask(effect, party_slot, 1);
+        gXStatus.character_event_queue->SetEventCharacterMask(effect, party_slot, 1);
     }
 }
 
@@ -844,16 +935,17 @@ void QueueDamageReactionEvents(W8Character* character)
     unsigned int party_slot;
     bool has_incapacitation_event;
     bool has_flee_event;
-    W8StartupStateElement005EE748* entry;
+    W8CharacterEvent* entry;
     int effect;
     int follow_up_events[3];
 
     hp_percent = (character->hp_current * 100) / (unsigned int)character->hp_max;
     party_slot = CharacterPointerToPartySlot(character);
     has_incapacitation_event =
-        g_startup_runtime_state->HasEventCharacter(g_effect_005ee594, party_slot);
-    has_flee_event = g_startup_runtime_state->HasEventCharacter(g_effect_005ee590, party_slot);
-    g_startup_runtime_state->HasEventCharacter(g_effect_005ee5f8, party_slot);
+        gXStatus.character_event_queue->HasEventCharacter(g_effect_005ee594, party_slot);
+    has_flee_event =
+        gXStatus.character_event_queue->HasEventCharacter(g_effect_005ee590, party_slot);
+    gXStatus.character_event_queue->HasEventCharacter(g_effect_005ee5f8, party_slot);
     if (character->highest_condition != 0xf && character->highest_condition != 0x11) {
         if (g_value_005ed8fc <= hp_percent || has_incapacitation_event) {
             if (g_flee_hp_fraction_005ed8f8 <= hp_percent) {
@@ -923,7 +1015,7 @@ int UpdateCharacterEventState(void)
                     if (record->field_071 == 0) {
                         Function52F890(party_slot, 0, -1, 0, 1);
                     } else {
-                        g_startup_runtime_state->ProcessOwnedEntry(record->field_071);
+                        gXStatus.character_event_queue->ProcessOwnedEntry(record->field_071);
                     }
                 }
             } else {
@@ -947,7 +1039,7 @@ int UpdateCharacterEventState(void)
             W8Character* character = &g_status_685170.buffers.characters[party_slot];
             if ((character->highest_condition > 14 || character->hp_current == 0) &&
                 record->field_071 != 0) {
-                g_startup_runtime_state->ProcessOwnedEntry(record->field_071);
+                gXStatus.character_event_queue->ProcessOwnedEntry(record->field_071);
             }
             if (record->field_000 == 0) {
                 unsigned int scan;

@@ -25,7 +25,7 @@
 #include "wiz8/regions.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
-#include "wiz8/startup_runtime_state.h"
+#include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
 #include "Font.h"
 #include "english.h"
@@ -828,7 +828,7 @@ void CampScreenFrame(void)
         g_camp_screen_0069c0f4->item_redraw_flags |= 0x3ffe00;
     }
     if (!g_camp_screen_0069c0f4->input_mode) {
-        g_startup_runtime_state->ProcessDeferredCharacterEvents();
+        gXStatus.character_event_queue->ProcessDeferredCharacterEvents();
         UpdateCharacterEventState();
     }
     Function5A42A0();

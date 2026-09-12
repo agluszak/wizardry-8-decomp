@@ -10,7 +10,7 @@
 #include "wiz8/dialog_code/SpellInfoDialog.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_code/PC_Item.h"
-#include "wiz8/startup_runtime_state.h"
+#include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
 
 #include "wiz8/cursor.h"
@@ -194,7 +194,7 @@ void W8CharacterScreen::UpdateDialog()
 {
     if (m_dialog_1b1c != 0) {
         if (m_dialog_response_1b20 == 1) {
-            g_startup_runtime_state->ProcessDeferredCharacterEvents();
+            gXStatus.character_event_queue->ProcessDeferredCharacterEvents();
             if (UpdateCharacterEventState() == 0 &&
                 static_cast<W8ModalDialogBase*>(m_dialog_1b1c)->close_result) {
                 m_dialog_1b1c->m_keep_open = 0;

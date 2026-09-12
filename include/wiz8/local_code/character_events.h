@@ -6,13 +6,13 @@ bool IsVoiceMuted(void);
 void SetVoiceMuted(unsigned char muted);
 
 struct W8Character;
-struct W8StartupStateElement005EE748;
+struct W8CharacterEvent;
 
 extern int g_special_event_0068c558;
 
 int UpdateCharacterEventState(void);
-W8StartupStateElement005EE748* QueueCharacterEvent(W8Character* character, int effect, int argument,
-                                                   int value_1, unsigned int value_2);
+W8CharacterEvent* QueueCharacterEvent(W8Character* character, int effect, int argument, int value_1,
+                                      unsigned int value_2);
 
 /* 0x0052D0B0: format one character quote for the given event type into the
    shared wide text buffer. Returns zero and empties it when the type has no
@@ -25,7 +25,6 @@ extern int g_effect_005ee588;
 unsigned char PartyPortraitEventsIdle(void); /* 0x0052E590 */
 int ApplyItemEffectToRandomCharacter0052E5C0(unsigned int item_id, int character_filter,
                                              int value_3, int value_4);
-unsigned char DispatchCharacterEventEntry(W8StartupStateElement005EE748* entry);
 void MaybeStartIncapacitationEvent(unsigned int party_slot); /* 0x0052F060 */
 void QueueDamageReactionEvents(W8Character* character);      /* 0x0052F2C0 */
 void Function52F110(int party_slot);

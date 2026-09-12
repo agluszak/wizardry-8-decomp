@@ -13,7 +13,7 @@
 #include "wiz8/targeting.h"
 #include "wiz8/vector.h"
 
-struct W8StartupStateElement005EE748;
+struct W8CharacterEvent;
 
 /* One eight-byte row per animation cycle at 0x0060EA08. The parser at
    0x004C2010 compares exactly prefix_length characters and then uses the same
@@ -46,7 +46,7 @@ struct W8MonsterManagerEntry {
     unsigned char unknown_005[0x10];
     unsigned char field_015;
     unsigned char unknown_016[0x5b];
-    W8StartupStateElement005EE748* field_071;
+    W8CharacterEvent* field_071;
     int field_075;
     int field_079;
     int field_07d;

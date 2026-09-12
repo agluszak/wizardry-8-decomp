@@ -10,7 +10,7 @@
 #include "wiz8/message_box.h"
 #include "wiz8/npc_interaction.h"
 #include "wiz8/npc_state.h"
-#include "wiz8/startup_runtime_state.h"
+#include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
 
 #include "bink.h"
@@ -244,7 +244,8 @@ void ProcessNpcScriptingFrame(void)
                     0 && /* reinterpret-ok: unnamed W8MainScreenState byte at 0x1fa */
                 reinterpret_cast<unsigned char*>(g_screen_state_00649f1c)[0x262] !=
                     0 && /* reinterpret-ok: unnamed W8MainScreenState byte at 0x262 */
-                (dialogue_ready = Function52E470(gXStatus.field_05f), dialogue_ready != 0)) {
+                (dialogue_ready = Function52E470(gXStatus.character_event_queue),
+                 dialogue_ready != 0)) {
                 Function577880(1);
             }
         }

@@ -44,7 +44,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/local_screens/MGSUseItemSelect.h"
-#include "wiz8/startup_runtime_state.h"
+#include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/world_cursor.h"
@@ -1860,7 +1860,7 @@ update_screen:
     Function575C50();
     NoOp();
     Function577560();
-    g_startup_runtime_state->ProcessDeferredCharacterEvents();
+    gXStatus.character_event_queue->ProcessDeferredCharacterEvents();
     UpdateCharacterEventState();
     Function59B1A0();
     if (gXStatus.fCombatMode) {

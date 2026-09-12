@@ -5,14 +5,14 @@
 
 #include "wiz8/3d_code/PList.h"
 
-struct W8StartupRuntimeState;
+struct W8CharacterEventQueue;
 
 /* The recovered prefix of the packed gXStatus runtime object at 0x00683F78.
    Database loaders establish the first seven dwords. Retail assertions name
    selected later members and the instructions establish their offsets. Every
    byte in this prefix is this object: overlapping GLOBAL aliases at 0x683F94,
-   0x683F95..0x683F9B, 0x683FAD, 0x683FB1, 0x683FC5, 0x683FCD and 0x683FCE are
-   those members, not separate roots.
+   0x683F95..0x683F9B, 0x683FAD, 0x683FB1, 0x683FC5, 0x683FCD, 0x683FCE and
+   0x683FD7 are those members, not separate roots.
 
    The object continues beyond this prefix; no recovered body exposes its
    complete sizeof. 0x73 is the size of this recovered prefix type, not a
@@ -53,8 +53,9 @@ struct W8XStatus {
     unsigned char fPartyMovementMode; /* 0x56: 0x00683FCE */
     float flPartyMoveDistLimit;       /* 0x57 */
     float field_05b;
-    W8StartupRuntimeState*
-        field_05f;            /* 0x5f: 0x00683FD7, same storage as g_startup_runtime_state */
+    /* 0x5f: 0x00683FD7. InitializeGameplayRuntimeObjects stores the queue
+       here; a standalone BSS pointer at this address is the same member. */
+    W8CharacterEventQueue* character_event_queue;
     int iCurrentCursor;       /* 0x63 */
     int current_cursor_frame; /* 0x67 */
     int current_cursor_time;  /* 0x6b */
@@ -77,7 +78,8 @@ static_assert(offsetof(W8XStatus, fPartyMovementMode) == 0x56,
               "W8XStatus_party_movement_mode_offset");
 static_assert(offsetof(W8XStatus, flPartyMoveDistLimit) == 0x57,
               "W8XStatus_party_movement_limit_offset");
-static_assert(offsetof(W8XStatus, field_05f) == 0x5f, "W8XStatus_startup_runtime_state_offset");
+static_assert(offsetof(W8XStatus, character_event_queue) == 0x5f,
+              "W8XStatus_character_event_queue_offset");
 static_assert(offsetof(W8XStatus, iCurrentCursor) == 0x63, "W8XStatus_cursor_offset");
 static_assert(offsetof(W8XStatus, iTargetingMode) == 0x6f,
               "W8XStatus_last_recovered_member_offset");

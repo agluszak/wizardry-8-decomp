@@ -18,7 +18,7 @@ unsigned char g_party_moving_006850b5;
 // GLOBAL: WIZ8 0x00685078
 unsigned char g_status_block_685078[56];
 #include "wiz8/local_code/MonsterManager.h"
-#include "wiz8/startup_runtime_state.h"
+#include "wiz8/character_event_queue.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/item_tables.h"
@@ -446,7 +446,7 @@ void ResetPartySlotRow(int slot)
 void ResetGameplayStatusBlock(void)
 {
     memset(g_status_block_685078, 0, sizeof(g_status_block_685078));
-    g_startup_runtime_state->ClearOwnedEntries();
+    gXStatus.character_event_queue->ClearOwnedEntries();
     g_party_moving_006850b5 = 0;
     gXStatus.fSurprisePossible = 0;
 }
@@ -623,11 +623,11 @@ unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int u
 // FUNCTION: WIZ8 0x0054b0b0
 void DestroyGameplayObjects(void)
 {
-    W8StartupRuntimeState* owned = g_startup_runtime_state;
+    W8CharacterEventQueue* owned = gXStatus.character_event_queue;
 
     if (owned) {
         delete owned;
-        g_startup_runtime_state = 0;
+        gXStatus.character_event_queue = 0;
     }
     if (g_gameplay_timer_685067) {
         delete g_gameplay_timer_685067;
@@ -818,7 +818,6 @@ void ResetGameplaySlot(unsigned int slot)
    neighbouring runtime state. That matches retail exactly, including the
    wiped container headers: every later use is non-virtual (Clear, GetCount,
    direct teardown of a null backing store), so no reconstruction runs. */
-W8StartupRuntimeState* g_startup_runtime_state;
 W8GameTimer* g_gameplay_timer_685067;
 
 /* The bulk reset below spans the entries array and its neighbours; see the
@@ -836,7 +835,7 @@ void InitializeGameplayRuntimeObjects(void)
    array because retail clears the neighbours too. */
     memset(static_cast<void*>(g_monster_manager_entries), 0, 0x1ae0);
 #pragma clang diagnostic pop
-    g_startup_runtime_state = new W8StartupRuntimeState();
+    gXStatus.character_event_queue = new W8CharacterEventQueue();
     g_gameplay_timer_685067 = new W8GameTimer(300.0f, 0);
 }
 
