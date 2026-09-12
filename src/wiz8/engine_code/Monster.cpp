@@ -4560,12 +4560,6 @@ void W8Monster::GetMappedPosition004C72A0(srVector3T<float>* position)
 /* Cleans its own argument - the caller at 0x004C5A40 pushes and never adjusts
    afterwards - so it is __stdcall and not the cdecl the decompiler assumes. */
 
-/* The caller proves only the roles below: the first global selects a frame in
-   the spell animation, and the second indexes g_spell_records. Their original
-   descriptive names have not been recovered. */
-extern void* CreateSpellEffect004AD8A0(const char* mls_name, int frame, W8Monster* parent,
-                                       int value, int flags);
-
 /* Spelled the way MonsterManager.cpp already declares it: the callee takes its
    receiver in ECX, which __fastcall is how a no-argument member call is
    reachable from a free declaration. The receiver is the monster's Navigator
