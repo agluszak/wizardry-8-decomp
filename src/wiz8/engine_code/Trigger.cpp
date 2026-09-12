@@ -853,11 +853,14 @@ W8TriggerActionData::W8TriggerActionData() : type_004(-1) {}
 // FUNCTION: WIZ8 0x00445ee0
 W8TriggerActionData::~W8TriggerActionData() {}
 
+/* Trigger::Run inlines type-5 construction and installs this copy; the
+   ordinary destructor writes 0x005EC138. 0x00445EC0 is the deleting wrapper
+   of the same class, also reused as type-10's inherited slot. */
 // VTABLE: WIZ8 0x005ec148
-// class W8TriggerActionData005EC148
+// class W8TriggerActionData
 
 // SYNTHETIC: WIZ8 0x00445ec0
-// W8TriggerActionData005EC148::`scalar deleting destructor'
+// W8TriggerActionData::`scalar deleting destructor'
 
 // VTABLE: WIZ8 0x005ec134
 // class W8TriggerActionData005EC134
@@ -2171,7 +2174,7 @@ void Trigger::Run(int source)
             float previous_value = GetWorldValue24(g_world);
 
             delete m_pActionData;
-            m_pActionData = new W8TriggerActionData005EC148;
+            m_pActionData = new W8TriggerActionData;
             m_pActionData->type_004 = 5;
             m_pActionData->float_value_008 = previous_value;
             SetWorldEnvironmentValue00483AE0(g_world, 0.0f);
