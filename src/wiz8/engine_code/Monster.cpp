@@ -3660,11 +3660,9 @@ void W8Monster::UpdateAttachedObjects004C3F70()
 
                 offset = source * distance_scale;
                 srVector3T<float> rotated = camera_rotation.Transform(offset);
-                location.x = base_position.x + rotated.x;
-                location.y = base_position.y + representation->value_5ec +
-                             distance_scale * g_monster_attachment_vertical_scale_005eca84 +
-                             rotated.y;
-                location.z = base_position.z + rotated.z;
+                location = base_position + rotated;
+                location.y += representation->value_5ec +
+                              distance_scale * g_monster_attachment_vertical_scale_005eca84;
 
                 item->SetLocation0049F720(&location);
                 mesh = item->GetMesh();
@@ -3711,10 +3709,9 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                 offset = source * distance_scale;
                 offset.y += group_height * distance_scale;
                 srVector3T<float> rotated = camera_rotation.Transform(offset);
-                location.x = base_position.x + rotated.x;
-                location.y = base_position.y + representation->value_5ec +
-                             distance_scale * g_monster_linked_vertical_scale_005ed29c + rotated.y;
-                location.z = base_position.z + rotated.z;
+                location = base_position + rotated;
+                location.y += representation->value_5ec +
+                              distance_scale * g_monster_linked_vertical_scale_005ed29c;
 
                 item->SetLocation0049F720(&location);
                 mesh = item->GetMesh();

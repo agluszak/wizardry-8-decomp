@@ -860,10 +860,8 @@ unsigned char W8Octree::PrepareNavigatorTarget00434250(W8NavigatorMovementState*
     if (pathing_180 == 0) {
         return 1;
     }
-    srVector3T<float> delta;
-    delta.x = movement->target_position_04c.x - movement->position_040.x;
+    srVector3T<float> delta = movement->target_position_04c - movement->position_040;
     delta.y = 0.0f;
-    delta.z = movement->target_position_04c.z - movement->position_040.z;
     if (srVector2T<float>(delta.x, delta.z).Length() < NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE) {
         return 0;
     }

@@ -1288,14 +1288,14 @@ int W8PathingService::ProcessSearchNodeProps004663D0(unsigned int node_index,
     float half_cell = grid_scale_01c * g_float_005ebc7c;
 
     srVector3T<float> lower;
-    lower.x = node->position_20.x - half_cell;
-    lower.y = node->position_20.y;
-    lower.z = node->position_20.z - half_cell;
-
     srVector3T<float> upper;
-    upper.x = node->position_20.x + half_cell;
-    upper.y = node->position_20.y + grid_scale_01c + grid_scale_01c;
-    upper.z = node->position_20.z + half_cell;
+    srVector3T<float> lower_extent;
+    srVector3T<float> upper_extent;
+    float vertical_extent = grid_scale_01c + grid_scale_01c;
+    lower_extent.Set(half_cell, 0.0f, half_cell);
+    upper_extent.Set(half_cell, vertical_extent, half_cell);
+    lower = node->position_20 - lower_extent;
+    upper = node->position_20 + upper_extent;
 
     int* candidates = 0;
     unsigned int count = g_octree_6598a4->QueryObjects0042F280(&candidates, &lower, &upper, 8, -1);
@@ -1444,12 +1444,10 @@ unsigned short W8PathingService::PlanMovement00463460(W8NavigatorMovementState* 
         search_extent += g_path_limit_006081e8 + radius;
         srVector3T<float> lower;
         srVector3T<float> upper;
-        lower.x = start.x - search_extent;
-        lower.y = start.y - search_extent;
-        lower.z = start.z - search_extent;
-        upper.x = start.x + search_extent;
-        upper.y = start.y + search_extent;
-        upper.z = start.z + search_extent;
+        srVector3T<float> half_extent;
+        half_extent.Set(search_extent, search_extent, search_extent);
+        lower = start - half_extent;
+        upper = start + half_extent;
         CollectPathProbes004656A0(movement, radius);
         path_candidates_098 = 0;
         path_candidate_count_094 =
@@ -2115,9 +2113,8 @@ unsigned short W8PathingService::ConfigureMovementSearch00464B00(
     unsigned short result = 0;
     W8NavigatorAttachment* attachment = movement->attachment_0ac;
     if ((attachment->flags_00 & 0x00010000) != 0) {
-        float delta_x = movement->target_position_04c.x - movement->position_040.x;
-        float delta_z = movement->target_position_04c.z - movement->position_040.z;
-        float horizontal_clearance = srVector2T<float>(delta_x, delta_z).Length() - radius;
+        srVector3T<float> delta = movement->target_position_04c - movement->position_040;
+        float horizontal_clearance = srVector2T<float>(delta.x, delta.z).Length() - radius;
         float target_radius;
         if (target_location == 0) {
             target_radius = g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
@@ -3412,12 +3409,10 @@ unsigned short W8PathingService::FindWaypoint0045B120(const srVector3T<float>* p
 
     srVector3T<float> lower;
     srVector3T<float> upper;
-    lower.x = query.x - g_float_005ec360;
-    lower.y = query.y - g_path_waypoint_query_vertical_005ec35c;
-    lower.z = query.z - g_float_005ec360;
-    upper.x = query.x + g_float_005ec360;
-    upper.y = query.y + g_path_waypoint_query_vertical_005ec35c;
-    upper.z = query.z + g_float_005ec360;
+    srVector3T<float> half_extent;
+    half_extent.Set(g_float_005ec360, g_path_waypoint_query_vertical_005ec35c, g_float_005ec360);
+    lower = query - half_extent;
+    upper = query + half_extent;
 
     int* candidates = 0;
     int count = g_octree_6598a4->QueryObjects0042F280(&candidates, &lower, &upper, 9, -1);
