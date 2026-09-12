@@ -48,7 +48,7 @@ void RebuildPartyEffectBlock0050E700(void)
     while (slot_byte <= 0x82f) {
         W8Character* character = &g_status_685170.buffers.characters[active];
         if (g_status_685170.buffers.party_rows[active].occupied != 0 &&
-            character->hp_current != 0 && character->unknown_0b01 == 0 &&
+            character->hp_current != 0 && character->highest_condition == 0 &&
             CharacterHasTrait00547940(character, 10) != 0) {
             break;
         }

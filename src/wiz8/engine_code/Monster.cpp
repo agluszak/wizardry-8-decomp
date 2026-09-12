@@ -1457,7 +1457,7 @@ void W8Monster::Update()
         if (monster_info == 0) {
             UpdateNavigation004553A0(0, 0);
         } else {
-            UpdateNavigation004553A0(monster_info->value_107 >= 0x0e,
+            UpdateNavigation004553A0(monster_info->highest_condition >= 0x0e,
                                      monster_info->condition_turns[5] != 0);
         }
 

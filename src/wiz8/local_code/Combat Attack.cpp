@@ -118,7 +118,7 @@ bool CanCharacterAttack(int party_slot)
     if (!IsPartySlotEligible00524A10(party_slot)) {
         return false;
     }
-    if (character->unknown_0b01 > 0xb) {
+    if (character->highest_condition > 0xb) {
         return false;
     }
     return character->hand_attacks[0].in_play != 0;
@@ -133,7 +133,7 @@ bool CanMonsterAttack(W8MonsterInfo* monster_info)
     const W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
 
     if (monster_info->flag_14 == 0 || monster_info->fInCombat == 0 ||
-        monster_info->hp_current == 0 || (unsigned int)monster_info->value_107 >= 0xc ||
+        monster_info->hp_current == 0 || (unsigned int)monster_info->highest_condition >= 0xc ||
         (record->flags_0d0 & W8_MONSTER_FLAG_ATTACKS) == 0) {
         return false;
     }
@@ -263,7 +263,7 @@ bool CanMonsterAttackItsTarget(W8MonsterInfo* monster_info)
     const W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
 
     if (monster_info->flag_14 != 0 && monster_info->fInCombat != 0 &&
-        monster_info->hp_current != 0 && (unsigned int)monster_info->value_107 < 0xc &&
+        monster_info->hp_current != 0 && (unsigned int)monster_info->highest_condition < 0xc &&
         (record->flags_0d0 & W8_MONSTER_FLAG_ATTACKS) != 0 && record->attacks[0].fHasAttack != 0) {
         return MonsterHasAttackOn(monster_info, &monster_info->Target) != 0;
     }
@@ -285,7 +285,7 @@ bool CanCharacterAttackItsTarget(int party_slot)
         return false;
     }
     character = &g_status_685170.buffers.characters[party_slot];
-    if (character->unknown_0b01 >= 0xc || character->hand_attacks[0].in_play == 0) {
+    if (character->highest_condition >= 0xc || character->hand_attacks[0].in_play == 0) {
         return false;
     }
     return CharacterHasAttackOn(

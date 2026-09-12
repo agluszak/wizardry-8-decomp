@@ -227,7 +227,7 @@ void ShowDismissCharacterDialog(void)
     W8Character* character = &g_status_685170.buffers.characters[g_rcs_mode_0064cbe8];
     const wchar_t* format;
     if (character->condition_turns[19] == 0) {
-        if (character->condition_turns[W8_CONDITION_EQUIPMENT_UNLOCKED] == 0) {
+        if (character->condition_turns[W8_CONDITION_DEAD] == 0) {
             format = gppStringList[0x92d];
         } else {
             format = gppStringList[0x92e];

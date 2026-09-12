@@ -692,7 +692,7 @@ int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext context
         }
 
         next->location_id = monster_info->location_id;
-        next->state_04 = monster_info->value_107;
+        next->state_04 = monster_info->highest_condition;
         next->in_reach = 0;
 
         record = GetMonsterDataForInfo(monster_info);
@@ -764,7 +764,7 @@ bool IsTargetStillPresent(const W8CombatSlot* target)
         }
         if (g_status_685170.buffers.party_rows[target->iChar].occupied == 0 ||
             g_status_685170.buffers.characters[target->iChar].hp_current == 0 ||
-            g_status_685170.buffers.characters[target->iChar].unknown_0b01 > 0x11) {
+            g_status_685170.buffers.characters[target->iChar].highest_condition > 0x11) {
             return false;
         }
         break;
@@ -1296,7 +1296,7 @@ bool CanPartySlotParticipate(int party_slot)
 {
     return g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
            g_status_685170.buffers.characters[party_slot].hp_current != 0 &&
-           g_status_685170.buffers.characters[party_slot].unknown_0b01 < 0x12;
+           g_status_685170.buffers.characters[party_slot].highest_condition < 0x12;
 }
 
 /* Validate a targeting context a second time, after resolving "current". The
@@ -1813,7 +1813,8 @@ void RefreshAllPartyTargets0053BF80(void)
         W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
         W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
-        if (row->occupied != 0 && (character->hp_current != 0 || character->unknown_0b01 < 0x12)) {
+        if (row->occupied != 0 &&
+            (character->hp_current != 0 || character->highest_condition < 0x12)) {
             W8CombatSlot* target =
                 GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
             unsigned char can_switch =

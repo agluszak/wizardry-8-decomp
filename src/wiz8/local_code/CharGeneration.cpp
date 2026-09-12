@@ -99,7 +99,7 @@ void InitializeCharacterCreation(W8Character* character, W8CharacterCreationStat
     character->race = -1;
     character->level = 1;
     character->level_band_base = 0;
-    character->unknown_0b01 = 0;
+    character->highest_condition = 0;
     character->enchantment_top = 0;
     character->table_value_0079 = -1;
     character->unknown_007d = -1;

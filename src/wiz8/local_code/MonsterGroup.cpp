@@ -30,9 +30,9 @@ enum { W8_ENCOUNTER_GROUP_INDEX_BIAS = 10000 };
    form, which is the second entry of each name set. */
 enum { W8_MONSTER_GROUP_SINGULAR = 1, W8_MONSTER_NAME_STRIDE = 24 };
 
-/* A member counts as active while its state byte is below this and it is not
-   under the control state the group excludes. */
-enum { W8_MONSTER_STATE_ACTIVE_LIMIT = 0xd, W8_MONSTER_CONTROL_EXCLUDED = 1 };
+/* A member counts as active while its highest condition is below HOSTILE and
+   it is not under the control state the group excludes. */
+enum { W8_MONSTER_CONTROL_EXCLUDED = 1 };
 enum { W8_MONSTER_GROUP_ALLY_COUNT = 4 };
 
 /* A group is done dying only when every live script record either has no
@@ -242,7 +242,7 @@ void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group)
     for (index = 0; index < ILLength(monster_group->monsters); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x412, MONSTER_GROUP_CPP, IListGetAt(monster_group->monsters, index), 1));
-        if (monster_info->value_107 < W8_MONSTER_STATE_ACTIVE_LIMIT &&
+        if (monster_info->highest_condition < W8_CONDITION_HOSTILE &&
             monster_info->control_state != W8_MONSTER_CONTROL_EXCLUDED) {
             ++active;
         }

@@ -774,7 +774,7 @@ void ResetGameplaySlot(unsigned int slot)
     record->field_079 = 6;
     record->field_099 = 0;
     tier = 1;
-    if (g_status_685170.buffers.characters[slot].unknown_0b01 >= 0xf) {
+    if (g_status_685170.buffers.characters[slot].highest_condition >= 0xf) {
         tier = 2;
     }
     record->field_089 = tier;

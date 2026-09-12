@@ -176,7 +176,7 @@ void Function4EDD20(void)
     for (slot = 0; slot < 8; ++slot) {
         W8Character* character = &characters[slot];
         character->party_weight_share = 0;
-        if (active[slot].occupied != 0 && character->unknown_0b01 < 0x12) {
+        if (active[slot].occupied != 0 && character->highest_condition < 0x12) {
             capacity[slot] = character->carrying_capacity;
             unassigned[slot] = capacity[slot] - character->inventory_weight;
             load_ratio[slot] = (float)unassigned[slot] * 100.0f / (float)capacity[slot];
@@ -193,7 +193,7 @@ void Function4EDD20(void)
         float best_ratio = -999999.0f;
         for (slot = 0; slot < 8; ++slot) {
             W8Character* character = &characters[slot];
-            if (active[slot].occupied != 0 && character->unknown_0b01 < 0x12 &&
+            if (active[slot].occupied != 0 && character->highest_condition < 0x12 &&
                 load_ratio[slot] > best_ratio) {
                 best_ratio = load_ratio[slot];
                 best_slot = slot;

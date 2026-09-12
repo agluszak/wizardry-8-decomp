@@ -105,7 +105,7 @@ int IsPartyEngaged(void)
         for (party_slot = 0; party_slot < 8; ++party_slot) {
             if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
                 g_status_685170.buffers.characters[party_slot].hp_current != 0 &&
-                g_status_685170.buffers.characters[party_slot].unknown_0b01 < 0xf &&
+                g_status_685170.buffers.characters[party_slot].highest_condition < 0xf &&
                 g_combat_state->characters[party_slot].flag_34 != 0) {
                 return 1;
             }
@@ -228,8 +228,8 @@ void NotifyNearbyMonsters(int what)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0 && monster_info->hp_current != 0 &&
-            (unsigned int)monster_info->value_107 < 0xe && monster_info->condition_turns[12] == 0 &&
-            monster_info->flag_16 == 1) {
+            (unsigned int)monster_info->highest_condition < 0xe &&
+            monster_info->condition_turns[12] == 0 && monster_info->flag_16 == 1) {
             if (monster_info->monster->GetDistanceToPlayer004C7CB0() <=
                 CalcRangeDistance(W8_RANGE_SHORT)) {
                 NotifyMonsterOfSound(monster_info->monster, what);
@@ -251,7 +251,7 @@ int PartyAvoidsSurprise(void)
     }
     while (g_status_685170.buffers.party_rows[party_slot].occupied == 0 ||
            g_status_685170.buffers.characters[party_slot].hp_current == 0 ||
-           g_status_685170.buffers.characters[party_slot].unknown_0b01 > 10) {
+           g_status_685170.buffers.characters[party_slot].highest_condition > 10) {
         ++party_slot;
         if (party_slot > 7) {
             return 1;
@@ -350,7 +350,7 @@ void EndMonsterTurn(W8MonsterInfo* monster_info)
     monster_info->pCombat->value_14c = 0;
     RequestRedraw(0x100000);
 
-    if (monster_info->hp_current != 0 && (unsigned int)monster_info->value_107 < 0xe &&
+    if (monster_info->hp_current != 0 && (unsigned int)monster_info->highest_condition < 0xe &&
         monster_info->condition_turns[12] == 0) {
         MonsterChooseTarget(monster_info, chosen, 3);
         if (chosen[0] == 2) {
@@ -445,7 +445,7 @@ unsigned char TryCharacterAction(int party_slot, int action, char commit)
 {
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
-    if (character->hp_current == 0 || character->unknown_0b01 >= 0xf) {
+    if (character->hp_current == 0 || character->highest_condition >= 0xf) {
         return 0;
     }
     if (g_combat_state->characters[party_slot].flag_34 != 0) {
@@ -669,7 +669,7 @@ void Function4E8000(int party_slot, int action_kind, int action_detail, int arg_
     }
     row->unknown_a5[2] = 1;
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
-    if (character->hp_current != 0 && character->unknown_0b01 < 0xd && action_detail != -1) {
+    if (character->hp_current != 0 && character->highest_condition < 0xd && action_detail != -1) {
         if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, (char)(int)data) ==
             0) {
             AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);
@@ -828,7 +828,7 @@ unsigned char CharacterCanSwitchTo(int party_slot, W8TargetingContext context, i
     if (CanPartySlotParticipate(party_slot) == 0) {
         return 0;
     }
-    if (character->unknown_0b01 > 0xd) {
+    if (character->highest_condition > 0xd) {
         return 0;
     }
     if (context == W8_TARGETING_CONTEXT_CURRENT) {

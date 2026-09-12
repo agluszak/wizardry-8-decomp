@@ -145,7 +145,7 @@ W8StartupStateElement005EE748::W8StartupStateElement005EE748(W8Character* charac
     case 6:
     case 9:
     case 0x54:
-        value_18 = character->unknown_0b01;
+        value_18 = character->highest_condition;
         break;
     case 7:
         value_18 = 12;
@@ -153,7 +153,7 @@ W8StartupStateElement005EE748::W8StartupStateElement005EE748(W8Character* charac
     case 0x38:
     case 0x55:
         value_18 = character->hp_current;
-        value_1c = character->unknown_0b01;
+        value_1c = character->highest_condition;
         break;
     }
 }
@@ -524,7 +524,7 @@ int Function52E750(void)
             }
         } else {
             W8Character* character = &g_status_685170.buffers.characters[party_slot];
-            if ((character->unknown_0b01 > 14 || character->hp_current == 0) &&
+            if ((character->highest_condition > 14 || character->hp_current == 0) &&
                 record->field_071 != 0) {
                 g_startup_runtime_state->ProcessOwnedEntry(record->field_071);
             }

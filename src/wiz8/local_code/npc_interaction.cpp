@@ -20,13 +20,8 @@ unsigned char g_flag_68c4f7;
    original translation-unit spelling is not established; this descriptive
    name is provisional. */
 
-/* Report whether a party slot can be picked: in range, its slot row occupied,
-   the character still on its feet, and the 0x0b01 gate under 0x0d. That gate's
-   meaning is not established, so the name stays address-qualified; this is a
-   third observed threshold beside the 0x12 and 0x0f already recorded on it.
-
-   The two status buffers are read as what their sizes say they are: 0xc310 is
-   eight W8Character at the 0x1862 stride and 0x830 is eight 0x106-byte rows. */
+/* Report whether a party slot can be picked: in range, occupied, still on its
+   feet, and highest_condition below HOSTILE. */
 // FUNCTION: WIZ8 0x00524a10
 bool IsPartySlotEligible00524A10(int slot)
 {
@@ -46,6 +41,6 @@ bool IsPartySlotEligible00524A10(int slot)
     if (character->hp_current == 0) {
         return 0;
     }
-    eligible = character->unknown_0b01 < 0xd;
+    eligible = character->highest_condition < W8_CONDITION_HOSTILE;
     return eligible;
 }

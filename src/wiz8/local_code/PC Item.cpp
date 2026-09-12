@@ -750,7 +750,7 @@ bool AnyPartyMemberCanUseItem(int item_id)
     for (slot = 0; slot < 8; ++slot) {
         if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
             g_status_685170.buffers.characters[slot].hp_current != 0 &&
-            g_status_685170.buffers.characters[slot].unknown_0b01 < 0x12) {
+            g_status_685170.buffers.characters[slot].highest_condition < 0x12) {
             if (CanCharacterUseItem(&g_status_685170.buffers.characters[slot], item_id)) {
                 return true;
             }
@@ -849,7 +849,7 @@ bool CanUnequipSlotItem(const W8Character* character, int equip_slot)
 
     if (item->item_id != -1 && g_item_records[item->item_id].binds_on_equip != 0 &&
         item->bind_announced == 0 && g_equip_slot_icons[equip_slot] != -1 &&
-        character->condition_turns[W8_CONDITION_EQUIPMENT_UNLOCKED] == 0) {
+        character->condition_turns[W8_CONDITION_DEAD] == 0) {
         return false;
     }
     return true;
@@ -1346,7 +1346,7 @@ char PartyAttemptsToIdentifyItem(W8ItemInstance* item, int argument_2)
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
             g_status_685170.buffers.characters[party_slot].hp_current != 0 &&
-            g_status_685170.buffers.characters[party_slot].unknown_0b01 < 0xb) {
+            g_status_685170.buffers.characters[party_slot].highest_condition < 0xb) {
             if (result == 0) {
                 result = TryIdentifyItemFor(&g_status_685170.buffers.characters[party_slot], item);
             } else {
@@ -1769,7 +1769,7 @@ unsigned char TryIdentifyItemFor(W8Character* character, W8ItemInstance* item)
     if (item == 0) {
         srAssertFail("pPCItem", PC_ITEM_CPP, 4014, 0);
     }
-    if (character->hp_current == 0 || character->unknown_0b01 >= 0xb) {
+    if (character->hp_current == 0 || character->highest_condition >= 0xb) {
         return 0;
     }
 

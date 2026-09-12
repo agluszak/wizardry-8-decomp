@@ -202,7 +202,8 @@ bool NpcLeadHasNameStyle(unsigned int kind)
                 npc = 0;
             }
         }
-        if (npc->name_style == kind && g_status_685170.buffers.characters[0].unknown_0b01 < 0xf) {
+        if (npc->name_style == kind &&
+            g_status_685170.buffers.characters[0].highest_condition < 0xf) {
             return 1;
         }
     }
@@ -219,7 +220,8 @@ bool NpcLeadHasNameStyle(unsigned int kind)
                 npc = 0;
             }
         }
-        if (npc->name_style == kind && g_status_685170.buffers.characters[1].unknown_0b01 < 0xf) {
+        if (npc->name_style == kind &&
+            g_status_685170.buffers.characters[1].highest_condition < 0xf) {
             return 1;
         }
     }
@@ -558,7 +560,7 @@ unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character)
     memset(character, 0, sizeof(*character));
     character->level_band_base = 0;
     character->attribute_point_deficit_0199 = 0;
-    character->unknown_0b01 = 0;
+    character->highest_condition = 0;
     character->enchantment_top = 0;
     character->unknown_007d = -1;
     character->personality_0081 = -1;

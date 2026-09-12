@@ -80,7 +80,7 @@ bool AnyMonsterEngaged(void)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0 && monster_info->flag_16 == 1 &&
-            monster_info->hp_current != 0 && (unsigned int)monster_info->value_107 < 0xe) {
+            monster_info->hp_current != 0 && (unsigned int)monster_info->highest_condition < 0xe) {
             return true;
         }
     }
@@ -97,7 +97,7 @@ int CountActiveCharacters(void)
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
             g_status_685170.buffers.characters[party_slot].hp_current != 0 &&
-            g_status_685170.buffers.characters[party_slot].unknown_0b01 < 0x12) {
+            g_status_685170.buffers.characters[party_slot].highest_condition < 0x12) {
             ++count;
         }
     }
@@ -114,7 +114,7 @@ bool AnyCharacterActive(void)
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
             g_status_685170.buffers.characters[party_slot].hp_current != 0 &&
-            g_status_685170.buffers.characters[party_slot].unknown_0b01 < 0x12) {
+            g_status_685170.buffers.characters[party_slot].highest_condition < 0x12) {
             ++count;
         }
     }
@@ -216,7 +216,7 @@ bool IsCharacterReadyToAdvance(int party_slot)
     if (character->hp_current == 0) {
         return false;
     }
-    if (character->unknown_0b01 > 0x11) {
+    if (character->highest_condition > 0x11) {
         return false;
     }
     return character->experience >= character->experience_goal;
@@ -680,7 +680,7 @@ void CalcArmorClasses(W8Character* character)
         }
     }
 
-    if (character->unknown_0b01 <= 0x11) {
+    if (character->highest_condition <= 0x11) {
         if (CharacterHasTrait00547940(character, 0x16)) {
             character->armor_class_components[0] += 2;
         }

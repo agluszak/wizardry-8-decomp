@@ -22,13 +22,16 @@ enum {
     W8_CONDITION_CLEARABLE_COUNT = 18,
     W8_CONDITION_FATIGUE_DOUBLED = 2,
     W8_CONDITION_LOAD_EASED = 5,
-    /* Seven is the one condition that carries a second value alongside its
-       duration, which both copiers special-case. */
-    W8_CONDITION_WITH_ARGUMENT = 7,
+    /* Seven is COND_POISONED: the assertion at SetCharacterCondition names it,
+       and it is the one condition that carries a second value (poison
+       strength) alongside its duration. */
+    W8_CONDITION_POISONED = 7,
     W8_CONDITION_SPELLCASTING_BLOCKED = 8,
     W8_CONDITION_HOSTILE = 0xd,
     W8_CONDITION_EXHAUSTED = 0x11,
-    W8_CONDITION_EQUIPMENT_UNLOCKED = 18,
+    /* Eighteen is death: applying it calls CharacterDies, and the bound-equipment
+       unlock path is a consequence of that condition being set. */
+    W8_CONDITION_DEAD = 18,
     /* The duration that means "until lifted". */
     W8_CONDITION_INDEFINITE = 9999
 };
@@ -200,20 +203,22 @@ struct W8Character {
        the identical array at its own 0x57 with the same indices meaning the
        same things. Several entries were read individually before this array
        explained them: two doubles the fatigue an action costs, eight blocks
-       spellcasting, eighteen unlocks bound equipment. */
+       spellcasting, eighteen is death (and unlocks bound equipment). */
     int condition_turns[W8_CONDITION_COUNT]; /* 0x0a01 */
     unsigned char unknown_0a51[0x14];
     W8Enchantment enchantments[8]; /* 0x0a65 */
     unsigned char unknown_0ac5[0x3c];
-    /* 0x0b01 gates party-member selection alongside hp_current: a slot is
-       eligible when it still has hit points and this is under 0x12, and a
-       second tier tests it against 0x0f. It is unsigned - the canonical
-       compares are JB/JBE, not JL/JE - but its meaning is not established. */
-    unsigned int unknown_0b01;
+    /* 0x0b01: the highest currently-set condition index, rescanned from
+       condition_turns[0x13] downward by 0x005237E0 whenever a condition is
+       lifted. Zero is either "none set" or condition zero, matching the
+       monster copy at W8MonsterInfo::highest_condition. Thresholds are the
+       condition ids themselves: below HOSTILE for rest/formation, below
+       DEAD for ordinary party eligibility. */
+    unsigned int highest_condition;
     /* 0x0b05: the highest enchantment slot still in use, recomputed by
        scanning down from the last one whenever a slot is cleared. */
     int enchantment_top;
-    /* 0x0b09: the argument the seventh condition carries. */
+    /* 0x0b09: the argument COND_POISONED carries (poison strength). */
     int condition_argument;
     /* 0x0b0d..0x0b20: the two pools with a ceiling each, plus the adjustment
        damage is booked against before hit points are recalculated. A character

@@ -2247,7 +2247,7 @@ void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int
     }
     if ((((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].flag_34 != 0) ||
           gXStatus.fSurprisePossible != 0) ||
-         g_status_685170.buffers.characters[party_slot].unknown_0b01 == 0x13) &&
+         g_status_685170.buffers.characters[party_slot].highest_condition == 0x13) &&
         value != 0) {
         Function4048A0(-0xe, left, top, left + 0x59, top + 0x47);
     }
@@ -2336,7 +2336,7 @@ char Function52EBE0(int portrait, int left, int top, int flags, int party_slot, 
     }
     if (((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].flag_34 != 0) ||
          gXStatus.fSurprisePossible != 0) ||
-        g_status_685170.buffers.characters[party_slot].unknown_0b01 == 0x13) {
+        g_status_685170.buffers.characters[party_slot].highest_condition == 0x13) {
         Function4048A0(-0xe, left, top, left + 0x59, top + 0x47);
     }
     return drawn;

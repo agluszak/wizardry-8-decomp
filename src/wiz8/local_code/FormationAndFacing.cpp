@@ -63,9 +63,8 @@ enum { W8_FORMATION_ROWS = 5, W8_POSITIONS_PER_ROW = 3 };
    whatever a position is already facing. */
 enum { W8_FACING_ANY = 4 };
 
-/* The state a character has to be under to hold a place in the formation.
-   Tighter than the eligibility window the party sweeps use. */
-enum { W8_FORMATION_ELIGIBLE_LIMIT = 0xd };
+/* The state a character has to be under to hold a place in the formation:
+   highest_condition below HOSTILE, tighter than the party-wide death window. */
 
 // GLOBAL: WIZ8 0x005ee858
 double g_facing_tolerance_005ee858 = 2.3561944500000003;
@@ -80,7 +79,7 @@ bool CanHoldFormationPlace(int party_slot)
 {
     const W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
-    return character->hp_current != 0 && character->unknown_0b01 < W8_FORMATION_ELIGIBLE_LIMIT;
+    return character->hp_current != 0 && character->highest_condition < W8_CONDITION_HOSTILE;
 }
 
 /* Remember the formation combat started with. */

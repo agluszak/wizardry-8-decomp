@@ -760,7 +760,7 @@ update_screen:
     if (gXStatus.fCombatMode) {
         for (int slot = 0; slot < 8; ++slot) {
             if (!g_status_685170.buffers.party_rows[slot].occupied ||
-                g_status_685170.buffers.characters[slot].unknown_0b01 > 0x11 ||
+                g_status_685170.buffers.characters[slot].highest_condition > 0x11 ||
                 (g_level_block->flag_314 && g_level_block->combat_slot == slot)) {
                 DisableRegionInput(slot + 10);
             } else {

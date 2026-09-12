@@ -311,7 +311,7 @@ unsigned char EvaluateFact(int fact_id)
             unsigned int slot = 0;
             while (g_status_685170.buffers.party_rows[slot].occupied == 0 ||
                    g_status_685170.buffers.characters[slot].race != 10 ||
-                   g_status_685170.buffers.characters[slot].unknown_0b01 > 0xe) {
+                   g_status_685170.buffers.characters[slot].highest_condition > 0xe) {
                 if (slot >= 7) {
                     return 0;
                 }
@@ -406,7 +406,7 @@ unsigned char EvaluateFact(int fact_id)
             }
             W8NpcState* npc = GetNpcStateByKind(0x18);
             if (npc != 0 &&
-                g_status_685170.buffers.characters[npc->group_index].unknown_0b01 >= 0xf) {
+                g_status_685170.buffers.characters[npc->group_index].highest_condition >= 0xf) {
                 return 1;
             }
             return 0;

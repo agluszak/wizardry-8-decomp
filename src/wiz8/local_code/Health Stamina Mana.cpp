@@ -44,8 +44,7 @@ float g_float_005ec3f8 = 125.0f;
 float g_float_005ecbb4 = 0.02f;
 
 /* The eligibility window the party sweeps use, the same one GetRandomCharacter
-   and AnyPartyMemberCanUseItem apply. */
-enum { W8_CHARACTER_ELIGIBLE_LIMIT = 0x12 };
+   and AnyPartyMemberCanUseItem apply: highest_condition below death. */
 
 /* A negative amount means "as much as they could possibly hold", which the
    restore computes by summing the whole spell-point ceiling. */
@@ -60,8 +59,7 @@ void ApplyRolledHealthChangeToParty(const W8Dice* dice, int arg_2, int arg_3)
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
-            g_status_685170.buffers.characters[party_slot].unknown_0b01 <
-                W8_CHARACTER_ELIGIBLE_LIMIT) {
+            g_status_685170.buffers.characters[party_slot].highest_condition < W8_CONDITION_DEAD) {
             ApplyHealthChangeToCharacter(party_slot, RollDice(dice), 0, arg_3, 0, arg_2, 0);
         }
     }
@@ -160,8 +158,7 @@ void RestorePartySpellPoints(int amount)
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
-            g_status_685170.buffers.characters[party_slot].unknown_0b01 <
-                W8_CHARACTER_ELIGIBLE_LIMIT &&
+            g_status_685170.buffers.characters[party_slot].highest_condition < W8_CONDITION_DEAD &&
             g_status_685170.buffers.characters[party_slot].hp_current != 0) {
             granted = amount;
             if (amount < 0) {
@@ -392,7 +389,7 @@ void RestoreCharacterStamina(int party_slot, int amount, char announce)
     int previous_band;
     int band;
 
-    if (character->unknown_0b01 >= W8_CHARACTER_ELIGIBLE_LIMIT || character->hp_current == 0) {
+    if (character->highest_condition >= W8_CONDITION_DEAD || character->hp_current == 0) {
         return;
     }
     stamina_max = character->stamina_max;
@@ -601,7 +598,7 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announc
 {
     unsigned int stamina_max;
 
-    if ((unsigned int)monster_info->value_107 >= W8_CHARACTER_ELIGIBLE_LIMIT ||
+    if ((unsigned int)monster_info->highest_condition >= W8_CONDITION_DEAD ||
         monster_info->hp_current == 0) {
         return;
     }
@@ -1107,7 +1104,7 @@ W8Character* FindPartyMemberWithLowestResistance4(void)
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
         W8Character* character = &g_status_685170.buffers.characters[party_slot];
         if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
-            character->unknown_0b01 < 0x12 && character->resistances[4].total < lowest) {
+            character->highest_condition < 0x12 && character->resistances[4].total < lowest) {
             selected = party_slot;
             lowest = character->resistances[4].total;
         }

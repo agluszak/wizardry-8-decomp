@@ -393,10 +393,10 @@ retry:
         matched = 0;
         if (g_status_685170.buffers.party_rows[slot].occupied != 0 && (int)slot != excluded_slot) {
             character = &g_status_685170.buffers.characters[slot];
-            if ((character->hp_current > 0 && character->unknown_0b01 < 0x12) ||
+            if ((character->hp_current > 0 && character->highest_condition < 0x12) ||
                 require_primary == 2) {
                 if (excluded_gender == -1 || excluded_gender != character->gender) {
-                    if (character->unknown_0b01 < 0xf || require_secondary == 2) {
+                    if (character->highest_condition < 0xf || require_secondary == 2) {
                         matched = 1;
                         if (skip == 0) {
                             return slot;
@@ -445,9 +445,9 @@ retry:
         if (rows[slot].occupied != 0) {
             W8Character* character = &characters[slot];
 
-            if ((character->hp_current > 0 && character->unknown_0b01 < 0x12) ||
+            if ((character->hp_current > 0 && character->highest_condition < 0x12) ||
                 require_primary == 2) {
-                if (character->unknown_0b01 < 0xf || require_secondary == 2) {
+                if (character->highest_condition < 0xf || require_secondary == 2) {
                     return slot;
                 }
             }
