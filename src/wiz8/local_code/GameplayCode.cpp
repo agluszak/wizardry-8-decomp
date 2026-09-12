@@ -922,7 +922,7 @@ int Function4EF4A0(W8Character* character, int slot_kind)
     memcpy(destination, character, sizeof(W8Character));
     destination->in_party = 1;
     ResetPartySlotRow(slot);
-    Function54B300(slot);
+    ResetGameplaySlot(slot);
 
     W8PartySlotRow* row = &g_party_slot_rows[slot];
     row->animation_0fa = slot_kind;

@@ -203,8 +203,8 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
     }
 
     if (GetSpellTargetType(spell_id, 0) == 0) {
-        Function53A2C0(monster_info, monster_info->location_id);
-    } else if (!Function53A300(monster_info, spell_id)) {
+        SetMonsterCombatTarget(monster_info, monster_info->location_id);
+    } else if (!MonsterTargetMatchesSpell(monster_info, spell_id)) {
         return false;
     }
 
@@ -467,6 +467,7 @@ bool CombatHasCondition(int condition_id)
             }
         }
         slot = g_combat_state->effect_slots_tail;
+        // retail: walks nine slots through a six-element tail array
         for (index = 0; index < W8_COMBAT_CONDITION_SLOTS; ++index, ++slot) {
             if (slot->active != 0 && slot->effect_id == condition_id) {
                 return true;
@@ -1163,7 +1164,7 @@ void LearnSpellFromItem(void* origin, W8Character* character, const W8ItemInstan
             PracticeCharacterSkill(character, skill_id, usage_points, 0);
         }
     }
-    Function520070(static_cast<W8ItemInstance*>(origin), character, 1);
+    EmptyItemRecord(static_cast<W8ItemInstance*>(origin), character, 1);
     Function52E690(character, g_learn_sound_0068c510, 0, g_effect_argument_005ed8c8,
                    g_effect_argument_005ed914);
 }
@@ -2158,7 +2159,7 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
                 effect->reported_124 = 1;
             } else if (report->kind == 3) {
                 SetTextBoxMode(0, -1);
-                Function58AAD0(9, L"%s %s", report->text,
+                WriteGameLog(9, L"%s %s", report->text,
                                gppStringList[g_spell_band_text_0061e57a[W8_SPELL_REPORT_BAND * 4]]);
                 effect->reported_124 = 1;
             }

@@ -473,7 +473,7 @@ public:
 };
 static_assert(sizeof(W8State5InputHandler005C0E50) == 8, "W8State5InputHandler005C0E50_size");
 
-class W8State5Controller005EF4CC;
+class W8State5Controller;
 
 /* Controls owns the six row widgets. The three callback bases occupy +0x4c,
    +0x50 and +0x54; the complete W8Control member at +0x58 owns their selection
@@ -529,7 +529,7 @@ class W8State5PartySlotPanel005EF438
     : public Controls,
       public W8ControlSelectionListener {
 public:
-    friend class W8State5Controller005EF4CC;
+    friend class W8State5Controller;
 
     W8State5PartySlotPanel005EF438();
     virtual ~W8State5PartySlotPanel005EF438();
@@ -578,16 +578,16 @@ static_assert(sizeof(W8State5OptionPanel005EF4AC) == 0x98, "W8State5OptionPanel0
    and independently observed owned state through +0x6c. The address-qualified
    name does not claim a source-era screen name. */
 // VTABLE: WIZ8 0x005ef4cc
-class W8State5Controller005EF4CC
+class W8State5Controller
     : public W8TextControl::Listener,
       public W8State5ListSelectionListener005EF4C8,
       public W8State5DecisionListener005EF4C0 {
 public:
-    __forceinline W8State5Controller005EF4CC()
+    __forceinline W8State5Controller()
         : m_character_18(0), m_input_handler_64(0), m_dialog_68(0)
     {
     }
-    ~W8State5Controller005EF4CC();
+    ~W8State5Controller();
 
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSecondary(W8TextControl*) override {}
@@ -601,10 +601,10 @@ public:
     void OpenNotification(const wchar_t* message, int kind, int value);
     void Setup();
     void Function5C1ED0();
-    void Function5C1F40();
-    void Function5C26C0(int value, unsigned char result);
-    void Function5C2C60(int selection);
-    void Function5C2970();
+    void DrawState5Composition();
+    void ApplyState5Confirmation(int value, unsigned char result);
+    void LoadImportedPartyFile(int selection);
+    void TogglePartyMemberSelection();
 
     int m_mode;                          /* 0x0c */
     int m_previous_mode;                 /* 0x10 */
@@ -633,10 +633,10 @@ public:
     W8ModalDialogBase* m_dialog_68;
     int m_dialog_value_6c;
 };
-static_assert(sizeof(W8State5Controller005EF4CC) == 0x70, "W8State5Controller005EF4CC_size");
+static_assert(sizeof(W8State5Controller) == 0x70, "W8State5Controller_size");
 
 // GLOBAL: WIZ8 0x0069C4E8
-W8State5Controller005EF4CC* g_state5_controller_69c4e8;
+W8State5Controller* g_state5_controller;
 
 W8State5CharacterRow005EF364::W8State5CharacterRow005EF364(
     Controls* panel, int top, int row)
@@ -770,7 +770,7 @@ void W8State5CharacterPanel005EF3C8::OnSelectionChanged(
 {
     m_selected_row = selected
                      + g_state5_party_collection_69c4ec->first_visible;
-    g_state5_controller_69c4e8->SetSelection(m_selected_row, 0, 0);
+    g_state5_controller->SetSelection(m_selected_row, 0, 0);
 }
 
 // FUNCTION: WIZ8 0x005beea0
@@ -843,7 +843,7 @@ void W8State5CharacterPanel005EF3C8::Function5BF0C0(
     int row)
 {
     m_control_58.SetSelected(row);
-    g_state5_controller_69c4e8->Function5C2970();
+    g_state5_controller->TogglePartyMemberSelection();
 }
 
 // FUNCTION: WIZ8 0x005bf050
@@ -855,12 +855,12 @@ void W8State5CharacterPanel005EF3C8::Function5BF050(
     for (slot = 0; slot < 6; ++slot) {
         if (g_party_slot_rows[slot + 2].occupied &&
             &g_party_characters[slot + 2]
-                == g_state5_controller_69c4e8->m_character_18) {
+                == g_state5_controller->m_character_18) {
             break;
         }
     }
     g_pending_screen_state.parameter_2 = slot < 6 ? slot + 2 : -1;
-    g_pending_screen_state.parameter_3 = g_state5_controller_69c4e8->m_character_18;
+    g_pending_screen_state.parameter_3 = g_state5_controller->m_character_18;
     SetPendingScreenState(W8_SCREEN_CAMP);
 }
 
@@ -945,13 +945,13 @@ void W8State5PartySlotRow005EF3E4::OnRightButtonUp(int event)
         for (slot = 0; slot < 6; ++slot) {
             if (g_party_slot_rows[slot + 2].occupied &&
                 &g_party_characters[slot + 2]
-                    == g_state5_controller_69c4e8->m_character_18) {
+                    == g_state5_controller->m_character_18) {
                 break;
             }
         }
         g_pending_screen_state.parameter_2 = slot < 6 ? slot + 2 : -1;
         g_pending_screen_state.parameter_3 =
-            g_state5_controller_69c4e8->m_character_18;
+            g_state5_controller->m_character_18;
     }
     else {
         g_pending_screen_state.parameter_2 = m_row + 2;
@@ -965,8 +965,8 @@ void W8State5PartySlotRow005EF3E4::OnLeftButtonDoubleClick(int event)
 {
     W8TextControl::OnLeftButtonDoubleClick(event);
     if (m_enabled && m_active) {
-        g_state5_controller_69c4e8->SetSelection(m_row, 1, 0);
-        g_state5_controller_69c4e8->Function5C2970();
+        g_state5_controller->SetSelection(m_row, 1, 0);
+        g_state5_controller->TogglePartyMemberSelection();
     }
 }
 
@@ -974,7 +974,7 @@ void W8State5PartySlotRow005EF3E4::OnLeftButtonDoubleClick(int event)
 void W8State5PartySlotPanel005EF438::OnSelectionChanged(
     W8ControlSelection*, int)
 {
-    g_state5_controller_69c4e8->SetSelection(
+    g_state5_controller->SetSelection(
         m_control_50.m_selectedIndex, 1, 0);
 }
 
@@ -1397,7 +1397,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
     text->SetLineHeight(0x16);
     m_entries_7c.Add(text);
 
-    W8State5Controller005EF4CC* controller = g_state5_controller_69c4e8;
+    W8State5Controller* controller = g_state5_controller;
     if (controller->m_input_handler_64) {
         return;
     }
@@ -1420,7 +1420,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
    the character rows or import list; the six portrait rows invalidate their
    paired advance controls after drawing. */
 // FUNCTION: WIZ8 0x005c0f30
-void W8State5Controller005EF4CC::Setup()
+void W8State5Controller::Setup()
 {
     m_range = new W8RangeControl(
         0x1e9, 0x31, 0x1fb, 0x12b, &g_state5_range_region_set_69c500);
@@ -1526,7 +1526,7 @@ W8State5OptionPanel005EF4AC::~W8State5OptionPanel005EF4AC()
 }
 
 // FUNCTION: WIZ8 0x005c1590
-W8State5Controller005EF4CC::~W8State5Controller005EF4CC()
+W8State5Controller::~W8State5Controller()
 {
     delete m_text_buffer_60;
 
@@ -1557,7 +1557,7 @@ W8State5Controller005EF4CC::~W8State5Controller005EF4CC()
    Every panel is invalidated before its enable/region state changes so the
    next frame redraws the new composition. */
 // FUNCTION: WIZ8 0x005c2010
-void W8State5Controller005EF4CC::SetMode(int mode)
+void W8State5Controller::SetMode(int mode)
 {
     m_mode = mode;
     m_redraw_backdrop_14 = 1;
@@ -1724,7 +1724,7 @@ void W8State5Controller005EF4CC::SetMode(int mode)
 }
 
 // FUNCTION: WIZ8 0x005c1680
-void W8State5Controller005EF4CC::SetSelection(
+void W8State5Controller::SetSelection(
     int selection, int party_slot, int refresh_other)
 {
     if (!party_slot) {
@@ -1803,7 +1803,7 @@ void W8State5Controller005EF4CC::SetSelection(
    the option-mode progression, and converting an active party back into loose
    character records before an imported party is selected. */
 // FUNCTION: WIZ8 0x005c1920
-void W8State5Controller005EF4CC::OnPrimary(
+void W8State5Controller::OnPrimary(
     W8TextControl* control)
 {
     if (control == m_text_58) {
@@ -1834,7 +1834,7 @@ void W8State5Controller005EF4CC::OnPrimary(
     }
 
     if (control == m_text_44) {
-        Function5C2970();
+        TogglePartyMemberSelection();
         return;
     }
     if (control == m_text_48) {
@@ -1895,7 +1895,7 @@ void W8State5Controller005EF4CC::OnPrimary(
                 SetMode(3);
             }
             else {
-                Function54B250(1, 0);
+                RunNewGameOpeningSequence(1, 0);
             }
             return;
         case 3:
@@ -1913,7 +1913,7 @@ void W8State5Controller005EF4CC::OnPrimary(
         return;
     }
     if ((m_text_50->m_stateFlags & g_W8TextControlMask005ED570) == 0) {
-        Function54B100();
+        ResetForNewGame();
         SetMode(0);
         SetSelection(0, 0, 1);
         return;
@@ -1945,18 +1945,18 @@ void W8State5Controller005EF4CC::OnPrimary(
         collection->characters.SetAt(index, replacement);
     }
     SetMode(1);
-    Function5C2C60(m_list_5c->m_selection);
+    LoadImportedPartyFile(m_list_5c->m_selection);
 }
 
 // FUNCTION: WIZ8 0x005c1d60
-void W8State5Controller005EF4CC::OnSelectionChanged(
+void W8State5Controller::OnSelectionChanged(
     W8State5ListControl005EF464*, int selection)
 {
-    Function5C2C60(selection);
+    LoadImportedPartyFile(selection);
 }
 
 // FUNCTION: WIZ8 0x005c1d70
-void W8State5Controller005EF4CC::OnDecision(
+void W8State5Controller::OnDecision(
     int, unsigned char accepted)
 {
     if (!accepted) {
@@ -1972,7 +1972,7 @@ void W8State5Controller005EF4CC::OnDecision(
             delete m_input_handler_64;
         }
         m_input_handler_64 = 0;
-        Function54B250(1, slot_name);
+        RunNewGameOpeningSequence(1, slot_name);
     } else {
         if (m_input_handler_64) {
             delete m_input_handler_64;
@@ -2000,7 +2000,7 @@ void W8State5Controller005EF4CC::OnDecision(
 }
 
 // FUNCTION: WIZ8 0x005c1ea0
-void W8State5Controller005EF4CC::OnToggle(int value)
+void W8State5Controller::OnToggle(int value)
 {
     if ((char)m_text_54->m_enabled != (char)value) {
         m_text_54->SetEnabled((unsigned char)value);
@@ -2009,7 +2009,7 @@ void W8State5Controller005EF4CC::OnToggle(int value)
 }
 
 // FUNCTION: WIZ8 0x005c1ed0
-void W8State5Controller005EF4CC::Function5C1ED0()
+void W8State5Controller::Function5C1ED0()
 {
     m_redraw_backdrop_14 = 1;
     m_range->Invalidate(0);
@@ -2028,7 +2028,7 @@ void W8State5Controller005EF4CC::Function5C1ED0()
    refreshed only after a mode/dialog change; panel redraws and modal overlay
    dispatch still run every frame. */
 // FUNCTION: WIZ8 0x005c1f40
-void W8State5Controller005EF4CC::Function5C1F40()
+void W8State5Controller::DrawState5Composition()
 {
     if (m_redraw_backdrop_14) {
         DrawCatalogImageAndInvalidate(-14, 0xfa, 0, 0, 0, 0, 2, 0);
@@ -2057,9 +2057,9 @@ void W8State5Controller005EF4CC::Function5C1F40()
 }
 
 /* Install the state-5 confirmation/notification dialog and retain the value
-   consumed by Function5C26C0 after the modal closes. */
+   consumed by ApplyState5Confirmation after the modal closes. */
 // FUNCTION: WIZ8 0x005c25e0
-void W8State5Controller005EF4CC::OpenNotification(
+void W8State5Controller::OpenNotification(
     const wchar_t* message, int kind, int value)
 {
     m_dialog_value_6c = value;
@@ -2080,7 +2080,7 @@ void W8State5Controller005EF4CC::OpenNotification(
    delete, save-slot creation, option entry, imported-party replacement, or
    leaving the screen; cancellation only restores the mode-4 toggle. */
 // FUNCTION: WIZ8 0x005c26c0
-void W8State5Controller005EF4CC::Function5C26C0(
+void W8State5Controller::ApplyState5Confirmation(
     int, unsigned char accepted)
 {
     if (!accepted) {
@@ -2127,7 +2127,7 @@ void W8State5Controller005EF4CC::Function5C26C0(
             delete m_input_handler_64;
         }
         m_input_handler_64 = 0;
-        Function54B250(1, slot_name);
+        RunNewGameOpeningSequence(1, slot_name);
         return;
     }
     case 3:
@@ -2153,7 +2153,7 @@ void W8State5Controller005EF4CC::Function5C26C0(
             collection->characters.SetAt(index, replacement);
         }
         SetMode(1);
-        Function5C2C60(m_list_5c->m_selection);
+        LoadImportedPartyFile(m_list_5c->m_selection);
         return;
     }
     case 5:
@@ -2165,9 +2165,9 @@ void W8State5Controller005EF4CC::Function5C26C0(
 /* Load the selected imported-party file, report its two failure classes, and
    refresh every control whose state depends on the resulting six party slots. */
 // FUNCTION: WIZ8 0x005c2c60
-void W8State5Controller005EF4CC::Function5C2C60(int selection)
+void W8State5Controller::LoadImportedPartyFile(int selection)
 {
-    Function54B100();
+    ResetForNewGame();
     W8State5PartyCollection* collection =
         g_state5_party_collection_69c4ec;
     if (selection >= 0 && selection < collection->names.count) {
@@ -2176,7 +2176,7 @@ void W8State5Controller005EF4CC::Function5C2C60(int selection)
                 *collection->names.GetAt(selection));
         int result = Function558C40(path);
         if (result != 0) {
-            Function54B100();
+            ResetForNewGame();
             OpenNotification(
                 gppStringList[(result == 2 ? 0x1b60 : 0x1b5c) / 4],
                 0, 0);
@@ -2206,7 +2206,7 @@ void W8State5Controller005EF4CC::Function5C2C60(int selection)
    active member back into an owned loose record.  The selection then follows
    the nearest remaining active slot and both six-row panels are refreshed. */
 // FUNCTION: WIZ8 0x005c2970
-void W8State5Controller005EF4CC::Function5C2970()
+void W8State5Controller::TogglePartyMemberSelection()
 {
     int selected = m_character_panel_20->m_selected_row;
     if (selected == -1) {
@@ -2283,7 +2283,7 @@ unsigned char PartySelectionScreenEnter(void)
 
     W8State5PartyCollection* collection = g_state5_party_collection_69c4ec;
     if (!collection) {
-        Function54B100();
+        ResetForNewGame();
         collection = new W8State5PartyCollection;
         g_state5_party_collection_69c4ec = collection;
 
@@ -2303,11 +2303,11 @@ unsigned char PartySelectionScreenEnter(void)
         collection->LoadExternalCharacters();
         collection->SortCharactersByWriteTime();
 
-        g_state5_controller_69c4e8 = new W8State5Controller005EF4CC;
-        g_state5_controller_69c4e8->Setup();
+        g_state5_controller = new W8State5Controller;
+        g_state5_controller->Setup();
     }
     else {
-        if (g_previous_screen_id == 3 && g_state5_controller_69c4e8->m_mode != 1) {
+        if (g_previous_screen_id == 3 && g_state5_controller->m_mode != 1) {
             for (int index = 0; index < collection->characters.count; ++index) {
                 W8Character* character = collection->GetCharacter(index);
                 if (!character->in_party) {
@@ -2323,9 +2323,9 @@ unsigned char PartySelectionScreenEnter(void)
             }
             collection->LoadExternalCharacters();
             collection->SortCharactersByWriteTime();
-            g_state5_controller_69c4e8->SetSelection(0, 0, 1);
+            g_state5_controller->SetSelection(0, 0, 1);
         }
-        g_state5_controller_69c4e8->SetMode(g_state5_controller_69c4e8->m_mode);
+        g_state5_controller->SetMode(g_state5_controller->m_mode);
     }
     StartMusicResource0048FC10("MainMenu.MPL", 1, 1);
     return 1;
@@ -2343,13 +2343,13 @@ unsigned char PartySelectionScreenLeave(int leaving)
         if (collection) {
             delete collection;
         }
-        W8State5Controller005EF4CC* controller =
-            g_state5_controller_69c4e8;
+        W8State5Controller* controller =
+            g_state5_controller;
         g_state5_party_collection_69c4ec = 0;
         if (controller) {
             delete controller;
         }
-        g_state5_controller_69c4e8 = 0;
+        g_state5_controller = 0;
     }
     NoOp();
     MSYS_Shutdown();
@@ -2372,7 +2372,7 @@ void PartySelectionScreenFrame(void)
         RequestExitScreen();
     }
     SGPMouseGetPos(&point);
-    W8State5Controller005EF4CC* controller = g_state5_controller_69c4e8;
+    W8State5Controller* controller = g_state5_controller;
     if (controller->m_dialog_68) {
         controller->m_dialog_68->ProcessInput();
         if (!controller->m_dialog_68->is_open) {
@@ -2381,7 +2381,7 @@ void PartySelectionScreenFrame(void)
             controller->m_dialog_68 = 0;
             ClearActiveRegionIfMatches(0x138);
             controller->Function5C1ED0();
-            controller->Function5C26C0(controller->m_dialog_value_6c, result);
+            controller->ApplyState5Confirmation(controller->m_dialog_value_6c, result);
         }
     }
     if (controller->m_input_handler_64) {
@@ -2398,7 +2398,7 @@ void PartySelectionScreenFrame(void)
             (input.usEvent == KEY_DOWN || input.usEvent == KEY_REPEAT)) {
             switch (input.usParam) {
             case VK_RETURN:
-                controller->Function5C2970();
+                controller->TogglePartyMemberSelection();
                 break;
             case VK_ESCAPE:
                 switch (controller->m_mode) {
@@ -2448,7 +2448,7 @@ void PartySelectionScreenFrame(void)
         }
     }
     Function52E750();
-    controller->Function5C1F40();
+    controller->DrawState5Composition();
     RenderFrame();
 }
 
@@ -2506,7 +2506,7 @@ unsigned char g_portrait_frame_flags_0061cbc0[0x50] = {
 
 /* The eight per-slot portrait animation records, cleared at startup. */
 // GLOBAL: WIZ8 0x0068372d
-W8PortraitAnimationState g_portrait_animation_states_68372d[8];
+W8PortraitAnimationState g_portrait_animation_states[8];
 
 /* Draw one party member's portrait at a screen position. When the caller asks
    for the animated form the frame blitter runs first, and the death,
@@ -2541,7 +2541,7 @@ char Function52EBE0(
     int portrait, int left, int top, int flags, int party_slot, char animate)
 {
     W8PortraitAnimationState* state =
-        &g_portrait_animation_states_68372d[party_slot];
+        &g_portrait_animation_states[party_slot];
     W8ScreenRect rect;
     W8ScreenRect other;
     short width;

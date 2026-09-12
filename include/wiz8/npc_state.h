@@ -152,7 +152,12 @@ void ReleaseMarkedNpcBindings0050DA00(void);
 void RebindNpcLevelTriggers0050AC60(void);
 W8NpcState* GetNpcState(int index);
 W8NpcState* GetNpcStateByKind(int kind);
-unsigned char Function50B8F0(unsigned int kind);
+bool NpcLeadHasNameStyle(unsigned int kind);
+/* 0x00509EA0: clear one NPC binding's monster link and hand the handle to the
+   owned item-list teardown. */
+void ReleaseNpcBinding(int value);
+/* 0x0050A440: the NPC binding selected by a monster-list index, or null. */
+W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index);
 unsigned char GetNpcDispositionBand(W8NpcState* npc);
 int AddNpcItemFromInstance(W8NpcState* npc, const W8ItemInstance* item, char quantity);
 int AddNpcItemWithDelay(W8NpcState* npc, int item_id, unsigned int quantity, int delay);

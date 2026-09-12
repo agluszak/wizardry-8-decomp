@@ -28,7 +28,7 @@ unsigned char g_flag_689b2c;
 extern void ContinueAfterDarkEndingVideo005AE770(void);
 
 // GLOBAL: WIZ8 0x0064d8ac
-unsigned long g_intro_video_index_0064d8ac = 6;
+unsigned long g_intro_video_index = 6;
 static const char g_intro_video_names[7][40] = {
     "Wizardry8.bik",
     "unaligned.bik",
@@ -48,16 +48,16 @@ unsigned char IntroScreenEnter(void)
     SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
     SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
     ClearSurfaceRect(0, 0, 0x280, 0x1e0);
-    if (g_intro_video_index_0064d8ac == 0 && g_settings_6850c8.intro_seen && !g_flag_689b2c) {
+    if (g_intro_video_index == 0 && g_settings_6850c8.intro_seen && !g_flag_689b2c) {
         return 1;
     }
-    sprintf(path, "Data\\Flics\\Intro\\%s", g_intro_video_names[g_intro_video_index_0064d8ac]);
+    sprintf(path, "Data\\Flics\\Intro\\%s", g_intro_video_names[g_intro_video_index]);
     if (!FileExists(path)) {
         if (!FindGameDataPath0042B590(gzCdDirectory, 3)) {
             return 1;
         }
         sprintf(path, "%sData\\Flics\\Intro\\%s", gzCdDirectory,
-                g_intro_video_names[g_intro_video_index_0064d8ac]);
+                g_intro_video_names[g_intro_video_index]);
         if (!FileExists(path)) {
             return 1;
         }
@@ -115,15 +115,15 @@ void AdvanceIntroScreen(void)
     char path[500];
     W8BinkVideo* video;
 
-    if (g_intro_video_index_0064d8ac == 6 && !g_settings_6850c8.intro_seen) {
-        g_intro_video_index_0064d8ac = 0;
-        sprintf(path, "Data\\Flics\\Intro\\%s", g_intro_video_names[g_intro_video_index_0064d8ac]);
+    if (g_intro_video_index == 6 && !g_settings_6850c8.intro_seen) {
+        g_intro_video_index = 0;
+        sprintf(path, "Data\\Flics\\Intro\\%s", g_intro_video_names[g_intro_video_index]);
         if (!FileExists(path)) {
             if (!FindGameDataPath0042B590(gzCdDirectory, 3)) {
                 goto ordinary_destroy;
             }
             sprintf(path, "%sData\\Flics\\Intro\\%s", gzCdDirectory,
-                    g_intro_video_names[g_intro_video_index_0064d8ac]);
+                    g_intro_video_names[g_intro_video_index]);
             if (!FileExists(path)) {
                 goto ordinary_destroy;
             }
@@ -147,7 +147,7 @@ ordinary_destroy:
 cleared:
     gpVideo = 0;
     RequestScreenTransition();
-    switch (g_intro_video_index_0064d8ac) {
+    switch (g_intro_video_index) {
     case 0:
     case 6:
         SetPendingScreenState(W8_SCREEN_MAIN_MENU);
@@ -207,5 +207,5 @@ unsigned char IntroScreenRegionEvent(const W8RegionEvent* event, W8Region* regio
 // FUNCTION: WIZ8 0x005AE9C0
 void SetValue64D8AC(unsigned long value)
 {
-    g_intro_video_index_0064d8ac = value;
+    g_intro_video_index = value;
 }

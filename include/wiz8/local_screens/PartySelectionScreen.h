@@ -32,7 +32,7 @@ struct W8PortraitAnimationState {
 };
 static_assert(sizeof(W8PortraitAnimationState) == 0x118,
               "W8PortraitAnimationState_must_be_0x118");
-extern W8PortraitAnimationState g_portrait_animation_states_68372d[8];
+extern W8PortraitAnimationState g_portrait_animation_states[8];
 
 /* 0x0052EB00: draw one party member's portrait at a screen position, with
    the animated frame pass and the state overlay. */

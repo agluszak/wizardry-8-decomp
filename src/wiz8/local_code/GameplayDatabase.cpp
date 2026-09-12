@@ -457,7 +457,7 @@ void ResetTargetingState(void)
     unsigned int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        Function54B300(slot);
+        ResetGameplaySlot(slot);
     }
     g_target_state_6840b3 = -1;
     g_picked_group_006840b7 = -1;
@@ -493,7 +493,7 @@ void DestroyItemTables(void)
    runs a fixed opening sequence. The two calls into 0x00482720 and 0x00482740
    share one stack cleanup, as consecutive cdecl calls do. */
 // FUNCTION: WIZ8 0x0054b250
-void Function54B250(unsigned char notify, const wchar_t* target)
+void RunNewGameOpeningSequence(unsigned char notify, const wchar_t* target)
 {
     g_status_685170.game_started = 1;
     if (target) {
@@ -511,7 +511,7 @@ void Function54B250(unsigned char notify, const wchar_t* target)
     ResetNpcStates();
     InitializeFactJournal();
     ResetFactions();
-    Function56C520();
+    ResetMainScreenStateBlock();
     SetPendingScreenState(W8_SCREEN_GAME_START_ROUTER);
 }
 
@@ -520,7 +520,7 @@ void Function54B250(unsigned char notify, const wchar_t* target)
    inside it - and allocates them again. Either allocation failing leaves the
    block cleared and the other buffer live, as the original does. */
 // FUNCTION: WIZ8 0x0054af30
-void Function54AF30(unsigned char release)
+void ResetGameStatus(unsigned char release)
 {
     if (release) {
         if (g_status_685170.buffers.characters) {
@@ -551,7 +551,7 @@ void Function54AF30(unsigned char release)
    caller wants them - every record into one allocation handed back through the
    out-parameter. InitializeGame calls it with null just to publish the count. */
 // FUNCTION: WIZ8 0x0054a760
-unsigned char Function54A760(W8MonsterRecord** records)
+unsigned char LoadMonsterDatabase(W8MonsterRecord** records)
 {
     char path[60];
     unsigned int transferred;
@@ -595,7 +595,7 @@ unsigned char Function54A760(W8MonsterRecord** records)
    out-parameter is uiEndIndex's own slot, dead once copied into a register, and
    a failed seek leaves the handle open where every other failure closes it. */
 // FUNCTION: WIZ8 0x0054a9a0
-unsigned char Function54A9A0(unsigned int uiStartIndex, unsigned int uiEndIndex,
+unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int uiEndIndex,
                              unsigned int unused, W8MonsterRecord* records)
 {
     char path[56];
@@ -610,7 +610,7 @@ unsigned char Function54A9A0(unsigned int uiStartIndex, unsigned int uiEndIndex,
         return 0;
     }
     if (!FileSeek(handle, uiStartIndex * 0x297 + 4, 1)) {
-        return 0;
+        return 0; /* retail: failed seek leaves the handle open */
     }
     if (!FileRead(handle, records, (uiEndIndex + 1) * 0x297 - uiStartIndex * 0x297, &uiEndIndex)) {
         FileClose(handle);
@@ -620,12 +620,13 @@ unsigned char Function54A9A0(unsigned int uiStartIndex, unsigned int uiEndIndex,
     return 1;
 }
 
-/* The new-game reset. It repeats Function54AF30's status-block cycle inline
-   rather than calling it, clears the item in hand and the carried pool, then
+/* The new-game reset. It repeats ResetGameStatus's status-block cycle inline
+   rather than calling it; retail: that duplication is the authored body, not a
+   missing helper. It then clears the item in hand and the carried pool, and
    grants the starting items. The pool and the id list are both walked by
    address against the symbol that follows them, not by index. */
 // FUNCTION: WIZ8 0x0054b100
-void Function54B100(void)
+void ResetForNewGame(void)
 {
     W8ItemInstance item;
     W8ItemInstance* slot;
@@ -654,10 +655,10 @@ void Function54B100(void)
         }
     }
     Function58FD30();
-    Function520070(&g_status_685170.item_in_hand_235b, 0, 1);
+    EmptyItemRecord(&g_status_685170.item_in_hand_235b, 0, 1);
     slot = g_status_685170.party_item_pool_0021;
     do {
-        Function520070(slot, 0, 1);
+        EmptyItemRecord(slot, 0, 1);
         ++slot;
     } while (slot < (W8ItemInstance*)&g_status_685170.party_item_count_1791);
     id = g_starting_item_ids;
@@ -682,7 +683,7 @@ void Function54B100(void)
    and 0xff are each used many times over, which is why VC6 holds them in
    registers rather than spelling out immediates. */
 // FUNCTION: WIZ8 0x0054b560
-void Function54B560(void)
+void ResetGameplaySettings(void)
 {
     memset(&g_settings_6850c8, 0, sizeof(g_settings_6850c8));
     g_settings_6850c8.sound_effects_volume = 0x40;
@@ -746,7 +747,7 @@ void Function54B560(void)
    and 2 here. The five countdown clocks and the Random call share one stack
    cleanup, as consecutive cdecl calls do. */
 // FUNCTION: WIZ8 0x0054b300
-void Function54B300(unsigned int slot)
+void ResetGameplaySlot(unsigned int slot)
 {
     W8MonsterManagerEntry* record = &g_monster_manager_entries[slot];
     int tier;

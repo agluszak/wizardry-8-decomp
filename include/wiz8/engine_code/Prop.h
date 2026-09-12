@@ -78,8 +78,8 @@ public:
 
     void Method44D360(W8World* world);
     void Method44C030();
-    void Method44C670();  /* 0x0044C670 */
-    int Function44DEA0(); /* 0x0044DEA0 */
+    void Method44C670();                       /* 0x0044C670 */
+    int BuildOrRefreshPathingRepresentation(); /* 0x0044DEA0 */
     /* The prop's current animation value; -1 when it has none. */
     int GetAnimationState0044EBE0() const; /* 0x0044EBE0 */
     void Method44C830(W8World* world);

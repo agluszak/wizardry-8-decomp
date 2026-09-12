@@ -593,7 +593,7 @@ unsigned char SetCharacterCondition(
     if ((party_slot < 0 || party_slot > 7 || row->occupied == 0
          || character->hp_current == 0 || character->unknown_0b01 > 0xC)
         && gXStatus.fCombatMode != 0) {
-        Function53AEB0(party_slot);
+        ClearPartySlotMonsterHighlights(party_slot);
     }
     return 1;
 #pragma clang diagnostic pop

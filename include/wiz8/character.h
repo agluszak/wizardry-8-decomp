@@ -395,7 +395,7 @@ void InvalidateAndRecalculateCharacterClassData00558610(W8Character* character);
 bool CharacterHasTrait00547940(const W8Character* character, int trait);
 
 void DeriveCharacterPersonality004EFA30(W8Character* character);
-int Function557FD0(W8Character* original, W8Character* edited);
+int ComputeRealmSkillDebt(W8Character* original, W8Character* edited);
 void Function4EF7E0(W8Character*, W8Character*, int);
 int Function558640(W8Character*);
 unsigned char Function5586B0(W8Character*);
@@ -406,7 +406,7 @@ void ApplyCharacterEffect(
     W8Character* character, int effect, int arg_3, int arg_4, int arg_5);
 int CalcRangeCategoryToTarget(const W8Character* character, int hand);
 int Function51C5A0(W8Character* character, int item_id);
-bool Function4EDC60(W8Character* character);
+bool RecalculateCarriedWeight(W8Character* character);
 void CalcXPGoal(W8Character* character);
 int GetSpellbookForSpell(
     const W8Character* character, int spell_id, int a, int b, int c);

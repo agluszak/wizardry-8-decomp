@@ -633,7 +633,7 @@ unsigned char CampScreenEnter(void)
         g_camp_entry_parameter_0069c0fc = g_current_screen_state.parameter_4;
         entry_mode = 2;
         SoundPlay("Data\\Spells\\Sounds\\GeneralMagic.wav", 0);
-        Function53A320(6);
+        SetTargetingMode(6);
     }
     g_flag_00685071 = 0;
     g_value_00685072 = 0;

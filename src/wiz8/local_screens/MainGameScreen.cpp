@@ -135,7 +135,7 @@ unsigned char g_flag_0068edd8;
 int g_main_game_mode_0068eddc;
 
 // GLOBAL: WIZ8 0x0064827c
-W8MainGameResourceSlot g_main_game_resource_slots_64827c[17] = {
+W8MainGameResourceSlot g_main_game_resource_slots[17] = {
     {0, 1, 0, 0, 0, 0, 2},  {0, 5, 0, 0, 0, 0, 3},  {0, 1, 0, 0, 0, 0, 4},  {0, 1, 0, 0, 0, 0, 5},
     {0, 1, 0, 0, 0, 0, 6},  {0, 4, 0, 0, 0, 0, 7},  {0, 4, 0, 0, 0, 0, 0},  {0, 0, 0, 0, 0, 0, 8},
     {0, 1, 0, 0, 0, 0, 9},  {0, 1, 0, 0, 0, 0, 10}, {0, 5, 0, 0, 0, 0, 11}, {0, 1, 0, 0, 0, 0, 12},
@@ -301,7 +301,7 @@ void Function577540(void)
 {
     g_flag_006875a5 = 0;
     ClearLevelDataFlag6();
-    SetTargetCursor(-1);
+    SetTargetCursor(W8_CURSOR_NONE);
 }
 
 // FUNCTION: WIZ8 0x00577220
@@ -521,7 +521,7 @@ void ReloadKeywordLists(void)
 /* Reset the screen state block: zero its 0x268 bytes, write its reset values,
    clear the keyword status byte, and reload the keyword lists. */
 // FUNCTION: WIZ8 0x0056c520
-void Function56C520(void)
+void ResetMainScreenStateBlock(void)
 {
     int unset = -1;
 
@@ -573,7 +573,7 @@ unsigned char MainGameScreenEnter(void)
         DisableSky();
     }
     if (TakePendingSaveFlag()) {
-        Function58AC00(0xc, gppStringList[0x1e08 / 4], -1, -1, 0);
+        ShowNotice(0xc, gppStringList[0x1e08 / 4], -1, -1, 0);
     }
     if (g_value_006850d5 != difficulty) {
         g_value_006850d5 = difficulty;
@@ -588,7 +588,7 @@ unsigned char MainGameScreenEnter(void)
             display_mode = 0x7fa;
             break;
         }
-        Function58AAD0(0xc, gppStringList[0x1e30 / 4], gppStringList[display_mode]);
+        WriteGameLog(0xc, gppStringList[0x1e30 / 4], gppStringList[display_mode]);
     }
     ResetTransientRenderScenes();
     MoveTimer(4);
@@ -610,7 +610,7 @@ unsigned char MainGameScreenEnter(void)
     } else {
         ClearHeldItemDisplay();
     }
-    Function53A320(0);
+    SetTargetingMode(0);
     SetPrimarySurfaceTextureHint2Enabled(1);
     if (gXStatus.field_024) {
         Function587510(0);
@@ -705,7 +705,7 @@ update_screen:
         gXStatus.unknown_026[0] = 0;
         Function577220();
     }
-    if (!Function554540()) {
+    if (!IsScreenBusy()) {
         Function5542E0();
     }
     if (!g_level_block->transition_active && !gXStatus.fCombatMode && gXStatus.field_028) {
@@ -858,12 +858,12 @@ render_world:
             Function59B2D0();
         }
         if (gXStatus.iCurrentCursor != -1 && gXStatus.iCurrentCursor != 7 &&
-            g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].frame_count > 1 &&
+            g_main_game_resource_slots[gXStatus.iCurrentCursor].frame_count > 1 &&
             !ClockIsTicking(gXStatus.current_cursor_time) && !IsWorldCursorVisible() &&
             !g_flag_0068edd8) {
             ++gXStatus.current_cursor_frame;
             if (gXStatus.current_cursor_frame ==
-                g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].frame_count) {
+                g_main_game_resource_slots[gXStatus.iCurrentCursor].frame_count) {
                 gXStatus.current_cursor_frame = 0;
             }
             ApplyCurrentCursor();
@@ -1032,9 +1032,9 @@ unsigned char MainGameScreenLeave(int leaving)
 
     if (static_cast<unsigned char>(leaving)) {
         for (index = 0; index < 17; ++index) {
-            if (g_main_game_resource_slots_64827c[index].object != 0) {
-                g_main_game_resource_slots_64827c[index].object->release();
-                g_main_game_resource_slots_64827c[index].object = 0;
+            if (g_main_game_resource_slots[index].object != 0) {
+                g_main_game_resource_slots[index].object->release();
+                g_main_game_resource_slots[index].object = 0;
             }
         }
     }
@@ -1048,7 +1048,7 @@ unsigned char MainGameScreenLeave(int leaving)
     if (g_level_block->flag_156) {
         g_level_block->flag_156 = 0;
         RegionSetDisable(0x13);
-        Function5B1C00();
+        ReleaseRuntimeDialogOwners();
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
             g_level_block->redraw_flags |= 0x8200;
         }
@@ -1225,7 +1225,7 @@ void ClearCombatSelection(void)
     SetCombatSelection(-1);
     SetCombatTarget(-1);
     SetCombatAction(-1);
-    SetTargetCursor(Function53A3D0(0));
+    SetTargetCursor(GetTargetingCursorForState(0));
 }
 
 /* Drop the highlight when the thing being highlighted is the one going away. */
@@ -1280,7 +1280,7 @@ bool LoadCurrentLevelData(void)
     bool loaded = true;
 
     if (g_status_685170.current_level != -1) {
-        SetTargetCursor(9);
+        SetTargetCursor(W8_CURSOR_MAP_LOAD);
         g_map_loading_00659757 = 1;
         Function42B3E0();
         loaded = UnloadLevel("MAP") != 0;

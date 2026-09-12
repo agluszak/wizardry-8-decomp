@@ -702,14 +702,14 @@ void W8Prop::Method44C670()
         }
     }
     flags_1c |= 0x20;
-    Function44DEA0();
+    BuildOrRefreshPathingRepresentation();
 }
 
 /* Build or refresh the pathing representation for a collidable Prop.  Retail
    requires a transitive animation with one mesh, then either constructs the
    owned GDProp or reinitializes it for the current animation frame. */
 // FUNCTION: WIZ8 0x0044dea0
-int W8Prop::Function44DEA0()
+int W8Prop::BuildOrRefreshPathingRepresentation()
 {
     srModelInstance* instance;
 

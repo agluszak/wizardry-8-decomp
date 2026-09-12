@@ -131,8 +131,8 @@ Also: `Function514DF0` -> `MeasureLevelStatusChunks00514DF0`,
   `GetMonsterGroupByListIndex`, `MonsterGroupLeaveCombat`, `CountActiveCharacters`,
   `RestoreCombatFormation`, `UpdateScreenOverlays`, `ClearSurfaceRect`, `RequestRedraw`,
   `SetFlag6081E4`, `ResetLivingMonstersAfterCombat`, `ClearLevelDataFlags5To7`,
-  `RequestRedrawParty`, `SetFloat60AB48`, `ReportSaveFailed`, `Function58AC00` (declared),
-  plus address-named `FUN_005a1890`, `FUN_0053ae00`, `Function53A320`, `FUN_00524540`,
+  `RequestRedrawParty`, `SetFloat60AB48`, `ReportSaveFailed`, `ShowNotice` (declared),
+  plus address-named `FUN_005a1890`, `FUN_0053ae00`, `SetTargetingMode`, `FUN_00524540`,
   `FUN_00552530`, `FUN_004eef10`, `FUN_004f0560`, `FUN_0053cd60`, `FUN_00517780`,
   `FUN_005a3470`, `FUN_0059bb70`, `FUN_0058f6b0`, `MonsterForward4531A0`,
   `FUN_00482990`, `FUN_004ee9d0`, `FUN_0056aab0`, `FUN_004ea1f0`.
@@ -191,7 +191,7 @@ list), the byte at 0x683FCE, and the int at 0x6850B0 that receives
 `SetCountdownClock(120000)`. The 1000-dword pass at 0x688291..0x689231 rewrites each `1` to
 `2`; it lives inside `W8GlobalStatus::unknown_2498` (offsets 0xC89..0x1C29). The combat-state
 fields used are `flag_a54`, `pending_move_kind` (0x90C) and `unknown_a55[0xC]` (0xA61);
-`DAT_0068C09C + 0x8CC` supplies `Function58AC00`'s notice string and still needs a model.
+`DAT_0068C09C + 0x8CC` supplies `ShowNotice`'s notice string and still needs a model.
 
 ### Earlier session work
 

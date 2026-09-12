@@ -16,7 +16,7 @@
 
 /* Refund every spent skill point through the per-skill commit helper. */
 // FUNCTION: WIZ8 0x00557F90
-void Function557F90(W8Character* character, W8CharacterCreationState* creation_state)
+void RefundAllSkillPoints(W8Character* character, W8CharacterCreationState* creation_state)
 {
     int index;
     int spent;
@@ -24,7 +24,7 @@ void Function557F90(W8Character* character, W8CharacterCreationState* creation_s
     for (index = 0; index < 0x29; ++index) {
         spent = creation_state->skill_points_spent[index];
         if (spent > 0) {
-            Function557BC0(character, creation_state, index, -spent);
+            InitializeLevelUpAttributePool(character, creation_state, index, -spent);
         }
     }
 }
@@ -33,7 +33,7 @@ void Function557F90(W8Character* character, W8CharacterCreationState* creation_s
    original holds but the edited build lacks, or the original's own set when
    it has no caster level to compare against. */
 // FUNCTION: WIZ8 0x00557FD0
-int Function557FD0(W8Character* original, W8Character* edited)
+int ComputeRealmSkillDebt(W8Character* original, W8Character* edited)
 {
     int total = 0;
 
@@ -87,7 +87,7 @@ unsigned char g_gender_locked_0068de34;
 /* A fresh creation: zero the character and the editing state, install the
    sentinel values, and hand out the level-one pools. */
 // FUNCTION: WIZ8 0x00556dc0
-void Function556DC0(W8Character* character, W8CharacterCreationState* creation_state)
+void InitializeCharacterCreation(W8Character* character, W8CharacterCreationState* creation_state)
 {
     g_attribute_point_bonus_0068de28 = 0;
     g_skill_point_bonus_0068de2c = 0;
@@ -105,7 +105,7 @@ void Function556DC0(W8Character* character, W8CharacterCreationState* creation_s
     character->unknown_007d = -1;
     character->personality_0081 = -1;
     memset(creation_state, 0, sizeof(*creation_state));
-    Function520310(character);
+    EmptyAllCarriedItems(character);
 
     int points = 0;
     if (character->current_profession != -1 && character->race != -1) {
@@ -119,7 +119,7 @@ void Function556DC0(W8Character* character, W8CharacterCreationState* creation_s
     }
     creation_state->attribute_points_total = points;
     creation_state->attribute_points_remaining = points;
-    Function557730(character, creation_state);
+    RecomputeAttributeLimits(character, creation_state);
 
     points = 0xf + g_skill_point_bonus_0068de2c;
     if (character->level != 1) {
@@ -130,14 +130,14 @@ void Function556DC0(W8Character* character, W8CharacterCreationState* creation_s
     }
     creation_state->skill_points_total = points;
     creation_state->skill_points_remaining = points;
-    Function557B20(character, creation_state);
+    RecomputeSkillLimits(character, creation_state);
 }
 
 /* One level gained: raise the level and profession counter, reset the editing
    state, and re-derive every pool the character's new level entitles them
    to. */
 // FUNCTION: WIZ8 0x00556cc0
-void Function556CC0(W8Character* character, W8CharacterCreationState* creation_state)
+void InitializeCharacterLevelUp(W8Character* character, W8CharacterCreationState* creation_state)
 {
     g_attribute_point_bonus_0068de28 = 0;
     g_skill_point_bonus_0068de2c = 0;
@@ -159,7 +159,7 @@ void Function556CC0(W8Character* character, W8CharacterCreationState* creation_s
     }
     creation_state->attribute_points_total = points;
     creation_state->attribute_points_remaining = points;
-    Function557730(character, creation_state);
+    RecomputeAttributeLimits(character, creation_state);
 
     points = 0xf + g_skill_point_bonus_0068de2c;
     if (character->level != 1) {
@@ -170,24 +170,24 @@ void Function556CC0(W8Character* character, W8CharacterCreationState* creation_s
     }
     creation_state->skill_points_total = points;
     creation_state->skill_points_remaining = points;
-    Function557B20(character, creation_state);
+    RecomputeSkillLimits(character, creation_state);
 
     if (character->attribute_point_deficit_0199 < 0) {
-        Function557200(character, creation_state);
+        PayDownAttributeDebt(character, creation_state);
     }
     CalcCharacterLevelBand(character);
     RecalculateCharacterHitPoints(character);
     Function52A3E0(character);
     Function52A500(character);
     CalcArmorClasses(character);
-    Function558070(character, creation_state);
+    FinalizeSpellPointPool(character, creation_state);
 }
 
 /* Reset one skill's contribution to the editing state: drop its flag, refund
    its spent points, and let a realm skill that was just opened up reach its
    minimum five. */
 // FUNCTION: WIZ8 0x00557c90
-void Function557C90(W8Character* character, W8CharacterCreationState* creation_state,
+void ResetSkillContribution(W8Character* character, W8CharacterCreationState* creation_state,
                     int skill_id)
 {
     character->skills[skill_id].flag_00 = 1;
@@ -210,7 +210,7 @@ void Function557C90(W8Character* character, W8CharacterCreationState* creation_s
 /* Refund every point spent on one skill and leave its level at the base
    value the assignment gave it. */
 // FUNCTION: WIZ8 0x00557d20
-void Function557D20(W8Character* character, W8CharacterCreationState* creation_state,
+void RefundSkillAllocation(W8Character* character, W8CharacterCreationState* creation_state,
                     int skill_id)
 {
     int spent = creation_state->skill_points_spent[skill_id];
@@ -229,7 +229,7 @@ void Function557AE0(W8Character* character, W8CharacterCreationState* creation_s
 {
     for (int index = 0; index < 7; ++index) {
         if (creation_state->attribute_values_008[index] > 0) {
-            Function5579E0(character, creation_state, index,
+            AdjustAllocatedAttribute(character, creation_state, index,
                            -creation_state->attribute_values_008[index]);
         }
     }
@@ -238,7 +238,7 @@ void Function557AE0(W8Character* character, W8CharacterCreationState* creation_s
 /* Attribute limits and the step ceiling for the current pool, then the
    attribute-point reconciliations. */
 // FUNCTION: WIZ8 0x00557730
-void Function557730(W8Character* character, W8CharacterCreationState* creation_state)
+void RecomputeAttributeLimits(W8Character* character, W8CharacterCreationState* creation_state)
 {
     int points = creation_state->attribute_points_total;
     int step;
@@ -275,7 +275,7 @@ void Function557730(W8Character* character, W8CharacterCreationState* creation_s
         creation_state->attribute_limits_028[index] = limit;
     }
 
-    Function557800(character, creation_state);
+    ClampAttributesToBudget(character, creation_state);
     if (creation_state->attribute_points_total > 0) {
         for (index = 0; index < 7; ++index) {
             if (creation_state->attribute_values_008[index] <
@@ -291,7 +291,7 @@ void Function557730(W8Character* character, W8CharacterCreationState* creation_s
 /* Clamp the allocated attribute values to their limits, then take points back
    round-robin while the character is over budget. */
 // FUNCTION: WIZ8 0x00557800
-void Function557800(W8Character* character, W8CharacterCreationState* creation_state)
+void ClampAttributesToBudget(W8Character* character, W8CharacterCreationState* creation_state)
 {
     int index;
 
@@ -329,7 +329,7 @@ void Function557800(W8Character* character, W8CharacterCreationState* creation_s
    shortfall to 0x00557200 when the pool cannot cover it. A level-one character
    also gets the value/baseline bookkeeping the creation flow expects. */
 // FUNCTION: WIZ8 0x00557890
-void Function557890(W8Character* character, W8CharacterCreationState* creation_state)
+void ApplyProfessionMinimumAttributes(W8Character* character, W8CharacterCreationState* creation_state)
 {
     int deficits[7];
     int index;
@@ -347,7 +347,7 @@ void Function557890(W8Character* character, W8CharacterCreationState* creation_s
 
     if (creation_state->attribute_points_total +
             character->attribute_point_deficit_0199 < 0) {
-        Function557200(character, creation_state);
+        PayDownAttributeDebt(character, creation_state);
         return;
     }
 
@@ -379,13 +379,13 @@ void Function557890(W8Character* character, W8CharacterCreationState* creation_s
         }
     }
     creation_state->attribute_points_remaining = creation_state->attribute_points_total;
-    Function557730(character, creation_state);
+    RecomputeAttributeLimits(character, creation_state);
 }
 
 /* Draw the level-up attribute debt back down one point at a time, preferring
    the largest remaining deficit, until the pool or the debt runs out. */
 // FUNCTION: WIZ8 0x00557200
-void Function557200(W8Character* character, W8CharacterCreationState* creation_state)
+void PayDownAttributeDebt(W8Character* character, W8CharacterCreationState* creation_state)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
@@ -493,7 +493,7 @@ void DetermineEligibleProfessions(W8Character* character,
 /* Apply one attribute adjustment through the same clamps 0x005579E0 uses for
    the creation flow: never below zero, never above the pool or the limit. */
 // FUNCTION: WIZ8 0x005579e0
-void Function5579E0(W8Character* character, W8CharacterCreationState* creation_state,
+void AdjustAllocatedAttribute(W8Character* character, W8CharacterCreationState* creation_state,
                     int attribute, int modifier)
 {
     int value = creation_state->attribute_values_008[attribute];
@@ -528,22 +528,22 @@ complete:
     RecalculateCharacterHitPoints(character);
     Function52A3E0(character);
     RecalculateCarryingCapacity004EDC10(character);
-    Function4EDC60(character);
+    RecalculateCarriedWeight(character);
     Function52A500(character);
     CalcArmorClasses(character);
     RecalculateCharacterResistances(character);
     if (character->level == 1) {
-        Function557D80(character, creation_state);
+        RebuildSkillAllocations(character, creation_state);
     }
-    Function558180(character, creation_state);
+    CountRemainingSpellPoints(character, creation_state);
     RefreshCharacterSkillAvailability00553CD0(character);
-    Function557B20(character, creation_state);
+    RecomputeSkillLimits(character, creation_state);
 }
 
 /* Skill limits from the pool plus the base levels the attribute pairs give
    every skill. */
 // FUNCTION: WIZ8 0x00557b20
-void Function557B20(W8Character* character, W8CharacterCreationState* creation_state)
+void RecomputeSkillLimits(W8Character* character, W8CharacterCreationState* creation_state)
 {
     InitializeSkillBaseLevels00553C90(character);
     int step = (creation_state->skill_points_total + 2) / 3;
@@ -570,13 +570,13 @@ void Function557B20(W8Character* character, W8CharacterCreationState* creation_s
             creation_state->skill_limits[index] = limit;
         }
     }
-    Function557EB0(character, creation_state);
+    ClampSkillsToBudget(character, creation_state);
 }
 
 /* Clamp the committed skill points to their limits, refund round-robin while
    over budget, and report whether every skill still has room. */
 // FUNCTION: WIZ8 0x00557eb0
-void Function557EB0(W8Character* character, W8CharacterCreationState* creation_state)
+void ClampSkillsToBudget(W8Character* character, W8CharacterCreationState* creation_state)
 {
     int index;
 
@@ -626,7 +626,7 @@ void Function557EB0(W8Character* character, W8CharacterCreationState* creation_s
    skills against the spent spell points, then trim any learned spell the
    character can no longer hold. */
 // FUNCTION: WIZ8 0x00558070
-void Function558070(W8Character* character, W8CharacterCreationState* creation_state)
+void FinalizeSpellPointPool(W8Character* character, W8CharacterCreationState* creation_state)
 {
     int spent = creation_state->spell_points_total -
                 creation_state->spell_points_remaining;
@@ -676,7 +676,7 @@ void Function558070(W8Character* character, W8CharacterCreationState* creation_s
 /* Re-checks every spell against the character's current realm skills and
    reports how many points still remain to be allocated. */
 // FUNCTION: WIZ8 0x00558180
-int Function558180(W8Character* character, W8CharacterCreationState* creation_state)
+int CountRemainingSpellPoints(W8Character* character, W8CharacterCreationState* creation_state)
 {
     int available = 0;
     int index;
@@ -760,7 +760,7 @@ int Function558180(W8Character* character, W8CharacterCreationState* creation_st
    skills and bonus skill their share of the step pool, then add the points
    already committed. */
 // FUNCTION: WIZ8 0x00557d80
-void Function557D80(W8Character* character, W8CharacterCreationState* creation_state)
+void RebuildSkillAllocations(W8Character* character, W8CharacterCreationState* creation_state)
 {
     int index;
 
@@ -806,7 +806,7 @@ void Function557D80(W8Character* character, W8CharacterCreationState* creation_s
    character's six realm pools, saving and restoring the learned-spell flags
    around the trial assignment. */
 // FUNCTION: WIZ8 0x00558330
-int Function558330(W8Character* character, W8CharacterCreationState* creation_state)
+int ComputeLevelUpSpellPointAward(W8Character* character, W8CharacterCreationState* creation_state)
 {
     int total = 0;
     int index;
@@ -859,7 +859,7 @@ int Function558330(W8Character* character, W8CharacterCreationState* creation_st
 /* Recompute the level-up pools after a profession change, refunding every
    baseline the previous profession's assignment had granted. */
 // FUNCTION: WIZ8 0x00557060
-void Function557060(W8Character* character, W8CharacterCreationState* creation_state,
+void RebuildLevelUpPoolsForProfession(W8Character* character, W8CharacterCreationState* creation_state,
                     W8Profession profession)
 {
     int index;
@@ -919,7 +919,7 @@ void Function557060(W8Character* character, W8CharacterCreationState* creation_s
             }
         }
     }
-    Function556EB0(character, creation_state);
+    ApplyRaceProfessionTables(character, creation_state);
 }
 
 // FUNCTION: WIZ8 0x005571c0
@@ -927,7 +927,7 @@ void Function5571C0(W8Character* character, W8CharacterCreationState* creation_s
                     int race)
 {
     character->race = race;
-    Function556EB0(character, creation_state);
+    ApplyRaceProfessionTables(character, creation_state);
 }
 
 // FUNCTION: WIZ8 0x005571e0
@@ -935,13 +935,13 @@ void Function5571E0(W8Character* character, W8CharacterCreationState* creation_s
                     W8Gender gender)
 {
     character->gender = gender;
-    Function556EB0(character, creation_state);
+    ApplyRaceProfessionTables(character, creation_state);
 }
 
 /* Apply the race and profession tables once race, profession and sex are
    all set, rebuilding every derived pool on the way. */
 // FUNCTION: WIZ8 0x00556eb0
-void Function556EB0(W8Character* character, W8CharacterCreationState* creation_state)
+void ApplyRaceProfessionTables(W8Character* character, W8CharacterCreationState* creation_state)
 {
     int index;
     if (character->race == -1) {
@@ -972,9 +972,9 @@ void Function556EB0(W8Character* character, W8CharacterCreationState* creation_s
                 }
                 creation_state->attribute_points_total = points;
                 creation_state->attribute_points_remaining = points;
-                Function557730(character, creation_state);
+                RecomputeAttributeLimits(character, creation_state);
                 character->original_profession = character->current_profession;
-                Function557890(character, creation_state);
+                ApplyProfessionMinimumAttributes(character, creation_state);
                 CalcCharacterLevelBand(character);
                 for (index = 0; index < 7; ++index) {
                     character->attributes[index].value +=
@@ -982,14 +982,14 @@ void Function556EB0(W8Character* character, W8CharacterCreationState* creation_s
                 }
             }
             else {
-                Function557890(character, creation_state);
+                ApplyProfessionMinimumAttributes(character, creation_state);
             }
             RefreshCharacterSkillAvailability00553CD0(character);
-            Function558070(character, creation_state);
+            FinalizeSpellPointPool(character, creation_state);
             RecountLearnedSpellsByRealm004F96A0(character);
-            Function558180(character, creation_state);
+            CountRemainingSpellPoints(character, creation_state);
             RefreshCharacterSkillAvailability00553CD0(character);
-            Function557B20(character, creation_state);
+            RecomputeSkillLimits(character, creation_state);
         }
         if (character->level == 1) {
             for (index = 0; index < 7; ++index) {
@@ -1000,7 +1000,7 @@ void Function556EB0(W8Character* character, W8CharacterCreationState* creation_s
         RecalculateCharacterHitPoints(character);
         Function52A3E0(character);
         RecalculateCarryingCapacity004EDC10(character);
-        Function4EDC60(character);
+        RecalculateCarriedWeight(character);
         Function52A500(character);
         CalcArmorClasses(character);
     }
@@ -1008,7 +1008,7 @@ void Function556EB0(W8Character* character, W8CharacterCreationState* creation_s
     if (character->level == 1) {
         if (character->gender != -1 && character->current_profession != -1 &&
             character->race != -1) {
-            Function557D80(character, creation_state);
+            RebuildSkillAllocations(character, creation_state);
         }
         character->table_value_0079 = -1;
         character->unknown_007d = -1;
@@ -1020,7 +1020,7 @@ void Function556EB0(W8Character* character, W8CharacterCreationState* creation_s
 /* The level-up attribute editor's pool is fixed by the profession minimums,
    so the deficit sweep runs before the skill pass. */
 // FUNCTION: WIZ8 0x00557bc0
-void Function557BC0(W8Character* character, W8CharacterCreationState* creation_state,
+void InitializeLevelUpAttributePool(W8Character* character, W8CharacterCreationState* creation_state,
                     unsigned int skill, int modifier)
 {
     int spent = creation_state->skill_points_spent[skill];
@@ -1052,9 +1052,9 @@ void Function557BC0(W8Character* character, W8CharacterCreationState* creation_s
     }
     creation_state->skills_complete = 1;
 complete:
-    Function558180(character, creation_state);
+    CountRemainingSpellPoints(character, creation_state);
     RefreshCharacterSkillAvailability00553CD0(character);
-    Function557B20(character, creation_state);
+    RecomputeSkillLimits(character, creation_state);
     RecalculateCharacterResistances(character);
 }
 
@@ -1178,7 +1178,7 @@ void AddCharacterStartingEquipment(W8Character* character)
     unsigned int slot;
     unsigned int set;
 
-    Function520310(character);
+    EmptyAllCarriedItems(character);
 
     set = character->race == 5 ? 15 : character->current_profession;
     for (slot = 0; slot < 6; ++slot) {

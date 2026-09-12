@@ -80,7 +80,7 @@ void Function4ED9D0(W8Character* character)
     }
     bool changed = previous_capacity != capacity;
     character->carrying_capacity = capacity;
-    bool recalculated = Function4EDC60(character);
+    bool recalculated = RecalculateCarriedWeight(character);
     if (g_status_685170.game_started == 0) {
         character->party_weight_share = 0;
     }
@@ -137,7 +137,7 @@ bool RecalculateCarryingCapacity004EDC10(W8Character* character)
    carrying capacity in the old-to-new direction raises the overloaded
    notice. */
 // FUNCTION: WIZ8 0x004edc60
-bool Function4EDC60(W8Character* character)
+bool RecalculateCarriedWeight(W8Character* character)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"

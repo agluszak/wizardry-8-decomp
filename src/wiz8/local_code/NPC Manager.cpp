@@ -182,7 +182,7 @@ W8NpcState* GetNpcStateByKind(int kind)
    given name style with an unreleased binding, while that row's lead stays
    under level fifteen. */
 // FUNCTION: WIZ8 0x0050B8F0
-unsigned char Function50B8F0(unsigned int kind)
+bool NpcLeadHasNameStyle(unsigned int kind)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
@@ -567,10 +567,10 @@ unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character)
     character->unknown_007d = -1;
     character->personality_0081 = -1;
     for (index = 0; index < 12; ++index) {
-        Function520070(&character->equipment[index], 0, 1);
+        EmptyItemRecord(&character->equipment[index], 0, 1);
     }
     for (index = 0; index < 8; ++index) {
-        Function520070(&character->backpack[index], 0, 1);
+        EmptyItemRecord(&character->backpack[index], 0, 1);
     }
     wcscpy(character->name, source->name);
     wcscpy(character->name_part_2, source->name_part_2);
@@ -660,7 +660,7 @@ void InitializeNpcItemTable(W8NpcState* npc)
    handle, then hand the handle to the owned item-list teardown. An index past
    the end reads slot zero instead of stopping. */
 // FUNCTION: WIZ8 0x00509EA0
-void Function509EA0(int value)
+void ReleaseNpcBinding(int value)
 {
     W8NpcState* npc;
     W8NpcDatabaseRecord* record;
@@ -697,7 +697,7 @@ void Function509EA0(int value)
    the monster carries no matching enchantment mark or the binding is not
    released. */
 // FUNCTION: WIZ8 0x0050A440
-W8NpcState* Function50A440(unsigned int monster_list_index)
+W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index)
 {
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);

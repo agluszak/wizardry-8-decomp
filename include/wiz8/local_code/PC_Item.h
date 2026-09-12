@@ -38,8 +38,8 @@ void GetOriginOfCharacterItem(
     unsigned short* slot);
 
 void Function51D960(W8Character* character); /* 0x0051D960 */
-void Function520070(W8ItemInstance* item, W8Character* character, unsigned char refresh);
-void Function520310(W8Character* character);
+void EmptyItemRecord(W8ItemInstance* item, W8Character* character, unsigned char refresh);
+void EmptyAllCarriedItems(W8Character* character);
 unsigned char TryIdentifyItemFor(W8Character* character, W8ItemInstance* item);
 unsigned char GetItemSpell(const W8ItemInstance* item);
 W8WideChar* FormatItemDisplayName(
@@ -88,7 +88,8 @@ void ReplaceOrCreateItem(
 void Function51FD20(
     W8ItemInstance* item, W8ItemInstance* destination, W8Character* character,
     unsigned char flag); /* 0x0051FD20 */
-unsigned char Function51F900(
+void NormalizeItemStack(W8ItemInstance* item);
+unsigned char MergeItemStacks(
     W8ItemInstance* destination,
     W8ItemInstance* source,
     unsigned char* partially_merged);

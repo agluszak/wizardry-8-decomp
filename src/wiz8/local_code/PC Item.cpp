@@ -908,7 +908,7 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip
                 CopyItemInstance(destination, item, character, 1);
                 stored = 1;
             } else {
-                stored = Function51F900(destination, item, 0);
+                stored = MergeItemStacks(destination, item, 0);
             }
             if (character->in_party) {
                 Function50E5C0(CharacterPointerToPartySlot(character));
@@ -923,7 +923,7 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip
     if (g_item_records[item->item_id].quantity_kind == 1 && !skip_stacking) {
         unsigned int index;
         for (index = 0; index < 12; ++index) {
-            if (Function51F900(&character->equipment[index], item, 0)) {
+            if (MergeItemStacks(&character->equipment[index], item, 0)) {
                 stored_item = &character->equipment[index];
                 stored_index = index;
                 break;
@@ -931,7 +931,7 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip
         }
         if (stored_item == 0) {
             for (index = 0; index < 8; ++index) {
-                if (Function51F900(&character->backpack[index], item, 0)) {
+                if (MergeItemStacks(&character->backpack[index], item, 0)) {
                     stored_item = &character->backpack[index];
                     stored_index = index;
                     break;
@@ -951,7 +951,7 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip
         CopyItemInstance(stored_item, item, 0, 1);
     }
 
-    if (Function4EDC60(character)) {
+    if (RecalculateCarriedWeight(character)) {
         Function4EDD20();
     }
     if (g_current_screen_state.id == W8_SCREEN_CAMP && g_camp_screen_0069c0f4 != 0) {
@@ -1890,7 +1890,7 @@ void SortPartyItemPool(void)
 /* Normalize a stack and split every full overflow stack into the party pool.
    Quantity kinds two through four live in uses_or_charges instead. */
 // FUNCTION: WIZ8 0x0051fb40
-void Function51FB40(W8ItemInstance* item)
+void NormalizeItemStack(W8ItemInstance* item)
 {
     if (item->item_id == -1) {
         return;
@@ -1946,14 +1946,14 @@ void Function51FB40(W8ItemInstance* item)
    source is removed from its owner; a partial merge is reported separately so
    the caller can refresh carrying capacity before placing the remainder. */
 // FUNCTION: WIZ8 0x0051f900
-unsigned char Function51F900(W8ItemInstance* destination, W8ItemInstance* source,
+unsigned char MergeItemStacks(W8ItemInstance* destination, W8ItemInstance* source,
                              unsigned char* partially_merged)
 {
     if (destination->item_id == -1) {
         return 0;
     }
 
-    Function51FB40(destination);
+    NormalizeItemStack(destination);
     const W8ItemDatabaseRecord* record = &g_item_records[destination->item_id];
     if (record->quantity_kind != 1) {
         return 0;
@@ -1979,7 +1979,7 @@ unsigned char Function51F900(W8ItemInstance* destination, W8ItemInstance* source
     destination->stack_count += moved;
     source->stack_count -= moved;
     if (source->stack_count == 0) {
-        Function520070(source, 0, 1);
+        EmptyItemRecord(source, 0, 1);
         return 1;
     }
     if (partially_merged != 0) {
@@ -2231,7 +2231,7 @@ void Function520D10(W8ItemInstance* item, W8Character* character, unsigned char 
    carried-pool item is removed from the packed 500-entry array and the tail is
    shifted down exactly once. */
 // FUNCTION: WIZ8 0x00520070
-void Function520070(W8ItemInstance* item, W8Character* character, unsigned char refresh)
+void EmptyItemRecord(W8ItemInstance* item, W8Character* character, unsigned char refresh)
 {
     W8ItemInstance shifted[500];
 
@@ -2276,7 +2276,7 @@ void Function520070(W8ItemInstance* item, W8Character* character, unsigned char 
    0x00520070 was expanded at both loops, so this body repeats its logic
    rather than calling it. */
 // FUNCTION: WIZ8 0x00520310
-void Function520310(W8Character* character)
+void EmptyAllCarriedItems(W8Character* character)
 {
     W8ItemInstance shifted[500];
     unsigned int index;
@@ -2437,7 +2437,7 @@ void Function5227D0(W8ItemInstance* item, unsigned char choose_character, W8Char
         break;
     case 0x27c: {
         SetFact(0xe5, 1, 0);
-        if (!Function50B8F0(7) || !GetFact(0x24e)) {
+        if (!NpcLeadHasNameStyle(7) || !GetFact(0x24e)) {
             return;
         }
         W8NpcState* npc = GetNpcStateByKind(7);
@@ -2475,7 +2475,7 @@ bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char 
 
     if (g_item_records[item->item_id].quantity_kind == 1 && !skip_stacking) {
         while (index < (unsigned int)g_status_685170.party_item_count_1791) {
-            if (Function51F900(&g_status_685170.party_item_pool_0021[index], item,
+            if (MergeItemStacks(&g_status_685170.party_item_pool_0021[index], item,
                                &partially_merged)) {
                 stored = true;
                 break;

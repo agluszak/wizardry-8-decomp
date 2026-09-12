@@ -784,7 +784,7 @@ void W8CharacterPage005EF778::AdjustEntry(
    the compare and branch. Suppress only this diagnostic here. */
     entry->MarkDirty();
     m_dirty_06d = 1;
-    Function5579E0(m_character_060, m_creation_state_064, entry->m_id_02c,
+    AdjustAllocatedAttribute(m_character_060, m_creation_state_064, entry->m_id_02c,
                    delta);
     Invalidate(0);
     m_screen_05c->UpdateNavigation(this);
@@ -812,7 +812,7 @@ void W8CharacterPage005EF778::OnRowValueChanged(
     W8CharacterStatsRow005EF750* row, int value)
 {
     if (row == m_profession_row_07c) {
-        Function557060(m_character_060, m_creation_state_064,
+        RebuildLevelUpPoolsForProfession(m_character_060, m_creation_state_064,
                        static_cast<W8Profession>(value));
     }
     else if (row == m_race_row_080) {
@@ -1200,7 +1200,7 @@ void W8CharacterPage005EF778::Redraw()
                                g_W8TextBufferLayoutMask005ED554);
             text.SetText(FormatWideString(
                 g_format_d_0060aa20,
-                Function558330(m_character_060, m_creation_state_064)),
+                ComputeLevelUpSpellPointAward(m_character_060, m_creation_state_064)),
                 g_font_683660);
             text.RenderToTarget(0, 0, -14);
         }

@@ -347,7 +347,7 @@ unsigned char InitializeVideoManager(HINSTANCE instance, unsigned short show_com
             g_flag_659710 = 1;
             ShowWindow(ghWindow, 9);
             if (g_gerd_659634->isWindowOpen() == 0) {
-                if (!Function422800()) {
+                if (!OpenRendererWindow()) {
                     goto done;
                 }
             }
@@ -614,7 +614,7 @@ unsigned char InitializeVideoDevice(void)
     }
 
     g_gerd_659634->createContext((unsigned long)ghWindow);
-    Function422800();
+    OpenRendererWindow();
     srAssertSetFunc(AssertFailureHandler);
     if (_strnicmp(sound_provider, "none", 4) != 0) {
         Sound3DSetProvider(sound_provider);
@@ -626,7 +626,7 @@ unsigned char InitializeVideoDevice(void)
 /* Applies the configured window style, asks SurRender for the matching display
    mode in fullscreen operation, and opens the renderer output window. */
 // FUNCTION: WIZ8 0x00422800
-unsigned char Function422800(void)
+unsigned char OpenRendererWindow(void)
 {
     srGERD::e_error error;
     long mode;
@@ -709,7 +709,7 @@ unsigned char FinishVideoPresentation(void)
     }
     g_direct_draw2_6596a0->SetCooperativeLevel(ghWindow, DDSCL_NORMAL);
     g_gerd_659634->createContext((unsigned long)ghWindow);
-    return Function422800();
+    return OpenRendererWindow();
 }
 
 /* WM_SIZE only rebuilds the SurRender output in windowed mode.  Full-screen
@@ -740,7 +740,7 @@ void VideoFullScreen(unsigned char enabled)
     if (ghWindow && g_gerd_659634 && g_flush_pending_603c3a) {
         g_flush_pending_603c3a = 0;
         g_gerd_659634->closeWindow(static_cast<srGERD::e_closeHint>(1));
-        Function422800();
+        OpenRendererWindow();
     }
 }
 
@@ -795,7 +795,7 @@ unsigned char RestoreVideoManager(void)
     if (ghWindow && g_gerd_659634) {
         g_flag_659710 = 1;
         ShowWindow(ghWindow, SW_RESTORE);
-        if (g_gerd_659634->isWindowOpen() != 0 || Function422800()) {
+        if (g_gerd_659634->isWindowOpen() != 0 || OpenRendererWindow()) {
             OpenIcon(ghWindow);
             SetFocus(ghWindow);
             memset(g_block_652ddc, 0, sizeof(g_block_652ddc));

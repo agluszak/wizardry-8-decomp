@@ -69,7 +69,7 @@ void RequestExitScreen(void);
 void SetValue64D8AC(unsigned long value);
 /* 0x0064D8AC: which intro video the intro screen shows next; the router and
    the menu paths select it through SetValue64D8AC. */
-extern unsigned long g_intro_video_index_0064d8ac;
+extern unsigned long g_intro_video_index;
 
 /* All records use this lifecycle contract. The shared success address occurs
    in retail, including the game-start router's unused leave slot. */

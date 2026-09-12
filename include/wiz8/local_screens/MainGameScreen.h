@@ -25,7 +25,7 @@ struct W8MainGameResourceSlot {
     int image_id;
 };
 static_assert(sizeof(W8MainGameResourceSlot) == 0x14, "W8MainGameResourceSlot_size");
-extern W8MainGameResourceSlot g_main_game_resource_slots_64827c[17];
+extern W8MainGameResourceSlot g_main_game_resource_slots[17];
 
 #include "wiz8/screen_state.h"
 
@@ -126,13 +126,13 @@ struct W8LevelRuntimeBlock {
 
 static_assert(sizeof(W8LevelRuntimeBlock) == 0x330, "W8LevelRuntimeBlock_must_be_0x330");
 
-class W8MainGameScreen005EEBD8;
+class W8MainGameScreen;
 
 /* 0x00587CF0 constructs this concrete key handler.  Its primary vtable is the
    W8Widget table extended by one entry: slot 0x48 points at
    0x00588170 and accepts the key code forwarded by TextBoxHandleKey. */
 // VTABLE: WIZ8 0x005eeafc
-class W8MainGameTextKeyHandler005EEAFC : public W8Widget, public W8RangeListener {
+class W8MainGameTextKeyHandler : public W8Widget, public W8RangeListener {
 public:
     virtual char HandleKey(unsigned short key);
     virtual void OnRangeChanged(W8RangeControl* control) override;
@@ -146,28 +146,27 @@ public:
     int m_field_0b8;
     W8RangeListener* m_range_listener_0bc;
 };
-static_assert(sizeof(W8MainGameTextKeyHandler005EEAFC) == 0xc0,
-              "W8MainGameTextKeyHandler005EEAFC_size");
+static_assert(sizeof(W8MainGameTextKeyHandler) == 0xc0, "W8MainGameTextKeyHandler_size");
 
 /* The text panel's constructor at 0x005884D0 begins with Controls::Controls.
    The two secondary bases are installed at 0x4c and 0x50, before its own
    fields. */
 // VTABLE: WIZ8 0x005eeba8
-class W8MainGameTextPanel005EEBA8 : public Controls,
-                                    public W8TextControl::Listener,
-                                    public W8RangeListener {
+class W8MainGameTextPanel : public Controls,
+                            public W8TextControl::Listener,
+                            public W8RangeListener {
 public:
-    W8MainGameTextPanel005EEBA8();          /* 0x005884D0 */
-    virtual ~W8MainGameTextPanel005EEBA8(); /* 0x00588770 */
+    W8MainGameTextPanel();          /* 0x005884D0 */
+    virtual ~W8MainGameTextPanel(); /* 0x00588770 */
     virtual void Redraw() override;
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSecondary(W8TextControl*) override {}
     virtual void OnRangeChanged(W8RangeControl* control) override;
 
     W8TextControl* m_entries_054[8];
-    W8MainGameTextKeyHandler005EEAFC* m_key_handler_074;
+    W8MainGameTextKeyHandler* m_key_handler_074;
     int m_selection_078;
-    W8MainGameScreen005EEBD8* m_screen_07c;
+    W8MainGameScreen* m_screen_07c;
     int* m_values_080;
     unsigned char m_flag_084;
     unsigned char m_unknown_085[0xf];
@@ -180,7 +179,7 @@ public:
     unsigned char m_flag_141;
     unsigned char m_pad_142[2];
 };
-static_assert(sizeof(W8MainGameTextPanel005EEBA8) == 0x144, "W8MainGameTextPanel005EEBA8_size");
+static_assert(sizeof(W8MainGameTextPanel) == 0x144, "W8MainGameTextPanel_size");
 
 /* The 0x00588A90 constructor establishes a Controls-derived status panel. */
 // VTABLE: WIZ8 0x005eebc0
@@ -214,16 +213,15 @@ public:
 };
 
 // VTABLE: WIZ8 0x005eebd8
-class W8MainGameScreen005EEBD8 : public W8MainGameScreenBase005EEBDC,
-                                 public W8TextControl::Listener {
+class W8MainGameScreen : public W8MainGameScreenBase005EEBDC, public W8TextControl::Listener {
 public:
-    W8MainGameScreen005EEBD8(void* owner);        /* 0x00589160 */
-    virtual ~W8MainGameScreen005EEBD8() override; /* 0x005894B0 */
+    W8MainGameScreen(void* owner);        /* 0x00589160 */
+    virtual ~W8MainGameScreen() override; /* 0x005894B0 */
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSecondary(W8TextControl*) override {}
 
     void* m_owner_008;
-    W8MainGameTextPanel005EEBA8* m_text_panel_00c;
+    W8MainGameTextPanel* m_text_panel_00c;
     W8MainGameStatusPanel005EEBC0* m_status_panel_010;
     Controls* m_action_panel_014;
     int m_state_018;
@@ -236,10 +234,10 @@ public:
     int m_field_150;
     W8GameTimer m_timer_154;
 };
-static_assert(sizeof(W8MainGameScreen005EEBD8) == 0x178, "W8MainGameScreen005EEBD8_size");
+static_assert(sizeof(W8MainGameScreen) == 0x178, "W8MainGameScreen_size");
 
 extern W8LevelRuntimeBlock* g_level_block;
-extern W8MainGameScreen005EEBD8* g_main_game_screen_0068f2d4;
+extern W8MainGameScreen* g_main_game_screen;
 
 class W8DialogBase;
 extern W8DialogBase* g_modal_owner_0068edd0;
@@ -284,7 +282,7 @@ void Function56C5E0(W8NpcState* npc, int value, int line, int suppress, int arg)
 void ResetMainGameScreenState(void);
 /* 0x0056C520: zero W8MainScreenState, write its reset values, and reload the
    keyword lists through the loader below. */
-void Function56C520(void);
+void ResetMainScreenStateBlock(void);
 
 /* 0x0068EE80: the dialogue keyword tables, one file list per language;
    element zero is English_Keywords.txt and element one the translated list.
@@ -314,8 +312,6 @@ unsigned char Function577A40(void);
 unsigned int HitTestPartyPortrait(const InputAtom* event);
 void RequestRefreshPartyState(void);
 void Function593330(void);
-/* 0x0058AC00: post the wide message through the notice pane. */
-void Function58AC00(int a, const wchar_t* message, int b, int c, int d);
 int IsScreenIdle(void);
 bool IsModalOpen(void);
 
