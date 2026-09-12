@@ -60,9 +60,11 @@ uv run wiz8 compare --file src/wiz8/engine_code/Prop.cpp
 uv run wiz8 compare --changed
 ```
 
-This builds the comparison product itself; do not separately build first. It returns structured
-focused results, including the first reported divergence and available bounded instruction window.
-Use that result instead of a second homemade triage command.
+Selected `compare` refreshes the compiler-backed source index from the current source and then builds
+the comparison product itself. Do not pre-run `uv run wiz8 analyze source-index`, `uv run wiz8 check`,
+or `uv run wiz8 build` merely to prepare comparison. It returns structured focused results, including
+the first reported divergence and available bounded instruction window; use that result instead of a
+second homemade triage command.
 
 - `exact` / `effective`: stop investigating that body unless another task requirement remains.
 - `mismatch`: inspect the first meaningful divergence; formulate a concrete source/type/ABI/lifetime/
@@ -92,11 +94,13 @@ CFG pass; a small wrapper or a straightforward body does not.
 
 ## Placement and output
 
-`FUNCTION` sits immediately above its declaration. `TEMPLATE` is immediately followed by a comment
-naming the emitted symbol and owns no body. `LIBRARY` is address-only. `SYNTHETIC` is immediately
-followed by its exact generated identity comment and owns no declaration/body; separate it from the
-next source entity or give that entity its own marker. An independently emitted ordinary destructor
-uses `FUNCTION`, a template emission uses `TEMPLATE`; absent a standalone body, use only the
+`FUNCTION` sits immediately above the declaration/definition it owns. Nothing else binds through it:
+put diagnostic pragmas, explanatory comments, and other preprocessor lines above the marker rather
+than between the marker and the source entity. `TEMPLATE` is immediately followed by a comment naming
+the emitted symbol and owns no body. `LIBRARY` is address-only. `SYNTHETIC` is immediately followed by
+its exact generated identity comment and owns no declaration/body; separate it from the next source
+entity or give that entity its own marker. An independently emitted ordinary destructor uses
+`FUNCTION`, a template emission uses `TEMPLATE`; absent a standalone body, use only the
 declaration/inline destructor required by the evidenced hierarchy. Keep `// GLOBAL` at canonical definitions.
 
 ## Header visibility and inline
