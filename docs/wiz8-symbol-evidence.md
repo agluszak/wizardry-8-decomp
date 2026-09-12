@@ -19,11 +19,10 @@ retail instructions and call sites outrank incorrect inferences.
 
 ## Direct inspection and optional reports
 
-Use [direct PyGhidra](../.agents/skills/matching-decomp/references/pyghidra.md)
-for functions, instructions/P-code, parameters, references, and data types.
-Open the existing project once, inspect native objects, and filter before
-printing. Large output belongs in disposable `build/` artifacts. A custom
-query dispatcher or report schema is not required for exploratory work.
+Use [ghidra-analysis](../.agents/skills/ghidra-analysis/SKILL.md) for functions,
+instructions/P-code, parameters, references, data types and reviewed edits. Open the existing project
+once, inspect native objects, and filter before printing. Large output belongs in disposable `build/`
+artifacts. A custom query dispatcher or report schema is not required for exploratory work.
 
 `wiz8 report context ADDRESS...` remains an optional joined function/source/provenance
 view. `uv run wiz8 report translation-units` uses one `TranslationUnitResolver`.

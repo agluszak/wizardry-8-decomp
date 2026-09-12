@@ -60,10 +60,12 @@ and scans registers as well as stack words for first-party image addresses; Pyth
 candidates against the runtime-test MAP and correlates their objects with the unresolved-symbol
 report. Failures are not rerun under GDB.
 
-Agent workflows live in the shared [matching-decomp](.agents/skills/matching-decomp/SKILL.md),
-[class-triage](.agents/skills/class-triage/SKILL.md), and
-[runtime-bringup](.agents/skills/runtime-bringup/SKILL.md) skills. The matching skill routes to native
-Ghidra, checkpoint reconciliation, comparison, types, and source-oracle references as needed.
+Agent workflows live in `.agents/skills`: [matching-decomp](.agents/skills/matching-decomp/SKILL.md)
+for source recovery/matching, [ghidra-analysis](.agents/skills/ghidra-analysis/SKILL.md) for live
+binary analysis, [type-modeling](.agents/skills/type-modeling/SKILL.md) for the C++/ABI model,
+[runtime-bringup](.agents/skills/runtime-bringup/SKILL.md) for behavior, and
+[tooling-maintenance](.agents/skills/tooling-maintenance/SKILL.md) for project infrastructure.
+`AGENTS.md` defines the repository-wide invariants; skills own task-specific procedures.
 
 Generated reports and the CMake build directory (`build/decomp`) live under the gitignored `build/`
 directory. Extracted files, materialized variants, and Wine prefixes use `WIZ8_WORK_DIR`. Each existing
