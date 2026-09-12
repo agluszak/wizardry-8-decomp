@@ -33,6 +33,7 @@
 #include "wiz8/render_state.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
+#include "surrender/srCamera.h"
 #include "surrender/srTimer.h"
 #include "soundman.h"
 #include "wiz8/engine_code/Spells.h"

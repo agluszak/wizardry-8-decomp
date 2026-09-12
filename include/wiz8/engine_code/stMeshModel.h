@@ -16,7 +16,8 @@ public:
         return "stMeshModel";
     }
 
-    stMeshModel(long polygons, long vertices); /* 0x00470B00 */
+    // Unrecovered; 0x00470B00. FUNCTION stays off until the body exists.
+    stMeshModel(long polygons, long vertices);
 
     int FindMappedIndex(short key); /* 0x004712D0 */
     void SetMappedVertex00471160(short vertex, short key);
@@ -68,3 +69,11 @@ public:
 static_assert(sizeof(stMeshModel) == 0x464, "stMeshModel_size_must_be_0x464");
 
 int FindMappedIndexInMeshChain(stMeshModel** mesh, int key); /* 0x004A8D10 */
+/* Copy `count` dwords when the buffers differ. Callers pass 3*n for vec3
+   arrays. */
+void CopyDwordBuffer00470180(void* destination, const void* source, int count);
+/* Fill `count` dwords with `value`. FUN_00472270 uses this when a vec3's
+   components are equal, passing vertex_count*3. */
+void FillDwordBuffer00474700(void* destination, unsigned int value, int count);
+/* dest[i] += source[i] for `count` floats. Callers pass vertex_count*3. */
+void AddFloatBuffer00474730(float* destination, const float* source, int count);

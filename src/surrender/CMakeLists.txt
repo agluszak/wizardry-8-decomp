@@ -1,9 +1,15 @@
 add_library(wiz8_surrender_objects OBJECT
+    bounder.cpp
     core.cpp
+    debug_dd.cpp
     dynamic_library.cpp
+    environment_mapper.cpp
+    exponent_table.cpp
     extension.cpp
+    io_managers.cpp
     string_table.cpp
     system.cpp
+    triangulator.cpp
     type_registry.cpp
     vector_processor.cpp
 )
@@ -11,6 +17,7 @@ target_compile_definitions(wiz8_surrender_objects PRIVATE SURRENDER_BUILD)
 target_compile_options(wiz8_surrender_objects PRIVATE
     "$<$<CXX_COMPILER_ID:MSVC>:/GX->")
 set_source_files_properties(
+    bounder.cpp
     extension.cpp
     type_registry.cpp
     PROPERTIES COMPILE_OPTIONS "$<$<CXX_COMPILER_ID:MSVC>:/GX>")

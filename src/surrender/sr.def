@@ -68,6 +68,10 @@ EXPORTS
     ?getUniqueName@srRuntimeClass@@QBEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?getCopyright@srCore@@QBEPBDXZ
     ?getVersion@srCore@@QBEPBDXZ
+    ?getSurfaceIOManager@srCore@@QBEPAVsrSurfaceIOManager@@XZ
+    ?getVideoManager@srCore@@QBEPAVsrVideoManager@@XZ
+    ?getModelIOManager@srCore@@QBEPAVsrModelIOManager@@XZ
+    ?getHierarchyIOManager@srCore@@QBEPAVsrHierarchyIOManager@@XZ
     ?release@srClass@@QBEHXZ
     ?setName@srRuntimeClass@@QAEXPBD@Z
     ?getName@srVectorProcessor@@SAPBDXZ
@@ -75,3 +79,32 @@ EXPORTS
     ?getID@srVectorProcessor@@SAJPBD@Z
     ?release@srVectorProcessor@@SAXXZ
     ?vp@srVectorProcessor@@0PAVsrVP@@A DATA
+    ??0srBounder@@QAE@PAVsrNode@@@Z
+    ??1srBounder@@UAE@XZ
+    ?sGetClassName@srBounder@@SAPBDXZ
+    ?vInstance@srBounder@@UAEPAVsrClass@@XZ
+    ?getBoundMode@srBounder@@QBE?AW4e_boundMode@1@XZ
+    ?setBoundMode@srBounder@@QAEXW4e_boundMode@1@@Z
+    ?getBounds@srBounder@@QAEXAAUBoundInfo@srNode@@@Z
+    ?setBounds@srBounder@@QAEXABUBoundInfo@srNode@@@Z
+    ?checkBounds@srBounder@@AAEXXZ
+    ?forceUpdateBounds@srBounder@@QAEXXZ
+    ??0srExponentTable@@QAE@M@Z
+    ?getExponent@srExponentTable@@QBEMXZ
+    ?getValue@srExponentTable@@QBEMM@Z
+    ?setExponent@srExponentTable@@IAEXM@Z
+    ??0srEnvironmentMapper@@QAE@XZ
+    ??0srEnvironmentMapper@@QAE@ABV0@@Z
+    ??1srEnvironmentMapper@@UAE@XZ
+    ??4srEnvironmentMapper@@QAEAAV0@ABV0@@Z
+    ?isActive@srEnvironmentMapper@@UAEHAAVsrVertexPipe@@@Z
+    ?srEnvironmentMapper@@3V0@A DATA
+    ?sameSide@srTriangulator@@AAEHABV?$srVector2T@M@@000@Z
+    ?isInsideTriangle@srTriangulator@@AAEHABV?$srVector2T@M@@000@Z
+    ??0srHierarchyIOManager@@QAE@XZ
+    ??0srModelIOManager@@QAE@XZ
+    ??1srDebugDD@@UAE@XZ
+    ?resetInternalStatistics@srDebugDD@@AAEXXZ
+    ?getFunctionCallCount@srDebugDD@@QBEKW4e_command@srDD@@@Z
+    ?getFunctionCallTime@srDebugDD@@QBENW4e_command@srDD@@@Z
+    ?increaseCallCount@srDebugDD@@QAEXW4e_command@srDD@@@Z

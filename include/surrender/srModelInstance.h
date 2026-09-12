@@ -1,6 +1,6 @@
 #pragma once
 
-#include "srMeshModel.h"
+#include "srModel.h"
 #include "srNode.h"
 
 #include <math.h>

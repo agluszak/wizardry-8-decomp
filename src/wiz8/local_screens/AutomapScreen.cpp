@@ -7,6 +7,7 @@
 #include "surrender/srTypeRegistry.h"
 #include "surrender/srClipPlane.h"
 #include "surrender/srModelInstance.h"
+#include "surrender/srCamera.h"
 #include "surrender/srScene.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Level.h"

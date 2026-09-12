@@ -1,474 +1,24 @@
 #pragma once
 
-#include "srHeap.h"
-#include "srMath.h"
-
-class srARGB;
-class srVP;
-
-// Generic exports API 0x119, ID 0, and a factory returning an owned srVP.
-// All three take no arguments; cdecl is the loader spelling, not proof that
-// the SDK source could not have used the x86-equivalent stdcall spelling.
-enum { SR_VP_MIN_API_VERSION = 0x119 };
-typedef unsigned long (__cdecl *srGetVectorProcessorAPIFn)();
-typedef long (__cdecl *srGetVectorProcessorIDFn)();
-typedef srVP* (__cdecl *srInitVectorProcessorFn)();
-
-/* These names are present in srDebugVP's own signature table. */
-typedef unsigned char SRBYTE;
-typedef unsigned long SRDWORD;
-typedef srVector2T<float> srVector2;
-typedef srVector3T<float> srVector3;
-typedef srVector4T<float> srVector4;
-typedef srMatrix4T<float> srMatrix4;
-
-/* srDebugVP forwards each entry to the same slot of its wrapped srVP. This
-   prefix therefore records real virtual methods, not padding inserted to
-   reach _minMax at +0x18c. The debug signature for _prefetch omits its third
-   word even though the checked debug, generic, AMD3DNow and KNI
-   implementations return with RET 0x0c. That argument stays an
-   address-qualified 32-bit scalar until its original type name and
-   signedness are recovered. Purity and member cv qualifiers are likewise not
-   asserted when the surviving evidence cannot distinguish them. */
-class srVP {
-public:
-    virtual ~srVP();
-    virtual const char* getName();
-    virtual int _memcmp(
-        const void* source_0, const void* source_1, SRDWORD bytes);
-    virtual void _memcopy(
-        void* destination, const void* source, SRDWORD bytes);
-    virtual void _memcopy(
-        void* destination, SRBYTE source, SRDWORD bytes);
-    virtual void _prefetch(
-        const void* destination, SRDWORD bytes, SRDWORD value_014);
-    virtual void _copyInterleaved(
-        void* destination,
-        const void* source,
-        SRDWORD destination_pitch,
-        SRDWORD source_pitch,
-        SRDWORD width,
-        SRDWORD count);
-    virtual void _swap(void* first, void* second, SRDWORD bytes);
-    virtual void _copy(
-        SRDWORD* destination, SRDWORD constant, SRDWORD count);
-    virtual void _copy(
-        srVector2* destination,
-        const srVector2& constant,
-        SRDWORD count);
-    virtual void _copy(
-        srVector3* destination,
-        const srVector3& constant,
-        SRDWORD count);
-    virtual void _copy(
-        srVector3* destination,
-        const srVector4* source,
-        SRDWORD count);
-    virtual void _copy(
-        srVector4* destination,
-        const srVector4& constant,
-        SRDWORD count);
-    virtual void _copy(
-        srVector4* destination,
-        const srVector3* source,
-        float constant,
-        SRDWORD count);
-    virtual void _copy(
-        srVector4* destination,
-        const srVector3* source_0,
-        const float* source_1,
-        SRDWORD count);
-    virtual void _reverse(
-        SRDWORD* destination, const SRDWORD* source, SRDWORD count);
-    virtual void _and(
-        SRDWORD* destination,
-        const SRDWORD* source,
-        SRDWORD constant,
-        SRDWORD count);
-    virtual void _and(
-        SRDWORD* destination,
-        const SRDWORD* source_0,
-        const SRDWORD* source_1,
-        SRDWORD count);
-    virtual void _or(
-        SRDWORD* destination,
-        const SRDWORD* source,
-        SRDWORD constant,
-        SRDWORD count);
-    virtual void _or(
-        SRDWORD* destination,
-        const SRDWORD* source_0,
-        const SRDWORD* source_1,
-        SRDWORD count);
-    virtual void _xor(
-        SRDWORD* destination,
-        const SRDWORD* source,
-        SRDWORD constant,
-        SRDWORD count);
-    virtual void _xor(
-        SRDWORD* destination,
-        const SRDWORD* source_0,
-        const SRDWORD* source_1,
-        SRDWORD count);
-    virtual void _asr(
-        SRDWORD* destination,
-        const SRDWORD* source,
-        SRDWORD shift,
-        SRDWORD count);
-    virtual void _asrAnd(
-        SRDWORD* destination,
-        const SRDWORD* source,
-        SRDWORD shift,
-        SRDWORD mask,
-        SRDWORD count);
-    virtual void _lsr(
-        SRDWORD* destination,
-        const SRDWORD* source,
-        SRDWORD shift,
-        SRDWORD count);
-    virtual void _lsl(
-        SRDWORD* destination,
-        const SRDWORD* source,
-        SRDWORD shift,
-        SRDWORD count);
-    virtual void _lslAnd(
-        SRDWORD* destination,
-        const SRDWORD* source,
-        SRDWORD shift,
-        SRDWORD mask,
-        SRDWORD count);
-    virtual int _isEqual(
-        const SRDWORD* source, SRDWORD constant, SRDWORD count);
-    virtual int _isEqual(
-        const SRDWORD* source_0,
-        const SRDWORD* source_1,
-        SRDWORD count);
-    /* srDebugVP names these four operations _max, _min, _min, _max.
-       VC6 groups same-named virtual overloads, so the retail interleaving
-       proves that their original lexical identifiers were distinct. */
-    virtual float _max_074(const float* source, SRDWORD count);
-    virtual SRDWORD _min_078(const SRDWORD* source, SRDWORD count);
-    virtual float _min_07c(const float* source, SRDWORD count);
-    virtual SRDWORD _max_080(const SRDWORD* source, SRDWORD count);
-    virtual void _copyIndexed(
-        SRDWORD* destination,
-        const SRDWORD* source,
-        const SRDWORD* indices,
-        SRDWORD count);
-    virtual void _copyIndexed(
-        srVector2* destination,
-        const srVector2* source,
-        const SRDWORD* indices,
-        SRDWORD count);
-    virtual void _copyIndexed(
-        srVector3* destination,
-        const srVector2* source,
-        const SRDWORD* indices,
-        SRDWORD count);
-    virtual void _copyIndexed(
-        srVector3* destination,
-        const srVector3* source,
-        const SRDWORD* indices,
-        SRDWORD count);
-    virtual void _copyIndexed(
-        srVector3* destination,
-        const srVector4* source,
-        const SRDWORD* indices,
-        SRDWORD count);
-    virtual void _copyIndexed(
-        srVector4* destination,
-        const srVector2* source,
-        const SRDWORD* indices,
-        SRDWORD count);
-    virtual void _copyIndexed(
-        srVector4* destination,
-        const srVector3* source,
-        const SRDWORD* indices,
-        SRDWORD count);
-    virtual void _copyIndexed(
-        srVector4* destination,
-        const srVector4* source,
-        const SRDWORD* indices,
-        SRDWORD count);
-    virtual void _copyIndexed(
-        srVector4* destination,
-        const srARGB* source,
-        const SRDWORD* indices,
-        SRDWORD count);
-    virtual void _addS(
-        SRBYTE* destination,
-        const SRBYTE* source,
-        SRBYTE constant,
-        SRDWORD count);
-    virtual void _addS(
-        SRBYTE* destination,
-        const SRBYTE* source_0,
-        const SRBYTE* source_1,
-        SRDWORD count);
-    virtual void _subS(
-        SRBYTE* destination,
-        const SRBYTE* source,
-        SRBYTE constant,
-        SRDWORD count);
-    virtual void _subS(
-        SRBYTE* destination,
-        SRBYTE constant,
-        const SRBYTE* source,
-        SRDWORD count);
-    virtual void _subS(
-        SRBYTE* destination,
-        const SRBYTE* source_0,
-        const SRBYTE* source_1,
-        SRDWORD count);
-    virtual void _toFloat(
-        float* destination, const SRBYTE* source, SRDWORD count);
-    virtual void _add(
-        float* destination,
-        float constant,
-        const float* source,
-        SRDWORD count);
-    virtual void _add(
-        float* destination,
-        const float* source_0,
-        const float* source_1,
-        SRDWORD count);
-    virtual void _add(
-        srVector3* destination,
-        const srVector3& constant,
-        const srVector3* vector_source,
-        SRDWORD count);
-    virtual void _add(
-        srVector3* destination,
-        const srVector3& constant,
-        const float* float_source,
-        SRDWORD count);
-    virtual void _add(
-        srVector3* destination,
-        const srVector3* vector_source,
-        const float* float_source,
-        SRDWORD count);
-    virtual void _add(
-        srVector4* destination,
-        const srVector4& constant,
-        const srVector4* vector_source,
-        SRDWORD count);
-    virtual void _add(
-        srVector4* destination,
-        const srVector4& constant,
-        const float* float_source,
-        SRDWORD count);
-    virtual void _add(
-        srVector4* destination,
-        const srVector4* vector_source,
-        const float* float_source,
-        SRDWORD count);
-    virtual void _sub(
-        float* destination,
-        float constant,
-        const float* source,
-        SRDWORD count);
-    virtual void _sub(
-        float* destination,
-        const float* source_0,
-        const float* source_1,
-        SRDWORD count);
-    virtual void _sub(
-        srVector3* destination,
-        const srVector3& constant,
-        const srVector3* vector_source,
-        SRDWORD count);
-    virtual void _sub(
-        srVector3* destination,
-        const srVector3& constant,
-        const float* float_source,
-        SRDWORD count);
-    virtual void _sub(
-        srVector3* destination,
-        const srVector3* vector_source,
-        const float* float_source,
-        SRDWORD count);
-    virtual void _sub(
-        srVector3* destination,
-        const float* float_source,
-        const srVector3* vector_source,
-        SRDWORD count);
-    virtual void _sub(
-        srVector4* destination,
-        const srVector4& constant,
-        const srVector4* vector_source,
-        SRDWORD count);
-    virtual void _sub(
-        srVector4* destination,
-        const srVector4& constant,
-        const float* float_source,
-        SRDWORD count);
-    virtual void _sub(
-        srVector4* destination,
-        const srVector4* vector_source,
-        const float* float_source,
-        SRDWORD count);
-    virtual void _sub(
-        srVector4* destination,
-        const float* float_source,
-        const srVector4* vector_source,
-        SRDWORD count);
-    virtual void _mul(
-        float* destination,
-        float constant,
-        const float* source,
-        SRDWORD count);
-    virtual void _mul(
-        float* destination,
-        const float* source_0,
-        const float* source_1,
-        SRDWORD count);
-    virtual void _mul(
-        float* destination,
-        float constant,
-        const float* source_0,
-        const float* source_1,
-        SRDWORD count);
-    virtual void _mul(
-        srVector3* destination,
-        const srVector3& constant,
-        const srVector3* vector_source,
-        SRDWORD count);
-    virtual void _mul(
-        srVector3* destination,
-        const srVector3& constant,
-        const float* float_source,
-        SRDWORD count);
-    virtual void _mul(
-        srVector3* destination,
-        const srVector3* vector_source,
-        const float* float_source,
-        SRDWORD count);
-    virtual void _mul(
-        srVector4* destination,
-        const srVector4& constant,
-        const srVector4* vector_source,
-        SRDWORD count);
-    virtual void _mul(
-        srVector4* destination,
-        const srVector4& constant,
-        const float* float_source,
-        SRDWORD count);
-    virtual void _mul(
-        srVector4* destination,
-        const srVector4* vector_source,
-        const float* float_source,
-        SRDWORD count);
-    virtual void _mul(
-        srMatrix4& destination,
-        const srMatrix4& source_0,
-        const srMatrix4& source_1);
-    virtual void _mul(
-        srMatrix4* destination,
-        const srMatrix4* source_0,
-        const srMatrix4* source_1,
-        SRDWORD count);
-    virtual void _div(
-        float* destination,
-        float constant,
-        const float* source,
-        SRDWORD count);
-    virtual void _div(
-        float* destination,
-        const float* source_0,
-        const float* source_1,
-        SRDWORD count);
-    virtual void _div(
-        srVector2* destination,
-        const srVector2* vector_source,
-        const float* float_source,
-        SRDWORD count);
-    virtual void _div(
-        srVector3* destination,
-        const srVector3& constant,
-        const srVector3* vector_source,
-        SRDWORD count);
-    virtual void _div(
-        srVector3* destination,
-        const srVector3& constant,
-        const float* float_source,
-        SRDWORD count);
-    virtual void _div(
-        srVector3* destination,
-        const srVector3* vector_source,
-        const float* float_source,
-        SRDWORD count);
-    virtual void _div(
-        srVector3* destination,
-        const float* float_source,
-        const srVector3* vector_source,
-        SRDWORD count);
-    virtual void _div(
-        srVector4* destination,
-        const srVector4& constant,
-        const srVector4* vector_source,
-        SRDWORD count);
-    virtual void _div(
-        srVector4* destination,
-        const srVector4& constant,
-        const float* float_source,
-        SRDWORD count);
-    virtual void _div(
-        srVector4* destination,
-        const srVector4* vector_source,
-        const float* float_source,
-        SRDWORD count);
-    virtual void _div(
-        srVector4* destination,
-        const float* float_source,
-        const srVector4* vector_source,
-        SRDWORD count);
-    virtual void _clamp(
-        float* destination,
-        const float* source,
-        float minimum,
-        float maximum,
-        SRDWORD count);
-    virtual void _clampMin(
-        float* destination,
-        const float* source,
-        float minimum,
-        SRDWORD count);
-    virtual void _clampMax(
-        float* destination,
-        const float* source,
-        float maximum,
-        SRDWORD count);
-    virtual void _clampUnit(
-        float* destination, const float* source, SRDWORD count);
-    virtual void _sqrt(
-        float* destination, const float* source, SRDWORD count);
-    virtual void _isqrt(
-        float* destination, const float* source, SRDWORD count);
-    virtual void _lerp(
-        float* destination,
-        const float* target,
-        const float* source,
-        float constant,
-        SRDWORD count);
-    virtual int _isNeg(const float* source, SRDWORD count);
-    virtual int _isPos(const float* source, SRDWORD count);
-    virtual int _isZero(const float* source, SRDWORD count);
-    virtual void _minMax(
-        const srVector3* source,
-        srVector3& minimum,
-        srVector3& maximum,
-        SRDWORD count);
-    virtual void _minMax(
-        const srVector4* source,
-        srVector4& minimum,
-        srVector4& maximum,
-        SRDWORD count);
-};
+#include "srVP.h"
 
 /* The private imported implementation pointer is exposed to clients by this
    ordinary header-visible facade; the direct load and virtual call are visible
    in the recovered retail clients, and no exported wrapper exists. The public
-   spelling is inferred from the named `_minMax` implementation boundary. */
+   spelling is inferred from the named `_minMax` implementation boundary.
+
+   Extra inlines below are the srVP slots Wiz8 actually reaches through the
+   imported vp global (IAT 0x005eb7e8): load vp, then CALL [vtable+offset].
+   Confirmed Wiz8 loaders include FUN_0046e8a0, FUN_00470040,
+   CopyDwordBuffer00470180,
+   FUN_00471ad0, FUN_00472270, FUN_004729f0, FUN_00473190, FUN_00474700,
+   FUN_00474730, FlushSlots00475600, FUN_0047f930, FUN_00486970,
+   PrepareGeometry004B6F30, GDProp::Initialize, FUN_00580270 and FUN_005809f0.
+   Offsets +0x210/+0x218/+0x224 sit past the 100-slot table and are not vp
+   methods. FillDwordBuffer00474700 / AddFloatBuffer00474730 call the dword
+   `_copy` and float `_add` overloads; both compare exact against retail
+   CALLIND +0x38 / +0xd8. srDebugVP is declared; ctor and
+   resetInternalStatistics stay imported. */
 class srVectorProcessor {
 public:
     static SR_DLL_IMPORT const char* getName();
@@ -476,11 +26,70 @@ public:
     static SR_DLL_IMPORT long getID(const char* filename);
     static SR_DLL_IMPORT void release();
 
-    static inline void minMax(
-        const srVector3* source,
-        srVector3& minimum,
-        srVector3& maximum,
-        SRDWORD count)
+    static inline void memcopy(void* destination, const void* source, SRDWORD bytes)
+    {
+        vp->_memcopy(destination, source, bytes);
+    }
+
+    static inline void memcopy(void* destination, SRBYTE source, SRDWORD bytes)
+    {
+        vp->_memcopy(destination, source, bytes);
+    }
+
+    static inline void copy(SRDWORD* destination, SRDWORD constant, SRDWORD count)
+    {
+        vp->_copy(destination, constant, count);
+    }
+
+    static inline void copy(srVector4* destination, const srVector4& constant, SRDWORD count)
+    {
+        vp->_copy(destination, constant, count);
+    }
+
+    static inline void copy(srVector4* destination, const srVector3* source, const float* w,
+                            SRDWORD count)
+    {
+        vp->_copy(destination, source, w, count);
+    }
+
+    static inline void add(float* destination, const float* source_0, const float* source_1,
+                           SRDWORD count)
+    {
+        vp->_add(destination, source_0, source_1, count);
+    }
+
+    static inline void add(srVector4* destination, const srVector4& constant,
+                           const float* float_source, SRDWORD count)
+    {
+        vp->_add(destination, constant, float_source, count);
+    }
+
+    static inline void add(srVector4* destination, const srVector4* vector_source,
+                           const float* float_source, SRDWORD count)
+    {
+        vp->_add(destination, vector_source, float_source, count);
+    }
+
+    static inline void mul(srVector3* destination, const srVector3* vector_source,
+                           const float* float_source, SRDWORD count)
+    {
+        vp->_mul(destination, vector_source, float_source, count);
+    }
+
+    static inline void mul(srVector4* destination, const srVector4& constant,
+                           const float* float_source, SRDWORD count)
+    {
+        vp->_mul(destination, constant, float_source, count);
+    }
+
+    static inline void minMax(const srVector3* source, srVector3& minimum, srVector3& maximum,
+                              SRDWORD count)
+    {
+        vp->_minMax(source, minimum, maximum, count);
+    }
+
+    static inline void minMax(const srVector4* source, srVector4& minimum, srVector4& maximum,
+                              SRDWORD count)
     {
         vp->_minMax(source, minimum, maximum, count);
     }

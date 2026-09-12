@@ -3,6 +3,7 @@
 #include <io.h>
 #include <sys/stat.h>
 
+#include "surrender/srCamera.h"
 #include "surrender/srHeap.h"
 #include "surrender/srMath.h"
 #include "surrender/srScene.h"
@@ -1924,7 +1925,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                                     "m_pAlphaBits", OCTREE_CPP, 0x18a,
                                                     "ReadOctFile: Failure allocating Alpha Bits.");
                                             }
-                                            if (BitArrayLoad0043AEC0(m_pAlphaBits, hOctFile) == 0) {
+                                            if (m_pAlphaBits->Load(hOctFile) == 0) {
                                                 srAssertFail(
                                                     "m_pAlphaBits->Load(hOctFile)", OCTREE_CPP,
                                                     0x18b,
@@ -2031,8 +2032,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                                             "ReadOctFile: Couldn't allocate Prop "
                                                             "Sun Bits.");
                                                     }
-                                                    if (BitArrayLoad0043AEC0(m_pPropSunBits,
-                                                                             hOctFile) == 0) {
+                                                    if (m_pPropSunBits->Load(hOctFile) == 0) {
                                                         srAssertFail(
                                                             "m_pPropSunBits->Load(hOctFile)",
                                                             OCTREE_CPP, 0x1c6,

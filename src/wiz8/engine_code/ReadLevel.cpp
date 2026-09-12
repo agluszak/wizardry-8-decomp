@@ -32,6 +32,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 #include "wiz8/float_constants.h"
+#include "surrender/srCamera.h"
 #include "surrender/srScene.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/engine_code/3dapi.h"

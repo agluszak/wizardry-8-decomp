@@ -20,6 +20,17 @@ template <class Key, class Value> struct W8HashEntry {
     Value value;
 };
 
+/* Pointer plus capacity that several TUs destroy by operator-delete and
+   zeroing both dwords. Retail emits this as the out-of-line helper at
+   0x004701b0 (BitArray::Save, mesh helpers, and their EH unwind). */
+struct W8OwnedPtr {
+    void* data;
+    unsigned long size;
+    ~W8OwnedPtr();
+};
+
+static_assert(sizeof(W8OwnedPtr) == 8, "W8OwnedPtr_must_be_8");
+
 template <class Key, class Value> class W8HashTable {
 public:
     W8HashTable() : bucket_heads(0), entries(0), free_head(-1), bucket_count(0)

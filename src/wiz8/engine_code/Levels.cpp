@@ -40,6 +40,7 @@
 #include "wiz8/spell_effect.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/targeting.h"
+#include "surrender/srCamera.h"
 #include "surrender/srCore.h"
 #include "surrender/srNode.h"
 #include "surrender/srLight.h"

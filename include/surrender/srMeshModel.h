@@ -2,68 +2,13 @@
 
 #include "srMaterial.h"
 #include "srMath.h"
+#include "srModel.h"
 #include "srPtr.h"
+#include "srShader.h"
 #include "srTexture.h"
 #include "srTypeRegistry.h"
 
-class srShader {
-public:
-    unsigned long value;
-};
-
-class SR_DLL_IMPORT srModel
-    : public srClassSupport<srModel, srClass, true, 0x2000> {
-public:
-    class Client {
-    public:
-        enum e_update {};
-
-        Client();
-        Client(const Client& other);
-        virtual ~Client();
-        Client& operator=(const Client& other);
-        virtual void setModel(srModel* model);
-        virtual void updateClient(e_update update);
-        virtual srModel* getModel() const;
-        Client* getNextClient() const;
-        Client* getPrevClient() const;
-
-    private:
-        srPtr<srModel> model_04;
-        Client* previous_08;
-        Client* next_0c;
-    };
-
-    srModel();
-    srModel(const srModel& other);
-
-    static const char* sGetClassName()
-    {
-        return "srModel";
-    }
-
-
-    virtual void dump(std::ostream& stream) override;
-
-protected:
-    virtual ~srModel() override;
-
-public:
-    virtual int getBoundingSphere(
-        srVector3T<float>& center, float& radius) = 0;
-    virtual int getBoundingBox(
-        srVector3T<float>& minimum, srVector3T<float>& maximum) = 0;
-    virtual void render(class srGERD& renderer) = 0;
-    virtual void updateAllClients(Client::e_update update);
-
-    Client* getFirstClient() const;
-
-protected:
-    Client* first_client_18;
-};
-
-class SR_DLL_IMPORT srMeshModel
-    : public srClassSupport<srMeshModel, srModel, 0, 0x2010> {
+class SR_DLL_IMPORT srMeshModel : public srClassSupport<srMeshModel, srModel, 0, 0x2010> {
 public:
     enum e_side {};
     /* SR.DLL's getTriMesh copies 0x154 bytes into this value. Wiz8's 2D
@@ -95,10 +40,8 @@ public:
     virtual void dump(std::ostream& stream) override;
     virtual void verify(srRuntimeClass::e_verify mode) override;
     virtual srClass* vInstance() override;
-    virtual int getBoundingSphere(
-        srVector3T<float>& center, float& radius) override;
-    virtual int getBoundingBox(srVector3T<float>& minimum,
-                               srVector3T<float>& maximum) override;
+    virtual int getBoundingSphere(srVector3T<float>& center, float& radius) override;
+    virtual int getBoundingBox(srVector3T<float>& minimum, srVector3T<float>& maximum) override;
     virtual void render(class srGERD& renderer) override;
     virtual void reindexPolygons(const unsigned long* indices);
     virtual void reindexVertices(const unsigned long* indices);
@@ -109,8 +52,7 @@ public:
     srVector3i* getPolyVertex();
     srVector3i* getPolyUVIndex(long layer, int table);
     srVector2T<float>* getVertexTexCoords(long vertex, long layer, int table);
-    srPtr<srMaterialIFace>* getVertexMaterial(
-        long vertex, e_side side, int table);
+    srPtr<srMaterialIFace>* getVertexMaterial(long vertex, e_side side, int table);
     unsigned long* getVertexShadeIndex(int table);
     srVector3T<float>* getVertexNormal();
     srVector4T<float>* getPolyEq();
@@ -126,7 +68,8 @@ public:
     void setActivePolygonCount(long count);
     unsigned long* getActivePolygonTable(int table);
     srVector3T<float>* getVertexLoc();
-    void enableStartupControls() {
+    void enableStartupControls()
+    {
         control_state_394 |= 0x40;
         control_state_390 |= 8;
         control_state_394 |= 0x30;
@@ -134,7 +77,8 @@ public:
     /* Raise one 0x394 control bit and mark the 0x390 changed bit when it is
        clear. The original stores the changed bit twice; VC6 emits that pair
        at every expansion site, so the body keeps both stores. */
-    void setControlMask(unsigned long mask) {
+    void setControlMask(unsigned long mask)
+    {
         control_state_394 |= mask;
         if ((control_state_390 & 8) == 0) {
             unsigned long state = control_state_390;
@@ -149,6 +93,7 @@ protected:
     virtual void calculateBounds();
     virtual void calculatePolygonNormals();
     virtual void calculateVertexNormals();
+
 public:
     unsigned char unknown_1c_[0x210];
     /* GrCycle.cpp's 0x004A7E50 clamps a vertex index against this before
@@ -161,32 +106,5 @@ public:
     unsigned long control_state_394;
 };
 
-class SR_DLL_IMPORT srModeler {
-public:
-    struct MappingInfo {
-        unsigned long unknown_00;
-        unsigned long unknown_04;
-        unsigned long unknown_08;
-        unsigned long unknown_0c;
-        unsigned long unknown_10;
-        unsigned long unknown_14;
-    };
-
-    srModeler();
-    virtual ~srModeler();
-    void createGrid(long columns, long rows);
-    void planarMap(long polygon, long layer, const MappingInfo& mapping);
-    void scale(const srVector3T<float>& scale);
-    void convert(srMeshModel& model, int preserve);
-    void discard();
-
-private:
-    unsigned char unknown_04_[0x10];
-};
-
-static_assert((sizeof(srModel::Client) == 0x10), "srModelClient_must_be_0x10");
-static_assert((sizeof(srMeshModel::TriMesh) == 0x154),
-              "srMeshModel_TriMesh_must_be_0x154");
-static_assert((sizeof(srModel) == 0x1c), "srModel_must_be_0x1c");
+static_assert((sizeof(srMeshModel::TriMesh) == 0x154), "srMeshModel_TriMesh_must_be_0x154");
 static_assert((sizeof(srMeshModel) == 0x398), "srMeshModel_must_be_0x398");
-static_assert((sizeof(srModeler) == 0x14), "srModeler_must_be_0x14");

@@ -24,6 +24,7 @@
 #include "wiz8/render_state.h"
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
+#include "surrender/srCamera.h"
 #include "surrender/srTimer.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/magic.h"

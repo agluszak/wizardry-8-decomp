@@ -42,6 +42,7 @@
 #include "surrender/srMaterial.h"
 #include "surrender/srMeshModel.h"
 #include "surrender/srNode.h"
+#include "surrender/srCamera.h"
 #include "surrender/srScene.h"
 
 #include "FileMan.h"

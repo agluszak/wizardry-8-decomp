@@ -543,6 +543,7 @@ public:
         SCALE_TYPE_POSITIONAL_1 = 1, /* equal column lengths, not 1 */
         SCALE_TYPE_POSITIONAL_2 = 2  /* unequal column lengths */
     };
+    enum e_type {};
 
     srMatrix4T<T>* Invert();
     T* Scale(double scale);

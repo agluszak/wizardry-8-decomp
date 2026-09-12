@@ -17,6 +17,7 @@
 #include "surrender/srFog.h"
 #include "surrender/srMaterial.h"
 #include "surrender/srNode.h"
+#include "surrender/srCamera.h"
 #include "surrender/srScene.h"
 #include "surrender/srTypeRegistry.h"
 #include "wiz8/local_code/GameplayTime.h"

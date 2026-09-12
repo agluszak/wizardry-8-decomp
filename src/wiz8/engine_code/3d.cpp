@@ -3,13 +3,17 @@
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/stHash.hpp"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/stLight.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
+#include "surrender/srCamera.h"
 #include "surrender/srScene.h"
+
+#include <new>
 
 #define THREE_D_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\3d.cpp"
 
@@ -563,4 +567,15 @@ void BuildPlaneFromPoints0046D660(srVector4T<float>* plane, const srVector3T<flo
                                   const srVector3T<float>* second, const srVector3T<float>* third)
 {
     SetPlaneFromThreePoints(&plane->x, first, second, third);
+}
+
+/* Pointer-plus-capacity cleanup used by BitArray::Save's Sampler and by later
+   mesh helpers. Retail emits this out of line between 3d.cpp and
+   stMeshModel.cpp rather than as a Sampler import. */
+// FUNCTION: WIZ8 0x004701b0
+W8OwnedPtr::~W8OwnedPtr()
+{
+    ::operator delete(data);
+    data = 0;
+    size = 0;
 }
