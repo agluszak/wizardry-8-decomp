@@ -205,9 +205,9 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
     SetSceneAmbientLightWhite(world->static_scene);
     world->camera = CreateOrSetGameCamera(world->static_scene, 0);
     world->camera_light = CreateWorldLight0046E140(world, "CameraLight");
-    world->camera_light->m_direction_60.SetZero();
-    world->camera_light->m_color_6c.Set(1.0f, 0.85f, 0.39f);
-    world->camera_light->m_position_78.SetZero();
+    world->camera_light->ambient_198.SetZero();
+    world->camera_light->diffuse_1a4.Set(1.0f, 0.85f, 0.39f);
+    world->camera_light->specular_1b0.SetZero();
     world->camera_light->intensity_1d0 = 1.0f;
     world->camera_light->setGroupMask(2);
     ConfigureWorldLight0046E300(world->camera_light, 4000.0f);
@@ -354,7 +354,7 @@ void UpdateWorld0044F4E0(W8World* world)
     int count = static_cast<short>(PLLength(nodes));
     for (int index = 0; index < count; ++index) {
         srNode* node = static_cast<srNode*>(PLGet(nodes, index));
-        node->setFlag(srNode::FLAG_POSITIONAL_0);
+        node->setFlag(srNode::FLAG_OMIT_SELF);
     }
     PListClear(nodes);
 }

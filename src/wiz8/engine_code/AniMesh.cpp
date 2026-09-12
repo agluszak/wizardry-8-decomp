@@ -415,7 +415,7 @@ unsigned char UnloadAniMesh004B63F0(W8AniMesh* mesh, unsigned char force)
             stModelInstance* instance = GetAniMeshFrame004B6550(mesh, frame);
 
             instance->setParent(0, 1);
-            instance->setFlag(srNode::FLAG_POSITIONAL_0);
+            instance->setFlag(srNode::FLAG_OMIT_SELF);
             instance->release();
         }
     }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Types.h"
-#include "surrender/srVertexProcessor.h"
+#include "surrender/srVertexPipe.h"
 
 struct W8World;
 

@@ -34,11 +34,14 @@ protected:
     void invalidateFrameHandle(unsigned long handle);
     void setupDefaultValuesFromSurface(srColorSurfaceIFace* surface);
 
-    unsigned char unknown_18_[0x08];
+    unsigned long packed_state_18;               /* 0x18: correction/mag/min/mipmap/wrap bits */
+    float mipmap_bias_1c;                        /* 0x1c */
     Dimensions texture_dimensions_;              /* 0x20 */
     srClass* texture_filter_;                    /* 0x28 */
     srPixelConvert::PixelFormat surface_format_; /* 0x2c */
-    unsigned char unknown_40_[0x10];
+    unsigned char unknown_30_[0x10];
+    unsigned long hints_40; /* 0x40 */
+    unsigned char unknown_44_[0x0c];
     unsigned long texture_flags_; /* 0x50 */
 };
 

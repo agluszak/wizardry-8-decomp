@@ -4,7 +4,7 @@
 #include "surrender/srMeshModel.h"
 #include "surrender/srModelInstance.h"
 #include "surrender/srStatisticsManager.h"
-#include "surrender/srVertexProcessor.h"
+#include "surrender/srVertexPipe.h"
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stTextureAnim.h"
@@ -73,7 +73,7 @@ void W8MaterialMapper004B89A0::process(srVertexPipe& pipe)
     unsigned long count;
     unsigned long index;
 
-    if (!pipe.isChannelAvailable(static_cast<srVertexProcessor::e_channel>(5))) {
+    if (!pipe.isChannelAvailable(srVertexProcessor::CHANNEL_ST0)) {
         return;
     }
     normals = pipe.getEyeSpaceNormal();

@@ -3,6 +3,7 @@
 #include "srStringTable.h"
 #include "srTexture.h"
 #include "srTypeRegistry.h"
+#include "srVertexPipe.h"
 #include "srMath.h"
 #include "srShader.h"
 #include "srFlags.h"
@@ -51,13 +52,14 @@ public:
     enum e_error {};
     enum e_closeHint {};
     enum e_buffer {};
-    enum e_matrixMode { MATRIX_MODE_POSITIONAL_0 = 0 };
-    enum e_antiAlias {};
-    enum e_cullMode {
-        CULL_MODE_POSITIONAL_0 = 0,
-        CULL_MODE_POSITIONAL_1 = 1,
-        CULL_MODE_POSITIONAL_2 = 2
-    };
+    /* Wizardry uses 0 immediately before model-view loads and 1 immediately
+       before identity+ortho. OpenGL srDD talks GL_MODELVIEW (0x1700) and
+       GL_PROJECTION (0x1701) for those two stacks. */
+    enum e_matrixMode { MATRIX_MODELVIEW = 0, MATRIX_PROJECTION = 1 };
+    enum e_antiAlias { ANTIALIAS_NONE = 0 };
+    /* OpenGL: 0 disables GL_CULL_FACE, 1 enables + GL_BACK, 2 enables + GL_FRONT.
+       DirectX7: D3DCULL_NONE / D3DCULL_CCW / D3DCULL_CW. */
+    enum e_cullMode { CULL_NONE = 0, CULL_BACK = 1, CULL_FRONT = 2 };
     enum e_enable { ENABLE_POSITIONAL_1 = 1 };
     enum e_winding { WINDING_POSITIONAL_0 = 0 };
     enum e_visibility { VISIBILITY_POSITIONAL_0 = 0 };

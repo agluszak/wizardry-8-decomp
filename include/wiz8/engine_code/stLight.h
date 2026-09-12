@@ -163,9 +163,9 @@ public:
     }
     void ConfigureMonsterCopy()
     {
-        m_positional_18 = 2;
-        m_positional_flags_5c |= 0x10;
-        m_positional_flags_5c |= 4;
+        attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
+        enable_flags_194 |= 0x10;
+        enable_flags_194 |= 4;
     }
 
 public:

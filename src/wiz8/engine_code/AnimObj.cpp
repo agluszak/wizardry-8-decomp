@@ -197,8 +197,8 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
                              "AnimObjReadFromFile: Where is the light list?");
             } else {
                 stLight* light = CreateWorldLight0046E030(0, "MonsterLight");
-                light->m_color_6c = color;
-                light->m_position_78 = srVector3T<float>(0.0f, 0.0f, 0.0f);
+                light->diffuse_1a4 = color;
+                light->specular_1b0 = srVector3T<float>(0.0f, 0.0f, 0.0f);
                 ConfigureWorldLight0046E300(light, range * g_world_scale_005ebc40);
                 light->intensity_1d0 = intensity;
                 light->setLocation(position.x, position.y, position.z);

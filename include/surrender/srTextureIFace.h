@@ -26,11 +26,23 @@ public:
         long source_bottom;
         srColorSurfaceIFace* destination;
     };
-    struct Parameters;
+    /* getTextureParms copies eight bytes: packed filter/wrap/mipmap state
+       from srTexture+0x18 and mipmap bias from +0x1c. */
+    struct Parameters {
+        unsigned long packed_state_00;
+        float mipmap_bias_04;
+    };
+    static_assert(sizeof(Parameters) == 0x08, "srTextureIFace_Parameters_must_be_0x08");
     enum e_filter {};
     enum e_mipmap {};
-    enum e_hint { HINT_POSITIONAL_1 = 1, HINT_POSITIONAL_2 = 2 };
-    enum e_wrap { WRAP_POSITIONAL_1 = 1 };
+    enum e_hint {
+        HINT_POSITIONAL_1 = 1,
+        HINT_POSITIONAL_2 = 2,
+        HINT_POSITIONAL_3 = 3,
+        HINT_POSITIONAL_6 = 6
+    };
+    /* Dump prints REPEAT then CLAMP for wrap S/T. Wizardry requests 1. */
+    enum e_wrap { WRAP_REPEAT = 0, WRAP_CLAMP = 1 };
     enum e_correction {};
 
     static const char* sGetClassName()

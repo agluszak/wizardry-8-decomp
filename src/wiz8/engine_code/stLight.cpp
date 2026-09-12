@@ -35,7 +35,7 @@ stLight::stLight(srNode* parent)
     if (parent != 0) {
         setParent(parent, 0);
     }
-    m_positional_18 = 2;
+    attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
     m_owned_244 = 0;
     m_positional_239 = 1;
     m_positional_248 = 0;
@@ -100,8 +100,8 @@ void stLight::traverse(srNode::TraverseInfo& info)
         nextSibling()->traverse(info);
     }
 
-    if (!testFlag(FLAG_POSITIONAL_1)) {
-        if (testFlag(FLAG_POSITIONAL_0) || fabs(intensity_1d0) <= g_double_005ebc70 ||
+    if (!testFlag(FLAG_SKIP_CHILDREN)) {
+        if (testFlag(FLAG_OMIT_SELF) || fabs(intensity_1d0) <= g_double_005ebc70 ||
             (g_light_update_flags_0060bfdc & 1) == 0) {
             if (firstChild() != 0) {
                 firstChild()->traverse(info);
@@ -178,7 +178,7 @@ void stLight::Reset0049D070()
                 static_cast<stLightDefinition005ECDBC*>(m_definition_234);
             intensity_1d0 = definition->intensity_28;
             if ((definition->flags_08 & 8) != 0) {
-                m_color_6c = definition->color_10;
+                diffuse_1a4 = definition->color_10;
             }
         }
     }

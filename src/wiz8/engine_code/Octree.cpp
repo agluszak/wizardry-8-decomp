@@ -151,8 +151,8 @@ void W8Octree::UpdateVisibility004304A0()
                 stModelInstance* mesh =
                     static_cast<stModelInstance*>(g_world->psrMeshes[mesh_index]);
                 if (mesh != 0) {
-                    mesh->setFlag(srNode::FLAG_POSITIONAL_0);
-                    mesh->setFlag(srNode::FLAG_POSITIONAL_1);
+                    mesh->setFlag(srNode::FLAG_OMIT_SELF);
+                    mesh->setFlag(srNode::FLAG_SKIP_CHILDREN);
                 }
             }
         }
@@ -221,8 +221,8 @@ void W8Octree::UpdateVisibility004304A0()
             stModelInstance* mesh =
                 static_cast<stModelInstance*>(g_world->psrMeshes[submesh->mesh_04]);
             if (mesh != 0) {
-                mesh->setFlag(srNode::FLAG_POSITIONAL_0);
-                mesh->setFlag(srNode::FLAG_POSITIONAL_1);
+                mesh->setFlag(srNode::FLAG_OMIT_SELF);
+                mesh->setFlag(srNode::FLAG_SKIP_CHILDREN);
             }
         }
         bit = m_previous_regions_164->NextSetBit(0);
@@ -236,8 +236,8 @@ void W8Octree::UpdateVisibility004304A0()
             submesh->flags_00 |= 0x28;
             stModelInstance* mesh = static_cast<stModelInstance*>(g_world->psrMeshes[mesh_index]);
             if (mesh != 0) {
-                mesh->clearFlag(srNode::FLAG_POSITIONAL_0);
-                mesh->clearFlag(srNode::FLAG_POSITIONAL_1);
+                mesh->clearFlag(srNode::FLAG_OMIT_SELF);
+                mesh->clearFlag(srNode::FLAG_SKIP_CHILDREN);
             }
         }
         MarkMeshLinksVisible00430A70(bit);
@@ -820,8 +820,8 @@ void W8Octree::ToggleUpdateSuspension00434020(W8World* world)
     }
     g_octree_update_suspended_00659898 = (g_octree_update_suspended_00659898 == 0);
     if (g_octree_update_suspended_00659898 == 0) {
-        g_octree_trace_node_00659894->setFlag(srNode::FLAG_POSITIONAL_0);
-        g_octree_trace_node_00659894->setFlag(srNode::FLAG_POSITIONAL_1);
+        g_octree_trace_node_00659894->setFlag(srNode::FLAG_OMIT_SELF);
+        g_octree_trace_node_00659894->setFlag(srNode::FLAG_SKIP_CHILDREN);
         m_reset_visibility_168 = 1;
         MarkRendererReady();
         return;
@@ -831,9 +831,9 @@ void W8Octree::ToggleUpdateSuspension00434020(W8World* world)
             .mesh_04 = mesh_index;
         m_pSubmeshes[mesh_index + 1].flags_00 &= 0xffffffc7;
         static_cast<stModelInstance*>(world->psrMeshes[mesh_index])
-            ->setFlag(srNode::FLAG_POSITIONAL_0);
+            ->setFlag(srNode::FLAG_OMIT_SELF);
         static_cast<stModelInstance*>(world->psrMeshes[mesh_index])
-            ->setFlag(srNode::FLAG_POSITIONAL_1);
+            ->setFlag(srNode::FLAG_SKIP_CHILDREN);
     }
     memset(m_pfRegsVisited, 0, spatial_000.positional_58 + 1);
     if (g_octree_trace_node_00659894 == 0) {
@@ -841,8 +841,8 @@ void W8Octree::ToggleUpdateSuspension00434020(W8World* world)
         g_octree_trace_node_00659894->setParent(world->static_scene, 1);
         SetChainValue15C(reinterpret_cast<char*>(g_octree_trace_node_00659894), 2);
     }
-    g_octree_trace_node_00659894->clearFlag(srNode::FLAG_POSITIONAL_0);
-    g_octree_trace_node_00659894->clearFlag(srNode::FLAG_POSITIONAL_1);
+    g_octree_trace_node_00659894->clearFlag(srNode::FLAG_OMIT_SELF);
+    g_octree_trace_node_00659894->clearFlag(srNode::FLAG_SKIP_CHILDREN);
 }
 
 // FUNCTION: WIZ8 0x00434250

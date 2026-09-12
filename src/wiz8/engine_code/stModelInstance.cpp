@@ -267,9 +267,9 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         float basis_y;
         float basis_z;
 
-        renderer->matrixMode(srGERD::MATRIX_MODE_POSITIONAL_0);
+        renderer->matrixMode(srGERD::MATRIX_MODELVIEW);
         renderer->pushMatrix();
-        renderer->getMatrix(srGERD::MATRIX_MODE_POSITIONAL_0, view);
+        renderer->getMatrix(srGERD::MATRIX_MODELVIEW, view);
         world_location = getWorldSpaceLocation();
         world_scale = getWorldSpaceScale();
 

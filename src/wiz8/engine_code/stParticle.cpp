@@ -621,7 +621,7 @@ void stParticle::traverse(srNode::TraverseInfo& info)
         nextSibling()->traverse(info);
     }
 
-    if (!testFlag(FLAG_POSITIONAL_0)) {
+    if (!testFlag(FLAG_OMIT_SELF)) {
         if ((active_1a0 != 0 || active_particle_count_18c != 0) && flag_1a1 != 0) {
             srNode::TraverseInfo::Entry& entry = info.entries[info.entry_count];
             entry.node = this;
@@ -630,7 +630,7 @@ void stParticle::traverse(srNode::TraverseInfo& info)
         }
     }
 
-    if (!testFlag(FLAG_POSITIONAL_1) && firstChild() != 0) {
+    if (!testFlag(FLAG_SKIP_CHILDREN) && firstChild() != 0) {
         firstChild()->traverse(info);
     }
 }
@@ -858,45 +858,45 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     }
 
     renderer->pushEnable();
-    renderer->matrixMode(srGERD::MATRIX_MODE_POSITIONAL_0);
+    renderer->matrixMode(srGERD::MATRIX_MODELVIEW);
 
     srMatrix4T<float> view;
-    renderer->getMatrix(srGERD::MATRIX_MODE_POSITIONAL_0, view);
+    renderer->getMatrix(srGERD::MATRIX_MODELVIEW, view);
     view.Invert();
     PrepareRenderer00498DD0(view);
 
     if (value_138 != 0 && !renderer->isEnabled(srGERD::ENABLE_POSITIONAL_1)) {
         renderer->toggle(srGERD::ENABLE_POSITIONAL_1);
     }
-    renderer->setCullMode(srGERD::CULL_MODE_POSITIONAL_2);
+    renderer->setCullMode(srGERD::CULL_FRONT);
     renderer->setPickKey(0);
 
     srTriMeshPipeline* pipeline = srTriMeshPipeline::Get004750A0(renderer);
 
     /* Three array/count pairs: the index pairs rebuilt above, the polygon
        index list, and the transformed vertex positions. */
-    pipeline->value_2c = allocation_254;
-    pipeline->value_24 = active_particle_count_18c * 2;
-    pipeline->value_34 = allocation_168;
-    pipeline->value_1c = texture_frame_count_15c;
-    pipeline->value_38 = allocation_160;
-    pipeline->value_20 = vertex_count_158;
+    pipeline->active_triangles_2c = allocation_254;
+    pipeline->active_triangle_count_24 = active_particle_count_18c * 2;
+    pipeline->triangles_34 = allocation_168;
+    pipeline->triangle_count_1c = texture_frame_count_15c;
+    pipeline->positions_38 = allocation_160;
+    pipeline->vertex_count_20 = vertex_count_158;
     if (allocation_170 != 0) {
-        pipeline->value_3c = allocation_170;
+        pipeline->vertex_extras_3c = allocation_170;
     }
 
     pipeline->current_record_14->flags_00 = 0;
-    pipeline->current_pass_18->value_14 = 0;
-    pipeline->current_pass_18->value_0c = 0;
+    pipeline->current_pass_18->shader_14 = 0;
+    pipeline->current_pass_18->texture_array_0c = 0;
     pipeline->current_pass_18->value_10 = 0;
 
     if (allocation_16c != 0) {
-        pipeline->current_record_14->value_0c = allocation_16c;
-        pipeline->current_record_14->value_10 = 1;
+        pipeline->current_record_14->colors_0c = allocation_16c;
+        pipeline->current_record_14->color_format_10 = 1;
         pipeline->current_record_14->flags_00 |= 1;
     }
     if (allocation_174 != 0) {
-        pipeline->current_record_14->value_1c = allocation_174;
+        pipeline->current_record_14->alphas_1c = allocation_174;
         pipeline->current_record_14->flags_00 |= 8;
     }
 
@@ -908,18 +908,18 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     pipeline->SetFlags004752C0(render_flags_150);
 
     if (allocation_164 != 0) {
-        pipeline->current_record_14->value_20 = allocation_164;
+        pipeline->current_record_14->st0_20 = allocation_164;
         pipeline->current_record_14->flags_00 |= 0x10;
     }
 
     if (texture_frames_178 != 0) {
-        pipeline->current_pass_18->value_0c = texture_frames_178;
+        pipeline->current_pass_18->texture_array_0c = texture_frames_178;
     } else {
         srTextureIFace* texture = texture_154;
 
         if (texture != 0) {
-            pipeline->value_78 = texture;
-            pipeline->current_pass_18->value_00 = texture;
+            pipeline->texture_78 = texture;
+            pipeline->current_pass_18->texture_00 = texture;
         }
     }
 
