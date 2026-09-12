@@ -212,6 +212,9 @@ const char g_trap_inspection_sound_0064bcac[] = "Data\\Sound\\Misc\\Trap Inspect
 // GLOBAL: WIZ8 0x0064bab0
 const wchar_t g_format_d_percent_0064bab0[] = L"%d%%";
 
+// GLOBAL: WIZ8 0x006068e4
+const wchar_t g_format_s_006068e4[] = L"%s";
+
 // GLOBAL: WIZ8 0x005ec258
 const float g_float_005ec258 = 0.019999999552965164f;
 // GLOBAL: WIZ8 0x005eebbc
@@ -292,6 +295,95 @@ W8MainGameTextKeyHandler::W8MainGameTextKeyHandler(Controls* panel, int left, in
 
 // FUNCTION: WIZ8 0x00587e50
 W8MainGameTextKeyHandler::~W8MainGameTextKeyHandler() {}
+
+// FUNCTION: WIZ8 0x00587ea0
+void W8MainGameTextKeyHandler::Redraw(int full_redraw)
+{
+    int left;
+    int top;
+    int right;
+    int bottom;
+    int line;
+    int last;
+    unsigned short* colour;
+
+    if (!m_active) {
+        return;
+    }
+    if (!m_dirty && full_redraw == 0) {
+        return;
+    }
+    left = m_pPanel->origin_x + m_left;
+    top = m_pPanel->origin_y + m_top;
+    right = m_pPanel->origin_x + m_right;
+    bottom = m_pPanel->origin_y + m_bottom;
+    InvalidateRegion(left, top, right, bottom, 0);
+    BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
+    SetFont(g_font_683660);
+    last = m_field_0b8 + m_visible_lines_0a8;
+    left += 2;
+    top += 1;
+    for (line = m_field_0b8; line < last; ++line) {
+        if (line == m_field_0b0) {
+            colour = g_font_state_palettes_68ee1c[3];
+        } else if (line == m_field_0b4) {
+            colour = g_font_state_palettes_68ee1c[4];
+        } else {
+            colour = g_colour_68ee08;
+        }
+        SetFontObjectPalette16BPP(g_font_683660, colour);
+        mprintf(left, top, const_cast<wchar_t*>(g_format_s_006068e4),
+                gppStringList[m_field_0ac[line]]);
+        top += 0xe;
+    }
+    SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+    m_range_038.Invalidate(0);
+    m_dirty = 0;
+}
+
+// FUNCTION: WIZ8 0x00587ff0
+void W8MainGameTextKeyHandler::OnMouseLeave(int event)
+{
+    m_field_0b4 = -1;
+    Invalidate((unsigned char)event);
+}
+
+// FUNCTION: WIZ8 0x00588010
+void W8MainGameTextKeyHandler::OnMouseMove(int)
+{
+    POINT point;
+    int line;
+
+    SGPMouseGetPos(&point);
+    line = (point.y - m_pPanel->origin_y - m_top) / 0xe + m_field_0b8;
+    if (line != m_field_0b4) {
+        m_field_0b4 = line;
+        Invalidate(0);
+    }
+}
+
+// FUNCTION: WIZ8 0x00588070
+void W8MainGameTextKeyHandler::AdjustValue(int steps)
+{
+    if (steps > 0) {
+        for (; steps > 0; --steps) {
+            m_range_038.Decrement();
+        }
+    } else {
+        for (; steps < 0; ++steps) {
+            m_range_038.Increment();
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005880b0
+void W8MainGameTextKeyHandler::OnLeftButtonUp(int)
+{
+    POINT point;
+
+    SGPMouseGetPos(&point);
+    SetSelectedLine((point.y - m_pPanel->origin_y - m_top) / 0xe + m_field_0b8);
+}
 
 // FUNCTION: WIZ8 0x00588100
 void W8MainGameTextKeyHandler::SetSelectedLine(int line)
