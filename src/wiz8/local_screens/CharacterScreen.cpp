@@ -197,7 +197,7 @@ void W8CharacterScreen::UpdateDialog()
             Function52DDD0();
             if (Function52E750() == 0 &&
                 static_cast<W8ModalDialogBase*>(m_dialog_1b1c)->close_result) {
-                m_dialog_1b1c->m_field_41 = 0;
+                m_dialog_1b1c->m_keep_open = 0;
             }
         }
         if (m_dialog_1b1c->ProcessInput() == 0) {

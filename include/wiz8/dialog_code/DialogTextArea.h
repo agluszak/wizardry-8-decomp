@@ -14,8 +14,8 @@
    the entries. visible_lines references entries selected/ordered from it. */
 class W8DialogTextArea {
 public:
-    W8DialogTextArea();           /* 0x005D14D0 */
-    ~W8DialogTextArea();          /* 0x005D1590 */
+    W8DialogTextArea();  /* 0x005D14D0 */
+    ~W8DialogTextArea(); /* 0x005D1590 */
     void Configure(const W8ControlsRect* bounds, int font, unsigned int flags);
     void Draw(unsigned char force);
     void SetFirstVisibleLine(int line);
@@ -35,8 +35,8 @@ public:
     W8DialogTextEntry* GetEntry(unsigned int index);
     int GetOwningEntryIndex(int visible_index);
     void SetEntryState60(int index, unsigned char state);
-    int AddEntry(const wchar_t* prefix, const wchar_t* text,
-                 unsigned int prefix_palette, unsigned int text_palette, unsigned char category);
+    int AddEntry(const wchar_t* prefix, const wchar_t* text, unsigned int prefix_palette,
+                 unsigned int text_palette, unsigned char category);
     void RemoveEntry(unsigned int index);
     void RebuildVisibleEntries();
     void SetCategoryFilter(signed char category);
@@ -46,23 +46,23 @@ public:
     void SetFirstVisibleEntry(unsigned int index);
 
 private:
-    W8ControlsRect m_bounds;              /* 0x00: passed to entry construction */
-    int unknown_010;
-    int unknown_014;
-    int unknown_018;
-    W8GrowableVector<W8DialogTextEntry*> m_all_lines_01c;     /* owns entries */
+    W8ControlsRect m_bounds;                              /* 0x00: passed to entry construction */
+    int m_font;                                           /* 0x10 */
+    int m_first_visible_entry;                            /* 0x14 */
+    int m_first_visible_line;                             /* 0x18 */
+    W8GrowableVector<W8DialogTextEntry*> m_all_lines_01c; /* owns entries */
     W8GrowableVector<W8DialogTextEntry*> m_visible_lines_02c; /* non-owning view */
-    unsigned char unknown_03c;
+    unsigned char m_layout_initialized;                       /* 0x3c */
     unsigned char unknown_03d;
     unsigned char unknown_03e;
     unsigned char unknown_03f;
-    int unknown_040;
-    int unknown_044;
-    int unknown_048;
-    int unknown_04c;
-    int unknown_050;
-    unsigned char unknown_054;
-    signed char unknown_055;
-    unsigned char unknown_056;
+    int m_entry_spacing;             /* 0x40 */
+    int m_behavior_flags;            /* 0x44 */
+    int m_line_height_override;      /* 0x48 */
+    int m_selected_visible_entry;    /* 0x4c */
+    int m_state_5d_entry;            /* 0x50 */
+    unsigned char m_relayout_needed; /* 0x54 */
+    signed char m_category_filter;   /* 0x55 */
+    unsigned char m_sorted;          /* 0x56 */
     unsigned char unknown_057;
-};                                      /* modeled minimum 0x58 */
+}; /* modeled minimum 0x58 */

@@ -599,7 +599,7 @@ unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character)
     RebuildCharacterModifierBlock(character);
     CalcCharacterLevelBand(character);
     RefreshCharacterSkillAvailability00553CD0(character);
-    Function4ED9D0(character);
+    RecalculateCharacterDerivedStats(character);
     for (index = 1; index < 0x73; ++index) {
         if (source->spells[index - 1] != 0 && CanCharacterLearnSpell(character, index)) {
             LearnSpell(character, index, 0);

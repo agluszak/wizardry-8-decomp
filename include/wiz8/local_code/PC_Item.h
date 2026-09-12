@@ -15,7 +15,7 @@ extern const int g_equip_slot_icons[6];
 int GetItemInHand(void);
 
 void SetHandType(W8Character* character, unsigned int equip_slot);
-unsigned int Function520C70(int character_index);
+unsigned int GetEquipmentBindingDifficulty(int character_index);
 unsigned char CompatiblePartnerItems(int weapon_item_id, int off_hand_item_id); /* 0x0051C8F0 */
 bool ItemHasSingledOutGenericName(int item_id);
 int GetPairedEquipSlot(int equip_slot);

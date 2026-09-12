@@ -177,8 +177,8 @@ void InitializeCharacterLevelUp(W8Character* character, W8CharacterCreationState
     }
     CalcCharacterLevelBand(character);
     RecalculateCharacterHitPoints(character);
-    Function52A3E0(character);
-    Function52A500(character);
+    RecalculateCharacterStamina(character);
+    RecalculateResistanceBonusSkill(character);
     CalcArmorClasses(character);
     FinalizeSpellPointPool(character, creation_state);
 }
@@ -188,7 +188,7 @@ void InitializeCharacterLevelUp(W8Character* character, W8CharacterCreationState
    minimum five. */
 // FUNCTION: WIZ8 0x00557c90
 void ResetSkillContribution(W8Character* character, W8CharacterCreationState* creation_state,
-                    int skill_id)
+                            int skill_id)
 {
     character->skills[skill_id].flag_00 = 1;
     creation_state->skill_points_spent[skill_id] = 0;
@@ -211,7 +211,7 @@ void ResetSkillContribution(W8Character* character, W8CharacterCreationState* cr
    value the assignment gave it. */
 // FUNCTION: WIZ8 0x00557d20
 void RefundSkillAllocation(W8Character* character, W8CharacterCreationState* creation_state,
-                    int skill_id)
+                           int skill_id)
 {
     int spent = creation_state->skill_points_spent[skill_id];
     if (spent > 0) {
@@ -230,7 +230,7 @@ void Function557AE0(W8Character* character, W8CharacterCreationState* creation_s
     for (int index = 0; index < 7; ++index) {
         if (creation_state->attribute_values_008[index] > 0) {
             AdjustAllocatedAttribute(character, creation_state, index,
-                           -creation_state->attribute_values_008[index]);
+                                     -creation_state->attribute_values_008[index]);
         }
     }
 }
@@ -246,8 +246,7 @@ void RecomputeAttributeLimits(W8Character* character, W8CharacterCreationState* 
 
     if (points < 0) {
         step = 0;
-    }
-    else {
+    } else {
         for (index = 0; index < 7; ++index) {
             points += creation_state->attribute_baselines_048[index];
         }
@@ -260,16 +259,16 @@ void RecomputeAttributeLimits(W8Character* character, W8CharacterCreationState* 
 
     for (index = 0; index < 7; ++index) {
         int limit = step - creation_state->attribute_baselines_048[index];
-        int cap = (creation_state->attribute_values_008[index] -
-                   character->attributes[index].value) + 100;
+        int cap =
+            (creation_state->attribute_values_008[index] - character->attributes[index].value) +
+            100;
         int value = limit;
         if (cap <= limit) {
             value = cap;
         }
         if (value < 0) {
             limit = 0;
-        }
-        else if (cap <= limit) {
+        } else if (cap <= limit) {
             limit = cap;
         }
         creation_state->attribute_limits_028[index] = limit;
@@ -321,23 +320,22 @@ void ClampAttributesToBudget(W8Character* character, W8CharacterCreationState* c
             }
         }
     }
-    creation_state->attribute_points_remaining =
-        creation_state->attribute_points_total - total;
+    creation_state->attribute_points_remaining = creation_state->attribute_points_total - total;
 }
 
 /* Top the character's attributes up to the profession's minimums, or hand the
    shortfall to 0x00557200 when the pool cannot cover it. A level-one character
    also gets the value/baseline bookkeeping the creation flow expects. */
 // FUNCTION: WIZ8 0x00557890
-void ApplyProfessionMinimumAttributes(W8Character* character, W8CharacterCreationState* creation_state)
+void ApplyProfessionMinimumAttributes(W8Character* character,
+                                      W8CharacterCreationState* creation_state)
 {
     int deficits[7];
     int index;
 
     character->attribute_point_deficit_0199 = 0;
     for (index = 0; index < 7; ++index) {
-        int deficit = g_profession_attribute_minimums[character->current_profession]
-                          .values[index] -
+        int deficit = g_profession_attribute_minimums[character->current_profession].values[index] -
                       character->attributes[index].value;
         deficits[index] = deficit;
         if (deficit > 0) {
@@ -345,8 +343,7 @@ void ApplyProfessionMinimumAttributes(W8Character* character, W8CharacterCreatio
         }
     }
 
-    if (creation_state->attribute_points_total +
-            character->attribute_point_deficit_0199 < 0) {
+    if (creation_state->attribute_points_total + character->attribute_point_deficit_0199 < 0) {
         PayDownAttributeDebt(character, creation_state);
         return;
     }
@@ -357,19 +354,17 @@ void ApplyProfessionMinimumAttributes(W8Character* character, W8CharacterCreatio
         int deficit = deficits[index];
         if (deficit < 1) {
             if (character->level > 1) {
-                int minimum = g_profession_attribute_minimums[
-                                  character->current_profession].values[index];
+                int minimum =
+                    g_profession_attribute_minimums[character->current_profession].values[index];
                 int value = creation_state->attribute_values_008[index];
-                while (character->attributes[index].value - value <
-                       (unsigned int)minimum) {
+                while (character->attributes[index].value - value < (unsigned int)minimum) {
                     creation_state->attribute_values_008[index] = value - 1;
                     --creation_state->attribute_points_total;
                     ++creation_state->attribute_baselines_048[index];
                     value = creation_state->attribute_values_008[index];
                 }
             }
-        }
-        else {
+        } else {
             character->attributes[index].value += deficit;
             character->attributes[index].effective += deficit;
             creation_state->attribute_points_total -= deficit;
@@ -389,7 +384,7 @@ void PayDownAttributeDebt(W8Character* character, W8CharacterCreationState* crea
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
-/* Retail compiled this comparison with VC6's mixed-sign operands; the
+    /* Retail compiled this comparison with VC6's mixed-sign operands; the
    signedness is part of the recovered body and changing it would change
    the compare and branch. Suppress only this diagnostic here. */
     int deficits[7][2];
@@ -397,8 +392,7 @@ void PayDownAttributeDebt(W8Character* character, W8CharacterCreationState* crea
 
     int total = 0;
     for (index = 0; index < 7; ++index) {
-        int minimum = g_profession_attribute_minimums[character->current_profession]
-                          .values[index];
+        int minimum = g_profession_attribute_minimums[character->current_profession].values[index];
         int deficit = 0;
         if (character->attributes[index].value < minimum) {
             deficit = minimum - character->attributes[index].value;
@@ -417,8 +411,7 @@ void PayDownAttributeDebt(W8Character* character, W8CharacterCreationState* crea
         if (deficits[index][0] < 1 ||
             (index != 6 && deficits[index][0] <= deficits[index + 1][0])) {
             index = (index + 1) % 7;
-        }
-        else {
+        } else {
             int attribute = deficits[index][1];
             ++character->attributes[attribute].value;
             ++character->attributes[attribute].effective;
@@ -431,10 +424,8 @@ void PayDownAttributeDebt(W8Character* character, W8CharacterCreationState* crea
         }
     }
     if (character->attribute_point_deficit_0199 >= 0) {
-        if (creation_state->attribute_points_total <
-            creation_state->attribute_points_remaining) {
-            creation_state->attribute_points_remaining =
-                creation_state->attribute_points_total;
+        if (creation_state->attribute_points_total < creation_state->attribute_points_remaining) {
+            creation_state->attribute_points_remaining = creation_state->attribute_points_total;
         }
         return;
     }
@@ -448,8 +439,7 @@ void PayDownAttributeDebt(W8Character* character, W8CharacterCreationState* crea
    needs the matching sex, and every other one has to clear the
    profession's minimums within the remaining pool and limits. */
 // FUNCTION: WIZ8 0x00557350
-void DetermineEligibleProfessions(W8Character* character,
-                                  W8CharacterCreationState* creation_state,
+void DetermineEligibleProfessions(W8Character* character, W8CharacterCreationState* creation_state,
                                   unsigned char* eligibility)
 {
     int attribute;
@@ -458,17 +448,13 @@ void DetermineEligibleProfessions(W8Character* character,
         eligibility[profession] = 1;
         if (profession == (unsigned int)character->current_profession) {
             eligibility[profession] = 1;
-        }
-        else if (profession == W8_PROFESSION_VALKYRIE &&
-                 character->gender != W8_GENDER_FEMALE) {
+        } else if (profession == W8_PROFESSION_VALKYRIE && character->gender != W8_GENDER_FEMALE) {
             eligibility[W8_PROFESSION_VALKYRIE] = 0;
-        }
-        else {
+        } else {
             int deficit = 0;
             for (attribute = 0; attribute < 7; ++attribute) {
-                int difference =
-                    g_profession_attribute_minimums[profession].values[attribute] -
-                    character->attributes[attribute].value;
+                int difference = g_profession_attribute_minimums[profession].values[attribute] -
+                                 character->attributes[attribute].value;
                 if (difference > 0) {
                     deficit -= difference;
                 }
@@ -480,8 +466,7 @@ void DetermineEligibleProfessions(W8Character* character,
                 if ((unsigned int)(creation_state->attribute_limits_028[attribute] -
                                    creation_state->attribute_values_008[attribute]) +
                         character->attributes[attribute].value <
-                    (unsigned int)g_profession_attribute_minimums[profession]
-                        .values[attribute]) {
+                    (unsigned int)g_profession_attribute_minimums[profession].values[attribute]) {
                     eligibility[profession] = 0;
                     break;
                 }
@@ -494,7 +479,7 @@ void DetermineEligibleProfessions(W8Character* character,
    the creation flow: never below zero, never above the pool or the limit. */
 // FUNCTION: WIZ8 0x005579e0
 void AdjustAllocatedAttribute(W8Character* character, W8CharacterCreationState* creation_state,
-                    int attribute, int modifier)
+                              int attribute, int modifier)
 {
     int value = creation_state->attribute_values_008[attribute];
     if (value + modifier < 0) {
@@ -526,10 +511,10 @@ void AdjustAllocatedAttribute(W8Character* character, W8CharacterCreationState* 
     creation_state->attributes_complete = 1;
 complete:
     RecalculateCharacterHitPoints(character);
-    Function52A3E0(character);
+    RecalculateCharacterStamina(character);
     RecalculateCarryingCapacity004EDC10(character);
     RecalculateCarriedWeight(character);
-    Function52A500(character);
+    RecalculateResistanceBonusSkill(character);
     CalcArmorClasses(character);
     RecalculateCharacterResistances(character);
     if (character->level == 1) {
@@ -554,16 +539,15 @@ void RecomputeSkillLimits(W8Character* character, W8CharacterCreationState* crea
             creation_state->skill_limits[index] = 0;
             continue;
         }
-        int limit = (creation_state->skill_points_spent[index] -
-                     character->skills[index].value_02) + 0x4b;
+        int limit =
+            (creation_state->skill_points_spent[index] - character->skills[index].value_02) + 0x4b;
         int value = step;
         if (limit <= step) {
             value = limit;
         }
         if (value < 0) {
             creation_state->skill_limits[index] = 0;
-        }
-        else {
+        } else {
             if (step < limit) {
                 limit = step;
             }
@@ -608,12 +592,10 @@ void ClampSkillsToBudget(W8Character* character, W8CharacterCreationState* creat
             }
         }
     }
-    creation_state->skill_points_remaining =
-        creation_state->skill_points_total - total;
+    creation_state->skill_points_remaining = creation_state->skill_points_total - total;
     if (creation_state->skill_points_remaining > 0) {
         for (index = 0; index < 0x29; ++index) {
-            if (creation_state->skill_points_spent[index] <
-                creation_state->skill_limits[index]) {
+            if (creation_state->skill_points_spent[index] < creation_state->skill_limits[index]) {
                 creation_state->skills_complete = 0;
                 return;
             }
@@ -628,16 +610,13 @@ void ClampSkillsToBudget(W8Character* character, W8CharacterCreationState* creat
 // FUNCTION: WIZ8 0x00558070
 void FinalizeSpellPointPool(W8Character* character, W8CharacterCreationState* creation_state)
 {
-    int spent = creation_state->spell_points_total -
-                creation_state->spell_points_remaining;
+    int spent = creation_state->spell_points_total - creation_state->spell_points_remaining;
     if (GetProfessionCasterLevel(character, -1) < 1) {
         creation_state->spell_points_total = 0;
-    }
-    else {
+    } else {
         if (character->level == 1) {
             creation_state->magic_skill_bonus = 2;
-        }
-        else {
+        } else {
             creation_state->magic_skill_bonus = 1;
         }
         creation_state->magic_skill_bonus += g_spell_point_bonus_0068de30;
@@ -664,8 +643,7 @@ void FinalizeSpellPointPool(W8Character* character, W8CharacterCreationState* cr
             }
         }
     }
-    creation_state->spell_points_remaining =
-        creation_state->spell_points_total - spent;
+    creation_state->spell_points_remaining = creation_state->spell_points_total - spent;
     if (creation_state->spell_points_remaining > 0) {
         creation_state->spells_complete = 0;
         return;
@@ -680,18 +658,15 @@ int CountRemainingSpellPoints(W8Character* character, W8CharacterCreationState* 
 {
     int available = 0;
     int index;
-    int spent = creation_state->spell_points_total -
-                creation_state->spell_points_remaining;
+    int spent = creation_state->spell_points_total - creation_state->spell_points_remaining;
 
     if (creation_state->spell_points_total < 1) {
         for (index = 0; index < 0x72; ++index) {
-            if (character->spell_learned[index] == -1 ||
-                character->spell_learned[index] == 2) {
+            if (character->spell_learned[index] == -1 || character->spell_learned[index] == 2) {
                 character->spell_learned[index] = 0;
             }
         }
-    }
-    else {
+    } else {
         for (index = 0; index < 4; ++index) {
             int skill = 0x18 + index;
             int points = creation_state->skill_points_spent[skill];
@@ -712,8 +687,7 @@ int CountRemainingSpellPoints(W8Character* character, W8CharacterCreationState* 
                         ++creation_state->spell_points_remaining;
                     }
                     character->spell_learned[index] = 0;
-                }
-                else {
+                } else {
                     if (character->spell_learned[index] != 2) {
                         character->spell_learned[index] = -1;
                     }
@@ -742,13 +716,10 @@ int CountRemainingSpellPoints(W8Character* character, W8CharacterCreationState* 
             remaining = 0;
         }
         creation_state->spell_points_remaining = remaining;
+    } else {
+        creation_state->spell_points_remaining = creation_state->spell_points_total - spent;
     }
-    else {
-        creation_state->spell_points_remaining =
-            creation_state->spell_points_total - spent;
-    }
-    if (creation_state->spell_points_total != 0 &&
-        creation_state->spell_points_remaining != 0) {
+    if (creation_state->spell_points_total != 0 && creation_state->spell_points_remaining != 0) {
         creation_state->spells_complete = 0;
         return available;
     }
@@ -795,8 +766,7 @@ void RebuildSkillAllocations(W8Character* character, W8CharacterCreationState* c
     character->skills[bonus_skill].value_02 = value;
     character->skills[bonus_skill].level = value;
     for (index = 0; index < 0x29; ++index) {
-        character->skills[index].value_02 +=
-            creation_state->skill_points_spent[index];
+        character->skills[index].value_02 += creation_state->skill_points_spent[index];
         character->skills[index].level = character->skills[index].value_02;
     }
     character->skills[bonus_skill].level += GetSkillQuarterValue00553EE0(character, bonus_skill);
@@ -828,16 +798,15 @@ int ComputeLevelUpSpellPointAward(W8Character* character, W8CharacterCreationSta
                     }
                 }
             }
-            Function52A500(character);
+            RecalculateResistanceBonusSkill(character);
             int pools[6][2];
             for (index = 0; index < 6; ++index) {
                 pools[index][0] = character->sp_max[index];
                 pools[index][1] = index;
             }
             qsort(pools, 6, 8, CompareSignedDescending);
-            int count = creation_state->spell_points_total < 7
-                            ? creation_state->spell_points_total
-                            : 6;
+            int count =
+                creation_state->spell_points_total < 7 ? creation_state->spell_points_total : 6;
             for (index = 0; index < count; ++index) {
                 total += character->sp_max[pools[index][1]];
             }
@@ -845,7 +814,7 @@ int ComputeLevelUpSpellPointAward(W8Character* character, W8CharacterCreationSta
                 for (index = 0; index < 0x72; ++index) {
                     character->spell_learned[index] = saved[index];
                 }
-                Function52A500(character);
+                RecalculateResistanceBonusSkill(character);
             }
         }
         return total;
@@ -859,8 +828,9 @@ int ComputeLevelUpSpellPointAward(W8Character* character, W8CharacterCreationSta
 /* Recompute the level-up pools after a profession change, refunding every
    baseline the previous profession's assignment had granted. */
 // FUNCTION: WIZ8 0x00557060
-void RebuildLevelUpPoolsForProfession(W8Character* character, W8CharacterCreationState* creation_state,
-                    W8Profession profession)
+void RebuildLevelUpPoolsForProfession(W8Character* character,
+                                      W8CharacterCreationState* creation_state,
+                                      W8Profession profession)
 {
     int index;
 
@@ -875,8 +845,7 @@ void RebuildLevelUpPoolsForProfession(W8Character* character, W8CharacterCreatio
             g_gender_locked_0068de34 = 1;
             character->gender = W8_GENDER_FEMALE;
         }
-    }
-    else if (g_gender_locked_0068de34) {
+    } else if (g_gender_locked_0068de34) {
         g_gender_locked_0068de34 = 0;
         character->gender = W8_GENDER_MALE;
     }
@@ -910,8 +879,7 @@ void RebuildLevelUpPoolsForProfession(W8Character* character, W8CharacterCreatio
         for (index = 0; index < 4; ++index) {
             int skill = g_profession_skills[character->current_profession][index];
             int value = character->skills[skill].value_02;
-            int missing =
-                (creation_state->skill_points_spent[skill] - value) + 5;
+            int missing = (creation_state->skill_points_spent[skill] - value) + 5;
             if (missing > 0) {
                 character->skills[skill].value_02 = value + missing;
                 character->skills[skill].level += missing;
@@ -923,8 +891,7 @@ void RebuildLevelUpPoolsForProfession(W8Character* character, W8CharacterCreatio
 }
 
 // FUNCTION: WIZ8 0x005571c0
-void Function5571C0(W8Character* character, W8CharacterCreationState* creation_state,
-                    int race)
+void Function5571C0(W8Character* character, W8CharacterCreationState* creation_state, int race)
 {
     character->race = race;
     ApplyRaceProfessionTables(character, creation_state);
@@ -948,18 +915,15 @@ void ApplyRaceProfessionTables(W8Character* character, W8CharacterCreationState*
         if (character->current_profession != -1) {
             for (index = 0; index < 7; ++index) {
                 unsigned int minimum =
-                    g_profession_attribute_minimums[character->current_profession]
-                        .values[index];
+                    g_profession_attribute_minimums[character->current_profession].values[index];
                 character->attributes[index].value = minimum;
                 character->attributes[index].effective = minimum;
             }
         }
-    }
-    else {
+    } else {
         if (character->level == 1) {
             for (index = 0; index < 7; ++index) {
-                unsigned int minimum = g_race_attribute_minimums[character->race]
-                                           .values[index];
+                unsigned int minimum = g_race_attribute_minimums[character->race].values[index];
                 character->attributes[index].value = minimum;
                 character->attributes[index].effective = minimum;
             }
@@ -980,8 +944,7 @@ void ApplyRaceProfessionTables(W8Character* character, W8CharacterCreationState*
                     character->attributes[index].value +=
                         creation_state->attribute_values_008[index];
                 }
-            }
-            else {
+            } else {
                 ApplyProfessionMinimumAttributes(character, creation_state);
             }
             RefreshCharacterSkillAvailability00553CD0(character);
@@ -993,15 +956,14 @@ void ApplyRaceProfessionTables(W8Character* character, W8CharacterCreationState*
         }
         if (character->level == 1) {
             for (index = 0; index < 7; ++index) {
-                character->attributes[index].effective =
-                    character->attributes[index].value;
+                character->attributes[index].effective = character->attributes[index].value;
             }
         }
         RecalculateCharacterHitPoints(character);
-        Function52A3E0(character);
+        RecalculateCharacterStamina(character);
         RecalculateCarryingCapacity004EDC10(character);
         RecalculateCarriedWeight(character);
-        Function52A500(character);
+        RecalculateResistanceBonusSkill(character);
         CalcArmorClasses(character);
     }
     RecalculateCharacterResistances(character);
@@ -1020,8 +982,9 @@ void ApplyRaceProfessionTables(W8Character* character, W8CharacterCreationState*
 /* The level-up attribute editor's pool is fixed by the profession minimums,
    so the deficit sweep runs before the skill pass. */
 // FUNCTION: WIZ8 0x00557bc0
-void InitializeLevelUpAttributePool(W8Character* character, W8CharacterCreationState* creation_state,
-                    unsigned int skill, int modifier)
+void InitializeLevelUpAttributePool(W8Character* character,
+                                    W8CharacterCreationState* creation_state, unsigned int skill,
+                                    int modifier)
 {
     int spent = creation_state->skill_points_spent[skill];
     if (spent + modifier < 0) {
@@ -1043,8 +1006,7 @@ void InitializeLevelUpAttributePool(W8Character* character, W8CharacterCreationS
 
     if (creation_state->skill_points_remaining > 0) {
         for (int index = 0; index < 0x29; ++index) {
-            if (creation_state->skill_points_spent[index] <
-                creation_state->skill_limits[index]) {
+            if (creation_state->skill_points_spent[index] < creation_state->skill_limits[index]) {
                 creation_state->skills_complete = 0;
                 goto complete;
             }
@@ -1072,19 +1034,17 @@ void Function557580(W8Character* character, W8CharacterCreationState* creation_s
     unsigned int realm;
     unsigned int spell;
 
-    Function4ED9D0(character);
+    RecalculateCharacterDerivedStats(character);
     if (give_starting_equipment) {
         AddCharacterStartingEquipment(character);
     }
 
     if (character->current_profession == 0xc) {
         character->unknown_1860 += creation_state->magic_skill_bonus;
-    }
-    else {
+    } else {
         for (realm = 0x18; realm <= 0x1b; ++realm) {
             if (character->skills[realm].flag_00 != 0) {
-                character->skill_costs_185c[realm - 0x18] +=
-                    creation_state->magic_skill_bonus;
+                character->skill_costs_185c[realm - 0x18] += creation_state->magic_skill_bonus;
                 break;
             }
         }
@@ -1101,16 +1061,20 @@ void Function557580(W8Character* character, W8CharacterCreationState* creation_s
         for (realm = 0x18; realm <= 0x1b; ++realm) {
             switch (realm) {
             case 0x18:
-                if (g_spell_records[spell].wizardry_spell == 0) continue;
+                if (g_spell_records[spell].wizardry_spell == 0)
+                    continue;
                 break;
             case 0x19:
-                if (g_spell_records[spell].divinity_spell == 0) continue;
+                if (g_spell_records[spell].divinity_spell == 0)
+                    continue;
                 break;
             case 0x1a:
-                if (g_spell_records[spell].alchemy_spell == 0) continue;
+                if (g_spell_records[spell].alchemy_spell == 0)
+                    continue;
                 break;
             case 0x1b:
-                if (g_spell_records[spell].psionics_spell == 0) continue;
+                if (g_spell_records[spell].psionics_spell == 0)
+                    continue;
                 break;
             }
             if (character->skills[realm].flag_00 != 0 &&
@@ -1121,8 +1085,7 @@ void Function557580(W8Character* character, W8CharacterCreationState* creation_s
         }
         if (character->unknown_1860 > 0) {
             --character->unknown_1860;
-        }
-        else if (character->current_profession == 0xc) {
+        } else if (character->current_profession == 0xc) {
             for (realm = 0x18; realm <= 0x1b; ++realm) {
                 if (character->skills[realm].flag_00 != 0 &&
                     character->skill_costs_185c[realm - 0x18] > 0) {
@@ -1150,21 +1113,11 @@ void Function557580(W8Character* character, W8CharacterCreationState* creation_s
    own row last; -1 is an empty slot. */
 // GLOBAL: WIZ8 0x0061635c
 int g_starting_equipment_61635c[0x10][6] = {
-    {143, 153, 203, 246, -1, -1},
-    {35, 1, 158, 204, 247, 210},
-    {75, 170, 197, 246, 215, -1},
-    {110, 125, 157, 188, 247, -1},
-    {38, 49, 165, 192, 246, -1},
-    {105, 230, 180, 209, 253, -1},
-    {79, 105, 165, 192, 246, -1},
-    {0, 0, 99, 156, 187, 247},
-    {132, 156, 187, 246, -1, -1},
-    {769, 116, 132, 156, 187, -1},
-    {165, 192, 246, 335, -1, -1},
-    {28, 165, 192, 246, 350, -1},
-    {82, 165, 192, 246, 223, -1},
-    {0, 165, 192, 246, 347, -1},
-    {28, 165, 192, 246, 385, -1},
+    {143, 153, 203, 246, -1, -1},  {35, 1, 158, 204, 247, 210},  {75, 170, 197, 246, 215, -1},
+    {110, 125, 157, 188, 247, -1}, {38, 49, 165, 192, 246, -1},  {105, 230, 180, 209, 253, -1},
+    {79, 105, 165, 192, 246, -1},  {0, 0, 99, 156, 187, 247},    {132, 156, 187, 246, -1, -1},
+    {769, 116, 132, 156, 187, -1}, {165, 192, 246, 335, -1, -1}, {28, 165, 192, 246, 350, -1},
+    {82, 165, 192, 246, 223, -1},  {0, 165, 192, 246, 347, -1},  {28, 165, 192, 246, 385, -1},
     {63, 169, 196, 335, 358, 0},
 };
 
@@ -1193,8 +1146,7 @@ void AddCharacterStartingEquipment(W8Character* character)
     case 0:
         if (character->skills[1].level > character->skills[0].level) {
             ReplaceOrCreateItem(&item, 0x12, 1, 1, 1);
-        }
-        else {
+        } else {
             ReplaceOrCreateItem(&item, 7, 1, 1, 1);
         }
         break;
@@ -1207,8 +1159,7 @@ void AddCharacterStartingEquipment(W8Character* character)
     case 10:
         if (character->skills[5].level > character->skills[3].level) {
             ReplaceOrCreateItem(&item, 0x16, 1, 1, 1);
-        }
-        else {
+        } else {
             ReplaceOrCreateItem(&item, 0x52, 1, 1, 1);
         }
         break;

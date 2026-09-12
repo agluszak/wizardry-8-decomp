@@ -16,10 +16,10 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 
-/* The "carrying too much" event id in camp. Outside camp the live special
+/* The "carrying too much" camp event id. Outside camp the live special
    event slot supplies it instead. */
 // GLOBAL: WIZ8 0x005ee5a8
-int g_int_005ee5a8 = 8;
+int g_camp_overload_event_id = 8;
 
 /* Party encumbrance redistribution. The original translation-unit spelling is
    not established; this descriptive name is provisional. */
@@ -30,12 +30,11 @@ int g_int_005ee5a8 = 8;
    attacks and armor classes. A character whose profession, race or gender is
    still unset is left alone. */
 // FUNCTION: WIZ8 0x004ed9d0
-void Function4ED9D0(W8Character* character)
+void RecalculateCharacterDerivedStats(W8Character* character)
 {
     int index;
 
-    if (character->current_profession >= 0xf ||
-        character->race >= 0x10 ||
+    if (character->current_profession >= 0xf || character->race >= 0x10 ||
         character->gender == -1) {
         return;
     }
@@ -51,8 +50,8 @@ void Function4ED9D0(W8Character* character)
     ResetCharacterAttributes005539E0(character);
     ResetCharacterSkills00553A60(character);
     RecalculateCharacterHitPoints(character);
-    Function52A3E0(character);
-    Function52A500(character);
+    RecalculateCharacterStamina(character);
+    RecalculateResistanceBonusSkill(character);
     CalcArmorClasses(character);
     RebuildCharacterRegenRates00502B50(character);
 
@@ -67,12 +66,10 @@ void Function4ED9D0(W8Character* character)
     if (character->skills[0x25].flag_00 != 0) {
         character->damage_reduction += (character->skills[0x25].level >> 2) + 5;
     }
-    character->damage_reduction +=
-        character->bonus_1770.damage_reduction_adjustment;
+    character->damage_reduction += character->bonus_1770.damage_reduction_adjustment;
     RecalculateCharacterResistances(character);
 
-    int base = character->attributes[3].effective +
-               character->attributes[0].effective * 2;
+    int base = character->attributes[3].effective + character->attributes[0].effective * 2;
     unsigned int previous_capacity = character->carrying_capacity;
     unsigned int capacity = base * 0xc;
     if (CharacterHasTrait00547940(character, 0x18)) {
@@ -83,28 +80,22 @@ void Function4ED9D0(W8Character* character)
     bool recalculated = RecalculateCarriedWeight(character);
     if (g_status_685170.game_started == 0) {
         character->party_weight_share = 0;
-    }
-    else if (changed || recalculated) {
+    } else if (changed || recalculated) {
         Function4EDD20();
     }
-    character->total_carried_weight =
-        character->party_weight_share + character->inventory_weight;
+    character->total_carried_weight = character->party_weight_share + character->inventory_weight;
 
-    unsigned int load = (unsigned int)(character->total_carried_weight * 100) /
-                        character->carrying_capacity;
+    unsigned int load =
+        (unsigned int)(character->total_carried_weight * 100) / character->carrying_capacity;
     if (load < 0x32) {
         character->load_category = 0;
-    }
-    else if (load < 0x46) {
+    } else if (load < 0x46) {
         character->load_category = 1;
-    }
-    else if (load < 0x55) {
+    } else if (load < 0x55) {
         character->load_category = 2;
-    }
-    else if (load <= 100) {
+    } else if (load <= 100) {
         character->load_category = 3;
-    }
-    else {
+    } else {
         character->load_category = 4;
     }
 
@@ -123,8 +114,7 @@ void Function4ED9D0(W8Character* character)
 bool RecalculateCarryingCapacity004EDC10(W8Character* character)
 {
     unsigned int previous = character->carrying_capacity;
-    int base = character->attributes[3].effective +
-               character->attributes[0].effective * 2;
+    int base = character->attributes[3].effective + character->attributes[0].effective * 2;
     unsigned int capacity = base * 0xc;
     if (CharacterHasTrait00547940(character, 0x18)) {
         capacity = (unsigned int)(base * 0x18) / 3;
@@ -141,7 +131,7 @@ bool RecalculateCarriedWeight(W8Character* character)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
-/* Retail compiled this comparison with VC6's mixed-sign operands; the
+    /* Retail compiled this comparison with VC6's mixed-sign operands; the
    signedness is part of the recovered body and changing it would change
    the compare and branch. Suppress only this diagnostic here. */
     unsigned int previous = character->inventory_weight;
@@ -150,12 +140,11 @@ bool RecalculateCarriedWeight(W8Character* character)
         character->inventory_weight += GetItemStackWeight(&character->equipment[index]);
     }
     for (int backpack_index = 0; backpack_index < 8; ++backpack_index) {
-        character->inventory_weight +=
-            GetItemStackWeight(&character->backpack[backpack_index]);
+        character->inventory_weight += GetItemStackWeight(&character->backpack[backpack_index]);
     }
     if (previous < character->carrying_capacity &&
         character->carrying_capacity < character->inventory_weight) {
-        int effect = g_int_005ee5a8;
+        int effect = g_camp_overload_event_id;
         if (g_current_screen_state.id != W8_SCREEN_CAMP) {
             effect = g_special_event_0068c558;
         }
@@ -187,22 +176,16 @@ void Function4EDD20(void)
     for (slot = 0; slot < 8; ++slot) {
         W8Character* character = &characters[slot];
         character->party_weight_share = 0;
-        if (active[slot].occupied != 0 &&
-            character->unknown_0b01 < 0x12) {
+        if (active[slot].occupied != 0 && character->unknown_0b01 < 0x12) {
             capacity[slot] = character->carrying_capacity;
-            unassigned[slot] =
-                capacity[slot] - character->inventory_weight;
-            load_ratio[slot] =
-                (float)unassigned[slot] * 100.0f / (float)capacity[slot];
+            unassigned[slot] = capacity[slot] - character->inventory_weight;
+            load_ratio[slot] = (float)unassigned[slot] * 100.0f / (float)capacity[slot];
         }
     }
 
     unsigned int party_weight = 0;
-    for (slot = 0;
-         slot < (unsigned int)g_status_685170.party_item_count_1791;
-         ++slot) {
-        party_weight += GetItemStackWeight(
-            &g_status_685170.party_item_pool_0021[slot]);
+    for (slot = 0; slot < (unsigned int)g_status_685170.party_item_count_1791; ++slot) {
+        party_weight += GetItemStackWeight(&g_status_685170.party_item_pool_0021[slot]);
     }
 
     for (party_weight >>= 1; party_weight != 0; --party_weight) {
@@ -210,8 +193,7 @@ void Function4EDD20(void)
         float best_ratio = -999999.0f;
         for (slot = 0; slot < 8; ++slot) {
             W8Character* character = &characters[slot];
-            if (active[slot].occupied != 0 &&
-                character->unknown_0b01 < 0x12 &&
+            if (active[slot].occupied != 0 && character->unknown_0b01 < 0x12 &&
                 load_ratio[slot] > best_ratio) {
                 best_ratio = load_ratio[slot];
                 best_slot = slot;
@@ -223,9 +205,7 @@ void Function4EDD20(void)
         W8Character* character = &characters[best_slot];
         ++character->party_weight_share;
         --unassigned[best_slot];
-        load_ratio[best_slot] =
-            (float)unassigned[best_slot] * 100.0f /
-            (float)capacity[best_slot];
+        load_ratio[best_slot] = (float)unassigned[best_slot] * 100.0f / (float)capacity[best_slot];
     }
 
     for (slot = 0; slot < 8; ++slot) {
@@ -236,19 +216,15 @@ void Function4EDD20(void)
         int carried = character->inventory_weight + character->party_weight_share;
         character->total_carried_weight = carried;
         unsigned int percent =
-            (unsigned int)(carried * 100) /
-            (unsigned int)character->carrying_capacity;
+            (unsigned int)(carried * 100) / (unsigned int)character->carrying_capacity;
         int old_band = character->load_category;
         if (percent < 50) {
             character->load_category = 0;
-        }
-        else if (percent < 70) {
+        } else if (percent < 70) {
             character->load_category = 1;
-        }
-        else if (percent < 85) {
+        } else if (percent < 85) {
             character->load_category = 2;
-        }
-        else {
+        } else {
             character->load_category = (percent > 100) + 3;
         }
         if (old_band != character->load_category) {
@@ -264,9 +240,7 @@ void Function4EDD20(void)
             gXStatus.field_028 = false;
             return;
         }
-    }
-    else if (g_current_screen_state.id == W8_SCREEN_CAMP &&
-             g_camp_screen_0069c0f4 != 0) {
+    } else if (g_current_screen_state.id == W8_SCREEN_CAMP && g_camp_screen_0069c0f4 != 0) {
         g_camp_screen_0069c0f4->redraw_flags |= 0x2100;
     }
     gXStatus.field_028 = false;

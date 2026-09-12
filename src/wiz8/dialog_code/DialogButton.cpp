@@ -13,13 +13,12 @@
 // FUNCTION: WIZ8 0x005db4e0
 void W8DialogButton::Draw()
 {
-    if (m_dirty && m_resource_01c != -1) {
-        int left = GetButtonX(m_resource_01c);
-        int top = GetButtonY(m_resource_01c);
-        DrawButton(m_resource_01c);
-        InvalidateRegion(left, top,
-                            left + GetButtonWidth(m_resource_01c),
-                            top + GetButtonHeight(m_resource_01c), 0);
+    if (m_dirty && m_button_01c != -1) {
+        int left = GetButtonX(m_button_01c);
+        int top = GetButtonY(m_button_01c);
+        DrawButton(m_button_01c);
+        InvalidateRegion(left, top, left + GetButtonWidth(m_button_01c),
+                         top + GetButtonHeight(m_button_01c), 0);
         m_dirty = 0;
     }
 }
@@ -27,9 +26,8 @@ void W8DialogButton::Draw()
 // FUNCTION: WIZ8 0x005db550
 void W8DialogButton::SetPosition(int x, int y)
 {
-    if (m_resource_01c != -1 &&
-        (x != GetButtonX(m_resource_01c) || y != GetButtonY(m_resource_01c))) {
-        SetButtonPosition(m_resource_01c, static_cast<short>(x), static_cast<short>(y));
+    if (m_button_01c != -1 && (x != GetButtonX(m_button_01c) || y != GetButtonY(m_button_01c))) {
+        SetButtonPosition(m_button_01c, static_cast<short>(x), static_cast<short>(y));
         m_dirty = 1;
     }
 }
@@ -37,31 +35,31 @@ void W8DialogButton::SetPosition(int x, int y)
 // FUNCTION: WIZ8 0x005db5a0
 int W8DialogButton::GetWidth()
 {
-    return m_resource_01c != -1 ? GetButtonWidth(m_resource_01c) : 0;
+    return m_button_01c != -1 ? GetButtonWidth(m_button_01c) : 0;
 }
 
 // FUNCTION: WIZ8 0x005db5c0
 int W8DialogButton::GetHeight()
 {
-    return m_resource_01c != -1 ? GetButtonHeight(m_resource_01c) : 0;
+    return m_button_01c != -1 ? GetButtonHeight(m_button_01c) : 0;
 }
 
 // FUNCTION: WIZ8 0x005db5e0
 int W8DialogButton::GetX()
 {
-    return m_resource_01c != -1 ? GetButtonX(m_resource_01c) : 0;
+    return m_button_01c != -1 ? GetButtonX(m_button_01c) : 0;
 }
 
 // FUNCTION: WIZ8 0x005db600
 int W8DialogButton::GetY()
 {
-    return m_resource_01c != -1 ? GetButtonY(m_resource_01c) : 0;
+    return m_button_01c != -1 ? GetButtonY(m_button_01c) : 0;
 }
 
 // FUNCTION: WIZ8 0x005db8d0
 void W8DialogButton::SetEnabled(bool enabled)
 {
-    GUI_BUTTON* button = GetButtonPtr(m_resource_01c);
+    GUI_BUTTON* button = GetButtonPtr(m_button_01c);
     m_enabled_035 = enabled;
     if (button) {
         if (enabled) {
@@ -69,8 +67,7 @@ void W8DialogButton::SetEnabled(bool enabled)
                 button->uiFlags |= BUTTON_ENABLED;
                 m_dirty = 1;
             }
-        }
-        else if (button->uiFlags & BUTTON_ENABLED) {
+        } else if (button->uiFlags & BUTTON_ENABLED) {
             button->uiFlags &= ~BUTTON_ENABLED;
             m_dirty = 1;
         }
@@ -80,22 +77,21 @@ void W8DialogButton::SetEnabled(bool enabled)
 // FUNCTION: WIZ8 0x005db920
 bool W8DialogButton::IsEnabled()
 {
-    GUI_BUTTON* button = GetButtonPtr(m_resource_01c);
+    GUI_BUTTON* button = GetButtonPtr(m_button_01c);
     return button ? (button->uiFlags & BUTTON_ENABLED) != 0 : false;
 }
 
 // FUNCTION: WIZ8 0x005db950
 void W8DialogButton::SetPressed(bool pressed)
 {
-    GUI_BUTTON* button = GetButtonPtr(m_resource_01c);
+    GUI_BUTTON* button = GetButtonPtr(m_button_01c);
     if (button) {
         if (pressed) {
             if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
                 button->uiFlags |= BUTTON_CLICKED_ON;
                 m_dirty = 1;
             }
-        }
-        else if (button->uiFlags & BUTTON_CLICKED_ON) {
+        } else if (button->uiFlags & BUTTON_CLICKED_ON) {
             button->uiFlags &= ~BUTTON_CLICKED_ON;
             m_dirty = 1;
         }
@@ -105,20 +101,19 @@ void W8DialogButton::SetPressed(bool pressed)
 // FUNCTION: WIZ8 0x005db9a0
 unsigned char W8DialogButton::IsPressed()
 {
-    return static_cast<unsigned char>(GetButtonPtr(m_resource_01c)->uiFlags & BUTTON_CLICKED_ON);
+    return static_cast<unsigned char>(GetButtonPtr(m_button_01c)->uiFlags & BUTTON_CLICKED_ON);
 }
 
 // FUNCTION: WIZ8 0x005db9d0
 void W8DialogButton::SetVisible(bool visible)
 {
     if (visible) {
-        if (!(GetButtonPtr(m_resource_01c)->Area.uiFlags & MSYS_REGION_ENABLED)) {
-            ShowButton(m_resource_01c);
+        if (!(GetButtonPtr(m_button_01c)->Area.uiFlags & MSYS_REGION_ENABLED)) {
+            ShowButton(m_button_01c);
             MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, 0, 0, gfLeftButtonState, gfRightButtonState);
         }
-    }
-    else if (GetButtonPtr(m_resource_01c)->Area.uiFlags & MSYS_REGION_ENABLED) {
-        HideButton(m_resource_01c);
+    } else if (GetButtonPtr(m_button_01c)->Area.uiFlags & MSYS_REGION_ENABLED) {
+        HideButton(m_button_01c);
         MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, 0, 0, gfLeftButtonState, gfRightButtonState);
     }
 }
@@ -126,14 +121,14 @@ void W8DialogButton::SetVisible(bool visible)
 // FUNCTION: WIZ8 0x005dbaf0
 int W8DialogButton::GetUserData()
 {
-    return ButtonList[m_resource_01c]->UserData[1];
+    return ButtonList[m_button_01c]->UserData[1];
 }
 
 // FUNCTION: WIZ8 0x005db1b0
 W8DialogButton::W8DialogButton()
 {
-    m_resource_018 = -1;
-    m_resource_01c = -1;
+    m_image_018 = -1;
+    m_button_01c = -1;
     unknown_024 = 0;
     unknown_028 = 0;
     unknown_02c = 0;
@@ -160,12 +155,12 @@ W8DialogButton::W8DialogButton()
 // FUNCTION: WIZ8 0x005db260
 W8DialogButton::~W8DialogButton()
 {
-    if (m_resource_018 != -1) {
-        UnloadButtonImage(m_resource_018);
-        m_resource_018 = -1;
+    if (m_image_018 != -1) {
+        UnloadButtonImage(m_image_018);
+        m_image_018 = -1;
     }
-    if (m_resource_01c != -1) {
-        RemoveButton(m_resource_01c);
-        m_resource_01c = -1;
+    if (m_button_01c != -1) {
+        RemoveButton(m_button_01c);
+        m_button_01c = -1;
     }
 }

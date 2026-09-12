@@ -4,8 +4,8 @@
 // FUNCTION: WIZ8 0x005d6e60
 void W8MonsterInfoDialog::OnRightButtonUp()
 {
-    if (m_field_50) {
-        m_field_41 = 0;
+    if (m_right_button_down) {
+        m_keep_open = 0;
     }
 }
 

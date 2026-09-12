@@ -970,7 +970,7 @@ void RecalculateCharacterHitPoints(W8Character* character)
    fields are ints. The divisor is unguarded in retail; a zero ceiling would
    trap there too. */
 // FUNCTION: WIZ8 0x0052a3e0
-void Function52A3E0(W8Character* character)
+void RecalculateCharacterStamina(W8Character* character)
 {
     unsigned int previous = character->stamina_max;
     unsigned int value =
@@ -1009,7 +1009,7 @@ void Function52A3E0(W8Character* character)
 /* The resistance bonus skill (36) is derived only for the professions whose
    bodies can learn spells; a few fixed professions keep it at zero. */
 // FUNCTION: WIZ8 0x0052a500
-void Function52A500(W8Character* character)
+void RecalculateResistanceBonusSkill(W8Character* character)
 {
     int profession = character->current_profession;
     if (profession != 0 && (profession < 7 || profession > 9)) {

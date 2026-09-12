@@ -2131,7 +2131,7 @@ void SetHandType(W8Character* character, unsigned int slot)
    yet, in thirds rounded up. Cure spells consult it when the target's worn
    items ask for more power than the condition does. */
 // FUNCTION: WIZ8 0x00520C70
-unsigned int Function520C70(int character_index)
+unsigned int GetEquipmentBindingDifficulty(int character_index)
 {
     unsigned char max_difficulty = 0;
     W8ItemInstance* slot = g_status_685170.buffers.characters[character_index].equipment;

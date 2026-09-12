@@ -199,7 +199,7 @@ unsigned char MainMenuScreenEnter(void)
     if (pending != 0) {
         dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(0xfa, 200);
-        dialog->SetMessage((void*)pending, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
+        dialog->SetMessage(pending, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
         SetDialogDestroyCallback(dialog, 0);
         g_main_menu_dialog = dialog;
         delete[] g_pending_main_menu_message;
@@ -207,11 +207,9 @@ unsigned char MainMenuScreenEnter(void)
         return 1;
     }
     if (!HasEnoughFreeDiskSpace() && !g_main_menu_warning_shown) {
-        int message = *(int*)&gppStringList[0x1fb8 / 4];
-
         dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(0xfa, 200);
-        dialog->SetMessage((void*)message, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
+        dialog->SetMessage(gppStringList[0x1fb8 / 4], 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
         SetDialogDestroyCallback(dialog, 0);
         g_main_menu_warning_shown = 1;
         g_main_menu_dialog = dialog;

@@ -456,13 +456,13 @@ unsigned char W8Dialog005CBB40::ProcessInput()
         if (m_selected_line_0f4 != -1 &&
             IsCursorInRectangle(m_ok_rect_0c4.left, m_ok_rect_0c4.top, m_ok_rect_0c4.right,
                                 m_ok_rect_0c4.bottom)) {
-            m_field_41 = 0;
+            m_keep_open = 0;
             return 0;
         }
         if (IsCursorInRectangle(m_cancel_rect_0dc.left, m_cancel_rect_0dc.top,
                                 m_cancel_rect_0dc.right, m_cancel_rect_0dc.bottom)) {
             m_selected_line_0f4 = -1;
-            m_field_41 = 0;
+            m_keep_open = 0;
             return 0;
         }
     }
@@ -495,7 +495,7 @@ unsigned char W8Dialog005CBB40::ProcessInput()
             break;
         }
     }
-    return m_field_41;
+    return m_keep_open;
 }
 
 // FUNCTION: WIZ8 0x005cd700
@@ -728,7 +728,7 @@ unsigned char W8Dialog005D97D0::ProcessInput()
             break;
         }
     }
-    return m_field_41;
+    return m_keep_open;
 }
 
 /* The trigger-owned item picker. The thirteen same-sized button slots are
@@ -903,7 +903,7 @@ unsigned char W8Dialog005CD710::HandleInputEvent005CEC20(const InputAtom* input)
         }
         switch (toupper(input->usParam)) {
         case ESC:
-            m_field_41 = 0;
+            m_keep_open = 0;
             return 0;
         case VK_PRIOR: {
             int target = m_first_item_0a8 - 4;
@@ -911,7 +911,7 @@ unsigned char W8Dialog005CD710::HandleInputEvent005CEC20(const InputAtom* input)
                 target = 0;
             }
             SetFirstVisible(target);
-            return m_field_41;
+            return m_keep_open;
         }
         case VK_NEXT: {
             int target = m_first_item_0a8 + 4;
@@ -919,14 +919,14 @@ unsigned char W8Dialog005CD710::HandleInputEvent005CEC20(const InputAtom* input)
                 target = items_54.GetCount() - 4;
             }
             SetFirstVisible(target);
-            return m_field_41;
+            return m_keep_open;
         }
         case VK_END:
             SetFirstVisible(items_54.GetCount() - 4);
-            return m_field_41;
+            return m_keep_open;
         case VK_HOME:
             SetFirstVisible(0);
-            return m_field_41;
+            return m_keep_open;
         case '1':
         case '2':
         case '3':
@@ -944,7 +944,7 @@ unsigned char W8Dialog005CD710::HandleInputEvent005CEC20(const InputAtom* input)
                     if (index >= m_first_item_0a8 && index <= m_first_item_0a8 + 3) {
                         m_buttons_74[5 + index - m_first_item_0a8]->SetPressed(flag == 0);
                         m_buttons_74[5 + index - m_first_item_0a8]->m_dirty = 1;
-                        return m_field_41;
+                        return m_keep_open;
                     }
                 }
             }
@@ -954,7 +954,7 @@ unsigned char W8Dialog005CD710::HandleInputEvent005CEC20(const InputAtom* input)
             break;
         }
     }
-    return m_field_41;
+    return m_keep_open;
 }
 
 /* Move the trigger's whole item group into this picker, merging each item
@@ -1091,7 +1091,7 @@ unsigned char W8Dialog005CD710::ProcessInput()
             break;
         }
     }
-    return m_field_41;
+    return m_keep_open;
 }
 
 /* Draw the picker. Up to four item rows share the five buttons at the top of
