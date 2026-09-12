@@ -1001,6 +1001,18 @@ void RecountLearnedSpellsByRealm004F96A0(W8Character* character)
     }
 }
 
+/* Learned, and the remaining points in the spell's realm cover its cost. */
+// FUNCTION: WIZ8 0x004f9750
+char CanCharacterCastSpell(W8Character* character, int spell_id)
+{
+    if (spell_id != 0 && character->spell_learned[spell_id] == 1 &&
+        g_spell_records[spell_id].spell_point_cost <=
+            character->sp_left[g_spell_records[spell_id].realm]) {
+        return 1;
+    }
+    return 0;
+}
+
 /* Whether a character is far enough along to take one spell on. Their whole
    caster level - the current profession's plus every other one that shares the
    spell's book - fixes the highest spell level they could ever hold, and their

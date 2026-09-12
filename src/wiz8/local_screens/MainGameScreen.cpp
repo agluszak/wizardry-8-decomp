@@ -69,6 +69,13 @@
 #include "wiz8/local_screens/IntroScreen.h"
 #include "wiz8/local_screens/JournalScreen.h"
 #include "wiz8/engine_code/Prop.h"
+#include "wiz8/character.h"
+#include "wiz8/magic.h"
+#include "wiz8/float_constants.h"
+#include "wiz8/local_code/Traps.h"
+#include "wiz8/local_code/ButtonSound.h"
+#include "vobject_blitters.h"
+#include "random.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -174,6 +181,42 @@ unsigned char g_debug_monster_cycle_0068f0fc;
 // GLOBAL: WIZ8 0x0068f100
 W8IList* g_debug_monster_ids_0068f100;
 
+// GLOBAL: WIZ8 0x0068f2c8
+unsigned int g_main_game_text_panel_region_set_0068f2c8;
+// GLOBAL: WIZ8 0x0068f2cc
+unsigned int g_main_game_text_key_region_set_0068f2cc;
+// GLOBAL: WIZ8 0x0068f2d0
+unsigned int g_main_game_action_panel_region_set_0068f2d0;
+
+// GLOBAL: WIZ8 0x0061e9ec
+unsigned short g_value_0061e9ec[] = {
+    0x542, 0x543, 0x544, 0x545, 0x546, 0x547, 0x548, 0x549, 0x54a, 0x54b, 0x54c,
+    0x54d, 0x54e, 0x54f, 0x550, 0,     0x551, 0x552, 0x553, 0x554, 0x555, 0,
+    0x556, 0x557, 0x558, 0x559, 0x55a, 0x55b, 0x55c, 0x563, 0x56a, 0x55c,
+};
+
+// GLOBAL: WIZ8 0x006504e8
+int g_table_6504e8[] = {10, 25, 35, 40, 50, 60, 70, 80, 90, 100, 110, 121, 122, 123, 24, 47};
+
+// GLOBAL: WIZ8 0x0064bbac
+const char* g_trap_sounds_0064bbac[8] = {
+    "Data\\Sound\\Misc\\Trap 03.wav", "Data\\Sound\\Misc\\Trap 07.wav",
+    "Data\\Sound\\Misc\\Trap 01.wav", "Data\\Sound\\Misc\\Trap 05.wav",
+    "Data\\Sound\\Misc\\Trap 02.wav", "Data\\Sound\\Misc\\Trap 08.wav",
+    "Data\\Sound\\Misc\\Trap 06.wav", "Data\\Sound\\Misc\\Trap 04.wav",
+};
+
+// GLOBAL: WIZ8 0x0064bcac
+const char g_trap_inspection_sound_0064bcac[] = "Data\\Sound\\Misc\\Trap Inspection.wav";
+
+// GLOBAL: WIZ8 0x0064bab0
+const wchar_t g_format_d_percent_0064bab0[] = L"%d%%";
+
+// GLOBAL: WIZ8 0x005ec258
+const float g_float_005ec258 = 0.019999999552965164f;
+// GLOBAL: WIZ8 0x005eebbc
+const float g_float_005eebbc = 120.0f;
+
 // GLOBAL: WIZ8 0x00659c11
 unsigned char g_navigator_position_changed_659c11;
 
@@ -201,7 +244,6 @@ void Function562A80(void);
 void Function4916C0(void);
 unsigned char Function5684E0(void);
 void Function561330(unsigned char value);
-unsigned char GetFlag69DA6C(void);
 void Function57E0E0(int event, const POINT* point);
 void Function59B2D0(void);
 void Function5171C0(void);
@@ -220,6 +262,718 @@ unsigned char Function57E3C0(void);
 void Function587960(void)
 {
     Function586740();
+}
+
+// FUNCTION: WIZ8 0x00587cf0
+W8MainGameTextKeyHandler::W8MainGameTextKeyHandler(Controls* panel, int left, int top, int right,
+                                                   int bottom, int line_count,
+                                                   unsigned short* field_ac,
+                                                   unsigned int* region_set)
+    : W8Widget(panel, 0xffffffff, left, top, right - 0x13, bottom),
+      m_range_038(panel->origin_x - 0x12 + right, panel->origin_y + top, right + panel->origin_x,
+                  panel->origin_y + bottom, region_set)
+{
+    m_line_count_0a4 = line_count;
+    m_visible_lines_0a8 = (bottom - top) / 0xe;
+    m_field_0ac = field_ac;
+    m_field_0b0 = 0;
+    m_field_0b8 = 0;
+    m_range_listener_0bc = 0;
+    m_field_0b4 = -1;
+    m_range_038.m_listener = this;
+    m_range_038.SetRange(0, m_line_count_0a4 - m_visible_lines_0a8);
+    m_range_038.Invalidate(0);
+    m_range_038.SetEnabled(1);
+    m_range_038.SetRangeEnabled(1);
+}
+
+// SYNTHETIC: WIZ8 0x00587e30
+// W8MainGameTextKeyHandler::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x00587e50
+W8MainGameTextKeyHandler::~W8MainGameTextKeyHandler() {}
+
+// FUNCTION: WIZ8 0x00588100
+void W8MainGameTextKeyHandler::SetSelectedLine(int line)
+{
+    if (line == m_field_0b0) {
+        return;
+    }
+    m_field_0b0 = line;
+    Invalidate(0);
+    if (m_field_0b0 < m_range_038.m_value ||
+        m_field_0b0 >= m_range_038.m_value + m_visible_lines_0a8) {
+        int first = m_field_0b0;
+        if (m_field_0b0 >= m_range_038.m_value) {
+            first = m_field_0b0 - m_visible_lines_0a8 + 1;
+        }
+        m_field_0b8 = first;
+        m_range_038.SetValue(first);
+    }
+    if (m_range_listener_0bc != 0) {
+        m_range_listener_0bc->OnRangeChanged(&m_range_038);
+    }
+}
+
+// FUNCTION: WIZ8 0x00588170
+char W8MainGameTextKeyHandler::HandleKey(unsigned short key)
+{
+    int line;
+
+    switch (key) {
+    case 0x21:
+        line = m_field_0b0 - 5;
+        if (line < 0) {
+            line = 0;
+        }
+        SetSelectedLine(line);
+        return 1;
+    case 0x22:
+        line = m_field_0b0 + 5;
+        if (m_line_count_0a4 - 1 < line) {
+            line = m_line_count_0a4 - 1;
+        }
+        SetSelectedLine(line);
+        return 1;
+    case 0x23:
+        SetSelectedLine(m_line_count_0a4 - 1);
+        return 1;
+    case 0x24:
+        SetSelectedLine(0);
+        return 1;
+    case 0x26:
+        SetSelectedLine(m_field_0b0 - 1 < 0 ? 0 : m_field_0b0 - 1);
+        return 1;
+    case 0x28:
+        line = m_field_0b0 + 1;
+        if (m_line_count_0a4 - 1 < line) {
+            line = m_line_count_0a4 - 1;
+        }
+        SetSelectedLine(line);
+        return 1;
+    default:
+        return 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x00588240
+void W8MainGameTextKeyHandler::OnRangeChanged(W8RangeControl* control)
+{
+    m_field_0b8 = control->m_value;
+    Invalidate(0);
+}
+
+// FUNCTION: WIZ8 0x00588260
+W8MainGameTextEntry::W8MainGameTextEntry(Controls* panel, unsigned int index)
+{
+    int sprites = (int)(index * 4);
+    int left;
+    int top;
+
+    m_input_blocked_bc = 0;
+    m_imageFrame = 0;
+    m_image_b8 = -1;
+    m_alternatePressedSprite = -1;
+    m_normalSprite = sprites;
+    m_pressedSprite = sprites + 2;
+    m_imageObject = 0x1b2;
+    m_alternateNormalSprite = sprites + 1;
+    m_disabledSprite = sprites + 3;
+    MeasureText004F4800();
+    left = (int)(index % 4) * 0x1e + 0xd;
+    top = (int)(index / 4) * 0x32 + 8;
+    m_left = left;
+    m_right = m_measured_w + left;
+    m_bottom = m_measured_h + top;
+    m_top = top;
+    SetPanel(panel);
+    AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlMask005ED578);
+}
+
+// SYNTHETIC: WIZ8 0x00588350
+// W8MainGameTextEntry::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x00588370
+W8MainGameTextEntry::~W8MainGameTextEntry() {}
+
+// FUNCTION: WIZ8 0x005883c0
+void W8MainGameTextEntry::Redraw(int full_redraw)
+{
+    bool dirty = m_dirty;
+    int image;
+
+    W8TextControl::Redraw(full_redraw);
+    if (!m_active) {
+        return;
+    }
+    if (!dirty && full_redraw == 0) {
+        return;
+    }
+    image = m_image_b8;
+    if (image == 0) {
+        DrawCatalogImage(-14, 0x1b3, 0, 2, m_pPanel->origin_x + m_left, m_pPanel->origin_y + m_top,
+                         2, 0);
+    } else if (image == 1) {
+        DrawCatalogImage(-14, 0x1b3, 0, 0, m_pPanel->origin_x + m_left, m_pPanel->origin_y + m_top,
+                         2, 0);
+    } else if (image == 2) {
+        DrawCatalogImage(-14, 0x1b3, 0, 1, m_pPanel->origin_x + m_left, m_pPanel->origin_y + m_top,
+                         2, 0);
+    }
+}
+
+// FUNCTION: WIZ8 0x00588440
+void W8MainGameTextEntry::OnLeftButtonDown(int event)
+{
+    if (m_input_blocked_bc) {
+        PushButtonSoundScheme005587C0(0, 1);
+        return;
+    }
+    W8TextControl::OnLeftButtonDown(event);
+}
+
+// FUNCTION: WIZ8 0x00588470
+void W8MainGameTextEntry::OnLeftButtonUp(int event)
+{
+    if (m_input_blocked_bc) {
+        PushButtonSoundScheme005587C0(0, 1);
+        return;
+    }
+    W8TextControl::OnLeftButtonUp(event);
+}
+
+// FUNCTION: WIZ8 0x005884a0
+void W8MainGameTextEntry::OnMouseEnter(int event)
+{
+    if (m_input_blocked_bc) {
+        PushButtonSoundScheme005587C0(0, 1);
+        return;
+    }
+    W8TextControl::OnMouseEnter(event);
+}
+
+// FUNCTION: WIZ8 0x005884d0
+W8MainGameTextPanel::W8MainGameTextPanel()
+    : Controls(0xd3, 0x166, 0, 0, 0x1b1, 0, 1), m_selection_078(0), m_screen_07c(0),
+      m_values_080(0), m_flag_084(0), m_timer_118(0.04f, 0)
+{
+    int index;
+
+    m_flag_141 = 0;
+    AcquireRegionSet(&g_main_game_text_panel_region_set_0068f2c8);
+    for (index = 0; index < 8; ++index) {
+        m_entries_054[index] = new W8MainGameTextEntry(this, index);
+        m_entries_054[index]->m_listener = this;
+        m_entries_054[index]->EnableRegionHelp(0x7d1);
+    }
+    m_key_handler_074 =
+        new W8MainGameTextKeyHandler(this, 0x8e, 5, 0x10f, 0x59, 0xf, g_value_0061e9ec,
+                                     &g_main_game_text_key_region_set_0068f2cc);
+    m_key_handler_074->m_range_listener_0bc = this;
+    m_text_bounds_0b8.left = origin_x + 0xc;
+    m_text_bounds_0b8.top = origin_y + 0x29;
+    m_text_bounds_0b8.right = origin_x + 0x84;
+    m_text_bounds_0b8.bottom = origin_y + 0x33;
+    m_text_buffer_0c8.SetLayoutBounds(&m_text_bounds_0b8, 1, 1);
+    EnableRegionSet(1);
+    m_key_handler_074->m_range_038.EnableRegionSet(1);
+    SetEnabled(1);
+    Invalidate(0);
+    for (index = 0; index < 8; ++index) {
+        if ((m_entries_054[index]->m_stateFlags & g_W8TextControlMask005ED570) == 0) {
+            m_entries_054[index]->SetEnabled(GetTable650434Entry(m_selection_078, index) != 0);
+            m_entries_054[index]->Invalidate(0);
+        }
+    }
+    for (index = 0; index < 8; ++index) {
+        if (m_values_080 == 0 ||
+            (m_values_080[index] == 0 && GetTable650434Entry(m_selection_078, index) == 0)) {
+            m_entries_054[index]->m_image_b8 = -1;
+        } else {
+            m_entries_054[index]->m_image_b8 = m_values_080[index];
+        }
+        m_entries_054[index]->Invalidate(0);
+    }
+}
+
+// SYNTHETIC: WIZ8 0x00588770
+// W8MainGameTextPanel::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x00588790
+W8MainGameTextPanel::~W8MainGameTextPanel()
+{
+    EnableRegionSet(0);
+    DestroyAllControls();
+}
+
+// FUNCTION: WIZ8 0x00588830
+void W8MainGameTextPanel::Redraw()
+{
+    SGPRect previous;
+    SGPRect clip;
+    int progress;
+
+    if (m_fDirty) {
+        m_flag_141 = 1;
+    }
+    Controls::Redraw();
+    m_key_handler_074->m_range_038.Redraw();
+    if (!m_fEnabled) {
+        return;
+    }
+    if (m_flag_084) {
+        progress = (int)(m_field_08c * g_float_005eebbc);
+        if (progress > m_field_090) {
+            m_field_090 = progress;
+            InvalidateRegion(m_text_bounds_0b8.left, m_text_bounds_0b8.top, m_text_bounds_0b8.right,
+                             m_text_bounds_0b8.bottom, 0);
+            GetClippingRect(&previous);
+            clip = previous;
+            clip.iBottom = m_text_bounds_0b8.left + m_field_090;
+            SetClippingRect(&clip);
+            DrawCatalogImage(-14, 0x1b5, 0, 0, m_text_bounds_0b8.left, m_text_bounds_0b8.top, 2, 0);
+            SetClippingRect(&previous);
+            m_text_buffer_0c8.RenderToTarget(0, 1, -14);
+        }
+    }
+    if (m_fEnabled && m_target_changed_140 && m_flag_141) {
+        int frame = m_field_13c % 12;
+        if (frame >= 7) {
+            frame = 12 - frame;
+        }
+        DrawCatalogImageAndInvalidate(-14, 0x1b4, 0, frame, origin_x + 1, origin_y + 2, 2, 0);
+        m_flag_141 = 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x005889a0
+void W8MainGameTextPanel::OnPrimary(W8TextControl* control)
+{
+    int index;
+
+    for (index = 0; index < 8; ++index) {
+        if (control == m_entries_054[index]) {
+            break;
+        }
+    }
+    m_entries_054[index]->m_input_blocked_bc = 1;
+    if (m_screen_07c != 0) {
+        m_screen_07c->SelectTextEntry(index);
+    }
+}
+
+// FUNCTION: WIZ8 0x005889e0
+void W8MainGameTextPanel::OnRangeChanged(W8RangeControl* control)
+{
+    int column;
+    int* values;
+
+    m_selection_078 = m_key_handler_074->m_field_0b0;
+    (void)control;
+    for (column = 0; column < 8; ++column) {
+        if ((m_entries_054[column]->m_stateFlags & g_W8TextControlMask005ED570) == 0) {
+            m_entries_054[column]->SetEnabled(GetTable650434Entry(m_selection_078, column) != 0);
+            m_entries_054[column]->Invalidate(0);
+        }
+    }
+    values = m_values_080;
+    for (column = 0; column < 8; ++column) {
+        if (values == 0 ||
+            (values[column] == 0 && GetTable650434Entry(m_selection_078, column) == 0)) {
+            m_entries_054[column]->m_image_b8 = -1;
+        } else {
+            m_entries_054[column]->m_image_b8 = values[column];
+        }
+        m_entries_054[column]->Invalidate(0);
+    }
+}
+
+// FUNCTION: WIZ8 0x00588a90
+W8MainGameStatusPanel005EEBC0::W8MainGameStatusPanel005EEBC0()
+    : Controls(0x17, 0x166, 0, 0, 0x1b1, 0, 0)
+{
+    W8ControlsRect bounds;
+
+    bounds.left = origin_x + 0x25;
+    bounds.top = origin_y + 7;
+    bounds.right = origin_x + 0xb4;
+    bounds.bottom = origin_y + 0x11;
+    m_text_04c = new W8TextBuffer(&bounds, 0, g_font_683660, g_W8TextBufferLayoutMask005ED54C, 4);
+    bounds.top += 0xe;
+    bounds.bottom += 0xe;
+    m_text_050 = new W8TextBuffer(&bounds, gppStringList[0x1ea4 / 4], g_font_683660,
+                                  g_W8TextBufferLayoutMask005ED548, 4);
+    bounds.top += 0xe;
+    bounds.bottom += 0xe;
+    m_text_058 = new W8TextBuffer(&bounds, gppStringList[0x1ea8 / 4], g_font_683660,
+                                  g_W8TextBufferLayoutMask005ED548, 4);
+    bounds.top += 0xe;
+    bounds.bottom += 0xe;
+    m_text_060 = new W8TextBuffer(&bounds, gppStringList[0x1ec0 / 4], g_font_683660,
+                                  g_W8TextBufferLayoutMask005ED548, 4);
+    bounds.left = origin_x + 0x98;
+    bounds.top = origin_y + 0x15;
+    bounds.right = origin_x + 0xb5;
+    bounds.bottom = origin_y + 0x1f;
+    m_text_054 = new W8TextBuffer(&bounds, 0, g_font_683660, g_W8TextBufferLayoutMask005ED54C, 4);
+    bounds.top += 0xe;
+    bounds.bottom += 0xe;
+    m_text_05c = new W8TextBuffer(&bounds, 0, g_font_683660, g_W8TextBufferLayoutMask005ED54C, 4);
+    bounds.top += 0xe;
+    bounds.bottom += 0xe;
+    m_text_064 = new W8TextBuffer(&bounds, 0, g_font_683660, g_W8TextBufferLayoutMask005ED54C, 4);
+    m_target_068 = 0;
+    SetEnabled(1);
+    Invalidate(0);
+}
+
+// SYNTHETIC: WIZ8 0x00588d90
+// W8MainGameStatusPanel005EEBC0::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x00588db0
+W8MainGameStatusPanel005EEBC0::~W8MainGameStatusPanel005EEBC0()
+{
+    delete m_text_04c;
+    delete m_text_050;
+    delete m_text_054;
+    delete m_text_058;
+    delete m_text_05c;
+    delete m_text_060;
+    delete m_text_064;
+}
+
+// FUNCTION: WIZ8 0x00588e60
+void W8MainGameStatusPanel005EEBC0::RefreshStatusTexts()
+{
+    W8Character* character = &g_party_characters[g_status_685170.selected_character];
+    int level = GetPartySlotSkill10Level(g_status_685170.selected_character);
+    unsigned int book;
+    unsigned int realm;
+    unsigned int figure;
+
+    m_text_04c->SetText(character->name, g_font_683660);
+    if (level >= 0) {
+        level += m_target_068 * 6;
+    }
+    if (level < 0) {
+        m_text_054->SetFontStateIndex(0);
+        m_text_054->SetText(g_dash_0064789c, g_font_683660);
+    } else {
+        m_text_054->SetFontStateIndex(m_target_068 < 1 ? -1 : 3);
+        m_text_054->SetText(FormatWideString(g_format_d_percent_0064bab0, level), g_font_683660);
+    }
+    if (!IsPartySlotEligible00524A10(g_status_685170.selected_character) ||
+        character->spell_learned[0x27] != 1) {
+        m_text_05c->SetFontStateIndex(0);
+        m_text_05c->SetText(g_dash_0064789c, g_font_683660);
+    } else {
+        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7, 0);
+        realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
+        book = character->skills[book].level;
+        m_text_05c->SetFontStateIndex(-1);
+        m_text_05c->SetText(FormatWideString(g_format_d_percent_0064bab0, (book + realm * 4) / 5),
+                            g_font_683660);
+    }
+    if (IsPartySlotEligible00524A10(g_status_685170.selected_character) &&
+        character->spell_learned[0x12] == 1) {
+        figure = GetBestSpellbookSkillForSpell(character, 0x12, 1, 0, 7, 0);
+        figure = (character->skills[figure].level +
+                  character->skills[0x1c + g_spell_records[0x12].realm].level * 4) /
+                 5;
+        if ((int)figure >= 0) {
+            m_text_064->SetFontStateIndex(-1);
+            m_text_064->SetText(FormatWideString(g_format_d_percent_0064bab0, figure),
+                                g_font_683660);
+            m_text_050->SetGeometryDirty();
+            m_text_058->SetGeometryDirty();
+            m_text_060->SetGeometryDirty();
+            Invalidate(0);
+            return;
+        }
+    }
+    m_text_064->SetFontStateIndex(0);
+    m_text_064->SetText(g_dash_0064789c, g_font_683660);
+    m_text_050->SetGeometryDirty();
+    m_text_058->SetGeometryDirty();
+    m_text_060->SetGeometryDirty();
+    Invalidate(0);
+}
+
+// FUNCTION: WIZ8 0x00589090
+int GetPartySlotSkill10Level(int slot)
+{
+    W8Character* character;
+
+    if (!IsPartySlotEligible00524A10(slot)) {
+        return -1;
+    }
+    character = &g_party_characters[slot];
+    if (character->skills[10].flag_00 == 0 && character->skills[10].level == 0) {
+        return -1;
+    }
+    return (int)character->skills[10].level;
+}
+
+// FUNCTION: WIZ8 0x005890e0
+void W8MainGameStatusPanel005EEBC0::Redraw()
+{
+    if (m_fEnabled && m_fDirty) {
+        Controls::Redraw();
+        m_text_04c->RenderToTarget(0, 0, -14);
+        m_text_050->RenderToTarget(0, 0, -14);
+        m_text_054->RenderToTarget(0, 0, -14);
+        m_text_058->RenderToTarget(0, 0, -14);
+        m_text_05c->RenderToTarget(0, 0, -14);
+        m_text_060->RenderToTarget(0, 0, -14);
+        m_text_064->RenderToTarget(0, 0, -14);
+    }
+}
+
+// FUNCTION: WIZ8 0x00589160
+W8MainGameScreen::W8MainGameScreen(void* owner)
+    : m_owner_008(owner), m_state_018(0), m_target_14c(0), m_field_150(0)
+{
+    m_field_034 = *reinterpret_cast<int*>(static_cast<char*>(owner) +
+                                          0x37c); /* reinterpret-ok: owner layout unrecovered */
+    m_field_038 = *reinterpret_cast<int*>(static_cast<char*>(owner) +
+                                          0x36c); /* reinterpret-ok: owner layout unrecovered */
+    m_text_panel_00c = new W8MainGameTextPanel();
+    m_text_panel_00c->m_screen_07c = this;
+    m_status_panel_010 = new W8MainGameStatusPanel005EEBC0();
+    m_action_panel_014 = new Controls(0x1e7, 0x166, 0, 0, 0x1b1, 0, 2);
+    m_action_panel_014->AcquireRegionSet(&g_main_game_action_panel_region_set_0068f2d0);
+    m_action_controls_020[1] =
+        new W8TextControl(m_action_panel_014, 0xffffffff, 6, 6, 0, 0, 0x1b0, 0, 8, 10, 9, 10, 0xb);
+    m_action_controls_020[1]->m_listener = this;
+    m_action_controls_020[2] =
+        new W8TextControl(m_action_panel_014, 0xffffffff, 0x24, 6, 0, 0, 0x1b0, 0, 0, 2, 1, 2, 3);
+    m_action_controls_020[2]->m_listener = this;
+    m_action_controls_020[3] =
+        new W8TextControl(m_action_panel_014, 0xffffffff, 6, 0x24, 0, 0, 0x1b0, 0, 4, 6, 5, 6, 7);
+    m_action_controls_020[3]->m_listener = this;
+    m_action_controls_020[4] = new W8TextControl(m_action_panel_014, 0xffffffff, 0x24, 0x24, 0, 0,
+                                                 0x1b0, 0, 0xc, 0xe, 0xd, 0xe, 0xf);
+    m_action_controls_020[4]->m_listener = this;
+    m_action_controls_020[0] =
+        new W8TextControl(m_action_panel_014, 0xffffffff, 0x44, 6, 0, 0, 0x8e, 0, 4, 6, 5, 6, 7);
+    m_action_controls_020[0]->m_listener = this;
+    m_action_controls_020[1]->EnableRegionHelp(0x7ce);
+    m_action_controls_020[2]->EnableRegionHelp(0x7cf);
+    m_action_controls_020[3]->EnableRegionHelp(0x7cc);
+    m_action_controls_020[4]->EnableRegionHelp(0x7d0);
+    m_action_panel_014->EnableRegionSet(1);
+    m_action_panel_014->SetEnabled(1);
+    m_action_panel_014->Invalidate(0);
+    for (int i = 0; i < 8; ++i) {
+        m_unknown_03c[i] = 0;
+        m_slot_flag_044[i] = 0;
+    }
+    RefreshActionPanel();
+}
+
+// FUNCTION: WIZ8 0x005894b0
+W8MainGameScreen::~W8MainGameScreen()
+{
+    delete m_text_panel_00c;
+    delete m_status_panel_010;
+    m_action_panel_014->EnableRegionSet(0);
+    m_action_panel_014->DestroyAllControls();
+    delete m_action_panel_014;
+}
+
+// FUNCTION: WIZ8 0x00589550
+void W8MainGameScreen::SelectTextEntry(int index)
+{
+    int slot = g_status_685170.selected_character;
+    int skill;
+    int chance;
+    int roll;
+    float hold;
+    float duration;
+    int i;
+
+    m_selected_character_01c = slot;
+    skill = GetPartySlotSkill10Level(slot);
+    hold = g_float_005ebc98 - (float)skill * g_float_005ec258;
+    chance = m_field_038;
+    if (chance < 0) {
+        chance = 0;
+    }
+    skill = GetPartySlotSkill10Level(m_selected_character_01c);
+    if (skill > -1) {
+        skill += ((m_target_14c + 1) / 2) * 6;
+    }
+    skill -= g_table_6504e8[chance];
+    chance = (skill * 3) / 2 + (11 - g_value_006850d5) * 10;
+    if (chance < 0) {
+        chance = 0;
+    } else if (chance > 0x63) {
+        chance = 0x63;
+    }
+    if (GetTable650434Entry(m_field_034, index) == 0) {
+        m_state_018 = 4;
+        duration = (float)(Random(0x18) + 0x32) * g_movement_speed_step_005ed490;
+    } else {
+        roll = (int)Random(0x64);
+        if (roll < (chance * chance) / 100) {
+            m_unknown_03c[index] = 1;
+            m_state_018 = 2;
+            duration = 1.0f;
+        } else {
+            m_state_018 = 4;
+            duration = (float)(Random(0x31) + 0x32) * g_movement_speed_step_005ed490;
+        }
+    }
+    m_action_controls_020[1]->SetEnabled(0);
+    m_action_controls_020[2]->SetEnabled(0);
+    m_action_controls_020[3]->SetEnabled(0);
+    m_action_controls_020[4]->SetEnabled(0);
+    m_action_panel_014->Invalidate(0);
+    m_text_panel_00c->m_flag_084 = 1;
+    m_text_panel_00c->m_text_buffer_0c8.SetText(gppStringList[0x1ed4 / 4], g_font_683660);
+    m_text_panel_00c->m_field_088 = duration;
+    m_text_panel_00c->m_field_08c = 0.0f;
+    m_text_panel_00c->m_field_090 = 0;
+    m_text_panel_00c->m_timer_094.SetDuration(hold);
+    m_text_panel_00c->m_timer_094.Restart();
+    for (i = 0; i < 8; ++i) {
+        if ((m_text_panel_00c->m_entries_054[i]->m_stateFlags & g_W8TextControlMask005ED570) == 0) {
+            m_text_panel_00c->m_entries_054[i]->m_input_blocked_bc = 1;
+        }
+    }
+    m_field_150 = (int)SoundPlay((STR)g_trap_sounds_0064bbac[index], 0);
+}
+
+// FUNCTION: WIZ8 0x005897f0
+void W8MainGameScreen::OnPrimary(W8TextControl* control)
+{
+    int slot;
+    int skill;
+    int chance;
+    int roll;
+    float hold;
+    float duration;
+    int i;
+
+    if (control == m_action_controls_020[0]) {
+        m_state_018 = 0xa;
+        return;
+    }
+    if (control != m_action_controls_020[4]) {
+        if (control == m_action_controls_020[2]) {
+            m_state_018 = 4;
+            return;
+        }
+        if (control == m_action_controls_020[1]) {
+            m_state_018 = 5;
+            return;
+        }
+        if (control == m_action_controls_020[3]) {
+            m_state_018 = 6;
+        }
+        return;
+    }
+    slot = g_status_685170.selected_character;
+    m_selected_character_01c = slot;
+    skill = GetPartySlotSkill10Level(slot);
+    hold = g_float_005ebca0 - (float)skill * g_camera_snap_epsilon_005ebc2c;
+    chance = m_field_038;
+    if (chance < 0) {
+        chance = 0;
+    }
+    skill = GetPartySlotSkill10Level(m_selected_character_01c);
+    if (skill > -1) {
+        skill += m_target_14c * 6;
+    }
+    skill -= g_table_6504e8[chance];
+    chance = (skill * 3) / 2 + (11 - g_value_006850d5) * 10;
+    if (chance < 0) {
+        chance = 0;
+    } else if (chance > 0x63) {
+        chance = 0x63;
+    }
+    roll = (int)Random(0x64);
+    if (roll < chance) {
+        m_state_018 = 1;
+        duration = 1.0f;
+    } else {
+        m_state_018 = 4;
+        duration = (float)(Random(0x18) + 0x4b) * g_movement_speed_step_005ed490;
+    }
+    m_action_controls_020[1]->SetEnabled(0);
+    m_action_controls_020[2]->SetEnabled(0);
+    m_action_controls_020[3]->SetEnabled(0);
+    m_action_controls_020[4]->SetEnabled(0);
+    m_action_panel_014->Invalidate(0);
+    m_text_panel_00c->m_flag_084 = 1;
+    m_text_panel_00c->m_text_buffer_0c8.SetText(gppStringList[0x1ed8 / 4], g_font_683660);
+    m_text_panel_00c->m_field_088 = duration;
+    m_text_panel_00c->m_field_08c = 0.0f;
+    m_text_panel_00c->m_field_090 = 0;
+    m_text_panel_00c->m_timer_094.SetDuration(hold);
+    m_text_panel_00c->m_timer_094.Restart();
+    for (i = 0; i < 8; ++i) {
+        if ((m_text_panel_00c->m_entries_054[i]->m_stateFlags & g_W8TextControlMask005ED570) == 0) {
+            m_text_panel_00c->m_entries_054[i]->m_input_blocked_bc = 1;
+        }
+    }
+    m_field_150 = (int)SoundPlayStreamedFile((STR)g_trap_inspection_sound_0064bcac, 0);
+}
+
+// FUNCTION: WIZ8 0x00589d90
+void W8MainGameScreen::RefreshActionPanel()
+{
+    int slot = g_status_685170.selected_character;
+    int skill = GetPartySlotSkill10Level(slot);
+    W8Character* character = &g_party_characters[slot];
+    int can_cast;
+    int column;
+    int* values;
+    int i;
+
+    m_action_controls_020[4]->SetEnabled(skill >= 0);
+    for (i = 0; i < 8; ++i) {
+        if ((m_text_panel_00c->m_entries_054[i]->m_stateFlags & g_W8TextControlMask005ED570) == 0) {
+            m_text_panel_00c->m_entries_054[i]->m_input_blocked_bc = skill < 0;
+        }
+    }
+    if ((!IsPartySlotEligible00524A10(slot) || character->spell_learned[0x27] != 1) &&
+        (!IsPartySlotEligible00524A10(slot) || character->spell_learned[0x12] != 1)) {
+        can_cast = 0;
+    } else {
+        if (IsPartySlotEligible00524A10(slot) && character->spell_learned[0x27] == 1) {
+            GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7, 0);
+        } else {
+            GetBestSpellbookSkillForSpell(character, 0x12, 1, 0, 7, 0);
+        }
+        can_cast = CanCharacterCastSpell(character, 0x27) != 0 ||
+                   CanCharacterCastSpell(character, 0x12) != 0;
+    }
+    m_action_controls_020[1]->SetEnabled(can_cast != 0);
+    if (m_slot_flag_044[slot] == 0) {
+        m_text_panel_00c->m_values_080 = 0;
+        for (column = 0; column < 8; ++column) {
+            m_text_panel_00c->m_entries_054[column]->m_image_b8 = -1;
+            m_text_panel_00c->m_entries_054[column]->Invalidate(0);
+        }
+    } else {
+        values = m_slot_values_04c[slot];
+        m_text_panel_00c->m_values_080 = values;
+        for (column = 0; column < 8; ++column) {
+            if (values == 0 ||
+                (values[column] == 0 &&
+                 GetTable650434Entry(m_text_panel_00c->m_selection_078, column) == 0)) {
+                m_text_panel_00c->m_entries_054[column]->m_image_b8 = -1;
+            } else {
+                m_text_panel_00c->m_entries_054[column]->m_image_b8 = values[column];
+            }
+            m_text_panel_00c->m_entries_054[column]->Invalidate(0);
+        }
+    }
+    m_action_controls_020[2]->SetEnabled(1);
+    m_action_controls_020[3]->SetEnabled(1);
+    m_status_panel_010->RefreshStatusTexts();
+    m_action_panel_014->Invalidate(0);
 }
 
 // FUNCTION: WIZ8 0x0058A750

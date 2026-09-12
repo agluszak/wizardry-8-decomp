@@ -281,6 +281,8 @@ unsigned char g_flag_00652da7;
 const double g_double_005ebc18 = 3.141592653589793;
 // GLOBAL: WIZ8 0x005ebcf0
 const float g_float_005ebcf0 = 57.295784f;
+// GLOBAL: WIZ8 0x005ebca0
+const float g_float_005ebca0 = 6.0f;
 // GLOBAL: WIZ8 0x00652940
 float g_origin_652940[3] = {0.0f, 0.0f, 0.0f};
 
