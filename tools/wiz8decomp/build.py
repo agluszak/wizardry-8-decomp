@@ -314,8 +314,14 @@ def configure_clang(
     return output, prefix()
 
 
-def run_clang_tidy(prefix: list[str], output: Path, repository: Path) -> None:
-    """Gate first-party code with the narrow reconstruction-error profile.
+def run_clang_tidy(
+    prefix: list[str],
+    output: Path,
+    repository: Path,
+    *,
+    full_diagnostics: bool = False,
+) -> None:
+    """Run the narrow reconstruction-error clang-tidy profile.
 
     Only translation units under a reccmp source root are tidied: the compile
     database also covers the pristine zlib/Info-ZIP static libraries, which
@@ -350,11 +356,13 @@ def run_clang_tidy(prefix: list[str], output: Path, repository: Path) -> None:
             "-p",
             "/out",
             "--config-file",
-            "/repo/.clang-tidy",
+            "/repo/.clang-tidy-diagnostics" if full_diagnostics else "/repo/.clang-tidy",
             *files,
         ],
         cwd=output,
-        log_path=output.parent / "logs" / "clang-tidy.json",
+        log_path=output.parent
+        / "logs"
+        / ("clang-tidy-diagnostics.json" if full_diagnostics else "clang-tidy.json"),
     )
 
 
@@ -383,8 +391,7 @@ def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any
         / "logs"
         / ("clang-full-diagnostics.json" if full_diagnostics else "clang-lint-build.json"),
     )
-    if not full_diagnostics:
-        run_clang_tidy(prefix, output, settings.repo_dir)
+    run_clang_tidy(prefix, output, settings.repo_dir, full_diagnostics=full_diagnostics)
     return {
         "status": "ok",
         "mode": "full-diagnostics" if full_diagnostics else "gating",

@@ -7,12 +7,18 @@
 #   VC6 source and the recovered corpus narrow implicitly everywhere (GUI code
 #   int -> INT16), so as errors they demand hundreds of suppressions without
 #   finding reconstruction errors.
-# - bugprone-sizeof-expression: the recovered allocators deliberately size
-#   pointer arrays, which the check reports as "pointer to aggregate".
+# - bugprone-sizeof-expression pointer-to-aggregate/pointer heuristics: the
+#   recovered allocators deliberately size pointer arrays; the other subchecks
+#   still catch sizeof(this), sizeof(constant), mismatched divisions, etc.
 Checks: >
   -*,
   bugprone-misplaced-widening-cast,
-  readability-redundant-casting
+  readability-redundant-casting,
+  bugprone-sizeof-expression,
+  bugprone-swapped-arguments
+CheckOptions:
+  bugprone-sizeof-expression.WarnOnSizeOfPointerToAggregate: 'false'
+  bugprone-sizeof-expression.WarnOnSizeOfPointer: 'false'
 WarningsAsErrors: '*'
 HeaderFilterRegex: '^/repo/(include/wiz8|include/surrender|src/wiz8|src/surrender|src/srext_jpegimporter|src/srext_unzip)/'
 FormatStyle: none

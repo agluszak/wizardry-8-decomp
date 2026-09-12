@@ -225,8 +225,9 @@ same CMake source lists as the product build, compiles every manually owned
 translation unit with clang-cl at `/W4 -Werror` plus the recovery diagnostics
 (`-Wsometimes-uninitialized -Wswitch -Warray-bounds -Wsign-compare
 -Wmissing-field-initializers -Woverloaded-virtual
--Winconsistent-missing-override`), and then runs the narrow clang-tidy profile
-from `.clang-tidy`. `WIZ8_CLANG_LINT` is an umbrella over the Wizardry game
+-Winconsistent-missing-override -Wshadow-field`), and then runs the narrow clang-tidy profile
+from `.clang-tidy`. `wiz8 diagnostics` uses the same recovery diagnostics report-only and runs
+the broader `.clang-tidy-diagnostics` profile for trial checks.
 sources, SurRender, `WIZ8_SGP`, and the recovered/adapted JPEG and UnZip
 plugin code; the pristine IJG and Info-ZIP trees keep their upstream warnings.
 `wiz8 diagnostics` runs the same projection with the recovery diagnostics
@@ -279,8 +280,9 @@ completed by `T g[N]`), which needs an array-aware compatibility rule before
 it can gate. It stays tested but uncalled in the meantime.
 
 The lint lane itself runs on the trixie image with LLVM 19, and the
-clang-tidy profile includes `readability-redundant-casting` alongside
-`bugprone-misplaced-widening-cast`.
+clang-tidy profile includes `readability-redundant-casting`,
+`bugprone-misplaced-widening-cast`, tuned `bugprone-sizeof-expression`, and
+`bugprone-swapped-arguments`.
 
 ## Live recovery state
 

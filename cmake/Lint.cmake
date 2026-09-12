@@ -37,7 +37,6 @@ set(WIZ8_LINT_COMPAT_FLAGS
     -Wno-unused-private-field
     -Wno-undefined-inline
     -Wno-invalid-offsetof
-    -Wno-cast-function-type-mismatch
     -Wno-char-subscripts
     -Wno-deprecated-copy
     -Wno-deprecated-non-prototype
@@ -68,6 +67,7 @@ set(WIZ8_RECOVERY_WARNINGS
     -Wmissing-field-initializers
     $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual>
     $<$<COMPILE_LANGUAGE:CXX>:-Winconsistent-missing-override>
+    $<$<COMPILE_LANGUAGE:CXX>:-Wshadow-field>
 )
 
 function(wiz8_configure_lint_target target)
@@ -98,6 +98,7 @@ function(wiz8_configure_vendor_lint_target target)
     target_compile_definitions(${target} PRIVATE WIZ8_CLANG_LINT)
     target_compile_options(${target} PRIVATE
         /W4 ${WIZ8_LINT_COMPAT_FLAGS} /MD /U_DEBUG
+        -Wno-cast-function-type-mismatch
         -Wsometimes-uninitialized
         -Wswitch
         -Warray-bounds

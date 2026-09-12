@@ -1,0 +1,19 @@
+# Non-gating clang-tidy profile for `wiz8 diagnostics`. Includes the gating
+# checks plus trial recovery-model checks that are evaluated report-only before
+# promotion into `.clang-tidy`.
+Checks: >
+  -*,
+  bugprone-misplaced-widening-cast,
+  readability-redundant-casting,
+  bugprone-sizeof-expression,
+  bugprone-swapped-arguments,
+  bugprone-suspicious-enum-usage,
+  bugprone-virtual-near-miss,
+  bugprone-multi-level-implicit-pointer-conversion,
+  bugprone-pointer-arithmetic-on-polymorphic-object
+CheckOptions:
+  bugprone-sizeof-expression.WarnOnSizeOfPointerToAggregate: 'false'
+  bugprone-sizeof-expression.WarnOnSizeOfPointer: 'false'
+  bugprone-suspicious-enum-usage.StrictMode: 'false'
+HeaderFilterRegex: '^/repo/(include/wiz8|include/surrender|src/wiz8|src/surrender|src/srext_jpegimporter|src/srext_unzip)/'
+FormatStyle: none
