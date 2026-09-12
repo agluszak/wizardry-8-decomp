@@ -69,7 +69,7 @@ void RebuildPartyEffectBlock0050E700(void)
             if (character->in_party != 0) {
                 ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
             }
-            Function4ED9D0(character);
+            RecalculateCharacterDerivedStats(character);
         }
     }
     if (g_status_685170.party_modifiers_22e3.light_47 == 0) {
@@ -203,7 +203,7 @@ void RebuildCharacterModifierBlock(W8Character* character)
    derived block from the equipment, persistent and party blocks, and
    recompute the derived stats. The standalone form character creation runs. */
 // FUNCTION: WIZ8 0x0050e540
-void Function50E540(W8Character* character)
+void RebuildEquipmentAndDerivedStats(W8Character* character)
 {
     memset(&character->equipment_bonus_1709, 0, sizeof(W8GameplayModifierBlock));
     AccumulateEquipmentModifiers(character, &character->equipment_bonus_1709);
@@ -214,5 +214,5 @@ void Function50E540(W8Character* character)
     if (character->in_party != 0) {
         ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
     }
-    Function4ED9D0(character);
+    RecalculateCharacterDerivedStats(character);
 }

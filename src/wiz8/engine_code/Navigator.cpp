@@ -1310,7 +1310,7 @@ unsigned char W8Navigator::SetMovementTarget(const srVector3T<float>* target, ch
 }
 
 // FUNCTION: WIZ8 0x00453690
-void W8Navigator::Function453690(const srVector3T<float>* position)
+void W8Navigator::AddPathPoint(const srVector3T<float>* position)
 {
     if (path_ai_068 == 0) {
         path_ai_068 = CreateRecord004A9750(movement_0c0.location_id_004);
@@ -1366,7 +1366,7 @@ float W8Navigator::GetValue120()
 }
 
 // FUNCTION: WIZ8 0x00454040
-void W8Navigator::Function454040(const srVector3T<float>* target)
+void W8Navigator::SetFacingToward(const srVector3T<float>* target)
 {
     srVector3T<float> current;
     current.x = movement_0c0.position_040.x;

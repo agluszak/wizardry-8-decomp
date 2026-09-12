@@ -346,8 +346,8 @@ extern unsigned int g_character_stats_region_set_0069c550;
 
 /* Skill-availability bookkeeping raised by RefreshCharacterSkillAvailability00553CD0 while the character
    screen is open: adjust the named page-2 entry and refresh that page. */
-void Function5B1AF0(int skill_id);
-void Function5B1B30(int skill_id);
+void ResetCharacterScreenSkill(int skill_id);
+void RefundCharacterScreenSkill(int skill_id);
 
 /* Primary interface at 0x005EF224, used by the pages to raise the screen-owned
    dialogs and to query the current character. */

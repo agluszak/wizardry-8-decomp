@@ -8,7 +8,7 @@ template <class T> class W8GrowableVector;
    each other, and whether a spell can be aimed by monster AI. */
 char MonsterHostility00546F80(W8MonsterInfo* first, W8MonsterInfo* second);
 unsigned char MonsterCanAimSpell005474B0(int spell_id);
-unsigned char Function547510(void);
+unsigned char CombatAllowsLiveGroups(void);
 
 void CollectHostileMonsters00547120(W8TargetSource* source,
                                     W8GrowableVector<int>* monsters); /* 0x00547120 */

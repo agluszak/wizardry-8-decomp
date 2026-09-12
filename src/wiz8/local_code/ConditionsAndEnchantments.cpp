@@ -41,7 +41,7 @@ unsigned short g_condition_notices_0061E570[128] = {
     0x3a1, 0x3a2, 0x3a3, 0x3a4, 0x3a5, 0x3a6, 0x3a7, 0x3a8, 0x3a9, 0x3aa, 0x3ab,
 };
 // FUNCTION: WIZ8 0x005248a0
-unsigned char Function5248A0(int party_slot, int condition)
+unsigned char GetConditionRecordFlag(int party_slot, int condition)
 {
     return g_status_685170.buffers.characters[party_slot].conditions_1817[condition].value_08;
 }

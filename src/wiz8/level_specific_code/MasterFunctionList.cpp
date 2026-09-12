@@ -463,23 +463,26 @@ void InitializeLevelMasterFunctions004D6C50(int level)
         if (pTrigger != 0) {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-            /* Retail stores Function5A1140's InputAtom ABI in the Trigger
+            /* Retail stores IgnoreSpellCastingInput's InputAtom ABI in the Trigger
                activation slot. Do not invent a thunk. */
-            pTrigger->activation_callback_360 = (Trigger::ActivationCallback)Function5A1140;
+            pTrigger->activation_callback_360 =
+                (Trigger::ActivationCallback)IgnoreSpellCastingInput;
 #pragma clang diagnostic pop
         }
         pTrigger = FindTriggerByName("MR111");
         if (pTrigger != 0) {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-            pTrigger->activation_callback_360 = (Trigger::ActivationCallback)Function5A1140;
+            pTrigger->activation_callback_360 =
+                (Trigger::ActivationCallback)IgnoreSpellCastingInput;
 #pragma clang diagnostic pop
         }
         pTrigger = FindTriggerByName("MR112");
         if (pTrigger != 0) {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-            pTrigger->activation_callback_360 = (Trigger::ActivationCallback)Function5A1140;
+            pTrigger->activation_callback_360 =
+                (Trigger::ActivationCallback)IgnoreSpellCastingInput;
 #pragma clang diagnostic pop
         }
         pTrigger = FindTriggerByName("F-Handlock");

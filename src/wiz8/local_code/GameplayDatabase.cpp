@@ -498,12 +498,12 @@ void RunNewGameOpeningSequence(unsigned char notify, const wchar_t* target)
     g_status_685170.game_started = 1;
     if (target) {
         g_status_685170.iron_man = 1;
-        Function5A9E70(target);
+        SetLastSaveName(target);
     }
     g_status_685170.difficulty = g_settings_6850c8.difficulty;
     gXStatus.field_028 = true;
-    Function482720(0x2932e00);
-    Function482740(1);
+    SetGameTimeMilliseconds(0x2932e00);
+    SetGameTimeDays(1);
     if (notify) {
         RequestScreenTransition();
     }
@@ -654,7 +654,7 @@ void ResetForNewGame(void)
                    sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
         }
     }
-    Function58FD30();
+    ReleaseMessageStorage();
     EmptyItemRecord(&g_status_685170.item_in_hand_235b, 0, 1);
     slot = g_status_685170.party_item_pool_0021;
     do {
@@ -673,7 +673,7 @@ void ResetForNewGame(void)
     g_status_685170.party_gold = 500;
     g_status_685170.selected_character = GetNextCharacter(1, 1, -1);
     g_status_685170.current_level = -1;
-    Function554580((unsigned char*)&g_status_685170.formation);
+    InitializePartyFormation((unsigned char*)&g_status_685170.formation);
     for (index = 0; index < 8; ++index) {
         g_status_685170.dwords_18e0[index] = 0xffffffff;
     }

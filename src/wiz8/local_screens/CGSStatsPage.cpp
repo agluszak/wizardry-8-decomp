@@ -625,7 +625,7 @@ void W8CharacterPage005EF778::Refresh()
 // FUNCTION: WIZ8 0x005ca4f0
 void W8CharacterPage005EF778::Accept()
 {
-    Function557AE0(m_character_060, m_creation_state_064);
+    RefundAllocatedAttributes(m_character_060, m_creation_state_064);
     Invalidate(0);
     m_dirty_06d = 1;
     m_screen_05c->UpdateNavigation(this);
@@ -761,9 +761,9 @@ void W8CharacterPage005EF778::OnRowValueChanged(W8CharacterStatsRow005EF750* row
         RebuildLevelUpPoolsForProfession(m_character_060, m_creation_state_064,
                                          static_cast<W8Profession>(value));
     } else if (row == m_race_row_080) {
-        Function5571C0(m_character_060, m_creation_state_064, value);
+        SetCharacterRace(m_character_060, m_creation_state_064, value);
     } else {
-        Function5571E0(m_character_060, m_creation_state_064, static_cast<W8Gender>(value));
+        SetCharacterGender(m_character_060, m_creation_state_064, static_cast<W8Gender>(value));
     }
     m_dirty_06d = 1;
     m_screen_05c->UpdateNavigation(this);

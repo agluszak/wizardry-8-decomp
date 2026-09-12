@@ -232,7 +232,7 @@ W8WideChar g_formation_row_names_00649e54[5][10] = {
    column and puts the joiner in the third; a row already holding two takes
    the joiner directly. */
 // FUNCTION: WIZ8 0x00554ae0
-void Function554AE0(W8PartyFormationState* formation, int slot)
+void PlaceCharacterInFormation(W8PartyFormationState* formation, int slot)
 {
     unsigned char row_order[3] = {0, 4, 2};
     W8PartyFormationPosition* position = &formation->positions[slot];
@@ -243,7 +243,7 @@ void Function554AE0(W8PartyFormationState* formation, int slot)
         unsigned char row = row_order[index];
         signed char occupants = formation->flags_0f[row];
         if (occupants == 0) {
-            Function554BD0(formation, slot, row, 0, 1, 1, 1);
+            SetFormationPosition(formation, slot, row, 0, 1, 1, 1);
             return;
         }
         if (occupants == 1) {
@@ -251,15 +251,15 @@ void Function554AE0(W8PartyFormationState* formation, int slot)
             if (leader == -1) {
                 srAssertFail("iChar != -1", FORMATION_CPP, 0x159, 0);
             }
-            Function554BD0(formation, leader, row, 1, 0, 0, 1);
-            Function554BD0(formation, slot, row, 2, 1, 1, 1);
+            SetFormationPosition(formation, leader, row, 1, 0, 0, 1);
+            SetFormationPosition(formation, slot, row, 2, 1, 1, 1);
             return;
         }
         if (occupants == 2) {
             if (formation->rows[row].slots[0] != -1) {
                 srAssertFail("iChar == -1", FORMATION_CPP, 0x172, 0);
             }
-            Function554BD0(formation, slot, row, 0, 1, 1, 1);
+            SetFormationPosition(formation, slot, row, 0, 1, 1, 1);
             return;
         }
     }
@@ -271,8 +271,8 @@ void Function554AE0(W8PartyFormationState* formation, int slot)
    the positions left in the old row, and the announce flag posts the row
    name to the slot. */
 // FUNCTION: WIZ8 0x00554bd0
-void Function554BD0(W8PartyFormationState* formation, int slot, int new_row, int new_column,
-                    int announce, int detach, int update_facing)
+void SetFormationPosition(W8PartyFormationState* formation, int slot, int new_row, int new_column,
+                          int announce, int detach, int update_facing)
 {
     W8PartyFormationPosition* position = &formation->positions[slot];
     signed char old_row = position->row;

@@ -20,7 +20,7 @@ W8TextControl* g_condition_buttons_0069b900[8];
 Controls* g_condition_buttons_panel_0069b944;
 
 // FUNCTION: WIZ8 0x0059BAD0
-void Function59BAD0(void)
+void ReleasePortraitControls(void)
 {
     RegionSetDisable(5);
     W8TextControl** control = g_portrait_controls_0069b920;
@@ -44,7 +44,7 @@ void Function59BAD0(void)
 }
 
 // FUNCTION: WIZ8 0x0059BF70
-void Function59BF70(void)
+void ReleaseConditionButtons(void)
 {
     Controls* panel = g_condition_buttons_panel_0069b944;
     if (panel != 0) {

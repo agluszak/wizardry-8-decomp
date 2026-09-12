@@ -877,7 +877,7 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
          CanTargetMonster(party_slot, location_id, 1, 0))) {
         valid = 1;
     }
-    Function547510();
+    CombatAllowsLiveGroups();
 
     if (valid == 0) {
         SetMonsterHighlightColour(monster, 1.0f, 0.0f, 0.0f, 1.0f);
@@ -1230,11 +1230,11 @@ void SetTargetingMode(int state)
     RequestRefreshPartyState();
     if (state == 4) {
         Function4ADD30(1);
-        Function56AA30();
+        PauseMainGameWorld();
     } else {
         Function4ADD30(0);
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-            Function56AAB0();
+            ResumeMainGameWorld();
         }
     }
 }

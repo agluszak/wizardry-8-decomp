@@ -30,7 +30,7 @@ int g_int_005ee5a8 = 8;
    attacks and armor classes. A character whose profession, race or gender is
    still unset is left alone. */
 // FUNCTION: WIZ8 0x004ed9d0
-void Function4ED9D0(W8Character* character)
+void RecalculateCharacterDerivedStats(W8Character* character)
 {
     int index;
 
@@ -50,8 +50,8 @@ void Function4ED9D0(W8Character* character)
     ResetCharacterAttributes005539E0(character);
     ResetCharacterSkills00553A60(character);
     RecalculateCharacterHitPoints(character);
-    Function52A3E0(character);
-    Function52A500(character);
+    RecalculateCharacterStamina(character);
+    RecalculateRealmSpellPoints(character);
     CalcArmorClasses(character);
     RebuildCharacterRegenRates00502B50(character);
 
@@ -81,7 +81,7 @@ void Function4ED9D0(W8Character* character)
     if (g_status_685170.game_started == 0) {
         character->party_weight_share = 0;
     } else if (changed || recalculated) {
-        Function4EDD20();
+        RedistributePartyEncumbrance();
     }
     character->total_carried_weight = character->party_weight_share + character->inventory_weight;
 
@@ -148,15 +148,18 @@ bool RecalculateCarriedWeight(W8Character* character)
         if (g_current_screen_state.id != W8_SCREEN_CAMP) {
             effect = g_special_event_0068c558;
         }
-        Function52E690(character, effect, 0, g_effect_argument_005ed8c8,
-                       g_effect_argument_005ed914);
+        QueueCharacterEvent(character, effect, 0, g_effect_argument_005ed8c8,
+                            g_effect_argument_005ed914);
     }
     return previous != character->inventory_weight;
 #pragma clang diagnostic pop
 }
 
+/* Split the shared party-pool weight across eligible members by remaining
+   carrying capacity, then refresh each member's load band. Combat defers the
+   work by raising the pending-redistribution flag instead. */
 // FUNCTION: WIZ8 0x004edd20
-void Function4EDD20(void)
+void RedistributePartyEncumbrance(void)
 {
     int capacity[8];
     int unassigned[8];

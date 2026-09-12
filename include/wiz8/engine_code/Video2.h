@@ -85,7 +85,7 @@ void SGPMouseGetPos(POINT* point);
 bool HasScreenTransitionObjects(void); /* 0x004297D0 */
 /* 0x00422EC0: invalidate each rectangle in a run. */
 struct W8ScreenRect;
-void Function422EC0(W8ScreenRect* rects, unsigned int count, int flags);
+void InvalidateScreenRects(W8ScreenRect* rects, unsigned int count, int flags);
 
 #endif
 

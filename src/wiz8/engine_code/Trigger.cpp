@@ -3355,7 +3355,7 @@ Trigger::~Trigger()
 // srClassSupport<Trigger,srClass,1,65544>::getClassNode
 
 // FUNCTION: WIZ8 0x00443a50
-int Function443A50(void)
+int ResetNextTriggerId(void)
 {
     g_status_685170.next_trigger_id_2356 = 1;
     return 1;

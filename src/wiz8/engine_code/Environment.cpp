@@ -802,7 +802,7 @@ void SetSkyNodeVisible(bool visible)
 }
 
 // FUNCTION: WIZ8 0x00482720
-void Function482720(int value)
+void SetGameTimeMilliseconds(int value)
 {
     g_status_685170.game_time_ms = value;
     g_tick_65b9a8 = GetTickCount();
@@ -812,7 +812,7 @@ void Function482720(int value)
 // srMatrix3T<float>::RotateAboutY(double,double)
 
 // FUNCTION: WIZ8 0x00482740
-void Function482740(int value)
+void SetGameTimeDays(int value)
 {
     g_status_685170.game_time_days = value;
 }

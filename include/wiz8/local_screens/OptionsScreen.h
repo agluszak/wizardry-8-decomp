@@ -434,7 +434,7 @@ static_assert(sizeof(W8OptionsScreen) == 0x64, "W8OptionsScreen_must_be_0x64");
 extern W8OptionsScreen* g_options_screen_0069c254;
 extern wchar_t g_options_last_save_name_0069c1cc[64];
 
-void Function5A9E70(const wchar_t* target);
-wchar_t* GetAddress69C1CC(void);
+void SetLastSaveName(const wchar_t* target);
+wchar_t* GetLastSaveName(void);
 
 void ShowModalMessage005A6620(int a, int b, int c, void (*callback)(void), int d, int e);

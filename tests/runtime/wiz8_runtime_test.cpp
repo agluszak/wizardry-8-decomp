@@ -782,7 +782,7 @@ static DWORD WINAPI DriveScenario(void*)
                 }
                 while (CountActiveCharacters() < 6) {
                     int before = CountActiveCharacters();
-                    if (Function4EF4A0(&g_party_characters[populated], -1) < 0 ||
+                    if (AddCharacterToParty(&g_party_characters[populated], -1) < 0 ||
                         CountActiveCharacters() <= before) {
                         return FailScenario();
                     }

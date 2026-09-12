@@ -88,11 +88,11 @@ void KeyChange(UINT32 key, UINT32 flags, UINT8 pressed);
 void RedirectToString(UINT16 key);
 UINT16 TranslateKeyToCharacter(UINT16 key, UINT8 modifiers);
 UINT16 TranslateCharacterToKey(UINT16 character);
-UINT16 Function402800(UINT16 character);
-UINT16 Function402820(UINT16 character);
-UINT16 Function402840(UINT16 character);
-INT32 Function402880(INT32 character);
-INT32 Function4028A0(INT32 character);
+UINT16 IsUppercaseWideChar(UINT16 character);
+UINT16 IsLowercaseWideChar(UINT16 character);
+UINT16 IsPunctuationWideChar(UINT16 character);
+INT32 ToUppercaseWideChar(INT32 character);
+INT32 ToLowercaseWideChar(INT32 character);
 INT32 CompareWideTextIgnoreAsciiCase00402920(const wchar_t* first, const wchar_t* second);
 
 extern BOOLEAN			InitializeInputManager(void);

@@ -41,7 +41,8 @@ void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int
                                  int party_slot);
 /* 0x0052EBE0: blit one animated portrait frame and its transition, returning
    whether a frame was drawn. */
-char Function52EBE0(int portrait, int left, int top, int flags, int party_slot, char animate);
+char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int party_slot,
+                                char animate);
 
 /* Refresh one party-selection list portrait after a slot change. */
 void RefreshPartySelectionPortrait(unsigned int party_slot); /* 0x005C33C0 */

@@ -38,11 +38,11 @@ void InitializeCharacterCreation(W8Character*, W8CharacterCreationState*);
 void InitializeCharacterLevelUp(W8Character*, W8CharacterCreationState*);
 void ApplyRaceProfessionTables(W8Character*, W8CharacterCreationState*);
 void RebuildLevelUpPoolsForProfession(W8Character*, W8CharacterCreationState*, W8Profession);
-void Function5571C0(W8Character*, W8CharacterCreationState*, int);
-void Function5571E0(W8Character*, W8CharacterCreationState*, W8Gender);
+void SetCharacterRace(W8Character*, W8CharacterCreationState*, int);
+void SetCharacterGender(W8Character*, W8CharacterCreationState*, W8Gender);
 void PayDownAttributeDebt(W8Character*, W8CharacterCreationState*);
 void DetermineEligibleProfessions(W8Character*, W8CharacterCreationState*, unsigned char*);
-void Function557580(W8Character*, W8CharacterCreationState*, bool);
+void FinalizeCreatedCharacter(W8Character*, W8CharacterCreationState*, bool);
 /* 0x00557430: hand out the starting equipment table the race or profession
    selects, then the profession's own extra item. */
 void AddCharacterStartingEquipment(W8Character*);
@@ -50,7 +50,7 @@ void RecomputeAttributeLimits(W8Character*, W8CharacterCreationState*);
 void ClampAttributesToBudget(W8Character*, W8CharacterCreationState*);
 void ApplyProfessionMinimumAttributes(W8Character*, W8CharacterCreationState*);
 void AdjustAllocatedAttribute(W8Character*, W8CharacterCreationState*, int, int);
-void Function557AE0(W8Character*, W8CharacterCreationState*);
+void RefundAllocatedAttributes(W8Character*, W8CharacterCreationState*);
 void RecomputeSkillLimits(W8Character*, W8CharacterCreationState*);
 void InitializeLevelUpAttributePool(W8Character*, W8CharacterCreationState*, unsigned int, int);
 void ResetSkillContribution(W8Character*, W8CharacterCreationState*, int);

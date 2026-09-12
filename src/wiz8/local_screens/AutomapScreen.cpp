@@ -273,7 +273,7 @@ void ResetAutomapView005817D0(void)
 }
 
 // FUNCTION: WIZ8 0x0057E490
-unsigned char Function57E490(void)
+unsigned char CanUseCurrentAutomapTool(void)
 {
     if (g_flag_68f105 != 0) {
         switch (g_automap_tool) {
@@ -331,7 +331,7 @@ unsigned char AutomapScreenEnter(void)
     UpdateWorldMesh004BAF60(g_world);
     Function46F760(g_world, 1);
     g_light_update_flags_0060bfdc &= ~1u;
-    Function427830(0);
+    SetWorldModelPickingEnabled(0);
     if (!g_automap_state) {
         g_automap_state = static_cast<W8AutomapState*>(malloc(sizeof(W8AutomapState)));
         if (!g_automap_state)
@@ -343,7 +343,7 @@ unsigned char AutomapScreenEnter(void)
     g_automap_viewport.top = 32;
     g_automap_viewport.right = 467;
     g_automap_viewport.bottom = 467;
-    Function56AA30();
+    PauseMainGameWorld();
     g_automap_layers.Clear();
     g_automap_layers.Add(0);
     char layer_name[16];
@@ -374,7 +374,7 @@ unsigned char AutomapScreenEnter(void)
     Function5822C0();
     Function583BC0();
     g_class_68f29c->setParent(0, 1);
-    g_automap_surface_mode = Function427260();
+    g_automap_surface_mode = RendererBufferIsLockable();
     if (g_automap_surface_mode) {
         g_flag_65970d = 0;
         g_monster_shadow_updates_enabled_0065970c = 0;
@@ -729,7 +729,7 @@ void RestoreAutomapWorldSettings(void)
     Function46F760(g_world, 0);
     g_light_update_flags_0060bfdc |= 1u;
     SetResidentTexturePolicy(g_resident_texture_policy_659714);
-    Function427830(1);
+    SetWorldModelPickingEnabled(1);
 }
 
 // FUNCTION: WIZ8 0x0057efe0
@@ -740,7 +740,7 @@ unsigned char AutomapScreenLeave(int)
     g_automap_state = 0;
     MarkRendererReady();
     SetValue659668(0);
-    Function56AAB0();
+    ResumeMainGameWorld();
     srClass* clipping_plane = static_cast<srClass*>(srCore.getRegistry()->find(
         srClipPlane::ClientType::sGetClassNode(), "Clipping Plane 1", 0));
     if (clipping_plane) {

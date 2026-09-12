@@ -599,7 +599,7 @@ unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character)
     RebuildCharacterModifierBlock(character);
     CalcCharacterLevelBand(character);
     RefreshCharacterSkillAvailability00553CD0(character);
-    Function4ED9D0(character);
+    RecalculateCharacterDerivedStats(character);
     for (index = 1; index < 0x73; ++index) {
         if (source->spells[index - 1] != 0 && CanCharacterLearnSpell(character, index)) {
             LearnSpell(character, index, 0);
@@ -906,8 +906,8 @@ void UpdateNpcEvents0050D530(void)
                         npc_state->event_clock_eb = g_status_685170.world_clock + Random(6) * 0x3c;
                     } else {
                         int event = Random(2) == 0 ? 0x57 : 0x58;
-                        Function52E690(character, event, 0, g_effect_argument_005ed8c8,
-                                       g_effect_argument_005ed914);
+                        QueueCharacterEvent(character, event, 0, g_effect_argument_005ed8c8,
+                                            g_effect_argument_005ed914);
                         npc_state->event_clock_eb = g_status_685170.world_clock;
                     }
                 }
