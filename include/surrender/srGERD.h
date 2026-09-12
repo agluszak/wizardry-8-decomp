@@ -141,6 +141,7 @@ public:
     /* The pipeline's single-stage mask branch inlines this exported getter. */
     long getMaxTextureStages() const { return max_texture_stages_78_; }
     void pushMatrix();
+    void pushMultMatrix(const srMatrix4x3T<float>& matrix);
     void popMatrix();
     void pushEnable();
     void popEnable();

@@ -384,10 +384,9 @@ void UpdateWorldTriggers00443AE0(W8World* world)
         }
         if (g_environment_load_flag_00603ad0 != 0 && trigger->trigger_kind_018 == 2 &&
             trigger->flag_0a0_08 != 0 && trigger->flag_0a0_11 != 0 && trigger->flag_0a0_02 == 0) {
-            float dx = trigger->position_118 - camera.x;
-            float dy = trigger->position_11c - camera.y;
-            float dz = trigger->position_120 - camera.z;
-            float distance = (float)sqrt(dx * dx + dy * dy + dz * dz);
+            srVector3T<float> trigger_position(trigger->position_118, trigger->position_11c,
+                                               trigger->position_120);
+            float distance = (trigger_position - camera).Length();
             if (trigger->range_maximum_0a8 <= distance) {
                 if (trigger->flag_0a0_06 != 0) {
                     trigger->FinishAction();
@@ -567,10 +566,7 @@ unsigned char Trigger::HasActorWithinRadius(float radius, unsigned char include_
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             if (monster_info != 0 && monster_info->monster != 0) {
                 srVector3T<float> monster_position = monster_info->monster->GetPosition();
-                float x = monster_position.x - center.x;
-                float y = monster_position.y - center.y;
-                float z = monster_position.z - center.z;
-                if (sqrt(x * x + y * y + z * z) <= radius) {
+                if ((monster_position - center).Length() <= radius) {
                     return 1;
                 }
             }
@@ -579,10 +575,7 @@ unsigned char Trigger::HasActorWithinRadius(float radius, unsigned char include_
 
     if (include_party != 0) {
         srVector3T<float> party_position = g_startup_world_659c0c->GetPosition();
-        float x = party_position.x - center.x;
-        float y = party_position.y - center.y;
-        float z = party_position.z - center.z;
-        if (sqrt(x * x + y * y + z * z) <= radius) {
+        if ((party_position - center).Length() <= radius) {
             return 1;
         }
     }
@@ -2599,9 +2592,7 @@ void Trigger::Run(int source)
             if (angle_0fc != 0.0f) {
                 rotation.RotateAroundAxis(sin(angle_0fc), cos(angle_0fc), axis);
             }
-            transformed.x = DotProduct(rotation.vectors[0], target_position);
-            transformed.y = DotProduct(rotation.vectors[1], target_position);
-            transformed.z = DotProduct(rotation.vectors[2], target_position);
+            transformed = rotation.Transform(target_position);
             FireMissile004A2D30((unsigned int)m_lData1, &source_position, &transformed, 0, 1, 1,
                                 0x47435000);
         } else if (m_pEvent == 0) {

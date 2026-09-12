@@ -158,7 +158,6 @@ static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");
 void SetWorld659AB8(W8World* world);
 
 void Function44E830(W8World* world, int handle);
-void MoveWorldToPoint(W8World* destination, W8World* source, const srVector3T<float>* point);
 void SetWorldEnvironmentValue00483AE0(W8World* world, float value);
 void Function48F280(W8World* world, const char* name, int active);
 Trigger* FindTriggerForProp00443830(W8World* world, W8Prop* prop);

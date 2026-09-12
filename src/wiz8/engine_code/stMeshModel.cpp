@@ -391,10 +391,7 @@ void srTriMeshPipeline::FlushSlots00475600()
                    (value_44.z + value_50.z) * 0.5);
         value_5c = center;
 
-        float x = value_5c.x - value_44.x;
-        float y = value_5c.y - value_44.y;
-        float z = value_5c.z - value_44.z;
-        value_68 = static_cast<float>(sqrt(x * x + y * y + z * z)) * 1.001f;
+        value_68 = (value_5c - value_44).Length() * 1.001f;
     }
 
     srVector3T<float> eye_center;

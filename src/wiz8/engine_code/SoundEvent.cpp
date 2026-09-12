@@ -184,21 +184,15 @@ unsigned char W8SoundEvent::Play004D5A10(unsigned int mask, const srVector3T<flo
 
         rotation.SetIdentity();
         if ((double)angle != g_zero_005ebb40) {
-            double cosine = cos(angle);
-            double sine = sin(angle);
-            srMatrix3T<float> camera_rotation;
-
-            camera_rotation.vectors[0] = srVector3T<float>(cosine, 0.0, sine);
-            camera_rotation.vectors[1] = srVector3T<float>(0.0, 1.0, 0.0);
-            camera_rotation.vectors[2] = srVector3T<float>(-sine, 0.0, cosine);
-            rotation.MultiplyBy(camera_rotation);
+            rotation.RotateAboutY(sin(angle), cos(angle));
         }
 
         srVector3T<float> offset(position->x - camera_position.x, position->y - camera_position.y,
                                  position->z - camera_position.z);
-        float x = DotProduct(rotation.vectors[0], offset);
-        float y = DotProduct(rotation.vectors[1], offset);
-        float z = DotProduct(rotation.vectors[2], offset);
+        srVector3T<float> transformed = rotation.Transform(offset);
+        float x = transformed.x;
+        float y = transformed.y;
+        float z = transformed.z;
         SOUND3DPARMS options;
 
         memset(&options, 0xff, sizeof(options));

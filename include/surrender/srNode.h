@@ -33,7 +33,16 @@ public:
     struct ProcessInfo {
         class srGERD* renderer;
     };
-    struct BoundInfo;
+    /* getLocalBounds and srBounder::getBounds/setBounds copy 11 dwords.
+       Model instances fill the box and sphere from srModel; the trailing
+       dword is 0 (empty), 1 (box+sphere), or 2 (node flag 2). */
+    struct BoundInfo {
+        srVector3T<float> minimum;
+        srVector3T<float> maximum;
+        srVector3T<float> center;
+        float radius;
+        int state_28;
+    };
 
     enum e_processType {
         PROCESS_TYPE_POSITIONAL_0 = 0
@@ -207,7 +216,7 @@ private:
     srMatrix3T<double> rotation_18;         /* 0x018 */
     srVector3T<double> location_60;         /* 0x060 */
     srVector3T<double> scale_78;            /* 0x078 */
-    srMatrix4x3T<double> world_transform_90; /* 0x090 */
+    srMatrix4x3T<double> world_transform_90; /* 0x090: cached affine world transform */
     srMatrix4x3T<float> world_transform_f0; /* 0x0f0 */
     srFlags<e_notify> notifications_120;    /* 0x120 */
     srFlags<e_flag> flags_124;              /* 0x124 */
@@ -266,3 +275,4 @@ static_assert((sizeof(srNode) == 0x138), "srNode_must_be_0x138");
 static_assert((sizeof(srIlluminator) == 0x168),
               "srIlluminator_must_be_0x168");
 static_assert((sizeof(srNode::TraverseInfo) == 0x18), "srNode_TraverseInfo_must_be_0x18");
+static_assert((sizeof(srNode::BoundInfo) == 0x2c), "srNode_BoundInfo_must_be_0x2c");

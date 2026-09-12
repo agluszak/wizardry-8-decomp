@@ -248,13 +248,10 @@ struct W8SpellQueueEntry {
     W8TargetSource Source; /* 0x5c */
 };
 
-/* 0x00450610 */
-
-/* Return the casting character to the anchor they set earlier. Nothing happens
-   unless the anchor was ever set. On the same level the party is moved there
-   directly and the renderer is told to catch up; on any other level the anchor
-   is staged into the pending-transition globals instead and the level change
-   does the work. The whole 0x3c-byte anchor travels, not just its point. */
+/* Return the casting character to the CamPos spell 0x4b stored. Nothing
+   happens unless the anchor was ever set. On the same level RestoreWorldCameraState
+   applies the full pose and the renderer is told to catch up; on any other
+   level the 0x3c-byte record is staged into pending_move_location for LoadLevel. */
 // FUNCTION: WIZ8 0x005507d0
 void RecallCasterToSavedLocation(W8SpellQueueEntry* pQueue)
 {

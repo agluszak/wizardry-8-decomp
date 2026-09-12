@@ -48,30 +48,6 @@
    the process-wide storage; no broader state model is yet proved. */
 unsigned char g_byte_00659a64;
 
-/* Same-TU access to srModelInstance's protected alignment fields so the
-   loader can write them the way the image does, without going through the
-   SurRender setAlignment/setAlignAxis imports.  Retail ORs the enable bit,
-   stores the raw axis, normalizes in place, then ORs the enable bit again.
-   The body must live on this derived type: VC6 rejects protected access
-   through a derived pointer from a free function. */
-struct PropModelInstanceAccess : srModelInstance {
-    void WriteAlignAxisYUp()
-    {
-        float length_squared;
-        float scale;
-
-        alignment_flags_148 |= 1;
-        align_axis_14c.Set(0.0f, 1.0f, 0.0f);
-        length_squared = align_axis_14c.z * align_axis_14c.z + align_axis_14c.y * align_axis_14c.y +
-                         align_axis_14c.x * align_axis_14c.x;
-        if ((double)length_squared != g_zero_005ebb40) {
-            scale = (float)(g_double_005ebc30 / sqrt((double)length_squared));
-            align_axis_14c *= scale;
-        }
-        alignment_flags_148 |= 1;
-    }
-};
-
 #define PROP_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp"
 
 // VTABLE: WIZ8 0x005ec1e0
@@ -102,24 +78,8 @@ W8Prop::W8Prop()
     m_animation_timer = new W8GameTimer();
     position_02c.SetZero();
     position_03c.SetZero();
-    rotation_048.vectors[0].x = 1.0f;
-    rotation_048.vectors[0].y = 0.0f;
-    rotation_048.vectors[0].z = 0.0f;
-    rotation_048.vectors[1].x = 0.0f;
-    rotation_048.vectors[1].y = 1.0f;
-    rotation_048.vectors[1].z = 0.0f;
-    rotation_048.vectors[2].x = 0.0f;
-    rotation_048.vectors[2].y = 0.0f;
-    rotation_048.vectors[2].z = 1.0f;
-    rotation_06c.vectors[0].x = 1.0f;
-    rotation_06c.vectors[0].y = 0.0f;
-    rotation_06c.vectors[0].z = 0.0f;
-    rotation_06c.vectors[1].x = 0.0f;
-    rotation_06c.vectors[1].y = 1.0f;
-    rotation_06c.vectors[1].z = 0.0f;
-    rotation_06c.vectors[2].x = 0.0f;
-    rotation_06c.vectors[2].y = 0.0f;
-    rotation_06c.vectors[2].z = 1.0f;
+    rotation_048.SetIdentity();
+    rotation_06c.SetIdentity();
     m_gd_prop = 0;
     if (m_pRep == 0) {
         srAssertFail("m_pRep", PROP_CPP, 0x30e, "Prop::Prop() out of memory allocating m_pRep");
@@ -308,9 +268,7 @@ void W8Prop::GetCenterPosition(srVector3T<float>* position)
     srVector3T<float> second;
 
     AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->flag_064, &first, &second);
-    position->x = (first.x + second.x) * 0.5f;
-    position->y = (first.y + second.y) * 0.5f;
-    position->z = (first.z + second.z) * 0.5f;
+    *position = (first + second) * 0.5;
 }
 
 Trigger* g_selected_prop_trigger_00659a60;
@@ -388,17 +346,11 @@ char ResolvePickedProp(W8World* world)
                 representation->active != 0) {
                 srVector3T<float> minimum;
                 srVector3T<float> maximum;
-                float dx;
-                float dy;
-                float dz;
                 float distance;
 
                 AnimObjGetBounds004A1710(representation->animation, 2, representation->flag_064,
                                          &minimum, &maximum);
-                dx = (minimum.x + maximum.x) * 0.5f - camera_position.x;
-                dy = (minimum.y + maximum.y) * 0.5f - camera_position.y;
-                dz = (minimum.z + maximum.z) * 0.5f - camera_position.z;
-                distance = static_cast<float>(sqrt(dx * dx + dy * dy + dz * dz));
+                distance = ((minimum + maximum) * 0.5 - camera_position).Length();
                 if (trigger->range_minimum_0a4 <= distance) {
                     g_selected_prop_index_00607b98 = prop_index;
                     if (distance <= trigger->range_maximum_0a8) {
@@ -955,11 +907,16 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
             }
             if (option_byte != 0) {
                 srNode* child;
+                srVector3T<float> axis;
 
-                static_cast<PropModelInstanceAccess*>(instance)->WriteAlignAxisYUp();
+                axis.Set(0.0f, 1.0f, 0.0f);
+                instance->setAlignment(1);
+                instance->setAlignAxis(axis);
                 child = instance->firstChild();
                 if (child != 0) {
-                    static_cast<PropModelInstanceAccess*>(child)->WriteAlignAxisYUp();
+                    srModelInstance* child_instance = static_cast<srModelInstance*>(child);
+                    child_instance->setAlignment(1);
+                    child_instance->setAlignAxis(axis);
                 }
             }
         }

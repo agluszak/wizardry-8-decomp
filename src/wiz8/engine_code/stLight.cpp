@@ -216,8 +216,7 @@ srClass* stLight::vInstance()
 unsigned char W8OctRegionVolume0049E460::ContainsPoint0049E460(const srVector3T<float>* point) const
 {
     for (short plane = 0; plane < 6; ++plane) {
-        float distance = planes_88[plane].x * point->x + planes_88[plane].y * point->y +
-                         planes_88[plane].z * point->z + planes_88[plane].w;
+        float distance = SignedPlaneDistance(planes_88[plane], *point);
         if (distance < g_float_005ebb34) {
             return 0;
         }
