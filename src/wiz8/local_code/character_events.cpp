@@ -419,7 +419,7 @@ void W8StartupRuntimeState::SetEventCharacterMask(unsigned int event_type, unsig
 
 // FUNCTION: WIZ8 0x0052E690
 W8StartupStateElement005EE748* QueueCharacterEvent(W8Character* character, int effect, int argument,
-                                              int value_1, unsigned int value_2)
+                                                   int value_1, unsigned int value_2)
 {
     W8StartupStateElement005EE748* entry;
 
@@ -481,7 +481,7 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
         effect = Random(2) == 0 ? g_effect_005ee590 : g_effect_005ee5f8;
     }
     if (effect != -1 && QueueCharacterEvent(character, effect, 0, g_effect_argument_005ed8c8,
-                                       g_effect_argument_005ed914) != 0) {
+                                            g_effect_argument_005ed914) != 0) {
         g_startup_runtime_state->SetEventCharacterMask(effect, party_slot, 1);
     }
 }
@@ -491,7 +491,7 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
 // FUNCTION: WIZ8 0x0052E590
 unsigned char PartyPortraitEventsIdle(void)
 {
-    W8PartySlotRow* row = g_party_slot_rows;
+    W8PartySlotRow* row = g_status_685170.buffers.party_rows;
     const W8MonsterManagerEntry* current;
 
     for (current = g_monster_manager_entries; current < &g_monster_manager_entries[8];
