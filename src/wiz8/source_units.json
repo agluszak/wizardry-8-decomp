@@ -24,6 +24,7 @@
     "src/wiz8/engine_code/stLight.cpp",
     "src/wiz8/engine_code/stTextureAnim.cpp",
     "src/wiz8/engine_code/stTextureFile.cpp",
+    "src/wiz8/engine_code/trim_string.cpp",
     "src/wiz8/engine_code/world_selection.cpp",
     "src/wiz8/fact_state.cpp",
     "src/wiz8/game_init.cpp",

@@ -168,6 +168,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/surrender_math.cpp
     src/wiz8/virtual_file_stream.cpp
     src/wiz8/vc6_runtime.cpp
+    src/wiz8/engine_code/trim_string.cpp
 )
 
 # Every recovered C++ source must appear exactly once. The glob is

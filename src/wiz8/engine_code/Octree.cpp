@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <io.h>
@@ -2096,6 +2097,89 @@ finish:
 failed:
     g_octree_6598a4 = 0;
     spatial_000.flags_00 |= 0x80000000;
+}
+
+/* Answer whether this level's OCT/PVL/WGD/LVL set is present, current, and
+   newer than the raw sources. Negative means skip the octree, zero means the
+   set is ready, and positive means the preprocessed files should be rebuilt. */
+// FUNCTION: WIZ8 0x0042ccc0
+int CheckLevelAssetSet0042CCC0(const char* level_path)
+{
+    unsigned short version;
+    char copy[260];
+    char pvl_path[260];
+    char wgd_path[260];
+    char lvl_path[260];
+    int rebuild = 0;
+    int file;
+    char* extension;
+
+    if (g_flag_6598a8 != 0) {
+        return -1;
+    }
+
+    strcpy(copy, level_path);
+    TrimAndLowercaseString(copy);
+    if (strstr(copy, "sky") != 0) {
+        return -1;
+    }
+    if (FileExists("CD.ROM") != 0) {
+        return 0;
+    }
+
+    strcpy(copy, level_path);
+    extension = strrchr(copy, '.');
+    if (extension != 0) {
+        *extension = '\0';
+    }
+    sprintf(pvl_path, "%s.PVL", copy);
+    if (FileExists(const_cast<char*>(level_path)) != 0 && FileExists(pvl_path) != 0 &&
+        (file = FileOpen(const_cast<char*>(level_path), 1, 0)) != 0 &&
+        FileRead(file, &version, 2, 0) != 0) {
+        if (version < 0x22) {
+            if (g_flag_6598a8 != 0) {
+                return -1;
+            }
+            rebuild = 1;
+            FileClose(file);
+        } else {
+            if (version > 0x22) {
+                FileClose(file);
+                ShutdownWithErrorBox(
+                    "EXE OUT OF DATE: Program is older than File version--There is a new "
+                    "executable available.");
+            }
+            FileClose(file);
+        }
+    } else {
+        rebuild = 1;
+    }
+
+    sprintf(lvl_path, "%s.LVL", copy);
+    if (FileExists(lvl_path) == 0) {
+        return -rebuild;
+    }
+    sprintf(wgd_path, "%s.WGD", copy);
+    if (FileExists(wgd_path) == 0) {
+        ReportStartupMessage004969D0(
+            "Could not find WGD file. Cannot find or build current preprocessed files.");
+        ReportStartupMessage004969D0("Attempting to run with LVL file only -- NO COLLISION DATA.");
+        ReportStartupMessage004969D0(0);
+        return -rebuild;
+    }
+
+    if (FileIsOlderThanFile(const_cast<char*>(level_path), pvl_path, 0) == 0) {
+        if (FileIsOlderThanFile(pvl_path, wgd_path, 10) == 0 &&
+            FileIsOlderThanFile(pvl_path, lvl_path, 10) == 0) {
+            return rebuild;
+        }
+    } else if (FileIsOlderThanFile(const_cast<char*>(level_path), wgd_path, 10) == 0) {
+        if (FileIsOlderThanFile(const_cast<char*>(level_path), lvl_path, 10) == 0) {
+            return rebuild;
+        }
+        return 1;
+    }
+    return 1;
 }
 
 /* The raw 0x29c allocation is reset before ReadOctFile applies its header.
