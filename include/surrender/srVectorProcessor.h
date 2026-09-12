@@ -16,8 +16,9 @@
    PrepareGeometry004B6F30, GDProp::Initialize, FUN_00580270 and FUN_005809f0.
    Offsets +0x210/+0x218/+0x224 sit past the 100-slot table and are not vp
    methods. FillDwordBuffer00474700 / AddFloatBuffer00474730 call the dword
-   `_copy` and float `_add` overloads (header +0x20 / +0xc4); retail CALLIND
-   is +0x38 / +0xd8. Those header slots stay put so `_minMax` remains +0x18c. */
+   `_copy` and float `_add` overloads; both compare exact against retail
+   CALLIND +0x38 / +0xd8. srDebugVP is declared; ctor and
+   resetInternalStatistics stay imported. */
 class srVectorProcessor {
 public:
     static SR_DLL_IMPORT const char* getName();
