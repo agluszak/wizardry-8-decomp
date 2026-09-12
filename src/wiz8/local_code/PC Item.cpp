@@ -991,7 +991,7 @@ void GetOriginOfCharacterItem(int character_index, void* item, unsigned char* or
 {
     unsigned int equipped_index;
     unsigned int carried_index;
-    unsigned int pool_index;
+    int pool_index;
     unsigned char* character;
     unsigned char* equipped;
 
