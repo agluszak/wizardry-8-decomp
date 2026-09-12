@@ -37,9 +37,10 @@ public:
     {
         Grow();
     }
-    /* Same COMDAT-call shape as Lookup: Save destroys Sampler's hash prefix
-       with a call to 0x0055db80, not an inlined delete[] pair. */
-    __declspec(noinline) ~W8HashTable()
+    /* Retail Save calls ~W8HashTable (0x0055db80) rather than inlining the
+       delete[] pair. VC6 would otherwise inline this header body into Save. */
+#pragma auto_inline(off)
+    ~W8HashTable()
     {
         if (bucket_heads != 0) {
             delete[] bucket_heads;
@@ -48,11 +49,11 @@ public:
             delete[] entries;
         }
     }
+#pragma auto_inline(on)
 
     /* Retail emits Lookup as a COMDAT that BitArray::Save and the automap
-       call rather than inline. clang-cl would otherwise fold the body into
-       those sites and drop the 0x005853a0 emission. */
-    __declspec(noinline) Value Lookup(const Key* key) const;
+       call rather than inline. */
+    Value Lookup(const Key* key) const;
     int FindNextEntry(const Key* key, int previous) const;
     void Insert(const Key* key, const Value* value);
     void Remove(const Key* key, const Value* value);
@@ -77,8 +78,8 @@ public:
     unsigned int bucket_count;
 };
 
-template <class Key, class Value>
-__declspec(noinline) Value W8HashTable<Key, Value>::Lookup(const Key* key) const
+#pragma auto_inline(off)
+template <class Key, class Value> Value W8HashTable<Key, Value>::Lookup(const Key* key) const
 {
     Key wanted = *key;
     int slot = bucket_heads[W8HashValue(wanted) & (bucket_count - 1)];
@@ -90,6 +91,7 @@ __declspec(noinline) Value W8HashTable<Key, Value>::Lookup(const Key* key) const
     }
     return 0;
 }
+#pragma auto_inline(on)
 
 template <class Key, class Value> void W8HashTable<Key, Value>::Remove(const Key* key)
 {
