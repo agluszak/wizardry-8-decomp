@@ -4,8 +4,8 @@
 
 struct W8ChunkHead {
     unsigned int chunk_id; /* 0x00 */
-    unsigned char unknown_04;
-    unsigned char at_end; /* 0x05 */
+    unsigned char grouped; /* 0x04 */
+    unsigned char at_end;  /* 0x05 */
     unsigned char unknown_06[2];
     int extent_08; /* 0x08 */
 };

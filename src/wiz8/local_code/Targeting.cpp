@@ -10,10 +10,12 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/factions.h"
 #include "wiz8/targeting.h"
+#include "wiz8/local_code/CombatRange.h"
 #include "wiz8/npc_interaction.h"
 // GLOBAL: WIZ8 0x006840b7
 int g_picked_group_006840b7;
@@ -146,10 +148,6 @@ extern const char g_faction_names[W8_FACTION_COUNT][0x1e] = {
     "FACTION_filler4",
 };
 
-extern unsigned char g_targeting_flag_00685116;
-// GLOBAL: WIZ8 0x00685116
-unsigned char g_targeting_flag_00685116;
-
 /* Look a faction up by name, case-insensitively. -1 for a name that is not one
    of the twenty-one. */
 // FUNCTION: WIZ8 0x005360b0
@@ -242,7 +240,7 @@ unsigned char IsSpellTargetOfNeededKind(int party_slot, int spell_id)
     W8CombatSlot* target = GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
     int needed = GetTargetNeededForSpellFriendly(spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
 
-    if (needed == 2 && g_targeting_flag_00685116 != 0) {
+    if (needed == 2 && g_settings_6850c8.autoscroll_combat_messages != 0) {
         return 1;
     }
     return TargetMatchesNeeded(target, (char)needed);
@@ -476,7 +474,7 @@ unsigned char IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* ite
             needed =
                 GetTargetNeededForSpellFriendly(record->spell_id, ItemClassNormalizesTarget(record),
                                                 W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
-            if (needed == 2 && g_targeting_flag_00685116 != 0) {
+            if (needed == 2 && g_settings_6850c8.autoscroll_combat_messages != 0) {
                 return 1;
             }
         }
@@ -585,7 +583,7 @@ void UpdateAllMonsterHighlights(int party_slot, int location_id)
     W8MonsterInfo* monster_info;
     int tint;
 
-    if (g_level_block->highlight_override != -1 && gXStatus.field_06f == 0) {
+    if (g_level_block->highlight_override != -1 && gXStatus.iTargetingMode == 0) {
         overridden = true;
         owner = g_level_block->highlight_override;
     }
@@ -695,7 +693,7 @@ int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext context
         }
 
         next->location_id = monster_info->location_id;
-        next->state_04 = monster_info->value_107;
+        next->state_04 = monster_info->highest_condition;
         next->in_reach = 0;
 
         record = GetMonsterDataForInfo(monster_info);
@@ -765,9 +763,9 @@ bool IsTargetStillPresent(const W8CombatSlot* target)
         if (target->iChar == BAD_INDEX) {
             srAssertFail("pTarget->iChar != BAD_INDEX", TARGETING_CPP, 0x6c, 0);
         }
-        if (g_party_slot_rows[target->iChar].occupied == 0 ||
-            g_party_characters[target->iChar].hp_current == 0 ||
-            g_party_characters[target->iChar].unknown_0b01 > 0x11) {
+        if (g_status_685170.buffers.party_rows[target->iChar].occupied == 0 ||
+            g_status_685170.buffers.characters[target->iChar].hp_current == 0 ||
+            g_status_685170.buffers.characters[target->iChar].highest_condition > 0x11) {
             return false;
         }
         break;
@@ -776,11 +774,12 @@ bool IsTargetStillPresent(const W8CombatSlot* target)
         if (target->iChar == BAD_INDEX) {
             srAssertFail("pTarget->iChar != BAD_INDEX", TARGETING_CPP, 0x75, 0);
         }
-        if (g_party_slot_rows[target->iChar].occupied == 0 ||
-            g_party_characters[target->iChar].hp_current != 0 ||
-            g_party_characters[target->iChar].condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] ==
-                0 ||
-            g_party_characters[target->iChar].condition_turns[W8_CONDITION_BEYOND_REACH] != 0) {
+        if (g_status_685170.buffers.party_rows[target->iChar].occupied == 0 ||
+            g_status_685170.buffers.characters[target->iChar].hp_current != 0 ||
+            g_status_685170.buffers.characters[target->iChar]
+                    .condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] == 0 ||
+            g_status_685170.buffers.characters[target->iChar]
+                    .condition_turns[W8_CONDITION_BEYOND_REACH] != 0) {
             return false;
         }
         break;
@@ -877,7 +876,7 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
          CanTargetMonster(party_slot, location_id, 1, 0))) {
         valid = 1;
     }
-    Function547510();
+    CombatAllowsLiveGroups();
 
     if (valid == 0) {
         SetMonsterHighlightColour(monster, 1.0f, 0.0f, 0.0f, 1.0f);
@@ -888,7 +887,7 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
     }
 
     SetMonsterHighlightColour(monster, 0.0f, 1.0f, 0.0f, 1.0f);
-    if (g_modal_owner_0068edd0 == 0 && gXStatus.field_06f == 0 && IsScreenIdle() &&
+    if (g_modal_owner_0068edd0 == 0 && gXStatus.iTargetingMode == 0 && IsScreenIdle() &&
         gXStatus.iCurrentCursor != W8_CURSOR_INVALID_TARGET) {
         SetTargetCursor(W8_CURSOR_VALID_TARGET);
     }
@@ -1024,7 +1023,7 @@ W8TargetingContext GetCurrentTargetingContext(int party_slot)
         return W8_TARGETING_CONTEXT_DIALOGUE;
     }
     if (party_slot == g_status_685170.selected_character &&
-        (gXStatus.field_01d != 0 || gXStatus.fItemSelectMode != 0)) {
+        (gXStatus.fSpellCastMode != 0 || gXStatus.fItemSelectMode != 0)) {
         return W8_TARGETING_CONTEXT_SHARED;
     }
     return gXStatus.fCombatMode != 0 ? W8_TARGETING_CONTEXT_IN_COMBAT
@@ -1068,7 +1067,7 @@ W8TargetingContext ResolveTargetingContext(int party_slot, W8TargetingContext co
 // FUNCTION: WIZ8 0x0053b7f0
 W8CombatSlot* GetTargetBlockForContext(int party_slot, W8TargetingContext context)
 {
-    W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
 
     if (context == W8_TARGETING_CONTEXT_CURRENT) {
         context = GetCurrentTargetingContext(party_slot);
@@ -1118,12 +1117,12 @@ unsigned char MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_i
     return TargetMatchesNeeded(&monster_info->Target, GetTargetNeededForSpellHostile(spell_id));
 }
 
-/* Map gXStatus.field_06f to a cursor-table index for SetTargetCursor.
+/* Map gXStatus.iTargetingMode to a cursor-table index for SetTargetCursor.
    Returned values are cursor slots (including 10..12), not W8TargetingContext. */
 // FUNCTION: WIZ8 0x0053A3D0
 int GetTargetingCursorForState(int alternate)
 {
-    switch (gXStatus.field_06f) {
+    switch (gXStatus.iTargetingMode) {
     case 1:
     case 6:
     case 7:
@@ -1145,7 +1144,7 @@ int GetTargetingCursorForState(int alternate)
 // FUNCTION: WIZ8 0x0053A700
 bool ActionNeedsExplicitTarget(int party_slot)
 {
-    switch (GetSpellTargetType(g_party_slot_rows[party_slot].spell_id, 0)) {
+    switch (GetSpellTargetType(g_status_685170.buffers.party_rows[party_slot].spell_id, 0)) {
     case 0:
     case 2:
     case 7:
@@ -1155,7 +1154,7 @@ bool ActionNeedsExplicitTarget(int party_slot)
         if (gXStatus.fCampMode != 0) {
             return false;
         }
-        return g_targeting_flag_00685116 == 0;
+        return g_settings_6850c8.autoscroll_combat_messages == 0;
     default:
         return true;
     }
@@ -1193,7 +1192,7 @@ void SetTargetingMode(int state)
 {
     int cursor;
 
-    gXStatus.field_06f = state;
+    gXStatus.iTargetingMode = state;
     switch (state) {
     case 1:
     case 6:
@@ -1223,11 +1222,11 @@ void SetTargetingMode(int state)
     RequestRefreshPartyState();
     if (state == 4) {
         Function4ADD30(1);
-        Function56AA30();
+        PauseMainGameWorld();
     } else {
         Function4ADD30(0);
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-            Function56AAB0();
+            ResumeMainGameWorld();
         }
     }
 }
@@ -1284,9 +1283,9 @@ void RefreshTargetMarker(void)
 // FUNCTION: WIZ8 0x0053C270
 bool CanPartySlotParticipate(int party_slot)
 {
-    return g_party_slot_rows[party_slot].occupied != 0 &&
-           g_party_characters[party_slot].hp_current != 0 &&
-           g_party_characters[party_slot].unknown_0b01 < 0x12;
+    return g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
+           g_status_685170.buffers.characters[party_slot].hp_current != 0 &&
+           g_status_685170.buffers.characters[party_slot].highest_condition < 0x12;
 }
 
 /* Validate a targeting context a second time, after resolving "current". The
@@ -1550,7 +1549,7 @@ unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char
 
     switch (GetTargetNeededForSpellFriendly(spell_id, normalize, W8_TARGETING_CONTEXT_CURRENT)) {
     case W8_SPELL_TARGET_ONE_MONSTER:
-        if (g_targeting_flag_00685116 != 0) {
+        if (g_settings_6850c8.autoscroll_combat_messages != 0) {
             return 1;
         }
         for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
@@ -1573,10 +1572,12 @@ unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char
 
     case W8_SPELL_TARGET_DEAD_CHARACTER:
         for (index = 0; index < 8; ++index) {
-            if (g_party_slot_rows[index].occupied != 0 &&
-                g_party_characters[index].hp_current == 0 &&
-                g_party_characters[index].condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0 &&
-                g_party_characters[index].condition_turns[W8_CONDITION_BEYOND_REACH] == 0) {
+            if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
+                g_status_685170.buffers.characters[index].hp_current == 0 &&
+                g_status_685170.buffers.characters[index]
+                        .condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0 &&
+                g_status_685170.buffers.characters[index]
+                        .condition_turns[W8_CONDITION_BEYOND_REACH] == 0) {
                 return 1;
             }
         }
@@ -1801,7 +1802,8 @@ void RefreshAllPartyTargets0053BF80(void)
         W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
         W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
-        if (row->occupied != 0 && (character->hp_current != 0 || character->unknown_0b01 < 0x12)) {
+        if (row->occupied != 0 &&
+            (character->hp_current != 0 || character->highest_condition < 0x12)) {
             W8CombatSlot* target =
                 GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
             unsigned char can_switch =

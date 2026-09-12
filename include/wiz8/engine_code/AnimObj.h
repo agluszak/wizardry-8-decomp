@@ -16,17 +16,20 @@ class srModelInstance;
  *
  * The allocator at 0x004A01A0 clears the complete 0x4c-byte record.  The
  * assertion name `pao` and the owning source path establish the AnimObj
- * identity; the members below remain positional until their consumers supply
- * semantic names.
+ * identity. Leading serialized bytes are named from load/clone/dispatch
+ * consumers; remaining bytes stay positional until those uses are recovered.
  */
 struct W8AnimObj {
-    unsigned char unknown_00[2];
-    unsigned char value_02; /* 0x02 */
-    unsigned char unknown_03[2];
-    unsigned char flag_05; /* 0x05 */
+    unsigned char group_count; /* 0x00: mesh/list group count, max 3 */
+    unsigned char unknown_01;  /* 0x01: copied onto monster/prop flag_06d */
+    unsigned char value_02;    /* 0x02: copied onto flag_06f */
+    unsigned char unknown_03;  /* 0x03: copied onto flag_070 */
+    unsigned char cycle;       /* 0x04: default cycle/emitter index */
+    unsigned char flag_05;     /* 0x05: 0 = mesh entries, nonzero = path lists */
     unsigned char unknown_06[2];
     float playback_scale_08; /* 0x08 */
-    unsigned char unknown_0c[4];
+    unsigned char flag_0c;   /* 0x0c: copied onto prop flag_0a5 */
+    unsigned char unknown_0d[3];
     /* Serialized as a float; 0x004A0320 copies its four-byte representation. */
     float value_10; /* 0x10 */
     unsigned char start_frame_14;
@@ -60,8 +63,8 @@ void TransformBounds004A1DF0(const srMatrix3T<float>* rotation,
                              srVector3T<float>* minimum, srVector3T<float>* maximum);
 unsigned int AnimObjValue004A15D0(W8AnimObj* animation, signed char index);
 unsigned int AnimObjListCount004A1620(W8AnimObj* animation, signed char index);
-void* AnimObjListEntry004A16C0(W8AnimObj* animation, signed char list_index,
-                               signed char entry_index);
+W8PathAI* AnimObjListEntry004A16C0(W8AnimObj* animation, signed char list_index,
+                                   signed char entry_index);
 unsigned char AnimationIsRunning(W8AnimObj* animation);
 unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* animation, int load_all,
                                           W8GrowableVector<stLight*>* light_list, int unused);

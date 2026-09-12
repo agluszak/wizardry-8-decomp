@@ -1,6 +1,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/game_status.h"
 // GLOBAL: WIZ8 0x0068f2d4
 W8MainGameScreen* g_main_game_screen;
 #include "wiz8/local_code/ButtonSound.h"
@@ -29,12 +30,6 @@ enum { W8_REDRAW_TEXT_BOX = 0x800 };
 unsigned char g_text_box_mode_0069b7b8;
 // GLOBAL: WIZ8 0x0064bd54
 int g_text_box_value_0064bd54 = 12;
-// GLOBAL: WIZ8 0x00686905
-int g_text_line_cursor_00686905;
-/* 0x00689B17: one entry per line, how many messages that line holds.
-   Five dwords reach the next global at 0x00689B2C. */
-// GLOBAL: WIZ8 0x00689b17
-int g_text_line_counts[5] = {0, 0, 0, 0, 0};
 /* 0x0068F2D4: the screen the text box belongs to; its two panels sit at 0x0c
    and 0x14. */
 
@@ -45,7 +40,7 @@ int g_text_line_counts[5] = {0, 0, 0, 0, 0};
 W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
 
 // FUNCTION: WIZ8 0x0058fd30
-void Function58FD30(void)
+void ReleaseMessageStorage(void)
 {
     for (int row = 0; row < 4; ++row) {
         for (int index = 0; index < 0x15e; ++index) {
@@ -116,7 +111,7 @@ int GetTextBoxValue2E8(void)
 // FUNCTION: WIZ8 0x0058b940
 bool CurrentTextLineHasContent(void)
 {
-    return g_level_block->text_lines[g_text_line_cursor_00686905] != 0;
+    return g_level_block->text_lines[g_status_685170.text_line_cursor_1795] != 0;
 }
 
 /* Scroll so the line the cursor is on is the last of eight showing, or to the
@@ -124,8 +119,9 @@ bool CurrentTextLineHasContent(void)
 // FUNCTION: WIZ8 0x0058b910
 void ScrollTextBoxToCursor(void)
 {
-    if (g_text_line_counts[g_text_line_cursor_00686905] > 8) {
-        ScrollTextBoxTo(g_text_line_counts[g_text_line_cursor_00686905] - 8 + 1);
+    if (g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] > 7) {
+        ScrollTextBoxTo(
+            g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] - 7);
         return;
     }
     ScrollTextBoxTo(0);
@@ -180,13 +176,14 @@ void RedrawTextBoxComplete(void)
 // FUNCTION: WIZ8 0x0058d760
 int FindStoppedTextLine(void)
 {
-    int index = g_text_line_counts[g_text_line_cursor_00686905];
+    int index = g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795];
 
     if (index == 0) {
         return -1;
     }
     while (--index >= 0) {
-        if (ClockIsTicking(g_message_storage_68f2d8[g_text_line_cursor_00686905][index].clock_08) ==
+        if (ClockIsTicking(
+                g_message_storage_68f2d8[g_status_685170.text_line_cursor_1795][index].clock_08) ==
             0) {
             return index;
         }
@@ -220,7 +217,7 @@ void SetKnockKnockTarget(int target)
 {
     W8MainGameScreen* screen = g_main_game_screen;
 
-    if (gXStatus.field_021 == 0) {
+    if (gXStatus.fTrapInteractMode == 0) {
         ShowNotice(0xc, L"You can't cast Knock Knock here!", -1, -1, 0);
         return;
     }

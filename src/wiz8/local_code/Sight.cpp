@@ -192,7 +192,7 @@ bool MonsterGroupHasVisibleThreat(W8MonsterGroup* group)
     for (index = 0; index < ILLength(group->monsters); ++index) {
         monster_info = MonsterInfoFromID(1120, SIGHT_CPP, IListGetAt(group->monsters, index), 1);
         if (monster_info->flag_14 != 0 && !monster_info->monster->IsDying() &&
-            monster_info->hp_current != 0 && (unsigned int)monster_info->value_107 < 0xc &&
+            monster_info->hp_current != 0 && (unsigned int)monster_info->highest_condition < 0xc &&
             monster_info->party_threat.state_04 == 1) {
             return true;
         }
@@ -264,7 +264,7 @@ unsigned int AgeAllMonsterSight(void)
     }
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        if ((unsigned int)monster_info->value_107 < 0x12) {
+        if ((unsigned int)monster_info->highest_condition < 0x12) {
             AgeMonsterSight(monster_info, steps, 1);
         }
     }
@@ -535,7 +535,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
         if (monster_info->player_visibility.line_of_sight_28 == 0) {
             goto after_sight;
         }
-        if (monster_info->hp_current == 0 || monster_info->value_107 > 0xe) {
+        if (monster_info->hp_current == 0 || monster_info->highest_condition > 0xe) {
             visible_to_player = 0;
         } else {
             float yaw = GetCameraYawRadians();
@@ -554,7 +554,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                 W8Character* character = &g_status_685170.buffers.characters[slot];
 
                 if (row->occupied != 0 && character->hp_current != 0 &&
-                    character->unknown_0b01 < 0xf && character->level < minimum_level) {
+                    character->highest_condition < 0xf && character->level < minimum_level) {
                     minimum_level = character->level;
                 }
             }
@@ -667,7 +667,7 @@ after_sight:
                     W8Character* character = &g_status_685170.buffers.characters[slot];
 
                     if (row->occupied != 0 && character->hp_current != 0 &&
-                        character->unknown_0b01 < 0xf) {
+                        character->highest_condition < 0xf) {
                         float threshold = Function505A40(
                             camera_position.x, camera_position.y, camera_position.z, own_x, own_y,
                             own_z, yaw, character->attributes[6].effective,
@@ -712,13 +712,9 @@ after_sight:
                                     if (Random(2) == 0) {
                                         effect = g_sight_effect_005ee698;
                                     }
-                                    W8StartupStateElement005EE748* notice =
-                                        Function52E690(reinterpret_cast<W8Character*>(
-                                                           reinterpret_cast<char*>(
-                                                               g_status_685170.buffers.characters) +
-                                                           party_slot * 0x1862),
-                                                       effect, 0, g_effect_argument_005ed8c8,
-                                                       g_effect_argument_005ed914);
+                                    W8StartupStateElement005EE748* notice = QueueCharacterEvent(
+                                        &g_status_685170.buffers.characters[party_slot], effect, 0,
+                                        g_effect_argument_005ed8c8, g_effect_argument_005ed914);
 
                                     if (notice != 0) {
                                         notice->value_30 = 0x5dc;
@@ -749,12 +745,9 @@ after_sight:
                                         if (npc->name_style == 0x18 && GetFact(0x2ee) != 0) {
                                             effect = g_sight_effect_005ee66c;
                                         }
-                                        W8StartupStateElement005EE748* notice = Function52E690(
-                                            reinterpret_cast<W8Character*>(
-                                                reinterpret_cast<char*>(
-                                                    g_status_685170.buffers.characters) +
-                                                party_slot * 0x1862),
-                                            effect, 0, g_effect_argument_005ed8c8,
+                                        W8StartupStateElement005EE748* notice = QueueCharacterEvent(
+                                            &g_status_685170.buffers.characters[party_slot], effect,
+                                            0, g_effect_argument_005ed8c8,
                                             g_effect_argument_005ed914);
 
                                         if (notice != 0) {

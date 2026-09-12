@@ -1,8 +1,8 @@
 #include "wiz8/geometry.h"
 
-/* Geometry bounds helper. Its original translation-unit spelling is not
-   established; the body lies between the proved Engine Code\quad.cpp and
-   Engine Code\Monster.cpp intervals. */
+/* Geometry bounds helper. Live query: 0x004BE870 sits between the proved
+   Engine Code\quad.cpp (upper 0x004BE200) and Engine Code\Monster.cpp
+   (lower 0x004BF0F0) intervals. */
 
 // FUNCTION: WIZ8 0x004BE870
 unsigned char PointInsideBounds004BE870(const srVector3T<float>* point,

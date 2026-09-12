@@ -213,17 +213,17 @@ stModelInstance2D::~stModelInstance2D()
 stModelInstance2D& stModelInstance2D::operator=(const stModelInstance2D& other)
 {
     srModelInstance::operator=(other);
-    state_170 = other.state_170;
-    left_168 = other.left_168;
-    top_16a = other.top_16a;
-    right_16c = other.right_16c;
-    bottom_16e = other.bottom_16e;
+    render_state_164.display_state = other.render_state_164.display_state;
+    render_state_164.left = other.render_state_164.left;
+    render_state_164.top = other.render_state_164.top;
+    render_state_164.right = other.render_state_164.right;
+    render_state_164.bottom = other.render_state_164.bottom;
     state_160 = other.state_160;
     if (other.parentNode() != 0) {
         setParent(other.parentNode(), 1);
     }
-    state_171 = other.state_171;
-    render_depth_164 = other.render_depth_164;
+    render_state_164.state_0d = other.render_state_164.state_0d;
+    render_state_164.render_depth = other.render_state_164.render_depth;
     if (other.vector_174 != 0) {
         vector_174 = static_cast<srVector4T<float>*>(srHeap.allocate(sizeof(srVector4T<float>)));
         *vector_174 = *other.vector_174;
@@ -306,7 +306,7 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
     srMeshModel* model = static_cast<srMeshModel*>(getModel());
     model->getTriMesh(mesh);
 
-    if (state_171 != 0) {
+    if (render_state_164.state_0d != 0) {
         if (m_pGlowMaterial_17c == 0) {
             m_pGlowMaterial_17c = new stMaterial;
             if (m_pGlowMaterial_17c == 0) {
@@ -320,9 +320,10 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
             }
         }
 
-        float glow_weight = (float)fabs(
-            sin(((double)(GetTickCount() % render_depth_164) / (double)(int)render_depth_164) *
-                g_camera_angle_period_005ec014));
+        float glow_weight =
+            (float)fabs(sin(((double)(GetTickCount() % render_state_164.render_depth) /
+                             (double)(int)render_state_164.render_depth) *
+                            g_camera_angle_period_005ec014));
         float base_weight = g_float_005ebb38 - glow_weight;
         srVector4T<float> emissive;
         emissive.x = vector_174->x * base_weight + vector_178->x * glow_weight;
@@ -347,9 +348,9 @@ int stModelInstance2D::GetWidth00480EF0()
 {
     srVector3T<double> scale = getScale();
     if (scale.x == 1.0 && scale.y == 1.0 && scale.z == 1.0) {
-        return left_168;
+        return render_state_164.left;
     }
-    return (int)(left_168 * scale.x);
+    return (int)(render_state_164.left * scale.x);
 }
 
 // FUNCTION: WIZ8 0x00480F70
@@ -357,9 +358,9 @@ int stModelInstance2D::GetHeight00480F70()
 {
     srVector3T<double> scale = getScale();
     if (scale.x == 1.0 && scale.y == 1.0 && scale.z == 1.0) {
-        return top_16a;
+        return render_state_164.top;
     }
-    return (int)(top_16a * scale.y);
+    return (int)(render_state_164.top * scale.y);
 }
 
 // FUNCTION: WIZ8 0x00481E30
@@ -387,10 +388,10 @@ srClass* stModelInstance2D::vInstance()
 stModelInstance::stModelInstance(srNode* parent)
     : srClassSupport<stModelInstance, srModelInstance, false, 0x10004>(static_cast<srNode*>(0))
 {
-    render_depth_164 = 0;
-    state_168 = 0;
-    state_16c = 0;
-    state_170_173 = 0;
+    render_state_164.render_depth = 0;
+    render_state_164.state_04 = 0;
+    render_state_164.state_08 = 0;
+    render_state_164.state_0c = 0;
     state_178 = 0;
     state_17c = static_cast<unsigned long>(-1);
     frame_index_180 = 0;
@@ -412,10 +413,10 @@ stModelInstance::stModelInstance(srNode* parent)
 stModelInstance& stModelInstance::operator=(const stModelInstance& other)
 {
     srModelInstance::operator=(other);
-    render_depth_164 = 0;
-    state_168 = 0;
-    state_16c = 0;
-    state_170_173 = 0;
+    render_state_164.render_depth = 0;
+    render_state_164.state_04 = 0;
+    render_state_164.state_08 = 0;
+    render_state_164.state_0c = 0;
     state_178 = other.state_178;
     state_17c = other.state_17c;
     frame_index_180 = other.frame_index_180;

@@ -210,7 +210,7 @@ void W8SpellVisual::SetCycle(signed char cycle)
     }
     host->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     host->flag_06f = animation->value_02;
-    host->flag_06d = animation->unknown_00[1];
+    host->flag_06d = animation->unknown_01;
     host->flag_064 = 0;
 
     lights = *host->light_lists[cycle].GetAt(0);
@@ -478,7 +478,7 @@ unsigned char W8SpellEmitterHost::ReadCycleData004AB340(W8ReadLevelInfo* info,
     }
     animation = CreateAnimObj004A01A0();
     success = AnimObjReadFromFile004A05C0(info, animation, 1, lights, 1);
-    emitter = static_cast<signed char>(animation->unknown_03[1]);
+    emitter = static_cast<signed char>(animation->cycle);
 
     if (lights->GetCount() == 0) {
         delete lights;
@@ -496,9 +496,9 @@ unsigned char W8SpellEmitterHost::ReadCycleData004AB340(W8ReadLevelInfo* info,
     active = 1;
     flag_06e = 1;
     timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    flag_070 = animation->unknown_03[0];
+    flag_070 = animation->unknown_03;
     flag_06f = animation->value_02;
-    flag_06d = animation->unknown_00[1];
+    flag_06d = animation->unknown_01;
     emitters[emitter] = animation;
 
     if (visual != 0) {

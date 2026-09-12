@@ -326,6 +326,8 @@ struct W8SpellRealmAnimation {
     unsigned int initial_frame;
 };
 extern W8SpellRealmAnimation g_spell_realm_animations_00648c90[6];
+extern const wchar_t g_format_d_0060aa20[];
+extern const wchar_t g_format_s_parenthesized_s_00617584[];
 
 /* One message id per character trait, indexed by trait id. */
 extern unsigned short g_character_trait_name_ids_61e530[0x20];
@@ -346,8 +348,8 @@ extern unsigned int g_character_stats_region_set_0069c550;
 
 /* Skill-availability bookkeeping raised by RefreshCharacterSkillAvailability00553CD0 while the character
    screen is open: adjust the named page-2 entry and refresh that page. */
-void Function5B1AF0(int skill_id);
-void Function5B1B30(int skill_id);
+void ResetCharacterScreenSkill(int skill_id);
+void RefundCharacterScreenSkill(int skill_id);
 
 /* Primary interface at 0x005EF224, used by the pages to raise the screen-owned
    dialogs and to query the current character. */

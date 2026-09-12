@@ -28,8 +28,8 @@ extern unsigned char g_dialog_font_background_64fded;
 
 // FUNCTION: WIZ8 0x005d25b0
 W8ModalDialogBase::W8ModalDialogBase()
-    : close_result(0), is_open(1), m_field_56(-1), m_field_58(-1), m_field_5c(-1), m_field_60(-1),
-      m_field_74(-1), m_field_78(-1), m_lines(0), m_line_count(0)
+    : close_result(0), is_open(1), m_edge_image(-1), m_message_button(-1), m_confirm_button(-1),
+      m_confirm_image(-1), m_cancel_button(-1), m_cancel_image(-1), m_lines(0), m_line_count(0)
 {
 }
 
@@ -51,8 +51,8 @@ void W8ModalDialogBase::Draw()
     unsigned int index;
 
     W8DialogBase::Draw();
-    DrawButton(m_field_58);
-    if (!m_field_94 && !allow_cancel) {
+    DrawButton(m_message_button);
+    if (!m_show_confirm && !allow_cancel) {
         y = m_y + (m_height - GetFontHeight(g_dialog_font_64fde8) * m_line_count) / 2;
     } else {
         y = m_y + ((m_height - 0x21) - GetFontHeight(g_dialog_font_64fde8) * m_line_count) / 2;
@@ -70,22 +70,21 @@ void W8ModalDialogBase::Draw()
         }
         RestoreFontSettings();
     }
-    if (m_field_94) {
-        if (m_field_5c != -1) {
-            DrawButton(m_field_5c);
+    if (m_show_confirm) {
+        if (m_confirm_button != -1) {
+            DrawButton(m_confirm_button);
         }
-        if (allow_cancel && m_field_74 != -1) {
-            DrawButton(m_field_74);
+        if (allow_cancel && m_cancel_button != -1) {
+            DrawButton(m_cancel_button);
         }
     }
 }
 
 // FUNCTION: WIZ8 0x005d2800
-void W8ModalDialogBase::SetMessage(void* payload, int line_count, int characters_per_line,
+void W8ModalDialogBase::SetMessage(wchar_t* message, int line_count, int characters_per_line,
                                    int confirmation, int cancel, int size_to_message,
                                    int wrap_message, int maximum_width, int maximum_height)
 {
-    wchar_t* message = static_cast<wchar_t*>(payload);
     unsigned int index;
 
     if (!message) {
@@ -111,7 +110,7 @@ void W8ModalDialogBase::SetMessage(void* payload, int line_count, int characters
         }
     }
     m_line_count = line_count;
-    m_field_94 = static_cast<unsigned char>(confirmation);
+    m_show_confirm = static_cast<unsigned char>(confirmation);
     allow_cancel = static_cast<unsigned char>(cancel);
     if (size_to_message) {
         unsigned int width = 0;
@@ -129,7 +128,7 @@ void W8ModalDialogBase::SetMessage(void* payload, int line_count, int characters
         }
         GetFontHeight(g_dialog_font_64fde8);
         height = GetFontHeight(g_dialog_font_64fde8) * m_line_count + 0x1e;
-        if (m_field_94 || allow_cancel) {
+        if (m_show_confirm || allow_cancel) {
             height = GetFontHeight(g_dialog_font_64fde8) * m_line_count + 0x3f;
         }
         if (height < GetFontHeight(g_dialog_font_64fde8) * 7) {
@@ -233,51 +232,53 @@ void W8ModalDialogBase::SetClientExtent(int width, int height)
 int W8ModalDialogBase::CreateControls()
 {
     W8DialogBase::CreateControls();
-    if (m_field_56 == -1) {
-        m_field_56 = LoadGenericButtonImages(
+    if (m_edge_image == -1) {
+        m_edge_image = LoadGenericButtonImages(
             0, reinterpret_cast<unsigned char*>(const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
             0, reinterpret_cast<unsigned char*>(const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
             0, reinterpret_cast<unsigned char*>(m_background_path),
             static_cast<short>(m_background_flags), 0, 0);
-        if (m_field_56 == -1) {
+        if (m_edge_image == -1) {
             return m_error = 3;
         }
     }
-    m_field_58 =
+    m_message_button =
         CreateTextButton(0, g_dialog_font_64fde8, g_dialog_font_foreground_64fdec,
-                         g_dialog_font_background_64fded, m_field_56, static_cast<short>(m_x + 9),
+                         g_dialog_font_background_64fded, m_edge_image, static_cast<short>(m_x + 9),
                          static_cast<short>(m_y + 9), static_cast<short>(m_width - 0x12),
                          static_cast<short>(m_height - 0x12), 0x8004, 0x7e, 0, 0);
 
-    m_field_60 = LoadButtonImage(reinterpret_cast<unsigned char*>(
-                                     const_cast<char*>("Data\\Dialogs\\DialogConfirmation.sti")),
-                                 3, 0, 1, 2, 2);
-    if (m_field_60 != -1) {
-        m_field_5c = QuickCreateButton(m_field_60, 0, 0, 4, 0x7f, Function5D32C0, Function5D32C0);
+    m_confirm_image = LoadButtonImage(reinterpret_cast<unsigned char*>(const_cast<char*>(
+                                          "Data\\Dialogs\\DialogConfirmation.sti")),
+                                      3, 0, 1, 2, 2);
+    if (m_confirm_image != -1) {
+        m_confirm_button = QuickCreateButton(
+            m_confirm_image, 0, 0, 4, 0x7f, ModalDialogConfirmCallback, ModalDialogConfirmCallback);
     }
-    m_field_78 = LoadButtonImage(reinterpret_cast<unsigned char*>(
-                                     const_cast<char*>("Data\\Dialogs\\DialogConfirmation.sti")),
-                                 7, 4, 5, 6, 6);
-    if (m_field_78 != -1) {
-        m_field_74 = QuickCreateButton(m_field_78, 0, 0, 4, 0x7f, Function5D3370, Function5D3370);
+    m_cancel_image = LoadButtonImage(reinterpret_cast<unsigned char*>(const_cast<char*>(
+                                         "Data\\Dialogs\\DialogConfirmation.sti")),
+                                     7, 4, 5, 6, 6);
+    if (m_cancel_image != -1) {
+        m_cancel_button = QuickCreateButton(m_cancel_image, 0, 0, 4, 0x7f,
+                                            ModalDialogCancelCallback, ModalDialogCancelCallback);
     }
-    if (m_field_5c != -1 && m_field_74 != -1) {
+    if (m_confirm_button != -1 && m_cancel_button != -1) {
         int button_width;
         int button_y;
         int button_x;
 
-        SetButtonUserDataPointer(m_field_5c, this);
-        SetButtonUserDataPointer(m_field_74, this);
-        button_width = GetButtonWidth(m_field_5c);
-        button_y = m_y + m_height - GetButtonHeight(m_field_5c) - 0xf;
+        SetButtonUserDataPointer(m_confirm_button, this);
+        SetButtonUserDataPointer(m_cancel_button, this);
+        button_width = GetButtonWidth(m_confirm_button);
+        button_y = m_y + m_height - GetButtonHeight(m_confirm_button) - 0xf;
         if (allow_cancel) {
             button_x = m_x + (m_width - button_width * 3) / 2;
         } else {
             button_x = m_x + (m_width - button_width) / 2;
         }
-        SetButtonPosition(m_field_5c, button_x, button_y);
-        SetButtonPosition(m_field_74, m_x + m_width / 2 + GetButtonWidth(m_field_5c) / 2,
-                          GetButtonY(m_field_5c));
+        SetButtonPosition(m_confirm_button, button_x, button_y);
+        SetButtonPosition(m_cancel_button, m_x + m_width / 2 + GetButtonWidth(m_confirm_button) / 2,
+                          GetButtonY(m_confirm_button));
         return 0;
     }
     DestroyControls();
@@ -290,29 +291,29 @@ void W8ModalDialogBase::DestroyControls()
     unsigned int index;
 
     W8DialogBase::DestroyControls();
-    if (m_field_56 != -1) {
-        UnloadGenericButtonImage(m_field_56);
-        m_field_56 = -1;
+    if (m_edge_image != -1) {
+        UnloadGenericButtonImage(m_edge_image);
+        m_edge_image = -1;
     }
-    if (m_field_58 != -1) {
-        RemoveButton(m_field_58);
-        m_field_58 = -1;
+    if (m_message_button != -1) {
+        RemoveButton(m_message_button);
+        m_message_button = -1;
     }
-    if (m_field_5c != -1) {
-        RemoveButton(m_field_5c);
-        m_field_5c = -1;
+    if (m_confirm_button != -1) {
+        RemoveButton(m_confirm_button);
+        m_confirm_button = -1;
     }
-    if (m_field_74 != -1) {
-        RemoveButton(m_field_74);
-        m_field_74 = -1;
+    if (m_cancel_button != -1) {
+        RemoveButton(m_cancel_button);
+        m_cancel_button = -1;
     }
-    if (m_field_60 != -1) {
-        UnloadButtonImage(m_field_60);
-        m_field_60 = -1;
+    if (m_confirm_image != -1) {
+        UnloadButtonImage(m_confirm_image);
+        m_confirm_image = -1;
     }
-    if (m_field_78 != -1) {
-        UnloadButtonImage(m_field_78);
-        m_field_78 = -1;
+    if (m_cancel_image != -1) {
+        UnloadButtonImage(m_cancel_image);
+        m_cancel_image = -1;
     }
     if (m_lines) {
         for (index = 0; index < m_line_count; ++index) {
@@ -385,7 +386,7 @@ unsigned char W8ModalDialogBase::ProcessInput()
 }
 
 // FUNCTION: WIZ8 0x005d32c0
-void Function5D32C0(GUI_BUTTON* button, int reason)
+void ModalDialogConfirmCallback(GUI_BUTTON* button, int reason)
 {
     W8ModalDialogBase* dialog = GetButtonUserDataPointer<W8ModalDialogBase>(button);
     if (!dialog) {
@@ -414,7 +415,7 @@ void Function5D32C0(GUI_BUTTON* button, int reason)
 }
 
 // FUNCTION: WIZ8 0x005d3370
-void Function5D3370(GUI_BUTTON* button, int reason)
+void ModalDialogCancelCallback(GUI_BUTTON* button, int reason)
 {
     W8ModalDialogBase* dialog = GetButtonUserDataPointer<W8ModalDialogBase>(button);
     if (!dialog) {

@@ -21,14 +21,12 @@
 #include <string.h>
 #include <wchar.h>
 
-// GLOBAL: WIZ8 0x00688290
-unsigned char g_log_fact_checks;
 // GLOBAL: WIZ8 0x0068de63
 unsigned char g_import_party_loaded;
 // GLOBAL: WIZ8 0x0068de5d
 int g_import_ending_choice;
 // GLOBAL: WIZ8 0x00689b78
-unsigned char g_fact_values[1001];
+unsigned char g_fact_values[1000];
 // GLOBAL
 unsigned char g_import_flags[0x60];
 
@@ -43,7 +41,7 @@ unsigned char GetFact(int fact_id)
     }
 
     value = EvaluateFact(fact_id);
-    if (g_log_fact_checks) {
+    if (g_status_685170.log_fact_checks_3120) {
         if (value) {
             wcscpy(display_value, L"TRUE");
         } else {
@@ -82,7 +80,7 @@ void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effec
         }
         HandleFactChange(fact_id, value);
 
-        if (g_log_fact_checks) {
+        if (g_status_685170.log_fact_checks_3120) {
             if (value) {
                 wcscpy(display_value, L"TRUE");
             } else {
@@ -158,7 +156,7 @@ static __inline unsigned char CheckFactLogged(int fact_id)
     wchar_t text[10];
 
     value = EvaluateFact(fact_id);
-    if (g_log_fact_checks) {
+    if (g_status_685170.log_fact_checks_3120) {
         if (value) {
             wcscpy(text, L"TRUE");
         } else {
@@ -182,7 +180,7 @@ void LoadFactState(int save_handle)
     if (CheckFactLogged(0x44)) {
         npc = GetNpcStateByKind(0x20);
         if (npc && npc->has_monster) {
-            Function55A0A0(npc->unknown_00);
+            ReleaseRecordFile0055A0A0(npc->record_file);
             Function524CA0(npc);
         }
     }
@@ -234,14 +232,14 @@ unsigned char EvaluateFact(int fact_id)
             return 0;
         case 0x3d:
             value = EvaluateFact(0x3a);
-            if (g_log_fact_checks) {
+            if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
                 WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[58].symbolic_name,
                              text);
             }
             if (value == 0) {
                 value = EvaluateFact(0x3c);
-                if (g_log_fact_checks) {
+                if (g_status_685170.log_fact_checks_3120) {
                     wcscpy(text, value ? L"TRUE" : L"FALSE");
                     WriteGameLog(5, L"Checking fact %S which is %s",
                                  g_fact_records[60].symbolic_name, text);
@@ -274,14 +272,14 @@ unsigned char EvaluateFact(int fact_id)
         }
         case 0x81:
             value = EvaluateFact(0x86);
-            if (g_log_fact_checks) {
+            if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
                 WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[134].symbolic_name,
                              text);
             }
             if (value == 0) {
                 value = EvaluateFact(0x83);
-                if (g_log_fact_checks) {
+                if (g_status_685170.log_fact_checks_3120) {
                     wcscpy(text, value ? L"TRUE" : L"FALSE");
                     WriteGameLog(5, L"Checking fact %S which is %s",
                                  g_fact_records[131].symbolic_name, text);
@@ -311,8 +309,9 @@ unsigned char EvaluateFact(int fact_id)
             return FindItemOnParty(0x27b, 0, 0, 2, 0);
         case 0xb5: {
             unsigned int slot = 0;
-            while (g_party_slot_rows[slot].occupied == 0 || g_party_characters[slot].race != 10 ||
-                   g_party_characters[slot].unknown_0b01 > 0xe) {
+            while (g_status_685170.buffers.party_rows[slot].occupied == 0 ||
+                   g_status_685170.buffers.characters[slot].race != 10 ||
+                   g_status_685170.buffers.characters[slot].highest_condition > 0xe) {
                 if (slot >= 7) {
                     return 0;
                 }
@@ -346,7 +345,7 @@ unsigned char EvaluateFact(int fact_id)
             goto triple;
         case 0x10c:
             value = EvaluateFact(0x22);
-            if (g_log_fact_checks) {
+            if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
                 WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[34].symbolic_name,
                              text);
@@ -355,7 +354,7 @@ unsigned char EvaluateFact(int fact_id)
                 return 1;
             }
             value = EvaluateFact(0x30);
-            if (g_log_fact_checks) {
+            if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
                 WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[48].symbolic_name,
                              text);
@@ -364,7 +363,7 @@ unsigned char EvaluateFact(int fact_id)
                 return 1;
             }
             value = EvaluateFact(0x31);
-            if (g_log_fact_checks) {
+            if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
                 WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[49].symbolic_name,
                              text);
@@ -379,7 +378,7 @@ unsigned char EvaluateFact(int fact_id)
             if (g_status_685170.flag_2489 != 0) {
                 unsigned int slot = 0;
                 do {
-                    if (g_party_slot_rows[slot].occupied != 0 &&
+                    if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
                         slot == (unsigned int)g_status_685170.value_423d) {
                         return 1;
                     }
@@ -406,14 +405,15 @@ unsigned char EvaluateFact(int fact_id)
                 return g_fact_values[fact_id];
             }
             W8NpcState* npc = GetNpcStateByKind(0x18);
-            if (npc != 0 && g_party_characters[npc->group_index].unknown_0b01 >= 0xf) {
+            if (npc != 0 &&
+                g_status_685170.buffers.characters[npc->group_index].highest_condition >= 0xf) {
                 return 1;
             }
             return 0;
         }
         case 0x265:
             value = EvaluateFact(0x268);
-            if (g_log_fact_checks) {
+            if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
                 WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[616].symbolic_name,
                              text);
@@ -422,7 +422,7 @@ unsigned char EvaluateFact(int fact_id)
                 return 1;
             }
             value = EvaluateFact(0x323);
-            if (g_log_fact_checks) {
+            if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
                 WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[803].symbolic_name,
                              text);
@@ -435,7 +435,7 @@ unsigned char EvaluateFact(int fact_id)
     } else {
         if (fact_id == 0x295) {
             value = EvaluateFact(0x7d);
-            if (g_log_fact_checks) {
+            if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
                 WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[125].symbolic_name,
                              text);
@@ -444,7 +444,7 @@ unsigned char EvaluateFact(int fact_id)
                 return 1;
             }
             value = EvaluateFact(0x3e);
-            if (g_log_fact_checks) {
+            if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
                 WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[62].symbolic_name,
                              text);
@@ -459,7 +459,7 @@ unsigned char EvaluateFact(int fact_id)
         }
         if (fact_id == 0x31a) {
             value = EvaluateFact(0x156);
-            if (g_log_fact_checks) {
+            if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
                 WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[342].symbolic_name,
                              text);

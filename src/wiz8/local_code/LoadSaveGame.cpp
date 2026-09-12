@@ -3,13 +3,11 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/local_code/ItemManager.h"
 #include "wiz8/local_code/MonsterGroup.h"
-#include "wiz8/bringup_gates.h"
 #include "wiz8/monster_generators.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/stParticle.h"
-#include "wiz8/location_variables.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_screens/OptionsScreen.h"
@@ -119,12 +117,10 @@ static_assert(sizeof(W8StatusHeader) == 0x314, "W8StatusHeader_must_be_0x314");
    vendored SGP FileMan.h already on this target's include path, so they are not
    restated here. */
 
-/* 0x0068517C selects where characters live, and 0x006874D7 is a per-slot byte
+/* 0x0068517C selects where characters live, and flags_2367 is a per-slot byte
    consulted only when it is set. The failure notice comes out of the shared
    notice array, and 0x00683678 is passed alongside; neither is established
    beyond that, so both keep positional names. */
-// GLOBAL: WIZ8 0x006874D7
-unsigned char g_flags_6874d7[32];
 
 /* Build the loose character/NPC path in the two forms used by the save code.
    The first accepts an already formatted filename or wildcard; the second
@@ -141,7 +137,7 @@ void BuildCharacterFilePath00514FA0(char* destination, const char* filename, int
         sprintf(destination, "%s\\%s", directory, filename);
         return;
     }
-    if (slot != -1 && !g_flags_6874d7[slot]) {
+    if (slot != -1 && !g_status_685170.flags_2367[slot]) {
         sprintf(destination, "%s\\%s", "Saves\\NPCs", filename);
         return;
     }
@@ -157,7 +153,7 @@ void BuildCharacterPath00514EC0(char* destination, const wchar_t* name, int slot
     sprintf(filename, "%ls.%s", name, "CHR");
     if (!g_status_685170.game_started) {
         strcpy(directory, slot == -1 ? "Saves\\Characters" : "Saves\\NPCs");
-    } else if (slot == -1 || g_flags_6874d7[slot]) {
+    } else if (slot == -1 || g_status_685170.flags_2367[slot]) {
         strcpy(destination, filename);
         return;
     } else {
@@ -185,7 +181,7 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot, 
     int handle;
 
     if (g_status_685170.game_started) {
-        if (slot != -1 && g_flags_6874d7[slot] == 0) {
+        if (slot != -1 && g_status_685170.flags_2367[slot] == 0) {
             sprintf(path, "%s\\%s", "Saves\\NPCs", name);
         } else {
             strcpy(path, name);
@@ -195,7 +191,7 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot, 
         sprintf(path, "%s\\%s", directory, name);
     }
 
-    if (g_status_685170.game_started && (slot == -1 || g_flags_6874d7[slot] != 0)) {
+    if (g_status_685170.game_started && (slot == -1 || g_status_685170.flags_2367[slot] != 0)) {
         loaded = Function5156C0(path, character);
     } else {
         handle = FileOpen(path, 1, 0);
@@ -394,7 +390,7 @@ unsigned char LoadStatusHeader(W8Chunk* chunk)
 
     InitializeMonsterManagerState();
     InitializeItemManagerState();
-    Function443A50();
+    ResetNextTriggerId();
     if (!chunk->Read(&header, sizeof(header), &transferred)) {
         return 0;
     }
@@ -438,7 +434,7 @@ unsigned char SaveLevelStatus(const char* path)
     } else {
         unsigned int empty_percent;
 
-        MeasureLevelStatusChunks00514DF0(&chunk, g_loaded_level_id, &empty_percent);
+        MeasureLevelStatusChunks00514DF0(&chunk, g_status_685170.current_level, &empty_percent);
         chunk.Close();
         if (empty_percent > 0x32 && _stricmp(path, "Saves\\CurrentGame.SAV") == 0) {
             SaveGame("CleanUp", 0);
@@ -848,7 +844,7 @@ unsigned char SaveCharacter(W8Character* character, int slot, char report_failur
     if (g_status_685170.game_started == 0) {
         strcpy(directory, slot != -1 ? "Saves\\NPCs" : "Saves\\Characters");
         sprintf(path, "%s\\%s", directory, file_name);
-    } else if (slot == -1 || g_flags_6874d7[slot] != 0) {
+    } else if (slot == -1 || g_status_685170.flags_2367[slot] != 0) {
         strcpy(path, file_name);
     } else {
         sprintf(path, "%s\\%s", "Saves\\NPCs", file_name);
@@ -917,7 +913,7 @@ void DeleteCurrentSaveFiles(void)
 {
     char path[260];
 
-    sprintf(path, "%s\\%s.%s", "Saves", ConvertWideStringToString(GetAddress69C1CC()),
+    sprintf(path, "%s\\%s.%s", "Saves", ConvertWideStringToString(GetLastSaveName()),
             g_save_extension);
     if (_access(path, 2) != 0 && errno == EACCES) {
         _chmod(path, _S_IREAD | _S_IWRITE);
@@ -931,7 +927,6 @@ void DeleteCurrentSaveFiles(void)
 
 /* Two gates with no established meaning beyond their position in the chain, so
    both keep positional names. Both are zero in the shipped image. */
-extern unsigned char g_flag_006875a5;
 
 /* gXStatus.fCombatMode and gXStatus.fCampMode reach this unit through
    xstatus.h. */
@@ -954,10 +949,10 @@ unsigned char AutoSaveIfAllowed(char forced)
     char name[64];
 
     g_save_notice_shown_0068506b = 0;
-    if (g_flag_006875a5 == 0 && AnyMonsterDying() == 0 &&
+    if (g_status_685170.value_2435 == 0 && AnyMonsterDying() == 0 &&
         ((g_settings_6850c8.auto_save != 0 && forced == 0) || g_status_685170.iron_man != 0) &&
         gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0 &&
-        (char)IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.field_01f == 0 &&
+        (char)IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.fNpcDialogueMode == 0 &&
         gXStatus.fCampMode == 0) {
         /* The copy is written out in both arms rather than selecting the source
            into one call. VC6 tail-merges the two inlined copies but keeps each
@@ -965,7 +960,7 @@ unsigned char AutoSaveIfAllowed(char forced)
            encoding; funnelling both arms through one pointer costs the extra
            move that a selected argument needs. */
         if (g_status_685170.iron_man != 0) {
-            strcpy(name, ConvertWideStringToString(GetAddress69C1CC()));
+            strcpy(name, ConvertWideStringToString(GetLastSaveName()));
         } else {
             strcpy(name, "AutoSave");
         }

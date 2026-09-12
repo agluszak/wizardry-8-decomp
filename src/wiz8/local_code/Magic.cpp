@@ -34,9 +34,6 @@
 #include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/engine_code/GameData.h"
 
-// GLOBAL: WIZ8 0x0068510c
-unsigned char g_detailed_combat_messages_0068510c;
-
 #include <cstdlib>
 #include <wchar.h>
 #include "wiz8/character_skills.h"
@@ -224,7 +221,7 @@ unsigned char SpellUsableNow(int spell_id, int unused, char allow_out_of_combat,
                              unsigned char fallback)
 {
     W8SpellUsage usable_when;
-    bool shopping;
+    bool lock_or_trap;
 
     if (spell_id >= W8_SPELL_COUNT) {
         srAssertFail("uiSpell < SPELL_COUNT", MAGIC_CPP, 4179, 0);
@@ -239,7 +236,7 @@ unsigned char SpellUsableNow(int spell_id, int unused, char allow_out_of_combat,
         return 1;
     }
 
-    shopping = gXStatus.field_024 != 0 || gXStatus.field_025 != 0;
+    lock_or_trap = gXStatus.fLockInteract != 0 || gXStatus.fTrapInteract != 0;
 
     switch (usable_when) {
     case W8_SPELL_USABLE_ANY_TIME:
@@ -258,22 +255,22 @@ unsigned char SpellUsableNow(int spell_id, int unused, char allow_out_of_combat,
         if (gXStatus.fCampMode == 0) {
             return 0;
         }
-        return !shopping;
-    case W8_SPELL_USABLE_WHILE_SHOPPING:
+        return !lock_or_trap;
+    case W8_SPELL_USABLE_ON_LOCK_OR_TRAP:
         if (spell_id != 0x27) {
-            return spell_id == 0x12 ? gXStatus.field_025 : 0;
+            return spell_id == 0x12 ? gXStatus.fTrapInteract : 0;
         }
-        if (gXStatus.field_024 != 0) {
+        if (gXStatus.fLockInteract != 0) {
             return 1;
         }
-        return gXStatus.field_025 != 0;
+        return gXStatus.fTrapInteract != 0;
     default:
         srAssertFail("FALSE", MAGIC_CPP, 4228, "SpellUsableNow: ERROR - Invalid uiSpellUsableWhen");
         return fallback;
     }
 
     if (gXStatus.fCampMode == 0) {
-        return !shopping;
+        return !lock_or_trap;
     }
     return 0;
 }
@@ -459,9 +456,10 @@ bool CombatHasCondition(int condition_id)
                 return true;
             }
         }
-        /* Nine 0x11-byte strides from +0x85a. The first six occupy
-           effect_storage_85a; the rest overlap engaged_missile and TargetHit.
-           That is a raw stride, not a typed array of nine. */
+        /* 0x00501250: nine 0x11-byte strides from g_combat_state+0x85a.
+           The first six occupy effect_storage_85a; the rest overlap
+           engaged_missile and TargetHit. Retail does that overlapping
+           walk; it is a raw stride, not a typed array of nine. */
         // clang-format off
         unsigned char* bytes = g_combat_state->effect_storage_85a;
         for (index = 0; index < W8_COMBAT_CONDITION_SLOTS; ++index) {
@@ -480,7 +478,7 @@ bool CombatHasCondition(int condition_id)
 // FUNCTION: WIZ8 0x004f9aa0
 void SetPartySlotSpell(int party_slot, int spell_id, int power_level, const W8CombatSlot* target)
 {
-    W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
 
     row->spell_id = spell_id;
     row->spell_detail.spell.power_level = power_level;
@@ -501,7 +499,7 @@ void SetCharacterSpell(const W8Character* character, int spell_id, int power_lev
     notify.spell.unused = 0;
     ChooseAction(party_slot, 7, spell_id, &notify, 0, 1);
 
-    row = &g_party_slot_rows[party_slot];
+    row = &g_status_685170.buffers.party_rows[party_slot];
     row->spell_detail.spell.power_level = power_level;
     row->spell_id = spell_id;
     row->spell_detail.spell.unused = 0;
@@ -514,8 +512,8 @@ void SetCharacterSpell(const W8Character* character, int spell_id, int power_lev
 // FUNCTION: WIZ8 0x00501530
 bool PartySlotSpellTargetStillValid(int party_slot)
 {
-    char needed = GetTargetNeededForSpellFriendly(g_party_slot_rows[party_slot].spell_id, 0,
-                                                  W8_TARGETING_CONTEXT_CURRENT);
+    char needed = GetTargetNeededForSpellFriendly(
+        g_status_685170.buffers.party_rows[party_slot].spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
 
     if (!TargetMatchesNeeded(GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_SPELL),
                              needed)) {
@@ -537,7 +535,7 @@ const int g_spell_failure_table[] = {
 // FUNCTION: WIZ8 0x00501880
 void StartCharacterBreathAttack(int party_slot)
 {
-    W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
 
     if (!CanCharReBreathe(party_slot)) {
         srAssertFail("CanCharReBreathe(uiChar)", MAGIC_CPP, 5320, 0);
@@ -702,7 +700,7 @@ void UpdateSpellEffects00500930(void)
             !IsSpellInSingledOutSet(effect->kind)) {
             int target_type = GetSpellTargetType(effect->kind, 0);
             if (target_type != 6 && target_type != 2) {
-                if (g_detailed_combat_messages_0068510c == 0) {
+                if (g_settings_6850c8.verbose_combat_messages == 0) {
                     ReportSpellResult005005C0(effect);
                 }
                 Function54C930(effect);
@@ -780,7 +778,7 @@ void FinishSpellEffect00500F70(W8SpellEffectEntry* effect)
             position.y -= g_default_world_height_00603ac8;
             PostCharacterNotice(effect->target.iChar, gppStringList[0x654 / 4]);
         }
-        if (g_detailed_combat_messages_0068510c == 0) {
+        if (g_settings_6850c8.verbose_combat_messages == 0) {
             SetTextBoxMode(1, -1);
         }
         target.point = position;
@@ -803,12 +801,12 @@ unsigned int ScaleByCombatPace(int party_slot, unsigned int* value)
         return gXStatus.fCombatMode;
     }
 
-    if (g_settings_6850c8.difficulty == 0) {
+    if (g_settings_6850c8.difficulty == W8_DIFFICULTY_NOVICE) {
         pace = 0x50;
-    } else if (g_settings_6850c8.difficulty == 1) {
+    } else if (g_settings_6850c8.difficulty == W8_DIFFICULTY_NORMAL) {
         pace = 0x3c;
     } else {
-        if (g_settings_6850c8.difficulty != 2) {
+        if (g_settings_6850c8.difficulty != W8_DIFFICULTY_EXPERT) {
             srAssertFail("FALSE", MAGIC_CPP, 5352, 0);
         }
         pace = 0x28;
@@ -864,7 +862,7 @@ unsigned char g_profession_spellbooks[15] = {
 // FUNCTION: WIZ8 0x00501590
 void StartCharacterSpellCast(int party_slot, int power_level)
 {
-    W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
     W8CombatSlot saved_target = row->spell_target;
     W8ActionDetailBlock named;
     const W8ActionDetailBlock* target;
@@ -896,7 +894,7 @@ void StartCharacterSpellCast(int party_slot, int power_level)
 // FUNCTION: WIZ8 0x00501790
 void StartCharacterItemUse(int party_slot)
 {
-    W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
     W8CombatSlot saved_target = row->item_target;
 
     if (gXStatus.fCombatMode == 0) {
@@ -998,6 +996,18 @@ void RecountLearnedSpellsByRealm004F96A0(W8Character* character)
             ++character->skill_unlocks[0x1c + g_spell_records[index].realm];
         }
     }
+}
+
+/* Learned, and the remaining points in the spell's realm cover its cost. */
+// FUNCTION: WIZ8 0x004f9750
+char CanCharacterCastSpell(W8Character* character, int spell_id)
+{
+    if (spell_id != 0 && character->spell_learned[spell_id] == 1 &&
+        g_spell_records[spell_id].spell_point_cost <=
+            character->sp_left[g_spell_records[spell_id].realm]) {
+        return 1;
+    }
+    return 0;
 }
 
 /* Whether a character is far enough along to take one spell on. Their whole
@@ -1162,8 +1172,8 @@ void LearnSpellFromItem(void* origin, W8Character* character, const W8ItemInstan
         }
     }
     EmptyItemRecord(static_cast<W8ItemInstance*>(origin), character, 1);
-    Function52E690(character, g_learn_sound_0068c510, 0, g_effect_argument_005ed8c8,
-                   g_effect_argument_005ed914);
+    QueueCharacterEvent(character, g_learn_sound_0068c510, 0, g_effect_argument_005ed8c8,
+                        g_effect_argument_005ed914);
 }
 
 /* Eight is not a power level but the request to cast at the highest one the
@@ -1185,17 +1195,17 @@ enum { W8_SPELL_CONDITIONAL = 0x3c };
 // FUNCTION: WIZ8 0x005012e0
 bool CanPartySlotCastRecordedSpell(int party_slot)
 {
-    const W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+    const W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
     int spell_id = row->spell_id;
     int power_level = row->spell_detail.spell.power_level;
 
     if (spell_id == 0) {
         return false;
     }
-    if (spell_id == W8_SPELL_CONDITIONAL && Function5248A0(party_slot, 0)) {
+    if (spell_id == W8_SPELL_CONDITIONAL && GetConditionRecordFlag(party_slot, 0)) {
         return false;
     }
-    if (g_party_characters[party_slot].spell_learned[spell_id] != 1) {
+    if (g_status_685170.buffers.characters[party_slot].spell_learned[spell_id] != 1) {
         return false;
     }
     if (row->spell_detail.spell.power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
@@ -1207,7 +1217,7 @@ bool CanPartySlotCastRecordedSpell(int party_slot)
         power_level = 1;
     }
     if (g_spell_records[spell_id].spell_point_cost * power_level >
-        g_party_characters[party_slot].sp_left[g_spell_records[spell_id].realm]) {
+        g_status_685170.buffers.characters[party_slot].sp_left[g_spell_records[spell_id].realm]) {
         return false;
     }
     if (!SpellUsableNow(spell_id, 0, 0, 0)) {
@@ -1227,7 +1237,7 @@ bool CanPartySlotCastRecordedSpell(int party_slot)
 // FUNCTION: WIZ8 0x00501400
 int GetAffordableSpellPowerLevel(int party_slot)
 {
-    const W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+    const W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
     int spell_id = row->spell_id;
     int power_level = row->spell_detail.spell.power_level;
     int cost;
@@ -1235,10 +1245,10 @@ int GetAffordableSpellPowerLevel(int party_slot)
     if (spell_id == 0) {
         return 0;
     }
-    if (spell_id == W8_SPELL_CONDITIONAL && Function5248A0(party_slot, 0)) {
+    if (spell_id == W8_SPELL_CONDITIONAL && GetConditionRecordFlag(party_slot, 0)) {
         return 0;
     }
-    if (g_party_characters[party_slot].spell_learned[spell_id] != 1) {
+    if (g_status_685170.buffers.characters[party_slot].spell_learned[spell_id] != 1) {
         return 0;
     }
     if (row->spell_detail.spell.power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
@@ -1258,7 +1268,8 @@ int GetAffordableSpellPowerLevel(int party_slot)
     }
     cost = g_spell_records[spell_id].spell_point_cost * power_level;
     while (power_level != 0) {
-        if (cost <= g_party_characters[party_slot].sp_left[g_spell_records[spell_id].realm]) {
+        if (cost <= g_status_685170.buffers.characters[party_slot]
+                        .sp_left[g_spell_records[spell_id].realm]) {
             return power_level;
         }
         --power_level;
@@ -1281,7 +1292,7 @@ enum { W8_ITEM_ORIGIN_EQUIPPED = 2 };
 // FUNCTION: WIZ8 0x00501660
 bool CanPartySlotUseRecordedItem(int party_slot)
 {
-    W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
     W8ItemInstance* item;
     int spell_id;
     unsigned char normalize;
@@ -1302,7 +1313,7 @@ bool CanPartySlotUseRecordedItem(int party_slot)
     if (!Function522A30(party_slot, item)) {
         return false;
     }
-    if (!CanCharacterActivateItem(&g_party_characters[party_slot], item)) {
+    if (!CanCharacterActivateItem(&g_status_685170.buffers.characters[party_slot], item)) {
         return false;
     }
 
@@ -1763,15 +1774,15 @@ enum { W8_TARGET_TYPE_ONE = 1, W8_TARGET_TYPE_PARTY = 2, W8_TARGET_TYPE_ITEM = 9
 // FUNCTION: WIZ8 0x004fe480
 unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int identify_context)
 {
-    W8Character* caster = &g_party_characters[party_slot];
-    W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+    W8Character* caster = &g_status_685170.buffers.characters[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
     const int* conditions = 0;
     const W8Character* target_character = 0;
     unsigned int power_level;
     unsigned int worst;
 
     if (row->spell_target.iType == W8_TARGET_KIND_CHARACTER) {
-        target_character = &g_party_characters[row->spell_target.iChar];
+        target_character = &g_status_685170.buffers.characters[row->spell_target.iChar];
         conditions = target_character->condition_turns;
     } else if (row->spell_target.iType == W8_TARGET_KIND_MONSTER) {
         W8MonsterInfo* monster_info =
@@ -1815,8 +1826,8 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
                the condition does not: the item they are carrying asks for more
                than the condition does. */
             if (row->spell_target.iType == W8_TARGET_KIND_CHARACTER &&
-                power_level <= Function520C70(row->spell_target.iChar)) {
-                power_level = Function520C70(row->spell_target.iChar);
+                power_level <= GetEquipmentBindingDifficulty(row->spell_target.iChar)) {
+                power_level = GetEquipmentBindingDifficulty(row->spell_target.iChar);
             }
             break;
         case W8_SPELL_CURE_GROUP_B:
@@ -1914,9 +1925,10 @@ wchar_t* SpellTargetString(const W8TargetSource* source, const W8CombatSlot* tar
         if (!TargetSourceIsCharacter(source, 0) || source->unknown_18[1] != 0 ||
             source->iChar != target->iChar) {
             return FormatWideString(gppStringList[W8_MESSAGE_TARGET_AT / 4],
-                                    g_party_characters[target->iChar].name);
+                                    g_status_685170.buffers.characters[target->iChar].name);
         }
-        name_prefix = g_name_prefix_messages[g_party_characters[target->iChar].gender * 4];
+        name_prefix =
+            g_name_prefix_messages[g_status_685170.buffers.characters[target->iChar].gender * 4];
         break;
 
     case 2:
@@ -1991,7 +2003,7 @@ unsigned int MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsign
 
     SetTargetSourceToMonster(monster_info, &source);
 
-    if (g_detailed_combat_messages_0068510c == 0) {
+    if (g_settings_6850c8.verbose_combat_messages == 0) {
         WriteGameLog(9, gppStringList[W8_MESSAGE_MONSTER_CAST / 4],
                      GetMonsterName(monster_info, record, 0),
                      g_spell_records[spell_id].display_name,
@@ -2054,18 +2066,9 @@ void SpawnLureEffects(W8SpellEffectEntry* owner, int arg_2, const W8CombatSlot* 
     }
 }
 
-/* The loaded string table's four names per damage band, walked four entries at
-   a time. Only bands 1..19 are reported, and only the band's first two names
-   are used: the singular message takes the first, the plural the second. */
-// GLOBAL: WIZ8 0x0061e57a
-static const unsigned short g_spell_band_text_0061e57a[76] = {
-    0x34d, 0x34e, 0x34f, 0x350, 0x351, 0x352, 0x353, 0x354, 0x355, 0x356, 0x357, 0x358, 0x359,
-    0x35a, 0x35b, 0x35c, 0x35d, 0x35e, 0x35f, 0x360, 0x361, 0x362, 0x363, 0x364, 0x365, 0x366,
-    0x367, 0x368, 0x369, 0x36a, 0x36b, 0x36c, 0x36d, 0x36e, 0x36f, 0x370, 0x371, 0x372, 0x373,
-    0x374, 0x375, 0x376, 0x377, 0x378, 0x379, 0x37a, 0x37b, 0x37c, 0x37d, 0x37e, 0x37f, 0x380,
-    0x381, 0x382, 0x383, 0x384, 0x385, 0x386, 0x387, 0x38c, 0x38d, 0x38e, 0x38f, 0x388, 0x389,
-    0x38a, 0x38b, 0x390, 0x391, 0x392, 0x393, 0x394, 0x395, 0x396, 0x397, 0x273,
-};
+/* Damage-band names are the condition-notice table from +5, not a second
+   initialized object at 0x0061E57A. */
+static const unsigned short* const g_spell_band_text_0061e57a = g_condition_notices_0061E570 + 5;
 
 /* The band entry the queued report records name their text by, rather than a
    damage band. */

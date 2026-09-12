@@ -3,7 +3,10 @@
 #include "wiz8/cursor.h"
 #include "wiz8/utility.h"
 
-/* Reconstructed logical owner; original translation-unit identity is unproven. */
+/* Reconstructed logical owner; original translation-unit identity is unproven.
+   Live query: 0x005E0C40 sits in the gap after StatInfoDialogs.cpp (upper
+   0x005E0180) and before 3D Code\PList.cpp (lower 0x005E22C0). It is not
+   stListBox.cpp. */
 
 /* The owning dialog performs DestroyControls separately. Its member teardown
    (0x005DBCC4, also 0x005D5F00's teardown) calls the shared ret at 0x004023A0
@@ -272,7 +275,7 @@ W8DialogScrollBar::W8DialogScrollBar()
 {
     m_initialized = 0;
     m_visible = 0;
-    unknown_024 = 0;
+    m_owner = 0;
     m_entry_count = 1;
     m_first_visible_entry = 0;
     m_entry_height = -1;

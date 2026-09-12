@@ -5,7 +5,7 @@
 #include "wiz8/gameplay_modifiers.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
-#include "wiz8/saved_location.h"
+#include "wiz8/engine_code/World.h"
 
 struct W8MonsterManagerEntry;
 
@@ -22,13 +22,16 @@ enum {
     W8_CONDITION_CLEARABLE_COUNT = 18,
     W8_CONDITION_FATIGUE_DOUBLED = 2,
     W8_CONDITION_LOAD_EASED = 5,
-    /* Seven is the one condition that carries a second value alongside its
-       duration, which both copiers special-case. */
-    W8_CONDITION_WITH_ARGUMENT = 7,
+    /* Seven is COND_POISONED: the assertion at SetCharacterCondition names it,
+       and it is the one condition that carries a second value (poison
+       strength) alongside its duration. */
+    W8_CONDITION_POISONED = 7,
     W8_CONDITION_SPELLCASTING_BLOCKED = 8,
     W8_CONDITION_HOSTILE = 0xd,
     W8_CONDITION_EXHAUSTED = 0x11,
-    W8_CONDITION_EQUIPMENT_UNLOCKED = 18,
+    /* Eighteen is death: applying it calls CharacterDies, and the bound-equipment
+       unlock path is a consequence of that condition being set. */
+    W8_CONDITION_DEAD = 18,
     /* The duration that means "until lifted". */
     W8_CONDITION_INDEFINITE = 9999
 };
@@ -127,7 +130,7 @@ struct W8HandAttack {
     unsigned char unknown_43[0x18];
 }; /* 0x5b */
 
-/* One 0x11-byte condition record from 0x1817. Function5248A0 reads byte 8 of
+/* One 0x11-byte condition record from 0x1817. GetConditionRecordFlag reads byte 8 of
    one of the four; the rest is not yet named. */
 struct W8CharacterConditionRecord {
     unsigned char unknown_00[8];
@@ -200,20 +203,22 @@ struct W8Character {
        the identical array at its own 0x57 with the same indices meaning the
        same things. Several entries were read individually before this array
        explained them: two doubles the fatigue an action costs, eight blocks
-       spellcasting, eighteen unlocks bound equipment. */
+       spellcasting, eighteen is death (and unlocks bound equipment). */
     int condition_turns[W8_CONDITION_COUNT]; /* 0x0a01 */
     unsigned char unknown_0a51[0x14];
     W8Enchantment enchantments[8]; /* 0x0a65 */
     unsigned char unknown_0ac5[0x3c];
-    /* 0x0b01 gates party-member selection alongside hp_current: a slot is
-       eligible when it still has hit points and this is under 0x12, and a
-       second tier tests it against 0x0f. It is unsigned - the canonical
-       compares are JB/JBE, not JL/JE - but its meaning is not established. */
-    unsigned int unknown_0b01;
+    /* 0x0b01: the highest currently-set condition index, rescanned from
+       condition_turns[0x13] downward by 0x005237E0 whenever a condition is
+       lifted. Zero is either "none set" or condition zero, matching the
+       monster copy at W8MonsterInfo::highest_condition. Thresholds are the
+       condition ids themselves: below HOSTILE for rest/formation, below
+       DEAD for ordinary party eligibility. */
+    unsigned int highest_condition;
     /* 0x0b05: the highest enchantment slot still in use, recomputed by
        scanning down from the last one whenever a slot is cleared. */
     int enchantment_top;
-    /* 0x0b09: the argument the seventh condition carries. */
+    /* 0x0b09: the argument COND_POISONED carries (poison strength). */
     int condition_argument;
     /* 0x0b0d..0x0b20: the two pools with a ceiling each, plus the adjustment
        damage is booked against before hit points are recalculated. A character
@@ -300,10 +305,10 @@ struct W8Character {
     /* 0x1770: the derived modifier block the rebuild clears and folds the
        equipment, persistent and party blocks into. */
     W8GameplayModifierBlock bonus_1770;
-    /* 0x17d7: the CamPos spell 0x4b stores with GetWorldCameraState. Recall
-       restores it through RestoreWorldCameraState; the cross-level path copies
-       all 0x3c bytes onto pending_move_location with one rep movsd. */
-    W8CamPos saved_location; /* 0x17d7 */
+    /* 0x17d7: the CamPos record GetWorldCameraState writes and recall restores.
+       The cross-level path copies the whole 0x3c bytes onto
+       W8GlobalStatus::pending_move_location. */
+    W8WorldCameraState saved_location; /* 0x17d7 */
     /* 0x1813: which level that anchor belongs to. The recall compares it
        against g_status_685170.current_level and takes a different path when they differ. */
     int saved_level;                               /* 0x1813 */
@@ -318,6 +323,8 @@ struct W8Character {
     /* 0x1861: the anchor above has been set. Recall does nothing without it. */
     unsigned char has_saved_location;
 }; /* 0x1862 */
+
+static_assert(sizeof(W8Character) == 0x1862, "W8Character_must_be_0x1862");
 
 struct W8SkillAttributes {
     int category;
@@ -390,7 +397,7 @@ void Function5218C0(W8Character*);
 void Function52F2C0(W8Character* character);
 void ApplyCharacterEffect(W8Character* character, int effect, int arg_3, int arg_4, int arg_5);
 int CalcRangeCategoryToTarget(const W8Character* character, int hand);
-int Function51C5A0(W8Character* character, int item_id);
+int ChooseCharacterEquipSlot(W8Character* character, int item_id);
 bool RecalculateCarriedWeight(W8Character* character);
 void CalcXPGoal(W8Character* character);
 int GetSpellbookForSpell(const W8Character* character, int spell_id, int a, int b, int c);
@@ -402,11 +409,11 @@ unsigned char CharacterHasCondition(const W8Character* character, int condition)
 bool RecalculateCarryingCapacity004EDC10(W8Character* character);
 /* 0x004ED9D0: the full derived-stat recompute, and the two equipment-bonus
    passes an NPC character's initialization runs. */
-void Function4ED9D0(W8Character* character);
+void RecalculateCharacterDerivedStats(W8Character* character);
 void AccumulateEquipmentModifiers(W8Character* character, W8GameplayModifierBlock* equipment_bonus);
 void RebuildCharacterModifierBlock(W8Character* character);
-void Function52A3E0(W8Character* character);
-void Function52A500(W8Character* character);
+void RecalculateCharacterStamina(W8Character* character);
+void RecalculateRealmSpellPoints(W8Character* character);
 void InitializeSkillBaseLevels00553C90(W8Character* character);
 void RefreshCharacterSkillAvailability00553CD0(W8Character* character);
 unsigned int GetSkillQuarterValue00553EE0(W8Character* character, int skill_id);

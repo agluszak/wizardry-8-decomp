@@ -176,7 +176,7 @@ unsigned char W8Chunk::CopyCurrentChunkFrom(W8Chunk* source)
     if (source_head == 0) {
         srAssertFail("pHead", CHUNK_CPP, 0x166, 0);
     }
-    OpenChunk(source->CurrentChunkId(), source_head->unknown_04);
+    OpenChunk(source->CurrentChunkId(), source_head->grouped);
     Write(contents, extent, &transferred);
     if (extent != transferred) {
         delete[] contents;
@@ -230,10 +230,10 @@ unsigned char W8Chunk::OpenGroup()
         if (head == 0) {
             srAssertFail("pHead", CHUNK_CPP, 0x185, 0);
         }
-        head->unknown_04 = 1;
+        head->grouped = 1;
         m_group_progress.Add(0);
         FileSeek(m_hFile, m_offsets.data[m_offsets.count - 1] - 6, FILE_SEEK_FROM_START);
-        Write(&head->unknown_04, 1, &transferred);
+        Write(&head->grouped, 1, &transferred);
         FileSeek(m_hFile, position, FILE_SEEK_FROM_START);
         Write(&count, sizeof(count), &transferred);
         return 1;
@@ -304,7 +304,7 @@ unsigned char W8Chunk::OpenChunk(unsigned int chunk_id, unsigned char grouped)
         srAssertFail("pHead", CHUNK_CPP, 0x229, 0);
     } else {
         head->chunk_id = 0;
-        head->unknown_04 = 0;
+        head->grouped = 0;
         head->at_end = 0;
         head->extent_08 = 0;
     }
@@ -314,14 +314,14 @@ unsigned char W8Chunk::OpenChunk(unsigned int chunk_id, unsigned char grouped)
         }
         head->chunk_id = chunk_id;
         head->extent_08 = 0;
-        head->unknown_04 = grouped;
+        head->grouped = grouped;
         Write(&head->chunk_id, 4, &transferred);
-        Write(&head->unknown_04, 1, &transferred);
+        Write(&head->grouped, 1, &transferred);
         Write(&head->at_end, 1, &transferred);
         Write(&head->extent_08, 4, &transferred);
     } else {
         Read(&head->chunk_id, 4, &transferred);
-        Read(&head->unknown_04, 1, &transferred);
+        Read(&head->grouped, 1, &transferred);
         Read(&head->at_end, 1, &transferred);
         Read(&head->extent_08, 4, &transferred);
     }

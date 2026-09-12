@@ -16,13 +16,14 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 
-/* The "carrying too much" event id in camp. Outside camp the live special
+/* The "carrying too much" camp event id. Outside camp the live special
    event slot supplies it instead. */
 // GLOBAL: WIZ8 0x005ee5a8
-int g_int_005ee5a8 = 8;
+int g_camp_overload_event_id = 8;
 
-/* Party encumbrance redistribution. The original translation-unit spelling is
-   not established; this descriptive name is provisional. */
+/* Party encumbrance redistribution. Live query: 0x004ED9D0 is a gap between
+   Local Code\Combat.cpp (upper 0x004ED390) and Local Code\GameplayCode.cpp
+   (lower 0x004EE000). Not a Combat tail and not an invisible named unit. */
 
 /* The full derived-stat recompute: clamp the level and the fifteen profession
    levels, rebuild the attributes, skills and pools, the damage reduction, the
@@ -30,7 +31,7 @@ int g_int_005ee5a8 = 8;
    attacks and armor classes. A character whose profession, race or gender is
    still unset is left alone. */
 // FUNCTION: WIZ8 0x004ed9d0
-void Function4ED9D0(W8Character* character)
+void RecalculateCharacterDerivedStats(W8Character* character)
 {
     int index;
 
@@ -50,8 +51,8 @@ void Function4ED9D0(W8Character* character)
     ResetCharacterAttributes005539E0(character);
     ResetCharacterSkills00553A60(character);
     RecalculateCharacterHitPoints(character);
-    Function52A3E0(character);
-    Function52A500(character);
+    RecalculateCharacterStamina(character);
+    RecalculateRealmSpellPoints(character);
     CalcArmorClasses(character);
     RebuildCharacterRegenRates00502B50(character);
 
@@ -81,7 +82,7 @@ void Function4ED9D0(W8Character* character)
     if (g_status_685170.game_started == 0) {
         character->party_weight_share = 0;
     } else if (changed || recalculated) {
-        Function4EDD20();
+        RedistributePartyEncumbrance();
     }
     character->total_carried_weight = character->party_weight_share + character->inventory_weight;
 
@@ -144,19 +145,22 @@ bool RecalculateCarriedWeight(W8Character* character)
     }
     if (previous < character->carrying_capacity &&
         character->carrying_capacity < character->inventory_weight) {
-        int effect = g_int_005ee5a8;
+        int effect = g_camp_overload_event_id;
         if (g_current_screen_state.id != W8_SCREEN_CAMP) {
             effect = g_special_event_0068c558;
         }
-        Function52E690(character, effect, 0, g_effect_argument_005ed8c8,
-                       g_effect_argument_005ed914);
+        QueueCharacterEvent(character, effect, 0, g_effect_argument_005ed8c8,
+                            g_effect_argument_005ed914);
     }
     return previous != character->inventory_weight;
 #pragma clang diagnostic pop
 }
 
+/* Split the shared party-pool weight across eligible members by remaining
+   carrying capacity, then refresh each member's load band. Combat defers the
+   work by raising the pending-redistribution flag instead. */
 // FUNCTION: WIZ8 0x004edd20
-void Function4EDD20(void)
+void RedistributePartyEncumbrance(void)
 {
     int capacity[8];
     int unassigned[8];
@@ -168,7 +172,7 @@ void Function4EDD20(void)
         return;
     }
     if (gXStatus.fCombatMode) {
-        gXStatus.field_028 = true;
+        gXStatus.fEncumbranceDirty = true;
         return;
     }
 
@@ -176,7 +180,7 @@ void Function4EDD20(void)
     for (slot = 0; slot < 8; ++slot) {
         W8Character* character = &characters[slot];
         character->party_weight_share = 0;
-        if (active[slot].occupied != 0 && character->unknown_0b01 < 0x12) {
+        if (active[slot].occupied != 0 && character->highest_condition < 0x12) {
             capacity[slot] = character->carrying_capacity;
             unassigned[slot] = capacity[slot] - character->inventory_weight;
             load_ratio[slot] = (float)unassigned[slot] * 100.0f / (float)capacity[slot];
@@ -193,7 +197,7 @@ void Function4EDD20(void)
         float best_ratio = -999999.0f;
         for (slot = 0; slot < 8; ++slot) {
             W8Character* character = &characters[slot];
-            if (active[slot].occupied != 0 && character->unknown_0b01 < 0x12 &&
+            if (active[slot].occupied != 0 && character->highest_condition < 0x12 &&
                 load_ratio[slot] > best_ratio) {
                 best_ratio = load_ratio[slot];
                 best_slot = slot;
@@ -235,13 +239,13 @@ void Function4EDD20(void)
     }
 
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-        if (gXStatus.field_01f == 0) {
+        if (gXStatus.fNpcDialogueMode == 0) {
             RequestRedraw(0xff);
-            gXStatus.field_028 = false;
+            gXStatus.fEncumbranceDirty = false;
             return;
         }
     } else if (g_current_screen_state.id == W8_SCREEN_CAMP && g_camp_screen_0069c0f4 != 0) {
         g_camp_screen_0069c0f4->redraw_flags |= 0x2100;
     }
-    gXStatus.field_028 = false;
+    gXStatus.fEncumbranceDirty = false;
 }

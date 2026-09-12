@@ -31,8 +31,8 @@ enum { W8_MONSTER_CYCLE_COUNT = 27 };
    copies it with the interleaved two-register rotation it uses for a struct
    assignment, rather than the sequential load/store pairs four separate scalar
    parameters would emit - which is what makes this one object and not four.
-   Nothing observed so far types its contents. */
-typedef W8AnimRepValue4 W8MonsterRuntimeBlock4C;
+   GrCycle copies the same 0x10 bytes onto a model instance at +0x164. */
+typedef W8ModelInstanceRenderState W8MonsterRuntimeBlock4C;
 
 struct W8MonsterLinkedItem005E8 {
     int unknown_00;
@@ -324,9 +324,9 @@ static_assert(sizeof(W8Monster) == 0x348, "W8Monster_size_must_be_0x348");
    particle finishes and then deletes itself.
 
    Class-triage: two vtables plus the derived-to-base vptr swap are real ABI
-   facts, but nothing recovered stores or dispatches through the base. The
-   empty base is retained only so the destructor emits that vptr swap; it is
-   not an authored domain type. */
+   facts. The empty base keeps its own table at 0x005ed290; the derived
+   ordinary destructor at 0x004c3730 is the seven-byte vptr swap onto that
+   table. Nothing recovered stores or dispatches through the base pointer. */
 class W8MonsterShakeCallbackBase {
 public:
     virtual ~W8MonsterShakeCallbackBase() {}
@@ -335,6 +335,7 @@ public:
 class W8MonsterShakeCallback : public W8MonsterShakeCallbackBase {
 public:
     W8MonsterShakeCallback() : m_pMonster(0), m_pParticles(0) {}
+    virtual ~W8MonsterShakeCallback();
 
     virtual void RestoreAnimation();
 
@@ -357,7 +358,7 @@ int MonsterQuery(W8Monster* monster, int query);
 void MonsterForward4537E0(W8Monster* monster);
 void MonsterSetRuntimeBehaviour(W8Monster* monster, signed char behaviour);
 void MonsterForward4A84A0(W8Monster* monster);
-void Function4C59C0(W8Monster* monster, W8World* world);
+void DetachMonsterRepresentation(W8Monster* monster, W8World* world);
 void DeleteMonster004C5860(W8Monster* monster);
 void Function4C5ED0(W8Monster* monster);
 void MonsterPropagateValue004C5870(W8Monster* monster, int value);

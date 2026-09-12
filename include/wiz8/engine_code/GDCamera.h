@@ -69,8 +69,11 @@ extern GDCamera* g_gd_camera_65a0f8;
 extern srCamera* g_game_camera_65a0fc;
 
 srCamera* CreateOrSetGameCamera(srNode* parent, srCamera* camera);
+float GetCameraYawInDegrees();
 float GetCameraYawRadians();
+float GetCameraPitchInDegrees();
 float GetCameraPitchRadians();
+void GetCameraOrientation(float* angle, float* pitch);
 void BeginManualCameraControl();
 void LevelCamera();
 void TurnCameraToDegrees(float degrees);
@@ -78,10 +81,7 @@ void SetCameraYawDegrees(float degrees);
 void ApplyCameraRotation(srMatrix3T<float>* rotation);
 void Function421100(float distance, srVector3T<float>* output);
 void Function421150(float distance, srVector3T<float>* output);
-void GetCameraAngleRecords(float* yaw_record, float* pitch_record);
 void SetCameraOrientation(float* angle, float* pitch, srMatrix3T<float>* rotation);
-float GetCameraYawInDegrees();
-float GetCameraPitchInDegrees();
 void GetCameraPosition(srVector3T<float>* position);
 /* 0x004BE940: project one point through the camera and report whether it is
    in front of it. */
@@ -92,5 +92,3 @@ void PlacePartyAtPoint(const srVector3T<float>* point);
 static_assert(sizeof(GDCamera) == 0xc0, "GDCamera_must_be_0xc0");
 
 unsigned char IsCameraTransitionActive00420E10(void);
-
-extern unsigned char g_flag_006875a5;

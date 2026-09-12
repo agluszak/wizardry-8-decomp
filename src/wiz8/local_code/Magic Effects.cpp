@@ -9,6 +9,7 @@
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/magic.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
@@ -75,7 +76,7 @@ const int g_effect_visual_table[149][2] = {
 };
 
 // FUNCTION: WIZ8 0x005af2d0
-void Function5AF2D0(void)
+void InvalidateMainGameEffectHud(void)
 {
     if (g_current_screen_state.id == 7) {
         ClearSurfaceRect(0x7f, 0x14, 0x201, 0x28);
@@ -170,7 +171,7 @@ void ResetPartyEffectBlock(W8EffectSlot* slot)
     *(int*)(bytes + 5) = 0;
     *(int*)(bytes + 0xd) = 0;
     RebuildPartyEffectBlock0050E700();
-    Function5AF2D0();
+    InvalidateMainGameEffectHud();
     RequestRedraw(0x800100);
 }
 
@@ -182,7 +183,7 @@ void ResetPartyEffectBlock(W8EffectSlot* slot)
 // FUNCTION: WIZ8 0x00552070
 void AnnounceEffectResisted(W8CombatSlot* target)
 {
-    if (g_detailed_combat_messages_0068510c == 0) {
+    if (g_settings_6850c8.verbose_combat_messages == 0) {
         return;
     }
     if (target->iType == W8_TARGET_KIND_MONSTER) {
@@ -201,7 +202,7 @@ void AnnounceEffectResisted(W8CombatSlot* target)
 void ApplyEffectAndAnnounce(int* result, W8CombatSlot* target, int arg_3, int arg_4)
 {
     ApplyEffectToTarget(result, target, arg_3, arg_4);
-    if (*result != 0 || g_detailed_combat_messages_0068510c == 0) {
+    if (*result != 0 || g_settings_6850c8.verbose_combat_messages == 0) {
         return;
     }
     if (target->iType == W8_TARGET_KIND_MONSTER) {
@@ -260,7 +261,7 @@ void RecallCasterToSavedLocation(W8SpellQueueEntry* pQueue)
     if (!TargetSourceIsCharacter(&pQueue->Source, 0)) {
         srAssertFail("SourceIsCharacter(&(pQueue->Source))", MAGIC_EFFECTS_CPP, 2685, 0);
     }
-    caster = &g_party_characters[pQueue->Source.iChar];
+    caster = &g_status_685170.buffers.characters[pQueue->Source.iChar];
     if (caster->has_saved_location != 0) {
         if (caster->saved_level == g_status_685170.current_level) {
             RestoreWorldCameraState(GetWorld(), GetWorld659AB8(), &caster->saved_location);
@@ -270,7 +271,8 @@ void RecallCasterToSavedLocation(W8SpellQueueEntry* pQueue)
             return;
         }
         g_status_685170.pending_move_location = caster->saved_location;
-        g_level_block->pending_level = g_party_characters[pQueue->Source.iChar].saved_level;
+        g_level_block->pending_level =
+            g_status_685170.buffers.characters[pQueue->Source.iChar].saved_level;
         g_level_block->pending_entry_id = -1;
         BeginLevelTransition();
     }

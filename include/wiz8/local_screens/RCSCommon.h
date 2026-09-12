@@ -3,7 +3,7 @@
 /* Local Screens\RCSCommon.cpp's cross-TU panel lifecycle: release the three
    level-runtime dialogue owners and tear the camp panel down. */
 void ReleaseRuntimeDialogOwners(void);
-void Function5B2200(void);
+void CloseReviewCommonUi(void);
 
 void Function5B4EB0(void);
 void Function5B55F0(void);

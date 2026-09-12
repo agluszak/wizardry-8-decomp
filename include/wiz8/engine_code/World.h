@@ -4,7 +4,6 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/geometry.h"
-#include "wiz8/saved_location.h"
 #include "wiz8/vector.h"
 
 class srCamera;
@@ -53,6 +52,17 @@ struct W8WorldCameraEntry {
     unsigned char positional_14[4];
     W8PathAI* path;
 };
+
+/* The 0x3c-byte CamPos record GetWorldCameraState writes and
+   RestoreWorldCameraState reads (3dapi.cpp, assertions pWorld / CamPos).
+   Two six-float records follow the point: pitch at +0x0c and yaw/angle at
+   +0x24. Recall stores this same object on the character at +0x17d7. */
+struct W8WorldCameraState {
+    srVector3T<float> position;
+    float pitch[6];
+    float yaw[6];
+};
+static_assert(sizeof(W8WorldCameraState) == 0x3c, "W8WorldCameraState_size");
 
 static_assert(sizeof(W8WorldCameraEntry) == 0x1c, "W8WorldCameraEntry_must_be_0x1c");
 
@@ -128,9 +138,9 @@ float WorldGetValue78(W8World* world);
 double WorldGetFarClip(W8World* world);
 void WorldSetFarClip(W8World* world, float distance);
 void WorldSetValue74(W8World* world, float value);
-void ApplyWorldCamPos(W8World* world, W8World* source, W8CamPos* state);
-void RestoreWorldCameraState(W8World* world, W8World* source, W8CamPos* state);
-void GetWorldCameraState(W8World* world, W8CamPos* state);
+void GetWorldCameraState(W8World* world, W8WorldCameraState* state);
+void SetWorldCameraState(W8World* world, W8World* source_world, W8WorldCameraState* state);
+void RestoreWorldCameraState(W8World* world, W8World* source_world, W8WorldCameraState* state);
 void UpdateWorldMesh004BAF60(W8World* world);
 void WorldGetCameraRotation(W8World* world, srMatrix3T<float>* rotation);
 void WorldGetCameraLocation(W8World* world, srVector3T<float>* location);

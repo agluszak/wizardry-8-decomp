@@ -84,13 +84,14 @@ enum W8SpellRealm {
 
 /* The five situations a spell record can admit, numbered by the switch in
    SpellUsableNow. A spell usable at any time imposes no condition; the other
-   four admit exactly one of combat, the field, camping or a shop. */
+   four admit exactly one of combat, the field, camping, or a lock/trap
+   interaction. */
 enum W8SpellUsage {
     W8_SPELL_USABLE_ANY_TIME = 0,
     W8_SPELL_USABLE_IN_COMBAT = 1,
     W8_SPELL_USABLE_OUT_OF_COMBAT = 2,
     W8_SPELL_USABLE_WHILE_CAMPED = 3,
-    W8_SPELL_USABLE_WHILE_SHOPPING = 4,
+    W8_SPELL_USABLE_ON_LOCK_OR_TRAP = 4,
     W8_SPELL_USAGE_COUNT = 5
 };
 
@@ -123,10 +124,13 @@ enum { W8_SPELL_NONE = 0 };
 /* One spell, as the database holds it at run time. */
 struct W8SpellRuntimeRecord {
     char database_name[64]; /* 0x000 */
-    unsigned char unknown_040[8];
+    unsigned char unknown_040[4];
+    /* 0x044: base duration the spell-info dialog prints. */
+    int duration_044;
     unsigned char alchemy_spell; /* 0x048 */
     int spell_point_cost;        /* 0x049: per power level */
-    unsigned char unknown_04d[4];
+    /* 0x04d: per-level duration added to duration_044 on the same line. */
+    int duration_per_level_04d;
     W8Dice effect_dice; /* 0x051 */
     unsigned char unknown_055;
     int spell_level;              /* 0x056: zero through seven */
@@ -141,7 +145,9 @@ struct W8SpellRuntimeRecord {
     /* 0x126: a monster may cast the spell at all. MonsterOKToCastSpell reports
        a spell without it by name and asserts. */
     unsigned char monster_castable;
-    unsigned char unknown_127[8];
+    unsigned char unknown_127[4];
+    /* 0x12b: SpellInfoDialog selects the long-range caption when this is 3. */
+    int field_12b;
     /* 0x12f: the range category a monster casting this spell needs. */
     W8RangeCategory range_category;
     W8SpellRealm realm; /* 0x133 */
@@ -155,9 +161,17 @@ struct W8SpellRuntimeRecord {
     /* 0x144: gates the effect's activation message in the per-frame spell
        update. */
     unsigned char field_144;
-    unsigned char unknown_145[6];
+    unsigned char unknown_145[2];
+    /* 0x147: SpellInfoDialog prints the effect-dice line when this is set. */
+    int field_147;
     char sound_name[0x74]; /* 0x14b: relative to Data\Spells\Sounds */
 }; /* 0x1bf */
+static_assert(sizeof(W8SpellRuntimeRecord) == 0x1bf, "W8SpellRuntimeRecord_size");
+static_assert(offsetof(W8SpellRuntimeRecord, duration_044) == 0x044,
+              "W8SpellRuntimeRecord_duration_044");
+static_assert(offsetof(W8SpellRuntimeRecord, duration_per_level_04d) == 0x04d,
+              "W8SpellRuntimeRecord_duration_per_level");
+static_assert(offsetof(W8SpellRuntimeRecord, field_147) == 0x147, "W8SpellRuntimeRecord_field_147");
 
 struct W8FactDatabaseRecord {
     unsigned int identifier;  /* 0x000 */

@@ -4,8 +4,11 @@
 #include <wchar.h>
 
 class W8DialogBase;
+class W8DialogButton;
 typedef void (*W8DialogDestroyCallback)(W8DialogBase* dialog);
 void SetDialogDestroyCallback(W8DialogBase* dialog, W8DialogDestroyCallback callback);
+/* Shared close-button callback used by the monster and spell info dialogs. */
+void DialogCloseButtonCallback(W8DialogButton* button); /* 0x005D6EB0 */
 
 /* Names describe recovered roles; retail does not expose their original
    source spellings. Address markers retain the binary identities.
@@ -58,8 +61,8 @@ protected:
     unsigned char unknown_038[8];
     unsigned char m_initialized; /* 0x40 */
 public:
-    /* CharacterScreen closes a completed modal directly through this byte. */
-    unsigned char m_field_41; /* 0x41 */
+    /* Cleared to close the dialog; ProcessInput keeps running while set. */
+    unsigned char m_keep_open; /* 0x41 */
 public:
     /* The trigger update installs its callback with a plain store, so this
        slot is public rather than reachable only through the setter. */
@@ -69,8 +72,8 @@ public:
        destroy callback reads it back. */
     int m_user_data; /* 0x48 */
 protected:
-    int m_field_4c;           /* 0x4c */
-    unsigned char m_field_50; /* 0x50 */
+    int m_field_4c;                    /* 0x4c */
+    unsigned char m_right_button_down; /* 0x50 */
     unsigned char unknown_051[3];
 }; /* 0x54 */
 

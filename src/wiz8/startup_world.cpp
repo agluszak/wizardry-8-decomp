@@ -1,4 +1,4 @@
-#include "wiz8/bringup_gates.h"
+#include "wiz8/screen_state.h"
 #include "surrender/srNode.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/Navigator.h"
@@ -26,7 +26,7 @@ W8PList g_storage_list_65be90;
 /* The two caller-provided values override the original 16 MiB and 1 MiB
    defaults only when positive.  Startup deliberately passes -1 for both. */
 // FUNCTION: WIZ8 0x004b5780
-void Function4B5780(int primary_limit, int secondary_limit)
+void InitializeStartupStorage(int primary_limit, int secondary_limit)
 {
     g_storage_state_65be80 = 0;
     g_storage_state_65be84 = 0;
@@ -48,7 +48,7 @@ unsigned char InitializeStartupNavigation0044F060(void)
     W8Navigator* navigator;
 
     NoOp();
-    Function4B5780(-1, -1);
+    InitializeStartupStorage(-1, -1);
     InitializeRenderQuality();
     InitializeEnvironmentColours();
 

@@ -22,7 +22,7 @@ static_assert(sizeof(W8MessageStorageRecord) == 0x24, "W8MessageStorageRecord_mu
 
 extern W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
 
-void Function58FD30(void);
+void ReleaseMessageStorage(void);
 void ScrollTextBoxToCursor(void);
 unsigned char GetTextBoxMode(void);
 void SetTextBoxMode(unsigned char mode, int value);
@@ -43,5 +43,3 @@ bool CurrentDialogueLineHasContent(void);                              /* 0x0058
 int FindStoppedTextLine(void);                                         /* 0x0058D760 */
 void SetTextBoxRegionBounds(int left, int top, int right, int bottom); /* 0x0058FA90 */
 void ResetMessageStorage(void);                                        /* 0x0058FEE0 */
-
-extern int g_text_line_cursor_00686905;

@@ -30,9 +30,9 @@ enum { W8_ENCOUNTER_GROUP_INDEX_BIAS = 10000 };
    form, which is the second entry of each name set. */
 enum { W8_MONSTER_GROUP_SINGULAR = 1, W8_MONSTER_NAME_STRIDE = 24 };
 
-/* A member counts as active while its state byte is below this and it is not
-   under the control state the group excludes. */
-enum { W8_MONSTER_STATE_ACTIVE_LIMIT = 0xd, W8_MONSTER_CONTROL_EXCLUDED = 1 };
+/* A member counts as active while its highest condition is below HOSTILE and
+   it is not under the control state the group excludes. */
+enum { W8_MONSTER_CONTROL_EXCLUDED = 1 };
 enum { W8_MONSTER_GROUP_ALLY_COUNT = 4 };
 
 /* A group is done dying only when every live script record either has no
@@ -242,7 +242,7 @@ void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group)
     for (index = 0; index < ILLength(monster_group->monsters); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x412, MONSTER_GROUP_CPP, IListGetAt(monster_group->monsters, index), 1));
-        if (monster_info->value_107 < W8_MONSTER_STATE_ACTIVE_LIMIT &&
+        if (monster_info->highest_condition < W8_CONDITION_HOSTILE &&
             monster_info->control_state != W8_MONSTER_CONTROL_EXCLUDED) {
             ++active;
         }
@@ -347,7 +347,7 @@ unsigned char IsMonsterGroupLive(W8MonsterGroup* monster_group)
 {
     if (monster_group->flag_28 != 0 && monster_group->flag_29 != 0 &&
         monster_group->member_count != 0) {
-        if (monster_group->flag_2a != 1 && Function547510() == 0) {
+        if (monster_group->flag_2a != 1 && CombatAllowsLiveGroups() == 0) {
             return 0;
         }
         return 1;
@@ -474,8 +474,9 @@ W8WideChar* GetMonsterGroupName(W8MonsterGroup* monster_group)
     record = MonsterDBFromSpecies(monster_group->monster_id);
     name_form = monster_group->member_count != W8_MONSTER_GROUP_SINGULAR;
     if (record->record_id_187 == W8_MONSTER_RECORD_ALTERNATE_NAME) {
-        swprintf(g_monster_name_buffer, L"Al-%s", g_party_characters[g_alternate_name_slot].name);
-        return g_monster_name_buffer;
+        swprintf(g_status_685170.monster_name_buffer_2453, L"Al-%s",
+                 g_status_685170.buffers.characters[g_status_685170.alternate_name_slot_247f].name);
+        return g_status_685170.monster_name_buffer_2453;
     }
     if (monster_group->flag_2c != 0) {
         return record->name_00 + name_form * W8_MONSTER_NAME_STRIDE;
@@ -570,7 +571,7 @@ void ResetMonsterGroupTurnState(void)
    of the script it already carries, so reloaded monsters resume their
    level-local script objects. */
 // FUNCTION: WIZ8 0x005115B0
-void Function5115B0(void)
+void RebindMonsterGroupScripts(void)
 {
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
         W8MonsterGroup* group = GetMonsterGroupByListIndex(index);

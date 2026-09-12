@@ -84,10 +84,7 @@ def bring_up_points(repo: Path) -> list[TracePoint]:
     points = []
     for function in source_functions(repo).values():
         path = Path(function.source_file)
-        if not (
-            path.stem.startswith("startup_")
-            or path.name in {"bringup_gates.cpp", "game_init.cpp", "winmain.cpp"}
-        ):
+        if not (path.stem.startswith("startup_") or path.name in {"game_init.cpp", "winmain.cpp"}):
             continue
         points.append(
             TracePoint(address=f"{function.address:08x}", name=function.name, kind="gate")

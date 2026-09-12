@@ -19,7 +19,6 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/game_status.h"
 #include "wiz8/float_constants.h"
-#include "wiz8/location_variables.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/dialog_code/DialogButton.h"
@@ -44,16 +43,29 @@
 /* Lifecycle record 8; the automap screen. Its original screen-class name is
    unknown, so the existing compilation boundary is retained. */
 
+// GLOBAL: WIZ8 0x0068F258
+W8GrowableVector<W8AutomapNote*>* g_automap_notes;
+
+// FUNCTION: WIZ8 0x0057e5d0
+unsigned char AutomapScreenInitialize(void)
+{
+    W8GrowableVector<W8AutomapNote*>* list;
+
+    list = new W8GrowableVector<W8AutomapNote*>();
+    g_automap_notes = list;
+    if (!list) {
+        return 0;
+    }
+    return 1;
+}
+
 // GLOBAL: WIZ8 0x0068f104
 unsigned char g_flag_68f104;
 // GLOBAL: WIZ8 0x0068f105
 unsigned char g_flag_68f105;
 
 /* Lifecycle record 8's own state, all of it released by the finalizer below and
-   nothing here naming what any of it holds. The list is vector.cpp's, created by
-   this record's initializer at 0x0057E5D0. */
-/* vector.cpp defines this with C++ linkage; the spelling has to agree or the
-   reference resolves to the image base under /FORCE. */
+   nothing here naming what any of it holds. The note list is created by this record's initializer at 0x0057E5D0. */
 
 /* Two owned index arrays, released through BitArray's destructor. */
 // GLOBAL: WIZ8 0x0068F288
@@ -111,7 +123,7 @@ EnvironmentColour g_automap_saved_ambient_light;
 // GLOBAL: WIZ8 0x0068f150
 unsigned char g_automap_saved_sky;
 // GLOBAL: WIZ8 0x0068f154
-W8CamPos g_automap_saved_camera;
+W8WorldCameraState g_automap_saved_camera;
 // GLOBAL: WIZ8 0x0068f190
 float g_automap_saved_far_clip;
 // GLOBAL: WIZ8 0x0068f194
@@ -219,7 +231,8 @@ void ResetAutomapView005817D0(void)
         g_automap_notes->RemoveAt(0);
     }
     g_automap_redraw = 1;
-    if (g_loaded_level_id == 0x18 || (g_loaded_level_id > 0x1a && g_loaded_level_id <= 0x22)) {
+    if (g_status_685170.current_level == 0x18 ||
+        (g_status_685170.current_level > 0x1a && g_status_685170.current_level <= 0x22)) {
         g_automap_range_0064b910 = 30000.0f;
     } else {
         g_automap_range_0064b910 = 10000.0f;
@@ -273,7 +286,7 @@ void ResetAutomapView005817D0(void)
 }
 
 // FUNCTION: WIZ8 0x0057E490
-unsigned char Function57E490(void)
+unsigned char CanUseCurrentAutomapTool(void)
 {
     if (g_flag_68f105 != 0) {
         switch (g_automap_tool) {
@@ -331,7 +344,7 @@ unsigned char AutomapScreenEnter(void)
     UpdateWorldMesh004BAF60(g_world);
     Function46F760(g_world, 1);
     g_light_update_flags_0060bfdc &= ~1u;
-    Function427830(0);
+    SetWorldModelPickingEnabled(0);
     if (!g_automap_state) {
         g_automap_state = static_cast<W8AutomapState*>(malloc(sizeof(W8AutomapState)));
         if (!g_automap_state)
@@ -343,7 +356,7 @@ unsigned char AutomapScreenEnter(void)
     g_automap_viewport.top = 32;
     g_automap_viewport.right = 467;
     g_automap_viewport.bottom = 467;
-    Function56AA30();
+    PauseMainGameWorld();
     g_automap_layers.Clear();
     g_automap_layers.Add(0);
     char layer_name[16];
@@ -374,7 +387,7 @@ unsigned char AutomapScreenEnter(void)
     Function5822C0();
     Function583BC0();
     g_class_68f29c->setParent(0, 1);
-    g_automap_surface_mode = Function427260();
+    g_automap_surface_mode = RendererBufferIsLockable();
     if (g_automap_surface_mode) {
         g_flag_65970d = 0;
         g_monster_shadow_updates_enabled_0065970c = 0;
@@ -729,7 +742,7 @@ void RestoreAutomapWorldSettings(void)
     Function46F760(g_world, 0);
     g_light_update_flags_0060bfdc |= 1u;
     SetResidentTexturePolicy(g_resident_texture_policy_659714);
-    Function427830(1);
+    SetWorldModelPickingEnabled(1);
 }
 
 // FUNCTION: WIZ8 0x0057efe0
@@ -740,7 +753,7 @@ unsigned char AutomapScreenLeave(int)
     g_automap_state = 0;
     MarkRendererReady();
     SetValue659668(0);
-    Function56AAB0();
+    ResumeMainGameWorld();
     srClass* clipping_plane = static_cast<srClass*>(srCore.getRegistry()->find(
         srClipPlane::ClientType::sGetClassNode(), "Clipping Plane 1", 0));
     if (clipping_plane) {

@@ -3,7 +3,7 @@
 #include "wiz8/regions.h"
 
 // FUNCTION: WIZ8 0x005a1140
-unsigned char Function5A1140(const InputAtom* input)
+unsigned char IgnoreSpellCastingInput(const InputAtom* input)
 {
     return 0;
 }

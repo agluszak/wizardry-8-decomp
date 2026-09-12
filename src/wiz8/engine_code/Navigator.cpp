@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/Navigator.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/float_constants.h"
@@ -689,9 +690,6 @@ void W8Navigator::StartPatrol(const srVector3T<float>* home, float distance, flo
 extern unsigned char g_navigator_vertical_enabled_006081f8;
 // GLOBAL: WIZ8 0x00659c10
 unsigned char g_navigator_link_mode_00659c10;
-extern float g_navigator_speed_006850ff;
-// GLOBAL: WIZ8 0x006850ff
-float g_navigator_speed_006850ff;
 extern float g_navigator_linked_radius_scale_005ebc98;
 // GLOBAL: WIZ8 0x005ebc98
 float g_navigator_linked_radius_scale_005ebc98 = 4.0f;
@@ -868,10 +866,10 @@ srVector3T<float>* W8Navigator::AdjustPosition00454440(srVector3T<float>* result
         float distance;
         if (g_flag_006081e4 == 0) {
             movement_0c0.vertical_velocity_078 += g_object_6598bc->GetValue28() *
-                                                  g_navigator_speed_006850ff *
+                                                  g_settings_6850c8.monster_movement_speed *
                                                   g_navigator_gravity_00603acc * acceleration_scale;
             distance = movement_0c0.vertical_velocity_078 * g_object_6598bc->GetValue28() *
-                       g_navigator_speed_006850ff;
+                       g_settings_6850c8.monster_movement_speed;
         } else {
             movement_0c0.vertical_velocity_078 +=
                 g_object_6598bc->GetValue28() * g_navigator_gravity_00603acc * acceleration_scale;
@@ -1306,7 +1304,7 @@ unsigned char W8Navigator::SetMovementTarget(const srVector3T<float>* target, ch
 }
 
 // FUNCTION: WIZ8 0x00453690
-void W8Navigator::Function453690(const srVector3T<float>* position)
+void W8Navigator::AddPathPoint(const srVector3T<float>* position)
 {
     if (path_ai_068 == 0) {
         path_ai_068 = CreateRecord004A9750(movement_0c0.location_id_004);
@@ -1362,7 +1360,7 @@ float W8Navigator::GetValue120()
 }
 
 // FUNCTION: WIZ8 0x00454040
-void W8Navigator::Function454040(const srVector3T<float>* target)
+void W8Navigator::SetFacingToward(const srVector3T<float>* target)
 {
     srVector3T<float> current;
     current.x = movement_0c0.position_040.x;
@@ -1651,7 +1649,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
     }
 
     if (g_flag_006081e4 == 0) {
-        movement_0c0.movement_speed_064 = g_navigator_speed_006850ff;
+        movement_0c0.movement_speed_064 = g_settings_6850c8.monster_movement_speed;
         if (slowed != 0) {
             movement_0c0.movement_speed_064 *= g_float_005ebc7c;
         }

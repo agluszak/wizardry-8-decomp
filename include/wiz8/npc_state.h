@@ -4,6 +4,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/record_file_0055a480.h"
 
 class Trigger;
 
@@ -31,7 +32,7 @@ struct W8NpcItemEntry {
    loads through it show, and everything reached by the recovered NPC bodies is
    placed off it. */
 struct W8NpcState {
-    int unknown_00;
+    W8RecordFile0055A480* record_file; /* 0x00: quote/script file from 0x0055A480 */
     unsigned short unknown_04;
     W8NpcDatabaseRecord* record; /* 0x06 */
     W8PList* items;              /* 0x0a: W8NpcItemEntry* elements */
@@ -50,8 +51,8 @@ struct W8NpcState {
     /* 0x1d: set by CreateNpcRuntimeNode when the node is built. */
     unsigned char unknown_1d;
     unsigned char unknown_1e[6];
-    /* 0x24: the level-band value the rebinding stamps from the level's own. */
-    unsigned char value_24;
+    /* 0x24: the level-band byte Function42B740 returns for the bound level. */
+    unsigned char level_band;
     bool is_present; /* 0x25 */
     bool is_grouped; /* 0x26 */
     /* 0x27: the NPC's group-member character. CreateNpcRuntimeNode allocates
@@ -68,7 +69,7 @@ struct W8NpcState {
        substitute. */
     char name_style;
     /* 0x2f: the loaded level id the binding is stamped for. */
-    unsigned char value_2f;
+    unsigned char bound_level;
     /* 0x30: the forty item ids 0x0050B9E0 copies out of the record's item
        table, -1 for an unused slot. */
     unsigned short item_ids_30[40];
@@ -78,13 +79,13 @@ struct W8NpcState {
     unsigned char unknown_84[5];
     /* 0x089: five topics stored one more than their id so zero means empty. */
     int topics[5];
-    unsigned char unknown_9d[0x28];
+    char restore_entity_name[0x28]; /* 0x9d: FindEntityByName key for restore */
     /* 0x0c5/0x0c6: the pending-restore flag and the level it belongs to. */
-    unsigned char flag_c5;
-    unsigned char flag_c6;
+    unsigned char pending_restore;
+    unsigned char pending_restore_level;
     /* 0x0c7: set when the NPC binding is released while its record flag at
        0x054 is set, and tested before handing the binding back out. */
-    unsigned char unknown_c7;
+    unsigned char binding_unavailable;
     unsigned char unknown_c8[2];
     /* 0x0ca: the record's word at 0x002, copied by CreateNpcRuntimeNode. */
     unsigned short unknown_ca;
@@ -136,10 +137,8 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity);
 void Function50CF70(W8NpcState* npc, int mode);
 /* 0x0050E650: the per-party-slot companion reset the binding reset runs. */
 void Function50E650(int party_slot);
-/* 0x0050C560: the NPC-side check the pending-restore clear delegates to. */
-unsigned char Function50C560(W8NpcState* npc, void* data);
-/* 0x0055A0A0: release one NPC's bound monster object. */
-void Function55A0A0(int binding);
+/* 0x0050C560: place or move the NPC's monster at the named world entity. */
+unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, char* entity_name);
 /* 0x0050ABF0: the activation callback the rebinding installs on the level's
    NPC triggers. */
 unsigned char Function50ABF0(Trigger* trigger);

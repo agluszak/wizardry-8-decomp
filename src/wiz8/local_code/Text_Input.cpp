@@ -667,20 +667,20 @@ unsigned int HandleTextInput(const InputAtom* input)
         return 1;
     }
     if ((input_type & 2) != 0) {
-        if (Function402800((unsigned short)character) != 0) {
+        if (IsUppercaseWideChar((unsigned short)character) != 0) {
             if ((input_type & 0x20) != 0)
-                character = Function4028A0(character);
+                character = ToLowercaseWideChar(character);
             AddChar((unsigned short)character);
             return 1;
         }
-        if (Function402820((unsigned short)character) != 0) {
+        if (IsLowercaseWideChar((unsigned short)character) != 0) {
             if ((input_type & 0x10) != 0)
-                character = Function402880(character);
+                character = ToUppercaseWideChar(character);
             AddChar((unsigned short)character);
             return 1;
         }
     }
-    if ((input_type & 8) != 0 && Function402840((unsigned short)character) != 0) {
+    if ((input_type & 8) != 0 && IsPunctuationWideChar((unsigned short)character) != 0) {
         AddChar((unsigned short)character);
     }
     return 1;
@@ -691,7 +691,7 @@ void HandleExclusiveInput(unsigned short character)
 {
     short input_type = gpActive->usInputType;
     if (input_type == 0x1000) {
-        if (Function402800(character) == 0 && Function402820(character) == 0 &&
+        if (IsUppercaseWideChar(character) == 0 && IsLowercaseWideChar(character) == 0 &&
             (character < L'0' || character > L'9') && character != L'_' && character != L'.') {
             return;
         }
@@ -702,13 +702,13 @@ void HandleExclusiveInput(unsigned short character)
     }
     if (input_type == 0x1001) {
         if (gubCursorPos == 0) {
-            if (Function402820(character) != 0) {
+            if (IsLowercaseWideChar(character) != 0) {
                 AddChar(character);
                 return;
             }
-            if (Function402800(character) == 0)
+            if (IsUppercaseWideChar(character) == 0)
                 return;
-            AddChar((unsigned short)Function4028A0(character));
+            AddChar((unsigned short)ToLowercaseWideChar(character));
             return;
         }
         if (character >= L'0' && character <= L'9')

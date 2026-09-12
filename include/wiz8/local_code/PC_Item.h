@@ -10,16 +10,12 @@ struct W8ItemDatabaseRecord;
 
 unsigned char CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item);
 
-#define g_game_started (g_status_685170.game_started)
-
 extern const int g_item_spell_presentation[11];
 extern const int g_equip_slot_icons[6];
-extern unsigned int g_party_gold;
-extern unsigned char g_shared_item_pool[];
-extern unsigned int g_shared_item_pool_count;
+int GetItemInHand(void);
 
 void SetHandType(W8Character* character, unsigned int equip_slot);
-unsigned int Function520C70(int character_index);
+unsigned int GetEquipmentBindingDifficulty(int character_index);
 unsigned char CompatiblePartnerItems(int weapon_item_id, int off_hand_item_id); /* 0x0051C8F0 */
 bool ItemHasSingledOutGenericName(int item_id);
 int GetPairedEquipSlot(int equip_slot);
@@ -31,7 +27,7 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip
 void GetOriginOfCharacterItem(int character_index, void* item, unsigned char* origin,
                               unsigned short* slot);
 
-void Function51D960(W8Character* character); /* 0x0051D960 */
+void UnequipUnusableItems(W8Character* character); /* 0x0051D960 */
 void EmptyItemRecord(W8ItemInstance* item, W8Character* character, unsigned char refresh);
 void EmptyAllCarriedItems(W8Character* character);
 unsigned char TryIdentifyItemFor(W8Character* character, W8ItemInstance* item);
@@ -52,14 +48,21 @@ unsigned int CountItemOnParty(int item_id, W8ItemInstance** found, W8Character**
                               int include_backpack);
 /* 0x00521360: whether every occupied party slot carries one item. */
 bool EveryCharacterHasItem(int item_id, int include_backpack);
+unsigned int GetItemUnitWeight(const W8ItemInstance* item);
 unsigned int GetItemStackWeight(const W8ItemInstance* item);
+unsigned char GetItemEquipClass(const W8ItemInstance* item);
+int GetItemDefaultEquipSlot(int item_id);
+unsigned short GetItemEquipSlotMask(int item_id, char primary_off_hand_free,
+                                    char alternate_off_hand_free, char primary_main_hand_free,
+                                    char alternate_main_hand_free);
 void CreateItemIntoHandOrPool(int item_id, unsigned char quality);
 void AddPartyGold(int amount, char announce);
 
 void CopyItemInstance(W8ItemInstance* destination, W8ItemInstance* source, W8Character* character,
                       unsigned char refresh);
 void SortPartyItemPool(void);
-void Function520D10(W8ItemInstance* item, W8Character* character, unsigned char refresh);
+void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
+                                  unsigned char refresh);
 void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximum_quantity,
                          unsigned char force_identified, unsigned char mark_special);
 void Function51FD20(W8ItemInstance* item, W8ItemInstance* destination, W8Character* character,
@@ -68,7 +71,8 @@ void NormalizeItemStack(W8ItemInstance* item);
 unsigned char MergeItemStacks(W8ItemInstance* destination, W8ItemInstance* source,
                               unsigned char* partially_merged);
 void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item);
-void Function5227D0(W8ItemInstance* item, unsigned char choose_character, W8Character* character);
+void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_character,
+                                    W8Character* character);
 char PartyAttemptsToIdentifyItem(W8ItemInstance* item, int argument_2);
 
 /* Same equipment class, and same unidentified display name. */

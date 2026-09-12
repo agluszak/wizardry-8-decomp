@@ -785,8 +785,8 @@ void W8GrCycle::AdvanceAnimationFrame(int, int)
         unsigned int index;
 
         for (index = 0; index < count; ++index) {
-            W8PathAI* path = (W8PathAI*)AnimObjListEntry004A16C0(animation, representation->m_bLOD,
-                                                                 (signed char)index);
+            W8PathAI* path =
+                AnimObjListEntry004A16C0(animation, representation->m_bLOD, (signed char)index);
             if (path != 0) {
                 PathAISetValue004A9F60(path, (float)representation->flag_064);
             }
@@ -849,7 +849,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
                 srAssertFail("psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x3e4,
                              0);
             }
-            *(W8AnimRepValue4*)&psrMesh->render_depth_164 = pRep->value_04c;
+            psrMesh->render_state_164 = pRep->render_state_04c;
             if (pRep->flag_061 != 0) {
                 if (pRep->value_05c == g_float_005ebb38) {
                     psrMesh->flag_1a0 = 0;
@@ -860,7 +860,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             }
             psrMesh->clearFlag(srNode::FLAG_POSITIONAL_0);
             psrMesh->setParent(pWorld->dynamic_scene, 0);
-            path = (W8PathAI*)AnimObjListEntry004A16C0(animation, pRep->m_bLOD, (signed char)index);
+            path = AnimObjListEntry004A16C0(animation, pRep->m_bLOD, (signed char)index);
             if (path != 0) {
                 PathAIApply004AA520(path, psrMesh);
             }
@@ -884,7 +884,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             srAssertFail("psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x40f, 0);
         }
         AniMeshSetFlag10004B6860(pRep->GetEmitterAniMesh(pRep->current_cycle), 1);
-        *(W8AnimRepValue4*)&psrMesh->render_depth_164 = pRep->value_04c;
+        psrMesh->render_state_164 = pRep->render_state_04c;
         if (pRep->flag_061 != 0) {
             if (pRep->value_05c == g_float_005ebb38) {
                 psrMesh->flag_1a0 = 0;

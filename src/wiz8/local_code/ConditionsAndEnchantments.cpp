@@ -14,7 +14,6 @@
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/layouts/item_tables.h"
-#include "wiz8/location_variables.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/utility.h"
 #include "wiz8/sr_api.h"
@@ -41,7 +40,7 @@ unsigned short g_condition_notices_0061E570[128] = {
     0x3a1, 0x3a2, 0x3a3, 0x3a4, 0x3a5, 0x3a6, 0x3a7, 0x3a8, 0x3a9, 0x3aa, 0x3ab,
 };
 // FUNCTION: WIZ8 0x005248a0
-unsigned char Function5248A0(int party_slot, int condition)
+unsigned char GetConditionRecordFlag(int party_slot, int condition)
 {
     return g_status_685170.buffers.characters[party_slot].conditions_1817[condition].value_08;
 }
@@ -82,14 +81,14 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
                          0xf5, 0);
         }
         if (party_slot >= 0 && party_slot < 8 && row->occupied != 0 && character->hp_current != 0) {
-            can_rest = character->unknown_0b01 < 0xd;
+            can_rest = character->highest_condition < 0xd;
         } else {
             can_rest = 0;
         }
         if (condition == 9) {
             if (character->condition_turns[W8_CONDITION_SURVIVES_DEATH] != 0 &&
-                Function42B740(g_loaded_level_id) != '\t' &&
-                Function42B740(g_loaded_level_id) != '\n') {
+                Function42B740(g_status_685170.current_level) != '\t' &&
+                Function42B740(g_status_685170.current_level) != '\n') {
                 return;
             }
         } else if (condition == 0xb &&
@@ -135,7 +134,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
         Function50E650(party_slot);
         Function52F790(character, condition);
         if (!can_rest && party_slot > -1 && party_slot < 8 && row->occupied != 0 &&
-            character->hp_current != 0 && character->unknown_0b01 < 0xd &&
+            character->hp_current != 0 && character->highest_condition < 0xd &&
             gXStatus.fCombatMode != 0 &&
             CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) != 0) {
             Function53A930(party_slot, &row->target_in_combat);
@@ -231,12 +230,12 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
     int slot;
     unsigned char handled;
 
-    if (argument != 0 && condition != W8_CONDITION_WITH_ARGUMENT) {
+    if (argument != 0 && condition != W8_CONDITION_POISONED) {
         srAssertFail("(uiPoisonStrength == 0) || (uiCondition == COND_POISONED)",
                      "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", 0x220,
                      0);
     }
-    if (condition == W8_CONDITION_WITH_ARGUMENT && argument == 0) {
+    if (condition == W8_CONDITION_POISONED && argument == 0) {
         return;
     }
     switch (condition) {
@@ -292,7 +291,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
             }
             --slot;
         }
-        monster_info->value_107 = slot;
+        monster_info->highest_condition = slot;
         list_index = GetMonsterGroupIndexByID(
             0x34e, "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
             monster_info->monster_group_id, 1);
@@ -300,7 +299,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
         RecountActiveMonsterGroupMembers(monster_group);
         if (monster_info->flag_14 != 0) {
             MonsterInfoSetMotionless(monster_info,
-                                     (unsigned int)monster_info->value_107 < 0xE ? 0 : 1);
+                                     (unsigned int)monster_info->highest_condition < 0xE ? 0 : 1);
         }
         if (old_duration == 0 && condition != 0 && condition <= 0x12) {
             Function4ACD80(monster_info->monster, condition - 1, 1);
@@ -383,7 +382,7 @@ void ClearMonsterCondition(int location_id, int condition)
             }
             --slot;
         }
-        monster_info->value_107 = slot;
+        monster_info->highest_condition = slot;
         list_index = GetMonsterGroupIndexByID(
             0x34e, "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
             monster_info->monster_group_id, 1);
@@ -391,7 +390,7 @@ void ClearMonsterCondition(int location_id, int condition)
         RecountActiveMonsterGroupMembers(monster_group);
         if (monster_info->flag_14 != 0) {
             MonsterInfoSetMotionless(monster_info,
-                                     (unsigned int)monster_info->value_107 < 0xE ? 0 : 1);
+                                     (unsigned int)monster_info->highest_condition < 0xE ? 0 : 1);
         }
         if (condition != 0 && condition < 0x13) {
             Function4ACD80(monster_info->monster, condition - 1, 0);
@@ -430,7 +429,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
    the compare and branch. Suppress only this diagnostic here. */
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
     W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
-    int old_b01;
+    int old_highest;
     unsigned int old_duration;
     unsigned char handled;
 
@@ -439,12 +438,12 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
                      "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", 0x2a,
                      0);
     }
-    if (argument != 0 && condition != W8_CONDITION_WITH_ARGUMENT) {
+    if (argument != 0 && condition != W8_CONDITION_POISONED) {
         srAssertFail("(uiPoisonStrength == 0) || (uiCondition == COND_POISONED)",
                      "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", 0x2d,
                      0);
     }
-    if (condition == W8_CONDITION_WITH_ARGUMENT && argument == 0) {
+    if (condition == W8_CONDITION_POISONED && argument == 0) {
         return 0;
     }
     if (condition == 0x12 && CharacterHasTrait00547940(character, 2) != 0 &&
@@ -498,7 +497,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
         }
         break;
     }
-    old_b01 = character->unknown_0b01;
+    old_highest = character->highest_condition;
     old_duration = character->condition_turns[condition];
     if (old_duration < (unsigned int)duration) {
         character->condition_turns[condition] = duration;
@@ -526,7 +525,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
     } else if (!(condition < 0x12)) {
         SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
     }
-    if (old_b01 != character->unknown_0b01) {
+    if (old_highest != character->highest_condition) {
         Function52F430(character);
     }
     if (value_6 != 0) {
@@ -538,7 +537,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
         }
     }
     if ((party_slot < 0 || party_slot > 7 || row->occupied == 0 || character->hp_current == 0 ||
-         character->unknown_0b01 > 0xC) &&
+         character->highest_condition > 0xC) &&
         gXStatus.fCombatMode != 0) {
         ClearPartySlotMonsterHighlights(party_slot);
     }
@@ -561,9 +560,9 @@ void CopyCharacterConditionsToTarget(const W8Character* character, const int* ta
     for (condition = 0; condition < W8_CONDITION_COUNT; ++condition) {
         duration = character->condition_turns[condition];
         if (duration != 0) {
-            if (condition == W8_CONDITION_WITH_ARGUMENT) {
+            if (condition == W8_CONDITION_POISONED) {
                 argument = character->condition_argument;
-                duration = character->condition_turns[W8_CONDITION_WITH_ARGUMENT];
+                duration = character->condition_turns[W8_CONDITION_POISONED];
             } else {
                 argument = 0;
             }
@@ -585,8 +584,8 @@ void CopyMonsterConditionsToCharacter(int party_slot, const W8MonsterInfo* monst
         duration = monster_info->condition_turns[condition];
         if (duration != 0) {
             argument = monster_info->condition_argument;
-            if (condition == W8_CONDITION_WITH_ARGUMENT) {
-                duration = monster_info->condition_turns[W8_CONDITION_WITH_ARGUMENT];
+            if (condition == W8_CONDITION_POISONED) {
+                duration = monster_info->condition_turns[W8_CONDITION_POISONED];
             }
             SetCharacterCondition(party_slot, condition, duration, argument, 0, 0);
         }
@@ -599,7 +598,7 @@ void CopyMonsterConditionsToCharacter(int party_slot, const W8MonsterInfo* monst
 // FUNCTION: WIZ8 0x00523a80
 void ClearCharacterEnchantmentSlot(int party_slot, int slot)
 {
-    W8Character* character = &g_party_characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
     int scan;
 
     character->enchantments[slot].value_00 = 0;
@@ -676,8 +675,8 @@ void RemoveConditionFromParty(int condition)
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_party_slot_rows[party_slot].occupied != 0 &&
-            g_party_characters[party_slot].condition_turns[condition] != 0) {
+        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
+            g_status_685170.buffers.characters[party_slot].condition_turns[condition] != 0) {
             RemoveCharacterCondition(party_slot, condition, 1);
         }
     }
@@ -694,8 +693,8 @@ void RemoveConditionFromEveryone(int condition)
     W8MonsterInfo* monster_info;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_party_slot_rows[party_slot].occupied != 0 &&
-            g_party_characters[party_slot].condition_turns[condition] != 0) {
+        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
+            g_status_685170.buffers.characters[party_slot].condition_turns[condition] != 0) {
             RemoveCharacterCondition(party_slot, condition, 1);
         }
     }
@@ -722,8 +721,8 @@ void RemoveAllConditionsFromParty(void)
             continue;
         }
         for (party_slot = 0; party_slot < 8; ++party_slot) {
-            if (g_party_slot_rows[party_slot].occupied != 0 &&
-                g_party_characters[party_slot].condition_turns[condition] != 0) {
+            if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
+                g_status_685170.buffers.characters[party_slot].condition_turns[condition] != 0) {
                 RemoveCharacterCondition(party_slot, condition, 1);
             }
         }

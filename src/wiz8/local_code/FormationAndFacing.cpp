@@ -1,4 +1,5 @@
 #include "wiz8/local_code/FormationAndFacing.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/local_code/MonsterManager.h"
@@ -62,9 +63,8 @@ enum { W8_FORMATION_ROWS = 5, W8_POSITIONS_PER_ROW = 3 };
    whatever a position is already facing. */
 enum { W8_FACING_ANY = 4 };
 
-/* The state a character has to be under to hold a place in the formation.
-   Tighter than the eligibility window the party sweeps use. */
-enum { W8_FORMATION_ELIGIBLE_LIMIT = 0xd };
+/* The state a character has to be under to hold a place in the formation:
+   highest_condition below HOSTILE, tighter than the party-wide death window. */
 
 // GLOBAL: WIZ8 0x005ee858
 double g_facing_tolerance_005ee858 = 2.3561944500000003;
@@ -77,9 +77,9 @@ float g_facing_tolerance_005ebcf4;
 // FUNCTION: WIZ8 0x005549e0
 bool CanHoldFormationPlace(int party_slot)
 {
-    const W8Character* character = &g_party_characters[party_slot];
+    const W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
-    return character->hp_current != 0 && character->unknown_0b01 < W8_FORMATION_ELIGIBLE_LIMIT;
+    return character->hp_current != 0 && character->highest_condition < W8_CONDITION_HOSTILE;
 }
 
 /* Remember the formation combat started with. */
@@ -232,7 +232,7 @@ W8WideChar g_formation_row_names_00649e54[5][10] = {
    column and puts the joiner in the third; a row already holding two takes
    the joiner directly. */
 // FUNCTION: WIZ8 0x00554ae0
-void Function554AE0(W8PartyFormationState* formation, int slot)
+void PlaceCharacterInFormation(W8PartyFormationState* formation, int slot)
 {
     unsigned char row_order[3] = {0, 4, 2};
     W8PartyFormationPosition* position = &formation->positions[slot];
@@ -243,7 +243,7 @@ void Function554AE0(W8PartyFormationState* formation, int slot)
         unsigned char row = row_order[index];
         signed char occupants = formation->flags_0f[row];
         if (occupants == 0) {
-            Function554BD0(formation, slot, row, 0, 1, 1, 1);
+            SetFormationPosition(formation, slot, row, 0, 1, 1, 1);
             return;
         }
         if (occupants == 1) {
@@ -251,15 +251,15 @@ void Function554AE0(W8PartyFormationState* formation, int slot)
             if (leader == -1) {
                 srAssertFail("iChar != -1", FORMATION_CPP, 0x159, 0);
             }
-            Function554BD0(formation, leader, row, 1, 0, 0, 1);
-            Function554BD0(formation, slot, row, 2, 1, 1, 1);
+            SetFormationPosition(formation, leader, row, 1, 0, 0, 1);
+            SetFormationPosition(formation, slot, row, 2, 1, 1, 1);
             return;
         }
         if (occupants == 2) {
             if (formation->rows[row].slots[0] != -1) {
                 srAssertFail("iChar == -1", FORMATION_CPP, 0x172, 0);
             }
-            Function554BD0(formation, slot, row, 0, 1, 1, 1);
+            SetFormationPosition(formation, slot, row, 0, 1, 1, 1);
             return;
         }
     }
@@ -271,7 +271,7 @@ void Function554AE0(W8PartyFormationState* formation, int slot)
    the positions left in the old row, and the announce flag posts the row
    name to the slot. */
 // FUNCTION: WIZ8 0x00554bd0
-void Function554BD0(W8PartyFormationState* formation, int slot, int new_row, int new_column,
+void SetFormationPosition(W8PartyFormationState* formation, int slot, int new_row, int new_column,
                     int announce, int detach, int update_facing)
 {
     W8PartyFormationPosition* position = &formation->positions[slot];
@@ -324,8 +324,8 @@ void Function554BD0(W8PartyFormationState* formation, int slot, int new_row, int
     if (detach != 0 && old_row != -1) {
         Function554DD0(formation, old_row);
     }
-    if (g_status_685170.game_started != 0 && gXStatus.field_01f == 0) {
-        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_flag_006850ce != 2 &&
+    if (g_status_685170.game_started != 0 && gXStatus.fNpcDialogueMode == 0) {
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_settings_6850c8.field_006 != 2 &&
             formation == &g_status_685170.formation) {
             Function5B1C80();
             Function5A24A0();

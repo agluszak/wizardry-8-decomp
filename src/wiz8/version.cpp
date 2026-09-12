@@ -3,7 +3,9 @@
 
 #include <string.h>
 
-/* Version-banner formatting. The original translation-unit name is unknown. */
+/* Version-banner formatting. Live query: 0x004E3620 is a gap between
+   Local Code\Gameloop.cpp (upper 0x004E34B0) and Local Code\MonsterManager.cpp
+   (lower 0x004E3820). */
 
 // FUNCTION: WIZ8 0x004E3620
 void FormatVersionBanner004E3620(char* out, char with_title, char with_build, char with_date)

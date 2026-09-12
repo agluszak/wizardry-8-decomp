@@ -113,12 +113,12 @@ unsigned int ChooseAttackMode(unsigned int attack_modes)
 // FUNCTION: WIZ8 0x00545b80
 bool CanCharacterAttack(int party_slot)
 {
-    const W8Character* character = &g_party_characters[party_slot];
+    const W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
     if (!IsPartySlotEligible00524A10(party_slot)) {
         return false;
     }
-    if (character->unknown_0b01 > 0xb) {
+    if (character->highest_condition > 0xb) {
         return false;
     }
     return character->hand_attacks[0].in_play != 0;
@@ -133,7 +133,7 @@ bool CanMonsterAttack(W8MonsterInfo* monster_info)
     const W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
 
     if (monster_info->flag_14 == 0 || monster_info->fInCombat == 0 ||
-        monster_info->hp_current == 0 || (unsigned int)monster_info->value_107 >= 0xc ||
+        monster_info->hp_current == 0 || (unsigned int)monster_info->highest_condition >= 0xc ||
         (record->flags_0d0 & W8_MONSTER_FLAG_ATTACKS) == 0) {
         return false;
     }
@@ -198,10 +198,10 @@ bool CanHandReachTarget(int party_slot, unsigned int hand)
     if (hand >= W8_HAND_COUNT) {
         srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 102, 0);
     }
-    if (g_party_characters[party_slot].hand_attacks[hand].in_play == 0) {
+    if (g_status_685170.buffers.characters[party_slot].hand_attacks[hand].in_play == 0) {
         return false;
     }
-    return CalcRangeCategoryToTarget(&g_party_characters[party_slot], hand) != -1;
+    return CalcRangeCategoryToTarget(&g_status_685170.buffers.characters[party_slot], hand) != -1;
 }
 
 /* Whether either hand can. */
@@ -214,8 +214,9 @@ bool CanAnyHandReachTarget(int party_slot)
         if (hand >= W8_HAND_COUNT) {
             srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 102, 0);
         }
-        if (g_party_characters[party_slot].hand_attacks[hand].in_play != 0 &&
-            CalcRangeCategoryToTarget(&g_party_characters[party_slot], hand) != -1) {
+        if (g_status_685170.buffers.characters[party_slot].hand_attacks[hand].in_play != 0 &&
+            CalcRangeCategoryToTarget(&g_status_685170.buffers.characters[party_slot], hand) !=
+                -1) {
             return true;
         }
     }
@@ -229,9 +230,9 @@ int GetHandAttackValue(int party_slot, unsigned int hand)
     if (hand >= W8_HAND_COUNT) {
         srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 102, 0);
     }
-    if (g_party_characters[party_slot].hand_attacks[hand].in_play != 0 &&
-        CalcRangeCategoryToTarget(&g_party_characters[party_slot], hand) != -1) {
-        return g_party_characters[party_slot].hand_attacks[hand].attacks;
+    if (g_status_685170.buffers.characters[party_slot].hand_attacks[hand].in_play != 0 &&
+        CalcRangeCategoryToTarget(&g_status_685170.buffers.characters[party_slot], hand) != -1) {
+        return g_status_685170.buffers.characters[party_slot].hand_attacks[hand].attacks;
     }
     return 0;
 }
@@ -262,7 +263,7 @@ bool CanMonsterAttackItsTarget(W8MonsterInfo* monster_info)
     const W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
 
     if (monster_info->flag_14 != 0 && monster_info->fInCombat != 0 &&
-        monster_info->hp_current != 0 && (unsigned int)monster_info->value_107 < 0xc &&
+        monster_info->hp_current != 0 && (unsigned int)monster_info->highest_condition < 0xc &&
         (record->flags_0d0 & W8_MONSTER_FLAG_ATTACKS) != 0 && record->attacks[0].fHasAttack != 0) {
         return MonsterHasAttackOn(monster_info, &monster_info->Target) != 0;
     }
@@ -283,11 +284,12 @@ bool CanCharacterAttackItsTarget(int party_slot)
     if (!IsPartySlotEligible00524A10(party_slot)) {
         return false;
     }
-    character = &g_party_characters[party_slot];
-    if (character->unknown_0b01 >= 0xc || character->hand_attacks[0].in_play == 0) {
+    character = &g_status_685170.buffers.characters[party_slot];
+    if (character->highest_condition >= 0xc || character->hand_attacks[0].in_play == 0) {
         return false;
     }
-    return CharacterHasAttackOn(party_slot, &g_party_slot_rows[party_slot].target_out_of_combat) !=
+    return CharacterHasAttackOn(
+               party_slot, &g_status_685170.buffers.party_rows[party_slot].target_out_of_combat) !=
            0;
 }
 

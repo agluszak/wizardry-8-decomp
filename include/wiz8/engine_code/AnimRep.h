@@ -3,18 +3,42 @@
 
 #include "surrender/srMath.h"
 
+#include <stddef.h>
+
 #pragma pack(push, 1)
 
-/* Prop.cpp writes the triples at 0x074 and 0x080 as x/y/z bounds and the word
-   at 0x08c as a float extent, so those members take their actual scalar types.
-   The 0x10-byte block at 0x04c has no independent witness yet, so it keeps
-   positional names until a consumer proves its meaning. */
-struct W8AnimRepValue4 {
-    unsigned int value_00;
-    unsigned int value_04;
-    unsigned int value_08;
-    unsigned int value_0c;
+/* Sixteen-byte render block copied from an AnimRep into a model instance.
+   GrCycle assigns the whole 0x10 bytes at once; stModelInstance and
+   stModelInstance2D store the same layout at +0x164, including the 2D
+   left/top extent and right/bottom position shorts. */
+struct W8ModelInstanceRenderState {
+    unsigned long render_depth;
+    union {
+        unsigned long state_04;
+        struct {
+            short left;
+            short top;
+        };
+    };
+    union {
+        unsigned long state_08;
+        struct {
+            short right;
+            short bottom;
+        };
+    };
+    union {
+        unsigned long state_0c;
+        struct {
+            unsigned char display_state;
+            unsigned char state_0d;
+            unsigned char padding_0e[2];
+        };
+    };
 };
+
+/* Prop.cpp writes the triples at 0x074 and 0x080 as x/y/z bounds and the word
+   at 0x08c as a float extent, so those members take their actual scalar types. */
 
 /* The copy path at 0x004B87C0 and clone slot at 0x0044EDF0 establish the
    0x64-byte polymorphic root below. Its original name is not available. */
@@ -36,7 +60,7 @@ public:
     srVector3T<float> local_location_010;
     srVector3T<float> parent_location_01c;
     srMatrix3T<float> rotation_028;
-    W8AnimRepValue4 value_04c;
+    W8ModelInstanceRenderState render_state_04c;
     float value_05c;
     unsigned char flag_060;
     unsigned char flag_061;
@@ -83,7 +107,10 @@ public:
     unsigned char unknown_096[2];
 };
 
-static_assert(sizeof(W8AnimRepValue4) == 0x10, "W8AnimRepValue4_size_must_be_0x10");
+static_assert(sizeof(W8ModelInstanceRenderState) == 0x10,
+              "W8ModelInstanceRenderState_size_must_be_0x10");
+static_assert(offsetof(W8AnimRepBase005EC1D8, render_state_04c) == 0x4c,
+              "W8AnimRepBase_render_state_offset");
 static_assert(sizeof(W8AnimRepBase005EC1D8) == 0x64, "W8AnimRepBase005EC1D8_size_must_be_0x64");
 static_assert(sizeof(W8AnimRep005ED050) == 0x98, "W8AnimRep005ED050_size_must_be_0x98");
 

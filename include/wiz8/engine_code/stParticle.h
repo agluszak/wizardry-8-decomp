@@ -25,7 +25,7 @@ public:
     void SetRetainedObject0049ACA0(srMaterialIFace* material);
     void SetRenderFlags004925A0(srShader flags);
     void SetFlutter0049AD10(int enabled);
-    void Function4994D0(srGERD* renderer);
+    void SubmitToRenderer(srGERD* renderer);
     /* The per-particle age/cull/move step and billboard-corner expansion used
        by the submitted batch. Their retail names remain unavailable. */
     void Update00499FA0();                                 /* 0x00499FA0 */

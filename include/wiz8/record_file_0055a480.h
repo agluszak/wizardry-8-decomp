@@ -9,7 +9,8 @@
  *
  * The loader and the reader overwrite three record slots with the arrays they
  * allocate, so on-disk fields and runtime pointers share storage. Every offset
- * here is unaligned, which is what fixes the packing.
+ * here is unaligned, which is what fixes the packing. NPC rebinding at
+ * 0x00524CA0 stores the loaded file on W8NpcState::record_file.
  */
 
 #pragma pack(push, 1)
@@ -50,6 +51,7 @@ struct W8RecordFile0055A480 {
 
 #pragma pack(pop)
 
+void ReleaseRecordFile0055A0A0(W8RecordFile0055A480* file);
 unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record);
 W8RecordFile0055A480* LoadRecordFile0055A480(char* path);
 

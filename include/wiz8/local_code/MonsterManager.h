@@ -222,7 +222,7 @@ struct W8MonsterInfo {
        at 0x093 and seventeen is exhaustion at 0x09b. */
     int condition_turns[W8_CONDITION_COUNT]; /* 0x057 */
     W8Enchantment enchantments[8];           /* 0x0a7 */
-    int value_107;                           /* 0x107: set to 0x12 when an entry deactivates */
+    int highest_condition; /* 0x107: highest set condition_turns index; 0x12 when deactivated */
     /* 0x10b: the argument a condition carries when a monster's conditions are
        copied onto a character. */
     int condition_argument;
@@ -294,7 +294,7 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
 bool InitializeMonsterManagerState(void);
 void ActivateMonsterInWorld(W8MonsterInfo* monster_info);
 void ActivateMonster(W8MonsterInfo* monster_info, int mode);
-void Function4E4600(W8MonsterInfo* monster_info);
+void ClearMonsterPathAndResume(W8MonsterInfo* monster_info);
 void MonsterStartsDying(W8MonsterInfo* monster_info, int display_message);
 W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
 unsigned int MonsterGetIndexByLocationID(int caller_line, const char* caller_file, int location_id,

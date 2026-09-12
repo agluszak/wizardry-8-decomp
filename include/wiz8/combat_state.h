@@ -64,11 +64,11 @@ struct W8PartySlotRow {
 static_assert(sizeof(W8PartySlotRow) == 0x106, "W8PartySlotRow_must_be_0x106");
 
 /* Nine 0x11-byte effect records at +0x7c1 are independently established.
-   +0x85a..+0x8f3 is an unresolved overlapping layout: six 0x11-byte records
-   occupy +0x85a..+0x8bf, then the independently proven engaged_missile at
-   +0x8c0 and TargetHit at +0x8c5. CombatHasCondition still advances 0x11
-   nine times from +0x85a, which overlaps those later fields; that stride
-   is not a typed array. */
+   +0x85a..+0x8f3 overlaps later independently proven fields: six 0x11-byte
+   records occupy +0x85a..+0x8bf, then engaged_missile at +0x8c0 and TargetHit
+   at +0x8c5. CombatHasCondition at 0x00501250 walks g_combat_state from +0x85a
+   with stride 0x11 and bound 9, so retail does read across that overlap. The
+   stride is not a typed nine-element array. */
 static_assert(sizeof(W8EffectSlot) == 0x11, "W8EffectSlot_must_be_0x11");
 
 /* One combat participant's row, 0xd4 bytes per character. The eight rows live
@@ -151,11 +151,6 @@ static_assert(sizeof(W8CombatState) == 0xa64, "W8CombatState_must_be_0xa64");
 
 extern W8CombatState* g_combat_state;          /* 0x006836A8 */
 extern unsigned int g_combat_countdown_6850b0; /* 0x006850B0 */
-
-/* These are the two heap-buffer fields at the head of gXStatus, not separate
-   globals.  Their retail addresses are the addresses of those pointer fields. */
-#define g_party_characters (g_status_685170.buffers.characters)
-#define g_party_slot_rows (g_status_685170.buffers.party_rows)
 
 void RecordCharacterDeath(int party_slot);
 void DropCharacterFromRound(int party_slot);

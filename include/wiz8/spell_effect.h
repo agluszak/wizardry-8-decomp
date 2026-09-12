@@ -62,12 +62,13 @@ struct W8SpellEffectEntry {
     /* Two integer lists this body walks against the monster manager entries. */
     W8GrowableVector<int> values_0e0;          /* 0x0e0 */
     W8GrowableVector<int> monster_indices_0f0; /* 0x0f0 */
-    W8GrowableVector<W8SpellVisual*> effects;  /* 0x100 */
-    W8GrowableVector<W8Missile*> missiles;     /* 0x110 */
-    unsigned char flag_120;                    /* 0x120 */
-    unsigned char flag_121;                    /* 0x121 */
-    unsigned char flag_122;                    /* 0x122 */
-    unsigned char flag_123;                    /* 0x123 */
+    /* 0x100: spawned visuals. The vector's data pointer is at +0x10c. */
+    W8GrowableVector<W8SpellVisual*> effects; /* 0x100 */
+    W8GrowableVector<W8Missile*> missiles;    /* 0x110 */
+    unsigned char flag_120;                   /* 0x120 */
+    unsigned char flag_121;                   /* 0x121 */
+    unsigned char flag_122;                   /* 0x122 */
+    unsigned char flag_123;                   /* 0x123 */
     /* 0x124: set once this effect's result has been reported. */
     unsigned char reported_124;
     unsigned char unknown_125;

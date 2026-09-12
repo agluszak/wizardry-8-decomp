@@ -1374,18 +1374,17 @@ W8OctPreTree004679E0* W8OctBuildPreTree004AFDA0::BuildOctPreTree004B4640()
                   tree->spatial_000.node_extent_70) +
             1;
     }
-    tree->m_owned_0b0 = malloc(tree->m_positional_0ac * tree->m_positional_0a4 *
-                               tree->m_positional_0a8 * sizeof(unsigned long));
+    tree->m_owned_0b0 =
+        static_cast<unsigned long*>(malloc(tree->m_positional_0ac * tree->m_positional_0a4 *
+                                           tree->m_positional_0a8 * sizeof(unsigned long)));
     unsigned long cell_index = 0;
     int point[3];
     for (point[0] = 0; point[0] < (int)tree->m_positional_0a4; ++point[0]) {
         for (point[1] = 0; point[1] < (int)tree->m_positional_0a8; ++point[1]) {
             for (point[2] = 0; point[2] < (int)tree->m_positional_0ac; ++point[2]) {
-                static_cast<unsigned long*>(tree->m_owned_0b0)[cell_index] =
-                    tree->FindLeaf00433660(point);
-                if (tree->m_positional_0b8 <
-                    static_cast<unsigned long*>(tree->m_owned_0b0)[cell_index]) {
-                    static_cast<unsigned long*>(tree->m_owned_0b0)[cell_index] = 0;
+                tree->m_owned_0b0[cell_index] = tree->FindLeaf00433660(point);
+                if (tree->m_positional_0b8 < tree->m_owned_0b0[cell_index]) {
+                    tree->m_owned_0b0[cell_index] = 0;
                 }
                 ++cell_index;
             }

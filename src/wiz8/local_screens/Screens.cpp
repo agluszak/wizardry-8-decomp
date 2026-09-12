@@ -1,8 +1,10 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/game_status.h"
+#include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_screens/Screens.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/PartySelectionScreen.h"
 #include "wiz8/local_screens/MGSPortraits.h"
@@ -43,8 +45,8 @@
 // VTABLE: WIZ8 0x005ee920
 class W8Controls005EE920 : public Controls {
 public:
-    bool Function55EBB0(unsigned int command);
-    bool Function55EBE0(unsigned int command);
+    bool HandleScrollDownCommand(unsigned int command);
+    bool HandleScrollUpCommand(unsigned int command);
 
 private:
     int m_positional_4c;
@@ -60,7 +62,7 @@ static_assert(sizeof(W8Controls005EE920) == 0xbc, "W8Controls005EE920_size");
 /* Run the first screen command predicate and reset this target through its
    second virtual slot when command zero succeeds. */
 // FUNCTION: WIZ8 0x0055EBB0
-bool W8Controls005EE920::Function55EBB0(unsigned int command)
+bool W8Controls005EE920::HandleScrollDownCommand(unsigned int command)
 {
     if (m_dialog_64.ScrollDown(static_cast<unsigned char>(command)) != 0) {
         if (static_cast<char>(command) == 0) {
@@ -73,7 +75,7 @@ bool W8Controls005EE920::Function55EBB0(unsigned int command)
 
 /* The parallel path using the second command predicate. */
 // FUNCTION: WIZ8 0x0055EBE0
-bool W8Controls005EE920::Function55EBE0(unsigned int command)
+bool W8Controls005EE920::HandleScrollUpCommand(unsigned int command)
 {
     if (m_dialog_64.ScrollUp(static_cast<unsigned char>(command)) != 0) {
         if (static_cast<char>(command) == 0) {
@@ -200,7 +202,7 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
             }
             RedrawPartyPortraitOverlay(party_slot, highlighted, overlay_ready,
                                        g_level_block->party_bytes_109[party_slot] == 0);
-            g_portrait_animation_states[party_slot].flag_5c = 1;
+            g_monster_manager_entries[party_slot].field_0d1 = 1;
             InvalidatePortraitControl0059BBD0(party_slot);
             return;
         }
@@ -434,8 +436,8 @@ void InitializeMainGameLevelBlock(void)
         g_level_block->values_134[slot] = 0;
     }
     g_level_block->combat_end_notification = -1;
-    previous_mode = g_flag_006850ce;
-    g_flag_006850ce = -1;
+    previous_mode = g_settings_6850c8.field_006;
+    g_settings_6850c8.field_006 = -1;
     ApplyMainGameModeFlag(previous_mode, 1);
     g_level_block->character_update_timer = SetCountdownClock(0);
     g_level_block->world_update_timer = SetCountdownClock(0);
@@ -456,7 +458,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->value_2ac = 0;
     g_level_block->value_2b4 = 0;
     g_level_block->value_2b0 = 0;
-    g_level_block->text_lines[4 + g_text_line_cursor_00686905] = FindStoppedTextLine();
+    g_level_block->text_lines[4 + g_status_685170.text_line_cursor_1795] = FindStoppedTextLine();
     g_level_block->refresh_combat_panel = 1;
     g_level_block->combat_panel_timer = SetCountdownClock(0);
     g_level_block->refresh_party_panel = 1;

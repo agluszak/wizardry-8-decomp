@@ -11,8 +11,9 @@
 #include "sgp.h"
 
 /* Lifecycle record 12 is the exit screen selected by Main Menu's Exit row and
-   its Escape/E/X shortcuts. The original translation-unit name is unknown, so
-   the existing compilation boundary is retained. */
+   its Escape/E/X shortcuts. Live query: 0x00591780 sits in the gap between
+   Local Screens\PleaseWaitScreen.cpp (upper 0x00590FA0) and
+   Local Screens\MGSKeyboard.cpp (lower 0x00591960). */
 
 extern int g_value_64c1c8;
 // GLOBAL: WIZ8 0x0064c1c8

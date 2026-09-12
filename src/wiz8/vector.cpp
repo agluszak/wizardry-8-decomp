@@ -1,12 +1,7 @@
 #include "wiz8/vector.h"
-#include "wiz8/screen_state.h"
-#include "wiz8/engine_code/PathAI.h"
-#include "wiz8/targeting.h"
 
 #include <stdlib.h>
 #include <string.h>
-
-class stLight;
 
 // TEMPLATE: WIZ8 0x004addf0
 // W8GrowableVector<int>::Grow
@@ -249,10 +244,8 @@ class W8Navigator;
 /* 0x005ECA5C is an unresolved pointer-vector specialization (ctor 0x00489ED0,
    deleting destructor 0x0048A140, complete destructor 0x00489F30). */
 
-/* MonGen.cpp's active monster-group list at 0x0065BA10, whose count and data
-   the source currently spells as g_active_group_count and g_active_groups.
-   GenerateEncounter at 0x0048AD20 stores W8MonsterGroup* elements through
-   it. */
+/* MonGen.cpp's active monster-group list at 0x0065BA10. GenerateEncounter at
+   0x0048AD20 stores W8MonsterGroup* elements through g_active_groups. */
 // VTABLE: WIZ8 0x005eca98
 // class W8GrowableVector<W8MonsterGroup*>
 
@@ -406,31 +399,11 @@ struct W8AutomapNote;
 // VTABLE: WIZ8 0x005eea28
 // class W8GrowableVector<W8AutomapNote*>
 
-/* The list itself, reached through this pointer rather than through an owner.
-   Lifecycle record 8's finalizer at 0x0057FA20 releases it from another
-   translation unit, which is what makes it a global rather than the file-static
-   it was modelled as. */
-// GLOBAL: WIZ8 0x0068F258
-W8GrowableVector<W8AutomapNote*>* g_automap_notes;
-
 // SYNTHETIC: WIZ8 0x00585420
 // W8GrowableVector<W8AutomapNote*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00585440
 // W8GrowableVector<W8AutomapNote*>::~W8GrowableVector<W8AutomapNote*>
-
-// FUNCTION: WIZ8 0x0057e5d0
-unsigned char AutomapScreenInitialize(void)
-{
-    W8GrowableVector<W8AutomapNote*>* list;
-
-    list = new W8GrowableVector<W8AutomapNote*>();
-    g_automap_notes = list;
-    if (!list) {
-        return 0;
-    }
-    return 1;
-}
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 

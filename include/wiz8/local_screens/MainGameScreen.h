@@ -181,6 +181,7 @@ static_assert(offsetof(W8LevelRuntimeBlock, countdown_32c) == 0x32c,
               "W8LevelRuntimeBlock_countdown_32c");
 
 class W8MainGameScreen;
+class W8MainGameTextPanel;
 
 /* 0x00587CF0 constructs this concrete key handler.  Its primary vtable is the
    W8Widget table extended by one entry: slot 0x48 points at
@@ -188,13 +189,22 @@ class W8MainGameScreen;
 // VTABLE: WIZ8 0x005eeafc
 class W8MainGameTextKeyHandler : public W8Widget, public W8RangeListener {
 public:
+    W8MainGameTextKeyHandler(Controls* panel, int left, int top, int right, int bottom,
+                             int line_count, unsigned short* field_ac, unsigned int* region_set);
+    virtual ~W8MainGameTextKeyHandler() override;
+    virtual void Redraw(int full_redraw) override;
+    virtual void OnMouseLeave(int event) override;
+    virtual void OnMouseMove(int event) override;
+    virtual void AdjustValue(int steps) override;
+    virtual void OnLeftButtonUp(int event) override;
+    void SetSelectedLine(int line);
     virtual char HandleKey(unsigned short key);
     virtual void OnRangeChanged(W8RangeControl* control) override;
 
     W8RangeControl m_range_038;
-    int m_field_0a4;
-    int m_field_0a8;
-    int m_field_0ac;
+    int m_line_count_0a4;
+    int m_visible_lines_0a8;
+    unsigned short* m_field_0ac;
     int m_field_0b0;
     int m_field_0b4;
     int m_field_0b8;
@@ -202,28 +212,52 @@ public:
 };
 static_assert(sizeof(W8MainGameTextKeyHandler) == 0xc0, "W8MainGameTextKeyHandler_size");
 
+/* 0xc0-byte text-panel cell. W8TextControl is 0xb8; the extra dword at +0xb8
+   holds the displayed catalog image (or -1) and +0xbc gates mouse handling.
+   Slot 0 is its own scalar deleting destructor at 0x00588350, not
+   W8TextControl's. */
+// VTABLE: WIZ8 0x005eeb4c
+class W8MainGameTextEntry : public W8TextControl {
+public:
+    W8MainGameTextEntry(Controls* panel, int index);
+    virtual ~W8MainGameTextEntry() override;
+    virtual void Redraw(int full_redraw) override;
+    virtual void OnMouseEnter(int event) override;
+    virtual void OnLeftButtonDown(int event) override;
+    virtual void OnLeftButtonUp(int event) override;
+
+    int m_image_b8;
+    unsigned char m_input_blocked_bc;
+    unsigned char m_pad_bd[3];
+};
+static_assert(sizeof(W8MainGameTextEntry) == 0xc0, "W8MainGameTextEntry_size");
+
 /* The text panel's constructor at 0x005884D0 begins with Controls::Controls.
    The two secondary bases are installed at 0x4c and 0x50, before its own
-   fields. */
+   fields. Ordinary destructor 0x00588790; 0x00588770 is the scalar deleting
+   wrapper. */
 // VTABLE: WIZ8 0x005eeba8
 class W8MainGameTextPanel : public Controls,
                             public W8TextControl::Listener,
                             public W8RangeListener {
 public:
     W8MainGameTextPanel();          /* 0x005884D0 */
-    virtual ~W8MainGameTextPanel(); /* 0x00588770 */
+    virtual ~W8MainGameTextPanel(); /* 0x00588790 */
     virtual void Redraw() override;
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSecondary(W8TextControl*) override {}
     virtual void OnRangeChanged(W8RangeControl* control) override;
 
-    W8TextControl* m_entries_054[8];
+    W8MainGameTextEntry* m_entries_054[8];
     W8MainGameTextKeyHandler* m_key_handler_074;
     int m_selection_078;
     W8MainGameScreen* m_screen_07c;
     int* m_values_080;
     unsigned char m_flag_084;
-    unsigned char m_unknown_085[0xf];
+    unsigned char m_pad_085[3];
+    float m_field_088;
+    float m_field_08c;
+    int m_field_090;
     W8GameTimer m_timer_094;
     W8ControlsRect m_text_bounds_0b8;
     W8TextBuffer m_text_buffer_0c8;
@@ -235,13 +269,15 @@ public:
 };
 static_assert(sizeof(W8MainGameTextPanel) == 0x144, "W8MainGameTextPanel_size");
 
-/* The 0x00588A90 constructor establishes a Controls-derived status panel. */
+/* The 0x00588A90 constructor establishes a Controls-derived status panel.
+   Ordinary destructor 0x00588DB0; 0x00588D90 is the scalar deleting wrapper. */
 // VTABLE: WIZ8 0x005eebc0
 class W8MainGameStatusPanel005EEBC0 : public Controls {
 public:
     W8MainGameStatusPanel005EEBC0();          /* 0x00588A90 */
-    virtual ~W8MainGameStatusPanel005EEBC0(); /* 0x00588D90 */
+    virtual ~W8MainGameStatusPanel005EEBC0(); /* 0x00588DB0 */
     virtual void Redraw() override;
+    void RefreshStatusTexts(); /* 0x00588E60 */
 
     W8TextBuffer* m_text_04c;
     W8TextBuffer* m_text_050;
@@ -255,38 +291,45 @@ public:
 static_assert(sizeof(W8MainGameStatusPanel005EEBC0) == 0x6c, "W8MainGameStatusPanel005EEBC0_size");
 
 /* 0x005eebdc is the construction-phase primary table installed at the start
-   of 0x00589160; 0x005eebd8 is the complete-object table. The primary is a
-   4-byte table whose only recovered slot is a pure destructor. No independent
-   base constructor, destructor, or source identity names a distinct authored
-   type for that first vptr. The constructor and destructor bodies themselves
-   are unrecovered, so this empty primary is retained as the ABI prefix rather
-   than collapsed on the vptr observation alone. W8TextControl::Listener is the
-   proven secondary base at +0x04: collapsing it into Listener-only inheritance
-   would move Listener to +0 and shrink the object. */
+   of 0x00589160; 0x005eebd8 is the complete-object table. Slot 0 is a pure
+   virtual the complete object implements at 0x00589550 (the text-entry
+   selection path). The ordinary destructor at 0x005894B0 is non-virtual.
+   W8TextControl::Listener is the proven secondary base at +0x04: collapsing
+   it into Listener-only inheritance would move Listener to +0 and shrink the
+   object. */
 // VTABLE: WIZ8 0x005eebdc
 class W8MainGameScreenBase005EEBDC {
 public:
-    virtual ~W8MainGameScreenBase005EEBDC() = 0;
+    virtual void SelectTextEntry(int index) = 0;
 };
 
 // VTABLE: WIZ8 0x005eebd8
 class W8MainGameScreen : public W8MainGameScreenBase005EEBDC, public W8TextControl::Listener {
 public:
-    W8MainGameScreen(void* owner);        /* 0x00589160 */
-    virtual ~W8MainGameScreen() override; /* 0x005894B0 */
+    W8MainGameScreen(Trigger* owner); /* 0x00589160 */
+    ~W8MainGameScreen();              /* 0x005894B0 */
+    virtual void SelectTextEntry(int index) override;
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSecondary(W8TextControl*) override {}
+    void Update();                           /* 0x00589A80 */
+    void RefreshActionPanel();               /* 0x00589D90 */
+    void EnablePanelRegionSets(bool enable); /* 0x0058A030 */
+    void ApplyInspectSuccess();              /* 0x0058A060 */
+    void CastTrapSpell();                    /* 0x0058A200 */
+    void UseTrapItem();                      /* 0x0058A3E0 */
 
-    void* m_owner_008;
+    Trigger* m_owner_008;
     W8MainGameTextPanel* m_text_panel_00c;
     W8MainGameStatusPanel005EEBC0* m_status_panel_010;
     Controls* m_action_panel_014;
     int m_state_018;
-    unsigned char m_unknown_01c[4];
+    int m_selected_character_01c;
     W8TextControl* m_action_controls_020[5];
     int m_field_034;
     int m_field_038;
-    unsigned char m_unknown_03c[0x110];
+    unsigned char m_unknown_03c[8];
+    unsigned char m_slot_flag_044[8];
+    int m_slot_values_04c[8][8];
     int m_target_14c;
     int m_field_150;
     W8GameTimer m_timer_154;
@@ -332,9 +375,9 @@ static_assert(sizeof(W8MainScreenState) == 0x268, "W8MainScreenState_size");
 extern W8MainScreenState* g_screen_state_00649f1c;
 void OnQuitGameDialogClosed(W8DialogBase* dialog);
 
-void Function56AA30(void);
-void Function56AAB0(void);
-void Function56C590(W8NpcState* npc, int value, int line, int suppress);
+void PauseMainGameWorld(void);
+void ResumeMainGameWorld(void);
+void ForwardNpcScriptNotice(W8NpcState* npc, int value, int line, int suppress);
 void Function56C5E0(W8NpcState* npc, int value, int line, int suppress, int arg); /* 0x0056C5E0 */
 void ResetMainGameScreenState(void);
 /* 0x0056C520: zero W8MainScreenState, write its reset values, and reload the
@@ -376,7 +419,7 @@ void RequestRedraw(unsigned int mask);
 int IsScreenInputBlocked(void);
 void DisableCombatRegions(void);
 void Function577220(void);
-void Function577540(void);
+void ClearMainGameTargetState(void);
 
 extern unsigned short g_value_006840be;
 extern unsigned char g_flag_00685071;
@@ -386,9 +429,8 @@ extern signed char g_value_00685077;
 extern unsigned char g_flag_006840bc;
 extern unsigned char g_flag_00685070;
 
-void Function5929D0(void);
-void Function592A10(void);
-extern int g_flag_006850ce;
+void HandleManualCameraHotkeys(void);
+void ApplyWorldRenderHotkeys(void);
 extern unsigned char g_flag_0068edbc;
 extern unsigned char g_flag_0068edc8;
 extern unsigned char g_flag_0068edc9;
@@ -421,8 +463,10 @@ void Function5777C0(void);
 void Function587510(int value);
 void Function5879A0(int);
 void Function58A470(int value);
+void UpdateMainGameScreen(void); /* 0x0058A750 */
 void Function58A790(int);
 void Function595600(void);
+int GetPartySlotSkill10Level(int slot);
 int OpenLockInteraction00587510(Trigger* trigger);
 int OpenTrapInteraction0058A470(Trigger* trigger);
 /* 0x0056A770: when a slot's committed action cannot execute, re-choose a

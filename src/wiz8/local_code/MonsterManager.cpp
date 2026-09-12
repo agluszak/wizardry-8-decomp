@@ -22,10 +22,6 @@ float g_monster_record_float_scale = 20.0f;
 // GLOBAL: WIZ8 0x00683698
 int g_monster_info_iterator_index;
 
-// GLOBAL: WIZ8 0x006875c3
-W8WideChar g_monster_name_buffer[22];
-// GLOBAL: WIZ8 0x006875ef
-unsigned char g_alternate_name_slot;
 #include "wiz8/notices.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/utility.h"
@@ -121,7 +117,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
 
     memset(monster_info->condition_turns, 0, sizeof(monster_info->condition_turns));
     memset(monster_info->enchantments, 0, sizeof(monster_info->enchantments));
-    monster_info->value_107 = 0;
+    monster_info->highest_condition = 0;
     monster_info->condition_argument = 0;
     monster_info->effect_2de = 0;
     memset(&monster_info->modifiers_1db, 0, sizeof(monster_info->modifiers_1db));
@@ -187,7 +183,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
 
     record = MonsterDBFromSpeciesInline(monster_info->monster_species);
     if (monster_info->monster == 0 || monster_info->monster->GetFlag216004CA290() != 0) {
-        registry_before = Function428E20();
+        registry_before = GetUsedPageFileBytes();
         ActivateMonster(monster_info, 0);
         MonsterPropagateValue004C5870(monster_info->monster, monster_info->location_id);
         MonsterSetAdjustedPosition004C5F00(monster_info->monster, &monster_info->position_17);
@@ -228,7 +224,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
         MonsterPropagateValue004C5870(monster_info->monster, monster_info->location_id);
         monster_info->monster->flag_216 = 0;
 
-        registry_after = Function428E20();
+        registry_after = GetUsedPageFileBytes();
         monster_info->monster->registry_weight_27c = registry_after - registry_before;
         g_monster_cycle_registry_weight_0065ba4c += registry_after - registry_before;
         if (GetFlag68F105() != 0) {
@@ -326,7 +322,7 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode)
 }
 
 // FUNCTION: WIZ8 0x004e4600
-void Function4E4600(W8MonsterInfo* monster_info)
+void ClearMonsterPathAndResume(W8MonsterInfo* monster_info)
 {
     int result;
 
@@ -613,8 +609,7 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
         if (monster_info->flag_14 != 0 && static_cast<unsigned int>(monster_info->hp_current) > 0 &&
-            monster_info->condition_turns[W8_CONDITION_EQUIPMENT_UNLOCKED] == 0 &&
-            monster_info->value_2da != 0) {
+            monster_info->condition_turns[W8_CONDITION_DEAD] == 0 && monster_info->value_2da != 0) {
             if (forced_cleanup == 0) {
                 Function58AB60(9, 0, gppStringList[W8_NOTICE_MONSTER_SLAIN],
                                GetMonsterName(monster_info, 0, 0));
@@ -744,7 +739,7 @@ void DestroyUngroupedMonsters(void)
                 srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x282, 0);
             }
             if (monster_info->monster != 0) {
-                Function4C59C0(monster_info->monster, GetWorld());
+                DetachMonsterRepresentation(monster_info->monster, GetWorld());
                 RemoveMonsterFromWorldList(GetWorld(), monster_info->monster);
                 DeleteMonster004C5860(monster_info->monster);
                 monster_info->monster = 0;
@@ -956,8 +951,8 @@ float CalculateMonsterScale(W8MonsterInfo* monster_info)
 void TryStartMonsterCycle2(W8MonsterInfo* monster_info, W8Monster* monster, int query_state)
 {
     if (monster_info->flag_14 != 0 && static_cast<unsigned int>(monster_info->hp_current) > 0 &&
-        monster_info->condition_turns[W8_CONDITION_EQUIPMENT_UNLOCKED] == 0 &&
-        monster_info->flag_24d != 0 && query_state == 1) {
+        monster_info->condition_turns[W8_CONDITION_DEAD] == 0 && monster_info->flag_24d != 0 &&
+        query_state == 1) {
         int result = MonsterQuery(monster, 2);
 
         if (result != 0 && monster_info->motionless == 0) {
@@ -974,7 +969,7 @@ void TryStartMonsterCycle2(W8MonsterInfo* monster_info, W8Monster* monster, int 
                     0x987, MONSTER_MANAGER_CPP, monster_info->monster_group_id, 1));
                 unsigned int chance = group->member_count * 20;
 
-                if (gXStatus.field_01f == 0 && Random(chance) == 0) {
+                if (gXStatus.fNpcDialogueMode == 0 && Random(chance) == 0) {
                     StartMonsterCycle(monster_info, 2, 1);
                 }
             }
@@ -1137,7 +1132,7 @@ unsigned char RemoveMonster(unsigned int monster_list_index, unsigned char destr
             srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x282, 0);
         }
         if (monster_info->monster != 0) {
-            Function4C59C0(monster_info->monster, GetWorld());
+            DetachMonsterRepresentation(monster_info->monster, GetWorld());
             RemoveMonsterFromWorldList(GetWorld(), monster_info->monster);
             DeleteMonster004C5860(monster_info->monster);
             monster_info->monster = 0;
@@ -1171,8 +1166,8 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         if (monster_info->monster == 0) {
             srAssertFail("pMonsterInfo->p3D != NULL", MONSTER_MANAGER_CPP, 0x249, 0);
         }
-        monster_info->condition_turns[W8_CONDITION_EQUIPMENT_UNLOCKED] = 9999;
-        monster_info->value_107 = 0x12;
+        monster_info->condition_turns[W8_CONDITION_DEAD] = 9999;
+        monster_info->highest_condition = 0x12;
         monster_info->hp_current = 0;
         monster_info->runtime_stat_current_33 = 0;
         monster_info->monster->state_088 = 0;
@@ -1471,7 +1466,7 @@ void ProcessMonsterManagerFrame(void)
                     srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x282, 0);
                 }
                 if (monster_info->monster != 0) {
-                    Function4C59C0(monster_info->monster, GetWorld());
+                    DetachMonsterRepresentation(monster_info->monster, GetWorld());
                     RemoveMonsterFromWorldList(GetWorld(), monster_info->monster);
                     DeleteMonster004C5860(monster_info->monster);
                     monster_info->monster = 0;
@@ -1562,8 +1557,9 @@ W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
         record = MonsterDBFromSpeciesInline(monster_info->monster_species);
     }
     if (record->record_id_187 == W8_MONSTER_RECORD_ALTERNATE_NAME) {
-        swprintf(g_monster_name_buffer, L"Al-%s", g_party_characters[g_alternate_name_slot].name);
-        return g_monster_name_buffer;
+        swprintf(g_status_685170.monster_name_buffer_2453, L"Al-%s",
+                 g_status_685170.buffers.characters[g_status_685170.alternate_name_slot_247f].name);
+        return g_status_685170.monster_name_buffer_2453;
     }
     if (monster_info->monster_group_id == 0) {
         if (monster_info->monster->IsDying() == 0) {
@@ -1588,8 +1584,8 @@ float GetAveragePartyLevel(void)
     float total = 0.0f;
     float count = 0.0f;
     for (int party_slot = 0; party_slot < 6; ++party_slot) {
-        if (g_party_slot_rows[party_slot].occupied != 0) {
-            total += g_party_characters[party_slot].level;
+        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0) {
+            total += g_status_685170.buffers.characters[party_slot].level;
             count += 1.0f;
         }
     }
@@ -1604,9 +1600,9 @@ unsigned int GetBestPartySkillLevel(int skill_index, int* party_slot)
     unsigned int best_level = 0;
     int best_slot = -1;
     for (int index = 0; index < 8; ++index) {
-        W8Character* character = &g_party_characters[index];
-        if (g_party_slot_rows[index].occupied != 0 && character->hp_current != 0 &&
-            character->unknown_0b01 < 0xd &&
+        W8Character* character = &g_status_685170.buffers.characters[index];
+        if (g_status_685170.buffers.party_rows[index].occupied != 0 && character->hp_current != 0 &&
+            character->highest_condition < 0xd &&
             (character->skills[skill_index].level > best_level || best_slot == -1)) {
             best_level = character->skills[skill_index].level;
             best_slot = index;

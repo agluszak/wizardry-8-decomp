@@ -640,8 +640,8 @@ void W8Prop::Method44C670()
         if (mesh == 0) {
             srAssertFail("psrMesh", PROP_CPP, 0x56f, 0);
         }
-        path = reinterpret_cast<W8PathAI*>(AnimObjListEntry004A16C0(
-            static_cast<W8PropRepresentation*>(m_pRep)->animation, 2, (signed char)index));
+        path = AnimObjListEntry004A16C0(static_cast<W8PropRepresentation*>(m_pRep)->animation, 2,
+                                        (signed char)index);
         if (path != 0) {
             srVector3T<float> location;
 
@@ -787,11 +787,11 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
         }
         animation = CreateAnimObj004A01A0();
         animation->entries_18[2] = mesh;
-        animation->unknown_00[0] = 1;
-        animation->unknown_00[1] = b0;
+        animation->group_count = 1;
+        animation->unknown_01 = b0;
         animation->value_02 = b1;
-        animation->unknown_03[0] = b2;
-        animation->unknown_03[1] = 0;
+        animation->unknown_03 = b2;
+        animation->cycle = 0;
         animation->flag_05 = 0;
         animation->playback_scale_08 = playback_scale;
         this->animation = animation;
@@ -884,8 +884,8 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
         if (AnimationIsRunning(animation) == 1) {
             animation->value_16 = frame_count;
         }
-        this->value_0a8 = *(float*)(animation->unknown_0c + 4);
-        this->flag_0a5 = animation->unknown_0c[0] != 0;
+        this->value_0a8 = animation->value_10;
+        this->flag_0a5 = animation->flag_0c != 0;
         list_count = AnimObjValue004A15D0(animation, 2);
         for (entry_index = 0; entry_index < list_count; ++entry_index) {
             srModelInstance* instance;
@@ -922,8 +922,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
         }
         list_count = AnimObjListCount004A1620(animation, 2);
         for (entry_index = 0; entry_index < list_count; ++entry_index) {
-            W8PathAI* path = reinterpret_cast<W8PathAI*>(
-                AnimObjListEntry004A16C0(animation, 2, (signed char)entry_index));
+            W8PathAI* path = AnimObjListEntry004A16C0(animation, 2, (signed char)entry_index);
             if (path != 0) {
                 PathAISetFlag38004AA9D0(path, 1);
                 PathAISetFlag1C004AAA10(path, 1);
@@ -933,9 +932,9 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
     }
 
     this->active = 1;
-    this->flag_070 = animation->unknown_03[0];
+    this->flag_070 = animation->unknown_03;
     this->flag_06f = animation->value_02;
-    this->flag_06d = animation->unknown_00[1];
+    this->flag_06d = animation->unknown_01;
     this->flag_06e = 1;
     this->animation_speed = animation->playback_scale_08;
     this->timer_068 = GetTickCount();
@@ -1030,8 +1029,8 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
                 if (AnimationIsRunning(this->animation) == 1) {
                     path_count = AnimObjListCount004A1620(this->animation, 2);
                     for (path_i = 0; path_i < path_count; ++path_i) {
-                        W8PathAI* path = reinterpret_cast<W8PathAI*>(
-                            AnimObjListEntry004A16C0(this->animation, 2, (signed char)path_i));
+                        W8PathAI* path =
+                            AnimObjListEntry004A16C0(this->animation, 2, (signed char)path_i);
                         path->flag_39 = 1;
                     }
                 }

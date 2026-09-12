@@ -82,7 +82,7 @@ struct W8OptionsValues {
     int autoswap_weapons;
     int auto_advance_character;
     int autotarget_spells;
-    int stop_movement_for_events;
+    int stop_movement_for_events; /* UI checkbox 0x801; TransferSettings does not persist it */
     int skill_increase_messages;
     float combat_speed;
     float monster_movement_speed;
@@ -90,9 +90,11 @@ struct W8OptionsValues {
     int auto_save;
     float gamma;
     int render_options[9];
-    int values_078[3];
-    int value_084;
-    int value_088;
+    int monster_shadows;
+    int smooth_monster_animations;
+    int smooth_world_animations;
+    int pc_confirmations;
+    int pc_subtitles;
     int applying;
 };
 
@@ -434,7 +436,7 @@ static_assert(sizeof(W8OptionsScreen) == 0x64, "W8OptionsScreen_must_be_0x64");
 extern W8OptionsScreen* g_options_screen_0069c254;
 extern wchar_t g_options_last_save_name_0069c1cc[64];
 
-void Function5A9E70(const wchar_t* target);
-wchar_t* GetAddress69C1CC(void);
+void SetLastSaveName(const wchar_t* target);
+wchar_t* GetLastSaveName(void);
 
 void ShowModalMessage005A6620(int a, int b, int c, void (*callback)(void), int d, int e);

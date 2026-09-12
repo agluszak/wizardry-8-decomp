@@ -6,7 +6,7 @@
    Effects.cpp and Formation & Facing.cpp. */
 
 // FUNCTION: WIZ8 0x00554580
-void Function554580(unsigned char* storage)
+void InitializePartyFormation(unsigned char* storage)
 {
     W8PartyFormationState* state = (W8PartyFormationState*)storage;
     unsigned int index;

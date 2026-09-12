@@ -1,5 +1,5 @@
 #include "wiz8/dialog_code/ProfRaceInfoDialog.h"
-#include "wiz8/bringup_gates.h"
+#include "wiz8/screen_state.h"
 
 // GLOBAL: WIZ8 0x00614cf0
 W8AttributeMinimums g_race_attribute_minimums[11] = {

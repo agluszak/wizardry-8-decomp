@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/ground_shadow.h"
+#include "wiz8/local_code/Configuration.h"
 
 #include "surrender/srMaterial.h"
 #include "surrender/srTexture.h"
@@ -8,9 +9,6 @@
 
 /* The SR.DLL registry string is the original runtime class identity. */
 
-extern unsigned char g_ground_shadow_enabled_00685110;
-// GLOBAL: WIZ8 0x00685110
-unsigned char g_ground_shadow_enabled_00685110;
 extern srTexture* g_ground_shadow_texture_006834cc;
 extern srMaterial* g_ground_shadow_material_006834d0;
 // GLOBAL: WIZ8 0x006834cc
@@ -95,7 +93,7 @@ void stGroundShadow::traverse(TraverseInfo& info)
 // FUNCTION: WIZ8 0x004d6640
 void stGroundShadow::process(const ProcessInfo& info, e_processType)
 {
-    if (g_ground_shadow_enabled_00685110 != 0) {
+    if (g_settings_6850c8.monster_shadows != 0) {
         if (!info.renderer->isPickStackEmpty()) {
             srGERD::Pick pick;
             info.renderer->popPick(pick);

@@ -1,4 +1,4 @@
-#include "wiz8/bringup_gates.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/render_state.h"
@@ -433,7 +433,7 @@ void FreeStatusBuffers(W8StatusBuffers* status)
 // FUNCTION: WIZ8 0x0054b470
 void ResetPartySlotRow(int slot)
 {
-    W8PartySlotRow* row = &g_party_slot_rows[slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
 
     memset(row, 0, sizeof(W8PartySlotRow));
     row->occupied = 1;
@@ -498,12 +498,12 @@ void RunNewGameOpeningSequence(unsigned char notify, const wchar_t* target)
     g_status_685170.game_started = 1;
     if (target) {
         g_status_685170.iron_man = 1;
-        Function5A9E70(target);
+        SetLastSaveName(target);
     }
     g_status_685170.difficulty = g_settings_6850c8.difficulty;
-    gXStatus.field_028 = true;
-    Function482720(0x2932e00);
-    Function482740(1);
+    gXStatus.fEncumbranceDirty = true;
+    SetGameTimeMilliseconds(0x2932e00);
+    SetGameTimeDays(1);
     if (notify) {
         RequestScreenTransition();
     }
@@ -620,6 +620,21 @@ unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int u
     return 1;
 }
 
+// FUNCTION: WIZ8 0x0054b0b0
+void DestroyGameplayObjects(void)
+{
+    W8StartupRuntimeState* owned = g_startup_runtime_state;
+
+    if (owned) {
+        delete owned;
+        g_startup_runtime_state = 0;
+    }
+    if (g_gameplay_timer_685067) {
+        delete g_gameplay_timer_685067;
+        g_gameplay_timer_685067 = 0;
+    }
+}
+
 /* The new-game reset. It repeats ResetGameStatus's status-block cycle inline
    rather than calling it; retail: that duplication is the authored body, not a
    missing helper. It then clears the item in hand and the carried pool, and
@@ -654,7 +669,7 @@ void ResetForNewGame(void)
                    sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
         }
     }
-    Function58FD30();
+    ReleaseMessageStorage();
     EmptyItemRecord(&g_status_685170.item_in_hand_235b, 0, 1);
     slot = g_status_685170.party_item_pool_0021;
     do {
@@ -673,7 +688,7 @@ void ResetForNewGame(void)
     g_status_685170.party_gold = 500;
     g_status_685170.selected_character = GetNextCharacter(1, 1, -1);
     g_status_685170.current_level = -1;
-    Function554580((unsigned char*)&g_status_685170.formation);
+    InitializePartyFormation((unsigned char*)&g_status_685170.formation);
     for (index = 0; index < 8; ++index) {
         g_status_685170.dwords_18e0[index] = 0xffffffff;
     }
@@ -699,7 +714,7 @@ void ResetGameplaySettings(void)
     g_settings_6850c8.field_000 = 0;
     g_settings_6850c8.invert_mouse_y = 0;
     g_settings_6850c8.field_03b = 0;
-    g_settings_6850c8.difficulty = 1;
+    g_settings_6850c8.difficulty = W8_DIFFICULTY_NORMAL;
     g_settings_6850c8.text_display_delay_ms = 0x9c4;
     g_settings_6850c8.combat_delay_ms = 1000;
     g_settings_6850c8.field_019 = 5000;
@@ -714,16 +729,16 @@ void ResetGameplaySettings(void)
     g_settings_6850c8.field_035 = 0xff;
     g_settings_6850c8.monster_movement_speed = 2.5f;
     g_settings_6850c8.gamma = 1.0f;
-    g_settings_6850c8.field_040 = 1;
-    g_settings_6850c8.field_042 = 1;
+    g_settings_6850c8.pc_confirmations = 1;
+    g_settings_6850c8.pc_subtitles = 1;
     g_settings_6850c8.mouselook_toggle = 0;
     g_settings_6850c8.mouselook_smoothing = 1;
     g_settings_6850c8.numeric_hit_points = 1;
     g_settings_6850c8.auto_save = 0;
     g_settings_6850c8.field_047 = 0;
-    g_settings_6850c8.field_048 = 1;
-    g_settings_6850c8.field_049 = 1;
-    g_settings_6850c8.field_04a = 1;
+    g_settings_6850c8.monster_shadows = 1;
+    g_settings_6850c8.smooth_monster_animations = 1;
+    g_settings_6850c8.smooth_world_animations = 1;
     g_settings_6850c8.skill_increase_messages = 1;
     g_settings_6850c8.ctrl_right_click_info = 0;
     g_settings_6850c8.autoswap_weapons = 1;
@@ -759,7 +774,7 @@ void ResetGameplaySlot(unsigned int slot)
     record->field_079 = 6;
     record->field_099 = 0;
     tier = 1;
-    if (g_status_685170.buffers.characters[slot].unknown_0b01 >= 0xf) {
+    if (g_status_685170.buffers.characters[slot].highest_condition >= 0xf) {
         tier = 2;
     }
     record->field_089 = tier;
@@ -796,109 +811,6 @@ void ResetGameplaySlot(unsigned int slot)
     record->field_0d6 = 0;
     record->field_0e8 = 0;
     record->field_0d2 = SetCountdownClock(0);
-}
-
-/* 0x0052D460 proves four equal derived growable-vector instantiations followed
-   by a fifth instantiation with a distinct vtable and the tail state below. Element identity and the
-   complete lifetime remain tracked by wiz8-bxj; this gives startup the real
-   allocation and field shape without inventing semantic names. */
-
-// FUNCTION: WIZ8 0x0052d460
-W8StartupRuntimeState::W8StartupRuntimeState()
-    : value_50(-1), value_54(-1), value_5c(0), value_64(-1)
-{
-    bytes_68 = new unsigned char[0xb1];
-    memset(bytes_68, 0, 0xb1);
-}
-
-// FUNCTION: WIZ8 0x0052d5b0
-W8StartupRuntimeState::~W8StartupRuntimeState()
-{
-    delete[] bytes_68;
-}
-
-// FUNCTION: WIZ8 0x0052db80
-void W8StartupRuntimeState::ClearOwnedEntries()
-{
-    W8StartupStateElement005EE748* entry;
-    int count;
-
-    count = vector_40.count;
-    while (count > 0) {
-        entry = vector_40.RemoveAt(0);
-        entry->Process0052CED0();
-        count = vector_40.count;
-    }
-    count = vector_30.count;
-    while (count > 0) {
-        entry = vector_30.RemoveAt(0);
-        delete entry;
-        count = vector_30.count;
-    }
-    count = vector_10.count;
-    while (count > 0) {
-        entry = vector_10.RemoveAt(0);
-        delete entry;
-        count = vector_10.count;
-    }
-    count = vector_00.count;
-    while (count > 0) {
-        entry = vector_00.RemoveAt(0);
-        delete entry;
-        count = vector_00.count;
-    }
-}
-
-// FUNCTION: WIZ8 0x0052e3b0
-void W8StartupRuntimeState::ProcessNextPendingEntry()
-{
-    W8StartupStateElement005EE748* entry;
-
-    if (vector_40.count > 0) {
-        entry = *vector_40.GetAt(0);
-        vector_40.RemoveAt(vector_40.IndexOf(entry));
-        if ((value_5c & 1) != 0 && entry->type_08 >= 14 && entry->type_08 < 16) {
-            if ((value_5c & 2) != 0) {
-                unknown_60 = SetCountdownClock(Random(6000) + 2000);
-            } else {
-                unknown_60 = SetCountdownClock(Random(60000) + 300000);
-            }
-        }
-        entry->Process0052CED0();
-        delete entry;
-    }
-}
-
-// FUNCTION: WIZ8 0x0052ced0
-void W8StartupStateElement005EE748::Process0052CED0()
-{
-    W8MonsterManagerEntry* slot;
-    int party_slot;
-    unsigned char sound_was_active;
-
-    party_slot = CharacterPointerToPartySlot(character_04);
-    slot = &g_monster_manager_entries[party_slot];
-    sound_was_active = slot->field_000;
-    slot->field_071 = 0;
-    if (sound_was_active != 0) {
-        if (IsSoundPlaying(slot->field_001) != 0) {
-            handled_00 = 1;
-            StopSound(slot->field_001);
-        }
-        Function52F890(party_slot, 0, -1, 0, 1);
-    }
-    if (type_08 == 23 || type_08 == 24) {
-        if ((flags_10 & 0x40) == 0) {
-            if (item_24.item_id == -1) {
-                PostCharacterMessage(party_slot, gppStringList[0x1dc4 / 4]);
-            } else {
-                PostCharacterMessage(party_slot, gppStringList[0x1dc8 / 4],
-                                     GetItemDisplayName(&item_24));
-            }
-        }
-    } else if (type_08 == 51) {
-        QueueGameplayEvent(30, party_slot);
-    }
 }
 
 /* The static initializer constructs the manager's entries and vector before

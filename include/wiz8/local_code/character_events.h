@@ -10,9 +10,9 @@ struct W8StartupStateElement005EE748;
 
 extern int g_special_event_0068c558;
 
-int Function52E750(void);
-W8StartupStateElement005EE748* Function52E690(W8Character* character, int effect, int argument,
-                                              int value_1, unsigned int value_2);
+int UpdateCharacterEventState(void);
+W8StartupStateElement005EE748* QueueCharacterEvent(W8Character* character, int effect, int argument,
+                                                   int value_1, unsigned int value_2);
 
 /* 0x0052D0B0: format one character quote for the given event type into the
    shared wide text buffer. Returns zero and empties it when the type has no
@@ -21,6 +21,8 @@ unsigned char FormatCharacterQuoteText(W8Character* character, unsigned int type
                                        unsigned int* metadata);
 extern int g_effect_005ee588;
 
+/* True when no occupied party slot has an active portrait/voice record. */
+unsigned char PartyPortraitEventsIdle(void); /* 0x0052E590 */
 int ApplyItemEffectToRandomCharacter0052E5C0(unsigned int item_id, int character_filter,
                                              int value_3, int value_4);
 unsigned char CharacterHasEffect(void* effect, int party_slot); /* 0x0052DD90 */
@@ -30,3 +32,4 @@ void Function52F110(int party_slot);
 void Function52F430(void* character);
 void Function52F790(void* character, int condition);
 void Function52F890(int party_slot, int value_1, int value_2, int value_3, int value_4);
+void PostCharacterMessage(int party_slot, const wchar_t* format, ...);

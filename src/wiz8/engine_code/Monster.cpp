@@ -6,6 +6,7 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/render_state.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/startup_world.h"
@@ -82,9 +83,6 @@ float g_light_scale_0060bfe0 = 1.0f;
 extern float g_monster_scale_transition_step_005ebcf4;
 // GLOBAL
 float g_monster_scale_transition_step_005ebcf4;
-extern unsigned char g_monster_model_value_enabled_00685111;
-// GLOBAL: WIZ8 0x00685111
-unsigned char g_monster_model_value_enabled_00685111;
 unsigned char g_monster_shadow_updates_enabled_0065970c;
 extern unsigned char g_monster_combat_timer_enabled_006f0531;
 extern const float g_monster_attachment_distance_scale_005ed2a8;
@@ -983,7 +981,7 @@ unsigned char W8MonsterRep::ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monst
     animation = CreateAnimObj004A01A0();
     success = AnimObjReadFromFile004A05C0(info, animation, value, lights, 0);
     if (cycle_index == -1) {
-        cycle_index = static_cast<signed char>(animation->unknown_03[1]);
+        cycle_index = static_cast<signed char>(animation->cycle);
     }
     cycle = static_cast<signed char>(cycle_index);
     if (cycle < 0 || cycle >= W8_MONSTER_CYCLE_COUNT) {
@@ -1004,9 +1002,9 @@ unsigned char W8MonsterRep::ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monst
     flag_06e = 1;
     m_bLOD = 2;
     timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    flag_070 = animation->unknown_03[0];
+    flag_070 = animation->unknown_03;
     flag_06f = animation->value_02;
-    flag_06d = animation->unknown_00[1];
+    flag_06d = animation->unknown_01;
     if (current_cycle == -1) {
         current_cycle = cycle;
     }
@@ -1022,8 +1020,7 @@ unsigned char W8MonsterRep::ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monst
             signed char count = static_cast<signed char>(AnimObjListCount004A1620(animation, list));
 
             for (entry = 0; entry < count; ++entry) {
-                W8PathAI* path =
-                    static_cast<W8PathAI*>(AnimObjListEntry004A16C0(animation, list, entry));
+                W8PathAI* path = AnimObjListEntry004A16C0(animation, list, entry);
                 if (path != 0) {
                     PathAISetFlag38004AA9D0(path, 1);
                     PathAISetFlag1C004AAA10(path, 1);
@@ -1453,7 +1450,7 @@ void W8Monster::Update()
         if (monster_info == 0) {
             UpdateNavigation004553A0(0, 0);
         } else {
-            UpdateNavigation004553A0(monster_info->value_107 >= 0x0e,
+            UpdateNavigation004553A0(monster_info->highest_condition >= 0x0e,
                                      monster_info->condition_turns[5] != 0);
         }
 
@@ -1993,10 +1990,10 @@ void W8Monster::ProcessScript004C80E0()
                         suppress = 1;
                     }
                 }
-                Function56C590(FindNpcBindingForMonster(MonsterGetIndexByLocationID(
-                                   command == MONSCR_SAY ? 0x1ac9 : 0x1b77, MONSTER_CPP,
-                                   propagated_value_1e4, 1)),
-                               0, line_number, command == MONSCR_SAY ? 1 : suppress);
+                ForwardNpcScriptNotice(FindNpcBindingForMonster(MonsterGetIndexByLocationID(
+                                           command == MONSCR_SAY ? 0x1ac9 : 0x1b77, MONSTER_CPP,
+                                           propagated_value_1e4, 1)),
+                                       0, line_number, command == MONSCR_SAY ? 1 : suppress);
                 if (command == MONSCR_NPCINTERACTION) {
                     script_wait_240 = MONSCR_NPCINTERACTION;
                 } else if (token == 0 || _stricmp(token, "NOBLOCK") != 0) {
@@ -2207,7 +2204,7 @@ void W8Monster::ProcessScript004C80E0()
                 token = strtok(0, " \t");
                 if (token != 0) {
                     if (_stricmp(token, "STARTGOLEMATTACK") == 0) {
-                        Function577540();
+                        ClearMainGameTargetState();
                         W8MonsterGroup* group = FindFirstMonsterByID(0x68);
                         if (group != 0)
                             Function547570(group, 1, 0);
@@ -2223,13 +2220,13 @@ void W8Monster::ProcessScript004C80E0()
                             trigger->Run(-1);
                     } else if (_stricmp(token, "UNLOCKUI") == 0 ||
                                _stricmp(token, "ENDGARIWALK") == 0) {
-                        Function577540();
+                        ClearMainGameTargetState();
                     } else if (_stricmp(token, "ENDHOGARWALK") == 0) {
-                        Function577540();
+                        ClearMainGameTargetState();
                         SetScript004C7F10("ClosePatrol.msf", 1);
                     } else if (_stricmp(token, "ENDHOGARWALKANDPUTTOSLEEP") == 0) {
                         W8TargetSource source;
-                        Function577540();
+                        ClearMainGameTargetState();
                         SetScript004C7F10("ClosePatrol.msf", 1);
                         monster_info =
                             MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
@@ -2238,7 +2235,7 @@ void W8Monster::ProcessScript004C80E0()
                         SetMonsterCondition(monster_info->location_id, 0xf, 6, 0, &source, 1);
                     } else if (_stricmp(token, "ENDBELAWALK") == 0) {
                         flags_1dc |= 0x40;
-                        Function577540();
+                        ClearMainGameTargetState();
                     } else if (_stricmp(token, "BELA_END_CC_WALK") == 0) {
                         W8NpcState* npc = GetNpcStateByKind(0x8d);
                         if (npc != 0)
@@ -2456,7 +2453,7 @@ unsigned char W8Monster::CanContinueScript004CA0F0()
         flags_1dc &= ~0x20;
         return 1;
     case 0x0e:
-        if (gXStatus.field_01f == 1) {
+        if (gXStatus.fNpcDialogueMode == 1) {
             return 0;
         }
         break;
@@ -3274,7 +3271,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         model = GetCurrentModelInstance004A8250();
         if (model != 0) {
             static_cast<stModelInstance*>(model)->value_1ac =
-                g_monster_model_value_enabled_00685111 != 0 ? unknown_1d4 : 0.0f;
+                g_settings_6850c8.smooth_monster_animations != 0 ? unknown_1d4 : 0.0f;
             SetChainValue15C((char*)model, 4);
         }
         if (m_pRep->monster_light_624 != 0) {
@@ -3544,10 +3541,10 @@ void W8Monster::SetCycle(signed char cycle)
     }
 
     if (cycle == 0x15) {
-        W8AnimRepValue4 empty = {0, 0, 0, 0};
+        W8ModelInstanceRenderState empty = {0, 0, 0, 0};
         srModelInstance* instance;
 
-        m_pRep->value_04c = empty;
+        m_pRep->render_state_04c = empty;
         instance = SelectCycleFrameLod004A8360(m_pRep->current_cycle, 0, m_pRep->m_bLOD);
         if (instance != 0 && instance->model() != 0 &&
             strstr(instance->model()->getName(), "gib") != 0) {
@@ -3884,8 +3881,8 @@ extern int CalculateMonsterMissileAccuracy(W8MonsterInfo* monster_info,
 // SYNTHETIC: WIZ8 0x004c3710
 // W8MonsterShakeCallback::`scalar deleting destructor'
 
-// SYNTHETIC: WIZ8 0x004c3730
-// W8MonsterShakeCallback::~W8MonsterShakeCallback
+// FUNCTION: WIZ8 0x004c3730
+W8MonsterShakeCallback::~W8MonsterShakeCallback() {}
 
 // SYNTHETIC: WIZ8 0x004cab40
 // W8MonsterShakeCallbackBase::`scalar deleting destructor'
@@ -4540,7 +4537,7 @@ void W8Monster::SetRuntimeValueA6(signed char value)
 void MonsterSetRuntimeBlock4C(W8Monster* monster, W8MonsterRuntimeBlock4C block)
 {
     if (monster != 0 && monster->Query(6) != 0x15) {
-        monster->m_pRep->value_04c = block;
+        monster->m_pRep->render_state_04c = block;
     }
 }
 
@@ -4703,7 +4700,7 @@ unsigned char MonsterForward452630(W8Monster* monster, const srVector3T<float>* 
 void MonsterForward453690(W8Monster* monster, void* argument)
 {
     if (monster != 0) {
-        monster->Function453690(static_cast<const srVector3T<float>*>(argument));
+        monster->AddPathPoint(static_cast<const srVector3T<float>*>(argument));
     }
 }
 
@@ -4818,7 +4815,7 @@ void MonsterForwardReferencePosition(W8Monster* monster, char alternate)
         if (monster_info->control_state != 1) {
             GetCameraPosition(&position);
             if (alternate != 0) {
-                monster->Function454040(&position);
+                monster->SetFacingToward(&position);
             } else {
                 monster->AimAtPosition(&position);
             }
@@ -4843,7 +4840,7 @@ void MonsterAimAtMonster004C62C0(W8Monster* monster, W8Monster* target, char alt
             target_position = target->GetPosition();
             position = target_position;
             if (alternate != 0) {
-                monster->Function454040(&position);
+                monster->SetFacingToward(&position);
             } else {
                 monster->AimAtPosition(&position);
             }
@@ -5117,7 +5114,7 @@ void DeleteMonster004C5860(W8Monster* monster)
     }
 }
 // FUNCTION: WIZ8 0x004C59C0
-void Function4C59C0(W8Monster* monster, W8World* world)
+void DetachMonsterRepresentation(W8Monster* monster, W8World* world)
 {
     if (monster != 0 && world != 0) {
         monster->DetachRepresentation004A7A70(world);

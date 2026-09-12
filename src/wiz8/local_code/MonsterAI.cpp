@@ -7,6 +7,7 @@
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/magic.h"
 #include "wiz8/spell_effect.h"
+#include "wiz8/engine_code/SpellVisual.h"
 #include "wiz8/sr_api.h"
 #include "random.h"
 #include "wiz8/local_code/MonsterAI.h"
@@ -201,25 +202,28 @@ float GetGroupNearestDistance(W8MonsterGroup* group, float furthest)
 }
 
 /* Whether the point the monster-control effect is anchored to is still within
-   reach. With no effect running, or nothing anchored, there is nothing to be
-   in range of; failing the test falls back on where the party is standing. */
+   reach. effects.data sits at W8SpellEffectEntry + 0x10c; the first visual is
+   a W8SpellVisual whose W8Navigator secondary base is the ordinary GrCycle
+   conversion at +0x18. With no effect running, or nothing anchored, there is
+   nothing to be in range of; failing the test falls back on where the party
+   is standing. */
 // FUNCTION: WIZ8 0x00534d50
 short IsMonsterControlPointInRange(W8MonsterInfo* monster_info)
 {
     W8SpellEffectEntry* effect = FindMonsterControlSpellEffect();
-    void** anchor;
+    W8SpellVisual* visual;
+    W8Navigator* anchor_navigator;
     short in_range;
     srVector3T<float> party;
 
     if (effect == 0) {
         return 0;
     }
-    anchor = *(void***)((char*)effect + 0x10c);
-    if (*anchor == 0) {
+    visual = effect->effects.data[0];
+    if (visual == 0) {
         return 0;
     }
-    W8Navigator* anchor_navigator =
-        reinterpret_cast<W8Navigator*>(static_cast<char*>(*anchor) + 0x18);
+    anchor_navigator = visual;
     in_range =
         monster_info->monster->SetMovementTargetToNavigator004526C0(anchor_navigator, 2500.0);
     if (in_range == 0) {

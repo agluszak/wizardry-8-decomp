@@ -2,7 +2,6 @@
 #include "soundman.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Sight.h"
-#include "wiz8/bringup_gates.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/local_code/character_events.h"
@@ -69,6 +68,14 @@
 #include "wiz8/local_screens/IntroScreen.h"
 #include "wiz8/local_screens/JournalScreen.h"
 #include "wiz8/engine_code/Prop.h"
+#include "wiz8/character.h"
+#include "wiz8/character_skills.h"
+#include "wiz8/magic.h"
+#include "wiz8/float_constants.h"
+#include "wiz8/local_code/Traps.h"
+#include "wiz8/local_code/ButtonSound.h"
+#include "vobject_blitters.h"
+#include "random.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -115,9 +122,6 @@ unsigned char g_flag_00685076;
 
 // GLOBAL: WIZ8 0x00685077
 signed char g_value_00685077;
-
-// GLOBAL: WIZ8 0x006850ce
-int g_flag_006850ce;
 
 // GLOBAL: WIZ8 0x0068edbc
 unsigned char g_flag_0068edbc;
@@ -174,6 +178,48 @@ unsigned char g_debug_monster_cycle_0068f0fc;
 // GLOBAL: WIZ8 0x0068f100
 W8IList* g_debug_monster_ids_0068f100;
 
+// GLOBAL: WIZ8 0x0068f2c8
+unsigned int g_main_game_text_panel_region_set_0068f2c8;
+// GLOBAL: WIZ8 0x0068f2cc
+unsigned int g_main_game_text_key_region_set_0068f2cc;
+// GLOBAL: WIZ8 0x0068f2d0
+unsigned int g_main_game_action_panel_region_set_0068f2d0;
+
+// GLOBAL: WIZ8 0x0061e9ec
+unsigned short g_value_0061e9ec[] = {
+    0x542, 0x543, 0x544, 0x545, 0x546, 0x547, 0x548, 0x549, 0x54a, 0x54b, 0x54c,
+    0x54d, 0x54e, 0x54f, 0x550, 0,     0x551, 0x552, 0x553, 0x554, 0x555, 0,
+    0x556, 0x557, 0x558, 0x559, 0x55a, 0x55b, 0x55c, 0x563, 0x56a, 0x55c,
+};
+
+// GLOBAL: WIZ8 0x006504e8
+int g_table_6504e8[] = {10, 25, 35, 40, 50, 60, 70, 80, 90, 100, 110, 121, 122, 123, 24, 47};
+
+// GLOBAL: WIZ8 0x0064bbac
+const char* g_trap_sounds_0064bbac[8] = {
+    "Data\\Sound\\Misc\\Trap 03.wav", "Data\\Sound\\Misc\\Trap 07.wav",
+    "Data\\Sound\\Misc\\Trap 01.wav", "Data\\Sound\\Misc\\Trap 05.wav",
+    "Data\\Sound\\Misc\\Trap 02.wav", "Data\\Sound\\Misc\\Trap 08.wav",
+    "Data\\Sound\\Misc\\Trap 06.wav", "Data\\Sound\\Misc\\Trap 04.wav",
+};
+
+// GLOBAL: WIZ8 0x0064bcac
+const char g_trap_inspection_sound_0064bcac[] = "Data\\Sound\\Misc\\Trap Inspection.wav";
+
+// GLOBAL: WIZ8 0x0064bcd0
+const char g_trap_sprung_sound_0064bcd0[] = "Data\\Sound\\Misc\\Trap Sprung.wav";
+
+// GLOBAL: WIZ8 0x0064bab0
+const wchar_t g_format_d_percent_0064bab0[] = L"%d%%";
+
+// GLOBAL: WIZ8 0x006068e4
+const wchar_t g_format_s_006068e4[] = L"%s";
+
+// GLOBAL: WIZ8 0x005ec258
+const float g_float_005ec258 = 0.019999999552965164f;
+// GLOBAL: WIZ8 0x005eebbc
+const float g_float_005eebbc = 120.0f;
+
 // GLOBAL: WIZ8 0x00659c11
 unsigned char g_navigator_position_changed_659c11;
 
@@ -201,7 +247,6 @@ void Function562A80(void);
 void Function4916C0(void);
 unsigned char Function5684E0(void);
 void Function561330(unsigned char value);
-unsigned char GetFlag69DA6C(void);
 void Function57E0E0(int event, const POINT* point);
 void Function59B2D0(void);
 void Function5171C0(void);
@@ -211,7 +256,7 @@ void Function530110(void);
 void Function530150(int value);
 void Function56E510(void);
 void Function586740(void);
-void Function589A80(void);
+void UpdateMainGameScreen(void);
 void Function593360(void);
 void Function56C6D0(int, int, int, int, int);
 unsigned char Function57E3C0(void);
@@ -222,31 +267,1097 @@ void Function587960(void)
     Function586740();
 }
 
-// FUNCTION: WIZ8 0x0058A750
-void Function58A750(void)
+// FUNCTION: WIZ8 0x00587cf0
+W8MainGameTextKeyHandler::W8MainGameTextKeyHandler(Controls* panel, int left, int top, int right,
+                                                   int bottom, int line_count,
+                                                   unsigned short* field_ac,
+                                                   unsigned int* region_set)
+    : W8Widget(panel, 0xffffffff, left, top, right - 0x13, bottom),
+      m_range_038(panel->origin_x - 0x12 + right, panel->origin_y + top, right + panel->origin_x,
+                  panel->origin_y + bottom, region_set)
 {
-    Function589A80();
+    m_line_count_0a4 = line_count;
+    m_visible_lines_0a8 = (bottom - top) / 0xe;
+    m_field_0ac = field_ac;
+    m_field_0b0 = 0;
+    m_field_0b8 = 0;
+    m_range_listener_0bc = 0;
+    m_field_0b4 = -1;
+    m_range_038.m_listener = this;
+    m_range_038.SetRange(0, m_line_count_0a4 - m_visible_lines_0a8);
+    m_range_038.Invalidate(0);
+    m_range_038.SetEnabled(1);
+    m_range_038.SetRangeEnabled(1);
+}
+
+// SYNTHETIC: WIZ8 0x00587e30
+// W8MainGameTextKeyHandler::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x00587e50
+W8MainGameTextKeyHandler::~W8MainGameTextKeyHandler() {}
+
+// FUNCTION: WIZ8 0x00587ea0
+void W8MainGameTextKeyHandler::Redraw(int full_redraw)
+{
+    int left;
+    int top;
+    int right;
+    int bottom;
+    int line;
+    int last;
+    unsigned short* colour;
+
+    if (!m_active) {
+        return;
+    }
+    if (!m_dirty && full_redraw == 0) {
+        return;
+    }
+    left = m_pPanel->origin_x + m_left;
+    top = m_pPanel->origin_y + m_top;
+    right = m_pPanel->origin_x + m_right;
+    bottom = m_pPanel->origin_y + m_bottom;
+    InvalidateRegion(left, top, right, bottom, 0);
+    BlitCatalogSurfaceRectTo16BPP(-14, left, top, right, bottom, 0x1b6, 0, 0);
+    SetFont(g_font_683660);
+    last = m_field_0b8 + m_visible_lines_0a8;
+    left += 2;
+    top += 1;
+    for (line = m_field_0b8; line < last; ++line) {
+        if (line == m_field_0b0) {
+            colour = g_font_state_palettes_68ee1c[3];
+        } else if (line == m_field_0b4) {
+            colour = g_font_state_palettes_68ee1c[4];
+        } else {
+            colour = g_colour_68ee08;
+        }
+        SetFontObjectPalette16BPP(g_font_683660, colour);
+        mprintf(left, top, const_cast<wchar_t*>(g_format_s_006068e4),
+                gppStringList[m_field_0ac[line]]);
+        top += 0xe;
+    }
+    SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+    m_range_038.Invalidate(0);
+    m_dirty = 0;
+}
+
+// FUNCTION: WIZ8 0x00587ff0
+void W8MainGameTextKeyHandler::OnMouseLeave(int event)
+{
+    m_field_0b4 = -1;
+    Invalidate((unsigned char)event);
+}
+
+// FUNCTION: WIZ8 0x00588010
+void W8MainGameTextKeyHandler::OnMouseMove(int)
+{
+    POINT point;
+    int line;
+
+    SGPMouseGetPos(&point);
+    line = (point.y - m_pPanel->origin_y - m_top) / 0xe + m_field_0b8;
+    if (line != m_field_0b4) {
+        m_field_0b4 = line;
+        Invalidate(0);
+    }
+}
+
+// FUNCTION: WIZ8 0x00588070
+void W8MainGameTextKeyHandler::AdjustValue(int steps)
+{
+    if (steps > 0) {
+        for (; steps > 0; --steps) {
+            m_range_038.Decrement();
+        }
+    } else {
+        for (; steps < 0; ++steps) {
+            m_range_038.Increment();
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005880b0
+void W8MainGameTextKeyHandler::OnLeftButtonUp(int)
+{
+    POINT point;
+
+    SGPMouseGetPos(&point);
+    SetSelectedLine((point.y - m_pPanel->origin_y - m_top) / 0xe + m_field_0b8);
+}
+
+// FUNCTION: WIZ8 0x00588100
+void W8MainGameTextKeyHandler::SetSelectedLine(int line)
+{
+    if (line == m_field_0b0) {
+        return;
+    }
+    m_field_0b0 = line;
+    Invalidate(0);
+    if (m_field_0b0 < m_range_038.m_value ||
+        m_field_0b0 >= m_range_038.m_value + m_visible_lines_0a8) {
+        int first = m_field_0b0;
+        if (m_field_0b0 >= m_range_038.m_value) {
+            first = m_field_0b0 - m_visible_lines_0a8 + 1;
+        }
+        m_field_0b8 = first;
+        m_range_038.SetValue(first);
+    }
+    if (m_range_listener_0bc != 0) {
+        m_range_listener_0bc->OnRangeChanged(&m_range_038);
+    }
+}
+
+// FUNCTION: WIZ8 0x00588170
+char W8MainGameTextKeyHandler::HandleKey(unsigned short key)
+{
+    int line;
+
+    switch (key) {
+    case 0x21:
+        line = m_field_0b0 - 5;
+        if (line < 0) {
+            line = 0;
+        }
+        SetSelectedLine(line);
+        return 1;
+    case 0x22:
+        line = m_field_0b0 + 5;
+        if (m_line_count_0a4 - 1 < line) {
+            line = m_line_count_0a4 - 1;
+        }
+        SetSelectedLine(line);
+        return 1;
+    case 0x23:
+        SetSelectedLine(m_line_count_0a4 - 1);
+        return 1;
+    case 0x24:
+        SetSelectedLine(0);
+        return 1;
+    case 0x26:
+        SetSelectedLine(m_field_0b0 - 1 < 0 ? 0 : m_field_0b0 - 1);
+        return 1;
+    case 0x28:
+        line = m_field_0b0 + 1;
+        if (m_line_count_0a4 - 1 < line) {
+            line = m_line_count_0a4 - 1;
+        }
+        SetSelectedLine(line);
+        return 1;
+    default:
+        return 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x00588240
+void W8MainGameTextKeyHandler::OnRangeChanged(W8RangeControl* control)
+{
+    m_field_0b8 = control->m_value;
+    Invalidate(0);
+}
+
+// FUNCTION: WIZ8 0x00588260
+W8MainGameTextEntry::W8MainGameTextEntry(Controls* panel, int index)
+{
+    int sprites = index * 4;
+    int left;
+    int top;
+
+    m_input_blocked_bc = 0;
+    m_imageFrame = 0;
+    m_image_b8 = -1;
+    m_alternatePressedSprite = -1;
+    m_normalSprite = sprites;
+    m_pressedSprite = sprites + 2;
+    m_imageObject = 0x1b2;
+    m_alternateNormalSprite = sprites + 1;
+    m_disabledSprite = sprites + 3;
+    MeasureText004F4800();
+    left = (index % 4) * 0x1e + 0xd;
+    top = (index / 4) * 0x32 + 8;
+    m_left = left;
+    m_right = m_measured_w + left;
+    m_bottom = m_measured_h + top;
+    m_top = top;
+    SetPanel(panel);
+    AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlMask005ED578);
+}
+
+// SYNTHETIC: WIZ8 0x00588350
+// W8MainGameTextEntry::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x00588370
+W8MainGameTextEntry::~W8MainGameTextEntry() {}
+
+// FUNCTION: WIZ8 0x005883c0
+void W8MainGameTextEntry::Redraw(int full_redraw)
+{
+    bool dirty = m_dirty;
+    int image;
+    int left;
+    int top;
+
+    W8TextControl::Redraw(full_redraw);
+    if (!m_active) {
+        return;
+    }
+    if (!dirty && full_redraw == 0) {
+        return;
+    }
+    image = m_image_b8;
+    left = m_pPanel->origin_x + m_left;
+    top = m_pPanel->origin_y + m_top;
+    if (image == 0) {
+        DrawCatalogImage(-14, 0x1b3, 0, 2, left, top, 2, 0);
+    } else if (image == 1) {
+        DrawCatalogImage(-14, 0x1b3, 0, 0, left, top, 2, 0);
+    } else if (image == 2) {
+        DrawCatalogImage(-14, 0x1b3, 0, 1, left, top, 2, 0);
+    }
+}
+
+// FUNCTION: WIZ8 0x00588440
+void W8MainGameTextEntry::OnLeftButtonDown(int event)
+{
+    if (m_input_blocked_bc) {
+        PushButtonSoundScheme005587C0(0, 1);
+        return;
+    }
+    W8TextControl::OnLeftButtonDown(event);
+}
+
+// FUNCTION: WIZ8 0x00588470
+void W8MainGameTextEntry::OnLeftButtonUp(int event)
+{
+    if (m_input_blocked_bc) {
+        PushButtonSoundScheme005587C0(0, 1);
+        return;
+    }
+    W8TextControl::OnLeftButtonUp(event);
+}
+
+// FUNCTION: WIZ8 0x005884a0
+void W8MainGameTextEntry::OnMouseEnter(int event)
+{
+    if (m_input_blocked_bc) {
+        PushButtonSoundScheme005587C0(0, 1);
+        return;
+    }
+    W8TextControl::OnMouseEnter(event);
+}
+
+// FUNCTION: WIZ8 0x005884d0
+W8MainGameTextPanel::W8MainGameTextPanel()
+    : Controls(0xd3, 0x166, 0, 0, 0x1b1, 0, 1), m_selection_078(0), m_screen_07c(0),
+      m_values_080(0), m_flag_084(0), m_timer_118(0.04f, 0)
+{
+    int index;
+
+    m_flag_141 = 0;
+    AcquireRegionSet(&g_main_game_text_panel_region_set_0068f2c8);
+    for (index = 0; index < 8; ++index) {
+        m_entries_054[index] = new W8MainGameTextEntry(this, index);
+        m_entries_054[index]->m_listener = this;
+        m_entries_054[index]->EnableRegionHelp(0x7d1);
+    }
+    m_key_handler_074 =
+        new W8MainGameTextKeyHandler(this, 0x8e, 5, 0x10f, 0x59, 0xf, g_value_0061e9ec,
+                                     &g_main_game_text_key_region_set_0068f2cc);
+    m_key_handler_074->m_range_listener_0bc = this;
+    m_text_bounds_0b8.left = origin_x + 0xc;
+    m_text_bounds_0b8.top = origin_y + 0x29;
+    m_text_bounds_0b8.right = origin_x + 0x84;
+    m_text_bounds_0b8.bottom = origin_y + 0x33;
+    m_text_buffer_0c8.SetLayoutBounds(&m_text_bounds_0b8, 1, 1);
+    EnableRegionSet(1);
+    m_key_handler_074->m_range_038.EnableRegionSet(1);
+    SetEnabled(1);
+    Invalidate(0);
+    for (index = 0; index < 8; ++index) {
+        if ((static_cast<unsigned char>(m_entries_054[index]->m_stateFlags) &
+             g_W8TextControlMask005ED570) == 0) {
+            m_entries_054[index]->SetEnabled(GetTable650434Entry(m_selection_078, index) != 0);
+            m_entries_054[index]->Invalidate(0);
+        }
+    }
+    for (index = 0; index < 8; ++index) {
+        if (m_values_080 == 0 ||
+            (m_values_080[index] == 0 && GetTable650434Entry(m_selection_078, index) == 0)) {
+            m_entries_054[index]->m_image_b8 = -1;
+        } else {
+            m_entries_054[index]->m_image_b8 = m_values_080[index];
+        }
+        m_entries_054[index]->Invalidate(0);
+    }
+}
+
+// SYNTHETIC: WIZ8 0x00588770
+// W8MainGameTextPanel::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x00588790
+W8MainGameTextPanel::~W8MainGameTextPanel()
+{
+    EnableRegionSet(0);
+    DestroyAllControls();
+}
+
+// FUNCTION: WIZ8 0x00588830
+void W8MainGameTextPanel::Redraw()
+{
+    SGPRect previous;
+    SGPRect clip;
+    int progress;
+
+    if (m_fDirty) {
+        m_flag_141 = 1;
+    }
+    Controls::Redraw();
+    m_key_handler_074->m_range_038.Redraw();
+    if (!m_fEnabled) {
+        return;
+    }
+    if (m_flag_084) {
+        progress = (int)(m_field_08c * g_float_005eebbc);
+        if (progress > m_field_090) {
+            m_field_090 = progress;
+            InvalidateRegion(m_text_bounds_0b8.left, m_text_bounds_0b8.top, m_text_bounds_0b8.right,
+                             m_text_bounds_0b8.bottom, 0);
+            GetClippingRect(&previous);
+            clip = previous;
+            clip.iBottom = m_text_bounds_0b8.left + m_field_090;
+            SetClippingRect(&clip);
+            DrawCatalogImage(-14, 0x1b5, 0, 0, m_text_bounds_0b8.left, m_text_bounds_0b8.top, 2, 0);
+            SetClippingRect(&previous);
+            m_text_buffer_0c8.RenderToTarget(0, 1, -14);
+        }
+    }
+    if (m_fEnabled && m_target_changed_140 && m_flag_141) {
+        int frame = m_field_13c % 12;
+        if (frame >= 7) {
+            frame = 12 - frame;
+        }
+        DrawCatalogImageAndInvalidate(-14, 0x1b4, 0, frame, origin_x + 1, origin_y + 2, 2, 0);
+        m_flag_141 = 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x005889a0
+void W8MainGameTextPanel::OnPrimary(W8TextControl* control)
+{
+    int index;
+
+    for (index = 0; index < 8; ++index) {
+        if (control == m_entries_054[index]) {
+            break;
+        }
+    }
+    m_entries_054[index]->m_input_blocked_bc = 1;
+    if (m_screen_07c != 0) {
+        m_screen_07c->SelectTextEntry(index);
+    }
+}
+
+// FUNCTION: WIZ8 0x005889e0
+void W8MainGameTextPanel::OnRangeChanged(W8RangeControl* control)
+{
+    int column;
+    int* values;
+    int selection = m_key_handler_074->m_field_0b0;
+
+    (void)control;
+    m_selection_078 = selection;
+    for (column = 0; column < 8; ++column) {
+        if ((static_cast<unsigned char>(m_entries_054[column]->m_stateFlags) &
+             g_W8TextControlMask005ED570) == 0) {
+            m_entries_054[column]->SetEnabled(GetTable650434Entry(selection, column) != 0);
+            m_entries_054[column]->Invalidate(0);
+        }
+    }
+    values = m_values_080;
+    for (column = 0; column < 8; ++column) {
+        if (values == 0 || (values[column] == 0 && GetTable650434Entry(selection, column) == 0)) {
+            m_entries_054[column]->m_image_b8 = -1;
+        } else {
+            m_entries_054[column]->m_image_b8 = values[column];
+        }
+        m_entries_054[column]->Invalidate(0);
+    }
+}
+
+// FUNCTION: WIZ8 0x00588a90
+W8MainGameStatusPanel005EEBC0::W8MainGameStatusPanel005EEBC0()
+    : Controls(0x17, 0x166, 0, 0, 0x1b1, 0, 0)
+{
+    W8ControlsRect bounds;
+
+    bounds.left = origin_x + 0x25;
+    bounds.top = origin_y + 7;
+    bounds.right = origin_x + 0xb4;
+    bounds.bottom = origin_y + 0x11;
+    m_text_04c = new W8TextBuffer(&bounds, 0, g_font_683660, g_W8TextBufferLayoutMask005ED54C, 4);
+    bounds.top += 0xe;
+    bounds.bottom += 0xe;
+    m_text_050 = new W8TextBuffer(&bounds, gppStringList[0x1ea4 / 4], g_font_683660,
+                                  g_W8TextBufferLayoutMask005ED548, 4);
+    bounds.top += 0xe;
+    bounds.bottom += 0xe;
+    m_text_058 = new W8TextBuffer(&bounds, gppStringList[0x1ea8 / 4], g_font_683660,
+                                  g_W8TextBufferLayoutMask005ED548, 4);
+    bounds.top += 0xe;
+    bounds.bottom += 0xe;
+    m_text_060 = new W8TextBuffer(&bounds, gppStringList[0x1ec0 / 4], g_font_683660,
+                                  g_W8TextBufferLayoutMask005ED548, 4);
+    bounds.left = origin_x + 0x98;
+    bounds.top = origin_y + 0x15;
+    bounds.right = origin_x + 0xb5;
+    bounds.bottom = origin_y + 0x1f;
+    m_text_054 = new W8TextBuffer(&bounds, 0, g_font_683660, g_W8TextBufferLayoutMask005ED54C, 4);
+    bounds.top += 0xe;
+    bounds.bottom += 0xe;
+    m_text_05c = new W8TextBuffer(&bounds, 0, g_font_683660, g_W8TextBufferLayoutMask005ED54C, 4);
+    bounds.top += 0xe;
+    bounds.bottom += 0xe;
+    m_text_064 = new W8TextBuffer(&bounds, 0, g_font_683660, g_W8TextBufferLayoutMask005ED54C, 4);
+    m_target_068 = 0;
+    SetEnabled(1);
+    Invalidate(0);
+}
+
+// SYNTHETIC: WIZ8 0x00588d90
+// W8MainGameStatusPanel005EEBC0::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x00588db0
+W8MainGameStatusPanel005EEBC0::~W8MainGameStatusPanel005EEBC0()
+{
+    delete m_text_04c;
+    delete m_text_050;
+    delete m_text_054;
+    delete m_text_058;
+    delete m_text_05c;
+    delete m_text_060;
+    delete m_text_064;
+}
+
+// FUNCTION: WIZ8 0x00588e60
+void W8MainGameStatusPanel005EEBC0::RefreshStatusTexts()
+{
+    W8Character* character =
+        &g_status_685170.buffers.characters[g_status_685170.selected_character];
+    int level = GetPartySlotSkill10Level(g_status_685170.selected_character);
+    unsigned int book;
+    unsigned int realm;
+    unsigned int figure;
+
+    m_text_04c->SetText(character->name, g_font_683660);
+    if (level >= 0) {
+        level += m_target_068 * 6;
+    }
+    if (level < 0) {
+        m_text_054->SetFontStateIndex(0);
+        m_text_054->SetText(g_dash_0064789c, g_font_683660);
+    } else {
+        m_text_054->SetFontStateIndex(m_target_068 < 1 ? -1 : 3);
+        m_text_054->SetText(FormatWideString(g_format_d_percent_0064bab0, level), g_font_683660);
+    }
+    if (!IsPartySlotEligible00524A10(g_status_685170.selected_character) ||
+        character->spell_learned[0x27] != 1) {
+        m_text_05c->SetFontStateIndex(0);
+        m_text_05c->SetText(g_dash_0064789c, g_font_683660);
+    } else {
+        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7, 0);
+        realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
+        book = character->skills[book].level;
+        m_text_05c->SetFontStateIndex(-1);
+        m_text_05c->SetText(FormatWideString(g_format_d_percent_0064bab0, (book + realm * 4) / 5),
+                            g_font_683660);
+    }
+    if (IsPartySlotEligible00524A10(g_status_685170.selected_character) &&
+        character->spell_learned[0x12] == 1) {
+        figure = GetBestSpellbookSkillForSpell(character, 0x12, 1, 0, 7, 0);
+        figure = (character->skills[figure].level +
+                  character->skills[0x1c + g_spell_records[0x12].realm].level * 4) /
+                 5;
+        if ((int)figure >= 0) {
+            m_text_064->SetFontStateIndex(-1);
+            m_text_064->SetText(FormatWideString(g_format_d_percent_0064bab0, figure),
+                                g_font_683660);
+            m_text_050->SetGeometryDirty();
+            m_text_058->SetGeometryDirty();
+            m_text_060->SetGeometryDirty();
+            Invalidate(0);
+            return;
+        }
+    }
+    m_text_064->SetFontStateIndex(0);
+    m_text_064->SetText(g_dash_0064789c, g_font_683660);
+    m_text_050->SetGeometryDirty();
+    m_text_058->SetGeometryDirty();
+    m_text_060->SetGeometryDirty();
+    Invalidate(0);
+}
+
+// FUNCTION: WIZ8 0x00589090
+int GetPartySlotSkill10Level(int slot)
+{
+    W8Character* character;
+
+    if (!IsPartySlotEligible00524A10(slot)) {
+        return -1;
+    }
+    character = &g_status_685170.buffers.characters[slot];
+    if (character->skills[10].flag_00 == 0 && character->skills[10].level == 0) {
+        return -1;
+    }
+    return (int)character->skills[10].level;
+}
+
+// FUNCTION: WIZ8 0x005890e0
+void W8MainGameStatusPanel005EEBC0::Redraw()
+{
+    if (m_fEnabled && m_fDirty) {
+        Controls::Redraw();
+        m_text_04c->RenderToTarget(0, 0, -14);
+        m_text_050->RenderToTarget(0, 0, -14);
+        m_text_054->RenderToTarget(0, 0, -14);
+        m_text_058->RenderToTarget(0, 0, -14);
+        m_text_05c->RenderToTarget(0, 0, -14);
+        m_text_060->RenderToTarget(0, 0, -14);
+        m_text_064->RenderToTarget(0, 0, -14);
+    }
+}
+
+// FUNCTION: WIZ8 0x00589160
+W8MainGameScreen::W8MainGameScreen(Trigger* owner)
+    : m_owner_008(owner), m_state_018(0), m_target_14c(0), m_field_150(0)
+{
+    m_field_034 = owner->value_37c;
+    m_field_038 = owner->value_36c;
+    m_text_panel_00c = new W8MainGameTextPanel();
+    m_text_panel_00c->m_screen_07c = this;
+    m_status_panel_010 = new W8MainGameStatusPanel005EEBC0();
+    m_action_panel_014 = new Controls(0x1e7, 0x166, 0, 0, 0x1b1, 0, 2);
+    m_action_panel_014->AcquireRegionSet(&g_main_game_action_panel_region_set_0068f2d0);
+    m_action_controls_020[1] =
+        new W8TextControl(m_action_panel_014, 0xffffffff, 6, 6, 0, 0, 0x1b0, 0, 8, 10, 9, 10, 0xb);
+    m_action_controls_020[1]->m_listener = this;
+    m_action_controls_020[2] =
+        new W8TextControl(m_action_panel_014, 0xffffffff, 0x24, 6, 0, 0, 0x1b0, 0, 0, 2, 1, 2, 3);
+    m_action_controls_020[2]->m_listener = this;
+    m_action_controls_020[3] =
+        new W8TextControl(m_action_panel_014, 0xffffffff, 6, 0x24, 0, 0, 0x1b0, 0, 4, 6, 5, 6, 7);
+    m_action_controls_020[3]->m_listener = this;
+    m_action_controls_020[4] = new W8TextControl(m_action_panel_014, 0xffffffff, 0x24, 0x24, 0, 0,
+                                                 0x1b0, 0, 0xc, 0xe, 0xd, 0xe, 0xf);
+    m_action_controls_020[4]->m_listener = this;
+    m_action_controls_020[0] =
+        new W8TextControl(m_action_panel_014, 0xffffffff, 0x44, 6, 0, 0, 0x8e, 0, 4, 6, 5, 6, 7);
+    m_action_controls_020[0]->m_listener = this;
+    m_action_controls_020[1]->EnableRegionHelp(0x7ce);
+    m_action_controls_020[2]->EnableRegionHelp(0x7cf);
+    m_action_controls_020[3]->EnableRegionHelp(0x7cc);
+    m_action_controls_020[4]->EnableRegionHelp(0x7d0);
+    m_action_panel_014->EnableRegionSet(1);
+    m_action_panel_014->SetEnabled(1);
+    m_action_panel_014->Invalidate(0);
+    for (int i = 0; i < 8; ++i) {
+        m_unknown_03c[i] = 0;
+        m_slot_flag_044[i] = 0;
+    }
+    RefreshActionPanel();
+}
+
+// SYNTHETIC: WIZ8 0x0058a840
+// W8MainGameScreen::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x005894b0
+W8MainGameScreen::~W8MainGameScreen()
+{
+    delete m_text_panel_00c;
+    delete m_status_panel_010;
+    m_action_panel_014->EnableRegionSet(0);
+    m_action_panel_014->DestroyAllControls();
+    delete m_action_panel_014;
+}
+
+// FUNCTION: WIZ8 0x00589550
+void W8MainGameScreen::SelectTextEntry(int index)
+{
+    int slot = g_status_685170.selected_character;
+    int skill;
+    int chance;
+    int roll;
+    float hold;
+    float duration;
+    int i;
+
+    m_selected_character_01c = slot;
+    skill = GetPartySlotSkill10Level(slot);
+    hold = g_float_005ebc98 - (float)skill * g_float_005ec258;
+    chance = m_field_038;
+    if (chance < 0) {
+        chance = 0;
+    }
+    skill = GetPartySlotSkill10Level(m_selected_character_01c);
+    if (skill > -1) {
+        skill += ((m_target_14c + 1) / 2) * 6;
+    }
+    skill -= g_table_6504e8[chance];
+    chance = (skill * 3) / 2 + (11 - g_settings_6850c8.difficulty) * 10;
+    if (chance < 0) {
+        chance = 0;
+    } else if (chance > 0x63) {
+        chance = 0x63;
+    }
+    if (GetTable650434Entry(m_field_034, index) == 0) {
+        m_state_018 = 4;
+        duration = (float)(Random(0x18) + 0x32) * g_movement_speed_step_005ed490;
+    } else {
+        roll = (int)Random(0x64);
+        if (roll < (chance * chance) / 100) {
+            m_unknown_03c[index] = 1;
+            m_state_018 = 2;
+            duration = 1.0f;
+        } else {
+            m_state_018 = 4;
+            duration = (float)(Random(0x31) + 0x32) * g_movement_speed_step_005ed490;
+        }
+    }
+    m_action_controls_020[1]->SetEnabled(0);
+    m_action_controls_020[2]->SetEnabled(0);
+    m_action_controls_020[3]->SetEnabled(0);
+    m_action_controls_020[4]->SetEnabled(0);
+    m_action_panel_014->Invalidate(0);
+    m_text_panel_00c->m_flag_084 = 1;
+    m_text_panel_00c->m_text_buffer_0c8.SetText(gppStringList[0x1ed4 / 4], g_font_683660);
+    m_text_panel_00c->m_field_088 = duration;
+    m_text_panel_00c->m_field_08c = 0.0f;
+    m_text_panel_00c->m_field_090 = 0;
+    m_text_panel_00c->m_timer_094.SetDuration(hold);
+    m_text_panel_00c->m_timer_094.Restart();
+    for (i = 0; i < 8; ++i) {
+        if ((static_cast<unsigned char>(m_text_panel_00c->m_entries_054[i]->m_stateFlags) &
+             g_W8TextControlMask005ED570) == 0) {
+            m_text_panel_00c->m_entries_054[i]->m_input_blocked_bc = 1;
+        }
+    }
+    m_field_150 = (int)SoundPlay((STR)g_trap_sounds_0064bbac[index], 0);
+}
+
+// FUNCTION: WIZ8 0x005897f0
+void W8MainGameScreen::OnPrimary(W8TextControl* control)
+{
+    int slot;
+    int skill;
+    int chance;
+    int roll;
+    float hold;
+    float duration;
+    int i;
+
+    if (control == m_action_controls_020[0]) {
+        m_state_018 = 0xa;
+        return;
+    }
+    if (control != m_action_controls_020[4]) {
+        if (control == m_action_controls_020[2]) {
+            m_state_018 = 4;
+            return;
+        }
+        if (control == m_action_controls_020[1]) {
+            m_state_018 = 5;
+            return;
+        }
+        if (control == m_action_controls_020[3]) {
+            m_state_018 = 6;
+        }
+        return;
+    }
+    slot = g_status_685170.selected_character;
+    m_selected_character_01c = slot;
+    skill = GetPartySlotSkill10Level(slot);
+    hold = g_float_005ebca0 - (float)skill * g_camera_snap_epsilon_005ebc2c;
+    chance = m_field_038;
+    if (chance < 0) {
+        chance = 0;
+    }
+    skill = GetPartySlotSkill10Level(m_selected_character_01c);
+    if (skill > -1) {
+        skill += m_target_14c * 6;
+    }
+    skill -= g_table_6504e8[chance];
+    chance = (skill * 3) / 2 + (11 - g_settings_6850c8.difficulty) * 10;
+    if (chance < 0) {
+        chance = 0;
+    } else if (chance > 0x63) {
+        chance = 0x63;
+    }
+    roll = (int)Random(0x64);
+    if (roll < chance) {
+        m_state_018 = 1;
+        duration = 1.0f;
+    } else {
+        m_state_018 = 4;
+        duration = (float)(Random(0x18) + 0x4b) * g_movement_speed_step_005ed490;
+    }
+    m_action_controls_020[1]->SetEnabled(0);
+    m_action_controls_020[2]->SetEnabled(0);
+    m_action_controls_020[3]->SetEnabled(0);
+    m_action_controls_020[4]->SetEnabled(0);
+    m_action_panel_014->Invalidate(0);
+    m_text_panel_00c->m_flag_084 = 1;
+    m_text_panel_00c->m_text_buffer_0c8.SetText(gppStringList[0x1ed8 / 4], g_font_683660);
+    m_text_panel_00c->m_field_088 = duration;
+    m_text_panel_00c->m_field_08c = 0.0f;
+    m_text_panel_00c->m_field_090 = 0;
+    m_text_panel_00c->m_timer_094.SetDuration(hold);
+    m_text_panel_00c->m_timer_094.Restart();
+    for (i = 0; i < 8; ++i) {
+        if ((static_cast<unsigned char>(m_text_panel_00c->m_entries_054[i]->m_stateFlags) &
+             g_W8TextControlMask005ED570) == 0) {
+            m_text_panel_00c->m_entries_054[i]->m_input_blocked_bc = 1;
+        }
+    }
+    m_field_150 = (int)SoundPlayStreamedFile((STR)g_trap_inspection_sound_0064bcac, 0);
+}
+
+// FUNCTION: WIZ8 0x00589a80
+void W8MainGameScreen::Update()
+{
+    W8MainGameTextPanel* panel;
+    int column;
+    int elapsed;
+    float progress;
+
+    if (m_state_018 == 9 && m_timer_154.GetProgress() >= g_W8RangeEnd005EBB38 &&
+        PartyPortraitEventsIdle() != 0) {
+        m_owner_008->Run(-1);
+        m_state_018 = 10;
+    }
+    if (m_state_018 == 10) {
+        gXStatus.fTrapInteractMode = 0;
+        if (g_main_game_screen != 0) {
+            delete g_main_game_screen;
+        }
+        g_main_game_screen = 0;
+        ClearLevelDataFlag6();
+        Function58F6B0(0);
+        ApplyMainGameModeFlag(g_value_68f2c4, 1);
+        RequestRedraw(0x200);
+        RequestRedraw(0x100);
+        RequestRedraw(0x1000);
+        return;
+    }
+
+    panel = m_text_panel_00c;
+    if (panel->m_target_changed_140 != 0) {
+        elapsed = (int)panel->m_timer_118.GetProgress();
+        if (elapsed != 0) {
+            panel->m_field_13c += elapsed;
+            panel->m_flag_141 = 1;
+        }
+    }
+
+    panel = m_text_panel_00c;
+    if (panel->m_flag_084 != 0) {
+        progress = panel->m_timer_094.GetProgress();
+        if (progress < panel->m_field_088) {
+            panel->m_field_08c = progress;
+            return;
+        }
+        panel->m_flag_084 = 0;
+        panel->Invalidate(0);
+        for (column = 0; column < 8; ++column) {
+            if ((static_cast<unsigned char>(panel->m_entries_054[column]->m_stateFlags) &
+                 g_W8TextControlMask005ED570) == 0) {
+                panel->m_entries_054[column]->m_input_blocked_bc = 0;
+            }
+        }
+    }
+
+    switch (m_state_018) {
+    case 1:
+        m_state_018 = 0;
+        ApplyInspectSuccess();
+        return;
+    case 2:
+        m_state_018 = 0;
+        m_field_150 = 0;
+        PracticeCharacterSkill(&g_status_685170.buffers.characters[m_selected_character_01c], 10, 1,
+                               0);
+        RefreshActionPanel();
+        for (column = 0; column < 8; ++column) {
+            if (GetTable650434Entry(m_field_034, column) != 0 && m_unknown_03c[column] == 0) {
+                return;
+            }
+        }
+        m_state_018 = 3;
+        return;
+    case 3:
+        panel = m_text_panel_00c;
+        panel->EnableRegionSet(0);
+        panel->m_key_handler_074->m_range_038.EnableRegionSet(0);
+        m_action_panel_014->EnableRegionSet(0);
+        Function5E3780(m_owner_008);
+        gXStatus.fTrapInteractMode = 0;
+        if (g_main_game_screen != 0) {
+            delete g_main_game_screen;
+        }
+        g_main_game_screen = 0;
+        ClearLevelDataFlag6();
+        Function58F6B0(0);
+        ApplyMainGameModeFlag(g_value_68f2c4, 1);
+        RequestRedraw(0x200);
+        RequestRedraw(0x100);
+        RequestRedraw(0x1000);
+        return;
+    case 4:
+        if (m_field_150 != 0) {
+            SoundStop(m_field_150);
+            m_field_150 = 0;
+        }
+        SoundPlay((STR)g_trap_sprung_sound_0064bcd0, 0);
+        EnablePanelRegionSets(0);
+        Function5E3AB0(m_owner_008);
+        m_state_018 = 9;
+        m_timer_154.SetDuration(2.0f);
+        m_timer_154.Restart();
+        return;
+    case 5:
+        m_state_018 = 0;
+        CastTrapSpell();
+        return;
+    case 6:
+        m_state_018 = 0;
+        UseTrapItem();
+        return;
+    case 7:
+    case 8:
+        if (m_timer_154.GetProgress() >= g_W8RangeEnd005EBB38) {
+            m_state_018 = (m_state_018 != 7) + 3;
+        }
+        break;
+    }
+}
+
+// FUNCTION: WIZ8 0x00589d90
+void W8MainGameScreen::RefreshActionPanel()
+{
+    int slot = g_status_685170.selected_character;
+    int skill = GetPartySlotSkill10Level(slot);
+    W8Character* character = &g_status_685170.buffers.characters[slot];
+    int can_cast;
+    int column;
+    int* values;
+    int i;
+
+    m_action_controls_020[4]->SetEnabled(skill >= 0);
+    for (i = 0; i < 8; ++i) {
+        if ((static_cast<unsigned char>(m_text_panel_00c->m_entries_054[i]->m_stateFlags) &
+             g_W8TextControlMask005ED570) == 0) {
+            m_text_panel_00c->m_entries_054[i]->m_input_blocked_bc = skill < 0;
+        }
+    }
+    if ((!IsPartySlotEligible00524A10(slot) || character->spell_learned[0x27] != 1) &&
+        (!IsPartySlotEligible00524A10(slot) || character->spell_learned[0x12] != 1)) {
+        can_cast = 0;
+    } else {
+        if (IsPartySlotEligible00524A10(slot) && character->spell_learned[0x27] == 1) {
+            GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7, 0);
+        } else {
+            GetBestSpellbookSkillForSpell(character, 0x12, 1, 0, 7, 0);
+        }
+        can_cast = CanCharacterCastSpell(character, 0x27) != 0 ||
+                   CanCharacterCastSpell(character, 0x12) != 0;
+    }
+    m_action_controls_020[1]->SetEnabled(can_cast != 0);
+    if (m_slot_flag_044[slot] == 0) {
+        m_text_panel_00c->m_values_080 = 0;
+        for (column = 0; column < 8; ++column) {
+            m_text_panel_00c->m_entries_054[column]->m_image_b8 = -1;
+            m_text_panel_00c->m_entries_054[column]->Invalidate(0);
+        }
+    } else {
+        values = m_slot_values_04c[slot];
+        m_text_panel_00c->m_values_080 = values;
+        for (column = 0; column < 8; ++column) {
+            if (values == 0 ||
+                (values[column] == 0 &&
+                 GetTable650434Entry(m_text_panel_00c->m_selection_078, column) == 0)) {
+                m_text_panel_00c->m_entries_054[column]->m_image_b8 = -1;
+            } else {
+                m_text_panel_00c->m_entries_054[column]->m_image_b8 = values[column];
+            }
+            m_text_panel_00c->m_entries_054[column]->Invalidate(0);
+        }
+    }
+    m_action_controls_020[2]->SetEnabled(1);
+    m_action_controls_020[3]->SetEnabled(1);
+    m_status_panel_010->RefreshStatusTexts();
+    m_action_panel_014->Invalidate(0);
+}
+
+// FUNCTION: WIZ8 0x0058a030
+void W8MainGameScreen::EnablePanelRegionSets(bool enable)
+{
+    W8MainGameTextPanel* panel = m_text_panel_00c;
+
+    panel->EnableRegionSet(enable);
+    panel->m_key_handler_074->m_range_038.EnableRegionSet(enable);
+    m_action_panel_014->EnableRegionSet(enable);
+}
+
+// FUNCTION: WIZ8 0x0058a060
+void W8MainGameScreen::ApplyInspectSuccess()
+{
+    int chance;
+    int skill;
+    int column;
+    int* values;
+    int roll;
+
+    m_field_150 = 0;
+    PracticeCharacterSkill(&g_status_685170.buffers.characters[m_selected_character_01c], 10, 1, 0);
+    RefreshActionPanel();
+    chance = m_field_038;
+    if (chance < 0) {
+        chance = 0;
+    }
+    skill = GetPartySlotSkill10Level(m_selected_character_01c);
+    if (skill > -1) {
+        skill += m_target_14c * 6;
+    }
+    skill -= g_table_6504e8[chance];
+    chance = (skill * 3) / 2 + (11 - g_settings_6850c8.difficulty) * 10;
+    if (chance < 0) {
+        chance = 0;
+    } else if (chance > 0x63) {
+        chance = 0x63;
+    }
+    for (column = 0; column < 8; ++column) {
+        roll = (int)Random(0x64);
+        if (roll < chance) {
+            m_slot_values_04c[m_selected_character_01c][column] =
+                GetTable650434Entry(m_field_034, column);
+        } else {
+            m_slot_values_04c[m_selected_character_01c][column] = 2;
+        }
+    }
+    m_slot_flag_044[m_selected_character_01c] = 1;
+    values = m_slot_values_04c[m_selected_character_01c];
+    m_text_panel_00c->m_values_080 = values;
+    for (column = 0; column < 8; ++column) {
+        if (values == 0 || (values[column] == 0 &&
+                            GetTable650434Entry(m_text_panel_00c->m_selection_078, column) == 0)) {
+            m_text_panel_00c->m_entries_054[column]->m_image_b8 = -1;
+        } else {
+            m_text_panel_00c->m_entries_054[column]->m_image_b8 = values[column];
+        }
+        m_text_panel_00c->m_entries_054[column]->Invalidate(0);
+    }
+}
+
+// FUNCTION: WIZ8 0x0058a200
+void W8MainGameScreen::CastTrapSpell()
+{
+    int slot = g_status_685170.selected_character;
+    W8Character* character = &g_status_685170.buffers.characters[slot];
+    unsigned int book;
+    unsigned int figure;
+    int spell;
+    W8MainGameScreen* screen;
+    W8MainGameTextPanel* panel;
+    unsigned char ready = 0;
+
+    if (IsPartySlotEligible00524A10(slot) && character->spell_learned[0x27] == 1) {
+        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7, 0);
+        figure = (character->skills[book].level +
+                  character->skills[0x1c + g_spell_records[0x27].realm].level * 4) /
+                 5;
+        if ((int)figure >= 0) {
+            ready = 1;
+        }
+    }
+    if (ready == 0) {
+        character = &g_status_685170.buffers.characters[slot];
+        if (!IsPartySlotEligible00524A10(slot) || character->spell_learned[0x12] != 1) {
+            return;
+        }
+        book = GetBestSpellbookSkillForSpell(character, 0x12, 1, 0, 7, 0);
+        figure = (character->skills[book].level +
+                  character->skills[0x1c + g_spell_records[0x12].realm].level * 4) /
+                 5;
+        if ((int)figure < 0) {
+            return;
+        }
+    }
+    if (CanCharacterCastSpell(character, 0x27) == 0 &&
+        CanCharacterCastSpell(&g_status_685170.buffers.characters[slot], 0x12) == 0) {
+        return;
+    }
+    spell =
+        CanCharacterCastSpell(&g_status_685170.buffers.characters[slot], 0x12) != 0 ? 0x12 : 0x27;
+    m_action_controls_020[1]->SetAlternateTextEnabled(0);
+    screen = g_main_game_screen;
+    gXStatus.fTrapInteractMode = 0;
+    panel = screen->m_text_panel_00c;
+    panel->EnableRegionSet(0);
+    panel->m_key_handler_074->m_range_038.EnableRegionSet(0);
+    screen->m_action_panel_014->EnableRegionSet(0);
+    gXStatus.fTrapInteract = 1;
+    Function58F6B0(0);
+    ApplyMainGameModeFlag(g_value_68f2c4, 1);
+    RequestRedraw(0x200);
+    RequestRedraw(0x100);
+    RequestRedraw(0x1000);
+    Function5A0110(spell, -1, -1);
+}
+
+// FUNCTION: WIZ8 0x0058a3e0
+void W8MainGameScreen::UseTrapItem()
+{
+    W8MainGameScreen* screen;
+    W8MainGameTextPanel* panel;
+
+    m_action_controls_020[3]->SetAlternateTextEnabled(0);
+    screen = g_main_game_screen;
+    gXStatus.fTrapInteractMode = 0;
+    panel = screen->m_text_panel_00c;
+    panel->EnableRegionSet(0);
+    panel->m_key_handler_074->m_range_038.EnableRegionSet(0);
+    screen->m_action_panel_014->EnableRegionSet(0);
+    gXStatus.fTrapInteract = 1;
+    Function58F6B0(0);
+    ApplyMainGameModeFlag(g_value_68f2c4, 1);
+    RequestRedraw(0x200);
+    RequestRedraw(0x100);
+    RequestRedraw(0x1000);
+    Function59C930(g_status_685170.selected_character);
+}
+
+// FUNCTION: WIZ8 0x0058A750
+void UpdateMainGameScreen(void)
+{
+    g_main_game_screen->Update();
 }
 
 // FUNCTION: WIZ8 0x00577850
 unsigned char Function577850(void)
 {
-    return gXStatus.field_01f != 0 && g_screen_state_00649f1c->flag_252 != 0;
+    return gXStatus.fNpcDialogueMode != 0 && g_screen_state_00649f1c->flag_252 != 0;
 }
 
 // FUNCTION: WIZ8 0x005929d0
-void Function5929D0(void)
+void HandleManualCameraHotkeys(void)
 {
-    if (g_modal_owner_0068edd0 == 0 && gXStatus.field_01f == 0) {
+    if (g_modal_owner_0068edd0 == 0 && gXStatus.fNpcDialogueMode == 0) {
         if (g_mgs_keyboard->IsCommandPressed(0x25a)) {
             BeginManualCameraControl();
         }
-        Function592A10();
+        ApplyWorldRenderHotkeys();
     }
 }
 
 // FUNCTION: WIZ8 0x00592a10
-void Function592A10(void)
+void ApplyWorldRenderHotkeys(void)
 {
     if (g_mgs_keyboard->IsCommandPressed(0xcc) || g_mgs_keyboard->IsCommandPressed(0xcd)) {
         g_level_block->world_render_flags |= 0x100;
@@ -296,9 +1407,9 @@ void Function593330(void)
 }
 
 // FUNCTION: WIZ8 0x00577540
-void Function577540(void)
+void ClearMainGameTargetState(void)
 {
-    g_flag_006875a5 = 0;
+    g_status_685170.value_2435 = 0;
     ClearLevelDataFlag6();
     SetTargetCursor(W8_CURSOR_NONE);
 }
@@ -356,12 +1467,12 @@ void ResetMainGameScreenState(void)
         memset(g_level_block, 0, sizeof(W8LevelRuntimeBlock));
         TurnPartyToImmediate(g_status_685170.party_facing, 0);
         g_level_block->flag_24d = 0;
-        gXStatus.field_01d = 0;
-        gXStatus.field_01f = 0;
+        gXStatus.fSpellCastMode = 0;
+        gXStatus.fNpcDialogueMode = 0;
         gXStatus.fItemSelectMode = 0;
-        gXStatus.field_020 = 0;
-        gXStatus.field_021 = 0;
-        gXStatus.field_022 = 0;
+        gXStatus.fLockInteractMode = 0;
+        gXStatus.fTrapInteractMode = 0;
+        gXStatus.fReviewCharacterMode = 0;
         gXStatus.fSurprisePossible = 0;
         g_flag_006840bc = 0;
         g_flag_006840bd = 0;
@@ -574,8 +1685,8 @@ unsigned char MainGameScreenEnter(void)
     if (TakePendingSaveFlag()) {
         ShowNotice(0xc, gppStringList[0x1e08 / 4], -1, -1, 0);
     }
-    if (g_value_006850d5 != difficulty) {
-        g_value_006850d5 = difficulty;
+    if (g_settings_6850c8.difficulty != difficulty) {
+        g_settings_6850c8.difficulty = difficulty;
         switch (difficulty) {
         case 0:
             display_mode = 0x7f8;
@@ -611,10 +1722,10 @@ unsigned char MainGameScreenEnter(void)
     }
     SetTargetingMode(0);
     SetPrimarySurfaceTextureHint2Enabled(1);
-    if (gXStatus.field_024) {
+    if (gXStatus.fLockInteract) {
         Function587510(0);
     }
-    if (gXStatus.field_025) {
+    if (gXStatus.fTrapInteract) {
         Function58A470(0);
     }
     if (g_flag_00685071) {
@@ -707,14 +1818,14 @@ update_screen:
     if (!IsScreenBusy()) {
         Function5542E0();
     }
-    if (!g_level_block->transition_active && !gXStatus.fCombatMode && gXStatus.field_028) {
-        Function4EDD20();
+    if (!g_level_block->transition_active && !gXStatus.fCombatMode && gXStatus.fEncumbranceDirty) {
+        RedistributePartyEncumbrance();
     }
     Function59A3A0();
     if (g_modal_owner_0068edd0) {
         if (!g_flag_006840bc) {
             g_flag_006840bc = 1;
-            if (gXStatus.field_055) {
+            if (gXStatus.fPartyMovementUi) {
                 DisableRegionSet1C();
             }
             if (!gXStatus.fCombatMode) {
@@ -743,14 +1854,14 @@ update_screen:
             if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block) {
                 g_level_block->redraw_flags |= 0x8000;
             }
-            Function56AAB0();
+            ResumeMainGameWorld();
         }
     }
     Function575C50();
     NoOp();
     Function577560();
     Function52DDD0();
-    Function52E750();
+    UpdateCharacterEventState();
     Function59B1A0();
     if (gXStatus.fCombatMode) {
         Function59B4C0();
@@ -762,7 +1873,8 @@ update_screen:
     Function502650();
     if (gXStatus.fCombatMode) {
         for (int slot = 0; slot < 8; ++slot) {
-            if (!g_party_slot_rows[slot].occupied || g_party_characters[slot].unknown_0b01 > 0x11 ||
+            if (!g_status_685170.buffers.party_rows[slot].occupied ||
+                g_status_685170.buffers.characters[slot].highest_condition > 0x11 ||
                 (g_level_block->flag_314 && g_level_block->combat_slot == slot)) {
                 DisableRegionInput(slot + 10);
             } else {
@@ -788,7 +1900,7 @@ update_screen:
     SGPMouseGetPos(&point);
     if (!IsWorldCursorVisible()) {
         if (!g_modal_owner_0068edd0) {
-            if ((!Function525DF0(1) || !gXStatus.field_01f) && !g_status_685170.value_2435) {
+            if ((!Function525DF0(1) || !gXStatus.fNpcDialogueMode) && !g_status_685170.value_2435) {
                 g_level_block->hover_region = UpdateRegionMousePosition(point.x, point.y);
             } else {
                 g_level_block->hover_region = FindRegionAtPoint(
@@ -798,7 +1910,7 @@ update_screen:
             g_level_block->hover_region = FindRegionAtPoint(static_cast<unsigned short>(point.x),
                                                             static_cast<unsigned short>(point.y));
             for (int portrait = 0; portrait < 8; ++portrait) {
-                if (g_party_slot_rows[portrait].occupied &&
+                if (g_status_685170.buffers.party_rows[portrait].occupied &&
                     (g_level_block->hover_region == portrait * 6 + 0x24U ||
                      g_level_block->hover_region == portrait + 0x5aU)) {
                     g_level_block->hover_region = UpdateRegionMousePosition(point.x, point.y);
@@ -816,9 +1928,9 @@ update_screen:
     Function561330(Function5684E0());
     if (!GetFlag69DA6C()) {
         if (!GetFlag68F105() || GetFlag68F104()) {
-            Function5929D0();
-        } else if (Function57E490()) {
-            Function592A10();
+            HandleManualCameraHotkeys();
+        } else if (CanUseCurrentAutomapTool()) {
+            ApplyWorldRenderHotkeys();
         }
     }
     if (!g_level_runtime_flag_0065ba70) {
@@ -841,7 +1953,7 @@ update_screen:
     }
 render_world:
     if (!IsScreenTransitionPending()) {
-        if (Function57E490()) {
+        if (CanUseCurrentAutomapTool()) {
             Function44FC20(g_world, g_level_block->world_render_flags);
             if (g_world_659ab8 && !g_level_runtime_flag_0065ba70) {
                 Function44FC20(g_world_659ab8, g_level_block->world_render_flags | 0x40);
@@ -883,8 +1995,8 @@ render_world:
         if (!gXStatus.fCombatMode) {
             Function5A1EB0(&current, &value);
             Function5171C0();
-        } else if (!g_level_block->transition_active && !gXStatus.field_01d &&
-                   !gXStatus.field_01f && !gXStatus.fItemSelectMode) {
+        } else if (!g_level_block->transition_active && !gXStatus.fSpellCastMode &&
+                   !gXStatus.fNpcDialogueMode && !gXStatus.fItemSelectMode) {
             Function4E8EA0();
         }
         if (IsSightRangeOverridden() && !gXStatus.fCombatMode && AnyCharacterActive() &&
@@ -898,7 +2010,7 @@ render_world:
         if (!g_flag_006840bc) {
             Function530150(1);
             if (!gXStatus.fCombatMode && AnyCharacterActive() && gXStatus.field_02d &&
-                !gXStatus.field_01f) {
+                !gXStatus.fNpcDialogueMode) {
                 StartCombat(0);
             }
             if (g_navigator_position_changed_659c11) {
@@ -918,11 +2030,11 @@ render_world:
             g_level_block->combat_panel_timer = SetCountdownClock(500);
             g_level_block->refresh_combat_panel = 0;
         }
-        if (gXStatus.field_06f == 4) {
+        if (gXStatus.iTargetingMode == 4) {
             Function53B310();
-        } else if (gXStatus.field_06f == 3 && IsWorldCursorVisible()) {
+        } else if (gXStatus.iTargetingMode == 3 && IsWorldCursorVisible()) {
             Function53B1D0();
-        } else if (gXStatus.field_06f != 5 && g_level_block->refresh_party_panel) {
+        } else if (gXStatus.iTargetingMode != 5 && g_level_block->refresh_party_panel) {
             UpdateAllMonsterHighlights(g_status_685170.selected_character,
                                        g_level_block->highlighted_item);
             g_level_block->refresh_party_panel = 0;
@@ -932,16 +2044,16 @@ render_world:
             DetachAllWorldItems();
             g_level_block->world_update_timer = SetCountdownClock(50);
         }
-        if (gXStatus.field_01d)
+        if (gXStatus.fSpellCastMode)
             Function5A0BC0();
         if (gXStatus.fItemSelectMode)
             Function59D180();
-        if (gXStatus.field_01f)
+        if (gXStatus.fNpcDialogueMode)
             Function56E510();
-        if (gXStatus.field_020)
+        if (gXStatus.fLockInteractMode)
             Function587960();
-        if (gXStatus.field_021)
-            Function58A750();
+        if (gXStatus.fTrapInteractMode)
+            UpdateMainGameScreen();
         int active;
         if (!Function445140(g_world) && !Function53A1D0() && !Function4F8650() &&
             !Function57E3C0() && !SelectWorldCursorNode0048EFC0()) {
@@ -949,8 +2061,8 @@ render_world:
         } else {
             active = 1;
         }
-        Function427830(active);
-        if (gXStatus.unknown_026[1] && !gXStatus.field_01f && !gXStatus.fCombatMode &&
+        SetWorldModelPickingEnabled(active);
+        if (gXStatus.unknown_026[1] && !gXStatus.fNpcDialogueMode && !gXStatus.fCombatMode &&
             !g_level_block->transition_active) {
             Function4EF1F0();
         }
@@ -976,7 +2088,7 @@ unsigned char MainGameScreenLeave(int leaving)
     int index;
 
     if (g_main_game_mode_0068eddc == 3) {
-        if (gXStatus.field_01f) {
+        if (gXStatus.fNpcDialogueMode) {
             Function56E800(0);
         }
     } else if (g_main_game_mode_0068eddc == 5) {
@@ -999,23 +2111,23 @@ unsigned char MainGameScreenLeave(int leaving)
         Function490AF0();
     }
     Function59B270();
-    if (gXStatus.field_020)
+    if (gXStatus.fLockInteractMode)
         Function5879A0(0);
-    if (gXStatus.field_021)
+    if (gXStatus.fTrapInteractMode)
         Function58A790(0);
-    if (gXStatus.field_01d)
+    if (gXStatus.fSpellCastMode)
         Function59F2B0();
     if (gXStatus.fItemSelectMode)
         Function59C9C0();
-    if (gXStatus.field_022)
-        Function5B2200();
-    if (gXStatus.field_01f)
+    if (gXStatus.fReviewCharacterMode)
+        CloseReviewCommonUi();
+    if (gXStatus.fNpcDialogueMode)
         Function56E800(0);
     if (g_level_block->flag_314)
         Function592E60();
-    Function59BAD0();
-    Function59BF70();
-    if (gXStatus.field_055)
+    ReleasePortraitControls();
+    ReleaseConditionButtons();
+    if (gXStatus.fPartyMovementUi)
         DisableRegionSet1C();
     Function529510();
     if (GetFlag68F105())
@@ -1054,15 +2166,15 @@ unsigned char MainGameScreenLeave(int leaving)
         if (g_flag_0068edc9) {
             unsigned short mode;
             if (!IsScreenInputBlocked() && !g_level_block->flag_155 && g_level_block->flag_156 &&
-                g_level_block->flag_157 && g_flag_006850ce == 0) {
+                g_level_block->flag_157 && g_settings_6850c8.field_006 == 0) {
                 mode = 4;
             } else if (!IsScreenInputBlocked() &&
                        (!g_level_block->flag_156 || !g_level_block->flag_157 ||
                         !g_level_block->flag_155)) {
                 mode = 0;
-            } else if (g_flag_006850ce == 1) {
+            } else if (g_settings_6850c8.field_006 == 1) {
                 mode = 1;
-            } else if (g_flag_006850ce == 2) {
+            } else if (g_settings_6850c8.field_006 == 2) {
                 mode = 0;
             } else {
                 mode = 2;
@@ -1101,7 +2213,7 @@ unsigned char MainGameScreenLeave(int leaving)
 
     if (static_cast<unsigned char>(leaving)) {
         if (g_status_685170.current_level != -1) {
-            Function42B3E0();
+            UnloadSkyWorld();
             if (!UnloadLevel("")) {
                 return 0;
             }
@@ -1243,13 +2355,14 @@ void ClearHighlightIfItIs(const int* item)
 // FUNCTION: WIZ8 0x00562540
 int IsScreenInputBlocked(void)
 {
-    if (gXStatus.field_01d != 0) {
+    if (gXStatus.fSpellCastMode != 0) {
         return 1;
     }
-    if (gXStatus.field_01f != 0 && !Function577850()) {
+    if (gXStatus.fNpcDialogueMode != 0 && !Function577850()) {
         return 1;
     }
-    if (gXStatus.field_020 == 0 && gXStatus.field_021 == 0 && gXStatus.fItemSelectMode == 0) {
+    if (gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
+        gXStatus.fItemSelectMode == 0) {
         return 0;
     }
     return 1;
@@ -1263,8 +2376,9 @@ unsigned char g_map_loading_00659757;
 // FUNCTION: WIZ8 0x00561440
 int IsScreenIdle(void)
 {
-    if (gXStatus.fCombatMode == 0 && gXStatus.field_01d == 0 && gXStatus.fItemSelectMode == 0 &&
-        gXStatus.field_01f == 0 && gXStatus.field_020 == 0 && gXStatus.field_021 == 0) {
+    if (gXStatus.fCombatMode == 0 && gXStatus.fSpellCastMode == 0 &&
+        gXStatus.fItemSelectMode == 0 && gXStatus.fNpcDialogueMode == 0 &&
+        gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0) {
         return 1;
     }
     return 0;
@@ -1281,7 +2395,7 @@ bool LoadCurrentLevelData(void)
     if (g_status_685170.current_level != -1) {
         SetTargetCursor(W8_CURSOR_MAP_LOAD);
         g_map_loading_00659757 = 1;
-        Function42B3E0();
+        UnloadSkyWorld();
         loaded = UnloadLevel("MAP") != 0;
         g_map_loading_00659757 = 0;
         UpdateHeldItemCursor();
@@ -1326,20 +2440,20 @@ void DisableCombatRegions(void)
 // FUNCTION: WIZ8 0x0056af20
 void UpdateScreenOverlays(int frame)
 {
-    if (gXStatus.field_020 != 0) {
+    if (gXStatus.fLockInteractMode != 0) {
         Function5879A0(frame);
     }
-    if (gXStatus.field_021 != 0) {
+    if (gXStatus.fTrapInteractMode != 0) {
         Function58A790(frame);
     }
-    if (gXStatus.field_01d != 0) {
+    if (gXStatus.fSpellCastMode != 0) {
         Function59F2B0();
     }
     if (gXStatus.fItemSelectMode != 0) {
         Function59CAC0();
     }
-    if (gXStatus.field_022 != 0) {
-        Function5B2200();
+    if (gXStatus.fReviewCharacterMode != 0) {
+        CloseReviewCommonUi();
     }
 }
 
@@ -1353,7 +2467,7 @@ unsigned int HitTestPartyPortrait(const InputAtom* event)
     int slot = 0;
     unsigned int kind;
 
-    while (g_party_slot_rows[slot].occupied == 0 ||
+    while (g_status_685170.buffers.party_rows[slot].occupied == 0 ||
            (g_level_block->hover_region != region &&
             g_level_block->hover_region != (unsigned int)(slot + 0x5a))) {
         region += 6;
@@ -1400,9 +2514,9 @@ void ShortenTextToWidth00577410(wchar_t* output, const wchar_t* text, unsigned i
    busy or this NPC kind suppresses it. The suppress flag travels as an int:
    the body forwards the whole dword without masking. */
 // FUNCTION: WIZ8 0x0056C590
-void Function56C590(W8NpcState* npc, int value, int line, int suppress)
+void ForwardNpcScriptNotice(W8NpcState* npc, int value, int line, int suppress)
 {
-    if (gXStatus.field_01f == 0 && gXStatus.fCombatMode == 0 &&
+    if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fCombatMode == 0 &&
         (npc->record->kind != 7 || GetFact(0x1c) != 1)) {
         Function56C5E0(npc, value, line, suppress, 0);
     }
@@ -1412,7 +2526,7 @@ void Function56C590(W8NpcState* npc, int value, int line, int suppress)
    is declared in MainGameScreen.h so the renderer consumes the same object. */
 
 // FUNCTION: WIZ8 0x00568950
-unsigned int Function568950(const InputAtom* input)
+unsigned int DispatchMainGameMouseButtons(const InputAtom* input)
 {
     POINT point;
     SGPMouseGetPos(&point);
@@ -1431,10 +2545,10 @@ unsigned int Function568950(const InputAtom* input)
 }
 
 // FUNCTION: WIZ8 0x0056aa30
-void Function56AA30(void)
+void PauseMainGameWorld(void)
 {
     g_flag_006840bc = 1;
-    if (gXStatus.field_055 != 0) {
+    if (gXStatus.fPartyMovementUi != 0) {
         DisableRegionSet1C();
     }
     if (gXStatus.fCombatMode == 0) {
@@ -1453,10 +2567,10 @@ void Function56AA30(void)
 }
 
 // FUNCTION: WIZ8 0x0056aab0
-void Function56AAB0(void)
+void ResumeMainGameWorld(void)
 {
-    if (gXStatus.field_01d == 0 && gXStatus.field_01f == 0 && gXStatus.fItemSelectMode == 0 &&
-        gXStatus.field_022 == 0) {
+    if (gXStatus.fSpellCastMode == 0 && gXStatus.fNpcDialogueMode == 0 &&
+        gXStatus.fItemSelectMode == 0 && gXStatus.fReviewCharacterMode == 0) {
         if (gXStatus.fCombatMode == 0) {
             if (g_flag_006840bd != 0) {
                 MoveTimer(4);
@@ -1465,15 +2579,15 @@ void Function56AAB0(void)
             }
             SetEnvironmentTimeEnabled00482990(1);
             MonsterForward4531A0();
-            if (gXStatus.field_020 == 0 && gXStatus.field_021 == 0 && gXStatus.field_024 == 0 &&
-                gXStatus.field_025 == 0) {
+            if (gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
+                gXStatus.fLockInteract == 0 && gXStatus.fTrapInteract == 0) {
                 ClearLevelDataFlag6();
             }
         }
         g_flag_006840bc = 0;
         g_flag_006840bd = 0;
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block->flag_327 == 0) {
-            if (gXStatus.field_055 != 0) {
+            if (gXStatus.fPartyMovementUi != 0) {
                 Function5A1950();
             }
             ClearSurfaceRect(0xb1, 0x13f, 0x1cf, 0x153);

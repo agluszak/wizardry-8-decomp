@@ -1,5 +1,4 @@
 #include "wiz8/regions.h"
-#include "wiz8/bringup_gates.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/cursor.h"
@@ -247,7 +246,7 @@ W8Region g_regions[1500] = {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
     // clang-format off
-    {0x00000001, 0, 0, 0, 0, reinterpret_cast<W8RegionCallback>(Function5A1140), /* reinterpret-ok: retail region catalog stores Function5A1140's InputAtom ABI */ 0, 1, 0, 55, 0},
+    {0x00000001, 0, 0, 0, 0, reinterpret_cast<W8RegionCallback>(IgnoreSpellCastingInput), /* reinterpret-ok: retail region catalog stores IgnoreSpellCastingInput's InputAtom ABI */ 0, 1, 0, 55, 0},
 // clang-format on
 #pragma clang diagnostic pop
     {0x00000001, 0, 0, 0, 0, Function005A0E50, 10, 1, 0, 17, 0},

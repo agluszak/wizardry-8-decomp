@@ -9,7 +9,10 @@ void SetMusicMuted(unsigned char muted);
 unsigned int GetTotalPhysicalMemory(void);
 
 /* Local Code\Configuration.cpp owns the persisted 0xa4-byte configuration
-   block at 0x006850C8. */
+   block at 0x006850C8. Difficulty is stored as this int; the options list
+   labels it Novice/Normal/Expert. */
+
+enum { W8_DIFFICULTY_NOVICE = 0, W8_DIFFICULTY_NORMAL = 1, W8_DIFFICULTY_EXPERT = 2 };
 
 #pragma pack(push, 1)
 struct W8GameSettings {
@@ -44,17 +47,17 @@ struct W8GameSettings {
     float monster_movement_speed;
     unsigned char field_03b;
     float gamma;
-    unsigned char field_040;
+    unsigned char pc_confirmations; /* 0x40: options string 0x823 */
     unsigned char mouselook_toggle;
-    unsigned char field_042;
+    unsigned char pc_subtitles; /* 0x42: options string 0x824 */
     unsigned char mouselook_smoothing;
     unsigned char verbose_combat_messages;
     unsigned char auto_save;
     unsigned char intro_seen;
     unsigned char field_047;
-    unsigned char field_048;
-    unsigned char field_049;
-    unsigned char field_04a;
+    unsigned char monster_shadows;           /* 0x48: options string 0x818 */
+    unsigned char smooth_monster_animations; /* 0x49: options string 0x819 */
+    unsigned char smooth_world_animations;   /* 0x4a: options string 0x81a */
     unsigned char skill_increase_messages;
     unsigned char ctrl_right_click_info;
     unsigned char autoswap_weapons;

@@ -46,9 +46,10 @@ void RebuildPartyEffectBlock0050E700(void)
     int active = 0;
     unsigned int slot_byte = 0;
     while (slot_byte <= 0x82f) {
-        W8Character* character = &g_party_characters[active];
-        if (g_party_slot_rows[active].occupied != 0 && character->hp_current != 0 &&
-            character->unknown_0b01 == 0 && CharacterHasTrait00547940(character, 10) != 0) {
+        W8Character* character = &g_status_685170.buffers.characters[active];
+        if (g_status_685170.buffers.party_rows[active].occupied != 0 &&
+            character->hp_current != 0 && character->highest_condition == 0 &&
+            CharacterHasTrait00547940(character, 10) != 0) {
             break;
         }
         slot_byte += 0x106;
@@ -60,8 +61,8 @@ void RebuildPartyEffectBlock0050E700(void)
         g_status_685170.party_modifiers_22e3.flag_44 = 1;
     }
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_party_slot_rows[party_slot].occupied != 0) {
-            W8Character* character = &g_party_characters[party_slot];
+        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0) {
+            W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
             memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
             ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
@@ -69,7 +70,7 @@ void RebuildPartyEffectBlock0050E700(void)
             if (character->in_party != 0) {
                 ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
             }
-            Function4ED9D0(character);
+            RecalculateCharacterDerivedStats(character);
         }
     }
     if (g_status_685170.party_modifiers_22e3.light_47 == 0) {
@@ -203,7 +204,7 @@ void RebuildCharacterModifierBlock(W8Character* character)
    derived block from the equipment, persistent and party blocks, and
    recompute the derived stats. The standalone form character creation runs. */
 // FUNCTION: WIZ8 0x0050e540
-void Function50E540(W8Character* character)
+void RebuildEquipmentAndDerivedStats(W8Character* character)
 {
     memset(&character->equipment_bonus_1709, 0, sizeof(W8GameplayModifierBlock));
     AccumulateEquipmentModifiers(character, &character->equipment_bonus_1709);
@@ -214,5 +215,5 @@ void Function50E540(W8Character* character)
     if (character->in_party != 0) {
         ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
     }
-    Function4ED9D0(character);
+    RecalculateCharacterDerivedStats(character);
 }
