@@ -123,9 +123,6 @@ unsigned char g_flag_00685076;
 // GLOBAL: WIZ8 0x00685077
 signed char g_value_00685077;
 
-// GLOBAL: WIZ8 0x006850ce
-int g_flag_006850ce;
-
 // GLOBAL: WIZ8 0x0068edbc
 unsigned char g_flag_0068edbc;
 
@@ -904,7 +901,7 @@ void W8MainGameScreen::SelectTextEntry(int index)
         skill += ((m_target_14c + 1) / 2) * 6;
     }
     skill -= g_table_6504e8[chance];
-    chance = (skill * 3) / 2 + (11 - g_value_006850d5) * 10;
+    chance = (skill * 3) / 2 + (11 - g_settings_6850c8.difficulty) * 10;
     if (chance < 0) {
         chance = 0;
     } else if (chance > 0x63) {
@@ -987,7 +984,7 @@ void W8MainGameScreen::OnPrimary(W8TextControl* control)
         skill += m_target_14c * 6;
     }
     skill -= g_table_6504e8[chance];
-    chance = (skill * 3) / 2 + (11 - g_value_006850d5) * 10;
+    chance = (skill * 3) / 2 + (11 - g_settings_6850c8.difficulty) * 10;
     if (chance < 0) {
         chance = 0;
     } else if (chance > 0x63) {
@@ -1229,7 +1226,7 @@ void W8MainGameScreen::ApplyInspectSuccess()
         skill += m_target_14c * 6;
     }
     skill -= g_table_6504e8[chance];
-    chance = (skill * 3) / 2 + (11 - g_value_006850d5) * 10;
+    chance = (skill * 3) / 2 + (11 - g_settings_6850c8.difficulty) * 10;
     if (chance < 0) {
         chance = 0;
     } else if (chance > 0x63) {
@@ -1688,8 +1685,8 @@ unsigned char MainGameScreenEnter(void)
     if (TakePendingSaveFlag()) {
         ShowNotice(0xc, gppStringList[0x1e08 / 4], -1, -1, 0);
     }
-    if (g_value_006850d5 != difficulty) {
-        g_value_006850d5 = difficulty;
+    if (g_settings_6850c8.difficulty != difficulty) {
+        g_settings_6850c8.difficulty = difficulty;
         switch (difficulty) {
         case 0:
             display_mode = 0x7f8;
@@ -2169,15 +2166,15 @@ unsigned char MainGameScreenLeave(int leaving)
         if (g_flag_0068edc9) {
             unsigned short mode;
             if (!IsScreenInputBlocked() && !g_level_block->flag_155 && g_level_block->flag_156 &&
-                g_level_block->flag_157 && g_flag_006850ce == 0) {
+                g_level_block->flag_157 && g_settings_6850c8.field_006 == 0) {
                 mode = 4;
             } else if (!IsScreenInputBlocked() &&
                        (!g_level_block->flag_156 || !g_level_block->flag_157 ||
                         !g_level_block->flag_155)) {
                 mode = 0;
-            } else if (g_flag_006850ce == 1) {
+            } else if (g_settings_6850c8.field_006 == 1) {
                 mode = 1;
-            } else if (g_flag_006850ce == 2) {
+            } else if (g_settings_6850c8.field_006 == 2) {
                 mode = 0;
             } else {
                 mode = 2;
