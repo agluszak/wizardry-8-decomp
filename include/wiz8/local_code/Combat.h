@@ -8,7 +8,7 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
                         W8CombatSlot** out_target,
                         W8ActionDetailBlock** out_detail); /* 0x004E77B0 */
 void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail, int arg_4,
-                              const void* data, char notify); /* 0x004E8000 */
+                              const void* data, int notify); /* 0x004E8000 */
 void EndCombat004EA310(int mode);                             /* 0x004EA310 */
 unsigned char IsSlotActionChosen(int party_slot, int context, int arg_3, int arg_4);
 void SwitchCharacterTo(int party_slot, int action); /* 0x004ED390 */
