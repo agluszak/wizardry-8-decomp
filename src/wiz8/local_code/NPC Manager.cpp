@@ -53,8 +53,6 @@ enum { W8_NPC_DISPOSITION_HOSTILE = 0x21, W8_NPC_DISPOSITION_FRIENDLY = 0x42 };
 // GLOBAL: WIZ8 0x00689F94
 W8GrowableVector<W8NpcState*>* g_npc_states;
 
-extern unsigned char UpdateNpcAt(W8NpcState* npc, int arg_2, srVector3T<float>* scratch); /* 0x0050B2F0 */
-
 /* Whether the NPC's database entry carries the value at 0x002 at all. */
 // FUNCTION: WIZ8 0x0050aa00
 bool NpcRecordHasValue002(W8NpcState* npc)
@@ -300,7 +298,7 @@ struct W8NpcServiceRow {
     unsigned int unknown_08;
 };
 // GLOBAL: WIZ8 0x00619DFC
-extern const W8NpcServiceRow g_npc_services[] = {
+const W8NpcServiceRow g_npc_services[] = {
     {2, 1, 0x47},       {3, 2, 0x50},       {4, 0x400, 0x48},
     {5, 4, 0x49},       {7, 8, 0x4d},       {8, 0x80, 0x4c},
     {9, 0x40, 0x4b},    {10, 0x20, 0x4a},   {11, 0x10, 0x4e},
@@ -311,7 +309,7 @@ extern const W8NpcServiceRow g_npc_services[] = {
 /* 0x00619F18: the name a fact substitutes, and 0x00689F60 the buffer it is
    copied into so the caller always gets a writable one. */
 // GLOBAL: WIZ8 0x00619F18
-extern const char g_substituted_npc_name[] = "RFS81B";
+const char g_substituted_npc_name[] = "RFS81B";
 // GLOBAL: WIZ8 0x00689F60
 char g_npc_name_buffer[52];
 
@@ -455,8 +453,6 @@ const char* GetNpcDisplayName(W8NpcState* npc)
     }
     return npc->record->display_name;
 }
-
-extern void Function55A0A0(int handle);
 
 /* Create the shared NPC-state vector the first time anything needs it. */
 // FUNCTION: WIZ8 0x00509890
@@ -761,8 +757,6 @@ unsigned char UpdateNpcAt(W8NpcState* /*npc*/, int /*arg_2*/, srVector3T<float>*
         scratch, 1, 0, 1, 30, 0);
     return 0;
 }
-
-extern void Function55A0A0(int value);                              /* 0x0055A0A0 */
 
 /* The frame-0x10 callback the 0x1b6 NPC cycle installs: mark the monster,
    reset its navigator to the origin, and fire the VOC_BELA_CC voice event on

@@ -12,7 +12,9 @@
 Checks: >
   -*,
   bugprone-misplaced-widening-cast,
-  readability-redundant-casting
+  readability-redundant-casting,
+  readability-duplicate-include,
+  readability-redundant-declaration
 WarningsAsErrors: '*'
 HeaderFilterRegex: '^/repo/(include/wiz8|include/surrender|src/wiz8|src/surrender|src/srext_jpegimporter|src/srext_unzip)/'
 FormatStyle: none

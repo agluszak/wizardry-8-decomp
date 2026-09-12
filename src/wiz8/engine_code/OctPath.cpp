@@ -7,6 +7,7 @@
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
@@ -108,7 +109,6 @@ float g_path_waypoint_query_vertical_005ec35c;
 float g_float_005ec360;
 extern float g_path_waypoint_exact_distance_005ebc64;
 extern double g_double_005ebe80;
-extern void Function497690(int channel, const char* message);
 // GLOBAL: WIZ8 0x00652dc4
 srShader g_path_shader_00652dc4;
 extern srTextureIFace* g_path_texture_00652dc0;

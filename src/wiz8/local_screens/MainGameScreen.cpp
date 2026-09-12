@@ -59,23 +59,16 @@
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/3dapi.h"
 #include "wiz8/local_code/ItemManager.h"
-#include "wiz8/local_code/LoadSaveGame.h"
-#include "wiz8/targeting.h"
-#include "wiz8/local_screens/MGSUseItemSelect.h"
-#include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/MGSPartyMovement.h"
-#include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/Cursor3d.h"
 #include "wiz8/local_code/NPCScripting.h"
-#include "wiz8/local_screens/MGSKeyboard.h"
 #include "wiz8/local_screens/Screens.h"
-#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/mipe.h"
 #include "wiz8/local_screens/MGSPortraits.h"
-#include "wiz8/local_screens/MGSUseItemSelect.h"
-#include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_screens/IntroScreen.h"
+#include "wiz8/local_screens/JournalScreen.h"
+#include "wiz8/engine_code/Prop.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -102,15 +95,6 @@ W8DialogBase* g_modal_owner_0068edd0;
 // GLOBAL: WIZ8 0x0068edd4
 W8DialogBase* g_pending_main_game_dialog_0068edd4;
 
-extern void Function598AB0(void);
-extern void Function59C930(int slot);
-extern void Function5187E0(void);
-extern void Function598AE0(void);
-extern void Function59B270(void);
-extern void Function59BAD0(void);
-extern void Function59BF70(void);
-extern void Function59C9C0(void);
-
 // GLOBAL: WIZ8 0x006840bc
 unsigned char g_flag_006840bc;
 
@@ -131,7 +115,6 @@ unsigned char g_flag_00685076;
 
 // GLOBAL: WIZ8 0x00685077
 signed char g_value_00685077;
-extern int g_value_006850d5;
 
 // GLOBAL: WIZ8 0x00683f95
 unsigned char g_flag_00683f95;
@@ -186,14 +169,12 @@ W8MainGameResourceSlot g_main_game_resource_slots_64827c[17] = {
 
 // GLOBAL: WIZ8 0x0065bd2c
 unsigned char g_build_level_links_0065bd2c;
-extern unsigned char g_flag_689b32;
 
 // GLOBAL: WIZ8 0x0068ede8
 int g_next_link_level_0068ede8;
 
 // GLOBAL: WIZ8 0x0068edd9
 unsigned char g_flag_0068edd9;
-extern unsigned char g_byte_00659a64;
 
 // GLOBAL: WIZ8 0x0068ee90
 W8MainScreenState g_screen_state_storage_0068ee90;
@@ -257,7 +238,6 @@ void Function586740(void);
 void Function589A80(void);
 void Function593360(void);
 void Function56C6D0(int, int, int, int, int);
-extern unsigned char g_flag_006875a5;
 unsigned char Function57E3C0(void);
 void Function4EF1F0(void);
 
@@ -1302,10 +1282,6 @@ int IsScreenInputBlocked(void)
 
 // GLOBAL
 unsigned char g_map_loading_00659757;
-extern void Function5879A0(int arg_1);
-extern void Function58A790(int arg_1);
-extern void Function59F2B0(void);
-extern void Function59CAC0(void);
 
 /* Whether the screen is idle - none of the six overlays is up. The same six
    flags the input block reads, but all of them and unconditionally. */

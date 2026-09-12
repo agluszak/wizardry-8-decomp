@@ -16,6 +16,8 @@ class stModelInstance;
 class Trigger;
 class W8Prop;
 
+extern unsigned char g_byte_00659a64;
+
 /* Prop.cpp's m_pRep.  Assertions name the member; the constructor allocates
    0xc4 bytes, runs the AnimRep constructor, then installs the Prop-owned
    animation pointer, speed, and the slot vector at 0xb0.  The secondary

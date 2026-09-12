@@ -23,12 +23,8 @@ BitArray::BitArray(unsigned int new_bit_count)
     cursor_base = new_bit_count - whole_words * W8_BITS_PER_WORD;
     word_count = whole_words + 1;
     tail_mask = 0;
-    cursor_bit = 0;
-    if (cursor_base != 0) {
-        do {
-            tail_mask |= 1 << cursor_bit;
-            ++cursor_bit;
-        } while ((unsigned int)cursor_bit < cursor_base);
+    for (cursor_bit = 0; (unsigned int)cursor_bit < cursor_base; ++cursor_bit) {
+        tail_mask |= 1 << cursor_bit;
     }
 
     cursor_base = 0;

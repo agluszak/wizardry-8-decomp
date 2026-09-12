@@ -2,13 +2,10 @@
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_screens/MGSUseItemSelect.h"
 #include "wiz8/targeting.h"
-#include "wiz8/local_screens/MGSUseItemSelect.h"
 // GLOBAL: WIZ8 0x0069b998
 Controls* g_panel_69b998;
 // GLOBAL: WIZ8 0x0069b988
 int g_value_69b988;
-
-extern void Function59CAC0(void);
 
 // GLOBAL: WIZ8 0x0069B95C
 int g_selected_use_item_line_0069b95c;

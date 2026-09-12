@@ -53,18 +53,14 @@ void DetachWorldItemMeshes0046DE40(W8World* world)
         srAssertFail("pWorld->plsItems", THREE_D_CPP, 0x136, 0);
     }
     unsigned int count = PLLength(world->plsItems);
-    int index = 0;
-    if (0 < static_cast<int>(count)) {
-        do {
-            W8Item* item =
-                static_cast<W8Item*>(PLGet(world->plsItems, index));
-            if (item != 0) {
-                item->DetachMesh0049FA30(world);
-                item->UpdateAnimation0049F730();
-                item->AttachMesh0049F900(world);
-            }
-            ++index;
-        } while (index < static_cast<int>(count));
+    for (int index = 0; index < static_cast<int>(count); ++index) {
+        W8Item* item =
+            static_cast<W8Item*>(PLGet(world->plsItems, index));
+        if (item != 0) {
+            item->DetachMesh0049FA30(world);
+            item->UpdateAnimation0049F730();
+            item->AttachMesh0049F900(world);
+        }
     }
 }
 

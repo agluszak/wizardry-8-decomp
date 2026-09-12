@@ -386,4 +386,9 @@ void SetCombatTarget(int value);    /* 0x0056A2D0 */
 void RequestRedrawCombatBar(void);    /* 0x005699B0 */
 void UpdateScreenOverlays(int frame); /* 0x0056AF20 */
 void DisableMainRegionSet(void);      /* 0x00561FB0 */
+void Function598AB0(void);
+void Function59C930(int slot);
+void Function598AE0(void);
+void Function59B270(void);
+void Function59C9C0(void);
 extern unsigned char g_flag_00683fce;

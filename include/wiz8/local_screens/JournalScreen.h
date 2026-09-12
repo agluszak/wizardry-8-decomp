@@ -1,6 +1,7 @@
 #pragma once
 
 extern wchar_t g_default_level_0064d7b8[];
+extern int g_value_006850d5;
 #include "wiz8/screen_state.h"
 #include "wiz8/vector.h"
 
