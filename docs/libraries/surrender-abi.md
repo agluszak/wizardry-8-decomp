@@ -131,11 +131,14 @@ fifteen vbtables, which catches a decode that drifts. It does not catch one that
 way in every build, and the srMaterial case below is exactly that, so the agreement is a guard
 against instability rather than proof of a boundary.
 
-## Foundational types the export table names
+## Wizardry relevance, not export-table completeness
 
-Diffing every `class`/`struct`/`enum` token in the gog-base `sr.dll` export snapshot against
-`include/surrender` is the mechanical way to find holes that "a game engine probably had X" guesswork
-would miss. Wizardry's 461 imports span 51 classes; the provider exports far more.
+The criterion for recovering a SurRender type is whether it illuminates Wizardry, not whether
+`sr.dll` exports it. IAT xrefs from `evidence/observations/surrender/wiz8-sr-imports.csv` decide:
+every corresponding IAT address is queried for xrefs, each xref is resolved to its containing
+Wiz8 function, and imported data such as `srVectorProcessor::vp` is followed through
+`load vp; CALL [vtable+offset]`. A class with no path into Wiz8 after that census stays
+provider-only.
 
 `srARGB` was the important mis-model: the header had only `e_index` and therefore `sizeof` 1, while
 palette APIs take `srARGB*` as a color array. The SR bodies settle a 4-byte packed value, not floats:
@@ -154,9 +157,8 @@ count at `+0x00`, unused alignment hole at `+0x04`, mean double at `+0x08`, stan
 `+0x10`, median at `+0x18`, min/max bins at `+0x1c` / `+0x20` (`sizeof` `0x24`; pack 4 so the
 trailing longs are not padded to 0x28).
 
-`srCamera` was already recovered (0x188, view plane, FOV, clip and environment ranges) but lived at
-the bottom of `srScene.h`. It now has `srCamera.h`. `srPixelConvert` stays with the color-surface
-header; there is no evidence for a second generic `srColor` type.
+`srCamera` was already recovered (0x188, view plane, FOV, clip and environment ranges) and lives in
+`srCamera.h`. There is no evidence for a second generic `srColor` type.
 
 The same census does **not** support adding speculative `srFont`, `srText`, `srViewport`,
 `srTransform`, `srImage`, `srSprite` or `srAnimation`. No such export names exist. Viewport is a
@@ -164,26 +166,26 @@ The same census does **not** support adding speculative `srFont`, `srText`, `srV
 export `srWindow::{getWidth,getHeight,isWindow}` as static helpers, which is not a widget/text
 system.
 
-These exported top-level types still have no `include/surrender` declaration. Do not treat the list
-as a license to invent layouts; it is the remaining identity surface:
+Header layout is one header per substantial top-level SurRender type; nested types stay with their
+owner (`srHuffman::BitIStream`, `srModeler::Polygon`, `srTextureIFace::Dimensions`). Do not split
+four-line nested records into their own files.
 
-| Type | Why it is real | What is still missing |
+| Class / family | Wizardry relevance | What we did / what remains |
 | --- | --- | --- |
-| `srDD` nested records (`Palette`, `Texture`, `PixelFormat`, `Scissor`, `ViewPort`, `OpenInfo`, …) and `srDebugDD` | `srDebugDD` is the forwarding wrapper; its virtuals are the device interface | object layout and the `srDD` vtable itself |
-| `srHierarchyIOManager`, `srModelIOManager` | constructors, vftables, `import`/`export` members; `srCore` owns both | fields; compare with recovered `srSurfaceIOManager` |
-| `srVideoManager` (`Stream`, `VStream`, `openVStream`) | exact name on `srCore`; AVI/FLIC extensions consume video | class layout and the rest of the stream API |
-| `srVP` / `srDebugVP` | Generic VP factory and debug wrapper | backend implementation; debug is only a ctor plus `resetInternalStatistics` in the export table |
-| `srBounder` | `srNode`-derived vftable, bounds get/set, `e_boundMode` | layout |
-| `srEnvironmentMapper` | vftable; `process(srVertexPipe&)` | layout |
-| `srHuffman` | bit streams, sampler, compressor | layout; not a scene type |
-| `srQuaternion`, `srMatrix2T`, `srVector4i` | named in signatures | storage; `srMath.h` already has the rest of the math family |
-| `srTriangulator` | polygon ear-clip helper | layout |
-| `srTextureFile` | 17-slot SR vftable | Wizardry's `stTextureFile` is a parallel first-party class (`0x10001`), not an import of this type |
-| `srCachedExponentTable`, `srExponentTable` | lighting LUT helpers | layout |
-| `srDummyStreamBuf`, `srOStream_withassign`, `srWindowOut` | iostream glue | ignore; not engine domain types |
+| `srHuffman` | Very high. Wiz8 imports BitIStream, BitOStream, Sampler, Compressor, Decompressor and the bit/symbol APIs. Every Huffman IAT xref collapses to `BitArray::Load` (`0x0043aec0`) and `BitArray::Save` (`0x0043b0e0`) in `Engine Code\BitArray.cpp`. Octree assertions name `m_pAlphaBits->Load(hOctFile)` and `m_pPropSunBits->Load(hOctFile)` (magic `0xDEADD00D`). | Nested family recovered in `srHuffman.h`. `BitArray::Load` recovered. Save still unrecovered: retail destroys Sampler via the local `W8HashTable` dtor plus `0x004701b0` rather than the imported `Sampler` dtor, and looks up codes through `0x005853a0`. |
+| `srVP` / `srVectorProcessor` | Very high. Wiz8 imports `?vp@srVectorProcessor@@0PAVsrVP@@A` at `0x005eb7e8`. Uses are far more than `stMeshModel`'s `minMax`: `FlushSlots00475600`, `FUN_0046e8a0`, `FUN_00472270`, `FUN_004729f0`, `FUN_0047f930`, `FUN_00486970`, `PrepareGeometry004B6F30` / `GDProp::Initialize`, and others. Confirmed CALLIND slots include `+0x10` `_memcopy(SRBYTE)`, `+0x30`/`+0x38` `_copy`, `+0xd4`/`+0xd8` `_add`, `+0x11c`/`+0x124` `_mul`, `+0x18c` `_minMax`. Offsets `+0x210`/`+0x218`/`+0x224` sit past the 100-slot table and are not vp methods. | `srVP.h` split from the facade. Header inlines added for the confirmed Wiz8 slots. `srDebugVP` stays unrecovered. |
+| `srTextureFile` | High as an oracle. Wiz8 does not import it. `stTextureFile` (`0x10001`, sizeof `0x68`) shares SR's 17-slot interface (id `0x2112`, sizeof `0x64`); Wizardry adds `has_alpha_64`. | `srTextureFile.h` reconstructed. Slot list is commented on `stTextureFile`. |
+| `srBounder` | Medium. No Wiz8 string, ctor import, or registry construction. `getLocalBounds` / `updateBounds` IAT xrefs are import thunks. `srBounder::getBounds` copies 11 dwords from `this+0x13c`, so `srNode::BoundInfo` is `0x2c`. Implied Bounder size `0x168` (mode at `+0x138`). | `BoundInfo` defined. Full Bounder class deferred. |
+| `srModeler` | Already used: ctor, `createGrid`, `planarMap`, `scale`, `convert`, `discard`, `addPolygon`, `setMaterial`, `setShader`, nested Polygon/Vertex, plus `g_modeler_65963c` in Video2. | `srModeler.h`. Polygon/Vertex sizes from SR ctor (`Vertex` `0x110`, Polygon writes through `+0x40`). `FUN_0048d080` (world-cursor hull) still unrecovered. |
+| `srShader` | Very high, used in particles, surfaces, meshes, levels, path rendering and the pipeline. | `srShader.h`. Remains an `unsigned long` value; no SR export names the bits. |
+| `srPixelConvert` | High. Video2 creates surfaces from its formats. | `srPixelConvert.h`. |
+| `srDD` / `srDebugDD` | Low. Video2 builds `srDD_%s` and calls `srGERD::loadDevice`; Wizardry never consumes the returned `srDD`. | Recover pieces only when they explain a Wizardry-facing `srGERD` operation. |
+| `srModelIOManager` / `srHierarchyIOManager` | Currently low. Only `srCore` exposes them; no Wizardry calls to the getters. | Defer. `getSurfaceIOManager` **is** imported and used (`Function4229E0`). |
+| `srVideoManager` | Currently low. Wizardry's recovered movie path uses Bink through `W8BinkVideo`. | Defer. |
+| `srEnvironmentMapper`, `srTriangulator`, exponent tables | No Wizardry path. Environment mapper appears only in provider vtable evidence. | Do not recover for completeness. |
 
 `srCore` still forward-declares `srHierarchyIOManager`, `srModelIOManager` and `srVideoManager`.
-Those forwards are honest until allocation sizes exist. Nested `srDD::*` names are similarly real
+Those forwards are honest until a Wiz8 consumer exists. Nested `srDD::*` names are similarly real
 and still incomplete: `srDD.h` remains the driver-factory surface, not the recovered device class.
 
 ## The Wizardry side derives from these classes

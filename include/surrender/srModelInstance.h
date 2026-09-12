@@ -1,17 +1,19 @@
 #pragma once
 
-#include "srMeshModel.h"
+#include "srModel.h"
 #include "srNode.h"
 
-class SR_DLL_IMPORT srModelInstance
-    : public srClassSupport<srModelInstance, srNode, 0, 0x1100>,
-      public srModel::Client {
+class SR_DLL_IMPORT srModelInstance : public srClassSupport<srModelInstance, srNode, 0, 0x1100>,
+                                      public srModel::Client {
 public:
     srModelInstance(srNode* parent);
     srModelInstance(const srModelInstance& other);
     srModelInstance& operator=(const srModelInstance& other);
 
-    static const char* sGetClassName() { return "srModelInstance"; }
+    static const char* sGetClassName()
+    {
+        return "srModelInstance";
+    }
 
     virtual void dump(std::ostream& stream) override;
     virtual srClass* vInstance() override;
@@ -20,10 +22,12 @@ public:
     virtual void getLocalBounds(BoundInfo& bounds) override;
     virtual void updateClient(srModel::Client::e_update update) override;
 
-    void assignModel(srModel* model) {
+    void assignModel(srModel* model)
+    {
         static_cast<srModel::Client*>(this)->setModel(model);
     }
-    srModel* model() const {
+    srModel* model() const
+    {
         return static_cast<const srModel::Client*>(this)->getModel();
     }
 

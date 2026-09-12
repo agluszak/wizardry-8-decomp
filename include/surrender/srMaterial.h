@@ -1,5 +1,6 @@
 #pragma once
 
+#include "srMaterialIFace.h"
 #include "srMath.h"
 #include "srTypeRegistry.h"
 #include "srVertexProcessor.h"
@@ -12,20 +13,9 @@ class srVertexPipe;
    slots 0, 1, 2 and 5 with a class-name getter, a class-id getter, a registry
    walk and a destructor - which is srClass's declaration order exactly.
 
-   srMaterialIFace is the 0x2200 node the registry tree puts between srClass and
-   srMaterial's 0x2210; nothing observed adds a slot there, so it carries none.
-
    Two parameter types are simplified and neither moves a slot:
    getMaterialInfo really takes srVertexProcessor::MaterialInfo&. */
-class SR_DLL_IMPORT srMaterialIFace
-    : public srClassSupport<srMaterialIFace, srClass, true, 0x2200> {
-public:
-    static const char* sGetClassName();
-
-};
-
-class SR_DLL_IMPORT srMaterial
-    : public srClassSupport<srMaterial, srMaterialIFace, 0, 0x2210> {
+class SR_DLL_IMPORT srMaterial : public srClassSupport<srMaterial, srMaterialIFace, 0, 0x2210> {
 public:
     enum e_oper {};
 
@@ -96,17 +86,16 @@ public:
     void setTranslucency(double translucency);
 
 protected:
-    void setVector(srVector4T<float>& destination,
-                   const srVector4T<float>& source);
+    void setVector(srVector4T<float>& destination, const srVector4T<float>& source);
 
 public:
     /* ReadLevel.cpp directly edits cloned material parameters before setting
        dirty_74. The original SurRender declaration therefore exposed this
        state to clients; keeping it protected would force a fabricated wrapper. */
     srVertexProcessor::MaterialInfo parms_18; /* 0x18 */
-    srFlags<e_oper> operations_6c;             /* 0x6c */
-    srVertexProcessor* mapper_70;              /* 0x70 */
-    int dirty_74;                              /* 0x74 */
+    srFlags<e_oper> operations_6c;            /* 0x6c */
+    srVertexProcessor* mapper_70;             /* 0x70 */
+    int dirty_74;                             /* 0x74 */
 };
 
 static_assert((sizeof(srMaterial) == 0x78), "srMaterial_must_be_0x78");

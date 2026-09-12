@@ -1,8 +1,10 @@
 #pragma once
 
 #include "srArray.h"
+#include "srMaterialIFace.h"
 #include "srMath.h"
-#include "srMeshModel.h"
+#include "srShader.h"
+#include "srTextureIFace.h"
 #include "srVertexProcessor.h"
 
 class srGERD;
@@ -22,10 +24,7 @@ class srMaterialIFace;
 class srTriMeshPipeline {
 public:
     struct Record {
-        inline Record()
-            : flags_00(0), value_04(0), value_0c(0), value_10(2)
-        {
-        }
+        inline Record() : flags_00(0), value_04(0), value_0c(0), value_10(2) {}
 
         unsigned long flags_00;
         unsigned long value_04;
@@ -127,5 +126,4 @@ private:
 };
 #pragma pack(pop)
 
-static_assert(sizeof(srTriMeshPipeline) == 0xac,
-              "srTriMeshPipeline_must_be_0xac");
+static_assert(sizeof(srTriMeshPipeline) == 0xac, "srTriMeshPipeline_must_be_0xac");

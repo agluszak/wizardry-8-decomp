@@ -1,7 +1,9 @@
 #pragma once
 
-#include "surrender/srMeshModel.h"
+#include "surrender/srMaterialIFace.h"
 #include "surrender/srScene.h"
+#include "surrender/srShader.h"
+#include "surrender/srTextureIFace.h"
 
 class W8MonsterShakeCallback;
 class srGERD;

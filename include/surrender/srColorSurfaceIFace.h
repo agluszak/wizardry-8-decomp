@@ -1,0 +1,158 @@
+#pragma once
+
+#include "srARGB.h"
+#include "srFilter.h"
+#include "srMath.h"
+#include "srPixelConvert.h"
+#include "srPtr.h"
+#include "srStat.h"
+#include "srTypeRegistry.h"
+
+class srPalette;
+
+class srColorSurfaceIFace : public srClassSupport<srColorSurfaceIFace, srClass, true, 0x3100> {
+public:
+    struct Rectangle {
+        long left;
+        long top;
+        long right;
+        long bottom;
+    };
+
+    struct BlitInfo {
+        unsigned long words[8];
+    };
+
+    struct SurfaceDesc {
+        unsigned long width;
+        unsigned long height;
+        unsigned long pitch;
+        unsigned long clamp_modes;
+        srFilter* filter;
+        srPixelConvert::PixelFormat pixel_format;
+    };
+
+    SR_DLL_IMPORT srColorSurfaceIFace();
+    SR_DLL_IMPORT srColorSurfaceIFace(const srColorSurfaceIFace& other);
+
+    static SR_DLL_IMPORT const char* sGetClassName();
+
+    virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
+    virtual SR_DLL_IMPORT ~srColorSurfaceIFace() override;
+    virtual SR_DLL_IMPORT unsigned long getPixel(long x, long y);
+    virtual SR_DLL_IMPORT void setPixel(long x, long y, unsigned long pixel);
+    virtual SR_DLL_IMPORT unsigned long getPixelRaw(long x, long y);
+    virtual SR_DLL_IMPORT void setPixelRaw(long x, long y, unsigned long pixel);
+    virtual SR_DLL_IMPORT void getPixels(unsigned long* pixels, const srVector2i* positions,
+                                         long count);
+    virtual SR_DLL_IMPORT void setPixels(const unsigned long* pixels, const srVector2i* positions,
+                                         long count);
+    virtual SR_DLL_IMPORT void getPixelsRaw(void* pixels, const srVector2i* positions, long count);
+    virtual SR_DLL_IMPORT void setPixelsRaw(const void* pixels, const srVector2i* positions,
+                                            long count);
+    virtual SR_DLL_IMPORT void getPixelColumn(unsigned long* pixels, long x, long y, long count);
+    virtual SR_DLL_IMPORT void setPixelColumn(const unsigned long* pixels, long x, long y,
+                                              long count);
+    virtual SR_DLL_IMPORT srPalette* getPalette();
+    virtual SR_DLL_IMPORT void setPalette(srPalette* palette);
+    virtual SR_DLL_IMPORT void* getDataPtr();
+    virtual SR_DLL_IMPORT long getDataSize();
+    virtual SR_DLL_IMPORT int resize(long width, long height);
+    virtual SR_DLL_IMPORT int rescale(long width, long height);
+    virtual SR_DLL_IMPORT int changePixelFormat(const srPixelConvert::PixelFormat& format,
+                                                int preserve);
+    virtual SR_DLL_IMPORT void fill(unsigned long pixel);
+    virtual SR_DLL_IMPORT void setHLine(long x, long y, long length, unsigned long pixel);
+    virtual SR_DLL_IMPORT void setVLine(long x, long y, long length, unsigned long pixel);
+    virtual SR_DLL_IMPORT void setLine(long x0, long y0, long x1, long y1, unsigned long pixel);
+    virtual SR_DLL_IMPORT void composite(long x, long y, srColorSurfaceIFace& source, long source_x,
+                                         long source_y, long width, long height, double alpha);
+    virtual SR_DLL_IMPORT void blit(long x, long y, srColorSurfaceIFace& source, long source_x,
+                                    long source_y, long width, long height);
+    virtual SR_DLL_IMPORT void blit(const BlitInfo& info, srColorSurfaceIFace& source);
+    virtual SR_DLL_IMPORT void copy(srColorSurfaceIFace& source);
+    virtual SR_DLL_IMPORT void swapPixelRows(long x, long y0, long y1, long width, long rows);
+    virtual SR_DLL_IMPORT void flipRectangle(const Rectangle& rectangle);
+    virtual SR_DLL_IMPORT void adjust(const srVector4T<float>& scale,
+                                      const srVector4T<float>& offset,
+                                      const srVector4T<float>& gamma);
+    virtual SR_DLL_IMPORT void adjustSaturation(double saturation);
+    virtual SR_DLL_IMPORT void getChannelStatistics(srStat& statistics, srARGB::e_index channel);
+    virtual SR_DLL_IMPORT void remapPixels(const srARGB& from, const srARGB& to);
+    virtual SR_DLL_IMPORT void copyColorChannel(srARGB::e_index destination,
+                                                srARGB::e_index source);
+    virtual SR_DLL_IMPORT void flipColorChannels(srARGB::e_index first, srARGB::e_index second);
+    virtual void getPixelRow(unsigned long* pixels, long x, long y, long count) = 0;
+    virtual void setPixelRow(const unsigned long* pixels, long x, long y, long count) = 0;
+    virtual void getPixelRowRaw(void* pixels, long x, long y, long count) = 0;
+    virtual void setPixelRowRaw(const void* pixels, long x, long y, long count) = 0;
+
+    SR_DLL_IMPORT void addNoise(double amplitude, int monochrome);
+    SR_DLL_IMPORT void clampCoordinates(long& x, long& y);
+    SR_DLL_IMPORT void flipHorizontal();
+    SR_DLL_IMPORT void flipVertical();
+    SR_DLL_IMPORT unsigned long getAlphaBits() const;
+    SR_DLL_IMPORT double getAspectRatio() const;
+    SR_DLL_IMPORT long getBitsPerPixel() const;
+    SR_DLL_IMPORT long getBlueBits() const;
+    SR_DLL_IMPORT long getBytesPerPixel() const;
+    SR_DLL_IMPORT long getClampedX(long x) const;
+    SR_DLL_IMPORT long getClampedY(long y) const;
+    SR_DLL_IMPORT srFilter* getFilter() const;
+    SR_DLL_IMPORT long getGreenBits() const;
+    SR_DLL_IMPORT int getHClampMode() const;
+    long getHeight() const
+    {
+        return height_20;
+    }
+    long getPitch() const
+    {
+        return pitch_24;
+    }
+    void getPixelFormat(srPixelConvert::PixelFormat& format) const
+    {
+        format = pixel_format_30;
+    }
+    SR_DLL_IMPORT long getRedBits() const;
+    SR_DLL_IMPORT void getSurfaceDesc(SurfaceDesc& description) const;
+    SR_DLL_IMPORT int getVClampMode() const;
+    long getWidth() const
+    {
+        return width_1c;
+    }
+    SR_DLL_IMPORT int isAlpha() const;
+    SR_DLL_IMPORT int isPaletted() const;
+    SR_DLL_IMPORT void rotate180();
+    void setFilter(srFilter* filter)
+    {
+        filter_2c = filter;
+    }
+    SR_DLL_IMPORT void setHClampMode(int enabled);
+    SR_DLL_IMPORT void setVClampMode(int enabled);
+
+protected:
+    virtual SR_DLL_IMPORT void copyNoScaling(srColorSurfaceIFace& source);
+    virtual SR_DLL_IMPORT void scaleHorizontal(srColorSurfaceIFace& source);
+    virtual SR_DLL_IMPORT void scaleVertical(srColorSurfaceIFace& source);
+    virtual SR_DLL_IMPORT void scaleFast(srColorSurfaceIFace& source);
+    virtual SR_DLL_IMPORT void scale(srColorSurfaceIFace& source);
+    virtual SR_DLL_IMPORT void magnify(srColorSurfaceIFace& source);
+    virtual SR_DLL_IMPORT void minify(srColorSurfaceIFace& source);
+
+    SR_DLL_IMPORT void copySurfaceParameters(const srColorSurfaceIFace& source);
+    SR_DLL_IMPORT const srPixelConvert::PixelFormat* getPixelFormat() const;
+    SR_DLL_IMPORT int isPixelFormatCompatible(const srColorSurfaceIFace& source) const;
+    SR_DLL_IMPORT void setSurfaceDesc(const SurfaceDesc& description);
+
+    unsigned char unknown_18_[0x04];
+    unsigned long width_1c;
+    unsigned long height_20;
+    long pitch_24;
+    unsigned long clamp_modes_28;
+    srFilter* filter_2c;
+    srPixelConvert::PixelFormat pixel_format_30;
+};
+
+static_assert(sizeof(srColorSurfaceIFace) == 0x44, "srColorSurfaceIFace_must_be_0x44");
+
+static_assert((sizeof(srColorSurfaceIFace::SurfaceDesc) == 0x28), "srSurfaceDesc_must_be_0x28");

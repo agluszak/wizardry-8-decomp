@@ -1,12 +1,20 @@
 #pragma once
 
+#include "surrender/srColorSurface.h"
 #include "surrender/srTexture.h"
 
 class stTextureFile;
 
-/* Wizardry's virtual-file-backed texture. The method names are corroborated
-   by the same 17-slot srTextureFile surface exported from SR.DLL; the distinct
-   stTextureFile class name, class id and bodies are owned by the executable. */
+/* Wizardry's virtual-file-backed texture. SR.DLL exports a parallel
+   srTextureFile (id 0x2112) whose 17-slot vtable is:
+
+   0-2 class identity, 3 dump, 4 verify, 5 dtor, 6 vInstance, 7 clone,
+   8 getTextureFrameHandle, 9 getPriority, 10 getDimensions, 11 getMipmapData,
+   12 getMipmapLevelPartial, 13 getTextureParms, 14 getTextureName,
+   15 invalidate, 16 setupDefaultValues.
+
+   stTextureFile overrides the same slots SR overrides. Fields at +0x54..+0x60
+   match SR; has_alpha_64 is Wizardry-only (SR sizeof 0x64). */
 class stTextureFile : public srClassSupport<stTextureFile, srTexture, 0, 0x10001> {
 public:
     static const char* sGetClassName()
