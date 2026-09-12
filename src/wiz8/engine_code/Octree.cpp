@@ -3,6 +3,7 @@
 #include <io.h>
 #include <sys/stat.h>
 
+#include "surrender/srCamera.h"
 #include "surrender/srHeap.h"
 #include "surrender/srMath.h"
 #include "surrender/srScene.h"

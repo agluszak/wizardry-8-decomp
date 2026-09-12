@@ -150,8 +150,9 @@ palette APIs take `srARGB*` as a color array. The SR bodies settle a 4-byte pack
 Memory order is therefore B, G, R, A (little-endian `0xAARRGGBB`). `e_index` is the logical ARGB
 channel. `getChannelStatistics` at `0x10059240` reads byte `(3 - channel)` of each packed pixel, so
 `INDEX_ALPHA` is offset 3 and `INDEX_BLUE` is offset 0. That function also fills `srStat`: sample
-count at `+0x00`, mean double at `+0x08`, standard deviation at `+0x10`, median at `+0x18`, min/max
-bins at `+0x1c` / `+0x20` (`sizeof` `0x24`).
+count at `+0x00`, unused alignment hole at `+0x04`, mean double at `+0x08`, standard deviation at
+`+0x10`, median at `+0x18`, min/max bins at `+0x1c` / `+0x20` (`sizeof` `0x24`; pack 4 so the
+trailing longs are not padded to 0x28).
 
 `srCamera` was already recovered (0x188, view plane, FOV, clip and environment ranges) but lived at
 the bottom of `srScene.h`. It now has `srCamera.h`. `srPixelConvert` stays with the color-surface

@@ -51,6 +51,7 @@ int g_value_659c14;
 #include "wiz8/targeting.h"
 #include "wiz8/utility.h"
 #include "wiz8/virtual_file.h"
+#include "surrender/srCamera.h"
 #include "surrender/srTimer.h"
 #include "surrender/srScene.h"
 #include "surrender/srModelInstance.h"

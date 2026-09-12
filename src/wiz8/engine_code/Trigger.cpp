@@ -47,6 +47,7 @@
 #include "Random.h"
 #include "DEBUG.H"
 #include "FileMan.h"
+#include "surrender/srCamera.h"
 #include "surrender/srCore.h"
 #include "surrender/srMath.h"
 #include "surrender/srScene.h"
