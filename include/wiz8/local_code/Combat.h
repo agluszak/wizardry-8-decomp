@@ -28,7 +28,7 @@ void Function4ECC80(W8TargetSource* source, W8CombatSlot* target);              
 void Function537540(int party_slot);                                             /* 0x00537540 */
 void Function4EA5C0(int party_slot);                                             /* 0x004EA5C0 */
 void Function4E7EE0(int party_slot, int action, int detail, const void* data, int arg_5,
-                    char notify);                           /* 0x004E7EE0 */
+                    int notify);                           /* 0x004E7EE0 */
 void Function52E5C0(int event, int a, int b, int argument); /* 0x0052E5C0 */
 extern int g_special_event_0068c50c;                        /* 0x0068C50C */
 int GetSelectedOrFallbackValue0059E0D0(void);               /* 0x0059E0D0 */
