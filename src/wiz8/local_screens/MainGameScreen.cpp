@@ -2031,7 +2031,7 @@ render_world:
             g_level_block->refresh_combat_panel = 0;
         }
         if (gXStatus.iTargetingMode == 4) {
-            Function53B310();
+            RefreshSpellTargetHighlightsAtRange();
         } else if (gXStatus.iTargetingMode == 3 && IsWorldCursorVisible()) {
             Function53B1D0();
         } else if (gXStatus.iTargetingMode != 5 && g_level_block->refresh_party_panel) {

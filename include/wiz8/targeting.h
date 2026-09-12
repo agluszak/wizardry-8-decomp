@@ -149,7 +149,8 @@ void RefreshAllPartyTargets0053BF80(void);
 unsigned char Function536570(int party_slot, W8TargetingContext context, int arg);
 /* 0x005387F0 */
 void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context);
-void Function53A930(int party_slot, W8CombatSlot* target);
+void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target);
+void HighlightSpellTargetsAtCachedPosition(void);
 int Function53C990(int party_slot, int group_id, int arg);
 void SetFactionFlag(char faction, unsigned char flag);
 unsigned char ShowMonsterTargetMarker(W8MonsterInfo* monster_info);
@@ -191,7 +192,7 @@ unsigned char Function536F60(int party_slot, int value,
 void Function5398D0(void);
 unsigned char Function53A1D0(void);
 void Function53B1D0(void);
-void Function53B310(void);
+void RefreshSpellTargetHighlightsAtRange(void);
 void PopulateTargetMarkerForCurrentAction(const srVector3T<float>* position,
                                           W8GrowableVector<int>* marker_vector, int enabled);
 unsigned char TargetIsInPlay(int party_slot, int arg_2, int arg_3); /* 0x00536F60 */

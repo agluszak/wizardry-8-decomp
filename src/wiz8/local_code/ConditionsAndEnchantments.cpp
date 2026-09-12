@@ -137,7 +137,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
             character->hp_current != 0 && character->highest_condition < 0xd &&
             gXStatus.fCombatMode != 0 &&
             CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) != 0) {
-            Function53A930(party_slot, &row->target_in_combat);
+            RefreshCombatTargetHighlights(party_slot, &row->target_in_combat);
         }
     }
 }
