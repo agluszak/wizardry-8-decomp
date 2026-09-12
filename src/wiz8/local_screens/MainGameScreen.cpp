@@ -364,9 +364,9 @@ void W8MainGameTextKeyHandler::OnRangeChanged(W8RangeControl* control)
 }
 
 // FUNCTION: WIZ8 0x00588260
-W8MainGameTextEntry::W8MainGameTextEntry(Controls* panel, unsigned int index)
+W8MainGameTextEntry::W8MainGameTextEntry(Controls* panel, int index)
 {
-    int sprites = (int)(index * 4);
+    int sprites = index * 4;
     int left;
     int top;
 
@@ -380,8 +380,8 @@ W8MainGameTextEntry::W8MainGameTextEntry(Controls* panel, unsigned int index)
     m_alternateNormalSprite = sprites + 1;
     m_disabledSprite = sprites + 3;
     MeasureText004F4800();
-    left = (int)(index % 4) * 0x1e + 0xd;
-    top = (int)(index / 4) * 0x32 + 8;
+    left = (index % 4) * 0x1e + 0xd;
+    top = (index / 4) * 0x32 + 8;
     m_left = left;
     m_right = m_measured_w + left;
     m_bottom = m_measured_h + top;
@@ -401,6 +401,8 @@ void W8MainGameTextEntry::Redraw(int full_redraw)
 {
     bool dirty = m_dirty;
     int image;
+    int left;
+    int top;
 
     W8TextControl::Redraw(full_redraw);
     if (!m_active) {
@@ -410,15 +412,14 @@ void W8MainGameTextEntry::Redraw(int full_redraw)
         return;
     }
     image = m_image_b8;
+    left = m_pPanel->origin_x + m_left;
+    top = m_pPanel->origin_y + m_top;
     if (image == 0) {
-        DrawCatalogImage(-14, 0x1b3, 0, 2, m_pPanel->origin_x + m_left, m_pPanel->origin_y + m_top,
-                         2, 0);
+        DrawCatalogImage(-14, 0x1b3, 0, 2, left, top, 2, 0);
     } else if (image == 1) {
-        DrawCatalogImage(-14, 0x1b3, 0, 0, m_pPanel->origin_x + m_left, m_pPanel->origin_y + m_top,
-                         2, 0);
+        DrawCatalogImage(-14, 0x1b3, 0, 0, left, top, 2, 0);
     } else if (image == 2) {
-        DrawCatalogImage(-14, 0x1b3, 0, 1, m_pPanel->origin_x + m_left, m_pPanel->origin_y + m_top,
-                         2, 0);
+        DrawCatalogImage(-14, 0x1b3, 0, 1, left, top, 2, 0);
     }
 }
 
@@ -480,7 +481,8 @@ W8MainGameTextPanel::W8MainGameTextPanel()
     SetEnabled(1);
     Invalidate(0);
     for (index = 0; index < 8; ++index) {
-        if ((m_entries_054[index]->m_stateFlags & g_W8TextControlMask005ED570) == 0) {
+        if ((static_cast<unsigned char>(m_entries_054[index]->m_stateFlags) &
+             g_W8TextControlMask005ED570) == 0) {
             m_entries_054[index]->SetEnabled(GetTable650434Entry(m_selection_078, index) != 0);
             m_entries_054[index]->Invalidate(0);
         }
@@ -567,19 +569,20 @@ void W8MainGameTextPanel::OnRangeChanged(W8RangeControl* control)
 {
     int column;
     int* values;
+    int selection = m_key_handler_074->m_field_0b0;
 
-    m_selection_078 = m_key_handler_074->m_field_0b0;
     (void)control;
+    m_selection_078 = selection;
     for (column = 0; column < 8; ++column) {
-        if ((m_entries_054[column]->m_stateFlags & g_W8TextControlMask005ED570) == 0) {
-            m_entries_054[column]->SetEnabled(GetTable650434Entry(m_selection_078, column) != 0);
+        if ((static_cast<unsigned char>(m_entries_054[column]->m_stateFlags) &
+             g_W8TextControlMask005ED570) == 0) {
+            m_entries_054[column]->SetEnabled(GetTable650434Entry(selection, column) != 0);
             m_entries_054[column]->Invalidate(0);
         }
     }
     values = m_values_080;
     for (column = 0; column < 8; ++column) {
-        if (values == 0 ||
-            (values[column] == 0 && GetTable650434Entry(m_selection_078, column) == 0)) {
+        if (values == 0 || (values[column] == 0 && GetTable650434Entry(selection, column) == 0)) {
             m_entries_054[column]->m_image_b8 = -1;
         } else {
             m_entries_054[column]->m_image_b8 = values[column];
@@ -837,7 +840,8 @@ void W8MainGameScreen::SelectTextEntry(int index)
     m_text_panel_00c->m_timer_094.SetDuration(hold);
     m_text_panel_00c->m_timer_094.Restart();
     for (i = 0; i < 8; ++i) {
-        if ((m_text_panel_00c->m_entries_054[i]->m_stateFlags & g_W8TextControlMask005ED570) == 0) {
+        if ((static_cast<unsigned char>(m_text_panel_00c->m_entries_054[i]->m_stateFlags) &
+             g_W8TextControlMask005ED570) == 0) {
             m_text_panel_00c->m_entries_054[i]->m_input_blocked_bc = 1;
         }
     }
@@ -913,7 +917,8 @@ void W8MainGameScreen::OnPrimary(W8TextControl* control)
     m_text_panel_00c->m_timer_094.SetDuration(hold);
     m_text_panel_00c->m_timer_094.Restart();
     for (i = 0; i < 8; ++i) {
-        if ((m_text_panel_00c->m_entries_054[i]->m_stateFlags & g_W8TextControlMask005ED570) == 0) {
+        if ((static_cast<unsigned char>(m_text_panel_00c->m_entries_054[i]->m_stateFlags) &
+             g_W8TextControlMask005ED570) == 0) {
             m_text_panel_00c->m_entries_054[i]->m_input_blocked_bc = 1;
         }
     }
@@ -933,7 +938,8 @@ void W8MainGameScreen::RefreshActionPanel()
 
     m_action_controls_020[4]->SetEnabled(skill >= 0);
     for (i = 0; i < 8; ++i) {
-        if ((m_text_panel_00c->m_entries_054[i]->m_stateFlags & g_W8TextControlMask005ED570) == 0) {
+        if ((static_cast<unsigned char>(m_text_panel_00c->m_entries_054[i]->m_stateFlags) &
+             g_W8TextControlMask005ED570) == 0) {
             m_text_panel_00c->m_entries_054[i]->m_input_blocked_bc = skill < 0;
         }
     }

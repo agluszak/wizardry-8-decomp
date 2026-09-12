@@ -214,7 +214,7 @@ static_assert(sizeof(W8MainGameTextKeyHandler) == 0xc0, "W8MainGameTextKeyHandle
 // VTABLE: WIZ8 0x005eeb4c
 class W8MainGameTextEntry : public W8TextControl {
 public:
-    W8MainGameTextEntry(Controls* panel, unsigned int index);
+    W8MainGameTextEntry(Controls* panel, int index);
     virtual ~W8MainGameTextEntry() override;
     virtual void Redraw(int full_redraw) override;
     virtual void OnMouseEnter(int event) override;
