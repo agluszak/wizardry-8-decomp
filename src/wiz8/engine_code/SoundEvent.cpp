@@ -189,9 +189,10 @@ unsigned char W8SoundEvent::Play004D5A10(unsigned int mask, const srVector3T<flo
 
         srVector3T<float> offset(position->x - camera_position.x, position->y - camera_position.y,
                                  position->z - camera_position.z);
-        float x = DotProduct(rotation.vectors[0], offset);
-        float y = DotProduct(rotation.vectors[1], offset);
-        float z = DotProduct(rotation.vectors[2], offset);
+        srVector3T<float> transformed = rotation.Transform(offset);
+        float x = transformed.x;
+        float y = transformed.y;
+        float z = transformed.z;
         SOUND3DPARMS options;
 
         memset(&options, 0xff, sizeof(options));

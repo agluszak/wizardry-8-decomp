@@ -277,10 +277,10 @@ void GDCamera::ApplyRotationMatrix(srMatrix3T<float>* rotation, W8LevelDataRecor
         }
         pitch = (float)acos((double)forward_y) - g_camera_half_pi_005ec3fc;
 
-        float horizontal_scale =
-            g_float_005ebb38 / (float)sqrt((double)(forward_x * forward_x + forward_z * forward_z));
-        forward_x *= horizontal_scale;
-        forward_z *= horizontal_scale;
+        srVector2T<float> horizontal(forward_x, forward_z);
+        horizontal *= g_float_005ebb38 / horizontal.Length();
+        forward_x = horizontal.x;
+        forward_z = horizontal.y;
         if (forward_z > g_float_005ebb38) {
             forward_z = g_float_005ebb38;
         } else if (forward_z < g_negative_one_005ebc38) {
@@ -1001,14 +1001,7 @@ void GDCamera::GetForwardPoint(float distance, srVector3T<float>* output)
     m_rotation = m_yaw_rotation;
     m_rotation.MultiplyBy(m_pitch_rotation);
     m_direction_078.Set(0.0f, 0.0f, 1.0f);
-    float x = m_rotation.vectors[0].x * m_direction_078.x +
-              m_rotation.vectors[0].y * m_direction_078.y +
-              m_rotation.vectors[0].z * m_direction_078.z;
-    float y = m_rotation.vectors[1].x * m_direction_078.x +
-              m_rotation.vectors[1].y * m_direction_078.y +
-              m_rotation.vectors[1].z * m_direction_078.z;
-    float z = DotProduct(m_rotation.vectors[2], m_direction_078);
-    m_direction_078.Set(x, y, z);
+    m_direction_078.Transform(m_rotation);
     *output = m_direction_078;
     output->SetLength(distance);
     *output += m_position_08c;

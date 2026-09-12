@@ -557,55 +557,11 @@ unsigned char PointInsideFrustum0046D880(const srVector3T<float>* point,
     return 1;
 }
 
-/* Same Newell+centroid helper as BuildTrianglePlane00449A40. Retail copies
-   the three points with a 3-iteration component loop, then uses an int
-   countdown for the cyclic sum; those are this TU's lowering of the same
-   assignments and short-index Newell loop. */
+/* Header-visible SetPlaneFromThreePoints. This TU lowers the three-point
+   copy as a component countdown; 0x00449A40 unrolls the same assignments. */
 // FUNCTION: WIZ8 0x0046d660
 void BuildPlaneFromPoints0046D660(srVector4T<float>* plane, const srVector3T<float>* first,
                                   const srVector3T<float>* second, const srVector3T<float>* third)
 {
-    float* values = &plane->x;
-    srVector3T<float> vertices[3];
-    float* dst = &vertices[0].x;
-    const float* a = &first->x;
-    const float* b = &second->x;
-    const float* c = &third->x;
-    short index = 2;
-    int component;
-
-    for (component = 0; component != 3; ++component) {
-        dst[component] = a[component];
-        dst[component + 3] = b[component];
-        dst[component + 6] = c[component];
-    }
-    values[0] = 0.0f;
-    values[1] = 0.0f;
-    values[2] = 0.0f;
-    values[3] = 0.0f;
-
-    do {
-        short next = (short)((index - 1) % 3);
-        short following = (short)(index % 3);
-        srVector3T<float>& vertex = vertices[index - 2];
-
-        values[0] += vertex.y * (vertices[next].z - vertices[following].z);
-        values[1] += vertex.z * (vertices[next].x - vertices[following].x);
-        values[2] += vertex.x * (vertices[next].y - vertices[following].y);
-        ++index;
-    } while ((short)(index - 2) < 3);
-
-    float scale = g_float_005ebb38 / (float)sqrt(values[0] * values[0] + values[1] * values[1] +
-                                                 values[2] * values[2]);
-    values[0] *= scale;
-    values[1] *= scale;
-    values[2] *= scale;
-
-    float distances[3];
-    for (int vertex_index = 0; vertex_index != 3; ++vertex_index) {
-        distances[vertex_index] = values[0] * vertices[vertex_index].x +
-                                  values[1] * vertices[vertex_index].y +
-                                  values[2] * vertices[vertex_index].z;
-    }
-    values[3] = (distances[0] + distances[1] + distances[2]) * g_float_005ec1a8;
+    SetPlaneFromThreePoints(&plane->x, first, second, third);
 }

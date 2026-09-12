@@ -787,7 +787,6 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             srVector3T<float> second;
             srVector3T<float> third;
             srVector3T<float> transformed;
-            float length;
             double angle = -1.5707963267948966;
 
             rotation.vectors[0].Set(1.0, 0.0, 0.0);
@@ -803,13 +802,8 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             adjustment.SetRows(first, second, third);
             rotation.MultiplyBy(adjustment);
             direction.Set(0.0, 0.0, -1.0);
-            transformed.x = DotProduct(rotation.vectors[0], direction);
-            transformed.y = DotProduct(rotation.vectors[1], direction);
-            transformed.z = DotProduct(rotation.vectors[2], direction);
-            length = transformed.Length();
-            if (length != 0.0f) {
-                transformed /= length;
-            }
+            transformed = rotation.Transform(direction);
+            transformed.Unitize();
             particle->value_1b8 = 1;
             particle->direction_1e8 = transformed;
         } else if (record.direction_mode == 2) {

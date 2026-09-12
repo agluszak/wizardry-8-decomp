@@ -13,6 +13,8 @@
  * primary templates. They do not establish separately authored float
  * specializations.
  */
+template <class T> class srMatrix3T;
+
 template <class T> class srVector2T {
 public:
     srVector2T<T>() {}
@@ -43,9 +45,10 @@ public:
         return *this;
     }
 
-    /* Guarded XZ/2D unitize. Independent TUs: GDCamera SnapToTarget/LookAt
-       (ungated 1/Length after the 3D unitize) and OctPath 0x0045aac0 /
-       0x0045ef90 / 0x0045BE30 (guarded reciprocal-sqrt). No Wiz8 COMDAT. */
+    /* Guarded XZ/2D unitize via reciprocal-sqrt. Independent TUs: OctPath
+       0x0045aac0 / 0x0045ef90 / 0x0045BE30. GDCamera SnapToTarget/LookAt and
+       ApplyRotationMatrix use a different unguarded 1/Length form and stay
+       as Length() then *=. No Wiz8 COMDAT. */
     srVector2T<T>* Normalize()
     {
         T length_squared = x * x + y * y;
@@ -111,6 +114,8 @@ public:
     srVector3T<T>* RotateAboutZ(double sine, double cosine);
     srVector3T<T>* Normalize();
     srVector3T<T>* SetLength(double length);
+    srVector3T<T>* Unitize();
+    srVector3T<T>& Transform(const srMatrix3T<T>& matrix);
 
     T x;
     T y;
@@ -199,6 +204,17 @@ template <class T> srVector3T<T>* srVector3T<T>::SetLength(double length)
     return this;
 }
 
+/* Length(); if != 0; /=. Distinct from the reciprocal-sqrt Normalize().
+   ReadLevel 0x004BD0D0 is the recovered site. Original spelling unknown. */
+template <class T> srVector3T<T>* srVector3T<T>::Unitize()
+{
+    T length = Length();
+    if (length != (T)0) {
+        *this /= length;
+    }
+    return this;
+}
+
 // TEMPLATE: WIZ8 0x00421700
 template <class T> T srVector3T<T>::Length() const
 {
@@ -244,11 +260,6 @@ template <class T> T DotProduct(const srVector3T<T>& first, const srVector3T<T>&
 {
     return first.x * second.x + first.y * second.y + first.z * second.z;
 }
-
-/* Matrix×vector as operator*(matrix, vector) and void Transform(in, out)
-   were trialed at SoundEvent, Spells, Environment, and ReadLevel. Neither
-   return-by-value nor the out-parameter improved two independent TUs;
-   call sites keep the three row DotProduct expansions. */
 
 /* Ordinary edge×edge cross. OctPath GetPathSurfaceNormal 0x0045b730 expands
    this; the Newell cyclic sum in the plane builders is a different helper. */
@@ -344,6 +355,7 @@ public:
     srMatrix3T<T>* RotateAboutX(double sine, double cosine);
     srMatrix3T<T>* RotateAboutZ(double sine, double cosine);
     srMatrix3T<T>* RotateAroundAxis(double sine, double cosine, const srVector3T<T>& axis);
+    srVector3T<T> Transform(const srVector3T<T>& value) const;
 
     srVector3T<T> vectors[3];
 };
@@ -491,6 +503,37 @@ srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double sine, double cosine,
     return this;
 }
 
+/* Row-wise matrix×vector: out.i = DotProduct(row_i, value). Independent TUs:
+   SoundEvent 0x004d5a10, Spells, Environment 0x00482a20, ReadLevel 0x004BD0D0,
+   OctPath, Trigger, stParticle, GrCycle, GDCamera GetForwardPoint 0x00478CE0.
+   Return-by-value Transform is the adopted ABI; operator* and void
+   Transform(in, out) were trialed and did not match the surrounding stores.
+   No Wiz8 COMDAT; header-visible inlining is the retail shape. Partial row-0
+   multiply-add vs DotProduct on rows 1/2 is inlining/scheduling, not a
+   different helper. */
+template <class T> srVector3T<T> srMatrix3T<T>::Transform(const srVector3T<T>& value) const
+{
+    srVector3T<T> result;
+    result.x = DotProduct(vectors[0], value);
+    result.y = DotProduct(vectors[1], value);
+    result.z = DotProduct(vectors[2], value);
+    return result;
+}
+
+/* In-place vector×matrix: *this = matrix.Transform(*this). GetForwardPoint
+   0x00478CE0 overwrites m_direction_078 this way. Same row DotProduct body
+   as srMatrix3T::Transform. */
+template <class T> srVector3T<T>& srVector3T<T>::Transform(const srMatrix3T<T>& matrix)
+{
+    T x = DotProduct(matrix.vectors[0], *this);
+    T y = DotProduct(matrix.vectors[1], *this);
+    T z = DotProduct(matrix.vectors[2], *this);
+    this->x = x;
+    this->y = y;
+    this->z = z;
+    return *this;
+}
+
 template <class T> class srMatrix4T {
 public:
     /* classifyMatrix on the model-view stack writes these from the 3x3
@@ -505,10 +548,13 @@ public:
     T* Scale(double scale);
     void AdjugateFrom(T* source);
     T Det() const;
+    srVector3T<T> TransformPoint(const srVector3T<T>& point) const;
+    srVector4T<T> Transform(const srVector3T<T>& point) const;
 
     srVector4T<T> vectors[4];
 };
 
+// TEMPLATE: WIZ8 0x0049BAB0
 template <class T> srMatrix4T<T>* srMatrix4T<T>::Invert()
 {
     srMatrix4T<T> inverse;
@@ -521,6 +567,33 @@ template <class T> srMatrix4T<T>* srMatrix4T<T>::Invert()
 
     *this = inverse;
     return this;
+}
+
+/* Affine point transform: dest.i = row_i.xyz·point + row_i.w. Independent
+   TUs: GDProp::Initialize 0x004b7060. Particle PrepareRenderer 0x00498DD0
+   and Update 0x00499FA0 use the four-component form (Transform) because
+   retail evaluates row 3. No Wiz8 COMDAT. */
+template <class T> srVector3T<T> srMatrix4T<T>::TransformPoint(const srVector3T<T>& point) const
+{
+    srVector3T<T> result;
+    result.x =
+        vectors[0].x * point.x + vectors[0].y * point.y + vectors[0].z * point.z + vectors[0].w;
+    result.y =
+        vectors[1].x * point.x + vectors[1].y * point.y + vectors[1].z * point.z + vectors[1].w;
+    result.z =
+        vectors[2].x * point.x + vectors[2].y * point.y + vectors[2].z * point.z + vectors[2].w;
+    return result;
+}
+
+template <class T> srVector4T<T> srMatrix4T<T>::Transform(const srVector3T<T>& point) const
+{
+    srVector4T<T> result;
+    result.Set(
+        vectors[0].x * point.x + vectors[0].y * point.y + vectors[0].z * point.z + vectors[0].w,
+        vectors[1].x * point.x + vectors[1].y * point.y + vectors[1].z * point.z + vectors[1].w,
+        vectors[2].x * point.x + vectors[2].y * point.y + vectors[2].z * point.z + vectors[2].w,
+        vectors[3].x * point.x + vectors[3].y * point.y + vectors[3].z * point.z + vectors[3].w);
+    return result;
 }
 
 template <class T> T* srMatrix4T<T>::Scale(double scale)

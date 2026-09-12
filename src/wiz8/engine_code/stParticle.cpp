@@ -350,10 +350,7 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
 
         srMatrix3T<float> rotation;
         getWorldSpaceRotation(rotation);
-        velocity.x = rotation.vectors[0].x * direction.x + rotation.vectors[0].y * direction.y +
-                     rotation.vectors[0].z * direction.z;
-        velocity.y = DotProduct(rotation.vectors[1], direction);
-        velocity.z = DotProduct(rotation.vectors[2], direction);
+        velocity = rotation.Transform(direction);
         break;
     }
 
@@ -512,9 +509,10 @@ void stParticle::Update00499FA0()
                     float z = candidate.z - node_location.z;
                     distance = sqrt(x * x + y * y + z * z);
                 } else {
-                    float center_x = DotProduct(rotation.vectors[0], value_234);
-                    float center_y = DotProduct(rotation.vectors[1], value_234);
-                    float center_z = DotProduct(rotation.vectors[2], value_234);
+                    srVector3T<float> rotated = rotation.Transform(value_234);
+                    float center_x = rotated.x;
+                    float center_y = rotated.y;
+                    float center_z = rotated.z;
                     srVector3T<float> center(center_x + node_location.x, center_y + node_location.y,
                                              center_z + node_location.z);
                     srVector3T<float> difference(candidate.x - center.x, candidate.y - center.y,
@@ -533,14 +531,7 @@ void stParticle::Update00499FA0()
                 srVector3T<float> local(candidate.x - node_location.x,
                                         candidate.y - node_location.y,
                                         candidate.z - node_location.z);
-                float* matrix = &transform.vectors[0].x;
-                srVector4T<float> transformed;
-                transformed.Set(
-                    local.x * matrix[0] + local.y * matrix[1] + local.z * matrix[2] + matrix[3],
-                    local.x * matrix[4] + local.y * matrix[5] + local.z * matrix[6] + matrix[7],
-                    local.x * matrix[8] + local.y * matrix[9] + local.z * matrix[10] + matrix[11],
-                    local.x * matrix[12] + local.y * matrix[13] + local.z * matrix[14] +
-                        matrix[15]);
+                srVector4T<float> transformed = transform.Transform(local);
                 srVector3T<float> local_point;
                 local_point.Set(transformed.x, transformed.y, transformed.z);
                 if (PointInsideBounds004BE870(&local_point, &minimum_21c, &maximum_228) == 0) {
@@ -721,15 +712,7 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
     matrix[11] *= normalization;
 
     for (unsigned int index = 0; index < 4; ++index) {
-        srVector4T<float> transformed;
-        transformed.Set(corners[index].y * matrix[1] + corners[index].x * matrix[0] +
-                            corners[index].z * matrix[2] + matrix[3],
-                        corners[index].y * matrix[5] + corners[index].z * matrix[6] +
-                            corners[index].x * matrix[4] + matrix[7],
-                        corners[index].y * matrix[9] + corners[index].x * matrix[8] +
-                            corners[index].z * matrix[10] + matrix[11],
-                        corners[index].y * matrix[13] + corners[index].x * matrix[12] +
-                            corners[index].z * matrix[14] + matrix[15]);
+        srVector4T<float> transformed = view.Transform(corners[index]);
 
         float scale = (float)value_140 * value_278;
         offsets[index].x = transformed.x * scale;
@@ -855,9 +838,10 @@ void stParticle::Function4994D0(srGERD* renderer)
             visibility = renderer->testBoundingSphere(position, value_278 * value_240);
         } else {
             getRotation(rotation);
-            float x = DotProduct(rotation.vectors[0], extent);
-            float y = DotProduct(rotation.vectors[1], extent);
-            float z = DotProduct(rotation.vectors[2], extent);
+            srVector3T<float> rotated = rotation.Transform(extent);
+            float x = rotated.x;
+            float y = rotated.y;
+            float z = rotated.z;
             srVector3T<float> center(x + position.x, position.y + y, position.z + z);
             visibility = renderer->testBoundingSphere(center, value_278 * value_240);
         }
@@ -868,14 +852,16 @@ void stParticle::Function4994D0(srGERD* renderer)
 
     if (value_1a4 == 1) {
         getRotation(rotation);
-        float x = DotProduct(rotation.vectors[0], minimum_21c);
-        float y = DotProduct(rotation.vectors[1], minimum_21c);
-        float z = DotProduct(rotation.vectors[2], minimum_21c);
+        srVector3T<float> rotated_min = rotation.Transform(minimum_21c);
+        float x = rotated_min.x;
+        float y = rotated_min.y;
+        float z = rotated_min.z;
         srVector3T<float> minimum(x + position.x, position.y + y, position.z + z);
 
-        x = DotProduct(rotation.vectors[0], maximum_228);
-        y = DotProduct(rotation.vectors[1], maximum_228);
-        z = DotProduct(rotation.vectors[2], maximum_228);
+        srVector3T<float> rotated_max = rotation.Transform(maximum_228);
+        x = rotated_max.x;
+        y = rotated_max.y;
+        z = rotated_max.z;
         srVector3T<float> maximum(x + position.x, position.y + y, position.z + z);
 
         srGERD::e_visibility visibility = renderer->testBoundingBox(minimum, maximum);
