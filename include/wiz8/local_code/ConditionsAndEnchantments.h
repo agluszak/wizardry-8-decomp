@@ -14,7 +14,6 @@ void Function524110(int location_id, int condition, unsigned int minutes);
 unsigned char Function5248A0(int party_slot, int condition);
 void RemoveAllConditionsFromParty(void);
 
-extern unsigned char g_flag_00683F94;
 extern unsigned char g_byte_00687500;
 extern unsigned char g_enchantment_six_cleared_006840bb;
 

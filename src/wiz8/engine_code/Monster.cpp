@@ -13,6 +13,8 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/combat_state.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/AniMesh.h"
@@ -4331,10 +4333,6 @@ int g_spell_index_0069b7dc;
 extern int CalculateMonsterMissileAccuracy(
     W8MonsterInfo* monster_info, const W8MonsterAttack* attack,
     int attack_mode, int flags);
-extern void FireMissileSourceToTarget(
-    int missile_type, W8TargetSource* source, W8CombatSlot* target,
-    void* attack_block, unsigned char use_default_accuracy,
-    unsigned int range_category, int accuracy);
 extern unsigned int g_missile_table_count_65bddc;
 
 // VTABLE: WIZ8 0x005ed288
@@ -4393,19 +4391,6 @@ void W8Monster::HandleAnimationFrame004C74D0(unsigned char previous_frame)
     }
 }
 
-struct W8MonsterMissileAttackBlock {
-    int unknown_00;
-    int missile_value_04;
-    unsigned char missile_values_08[0x10];
-    int monster_value_18;
-    int missile_value_1c;
-    unsigned char unknown_20[0x10];
-};
-
-static_assert(
-    sizeof(W8MonsterMissileAttackBlock) == 0x30,
-    "W8MonsterMissileAttackBlock_size_must_be_0x30");
-
 /* Launch the missile at the frame shared by attack cycles 7, 13 and 17. In
    combat an already-selected attack is reused; otherwise the monster picks a
    live character and the first database attack that permits a missile mode. */
@@ -4415,7 +4400,7 @@ void W8Monster::HandleAnimationThreshold004C75C0()
     W8MonsterInfo* monster_info;
     W8MonsterRecord* record;
     W8TargetSource source;
-    W8MonsterMissileAttackBlock attack_block;
+    W8MissileAttackBlock attack_block;
     const W8MonsterAttack* attack;
     unsigned int attack_index;
     unsigned int range_category;

@@ -56,7 +56,7 @@ enum { W8_MONSTER_FLAG_ATTACKS = 4 };
 
 /* Clear a forty-eight byte attack block. */
 // FUNCTION: WIZ8 0x00543260
-void ClearAttackBlock(void* block)
+void ClearAttackBlock(W8MissileAttackBlock* block)
 {
     memset(block, 0, 0x30);
 }
@@ -147,7 +147,7 @@ bool CanMonsterAttack(W8MonsterInfo* monster_info)
 int ApplyDamageReduction(
     const W8MonsterInfo* monster_info, const W8MonsterRecord* record, int damage)
 {
-    int reduction = monster_info->runtime_block_1db.damage_reduction +
+    int reduction = monster_info->modifiers_1db.damage_reduction_adjustment +
                     record->damage_reduction;
 
     if (reduction != 0) {

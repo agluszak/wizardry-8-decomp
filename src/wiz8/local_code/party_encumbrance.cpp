@@ -68,7 +68,7 @@ void Function4ED9D0(W8Character* character)
         character->damage_reduction += (character->skills[0x25].level >> 2) + 5;
     }
     character->damage_reduction +=
-        static_cast<signed char>(character->bonus_1770.value_06);
+        character->bonus_1770.damage_reduction_adjustment;
     RecalculateCharacterResistances(character);
 
     int base = character->attributes[3].effective +

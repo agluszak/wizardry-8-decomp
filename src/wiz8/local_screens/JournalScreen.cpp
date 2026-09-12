@@ -5,6 +5,7 @@
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/local_screens/JournalScreen.h"
+#include "wiz8/xstatus.h"
 
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Levels.h"
@@ -35,9 +36,6 @@ extern int g_journal_page_0064df38;
 // GLOBAL: WIZ8 0x0064df38
 int g_journal_page_0064df38 = -1;
 extern W8GrowableVector<W8JournalEntry>* g_journal_entries_0069c4e4;
-extern unsigned char g_camp_open_00683f9b;
-// GLOBAL: WIZ8 0x00683f9b
-unsigned char g_camp_open_00683f9b;
 extern unsigned char g_journal_show_all_0069c4e0;
 // GLOBAL: WIZ8 0x0069c4e0
 unsigned char g_journal_show_all_0069c4e0;
@@ -125,7 +123,7 @@ void RecordFactChangeForJournal(int fact_id)
     if (*description == 0 || g_level_block == 0) {
         return;
     }
-    if (g_flag_00683f97 != 0) {
+    if (gXStatus.field_01f != 0) {
         Function5289B0(8, 0);
         return;
     }
@@ -454,7 +452,7 @@ unsigned char JournalScreenLeave(int)
     g_journal_entries_0069c4e4->count = 0;
     delete g_journal_entries_0069c4e4;
     g_journal_entries_0069c4e4 = 0;
-    if (g_camp_open_00683f9b) {
+    if (gXStatus.fCampMode) {
         Function577260();
     }
     return 1;

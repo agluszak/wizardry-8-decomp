@@ -5,6 +5,7 @@
 #include "wiz8/game_status.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/magic.h"
@@ -418,7 +419,7 @@ void RecallCasterToSavedLocation(W8SpellQueueEntry* pQueue)
 // FUNCTION: WIZ8 0x00554540
 unsigned char Function554540(void)
 {
-    if (g_in_combat_00683f94 != 0) {
+    if (gXStatus.fCombatMode != 0) {
         return 1;
     }
     if (IsModalOpen()) {

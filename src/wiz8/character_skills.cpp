@@ -232,7 +232,7 @@ void ResetCharacterAttributes005539E0(W8Character* character)
 
     for (index = 0; index < 7; ++index) {
         int value =
-            static_cast<signed char>(character->bonus_1770.unknown_0c[index]) +
+            character->bonus_1770.attribute_adjustments[index] +
             character->attributes[index].value;
         if (value > 0x7d) {
             value = 0x7d;

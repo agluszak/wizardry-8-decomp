@@ -54,8 +54,12 @@ struct W8WorldCameraEntry {
     W8PathAI* path;
 };
 
-/* The camera save/restore pair moves a position and two six-word angle
-   records. Only the position's component types are established here. */
+/* The 0x3c-byte camera save/restore record. GetWorldCameraState at 0x00450610
+   and RestoreWorldCameraState at 0x004504b0 (3dapi.cpp:1087-1160) are still
+   unrecovered; assertions name pWorld and CamPos. The trailing 0x30 bytes are
+   two six-word angle records. W8SavedLocation is the same width with a leading
+   point, but no recovered producer copies one type onto the other, so they
+   stay distinct. */
 struct W8WorldCameraState {
     srVector3T<float> position;
     unsigned char angle_records[0x30];

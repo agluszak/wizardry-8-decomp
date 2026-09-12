@@ -328,7 +328,7 @@ void ResetAndRefreshAllSight005060C0(void)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 1, 0);
     }
-    if (g_in_combat_00683f94 != 0) {
+    if (gXStatus.fCombatMode != 0) {
         Function593330();
         RefreshAllPartyTargets0053BF80();
     }
@@ -343,8 +343,6 @@ int g_sight_marker_tick_00689b6c;
 int g_sight_fade_in_tick_00689b70;
 // GLOBAL: WIZ8 0x00689b74
 int g_sight_fade_out_tick_00689b74;
-// GLOBAL: WIZ8 0x00683fc5
-unsigned char g_sight_messages_enabled_00683fc5;
 
 /* The effect ids the two "someone noticed you" notices post. Their slots are
    the four consecutive dwords the producer reads. */
@@ -395,7 +393,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
         unsigned int count;
         unsigned int index;
 
-        if (g_in_combat_00683f94 == 0) {
+        if (gXStatus.fCombatMode == 0) {
             return;
         }
         index = 0;
@@ -580,7 +578,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
             unsigned char fade_flag;
             float player_distance;
 
-            if (g_in_combat_00683f94 == 0) {
+            if (gXStatus.fCombatMode == 0) {
                 light = g_status_685170.party_modifiers_22e3.flag_4a;
             }
             else {
@@ -808,7 +806,7 @@ after_sight:
                                         - g_startup_world_659c0c->GetPosition();
                                 if (delta.Length() < 25000.0f
                                     && (npc->unknown_2d = 1,
-                                        g_sight_messages_enabled_00683fc5 == 0)
+                                        gXStatus.fSurprisePossible == 0)
                                     && g_status_685170.current_level != 4) {
                                     int party_slot =
                                         GetRandomCharacter(0, 0, -1, -1);
@@ -847,7 +845,7 @@ after_sight:
                             g_object_6598bc->GetValue30());
 
                         monster->BeginFadeIn004C4F80(5.0f);
-                        if (g_sight_messages_enabled_00683fc5 == 0
+                        if (gXStatus.fSurprisePossible == 0
                             && (g_sight_fade_in_tick_00689b70 == 0
                                 || now - g_sight_fade_in_tick_00689b70 > 199)) {
                             g_sight_fade_in_tick_00689b70 = now;
@@ -871,7 +869,7 @@ after_sight:
                 g_object_6598bc->GetValue30());
 
             monster->BeginFadeOut004C5150(5.0f);
-            if (g_sight_messages_enabled_00683fc5 == 0
+            if (gXStatus.fSurprisePossible == 0
                 && (g_sight_fade_out_tick_00689b74 == 0
                     || now - g_sight_fade_out_tick_00689b74 > 199)) {
                 g_sight_fade_out_tick_00689b74 = now;
@@ -1138,7 +1136,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
 after_early:
     {
         unsigned int amount =
-            monster_info->runtime_block_1db.unknown_07[1];
+            monster_info->modifiers_1db.unknown_08[0];
 
         if (amount != 0) {
             W8TargetSource source;
@@ -1149,7 +1147,7 @@ after_early:
             }
             ResetTargetSource(&source);
             Function52BB60(
-                monster_info, amount, &source, 1, g_in_combat_00683f94, 0, 0, 0);
+                monster_info, amount, &source, 1, gXStatus.fCombatMode, 0, 0, 0);
         }
     }
     if (monster_info->condition_turns[2] != 0) {
@@ -1160,7 +1158,7 @@ after_early:
         int amount = (static_cast<int>(
                           static_cast<signed char>(data->unknown_150[0x2c]))
                       + static_cast<int>(static_cast<signed char>(
-                            monster_info->runtime_block_1db.unknown_07[2])))
+                            monster_info->modifiers_1db.unknown_08[1])))
                      * static_cast<int>(minutes);
 
         if (amount < 1) {
@@ -1179,7 +1177,7 @@ after_early:
         int amount =
             (static_cast<int>(
                  static_cast<signed char>(
-                     monster_info->runtime_block_1db.unknown_07[3]))
+                     monster_info->modifiers_1db.unknown_08[2]))
              + static_cast<int>(static_cast<signed char>(record->unknown_0cd[1])))
             * static_cast<int>(minutes);
 
@@ -1196,7 +1194,7 @@ after_early:
     {
         float heal_scale;
 
-        if (g_sight_messages_enabled_00683fc5 == 0 && arg_3 == 0) {
+        if (gXStatus.fSurprisePossible == 0 && arg_3 == 0) {
             if (monster_info->fInCombat == 0) {
                 heal_scale = 0.5f;
             }

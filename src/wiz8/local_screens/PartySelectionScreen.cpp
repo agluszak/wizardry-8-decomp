@@ -15,6 +15,7 @@
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/character.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/cursor.h"
 #include "wiz8/dialog_code/ModalDialogBase.h"
@@ -2522,9 +2523,9 @@ void RenderPartyPortrait0052EB00(
         char drawn = Function52EBE0(portrait, left, top, flags, party_slot, 1);
         value = drawn == 0;
     }
-    if ((((g_in_combat_00683f94 != 0 &&
+    if ((((gXStatus.fCombatMode != 0 &&
             g_combat_state->characters[party_slot].flag_34 != 0) ||
-          g_sight_messages_enabled_00683fc5 != 0) ||
+          gXStatus.fSurprisePossible != 0) ||
          g_party_characters[party_slot].unknown_0b01 == 0x13) &&
         value != 0) {
         Function4048A0(-0xe, left, top, left + 0x59, top + 0x47);
@@ -2562,9 +2563,9 @@ char Function52EBE0(
         rect.right = width + rect.left;
         rect.bottom = height + rect.top;
         if (animate == 0 &&
-            ((g_in_combat_00683f94 != 0 &&
+            ((gXStatus.fCombatMode != 0 &&
               g_combat_state->characters[party_slot].flag_34 != 0) ||
-             g_sight_messages_enabled_00683fc5 != 0)) {
+             gXStatus.fSurprisePossible != 0)) {
             RenderPartyPortrait0052EB00(portrait, left, top, flags, 0, party_slot);
         }
         if (g_party_characters[party_slot].hp_current == 0) {
@@ -2598,7 +2599,7 @@ char Function52EBE0(
         GetCatalogImageSize(0x12, portrait, state->current_a_04, &width, &height);
         GetCatalogImagePosition00549700(0x12, portrait, state->current_a_04,
                                         &image_x, &image_y);
-        if (animate == 0 && drawn == 0 && g_in_combat_00683f94 != 0 &&
+        if (animate == 0 && drawn == 0 && gXStatus.fCombatMode != 0 &&
             g_combat_state->characters[party_slot].flag_34 != 0) {
             RenderPartyPortrait0052EB00(portrait, left, top, flags, 0, party_slot);
         }
@@ -2624,9 +2625,9 @@ char Function52EBE0(
         state->previous_a_00 = state->current_a_04;
         state->dirty_a_26 = 0;
     }
-    if (((g_in_combat_00683f94 != 0 &&
+    if (((gXStatus.fCombatMode != 0 &&
           g_combat_state->characters[party_slot].flag_34 != 0) ||
-         g_sight_messages_enabled_00683fc5 != 0) ||
+         gXStatus.fSurprisePossible != 0) ||
         g_party_characters[party_slot].unknown_0b01 == 0x13) {
         Function4048A0(-0xe, left, top, left + 0x59, top + 0x47);
     }
