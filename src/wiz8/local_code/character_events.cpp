@@ -27,6 +27,13 @@
 extern unsigned char IsSoundPlaying(int sound_handle);
 extern unsigned char StopSound(int sound_handle);
 extern void QueueGameplayEvent(int event_type, int party_slot);
+extern void SetFlag68C500(unsigned char value);
+extern void Function524BD0(W8NpcState* npc, char* output);
+extern void Function524CA0(W8NpcState* npc);
+extern void Function525110(W8NpcState* npc, unsigned char value);
+extern void Function525FA0(int event_type, unsigned char value);
+extern int Function525E60(wchar_t* text);
+extern void Function5E2D10(char* path, int* gap_data);
 
 #include <stdio.h>
 #include <wchar.h>
@@ -93,6 +100,10 @@ int g_item_message_005ee6fc = 132;
 unsigned int g_last_event_005ee70c = 146;
 // GLOBAL: WIZ8 0x005EE718
 unsigned int g_first_remapped_event_005ee718 = 500;
+// GLOBAL: WIZ8 0x005EE710
+unsigned int g_remapped_event_span_005ee710 = 31;
+// GLOBAL: WIZ8 0x005ED8E4
+unsigned int g_event_flags_mask_005ed8e4 = 16;
 
 // GLOBAL: WIZ8 0x005ee000
 const W8CharacterEventDescriptor g_character_event_descriptors_005ee000[0x92] = {
@@ -117,6 +128,12 @@ const W8CharacterEventDescriptor g_character_event_descriptors_005ee000[0x92] = 
     {1, 0, 1}, {1, 0, 1},
 };
 
+// GLOBAL: WIZ8 0x0068C508
+int g_special_event_0068c508;
+// GLOBAL: WIZ8 0x0068C544
+int g_special_event_0068c544;
+// GLOBAL: WIZ8 0x0068C578
+int g_special_event_0068c578;
 // GLOBAL: WIZ8 0x0068C504
 int g_special_event_0068c504;
 // GLOBAL: WIZ8 0x0068C50C
@@ -187,6 +204,377 @@ W8StartupStateElement005EE748::W8StartupStateElement005EE748(W8Character* charac
         value_1c = character->highest_condition;
         break;
     }
+}
+
+/* 0x0052C560: sound end-of-stream callback; removes the owned entry and runs
+   Process0052CED0 when playback finishes. */
+static void CharacterEventSoundEndCallback(void* callback_data)
+{
+    W8StartupStateElement005EE748* entry =
+        static_cast<W8StartupStateElement005EE748*>(callback_data);
+    W8StartupRuntimeState* runtime;
+    int index;
+
+    if (entry->handled_00 != 0) {
+        return;
+    }
+    runtime = gXStatus.pStartupRuntime;
+    if (runtime == 0) {
+        return;
+    }
+    index = runtime->vector_40.IndexOf(entry);
+    if (index >= 0) {
+        runtime->vector_40.RemoveAt(index);
+    }
+    if ((runtime->value_5c & 1) != 0 && entry->type_08 >= 14 && entry->type_08 < 16) {
+        if ((runtime->value_5c & 2) != 0) {
+            runtime->unknown_60 = SetCountdownClock(Random(6000) + 2000);
+        } else {
+            runtime->unknown_60 = SetCountdownClock(Random(60000) + 300000);
+        }
+    }
+    entry->Process0052CED0();
+    delete entry;
+}
+
+// FUNCTION: WIZ8 0x0052C910
+unsigned char W8StartupStateElement005EE748::CharacterEventConditionMet(unsigned int event_type)
+{
+    W8Character* character;
+
+    do {
+        character = reinterpret_cast<W8Character*>(event_type - 2);
+        switch (event_type) {
+        case 2:
+        case 3:
+            character = character_04;
+            if ((unsigned int)value_18 <= character->hp_current) {
+                return 0;
+            }
+            return 1;
+        case 5:
+        case 6:
+        case 7:
+        case 9:
+            character = character_04;
+            if (character->highest_condition != (unsigned int)value_18) {
+                return 0;
+            }
+            return 1;
+        case 10:
+            event_type = *reinterpret_cast<unsigned int*>(&unknown_20[0]);
+            break;
+        case 14:
+        case 15:
+        case 35:
+            if (gXStatus.fCombatMode != 0) {
+                return 0;
+            }
+            return 1;
+        case 43:
+        case 44:
+        case 45:
+            character = character_04;
+            if (character->gender == W8_GENDER_FEMALE) {
+                return 0;
+            }
+            return 1;
+        case 56:
+            character = character_04;
+            if (character->hp_current < (unsigned int)value_18 ||
+                character->highest_condition < (unsigned int)value_1c) {
+                return 0;
+            }
+            return 1;
+        case 84:
+            character = character_04;
+            if ((unsigned int)value_18 <= character->highest_condition) {
+                return 0;
+            }
+            return 1;
+        case 85:
+            character = character_04;
+            if (character->hp_current < (unsigned int)value_18 ||
+                character->highest_condition != 0) {
+                QueueCharacterEvent(character, 84, 0, 1, 0x7f);
+                return 0;
+            }
+            return 1;
+        default:
+            return 1;
+        }
+    } while (1);
+}
+
+// FUNCTION: WIZ8 0x0052CFB0
+static unsigned char CanDispatchCharacterEvent(unsigned int party_slot, unsigned int event_type,
+                                               unsigned int flags)
+{
+    W8Character* character;
+
+    (void)flags;
+    unsigned int mapped_event_type;
+    unsigned char slot_mask;
+
+    if (party_slot >= 8) {
+        return 0;
+    }
+    if (event_type >= g_last_event_005ee70c) {
+        if (event_type < g_first_remapped_event_005ee718) {
+            return 0;
+        }
+        if (event_type >= g_remapped_event_span_005ee710 + g_first_remapped_event_005ee718) {
+            return 0;
+        }
+    }
+    if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
+        return 0;
+    }
+    character = &g_status_685170.buffers.characters[party_slot];
+    if (character->highest_condition > 14) {
+        if (event_type == (unsigned int)g_special_event_0068c538 ||
+            event_type == (unsigned int)g_special_event_0068c540 || g_special_event_0068c564 != 0) {
+            if (character->condition_turns[17] != 0) {
+                return 0;
+            }
+            if (character->condition_turns[19] != 0) {
+                return 0;
+            }
+        } else {
+            if (character->highest_condition != 0x11 && character->highest_condition != 0xf) {
+                return 0;
+            }
+            if (event_type != (unsigned int)g_special_event_0068c544 &&
+                event_type != (unsigned int)g_special_event_0068c550 &&
+                event_type != (unsigned int)g_special_event_0068c51c) {
+                return 0;
+            }
+        }
+    }
+    if (character->hp_current != 0 || event_type == (unsigned int)g_special_event_0068c538) {
+        mapped_event_type = event_type;
+        if (mapped_event_type >= g_first_remapped_event_005ee718) {
+            mapped_event_type += g_last_event_005ee70c - g_first_remapped_event_005ee718;
+        }
+        slot_mask = (unsigned char)(1 << (party_slot & 31));
+        return (gXStatus.pStartupRuntime->bytes_68[mapped_event_type] & slot_mask) == 0;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x0052D260
+unsigned char W8StartupStateElement005EE748::PlayEventSound()
+{
+    unsigned int party_slot;
+    W8Character* character;
+    unsigned int sound_event;
+    int npc_index;
+    char voice_stem[20];
+    char sound_path[80];
+    char npc_sound_name[128];
+    SOUNDPARMS sound_parms;
+    unsigned int sound_handle;
+    unsigned int total_ms;
+    unsigned int current_ms;
+    W8MonsterManagerEntry* record;
+    W8NpcState* npc;
+
+    party_slot = CharacterPointerToPartySlot(character_04);
+    character = character_04;
+    sound_event = type_08;
+    if (character->condition_turns[8] != 0) {
+        sound_event = g_special_event_0068c508;
+    }
+    npc_index = g_status_685170.buffers.party_rows[party_slot].animation_0fa;
+    if (npc_index == -1 || g_status_685170.game_started == 0 ||
+        g_current_screen_state.id == W8_SCREEN_CHARACTER) {
+        char gender_code = static_cast<char>(((character->gender != 0) - 1U & 7) + 0x66);
+        sprintf(voice_stem, "%c_%s%d0", gender_code,
+                g_quote_personality_names_005ed91c[character->personality_0081],
+                (character->voice_0085 != 0) + 1);
+        sprintf(sound_path, "Data\\Sound\\PCs\\%s\\%s_%03d.wav", voice_stem, voice_stem,
+                sound_event);
+    } else {
+        npc = GetNpcState(npc_index);
+        if (npc != 0) {
+            Function524BD0(npc, npc_sound_name);
+            sprintf(sound_path, "Data\\Sound\\PCs\\%s\\%s_%03d.wav", npc_sound_name, npc_sound_name,
+                    sound_event);
+        }
+    }
+    memset(&sound_parms, 0xff, sizeof(sound_parms));
+    sound_parms.uiVolume = (value_14 * (g_settings_6850c8.voice_volume & 0xff)) / 0x7f;
+    sound_parms.EOSCallback = CharacterEventSoundEndCallback;
+    sound_parms.pCallbackData = this;
+    sound_handle = SoundPlay(sound_path, &sound_parms);
+    record = &gXStatus.monster_manager_entries[party_slot];
+    record->field_001 = sound_handle;
+    if (sound_handle == 0xffffffff) {
+        if (type_08 > 0x91) {
+            static const wchar_t kFallbackVoiceText[] = L"Ouch play this sound";
+            record->field_081 = Function525E60(const_cast<wchar_t*>(kFallbackVoiceText));
+        } else {
+            record->field_081 = Function525E60(g_character_text_0068c580);
+        }
+        return 1;
+    }
+    SoundGetMilliSecondPosition(sound_handle, &total_ms, &current_ms);
+    record->field_081 = total_ms;
+    Function5E2D10(
+        sound_path,
+        reinterpret_cast<int*>(
+            &record->unknown_005[0])); // reinterpret-ok: retail gap list storage in portrait record
+    return 1;
+}
+
+static void RecordDispatchedCharacterEvent(unsigned int party_slot, unsigned int event_type)
+{
+    W8StartupRuntimeState* runtime = gXStatus.pStartupRuntime;
+    unsigned int mapped_event_type = event_type;
+
+    if (event_type > 1 && (event_type < 4 || event_type == 0x1c)) {
+        if (mapped_event_type >= g_first_remapped_event_005ee718) {
+            mapped_event_type += g_last_event_005ee70c - g_first_remapped_event_005ee718;
+        }
+        runtime->bytes_68[mapped_event_type] |= (unsigned char)(1 << (party_slot & 31));
+    }
+    if (event_type != 10) {
+        runtime->value_50 = event_type;
+        runtime->value_54 = party_slot;
+    }
+    runtime->unknown_58 = SetCountdownClock(5000);
+}
+
+/* 0x0052CA60: dispatch one queued character event through the portrait/voice
+   path or the NPC-quote path, recording follow-up state when it succeeds. */
+// FUNCTION: WIZ8 0x0052CA60
+unsigned char DispatchQueuedCharacterEvent(W8StartupStateElement005EE748* entry)
+{
+    W8Character* character;
+    unsigned int party_slot;
+    unsigned int event_type;
+    int npc_index;
+    W8NpcState* npc;
+    W8PartySlotRow* party_row;
+    W8MonsterManagerEntry* record;
+    unsigned char has_quote;
+    unsigned int quote_metadata;
+    unsigned char voice_started;
+
+    party_slot = CharacterPointerToPartySlot(entry->character_04);
+    event_type = entry->type_08;
+    if (g_last_event_005ee70c <= event_type) {
+        if (event_type < g_first_remapped_event_005ee718) {
+            return 0;
+        }
+        if (g_remapped_event_span_005ee710 + g_first_remapped_event_005ee718 <= event_type) {
+            return 0;
+        }
+    }
+    if (entry->character_04 == 0) {
+        return 0;
+    }
+    if ((entry->flags_10 & 4) == 0) {
+        if (CanDispatchCharacterEvent(party_slot, event_type, entry->flags_10) == 0 ||
+            entry->CharacterEventConditionMet(event_type) == 0) {
+            entry->Process0052CED0();
+            return 0;
+        }
+        event_type = entry->type_08;
+        if (event_type != (unsigned int)g_special_event_0068c578 &&
+            event_type != (unsigned int)g_special_event_0068c508) {
+            character = entry->character_04;
+            if (character->condition_turns[8] != 0) {
+                QueueCharacterEvent(character, g_special_event_0068c508, 0, 1, 0x7f);
+                return 0;
+            }
+            if (character->condition_turns[11] != 0) {
+                QueueCharacterEvent(character, g_special_event_0068c578, 0, 1, 0x7f);
+                return 0;
+            }
+        }
+    }
+    record = &gXStatus.monster_manager_entries[party_slot];
+    if (record->field_000 != 0) {
+        entry->Process0052CED0();
+        return 0;
+    }
+    if (event_type == 51) {
+        Function577880(0);
+    }
+    party_row = &g_status_685170.buffers.party_rows[party_slot];
+    npc_index = party_row->animation_0fa;
+    if (npc_index != -1 && event_type < 0x93) {
+        *reinterpret_cast<unsigned int*>(party_row->unknown_ff) =
+            event_type; // reinterpret-ok: party-row event-type dword at +0xff
+        npc = GetNpcState(npc_index);
+        if (npc == 0) {
+            return 1;
+        }
+        if (npc->name_style == 24 && event_type > 0x8b && event_type < 0x92 &&
+            g_status_685170.current_level != 0) {
+            return 0;
+        }
+        if ((entry->flags_10 & 0x40) != 0) {
+            SetFlag68C500(1);
+            ReleaseRecordFile0055A0A0(npc->record_file);
+            Function524CA0(npc);
+        }
+        Function525110(npc, 1);
+        Function525FA0(event_type, (entry->flags_10 & 0x40) != 0);
+        if ((entry->flags_10 & 0x40) != 0) {
+            SetFlag68C500(0);
+            ReleaseRecordFile0055A0A0(npc->record_file);
+            Function524CA0(npc);
+        }
+        record->field_071 = entry;
+        RecordDispatchedCharacterEvent(party_slot, entry->type_08);
+        return 1;
+    }
+    quote_metadata = 0xffffffff;
+    has_quote = FormatCharacterQuoteText(entry->character_04, entry->type_08, &quote_metadata);
+    voice_started = entry->PlayEventSound();
+    if (voice_started != 0) {
+        RecordDispatchedCharacterEvent(party_slot, entry->type_08);
+        event_type = entry->type_08;
+        if (event_type < 0x92) {
+            Function52F890(party_slot, 1, event_type,
+                           reinterpret_cast<int>(g_character_text_0068c580),
+                           1 - ((entry->flags_10 & g_event_flags_mask_005ed8e4) !=
+                                0)); // reinterpret-ok: wide buffer passed as integer argument
+            record->field_071 = entry;
+            *reinterpret_cast<unsigned int*>(party_row->unknown_ff) =
+                event_type; // reinterpret-ok: party-row event-type dword at +0xff
+            *reinterpret_cast<unsigned int*>(reinterpret_cast<unsigned char*>(&record->field_113) +
+                                             1) =
+                event_type; // reinterpret-ok: retail stores beside portrait-range dword
+            return 1;
+        }
+        Function52F890(party_slot, 1, event_type, 0, 1);
+        *reinterpret_cast<unsigned int*>(reinterpret_cast<unsigned char*>(&record->field_113) + 1) =
+            event_type; // reinterpret-ok: retail stores beside portrait-range dword
+        return 1;
+    }
+    entry->Process0052CED0();
+    if (has_quote == 0) {
+        return 0;
+    }
+    RecordDispatchedCharacterEvent(party_slot, entry->type_08);
+    if ((gXStatus.pStartupRuntime->value_5c & 1) == 0) {
+        return 0;
+    }
+    if (entry->type_08 < 14) {
+        return 0;
+    }
+    if (entry->type_08 > 15) {
+        return 0;
+    }
+    if ((gXStatus.pStartupRuntime->value_5c & 2) != 0) {
+        gXStatus.pStartupRuntime->unknown_60 = SetCountdownClock(Random(6000) + 2000);
+    } else {
+        gXStatus.pStartupRuntime->unknown_60 = SetCountdownClock(Random(60000) + 300000);
+    }
+    return 0;
 }
 
 /* 0x0052D0B0: format one character quote for the given event type into the
@@ -401,7 +789,7 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
             slot->field_071->Process0052CED0();
             delete slot->field_071;
         }
-        Function52CA60(entry);
+        DispatchQueuedCharacterEvent(entry);
         return 1;
     }
     if (entry->type_08 == 0x21) {
@@ -508,6 +896,12 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
                                             g_effect_argument_005ed914) != 0) {
         gXStatus.pStartupRuntime->SetEventCharacterMask(effect, party_slot, 1);
     }
+}
+
+// FUNCTION: WIZ8 0x0052E470
+unsigned char __fastcall Function52E470(W8StartupRuntimeState* state)
+{
+    return *reinterpret_cast<const int*>(reinterpret_cast<const char*>(state) + 0x14) <= 0;
 }
 
 /* Occupied slots with field_000 set still have a portrait/voice record in
@@ -825,7 +1219,7 @@ void W8StartupRuntimeState::ProcessQueuedCharacterEvents()
                         delete entry;
                         return;
                     }
-                    if (Function52CA60(entry) == 0) {
+                    if (DispatchQueuedCharacterEvent(entry) == 0) {
                         return;
                     }
                     vector_40.Add(entry);

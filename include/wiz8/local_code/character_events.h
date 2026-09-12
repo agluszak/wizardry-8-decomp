@@ -1,5 +1,7 @@
 #pragma once
 
+struct W8StartupRuntimeState;
+
 bool IsVoiceMuted(void);
 /* The audio panels pass the raw W8TextControl mask bit (0 or 2) through, so the
    transition is binary but the argument stays byte-valued. */
@@ -34,11 +36,12 @@ extern int g_effect_argument_005ed8c8;
 extern int g_effect_argument_005ed914;
 
 /* True when no occupied party slot has an active portrait/voice record. */
-unsigned char PartyPortraitEventsIdle(void); /* 0x0052E590 */
+unsigned char PartyPortraitEventsIdle(void);                           /* 0x0052E590 */
+unsigned char __fastcall Function52E470(W8StartupRuntimeState* state); /* 0x0052E470 */
 int ApplyItemEffectToRandomCharacter0052E5C0(unsigned int item_id, int character_filter,
                                              int value_3, int value_4);
 unsigned char CharacterHasEffect(void* effect, int party_slot); /* 0x0052DD90 */
-unsigned char Function52CA60(W8StartupStateElement005EE748* entry);
+unsigned char DispatchQueuedCharacterEvent(W8StartupStateElement005EE748* entry);
 void UpdateNpcDialogueVoiceIdle(void);                       /* 0x00524DA0 */
 void ProcessNpcScriptingIdlePass(void);                      /* 0x00524EB0 */
 void MaybeStartIncapacitationEvent(unsigned int party_slot); /* 0x0052F060 */
