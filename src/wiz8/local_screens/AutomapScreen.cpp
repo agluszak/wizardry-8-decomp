@@ -892,9 +892,6 @@ float GetFloat64B914(void)
     return g_float_64b914;
 }
 
-// TEMPLATE: WIZ8 0x005853a0
-// W8HashTable<unsigned int,int>::Lookup
-
 // FUNCTION: WIZ8 0x00587C10
 void SetValue68F2B0(int value)
 {

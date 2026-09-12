@@ -37,9 +37,6 @@ public:
     {
         Grow();
     }
-    /* Retail Save calls ~W8HashTable (0x0055db80) rather than inlining the
-       delete[] pair. VC6 would otherwise inline this header body into Save. */
-#pragma auto_inline(off)
     ~W8HashTable()
     {
         if (bucket_heads != 0) {
@@ -49,10 +46,7 @@ public:
             delete[] entries;
         }
     }
-#pragma auto_inline(on)
 
-    /* Retail emits Lookup as a COMDAT that BitArray::Save and the automap
-       call rather than inline. */
     Value Lookup(const Key* key) const;
     int FindNextEntry(const Key* key, int previous) const;
     void Insert(const Key* key, const Value* value);
@@ -78,7 +72,6 @@ public:
     unsigned int bucket_count;
 };
 
-#pragma auto_inline(off)
 template <class Key, class Value> Value W8HashTable<Key, Value>::Lookup(const Key* key) const
 {
     Key wanted = *key;
@@ -91,7 +84,6 @@ template <class Key, class Value> Value W8HashTable<Key, Value>::Lookup(const Ke
     }
     return 0;
 }
-#pragma auto_inline(on)
 
 template <class Key, class Value> void W8HashTable<Key, Value>::Remove(const Key* key)
 {
