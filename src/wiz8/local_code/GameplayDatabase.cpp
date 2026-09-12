@@ -19,6 +19,7 @@ unsigned char g_party_moving_006850b5;
 unsigned char g_status_block_685078[56];
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/character_event_queue.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/item_tables.h"
@@ -42,7 +43,6 @@ unsigned char g_status_block_685078[56];
 extern unsigned char IsSoundPlaying(int sound_handle);
 extern unsigned char StopSound(int sound_handle);
 extern void QueueGameplayEvent(int event_type, int party_slot);
-extern void PostCharacterMessage(int party_slot, const W8WideChar* format, ...);
 /* 0x0054B300 resets one of eight slots. */
 /* The gStatus object owned by GameplayDatabase.cpp. */
 // GLOBAL: WIZ8 0x00685170
@@ -818,6 +818,7 @@ void ResetGameplaySlot(unsigned int slot)
    neighbouring runtime state. That matches retail exactly, including the
    wiped container headers: every later use is non-virtual (Clear, GetCount,
    direct teardown of a null backing store), so no reconstruction runs. */
+// GLOBAL: WIZ8 0x00685067
 W8GameTimer* g_gameplay_timer_685067;
 
 /* The bulk reset below spans the entries array and its neighbours; see the

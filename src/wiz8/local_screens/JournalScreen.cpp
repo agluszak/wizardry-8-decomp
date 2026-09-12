@@ -11,6 +11,7 @@
 
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Levels.h"
+#include "wiz8/fonts.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/factions.h"
 #include "wiz8/layouts/gameplay_databases.h"
@@ -34,7 +35,6 @@
 #include <stdlib.h>
 
 extern const wchar_t g_wchar_00689b34;
-extern int g_font_00683614;
 extern int g_journal_page_0064df38;
 // GLOBAL: WIZ8 0x0064df38
 int g_journal_page_0064df38 = -1;
@@ -188,7 +188,7 @@ void RefreshJournalPanel005BD860(void)
         wchar_t page_text[20];
         swprintf(page_text, g_journal_page_format_0064d7f0, g_journal_page_0064df38 + 1,
                  page_count);
-        panel->m_page_text_060->SetText(page_text, g_font_00683614);
+        panel->m_page_text_060->SetText(page_text, g_options_detail_font_683614);
         DrawCatalogImageAndInvalidate(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
         DrawJournalLine005BDD00(gppStringList[0x1b6c / 4], 0, 0x19, 0, 1);
         DrawJournalLine005BDD00(gppStringList[0x1b70 / 4], 1, 0x19, 0, 1);
@@ -223,7 +223,8 @@ void RefreshJournalPanel005BD860(void)
     } else {
         panel->m_next_050->SetEnabled(0);
         panel->m_previous_054->SetEnabled(0);
-        panel->m_page_text_060->SetText(g_journal_alternate_page_0064df78, g_font_00683614);
+        panel->m_page_text_060->SetText(g_journal_alternate_page_0064df78,
+                                        g_options_detail_font_683614);
         DrawCatalogImageAndInvalidate(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
         DrawJournalLine005BDD00(gppStringList[0x1b78 / 4], 0, 0x19, 0, 1);
         DrawJournalLine005BDD00(gppStringList[0x1b7c / 4], 1, 0x19, 0, 1);
@@ -282,7 +283,7 @@ W8JournalPanel005EF340::W8JournalPanel005EF340(unsigned int* region_set)
 
     W8ControlsRect bounds = {origin_x, origin_y, right, bottom};
     m_page_text_060 =
-        new W8TextBuffer(&bounds, &g_wchar_00689b34, g_font_00683614,
+        new W8TextBuffer(&bounds, &g_wchar_00689b34, g_options_detail_font_683614,
                          g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 4);
 
     m_mode_05c = new W8TextControl(this, 0xffffffff, 0x1b0, -2, 0, 0, 0x1bb, 0, 0, 2, 1, 2, 3);

@@ -244,7 +244,6 @@ void DespawnAllActiveMonsterGroups0048C9F0(void)
         DespawnMonsterGroup(g_active_groups.data[g_active_groups.count - 1]);
     }
 }
-extern unsigned char g_force_encounter_culling; /* 0x00687500 */
 
 /* Put the encounter-culling scale back to its fast default and rearm every
    loaded generator's interval timer. */
@@ -307,7 +306,7 @@ void CullExpiredEncounters(void)
             position = monster->GetPosition();
             srVector3T<float> delta = position - party;
 
-            if (g_encounter_culling_distance < delta.Length() || g_force_encounter_culling != 0) {
+            if (g_encounter_culling_distance < delta.Length() || g_status_685170.value_2390 != 0) {
                 DespawnMonsterGroup(group);
             }
         }

@@ -20,10 +20,11 @@
 #include <stdio.h>
 #include <wchar.h>
 #include <stdlib.h>
+#include "wiz8/game_status.h"
 
 // GLOBAL: WIZ8 0x0068c098
 int g_string_table_count;
-// GLOBAL
+// GLOBAL: WIZ8 0x0068C09C
 char** g_string_table;
 // GLOBAL: WIZ8 0x0068c0a4
 int g_message_box_state;

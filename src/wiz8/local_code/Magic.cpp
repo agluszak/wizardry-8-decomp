@@ -9,6 +9,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -587,7 +588,6 @@ void AddSpellEffect(W8SpellEffectEntry* effect)
 }
 
 void FinishSpellEffect00500F70(W8SpellEffectEntry* effect); /* 0x00500F70 */
-extern float g_float_005ebc64;
 
 /* Advance every queued spell effect one frame. An effect first checks that
    everything it owns is still live: its visuals have started, its missiles

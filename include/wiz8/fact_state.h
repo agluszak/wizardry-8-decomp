@@ -4,9 +4,7 @@
 extern unsigned char g_fact_values[1000];
 extern unsigned char g_fact_notifications_suppressed;
 extern unsigned char g_import_party_loaded;
-extern int g_import_character_count;
-extern int g_import_ending_choice;
-extern unsigned char g_import_flags[0x60];
+extern unsigned char g_import_flag_0068de5d;
 
 unsigned char GetFact(int fact_id);
 unsigned char EvaluateFact(int fact_id); /* 0x005080F0 */

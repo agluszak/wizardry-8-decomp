@@ -122,7 +122,7 @@ unsigned char PleaseWaitScreenEnter(void)
         switch (g_load_descriptor_69b7c8->mode) {
         case 0:
             InitializeFactState();
-            g_load_descriptor_69b7c8->parameter = Function509750();
+            g_load_descriptor_69b7c8->parameter = SelectNewGameStartLevel();
             ReleaseMessageStorage();
             DeleteFileA("Saves\\CurrentGame.SAV");
             break;
@@ -280,10 +280,10 @@ void PleaseWaitScreenFrame(void)
     switch (g_load_descriptor_69b7c8->mode) {
     case 0:
         if (PleaseWaitScreenEnsureLevelArchive(8)) {
-            Function512C40();
+            ResetLiveSessionForLoad();
             int level;
             int entrance;
-            Function5092F0(&level, &entrance);
+            ChooseNewGameStartLocation(&level, &entrance);
             if (!LoadLevel(level, entrance, 0)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 279, 0);
             }

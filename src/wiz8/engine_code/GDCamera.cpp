@@ -10,10 +10,6 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/IntervalGate.h"
 #include "wiz8/float_constants.h"
-// GLOBAL
-float g_float_005ebb38;
-// GLOBAL
-float g_float_005ebc7c;
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/utility.h"
 
@@ -25,7 +21,6 @@ extern const double g_camera_view_factor_005ec538;
 extern const double g_camera_view_factor_005ec568;
 
 extern const float g_negative_one_005ebc38;
-extern const float g_camera_snap_epsilon_005ebc2c;
 extern const float g_camera_transition_epsilon_005ebc84;
 extern const float g_camera_angle_period_005ec54c;
 extern const float g_camera_angle_lower_005ec548;
@@ -105,7 +100,6 @@ float g_camera_transition_speed_65a0f4;
 extern float g_camera_max_yaw_velocity_609ea4;
 // GLOBAL: WIZ8 0x00609ea4
 float g_camera_max_yaw_velocity_609ea4 = 0.3490658700466156f;
-extern float g_camera_level_forward_scale_603aac;
 // GLOBAL: WIZ8 0x00603aac
 float g_camera_level_forward_scale_603aac = 375.0f;
 

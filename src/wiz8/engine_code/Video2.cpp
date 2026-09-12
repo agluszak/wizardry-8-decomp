@@ -2142,8 +2142,11 @@ unsigned char SetFlag603C60(void)
 /* Release an srClass, leaving the renderer in 2D mode, or in the paired
    mode when the +0x160 flag says otherwise. That flag is the first dword
    past sizeof(srModelInstance); both stModelInstance and stModelInstance2D
-   store state_160 there. Recovered code never fills dialogue_owner or the
-   three teardown slots, so the concrete parameter type stays unresolved. */
+   store state_160 there. The four recovered callers pass g_level_block
+   slots typed srClass* (dialogue_owner from MainGameScreen, unknown_2a0 /
+   unknown_2a4 / unknown_2a8 from RCSCommon). Recovered code never fills
+   those slots, so the concrete receiver stays unresolved rather than being
+   collapsed to one derived class. */
 // FUNCTION: WIZ8 0x004257F0
 void ReleaseObject004257F0(srClass* object)
 {

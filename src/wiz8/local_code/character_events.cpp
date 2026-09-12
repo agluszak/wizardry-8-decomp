@@ -370,9 +370,7 @@ wchar_t* W8CharacterEvent::GetQuoteText()
 }
 
 /* 0x0052D460 proves four equal derived growable-vector instantiations followed
-   by a fifth instantiation with a distinct vtable and the tail state below. Element identity and the
-   complete lifetime remain tracked by wiz8-bxj; this gives startup the real
-   allocation and field shape without inventing semantic names. */
+   by a fifth instantiation with a distinct vtable and the tail state below. */
 
 // FUNCTION: WIZ8 0x0052d460
 W8CharacterEventQueue::W8CharacterEventQueue()

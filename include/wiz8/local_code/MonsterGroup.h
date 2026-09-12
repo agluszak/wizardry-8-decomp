@@ -85,6 +85,8 @@ unsigned char PositionMonsterGroupNearCamera00511050(W8MonsterGroup* group, floa
                                                      unsigned char flag); /* 0x00511050 */
 void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group);
 W8MonsterGroup* FindFirstMonsterByID(int monster_id);
+W8MonsterGroup* SpawnMonsters(int monster_id, int count, srVector3T<float>* position, int hostility,
+                              int settle, int a, int b); /* 0x004D8F00 */
 W8MonsterGroup* FindNextExistingMonsterByID(int monster_id, W8MonsterGroup* previous);
 W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
                             const srVector3T<float>* position, unsigned char flag_1,

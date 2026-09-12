@@ -2,13 +2,12 @@
 
 #include "Types.h"
 
-#include "gameloop.h"
-
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/gameplay_modifiers.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/text_types.h"
 
 #include <stddef.h>
@@ -26,24 +25,6 @@ struct W8StatusBuffers {
 };
 
 enum { W8_CHARACTER_SERIALIZED_SIZE = 0x1862 };
-
-struct W8PartyFormationRow {
-    signed char slots[3];
-};
-
-struct W8PartyFormationPosition {
-    unsigned char row;
-    unsigned char unknown_01[2];
-    signed char facing;
-    unsigned char unknown_04[8];
-};
-
-struct W8PartyFormationState {
-    W8PartyFormationRow rows[5];
-    unsigned char flags_0f[5];
-    W8PartyFormationPosition positions[8];
-    unsigned char unknown_74[0x10];
-};
 
 struct W8GlobalStatus {
     W8StatusBuffers buffers;
@@ -92,7 +73,9 @@ struct W8GlobalStatus {
     unsigned char unknown_238b[4];
     /* 0x238f: scales the monster-sight threshold while set. */
     unsigned char flag_238f;
-    /* 0x2390: cleared by the main-game frame; the rest of the run is opaque. */
+    /* 0x2390: cleared by the main-game frame; HP/SP and condition updates
+       skip work while it is set, and encounter culling treats it as the
+       force-despawn gate. */
     unsigned char value_2390;
     unsigned char unknown_2391[0x10];
     W8PartyFormationState formation;
@@ -131,7 +114,10 @@ struct W8GlobalStatus {
     unsigned char unknown_248b[8];
     int value_2493;
     unsigned char flag_2497;
-    unsigned char unknown_2498[0x198];
+    unsigned char unknown_2498[4];
+    /* 0x249c: party slot fact 0x39 hands to RemoveCharacterCondition. */
+    int party_slot_249c;
+    unsigned char unknown_24a0[0x190];
     int next_group_id_2630;
     int monster_group_value_seed_2634;
     unsigned char unknown_2638[0xae8];
@@ -154,7 +140,8 @@ struct W8GlobalStatus {
     unsigned char unknown_497b[0x10];
     /* 0x498b: NPC group event counter, cleared once the group event runs. */
     int value_498b;
-    unsigned char unknown_498f[8];
+    int value_498f;
+    int value_4993;
     unsigned int text_box_lines_used_4997[4];
     unsigned int text_box_lines_shown_49a7[4];
     /* 0x49b7: world-clock stamp the 0x49bb reward event compares against. */
@@ -169,9 +156,6 @@ struct W8GlobalStatus {
 #pragma pack(pop)
 
 static_assert(sizeof(W8StatusBuffers) == 0x0c, "W8StatusBuffers_must_be_0x0c");
-static_assert(sizeof(W8PartyFormationRow) == 0x03, "W8PartyFormationRow_must_be_0x03");
-static_assert(sizeof(W8PartyFormationPosition) == 0x0c, "W8PartyFormationPosition_must_be_0x0c");
-static_assert(sizeof(W8PartyFormationState) == 0x84, "W8PartyFormationState_must_be_0x84");
 static_assert(offsetof(W8GlobalStatus, party_gold) == 0x19, "W8GlobalStatus_party_gold_offset");
 static_assert(offsetof(W8GlobalStatus, selected_character) == 0x1d,
               "W8GlobalStatus_selected_character_offset");
@@ -190,6 +174,8 @@ static_assert(offsetof(W8GlobalStatus, pending_move_location) == 0x22a7,
               "W8GlobalStatus_pending_move_location_offset");
 static_assert(offsetof(W8GlobalStatus, formation) == 0x23a1, "W8GlobalStatus_formation_offset");
 static_assert(offsetof(W8GlobalStatus, value_2390) == 0x2390, "W8GlobalStatus_value_2390_offset");
+static_assert(offsetof(W8GlobalStatus, skip_loose_character_check_2444) == 0x2444,
+              "W8GlobalStatus_skip_loose_character_check_offset");
 static_assert(offsetof(W8GlobalStatus, selected_party_member_2434) == 0x2434,
               "W8GlobalStatus_selected_party_member_offset");
 static_assert(offsetof(W8GlobalStatus, rpc_races_243a) == 0x243a,
@@ -212,9 +198,12 @@ static_assert(offsetof(W8GlobalStatus, text_box_lines_used_4997) == 0x4997,
               "W8GlobalStatus_migrated_values_offset");
 static_assert(offsetof(W8GlobalStatus, flag_2489) == 0x2489, "W8GlobalStatus_flag_2489_offset");
 static_assert(offsetof(W8GlobalStatus, flag_40c1) == 0x40c1, "W8GlobalStatus_flag_40c1_offset");
+static_assert(offsetof(W8GlobalStatus, value_498b) == 0x498b, "W8GlobalStatus_value_498b_offset");
+static_assert(offsetof(W8GlobalStatus, value_498f) == 0x498f, "W8GlobalStatus_value_498f_offset");
+static_assert(offsetof(W8GlobalStatus, value_4993) == 0x4993, "W8GlobalStatus_value_4993_offset");
+static_assert(offsetof(W8GlobalStatus, party_slot_249c) == 0x249c,
+              "W8GlobalStatus_party_slot_249c_offset");
 static_assert(offsetof(W8GlobalStatus, value_423d) == 0x423d, "W8GlobalStatus_value_423d_offset");
 static_assert(sizeof(W8GlobalStatus) == 0x49c2, "W8GlobalStatus_must_be_0x49c2");
 
 extern W8GlobalStatus g_status_685170;
-
-void InitializePartyFormation(W8PartyFormationState* formation);

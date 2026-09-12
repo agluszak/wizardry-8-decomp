@@ -4,6 +4,7 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/npc_interaction.h"
 #include "wiz8/npc_state.h"
+#include "wiz8/message_box.h"
 
 // GLOBAL: WIZ8 0x0068C4A0
 unsigned char g_flag_68c4a0;
@@ -41,4 +42,24 @@ bool IsPartySlotEligible00524A10(int slot)
     }
     eligible = character->highest_condition < W8_CONDITION_HOSTILE;
     return eligible;
+}
+
+/* Free queued NPC message-box lines and clear the line count. Retail then
+   STOSD-zeroes the 0xcc-byte scripting object those counters live in; the
+   remaining named flags in that run are already BSS-zero on new game. */
+// FUNCTION: WIZ8 0x00524c50
+void ClearNpcMessageQueue(void)
+{
+    int index;
+
+    for (index = 0; index < g_message_box_line_count; ++index) {
+        delete g_message_box_lines[index];
+    }
+    g_message_box_line_count = 0;
+    g_message_box_line_capacity = 0;
+    g_message_box_lines = 0;
+    g_flag_68c4a0 = 0;
+    g_npc_state_68c4ac = 0;
+    g_flag_68c4f6 = 0;
+    g_flag_68c4f7 = 0;
 }

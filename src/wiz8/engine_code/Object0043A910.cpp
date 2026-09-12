@@ -8,7 +8,7 @@
    layout: a float copied from a global, an integer derived from it, and four
    constants. */
 
-// GLOBAL
+// GLOBAL: WIZ8 0x006068EC
 float g_rate_006068EC;
 
 // GLOBAL: WIZ8 0x006598bc

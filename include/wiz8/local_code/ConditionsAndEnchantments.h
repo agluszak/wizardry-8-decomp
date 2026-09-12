@@ -15,9 +15,6 @@ void RemoveAllConditionsFromParty(void);
 
 extern unsigned short g_condition_notices_0061E570[128];
 
-extern unsigned char g_byte_00687500;
-extern unsigned char g_enchantment_six_cleared_006840bb;
-
 void ApplyMonsterCondition(int location_id, int condition, int arg_3);
 /* 0x005237E0: rescan condition_turns from slot 0x13 downward and write the
    first live index into W8Character::highest_condition. */

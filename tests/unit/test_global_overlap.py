@@ -130,6 +130,27 @@ def test_incompatible_types_at_the_same_address(tmp_path: Path) -> None:
     assert violations[0]["kind"] == "type-consistency"
 
 
+def test_unaddressed_global_is_a_violation(tmp_path: Path) -> None:
+    _write(tmp_path, "src/wiz8/a.cpp", "// GLOBAL\nint g_orphan;\n")
+
+    from wiz8decomp.global_model import unaddressed_globals
+
+    assert any(item["kind"] == "unaddressed-global" for item in unaddressed_globals(tmp_path))
+
+
+def test_explicit_unresolved_global_is_allowed(tmp_path: Path) -> None:
+    _write(
+        tmp_path,
+        "src/wiz8/a.cpp",
+        "// GLOBAL: WIZ8 unresolved\nint g_orphan;\n",
+    )
+
+    from wiz8decomp.global_model import unaddressed_globals
+
+    assert unaddressed_globals(tmp_path) == []
+    assert overlapping_globals(parse_global_definitions(tmp_path)) == []
+
+
 def test_overlap_gate_raises(tmp_path: Path) -> None:
     _write(tmp_path, "src/wiz8/a.cpp", "// GLOBAL: WIZ8 0x100\nint g_a;\n")
     _write(tmp_path, "src/wiz8/b.cpp", "// GLOBAL: WIZ8 0x100\nint g_b;\n")

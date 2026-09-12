@@ -25,11 +25,14 @@
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/engine_code/World.h"
+#include "wiz8/utility.h"
 
 #include <stdio.h>
+#include <wchar.h>
 
-extern unsigned char FindEntityByName(const char* name, srVector3T<float>* position, int* value,
-                                      srVector3T<float>* direction);
+unsigned char Function50F1A0(unsigned int monster_species, int count, srVector3T<float>* position,
+                             int a, int b, int c);
 
 /*
  * Local Code\NPC Manager.cpp.
@@ -259,6 +262,19 @@ W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc)
     return &gXStatus.monster_manager_entries[npc->group_index];
 }
 
+/* The party character occupying this NPC's group slot. */
+// FUNCTION: WIZ8 0x0050b8b0
+W8Character* GetNpcGroupCharacter(W8NpcState* npc)
+{
+    if (npc->record->has_group == 0) {
+        return 0;
+    }
+    if (!npc->is_grouped) {
+        return 0;
+    }
+    return &g_status_685170.buffers.characters[npc->group_index];
+}
+
 /* Whether an NPC would take one item in trade. The kind that trades in nothing
    refuses outright, one particular item is always taken, and everything else
    has to be worth enough. */
@@ -294,6 +310,7 @@ unsigned char CountLeadingPartySlots(void)
 }
 
 #include <string.h>
+#include "wiz8/game_status.h"
 
 /* 0x00619DFC: one three-dword row per service - the service id, the bit that
    stands for it, and one more field nothing here reads. -1 ends the table. */
@@ -455,6 +472,149 @@ const char* GetNpcDisplayName(W8NpcState* npc)
         return g_npc_name_buffer;
     }
     return npc->record->display_name;
+}
+
+/* Choose the new-game start level and entrance, then bind the intro NPCs that
+   belong to that campaign path. Import 0x4c is Gigas, 0x4b is the bluff, and
+   0x4e or neither is the monastery. */
+// FUNCTION: WIZ8 0x005092f0
+void ChooseNewGameStartLocation(int* level, int* entrance)
+{
+    unsigned char value;
+    wchar_t display_value[10];
+    int start_level;
+
+    value = EvaluateFact(0x4e);
+    if (g_status_685170.log_fact_checks_3120) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        } else {
+            wcscpy(display_value, L"FALSE");
+        }
+        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4e].symbolic_name,
+                     display_value);
+    }
+    if (value != 0) {
+        start_level = 8;
+    } else {
+        value = EvaluateFact(0x4c);
+        if (g_status_685170.log_fact_checks_3120) {
+            if (value) {
+                wcscpy(display_value, L"TRUE");
+            } else {
+                wcscpy(display_value, L"FALSE");
+            }
+            WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4c].symbolic_name,
+                         display_value);
+        }
+        if (value != 0) {
+            start_level = 0xe;
+        } else {
+            start_level = GetFact(0x4b) != 0 ? 6 : 8;
+        }
+    }
+    *level = start_level;
+    *entrance = 0;
+    g_status_685170.flag_2497 = 1;
+
+    value = EvaluateFact(0x4e);
+    if (g_status_685170.log_fact_checks_3120) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        } else {
+            wcscpy(display_value, L"FALSE");
+        }
+        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4e].symbolic_name,
+                     display_value);
+    }
+    if (value != 0) {
+        return;
+    }
+
+    value = EvaluateFact(0x4c);
+    if (g_status_685170.log_fact_checks_3120) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        } else {
+            wcscpy(display_value, L"FALSE");
+        }
+        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4c].symbolic_name,
+                     display_value);
+    }
+    if (value != 0) {
+        Function50C1C0(0x18, 0xe, "NP_ViGigas");
+        Function50C1C0(0xc, 0xe, "NP_BalbrakIntro");
+        return;
+    }
+
+    value = EvaluateFact(0x4b);
+    if (g_status_685170.log_fact_checks_3120) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        } else {
+            wcscpy(display_value, L"FALSE");
+        }
+        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4b].symbolic_name,
+                     display_value);
+    }
+    if (value != 0) {
+        Function50C1C0(0x18, 6, "NP_ViBluff");
+        Function50C1C0(0x8c, 6, "NP_GuardBluff");
+        return;
+    }
+    Function50C1C0(0x18, 8, "NP_ViMon");
+}
+
+/* New-game start level from the campaign facts InitializeFactState planted.
+   Import path 0x4c is level 14, 0x4b is level 6, and 0x4e or neither is 8. */
+// FUNCTION: WIZ8 0x00509750
+int SelectNewGameStartLevel(void)
+{
+    unsigned char value;
+    wchar_t display_value[10];
+
+    value = EvaluateFact(0x4e);
+    if (g_status_685170.log_fact_checks_3120) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        } else {
+            wcscpy(display_value, L"FALSE");
+        }
+        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4e].symbolic_name,
+                     display_value);
+    }
+    if (value != 0) {
+        return 8;
+    }
+
+    value = EvaluateFact(0x4c);
+    if (g_status_685170.log_fact_checks_3120) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        } else {
+            wcscpy(display_value, L"FALSE");
+        }
+        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4c].symbolic_name,
+                     display_value);
+    }
+    if (value != 0) {
+        return 0xe;
+    }
+
+    value = EvaluateFact(0x4b);
+    if (g_status_685170.log_fact_checks_3120) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        } else {
+            wcscpy(display_value, L"FALSE");
+        }
+        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4b].symbolic_name,
+                     display_value);
+    }
+    if (value != 0) {
+        return 6;
+    }
+    return 8;
 }
 
 /* Create the shared NPC-state vector the first time anything needs it. */

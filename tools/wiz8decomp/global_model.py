@@ -17,6 +17,8 @@ _GLOBAL_MARKER = re.compile(
     r"^\s*//\s*GLOBAL:\s+(?P<target>[A-Za-z0-9_]+)\s+(?P<address>0x[0-9a-fA-F]+)\s*$",
     re.IGNORECASE,
 )
+_GLOBAL_LINE = re.compile(r"^\s*//\s*GLOBAL(?:\s*:\s*(?P<rest>.*))?\s*$", re.IGNORECASE)
+_UNRESOLVED_GLOBAL = re.compile(r"\bunresolved(?:-global)?\b", re.IGNORECASE)
 _SOURCE_MARKER = re.compile(r"^\s*//\s*(?:FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY|VTABLE|GLOBAL):\s+")
 _SIZEOF_ASSERT = re.compile(
     r"static_assert\s*\(\s*sizeof\s*\(\s*([A-Za-z_][\w:]*)\s*\)\s*==\s*(0x[0-9a-fA-F]+|\d+)",
@@ -167,6 +169,26 @@ def _strip_comments_and_qualifiers(line: str) -> str:
     return line.split("//", 1)[0].strip()
 
 
+def _scan_global_comment(lines: list[str], index: int) -> tuple[list[str], int, str] | None:
+    """Comments and the first non-comment line after a GLOBAL marker."""
+
+    look = index + 1
+    comments: list[str] = []
+    while look < len(lines):
+        stripped = lines[look].strip()
+        if not stripped:
+            look += 1
+            continue
+        if stripped.startswith("//"):
+            comments.append(stripped)
+            if _SOURCE_MARKER.match(lines[look]) and not _GLOBAL_LINE.match(lines[look]):
+                return None
+            look += 1
+            continue
+        return comments, look, _strip_comments_and_qualifiers(lines[look])
+    return None
+
+
 def parse_global_definitions(
     repo_dir: Path, sizes: dict[str, int] | None = None
 ) -> list[dict[str, Any]]:
@@ -196,26 +218,11 @@ def parse_global_definitions(
                 location = f"{relative}:{index + 1}"
                 address = int(match.group("address"), 16)
                 target = match.group("target").upper()
-                look = index + 1
-                comments: list[str] = []
-                while look < len(lines):
-                    stripped = lines[look].strip()
-                    if not stripped:
-                        look += 1
-                        continue
-                    if stripped.startswith("//"):
-                        comments.append(stripped)
-                        if _SOURCE_MARKER.match(lines[look]) and not _GLOBAL_MARKER.match(
-                            lines[look]
-                        ):
-                            break
-                        look += 1
-                        continue
-                    break
-                if look >= len(lines):
+                scanned = _scan_global_comment(lines, index)
+                if scanned is None:
                     index += 1
                     continue
-                decl = _strip_comments_and_qualifiers(lines[look])
+                comments, look, decl = scanned
                 window = " ".join(comments)
                 if (
                     decl.startswith("extern ")
@@ -263,6 +270,59 @@ def parse_global_definitions(
                 )
                 index = look + 1
     return definitions
+
+
+def unaddressed_globals(repo_dir: Path) -> list[dict[str, Any]]:
+    """``GLOBAL`` markers that neither name a retail address nor say unresolved.
+
+    An unaddressed definition can sit inside an addressed aggregate without the
+    overlap checker seeing it. Either recover the address or mark the marker
+    ``unresolved``.
+    """
+
+    violations: list[dict[str, Any]] = []
+    roots = (repo_dir / "src", repo_dir / "include")
+    for root in roots:
+        if not root.is_dir():
+            continue
+        for path in sorted(root.rglob("*")):
+            if path.suffix.lower() not in {".h", ".hpp", ".cpp", ".c"}:
+                continue
+            relative = str(path.relative_to(repo_dir))
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+            for index, line in enumerate(lines):
+                match = _GLOBAL_LINE.match(line)
+                if match is None or _GLOBAL_MARKER.match(line):
+                    continue
+                rest = match.group("rest") or ""
+                scanned = _scan_global_comment(lines, index)
+                comments = scanned[0] if scanned is not None else []
+                window = " ".join([rest, *comments])
+                if _UNRESOLVED_GLOBAL.search(window):
+                    continue
+                name = ""
+                decl = ""
+                if scanned is not None:
+                    decl = scanned[2]
+                    parsed = _DECL.match(decl)
+                    if parsed is not None:
+                        name = parsed.group("name")
+                if decl.startswith("extern "):
+                    continue
+                detail = (
+                    f"{name or 'global'} has a GLOBAL marker without a retail address; "
+                    "resolve the address or mark the marker unresolved"
+                )
+                violations.append(
+                    {
+                        "kind": "unaddressed-global",
+                        "file": relative,
+                        "line": index + 1,
+                        "name": name,
+                        "detail": detail,
+                    }
+                )
+    return violations
 
 
 def _end(item: dict[str, Any]) -> int | None:
@@ -334,6 +394,8 @@ def overlapping_globals(definitions: list[dict[str, Any]]) -> list[dict[str, Any
                         "address": f"0x{member['address']:08x}",
                         "container": container["name"],
                         "offset": offset,
+                        "file": member.get("source_file") or "",
+                        "line": int(member.get("line") or 0),
                         "detail": detail,
                         "key": key,
                     }
@@ -391,6 +453,12 @@ def type_consistency_violations(
 
 def validate_global_ownership(repo_dir: Path) -> dict[str, Any]:
     sizes = known_type_sizes(repo_dir)
+    missing = unaddressed_globals(repo_dir)
+    if missing:
+        rendered = [f"{item['file']}:{item['line']} {item['detail']}" for item in missing]
+        raise GlobalOverlapError(
+            "GLOBAL markers have no retail address:\n  " + "\n  ".join(rendered)
+        )
     definitions = parse_global_definitions(repo_dir, sizes)
     overlaps = overlapping_globals(definitions)
     if overlaps:

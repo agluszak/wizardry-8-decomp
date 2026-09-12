@@ -9,9 +9,6 @@
 
 #define OCT_BUILD_TREE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctBuildTree.cpp"
 
-// GLOBAL
-float g_path_waypoint_exact_distance_005ebc64;
-
 // GLOBAL: WIZ8 0x005ec188
 float g_float_005ec188 = 1.000100016593933f;
 
@@ -96,7 +93,7 @@ W8OctBuildTree00446390::W8OctBuildTree00446390(float leaf_size, srVector3T<float
     padding_b5[2] = 0;
     positional_b8 = 0;
 
-    if (leaf_size < g_path_waypoint_exact_distance_005ebc64) {
+    if (leaf_size < g_float_005ebc64) {
         Function497690(7, "Leaf Size too small--try a larger leaf size!");
     }
     spatial_00.flags_00 = 0;

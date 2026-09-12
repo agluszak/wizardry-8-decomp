@@ -12,6 +12,7 @@
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/float_constants.h"
+#include "wiz8/regions.h"
 // GLOBAL: WIZ8 0x005ebc30
 double g_double_005ebc30 = 1.0;
 // GLOBAL: WIZ8 0x005ec020
@@ -67,13 +68,10 @@ unsigned short g_path_reserve_0060827a = 2000;
 extern float g_path_span_scale_005ec344;
 // GLOBAL: WIZ8 0x005ec344
 float g_path_span_scale_005ec344 = 1.5259254723787308e-05f;
-extern float g_path_limit_006081e8;
-// GLOBAL
-float g_path_limit_006081e8;
+
 extern unsigned char g_flag_00659c5c;
 // GLOBAL: WIZ8 0x00659c5c
 unsigned char g_flag_00659c5c;
-extern unsigned char g_flag_00689b32;
 extern void* g_path_scratch_00659c64;
 // GLOBAL: WIZ8 0x00659c64
 void* g_path_scratch_00659c64;
@@ -101,12 +99,9 @@ float g_path_direction_threshold_3_005ec354 = 0.9239000082015991f;
 extern float g_path_cardinal_scale_005ec358;
 // GLOBAL: WIZ8 0x005ec358
 float g_path_cardinal_scale_005ec358 = 1.4149999618530273f;
-extern float g_path_waypoint_query_vertical_005ec35c;
-// GLOBAL
-float g_path_waypoint_query_vertical_005ec35c;
+
 // GLOBAL: WIZ8 0x005ec360
 float g_float_005ec360;
-extern float g_path_waypoint_exact_distance_005ebc64;
 // GLOBAL: WIZ8 0x00652dc4
 srShader g_path_shader_00652dc4;
 extern srTextureIFace* g_path_texture_00652dc0;
@@ -466,7 +461,7 @@ void W8PathingService::BuildWaypointFileData0045E440()
                         ++removed;
                     }
                 }
-                if (g_flag_00689b32 != 0) {
+                if (g_flag_689b32 != 0) {
                     const char* message = removed == 0 ? "Deleting Isolated WayPt at:  %1f, %1f"
                                                        : "Deleting Dead End WayPt at:  %1f, %1f";
                     FormatDebugMessage(0, message, (double)surface->position_04.x,
@@ -1319,7 +1314,7 @@ unsigned int W8PathingService::CollectPathProbes004656A0(W8NavigatorMovementStat
 {
     path_probe_count_0d4 = 0;
 
-    float extent = g_path_limit_006081e8 + radius;
+    float extent = g_runtime_world_scale_6081e8 + radius;
     srVector3T<float> lower;
     srVector3T<float> upper;
     srVector3T<float> half_extent;
@@ -1440,7 +1435,7 @@ unsigned short W8PathingService::PlanMovement00463460(W8NavigatorMovementState* 
         if (search_extent < remaining_callback) {
             search_extent = remaining_callback;
         }
-        search_extent += g_path_limit_006081e8 + radius;
+        search_extent += g_runtime_world_scale_6081e8 + radius;
         srVector3T<float> lower;
         srVector3T<float> upper;
         srVector3T<float> half_extent;
@@ -2328,7 +2323,7 @@ W8PathingService::W8PathingService()
     m_pCondKeys = 0;
     m_pCondValues = 0;
     g_pathing_00659c60 = this;
-    g_path_limit_006081e8 = 500.0f;
+    g_runtime_world_scale_6081e8 = 500.0f;
 }
 
 /* Take the octree's own bounds and level name. The span is the vertical extent
@@ -3407,7 +3402,7 @@ unsigned short W8PathingService::FindWaypoint0045B120(const srVector3T<float>* p
     srVector3T<float> lower;
     srVector3T<float> upper;
     srVector3T<float> half_extent;
-    half_extent.Set(g_float_005ec360, g_path_waypoint_query_vertical_005ec35c, g_float_005ec360);
+    half_extent.Set(g_float_005ec360, g_float_005ec35c, g_float_005ec360);
     lower = query - half_extent;
     upper = query + half_extent;
 
@@ -3428,7 +3423,7 @@ unsigned short W8PathingService::FindWaypoint0045B120(const srVector3T<float>* p
             srVector3T<float> delta = query - *candidate;
             distances[index] = (unsigned int)(int)delta.Length();
 
-            if ((float)distances[index] < g_path_waypoint_exact_distance_005ebc64 &&
+            if ((float)distances[index] < g_float_005ebc64 &&
                 srVector2T<float>(delta.x, delta.z).Length() < g_double_005ec150) {
                 result = (unsigned short)candidates[index];
             }
@@ -4409,12 +4404,12 @@ short W8PathingService::CollectPathVisualization0045D880(const srVector3T<float>
 
     srVector3T<float> lower;
     srVector3T<float> upper;
-    lower.x = position->x - g_path_waypoint_query_vertical_005ec35c;
+    lower.x = position->x - g_float_005ec35c;
     lower.y = position->y - g_float_005ec2f8;
-    lower.z = position->z - g_path_waypoint_query_vertical_005ec35c;
-    upper.x = position->x + g_path_waypoint_query_vertical_005ec35c;
+    lower.z = position->z - g_float_005ec35c;
+    upper.x = position->x + g_float_005ec35c;
     upper.y = position->y + g_float_005ec2f8;
-    upper.z = position->z + g_path_waypoint_query_vertical_005ec35c;
+    upper.z = position->z + g_float_005ec35c;
     query_count = g_octree_6598a4->QueryObjects0042F280(&query_results, &lower, &upper, 9, -1);
 
     for (index = 0; index < query_count; ++index) {
@@ -4438,10 +4433,10 @@ short W8PathingService::CollectPathVisualization0045D880(const srVector3T<float>
 
     query_results = 0;
     lower.x = position->x - g_float_005ec384;
-    lower.y = position->y - g_path_waypoint_query_vertical_005ec35c;
+    lower.y = position->y - g_float_005ec35c;
     lower.z = position->z - g_float_005ec384;
     upper.x = position->x + g_float_005ec384;
-    upper.y = position->y + g_path_waypoint_query_vertical_005ec35c;
+    upper.y = position->y + g_float_005ec35c;
     upper.z = position->z + g_float_005ec384;
     query_count = g_octree_6598a4->QueryObjects0042F280(&query_results, &lower, &upper, 9, -1);
 
@@ -4637,7 +4632,7 @@ unsigned char W8PathingService::PreparePathVisualization0045E840(const srVector3
             srVector3T<float> probe;
             unsigned short probe_waypoint;
 
-            distance += g_path_waypoint_exact_distance_005ebc64;
+            distance += g_float_005ebc64;
             probe = source_surface->position_04 + *direction * distance;
             probe_waypoint = FindWaypoint0045B120(&probe, 0);
             if (probe_waypoint != 0 && probe_waypoint != source_waypoint) {

@@ -113,7 +113,6 @@ void DestroyMissile(W8Missile* missile); /* 0x004A4180 */
 void DestroyAllMissiles(W8World* world); /* 0x004A4210 */
 void DetachMissileReferences005019A0(W8Missile* missile);
 
-extern float g_navigator_largest_extent_6081e8;
 extern unsigned int g_missile_table_count_65bddc;
 
 /* One 0x1e5-byte MissileTables.dbs runtime row. Only the fields reached by

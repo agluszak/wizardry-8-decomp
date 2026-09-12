@@ -15,6 +15,7 @@ extern unsigned int g_state5_import_list_region_set_69c50c;   /* 0x0069C50C */
 /* 0x0061CBC0: one byte per portrait, nonzero for the portraits that carry
    animation frames. */
 extern unsigned char g_portrait_frame_flags_0061cbc0[0x50];
+extern int g_value_68de50; /* 0x0068DE50: Wizardry-7 import ending selector */
 
 void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int value,
                                  int party_slot);

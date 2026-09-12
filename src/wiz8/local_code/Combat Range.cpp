@@ -9,6 +9,7 @@
 #include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/local_code/CombatRange.h"
+#include "wiz8/game_status.h"
 
 /*
  * Local Code\Combat Range.cpp.
@@ -28,10 +29,8 @@
    table. */
 enum { W8_FORMATION_ROW_WIDTH = 3 };
 
-/* 0x00519AC0 */
-extern float g_range_constant_005ec35c;
-// GLOBAL
-float g_range_constant_005ec35c;
+// GLOBAL: WIZ8 0x005ec35c
+float g_float_005ec35c;
 
 /* The formation. Three party positions per row at 0x00687511, and each
    position's own row number at 0x00687525 with a twelve-byte stride. -1 marks
@@ -240,7 +239,7 @@ float GetRangeConstant5EC360(void)
 // FUNCTION: WIZ8 0x0051b310
 float GetRangeConstant5EC35C(void)
 {
-    return g_range_constant_005ec35c;
+    return g_float_005ec35c;
 }
 
 // FUNCTION: WIZ8 0x0051b3f0

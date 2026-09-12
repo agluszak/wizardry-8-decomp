@@ -11,6 +11,7 @@
 
 #include <string.h>
 #include "wiz8/character_skills.h"
+#include "wiz8/game_status.h"
 
 /*
  * Local Code\Combat Attack.cpp.

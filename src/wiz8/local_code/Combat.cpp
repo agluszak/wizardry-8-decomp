@@ -38,6 +38,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include "wiz8/game_status.h"
 
 // GLOBAL: WIZ8 0x006836a8
 W8CombatState* g_combat_state;
@@ -276,11 +277,6 @@ extern unsigned int g_flee_hp_fraction_005ed8f8;
 unsigned int g_flee_chance_005ed908 = 15;
 // GLOBAL: WIZ8 0x005ed490
 float g_movement_speed_step_005ed490 = 0.009999999776482582f;
-/* 0x00683FE7-adjacent: the per-character per-hand attack values combat saved
-   when the round began, 0x35 dwords per character. */
-// GLOBAL
-int g_saved_attack_values[8 * 0x35];
-
 /* What one character's whole turn is worth. A character whose turn combat has
    already set up uses the values it saved; anyone else is asked afresh. A
    phase of exactly a hundred is worth one whatever the hands say. */
@@ -302,7 +298,7 @@ int GetCharacterTurnValue(int party_slot)
         if (row->flag_34 == 0) {
             value = GetHandAttackValue(party_slot, hand);
         } else {
-            value = g_saved_attack_values[party_slot * 0x35 + hand];
+            value = row->saved_attack_value[hand];
         }
         if (row->phase == 100) {
             value = 1;
@@ -648,8 +644,7 @@ void ChooseAction(int party_slot, int action, int detail, const void* data, int 
 /* Apply a chosen in-combat action for party-move kinds 10/11, otherwise record
    the action on the slot row and refresh targeting UI state. */
 // FUNCTION: WIZ8 0x004e7ee0
-void Function4E7EE0(int party_slot, int action, int detail, const void* data, int arg_5,
-                    int notify)
+void Function4E7EE0(int party_slot, int action, int detail, const void* data, int arg_5, int notify)
 {
     unsigned int party_slot_index;
     W8Character* character;
@@ -949,7 +944,7 @@ unsigned char CharacterCanSwitchTo(int party_slot, W8TargetingContext context, i
         if (value_a == 0) {
             return 0;
         }
-        if (Function4F9750(character, value_a) == 0) {
+        if (CanCharacterCastSpell(character, value_a) == 0) {
             return 0;
         }
         break;

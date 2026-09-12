@@ -26,6 +26,7 @@
 #include "wiz8/local_code/character_events.h"
 
 #include <stdlib.h>
+#include "wiz8/game_status.h"
 
 /* Local Code\Health Stamina Mana.cpp, named by the assertions these bodies
    embed. The party sweeps in here all share one shape: walk the eight party
@@ -297,9 +298,6 @@ unsigned int g_effect_threshold_005ed904 = 50;
 extern unsigned int g_effect_threshold_005ed900;
 // GLOBAL: WIZ8 0x005ed900
 unsigned int g_effect_threshold_005ed900 = 70;
-extern unsigned char g_spell_points_free_00687500;
-// GLOBAL
-unsigned char g_spell_points_free_00687500;
 /* 0x0061E518: one notice index per spell realm, giving the realm's name. */
 extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
 
@@ -436,7 +434,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
     if (character->hp_current == 0) {
         return;
     }
-    if (g_spell_points_free_00687500 != 0) {
+    if (g_status_685170.value_2390 != 0) {
         PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x980 / 4], amount);
         return;
     }
@@ -828,7 +826,7 @@ void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amou
         return;
     }
 
-    if (g_spell_points_free_00687500 != 0) {
+    if (g_status_685170.value_2390 != 0) {
         PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x988 / 4], amount,
                             gppStringList[g_realm_message_offsets[realm]]);
         return;

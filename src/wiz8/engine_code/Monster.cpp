@@ -36,8 +36,9 @@
 #include "wiz8/engine_code/stScript.h"
 #include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/engine_code/World.h"
-// GLOBAL
-unsigned char g_flag_6081e4;
+#include "wiz8/game_status.h"
+#include "wiz8/local_code/FormationAndFacing.h"
+#include "wiz8/regions.h"
 // GLOBAL: WIZ8 0x00659c14
 int g_value_659c14;
 #include "wiz8/engine_code/Octree.h"
@@ -72,8 +73,6 @@ int g_value_659c14;
 #include <stdio.h>
 #include <math.h>
 
-extern unsigned char FindEntityByName(const char* name, srVector3T<float>* position, int* value,
-                                      srVector3T<float>* direction);
 extern const float g_monster_rotation_offset_005ec04c;
 // GLOBAL: WIZ8 0x005ebcf8
 const float g_float_005ebcf8 = 0.0055555556900799274f;
@@ -81,9 +80,7 @@ extern const double g_monster_death_rotation_pi_005ed1f0;
 extern float g_light_scale_0060bfe0;
 // GLOBAL: WIZ8 0x0060bfe0
 float g_light_scale_0060bfe0 = 1.0f;
-extern float g_monster_scale_transition_step_005ebcf4;
-// GLOBAL
-float g_monster_scale_transition_step_005ebcf4;
+
 unsigned char g_monster_shadow_updates_enabled_0065970c;
 extern unsigned char g_monster_combat_timer_enabled_006f0531;
 extern const float g_monster_attachment_distance_scale_005ed2a8;
@@ -131,9 +128,7 @@ float g_monster_attachment_scales_0060e914[9] = {0.0f,  0.3f,  0.2f,  0.15f, 0.1
                                                  0.15f, 0.15f, 0.15f, 0.15f};
 extern float g_startup_depth_603ac8;
 extern const float g_camera_transition_epsilon_005ebc84;
-extern unsigned char g_force_encounter_culling; /* 0x00687500 */
-// GLOBAL
-unsigned char g_force_encounter_culling;
+
 extern const double g_monster_script_direction_step_005ed2b8;
 extern const double g_monster_facing_tolerance_005ec2b0;
 extern const double g_monster_group_nearest_range_005ed2c0;
@@ -1187,10 +1182,6 @@ extern int g_monster_cycle_registry_weight_0065ba4c;
 // GLOBAL: WIZ8 0x0065ba4c
 int g_monster_cycle_registry_weight_0065ba4c;
 
-extern unsigned char g_flag_00689b32;
-// GLOBAL
-unsigned char g_flag_00689b32;
-
 // FUNCTION: WIZ8 0x004bfb00
 W8Monster::W8Monster()
 {
@@ -1376,12 +1367,12 @@ void W8Monster::Update()
 
     if (current_scale_300 != target_scale_2fc && timer_2d8.GetProgress() >= g_float_005ebb38) {
         if (target_scale_2fc <= current_scale_300) {
-            current_scale_300 -= g_monster_scale_transition_step_005ebcf4;
+            current_scale_300 -= g_facing_tolerance_005ebcf4;
             if (current_scale_300 < target_scale_2fc) {
                 current_scale_300 = target_scale_2fc;
             }
         } else {
-            current_scale_300 += g_monster_scale_transition_step_005ebcf4;
+            current_scale_300 += g_facing_tolerance_005ebcf4;
             if (current_scale_300 > target_scale_2fc) {
                 current_scale_300 = target_scale_2fc;
             }
@@ -1650,7 +1641,7 @@ unsigned char W8Monster::EvaluateScriptCondition004C9DC0(const char* expression)
 
         srVector3T<float> current_position = GetPosition();
         monster_position = current_position;
-        if (g_force_encounter_culling == 0 &&
+        if (g_status_685170.value_2390 == 0 &&
             (party_position - monster_position).Length() <
                 *parameters.GetAt(0) * g_world_scale_005ebc40 &&
             MonsterInfoFromID(7533, MONSTER_CPP, propagated_value_1e4, 1)
@@ -1743,7 +1734,7 @@ unsigned char W8Monster::GetProjectilePosition004C77F0(srVector3T<float>* positi
 
     result = GetCycleMappedPosition004C7960(cycle, 5, position);
     if (result == 0 && flag_22d == 0) {
-        if (g_flag_00689b32 != 0) {
+        if (g_flag_689b32 != 0) {
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x18c3, MONSTER_CPP, propagated_value_1e4, 1));
             FormatDebugMessage(0, "WARNING: %ls does not have a MISSILE_START_POINT defined",
@@ -1766,7 +1757,7 @@ unsigned char W8Monster::GetSpellPosition004C78E0(srVector3T<float>* position)
     }
     found = GetCycleMappedPosition004C7960(0x19, 6, position);
     if (found == 0 && flag_22c == 0) {
-        if (g_flag_00689b32 != 0) {
+        if (g_flag_689b32 != 0) {
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x18e4, MONSTER_CPP, propagated_value_1e4, 1));
             W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
@@ -3020,7 +3011,7 @@ unsigned char W8Monster::CanEnterCycle(signed char cycle)
     }
     if (m_pRep->flag_06d == 0) {
         if (cycle != 0x14 && cycle != 0x15 && cycle != 0 && monster_info->motionless != 0) {
-            if (g_flag_00689b32 == 0) {
+            if (g_flag_689b32 == 0) {
                 return 0;
             }
             srAssertFail("FALSE", MONSTER_CPP, 0x97f, 0);
@@ -5116,6 +5107,6 @@ void Function4C5ED0(W8Monster* monster)
 // FUNCTION: WIZ8 0x004C6220
 void SetFlag6081E4(unsigned char value)
 {
-    g_flag_6081e4 = value;
+    g_flag_006081e4 = value;
     g_value_659c14 = 0;
 }

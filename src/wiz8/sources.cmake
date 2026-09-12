@@ -128,7 +128,6 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/character_skills.cpp
     src/wiz8/fact_state.cpp
     src/wiz8/render_options.cpp
-    src/wiz8/engine_code/registry_classes.cpp
     src/wiz8/engine_code/MonsterLight.cpp
     src/wiz8/engine_code/GDCamera.cpp
     src/wiz8/engine_code/world_selection.cpp
@@ -142,6 +141,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/Search.cpp
     src/wiz8/local_code/npc_interaction.cpp
     "src/wiz8/local_code/NPC Scripting.cpp"
+    "src/wiz8/local_code/NPC Scripting Facts.cpp"
     src/wiz8/local_code/character_events.cpp
     src/wiz8/local_code/formation_state.cpp
     src/wiz8/local_code/CharGeneration.cpp
@@ -164,9 +164,11 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/music_playlist.cpp
     src/wiz8/npc_items.cpp
     src/wiz8/record_file_0055a480.cpp
+    src/wiz8/surrender_det3.cpp
     src/wiz8/surrender_math.cpp
     src/wiz8/virtual_file_stream.cpp
     src/wiz8/vc6_runtime.cpp
+    src/wiz8/engine_code/trim_string.cpp
 )
 
 # Every recovered C++ source must appear exactly once. The glob is

@@ -66,7 +66,7 @@ unsigned char g_renderer_ready_00607d7c = 1;
 
 class W8AmbientSound;
 
-// GLOBAL
+// GLOBAL: WIZ8 0x00659757
 unsigned char g_world_cleanup_flag_00659757;
 // GLOBAL: WIZ8 0x00659a80
 W8GrowableVector<W8World*> g_worlds_00659a80;
@@ -361,6 +361,12 @@ void UpdateWorld0044F4E0(W8World* world)
 
 // VTABLE: WIZ8 0x005EC208
 // class srClassSupport<srNode, class srNode, 0, 4096>
+
+// TEMPLATE: WIZ8 0x004519D0
+// srClassSupport<srNode,srNode,0,4096>::getClassID
+
+// TEMPLATE: WIZ8 0x004519F0
+// srClassSupport<srNode,srNode,0,4096>::clone
 
 // SYNTHETIC: WIZ8 0x0044F3D0
 // srClassSupport<srNode,srNode,0,4096>::`scalar deleting destructor'

@@ -2017,6 +2017,44 @@ BOOLEAN AddSubdirectoryToPath(CHAR8* subdirectory)
     return TRUE;
 }
 
+// FUNCTION: WIZ8 0x004058a0
+BOOLEAN FileIsOlderThanFile(CHAR8 *pcFileName1, CHAR8 *pcFileName2, UINT32 ulNumSeconds)
+{
+    WIN32_FIND_DATA first;
+    WIN32_FIND_DATA second;
+    HANDLE search;
+    INT32 compared;
+    ULARGE_INTEGER first_time;
+    ULARGE_INTEGER second_time;
+    ULARGE_INTEGER difference;
+
+    search = FindFirstFile(pcFileName1, &first);
+    FindClose(search);
+    search = FindFirstFile(pcFileName2, &second);
+    FindClose(search);
+
+    compared = CompareFileTime(&first.ftLastWriteTime, &second.ftLastWriteTime);
+    if (compared > 0) {
+        return FALSE;
+    }
+    if (ulNumSeconds == 0) {
+        if (compared == 0) {
+            return FALSE;
+        }
+        return TRUE;
+    }
+
+    first_time.LowPart = first.ftLastWriteTime.dwLowDateTime;
+    first_time.HighPart = first.ftLastWriteTime.dwHighDateTime;
+    second_time.LowPart = second.ftLastWriteTime.dwLowDateTime;
+    second_time.HighPart = second.ftLastWriteTime.dwHighDateTime;
+    difference.QuadPart = second_time.QuadPart - first_time.QuadPart;
+    if (difference.QuadPart / 10000000 >= ulNumSeconds) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
 
 UINT32 GetFreeSpaceOnHardDriveWhereGameIsRunningFrom( )
 {

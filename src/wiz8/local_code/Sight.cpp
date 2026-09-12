@@ -39,6 +39,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "wiz8/game_status.h"
 
 /*
  * Local Code\Sight.cpp.

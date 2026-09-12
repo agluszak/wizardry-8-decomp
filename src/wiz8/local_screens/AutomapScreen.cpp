@@ -251,10 +251,10 @@ void ResetAutomapView005817D0(void)
     }
     g_automap_grid_origin_0068f240 = g_automap_grid_min_0068f1d8;
     g_automap_grid_center_0068f1f8.x =
-        (g_automap_grid_min_0068f1d8.x + g_automap_grid_max_0068f1c8.x) * g_W8RangeHalfStep005EBC7C;
+        (g_automap_grid_min_0068f1d8.x + g_automap_grid_max_0068f1c8.x) * g_float_005ebc7c;
     g_automap_grid_center_0068f1f8.y = 0.0f;
     g_automap_grid_center_0068f1f8.z =
-        (g_automap_grid_min_0068f1d8.z + g_automap_grid_max_0068f1c8.z) * g_W8RangeHalfStep005EBC7C;
+        (g_automap_grid_min_0068f1d8.z + g_automap_grid_max_0068f1c8.z) * g_float_005ebc7c;
     g_automap_bounds_dirty_0064b91c = 1;
     float span_x = g_automap_grid_max_0068f1c8.x - g_automap_grid_min_0068f1d8.x;
     float span_z = g_automap_grid_max_0068f1c8.z - g_automap_grid_min_0068f1d8.z;

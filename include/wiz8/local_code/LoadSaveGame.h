@@ -80,7 +80,6 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level);
 unsigned char MeasureLevelStatusChunks00514DF0(W8Chunk* chunk, int level,
                                                unsigned int* empty_percent);
 
-extern unsigned char g_flag_659756;
 extern unsigned char g_save_pending_00689f98;
 extern unsigned char g_save_notice_shown_0068506b;
 
@@ -89,6 +88,6 @@ char Function5156C0(const char* path, W8Character* character);
 void Function515B00(void);
 void SaveMonsterStatus(W8Chunk* chunks); /* 0x005145A0 */
 
-void Function512C40(void);
+void ResetLiveSessionForLoad(void); /* 0x00512C40 */
 
 void ReportSaveFailed(char quiet); /* 0x00515AC0 */

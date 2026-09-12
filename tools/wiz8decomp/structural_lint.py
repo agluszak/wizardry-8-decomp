@@ -1,10 +1,10 @@
 """Exact structural invariants for recovered source.
 
-The gate keeps the checks that a regular expression can decide exactly: a
+The gate keeps the checks that recovered source can decide exactly: a
 constant index past the end of a fixed-size array field declared in the
 recovered headers, newly added ``W8GrowableVector<void*>`` element claims,
-and include-guarded Wizardry headers that close before their trailing
-declarations.
+include-guarded Wizardry headers that close before their trailing
+declarations, and independently defined globals that share retail storage.
 
 An unresolved pointer-vector specialization keeps its element type unknown
 until a producer or consumer identifies it; erasing it to ``void*`` hides that
@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from .cast_lint import added_lines_without_marker, baseline_diff
+from .global_model import overlapping_globals, parse_global_definitions, unaddressed_globals
 
 SCOPE_PREFIXES = ("src/wiz8/", "include/wiz8/")
 
@@ -166,6 +167,16 @@ def structural_violations(repo_dir: Path) -> list[dict[str, Any]]:
                     "new W8GrowableVector<void*> needs a 'vector-void-ok: reason' "
                     f"comment: {item['text']}"
                 ),
+            }
+        )
+    violations.extend(unaddressed_globals(repo_dir))
+    for item in overlapping_globals(parse_global_definitions(repo_dir)):
+        violations.append(
+            {
+                "kind": item["kind"],
+                "file": item.get("file") or "",
+                "line": int(item.get("line") or 0),
+                "detail": item["detail"],
             }
         )
     return violations

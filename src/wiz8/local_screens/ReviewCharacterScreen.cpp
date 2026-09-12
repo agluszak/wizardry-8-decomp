@@ -66,8 +66,6 @@ unsigned int g_camp_skill_controls_region_set;
 // GLOBAL: WIZ8 0x0069c408
 unsigned int g_camp_character_info_region_set;
 
-extern unsigned char g_flag_689b32;
-
 // GLOBAL: WIZ8 0x005ee6ec
 int g_effect_005ee6ec = 109;
 
@@ -77,6 +75,7 @@ int g_effect_argument_005ed8cc = 1;
 #include "line.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_screens/RCSCommon.h"
+#include "wiz8/game_status.h"
 void Function5B9070(void);
 void Function5B9350(void);
 void Function5B9900(void);

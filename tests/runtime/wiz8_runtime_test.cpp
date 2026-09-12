@@ -31,6 +31,7 @@ void PrintSightSemanticResults(const SightSemanticResult* result);
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "wiz8/game_status.h"
 
 extern "C" {
 
@@ -216,15 +217,15 @@ static void ParkMouseOutsideActiveRegions()
             return;
         }
     }
-    for (int x = 0; x < width; ++x) {
-        if (!PointHitsEnabledRegion(x, 0)) {
-            MoveScenarioMouse(x, 0);
+    for (int top_x = 0; top_x < width; ++top_x) {
+        if (!PointHitsEnabledRegion(top_x, 0)) {
+            MoveScenarioMouse(top_x, 0);
             return;
         }
     }
-    for (int x = 0; x < width; ++x) {
-        if (!PointHitsEnabledRegion(x, height - 1)) {
-            MoveScenarioMouse(x, height - 1);
+    for (int bottom_x = 0; bottom_x < width; ++bottom_x) {
+        if (!PointHitsEnabledRegion(bottom_x, height - 1)) {
+            MoveScenarioMouse(bottom_x, height - 1);
             return;
         }
     }
@@ -785,7 +786,8 @@ static DWORD WINAPI DriveScenario(void*)
                 }
                 while (CountActiveCharacters() < 6) {
                     int before = CountActiveCharacters();
-                    if (AddCharacterToParty(&g_status_685170.buffers.characters[populated], -1) < 0 ||
+                    if (AddCharacterToParty(&g_status_685170.buffers.characters[populated], -1) <
+                            0 ||
                         CountActiveCharacters() <= before) {
                         return FailScenario();
                     }

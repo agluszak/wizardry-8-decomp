@@ -261,7 +261,6 @@ extern int g_value_0068c520;
 extern int g_value_0068c548;
 extern int g_value_005ee59c;
 extern int g_value_005ee5a0;
-extern int g_value_005ed8c8;
 
 unsigned char CreateTriggerShakeEvent00444F70(int intensity, float duration,
                                               float countdown_duration, unsigned char reverse);

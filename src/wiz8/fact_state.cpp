@@ -20,15 +20,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
+#include "wiz8/game_status.h"
+#include "wiz8/local_screens/PartySelectionScreen.h"
 
 // GLOBAL: WIZ8 0x0068de63
 unsigned char g_import_party_loaded;
 // GLOBAL: WIZ8 0x0068de5d
-int g_import_ending_choice;
+unsigned char g_import_flag_0068de5d;
 // GLOBAL: WIZ8 0x00689b78
 unsigned char g_fact_values[1000];
-// GLOBAL
-unsigned char g_import_flags[0x60];
 
 // FUNCTION: WIZ8 0x00506280
 unsigned char GetFact(int fact_id)
@@ -104,22 +104,18 @@ void SaveFactState(int save_handle)
 }
 
 /* Clears every fact, then seeds the ones a fresh party starts with. A party
-   imported from Wizardry 7 gets a different set, keyed off the option byte and
-   flag mask the importer unpacked.
-   The canonical body clears the suppression flag twice, once inside the
-   innermost branch ahead of an early return and once at the exit. That
-   duplication is VC6's, not the source's: writing both out costs a byte,
-   because the compiler then merges the two argument cleanups into one
-   add esp,0x10 where the original keeps an add esp,0xc and a pop ecx. One
-   trailing call, duplicated by the compiler, is byte-exact. */
+   imported from Wizardry 7 is the skip-loose-character-check path: ending
+   choice 1/2/other maps to facts 0x4c/0x4b/0x4d, then two independent import
+   bytes can set 0x199 and 0x7b. The 0x7b path unsuppresses and returns; the
+   other imported path and the new-game path unsuppress at the shared exit. */
 // FUNCTION: WIZ8 0x00506310
 void InitializeFactState(void)
 {
     memset(g_fact_values, 0, 1000);
     SetFactNotificationsSuppressed(1);
-    if (g_import_party_loaded) {
+    if (g_status_685170.skip_loose_character_check_2444) {
         SetFact(0x75, 1, 0);
-        switch (g_import_ending_choice) {
+        switch (g_value_68de50) {
         case 1:
             SetFact(0x4c, 1, 0);
             break;
@@ -130,11 +126,13 @@ void InitializeFactState(void)
             SetFact(0x4d, 1, 0);
             break;
         }
-        if (g_import_flags[0x0b]) {
+        if (g_import_party_loaded) {
             SetFact(0x199, 1, 0);
         }
-        if (g_import_flags[0x05]) {
+        if (g_import_flag_0068de5d) {
             SetFact(0x7b, 1, 0);
+            SetFactNotificationsSuppressed(0);
+            return;
         }
     } else {
         SetFact(0x4e, 1, 0);

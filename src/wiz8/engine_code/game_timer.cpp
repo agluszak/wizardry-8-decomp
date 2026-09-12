@@ -2,6 +2,7 @@
 #include "wiz8/engine_code/Object0043A910.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/virtual_file.h"
+#include "wiz8/game_status.h"
 
 /* The game-timer unit: a small timer object over one shared, reference-counted
    srTimer-derived singleton. The image names neither the unit nor the classes -

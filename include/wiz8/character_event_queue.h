@@ -6,6 +6,9 @@
 
 struct W8Character;
 
+/* One queued character-event entry. The ctor, quote formatter, and process
+   method live with QueueCharacterEvent in character_events.cpp; the original
+   type name is unknown. */
 struct W8CharacterEvent {
     W8CharacterEvent(W8Character* character, unsigned int type, int value_0c, unsigned int flags,
                      int value_14);
@@ -43,6 +46,10 @@ struct W8CharacterEvent {
 
 static_assert(sizeof(W8CharacterEvent) == 0x38, "W8CharacterEvent_must_be_0x38");
 
+/* The character-event queue. Construction is at 0x0052D460; QueueEntry and the
+   later methods occupy the following 0x52Dxxx block. Those bodies live in
+   character_events.cpp, an unresolved fragment until TU evidence names an
+   original owner. */
 struct W8CharacterEventQueue {
     W8GrowableVector<W8CharacterEvent*> vector_00;
     W8GrowableVector<W8CharacterEvent*> vector_10;
