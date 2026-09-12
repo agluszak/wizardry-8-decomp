@@ -45,8 +45,8 @@
 // VTABLE: WIZ8 0x005ee920
 class W8Controls005EE920 : public Controls {
 public:
-    bool Function55EBB0(unsigned int command);
-    bool Function55EBE0(unsigned int command);
+    bool HandleScrollDownCommand(unsigned int command);
+    bool HandleScrollUpCommand(unsigned int command);
 
 private:
     int m_positional_4c;
@@ -62,7 +62,7 @@ static_assert(sizeof(W8Controls005EE920) == 0xbc, "W8Controls005EE920_size");
 /* Run the first screen command predicate and reset this target through its
    second virtual slot when command zero succeeds. */
 // FUNCTION: WIZ8 0x0055EBB0
-bool W8Controls005EE920::Function55EBB0(unsigned int command)
+bool W8Controls005EE920::HandleScrollDownCommand(unsigned int command)
 {
     if (m_dialog_64.ScrollDown(static_cast<unsigned char>(command)) != 0) {
         if (static_cast<char>(command) == 0) {
@@ -75,7 +75,7 @@ bool W8Controls005EE920::Function55EBB0(unsigned int command)
 
 /* The parallel path using the second command predicate. */
 // FUNCTION: WIZ8 0x0055EBE0
-bool W8Controls005EE920::Function55EBE0(unsigned int command)
+bool W8Controls005EE920::HandleScrollUpCommand(unsigned int command)
 {
     if (m_dialog_64.ScrollUp(static_cast<unsigned char>(command)) != 0) {
         if (static_cast<char>(command) == 0) {

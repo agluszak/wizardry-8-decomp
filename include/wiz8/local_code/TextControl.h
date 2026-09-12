@@ -26,10 +26,9 @@ public:
     };
 
     W8TextControl();
-    W8TextControl(Controls* panel, unsigned int region,
-                          int left, int top, int right, int bottom,
-                          int text_40, int text_44, int text_48, int text_4c,
-                          int text_54, int text_50, int text_58);
+    W8TextControl(Controls* panel, unsigned int region, int left, int top, int right, int bottom,
+                  int text_40, int text_44, int text_48, int text_4c, int text_54, int text_50,
+                  int text_58);
     virtual ~W8TextControl() override;
     unsigned char MeasureText004F4800();
     void GetTextOrigin(int unused, int* px, int* py);
@@ -59,9 +58,9 @@ public:
     /* The state-5 controller persists two option bits by directly masking the
        controls' state words.  This is observed storage access, not an accessor
        API inferred for convenience. */
-    unsigned int m_stateFlags;           /* 0x34: paired state masks */
-    unsigned int m_flags_38;             /* 0x38: 0x02 builds layout, 0x04 pins left */
-    unsigned char m_alternateTextEnabled;/* 0x3c: alternate text-selection flag */
+    unsigned int m_stateFlags;            /* 0x34: paired state masks */
+    unsigned int m_flags_38;              /* 0x38: 0x02 builds layout, 0x04 pins left */
+    unsigned char m_alternateTextEnabled; /* 0x3c: alternate text-selection flag */
     unsigned char pad_3d[3];
     int m_imageObject;
     int m_imageFrame;
@@ -70,15 +69,15 @@ public:
     int m_alternatePressedSprite;
     int m_alternateNormalSprite;
     int m_disabledSprite;
-    short m_measured_w;                  /* 0x5c: -1 until measured */
-    short m_measured_h;                  /* 0x5e */
+    short m_measured_w; /* 0x5c: -1 until measured */
+    short m_measured_h; /* 0x5e */
 
 public:
-    W8TextBuffer m_textBuffer;   /* 0x60: complete typed subobject */
+    W8TextBuffer m_textBuffer; /* 0x60: complete typed subobject */
     int m_pressedTextOffset;
     /* Several owning panels install their listener immediately after
        construction; the pointer is the shared callback attachment point. */
-    Listener* m_listener;                /* 0xb4 */
+    Listener* m_listener; /* 0xb4 */
 
 protected:
     __forceinline void InvalidateCore(unsigned char immediate);
@@ -88,8 +87,8 @@ static_assert(sizeof(W8TextControl) == 0xb8, "W8TextControl_size");
 // VTABLE: WIZ8 0x005ed758
 class W8HelpTextControl : public W8TextControl {
 public:
-    W8HelpTextControl(Controls* panel, unsigned int region,
-                              int left, int top, int right, int bottom);
+    W8HelpTextControl(Controls* panel, unsigned int region, int left, int top, int right,
+                      int bottom);
     void SetRegionHelp(const wchar_t* text);
     virtual void OnMouseEnter(int event) override;
     virtual void OnLeftButtonDown(int event) override;
@@ -99,6 +98,6 @@ public:
     virtual void OnLeftButtonDoubleClick(int event) override;
 
 protected:
-    wchar_t m_regionHelp[200];            /* 0xb8 */
+    wchar_t m_regionHelp[200]; /* 0xb8 */
 };
 static_assert(sizeof(W8HelpTextControl) == 0x248, "W8HelpTextControl_size");

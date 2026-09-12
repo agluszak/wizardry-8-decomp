@@ -18,7 +18,10 @@ struct stScriptLabel {
    removes and frees every pointed-to line/label before the vector storage. */
 class stScript : public srClassSupport<stScript, srClass, 1, 0x1000d> {
 public:
-    static const char* sGetClassName() { return "stScript"; }
+    static const char* sGetClassName()
+    {
+        return "stScript";
+    }
 
     virtual ~stScript() override;
     virtual srClass* vInstance() override;
@@ -28,8 +31,8 @@ public:
     unsigned char Load004CF3B0(const char* path);
     void Clear004CF690();
 
-    W8GrowableVector<stScriptLine*> lines;       /* 0x18 */
-    W8GrowableVector<stScriptLabel*> labels;     /* 0x28 */
+    W8GrowableVector<stScriptLine*> lines;   /* 0x18 */
+    W8GrowableVector<stScriptLabel*> labels; /* 0x28 */
 };
 
 static_assert(sizeof(stScript) == 0x38, "stScript_must_be_0x38");

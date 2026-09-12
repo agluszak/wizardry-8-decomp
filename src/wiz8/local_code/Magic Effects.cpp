@@ -76,7 +76,7 @@ const int g_effect_visual_table[149][2] = {
 };
 
 // FUNCTION: WIZ8 0x005af2d0
-void Function5AF2D0(void)
+void InvalidateMainGameEffectHud(void)
 {
     if (g_current_screen_state.id == 7) {
         ClearSurfaceRect(0x7f, 0x14, 0x201, 0x28);
@@ -171,7 +171,7 @@ void ResetPartyEffectBlock(W8EffectSlot* slot)
     *(int*)(bytes + 5) = 0;
     *(int*)(bytes + 0xd) = 0;
     RebuildPartyEffectBlock0050E700();
-    Function5AF2D0();
+    InvalidateMainGameEffectHud();
     RequestRedraw(0x800100);
 }
 

@@ -12,29 +12,29 @@ class W8AnimRepBase005EC1D8;
    address-qualified rather than receiving speculative pathfinding names. */
 
 struct W8PathAI {
-    unsigned char kind_00;               /* 0x00 */
+    unsigned char kind_00; /* 0x00 */
     unsigned char unknown_01[3];
-    float value_04;                      /* 0x04 */
-    unsigned int unknown_08;             /* 0x08 */
+    float value_04;                                 /* 0x04 */
+    unsigned int unknown_08;                        /* 0x08 */
     W8GrowableVector<srVector3T<float>*>* nodes_0c; /* 0x0c */
-    int value_10;                        /* 0x10 */
+    int value_10;                                   /* 0x10 */
     /* 0x004A98C0 sizes both from the node count: 0x24 a record here, and a
        srVector3T<float> each in the render array. */
-    srMatrix3T<float>* rotations_14;     /* 0x14 */
-    srVector3T<float>* scales_18;        /* 0x18 */
-    unsigned char flag_1c;               /* 0x1c */
+    srMatrix3T<float>* rotations_14; /* 0x14 */
+    srVector3T<float>* scales_18;    /* 0x18 */
+    unsigned char flag_1c;           /* 0x1c */
     unsigned char unknown_1d[3];
-    unsigned int value_20;               /* 0x20 */
-    float value_24;                      /* 0x24 */
-    unsigned int tick_28;                /* 0x28 */
-    float value_2c;                      /* 0x2c */
-    float value_30;                      /* 0x30 */
-    float scale_34;                      /* 0x34 */
-    unsigned char flag_38;               /* 0x38 */
-    unsigned char flag_39;               /* 0x39 */
-    unsigned char flag_3a;               /* 0x3a */
+    unsigned int value_20; /* 0x20 */
+    float value_24;        /* 0x24 */
+    unsigned int tick_28;  /* 0x28 */
+    float value_2c;        /* 0x2c */
+    float value_30;        /* 0x30 */
+    float scale_34;        /* 0x34 */
+    unsigned char flag_38; /* 0x38 */
+    unsigned char flag_39; /* 0x39 */
+    unsigned char flag_3a; /* 0x3a */
     unsigned char unknown_3b;
-    unsigned char flag_3c;               /* 0x3c */
+    unsigned char flag_3c; /* 0x3c */
     unsigned char unknown_3d[3];
 };
 
@@ -45,12 +45,10 @@ static_assert(sizeof(W8PathAI) == 0x40, "W8PathAI_size_must_be_0x40");
 unsigned char PathAIUpdate004A9260(W8PathAI* path, signed char direction);
 void PathAIResetRecord004A9720(W8PathAI* path);
 unsigned char PathAIRecordFlag004A9740(const W8PathAI* path);
-void PathAIApplyToRep004A91F0(
-    W8PathAI* path, W8AnimRepBase005EC1D8* representation);
+void PathAIApplyToRep004A91F0(W8PathAI* path, W8AnimRepBase005EC1D8* representation);
 /* Places one model instance through a path. AnimObj.cpp and GrCycle.cpp are
    both callers, so the declaration lives with the path's owner. */
-void PathAIApply004AA520(
-    W8PathAI* path, stModelInstance* instance);   /* 0x004AA520 */
+void PathAIApply004AA520(W8PathAI* path, stModelInstance* instance); /* 0x004AA520 */
 void DestroyPathAI004A9810(W8PathAI* path);
 void PathAIClearOwned004A9BB0(W8PathAI* path);
 void PathAISetFlag3A004A9B90(W8PathAI* path, unsigned char value);
@@ -68,8 +66,7 @@ void PathAISetFlag38004AA9D0(W8PathAI* path, unsigned char value);
 void PathAISetScale004AA9C0(W8PathAI* path, float value);
 void PathAISetFlag1C004AAA10(W8PathAI* path, unsigned char value);
 unsigned char LoadPathAI004A92A0(W8PathAI** path, int handle);
-unsigned char PathAIAddPoint004A9C30(
-    W8PathAI* path, const srVector3T<float>* point);
+unsigned char PathAIAddPoint004A9C30(W8PathAI* path, const srVector3T<float>* point);
 
 /* Build a zeroed 0x40-byte path and its position-pointer vector. Every caller
    pushes an argument the factory never reads. */

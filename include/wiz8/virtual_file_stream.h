@@ -12,19 +12,17 @@ public:
     virtual ~W8VirtualFileBinIStream() override;
 
     unsigned long vread(void* buffer, unsigned long size) override;
-    srBinStream& seek(
-        unsigned long position, e_seekDir direction) override;
+    srBinStream& seek(unsigned long position, e_seekDir direction) override;
     srBinStream& seek(unsigned long position) override;
     unsigned long tell() override;
 
 private:
-    int m_hFile;                         /* 0x08 */
-    unsigned char unknown_0c[4];         /* 0x0c */
+    int m_hFile;                 /* 0x08 */
+    unsigned char unknown_0c[4]; /* 0x0c */
 };
 #pragma vtordisp(on)
 
-static_assert(sizeof(W8VirtualFileBinIStream) == 0x20,
-              "W8VirtualFileBinIStream_size_must_be_0x20");
+static_assert(sizeof(W8VirtualFileBinIStream) == 0x20, "W8VirtualFileBinIStream_size_must_be_0x20");
 
 class W8VirtualFileStreamOpener : public srIStreamOpener::Opener {
 public:

@@ -32,9 +32,7 @@ W8NotificationDialog::W8NotificationDialog(int message_index, int caption_id, in
    body; the compiler generates the scalar deleting destructor at 0x005A8170
    from this same declaration. */
 // FUNCTION: WIZ8 0x005a8190
-W8NotificationDialog::~W8NotificationDialog()
-{
-}
+W8NotificationDialog::~W8NotificationDialog() {}
 
 // FUNCTION: WIZ8 0x005a81a0
 unsigned char W8NotificationDialog::ProcessInput()

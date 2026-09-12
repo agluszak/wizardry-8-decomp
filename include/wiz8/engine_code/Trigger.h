@@ -254,7 +254,7 @@ Trigger* FindTriggerByName(const char* name);
 W8TriggerActionData* LoadTriggerActionData004417C0(int handle);
 /* The TRES save chunk: the world's triggers, their runtime states, and their
    action data. */
-int Function443A50(void);
+int ResetNextTriggerId(void);
 void SaveWorldTriggers0043C810(W8World* world, int handle);
 void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, unsigned char restoring);
 void SaveTriggerActionData0043D120(W8World* world, int handle);

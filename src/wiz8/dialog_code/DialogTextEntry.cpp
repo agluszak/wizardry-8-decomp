@@ -12,19 +12,16 @@
 unsigned int g_dialog_text_layout_mask_69c5d0 = g_W8TextBufferLayoutMask005ED560;
 
 // FUNCTION: WIZ8 0x005d1020
-W8DialogTextEntry::~W8DialogTextEntry()
-{
-}
+W8DialogTextEntry::~W8DialogTextEntry() {}
 
 // SYNTHETIC: WIZ8 0x005d1030
 // W8DialogTextEntry::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005d1050
-W8DialogTextEntry::W8DialogTextEntry(
-    const wchar_t* prefix, const wchar_t* text,
-    unsigned int prefix_palette, unsigned int text_palette,
-    const W8ControlsRect* bounds, int font, unsigned char category,
-    unsigned int layout_mode, unsigned char shorten)
+W8DialogTextEntry::W8DialogTextEntry(const wchar_t* prefix, const wchar_t* text,
+                                     unsigned int prefix_palette, unsigned int text_palette,
+                                     const W8ControlsRect* bounds, int font, unsigned char category,
+                                     unsigned int layout_mode, unsigned char shorten)
 {
     m_prefix_palette = prefix_palette;
     m_font = font;
@@ -82,8 +79,8 @@ void W8DialogTextEntry::Draw(unsigned char force)
         }
     }
     SetFontObjectPalette16BPP(m_font, palette);
-    SetFontDestBuffer(-14, m_pendingBounds.left, m_pendingBounds.top,
-                      m_pendingBounds.right, m_pendingBounds.bottom, 0);
+    SetFontDestBuffer(-14, m_pendingBounds.left, m_pendingBounds.top, m_pendingBounds.right,
+                      m_pendingBounds.bottom, 0);
     int y = GetVerticalPosition();
     wchar_t* line = copy;
     size_t span = wcscspn(line, g_W8LineBreakCharacters00617C90);
@@ -98,8 +95,9 @@ void W8DialogTextEntry::Draw(unsigned char force)
                 x += StringPixLength((unsigned short*)line, m_font);
                 line[prefix_remaining] = saved;
                 if (!m_selected) {
-                    SetFontObjectPalette16BPP(m_font, m_text_palette < 15
-                        ? g_font_state_palettes_68ee1c[m_text_palette] : g_colour_68ee08);
+                    SetFontObjectPalette16BPP(
+                        m_font, m_text_palette < 15 ? g_font_state_palettes_68ee1c[m_text_palette]
+                                                    : g_colour_68ee08);
                 }
                 line += prefix_remaining;
                 span -= prefix_remaining;
@@ -125,15 +123,16 @@ void W8DialogTextEntry::Draw(unsigned char force)
             line[prefix_remaining] = saved;
             if (!m_selected) {
                 SetFontObjectPalette16BPP(m_font, m_text_palette < 15
-                    ? g_font_state_palettes_68ee1c[m_text_palette] : g_colour_68ee08);
+                                                      ? g_font_state_palettes_68ee1c[m_text_palette]
+                                                      : g_colour_68ee08);
             }
             line += prefix_remaining;
         }
         mprintf(x, y, (unsigned short*)L"%s", line);
     }
 done:
-    InvalidateRegion(m_layoutBounds.left, m_layoutBounds.top,
-                        m_layoutBounds.right, m_layoutBounds.bottom, 0);
+    InvalidateRegion(m_layoutBounds.left, m_layoutBounds.top, m_layoutBounds.right,
+                     m_layoutBounds.bottom, 0);
     SetFontDestBuffer(-14, 0, 0, 640, 480, 0);
     m_geometryDirty = 0;
     delete[] copy;

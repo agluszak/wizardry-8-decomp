@@ -13,22 +13,30 @@ class stTextureAnim;
 /* The following are the construction-phase tables for the support base. */
 // VTABLE: WIZ8 0x005ec814 srClassSupport<stModelInstance,srModelInstance,0,65540>
 // VTABLE: WIZ8 0x005ec804 srClassSupport<stModelInstance,srModelInstance,0,65540>::srModel::Client
-class stModelInstance
-    : public srClassSupport<stModelInstance, srModelInstance, false, 0x10004> {
+class stModelInstance : public srClassSupport<stModelInstance, srModelInstance, false, 0x10004> {
 public:
-    static const char* sGetClassName() { return "stModelInstance"; }
+    static const char* sGetClassName()
+    {
+        return "stModelInstance";
+    }
 
-    explicit stModelInstance(srNode* parent); /* 0x0047EC80 */
+    explicit stModelInstance(srNode* parent);                 /* 0x0047EC80 */
     stModelInstance& operator=(const stModelInstance& other); /* 0x0047EDF0 */
 
-    stTextureAnim* FindMouthTexture00481080();     /* 0x00481080 */
+    stTextureAnim* FindMouthTexture00481080(); /* 0x00481080 */
     int AddDamageStage00480560(const char* name);
     int AddExistingDamageStage00480670(const char* name);
     int FindDamageStage00480790(const char* name);
-    unsigned char ReplaceDamageStageTexture004807B0(
-        int stage, const char* old_name, srTextureIFace* replacement);
-    unsigned char displayState() const { return state_170; }
-    void setRenderDepth(unsigned long depth) { render_depth_164 = depth; }
+    unsigned char ReplaceDamageStageTexture004807B0(int stage, const char* old_name,
+                                                    srTextureIFace* replacement);
+    unsigned char displayState() const
+    {
+        return state_170;
+    }
+    void setRenderDepth(unsigned long depth)
+    {
+        render_depth_164 = depth;
+    }
 
     virtual ~stModelInstance() override; /* 0x0047EF70 */
 
@@ -79,8 +87,7 @@ public:
     float value_1ac;
 };
 
-static_assert(sizeof(stModelInstance) == 0x1b0,
-              "stModelInstance_size_must_be_0x1b0");
+static_assert(sizeof(stModelInstance) == 0x1b0, "stModelInstance_size_must_be_0x1b0");
 
 /* Concrete 2D model instance. Slot 5 and the secondary slot-0 adjustor are
    SYNTHETIC compiler-generated deleting destructors; no source body owns
@@ -90,7 +97,10 @@ static_assert(sizeof(stModelInstance) == 0x1b0,
 class stModelInstance2D
     : public srClassSupport<stModelInstance2D, srModelInstance, false, 0x10005> {
 public:
-    static const char* sGetClassName() { return "stModelInstance2D"; }
+    static const char* sGetClassName()
+    {
+        return "stModelInstance2D";
+    }
 
     // FUNCTION: WIZ8 0x0047F0F0
     explicit stModelInstance2D(srNode* parent)
@@ -114,14 +124,17 @@ public:
     }
 
     stModelInstance2D& operator=(const stModelInstance2D& other); /* 0x0047F290 */
-    void SetModel0047F3A0(srModel* model);              /* 0x0047F3A0 */
+    void SetModel0047F3A0(srModel* model);                        /* 0x0047F3A0 */
 
-    srClass* vInstance() override;                 /* 0x00481E30 */
+    srClass* vInstance() override;                                      /* 0x00481E30 */
     void process(const ProcessInfo& info, e_processType type) override; /* 0x00480920 */
-    int GetWidth00480EF0();                        /* 0x00480EF0 */
-    int GetHeight00480F70();                       /* 0x00480F70 */
+    int GetWidth00480EF0();                                             /* 0x00480EF0 */
+    int GetHeight00480F70();                                            /* 0x00480F70 */
 
-    unsigned char displayState() const { return state_170; }
+    unsigned char displayState() const
+    {
+        return state_170;
+    }
     void configure2D(short width, short height)
     {
         state_160 = 0;
@@ -136,7 +149,10 @@ public:
         vector_178 = 0;
         m_pGlowMaterial_17c = 0;
     }
-    void setRenderDepth(unsigned long depth) { render_depth_164 = depth; }
+    void setRenderDepth(unsigned long depth)
+    {
+        render_depth_164 = depth;
+    }
 
     unsigned long state_160;
     unsigned long render_depth_164;
@@ -165,8 +181,7 @@ public:
     srVector4T<float>* vector_174;
     srVector4T<float>* vector_178;
     srMaterial* m_pGlowMaterial_17c;
-    virtual ~stModelInstance2D() override;         /* 0x0047F410 */
+    virtual ~stModelInstance2D() override; /* 0x0047F410 */
 };
 
-static_assert(sizeof(stModelInstance2D) == 0x180,
-              "stModelInstance2D_must_be_0x180");
+static_assert(sizeof(stModelInstance2D) == 0x180, "stModelInstance2D_must_be_0x180");

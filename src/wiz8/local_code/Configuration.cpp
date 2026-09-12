@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 // GLOBAL: WIZ8 0x006850c8
 W8GameSettings g_settings_6850c8;
 int g_music_sample_handle_60aae0 = -1;
@@ -42,8 +41,7 @@ void SetMusicMuted(unsigned char muted)
                 SoundSetVolume(g_music_sample_handle_60aae0, 0);
             }
         }
-    }
-    else if (g_settings_6850c8.muted_music_volume != 0xff) {
+    } else if (g_settings_6850c8.muted_music_volume != 0xff) {
         g_settings_6850c8.music_volume = g_settings_6850c8.muted_music_volume;
         if (g_music_sample_handle_60aae0 != -1) {
             SoundSetVolume(g_music_sample_handle_60aae0, g_settings_6850c8.muted_music_volume);

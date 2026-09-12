@@ -54,7 +54,8 @@ unsigned char InitializeGame(void)
     strcat(version, FormatString(" %s", "2001/12/24 15:36"));
     InitializeFileDatabase();
     LoadPatchSlfArchives("Patches");
-    LoadLocalizedStrings(gzStringDataOverride ? gzStringDataOverride : "Data\\Strings\\StringData.DAT");
+    LoadLocalizedStrings(gzStringDataOverride ? gzStringDataOverride
+                                              : "Data\\Strings\\StringData.DAT");
     buffer = LockPrimarySurface(&count);
     memset(buffer, 0, count * 0x1e0);
     UnlockPrimarySurface();
@@ -135,7 +136,6 @@ unsigned char InitializeGame(void)
     return 1;
 }
 
-
 // FUNCTION: WIZ8 0x004e3290
 void ShutdownGame(void)
 {
@@ -156,5 +156,4 @@ void ShutdownGame(void)
     }
     SaveGameConfiguration();
     ShutDownFileDatabase();
-
 }

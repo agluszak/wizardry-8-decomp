@@ -52,7 +52,7 @@ void RecalculateCharacterDerivedStats(W8Character* character)
     ResetCharacterSkills00553A60(character);
     RecalculateCharacterHitPoints(character);
     RecalculateCharacterStamina(character);
-    RecalculateResistanceBonusSkill(character);
+    RecalculateRealmSpellPoints(character);
     CalcArmorClasses(character);
     RebuildCharacterRegenRates00502B50(character);
 
@@ -82,7 +82,7 @@ void RecalculateCharacterDerivedStats(W8Character* character)
     if (g_status_685170.game_started == 0) {
         character->party_weight_share = 0;
     } else if (changed || recalculated) {
-        Function4EDD20();
+        RedistributePartyEncumbrance();
     }
     character->total_carried_weight = character->party_weight_share + character->inventory_weight;
 
@@ -149,15 +149,18 @@ bool RecalculateCarriedWeight(W8Character* character)
         if (g_current_screen_state.id != W8_SCREEN_CAMP) {
             effect = g_special_event_0068c558;
         }
-        Function52E690(character, effect, 0, g_effect_argument_005ed8c8,
-                       g_effect_argument_005ed914);
+        QueueCharacterEvent(character, effect, 0, g_effect_argument_005ed8c8,
+                            g_effect_argument_005ed914);
     }
     return previous != character->inventory_weight;
 #pragma clang diagnostic pop
 }
 
+/* Split the shared party-pool weight across eligible members by remaining
+   carrying capacity, then refresh each member's load band. Combat defers the
+   work by raising the pending-redistribution flag instead. */
 // FUNCTION: WIZ8 0x004edd20
-void Function4EDD20(void)
+void RedistributePartyEncumbrance(void)
 {
     int capacity[8];
     int unassigned[8];

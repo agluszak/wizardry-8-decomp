@@ -52,15 +52,16 @@ evidence-backed hypothesis for the selected functions.
 Call-site evidence corrected extra inferred parameters on `PListIndexOf` and `GetOriginOfCharacterItem`:
 raw ESP-relative reads and caller push counts constrained their signatures. C++ owns the recovered
 declarations; Ghidra retains live analysis signatures for recovered and unrecovered bodies alike.
-Correct demonstrated disagreements at both owners, using the
-[type and layout reference](../../.agents/skills/matching-decomp/references/type-and-layout-evidence.md).
+Correct demonstrated disagreements at both owners using
+[type-modeling](../../.agents/skills/type-modeling/SKILL.md), with live retail inspection through
+[ghidra-analysis](../../.agents/skills/ghidra-analysis/SKILL.md).
 
 ## What belongs elsewhere
 
 - Recovered identity and signature: the address-marked C++ declaration.
 - Identity provenance and atomic supporting facts: `evidence/reviewed/wiz8/claims.csv`.
 - Class relationships, fields, virtuals, and layout ownership: C++ declarations with compiler gates.
-- Native layouts and fields: the canonical Ghidra project, inspected through native PyGhidra.
+- Native layouts and fields: the canonical Ghidra project, inspected through the Ghidra-analysis skill.
 - Current pairing and exact/effective status: live reccmp results under `build/`.
 - Current source/matching statistics: `uv run wiz8 report status`; translation-unit attribution:
   `uv run wiz8 report translation-units`.

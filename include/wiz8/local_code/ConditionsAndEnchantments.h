@@ -10,7 +10,7 @@ void ClearMonsterEnchantmentSlot(int location_id, int slot);
 /* 0x00524110: the per-condition aging tick the sight producer runs while a
    condition's countdown is live. */
 void Function524110(int location_id, int condition, unsigned int minutes);
-unsigned char Function5248A0(int party_slot, int condition);
+unsigned char GetConditionRecordFlag(int party_slot, int condition);
 void RemoveAllConditionsFromParty(void);
 
 extern unsigned short g_condition_notices_0061E570[128];

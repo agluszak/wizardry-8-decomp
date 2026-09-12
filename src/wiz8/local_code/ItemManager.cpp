@@ -85,8 +85,8 @@ void SetItemAndEntityFlags(W8WorldItem* item, unsigned int mask, bool enabled)
 int ItemInfoGetNumInGroup(W8WorldItem* item)
 {
     if (item == 0) {
-        srAssertFail(
-            "pItemInfo", ITEM_MANAGER_CPP, 1115, "Bad ITEM_STRUCT in ItemInfoGetNumInGroup");
+        srAssertFail("pItemInfo", ITEM_MANAGER_CPP, 1115,
+                     "Bad ITEM_STRUCT in ItemInfoGetNumInGroup");
     }
     item = item->next;
     int count = 1;
@@ -103,8 +103,7 @@ void ItemInfoAddToGroup(W8WorldItem* group, W8WorldItem* item)
     W8WorldItem* tail;
 
     if (group == 0) {
-        srAssertFail(
-            "pItemInfo", ITEM_MANAGER_CPP, 1130, "Bad ITEM_STRUCT in ItemInfoAddToGroup");
+        srAssertFail("pItemInfo", ITEM_MANAGER_CPP, 1130, "Bad ITEM_STRUCT in ItemInfoAddToGroup");
     }
     tail = group;
     while (tail->next != 0) {
@@ -121,22 +120,16 @@ struct W8ItemLevelScaleRange {
 };
 
 static const W8ItemLevelScaleRange g_item_level_scale_ranges[7] = {
-    {1, 0, 500},
-    {6, 50, 1000},
-    {11, 100, 3000},
-    {16, 300, 5000},
-    {21, 600, 10000},
-    {26, 800, 20000},
-    {31, 1000, 1000000},
+    {1, 0, 500},      {6, 50, 1000},    {11, 100, 3000},     {16, 300, 5000},
+    {21, 600, 10000}, {26, 800, 20000}, {31, 1000, 1000000},
 };
-
 
 // FUNCTION: WIZ8 0x004f88a0
 int FindItemTableByName(const char* name)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
-/* Retail compiled this comparison with VC6's mixed-sign operands; the
+    /* Retail compiled this comparison with VC6's mixed-sign operands; the
    signedness is part of the recovered body and changing it would change
    the compare and branch. Suppress only this diagnostic here. */
     int index;
@@ -150,13 +143,12 @@ int FindItemTableByName(const char* name)
 #pragma clang diagnostic pop
 }
 
-static __forceinline W8WorldItem* CreateTableItem(
-    unsigned int item_id,
-    const srVector3T<float>* position)
+static __forceinline W8WorldItem* CreateTableItem(unsigned int item_id,
+                                                  const srVector3T<float>* position)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
-/* Retail tests the item id against the -1 sentinel with VC6's mixed-sign
+    /* Retail tests the item id against the -1 sentinel with VC6's mixed-sign
    compare; the caller-side id domain keeps the unsigned parameter. */
     W8ItemInstance item;
     W8ItemInstance* item_pointer;
@@ -165,27 +157,21 @@ static __forceinline W8WorldItem* CreateTableItem(
     if (item_id == -1) {
 #pragma clang diagnostic pop
         item_pointer = 0;
-    }
-    else {
+    } else {
         ReplaceOrCreateItem(&item, item_id, 0, 0, 0);
         item_pointer = &item;
     }
     result = CreateWorldItem(item_pointer, position, 3, 0);
     if (result == 0) {
-        srAssertFail(
-            "pItemInfo",
-            "C:\\Projects\\Wizardry 8\\Local Code\\ItemManager.cpp",
-            0x18e,
-            0);
+        srAssertFail("pItemInfo", "C:\\Projects\\Wizardry 8\\Local Code\\ItemManager.cpp", 0x18e,
+                     0);
     }
     return result;
 }
 
 // FUNCTION: WIZ8 0x004f88f0
-int GenerateItemsFromTable(
-    W8GrowableVector<W8WorldItem*>* output_items,
-    unsigned int table_id,
-    unsigned int maximum_items)
+int GenerateItemsFromTable(W8GrowableVector<W8WorldItem*>* output_items, unsigned int table_id,
+                           unsigned int maximum_items)
 {
     unsigned int party_level = GetAveragePartyLevel();
     srVector3T<float> position;
@@ -207,17 +193,13 @@ int GenerateItemsFromTable(
         if (table->entries[entry_index].selector_00 != 0) {
             item_record = &g_item_records[table->entries[entry_index].item_id];
             if (table->entries[entry_index].weight == 0) {
-                output_items->Add(
-                    CreateTableItem(g_item_tables[table_id]->entries[entry_index].item_id,
-                                    &position));
-            }
-            else if (table->level_scaled == 0) {
+                output_items->Add(CreateTableItem(
+                    g_item_tables[table_id]->entries[entry_index].item_id, &position));
+            } else if (table->level_scaled == 0) {
                 candidates.Add(entry_index);
-            }
-            else {
+            } else {
                 item_value = item_record->value;
-                for (range = g_item_level_scale_ranges;
-                     range < g_item_level_scale_ranges + 7;
+                for (range = g_item_level_scale_ranges; range < g_item_level_scale_ranges + 7;
                      ++range) {
                     if (range->minimum_party_level <= party_level &&
                         range->minimum_item_value <= item_value &&
@@ -230,8 +212,7 @@ int GenerateItemsFromTable(
         }
     }
 
-    if (candidates.GetCount() < (int)maximum_items &&
-        g_item_tables[table_id]->level_scaled != 0) {
+    if (candidates.GetCount() < (int)maximum_items && g_item_tables[table_id]->level_scaled != 0) {
         candidates.Clear();
         for (entry_index = 0; entry_index < 40; ++entry_index) {
             if (g_item_tables[table_id]->entries[entry_index].selector_00 != 0) {
@@ -242,8 +223,7 @@ int GenerateItemsFromTable(
 
     total_weight = 0;
     for (entry_index = 0; entry_index < candidates.GetCount(); ++entry_index) {
-        total_weight +=
-            g_item_tables[table_id]->entries[*candidates.GetAt(entry_index)].weight;
+        total_weight += g_item_tables[table_id]->entries[*candidates.GetAt(entry_index)].weight;
     }
 
     selected_count = 0;
@@ -308,8 +288,7 @@ int FindItemRecordByName(const char* name)
                 0) {
                 return index;
             }
-        }
-        else if (_stricmp(internal_name, name) == 0) {
+        } else if (_stricmp(internal_name, name) == 0) {
             return index;
         }
     }
@@ -418,8 +397,7 @@ void SetWorldItemFlag02(W8WorldItem* item, char enabled)
 {
     if (enabled) {
         item->flags |= W8_WORLD_ITEM_FLAG_02;
-    }
-    else {
+    } else {
         item->flags &= ~W8_WORLD_ITEM_FLAG_02;
     }
 }
@@ -432,8 +410,8 @@ W8WorldItem* ItemInfo(unsigned int item_list_index)
     W8WorldItem* item;
 
     if (item_list_index >= PLLength(gXStatus.plsItemList)) {
-        srAssertFail("uiItemListIndex < (UINT32) PLLength(gXStatus.plsItemList)",
-                     ITEM_MANAGER_CPP, 961, 0);
+        srAssertFail("uiItemListIndex < (UINT32) PLLength(gXStatus.plsItemList)", ITEM_MANAGER_CPP,
+                     961, 0);
     }
     item = (W8WorldItem*)PLGet(gXStatus.plsItemList, item_list_index);
     if (item == 0) {
@@ -468,8 +446,7 @@ unsigned int ItemIndex(int runtime_id)
    everything chained onto it. A failed append drops that entry and the walk
    continues. */
 // FUNCTION: WIZ8 0x004f8440
-int ItemInfoMakeGroupList(
-    W8WorldItem* item, int unused, W8GrowableVector<W8WorldItem*>* out)
+int ItemInfoMakeGroupList(W8WorldItem* item, int unused, W8GrowableVector<W8WorldItem*>* out)
 {
     W8WorldItem* next;
 
@@ -538,16 +515,14 @@ unsigned char ReleaseItemLists(void)
 
         count = PLLength(gXStatus.plsItemList);
         if (count == 0) {
-            srAssertFail(
-                "uiItemListIndex < (UINT32) PLLength(gXStatus.plsItemList)",
-                ITEM_MANAGER_CPP, 0x3c1, 0);
+            srAssertFail("uiItemListIndex < (UINT32) PLLength(gXStatus.plsItemList)",
+                         ITEM_MANAGER_CPP, 0x3c1, 0);
         }
         item = static_cast<W8WorldItem*>(PLGet(gXStatus.plsItemList, 0));
         if (item == 0) {
-            srAssertFail(
-                "pItemInfo != NULL", ITEM_MANAGER_CPP, 0x3c5,
-                FormatString("ItemInfo: ERROR - PLGet failed, index %d, pList %d",
-                             0, gXStatus.plsItemList));
+            srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 0x3c5,
+                         FormatString("ItemInfo: ERROR - PLGet failed, index %d, pList %d", 0,
+                                      gXStatus.plsItemList));
         }
         if (item->sector_id >= 0) {
             RemoveItemFromSector(item->sector_id, item);
@@ -662,11 +637,8 @@ void RebuildAllWorldItemInstances(void)
 }
 
 // FUNCTION: WIZ8 0x004f6b90
-W8WorldItem* CreateWorldItem(
-    W8ItemInstance* item,
-    const srVector3T<float>* position,
-    int unknown,
-    unsigned char add_to_world)
+W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* position, int unknown,
+                             unsigned char add_to_world)
 {
     W8WorldItem* result = (W8WorldItem*)malloc(sizeof(W8WorldItem));
 
@@ -694,11 +666,8 @@ W8WorldItem* CreateWorldItem(
 }
 
 // FUNCTION: WIZ8 0x004f6c50
-W8WorldItem* SpawnItem(
-    int item_id,
-    const srVector3T<float>* position,
-    int unknown,
-    unsigned char add_to_world)
+W8WorldItem* SpawnItem(int item_id, const srVector3T<float>* position, int unknown,
+                       unsigned char add_to_world)
 {
     W8ItemInstance local_item;
     W8ItemInstance* item;
@@ -713,11 +682,8 @@ W8WorldItem* SpawnItem(
 
     result = CreateWorldItem(item, position, unknown, add_to_world);
     if (result == 0) {
-        srAssertFail(
-            "pItemInfo",
-            "C:\\Projects\\Wizardry 8\\Local Code\\ItemManager.cpp",
-            0x18e,
-            0);
+        srAssertFail("pItemInfo", "C:\\Projects\\Wizardry 8\\Local Code\\ItemManager.cpp", 0x18e,
+                     0);
     }
     return result;
 }

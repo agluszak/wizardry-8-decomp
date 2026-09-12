@@ -178,7 +178,7 @@ void InitializeCharacterLevelUp(W8Character* character, W8CharacterCreationState
     CalcCharacterLevelBand(character);
     RecalculateCharacterHitPoints(character);
     RecalculateCharacterStamina(character);
-    RecalculateResistanceBonusSkill(character);
+    RecalculateRealmSpellPoints(character);
     CalcArmorClasses(character);
     FinalizeSpellPointPool(character, creation_state);
 }
@@ -225,7 +225,7 @@ void RefundSkillAllocation(W8Character* character, W8CharacterCreationState* cre
 /* Every point the edited character has already committed is spent from the
    pool in one burst. */
 // FUNCTION: WIZ8 0x00557ae0
-void Function557AE0(W8Character* character, W8CharacterCreationState* creation_state)
+void RefundAllocatedAttributes(W8Character* character, W8CharacterCreationState* creation_state)
 {
     for (int index = 0; index < 7; ++index) {
         if (creation_state->attribute_values_008[index] > 0) {
@@ -514,7 +514,7 @@ complete:
     RecalculateCharacterStamina(character);
     RecalculateCarryingCapacity004EDC10(character);
     RecalculateCarriedWeight(character);
-    RecalculateResistanceBonusSkill(character);
+    RecalculateRealmSpellPoints(character);
     CalcArmorClasses(character);
     RecalculateCharacterResistances(character);
     if (character->level == 1) {
@@ -798,7 +798,7 @@ int ComputeLevelUpSpellPointAward(W8Character* character, W8CharacterCreationSta
                     }
                 }
             }
-            RecalculateResistanceBonusSkill(character);
+            RecalculateRealmSpellPoints(character);
             int pools[6][2];
             for (index = 0; index < 6; ++index) {
                 pools[index][0] = character->sp_max[index];
@@ -814,7 +814,7 @@ int ComputeLevelUpSpellPointAward(W8Character* character, W8CharacterCreationSta
                 for (index = 0; index < 0x72; ++index) {
                     character->spell_learned[index] = saved[index];
                 }
-                RecalculateResistanceBonusSkill(character);
+                RecalculateRealmSpellPoints(character);
             }
         }
         return total;
@@ -890,16 +890,18 @@ void RebuildLevelUpPoolsForProfession(W8Character* character,
     ApplyRaceProfessionTables(character, creation_state);
 }
 
+/* Assign the chosen race and rebuild the race/profession tables. */
 // FUNCTION: WIZ8 0x005571c0
-void Function5571C0(W8Character* character, W8CharacterCreationState* creation_state, int race)
+void SetCharacterRace(W8Character* character, W8CharacterCreationState* creation_state, int race)
 {
     character->race = race;
     ApplyRaceProfessionTables(character, creation_state);
 }
 
+/* Assign the chosen sex and rebuild the race/profession tables. */
 // FUNCTION: WIZ8 0x005571e0
-void Function5571E0(W8Character* character, W8CharacterCreationState* creation_state,
-                    W8Gender gender)
+void SetCharacterGender(W8Character* character, W8CharacterCreationState* creation_state,
+                        W8Gender gender)
 {
     character->gender = gender;
     ApplyRaceProfessionTables(character, creation_state);
@@ -963,7 +965,7 @@ void ApplyRaceProfessionTables(W8Character* character, W8CharacterCreationState*
         RecalculateCharacterStamina(character);
         RecalculateCarryingCapacity004EDC10(character);
         RecalculateCarriedWeight(character);
-        RecalculateResistanceBonusSkill(character);
+        RecalculateRealmSpellPoints(character);
         CalcArmorClasses(character);
     }
     RecalculateCharacterResistances(character);
@@ -1028,8 +1030,8 @@ complete:
    creation flow marks as chosen but does not charge for is skipped by its
    retail index, not by anything a record says. */
 // FUNCTION: WIZ8 0x00557580
-void Function557580(W8Character* character, W8CharacterCreationState* creation_state,
-                    bool give_starting_equipment)
+void FinalizeCreatedCharacter(W8Character* character, W8CharacterCreationState* creation_state,
+                              bool give_starting_equipment)
 {
     unsigned int realm;
     unsigned int spell;
@@ -1164,9 +1166,9 @@ void AddCharacterStartingEquipment(W8Character* character)
         }
         break;
     default:
-        Function50E540(character);
+        RebuildEquipmentAndDerivedStats(character);
         return;
     }
     AddItemToCharacter(character, &item, 1, 0, 0);
-    Function50E540(character);
+    RebuildEquipmentAndDerivedStats(character);
 }

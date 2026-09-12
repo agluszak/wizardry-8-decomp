@@ -3,11 +3,8 @@
 
 /* Wizardry's recovered call surface for the SurRender DLL. */
 
-typedef void (__cdecl *srAssertHandler)(
-    const char* expression,
-    const char* source_path,
-    long line,
-    const char* message);
+typedef void(__cdecl* srAssertHandler)(const char* expression, const char* source_path, long line,
+                                       const char* message);
 
 /* These imports are declared once here so every first-party caller sees the
    same recovered SurRender ABI. */
@@ -27,10 +24,7 @@ __declspec(dllimport) void __cdecl srAssertSetFunc(srAssertHandler handler);
  * line is long because the true ABI spells it long; int folds identically,
  * so only the arity is proven, not the width.
  */
-__declspec(dllimport) void __cdecl srAssertFail(
-    const char* expression,
-    const char* source_path,
-    long line,
-    const char* message);
+__declspec(dllimport) void __cdecl srAssertFail(const char* expression, const char* source_path,
+                                                long line, const char* message);
 
 #endif

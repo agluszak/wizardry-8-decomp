@@ -27,8 +27,6 @@ void NoOp(W8PathAI* path, W8AnimRepBase005EC1D8* representation)
 void NoOp(void) {}
 
 extern const float g_negative_one_005ebc38;
-extern double g_double_005ebe80;
-extern float g_float_005ec128;
 extern double g_double_005ec3b0;
 
 // FUNCTION: WIZ8 0x004a9260

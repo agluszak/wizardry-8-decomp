@@ -9,6 +9,7 @@
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/dialog_code/SpellInfoDialog.h"
 #include "wiz8/local_screens/CharacterScreen.h"
+#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/xstatus.h"
 
 #include "wiz8/cursor.h"
@@ -195,7 +196,7 @@ void W8CharacterScreen::UpdateDialog()
     if (m_dialog_1b1c != 0) {
         if (m_dialog_response_1b20 == 1) {
             Function52DDD0();
-            if (Function52E750() == 0 &&
+            if (UpdateCharacterEventState() == 0 &&
                 static_cast<W8ModalDialogBase*>(m_dialog_1b1c)->close_result) {
                 m_dialog_1b1c->m_keep_open = 0;
             }
@@ -559,7 +560,7 @@ unsigned char W8CharacterScreen::CommitCharacter()
     W8Character backup;
     memcpy(&backup, &m_character_018, sizeof(backup));
     if (mode != 1) {
-        Function557580(&m_character_018, &m_creation_state_187c, mode == 0);
+        FinalizeCreatedCharacter(&m_character_018, &m_creation_state_187c, mode == 0);
     }
     if (!g_status_685170.game_started && !g_status_685170.skip_loose_character_check_2444) {
         if (m_original_014 != 0) {
@@ -582,7 +583,7 @@ unsigned char W8CharacterScreen::CommitCharacter()
             m_original_014->in_party = 1;
         if (m_original_014->current_profession == 8)
             Function5218C0(m_original_014);
-        Function51D960(m_original_014);
+        UnequipUnusableItems(m_original_014);
     }
     return 1;
 }
@@ -591,7 +592,7 @@ unsigned char W8CharacterScreen::CommitCharacter()
    current. They adjust the named skill through the page-2 helpers and then
    refresh page 2, the skills list. */
 // FUNCTION: WIZ8 0x005b1af0
-void Function5B1AF0(int skill_id)
+void ResetCharacterScreenSkill(int skill_id)
 {
     W8CharacterScreen* screen = g_character_screen_0069c2e8;
     ResetSkillContribution(&screen->m_character_018, &screen->m_creation_state_187c, skill_id);
@@ -601,7 +602,7 @@ void Function5B1AF0(int skill_id)
 }
 
 // FUNCTION: WIZ8 0x005b1b30
-void Function5B1B30(int skill_id)
+void RefundCharacterScreenSkill(int skill_id)
 {
     W8CharacterScreen* screen = g_character_screen_0069c2e8;
     RefundSkillAllocation(&screen->m_character_018, &screen->m_creation_state_187c, skill_id);
@@ -658,18 +659,18 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
             break;
         }
         case 6:
-            Function557580(&m_character_018, &m_creation_state_187c, 0);
+            FinalizeCreatedCharacter(&m_character_018, &m_creation_state_187c, 0);
             Function4EF7E0(m_original_014, &m_character_018, 1);
             RequestScreenTransition();
             break;
         case 7:
-            Function557580(&m_character_018, &m_creation_state_187c, 0);
+            FinalizeCreatedCharacter(&m_character_018, &m_creation_state_187c, 0);
             Function4EF7E0(m_original_014, &m_character_018, 0);
             RequestScreenTransition();
             break;
         }
     } else if (response == 6) {
-        Function557580(&m_character_018, &m_creation_state_187c, 0);
+        FinalizeCreatedCharacter(&m_character_018, &m_creation_state_187c, 0);
         Function4EF7E0(m_original_014, &m_character_018, 0);
         RequestScreenTransition();
     }

@@ -332,9 +332,9 @@ static_assert(sizeof(W8MainScreenState) == 0x268, "W8MainScreenState_size");
 extern W8MainScreenState* g_screen_state_00649f1c;
 void OnQuitGameDialogClosed(W8DialogBase* dialog);
 
-void Function56AA30(void);
-void Function56AAB0(void);
-void Function56C590(W8NpcState* npc, int value, int line, int suppress);
+void PauseMainGameWorld(void);
+void ResumeMainGameWorld(void);
+void ForwardNpcScriptNotice(W8NpcState* npc, int value, int line, int suppress);
 void Function56C5E0(W8NpcState* npc, int value, int line, int suppress, int arg); /* 0x0056C5E0 */
 void ResetMainGameScreenState(void);
 /* 0x0056C520: zero W8MainScreenState, write its reset values, and reload the
@@ -376,7 +376,7 @@ void RequestRedraw(unsigned int mask);
 int IsScreenInputBlocked(void);
 void DisableCombatRegions(void);
 void Function577220(void);
-void Function577540(void);
+void ClearMainGameTargetState(void);
 
 extern unsigned short g_value_006840be;
 extern unsigned char g_flag_00685071;
@@ -386,8 +386,8 @@ extern signed char g_value_00685077;
 extern unsigned char g_flag_006840bc;
 extern unsigned char g_flag_00685070;
 
-void Function5929D0(void);
-void Function592A10(void);
+void HandleManualCameraHotkeys(void);
+void ApplyWorldRenderHotkeys(void);
 extern unsigned char g_flag_0068edbc;
 extern unsigned char g_flag_0068edc8;
 extern unsigned char g_flag_0068edc9;

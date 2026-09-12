@@ -16,19 +16,12 @@ double g_double_005ec318 = 6.2831852;
    initial renderer colour.  The light begins at the origin and records the
    shared engine time used later by both colour cycling and fade-out. */
 // FUNCTION: WIZ8 0x0049D500
-MonsterLight::MonsterLight(
-    srNode* parent,
-    unsigned char cycle_color,
-    float range,
-    const srVector3T<float>* first_color,
-    const srVector3T<float>* second_color)
-    : srLight(parent, srLight::PRESET_POSITIONAL_1),
-      m_vertical_offset_228(0.0f),
-      m_color_first_22c(*first_color),
-      m_color_second_238(*second_color),
-      m_start_time_244(0.0f),
-      m_cycle_color_248(cycle_color),
-      m_fade_out_249(0)
+MonsterLight::MonsterLight(srNode* parent, unsigned char cycle_color, float range,
+                           const srVector3T<float>* first_color,
+                           const srVector3T<float>* second_color)
+    : srLight(parent, srLight::PRESET_POSITIONAL_1), m_vertical_offset_228(0.0f),
+      m_color_first_22c(*first_color), m_color_second_238(*second_color), m_start_time_244(0.0f),
+      m_cycle_color_248(cycle_color), m_fade_out_249(0)
 {
     setName("MonFixedLight");
     m_positional_18 = 2;
@@ -52,17 +45,14 @@ MonsterLight::MonsterLight(
 /* The concrete class owns no allocation beyond its regular srLight base.
    VC6 emits the registry teardown for the ordinary empty derived body. */
 // FUNCTION: WIZ8 0x0049E0D0
-MonsterLight::~MonsterLight()
-{
-}
+MonsterLight::~MonsterLight() {}
 
 // FUNCTION: WIZ8 0x0049D970
 void MonsterLight::SetVisible0049D970(char visible)
 {
     if (visible != 0) {
         clearFlag(srNode::FLAG_POSITIONAL_0);
-    }
-    else {
+    } else {
         setFlag(srNode::FLAG_POSITIONAL_0);
     }
 }
@@ -78,25 +68,17 @@ void MonsterLight::Update0049D990(const srVector3T<float>* position)
             fade = g_float_005ebb38;
         }
         intensity_1d0 = g_float_005ebb38 - fade;
-    }
-    else if (m_cycle_color_248 != 0) {
+    } else if (m_cycle_color_248 != 0) {
         float cycle = elapsed * g_monster_light_cycle_rate_005ecd4c;
         double whole = floor((double)cycle);
-        float first_weight = (float)(
-            sin(((double)cycle - whole) * g_double_005ec318)
-            + g_float_005ebb38) *
+        float first_weight =
+            (float)(sin(((double)cycle - whole) * g_double_005ec318) + g_float_005ebb38) *
             g_float_005ebc7c;
         float second_weight = g_float_005ebb38 - first_weight;
 
-        m_color_6c.x =
-            m_color_first_22c.x * first_weight +
-            m_color_second_238.x * second_weight;
-        m_color_6c.y =
-            m_color_first_22c.y * first_weight +
-            m_color_second_238.y * second_weight;
-        m_color_6c.z =
-            m_color_first_22c.z * first_weight +
-            m_color_second_238.z * second_weight;
+        m_color_6c.x = m_color_first_22c.x * first_weight + m_color_second_238.x * second_weight;
+        m_color_6c.y = m_color_first_22c.y * first_weight + m_color_second_238.y * second_weight;
+        m_color_6c.z = m_color_first_22c.z * first_weight + m_color_second_238.z * second_weight;
     }
 
     srVector3T<double> location;

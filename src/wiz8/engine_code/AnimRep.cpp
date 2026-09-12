@@ -48,11 +48,8 @@ W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8()
 void W8AnimRep005ED050::SetFrameMethod004B55C0(signed char method)
 {
     if (method < 1 || method > 4) {
-        srAssertFail(
-            "bFrameMethod >= DIR_FIRST && bFrameMethod <= DIR_LAST",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\AnimRep.cpp",
-            0x6a,
-            0);
+        srAssertFail("bFrameMethod >= DIR_FIRST && bFrameMethod <= DIR_LAST",
+                     "C:\\Projects\\Wizardry 8\\Engine Code\\AnimRep.cpp", 0x6a, 0);
     }
     flag_06f = method;
 }
@@ -61,8 +58,7 @@ void W8AnimRep005ED050::SetFrameMethod004B55C0(signed char method)
    runtime scale and flags instead of copying them.  Bytes 0x62 and 0x63 are
    not touched by the canonical constructor. */
 // FUNCTION: WIZ8 0x004b87c0
-W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8(
-    const W8AnimRepBase005EC1D8& other)
+W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8(const W8AnimRepBase005EC1D8& other)
 {
     location_004 = other.location_004;
     local_location_010 = other.local_location_010;
@@ -78,8 +74,7 @@ W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8(
    from its parent location.  The three floating-point additions establish
    these as vectors rather than opaque twelve-byte values. */
 // FUNCTION: WIZ8 0x004b8850
-void W8AnimRepBase005EC1D8::SetLocation004B8850(
-    const srVector3T<float>* location)
+void W8AnimRepBase005EC1D8::SetLocation004B8850(const srVector3T<float>* location)
 {
     local_location_010.x = location->x;
     local_location_010.y = location->y;
@@ -88,8 +83,7 @@ void W8AnimRepBase005EC1D8::SetLocation004B8850(
 }
 
 // FUNCTION: WIZ8 0x004b8890
-void W8AnimRepBase005EC1D8::GetLocation004B8890(
-    srVector3T<float>* location) const
+void W8AnimRepBase005EC1D8::GetLocation004B8890(srVector3T<float>* location) const
 {
     location->x = location_004.x;
     location->y = location_004.y;
@@ -97,8 +91,7 @@ void W8AnimRepBase005EC1D8::GetLocation004B8890(
 }
 
 // FUNCTION: WIZ8 0x004b88b0
-void W8AnimRepBase005EC1D8::GetLocalLocation004B88B0(
-    srVector3T<float>* location) const
+void W8AnimRepBase005EC1D8::GetLocalLocation004B88B0(srVector3T<float>* location) const
 {
     location->x = local_location_010.x;
     location->y = local_location_010.y;
@@ -106,15 +99,13 @@ void W8AnimRepBase005EC1D8::GetLocalLocation004B88B0(
 }
 
 // FUNCTION: WIZ8 0x004b88d0
-void W8AnimRepBase005EC1D8::SetRotation004B88D0(
-    const srMatrix3T<float>* rotation)
+void W8AnimRepBase005EC1D8::SetRotation004B88D0(const srMatrix3T<float>* rotation)
 {
     rotation_028 = *rotation;
 }
 
 // FUNCTION: WIZ8 0x004b88f0
-void W8AnimRepBase005EC1D8::GetRotation004B88F0(
-    srMatrix3T<float>* rotation)
+void W8AnimRepBase005EC1D8::GetRotation004B88F0(srMatrix3T<float>* rotation)
 {
     *rotation = rotation_028;
 }
@@ -138,11 +129,7 @@ W8AnimRep005ED050::W8AnimRep005ED050()
     counter_094 = 0xff;
     counter_095 = 0xff;
     if (g_shared_timer_base == 0) {
-        srAssertFail(
-            "gpsrTimer",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\AnimRep.cpp",
-            0x4e,
-            0);
+        srAssertFail("gpsrTimer", "C:\\Projects\\Wizardry 8\\Engine Code\\AnimRep.cpp", 0x4e, 0);
     }
     timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
 }
@@ -162,8 +149,7 @@ W8AnimRepBase005EC1D8* W8AnimRepBase005EC1D8::Clone()
    representation from the shared SurRender timer.  The source assertion names
    that global `gpsrTimer`. */
 // FUNCTION: WIZ8 0x004b54a0
-W8AnimRep005ED050::W8AnimRep005ED050(const W8AnimRep005ED050& other)
-    : W8AnimRepBase005EC1D8(other)
+W8AnimRep005ED050::W8AnimRep005ED050(const W8AnimRep005ED050& other) : W8AnimRepBase005EC1D8(other)
 {
     flag_064 = other.flag_064;
     value_066 = other.value_066;
@@ -182,11 +168,7 @@ W8AnimRep005ED050::W8AnimRep005ED050(const W8AnimRep005ED050& other)
     counter_095 = other.counter_095;
 
     if (g_shared_timer_base == 0) {
-        srAssertFail(
-            "gpsrTimer",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\AnimRep.cpp",
-            100,
-            0);
+        srAssertFail("gpsrTimer", "C:\\Projects\\Wizardry 8\\Engine Code\\AnimRep.cpp", 100, 0);
     }
     timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
 }
@@ -197,15 +179,12 @@ W8AnimRep005ED050::W8AnimRep005ED050(const W8AnimRep005ED050& other)
 // SYNTHETIC: WIZ8 0x004b5760
 // W8AnimRep005ED050::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x0044ef20
-W8AnimRep005ED050::~W8AnimRep005ED050()
-{
-}
+W8AnimRep005ED050::~W8AnimRep005ED050() {}
 
 /* The abstract emitter host copies its stable settings, but starts with no
    selected emitter and the canonical 00 00 FF FF transient byte pattern. */
 // FUNCTION: WIZ8 0x004b5680
-W8EmitterHost::W8EmitterHost(const W8EmitterHost& other)
-    : W8AnimRep005ED050(other)
+W8EmitterHost::W8EmitterHost(const W8EmitterHost& other) : W8AnimRep005ED050(other)
 {
     m_bLOD = other.m_bLOD;
     lod_range_09c = other.lod_range_09c;
@@ -235,6 +214,4 @@ W8EmitterHost::W8EmitterHost()
 // SYNTHETIC: WIZ8 0x004b5660
 // W8EmitterHost::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x004b56f0
-W8EmitterHost::~W8EmitterHost()
-{
-}
+W8EmitterHost::~W8EmitterHost() {}

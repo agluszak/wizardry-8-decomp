@@ -191,7 +191,7 @@ char Function42B740(int saved_level)
 }
 
 // FUNCTION: WIZ8 0x0042b3e0
-void Function42B3E0(void)
+void UnloadSkyWorld(void)
 {
     W8World* world = GetWorld659AB8();
     if (world != 0) {
@@ -519,7 +519,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
         SetCurrentWorld(0);
     }
     ReleaseRetainedMaterials00489920();
-    Function427440();
+    InvalidateRendererTextureCache();
     SetCurrentWorld(CreateWorld());
 
     previous_level = g_status_685170.current_level;
@@ -538,7 +538,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
     }
     InitializeMonsterManagerState();
     InitializeItemManagerState();
-    Function443A50();
+    ResetNextTriggerId();
     if (!ForwardLoadWorld(GetWorld(), level_info.level_file_name, level_info.level_folder,
                           level_info.level_bitmap_folder, 1)) {
         /* This is the complete canonical rollback here: restore the level ID.
@@ -606,7 +606,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
 
     if (level < 47 && !g_status_685170.level_progress[level].visited) {
         ResetMonsterGroupTurnState();
-        Function5115B0();
+        RebindMonsterGroupScripts();
         g_status_685170.level_progress[level].visited = 1;
         first_visit = 1;
     }

@@ -15,9 +15,7 @@ void InitializeRenderQuality(void)
 
     g_render_options_65a118 = (unsigned char*)malloc(0x34);
     if (!g_render_options_65a118) {
-        srAssertFail("gpQuality",
-                     "C:\\Projects\\Wizardry 8\\Engine Code\\Quality.cpp",
-                     159, 0);
+        srAssertFail("gpQuality", "C:\\Projects\\Wizardry 8\\Engine Code\\Quality.cpp", 159, 0);
         return;
     }
     memset(g_render_options_65a118, 0, 0x34);

@@ -14,8 +14,7 @@
 #include <new>
 #include <string.h>
 
-#define ST_MODEL_INSTANCE_CPP \
-    "C:\\Projects\\Wizardry 8\\Engine Code\\stModelInstance.cpp"
+#define ST_MODEL_INSTANCE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\stModelInstance.cpp"
 
 // VTABLE: WIZ8 0x005ec89c srClassSupport<srModelInstance, class srNode, 0, 4352>
 // VTABLE: WIZ8 0x005ec88c srModel::Client
@@ -59,17 +58,13 @@ stTextureAnim* stModelInstance::FindMouthTexture00481080()
 
     if (damage_stage_184 == -1) {
         while (mesh != 0) {
-            srPtr<srTextureIFace>* textures =
-                mesh->getPolyTexture(0, 0, 0);
+            srPtr<srTextureIFace>* textures = mesh->getPolyTexture(0, 0, 0);
 
             if (textures != 0) {
-                for (int polygon = 0;
-                     polygon < mesh->polygon_count_230;
-                     ++polygon) {
+                for (int polygon = 0; polygon < mesh->polygon_count_230; ++polygon) {
                     srTextureIFace* texture = textures[polygon].get();
 
-                    if (texture != 0 &&
-                        texture->getClassID() == stTextureAnim::CLASS_ID &&
+                    if (texture != 0 && texture->getClassID() == stTextureAnim::CLASS_ID &&
                         _strnicmp(texture->getName(), "mouth", 5) == 0) {
                         return static_cast<stTextureAnim*>(texture);
                     }
@@ -77,21 +72,16 @@ stTextureAnim* stModelInstance::FindMouthTexture00481080()
             }
             mesh = mesh->next;
         }
-    }
-    else {
+    } else {
         while (mesh != 0) {
             srPtr<srTextureIFace>* textures =
-                mesh->GetTextureTable00473720(
-                    damage_stage_tables_188.data[damage_stage_184]);
+                mesh->GetTextureTable00473720(damage_stage_tables_188.data[damage_stage_184]);
 
             if (textures != 0) {
-                for (int polygon = 0;
-                     polygon < mesh->polygon_count_230;
-                     ++polygon) {
+                for (int polygon = 0; polygon < mesh->polygon_count_230; ++polygon) {
                     srTextureIFace* texture = textures[polygon].get();
 
-                    if (texture != 0 &&
-                        texture->getClassID() == stTextureAnim::CLASS_ID &&
+                    if (texture != 0 && texture->getClassID() == stTextureAnim::CLASS_ID &&
                         _strnicmp(texture->getName(), "mouth", 5) == 0) {
                         return static_cast<stTextureAnim*>(texture);
                     }
@@ -125,8 +115,7 @@ int stModelInstance::AddDamageStage00480560(const char* name)
     damage_stage_tables_188.setCapacity(stage + 1);
 
     int base_table = stage > 0 ? damage_stage_tables_188.data[0] : -1;
-    damage_stage_tables_188.data[stage] =
-        mesh->CreateSkinTable00473260(name, base_table);
+    damage_stage_tables_188.data[stage] = mesh->CreateSkinTable00473260(name, base_table);
     for (mesh = mesh->next; mesh != 0; mesh = mesh->next) {
         mesh->CreateSkinTable00473260(name, base_table);
     }
@@ -150,8 +139,8 @@ int stModelInstance::AddExistingDamageStage00480670(const char* name)
 }
 
 // FUNCTION: WIZ8 0x004807b0
-unsigned char stModelInstance::ReplaceDamageStageTexture004807B0(
-    int stage, const char* old_name, srTextureIFace* replacement)
+unsigned char stModelInstance::ReplaceDamageStageTexture004807B0(int stage, const char* old_name,
+                                                                 srTextureIFace* replacement)
 {
     stMeshModel* mesh = static_cast<stMeshModel*>(getModel());
     unsigned char replaced = 0;
@@ -172,23 +161,19 @@ unsigned char stModelInstance::ReplaceDamageStageTexture004807B0(
 
         for (int polygon = 0; polygon < mesh->polygon_count_230; ++polygon) {
             srTextureIFace* texture = textures[polygon].get();
-            if (texture == 0 ||
-                (texture->getClassID() != 0x10001 &&
-                 texture->getClassID() != stTextureAnim::CLASS_ID)) {
+            if (texture == 0 || (texture->getClassID() != 0x10001 &&
+                                 texture->getClassID() != stTextureAnim::CLASS_ID)) {
                 continue;
             }
 
             if (_stricmp(texture->getName(), old_name) == 0) {
                 replaced = 1;
-                while (polygon < mesh->polygon_count_230 &&
-                       textures[polygon].get() == texture) {
+                while (polygon < mesh->polygon_count_230 && textures[polygon].get() == texture) {
                     textures[polygon] = replacement;
                     ++polygon;
                 }
-            }
-            else {
-                while (polygon < mesh->polygon_count_230 &&
-                       textures[polygon].get() == texture) {
+            } else {
+                while (polygon < mesh->polygon_count_230 && textures[polygon].get() == texture) {
                     ++polygon;
                 }
             }
@@ -240,13 +225,11 @@ stModelInstance2D& stModelInstance2D::operator=(const stModelInstance2D& other)
     state_171 = other.state_171;
     render_depth_164 = other.render_depth_164;
     if (other.vector_174 != 0) {
-        vector_174 = static_cast<srVector4T<float>*>(
-            srHeap.allocate(sizeof(srVector4T<float>)));
+        vector_174 = static_cast<srVector4T<float>*>(srHeap.allocate(sizeof(srVector4T<float>)));
         *vector_174 = *other.vector_174;
     }
     if (other.vector_178 != 0) {
-        vector_178 = static_cast<srVector4T<float>*>(
-            srHeap.allocate(sizeof(srVector4T<float>)));
+        vector_178 = static_cast<srVector4T<float>*>(srHeap.allocate(sizeof(srVector4T<float>)));
         *vector_178 = *other.vector_178;
     }
     return *this;
@@ -274,8 +257,7 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
 
     if ((alignment_flags_148 & 1) == 0) {
         applyWorldSpaceMatrix(*renderer);
-    }
-    else {
+    } else {
         srMatrix4T<float> view;
         srVector3T<double> world_location;
         srVector3T<double> world_scale;
@@ -291,50 +273,36 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         world_location = getWorldSpaceLocation();
         world_scale = getWorldSpaceScale();
 
-        transformed_location.x =
-            view.vectors[0].x * (float)world_location.x
-            + view.vectors[0].y * (float)world_location.y
-            + view.vectors[0].z * (float)world_location.z
-            + view.vectors[0].w;
-        transformed_location.y =
-            view.vectors[1].x * (float)world_location.x
-            + view.vectors[1].y * (float)world_location.y
-            + view.vectors[1].z * (float)world_location.z
-            + view.vectors[1].w;
-        transformed_location.z =
-            view.vectors[2].x * (float)world_location.x
-            + view.vectors[2].y * (float)world_location.y
-            + view.vectors[2].z * (float)world_location.z
-            + view.vectors[2].w;
-        transformed_location.w =
-            view.vectors[3].x * (float)world_location.x
-            + view.vectors[3].y * (float)world_location.y
-            + view.vectors[3].z * (float)world_location.z
-            + view.vectors[3].w;
+        transformed_location.x = view.vectors[0].x * (float)world_location.x +
+                                 view.vectors[0].y * (float)world_location.y +
+                                 view.vectors[0].z * (float)world_location.z + view.vectors[0].w;
+        transformed_location.y = view.vectors[1].x * (float)world_location.x +
+                                 view.vectors[1].y * (float)world_location.y +
+                                 view.vectors[1].z * (float)world_location.z + view.vectors[1].w;
+        transformed_location.z = view.vectors[2].x * (float)world_location.x +
+                                 view.vectors[2].y * (float)world_location.y +
+                                 view.vectors[2].z * (float)world_location.z + view.vectors[2].w;
+        transformed_location.w = view.vectors[3].x * (float)world_location.x +
+                                 view.vectors[3].y * (float)world_location.y +
+                                 view.vectors[3].z * (float)world_location.z + view.vectors[3].w;
 
-        basis_x = (float)sqrt(
-            view.vectors[0].x * view.vectors[0].x
-            + view.vectors[1].x * view.vectors[1].x
-            + view.vectors[2].x * view.vectors[2].x);
-        basis_y = (float)sqrt(
-            view.vectors[0].y * view.vectors[0].y
-            + view.vectors[1].y * view.vectors[1].y
-            + view.vectors[2].y * view.vectors[2].y);
-        basis_z = (float)sqrt(
-            view.vectors[0].z * view.vectors[0].z
-            + view.vectors[1].z * view.vectors[1].z
-            + view.vectors[2].z * view.vectors[2].z);
+        basis_x = (float)sqrt(view.vectors[0].x * view.vectors[0].x +
+                              view.vectors[1].x * view.vectors[1].x +
+                              view.vectors[2].x * view.vectors[2].x);
+        basis_y = (float)sqrt(view.vectors[0].y * view.vectors[0].y +
+                              view.vectors[1].y * view.vectors[1].y +
+                              view.vectors[2].y * view.vectors[2].y);
+        basis_z = (float)sqrt(view.vectors[0].z * view.vectors[0].z +
+                              view.vectors[1].z * view.vectors[1].z +
+                              view.vectors[2].z * view.vectors[2].z);
 
         float determinant =
-            (view.vectors[1].y * view.vectors[2].z
-             - view.vectors[1].z * view.vectors[2].y)
-                * view.vectors[0].x
-            + view.vectors[2].x
-                * (view.vectors[0].y * view.vectors[1].z
-                   - view.vectors[0].z * view.vectors[1].y)
-            + view.vectors[1].x
-                * (view.vectors[0].z * view.vectors[2].y
-                   - view.vectors[0].y * view.vectors[2].z);
+            (view.vectors[1].y * view.vectors[2].z - view.vectors[1].z * view.vectors[2].y) *
+                view.vectors[0].x +
+            view.vectors[2].x *
+                (view.vectors[0].y * view.vectors[1].z - view.vectors[0].z * view.vectors[1].y) +
+            view.vectors[1].x *
+                (view.vectors[0].z * view.vectors[2].y - view.vectors[0].y * view.vectors[2].z);
         if (determinant > g_zero_005ebb40) {
             basis_x = -basis_x;
             basis_y = -basis_y;
@@ -342,16 +310,13 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         }
 
         renderer->loadIdentity();
-        translation.Set(transformed_location.x, transformed_location.y,
-                        transformed_location.z);
+        translation.Set(transformed_location.x, transformed_location.y, transformed_location.z);
         renderer->translate(translation);
         if (align_angle_158 != g_float_005ebb34) {
             renderer->rotate((double)align_angle_158, align_axis_14c);
         }
-        renderer->scale(
-            world_scale.x * basis_x,
-            world_scale.y * basis_y,
-            -(world_scale.z * basis_z));
+        renderer->scale(world_scale.x * basis_x, world_scale.y * basis_y,
+                        -(world_scale.z * basis_z));
     }
 
     srMeshModel* model = static_cast<srMeshModel*>(getModel());
@@ -361,11 +326,7 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         if (m_pGlowMaterial_17c == 0) {
             m_pGlowMaterial_17c = new stMaterial;
             if (m_pGlowMaterial_17c == 0) {
-                srAssertFail(
-                    "m_pGlowMaterial",
-                    ST_MODEL_INSTANCE_CPP,
-                    926,
-                    0);
+                srAssertFail("m_pGlowMaterial", ST_MODEL_INSTANCE_CPP, 926, 0);
             }
             if (mesh.material_070 != 0) {
                 *m_pGlowMaterial_17c = *mesh.material_070;
@@ -375,23 +336,18 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
             }
         }
 
-        float glow_weight = (float)fabs(sin(
-            ((double)(GetTickCount() % render_depth_164)
-             / (double)(int)render_depth_164)
-            * g_camera_angle_period_005ec014));
+        float glow_weight = (float)fabs(
+            sin(((double)(GetTickCount() % render_depth_164) / (double)(int)render_depth_164) *
+                g_camera_angle_period_005ec014));
         float base_weight = g_float_005ebb38 - glow_weight;
         srVector4T<float> emissive;
-        emissive.x =
-            vector_174->x * base_weight + vector_178->x * glow_weight;
-        emissive.y =
-            vector_174->y * base_weight + vector_178->y * glow_weight;
-        emissive.z =
-            vector_174->z * base_weight + vector_178->z * glow_weight;
+        emissive.x = vector_174->x * base_weight + vector_178->x * glow_weight;
+        emissive.y = vector_174->y * base_weight + vector_178->y * glow_weight;
+        emissive.z = vector_174->z * base_weight + vector_178->z * glow_weight;
         emissive.w = g_float_005ebb38;
         m_pGlowMaterial_17c->setEmissive(emissive);
         mesh.material_070 = m_pGlowMaterial_17c;
-        mesh.shaders_0b0[0].value =
-            (mesh.shaders_0b0[0].value & ~0x400UL) | 0x800UL;
+        mesh.shaders_0b0[0].value = (mesh.shaders_0b0[0].value & ~0x400UL) | 0x800UL;
     }
 
 render_mesh:
@@ -445,8 +401,7 @@ srClass* stModelInstance2D::vInstance()
 
 // FUNCTION: WIZ8 0x0047EC80
 stModelInstance::stModelInstance(srNode* parent)
-    : srClassSupport<stModelInstance, srModelInstance, false, 0x10004>(
-          static_cast<srNode*>(0))
+    : srClassSupport<stModelInstance, srModelInstance, false, 0x10004>(static_cast<srNode*>(0))
 {
     render_depth_164 = 0;
     state_168 = 0;
@@ -470,8 +425,7 @@ stModelInstance::stModelInstance(srNode* parent)
 }
 
 // FUNCTION: WIZ8 0x0047EDF0
-stModelInstance& stModelInstance::operator=(
-    const stModelInstance& other)
+stModelInstance& stModelInstance::operator=(const stModelInstance& other)
 {
     srModelInstance::operator=(other);
     render_depth_164 = 0;

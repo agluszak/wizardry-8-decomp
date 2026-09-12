@@ -15,8 +15,7 @@ struct W8Searchable {
     void* object_08;
 };
 
-static_assert(sizeof(W8Searchable) == 0x0c,
-              "W8Searchable_must_be_0x0c");
+static_assert(sizeof(W8Searchable) == 0x0c, "W8Searchable_must_be_0x0c");
 
 extern W8GrowableVector<W8Searchable*> g_searchables_00689fa8;
 

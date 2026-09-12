@@ -36,6 +36,7 @@ enum { W8_AI_SPELL_PLACE = 0x77 };
 /* The monster action kinds the AI validates. */
 enum { W8_MONSTER_ACTION_ATTACK = 0, W8_MONSTER_ACTION_SPELL = 2, W8_MONSTER_ACTION_FLEE = 3 };
 
+struct W8SpellEffectEntry;
 /* 0x0061EEFC: two dwords per AI kind; only the leading dword is read here. */
 // GLOBAL: WIZ8 0x0061EEFC
 extern const int g_ai_kind_table[32][2] = {

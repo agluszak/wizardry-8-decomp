@@ -8,9 +8,9 @@
  */
 
 struct W8PList {
-    void** data;                          /* 0x00 */
-    int capacity;                         /* 0x04: PListInit allocates 10 */
-    int count;                            /* 0x08 */
+    void** data;  /* 0x00 */
+    int capacity; /* 0x04: PListInit allocates 10 */
+    int count;    /* 0x08 */
 };
 
 W8PList* PLCreate(void);

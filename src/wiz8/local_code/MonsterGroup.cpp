@@ -347,7 +347,7 @@ unsigned char IsMonsterGroupLive(W8MonsterGroup* monster_group)
 {
     if (monster_group->flag_28 != 0 && monster_group->flag_29 != 0 &&
         monster_group->member_count != 0) {
-        if (monster_group->flag_2a != 1 && Function547510() == 0) {
+        if (monster_group->flag_2a != 1 && CombatAllowsLiveGroups() == 0) {
             return 0;
         }
         return 1;
@@ -571,7 +571,7 @@ void ResetMonsterGroupTurnState(void)
    of the script it already carries, so reloaded monsters resume their
    level-local script objects. */
 // FUNCTION: WIZ8 0x005115B0
-void Function5115B0(void)
+void RebindMonsterGroupScripts(void)
 {
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
         W8MonsterGroup* group = GetMonsterGroupByListIndex(index);

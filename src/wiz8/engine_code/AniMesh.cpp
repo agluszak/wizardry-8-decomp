@@ -20,7 +20,6 @@ float g_float_005ebb34 = 0.0f;
 
 #define ANI_MESH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\AniMesh.cpp"
 
-extern double g_double_005ebe80;
 // GLOBAL: WIZ8 0x005ebe80
 double g_double_005ebe80 = 0.5;
 // GLOBAL: WIZ8 0x005ebb40
@@ -99,8 +98,8 @@ W8AniMesh* CopyAniMesh004B58D0(const W8AniMesh* other)
         return mesh;
     }
 
-    mesh->meshes_04 = static_cast<stModelInstance**>(
-        malloc(mesh->frame_count_01 * sizeof(*mesh->meshes_04)));
+    mesh->meshes_04 =
+        static_cast<stModelInstance**>(malloc(mesh->frame_count_01 * sizeof(*mesh->meshes_04)));
     if (mesh->meshes_04 == 0) {
         srAssertFail("pAniMesh->ppsrMeshes", ANI_MESH_CPP, 0xde, 0);
     }
@@ -117,18 +116,20 @@ W8AniMesh* CopyAniMesh004B58D0(const W8AniMesh* other)
 static unsigned char LoadAniMeshFrameCount004B6290(int file, W8AniMesh* mesh);
 
 // FUNCTION: WIZ8 0x004b5b30
-unsigned char LoadAniMeshFromInfo004B5B30(
-    W8ReadLevelInfo* info, W8AniMesh* mesh, unsigned char load_all)
+unsigned char LoadAniMeshFromInfo004B5B30(W8ReadLevelInfo* info, W8AniMesh* mesh,
+                                          unsigned char load_all)
 {
     if (info == 0 || mesh == 0) {
         srAssertFail("pInfo&&pAniMesh", ANI_MESH_CPP, 0x105, 0);
     }
-    if (info == 0 || mesh == 0) return 0;
+    if (info == 0 || mesh == 0)
+        return 0;
     strcpy(mesh->bitmap_directory_2c, info->bitmap_folder);
     mesh->world_38 = info->world;
     mesh->flags_00 = 0;
     mesh->last_used_3c = 0;
-    if (info->mesh_filename != 0) strcpy(mesh->filename_30, info->mesh_filename);
+    if (info->mesh_filename != 0)
+        strcpy(mesh->filename_30, info->mesh_filename);
     mesh->file_offset_34 = FileGetPos(info->hFile);
     if (load_all == 0) {
         unsigned char result = LoadAniMeshFrameCount004B6290(info->hFile, mesh);
@@ -155,24 +156,21 @@ float GetAniMeshFrameRadius004B5C10(W8AniMesh* mesh, unsigned char frame)
                 srVector3T<float> model_maximum;
 
                 model->getBoundingBox(model_minimum, model_maximum);
-                ExpandBounds0046F510(
-                    &minimum, &maximum, &model_minimum, &model_maximum);
+                ExpandBounds0046F510(&minimum, &maximum, &model_minimum, &model_maximum);
                 model = model->next;
             } while (model != 0);
 
             float x = minimum.x - maximum.x;
             float y = minimum.y - maximum.y;
             float z = minimum.z - maximum.z;
-            return static_cast<float>(sqrt(x * x + y * y + z * z) *
-                                      g_double_005ebe80);
+            return static_cast<float>(sqrt(x * x + y * y + z * z) * g_double_005ebe80);
         }
     }
     return g_float_005ebb34;
 }
 
 // FUNCTION: WIZ8 0x004b5d00
-unsigned char LoadAniMesh004B5D00(
-    int file, W8AniMesh* mesh, unsigned char load_all)
+unsigned char LoadAniMesh004B5D00(int file, W8AniMesh* mesh, unsigned char load_all)
 {
     int handle = file;
     char* instance_name = 0;
@@ -187,8 +185,7 @@ unsigned char LoadAniMesh004B5D00(
         if (handle == 0) {
             srAssertFail(
                 "0", ANI_MESH_CPP, 0x199,
-                reinterpret_cast<const char*>(
-                    String("Couldn't open %s", mesh->filename_30)));
+                reinterpret_cast<const char*>(String("Couldn't open %s", mesh->filename_30)));
             return 0;
         }
     }
@@ -210,13 +207,11 @@ unsigned char LoadAniMesh004B5D00(
 
     if (mesh->filename_30[0] != '\0') {
         instance_name = new char[strlen(mesh->filename_30) + 8];
-        sprintf(instance_name, "%s_%d_%d", mesh->filename_30, 0,
-                mesh->list_index_28);
+        sprintf(instance_name, "%s_%d_%d", mesh->filename_30, 0, mesh->list_index_28);
     }
 
     if (!FileRead(handle, &frame_index, sizeof(frame_index), 0) ||
-        !ReadSingleLevelMesh00485B20(
-            &info, &loaded_instance, 0, 0, instance_name, 1)) {
+        !ReadSingleLevelMesh00485B20(&info, &loaded_instance, 0, 0, instance_name, 1)) {
         srAssertFail("fSuccess", ANI_MESH_CPP, 0x1c5, 0);
         delete[] instance_name;
         FileClose(handle);
@@ -224,21 +219,19 @@ unsigned char LoadAniMesh004B5D00(
     }
 
     loaded_instance->setName("AniMeshReallyReadFromFile");
-    stModelInstance* instance =
-        static_cast<stModelInstance*>(loaded_instance);
+    stModelInstance* instance = static_cast<stModelInstance*>(loaded_instance);
     stMeshModel* model = static_cast<stMeshModel*>(instance->model());
 
     if (model->vertex_count > 1) {
         mesh->flags_00 |= W8_ANI_MESH_SINGLE_INSTANCE;
-        mesh->meshes_04 = static_cast<stModelInstance**>(
-            malloc(sizeof(*mesh->meshes_04)));
+        mesh->meshes_04 = static_cast<stModelInstance**>(malloc(sizeof(*mesh->meshes_04)));
         if (mesh->meshes_04 == 0) {
             srAssertFail("pAniMesh->ppsrMeshes", ANI_MESH_CPP, 0x1d0, 0);
         }
         mesh->meshes_04[0] = instance;
     } else {
-        mesh->meshes_04 = static_cast<stModelInstance**>(
-            malloc(frame_count * sizeof(*mesh->meshes_04)));
+        mesh->meshes_04 =
+            static_cast<stModelInstance**>(malloc(frame_count * sizeof(*mesh->meshes_04)));
         if (mesh->meshes_04 == 0) {
             srAssertFail("pAniMesh->ppsrMeshes", ANI_MESH_CPP, 0x1db, 0);
         }
@@ -254,13 +247,12 @@ unsigned char LoadAniMesh004B5D00(
         while (loaded_count < frame_count) {
             loaded_instance = 0;
             if (instance_name != 0) {
-                sprintf(instance_name, "%s_%d_%d", mesh->filename_30,
-                        loaded_count, mesh->list_index_28);
+                sprintf(instance_name, "%s_%d_%d", mesh->filename_30, loaded_count,
+                        mesh->list_index_28);
             }
-            if (!load_all ||
-                !FileRead(handle, &frame_index, sizeof(frame_index), 0) ||
-                !ReadSingleLevelMesh00485B20(
-                    &info, &loaded_instance, 0, 0, instance_name, load_all)) {
+            if (!load_all || !FileRead(handle, &frame_index, sizeof(frame_index), 0) ||
+                !ReadSingleLevelMesh00485B20(&info, &loaded_instance, 0, 0, instance_name,
+                                             load_all)) {
                 srAssertFail("fSuccess", ANI_MESH_CPP, 0x1f1, 0);
                 delete[] instance_name;
                 FileClose(handle);
@@ -272,8 +264,7 @@ unsigned char LoadAniMesh004B5D00(
                 return 0;
             }
             loaded_instance->setName("AniMeshReallyReadFromFile");
-            mesh->meshes_04[frame_index] =
-                static_cast<stModelInstance*>(loaded_instance);
+            mesh->meshes_04[frame_index] = static_cast<stModelInstance*>(loaded_instance);
             ++loaded_count;
         }
     }
@@ -293,8 +284,7 @@ unsigned char LoadAniMesh004B5D00(
     mesh->bounds_minimum_08.SetZero();
     mesh->bounds_maximum_14.SetZero();
     for (frame_index = 0; frame_index < mesh->frame_count_01; ++frame_index) {
-        stModelInstance* frame =
-            GetAniMeshFrame004B6550(mesh, frame_index);
+        stModelInstance* frame = GetAniMeshFrame004B6550(mesh, frame_index);
         if (frame != 0) {
             stMeshModel* frame_model = static_cast<stMeshModel*>(frame->model());
             while (frame_model != 0) {
@@ -302,9 +292,8 @@ unsigned char LoadAniMesh004B5D00(
                 srVector3T<float> maximum;
 
                 frame_model->getBoundingBox(minimum, maximum);
-                ExpandBounds0046F510(
-                    &mesh->bounds_minimum_08, &mesh->bounds_maximum_14,
-                    &minimum, &maximum);
+                ExpandBounds0046F510(&mesh->bounds_minimum_08, &mesh->bounds_maximum_14, &minimum,
+                                     &maximum);
                 frame_model = frame_model->next;
             }
         }
@@ -326,8 +315,8 @@ unsigned char LoadAniMesh004B5D00(
    not been. Touching it also stamps the storage clock, so asking for bounds
    counts as a use for the memory-pressure walk. */
 // FUNCTION: WIZ8 0x004b6640
-unsigned char GetAniMeshBounds004B6640(
-    W8AniMesh* mesh, srVector3T<float>* minimum, srVector3T<float>* maximum)
+unsigned char GetAniMeshBounds004B6640(W8AniMesh* mesh, srVector3T<float>* minimum,
+                                       srVector3T<float>* maximum)
 {
     if (mesh == 0) {
         srAssertFail("pAniMesh", ANI_MESH_CPP, 0x317, 0);
@@ -370,8 +359,7 @@ static unsigned char LoadAniMeshFrameCount004B6290(int file, W8AniMesh* mesh)
         if (handle == 0) {
             srAssertFail(
                 "fi.hFile", ANI_MESH_CPP, 0x23f,
-                reinterpret_cast<const char*>(
-                    String("Couldn't open %s", mesh->filename_30)));
+                reinterpret_cast<const char*>(String("Couldn't open %s", mesh->filename_30)));
             return 0;
         }
     }
@@ -379,7 +367,8 @@ static unsigned char LoadAniMeshFrameCount004B6290(int file, W8AniMesh* mesh)
     info.hFile = handle;
     info.bitmap_folder = mesh->bitmap_directory_2c;
     info.mesh_filename = mesh->filename_30;
-    if (file == 0) FileSeek(handle, mesh->file_offset_34, FILE_SEEK_FROM_START);
+    if (file == 0)
+        FileSeek(handle, mesh->file_offset_34, FILE_SEEK_FROM_START);
     success = FileRead(handle, &frame_count, 1, 0);
     if (success == 0) {
         srAssertFail("fSuccess", ANI_MESH_CPP, 0x253, 0);
@@ -389,10 +378,13 @@ static unsigned char LoadAniMeshFrameCount004B6290(int file, W8AniMesh* mesh)
     mesh->flags_00 |= W8_ANI_MESH_FRAME_COUNT_LOADED;
     mesh->frame_count_01 = frame_count;
     for (loaded_count = 0; loaded_count < frame_count; ++loaded_count) {
-        if (success != 0) success = FileRead(handle, &frame_index, 1, 0);
-        if (success != 0 && SkipSingleLevelMesh00487BD0(&info) == 2) break;
+        if (success != 0)
+            success = FileRead(handle, &frame_index, 1, 0);
+        if (success != 0 && SkipSingleLevelMesh00487BD0(&info) == 2)
+            break;
     }
-    if (file == 0) FileClose(handle);
+    if (file == 0)
+        FileClose(handle);
     return success;
 }
 
@@ -438,20 +430,18 @@ unsigned char UnloadAniMesh004B63F0(W8AniMesh* mesh, unsigned char force)
 }
 
 // FUNCTION: WIZ8 0x004b6550
-stModelInstance* GetAniMeshFrame004B6550(
-    W8AniMesh* mesh, unsigned char frame)
+stModelInstance* GetAniMeshFrame004B6550(W8AniMesh* mesh, unsigned char frame)
 {
     stModelInstance* instance;
     char message[0x80];
 
     if (mesh == 0 || frame >= mesh->frame_count_01) {
-        sprintf(message, "AniMeshGetMeshForFrame error: frame %d, num frames %d",
-                frame, mesh->frame_count_01);
+        sprintf(message, "AniMeshGetMeshForFrame error: frame %d, num frames %d", frame,
+                mesh->frame_count_01);
         srAssertFail("0", ANI_MESH_CPP, 0x2e6, message);
         return 0;
     }
-    if ((mesh->flags_00 & W8_ANI_MESH_LOADED) == 0 &&
-        LoadAniMesh004B5D00(0, mesh, 1) == 0) {
+    if ((mesh->flags_00 & W8_ANI_MESH_LOADED) == 0 && LoadAniMesh004B5D00(0, mesh, 1) == 0) {
         srAssertFail("0", ANI_MESH_CPP, 0x2ee, 0);
         return 0;
     }
@@ -526,17 +516,15 @@ void EnforceAniMeshMemoryLimit004B6770(W8AniMesh* current)
         unsigned int count = PLLength(&g_storage_list_65be90);
 
         for (unsigned int index = 0; index < count; ++index) {
-            W8AniMesh* candidate = static_cast<W8AniMesh*>(
-                PLGet(&g_storage_list_65be90, index));
+            W8AniMesh* candidate = static_cast<W8AniMesh*>(PLGet(&g_storage_list_65be90, index));
 
             if (candidate != current) {
                 if (candidate == 0) {
                     srAssertFail("pAniMesh", ANI_MESH_CPP, 0x3d0, 0);
                 }
                 if ((candidate->flags_00 & W8_ANI_MESH_FLAG_10) == 0 &&
-                    (oldest_index == -1 ||
-                     static_cast<unsigned int>(candidate->last_used_3c) <
-                         static_cast<unsigned int>(oldest->last_used_3c))) {
+                    (oldest_index == -1 || static_cast<unsigned int>(candidate->last_used_3c) <
+                                               static_cast<unsigned int>(oldest->last_used_3c))) {
                     oldest = candidate;
                     oldest_index = index;
                 }
@@ -546,9 +534,8 @@ void EnforceAniMeshMemoryLimit004B6770(W8AniMesh* current)
             UnloadAniMesh004B63F0(oldest, 0);
             PLRemoveAt(&g_storage_list_65be90, oldest_index);
         } else if (oldest_index == -1) {
-            srAssertFail(
-                "0", ANI_MESH_CPP, 0x39d,
-                "mimp.cpp -> Tell a programmer : running out of monster memory.");
+            srAssertFail("0", ANI_MESH_CPP, 0x39d,
+                         "mimp.cpp -> Tell a programmer : running out of monster memory.");
             return;
         }
     }

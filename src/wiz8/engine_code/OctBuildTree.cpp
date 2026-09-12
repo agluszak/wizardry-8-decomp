@@ -7,8 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define OCT_BUILD_TREE_CPP \
-    "C:\\Projects\\Wizardry 8\\Engine Code\\OctBuildTree.cpp"
+#define OCT_BUILD_TREE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctBuildTree.cpp"
 
 // GLOBAL
 float g_path_waypoint_exact_distance_005ebc64;
@@ -19,8 +18,7 @@ float g_float_005ec188 = 1.000100016593933f;
 // GLOBAL: WIZ8 0x00659a48
 void* g_oct_build_scratch_00659a48;
 
-W8OctBuildLinkLists::W8OctBuildLinkLists()
-    : m_usCurrent(0), padding_02(0)
+W8OctBuildLinkLists::W8OctBuildLinkLists() : m_usCurrent(0), padding_02(0)
 {
     for (int index = 0; index != 100; ++index) {
         m_apLinkLists[index] = 0;
@@ -32,27 +30,22 @@ W8OctBuildLinkLists::W8OctBuildLinkLists()
    50,000 eight-byte links.  A fresh zeroed link records the surface while its
    next pointer remains null. */
 // FUNCTION: WIZ8 0x00446250
-W8OctBuildLink* W8OctBuildLinkLists::GetNewLink00446250(
-    W8GDSurface* surface)
+W8OctBuildLink* W8OctBuildLinkLists::GetNewLink00446250(W8GDSurface* surface)
 {
     if (m_ausLinkCounts[m_usCurrent] > 49999) {
         ++m_usCurrent;
     }
     if (m_usCurrent < 100) {
         if (m_apLinkLists[m_usCurrent] == 0) {
-            m_apLinkLists[m_usCurrent] = static_cast<W8OctBuildLink*>(
-                malloc(50000 * sizeof(W8OctBuildLink)));
+            m_apLinkLists[m_usCurrent] =
+                static_cast<W8OctBuildLink*>(malloc(50000 * sizeof(W8OctBuildLink)));
             if (m_apLinkLists[m_usCurrent] == 0) {
-                srAssertFail(
-                    "m_apLinkLists[m_usCurrent]", OCT_BUILD_TREE_CPP, 140,
-                    "GetNewLink: Couldn't allocate m_apLinkLists.");
+                srAssertFail("m_apLinkLists[m_usCurrent]", OCT_BUILD_TREE_CPP, 140,
+                             "GetNewLink: Couldn't allocate m_apLinkLists.");
             }
-            memset(
-                m_apLinkLists[m_usCurrent], 0,
-                50000 * sizeof(W8OctBuildLink));
+            memset(m_apLinkLists[m_usCurrent], 0, 50000 * sizeof(W8OctBuildLink));
         }
-        W8OctBuildLink* link =
-            &m_apLinkLists[m_usCurrent][m_ausLinkCounts[m_usCurrent]++];
+        W8OctBuildLink* link = &m_apLinkLists[m_usCurrent][m_ausLinkCounts[m_usCurrent]++];
         link->surface_00 = surface;
         return link;
     }
@@ -84,12 +77,9 @@ W8OctBuildNode00446330::~W8OctBuildNode00446330()
    The caller supplies local copies of the level bounds because this constructor
    deliberately expands them by half a leaf on every axis. */
 // FUNCTION: WIZ8 0x00446390
-W8OctBuildTree00446390::W8OctBuildTree00446390(
-    float leaf_size,
-    srVector3T<float>* minimum,
-    srVector3T<float>* maximum,
-    unsigned short item_limit,
-    short extent_mode)
+W8OctBuildTree00446390::W8OctBuildTree00446390(float leaf_size, srVector3T<float>* minimum,
+                                               srVector3T<float>* maximum,
+                                               unsigned short item_limit, short extent_mode)
     : spatial_00(0)
 {
     spatial_00.Reset0046CDC0();
@@ -139,13 +129,11 @@ W8OctBuildTree00446390::W8OctBuildTree00446390(
         spatial_00.depth_44 = 0;
         if (extent_mode == 0) {
             spatial_00.node_extent_70 = spatial_00.extent_04;
-            while (leaf_size + leaf_size <= spatial_00.node_extent_70 &&
-                   spatial_00.depth_44 < 6) {
+            while (leaf_size + leaf_size <= spatial_00.node_extent_70 && spatial_00.depth_44 < 6) {
                 spatial_00.node_extent_70 *= g_float_005ebc7c;
                 ++spatial_00.depth_44;
             }
-        }
-        else if (extent_mode == 1) {
+        } else if (extent_mode == 1) {
             spatial_00.node_extent_70 = leaf_size;
             spatial_00.cell_size_08 = leaf_size;
             while (spatial_00.cell_size_08 < spatial_00.extent_04) {
@@ -156,37 +144,28 @@ W8OctBuildTree00446390::W8OctBuildTree00446390(
                 ++spatial_00.depth_44;
             }
             if (spatial_00.depth_44 > 6) {
-                Function497690(
-                    7, "Leaf Size too small--try a larger leaf size!");
+                Function497690(7, "Leaf Size too small--try a larger leaf size!");
             }
             spatial_00.extent_04 = spatial_00.cell_size_08;
-        }
-        else {
+        } else {
             spatial_00.node_extent_70 = spatial_00.extent_04;
-            while (leaf_size + leaf_size <= spatial_00.node_extent_70 &&
-                   spatial_00.depth_44 < 6) {
+            while (leaf_size + leaf_size <= spatial_00.node_extent_70 && spatial_00.depth_44 < 6) {
                 spatial_00.node_extent_70 *= g_float_005ebc7c;
                 ++spatial_00.depth_44;
             }
             if (extent_mode == 2) {
-                float doubled =
-                    spatial_00.node_extent_70 + spatial_00.node_extent_70;
-                if (doubled - leaf_size <
-                    leaf_size - spatial_00.node_extent_70) {
+                float doubled = spatial_00.node_extent_70 + spatial_00.node_extent_70;
+                if (doubled - leaf_size < leaf_size - spatial_00.node_extent_70) {
                     --spatial_00.depth_44;
                     spatial_00.node_extent_70 = doubled;
                 }
             }
         }
 
-        spatial_00.cell_size_08 =
-            spatial_00.node_extent_70 * g_float_005ec188;
-        spatial_00.maximum_18.x =
-            minimum->x + spatial_00.extent_04;
-        spatial_00.maximum_18.y =
-            minimum->y + spatial_00.extent_04;
-        spatial_00.maximum_18.z =
-            minimum->z + spatial_00.extent_04;
+        spatial_00.cell_size_08 = spatial_00.node_extent_70 * g_float_005ec188;
+        spatial_00.maximum_18.x = minimum->x + spatial_00.extent_04;
+        spatial_00.maximum_18.y = minimum->y + spatial_00.extent_04;
+        spatial_00.maximum_18.z = minimum->z + spatial_00.extent_04;
         g_oct_build_scratch_00659a48 = malloc(40000);
         spatial_00.state_3c = 1;
         spatial_00.item_count_40 = 0;
@@ -224,8 +203,8 @@ W8OctBuildTree00446390::~W8OctBuildTree00446390()
 /* Reject triangles outside the build domain, lazily create the root node, and
    then hand the complete typed working record to the recursive inserter. */
 // FUNCTION: WIZ8 0x00446820
-unsigned char W8OctBuildTree00446390::InsertSurface00446820(
-    W8GDSurface* surface, unsigned long mode)
+unsigned char W8OctBuildTree00446390::InsertSurface00446820(W8GDSurface* surface,
+                                                            unsigned long mode)
 {
     W8OctSpatialState0046CCC0 working(&spatial_00);
     srVector3T<float> vertices[3];
@@ -233,26 +212,22 @@ unsigned char W8OctBuildTree00446390::InsertSurface00446820(
     srVector3T<float>* plane = &plane_point;
 
     if ((short)mode == 3) {
-        if (LoadSurfaceVertices004214D0(
-                vertices, surface->vertex_indices_18) == 0) {
+        if (LoadSurfaceVertices004214D0(vertices, surface->vertex_indices_18) == 0) {
             plane = 0;
-        }
-        else {
+        } else {
             plane_point.x = surface->plane_24[0];
             plane_point.y = surface->plane_24[1];
             plane_point.z = surface->plane_24[2];
         }
     }
-    if (TestSpatialTriangle0046CE60(
-            &spatial_00.minimum_0c, vertices, plane) == 0) {
+    if (TestSpatialTriangle0046CE60(&spatial_00.minimum_0c, vertices, plane) == 0) {
         return 0;
     }
 
     if (spatial_00.root_90 == 0) {
         if (use_owned_nodes_b4 == 0) {
             spatial_00.root_90 = new W8OctBuildNode00446330;
-        }
-        else {
+        } else {
             spatial_00.root_90 = new W8CountedOctBuildNode004AF760;
         }
     }
@@ -260,8 +235,7 @@ unsigned char W8OctBuildTree00446390::InsertSurface00446820(
     working.owned_98 = vertices;
     working.depth_44 = 0;
     working.level_kind_6c = 1;
-    if (InsertSurfaceRecursive004469F0(
-            &working, surface, &plane_point, mode) == 0) {
+    if (InsertSurfaceRecursive004469F0(&working, surface, &plane_point, mode) == 0) {
         return 0;
     }
     ++spatial_00.item_count_40;
@@ -272,9 +246,7 @@ unsigned char W8OctBuildTree00446390::InsertSurface00446820(
    leaf nodes reuse the same eight slots as per-mode linked-list heads. */
 // FUNCTION: WIZ8 0x004469f0
 unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(
-    W8OctSpatialState0046CCC0* working,
-    W8GDSurface* surface,
-    srVector3T<float>* plane_point,
+    W8OctSpatialState0046CCC0* working, W8GDSurface* surface, srVector3T<float>* plane_point,
     unsigned long mode)
 {
     W8OctSpatialState0046CCC0 child(working);
@@ -285,8 +257,7 @@ unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(
     }
 
     if (working->extent_04 <= working->cell_size_08) {
-        W8OctBuildNode00446330* node =
-            static_cast<W8OctBuildNode00446330*>(working->root_90);
+        W8OctBuildNode00446330* node = static_cast<W8OctBuildNode00446330*>(working->root_90);
         ++node->leaf_kind_2a;
         if (positional_b8 < node->leaf_kind_2a) {
             positional_b8 = node->leaf_kind_2a;
@@ -295,8 +266,7 @@ unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(
         W8OctBuildLink*& head = node->links_00[(short)mode];
         if (head == 0) {
             head = link_lists_9c->GetNewLink00446250(surface);
-        }
-        else {
+        } else {
             W8OctBuildLink* tail = head;
             while (tail->next_04 != 0) {
                 tail = tail->next_04;
@@ -304,8 +274,7 @@ unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(
             tail->next_04 = link_lists_9c->GetNewLink00446250(surface);
         }
         inserted = 1;
-    }
-    else {
+    } else {
         float half_extent = working->extent_04 * g_float_005ebc7c;
         child.cell_size_08 = working->cell_size_08;
         child.depth_44 = working->depth_44 + 1;
@@ -314,38 +283,30 @@ unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(
         for (int x = 0; x != 2; ++x) {
             for (int y = 0; y != 2; ++y) {
                 for (int z = 0; z != 2; ++z, ++octant) {
-                    child.minimum_0c.x =
-                        working->minimum_0c.x + x * half_extent;
+                    child.minimum_0c.x = working->minimum_0c.x + x * half_extent;
                     child.maximum_18.x = child.minimum_0c.x + half_extent;
-                    child.minimum_0c.y =
-                        working->minimum_0c.y + y * half_extent;
+                    child.minimum_0c.y = working->minimum_0c.y + y * half_extent;
                     child.maximum_18.y = child.minimum_0c.y + half_extent;
-                    child.minimum_0c.z =
-                        working->minimum_0c.z + z * half_extent;
+                    child.minimum_0c.z = working->minimum_0c.z + z * half_extent;
                     child.maximum_18.z = child.minimum_0c.z + half_extent;
 
                     if (TestSpatialTriangle0046CE60(
                             &child.minimum_0c,
-                            static_cast<const srVector3T<float>*>(
-                                working->owned_98),
+                            static_cast<const srVector3T<float>*>(working->owned_98),
                             plane_point) != 0) {
                         W8OctBuildNode00446330* node =
-                            static_cast<W8OctBuildNode00446330*>(
-                                working->root_90);
+                            static_cast<W8OctBuildNode00446330*>(working->root_90);
                         if (node->children_00[octant] == 0) {
                             if (use_owned_nodes_b4 == 0) {
-                                node->children_00[octant] =
-                                    new W8OctBuildNode00446330;
-                            }
-                            else {
-                                node->children_00[octant] =
-                                    new W8CountedOctBuildNode004AF760;
+                                node->children_00[octant] = new W8OctBuildNode00446330;
+                            } else {
+                                node->children_00[octant] = new W8CountedOctBuildNode004AF760;
                             }
                         }
                         child.root_90 = node->children_00[octant];
                         child.owned_98 = working->owned_98;
-                        if (InsertSurfaceRecursive004469F0(
-                                &child, surface, plane_point, mode) != 0) {
+                        if (InsertSurfaceRecursive004469F0(&child, surface, plane_point, mode) !=
+                            0) {
                             inserted = 1;
                         }
                     }

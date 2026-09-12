@@ -19,6 +19,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/cursor.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/dialog_code/ModalDialogBase.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/game_status.h"
@@ -52,15 +53,6 @@ void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigne
                                  char right_button, char left_button);
 int Function558C40(const char* path);
 
-extern int g_font_683660;
-extern int g_wiz_text_bold_font_683664;
-extern unsigned short* g_colour_68ee08;
-extern unsigned short* g_font_palette_wiz_text_bold_68ee0c;
-extern unsigned short* g_font_state_palettes_68ee1c[15];
-extern unsigned char g_flag_689b32;
-extern HVOBJECT g_wiz_text_font_secondary_object_683680;
-extern int g_options_title_font_68368c;
-extern int g_options_detail_font_683614;
 extern unsigned short g_profession_name_message_ids_61e3f0[];
 extern unsigned short g_race_name_message_ids_61e3d0[];
 extern unsigned short g_gender_name_message_rows_61e430[][4];
@@ -413,9 +405,9 @@ public:
 
 class W8State5PanelSelectionListener005EF3B4 {
 public:
-    virtual void Function5BF0C0(int row) = 0;
-    virtual void Function5BF050(int row) = 0;
-    virtual void Function5BF0E0(int amount) = 0;
+    virtual void SelectPartyMemberRow(int row) = 0;
+    virtual void OpenCampForSelectedMember(int row) = 0;
+    virtual void AdjustPartyMemberRange(int amount) = 0;
 };
 
 /* Each visible character row is the same text control that W8Control stores
@@ -467,9 +459,9 @@ public:
     virtual ~W8State5CharacterPanel005EF3C8();
     virtual void OnSelectionChanged(W8ControlSelection* control, int selected) override;
     virtual void OnRangeChanged(W8RangeControl* control) override;
-    virtual void Function5BF0C0(int row) override;
-    virtual void Function5BF050(int row) override;
-    virtual void Function5BF0E0(int amount) override;
+    virtual void SelectPartyMemberRow(int row) override;
+    virtual void OpenCampForSelectedMember(int row) override;
+    virtual void AdjustPartyMemberRange(int amount) override;
     void SetSelectedRow(int selection);
 
     W8ControlSelection m_control_58;
@@ -533,7 +525,7 @@ public:
     W8State5OptionPanel005EF4AC();
     virtual ~W8State5OptionPanel005EF4AC();
     virtual void Redraw() override;
-    void Function5C05F0(int mode);
+    void SetOptionPanelMode(int mode);
 
     int m_mode_4c;
     W8ControlSelection m_options_50;
@@ -569,7 +561,7 @@ public:
     void SetSelection(int selection, int highlighted, int refresh);
     void OpenNotification(const wchar_t* message, int kind, int value);
     void Setup();
-    void Function5C1ED0();
+    void InvalidateState5Composition();
     void DrawState5Composition();
     void ApplyState5Confirmation(int value, unsigned char result);
     void LoadImportedPartyFile(int selection);
@@ -652,7 +644,7 @@ void W8State5CharacterRow005EF364::Redraw(int full_redraw)
 void W8State5CharacterRow005EF364::AdjustValue(int amount)
 {
     if (m_active && m_enabled && m_selection_listener) {
-        m_selection_listener->Function5BF0E0(amount);
+        m_selection_listener->AdjustPartyMemberRange(amount);
     }
 }
 
@@ -662,7 +654,7 @@ void W8State5CharacterRow005EF364::OnRightButtonUp(int event)
     if (m_active && m_enabled) {
         SetAlternateTextEnabled(0);
         if (m_selection_listener) {
-            m_selection_listener->Function5BF050(m_row);
+            m_selection_listener->OpenCampForSelectedMember(m_row);
         }
     }
     W8TextControl::OnRightButtonUp(event);
@@ -672,7 +664,7 @@ void W8State5CharacterRow005EF364::OnRightButtonUp(int event)
 void W8State5CharacterRow005EF364::OnLeftButtonDoubleClick(int event)
 {
     if (m_active && m_enabled && m_selection_listener) {
-        m_selection_listener->Function5BF0C0(m_row);
+        m_selection_listener->SelectPartyMemberRow(m_row);
     }
     W8TextControl::OnLeftButtonDoubleClick(event);
 }
@@ -778,14 +770,14 @@ void W8State5CharacterPanel005EF3C8::SetSelectedRow(int selection)
 }
 
 // FUNCTION: WIZ8 0x005bf0c0
-void W8State5CharacterPanel005EF3C8::Function5BF0C0(int row)
+void W8State5CharacterPanel005EF3C8::SelectPartyMemberRow(int row)
 {
     m_control_58.SetSelected(row);
     g_state5_controller->TogglePartyMemberSelection();
 }
 
 // FUNCTION: WIZ8 0x005bf050
-void W8State5CharacterPanel005EF3C8::Function5BF050(int row)
+void W8State5CharacterPanel005EF3C8::OpenCampForSelectedMember(int row)
 {
     m_control_58.SetSelected(row);
     int slot;
@@ -801,7 +793,7 @@ void W8State5CharacterPanel005EF3C8::Function5BF050(int row)
 }
 
 // FUNCTION: WIZ8 0x005bf0e0
-void W8State5CharacterPanel005EF3C8::Function5BF0E0(int amount)
+void W8State5CharacterPanel005EF3C8::AdjustPartyMemberRange(int amount)
 {
     while (amount > 0) {
         m_range_7c->Decrement();
@@ -1112,7 +1104,7 @@ void W8State5OptionPanel005EF4AC::Redraw()
 unsigned char W8State5InputHandler005C0E50::HandleInput(const InputAtom* input)
 {
     if (input->usEvent != KEY_DOWN && input->usEvent != KEY_REPEAT) {
-        Function568950(input);
+        DispatchMainGameMouseButtons(input);
         return 0;
     }
 
@@ -1147,7 +1139,7 @@ unsigned char W8State5InputHandler005C0E50::HandleInput(const InputAtom* input)
    session. The panel's three difficulty controls are interactive only in
    mode zero. */
 // FUNCTION: WIZ8 0x005c05f0
-void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
+void W8State5OptionPanel005EF4AC::SetOptionPanelMode(int mode)
 {
     m_mode_4c = mode;
     while (m_entries_7c.count > 0) {
@@ -1490,17 +1482,17 @@ void W8State5Controller::SetMode(int mode)
         m_text_50->SetActive(0);
         m_control_30->SetEnabled(1);
         m_control_30->EnableRegionSet(1);
-        m_control_30->Function5C05F0(0);
+        m_control_30->SetOptionPanelMode(0);
         label = gppStringList[0x1ad8 / 4];
         break;
     case 3:
         m_text_50->SetActive(0);
-        m_control_30->Function5C05F0(1);
+        m_control_30->SetOptionPanelMode(1);
         label = gppStringList[0x1adc / 4];
         break;
     case 4:
         m_text_50->SetActive(0);
-        m_control_30->Function5C05F0(2);
+        m_control_30->SetOptionPanelMode(2);
         label = gppStringList[0x1adc / 4];
         break;
     default:
@@ -1764,7 +1756,7 @@ void W8State5Controller::OnToggle(int value)
 }
 
 // FUNCTION: WIZ8 0x005c1ed0
-void W8State5Controller::Function5C1ED0()
+void W8State5Controller::InvalidateState5Composition()
 {
     m_redraw_backdrop_14 = 1;
     m_range->Invalidate(0);
@@ -1961,7 +1953,7 @@ void W8State5Controller::TogglePartyMemberSelection()
     W8State5PartyCollection* collection = g_state5_party_collection_69c4ec;
     W8Character* character = collection->GetCharacter(selected);
     if (!character->in_party) {
-        int slot = Function4EF4A0(character, -1);
+        int slot = AddCharacterToParty(character, -1);
         if (slot != -1) {
             delete character;
             collection->characters.SetAt(selected, &g_status_685170.buffers.characters[slot]);
@@ -2117,7 +2109,7 @@ void PartySelectionScreenFrame(void)
             delete controller->m_dialog_68;
             controller->m_dialog_68 = 0;
             ClearActiveRegionIfMatches(0x138);
-            controller->Function5C1ED0();
+            controller->InvalidateState5Composition();
             controller->ApplyState5Confirmation(controller->m_dialog_value_6c, result);
         }
     }
@@ -2178,7 +2170,7 @@ void PartySelectionScreenFrame(void)
             }
         }
     }
-    Function52E750();
+    UpdateCharacterEventState();
     controller->DrawState5Composition();
     RenderFrame();
 }
@@ -2242,7 +2234,7 @@ void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int
         return;
     }
     if (value != 0 && g_portrait_frame_flags_0061cbc0[portrait] != 0) {
-        char drawn = Function52EBE0(portrait, left, top, flags, party_slot, 1);
+        char drawn = BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, 1);
         value = drawn == 0;
     }
     if ((((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].flag_34 != 0) ||
@@ -2258,7 +2250,8 @@ void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int
    frame and its blend predecessor; the A track draws the frame the animation
    is moving to, and a dead character stops after the B track. */
 // FUNCTION: WIZ8 0x0052ebe0
-char Function52EBE0(int portrait, int left, int top, int flags, int party_slot, char animate)
+char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int party_slot,
+                                char animate)
 {
     W8MonsterManagerEntry* state = &g_monster_manager_entries[party_slot];
     W8ScreenRect rect;
@@ -2299,7 +2292,7 @@ char Function52EBE0(int portrait, int left, int top, int flags, int party_slot, 
             other.bottom = height + other.top;
             UnionScreenRects(&other, &rect, &rect);
         }
-        Function422EC0(&rect, 1, 0);
+        InvalidateScreenRects(&rect, 1, 0);
         state->field_085 = state->field_089;
         state->field_09a = 0;
     }
@@ -2330,7 +2323,7 @@ char Function52EBE0(int portrait, int left, int top, int flags, int party_slot, 
             other.bottom = height + other.top;
             UnionScreenRects(&other, &rect, &rect);
         }
-        Function422EC0(&rect, 1, 0);
+        InvalidateScreenRects(&rect, 1, 0);
         state->field_075 = state->field_079;
         state->field_09b = 0;
     }

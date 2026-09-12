@@ -62,12 +62,10 @@ void W8Object0043A910::ResetDurationScale()
 // FUNCTION: WIZ8 0x0043aad0
 float W8Object0043A910::Update()
 {
-    if ((m_flags & 8) != 0 ||
-        (g_shared_timer_paused != 0 && (m_flags & 1) == 0) ||
+    if ((m_flags & 8) != 0 || (g_shared_timer_paused != 0 && (m_flags & 1) == 0) ||
         g_shared_timer_flag_d1 != 0) {
         m_value_28 = 0.0f;
-    }
-    else {
+    } else {
         int sample = ReadClock();
         m_elapsed_ticks_2c = (unsigned int)(sample - m_start);
         m_start = sample;
@@ -85,6 +83,4 @@ float W8Object0043A910::Update()
 }
 
 // FUNCTION: WIZ8 0x0043ac60
-W8Object0043A910::~W8Object0043A910()
-{
-}
+W8Object0043A910::~W8Object0043A910() {}

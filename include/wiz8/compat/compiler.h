@@ -10,9 +10,8 @@
    assertion independent even when several appear in one scope. */
 #define WIZ8_COMPAT_JOIN_INNER(left, right) left##right
 #define WIZ8_COMPAT_JOIN(left, right) WIZ8_COMPAT_JOIN_INNER(left, right)
-#define static_assert(condition, message)                                      \
-    typedef char WIZ8_COMPAT_JOIN(wiz8_static_assertion_at_line_, __LINE__)[  \
-        (condition) ? 1 : -1]
+#define static_assert(condition, message)                                                          \
+    typedef char WIZ8_COMPAT_JOIN(wiz8_static_assertion_at_line_, __LINE__)[(condition) ? 1 : -1]
 #endif
 
 /* VC6 treats wchar_t as an unsigned-short typedef.  Clang normally makes it

@@ -33,8 +33,8 @@ int g_credit_line_0069c4a4;
    stream. Answers whether the line ended at a newline; trailing carriage
    returns are stripped. */
 // FUNCTION: WIZ8 0x004CEED0
-unsigned char ReadWideTextLine004CEED0(
-    int handle, wchar_t* destination, int capacity, unsigned char* more)
+unsigned char ReadWideTextLine004CEED0(int handle, wchar_t* destination, int capacity,
+                                       unsigned char* more)
 {
     wchar_t* write = destination;
     wchar_t current = 0;
@@ -49,14 +49,11 @@ unsigned char ReadWideTextLine004CEED0(
         if (bytes_read == 0) {
             ok = 0;
             *more = 0;
-        }
-        else if (ok == 0) {
+        } else if (ok == 0) {
             *more = 0;
-        }
-        else if (current == 10) {
+        } else if (current == 10) {
             break;
-        }
-        else {
+        } else {
             *write++ = current;
             ++count;
         }
@@ -93,34 +90,30 @@ unsigned char CreditsScreenEnter(void)
         FileRead(handle, line, sizeof(wchar_t), 0);
         while (!FileCheckEndOfFile(handle)) {
             if (ReadWideTextLine004CEED0(handle, line, 128, &more) && line[0] != L'*') {
-                W8CreditLine entry = { 0, 0, 0, 0, 0 };
+                W8CreditLine entry = {0, 0, 0, 0, 0};
                 bool blank = false;
                 bool bold = false;
                 if (line[0] == L'!') {
                     bold = true;
                     entry.flags = 1;
                     entry.primary = _wcsdup(line + 1);
-                }
-                else {
+                } else {
                     wchar_t* separator = wcschr(line, L'&');
                     if (separator != 0) {
                         separator[-1] = L'\0';
                         entry.flags = 2;
                         entry.secondary = _wcsdup(separator + 2);
                         entry.primary = _wcsdup(line);
-                    }
-                    else if (line[0] != L'\0') {
+                    } else if (line[0] != L'\0') {
                         entry.primary = _wcsdup(line);
-                    }
-                    else {
+                    } else {
                         blank = true;
                         entry.flags = 4;
                     }
                 }
                 if (!blank) {
-                    entry.pixel_width = StringPixLength(
-                        entry.primary,
-                        bold ? g_font_bold_0068368c : g_font_00683614);
+                    entry.pixel_width = StringPixLength(entry.primary, bold ? g_font_bold_0068368c
+                                                                            : g_font_00683614);
                 }
                 entry.line_height = 0x14 + (bold ? 5 : 0);
                 g_credit_lines_0069c4a8->Add(entry);
@@ -171,8 +164,8 @@ void CreditsScreenFrame(void)
         }
     }
 
-    int steps = (GetTickCount() - g_credit_started_at_0069c49c) / 35
-                - g_credit_elapsed_steps_0069c494;
+    int steps =
+        (GetTickCount() - g_credit_started_at_0069c49c) / 35 - g_credit_elapsed_steps_0069c494;
     if (steps >= 1) {
         g_credit_elapsed_steps_0069c494 += steps;
         g_credit_redraw_0069c498 = 1;
@@ -194,19 +187,16 @@ void CreditsScreenFrame(void)
 
     DrawCatalogImage(-14, 0xe9, 0, 0, 0, 0, 2, 0);
     int y = g_credit_y_0069c4a0;
-    for (int index = g_credit_line_0069c4a4;
-         index < g_credit_lines_0069c4a8->count && y <= 0x1df;
+    for (int index = g_credit_line_0069c4a4; index < g_credit_lines_0069c4a8->count && y <= 0x1df;
          ++index) {
         const W8CreditLine* entry = g_credit_lines_0069c4a8->GetAt(index);
         if ((entry->flags & 4) == 0) {
             SetFont((entry->flags & 1) ? g_font_bold_0068368c : g_font_00683614);
             if ((entry->flags & 2) == 0) {
-                gprintf((0x280 - entry->pixel_width) / 2, y,
-                        (unsigned short*)L"%s", entry->primary);
-            }
-            else {
-                gprintf(0x136 - entry->pixel_width, y,
-                        (unsigned short*)L"%s", entry->primary);
+                gprintf((0x280 - entry->pixel_width) / 2, y, (unsigned short*)L"%s",
+                        entry->primary);
+            } else {
+                gprintf(0x136 - entry->pixel_width, y, (unsigned short*)L"%s", entry->primary);
                 if (entry->secondary != 0) {
                     gprintf(0x14a, y, (unsigned short*)L"%s", entry->secondary);
                 }

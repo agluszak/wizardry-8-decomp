@@ -47,48 +47,43 @@ void DestroyLightVector(W8GrowableVector<stLight*>* vector); /* 0x004A8C50 */
    Trigger sets bit 4 on its own to reverse the shake. */
 class W8CameraShakeEffect {
 public:
-    W8CameraShakeEffect(
-        float duration, char preset, float intensity, int value_08,
-        const srVector3T<float>* position);   /* 0x004ADED0 */
-    W8CameraShakeEffect(const W8CameraShakeEffect& other); /* 0x004AE000 */
+    W8CameraShakeEffect(float duration, char preset, float intensity, int value_08,
+                        const srVector3T<float>* position); /* 0x004ADED0 */
+    W8CameraShakeEffect(const W8CameraShakeEffect& other);  /* 0x004AE000 */
     /* Per-frame evaluation: answers whether the effect is still active and
        reports how much it contributes this frame. */
-    unsigned char Evaluate004AE4E0(
-        const srVector3T<float>* position, float* out_amount);
+    unsigned char Evaluate004AE4E0(const srVector3T<float>* position, float* out_amount);
 
-    unsigned int flags_00;               /* 0x00 */
-    float intensity_04;                  /* 0x04 */
-    int value_08;                        /* 0x08 */
-    srVector3T<float> position_0c;       /* 0x0c */
-    W8GameTimer timer_18;            /* 0x18 */
+    unsigned int flags_00;         /* 0x00 */
+    float intensity_04;            /* 0x04 */
+    int value_08;                  /* 0x08 */
+    srVector3T<float> position_0c; /* 0x0c */
+    W8GameTimer timer_18;          /* 0x18 */
     /* The key 0x004AE170 matches an animation event against. */
-    int cycle_3c;                        /* 0x3c */
-    int frame_40;                        /* 0x40 */
-    int subcycle_44;                     /* 0x44 */
-    int value_48;                        /* 0x48 */
+    int cycle_3c;    /* 0x3c */
+    int frame_40;    /* 0x40 */
+    int subcycle_44; /* 0x44 */
+    int value_48;    /* 0x48 */
 };
 
-static_assert(sizeof(W8CameraShakeEffect) == 0x4c,
-              "W8CameraShakeEffect_must_be_0x4c");
+static_assert(sizeof(W8CameraShakeEffect) == 0x4c, "W8CameraShakeEffect_must_be_0x4c");
 
 /* The live list every active effect is on, and the timer the first effect
    creates alongside it. Both are built lazily by the constructor. */
 extern W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects_0065be2c;
 extern W8GameTimer* g_shake_timer_0065be30;
 
-W8CameraShakeEffect* CreateCameraShakeEffect004AE080(
-    float duration, char preset, float intensity, int value_08,
-    const srVector3T<float>* position);
+W8CameraShakeEffect* CreateCameraShakeEffect004AE080(float duration, char preset, float intensity,
+                                                     int value_08,
+                                                     const srVector3T<float>* position);
 /* Fire every effect in one cycle's vector whose key matches, moving it onto the
    live list and restarting its timer. */
-void TriggerShakeEffects004AE170(
-    W8GrowableVector<W8CameraShakeEffect*>* effects,
-    int cycle, unsigned int frame, int subcycle,
-    const srVector3T<float>* position);
+void TriggerShakeEffects004AE170(W8GrowableVector<W8CameraShakeEffect*>* effects, int cycle,
+                                 unsigned int frame, int subcycle,
+                                 const srVector3T<float>* position);
 /* Take every active effect in one cycle's vector back off the live list, and
    release the ones that list owned. */
-void StopShakeEffects004AE270(
-    W8GrowableVector<W8CameraShakeEffect*>* effects);
+void StopShakeEffects004AE270(W8GrowableVector<W8CameraShakeEffect*>* effects);
 /* The per-frame shake update: retire finished live effects and turn the
    accumulated intensity into Trigger's action camera offset. */
 void UpdateShakeEffects004AE310();
@@ -112,17 +107,18 @@ public:
 static_assert(sizeof(W8GrCycleParticleAttachment) == 0x3c,
               "W8GrCycleParticleAttachment_must_be_0x3c");
 
-class W8GrCycle :
-    public W8GrObject,
-    public W8Navigator {
+class W8GrCycle : public W8GrObject, public W8Navigator {
 public:
     W8GrCycle();
-    W8GrCycle(const W8GrCycle& other);      /* 0x004A5F20 */
+    W8GrCycle(const W8GrCycle& other); /* 0x004A5F20 */
     virtual ~W8GrCycle() override;
     // FUNCTION: WIZ8 0x004a7140
-    virtual unsigned char CanEnterCycle(signed char) { return 1; }
-    virtual void TickAnimation(float scale);             /* 0x004A6E20 */
-    virtual unsigned char ApplyPendingCycle();           /* 0x004A6FC0 */
+    virtual unsigned char CanEnterCycle(signed char)
+    {
+        return 1;
+    }
+    virtual void TickAnimation(float scale);           /* 0x004A6E20 */
+    virtual unsigned char ApplyPendingCycle();         /* 0x004A6FC0 */
     virtual void UpdateRepresentation(W8World* world); /* 0x004A7470 */
     virtual signed char GetNumSubCycles() = 0;
     virtual bool IsCycleSupported(signed char cycle) = 0;
@@ -131,10 +127,10 @@ public:
     virtual W8EmitterHost* GetRepresentation() = 0;
     void SetPosition004A6DF0(srVector3T<float>* position);
     /* Registry-wide lookups answered from this cycle's identity. */
-    const char* GetRegisteredName004A8650() const;       /* 0x004A8650 */
+    const char* GetRegisteredName004A8650() const;              /* 0x004A8650 */
     unsigned char IsSoleRegisteredCycleForName004A8700() const; /* 0x004A8700 */
-    virtual unsigned char GetAnimationBounds(
-        srVector3T<float>* minimum, srVector3T<float>* maximum);
+    virtual unsigned char GetAnimationBounds(srVector3T<float>* minimum,
+                                             srVector3T<float>* maximum);
     virtual unsigned char GetAnimationRadius(float* radius);
     virtual void SetCycle(signed char cycle) = 0;
     virtual W8AnimObj* GetCurrentAnimation() = 0;
@@ -152,19 +148,19 @@ public:
     /* Runs at the end of every representation update; its own body is the
        shake/particle event walk and is not recovered yet. */
     void UpdateParticleAttachments004A7E50();
-    void SelectLOD004A7BE0(const srVector3T<float>* position);   /* 0x004A7BE0 */
+    void SelectLOD004A7BE0(const srVector3T<float>* position); /* 0x004A7BE0 */
     void UpdateLights004A7150();
-    srModelInstance* SelectCycleFrameLod004A8360(
-        signed char cycle, signed char frame, signed char lod);
+    srModelInstance* SelectCycleFrameLod004A8360(signed char cycle, signed char frame,
+                                                 signed char lod);
     srModelInstance* GetCurrentModelInstance004A8250();
     unsigned char ReplacePath004A8400(void* path);
     void SubmitTargetValue004A84A0();
 
 public:
     srModelInstance* current_model_instance_1a8;
-    W8GrowableVector<stLight*>* m_plsLights; /* 0x1ac */
+    W8GrowableVector<stLight*>* m_plsLights;                  /* 0x1ac */
     W8GrowableVector<W8CameraShakeEffect*>* m_plsShakeEvents; /* 0x1b0 */
-    unsigned char m_fDeleteLights;        /* 0x1b4: named by GrCycle.cpp:1656 */
+    unsigned char m_fDeleteLights;                            /* 0x1b4: named by GrCycle.cpp:1656 */
     unsigned char unknown_1b5;
     unsigned char unknown_1b6[2];
     W8GrowableVector<W8GrCycleParticleAttachment*>* m_plsParticles; /* 0x1b8 */
@@ -175,9 +171,9 @@ public:
     /* The axis 0x004A7E50 aims a mode-three particle along. */
     srVector3T<float> m_axis_1c0;
     float scale_1cc;
-    stGroundShadow* m_ground_shadow;       /* 0x1d0: typed runtime class stGroundShadow */
+    stGroundShadow* m_ground_shadow; /* 0x1d0: typed runtime class stGroundShadow */
     float unknown_1d4;
-};                                      /* 0x1d8 */
+}; /* 0x1d8 */
 
 static_assert(sizeof(W8GrCycle) == 0x1d8, "W8GrCycle_size_must_be_0x1d8");
 
@@ -188,18 +184,9 @@ extern float g_float_005ec128;
 W8GrCycle* FindFirstGrCycleByName(const char* name);
 unsigned char UnregisterGrCycle(W8GrCycle* cycle);
 void RegisterGrCycle(const char* name, W8GrCycle* cycle);
-unsigned char LoadGrCycle004A67E0(
-    const W8GrCycleLoadContext* context,
-    const char* mon_name,
-    W8GrCycle** cycle,
-    int cycle_index,
-    int value,
-    const char* directory,
-    unsigned char object_type,
-    const char* bitmap_directory = 0);
-unsigned char ReadGrCycleData004A6970(
-    W8ReadLevelInfo* info,
-    W8GrCycle** cycle,
-    int cycle_index,
-    int value,
-    unsigned char object_type);
+unsigned char LoadGrCycle004A67E0(const W8GrCycleLoadContext* context, const char* mon_name,
+                                  W8GrCycle** cycle, int cycle_index, int value,
+                                  const char* directory, unsigned char object_type,
+                                  const char* bitmap_directory = 0);
+unsigned char ReadGrCycleData004A6970(W8ReadLevelInfo* info, W8GrCycle** cycle, int cycle_index,
+                                      int value, unsigned char object_type);

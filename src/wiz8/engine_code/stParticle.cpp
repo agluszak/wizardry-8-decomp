@@ -32,8 +32,7 @@ float g_float_005ecc40 = 0.00019174758926965296f;
 #include <stdlib.h>
 #include <string.h>
 
-static const char ST_PARTICLE_CPP[] =
-    "C:\\Projects\\Wizardry 8\\Engine Code\\stParticle.cpp";
+static const char ST_PARTICLE_CPP[] = "C:\\Projects\\Wizardry 8\\Engine Code\\stParticle.cpp";
 
 // VTABLE: WIZ8 0x005ECBD0
 // class stParticle
@@ -85,8 +84,8 @@ stParticle* FindRegisteredParticle0049ADB0(const char* name)
     if (uppercase_name != 0) {
         strcpy(uppercase_name, name);
         _strupr(uppercase_name);
-        particle = static_cast<stParticle*>(srCore.getRegistry()->find(
-            stParticle::sGetClassNode(), uppercase_name, 0));
+        particle = static_cast<stParticle*>(
+            srCore.getRegistry()->find(stParticle::sGetClassNode(), uppercase_name, 0));
     }
     free(uppercase_name);
     return particle;
@@ -101,33 +100,28 @@ void SaveParticleStates0049B150(HWFILE handle)
 
     FileWrite(handle, &version, sizeof(version), 0);
 
-    stParticle* particle = static_cast<stParticle*>(
-        srCore.getRegistry()->find(
-            stParticle::sGetClassNode(),
-            static_cast<const srRuntimeClass*>(0)));
+    stParticle* particle = static_cast<stParticle*>(srCore.getRegistry()->find(
+        stParticle::sGetClassNode(), static_cast<const srRuntimeClass*>(0)));
     while (particle != 0) {
         if (particle->trigger_flag_192 != 0) {
             ++count;
         }
-        particle = static_cast<stParticle*>(srCore.getRegistry()->find(
-            stParticle::sGetClassNode(), particle));
+        particle = static_cast<stParticle*>(
+            srCore.getRegistry()->find(stParticle::sGetClassNode(), particle));
     }
 
     FileWrite(handle, &count, sizeof(count), 0);
 
-    particle = static_cast<stParticle*>(
-        srCore.getRegistry()->find(
-            stParticle::sGetClassNode(),
-            static_cast<const srRuntimeClass*>(0)));
+    particle = static_cast<stParticle*>(srCore.getRegistry()->find(
+        stParticle::sGetClassNode(), static_cast<const srRuntimeClass*>(0)));
     while (particle != 0) {
         if (particle->trigger_flag_192 != 0) {
             strcpy(name, particle->getName());
             FileWrite(handle, name, sizeof(name), 0);
-            FileWrite(handle, &particle->active_1a0,
-                      sizeof(particle->active_1a0), 0);
+            FileWrite(handle, &particle->active_1a0, sizeof(particle->active_1a0), 0);
         }
-        particle = static_cast<stParticle*>(srCore.getRegistry()->find(
-            stParticle::sGetClassNode(), particle));
+        particle = static_cast<stParticle*>(
+            srCore.getRegistry()->find(stParticle::sGetClassNode(), particle));
     }
 }
 
@@ -147,8 +141,7 @@ void LoadParticleStates0049B3B0(int handle)
         FileRead(handle, &active, sizeof(active), 0);
 
         stParticle* particle = static_cast<stParticle*>(
-            srCore.getRegistry()->find(
-                stParticle::sGetClassNode(), name, 0));
+            srCore.getRegistry()->find(stParticle::sGetClassNode(), name, 0));
         if (particle != 0) {
             particle->SetActive(active);
         }
@@ -157,8 +150,7 @@ void LoadParticleStates0049B3B0(int handle)
 
 // FUNCTION: WIZ8 0x00497AF0
 stParticle::stParticle(srNode* parent, unsigned int count)
-    : srClassSupport<stParticle, srNode, 0, 0x10009>(
-          static_cast<srNode*>(0))
+    : srClassSupport<stParticle, srNode, 0, 0x10009>(static_cast<srNode*>(0))
 {
     trigger_flag_192 = 0;
     update_flags_250 = 0;
@@ -189,8 +181,8 @@ stParticle::stParticle(srNode* parent, unsigned int count)
         srAssertFail("cnt < 10000", ST_PARTICLE_CPP, 0x41, 0);
     }
 
-    allocation_148 = static_cast<srVector3T<float>*>(
-        srHeap.allocate(count * sizeof(srVector3T<float>)));
+    allocation_148 =
+        static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
     unsigned int i;
     for (i = 0; i < count; ++i) {
         allocation_148[i].x = 0.0f;
@@ -204,8 +196,7 @@ stParticle::stParticle(srNode* parent, unsigned int count)
         srHeap.allocate(vertex_count_158 * sizeof(srVector2T<float>)));
     allocation_160 = static_cast<srVector3T<float>*>(
         srHeap.allocate(vertex_count_158 * sizeof(srVector3T<float>)));
-    allocation_168 = static_cast<srVector3i*>(
-        srHeap.allocate(count * 2 * sizeof(srVector3i)));
+    allocation_168 = static_cast<srVector3i*>(srHeap.allocate(count * 2 * sizeof(srVector3i)));
     allocation_174 = new float[vertex_count_158];
     texture_frames_178 = 0;
 
@@ -246,8 +237,8 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     value_188 = 0;
     allocation_254 = new unsigned long[texture_frame_count_15c];
     active_particle_count_18c = 0;
-    allocation_198 = static_cast<srVector3T<float>*>(
-        srHeap.allocate(count * sizeof(srVector3T<float>)));
+    allocation_198 =
+        static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
     allocation_19c = new unsigned int[count];
     allocation_194 = new unsigned char[count];
     memset(allocation_194, 0, count);
@@ -280,17 +271,15 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     value_234.SetZero();
     value_240 = 2000.0f;
     update_flags_250 = 0;
-    activated_at_258 = g_shared_timer_base->getMsTime(
-        srTimer::TIMER_READ_DEFAULT);
+    activated_at_258 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     updated_at_25c = activated_at_258;
     value_270 = 25;
     value_274 = 0;
 }
 
 // FUNCTION: WIZ8 0x00499A50
-unsigned char stParticle::ActivateParticle00499A50(
-    unsigned int* out_index,
-    unsigned char replace_when_full)
+unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
+                                                   unsigned char replace_when_full)
 {
     if (state_184 != 0 && value_188 >= state_184) {
         return 0;
@@ -322,17 +311,14 @@ unsigned char stParticle::ActivateParticle00499A50(
 
     *out_index = index;
     allocation_194[index] = 1;
-    allocation_19c[index] = g_shared_timer_base->getMsTime(
-        srTimer::TIMER_READ_DEFAULT);
+    allocation_19c[index] = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
 
     float magnitude = 0.0f;
     if (value_1bc == 1) {
         magnitude = value_210;
-    }
-    else if (value_1bc == 2) {
-        magnitude = (value_218 - value_214) *
-                (float)(rand() & 0x7fff) * g_float_005ec438 +
-            value_214;
+    } else if (value_1bc == 2) {
+        magnitude =
+            (value_218 - value_214) * (float)(rand() & 0x7fff) * g_float_005ec438 + value_214;
     }
     magnitude *= value_278;
 
@@ -356,21 +342,16 @@ unsigned char stParticle::ActivateParticle00499A50(
         srVector3T<float> direction;
         direction.Set(g_float_005ebb34, g_float_005ebb34, magnitude);
 
-        double angle = ((float)(rand() & 0x7fff) * g_float_005ec438 -
-                        g_float_005ebc7c) *
-            value_20c;
+        double angle = ((float)(rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c) * value_20c;
         direction.RotateAboutX(sin(angle), cos(angle));
 
-        angle = ((float)(rand() & 0x7fff) * g_float_005ec438 -
-                 g_float_005ebc7c) *
-            value_208;
+        angle = ((float)(rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c) * value_208;
         direction.RotateAboutY(sin(angle), cos(angle));
 
         srMatrix3T<float> rotation;
         getWorldSpaceRotation(rotation);
-        velocity.x = rotation.vectors[0].x * direction.x +
-            rotation.vectors[0].y * direction.y +
-            rotation.vectors[0].z * direction.z;
+        velocity.x = rotation.vectors[0].x * direction.x + rotation.vectors[0].y * direction.y +
+                     rotation.vectors[0].z * direction.z;
         velocity.y = DotProduct(rotation.vectors[1], direction);
         velocity.z = DotProduct(rotation.vectors[2], direction);
         break;
@@ -378,18 +359,14 @@ unsigned char stParticle::ActivateParticle00499A50(
 
     case 4: {
         srVector3T<float> direction;
-        direction.x = (float)(rand() & 0x7fff) * g_float_005ec438 -
-            g_float_005ebc7c;
-        direction.y = (float)(rand() & 0x7fff) * g_float_005ec438 -
-            g_float_005ebc7c;
-        direction.z = (float)(rand() & 0x7fff) * g_float_005ec438 -
-            g_float_005ebc7c;
+        direction.x = (float)(rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c;
+        direction.y = (float)(rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c;
+        direction.z = (float)(rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c;
 
-        float length_squared = direction.x * direction.x +
-            direction.y * direction.y + direction.z * direction.z;
+        float length_squared =
+            direction.x * direction.x + direction.y * direction.y + direction.z * direction.z;
         if ((double)length_squared != g_zero_005ebb40) {
-            float normalization = (float)(
-                g_double_005ebc30 / sqrt(length_squared));
+            float normalization = (float)(g_double_005ebc30 / sqrt(length_squared));
             direction *= normalization;
         }
 
@@ -412,8 +389,7 @@ unsigned char stParticle::ActivateParticle00499A50(
     allocation_148[index].z = (float)location.z;
 
     if (m_pflFlutterAngle != 0) {
-        m_pflFlutterAngle[index] =
-            (float)(rand() & 0x7fff) * g_float_005ecc40;
+        m_pflFlutterAngle[index] = (float)(rand() & 0x7fff) * g_float_005ecc40;
     }
     if (texture_frames_178 != 0) {
         texture_frames_178[index * 2]->SetFrame00485400(0);
@@ -445,8 +421,7 @@ void stParticle::DeactivateParticle00499F70(unsigned int index)
 // FUNCTION: WIZ8 0x00499FA0
 void stParticle::Update00499FA0()
 {
-    unsigned int now = g_shared_timer_base->getMsTime(
-        srTimer::TIMER_READ_DEFAULT);
+    unsigned int now = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     if (now - value_274 < value_270) {
         return;
     }
@@ -480,10 +455,9 @@ void stParticle::Update00499FA0()
 
         double elapsed = (double)elapsed_ticks;
         srVector3T<float> acceleration_step;
-        acceleration_step.Set(
-            acceleration_1f4.x * elapsed * g_double_005ec8d0,
-            acceleration_1f4.y * elapsed * g_double_005ec8d0,
-            acceleration_1f4.z * elapsed * g_double_005ec8d0);
+        acceleration_step.Set(acceleration_1f4.x * elapsed * g_double_005ec8d0,
+                              acceleration_1f4.y * elapsed * g_double_005ec8d0,
+                              acceleration_1f4.z * elapsed * g_double_005ec8d0);
 
         unsigned int index;
         for (index = 0; index < particle_count_180; ++index) {
@@ -501,25 +475,20 @@ void stParticle::Update00499FA0()
                     continue;
                 }
                 if (expires_at - 500 < now) {
-                    float alpha = (float)(expires_at - now) *
-                        g_float_005ebc60;
+                    float alpha = (float)(expires_at - now) * g_float_005ebc60;
                     unsigned int alpha_end = vertex + 4;
                     unsigned int alpha_index;
-                    for (alpha_index = vertex;
-                         alpha_index < alpha_end;
-                         ++alpha_index) {
+                    for (alpha_index = vertex; alpha_index < alpha_end; ++alpha_index) {
                         allocation_174[alpha_index] = alpha;
                     }
                 }
-            }
-            else if (value_1ac == 1) {
+            } else if (value_1ac == 1) {
                 if (texture_frames_178 == 0) {
                     value_1ac = 0;
                     if (value_1cc == 0) {
                         value_1cc = 1000;
                     }
-                }
-                else {
+                } else {
                     stTextureAnim* animation = texture_frames_178[index * 2];
                     animation->UpdateFrame004854B0();
                     if (animation->IsFinished00485730() != 0) {
@@ -538,43 +507,31 @@ void stParticle::Update00499FA0()
             }
 
             srVector3T<float> movement;
-            movement.Set(
-                allocation_198[index].x * elapsed * g_double_005ec8d0,
-                allocation_198[index].y * elapsed * g_double_005ec8d0,
-                allocation_198[index].z * elapsed * g_double_005ec8d0);
+            movement.Set(allocation_198[index].x * elapsed * g_double_005ec8d0,
+                         allocation_198[index].y * elapsed * g_double_005ec8d0,
+                         allocation_198[index].z * elapsed * g_double_005ec8d0);
 
             srVector3T<float> candidate;
             candidate = allocation_148[index] + movement;
 
             if (value_1a4 == 2) {
                 double distance;
-                if (value_234.x == g_float_005ebb34 &&
-                    value_234.y == g_float_005ebb34 &&
+                if (value_234.x == g_float_005ebb34 && value_234.y == g_float_005ebb34 &&
                     value_234.z == g_float_005ebb34) {
                     float x = candidate.x - node_location.x;
                     float y = candidate.y - node_location.y;
                     float z = candidate.z - node_location.z;
                     distance = sqrt(x * x + y * y + z * z);
-                }
-                else {
-                    float center_x =
-                        DotProduct(rotation.vectors[0], value_234);
-                    float center_y =
-                        DotProduct(rotation.vectors[1], value_234);
-                    float center_z =
-                        DotProduct(rotation.vectors[2], value_234);
-                    srVector3T<float> center(
-                        center_x + node_location.x,
-                        center_y + node_location.y,
-                        center_z + node_location.z);
-                    srVector3T<float> difference(
-                        candidate.x - center.x,
-                        candidate.y - center.y,
-                        candidate.z - center.z);
-                    distance = sqrt(
-                        difference.y * difference.y +
-                        difference.z * difference.z +
-                        difference.x * difference.x);
+                } else {
+                    float center_x = DotProduct(rotation.vectors[0], value_234);
+                    float center_y = DotProduct(rotation.vectors[1], value_234);
+                    float center_z = DotProduct(rotation.vectors[2], value_234);
+                    srVector3T<float> center(center_x + node_location.x, center_y + node_location.y,
+                                             center_z + node_location.z);
+                    srVector3T<float> difference(candidate.x - center.x, candidate.y - center.y,
+                                                 candidate.z - center.z);
+                    distance = sqrt(difference.y * difference.y + difference.z * difference.z +
+                                    difference.x * difference.x);
                 }
 
                 if (value_278 * value_240 < distance) {
@@ -583,27 +540,21 @@ void stParticle::Update00499FA0()
                     --active_particle_count_18c;
                     continue;
                 }
-            }
-            else if (value_1a4 == 1) {
-                srVector3T<float> local(
-                    candidate.x - node_location.x,
-                    candidate.y - node_location.y,
-                    candidate.z - node_location.z);
+            } else if (value_1a4 == 1) {
+                srVector3T<float> local(candidate.x - node_location.x,
+                                        candidate.y - node_location.y,
+                                        candidate.z - node_location.z);
                 float* matrix = &transform.vectors[0].x;
                 srVector4T<float> transformed;
                 transformed.Set(
-                    local.x * matrix[0] + local.y * matrix[1] +
-                        local.z * matrix[2] + matrix[3],
-                    local.x * matrix[4] + local.y * matrix[5] +
-                        local.z * matrix[6] + matrix[7],
-                    local.x * matrix[8] + local.y * matrix[9] +
-                        local.z * matrix[10] + matrix[11],
-                    local.x * matrix[12] + local.y * matrix[13] +
-                        local.z * matrix[14] + matrix[15]);
+                    local.x * matrix[0] + local.y * matrix[1] + local.z * matrix[2] + matrix[3],
+                    local.x * matrix[4] + local.y * matrix[5] + local.z * matrix[6] + matrix[7],
+                    local.x * matrix[8] + local.y * matrix[9] + local.z * matrix[10] + matrix[11],
+                    local.x * matrix[12] + local.y * matrix[13] + local.z * matrix[14] +
+                        matrix[15]);
                 srVector3T<float> local_point;
                 local_point.Set(transformed.x, transformed.y, transformed.z);
-                if (PointInsideBounds004BE870(
-                        &local_point, &minimum_21c, &maximum_228) == 0) {
+                if (PointInsideBounds004BE870(&local_point, &minimum_21c, &maximum_228) == 0) {
                     allocation_194[index] = 0;
                     update_flags_250 |= 2;
                     --active_particle_count_18c;
@@ -650,15 +601,13 @@ void stParticle::Update00499FA0()
     for (;;) {
         unsigned int lag = now - value_1c8 - updated_at_25c;
         unsigned int particle_index;
-        if (ActivateParticle00499A50(
-                &particle_index, unknown_191) == 0) {
+        if (ActivateParticle00499A50(&particle_index, unknown_191) == 0) {
             updated_at_25c = now;
             return;
         }
 
         if (value_1a8 == 1) {
-            srVector3T<float> acceleration =
-                (acceleration_1f4 * (double)lag) / 1000.0;
+            srVector3T<float> acceleration = (acceleration_1f4 * (double)lag) / 1000.0;
             allocation_198[particle_index] += acceleration;
         }
 
@@ -676,18 +625,14 @@ void stParticle::Update00499FA0()
 }
 
 // FUNCTION: WIZ8 0x0049A990
-void stParticle::InitializeParticlePosition0049A990(
-    srVector3T<float>* output)
+void stParticle::InitializeParticlePosition0049A990(srVector3T<float>* output)
 {
-    output->x = (maximum_1dc.x - minimum_1d0.x) *
-            (float)(rand() & 0x7fff) * g_float_005ec438 +
-        minimum_1d0.x;
-    output->y = (maximum_1dc.y - minimum_1d0.y) *
-            (float)(rand() & 0x7fff) * g_float_005ec438 +
-        minimum_1d0.y;
-    output->z = (maximum_1dc.z - minimum_1d0.z) *
-            (float)(rand() & 0x7fff) * g_float_005ec438 +
-        minimum_1d0.z;
+    output->x = (maximum_1dc.x - minimum_1d0.x) * (float)(rand() & 0x7fff) * g_float_005ec438 +
+                minimum_1d0.x;
+    output->y = (maximum_1dc.y - minimum_1d0.y) * (float)(rand() & 0x7fff) * g_float_005ec438 +
+                minimum_1d0.y;
+    output->z = (maximum_1dc.z - minimum_1d0.z) * (float)(rand() & 0x7fff) * g_float_005ec438 +
+                minimum_1d0.z;
 
     output->x *= value_278;
     output->y *= value_278;
@@ -696,15 +641,12 @@ void stParticle::InitializeParticlePosition0049A990(
     srMatrix3T<float> rotation;
     getRotation(rotation);
     srVector3T<float> original = *output;
-    output->x = rotation.vectors[0].x * original.x +
-        rotation.vectors[0].z * original.z +
-        rotation.vectors[0].y * original.y;
-    output->y = rotation.vectors[1].z * original.z +
-        rotation.vectors[1].y * original.y +
-        rotation.vectors[1].x * original.x;
-    output->z = rotation.vectors[2].z * original.z +
-        rotation.vectors[2].y * original.y +
-        rotation.vectors[2].x * original.x;
+    output->x = rotation.vectors[0].x * original.x + rotation.vectors[0].z * original.z +
+                rotation.vectors[0].y * original.y;
+    output->y = rotation.vectors[1].z * original.z + rotation.vectors[1].y * original.y +
+                rotation.vectors[1].x * original.x;
+    output->z = rotation.vectors[2].z * original.z + rotation.vectors[2].y * original.y +
+                rotation.vectors[2].x * original.x;
 
     srVector3T<double> location = getLocation();
     output->x += (float)location.x;
@@ -727,8 +669,7 @@ void stParticle::traverse(srNode::TraverseInfo& info)
 
     if (!testFlag(FLAG_POSITIONAL_0)) {
         if ((active_1a0 != 0 || active_particle_count_18c != 0) && flag_1a1 != 0) {
-            srNode::TraverseInfo::Entry& entry =
-                info.entries[info.entry_count];
+            srNode::TraverseInfo::Entry& entry = info.entries[info.entry_count];
             entry.node = this;
             entry.value = 0;
             ++info.entry_count;
@@ -746,8 +687,7 @@ void stParticle::traverse(srNode::TraverseInfo& info)
 void stParticle::SetTraversalEnabled00498D90(unsigned char enabled)
 {
     if (enabled != 0 && flag_1a1 == 0) {
-        updated_at_25c = g_shared_timer_base->getMsTime(
-            srTimer::TIMER_READ_DEFAULT);
+        updated_at_25c = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     }
     flag_1a1 = enabled;
 }
@@ -756,7 +696,7 @@ void stParticle::SetTraversalEnabled00498D90(unsigned char enabled)
 void stParticle::process(const ProcessInfo& info, e_processType)
 {
     info.renderer->pushMatrix();
-    Function4994D0(info.renderer);
+    SubmitToRenderer(info.renderer);
     info.renderer->popMatrix();
 }
 
@@ -766,11 +706,8 @@ void stParticle::process(const ProcessInfo& info, e_processType)
 void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
 {
     static srVector3T<float> corners[4] = {
-        srVector3T<float>(-0.5f, 0.5f, 0.0f),
-        srVector3T<float>(0.5f, 0.5f, 0.0f),
-        srVector3T<float>(0.5f, -0.5f, 0.0f),
-        srVector3T<float>(-0.5f, -0.5f, 0.0f)
-    };
+        srVector3T<float>(-0.5f, 0.5f, 0.0f), srVector3T<float>(0.5f, 0.5f, 0.0f),
+        srVector3T<float>(0.5f, -0.5f, 0.0f), srVector3T<float>(-0.5f, -0.5f, 0.0f)};
     static srVector3T<float> offsets[4];
 
     float* matrix = &view.vectors[0].x;
@@ -778,10 +715,9 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
     matrix[7] = 0.0f;
     matrix[11] = 0.0f;
 
-    float normalization = (float)(
-        g_double_005ebc30
-        / sqrt(matrix[0] * matrix[0] + matrix[1] * matrix[1]
-               + matrix[2] * matrix[2] + matrix[3] * matrix[3]));
+    float normalization =
+        (float)(g_double_005ebc30 / sqrt(matrix[0] * matrix[0] + matrix[1] * matrix[1] +
+                                         matrix[2] * matrix[2] + matrix[3] * matrix[3]));
     matrix[0] *= normalization;
     matrix[1] *= normalization;
     matrix[2] *= normalization;
@@ -797,15 +733,14 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
 
     for (unsigned int index = 0; index < 4; ++index) {
         srVector4T<float> transformed;
-        transformed.Set(
-            corners[index].y * matrix[1] + corners[index].x * matrix[0]
-                + corners[index].z * matrix[2] + matrix[3],
-            corners[index].y * matrix[5] + corners[index].z * matrix[6]
-                + corners[index].x * matrix[4] + matrix[7],
-            corners[index].y * matrix[9] + corners[index].x * matrix[8]
-                + corners[index].z * matrix[10] + matrix[11],
-            corners[index].y * matrix[13] + corners[index].x * matrix[12]
-                + corners[index].z * matrix[14] + matrix[15]);
+        transformed.Set(corners[index].y * matrix[1] + corners[index].x * matrix[0] +
+                            corners[index].z * matrix[2] + matrix[3],
+                        corners[index].y * matrix[5] + corners[index].z * matrix[6] +
+                            corners[index].x * matrix[4] + matrix[7],
+                        corners[index].y * matrix[9] + corners[index].x * matrix[8] +
+                            corners[index].z * matrix[10] + matrix[11],
+                        corners[index].y * matrix[13] + corners[index].x * matrix[12] +
+                            corners[index].z * matrix[14] + matrix[15]);
 
         float scale = (float)value_140 * value_278;
         offsets[index].x = transformed.x * scale;
@@ -814,9 +749,7 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
     }
 
     if (value_1c0 == 0) {
-        for (unsigned int direct_index = 0;
-             direct_index < particle_count_180;
-             ++direct_index) {
+        for (unsigned int direct_index = 0; direct_index < particle_count_180; ++direct_index) {
             unsigned int vertex = direct_index * 4;
             const srVector3T<float>& position = allocation_148[direct_index];
             allocation_160[vertex].x = position.x + offsets[0].x;
@@ -827,35 +760,26 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
             allocation_160[vertex + 1].z = position.z + offsets[1].z;
 
             allocation_160[vertex + 2] = srVector3T<float>(
-                position.x + offsets[2].x,
-                position.y + offsets[2].y,
-                position.z + offsets[2].z);
+                position.x + offsets[2].x, position.y + offsets[2].y, position.z + offsets[2].z);
             allocation_160[vertex + 3] = srVector3T<float>(
-                position.x + offsets[3].x,
-                position.y + offsets[3].y,
-                position.z + offsets[3].z);
+                position.x + offsets[3].x, position.y + offsets[3].y, position.z + offsets[3].z);
         }
         return;
     }
 
     float phase = g_float_005ebb34;
     if (value_204 != 0) {
-        phase = (float)(g_shared_timer_base->getMsTime(
-                           srTimer::TIMER_READ_DEFAULT)
-                       % value_204)
-            / (int)value_204 * g_camera_angle_period_005ec014;
+        phase = (float)(g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT) % value_204) /
+                (int)value_204 * g_camera_angle_period_005ec014;
     }
     float flutter = (float)sin(phase) * value_200 * value_278;
 
-    for (unsigned int particle_index = 0;
-         particle_index < particle_count_180;
-         ++particle_index) {
+    for (unsigned int particle_index = 0; particle_index < particle_count_180; ++particle_index) {
         srVector3T<float> position;
 
         if (allocation_198[particle_index].y >= g_float_005ebb34) {
             position = allocation_148[particle_index];
-        }
-        else {
+        } else {
             position.Set(flutter, 0.0f, 0.0f);
 
             if (value_1c0 == 2) {
@@ -879,9 +803,7 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
         allocation_160[vertex + 1].y = position.y + offsets[1].y;
         allocation_160[vertex + 1].z = position.z + offsets[1].z;
         allocation_160[vertex + 2] = srVector3T<float>(
-            position.x + offsets[2].x,
-            position.y + offsets[2].y,
-            position.z + offsets[2].z);
+            position.x + offsets[2].x, position.y + offsets[2].y, position.z + offsets[2].z);
         allocation_160[vertex + 3] = position + offsets[3];
     }
 }
@@ -895,7 +817,7 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
    activity has run out notifies its shake callback and, when active_190 marks
    it as self-owned, releases itself. */
 // FUNCTION: WIZ8 0x004994D0
-void stParticle::Function4994D0(srGERD* renderer)
+void stParticle::SubmitToRenderer(srGERD* renderer)
 {
     srVector3T<float> position;
 
@@ -907,8 +829,7 @@ void stParticle::Function4994D0(srGERD* renderer)
         srVector3T<double> placed;
         placed.SetFromFloat(&position);
         setLocation(placed);
-    }
-    else {
+    } else {
         /* Bound rather than copied: the three conversions read through the
            returned buffer instead of through a named local's own address. */
         const srVector3T<double>& located = getLocation();
@@ -942,18 +863,14 @@ void stParticle::Function4994D0(srGERD* renderer)
 
         if (extent.x == g_float_005ebb34 && extent.y == g_float_005ebb34 &&
             extent.z == g_float_005ebb34) {
-            visibility =
-                renderer->testBoundingSphere(position, value_278 * value_240);
-        }
-        else {
+            visibility = renderer->testBoundingSphere(position, value_278 * value_240);
+        } else {
             getRotation(rotation);
             float x = DotProduct(rotation.vectors[0], extent);
             float y = DotProduct(rotation.vectors[1], extent);
             float z = DotProduct(rotation.vectors[2], extent);
-            srVector3T<float> center(
-                x + position.x, position.y + y, position.z + z);
-            visibility =
-                renderer->testBoundingSphere(center, value_278 * value_240);
+            srVector3T<float> center(x + position.x, position.y + y, position.z + z);
+            visibility = renderer->testBoundingSphere(center, value_278 * value_240);
         }
         if (visibility == srGERD::VISIBILITY_POSITIONAL_0) {
             return;
@@ -965,17 +882,14 @@ void stParticle::Function4994D0(srGERD* renderer)
         float x = DotProduct(rotation.vectors[0], minimum_21c);
         float y = DotProduct(rotation.vectors[1], minimum_21c);
         float z = DotProduct(rotation.vectors[2], minimum_21c);
-        srVector3T<float> minimum(
-            x + position.x, position.y + y, position.z + z);
+        srVector3T<float> minimum(x + position.x, position.y + y, position.z + z);
 
         x = DotProduct(rotation.vectors[0], maximum_228);
         y = DotProduct(rotation.vectors[1], maximum_228);
         z = DotProduct(rotation.vectors[2], maximum_228);
-        srVector3T<float> maximum(
-            x + position.x, position.y + y, position.z + z);
+        srVector3T<float> maximum(x + position.x, position.y + y, position.z + z);
 
-        srGERD::e_visibility visibility =
-            renderer->testBoundingBox(minimum, maximum);
+        srGERD::e_visibility visibility = renderer->testBoundingBox(minimum, maximum);
         if (visibility == srGERD::VISIBILITY_POSITIONAL_0) {
             return;
         }
@@ -1051,8 +965,7 @@ void stParticle::Function4994D0(srGERD* renderer)
 
     if (texture_frames_178 != 0) {
         pipeline->current_pass_18->value_0c = texture_frames_178;
-    }
-    else {
+    } else {
         srTextureIFace* texture = texture_154;
 
         if (texture != 0) {
@@ -1070,8 +983,7 @@ void stParticle::Function4994D0(srGERD* renderer)
         renderer->popPick(pick);
         pipeline->FlushIfCurrent();
         renderer->pushPick(pick);
-    }
-    else {
+    } else {
         pipeline->FlushIfCurrent();
     }
     renderer->popEnable();
@@ -1148,8 +1060,7 @@ void stParticle::SetTexture0049AB00(srTextureIFace* texture)
     if (texture != 0 && texture->getClassID() == stTextureAnim::CLASS_ID) {
         texture_frames_178 = new stTextureAnim*[texture_frame_count_15c];
         for (i = 0; i < texture_frame_count_15c; i += 2) {
-            stTextureAnim* frame =
-                new stTextureAnim(*static_cast<stTextureAnim*>(texture));
+            stTextureAnim* frame = new stTextureAnim(*static_cast<stTextureAnim*>(texture));
             texture_frames_178[i] = frame;
             texture_frames_178[i + 1] = frame;
         }
@@ -1163,8 +1074,7 @@ void stParticle::SetTexture0049AB00(srTextureIFace* texture)
 void stParticle::SetActive(unsigned char active)
 {
     if (active != 0 && active_1a0 == 0) {
-        unsigned int now = g_shared_timer_base->getMsTime(
-            srTimer::TIMER_READ_DEFAULT);
+        unsigned int now = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
         activated_at_258 = now;
         updated_at_25c = now;
     }
@@ -1172,12 +1082,10 @@ void stParticle::SetActive(unsigned char active)
 }
 
 // FUNCTION: WIZ8 0x0049ac30
-unsigned char stParticle::ReplaceTexture0049AC30(
-    const char* old_name, srTextureIFace* replacement)
+unsigned char stParticle::ReplaceTexture0049AC30(const char* old_name, srTextureIFace* replacement)
 {
     if (texture_154 != 0 &&
-        (texture_154->getClassID() == 0x10001 ||
-         texture_154->getClassID() == 0x10000) &&
+        (texture_154->getClassID() == 0x10001 || texture_154->getClassID() == 0x10000) &&
         _stricmp(texture_154->getName(), old_name) == 0) {
         SetTexture0049AB00(replacement);
         return 1;
@@ -1208,8 +1116,7 @@ void stParticle::SetFlutter0049AD10(int enabled)
             delete[] m_pflFlutterAngle;
             m_pflFlutterAngle = 0;
         }
-    }
-    else if (m_pflFlutterAngle == 0) {
+    } else if (m_pflFlutterAngle == 0) {
         m_pflFlutterAngle = new float[particle_count_180];
         if (m_pflFlutterAngle == 0) {
             srAssertFail("m_pflFlutterAngle", ST_PARTICLE_CPP, 1210, 0);

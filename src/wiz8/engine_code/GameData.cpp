@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/OctBuildTree.h"
 #include "wiz8/engine_code/Object0043A910.h"
 #include "wiz8/engine_code/BitArray.h"
@@ -39,7 +40,6 @@ enum {
 };
 
 extern unsigned char g_level_override_00652dba;
-extern unsigned char g_environment_load_flag_00603ad0;
 // GLOBAL: WIZ8 0x00652dba
 unsigned char g_level_override_00652dba;
 // GLOBAL: WIZ8 0x00652dce
@@ -49,23 +49,18 @@ unsigned char g_flag_00652dce;
    GameData vertex table.  The retail comparison is signed and accepts an index
    equal to vertex_count, so that historical boundary behavior is preserved. */
 // FUNCTION: WIZ8 0x004214d0
-unsigned char LoadSurfaceVertices004214D0(
-    srVector3T<float>* output, const int* vertex_indices)
+unsigned char LoadSurfaceVertices004214D0(srVector3T<float>* output, const int* vertex_indices)
 {
     short index = 0;
     do {
-        if (g_octree_game_data_00652db0->vertex_count_20 <
-            vertex_indices[index]) {
+        if (g_octree_game_data_00652db0->vertex_count_20 < vertex_indices[index]) {
             return 0;
         }
-        output[index] = g_octree_game_data_00652db0
-                            ->vertices_24[vertex_indices[index]];
+        output[index] = g_octree_game_data_00652db0->vertices_24[vertex_indices[index]];
         ++index;
     } while (index < 3);
     return 1;
 }
-
-
 
 /* Ensure the shared game-data object exists, then run its update. */
 // FUNCTION: WIZ8 0x0041F1F0
@@ -86,11 +81,8 @@ void UpdateGameDataRuntime0041F260()
     if (g_gd_camera_65a0f8 == 0) {
         g_gd_camera_65a0f8 = new GDCamera;
         if (g_gd_camera_65a0f8 == 0) {
-            srAssertFail(
-                "gpGDCamera",
-                "C:\\Projects\\Wizardry 8\\Engine Code\\GameData.cpp",
-                2739,
-                0);
+            srAssertFail("gpGDCamera", "C:\\Projects\\Wizardry 8\\Engine Code\\GameData.cpp", 2739,
+                         0);
         }
     }
     if (g_object_6598bc == 0) {
@@ -215,8 +207,7 @@ int IsLevelDataFlag4EffectivelySet(void)
     if (g_level_data_00652dac == 0) {
         return 0;
     }
-    if ((g_level_data_00652dac->flags & W8_LEVEL_FLAG_4) == 0 &&
-        g_level_override_00652dba != 0) {
+    if ((g_level_data_00652dac->flags & W8_LEVEL_FLAG_4) == 0 && g_level_override_00652dba != 0) {
         return 0;
     }
     return 1;
@@ -246,8 +237,7 @@ W8EnvironRecord* g_environ_00652DB4;
 void ResetCurrentEnvironment0041AA40(void)
 {
     if (g_environ_00652DB4 != 0) {
-        if (g_octree_game_data_00652db0 != 0 &&
-            g_octree_game_data_00652db0->environs_84 != 0) {
+        if (g_octree_game_data_00652db0 != 0 && g_octree_game_data_00652db0->environs_84 != 0) {
             g_environ_00652DB4 = g_octree_game_data_00652db0->environs_84[0];
         }
         g_environ_00652DB4->value_24 = 0;
@@ -256,8 +246,7 @@ void ResetCurrentEnvironment0041AA40(void)
         if (g_environment_load_flag_00603ad0 != 0) {
             g_environ_00652DB4->value_20 = 1.0f;
         }
-        g_environment_load_flag_00603ad0 =
-            g_environment_load_flag_00603ad0 == 0;
+        g_environment_load_flag_00603ad0 = g_environment_load_flag_00603ad0 == 0;
         if (g_environment_load_flag_00603ad0 == 0) {
             g_level_override_00652dba = 0;
         }
@@ -284,8 +273,6 @@ void ResetLevelDataVectors0041F0D0(void)
     }
 }
 
-
-
 /* Camera facade, move timer and the party placement entry. */
 
 // GLOBAL: WIZ8 0x00652da7
@@ -293,7 +280,7 @@ unsigned char g_flag_00652da7;
 // GLOBAL: WIZ8 0x005ebc18
 const double g_double_005ebc18 = 3.141592653589793;
 // GLOBAL: WIZ8 0x00652940
-float g_origin_652940[3] = { 0.0f, 0.0f, 0.0f };
+float g_origin_652940[3] = {0.0f, 0.0f, 0.0f};
 
 // FUNCTION: WIZ8 0x00420b40
 float MoveTimer(int value)
@@ -308,8 +295,7 @@ float MoveTimer(int value)
         if ((value == 8 && g_current_screen_state.id == 7) || value == 4) {
             ResumeSharedGameTimers00439CA0();
             g_flag_00652dce = 0;
-        }
-        else {
+        } else {
             return g_float_005ebb34;
         }
     }
@@ -321,8 +307,7 @@ float MoveTimer(int value)
 }
 
 // FUNCTION: WIZ8 0x00420D40
-srCamera* CreateOrSetGameCamera(
-    srNode* parent, srCamera* camera)
+srCamera* CreateOrSetGameCamera(srNode* parent, srCamera* camera)
 {
     if (g_gd_camera_65a0f8 == 0) {
         g_gd_camera_65a0f8 = new GDCamera();
@@ -359,16 +344,14 @@ void LevelCamera()
 void TurnCameraToDegrees(float degrees)
 {
     double scale = g_double_005ebc18 * g_float_005ebcf8;
-    g_gd_camera_65a0f8->BeginOrientationTransition(
-        0.0f, (float)(scale * degrees), 0);
+    g_gd_camera_65a0f8->BeginOrientationTransition(0.0f, (float)(scale * degrees), 0);
 }
 
 // FUNCTION: WIZ8 0x00421000
 void SetCameraYawDegrees(float degrees)
 {
     double scale = g_double_005ebc18 * g_float_005ebcf8;
-    g_gd_camera_65a0f8->SetOrientationImmediate(
-        0.0f, (float)(scale * degrees));
+    g_gd_camera_65a0f8->SetOrientationImmediate(0.0f, (float)(scale * degrees));
 }
 
 // FUNCTION: WIZ8 0x00421030
@@ -391,8 +374,7 @@ void GetCameraPosition(srVector3T<float>* position)
 }
 
 // FUNCTION: WIZ8 0x004213E0
-void SetCameraOrientation(
-    float* angle, float* pitch, srMatrix3T<float>* rotation)
+void SetCameraOrientation(float* angle, float* pitch, srMatrix3T<float>* rotation)
 {
     g_gd_camera_65a0f8->SetYaw(*angle);
     g_gd_camera_65a0f8->SetPitch(*pitch);
@@ -414,10 +396,9 @@ int GetCameraYawDegrees(void)
 // FUNCTION: WIZ8 0x00421090
 void PlacePartyAtPoint(const srVector3T<float>* point)
 {
-    if (sqrtf(
-            (point->x - g_origin_652940[0]) * (point->x - g_origin_652940[0]) +
-            (point->y - g_origin_652940[1]) * (point->y - g_origin_652940[1]) +
-            (point->z - g_origin_652940[2]) * (point->z - g_origin_652940[2])) !=
+    if (sqrtf((point->x - g_origin_652940[0]) * (point->x - g_origin_652940[0]) +
+              (point->y - g_origin_652940[1]) * (point->y - g_origin_652940[1]) +
+              (point->z - g_origin_652940[2]) * (point->z - g_origin_652940[2])) !=
         g_zero_005ebb40) {
         MarkRendererReady();
         g_gd_camera_65a0f8->m_position_08c.x = point->x;

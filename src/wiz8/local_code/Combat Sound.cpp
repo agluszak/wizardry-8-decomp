@@ -9,8 +9,7 @@
 char* g_weapon_attack_sounds_68dd90[38];
 char* g_material_impact_sounds_68d850[28][12];
 
-static unsigned char ReadHitSoundLine(int handle, char* line,
-                                      unsigned int capacity)
+static unsigned char ReadHitSoundLine(int handle, char* line, unsigned int capacity)
 {
     unsigned int length = 0;
     unsigned int done;
@@ -68,10 +67,8 @@ unsigned char LoadHitSoundDatabase(void)
     int row = 0;
     int column = -1;
 
-    memset(g_weapon_attack_sounds_68dd90, 0,
-           sizeof(g_weapon_attack_sounds_68dd90));
-    memset(g_material_impact_sounds_68d850, 0,
-           sizeof(g_material_impact_sounds_68d850));
+    memset(g_weapon_attack_sounds_68dd90, 0, sizeof(g_weapon_attack_sounds_68dd90));
+    memset(g_material_impact_sounds_68d850, 0, sizeof(g_material_impact_sounds_68d850));
     handle = FileOpen(path, 0x41, 0);
     if (!handle) {
         return 0;
@@ -107,8 +104,7 @@ unsigned char LoadHitSoundDatabase(void)
             FileClose(handle);
             return 0;
         }
-        g_material_impact_sounds_68d850[row++][column] =
-            DuplicateHitSound(line);
+        g_material_impact_sounds_68d850[row++][column] = DuplicateHitSound(line);
     }
     FileClose(handle);
     // Several impact materials intentionally provide one catch-all sound rather than one

@@ -211,7 +211,6 @@ void Function589A80(void);
 void Function593360(void);
 void Function56C6D0(int, int, int, int, int);
 unsigned char Function57E3C0(void);
-void Function4EF1F0(void);
 
 // FUNCTION: WIZ8 0x00587960
 void Function587960(void)
@@ -232,18 +231,18 @@ unsigned char Function577850(void)
 }
 
 // FUNCTION: WIZ8 0x005929d0
-void Function5929D0(void)
+void HandleManualCameraHotkeys(void)
 {
     if (g_modal_owner_0068edd0 == 0 && gXStatus.fNpcDialogueMode == 0) {
         if (g_mgs_keyboard->IsCommandPressed(0x25a)) {
             BeginManualCameraControl();
         }
-        Function592A10();
+        ApplyWorldRenderHotkeys();
     }
 }
 
 // FUNCTION: WIZ8 0x00592a10
-void Function592A10(void)
+void ApplyWorldRenderHotkeys(void)
 {
     if (g_mgs_keyboard->IsCommandPressed(0xcc) || g_mgs_keyboard->IsCommandPressed(0xcd)) {
         g_level_block->world_render_flags |= 0x100;
@@ -293,7 +292,7 @@ void Function593330(void)
 }
 
 // FUNCTION: WIZ8 0x00577540
-void Function577540(void)
+void ClearMainGameTargetState(void)
 {
     g_status_685170.value_2435 = 0;
     ClearLevelDataFlag6();
@@ -705,7 +704,7 @@ update_screen:
         Function5542E0();
     }
     if (!g_level_block->transition_active && !gXStatus.fCombatMode && gXStatus.fEncumbranceDirty) {
-        Function4EDD20();
+        RedistributePartyEncumbrance();
     }
     Function59A3A0();
     if (g_modal_owner_0068edd0) {
@@ -740,14 +739,14 @@ update_screen:
             if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block) {
                 g_level_block->redraw_flags |= 0x8000;
             }
-            Function56AAB0();
+            ResumeMainGameWorld();
         }
     }
     Function575C50();
     NoOp();
     Function577560();
     Function52DDD0();
-    Function52E750();
+    UpdateCharacterEventState();
     Function59B1A0();
     if (gXStatus.fCombatMode) {
         Function59B4C0();
@@ -814,9 +813,9 @@ update_screen:
     Function561330(Function5684E0());
     if (!GetFlag69DA6C()) {
         if (!GetFlag68F105() || GetFlag68F104()) {
-            Function5929D0();
-        } else if (Function57E490()) {
-            Function592A10();
+            HandleManualCameraHotkeys();
+        } else if (CanUseCurrentAutomapTool()) {
+            ApplyWorldRenderHotkeys();
         }
     }
     if (!g_level_runtime_flag_0065ba70) {
@@ -839,7 +838,7 @@ update_screen:
     }
 render_world:
     if (!IsScreenTransitionPending()) {
-        if (Function57E490()) {
+        if (CanUseCurrentAutomapTool()) {
             Function44FC20(g_world, g_level_block->world_render_flags);
             if (g_world_659ab8 && !g_level_runtime_flag_0065ba70) {
                 Function44FC20(g_world_659ab8, g_level_block->world_render_flags | 0x40);
@@ -947,7 +946,7 @@ render_world:
         } else {
             active = 1;
         }
-        Function427830(active);
+        SetWorldModelPickingEnabled(active);
         if (gXStatus.unknown_026[1] && !gXStatus.fNpcDialogueMode && !gXStatus.fCombatMode &&
             !g_level_block->transition_active) {
             Function4EF1F0();
@@ -1006,12 +1005,12 @@ unsigned char MainGameScreenLeave(int leaving)
     if (gXStatus.fItemSelectMode)
         Function59C9C0();
     if (gXStatus.fReviewCharacterMode)
-        Function5B2200();
+        CloseReviewCommonUi();
     if (gXStatus.fNpcDialogueMode)
         Function56E800(0);
     if (g_level_block->flag_314)
         Function592E60();
-    Function59BAD0();
+    ReleasePortraitControls();
     Function59BF70();
     if (gXStatus.fPartyMovementUi)
         DisableRegionSet1C();
@@ -1099,7 +1098,7 @@ unsigned char MainGameScreenLeave(int leaving)
 
     if (static_cast<unsigned char>(leaving)) {
         if (g_status_685170.current_level != -1) {
-            Function42B3E0();
+            UnloadSkyWorld();
             if (!UnloadLevel("")) {
                 return 0;
             }
@@ -1281,7 +1280,7 @@ bool LoadCurrentLevelData(void)
     if (g_status_685170.current_level != -1) {
         SetTargetCursor(W8_CURSOR_MAP_LOAD);
         g_map_loading_00659757 = 1;
-        Function42B3E0();
+        UnloadSkyWorld();
         loaded = UnloadLevel("MAP") != 0;
         g_map_loading_00659757 = 0;
         UpdateHeldItemCursor();
@@ -1339,7 +1338,7 @@ void UpdateScreenOverlays(int frame)
         Function59CAC0();
     }
     if (gXStatus.fReviewCharacterMode != 0) {
-        Function5B2200();
+        CloseReviewCommonUi();
     }
 }
 
@@ -1400,7 +1399,7 @@ void ShortenTextToWidth00577410(wchar_t* output, const wchar_t* text, unsigned i
    busy or this NPC kind suppresses it. The suppress flag travels as an int:
    the body forwards the whole dword without masking. */
 // FUNCTION: WIZ8 0x0056C590
-void Function56C590(W8NpcState* npc, int value, int line, int suppress)
+void ForwardNpcScriptNotice(W8NpcState* npc, int value, int line, int suppress)
 {
     if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fCombatMode == 0 &&
         (npc->record->kind != 7 || GetFact(0x1c) != 1)) {
@@ -1412,7 +1411,7 @@ void Function56C590(W8NpcState* npc, int value, int line, int suppress)
    is declared in MainGameScreen.h so the renderer consumes the same object. */
 
 // FUNCTION: WIZ8 0x00568950
-unsigned int Function568950(const InputAtom* input)
+unsigned int DispatchMainGameMouseButtons(const InputAtom* input)
 {
     POINT point;
     SGPMouseGetPos(&point);
@@ -1431,7 +1430,7 @@ unsigned int Function568950(const InputAtom* input)
 }
 
 // FUNCTION: WIZ8 0x0056aa30
-void Function56AA30(void)
+void PauseMainGameWorld(void)
 {
     g_flag_006840bc = 1;
     if (gXStatus.fPartyMovementUi != 0) {
@@ -1453,7 +1452,7 @@ void Function56AA30(void)
 }
 
 // FUNCTION: WIZ8 0x0056aab0
-void Function56AAB0(void)
+void ResumeMainGameWorld(void)
 {
     if (gXStatus.fSpellCastMode == 0 && gXStatus.fNpcDialogueMode == 0 &&
         gXStatus.fItemSelectMode == 0 && gXStatus.fReviewCharacterMode == 0) {

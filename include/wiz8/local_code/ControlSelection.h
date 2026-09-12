@@ -9,8 +9,7 @@ class W8ControlSelection;
 
 class W8ControlSelectionListener {
 public:
-    virtual void OnSelectionChanged(
-        W8ControlSelection* control, int selected) = 0;
+    virtual void OnSelectionChanged(W8ControlSelection* control, int selected) = 0;
 };
 
 // VTABLE: WIZ8 0x005ed65c

@@ -5,8 +5,7 @@
 
 /* One hand-rolled growable-array template. Each element type emits its own
    constructor, destructor, vtable and element-width-specific methods. */
-template <class T>
-class W8GrowableVector {
+template <class T> class W8GrowableVector {
 public:
     W8GrowableVector()
     {
@@ -14,8 +13,7 @@ public:
         count = 0;
         if (data != 0) {
             capacity = 5;
-        }
-        else {
+        } else {
             capacity = 0;
         }
     }
@@ -29,8 +27,7 @@ public:
         count = 0;
         if (data != 0) {
             capacity = initial_capacity;
-        }
-        else {
+        } else {
             capacity = 0;
         }
     }
@@ -158,14 +155,13 @@ public:
         count = 0;
     }
 
-    int count;                           /* 0x04 */
-    int capacity;                        /* 0x08 */
-    T* data;                             /* 0x0c */
-};                                      /* 0x10 in the 32-bit target */
+    int count;    /* 0x04 */
+    int capacity; /* 0x08 */
+    T* data;      /* 0x0c */
+}; /* 0x10 in the 32-bit target */
 
 template <class T>
-W8GrowableVector<T>& W8GrowableVector<T>::operator=(
-    const W8GrowableVector<T>& other)
+W8GrowableVector<T>& W8GrowableVector<T>::operator=(const W8GrowableVector<T>& other)
 {
     int index;
 
@@ -182,8 +178,7 @@ W8GrowableVector<T>& W8GrowableVector<T>::operator=(
     return *this;
 }
 
-template <class T>
-T W8GrowableVector<T>::RemoveAt(int position)
+template <class T> T W8GrowableVector<T>::RemoveAt(int position)
 {
     int index;
     T result;
@@ -199,8 +194,7 @@ T W8GrowableVector<T>::RemoveAt(int position)
     return result;
 }
 
-template <class T>
-unsigned char W8GrowableVector<T>::Remove(T entry)
+template <class T> unsigned char W8GrowableVector<T>::Remove(T entry)
 {
     int index = 0;
 

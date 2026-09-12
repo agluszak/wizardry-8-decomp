@@ -27,7 +27,7 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip
 void GetOriginOfCharacterItem(int character_index, void* item, unsigned char* origin,
                               unsigned short* slot);
 
-void Function51D960(W8Character* character); /* 0x0051D960 */
+void UnequipUnusableItems(W8Character* character); /* 0x0051D960 */
 void EmptyItemRecord(W8ItemInstance* item, W8Character* character, unsigned char refresh);
 void EmptyAllCarriedItems(W8Character* character);
 unsigned char TryIdentifyItemFor(W8Character* character, W8ItemInstance* item);
@@ -55,7 +55,8 @@ void AddPartyGold(int amount, char announce);
 void CopyItemInstance(W8ItemInstance* destination, W8ItemInstance* source, W8Character* character,
                       unsigned char refresh);
 void SortPartyItemPool(void);
-void Function520D10(W8ItemInstance* item, W8Character* character, unsigned char refresh);
+void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
+                                  unsigned char refresh);
 void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximum_quantity,
                          unsigned char force_identified, unsigned char mark_special);
 void Function51FD20(W8ItemInstance* item, W8ItemInstance* destination, W8Character* character,
@@ -64,7 +65,8 @@ void NormalizeItemStack(W8ItemInstance* item);
 unsigned char MergeItemStacks(W8ItemInstance* destination, W8ItemInstance* source,
                               unsigned char* partially_merged);
 void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item);
-void Function5227D0(W8ItemInstance* item, unsigned char choose_character, W8Character* character);
+void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_character,
+                                    W8Character* character);
 char PartyAttemptsToIdentifyItem(W8ItemInstance* item, int argument_2);
 
 /* Same equipment class, and same unidentified display name. */

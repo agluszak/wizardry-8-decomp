@@ -34,31 +34,22 @@ W8SoundEvent::~W8SoundEvent()
 /* The wave name is copied into storage the event owns and its destructor
    releases. */
 // FUNCTION: WIZ8 0x004d57a0
-W8SoundEvent* CreateSoundEvent004D57A0(
-    int value_000,
-    int value_004,
-    int value_008,
-    int value_00c,
-    const char* wave_name,
-    unsigned char flag_025)
+W8SoundEvent* CreateSoundEvent004D57A0(int value_000, int value_004, int value_008, int value_00c,
+                                       const char* wave_name, unsigned char flag_025)
 {
     W8SoundEvent* pSndEvent = new W8SoundEvent();
 
     if (pSndEvent == 0) {
-        srAssertFail(
-            "pSndEvent", SOUNDEVENT_CPP, 0x70, "SoundEvent: Out of memory");
+        srAssertFail("pSndEvent", SOUNDEVENT_CPP, 0x70, "SoundEvent: Out of memory");
     }
     pSndEvent->value_000 = value_000;
     pSndEvent->value_004 = value_004;
     pSndEvent->value_008 = value_008;
     pSndEvent->value_00c = value_00c;
-    pSndEvent->m_pacWaveName =
-        new char[strlen(wave_name) + 1];
+    pSndEvent->m_pacWaveName = new char[strlen(wave_name) + 1];
     pSndEvent->flag_025 = flag_025;
     if (pSndEvent->m_pacWaveName == 0) {
-        srAssertFail(
-            "pSndEvent->m_pacWaveName", SOUNDEVENT_CPP, 0x79,
-            "SoundEvent: Out of memory");
+        srAssertFail("pSndEvent->m_pacWaveName", SOUNDEVENT_CPP, 0x79, "SoundEvent: Out of memory");
     }
     strcpy(pSndEvent->m_pacWaveName, wave_name);
     return pSndEvent;
@@ -82,17 +73,13 @@ static int g_previous_footstep_variant_00683420;
    own classification matches, then play one of them at random without
    repeating the previous choice for as long as a second candidate exists. */
 // FUNCTION: WIZ8 0x004d5890
-unsigned char UpdateSoundEvents004D5890(
-    W8GrowableVector<W8SoundEvent*>* events,
-    const srVector3T<float>* position,
-    unsigned int event_mask,
-    int cycle,
-    unsigned int frame,
-    int subcycle)
+unsigned char UpdateSoundEvents004D5890(W8GrowableVector<W8SoundEvent*>* events,
+                                        const srVector3T<float>* position, unsigned int event_mask,
+                                        int cycle, unsigned int frame, int subcycle)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
-/* Retail compiled this comparison with VC6's mixed-sign operands; the
+    /* Retail compiled this comparison with VC6's mixed-sign operands; the
    signedness is part of the recovered body and changing it would change
    the compare and branch. Suppress only this diagnostic here. */
     unsigned int bit = 1;
@@ -119,14 +106,11 @@ unsigned char UpdateSoundEvents004D5890(
                 }
                 if (kind == 1 || kind == 0x100) {
                     if ((event->value_004 != -1 && event->value_004 != cycle) ||
-                        event->value_008 != frame ||
-                        event->value_00c != subcycle) {
+                        event->value_008 != frame || event->value_00c != subcycle) {
                         continue;
                     }
-                }
-                else if (kind == 2) {
-                    if (event->value_004 != cycle ||
-                        event->value_00c != subcycle) {
+                } else if (kind == 2) {
+                    if (event->value_004 != cycle || event->value_00c != subcycle) {
                         continue;
                     }
                 }
@@ -142,14 +126,11 @@ unsigned char UpdateSoundEvents004D5890(
                         break;
                     }
                     candidate_count = g_sound_event_candidates_00683408.GetCount();
-                } while (g_selected_sound_event_00683418 ==
-                         g_last_sound_event_0061095c);
-                selected = *g_sound_event_candidates_00683408.GetAt(
-                    g_selected_sound_event_00683418);
-                if (selected->Play004D5A10(
-                        event_mask, position, cycle, frame, subcycle)) {
-                    g_last_sound_event_0061095c =
-                        g_selected_sound_event_00683418;
+                } while (g_selected_sound_event_00683418 == g_last_sound_event_0061095c);
+                selected =
+                    *g_sound_event_candidates_00683408.GetAt(g_selected_sound_event_00683418);
+                if (selected->Play004D5A10(event_mask, position, cycle, frame, subcycle)) {
+                    g_last_sound_event_0061095c = g_selected_sound_event_00683418;
                 }
             }
         }
@@ -163,12 +144,8 @@ unsigned char UpdateSoundEvents004D5890(
    the event's own routing, rotate the listener offset into the camera frame,
    and let the ground/step branch rebuild the wave name before the play. */
 // FUNCTION: WIZ8 0x004d5a10
-unsigned char W8SoundEvent::Play004D5A10(
-    unsigned int mask,
-    const srVector3T<float>* position,
-    int cycle,
-    unsigned int frame,
-    int subcycle)
+unsigned char W8SoundEvent::Play004D5A10(unsigned int mask, const srVector3T<float>* position,
+                                         int cycle, unsigned int frame, int subcycle)
 {
     W8Monster* monster = 0;
     bool track_sound = false;
@@ -181,10 +158,9 @@ unsigned char W8SoundEvent::Play004D5A10(
     srVector3T<float> camera_position;
 
     GetCameraPosition(&camera_position);
-    srVector3T<float> camera_offset(
-        camera_position.x - position->x,
-        camera_position.y - position->y,
-        camera_position.z - position->z);
+    srVector3T<float> camera_offset(camera_position.x - position->x,
+                                    camera_position.y - position->y,
+                                    camera_position.z - position->z);
     if (camera_offset.Length() < value_02c) {
         if (value_000 == 0x100 || strstr(m_pacWaveName, "step") != 0 ||
             (value_028 != 0 && cycle == 4)) {
@@ -196,15 +172,12 @@ unsigned char W8SoundEvent::Play004D5A10(
                     base_volume = value_034;
                 }
             }
-        }
-        else if (value_018 == 0 && value_01c == 0) {
+        } else if (value_018 == 0 && value_01c == 0) {
             if (strchr(m_pacWaveName, '+') != 0) {
                 base_volume = 0x87;
             }
-        }
-        else {
-            base_volume =
-                (unsigned int)Random(value_01c - value_018 + 1) + value_018;
+        } else {
+            base_volume = (unsigned int)Random(value_01c - value_018 + 1) + value_018;
         }
 
         srMatrix3T<float> rotation;
@@ -215,28 +188,22 @@ unsigned char W8SoundEvent::Play004D5A10(
             double sine = sin(angle);
             srMatrix3T<float> camera_rotation;
 
-            camera_rotation.vectors[0] =
-                srVector3T<float>(cosine, 0.0, sine);
-            camera_rotation.vectors[1] =
-                srVector3T<float>(0.0, 1.0, 0.0);
-            camera_rotation.vectors[2] =
-                srVector3T<float>(-sine, 0.0, cosine);
+            camera_rotation.vectors[0] = srVector3T<float>(cosine, 0.0, sine);
+            camera_rotation.vectors[1] = srVector3T<float>(0.0, 1.0, 0.0);
+            camera_rotation.vectors[2] = srVector3T<float>(-sine, 0.0, cosine);
             rotation.MultiplyBy(camera_rotation);
         }
 
-        srVector3T<float> offset(
-            position->x - camera_position.x,
-            position->y - camera_position.y,
-            position->z - camera_position.z);
+        srVector3T<float> offset(position->x - camera_position.x, position->y - camera_position.y,
+                                 position->z - camera_position.z);
         float x = DotProduct(rotation.vectors[0], offset);
         float y = DotProduct(rotation.vectors[1], offset);
         float z = DotProduct(rotation.vectors[2], offset);
         SOUND3DPARMS options;
 
         memset(&options, 0xff, sizeof(options));
-        unsigned int event_volume = (unsigned int)(
-            (g_float_005ebb38 - camera_offset.Length() / value_02c) *
-            base_volume);
+        unsigned int event_volume =
+            (unsigned int)((g_float_005ebb38 - camera_offset.Length() / value_02c) * base_volume);
         event_volume = (GetFlag6850F6() * event_volume) / 0x7f;
         if (event_volume != 0) {
             options.uiVolume = event_volume;

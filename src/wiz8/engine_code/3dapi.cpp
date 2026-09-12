@@ -59,10 +59,8 @@ extern void SetRendererReady(void);
 
 // GLOBAL: WIZ8 0x00607d7c
 unsigned char g_renderer_ready_00607d7c = 1;
-extern int CheckLevelAssetSet0042CCC0(const char* level_path);
 
 class W8AmbientSound;
-
 
 // GLOBAL
 unsigned char g_world_cleanup_flag_00659757;
@@ -77,7 +75,6 @@ unsigned char g_navigator_vertical_enabled_006081f8 = 1;
 
 // GLOBAL: WIZ8 0x00607d7d
 unsigned char g_world_mesh_update_enabled_00607d7d = 1;
-
 
 // FUNCTION: WIZ8 0x00450B10
 void ConstructWorldCollections(W8World* world)
@@ -150,9 +147,8 @@ void ConstructWorldCollections(W8World* world)
    and ReadLevel parsers remain their original owners; this routine establishes
    their order, inputs, and rollback-visible world  */
 // FUNCTION: WIZ8 0x0044F5F0
-unsigned char LoadWorld(
-    W8World* world, char* level_file_name, const char* level_folder,
-    const char* asset_folder, unsigned char use_octree)
+unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level_folder,
+                        const char* asset_folder, unsigned char use_octree)
 {
     char extension[4];
     char level_path[1024];
@@ -190,16 +186,14 @@ unsigned char LoadWorld(
         if (world->octree != 0 && world->octree->HasLoadError()) {
             delete world->octree;
             world->octree = 0;
-        }
-        else if (world->octree != 0) {
+        } else if (world->octree != 0) {
             use_octree = 0;
         }
     }
 
     if (game_data_path[0] != '\0' && world->m_owned_04c == 0) {
         world->m_owned_04c = ReadGameData00447570(game_data_path, 0);
-        if (world->m_owned_04c != 0 &&
-            InitializeGameData004497C0(world->m_owned_04c) == 0) {
+        if (world->m_owned_04c != 0 && InitializeGameData004497C0(world->m_owned_04c) == 0) {
             return 0;
         }
     }
@@ -216,11 +210,10 @@ unsigned char LoadWorld(
 
     if (world->octree == 0 || world->octree->GetMeshCount() == 0) {
         world->psrMeshes = 0;
-    }
-    else {
+    } else {
         unsigned long mesh_count = world->octree->GetMeshCount();
-        world->psrMeshes = static_cast<srModelInstance**>(
-            malloc((mesh_count + 1) * sizeof(srModelInstance*)));
+        world->psrMeshes =
+            static_cast<srModelInstance**>(malloc((mesh_count + 1) * sizeof(srModelInstance*)));
         if (world->psrMeshes == 0) {
             srAssertFail("pWorld->psrMeshes", THREE_D_API_CPP, 0x1be,
                          "LoadWorld: Couldn't allocate psrMeshes.");
@@ -235,14 +228,11 @@ unsigned char LoadWorld(
     world->update_mesh_source = 0;
     memset(world->m_positional_07c, 0, 0x10);
 
-    int handle = FileOpen(
-        level_path, FILE_ACCESS_READ | FILE_OPEN_EXISTING, FALSE);
+    int handle = FileOpen(level_path, FILE_ACCESS_READ | FILE_OPEN_EXISTING, FALSE);
     if (handle == 0) {
-        srAssertFail("hFile", THREE_D_API_CPP, 0x1d8,
-                     "Could not open level file.");
+        srAssertFail("hFile", THREE_D_API_CPP, 0x1d8, "Could not open level file.");
     }
-    unsigned char success =
-        ReadLevel(world, handle, use_octree, material_folder);
+    unsigned char success = ReadLevel(world, handle, use_octree, material_folder);
     FileClose(handle);
     if (success == 0) {
         srAssertFail("fSuccess", THREE_D_API_CPP, 0x1dd,
@@ -254,8 +244,7 @@ unsigned char LoadWorld(
     world->m_positional_0d4[0] = 0;
     if (world->octree != 0) {
         UpdateWorldOctree004BAF50(world);
-    }
-    else if (world->m_owned_06c != 0) {
+    } else if (world->m_owned_06c != 0) {
         world->m_owned_06c->dirty = 1;
         UpdateWorldMeshFromQuads004BAD40(world);
     }
@@ -271,9 +260,7 @@ W8World* CreateWorld()
     }
     memset(world, 0, sizeof(*world));
 
-    world->static_scene =
-        SR_NEW(srScene)(
-            static_cast<srNode*>(0));
+    world->static_scene = SR_NEW(srScene)(static_cast<srNode*>(0));
     if (world->static_scene == 0) {
         free(world);
         return 0;
@@ -289,8 +276,7 @@ W8World* CreateWorld()
     world->level->setName("Sir-Tech Level");
     world->level->m_active = 1;
 
-    world->dynamic_scene =
-        SR_NEW(srNode)(world->static_scene);
+    world->dynamic_scene = SR_NEW(srNode)(world->static_scene);
     if (world->dynamic_scene == 0) {
         delete world->static_scene;
         delete world->level;
@@ -310,10 +296,8 @@ W8World* CreateWorld()
 void UpdateWorlds0044F400(void)
 {
     g_navigator_vertical_enabled_006081f8 =
-        !(g_monster_combat_timer_enabled_006f0531 != 0 &&
-          g_combat_state != 0 &&
-          (g_combat_state->flag_001 != 0 ||
-           gXStatus.fPartyMovementMode != 0));
+        !(g_monster_combat_timer_enabled_006f0531 != 0 && g_combat_state != 0 &&
+          (g_combat_state->flag_001 != 0 || gXStatus.fPartyMovementMode != 0));
 
     {
         int count = g_worlds_00659a80.GetCount();
@@ -322,12 +306,10 @@ void UpdateWorlds0044F400(void)
         }
     }
 
-    if (g_renderer_ready_00607d7c != 0 &&
-        g_world_mesh_update_enabled_00607d7d != 0) {
+    if (g_renderer_ready_00607d7c != 0 && g_world_mesh_update_enabled_00607d7d != 0) {
         if (g_world->octree != 0) {
             UpdateWorldOctree004BAF50(g_world);
-        }
-        else if (g_world->m_owned_06c != 0) {
+        } else if (g_world->m_owned_06c != 0) {
             ++g_world->m_owned_06c->dirty;
             UpdateWorldMeshFromQuads004BAD40(g_world);
         }
@@ -365,8 +347,7 @@ void UpdateWorld0044F4E0(W8World* world)
     }
 
     W8PList* nodes = &world->m_list_09c;
-    int count = static_cast<short>(
-        PLLength(nodes));
+    int count = static_cast<short>(PLLength(nodes));
     for (int index = 0; index < count; ++index) {
         srNode* node = static_cast<srNode*>(PLGet(nodes, index));
         node->setFlag(srNode::FLAG_POSITIONAL_0);
@@ -401,49 +382,50 @@ void DestroyWorldCollections(W8World* world)
 
     if (world->plsMonsters != 0) {
         while (PLLength(world->plsMonsters) != 0) {
-            W8Monster* object = static_cast<W8Monster*>(
-                PLGet(world->plsMonsters, 0));
+            W8Monster* object = static_cast<W8Monster*>(PLGet(world->plsMonsters, 0));
             PLRemoveAt(world->plsMonsters, 0);
             delete object;
         }
         PLDestroy(world->plsMonsters);
         world->plsMonsters = 0;
     }
-    if (g_world_cleanup_flag_00659757 != 0) RenderFrame();
+    if (g_world_cleanup_flag_00659757 != 0)
+        RenderFrame();
     if (world->plsItems != 0) {
         while (PLLength(world->plsItems) != 0) {
-            W8Item* object = static_cast<W8Item*>(
-                PLGet(world->plsItems, 0));
+            W8Item* object = static_cast<W8Item*>(PLGet(world->plsItems, 0));
             PLRemoveAt(world->plsItems, 0);
             delete object;
         }
         PLDestroy(world->plsItems);
         world->plsItems = 0;
     }
-    if (g_world_cleanup_flag_00659757 != 0) RenderFrame();
+    if (g_world_cleanup_flag_00659757 != 0)
+        RenderFrame();
     if (world->plsProps != 0) {
         while (PLLength(world->plsProps) != 0) {
-            W8Prop* object = static_cast<W8Prop*>(
-                PLGet(world->plsProps, 0));
+            W8Prop* object = static_cast<W8Prop*>(PLGet(world->plsProps, 0));
             PLRemoveAt(world->plsProps, 0);
             delete object;
         }
         PLDestroy(world->plsProps);
         world->plsProps = 0;
     }
-    if (g_world_cleanup_flag_00659757 != 0) RenderFrame();
+    if (g_world_cleanup_flag_00659757 != 0)
+        RenderFrame();
 
     DestroyAllWorldTriggers(world);
     if (world->triggers != 0) {
         delete world->triggers;
         world->triggers = 0;
     }
-    if (g_world_cleanup_flag_00659757 != 0) RenderFrame();
+    if (g_world_cleanup_flag_00659757 != 0)
+        RenderFrame();
 
     if (world->plsCameras != 0) {
         while (PLLength(world->plsCameras) != 0) {
-            W8WorldCameraEntry* entry = static_cast<W8WorldCameraEntry*>(
-                PLGet(world->plsCameras, 0));
+            W8WorldCameraEntry* entry =
+                static_cast<W8WorldCameraEntry*>(PLGet(world->plsCameras, 0));
             PLRemoveAt(world->plsCameras, 0);
             DestroyPathAI004A9810(entry->path);
             free(entry);
@@ -518,10 +500,13 @@ void DestroyWorld(W8World* world)
         DestroyWorldQuad004BE0A0(world->m_owned_06c);
         world->m_owned_06c = 0;
     }
-    if (g_world_cleanup_flag_00659757 != 0) RenderFrame();
+    if (g_world_cleanup_flag_00659757 != 0)
+        RenderFrame();
     DestroyWorldCollections(world);
-    if (g_world_cleanup_flag_00659757 != 0) RenderFrame();
-    if (IsWorldCursorVisible() != 0) HideWorldCursor00490B90();
+    if (g_world_cleanup_flag_00659757 != 0)
+        RenderFrame();
+    if (IsWorldCursorVisible() != 0)
+        HideWorldCursor00490B90();
 
     index = g_worlds_00659a80.IndexOf(world);
     if (index >= 0) {
@@ -591,8 +576,7 @@ void WorldGetCameraLocation00451160(W8World* world, srVector3T<float>* location)
    follows the camera, while only the camera move publishes the new game-space
    position. */
 // FUNCTION: WIZ8 0x004511D0
-void SetWorldScenePosition004511D0(
-    W8World* world, const srVector3T<float>* location)
+void SetWorldScenePosition004511D0(W8World* world, const srVector3T<float>* location)
 {
     srVector3T<float> position;
     srVector3T<double> render_position;
@@ -618,12 +602,10 @@ void SetWorldScenePosition004511D0(
 // FUNCTION: WIZ8 0x00451020
 void UpdateWorldMeshAfterLoad00451020(void)
 {
-    if (g_renderer_ready_00607d7c != 0 &&
-        g_world_mesh_update_enabled_00607d7d != 0) {
+    if (g_renderer_ready_00607d7c != 0 && g_world_mesh_update_enabled_00607d7d != 0) {
         if (g_world->octree != 0) {
             UpdateWorldOctree004BAF50(g_world);
-        }
-        else if (g_world->m_owned_06c != 0) {
+        } else if (g_world->m_owned_06c != 0) {
             ++g_world->m_owned_06c->dirty;
             UpdateWorldMeshFromQuads004BAD40(g_world);
         }
@@ -634,12 +616,10 @@ void UpdateWorldMeshAfterLoad00451020(void)
 }
 
 // FUNCTION: WIZ8 0x00451110
-unsigned char ForwardLoadWorld(
-    W8World* world, char* level_file_name, const char* level_folder,
-    const char* asset_folder, unsigned char use_octree)
+unsigned char ForwardLoadWorld(W8World* world, char* level_file_name, const char* level_folder,
+                               const char* asset_folder, unsigned char use_octree)
 {
-    return LoadWorld(
-        world, level_file_name, level_folder, asset_folder, use_octree);
+    return LoadWorld(world, level_file_name, level_folder, asset_folder, use_octree);
 }
 
 /* Report a failed assertion with no message of its own, so the expression and

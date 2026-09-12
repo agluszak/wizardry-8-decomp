@@ -418,7 +418,7 @@ void W8StartupRuntimeState::SetEventCharacterMask(unsigned int event_type, unsig
 }
 
 // FUNCTION: WIZ8 0x0052E690
-W8StartupStateElement005EE748* Function52E690(W8Character* character, int effect, int argument,
+W8StartupStateElement005EE748* QueueCharacterEvent(W8Character* character, int effect, int argument,
                                               int value_1, unsigned int value_2)
 {
     W8StartupStateElement005EE748* entry;
@@ -480,7 +480,7 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
         }
         effect = Random(2) == 0 ? g_effect_005ee590 : g_effect_005ee5f8;
     }
-    if (effect != -1 && Function52E690(character, effect, 0, g_effect_argument_005ed8c8,
+    if (effect != -1 && QueueCharacterEvent(character, effect, 0, g_effect_argument_005ed8c8,
                                        g_effect_argument_005ed914) != 0) {
         g_startup_runtime_state->SetEventCharacterMask(effect, party_slot, 1);
     }
@@ -491,7 +491,7 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
    incapacitation path when no record is active, advances facing and pose
    clocks, and asks the current screen to redraw a changed slot. */
 // FUNCTION: WIZ8 0x0052E750
-int Function52E750(void)
+int UpdateCharacterEventState(void)
 {
     unsigned int party_slot;
     int any_active = 0;

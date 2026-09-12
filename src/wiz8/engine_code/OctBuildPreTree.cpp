@@ -33,7 +33,6 @@ float g_float_005ed038 = 4000.0f;
 extern float g_float_005ec52c;
 // GLOBAL: WIZ8 0x005ec52c
 float g_float_005ec52c = 3.0f;
-extern const float g_world_scale_005ebc40;
 
 #define OCT_BUILD_PRE_TREE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctBuildPreTree.cpp"
 

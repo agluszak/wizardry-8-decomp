@@ -47,8 +47,6 @@ bool IsCursorInsideViewport(void);
 unsigned char GetCursorPositionInViewport(srVector3T<float>* position);
 void UpdateHeldItemCursor(void);
 void ClearHeldItemDisplay(void);
-void SetTargetCursor(int cursor);
-void ApplyCurrentCursor(void);   /* 0x0055F080 */
 void SetItemCursor(int item_id); /* 0x0055F160 */
 
 #endif

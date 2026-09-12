@@ -213,7 +213,7 @@ void DropCharacterFromRound(int party_slot)
     if (party_slot == g_status_685170.selected_character) {
         RequestRedrawParty();
     }
-    Function4E8000(party_slot, row->action_kind, row->action_detail, 0, 0);
+    SetCharacterCombatAction(party_slot, row->action_kind, row->action_detail, 0, 0);
 }
 
 /* Tell every monster within short range about something. A monster has to be
@@ -580,7 +580,7 @@ void EndCombat004EA310(int mode)
         }
     }
     if (g_flag_006840bc != 0) {
-        Function56AAB0();
+        ResumeMainGameWorld();
     }
     ClearLevelDataFlags5To7();
     RequestRedrawParty();
@@ -646,7 +646,8 @@ void ChooseAction(int party_slot, int action, int detail, const void* data, int 
 /* Record the chosen in-combat action on the slot row, copy its detail block,
    then aim and validate that choice for a still-active character. */
 // FUNCTION: WIZ8 0x004e8000
-void Function4E8000(int party_slot, int action_kind, int action_detail, int arg_4, void* data)
+void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail, int arg_4,
+                              void* data)
 {
     if (gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0) {
         g_status_685170.buffers.party_rows[party_slot].action_03d = -1;

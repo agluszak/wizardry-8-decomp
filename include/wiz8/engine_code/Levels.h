@@ -61,7 +61,7 @@ unsigned char UnloadLevel(const char* save_directory);
 unsigned char IsLevelCdMissing0042B6F0(int level);
 unsigned char FindGameDataPath0042B590(char* path, int cd_number);
 int GetLevelCdNumber0042B720(int level);
-void Function42B3E0(void);
+void UnloadSkyWorld(void);
 char Function42B740(int saved_level);
 
 extern unsigned char g_level_runtime_flag_0065ba70;

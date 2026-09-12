@@ -8,7 +8,7 @@
 #include <string.h>
 
 int giStringListLen;
-wchar_t** gppStringList;   /* 0x0068C09C */
+wchar_t** gppStringList; /* 0x0068C09C */
 
 /* 0x0052FF80: read one entry of a .msg string database. The file ends with the
    entry table; each record carries two metadata dwords, then the code-unit
@@ -16,9 +16,8 @@ wchar_t** gppStringList;   /* 0x0068C09C */
    encoding, and the count guard admits at most 0x7D0 code units, which is the
    shared quote buffer's proven extent. */
 // FUNCTION: WIZ8 0x0052FF80
-unsigned char GetStringFromStringDatabase(
-    const char* path, int index, W8WideChar* output,
-    unsigned int* metadata_04, unsigned int* metadata_00)
+unsigned char GetStringFromStringDatabase(const char* path, int index, W8WideChar* output,
+                                          unsigned int* metadata_04, unsigned int* metadata_00)
 {
     HWFILE handle;
     unsigned char header[5];
@@ -43,14 +42,12 @@ unsigned char GetStringFromStringDatabase(
         FileSeek(handle, entry_offset, FILE_SEEK_FROM_START);
         if (metadata_00) {
             FileRead(handle, metadata_00, 4, 0);
-        }
-        else {
+        } else {
             FileSeek(handle, 4, FILE_SEEK_FROM_CURRENT);
         }
         if (metadata_04) {
             FileRead(handle, metadata_04, 4, 0);
-        }
-        else {
+        } else {
             FileSeek(handle, 4, FILE_SEEK_FROM_CURRENT);
         }
         FileRead(handle, &length, 4, 0);
@@ -82,44 +79,37 @@ void DecodeLocalizedText(unsigned short* text, int character_count)
 // FUNCTION: WIZ8 0x00518360
 void LoadLocalizedStrings(const char* path)
 {
-    static const char source[] =
-        "C:\\Projects\\Wizardry 8\\Local Code\\Strings.cpp";
+    static const char source[] = "C:\\Projects\\Wizardry 8\\Local Code\\Strings.cpp";
     int handle = FileOpen(const_cast<char*>(path), 0x41, 0);
     int index;
 
     if (!handle) {
-        srAssertFail("hFile", source, 74,
-                     "Failed to open localization string table.");
+        srAssertFail("hFile", source, 74, "Failed to open localization string table.");
         return;
     }
-    if (!FileRead(handle, &giStringListLen, 4, 0)
-        || !giStringListLen) {
+    if (!FileRead(handle, &giStringListLen, 4, 0) || !giStringListLen) {
         srAssertFail("giStringListLen", source, 79, 0);
         FileClose(handle);
         return;
     }
-    gppStringList = static_cast<wchar_t**>(
-        malloc(giStringListLen * sizeof(wchar_t*)));
+    gppStringList = static_cast<wchar_t**>(malloc(giStringListLen * sizeof(wchar_t*)));
     if (!gppStringList) {
         srAssertFail("gppStringList", source, 82, 0);
         FileClose(handle);
         return;
     }
-    memset(gppStringList, 0,
-           giStringListLen * sizeof(wchar_t*));
+    memset(gppStringList, 0, giStringListLen * sizeof(wchar_t*));
     for (index = 0; index != giStringListLen; ++index) {
         unsigned int byte_count;
         if (!FileRead(handle, &byte_count, 4, 0)) {
             break;
         }
-        gppStringList[index] =
-            static_cast<wchar_t*>(malloc(byte_count));
+        gppStringList[index] = static_cast<wchar_t*>(malloc(byte_count));
         if (!gppStringList[index]) {
             srAssertFail("gppStringList[iCount]", source, 89, 0);
             break;
         }
-        if (!FileRead(handle, gppStringList[index],
-                             byte_count, 0)) {
+        if (!FileRead(handle, gppStringList[index], byte_count, 0)) {
             break;
         }
         DecodeLocalizedText(gppStringList[index], byte_count / 2);

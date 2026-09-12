@@ -11,13 +11,12 @@
    the function that writes this record is still unrecovered, so identity with
    the camera save record is unproven. */
 struct W8SavedLocation {
-    srVector3T<float> point;              /* 0x00 */
+    srVector3T<float> point; /* 0x00 */
     unsigned char unknown_0c[0x30];
-};                                       /* 0x3c */
+}; /* 0x3c */
 
 #pragma pack(pop)
 
-static_assert(sizeof(W8SavedLocation) == 0x3c,
-              "W8SavedLocation_must_be_0x3c");
+static_assert(sizeof(W8SavedLocation) == 0x3c, "W8SavedLocation_must_be_0x3c");
 
 #endif

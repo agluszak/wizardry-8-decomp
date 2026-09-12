@@ -16,19 +16,19 @@ void CopyLevelDataHandle(int* destination, const int* source);
    flag word and optional vector; Camera.cpp establishes the two derived
    forward vectors and the scale used to produce the second. */
 struct W8LevelDataRecord {
-    unsigned int flags;                   /* 0x00 */
+    unsigned int flags; /* 0x00 */
     unsigned char unknown_04[0x10];
-    float camera_scale_14;                /* 0x14 */
+    float camera_scale_14; /* 0x14 */
     unsigned char unknown_18[0x28];
-    srVector3T<float> vector_40;                 /* 0x40 */
-    srVector3T<float> camera_forward_4c;         /* 0x4c */
+    srVector3T<float> vector_40;         /* 0x40 */
+    srVector3T<float> camera_forward_4c; /* 0x4c */
     unsigned char unknown_58[0x0c];
-    srVector3T<float> vector_64;                 /* 0x64 */
-    srVector3T<float> vector_70;                 /* 0x70 */
-    srVector3T<float> scaled_camera_forward_7c;  /* 0x7c */
-    float vector_88[3];                   /* 0x88 */
+    srVector3T<float> vector_64;                /* 0x64 */
+    srVector3T<float> vector_70;                /* 0x70 */
+    srVector3T<float> scaled_camera_forward_7c; /* 0x7c */
+    float vector_88[3];                         /* 0x88 */
     unsigned char unknown_94[0x0c];
-    srVector3T<float> vector_a0;                 /* 0xa0 */
+    srVector3T<float> vector_a0; /* 0xa0 */
 };
 
 struct W8OctBuildTree00446390;
@@ -70,12 +70,12 @@ class BitArray;
    a counted pointer array, the environment count/array pair, and a trailing
    flag. Only straightforward storage is claimed past the prefix. */
 struct W8GameData {
-    W8GameData(int handle, void* parent);              /* 0x00449010 */
-    ~W8GameData();                                     /* 0x00449BB0 */
+    W8GameData(int handle, void* parent); /* 0x00449010 */
+    ~W8GameData();                        /* 0x00449BB0 */
     unsigned char Function447660(void* file, int index);
     void Function41A9E0();
     /* Builds the octree trace model and answers its scene node. */
-    srNode* CreateTraceModel0041C930();                          /* 0x0041c930 */
+    srNode* CreateTraceModel0041C930(); /* 0x0041c930 */
 
     W8OctBuildTree00446390* geometry_index_00;
     /* +0x04: the loading octree's back-pointer, stored by W8Octree's file-load
@@ -120,8 +120,7 @@ static_assert(sizeof(W8GameData) == 0x8c, "W8GameData_must_be_0x8c");
 
 #pragma pack(pop)
 
-static_assert(sizeof(W8LevelDataRecord) == 0xac,
-              "W8LevelDataRecord_must_be_0xac");
+static_assert(sizeof(W8LevelDataRecord) == 0xac, "W8LevelDataRecord_must_be_0xac");
 
 extern W8LevelDataRecord* g_level_data_00652dac;
 extern W8GameData* g_octree_game_data_00652db0;
@@ -134,8 +133,7 @@ W8GameData* ReadGameData00447570(const char* path, void* parent); /* 0x00447570 
 void ResetInactiveLevelDataVectors0041EF50(void);
 void UpdateSharedGameDataObject0041F1F0();
 void UpdateGameDataRuntime0041F260();
-unsigned char LoadSurfaceVertices004214D0(
-    srVector3T<float>* output, const int* vertex_indices);
+unsigned char LoadSurfaceVertices004214D0(srVector3T<float>* output, const int* vertex_indices);
 unsigned char InitializeGameData004497C0(W8GameData* game_data);
 
 void ClearLevelDataFlag6(void);
@@ -145,17 +143,13 @@ void ResetCurrentEnvironment0041AA40(void);
 
 unsigned int GetLevelDataFlag6(void);
 
-
 void Function41C680(int interface_id, int state);
-char TestTraceResult0041C330(
-    int value_1b8, unsigned long* objects, void* result,
-    unsigned char value_134, int mode);
-
+char TestTraceResult0041C330(int value_1b8, unsigned long* objects, void* result,
+                             unsigned char value_134, int mode);
 
 /* 0x00420BD0: settle a world point onto the octree ground through the
    GameData geometry index; the false branch reports the input height and
    clears the caller's hit byte. */
-float SettlePositionToGround00420BD0(
-    const srVector3T<float>* position, unsigned char* hit);
+float SettlePositionToGround00420BD0(const srVector3T<float>* position, unsigned char* hit);
 
 void ClearLevelDataFlags5To7(void); /* 0x0041F0C0 */

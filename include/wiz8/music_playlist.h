@@ -12,20 +12,14 @@ extern int g_music_state_60aae8;
 extern int g_music_state_60aaec;
 extern int g_music_state_60aaf0;
 
-
 unsigned char InitializeMusicPlaylist(void);
-unsigned char StartMusicResource0048FC10(
-    const char* resource, int immediate, int replace_current);
-
+unsigned char StartMusicResource0048FC10(const char* resource, int immediate, int replace_current);
 
 void ServiceMusicPlaylist0048F9E0(void);
 void StopMusicPlaylist(unsigned char fade);
 
-
 char IsCurrentMusicPlaylist(const char* playlist);
 
-
-void Function48F650(
-    W8MonsterInfo* monster_info, unsigned char value_1, unsigned char value_2);
+void Function48F650(W8MonsterInfo* monster_info, unsigned char value_1, unsigned char value_2);
 
 #endif

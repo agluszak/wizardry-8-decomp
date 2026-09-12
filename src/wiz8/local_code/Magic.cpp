@@ -1159,8 +1159,8 @@ void LearnSpellFromItem(void* origin, W8Character* character, const W8ItemInstan
         }
     }
     EmptyItemRecord(static_cast<W8ItemInstance*>(origin), character, 1);
-    Function52E690(character, g_learn_sound_0068c510, 0, g_effect_argument_005ed8c8,
-                   g_effect_argument_005ed914);
+    QueueCharacterEvent(character, g_learn_sound_0068c510, 0, g_effect_argument_005ed8c8,
+                        g_effect_argument_005ed914);
 }
 
 /* Eight is not a power level but the request to cast at the highest one the
@@ -1189,7 +1189,7 @@ bool CanPartySlotCastRecordedSpell(int party_slot)
     if (spell_id == 0) {
         return false;
     }
-    if (spell_id == W8_SPELL_CONDITIONAL && Function5248A0(party_slot, 0)) {
+    if (spell_id == W8_SPELL_CONDITIONAL && GetConditionRecordFlag(party_slot, 0)) {
         return false;
     }
     if (g_status_685170.buffers.characters[party_slot].spell_learned[spell_id] != 1) {
@@ -1232,7 +1232,7 @@ int GetAffordableSpellPowerLevel(int party_slot)
     if (spell_id == 0) {
         return 0;
     }
-    if (spell_id == W8_SPELL_CONDITIONAL && Function5248A0(party_slot, 0)) {
+    if (spell_id == W8_SPELL_CONDITIONAL && GetConditionRecordFlag(party_slot, 0)) {
         return 0;
     }
     if (g_status_685170.buffers.characters[party_slot].spell_learned[spell_id] != 1) {
@@ -1264,9 +1264,6 @@ int GetAffordableSpellPowerLevel(int party_slot)
     }
     return 0;
 }
-
-extern W8ItemInstance* FindCharacterItemAt(int party_slot, unsigned char origin,
-                                           unsigned short slot); /* 0x00522180 */
 
 /* The origin that means the item is worn or held rather than carried; in
    combat an equipped item is not re-fetched. */

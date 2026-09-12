@@ -4,9 +4,8 @@
 #include "surrender/srGERD.h"
 
 stTexture2D::stTexture2D()
-    : srClassSupport<stTexture2D, srTexture, false, 0x1000f>(),
-      left(0), top(0), right(128), bottom(128),
-      frame_handle(getNewFrameHandle()), surface(0)
+    : srClassSupport<stTexture2D, srTexture, false, 0x1000f>(), left(0), top(0), right(128),
+      bottom(128), frame_handle(getNewFrameHandle()), surface(0)
 {
     setMipmap((e_mipmap)0);
     enableHint((e_hint)3);
@@ -32,7 +31,10 @@ stTexture2D::~stTexture2D()
 }
 
 // FUNCTION: WIZ8 0x0047DE60
-srClass* stTexture2D::vInstance() { return new stTexture2D; }
+srClass* stTexture2D::vInstance()
+{
+    return new stTexture2D;
+}
 
 // TEMPLATE: WIZ8 0x0047E7F0
 // srClassSupport<stTexture2D,srTexture,0,65551>::clone
@@ -41,26 +43,30 @@ srClass* stTexture2D::vInstance() { return new stTexture2D; }
 // srClassSupport<stTexture2D,srTexture,0,65551>::~srClassSupport<stTexture2D,srTexture,0,65551>
 
 // FUNCTION: WIZ8 0x0047DE50
-unsigned long stTexture2D::getTextureFrameHandle() { return frame_handle; }
+unsigned long stTexture2D::getTextureFrameHandle()
+{
+    return frame_handle;
+}
 
 // FUNCTION: WIZ8 0x0047E710
 void stTexture2D::getMipmapData(MultiRequest& request)
 {
-    request.destinations[request.mipmap_level]->blit(
-        0, 0, *surface, left, top, right, bottom);
+    request.destinations[request.mipmap_level]->blit(0, 0, *surface, left, top, right, bottom);
 }
 
 // FUNCTION: WIZ8 0x0047E740
 void stTexture2D::getMipmapLevelPartial(PartialRequest& request)
 {
-    request.destination->blit(
-        request.destination_x, request.destination_y, *surface,
-        left + request.destination_x, top + request.destination_y,
-        left + request.source_right, top + request.source_bottom);
+    request.destination->blit(request.destination_x, request.destination_y, *surface,
+                              left + request.destination_x, top + request.destination_y,
+                              left + request.source_right, top + request.source_bottom);
 }
 
 // FUNCTION: WIZ8 0x0047DE40
-void stTexture2D::invalidate() { invalidateFrameHandle(frame_handle); }
+void stTexture2D::invalidate()
+{
+    invalidateFrameHandle(frame_handle);
+}
 
 // FUNCTION: WIZ8 0x0047E790
 void stTexture2D::setupDefaultValues()
@@ -76,19 +82,16 @@ void stTexture2D::setupDefaultValues()
 }
 
 // FUNCTION: WIZ8 0x0047DAE0
-stSurface2D::stSurface2D(srColorSurfaceIFace* source, int source_width,
-                         int source_height, srNode* parent, int tile_extent)
-    : srClassSupport<stSurface2D, srNode, false, 0x1000e>(
-          static_cast<srNode*>(0)),
-      source_surface(source), state(0x10), flags(0x100a017),
-      tile_size(tile_extent),
+stSurface2D::stSurface2D(srColorSurfaceIFace* source, int source_width, int source_height,
+                         srNode* parent, int tile_extent)
+    : srClassSupport<stSurface2D, srNode, false, 0x1000e>(static_cast<srNode*>(0)),
+      source_surface(source), state(0x10), flags(0x100a017), tile_size(tile_extent),
       columns((source_width + tile_extent - 1) / tile_extent),
-      rows((source_height + tile_extent - 1) / tile_extent),
-      tile_count(columns * rows), width(source_width), height(source_height),
-      tiles(new stTexture2D*[tile_count]),
+      rows((source_height + tile_extent - 1) / tile_extent), tile_count(columns * rows),
+      width(source_width), height(source_height), tiles(new stTexture2D*[tile_count]),
       tile_u((float)tile_extent / (float)source_width),
-      tile_v((float)tile_extent / (float)source_height), field_168(0),
-      field_16c(1.0f), scale(0.0f), field_194(0)
+      tile_v((float)tile_extent / (float)source_height), field_168(0), field_16c(1.0f), scale(0.0f),
+      field_194(0)
 {
     int row;
     int column;
@@ -133,7 +136,8 @@ stSurface2D::stSurface2D(srColorSurfaceIFace* source, int source_width,
 stSurface2D::~stSurface2D()
 {
     int index;
-    for (index = 0; index != tile_count; ++index) tiles[index]->release();
+    for (index = 0; index != tile_count; ++index)
+        tiles[index]->release();
     delete[] tiles;
 }
 
@@ -174,14 +178,12 @@ void stSurface2D::process(const ProcessInfo& info, e_processType)
     renderer->pushMatrix();
     renderer->loadIdentity();
     renderer->ortho(0.0, 1.0, 1.0, 0.0, 0.0, 1.0);
-    renderer->setVertexArrayMask(
-        srFlags<srRendererDefs::e_vertexArray>(state));
+    renderer->setVertexArrayMask(srFlags<srRendererDefs::e_vertexArray>(state));
     renderer->setCullMode(srGERD::CULL_MODE_POSITIONAL_2);
     srShader shader;
     shader.value = flags;
     renderer->setShader(shader);
-    renderer->setTexCoordPointer(
-        2, srRendererDefs::TYPE_POSITIONAL_1, 8, coordinates, 0);
+    renderer->setTexCoordPointer(2, srRendererDefs::TYPE_POSITIONAL_1, 8, coordinates, 0);
     renderer->setClipState(srFlags<srRendererDefs::e_clip>(0x3f));
     renderer->setAntiAlias((srGERD::e_antiAlias)0);
 
@@ -207,8 +209,7 @@ void stSurface2D::process(const ProcessInfo& info, e_processType)
             vertices[11] = -0.1f;
 
             renderer->setTexture(tiles[index++], 0);
-            renderer->setVertexPointer(
-                3, srRendererDefs::TYPE_POSITIONAL_1, 0xc, vertices, 4);
+            renderer->setVertexPointer(3, srRendererDefs::TYPE_POSITIONAL_1, 0xc, vertices, 4);
             renderer->drawArrays((srRendererDefs::e_primitive)3, 0, 4);
         }
     }
@@ -250,8 +251,8 @@ void stSurface2D::setTextureHint2Enabled(unsigned char enabled)
    source surface. Keeping the source locked brackets the immediate partial
    texture uploads exactly as the caller does. */
 // FUNCTION: WIZ8 0x0047E450
-void stSurface2D::updateRectangle(srGERD* renderer, void*, long,
-                                  int left, int top, int right, int bottom)
+void stSurface2D::updateRectangle(srGERD* renderer, void*, long, int left, int top, int right,
+                                  int bottom)
 {
     int x = left;
     int y = top;
@@ -260,8 +261,8 @@ void stSurface2D::updateRectangle(srGERD* renderer, void*, long,
         stTexture2D* texture = 0;
         for (int index = 0; index != tile_count; ++index) {
             stTexture2D* candidate = tiles[index];
-            if (candidate->left <= x && x < candidate->right
-                && candidate->top <= y && y < candidate->bottom) {
+            if (candidate->left <= x && x < candidate->right && candidate->top <= y &&
+                y < candidate->bottom) {
                 texture = candidate;
                 break;
             }
@@ -286,9 +287,8 @@ void stSurface2D::updateRectangle(srGERD* renderer, void*, long,
             update_width = tile_size;
             update_height = tile_size;
         }
-        renderer->setTextureSubImage(
-            texture, 0, destination_x, destination_y,
-            update_width, update_height);
+        renderer->setTextureSubImage(texture, 0, destination_x, destination_y, update_width,
+                                     update_height);
 
         x += tile_size - x % tile_size;
         if (right <= x) {

@@ -8,4 +8,3 @@ void LoadLocalizedStrings(const char* path);
 extern wchar_t** gppStringList;
 extern int giStringListLen;
 void FreeStringTable(void);
-

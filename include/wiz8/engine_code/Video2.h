@@ -15,44 +15,40 @@
 #include "VSurface.h"
 #include "Mutex Manager.h"
 
-#define BUFFER_READY          0x00
-#define BUFFER_BUSY           0x01
-#define BUFFER_DIRTY          0x02
-#define BUFFER_DISABLED       0x03
+#define BUFFER_READY 0x00
+#define BUFFER_BUSY 0x01
+#define BUFFER_DIRTY 0x02
+#define BUFFER_DISABLED 0x03
 
-#define MAX_CURSOR_WIDTH      64
-#define MAX_CURSOR_HEIGHT     64
-#define VIDEO_NO_CURSOR				0xFFFF
+#define MAX_CURSOR_WIDTH 64
+#define MAX_CURSOR_HEIGHT 64
+#define VIDEO_NO_CURSOR 0xFFFF
 
 #ifdef __cplusplus
-extern "C" {  // C-LINKAGE: the SGP video manager interface that src/sgp/*.c references
+extern "C" { // C-LINKAGE: the SGP video manager interface that src/sgp/*.c references
 #endif
 
-extern HWND										ghWindow;
+extern HWND ghWindow;
 
-extern BOOLEAN              InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void *WindowProc);
-extern void                 ShutdownVideoManager(void);
-extern void                 SuspendVideoManager(void);
-extern BOOLEAN              RestoreVideoManager(void);
-extern void                 GetCurrentVideoSettings(UINT16 *usWidth, UINT16 *usHeight, UINT8 *ubBitDepth);
-extern void                 InvalidateRegion(INT32 iLeft, INT32 iTop, INT32 iRight, INT32 iBottom, UINT32 uiFlags);
-extern LPDIRECTDRAW2        GetDirectDraw2Object(void);
+extern BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void* WindowProc);
+extern void ShutdownVideoManager(void);
+extern void SuspendVideoManager(void);
+extern BOOLEAN RestoreVideoManager(void);
+extern void GetCurrentVideoSettings(UINT16* usWidth, UINT16* usHeight, UINT8* ubBitDepth);
+extern void InvalidateRegion(INT32 iLeft, INT32 iTop, INT32 iRight, INT32 iBottom, UINT32 uiFlags);
+extern LPDIRECTDRAW2 GetDirectDraw2Object(void);
 extern LPDIRECTDRAWSURFACE2 GetFrameBufferObject(void);
-extern PTR                  LockPrimarySurface(UINT32 *uiPitch);
-extern void                 UnlockPrimarySurface(void);
-extern PTR                  LockMouseBuffer(UINT32 *uiPitch);
-extern void                 UnlockMouseBuffer(void);
-extern BOOLEAN              GetPrimaryRGBDistributionMasks(UINT32 *RedBitMask, UINT32 *GreenBitMask, UINT32 *BblueBitMask);
-extern void                 PrintScreen(void);
+extern PTR LockPrimarySurface(UINT32* uiPitch);
+extern void UnlockPrimarySurface(void);
+extern PTR LockMouseBuffer(UINT32* uiPitch);
+extern void UnlockMouseBuffer(void);
+extern BOOLEAN GetPrimaryRGBDistributionMasks(UINT32* RedBitMask, UINT32* GreenBitMask,
+                                              UINT32* BblueBitMask);
+extern void PrintScreen(void);
 
-void												VideoCaptureToggle( void );
+void VideoCaptureToggle(void);
 
-enum {
-    INVAL_SRC_TRANS = 1,
-    PIXEL_DEPTH = 16,
-    SCREEN_WIDTH = 640,
-    SCREEN_HEIGHT = 480
-};
+enum { INVAL_SRC_TRANS = 1, PIXEL_DEPTH = 16, SCREEN_WIDTH = 640, SCREEN_HEIGHT = 480 };
 
 BOOLEAN VideoIsFullScreen(void);
 void VideoFullScreen(BOOLEAN enabled);
@@ -69,8 +65,14 @@ extern INT32 g_help_box_width;
 extern INT32 g_help_box_height;
 /* DisplayFastHelp in mousesystem.c and the product region code both access
    these fields inline; no separate getter bodies occur at those call sites. */
-static __inline INT32 VideoGetToolTipWidth(void) { return g_help_box_width; }
-static __inline INT32 VideoGetToolTipHeight(void) { return g_help_box_height; }
+static __inline INT32 VideoGetToolTipWidth(void)
+{
+    return g_help_box_width;
+}
+static __inline INT32 VideoGetToolTipHeight(void)
+{
+    return g_help_box_height;
+}
 void VideoPositionToolTip(INT32 x, INT32 y);
 void VideoRemoveToolTip(void);
 
@@ -83,7 +85,7 @@ void SGPMouseGetPos(POINT* point);
 bool HasScreenTransitionObjects(void); /* 0x004297D0 */
 /* 0x00422EC0: invalidate each rectangle in a run. */
 struct W8ScreenRect;
-void Function422EC0(W8ScreenRect* rects, unsigned int count, int flags);
+void InvalidateScreenRects(W8ScreenRect* rects, unsigned int count, int flags);
 
 #endif
 

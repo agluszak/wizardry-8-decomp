@@ -136,21 +136,19 @@ unsigned int InitializeEncounterTables(void)
         FileRead(handle, &entry_count, 1, 0);
         W8EncounterTableRuntime* table = new W8EncounterTableRuntime;
         if (!table) {
-            srAssertFail("pTable",
-                         "C:\\Projects\\Wizardry 8\\Engine Code\\MonGen.cpp",
-                         0xd3, "Out of memory allocating monster generation table.");
+            srAssertFail("pTable", "C:\\Projects\\Wizardry 8\\Engine Code\\MonGen.cpp", 0xd3,
+                         "Out of memory allocating monster generation table.");
         }
         FileRead(handle, species, entry_count * 2, 0);
         FileRead(handle, rarity, entry_count, 0);
         FileRead(handle, time, entry_count, 0);
         FileRead(handle, challenge, entry_count, 0);
         for (int entry = 0; entry < entry_count; ++entry) {
-            W8EncounterScriptName* script = static_cast<W8EncounterScriptName*>(
-                malloc(sizeof(W8EncounterScriptName)));
+            W8EncounterScriptName* script =
+                static_cast<W8EncounterScriptName*>(malloc(sizeof(W8EncounterScriptName)));
             if (!script) {
-                srAssertFail("pScript",
-                             "C:\\Projects\\Wizardry 8\\Engine Code\\MonGen.cpp",
-                             0xdd, 0);
+                srAssertFail("pScript", "C:\\Projects\\Wizardry 8\\Engine Code\\MonGen.cpp", 0xdd,
+                             0);
             }
             FileRead(handle, script, sizeof(*script), 0);
             table->species_ids.Add(species[entry]);
@@ -164,8 +162,7 @@ unsigned int InitializeEncounterTables(void)
         g_encounter_tables.Add(table);
         if (version == 1) {
             table->version_two_flags = 0;
-        }
-        else {
+        } else {
             unsigned char flags;
             FileRead(handle, &flags, 1, 0);
             table->version_two_flags = flags;
@@ -247,7 +244,7 @@ void DespawnAllActiveMonsterGroups0048C9F0(void)
         DespawnMonsterGroup(g_active_groups.data[g_active_groups.count - 1]);
     }
 }
-extern unsigned char g_force_encounter_culling;     /* 0x00687500 */
+extern unsigned char g_force_encounter_culling; /* 0x00687500 */
 
 /* Put the encounter-culling scale back to its fast default and rearm every
    loaded generator's interval timer. */
@@ -255,8 +252,7 @@ extern unsigned char g_force_encounter_culling;     /* 0x00687500 */
 void ResetMonsterGeneratorTimers0048CBE0(void)
 {
     g_encounter_culling_scale_fast = 1.0f;
-    W8GrowableVector<W8MonsterGenerator*>* generators =
-        g_world->monster_generators;
+    W8GrowableVector<W8MonsterGenerator*>* generators = g_world->monster_generators;
 
     for (int index = 0; index < generators->count; ++index) {
         W8MonsterGenerator* generator = *generators->GetAt(index);
@@ -304,15 +300,14 @@ void CullExpiredEncounters(void)
     for (index = 0; index < g_active_groups.count; ++index) {
         W8MonsterGroup* group = *g_active_groups.GetAt(index);
 
-        if (span < static_cast<float>(
-                       static_cast<unsigned int>(g_status_685170.world_clock - group->spawn_time))) {
+        if (span < static_cast<float>(static_cast<unsigned int>(g_status_685170.world_clock -
+                                                                group->spawn_time))) {
             W8Monster* monster = GetMonsterByLocationID(group->value_9f);
 
             position = monster->GetPosition();
             srVector3T<float> delta = position - party;
 
-            if (g_encounter_culling_distance < delta.Length() ||
-                g_force_encounter_culling != 0) {
+            if (g_encounter_culling_distance < delta.Length() || g_force_encounter_culling != 0) {
                 DespawnMonsterGroup(group);
             }
         }
@@ -392,8 +387,7 @@ void RunMonsterGenerators(void)
 
     for (index = 0; index < count; ++index) {
         generator = *g_world->monster_generators->GetAt(index);
-        if (generator->m_pTimer != 0 &&
-            generator->m_pTimer->PollElapsedIntervals() != 0) {
+        if (generator->m_pTimer != 0 && generator->m_pTimer->PollElapsedIntervals() != 0) {
             if (generator->Function48B200(0) != 0) {
                 generator->GenerateEncounter(&generator->state_0c);
             }
@@ -487,14 +481,10 @@ unsigned char W8MonsterGenerator::Load(int handle)
         ok = ok && FileRead(handle, name, 0x20, 0);
         ok = ok && FileRead(handle, &flag_44, 1, 0);
     }
-    loaded = ok && FileRead(handle, &flags, 4, 0) &&
-             FileRead(handle, &flag_04, 1, 0) &&
-             FileRead(handle, &value_06, 2, 0) &&
-             FileRead(handle, &value_08, 2, 0) &&
-             FileRead(handle, &state_0c.x, 4, 0) &&
-             FileRead(handle, &state_0c.y, 4, 0) &&
-             FileRead(handle, &state_0c.z, 4, 0) &&
-             FileRead(handle, &value_1c, 4, 0);
+    loaded = ok && FileRead(handle, &flags, 4, 0) && FileRead(handle, &flag_04, 1, 0) &&
+             FileRead(handle, &value_06, 2, 0) && FileRead(handle, &value_08, 2, 0) &&
+             FileRead(handle, &state_0c.x, 4, 0) && FileRead(handle, &state_0c.y, 4, 0) &&
+             FileRead(handle, &state_0c.z, 4, 0) && FileRead(handle, &value_1c, 4, 0);
     Reset();
     if (static_cast<signed char>(version) > 1) {
         m_pTimer->Load(handle);
@@ -538,20 +528,16 @@ void W8MonsterGenerator::Reset()
     if (m_pTimer == 0) {
         m_pTimer = new W8IntervalGate;
         if (m_pTimer == 0) {
-            srAssertFail(
-                "m_pTimer",
-                MON_GEN_CPP,
-                0x217,
-                "MonGen::Reset() out of memory allocating m_pTimer");
+            srAssertFail("m_pTimer", MON_GEN_CPP, 0x217,
+                         "MonGen::Reset() out of memory allocating m_pTimer");
         }
         m_pTimer->m_flags &= 0xfffd;
     }
-    interval = (flags & W8_MONGEN_USE_DEFAULT_INTERVAL) != 0
-                   ? value_06
-                   : g_generator_default_interval;
+    interval =
+        (flags & W8_MONGEN_USE_DEFAULT_INTERVAL) != 0 ? value_06 : g_generator_default_interval;
     jitter = interval * g_generator_jitter_fraction;
-    m_pTimer->SetDuration(
-        static_cast<float>(Random(static_cast<int>(jitter) * 2 + 1)) + interval - jitter);
+    m_pTimer->SetDuration(static_cast<float>(Random(static_cast<int>(jitter) * 2 + 1)) + interval -
+                          jitter);
     m_pTimer->Arm();
 }
 

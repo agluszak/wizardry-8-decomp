@@ -39,7 +39,7 @@ int g_text_box_value_0064bd54 = 12;
 W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
 
 // FUNCTION: WIZ8 0x0058fd30
-void Function58FD30(void)
+void ReleaseMessageStorage(void)
 {
     for (int row = 0; row < 4; ++row) {
         for (int index = 0; index < 0x15e; ++index) {

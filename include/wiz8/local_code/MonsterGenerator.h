@@ -8,30 +8,30 @@ struct W8Item;
 
 #pragma pack(push, 1)
 struct W8MonsterGenerator {
-    unsigned int flags;                   /* 0x00: bit 2 is cleared on teardown */
-    unsigned char flag_04;                /* 0x04 */
+    unsigned int flags;    /* 0x00: bit 2 is cleared on teardown */
+    unsigned char flag_04; /* 0x04 */
     unsigned char unknown_05;
-    unsigned short value_06;              /* 0x06 */
-    unsigned short value_08;              /* 0x08 */
+    unsigned short value_06; /* 0x06 */
+    unsigned short value_08; /* 0x08 */
     unsigned char unknown_0a[2];
     /* 0x0c: the generator's world position, saved as three dwords and handed
        to GenerateEncounter and SetLocation as a block. */
     srVector3T<float> state_0c;
-    W8Item* node_18;                      /* 0x18: loaded mongen.itm marker */
-    int value_1c;                         /* 0x1c */
+    W8Item* node_18; /* 0x18: loaded mongen.itm marker */
+    int value_1c;    /* 0x1c */
     /* 0x20: m_pTimer, named by the MonGen.cpp:535 assertion, whose message also
        gives the owning class and method - "MonGen::Reset() out of memory
        allocating m_pTimer". */
     W8IntervalGate* m_pTimer;
-    char name[32];                        /* 0x24 */
-    unsigned char flag_44;                /* 0x44: written to the save after the name */
+    char name[32];         /* 0x24 */
+    unsigned char flag_44; /* 0x44: written to the save after the name */
 
     /* Named by the assertion message above. Rearms the generator's timer,
        creating it on first use, with a delay jittered around the configured
        interval. */
     void Reset();
-    unsigned char Function48B200(int value);         /* 0x0048B200 */
-    void GenerateEncounter(void* encounter_state);   /* 0x0048AD20 */
+    unsigned char Function48B200(int value);       /* 0x0048B200 */
+    void GenerateEncounter(void* encounter_state); /* 0x0048AD20 */
     /* Arms or disarms the generator, loading its marker on the way in. */
     void SetActive(unsigned char active, W8Item* node);
     /* The save pair. Both are __thiscall in the image. */

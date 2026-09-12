@@ -16,23 +16,23 @@ class W8SoundEvent;
    `pMissile->GrObject::GetAI()` independently establishes the class name. */
 class W8GrObject {
 public:
-    W8GrObject();                         /* 0x004B6900 */
+    W8GrObject();                        /* 0x004B6900 */
     W8GrObject(const W8GrObject& other); /* 0x004B69A0 */
-    virtual ~W8GrObject();                /* 0x004B6B60 */
+    virtual ~W8GrObject();               /* 0x004B6B60 */
 
     unsigned char AddSoundEvent(W8SoundEvent* event);
 
 public:
-    unsigned char unknown_004;           /* 0x04 */
+    unsigned char unknown_004; /* 0x04 */
     unsigned char unknown_005[3];
-    int unknown_008;                     /* 0x08 */
-    void* m_pAI;                         /* 0x0c: GrObject::GetAI() assertion */
+    int unknown_008;                                   /* 0x08 */
+    void* m_pAI;                                       /* 0x0c: GrObject::GetAI() assertion */
     W8GrowableVector<W8SoundEvent*>* m_plsSoundEvents; /* 0x10 */
     /* +0x14 remains deliberately uninitialized and unowned by this base.
        Prop and Item construct and destroy their own representation here; both
        concrete payloads derive from this polymorphic animation root. */
-    W8AnimRepBase005EC1D8* m_pRep;       /* 0x14 */
-};                                      /* 0x18 */
+    W8AnimRepBase005EC1D8* m_pRep; /* 0x14 */
+}; /* 0x18 */
 
 /* The shared object-id counter both lifecycle callers advance. */
 int IncrementValue60DFAC(void);

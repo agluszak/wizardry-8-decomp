@@ -74,7 +74,6 @@ extern unsigned char g_flag_00659c5c;
 // GLOBAL: WIZ8 0x00659c5c
 unsigned char g_flag_00659c5c;
 extern unsigned char g_flag_00689b32;
-extern const float g_world_scale_005ebc40;
 extern void* g_path_scratch_00659c64;
 // GLOBAL: WIZ8 0x00659c64
 void* g_path_scratch_00659c64;
@@ -108,7 +107,6 @@ float g_path_waypoint_query_vertical_005ec35c;
 // GLOBAL: WIZ8 0x005ec360
 float g_float_005ec360;
 extern float g_path_waypoint_exact_distance_005ebc64;
-extern double g_double_005ebe80;
 // GLOBAL: WIZ8 0x00652dc4
 srShader g_path_shader_00652dc4;
 extern srTextureIFace* g_path_texture_00652dc0;
@@ -117,7 +115,6 @@ extern srMaterialIFace* g_path_material_00652dbc;
 srTextureIFace* g_path_texture_00652dc0;
 // GLOBAL: WIZ8 0x00652dbc
 srMaterialIFace* g_path_material_00652dbc;
-extern unsigned char g_flag_006081e4;
 extern unsigned int g_path_visualization_cell_00659c6c;
 // GLOBAL: WIZ8 0x00659c6c
 unsigned int g_path_visualization_cell_00659c6c;

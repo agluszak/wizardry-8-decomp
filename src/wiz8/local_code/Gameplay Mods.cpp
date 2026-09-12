@@ -204,7 +204,7 @@ void RebuildCharacterModifierBlock(W8Character* character)
    derived block from the equipment, persistent and party blocks, and
    recompute the derived stats. The standalone form character creation runs. */
 // FUNCTION: WIZ8 0x0050e540
-void Function50E540(W8Character* character)
+void RebuildEquipmentAndDerivedStats(W8Character* character)
 {
     memset(&character->equipment_bonus_1709, 0, sizeof(W8GameplayModifierBlock));
     AccumulateEquipmentModifiers(character, &character->equipment_bonus_1709);

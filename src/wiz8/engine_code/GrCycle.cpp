@@ -224,7 +224,6 @@ void UpdateShakeEffects004AE310()
 
 // GLOBAL: WIZ8 0x005ec128
 float g_float_005ec128 = 0.0010000000474974513f;
-extern float g_float_005ebc64;
 // GLOBAL
 float g_float_005ebc64;
 

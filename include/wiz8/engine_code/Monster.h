@@ -357,7 +357,7 @@ int MonsterQuery(W8Monster* monster, int query);
 void MonsterForward4537E0(W8Monster* monster);
 void MonsterSetRuntimeBehaviour(W8Monster* monster, signed char behaviour);
 void MonsterForward4A84A0(W8Monster* monster);
-void Function4C59C0(W8Monster* monster, W8World* world);
+void DetachMonsterRepresentation(W8Monster* monster, W8World* world);
 void DeleteMonster004C5860(W8Monster* monster);
 void Function4C5ED0(W8Monster* monster);
 void MonsterPropagateValue004C5870(W8Monster* monster, int value);

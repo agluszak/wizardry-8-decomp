@@ -14,6 +14,7 @@
 
 #include "wiz8/combat_state.h"
 #include "wiz8/cursor.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/GameplayDatabase.h"
@@ -48,7 +49,6 @@
 
 // GLOBAL: WIZ8 0x0069C130
 unsigned int* g_options_panel_region_sets;
-extern unsigned char g_flag_689b32;
 
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                                  char right_button, char left_button);
@@ -1429,7 +1429,7 @@ unsigned char W8OptionsScreen::ProcessInput(const InputAtom* input)
             m_text_editor = 0;
             return 1;
         }
-        Function568950(input);
+        DispatchMainGameMouseButtons(input);
     } else if (m_key_capture != 0 && input->usEvent == KEY_DOWN) {
         return m_key_capture->OnKey(static_cast<unsigned short>(input->usParam), input->usKeyState);
     }
@@ -2120,7 +2120,7 @@ void OptionsScreenFrame()
 }
 
 // FUNCTION: WIZ8 0x005A9E70
-void Function5A9E70(const wchar_t* target)
+void SetLastSaveName(const wchar_t* target)
 {
     wcsncpy(g_options_last_save_name_0069c1cc, target, 0x40);
     reinterpret_cast<char*>(g_options_last_save_name_0069c1cc)[0x7e] =
@@ -2128,7 +2128,7 @@ void Function5A9E70(const wchar_t* target)
 }
 
 // FUNCTION: WIZ8 0x005A9E90
-wchar_t* GetAddress69C1CC(void)
+wchar_t* GetLastSaveName(void)
 {
     return g_options_last_save_name_0069c1cc;
 }

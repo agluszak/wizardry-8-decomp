@@ -252,7 +252,7 @@ void MainMenuScreenFrame()
         g_main_menu_hover_region = UpdateRegionMousePosition(point.x, point.y);
         while (DequeueEvent(&input) == 1) {
             if (!DispatchRegionInput(&input) && input.usEvent == KEY_DOWN) {
-                if (Function5A1140(&input)) {
+                if (IgnoreSpellCastingInput(&input)) {
                     if (g_flag_689b32 != 0) {
                         SetFont(g_font_683660);
                         SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);

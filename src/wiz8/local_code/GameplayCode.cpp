@@ -830,7 +830,7 @@ unsigned char g_party_slot_state_684000[8][0xc];
    and enter it in the marching order. The band is 2..7 for a regular member
    and 0..1 for the two auxiliary slots. */
 // FUNCTION: WIZ8 0x004ef4a0
-int Function4EF4A0(W8Character* character, int slot_kind)
+int AddCharacterToParty(W8Character* character, int slot_kind)
 {
     unsigned int slot;
 
@@ -870,7 +870,7 @@ int Function4EF4A0(W8Character* character, int slot_kind)
             break;
         }
     }
-    Function554AE0(&g_status_685170.formation, slot);
+    PlaceCharacterInFormation(&g_status_685170.formation, slot);
     g_status_685170.formation.positions[slot].unknown_01[0] = 0xff;
 
     if (g_status_685170.game_started != 0) {

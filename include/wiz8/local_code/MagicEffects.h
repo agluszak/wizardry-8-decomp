@@ -11,9 +11,8 @@ struct W8SpellEffectEntry;
 
 unsigned char IsScreenBusy(void);
 
-void ApplyEffectToTarget(
-    int* result, W8CombatSlot* target, int arg_3, int arg_4);            /* 0x00552250 */
-void Function54BA00(W8SpellEffectEntry* effect);         /* 0x0054BA00 */
-void Function54C930(W8SpellEffectEntry* effect);         /* 0x0054C930 */
+void ApplyEffectToTarget(int* result, W8CombatSlot* target, int arg_3, int arg_4); /* 0x00552250 */
+void Function54BA00(W8SpellEffectEntry* effect);                                   /* 0x0054BA00 */
+void Function54C930(W8SpellEffectEntry* effect);                                   /* 0x0054C930 */
 
-void Function552530(void);          /* 0x00552530 */
+void Function552530(void); /* 0x00552530 */

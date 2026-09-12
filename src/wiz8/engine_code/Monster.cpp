@@ -130,7 +130,6 @@ float g_monster_attachment_scales_0060e914[9] = {0.0f,  0.3f,  0.2f,  0.15f, 0.1
                                                  0.15f, 0.15f, 0.15f, 0.15f};
 extern float g_startup_depth_603ac8;
 extern const float g_camera_transition_epsilon_005ebc84;
-extern const float g_world_scale_005ebc40;
 extern unsigned char g_force_encounter_culling; /* 0x00687500 */
 // GLOBAL
 unsigned char g_force_encounter_culling;
@@ -2001,10 +2000,10 @@ void W8Monster::ProcessScript004C80E0()
                         suppress = 1;
                     }
                 }
-                Function56C590(FindNpcBindingForMonster(MonsterGetIndexByLocationID(
-                                   command == MONSCR_SAY ? 0x1ac9 : 0x1b77, MONSTER_CPP,
-                                   propagated_value_1e4, 1)),
-                               0, line_number, command == MONSCR_SAY ? 1 : suppress);
+                ForwardNpcScriptNotice(FindNpcBindingForMonster(MonsterGetIndexByLocationID(
+                                           command == MONSCR_SAY ? 0x1ac9 : 0x1b77, MONSTER_CPP,
+                                           propagated_value_1e4, 1)),
+                                       0, line_number, command == MONSCR_SAY ? 1 : suppress);
                 if (command == MONSCR_NPCINTERACTION) {
                     script_wait_240 = MONSCR_NPCINTERACTION;
                 } else if (token == 0 || _stricmp(token, "NOBLOCK") != 0) {
@@ -2215,7 +2214,7 @@ void W8Monster::ProcessScript004C80E0()
                 token = strtok(0, " \t");
                 if (token != 0) {
                     if (_stricmp(token, "STARTGOLEMATTACK") == 0) {
-                        Function577540();
+                        ClearMainGameTargetState();
                         W8MonsterGroup* group = FindFirstMonsterByID(0x68);
                         if (group != 0)
                             Function547570(group, 1, 0);
@@ -2231,13 +2230,13 @@ void W8Monster::ProcessScript004C80E0()
                             trigger->Run(-1);
                     } else if (_stricmp(token, "UNLOCKUI") == 0 ||
                                _stricmp(token, "ENDGARIWALK") == 0) {
-                        Function577540();
+                        ClearMainGameTargetState();
                     } else if (_stricmp(token, "ENDHOGARWALK") == 0) {
-                        Function577540();
+                        ClearMainGameTargetState();
                         SetScript004C7F10("ClosePatrol.msf", 1);
                     } else if (_stricmp(token, "ENDHOGARWALKANDPUTTOSLEEP") == 0) {
                         W8TargetSource source;
-                        Function577540();
+                        ClearMainGameTargetState();
                         SetScript004C7F10("ClosePatrol.msf", 1);
                         monster_info =
                             MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
@@ -2246,7 +2245,7 @@ void W8Monster::ProcessScript004C80E0()
                         SetMonsterCondition(monster_info->location_id, 0xf, 6, 0, &source, 1);
                     } else if (_stricmp(token, "ENDBELAWALK") == 0) {
                         flags_1dc |= 0x40;
-                        Function577540();
+                        ClearMainGameTargetState();
                     } else if (_stricmp(token, "BELA_END_CC_WALK") == 0) {
                         W8NpcState* npc = GetNpcStateByKind(0x8d);
                         if (npc != 0)
@@ -3907,16 +3906,13 @@ void W8Monster::AdvanceAnimationFrame(int value, int)
     }
 }
 
-extern int g_spell_effect_frame_0064c158;
 // GLOBAL: WIZ8 0x0064c158
 int g_spell_effect_frame_0064c158 = 1;
-extern int g_spell_index_0069b7dc;
 // GLOBAL: WIZ8 0x0069b7dc
 int g_spell_index_0069b7dc;
 extern int CalculateMonsterMissileAccuracy(W8MonsterInfo* monster_info,
                                            const W8MonsterAttack* attack, int attack_mode,
                                            int flags);
-extern unsigned int g_missile_table_count_65bddc;
 
 // VTABLE: WIZ8 0x005ed288
 // class W8MonsterShakeCallback
@@ -4561,14 +4557,6 @@ void W8Monster::GetMappedPosition004C72A0(srVector3T<float>* position)
 /* Cleans its own argument - the caller at 0x004C5A40 pushes and never adjusts
    afterwards - so it is __stdcall and not the cdecl the decompiler assumes. */
 
-/* The caller proves only the roles below: the first global selects a frame in
-   the spell animation, and the second indexes g_spell_records. Their original
-   descriptive names have not been recovered. */
-extern int g_spell_effect_frame_0064c158;
-extern int g_spell_index_0069b7dc;
-extern void* CreateSpellEffect004AD8A0(const char* mls_name, int frame, W8Monster* parent,
-                                       int value, int flags);
-
 /* Spelled the way MonsterManager.cpp already declares it: the callee takes its
    receiver in ECX, which __fastcall is how a no-argument member call is
    reachable from a free declaration. The receiver is the monster's Navigator
@@ -4800,7 +4788,7 @@ unsigned char MonsterForward452630(W8Monster* monster, const srVector3T<float>* 
 void MonsterForward453690(W8Monster* monster, void* argument)
 {
     if (monster != 0) {
-        monster->Function453690(static_cast<const srVector3T<float>*>(argument));
+        monster->AddPathPoint(static_cast<const srVector3T<float>*>(argument));
     }
 }
 
@@ -4915,7 +4903,7 @@ void MonsterForwardReferencePosition(W8Monster* monster, char alternate)
         if (monster_info->control_state != 1) {
             GetCameraPosition(&position);
             if (alternate != 0) {
-                monster->Function454040(&position);
+                monster->SetFacingToward(&position);
             } else {
                 monster->AimAtPosition(&position);
             }
@@ -4940,7 +4928,7 @@ void MonsterAimAtMonster004C62C0(W8Monster* monster, W8Monster* target, char alt
             target_position = target->GetPosition();
             position = target_position;
             if (alternate != 0) {
-                monster->Function454040(&position);
+                monster->SetFacingToward(&position);
             } else {
                 monster->AimAtPosition(&position);
             }
@@ -5214,7 +5202,7 @@ void DeleteMonster004C5860(W8Monster* monster)
     }
 }
 // FUNCTION: WIZ8 0x004C59C0
-void Function4C59C0(W8Monster* monster, W8World* world)
+void DetachMonsterRepresentation(W8Monster* monster, W8World* world)
 {
     if (monster != 0 && world != 0) {
         monster->DetachRepresentation004A7A70(world);

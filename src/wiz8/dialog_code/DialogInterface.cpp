@@ -15,7 +15,6 @@ extern const wchar_t g_wchar_00689b34;
  * operation remains unconditional after its null check.
  */
 
-
 int g_dialog_font_64fde8;
 BOOLEAN g_dialog_font_enabled_69ca32;
 unsigned char g_dialog_font_foreground_64fdec;
@@ -58,8 +57,8 @@ W8DialogBase* CreateDialogByKind(int kind)
 }
 
 // FUNCTION: WIZ8 0x005cf250
-void ConfigureDialogFont(int font, BOOLEAN enabled,
-                         unsigned char foreground, unsigned char background)
+void ConfigureDialogFont(int font, BOOLEAN enabled, unsigned char foreground,
+                         unsigned char background)
 {
     g_dialog_font_64fde8 = font;
     g_dialog_font_enabled_69ca32 = enabled;
@@ -94,12 +93,10 @@ unsigned char ProcessDialogInput(W8DialogBase* dialog)
 }
 
 // FUNCTION: WIZ8 0x005cf580
-void SetDialogDestroyCallback(
-    W8DialogBase* dialog, W8DialogDestroyCallback callback)
+void SetDialogDestroyCallback(W8DialogBase* dialog, W8DialogDestroyCallback callback)
 {
     if (dialog == 0) {
         srAssertFail("pCDialog", DIALOG_INTERFACE_CPP, 0x98, 0);
     }
     dialog->m_destroy_callback = callback;
 }
-

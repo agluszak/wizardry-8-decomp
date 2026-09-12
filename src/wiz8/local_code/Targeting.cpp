@@ -4,6 +4,7 @@
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/quad.h"
 #include "wiz8/cursor.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/PList.h"
@@ -147,6 +148,10 @@ extern const char g_faction_names[W8_FACTION_COUNT][0x1e] = {
 };
 
 extern unsigned char Function519180(int party_slot, int arg_2, W8TargetingContext context);
+extern unsigned char g_targeting_flag_00685116;
+// GLOBAL: WIZ8 0x00685116
+unsigned char g_targeting_flag_00685116;
+
 /* Look a faction up by name, case-insensitively. -1 for a name that is not one
    of the twenty-one. */
 // FUNCTION: WIZ8 0x005360b0
@@ -842,8 +847,6 @@ bool IsTargetStillPresent(const W8CombatSlot* target)
     return true;
 }
 
-extern unsigned char Function547510(void); /* 0x00547510 */
-
 /* Tint one monster to say whether the character could act on it, and move the
    cursor to match. Green means yes and red means no; asking for no highlight at
    all tints it to nothing and answers no without touching the cursor.
@@ -877,7 +880,7 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
          CanTargetMonster(party_slot, location_id, 1, 0))) {
         valid = 1;
     }
-    Function547510();
+    CombatAllowsLiveGroups();
 
     if (valid == 0) {
         SetMonsterHighlightColour(monster, 1.0f, 0.0f, 0.0f, 1.0f);
@@ -1099,9 +1102,6 @@ W8CombatSlot* GetTargetBlockForContext(int party_slot, W8TargetingContext contex
     return 0;
 }
 
-extern unsigned char CanReachTarget(int party_slot, int kind, W8MonsterInfo* monster_info,
-                                    W8TargetingContext context, int arg_5);
-
 /* Replace a monster's current combat target with one monster id. The target
    block is cleared as a whole before its four discriminating fields are
    established, matching the other target builders in this unit. */
@@ -1233,11 +1233,11 @@ void SetTargetingMode(int state)
     RequestRefreshPartyState();
     if (state == 4) {
         Function4ADD30(1);
-        Function56AA30();
+        PauseMainGameWorld();
     } else {
         Function4ADD30(0);
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-            Function56AAB0();
+            ResumeMainGameWorld();
         }
     }
 }

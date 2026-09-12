@@ -25,7 +25,7 @@ unsigned char GetFlag68F104(void);
 
 unsigned char HasAutomapLayer(int layer);
 void RestoreAutomapCameraPosition(void);
-unsigned char Function57E490(void);
+unsigned char CanUseCurrentAutomapTool(void);
 
 void ResetAutomapView005817D0(void);
 void Function581CE0(int handle);
@@ -36,7 +36,5 @@ void Function5822C0(void);
 void Function582930(void);
 void Function583BC0(void);
 
-
 unsigned char ReadAutomapNodes00584DD0(int hFile);
-void RedrawTextBoxBody(void);                                    /* 0x00588E60 */
-
+void RedrawTextBoxBody(void); /* 0x00588E60 */

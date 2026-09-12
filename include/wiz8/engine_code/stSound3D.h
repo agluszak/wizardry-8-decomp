@@ -13,14 +13,16 @@ extern W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
 
 class stSound3D : public srClassSupport<stSound3D, srNode, 0, 0x1000b> {
 public:
-    static const char* sGetClassName() { return "stSound3D"; }
+    static const char* sGetClassName()
+    {
+        return "stSound3D";
+    }
     stSound3D(const char* sound_name, srNode* parent); /* 0x004AE6D0 */
     virtual ~stSound3D() override;
     virtual srClass* vInstance() override;
-    bool IsPlaying004AEC70();                   /* 0x004AEC70 */
+    bool IsPlaying004AEC70(); /* 0x004AEC70 */
     unsigned char Play004AEBF0(unsigned char value_1, unsigned char value_2);
-    void BuildSoundOptions004AECC0(
-        const srVector3T<float>* listener, SOUND3DPARMS* options);
+    void BuildSoundOptions004AECC0(const srVector3T<float>* listener, SOUND3DPARMS* options);
 
     int unknown_138;
     int sound_handle_13c;
@@ -43,8 +45,7 @@ public:
             sound_name_148 = 0;
         }
         if (source_name != 0) {
-            sound_name_148 =
-                static_cast<char*>(malloc(strlen(source_name) + 1));
+            sound_name_148 = static_cast<char*>(malloc(strlen(source_name) + 1));
             strcpy(sound_name_148, source_name);
         }
 

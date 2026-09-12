@@ -6,6 +6,7 @@
 #include "wiz8/targeting.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_screens/CharacterScreen.h"
+#include "wiz8/local_screens/MGSRadarMap.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/fonts.h"
@@ -65,6 +66,9 @@ unsigned int g_camp_skill_controls_region_set;
 unsigned int g_camp_character_info_region_set;
 
 extern unsigned char g_flag_689b32;
+// GLOBAL: WIZ8 0x00648c8c
+int g_camp_spell_animations[6][3] = {{0, 486, 22}, {3, 487, 18}, {8, 488, 14},
+                                     {8, 489, 21}, {1, 490, 16}, {14, 491, 24}};
 
 // GLOBAL: WIZ8 0x005ee6ec
 int g_effect_005ee6ec = 109;
@@ -72,7 +76,6 @@ int g_effect_005ee6ec = 109;
 // GLOBAL: WIZ8 0x005ed8cc
 int g_effect_argument_005ed8cc = 1;
 
-void Function5187E0(void);
 #include "line.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_screens/RCSCommon.h"
@@ -138,7 +141,7 @@ void Function5B9760(void)
 }
 
 // FUNCTION: WIZ8 0x005B9EA0
-void Function5B9EA0(void)
+void ReleaseCampSecondaryPanel(void)
 {
     Controls* panel = g_camp_secondary_panel_0069c428;
     if (panel != 0) {
@@ -537,7 +540,7 @@ unsigned char CampScreenInitialize(void)
 {
     g_camp_screen_0069c0f4 = 0;
     CampScreenInitializeRegions();
-    Function5B7230();
+    LayoutCampSecondaryRegions();
     return 1;
 }
 
@@ -606,7 +609,7 @@ void CampScreenInitializeRegions(void)
    initializer calls this immediately after the block above; nothing else
    reaches it, and nothing here names what the six cells hold. */
 // FUNCTION: WIZ8 0x005b7230
-void Function5B7230(void)
+void LayoutCampSecondaryRegions(void)
 {
     unsigned int index;
     for (index = 0; index < 6; ++index) {
@@ -786,7 +789,7 @@ void CampScreenFrame(void)
                             g_camp_screen_0069c0f4->dialog = dialog;
                             ActivateDialogRegion(0x138);
                         } else {
-                            Function52E690(g_camp_character_0069c100, g_effect_005ee6ec, 0,
+                            QueueCharacterEvent(g_camp_character_0069c100, g_effect_005ee6ec, 0,
                                            g_effect_argument_005ed8cc, g_effect_argument_005ed914);
                         }
                     }
@@ -828,7 +831,7 @@ void CampScreenFrame(void)
     }
     if (!g_camp_screen_0069c0f4->input_mode) {
         Function52DDD0();
-        Function52E750();
+        UpdateCharacterEventState();
     }
     Function5A42A0();
 }
@@ -845,7 +848,7 @@ unsigned char CampScreenLeave(int)
     Function5B55F0();
     Function5B9220();
     Function5B9760();
-    Function5B9EA0();
+    ReleaseCampSecondaryPanel();
     DestroyRcsLevelUpPanel();
     DestroyRcsDismissPanel();
     delete g_camp_screen_0069c0f4->item_range;

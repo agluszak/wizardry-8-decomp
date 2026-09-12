@@ -20,8 +20,7 @@ struct W8OctRegionPolygon {
     W8OctRegionVertex004B2A20* vertices_34[3];
     unsigned char positional_40[0x34];
 
-    unsigned char ContainsPoint004CFB30(
-        const srVector3T<float>* bounds) const;
+    unsigned char ContainsPoint004CFB30(const srVector3T<float>* bounds) const;
 };
 
 struct W8OctRegionGameData {
@@ -31,10 +30,8 @@ struct W8OctRegionGameData {
     W8OctRegionPolygon* polygons_0c;
 };
 
-static_assert(sizeof(W8OctRegionVertex004B2A20) == 0x18,
-              "W8OctRegionVertex004B2A20_must_be_0x18");
-static_assert(sizeof(W8OctRegionPolygon) == 0x74,
-              "W8OctRegionPolygon_must_be_0x74");
+static_assert(sizeof(W8OctRegionVertex004B2A20) == 0x18, "W8OctRegionVertex004B2A20_must_be_0x18");
+static_assert(sizeof(W8OctRegionPolygon) == 0x74, "W8OctRegionPolygon_must_be_0x74");
 
 extern int g_value_65be60;
 extern unsigned long g_value_65be58;
@@ -61,46 +58,30 @@ static_assert(sizeof(W8OctRegionGeometryRecord004B3F90) == 0xbf,
               "W8OctRegionGeometryRecord004B3F90_must_be_0xbf");
 
 struct W8OctBuildPreTree004AFDA0 : W8OctBuildTree00446390 {
-    W8OctBuildPreTree004AFDA0(
-        float leaf_size,
-        srVector3T<float>* minimum,
-        srVector3T<float>* maximum,
-        unsigned short item_limit,
-        unsigned long path_capacity,
-        short extent_mode);
+    W8OctBuildPreTree004AFDA0(float leaf_size, srVector3T<float>* minimum,
+                              srVector3T<float>* maximum, unsigned short item_limit,
+                              unsigned long path_capacity, short extent_mode);
     W8OctPreTree004679E0* BuildOctPreTree004B4640();
     unsigned short BuildRegions004B19F0();
-    unsigned char BuildParticleRegions004B3820(
-        const W8VersionedLevelParticleRecord* particles,
-        int particle_count);
-    unsigned char BuildGeometryRegions004B3F90(
-        const W8OctRegionGeometryRecord004B3F90* records,
-        int record_count,
-        int base_index,
-        unsigned char finalize);
+    unsigned char BuildParticleRegions004B3820(const W8VersionedLevelParticleRecord* particles,
+                                               int particle_count);
+    unsigned char BuildGeometryRegions004B3F90(const W8OctRegionGeometryRecord004B3F90* records,
+                                               int record_count, int base_index,
+                                               unsigned char finalize);
 
-    void AssignInitialRegions004B1D90(
-        const W8OctSpatialState0046CCC0* spatial);
-    unsigned char UpdateRegionForGeometry004B06E0(
-        const srVector3T<float>* geometry,
-        short value,
-        short mode);
-    unsigned char UpdateRegionMap004B07E0(
-        const W8OctSpatialState0046CCC0* spatial,
-        const srVector3T<float>* geometry,
-        short value,
-        short mode);
+    void AssignInitialRegions004B1D90(const W8OctSpatialState0046CCC0* spatial);
+    unsigned char UpdateRegionForGeometry004B06E0(const srVector3T<float>* geometry, short value,
+                                                  short mode);
+    unsigned char UpdateRegionMap004B07E0(const W8OctSpatialState0046CCC0* spatial,
+                                          const srVector3T<float>* geometry, short value,
+                                          short mode);
     W8OctBuildNode00446330* FindNode004B23F0(unsigned int path);
-    unsigned char MergeAdjacentRegion004B2450(
-        W8OctBuildNode00446330* node, unsigned int path);
-    unsigned char MergeRegion004B25C0(
-        W8OctBuildNode00446330* node, const int* cell);
+    unsigned char MergeAdjacentRegion004B2450(W8OctBuildNode00446330* node, unsigned int path);
+    unsigned char MergeRegion004B25C0(W8OctBuildNode00446330* node, const int* cell);
     void FinalizeRegionMapping004B2A20();
-    void AssignRegionFromSurfaces004B3050(
-        const W8OctSpatialState0046CCC0* spatial);
+    void AssignRegionFromSurfaces004B3050(const W8OctSpatialState0046CCC0* spatial);
     void ValidatePolygonRegions004B3330();
-    void ValidateRegionBounds004B35B0(
-        const srVector3T<float>* region_bounds);
+    void ValidateRegionBounds004B35B0(const srVector3T<float>* region_bounds);
 
     unsigned long path_capacity_bc;
     unsigned short selected_depth_c0;

@@ -29,8 +29,7 @@ public:
             if (g_shared_timer_paused != 0) {
                 return g_shared_timer_pause_time;
             }
-            return m_shared->getUTime(srTimer::TIMER_READ_DEFAULT)
-                   - g_shared_timer_pause_base;
+            return m_shared->getUTime(srTimer::TIMER_READ_DEFAULT) - g_shared_timer_pause_base;
         }
         return m_shared->getUTime(srTimer::TIMER_READ_DEFAULT);
     }
@@ -45,14 +44,14 @@ public:
     BOOLEAN Load(int handle);
     float GetElapsedSeconds();
 
-    int m_clock_mode;                          /* 0x04: 1 reads the game clock */
-    unsigned short m_flags;              /* 0x08: bit 0 reads the timer raw */
-    srTimer* m_shared;                   /* 0x0c */
-    int m_start;                         /* 0x10 */
-    int m_end;                           /* 0x14: start + duration */
-    int m_duration;                      /* 0x18: 10000 */
-    float m_duration_seconds;                       /* 0x1c */
-    float m_duration_scale;                     /* 0x20 */
+    int m_clock_mode;         /* 0x04: 1 reads the game clock */
+    unsigned short m_flags;   /* 0x08: bit 0 reads the timer raw */
+    srTimer* m_shared;        /* 0x0c */
+    int m_start;              /* 0x10 */
+    int m_end;                /* 0x14: start + duration */
+    int m_duration;           /* 0x18: 10000 */
+    float m_duration_seconds; /* 0x1c */
+    float m_duration_scale;   /* 0x20 */
 };
 
 static_assert(sizeof(W8GameTimer) == 0x24, "W8GameTimer_must_be_0x24");

@@ -285,10 +285,6 @@ unsigned int FatigueArmorPenalty(int fatigue_band)
         return fatigue_band;
     }
 }
-extern void RecalculateCharacterHitPoints(W8Character* character);
-/* 0x0052AF50 */
-
-/* 0x00523C00 */
 
 /* Two effects the party is holding that a wounded character can no longer
    sustain, and the third that only the deeper threshold breaks. */
@@ -1006,7 +1002,7 @@ void RecalculateCharacterStamina(W8Character* character)
 /* The resistance bonus skill (36) is derived only for the professions whose
    bodies can learn spells; a few fixed professions keep it at zero. */
 // FUNCTION: WIZ8 0x0052a500
-void RecalculateResistanceBonusSkill(W8Character* character)
+void RecalculateRealmSpellPoints(W8Character* character)
 {
     int profession = character->current_profession;
     if (profession != 0 && (profession < 7 || profession > 9)) {

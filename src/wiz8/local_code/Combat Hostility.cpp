@@ -62,10 +62,8 @@ char MonsterHostility00546F80(W8MonsterInfo* first, W8MonsterInfo* second)
 unsigned char MonsterCanAimSpell005474B0(int spell_id)
 {
     if (spell_id > 0x95) {
-        srAssertFail(
-            "iType < SPELL_COUNT",
-            "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp",
-            0x1c2, 0);
+        srAssertFail("iType < SPELL_COUNT",
+                     "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp", 0x1c2, 0);
     }
     if (spell_id != 3 && spell_id != 0x29) {
         int target_type = GetSpellTargetType(spell_id, 0);
@@ -78,7 +76,7 @@ unsigned char MonsterCanAimSpell005474B0(int spell_id)
 }
 
 // FUNCTION: WIZ8 0x00547510
-unsigned char Function547510(void)
+unsigned char CombatAllowsLiveGroups(void)
 {
     return gXStatus.fCombatMode != 0 && g_combat_state->flag_a54 == 0 &&
            g_combat_state->value_004 <= 1;

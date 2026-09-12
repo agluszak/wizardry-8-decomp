@@ -25,9 +25,8 @@ static unsigned long* g_oct_mesh_default_render_flags_00652dc4;
 /* The loader verifies every array the same way: a null getter result and a
    failed bulk read each stop with the call site's own diagnostic. */
 template <class T>
-inline void ReadMeshArray(
-    int file, T* values, int count, const char* get_message,
-    const char* read_message)
+inline void ReadMeshArray(int file, T* values, int count, const char* get_message,
+                          const char* read_message)
 {
     if (values == 0) {
         ShutdownWithErrorBox(get_message);
@@ -39,23 +38,9 @@ inline void ReadMeshArray(
 
 // FUNCTION: WIZ8 0x0049E4C0
 OctMeshModel::OctMeshModel()
-    : version_00(0),
-      link_index_04(0),
-      uv_count_08(0),
-      material_index_0c(0),
-      positional_10(0),
-      heap_14(0),
-      heap_18(0),
-      allocated_1c(0),
-      heap_20(0),
-      heap_24(0),
-      allocated_28(0),
-      heap_2c(0),
-      heap_30(0),
-      heap_34(0),
-      allocated_rows_38(0),
-      packed_header_3c(0),
-      vertex_count_40(0),
+    : version_00(0), link_index_04(0), uv_count_08(0), material_index_0c(0), positional_10(0),
+      heap_14(0), heap_18(0), allocated_1c(0), heap_20(0), heap_24(0), allocated_28(0), heap_2c(0),
+      heap_30(0), heap_34(0), allocated_rows_38(0), packed_header_3c(0), vertex_count_40(0),
       polygon_count_44(0)
 {
 }
@@ -98,13 +83,9 @@ OctMeshModel::~OctMeshModel()
 }
 
 // FUNCTION: WIZ8 0x0049E9A0
-stMeshModel* OctMeshModel::Read0049E9A0(
-    int file,
-    srMaterialIFace** materials,
-    srTextureIFace** textures,
-    unsigned long* render_flags,
-    stMeshModel** meshes,
-    int material_count)
+stMeshModel* OctMeshModel::Read0049E9A0(int file, srMaterialIFace** materials,
+                                        srTextureIFace** textures, unsigned long* render_flags,
+                                        stMeshModel** meshes, int material_count)
 {
     if (g_oct_mesh_default_material_00652dbc == 0) {
         g_oct_mesh_default_material_00652dbc = new stMaterial;
@@ -149,8 +130,7 @@ stMeshModel* OctMeshModel::Read0049E9A0(
     model->autoRelease();
     if (unweighted) {
         model->flags_3a0 &= ~1U;
-    }
-    else {
+    } else {
         model->flags_3a0 |= 1;
     }
 
@@ -169,13 +149,11 @@ stMeshModel* OctMeshModel::Read0049E9A0(
     int index;
     if (material_index_0c < 0) {
         srPtr<srMaterialIFace>* vertex_materials =
-            model->getVertexMaterial(
-                0, static_cast<srMeshModel::e_side>(0), 1);
+            model->getVertexMaterial(0, static_cast<srMeshModel::e_side>(0), 1);
         if (vertex_materials == 0) {
             ShutdownWithErrorBox("OctMeshModel::Read -- Could not get vertex material array.");
         }
-        if (!FileRead(file, allocated_1c,
-                vertex_count_40 * sizeof(int), 0)) {
+        if (!FileRead(file, allocated_1c, vertex_count_40 * sizeof(int), 0)) {
             ShutdownWithErrorBox("OctMeshModel::Read -- Could not read m_plVertMats.");
         }
         selected_material = static_cast<int*>(allocated_1c)[0];
@@ -183,17 +161,13 @@ stMeshModel* OctMeshModel::Read0049E9A0(
             int material_index = static_cast<int*>(allocated_1c)[index];
             if (material_index < 0) {
                 srAssertFail("m_plVertMats[iCount] >= 0",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\OctSubMesh.cpp",
-                    0x1ad, 0);
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\OctSubMesh.cpp", 0x1ad, 0);
             }
             vertex_materials[index] = materials[material_index];
             vertex_materials[index]->addReference();
         }
-    }
-    else {
-        model->setMaterial(
-            materials[material_index_0c], 0,
-            static_cast<srMeshModel::e_side>(0));
+    } else {
+        model->setMaterial(materials[material_index_0c], 0, static_cast<srMeshModel::e_side>(0));
     }
 
     heap_24 = model->getPolyUVIndex(0, 1);
@@ -206,21 +180,18 @@ stMeshModel* OctMeshModel::Read0049E9A0(
                   "OctMeshModel::Read -- Could not get poly-vertex array.",
                   "OctMeshModel::Read -- Could not read m_psrPolyVertex.");
 
-    srPtr<srTextureIFace>* polygon_textures =
-        model->getPolyTexture(0, 0, 1);
+    srPtr<srTextureIFace>* polygon_textures = model->getPolyTexture(0, 0, 1);
     if (polygon_textures == 0) {
         ShutdownWithErrorBox("OctMeshModel::Read -- Could not get poly texture array.");
     }
-    if (!FileRead(file, allocated_1c,
-            polygon_count_44 * sizeof(int), 0)) {
+    if (!FileRead(file, allocated_1c, polygon_count_44 * sizeof(int), 0)) {
         ShutdownWithErrorBox("OctMeshModel::Read -- Could not read m_plPolyTextures.");
     }
     for (index = 0; index < polygon_count_44; ++index) {
         int texture_index = static_cast<int*>(allocated_1c)[index];
         if (texture_index < 0) {
             srAssertFail("m_plVertMats[iCount] >= 0",
-                "C:\\Projects\\Wizardry 8\\Engine Code\\OctSubMesh.cpp",
-                0x1d2, 0);
+                         "C:\\Projects\\Wizardry 8\\Engine Code\\OctSubMesh.cpp", 0x1d2, 0);
         }
         polygon_textures[index] = textures[texture_index];
     }
@@ -244,8 +215,7 @@ stMeshModel* OctMeshModel::Read0049E9A0(
     if (weights == 0) {
         ShutdownWithErrorBox("OctMeshModel::Read -- Could not allocate intensity array.");
     }
-    if (version_00 != 0 &&
-        !FileRead(file, weights, vertex_count_40 * sizeof(float), 0)) {
+    if (version_00 != 0 && !FileRead(file, weights, vertex_count_40 * sizeof(float), 0)) {
         ShutdownWithErrorBox("OctMeshModel::Read -- Could not read Sunlight array.");
     }
 
@@ -253,8 +223,7 @@ stMeshModel* OctMeshModel::Read0049E9A0(
     if (heap_14 == 0) {
         ShutdownWithErrorBox("OctMeshModel::Read -- Could not get vertex location array.");
     }
-    for (unsigned long shade_index = 0;
-         shade_index < static_cast<unsigned long>(vertex_count_40);
+    for (unsigned long shade_index = 0; shade_index < static_cast<unsigned long>(vertex_count_40);
          ++shade_index) {
         shade_indices[shade_index] = shade_index;
     }
@@ -266,19 +235,16 @@ stMeshModel* OctMeshModel::Read0049E9A0(
     }
 
     srShader shader;
-    CopyLevelDataHandle(
-        reinterpret_cast<int*>(&shader.value),
-        reinterpret_cast<const int*>(&render_flags[selected_material]));
+    CopyLevelDataHandle(reinterpret_cast<int*>(&shader.value),
+                        reinterpret_cast<const int*>(&render_flags[selected_material]));
     model->setShader(shader, 0);
     if ((render_flags[selected_material] & 0x6000) == 0x4000) {
         if (unweighted) {
             ShutdownWithErrorBox("OctMeshModel::Read -- Wrong shader type.");
-        }
-        else {
+        } else {
             model->enableStartupControls();
         }
-    }
-    else if (!unweighted) {
+    } else if (!unweighted) {
         model->enableStartupControls();
     }
 

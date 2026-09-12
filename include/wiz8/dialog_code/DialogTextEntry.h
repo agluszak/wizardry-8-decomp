@@ -10,24 +10,22 @@ extern unsigned int g_dialog_text_layout_mask_69c5d0;
 // VTABLE: WIZ8 0x005ef894
 class W8DialogTextEntry : public W8TextBuffer {
 public:
-    W8DialogTextEntry(const wchar_t* prefix, const wchar_t* text,
-                      unsigned int prefix_palette, unsigned int text_palette,
-                      const W8ControlsRect* bounds, int font,
-                      unsigned char category, unsigned int layout_mode,
-                      unsigned char shorten);
+    W8DialogTextEntry(const wchar_t* prefix, const wchar_t* text, unsigned int prefix_palette,
+                      unsigned int text_palette, const W8ControlsRect* bounds, int font,
+                      unsigned char category, unsigned int layout_mode, unsigned char shorten);
     virtual ~W8DialogTextEntry() override;
     void Draw(unsigned char force);
     void SetSelected(unsigned char selected);
 
 private:
     friend class W8DialogTextArea;
-    unsigned int m_prefix_palette;       /* 0x50 */
-    unsigned int m_text_palette;         /* 0x54 */
-    int m_prefix_length;                 /* 0x58: includes ": " */
-    unsigned char m_selected;            /* 0x5c */
-    unsigned char m_state_5d;            /* 0x5d: palette override, separate from selection */
-    unsigned char m_category;            /* 0x5e: text-area filter key */
-    unsigned char m_shorten;             /* 0x5f */
-    unsigned char m_state_60;            /* 0x60: another palette override */
+    unsigned int m_prefix_palette; /* 0x50 */
+    unsigned int m_text_palette;   /* 0x54 */
+    int m_prefix_length;           /* 0x58: includes ": " */
+    unsigned char m_selected;      /* 0x5c */
+    unsigned char m_state_5d;      /* 0x5d: palette override, separate from selection */
+    unsigned char m_category;      /* 0x5e: text-area filter key */
+    unsigned char m_shorten;       /* 0x5f */
+    unsigned char m_state_60;      /* 0x60: another palette override */
 };
 static_assert(sizeof(W8DialogTextEntry) == 0x64, "W8DialogTextEntry_size");

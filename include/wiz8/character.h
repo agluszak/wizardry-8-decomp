@@ -130,7 +130,7 @@ struct W8HandAttack {
     unsigned char unknown_43[0x18];
 }; /* 0x5b */
 
-/* One 0x11-byte condition record from 0x1817. Function5248A0 reads byte 8 of
+/* One 0x11-byte condition record from 0x1817. GetConditionRecordFlag reads byte 8 of
    one of the four; the rest is not yet named. */
 struct W8CharacterConditionRecord {
     unsigned char unknown_00[8];
@@ -395,11 +395,10 @@ void Function4EF7E0(W8Character*, W8Character*, int);
 int Function558640(W8Character*);
 unsigned char Function5586B0(W8Character*);
 void Function5218C0(W8Character*);
-void Function51D960(W8Character*);
 void Function52F2C0(W8Character* character);
 void ApplyCharacterEffect(W8Character* character, int effect, int arg_3, int arg_4, int arg_5);
 int CalcRangeCategoryToTarget(const W8Character* character, int hand);
-int Function51C5A0(W8Character* character, int item_id);
+int ChooseCharacterEquipSlot(W8Character* character, int item_id);
 bool RecalculateCarriedWeight(W8Character* character);
 void CalcXPGoal(W8Character* character);
 int GetSpellbookForSpell(const W8Character* character, int spell_id, int a, int b, int c);
@@ -415,7 +414,7 @@ void RecalculateCharacterDerivedStats(W8Character* character);
 void AccumulateEquipmentModifiers(W8Character* character, W8GameplayModifierBlock* equipment_bonus);
 void RebuildCharacterModifierBlock(W8Character* character);
 void RecalculateCharacterStamina(W8Character* character);
-void RecalculateResistanceBonusSkill(W8Character* character);
+void RecalculateRealmSpellPoints(W8Character* character);
 void InitializeSkillBaseLevels00553C90(W8Character* character);
 void RefreshCharacterSkillAvailability00553CD0(W8Character* character);
 unsigned int GetSkillQuarterValue00553EE0(W8Character* character, int skill_id);

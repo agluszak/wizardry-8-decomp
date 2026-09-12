@@ -38,17 +38,13 @@ struct W8Quad {
 static_assert(sizeof(W8Quad) == 0x1c, "W8Quad_must_be_0x1c");
 
 void DestroyWorldQuad004BE0A0(W8Quad* quad);
-W8Quad* BuildWorldQuad004BE200(
-    srModelInstance* instance, int positional_08,
-    float positional_0c, float positional_10, float positional_14,
-    float positional_18, float positional_1c, float positional_20,
-    srScene* scene, int positional_28);
+W8Quad* BuildWorldQuad004BE200(srModelInstance* instance, int positional_08, float positional_0c,
+                               float positional_10, float positional_14, float positional_18,
+                               float positional_1c, float positional_20, srScene* scene,
+                               int positional_28);
 
 /* World-angle helpers: the yaw from one point to another and the elevation
    measured against the horizontal plane. Both read the shared quarter-turn
    constants. */
-float GetHeadingAngle(
-    const srVector3T<float>* source, const srVector3T<float>* target);
-float GetElevationAngle(
-    const srVector3T<float>* source, const srVector3T<float>* target);
-
+float GetHeadingAngle(const srVector3T<float>* source, const srVector3T<float>* target);
+float GetElevationAngle(const srVector3T<float>* source, const srVector3T<float>* target);

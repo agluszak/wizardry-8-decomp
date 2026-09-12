@@ -2,7 +2,7 @@
 
 `Wiz8Recover.java` is the Java entry point for source-aware candidate recovery.
 It is an optional project-specific exporter, not the gateway for ordinary Ghidra inspection or edits;
-use [direct PyGhidra](../../.agents/skills/matching-decomp/references/pyghidra.md) for those.
+use [ghidra-analysis](../../.agents/skills/ghidra-analysis/SKILL.md) for those.
 Ghidra builds the adjacent Java source bundle and loads `wiz8.recovery` through
 the script OSGi classloader; there is no separately compiled extension JAR.
 

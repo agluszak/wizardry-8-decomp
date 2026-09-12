@@ -712,7 +712,7 @@ after_sight:
                                     if (Random(2) == 0) {
                                         effect = g_sight_effect_005ee698;
                                     }
-                                    W8StartupStateElement005EE748* notice = Function52E690(
+                                    W8StartupStateElement005EE748* notice = QueueCharacterEvent(
                                         &g_status_685170.buffers.characters[party_slot], effect, 0,
                                         g_effect_argument_005ed8c8, g_effect_argument_005ed914);
 
@@ -745,7 +745,7 @@ after_sight:
                                         if (npc->name_style == 0x18 && GetFact(0x2ee) != 0) {
                                             effect = g_sight_effect_005ee66c;
                                         }
-                                        W8StartupStateElement005EE748* notice = Function52E690(
+                                        W8StartupStateElement005EE748* notice = QueueCharacterEvent(
                                             &g_status_685170.buffers.characters[party_slot], effect,
                                             0, g_effect_argument_005ed8c8,
                                             g_effect_argument_005ed914);

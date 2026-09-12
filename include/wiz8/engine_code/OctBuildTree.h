@@ -25,13 +25,10 @@ struct W8OctBuildNode00446330 {
     W8OctBuildNode00446330();
     ~W8OctBuildNode00446330();
 
-    unsigned char RearrangeNodePolys004AF7B0(
-        short current_depth, short target_depth);
-    int CollectLinkedSurfaces004AF8F0(
-        short current_depth, short target_depth, short mode);
+    unsigned char RearrangeNodePolys004AF7B0(short current_depth, short target_depth);
+    int CollectLinkedSurfaces004AF8F0(short current_depth, short target_depth, short mode);
     int CollectSurfaceArray004AF9B0(short mode);
-    unsigned long ConvertToOctPreTree004AFA30(
-        unsigned short depth, W8OctPreTree004679E0* tree);
+    unsigned long ConvertToOctPreTree004AFA30(unsigned short depth, W8OctPreTree004679E0* tree);
 
     union {
         W8OctBuildNode00446330* children_00[8];
@@ -60,21 +57,15 @@ struct W8CountedOctBuildNode004AF760 : W8OctBuildNode00446330 {
    build-tree unit, while the address suffix keeps the still-unrecovered class
    spelling explicit. */
 struct W8OctBuildTree00446390 {
-    W8OctBuildTree00446390(
-        float leaf_size,
-        srVector3T<float>* minimum,
-        srVector3T<float>* maximum,
-        unsigned short item_limit,
-        short extent_mode);
+    W8OctBuildTree00446390(float leaf_size, srVector3T<float>* minimum, srVector3T<float>* maximum,
+                           unsigned short item_limit, short extent_mode);
     ~W8OctBuildTree00446390();
 
-    unsigned char InsertSurface00446820(
-        W8GDSurface* surface, unsigned long mode);
-    unsigned char InsertSurfaceRecursive004469F0(
-        W8OctSpatialState0046CCC0* working,
-        W8GDSurface* surface,
-        srVector3T<float>* plane_point,
-        unsigned long mode);
+    unsigned char InsertSurface00446820(W8GDSurface* surface, unsigned long mode);
+    unsigned char InsertSurfaceRecursive004469F0(W8OctSpatialState0046CCC0* working,
+                                                 W8GDSurface* surface,
+                                                 srVector3T<float>* plane_point,
+                                                 unsigned long mode);
 
     W8OctSpatialState0046CCC0 spatial_00;
     W8OctBuildLinkLists* link_lists_9c;
@@ -90,14 +81,11 @@ struct W8OctBuildTree00446390 {
 };
 
 static_assert(sizeof(W8OctBuildLink) == 8, "W8OctBuildLink_must_be_8");
-static_assert(sizeof(W8OctBuildLinkLists) == 0x25c,
-              "W8OctBuildLinkLists_must_be_0x25c");
-static_assert(sizeof(W8OctBuildNode00446330) == 0x30,
-              "W8OctBuildNode00446330_must_be_0x30");
+static_assert(sizeof(W8OctBuildLinkLists) == 0x25c, "W8OctBuildLinkLists_must_be_0x25c");
+static_assert(sizeof(W8OctBuildNode00446330) == 0x30, "W8OctBuildNode00446330_must_be_0x30");
 static_assert(sizeof(W8CountedOctBuildNode004AF760) == 0x30,
               "W8CountedOctBuildNode004AF760_must_be_0x30");
-static_assert(sizeof(W8OctBuildTree00446390) == 0xbc,
-              "W8OctBuildTree00446390_must_be_0xbc");
+static_assert(sizeof(W8OctBuildTree00446390) == 0xbc, "W8OctBuildTree00446390_must_be_0xbc");
 
 extern float g_path_waypoint_exact_distance_005ebc64;
 extern float g_float_005ec188;

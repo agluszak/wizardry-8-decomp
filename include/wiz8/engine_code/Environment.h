@@ -87,7 +87,7 @@ void ReleaseEnvironmentObjects(void);
 /* Turn the environment clock on or off; enabling resets its tick baseline. */
 void SetEnvironmentTimeEnabled00482990(bool enabled);
 float GetViewDistance(void);
-void Function482720(int value);
+void SetGameTimeMilliseconds(int value);
 /* The per-frame environment update, and the alternate lighting transition it
    hands off to when the bypass value is set. */
 void UpdateEnvironment482770(void);
@@ -109,4 +109,4 @@ extern int g_environment_value_0060a3ac;
 extern int g_environment_value_0060a3b0;
 extern unsigned char g_flag_0060a395;
 
-void Function482740(int value);
+void SetGameTimeDays(int value);

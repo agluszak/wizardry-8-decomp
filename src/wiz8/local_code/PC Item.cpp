@@ -907,7 +907,7 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip
     unsigned int stored_index = 0;
 
     if (equip_if_possible && CanCharacterUseItem(character, item->item_id)) {
-        int equip_slot = Function51C5A0(character, item->item_id);
+        int equip_slot = ChooseCharacterEquipSlot(character, item->item_id);
         if (equip_slot != W8_EQUIP_SLOT_NONE) {
             W8ItemInstance* destination = &character->equipment[equip_slot];
             unsigned char stored;
@@ -959,7 +959,7 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip
     }
 
     if (RecalculateCarriedWeight(character)) {
-        Function4EDD20();
+        RedistributePartyEncumbrance();
     }
     if (g_current_screen_state.id == W8_SCREEN_CAMP && g_camp_screen_0069c0f4 != 0) {
         g_camp_screen_0069c0f4->item_redraw_flags |= 2 << stored_index;
@@ -969,7 +969,7 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip
                             (const wchar_t*)gppStringList[0x7a0 / 4], display_name);
     }
     UpdateFactsAfterAcquiringItem(stored_item);
-    Function5227D0(stored_item, 0, character);
+    DeliverExceptionalItemReaction(stored_item, 0, character);
     return true;
 }
 
@@ -1238,7 +1238,7 @@ void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximu
     } else {
         memset(item, 0, sizeof(*item));
         item->item_id = -1;
-        Function520D10(item, 0, 1);
+        RefreshAfterItemRecordChange(item, 0, 1);
     }
 
     if (item >= g_status_685170.party_item_pool_0021 &&
@@ -1259,7 +1259,7 @@ void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximu
             g_status_685170.party_item_pool_0021[g_status_685170.party_item_count_1791 - 1]
                 .item_id = -1;
             --g_status_685170.party_item_count_1791;
-            Function4EDD20();
+            RedistributePartyEncumbrance();
         }
     }
 
@@ -1943,7 +1943,7 @@ void NormalizeItemStack(W8ItemInstance* item)
         destination->item_id = -1;
         CopyItemInstance(destination, &split, 0, 1);
         ++g_status_685170.party_item_count_1791;
-        Function4EDD20();
+        RedistributePartyEncumbrance();
         item->stack_count -= quantity;
         record = &g_item_records[item->item_id];
     }
@@ -2034,7 +2034,7 @@ void CopyItemInstance(W8ItemInstance* destination, W8ItemInstance* source, W8Cha
     } else {
         memset(source, 0, sizeof(*source));
         source->item_id = -1;
-        Function520D10(source, character, refresh);
+        RefreshAfterItemRecordChange(source, character, refresh);
     }
 
     if (source >= g_status_685170.party_item_pool_0021 &&
@@ -2051,11 +2051,11 @@ void CopyItemInstance(W8ItemInstance* destination, W8ItemInstance* source, W8Cha
             memset(&g_status_685170.party_item_pool_0021[count - 1], 0, sizeof(W8ItemInstance));
             g_status_685170.party_item_pool_0021[count - 1].item_id = -1;
             --g_status_685170.party_item_count_1791;
-            Function4EDD20();
+            RedistributePartyEncumbrance();
         }
     }
 
-    Function520D10(destination, character, refresh);
+    RefreshAfterItemRecordChange(destination, character, refresh);
     if (destination == &g_status_685170.item_in_hand_235b) {
         g_held_item_source_006840c0 = held_character;
         g_held_item_origin_006840c4 = held_origin;
@@ -2156,7 +2156,8 @@ unsigned int GetEquipmentBindingDifficulty(int character_index)
    been emptied.  With no character owner this intentionally does nothing;
    that is the path used while the new-game reset clears the carried pool. */
 // FUNCTION: WIZ8 0x00520d10
-void Function520D10(W8ItemInstance* item, W8Character* character, unsigned char refresh)
+void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
+                                  unsigned char refresh)
 {
     if (!character) {
         return;
@@ -2250,7 +2251,7 @@ void EmptyItemRecord(W8ItemInstance* item, W8Character* character, unsigned char
     } else {
         memset(item, 0, sizeof(*item));
         item->item_id = -1;
-        Function520D10(item, character, refresh);
+        RefreshAfterItemRecordChange(item, character, refresh);
     }
 
     W8ItemInstance* pool = g_status_685170.party_item_pool_0021;
@@ -2276,7 +2277,7 @@ void EmptyItemRecord(W8ItemInstance* item, W8Character* character, unsigned char
     memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
     pool[count - 1].item_id = -1;
     --g_status_685170.party_item_count_1791;
-    Function4EDD20();
+    RedistributePartyEncumbrance();
 }
 
 /* Empty every item record a character carries. The per-record helper
@@ -2298,7 +2299,7 @@ void EmptyAllCarriedItems(W8Character* character)
         } else {
             memset(item, 0, sizeof(*item));
             item->item_id = -1;
-            Function520D10(item, character, 1);
+            RefreshAfterItemRecordChange(item, character, 1);
         }
 
         W8ItemInstance* pool = g_status_685170.party_item_pool_0021;
@@ -2315,7 +2316,7 @@ void EmptyAllCarriedItems(W8Character* character)
                 memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
                 pool[count - 1].item_id = -1;
                 --g_status_685170.party_item_count_1791;
-                Function4EDD20();
+                RedistributePartyEncumbrance();
             }
         }
     }
@@ -2330,7 +2331,7 @@ void EmptyAllCarriedItems(W8Character* character)
         } else {
             memset(item, 0, sizeof(*item));
             item->item_id = -1;
-            Function520D10(item, character, 1);
+            RefreshAfterItemRecordChange(item, character, 1);
         }
 
         W8ItemInstance* pool = g_status_685170.party_item_pool_0021;
@@ -2347,7 +2348,7 @@ void EmptyAllCarriedItems(W8Character* character)
                 memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
                 pool[count - 1].item_id = -1;
                 --g_status_685170.party_item_count_1791;
-                Function4EDD20();
+                RedistributePartyEncumbrance();
             }
         }
     }
@@ -2407,7 +2408,8 @@ void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item)
 /* Deliver the one-time character reaction associated with exceptional items.
    Character creation (screen 5) deliberately suppresses every reaction. */
 // FUNCTION: WIZ8 0x005227d0
-void Function5227D0(W8ItemInstance* item, unsigned char choose_character, W8Character* character)
+void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_character,
+                                    W8Character* character)
 {
     int message;
 
@@ -2452,7 +2454,7 @@ void Function5227D0(W8ItemInstance* item, unsigned char choose_character, W8Char
             return;
         }
         signed char npc_slot = npc->group_index;
-        Function52E690(&g_status_685170.buffers.characters[npc_slot], g_item_message_005ee68c, 0,
+        QueueCharacterEvent(&g_status_685170.buffers.characters[npc_slot], g_item_message_005ee68c, 0,
                        g_effect_argument_005ed8c8, g_effect_argument_005ed914);
         return;
     }
@@ -2465,7 +2467,8 @@ void Function5227D0(W8ItemInstance* item, unsigned char choose_character, W8Char
         break;
     }
 
-    Function52E690(character, message, 0, g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+    QueueCharacterEvent(character, message, 0, g_effect_argument_005ed8c8,
+                        g_effect_argument_005ed914);
     item->unknown_07[2] |= 1;
 }
 
@@ -2490,7 +2493,7 @@ bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char 
             ++index;
         }
         if (partially_merged) {
-            Function4EDD20();
+            RedistributePartyEncumbrance();
         }
     }
 
@@ -2508,7 +2511,7 @@ bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char 
         g_status_685170.party_item_pool_0021[0].item_id = -1;
         CopyItemInstance(&g_status_685170.party_item_pool_0021[0], item, 0, 1);
         ++g_status_685170.party_item_count_1791;
-        Function4EDD20();
+        RedistributePartyEncumbrance();
         stored = true;
     }
 
@@ -2520,7 +2523,7 @@ bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char 
     }
     W8ItemInstance* stored_item = &g_status_685170.party_item_pool_0021[index];
     UpdateFactsAfterAcquiringItem(stored_item);
-    Function5227D0(stored_item, 1, 0);
+    DeliverExceptionalItemReaction(stored_item, 1, 0);
     return stored;
 }
 
@@ -2531,7 +2534,7 @@ bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char 
    notice instead. The announcement runs before the move, and the party row's
    item is not refreshed by the temporary instance the move builds. */
 // FUNCTION: WIZ8 0x0051d960
-void Function51D960(W8Character* character)
+void UnequipUnusableItems(W8Character* character)
 {
     if (!IsPartyCharacterPointer(character)) {
         return;
@@ -2588,7 +2591,7 @@ void Function51D960(W8Character* character)
         destination.stack_count = 0;
         destination.uses_or_charges = 0;
         destination.identified = 0;
-        Function520D10(&destination, 0, 1);
+        RefreshAfterItemRecordChange(&destination, 0, 1);
         Function51FD20(item, &destination, character, 1);
         if (!AddItemToCharacter(character, &destination, 0, 0, 0)) {
             AddItemToParty(&destination, 0, 0);
@@ -2602,7 +2605,7 @@ void Function51D960(W8Character* character)
    gear fills a free pair before anything else, and class-four gear looks for
    a two-handed holder and otherwise fails. */
 // FUNCTION: WIZ8 0x0051c5a0
-int Function51C5A0(W8Character* character, int item_id)
+int ChooseCharacterEquipSlot(W8Character* character, int item_id)
 {
     int slot = GetItemDefaultEquipSlot(item_id);
     if (g_status_685170.game_started != 0 || (slot != 6 && slot != 7)) {

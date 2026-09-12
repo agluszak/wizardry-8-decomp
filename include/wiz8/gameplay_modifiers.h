@@ -23,13 +23,13 @@
    the clear path drops. Function50EDC0 scales the amount at +0x05 by the
    percentage at +0x09 before accumulating it. */
 struct W8EffectSlot {
-    unsigned char active;                 /* 0x00 */
-    int effect_id;                        /* 0x01 */
-    signed char amount;                   /* 0x05 */
+    unsigned char active; /* 0x00 */
+    int effect_id;        /* 0x01 */
+    signed char amount;   /* 0x05 */
     unsigned char unknown_06[3];
-    unsigned int percent;                 /* 0x09 */
-    float duration_0d;                    /* 0x0d */
-};                                        /* 0x11 */
+    unsigned int percent; /* 0x09 */
+    float duration_0d;    /* 0x0d */
+}; /* 0x11 */
 
 static_assert(sizeof(W8EffectSlot) == 0x11, "W8EffectSlot_must_be_0x11");
 
@@ -39,37 +39,36 @@ static_assert(sizeof(W8EffectSlot) == 0x11, "W8EffectSlot_must_be_0x11");
    keep the larger value. Only the offsets another recovered pass names are
    labelled; the rest stay runs. */
 struct W8GameplayModifierBlock {
-    signed char value_00;                 /* 0x00: added to initiative and to displayed hand damage */
-    signed char value_01;                 /* 0x01: added to the hand attack hit bonus */
-    signed char value_02;                 /* 0x02 */
-    signed char value_03;                 /* 0x03: added to the hand attack damage bonus */
-    signed char armor_bonus_04;           /* 0x04 */
-    signed char armor_bonus_05;           /* 0x05 */
+    signed char value_00;       /* 0x00: added to initiative and to displayed hand damage */
+    signed char value_01;       /* 0x01: added to the hand attack hit bonus */
+    signed char value_02;       /* 0x02 */
+    signed char value_03;       /* 0x03: added to the hand attack damage bonus */
+    signed char armor_bonus_04; /* 0x04 */
+    signed char armor_bonus_05; /* 0x05 */
     signed char damage_reduction_adjustment; /* 0x06: added to damage reduction */
-    signed char resistance_bonus_all;     /* 0x07: added to every resistance */
-    unsigned char unknown_08[4];          /* 0x08 .. 0x0b */
-    signed char attribute_adjustments[7]; /* 0x0c .. 0x12 */
-    unsigned char unknown_13[0x29];       /* 0x13 .. 0x3b */
-    signed char resistance_bonus[6];      /* 0x3c .. 0x41 */
-    unsigned char flag_42;                /* 0x42 .. 0x44: doubled from the trait pass */
+    signed char resistance_bonus_all;        /* 0x07: added to every resistance */
+    unsigned char unknown_08[4];             /* 0x08 .. 0x0b */
+    signed char attribute_adjustments[7];    /* 0x0c .. 0x12 */
+    unsigned char unknown_13[0x29];          /* 0x13 .. 0x3b */
+    signed char resistance_bonus[6];         /* 0x3c .. 0x41 */
+    unsigned char flag_42;                   /* 0x42 .. 0x44: doubled from the trait pass */
     unsigned char flag_43;
     unsigned char flag_44;
-    unsigned char out_of_formation;       /* 0x45 */
-    unsigned char flag_46;                /* 0x46: set by effect id 0x11 */
-    unsigned char light_47;               /* 0x47: the doubled light value the sky node reads */
-    unsigned char value_48;               /* 0x48: max-combined, effect id 0x21 */
-    unsigned char value_49;               /* 0x49: max-combined, effect id 0x1a */
-    unsigned char flag_4a;                /* 0x4a: set by effect id 0x2d, the sight light gate */
-    unsigned char value_4b;               /* 0x4b: added to armor-class component 8 */
-    unsigned char unknown_4c[0x1b];       /* 0x4c .. 0x66 */
-};                                        /* 0x67 */
+    unsigned char out_of_formation; /* 0x45 */
+    unsigned char flag_46;          /* 0x46: set by effect id 0x11 */
+    unsigned char light_47;         /* 0x47: the doubled light value the sky node reads */
+    unsigned char value_48;         /* 0x48: max-combined, effect id 0x21 */
+    unsigned char value_49;         /* 0x49: max-combined, effect id 0x1a */
+    unsigned char flag_4a;          /* 0x4a: set by effect id 0x2d, the sight light gate */
+    unsigned char value_4b;         /* 0x4b: added to armor-class component 8 */
+    unsigned char unknown_4c[0x1b]; /* 0x4c .. 0x66 */
+}; /* 0x67 */
 
 static_assert(offsetof(W8GameplayModifierBlock, damage_reduction_adjustment) == 0x06,
               "W8GameplayModifierBlock_damage_reduction_offset");
 static_assert(offsetof(W8GameplayModifierBlock, attribute_adjustments) == 0x0c,
               "W8GameplayModifierBlock_attribute_adjustments_offset");
-static_assert(sizeof(W8GameplayModifierBlock) == 0x67,
-              "W8GameplayModifierBlock_must_be_0x67");
+static_assert(sizeof(W8GameplayModifierBlock) == 0x67, "W8GameplayModifierBlock_must_be_0x67");
 
 #pragma pack(pop)
 
