@@ -73,4 +73,3 @@ int FindMappedIndexInMeshChain(stMeshModel** mesh, int key); /* 0x004A8D10 */
    arrays. Retail CALLINDs vp+0x10 (the byte-fill _memcopy); the void*
    facade binds +0x0c. */
 void CopyDwordBuffer00470180(void* destination, const void* source, int count);
-*/
