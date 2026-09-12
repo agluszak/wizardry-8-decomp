@@ -1,6 +1,8 @@
 #include "wiz8/dialog_code/MonsterInfoDialog.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/fonts.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/video_object_catalog.h"
 #include "Font.h"
 
 static const char MONSTER_INFO_DIALOG_CPP[] =
@@ -24,12 +26,79 @@ W8MonsterInfoDialog::~W8MonsterInfoDialog()
     W8DialogBase::DestroyControls();
 }
 
+// FUNCTION: WIZ8 0x005d5f90
+int W8MonsterInfoDialog::CreateControls()
+{
+    W8DialogBase::CreateControls();
+    if (PopulateText() == 0) {
+        m_error = 7;
+        return 7;
+    }
+
+    W8DialogScrollBar::Resources resources;
+    resources.arrows_path = "Data\\Main Interface\\main_scroll.sti";
+    resources.track_path = "Data\\Dialogs\\popup_monsterinfo.sti";
+    resources.track_frame = 1;
+    resources.on_scroll = ScrollCallback;
+    m_scroll_bar_58.CreateControls(&resources);
+    m_scroll_bar_58.SetLayout(m_x + 0x12b, m_y + 0x26, m_text_area_ec.GetTotalLineCount(), 0,
+                              m_text_area_ec.GetLineHeight(), 0xb9);
+    m_scroll_bar_58.m_owner = this;
+
+    m_button_a4.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
+                          CloseButtonCallback, 0, 0, 0x7f, -1, 0, 0);
+    m_button_a4.SetPosition(m_x + 0x11a, m_y + 0xe6);
+    m_button_a4.m_owner_040 = this;
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x005d6e60
 void W8MonsterInfoDialog::OnRightButtonUp()
 {
     if (m_right_button_down) {
         m_keep_open = 0;
     }
+}
+
+// FUNCTION: WIZ8 0x005d6e70
+void W8MonsterInfoDialog::OnMouseWheel(int delta)
+{
+    if (delta > 0) {
+        for (int step = 0; step < delta; ++step) {
+            m_scroll_bar_58.ScrollUp();
+        }
+    } else if (delta < 0) {
+        for (int step = 0; step < -delta; ++step) {
+            m_scroll_bar_58.ScrollDown();
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005d6eb0
+void W8MonsterInfoDialog::CloseButtonCallback(W8DialogButton* button)
+{
+    W8DialogBase* dialog = button->m_owner_040;
+    if (dialog != 0) {
+        dialog->m_keep_open = 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x005d6ec0
+void W8MonsterInfoDialog::ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visible_entry)
+{
+    W8MonsterInfoDialog* dialog = static_cast<W8MonsterInfoDialog*>(scroll_bar->m_owner);
+    if (dialog == 0) {
+        return;
+    }
+
+    dialog->m_text_area_ec.SetFirstVisibleLine(first_visible_entry);
+    int left = dialog->m_x + 0x11;
+    int top = dialog->m_y + 0x26;
+    int right = left + 0x10e;
+    int bottom = top + 0xb9;
+    InvalidateRegion(left, top, right, bottom, 0);
+    BlitCatalogSurfaceRectTo16BPP(-0xe, left, top, right, bottom, 0x1b6, 0, 0);
+    dialog->m_text_area_ec.m_dirty = 1;
 }
 
 // FUNCTION: WIZ8 0x005dbde0

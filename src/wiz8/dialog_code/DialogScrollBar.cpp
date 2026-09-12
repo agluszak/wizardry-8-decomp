@@ -275,7 +275,7 @@ W8DialogScrollBar::W8DialogScrollBar()
 {
     m_initialized = 0;
     m_visible = 0;
-    unknown_024 = 0;
+    m_owner = 0;
     m_entry_count = 1;
     m_first_visible_entry = 0;
     m_entry_height = -1;

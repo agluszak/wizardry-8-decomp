@@ -2,6 +2,8 @@
 
 #include "Button System.h"
 
+class W8DialogBase;
+
 class W8DialogScrollBar {
 public:
     /* Four-word record passed by the monster/profession dialogs and the
@@ -39,15 +41,19 @@ private:
     int m_entry_height;        /* 0x0c */
     int m_view_height;         /* 0x10 */
     int m_track_bounds[4];     /* 0x14: left, top, right, bottom */
-    int unknown_024;           /* 0x24 */
-    int m_up_image;            /* 0x28 */
-    int m_up_button;           /* 0x2c */
-    int m_down_image;          /* 0x30 */
-    int m_down_button;         /* 0x34 */
-    int m_thumb_image;         /* 0x38 */
-    int m_thumb_button;        /* 0x3c */
-    int m_track_image;         /* 0x40 */
-    int m_track_button;        /* 0x44 */
+public:
+    /* Owning dialog; MonsterInfoDialog stores this so the scroll callback can
+       retarget the text area. */
+    W8DialogBase* m_owner; /* 0x24 */
+private:
+    int m_up_image;                                                              /* 0x28 */
+    int m_up_button;                                                             /* 0x2c */
+    int m_down_image;                                                            /* 0x30 */
+    int m_down_button;                                                           /* 0x34 */
+    int m_thumb_image;                                                           /* 0x38 */
+    int m_thumb_button;                                                          /* 0x3c */
+    int m_track_image;                                                           /* 0x40 */
+    int m_track_button;                                                          /* 0x44 */
     void (*m_on_scroll)(W8DialogScrollBar* scroll_bar, int first_visible_entry); /* 0x48 */
 }; /* 0x4c */
 static_assert(sizeof(W8DialogScrollBar::Resources) == 0x10, "W8DialogScrollBar_Resources_size");
