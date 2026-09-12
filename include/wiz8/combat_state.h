@@ -4,6 +4,7 @@
 void RoundPhaseToStep(unsigned int* phase, unsigned int base);
 
 #include "wiz8/gameplay_modifiers.h"
+#include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/targeting.h"
 #include "wiz8/local_code/FormationAndFacing.h"
 
