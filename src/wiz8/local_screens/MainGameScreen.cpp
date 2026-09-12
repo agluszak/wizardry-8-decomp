@@ -2,7 +2,6 @@
 #include "soundman.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Sight.h"
-#include "wiz8/bringup_gates.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/local_code/character_events.h"
@@ -115,9 +114,6 @@ unsigned char g_flag_00685076;
 
 // GLOBAL: WIZ8 0x00685077
 signed char g_value_00685077;
-
-// GLOBAL: WIZ8 0x006850ce
-int g_flag_006850ce;
 
 // GLOBAL: WIZ8 0x0068edbc
 unsigned char g_flag_0068edbc;
@@ -299,7 +295,7 @@ void Function593330(void)
 // FUNCTION: WIZ8 0x00577540
 void Function577540(void)
 {
-    g_flag_006875a5 = 0;
+    g_status_685170.value_2435 = 0;
     ClearLevelDataFlag6();
     SetTargetCursor(W8_CURSOR_NONE);
 }
@@ -575,8 +571,8 @@ unsigned char MainGameScreenEnter(void)
     if (TakePendingSaveFlag()) {
         ShowNotice(0xc, gppStringList[0x1e08 / 4], -1, -1, 0);
     }
-    if (g_value_006850d5 != difficulty) {
-        g_value_006850d5 = difficulty;
+    if (g_settings_6850c8.difficulty != difficulty) {
+        g_settings_6850c8.difficulty = difficulty;
         switch (difficulty) {
         case 0:
             display_mode = 0x7f8;
@@ -651,7 +647,7 @@ void MainGameScreenFrame(void)
     if (g_build_level_links_0065bd2c) {
         char path[512];
         W8LevelInfo info;
-        strcpy(path, static_cast<const char*>(g_world->octree->m_owned_0c0));
+        strcpy(path, g_world->octree->m_owned_0c0);
         char* extension = strrchr(path, '.');
         if (extension) {
             *extension = '\0';
@@ -763,7 +759,8 @@ update_screen:
     Function502650();
     if (gXStatus.fCombatMode) {
         for (int slot = 0; slot < 8; ++slot) {
-            if (!g_party_slot_rows[slot].occupied || g_party_characters[slot].unknown_0b01 > 0x11 ||
+            if (!g_status_685170.buffers.party_rows[slot].occupied ||
+                g_status_685170.buffers.characters[slot].unknown_0b01 > 0x11 ||
                 (g_level_block->flag_314 && g_level_block->combat_slot == slot)) {
                 DisableRegionInput(slot + 10);
             } else {
@@ -799,7 +796,7 @@ update_screen:
             g_level_block->hover_region = FindRegionAtPoint(static_cast<unsigned short>(point.x),
                                                             static_cast<unsigned short>(point.y));
             for (int portrait = 0; portrait < 8; ++portrait) {
-                if (g_party_slot_rows[portrait].occupied &&
+                if (g_status_685170.buffers.party_rows[portrait].occupied &&
                     (g_level_block->hover_region == portrait * 6 + 0x24U ||
                      g_level_block->hover_region == portrait + 0x5aU)) {
                     g_level_block->hover_region = UpdateRegionMousePosition(point.x, point.y);
@@ -1055,15 +1052,15 @@ unsigned char MainGameScreenLeave(int leaving)
         if (g_flag_0068edc9) {
             unsigned short mode;
             if (!IsScreenInputBlocked() && !g_level_block->flag_155 && g_level_block->flag_156 &&
-                g_level_block->flag_157 && g_flag_006850ce == 0) {
+                g_level_block->flag_157 && g_settings_6850c8.field_006 == 0) {
                 mode = 4;
             } else if (!IsScreenInputBlocked() &&
                        (!g_level_block->flag_156 || !g_level_block->flag_157 ||
                         !g_level_block->flag_155)) {
                 mode = 0;
-            } else if (g_flag_006850ce == 1) {
+            } else if (g_settings_6850c8.field_006 == 1) {
                 mode = 1;
-            } else if (g_flag_006850ce == 2) {
+            } else if (g_settings_6850c8.field_006 == 2) {
                 mode = 0;
             } else {
                 mode = 2;
@@ -1354,7 +1351,7 @@ unsigned int HitTestPartyPortrait(const InputAtom* event)
     int slot = 0;
     unsigned int kind;
 
-    while (g_party_slot_rows[slot].occupied == 0 ||
+    while (g_status_685170.buffers.party_rows[slot].occupied == 0 ||
            (g_level_block->hover_region != region &&
             g_level_block->hover_region != (unsigned int)(slot + 0x5a))) {
         region += 6;

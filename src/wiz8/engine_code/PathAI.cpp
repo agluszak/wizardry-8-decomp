@@ -15,12 +15,16 @@
 /* identity-alias: as in Bink.cpp, retail shares one no-op stub at 0x004023a0
    across arities (PathAIApplyToRep004A91F0 calls it with two arguments), so
    this overload only satisfies the local call and owns no separate address. */
-void NoOp(
-    W8PathAI* path, W8AnimRepBase005EC1D8* representation)
+void NoOp(W8PathAI* path, W8AnimRepBase005EC1D8* representation)
 {
     (void)path;
     (void)representation;
 }
+
+/* identity-alias: retail folds this empty body with the SYNTHETIC at
+   0x004023a0 in vc6_runtime.cpp. */
+
+void NoOp(void) {}
 
 extern const float g_negative_one_005ebc38;
 extern double g_double_005ebe80;
@@ -77,10 +81,9 @@ unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
     if (point_count == 0) {
         DestroyPathAI004A9810(path);
         path = 0;
-    }
-    else {
-        path->rotations_14 = static_cast<srMatrix3T<float>*>(
-            malloc(point_count * sizeof(srMatrix3T<float>)));
+    } else {
+        path->rotations_14 =
+            static_cast<srMatrix3T<float>*>(malloc(point_count * sizeof(srMatrix3T<float>)));
         if (path->rotations_14 == 0) {
             srAssertFail("pPathAI->pRotations", PATH_AI_CPP, 0x104, 0);
         }
@@ -93,8 +96,8 @@ unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
         }
 
         for (index = 0; index < point_count; ++index) {
-            srVector3T<float>* point = static_cast<srVector3T<float>*>(
-                srHeap.allocate(sizeof(srVector3T<float>)));
+            srVector3T<float>* point =
+                static_cast<srVector3T<float>*>(srHeap.allocate(sizeof(srVector3T<float>)));
             float angle;
             srVector3T<float> axis;
             srMatrix3T<float> rotation;
@@ -117,9 +120,8 @@ unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
             }
             path->rotations_14[index] = rotation;
             if (path->unknown_01[0] == 2) {
-                success = success && FileRead(
-                    handle, &path->scales_18[index],
-                    sizeof(srVector3T<float>), 0);
+                success = success &&
+                          FileRead(handle, &path->scales_18[index], sizeof(srVector3T<float>), 0);
             }
             srHeap.free(point);
         }
@@ -144,8 +146,7 @@ unsigned char PathAIRecordFlag004A9740(const W8PathAI* path)
 }
 
 // FUNCTION: WIZ8 0x004a91f0
-void PathAIApplyToRep004A91F0(
-    W8PathAI* path, W8AnimRepBase005EC1D8* representation)
+void PathAIApplyToRep004A91F0(W8PathAI* path, W8AnimRepBase005EC1D8* representation)
 {
     if (path->kind_00 != 0) {
         if (path->kind_00 == 3) {
@@ -251,23 +252,21 @@ W8PathAI* ClonePathAI004A98C0(const W8PathAI* source)
     copy->unknown_3b = source->unknown_3b;
     if (source->nodes_0c != 0) {
         count = source->nodes_0c->GetCount();
-    }
-    else {
+    } else {
         count = 0;
     }
     copy->nodes_0c = 0;
     if (source->nodes_0c != 0) {
         copy->nodes_0c = new W8GrowableVector<srVector3T<float>*>();
         for (index = 0; index < count; ++index) {
-            srVector3T<float>* allocated = static_cast<srVector3T<float>*>(
-                srHeap.allocate(sizeof(srVector3T<float>)));
+            srVector3T<float>* allocated =
+                static_cast<srVector3T<float>*>(srHeap.allocate(sizeof(srVector3T<float>)));
             srVector3T<float>* point;
 
             if (allocated != 0) {
                 *allocated = **source->nodes_0c->GetAt(index);
                 point = allocated;
-            }
-            else {
+            } else {
                 point = 0;
             }
             copy->nodes_0c->Add(point);
@@ -275,16 +274,16 @@ W8PathAI* ClonePathAI004A98C0(const W8PathAI* source)
     }
     copy->rotations_14 = 0;
     if (source->rotations_14 != 0) {
-        copy->rotations_14 = static_cast<srMatrix3T<float>*>(
-            malloc(count * sizeof(srMatrix3T<float>)));
+        copy->rotations_14 =
+            static_cast<srMatrix3T<float>*>(malloc(count * sizeof(srMatrix3T<float>)));
         for (index = 0; index < count; ++index) {
             copy->rotations_14[index] = source->rotations_14[index];
         }
     }
     copy->scales_18 = 0;
     if (source->scales_18 != 0) {
-        copy->scales_18 = static_cast<srVector3T<float>*>(
-            srHeap.allocate(count * sizeof(srVector3T<float>)));
+        copy->scales_18 =
+            static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
         for (index = 0; index < count; ++index) {
             copy->scales_18[index] = source->scales_18[index];
         }
@@ -331,11 +330,10 @@ void PathAIClearOwned004A9BB0(W8PathAI* path)
 }
 
 // FUNCTION: WIZ8 0x004a9c30
-unsigned char PathAIAddPoint004A9C30(
-    W8PathAI* path, const srVector3T<float>* point)
+unsigned char PathAIAddPoint004A9C30(W8PathAI* path, const srVector3T<float>* point)
 {
-    srVector3T<float>* copy = static_cast<srVector3T<float>*>(
-        srHeap.allocate(sizeof(srVector3T<float>)));
+    srVector3T<float>* copy =
+        static_cast<srVector3T<float>*>(srHeap.allocate(sizeof(srVector3T<float>)));
     float total_length;
     int index;
 
@@ -407,7 +405,7 @@ unsigned char PathAINextPoint004A9E90(W8PathAI* path, srVector3T<float>* point)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
-/* Retail compiled this comparison with VC6's mixed-sign operands; the
+    /* Retail compiled this comparison with VC6's mixed-sign operands; the
    signedness is part of the recovered body and changing it would change
    the compare and branch. Suppress only this diagnostic here. */
     srVector3T<float>* source;
@@ -437,7 +435,7 @@ unsigned char PathAIIsComplete004A9EF0(W8PathAI* path)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
-/* Retail compiled this comparison with VC6's mixed-sign operands; the
+    /* Retail compiled this comparison with VC6's mixed-sign operands; the
    signedness is part of the recovered body and changing it would change
    the compare and branch. Suppress only this diagnostic here. */
     if (path != 0 && path->nodes_0c != 0 &&
@@ -522,22 +520,18 @@ int PathAITick004AA1F0(W8PathAI* path, signed char direction)
         if (path->tick_28 < now) {
             if (path->flag_3c != 0) {
                 PathAIAdvanceNormalized004AA160(path, elapsed * g_float_005ec128);
-            }
-            else {
+            } else {
                 point_count = (float)path->nodes_0c->count;
-                Function4A9FE0(path,
-                               path->scale_34 / point_count * path->value_2c * elapsed *
-                                   g_float_005ec128);
+                Function4A9FE0(path, path->scale_34 / point_count * path->value_2c * elapsed *
+                                         g_float_005ec128);
             }
             path->tick_28 = now;
             return 1;
         }
-    }
-    else {
+    } else {
         if (path->flag_39 == 0) {
             amount = (now - path->tick_28) * g_float_005ec128 * direction * path->value_2c;
-        }
-        else {
+        } else {
             amount = g_negative_one_005ebc38;
             if (direction > 0) {
                 amount = g_float_005ebb38;
@@ -555,8 +549,7 @@ int PathAITick004AA1F0(W8PathAI* path, signed char direction)
                 path->value_04 = point_count - g_float_005ebb38;
                 return 1;
             }
-        }
-        else if (path->flag_38 != 0) {
+        } else if (path->flag_38 != 0) {
             path->tick_28 = now;
             path->value_04 = (float)path->nodes_0c->count - g_float_005ebb38;
             return 1;
@@ -584,8 +577,7 @@ void PathAIPosition004AA370(W8PathAI* path, srVector3T<float>* value)
     if (path->flag_3a == 0) {
         if (path->flag_1c == 0) {
             index = (int)((path->nodes_0c->count - 1) * path->value_04 + g_double_005ebe80);
-        }
-        else {
+        } else {
             index = (int)(path->value_04 + g_double_005ec3b0);
         }
         if (index >= path->nodes_0c->count) {

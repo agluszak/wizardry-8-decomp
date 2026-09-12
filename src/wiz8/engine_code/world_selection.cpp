@@ -3,6 +3,12 @@
 /* World selection. The original translation-unit name is not established;
    these bodies retain their existing compilation unit and link-order slot. */
 
+// FUNCTION: WIZ8 0x00451280
+W8World* GetWorld(void)
+{
+    return g_world;
+}
+
 // FUNCTION: WIZ8 0x00451290
 void SetCurrentWorld(W8World* world)
 {

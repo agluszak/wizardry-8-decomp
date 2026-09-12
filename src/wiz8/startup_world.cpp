@@ -1,4 +1,4 @@
-#include "wiz8/bringup_gates.h"
+#include "wiz8/screen_state.h"
 #include "surrender/srNode.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/Navigator.h"
@@ -9,7 +9,6 @@
 #include <new>
 #include <stdlib.h>
 #include <string.h>
-
 
 // GLOBAL: WIZ8 0x00659c0c
 W8Navigator* g_startup_world_659c0c;
@@ -59,10 +58,9 @@ unsigned char InitializeStartupNavigation0044F060(void)
     if (g_runtime_world_scale_6081e8 < g_world_scale_005ebc40) {
         g_runtime_world_scale_6081e8 = 500.0f;
     }
-    navigator->configureStartupDepth(
-        g_startup_depth_603ac8 < g_startup_near_limit_005ec000
-            ? g_startup_near_limit_005ec000
-            : g_startup_depth_603ac8,
-        g_startup_depth_603ac8);
+    navigator->configureStartupDepth(g_startup_depth_603ac8 < g_startup_near_limit_005ec000
+                                         ? g_startup_near_limit_005ec000
+                                         : g_startup_depth_603ac8,
+                                     g_startup_depth_603ac8);
     return 1;
 }

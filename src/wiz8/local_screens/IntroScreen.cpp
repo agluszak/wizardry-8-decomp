@@ -21,22 +21,13 @@
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_screens/OptionsScreen.h"
-extern unsigned char g_flag_689b2c;
-// GLOBAL: WIZ8 0x00689b2c
-unsigned char g_flag_689b2c;
-
 extern void ContinueAfterDarkEndingVideo005AE770(void);
 
 // GLOBAL: WIZ8 0x0064d8ac
 unsigned long g_intro_video_index = 6;
 static const char g_intro_video_names[7][40] = {
-    "Wizardry8.bik",
-    "unaligned.bik",
-    "Umpani.bik",
-    "T'Rang.bik",
-    "virgin.bik",
-    "darkend.bik",
-    "sirtech.bik",
+    "Wizardry8.bik", "unaligned.bik", "Umpani.bik",  "T'Rang.bik",
+    "virgin.bik",    "darkend.bik",   "sirtech.bik",
 };
 W8BinkVideo* gpVideo;
 
@@ -48,7 +39,7 @@ unsigned char IntroScreenEnter(void)
     SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
     SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
     ClearSurfaceRect(0, 0, 0x280, 0x1e0);
-    if (g_intro_video_index == 0 && g_settings_6850c8.intro_seen && !g_flag_689b2c) {
+    if (g_intro_video_index == 0 && g_settings_6850c8.intro_seen && !g_status_685170.flag_49bc) {
         return 1;
     }
     sprintf(path, "Data\\Flics\\Intro\\%s", g_intro_video_names[g_intro_video_index]);
@@ -66,11 +57,7 @@ unsigned char IntroScreenEnter(void)
     ClearFlag603C60();
     gpVideo = new W8BinkVideo();
     if (gpVideo == 0) {
-        srAssertFail(
-            "gpVideo",
-            "C:\\Projects\\Wizardry 8\\Local Screens\\IntroScreen.cpp",
-            98,
-            0);
+        srAssertFail("gpVideo", "C:\\Projects\\Wizardry 8\\Local Screens\\IntroScreen.cpp", 98, 0);
     }
     gpVideo->SetTarget(BeginVideoPresentation());
     if (!gpVideo->Open(path, 0)) {
@@ -78,7 +65,6 @@ unsigned char IntroScreenEnter(void)
         gpVideo = 0;
     }
     return 1;
-
 }
 
 void AdvanceIntroScreen(void);
@@ -134,7 +120,7 @@ void AdvanceIntroScreen(void)
         FinishVideoPresentation();
         video = gpVideo;
     } else {
-ordinary_destroy:
+    ordinary_destroy:
         if (gpVideo == 0) {
             goto cleared;
         }
@@ -157,19 +143,18 @@ cleared:
     case 2:
     case 3:
     case 4:
-        if (!g_flag_689b2c) {
+        if (!g_status_685170.flag_49bc) {
             g_pending_screen_state.mode = 0;
             SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
         } else {
-            g_flag_689b2c = 0;
+            g_status_685170.flag_49bc = 0;
             if (GetPendingScreenState() != 7) {
                 SetPendingScreenState(W8_SCREEN_MAIN_GAME);
             }
         }
         break;
     case 5:
-        ShowModalMessage005A6620(0, 0, 1,
-                                ContinueAfterDarkEndingVideo005AE770, 1, 1);
+        ShowModalMessage005A6620(0, 0, 1, ContinueAfterDarkEndingVideo005AE770, 1, 1);
         break;
     }
     SetFlag603C60();

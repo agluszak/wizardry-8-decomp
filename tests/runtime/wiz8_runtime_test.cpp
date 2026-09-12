@@ -4,7 +4,6 @@
 #include "wiz8/regions.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/cursor.h"
-#include "wiz8/bringup_gates.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
@@ -771,8 +770,8 @@ static DWORD WINAPI DriveScenario(void*)
                    occupied flags directly. */
                 int populated = -1;
                 for (int roster_slot = 0; roster_slot < 8; ++roster_slot) {
-                    if (g_party_slot_rows[roster_slot].occupied &&
-                        g_party_characters[roster_slot].hp_current != 0) {
+                    if (g_status_685170.buffers.party_rows[roster_slot].occupied &&
+                        g_status_685170.buffers.characters[roster_slot].hp_current != 0) {
                         populated = roster_slot;
                         break;
                     }
@@ -782,7 +781,7 @@ static DWORD WINAPI DriveScenario(void*)
                 }
                 while (CountActiveCharacters() < 6) {
                     int before = CountActiveCharacters();
-                    if (Function4EF4A0(&g_party_characters[populated], -1) < 0 ||
+                    if (Function4EF4A0(&g_status_685170.buffers.characters[populated], -1) < 0 ||
                         CountActiveCharacters() <= before) {
                         return FailScenario();
                     }

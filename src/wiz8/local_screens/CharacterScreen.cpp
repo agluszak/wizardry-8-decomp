@@ -1,6 +1,6 @@
 #include "soundman.h"
 #include "wiz8/character.h"
-#include "wiz8/bringup_gates.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/render_state.h"
@@ -23,7 +23,6 @@
 #include "wiz8/music_playlist.h"
 #include "wiz8/sound_man.h"
 #include "wiz8/regions.h"
-#include "wiz8/screen_state.h"
 #include "wiz8/fonts.h"
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
@@ -40,9 +39,8 @@
 
 #include "FileMan.h"
 
-extern void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x,
-                                        unsigned short y, char right_button,
-                                        char left_button);
+extern void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
+                                        char right_button, char left_button);
 
 extern void Function52DDD0(void);
 
@@ -50,8 +48,8 @@ extern unsigned char SaveCharacter(W8Character*, int, char, void (*)(void));
 
 // GLOBAL: WIZ8 0x0061e3a4
 unsigned short g_character_description_first_ids_61e3a4[22] = {
-    0x274, 0x275, 0x276, 0x277, 0x278, 0x279, 0x27a, 0, 0x27b, 0x27c, 0x27d,
-    0x27e, 0x27f, 0x280, 0x281, 0, 0x6ac, 0x6ad, 0x6ae, 0x6af, 0x6b0, 0,
+    0x274, 0x275, 0x276, 0x277, 0x278, 0x279, 0x27a, 0,     0x27b, 0x27c, 0x27d,
+    0x27e, 0x27f, 0x280, 0x281, 0,     0x6ac, 0x6ad, 0x6ae, 0x6af, 0x6b0, 0,
 };
 // GLOBAL: WIZ8 0x0061e3d0
 unsigned short g_race_name_message_ids_61e3d0[16] = {
@@ -60,27 +58,26 @@ unsigned short g_race_name_message_ids_61e3d0[16] = {
 };
 // GLOBAL: WIZ8 0x0061e3f0
 unsigned short g_profession_name_message_ids_61e3f0[32] = {
-    0x2a4, 0x2a5, 0x2a6, 0x2a7, 0x2a8, 0x2a9, 0x2aa, 0x2ab,
-    0x2ac, 0x2ad, 0x2ae, 0x2af, 0x2b0, 0x2b1, 0x2b2, 0,
-    0x2c2, 0x2c3, 0x2c4, 0x2c5, 0x2c6, 0x2c7, 0x2c8, 0x2c9,
-    0x2ca, 0x2cb, 0x2cc, 0x2cd, 0x2ce, 0x2cf, 0x2d0, 0,
+    0x2a4, 0x2a5, 0x2a6, 0x2a7, 0x2a8, 0x2a9, 0x2aa, 0x2ab, 0x2ac, 0x2ad, 0x2ae,
+    0x2af, 0x2b0, 0x2b1, 0x2b2, 0,     0x2c2, 0x2c3, 0x2c4, 0x2c5, 0x2c6, 0x2c7,
+    0x2c8, 0x2c9, 0x2ca, 0x2cb, 0x2cc, 0x2cd, 0x2ce, 0x2cf, 0x2d0, 0,
 };
 // GLOBAL: WIZ8 0x0061e430
 unsigned short g_gender_name_message_rows_61e430[4][4] = {
-    {0x2d1, 0x2d4, 0x2d7, 0x2da}, {0x2d2, 0x2d5, 0x2d8, 0x2db},
-    {0x2d3, 0x2d6, 0x2d9, 0x2dc}, {0x2dd, 0x2de, 0x2df, 0x2e0},
+    {0x2d1, 0x2d4, 0x2d7, 0x2da},
+    {0x2d2, 0x2d5, 0x2d8, 0x2db},
+    {0x2d3, 0x2d6, 0x2d9, 0x2dc},
+    {0x2dd, 0x2de, 0x2df, 0x2e0},
 };
 // GLOBAL: WIZ8 0x0061e454
 unsigned short g_character_skill_name_ids_61e454[84] = {
-    0x2e2, 0x2e3, 0x2e4, 0x2e5, 0x2e6, 0x2e7, 0x2e8, 0x2e9, 0x2ea, 0x2eb,
-    0x2ec, 0x2ed, 0x2ee, 0x2ef, 0x2f0, 0x2f1, 0x2f2, 0x2f3, 0x2f4, 0x2f5,
-    0x2f6, 0x2f7, 0x2f8, 0x2f9, 0x2fa, 0x2fb, 0x2fc, 0x2fd, 0x2fe, 0x2ff,
-    0x300, 0x301, 0x302, 0x303, 0x304, 0x305, 0x306, 0x307, 0x308, 0x309,
-    0x30a, 0, 0x677, 0x678, 0x679, 0x67a, 0x67b, 0x67c, 0x67d, 0x67e,
-    0x67f, 0x680, 0x682, 0x683, 0x684, 0x685, 0x681, 0x686, 0x687, 0x688,
-    0x689, 0x68a, 0x68b, 0x68c, 0x68d, 0x68e, 0x68f, 0x690, 0x691, 0x692,
-    0x693, 0x694, 0x695, 0x696, 0x697, 0x698, 0x699, 0x69a, 0x69b, 0x69c,
-    0x69d, 0x69e, 0x69f, 0,
+    0x2e2, 0x2e3, 0x2e4, 0x2e5, 0x2e6, 0x2e7, 0x2e8, 0x2e9, 0x2ea, 0x2eb, 0x2ec, 0x2ed,
+    0x2ee, 0x2ef, 0x2f0, 0x2f1, 0x2f2, 0x2f3, 0x2f4, 0x2f5, 0x2f6, 0x2f7, 0x2f8, 0x2f9,
+    0x2fa, 0x2fb, 0x2fc, 0x2fd, 0x2fe, 0x2ff, 0x300, 0x301, 0x302, 0x303, 0x304, 0x305,
+    0x306, 0x307, 0x308, 0x309, 0x30a, 0,     0x677, 0x678, 0x679, 0x67a, 0x67b, 0x67c,
+    0x67d, 0x67e, 0x67f, 0x680, 0x682, 0x683, 0x684, 0x685, 0x681, 0x686, 0x687, 0x688,
+    0x689, 0x68a, 0x68b, 0x68c, 0x68d, 0x68e, 0x68f, 0x690, 0x691, 0x692, 0x693, 0x694,
+    0x695, 0x696, 0x697, 0x698, 0x699, 0x69a, 0x69b, 0x69c, 0x69d, 0x69e, 0x69f, 0,
 };
 // GLOBAL: WIZ8 0x0061e674
 unsigned short g_personality_message_ids_61e674[10] = {
@@ -119,9 +116,8 @@ W8CharacterScreen* g_character_screen_0069c2e8;
 
 // FUNCTION: WIZ8 0x005b0040
 W8CharacterScreen::W8CharacterScreen(int mode, W8Character* character)
-    : m_mode_008(mode), m_original_014(character),
-      m_block_advance_1aec(0), m_confirm_profession_1aed(0),
-      m_force_transition_1aee(0), m_dialog_1b1c(0),
+    : m_mode_008(mode), m_original_014(character), m_block_advance_1aec(0),
+      m_confirm_profession_1aed(0), m_force_transition_1aee(0), m_dialog_1b1c(0),
       m_capture_dialog_result_1b24(0)
 {
     if (character != 0) {
@@ -134,8 +130,7 @@ W8CharacterScreen::W8CharacterScreen(int mode, W8Character* character)
     if (m_mode_008 == 3) {
         m_mode_008 = 2;
         SoundPlay("Data\\Sound\\Misc\\GainLevel.wav", 0);
-        ShowMessage(FormatWideString(gppStringList[0x364 / 4],
-                                     m_character_018.name, 0, 0), 0, 0);
+        ShowMessage(FormatWideString(gppStringList[0x364 / 4], m_character_018.name, 0, 0), 0, 0);
     }
     m_page_enabled_1b08[0] = m_mode_008 != 1;
     m_page_enabled_1b08[1] = m_mode_008 != 1;
@@ -149,33 +144,28 @@ void W8CharacterScreen::BuildControls()
     m_controls_1af0 = new Controls(0, 0x1c2, 0, 0, 0x107, 0, 4);
     m_controls_1af0->AcquireRegionSet(&g_character_screen_region_set_0069c2e4);
 
-    m_next_1af8 = new W8TextControl(
-        m_controls_1af0, 0xffffffff, 0x254, 0, 0, 0, 0x106, 0,
-        8, 10, 9, 10, 0xb);
+    m_next_1af8 =
+        new W8TextControl(m_controls_1af0, 0xffffffff, 0x254, 0, 0, 0, 0x106, 0, 8, 10, 9, 10, 0xb);
     m_next_1af8->EnableRegionHelp(0xdc);
     m_next_1af8->m_listener = this;
 
-    m_previous_1af4 = new W8TextControl(
-        m_controls_1af0, 0xffffffff, 0x228, 0, 0, 0, 0x106, 0,
-        0xc, 0xe, 0xd, 0xe, 0xf);
+    m_previous_1af4 = new W8TextControl(m_controls_1af0, 0xffffffff, 0x228, 0, 0, 0, 0x106, 0, 0xc,
+                                        0xe, 0xd, 0xe, 0xf);
     m_previous_1af4->EnableRegionHelp(0xdd);
     m_previous_1af4->m_listener = this;
 
-    m_exit_1afc = new W8TextControl(
-        m_controls_1af0, 0xffffffff, 0x1fc, 0, 0, 0, 0x106, 0,
-        0x14, 0x16, 0x15, 0x16, 0x17);
+    m_exit_1afc = new W8TextControl(m_controls_1af0, 0xffffffff, 0x1fc, 0, 0, 0, 0x106, 0, 0x14,
+                                    0x16, 0x15, 0x16, 0x17);
     m_exit_1afc->EnableRegionHelp(0xde);
     m_exit_1afc->m_listener = this;
 
-    m_accept_1b00 = new W8TextControl(
-        m_controls_1af0, 0xffffffff, 0x1d0, 0, 0, 0, 0x106, 0,
-        4, 6, 5, 6, 7);
+    m_accept_1b00 =
+        new W8TextControl(m_controls_1af0, 0xffffffff, 0x1d0, 0, 0, 0, 0x106, 0, 4, 6, 5, 6, 7);
     m_accept_1b00->EnableRegionHelp(0xdf);
     m_accept_1b00->m_listener = this;
 
-    m_reset_1b04 = new W8TextControl(
-        m_controls_1af0, 0xffffffff, 0, 0, 0, 0, 0x106, 0,
-        0x1d, 0x1f, 0x1e, 0x1f, 0x20);
+    m_reset_1b04 = new W8TextControl(m_controls_1af0, 0xffffffff, 0, 0, 0, 0, 0x106, 0, 0x1d, 0x1f,
+                                     0x1e, 0x1f, 0x20);
     m_reset_1b04->EnableRegionHelp(0xe1);
     m_reset_1b04->m_listener = this;
 
@@ -297,8 +287,7 @@ void W8CharacterScreen::ShowDialog005B08E0(int value)
     m_dialog_response_1b20 = 0;
     if (value == g_profession_bonus_skills[m_character_018.current_profession]) {
         m_dialog_1b1c = new W8SkillInfoDialog005EFD08(value, 0, 0, 1);
-    }
-    else {
+    } else {
         m_dialog_1b1c = new W8SkillInfoDialog005EFD08(value, 0, 0, 0);
     }
     m_dialog_1b1c->SetText(&g_wchar_00689b34);
@@ -311,15 +300,12 @@ void W8CharacterScreen::OnPrimary(W8TextControl* control)
     if (control == m_accept_1b00) {
         if (m_mode_008 == 1 && !m_exit_1afc->m_enabled) {
             RequestScreenTransition();
-        }
-        else {
+        } else {
             ShowMessage(gppStringList[0x34c / 4], 1, 2);
         }
-    }
-    else if (control == m_exit_1afc) {
+    } else if (control == m_exit_1afc) {
         m_pages_1b0c[m_page_index_00c]->Accept();
-    }
-    else if (control == m_previous_1af4) {
+    } else if (control == m_previous_1af4) {
         int index = m_page_index_00c - 1;
         while (index >= 0 && !m_page_enabled_1b08[index]) {
             --index;
@@ -327,11 +313,9 @@ void W8CharacterScreen::OnPrimary(W8TextControl* control)
         if (index != -1) {
             SelectPage(index);
         }
-    }
-    else if (control == m_next_1af8) {
+    } else if (control == m_next_1af8) {
         AdvancePage(0);
-    }
-    else if (control == m_reset_1b04) {
+    } else if (control == m_reset_1b04) {
         memset(m_page_enabled_1b08, 1, sizeof(m_page_enabled_1b08));
         m_force_transition_1aee = 1;
         InitializeCharacterCreation(&m_character_018, &m_creation_state_187c);
@@ -342,19 +326,16 @@ void W8CharacterScreen::OnPrimary(W8TextControl* control)
     }
 }
 
-void W8CharacterScreen::OnSecondary(W8TextControl*)
-{
-}
+void W8CharacterScreen::OnSecondary(W8TextControl*) {}
 
 // FUNCTION: WIZ8 0x005b09b0
 void W8CharacterScreen::ShowDescription(int first, int second)
 {
-    ShowMessage(FormatWideString(
-        gppStringList[0x758 / 4],
-        gppStringList[g_character_description_first_ids_61e3a4[first]],
-        m_character_018.name,
-        gppStringList[g_character_skill_name_ids_61e454[second]],
-        0, 0), 0, 0);
+    ShowMessage(FormatWideString(gppStringList[0x758 / 4],
+                                 gppStringList[g_character_description_first_ids_61e3a4[first]],
+                                 m_character_018.name,
+                                 gppStringList[g_character_skill_name_ids_61e454[second]], 0, 0),
+                0, 0);
 }
 
 // FUNCTION: WIZ8 0x005b0a10
@@ -381,25 +362,26 @@ void W8CharacterScreen::AdvancePage(unsigned char forward)
                 !m_confirm_profession_1aed) {
                 int value = ComputeRealmSkillDebt(m_original_014, &m_character_018);
                 if (value > 0) {
-                    ShowMessage(FormatWideString(
-                        gppStringList[0x36c / 4],
-                        gppStringList[g_profession_name_message_ids_61e3f0[
-                            m_original_014->current_profession]],
-                        gppStringList[g_profession_name_message_ids_61e3f0[
-                            m_character_018.current_profession]], value), 1, 4);
-                }
-                else {
-                    ShowMessage(FormatWideString(
-                        gppStringList[0x368 / 4],
-                        gppStringList[g_profession_name_message_ids_61e3f0[
-                            m_original_014->current_profession]],
-                        gppStringList[g_profession_name_message_ids_61e3f0[
-                            m_character_018.current_profession]]), 1, 4);
+                    ShowMessage(
+                        FormatWideString(gppStringList[0x36c / 4],
+                                         gppStringList[g_profession_name_message_ids_61e3f0
+                                                           [m_original_014->current_profession]],
+                                         gppStringList[g_profession_name_message_ids_61e3f0
+                                                           [m_character_018.current_profession]],
+                                         value),
+                        1, 4);
+                } else {
+                    ShowMessage(
+                        FormatWideString(gppStringList[0x368 / 4],
+                                         gppStringList[g_profession_name_message_ids_61e3f0
+                                                           [m_original_014->current_profession]],
+                                         gppStringList[g_profession_name_message_ids_61e3f0
+                                                           [m_character_018.current_profession]]),
+                        1, 4);
                 }
                 return;
             }
-            m_page_enabled_1b08[1] =
-                m_creation_state_187c.spell_points_total > 0;
+            m_page_enabled_1b08[1] = m_creation_state_187c.spell_points_total > 0;
         }
         m_block_advance_1aec = 0;
         m_confirm_profession_1aed = 0;
@@ -408,8 +390,7 @@ void W8CharacterScreen::AdvancePage(unsigned char forward)
         } while (index < 4 && !m_page_enabled_1b08[index]);
         if (index < 4) {
             SelectPage(index);
-        }
-        else if (!m_force_transition_1aee) {
+        } else if (!m_force_transition_1aee) {
             if (CommitCharacter()) {
                 RequestScreenTransition();
                 if (m_mode_008 == 2 &&
@@ -419,8 +400,7 @@ void W8CharacterScreen::AdvancePage(unsigned char forward)
                     SetPendingScreenState(W8_SCREEN_CHARACTER);
                 }
             }
-        }
-        else if (ValidateName()) {
+        } else if (ValidateName()) {
             ShowMessage(gppStringList[0x358 / 4], 1, 5);
         }
     }
@@ -437,10 +417,18 @@ void W8CharacterScreen::SelectPage(int index)
     if (m_pages_1b0c[index] == 0) {
         W8CharacterPage* page = 0;
         switch (index) {
-        case 0: page = CreateCharacterPage005CBA90(); break;
-        case 1: page = CreateCharacterPage005C8DE0(); break;
-        case 2: page = CreateCharacterPage005C7CC0(); break;
-        case 3: page = CreateCharacterPage005C73F0(); break;
+        case 0:
+            page = CreateCharacterPage005CBA90();
+            break;
+        case 1:
+            page = CreateCharacterPage005C8DE0();
+            break;
+        case 2:
+            page = CreateCharacterPage005C7CC0();
+            break;
+        case 3:
+            page = CreateCharacterPage005C73F0();
+            break;
         }
         page->m_screen_05c = this;
         page->SetCharacter(&m_character_018, &m_creation_state_187c, m_mode_008);
@@ -452,10 +440,12 @@ void W8CharacterScreen::SelectPage(int index)
     page->SetEnabled(1);
 
     int previous = index - 1;
-    while (previous >= 0 && !m_page_enabled_1b08[previous]) --previous;
+    while (previous >= 0 && !m_page_enabled_1b08[previous])
+        --previous;
     m_previous_1af4->SetActive(previous != -1);
     int next = index + 1;
-    while (next < 4 && !m_page_enabled_1b08[next]) ++next;
+    while (next < 4 && !m_page_enabled_1b08[next])
+        ++next;
     if (next == 4) {
         m_next_1af8->m_normalSprite = 0x10;
         m_next_1af8->m_pressedSprite = 0x12;
@@ -463,8 +453,7 @@ void W8CharacterScreen::SelectPage(int index)
         m_next_1af8->m_alternateNormalSprite = 0x11;
         m_next_1af8->m_disabledSprite = 0x13;
         m_next_1af8->EnableRegionHelp(0xe0);
-    }
-    else {
+    } else {
         m_next_1af8->m_normalSprite = 8;
         m_next_1af8->m_pressedSprite = 10;
         m_next_1af8->m_alternatePressedSprite = 10;
@@ -481,17 +470,20 @@ void W8CharacterScreen::SelectPage(int index)
 // FUNCTION: WIZ8 0x005b0f30
 void W8CharacterScreen::SyncCharacterForPage(int index)
 {
-    if (m_page_index_00c > index) return;
+    if (m_page_index_00c > index)
+        return;
     if (index == 0) {
-        if (m_mode_008 == 0) InitializeCharacterCreation(&m_character_018, &m_creation_state_187c);
-        else if (m_mode_008 == 2) InitializeCharacterLevelUp(&m_character_018, &m_creation_state_187c);
-    }
-    else if (index == 1) {
+        if (m_mode_008 == 0)
+            InitializeCharacterCreation(&m_character_018, &m_creation_state_187c);
+        else if (m_mode_008 == 2)
+            InitializeCharacterLevelUp(&m_character_018, &m_creation_state_187c);
+    } else if (index == 1) {
         CountRemainingSpellPoints(&m_character_018, &m_creation_state_187c);
-    }
-    else if (index == 3) {
-        if (m_character_018.table_value_0079 < 0) DeriveCharacterPersonality004EFA30(&m_character_018);
-        if (m_character_018.current_profession < 0) CalcCharacterTableValue(&m_character_018);
+    } else if (index == 3) {
+        if (m_character_018.table_value_0079 < 0)
+            DeriveCharacterPersonality004EFA30(&m_character_018);
+        if (m_character_018.current_profession < 0)
+            CalcCharacterTableValue(&m_character_018);
     }
 }
 
@@ -509,24 +501,20 @@ void W8CharacterScreen::DrawHeader()
 
     if (m_mode_008 == 0) {
         DrawCatalogImage(-14, 0x107, 0, 2, 10, 0xc, 2, 0);
-    }
-    else {
-        int frame = m_original_014 == 0
-            ? m_character_018.table_value_0079
-            : m_original_014->table_value_0079;
+    } else {
+        int frame = m_original_014 == 0 ? m_character_018.table_value_0079
+                                        : m_original_014->table_value_0079;
         DrawCatalogImage(-14, 0x11, frame, 0, 10, 0xc, 2, 0);
     }
 
     if (m_mode_008 == 0 && m_page_index_00c == 0) {
         DrawCatalogImage(-14, 0x107, 0, 3, 5, 0xa5, 2, 0);
-    }
-    else {
+    } else {
         bounds.left = 5;
         bounds.top = 0xa5;
         bounds.right = 0xc1;
         bounds.bottom = 0xdf;
-        text.SetLayoutMode(g_W8TextBufferLayoutMask005ED558 |
-                           g_W8TextBufferLayoutMask005ED54C);
+        text.SetLayoutMode(g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED54C);
         if (m_mode_008 != 0) {
             text.SetLayoutBounds(&bounds, 1, 1);
             text.SetText(m_character_018.name, g_font_683660);
@@ -534,25 +522,27 @@ void W8CharacterScreen::DrawHeader()
         }
         bounds.top += 0xe;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(FormatWideString(
-            L"%s %s",
-            gppStringList[g_gender_name_message_rows_61e430[
-                m_character_018.gender][0]],
-            gppStringList[g_race_name_message_ids_61e3d0[m_character_018.race]]),
+        text.SetText(
+            FormatWideString(
+                L"%s %s",
+                gppStringList[g_gender_name_message_rows_61e430[m_character_018.gender][0]],
+                gppStringList[g_race_name_message_ids_61e3d0[m_character_018.race]]),
             g_font_683660);
         text.RenderToTarget(0, 1, -14);
         bounds.top += 0xe;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[g_profession_name_message_ids_61e3f0[
-                         m_character_018.current_profession]],
-                     g_font_683660);
+        text.SetText(
+            gppStringList[g_profession_name_message_ids_61e3f0[m_character_018.current_profession]],
+            g_font_683660);
         text.RenderToTarget(0, 1, -14);
         bounds.top += 0xe;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(FormatWideString(
-            L"%s %d (%s)", gppStringList[0x1ae4 / 4], m_character_018.level,
-            gppStringList[g_profession_level_name_message_ids_61e688[
-                m_character_018.current_profession][m_character_018.level_band]]),
+        text.SetText(
+            FormatWideString(
+                L"%s %d (%s)", gppStringList[0x1ae4 / 4], m_character_018.level,
+                gppStringList
+                    [g_profession_level_name_message_ids_61e688[m_character_018.current_profession]
+                                                               [m_character_018.level_band]]),
             g_font_683660);
         text.RenderToTarget(0, 1, -14);
     }
@@ -562,17 +552,16 @@ void W8CharacterScreen::DrawHeader()
 // FUNCTION: WIZ8 0x005b0fd0
 unsigned char W8CharacterScreen::CommitCharacter()
 {
-    if (!ValidateName()) return 0;
+    if (!ValidateName())
+        return 0;
 
     int mode = m_mode_008;
     W8Character backup;
     memcpy(&backup, &m_character_018, sizeof(backup));
     if (mode != 1) {
-        Function557580(&m_character_018, &m_creation_state_187c,
-                       mode == 0);
+        Function557580(&m_character_018, &m_creation_state_187c, mode == 0);
     }
-    if (!g_status_685170.game_started &&
-        !g_status_685170.skip_loose_character_check_2444) {
+    if (!g_status_685170.game_started && !g_status_685170.skip_loose_character_check_2444) {
         if (m_original_014 != 0) {
             char path[260];
             BuildCharacterPath00514EC0(path, m_original_014->name, -1);
@@ -589,8 +578,10 @@ unsigned char W8CharacterScreen::CommitCharacter()
     if (m_original_014 != 0) {
         unsigned char was_in_party = m_original_014->in_party;
         memcpy(m_original_014, &m_character_018, sizeof(*m_original_014));
-        if (was_in_party) m_original_014->in_party = 1;
-        if (m_original_014->current_profession == 8) Function5218C0(m_original_014);
+        if (was_in_party)
+            m_original_014->in_party = 1;
+        if (m_original_014->current_profession == 8)
+            Function5218C0(m_original_014);
         Function51D960(m_original_014);
     }
     return 1;
@@ -629,8 +620,8 @@ void W8CharacterScreen::ShowMessage(wchar_t* text, int confirmation, int respons
         m_dialog_1b1c->SetOrigin(0xa0, 100);
         m_dialog_1b1c->SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
         static_cast<W8ModalDialogBase*>(m_dialog_1b1c)->SetClientExtent(0xfa, 200);
-        static_cast<W8ModalDialogBase*>(m_dialog_1b1c)->SetMessage(
-            text, 1, 0x32, 1, confirmation, 1, 1, 0, 0x15e);
+        static_cast<W8ModalDialogBase*>(m_dialog_1b1c)
+            ->SetMessage(text, 1, 0x32, 1, confirmation, 1, 1, 0, 0x15e);
         ActivateDialogRegion(0x138);
         m_capture_dialog_result_1b24 = 1;
     }
@@ -659,13 +650,11 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
             if (Function5586B0(&m_character_018)) {
                 format = gppStringList[0x35c / 4];
                 next_response = 6;
-            }
-            else {
+            } else {
                 format = gppStringList[0x360 / 4];
                 next_response = 7;
             }
-            ShowMessage(FormatWideString(format, value, 1, next_response),
-                        1, next_response);
+            ShowMessage(FormatWideString(format, value, 1, next_response), 1, next_response);
             break;
         }
         case 6:
@@ -679,8 +668,7 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
             RequestScreenTransition();
             break;
         }
-    }
-    else if (response == 6) {
+    } else if (response == 6) {
         Function557580(&m_character_018, &m_creation_state_187c, 0);
         Function4EF7E0(m_original_014, &m_character_018, 0);
         RequestScreenTransition();
@@ -690,12 +678,10 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
 // FUNCTION: WIZ8 0x005b1670
 unsigned char W8CharacterScreen::ValidateName()
 {
-    if (m_original_014 != 0 &&
-        wcscmp(m_original_014->name, m_character_018.name) == 0) {
+    if (m_original_014 != 0 && wcscmp(m_original_014->name, m_character_018.name) == 0) {
         return 1;
     }
-    if (!g_status_685170.game_started &&
-        !g_status_685170.skip_loose_character_check_2444) {
+    if (!g_status_685170.game_started && !g_status_685170.skip_loose_character_check_2444) {
         char path[260];
         BuildCharacterPath00514EC0(path, m_character_018.name, -1);
         if (FileExists(path)) {
@@ -705,8 +691,7 @@ unsigned char W8CharacterScreen::ValidateName()
     }
     for (int index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
         if (g_status_685170.buffers.party_rows[index].occupied &&
-            wcscmp(g_status_685170.buffers.characters[index].name,
-                   m_character_018.name) == 0) {
+            wcscmp(g_status_685170.buffers.characters[index].name, m_character_018.name) == 0) {
             ShowMessage(gppStringList[0x354 / 4], 0, 0);
             return 0;
         }
@@ -726,6 +711,13 @@ W8Character* W8CharacterScreen::GetOriginalCharacter()
     return m_original_014;
 }
 
+/* Retail's shared success return, also used by the screen lifecycle table. */
+// FUNCTION: WIZ8 0x005b1740
+unsigned char ScreenLifecycleSuccess(void)
+{
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x005b1750
 unsigned char CharacterScreenEnter(void)
 {
@@ -735,11 +727,9 @@ unsigned char CharacterScreenEnter(void)
     ResetRegions();
     UpdateHeldItemCursor();
     SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
-    SetFontObjectPalette16BPP(g_wiz_text_bold_font_683664,
-                              g_font_palette_wiz_text_bold_68ee0c);
+    SetFontObjectPalette16BPP(g_wiz_text_bold_font_683664, g_font_palette_wiz_text_bold_68ee0c);
     g_character_screen_0069c2e8 = new W8CharacterScreen(
-        g_current_screen_state.mode,
-        static_cast<W8Character*>(g_current_screen_state.parameter_3));
+        g_current_screen_state.mode, static_cast<W8Character*>(g_current_screen_state.parameter_3));
     g_character_screen_0069c2e8->BuildControls();
     if (!g_status_685170.game_started &&
         (g_current_screen_state.mode == 0 || g_current_screen_state.mode == 2)) {
@@ -778,8 +768,8 @@ void CharacterScreenFrame(void)
     SGPMouseGetPos(&point);
     g_character_screen_0069c2e8->UpdateDialog();
     MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, static_cast<unsigned short>(point.x),
-                                static_cast<unsigned short>(point.y),
-                                gfLeftButtonState, gfRightButtonState);
+                                static_cast<unsigned short>(point.y), gfLeftButtonState,
+                                gfRightButtonState);
     UpdateRegionMousePosition(point.x, point.y);
     while (DequeueEvent(&input) == 1) {
         W8CharacterScreen* screen = g_character_screen_0069c2e8;
@@ -787,27 +777,28 @@ void CharacterScreenFrame(void)
         if (!DispatchRegionInput(&input) && input.usEvent == KEY_DOWN) {
             if (input.usParam == 0xd || input.usParam == 0x27 || input.usParam == 0x4e) {
                 screen->AdvancePage(1);
-            }
-            else if (input.usParam == 0x1b) {
+            } else if (input.usParam == 0x1b) {
                 if (screen->m_mode_008 == 1 && !screen->m_exit_1afc->m_enabled) {
                     RequestScreenTransition();
-                }
-                else {
+                } else {
                     screen->ShowMessage(gppStringList[0x34c / 4], 1, 2);
                 }
-            }
-            else if ((input.usParam == 0x25 || input.usParam == 0x42) &&
-                     screen->m_page_index_00c != 3) {
+            } else if ((input.usParam == 0x25 || input.usParam == 0x42) &&
+                       screen->m_page_index_00c != 3) {
                 int index = screen->m_page_index_00c - 1;
-                while (index >= 0 && !screen->m_page_enabled_1b08[index]) --index;
-                if (index != -1) screen->SelectPage(index);
+                while (index >= 0 && !screen->m_page_enabled_1b08[index])
+                    --index;
+                if (index != -1)
+                    screen->SelectPage(index);
             }
         }
     }
     W8CharacterScreen* screen = g_character_screen_0069c2e8;
-    if (screen->m_header_dirty_010) screen->DrawHeader();
+    if (screen->m_header_dirty_010)
+        screen->DrawHeader();
     screen->m_pages_1b0c[screen->m_page_index_00c]->Redraw();
     screen->m_controls_1af0->Redraw();
-    if (screen->m_dialog_1b1c != 0) screen->m_dialog_1b1c->Draw();
+    if (screen->m_dialog_1b1c != 0)
+        screen->m_dialog_1b1c->Draw();
     RenderFrame();
 }

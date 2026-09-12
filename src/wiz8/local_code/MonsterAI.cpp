@@ -7,6 +7,7 @@
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/magic.h"
 #include "wiz8/spell_effect.h"
+#include "wiz8/engine_code/SpellVisual.h"
 #include "wiz8/sr_api.h"
 #include "random.h"
 #include "wiz8/local_code/MonsterAI.h"
@@ -35,15 +36,12 @@ enum { W8_AI_SPELL_PLACE = 0x77 };
 /* The monster action kinds the AI validates. */
 enum { W8_MONSTER_ACTION_ATTACK = 0, W8_MONSTER_ACTION_SPELL = 2, W8_MONSTER_ACTION_FLEE = 3 };
 
-
-struct W8SpellEffectEntry;
 /* 0x0061EEFC: two dwords per AI kind; only the leading dword is read here. */
 // GLOBAL: WIZ8 0x0061EEFC
 extern const int g_ai_kind_table[32][2] = {
-    {0, 0}, {1, 0}, {1, 0}, {2, 3}, {4, 0}, {1, 1}, {1, 1}, {1, 0},
-    {5, 4}, {5, 0}, {1, 5}, {1, 1}, {1, 0}, {1, 0}, {1, 0}, {1, 0},
-    {1, 0}, {1, 0}, {1, 0}, {1, 1}, {1, 5}, {1, 0}, {1, 1}, {1, 0},
-    {6, 0}, {6, 0}, {6, 0}, {6, 0}, {6, 0}, {6, 0}, {5, 0}, {6, 0},
+    {0, 0}, {1, 0}, {1, 0}, {2, 3}, {4, 0}, {1, 1}, {1, 1}, {1, 0}, {5, 4}, {5, 0}, {1, 5},
+    {1, 1}, {1, 0}, {1, 0}, {1, 0}, {1, 0}, {1, 0}, {1, 0}, {1, 0}, {1, 1}, {1, 5}, {1, 0},
+    {1, 1}, {1, 0}, {6, 0}, {6, 0}, {6, 0}, {6, 0}, {6, 0}, {6, 0}, {5, 0}, {6, 0},
 };
 
 /* Throw away the queue of actions a monster's AI had decided on. */
@@ -77,13 +75,8 @@ void UpdateAllMonsterAI(void)
    goes in depends on what kind of target it is. Each entry gets a random tie
    break so two equal decisions do not always resolve the same way. */
 // FUNCTION: WIZ8 0x00532360
-void QueueMonsterAction(
-    W8MonsterInfo* monster_info,
-    int action_kind,
-    int action_detail,
-    int attack_index,
-    W8TargetKind target_kind,
-    int target_value)
+void QueueMonsterAction(W8MonsterInfo* monster_info, int action_kind, int action_detail,
+                        int attack_index, W8TargetKind target_kind, int target_value)
 {
     W8MonsterAction* entry = (W8MonsterAction*)malloc(0x30);
 
@@ -100,8 +93,7 @@ void QueueMonsterAction(
     entry->target.iType = target_kind;
     if (target_kind == W8_TARGET_KIND_CHARACTER) {
         entry->target.iChar = target_value;
-    }
-    else if (target_kind == W8_TARGET_KIND_MONSTER) {
+    } else if (target_kind == W8_TARGET_KIND_MONSTER) {
         entry->target.iMonsterID = target_value;
     }
     entry->tie_break = (unsigned char)Random(100) + 1;
@@ -209,26 +201,30 @@ float GetGroupNearestDistance(W8MonsterGroup* group, float furthest)
 }
 
 /* Whether the point the monster-control effect is anchored to is still within
-   reach. With no effect running, or nothing anchored, there is nothing to be
-   in range of; failing the test falls back on where the party is standing. */
+   reach. effects.data sits at W8SpellEffectEntry + 0x10c; the first visual is
+   a W8SpellVisual whose W8Navigator secondary base is the ordinary GrCycle
+   conversion at +0x18. With no effect running, or nothing anchored, there is
+   nothing to be in range of; failing the test falls back on where the party
+   is standing. */
 // FUNCTION: WIZ8 0x00534d50
 short IsMonsterControlPointInRange(W8MonsterInfo* monster_info)
 {
     W8SpellEffectEntry* effect = FindMonsterControlSpellEffect();
-    void** anchor;
+    W8SpellVisual* visual;
+    W8Navigator* anchor_navigator;
     short in_range;
     srVector3T<float> party;
 
     if (effect == 0) {
         return 0;
     }
-    anchor = *(void***)((char*)effect + 0x10c);
-    if (*anchor == 0) {
+    visual = effect->effects.data[0];
+    if (visual == 0) {
         return 0;
     }
-    W8Navigator* anchor_navigator = reinterpret_cast<W8Navigator*>(
-        static_cast<char*>(*anchor) + 0x18);
-    in_range = monster_info->monster->SetMovementTargetToNavigator004526C0(anchor_navigator, 2500.0);
+    anchor_navigator = visual;
+    in_range =
+        monster_info->monster->SetMovementTargetToNavigator004526C0(anchor_navigator, 2500.0);
     if (in_range == 0) {
         party = anchor_navigator->GetPosition();
         monster_info->monster->AimAtPosition(&party);

@@ -720,8 +720,8 @@ unsigned int AnimObjListCount004A1620(W8AnimObj* animation, signed char index)
 }
 
 // FUNCTION: WIZ8 0x004a16c0
-void* AnimObjListEntry004A16C0(W8AnimObj* animation, signed char list_index,
-                               signed char entry_index)
+W8PathAI* AnimObjListEntry004A16C0(W8AnimObj* animation, signed char list_index,
+                                   signed char entry_index)
 {
     if (animation == 0) {
         srAssertFail("pao", ANIM_OBJ_CPP, 0x2d3, 0);
@@ -729,7 +729,7 @@ void* AnimObjListEntry004A16C0(W8AnimObj* animation, signed char list_index,
     if (animation->flag_05 == 0) {
         return 0;
     }
-    return PLGet(animation->paths_34[list_index], entry_index);
+    return static_cast<W8PathAI*>(PLGet(animation->paths_34[list_index], entry_index));
 }
 
 // FUNCTION: WIZ8 0x004a1dc0
@@ -800,6 +800,9 @@ void* AnimObjEntry004A1660(W8AnimObj* animation, signed char list_index, unsigne
     }
     return PLGet(animation->meshes_28[list_index], entry_index & 0xff);
 }
+
+// FUNCTION: WIZ8 0x004A2220
+stLightDefinition::~stLightDefinition() {}
 
 /* Type-two light definitions own four synchronized keyframe vectors.  The
    clone iterates the second vector's count, which is the retail authority for

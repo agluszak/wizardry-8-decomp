@@ -74,6 +74,7 @@ extern unsigned long g_intro_video_index;
 /* All records use this lifecycle contract. The shared success address occurs
    in retail, including the game-start router's unused leave slot. */
 unsigned char ScreenLifecycleSuccess(void);
+void NoOp(void);
 unsigned char IntroScreenEnter(void);
 void IntroScreenFrame(void);
 unsigned char IntroScreenLeave(int leaving);

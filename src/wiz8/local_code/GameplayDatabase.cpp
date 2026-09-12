@@ -1,4 +1,4 @@
-#include "wiz8/bringup_gates.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/render_state.h"
@@ -433,7 +433,7 @@ void FreeStatusBuffers(W8StatusBuffers* status)
 // FUNCTION: WIZ8 0x0054b470
 void ResetPartySlotRow(int slot)
 {
-    W8PartySlotRow* row = &g_party_slot_rows[slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
 
     memset(row, 0, sizeof(W8PartySlotRow));
     row->occupied = 1;
@@ -596,7 +596,7 @@ unsigned char LoadMonsterDatabase(W8MonsterRecord** records)
    a failed seek leaves the handle open where every other failure closes it. */
 // FUNCTION: WIZ8 0x0054a9a0
 unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int uiEndIndex,
-                             unsigned int unused, W8MonsterRecord* records)
+                                       unsigned int unused, W8MonsterRecord* records)
 {
     char path[56];
     int handle;
@@ -618,6 +618,21 @@ unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int u
     }
     FileClose(handle);
     return 1;
+}
+
+// FUNCTION: WIZ8 0x0054b0b0
+void DestroyGameplayObjects(void)
+{
+    W8StartupRuntimeState* owned = g_startup_runtime_state;
+
+    if (owned) {
+        delete owned;
+        g_startup_runtime_state = 0;
+    }
+    if (g_gameplay_timer_685067) {
+        delete g_gameplay_timer_685067;
+        g_gameplay_timer_685067 = 0;
+    }
 }
 
 /* The new-game reset. It repeats ResetGameStatus's status-block cycle inline
@@ -796,109 +811,6 @@ void ResetGameplaySlot(unsigned int slot)
     record->field_0d6 = 0;
     record->field_0e8 = 0;
     record->field_0d2 = SetCountdownClock(0);
-}
-
-/* 0x0052D460 proves four equal derived growable-vector instantiations followed
-   by a fifth instantiation with a distinct vtable and the tail state below. Element identity and the
-   complete lifetime remain tracked by wiz8-bxj; this gives startup the real
-   allocation and field shape without inventing semantic names. */
-
-// FUNCTION: WIZ8 0x0052d460
-W8StartupRuntimeState::W8StartupRuntimeState()
-    : value_50(-1), value_54(-1), value_5c(0), value_64(-1)
-{
-    bytes_68 = new unsigned char[0xb1];
-    memset(bytes_68, 0, 0xb1);
-}
-
-// FUNCTION: WIZ8 0x0052d5b0
-W8StartupRuntimeState::~W8StartupRuntimeState()
-{
-    delete[] bytes_68;
-}
-
-// FUNCTION: WIZ8 0x0052db80
-void W8StartupRuntimeState::ClearOwnedEntries()
-{
-    W8StartupStateElement005EE748* entry;
-    int count;
-
-    count = vector_40.count;
-    while (count > 0) {
-        entry = vector_40.RemoveAt(0);
-        entry->Process0052CED0();
-        count = vector_40.count;
-    }
-    count = vector_30.count;
-    while (count > 0) {
-        entry = vector_30.RemoveAt(0);
-        delete entry;
-        count = vector_30.count;
-    }
-    count = vector_10.count;
-    while (count > 0) {
-        entry = vector_10.RemoveAt(0);
-        delete entry;
-        count = vector_10.count;
-    }
-    count = vector_00.count;
-    while (count > 0) {
-        entry = vector_00.RemoveAt(0);
-        delete entry;
-        count = vector_00.count;
-    }
-}
-
-// FUNCTION: WIZ8 0x0052e3b0
-void W8StartupRuntimeState::ProcessNextPendingEntry()
-{
-    W8StartupStateElement005EE748* entry;
-
-    if (vector_40.count > 0) {
-        entry = *vector_40.GetAt(0);
-        vector_40.RemoveAt(vector_40.IndexOf(entry));
-        if ((value_5c & 1) != 0 && entry->type_08 >= 14 && entry->type_08 < 16) {
-            if ((value_5c & 2) != 0) {
-                unknown_60 = SetCountdownClock(Random(6000) + 2000);
-            } else {
-                unknown_60 = SetCountdownClock(Random(60000) + 300000);
-            }
-        }
-        entry->Process0052CED0();
-        delete entry;
-    }
-}
-
-// FUNCTION: WIZ8 0x0052ced0
-void W8StartupStateElement005EE748::Process0052CED0()
-{
-    W8MonsterManagerEntry* slot;
-    int party_slot;
-    unsigned char sound_was_active;
-
-    party_slot = CharacterPointerToPartySlot(character_04);
-    slot = &g_monster_manager_entries[party_slot];
-    sound_was_active = slot->field_000;
-    slot->field_071 = 0;
-    if (sound_was_active != 0) {
-        if (IsSoundPlaying(slot->field_001) != 0) {
-            handled_00 = 1;
-            StopSound(slot->field_001);
-        }
-        Function52F890(party_slot, 0, -1, 0, 1);
-    }
-    if (type_08 == 23 || type_08 == 24) {
-        if ((flags_10 & 0x40) == 0) {
-            if (item_24.item_id == -1) {
-                PostCharacterMessage(party_slot, gppStringList[0x1dc4 / 4]);
-            } else {
-                PostCharacterMessage(party_slot, gppStringList[0x1dc8 / 4],
-                                     GetItemDisplayName(&item_24));
-            }
-        }
-    } else if (type_08 == 51) {
-        QueueGameplayEvent(30, party_slot);
-    }
 }
 
 /* The static initializer constructs the manager's entries and vector before

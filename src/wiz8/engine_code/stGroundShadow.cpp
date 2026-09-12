@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/ground_shadow.h"
+#include "wiz8/local_code/Configuration.h"
 
 #include "surrender/srMaterial.h"
 #include "surrender/srTexture.h"
@@ -8,9 +9,6 @@
 
 /* The SR.DLL registry string is the original runtime class identity. */
 
-extern unsigned char g_ground_shadow_enabled_00685110;
-// GLOBAL: WIZ8 0x00685110
-unsigned char g_ground_shadow_enabled_00685110;
 extern srTexture* g_ground_shadow_texture_006834cc;
 extern srMaterial* g_ground_shadow_material_006834d0;
 // GLOBAL: WIZ8 0x006834cc
@@ -24,7 +22,6 @@ unsigned long g_ground_shadow_shader_006834c8;
    installed with; the next recovered global begins at 0x006834C8. */
 // GLOBAL: WIZ8 0x00683430
 unsigned char g_ground_shadow_material_parameters_00683430[0x98] = {0};
-
 
 // SYNTHETIC: WIZ8 0x004D6340
 // stGroundShadow::`scalar deleting destructor'
@@ -40,8 +37,7 @@ unsigned char g_ground_shadow_material_parameters_00683430[0x98] = {0};
 
 // FUNCTION: WIZ8 0x004D61B0
 stGroundShadow::stGroundShadow(srNode* parent)
-    : srClassSupport<stGroundShadow, srNode, false, 0x10010>(
-          static_cast<srNode*>(0))
+    : srClassSupport<stGroundShadow, srNode, false, 0x10010>(static_cast<srNode*>(0))
 {
     angle_138 = 0;
     value_13c = 500;
@@ -49,31 +45,25 @@ stGroundShadow::stGroundShadow(srNode* parent)
     setParent(parent, 1);
 
     if (g_ground_shadow_texture_006834cc == 0) {
-        g_ground_shadow_texture_006834cc = LoadTexture004B95D0(
-            "Data\\Monsters\\Bitmaps\\", "Shadow.tga", 1);
+        g_ground_shadow_texture_006834cc =
+            LoadTexture004B95D0("Data\\Monsters\\Bitmaps\\", "Shadow.tga", 1);
         g_ground_shadow_texture_006834cc->addReference();
-        g_ground_shadow_texture_006834cc->setMipmap(
-            static_cast<srTextureIFace::e_mipmap>(0));
-        g_ground_shadow_texture_006834cc->setWrapS(
-            static_cast<srTextureIFace::e_wrap>(1));
-        g_ground_shadow_texture_006834cc->setWrapT(
-            static_cast<srTextureIFace::e_wrap>(1));
+        g_ground_shadow_texture_006834cc->setMipmap(static_cast<srTextureIFace::e_mipmap>(0));
+        g_ground_shadow_texture_006834cc->setWrapS(static_cast<srTextureIFace::e_wrap>(1));
+        g_ground_shadow_texture_006834cc->setWrapT(static_cast<srTextureIFace::e_wrap>(1));
 
-        srMaterial* material =
-            SR_NEW(srMaterial);
+        srMaterial* material = SR_NEW(srMaterial);
         g_ground_shadow_material_006834d0 = material;
-        material->setMapper(reinterpret_cast<srVertexProcessor*>(
-            g_ground_shadow_material_parameters_00683430));
+        material->setMapper(
+            reinterpret_cast<srVertexProcessor*>(g_ground_shadow_material_parameters_00683430));
         g_ground_shadow_shader_006834c8 =
-            (g_ground_shadow_shader_006834c8 & 0xfeff9277UL) |
-            0x00808260UL;
+            (g_ground_shadow_shader_006834c8 & 0xfeff9277UL) | 0x00808260UL;
     }
 }
 
 // FUNCTION: WIZ8 0x004d6430
 stGroundShadow::stGroundShadow(const stGroundShadow& other)
-    : srClassSupport<stGroundShadow, srNode, false, 0x10010>(
-          static_cast<srNode*>(0))
+    : srClassSupport<stGroundShadow, srNode, false, 0x10010>(static_cast<srNode*>(0))
 {
     setParent(other.parentNode(), 1);
     setName(other.getName());
@@ -103,7 +93,7 @@ void stGroundShadow::traverse(TraverseInfo& info)
 // FUNCTION: WIZ8 0x004d6640
 void stGroundShadow::process(const ProcessInfo& info, e_processType)
 {
-    if (g_ground_shadow_enabled_00685110 != 0) {
+    if (g_settings_6850c8.field_048 != 0) {
         if (!info.renderer->isPickStackEmpty()) {
             srGERD::Pick pick;
             info.renderer->popPick(pick);
@@ -125,9 +115,7 @@ void stGroundShadow::process(const ProcessInfo& info, e_processType)
 // srClassSupport<stGroundShadow,srNode,0,65552>::getClassNode
 
 // FUNCTION: WIZ8 0x004D6370
-stGroundShadow::~stGroundShadow()
-{
-}
+stGroundShadow::~stGroundShadow() {}
 
 // TEMPLATE: WIZ8 0x004d6a30
 // srClassSupport<stGroundShadow,srNode,0,65552>::clone

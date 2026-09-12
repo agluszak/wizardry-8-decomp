@@ -688,8 +688,8 @@ void W8Prop::Method44C670()
         if (mesh == 0) {
             srAssertFail("psrMesh", PROP_CPP, 0x56f, 0);
         }
-        path = reinterpret_cast<W8PathAI*>(AnimObjListEntry004A16C0(
-            static_cast<W8PropRepresentation*>(m_pRep)->animation, 2, (signed char)index));
+        path = AnimObjListEntry004A16C0(static_cast<W8PropRepresentation*>(m_pRep)->animation, 2,
+                                        (signed char)index);
         if (path != 0) {
             srVector3T<float> location;
 
@@ -965,8 +965,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
         }
         list_count = AnimObjListCount004A1620(animation, 2);
         for (entry_index = 0; entry_index < list_count; ++entry_index) {
-            W8PathAI* path = reinterpret_cast<W8PathAI*>(
-                AnimObjListEntry004A16C0(animation, 2, (signed char)entry_index));
+            W8PathAI* path = AnimObjListEntry004A16C0(animation, 2, (signed char)entry_index);
             if (path != 0) {
                 PathAISetFlag38004AA9D0(path, 1);
                 PathAISetFlag1C004AAA10(path, 1);
@@ -1073,8 +1072,8 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
                 if (AnimationIsRunning(this->animation) == 1) {
                     path_count = AnimObjListCount004A1620(this->animation, 2);
                     for (path_i = 0; path_i < path_count; ++path_i) {
-                        W8PathAI* path = reinterpret_cast<W8PathAI*>(
-                            AnimObjListEntry004A16C0(this->animation, 2, (signed char)path_i));
+                        W8PathAI* path =
+                            AnimObjListEntry004A16C0(this->animation, 2, (signed char)path_i);
                         path->flag_39 = 1;
                     }
                 }

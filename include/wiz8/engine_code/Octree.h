@@ -29,27 +29,22 @@ unsigned char ReadVector2Array00437510(int file, srVector2T<float>* values, int 
 /* The mesh's polygon index arrays are the same raw 12-byte records as the
    float vectors and retail routes both through 0x004374E0; the inline integer
    view keeps that one cast at the boundary. */
-inline unsigned char ReadVectorArray(
-    int file, srVector3i* values, int count)
+inline unsigned char ReadVectorArray(int file, srVector3i* values, int count)
 {
     return ReadVector3Array004374E0(
-        file,
-        reinterpret_cast<srVector3T<float>*>(values), /* reinterpret-ok: the
+        file, reinterpret_cast<srVector3T<float>*>(values), /* reinterpret-ok: the
             float reader's raw 12-byte record is the index-triple record */
         count);
 }
-inline unsigned char ReadVectorArray(
-    int file, srVector3T<float>* values, int count)
+inline unsigned char ReadVectorArray(int file, srVector3T<float>* values, int count)
 {
     return ReadVector3Array004374E0(file, values, count);
 }
-inline unsigned char ReadVectorArray(
-    int file, srVector4T<float>* values, int count)
+inline unsigned char ReadVectorArray(int file, srVector4T<float>* values, int count)
 {
     return ReadVector4Array004374C0(file, values, count);
 }
-inline unsigned char ReadVectorArray(
-    int file, srVector2T<float>* values, int count)
+inline unsigned char ReadVectorArray(int file, srVector2T<float>* values, int count)
 {
     return ReadVector2Array00437510(file, values, count);
 }
@@ -70,8 +65,7 @@ static_assert(sizeof(W8OctSubmesh) == 0x10, "W8OctSubmesh_must_be_0x10");
 
 class W8OctreeObjectRegistry {
 public:
-    W8OctreeObjectRegistry()
-        : by_cell(new W8OctreeIndex), by_object(new W8OctreeIndex) {}
+    W8OctreeObjectRegistry() : by_cell(new W8OctreeIndex), by_object(new W8OctreeIndex) {}
     ~W8OctreeObjectRegistry()
     {
         delete by_cell;
@@ -93,18 +87,18 @@ public:
    carry a delta, an accumulator and the reset the accumulator takes when it
    goes negative, which is what makes the two triples symmetric. */
 struct W8OctreeWalk {
-    int cell_00[3];                      /* 0x00: the cell the walk starts in */
-    int step_0c[3];                      /* 0x0c: +1 or -1 per axis */
-    int major_axis_18;                   /* 0x18 */
-    int minor_axis_1c;                   /* 0x1c: (major + 1) % 3 */
-    int minor_axis_20;                   /* 0x20: (major + 2) % 3 */
-    int count_24;                        /* 0x24: cells to visit */
-    int error_delta_28;                  /* 0x28 */
-    int error_2c;                        /* 0x2c */
-    int error_reset_30;                  /* 0x30 */
-    int error_delta_34;                  /* 0x34 */
-    int error_38;                        /* 0x38 */
-    int error_reset_3c;                  /* 0x3c */
+    int cell_00[3];     /* 0x00: the cell the walk starts in */
+    int step_0c[3];     /* 0x0c: +1 or -1 per axis */
+    int major_axis_18;  /* 0x18 */
+    int minor_axis_1c;  /* 0x1c: (major + 1) % 3 */
+    int minor_axis_20;  /* 0x20: (major + 2) % 3 */
+    int count_24;       /* 0x24: cells to visit */
+    int error_delta_28; /* 0x28 */
+    int error_2c;       /* 0x2c */
+    int error_reset_30; /* 0x30 */
+    int error_delta_34; /* 0x34 */
+    int error_38;       /* 0x38 */
+    int error_reset_3c; /* 0x3c */
 };
 
 static_assert(sizeof(W8OctreeWalk) == 0x40, "W8OctreeWalk_must_be_0x40");
@@ -126,10 +120,8 @@ struct W8OctPreTreeLeaf {
     unsigned char positional_10[0x18];
 };
 
-static_assert(sizeof(W8OctPreTreeBranch) == 0x24,
-              "W8OctPreTreeBranch_must_be_0x24");
-static_assert(sizeof(W8OctPreTreeLeaf) == 0x28,
-              "W8OctPreTreeLeaf_must_be_0x28");
+static_assert(sizeof(W8OctPreTreeBranch) == 0x24, "W8OctPreTreeBranch_must_be_0x24");
+static_assert(sizeof(W8OctPreTreeLeaf) == 0x28, "W8OctPreTreeLeaf_must_be_0x28");
 
 /* Engine Code\Octree.cpp. LoadWorld allocates exactly 0x29c bytes. This object
    is deliberately non-polymorphic: every owner calls the complete teardown at
@@ -144,49 +136,33 @@ public:
     void AddLoadedParticle(void* particle);
     void SetVisitedSet0042E3E0(BitArray* visited);
     int MarkVisited0042E400(int offset);
-    void AddCollidablePropBounds(
-        int index, const srVector3T<float>* bounds);
-    void VisitPointCopy0042E620(
-        unsigned short location_id, srVector3T<float>* position);
-    void WorldPositionToCell00431440(
-        const srVector3T<float>* position, int* point);
+    void AddCollidablePropBounds(int index, const srVector3T<float>* bounds);
+    void VisitPointCopy0042E620(unsigned short location_id, srVector3T<float>* position);
+    void WorldPositionToCell00431440(const srVector3T<float>* position, int* point);
     unsigned long FindLeaf00433660(const int* point);
-    void UpdateMonsterLocation(
-        unsigned short location_id, const srVector3T<float>* position);
-    bool HasLineOfSight(
-        const srVector3T<float>* from, srVector3T<float>* to, char allow_fallback);
-    short TraceLineOfSight(
-        const srVector3T<float>* from, const srVector3T<float>* to, char trace_world,
-        int from_location_id, int to_location_id, char visit_octree,
-        int trace_mode);
-    void AdjustPortalDestination(
-        srVector3T<float>* destination, const srVector3T<float>* source);
-    void BuildCellWalk(
-        const srVector3T<float>* from, const srVector3T<float>* to, W8OctreeWalk* walk);
-    unsigned int AdvanceNavigator(
-        W8NavigatorMovementState* movement,
-        float radius, float separation);
-    unsigned char PrepareNavigatorTarget00434250(
-        W8NavigatorMovementState* movement, float radius, float separation);
-    unsigned char PrepareNavigatorPatrol00434880(
-        W8NavigatorMovementState* movement, float minimum, float maximum);
-    unsigned char LinkNavigatorTarget00434A00(
-        W8NavigatorMovementState* movement,
-        const srVector3T<float>* target, float separation);
-    void GetPathSurfaceNormal00433A70(
-        const srVector3T<float>* position, srVector3T<float>* normal);
-    float SettleToGround00433820(
-        srVector3T<float>* position, unsigned char* out_hit, char mode, float limit);
-    void QueueOctreeKind130042E810(
-        int id, const srVector3T<float>* position);
-    int QueryObjects0042F280(
-        int** objects,
-        const srVector3T<float>* lower,
-        const srVector3T<float>* upper,
-        int kind,
-        int excluded);
-    void AdjustPosition00431DA0(
-        srVector3T<float>* position, unsigned int mode);
+    void UpdateMonsterLocation(unsigned short location_id, const srVector3T<float>* position);
+    bool HasLineOfSight(const srVector3T<float>* from, srVector3T<float>* to, char allow_fallback);
+    short TraceLineOfSight(const srVector3T<float>* from, const srVector3T<float>* to,
+                           char trace_world, int from_location_id, int to_location_id,
+                           char visit_octree, int trace_mode);
+    void AdjustPortalDestination(srVector3T<float>* destination, const srVector3T<float>* source);
+    void BuildCellWalk(const srVector3T<float>* from, const srVector3T<float>* to,
+                       W8OctreeWalk* walk);
+    unsigned int AdvanceNavigator(W8NavigatorMovementState* movement, float radius,
+                                  float separation);
+    unsigned char PrepareNavigatorTarget00434250(W8NavigatorMovementState* movement, float radius,
+                                                 float separation);
+    unsigned char PrepareNavigatorPatrol00434880(W8NavigatorMovementState* movement, float minimum,
+                                                 float maximum);
+    unsigned char LinkNavigatorTarget00434A00(W8NavigatorMovementState* movement,
+                                              const srVector3T<float>* target, float separation);
+    void GetPathSurfaceNormal00433A70(const srVector3T<float>* position, srVector3T<float>* normal);
+    float SettleToGround00433820(srVector3T<float>* position, unsigned char* out_hit, char mode,
+                                 float limit);
+    void QueueOctreeKind130042E810(int id, const srVector3T<float>* position);
+    int QueryObjects0042F280(int** objects, const srVector3T<float>* lower,
+                             const srVector3T<float>* upper, int kind, int excluded);
+    void AdjustPosition00431DA0(srVector3T<float>* position, unsigned int mode);
     void UpdateCameraVisibility0042F7E0();
     void UpdateVisibility004304A0();
     unsigned char UpdateWorldTrace00433EB0();
@@ -196,21 +172,24 @@ public:
     int CountBadRegionMeshLinks00433B90(W8OctSpatialState0046CCC0* spatial);
     void ToggleUpdateSuspension00434020(W8World* world);
     void MarkMeshLinksVisible00430A70(unsigned int mesh);
-    unsigned char CollectVisibleRegions00430D50(
-        srVector3T<float>* location, int* cells, float* depth, unsigned char mode);
+    unsigned char CollectVisibleRegions00430D50(srVector3T<float>* location, int* cells,
+                                                float* depth, unsigned char mode);
     void CollectVisibleCells0042FE90();
     /* Project every candidate region volume against the frustum planes and
        mark the visible ones in the current region set. */
-    void MarkVisibleRegions004301C0();       /* 0x004301C0 */
+    void MarkVisibleRegions004301C0(); /* 0x004301C0 */
     /* Build the six frustum planes from the camera basis and far clip. */
-    void BuildFrustumPlanes004302E0();       /* 0x004302E0 */
-    void Function00431050(
-        srVector3T<float>* location, unsigned short* regions);
+    void BuildFrustumPlanes004302E0(); /* 0x004302E0 */
+    void Function00431050(srVector3T<float>* location, unsigned short* regions);
 
-    bool HasLoadError() const {
+    bool HasLoadError() const
+    {
         return (spatial_000.flags_00 & 0x80000000) != 0;
     }
-    unsigned long GetMeshCount() const { return spatial_000.positional_74; }
+    unsigned long GetMeshCount() const
+    {
+        return spatial_000.positional_74;
+    }
 
 public:
     /* Same proven 0x9c value used by the level build tree.  Construction and
@@ -223,11 +202,11 @@ public:
     unsigned long m_positional_0a4;
     unsigned long m_positional_0a8;
     unsigned long m_positional_0ac;
-    void* m_owned_0b0;
+    unsigned long* m_owned_0b0;
     unsigned long m_positional_0b4;
     unsigned long m_positional_0b8;
     W8OctreeObjectRegistry* object_registry;
-    void* m_owned_0c0;
+    char* m_owned_0c0;
     unsigned char m_fAccumulating;
     unsigned char m_positional_0c5[3];
     unsigned long m_positional_0c8;
@@ -239,13 +218,13 @@ public:
        0x0042C68A, 0x0042C70C, 0x0042C7AB, 0x0042C850, 0x0042C8F5 and
        0x0042CAA4. The us prefix is the image's own, so the four lookup and
        link tables are unsigned short arrays. */
-    BitArray* m_pAlphaBits;              /* 0xdc */
+    BitArray* m_pAlphaBits;                  /* 0xdc */
     unsigned short* m_pusMeshParticleLookup; /* 0xe0 */
-    unsigned short* m_pusMeshParticles;   /* 0xe4 */
+    unsigned short* m_pusMeshParticles;      /* 0xe4 */
     unsigned short m_usMeshParticlesLen_0e8;
     unsigned short m_padding_0ea;
-    unsigned short* m_pusMeshPropLookup;  /* 0xec */
-    unsigned short* m_pusMeshProps;       /* 0xf0 */
+    unsigned short* m_pusMeshPropLookup; /* 0xec */
+    unsigned short* m_pusMeshProps;      /* 0xf0 */
     unsigned short m_usMeshPropsLen_0f4;
     unsigned short m_padding_0f6;
     unsigned long m_ulNumParticles;
@@ -294,7 +273,7 @@ public:
     /* Named m_pPropSunBits by ReadOctFile's assertion at 0x0042CAA4. The
        earlier `visited` reading came from 0x0042E3E0's parameter, not from
        the image, and the assertion outranks it. */
-    BitArray* m_pPropSunBits;            /* 0x18c */
+    BitArray* m_pPropSunBits; /* 0x18c */
     BitArray* m_owned_190;
     BitArray* m_owned_194;
     BitArray* m_accumulated_regions_198;
@@ -306,7 +285,7 @@ public:
     unsigned long m_positional_1b0;
     unsigned long m_meshCount_1b4;
     unsigned long m_positional_1b8;
-    unsigned long* m_aulGDObjs;          /* 0x1bc */
+    unsigned long* m_aulGDObjs; /* 0x1bc */
     srVector3T<float> camera_location_1c0;
     srVector3T<float> camera_dof_1cc;
     srVector3T<float> rotation_column_1d8;
@@ -319,7 +298,7 @@ public:
     unsigned char m_positional_204[0x18];
     /* The six frustum planes 0x004302E0 builds; 0x0046D880 tests a point
        against all six. */
-    srVector4T<float> m_frustum_planes_21c[6];   /* 0x21c */
+    srVector4T<float> m_frustum_planes_21c[6]; /* 0x21c */
     unsigned long m_positional_27c;
     unsigned long m_positional_280;
     unsigned long m_positional_284;
@@ -356,29 +335,26 @@ public:
     W8GrowableVector<void*>* positional_3b8;
 };
 
-static_assert(sizeof(W8OctPreTree004679E0) == 0x3bc,
-              "W8OctPreTree004679E0_must_be_0x3bc");
+static_assert(sizeof(W8OctPreTree004679E0) == 0x3bc, "W8OctPreTree004679E0_must_be_0x3bc");
 
 /* The shared spatial-service pointer at 0x006598A4 is the active W8Octree.
    Its callers reach fields at +0x70/+0x120/+0x180, while 0x0042E620 proves
    that the same receiver dispatches ordinary W8Octree methods. */
-unsigned int __stdcall OctreeTraverseKind12(
-    void* walker,
-    void* lower,
-    void* upper,
-    unsigned short limit);
+unsigned int __stdcall OctreeTraverseKind12(void* walker, void* lower, void* upper,
+                                            unsigned short limit);
 
 extern W8Octree* g_octree_6598a4;
 
 /* The SGP /NOOCT startup switch sets this flag; an Octree-unit body reads it. */
-extern "C" void NoOct(void);  // C-LINKAGE: src/sgp/sgp.c invokes the /NOOCT switch
+extern "C" void NoOct(void); // C-LINKAGE: src/sgp/sgp.c invokes the /NOOCT switch
 extern unsigned char g_flag_6598a8;
 
 unsigned char __stdcall IsNavigatorAtTarget004347D0(W8NavigatorMovementState* movement);
-unsigned int __stdcall FindNavigatorPosition00437F30(
-    const srVector3T<float>* source, float yaw, float radius, unsigned int count,
-    srVector3T<float>* positions, char first_only, char flag_2, char flag_3,
-    int mode, char flag_4);
+unsigned int __stdcall FindNavigatorPosition00437F30(const srVector3T<float>* source, float yaw,
+                                                     float radius, unsigned int count,
+                                                     srVector3T<float>* positions, char first_only,
+                                                     char flag_2, char flag_3, int mode,
+                                                     char flag_4);
 
 static_assert(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
 
@@ -392,25 +368,23 @@ extern unsigned char g_octree_update_suspended_00659898;
 extern unsigned char g_octree_trace_enabled_00659899;
 
 int CheckLevelAssetSet0042CCC0(const char* level_path);
-unsigned int FindMonsterLocationsInBox0042F280(
-    int** locations, const srVector3T<float>* lower,
-    const srVector3T<float>* upper, int kind, int excluded_location);
+unsigned int FindMonsterLocationsInBox0042F280(int** locations, const srVector3T<float>* lower,
+                                               const srVector3T<float>* upper, int kind,
+                                               int excluded_location);
 void __stdcall Function42E650(unsigned short location_id);
-unsigned int __stdcall OctreeTraverse(
-    void* walker, void* arg_2, void* arg_3, int kind, unsigned int limit);   /* 0x0042F280 */
+unsigned int __stdcall OctreeTraverse(void* walker, void* arg_2, void* arg_3, int kind,
+                                      unsigned int limit); /* 0x0042F280 */
 void LeaveLocation0042E880(unsigned short location_id, int reason);
 
 void ApplyLevelName00432B80(const char* name);
 int GetSectorForPosition00430BF0(const srVector3T<float>* position);
-unsigned long* __fastcall PackColour00433FB0(
-    unsigned long* color, double red, double green, double blue, double alpha);
+unsigned long* __fastcall PackColour00433FB0(unsigned long* color, double red, double green,
+                                             double blue, double alpha);
 int ProbeCellForBlockers00435C40(const int* cell);
 int ProbeCellForTrace00435B00(const int* cell);
 unsigned char ReadLevelName00432E90(const char* name);
-char ResolveTraceHit004353F0(
-    void* result, srVector3T<float>* hit, int mode, int* out, int value_5, int value_6,
-    int value_7);
+char ResolveTraceHit004353F0(void* result, srVector3T<float>* hit, int mode, int* out, int value_5,
+                             int value_6, int value_7);
 unsigned char TestProbeResult00435F00(void* result);
-int TraceAgainstProps00436510(
-    const srVector3T<float>* from, srVector3T<float>* to, int value_3, int value_4);
-
+int TraceAgainstProps00436510(const srVector3T<float>* from, srVector3T<float>* to, int value_3,
+                              int value_4);

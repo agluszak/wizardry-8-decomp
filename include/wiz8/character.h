@@ -41,7 +41,7 @@ struct W8Enchantment {
     /* 0x08: the field the topmost-slot scan reads and the one the fatigue path
        consults on slot five. */
     int value_08;
-};                                        /* 0x0c */
+}; /* 0x0c */
 
 /* The game's wide text format: fixed-size UINT16 arrays stored inline in
    records and manipulated through the CRT wide-string functions. Under VC6
@@ -51,18 +51,18 @@ struct W8Enchantment {
    seven attribute ids sit at the top of the skill numbering; only the leading
    value, which IsCharacterSkillAvailable tests against 100, is established. */
 struct W8CharacterAttribute {
-    unsigned int value;                   /* 0x00 */
+    unsigned int value; /* 0x00 */
     /* 0x04: the value after equipment and effects. Resistance recalculation
        reads this one, not the base, and only above a threshold of 0x50. */
     unsigned int effective;
     unsigned char unknown_08[0xc];
-};                                        /* 0x14 */
+}; /* 0x14 */
 
 /* One skill record, indexed directly by skill id. PracticeCharacterSkill
    establishes the stride and the leading flag it sets when a skill first
    becomes available; IsCharacterSkillAvailable reads the same flag. */
 struct W8CharacterSkill {
-    unsigned char flag_00;                /* 0x00 */
+    unsigned char flag_00; /* 0x00 */
     unsigned char unknown_01;
     /* 0x02: a second figure the spell-learning ceiling divides by ten, the
        same way the resistances divide `level`. The two are distinct fields of
@@ -76,16 +76,16 @@ struct W8CharacterSkill {
        value_02. */
     unsigned int base_level_0a;
     unsigned char unknown_0e[0x18];
-};                                        /* 0x26 */
+}; /* 0x26 */
 
 /* One resistance channel. Recalculation rebuilds `base` from scratch each time
    and then derives `total` from it, so the two are a computed pair rather than
    a stored value and a cache. */
 struct W8CharacterResistance {
-    unsigned int base;                    /* 0x00 */
-    unsigned int total;                   /* 0x04: clamped to 100 */
+    unsigned int base;  /* 0x00 */
+    unsigned int total; /* 0x04: clamped to 100 */
     unsigned char unknown_08[8];
-};                                        /* 0x10 */
+}; /* 0x10 */
 
 /* The six realms a spell point pool is kept per are W8SpellRealm's, declared
    with the spell record in wiz8/layouts/gameplay_databases.h. */
@@ -104,20 +104,20 @@ enum {
 /* One hand's derived attack block. CalcAttacks walks two at this stride, while
    the equipment refresh helper writes the leading wield kind at 0x00. */
 struct W8HandAttack {
-    int wield_kind;                       /* 0x00 */
-    unsigned char in_play;                /* 0x04 */
-    int weapon_skill;                     /* 0x05, unaligned */
-    int combat_skill;                     /* 0x09 */
-    unsigned int combined_skill;          /* 0x0d */
-    int attack_score;                     /* 0x11 */
-    unsigned int attacks;                 /* 0x15 */
-    int swings;                           /* 0x19 */
-    int damage_bonus;                     /* 0x1d */
-    int hit_bonus;                        /* 0x21 */
-    int value_25;                         /* 0x25 */
-    int value_29;                         /* 0x29 */
-    W8Dice damage_dice;                   /* 0x2d */
-    unsigned short attack_flags;          /* 0x31 */
+    int wield_kind;              /* 0x00 */
+    unsigned char in_play;       /* 0x04 */
+    int weapon_skill;            /* 0x05, unaligned */
+    int combat_skill;            /* 0x09 */
+    unsigned int combined_skill; /* 0x0d */
+    int attack_score;            /* 0x11 */
+    unsigned int attacks;        /* 0x15 */
+    int swings;                  /* 0x19 */
+    int damage_bonus;            /* 0x1d */
+    int hit_bonus;               /* 0x21 */
+    int value_25;                /* 0x25 */
+    int value_29;                /* 0x29 */
+    W8Dice damage_dice;          /* 0x2d */
+    unsigned short attack_flags; /* 0x31 */
     int value_33;
     unsigned char unknown_37[2];
     signed char strength_bonus_39;
@@ -125,7 +125,7 @@ struct W8HandAttack {
     int value_3b;
     int value_3f;
     unsigned char unknown_43[0x18];
-};                                        /* 0x5b */
+}; /* 0x5b */
 
 /* One 0x11-byte condition record from 0x1817. Function5248A0 reads byte 8 of
    one of the four; the rest is not yet named. */
@@ -133,29 +133,28 @@ struct W8CharacterConditionRecord {
     unsigned char unknown_00[8];
     unsigned char value_08;
     unsigned char unknown_09[8];
-};                                            /* 0x11 */
-static_assert(sizeof(W8CharacterConditionRecord) == 0x11,
-              "W8CharacterConditionRecord_size");
+}; /* 0x11 */
+static_assert(sizeof(W8CharacterConditionRecord) == 0x11, "W8CharacterConditionRecord_size");
 
 struct W8Character {
     /* 0x0000: SaveCharacter stamps 1 here before writing the record, so the
        leading dword is a saved-record version rather than runtime state. */
     unsigned int record_version;
-    unsigned char in_party;              /* 0x0004 */
+    unsigned char in_party; /* 0x0004 */
     /* 0x0005: the character's name, wide, and the stem SaveCharacter formats
        "%ls.CHR" from. The extent below partitions the unknown run up to the
        profession at 0x0069; it is not proven, and only the fact that a wide
        string starts here is. */
     wchar_t name[10];
-    wchar_t name_part_2[6];              /* 0x0019: rendered as the parenthesized name */
+    wchar_t name_part_2[6]; /* 0x0019: rendered as the parenthesized name */
     unsigned char unknown_0025[0x44];
     /* 0x0069 and 0x006d: iProfession, named by the GameplayCode.cpp:399
        assertion that bounds it against PROF_COUNT, and the profession the
        character started in. The level band subtracts a base only while the two
        agree. */
-    W8Profession current_profession;      /* 0x0069 */
-    W8Profession original_profession;     /* 0x006d */
-    int race;                             /* 0x0071: indexes the race resistance table */
+    W8Profession current_profession;  /* 0x0069 */
+    W8Profession original_profession; /* 0x006d */
+    int race;                         /* 0x0071: indexes the race resistance table */
     /* 0x0075: zero is male and one is female. The quote lookup names the
        Data\Quotes\PCs files m_ or f_ from it, the item record's two-bit mask
        admits exactly one sex, and the female-only profession at index two
@@ -167,23 +166,23 @@ struct W8Character {
     /* 0x007d: cleared by DeriveCharacterPersonality004EFA30 in both of its branches and set to -1
        by the character rebuild; all three accesses are four-byte stores. */
     int unknown_007d;
-    int personality_0081;               /* indexes the state-5 descriptor text */
-    int voice_0085;                     /* selected by the character voice control */
-    unsigned int level;                   /* 0x0089: averaged across occupied slots */
-    int profession_levels[W8_PROFESSION_COUNT];  /* 0x008d */
+    int personality_0081;                       /* indexes the state-5 descriptor text */
+    int voice_0085;                             /* selected by the character voice control */
+    unsigned int level;                         /* 0x0089: averaged across occupied slots */
+    int profession_levels[W8_PROFESSION_COUNT]; /* 0x008d */
     unsigned char unknown_00c9[0x14];
     /* 0x00dd: the eight-band ladder over the character's level in their
        current profession, and the base subtracted from it while they are still
        in the profession they started in. */
     int level_band;
     int level_band_base;
-    W8CharacterAttribute attributes[7];   /* 0x00e5, indexed by skill_id - 0x22 */
+    W8CharacterAttribute attributes[7]; /* 0x00e5, indexed by skill_id - 0x22 */
     unsigned char unknown_0171[0x28];
     /* 0x199: the attribute points the level-up reset still owes against the
        profession's minimums. It accumulates as a negative debt and is drawn
        back down one point at a time once the pool is positive. */
     int attribute_point_deficit_0199;
-    W8CharacterSkill skills[0x29];        /* 0x019d, indexed by skill_id */
+    W8CharacterSkill skills[0x29]; /* 0x019d, indexed by skill_id */
     unsigned char unknown_07b3[0x23a];
     /* 0x09ed..0x09f8: experience, the goal for the next level, and the goal
        the previous level had. A character is ready to advance once the first
@@ -202,9 +201,9 @@ struct W8Character {
        same things. Several entries were read individually before this array
        explained them: two doubles the fatigue an action costs, eight blocks
        spellcasting, eighteen unlocks bound equipment. */
-    int condition_turns[W8_CONDITION_COUNT];   /* 0x0a01 */
+    int condition_turns[W8_CONDITION_COUNT]; /* 0x0a01 */
     unsigned char unknown_0a51[0x14];
-    W8Enchantment enchantments[8];             /* 0x0a65 */
+    W8Enchantment enchantments[8]; /* 0x0a65 */
     unsigned char unknown_0ac5[0x3c];
     /* 0x0b01 gates party-member selection alongside hp_current: a slot is
        eligible when it still has hit points and this is under 0x12, and a
@@ -219,18 +218,18 @@ struct W8Character {
     /* 0x0b0d..0x0b20: the two pools with a ceiling each, plus the adjustment
        damage is booked against before hit points are recalculated. A character
        whose hp_current is zero is treated as out of the fight everywhere. */
-    int hp_max;                           /* 0x0b0d */
-    unsigned int hp_current;              /* 0x0b11 */
-    int hp_adjustment;                    /* 0x0b15 */
-    int stamina_max;                      /* 0x0b19 */
-    int stamina;                          /* 0x0b1d */
-    unsigned int fatigue_penalty_0b21;    /* 0x0b21: taken off the stamina ceiling */
+    int hp_max;                        /* 0x0b0d */
+    unsigned int hp_current;           /* 0x0b11 */
+    int hp_adjustment;                 /* 0x0b15 */
+    int stamina_max;                   /* 0x0b19 */
+    int stamina;                       /* 0x0b1d */
+    unsigned int fatigue_penalty_0b21; /* 0x0b21: taken off the stamina ceiling */
     /* 0x0b25 and 0x0b45: iSPMax and iSPLeft, one per spell realm, named by the
        Health Stamina Mana.cpp:1067 assertion pPC->iSPLeft[uiRealm] and bounded
        at six realms by the total the party-wide restore accumulates. */
-    int sp_max[W8_SPELL_REALM_COUNT];     /* 0x0b25 */
+    int sp_max[W8_SPELL_REALM_COUNT]; /* 0x0b25 */
     unsigned char unknown_0b3d[8];
-    int sp_left[W8_SPELL_REALM_COUNT];    /* 0x0b45 */
+    int sp_left[W8_SPELL_REALM_COUNT]; /* 0x0b45 */
     unsigned char unknown_0b5d[0xc];
     /* 0x0b69, 0x0b71 and 0x0b79: the per-tick regeneration rates rebuilt from
        the pool ceilings, one each for hit points and stamina and one per spell
@@ -241,16 +240,16 @@ struct W8Character {
     unsigned char unknown_0b75[4];
     float spell_regen_rates_0b79[12];
     unsigned char unknown_0ba9[0x10];
-    int inventory_weight;               /* 0x0bb9 */
-    int party_weight_share;              /* 0x0bbd */
-    int total_carried_weight;            /* 0x0bc1 */
-    int carrying_capacity;               /* 0x0bc5; displayed divided by 10 */
+    int inventory_weight;     /* 0x0bb9 */
+    int party_weight_share;   /* 0x0bbd */
+    int total_carried_weight; /* 0x0bc1 */
+    int carrying_capacity;    /* 0x0bc5; displayed divided by 10 */
     /* 0x0bc9: the load category, zero through four, which scales what an
        action costs in fatigue. FatigueCharacter's error text calls it that. */
     int load_category;
     /* 0x0bcd: one entry per spell. CanCharacterUseItem refuses a spell-source
        item whose spell already reads one here, so one is the learned state. */
-    int spell_learned[136];               /* 0x0bcd */
+    int spell_learned[136]; /* 0x0bcd */
     /* 0x0ded: indexed by skill_id. For the six realm skills it counts the
        spells known in that realm, which is what makes the skill available at
        all - LearnSpell bumps the entry and IsCharacterSkillAvailable reads it.
@@ -268,7 +267,7 @@ struct W8Character {
     /* 0x0e8d: thirteen armor-class components. CalcArmorClasses clears the
        whole run before applying equipment, traits, load and fatigue. */
     int armor_class_components[13];
-    int armor_class_by_location[5];       /* 0x0ec1 */
+    int armor_class_by_location[5]; /* 0x0ec1 */
     unsigned char unknown_0ed5[4];
     /* 0x0ed9: a percentage taken off incoming damage, the character's
        counterpart of the monster's own at 0x1e1. */
@@ -279,15 +278,15 @@ struct W8Character {
        GetItemDefaultEquipSlot answers and GetItemEquipSlotMask sets bits for.
        Slots six and seven are the primary hands and eight and nine the
        alternate pair, which is what the two-handed and off-hand tests read. */
-    W8ItemInstance equipment[12];         /* 0x0f5d */
+    W8ItemInstance equipment[12]; /* 0x0f5d */
     unsigned char unknown_0fed[0x3c];
     /* 0x1029: the eight per-character carried slots. GetOriginOfCharacterItem
        reports this array as origin zero and the equipment array as origin one. */
-    W8ItemInstance backpack[8];           /* 0x1029 */
+    W8ItemInstance backpack[8]; /* 0x1029 */
     unsigned char unknown_1089[0xc0];
-    W8HandAttack hand_attacks[2];         /* 0x1149 */
+    W8HandAttack hand_attacks[2]; /* 0x1149 */
     unsigned char unknown_11ff[0xb6];
-    unsigned char dual_wielding;          /* 0x12b5 */
+    unsigned char dual_wielding; /* 0x12b5 */
     unsigned char unknown_12b6[0x3e8];
     /* 0x169e: the fatigue band, zero through four, recomputed from the stamina
        fraction whenever it moves; a change re-runs the armour class pass. */
@@ -305,10 +304,10 @@ struct W8Character {
        effect in Magic Effects.cpp. Its extent is proven rather than assumed:
        the cross-level path copies exactly 0x3c bytes from here with one
        rep movsd, which lands precisely on the level id below. */
-    W8SavedLocation saved_location;      /* 0x17d7 */
+    W8SavedLocation saved_location; /* 0x17d7 */
     /* 0x1813: which level that anchor belongs to. The recall compares it
        against g_status_685170.current_level and takes a different path when they differ. */
-    int saved_level;                     /* 0x1813 */
+    int saved_level;                               /* 0x1813 */
     W8CharacterConditionRecord conditions_1817[4]; /* 0x1817 .. 0x185a */
     /* 0x185b: the deep-fatigue effect is already on this character, which is
        what stops FatigueCharacter re-applying it every turn. */
@@ -319,7 +318,9 @@ struct W8Character {
     unsigned char unknown_1860;
     /* 0x1861: the anchor above has been set. Recall does nothing without it. */
     unsigned char has_saved_location;
-};                                       /* 0x1862 */
+}; /* 0x1862 */
+
+static_assert(sizeof(W8Character) == 0x1862, "W8Character_must_be_0x1862");
 
 struct W8SkillAttributes {
     int category;
@@ -329,7 +330,6 @@ struct W8SkillAttributes {
 };
 
 #pragma pack(pop)
-
 
 extern W8RaceResistanceProfile g_race_resistance_profiles[];
 extern int g_profession_skill_availability[0x29][W8_PROFESSION_COUNT];
@@ -352,28 +352,19 @@ extern int g_profession_skills[W8_PROFESSION_COUNT][4];
 extern int g_profession_magic_level_offsets[W8_PROFESSION_COUNT];
 extern float g_profession_hit_point_factors[W8_PROFESSION_COUNT];
 
-int GetNextCharacter(
-    int require_primary, int require_secondary, int previous_slot);
+int GetNextCharacter(int require_primary, int require_secondary, int previous_slot);
 int RPCPtrToPCSlot(const W8MonsterManagerEntry* rpc);
 void StripMonsterNameSuffix(W8WideChar* name);
 unsigned int CharacterPointerToPartySlot(const W8Character* character);
-unsigned char SetCharacterCondition(
-    int party_slot,
-    int condition,
-    int duration,
-    int argument,
-    char value_5,
-    char value_6);
+unsigned char SetCharacterCondition(int party_slot, int condition, int duration, int argument,
+                                    char value_5, char value_6);
 bool IsPartyCharacterPointer(const W8Character* character);
 bool IsCharacterReadyToAdvance(int party_slot);
 int GetProfessionCasterLevel(W8Character* character, int profession_id);
-bool IsCharacterSkillAvailable(
-    W8Character* character,
-    unsigned int skill_id,
-    const unsigned char* expert_realm_flags);
+bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
+                               const unsigned char* expert_realm_flags);
 void RecalculateCharacterResistances(W8Character* character);
 int SumCharacterSpellPoints(const W8Character* character);
-
 
 struct W8PortraitDescriptor {
     int group;
@@ -382,8 +373,7 @@ struct W8PortraitDescriptor {
     int render_mode;
 };
 
-static_assert(sizeof(W8PortraitDescriptor) == 0x10,
-              "W8PortraitDescriptor_size");
+static_assert(sizeof(W8PortraitDescriptor) == 0x10, "W8PortraitDescriptor_size");
 
 extern W8PortraitDescriptor g_portrait_descriptors_6483d0[80];
 
@@ -402,14 +392,12 @@ unsigned char Function5586B0(W8Character*);
 void Function5218C0(W8Character*);
 void Function51D960(W8Character*);
 void Function52F2C0(W8Character* character);
-void ApplyCharacterEffect(
-    W8Character* character, int effect, int arg_3, int arg_4, int arg_5);
+void ApplyCharacterEffect(W8Character* character, int effect, int arg_3, int arg_4, int arg_5);
 int CalcRangeCategoryToTarget(const W8Character* character, int hand);
 int Function51C5A0(W8Character* character, int item_id);
 bool RecalculateCarriedWeight(W8Character* character);
 void CalcXPGoal(W8Character* character);
-int GetSpellbookForSpell(
-    const W8Character* character, int spell_id, int a, int b, int c);
+int GetSpellbookForSpell(const W8Character* character, int spell_id, int a, int b, int c);
 int RebuildRealmSpellPointCeilings0052A540(W8Character* character);
 unsigned char CharacterHasCondition(const W8Character* character, int condition);
 
@@ -419,8 +407,7 @@ bool RecalculateCarryingCapacity004EDC10(W8Character* character);
 /* 0x004ED9D0: the full derived-stat recompute, and the two equipment-bonus
    passes an NPC character's initialization runs. */
 void Function4ED9D0(W8Character* character);
-void AccumulateEquipmentModifiers(
-    W8Character* character, W8GameplayModifierBlock* equipment_bonus);
+void AccumulateEquipmentModifiers(W8Character* character, W8GameplayModifierBlock* equipment_bonus);
 void RebuildCharacterModifierBlock(W8Character* character);
 void Function52A3E0(W8Character* character);
 void Function52A500(W8Character* character);

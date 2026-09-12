@@ -1696,12 +1696,11 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                 if (m_owned_0c0 != 0) {
                     free(m_owned_0c0);
                 }
-                m_owned_0c0 = malloc(name_length);
+                m_owned_0c0 = static_cast<char*>(malloc(name_length));
                 if (m_owned_0c0 != 0) {
-                    strcpy(static_cast<char*>(m_owned_0c0), path);
-                    extension = strrchr(static_cast<char*>(m_owned_0c0), '.');
-                    if (extension != 0 &&
-                        extension - static_cast<char*>(m_owned_0c0) > (int)(name_length - 7)) {
+                    strcpy(m_owned_0c0, path);
+                    extension = strrchr(m_owned_0c0, '.');
+                    if (extension != 0 && extension - m_owned_0c0 > (int)(name_length - 7)) {
                         *extension = '\0';
                     }
                 }
@@ -1760,7 +1759,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
     limit = m_positional_0a4 * m_positional_0a8 * m_positional_0ac;
     if (fLoaded != 0 && limit < 250000) {
         block = malloc(limit * 4);
-        m_owned_0b0 = block;
+        m_owned_0b0 = static_cast<unsigned long*>(block);
         if (block == 0) {
             strcpy(acMessage, "ReadOctFile: Couldn't allocate polygon index list for regions.");
             goto finish;
@@ -2028,7 +2027,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                                     (float)ReadHeader<unsigned long>(header, 0xac),
                                                     ReadHeader<unsigned long>(header, 0xb4),
                                                     reinterpret_cast<const float*>(header + 0x0e),
-                                                    static_cast<char*>(m_owned_0c0));
+                                                    m_owned_0c0);
                                                 fLoaded = pathing_180->Load00458CE0(hOctFile);
                                             }
                                             fSuccess = 0;
@@ -2098,8 +2097,8 @@ finish:
         pGameData->positional_04 = this;
         *game_data = pGameData;
         g_octree_game_data_00652db0 = pGameData;
-        m_positional_169 = ReadLevelName00432E90(static_cast<char*>(m_owned_0c0));
-        ApplyLevelName00432B80(static_cast<char*>(m_owned_0c0));
+        m_positional_169 = ReadLevelName00432E90(m_owned_0c0);
+        ApplyLevelName00432B80(m_owned_0c0);
         if (pathing_180 != 0) {
             ReadWaypointFile0043A0F0();
         }
@@ -2263,10 +2262,10 @@ void W8Octree::AddLoadedParticle(void* particle)
 W8Octree::~W8Octree()
 {
     if (m_positional_16c != 0) {
-        SaveRegionLinks004331F0(static_cast<char*>(m_owned_0c0));
+        SaveRegionLinks004331F0(m_owned_0c0);
     }
     if (m_positional_16d != 0) {
-        SavePoints00432D60(static_cast<char*>(m_owned_0c0));
+        SavePoints00432D60(m_owned_0c0);
     }
     if (pathing_180 != 0) {
         pathing_180->SaveWaypointSnapshot00459400(0);

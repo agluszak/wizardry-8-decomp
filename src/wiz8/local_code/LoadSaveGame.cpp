@@ -3,7 +3,6 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/local_code/ItemManager.h"
 #include "wiz8/local_code/MonsterGroup.h"
-#include "wiz8/bringup_gates.h"
 #include "wiz8/monster_generators.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Trigger.h"
@@ -96,23 +95,20 @@ unsigned char g_flag_659756;
 /* The fixed 0x314-byte header every save begins with. Only the fields
    LoadStatusHeader forwards are established; the rest is read and kept. */
 struct W8StatusHeader {
-    float version;                       /* 0x000 */
-    int status_count_004;                /* 0x004: meaning not established */
-    int next_monster_location_id;        /* 0x008 */
-    int next_world_item_id;              /* 0x00c */
-    int next_trigger_id;                 /* 0x010 */
-    unsigned char status_block[0x100];   /* 0x014 */
+    float version;                     /* 0x000 */
+    int status_count_004;              /* 0x004: meaning not established */
+    int next_monster_location_id;      /* 0x008 */
+    int next_world_item_id;            /* 0x00c */
+    int next_trigger_id;               /* 0x010 */
+    unsigned char status_block[0x100]; /* 0x014 */
     unsigned char unknown_114[0x200];
-};                                       /* 0x314 */
+}; /* 0x314 */
 
-static_assert(sizeof(W8StatusHeader) == 0x314,
-              "W8StatusHeader_must_be_0x314");
+static_assert(sizeof(W8StatusHeader) == 0x314, "W8StatusHeader_must_be_0x314");
 
 /* Established save-side callees without shared declarations yet. Their
    positional names preserve the current identity ceiling; the orchestration
    below establishes only their argument shape and section ownership. */
-
-
 
 /* 0x005156C0, 0x00517A90 and 0x00518510, not yet identified; named by address
    as elsewhere in src/wiz8. The first loads a character from somewhere other
@@ -122,21 +118,13 @@ static_assert(sizeof(W8StatusHeader) == 0x314,
    vendored SGP FileMan.h already on this target's include path, so they are not
    restated here. */
 
-/* 0x0068517C selects where characters live, and 0x006874D7 is a per-slot byte
-   consulted only when it is set. The failure notice comes out of the shared
-   notice array, and 0x00683678 is passed alongside; neither is established
-   beyond that, so both keep positional names. */
-// GLOBAL: WIZ8 0x006874D7
-unsigned char g_flags_6874d7[32];
-
 /* Build the loose character/NPC path in the two forms used by the save code.
    The first accepts an already formatted filename or wildcard; the second
    appends the canonical CHR extension to a character's wide name first.  When
    characters are being supplied by an archive, a flagged slot or the external
    character sentinel keeps the caller's name unqualified. */
 // FUNCTION: WIZ8 0x00514fa0
-void BuildCharacterFilePath00514FA0(char* destination, const char* filename,
-                                    int slot)
+void BuildCharacterFilePath00514FA0(char* destination, const char* filename, int slot)
 {
     char directory[260];
 
@@ -145,7 +133,7 @@ void BuildCharacterFilePath00514FA0(char* destination, const char* filename,
         sprintf(destination, "%s\\%s", directory, filename);
         return;
     }
-    if (slot != -1 && !g_flags_6874d7[slot]) {
+    if (slot != -1 && !g_status_685170.save_slot_flags_2367[slot]) {
         sprintf(destination, "%s\\%s", "Saves\\NPCs", filename);
         return;
     }
@@ -153,8 +141,7 @@ void BuildCharacterFilePath00514FA0(char* destination, const char* filename,
 }
 
 // FUNCTION: WIZ8 0x00514ec0
-void BuildCharacterPath00514EC0(char* destination, const wchar_t* name,
-                                int slot)
+void BuildCharacterPath00514EC0(char* destination, const wchar_t* name, int slot)
 {
     char filename[16];
     char directory[260];
@@ -162,12 +149,10 @@ void BuildCharacterPath00514EC0(char* destination, const wchar_t* name,
     sprintf(filename, "%ls.%s", name, "CHR");
     if (!g_status_685170.game_started) {
         strcpy(directory, slot == -1 ? "Saves\\Characters" : "Saves\\NPCs");
-    }
-    else if (slot == -1 || g_flags_6874d7[slot]) {
+    } else if (slot == -1 || g_status_685170.save_slot_flags_2367[slot]) {
         strcpy(destination, filename);
         return;
-    }
-    else {
+    } else {
         strcpy(directory, "Saves\\NPCs");
     }
     sprintf(destination, "%s\\%s", directory, filename);
@@ -182,8 +167,7 @@ void BuildCharacterPath00514EC0(char* destination, const wchar_t* name,
    length and then that many bytes. A short or failed second read leaves the
    record cleared and reports failure, and the file is closed either way. */
 // FUNCTION: WIZ8 0x005152b0
-unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
-                            char report_failure)
+unsigned char LoadCharacter(const char* name, W8Character* character, int slot, char report_failure)
 {
     char path[60];
     char directory[260];
@@ -193,7 +177,7 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
     int handle;
 
     if (g_status_685170.game_started) {
-        if (slot != -1 && g_flags_6874d7[slot] == 0) {
+        if (slot != -1 && g_status_685170.save_slot_flags_2367[slot] == 0) {
             sprintf(path, "%s\\%s", "Saves\\NPCs", name);
         } else {
             strcpy(path, name);
@@ -204,7 +188,7 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
     }
 
     if (g_status_685170.game_started &&
-        (slot == -1 || g_flags_6874d7[slot] != 0)) {
+        (slot == -1 || g_status_685170.save_slot_flags_2367[slot] != 0)) {
         loaded = Function5156C0(path, character);
     } else {
         handle = FileOpen(path, 1, 0);
@@ -212,8 +196,8 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
             goto report;
         }
         memset(character, 0, sizeof(W8Character));
-        if (FileRead(handle, &size, 4, &transferred)
-            && FileRead(handle, character, size, &transferred)) {
+        if (FileRead(handle, &size, 4, &transferred) &&
+            FileRead(handle, character, size, &transferred)) {
             loaded = 1;
         }
         FileClose(handle);
@@ -228,9 +212,8 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
     }
 report:
     if (report_failure) {
-        wchar_t* notice = FormatWideString(
-            gppStringList[W8_NOTICE_CHARACTER_LOAD_FAILED], name,
-            g_small_font_683678, 1, 1, 0, 0);
+        wchar_t* notice = FormatWideString(gppStringList[W8_NOTICE_CHARACTER_LOAD_FAILED], name,
+                                           g_small_font_683678, 1, 1, 0, 0);
         Function518510(notice);
     }
     return loaded;
@@ -266,8 +249,8 @@ unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots)
     if (search != INVALID_HANDLE_VALUE) {
         do {
             sprintf(path, "%s\\%s", "Saves", find_data.cFileName);
-            if (strcmp(path, "Saves\\CurrentGame.SAV") != 0 &&
-                strlen(find_data.cFileName) < 64 && chunks.OpenRead(path)) {
+            if (strcmp(path, "Saves\\CurrentGame.SAV") != 0 && strlen(find_data.cFileName) < 64 &&
+                chunks.OpenRead(path)) {
                 W8SaveSlot* slot = new W8SaveSlot;
                 slot->screenshot.capture_result = 0;
                 slot->version_major = 1;
@@ -314,7 +297,7 @@ unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots)
                     int position;
                     for (position = first; position < slots->count; ++position) {
                         if (CompareSGPFileTimes(&slot->local_write_time,
-                                &(*slots->GetAt(position))->local_write_time) > 0) {
+                                                &(*slots->GetAt(position))->local_write_time) > 0) {
                             break;
                         }
                     }
@@ -344,8 +327,7 @@ int GetSaveGameLevel(const char* slot_name)
         count = chunks.ChunkCount();
         for (index = 0; index < count; ++index) {
             chunks.OpenChunk(0, 0);
-            if (!chunks.CurrentChunkAtEnd() &&
-                chunks.CurrentChunkId() == 0x41545347) {
+            if (!chunks.CurrentChunkAtEnd() && chunks.CurrentChunkId() == 0x41545347) {
                 AllocateStatusBuffers(&status.buffers);
                 LoadGameStatus(&chunks, &status);
                 FreeStatusBuffers(&status.buffers);
@@ -376,21 +358,17 @@ void BuildLevelStatusPath(char* path, unsigned int level)
 
     if (!LevelBuildInfoByID(level, &info)) {
         srAssertFail("LevelFilesExist(ulLevel, &LevelName)",
-                     "C:\\Projects\\Wizardry 8\\Local Code\\LoadSaveGame.cpp",
-                     870, 0);
+                     "C:\\Projects\\Wizardry 8\\Local Code\\LoadSaveGame.cpp", 870, 0);
     }
     *strchr(info.level_file_name, '.') = '\0';
     if (level < 57) {
         if (level == 56) {
             sprintf(path, "%s\\Test\\DefaultLevel.%s", "Levels", "STS");
-        }
-        else {
-            sprintf(path, "%s\\%s\\%s.%s", "Levels",
-                    g_level_folders[level].folder_name,
+        } else {
+            sprintf(path, "%s\\%s\\%s.%s", "Levels", g_level_folders[level].folder_name,
                     g_level_folders[level].level_name, "STS");
         }
-    }
-    else {
+    } else {
         sprintf(path, "%s\\Test\\Level%c.%s", "Levels", level - 56, "STS");
     }
 }
@@ -450,15 +428,12 @@ unsigned char SaveLevelStatus(const char* path)
 
     if (!chunk.OpenReadWrite(const_cast<char*>(path))) {
         opened = chunk.OpenWrite(const_cast<char*>(path));
-    }
-    else {
+    } else {
         unsigned int empty_percent;
 
-        MeasureLevelStatusChunks00514DF0(
-            &chunk, g_loaded_level_id, &empty_percent);
+        MeasureLevelStatusChunks00514DF0(&chunk, g_status_685170.current_level, &empty_percent);
         chunk.Close();
-        if (empty_percent > 0x32
-            && _stricmp(path, "Saves\\CurrentGame.SAV") == 0) {
+        if (empty_percent > 0x32 && _stricmp(path, "Saves\\CurrentGame.SAV") == 0) {
             SaveGame("CleanUp", 0);
             FileDelete("Saves\\CurrentGame.SAV");
             rename("Saves\\CleanUp.SAV", "Saves\\CurrentGame.SAV");
@@ -488,15 +463,13 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     DestroyUngroupedMonsters();
     chunks->OpenChunk(0x534c564c, 0); /* LVLS */
     chunks->OpenGroup();
-    chunks->Write(&g_status_685170.current_level,
-                  sizeof(g_status_685170.current_level), 0);
+    chunks->Write(&g_status_685170.current_level, sizeof(g_status_685170.current_level), 0);
 
     chunks->OpenChunk(0x54415453, 0); /* STAT */
     memset(&header, 0, sizeof(header));
     header.version = 2.0f;
     header.status_count_004 = g_status_685170.status_count_234a;
-    header.next_monster_location_id =
-        g_status_685170.next_monster_location_id_234e;
+    header.next_monster_location_id = g_status_685170.next_monster_location_id_234e;
     header.next_world_item_id = g_status_685170.next_world_item_id_2352;
     header.next_trigger_id = g_status_685170.next_trigger_id_2356;
     memcpy(header.status_block, g_status_685170.status_header_block_1904,
@@ -689,7 +662,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
 // FUNCTION: WIZ8 0x00512d00
 unsigned char VerifyDataSubdirs(void)
 {
-    char directories[4][60] = { "Saves", "Saves\\Characters", "Saves\\NPCs", "" };
+    char directories[4][60] = {"Saves", "Saves\\Characters", "Saves\\NPCs", ""};
     char* directory;
     unsigned int attributes;
 
@@ -752,8 +725,7 @@ unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
             srVector3T<float> position;
             item->owner->m_pRep->GetLocation004B8890(&position);
             item->position = position;
-            item->entity_flags =
-                static_cast<W8ItemRep*>(first->owner->m_pRep)->flags;
+            item->entity_flags = static_cast<W8ItemRep*>(first->owner->m_pRep)->flags;
         }
         if (g_flag_659756 != 0) {
             first->entity_flags &= ~8;
@@ -869,15 +841,14 @@ unsigned char SaveCharacter(W8Character* character, int slot, char report_failur
     if (g_status_685170.game_started == 0) {
         strcpy(directory, slot != -1 ? "Saves\\NPCs" : "Saves\\Characters");
         sprintf(path, "%s\\%s", directory, file_name);
-    } else if (slot == -1 || g_flags_6874d7[slot] != 0) {
+    } else if (slot == -1 || g_status_685170.save_slot_flags_2367[slot] != 0) {
         strcpy(path, file_name);
     } else {
         sprintf(path, "%s\\%s", "Saves\\NPCs", file_name);
     }
 
     if (g_status_685170.game_started == 0) {
-        if (FileExists(path) &&
-            (FileGetAttributes(path) & FILE_IS_READONLY) != 0 &&
+        if (FileExists(path) && (FileGetAttributes(path) & FILE_IS_READONLY) != 0 &&
             FileClearAttributes(path) == 0) {
             goto report;
         }
@@ -899,9 +870,9 @@ unsigned char SaveCharacter(W8Character* character, int slot, char report_failur
     }
 report:
     if (report_failure) {
-        wchar_t* notice = FormatWideString(
-            gppStringList[W8_NOTICE_CHARACTER_SAVE_FAILED],
-            character->name, g_small_font_683678, 1, 1, 0, continuation);
+        wchar_t* notice =
+            FormatWideString(gppStringList[W8_NOTICE_CHARACTER_SAVE_FAILED], character->name,
+                             g_small_font_683678, 1, 1, 0, continuation);
         Function518510(notice);
         return 0;
     }
@@ -939,8 +910,7 @@ void DeleteCurrentSaveFiles(void)
 {
     char path[260];
 
-    sprintf(path, "%s\\%s.%s", "Saves",
-            ConvertWideStringToString(GetAddress69C1CC()),
+    sprintf(path, "%s\\%s.%s", "Saves", ConvertWideStringToString(GetAddress69C1CC()),
             g_save_extension);
     if (_access(path, 2) != 0 && errno == EACCES) {
         _chmod(path, _S_IREAD | _S_IWRITE);
@@ -954,7 +924,6 @@ void DeleteCurrentSaveFiles(void)
 
 /* Two gates with no established meaning beyond their position in the chain, so
    both keep positional names. Both are zero in the shipped image. */
-extern unsigned char g_flag_006875a5;
 
 /* gXStatus.fCombatMode and gXStatus.fCampMode reach this unit through
    xstatus.h. */
@@ -977,11 +946,11 @@ unsigned char AutoSaveIfAllowed(char forced)
     char name[64];
 
     g_save_notice_shown_0068506b = 0;
-    if (g_flag_006875a5 == 0 && AnyMonsterDying() == 0
-        && ((g_settings_6850c8.auto_save != 0 && forced == 0) || g_status_685170.iron_man != 0)
-        && gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0
-        && (char)IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.field_01f == 0
-        && gXStatus.fCampMode == 0) {
+    if (g_status_685170.value_2435 == 0 && AnyMonsterDying() == 0 &&
+        ((g_settings_6850c8.auto_save != 0 && forced == 0) || g_status_685170.iron_man != 0) &&
+        gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0 &&
+        (char)IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.field_01f == 0 &&
+        gXStatus.fCampMode == 0) {
         /* The copy is written out in both arms rather than selecting the source
            into one call. VC6 tail-merges the two inlined copies but keeps each
            arm's own destination `lea` and source load, which is the canonical
@@ -1047,8 +1016,7 @@ unsigned char SelectQuickSaveSlotForWrite(char* slot_name)
     int handle;
 
     for (slot = 1; slot <= 3; ++slot) {
-        sprintf(slot_name, "%s\\%s %d.%s", "Saves", "Quick", slot,
-                "SAV");
+        sprintf(slot_name, "%s\\%s %d.%s", "Saves", "Quick", slot, "SAV");
         handle = FileOpen(slot_name, 1, 0);
         if (!handle) {
             goto format_slot;
@@ -1060,8 +1028,7 @@ unsigned char SelectQuickSaveSlotForWrite(char* slot_name)
                 oldest_write_time = write_time;
                 oldest_slot = slot;
             }
-        }
-        else {
+        } else {
             oldest_write_time = write_time;
         }
     }
@@ -1087,21 +1054,17 @@ unsigned char FindStartupQuickSave(char* slot_name)
     int handle;
 
     for (slot = 1; slot <= 3; ++slot) {
-        sprintf(slot_name, "%s\\%s %d.%s", "Saves", "Quick", slot,
-                "SAV");
+        sprintf(slot_name, "%s\\%s %d.%s", "Saves", "Quick", slot, "SAV");
         handle = FileOpen(slot_name, 1, 0);
         if (handle) {
-            GetFileManFileTime(handle, &creation_time, &access_time,
-                               &write_time);
+            GetFileManFileTime(handle, &creation_time, &access_time, &write_time);
             FileClose(handle);
             if (slot > 1) {
-                if (CompareSGPFileTimes(&write_time,
-                                        &newest_write_time) <= 0) {
+                if (CompareSGPFileTimes(&write_time, &newest_write_time) <= 0) {
                     continue;
                 }
                 newest_write_time = write_time;
-            }
-            else {
+            } else {
                 newest_write_time = write_time;
             }
             newest_slot = slot;
@@ -1137,8 +1100,7 @@ void ReadSaveChunks(W8Chunk* source, W8Chunk* destination)
                 tag = source->CurrentChunkId();
                 if (tag == W8_SAVE_TAG_CHAR) {
                     destination->CopyCurrentChunkFrom(source);
-                }
-                else if (tag == W8_SAVE_TAG_LVLS) {
+                } else if (tag == W8_SAVE_TAG_LVLS) {
                     source->Read(&level, 4, 0);
                     if (level != g_status_685170.current_level) {
                         source->RewindCurrentChunk();
@@ -1159,8 +1121,8 @@ void ReadSaveChunks(W8Chunk* source, W8Chunk* destination)
    is rolled into CleanUp. Retail wraps the percentage in an unguarded DIV, so
    a zero total would trap there as well. */
 // FUNCTION: WIZ8 0x00514df0
-unsigned char MeasureLevelStatusChunks00514DF0(
-    W8Chunk* chunk, int level, unsigned int* empty_percent)
+unsigned char MeasureLevelStatusChunks00514DF0(W8Chunk* chunk, int level,
+                                               unsigned int* empty_percent)
 {
     unsigned char found = 0;
     unsigned int total = 0;
@@ -1173,8 +1135,7 @@ unsigned char MeasureLevelStatusChunks00514DF0(
             total += chunk->CurrentChunkExtent();
             if (chunk->CurrentChunkAtEnd() != 0) {
                 empty_total += chunk->CurrentChunkExtent();
-            }
-            else if (chunk->CurrentChunkId() == 0x534c564c) { /* LVLS */
+            } else if (chunk->CurrentChunkId() == 0x534c564c) { /* LVLS */
                 int stored_level;
 
                 chunk->OpenGroup();
@@ -1229,10 +1190,8 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
 
     if (status->buffers.save_version < 1.1f) {
         for (slot = 0; slot != 3; ++slot) {
-            status->text_box_lines_used_4997[slot] =
-                status->legacy_text_box_lines_1797[0][slot];
-            status->text_box_lines_shown_49a7[slot] =
-                status->legacy_text_box_lines_1797[1][slot];
+            status->text_box_lines_used_4997[slot] = status->legacy_text_box_lines_1797[0][slot];
+            status->text_box_lines_shown_49a7[slot] = status->legacy_text_box_lines_1797[1][slot];
         }
         status->text_box_lines_used_4997[3] = 0;
         status->text_box_lines_shown_49a7[3] = 0;
@@ -1246,12 +1205,10 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
         memset(character, 0, sizeof(*character));
         chunks->Read(&size, sizeof(size), 0);
         if (size > sizeof(*character)) {
-            srAssertFail("uiSize <= sizeof(*&pStatus->Char[uiChar])",
-                         LOADSAVEGAME_CPP, 0xce4, 0);
+            srAssertFail("uiSize <= sizeof(*&pStatus->Char[uiChar])", LOADSAVEGAME_CPP, 0xce4, 0);
         }
         chunks->Read(character, size, 0);
-        if (character->record_version < 2 &&
-            character->original_profession == 0 &&
+        if (character->record_version < 2 && character->original_profession == 0 &&
             character->profession_levels[0] == 0) {
             character->original_profession = character->current_profession;
         }
@@ -1262,21 +1219,18 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
         memset(party_row, 0, sizeof(W8PartySlotRow));
         chunks->Read(&size, sizeof(size), 0);
         if (size > sizeof(W8PartySlotRow)) {
-            srAssertFail("uiSize <= sizeof(*&pStatus->XChar[uiChar])",
-                         LOADSAVEGAME_CPP, 0xcf2, 0);
+            srAssertFail("uiSize <= sizeof(*&pStatus->XChar[uiChar])", LOADSAVEGAME_CPP, 0xcf2, 0);
         }
         chunks->Read(party_row, size, 0);
 
         if (status == &g_status_685170) {
             W8ItemInstance* item = 0;
-            signed char origin =
-                static_cast<signed char>(party_row->item_origin);
+            signed char origin = static_cast<signed char>(party_row->item_origin);
             short item_slot = static_cast<short>(party_row->item_slot);
-            if (party_row->occupied != 0 && party_row->pending_action == 8 &&
-                origin != -1 && item_slot != -1) {
-                item = FindCharacterItemAt(
-                    slot, static_cast<unsigned char>(origin),
-                    static_cast<unsigned short>(item_slot));
+            if (party_row->occupied != 0 && party_row->pending_action == 8 && origin != -1 &&
+                item_slot != -1) {
+                item = FindCharacterItemAt(slot, static_cast<unsigned char>(origin),
+                                           static_cast<unsigned short>(item_slot));
             }
             party_row->pending_action_detail_015.item_use.item = item;
             party_row->action_detail_045.item_use.item = 0;

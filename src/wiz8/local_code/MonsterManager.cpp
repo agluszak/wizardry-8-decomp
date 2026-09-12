@@ -22,10 +22,6 @@ float g_monster_record_float_scale = 20.0f;
 // GLOBAL: WIZ8 0x00683698
 int g_monster_info_iterator_index;
 
-// GLOBAL: WIZ8 0x006875c3
-W8WideChar g_monster_name_buffer[22];
-// GLOBAL: WIZ8 0x006875ef
-unsigned char g_alternate_name_slot;
 #include "wiz8/notices.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/utility.h"
@@ -1565,8 +1561,9 @@ W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
         record = MonsterDBFromSpeciesInline(monster_info->monster_species);
     }
     if (record->record_id_187 == W8_MONSTER_RECORD_ALTERNATE_NAME) {
-        swprintf(g_monster_name_buffer, L"Al-%s", g_party_characters[g_alternate_name_slot].name);
-        return g_monster_name_buffer;
+        swprintf(g_status_685170.monster_name_buffer_2453, L"Al-%s",
+                 g_status_685170.buffers.characters[g_status_685170.alternate_name_slot_247f].name);
+        return g_status_685170.monster_name_buffer_2453;
     }
     if (monster_info->monster_group_id == 0) {
         if (monster_info->monster->IsDying() == 0) {
@@ -1591,8 +1588,8 @@ float GetAveragePartyLevel(void)
     float total = 0.0f;
     float count = 0.0f;
     for (int party_slot = 0; party_slot < 6; ++party_slot) {
-        if (g_party_slot_rows[party_slot].occupied != 0) {
-            total += g_party_characters[party_slot].level;
+        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0) {
+            total += g_status_685170.buffers.characters[party_slot].level;
             count += 1.0f;
         }
     }
@@ -1607,8 +1604,8 @@ unsigned int GetBestPartySkillLevel(int skill_index, int* party_slot)
     unsigned int best_level = 0;
     int best_slot = -1;
     for (int index = 0; index < 8; ++index) {
-        W8Character* character = &g_party_characters[index];
-        if (g_party_slot_rows[index].occupied != 0 && character->hp_current != 0 &&
+        W8Character* character = &g_status_685170.buffers.characters[index];
+        if (g_status_685170.buffers.party_rows[index].occupied != 0 && character->hp_current != 0 &&
             character->unknown_0b01 < 0xd &&
             (character->skills[skill_index].level > best_level || best_slot == -1)) {
             best_level = character->skills[skill_index].level;

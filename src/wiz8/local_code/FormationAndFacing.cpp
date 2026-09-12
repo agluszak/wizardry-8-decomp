@@ -1,4 +1,5 @@
 #include "wiz8/local_code/FormationAndFacing.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/local_code/MonsterManager.h"
@@ -66,7 +67,6 @@ enum { W8_FACING_ANY = 4 };
    Tighter than the eligibility window the party sweeps use. */
 enum { W8_FORMATION_ELIGIBLE_LIMIT = 0xd };
 
-
 // GLOBAL: WIZ8 0x005ee858
 double g_facing_tolerance_005ee858 = 2.3561944500000003;
 
@@ -78,10 +78,9 @@ float g_facing_tolerance_005ebcf4;
 // FUNCTION: WIZ8 0x005549e0
 bool CanHoldFormationPlace(int party_slot)
 {
-    const W8Character* character = &g_party_characters[party_slot];
+    const W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
-    return character->hp_current != 0 &&
-           character->unknown_0b01 < W8_FORMATION_ELIGIBLE_LIMIT;
+    return character->hp_current != 0 && character->unknown_0b01 < W8_FORMATION_ELIGIBLE_LIMIT;
 }
 
 /* Remember the formation combat started with. */
@@ -149,8 +148,7 @@ void TurnPartyToImmediate(unsigned int degrees, char snap)
     }
     if (snap) {
         TurnCameraToDegrees((float)degrees);
-    }
-    else {
+    } else {
         SetCameraYawDegrees((float)degrees);
     }
 }
@@ -162,8 +160,7 @@ void FacePositionAsDecided(int position, int arg_2)
 {
     signed char facing = DecideFacingForPosition(position, arg_2);
 
-    if (facing != W8_FACING_ANY &&
-        g_status_685170.formation.positions[position].facing != facing) {
+    if (facing != W8_FACING_ANY && g_status_685170.formation.positions[position].facing != facing) {
         g_status_685170.formation.positions[position].facing = facing;
         Function5B1C80();
     }
@@ -179,8 +176,7 @@ bool PositionFacesAsDecided(int position, int arg_2)
     if (facing == W8_FACING_ANY) {
         return true;
     }
-    return facing ==
-           g_status_685170.formation.positions[position].facing;
+    return facing == g_status_685170.formation.positions[position].facing;
 }
 
 /* Whether a position is facing exactly away from where the rules want it -
@@ -194,8 +190,7 @@ bool PositionFacesOppositeToDecided(int arg_1, int position)
     if (facing == W8_FACING_ANY) {
         return false;
     }
-    difference =
-        facing - g_status_685170.formation.positions[position].facing;
+    difference = facing - g_status_685170.formation.positions[position].facing;
     if (difference < 0) {
         difference = -difference;
     }
@@ -207,27 +202,22 @@ bool PositionFacesOppositeToDecided(int arg_1, int position)
 // FUNCTION: WIZ8 0x00555d60
 bool IsPartyLookingAwayFrom(int, W8MonsterInfo* monster_info)
 {
-    float bearing = NormalizeAngle(BearingBetween(
-        monster_info->monster->GetPosition(),
-        g_startup_world_659c0c->GetPosition()));
+    float bearing = NormalizeAngle(BearingBetween(monster_info->monster->GetPosition(),
+                                                  g_startup_world_659c0c->GetPosition()));
     float facing = monster_info->monster->GetYaw();
 
-    return ShortestAngleDistance(bearing, facing) >=
-           g_facing_tolerance_005ee858;
+    return ShortestAngleDistance(bearing, facing) >= g_facing_tolerance_005ee858;
 }
 
 /* Whether the party is looking at a point, measured as a plain difference
    rather than the shortest way round - so a bearing either side of the wrap
    answers no. */
 // FUNCTION: WIZ8 0x00555ba0
-bool IsPartyLookingAt(
-    W8MonsterInfo* monster_info, srVector3T<float> point)
+bool IsPartyLookingAt(W8MonsterInfo* monster_info, srVector3T<float> point)
 {
-    float bearing = NormalizeAngle(BearingBetween(
-        monster_info->monster->GetPosition(), point));
+    float bearing = NormalizeAngle(BearingBetween(monster_info->monster->GetPosition(), point));
 
-    return fabsf(bearing - monster_info->monster->GetYaw()) <=
-           g_facing_tolerance_005ebcf4;
+    return fabsf(bearing - monster_info->monster->GetYaw()) <= g_facing_tolerance_005ebcf4;
 }
 
 /* The five formation rows' display names, indexed by row. Two of the five
@@ -282,9 +272,8 @@ void Function554AE0(W8PartyFormationState* formation, int slot)
    the positions left in the old row, and the announce flag posts the row
    name to the slot. */
 // FUNCTION: WIZ8 0x00554bd0
-void Function554BD0(W8PartyFormationState* formation, int slot, int new_row,
-                    int new_column, int announce, int detach,
-                    int update_facing)
+void Function554BD0(W8PartyFormationState* formation, int slot, int new_row, int new_column,
+                    int announce, int detach, int update_facing)
 {
     W8PartyFormationPosition* position = &formation->positions[slot];
     signed char old_row = position->row;
@@ -293,12 +282,11 @@ void Function554BD0(W8PartyFormationState* formation, int slot, int new_row,
     if (old_row != -1) {
         signed char* occupant = &formation->rows[old_row].slots[old_column];
         if (*occupant == -1) {
-            srAssertFail("pFormation->bOccupantChar[bOldQuadrant] != -1",
-                         FORMATION_CPP, 0x18e, 0);
+            srAssertFail("pFormation->bOccupantChar[bOldQuadrant] != -1", FORMATION_CPP, 0x18e, 0);
         }
         if (formation->flags_0f[old_row] == 0) {
-            srAssertFail("pFormation->ubQuadrantOccupants[bOldQuadrant] > 0",
-                         FORMATION_CPP, 0x18f, 0);
+            srAssertFail("pFormation->ubQuadrantOccupants[bOldQuadrant] > 0", FORMATION_CPP, 0x18f,
+                         0);
         }
         *occupant = -1;
         --formation->flags_0f[old_row];
@@ -308,12 +296,11 @@ void Function554BD0(W8PartyFormationState* formation, int slot, int new_row,
     if (new_row != -1) {
         signed char* occupant = &formation->rows[new_row].slots[new_column];
         if (*occupant != -1) {
-            srAssertFail("pFormation->bOccupantChar[bNewQuadrant] == -1",
-                         FORMATION_CPP, 0x19d, 0);
+            srAssertFail("pFormation->bOccupantChar[bNewQuadrant] == -1", FORMATION_CPP, 0x19d, 0);
         }
         if (formation->flags_0f[new_row] >= 3) {
-            srAssertFail("pFormation->ubQuadrantOccupants[bNewQuadrant] <= 3",
-                         FORMATION_CPP, 0x19e, 0);
+            srAssertFail("pFormation->ubQuadrantOccupants[bNewQuadrant] <= 3", FORMATION_CPP, 0x19e,
+                         0);
         }
         *occupant = (signed char)slot;
         ++formation->flags_0f[new_row];
@@ -339,22 +326,20 @@ void Function554BD0(W8PartyFormationState* formation, int slot, int new_row,
         Function554DD0(formation, old_row);
     }
     if (g_status_685170.game_started != 0 && gXStatus.field_01f == 0) {
-        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-            g_flag_006850ce != 2 && formation == &g_status_685170.formation) {
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_settings_6850c8.field_006 != 2 &&
+            formation == &g_status_685170.formation) {
             Function5B1C80();
             Function5A24A0();
         }
         if (announce != 0) {
             if (new_row != -1) {
-                PostCharacterNotice(
-                    slot, gppStringList[0x930 / 4],
-                    &g_formation_row_names_00649e54[new_row][0]);
+                PostCharacterNotice(slot, gppStringList[0x930 / 4],
+                                    &g_formation_row_names_00649e54[new_row][0]);
                 return;
             }
             if (slot != -1) {
-                PostCharacterNotice(
-                    slot, gppStringList[0x934 / 4],
-                    &g_formation_row_names_00649e54[slot][0]);
+                PostCharacterNotice(slot, gppStringList[0x934 / 4],
+                                    &g_formation_row_names_00649e54[slot][0]);
             }
         }
     }

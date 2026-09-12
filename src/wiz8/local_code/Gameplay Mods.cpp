@@ -25,10 +25,8 @@
 // FUNCTION: WIZ8 0x0050E700
 void RebuildPartyEffectBlock0050E700(void)
 {
-    memset(&g_status_685170.party_modifiers_22e3, 0,
-           sizeof(W8GameplayModifierBlock));
-    ApplyPartyEffectSlots(g_status_685170.effect_slots_17af,
-                          &g_status_685170.party_modifiers_22e3);
+    memset(&g_status_685170.party_modifiers_22e3, 0, sizeof(W8GameplayModifierBlock));
+    ApplyPartyEffectSlots(g_status_685170.effect_slots_17af, &g_status_685170.party_modifiers_22e3);
     if (gXStatus.fCombatMode != 0) {
         unsigned char value = g_status_685170.party_modifiers_22e3.armor_bonus_05;
 
@@ -48,9 +46,10 @@ void RebuildPartyEffectBlock0050E700(void)
     int active = 0;
     unsigned int slot_byte = 0;
     while (slot_byte <= 0x82f) {
-        W8Character* character = &g_party_characters[active];
-        if (g_party_slot_rows[active].occupied != 0 && character->hp_current != 0 &&
-            character->unknown_0b01 == 0 && CharacterHasTrait00547940(character, 10) != 0) {
+        W8Character* character = &g_status_685170.buffers.characters[active];
+        if (g_status_685170.buffers.party_rows[active].occupied != 0 &&
+            character->hp_current != 0 && character->unknown_0b01 == 0 &&
+            CharacterHasTrait00547940(character, 10) != 0) {
             break;
         }
         slot_byte += 0x106;
@@ -62,8 +61,8 @@ void RebuildPartyEffectBlock0050E700(void)
         g_status_685170.party_modifiers_22e3.flag_44 = 1;
     }
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_party_slot_rows[party_slot].occupied != 0) {
-            W8Character* character = &g_party_characters[party_slot];
+        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0) {
+            W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
             memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
             ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);

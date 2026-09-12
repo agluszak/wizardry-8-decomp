@@ -152,11 +152,6 @@ static_assert(sizeof(W8CombatState) == 0xa64, "W8CombatState_must_be_0xa64");
 extern W8CombatState* g_combat_state;          /* 0x006836A8 */
 extern unsigned int g_combat_countdown_6850b0; /* 0x006850B0 */
 
-/* These are the two heap-buffer fields at the head of gXStatus, not separate
-   globals.  Their retail addresses are the addresses of those pointer fields. */
-#define g_party_characters (g_status_685170.buffers.characters)
-#define g_party_slot_rows (g_status_685170.buffers.party_rows)
-
 void RecordCharacterDeath(int party_slot);
 void DropCharacterFromRound(int party_slot);
 /* 0x004E79A0: whether one party slot may switch to the given targeting

@@ -1,4 +1,3 @@
-#include "wiz8/bringup_gates.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/render_state.h"
 #include "wiz8/regions.h"
@@ -41,7 +40,6 @@
 
 extern unsigned char g_flag_689b32;
 
-
 /* The screen's own state. */
 // GLOBAL: WIZ8 0x0069c4ba
 unsigned char g_main_menu_has_save_games;
@@ -62,7 +60,6 @@ wchar_t* g_pending_main_menu_message;
 // GLOBAL: WIZ8 0x0069c4c0
 W8ModalDialogBase* g_main_menu_dialog;
 
-
 /* Draws one of the six menu items. The first switch turns the item index into
    its sprite slot and its top and bottom rows; the second turns the requested
    state into a sprite id. Item two is forced to state three whenever the flag
@@ -81,8 +78,16 @@ unsigned char DrawMainMenuItem(short item, short state)
     int bottom;
 
     switch (item) {
-    case 0: slot = 0; top = 0x8a;  bottom = 0xb1;  break;
-    case 1: slot = 1; top = 0xbb;  bottom = 0xe1;  break;
+    case 0:
+        slot = 0;
+        top = 0x8a;
+        bottom = 0xb1;
+        break;
+    case 1:
+        slot = 1;
+        top = 0xbb;
+        bottom = 0xe1;
+        break;
     case 2:
         slot = 2;
         top = 0xeb;
@@ -91,18 +96,38 @@ unsigned char DrawMainMenuItem(short item, short state)
             state = 3;
         }
         break;
-    case 3: slot = 3; top = 0x11c; bottom = 0x145; break;
-    case 4: slot = 4; top = 0x14f; bottom = 0x193; break;
-    case 5: slot = 5; top = 0x1a7; bottom = 0x1d3; break;
+    case 3:
+        slot = 3;
+        top = 0x11c;
+        bottom = 0x145;
+        break;
+    case 4:
+        slot = 4;
+        top = 0x14f;
+        bottom = 0x193;
+        break;
+    case 5:
+        slot = 5;
+        top = 0x1a7;
+        bottom = 0x1d3;
+        break;
     default:
         return 0;
     }
 
     switch (state) {
-    case 0: DrawCatalogImage(-14, 0xea, 0, slot, 0x98, top, 2, 0); break;
-    case 1: DrawCatalogImage(-14, 0xec, 0, slot, 0x98, top, 2, 0); break;
-    case 2: DrawCatalogImage(-14, 0xeb, 0, slot, 0x98, top, 2, 0); break;
-    case 3: DrawCatalogImage(-14, 0xed, 0, slot, 0x98, top, 2, 0); break;
+    case 0:
+        DrawCatalogImage(-14, 0xea, 0, slot, 0x98, top, 2, 0);
+        break;
+    case 1:
+        DrawCatalogImage(-14, 0xec, 0, slot, 0x98, top, 2, 0);
+        break;
+    case 2:
+        DrawCatalogImage(-14, 0xeb, 0, slot, 0x98, top, 2, 0);
+        break;
+    case 3:
+        DrawCatalogImage(-14, 0xed, 0, slot, 0x98, top, 2, 0);
+        break;
     }
 
     InvalidateRegion(0x98, top, 0x1f2, bottom, 0);
@@ -162,11 +187,8 @@ unsigned char MainMenuScreenEnter(void)
     RegionSetEnable(1);
 
     if (gXStatus.uiMonstersInDatabase > 1000) {
-        srAssertFail(
-            "gXStatus.uiMonstersInDatabase <= MAX_MONSTERS_IN_DATABASE",
-            "C:\\Projects\\Wizardry 8\\Local Screens\\MainMenuScreen.cpp",
-            0x87,
-            0);
+        srAssertFail("gXStatus.uiMonstersInDatabase <= MAX_MONSTERS_IN_DATABASE",
+                     "C:\\Projects\\Wizardry 8\\Local Screens\\MainMenuScreen.cpp", 0x87, 0);
     }
     if (g_previous_screen_id != 10) {
         StartMusicResource0048FC10("MainMenu.MPL", 0, 1);
@@ -225,24 +247,20 @@ void MainMenuScreenFrame()
             DrawMainMenuItem(5, 0);
             DrawMainMenuItem(g_main_menu_selected_item, 1);
         }
-    }
-    else if (IsMessageBoxActive()) {
+    } else if (IsMessageBoxActive()) {
         ProcessMessageBoxInput();
-    }
-    else {
+    } else {
         SGPMouseGetPos(&point);
         g_main_menu_hover_region = UpdateRegionMousePosition(point.x, point.y);
         while (DequeueEvent(&input) == 1) {
-            if (!DispatchRegionInput(&input) &&
-                input.usEvent == KEY_DOWN) {
+            if (!DispatchRegionInput(&input) && input.usEvent == KEY_DOWN) {
                 if (Function5A1140(&input)) {
                     if (g_flag_689b32 != 0) {
                         SetFont(g_font_683660);
                         SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
                         gprintfDirty(5, 5, (unsigned short*)L"Developer mode enabled.");
                     }
-                }
-                else {
+                } else {
                     switch (input.usParam) {
                     case ENTER:
                         switch (g_main_menu_selected_item) {
@@ -297,8 +315,7 @@ void MainMenuScreenFrame()
                         DrawMainMenuItem(g_main_menu_selected_item, 0);
                         if (g_main_menu_selected_item > 0) {
                             --g_main_menu_selected_item;
-                        }
-                        else {
+                        } else {
                             g_main_menu_selected_item = 5;
                         }
                         DrawMainMenuItem(g_main_menu_selected_item, 1);
@@ -307,8 +324,7 @@ void MainMenuScreenFrame()
                         DrawMainMenuItem(g_main_menu_selected_item, 0);
                         if (g_main_menu_selected_item < 5) {
                             ++g_main_menu_selected_item;
-                        }
-                        else {
+                        } else {
                             g_main_menu_selected_item = 0;
                         }
                         DrawMainMenuItem(g_main_menu_selected_item, 1);
@@ -394,7 +410,8 @@ unsigned char MainMenuNewGame(const W8RegionEvent* event, W8Region* region)
 // FUNCTION: WIZ8 0x005bd110
 unsigned char MainMenuLoadGame(const W8RegionEvent* event, W8Region* region)
 {
-    if (!g_main_menu_has_save_games) return 0;
+    if (!g_main_menu_has_save_games)
+        return 0;
     switch (event->reason) {
     case LEFT_BUTTON_DOWN:
         region->flags |= W8_REGION_LEFT_BUTTON_HELD;

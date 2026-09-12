@@ -106,8 +106,7 @@ void ClampInteger(int* value, int minimum, int maximum)
 }
 
 // FUNCTION: WIZ8 0x005179f0
-void ClampUnsignedInteger(unsigned int* value, unsigned int minimum,
-                          unsigned int maximum)
+void ClampUnsignedInteger(unsigned int* value, unsigned int minimum, unsigned int maximum)
 {
     if (*value > maximum) {
         *value = maximum;
@@ -267,11 +266,8 @@ char* TitleCaseString(char* string)
 static __forceinline float NormalizeAngleInline(float angle)
 {
     if (!_finite(angle)) {
-        srAssertFail(
-            "_finite(flAngle)",
-            "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp",
-            0x13b,
-            0);
+        srAssertFail("_finite(flAngle)",
+                     "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp", 0x13b, 0);
     }
 
     angle += 6.2831852;
@@ -300,8 +296,7 @@ float ShortestAngleDistance(float first, float second)
 }
 
 // FUNCTION: WIZ8 0x00517e20
-void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second,
-                      W8ScreenRect* result)
+void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second, W8ScreenRect* result)
 {
     result->left = first->left < second->left ? first->left : second->left;
     result->top = first->top < second->top ? first->top : second->top;
@@ -312,8 +307,8 @@ void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second,
 // FUNCTION: WIZ8 0x00517e70
 bool ScreenPointInRect(const W8ScreenRect* rect, const POINT* point)
 {
-    if (rect != 0 && point != 0 && point->x >= rect->left && point->x < rect->right
-        && point->y >= rect->top && point->y < rect->bottom) {
+    if (rect != 0 && point != 0 && point->x >= rect->left && point->x < rect->right &&
+        point->y >= rect->top && point->y < rect->bottom) {
         return true;
     }
     return false;
@@ -336,33 +331,27 @@ unsigned int CharacterPointerToPartySlot(const W8Character* character)
     const W8Character* party_character;
 
     if (!character->in_party) {
-        srAssertFail(
-            "pPC->fInParty",
-            "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp",
-            0x1c8,
-            "PCPtrToPCSlot: ERROR - called for non-party character");
+        srAssertFail("pPC->fInParty", "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp",
+                     0x1c8, "PCPtrToPCSlot: ERROR - called for non-party character");
     }
 
-    party_character = g_party_characters;
+    party_character = g_status_685170.buffers.characters;
     for (slot = 0; slot < 8; ++slot, ++party_character) {
         if (character == party_character) {
             return slot;
         }
     }
 
-    srAssertFail(
-        "FALSE",
-        "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp",
-        0x1d1,
-        reinterpret_cast<const char*>(
-            String("PCPtrToPCSlot: ERROR - no match on ptr %d", character)));
+    srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp", 0x1d1,
+                 reinterpret_cast<const char*>(
+                     String("PCPtrToPCSlot: ERROR - no match on ptr %d", character)));
     return 0;
 }
 
 // FUNCTION: WIZ8 0x00517f30
 bool IsPartyCharacterPointer(const W8Character* character)
 {
-    W8Character* party_character = g_party_characters;
+    W8Character* party_character = g_status_685170.buffers.characters;
     unsigned int slot;
 
     for (slot = 0; slot < 8; ++slot, ++party_character) {
@@ -402,10 +391,10 @@ retry:
     slot = 0;
     do {
         matched = 0;
-        if (g_party_slot_rows[slot].occupied != 0 && (int)slot != excluded_slot) {
-            character = &g_party_characters[slot];
-            if ((character->hp_current > 0 && character->unknown_0b01 < 0x12)
-                || require_primary == 2) {
+        if (g_status_685170.buffers.party_rows[slot].occupied != 0 && (int)slot != excluded_slot) {
+            character = &g_status_685170.buffers.characters[slot];
+            if ((character->hp_current > 0 && character->unknown_0b01 < 0x12) ||
+                require_primary == 2) {
                 if (excluded_gender == -1 || excluded_gender != character->gender) {
                     if (character->unknown_0b01 < 0xf || require_secondary == 2) {
                         matched = 1;
@@ -443,8 +432,8 @@ retry:
 int GetNextCharacter(int require_primary, int require_secondary, int previous_slot)
 {
     int start_slot = (previous_slot + 1) % 8;
-    W8Character* characters = g_party_characters;
-    W8PartySlotRow* rows = g_party_slot_rows;
+    W8Character* characters = g_status_685170.buffers.characters;
+    W8PartySlotRow* rows = g_status_685170.buffers.party_rows;
     int slot;
     unsigned int scanned;
 
@@ -456,8 +445,8 @@ retry:
         if (rows[slot].occupied != 0) {
             W8Character* character = &characters[slot];
 
-            if ((character->hp_current > 0 && character->unknown_0b01 < 0x12)
-                || require_primary == 2) {
+            if ((character->hp_current > 0 && character->unknown_0b01 < 0x12) ||
+                require_primary == 2) {
                 if (character->unknown_0b01 < 0xf || require_secondary == 2) {
                     return slot;
                 }
@@ -505,11 +494,8 @@ int RPCPtrToPCSlot(const W8MonsterManagerEntry* rpc)
         ++slot;
     }
     UINT8* message = String("RPCPtrToPCSlot: ERROR - no match on ptr %d", rpc);
-    srAssertFail(
-        "FALSE",
-        "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp",
-        0x385,
-        reinterpret_cast<const char*>(message));
+    srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp", 0x385,
+                 reinterpret_cast<const char*>(message));
     return 0;
 }
 
@@ -596,16 +582,15 @@ void ProcessMessageBoxInput(void)
     POINT point;
     InputAtom input;
     SGPMouseGetPos(&point);
-    MSYS_SGP_Mouse_Handler_Hook(
-        MOUSE_POS, point.x, point.y, gfLeftButtonState, gfRightButtonState);
+    MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, point.x, point.y, gfLeftButtonState, gfRightButtonState);
     while (DequeueEvent(&input) == 1) {
         switch (input.usEvent) {
         case LEFT_BUTTON_DOWN:
         case LEFT_BUTTON_UP:
         case RIGHT_BUTTON_DOWN:
         case RIGHT_BUTTON_UP:
-            MSYS_SGP_Mouse_Handler_Hook(
-                input.usEvent, point.x, point.y, gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(input.usEvent, point.x, point.y, gfLeftButtonState,
+                                        gfRightButtonState);
             break;
         case KEY_DOWN:
             switch (toupper(input.usParam)) {

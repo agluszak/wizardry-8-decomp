@@ -44,16 +44,29 @@
 /* Lifecycle record 8; the automap screen. Its original screen-class name is
    unknown, so the existing compilation boundary is retained. */
 
+// GLOBAL: WIZ8 0x0068F258
+W8GrowableVector<W8AutomapNote*>* g_automap_notes;
+
+// FUNCTION: WIZ8 0x0057e5d0
+unsigned char AutomapScreenInitialize(void)
+{
+    W8GrowableVector<W8AutomapNote*>* list;
+
+    list = new W8GrowableVector<W8AutomapNote*>();
+    g_automap_notes = list;
+    if (!list) {
+        return 0;
+    }
+    return 1;
+}
+
 // GLOBAL: WIZ8 0x0068f104
 unsigned char g_flag_68f104;
 // GLOBAL: WIZ8 0x0068f105
 unsigned char g_flag_68f105;
 
 /* Lifecycle record 8's own state, all of it released by the finalizer below and
-   nothing here naming what any of it holds. The list is vector.cpp's, created by
-   this record's initializer at 0x0057E5D0. */
-/* vector.cpp defines this with C++ linkage; the spelling has to agree or the
-   reference resolves to the image base under /FORCE. */
+   nothing here naming what any of it holds. The note list is created by this record's initializer at 0x0057E5D0. */
 
 /* Two owned index arrays, released through BitArray's destructor. */
 // GLOBAL: WIZ8 0x0068F288
@@ -77,7 +90,6 @@ srClass* g_class_68f2a8;
 /* Leave releases the pointed-to objects and erases their vector entries. */
 // GLOBAL: WIZ8 0x0068F1F4
 W8GrowableVector<srClass*>* g_releasable_68f1f4;
-
 
 extern float g_float_64b914;
 
@@ -180,8 +192,7 @@ void Function474FB0(int value);
 // FUNCTION: WIZ8 0x00581000
 unsigned char HasAutomapLayer(int layer)
 {
-    return layer >= 0 && layer < g_automap_layers.GetCount() &&
-           *g_automap_layers.GetAt(layer) != 0;
+    return layer >= 0 && layer < g_automap_layers.GetCount() && *g_automap_layers.GetAt(layer) != 0;
 }
 
 namespace {
@@ -190,16 +201,13 @@ namespace {
    then eleven of x, then ten of y, each scaled to grid cells. */
 inline unsigned int PackAutomapCell(const srVector3T<float>& position)
 {
-    return ((static_cast<unsigned int>(
-                 position.z / g_float_64b914) & 0x7ff)
-            | static_cast<unsigned int>(
-                position.x / g_float_64b914) << 11)
-           << 10
-           | (static_cast<unsigned int>(
-                  position.y / g_float_64b914) & 0x3ff);
+    return ((static_cast<unsigned int>(position.z / g_float_64b914) & 0x7ff) |
+            static_cast<unsigned int>(position.x / g_float_64b914) << 11)
+               << 10 |
+           (static_cast<unsigned int>(position.y / g_float_64b914) & 0x3ff);
 }
 
-}
+} // namespace
 
 /* Rebuild the automap view for the level that just loaded: release every
    note, size the query range from the level, seed the cell grid from the
@@ -212,10 +220,8 @@ void ResetAutomapView005817D0(void)
     if (g_automap_state == 0) {
         g_automap_state = (W8AutomapState*)malloc(sizeof(W8AutomapState));
         if (g_automap_state == 0) {
-            srAssertFail(
-                "gpAMSV",
-                "C:\\Projects\\Wizardry 8\\Local Screens\\AutomapScreen.cpp",
-                0x8b5, 0);
+            srAssertFail("gpAMSV", "C:\\Projects\\Wizardry 8\\Local Screens\\AutomapScreen.cpp",
+                         0x8b5, 0);
         }
         memset(g_automap_state, 0, sizeof(W8AutomapState));
     }
@@ -226,11 +232,10 @@ void ResetAutomapView005817D0(void)
         g_automap_notes->RemoveAt(0);
     }
     g_automap_redraw = 1;
-    if (g_loaded_level_id == 0x18
-        || (g_loaded_level_id > 0x1a && g_loaded_level_id <= 0x22)) {
+    if (g_status_685170.current_level == 0x18 ||
+        (g_status_685170.current_level > 0x1a && g_status_685170.current_level <= 0x22)) {
         g_automap_range_0064b910 = 30000.0f;
-    }
-    else {
+    } else {
         g_automap_range_0064b910 = 10000.0f;
     }
     if (g_octree_6598a4 == 0) {
@@ -240,29 +245,23 @@ void ResetAutomapView005817D0(void)
         g_automap_grid_max_0068f1c8.x = 250000.0f;
         g_automap_grid_max_0068f1c8.y = 250000.0f;
         g_automap_grid_max_0068f1c8.z = 250000.0f;
-    }
-    else {
-        g_octree_6598a4->spatial_000.GetClippedBounds0046CE30(
-            &g_automap_grid_min_0068f1d8, &g_automap_grid_max_0068f1c8);
+    } else {
+        g_octree_6598a4->spatial_000.GetClippedBounds0046CE30(&g_automap_grid_min_0068f1d8,
+                                                              &g_automap_grid_max_0068f1c8);
     }
     g_automap_grid_origin_0068f240 = g_automap_grid_min_0068f1d8;
     g_automap_grid_center_0068f1f8.x =
-        (g_automap_grid_min_0068f1d8.x + g_automap_grid_max_0068f1c8.x)
-        * g_W8RangeHalfStep005EBC7C;
+        (g_automap_grid_min_0068f1d8.x + g_automap_grid_max_0068f1c8.x) * g_W8RangeHalfStep005EBC7C;
     g_automap_grid_center_0068f1f8.y = 0.0f;
     g_automap_grid_center_0068f1f8.z =
-        (g_automap_grid_min_0068f1d8.z + g_automap_grid_max_0068f1c8.z)
-        * g_W8RangeHalfStep005EBC7C;
+        (g_automap_grid_min_0068f1d8.z + g_automap_grid_max_0068f1c8.z) * g_W8RangeHalfStep005EBC7C;
     g_automap_bounds_dirty_0064b91c = 1;
-    float span_x =
-        g_automap_grid_max_0068f1c8.x - g_automap_grid_min_0068f1d8.x;
-    float span_z =
-        g_automap_grid_max_0068f1c8.z - g_automap_grid_min_0068f1d8.z;
+    float span_x = g_automap_grid_max_0068f1c8.x - g_automap_grid_min_0068f1d8.x;
+    float span_z = g_automap_grid_max_0068f1c8.z - g_automap_grid_min_0068f1d8.z;
     float largest = span_z < span_x ? span_x : span_z;
     if (largest <= g_float_005ec360) {
         g_automap_top_y = 25000.0f;
-    }
-    else {
+    } else {
         g_automap_top_y = largest;
     }
     g_automap_position_initialized = 0;
@@ -270,18 +269,16 @@ void ResetAutomapView005817D0(void)
 
     srVector3T<float> camera;
     GetCameraPosition(&camera);
-    srVector3T<float> relative(
-        camera.x - g_automap_grid_origin_0068f240.x,
-        camera.y - g_automap_grid_origin_0068f240.y,
-        camera.z - g_automap_grid_origin_0068f240.z);
+    srVector3T<float> relative(camera.x - g_automap_grid_origin_0068f240.x,
+                               camera.y - g_automap_grid_origin_0068f240.y,
+                               camera.z - g_automap_grid_origin_0068f240.z);
     unsigned int key = PackAutomapCell(relative);
     int cell = g_record_68f284->Lookup(&key);
     if (cell > 1) {
         g_bits_68f288->Set(cell - 1);
         return;
     }
-    relative.y = camera.y + g_float_64b914
-        - g_automap_grid_origin_0068f240.y;
+    relative.y = camera.y + g_float_64b914 - g_automap_grid_origin_0068f240.y;
     key = PackAutomapCell(relative);
     cell = g_record_68f284->Lookup(&key);
     if (cell > 1) {
@@ -351,7 +348,8 @@ unsigned char AutomapScreenEnter(void)
     Function427830(0);
     if (!g_automap_state) {
         g_automap_state = static_cast<W8AutomapState*>(malloc(sizeof(W8AutomapState)));
-        if (!g_automap_state) return 0;
+        if (!g_automap_state)
+            return 0;
         memset(g_automap_state, 0, sizeof(W8AutomapState));
     }
     g_automap_state->blink_time = GetTickCount();
@@ -364,22 +362,24 @@ unsigned char AutomapScreenEnter(void)
     g_automap_layers.Add(0);
     char layer_name[16];
     sprintf(layer_name, "LAYER_%d", layer_number);
-    srClipPlane::ClientType* layer = static_cast<srClipPlane::ClientType*>(srCore.getRegistry()->find(
-        srClipPlane::ClientType::sGetClassNode(), layer_name, 0));
+    srClipPlane::ClientType* layer = static_cast<srClipPlane::ClientType*>(
+        srCore.getRegistry()->find(srClipPlane::ClientType::sGetClassNode(), layer_name, 0));
     while (layer) {
         g_automap_layers.Add(layer);
         ++layer_number;
         sprintf(layer_name, "LAYER_%d", layer_number);
-        layer = static_cast<srClipPlane::ClientType*>(srCore.getRegistry()->find(
-            srClipPlane::ClientType::sGetClassNode(), layer_name, 0));
+        layer = static_cast<srClipPlane::ClientType*>(
+            srCore.getRegistry()->find(srClipPlane::ClientType::sGetClassNode(), layer_name, 0));
     }
     unsigned int monster_count = PLLength(gXStatus.plsMonsterList);
     for (unsigned int index = 0; index < monster_count; ++index) {
         W8MonsterInfo* monster = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
-        if (monster->monster) monster->monster->DetachRepresentation004A7A70(g_world);
+        if (monster->monster)
+            monster->monster->DetachRepresentation004A7A70(g_world);
     }
     for (W8WorldItem* item = GetNextWorldItem(1); item; item = GetNextWorldItem(0)) {
-        if (item->owner) item->owner->DetachMesh0049FA30(g_world);
+        if (item->owner)
+            item->owner->DetachMesh0049FA30(g_world);
     }
     gfTrackMousePos = 1;
     g_automap_cursor_inside = IsCursorInsideViewport();
@@ -393,10 +393,11 @@ unsigned char AutomapScreenEnter(void)
         g_flag_65970d = 0;
         g_monster_shadow_updates_enabled_0065970c = 0;
         if (!g_automap_surface) {
-            srColorSurface* surface = SR_NEW(W8ColorSurface)(
-                srPixelConvert::SURFACE_ARGB1555, 640, 480);
+            srColorSurface* surface =
+                SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_ARGB1555, 640, 480);
             g_automap_surface = surface;
-            if (surface) surface->setFilter(&srBoxFilter);
+            if (surface)
+                surface->setFilter(&srBoxFilter);
         }
     }
     g_automap_redraw = 1;
@@ -424,13 +425,15 @@ unsigned char AutomapScreenEnter(void)
         int line = 0;
         int section = -1;
         while (section < g_status_685170.current_level && line < script.lines.count) {
-            if (strchr((*script.lines.GetAt(line))->text, '[')) ++section;
+            if (strchr((*script.lines.GetAt(line))->text, '['))
+                ++section;
             ++line;
         }
         if (line < script.lines.count && section == g_status_685170.current_level) {
             for (; line < script.lines.count; ++line) {
                 char* text = (*script.lines.GetAt(line))->text;
-                if (strchr(text, '[')) break;
+                if (strchr(text, '['))
+                    break;
                 if (!strstr(text, "LAYER_")) {
                     excluded_textures.Add(text);
                 } else {
@@ -454,7 +457,8 @@ unsigned char AutomapScreenEnter(void)
                 }
             }
             for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount_1b4; ++mesh) {
-                for (stMeshModel* model = static_cast<stMeshModel*>(g_world->psrMeshes[mesh]->model());
+                for (stMeshModel* model =
+                         static_cast<stMeshModel*>(g_world->psrMeshes[mesh]->model());
                      model; model = model->next) {
                     model->ApplyAutomapPolygonFilter(&excluded_textures);
                 }
@@ -484,17 +488,20 @@ EnvironmentColour::EnvironmentColour(double red_value, double green_value, doubl
     green = static_cast<float>(green_value);
     blue = static_cast<float>(blue_value);
     if (red > 0.0f) {
-        if (red >= 1.0f) red = 1.0f;
+        if (red >= 1.0f)
+            red = 1.0f;
     } else {
         red = 0.0f;
     }
     if (green > 0.0f) {
-        if (green >= 1.0f) green = 1.0f;
+        if (green >= 1.0f)
+            green = 1.0f;
     } else {
         green = 0.0f;
     }
     if (blue > 0.0f) {
-        if (blue >= 1.0f) blue = 1.0f;
+        if (blue >= 1.0f)
+            blue = 1.0f;
     } else {
         blue = 0.0f;
     }
@@ -507,25 +514,27 @@ void EnvironmentColour::Set(double red_value, double green_value, double blue_va
     green = static_cast<float>(green_value);
     blue = static_cast<float>(blue_value);
     if (red > 0.0f) {
-        if (red >= 1.0f) red = 1.0f;
+        if (red >= 1.0f)
+            red = 1.0f;
     } else {
         red = 0.0f;
     }
     if (green > 0.0f) {
-        if (green >= 1.0f) green = 1.0f;
+        if (green >= 1.0f)
+            green = 1.0f;
     } else {
         green = 0.0f;
     }
     if (blue > 0.0f) {
-        if (blue >= 1.0f) blue = 1.0f;
+        if (blue >= 1.0f)
+            blue = 1.0f;
     } else {
         blue = 0.0f;
     }
 }
 
 // FUNCTION: WIZ8 0x00581360
-W8AutomapNote* CreateAutomapNote(
-    const srVector2T<float>* position, int layer, const wchar_t* text)
+W8AutomapNote* CreateAutomapNote(const srVector2T<float>* position, int layer, const wchar_t* text)
 {
     if (text && wcslen(text) < 40 && g_automap_notes->count < 200) {
         W8AutomapNote* note = new W8AutomapNote;
@@ -551,7 +560,8 @@ void AutomapScreenFrame(void)
             Function584250(&input);
             continue;
         }
-        if (Function584690(&input)) continue;
+        if (Function584690(&input))
+            continue;
         if (!IsCursorInsideViewport()) {
             if (g_automap_cursor_inside) {
                 g_automap_cursor_inside = 0;
@@ -565,29 +575,39 @@ void AutomapScreenFrame(void)
             }
             POINT point;
             SGPMouseGetPos(&point);
-            MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, point.x, point.y,
-                                       gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, point.x, point.y, gfLeftButtonState,
+                                        gfRightButtonState);
             unsigned short reason;
             switch (input.usEvent) {
             case LEFT_BUTTON_DOWN:
-            case LEFT_BUTTON_REPEAT: reason = LEFT_BUTTON_DOWN; break;
-            case LEFT_BUTTON_UP: reason = LEFT_BUTTON_UP; break;
-            case RIGHT_BUTTON_DOWN: reason = RIGHT_BUTTON_DOWN; break;
-            case RIGHT_BUTTON_UP: reason = RIGHT_BUTTON_UP; break;
-            default: continue;
+            case LEFT_BUTTON_REPEAT:
+                reason = LEFT_BUTTON_DOWN;
+                break;
+            case LEFT_BUTTON_UP:
+                reason = LEFT_BUTTON_UP;
+                break;
+            case RIGHT_BUTTON_DOWN:
+                reason = RIGHT_BUTTON_DOWN;
+                break;
+            case RIGHT_BUTTON_UP:
+                reason = RIGHT_BUTTON_UP;
+                break;
+            default:
+                continue;
             }
-            MSYS_SGP_Mouse_Handler_Hook(reason, point.x, point.y,
-                                       gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(reason, point.x, point.y, gfLeftButtonState,
+                                        gfRightButtonState);
             continue;
         }
         if (!g_automap_cursor_inside) {
             g_automap_cursor_inside = 1;
             int cursor = g_automap_tool;
-            if (cursor == 0) cursor = g_automap_zoom > 25000.0f ? 1 : 4;
-            SetMouseCursorFromVideoObject(
-                GetCatalogVideoObjectHandle(cursor + 0x14b, 0),
-                GetCatalogVideoObjectYOffset(cursor + 0x14b),
-                g_automap_cursor_offsets[cursor][0], g_automap_cursor_offsets[cursor][1]);
+            if (cursor == 0)
+                cursor = g_automap_zoom > 25000.0f ? 1 : 4;
+            SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(cursor + 0x14b, 0),
+                                          GetCatalogVideoObjectYOffset(cursor + 0x14b),
+                                          g_automap_cursor_offsets[cursor][0],
+                                          g_automap_cursor_offsets[cursor][1]);
             gXStatus.iCurrentCursor = 7;
             RefreshMouseCursorTexture();
         }
@@ -600,20 +620,22 @@ void AutomapScreenFrame(void)
                         (*g_automap_layers.GetAt(layer))->getLocationY();
                     }
                     srVector2T<float> location;
-                    location.Set(
-                        (point.x - 0.5f) * g_automap_zoom + g_automap_position.x,
-                        g_automap_position.z - (point.y - 0.5f) * g_automap_zoom);
+                    location.Set((point.x - 0.5f) * g_automap_zoom + g_automap_position.x,
+                                 g_automap_position.z - (point.y - 0.5f) * g_automap_zoom);
                     g_automap_editing_note = CreateAutomapNote(&location, g_automap_layer, L"_");
                 }
             } else if (g_automap_tool == 3) {
                 W8AutomapNote* note = Function582180();
                 if (note) {
                     int index = g_automap_notes->IndexOf(note);
-                    if (index >= 0) g_automap_notes->RemoveAt(index);
+                    if (index >= 0)
+                        g_automap_notes->RemoveAt(index);
                     free(note->text);
                     delete note;
-                    if (g_automap_hovered_note == note) g_automap_hovered_note = 0;
-                    if (g_automap_editing_note == note) g_automap_editing_note = 0;
+                    if (g_automap_hovered_note == note)
+                        g_automap_hovered_note = 0;
+                    if (g_automap_editing_note == note)
+                        g_automap_editing_note = 0;
                     g_automap_redraw = 1;
                 }
             } else if (GetCursorPositionInViewport(&point)) {
@@ -652,16 +674,17 @@ void AutomapScreenFrame(void)
             W8AutomapNote* previous = g_automap_hovered_note;
             g_automap_hovered_note = Function582180();
             if (previous != g_automap_hovered_note) {
-                if (previous) Function581460(previous);
+                if (previous)
+                    Function581460(previous);
                 Function582930();
             }
             srVector3T<float> point;
             if (Function582050(&point)) {
                 point.y = 0.0f;
-                srVector3T<float> distance(point.x - g_automap_saved_camera.position.x,
-                                           0.0f, point.z - g_automap_saved_camera.position.z);
-                if (distance.Length() < g_automap_zoom * 0.05f &&
-                    g_automap_tool == 0 && g_automap_zoom_mode != 2) {
+                srVector3T<float> distance(point.x - g_automap_saved_camera.position.x, 0.0f,
+                                           point.z - g_automap_saved_camera.position.z);
+                if (distance.Length() < g_automap_zoom * 0.05f && g_automap_tool == 0 &&
+                    g_automap_zoom_mode != 2) {
                     ClearFlag603C60();
                     srVector3T<double> scale(0.44f, 0.44f, 0.44f);
                     g_class_68f29c->setScale(scale);
@@ -691,9 +714,11 @@ void AutomapScreenFrame(void)
         g_automap_position.z -= g_automap_zoom * 0.35f;
         moved = true;
     }
-    if (moved) Function57FC70(&g_automap_position);
+    if (moved)
+        Function57FC70(&g_automap_position);
     if (GetTickCount() - g_automap_state->blink_time > 500) {
-        if (g_automap_state->blink_enabled) Function427460(0xdc, 0x32);
+        if (g_automap_state->blink_enabled)
+            Function427460(0xdc, 0x32);
         g_automap_state->blink_time = GetTickCount();
     }
     Function581030();
@@ -707,7 +732,8 @@ void RestoreAutomapWorldSettings(void)
     RestoreWorldCameraState(GetWorld(), 0, &g_automap_saved_camera);
     WorldSetFarClip(g_world, g_automap_saved_far_clip);
     WorldSetValue74(g_world, g_automap_saved_world_value);
-    if (g_automap_saved_sky) EnableSky();
+    if (g_automap_saved_sky)
+        EnableSky();
     SetRenderOption(11, g_automap_saved_render_flags[0]);
     SetRenderOption(10, g_automap_saved_render_flags[1]);
     g_monster_shadow_updates_enabled_0065970c = g_automap_saved_render_flags[2];
@@ -745,7 +771,8 @@ unsigned char AutomapScreenLeave(int)
         srClass* object = g_releasable_68f1f4->data[0];
         object->release();
         int index = g_releasable_68f1f4->IndexOf(object);
-        if (index >= 0) g_releasable_68f1f4->RemoveAt(index);
+        if (index >= 0)
+            g_releasable_68f1f4->RemoveAt(index);
     }
     g_class_68f29c->setParent(0, 1);
     for (int index = 0; index < 16; ++index) {
@@ -763,7 +790,8 @@ unsigned char AutomapScreenLeave(int)
         }
     }
     while (g_automap_created_layers.count) {
-        if (g_automap_created_layers.data[0]) g_automap_created_layers.data[0]->release();
+        if (g_automap_created_layers.data[0])
+            g_automap_created_layers.data[0]->release();
         g_automap_created_layers.RemoveAt(0);
     }
     return 1;
@@ -844,12 +872,10 @@ void SetAutomapButtonMode(int update)
     if (update == 0) {
         g_automap_buttons[0]->SetEnabled(1);
         g_automap_buttons[1]->SetEnabled(0);
-    }
-    else if (update == 1) {
+    } else if (update == 1) {
         g_automap_buttons[0]->SetEnabled(1);
         g_automap_buttons[1]->SetEnabled(1);
-    }
-    else if (update == 2) {
+    } else if (update == 2) {
         g_automap_buttons[0]->SetEnabled(0);
         g_automap_buttons[1]->SetEnabled(1);
     }

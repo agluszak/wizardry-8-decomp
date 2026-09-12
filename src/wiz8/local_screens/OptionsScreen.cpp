@@ -2,7 +2,6 @@
 #include "Font.h"
 #include "Types.h"
 #include "mousesystem.h"
-#include "wiz8/bringup_gates.h"
 #include "wiz8/render_state.h"
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"

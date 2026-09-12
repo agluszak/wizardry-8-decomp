@@ -1,6 +1,5 @@
 #include "Types.h"
 #include "mousesystem.h"
-#include "wiz8/bringup_gates.h"
 #include "wiz8/regions.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/render_state.h"
@@ -74,7 +73,6 @@ unsigned char g_cd_marker_present_69b7d0;
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "LibraryDataBase.h"
-extern unsigned char g_flag_689b2c;
 
 /* 0x0064BF8C: one video-object id per level, the backdrop the Please Wait
    screen shows while that level loads. 0x00605820 indexes the level's name in
@@ -330,7 +328,7 @@ void PleaseWaitScreenFrame(void)
         delete g_swap_disc_dialog_69b7cc;
         g_swap_disc_dialog_69b7cc = 0;
         RequestScreenTransition();
-        if (g_load_descriptor_69b7c8->mode == 1 && g_flag_689b2c) {
+        if (g_load_descriptor_69b7c8->mode == 1 && g_status_685170.flag_49bc) {
             SetValue64D8AC(4);
             SetPendingScreenState(W8_SCREEN_INTRO);
             return;
