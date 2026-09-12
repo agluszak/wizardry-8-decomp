@@ -21,6 +21,10 @@ _SYNTHETIC_MARKER = re.compile(r"^\s*//\s*SYNTHETIC:\s+")
 _SOURCE_MARKER = re.compile(r"^\s*//\s*(?:FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY|VTABLE|GLOBAL):\s+")
 _SOURCE_INDEX_SCHEMAS = frozenset({"reccmp-source-index-v2", "reccmp-source-index-v3"})
 _ATTACHED_INCLUDE_FLAGS = ("-isystem", "-iquote", "-idirafter", "-I", "/I", "/Fo", "/Fd")
+# The analysis image exports Wine TEMP/TMP as Z:\out\tmp. Linux clang++ and the
+# indexer binary treat those as the process temp directory, so docker runs that
+# are not Wine jobs have to point them at a real Unix path.
+_ANALYSIS_LINUX_TEMP = ("-e", "TMPDIR=/tmp", "-e", "TMP=/tmp", "-e", "TEMP=/tmp")
 
 
 def validate_synthetic_marker_blocks(repository: Path) -> int:
@@ -468,6 +472,7 @@ clang++ -O2 -std=c++17 -fno-rtti -fno-exceptions \
             "--rm",
             "--network",
             "none",
+            *_ANALYSIS_LINUX_TEMP,
             "--volume",
             f"{source}:/src/indexer.cpp:ro",
             "--volume",
@@ -530,7 +535,7 @@ def _prepare_analysis_indexer(settings: Settings, cache: Path) -> None:
         Mount(jpeg, str(jpeg.resolve())),
         Mount(infozip, str(infozip.resolve())),
     )
-    command = [docker, "run", "--rm", "--network", "none"]
+    command = [docker, "run", "--rm", "--network", "none", *_ANALYSIS_LINUX_TEMP]
     for mount in mounts:
         command.extend(("--volume", mount.docker_argument()))
     command.extend(("-e", f"RECCMP_SOURCE_ROOT={repository}"))
