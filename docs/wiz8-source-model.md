@@ -226,12 +226,11 @@ translation unit with clang-cl at `/W4 -Werror` plus the recovery diagnostics
 (`-Wsometimes-uninitialized -Wswitch -Warray-bounds -Wsign-compare
 -Wmissing-field-initializers -Woverloaded-virtual
 -Winconsistent-missing-override -Wshadow-field`), and then runs the narrow clang-tidy profile
-from `.clang-tidy`. `wiz8 diagnostics` uses the same recovery diagnostics report-only and runs
-the broader `.clang-tidy-diagnostics` profile for trial checks.
+from `.clang-tidy`. `WIZ8_CLANG_LINT` is an umbrella over the Wizardry game
 sources, SurRender, `WIZ8_SGP`, and the recovered/adapted JPEG and UnZip
 plugin code; the pristine IJG and Info-ZIP trees keep their upstream warnings.
-`wiz8 diagnostics` runs the same projection with the recovery diagnostics
-report-only.
+`wiz8 diagnostics` uses the same recovery diagnostics report-only and runs
+the broader `.clang-tidy-diagnostics` profile for trial checks.
 
 The product VC6 build and the clang-cl lint lane share one interface target
 (`cmake/CompileSettings.cmake`) for includes, forced compatibility header and
