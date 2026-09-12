@@ -39,38 +39,37 @@ void* g_screen_return_stack;
 
 // GLOBAL: WIZ8 0x00647bc8
 W8ScreenStateHandlers g_screen_handlers[W8_SCREEN_COUNT] = {
-    { ScreenLifecycleSuccess, IntroScreenEnter, IntroScreenFrame, IntroScreenLeave,
-      ScreenLifecycleSuccess },
-    { MainMenuScreenInitialize, MainMenuScreenEnter, MainMenuScreenFrame,
-      MainMenuScreenLeave, ScreenLifecycleSuccess },
-    { ScreenLifecycleSuccess, ScreenLifecycleSuccess, GameStartRouterFrame,
-      (unsigned char (*)(int))ScreenLifecycleSuccess, ScreenLifecycleSuccess },
-    { ScreenLifecycleSuccess, CharacterScreenEnter, CharacterScreenFrame,
-      CharacterScreenLeave, ScreenLifecycleSuccess },
-    { PleaseWaitScreenInitialize, PleaseWaitScreenEnter, PleaseWaitScreenFrame,
-      (unsigned char (*)(int))PleaseWaitScreenLeave, ScreenLifecycleSuccess },
-    { ScreenLifecycleSuccess, PartySelectionScreenEnter, PartySelectionScreenFrame,
-      PartySelectionScreenLeave, ScreenLifecycleSuccess },
-    { CampScreenInitialize, CampScreenEnter, CampScreenFrame,
-      CampScreenLeave,
-      ScreenLifecycleSuccess },
-    { MainGameScreenInitialize, MainGameScreenEnter, MainGameScreenFrame,
-      MainGameScreenLeave,
-      ScreenLifecycleSuccess },
-    { AutomapScreenInitialize, AutomapScreenEnter, AutomapScreenFrame,
-      AutomapScreenLeave, AutomapScreenFinalize },
-    { ScreenLifecycleSuccess, CreditsScreenEnter, CreditsScreenFrame,
-      CreditsScreenLeave, ScreenLifecycleSuccess },
-    { OptionsScreenInitialize, OptionsScreenEnter,
-      OptionsScreenFrame, OptionsScreenLeave,
-      OptionsScreenFinalize },
-    { JournalScreenInitialize, JournalScreenEnter, JournalScreenFrame,
-      JournalScreenLeave,
-      JournalScreenFinalize },
-    { ScreenLifecycleSuccess, ExitScreenEnter, ExitScreenFrame,
-      MainMenuScreenLeave,
-      ScreenLifecycleSuccess }
-};
+    {ScreenLifecycleSuccess, IntroScreenEnter, IntroScreenFrame, IntroScreenLeave,
+     ScreenLifecycleSuccess},
+    {MainMenuScreenInitialize, MainMenuScreenEnter, MainMenuScreenFrame, MainMenuScreenLeave,
+     ScreenLifecycleSuccess},
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
+    /* Retail stores the zero-argument success sentinel in the int-taking
+       leave slot. Do not invent a thunk or change ScreenLifecycleSuccess. */
+    {ScreenLifecycleSuccess, ScreenLifecycleSuccess, GameStartRouterFrame,
+     (unsigned char (*)(int))ScreenLifecycleSuccess, ScreenLifecycleSuccess},
+#pragma clang diagnostic pop
+    {ScreenLifecycleSuccess, CharacterScreenEnter, CharacterScreenFrame, CharacterScreenLeave,
+     ScreenLifecycleSuccess},
+    {PleaseWaitScreenInitialize, PleaseWaitScreenEnter, PleaseWaitScreenFrame,
+     PleaseWaitScreenLeave, ScreenLifecycleSuccess},
+    {ScreenLifecycleSuccess, PartySelectionScreenEnter, PartySelectionScreenFrame,
+     PartySelectionScreenLeave, ScreenLifecycleSuccess},
+    {CampScreenInitialize, CampScreenEnter, CampScreenFrame, CampScreenLeave,
+     ScreenLifecycleSuccess},
+    {MainGameScreenInitialize, MainGameScreenEnter, MainGameScreenFrame, MainGameScreenLeave,
+     ScreenLifecycleSuccess},
+    {AutomapScreenInitialize, AutomapScreenEnter, AutomapScreenFrame, AutomapScreenLeave,
+     AutomapScreenFinalize},
+    {ScreenLifecycleSuccess, CreditsScreenEnter, CreditsScreenFrame, CreditsScreenLeave,
+     ScreenLifecycleSuccess},
+    {OptionsScreenInitialize, OptionsScreenEnter, OptionsScreenFrame, OptionsScreenLeave,
+     OptionsScreenFinalize},
+    {JournalScreenInitialize, JournalScreenEnter, JournalScreenFrame, JournalScreenLeave,
+     JournalScreenFinalize},
+    {ScreenLifecycleSuccess, ExitScreenEnter, ExitScreenFrame, MainMenuScreenLeave,
+     ScreenLifecycleSuccess}};
 // GLOBAL: WIZ8 0x00647bc0
 int g_previous_screen_id = -1;
 // GLOBAL: WIZ8 0x00647bc4
@@ -152,14 +151,12 @@ void GameloopExit(unsigned char release_screens)
     SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_palette_smfnt_68ee10);
     SetFontObjectPalette16BPP(g_calligraphy_font_6835f8, g_font_palette_calligraphy_68edfc);
     SetFontObjectPalette16BPP(g_calligraphy_shadow_font_6835f4,
-                            g_font_palette_calligraphy_shadow_68ee18);
+                              g_font_palette_calligraphy_shadow_68ee18);
     SetFontObjectPalette16BPP(g_wiz_text_font_683640, g_font_palette_wiz_text_68ee14);
     SetFontObjectPalette16BPP(g_button_font_683670, g_font_palette_button_68ee04);
     SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
-    SetFontObjectPalette16BPP(g_wiz_text_bold_font_683664,
-                            g_font_palette_wiz_text_bold_68ee0c);
-    SetFontObjectPalette16BPP(g_options_detail_font_683614,
-                            g_font_palette_options_detail_68ee00);
+    SetFontObjectPalette16BPP(g_wiz_text_bold_font_683664, g_font_palette_wiz_text_bold_68ee0c);
+    SetFontObjectPalette16BPP(g_options_detail_font_683614, g_font_palette_options_detail_68ee00);
     if (!release_screens) {
         return;
     }
@@ -170,7 +167,8 @@ void GameloopExit(unsigned char release_screens)
             g_screen_handlers[g_current_screen_state.id].leave(1);
             g_current_screen_state.id = -1;
         }
-        if (!StackSize(g_screen_return_stack) || !Pop(g_screen_return_stack, &g_pending_screen_state)) {
+        if (!StackSize(g_screen_return_stack) ||
+            !Pop(g_screen_return_stack, &g_pending_screen_state)) {
             break;
         }
         if (g_pending_screen_state.id != -1) {
@@ -179,7 +177,8 @@ void GameloopExit(unsigned char release_screens)
                              "C:\\Projects\\Wizardry 8\\Local Code\\Gameloop.cpp", 0x276, 0);
             }
             state = g_pending_screen_state.id;
-            memcpy(&g_current_screen_state, &g_pending_screen_state, sizeof(g_current_screen_state));
+            memcpy(&g_current_screen_state, &g_pending_screen_state,
+                   sizeof(g_current_screen_state));
             if (!g_screen_handlers[state].enter()) {
                 g_current_screen_state.id = -1;
             } else {
@@ -187,5 +186,4 @@ void GameloopExit(unsigned char release_screens)
             }
         }
     }
-
 }

@@ -40,20 +40,19 @@
  * state are what place them; no assertion names them individually.
  */
 
-
 /* The screen's descriptor. The entry handler mallocs it, clears it and fills the
    tail from the screen-state record it was entered with; the frame handler reads
    the tail and writes the caption; the leave releases it. */
 struct W8LevelLoadDescriptor {
-    wchar_t caption[0x78];         /* 0x000, written by wcscpy and swprintf */
-    int mode;                      /* 0x0f0, the screen state's own mode */
-    int parameter;                 /* 0x0f4 */
-    int parameter_2;               /* 0x0f8 */
-    unsigned char waiting;         /* 0x0fc, gates the polling path */
-    char name[0x3f];               /* 0x0fd, bounded only by the next field */
+    wchar_t caption[0x78];          /* 0x000, written by wcscpy and swprintf */
+    int mode;                       /* 0x0f0, the screen state's own mode */
+    int parameter;                  /* 0x0f4 */
+    int parameter_2;                /* 0x0f8 */
+    unsigned char waiting;          /* 0x0fc, gates the polling path */
+    char name[0x3f];                /* 0x0fd, bounded only by the next field */
     W8SaveScreenshot* save_payload; /* 0x13c */
-    unsigned long entered_tick;    /* 0x140 */
-    int caption_y;                 /* 0x144 */
+    unsigned long entered_tick;     /* 0x140 */
+    int caption_y;                  /* 0x144 */
 };
 
 // GLOBAL: WIZ8 0x0069B7C0
@@ -66,8 +65,6 @@ W8LevelLoadDescriptor* g_load_descriptor_69b7c8;
 W8ModalDialogBase* g_swap_disc_dialog_69b7cc;
 // GLOBAL: WIZ8 0x0069B7D0
 unsigned char g_cd_marker_present_69b7d0;
-
-
 
 /* Engine Code\Levels.cpp owns this with C++ linkage. */
 
@@ -85,11 +82,10 @@ extern unsigned char g_flag_689b2c;
    frame handler falls back to. */
 // GLOBAL: WIZ8 0x0064bf8c
 int g_level_backdrops_64bf8c[47] = {
-    0x1bc, 0x1bd, 0x1be, 0x1bf, 0x1c0, 0x1c2, 0x1c1, 0x1c3, 0x1c4, 0x1c5,
-    0x1c6, 0xe4, 0x1c7, 0x1c8, 0x1c9, 0x1ca, 0x1cb, 0x1cc, 0x1cd, 0x1ce,
-    0x1cf, 0x1d0, 0x1d1, 0xe4, 0x1d2, 0x1d3, 0x1d4, 0x1d5, 0xe4, 0x1d6,
-    0xe4, 0x1d7, 0x1d8, 0x1d9, 0xe4, 0xe4, 0x1da, 0x1db, 0x1dc, 0xe4,
-    0, 0, 0, 0, 0, 0, 0,
+    0x1bc, 0x1bd, 0x1be, 0x1bf, 0x1c0, 0x1c2, 0x1c1, 0x1c3, 0x1c4, 0x1c5, 0x1c6, 0xe4,
+    0x1c7, 0x1c8, 0x1c9, 0x1ca, 0x1cb, 0x1cc, 0x1cd, 0x1ce, 0x1cf, 0x1d0, 0x1d1, 0xe4,
+    0x1d2, 0x1d3, 0x1d4, 0x1d5, 0xe4,  0x1d6, 0xe4,  0x1d7, 0x1d8, 0x1d9, 0xe4,  0xe4,
+    0x1da, 0x1db, 0x1dc, 0xe4,  0,     0,     0,     0,     0,     0,     0,
 };
 /* The path the five assertions carry. */
 #define PLEASE_WAIT_SCREEN_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\PleaseWaitScreen.cpp"
@@ -119,8 +115,7 @@ unsigned char PleaseWaitScreenInitialize(void)
 unsigned char PleaseWaitScreenEnter(void)
 {
     if (!g_load_descriptor_69b7c8) {
-        g_load_descriptor_69b7c8 =
-            (W8LevelLoadDescriptor*)malloc(sizeof(W8LevelLoadDescriptor));
+        g_load_descriptor_69b7c8 = (W8LevelLoadDescriptor*)malloc(sizeof(W8LevelLoadDescriptor));
         if (!g_load_descriptor_69b7c8) {
             return 0;
         }
@@ -181,8 +176,7 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
             g_load_descriptor_69b7c8->entered_tick = GetTickCount();
             if (!g_swap_disc_dialog_69b7cc) {
                 g_swap_disc_dialog_69b7cc = new W8ModalDialogBase;
-                g_swap_disc_dialog_69b7cc->SetBackground(
-                    "Data\\Dialogs\\DialogBackground.sti", 0);
+                g_swap_disc_dialog_69b7cc->SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
                 g_swap_disc_dialog_69b7cc->SetOrigin(0xf0, 0xbe);
                 g_swap_disc_dialog_69b7cc->SetExtent(0xa0, 100);
             }
@@ -201,19 +195,17 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
    two pieces and the caption. The frame handler emits it from two places - the
    parked path and the ordinary path - and the retail body carries both copies,
    which is why it is written out at each site rather than factored here. */
-#define PLEASE_WAIT_SCREEN_DRAW()                                             \
-    do {                                                                      \
-        int backdrop = (unsigned int)g_load_descriptor_69b7c8->parameter < 0x2f \
-            ? g_level_backdrops_64bf8c[g_load_descriptor_69b7c8->parameter]   \
-            : 0xe4;                                                           \
-        DrawCatalogImage(-14, backdrop, 0, 0, 0, 0, 2, 0);                    \
-        DrawCatalogImage(-14, 0x1de, 0, 0, 0, 0x1be, 2, 0);                   \
-        SetFont(g_level_load_font_69b7c0);                             \
-        gprintf(0x6a, 0x1c7, (unsigned short*)"%",                           \
-                (const wchar_t*)g_load_descriptor_69b7c8);                   \
-        DrawCatalogImage(-14, 0x1dd, 0, g_load_descriptor_69b7c8->caption_y,  \
-                       0, 0x185, 2, 0);                                       \
-        ResetTransientRenderScenes();                                                     \
+#define PLEASE_WAIT_SCREEN_DRAW()                                                                  \
+    do {                                                                                           \
+        int backdrop = (unsigned int)g_load_descriptor_69b7c8->parameter < 0x2f                    \
+                           ? g_level_backdrops_64bf8c[g_load_descriptor_69b7c8->parameter]         \
+                           : 0xe4;                                                                 \
+        DrawCatalogImage(-14, backdrop, 0, 0, 0, 0, 2, 0);                                         \
+        DrawCatalogImage(-14, 0x1de, 0, 0, 0, 0x1be, 2, 0);                                        \
+        SetFont(g_level_load_font_69b7c0);                                                         \
+        gprintf(0x6a, 0x1c7, (unsigned short*)"%", (const wchar_t*)g_load_descriptor_69b7c8);      \
+        DrawCatalogImage(-14, 0x1dd, 0, g_load_descriptor_69b7c8->caption_y, 0, 0x185, 2, 0);      \
+        ResetTransientRenderScenes();                                                              \
     } while (0)
 
 /* The frame handler, and the body whose five assertions name this unit.
@@ -240,15 +232,12 @@ void PleaseWaitScreenFrame(void)
                 RenderFrame();
                 return;
             }
-        }
-        else if (GetTickCount() - g_load_descriptor_69b7c8->entered_tick > 200) {
+        } else if (GetTickCount() - g_load_descriptor_69b7c8->entered_tick > 200) {
             if (!IsLevelCdMissing0042B6F0(g_load_descriptor_69b7c8->parameter)) {
                 g_load_descriptor_69b7c8->waiting = 0;
                 ReopenCDLibraries();
                 g_swap_disc_dialog_69b7cc->is_open = 0;
-            }
-            else if (!g_swap_disc_dialog_69b7cc->is_open
-                     && ++g_value_69b7c4 > 4) {
+            } else if (!g_swap_disc_dialog_69b7cc->is_open && ++g_value_69b7c4 > 4) {
                 g_swap_disc_dialog_69b7cc->is_open = 1;
                 g_value_69b7c4 = 0;
             }
@@ -262,30 +251,24 @@ void PleaseWaitScreenFrame(void)
     case 0:
         wcscpy(g_load_descriptor_69b7c8->caption, gppStringList[0x1bbc / 4]);
         break;
-    case 1:
-        {
-            wchar_t** strings = gppStringList;
-            wcscpy(g_load_descriptor_69b7c8->caption,
-                   strncmp(g_load_descriptor_69b7c8->name, "Quick",
-                           strlen("Quick")) == 0
-                       ? strings[0x1bc4 / 4]
-                       : strings[0x1bc0 / 4]);
-        }
-        break;
+    case 1: {
+        wchar_t** strings = gppStringList;
+        wcscpy(g_load_descriptor_69b7c8->caption,
+               strncmp(g_load_descriptor_69b7c8->name, "Quick", strlen("Quick")) == 0
+                   ? strings[0x1bc4 / 4]
+                   : strings[0x1bc0 / 4]);
+    } break;
     case 2:
         wcscpy(g_load_descriptor_69b7c8->caption, gppStringList[0x1bc8 / 4]);
         break;
     case 3:
         if ((unsigned int)g_load_descriptor_69b7c8->parameter < 0x2f) {
-            swprintf(g_load_descriptor_69b7c8->caption, L"%s %s...",
-                     gppStringList[0x1bcc / 4],
-                     gppStringList[g_level_name_indices_605820
-                                       [g_load_descriptor_69b7c8->parameter]]);
-        }
-        else if (g_load_descriptor_69b7c8->parameter == 0x38) {
+            swprintf(
+                g_load_descriptor_69b7c8->caption, L"%s %s...", gppStringList[0x1bcc / 4],
+                gppStringList[g_level_name_indices_605820[g_load_descriptor_69b7c8->parameter]]);
+        } else if (g_load_descriptor_69b7c8->parameter == 0x38) {
             wcscpy(g_load_descriptor_69b7c8->caption, L"Entering default level...");
-        }
-        else {
+        } else {
             swprintf(g_load_descriptor_69b7c8->caption, L"Entering test level %c..",
                      g_load_descriptor_69b7c8->parameter + 2);
         }
@@ -320,11 +303,9 @@ void PleaseWaitScreenFrame(void)
         }
         break;
     case 2: {
-        unsigned char saved = SaveGame(g_load_descriptor_69b7c8->name,
-                                       g_load_descriptor_69b7c8->save_payload);
-        ShowNotice(0xc,
-                       saved ? gppStringList[0x1bd0 / 4] : gppStringList[0x1bd8 / 4],
-                       -1, -1, 0);
+        unsigned char saved =
+            SaveGame(g_load_descriptor_69b7c8->name, g_load_descriptor_69b7c8->save_payload);
+        ShowNotice(0xc, saved ? gppStringList[0x1bd0 / 4] : gppStringList[0x1bd8 / 4], -1, -1, 0);
         if (g_load_descriptor_69b7c8->save_payload) {
             delete g_load_descriptor_69b7c8->save_payload;
         }
@@ -365,7 +346,7 @@ void PleaseWaitScreenFrame(void)
    teardown, which is why the release sits under the flag rather than the whole
    body. */
 // FUNCTION: WIZ8 0x00591560
-unsigned char PleaseWaitScreenLeave(char leaving)
+unsigned char PleaseWaitScreenLeave(int leaving)
 {
     if (leaving) {
         free(g_load_descriptor_69b7c8);
@@ -390,12 +371,10 @@ void UpdatePleaseWaitLoadFrame005915A0(void)
     ServiceMusicPlaylist0048F9E0();
     tick = GetTickCount();
     if (tick - g_load_descriptor_69b7c8->entered_tick > 499) {
-        g_load_descriptor_69b7c8->caption_y =
-            (g_load_descriptor_69b7c8->caption_y + 1) % 0x18;
+        g_load_descriptor_69b7c8->caption_y = (g_load_descriptor_69b7c8->caption_y + 1) % 0x18;
         g_load_descriptor_69b7c8->entered_tick = tick;
-        DrawCatalogImageAndInvalidate(-0xe, 0x1dd, 0,
-                       g_load_descriptor_69b7c8->caption_y,
-                       0, 0x185, 2, 0);
+        DrawCatalogImageAndInvalidate(-0xe, 0x1dd, 0, g_load_descriptor_69b7c8->caption_y, 0, 0x185,
+                                      2, 0);
         RenderFrame();
     }
 }

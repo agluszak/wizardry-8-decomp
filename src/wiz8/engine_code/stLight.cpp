@@ -74,16 +74,14 @@ stLight& stLight::operator=(const stLight& other)
     m_positional_228 = other.m_positional_228;
     if (other.m_definition_234 != 0) {
         m_definition_234 = other.m_definition_234->Clone();
-    }
-    else {
+    } else {
         m_definition_234 = 0;
     }
     m_positional_238 = other.m_positional_238;
     m_positional_239 = other.m_positional_239;
     if (other.m_owned_244 != 0) {
         m_owned_244 = ClonePathAI004A98C0(other.m_owned_244);
-    }
-    else {
+    } else {
         m_owned_244 = 0;
     }
     m_positional_248 = other.m_positional_248;
@@ -103,22 +101,18 @@ void stLight::traverse(srNode::TraverseInfo& info)
     }
 
     if (!testFlag(FLAG_POSITIONAL_1)) {
-        if (testFlag(FLAG_POSITIONAL_0) ||
-            fabs(m_positional_98) <= g_double_005ebc70 ||
+        if (testFlag(FLAG_POSITIONAL_0) || fabs(m_positional_98) <= g_double_005ebc70 ||
             (g_light_update_flags_0060bfdc & 1) == 0) {
             if (firstChild() != 0) {
                 firstChild()->traverse(info);
             }
-        }
-        else if (m_definition_234 != 0) {
+        } else if (m_definition_234 != 0) {
             if (!testFlag(FLAG_POSITIONAL_2)) {
-                srNode::TraverseInfo::Entry& entry =
-                    info.entries[info.entry_count];
+                srNode::TraverseInfo::Entry& entry = info.entries[info.entry_count];
                 entry.node = this;
                 entry.value = 1;
                 ++info.entry_count;
-            }
-            else {
+            } else {
                 info.nodes[info.node_count] = this;
                 ++info.node_count;
             }
@@ -128,8 +122,7 @@ void stLight::traverse(srNode::TraverseInfo& info)
             }
 
             if (!testFlag(FLAG_POSITIONAL_2)) {
-                srNode::TraverseInfo::Entry& entry =
-                    info.entries[info.entry_count];
+                srNode::TraverseInfo::Entry& entry = info.entries[info.entry_count];
                 entry.node = this;
                 entry.value = 2;
                 ++info.entry_count;
@@ -139,12 +132,15 @@ void stLight::traverse(srNode::TraverseInfo& info)
 }
 
 // FUNCTION: WIZ8 0x0049C8D0
-void stLight::process(
-    const srNode::ProcessInfo& info,
-    srNode::e_processType type)
+void stLight::process(const srNode::ProcessInfo& info, srNode::e_processType type)
 {
-    if ((type == 1 || type == 3) &&
-        g_light_scale_0060bfe0 != g_float_005ebb38) {
+    /* The recovered e_processType currently names only 0; retail still
+       compares this override against 1 and 3. Enumerator names remain
+       unknown, so keep the integer tests rather than inventing them. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wtautological-compare"
+    if ((type == 1 || type == 3) && g_light_scale_0060bfe0 != g_float_005ebb38) {
+#pragma clang diagnostic pop
         float saved_scale = m_positional_98;
         m_positional_98 = saved_scale * g_light_scale_0060bfe0;
         srLight::process(info, type);
@@ -158,8 +154,7 @@ void stLight::process(
 void stLight::SetDefinitionTime0049C940(float time)
 {
     if (m_definition_234 != 0 && m_definition_234->type_04 == 2) {
-        static_cast<stLightDefinition005ECDA0*>(m_definition_234)->time_4c =
-            time;
+        static_cast<stLightDefinition005ECDA0*>(m_definition_234)->time_4c = time;
     }
 }
 
@@ -178,8 +173,7 @@ void stLight::Reset0049D070()
             definition->value_48 = 0;
             m_positional_248 = 0;
             m_positional_250 = 1;
-        }
-        else {
+        } else {
             stLightDefinition005ECDBC* definition =
                 static_cast<stLightDefinition005ECDBC*>(m_definition_234);
             m_positional_98 = definition->intensity_28;
@@ -219,14 +213,11 @@ srClass* stLight::vInstance()
 
 /* Test a point against the six inward-facing planes of one region volume. */
 // FUNCTION: WIZ8 0x0049e460
-unsigned char W8OctRegionVolume0049E460::ContainsPoint0049E460(
-    const srVector3T<float>* point) const
+unsigned char W8OctRegionVolume0049E460::ContainsPoint0049E460(const srVector3T<float>* point) const
 {
     for (short plane = 0; plane < 6; ++plane) {
-        float distance = planes_88[plane].x * point->x +
-                         planes_88[plane].y * point->y +
-                         planes_88[plane].z * point->z +
-                         planes_88[plane].w;
+        float distance = planes_88[plane].x * point->x + planes_88[plane].y * point->y +
+                         planes_88[plane].z * point->z + planes_88[plane].w;
         if (distance < g_float_005ebb34) {
             return 0;
         }

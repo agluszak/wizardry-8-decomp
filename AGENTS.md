@@ -109,7 +109,15 @@ not each textual edit. Reuse a successful result until a relevant input changes.
 
 `uv run wiz8 check` is the fast public lane (ruff, pyright, validators, tests); `uv run wiz8 lint` is
 the clang-cl compile lane. Do not repeat unrelated baseline failures or rerun checks after
-descriptions, change IDs, bookmarks, or pushes alone.
+descriptions, change IDs, bookmarks, or pushes alone. When a focused check reports diagnostics,
+fix them at their owner even if they pre-existed the current change. Do not skip a gating
+failure as "baseline" or "not introduced here." If a diagnostic appears only in one
+environment, identify why that lane disagrees with the other and fix the lane (path prefixes,
+compile-database roots, header filters) rather than suppressing the finding.
+
+Lint and tidy configuration must match first-party trees by repository-relative path. Do not
+hard-code the docker `/repo` mount into `.clang-tidy` or compile-database consumers that also
+run in a local checkout.
 
 Format manually owned C/C++ files you changed with
 `uv run clang-format --style=file -i <paths>` and check with

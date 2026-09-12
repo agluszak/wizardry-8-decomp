@@ -17,7 +17,7 @@ unsigned char TraceToBounds(void* eye, const float* lower, const float* upper);
 struct W8Quad;
 class W8Missile;
 class W8SpellVisual;
-class W8MonsterGenerator;
+struct W8MonsterGenerator;
 class stLight;
 class W8Prop;
 class Trigger;
@@ -45,8 +45,7 @@ struct W8NamedPosition {
     float value_098;
 };
 
-static_assert(sizeof(W8NamedPosition) == 0x9c,
-              "W8NamedPosition_must_be_0x9c");
+static_assert(sizeof(W8NamedPosition) == 0x9c, "W8NamedPosition_must_be_0x9c");
 
 struct W8WorldCameraEntry {
     unsigned char positional_00[0x14];
@@ -66,8 +65,7 @@ struct W8WorldCameraState {
 };
 static_assert(sizeof(W8WorldCameraState) == 0x3c, "W8WorldCameraState_size");
 
-static_assert(sizeof(W8WorldCameraEntry) == 0x1c,
-              "W8WorldCameraEntry_must_be_0x1c");
+static_assert(sizeof(W8WorldCameraEntry) == 0x1c, "W8WorldCameraEntry_must_be_0x1c");
 
 /* Engine Code\3dapi.cpp. CreateWorld allocates and zeroes exactly 0xdc bytes;
    the list/vector setup and teardown routines prove the owned fields below. */
@@ -111,7 +109,6 @@ struct W8World {
     W8GrowableVector<stParticle*>* particles;
     W8GrowableVector<W8NamedPosition*>* named_positions;
     unsigned char m_positional_0d4[8];
-
 };
 
 extern W8World* g_world;
@@ -124,12 +121,10 @@ void MarkRendererReady(void);
 void WorldUpdateProps(W8World* world);
 
 W8World* CreateWorld();
-unsigned char LoadWorld(
-    W8World* world, char* level_file_name, const char* level_folder,
-    const char* asset_folder, unsigned char use_octree);
-unsigned char ForwardLoadWorld(
-    W8World* world, char* level_file_name, const char* level_folder,
-    const char* asset_folder, unsigned char use_octree);
+unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level_folder,
+                        const char* asset_folder, unsigned char use_octree);
+unsigned char ForwardLoadWorld(W8World* world, char* level_file_name, const char* level_folder,
+                               const char* asset_folder, unsigned char use_octree);
 void Forward44FAF0(W8World* world);
 void SetCurrentWorld(W8World* world);
 void ConstructWorldCollections(W8World* world);
@@ -149,10 +144,8 @@ void RestoreWorldCameraState(W8World* world, int mode, const W8WorldCameraState*
 void UpdateWorldMesh004BAF60(W8World* world);
 void WorldGetCameraRotation(W8World* world, srMatrix3T<float>* rotation);
 void WorldGetCameraLocation(W8World* world, srVector3T<float>* location);
-void WorldGetCameraLocation00451160(
-    W8World* world, srVector3T<float>* location);
-void SetWorldScenePosition004511D0(
-    W8World* world, const srVector3T<float>* position);
+void WorldGetCameraLocation00451160(W8World* world, srVector3T<float>* location);
+void SetWorldScenePosition004511D0(W8World* world, const srVector3T<float>* position);
 stParticle* FindParticleByName(W8World* world, const char* name);
 stLight* CreateLight0046DF90(srNode* parent, const char* name);
 stLight* CreateWorldLight0046E030(W8World* world, const char* name);

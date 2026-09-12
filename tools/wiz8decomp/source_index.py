@@ -12,6 +12,7 @@ from typing import Any
 from reccmp.source import SourceIndex, SourceIndexError, SourceMarker
 
 from .config import Settings
+from .paths import compile_database_relative
 
 _SOURCE_SUFFIXES = frozenset({".c", ".cpp", ".h", ".hpp"})
 _SYNTHETIC_MARKER = re.compile(r"^\s*//\s*SYNTHETIC:\s+")
@@ -127,7 +128,7 @@ def _cmake_configure_inputs(repository: Path) -> tuple[Path, ...]:
     return tuple(seen)
 
 
-def _compile_db_files(database: Path) -> set[str]:
+def _compile_db_files(database: Path, repository: Path) -> set[str]:
     try:
         entries = json.loads(database.read_text(encoding="utf-8"))
     except (OSError, ValueError):
@@ -135,12 +136,11 @@ def _compile_db_files(database: Path) -> set[str]:
     files: set[str] = set()
     for entry in entries if isinstance(entries, list) else []:
         raw = str((entry or {}).get("file", ""))
-        if raw.startswith("/repo/"):
-            files.add(raw[len("/repo/") :])
-        elif raw.startswith("/"):
+        if not raw:
             continue
-        elif raw:
-            files.add(raw)
+        relative = compile_database_relative(raw, repository)
+        if relative:
+            files.add(relative)
     return files
 
 
@@ -158,7 +158,7 @@ def indexed_targets(repository: Path, database: Path | None = None) -> dict[str,
         target: _source_roots(config) for target, config in targets.items() if _source_roots(config)
     }
     if database is not None and database.is_file():
-        covered = _compile_db_files(database)
+        covered = _compile_db_files(database, repository)
         if covered:
             filtered = {}
             for target, roots in candidates.items():
@@ -460,16 +460,19 @@ def _collect_per_namespace(
     Entries outside every source root are external/vendor translation units
     (``/zlib``, ``/infozip``); their headers are already parsed through the
     first-party units that include them, so running them standalone only
-    multiplies work. An unowned ``/repo`` entry is a configuration error.
+    multiplies work. An unowned first-party ``src/`` or ``include/`` entry is a
+    configuration error, whether the compile database was written under
+    Docker's ``/repo`` mount or a local checkout.
     """
     entries = json.loads(database.read_text(encoding="utf-8"))
 
     def owner(entry: dict[str, Any]) -> str | None:
-        raw = str(entry.get("file", ""))
-        candidate = raw.removeprefix("/repo/")
+        relative = compile_database_relative(str(entry.get("file", "")), repository)
+        if relative is None:
+            return None
         for target, source_roots in roots.items():
             if any(
-                candidate == root or candidate.startswith(root.rstrip("/") + "/")
+                relative == root or relative.startswith(root.rstrip("/") + "/")
                 for root in source_roots
             ):
                 return target
@@ -482,7 +485,8 @@ def _collect_per_namespace(
             by_target[target].append(entry)
             continue
         raw = str(entry.get("file", ""))
-        if raw.startswith("/repo/"):
+        relative = compile_database_relative(raw, repository)
+        if relative is not None and relative.startswith(("src/", "include/")):
             raise SourceIndexError(
                 f"compile database entry is outside every configured source-root: {raw}"
             )

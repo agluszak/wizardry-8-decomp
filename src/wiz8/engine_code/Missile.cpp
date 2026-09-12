@@ -95,8 +95,7 @@ unsigned char LoadMissileDatabase(void)
         g_missile_table_count_65bddc = 0;
     }
     handle = FileOpen(path, 0x41, 0);
-    if (!handle ||
-        !FileRead(handle, &allocated_count, 4, 0) ||
+    if (!handle || !FileRead(handle, &allocated_count, 4, 0) ||
         !FileRead(handle, &record_count, 4, 0)) {
         if (handle) {
             FileClose(handle);
@@ -110,8 +109,7 @@ unsigned char LoadMissileDatabase(void)
     }
     for (index = 0; index < record_count; ++index) {
         if (!FileSeek(handle, 0x101, 4) ||
-            !FileRead(handle, &g_missile_table_65bde0[index],
-                             sizeof(W8MissileTableRecord), 0)) {
+            !FileRead(handle, &g_missile_table_65bde0[index], sizeof(W8MissileTableRecord), 0)) {
             delete[] g_missile_table_65bde0;
             g_missile_table_65bde0 = 0;
             g_missile_table_count_65bddc = 0;
@@ -186,11 +184,7 @@ W8Missile* NextMissile004A2760(char restart)
 void UpdateWorldMissiles004A27C0(W8World* world)
 {
     if (world == 0) {
-        srAssertFail(
-            "pWorld",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
-            200,
-            0);
+        srAssertFail("pWorld", "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 200, 0);
     }
     srVector3T<double> camera_location = world->camera->getLocation();
     int index = 0;
@@ -203,8 +197,7 @@ void UpdateWorldMissiles004A27C0(W8World* world)
                 missile->StartIfHostActive();
                 missile->UpdateRepresentation(world);
                 missile->UpdateNavigation004553A0(0, 0);
-            }
-            else {
+            } else {
                 world->missiles->RemoveAt(world->missiles->IndexOf(missile));
                 DestroyMissile(missile);
                 --index;
@@ -218,50 +211,50 @@ void UpdateWorldMissiles004A27C0(W8World* world)
 /* Derive the two launch angles from the source and target, then forward the
    remaining launch values to the missile factory. */
 // FUNCTION: WIZ8 0x004A2D30
-W8Missile* FireMissile004A2D30(
-    unsigned int missile_table_index, srVector3T<float>* source,
-    srVector3T<float>* target, unsigned int value_4,
-    unsigned int value_5, unsigned int value_6,
-    unsigned int value_7)
+W8Missile* FireMissile004A2D30(unsigned int missile_table_index, srVector3T<float>* source,
+                               srVector3T<float>* target, unsigned int value_4,
+                               unsigned int value_5, unsigned int value_6, unsigned int value_7)
 {
-    return CreateMissile004A28D0(
-        missile_table_index, source,
-        GetHeadingAngle(source, target), GetElevationAngle(source, target),
-        value_4, value_5, value_6, value_7);
+    return CreateMissile004A28D0(missile_table_index, source, GetHeadingAngle(source, target),
+                                 GetElevationAngle(source, target), value_4, value_5, value_6,
+                                 value_7);
 }
 
 /* The missile and spell representations use the same ordinary AnimObj
    operations for these two vtable slots.  Retail points both final tables at
    the corresponding bodies at 0x004AB290 and 0x004AB310. */
-srModelInstance* W8MissileRep::SetCycleFrameLod(
-    signed char emitter, signed char frame, signed char lod)
+srModelInstance* W8MissileRep::SetCycleFrameLod(signed char emitter, signed char frame,
+                                                signed char lod)
 {
     return AnimObjDispatch004A14D0(emitters[emitter], lod, frame);
 }
 
 W8AniMesh* W8MissileRep::GetEmitterAniMesh(char emitter)
 {
+    /* Emitter slots are a recovered char index into a two-entry table; the
+       virtual signature is ABI. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wchar-subscripts"
     W8AnimObj* target = emitters[emitter];
+#pragma clang diagnostic pop
 
     if (target == 0) {
         return 0;
     }
-    return static_cast<W8AniMesh*>(
-        AnimObjEntry004A1660(target, m_bLOD, 0));
+    return static_cast<W8AniMesh*>(AnimObjEntry004A1660(target, m_bLOD, 0));
 }
 
 /* Apply the representation's current LOD to one required animation. */
 // FUNCTION: WIZ8 0x004A2710
 unsigned int W8MissileRep::ApplyEmitterSetting(char emitter)
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wchar-subscripts"
     W8AnimObj* target = emitters[emitter];
+#pragma clang diagnostic pop
 
     if (target == 0) {
-        srAssertFail(
-            "pao",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
-            0x7e,
-            0);
+        srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x7e, 0);
     }
     return AnimObjValue004A15D0(target, m_bLOD);
 }
@@ -283,9 +276,7 @@ W8MissileRep::W8MissileRep()
    their emitter. */
 // FUNCTION: WIZ8 0x004a2db0
 W8MissileRep::W8MissileRep(const W8MissileRep& other)
-    : W8EmitterHost(other),
-      value_0ac(other.value_0ac),
-      value_0b0(other.value_0b0)
+    : W8EmitterHost(other), value_0ac(other.value_0ac), value_0b0(other.value_0b0)
 {
     int emitter;
 
@@ -293,8 +284,7 @@ W8MissileRep::W8MissileRep(const W8MissileRep& other)
         if (other.emitters[emitter] == 0) {
             emitters[emitter] = 0;
             emitter_values[emitter] = 15.0f;
-        }
-        else {
+        } else {
             emitters[emitter] = CloneAnimObj004A0320(other.emitters[emitter]);
             emitter_values[emitter] = other.emitter_values[emitter];
         }
@@ -303,9 +293,7 @@ W8MissileRep::W8MissileRep(const W8MissileRep& other)
     for (emitter = 0; emitter < 2; ++emitter) {
         int list_index;
 
-        for (list_index = 0;
-             list_index < other.light_lists[emitter].GetCount();
-             ++list_index) {
+        for (list_index = 0; list_index < other.light_lists[emitter].GetCount(); ++list_index) {
             W8GrowableVector<stLight*>* source_lights =
                 *other.light_lists[emitter].GetAt(list_index);
             W8GrowableVector<stLight*>* copied_lights = 0;
@@ -315,17 +303,12 @@ W8MissileRep::W8MissileRep(const W8MissileRep& other)
 
                 copied_lights = new W8GrowableVector<stLight*>;
                 if (copied_lights == 0) {
-                    srAssertFail(
-                        "plsNewLights",
-                        "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
-                        0x184,
-                        "Out of memory creating monster light list");
+                    srAssertFail("plsNewLights",
+                                 "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x184,
+                                 "Out of memory creating monster light list");
                 }
-                for (light_index = 0;
-                     light_index < source_lights->GetCount();
-                     ++light_index) {
-                    stLight* source_light =
-                        *source_lights->GetAt(light_index);
+                for (light_index = 0; light_index < source_lights->GetCount(); ++light_index) {
+                    stLight* source_light = *source_lights->GetAt(light_index);
                     float x = source_light->positionalX();
                     float y = source_light->positionalY();
                     float z = source_light->positionalZ();
@@ -335,11 +318,9 @@ W8MissileRep::W8MissileRep(const W8MissileRep& other)
                         *copied_light = *source_light;
                     }
                     if (copied_light == 0) {
-                        srAssertFail(
-                            "pstNewLight",
-                            "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
-                            0x18c,
-                            "Out of memory creating monster light");
+                        srAssertFail("pstNewLight",
+                                     "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x18c,
+                                     "Out of memory creating monster light");
                     }
                     copied_light->ConfigureMonsterCopy();
                     copied_light->setLocation(x, y, z);
@@ -360,11 +341,8 @@ W8AnimRepBase005EC1D8* W8MissileRep::Clone()
 }
 
 // FUNCTION: WIZ8 0x004A3300
-unsigned char W8MissileRep::ReadCycleData004A3300(
-    W8ReadLevelInfo* info,
-    W8Missile* missile,
-    int,
-    int emitter_index)
+unsigned char W8MissileRep::ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missile* missile, int,
+                                                  int emitter_index)
 {
     W8GrowableVector<stLight*>* lights = new W8GrowableVector<stLight*>;
     W8AnimObj* animation;
@@ -372,22 +350,17 @@ unsigned char W8MissileRep::ReadCycleData004A3300(
     signed char emitter;
 
     if (info == 0 || info->hFile == 0 || missile == 0) {
-        srAssertFail(
-            "pInfo && pInfo->hFile && pMissile",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
-            0x1df,
-            0);
+        srAssertFail("pInfo && pInfo->hFile && pMissile",
+                     "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x1df, 0);
     }
     animation = CreateAnimObj004A01A0();
-    success = AnimObjReadFromFile004A05C0(
-        info, animation, 1, lights, 1);
+    success = AnimObjReadFromFile004A05C0(info, animation, 1, lights, 1);
     emitter = static_cast<signed char>(animation->unknown_03[1]);
 
     if (lights->GetCount() == 0) {
         delete lights;
         lights = 0;
-    }
-    else {
+    } else {
         missile->SetLights(lights);
     }
     light_lists[emitter_index].Add(lights);
@@ -408,11 +381,9 @@ unsigned char W8MissileRep::ReadCycleData004A3300(
     if (missile != 0) {
         if (SetCycleFrameLod(current_cycle, 0, 2) != 0) {
             m_bLOD = 2;
-        }
-        else if (SetCycleFrameLod(current_cycle, 0, 1) != 0) {
+        } else if (SetCycleFrameLod(current_cycle, 0, 1) != 0) {
             m_bLOD = 1;
-        }
-        else {
+        } else {
             m_bLOD = 0;
         }
     }
@@ -425,21 +396,9 @@ unsigned char W8MissileRep::ReadCycleData004A3300(
    ordering is preserved because it is present explicitly in the product. */
 // FUNCTION: WIZ8 0x004A3C10
 W8Missile::W8Missile()
-    : missile_table_index_1d8(-1),
-      m_pRep(0),
-      flag_1e0(0),
-      flag_1e1(0),
-      flag_1e2(1),
-      flag_1e3(0),
-      flag_1e4(0),
-      flag_1e5(0),
-      flag_1e6(0),
-      flag_1e7(1),
-      value_1e8(0),
-      value_1ec(0),
-      lifetime_1f0(15000.0f),
-      value_1f4(0),
-      flag_322(0)
+    : missile_table_index_1d8(-1), m_pRep(0), flag_1e0(0), flag_1e1(0), flag_1e2(1), flag_1e3(0),
+      flag_1e4(0), flag_1e5(0), flag_1e6(0), flag_1e7(1), value_1e8(0), value_1ec(0),
+      lifetime_1f0(15000.0f), value_1f4(0), flag_322(0)
 {
     W8GrObject::unknown_004 = 1;
     radius_084 = 1.0f;
@@ -458,11 +417,7 @@ W8Missile::W8Missile()
 
     m_pRep = new W8MissileRep;
     if (m_pRep == 0) {
-        srAssertFail(
-            "m_pRep",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
-            0x38e,
-            0);
+        srAssertFail("m_pRep", "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x38e, 0);
     }
 
     memset(values_1fc, 0, sizeof(values_1fc));
@@ -499,8 +454,7 @@ void W8Missile::StartIfHostActive()
             PathAIUpdate004A9260(static_cast<W8PathAI*>(m_pAI), 1);
         }
         TickAnimation(1.0f);
-    }
-    else {
+    } else {
         flag_1e0 = 1;
         if (missile_table_index_1d8 == 0x23 &&
             (g_combat_state == 0 || g_combat_state->unknown_8c4 != 2)) {
@@ -541,11 +495,8 @@ void DestroyAllMissiles(W8World* world)
         W8Missile* missile = *world->missiles->GetAt(0);
 
         if (missile == 0) {
-            srAssertFail(
-                "pMissile",
-                "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
-                0x4ab,
-                0);
+            srAssertFail("pMissile", "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x4ab,
+                         0);
         }
         g_world->missiles->RemoveAt(g_world->missiles->IndexOf(missile));
         DestroyMissile(missile);
@@ -569,8 +520,7 @@ W8MissileRep::~W8MissileRep()
     for (emitter = 0; emitter < 2; ++emitter) {
         int light_list;
 
-        for (light_list = 0; light_list < light_lists[emitter].GetCount();
-             ++light_list) {
+        for (light_list = 0; light_list < light_lists[emitter].GetCount(); ++light_list) {
             DestroyLightVector(*light_lists[emitter].GetAt(light_list));
         }
         light_lists[emitter].Clear();
@@ -597,23 +547,20 @@ W8EmitterHost* W8Missile::GetRepresentation()
 // FUNCTION: WIZ8 0x004a4570
 W8AnimObj* W8Missile::GetCurrentAnimation()
 {
-    return m_pRep->emitters[
-        m_pRep->current_cycle];
+    return m_pRep->emitters[m_pRep->current_cycle];
 }
 
 /* That animation's own playback scale. */
 // FUNCTION: WIZ8 0x004a45c0
 float W8Missile::GetCurrentAnimationScale()
 {
-    return m_pRep->emitters[
-        m_pRep->current_cycle]->playback_scale_08;
+    return m_pRep->emitters[m_pRep->current_cycle]->playback_scale_08;
 }
 
 // FUNCTION: WIZ8 0x004a45f0
 W8AniMesh* W8Missile::GetCurrentAniMesh()
 {
-    W8AnimObj* animation = m_pRep->emitters[
-        m_pRep->current_cycle];
+    W8AnimObj* animation = m_pRep->emitters[m_pRep->current_cycle];
 
     if (animation == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x55e, 0);
@@ -651,19 +598,15 @@ signed char W8Missile::GetNumSubCycles()
 {
     W8AnimObj* animation = GetCurrentAnimation();
 
-    return static_cast<signed char>(
-        AnimObjValue004A15D0(animation, m_pRep->m_bLOD));
+    return static_cast<signed char>(AnimObjValue004A15D0(animation, m_pRep->m_bLOD));
 }
 
 // FUNCTION: WIZ8 0x004a42b0
 bool W8Missile::IsCycleSupported(signed char cycle)
 {
     if (cycle >= 2) {
-        srAssertFail(
-            "bCycle<MISSILE_NUM_CYCLES",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
-            0x4bf,
-            0);
+        srAssertFail("bCycle<MISSILE_NUM_CYCLES",
+                     "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x4bf, 0);
     }
     return m_pRep->emitters[cycle] != 0;
 }
@@ -678,15 +621,11 @@ void W8Missile::SetCycle(signed char cycle)
     int index;
 
     if (cycle < 0 || cycle >= 2) {
-        srAssertFail(
-            "bCycle >= MISSILE_CYCLE_FIRST && bCycle <= MISSILE_CYCLE_LAST",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
-            0x4d6,
-            0);
+        srAssertFail("bCycle >= MISSILE_CYCLE_FIRST && bCycle <= MISSILE_CYCLE_LAST",
+                     "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x4d6, 0);
     }
 
-    lights = *m_pRep->light_lists[
-        m_pRep->current_cycle].GetAt(0);
+    lights = *m_pRep->light_lists[m_pRep->current_cycle].GetAt(0);
     if (lights != 0) {
         for (index = 0; index < lights->GetCount(); ++index) {
             stLight* light = *lights->GetAt(index);
@@ -707,15 +646,12 @@ void W8Missile::SetCycle(signed char cycle)
     m_pRep->flag_06e = 1;
     if (m_pRep->SetCycleFrameLod(cycle, 0, 2) != 0) {
         m_pRep->m_bLOD = 2;
-    }
-    else if (m_pRep->SetCycleFrameLod(cycle, 0, 1) != 0) {
+    } else if (m_pRep->SetCycleFrameLod(cycle, 0, 1) != 0) {
         m_pRep->m_bLOD = 1;
-    }
-    else {
+    } else {
         m_pRep->m_bLOD = 0;
     }
-    m_pRep->timer_068 =
-        g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
+    m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     m_pRep->flag_06f = animation->value_02;
     m_pRep->flag_06d = animation->unknown_00[1];
     m_pRep->flag_064 = 0;
@@ -740,8 +676,7 @@ void W8Missile::SetCycle(signed char cycle)
             if (event->cycle_00 == cycle) {
                 event->particle_08->SetActive(1);
                 event->particle_08->value_188 = 0;
-            }
-            else {
+            } else {
                 event->particle_08->SetActive(0);
             }
         }

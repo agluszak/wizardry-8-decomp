@@ -22,11 +22,11 @@ enum {
 };
 
 struct W8ScreenStateHandlers {
-    unsigned char (*initialize)(void);  /* +0x00, startup ownership */
-    unsigned char (*enter)(void);       /* +0x04, transition into state */
-    void (*frame)(void);                /* +0x08, active frame */
-    unsigned char (*leave)(int leaving);/* +0x0c, 0 = suspend, 1 = discard */
-    unsigned char (*finalize)(void);    /* +0x10, shutdown ownership */
+    unsigned char (*initialize)(void);   /* +0x00, startup ownership */
+    unsigned char (*enter)(void);        /* +0x04, transition into state */
+    void (*frame)(void);                 /* +0x08, active frame */
+    unsigned char (*leave)(int leaving); /* +0x0c, 0 = suspend, 1 = discard */
+    unsigned char (*finalize)(void);     /* +0x10, shutdown ownership */
 };
 
 extern W8ScreenStateHandlers g_screen_handlers[W8_SCREEN_COUNT];
@@ -40,14 +40,14 @@ static_assert(sizeof(W8ScreenStateHandlers) == 0x14, "W8ScreenStateHandlers_size
    before the name and everything past it stay positional, and the name's bound
    is the record's end rather than a proved one. */
 struct W8ScreenStateRuntime {
-    int id;                        /* 0x00 */
-    int mode;                      /* 0x04 */
-    int parameter;                 /* 0x08 */
-    int parameter_2;               /* 0x0c */
-    void* parameter_3;             /* 0x10, the save payload the Please Wait
+    int id;            /* 0x00 */
+    int mode;          /* 0x04 */
+    int parameter;     /* 0x08 */
+    int parameter_2;   /* 0x0c */
+    void* parameter_3; /* 0x10, the save payload the Please Wait
                                       screen's mode 2 hands to SaveGame */
-    int parameter_4;               /* 0x14, Camp's entry mode */
-    char name[0x80];               /* 0x18 */
+    int parameter_4;   /* 0x14, Camp's entry mode */
+    char name[0x80];   /* 0x18 */
 };
 
 extern W8ScreenStateRuntime g_current_screen_state;
@@ -88,7 +88,7 @@ unsigned char CharacterScreenLeave(int leaving);
 unsigned char PleaseWaitScreenInitialize(void);
 unsigned char PleaseWaitScreenEnter(void);
 void PleaseWaitScreenFrame(void);
-unsigned char PleaseWaitScreenLeave(char leaving);
+unsigned char PleaseWaitScreenLeave(int leaving);
 unsigned char PartySelectionScreenEnter(void);
 void PartySelectionScreenFrame(void);
 unsigned char PartySelectionScreenLeave(int leaving);

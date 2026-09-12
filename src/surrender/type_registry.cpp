@@ -21,8 +21,7 @@ unsigned long hashName(const char* name)
     return hash;
 }
 
-template <class Key, class Value>
-class RegistryHash {
+template <class Key, class Value> class RegistryHash {
 public:
     struct Entry {
         int next_00;
@@ -30,8 +29,7 @@ public:
         Value value_08;
     };
 
-    RegistryHash()
-        : buckets_00(0), entries_04(0), free_08(-1), bucket_count_0c(0)
+    RegistryHash() : buckets_00(0), entries_04(0), free_08(-1), bucket_count_0c(0)
     {
         resize(4);
     }
@@ -47,8 +45,7 @@ public:
         if (bucket_count_0c == 0) {
             return 0;
         }
-        int entry = buckets_00[hashInteger(
-            (unsigned long)key) & (bucket_count_0c - 1)];
+        int entry = buckets_00[hashInteger((unsigned long)key) & (bucket_count_0c - 1)];
         while (entry != -1) {
             if (entries_04[entry].key_04 == key) {
                 return entries_04[entry].value_08;
@@ -65,8 +62,7 @@ public:
         }
         int entry = free_08;
         free_08 = entries_04[entry].next_00;
-        unsigned long bucket = hashInteger(
-            (unsigned long)key) & (bucket_count_0c - 1);
+        unsigned long bucket = hashInteger((unsigned long)key) & (bucket_count_0c - 1);
         entries_04[entry].key_04 = key;
         entries_04[entry].value_08 = value;
         entries_04[entry].next_00 = buckets_00[bucket];
@@ -78,8 +74,7 @@ public:
         if (bucket_count_0c == 0) {
             return 0;
         }
-        unsigned long bucket = hashInteger(
-            (unsigned long)key) & (bucket_count_0c - 1);
+        unsigned long bucket = hashInteger((unsigned long)key) & (bucket_count_0c - 1);
         int* link = &buckets_00[bucket];
         while (*link != -1) {
             int entry = *link;
@@ -122,13 +117,11 @@ private:
         unsigned long used = 0;
         if (bucket_count_0c != 0) {
             for (unsigned long bucket = 0; bucket < bucket_count_0c; ++bucket) {
-                for (int old = buckets_00[bucket]; old != -1;
-                     old = entries_04[old].next_00) {
+                for (int old = buckets_00[bucket]; old != -1; old = entries_04[old].next_00) {
                     entries[used].key_04 = entries_04[old].key_04;
                     entries[used].value_08 = entries_04[old].value_08;
-                    unsigned long next_bucket = hashInteger(
-                        (unsigned long)entries[used].key_04) &
-                        (count - 1);
+                    unsigned long next_bucket =
+                        hashInteger((unsigned long)entries[used].key_04) & (count - 1);
                     entries[used].next_00 = buckets[next_bucket];
                     buckets[next_bucket] = used++;
                 }
@@ -137,8 +130,7 @@ private:
             delete[] entries_04;
         }
 
-        for (unsigned long free_index = used; free_index + 1 < count;
-             ++free_index) {
+        for (unsigned long free_index = used; free_index + 1 < count; ++free_index) {
             entries[free_index].next_00 = free_index + 1;
         }
         entries[count - 1].next_00 = -1;
@@ -154,8 +146,7 @@ private:
     unsigned long bucket_count_0c;
 };
 
-static_assert(sizeof(RegistryHash<unsigned long, void*>) == 0x10,
-              "RegistryHash_must_be_0x10");
+static_assert(sizeof(RegistryHash<unsigned long, void*>) == 0x10, "RegistryHash_must_be_0x10");
 
 class RegistryAccess {
 public:
@@ -173,7 +164,7 @@ public:
 private:
     srCriticalSection* critical_section_;
 };
-}
+} // namespace
 
 struct srRegistry::ClassNode::NameIndex {
     struct NameEntry {
@@ -185,11 +176,7 @@ struct srRegistry::ClassNode::NameIndex {
     };
 
     NameIndex()
-        : entries_10(0),
-          free_14(0),
-          buckets_18(0),
-          count_1c(0),
-          bucket_count_20(0),
+        : entries_10(0), free_14(0), buckets_18(0), count_1c(0), bucket_count_20(0),
           case_sensitive_24(1)
     {
         resize(4);
@@ -203,8 +190,7 @@ struct srRegistry::ClassNode::NameIndex {
 
     int namesEqual(const char* first, const char* second) const
     {
-        return case_sensitive_24 != 0 ? strcmp(first, second) == 0
-                                      : _stricmp(first, second) == 0;
+        return case_sensitive_24 != 0 ? strcmp(first, second) == 0 : _stricmp(first, second) == 0;
     }
 
     void add(srRuntimeClass* instance)
@@ -241,8 +227,7 @@ struct srRegistry::ClassNode::NameIndex {
         }
         if (entry->previous_04 == 0) {
             buckets_18[entry->bucket_08] = entry->next_00;
-        }
-        else {
+        } else {
             entry->previous_04->next_00 = entry->next_00;
         }
         if (entry->next_00 != 0) {
@@ -259,16 +244,13 @@ struct srRegistry::ClassNode::NameIndex {
         }
     }
 
-    srRuntimeClass* find(
-        const char* name, const srRuntimeClass* relative_to) const
+    srRuntimeClass* find(const char* name, const srRuntimeClass* relative_to) const
     {
         NameEntry* entry = 0;
         if (relative_to == 0) {
             entry = buckets_18[hashName(name) & (bucket_count_20 - 1)];
-        }
-        else {
-            entry = by_instance_00.find(
-                const_cast<srRuntimeClass*>(relative_to));
+        } else {
+            entry = by_instance_00.find(const_cast<srRuntimeClass*>(relative_to));
             entry = entry == 0 ? 0 : entry->next_00;
         }
         while (entry != 0) {
@@ -295,18 +277,15 @@ private:
         by_instance_00.clear();
         for (unsigned long index = 0; index < bucket_count; ++index) {
             buckets_18[index] = 0;
-            entries_10[index].next_00 =
-                index + 1 < bucket_count ? &entries_10[index + 1] : 0;
+            entries_10[index].next_00 = index + 1 < bucket_count ? &entries_10[index + 1] : 0;
             entries_10[index].previous_04 = 0;
             entries_10[index].name_0c = 0;
             entries_10[index].instance_10 = 0;
         }
 
         if (old_buckets != 0) {
-            for (unsigned long bucket = 0; bucket < old_bucket_count;
-                 ++bucket) {
-                for (NameEntry* entry = old_buckets[bucket]; entry != 0;
-                     entry = entry->next_00) {
+            for (unsigned long bucket = 0; bucket < old_bucket_count; ++bucket) {
+                for (NameEntry* entry = old_buckets[bucket]; entry != 0; entry = entry->next_00) {
                     add(entry->instance_10);
                 }
             }
@@ -336,14 +315,8 @@ struct srRegistry::ClassNode::IDIndex {
     };
 
     IDIndex()
-        : active_count_00(0),
-          free_04(0),
-          blocks_08(0),
-          block_capacity_0c(0),
-          block_count_10(0),
-          first_14(0),
-          last_18(0),
-          list_count_1c(0)
+        : active_count_00(0), free_04(0), blocks_08(0), block_capacity_0c(0), block_count_10(0),
+          first_14(0), last_18(0), list_count_1c(0)
     {
     }
 
@@ -352,8 +325,14 @@ struct srRegistry::ClassNode::IDIndex {
         clearBlocks();
     }
 
-    void* operator new(unsigned int size) { return srHeap.allocate(size); }
-    void operator delete(void* index) { srHeap.free(index); }
+    void* operator new(unsigned int size)
+    {
+        return srHeap.allocate(size);
+    }
+    void operator delete(void* index)
+    {
+        srHeap.free(index);
+    }
 
     InstanceLink* add(srRuntimeClass* instance)
     {
@@ -368,8 +347,7 @@ struct srRegistry::ClassNode::IDIndex {
         link->next_04 = first_14;
         if (first_14 != 0) {
             first_14->previous_08 = link;
-        }
-        else {
+        } else {
             last_18 = link;
         }
         first_14 = link;
@@ -386,14 +364,12 @@ struct srRegistry::ClassNode::IDIndex {
         }
         if (link->previous_08 == 0) {
             first_14 = link->next_04;
-        }
-        else {
+        } else {
             link->previous_08->next_04 = link->next_04;
         }
         if (link->next_04 == 0) {
             last_18 = link->previous_08;
-        }
-        else {
+        } else {
             link->next_04->previous_08 = link->previous_08;
         }
         link->instance_00 = 0;
@@ -433,8 +409,8 @@ private:
         if (count > 0x100) {
             count = 0x100;
         }
-        InstanceLink* block = static_cast<InstanceLink*>(
-            srHeap.allocate(count * sizeof(InstanceLink)));
+        InstanceLink* block =
+            static_cast<InstanceLink*>(srHeap.allocate(count * sizeof(InstanceLink)));
         if (block_count_10 == block_capacity_0c) {
             unsigned long capacity = block_capacity_0c + 8;
             InstanceLink** blocks = new InstanceLink*[capacity];
@@ -447,8 +423,7 @@ private:
         }
         blocks_08[block_count_10++] = block;
         for (unsigned long index = 0; index < count; ++index) {
-            block[index].next_04 =
-                index + 1 < count ? &block[index + 1] : 0;
+            block[index].next_04 = index + 1 < count ? &block[index + 1] : 0;
         }
         free_04 = block;
     }
@@ -483,11 +458,7 @@ private:
 static_assert(sizeof(srRegistry::ClassNode::IDIndex) == 0x30,
               "srRegistry_ClassNode_IDIndex_must_be_0x30");
 
-struct srRegistry::ClassIndex
-    : RegistryHash<unsigned long, srRegistry::ClassNode*> {
-};
-
-
+struct srRegistry::ClassIndex : RegistryHash<unsigned long, srRegistry::ClassNode*> {};
 
 // GLOBAL: SURRENDER 0x100A45AC
 unsigned long srClass::_timestampCtr;
@@ -522,8 +493,7 @@ int srRuntimeClass::isNamed() const
 // FUNCTION: SURRENDER 0x10011910
 long srRuntimeClass::getTotalInstances(int exact)
 {
-    return srCore.getRegistry()->getNumberOfInstances(
-        sGetClassNode(), exact);
+    return srCore.getRegistry()->getNumberOfInstances(sGetClassNode(), exact);
 }
 
 // FUNCTION: SURRENDER 0x10011930
@@ -544,8 +514,7 @@ void srRuntimeClass::setName(const char* name)
     delete[] name_04;
     if (name == 0 || *name == '\0') {
         name_04 = 0;
-    }
-    else {
+    } else {
         name_04 = new char[strlen(name) + 1];
         strcpy(name_04, name);
     }
@@ -553,8 +522,7 @@ void srRuntimeClass::setName(const char* name)
 }
 
 // FUNCTION: SURRENDER 0x100119D0
-srRuntimeClass::srRuntimeClass()
-    : name_04(0), id_08(srCore.getRegistry()->allocateID())
+srRuntimeClass::srRuntimeClass() : name_04(0), id_08(srCore.getRegistry()->allocateID())
 {
     srCore.getRegistry()->registerInstance(sGetClassNode(), this);
 }
@@ -592,8 +560,7 @@ srRegistry::ClassNode* srRuntimeClass::sGetClassNode()
     srRegistry* registry = srCore.getRegistry();
     srRegistry::ClassNode* node = registry->getClassNode(1);
     if (node == 0) {
-        node = registry->registerClass(
-            "srRuntimeClass", registry->getRootNode(), 1, 0);
+        node = registry->registerClass("srRuntimeClass", registry->getRootNode(), 1, 0);
     }
     return node;
 }
@@ -626,33 +593,27 @@ srRegistry::ClassNode* srRuntimeClass::getClassNode() const
 // FUNCTION: SURRENDER 0x1000E080
 srClass* srClass::find(const char* name, const srClass* relative_to)
 {
-    return static_cast<srClass*>(srCore.getRegistry()->find(
-        sGetClassNode(), name, relative_to));
+    return static_cast<srClass*>(srCore.getRegistry()->find(sGetClassNode(), name, relative_to));
 }
 
 // FUNCTION: SURRENDER 0x1000E0A0
-srClass* srClass::find(
-    const char* name,
-    unsigned long class_id,
-    const srRuntimeClass* relative_to)
+srClass* srClass::find(const char* name, unsigned long class_id, const srRuntimeClass* relative_to)
 {
     srRegistry* registry = srCore.getRegistry();
-    return static_cast<srClass*>(registry->find(
-        registry->getClassNode(class_id), name, relative_to));
+    return static_cast<srClass*>(
+        registry->find(registry->getClassNode(class_id), name, relative_to));
 }
 
 // FUNCTION: SURRENDER 0x1000E0D0
 srClass* srClass::find(unsigned long id)
 {
-    return static_cast<srClass*>(
-        srCore.getRegistry()->find(sGetClassNode(), id));
+    return static_cast<srClass*>(srCore.getRegistry()->find(sGetClassNode(), id));
 }
 
 // FUNCTION: SURRENDER 0x1000E0F0
 srClass* srClass::find(const srClass* relative_to)
 {
-    return static_cast<srClass*>(
-        srCore.getRegistry()->find(sGetClassNode(), relative_to));
+    return static_cast<srClass*>(srCore.getRegistry()->find(sGetClassNode(), relative_to));
 }
 
 // FUNCTION: SURRENDER 0x1000E110
@@ -665,8 +626,7 @@ srClass& srClass::operator=(const srClass& other)
 }
 
 // FUNCTION: SURRENDER 0x1000E130
-srClass::srClass()
-    : reference_count_0c(1), update_14(0)
+srClass::srClass() : reference_count_0c(1), update_14(0)
 {
     srCore.getRegistry()->registerInstance(sGetClassNode(), this);
     touch();
@@ -684,18 +644,15 @@ srRegistry::ClassNode* srClass::sGetClassNode()
     srRegistry* registry = srCore.getRegistry();
     srRegistry::ClassNode* node = registry->getClassNode(0x100);
     if (node == 0) {
-        node = registry->registerClass(
-            sGetClassName(), srRuntimeClass::sGetClassNode(), 0x100, 0);
+        node = registry->registerClass(sGetClassName(), srRuntimeClass::sGetClassNode(), 0x100, 0);
     }
     return node;
 }
 
 // FUNCTION: SURRENDER 0x1000E290
 srClass::srClass(const srClass& other)
-    : srRuntimeClass(other),
-      reference_count_0c(other.reference_count_0c),
-      timestamp_10(other.timestamp_10),
-      update_14(other.update_14)
+    : srRuntimeClass(other), reference_count_0c(other.reference_count_0c),
+      timestamp_10(other.timestamp_10), update_14(other.update_14)
 {
 }
 
@@ -755,8 +712,7 @@ void srClass::setUpdate(UpdateCallBack callback, double interval)
 void srClass::setUpdatesTime(double time)
 {
     _lastUpdateTime = time;
-    for (Update* update = _firstUpdate; update != 0;
-         update = update->next_1c) {
+    for (Update* update = _firstUpdate; update != 0; update = update->next_1c) {
         update->last_update_time_00 = time;
     }
 }
@@ -772,18 +728,13 @@ void srClass::performUpdates(double time)
         while (update != 0) {
             Update* next = update->next_1c;
             if (update->interval_08 <= 0.0) {
-                update->callback_10(
-                    update->instance_14, time, time - _lastUpdateTime);
+                update->callback_10(update->instance_14, time, time - _lastUpdateTime);
                 update->last_update_time_00 = time;
-            }
-            else {
-                for (double update_time =
-                         update->last_update_time_00 + update->interval_08;
-                     update_time <= time;
-                     update_time += update->interval_08) {
-                    update->callback_10(
-                        update->instance_14, update_time,
-                        update_time - update->last_update_time_00);
+            } else {
+                for (double update_time = update->last_update_time_00 + update->interval_08;
+                     update_time <= time; update_time += update->interval_08) {
+                    update->callback_10(update->instance_14, update_time,
+                                        update_time - update->last_update_time_00);
                     update->last_update_time_00 = update_time;
                 }
             }
@@ -833,8 +784,7 @@ srRegistry::ClassNode* srClass::getClassNode() const
 
 // FUNCTION: SURRENDER 0x1000E910
 srRegistry::srRegistry()
-    : root_00(0), class_index_04(0), valid_08(0),
-      critical_section_0c(new srCriticalSection)
+    : root_00(0), class_index_04(0), valid_08(0), critical_section_0c(new srCriticalSection)
 {
     RegistryAccess access(critical_section_0c);
     class_index_04 = new ClassIndex;
@@ -889,19 +839,14 @@ srRegistry::ClassNode* srRegistry::getClassNode(unsigned long class_id)
 }
 
 // FUNCTION: SURRENDER 0x1000EC60
-srRegistry::ClassNode* srRegistry::registerClass(
-    const char* class_name,
-    ClassNode* parent,
-    unsigned long class_id,
-    int register_instances)
+srRegistry::ClassNode* srRegistry::registerClass(const char* class_name, ClassNode* parent,
+                                                 unsigned long class_id, int register_instances)
 {
     RegistryAccess access(critical_section_0c);
     ClassNode* node = class_index_04->find(class_id);
     if (node == 0) {
-        srDebugPrintf(
-            0xfe,
-            "srRegistry::registerClass() - registering %s (ID 0x%x)\n",
-            class_name, class_id);
+        srDebugPrintf(0xfe, "srRegistry::registerClass() - registering %s (ID 0x%x)\n", class_name,
+                      class_id);
         node = addToTree(parent, class_name, class_id);
         if (register_instances != 0) {
             node->enableInstanceLookup();
@@ -911,8 +856,8 @@ srRegistry::ClassNode* srRegistry::registerClass(
 }
 
 // FUNCTION: SURRENDER 0x1000EDB0
-srRegistry::ClassNode* srRegistry::addToTree(
-    ClassNode* parent, const char* class_name, unsigned long class_id)
+srRegistry::ClassNode* srRegistry::addToTree(ClassNode* parent, const char* class_name,
+                                             unsigned long class_id)
 {
     RegistryAccess access(critical_section_0c);
     ClassNode* node = new ClassNode(parent, class_name, class_id);
@@ -921,36 +866,30 @@ srRegistry::ClassNode* srRegistry::addToTree(
 }
 
 // FUNCTION: SURRENDER 0x1000EFB0
-void srRegistry::registerInstance(
-    ClassNode* node, srRuntimeClass* instance)
+void srRegistry::registerInstance(ClassNode* node, srRuntimeClass* instance)
 {
     RegistryAccess access(critical_section_0c);
     node->registerInstance(instance);
 }
 
 // FUNCTION: SURRENDER 0x1000F010
-void srRegistry::refreshInstance(
-    ClassNode* node, srRuntimeClass* instance)
+void srRegistry::refreshInstance(ClassNode* node, srRuntimeClass* instance)
 {
     RegistryAccess access(critical_section_0c);
     node->refreshInstance(instance);
 }
 
 // FUNCTION: SURRENDER 0x1000F070
-srRuntimeClass* srRegistry::find(
-    ClassNode* node,
-    const char* name,
-    const srRuntimeClass* relative_to)
+srRuntimeClass* srRegistry::find(ClassNode* node, const char* name,
+                                 const srRuntimeClass* relative_to)
 {
     RegistryAccess access(critical_section_0c);
     return node->findByName(node, name, 0, relative_to);
 }
 
 // FUNCTION: SURRENDER 0x1000F0E0
-srRuntimeClass* srRegistry::findExact(
-    ClassNode* node,
-    const char* name,
-    const srRuntimeClass* relative_to)
+srRuntimeClass* srRegistry::findExact(ClassNode* node, const char* name,
+                                      const srRuntimeClass* relative_to)
 {
     RegistryAccess access(critical_section_0c);
     return node->findByName(node, name, 1, relative_to);
@@ -971,8 +910,7 @@ srRuntimeClass* srRegistry::findExact(ClassNode* node, unsigned long id)
 }
 
 // FUNCTION: SURRENDER 0x1000F210
-void srRegistry::unregisterInstance(
-    ClassNode* node, srRuntimeClass* instance)
+void srRegistry::unregisterInstance(ClassNode* node, srRuntimeClass* instance)
 {
     RegistryAccess access(critical_section_0c);
     node->unregisterInstance(instance);
@@ -990,16 +928,14 @@ int srRegistry::isDerivedOrSame(ClassNode* base, ClassNode* derived)
 }
 
 // FUNCTION: SURRENDER 0x1000F2F0
-srRuntimeClass* srRegistry::findExact(
-    ClassNode* node, const srRuntimeClass* relative_to)
+srRuntimeClass* srRegistry::findExact(ClassNode* node, const srRuntimeClass* relative_to)
 {
     RegistryAccess access(critical_section_0c);
     return node->findRelative(node, 1, relative_to);
 }
 
 // FUNCTION: SURRENDER 0x1000F350
-srRuntimeClass* srRegistry::find(
-    ClassNode* node, const srRuntimeClass* relative_to)
+srRuntimeClass* srRegistry::find(ClassNode* node, const srRuntimeClass* relative_to)
 {
     RegistryAccess access(critical_section_0c);
     return node->findRelative(node, 0, relative_to);
@@ -1013,8 +949,7 @@ srRegistry::ClassNode* srRegistry::getRootClass()
 }
 
 // FUNCTION: SURRENDER 0x1000F3E0
-srRegistry::ClassNode* srRegistry::getChildClass(
-    ClassNode* parent, ClassNode* child)
+srRegistry::ClassNode* srRegistry::getChildClass(ClassNode* parent, ClassNode* child)
 {
     RegistryAccess access(critical_section_0c);
     ClassNode::ChildLink* link = parent->first_child_04;
@@ -1023,8 +958,7 @@ srRegistry::ClassNode* srRegistry::getChildClass(
         if (link != parent->child_end_08) {
             result = link->node_00;
         }
-    }
-    else {
+    } else {
         while (link != parent->child_end_08) {
             if (link->node_00 == child) {
                 link = link->next_04;
@@ -1067,18 +1001,10 @@ srRegistry::ClassNode* srRegistry::getRootNode()
 }
 
 // FUNCTION: SURRENDER 0x1000F580
-srRegistry::ClassNode::ClassNode(
-    ClassNode* parent, const char* class_name, unsigned long class_id)
-    : child_count_00(0),
-      first_child_04(new ChildLink),
-      child_end_08(first_child_04),
-      parent_0c(parent),
-      class_id_10(class_id),
-      class_name_14(class_name),
-      named_instances_18(0),
-      inherited_named_instances_1c(0),
-      instances_by_id_20(0),
-      inherited_instances_by_id_24(0),
+srRegistry::ClassNode::ClassNode(ClassNode* parent, const char* class_name, unsigned long class_id)
+    : child_count_00(0), first_child_04(new ChildLink), child_end_08(first_child_04),
+      parent_0c(parent), class_id_10(class_id), class_name_14(class_name), named_instances_18(0),
+      inherited_named_instances_1c(0), instances_by_id_20(0), inherited_instances_by_id_24(0),
       instance_count_28(0)
 {
     first_child_04->next_04 = 0;
@@ -1090,8 +1016,7 @@ srRegistry::ClassNode::ClassNode(
         link->previous_08 = parent_0c->first_child_04->previous_08;
         if (link->previous_08 == 0) {
             parent_0c->first_child_04 = link;
-        }
-        else {
+        } else {
             link->previous_08->next_04 = link;
         }
         if (link->next_04 != 0) {
@@ -1142,18 +1067,15 @@ srRegistry::ClassNode* srRegistry::ClassNode::getParent() const
 }
 
 // FUNCTION: SURRENDER 0x10010070
-srRegistry::ClassNode::NameIndex*
-srRegistry::ClassNode::getNameIndex() const
+srRegistry::ClassNode::NameIndex* srRegistry::ClassNode::getNameIndex() const
 {
-    return named_instances_18 != 0 ? named_instances_18
-                                   : inherited_named_instances_1c;
+    return named_instances_18 != 0 ? named_instances_18 : inherited_named_instances_1c;
 }
 
 // FUNCTION: SURRENDER 0x10010080
 srRegistry::ClassNode::IDIndex* srRegistry::ClassNode::getIDIndex() const
 {
-    return instances_by_id_20 != 0 ? instances_by_id_20
-                                   : inherited_instances_by_id_24;
+    return instances_by_id_20 != 0 ? instances_by_id_20 : inherited_instances_by_id_24;
 }
 
 // FUNCTION: SURRENDER 0x1000F930
@@ -1194,11 +1116,8 @@ void srRegistry::ClassNode::unregisterInstance(srRuntimeClass* instance)
 }
 
 // FUNCTION: SURRENDER 0x100100D0
-srRuntimeClass* srRegistry::ClassNode::findByName(
-    ClassNode* requested_class,
-    const char* name,
-    int exact,
-    const srRuntimeClass* relative_to)
+srRuntimeClass* srRegistry::ClassNode::findByName(ClassNode* requested_class, const char* name,
+                                                  int exact, const srRuntimeClass* relative_to)
 {
     if (name == 0) {
         return 0;
@@ -1206,10 +1125,9 @@ srRuntimeClass* srRegistry::ClassNode::findByName(
 
     NameIndex* index = getNameIndex();
     if (index == 0) {
-        for (ChildLink* child = first_child_04; child != child_end_08;
-             child = child->next_04) {
-            srRuntimeClass* found = child->node_00->findByName(
-                requested_class, name, exact, relative_to);
+        for (ChildLink* child = first_child_04; child != child_end_08; child = child->next_04) {
+            srRuntimeClass* found =
+                child->node_00->findByName(requested_class, name, exact, relative_to);
             if (found != 0) {
                 return found;
             }
@@ -1230,17 +1148,14 @@ srRuntimeClass* srRegistry::ClassNode::findByName(
 }
 
 // FUNCTION: SURRENDER 0x100103B0
-srRuntimeClass* srRegistry::ClassNode::findRelative(
-    ClassNode* requested_class,
-    int exact,
-    const srRuntimeClass* relative_to)
+srRuntimeClass* srRegistry::ClassNode::findRelative(ClassNode* requested_class, int exact,
+                                                    const srRuntimeClass* relative_to)
 {
     IDIndex* index = getIDIndex();
     if (index == 0) {
-        for (ChildLink* child = first_child_04; child != child_end_08;
-             child = child->next_04) {
-            srRuntimeClass* found = child->node_00->findRelative(
-                requested_class, exact, relative_to);
+        for (ChildLink* child = first_child_04; child != child_end_08; child = child->next_04) {
+            srRuntimeClass* found =
+                child->node_00->findRelative(requested_class, exact, relative_to);
             if (found != 0) {
                 return found;
             }
@@ -1261,16 +1176,14 @@ srRuntimeClass* srRegistry::ClassNode::findRelative(
 }
 
 // FUNCTION: SURRENDER 0x100104D0
-srRuntimeClass* srRegistry::ClassNode::findByID(
-    ClassNode* requested_class, unsigned long id, int exact)
+srRuntimeClass* srRegistry::ClassNode::findByID(ClassNode* requested_class, unsigned long id,
+                                                int exact)
 {
     IDIndex* index = getIDIndex();
     if (index == 0) {
         if (exact == 0) {
-            for (ChildLink* child = first_child_04; child != child_end_08;
-                 child = child->next_04) {
-                srRuntimeClass* found = child->node_00->findByID(
-                    requested_class, id, 0);
+            for (ChildLink* child = first_child_04; child != child_end_08; child = child->next_04) {
+                srRuntimeClass* found = child->node_00->findByID(requested_class, id, 0);
                 if (found != 0) {
                     return found;
                 }
@@ -1311,8 +1224,7 @@ long srRegistry::ClassNode::getNumberOfInstances(int exact) const
     }
 
     long children = 0;
-    for (ChildLink* child = first_child_04; child != child_end_08;
-         child = child->next_04) {
+    for (ChildLink* child = first_child_04; child != child_end_08; child = child->next_04) {
         children += child->node_00->getNumberOfInstances(0);
     }
     return instance_count_28 - children;
@@ -1335,7 +1247,11 @@ void srClass::autoRelease()
 // FUNCTION: SURRENDER 0x1000E260
 int srClass::release() const
 {
+    /* VC6 member functions can be invoked with a null this. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wtautological-compare"
     if (this == 0) {
+#pragma clang diagnostic pop
         return 1;
     }
 
