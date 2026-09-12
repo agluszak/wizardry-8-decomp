@@ -143,7 +143,8 @@ unsigned char BitArray::Load(int handle)
                 remaining = decoder.getDataCount();
                 if (remaining != 0) {
                     decoded = static_cast<unsigned long*>(::operator new(remaining * 4));
-                    cursor = decoded;
+                    if (remaining > 0)
+                        cursor = decoded;
                     while (remaining > 0) {
                         *cursor = decoder.decompressSymbol();
                         ++cursor;
@@ -166,6 +167,73 @@ unsigned char BitArray::Load(int handle)
         do {
             ++set_count;
         } while (NextSetBit(0) != 0);
+    }
+    return 1;
+}
+
+/* Packed Huffman payload used by the octree alpha-bit and prop-sun-bit
+   arrays. Sampler is destroyed as its W8OwnedPtr and W8HashTable members
+   rather than the imported ~Sampler; codes are looked up through the
+   Compressor hash prefix and written with BitOStream::put. */
+// FUNCTION: WIZ8 0x0043b0e0
+unsigned char BitArray::Save(int handle)
+{
+    unsigned int magic;
+    unsigned long packed_size;
+    unsigned int* words;
+    unsigned int remaining;
+
+    if (word_count == 0) {
+        return 0;
+    }
+
+    magic = 0xdeadd00d;
+    if (FileWrite(handle, &magic, 4, 0) == 0) {
+        return 0;
+    }
+    if (FileWrite(handle, &bit_count, 4, 0) == 0) {
+        return 0;
+    }
+
+    srBinOMStream stream;
+    {
+        srHuffman::BitOStream bits(stream);
+        srHuffman::Sampler sampler;
+        if (word_count > 0) {
+            words = puiIndex;
+            remaining = word_count;
+            do {
+                sampler.insert(*words);
+                ++words;
+                --remaining;
+            } while (remaining != 0);
+        }
+
+        srHuffman::Compressor compressor(sampler);
+        bits.put(compressor.num_symbols_1c, 32);
+        bits.put(compressor.code_width_20, 6);
+        bits.put(word_count, 32);
+        compressor.storeSymbolTable(bits);
+        if (word_count > 0) {
+            words = puiIndex;
+            remaining = word_count;
+            do {
+                compressor.compressSymbol(bits, *words);
+                ++words;
+                --remaining;
+            } while (remaining != 0);
+        }
+    }
+
+    packed_size = stream.getSize();
+    if (FileWrite(handle, &packed_size, 4, 0) == 0) {
+        return 0;
+    }
+    if (FileWrite(handle, stream.getPtr(), packed_size, 0) == 0) {
+        return 0;
+    }
+    if (FileWrite(handle, &magic, 4, 0) == 0) {
+        return 0;
     }
     return 1;
 }

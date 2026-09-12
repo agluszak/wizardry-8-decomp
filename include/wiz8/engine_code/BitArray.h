@@ -31,6 +31,9 @@ public:
        this one's bit count first. */
     void CopyFrom(BitArray& other); /* 0x0043AE80 */
     unsigned char Load(int handle); /* 0x0043AEC0 */
+    /* Write the same Huffman payload Load reads. Octree assertions name
+       m_pAlphaBits->Save(hOctFile) and m_pPropSunBits->Save(hOctFile). */
+    unsigned char Save(int handle); /* 0x0043B0E0 */
 
     /* Raise one bit. Answers whether it was already up; a bit past the end is
        refused rather than grown into. */
