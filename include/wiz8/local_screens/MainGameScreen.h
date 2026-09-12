@@ -192,6 +192,11 @@ public:
     W8MainGameTextKeyHandler(Controls* panel, int left, int top, int right, int bottom,
                              int line_count, unsigned short* field_ac, unsigned int* region_set);
     virtual ~W8MainGameTextKeyHandler() override;
+    virtual void Redraw(int full_redraw) override;
+    virtual void OnMouseLeave(int event) override;
+    virtual void OnMouseMove(int event) override;
+    virtual void AdjustValue(int steps) override;
+    virtual void OnLeftButtonUp(int event) override;
     void SetSelectedLine(int line);
     virtual char HandleKey(unsigned short key);
     virtual void OnRangeChanged(W8RangeControl* control) override;
