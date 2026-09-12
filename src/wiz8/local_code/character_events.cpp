@@ -417,6 +417,18 @@ void W8StartupRuntimeState::SetEventCharacterMask(unsigned int event_type, unsig
     }
 }
 
+// FUNCTION: WIZ8 0x0052DD90
+bool W8StartupRuntimeState::HasEventCharacter(unsigned int event_type, unsigned int party_slot)
+{
+    if (event_type >= g_first_remapped_event_005ee718) {
+        event_type += g_last_event_005ee70c - g_first_remapped_event_005ee718;
+    }
+
+    unsigned char mask = (unsigned char)(1 << (party_slot & 31));
+
+    return (bytes_68[event_type] & mask) != 0;
+}
+
 // FUNCTION: WIZ8 0x0052E690
 W8StartupStateElement005EE748* QueueCharacterEvent(W8Character* character, int effect, int argument,
                                                    int value_1, unsigned int value_2)

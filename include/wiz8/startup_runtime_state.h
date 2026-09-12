@@ -58,6 +58,7 @@ struct W8StartupRuntimeState {
     void ClearOwnedEntries();
     int QueueEntry(W8StartupStateElement005EE748* entry);
     void SetEventCharacterMask(unsigned int event_type, unsigned int party_slot, bool enabled);
+    bool HasEventCharacter(unsigned int event_type, unsigned int party_slot); /* 0x0052DD90 */
     void ProcessOwnedEntry(W8StartupStateElement005EE748* entry);
     void ProcessNextPendingEntry();
     /* Restarts the follow-up clock for entries of the middle event band while

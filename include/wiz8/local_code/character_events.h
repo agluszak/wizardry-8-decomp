@@ -25,7 +25,6 @@ extern int g_effect_005ee588;
 unsigned char PartyPortraitEventsIdle(void); /* 0x0052E590 */
 int ApplyItemEffectToRandomCharacter0052E5C0(unsigned int item_id, int character_filter,
                                              int value_3, int value_4);
-unsigned char CharacterHasEffect(void* effect, int party_slot); /* 0x0052DD90 */
 void Function52CA60(void);
 void MaybeStartIncapacitationEvent(unsigned int party_slot); /* 0x0052F060 */
 void Function52F110(int party_slot);
