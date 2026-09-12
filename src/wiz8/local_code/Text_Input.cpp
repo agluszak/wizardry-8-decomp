@@ -7,9 +7,7 @@
 #include "wiz8/text_input.h"
 #include "wiz8/local_screens/Screens.h"
 
-#include "Font.h"
 #include "himage.h"
-#include "input.h"
 #include "Types.h"
 #include "mousesystem.h"
 #include "vobject_blitters.h"

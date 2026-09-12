@@ -36,9 +36,7 @@
 #include "wiz8/utility.h"
 #include "FileMan.h"
 #include "Font.h"
-#include "input.h"
 #include "vsurface.h"
-#include "wiz8/local_code/GameplayCode.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -55,7 +53,6 @@ extern int g_wiz_text_bold_font_683664;
 extern unsigned short* g_colour_68ee08;
 extern unsigned short* g_font_palette_wiz_text_bold_68ee0c;
 extern unsigned short* g_font_state_palettes_68ee1c[15];
-extern unsigned char g_flag_689b32;
 extern HVOBJECT g_wiz_text_font_secondary_object_683680;
 extern int g_options_title_font_68368c;
 extern int g_options_detail_font_683614;

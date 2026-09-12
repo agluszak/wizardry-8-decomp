@@ -4,6 +4,7 @@
 #include "wiz8/engine_code/OctPath.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Prop.h"
@@ -60,68 +61,48 @@ W8PathingService* g_pathing_00659c60;
    place every one of these bodies in OctPath.cpp rather than in Octree.cpp
    where the octree's own loader lives. */
 
-extern unsigned short g_path_reserve_0060827a;
 // GLOBAL: WIZ8 0x0060827a
 unsigned short g_path_reserve_0060827a = 2000;
-extern float g_path_span_scale_005ec344;
 // GLOBAL: WIZ8 0x005ec344
 float g_path_span_scale_005ec344 = 1.5259254723787308e-05f;
-extern float g_path_limit_006081e8;
 // GLOBAL
 float g_path_limit_006081e8;
-extern unsigned char g_flag_00659c5c;
 // GLOBAL: WIZ8 0x00659c5c
 unsigned char g_flag_00659c5c;
 extern unsigned char g_flag_00689b32;
-extern const float g_world_scale_005ebc40;
-extern void* g_path_scratch_00659c64;
 // GLOBAL: WIZ8 0x00659c64
 void* g_path_scratch_00659c64;
-extern double g_double_005ec3a8;
 // GLOBAL: WIZ8 0x005ec3a8
 double g_double_005ec3a8 = 1.1;
-extern double g_double_005ec3a0;
 // GLOBAL: WIZ8 0x005ec3a0
 double g_double_005ec3a0 = 25000.0;
-extern double g_double_005ec3b0;
 // GLOBAL: WIZ8 0x005ec3b0
 double g_double_005ec3b0 = 0.1;
-extern float g_path_direction_threshold_0_005ec348;
 // GLOBAL: WIZ8 0x005ec348
 float g_path_direction_threshold_0_005ec348 = -0.9239000082015991f;
-extern float g_path_direction_threshold_1_005ec34c;
 // GLOBAL: WIZ8 0x005ec34c
 float g_path_direction_threshold_1_005ec34c = -0.38269999623298645f;
-extern float g_path_direction_threshold_2_005ec350;
 // GLOBAL: WIZ8 0x005ec350
 float g_path_direction_threshold_2_005ec350 = 0.38269999623298645f;
-extern float g_path_direction_threshold_3_005ec354;
 // GLOBAL: WIZ8 0x005ec354
 float g_path_direction_threshold_3_005ec354 = 0.9239000082015991f;
-extern float g_path_cardinal_scale_005ec358;
 // GLOBAL: WIZ8 0x005ec358
 float g_path_cardinal_scale_005ec358 = 1.4149999618530273f;
-extern float g_path_waypoint_query_vertical_005ec35c;
 // GLOBAL
 float g_path_waypoint_query_vertical_005ec35c;
 // GLOBAL: WIZ8 0x005ec360
 float g_float_005ec360;
 extern float g_path_waypoint_exact_distance_005ebc64;
 extern double g_double_005ebe80;
-extern void Function497690(int channel, const char* message);
 // GLOBAL: WIZ8 0x00652dc4
 srShader g_path_shader_00652dc4;
-extern srTextureIFace* g_path_texture_00652dc0;
-extern srMaterialIFace* g_path_material_00652dbc;
 // GLOBAL: WIZ8 0x00652dc0
 srTextureIFace* g_path_texture_00652dc0;
 // GLOBAL: WIZ8 0x00652dbc
 srMaterialIFace* g_path_material_00652dbc;
 extern unsigned char g_flag_006081e4;
-extern unsigned int g_path_visualization_cell_00659c6c;
 // GLOBAL: WIZ8 0x00659c6c
 unsigned int g_path_visualization_cell_00659c6c;
-extern float g_path_search_visualization_limit_005ec380;
 // GLOBAL: WIZ8 0x005ec380
 float g_path_search_visualization_limit_005ec380 = 15000.0f;
 extern float g_path_endpoint_scale_005ec1a4;

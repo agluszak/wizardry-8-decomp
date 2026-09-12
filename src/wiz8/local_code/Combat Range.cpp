@@ -10,7 +10,6 @@
 #include "wiz8/float_constants.h"
 #include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
-#include "wiz8/local_code/CombatRange.h"
 
 /*
  * Local Code\Combat Range.cpp.
@@ -30,9 +29,6 @@
    table. */
 enum { W8_FORMATION_ROW_WIDTH = 3 };
 
-/* 0x00519AC0 */
-extern const float g_world_scale_005ebc40;
-extern float g_range_constant_005ec35c;
 // GLOBAL
 float g_range_constant_005ec35c;
 

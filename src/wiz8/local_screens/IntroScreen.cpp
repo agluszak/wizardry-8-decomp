@@ -21,7 +21,6 @@
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_screens/OptionsScreen.h"
-extern unsigned char g_flag_689b2c;
 // GLOBAL: WIZ8 0x00689b2c
 unsigned char g_flag_689b2c;
 

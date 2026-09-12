@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/OctBuildTree.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/materials.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
 
@@ -14,7 +15,6 @@ float g_path_waypoint_exact_distance_005ebc64;
 
 // GLOBAL: WIZ8 0x005ec188
 float g_float_005ec188 = 1.000100016593933f;
-extern void Function497690(int channel, const char* message);
 
 // GLOBAL: WIZ8 0x00659a48
 void* g_oct_build_scratch_00659a48;

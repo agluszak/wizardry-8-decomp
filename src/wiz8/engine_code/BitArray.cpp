@@ -23,12 +23,8 @@ BitArray::BitArray(unsigned int new_bit_count)
     cursor_base = new_bit_count - whole_words * W8_BITS_PER_WORD;
     word_count = whole_words + 1;
     tail_mask = 0;
-    cursor_bit = 0;
-    if (cursor_base != 0) {
-        do {
-            tail_mask |= 1 << cursor_bit;
-            ++cursor_bit;
-        } while ((unsigned int)cursor_bit < cursor_base);
+    for (cursor_bit = 0; (unsigned int)cursor_bit < cursor_base; ++cursor_bit) {
+        tail_mask |= 1 << cursor_bit;
     }
 
     cursor_base = 0;
@@ -37,8 +33,7 @@ BitArray::BitArray(unsigned int new_bit_count)
     set_count = 0;
     puiIndex = (unsigned int*)malloc(word_count * sizeof(unsigned int));
     if (puiIndex == 0) {
-        srAssertFail("puiIndex", BITARRAY_CPP, 59,
-                     "BitArray: Couldn't allocate bit index.");
+        srAssertFail("puiIndex", BITARRAY_CPP, 59, "BitArray: Couldn't allocate bit index.");
     }
     memset(puiIndex, 0, word_count * sizeof(unsigned int));
 }
@@ -86,7 +81,7 @@ void BitArray::SetSize(unsigned int new_bit_count)
 
 /* The owning destructor. Only the index buffer needs explicit cleanup;
    all other members are values. */
- // FUNCTION: WIZ8 0x0043ad90
+// FUNCTION: WIZ8 0x0043ad90
 BitArray::~BitArray()
 {
     free(puiIndex);
@@ -254,8 +249,7 @@ void BitArray::SetToComplementOf(BitArray& other)
     }
     if (bit_count < other.bit_count) {
         last_mask = tail_mask;
-    }
-    else {
+    } else {
         last_mask = other.tail_mask;
     }
 

@@ -27,19 +27,12 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "random.h"
-#include "wiz8/magic.h"
-#include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/local_code/MagicEffects.h"
-#include "wiz8/local_screens/MGSTextBox.h"
-#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Combat.h"
-#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/MonsterAI.h"
-#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/GameData.h"
-#include "wiz8/local_code/Strings.h"
 
 // GLOBAL: WIZ8 0x0068510c
 unsigned char g_detailed_combat_messages_0068510c;
@@ -48,7 +41,6 @@ unsigned char g_detailed_combat_messages_0068510c;
 #include <wchar.h>
 #include "wiz8/character_skills.h"
 
-extern void ReportSpellResult005005C0(W8SpellEffectEntry* effect);
 
 
 /* Local Code\Magic.cpp, named by the assertion this body embeds. */
@@ -1174,7 +1166,6 @@ void LearnSpell(W8Character* character, int spell_id, char announce)
     ShowNoticeLine(line, 0, 1, 0);
 }
 
-extern int g_learn_sound_0068c510;
 // GLOBAL: WIZ8 0x0068c510
 int g_learn_sound_0068c510;
 /* Learn the spell a scroll or book teaches, and consume it. The item has to
@@ -2270,7 +2261,7 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
             }
             else if (report->kind == 3) {
                 SetTextBoxMode(0, -1);
-                Function58AAD0(
+                WriteGameLog(
                     9, L"%s %s", report->text,
                     gppStringList[g_spell_band_text_0061e57a
                                       [W8_SPELL_REPORT_BAND * 4]]);

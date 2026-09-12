@@ -3,6 +3,7 @@
 #include "wiz8/engine_code/stScript.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/music_playlist.h"
+#include "wiz8/regions.h"
 #include "wiz8/wiz8_windows.h"
 #include "random.h"
 #include "soundman.h"
@@ -21,7 +22,6 @@ unsigned char g_music_force_next_60aae5;
 int g_music_state_60aae8;
 int g_music_state_60aaec;
 int g_music_state_60aaf0;
-extern unsigned char g_flag_689b32;
 
 // FUNCTION: WIZ8 0x00490180
 char IsCurrentMusicPlaylist(const char* playlist)

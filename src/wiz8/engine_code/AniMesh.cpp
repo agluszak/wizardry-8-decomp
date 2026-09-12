@@ -20,7 +20,6 @@ float g_float_005ebb34 = 0.0f;
 
 #define ANI_MESH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\AniMesh.cpp"
 
-extern double g_double_005ebe80;
 // GLOBAL: WIZ8 0x005ebe80
 double g_double_005ebe80 = 0.5;
 // GLOBAL: WIZ8 0x005ebb40

@@ -5,9 +5,6 @@
 #include "wiz8/sr_api.h"
 #include "timer.h"
 
-extern char g_button_click_1_62a51c[];
-extern char g_button_click_2_62a544[];
-extern char g_button_whoosh_62a56c[];
 
 // GLOBAL: WIZ8 0x0062A458
 const char* g_button_sound_paths_62a458[4][4] = {

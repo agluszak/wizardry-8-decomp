@@ -17,7 +17,6 @@
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/Trigger.h"
-#include "wiz8/float_constants.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/utility.h"
 #include "wiz8/virtual_file.h"

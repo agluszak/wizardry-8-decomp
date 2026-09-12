@@ -17,7 +17,6 @@
 #include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_screens/MGSTextBox.h"
-#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_code/MonsterGroup.h"
 
 /*

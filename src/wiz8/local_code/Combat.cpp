@@ -15,6 +15,7 @@ unsigned int g_combat_countdown_6850b0;
 #include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
+#include "wiz8/notices.h"
 #include "random.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/CombatRange.h"
@@ -266,10 +267,8 @@ int PartyAvoidsSurprise(void)
 /* 0x004C62C0 */
 extern int g_effect_005ee610;
 extern unsigned int g_flee_hp_fraction_005ed8f8;
-extern unsigned int g_flee_chance_005ed908;
 // GLOBAL: WIZ8 0x005ed908
 unsigned int g_flee_chance_005ed908 = 15;
-extern float g_movement_speed_step_005ed490;
 // GLOBAL: WIZ8 0x005ed490
 float g_movement_speed_step_005ed490 = 0.009999999776482582f;
 /* 0x00683FE7-adjacent: the per-character per-hand attack values combat saved
@@ -530,7 +529,7 @@ void EndCombat004EA310(int mode)
     if (g_combat_state->flag_a54 != 0) {
         const wchar_t* message =
             reinterpret_cast<const wchar_t*>(g_string_table[0x233]); /* reinterpret-ok: heterogeneous string table */
-        Function58AC00(0xc, message, 1, -1, 0);
+        ShowNotice(0xc, message, 1, -1, 0);
     }
     unsigned int active = CountActiveCharacters();
     if (active != 0 && g_combat_state->value_010 != 0) {

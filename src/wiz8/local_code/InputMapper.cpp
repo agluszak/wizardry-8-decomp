@@ -6,7 +6,6 @@
 #include "wiz8/virtual_file.h"
 
 #include "FileMan.h"
-#include "input.h"
 
 #include <wchar.h>
 #include <wctype.h>

@@ -10,7 +10,6 @@
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
-#include "wiz8/engine_code/GameData.h"
 #include "wiz8/local_code/CombatPartyMovement.h"
 #include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"

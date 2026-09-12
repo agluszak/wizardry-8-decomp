@@ -20,10 +20,8 @@
 #include <wchar.h>
 #include <stdlib.h>
 
-extern int g_string_table_count;
 // GLOBAL: WIZ8 0x0068c098
 int g_string_table_count;
-extern char** g_string_table;
 // GLOBAL
 char** g_string_table;
 // GLOBAL: WIZ8 0x0068c0a4

@@ -16,6 +16,7 @@
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/regions.h"
 #include "wiz8/utility.h"
+#include "wiz8/notices.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/vector.h"
 
@@ -31,17 +32,12 @@
 
 extern const wchar_t g_wchar_00689b34;
 extern int g_font_00683614;
-extern int g_journal_page_0064df38;
 // GLOBAL: WIZ8 0x0064df38
 int g_journal_page_0064df38 = -1;
-extern W8GrowableVector<W8JournalEntry>* g_journal_entries_0069c4e4;
-extern unsigned char g_camp_open_00683f9b;
 // GLOBAL: WIZ8 0x00683f9b
 unsigned char g_camp_open_00683f9b;
-extern unsigned char g_journal_show_all_0069c4e0;
 // GLOBAL: WIZ8 0x0069c4e0
 unsigned char g_journal_show_all_0069c4e0;
-extern int g_value_006850d5;
 // GLOBAL: WIZ8 0x006850d5
 int g_value_006850d5;
 // GLOBAL: WIZ8 0x0064d7b8
@@ -56,7 +52,6 @@ int g_journal_faction_name_indices_0064df4c[11] = {
 };
 // GLOBAL: WIZ8 0x0064df78
 wchar_t g_journal_alternate_page_0064df78[] = L"1 / 1";
-extern int g_journal_page_count_0064df3c;
 // GLOBAL: WIZ8 0x0064df3c
 int g_journal_page_count_0064df3c = -1;
 // GLOBAL: WIZ8 0x0069C4CC
@@ -130,7 +125,7 @@ void RecordFactChangeForJournal(int fact_id)
         return;
     }
     int range = GetTextBoxScrollRange();
-    Function58AC00(3, gppStringList[0x1d28 / 4], 2, range, 0);
+    ShowNotice(3, gppStringList[0x1d28 / 4], 2, range, 0);
     SoundPlay("Data\\Sound\\Misc\\Journal Entry.wav", 0);
 }
 

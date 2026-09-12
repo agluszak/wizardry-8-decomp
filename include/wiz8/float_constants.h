@@ -34,6 +34,7 @@ extern double g_double_005ec318;
 extern double g_double_005ec368;
 extern double g_double_005ec378;
 extern float g_float_005ebc3c;
+extern const float g_world_scale_005ebc40;
 extern float g_float_005ebc58;
 extern float g_float_005ebc60;
 extern float g_float_005ebc7c;

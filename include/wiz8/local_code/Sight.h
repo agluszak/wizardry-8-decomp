@@ -9,6 +9,7 @@ void RefreshOutwardSightForAllMonsters(void);
 void RefreshMonsterSight(W8MonsterInfo* monster_info);
 void ResetAndRefreshAllSight005060C0(void);
 unsigned int AgeAllMonsterSight(void);
+void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_3);
 void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_bounds);
 
 /* The two sight producers still unrecovered keep address names. */

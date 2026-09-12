@@ -13,6 +13,7 @@ unsigned short* g_pointer_65be5c;
 unsigned short g_value_65be6c;
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/ReadLevel.h"
+#include "wiz8/engine_code/materials.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
 
@@ -23,17 +24,12 @@ unsigned short g_value_65be6c;
 #include <stdlib.h>
 #include <string.h>
 
-extern void Function497690(int channel, const char* message);
-extern float g_float_005ed034;
 // GLOBAL: WIZ8 0x005ed034
 float g_float_005ed034 = -0.009999999776482582f;
-extern float g_float_005ed038;
 // GLOBAL: WIZ8 0x005ed038
 float g_float_005ed038 = 4000.0f;
-extern float g_float_005ec52c;
 // GLOBAL: WIZ8 0x005ec52c
 float g_float_005ec52c = 3.0f;
-extern const float g_world_scale_005ebc40;
 
 #define OCT_BUILD_PRE_TREE_CPP \
     "C:\\Projects\\Wizardry 8\\Engine Code\\OctBuildPreTree.cpp"

@@ -16,10 +16,8 @@
 #include <stdlib.h>
 #include <wchar.h>
 
-extern int g_font_00683614;
 // GLOBAL
 int g_font_00683614;
-extern int g_font_bold_0068368c;
 // GLOBAL: WIZ8 0x0068368c
 int g_font_bold_0068368c;
 W8GrowableVector<W8CreditLine>* g_credit_lines_0069c4a8;

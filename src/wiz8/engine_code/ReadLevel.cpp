@@ -69,11 +69,9 @@ static_assert(sizeof(W8LevelLightRecord004BBAD0) == 0x28,
 
 } // namespace
 
-extern const float g_world_scale_005ebc40;
 
 // GLOBAL: WIZ8 0x005ec0b0
 const float g_environment_near_scale_005ec0b0 = 2.0f;
-extern srVector3T<float> g_environment_offset_00659cd0;
 // GLOBAL: WIZ8 0x00659cd0
 srVector3T<float> g_environment_offset_00659cd0;
 

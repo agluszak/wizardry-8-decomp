@@ -39,7 +39,6 @@
  * regions share the global RegionManager catalog and screen-state dispatcher.
  */
 
-extern unsigned char g_flag_689b32;
 
 
 /* The screen's own state. */

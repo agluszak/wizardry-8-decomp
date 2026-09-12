@@ -175,5 +175,6 @@ unsigned char DispatchRegionInput(const InputAtom* event);
 unsigned int Function568950(const InputAtom* input);
 
 void ResetRegions(void);
+extern unsigned char g_flag_689b32;
 
 #endif

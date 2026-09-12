@@ -20,4 +20,5 @@ void SelectUseItemLine0059DDC0(int line);
 
 
 void Function59F2B0(void);
+void Function59CAC0(void);
 

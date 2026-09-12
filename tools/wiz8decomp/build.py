@@ -314,13 +314,22 @@ def configure_clang(
     return output, prefix()
 
 
-def run_clang_tidy(prefix: list[str], output: Path, repository: Path) -> None:
-    """Gate first-party code with the narrow reconstruction-error profile.
+def run_clang_tidy(
+    prefix: list[str],
+    output: Path,
+    repository: Path,
+    *,
+    config_file: str = "/repo/.clang-tidy",
+    log_name: str = "clang-tidy.json",
+) -> None:
+    """Run clang-tidy on first-party recovered sources.
 
     Only translation units under a reccmp source root are tidied: the compile
     database also covers the pristine zlib/Info-ZIP static libraries, which
     keep their upstream warnings by policy, and the retained SGP C library,
-    whose C idioms are outside the reconstruction-error profile.
+    whose C idioms are outside the reconstruction-error profile. The gating
+    profile lives in ``.clang-tidy``; ``wiz8 diagnostics`` uses
+    ``.clang-tidy-diagnostics``.
     """
     from .source_index import indexed_targets
 
@@ -350,11 +359,11 @@ def run_clang_tidy(prefix: list[str], output: Path, repository: Path) -> None:
             "-p",
             "/out",
             "--config-file",
-            "/repo/.clang-tidy",
+            config_file,
             *files,
         ],
         cwd=output,
-        log_path=output.parent / "logs" / "clang-tidy.json",
+        log_path=output.parent / "logs" / log_name,
     )
 
 
@@ -383,7 +392,15 @@ def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any
         / "logs"
         / ("clang-full-diagnostics.json" if full_diagnostics else "clang-lint-build.json"),
     )
-    if not full_diagnostics:
+    if full_diagnostics:
+        run_clang_tidy(
+            prefix,
+            output,
+            settings.repo_dir,
+            config_file="/repo/.clang-tidy-diagnostics",
+            log_name="clang-tidy-diagnostics.json",
+        )
+    else:
         run_clang_tidy(prefix, output, settings.repo_dir)
     return {
         "status": "ok",

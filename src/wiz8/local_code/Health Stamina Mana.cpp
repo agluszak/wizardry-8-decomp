@@ -20,9 +20,6 @@
 #include "wiz8/utility.h"
 #include "wiz8/sound_man.h"
 #include "random.h"
-#include "wiz8/local_code/HealthStaminaMana.h"
-#include "wiz8/local_code/ConditionsAndEnchantments.h"
-#include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/character_events.h"
 
 #include <stdlib.h>
@@ -284,7 +281,6 @@ unsigned int FatigueArmorPenalty(int fatigue_band)
     default: return fatigue_band;
     }
 }
-extern void RecalculateCharacterHitPoints(W8Character* character);
 /* 0x0052AF50 */
 
 /* 0x00523C00 */
@@ -294,13 +290,10 @@ extern void RecalculateCharacterHitPoints(W8Character* character);
 extern int g_effect_005ee594;
 extern int g_effect_005ee590;
 extern int g_effect_005ee5f8;
-extern unsigned int g_effect_threshold_005ed904;
 // GLOBAL: WIZ8 0x005ed904
 unsigned int g_effect_threshold_005ed904 = 50;
-extern unsigned int g_effect_threshold_005ed900;
 // GLOBAL: WIZ8 0x005ed900
 unsigned int g_effect_threshold_005ed900 = 70;
-extern unsigned char g_spell_points_free_00687500;
 // GLOBAL
 unsigned char g_spell_points_free_00687500;
 /* 0x0061E518: one notice index per spell realm, giving the realm's name. */

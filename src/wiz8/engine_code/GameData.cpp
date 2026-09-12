@@ -38,7 +38,6 @@ enum {
     W8_LEVEL_FLAG_9 = 0x200
 };
 
-extern unsigned char g_level_override_00652dba;
 extern unsigned char g_environment_load_flag_00603ad0;
 // GLOBAL: WIZ8 0x00652dba
 unsigned char g_level_override_00652dba;

@@ -8,6 +8,7 @@
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/regions.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/float_constants.h"
@@ -32,15 +33,11 @@ unsigned char g_alternate_name_slot;
 #include "wiz8/screen_state.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Octree.h"
-#include "wiz8/engine_code/World.h"
-#include "wiz8/float_constants.h"
 #include "wiz8/npc_state.h"
 #include "wiz8/sr_api.h"
 #include "DEBUG.H"
 #include "random.h"
-#include "wiz8/engine_code/Octree.h"
 #include "wiz8/local_code/ItemManager.h"
-#include "wiz8/local_code/MonsterGroup.h"
 #include <math.h>
 #include <new>
 #include <stdlib.h>
@@ -55,7 +52,6 @@ void MonsterSetSubCycle(W8Monster* monster, int subcycle);
 void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* entry);
 void DestroyMonsterActionQueue(W8MonsterInfo* monster_info);
 void Function546E70(void);
-extern int g_dword_6850be;
 // GLOBAL: WIZ8 0x006850be
 int g_dword_6850be;
 /* Writes the monster's world position through an out-parameter; __cdecl, since
@@ -165,7 +161,6 @@ void Function51B420(W8MonsterInfo* monster_info, W8MonsterRecord* record);
 void Function509CD0(unsigned char value, int enabled, int location_id);
 extern int g_monster_cycle_registry_weight_0065ba4c;
 extern float g_float_005ec52c;
-extern unsigned char g_flag_689b32;
 
 static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(
     unsigned int monster_species);

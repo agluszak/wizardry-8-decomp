@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/AmbientSound.h"
 #include "wiz8/local_code/Sight.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/local_code/ItemManager.h"
 #include "wiz8/local_code/MonsterGroup.h"
@@ -33,7 +34,6 @@
    its 272 bytes. */
 #include "FileMan.h"
 #include "wiz8/local_code/PC_Item.h"
-#include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/engine_code/stCube.h"
 #include "wiz8/engine_code/stLight.h"
@@ -953,7 +953,6 @@ void DeleteCurrentSaveFiles(void)
 
 /* Two gates with no established meaning beyond their position in the chain, so
    both keep positional names. Both are zero in the shipped image. */
-extern unsigned char g_flag_006875a5;
 
 /* gXStatus.fCombatMode and gXStatus.fCampMode reach this unit through
    combat_state.h, so they are used rather than redeclared. 0x00683F97 has no

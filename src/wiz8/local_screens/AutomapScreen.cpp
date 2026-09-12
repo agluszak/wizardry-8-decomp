@@ -34,7 +34,6 @@
 #include "input.h"
 #include "Types.h"
 #include "mousesystem.h"
-#include "wiz8/local_screens/AutomapScreen.h"
 
 #include <stdlib.h>
 #include <wchar.h>
@@ -79,7 +78,6 @@ srClass* g_class_68f2a8;
 W8GrowableVector<srClass*>* g_releasable_68f1f4;
 
 
-extern float g_float_64b914;
 
 // GLOBAL: WIZ8 0x0068f220
 W8GrowableVector<srClipPlane::ClientType*> g_automap_created_layers;

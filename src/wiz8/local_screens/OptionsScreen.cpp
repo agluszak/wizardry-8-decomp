@@ -49,7 +49,6 @@
 
 // GLOBAL: WIZ8 0x0069C130
 unsigned int* g_options_panel_region_sets;
-extern unsigned char g_flag_689b32;
 
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);

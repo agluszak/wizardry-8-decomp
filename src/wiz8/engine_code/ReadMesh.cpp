@@ -15,8 +15,6 @@
 #include "FileMan.h"
 #include "surrender/srCore.h"
 #include "surrender/srNode.h"
-#include "wiz8/engine_code/materials.h"
-#include "wiz8/engine_code/ReadMesh.h"
 
 #include <stdlib.h>
 #include <string.h>

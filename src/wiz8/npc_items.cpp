@@ -29,7 +29,7 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-/* The decompiled body reads this storage only after the same short-circuit
+    /* The decompiled body reads this storage only after the same short-circuit
    chain that clang's flow analysis cannot see through; retail leaves it
    uninitialised on the failed-read path. Suppress only this diagnostic. */
     W8ItemDatabaseRecord* record;
@@ -49,53 +49,46 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
     record = &g_item_records[item_id];
     if (record->equip_class == 4) {
         repeats = quantity;
-    }
-    else {
+    } else {
         repeats = 1;
     }
     added = 0;
-    if (repeats > 0) {
-        do {
-            index = -1;
-            if (record->equip_class != 4) {
-                existing_count = PLLength(npc->items);
-                for (search = 0; search < existing_count; ++search) {
-                    entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, search));
-                    if (entry != 0 && entry->item.item_id == item_id) {
-                        index = search;
-                        break;
-                    }
+    for (; added < repeats; ++added) {
+        index = -1;
+        if (record->equip_class != 4) {
+            existing_count = PLLength(npc->items);
+            for (search = 0; search < existing_count; ++search) {
+                entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, search));
+                if (entry != 0 && entry->item.item_id == item_id) {
+                    index = search;
+                    break;
                 }
             }
-            if (index == -1) {
-                entry = new W8NpcItemEntry;
-                if (entry != 0) {
-                    memset(entry, 0, sizeof(*entry));
-                    ReplaceOrCreateItem(&entry->item, item_id, 1, 1, 0);
-                }
-                entry->item.stack_count = 0;
-                index = PLAdoptAppend(npc->items, entry);
+        }
+        if (index == -1) {
+            entry = new W8NpcItemEntry;
+            if (entry != 0) {
+                memset(entry, 0, sizeof(*entry));
+                ReplaceOrCreateItem(&entry->item, item_id, 1, 1, 0);
             }
-            else {
-                entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
-            }
-            if (entry == 0) {
-                return -1;
-            }
-            if (record->equip_class == 4) {
-                entry->item.stack_count = 0x19;
-                entry->quantity = 1;
-            }
-            else if (record->quantity_kind == 1) {
-                entry->item.stack_count += quantity;
-                entry->quantity = 1;
-            }
-            else {
-                entry->item.stack_count = 1;
-                entry->quantity += quantity;
-            }
-            ++added;
-        } while (added < repeats);
+            entry->item.stack_count = 0;
+            index = PLAdoptAppend(npc->items, entry);
+        } else {
+            entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
+        }
+        if (entry == 0) {
+            return -1;
+        }
+        if (record->equip_class == 4) {
+            entry->item.stack_count = 0x19;
+            entry->quantity = 1;
+        } else if (record->quantity_kind == 1) {
+            entry->item.stack_count += quantity;
+            entry->quantity = 1;
+        } else {
+            entry->item.stack_count = 1;
+            entry->quantity += quantity;
+        }
     }
     return index;
 #pragma clang diagnostic pop
@@ -175,8 +168,7 @@ unsigned char MaintainNpcStock(W8NpcState* npc, char force)
                         held = 0;
                         search_count = PLLength(npc->items);
                         for (search = 0; search < search_count; ++search) {
-                            entry = static_cast<W8NpcItemEntry*>(
-                                PLGet(npc->items, search));
+                            entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, search));
                             if (entry != 0 && entry->item.item_id == item_id) {
                                 held = entry->quantity;
                                 break;
@@ -188,8 +180,7 @@ unsigned char MaintainNpcStock(W8NpcState* npc, char force)
                             if (roll == 0) {
                                 jitter = static_cast<unsigned char>(configured >> 1);
                                 configured = configured + jitter;
-                            }
-                            else if (roll == 1) {
+                            } else if (roll == 1) {
                                 jitter = static_cast<unsigned char>(-(configured >> 1));
                                 configured = configured + jitter;
                             }
@@ -269,8 +260,8 @@ unsigned char PopulateNpcStock(W8NpcState* npc)
     rule_index = 0;
     if (rule_count > 0) {
         do {
-            rule = static_cast<W8NpcItemStockRule*>(
-                PLGet(npc->record->item_stock_rules, rule_index));
+            rule =
+                static_cast<W8NpcItemStockRule*>(PLGet(npc->record->item_stock_rules, rule_index));
             item_id = rule->item_id;
             if (item_id < (int)gXStatus.uiItemsInDatabase) {
                 persistent = rule->persistent;
@@ -280,8 +271,7 @@ unsigned char PopulateNpcStock(W8NpcState* npc)
                     do {
                         if (persistent == 0) {
                             tier = RateItemIdentifyDifficulty(npc, item_id);
-                        }
-                        else {
+                        } else {
                             tier = 4;
                         }
                         switch (tier) {
@@ -440,8 +430,7 @@ int AddNpcItemFromInstance(W8NpcState* npc, const W8ItemInstance* item, char qua
         }
         entry->item.stack_count = 0;
         index = PLAdoptAppend(npc->items, entry);
-    }
-    else {
+    } else {
         entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
     }
     if (entry == 0) {
@@ -490,10 +479,9 @@ int RestockNpcItems(W8NpcState* npc)
     rule_index = 0;
     if (rule_count > 0) {
         do {
-            rule = static_cast<W8NpcItemStockRule*>(
-                PLGet(npc->record->item_stock_rules, rule_index));
-            if (rule->persistent != 0 ||
-                (rule->item_id == 0x1fc && GetFact(0x15f) == 0)) {
+            rule =
+                static_cast<W8NpcItemStockRule*>(PLGet(npc->record->item_stock_rules, rule_index));
+            if (rule->persistent != 0 || (rule->item_id == 0x1fc && GetFact(0x15f) == 0)) {
                 goto next_rule;
             }
 
@@ -501,8 +489,8 @@ int RestockNpcItems(W8NpcState* npc)
             configured = 0;
             search_count = PLLength(npc->record->item_stock_rules);
             for (search = 0; search < search_count; ++search) {
-                candidate = static_cast<W8NpcItemStockRule*>(
-                    PLGet(npc->record->item_stock_rules, search));
+                candidate =
+                    static_cast<W8NpcItemStockRule*>(PLGet(npc->record->item_stock_rules, search));
                 if (candidate->item_id == item_id) {
                     configured = candidate->quantity;
                     break;
@@ -528,8 +516,7 @@ int RestockNpcItems(W8NpcState* npc)
 
             if (rule->persistent == 0) {
                 tier = RateItemIdentifyDifficulty(npc, rule->item_id);
-            }
-            else {
+            } else {
                 tier = 4;
             }
             switch (tier) {
@@ -561,8 +548,7 @@ int RestockNpcItems(W8NpcState* npc)
             if (roll == 0) {
                 jitter = static_cast<unsigned char>(amount >> 1);
                 amount = amount + jitter;
-            }
-            else if (roll == 1) {
+            } else if (roll == 1) {
                 jitter = static_cast<unsigned char>(-(amount >> 1));
                 amount = amount + jitter;
             }
@@ -599,14 +585,12 @@ char RateItemIdentifyDifficulty(W8NpcState* npc, int item_id)
     raw_upper = base + 4;
     if (base <= 16) {
         lower = base < 1 ? 1 : base;
-    }
-    else {
+    } else {
         lower = 16;
     }
     if (raw_upper <= 20) {
         upper = raw_upper < 4 ? 4 : raw_upper;
-    }
-    else {
+    } else {
         upper = 20;
     }
     if (difficulty > upper) {
@@ -672,8 +656,7 @@ unsigned char ConsumeNpcItemQuantity(W8NpcState* npc, int index, unsigned char q
             entry->quantity = 0;
             return 1;
         }
-    }
-    else {
+    } else {
         if (entry->quantity < quantity) {
             quantity = entry->quantity;
         }

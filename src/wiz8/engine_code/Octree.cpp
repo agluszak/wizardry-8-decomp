@@ -29,14 +29,8 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/BitArray.h"
-#include "wiz8/engine_code/Octree.h"
-#include "wiz8/engine_code/OctPath.h"
-#include "wiz8/engine_code/GameData.h"
-#include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/stCube.h"
-#include "wiz8/engine_code/3d.h"
-#include "wiz8/engine_code/Navigator.h"
 
 #include <math.h>
 
@@ -73,7 +67,6 @@ extern unsigned char g_navigator_link_mode_00659c10;
    address. The receiver is the output slot. */
 /* Draw the probe box through the world camera. */
 
-extern const float g_world_scale_005ebc40;
 
 // GLOBAL: WIZ8 0x006598a4
 W8Octree* g_octree_6598a4;

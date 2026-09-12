@@ -50,22 +50,31 @@ set(WIZ8_LINT_COMPAT_FLAGS
     -Wno-microsoft-exception-spec
     -Wno-microsoft-goto
     -Wno-microsoft-template
-    -Wno-mismatched-tags
     -Wno-non-virtual-dtor
     -Wno-tautological-compare
     -Wno-unknown-escape-sequence
     -Wno-visibility
     -Wno-writable-strings
 )
+# Recovered Wizardry/SurRender code sees -Wmismatched-tags (struct vs class
+# declaration). Retained vendor C still needs the suppression.
+set(WIZ8_VENDOR_LINT_COMPAT_FLAGS
+    ${WIZ8_LINT_COMPAT_FLAGS}
+    -Wno-mismatched-tags
+)
 # The decompilation-correctness diagnostics. The gating lane makes them
 # errors; the diagnostics lane reports them without failing. Suspicious
 # original behavior gets a local, evidence-backed suppression at its site.
+# -Wpragma-pack is recovered-code only: it catches unterminated pack(push)
+# regions and included files that unexpectedly change packing. Vendor C is
+# allowed its own pack discipline.
 set(WIZ8_RECOVERY_WARNINGS
     -Wsometimes-uninitialized
     -Wswitch
     -Warray-bounds
     -Wsign-compare
     -Wmissing-field-initializers
+    -Wpragma-pack
     $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual>
     $<$<COMPILE_LANGUAGE:CXX>:-Winconsistent-missing-override>
 )
@@ -97,7 +106,7 @@ function(wiz8_configure_vendor_lint_target target)
     target_link_libraries(${target} PRIVATE wiz8_compile_settings)
     target_compile_definitions(${target} PRIVATE WIZ8_CLANG_LINT)
     target_compile_options(${target} PRIVATE
-        /W4 ${WIZ8_LINT_COMPAT_FLAGS} /MD /U_DEBUG
+        /W4 ${WIZ8_VENDOR_LINT_COMPAT_FLAGS} /MD /U_DEBUG
         -Wsometimes-uninitialized
         -Wswitch
         -Warray-bounds

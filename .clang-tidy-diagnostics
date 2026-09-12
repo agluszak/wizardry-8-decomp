@@ -1,0 +1,18 @@
+# Report-only reconstruction diagnostics. `wiz8 diagnostics` runs this profile
+# without failing the lane. Hits are research evidence: a memset of a
+# non-trivial C++ object may be a genuine retail idiom or a wrong recovered
+# type. Do not auto-fix these, and do not promote them to the gating profile
+# until the corpus has been reviewed.
+#
+# Keep modernize-*, naming, and Core Guidelines checks out of this file too.
+Checks: >
+  -*,
+  bugprone-misplaced-widening-cast,
+  readability-redundant-casting,
+  readability-redundant-declaration,
+  readability-duplicate-include,
+  bugprone-suspicious-memset-usage,
+  bugprone-undefined-memory-manipulation
+WarningsAsErrors: ''
+HeaderFilterRegex: '^/repo/(include/wiz8|include/surrender|src/wiz8|src/surrender|src/srext_jpegimporter|src/srext_unzip)/'
+FormatStyle: none

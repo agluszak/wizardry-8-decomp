@@ -18,7 +18,6 @@
 
 /* The callee returns its byte value in an int-sized result; this wrapper is
    the narrowing boundary, as shown by its explicit `and eax, 0xff`. */
-extern const float g_world_scale_005ebc40;
 
 // FUNCTION: WIZ8 0x004a01a0
 W8AnimObj* CreateAnimObj004A01A0()

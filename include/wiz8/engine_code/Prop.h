@@ -134,3 +134,4 @@ unsigned char CreateAndLoadProp0044BF50(
 
 char ResolvePickedProp(W8World* world);
 void UpdateWorldProps0044E010(W8World* world);
+extern unsigned char g_byte_00659a64;

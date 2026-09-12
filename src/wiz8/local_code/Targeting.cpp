@@ -31,9 +31,7 @@ int g_target_state_6840b3;
 #include "wiz8/sr_api.h"
 #include "Types.h"
 #include "wiz8/local_code/CombatRange.h"
-#include "wiz8/targeting.h"
 #include "wiz8/local_code/CombatHostility.h"
-#include "wiz8/engine_code/quad.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/engine_code/Cursor3d.h"
 #include "wiz8/engine_code/Spells.h"
@@ -144,7 +142,6 @@ extern const char g_faction_names[W8_FACTION_COUNT][0x1e] = {
 };
 
 extern unsigned char Function519180(int party_slot, int arg_2, W8TargetingContext context);
-extern unsigned char g_targeting_flag_00685116;
 // GLOBAL: WIZ8 0x00685116
 unsigned char g_targeting_flag_00685116;
 

@@ -361,8 +361,6 @@ unsigned int GetSkillQuarterValue00553EE0(W8Character* character, int skill_id)
    the per-channel one, and only the total is clamped - the base is left as
    computed, which is why a subsequent pass over the same character produces the
    same answer rather than compounding. */
-#include "wiz8/character.h"
-#include "wiz8/layouts/gameplay_databases.h"
 /* The profession databases and per-skill attribute records. Contents are the
    retail tables at 0x00615570..0x0061634c; the five profession arrays share
    one contiguous block with the skill-attribute records. -1 in a skill slot

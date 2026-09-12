@@ -50,12 +50,7 @@
 #include "surrender/srCore.h"
 #include "surrender/srMath.h"
 #include "surrender/srScene.h"
-#include "wiz8/engine_code/Octree.h"
-#include "wiz8/engine_code/GameData.h"
-#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/character_events.h"
-#include "wiz8/engine_code/Trigger.h"
-#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/Spells.h"
 
 #include <windows.h>

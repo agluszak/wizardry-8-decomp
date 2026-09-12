@@ -2,4 +2,3 @@
 
 #include <string.h>
 
-#include "wiz8/location_variables.h"

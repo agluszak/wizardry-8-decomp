@@ -9,7 +9,6 @@
 
 #include "Debug.h"
 
-extern int g_value_6834d4;
 // GLOBAL: WIZ8 0x006834d4
 int g_value_6834d4;
 

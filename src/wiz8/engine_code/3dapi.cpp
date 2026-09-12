@@ -42,8 +42,6 @@
 #include "surrender/srScene.h"
 
 #include "FileMan.h"
-#include "wiz8/engine_code/Trigger.h"
-#include "wiz8/engine_code/AmbientSound.h"
 
 /*
  * Engine Code\3dapi.cpp.

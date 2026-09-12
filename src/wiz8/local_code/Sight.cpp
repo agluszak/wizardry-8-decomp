@@ -24,12 +24,12 @@
 #include "wiz8/npc_state.h"
 #include "wiz8/startup_runtime_state.h"
 #include "random.h"
-#include "wiz8/local_code/Strings.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/targeting.h"
 #include "wiz8/utility.h"
+#include "wiz8/notices.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
@@ -250,7 +250,6 @@ bool IsVisibleUnderConditions(
     }
 }
 
-extern void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_3);
 /* 0x00503990 */
 
 /* Bring every monster's sight up to date with the clock, in whole two-minute
@@ -851,7 +850,7 @@ after_sight:
                             && (g_sight_fade_in_tick_00689b70 == 0
                                 || now - g_sight_fade_in_tick_00689b70 > 199)) {
                             g_sight_fade_in_tick_00689b70 = now;
-                            Function58AC00(
+                            ShowNotice(
                                 8, gppStringList[0x774 / 4], -1, -1, 0);
                         }
                     }
@@ -875,7 +874,7 @@ after_sight:
                 && (g_sight_fade_out_tick_00689b74 == 0
                     || now - g_sight_fade_out_tick_00689b74 > 199)) {
                 g_sight_fade_out_tick_00689b74 = now;
-                Function58AC00(
+                ShowNotice(
                     8, gppStringList[0x778 / 4], -1, -1, 0);
             }
         }

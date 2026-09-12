@@ -15,10 +15,10 @@
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/utility.h"
 #include "random.h"
 #include "wiz8/engine_code/GDProp.h"
-#include "wiz8/engine_code/Item.h"
 
 #include <string.h>
 
@@ -462,7 +462,6 @@ unsigned int ItemIndex(int runtime_id)
 
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
-extern const float g_world_scale_005ebc40;
 
 /* Flatten one item's whole group into a vector, the item itself first and then
    everything chained onto it. A failed append drops that entry and the walk

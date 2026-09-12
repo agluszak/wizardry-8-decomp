@@ -224,13 +224,14 @@ unresolved. Similar UI responsibilities alone do not justify merging classes.
 same CMake source lists as the product build, compiles every manually owned
 translation unit with clang-cl at `/W4 -Werror` plus the recovery diagnostics
 (`-Wsometimes-uninitialized -Wswitch -Warray-bounds -Wsign-compare
--Wmissing-field-initializers -Woverloaded-virtual
+-Wmissing-field-initializers -Wpragma-pack -Woverloaded-virtual
 -Winconsistent-missing-override`), and then runs the narrow clang-tidy profile
-from `.clang-tidy`. `WIZ8_CLANG_LINT` is an umbrella over the Wizardry game
+from `.clang-tidy`. Recovered Wizardry/SurRender code also sees mismatched
+struct/class tags. `WIZ8_CLANG_LINT` is an umbrella over the Wizardry game
 sources, SurRender, `WIZ8_SGP`, and the recovered/adapted JPEG and UnZip
 plugin code; the pristine IJG and Info-ZIP trees keep their upstream warnings.
 `wiz8 diagnostics` runs the same projection with the recovery diagnostics
-report-only.
+report-only, then the extra clang-tidy profile in `.clang-tidy-diagnostics`.
 
 The product VC6 build and the clang-cl lint lane share one interface target
 (`cmake/CompileSettings.cmake`) for includes, forced compatibility header and
@@ -273,14 +274,15 @@ C++ mangling already encodes the complete type, so divergent C++ declarations
 cannot share a symbol. The reccmp indexer records variable declarations with
 canonical type, linkage, and definition kind alongside function linkage, and
 retains every distinct spelling it saw per identity. The cross-TU consistency
-gate over those records (`validate_cross_tu_declarations`) is parked for B:
-its remaining hits are the legal extern-array completion idiom (`extern T g[]`
-completed by `T g[N]`), which needs an array-aware compatibility rule before
-it can gate. It stays tested but uncalled in the meantime.
+gate over those records (`validate_cross_tu_declarations`) treats an incomplete
+`extern T g[]` as compatible with a later `T g[N]` of the same element type
+and rank; two different known extents still conflict.
 
 The lint lane itself runs on the trixie image with LLVM 19, and the
-clang-tidy profile includes `readability-redundant-casting` alongside
-`bugprone-misplaced-widening-cast`.
+gating clang-tidy profile includes `readability-redundant-casting`,
+`readability-redundant-declaration`, `readability-duplicate-include`, and
+`bugprone-misplaced-widening-cast`. `wiz8 diagnostics` additionally reports
+`bugprone-suspicious-memset-usage` and `bugprone-undefined-memory-manipulation`.
 
 ## Live recovery state
 

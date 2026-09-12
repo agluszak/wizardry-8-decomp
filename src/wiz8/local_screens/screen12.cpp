@@ -6,7 +6,6 @@
 #include "wiz8/render_state.h"
 
 #include "himage.h"
-#include "input.h"
 #include "vsurface.h"
 #include "sgp.h"
 
@@ -14,7 +13,6 @@
    its Escape/E/X shortcuts. The original translation-unit name is unknown, so
    the existing compilation boundary is retained. */
 
-extern int g_value_64c1c8;
 // GLOBAL: WIZ8 0x0064c1c8
 int g_value_64c1c8 = -1;
 

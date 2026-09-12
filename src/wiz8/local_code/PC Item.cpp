@@ -27,12 +27,9 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/sound_man.h"
-#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/ItemManager.h"
-#include "wiz8/targeting.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/CombatAttack.h"
-#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 
@@ -1899,7 +1896,6 @@ void BindEveryPartyItem(void)
     ShowNotice(8, gppStringList[0x7b4 / 4], -1, -1, 0);
 }
 
-#include <stdlib.h>
 
 /* Order two pool entries. Both have to hold something - the two assertions say
    so by name - and they are compared by equipment class, then by generic name,

@@ -72,10 +72,7 @@ unsigned char g_cd_marker_present_69b7d0;
 /* Engine Code\Levels.cpp owns this with C++ linkage. */
 
 #include "line.h"
-#include "wiz8/engine_code/Levels.h"
-#include "wiz8/fact_state.h"
 #include "wiz8/local_code/NPCManager.h"
-#include "wiz8/local_code/LoadSaveGame.h"
 #include "LibraryDataBase.h"
 extern unsigned char g_flag_689b2c;
 

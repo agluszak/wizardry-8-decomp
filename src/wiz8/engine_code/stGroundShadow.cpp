@@ -8,16 +8,12 @@
 
 /* The SR.DLL registry string is the original runtime class identity. */
 
-extern unsigned char g_ground_shadow_enabled_00685110;
 // GLOBAL: WIZ8 0x00685110
 unsigned char g_ground_shadow_enabled_00685110;
-extern srTexture* g_ground_shadow_texture_006834cc;
-extern srMaterial* g_ground_shadow_material_006834d0;
 // GLOBAL: WIZ8 0x006834cc
 srTexture* g_ground_shadow_texture_006834cc;
 // GLOBAL: WIZ8 0x006834d0
 srMaterial* g_ground_shadow_material_006834d0;
-extern unsigned long g_ground_shadow_shader_006834c8;
 // GLOBAL: WIZ8 0x006834c8
 unsigned long g_ground_shadow_shader_006834c8;
 /* 0x00683430: the vertex-processor parameters the material mapper is

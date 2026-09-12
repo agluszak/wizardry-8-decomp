@@ -10,7 +10,9 @@ stale. The Clang source model and type gate are described in
 
 These definitions already have a behavior comment but no semantic name. Rename
 the definition, its declaration, every call site and any handoff record
-together; keep the address suffix until the original spelling is known.
+together. Addresses belong in `// FUNCTION`, `// GLOBAL`, and `// VTABLE`
+markers, not in the C++ identifier. Where the original spelling is unknown,
+use a behavior-descriptive name rather than an address-qualified placeholder.
 
 
 ### `src/wiz8/character_skills.cpp`
@@ -205,7 +207,17 @@ gap.
   dynamic-library symbol to function pointer, DirectDraw/pixel buffers, SGP
   APIs declared with `UINT8*`, packed-colour byte access.
 - The cast, void-vector and identity validators in `uv run wiz8 check` stay
-  until the Clang lane is proven to catch their injected bad cases; the
-  index-based cross-TU check currently covers marked functions, not external
-  variable declarations (see `wiz8-source-model.md`).
+  until the Clang lane is proven to catch their injected bad cases. The
+  index-based cross-TU check (`validate_cross_tu_declarations`) now covers
+  marked functions and external variable declarations, including the
+  `extern T[]` vs `T[N]` completion idiom.
+- `src/sgp` is retained C. Do not restyle it to recovered Wizardry C++.
+- Do not merge `W8ControlsRect` and `W8ScreenRect` without a direct
+  cross-API type flow or a common original header/oracle. Matching four-int
+  layouts are not enough.
+- Do not DRY duplicated retail reset bodies, assertion fall-through after
+  `srAssertFail`, permissive PList null handling, shared static formatting
+  buffers, or the combat-condition scan that walks past `effect_slots_tail`.
+  Those are contracts. Use `// retail:` only where a maintainer would
+  otherwise "fix" them.
 

@@ -24,7 +24,6 @@
 #include "wiz8/sound_man.h"
 #include "Button System.h"
 #include "Container.h"
-#include "LibraryDataBase.h"
 #include "shading.h"
 #include "sgp.h"
 

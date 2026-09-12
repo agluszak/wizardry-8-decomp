@@ -16,7 +16,6 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
-#include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/MonGen.h"
 
 #include <string.h>

@@ -40,6 +40,7 @@ struct W8MonsterInfo;
 struct W8EffectSlot;
 struct W8Character;
 struct W8ItemInstance;
+struct W8SpellEffectEntry;
 
 char GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize, W8TargetingContext context);
 int GetTargetNeededForSpellHostile(int spell_id);
@@ -61,5 +62,6 @@ int CastSpellFromSource(
     int spell_id, W8TargetSource* source, W8CombatSlot* target,
     unsigned int power_level, int a, int b, int c, int d, int e, int f,
     int g);                                                     /* 0x004FB4C0 */
+void ReportSpellResult005005C0(W8SpellEffectEntry* effect);
 
 #endif

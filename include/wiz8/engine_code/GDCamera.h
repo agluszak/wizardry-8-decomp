@@ -75,6 +75,7 @@ public:
 
 extern GDCamera* g_gd_camera_65a0f8;
 extern srCamera* g_game_camera_65a0fc;
+extern unsigned char g_flag_006875a5;
 
 srCamera* CreateOrSetGameCamera(
     srNode* parent, srCamera* camera);

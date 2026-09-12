@@ -31,7 +31,6 @@
 #include "wiz8/game_status.h"
 #include "wiz8/location_variables.h"
 #include "wiz8/screen_state.h"
-#include "wiz8/engine_code/Levels.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
@@ -49,9 +48,7 @@
 #include "surrender/srScene.h"
 
 #include "FileMan.h"
-#include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/local_screens/AutomapScreen.h"
-#include "wiz8/engine_code/GameData.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/Video2.h"

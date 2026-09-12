@@ -18,32 +18,8 @@ float g_float_005ebc7c;
 #include <math.h>
 #include <float.h>
 
-extern const double g_camera_view_factor_005ec300;
-extern const double g_camera_view_factor_005ec538;
-extern const double g_camera_view_factor_005ec568;
 
-extern const float g_negative_one_005ebc38;
-extern const float g_camera_snap_epsilon_005ebc2c;
-extern const float g_camera_transition_epsilon_005ebc84;
-extern const float g_camera_angle_period_005ec54c;
-extern const float g_camera_angle_lower_005ec548;
-extern const float g_camera_pitch_upper_005ec550;
-extern const float g_camera_pitch_lower_005ec554;
-extern const float g_camera_transition_duration_factor_005ec558;
-extern const float g_camera_forced_speed_005ec560;
-extern const float g_camera_half_period_005ec564;
-extern const float g_camera_angle_dead_zone_005ec578;
-extern const float g_camera_transition_duration_scale_005ec57c;
-extern const double g_camera_smoothing_scale_005ec580;
 extern double g_double_005ebe80;
-extern const float g_camera_input_deceleration_005ec590;
-extern const float g_camera_negative_input_deceleration_005ec58c;
-extern const float g_camera_velocity_stop_scale_005ec588;
-extern const float g_camera_negative_velocity_epsilon_005ec594;
-extern const float g_camera_velocity_factor_005ec55c;
-extern const double g_camera_pi_005ec2a0;
-extern const float g_camera_horizontal_margin_005ec574;
-extern const float g_camera_vertical_margin_005ec570;
 
 // GLOBAL: WIZ8 0x005ec300
 const double g_camera_view_factor_005ec300 = 0.005555555555555556;
@@ -98,16 +74,12 @@ const float g_camera_vertical_margin_005ec570 = 0.2168571501970291f;
 // GLOBAL: WIZ8 0x005ec3fc
 const float g_camera_half_pi_005ec3fc = 1.570796012878418f;
 extern float g_startup_depth_603ac8;
-extern float g_camera_transition_speed_65a0f4;
 // GLOBAL: WIZ8 0x0065a0f4
 float g_camera_transition_speed_65a0f4;
-extern float g_camera_max_yaw_velocity_609ea4;
 // GLOBAL: WIZ8 0x00609ea4
 float g_camera_max_yaw_velocity_609ea4 = 0.3490658700466156f;
-extern float g_camera_level_forward_scale_603aac;
 // GLOBAL: WIZ8 0x00603aac
 float g_camera_level_forward_scale_603aac = 375.0f;
-extern unsigned char g_flag_006875a5;
 // GLOBAL: WIZ8 0x006875a5
 unsigned char g_flag_006875a5;
 

@@ -21,10 +21,8 @@
 #include <new>
 #include <string.h>
 
-extern unsigned int g_character_page2_region_set_0069c530;
 // GLOBAL: WIZ8 0x0069c530
 unsigned int g_character_page2_region_set_0069c530;
-extern unsigned int g_character_page4_region_set_0069c52c;
 // GLOBAL: WIZ8 0x0069c52c
 unsigned int g_character_page4_region_set_0069c52c;
 // GLOBAL: WIZ8 0x0064ef90
