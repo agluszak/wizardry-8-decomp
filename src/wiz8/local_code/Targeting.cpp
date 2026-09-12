@@ -1254,6 +1254,57 @@ void ClearPartySlotMonsterHighlights(unsigned int party_slot)
     }
 }
 
+/* Rebuild the world-space target marker from the selected character's current
+   combat action and one world point. When the chosen action carries no
+   spell-like id, the marker vector is left empty. */
+// FUNCTION: WIZ8 0x0053B660
+void PopulateTargetMarkerForCurrentAction(const srVector3T<float>* position,
+                                          W8GrowableVector<int>* marker_vector, int enabled)
+{
+    int party_slot = g_status_685170.selected_character;
+    int action;
+    int detail;
+    W8ActionDetailBlock* detail_block;
+    unsigned int spell_id;
+
+    ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
+                       &detail_block);
+    if (action == 2) {
+        spell_id = 0x77;
+    } else if (action == 7) {
+        spell_id = detail;
+    } else if (action == 8) {
+        spell_id = GetItemSpell(detail_block->item_use.item);
+    } else {
+        return;
+    }
+    if (spell_id == 0) {
+        return;
+    }
+
+    marker_vector->count = 0;
+
+    if (position == 0) {
+        srAssertFail("pSource != NULL", TARGETING_CPP, 0xcc9, 0);
+    }
+
+    W8TargetSource source;
+    memset(&source, 0, sizeof(source));
+    source.iType = W8_TARGET_SOURCE_CHARACTER;
+    source.iChar = party_slot;
+
+    W8CombatSlot target;
+    memset(&target, 0, sizeof(target));
+    target.iChar = BAD_INDEX;
+    target.iMonsterID = BAD_INDEX;
+    target.iGroupID = BAD_INDEX;
+    target.iType = W8_TARGET_KIND_PLACE;
+    target.point = *position;
+
+    W8GrowableVector<int> scratch;
+    PopulateSpellTargetMarkers(spell_id, 1, &source, &target, marker_vector, &scratch, enabled);
+}
+
 /* Clear the target marker and request the party-display refresh that consumes
    the change. */
 // FUNCTION: WIZ8 0x0053B160
@@ -1274,7 +1325,7 @@ void RefreshTargetMarker(void)
     if (position.x != g_target_position_0068407f.x || position.y != g_target_position_0068407f.y ||
         position.z != g_target_position_0068407f.z) {
         g_target_position_0068407f = position;
-        Function53B660(&position, &g_target_marker_vector_0068406f, 1);
+        PopulateTargetMarkerForCurrentAction(&position, &g_target_marker_vector_0068406f, 1);
     }
 }
 

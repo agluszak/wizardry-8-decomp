@@ -4,6 +4,7 @@
 struct W8CombatSlot;
 struct W8MonsterInfo;
 struct W8MonsterGroup;
+template <class T> class W8GrowableVector;
 void ResetCombatSlot(W8CombatSlot* slot);
 
 #include "wiz8/geometry.h"
@@ -191,11 +192,8 @@ void Function5398D0(void);
 unsigned char Function53A1D0(void);
 void Function53B1D0(void);
 void Function53B310(void);
-/* 0x0053B660 is unrecovered. Retail passes a 12-byte scratch buffer, the
-   manager's +0x9B7 vector, and a flag; the body treats the vector as three
-   opaque dwords (zeroing the middle one, i.e. its count) and forwards them.
-   Both pointer parameters stay untyped until its recovery types them. */
-void Function53B660(const void* position, void* target, int enabled);
+void PopulateTargetMarkerForCurrentAction(const srVector3T<float>* position,
+                                          W8GrowableVector<int>* marker_vector, int enabled);
 unsigned char TargetIsInPlay(int party_slot, int arg_2, int arg_3); /* 0x00536F60 */
 
 void Function53AE00(void); /* 0x0053AE00 */
