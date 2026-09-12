@@ -83,6 +83,9 @@ extern float g_float_00603aac;
 extern float g_float_00603ab8;
 extern float g_float_00603abc;
 extern float g_float_005ebc98;
+extern const float g_camera_snap_epsilon_005ebc2c;
+extern const float g_float_005ebca0;
+extern float g_movement_speed_step_005ed490;
 
 extern const double g_zero_005ebb40;
 extern const float g_camera_angle_period_005ec014;

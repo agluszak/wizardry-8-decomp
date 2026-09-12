@@ -1,3 +1,5 @@
+#include "wiz8/local_code/Traps.h"
+
 // GLOBAL: WIZ8 0x0069da6c
 unsigned char g_flag_69da6c;
 // GLOBAL: WIZ8 0x0069da68
