@@ -407,41 +407,7 @@ void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface
 void BuildTrianglePlane00449A40(float* plane, const srVector3T<float>* first,
                                 const srVector3T<float>* second, const srVector3T<float>* third)
 {
-    srVector3T<float> vertices[3];
-    short index = 2;
-
-    vertices[0] = *first;
-    vertices[1] = *second;
-    vertices[2] = *third;
-    plane[0] = 0.0f;
-    plane[1] = 0.0f;
-    plane[2] = 0.0f;
-    plane[3] = 0.0f;
-
-    do {
-        short next = (short)((index - 1) % 3);
-        short following = (short)(index % 3);
-        srVector3T<float>& vertex = vertices[index - 2];
-
-        plane[0] += vertex.y * (vertices[next].z - vertices[following].z);
-        plane[1] += vertex.z * (vertices[next].x - vertices[following].x);
-        plane[2] += vertex.x * (vertices[next].y - vertices[following].y);
-        ++index;
-    } while ((short)(index - 2) < 3);
-
-    float scale = g_float_005ebb38 /
-                  (float)sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
-    plane[0] *= scale;
-    plane[1] *= scale;
-    plane[2] *= scale;
-
-    float distances[3];
-    for (int vertex_index = 0; vertex_index != 3; ++vertex_index) {
-        distances[vertex_index] = plane[0] * vertices[vertex_index].x +
-                                  plane[1] * vertices[vertex_index].y +
-                                  plane[2] * vertices[vertex_index].z;
-    }
-    plane[3] = (distances[0] + distances[1] + distances[2]) * g_float_005ec1a8;
+    SetPlaneFromThreePoints(plane, first, second, third);
 }
 
 /* Tears down owned storage: the geometry index, heap and malloc'd banks,

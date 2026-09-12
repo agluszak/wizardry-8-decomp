@@ -31,6 +31,41 @@ public:
         y = (T)0;
     }
 
+    T Length() const
+    {
+        return (T)sqrt(x * x + y * y);
+    }
+
+    srVector2T<T>& operator*=(double scalar)
+    {
+        x = (T)(x * scalar);
+        y = (T)(y * scalar);
+        return *this;
+    }
+
+    /* Guarded XZ/2D unitize. Independent TUs: GDCamera SnapToTarget/LookAt
+       (ungated 1/Length after the 3D unitize) and OctPath 0x0045aac0 /
+       0x0045ef90 / 0x0045BE30 (guarded reciprocal-sqrt). No Wiz8 COMDAT. */
+    srVector2T<T>* Normalize()
+    {
+        T length_squared = x * x + y * y;
+        if ((double)length_squared != 0.0) {
+            T scale = (T)(1.0 / sqrt((double)length_squared));
+            *this *= scale;
+        }
+        return this;
+    }
+
+    srVector2T<T>* SetLength(double length)
+    {
+        T length_squared = x * x + y * y;
+        if ((double)length_squared != 0.0) {
+            T scale = (T)(length / sqrt((double)length_squared));
+            *this *= scale;
+        }
+        return this;
+    }
+
     T x;
     T y;
 };
@@ -74,6 +109,8 @@ public:
     srVector3T<T>* RotateAboutY(double sine, double cosine);
     srVector3T<T>* RotateAboutX(double sine, double cosine);
     srVector3T<T>* RotateAboutZ(double sine, double cosine);
+    srVector3T<T>* Normalize();
+    srVector3T<T>* SetLength(double length);
 
     T x;
     T y;
@@ -131,6 +168,37 @@ template <class T> srVector3T<T>& srVector3T<T>::operator/=(double scalar)
     return *this;
 }
 
+/* Guarded vec3 → length 1 via reciprocal-sqrt of the squared length.
+   Independent TUs: stParticle 0x00499A50, OctPath 0x0045b730 / 0x0045e840 /
+   0x00465130, GDCamera 0x00476950 / 0x00476F90. Prop 0x0044aee0 goes through
+   srModelInstance::setAlignAxis, whose body is this same form with z,y,x
+   square order. No Wiz8 COMDAT; header-visible inlining is the retail shape.
+
+   ReadLevel 0x004BD0D0 is a second unitize family (Length(); if != 0; /=)
+   and keeps that authored form. Do not force this reciprocal-sqrt body there. */
+template <class T> srVector3T<T>* srVector3T<T>::Normalize()
+{
+    T length_squared = x * x + y * y + z * z;
+    if ((double)length_squared != 0.0) {
+        T scale = (T)(1.0 / sqrt((double)length_squared));
+        *this *= scale;
+    }
+    return this;
+}
+
+/* Guarded vec3 → requested magnitude: desired / sqrt(len²). Independent TUs:
+   GDCamera::GetForwardPoint 0x00478CE0 and OctPath 0x00462570 / 0x00465D70.
+   Separate from Normalize(); the 1.0 vs requested-length constant is authored. */
+template <class T> srVector3T<T>* srVector3T<T>::SetLength(double length)
+{
+    T length_squared = x * x + y * y + z * z;
+    if ((double)length_squared != 0.0) {
+        T scale = (T)(length / sqrt((double)length_squared));
+        *this *= scale;
+    }
+    return this;
+}
+
 // TEMPLATE: WIZ8 0x00421700
 template <class T> T srVector3T<T>::Length() const
 {
@@ -175,6 +243,18 @@ template <class T> srVector3T<T>* srVector3T<T>::RotateAboutZ(double sine, doubl
 template <class T> T DotProduct(const srVector3T<T>& first, const srVector3T<T>& second)
 {
     return first.x * second.x + first.y * second.y + first.z * second.z;
+}
+
+/* Ordinary edge×edge cross. OctPath GetPathSurfaceNormal 0x0045b730 expands
+   this; the Newell cyclic sum in the plane builders is a different helper. */
+template <class T>
+srVector3T<T> CrossProduct(const srVector3T<T>& first, const srVector3T<T>& second)
+{
+    srVector3T<T> result;
+    result.x = first.y * second.z - first.z * second.y;
+    result.y = first.z * second.x - first.x * second.z;
+    result.z = first.x * second.y - first.y * second.x;
+    return result;
 }
 
 template <class T> srVector3T<T> operator+(const srVector3T<T>& first, const srVector3T<T>& second)
@@ -406,6 +486,22 @@ srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double sine, double cosine,
     return this;
 }
 
+/* Row-wise matrix×vector: out.k = DotProduct(matrix.vectors[k], value).
+   Independent TUs: SoundEvent 0x004d5a10, Spells 0x004AECC0, Environment
+   0x00482a20, ReadLevel 0x004BD0D0, OctPath 0x00463460, Trigger 0x0043d940.
+   Particle/GrCycle/GDCamera sometimes lower row 0 as multiply-adds; that is
+   the same helper with partial inlining, not a second operator. No Wiz8 COMDAT.
+   Return-by-value is the shape under trial; out-parameter Transform and
+   Vector::Transform remain unadopted unless compare prefers them. */
+template <class T> srVector3T<T> operator*(const srMatrix3T<T>& matrix, const srVector3T<T>& vector)
+{
+    srVector3T<T> result;
+    result.x = DotProduct(matrix.vectors[0], vector);
+    result.y = DotProduct(matrix.vectors[1], vector);
+    result.z = DotProduct(matrix.vectors[2], vector);
+    return result;
+}
+
 template <class T> class srMatrix4T {
 public:
     /* classifyMatrix on the model-view stack writes these from the 3x3
@@ -553,6 +649,20 @@ template <class T> void srMatrix4T<T>::AdjugateFrom(T* source)
     fVar5 = fVar10 * fVar5 - fVar9 * fVar6;
     param_1[11] = -(fVar5 * fVar4 + (fVar14 * fVar1 - fVar8 * fVar2));
     param_1[15] = fVar5 * fVar3 + (fVar13 * fVar1 - fVar7 * fVar2);
+}
+
+/* Affine point transform (row 0-2, w=1). GDProp 0x004b7060 is the proven
+   consumer; stParticle 0x00499FA0 keeps the four-component homogeneous form
+   because retail also evaluates row 3. */
+template <class T>
+srVector3T<T> TransformPoint(const srMatrix4T<T>& matrix, const srVector3T<T>& point)
+{
+    const T* row = &matrix.vectors[0].x;
+    srVector3T<T> result;
+    result.x = point.x * row[0] + point.y * row[1] + point.z * row[2] + row[3];
+    result.y = point.x * row[4] + point.y * row[5] + point.z * row[6] + row[7];
+    result.z = point.x * row[8] + point.y * row[9] + point.z * row[10] + row[11];
+    return result;
 }
 
 float Det3(float param_1, float param_2, float param_3, float param_4, float param_5, float param_6,

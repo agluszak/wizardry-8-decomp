@@ -1194,11 +1194,7 @@ void W8PathingService::AdjustFinalPathEndpoint00465D70(W8NavigatorMovementState*
         direction.x * direction.x + direction.y * direction.y + direction.z * direction.z;
     float excess = (float)sqrt(length_squared) - (target_radius + radius);
     if (separation < excess && excess - separation < grid_scale_01c * g_float_005ebc7c) {
-        if ((double)length_squared != g_zero_005ebb40) {
-            float scale = (target_radius + radius + separation) * g_path_endpoint_scale_005ec1a4 /
-                          (float)sqrt(length_squared);
-            direction *= scale;
-        }
+        direction.SetLength((target_radius + radius + separation) * g_path_endpoint_scale_005ec1a4);
 
         srVector3T<float> adjusted;
         adjusted = target_position + direction;
@@ -1715,10 +1711,7 @@ unsigned short W8PathingService::PlanMovement00463460(W8NavigatorMovementState* 
                 if ((double)angle != g_zero_005ebb40) {
                     rotation.RotateAboutY(sin(angle), cos(angle));
                 }
-                srVector3T<float> transformed;
-                transformed.x = DotProduct(rotation.vectors[0], trace_offset_0ac);
-                transformed.y = DotProduct(rotation.vectors[1], trace_offset_0ac);
-                transformed.z = DotProduct(rotation.vectors[2], trace_offset_0ac);
+                srVector3T<float> transformed = rotation * trace_offset_0ac;
                 srVector3T<float> trace_source;
                 trace_source = m_owned_0c8[walk].position_20 + transformed;
                 short trace = g_octree_6598a4->TraceLineOfSight(&trace_source, &trace_target, 1, -3,
@@ -1744,10 +1737,7 @@ unsigned short W8PathingService::PlanMovement00463460(W8NavigatorMovementState* 
             if ((double)angle != g_zero_005ebb40) {
                 rotation.RotateAboutY(sin(angle), cos(angle));
             }
-            srVector3T<float> transformed;
-            transformed.x = DotProduct(rotation.vectors[0], trace_offset_0ac);
-            transformed.y = DotProduct(rotation.vectors[1], trace_offset_0ac);
-            transformed.z = DotProduct(rotation.vectors[2], trace_offset_0ac);
+            srVector3T<float> transformed = rotation * trace_offset_0ac;
             srVector3T<float> trace_source;
             trace_source = m_owned_0c8[walk].position_20 + transformed;
             short trace =
@@ -1973,10 +1963,7 @@ unsigned short W8PathingService::ResolveSearchNodeCollisions00465130(
             return 1;
         }
         blocking_direction.Set(delta_x, delta_y, delta_z);
-        if ((double)distance_squared != g_zero_005ebb40) {
-            float scale = (float)(g_double_005ebc30 / sqrt(distance_squared));
-            blocking_direction *= scale;
-        }
+        blocking_direction.Normalize();
         result = 3;
     }
 
@@ -2029,10 +2016,7 @@ unsigned short W8PathingService::ResolveSearchNodeCollisions00465130(
         if (distance < threshold) {
             if (location_id == movement->value_010 && flag_09c == 0) {
                 blocking_direction.Set(delta_x, delta_y, delta_z);
-                if ((double)distance_squared != g_zero_005ebb40) {
-                    float scale = (float)(g_double_005ebc30 / sqrt(distance_squared));
-                    blocking_direction *= scale;
-                }
+                blocking_direction.Normalize();
                 result = 3;
                 continue;
             }
@@ -2042,10 +2026,7 @@ unsigned short W8PathingService::ResolveSearchNodeCollisions00465130(
                 if (result == 3) {
                     srVector3T<float> direction;
                     direction.Set(delta_x, delta_y, delta_z);
-                    if ((double)distance_squared != g_zero_005ebb40) {
-                        float scale = (float)(g_double_005ebc30 / sqrt(distance_squared));
-                        direction *= scale;
-                    }
+                    direction.Normalize();
                     float dot = direction.x * blocking_direction.x +
                                 direction.y * blocking_direction.y +
                                 direction.z * blocking_direction.z;
@@ -2117,10 +2098,7 @@ W8PathingService::TestSearchPositionVisibility00464CC0(const srVector3T<float>* 
         rotation.RotateAboutY(sin(angle), cos(angle));
     }
 
-    srVector3T<float> transformed;
-    transformed.x = DotProduct(rotation.vectors[0], trace_offset_0ac);
-    transformed.y = DotProduct(rotation.vectors[1], trace_offset_0ac);
-    transformed.z = DotProduct(rotation.vectors[2], trace_offset_0ac);
+    srVector3T<float> transformed = rotation * trace_offset_0ac;
 
     srVector3T<float> trace_source;
     trace_source.x = position->x + transformed.x;
@@ -2668,8 +2646,6 @@ void W8PathingService::ProbeWaypointArc00462570(const srVector3T<float>* from,
     for (iteration = 0; iteration < 50000; ++iteration) {
         srVector3T<float> probe;
         srVector3T<float> step;
-        float length_squared;
-        float scale;
         float dot;
 
         probe.x = from->x + arc.x;
@@ -2680,18 +2656,10 @@ void W8PathingService::ProbeWaypointArc00462570(const srVector3T<float>* from,
         step.x = arc.z;
         step.y = arc.y;
         step.z = -arc.x;
-        length_squared = step.x * step.x + step.y * step.y + step.z * step.z;
-        if ((double)length_squared != g_zero_005ebb40) {
-            scale = grid_scale_01c / (float)sqrt(length_squared);
-            step *= scale;
-        }
+        step.SetLength(grid_scale_01c);
         arc += step;
 
-        length_squared = arc.x * arc.x + arc.y * arc.y + arc.z * arc.z;
-        if ((double)length_squared != g_zero_005ebb40) {
-            scale = radius / (float)sqrt(length_squared);
-            arc *= scale;
-        }
+        arc.SetLength(radius);
 
         dot = direction.x * arc.x + direction.y * arc.y + direction.z * arc.z;
         if (dot > g_float_005ec390) {
@@ -3322,13 +3290,10 @@ float W8PathingService::CompareDirectionalClearance0045AAC0(const srVector3T<flo
 {
     float normalized_x = direction->x;
     float normalized_z = direction->z;
-    float length_squared = normalized_x * normalized_x + normalized_z * normalized_z;
-
-    if ((double)length_squared != g_zero_005ebb40) {
-        float scale = (float)(g_double_005ebc30 / sqrt(length_squared));
-        normalized_x *= scale;
-        normalized_z *= scale;
-    }
+    srVector2T<float> horizontal(normalized_x, normalized_z);
+    horizontal.Normalize();
+    normalized_x = horizontal.x;
+    normalized_z = horizontal.y;
 
     int first_direction;
     int second_direction;
@@ -3663,20 +3628,8 @@ void W8PathingService::GetPathSurfaceNormal0045B730(const srVector3T<float>* pos
     SnapPathHeight0045B5A0(&second);
     SnapPathHeight0045B5A0(&first);
 
-    normal->x =
-        (second.z - middle.z) * (first.y - middle.y) - (second.y - middle.y) * (first.z - middle.z);
-    normal->y =
-        (second.y - middle.y) * (first.x - middle.x) - (second.x - middle.x) * (first.y - middle.y);
-    normal->z =
-        (second.x - middle.x) * (first.z - middle.z) - (second.z - middle.z) * (first.x - middle.x);
-
-    float length_squared = normal->x * normal->x + normal->y * normal->y + normal->z * normal->z;
-    if (length_squared != (float)g_zero_005ebb40) {
-        float scale = (float)(g_double_005ebc30 / sqrt(length_squared));
-        normal->x *= scale;
-        normal->y *= scale;
-        normal->z *= scale;
-    }
+    *normal = CrossProduct(second - middle, first - middle);
+    normal->Normalize();
 }
 
 /* Activate the eligible trigger prop intersecting a navigator's next path
@@ -3995,16 +3948,12 @@ stModelInstance* W8PathingService::BuildPathVisualization0045BE30()
                 !visible_waypoints_058->Test(destination_index) || reverse_found == 0) {
                 int base_vertex = 500 + link_count * 6;
                 int base_polygon = 600 + link_count * 6;
-                float perpendicular_x = -(destination->position_04.z - source->position_04.z);
-                float perpendicular_z = destination->position_04.x - source->position_04.x;
-                float length_squared =
-                    perpendicular_x * perpendicular_x + perpendicular_z * perpendicular_z;
-
-                if ((double)length_squared != g_zero_005ebb40) {
-                    float scale = (float)(g_double_005ec368 / sqrt(length_squared));
-                    perpendicular_x *= scale;
-                    perpendicular_z *= scale;
-                }
+                srVector2T<float> perpendicular(
+                    -(destination->position_04.z - source->position_04.z),
+                    destination->position_04.x - source->position_04.x);
+                perpendicular.SetLength(g_double_005ec368);
+                float perpendicular_x = perpendicular.x;
+                float perpendicular_z = perpendicular.y;
 
                 polygons[base_polygon].x = base_vertex;
                 polygons[base_polygon].y = base_vertex + 1;
@@ -4728,8 +4677,6 @@ unsigned char W8PathingService::PreparePathVisualization0045E840(const srVector3
     unsigned short source_waypoint;
     W8PathSurface* source_surface;
     srVector3T<float> offset;
-    float length_squared;
-    float scale;
 
     value_1d6 = 0;
     path_direction_valid_1da = 0;
@@ -4753,13 +4700,7 @@ unsigned char W8PathingService::PreparePathVisualization0045E840(const srVector3
             neighbor_direction.x = neighbor->position_04.x - source_surface->position_04.x;
             neighbor_direction.y = neighbor->position_04.y - source_surface->position_04.y;
             neighbor_direction.z = neighbor->position_04.z - source_surface->position_04.z;
-            length_squared = neighbor_direction.x * neighbor_direction.x +
-                             neighbor_direction.y * neighbor_direction.y +
-                             neighbor_direction.z * neighbor_direction.z;
-            if ((double)length_squared != g_zero_005ebb40) {
-                scale = (float)(g_double_005ebc30 / sqrt(length_squared));
-                neighbor_direction *= scale;
-            }
+            neighbor_direction.Normalize();
             alignment = neighbor_direction.x * direction->x + neighbor_direction.y * direction->y +
                         neighbor_direction.z * direction->z;
             if (alignment > best_alignment) {
@@ -4797,13 +4738,7 @@ unsigned char W8PathingService::PreparePathVisualization0045E840(const srVector3
                 candidate_direction.x = candidate->position_04.x - source_surface->position_04.x;
                 candidate_direction.y = candidate->position_04.y - source_surface->position_04.y;
                 candidate_direction.z = candidate->position_04.z - source_surface->position_04.z;
-                length_squared = candidate_direction.x * candidate_direction.x +
-                                 candidate_direction.y * candidate_direction.y +
-                                 candidate_direction.z * candidate_direction.z;
-                if ((double)length_squared != g_zero_005ebb40) {
-                    scale = (float)(g_double_005ebc30 / sqrt(length_squared));
-                    candidate_direction *= scale;
-                }
+                candidate_direction.Normalize();
                 alignment = candidate_direction.x * direction->x +
                             candidate_direction.y * direction->y +
                             candidate_direction.z * direction->z;
@@ -4938,22 +4873,15 @@ unsigned char W8PathingService::HasDirectionalWaypointLink0045EF90(unsigned shor
     const W8PathSurface* destination_surface = &m_pSurfaces_048[destination];
     srVector3T<float> destination_direction;
     float destination_distance;
-    float horizontal_length_squared;
-    float scale;
     unsigned short edge_index;
 
     destination_direction = destination_surface->position_04 - source_surface->position_04;
-    destination_distance = (float)sqrt(destination_direction.x * destination_direction.x +
-                                       destination_direction.y * destination_direction.y +
-                                       destination_direction.z * destination_direction.z);
-    horizontal_length_squared = destination_direction.x * destination_direction.x +
-                                destination_direction.z * destination_direction.z;
+    destination_distance = destination_direction.Length();
+    srVector2T<float> destination_horizontal(destination_direction.x, destination_direction.z);
+    destination_horizontal.Normalize();
+    destination_direction.x = destination_horizontal.x;
     destination_direction.y = 0.0f;
-    if ((double)horizontal_length_squared != g_zero_005ebb40) {
-        scale = (float)(g_double_005ebc30 / sqrt(horizontal_length_squared));
-        destination_direction.x *= scale;
-        destination_direction.z *= scale;
-    }
+    destination_direction.z = destination_horizontal.y;
 
     edge_index = source_surface->first_edge_24;
     while (edge_index != 0) {
@@ -4968,20 +4896,15 @@ unsigned char W8PathingService::HasDirectionalWaypointLink0045EF90(unsigned shor
         }
 
         neighbor_direction = neighbor->position_04 - source_surface->position_04;
-        neighbor_distance = (float)sqrt(neighbor_direction.x * neighbor_direction.x +
-                                        neighbor_direction.y * neighbor_direction.y +
-                                        neighbor_direction.z * neighbor_direction.z);
+        neighbor_distance = neighbor_direction.Length();
         if (neighbor_distance < destination_distance) {
             unsigned short second_edge_index;
+            srVector2T<float> neighbor_horizontal(neighbor_direction.x, neighbor_direction.z);
 
-            horizontal_length_squared = neighbor_direction.x * neighbor_direction.x +
-                                        neighbor_direction.z * neighbor_direction.z;
+            neighbor_horizontal.Normalize();
+            neighbor_direction.x = neighbor_horizontal.x;
             neighbor_direction.y = 0.0f;
-            if ((double)horizontal_length_squared != g_zero_005ebb40) {
-                scale = (float)(g_double_005ebc30 / sqrt(horizontal_length_squared));
-                neighbor_direction.x *= scale;
-                neighbor_direction.z *= scale;
-            }
+            neighbor_direction.z = neighbor_horizontal.y;
 
             second_edge_index = neighbor->first_edge_24;
             while (second_edge_index != 0) {

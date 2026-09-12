@@ -314,24 +314,18 @@ void GDCamera::SnapToTarget(const srVector3T<float>* target)
         }
     }
 
-    float x = target->x - m_position_08c.x;
-    float y = target->y - m_position_08c.y;
-    float z = target->z - m_position_08c.z;
-    float length_squared = x * x + y * y + z * z;
-    float length = (float)sqrt((double)length_squared);
-    if (length < 1.0) {
+    srVector3T<float> direction(target->x - m_position_08c.x, target->y - m_position_08c.y,
+                                target->z - m_position_08c.z);
+    if (direction.Length() < 1.0) {
         return;
     }
-    if ((double)length_squared != g_zero_005ebb40) {
-        float scale = (float)(1.0 / sqrt((double)length_squared));
-        x *= scale;
-        y *= scale;
-        z *= scale;
-    }
+    direction.Normalize();
 
-    float horizontal_scale = (float)(1.0 / sqrt((double)(x * x + z * z)));
-    x *= horizontal_scale;
-    z *= horizontal_scale;
+    srVector2T<float> horizontal(direction.x, direction.z);
+    horizontal *= 1.0 / horizontal.Length();
+    float x = horizontal.x;
+    float y = direction.y;
+    float z = horizontal.y;
     if (y >= g_float_005ebb38) {
         y = g_float_005ebb38;
     } else if (y < g_negative_one_005ebc38) {
@@ -415,24 +409,18 @@ unsigned char GDCamera::LookAt(const srVector3T<float>* target, unsigned char pr
         }
     }
 
-    float x = target->x - m_position_08c.x;
-    float y = target->y - m_position_08c.y;
-    float z = target->z - m_position_08c.z;
-    float length_squared = x * x + y * y + z * z;
-    float length = (float)sqrt((double)length_squared);
-    if (length < 1.0) {
+    srVector3T<float> direction(target->x - m_position_08c.x, target->y - m_position_08c.y,
+                                target->z - m_position_08c.z);
+    if (direction.Length() < 1.0) {
         return 0;
     }
-    if ((double)length_squared != g_zero_005ebb40) {
-        float scale = (float)(1.0 / sqrt((double)length_squared));
-        x *= scale;
-        y *= scale;
-        z *= scale;
-    }
+    direction.Normalize();
 
-    float horizontal_scale = (float)(1.0 / sqrt((double)(x * x + z * z)));
-    x *= horizontal_scale;
-    z *= horizontal_scale;
+    srVector2T<float> horizontal(direction.x, direction.z);
+    horizontal *= 1.0 / horizontal.Length();
+    float x = horizontal.x;
+    float y = direction.y;
+    float z = horizontal.y;
     float pitch;
     if (preserve_pitch != 0) {
         pitch = m_pitch;
@@ -1013,29 +1001,10 @@ void GDCamera::GetForwardPoint(float distance, srVector3T<float>* output)
     m_rotation = m_yaw_rotation;
     m_rotation.MultiplyBy(m_pitch_rotation);
     m_direction_078.Set(0.0f, 0.0f, 1.0f);
-
-    float x = m_rotation.vectors[0].x * m_direction_078.x +
-              m_rotation.vectors[0].y * m_direction_078.y +
-              m_rotation.vectors[0].z * m_direction_078.z;
-    float y = m_rotation.vectors[1].x * m_direction_078.x +
-              m_rotation.vectors[1].y * m_direction_078.y +
-              m_rotation.vectors[1].z * m_direction_078.z;
-    float z = DotProduct(m_rotation.vectors[2], m_direction_078);
-    m_direction_078.Set(x, y, z);
-    output->x = x;
-    output->y = y;
-    output->z = z;
-
-    float length_squared = output->x * output->x + output->y * output->y + output->z * output->z;
-    if ((double)length_squared != g_zero_005ebb40) {
-        float scale = distance / (float)sqrt((double)length_squared);
-        output->x *= scale;
-        output->y *= scale;
-        output->z *= scale;
-    }
-    output->x += m_position_08c.x;
-    output->y += m_position_08c.y;
-    output->z += m_position_08c.z;
+    m_direction_078 = m_rotation * m_direction_078;
+    *output = m_direction_078;
+    output->SetLength(distance);
+    *output += m_position_08c;
 }
 
 // FUNCTION: WIZ8 0x00478E00

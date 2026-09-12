@@ -557,30 +557,12 @@ unsigned char PointInsideFrustum0046D880(const srVector3T<float>* point,
     return 1;
 }
 
-/* Build the normalized plane through three points. The normal is the cross
-   product of the two edges from the first point; d averages the three point
-   distances. */
-// TODO: the srVector3T API form below (Length/DotProduct/Set) matches retail
-// at only 0.10 because the original keeps compiler-lowered counted loops (the
-// three-point copy and the cyclic normal sum) that the straight-line API
-// cannot express. Revisit with the loop form when byte fidelity matters.
+/* Build the normalized plane through three points. The Newell cyclic normal
+   and centroid distance live in SetPlaneFromThreePoints; this TU expands the
+   same header-visible helper as BuildTrianglePlane00449A40. */
 // FUNCTION: WIZ8 0x0046d660
 void BuildPlaneFromPoints0046D660(srVector4T<float>* plane, const srVector3T<float>* first,
                                   const srVector3T<float>* second, const srVector3T<float>* third)
 {
-    srVector3T<float> a = *first;
-    srVector3T<float> b = *second;
-    srVector3T<float> c = *third;
-    srVector3T<float> normal;
-
-    normal.x = a.y * (b.z - c.z) + b.y * (c.z - a.z) + c.y * (a.z - b.z);
-    normal.y = a.z * (b.x - c.x) + b.z * (c.x - a.x) + c.z * (a.x - b.x);
-    normal.z = a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y);
-    float scale = g_float_005ebb38 / normal.Length();
-    normal.x *= scale;
-    normal.y *= scale;
-    normal.z *= scale;
-    plane->Set(normal.x, normal.y, normal.z,
-               (DotProduct(normal, a) + DotProduct(normal, b) + DotProduct(normal, c)) *
-                   g_float_005ec1a8);
+    SetPlaneFromThreePoints(&plane->x, first, second, third);
 }

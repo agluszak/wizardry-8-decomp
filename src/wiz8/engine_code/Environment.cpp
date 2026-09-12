@@ -162,10 +162,7 @@ void AdvanceEnvironmentTime00482A20(int elapsed)
         rotation.RotateAboutY(sin(angle), cos(angle));
     }
 
-    srVector3T<float> position;
-    position.x = DotProduct(rotation.vectors[0], direction) + g_environment_origin_65ad88.x;
-    position.y = DotProduct(rotation.vectors[1], direction) + g_environment_origin_65ad88.y;
-    position.z = DotProduct(rotation.vectors[2], direction) + g_environment_origin_65ad88.z;
+    srVector3T<float> position = rotation * direction + g_environment_origin_65ad88;
 
     W8Prop* moving = day ? g_environment_value_0065a160 : g_environment_value_0065ad84;
     W8Prop* opposite = day ? g_environment_value_0065ad84 : g_environment_value_0065a160;
