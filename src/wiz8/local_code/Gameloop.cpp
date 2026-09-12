@@ -111,7 +111,8 @@ void GameLoop(void)
     /* The original tests only the low byte of the vector count. Preserve that
        aliasing instead of widening the load to the field's full int type. */
     if (*reinterpret_cast<const unsigned char*>(
-            &gXStatus.character_event_queue->vector_40.count) != /* reinterpret-ok: retail reads only the low byte of vector_40.count */
+            &gXStatus.character_event_queue->vector_40
+                 .count) != /* reinterpret-ok: retail reads only the low byte of vector_40.count */
         0) {
         gXStatus.character_event_queue->ProcessNextPendingEntry();
         state = g_current_screen_state.id;
