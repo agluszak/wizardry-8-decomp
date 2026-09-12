@@ -359,14 +359,16 @@ void HealCharacter(int party_slot, int amount, char announce)
     fraction = (character->hp_current * 100) / (unsigned int)character->hp_max;
     if (fraction >= g_effect_threshold_005ed904) {
         if (CharacterHasEffect(reinterpret_cast<void*>(g_effect_005ee594), party_slot)) {
-            g_character_event_queue->SetEventCharacterMask(g_effect_005ee594, party_slot, 0);
+            gXStatus.character_event_queue->SetEventCharacterMask(g_effect_005ee594, party_slot, 0);
         }
         if (fraction >= g_effect_threshold_005ed900) {
             if (CharacterHasEffect(reinterpret_cast<void*>(g_effect_005ee590), party_slot)) {
-                g_character_event_queue->SetEventCharacterMask(g_effect_005ee590, party_slot, 0);
+                gXStatus.character_event_queue->SetEventCharacterMask(g_effect_005ee590, party_slot,
+                                                                      0);
             }
             if (CharacterHasEffect(reinterpret_cast<void*>(g_effect_005ee5f8), party_slot)) {
-                g_character_event_queue->SetEventCharacterMask(g_effect_005ee5f8, party_slot, 0);
+                gXStatus.character_event_queue->SetEventCharacterMask(g_effect_005ee5f8, party_slot,
+                                                                      0);
             }
         }
     }

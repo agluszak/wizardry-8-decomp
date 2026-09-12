@@ -73,6 +73,4 @@ struct W8CharacterEventQueue {
 
 static_assert(sizeof(W8CharacterEventQueue) == 0x6c, "W8CharacterEventQueue_must_be_0x6c");
 
-extern W8CharacterEventQueue* g_character_event_queue;
-
 #endif

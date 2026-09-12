@@ -430,7 +430,7 @@ W8CharacterEvent* QueueCharacterEvent(W8Character* character, int effect, int ar
         value_2 = value_2 * 70 / 100;
     }
     entry = new W8CharacterEvent(character, effect, argument, value_1, value_2);
-    if (entry != 0 && g_character_event_queue->QueueEntry(entry) == 0) {
+    if (entry != 0 && gXStatus.character_event_queue->QueueEntry(entry) == 0) {
         return 0;
     }
     return entry;
@@ -479,7 +479,7 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
     }
     if (effect != -1 && QueueCharacterEvent(character, effect, 0, g_effect_argument_005ed8c8,
                                             g_effect_argument_005ed914) != 0) {
-        g_character_event_queue->SetEventCharacterMask(effect, party_slot, 1);
+        gXStatus.character_event_queue->SetEventCharacterMask(effect, party_slot, 1);
     }
 }
 
@@ -523,7 +523,7 @@ int UpdateCharacterEventState(void)
                     if (record->field_071 == 0) {
                         Function52F890(party_slot, 0, -1, 0, 1);
                     } else {
-                        g_character_event_queue->ProcessOwnedEntry(record->field_071);
+                        gXStatus.character_event_queue->ProcessOwnedEntry(record->field_071);
                     }
                 }
             } else {
@@ -547,7 +547,7 @@ int UpdateCharacterEventState(void)
             W8Character* character = &g_status_685170.buffers.characters[party_slot];
             if ((character->highest_condition > 14 || character->hp_current == 0) &&
                 record->field_071 != 0) {
-                g_character_event_queue->ProcessOwnedEntry(record->field_071);
+                gXStatus.character_event_queue->ProcessOwnedEntry(record->field_071);
             }
             if (record->field_000 == 0) {
                 unsigned int scan;

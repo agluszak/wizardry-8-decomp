@@ -1,6 +1,8 @@
 #ifndef WIZ8_COMBAT_STATE_H
 #define WIZ8_COMBAT_STATE_H
 
+#include <stddef.h>
+
 void RoundPhaseToStep(unsigned int* phase, unsigned int base);
 
 #include "wiz8/gameplay_modifiers.h"
@@ -81,7 +83,12 @@ struct W8CombatCharacterRow {
     unsigned int value_00; /* 0x00: cleared when the character dies */
     unsigned char unknown_04[0x30];
     unsigned char flag_34; /* 0x34: raised when the character dies */
-    unsigned char unknown_35[0x33];
+    unsigned char unknown_35[3];
+    /* 0x38: the two hand values GetCharacterTurnValue reuses once this row's
+       turn is already set up. Retail indexes them from the combat-state base
+       as dword stride 0x35; that is this field, not a second BSS array. */
+    int saved_attack_value[2];
+    unsigned char unknown_40[0x28];
     unsigned int uiSwingsRemaining; /* 0x68: exact name from the attack assertions */
     int current_hand;               /* 0x6c: indexes the slot row's attack modes */
     int current_equip_slot;         /* 0x70: indexes the character's equipment */
@@ -99,6 +106,8 @@ struct W8CombatCharacterRow {
 }; /* 0xd4 */
 
 static_assert(sizeof(W8CombatCharacterRow) == 0xd4, "W8CombatCharacterRow_must_be_0xd4");
+static_assert(offsetof(W8CombatCharacterRow, saved_attack_value) == 0x38,
+              "W8CombatCharacterRow_saved_attack_value_offset");
 
 /* The block the pointer at 0x006836A8 addresses: the engine's combat state.
    The allocation is 0xa64 bytes and the eight per-character rows live at

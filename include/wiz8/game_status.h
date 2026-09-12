@@ -167,6 +167,8 @@ static_assert(offsetof(W8GlobalStatus, pending_move_location) == 0x22a7,
               "W8GlobalStatus_pending_move_location_offset");
 static_assert(offsetof(W8GlobalStatus, formation) == 0x23a1, "W8GlobalStatus_formation_offset");
 static_assert(offsetof(W8GlobalStatus, value_2390) == 0x2390, "W8GlobalStatus_value_2390_offset");
+static_assert(offsetof(W8GlobalStatus, skip_loose_character_check_2444) == 0x2444,
+              "W8GlobalStatus_skip_loose_character_check_offset");
 static_assert(offsetof(W8GlobalStatus, selected_party_member_2434) == 0x2434,
               "W8GlobalStatus_selected_party_member_offset");
 static_assert(offsetof(W8GlobalStatus, rpc_races_243a) == 0x243a,

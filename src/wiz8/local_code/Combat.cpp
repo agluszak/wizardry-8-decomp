@@ -273,12 +273,6 @@ extern unsigned int g_flee_chance_005ed908;
 unsigned int g_flee_chance_005ed908 = 15;
 // GLOBAL: WIZ8 0x005ed490
 float g_movement_speed_step_005ed490 = 0.009999999776482582f;
-/* 0x00683FE7-adjacent: the per-character per-hand attack values combat saved
-   when the round began, 0x35 dwords per character. Retail start is not
-   recovered as a precise root. */
-// GLOBAL: WIZ8 unresolved
-int g_saved_attack_values[8 * 0x35];
-
 /* What one character's whole turn is worth. A character whose turn combat has
    already set up uses the values it saved; anyone else is asked afresh. A
    phase of exactly a hundred is worth one whatever the hands say. */
@@ -300,7 +294,7 @@ int GetCharacterTurnValue(int party_slot)
         if (row->flag_34 == 0) {
             value = GetHandAttackValue(party_slot, hand);
         } else {
-            value = g_saved_attack_values[party_slot * 0x35 + hand];
+            value = row->saved_attack_value[hand];
         }
         if (row->value_00 == 100) {
             value = 1;
