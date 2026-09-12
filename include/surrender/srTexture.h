@@ -39,8 +39,9 @@ protected:
     Dimensions texture_dimensions_;              /* 0x20 */
     srClass* texture_filter_;                    /* 0x28 */
     srPixelConvert::PixelFormat surface_format_; /* 0x2c */
-    unsigned long hints_40;                      /* 0x40 */
-    unsigned char unknown_44_[0x0c];
+    /* enableHint/disableHint operate on the first dword; stTextureAnim reads
+       byte +0x42 as an alpha probe. */
+    unsigned char unknown_40_[0x10];
     unsigned long texture_flags_; /* 0x50 */
 };
 
