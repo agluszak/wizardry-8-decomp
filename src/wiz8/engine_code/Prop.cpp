@@ -48,30 +48,6 @@
    the process-wide storage; no broader state model is yet proved. */
 unsigned char g_byte_00659a64;
 
-/* Same-TU access to srModelInstance's protected alignment fields so the
-   loader can write them the way the image does, without going through the
-   SurRender setAlignment/setAlignAxis imports.  Retail ORs the enable bit,
-   stores the raw axis, normalizes in place, then ORs the enable bit again.
-   The body must live on this derived type: VC6 rejects protected access
-   through a derived pointer from a free function. */
-struct PropModelInstanceAccess : srModelInstance {
-    void WriteAlignAxisYUp()
-    {
-        float length_squared;
-        float scale;
-
-        alignment_flags_148 |= 1;
-        align_axis_14c.Set(0.0f, 1.0f, 0.0f);
-        length_squared = align_axis_14c.z * align_axis_14c.z + align_axis_14c.y * align_axis_14c.y +
-                         align_axis_14c.x * align_axis_14c.x;
-        if ((double)length_squared != g_zero_005ebb40) {
-            scale = (float)(g_double_005ebc30 / sqrt((double)length_squared));
-            align_axis_14c *= scale;
-        }
-        alignment_flags_148 |= 1;
-    }
-};
-
 #define PROP_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp"
 
 // VTABLE: WIZ8 0x005ec1e0
@@ -955,11 +931,16 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
             }
             if (option_byte != 0) {
                 srNode* child;
+                srVector3T<float> axis;
 
-                static_cast<PropModelInstanceAccess*>(instance)->WriteAlignAxisYUp();
+                axis.Set(0.0f, 1.0f, 0.0f);
+                instance->setAlignment(1);
+                instance->setAlignAxis(axis);
                 child = instance->firstChild();
                 if (child != 0) {
-                    static_cast<PropModelInstanceAccess*>(child)->WriteAlignAxisYUp();
+                    srModelInstance* child_instance = static_cast<srModelInstance*>(child);
+                    child_instance->setAlignment(1);
+                    child_instance->setAlignAxis(axis);
                 }
             }
         }
