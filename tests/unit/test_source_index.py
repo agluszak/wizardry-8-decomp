@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 
@@ -88,20 +89,23 @@ def test_source_index_configures_missing_or_stale_compile_database(
 
         def write(self, path: Path) -> None:
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text('{"schema": "reccmp-source-index-v2"}\n', encoding="utf-8")
+            path.write_text('{"schema": "reccmp-source-index-v3"}\n', encoding="utf-8")
 
     import wiz8decomp.build as build_module
 
+    collected: list[dict] = []
+
+    def collect(*_args, **_kwargs) -> FakeIndex:
+        collected.append({"force": _kwargs.get("force", False)})
+        return FakeIndex()
+
     monkeypatch.setattr(build_module, "configure_clang", configure)
-    monkeypatch.setattr(
-        source_index.SourceIndex,
-        "from_compile_database",
-        lambda *_args, **_kwargs: FakeIndex(),
-    )
+    monkeypatch.setattr(source_index, "_collect_source_index", collect)
 
     source_index.write_source_index(settings)
 
     assert configured == [True]
+    assert collected == [{"force": False}]
 
 
 def test_surrender_source_functions_use_their_own_marker_target() -> None:
@@ -223,7 +227,6 @@ def _cross_tu_index(
     )
     build = tmp_path / "build"
     build.mkdir(exist_ok=True)
-    import json
 
     (build / "source-index.json").write_text(
         json.dumps(
@@ -413,3 +416,67 @@ def test_cross_tu_gate_rejects_mismatched_array_element_type(tmp_path: Path) -> 
     )
     with pytest.raises(SourceIndexError, match="_gTable"):
         source_index.validate_cross_tu_declarations(tmp_path)
+
+
+def test_host_compile_database_rewrites_guest_mounts(tmp_path: Path) -> None:
+    settings = _settings(tmp_path)
+    repository = settings.repo_dir
+    repository.mkdir()
+    database = repository / "build/clang/compile_commands.json"
+    database.parent.mkdir(parents=True)
+    database.write_text(
+        json.dumps(
+            [
+                {
+                    "directory": "/out",
+                    "file": "/repo/src/wiz8/local_code/Magic.cpp",
+                    "command": "/usr/bin/clang-cl -I/repo/include /c /Fo/out/Magic.cpp.obj "
+                    "/repo/src/wiz8/local_code/Magic.cpp",
+                    "arguments": [
+                        "/usr/bin/clang-cl",
+                        "-I/repo/include",
+                        "/c",
+                        "/Fo/out/Magic.cpp.obj",
+                        "/repo/src/wiz8/local_code/Magic.cpp",
+                    ],
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    rewritten = json.loads(
+        source_index.host_compile_database(
+            repository, database, settings, {"WIZ8": ("src/wiz8",)}
+        ).read_text(encoding="utf-8")
+    )
+
+    host = str(repository.resolve())
+    lint = str((repository / "build/clang").resolve())
+    assert rewritten[0]["file"] == f"{host}/src/wiz8/local_code/Magic.cpp"
+    assert rewritten[0]["directory"] == lint
+    assert rewritten[0]["arguments"][1] == f"-I{host}/include"
+    assert rewritten[0]["arguments"][3] == f"/Fo{lint}/Magic.cpp.obj"
+
+
+def test_host_compile_database_rejects_unowned_repo_entries(tmp_path: Path) -> None:
+    settings = _settings(tmp_path)
+    repository = settings.repo_dir
+    repository.mkdir()
+    database = repository / "build/clang/compile_commands.json"
+    database.parent.mkdir(parents=True)
+    database.write_text(
+        json.dumps(
+            [
+                {
+                    "directory": "/out",
+                    "file": "/repo/src/unregistered/orphan.cpp",
+                    "arguments": ["/usr/bin/clang-cl", "/repo/src/unregistered/orphan.cpp"],
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(SourceIndexError, match="outside every configured source-root"):
+        source_index.host_compile_database(repository, database, settings, {"WIZ8": ("src/wiz8",)})

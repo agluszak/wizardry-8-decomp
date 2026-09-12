@@ -2,7 +2,9 @@
 
 The gate keeps the checks that a regular expression can decide exactly: a
 constant index past the end of a fixed-size array field declared in the
-recovered headers, and newly added ``W8GrowableVector<void*>`` element claims.
+recovered headers, newly added ``W8GrowableVector<void*>`` element claims,
+and include-guarded Wizardry headers that close before their trailing
+declarations.
 
 An unresolved pointer-vector specialization keeps its element type unknown
 until a producer or consumer identifies it; erasing it to ``void*`` hides that
@@ -31,10 +33,60 @@ _ARRAY_DECLARATION = re.compile(
 _ARRAY_INDEX = re.compile(r"(?:\.|->)\s*([A-Za-z_]\w*)\s*\[\s*(0[xX][0-9a-fA-F]+|\d+)\s*\]")
 _VOID_ELEMENT = re.compile(r"W8GrowableVector\s*<\s*void\s*\*>")
 _VOID_MARKER = re.compile(r"vector-void-ok:\s*\S", re.IGNORECASE)
+_IFNDEF = re.compile(r"^\s*#ifndef\s+(\w+)\s*$")
 
 
 def _number(text: str) -> int:
     return int(text, 16) if text.lower().startswith("0x") else int(text)
+
+
+def _include_guard_violations(path: Path, relative: str) -> list[dict[str, Any]]:
+    """Flag ifndef-guarded Wizardry headers that leak declarations past #endif."""
+    if not relative.startswith("include/wiz8/") or path.suffix.lower() not in {".h", ".hpp"}:
+        return []
+    lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
+    guard: str | None = None
+    includes_before: list[int] = []
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("#pragma once"):
+            return []
+        if stripped.startswith("#include") and guard is None:
+            includes_before.append(index + 1)
+            continue
+        match = _IFNDEF.match(stripped)
+        if match and guard is None:
+            name = match.group(1)
+            if name.endswith(("_H", "_HPP")):
+                guard = name
+    if guard is None:
+        return []
+    violations: list[dict[str, Any]] = []
+    for number in includes_before:
+        violations.append(
+            {
+                "kind": "include-before-guard",
+                "file": relative,
+                "line": number,
+                "detail": f"{guard} include appears before the include guard",
+            }
+        )
+    last_code = 0
+    last_text = ""
+    for index, line in enumerate(lines):
+        if line.strip():
+            last_code = index + 1
+            last_text = line.strip()
+    if last_text and not last_text.startswith("#endif"):
+        violations.append(
+            {
+                "kind": "include-guard-closed-early",
+                "file": relative,
+                "line": last_code,
+                "detail": f"{guard} has declarations after its include guard",
+            }
+        )
+    return violations
 
 
 def _scoped(path: Path, repo_dir: Path) -> bool:
@@ -103,6 +155,7 @@ def structural_violations(repo_dir: Path) -> list[dict[str, Any]]:
                             ),
                         }
                     )
+        violations.extend(_include_guard_violations(path, relative))
     for item in added_lines_without_marker(baseline_diff(repo_dir)[1], _VOID_ELEMENT, _VOID_MARKER):
         violations.append(
             {

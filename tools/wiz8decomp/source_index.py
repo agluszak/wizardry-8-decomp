@@ -1,8 +1,10 @@
-"""Project paths and toolchain configuration for reccmp's source index."""
+"""Project paths, SYNTHETIC rules, and the compile-DB adapter for reccmp's source index."""
 
 from __future__ import annotations
 
+import hashlib
 import json
+import os
 import re
 import shlex
 import shutil
@@ -16,6 +18,8 @@ from .config import Settings
 _SOURCE_SUFFIXES = frozenset({".c", ".cpp", ".h", ".hpp"})
 _SYNTHETIC_MARKER = re.compile(r"^\s*//\s*SYNTHETIC:\s+")
 _SOURCE_MARKER = re.compile(r"^\s*//\s*(?:FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY|VTABLE|GLOBAL):\s+")
+_SOURCE_INDEX_SCHEMAS = frozenset({"reccmp-source-index-v2", "reccmp-source-index-v3"})
+_ATTACHED_INCLUDE_FLAGS = ("-isystem", "-iquote", "-idirafter", "-I", "/I", "/Fo", "/Fd")
 
 
 def validate_synthetic_marker_blocks(repository: Path) -> int:
@@ -70,7 +74,7 @@ def load_source_index(repository: Path) -> dict[str, Any]:
             f"{path} is missing; run `wiz8 lint` then `wiz8 analyze source-index`"
         )
     document = json.loads(path.read_text(encoding="utf-8"))
-    if document.get("schema") != "reccmp-source-index-v2":
+    if document.get("schema") not in _SOURCE_INDEX_SCHEMAS:
         raise SourceIndexError(f"{path} has an unsupported source-index schema")
     return document
 
@@ -181,7 +185,8 @@ def validate_source_index(repository: Path) -> dict[str, int]:
         target: len(index.functions_by_address(target=target))
         for target in project_targets(repository)
     }
-    if len({item.semantic_id for item in index.classes}) != len(index.classes):
+    class_keys = {(item.target, item.semantic_id) for item in index.classes}
+    if len(class_keys) != len(index.classes):
         raise SourceIndexError("compiler-backed source index contains duplicate class definitions")
     result: dict[str, int] = {
         "functions": sum(counts.values()),
@@ -334,202 +339,236 @@ def validate_cross_tu_declarations(repository: Path) -> int:
     return len(functions) + len(variables)
 
 
-_INCLUDE_FLAGS_WITH_ARGUMENT = frozenset({"-I", "-isystem", "-iquote", "-idirafter"})
+def _guest_host_roots(repository: Path, settings: Settings) -> tuple[tuple[str, str], ...]:
+    """Guest mount prefixes used by the lint compile database, longest first."""
+    from .build import LINT_BUILD_DIR
 
-
-def _compile_command_include_dirs(entry: dict[str, Any]) -> list[str]:
-    """The include search directories one compile command adds.
-
-    The lint projection emits POSIX ``-I`` flags, so only the two spellings it
-    can produce are recognized; everything else stays out of the dependency
-    fingerprint.
-    """
-    arguments = entry.get("arguments")
-    if isinstance(arguments, list):
-        tokens = [str(token) for token in arguments]
-    else:
-        tokens = shlex.split(str(entry.get("command", "")))
-    found: list[str] = []
-    index = 0
-    while index < len(tokens):
-        token = tokens[index]
-        if token in _INCLUDE_FLAGS_WITH_ARGUMENT:
-            if index + 1 < len(tokens):
-                found.append(tokens[index + 1])
-            index += 2
-            continue
-        for flag in ("-isystem", "-iquote", "-idirafter", "-I"):
-            if token.startswith(flag) and len(token) > len(flag):
-                found.append(token[len(flag) :])
-                break
-        index += 1
-    return found
-
-
-def _guest_to_host(guest: str, mounts: dict[Path, str]) -> Path | None:
-    """Translate one compile-database path back to a host directory."""
-    if not guest.startswith("/"):
-        return None
-    matches = sorted(
-        ((mount_guest, host) for host, mount_guest in mounts.items()),
-        key=lambda item: len(item[0]),
-        reverse=True,
+    sources = settings.work_dir / "fid" / "sources" / "unpacked"
+    pairs = (
+        ("/repo", str(repository.resolve())),
+        ("/out", str((repository / LINT_BUILD_DIR).resolve())),
+        ("/zlib", str((sources / "zlib-1.0.4" / "zlib-1.0.4").resolve())),
+        ("/jpeg", str((sources / "ijg-jpeg-6" / "jpeg-6").resolve())),
+        ("/infozip", str((sources / "infozip-unzip-5.4").resolve())),
     )
-    for mount_guest, host in matches:
-        trimmed = mount_guest.rstrip("/")
-        if guest == trimmed:
+    return tuple(sorted(pairs, key=lambda item: len(item[0]), reverse=True))
+
+
+def rewrite_compile_token(token: str, roots: tuple[tuple[str, str], ...]) -> str:
+    """Map one compile-command token from the analysis-image mounts onto the host."""
+    for guest, host in roots:
+        trimmed = guest.rstrip("/")
+        if token == trimmed:
             return host
-        if guest.startswith(trimmed + "/"):
-            return host / guest[len(trimmed) + 1 :]
-    return None
+        if token.startswith(trimmed + "/"):
+            return host + token[len(trimmed) :]
+        for flag in _ATTACHED_INCLUDE_FLAGS:
+            if token.startswith(flag + trimmed):
+                return flag + host + token[len(flag) + len(trimmed) :]
+    return token
 
 
-def _cache_inputs_by_target(
-    repository: Path,
-    targets: dict[str, tuple[Path, ...]],
-    entries_by_target: dict[str, list[dict[str, Any]]],
-    mounts: dict[Path, str],
-) -> dict[str, tuple[Path, ...]]:
-    """Derive each namespace's dependency fingerprint from its own compile
-    commands.
+def rewrite_compile_entry(
+    entry: dict[str, Any], roots: tuple[tuple[str, str], ...]
+) -> dict[str, Any]:
+    """Rewrite one compile-database record onto the host filesystem."""
+    rewritten = dict(entry)
+    for key in ("file", "directory", "output"):
+        if key in rewritten and rewritten[key] is not None:
+            rewritten[key] = rewrite_compile_token(str(rewritten[key]), roots)
+    arguments = rewritten.get("arguments")
+    if isinstance(arguments, list):
+        rewritten["arguments"] = [rewrite_compile_token(str(token), roots) for token in arguments]
+    elif "command" in rewritten:
+        rewritten["command"] = shlex.join(
+            rewrite_compile_token(token, roots) for token in shlex.split(str(rewritten["command"]))
+        )
+    return rewritten
 
-    reccmp fingerprints a namespace from its marker targets plus ``cache_inputs``
-    and reads every file below each entry. Handing every namespace the whole
-    repository therefore re-hashes every tree four times and makes a WIZ8 source
-    edit invalidate the extension namespaces. The include directories of the
-    namespace's own compile commands are the actual header dependencies, so each
-    namespace fingerprints only the headers it can include.
+
+def _reject_unowned_repo_entries(
+    entries: list[dict[str, Any]], roots: dict[str, tuple[str, ...]]
+) -> None:
+    """Fail if a first-party compile entry sits outside every configured source-root."""
+    for entry in entries:
+        raw = str(entry.get("file", ""))
+        if not raw.startswith("/repo/"):
+            continue
+        candidate = raw.removeprefix("/repo/")
+        if any(
+            candidate == root or candidate.startswith(root.rstrip("/") + "/")
+            for source_roots in roots.values()
+            for root in source_roots
+        ):
+            continue
+        raise SourceIndexError(
+            f"compile database entry is outside every configured source-root: {raw}"
+        )
+
+
+def host_compile_database(
+    repository: Path, database: Path, settings: Settings, roots: dict[str, tuple[str, ...]]
+) -> Path:
+    """Materialize a host-path compile database for native reccmp collection.
+
+    The lint CMake projection runs inside the analysis image, so
+    ``compile_commands.json`` names ``/repo``, ``/out``, and the vendor mounts.
+    reccmp now indexes natively against the repository path it is given, so the
+    guest prefixes have to become host paths before collection.
     """
-    result: dict[str, tuple[Path, ...]] = {}
-    for target, entries in entries_by_target.items():
-        unique: list[Path] = []
-        seen: set[Path] = set()
-        for entry in entries:
-            for guest in _compile_command_include_dirs(entry):
-                host = _guest_to_host(guest, mounts)
-                if host is None or host in seen or not host.is_dir():
-                    continue
-                seen.add(host)
-                unique.append(host)
-        result[target] = tuple(unique)
-    for target in targets:
-        result.setdefault(target, ())
-    return result
+    entries = json.loads(database.read_text(encoding="utf-8"))
+    if not isinstance(entries, list):
+        raise SourceIndexError(f"{database} is not a compile database")
+    _reject_unowned_repo_entries(entries, roots)
+    mapping = _guest_host_roots(repository, settings)
+    rewritten = [rewrite_compile_entry(entry, mapping) for entry in entries]
+    output = repository / "build" / "reccmp-source" / "compile_commands.json"
+    output.parent.mkdir(parents=True, exist_ok=True)
+    content = json.dumps(rewritten, indent=2) + "\n"
+    if not output.is_file() or output.read_text(encoding="utf-8") != content:
+        output.write_text(content, encoding="utf-8")
+    return output
 
 
-def _seed_collector_binary(source: Path, destination: Path) -> None:
-    """Reuse one compiled collector across the per-namespace projections.
+def _analysis_indexer_binary() -> Path:
+    import reccmp.source as source_package
 
-    reccmp keeps the compiled ``indexer`` beside the projection in ``cache_dir``,
-    so each namespace compiles the identical Clang collector on a cold cache.
-    Copy the built executable and its digest into the next namespace's cache
-    before its first lookup. The long-term fix belongs in reccmp (one batch with
-    a namespace-aware identity); this keeps the Wizardry side from paying for it.
+    return Path(source_package.__file__).with_name("indexer.cpp")
+
+
+def _compile_indexer_in_analysis_image(settings: Settings, source: Path, output: Path) -> None:
+    """Build reccmp's Clang indexer once inside the lint image."""
+    from .build import VC6_IMAGE
+    from .subprocesses import resolve_executable, run
+
+    docker = resolve_executable("docker") or "docker"
+    output.parent.mkdir(parents=True, exist_ok=True)
+    script = r"""
+set -euo pipefail
+config=$(command -v llvm-config-19 || command -v llvm-config || true)
+include=/usr/lib/llvm-19/include
+if [ -n "$config" ]; then
+  probed=$("$config" --includedir)
+  if [ -n "$probed" ]; then include=$probed; fi
+fi
+clang_cpp=$(ls /usr/lib/llvm-19/lib/libclang-cpp.so.* /usr/lib/x86_64-linux-gnu/libclang-cpp.so.* 2>/dev/null | tail -n1 || true)
+llvm=$(ls /usr/lib/llvm-19/lib/libLLVM.so.* /usr/lib/x86_64-linux-gnu/libLLVM*.so* 2>/dev/null | grep -v libclang-cpp | tail -n1 || true)
+if [ -z "$clang_cpp" ] || [ -z "$llvm" ]; then
+  echo "no LLVM 19 development libraries in the analysis image" >&2
+  exit 1
+fi
+clang++ -O2 -std=c++17 -fno-rtti -fno-exceptions \
+  -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS \
+  -I"$include" /src/indexer.cpp -o /out/indexer "$clang_cpp" "$llvm"
+"""
+    run(
+        [
+            docker,
+            "run",
+            "--rm",
+            "--network",
+            "none",
+            "--volume",
+            f"{source}:/src/indexer.cpp:ro",
+            "--volume",
+            f"{output.parent}:/out",
+            "--entrypoint",
+            "bash",
+            VC6_IMAGE,
+            "-lc",
+            script,
+        ],
+        cwd=settings.repo_dir,
+        log_path=settings.repo_dir / "build" / "logs" / "source-indexer-compile.json",
+    )
+    compiled = output.parent / "indexer"
+    if compiled != output:
+        compiled.replace(output)
+    if not output.is_file():
+        raise SourceIndexError("the analysis image did not produce a source indexer")
+
+
+def _prepare_analysis_indexer(settings: Settings, cache: Path) -> None:
+    """Point reccmp at an indexer that can see clang-cl and the MSVC headers.
+
+    Collection Python runs on the host. The compile flags still name image
+    paths such as ``/opt/msvc6-*`` and ``/usr/bin/clang-cl``, so the indexer
+    binary itself has to run in the analysis image unless this process is
+    already inside that image.
     """
-    if source == destination:
+    if os.environ.get("RECCMP_SOURCE_INDEXER") or shutil.which("reccmp-source-indexer"):
         return
-    destination.mkdir(parents=True, exist_ok=True)
-    for name in ("indexer", "indexer.sha256"):
-        origin = source / name
-        target = destination / name
-        if origin.is_file():
-            shutil.copy2(origin, target)
+    cache.mkdir(parents=True, exist_ok=True)
+    if Path("/usr/bin/clang-cl").is_file():
+        from reccmp.source.batch import resolve_indexer
+
+        resolve_indexer(cache)
+        return
+
+    from .build import LINT_BUILD_DIR, VC6_IMAGE, Mount
+    from .subprocesses import resolve_executable
+
+    source = _analysis_indexer_binary()
+    binary = cache / "indexer"
+    stamp = cache / "indexer.sha256"
+    digest = hashlib.sha256(source.read_bytes()).hexdigest()
+    if not binary.is_file() or not stamp.is_file() or stamp.read_text(encoding="utf-8") != digest:
+        _compile_indexer_in_analysis_image(settings, source, binary)
+        stamp.write_text(digest, encoding="utf-8")
+
+    docker = resolve_executable("docker") or "docker"
+    repository = settings.repo_dir.resolve()
+    sources = settings.work_dir / "fid" / "sources" / "unpacked"
+    lint = (repository / LINT_BUILD_DIR).resolve()
+    zlib = sources / "zlib-1.0.4" / "zlib-1.0.4"
+    jpeg = sources / "ijg-jpeg-6" / "jpeg-6"
+    infozip = sources / "infozip-unzip-5.4"
+    mounts = (
+        Mount(repository, str(repository), read_only=False),
+        Mount(lint, str(lint), read_only=False),
+        Mount(zlib, str(zlib.resolve())),
+        Mount(jpeg, str(jpeg.resolve())),
+        Mount(infozip, str(infozip.resolve())),
+    )
+    command = [docker, "run", "--rm", "--network", "none"]
+    for mount in mounts:
+        command.extend(("--volume", mount.docker_argument()))
+    command.extend(("-e", f"RECCMP_SOURCE_ROOT={repository}"))
+    command.extend(("--entrypoint", str(binary), VC6_IMAGE))
+    wrapper = cache / "docker-indexer"
+    wrapper.write_text(
+        f"#!/bin/sh\n# indexer {digest}\nexec {shlex.join(command)} \"$@\"\n",
+        encoding="utf-8",
+    )
+    wrapper.chmod(0o755)
+    os.environ["RECCMP_SOURCE_INDEXER"] = str(wrapper)
 
 
-def _collect_per_namespace(
+def _collect_source_index(
     repository: Path,
     database: Path,
     targets: dict[str, tuple[Path, ...]],
-    roots: dict[str, tuple[str, ...]],
+    settings: Settings,
     *,
-    clang: str | None,
-    container_image: str | None,
-    mounts: dict[Path, str],
-    force: bool,
+    force: bool = False,
 ) -> SourceIndex:
-    """Collect one source index per link namespace, then merge the markers.
-
-    Each reccmp target is its own binary, so the same unmangled symbol may be
-    legitimately defined in several of them (both extension DLLs define
-    ``DllMain`` with the same ``_DllMain@12`` identity). The upstream
-    collector merges records by ``semantic_id`` across every translation unit
-    it sees, so one shared collection keeps only one of those definitions and
-    the other target's marker binds to nothing. Partition the compile database
-    by source root and collect each namespace with its own cache.
-
-    Entries outside every source root are external/vendor translation units
-    (``/zlib``, ``/infozip``); their headers are already parsed through the
-    first-party units that include them, so running them standalone only
-    multiplies work. An unowned ``/repo`` entry is a configuration error.
-    """
-    entries = json.loads(database.read_text(encoding="utf-8"))
-
-    def owner(entry: dict[str, Any]) -> str | None:
-        raw = str(entry.get("file", ""))
-        candidate = raw.removeprefix("/repo/")
-        for target, source_roots in roots.items():
-            if any(
-                candidate == root or candidate.startswith(root.rstrip("/") + "/")
-                for root in source_roots
-            ):
-                return target
-        return None
-
-    by_target: dict[str, list[dict[str, Any]]] = {target: [] for target in targets}
-    for entry in entries:
-        target = owner(entry)
-        if target is not None:
-            by_target[target].append(entry)
-            continue
-        raw = str(entry.get("file", ""))
-        if raw.startswith("/repo/"):
-            raise SourceIndexError(
-                f"compile database entry is outside every configured source-root: {raw}"
-            )
-    cache_inputs = _cache_inputs_by_target(repository, targets, by_target, mounts)
-    indexes = []
-    binary_source: Path | None = None
-    for target, paths in targets.items():
-        partitioned_db = (
-            repository / "build" / "source-index-cache" / f"compile-commands-{target.lower()}.json"
-        )
-        partitioned_db.parent.mkdir(parents=True, exist_ok=True)
-        content = json.dumps(by_target[target], indent=2) + "\n"
-        if not partitioned_db.is_file() or partitioned_db.read_text(encoding="utf-8") != content:
-            partitioned_db.write_text(content, encoding="utf-8")
-        cache_dir = repository / "build" / "source-index-cache" / target.lower()
-        if binary_source is not None:
-            _seed_collector_binary(binary_source, cache_dir)
-        indexes.append(
-            SourceIndex.from_compile_database(
-                repository,
-                partitioned_db,
-                {target: paths},
-                clang=clang,
-                container_image=container_image,
-                compilation_root=Path("/repo"),
-                mounts=mounts,
-                cache_dir=cache_dir,
-                cache_inputs=(*cache_inputs[target], database),
-                force=force,
-            )
-        )
-        if binary_source is None:
-            binary_source = cache_dir
-    # Each namespace keeps its own winner: the same unmangled spelling may be
-    # legitimately defined in several binaries, and the consistency gate groups
-    # every spelling by identity, so cross-namespace disagreements stay visible.
-    return SourceIndex(
-        declarations=(item for index in indexes for item in index.declarations),
-        classes=(item for index in indexes for item in index.classes),
-        markers=(item for index in indexes for item in index.markers),
-        variables=(item for index in indexes for item in index.variables),
-        conflicts=(item for index in indexes for item in index.conflicts),
+    """Project adapter: host-path compile DB, then one reccmp collection."""
+    roots = indexed_targets(repository, database)
+    cache = repository / "build" / "reccmp-source"
+    host_database = host_compile_database(repository, database, settings, roots)
+    _prepare_analysis_indexer(settings, cache)
+    return SourceIndex.from_compile_database(
+        repository,
+        host_database,
+        targets,
+        clang="/usr/bin/clang-cl",
+        cache_dir=cache,
+        force=force,
     )
 
 
 def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, Any]:
-    from .build import LINT_BUILD_DIR, VC6_IMAGE, configure_clang
+    from .build import LINT_BUILD_DIR, configure_clang
 
     repository = settings.repo_dir.resolve()
     validate_synthetic_marker_blocks(repository)
@@ -553,23 +592,7 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
         )
         for target, source_roots in roots.items()
     }
-    mounts = {
-        repository: "/repo",
-        repository / LINT_BUILD_DIR: "/out",
-        settings.work_dir / "fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4": "/zlib",
-        settings.work_dir / "fid/sources/unpacked/ijg-jpeg-6/jpeg-6": "/jpeg",
-        settings.work_dir / "fid/sources/unpacked/infozip-unzip-5.4": "/infozip",
-    }
-    index = _collect_per_namespace(
-        repository,
-        database,
-        targets,
-        roots,
-        clang="/usr/bin/clang-cl",
-        container_image=VC6_IMAGE,
-        mounts=mounts,
-        force=force,
-    )
+    index = _collect_source_index(repository, database, targets, settings, force=force)
     index.write(repository / "build/source-index.json")
     validate_cross_tu_declarations(repository)
     return {
