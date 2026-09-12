@@ -78,7 +78,7 @@ void stTexture2D::setupDefaultValues()
             texture_filter_ = 0;
         }
     }
-    texture_flags_ &= ~2UL;
+    texture_flags_ &= ~(1UL << FLAG_DIRTY_DEFAULTS);
 }
 
 // FUNCTION: WIZ8 0x0047DAE0
@@ -154,14 +154,14 @@ void stSurface2D::traverse(TraverseInfo& info)
         nextSibling()->traverse(info);
     }
 
-    if (!testFlag(FLAG_OMIT_SELF)) {
+    if (!testFlag(FLAG_DISABLE)) {
         TraverseInfo::Entry& entry = info.entries[info.entry_count];
         entry.node = this;
         entry.value = 0;
         ++info.entry_count;
     }
 
-    if (!testFlag(FLAG_SKIP_CHILDREN) && firstChild() != 0) {
+    if (!testFlag(FLAG_TERMINATE) && firstChild() != 0) {
         firstChild()->traverse(info);
     }
 }
@@ -184,7 +184,7 @@ void stSurface2D::process(const ProcessInfo& info, e_processType)
     shader.value = flags;
     renderer->setShader(shader);
     renderer->setTexCoordPointer(2, srRendererDefs::TYPE_FLOAT, 8, coordinates, 0);
-    renderer->setClipState(srFlags<srRendererDefs::e_clip>(0x3f));
+    renderer->setClipState(srFlags<srRendererDefs::e_clip>(0x3f)); /* CLIP_LEFT..CLIP_FAR */
     renderer->setAntiAlias(srGERD::ANTIALIAS_NONE);
 
     for (row = 0; row != rows; ++row) {

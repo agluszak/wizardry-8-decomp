@@ -354,7 +354,7 @@ void UpdateWorld0044F4E0(W8World* world)
     int count = static_cast<short>(PLLength(nodes));
     for (int index = 0; index < count; ++index) {
         srNode* node = static_cast<srNode*>(PLGet(nodes, index));
-        node->setFlag(srNode::FLAG_OMIT_SELF);
+        node->setFlag(srNode::FLAG_DISABLE);
     }
     PListClear(nodes);
 }

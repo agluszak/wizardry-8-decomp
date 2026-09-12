@@ -191,7 +191,7 @@ int stTextureAnim::IsFinished00485730() const
 unsigned long stTextureAnim::getTextureFrameHandle()
 {
     UpdateFrame004854B0();
-    if ((texture_flags_ & 2) != 0) {
+    if ((texture_flags_ & (1UL << FLAG_DIRTY_DEFAULTS)) != 0) {
         setupDefaultValues();
     }
     return (*textures_54->GetAt(frame_58))->getTextureFrameHandle();
@@ -242,7 +242,7 @@ void stTextureAnim::setupDefaultValues()
 
     if (texture != 0) {
         texture->getDimensions(texture_dimensions_);
-        texture_flags_ &= ~2U;
+        texture_flags_ &= ~(1UL << FLAG_DIRTY_DEFAULTS);
     } else {
         texture_dimensions_.width = 1;
         texture_dimensions_.height = 1;

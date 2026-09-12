@@ -190,7 +190,7 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
                 }
             }
             if (record.visible == 0) {
-                light->setFlag(srNode::FLAG_OMIT_SELF);
+                light->setFlag(srNode::FLAG_DISABLE);
             }
             light->setGroupMask(2);
         } else if (record.version < 2 || record.visible != 0) {
@@ -379,9 +379,9 @@ unsigned char ReadWorldClipPlanes004BCE20(W8ReadLevelInfo* pInfo, W8World* pWorl
                      serialized_position.y * g_world_scale_005ebc40,
                      serialized_position.z * g_world_scale_005ebc40);
         clip_plane->setLocation(position);
-        clip_plane->setFlag(srNode::FLAG_POSITIONAL_2);
+        clip_plane->setFlag(srNode::FLAG_GLOBAL);
         clip_plane->setClipType(srClipPlane::CLIP_POSITIONAL_0);
-        clip_plane->setFlag(srNode::FLAG_OMIT_SELF);
+        clip_plane->setFlag(srNode::FLAG_DISABLE);
     }
     return 1;
 }

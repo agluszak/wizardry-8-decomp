@@ -621,7 +621,7 @@ void stParticle::traverse(srNode::TraverseInfo& info)
         nextSibling()->traverse(info);
     }
 
-    if (!testFlag(FLAG_OMIT_SELF)) {
+    if (!testFlag(FLAG_DISABLE)) {
         if ((active_1a0 != 0 || active_particle_count_18c != 0) && flag_1a1 != 0) {
             srNode::TraverseInfo::Entry& entry = info.entries[info.entry_count];
             entry.node = this;
@@ -630,7 +630,7 @@ void stParticle::traverse(srNode::TraverseInfo& info)
         }
     }
 
-    if (!testFlag(FLAG_SKIP_CHILDREN) && firstChild() != 0) {
+    if (!testFlag(FLAG_TERMINATE) && firstChild() != 0) {
         firstChild()->traverse(info);
     }
 }

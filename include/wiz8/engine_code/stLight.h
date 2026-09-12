@@ -164,8 +164,8 @@ public:
     void ConfigureMonsterCopy()
     {
         attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
-        enable_flags_194 |= 0x10;
-        enable_flags_194 |= 4;
+        enable_flags_194 |= 1UL << ENABLE_RANGE_FAR;
+        enable_flags_194 |= 1UL << ENABLE_POSITIONAL_2;
     }
 
 public:

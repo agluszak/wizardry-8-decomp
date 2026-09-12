@@ -25,8 +25,8 @@ MonsterLight::MonsterLight(srNode* parent, unsigned char cycle_color, float rang
 {
     setName("MonFixedLight");
     attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
-    enable_flags_194 |= 0x10;
-    enable_flags_194 |= 4;
+    enable_flags_194 |= 1UL << ENABLE_RANGE_FAR;
+    enable_flags_194 |= 1UL << ENABLE_POSITIONAL_2;
     far_end_170 = range;
     near_start_158 = 0.0;
     near_end_160 = 0.0;
@@ -35,7 +35,7 @@ MonsterLight::MonsterLight(srNode* parent, unsigned char cycle_color, float rang
     setLinearAttenuation(range, 0.0019569471f);
     specular_1b0.SetZero();
     diffuse_1a4 = *first_color;
-    setFlag(srNode::FLAG_OMIT_SELF);
+    setFlag(srNode::FLAG_DISABLE);
     m_start_time_244 = g_object_6598bc->GetValue30();
 }
 
@@ -48,9 +48,9 @@ MonsterLight::~MonsterLight() {}
 void MonsterLight::SetVisible0049D970(char visible)
 {
     if (visible != 0) {
-        clearFlag(srNode::FLAG_OMIT_SELF);
+        clearFlag(srNode::FLAG_DISABLE);
     } else {
-        setFlag(srNode::FLAG_OMIT_SELF);
+        setFlag(srNode::FLAG_DISABLE);
     }
 }
 

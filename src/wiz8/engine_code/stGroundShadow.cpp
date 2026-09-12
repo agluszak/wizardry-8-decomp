@@ -78,14 +78,14 @@ void stGroundShadow::traverse(TraverseInfo& info)
         nextSibling()->traverse(info);
     }
 
-    if (!testFlag(FLAG_OMIT_SELF)) {
+    if (!testFlag(FLAG_DISABLE)) {
         TraverseInfo::Entry& entry = info.entries[info.entry_count];
         entry.node = this;
         entry.value = 0;
         ++info.entry_count;
     }
 
-    if (!testFlag(FLAG_SKIP_CHILDREN) && firstChild() != 0) {
+    if (!testFlag(FLAG_TERMINATE) && firstChild() != 0) {
         firstChild()->traverse(info);
     }
 }

@@ -32,7 +32,7 @@ void W8Item::DetachMesh0049FA30(W8World* world)
     if (mesh == 0) {
         srAssertFail("psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\Item.cpp", 0x24f, 0);
     }
-    mesh->setFlag(srNode::FLAG_OMIT_SELF);
+    mesh->setFlag(srNode::FLAG_DISABLE);
     mesh->setParent(0, 0);
 }
 
@@ -78,7 +78,7 @@ void W8Item::AttachMesh0049F900(W8World* world)
         srAssertFail("psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\Item.cpp", 0x219, 0);
     }
     if (mesh->firstChild() == 0) {
-        mesh->clearFlag(srNode::FLAG_OMIT_SELF);
+        mesh->clearFlag(srNode::FLAG_DISABLE);
     }
     mesh->setParent(world->dynamic_scene, 0);
     m_pRep->GetLocation004B8890(&location);

@@ -60,7 +60,7 @@ void SetRenderOption(int option, int enabled)
         break;
     case 5:
         if (((*((unsigned char*)g_gerd_659634 + 0x20) & 1) != 0) != (enabled != 0)) {
-            g_gerd_659634->toggle((srGERD::e_enable)0);
+            g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_0);
         }
         break;
     case 6:

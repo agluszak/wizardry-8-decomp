@@ -793,9 +793,9 @@ void SetSkyNodeVisible(bool visible)
 
     if (sky != 0) {
         if (visible) {
-            sky->clearFlag(srNode::FLAG_OMIT_SELF);
+            sky->clearFlag(srNode::FLAG_DISABLE);
         } else {
-            sky->setFlag(srNode::FLAG_OMIT_SELF);
+            sky->setFlag(srNode::FLAG_DISABLE);
         }
     }
 }

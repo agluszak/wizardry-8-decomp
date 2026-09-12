@@ -11,6 +11,16 @@
 class SR_DLL_IMPORT srMeshModel : public srClassSupport<srMeshModel, srModel, 0, 0x2010> {
 public:
     enum e_side {};
+    /* Bit indices into control_state_394. renderTriMesh tests bits 0/1 as
+       front/back sides. updateTriMesh skips auto box when bit 4 is set and
+       auto sphere when bit 5 is set. enableStartupControls ORs bits 4–6. */
+    enum e_control {
+        CONTROL_FRONT = 0,
+        CONTROL_BACK = 1,
+        CONTROL_SKIP_AUTO_BOX = 4,
+        CONTROL_SKIP_AUTO_SPHERE = 5,
+        CONTROL_STARTUP = 6
+    };
     /* Detached 0x154-byte value at srMeshModel+0x23c. updateTriMesh fills it
        from the live tables; getTriMesh copies or returns it; renderTriMesh
        feeds srTriMeshPipeline from these slots. */

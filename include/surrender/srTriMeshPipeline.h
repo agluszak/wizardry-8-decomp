@@ -99,6 +99,8 @@ public:
     unsigned long triangle_count_1c;
     unsigned long vertex_count_20;
     unsigned long active_triangle_count_24;
+    /* Bit 0: run getClipMask (frustum 0x3f plus user planes in bits 6+).
+       Bit 1: vertex/triangle batch-limit path. Reset/Get always set both. */
     unsigned long flags_28;
     const unsigned long* active_triangles_2c;
     const srVector4T<float>* projected_vertices_30;

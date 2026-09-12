@@ -34,7 +34,7 @@ public:
     };
     /* getLocalBounds and srBounder::getBounds/setBounds copy 11 dwords.
        Model instances fill the box and sphere from srModel; the trailing
-       dword is 0 (empty), 1 (box+sphere), or 2 (node flag 2). Bounder's
+       dword is 0 (empty), 1 (box+sphere), or 2 (FLAG_GLOBAL). Bounder's
        constructor writes 2 into that last dword. */
     struct BoundInfo {
         srVector3T<float> minimum;
@@ -46,10 +46,17 @@ public:
 
     enum e_processType { PROCESS_TYPE_POSITIONAL_0 = 0 };
 
-    /* traverse skips this node when OMIT_SELF is set and skips children when
-       SKIP_CHILDREN is set. Wizardry uses those two as hide/skip; flag 2 is
-       still only the illuminator/clip-plane/bounder value. */
-    enum e_flag { FLAG_OMIT_SELF = 0, FLAG_SKIP_CHILDREN = 1, FLAG_POSITIONAL_2 = 2 };
+    /* srNode ctor dump table at 0x1009c374: DISABLE,TERMINATE,GLOBAL,
+       IGNORE_TRANSFORM (bits 0–3 of flags_124). traverse omits this node
+       when DISABLE is set and does not walk children when TERMINATE is set.
+       Lights, clip planes and bounders set GLOBAL. setFlag(IGNORE_TRANSFORM)
+       also dirties the cached world transform. */
+    enum e_flag {
+        FLAG_DISABLE = 0,
+        FLAG_TERMINATE = 1,
+        FLAG_GLOBAL = 2,
+        FLAG_IGNORE_TRANSFORM = 3
+    };
 
     enum e_notify { NOTIFY_POSITIONAL_0 = 0 };
 

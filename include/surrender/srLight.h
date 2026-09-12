@@ -10,6 +10,17 @@
 class srLight : public srClassSupport<srLight, srIlluminator, false, 0x1220> {
 public:
     enum e_preset { PRESET_POSITIONAL_0 = 0, PRESET_POSITIONAL_1 = 1, PRESET_POSITIONAL_2 = 2 };
+    /* enable/disable/isEnabled take these as bit indices into +0x194.
+       Dump's Control-flags name table is unset on disk. process uses bit 3
+       as the 3DStudio near-range gate and bit 4 as the far-range gate.
+       Ctor always ORs bit 4; Wizardry also ORs bit 2. */
+    enum e_enable {
+        ENABLE_POSITIONAL_0 = 0,
+        ENABLE_POSITIONAL_1 = 1,
+        ENABLE_POSITIONAL_2 = 2,
+        ENABLE_RANGE_NEAR = 3,
+        ENABLE_RANGE_FAR = 4
+    };
     enum e_attenuationModel {
         ATTENUATION_NONE = 0,
         ATTENUATION_OPENGL = 1,

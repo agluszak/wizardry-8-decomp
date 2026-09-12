@@ -166,8 +166,8 @@ stLight* CreateLight0046DF90(srNode* parent, const char* name)
     if (light != 0) {
         light->setName(name);
         light->attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
-        light->enable_flags_194 |= 0x10;
-        light->enable_flags_194 |= 4;
+        light->enable_flags_194 |= 1UL << srLight::ENABLE_RANGE_FAR;
+        light->enable_flags_194 |= 1UL << srLight::ENABLE_POSITIONAL_2;
     }
     return light;
 }
@@ -192,8 +192,8 @@ stLight* CreateWorldLight0046E030(W8World* world, const char* name)
     }
     light->setName(name);
     light->attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
-    light->enable_flags_194 |= 0x10;
-    light->enable_flags_194 |= 4;
+    light->enable_flags_194 |= 1UL << srLight::ENABLE_RANGE_FAR;
+    light->enable_flags_194 |= 1UL << srLight::ENABLE_POSITIONAL_2;
 
     if (world != 0) {
         PLAdoptAppend(&world->m_lights_0a8, light);
@@ -219,8 +219,8 @@ stLight* CreateWorldLight0046E140(W8World* world, const char* name)
     }
 
     light->attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
-    light->enable_flags_194 |= 0x10;
-    light->enable_flags_194 |= 4;
+    light->enable_flags_194 |= 1UL << srLight::ENABLE_RANGE_FAR;
+    light->enable_flags_194 |= 1UL << srLight::ENABLE_POSITIONAL_2;
     light->setName(name);
     light->near_start_158 = 0.0;
     light->near_end_160 = 0.0;

@@ -1122,7 +1122,7 @@ void SetRendererOption4Enabled(char enabled)
     if (g_gerd_659634 != 0) {
         if ((!enabled && g_gerd_659634->isEnabled(static_cast<srGERD::e_enable>(4))) ||
             (enabled && !g_gerd_659634->isEnabled(static_cast<srGERD::e_enable>(4)))) {
-            g_gerd_659634->toggle(static_cast<srGERD::e_enable>(4));
+            g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_4);
         }
     }
 }
@@ -2102,7 +2102,7 @@ void PurgeInactiveSceneInstances(srScene* scene)
 void ClearNodeFlag(srNode* node)
 {
     if (node) {
-        node->setFlag(srNode::FLAG_OMIT_SELF);
+        node->setFlag(srNode::FLAG_DISABLE);
     }
 }
 

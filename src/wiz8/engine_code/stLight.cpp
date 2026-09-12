@@ -100,14 +100,14 @@ void stLight::traverse(srNode::TraverseInfo& info)
         nextSibling()->traverse(info);
     }
 
-    if (!testFlag(FLAG_SKIP_CHILDREN)) {
-        if (testFlag(FLAG_OMIT_SELF) || fabs(intensity_1d0) <= g_double_005ebc70 ||
+    if (!testFlag(FLAG_TERMINATE)) {
+        if (testFlag(FLAG_DISABLE) || fabs(intensity_1d0) <= g_double_005ebc70 ||
             (g_light_update_flags_0060bfdc & 1) == 0) {
             if (firstChild() != 0) {
                 firstChild()->traverse(info);
             }
         } else if (m_definition_234 != 0) {
-            if (!testFlag(FLAG_POSITIONAL_2)) {
+            if (!testFlag(FLAG_GLOBAL)) {
                 srNode::TraverseInfo::Entry& entry = info.entries[info.entry_count];
                 entry.node = this;
                 entry.value = 1;
@@ -121,7 +121,7 @@ void stLight::traverse(srNode::TraverseInfo& info)
                 firstChild()->traverse(info);
             }
 
-            if (!testFlag(FLAG_POSITIONAL_2)) {
+            if (!testFlag(FLAG_GLOBAL)) {
                 srNode::TraverseInfo::Entry& entry = info.entries[info.entry_count];
                 entry.node = this;
                 entry.value = 2;
