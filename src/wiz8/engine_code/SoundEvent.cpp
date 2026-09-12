@@ -184,7 +184,14 @@ unsigned char W8SoundEvent::Play004D5A10(unsigned int mask, const srVector3T<flo
 
         rotation.SetIdentity();
         if ((double)angle != g_zero_005ebb40) {
-            rotation.RotateAboutY(sin(angle), cos(angle));
+            double cosine = cos(angle);
+            double sine = sin(angle);
+            srMatrix3T<float> camera_rotation;
+
+            camera_rotation.vectors[0] = srVector3T<float>(cosine, 0.0, sine);
+            camera_rotation.vectors[1] = srVector3T<float>(0.0, 1.0, 0.0);
+            camera_rotation.vectors[2] = srVector3T<float>(-sine, 0.0, cosine);
+            rotation.MultiplyBy(camera_rotation);
         }
 
         srVector3T<float> offset(position->x - camera_position.x, position->y - camera_position.y,

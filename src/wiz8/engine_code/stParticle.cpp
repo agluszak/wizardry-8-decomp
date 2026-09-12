@@ -441,7 +441,14 @@ void stParticle::Update00499FA0()
         transform.vectors[2].Set(rotation.vectors[2].x, rotation.vectors[2].y,
                                  rotation.vectors[2].z, 0.0f);
         transform.vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
-        transform.Invert();
+
+        srMatrix4T<float> inverse;
+        inverse.AdjugateFrom(&transform.vectors[0].x);
+        float determinant = transform.Det();
+        if (determinant != g_double_005ebc30) {
+            inverse.Scale(g_double_005ebc30 / determinant);
+        }
+        transform = inverse;
 
         srVector3T<float> node_location;
         getLocation(node_location);

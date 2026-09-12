@@ -691,7 +691,9 @@ void ApplyWorldCamPos(W8World* world, W8World* source, W8CamPos* state)
         if (!state) {
             srAssertFail("CamPos", THREE_D_API_CPP, 0x444, 0);
         }
-        position = state->position;
+        position.x = state->position.x;
+        position.y = state->position.y;
+        position.z = state->position.z;
         if (world->camera != 0) {
             render_position.x = position.x;
             render_position.y = position.y;
