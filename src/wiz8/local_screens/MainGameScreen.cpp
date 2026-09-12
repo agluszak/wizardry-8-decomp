@@ -1296,7 +1296,7 @@ void W8MainGameScreen::CastTrapSpell()
         return;
     }
     spell = CanCharacterCastSpell(&g_party_characters[slot], 0x12) != 0 ? 0x12 : 0x27;
-    m_action_controls_020[1]->SetEnabled(0);
+    m_action_controls_020[1]->SetAlternateTextEnabled(0);
     screen = g_main_game_screen;
     gXStatus.field_021 = 0;
     panel = screen->m_text_panel_00c;
@@ -1318,7 +1318,7 @@ void W8MainGameScreen::UseTrapItem()
     W8MainGameScreen* screen;
     W8MainGameTextPanel* panel;
 
-    m_action_controls_020[3]->SetEnabled(0);
+    m_action_controls_020[3]->SetAlternateTextEnabled(0);
     screen = g_main_game_screen;
     gXStatus.field_021 = 0;
     panel = screen->m_text_panel_00c;
