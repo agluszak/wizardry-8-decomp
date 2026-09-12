@@ -3,7 +3,8 @@
 #include "surrender/srCore.h"
 
 // FUNCTION: SURRENDER 0x1004a5a0
-srBounder::srBounder(srNode* parent) : srClassSupport(static_cast<srNode*>(0))
+srBounder::srBounder(srNode* parent)
+    : srClassSupport<srBounder, srNode, false, 0x1600>(static_cast<srNode*>(0))
 {
     srRegistry* registry = srCore.getRegistry();
     srRegistry::ClassNode* node = registry->getClassNode(0x1600);
