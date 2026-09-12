@@ -4280,18 +4280,11 @@ unsigned char MonsterReplacePath(W8Monster* monster, void* path)
 }
 
 /* Reset pitch, update the Navigator's facing, and rebuild the representation's
-   complete yaw/pitch/roll matrix.  The explicit vector and matrix operations
-   reproduce the ordinary SurRender math calls retained in this large body. */
+   complete yaw/pitch/roll matrix. */
 // FUNCTION: WIZ8 0x004c5b60
 void MonsterSetFacing004C5B60(W8Monster* monster, float angle)
 {
     srMatrix3T<float> rotation;
-    srMatrix3T<float> adjustment;
-    srVector3T<float> first;
-    srVector3T<float> second;
-    srVector3T<float> third;
-    double sine;
-    double cosine;
 
     if (monster == 0) {
         return;
@@ -4312,35 +4305,17 @@ void MonsterSetFacing004C5B60(W8Monster* monster, float angle)
 
     angle = NormalizeAngle(monster->GetYaw() + g_monster_rotation_offset_005ec04c);
     if ((double)angle != g_zero_005ebb40) {
-        cosine = cos((double)angle);
-        sine = sin((double)angle);
-        third.Set(-sine, 0.0, cosine);
-        second.Set(0.0, 1.0, 0.0);
-        first.Set(cosine, 0.0, sine);
-        adjustment.SetRows(first, second, third);
-        rotation.MultiplyBy(adjustment);
+        rotation.RotateAboutY(sin((double)angle), cos((double)angle));
     }
 
     angle = monster->GetPitch();
     if (angle != g_float_005ebb34 && (double)angle != g_zero_005ebb40) {
-        cosine = cos((double)angle);
-        sine = sin((double)angle);
-        third.Set(0.0, sine, cosine);
-        second.Set(0.0, cosine, -sine);
-        first.Set(1.0, 0.0, 0.0);
-        adjustment.SetRows(first, second, third);
-        rotation.MultiplyBy(adjustment);
+        rotation.RotateAboutX(sin((double)angle), cos((double)angle));
     }
 
     angle = monster->movement_0c0.roll_028;
     if (angle != g_float_005ebb34 && (double)angle != g_zero_005ebb40) {
-        cosine = cos((double)angle);
-        sine = sin((double)angle);
-        third.Set(0.0, 0.0, 1.0);
-        second.Set(sine, cosine, 0.0);
-        first.Set(cosine, -sine, 0.0);
-        adjustment.SetRows(first, second, third);
-        rotation.MultiplyBy(adjustment);
+        rotation.RotateAboutZ(sin((double)angle), cos((double)angle));
     }
 
     monster->m_pRep->SetRotation004B88D0(&rotation);
