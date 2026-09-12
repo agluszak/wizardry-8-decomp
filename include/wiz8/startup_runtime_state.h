@@ -34,6 +34,12 @@ struct W8StartupStateElement005EE748 {
 
     /* Returns this entry's formatted quote text in the shared wide buffer. */
     wchar_t* GetQuoteText(); /* 0x0052D240 */
+
+    /* 0x0052C910: true while the character still satisfies this event type. */
+    unsigned char CharacterEventConditionMet(unsigned int event_type);
+
+    /* 0x0052D260: play the quote voice line and install the end callback. */
+    unsigned char PlayEventSound();
 };
 
 static_assert(sizeof(W8StartupStateElement005EE748) == 0x38,
@@ -63,10 +69,12 @@ struct W8StartupRuntimeState {
     /* Restarts the follow-up clock for entries of the middle event band while
        the state flag selects it. QueueEntry reaches it for stolen entries. */
     void RestartFollowUpClock(W8StartupStateElement005EE748* entry);
+    /* 0x0052DC80: follow-up remap for a queued entry from another party slot. */
+    unsigned char FilterFollowUpQueuedEvent(W8StartupStateElement005EE748* entry);
+    /* 0x0052DDD0: drain deferred queues and dispatch the next character event. */
+    void ProcessQueuedCharacterEvents();
 };
 
 static_assert(sizeof(W8StartupRuntimeState) == 0x6c, "W8StartupRuntimeState_must_be_0x6c");
-
-extern W8StartupRuntimeState* g_startup_runtime_state;
 
 #endif
