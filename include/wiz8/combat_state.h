@@ -77,7 +77,7 @@ static_assert(sizeof(W8EffectSlot) == 0x11, "W8EffectSlot_must_be_0x11");
    header, not part of every row. Only the fields the fatigue, death and
    engagement paths touch are established. */
 struct W8CombatCharacterRow {
-    unsigned int value_00; /* 0x00: cleared when the character dies */
+    unsigned int phase; /* 0x00: combat phase; cleared when the character dies */
     unsigned char unknown_04[0x30];
     unsigned char flag_34; /* 0x34: raised when the character dies */
     unsigned char unknown_35[0x33];
@@ -175,5 +175,6 @@ int NormalizeAttackMode(int attack_mode);
 unsigned int ChooseAttackMode(unsigned int attack_modes);
 
 unsigned char CanCharReBreathe(int party_slot);
+void CatchUpCombatActor(W8CombatCharacterRow* row); /* 0x004ECEB0 */
 
 #endif

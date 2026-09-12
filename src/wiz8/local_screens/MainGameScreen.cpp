@@ -17,6 +17,7 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/npc_state.h"
 #include "wiz8/fact_state.h"
@@ -44,7 +45,6 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/local_screens/MGSUseItemSelect.h"
-#include "wiz8/xstatus.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/world_cursor.h"
 

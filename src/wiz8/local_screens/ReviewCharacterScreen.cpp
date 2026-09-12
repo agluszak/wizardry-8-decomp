@@ -787,7 +787,8 @@ void CampScreenFrame(void)
                             ActivateDialogRegion(0x138);
                         } else {
                             QueueCharacterEvent(g_camp_character_0069c100, g_effect_005ee6ec, 0,
-                                           g_effect_argument_005ed8cc, g_effect_argument_005ed914);
+                                                g_effect_argument_005ed8cc,
+                                                g_effect_argument_005ed914);
                         }
                     }
                 } else {

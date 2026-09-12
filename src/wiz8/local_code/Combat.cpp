@@ -9,10 +9,6 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/npc_interaction.h"
-// GLOBAL
-W8CombatState* g_combat_state;
-// GLOBAL: WIZ8 0x006850b0
-unsigned int g_combat_countdown_6850b0;
 #include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
@@ -38,9 +34,15 @@ unsigned int g_combat_countdown_6850b0;
 #include "timer.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/engine_code/Navigator.h"
+#include "wiz8/float_constants.h"
 
 #include <stdarg.h>
 #include <stdio.h>
+
+// GLOBAL: WIZ8 0x006836a8
+W8CombatState* g_combat_state;
+// GLOBAL: WIZ8 0x006850b0
+unsigned int g_combat_countdown_6850b0;
 
 /*
  * Local Code\Combat.cpp.
@@ -174,12 +176,12 @@ void BeginCombatRound(void)
    many rounds have passed since it last caught up, clamp it, and remember
    where it got to. */
 // FUNCTION: WIZ8 0x004eceb0
-void CatchUpCombatActor(unsigned int* actor)
+void CatchUpCombatActor(W8CombatCharacterRow* row)
 {
-    actor[0] += g_combat_state->round_counter - actor[0x27];
-    ClampUnsignedInteger(actor, g_combat_state->round_counter, 100);
-    RoundPhaseToStep(actor, g_combat_state->round_counter);
-    actor[0x27] = g_combat_state->round_counter;
+    row->phase += g_combat_state->round_counter - row->phase_clock_stamp;
+    ClampUnsignedInteger(&row->phase, g_combat_state->round_counter, 100);
+    RoundPhaseToStep(&row->phase, g_combat_state->round_counter);
+    row->phase_clock_stamp = g_combat_state->round_counter;
 }
 
 /* Whether one character can breathe again. The name is the Magic.cpp:5320
@@ -267,10 +269,8 @@ int PartyAvoidsSurprise(void)
 /* 0x004C62C0 */
 extern int g_effect_005ee610;
 extern unsigned int g_flee_hp_fraction_005ed8f8;
-extern unsigned int g_flee_chance_005ed908;
 // GLOBAL: WIZ8 0x005ed908
 unsigned int g_flee_chance_005ed908 = 15;
-extern float g_movement_speed_step_005ed490;
 // GLOBAL: WIZ8 0x005ed490
 float g_movement_speed_step_005ed490 = 0.009999999776482582f;
 /* 0x00683FE7-adjacent: the per-character per-hand attack values combat saved
@@ -301,7 +301,7 @@ int GetCharacterTurnValue(int party_slot)
         } else {
             value = g_saved_attack_values[party_slot * 0x35 + hand];
         }
-        if (row->value_00 == 100) {
+        if (row->phase == 100) {
             value = 1;
         }
         total += value;
@@ -687,9 +687,9 @@ void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail
         return;
     }
     if (action_detail != action_kind && g_combat_state->flag_000 != 0 && row->flag_34 == 0) {
-        row->value_00 += g_combat_state->round_counter - row->phase_clock_stamp;
-        ClampUnsignedInteger(&row->value_00, g_combat_state->round_counter, 100);
-        RoundPhaseToStep(&row->value_00, g_combat_state->round_counter);
+        row->phase += g_combat_state->round_counter - row->phase_clock_stamp;
+        ClampUnsignedInteger(&row->phase, g_combat_state->round_counter, 100);
+        RoundPhaseToStep(&row->phase, g_combat_state->round_counter);
         row->phase_clock_stamp = g_combat_state->round_counter;
     }
     RequestRedraw(1 << (party_slot & 0x1f));
