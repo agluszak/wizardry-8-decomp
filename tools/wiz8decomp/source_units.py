@@ -41,6 +41,7 @@ CATCH_ALL_NAMES = frozenset(
         "unattributed_helpers.cpp",
         "message_box.cpp",
         "monster_info_dialog.cpp",
+        "dialogbutton.cpp",
     }
 )
 

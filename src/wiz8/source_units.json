@@ -8,7 +8,6 @@
   "unresolved-fragment": [
     "src/wiz8/character_skills.cpp",
     "src/wiz8/dialog_code/DialogBase.cpp",
-    "src/wiz8/dialog_code/DialogButton.cpp",
     "src/wiz8/dialog_code/DialogFactoryDialogs.cpp",
     "src/wiz8/dialog_code/DialogScrollBar.cpp",
     "src/wiz8/dialog_code/DialogTextArea.cpp",

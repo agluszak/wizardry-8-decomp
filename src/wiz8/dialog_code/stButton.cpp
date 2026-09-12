@@ -11,11 +11,10 @@
 #include "mousesystem.h"
 #include "mousesystem_macros.h"
 
-/* Reconstructed logical owner; original translation-unit identity is unproven.
-   Live hull: only DialogButtonCallback at 0x005DB620 is Dialog Code\stButton.cpp.
-   The rest of this class (0x005DB1B0-0x005DB3E0 and neighbors) sits in the gap
-   between AssayDialog.cpp (upper 0x005D9460) and that one-address stButton hull.
-   Do not rename this file to stButton.cpp from an assertion-only singleton. */
+/* Dialog Code\stButton.cpp. The live hull is the singleton assertion at
+   0x005DB620 (DialogButtonCallback). The rest of W8DialogButton sits in the
+   gap between AssayDialog.cpp (upper 0x005D9460) and that hull; those methods
+   stay in this file so the class and the sources.cmake slot stay together. */
 
 // SYNTHETIC: WIZ8 0x005db210
 // W8DialogButton::`scalar deleting destructor'
