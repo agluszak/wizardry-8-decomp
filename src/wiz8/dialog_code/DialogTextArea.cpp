@@ -26,7 +26,7 @@ void W8DialogTextArea::SetFirstVisibleEntry(unsigned int index)
         m_first_visible_entry = index;
         m_first_visible_line = 0;
         m_relayout_needed = 1;
-        unknown_03d = 1;
+        m_dirty = 1;
     }
 }
 
@@ -54,7 +54,7 @@ void W8DialogTextArea::Configure(const W8ControlsRect* bounds, int font, unsigne
 void W8DialogTextArea::Draw(unsigned char force)
 {
     unsigned int font_height = GetFontHeight(m_font);
-    if (force || unknown_03d || unknown_03e) {
+    if (force || m_dirty || unknown_03e) {
         W8ControlsRect bounds;
         if (m_relayout_needed) {
             bounds.left = m_bounds.left;
@@ -69,10 +69,10 @@ void W8DialogTextArea::Draw(unsigned char force)
                 (*m_visible_lines_02c.GetAt(index))->SetLayoutBounds(&bounds, 0, 0);
                 bounds.top = bounds.bottom + m_entry_spacing;
             }
-            (*m_visible_lines_02c.GetAt(index))->Draw(force || unknown_03d);
+            (*m_visible_lines_02c.GetAt(index))->Draw(force || m_dirty);
         }
         m_relayout_needed = 0;
-        unknown_03d = 0;
+        m_dirty = 0;
         unknown_03e = 0;
     }
 }
@@ -99,7 +99,7 @@ void W8DialogTextArea::SetFirstVisibleLine(int requested_line)
                 m_first_visible_entry = index;
                 m_first_visible_line = line;
                 m_relayout_needed = 1;
-                unknown_03d = 1;
+                m_dirty = 1;
                 return;
             }
         }
@@ -352,7 +352,7 @@ void W8DialogTextArea::RemoveEntry(unsigned int index)
             SetFirstVisibleEntry(m_all_lines_01c.count - 1);
         }
         m_relayout_needed = 1;
-        unknown_03d = 1;
+        m_dirty = 1;
         RebuildVisibleEntries();
     }
 }
@@ -444,7 +444,7 @@ unsigned char W8DialogTextArea::ScrollDown(unsigned char check_only)
                     }
                 }
                 if (!check_only) {
-                    unknown_03d = 1;
+                    m_dirty = 1;
                     m_relayout_needed = 1;
                 }
                 return 1;
@@ -471,7 +471,7 @@ unsigned char W8DialogTextArea::ScrollUp(unsigned char check_only)
                 m_first_visible_line = text->m_lineCount - 1 + spacing;
             }
         }
-        unknown_03d = 1;
+        m_dirty = 1;
         m_relayout_needed = 1;
     }
     return 1;
@@ -491,7 +491,7 @@ W8DialogTextArea::W8DialogTextArea()
     m_first_visible_line = 0;
     m_font = 0;
     m_layout_initialized = 0;
-    unknown_03d = 0;
+    m_dirty = 0;
     unknown_03e = 0;
     m_entry_spacing = 0;
     m_behavior_flags = 0;

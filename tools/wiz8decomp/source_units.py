@@ -40,6 +40,7 @@ CATCH_ALL_NAMES = frozenset(
         "bringup_gates.cpp",
         "unattributed_helpers.cpp",
         "message_box.cpp",
+        "monster_info_dialog.cpp",
     }
 )
 

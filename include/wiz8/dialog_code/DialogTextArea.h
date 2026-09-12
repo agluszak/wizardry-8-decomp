@@ -53,7 +53,11 @@ private:
     W8GrowableVector<W8DialogTextEntry*> m_all_lines_01c; /* owns entries */
     W8GrowableVector<W8DialogTextEntry*> m_visible_lines_02c; /* non-owning view */
     unsigned char m_layout_initialized;                       /* 0x3c */
-    unsigned char unknown_03d;
+public:
+    /* Owning dialogs raise this before Draw, the same way they dirty the
+       contained button and scrollbar. */
+    unsigned char m_dirty; /* 0x3d */
+private:
     unsigned char unknown_03e;
     unsigned char unknown_03f;
     int m_entry_spacing;             /* 0x40 */
@@ -65,4 +69,5 @@ private:
     signed char m_category_filter;   /* 0x55 */
     unsigned char m_sorted;          /* 0x56 */
     unsigned char unknown_057;
-}; /* modeled minimum 0x58 */
+};
+static_assert(sizeof(W8DialogTextArea) == 0x58, "W8DialogTextArea_size");
