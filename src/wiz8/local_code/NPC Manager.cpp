@@ -258,7 +258,7 @@ W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc)
     if (!npc->is_grouped) {
         return 0;
     }
-    return &g_monster_manager_entries[npc->group_index];
+    return &gXStatus.monster_manager_entries[npc->group_index];
 }
 
 /* Whether an NPC would take one item in trade. The kind that trades in nothing
@@ -916,7 +916,7 @@ void UpdateNpcEvents0050D530(void)
                     } else {
                         int event = Random(2) == 0 ? 0x57 : 0x58;
                         QueueCharacterEvent(character, event, 0, g_effect_argument_005ed8c8,
-                                       g_effect_argument_005ed914);
+                                            g_effect_argument_005ed914);
                         npc_state->event_clock_eb = g_status_685170.world_clock;
                     }
                 }

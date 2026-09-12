@@ -1,4 +1,5 @@
 #include "wiz8/music_playlist.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/startup_runtime_state.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/fonts.h"
@@ -109,8 +110,8 @@ void GameLoop(void)
     }
     /* The original tests only the low byte of the vector count. Preserve that
        aliasing instead of widening the load to the field's full int type. */
-    if (*reinterpret_cast<const unsigned char*>(&g_startup_runtime_state->vector_40.count) != 0) {
-        g_startup_runtime_state->ProcessNextPendingEntry();
+    if (*reinterpret_cast<const unsigned char*>(&gXStatus.pStartupRuntime->vector_40.count) != 0) {
+        gXStatus.pStartupRuntime->ProcessNextPendingEntry();
         state = g_current_screen_state.id;
     }
     if (state != -1) {

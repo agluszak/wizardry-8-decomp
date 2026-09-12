@@ -18,6 +18,7 @@ unsigned char g_party_moving_006850b5;
 // GLOBAL: WIZ8 0x00685078
 unsigned char g_status_block_685078[56];
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/startup_runtime_state.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
@@ -47,9 +48,9 @@ extern void PostCharacterMessage(int party_slot, const W8WideChar* format, ...);
 /* The gStatus object owned by GameplayDatabase.cpp. */
 // GLOBAL: WIZ8 0x00685170
 W8GlobalStatus g_status_685170;
-/* The packed runtime status prefix named by the database and manager
-   assertions. Record arrays remain separate roots at their own addresses. */
-// GLOBAL: WIZ8 0x00683F78
+/* Packed gXStatus named by the database and manager assertions. Record
+   arrays remain separate roots at their own addresses. */
+// GLOBAL: WIZ8 0x006836B8
 W8XStatus gXStatus;
 /* Persistent database roots owned by this translation unit.  Leaving these as
    unresolved externals made the runnable image relocate every load/store to
@@ -446,7 +447,7 @@ void ResetPartySlotRow(int slot)
 void ResetGameplayStatusBlock(void)
 {
     memset(g_status_block_685078, 0, sizeof(g_status_block_685078));
-    g_startup_runtime_state->ClearOwnedEntries();
+    gXStatus.pStartupRuntime->ClearOwnedEntries();
     g_party_moving_006850b5 = 0;
     gXStatus.fSurprisePossible = 0;
 }
@@ -623,11 +624,11 @@ unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int u
 // FUNCTION: WIZ8 0x0054b0b0
 void DestroyGameplayObjects(void)
 {
-    W8StartupRuntimeState* owned = g_startup_runtime_state;
+    W8StartupRuntimeState* owned = gXStatus.pStartupRuntime;
 
     if (owned) {
         delete owned;
-        g_startup_runtime_state = 0;
+        gXStatus.pStartupRuntime = 0;
     }
     if (g_gameplay_timer_685067) {
         delete g_gameplay_timer_685067;
@@ -764,7 +765,7 @@ void ResetGameplaySettings(void)
 // FUNCTION: WIZ8 0x0054b300
 void ResetGameplaySlot(unsigned int slot)
 {
-    W8MonsterManagerEntry* record = &g_monster_manager_entries[slot];
+    W8MonsterManagerEntry* record = &gXStatus.monster_manager_entries[slot];
     int tier;
 
     memset(static_cast<void*>(record), 0, sizeof(W8MonsterManagerEntry));
@@ -813,30 +814,32 @@ void ResetGameplaySlot(unsigned int slot)
     record->field_0d2 = SetCountdownClock(0);
 }
 
-/* The static initializer constructs the manager's entries and vector before
-   this runs; the bulk reset below deliberately wipes them along with the
-   neighbouring runtime state. That matches retail exactly, including the
-   wiped container headers: every later use is non-virtual (Clear, GetCount,
-   direct teardown of a null backing store), so no reconstruction runs. */
-W8StartupRuntimeState* g_startup_runtime_state;
+/* The constructor for gXStatus runs before this; the bulk reset below
+   deliberately wipes that object along with the neighbouring runtime state.
+   That matches retail exactly, including the wiped container headers: every
+   later use is non-virtual (Clear, GetCount, direct teardown of a null
+   backing store), so no reconstruction runs. */
+// GLOBAL: WIZ8 0x00685067
 W8GameTimer* g_gameplay_timer_685067;
 
-/* The bulk reset below spans the entries array and its neighbours; see the
-   note at the function. */
+/* The bulk reset below spans gXStatus and its neighbours; see the note at
+   the function. */
 // FUNCTION: WIZ8 0x0054afd0
 void InitializeGameplayRuntimeObjects(void)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfortify-source"
-    /* Retail 0x0054AFD0 zeroes ECX=0x682 dwords plus 0x6C words from 0x006836B8:
-   a 0x1AE0-byte bulk reset spanning g_monster_manager_entries, gXStatus, the
-   targeting globals and further runtime state up to 0x00685098. That span is
-   a reset region, not one C++ object; the start address is the entries array.
-   Suppress only this diagnostic: the size argument deliberately exceeds the
-   array because retail clears the neighbours too. */
-    memset(static_cast<void*>(g_monster_manager_entries), 0, 0x1ae0);
+    /* Retail 0x0054AFD0 zeroes ECX=0x682 dwords from 0x006836B8, then one
+       STOSW: a 0x1A0A-byte bulk reset from gXStatus through neighbouring
+       runtime state up to 0x006850C2. That span is a reset region, not
+       sizeof(W8XStatus); the C++ object ends at 0x0068407F. The PUSH 0x6C
+       after STOSD is the operator-new size for W8StartupRuntimeState, not a
+       second store count. Suppress only this diagnostic: the size argument
+       deliberately exceeds the object because retail clears the neighbours
+       too. */
+    memset(static_cast<void*>(&gXStatus), 0, 0x1a0a);
 #pragma clang diagnostic pop
-    g_startup_runtime_state = new W8StartupRuntimeState();
+    gXStatus.pStartupRuntime = new W8StartupRuntimeState();
     g_gameplay_timer_685067 = new W8GameTimer(300.0f, 0);
 }
 

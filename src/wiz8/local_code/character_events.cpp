@@ -307,7 +307,7 @@ void W8StartupStateElement005EE748::Process0052CED0()
     unsigned char sound_was_active;
 
     party_slot = CharacterPointerToPartySlot(character_04);
-    slot = &g_monster_manager_entries[party_slot];
+    slot = &gXStatus.monster_manager_entries[party_slot];
     sound_was_active = slot->field_000;
     slot->field_071 = 0;
     if (sound_was_active != 0) {
@@ -370,7 +370,7 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
         return 0;
     }
     if (entry->type_08 > 0x91 && (entry->flags_10 & 0x20) == 0) {
-        W8MonsterManagerEntry* slot = &g_monster_manager_entries[party_slot];
+        W8MonsterManagerEntry* slot = &gXStatus.monster_manager_entries[party_slot];
         if (slot->field_071 != 0) {
             vector_40.Remove(slot->field_071);
             RestartFollowUpClock(slot->field_071);
@@ -433,7 +433,7 @@ W8StartupStateElement005EE748* QueueCharacterEvent(W8Character* character, int e
         value_2 = value_2 * 70 / 100;
     }
     entry = new W8StartupStateElement005EE748(character, effect, argument, value_1, value_2);
-    if (entry != 0 && g_startup_runtime_state->QueueEntry(entry) == 0) {
+    if (entry != 0 && gXStatus.pStartupRuntime->QueueEntry(entry) == 0) {
         return 0;
     }
     return entry;
@@ -482,7 +482,7 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
     }
     if (effect != -1 && QueueCharacterEvent(character, effect, 0, g_effect_argument_005ed8c8,
                                             g_effect_argument_005ed914) != 0) {
-        g_startup_runtime_state->SetEventCharacterMask(effect, party_slot, 1);
+        gXStatus.pStartupRuntime->SetEventCharacterMask(effect, party_slot, 1);
     }
 }
 
@@ -494,7 +494,7 @@ unsigned char PartyPortraitEventsIdle(void)
     W8PartySlotRow* row = g_status_685170.buffers.party_rows;
     const W8MonsterManagerEntry* current;
 
-    for (current = g_monster_manager_entries; current < &g_monster_manager_entries[8];
+    for (current = gXStatus.monster_manager_entries; current < &gXStatus.monster_manager_entries[8];
          ++current, ++row) {
         if (row->occupied != 0 && current->field_000 != 0) {
             return 0;
@@ -514,7 +514,7 @@ int UpdateCharacterEventState(void)
     int any_active = 0;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        W8MonsterManagerEntry* record = &g_monster_manager_entries[party_slot];
+        W8MonsterManagerEntry* record = &gXStatus.monster_manager_entries[party_slot];
         unsigned char sound_active = 0;
 
         if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
@@ -526,7 +526,7 @@ int UpdateCharacterEventState(void)
                     if (record->field_071 == 0) {
                         Function52F890(party_slot, 0, -1, 0, 1);
                     } else {
-                        g_startup_runtime_state->ProcessOwnedEntry(record->field_071);
+                        gXStatus.pStartupRuntime->ProcessOwnedEntry(record->field_071);
                     }
                 }
             } else {
@@ -539,7 +539,7 @@ int UpdateCharacterEventState(void)
             unsigned int scan;
             for (scan = 0; scan < 8; ++scan) {
                 if (g_status_685170.buffers.party_rows[scan].occupied != 0 &&
-                    g_monster_manager_entries[scan].field_000 != 0) {
+                    gXStatus.monster_manager_entries[scan].field_000 != 0) {
                     break;
                 }
             }
@@ -550,13 +550,13 @@ int UpdateCharacterEventState(void)
             W8Character* character = &g_status_685170.buffers.characters[party_slot];
             if ((character->highest_condition > 14 || character->hp_current == 0) &&
                 record->field_071 != 0) {
-                g_startup_runtime_state->ProcessOwnedEntry(record->field_071);
+                gXStatus.pStartupRuntime->ProcessOwnedEntry(record->field_071);
             }
             if (record->field_000 == 0) {
                 unsigned int scan;
                 for (scan = 0; scan < 8; ++scan) {
                     if (g_status_685170.buffers.party_rows[scan].occupied != 0 &&
-                        g_monster_manager_entries[scan].field_000 != 0) {
+                        gXStatus.monster_manager_entries[scan].field_000 != 0) {
                         break;
                     }
                 }
