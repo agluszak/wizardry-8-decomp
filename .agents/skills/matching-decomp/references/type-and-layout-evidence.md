@@ -61,9 +61,19 @@ uv run wiz8 diagnostics
 
 `lint` is the structural clang-cl compile lane: use it for incompatible declarations, conversions,
 overrides, and related source-model problems. `diagnostics` emits additional non-gating recovery
-diagnostics. Use them when those questions matter, not for every exact body. Retail instructions,
-call sites, and accepted source decide which side is wrong; do not silence diagnostics with
+diagnostics. Cross-TU external declaration consistency is owned by the compiler-backed source-index
+writer, which `uv run wiz8 check` runs and selected `uv run wiz8 compare ...` refreshes before
+selection. Do not run `uv run wiz8 analyze source-index` as a generic preflight; use it only when the
+projection itself needs inspection or debugging.
+
+Use these checks when those questions matter, not for every exact body. Retail instructions, call
+sites, and accepted source decide which side is wrong; do not silence diagnostics with
 `reinterpret_cast`. A same-type cast that clang-tidy reports as redundant means the canonical
 type already agrees: delete the cast rather than leaving a conversion that no longer converts.
-Do not skip gating diagnostics as pre-existing. Validate the affected ABI bundle when
-declaration/layout changes reach callers.
+Do not skip gating diagnostics as pre-existing.
+
+For a proven vendor or external ABI construct, layout evidence still outranks a warning. Preserve
+required packing/calling-convention behavior and use the narrowest local diagnostic suppression when
+necessary; do not remove `#pragma pack`, invent a thunk, or weaken the global lint profile merely to
+make the warning disappear. Validate the affected ABI bundle when declaration/layout changes reach
+callers.
