@@ -2,6 +2,7 @@
 
 #include "srVertexProcessor.h"
 
+// VTABLE: SURRENDER 0x10076c68 srEnvironmentMapper
 class SR_DLL_IMPORT srEnvironmentMapper : public srVertexProcessor {
 public:
     srEnvironmentMapper();

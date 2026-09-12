@@ -31,6 +31,7 @@ static_assert(sizeof(srVertexArray) == 0x20, "srVertexArray_must_be_0x20");
    interface has no data beyond its vptr. The 0x2c-byte tail previously placed
    here belongs to srIlluminator, whose secondary base starts at +0x138. */
 #pragma pack(push, 4)
+// VTABLE: SURRENDER 0x10076c74 srVertexProcessor
 class srVertexProcessor {
 public:
     struct MaterialInfo {

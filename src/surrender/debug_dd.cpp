@@ -3,8 +3,6 @@
 // FUNCTION: SURRENDER 0x10016d60
 srDebugDD::~srDebugDD() {}
 
-srDD::~srDD() {}
-
 // FUNCTION: SURRENDER 0x10016cc0
 void srDebugDD::resetInternalStatistics()
 {

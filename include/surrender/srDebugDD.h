@@ -2,6 +2,7 @@
 
 #include "srDD.h"
 
+// VTABLE: SURRENDER 0x100765f0 srDebugDD
 class SR_DLL_IMPORT srDebugDD : public srDD {
 public:
     srDebugDD(srDD* device);

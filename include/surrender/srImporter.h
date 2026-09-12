@@ -40,6 +40,7 @@ public:
                                                const srSurfaceIOManager::ImportInfo& options) = 0;
 };
 
+// VTABLE: SURRENDER 0x10075530 srHierarchyIOManager
 class srHierarchyIOManager : public srIOManager {
 public:
     class ImportInfo {
@@ -74,6 +75,7 @@ public:
     HierarchyImporter() {}
 };
 
+// VTABLE: SURRENDER 0x10075534 srModelIOManager
 class srModelIOManager : public srIOManager {
 public:
     class ImportInfo {

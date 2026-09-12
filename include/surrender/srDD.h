@@ -97,3 +97,5 @@ public:
                             unsigned long count) = 0;
     virtual void setPolygonOffset(long offset) = 0;
 };
+
+inline srDD::~srDD() {}
