@@ -374,6 +374,22 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
     }
 }
 
+/* Occupied slots with field_000 set still have a portrait/voice record in
+   flight; trap-trigger follow-up waits until none of those are active. */
+// FUNCTION: WIZ8 0x0052E590
+unsigned char PartyPortraitEventsIdle(void)
+{
+    int slot;
+
+    for (slot = 0; slot < 8; ++slot) {
+        if (g_party_slot_rows[slot].occupied != 0 &&
+            g_monster_manager_entries[slot].field_000 != 0) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 /* Advance the eight character portrait/voice records. This is the complete
    per-frame state machine: it drains finished owned events, starts the
    incapacitation path when no record is active, advances facing and pose
