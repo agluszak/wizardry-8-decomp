@@ -244,6 +244,11 @@ template <class T> srVector4T<T>* srVector4T<T>::Set(T source_0, T source_1, T s
     return this;
 }
 
+template <class T> class srMatrix2T {
+public:
+    srVector2T<T> vectors[2];
+};
+
 template <class T> class srMatrix3T {
 public:
     srMatrix3T<T>* SetRows(const srVector3T<T>& first, const srVector3T<T>& second,
@@ -403,7 +408,13 @@ srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double sine, double cosine,
 
 template <class T> class srMatrix4T {
 public:
-    enum e_scaleType {};
+    /* classifyMatrix on the model-view stack writes these from the 3x3
+       column lengths. Original enumerator spellings are not in the binary. */
+    enum e_scaleType {
+        SCALE_TYPE_POSITIONAL_0 = 0, /* equal column lengths, all ~1 */
+        SCALE_TYPE_POSITIONAL_1 = 1, /* equal column lengths, not 1 */
+        SCALE_TYPE_POSITIONAL_2 = 2  /* unequal column lengths */
+    };
 
     srMatrix4T<T>* Invert();
     T* Scale(double scale);
@@ -551,7 +562,10 @@ float Det3(float param_1, float param_2, float param_3, float param_4, float par
    composes its authored local rotation/location/scale into this cached world
    transform and exports getWorldSpaceMatrix overloads for both this type and
    the homogeneous srMatrix4T expansion. Wiz8.exe itself only imports the
-   float 4x4 getter; the 4x3 form is the SurRender cache and SR.DLL API. */
+   float 4x4 getter; the 4x3 form is the SurRender cache and SR.DLL API.
+   getWorldSpaceMatrix memcpy's the 12-float / 12-double cache; pushMultMatrix
+   expands the affine multiply itself. No member functions appear in the
+   export table or those bodies. */
 template <class T> class srMatrix4x3T {
 public:
     srVector4T<T> rows[3];
@@ -559,6 +573,8 @@ public:
 
 static_assert(sizeof(srMatrix4x3T<float>) == 0x30, "srMatrix4x3T_float_must_be_0x30");
 static_assert(sizeof(srMatrix4x3T<double>) == 0x60, "srMatrix4x3T_double_must_be_0x60");
+static_assert(sizeof(srMatrix2T<float>) == 0x10, "srMatrix2T_float_must_be_0x10");
+static_assert(sizeof(srMatrix2T<double>) == 0x20, "srMatrix2T_double_must_be_0x20");
 
 class srVector2i {
 public:
@@ -572,3 +588,13 @@ public:
     int y;
     int z;
 };
+
+class srVector4i {
+public:
+    int x;
+    int y;
+    int z;
+    int w;
+};
+
+static_assert(sizeof(srVector4i) == 0x10, "srVector4i_must_be_0x10");
