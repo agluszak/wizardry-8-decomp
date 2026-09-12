@@ -53,15 +53,14 @@ struct W8WorldCameraEntry {
     W8PathAI* path;
 };
 
-/* The 0x3c-byte camera save/restore record. GetWorldCameraState at 0x00450610
-   and RestoreWorldCameraState at 0x004504b0 (3dapi.cpp:1087-1160) are still
-   unrecovered; assertions name pWorld and CamPos. The trailing 0x30 bytes are
-   two six-word angle records. W8SavedLocation is the same width with a leading
-   point, but no recovered producer copies one type onto the other, so they
-   stay distinct. */
+/* The 0x3c-byte CamPos record GetWorldCameraState writes and
+   RestoreWorldCameraState reads (3dapi.cpp, assertions pWorld / CamPos).
+   Two six-float records follow the point: pitch at +0x0c and yaw/angle at
+   +0x24. Recall stores this same object on the character at +0x17d7. */
 struct W8WorldCameraState {
     srVector3T<float> position;
-    unsigned char angle_records[0x30];
+    float pitch[6];
+    float yaw[6];
 };
 static_assert(sizeof(W8WorldCameraState) == 0x3c, "W8WorldCameraState_size");
 
@@ -140,7 +139,8 @@ double WorldGetFarClip(W8World* world);
 void WorldSetFarClip(W8World* world, float distance);
 void WorldSetValue74(W8World* world, float value);
 void GetWorldCameraState(W8World* world, W8WorldCameraState* state);
-void RestoreWorldCameraState(W8World* world, int mode, const W8WorldCameraState* state);
+void SetWorldCameraState(W8World* world, W8World* source_world, W8WorldCameraState* state);
+void RestoreWorldCameraState(W8World* world, W8World* source_world, W8WorldCameraState* state);
 void UpdateWorldMesh004BAF60(W8World* world);
 void WorldGetCameraRotation(W8World* world, srMatrix3T<float>* rotation);
 void WorldGetCameraLocation(W8World* world, srVector3T<float>* location);

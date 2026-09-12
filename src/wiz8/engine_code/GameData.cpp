@@ -279,6 +279,8 @@ void ResetLevelDataVectors0041F0D0(void)
 unsigned char g_flag_00652da7;
 // GLOBAL: WIZ8 0x005ebc18
 const double g_double_005ebc18 = 3.141592653589793;
+// GLOBAL: WIZ8 0x005ebcf0
+const float g_float_005ebcf0 = 57.295784f;
 // GLOBAL: WIZ8 0x00652940
 float g_origin_652940[3] = {0.0f, 0.0f, 0.0f};
 
@@ -315,10 +317,22 @@ srCamera* CreateOrSetGameCamera(srNode* parent, srCamera* camera)
     return g_gd_camera_65a0f8->CreateOrAttachCamera(parent, camera);
 }
 
+// FUNCTION: WIZ8 0x00420DC0
+float GetCameraYawInDegrees()
+{
+    return g_gd_camera_65a0f8->m_yaw * g_float_005ebcf0;
+}
+
 // FUNCTION: WIZ8 0x00420DD0
 float GetCameraYawRadians()
 {
     return g_gd_camera_65a0f8->m_yaw;
+}
+
+// FUNCTION: WIZ8 0x00420DE0
+float GetCameraPitchInDegrees()
+{
+    return g_gd_camera_65a0f8->m_pitch * g_float_005ebcf0;
 }
 
 // FUNCTION: WIZ8 0x00420DF0
@@ -371,6 +385,24 @@ void ApplyCameraRotation(srMatrix3T<float>* rotation)
 void GetCameraPosition(srVector3T<float>* position)
 {
     *position = g_gd_camera_65a0f8->m_position_08c;
+}
+
+/* Zero the two six-float CamPos angle records, then store the live yaw in the
+   first and the live pitch in the second. GetWorldCameraState passes the yaw
+   record at +0x24 as angle and the pitch record at +0x0c as pitch. */
+// FUNCTION: WIZ8 0x004213A0
+void GetCameraOrientation(float* angle, float* pitch)
+{
+    int i;
+
+    for (i = 0; i < 6; ++i) {
+        angle[i] = 0.0f;
+    }
+    for (i = 0; i < 6; ++i) {
+        pitch[i] = 0.0f;
+    }
+    *angle = g_gd_camera_65a0f8->m_yaw;
+    *pitch = g_gd_camera_65a0f8->m_pitch;
 }
 
 // FUNCTION: WIZ8 0x004213E0
