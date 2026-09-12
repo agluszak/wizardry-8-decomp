@@ -13,7 +13,7 @@
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/local_screens/mipe.h"
-#include "wiz8/targeting.h"
+#include "wiz8/local_code/Targeting.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GDCamera.h"
@@ -32,6 +32,7 @@
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Navigator.h"
+#include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/GameplayCode.h"
@@ -59,7 +60,7 @@
 #include "Types.h"
 #include "mousesystem.h"
 #include "surrender/srTypeRegistry.h"
-#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/3dapi.h"
 #include "wiz8/local_code/ItemManager.h"
 #include "wiz8/local_screens/MGSPartyMovement.h"
@@ -83,7 +84,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 
 /*
  * Local Screens\MainGameScreen.cpp.

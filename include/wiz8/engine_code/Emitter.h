@@ -1,7 +1,7 @@
 #ifndef WIZ8_ENGINE_CODE_EMITTER_H
 #define WIZ8_ENGINE_CODE_EMITTER_H
 
-#include "wiz8/engine_code/AnimRep.h"
+#include "wiz8/engine_code/AnimRep.hpp"
 
 struct W8AniMesh;
 struct W8AnimObj;

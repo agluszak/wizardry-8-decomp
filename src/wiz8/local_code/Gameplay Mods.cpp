@@ -3,7 +3,7 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/float_constants.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/xstatus.h"

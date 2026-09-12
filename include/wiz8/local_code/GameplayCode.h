@@ -22,3 +22,10 @@ int AddCharacterToParty(W8Character* character, int slot);
 void Function4EF610(int party_slot, int value);
 
 void Function4EEF10(int value, int mode); /* 0x004EEF10 */
+bool IsCharacterReadyToAdvance(int party_slot);
+void CalcXPGoal(W8Character* character);
+void DeriveCharacterPersonality004EFA30(W8Character* character);
+/* Rerolls personality_0081/voice_0085 until no party member shares the
+   character's gender/personality/voice pick. */
+void EnsureUniquePartyVoice004EFAD0(W8Character* character); /* 0x004EFAD0 */
+unsigned int GetAveragePartyLevel(void);                     /* 0x004EF420 */

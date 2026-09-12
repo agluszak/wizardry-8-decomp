@@ -1,4 +1,4 @@
-#include "wiz8/engine_code/AnimRep.h"
+#include "wiz8/engine_code/AnimRep.hpp"
 #include "surrender/srTimer.h"
 #include "wiz8/engine_code/Emitter.h"
 #include "wiz8/engine_code/game_timer.h"

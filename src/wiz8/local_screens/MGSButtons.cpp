@@ -3,7 +3,7 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/dialog_code/DialogButton.h"
 #include "wiz8/fonts.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/Controls.h"
@@ -16,7 +16,7 @@
 #include "wiz8/magic.h"
 #include "wiz8/regions.h"
 #include "wiz8/sr_api.h"
-#include "wiz8/targeting.h"
+#include "wiz8/local_code/Targeting.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/xstatus.h"
 

@@ -6,7 +6,7 @@
 #include "wiz8/npc_interaction.h"
 #include "wiz8/sr_api.h"
 #include "random.h"
-#include "wiz8/targeting.h"
+#include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/CombatRange.h"
@@ -31,7 +31,7 @@
 
 #include <string.h>
 #include "wiz8/character_skills.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 
 /*
  * Local Code\Combat Attack.cpp.

@@ -1,7 +1,7 @@
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_screens/MGSUseItemSelect.h"
-#include "wiz8/targeting.h"
+#include "wiz8/local_code/Targeting.h"
 // GLOBAL: WIZ8 0x0069b998
 Controls* g_panel_69b998;
 // GLOBAL: WIZ8 0x0069b988

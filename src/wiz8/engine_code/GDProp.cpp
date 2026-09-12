@@ -4,7 +4,7 @@
 #include "wiz8/engine_code/GDProp.h"
 #include "wiz8/engine_code/OctPath.h"
 #include "wiz8/engine_code/Octree.h"
-#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/float_constants.h"
 // GLOBAL: WIZ8 0x005ebccc
 float g_float_005ebccc = 0.75f;

@@ -1,6 +1,6 @@
 #include "wiz8/local_code/Search.h"
 
-#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/sr_api.h"
 
 /* Local Code\search.cpp. The assertion in RegisterSearchableTrigger at source

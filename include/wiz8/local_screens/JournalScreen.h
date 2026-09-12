@@ -48,3 +48,8 @@ void InitializeFactJournal(void);
 /* 0x005588F0: append one changed fact to the journal and, unless notices are
    suppressed, post the fact's own journal entry. */
 void RecordFactChangeForJournal(int fact_id);
+unsigned char JournalScreenInitialize(void);
+unsigned char JournalScreenEnter(void);
+void JournalScreenFrame(void);
+unsigned char JournalScreenLeave(int leaving);
+unsigned char JournalScreenFinalize(void);

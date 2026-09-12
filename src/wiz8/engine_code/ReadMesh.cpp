@@ -9,6 +9,7 @@
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/local_screens/PleaseWaitScreen.h"
 #include "wiz8/virtual_file.h"
 #include "wiz8/vector.h"
 
