@@ -55,7 +55,6 @@ symbol
 ?BearingBetween@@YAMABV?$srVector3T@M@@0@Z
 ?BeginLevelTransition@@YAXXZ
 ?BindCharacterItems@@YAXHH@Z
-?BitArrayLoad0043AEC0@@YAEPAVBitArray@@H@Z
 ?BuildLevelStatusPath@@YAXPADH@Z
 ?BuildPreprocessedFiles00492E60@@YADPBD@Z
 ?CalcArmorClasses@@YAXPAUW8Character@@@Z

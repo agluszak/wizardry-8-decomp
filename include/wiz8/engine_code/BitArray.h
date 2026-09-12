@@ -30,6 +30,7 @@ public:
     /* Copy another array's bits and count into this one, sizing the source to
        this one's bit count first. */
     void CopyFrom(BitArray& other); /* 0x0043AE80 */
+    unsigned char Load(int handle); /* 0x0043AEC0 */
 
     /* Raise one bit. Answers whether it was already up; a bit past the end is
        refused rather than grown into. */
@@ -77,7 +78,5 @@ public:
 #pragma pack(pop)
 
 enum { W8_BITS_PER_WORD = 32 };
-
-unsigned char BitArrayLoad0043AEC0(BitArray* bits, int handle);
 
 #endif
