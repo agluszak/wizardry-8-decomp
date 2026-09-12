@@ -7,6 +7,7 @@
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/magic.h"
 #include "wiz8/spell_effect.h"
+#include "wiz8/engine_code/SpellVisual.h"
 #include "wiz8/sr_api.h"
 #include "random.h"
 #include "wiz8/local_code/MonsterAI.h"
@@ -35,7 +36,6 @@ enum { W8_AI_SPELL_PLACE = 0x77 };
 /* The monster action kinds the AI validates. */
 enum { W8_MONSTER_ACTION_ATTACK = 0, W8_MONSTER_ACTION_SPELL = 2, W8_MONSTER_ACTION_FLEE = 3 };
 
-struct W8SpellEffectEntry;
 /* 0x0061EEFC: two dwords per AI kind; only the leading dword is read here. */
 // GLOBAL: WIZ8 0x0061EEFC
 extern const int g_ai_kind_table[32][2] = {
@@ -207,19 +207,18 @@ float GetGroupNearestDistance(W8MonsterGroup* group, float furthest)
 short IsMonsterControlPointInRange(W8MonsterInfo* monster_info)
 {
     W8SpellEffectEntry* effect = FindMonsterControlSpellEffect();
-    void** anchor;
+    W8SpellVisual* anchor;
     short in_range;
     srVector3T<float> party;
 
     if (effect == 0) {
         return 0;
     }
-    anchor = *(void***)((char*)effect + 0x10c);
-    if (*anchor == 0) {
+    anchor = effect->effects.data[0];
+    if (anchor == 0) {
         return 0;
     }
-    W8Navigator* anchor_navigator =
-        reinterpret_cast<W8Navigator*>(static_cast<char*>(*anchor) + 0x18);
+    W8Navigator* anchor_navigator = static_cast<W8Navigator*>(anchor);
     in_range =
         monster_info->monster->SetMovementTargetToNavigator004526C0(anchor_navigator, 2500.0);
     if (in_range == 0) {
