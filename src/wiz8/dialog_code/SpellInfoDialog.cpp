@@ -173,19 +173,10 @@ unsigned char W8SpellInfoDialog::PopulateText()
 
     record = &g_spell_records[m_spell_054];
     text[0] = L'\0';
-    spellbook_mask = 0;
-    if (record->wizardry_spell != 0) {
-        spellbook_mask |= W8_SPELLBOOK_WIZARDRY;
-    }
-    if (record->divinity_spell != 0) {
-        spellbook_mask |= W8_SPELLBOOK_DIVINITY;
-    }
-    if (record->alchemy_spell != 0) {
-        spellbook_mask |= W8_SPELLBOOK_ALCHEMY;
-    }
-    if (record->psionics_spell != 0) {
-        spellbook_mask |= W8_SPELLBOOK_PSIONICS;
-    }
+    spellbook_mask = (unsigned int)(record->wizardry_spell != 0) |
+                     (record->divinity_spell != 0 ? W8_SPELLBOOK_DIVINITY : W8_SPELLBOOK_NONE) |
+                     (record->alchemy_spell != 0 ? W8_SPELLBOOK_ALCHEMY : W8_SPELLBOOK_NONE) |
+                     (record->psionics_spell != 0 ? W8_SPELLBOOK_PSIONICS : W8_SPELLBOOK_NONE);
     count = 0;
     for (book = 0; book < 4; ++book) {
         if ((spellbook_mask & (1 << book)) != 0) {
