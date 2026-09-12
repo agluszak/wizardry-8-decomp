@@ -114,7 +114,10 @@ struct W8GlobalStatus {
     unsigned char unknown_248b[8];
     int value_2493;
     unsigned char flag_2497;
-    unsigned char unknown_2498[0xc88];
+    unsigned char unknown_2498[4];
+    /* 0x249c: party slot fact 0x39 hands to RemoveCharacterCondition. */
+    int party_slot_249c;
+    unsigned char unknown_24a0[0xc80];
     unsigned char log_fact_checks_3120;
     /* 0x3121 (ABS 0x688291): 1000 consecutive dwords. EndCombat walks exactly
        this run flipping 1 -> 2; the extent is representation-proven even
@@ -134,7 +137,8 @@ struct W8GlobalStatus {
     unsigned char unknown_497b[0x10];
     /* 0x498b: NPC group event counter, cleared once the group event runs. */
     int value_498b;
-    unsigned char unknown_498f[8];
+    int value_498f;
+    int value_4993;
     unsigned int text_box_lines_used_4997[4];
     unsigned int text_box_lines_shown_49a7[4];
     /* 0x49b7: world-clock stamp the 0x49bb reward event compares against. */
@@ -187,6 +191,11 @@ static_assert(offsetof(W8GlobalStatus, text_box_lines_used_4997) == 0x4997,
               "W8GlobalStatus_migrated_values_offset");
 static_assert(offsetof(W8GlobalStatus, flag_2489) == 0x2489, "W8GlobalStatus_flag_2489_offset");
 static_assert(offsetof(W8GlobalStatus, flag_40c1) == 0x40c1, "W8GlobalStatus_flag_40c1_offset");
+static_assert(offsetof(W8GlobalStatus, value_498b) == 0x498b, "W8GlobalStatus_value_498b_offset");
+static_assert(offsetof(W8GlobalStatus, value_498f) == 0x498f, "W8GlobalStatus_value_498f_offset");
+static_assert(offsetof(W8GlobalStatus, value_4993) == 0x4993, "W8GlobalStatus_value_4993_offset");
+static_assert(offsetof(W8GlobalStatus, party_slot_249c) == 0x249c,
+              "W8GlobalStatus_party_slot_249c_offset");
 static_assert(offsetof(W8GlobalStatus, value_423d) == 0x423d, "W8GlobalStatus_value_423d_offset");
 static_assert(sizeof(W8GlobalStatus) == 0x49c2, "W8GlobalStatus_must_be_0x49c2");
 

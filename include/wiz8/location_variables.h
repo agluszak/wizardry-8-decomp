@@ -8,3 +8,5 @@ extern W8GrowableVector<int> g_location_variable_values_00659990;
 
 int GetLocationVarIDByName(const char* name);
 void SetTriggerVariableByName00444030(const char* name, int value);
+void CreateLocationVar(const char* name, int value); /* 0x00443DC0 */
+int GetLocationVarValueByName(const char* name);     /* 0x004440D0 */

@@ -83,8 +83,6 @@ W8GrowableVector<int> g_location_variable_values_00659990;
 
 // GLOBAL: WIZ8 0x00606994
 unsigned char g_flag_00606994 = 1;
-extern unsigned char FindEntityByName(const char* name, srVector3T<float>* position,
-                                      int* location_id, srVector3T<float>* direction);
 extern void RequestLevelTransition005615F0(int location_id, int entrance,
                                            unsigned char show_message);
 

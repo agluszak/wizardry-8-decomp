@@ -73,8 +73,6 @@ int g_value_659c14;
 #include <stdio.h>
 #include <math.h>
 
-extern unsigned char FindEntityByName(const char* name, srVector3T<float>* position, int* value,
-                                      srVector3T<float>* direction);
 extern const float g_monster_rotation_offset_005ec04c;
 // GLOBAL: WIZ8 0x005ebcf8
 const float g_float_005ebcf8 = 0.0055555556900799274f;

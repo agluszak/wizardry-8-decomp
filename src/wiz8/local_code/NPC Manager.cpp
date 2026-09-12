@@ -25,11 +25,10 @@
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/engine_code/World.h"
 
 #include <stdio.h>
 
-extern unsigned char FindEntityByName(const char* name, srVector3T<float>* position, int* value,
-                                      srVector3T<float>* direction);
 unsigned char Function50F1A0(unsigned int monster_species, int count, srVector3T<float>* position,
                              int a, int b, int c);
 
@@ -259,6 +258,19 @@ W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc)
         return 0;
     }
     return &g_monster_manager_entries[npc->group_index];
+}
+
+/* The party character occupying this NPC's group slot. */
+// FUNCTION: WIZ8 0x0050b8b0
+W8Character* GetNpcGroupCharacter(W8NpcState* npc)
+{
+    if (npc->record->has_group == 0) {
+        return 0;
+    }
+    if (!npc->is_grouped) {
+        return 0;
+    }
+    return &g_status_685170.buffers.characters[npc->group_index];
 }
 
 /* Whether an NPC would take one item in trade. The kind that trades in nothing

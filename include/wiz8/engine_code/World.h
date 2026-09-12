@@ -146,6 +146,8 @@ void WorldGetCameraLocation(W8World* world, srVector3T<float>* location);
 void WorldGetCameraLocation00451160(W8World* world, srVector3T<float>* location);
 void SetWorldScenePosition004511D0(W8World* world, const srVector3T<float>* position);
 stParticle* FindParticleByName(W8World* world, const char* name);
+unsigned char FindEntityByName(const char* name, srVector3T<float>* position, int* location_id,
+                               srVector3T<float>* direction);
 stLight* CreateLight0046DF90(srNode* parent, const char* name);
 stLight* CreateWorldLight0046E030(W8World* world, const char* name);
 stLight* CreateWorldLight0046E140(W8World* world, const char* name);
