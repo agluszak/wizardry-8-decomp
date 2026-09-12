@@ -983,7 +983,7 @@ unsigned char MainGameScreenLeave(int leaving)
         Function5187E0();
     } else if (g_main_game_mode_0068eddc == 6) {
         if (g_level_block->dialogue_owner != 0) {
-            ReleaseRendererObject004257F0(g_level_block->dialogue_owner);
+            ReleaseObject004257F0(g_level_block->dialogue_owner);
             g_level_block->dialogue_owner = 0;
         }
         Function563DD0();

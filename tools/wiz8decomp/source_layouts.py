@@ -1,18 +1,18 @@
-"""Run and compare focused source-layout audits against live Ghidra types."""
+"""Run a focused on-demand source-layout audit against live Ghidra types.
+
+The audit reports current PDB-to-Ghidra disagreements. It does not keep a
+committed failure baseline: source and Ghidra evolve together, and a ratchet
+of tolerated mismatches becomes a parallel inventory of the source model.
+"""
 
 from __future__ import annotations
 
-import csv
 import hashlib
-import io
 import json
 from pathlib import Path
 from typing import Any
 
-from .paths import atomic_json, atomic_write
-
-BASELINE_COLUMNS = ("kind", "class", "field", "expected", "actual")
-DEFAULT_BASELINE = Path("config/verification/source-layout-baseline.csv")
+from .paths import atomic_json
 
 
 def verify_source_layouts(settings: Any, pdb: Path | None = None) -> dict[str, Any]:
@@ -75,15 +75,6 @@ def verify_source_layouts(settings: Any, pdb: Path | None = None) -> dict[str, A
     return report
 
 
-def require_source_layouts(report: dict[str, Any]) -> dict[str, Any]:
-    if not report["ok"]:
-        raise ValueError(
-            f"compiled source layout differs at {report['failure_count']} checks; "
-            f"see {report['report']}"
-        )
-    return report
-
-
 def _stable_value(value: Any) -> str:
     if value is None:
         return ""
@@ -115,41 +106,3 @@ def layout_failure_key(failure: dict[str, Any]) -> tuple[str, str, str, str, str
         normalized["expected"],
         normalized["actual"],
     )
-
-
-def load_source_layout_baseline(path: Path) -> dict[str, Any]:
-    if not path.is_file():
-        raise ValueError(
-            f"source-layout baseline does not exist: {path}; "
-            "run wiz8 analyze source-layouts --write-baseline once on reviewed main"
-        )
-    with path.open(newline="", encoding="utf-8") as stream:
-        rows = list(csv.DictReader(stream))
-    return {
-        "schema": "wiz8.source-layout-baseline",
-        "failure_count": len(rows),
-        "failures": rows,
-    }
-
-
-def write_source_layout_baseline(path: Path, report: dict[str, Any]) -> dict[str, Any]:
-    """Initialize a baseline or ratchet an existing one strictly downward."""
-
-    normalized = sorted(
-        (normalize_layout_failure(item) for item in report["failures"]),
-        key=layout_failure_key,
-    )
-    if path.is_file():
-        previous = load_source_layout_baseline(path)
-        previous_keys = {layout_failure_key(item) for item in previous["failures"]}
-        additions = [item for item in normalized if layout_failure_key(item) not in previous_keys]
-        if additions:
-            raise ValueError(
-                f"refusing to add {len(additions)} failures to the source-layout baseline"
-            )
-    output = io.StringIO(newline="")
-    writer = csv.DictWriter(output, fieldnames=BASELINE_COLUMNS, lineterminator="\n")
-    writer.writeheader()
-    writer.writerows(normalized)  # pyright: ignore[reportArgumentType]
-    atomic_write(path, output.getvalue())
-    return {"baseline": str(path), "failure_count": len(normalized)}

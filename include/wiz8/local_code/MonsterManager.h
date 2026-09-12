@@ -1,7 +1,7 @@
-#include "wiz8/text_types.h"
 #ifndef WIZ8_LOCAL_CODE_MONSTER_MANAGER_H
 #define WIZ8_LOCAL_CODE_MONSTER_MANAGER_H
 
+#include "wiz8/text_types.h"
 #include <stddef.h>
 
 #include "surrender/srMath.h"

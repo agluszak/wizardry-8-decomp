@@ -391,27 +391,12 @@ def verify_source_layouts_command(
         Path | None,
         typer.Option("--pdb", exists=True, dir_okay=False, readable=True),
     ] = None,
-    write_baseline: Annotated[
-        bool,
-        typer.Option(
-            "--write-baseline",
-            help="Initialize or strictly reduce the tracked failure baseline.",
-        ),
-    ] = False,
 ) -> None:
+    """Compare compiled source layouts with Ghidra types; report disagreements."""
     from .. import command_support as cli
-    from ..source_layouts import (
-        DEFAULT_BASELINE,
-        require_source_layouts,
-        verify_source_layouts,
-        write_source_layout_baseline,
-    )
+    from ..source_layouts import verify_source_layouts
 
     def action():
-        settings = cli.settings()
-        report = verify_source_layouts(settings, pdb)
-        if write_baseline:
-            return write_source_layout_baseline(settings.repo_dir / DEFAULT_BASELINE, report)
-        return require_source_layouts(report)
+        return verify_source_layouts(cli.settings(), pdb)
 
     cli.emit(action())

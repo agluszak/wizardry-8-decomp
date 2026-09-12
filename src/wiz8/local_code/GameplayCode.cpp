@@ -140,7 +140,7 @@ void AdvanceCharacterToLevel(W8Character* character, unsigned int level)
 }
 
 /* The next level's goal: the goal the previous level had plus the profession's
-   weight, doubled for every level up to ten and grown ten percent per level
+   weight, doubled for every level up to ten and grown twenty percent per level
    above it. */
 // FUNCTION: WIZ8 0x004ef090
 void CalcXPGoal(W8Character* character)
@@ -197,11 +197,9 @@ void CalcXPGoal(W8Character* character)
         return;
     }
     value = IntegerPower(2, 8) * weight;
-    unsigned int current = 10;
-    do {
+    for (unsigned int current = 10; current < character->level; ++current) {
         value = value * 12 / 10;
-        ++current;
-    } while (current < character->level);
+    }
     character->experience_goal = character->experience_previous_goal + value;
 }
 

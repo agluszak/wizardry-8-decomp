@@ -269,24 +269,27 @@ warnings report-only there and promotes them to errors only in the gating lane.
 The same Clang projection feeds `build/source-index.json`. Index targets
 derive from every reccmp target with a `source-root` that has compile-database
 coverage, so the first-party JPEG and UnZip sources are indexed alongside
-`WIZ8` and `SURRENDER`. Each target is its own link namespace, so collection
-is partitioned by source root with a separate cache: the same unmangled
-symbol may legitimately be defined in several binaries (both extension DLLs
-define `DllMain` as `_DllMain@12`), and one shared collector would keep only
-one of those definitions and leave the other target's marker unbound.
-External vendor translation units (`/zlib`, `/infozip`) are not collected
-standalone: their headers are already parsed through the first-party units
-that include them. Each namespace fingerprints only the include directories
-its own compile commands reference, so a `src/wiz8` edit does not invalidate
-the SURRENDER or extension caches, and the compiled Clang collector is built
-once and reused across the per-namespace caches.
+`WIZ8` and `SURRENDER`. Collection is one native reccmp call: the indexer
+parses each wanted translation unit once, caches that Clang NDJSON per TU, and
+derives per-target winners after partitioning by link namespace. The same
+unmangled symbol may legitimately be defined in several binaries (both
+extension DLLs define `DllMain` as `_DllMain@12`); namespace tags on the
+records keep those definitions distinct. External vendor translation units
+(`/zlib`, `/infozip`) are not collected standalone: their headers are already
+parsed through the first-party units that include them.
+
+The lint compile database still names the analysis-image mounts (`/repo`,
+`/out`, vendor trees). `write_source_index` rewrites those paths onto the host
+and, when the process is not already inside the image, runs reccmp's indexer
+binary there so clang-cl and the MSVC headers remain visible.
 
 C++ mangling already encodes the complete type, so divergent C++ declarations
 cannot share a symbol. The reccmp indexer records variable declarations with
 canonical type, linkage, and definition kind alongside function linkage, and
 retains every distinct spelling it saw per identity. The cross-TU consistency
-gate (`validate_cross_tu_declarations`) runs over those records, including
-variable declarations and the `extern T[]` vs `T[N]` compatibility rule.
+gate over those records (`validate_cross_tu_declarations`) treats incomplete
+versus complete array extents (`extern T g[]` completed by `T g[N]`) as the
+same array.
 
 The lint lane itself runs on the trixie image with LLVM 19, and the
 clang-tidy profile includes `readability-redundant-casting`,
@@ -313,7 +316,8 @@ Use the authoritative surfaces instead:
   source-owned model;
 - `uv run wiz8 report context 0x<address> --program <program>` for joined identity, ownership,
   assertion, and current Ghidra evidence;
-- `uv run wiz8 analyze source-layouts` for the current PDB-to-Ghidra layout audit;
+- `uv run wiz8 analyze source-layouts` for an on-demand PDB-to-Ghidra layout comparison;
+  it reports current disagreements and does not keep a committed failure baseline;
 - `uv run wiz8 compare <addresses>` for relocation-masked body proof;
 - reviewed claims under `evidence/` for why an accepted identity or layout is trusted.
 

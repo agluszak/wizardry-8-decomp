@@ -1,7 +1,7 @@
-#include "wiz8/text_types.h"
 #ifndef WIZ8_LOCAL_CODE_MONSTER_GROUP_H
 #define WIZ8_LOCAL_CODE_MONSTER_GROUP_H
 
+#include "wiz8/text_types.h"
 #include "wiz8/geometry.h"
 
 struct W8IList;

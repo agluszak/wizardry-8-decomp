@@ -70,10 +70,10 @@ struct W8LevelRuntimeBlock {
     int text_slots_1e8[4];
     unsigned char dialogue_open;
     unsigned char unknown_1f9[3];
-    /* The live dialogue's renderer object (an srClass derivative with state
-       at +0x160, stModelInstance-family shape; the filling producer is
-       unrecovered) and three more renderer-object slots the teardown drains.
-       MGSTextBox reads a still-unnamed flag byte at +0x2d through it. */
+    /* The live dialogue's object (an srClass derivative with state at +0x160,
+       past the srModelInstance base). Recovered code only clears this slot
+       and the three teardown slots below; the filling producers are
+       unrecovered, so the concrete class stays unresolved. */
     srClass* dialogue_owner;
     int values_200[4];      /* 0x200 */
     unsigned char flag_210; /* 0x210 */

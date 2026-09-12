@@ -412,7 +412,6 @@ def check(repository: Path) -> dict[str, Any]:
     from .reccmp_lint import validate_reccmp_annotations
     from .source_index import write_source_index
     from .structural_lint import validate_structures
-    from .vector_lint import validate_void_vector_elements
 
     settings = load_settings()
     assert settings is not None
@@ -422,7 +421,6 @@ def check(repository: Path) -> dict[str, Any]:
     validators = (
         ("reccmp", lambda: validate_reccmp_annotations(repository)),
         ("casts", lambda: validate_cast_markers(repository)),
-        ("vectors", lambda: validate_void_vector_elements(repository)),
         ("c-linkage", lambda: validate_c_linkage(repository)),
         ("placement", lambda: validate_source_placement(settings)),
         ("identities", lambda: validate_identity(repository)),

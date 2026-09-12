@@ -63,6 +63,24 @@ def _support_specialization(record: dict[str, Any]) -> str | None:
     return None
 
 
+def _declarations_by_key(index: dict[str, Any]) -> dict[tuple[Any, ...], dict[str, Any]]:
+    """Index declarations the way reccmp v3 marker keys name them."""
+    return {(item.get("target"), item.get("semantic_id")): item for item in index["declarations"]}
+
+
+def _marker_declaration(
+    marker: dict[str, Any], by_key: dict[tuple[Any, ...], dict[str, Any]]
+) -> dict[str, Any] | None:
+    """v2 embeds the declaration; v3 stores a (target, semantic_id) key."""
+    declaration = marker.get("declaration")
+    if declaration is not None:
+        return declaration
+    key = marker.get("declaration_key")
+    if not key:
+        return None
+    return by_key.get((key[0], key[1]))
+
+
 def test_support_derived_classes_do_not_redeclare_template_methods() -> None:
     """A class whose own base is srClassSupport<ThatClass, ...> inherits the
     identity trio and clone from the template. Re-declaring them turns a
@@ -128,7 +146,7 @@ def test_deleting_destructors_are_synthetic_and_unbound() -> None:
         location = f"{marker['source_file']}:{marker['line']} {marker['marker_name']}"
         if marker["marker_kind"] != "SYNTHETIC":
             offenders.append(f"{location} is {marker['marker_kind']}, expected SYNTHETIC")
-        elif marker["declaration"] is not None:
+        elif marker.get("declaration") is not None or marker.get("declaration_key") is not None:
             offenders.append(f"{location} binds an authored declaration")
     assert not offenders, "\n  ".join(["deleting-destructor defects:", *sorted(offenders)])
 
@@ -138,10 +156,12 @@ def test_authored_lifecycle_markers_use_lifecycle_semantics() -> None:
     C++ entity, so the compiler emits the real lifecycle bundle rather than a
     look-alike ordinary method."""
     offenders = []
-    for marker in _index()["markers"]:
+    index = _index()
+    by_key = _declarations_by_key(index)
+    for marker in index["markers"]:
         if marker["marker_kind"] != "FUNCTION":
             continue
-        declaration = marker.get("declaration")
+        declaration = _marker_declaration(marker, by_key)
         if not declaration:
             continue
         name = declaration["qualified_name"]

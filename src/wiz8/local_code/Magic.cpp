@@ -27,19 +27,12 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "random.h"
-#include "wiz8/magic.h"
-#include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/local_code/MagicEffects.h"
-#include "wiz8/local_screens/MGSTextBox.h"
-#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Combat.h"
-#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/MonsterAI.h"
-#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/GameData.h"
-#include "wiz8/local_code/Strings.h"
 
 // GLOBAL: WIZ8 0x0068510c
 unsigned char g_detailed_combat_messages_0068510c;
@@ -466,13 +459,18 @@ bool CombatHasCondition(int condition_id)
                 return true;
             }
         }
-        slot = g_combat_state->effect_slots_tail;
-        // retail: walks nine slots through a six-element tail array
-        for (index = 0; index < W8_COMBAT_CONDITION_SLOTS; ++index, ++slot) {
+        /* Nine 0x11-byte strides from +0x85a. The first six occupy
+           effect_storage_85a; the rest overlap engaged_missile and TargetHit.
+           That is a raw stride, not a typed array of nine. */
+        // clang-format off
+        unsigned char* bytes = g_combat_state->effect_storage_85a;
+        for (index = 0; index < W8_COMBAT_CONDITION_SLOTS; ++index) {
+            slot = reinterpret_cast<W8EffectSlot*>(bytes + index * sizeof(W8EffectSlot)); /* reinterpret-ok: 0x11-byte stride from +0x85a; originating layout unresolved */
             if (slot->active != 0 && slot->effect_id == condition_id) {
                 return true;
             }
         }
+        // clang-format on
     }
     return false;
 }

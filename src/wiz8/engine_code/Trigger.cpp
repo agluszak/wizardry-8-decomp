@@ -50,12 +50,7 @@
 #include "surrender/srCore.h"
 #include "surrender/srMath.h"
 #include "surrender/srScene.h"
-#include "wiz8/engine_code/Octree.h"
-#include "wiz8/engine_code/GameData.h"
-#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/character_events.h"
-#include "wiz8/engine_code/Trigger.h"
-#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/Spells.h"
 
 #include <windows.h>
@@ -857,11 +852,11 @@ W8TriggerActionData::W8TriggerActionData() : type_004(-1) {}
 // FUNCTION: WIZ8 0x00445ee0
 W8TriggerActionData::~W8TriggerActionData() {}
 
-/* Retail also emits final table 0x005EC148 and scalar deleting destructor
-   0x00445EC0 for the type-5 Trigger::Run allocation. No added storage or
-   non-lifecycle behavior supports an authored subclass, so the source model
-   uses W8TriggerActionData; those ABI emissions are not claimed as a distinct
-   recovered class. */
+// VTABLE: WIZ8 0x005ec148
+// class W8TriggerActionData005EC148
+
+// SYNTHETIC: WIZ8 0x00445ec0
+// W8TriggerActionData005EC148::`scalar deleting destructor'
 
 // VTABLE: WIZ8 0x005ec134
 // class W8TriggerActionData005EC134
@@ -2175,7 +2170,7 @@ void Trigger::Run(int source)
             float previous_value = GetWorldValue24(g_world);
 
             delete m_pActionData;
-            m_pActionData = new W8TriggerActionData;
+            m_pActionData = new W8TriggerActionData005EC148;
             m_pActionData->type_004 = 5;
             m_pActionData->float_value_008 = previous_value;
             SetWorldEnvironmentValue00483AE0(g_world, 0.0f);
