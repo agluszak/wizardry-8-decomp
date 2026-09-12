@@ -280,9 +280,9 @@ it can gate. It stays tested but uncalled in the meantime.
 
 The lint lane itself runs on the trixie image with LLVM 19, and the
 clang-tidy profile includes `readability-redundant-casting`,
-`bugprone-misplaced-widening-cast`, `bugprone-swapped-arguments`, and
-`bugprone-sizeof-expression` with the pointer-to-aggregate and pointer
-`sizeof` heuristics turned off.
+`bugprone-misplaced-widening-cast`, `bugprone-swapped-arguments`,
+`bugprone-suspicious-enum-usage`, and `bugprone-sizeof-expression` with the
+pointer-to-aggregate and pointer `sizeof` heuristics turned off.
 
 ## Live recovery state
 

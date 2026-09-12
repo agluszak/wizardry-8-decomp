@@ -24,15 +24,12 @@ public:
     W8MissileRep(const W8MissileRep& other);
     virtual ~W8MissileRep() override;
     virtual W8AnimRepBase005EC1D8* Clone() override;
-    virtual srModelInstance* SetCycleFrameLod(
-        signed char cycle, signed char frame, signed char lod) override;
+    virtual srModelInstance* SetCycleFrameLod(signed char cycle, signed char frame,
+                                              signed char lod) override;
     virtual unsigned int ApplyEmitterSetting(char emitter) override;
     virtual W8AniMesh* GetEmitterAniMesh(char emitter) override;
-    unsigned char ReadCycleData004A3300(
-        W8ReadLevelInfo* info,
-        W8Missile* missile,
-        int positional_2,
-        int emitter_index);
+    unsigned char ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missile* missile, int positional_2,
+                                        int emitter_index);
 
     unsigned int value_0ac;
     unsigned int value_0b0;
@@ -62,7 +59,7 @@ public:
     virtual W8AnimObj* GetCurrentAnimation() override;
     virtual void AdvanceAnimationFrame(int value, int flags) override;
     virtual W8AniMesh* GetCurrentAniMesh() override;
-    virtual void StartIfHostActive();    /* 0x004A4050 */
+    virtual void StartIfHostActive(); /* 0x004A4050 */
 
     unsigned long GetAnimationState004A4640(int mode);
     void Function4A49E0();
@@ -73,7 +70,16 @@ public:
 
 public:
     int missile_table_index_1d8;
+    /* Assertion-backed original spelling. Distinct from GrObject::m_pRep at
+       +0x14; GetRepresentation() returns this GrCycle-tail slot at +0x1dc. */
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow-field"
+#endif
     W8MissileRep* m_pRep;
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
     unsigned char flag_1e0;
     unsigned char flag_1e1;
     unsigned char flag_1e2;
@@ -100,13 +106,11 @@ public:
 
 static_assert(sizeof(W8Missile) == 0x328, "W8Missile_size_must_be_0x328");
 
-W8Missile* FireMissile004A2D30(
-    unsigned int missile_table_index, srVector3T<float>* source,
-    srVector3T<float>* target, unsigned int value_4,
-    unsigned int value_5, unsigned int value_6,
-    unsigned int value_7);
-void DestroyMissile(W8Missile* missile);            /* 0x004A4180 */
-void DestroyAllMissiles(W8World* world);             /* 0x004A4210 */
+W8Missile* FireMissile004A2D30(unsigned int missile_table_index, srVector3T<float>* source,
+                               srVector3T<float>* target, unsigned int value_4,
+                               unsigned int value_5, unsigned int value_6, unsigned int value_7);
+void DestroyMissile(W8Missile* missile); /* 0x004A4180 */
+void DestroyAllMissiles(W8World* world); /* 0x004A4210 */
 void DetachMissileReferences005019A0(W8Missile* missile);
 
 extern float g_navigator_largest_extent_6081e8;
@@ -119,25 +123,17 @@ struct W8MissileTableRecord {
     unsigned char unknown_000[0x140];
     float value_140;
     unsigned char unknown_144[0x10];
-    unsigned char flag_154;               /* 0x154: blocks ending combat while set */
+    unsigned char flag_154; /* 0x154: blocks ending combat while set */
     unsigned char unknown_155[0x90];
 };
 #pragma pack(pop)
 
-static_assert(sizeof(W8MissileTableRecord) == 0x1e5,
-              "W8MissileTableRecord_must_be_0x1e5");
+static_assert(sizeof(W8MissileTableRecord) == 0x1e5, "W8MissileTableRecord_must_be_0x1e5");
 
 extern W8MissileTableRecord* g_missile_table_65bde0;
 
 W8Missile* NextMissile004A2760(char restart);
 
-W8Missile* CreateMissile004A28D0(
-    unsigned int missile_table_index,
-    srVector3T<float>* source,
-    float value_3,
-    float value_4,
-    unsigned int value_5,
-    unsigned int value_6,
-    unsigned int value_7,
-    unsigned int value_8);
-
+W8Missile* CreateMissile004A28D0(unsigned int missile_table_index, srVector3T<float>* source,
+                                 float value_3, float value_4, unsigned int value_5,
+                                 unsigned int value_6, unsigned int value_7, unsigned int value_8);

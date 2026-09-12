@@ -16,15 +16,20 @@
 #   bugprone-casting-through-void, readability-suspicious-call-argument,
 #   bugprone-suspicious-memset-usage. Clang 19 already covers the useful
 #   memory diagnostics in the compiler lane.
+# - bugprone-virtual-near-miss: a trial only found srBinFStream::pseek/ptell
+#   versus seek/tell, which are distinct virtuals. Remaining FunctionXXXXX
+#   names would make its similarity heuristic worse, not better.
 Checks: >
   -*,
   bugprone-misplaced-widening-cast,
   readability-redundant-casting,
   bugprone-sizeof-expression,
-  bugprone-swapped-arguments
+  bugprone-swapped-arguments,
+  bugprone-suspicious-enum-usage
 CheckOptions:
   bugprone-sizeof-expression.WarnOnSizeOfPointerToAggregate: 'false'
   bugprone-sizeof-expression.WarnOnSizeOfPointer: 'false'
+  bugprone-suspicious-enum-usage.StrictMode: 'false'
 WarningsAsErrors: '*'
 HeaderFilterRegex: '^/repo/(include/wiz8|include/surrender|src/wiz8|src/surrender|src/srext_jpegimporter|src/srext_unzip)/'
 FormatStyle: none
