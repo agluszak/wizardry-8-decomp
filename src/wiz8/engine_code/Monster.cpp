@@ -1823,12 +1823,8 @@ unsigned char W8Monster::GetCycleMappedPosition004C7960(signed char cycle, int m
             if (vertices != 0) {
                 srMatrix4T<float> matrix;
                 srVector3T<float> owner_position = GetPosition();
-                float x = vertices[vertex].x * m_pRep->scale_5f0;
-                float y = vertices[vertex].y * m_pRep->scale_5f0;
-                float z = vertices[vertex].z * m_pRep->scale_5f0;
-
                 current_model->getWorldSpaceMatrix(matrix);
-                srVector3T<float> local(x, y, z);
+                srVector3T<float> local = vertices[vertex] * m_pRep->scale_5f0;
                 srVector3T<float> rotated = matrix.TransformDirection(local);
                 position->x = rotated.x + owner_position.x;
                 position->y = rotated.y + owner_position.y + movement_0c0.vertical_base_07c;
@@ -2443,7 +2439,7 @@ unsigned char W8Monster::CanContinueScript004CA0F0()
         }
         break;
     case 3:
-        if (Function525DF0(0) != 0) {
+        if (ShouldDeferCharacterEventForNpcScript(0) != 0) {
             return 0;
         }
         break;
@@ -2510,11 +2506,9 @@ unsigned char W8Monster::IsWithinWorldRange004CA2A0()
         double far_clip = WorldGetFarClip(GetWorld());
         srVector3T<float> position = GetPosition();
         srVector3T<float> reference = g_startup_world_659c0c->GetPosition();
-        float dx = reference.x - position.x;
-        float dy = reference.y - position.y;
-        float dz = reference.z - position.z;
+        srVector3T<float> delta = reference - position;
 
-        return dx * dx + dy * dy + dz * dz <= (float)far_clip * (float)far_clip;
+        return delta.LengthSquared() <= (float)far_clip * (float)far_clip;
     }
 }
 
@@ -2526,9 +2520,8 @@ unsigned char W8Monster::CheckLineOfSightToPlayer004C4810()
     srVector3T<float> monster_position;
     srVector3T<float> player_position;
 
-    monster_position.x = movement_0c0.position_040.x;
-    monster_position.y = movement_0c0.position_040.y + movement_0c0.height_offset_0b8;
-    monster_position.z = movement_0c0.position_040.z;
+    monster_position = movement_0c0.position_040;
+    monster_position.y += movement_0c0.height_offset_0b8;
     GetCameraPosition(&player_position);
     return g_octree_6598a4->HasLineOfSight(&monster_position, &player_position, 1);
 }
@@ -2543,9 +2536,8 @@ void W8Monster::GetPlayerSightFlags004C4870(unsigned char* primary, unsigned cha
     srVector3T<float> player_position;
     short result;
 
-    monster_position.x = movement_0c0.position_040.x;
-    monster_position.y = movement_0c0.position_040.y + movement_0c0.height_offset_0b8;
-    monster_position.z = movement_0c0.position_040.z;
+    monster_position = movement_0c0.position_040;
+    monster_position.y += movement_0c0.height_offset_0b8;
     GetCameraPosition(&player_position);
     result = g_octree_6598a4->TraceLineOfSight(&monster_position, &player_position, 1,
                                                propagated_value_1e4, -1, 1, 0);
@@ -2590,10 +2582,8 @@ unsigned char W8Monster::IsVisibleToPlayer004C4920(unsigned char use_bounds)
         return HasLineOfSightToBounds0046FD70(&player_position, &minimum, &maximum);
     }
 
-    srVector3T<float> monster_position;
-    monster_position.x = movement_0c0.position_040.x;
-    monster_position.y = movement_0c0.position_040.y + movement_0c0.height_offset_0b8;
-    monster_position.z = movement_0c0.position_040.z;
+    srVector3T<float> monster_position = movement_0c0.position_040;
+    monster_position.y += movement_0c0.height_offset_0b8;
     return g_octree_6598a4->HasLineOfSight(&player_position, &monster_position, 1);
 }
 
@@ -2606,9 +2596,8 @@ void W8Monster::GetPlayerToMonsterSightFlags004C4A20(unsigned char* primary,
     srVector3T<float> player_position;
     short result;
 
-    monster_position.x = movement_0c0.position_040.x;
-    monster_position.y = movement_0c0.position_040.y + movement_0c0.height_offset_0b8;
-    monster_position.z = movement_0c0.position_040.z;
+    monster_position = movement_0c0.position_040;
+    monster_position.y += movement_0c0.height_offset_0b8;
     if (source == 0) {
         GetCameraPosition(&player_position);
     } else {
@@ -2634,12 +2623,10 @@ unsigned char W8Monster::HasLineOfSightToMonster004C4AF0(W8Monster* monster)
     srVector3T<float> from;
     srVector3T<float> to;
 
-    from.x = movement_0c0.position_040.x;
-    from.y = movement_0c0.position_040.y + movement_0c0.height_offset_0b8;
-    from.z = movement_0c0.position_040.z;
-    to.x = monster->movement_0c0.position_040.x;
-    to.y = monster->movement_0c0.position_040.y + monster->movement_0c0.height_offset_0b8;
-    to.z = monster->movement_0c0.position_040.z;
+    from = movement_0c0.position_040;
+    from.y += movement_0c0.height_offset_0b8;
+    to = monster->movement_0c0.position_040;
+    to.y += monster->movement_0c0.height_offset_0b8;
     return g_octree_6598a4->HasLineOfSight(&from, &to, 1);
 }
 
@@ -2651,12 +2638,10 @@ void W8Monster::GetMonsterSightFlags004C4B70(W8Monster* monster, unsigned char* 
     srVector3T<float> to;
     short result;
 
-    from.x = movement_0c0.position_040.x;
-    from.y = movement_0c0.position_040.y + movement_0c0.height_offset_0b8;
-    from.z = movement_0c0.position_040.z;
-    to.x = monster->movement_0c0.position_040.x;
-    to.y = monster->movement_0c0.position_040.y + monster->movement_0c0.height_offset_0b8;
-    to.z = monster->movement_0c0.position_040.z;
+    from = movement_0c0.position_040;
+    from.y += movement_0c0.height_offset_0b8;
+    to = monster->movement_0c0.position_040;
+    to.y += monster->movement_0c0.height_offset_0b8;
     result = g_octree_6598a4->TraceLineOfSight(&from, &to, 1, propagated_value_1e4,
                                                monster->propagated_value_1e4, 1, 0);
     if (result == -1) {
@@ -2676,9 +2661,8 @@ unsigned char W8Monster::HasLineOfSightFromPoint004C4C40(srVector3T<float> point
 {
     srVector3T<float> monster_position;
 
-    monster_position.x = movement_0c0.position_040.x;
-    monster_position.y = movement_0c0.position_040.y + movement_0c0.height_offset_0b8;
-    monster_position.z = movement_0c0.position_040.z;
+    monster_position = movement_0c0.position_040;
+    monster_position.y += movement_0c0.height_offset_0b8;
     return g_octree_6598a4->TraceLineOfSight(&point, &monster_position, 1, -3, -3, 1, 0) != 1;
 }
 
@@ -2879,13 +2863,9 @@ unsigned char MonsterGetWorldAnimationBounds004CA4F0(W8Monster* monster, srVecto
 
         monster->GetAnimationBounds(minimum, maximum);
         position = monster->GetPosition();
-        minimum->x += position.x;
-        minimum->y += position.y;
-        minimum->z += position.z;
+        *minimum += position;
         position = monster->GetPosition();
-        maximum->x += position.x;
-        maximum->y += position.y;
-        maximum->z += position.z;
+        *maximum += position;
         return 1;
     }
     return 0;
@@ -3655,10 +3635,8 @@ void W8Monster::UpdateAttachedObjects004C3F70()
     elapsed =
         g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT) - representation->timer_068;
     WorldGetCameraRotation(g_world, &camera_rotation);
-    base_position.x = movement_0c0.position_040.x;
-    base_position.y = movement_0c0.position_040.y + movement_0c0.vertical_base_07c +
-                      movement_0c0.vertical_amplitude_080;
-    base_position.z = movement_0c0.position_040.z;
+    base_position = movement_0c0.position_040;
+    base_position.y += movement_0c0.vertical_base_07c + movement_0c0.vertical_amplitude_080;
 
     GetCameraPosition(&party_position);
     party_position -= base_position;
@@ -3682,11 +3660,9 @@ void W8Monster::UpdateAttachedObjects004C3F70()
 
                 offset = source * distance_scale;
                 srVector3T<float> rotated = camera_rotation.Transform(offset);
-                location.x = base_position.x + rotated.x;
-                location.y = base_position.y + representation->value_5ec +
-                             distance_scale * g_monster_attachment_vertical_scale_005eca84 +
-                             rotated.y;
-                location.z = base_position.z + rotated.z;
+                location = base_position + rotated;
+                location.y += representation->value_5ec +
+                              distance_scale * g_monster_attachment_vertical_scale_005eca84;
 
                 item->SetLocation0049F720(&location);
                 mesh = item->GetMesh();
@@ -3730,14 +3706,12 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                 float mesh_scale;
                 srVector3T<double> widened;
 
-                offset.x = source.x * distance_scale;
-                offset.y = (source.y + group_height) * distance_scale;
-                offset.z = source.z * distance_scale;
+                offset = source * distance_scale;
+                offset.y += group_height * distance_scale;
                 srVector3T<float> rotated = camera_rotation.Transform(offset);
-                location.x = base_position.x + rotated.x;
-                location.y = base_position.y + representation->value_5ec +
-                             distance_scale * g_monster_linked_vertical_scale_005ed29c + rotated.y;
-                location.z = base_position.z + rotated.z;
+                location = base_position + rotated;
+                location.y += representation->value_5ec +
+                              distance_scale * g_monster_linked_vertical_scale_005ed29c;
 
                 item->SetLocation0049F720(&location);
                 mesh = item->GetMesh();
@@ -4453,9 +4427,7 @@ void W8Monster::GetMappedPosition004C72A0(srVector3T<float>* position)
         }
     }
 
-    position->x = movement_0c0.position_040.x;
-    position->y = movement_0c0.position_040.y;
-    position->z = movement_0c0.position_040.z;
+    *position = movement_0c0.position_040;
     position->y += movement_0c0.height_offset_0b8;
 }
 

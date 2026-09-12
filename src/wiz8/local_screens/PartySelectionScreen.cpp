@@ -2253,7 +2253,7 @@ void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int
 char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int party_slot,
                                 char animate)
 {
-    W8MonsterManagerEntry* state = &g_monster_manager_entries[party_slot];
+    W8MonsterManagerEntry* state = &gXStatus.monster_manager_entries[party_slot];
     W8ScreenRect rect;
     W8ScreenRect other;
     short width;

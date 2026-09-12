@@ -889,7 +889,7 @@ void CharacterDies(int party_slot)
             g_combat_state->iActionChar = -1;
         }
         row->pending_action = -1;
-        g_combat_state->characters[party_slot].value_00 = 0;
+        g_combat_state->characters[party_slot].phase = 0;
         g_combat_state->characters[party_slot].flag_34 = 1;
         DropCharacterFromRound(party_slot);
     }

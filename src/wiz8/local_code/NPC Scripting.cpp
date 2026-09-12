@@ -232,7 +232,7 @@ void ProcessNpcScriptingFrame(void)
                     0 && /* reinterpret-ok: unnamed W8MainScreenState byte at 0x262 */
                 (dialogue_ready = gXStatus.character_event_queue->IsMainQueueEmpty(),
                  dialogue_ready != 0)) {
-                Function577880(1);
+                SetNpcDialoguePanelVisible(1);
             }
         }
     }

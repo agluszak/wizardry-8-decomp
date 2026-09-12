@@ -1682,16 +1682,11 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, W8WideChar* health_text)
     wcscat(health_text, L"");
 }
 
-// GLOBAL: WIZ8 0x006836B8
-W8MonsterManagerEntry g_monster_manager_entries[8];
+// FUNCTION: WIZ8 0x004e6970
+W8XStatus::W8XStatus() {}
 
-// GLOBAL: WIZ8 0x0068406F
-W8GrowableVector<int> g_target_marker_vector_0068406f;
-
-// SYNTHETIC: WIZ8 0x004e6970
-// `dynamic initializer for 'g_monster_manager_entries' / 'g_target_marker_vector_0068406f''
-// SYNTHETIC: WIZ8 0x004e6940
-// `dynamic atexit destructor for 'g_monster_manager_entries' / 'g_target_marker_vector_0068406f''
+// FUNCTION: WIZ8 0x004e6940
+W8XStatus::~W8XStatus() {}
 
 // FUNCTION: WIZ8 0x004e6a10
 W8MonsterManagerEntry::~W8MonsterManagerEntry() {}

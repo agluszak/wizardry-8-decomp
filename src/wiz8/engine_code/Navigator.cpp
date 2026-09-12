@@ -726,10 +726,8 @@ void W8Navigator::UpdateLinkedNavigator()
     }
     srVector3T<float> own_position = movement_0c0.position_040;
     srVector3T<float> linked_position = linked_navigator_05c->movement_0c0.position_040;
-    float dx = linked_position.x - own_position.x;
-    float dy = linked_position.y - own_position.y;
-    float dz = linked_position.z - own_position.z;
-    if (dx * dx + dy * dy + dz * dz <= radius_084 * radius_084 * NAVIGATOR_LINK_DISTANCE_SQUARED) {
+    srVector3T<float> delta = linked_position - own_position;
+    if (delta.LengthSquared() <= radius_084 * radius_084 * NAVIGATOR_LINK_DISTANCE_SQUARED) {
         linked_update_time_0b8 = 0;
         return;
     }
@@ -815,9 +813,7 @@ unsigned char W8Navigator::UpdateLinkedPosition00454FE0()
         linked_navigator_05c->movement_0c0.attachment_0ac);
     movement_0c0.attachment_0ac->flags_00 &= 0xff7fffff;
     movement_0c0.yaw = linked_navigator_05c->movement_0c0.yaw;
-    movement_0c0.velocity_034.x = (float)(linked_navigator_05c->movement_0c0.velocity_034.x * 0.5);
-    movement_0c0.velocity_034.y = (float)(linked_navigator_05c->movement_0c0.velocity_034.y * 0.5);
-    movement_0c0.velocity_034.z = (float)(linked_navigator_05c->movement_0c0.velocity_034.z * 0.5);
+    movement_0c0.velocity_034 = linked_navigator_05c->movement_0c0.velocity_034 * 0.5;
     SetPosition(&position);
     g_octree_6598a4->QueueOctreeKind130042E810(movement_0c0.location_id_004, &position);
     linked_update_time_0b8 = 0;
@@ -913,7 +909,7 @@ void W8Navigator::UpdateFacing(char immediate)
     }
     if (movement_0c0.roll_enabled_075 != 0) {
         srVector3T<float> side(-forward.z, 0.0f, forward.x);
-        float angle = (float)acos(side.x * normal.x + side.z * normal.z);
+        float angle = (float)acos(DotProduct(side, normal));
         if (angle < g_float_005ec2a8) {
             angle += NAVIGATOR_THREE_QUARTER_TURN;
         } else {
@@ -1362,10 +1358,8 @@ float W8Navigator::GetValue120()
 // FUNCTION: WIZ8 0x00454040
 void W8Navigator::SetFacingToward(const srVector3T<float>* target)
 {
-    srVector3T<float> current;
-    current.x = movement_0c0.position_040.x;
-    current.y = movement_0c0.position_040.y + movement_0c0.height_offset_0b8;
-    current.z = movement_0c0.position_040.z;
+    srVector3T<float> current = movement_0c0.position_040;
+    current.y += movement_0c0.height_offset_0b8;
     if (target->x != current.x || target->y != current.y || target->z != current.z) {
         float angle = GetHeadingAngle(&current, target);
         movement_0c0.yaw = NormalizeAngle(angle);
@@ -1536,11 +1530,8 @@ void W8Navigator::UpdateAngles00453990()
 // FUNCTION: WIZ8 0x00453f30
 void W8Navigator::AimAtPosition(const srVector3T<float>* target)
 {
-    srVector3T<float> current;
-
-    current.x = movement_0c0.position_040.x;
-    current.y = movement_0c0.position_040.y + movement_0c0.height_offset_0b8;
-    current.z = movement_0c0.position_040.z;
+    srVector3T<float> current = movement_0c0.position_040;
+    current.y += movement_0c0.height_offset_0b8;
     if (target->x != current.x || target->y != current.y || target->z != current.z) {
         movement_0c0.target_yaw = NormalizeAngle(GetHeadingAngle(&current, target));
         if (navigation_mode_008 == 2 || navigation_mode_008 == 3) {

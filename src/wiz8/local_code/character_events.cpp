@@ -448,7 +448,7 @@ void W8CharacterEvent::Process0052CED0()
     unsigned char sound_was_active;
 
     party_slot = CharacterPointerToPartySlot(character_04);
-    slot = &g_monster_manager_entries[party_slot];
+    slot = &gXStatus.monster_manager_entries[party_slot];
     sound_was_active = slot->field_000;
     slot->field_071 = 0;
     if (sound_was_active != 0) {
@@ -515,10 +515,10 @@ unsigned char W8CharacterEvent::DispatchCharacterEventEntry()
             }
         }
     }
-    slot = &g_monster_manager_entries[party_slot];
+    slot = &gXStatus.monster_manager_entries[party_slot];
     if (slot->field_000 == 0) {
         if (event_type == 0x33) {
-            Function577880(0);
+            SetNpcDialoguePanelVisible(0);
         }
         row = &g_status_685170.buffers.party_rows[party_slot];
         npc_index = row->animation_0fa;
@@ -535,14 +535,14 @@ unsigned char W8CharacterEvent::DispatchCharacterEventEntry()
             if ((flags_10 & 0x40) != 0) {
                 SetFlag68C500(1);
                 ReleaseRecordFile0055A0A0(npc->record_file);
-                Function524CA0(npc);
+                ReloadNpcScriptResources(npc);
             }
             Function525110(npc, 1);
             Function525FA0(type_08, (unsigned char)(flags_10 & 0x40));
             if ((flags_10 & 0x40) != 0) {
                 SetFlag68C500(0);
                 ReleaseRecordFile0055A0A0(npc->record_file);
-                Function524CA0(npc);
+                ReloadNpcScriptResources(npc);
             }
             slot->field_071 = this;
             event_type = type_08;
@@ -650,7 +650,7 @@ int W8CharacterEventQueue::QueueEntry(W8CharacterEvent* entry)
         return 0;
     }
     if (entry->type_08 > 0x91 && (entry->flags_10 & 0x20) == 0) {
-        W8MonsterManagerEntry* slot = &g_monster_manager_entries[party_slot];
+        W8MonsterManagerEntry* slot = &gXStatus.monster_manager_entries[party_slot];
         if (slot->field_071 != 0) {
             vector_40.Remove(slot->field_071);
             RestartFollowUpClock(slot->field_071);
@@ -988,7 +988,7 @@ unsigned char PartyPortraitEventsIdle(void)
     W8PartySlotRow* row = g_status_685170.buffers.party_rows;
     const W8MonsterManagerEntry* current;
 
-    for (current = g_monster_manager_entries; current < &g_monster_manager_entries[8];
+    for (current = gXStatus.monster_manager_entries; current < &gXStatus.monster_manager_entries[8];
          ++current, ++row) {
         if (row->occupied != 0 && current->field_000 != 0) {
             return 0;
@@ -1008,7 +1008,7 @@ int UpdateCharacterEventState(void)
     int any_active = 0;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        W8MonsterManagerEntry* record = &g_monster_manager_entries[party_slot];
+        W8MonsterManagerEntry* record = &gXStatus.monster_manager_entries[party_slot];
         unsigned char sound_active = 0;
 
         if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
@@ -1033,7 +1033,7 @@ int UpdateCharacterEventState(void)
             unsigned int scan;
             for (scan = 0; scan < 8; ++scan) {
                 if (g_status_685170.buffers.party_rows[scan].occupied != 0 &&
-                    g_monster_manager_entries[scan].field_000 != 0) {
+                    gXStatus.monster_manager_entries[scan].field_000 != 0) {
                     break;
                 }
             }
@@ -1050,7 +1050,7 @@ int UpdateCharacterEventState(void)
                 unsigned int scan;
                 for (scan = 0; scan < 8; ++scan) {
                     if (g_status_685170.buffers.party_rows[scan].occupied != 0 &&
-                        g_monster_manager_entries[scan].field_000 != 0) {
+                        gXStatus.monster_manager_entries[scan].field_000 != 0) {
                         break;
                     }
                 }

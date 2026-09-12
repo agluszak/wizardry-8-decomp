@@ -9,10 +9,6 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/npc_interaction.h"
-// GLOBAL
-W8CombatState* g_combat_state;
-// GLOBAL: WIZ8 0x006850b0
-unsigned int g_combat_countdown_6850b0;
 #include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
@@ -38,9 +34,18 @@ unsigned int g_combat_countdown_6850b0;
 #include "timer.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/engine_code/Navigator.h"
+#include "wiz8/float_constants.h"
 
 #include <stdarg.h>
 #include <stdio.h>
+
+// GLOBAL: WIZ8 0x006836a8
+W8CombatState* g_combat_state;
+// GLOBAL: WIZ8 0x006850b0
+unsigned int g_combat_countdown_6850b0;
+
+extern void Function4F0AF0(int move_kind); /* 0x004F0AF0 */
+extern void Function5A1640(void);          /* 0x005A1640 */
 
 /*
  * Local Code\Combat.cpp.
@@ -174,12 +179,12 @@ void BeginCombatRound(void)
    many rounds have passed since it last caught up, clamp it, and remember
    where it got to. */
 // FUNCTION: WIZ8 0x004eceb0
-void CatchUpCombatActor(unsigned int* actor)
+void CatchUpCombatActor(W8CombatCharacterRow* row)
 {
-    actor[0] += g_combat_state->round_counter - actor[0x27];
-    ClampUnsignedInteger(actor, g_combat_state->round_counter, 100);
-    RoundPhaseToStep(actor, g_combat_state->round_counter);
-    actor[0x27] = g_combat_state->round_counter;
+    row->phase += g_combat_state->round_counter - row->phase_clock_stamp;
+    ClampUnsignedInteger(&row->phase, g_combat_state->round_counter, 100);
+    RoundPhaseToStep(&row->phase, g_combat_state->round_counter);
+    row->phase_clock_stamp = g_combat_state->round_counter;
 }
 
 /* Whether one character can breathe again. The name is the Magic.cpp:5320
@@ -212,7 +217,7 @@ void DropCharacterFromRound(int party_slot)
     if (party_slot == g_status_685170.selected_character) {
         RequestRedrawParty();
     }
-    SetCharacterCombatAction(party_slot, row->action_kind, row->action_detail, 0, 0);
+    SetCharacterCombatAction(party_slot, row->action_kind, row->action_detail, 0, 0, 0);
 }
 
 /* Tell every monster within short range about something. A monster has to be
@@ -267,10 +272,8 @@ int PartyAvoidsSurprise(void)
 /* 0x004C62C0 */
 extern int g_effect_005ee610;
 extern unsigned int g_flee_hp_fraction_005ed8f8;
-extern unsigned int g_flee_chance_005ed908;
 // GLOBAL: WIZ8 0x005ed908
 unsigned int g_flee_chance_005ed908 = 15;
-extern float g_movement_speed_step_005ed490;
 // GLOBAL: WIZ8 0x005ed490
 float g_movement_speed_step_005ed490 = 0.009999999776482582f;
 /* 0x00683FE7-adjacent: the per-character per-hand attack values combat saved
@@ -301,7 +304,7 @@ int GetCharacterTurnValue(int party_slot)
         } else {
             value = g_saved_attack_values[party_slot * 0x35 + hand];
         }
-        if (row->value_00 == 100) {
+        if (row->phase == 100) {
             value = 1;
         }
         total += value;
@@ -612,7 +615,7 @@ void ChooseAction(int party_slot, int action, int detail, const void* data, int 
         }
         ClearPartySlotMonsterHighlights(party_slot);
     } else {
-        Function4E7EE0(party_slot, action, detail, data, arg_6);
+        Function4E7EE0(party_slot, action, detail, data, arg_5, arg_6);
         switch (action) {
         case 0:
         case 1:
@@ -642,11 +645,58 @@ void ChooseAction(int party_slot, int action, int detail, const void* data, int 
     }
 }
 
+/* Apply a chosen in-combat action for party-move kinds 10/11, otherwise record
+   the action on the slot row and refresh targeting UI state. */
+// FUNCTION: WIZ8 0x004e7ee0
+void Function4E7EE0(int party_slot, int action, int detail, const void* data, int arg_5,
+                    int notify)
+{
+    unsigned int party_slot_index;
+    W8Character* character;
+    W8CombatCharacterRow* row;
+
+    if (action != 10 && action != 0xb) {
+        SetCharacterCombatAction(party_slot, action, detail, arg_5, data, notify);
+        return;
+    }
+    if (g_combat_state->flag_000 == 0 || g_combat_state->uiCurrentPartyActionStatus != 0) {
+        SetPendingMoveKind(action);
+    } else {
+        if (g_combat_state->uiCurrentPartyAction == 0) {
+            party_slot_index = 0;
+            do {
+                character = &g_status_685170.buffers.characters[party_slot_index];
+                row = &g_combat_state->characters[party_slot_index];
+                if (g_status_685170.buffers.party_rows[party_slot_index].occupied != 0 &&
+                    character->hp_current != 0 && character->highest_condition < 0xf &&
+                    row->flag_34 != 0) {
+                    SetPendingMoveKind(action);
+                    goto finish_move_ui;
+                }
+                ++party_slot_index;
+            } while (party_slot_index < 8);
+        }
+        if (g_combat_state->eCombatActionStatus == 1 && g_combat_state->iActionChar != -1) {
+            g_combat_state->eCombatActionStatus = 0;
+            g_combat_state->iActionChar = -1;
+        }
+        Function4F0AF0((action != 10) + 1);
+    }
+finish_move_ui:
+    if (gXStatus.fPartyMovementUi == 0) {
+        Function5A1640();
+        SetTargetingMode(0);
+        return;
+    }
+    RedrawPanel69BF4C();
+    SetTargetingMode(0);
+}
+
 /* Record the chosen in-combat action on the slot row, copy its detail block,
    then aim and validate that choice for a still-active character. */
 // FUNCTION: WIZ8 0x004e8000
 void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail, int arg_4,
-                              void* data)
+                              const void* data, int notify)
 {
     if (gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0) {
         g_status_685170.buffers.party_rows[party_slot].action_03d = -1;
@@ -671,15 +721,14 @@ void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail
     row->unknown_a5[2] = 1;
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
     if (character->hp_current != 0 && character->highest_condition < 0xd && action_detail != -1) {
-        if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, (char)(int)data) ==
-            0) {
+        if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, notify) == 0) {
             AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);
         } else if (Function536F60(party_slot, 2) == 0 &&
-                   Function536570(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, (int)data) == 1) {
+                   Function536570(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, notify) == 1) {
             Function4ECC80(&source,
                            &g_status_685170.buffers.party_rows[party_slot].target_in_combat);
         }
-        if ((char)(int)data != 0) {
+        if (notify != 0) {
             Function537540(party_slot);
         }
     }
@@ -687,9 +736,9 @@ void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail
         return;
     }
     if (action_detail != action_kind && g_combat_state->flag_000 != 0 && row->flag_34 == 0) {
-        row->value_00 += g_combat_state->round_counter - row->phase_clock_stamp;
-        ClampUnsignedInteger(&row->value_00, g_combat_state->round_counter, 100);
-        RoundPhaseToStep(&row->value_00, g_combat_state->round_counter);
+        row->phase += g_combat_state->round_counter - row->phase_clock_stamp;
+        ClampUnsignedInteger(&row->phase, g_combat_state->round_counter, 100);
+        RoundPhaseToStep(&row->phase, g_combat_state->round_counter);
         row->phase_clock_stamp = g_combat_state->round_counter;
     }
     RequestRedraw(1 << (party_slot & 0x1f));

@@ -558,17 +558,12 @@ unsigned char IsWorldItemWithinReach(W8Item* owner, const float* from, float rad
     float lower[3];
     float upper[3];
     srVector3T<float> eye;
-    float dx;
-    float dy;
-    float dz;
 
     owner->m_pRep->GetLocation004B8890(&position);
     GetCameraPosition(&eye);
 
-    dx = position.x - from[0];
-    dy = position.y - from[1];
-    dz = position.z - from[2];
-    if (dx * dx + dy * dy + dz * dz < radius * radius) {
+    srVector3T<float> delta(position.x - from[0], position.y - from[1], position.z - from[2]);
+    if (delta.LengthSquared() < radius * radius) {
         GetWorldItemBounds(lower, upper);
         lower[0] += position.x;
         lower[1] += position.y;
