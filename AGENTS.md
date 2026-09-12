@@ -146,3 +146,32 @@ do not create frameworks merely to support tests.
   never rewrite remote `main` or discard others' changes. Successful push completes publication;
   investigate actual rejections without routine post-push proofs. Commands:
   [contributor workflow](docs/contributor-workflow.md).
+
+## Cursor Cloud environment layout
+
+The prebuilt Cursor Cloud Agent environment already contains every external tool and the licensed
+inputs, at fixed absolute paths. These paths apply only to that provisioned VM; a local checkout
+still follows the README (`.env` + `config/local-inputs.yml`). Do not re-download or re-search for
+these; use them directly.
+
+- Machine config is regenerated on every boot by the environment `start` script, so `.env` and
+  `config/local-inputs.yml` (both gitignored) are already present in the checkout. `.env` pins
+  `GHIDRA_INSTALL_DIR=/home/ubuntu/ghidra/ghidra_12.1.2_PUBLIC`, `WIZ8_INPUT_DIR=/home/ubuntu/wiz8-inputs`,
+  `WIZ8_WORK_DIR=/home/ubuntu/wiz8-work`, `DOCKER_BUILDKIT=0`, and
+  `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`.
+- Python: `uv` is at `~/.local/bin` (ensure it is on `PATH`). Sync with `uv sync --frozen`; run the
+  CLI as `uv run wiz8 …`.
+- Licensed retail input: `$WIZ8_INPUT_DIR/setup_wizardry_8_2001_12_23_(22306).exe` (the `gog-media`
+  role). The materialized canonical matching target is `$WIZ8_WORK_DIR/variants/gog-base`
+  (`Wiz8.exe`, `sr.dll`, `Dll/`); pinned public source dependencies are under
+  `$WIZ8_WORK_DIR/fid/sources/unpacked`. Regenerate with `uv run wiz8 prepare` (or, for the
+  canonical target only, extract the `gog-media` role and materialize the `gog-base` variant).
+- VC6 matching compiler: Docker image `wizardry8-msvc600:sp5` (Debian trixie, clang/LLVM 19).
+  The Docker daemon is started per boot by `start` using the `fuse-overlayfs` storage driver; build
+  images with the legacy builder (`DOCKER_BUILDKIT=0`). Rebuild the image with
+  `uv run wiz8 toolchain build vc6-sp5`.
+- Ghidra: `12.1.2 PUBLIC` at `$GHIDRA_INSTALL_DIR`, driven through PyGhidra by the CLI (for example
+  `uv run wiz8 ghidra import`); the JDK is at `$JAVA_HOME`.
+- Host tooling: `7z`, `innoextract`, `cabextract`, `unshield`, `git-lfs`, `llvm-undname`, and host
+  `wine` (used by reccmp's cvdump and by `just run`) are all on `PATH`.
+- Quick check: `uv run wiz8 doctor` validates every path and tool above.
