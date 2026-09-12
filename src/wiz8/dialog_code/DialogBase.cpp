@@ -1,6 +1,7 @@
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/dialog_code/DialogBase.h"
+#include "wiz8/dialog_code/DialogButton.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 
 #include "wiz8/utility.h"
@@ -243,6 +244,15 @@ unsigned char W8DialogBase::ProcessInput()
         }
     }
     return m_keep_open;
+}
+
+// FUNCTION: WIZ8 0x005d6eb0
+void DialogCloseButtonCallback(W8DialogButton* button)
+{
+    W8DialogBase* dialog = button->m_owner_040;
+    if (dialog != 0) {
+        dialog->m_keep_open = 0;
+    }
 }
 
 // FUNCTION: WIZ8 0x005d6fa0

@@ -24,7 +24,6 @@ public:
 
 private:
     unsigned char PopulateText(); /* 0x005D6160 */
-    static void CloseButtonCallback(W8DialogButton* button);
     static void ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visible_entry);
 
     int m_location_id;                 /* 0x54 */

@@ -4,8 +4,11 @@
 #include <wchar.h>
 
 class W8DialogBase;
+class W8DialogButton;
 typedef void (*W8DialogDestroyCallback)(W8DialogBase* dialog);
 void SetDialogDestroyCallback(W8DialogBase* dialog, W8DialogDestroyCallback callback);
+/* Shared close-button callback used by the monster and spell info dialogs. */
+void DialogCloseButtonCallback(W8DialogButton* button); /* 0x005D6EB0 */
 
 /* Names describe recovered roles; retail does not expose their original
    source spellings. Address markers retain the binary identities.

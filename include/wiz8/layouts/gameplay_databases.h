@@ -142,7 +142,9 @@ struct W8SpellRuntimeRecord {
     /* 0x126: a monster may cast the spell at all. MonsterOKToCastSpell reports
        a spell without it by name and asserts. */
     unsigned char monster_castable;
-    unsigned char unknown_127[8];
+    unsigned char unknown_127[4];
+    /* 0x12b: SpellInfoDialog selects the long-range caption when this is 3. */
+    int field_12b;
     /* 0x12f: the range category a monster casting this spell needs. */
     W8RangeCategory range_category;
     W8SpellRealm realm; /* 0x133 */

@@ -47,7 +47,7 @@ int W8MonsterInfoDialog::CreateControls()
     m_scroll_bar_58.m_owner = this;
 
     m_button_a4.Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
-                          CloseButtonCallback, 0, 0, 0x7f, -1, 0, 0);
+                          DialogCloseButtonCallback, 0, 0, 0x7f, -1, 0, 0);
     m_button_a4.SetPosition(m_x + 0x11a, m_y + 0xe6);
     m_button_a4.m_owner_040 = this;
     return 0;
@@ -72,15 +72,6 @@ void W8MonsterInfoDialog::OnMouseWheel(int delta)
         for (int step = 0; step < -delta; ++step) {
             m_scroll_bar_58.ScrollDown();
         }
-    }
-}
-
-// FUNCTION: WIZ8 0x005d6eb0
-void W8MonsterInfoDialog::CloseButtonCallback(W8DialogButton* button)
-{
-    W8DialogBase* dialog = button->m_owner_040;
-    if (dialog != 0) {
-        dialog->m_keep_open = 0;
     }
 }
 

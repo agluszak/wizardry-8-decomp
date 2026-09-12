@@ -241,7 +241,7 @@ void W8CharacterScreen::UpdateNavigation(W8CharacterPage* page)
 void W8CharacterScreen::ShowDialog005B0610(int value)
 {
     m_dialog_response_1b20 = 0;
-    m_dialog_1b1c = new W8SpellInfoDialog005EFAB0(value);
+    m_dialog_1b1c = new W8SpellInfoDialog(value);
     m_dialog_1b1c->SetText(&g_wchar_00689b34);
     ActivateDialogRegion(0x138);
 }

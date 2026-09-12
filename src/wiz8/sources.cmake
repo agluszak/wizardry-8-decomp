@@ -155,8 +155,10 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/Gameloop.cpp
     src/wiz8/game_init.cpp
     src/wiz8/dialog_code/MonsterInfoDialog.cpp
+    src/wiz8/dialog_code/AssayDialog.cpp
     src/wiz8/dialog_code/DialogTextArea.cpp
     src/wiz8/dialog_code/stButton.cpp
+    src/wiz8/dialog_code/SpellInfoDialog.cpp
     src/wiz8/dialog_code/DialogScrollBar.cpp
     src/wiz8/engine_code/MonGen.cpp
     src/wiz8/music_playlist.cpp
