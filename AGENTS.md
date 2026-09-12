@@ -21,8 +21,10 @@ This is a Jujutsu repository for evidence-driven matching decompilation.
   callers, callees, loads, and stores; correct the canonical declaration and Ghidra model. Do not use
   casts, integer/pointer substitution, duplicate declarations, or wrapper types to conceal disagreement.
 - Do not invent wrappers, aliases, opaque replacement types, raw vtable calls, or parallel inventories.
-  Repository-owned Wizardry and SurRender code is unconditional C++; `extern "C"` requires proven
-  C linkage. Do not add C fallback APIs.
+  Adjacency, shared initialization, repeated offsets, or a convenient access pattern alone do not prove
+  an aggregate/class boundary; likewise, do not split a proven object merely to make local accesses
+  easier to type. Repository-owned Wizardry and SurRender code is unconditional C++; `extern "C"`
+  requires proven C linkage. Do not add C fallback APIs.
 - Never commit binaries, extracted trees, live Ghidra projects, or build products. Only reviewed GZF
   checkpoints listed in `vendor/ghidra/exports/manifest.json` may be tracked. Preserve source licences
   and required notices.
@@ -42,6 +44,10 @@ Load the applicable skill and only the references needed for the question:
 Recovery tooling is agent-only. Use existing primitives and native APIs; do not add query protocols,
 wrapper layers, report frameworks, inventories, or human/JSON modes. Filter before printing; put large
 listings in named `build/` files. Operational recipes belong in skills, not README duplicates.
+`uv run wiz8 check` and selected `uv run wiz8 compare ...` refresh the compiler-backed source index
+themselves. Do not pre-run `uv run wiz8 analyze source-index` unless that projection itself is under
+investigation. The project adapts the lint compile database and delegates collection/cache behavior to
+reccmp's native source index; do not rebuild per-target collectors or another source-index layer.
 
 ## Source fidelity
 
@@ -59,6 +65,9 @@ listings in named `build/` files. Operational recipes belong in skills, not READ
   Compare canonical bases/templates first; generic definitions belong in canonical headers.
 - Scalar/vector deleting destructors are compiler-generated MSVC glue: marker-only `SYNTHETIC`
   identities, never handwritten bodies, hidden flags parameters, or destruct-and-maybe-free helpers.
+- Matching markers bind to the following source entity. Keep `// FUNCTION:` immediately adjacent to
+  its declaration/definition; move diagnostic pragmas and unrelated comments above the marker rather
+  than placing them between marker and entity. Follow the matching skill for other marker forms.
 - Preserve TU ownership/order in `src/wiz8/sources.cmake`; keep address-qualified template emissions
   separate until ownership is proved. Recover placement before optimizer control: ordinary functions
   stay unannotated; header bodies need cross-TU visibility evidence; inline controls need call-site
