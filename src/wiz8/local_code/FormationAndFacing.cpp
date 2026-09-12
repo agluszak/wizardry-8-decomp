@@ -50,6 +50,7 @@ int GetQuadrantForPosition(srVector3T<float> position)
 #include "wiz8/sr_api.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_screens/RCSCommon.h"
+#include "wiz8/game_status.h"
 
 #define FORMATION_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Formation & Facing.cpp"
 
@@ -69,7 +70,7 @@ enum { W8_FACING_ANY = 4 };
 // GLOBAL: WIZ8 0x005ee858
 double g_facing_tolerance_005ee858 = 2.3561944500000003;
 
-// GLOBAL
+// GLOBAL: WIZ8 0x005ebcf4
 float g_facing_tolerance_005ebcf4;
 
 /* Whether one character can hold a place in the formation at all: they have to
@@ -272,7 +273,7 @@ void PlaceCharacterInFormation(W8PartyFormationState* formation, int slot)
    name to the slot. */
 // FUNCTION: WIZ8 0x00554bd0
 void SetFormationPosition(W8PartyFormationState* formation, int slot, int new_row, int new_column,
-                    int announce, int detach, int update_facing)
+                          int announce, int detach, int update_facing)
 {
     W8PartyFormationPosition* position = &formation->positions[slot];
     signed char old_row = position->row;

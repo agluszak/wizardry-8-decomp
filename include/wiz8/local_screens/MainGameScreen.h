@@ -443,7 +443,6 @@ extern unsigned char g_debug_monster_cycle_0068f0fc;
 extern W8IList* g_debug_monster_ids_0068f100;
 extern unsigned char g_navigator_position_changed_659c11;
 extern unsigned char g_flag_006840bb;
-extern unsigned char g_map_loading_00659757;
 
 void BeginLevelTransition(void); /* 0x005611A0 */
 void Function5618F0(unsigned short mode);

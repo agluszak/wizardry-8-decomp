@@ -19,6 +19,7 @@
 #include <wchar.h>
 
 #include <stdlib.h>
+#include "wiz8/game_status.h"
 
 static const char MONSTER_GROUP_CPP[] = "C:\\Projects\\Wizardry 8\\Local Code\\MonsterGroup.cpp";
 

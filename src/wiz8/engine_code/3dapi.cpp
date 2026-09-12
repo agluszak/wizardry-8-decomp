@@ -66,7 +66,7 @@ unsigned char g_renderer_ready_00607d7c = 1;
 
 class W8AmbientSound;
 
-// GLOBAL
+// GLOBAL: WIZ8 0x00659757
 unsigned char g_world_cleanup_flag_00659757;
 // GLOBAL: WIZ8 0x00659a80
 W8GrowableVector<W8World*> g_worlds_00659a80;

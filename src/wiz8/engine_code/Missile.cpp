@@ -31,11 +31,10 @@
 #include "wiz8/engine_code/quad.h"
 #include "wiz8/combat_state.h"
 
+#include "wiz8/startup_world.h"
+
 #include <stdlib.h>
 #include <string.h>
-
-// GLOBAL
-float g_navigator_largest_extent_6081e8;
 
 /* The copy body establishes only these fields. Padding remains explicit: the
    source leaves it uninitialized in the freshly allocated result. */
@@ -403,16 +402,16 @@ W8Missile::W8Missile()
 {
     W8GrObject::unknown_004 = 1;
     radius_084 = 1.0f;
-    if (g_navigator_largest_extent_6081e8 < 1.0f) {
-        g_navigator_largest_extent_6081e8 = 1.0f;
+    if (g_runtime_world_scale_6081e8 < 1.0f) {
+        g_runtime_world_scale_6081e8 = 1.0f;
     }
     movement_0c0.value_0b0 = 1.0f;
-    if (g_navigator_largest_extent_6081e8 < 1.0f) {
-        g_navigator_largest_extent_6081e8 = 1.0f;
+    if (g_runtime_world_scale_6081e8 < 1.0f) {
+        g_runtime_world_scale_6081e8 = 1.0f;
     }
     movement_0c0.alternate_radius_0b4 = 1.0f;
-    if (g_navigator_largest_extent_6081e8 < 1.0f) {
-        g_navigator_largest_extent_6081e8 = 1.0f;
+    if (g_runtime_world_scale_6081e8 < 1.0f) {
+        g_runtime_world_scale_6081e8 = 1.0f;
     }
     unknown_008 = IncrementValue60DFAC();
 

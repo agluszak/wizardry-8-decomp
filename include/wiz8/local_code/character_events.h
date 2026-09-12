@@ -6,13 +6,13 @@ bool IsVoiceMuted(void);
 void SetVoiceMuted(unsigned char muted);
 
 struct W8Character;
-struct W8StartupStateElement005EE748;
+struct W8CharacterEvent;
 
 extern int g_special_event_0068c558;
 
 int UpdateCharacterEventState(void);
-W8StartupStateElement005EE748* QueueCharacterEvent(W8Character* character, int effect, int argument,
-                                                   int value_1, unsigned int value_2);
+W8CharacterEvent* QueueCharacterEvent(W8Character* character, int effect, int argument, int value_1,
+                                      unsigned int value_2);
 
 /* 0x0052D0B0: format one character quote for the given event type into the
    shared wide text buffer. Returns zero and empties it when the type has no

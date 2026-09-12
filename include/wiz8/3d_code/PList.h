@@ -13,6 +13,8 @@ struct W8PList {
     int count;    /* 0x08 */
 };
 
+static_assert(sizeof(W8PList) == 0x0c, "W8PList_must_be_0x0c");
+
 W8PList* PLCreate(void);
 unsigned char PListInit(W8PList* ppl);
 unsigned char PLDestroy(W8PList* ppl);

@@ -71,6 +71,9 @@
 // TEMPLATE: WIZ8 0x0049BAB0
 // srMatrix4T<float>::Invert
 
+/* Out-of-line 3x3 determinant helper sitting between srMatrix4T<float>::Invert
+   and Scale. Retail emits a standalone body rather than a header-inline, so
+   it stays with those matrix-template emissions. */
 // FUNCTION: WIZ8 0x0049BD00
 float Det3(float param_1, float param_2, float param_3, float param_4, float param_5, float param_6,
            float param_7, float param_8, float param_9)

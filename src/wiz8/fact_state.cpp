@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
+#include "wiz8/game_status.h"
 
 // GLOBAL: WIZ8 0x0068de63
 unsigned char g_import_party_loaded;
@@ -27,7 +28,7 @@ unsigned char g_import_party_loaded;
 int g_import_ending_choice;
 // GLOBAL: WIZ8 0x00689b78
 unsigned char g_fact_values[1000];
-// GLOBAL
+// GLOBAL: WIZ8 unresolved
 unsigned char g_import_flags[0x60];
 
 // FUNCTION: WIZ8 0x00506280

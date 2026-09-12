@@ -76,6 +76,7 @@ int g_effect_argument_005ed8cc = 1;
 #include "line.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_screens/RCSCommon.h"
+#include "wiz8/game_status.h"
 void Function5B9070(void);
 void Function5B9350(void);
 void Function5B9900(void);
@@ -787,7 +788,8 @@ void CampScreenFrame(void)
                             ActivateDialogRegion(0x138);
                         } else {
                             QueueCharacterEvent(g_camp_character_0069c100, g_effect_005ee6ec, 0,
-                                           g_effect_argument_005ed8cc, g_effect_argument_005ed914);
+                                                g_effect_argument_005ed8cc,
+                                                g_effect_argument_005ed914);
                         }
                     }
                 } else {

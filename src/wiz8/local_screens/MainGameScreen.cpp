@@ -80,6 +80,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "wiz8/game_status.h"
 
 /*
  * Local Screens\MainGameScreen.cpp.
@@ -223,7 +224,7 @@ const float g_float_005eebbc = 120.0f;
 // GLOBAL: WIZ8 0x00659c11
 unsigned char g_navigator_position_changed_659c11;
 
-// GLOBAL
+// GLOBAL: WIZ8 0x006840BB
 unsigned char g_flag_006840bb;
 
 void Function4314C0(int save);
@@ -891,7 +892,7 @@ void W8MainGameScreen::SelectTextEntry(int index)
 
     m_selected_character_01c = slot;
     skill = GetPartySlotSkill10Level(slot);
-    hold = g_float_005ebc98 - (float)skill * g_float_005ec258;
+    hold = g_navigator_linked_radius_scale_005ebc98 - (float)skill * g_float_005ec258;
     chance = m_field_038;
     if (chance < 0) {
         chance = 0;
@@ -1027,7 +1028,7 @@ void W8MainGameScreen::Update()
     int elapsed;
     float progress;
 
-    if (m_state_018 == 9 && m_timer_154.GetProgress() >= g_W8RangeEnd005EBB38 &&
+    if (m_state_018 == 9 && m_timer_154.GetProgress() >= g_float_005ebb38 &&
         PartyPortraitEventsIdle() != 0) {
         m_owner_008->Run(-1);
         m_state_018 = 10;
@@ -1131,7 +1132,7 @@ void W8MainGameScreen::Update()
         return;
     case 7:
     case 8:
-        if (m_timer_154.GetProgress() >= g_W8RangeEnd005EBB38) {
+        if (m_timer_154.GetProgress() >= g_float_005ebb38) {
             m_state_018 = (m_state_018 != 7) + 3;
         }
         break;
@@ -2368,9 +2369,6 @@ int IsScreenInputBlocked(void)
     return 1;
 }
 
-// GLOBAL
-unsigned char g_map_loading_00659757;
-
 /* Whether the screen is idle - none of the six overlays is up. The same six
    flags the input block reads, but all of them and unconditionally. */
 // FUNCTION: WIZ8 0x00561440
@@ -2394,10 +2392,10 @@ bool LoadCurrentLevelData(void)
 
     if (g_status_685170.current_level != -1) {
         SetTargetCursor(W8_CURSOR_MAP_LOAD);
-        g_map_loading_00659757 = 1;
+        g_world_cleanup_flag_00659757 = 1;
         UnloadSkyWorld();
         loaded = UnloadLevel("MAP") != 0;
-        g_map_loading_00659757 = 0;
+        g_world_cleanup_flag_00659757 = 0;
         UpdateHeldItemCursor();
     }
     return loaded;

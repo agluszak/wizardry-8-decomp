@@ -59,8 +59,6 @@ template <> srVector3T<double>* srVector3T<double>::SetFromFloat(const srVector3
 // W8GrCycle::`scalar deleting destructor'
 
 // GLOBAL: WIZ8 0x005ecf98
-extern float g_float_005ecf98;
-// GLOBAL
 float g_float_005ecf98 = 0.02500000037252903f;
 // GLOBAL: WIZ8 0x005ecf9c
 float g_float_005ecf9c = 250.0f;
@@ -224,7 +222,7 @@ void UpdateShakeEffects004AE310()
 
 // GLOBAL: WIZ8 0x005ec128
 float g_float_005ec128 = 0.0010000000474974513f;
-// GLOBAL
+// GLOBAL: WIZ8 0x005ebc64
 float g_float_005ebc64;
 
 /* Build the two paths used while reading a .mon resource, verify its one-byte

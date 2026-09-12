@@ -113,10 +113,10 @@ int g_W8TextClipTarget005FF5F4 = -15;
 int g_W8TextClipFlags00650E38;
 
 // GLOBAL: WIZ8 0x005ebb38
-float g_W8RangeEnd005EBB38 = 1.0f;
+float g_float_005ebb38 = 1.0f;
 
 // GLOBAL: WIZ8 0x005ebc7c
-float g_W8RangeHalfStep005EBC7C = 0.5f;
+float g_float_005ebc7c = 0.5f;
 
 // FUNCTION: WIZ8 0x004f30f0
 void Controls::EnableRegionSet(bool enable)
@@ -1557,9 +1557,9 @@ void W8RangeControl::SetValue(int value)
     if (m_value == m_minimum) {
         position = g_float_005ebb34;
     } else if (m_value == m_maximum) {
-        position = g_W8RangeEnd005EBB38;
+        position = g_float_005ebb38;
     } else {
-        position = ((float)(m_value - m_minimum) + g_W8RangeHalfStep005EBC7C) /
+        position = ((float)(m_value - m_minimum) + g_float_005ebc7c) /
                    (float)((m_maximum - m_minimum) + 1);
     }
     m_thumb->SetRangePosition(position);

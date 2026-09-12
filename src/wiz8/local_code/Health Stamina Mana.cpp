@@ -2,7 +2,7 @@
 #include "soundman.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
-#include "wiz8/startup_runtime_state.h"
+#include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
@@ -26,6 +26,7 @@
 #include "wiz8/local_code/character_events.h"
 
 #include <stdlib.h>
+#include "wiz8/game_status.h"
 
 /* Local Code\Health Stamina Mana.cpp, named by the assertions these bodies
    embed. The party sweeps in here all share one shape: walk the eight party
@@ -297,9 +298,6 @@ unsigned int g_effect_threshold_005ed904 = 50;
 extern unsigned int g_effect_threshold_005ed900;
 // GLOBAL: WIZ8 0x005ed900
 unsigned int g_effect_threshold_005ed900 = 70;
-extern unsigned char g_spell_points_free_00687500;
-// GLOBAL
-unsigned char g_spell_points_free_00687500;
 /* 0x0061E518: one notice index per spell realm, giving the realm's name. */
 extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
 
@@ -361,14 +359,14 @@ void HealCharacter(int party_slot, int amount, char announce)
     fraction = (character->hp_current * 100) / (unsigned int)character->hp_max;
     if (fraction >= g_effect_threshold_005ed904) {
         if (CharacterHasEffect(reinterpret_cast<void*>(g_effect_005ee594), party_slot)) {
-            g_startup_runtime_state->SetEventCharacterMask(g_effect_005ee594, party_slot, 0);
+            g_character_event_queue->SetEventCharacterMask(g_effect_005ee594, party_slot, 0);
         }
         if (fraction >= g_effect_threshold_005ed900) {
             if (CharacterHasEffect(reinterpret_cast<void*>(g_effect_005ee590), party_slot)) {
-                g_startup_runtime_state->SetEventCharacterMask(g_effect_005ee590, party_slot, 0);
+                g_character_event_queue->SetEventCharacterMask(g_effect_005ee590, party_slot, 0);
             }
             if (CharacterHasEffect(reinterpret_cast<void*>(g_effect_005ee5f8), party_slot)) {
-                g_startup_runtime_state->SetEventCharacterMask(g_effect_005ee5f8, party_slot, 0);
+                g_character_event_queue->SetEventCharacterMask(g_effect_005ee5f8, party_slot, 0);
             }
         }
     }
@@ -434,7 +432,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
     if (character->hp_current == 0) {
         return;
     }
-    if (g_spell_points_free_00687500 != 0) {
+    if (g_status_685170.value_2390 != 0) {
         PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x980 / 4], amount);
         return;
     }
@@ -826,7 +824,7 @@ void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amou
         return;
     }
 
-    if (g_spell_points_free_00687500 != 0) {
+    if (g_status_685170.value_2390 != 0) {
         PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x988 / 4], amount,
                             gppStringList[g_realm_message_offsets[realm]]);
         return;

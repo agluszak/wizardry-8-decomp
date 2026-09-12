@@ -11,7 +11,7 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/npc_interaction.h"
-#include "wiz8/startup_runtime_state.h"
+#include "wiz8/character_event_queue.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "soundman.h"
 #include "random.h"
@@ -136,9 +136,8 @@ void SetVoiceMuted(unsigned char muted)
 }
 
 // FUNCTION: WIZ8 0x0052C810
-W8StartupStateElement005EE748::W8StartupStateElement005EE748(W8Character* character,
-                                                             unsigned int type, int value_0c_arg,
-                                                             unsigned int flags, int value_14_arg)
+W8CharacterEvent::W8CharacterEvent(W8Character* character, unsigned int type, int value_0c_arg,
+                                   unsigned int flags, int value_14_arg)
     : handled_00(0), character_04(character), type_08(type), value_0c(value_0c_arg),
       flags_10(flags), value_14(value_14_arg), value_30(0)
 {
@@ -222,19 +221,17 @@ unsigned char FormatCharacterQuoteText(W8Character* character, unsigned int type
 /* The quote text builder fills the shared wide buffer; the final character
    page's description area displays it. */
 // FUNCTION: WIZ8 0x0052D240
-wchar_t* W8StartupStateElement005EE748::GetQuoteText()
+wchar_t* W8CharacterEvent::GetQuoteText()
 {
     FormatCharacterQuoteText(character_04, type_08, 0);
     return g_character_text_0068c580;
 }
 
 /* 0x0052D460 proves four equal derived growable-vector instantiations followed
-   by a fifth instantiation with a distinct vtable and the tail state below. Element identity and the
-   complete lifetime remain tracked by wiz8-bxj; this gives startup the real
-   allocation and field shape without inventing semantic names. */
+   by a fifth instantiation with a distinct vtable and the tail state below. */
 
 // FUNCTION: WIZ8 0x0052d460
-W8StartupRuntimeState::W8StartupRuntimeState()
+W8CharacterEventQueue::W8CharacterEventQueue()
     : value_50(-1), value_54(-1), value_5c(0), value_64(-1)
 {
     bytes_68 = new unsigned char[0xb1];
@@ -242,15 +239,15 @@ W8StartupRuntimeState::W8StartupRuntimeState()
 }
 
 // FUNCTION: WIZ8 0x0052d5b0
-W8StartupRuntimeState::~W8StartupRuntimeState()
+W8CharacterEventQueue::~W8CharacterEventQueue()
 {
     delete[] bytes_68;
 }
 
 // FUNCTION: WIZ8 0x0052db80
-void W8StartupRuntimeState::ClearOwnedEntries()
+void W8CharacterEventQueue::ClearOwnedEntries()
 {
-    W8StartupStateElement005EE748* entry;
+    W8CharacterEvent* entry;
     int count;
 
     count = vector_40.count;
@@ -280,9 +277,9 @@ void W8StartupRuntimeState::ClearOwnedEntries()
 }
 
 // FUNCTION: WIZ8 0x0052e3b0
-void W8StartupRuntimeState::ProcessNextPendingEntry()
+void W8CharacterEventQueue::ProcessNextPendingEntry()
 {
-    W8StartupStateElement005EE748* entry;
+    W8CharacterEvent* entry;
 
     if (vector_40.count > 0) {
         entry = *vector_40.GetAt(0);
@@ -300,7 +297,7 @@ void W8StartupRuntimeState::ProcessNextPendingEntry()
 }
 
 // FUNCTION: WIZ8 0x0052ced0
-void W8StartupStateElement005EE748::Process0052CED0()
+void W8CharacterEvent::Process0052CED0()
 {
     W8MonsterManagerEntry* slot;
     int party_slot;
@@ -334,7 +331,7 @@ void W8StartupStateElement005EE748::Process0052CED0()
 /* Restarts the follow-up clock for entries of the middle event band while the
    state flag selects it. */
 // FUNCTION: WIZ8 0x0052E160
-void W8StartupRuntimeState::RestartFollowUpClock(W8StartupStateElement005EE748* entry)
+void W8CharacterEventQueue::RestartFollowUpClock(W8CharacterEvent* entry)
 {
     int flags = value_5c;
     unsigned int type = entry->type_08;
@@ -352,7 +349,7 @@ void W8StartupRuntimeState::RestartFollowUpClock(W8StartupStateElement005EE748* 
 }
 
 // FUNCTION: WIZ8 0x0052D610
-int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
+int W8CharacterEventQueue::QueueEntry(W8CharacterEvent* entry)
 {
     unsigned int event_index = entry->type_08;
     unsigned int party_slot;
@@ -402,7 +399,7 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
 }
 
 // FUNCTION: WIZ8 0x0052DD20
-void W8StartupRuntimeState::SetEventCharacterMask(unsigned int event_type, unsigned int party_slot,
+void W8CharacterEventQueue::SetEventCharacterMask(unsigned int event_type, unsigned int party_slot,
                                                   bool enabled)
 {
     unsigned char mask = (unsigned char)(1 << (party_slot & 31));
@@ -418,10 +415,10 @@ void W8StartupRuntimeState::SetEventCharacterMask(unsigned int event_type, unsig
 }
 
 // FUNCTION: WIZ8 0x0052E690
-W8StartupStateElement005EE748* QueueCharacterEvent(W8Character* character, int effect, int argument,
-                                                   int value_1, unsigned int value_2)
+W8CharacterEvent* QueueCharacterEvent(W8Character* character, int effect, int argument, int value_1,
+                                      unsigned int value_2)
 {
-    W8StartupStateElement005EE748* entry;
+    W8CharacterEvent* entry;
 
     if (g_settings_6850c8.pc_confirmations == 0 &&
         (effect == g_special_event_0068c50c || effect == g_special_event_0068c568)) {
@@ -432,8 +429,8 @@ W8StartupStateElement005EE748* QueueCharacterEvent(W8Character* character, int e
         effect != g_special_event_0068c540 && effect != g_special_event_0068c564) {
         value_2 = value_2 * 70 / 100;
     }
-    entry = new W8StartupStateElement005EE748(character, effect, argument, value_1, value_2);
-    if (entry != 0 && g_startup_runtime_state->QueueEntry(entry) == 0) {
+    entry = new W8CharacterEvent(character, effect, argument, value_1, value_2);
+    if (entry != 0 && g_character_event_queue->QueueEntry(entry) == 0) {
         return 0;
     }
     return entry;
@@ -443,7 +440,7 @@ W8StartupStateElement005EE748* QueueCharacterEvent(W8Character* character, int e
    and deleting it. Event types 14 and 15 also restart the runtime state's
    follow-up clock; bit 1 selects the short interval. */
 // FUNCTION: WIZ8 0x0052D8D0
-void W8StartupRuntimeState::ProcessOwnedEntry(W8StartupStateElement005EE748* entry)
+void W8CharacterEventQueue::ProcessOwnedEntry(W8CharacterEvent* entry)
 {
     int index = vector_40.IndexOf(entry);
 
@@ -482,7 +479,7 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
     }
     if (effect != -1 && QueueCharacterEvent(character, effect, 0, g_effect_argument_005ed8c8,
                                             g_effect_argument_005ed914) != 0) {
-        g_startup_runtime_state->SetEventCharacterMask(effect, party_slot, 1);
+        g_character_event_queue->SetEventCharacterMask(effect, party_slot, 1);
     }
 }
 
@@ -526,7 +523,7 @@ int UpdateCharacterEventState(void)
                     if (record->field_071 == 0) {
                         Function52F890(party_slot, 0, -1, 0, 1);
                     } else {
-                        g_startup_runtime_state->ProcessOwnedEntry(record->field_071);
+                        g_character_event_queue->ProcessOwnedEntry(record->field_071);
                     }
                 }
             } else {
@@ -550,7 +547,7 @@ int UpdateCharacterEventState(void)
             W8Character* character = &g_status_685170.buffers.characters[party_slot];
             if ((character->highest_condition > 14 || character->hp_current == 0) &&
                 record->field_071 != 0) {
-                g_startup_runtime_state->ProcessOwnedEntry(record->field_071);
+                g_character_event_queue->ProcessOwnedEntry(record->field_071);
             }
             if (record->field_000 == 0) {
                 unsigned int scan;

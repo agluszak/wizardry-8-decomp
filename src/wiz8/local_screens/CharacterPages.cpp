@@ -9,7 +9,7 @@
 
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/magic.h"
-#include "wiz8/startup_runtime_state.h"
+#include "wiz8/character_event_queue.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/regions.h"
 #include "wiz8/text_input.h"
@@ -812,9 +812,8 @@ void W8CharacterPage005EF57C::Redraw()
     if (m_description_dirty_0fd) {
         W8TextBuffer text;
         W8ControlsRect bounds;
-        W8StartupStateElement005EE748 element(m_character_060, g_effect_005ee588, 0,
-                                              g_effect_argument_005ed8c8,
-                                              g_effect_argument_005ed914);
+        W8CharacterEvent element(m_character_060, g_effect_005ee588, 0, g_effect_argument_005ed8c8,
+                                 g_effect_argument_005ed914);
 
         bounds.top = origin_y + 0x13a;
         bounds.bottom = origin_y + 0x16a;

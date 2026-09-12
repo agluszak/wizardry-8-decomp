@@ -33,16 +33,10 @@ float g_float_005ec1a0 = 0.9959999918937683f;
 // GLOBAL: WIZ8 0x00659a58
 int g_integrated_trigger_count_00659a58;
 
-// GLOBAL
-float g_float_00603ac8;
-// GLOBAL
-float g_float_00603aac;
 // GLOBAL: WIZ8 0x00603ab8
 float g_float_00603ab8 = 0.30000001192092896f;
 // GLOBAL: WIZ8 0x00603abc
 float g_float_00603abc = 112.5f;
-// GLOBAL
-float g_float_005ebc98;
 
 extern float g_path_endpoint_scale_005ec1a4;
 // GLOBAL: WIZ8 0x005ec1a4
@@ -295,8 +289,9 @@ W8GameData::W8GameData(int handle, void* parent)
             environ_record->value_24 = 0;
             environ_record->value_28 = 0;
             environ_record->value_2c = 0;
-            environ_record->value_30 = g_float_00603ac8;
-            environ_record->value_34 = g_float_00603aac * g_float_005ebc98;
+            environ_record->value_30 = g_default_world_height_00603ac8;
+            environ_record->value_34 =
+                g_camera_level_forward_scale_603aac * g_navigator_linked_radius_scale_005ebc98;
             environ_record->value_38 = g_float_00603ab8;
             environ_record->value_3c = g_float_00603abc;
             environ_record->value_40 = 1.0f;

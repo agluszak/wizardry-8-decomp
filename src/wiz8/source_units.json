@@ -3,7 +3,8 @@
   "compiler-emission": [
     "src/wiz8/vector.cpp",
     "src/wiz8/vc6_runtime.cpp",
-    "src/wiz8/engine_code/registry_classes.cpp"
+    "src/wiz8/engine_code/registry_classes.cpp",
+    "src/wiz8/surrender_math.cpp"
   ],
   "unresolved-fragment": [
     "src/wiz8/character_skills.cpp",
@@ -49,7 +50,6 @@
     "src/wiz8/startup_ui_state.cpp",
     "src/wiz8/startup_world.cpp",
     "src/wiz8/surface2d.cpp",
-    "src/wiz8/surrender_math.cpp",
     "src/wiz8/version.cpp",
     "src/wiz8/virtual_file_stream.cpp"
   ],

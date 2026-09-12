@@ -1,14 +1,15 @@
-#include "wiz8/game_status.h"
+#include "wiz8/local_code/FormationAndFacing.h"
 
 #include <string.h>
 
 /* This initializer lies in the reviewed attribution gap between Magic
-   Effects.cpp and Formation & Facing.cpp. */
+   Effects.cpp and Formation & Facing.cpp. Keep the file classified as an
+   unresolved fragment; the descriptive name does not prove original-TU
+   identity. */
 
 // FUNCTION: WIZ8 0x00554580
-void InitializePartyFormation(unsigned char* storage)
+void InitializePartyFormation(W8PartyFormationState* state)
 {
-    W8PartyFormationState* state = (W8PartyFormationState*)storage;
     unsigned int index;
 
     memset(state, 0, sizeof(*state));

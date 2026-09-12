@@ -399,7 +399,7 @@ unsigned short g_level_name_indices_605820[47] = {
     0x716, 0x717, 0x706, 0x718, 0x719, 0x719, 0x719, 0x719, 0x719, 0x719, 0x719,
 };
 
-// GLOBAL
+// GLOBAL: WIZ8 0x00659756
 unsigned char g_flag_00659756;
 
 // GLOBAL: WIZ8 0x00603ac8

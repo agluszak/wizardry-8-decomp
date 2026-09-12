@@ -1818,6 +1818,7 @@ void BindEveryPartyItem(void)
 }
 
 #include <stdlib.h>
+#include "wiz8/game_status.h"
 
 /* Order two pool entries. Both have to hold something - the two assertions say
    so by name - and they are compared by equipment class, then by generic name,

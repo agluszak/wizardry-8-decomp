@@ -2,13 +2,12 @@
 
 #include "Types.h"
 
-#include "gameloop.h"
-
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/gameplay_modifiers.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/text_types.h"
 
 #include <stddef.h>
@@ -26,24 +25,6 @@ struct W8StatusBuffers {
 };
 
 enum { W8_CHARACTER_SERIALIZED_SIZE = 0x1862 };
-
-struct W8PartyFormationRow {
-    signed char slots[3];
-};
-
-struct W8PartyFormationPosition {
-    unsigned char row;
-    unsigned char unknown_01[2];
-    signed char facing;
-    unsigned char unknown_04[8];
-};
-
-struct W8PartyFormationState {
-    W8PartyFormationRow rows[5];
-    unsigned char flags_0f[5];
-    W8PartyFormationPosition positions[8];
-    unsigned char unknown_74[0x10];
-};
 
 struct W8GlobalStatus {
     W8StatusBuffers buffers;
@@ -92,7 +73,9 @@ struct W8GlobalStatus {
     unsigned char unknown_238b[4];
     /* 0x238f: scales the monster-sight threshold while set. */
     unsigned char flag_238f;
-    /* 0x2390: cleared by the main-game frame; the rest of the run is opaque. */
+    /* 0x2390: cleared by the main-game frame; HP/SP and condition updates
+       skip work while it is set, and encounter culling treats it as the
+       force-despawn gate. */
     unsigned char value_2390;
     unsigned char unknown_2391[0x10];
     W8PartyFormationState formation;
@@ -166,9 +149,6 @@ struct W8GlobalStatus {
 #pragma pack(pop)
 
 static_assert(sizeof(W8StatusBuffers) == 0x0c, "W8StatusBuffers_must_be_0x0c");
-static_assert(sizeof(W8PartyFormationRow) == 0x03, "W8PartyFormationRow_must_be_0x03");
-static_assert(sizeof(W8PartyFormationPosition) == 0x0c, "W8PartyFormationPosition_must_be_0x0c");
-static_assert(sizeof(W8PartyFormationState) == 0x84, "W8PartyFormationState_must_be_0x84");
 static_assert(offsetof(W8GlobalStatus, party_gold) == 0x19, "W8GlobalStatus_party_gold_offset");
 static_assert(offsetof(W8GlobalStatus, selected_character) == 0x1d,
               "W8GlobalStatus_selected_character_offset");
@@ -209,5 +189,3 @@ static_assert(offsetof(W8GlobalStatus, value_423d) == 0x423d, "W8GlobalStatus_va
 static_assert(sizeof(W8GlobalStatus) == 0x49c2, "W8GlobalStatus_must_be_0x49c2");
 
 extern W8GlobalStatus g_status_685170;
-
-void InitializePartyFormation(unsigned char* storage);

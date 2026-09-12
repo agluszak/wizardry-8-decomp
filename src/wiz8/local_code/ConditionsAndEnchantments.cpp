@@ -23,6 +23,7 @@
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/character_skills.h"
 #include "wiz8/npc_state.h"
+#include "wiz8/game_status.h"
 
 /* Condition-to-notice word table. Only the first word of each four-word
    stride is read, hence the multiplied index. */
@@ -45,12 +46,6 @@ unsigned char GetConditionRecordFlag(int party_slot, int condition)
     return g_status_685170.buffers.characters[party_slot].conditions_1817[condition].value_08;
 }
 
-// GLOBAL
-unsigned char g_byte_00687500;
-
-// GLOBAL
-unsigned char g_enchantment_six_cleared_006840bb;
-
 /* The enchantment slot whose clearing has a consequence beyond the slot
    itself. */
 enum { W8_ENCHANTMENT_SLOT_SPECIAL = 6 };
@@ -69,7 +64,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
     W8Character* found_character;
     unsigned char can_rest;
 
-    if (character->condition_turns[condition] != 0 || g_byte_00687500 == 0) {
+    if (character->condition_turns[condition] != 0 || g_status_685170.value_2390 == 0) {
         if (row->occupied == 0) {
             srAssertFail("fCHAR_OCCUPIED(uiChar)",
                          "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
@@ -118,7 +113,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
             break;
         case 9:
         case 0xC:
-            g_enchantment_six_cleared_006840bb = 1;
+            g_flag_006840bb = 1;
             break;
         case 0xb:
             if (gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].flag_80 != 0) {
@@ -464,7 +459,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
         }
         break;
     }
-    if (g_byte_00687500 != 0) {
+    if (g_status_685170.value_2390 != 0) {
         PostCharacterNotice(party_slot, gppStringList[0x908 / 4],
                             gppStringList[g_condition_notices_0061E570[condition * 4]]);
         return 0;
@@ -503,7 +498,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
         character->condition_turns[condition] = duration;
         if (old_duration == 0) {
             if (condition == 9 || condition == 0xC) {
-                g_enchantment_six_cleared_006840bb = 1;
+                g_flag_006840bb = 1;
             } else if (condition == 0xd) {
                 SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT);
             }
@@ -619,7 +614,7 @@ void ClearCharacterEnchantmentSlot(int party_slot, int slot)
     }
     Function50E650(party_slot);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
-        g_enchantment_six_cleared_006840bb = 1;
+        g_flag_006840bb = 1;
     }
 }
 

@@ -5,7 +5,7 @@ void RoundPhaseToStep(unsigned int* phase, unsigned int base);
 
 #include "wiz8/gameplay_modifiers.h"
 #include "wiz8/targeting.h"
-#include "wiz8/game_status.h"
+#include "wiz8/local_code/FormationAndFacing.h"
 
 struct W8Character;
 struct W8MonsterInfo;

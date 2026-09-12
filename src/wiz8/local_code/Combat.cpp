@@ -9,7 +9,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/npc_interaction.h"
-// GLOBAL
+// GLOBAL: WIZ8 0x006836A8
 W8CombatState* g_combat_state;
 // GLOBAL: WIZ8 0x006850b0
 unsigned int g_combat_countdown_6850b0;
@@ -41,6 +41,7 @@ unsigned int g_combat_countdown_6850b0;
 
 #include <stdarg.h>
 #include <stdio.h>
+#include "wiz8/game_status.h"
 
 /*
  * Local Code\Combat.cpp.
@@ -274,8 +275,9 @@ extern float g_movement_speed_step_005ed490;
 // GLOBAL: WIZ8 0x005ed490
 float g_movement_speed_step_005ed490 = 0.009999999776482582f;
 /* 0x00683FE7-adjacent: the per-character per-hand attack values combat saved
-   when the round began, 0x35 dwords per character. */
-// GLOBAL
+   when the round began, 0x35 dwords per character. Retail start is not
+   recovered as a precise root. */
+// GLOBAL: WIZ8 unresolved
 int g_saved_attack_values[8 * 0x35];
 
 /* What one character's whole turn is worth. A character whose turn combat has

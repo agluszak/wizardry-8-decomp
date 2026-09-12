@@ -104,9 +104,6 @@ int g_value_005ee59c = 5;
 // GLOBAL: WIZ8 0x005ee5a0
 int g_value_005ee5a0 = 6;
 
-// GLOBAL
-int g_value_005ed8c8;
-
 // GLOBAL: WIZ8 0x005ec124
 const float g_float_005ec124 = 64.0f;
 
@@ -626,7 +623,7 @@ void W8TriggerEvent::Update()
     if (action_004 == 2) {
         unsigned short flags = timer_008.m_flags;
 
-        if (g_flag_6081e4 == 0) {
+        if (g_flag_006081e4 == 0) {
             if ((flags & 8) != 0 || (g_shared_timer_paused != 0 && (flags & 1) == 0) ||
                 g_shared_timer_flag_d1 != 0) {
                 return;
@@ -2150,8 +2147,9 @@ void Trigger::Run(int source)
             if (m_pacRecipients == 0 || _stricmp(m_pacRecipients, "party") != 0) {
                 break;
             }
-            ApplyItemEffectToRandomCharacter0052E5C0(
-                Random(2) != 0 ? g_value_005ee59c : g_value_005ee5a0, -1, 0, g_value_005ed8c8);
+            ApplyItemEffectToRandomCharacter0052E5C0(Random(2) != 0 ? g_value_005ee59c
+                                                                    : g_value_005ee5a0,
+                                                     -1, 0, g_effect_argument_005ed8c8);
             flag_0a0_06 = 1;
             goto commit_action;
 
@@ -2447,7 +2445,7 @@ void Trigger::Run(int source)
                     if (m_pProp->Rep()->flag_064 == 0) {
                         ApplyItemEffectToRandomCharacter0052E5C0(Random(2) != 0 ? g_value_0068c548
                                                                                 : g_value_0068c520,
-                                                                 -1, 0, g_value_005ed8c8);
+                                                                 -1, 0, g_effect_argument_005ed8c8);
                     }
                 } else if (item_count == 2 && g_status_685170.item_in_cursor == 0) {
                     item = world_item_group_34c->next;
@@ -3113,7 +3111,7 @@ unsigned char Trigger::SelectAction()
     unsigned char fallback_selected = 0;
     unsigned char result = 1;
 
-    if (g_flag_6081e4 == 0 && m_pActionData != 0 && m_pActionData->type_004 == 10 &&
+    if (g_flag_006081e4 == 0 && m_pActionData != 0 && m_pActionData->type_004 == 10 &&
         (m_pActionData->flags_008 & 1) != 0) {
         return 0;
     }

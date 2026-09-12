@@ -33,8 +33,6 @@ double g_double_005ec030 = 2500.0;
 /* The world object the navigator notifies when it leaves a location, and
    the notification itself. 0x0042E880 sits outside every assertion-backed
    interval, so it keeps an address-qualified name. */
-/* Tracks the largest radius any navigator has been given. */
-extern float g_navigator_largest_extent_6081e8;
 extern W8GrowableVector<W8Navigator*> g_navigator_group_659bf8;
 
 namespace {
@@ -423,14 +421,14 @@ W8Navigator::W8Navigator(const W8Navigator& other)
     movement_0c0.value_0c4 = other.movement_0c0.value_0c4;
     minimum_06c = other.minimum_06c;
     maximum_078 = other.maximum_078;
-    if (g_navigator_largest_extent_6081e8 < movement_0c0.value_0b0) {
-        g_navigator_largest_extent_6081e8 = movement_0c0.value_0b0;
+    if (g_runtime_world_scale_6081e8 < movement_0c0.value_0b0) {
+        g_runtime_world_scale_6081e8 = movement_0c0.value_0b0;
     }
-    if (g_navigator_largest_extent_6081e8 < movement_0c0.alternate_radius_0b4) {
-        g_navigator_largest_extent_6081e8 = movement_0c0.alternate_radius_0b4;
+    if (g_runtime_world_scale_6081e8 < movement_0c0.alternate_radius_0b4) {
+        g_runtime_world_scale_6081e8 = movement_0c0.alternate_radius_0b4;
     }
-    if (g_navigator_largest_extent_6081e8 < radius_084) {
-        g_navigator_largest_extent_6081e8 = radius_084;
+    if (g_runtime_world_scale_6081e8 < radius_084) {
+        g_runtime_world_scale_6081e8 = radius_084;
     }
     movement_0c0.CopySettingsFrom(other.movement_0c0);
     movement_0c0.height_offset_0b8 -= other.movement_0c0.vertical_base_07c;
@@ -624,9 +622,7 @@ extern unsigned char g_navigator_position_changed_659c11;
 extern float g_navigator_default_turn_rate_005ec2f4;
 // GLOBAL: WIZ8 0x005ec2f4
 float g_navigator_default_turn_rate_005ec2f4 = 4.398229598999023f;
-extern float g_frame_scale_006068ec;
-// GLOBAL
-float g_frame_scale_006068ec;
+
 extern const float g_negative_one_005ebc38;
 extern float g_navigator_snap_angle_005ec2f0;
 // GLOBAL: WIZ8 0x005ec2f0
@@ -1473,7 +1469,7 @@ void W8Navigator::UpdateAngles00453990()
     if (gXStatus.fCombatMode == 0) {
         step = movement_0c0.turn_rate_068;
     }
-    step *= g_frame_scale_006068ec * g_object_6598bc->GetValue28();
+    step *= g_rate_006068EC * g_object_6598bc->GetValue28();
 
     if (movement_0c0.yaw != movement_0c0.target_yaw) {
         distance = NormalizeAngle(movement_0c0.yaw - movement_0c0.target_yaw);
@@ -1620,9 +1616,9 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
         if (g_navigator_vertical_enabled_006081f8 == 0) {
             movement_0c0.vertical_offset_0c0 = movement_0c0.vertical_base_07c;
         } else {
-            float phase = movement_0c0.vertical_phase_084 +
-                          g_frame_scale_006068ec * g_object_6598bc->GetValue28() *
-                              g_navigator_vertical_phase_step_005ebcc8;
+            float phase =
+                movement_0c0.vertical_phase_084 + g_rate_006068EC * g_object_6598bc->GetValue28() *
+                                                      g_navigator_vertical_phase_step_005ebcc8;
             phase -= (float)floor((double)phase);
             movement_0c0.vertical_phase_084 = phase;
             movement_0c0.vertical_offset_0c0 = (float)sin((double)phase * g_double_005ec318) *
@@ -1839,7 +1835,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
                 velocity.z = movement_0c0.velocity_034.z;
             }
             velocity.y = (movement_0c0.position_040.y - previous.y) /
-                         (g_frame_scale_006068ec * g_object_6598bc->GetValue28());
+                         (g_rate_006068EC * g_object_6598bc->GetValue28());
             if (navigation_mode_008 == 2 || navigation_mode_008 == 3) {
                 minimum_speed = g_navigator_minimum_speed_mode23_006081f0;
             } else {
@@ -1856,8 +1852,8 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
     UpdateAngles00453990();
     if (flag_024 == 0 && g_flag_006081e4 == 0 && movement_complete_026 == 0 && flags_00c != 0) {
         movement_0c0.callback_progress_05c += g_object_6598bc->GetValue28() *
-                                              movement_0c0.movement_scale_060 *
-                                              g_frame_scale_006068ec * g_world_scale_005ebc40;
+                                              movement_0c0.movement_scale_060 * g_rate_006068EC *
+                                              g_world_scale_005ebc40;
         if (movement_0c0.callback_threshold_058 <= movement_0c0.callback_progress_05c) {
             if (movement_callback_08c != 0) {
                 movement_callback_08c(this);

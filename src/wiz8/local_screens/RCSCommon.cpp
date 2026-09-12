@@ -20,6 +20,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "wiz8/xstatus.h"
+#include "wiz8/game_status.h"
 
 /*
  * Local Screens\RCSCommon.cpp.

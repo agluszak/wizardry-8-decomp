@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include "wiz8/game_status.h"
 
 /* Local Code\LoadSaveGame.cpp. The unit is established by its own assertions:
    evidence/observations/wiz8/assertions.csv places line 870 at 0x00512E80 and
@@ -69,9 +70,6 @@
    0x005135D0 and cleared immediately after, and read only from the save and
    load paths. It gates the bit-3 clear below. The meaning is not established
    beyond "a level restore is in progress", so the name stays positional. */
-
-// GLOBAL
-unsigned char g_flag_659756;
 
 /* The object W8WorldItem::owner points at, and the entity it owns at +0x14.
    Method4B8890 is a 24-byte
@@ -497,7 +495,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     }
     chunks->ReleaseCurrentChunk();
 
-    if (g_flag_659756) {
+    if (g_flag_00659756) {
         chunks->OpenChunk(0x45425543, 0); /* CUBE */
         Function48EAD0(chunks->m_hFile);
         Function48E6D0(chunks->m_hFile);
@@ -508,13 +506,13 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
         chunks->ReleaseCurrentChunk();
 
         chunks->OpenChunk(0x4b434f4c, 0); /* LOCK */
-        SaveTriggerRuntimeStates0043CB30(g_world, chunks->m_hFile, g_flag_659756);
+        SaveTriggerRuntimeStates0043CB30(g_world, chunks->m_hFile, g_flag_00659756);
         chunks->ReleaseCurrentChunk();
 
         chunks->OpenChunk(0x53455254, 0); /* TRES */
         SaveTriggerActionData0043D120(g_world, chunks->m_hFile);
         chunks->ReleaseCurrentChunk();
-        if (g_flag_659756) {
+        if (g_flag_00659756) {
             chunks->ReleaseGroup();
             chunks->ReleaseCurrentChunk();
             return 1;
@@ -544,7 +542,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     chunks->ReleaseCurrentChunk();
 
     chunks->OpenChunk(0x534b434c, 0); /* LCKS */
-    SaveTriggerRuntimeStates0043CB30(g_world, chunks->m_hFile, g_flag_659756);
+    SaveTriggerRuntimeStates0043CB30(g_world, chunks->m_hFile, g_flag_00659756);
     chunks->ReleaseCurrentChunk();
 
     chunks->OpenChunk(0x53424d41, 0); /* AMBS */
@@ -730,7 +728,7 @@ unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
             item->position = position;
             item->entity_flags = static_cast<W8ItemRep*>(first->owner->m_pRep)->flags;
         }
-        if (g_flag_659756 != 0) {
+        if (g_flag_00659756 != 0) {
             first->entity_flags &= ~8;
         }
         if (!FileWrite(handle, item, sizeof(W8WorldItem), (unsigned int*)&item_info)) {
@@ -772,7 +770,7 @@ W8WorldItem* LoadItem(int handle, char add_to_list)
         } else if (add_to_list && PLAdoptAppend(gXStatus.plsItemList, item) == -1) {
             return 0;
         }
-        if (g_flag_659756 != 0) {
+        if (g_flag_00659756 != 0) {
             item->entity_flags &= ~8;
         }
         previous = item;

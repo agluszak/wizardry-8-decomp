@@ -998,7 +998,6 @@ extern void ReadWaypointFile0043A0F0(void);
 float g_octree_cell_scale_005ebcd0 = 100.0f;
 extern unsigned short g_path_reserve_0060827a;
 extern float g_path_span_scale_005ec344;
-extern float g_path_limit_006081e8;
 /* 0x00659888 accumulates every byte the loader reads, and 0x00652DB0 caches the
    game-data block LoadWorld hands back through its out parameter. */
 

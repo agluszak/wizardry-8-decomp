@@ -296,6 +296,7 @@ unsigned char CountLeadingPartySlots(void)
 }
 
 #include <string.h>
+#include "wiz8/game_status.h"
 
 /* 0x00619DFC: one three-dword row per service - the service id, the bit that
    stands for it, and one more field nothing here reads. -1 ends the table. */
@@ -916,7 +917,7 @@ void UpdateNpcEvents0050D530(void)
                     } else {
                         int event = Random(2) == 0 ? 0x57 : 0x58;
                         QueueCharacterEvent(character, event, 0, g_effect_argument_005ed8c8,
-                                       g_effect_argument_005ed914);
+                                            g_effect_argument_005ed914);
                         npc_state->event_clock_eb = g_status_685170.world_clock;
                     }
                 }

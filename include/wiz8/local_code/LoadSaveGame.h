@@ -77,7 +77,6 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level);
 unsigned char MeasureLevelStatusChunks00514DF0(W8Chunk* chunk, int level,
                                                unsigned int* empty_percent);
 
-extern unsigned char g_flag_659756;
 extern unsigned char g_save_pending_00689f98;
 extern unsigned char g_save_notice_shown_0068506b;
 

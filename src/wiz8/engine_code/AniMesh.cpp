@@ -24,10 +24,39 @@ float g_float_005ebb34 = 0.0f;
 double g_double_005ebe80 = 0.5;
 // GLOBAL: WIZ8 0x005ebb40
 extern const double g_zero_005ebb40 = 0.0;
-extern int g_storage_state_65be80;
-extern int g_storage_state_65be84;
-extern int g_storage_limit_65be88;
-extern W8PList g_storage_list_65be90;
+
+/* AniMesh cache: a generation stamp, the loaded-byte total, the 16 MiB primary
+   limit, the unused 1 MiB secondary limit the initializer still writes, and
+   the list EnforceAniMeshMemoryLimit walks. CreateAniMesh follows this
+   initializer immediately in .text. */
+// GLOBAL: WIZ8 0x0065be80
+int g_animesh_cache_stamp_65be80;
+// GLOBAL: WIZ8 0x0065be84
+int g_animesh_cache_bytes_65be84;
+// GLOBAL: WIZ8 0x0065be88
+int g_animesh_cache_limit_65be88;
+// GLOBAL: WIZ8 0x0065be8c
+int g_animesh_cache_secondary_limit_65be8c;
+// GLOBAL: WIZ8 0x0065be90
+W8PList g_animesh_cache_list_65be90;
+
+/* The two caller-provided values override the original 16 MiB and 1 MiB
+   defaults only when positive. Startup passes -1 for both. */
+// FUNCTION: WIZ8 0x004b5780
+void InitializeAniMeshCache(int primary_limit, int secondary_limit)
+{
+    g_animesh_cache_stamp_65be80 = 0;
+    g_animesh_cache_bytes_65be84 = 0;
+    g_animesh_cache_limit_65be88 = 0x1000000;
+    if (primary_limit > 0) {
+        g_animesh_cache_limit_65be88 = primary_limit;
+    }
+    g_animesh_cache_secondary_limit_65be8c = 0x100000;
+    if (secondary_limit > 0) {
+        g_animesh_cache_secondary_limit_65be8c = secondary_limit;
+    }
+    PListInit(&g_animesh_cache_list_65be90);
+}
 
 // FUNCTION: WIZ8 0x004b57e0
 W8AniMesh* CreateAniMesh004B57E0()
@@ -267,8 +296,8 @@ unsigned char LoadAniMesh004B5D00(int file, W8AniMesh* mesh, unsigned char load_
     }
 
     mesh->flags_00 |= W8_ANI_MESH_LOADED;
-    mesh->last_used_3c = g_storage_state_65be80++;
-    g_storage_state_65be84 += mesh->loaded_bytes_24;
+    mesh->last_used_3c = g_animesh_cache_stamp_65be80++;
+    g_animesh_cache_bytes_65be84 += mesh->loaded_bytes_24;
 
     mesh->radius_20 = 0.0f;
     for (frame_index = 0; frame_index < mesh->frame_count_01; ++frame_index) {
@@ -302,7 +331,7 @@ unsigned char LoadAniMesh004B5D00(int file, W8AniMesh* mesh, unsigned char load_
     }
     delete[] instance_name;
     if ((mesh->flags_00 & W8_ANI_MESH_KEEP_LOADED) != 0) {
-        PLAdoptAppend(&g_storage_list_65be90, mesh);
+        PLAdoptAppend(&g_animesh_cache_list_65be90, mesh);
     }
     EnforceAniMeshMemoryLimit004B6770(mesh);
     return 1;
@@ -327,7 +356,7 @@ unsigned char GetAniMeshBounds004B6640(W8AniMesh* mesh, srVector3T<float>* minim
     }
     *minimum = mesh->bounds_minimum_08;
     *maximum = mesh->bounds_maximum_14;
-    mesh->last_used_3c = g_storage_state_65be80++;
+    mesh->last_used_3c = g_animesh_cache_stamp_65be80++;
     return 1;
 }
 
@@ -419,7 +448,7 @@ unsigned char UnloadAniMesh004B63F0(W8AniMesh* mesh, unsigned char force)
             instance->release();
         }
     }
-    g_storage_state_65be84 -= mesh->loaded_bytes_24;
+    g_animesh_cache_bytes_65be84 -= mesh->loaded_bytes_24;
     free(mesh->meshes_04);
     mesh->flags_00 &= ~W8_ANI_MESH_LOADED;
     mesh->meshes_04 = 0;
@@ -448,8 +477,8 @@ stModelInstance* GetAniMeshFrame004B6550(W8AniMesh* mesh, unsigned char frame)
     } else {
         instance = mesh->meshes_04[frame];
     }
-    mesh->last_used_3c = g_storage_state_65be80;
-    ++g_storage_state_65be80;
+    mesh->last_used_3c = g_animesh_cache_stamp_65be80;
+    ++g_animesh_cache_stamp_65be80;
     return instance;
 }
 
@@ -483,8 +512,8 @@ unsigned char AniMeshRadius004B66E0(W8AniMesh* mesh, float* radius)
             }
         }
         *radius = mesh->radius_20;
-        mesh->last_used_3c = g_storage_state_65be80;
-        ++g_storage_state_65be80;
+        mesh->last_used_3c = g_animesh_cache_stamp_65be80;
+        ++g_animesh_cache_stamp_65be80;
         return 1;
     }
     return 0;
@@ -506,14 +535,15 @@ void AniMeshSetFlag10004B6860(W8AniMesh* mesh, signed char enabled)
 // FUNCTION: WIZ8 0x004b6770
 void EnforceAniMeshMemoryLimit004B6770(W8AniMesh* current)
 {
-    while (g_storage_state_65be84 > g_storage_limit_65be88 &&
-           PLLength(&g_storage_list_65be90) != 0) {
+    while (g_animesh_cache_bytes_65be84 > g_animesh_cache_limit_65be88 &&
+           PLLength(&g_animesh_cache_list_65be90) != 0) {
         W8AniMesh* oldest = 0;
         int oldest_index = -1;
-        unsigned int count = PLLength(&g_storage_list_65be90);
+        unsigned int count = PLLength(&g_animesh_cache_list_65be90);
 
         for (unsigned int index = 0; index < count; ++index) {
-            W8AniMesh* candidate = static_cast<W8AniMesh*>(PLGet(&g_storage_list_65be90, index));
+            W8AniMesh* candidate =
+                static_cast<W8AniMesh*>(PLGet(&g_animesh_cache_list_65be90, index));
 
             if (candidate != current) {
                 if (candidate == 0) {
@@ -529,7 +559,7 @@ void EnforceAniMeshMemoryLimit004B6770(W8AniMesh* current)
         }
         if (oldest != current) {
             UnloadAniMesh004B63F0(oldest, 0);
-            PLRemoveAt(&g_storage_list_65be90, oldest_index);
+            PLRemoveAt(&g_animesh_cache_list_65be90, oldest_index);
         } else if (oldest_index == -1) {
             srAssertFail("0", ANI_MESH_CPP, 0x39d,
                          "mimp.cpp -> Tell a programmer : running out of monster memory.");

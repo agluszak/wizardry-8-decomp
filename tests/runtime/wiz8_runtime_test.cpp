@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "wiz8/game_status.h"
 
 extern "C" {
 
@@ -781,7 +782,8 @@ static DWORD WINAPI DriveScenario(void*)
                 }
                 while (CountActiveCharacters() < 6) {
                     int before = CountActiveCharacters();
-                    if (AddCharacterToParty(&g_status_685170.buffers.characters[populated], -1) < 0 ||
+                    if (AddCharacterToParty(&g_status_685170.buffers.characters[populated], -1) <
+                            0 ||
                         CountActiveCharacters() <= before) {
                         return FailScenario();
                     }

@@ -6,6 +6,7 @@
 #include "wiz8/regions.h"
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
+#include "wiz8/fonts.h"
 #include "wiz8/virtual_file.h"
 #include "wiz8/wiz8_windows.h"
 
@@ -16,9 +17,6 @@
 #include <stdlib.h>
 #include <wchar.h>
 
-extern int g_font_00683614;
-// GLOBAL
-int g_font_00683614;
 extern int g_font_bold_0068368c;
 // GLOBAL: WIZ8 0x0068368c
 int g_font_bold_0068368c;
@@ -112,8 +110,8 @@ unsigned char CreditsScreenEnter(void)
                     }
                 }
                 if (!blank) {
-                    entry.pixel_width = StringPixLength(entry.primary, bold ? g_font_bold_0068368c
-                                                                            : g_font_00683614);
+                    entry.pixel_width = StringPixLength(
+                        entry.primary, bold ? g_font_bold_0068368c : g_options_detail_font_683614);
                 }
                 entry.line_height = 0x14 + (bold ? 5 : 0);
                 g_credit_lines_0069c4a8->Add(entry);
@@ -191,7 +189,7 @@ void CreditsScreenFrame(void)
          ++index) {
         const W8CreditLine* entry = g_credit_lines_0069c4a8->GetAt(index);
         if ((entry->flags & 4) == 0) {
-            SetFont((entry->flags & 1) ? g_font_bold_0068368c : g_font_00683614);
+            SetFont((entry->flags & 1) ? g_font_bold_0068368c : g_options_detail_font_683614);
             if ((entry->flags & 2) == 0) {
                 gprintf((0x280 - entry->pixel_width) / 2, y, (unsigned short*)L"%s",
                         entry->primary);

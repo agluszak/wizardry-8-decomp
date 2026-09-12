@@ -340,7 +340,7 @@ char ResolvePickedProp(W8World* world)
             g_selected_prop_trigger_00659a60 = trigger;
             if (trigger != 0 && (trigger->flags_0a0 & 0x100) != 0 &&
                 ((trigger->flags_0a0 & 0x40000) == 0 || (trigger->flags_0a0 & 0x80000) == 0) &&
-                (g_flag_6081e4 ||
+                (g_flag_006081e4 ||
                  (trigger->m_pActionData != 0 && trigger->m_pActionData->type_004 == 10 &&
                   (trigger->m_pActionData->flags_008 & 1) == 0)) &&
                 representation->active != 0) {

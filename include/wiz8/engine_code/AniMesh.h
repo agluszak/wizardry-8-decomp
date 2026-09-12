@@ -2,6 +2,7 @@
 #define WIZ8_ENGINE_CODE_ANI_MESH_H
 
 #include "surrender/srMath.h"
+#include "wiz8/3d_code/PList.h"
 
 class stModelInstance;
 struct W8ReadLevelInfo;
@@ -39,6 +40,13 @@ struct W8AniMesh {
 
 static_assert(sizeof(W8AniMesh) == 0x40, "W8AniMesh_minimum_size_must_be_0x40");
 
+extern int g_animesh_cache_stamp_65be80;
+extern int g_animesh_cache_bytes_65be84;
+extern int g_animesh_cache_limit_65be88;
+extern int g_animesh_cache_secondary_limit_65be8c;
+extern W8PList g_animesh_cache_list_65be90;
+
+void InitializeAniMeshCache(int primary_limit, int secondary_limit);
 W8AniMesh* CreateAniMesh004B57E0();
 W8AniMesh* CopyAniMesh004B58D0(const W8AniMesh* other);
 float GetAniMeshFrameRadius004B5C10(W8AniMesh* mesh, unsigned char frame);
