@@ -403,9 +403,9 @@ public:
 
 class W8State5PanelSelectionListener005EF3B4 {
 public:
-    virtual void Function5BF0C0(int row) = 0;
-    virtual void Function5BF050(int row) = 0;
-    virtual void Function5BF0E0(int amount) = 0;
+    virtual void SelectPartyMemberRow(int row) = 0;
+    virtual void OpenCampForSelectedMember(int row) = 0;
+    virtual void AdjustPartyMemberRange(int amount) = 0;
 };
 
 /* Each visible character row is the same text control that W8Control stores
@@ -457,9 +457,9 @@ public:
     virtual ~W8State5CharacterPanel005EF3C8();
     virtual void OnSelectionChanged(W8ControlSelection* control, int selected) override;
     virtual void OnRangeChanged(W8RangeControl* control) override;
-    virtual void Function5BF0C0(int row) override;
-    virtual void Function5BF050(int row) override;
-    virtual void Function5BF0E0(int amount) override;
+    virtual void SelectPartyMemberRow(int row) override;
+    virtual void OpenCampForSelectedMember(int row) override;
+    virtual void AdjustPartyMemberRange(int amount) override;
     void SetSelectedRow(int selection);
 
     W8ControlSelection m_control_58;
@@ -642,7 +642,7 @@ void W8State5CharacterRow005EF364::Redraw(int full_redraw)
 void W8State5CharacterRow005EF364::AdjustValue(int amount)
 {
     if (m_active && m_enabled && m_selection_listener) {
-        m_selection_listener->Function5BF0E0(amount);
+        m_selection_listener->AdjustPartyMemberRange(amount);
     }
 }
 
@@ -652,7 +652,7 @@ void W8State5CharacterRow005EF364::OnRightButtonUp(int event)
     if (m_active && m_enabled) {
         SetAlternateTextEnabled(0);
         if (m_selection_listener) {
-            m_selection_listener->Function5BF050(m_row);
+            m_selection_listener->OpenCampForSelectedMember(m_row);
         }
     }
     W8TextControl::OnRightButtonUp(event);
@@ -662,7 +662,7 @@ void W8State5CharacterRow005EF364::OnRightButtonUp(int event)
 void W8State5CharacterRow005EF364::OnLeftButtonDoubleClick(int event)
 {
     if (m_active && m_enabled && m_selection_listener) {
-        m_selection_listener->Function5BF0C0(m_row);
+        m_selection_listener->SelectPartyMemberRow(m_row);
     }
     W8TextControl::OnLeftButtonDoubleClick(event);
 }
@@ -768,14 +768,14 @@ void W8State5CharacterPanel005EF3C8::SetSelectedRow(int selection)
 }
 
 // FUNCTION: WIZ8 0x005bf0c0
-void W8State5CharacterPanel005EF3C8::Function5BF0C0(int row)
+void W8State5CharacterPanel005EF3C8::SelectPartyMemberRow(int row)
 {
     m_control_58.SetSelected(row);
     g_state5_controller->TogglePartyMemberSelection();
 }
 
 // FUNCTION: WIZ8 0x005bf050
-void W8State5CharacterPanel005EF3C8::Function5BF050(int row)
+void W8State5CharacterPanel005EF3C8::OpenCampForSelectedMember(int row)
 {
     m_control_58.SetSelected(row);
     int slot;
@@ -791,7 +791,7 @@ void W8State5CharacterPanel005EF3C8::Function5BF050(int row)
 }
 
 // FUNCTION: WIZ8 0x005bf0e0
-void W8State5CharacterPanel005EF3C8::Function5BF0E0(int amount)
+void W8State5CharacterPanel005EF3C8::AdjustPartyMemberRange(int amount)
 {
     while (amount > 0) {
         m_range_7c->Decrement();
