@@ -15,6 +15,14 @@ For field widths, prototypes, receiver normalization, or Clang consistency check
 First test whether the canonical base or template explains the evidence. A distinct vtable,
 lifecycle body, deleting destructor, or registry family does not alone prove authored source.
 Declare only the additional boundary independently supported by storage, behavior, or source identity.
+Adjacent globals, common initialization, repeated offsets, or a convenient state-shaped access pattern
+likewise do not prove one aggregate object: require allocation/lifetime/subobject evidence before
+wrapping independent storage in a class/struct or splitting an evidenced object into synthetic pieces.
+
+Absence of known fields is not evidence against a class boundary either. An apparently empty derived
+class may be real when its own vtable identity is corroborated by construction/destruction, receiver,
+registration, or other lifecycle evidence. Keep such a boundary unresolved rather than collapsing it
+merely because no derived data members have been recovered yet.
 
 Scalar and vector deleting destructors are MSVC ABI glue, never authored functions or evidence for a
 new class boundary. Keep the wrapper address as a marker-only `SYNTHETIC` identity. Recover a separate
