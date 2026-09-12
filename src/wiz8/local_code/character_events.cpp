@@ -4,6 +4,7 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/npc_state.h"
+#include "wiz8/record_file_0055a480.h"
 #include "wiz8/string_database.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/game_status.h"
@@ -18,6 +19,7 @@
 #include "timer.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/local_code/Strings.h"
 #undef S32
 #undef U32
@@ -27,12 +29,20 @@
 extern unsigned char IsSoundPlaying(int sound_handle);
 extern unsigned char StopSound(int sound_handle);
 extern void QueueGameplayEvent(int event_type, int party_slot);
-void Function524DA0(void); /* 0x00524DA0 */
-void Function524EB0(void); /* 0x00524EB0 */
+extern int g_effect_argument_005ed8cc;
+unsigned char Function52CFB0(unsigned int party_slot, unsigned int event_type,
+                             unsigned int flags);                 /* 0x0052CFB0 */
+unsigned char Function52C910(unsigned int event_type);            /* 0x0052C910 */
+unsigned char Function52D260(void);                               /* 0x0052D260 */
+void Function525110(W8NpcState* npc, int value);                  /* 0x00525110 */
+void Function525FA0(unsigned int event_type, unsigned char flag); /* 0x00525FA0 */
+void SetFlag68C500(unsigned char value);                          /* 0x0052A1A0 */
 
 #include <stdio.h>
 #include <wchar.h>
 
+// GLOBAL: WIZ8 0x0068C578
+int g_special_event_0068c578;
 // GLOBAL: WIZ8 0x0068c57c
 unsigned int g_value_0068c57c;
 /* 0x0068C580: the shared wide buffer formatted character text lands in. The
@@ -56,10 +66,16 @@ int g_pose_transition_table_0061cb44[30] = {
 };
 // GLOBAL: WIZ8 0x005ED8C8
 int g_effect_argument_005ed8c8 = 0;
+// GLOBAL: WIZ8 0x005ED8E4
+unsigned char g_character_event_flags_mask_005ed8e4 = 16;
 // GLOBAL: WIZ8 0x005ED8F8
 unsigned int g_flee_hp_fraction_005ed8f8 = 50;
 // GLOBAL: WIZ8 0x005ED8FC
 unsigned int g_value_005ed8fc = 20;
+// GLOBAL: WIZ8 0x005ED8D0
+int g_effect_argument_005ed8d0 = 2;
+// GLOBAL: WIZ8 0x005ED8D4
+int g_effect_argument_005ed8d4 = 1;
 // GLOBAL: WIZ8 0x005ED914
 int g_effect_argument_005ed914 = 127;
 // GLOBAL: WIZ8 0x005EE590
@@ -92,6 +108,8 @@ int g_item_message_005ee690 = 66;
 int g_item_message_005ee6fc = 132;
 // GLOBAL: WIZ8 0x005EE70C
 unsigned int g_last_event_005ee70c = 146;
+// GLOBAL: WIZ8 0x005EE710
+unsigned int g_remapped_event_count_005ee710 = 31;
 // GLOBAL: WIZ8 0x005EE718
 unsigned int g_first_remapped_event_005ee718 = 500;
 
@@ -108,12 +126,16 @@ W8EventDispatchRecord g_event_dispatch_records_005ee004[0xb1];
 
 // GLOBAL: WIZ8 0x0068C504
 int g_special_event_0068c504;
+// GLOBAL: WIZ8 0x0068C508
+int g_special_event_0068c508;
 // GLOBAL: WIZ8 0x0068C50C
 int g_special_event_0068c50c;
 // GLOBAL: WIZ8 0x0068C51C
 int g_special_event_0068c51c;
 // GLOBAL: WIZ8 0x0068C538
 int g_special_event_0068c538;
+// GLOBAL: WIZ8 0x0068C544
+int g_special_event_0068c544;
 // GLOBAL: WIZ8 0x0068C540
 int g_special_event_0068c540;
 // GLOBAL: WIZ8 0x0068C550
@@ -342,6 +364,154 @@ void W8StartupStateElement005EE748::Process0052CED0()
     } else if (type_08 == 51) {
         QueueGameplayEvent(30, party_slot);
     }
+}
+
+// FUNCTION: WIZ8 0x0052CA60
+unsigned char Function52CA60(W8StartupStateElement005EE748* entry)
+{
+    unsigned int party_slot;
+    unsigned int event_type;
+    unsigned int metadata;
+    W8Character* character;
+    W8MonsterManagerEntry* slot;
+    W8PartySlotRow* row;
+    int npc_index;
+    W8NpcState* npc;
+    unsigned char has_quote;
+
+    metadata = 0xffffffff;
+    party_slot = CharacterPointerToPartySlot(entry->character_04);
+    event_type = entry->type_08;
+    if (g_last_event_005ee70c <= event_type) {
+        if (event_type < g_first_remapped_event_005ee718) {
+            return 0;
+        }
+        if (g_remapped_event_count_005ee710 + g_first_remapped_event_005ee718 <= event_type) {
+            return 0;
+        }
+    }
+    if (entry->character_04 == 0) {
+        return 0;
+    }
+    if ((entry->flags_10 & 4) == 0) {
+        if (Function52CFB0(party_slot, event_type, entry->flags_10) == 0 ||
+            Function52C910(event_type) == 0) {
+            goto finish_without_dispatch;
+        }
+        event_type = entry->type_08;
+        if (event_type != (unsigned int)g_special_event_0068c578 &&
+            event_type != (unsigned int)g_special_event_0068c508) {
+            character = entry->character_04;
+            if (character->condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
+                QueueCharacterEvent(character, g_special_event_0068c508, 0, 1, 0x7f);
+                return 0;
+            }
+            if (character->condition_turns[11] != 0) {
+                QueueCharacterEvent(character, g_special_event_0068c578, 0, 1, 0x7f);
+                return 0;
+            }
+        }
+    }
+    slot = &g_monster_manager_entries[party_slot];
+    if (slot->field_000 == 0) {
+        if (event_type == 0x33) {
+            Function577880(0);
+        }
+        row = &g_status_685170.buffers.party_rows[party_slot];
+        npc_index = row->animation_0fa;
+        if (npc_index != -1 && entry->type_08 < 0x93) {
+            npc = GetNpcState(npc_index);
+            *reinterpret_cast<unsigned int*>(row->unknown_ff) = entry->type_08;
+            if (npc == 0) {
+                return 1;
+            }
+            if (npc->name_style == 0x18 && entry->type_08 > 0x8b && entry->type_08 < 0x92 &&
+                g_status_685170.current_level != 0) {
+                return 0;
+            }
+            if ((entry->flags_10 & 0x40) != 0) {
+                SetFlag68C500(1);
+                ReleaseRecordFile0055A0A0(npc->record_file);
+                Function524CA0(npc);
+            }
+            Function525110(npc, 1);
+            Function525FA0(entry->type_08, (unsigned char)(entry->flags_10 & 0x40));
+            if ((entry->flags_10 & 0x40) != 0) {
+                SetFlag68C500(0);
+                ReleaseRecordFile0055A0A0(npc->record_file);
+                Function524CA0(npc);
+            }
+            slot->field_071 = entry;
+            event_type = entry->type_08;
+            if (event_type > 1 && (event_type < 4 || event_type == 0x1c)) {
+                g_startup_runtime_state->SetEventCharacterMask(event_type, party_slot, 1);
+            }
+            if (entry->type_08 != 10) {
+                g_startup_runtime_state->value_50 = entry->type_08;
+                g_startup_runtime_state->value_54 = party_slot;
+            }
+            g_startup_runtime_state->unknown_58 = SetCountdownClock(5000);
+            return 1;
+        }
+        has_quote = FormatCharacterQuoteText(entry->character_04, entry->type_08, &metadata);
+        if (Function52D260() != 0) {
+            event_type = entry->type_08;
+            if (event_type > 1 && (event_type < 4 || event_type == 0x1c)) {
+                g_startup_runtime_state->SetEventCharacterMask(event_type, party_slot, 1);
+            }
+            if (entry->type_08 != 10) {
+                g_startup_runtime_state->value_50 = entry->type_08;
+                g_startup_runtime_state->value_54 = party_slot;
+            }
+            g_startup_runtime_state->unknown_58 = SetCountdownClock(5000);
+            event_type = entry->type_08;
+            if (event_type < 0x92) {
+                Function52F890(party_slot, 1, event_type, (int)g_character_text_0068c580,
+                               1 - (((unsigned char)entry->flags_10 &
+                                     g_character_event_flags_mask_005ed8e4) != 0));
+                slot->field_071 = entry;
+                *reinterpret_cast<unsigned int*>(row->unknown_ff) = entry->type_08;
+                *reinterpret_cast<unsigned int*>(
+                    reinterpret_cast<unsigned char*>(&slot->field_113) + 1) = entry->type_08;
+                return 1;
+            }
+            Function52F890(party_slot, 1, event_type, 0, 1);
+            *reinterpret_cast<unsigned int*>(reinterpret_cast<unsigned char*>(&slot->field_113) +
+                                             1) = entry->type_08;
+            return 1;
+        }
+        entry->Process0052CED0();
+        if (has_quote == 0) {
+            return 0;
+        }
+        event_type = entry->type_08;
+        if (event_type > 1 && (event_type < 4 || event_type == 0x1c)) {
+            g_startup_runtime_state->SetEventCharacterMask(event_type, party_slot, 1);
+        }
+        if (entry->type_08 != 10) {
+            g_startup_runtime_state->value_50 = entry->type_08;
+            g_startup_runtime_state->value_54 = party_slot;
+        }
+        g_startup_runtime_state->unknown_58 = SetCountdownClock(5000);
+        if ((g_startup_runtime_state->value_5c & 1) == 0) {
+            return 0;
+        }
+        if (entry->type_08 < 14) {
+            return 0;
+        }
+        if (entry->type_08 >= 16) {
+            return 0;
+        }
+        if ((g_startup_runtime_state->value_5c & 2) != 0) {
+            g_startup_runtime_state->unknown_60 = SetCountdownClock(Random(6000) + 2000);
+            return 0;
+        }
+        g_startup_runtime_state->unknown_60 = SetCountdownClock(Random(60000) + 300000);
+        return 0;
+    }
+finish_without_dispatch:
+    entry->Process0052CED0();
+    return 0;
 }
 
 /* Restarts the follow-up clock for entries of the middle event band while the
@@ -663,6 +833,54 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
                                             g_effect_argument_005ed914) != 0) {
         g_startup_runtime_state->SetEventCharacterMask(effect, party_slot, 1);
     }
+}
+
+/* Queue a low-HP flee or incapacitation event when the character is still
+   standing, then always roll one of three ambient follow-up events. */
+// FUNCTION: WIZ8 0x0052F2C0
+void Function52F2C0(W8Character* character)
+{
+    unsigned int hp_percent;
+    unsigned int party_slot;
+    bool has_incapacitation_event;
+    bool has_flee_event;
+    W8StartupStateElement005EE748* entry;
+    int effect;
+    int follow_up_events[3];
+
+    hp_percent = (character->hp_current * 100) / (unsigned int)character->hp_max;
+    party_slot = CharacterPointerToPartySlot(character);
+    has_incapacitation_event =
+        g_startup_runtime_state->HasEventCharacter(g_effect_005ee594, party_slot);
+    has_flee_event = g_startup_runtime_state->HasEventCharacter(g_effect_005ee590, party_slot);
+    g_startup_runtime_state->HasEventCharacter(g_effect_005ee5f8, party_slot);
+    if (character->highest_condition != 0xf && character->highest_condition != 0x11) {
+        if (g_value_005ed8fc <= hp_percent || has_incapacitation_event) {
+            if (g_flee_hp_fraction_005ed8f8 <= hp_percent) {
+                goto queue_follow_up_event;
+            }
+            if (Random(2) != 0 || has_flee_event) {
+                effect = g_effect_005ee5f8;
+            } else {
+                effect = g_effect_005ee590;
+            }
+            entry = QueueCharacterEvent(character, effect, g_effect_argument_005ed8d4,
+                                        g_effect_argument_005ed8d0, g_effect_argument_005ed914);
+        } else {
+            entry = QueueCharacterEvent(character, g_effect_005ee594, g_effect_argument_005ed8d4,
+                                        g_effect_argument_005ed8d0, g_effect_argument_005ed914);
+        }
+        if (entry != 0) {
+            entry->value_30 = 0x5dc;
+            entry->clock_34 = GetTickCount();
+        }
+    }
+queue_follow_up_event:
+    follow_up_events[0] = g_special_event_0068c544;
+    follow_up_events[1] = g_special_event_0068c550;
+    follow_up_events[2] = g_special_event_0068c51c;
+    QueueCharacterEvent(character, follow_up_events[Random(3)], g_effect_argument_005ed8d4,
+                        g_effect_argument_005ed8cc, g_effect_argument_005ed914);
 }
 
 /* Occupied slots with field_000 set still have a portrait/voice record in
