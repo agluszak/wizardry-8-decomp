@@ -15,6 +15,7 @@
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/factions.h"
 #include "wiz8/targeting.h"
+#include "wiz8/local_code/CombatRange.h"
 #include "wiz8/npc_interaction.h"
 // GLOBAL: WIZ8 0x006840b7
 int g_picked_group_006840b7;
@@ -146,11 +147,6 @@ extern const char g_faction_names[W8_FACTION_COUNT][0x1e] = {
     "FACTION_filler3",
     "FACTION_filler4",
 };
-
-extern unsigned char Function519180(int party_slot, int arg_2, W8TargetingContext context);
-extern unsigned char g_targeting_flag_00685116;
-// GLOBAL: WIZ8 0x00685116
-unsigned char g_targeting_flag_00685116;
 
 /* Look a faction up by name, case-insensitively. -1 for a name that is not one
    of the twenty-one. */

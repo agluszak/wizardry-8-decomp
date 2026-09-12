@@ -66,9 +66,6 @@ unsigned int g_camp_skill_controls_region_set;
 unsigned int g_camp_character_info_region_set;
 
 extern unsigned char g_flag_689b32;
-// GLOBAL: WIZ8 0x00648c8c
-int g_camp_spell_animations[6][3] = {{0, 486, 22}, {3, 487, 18}, {8, 488, 14},
-                                     {8, 489, 21}, {1, 490, 16}, {14, 491, 24}};
 
 // GLOBAL: WIZ8 0x005ee6ec
 int g_effect_005ee6ec = 109;
