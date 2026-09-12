@@ -41,7 +41,8 @@ int W8MonsterInfoDialog::CreateControls()
     resources.track_frame = 1;
     resources.on_scroll = ScrollCallback;
     m_scroll_bar_58.CreateControls(&resources);
-    m_scroll_bar_58.SetLayout(m_x + 0x12b, m_y + 0x26, m_text_area_ec.GetTotalLineCount(), 0,
+    int x = m_x;
+    m_scroll_bar_58.SetLayout(x + 0x12b, m_y + 0x26, m_text_area_ec.GetTotalLineCount(), 0,
                               m_text_area_ec.GetLineHeight(), 0xb9);
     m_scroll_bar_58.m_owner = this;
 
@@ -86,19 +87,21 @@ void W8MonsterInfoDialog::CloseButtonCallback(W8DialogButton* button)
 // FUNCTION: WIZ8 0x005d6ec0
 void W8MonsterInfoDialog::ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visible_entry)
 {
+    int left;
+    int top;
+    int right;
+    int bottom;
     W8MonsterInfoDialog* dialog = static_cast<W8MonsterInfoDialog*>(scroll_bar->m_owner);
-    if (dialog == 0) {
-        return;
+    if (dialog != 0) {
+        dialog->m_text_area_ec.SetFirstVisibleLine(first_visible_entry);
+        left = dialog->m_x + 0x11;
+        top = dialog->m_y + 0x26;
+        right = left + 0x10e;
+        bottom = top + 0xb9;
+        InvalidateRegion(left, top, right, bottom, 0);
+        BlitCatalogSurfaceRectTo16BPP(-0xe, left, top, right, bottom, 0x1b6, 0, 0);
+        dialog->m_text_area_ec.m_dirty = 1;
     }
-
-    dialog->m_text_area_ec.SetFirstVisibleLine(first_visible_entry);
-    int left = dialog->m_x + 0x11;
-    int top = dialog->m_y + 0x26;
-    int right = left + 0x10e;
-    int bottom = top + 0xb9;
-    InvalidateRegion(left, top, right, bottom, 0);
-    BlitCatalogSurfaceRectTo16BPP(-0xe, left, top, right, bottom, 0x1b6, 0, 0);
-    dialog->m_text_area_ec.m_dirty = 1;
 }
 
 // FUNCTION: WIZ8 0x005dbde0
