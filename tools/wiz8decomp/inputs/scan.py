@@ -39,8 +39,15 @@ def load_local_inputs(settings: Settings) -> dict[str, str]:
         if normalized.casefold() in seen:
             raise ValueError(f"the same input path is assigned more than once: {normalized}")
         seen.add(normalized.casefold())
+        # Optional corpus inputs (demo, patches, compatibility fix) may be
+        # absent: the GOG installer alone is enough to build the canonical
+        # gog-base target. Skip configured entries whose file is not present so
+        # a checkout that copies the full example still bootstraps from just the
+        # inputs actually supplied. The gog-media base stays effectively required
+        # because `wiz8 prepare` extracts it explicitly and fails loudly if it is
+        # missing.
         if not (settings.input_dir / relative).is_file():
-            raise ValueError(f"configured {role} input does not exist: {normalized}")
+            continue
         resolved[normalized.casefold()] = role
     return resolved
 
