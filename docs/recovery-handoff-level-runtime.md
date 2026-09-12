@@ -119,7 +119,7 @@ Also: `Function514DF0` -> `MeasureLevelStatusChunks00514DF0`,
 
 - Decompile: `build/context/0050e700.cpp`. Calls five unrecovered `50xxxx` helpers
   (`FUN_0050EDC0`, `FUN_0050EF50`, `FUN_0050F090`, `FUN_0050F090`, `FUN_0050F090`) plus
-  `FUN_00547940`, `FUN_004ED9D0`, `SetSkyNodeVisible`, `SetSkyNodeValue1D0`. Recover the
+  `FUN_00547940`, `FUN_004ED9D0`, `SetSkyNodeVisible`, `SetCameraLightIntensity00483E30`. Recover the
   helpers first or confirm their argument shapes from the call sites; then transcribe.
 
 ### 5. `Function4EA310` (0x004EA310), `Combat.cpp`

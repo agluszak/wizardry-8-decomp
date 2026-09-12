@@ -554,8 +554,7 @@ void SetWorldEnvironmentValue00483AE0(W8World* world, float value)
         value = (float)g_zero_005ebb40;
     }
     if (world->static_scene == 0) {
-        colour.red = 0.0f;
-        colour.green = 0.0f;
+        colour = 0.0;
         ApplyEnvironmentColour00483BA0(world, value, &colour);
         return;
     }
@@ -622,23 +621,20 @@ void GetLightDirection(EnvironmentColour* direction)
 
 /* The ambient light the world contributes, or nothing at all when the world's
    own gate at 0x3c is clear. Both assertions belong to this body: line 616
-   names the world and line 617 names the out-parameter pLightValue, which is
-   what makes the three writes a colour triple rather than three  */
+   names the world and line 617 names the out-parameter pLightValue. */
 // FUNCTION: WIZ8 0x004839e0
-void GetWorldLightValue(const W8World* world, int* light_value)
+void GetWorldLightValue(const W8World* world, EnvironmentColour* pLightValue)
 {
     if (world == 0) {
         srAssertFail("pWorld", ENVIRONMENT_CPP, 616, 0);
     }
-    if (light_value == 0) {
+    if (pLightValue == 0) {
         srAssertFail("pLightValue", ENVIRONMENT_CPP, 617, 0);
     }
     if (world->static_scene != 0) {
-        memcpy(light_value, &world->environment_colour_02c, sizeof(world->environment_colour_02c));
+        *pLightValue = world->environment_colour_02c;
     } else {
-        light_value[0] = 0;
-        light_value[1] = 0;
-        light_value[2] = 0;
+        *pLightValue = 0.0;
     }
 }
 
@@ -780,14 +776,12 @@ void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,
     }
 }
 
-/* Write one field of the sky node, if the sky has one. */
+/* Write the camera light's intensity, if the world has one. */
 // FUNCTION: WIZ8 0x00483e30
-void SetSkyNodeValue1D0(int value)
+void SetCameraLightIntensity00483E30(float value)
 {
-    unsigned char* sky = (unsigned char*)g_world->camera_light;
-
-    if (sky != 0) {
-        *(int*)(sky + 0x1d0) = value;
+    if (g_world->camera_light != 0) {
+        g_world->camera_light->intensity_1d0 = value;
     }
 }
 

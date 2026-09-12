@@ -19,6 +19,7 @@
 #include "random.h"
 #include "wiz8/engine_code/GDProp.h"
 #include "wiz8/engine_code/Item.h"
+#include "wiz8/float_constants.h"
 
 #include <string.h>
 
@@ -462,7 +463,6 @@ unsigned int ItemIndex(int runtime_id)
 
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
-extern const float g_world_scale_005ebc40;
 
 /* Flatten one item's whole group into a vector, the item itself first and then
    everything chained onto it. A failed append drops that entry and the walk
@@ -514,7 +514,7 @@ void DeactivateWorldItem(W8WorldItem* item)
     item->entity_flags = static_cast<W8ItemRep*>(item->owner->m_pRep)->flags;
 
     item->owner->DetachMesh0049FA30(GetWorld());
-    WorldRemoveFromList04(GetWorld(), item->owner);
+    RemoveItemFromWorld0046E5E0(GetWorld(), item->owner);
     delete item->owner;
     item->owner = 0;
     item->unknown_08 = 0;

@@ -34,23 +34,23 @@ struct W8NavigatorAttachment {
     unsigned int value_058;
     unsigned char unknown_05c[4];
 
-    W8NavigatorAttachment();             /* 0x00456210 */
+    W8NavigatorAttachment(); /* 0x00456210 */
 
     void RecordPosition(const srVector3T<float>* position);
     void GrowPathStorage00456BD0();
     void CopyPathFrom004564F0(const W8NavigatorAttachment* other);
     void GetNextPosition00456660(srVector3T<float>* position);
-    void InitializeSegment004563E0(
-        const srVector3T<float>* source,
-        const srVector3T<float>* destination);
+    void InitializeSegment004563E0(const srVector3T<float>* source,
+                                   const srVector3T<float>* destination);
 };
 
 class W8Navigator;
 
 /* The polymorphic object the navigator owns at +0xa0. 0x00452120 deletes it
-   through its own virtual slot and nothing in Navigator.cpp ever assigns one,
-   so its identity is not established - only that the navigator owns it and that
-   it has a virtual destructor. The name is positional and claims nothing. */
+   through its own virtual slot. Recovered writes only store null
+   (Navigator constructors/destructor and Monster.cpp); no allocation site or
+   constructor target is known, so the identity stays unestablished. The name
+   is positional and claims nothing. */
 class W8NavigatorOwned0A0 {
 public:
     virtual ~W8NavigatorOwned0A0();
@@ -106,24 +106,22 @@ struct W8NavigatorMovementState {
     unsigned char position_adjusted_0c8;
     unsigned char unknown_0c9[3];
 
-    W8NavigatorMovementState();       /* 0x004572C0 */
+    W8NavigatorMovementState(); /* 0x004572C0 */
     /* A second, different set of defaults over the same subobject, run by
        W8Navigator's constructor immediately after this one. */
-    void Reset();        /* 0x004573D0 */
-    ~W8NavigatorMovementState();      /* 0x00457530 */
+    void Reset();                /* 0x004573D0 */
+    ~W8NavigatorMovementState(); /* 0x00457530 */
 
     /* Copies the eleven fields a navigator carries across from another's
        movement tail and invalidates value_010. It returns nothing, so it is a
        named member rather than an assignment operator. */
     void CopySettingsFrom(const W8NavigatorMovementState& other);
-
 };
 
 /* 0x004572C0 allocates one with operator new(0x60) before running its
    constructor at 0x00456210, which is what fixes the size; the destructor
    at 0x00457530 only proves it reaches +0x50. */
-static_assert(sizeof(W8NavigatorAttachment) == 0x60,
-              "W8NavigatorAttachment_size_must_be_0x60");
+static_assert(sizeof(W8NavigatorAttachment) == 0x60, "W8NavigatorAttachment_size_must_be_0x60");
 static_assert(sizeof(W8NavigatorMovementState) == 0xcc,
               "W8NavigatorMovementState_size_must_be_0xcc");
 
@@ -132,77 +130,69 @@ static_assert(sizeof(W8NavigatorMovementState) == 0xcc,
 #pragma pack(push, 4)
 class W8Navigator {
 public:
-    W8Navigator();                        /* 0x00451EC0 */
+    W8Navigator();                         /* 0x00451EC0 */
     W8Navigator(const W8Navigator& other); /* 0x00452220 */
-    virtual ~W8Navigator();               /* 0x00452120 */
+    virtual ~W8Navigator();                /* 0x00452120 */
     virtual void SetPathAI(W8PathAI* path_ai);
     virtual W8PathAI* GetPathAI();
     void ResetPathAI();
-    virtual unsigned char Function4A7140(int) const { return 1; }
+    virtual unsigned char Function4A7140(int) const
+    {
+        return 1;
+    }
     virtual void SetPosition(const srVector3T<float>* position); /* 0x00456020 */
 
     void configureStartupRange(float range);
     void configureStartupDepth(float near_depth, float far_depth);
 
     srVector3T<float> GetPosition();
-    unsigned char UpdateTrackedPosition00454950();       /* 0x00454950 */
+    unsigned char UpdateTrackedPosition00454950();            /* 0x00454950 */
     void UpdateNavigation004553A0(int value, char condition); /* 0x004553A0 */
-    void SetAngles004538F0(float angle);                    /* 0x004538F0 */
-    void SetPitch(float pitch);                     /* 0x00453940 */
-    float GetYaw();                           /* 0x00453970 */
-    float GetPitch();                           /* 0x00453980 */
-    void SetValue120(float value);                         /* 0x00453C50 */
-    float GetValue120();                                  /* 0x00453C60 */
-    unsigned char ConfigureMovementToPosition00452630(
-        const srVector3T<float>* position); /* 0x00452630 */
+    void SetAngles004538F0(float angle);                      /* 0x004538F0 */
+    void SetPitch(float pitch);                               /* 0x00453940 */
+    float GetYaw();                                           /* 0x00453970 */
+    float GetPitch();                                         /* 0x00453980 */
+    void SetValue120(float value);                            /* 0x00453C50 */
+    float GetValue120();                                      /* 0x00453C60 */
+    unsigned char
+    ConfigureMovementToPosition00452630(const srVector3T<float>* position); /* 0x00452630 */
     /* Point the movement target at another navigator's position and enter the
        moving mode; the result is nonzero once the target was accepted. */
-    unsigned short SetMovementTargetToNavigator004526C0(
-        W8Navigator* target, double separation); /* 0x004526C0 */
+    unsigned short SetMovementTargetToNavigator004526C0(W8Navigator* target,
+                                                        double separation); /* 0x004526C0 */
     /* Stop this navigator, clear its movement/target state, and either mark
        the linked movement stopped or re-sync the collected group. */
-    void ResetMovementAndGroupState00452C90();       /* 0x00452C90 */
+    void ResetMovementAndGroupState00452C90();               /* 0x00452C90 */
     void SetPitchRollEnabled00453CA0(char pitch, char roll); /* 0x00453CA0 */
     unsigned short ConfigureMovementToNavigator004529A0(
-        W8Navigator* target,
-        float separation,
-        float maximum_distance,
-        srVector3T<float> position,
-        int trace_mode,
-        float facing,
-        unsigned char* probe_result);                  /* 0x004529A0 */
-    void Function453690(const srVector3T<float>* position); /* 0x00453690 */
+        W8Navigator* target, float separation, float maximum_distance, srVector3T<float> position,
+        int trace_mode, float facing, unsigned char* probe_result); /* 0x004529A0 */
+    void Function453690(const srVector3T<float>* position);         /* 0x00453690 */
     void SetPositionInternal00453590(const srVector3T<float>* position);
-    void SetObject68Flag38(char value);                    /* 0x004537C0 */
-    unsigned char LinkToNavigator004527A0(
-        W8Navigator* target, double separation);           /* 0x004527A0 */
-    void Function454040(const srVector3T<float>* position);       /* 0x00454040 */
-    void AimAtPosition(const srVector3T<float>* position); /* 0x00453F30 */
-    void StartPatrol(
-        const srVector3T<float>* home, float distance, float variation);
-    void SetFlag25(char value);                            /* 0x004531F0 */
-    void SetMovementStopped00453880();                     /* 0x00453880 */
-    void UpdateAngles00453990();                           /* 0x00453990 */
-    unsigned char ConfigureMovement00453D20(
-        float minimum, float maximum);                     /* 0x00453D20 */
-    unsigned char SetMovementTarget(
-        const srVector3T<float>* target, char propagate);  /* 0x00454170 */
-    srVector3T<float>* AdjustPosition00454440(
-        srVector3T<float>* result,
-        const srVector3T<float>* current,
-        const srVector3T<float>* previous);                /* 0x00454440 */
-    void UpdateFacing(char immediate);             /* 0x00454780 */
-    void UpdateLinkedNavigator();                  /* 0x00454D70 */
+    void SetObject68Flag38(char value);                                            /* 0x004537C0 */
+    unsigned char LinkToNavigator004527A0(W8Navigator* target, double separation); /* 0x004527A0 */
+    void Function454040(const srVector3T<float>* position);                        /* 0x00454040 */
+    void AimAtPosition(const srVector3T<float>* position);                         /* 0x00453F30 */
+    void StartPatrol(const srVector3T<float>* home, float distance, float variation);
+    void SetFlag25(char value);                                            /* 0x004531F0 */
+    void SetMovementStopped00453880();                                     /* 0x00453880 */
+    void UpdateAngles00453990();                                           /* 0x00453990 */
+    unsigned char ConfigureMovement00453D20(float minimum, float maximum); /* 0x00453D20 */
+    unsigned char SetMovementTarget(const srVector3T<float>* target,
+                                    char propagate); /* 0x00454170 */
+    srVector3T<float>* AdjustPosition00454440(srVector3T<float>* result,
+                                              const srVector3T<float>* current,
+                                              const srVector3T<float>* previous); /* 0x00454440 */
+    void UpdateFacing(char immediate);                                            /* 0x00454780 */
+    void UpdateLinkedNavigator();                                                 /* 0x00454D70 */
     unsigned char UpdateLinkedPosition00454FE0();
-    void CollectGroupNavigators(
-        W8GrowableVector<W8Navigator*>* navigators);       /* 0x00455140 */
-    int ResolveMovement();                         /* 0x00455CC0 */
-    void ClearMovement();                          /* 0x004537E0 */
-    void SetNavigationMode(int mode);              /* 0x00452E50 */
-    void SetBounds(
-        const srVector3T<float>* minimum,
-        const srVector3T<float>* maximum);          /* 0x00452F10 */
-    void SetTurnRate(float turn_rate);              /* 0x00453C90 */
+    void CollectGroupNavigators(W8GrowableVector<W8Navigator*>* navigators); /* 0x00455140 */
+    int ResolveMovement();                                                   /* 0x00455CC0 */
+    void ClearMovement();                                                    /* 0x004537E0 */
+    void SetNavigationMode(int mode);                                        /* 0x00452E50 */
+    void SetBounds(const srVector3T<float>* minimum,
+                   const srVector3T<float>* maximum); /* 0x00452F10 */
+    void SetTurnRate(float turn_rate);                /* 0x00453C90 */
 
     /* Monster.cpp's 0x004C3F00 reads a byte where maximum_078.z sits. */
     signed char animationIndex() const
@@ -255,7 +245,7 @@ public:
     float radius_084;
     unsigned char state_088;
     unsigned char unknown_089[3];
-    void (__cdecl *movement_callback_08c)(W8Navigator* navigator);
+    void(__cdecl* movement_callback_08c)(W8Navigator* navigator);
     unsigned int unknown_090;
     unsigned int unknown_094;
     unsigned int unknown_098;
@@ -269,12 +259,11 @@ public:
     int linked_update_time_0b8;
     unsigned char unknown_0bc[4];
     W8NavigatorMovementState movement_0c0;
-    srNode* node_18c;                    /* 0x18c: constructed srNode */
-};                                      /* 0x190 */
+    srNode* node_18c; /* 0x18c: constructed srNode */
+}; /* 0x190 */
 #pragma pack(pop)
 
-static_assert(sizeof(W8Navigator) == 0x190,
-              "W8Navigator_size_must_be_0x190");
+static_assert(sizeof(W8Navigator) == 0x190, "W8Navigator_size_must_be_0x190");
 
 void SetNavigatorLinkMode00452F50(unsigned char mode);
 void StopAllNavigators00453160(void);
@@ -284,8 +273,7 @@ void NavigatorDefaultCallback00451EA0(W8Navigator* navigator);
 
 extern float g_navigator_vertical_phase_step_005ebcc8;
 
-void Function454C80(void);                            /* 0x00454C80 */
+void Function454C80(void); /* 0x00454C80 */
 unsigned char Function5323F0(W8MonsterInfo* monster_info, int a, int b, int c);
 void SeedCellProbe00457640(const srVector3T<float>* from, const srVector3T<float>* to);
-void SetMonsterTurnSpeed(float speed);                            /* 0x00453C70 */
-
+void SetMonsterTurnSpeed(float speed); /* 0x00453C70 */

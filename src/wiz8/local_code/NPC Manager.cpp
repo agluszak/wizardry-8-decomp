@@ -918,19 +918,11 @@ void UpdateNpcEvents0050D530(void)
     }
 
     if (gXStatus.fSurprisePossible == 0) {
-        unsigned int row_offset = 0;
-        unsigned int character_offset = 0;
+        for (int slot = 0; slot < 2; ++slot) {
+            W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+            W8Character* character = &g_status_685170.buffers.characters[slot];
 
-        do {
-            W8PartySlotRow* row =
-                (W8PartySlotRow*)((char*)g_status_685170.buffers.party_rows +
-                                  row_offset);
-            W8Character* character =
-                (W8Character*)((char*)g_status_685170.buffers.characters +
-                               character_offset);
-
-            if (row->occupied != 0 &&
-                *(int*)((char*)character + 0xb11) != 0) {
+            if (row->occupied != 0 && character->hp_current != 0) {
                 W8NpcState* npc_state = 0;
                 if (g_npc_states != 0) {
                     npc_state = *g_npc_states->GetAt(row->animation_0fa);
@@ -938,7 +930,7 @@ void UpdateNpcEvents0050D530(void)
                         npc_state = 0;
                     }
                 }
-                if (*(&row->flag_fe) != 0 &&
+                if (row->flag_fe != 0 &&
                     (g_status_685170.world_clock -
                           npc_state->event_clock_eb) > 0x168) {
                     if (Random(2) == 0) {
@@ -956,9 +948,7 @@ void UpdateNpcEvents0050D530(void)
                     }
                 }
             }
-            row_offset += 0x106;
-            character_offset += 0x1862;
-        } while (row_offset < 0x20c);
+        }
     }
 
     if (g_status_685170.flag_248a != 0 &&

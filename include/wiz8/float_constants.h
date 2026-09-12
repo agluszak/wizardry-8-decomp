@@ -23,6 +23,7 @@ extern float g_float_005ebc90;
 extern double g_double_005ebc30;
 extern const float g_float_005ec0a8;
 extern const float g_environment_near_scale_005ec0b0;
+extern const float g_world_scale_005ebc40;
 extern float g_float_005ec020;
 extern float g_float_005ec1a8;
 extern float g_float_005ec2f8;

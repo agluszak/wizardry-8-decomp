@@ -325,25 +325,25 @@ void WorldUpdateLights(W8World* world)
    this global instead. */
 extern void SetHeapFree(void* block);
 
-/* Add to and remove from the world's two unnamed lists. The add on the first
-   list has no matching remove here, which is what separates it from the
-   second. */
+/* Add a monster to the world's monster list, or add/remove an item on the
+   item list. Each wrapper still takes the caller's W8World* even though the
+   body uses g_world. */
 // FUNCTION: WIZ8 0x0046e580
-void WorldAddToList00(W8World* unused, void* entry)
+void AddMonsterToWorld0046E580(W8World* unused, W8Monster* monster)
 {
-    PLAdoptAppend(g_world->plsMonsters, entry);
+    PLAdoptAppend(g_world->plsMonsters, monster);
 }
 
 // FUNCTION: WIZ8 0x0046e5c0
-void WorldAddToList04(W8World* unused, void* entry)
+void AddItemToWorld0046E5C0(W8World* unused, W8Item* item)
 {
-    PLAdoptAppend(g_world->plsItems, entry);
+    PLAdoptAppend(g_world->plsItems, item);
 }
 
 // FUNCTION: WIZ8 0x0046e5e0
-void WorldRemoveFromList04(W8World* unused, void* entry)
+void RemoveItemFromWorld0046E5E0(W8World* unused, W8Item* item)
 {
-    PListRemove(g_world->plsItems, entry);
+    PListRemove(g_world->plsItems, item);
 }
 
 /* How many props the world holds, and the one at a position - both answers
@@ -365,19 +365,19 @@ void WorldGetPropAt(W8World* unused, int index)
 // FUNCTION: WIZ8 0x0046e860
 void ForwardThroughMember3C_46E750(W8World* owner, int argument)
 {
-    Function46E750(owner->static_scene, argument);
+    SetSceneMeshShaderLowBits0046E750(owner->static_scene, argument);
 }
 
 // FUNCTION: WIZ8 0x0046e880
 void ForwardThroughMember3C_46E640(W8World* owner, int argument)
 {
-    Function46E640(owner->static_scene, argument);
+    SetSceneMeshShaderBit3_0046E640(owner->static_scene, argument);
 }
 
 /* Walk one scene subtree and toggle shader bit 3 on every mesh model of every
    model instance; the instance's flags_3a0 bit zero selects the off state. */
 // FUNCTION: WIZ8 0x0046e640
-void Function46E640(srNode* node, int argument)
+void SetSceneMeshShaderBit3_0046E640(srNode* node, int argument)
 {
     Function00424A40();
     for (; node != 0; node = node->nextSibling()) {
@@ -414,7 +414,7 @@ void Function46E640(srNode* node, int argument)
             }
         }
         if (node->firstChild() != 0) {
-            Function46E640(node->firstChild(), argument);
+            SetSceneMeshShaderBit3_0046E640(node->firstChild(), argument);
         }
     }
 }
@@ -422,7 +422,7 @@ void Function46E640(srNode* node, int argument)
 /* The sibling walker that leaves shader bit 2 clear and writes the low three
    bits: seven when the argument is zero, otherwise three. */
 // FUNCTION: WIZ8 0x0046e750
-void Function46E750(srNode* node, int argument)
+void SetSceneMeshShaderLowBits0046E750(srNode* node, int argument)
 {
     Function00424A40();
     for (; node != 0; node = node->nextSibling()) {
@@ -461,7 +461,7 @@ void Function46E750(srNode* node, int argument)
             }
         }
         if (node->firstChild() != 0) {
-            Function46E750(node->firstChild(), argument);
+            SetSceneMeshShaderLowBits0046E750(node->firstChild(), argument);
         }
     }
 }

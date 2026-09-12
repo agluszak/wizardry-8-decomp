@@ -219,7 +219,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
             MonsterSetAnimating(monster_info->monster, monster_info->motionless == 0);
         }
 
-        WorldAddToList00(GetWorld(), monster_info->monster);
+        AddMonsterToWorld0046E580(GetWorld(), monster_info->monster);
         MonsterSetFacing004C5B60(monster_info->monster, monster_info->derived_23);
         Function50E8C0(monster_info->location_id);
         monster_info->monster->movement_0c0.value_008 =

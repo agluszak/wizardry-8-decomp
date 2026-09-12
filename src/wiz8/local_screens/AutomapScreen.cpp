@@ -320,7 +320,7 @@ unsigned char AutomapScreenEnter(void)
     stScript script;
     MSYS_Init();
     GetLightDirection(&g_automap_saved_light_direction);
-    GetWorldLightValue(g_world, reinterpret_cast<int*>(&g_automap_saved_ambient_light));
+    GetWorldLightValue(g_world, &g_automap_saved_ambient_light);
     GetWorldCameraState(GetWorld(), &g_automap_saved_camera);
     g_automap_saved_far_clip = static_cast<float>(WorldGetFarClip(g_world));
     g_automap_saved_world_value = WorldGetValue78(g_world);

@@ -101,7 +101,7 @@ void stLight::traverse(srNode::TraverseInfo& info)
     }
 
     if (!testFlag(FLAG_POSITIONAL_1)) {
-        if (testFlag(FLAG_POSITIONAL_0) || fabs(m_positional_98) <= g_double_005ebc70 ||
+        if (testFlag(FLAG_POSITIONAL_0) || fabs(intensity_1d0) <= g_double_005ebc70 ||
             (g_light_update_flags_0060bfdc & 1) == 0) {
             if (firstChild() != 0) {
                 firstChild()->traverse(info);
@@ -141,10 +141,10 @@ void stLight::process(const srNode::ProcessInfo& info, srNode::e_processType typ
 #pragma clang diagnostic ignored "-Wtautological-compare"
     if ((type == 1 || type == 3) && g_light_scale_0060bfe0 != g_float_005ebb38) {
 #pragma clang diagnostic pop
-        float saved_scale = m_positional_98;
-        m_positional_98 = saved_scale * g_light_scale_0060bfe0;
+        float saved_scale = intensity_1d0;
+        intensity_1d0 = saved_scale * g_light_scale_0060bfe0;
         srLight::process(info, type);
-        m_positional_98 = saved_scale;
+        intensity_1d0 = saved_scale;
         return;
     }
     srLight::process(info, type);
@@ -176,7 +176,7 @@ void stLight::Reset0049D070()
         } else {
             stLightDefinition005ECDBC* definition =
                 static_cast<stLightDefinition005ECDBC*>(m_definition_234);
-            m_positional_98 = definition->intensity_28;
+            intensity_1d0 = definition->intensity_28;
             if ((definition->flags_08 & 8) != 0) {
                 m_color_6c = definition->color_10;
             }

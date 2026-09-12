@@ -164,6 +164,8 @@ srScene* g_scene_square_65965c;
 srColorSurface* g_primary_color_surface_659660;
 // GLOBAL: WIZ8 0x659664
 class stSurface2D* g_surface_node_659664;
+// GLOBAL: WIZ8 0x659680
+float g_surface_scale_659680;
 // GLOBAL: WIZ8 0x659670
 srCamera* g_overlay_camera_659670;
 // GLOBAL: WIZ8 0x659674
@@ -944,7 +946,11 @@ void RenderFrame(void)
     }
     if (g_world != 0) {
         if (!IsSkyEnabled()) {
-            GetWorldLightValue(g_world, reinterpret_cast<int*>(&clear_color));
+            EnvironmentColour ambient_light;
+            GetWorldLightValue(g_world, &ambient_light);
+            clear_color.x = ambient_light.red;
+            clear_color.y = ambient_light.green;
+            clear_color.z = ambient_light.blue;
         } else {
             g_world->static_scene->getFogColor(clear_color);
             SaturateColor004299B0(&clear_color);
@@ -2185,6 +2191,20 @@ bool HasScreenTransitionObjects(void)
     return g_screen_transition_object_count_654aac != 0;
 }
 
+// FUNCTION: WIZ8 0x004297e0
+void SetSurfaceScale004297E0(float scale)
+{
+    float factor = 1.0f / (float)g_surface_node_659664->tile_size;
+    float previous = g_surface_node_659664->scale;
+    int index;
+
+    for (index = 0; index != 8; ++index) {
+        g_surface_node_659664->coordinates[index] += (scale - previous) * factor;
+    }
+    g_surface_node_659664->scale = scale;
+    g_surface_scale_659680 = scale;
+}
+
 // FUNCTION: WIZ8 0x004298E0
 void SetFlag603C4C(unsigned char value)
 {
@@ -2648,6 +2668,26 @@ void SetResidentTexturePolicy(int policy)
         g_gerd_659634->invalidateResidentTextures();
         g_gerd_659634->invalidateTextureCache();
         g_resident_texture_policy_659714 = policy;
+    }
+}
+
+// GLOBAL: WIZ8 0x659718
+unsigned char g_swap_interval_enabled_659718;
+
+// FUNCTION: WIZ8 0x00426710
+void SetSwapInterval00426710(unsigned char enabled)
+{
+    g_swap_interval_enabled_659718 = enabled;
+    g_gerd_659634->setSwapInterval(enabled ? 1 : 0);
+}
+
+// FUNCTION: WIZ8 0x00426740
+void SetTextureCacheSize00426740(unsigned long bytes)
+{
+    if (bytes > 0x7fffff && bytes != g_gerd_659634->getTextureCacheSize()) {
+        g_gerd_659634->invalidateResidentTextures();
+        g_gerd_659634->invalidateTextureCache();
+        g_gerd_659634->setTextureCacheSize(bytes);
     }
 }
 

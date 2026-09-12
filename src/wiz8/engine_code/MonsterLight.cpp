@@ -77,7 +77,7 @@ void MonsterLight::Update0049D990(const srVector3T<float>* position)
         if (fade > g_float_005ebb38) {
             fade = g_float_005ebb38;
         }
-        m_positional_98 = g_float_005ebb38 - fade;
+        intensity_1d0 = g_float_005ebb38 - fade;
     }
     else if (m_cycle_color_248 != 0) {
         float cycle = elapsed * g_monster_light_cycle_rate_005ecd4c;

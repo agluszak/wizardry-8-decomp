@@ -20,28 +20,28 @@ extern unsigned char g_portrait_frame_flags_0061cbc0[0x50];
    each keep the frame last drawn and the frame to draw next; the two bytes
    force a track to redraw. */
 struct W8PortraitAnimationState {
-    int previous_a_00;                    /* 0x00 */
-    int current_a_04;                     /* 0x04 */
+    int previous_a_00; /* 0x00 */
+    int current_a_04;  /* 0x04 */
     unsigned char unknown_08[8];
-    int previous_b_10;                    /* 0x10 */
-    int current_b_14;                     /* 0x14 */
+    int previous_b_10; /* 0x10 */
+    int current_b_14;  /* 0x14 */
     unsigned char unknown_18[0x0d];
-    unsigned char dirty_b_25;             /* 0x25 */
-    unsigned char dirty_a_26;             /* 0x26 */
-    unsigned char unknown_27[0xf1];
+    unsigned char dirty_b_25; /* 0x25 */
+    unsigned char dirty_a_26; /* 0x26 */
+    unsigned char unknown_27[0x35];
+    unsigned char flag_5c; /* 0x5c */
+    unsigned char unknown_5d[0xbb];
 };
-static_assert(sizeof(W8PortraitAnimationState) == 0x118,
-              "W8PortraitAnimationState_must_be_0x118");
+static_assert(sizeof(W8PortraitAnimationState) == 0x118, "W8PortraitAnimationState_must_be_0x118");
 extern W8PortraitAnimationState g_portrait_animation_states[8];
 
 /* 0x0052EB00: draw one party member's portrait at a screen position, with
    the animated frame pass and the state overlay. */
-void RenderPartyPortrait0052EB00(
-    int portrait, int left, int top, int flags, int value, int party_slot);
+void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int value,
+                                 int party_slot);
 /* 0x0052EBE0: blit one animated portrait frame and its transition, returning
    whether a frame was drawn. */
-char Function52EBE0(
-    int portrait, int left, int top, int flags, int party_slot, char animate);
+char Function52EBE0(int portrait, int left, int top, int flags, int party_slot, char animate);
 
 /* Refresh one party-selection list portrait after a slot change. */
 void RefreshPartySelectionPortrait(unsigned int party_slot); /* 0x005C33C0 */

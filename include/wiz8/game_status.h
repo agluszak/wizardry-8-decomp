@@ -46,7 +46,7 @@ struct W8PartyFormationState {
 
 struct W8GlobalStatus {
     W8StatusBuffers buffers;
-    unsigned char game_started;          /* 0x000c */
+    unsigned char game_started; /* 0x000c */
     /* 0x000d..0x0018: the three join counters the party-add entry advances:
        the regular-member, auxiliary and total counts. */
     int unknown_000d[3];
@@ -110,7 +110,8 @@ struct W8GlobalStatus {
     unsigned char skip_loose_character_check_2444;
     unsigned char unknown_2445[2];
     int difficulty;
-    unsigned char unknown_244b[0x3f];
+    unsigned char unknown_244b[0x3e];
+    unsigned char flag_2489; /* 0x2489: fact 0x14c gate */
     /* 0x248a: armed by the long NPC reward event; the event also stamps
        0x2493 with the world clock. */
     unsigned char flag_248a;
@@ -122,11 +123,13 @@ struct W8GlobalStatus {
        this run flipping 1 -> 2; the extent is representation-proven even
        though the semantics are not. */
     int status_ints_3121[1000];
-    /* +0x1c29: the remainder of the old byte blob, starting with the flag
-       byte the 0x88 fact reads and writes. The int slot at +0x1da5 that the
-       0x14c fact reads stays a marked access until its own extent is
-       established. */
-    unsigned char status_suffix_40ab[0x8b2];
+    /* 0x40c1: the 0x88 fact reads and writes this byte. */
+    unsigned char flag_40c1;
+    unsigned char unknown_40c2[0x17b];
+    /* 0x423d: party-slot-like dword the 0x14c fact compares against occupied
+       slots. */
+    int value_423d;
+    unsigned char unknown_4241[0x732];
     /* 0x4973/0x4977: GetTickCount stamps that retire NPC 0x1b3 and then start
        the 0x1b6 cycle. */
     int value_4973;
@@ -148,34 +151,28 @@ struct W8GlobalStatus {
 };
 #pragma pack(pop)
 
-static_assert(sizeof(W8StatusBuffers) == 0x0c,
-              "W8StatusBuffers_must_be_0x0c");
-static_assert(sizeof(W8PartyFormationRow) == 0x03,
-              "W8PartyFormationRow_must_be_0x03");
-static_assert(sizeof(W8PartyFormationPosition) == 0x0c,
-              "W8PartyFormationPosition_must_be_0x0c");
-static_assert(sizeof(W8PartyFormationState) == 0x84,
-              "W8PartyFormationState_must_be_0x84");
-static_assert(offsetof(W8GlobalStatus, party_gold) == 0x19,
-              "W8GlobalStatus_party_gold_offset");
+static_assert(sizeof(W8StatusBuffers) == 0x0c, "W8StatusBuffers_must_be_0x0c");
+static_assert(sizeof(W8PartyFormationRow) == 0x03, "W8PartyFormationRow_must_be_0x03");
+static_assert(sizeof(W8PartyFormationPosition) == 0x0c, "W8PartyFormationPosition_must_be_0x0c");
+static_assert(sizeof(W8PartyFormationState) == 0x84, "W8PartyFormationState_must_be_0x84");
+static_assert(offsetof(W8GlobalStatus, party_gold) == 0x19, "W8GlobalStatus_party_gold_offset");
 static_assert(offsetof(W8GlobalStatus, selected_character) == 0x1d,
               "W8GlobalStatus_selected_character_offset");
 static_assert(offsetof(W8GlobalStatus, party_facing) == 0x18d0,
               "W8GlobalStatus_party_facing_offset");
 static_assert(offsetof(W8GlobalStatus, current_level) == 0x1900,
               "W8GlobalStatus_current_level_offset");
-static_assert(offsetof(W8GlobalStatus, formation) == 0x23a1,
-              "W8GlobalStatus_formation_offset");
-static_assert(offsetof(W8GlobalStatus, value_2390) == 0x2390,
-              "W8GlobalStatus_value_2390_offset");
+static_assert(offsetof(W8GlobalStatus, formation) == 0x23a1, "W8GlobalStatus_formation_offset");
+static_assert(offsetof(W8GlobalStatus, value_2390) == 0x2390, "W8GlobalStatus_value_2390_offset");
 static_assert(offsetof(W8GlobalStatus, selected_party_member_2434) == 0x2434,
               "W8GlobalStatus_selected_party_member_offset");
-static_assert(offsetof(W8GlobalStatus, value_2435) == 0x2435,
-              "W8GlobalStatus_value_2435_offset");
+static_assert(offsetof(W8GlobalStatus, value_2435) == 0x2435, "W8GlobalStatus_value_2435_offset");
 static_assert(offsetof(W8GlobalStatus, text_box_lines_used_4997) == 0x4997,
               "W8GlobalStatus_migrated_values_offset");
-static_assert(sizeof(W8GlobalStatus) == 0x49c2,
-              "W8GlobalStatus_must_be_0x49c2");
+static_assert(offsetof(W8GlobalStatus, flag_2489) == 0x2489, "W8GlobalStatus_flag_2489_offset");
+static_assert(offsetof(W8GlobalStatus, flag_40c1) == 0x40c1, "W8GlobalStatus_flag_40c1_offset");
+static_assert(offsetof(W8GlobalStatus, value_423d) == 0x423d, "W8GlobalStatus_value_423d_offset");
+static_assert(sizeof(W8GlobalStatus) == 0x49c2, "W8GlobalStatus_must_be_0x49c2");
 
 extern W8GlobalStatus g_status_685170;
 

@@ -210,7 +210,7 @@ unsigned char LoadWorld(
     world->camera_light->m_direction_60.SetZero();
     world->camera_light->m_color_6c.Set(1.0f, 0.85f, 0.39f);
     world->camera_light->m_position_78.SetZero();
-    world->camera_light->m_positional_98 = 1.0f;
+    world->camera_light->intensity_1d0 = 1.0f;
     world->camera_light->setGroupMask(2);
     ConfigureWorldLight0046E300(world->camera_light, 4000.0f);
 

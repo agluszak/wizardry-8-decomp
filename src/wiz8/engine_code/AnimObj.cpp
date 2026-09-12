@@ -18,7 +18,6 @@
 
 /* The callee returns its byte value in an int-sized result; this wrapper is
    the narrowing boundary, as shown by its explicit `and eax, 0xff`. */
-extern const float g_world_scale_005ebc40;
 
 // FUNCTION: WIZ8 0x004a01a0
 W8AnimObj* CreateAnimObj004A01A0()
@@ -201,7 +200,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
                 light->m_color_6c = color;
                 light->m_position_78 = srVector3T<float>(0.0f, 0.0f, 0.0f);
                 ConfigureWorldLight0046E300(light, range * g_world_scale_005ebc40);
-                light->m_positional_98 = intensity;
+                light->intensity_1d0 = intensity;
                 light->setLocation(position.x, position.y, position.z);
                 light->m_positional_228 = position;
                 light->m_definition_234 = definition;

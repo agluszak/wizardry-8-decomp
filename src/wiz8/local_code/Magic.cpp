@@ -768,8 +768,7 @@ void FinishSpellEffect00500F70(W8SpellEffectEntry* effect)
     }
     if ((effect->target.iType == W8_TARGET_KIND_MONSTER && monster_info->hp_current == 0) ||
         (effect->target.iType == W8_TARGET_KIND_CHARACTER &&
-         *(unsigned int*)((char*)g_status_685170.buffers.characters +
-                          effect->target.iChar * W8_CHARACTER_SERIALIZED_SIZE + 0xb11) == 0)) {
+         g_status_685170.buffers.characters[effect->target.iChar].hp_current == 0)) {
         target.iType = W8_TARGET_KIND_PLACE;
         if (effect->target.iType == W8_TARGET_KIND_MONSTER) {
             W8NavigatorMovementState* movement =
@@ -2121,9 +2120,7 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
                     Function5905F0(
                         FormatWideString(
                             L"%s %s",
-                            (const wchar_t*)((const char*)g_status_685170.buffers.characters +
-                                             effect->target.iChar * W8_CHARACTER_SERIALIZED_SIZE +
-                                             5),
+                            g_status_685170.buffers.characters[effect->target.iChar].name,
                             gppStringList[band_text[0]]),
                         -1);
                 } else if (effect->target.iType == W8_TARGET_KIND_MONSTER) {

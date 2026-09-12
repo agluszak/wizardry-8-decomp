@@ -69,11 +69,8 @@ static_assert(sizeof(W8LevelLightRecord004BBAD0) == 0x28,
 
 } // namespace
 
-extern const float g_world_scale_005ebc40;
-
 // GLOBAL: WIZ8 0x005ec0b0
 const float g_environment_near_scale_005ec0b0 = 2.0f;
-extern srVector3T<float> g_environment_offset_00659cd0;
 // GLOBAL: WIZ8 0x00659cd0
 srVector3T<float> g_environment_offset_00659cd0;
 
@@ -221,7 +218,7 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
             light->m_position_78.SetZero();
             ConfigureWorldLight0046E300(
                 light, record.range * g_world_scale_005ebc40);
-            light->m_positional_98 = record.intensity;
+            light->intensity_1d0 = record.intensity;
             light->setLocation(
                 record.location.x * g_world_scale_005ebc40,
                 record.location.y * g_world_scale_005ebc40,
