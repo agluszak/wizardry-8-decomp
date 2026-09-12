@@ -726,10 +726,8 @@ void W8Navigator::UpdateLinkedNavigator()
     }
     srVector3T<float> own_position = movement_0c0.position_040;
     srVector3T<float> linked_position = linked_navigator_05c->movement_0c0.position_040;
-    float dx = linked_position.x - own_position.x;
-    float dy = linked_position.y - own_position.y;
-    float dz = linked_position.z - own_position.z;
-    if (dx * dx + dy * dy + dz * dz <= radius_084 * radius_084 * NAVIGATOR_LINK_DISTANCE_SQUARED) {
+    srVector3T<float> delta = linked_position - own_position;
+    if (delta.LengthSquared() <= radius_084 * radius_084 * NAVIGATOR_LINK_DISTANCE_SQUARED) {
         linked_update_time_0b8 = 0;
         return;
     }
@@ -913,7 +911,7 @@ void W8Navigator::UpdateFacing(char immediate)
     }
     if (movement_0c0.roll_enabled_075 != 0) {
         srVector3T<float> side(-forward.z, 0.0f, forward.x);
-        float angle = (float)acos(side.x * normal.x + side.z * normal.z);
+        float angle = (float)acos(DotProduct(side, normal));
         if (angle < g_float_005ec2a8) {
             angle += NAVIGATOR_THREE_QUARTER_TURN;
         } else {

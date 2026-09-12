@@ -437,11 +437,9 @@ void W8Octree::MarkVisibleRegions004301C0()
             !m_projected_regions_15c->Test(volume->region_bit_0c)) {
             continue;
         }
-        float dx = camera_location_1c0.x - volume->points_1c[0].x;
-        float dy = camera_location_1c0.y - volume->points_1c[0].y;
-        float dz = camera_location_1c0.z - volume->points_1c[0].z;
+        srVector3T<float> delta = camera_location_1c0 - volume->points_1c[0];
 
-        if (dx * dx + dy * dy + dz * dz >= radius_squared) {
+        if (delta.LengthSquared() >= radius_squared) {
             continue;
         }
         unsigned char visible =

@@ -505,9 +505,7 @@ void W8OctBuildPreTree004AFDA0::AssignInitialRegions004B1D90(
 
         if (contained_count != 0) {
             srVector3T<float>& center = region_centers_fc[spatial_00.positional_58];
-            center.x = (spatial->maximum_18.x + spatial->minimum_0c.x) * g_float_005ebc7c;
-            center.y = (spatial->maximum_18.y + spatial->minimum_0c.y) * g_float_005ebc7c;
-            center.z = (spatial->maximum_18.z + spatial->minimum_0c.z) * g_float_005ebc7c;
+            center = (spatial->maximum_18 + spatial->minimum_0c) * g_float_005ebc7c;
 
             region_paths_ec[region_path_count_f0++] = spatial->positional_94;
 
@@ -1033,14 +1031,10 @@ unsigned char W8OctBuildPreTree004AFDA0::BuildParticleRegions004B3820(
             srVector3T<float> extent;
             bool has_bounds = false;
             if (particle.bounds_mode == 1) {
-                extent.x = particle.bounds_extent.x * g_startup_near_limit_005ec000;
-                extent.y = particle.bounds_extent.y * g_startup_near_limit_005ec000;
-                extent.z = particle.bounds_extent.z * g_startup_near_limit_005ec000;
+                extent = particle.bounds_extent * g_startup_near_limit_005ec000;
                 has_bounds = true;
             } else if (particle.bounds_mode == 2 && particle.bounds_radius > g_float_005ebb34) {
-                extent.x = particle.bounds_origin.x * g_world_scale_005ebc40;
-                extent.y = particle.bounds_origin.y * g_world_scale_005ebc40;
-                extent.z = particle.bounds_origin.z * g_world_scale_005ebc40;
+                extent = particle.bounds_origin * g_world_scale_005ebc40;
                 has_bounds = true;
             }
 

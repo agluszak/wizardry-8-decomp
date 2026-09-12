@@ -751,9 +751,7 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->maximum_228 = center + extent;
         } else if (record.bounds_mode == 2 && record.bounds_radius > 0.0f) {
             particle->value_1a4 = 2;
-            particle->value_234.x = record.bounds_origin.x * g_world_scale_005ebc40;
-            particle->value_234.y = record.bounds_origin.y * g_world_scale_005ebc40;
-            particle->value_234.z = record.bounds_origin.z * g_world_scale_005ebc40;
+            particle->value_234 = record.bounds_origin * g_world_scale_005ebc40;
             particle->value_240 = record.bounds_radius * g_world_scale_005ebc40;
         } else {
             particle->value_1a4 = 0;
@@ -772,9 +770,7 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
 
         if (record.has_acceleration != 0) {
             particle->value_1a8 = 1;
-            particle->acceleration_1f4.x = record.acceleration.x * g_world_scale_005ebc40;
-            particle->acceleration_1f4.y = record.acceleration.y * g_world_scale_005ebc40;
-            particle->acceleration_1f4.z = record.acceleration.z * g_world_scale_005ebc40;
+            particle->acceleration_1f4 = record.acceleration * g_world_scale_005ebc40;
         }
 
         if (record.velocity_mode == 0) {
@@ -795,11 +791,7 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->value_1b8 = 0;
         } else if (record.direction_mode == 1) {
             srMatrix3T<float> rotation;
-            srMatrix3T<float> adjustment;
             srVector3T<float> direction;
-            srVector3T<float> first;
-            srVector3T<float> second;
-            srVector3T<float> third;
             srVector3T<float> transformed;
             double angle = -1.5707963267948966;
 
@@ -810,11 +802,7 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
                 rotation.RotateAroundAxis(sin(record.rotation_angle), cos(record.rotation_angle),
                                           record.rotation_axis);
             }
-            first.Set(1.0, 0.0, 0.0);
-            second.Set(0.0, cos(angle), -sin(angle));
-            third.Set(0.0, sin(angle), cos(angle));
-            adjustment.SetRows(first, second, third);
-            rotation.MultiplyBy(adjustment);
+            rotation.RotateAboutX(sin(angle), cos(angle));
             direction.Set(0.0, 0.0, -1.0);
             transformed = rotation.Transform(direction);
             transformed.Unitize();

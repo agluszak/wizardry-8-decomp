@@ -3690,11 +3690,8 @@ void W8PathingService::ActivateMovementTrigger0045B880(W8NavigatorMovementState*
             if (prop->GetSetting6C() != 0 && trigger != 0 && (trigger->flags_0a0 & 0x100) != 0) {
                 srVector3T<float> center;
                 prop->GetCenterPosition(&center);
-                float difference_x = center.x - midpoint.x;
-                float difference_y = center.y - midpoint.y;
-                float difference_z = center.z - midpoint.z;
-                double distance = difference_x * difference_x + difference_y * difference_y +
-                                  difference_z * difference_z;
+                srVector3T<float> difference = center - midpoint;
+                double distance = difference.LengthSquared();
                 if (distance < nearest_distance) {
                     nearest_distance = distance;
                     selected = trigger;
