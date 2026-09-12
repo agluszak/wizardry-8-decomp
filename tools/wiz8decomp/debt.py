@@ -157,8 +157,8 @@ def _provisional_units(
 
 
 def structural_debt_report(repo_dir: Path, *, layout: Any | None = None) -> dict[str, Any]:
+    from .ghidra.unit_intervals import TranslationUnitLayout, assertion_anchors, read_assertions
     from .placement import placement_violations
-    from .ghidra.unit_intervals import assertion_anchors, read_assertions, TranslationUnitLayout
 
     records = source_unit_records(repo_dir)
     definitions = parse_global_definitions(repo_dir)
