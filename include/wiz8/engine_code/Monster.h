@@ -359,14 +359,10 @@ static_assert(
    runs. The derived callback restores the saved representation state when the
    particle finishes and then deletes itself.
 
-   Class-triage note: the base currently has only a virtual destructor. The
-   ABI still emits a distinct base vtable (0x005ED290) and scalar deleting
-   destructor (0x004CAB40); the derived destructor installs that base table
-   before returning. stParticle stores a derived pointer and calls
-   RestoreAnimation through it, so nothing recovered yet requires the base as
-   a polymorphic interface. Retain the hierarchy for now: two vtables plus the
-   derived-to-base vptr swap are real ABI facts, but they are still weak
-   authored-boundary evidence on their own. */
+   Class-triage: two vtables plus the derived-to-base vptr swap are real ABI
+   facts, but nothing recovered stores or dispatches through the base. The
+   empty base is retained only so the destructor emits that vptr swap; it is
+   not an authored domain type. */
 class W8MonsterShakeCallbackBase {
 public:
     virtual ~W8MonsterShakeCallbackBase() {}

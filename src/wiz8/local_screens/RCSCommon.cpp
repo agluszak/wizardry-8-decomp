@@ -325,7 +325,7 @@ W8TextControl* g_panel_controls_69c2f8[3];
 /* Release the three level-runtime dialogue owners through the shared
    teardown, then clear the slots. */
 // FUNCTION: WIZ8 0x005B1C00
-void Function5B1C00(void)
+void ReleaseRuntimeDialogOwners(void)
 {
     if (g_level_block->unknown_2a0 != 0) {
         ReleaseRendererObject004257F0(g_level_block->unknown_2a0);

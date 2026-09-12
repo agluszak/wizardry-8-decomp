@@ -724,7 +724,7 @@ void W8Prop::Method44C670()
         if (mesh == 0) {
             srAssertFail("psrMesh", PROP_CPP, 0x56f, 0);
         }
-        path = reinterpret_cast<W8PathAI*>(AnimObjListEntry004A16C0(
+        path = static_cast<W8PathAI*>(AnimObjListEntry004A16C0(
             static_cast<W8PropRepresentation*>(m_pRep)->animation,
             2,
             (signed char)index));
@@ -742,14 +742,14 @@ void W8Prop::Method44C670()
         }
     }
     flags_1c |= 0x20;
-    Function44DEA0();
+    BuildOrRefreshPathingRepresentation();
 }
 
 /* Build or refresh the pathing representation for a collidable Prop.  Retail
    requires a transitive animation with one mesh, then either constructs the
    owned GDProp or reinitializes it for the current animation frame. */
 // FUNCTION: WIZ8 0x0044dea0
-int W8Prop::Function44DEA0()
+int W8Prop::BuildOrRefreshPathingRepresentation()
 {
     srModelInstance* instance;
 
@@ -1034,7 +1034,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
         }
         list_count = AnimObjListCount004A1620(animation, 2);
         for (entry_index = 0; entry_index < list_count; ++entry_index) {
-            W8PathAI* path = reinterpret_cast<W8PathAI*>(
+            W8PathAI* path = static_cast<W8PathAI*>(
                 AnimObjListEntry004A16C0(
                     animation, 2, (signed char)entry_index));
             if (path != 0) {
@@ -1150,7 +1150,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
                     path_count = AnimObjListCount004A1620(
                         this->animation, 2);
                     for (path_i = 0; path_i < path_count; ++path_i) {
-                        W8PathAI* path = reinterpret_cast<W8PathAI*>(
+                        W8PathAI* path = static_cast<W8PathAI*>(
                             AnimObjListEntry004A16C0(
                                 this->animation, 2,
                                 (signed char)path_i));

@@ -14,6 +14,7 @@
 #include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/notices.h"
 #include "wiz8/regions.h"
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
@@ -130,7 +131,7 @@ void RecordFactChangeForJournal(int fact_id)
         return;
     }
     int range = GetTextBoxScrollRange();
-    Function58AC00(3, gppStringList[0x1d28 / 4], 2, range, 0);
+    ShowNotice(3, gppStringList[0x1d28 / 4], 2, range, 0);
     SoundPlay("Data\\Sound\\Misc\\Journal Entry.wav", 0);
 }
 

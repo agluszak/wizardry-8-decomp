@@ -66,6 +66,7 @@ set(WIZ8_RECOVERY_WARNINGS
     -Warray-bounds
     -Wsign-compare
     -Wmissing-field-initializers
+    -Wpragma-pack
     $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual>
     $<$<COMPILE_LANGUAGE:CXX>:-Winconsistent-missing-override>
 )
@@ -75,6 +76,9 @@ function(wiz8_configure_lint_target target)
     target_include_directories(${target} BEFORE PRIVATE tools/lint/include)
     target_compile_definitions(${target} PRIVATE WIZ8_CLANG_LINT)
     target_compile_options(${target} PRIVATE /W4 ${WIZ8_LINT_COMPAT_FLAGS})
+    # Re-enable tag consistency for recovered C++ after the shared vendor
+    # compatibility set suppresses it for retained C.
+    target_compile_options(${target} PRIVATE -Wmismatched-tags)
     if(NOT WIZ8_FULL_DIAGNOSTICS)
         target_compile_options(${target} PRIVATE -Werror)
     endif()

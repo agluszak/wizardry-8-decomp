@@ -225,7 +225,8 @@ same CMake source lists as the product build, compiles every manually owned
 translation unit with clang-cl at `/W4 -Werror` plus the recovery diagnostics
 (`-Wsometimes-uninitialized -Wswitch -Warray-bounds -Wsign-compare
 -Wmissing-field-initializers -Woverloaded-virtual
--Winconsistent-missing-override`), and then runs the narrow clang-tidy profile
+-Winconsistent-missing-override -Wpragma-pack`), re-enables `-Wmismatched-tags`
+for recovered C++ only, and then runs the narrow clang-tidy profile
 from `.clang-tidy`. `WIZ8_CLANG_LINT` is an umbrella over the Wizardry game
 sources, SurRender, `WIZ8_SGP`, and the recovered/adapted JPEG and UnZip
 plugin code; the pristine IJG and Info-ZIP trees keep their upstream warnings.
@@ -273,14 +274,15 @@ C++ mangling already encodes the complete type, so divergent C++ declarations
 cannot share a symbol. The reccmp indexer records variable declarations with
 canonical type, linkage, and definition kind alongside function linkage, and
 retains every distinct spelling it saw per identity. The cross-TU consistency
-gate over those records (`validate_cross_tu_declarations`) is parked for B:
-its remaining hits are the legal extern-array completion idiom (`extern T g[]`
-completed by `T g[N]`), which needs an array-aware compatibility rule before
-it can gate. It stays tested but uncalled in the meantime.
+gate (`validate_cross_tu_declarations`) runs over those records, including
+variable declarations and the `extern T[]` vs `T[N]` compatibility rule.
 
 The lint lane itself runs on the trixie image with LLVM 19, and the
-clang-tidy profile includes `readability-redundant-casting` alongside
-`bugprone-misplaced-widening-cast`.
+clang-tidy profile gates `readability-redundant-casting`,
+`readability-duplicate-include`, `readability-redundant-declaration`, and
+`bugprone-misplaced-widening-cast`. `bugprone-suspicious-memset-usage` and
+`bugprone-undefined-memory-manipulation` run as warnings so they can point at
+recovery mistakes without failing the gate.
 
 ## Live recovery state
 

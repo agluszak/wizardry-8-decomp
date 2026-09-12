@@ -5,6 +5,7 @@
 #include "wiz8/targeting.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/notices.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/npc_interaction.h"
@@ -511,7 +512,7 @@ void EndCombat004EA310(int mode)
     }
     RequestRedrawCombatBar();
     Function53AE00();
-    Function53A320(0);
+    SetTargetingMode(0);
     RemoveConditionFromEveryone(5);
     RemoveConditionFromParty(0xd);
     Function524540();
@@ -530,7 +531,7 @@ void EndCombat004EA310(int mode)
     if (g_combat_state->flag_a54 != 0) {
         const wchar_t* message =
             reinterpret_cast<const wchar_t*>(g_string_table[0x233]); /* reinterpret-ok: heterogeneous string table */
-        Function58AC00(0xc, message, 1, -1, 0);
+        ShowNotice(0xc, message, 1, -1, 0);
     }
     unsigned int active = CountActiveCharacters();
     if (active != 0 && g_combat_state->value_010 != 0) {
@@ -623,7 +624,7 @@ void ChooseAction(
         if (arg_5 == 0) {
             Function4EA5C0(party_slot);
         }
-        Function53AEB0(party_slot);
+        ClearPartySlotMonsterHighlights(party_slot);
     }
     else {
         Function4E7EE0(party_slot, action, detail, data, arg_6);
@@ -818,7 +819,7 @@ void ChooseCombatAction(
         kind = context;
         break;
     }
-    if (Function53C270(context) == 0 && kind != 10 && kind != 0xb) {
+    if (CanPartySlotParticipate(context) == 0 && kind != 10 && kind != 0xb) {
         kind = -1;
         value_a = -1;
         target = 0;
@@ -854,7 +855,7 @@ unsigned char CharacterCanSwitchTo(
         }
         return 0;
     }
-    if (Function53C270(party_slot) == 0) {
+    if (CanPartySlotParticipate(party_slot) == 0) {
         return 0;
     }
     if (character->unknown_0b01 > 0xd) {

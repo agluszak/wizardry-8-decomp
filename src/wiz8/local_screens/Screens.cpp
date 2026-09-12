@@ -203,8 +203,7 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
             }
             RedrawPartyPortraitOverlay(party_slot, highlighted, overlay_ready,
                                        g_level_block->unknown_108[1 + party_slot] == 0);
-            reinterpret_cast<unsigned char*>(
-                &g_portrait_animation_states_68372d[party_slot])[0x5c] =
+            reinterpret_cast<unsigned char*>(&g_portrait_animation_states[party_slot])[0x5c] =
                 1; /* reinterpret-ok: dirty byte at +0x5c in portrait animation state */
             InvalidatePortraitControl0059BBD0(party_slot);
             return;
@@ -218,12 +217,12 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
 // FUNCTION: WIZ8 0x0055EF80
 int GetTextInputCursor(void)
 {
-    return 8;
+    return W8_CURSOR_TEXT_INPUT;
 }
 
 /* Install a named cursor, or restore the held-item / default cursor when the
-   caller passes -1. Unchanged ids are ignored; a new id resets the frame and
-   applies through ApplyCurrentCursor. */
+   caller passes W8_CURSOR_NONE (-1). Unchanged ids are ignored; a new id resets
+   the frame and applies through ApplyCurrentCursor. */
 // FUNCTION: WIZ8 0x0055EE70
 void SetTargetCursor(int cursor)
 {
@@ -303,18 +302,17 @@ void ApplyCurrentCursor(void)
         srAssertFail("gXStatus.iCurrentCursor != -1",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\Screens.cpp", 0x18d, 0);
     }
-    if (g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].object != 0) {
-        ResizeMouseCursorSurface(g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].size_x,
-                                 g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].size_y);
+    if (g_main_game_resource_slots[gXStatus.iCurrentCursor].object != 0) {
+        ResizeMouseCursorSurface(g_main_game_resource_slots[gXStatus.iCurrentCursor].size_x,
+                                 g_main_game_resource_slots[gXStatus.iCurrentCursor].size_y);
         SetMouseCursorTexture(static_cast<stTextureAnim*>(
-            g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].object));
-        static_cast<stTextureAnim*>(
-            g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].object)
+            g_main_game_resource_slots[gXStatus.iCurrentCursor].object));
+        static_cast<stTextureAnim*>(g_main_game_resource_slots[gXStatus.iCurrentCursor].object)
             ->SetFrame00485400(gXStatus.current_cursor_frame);
-        SetMouseCursorHotspot(g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].hotspot_x,
-                              g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].hotspot_y);
+        SetMouseCursorHotspot(g_main_game_resource_slots[gXStatus.iCurrentCursor].hotspot_x,
+                              g_main_game_resource_slots[gXStatus.iCurrentCursor].hotspot_y);
     }
-    if (g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].frame_count > 1) {
+    if (g_main_game_resource_slots[gXStatus.iCurrentCursor].frame_count > 1) {
         gXStatus.current_cursor_time = SetCountdownClock(0xfa);
     }
 }
@@ -473,19 +471,13 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->refresh_party_panel = 1;
     g_level_block->unknown_158[1] = 1;
     SetTextBoxRegionBounds(0xa8, 0x16e, 0x1c4, 0x1ba);
-    offset = 0x1b8;
-    do {
-        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset - 0x10) =
-            0; /* reinterpret-ok: text_lines / text_slots clear loop */
-        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset) = 0;
-        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset + 0x10) =
-            0;
-        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset + 0x20) =
-            -1;
-        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset + 0x30) =
-            -1;
-        offset += 4;
-    } while (offset < 0x1c8);
+    for (int line = 0; line < 12; ++line) {
+        g_level_block->text_lines[line] = 0;
+    }
+    for (int slot_index = 0; slot_index < 4; ++slot_index) {
+        g_level_block->text_slots_1d8[slot_index] = -1;
+        g_level_block->text_slots_1e8[slot_index] = -1;
+    }
     g_level_block->unknown_2e4[0] = 0;
     g_level_block->value_2e8 = g_font_683660;
     *reinterpret_cast<unsigned short**>(g_level_block->unknown_2ec) =

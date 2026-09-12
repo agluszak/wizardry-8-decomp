@@ -851,10 +851,6 @@ bool IsTargetStillPresent(const W8CombatSlot* target)
 
 extern unsigned char Function547510(void);                                  /* 0x00547510 */
 
-/* The two cursors this body cares about: the one it puts up for a monster it
-   can act on, and the one it takes down for a monster it cannot. */
-enum { W8_CURSOR_VALID_TARGET = 6, W8_CURSOR_INVALID_TARGET = 7 };
-
 /* Tint one monster to say whether the character could act on it, and move the
    cursor to match. Green means yes and red means no; asking for no highlight at
    all tints it to nothing and answers no without touching the cursor.
@@ -1118,7 +1114,7 @@ extern unsigned char CanReachTarget(
    block is cleared as a whole before its four discriminating fields are
    established, matching the other target builders in this unit. */
 // FUNCTION: WIZ8 0x0053A2C0
-void Function53A2C0(W8MonsterInfo* monster_info, int location_id)
+void SetMonsterCombatTarget(W8MonsterInfo* monster_info, int location_id)
 {
     W8CombatSlot* target = &monster_info->Target;
 
@@ -1135,17 +1131,16 @@ void Function53A2C0(W8MonsterInfo* monster_info, int location_id)
    chosen hostile spell accepts. The caller only needs the validator's side
    effects, so this wrapper discards its answer. */
 // FUNCTION: WIZ8 0x0053A300
-unsigned char Function53A300(W8MonsterInfo* monster_info, int spell_id)
+unsigned char MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_id)
 {
     return TargetMatchesNeeded(
         &monster_info->Target, GetTargetNeededForSpellHostile(spell_id));
 }
 
-/* Map the current screen state to the targeting context used by this path.
-   The address-qualified name preserves the still-unidentified original name;
-   the screen ids and returned context numbers are direct switch evidence. */
+/* Map gXStatus.field_06f to a cursor-table index for SetTargetCursor.
+   Returned values are cursor slots (including 10..12), not W8TargetingContext. */
 // FUNCTION: WIZ8 0x0053A3D0
-unsigned int Function53A3D0(int alternate)
+int GetTargetingCursorForState(int alternate)
 {
     switch (gXStatus.field_06f) {
     case 1:
@@ -1161,34 +1156,34 @@ unsigned int Function53A3D0(int alternate)
     case 5:
         return 11 - (alternate != 0);
     default:
-        return 0xffffffff;
+        return W8_CURSOR_NONE;
     }
 }
 
 /* Whether the pending spell in one party row needs an explicit target. */
 // FUNCTION: WIZ8 0x0053A700
-unsigned char Function53A700(int party_slot)
+bool ActionNeedsExplicitTarget(int party_slot)
 {
     switch (GetSpellTargetType(g_party_slot_rows[party_slot].spell_id, 0)) {
     case 0:
     case 2:
     case 7:
     case 10:
-        return 0;
+        return false;
     case 3:
         if (gXStatus.fCampMode != 0) {
-            return 0;
+            return false;
         }
         return g_targeting_flag_00685116 == 0;
     default:
-        return 1;
+        return true;
     }
 }
 
 /* Return the spell-like id carried by a chosen action: the fixed attack id,
    a spell's detail word, or the spell attached to an item use. */
 // FUNCTION: WIZ8 0x0053A8D0
-unsigned int Function53A8D0(int party_slot, W8TargetingContext context)
+unsigned int GetActionSpellLikeId(int party_slot, W8TargetingContext context)
 {
     int action;
     int detail;
@@ -1214,7 +1209,7 @@ srVector3T<float> g_target_position_0068407f;
 /* Select the cursor and renderer-side targeting mode for one targeting state,
    then clear the cached world point so the following refresh recomputes it. */
 // FUNCTION: WIZ8 0x0053A320
-void Function53A320(int state)
+void SetTargetingMode(int state)
 {
     int cursor;
 
@@ -1238,7 +1233,7 @@ void Function53A320(int state)
         cursor = 11;
         break;
     default:
-        cursor = -1;
+        cursor = W8_CURSOR_NONE;
         break;
     }
     if (cursor != gXStatus.iCurrentCursor) {
@@ -1261,7 +1256,7 @@ void Function53A320(int state)
 /* Remove one party slot's highlight bit from every live monster that carries
    it, notifying the render-side highlight owner for each changed monster. */
 // FUNCTION: WIZ8 0x0053AEB0
-void Function53AEB0(unsigned int party_slot)
+void ClearPartySlotMonsterHighlights(unsigned int party_slot)
 {
     unsigned int index;
 
@@ -1284,7 +1279,7 @@ void Function53AEB0(unsigned int party_slot)
 /* Clear the target marker and request the party-display refresh that consumes
    the change. */
 // FUNCTION: WIZ8 0x0053B160
-void Function53B160(void)
+void ClearTargetMarker(void)
 {
     g_target_marker_vector_0068406f.Clear();
     RequestRefreshPartyState();
@@ -1293,7 +1288,7 @@ void Function53B160(void)
 /* Recompute the target point and refresh the marker only when it differs
    from the cached three-float position. */
 // FUNCTION: WIZ8 0x0053B170
-void Function53B170(void)
+void RefreshTargetMarker(void)
 {
     srVector3T<float> position;
 
@@ -1310,7 +1305,7 @@ void Function53B170(void)
 /* A party slot can participate only while occupied, alive, and below the
    terminal character-state threshold. */
 // FUNCTION: WIZ8 0x0053C270
-unsigned char Function53C270(int party_slot)
+bool CanPartySlotParticipate(int party_slot)
 {
     return g_party_slot_rows[party_slot].occupied != 0 &&
            g_party_characters[party_slot].hp_current != 0 &&

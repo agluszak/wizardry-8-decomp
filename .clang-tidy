@@ -9,12 +9,25 @@
 #   finding reconstruction errors.
 # - bugprone-sizeof-expression: the recovered allocators deliberately size
 #   pointer arrays, which the check reports as "pointer to aggregate".
+# - modernize-*, naming, smart-pointer, and cppcoreguidelines checks:
+#   they target a different source language than reconstructed VC6 C++.
+#
+# bugprone-suspicious-memset-usage and bugprone-undefined-memory-manipulation
+# run as warnings so they can surface recovery mistakes without gating the
+# lint lane. bugprone-suspicious-enum-usage stays off until more scalar
+# domains are recovered.
 Checks: >
   -*,
   bugprone-misplaced-widening-cast,
   readability-redundant-casting,
   readability-duplicate-include,
+  readability-redundant-declaration,
+  bugprone-suspicious-memset-usage,
+  bugprone-undefined-memory-manipulation
+WarningsAsErrors: >
+  bugprone-misplaced-widening-cast,
+  readability-redundant-casting,
+  readability-duplicate-include,
   readability-redundant-declaration
-WarningsAsErrors: '*'
 HeaderFilterRegex: '^/repo/(include/wiz8|include/surrender|src/wiz8|src/surrender|src/srext_jpegimporter|src/srext_unzip)/'
 FormatStyle: none

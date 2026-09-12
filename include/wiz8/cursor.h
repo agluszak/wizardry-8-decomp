@@ -22,6 +22,18 @@ BOOLEAN ResizeMouseCursorSurface(int width, int height);      /* 0x00427c90 */
 void SetMouseCursorHotspot(short hotspot_x, short hotspot_y); /* 0x00427f00 */
 void SetMouseCursorTexture(srTextureIFace* texture);          /* 0x00429170 */
 void SyncSystemCursor(void);                                  /* 0x00428340 */
+
+/* Indices into the 17-slot main-game cursor table that SetTargetCursor takes.
+   The parameter stays int because retail mangles it as `H`. Only slots with
+   recovered meaning are named. */
+enum {
+    W8_CURSOR_NONE = -1,
+    W8_CURSOR_VALID_TARGET = 6,
+    W8_CURSOR_INVALID_TARGET = 7,
+    W8_CURSOR_TEXT_INPUT = 8,
+    W8_CURSOR_MAP_LOAD = 9
+};
+
 extern int g_cursor_width_654ad0;
 extern int g_cursor_height_654ad4;
 extern int g_cursor_hotspot_x_6596bc;

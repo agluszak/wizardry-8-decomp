@@ -80,7 +80,7 @@ void LoadGameConfiguration(void)
         file.Close();
     }
     if (!loaded) {
-        Function54B560();
+        ResetGameplaySettings();
         SaveGameConfiguration();
     }
     SoundSetDefaultVolume(g_settings_6850c8.sound_effects_volume);

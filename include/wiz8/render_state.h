@@ -126,7 +126,7 @@ void Initialize16BitPixelFormatMasks(void);
 unsigned char CreateWizardryWindow(void);
 unsigned char InitializePrimaryDirectDrawSurface(void);
 unsigned char InitializeVideoDevice(void);
-unsigned char Function422800(void);
+unsigned char OpenRendererWindow(void);
 void Function427440(void);
 
 void AssertFailureHandler(const char* expression, const char* file, long line, const char* message);

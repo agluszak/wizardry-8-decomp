@@ -35,34 +35,34 @@ struct W8CharacterCreationState {
 static_assert(sizeof(W8CharacterCreationState) == 0x270,
               "W8CharacterCreationState_size");
 
-void Function556DC0(W8Character*, W8CharacterCreationState*);
-void Function556CC0(W8Character*, W8CharacterCreationState*);
-void Function556EB0(W8Character*, W8CharacterCreationState*);
-void Function557060(W8Character*, W8CharacterCreationState*, W8Profession);
+void InitializeCharacterCreation(W8Character*, W8CharacterCreationState*);
+void InitializeCharacterLevelUp(W8Character*, W8CharacterCreationState*);
+void ApplyRaceProfessionTables(W8Character*, W8CharacterCreationState*);
+void RebuildLevelUpPoolsForProfession(W8Character*, W8CharacterCreationState*, W8Profession);
 void Function5571C0(W8Character*, W8CharacterCreationState*, int);
 void Function5571E0(W8Character*, W8CharacterCreationState*, W8Gender);
-void Function557200(W8Character*, W8CharacterCreationState*);
+void PayDownAttributeDebt(W8Character*, W8CharacterCreationState*);
 void DetermineEligibleProfessions(
     W8Character*, W8CharacterCreationState*, unsigned char*);
 void Function557580(W8Character*, W8CharacterCreationState*, bool);
 /* 0x00557430: hand out the starting equipment table the race or profession
    selects, then the profession's own extra item. */
 void AddCharacterStartingEquipment(W8Character*);
-void Function557730(W8Character*, W8CharacterCreationState*);
-void Function557800(W8Character*, W8CharacterCreationState*);
-void Function557890(W8Character*, W8CharacterCreationState*);
-void Function5579E0(W8Character*, W8CharacterCreationState*, int, int);
+void RecomputeAttributeLimits(W8Character*, W8CharacterCreationState*);
+void ClampAttributesToBudget(W8Character*, W8CharacterCreationState*);
+void ApplyProfessionMinimumAttributes(W8Character*, W8CharacterCreationState*);
+void AdjustAllocatedAttribute(W8Character*, W8CharacterCreationState*, int, int);
 void Function557AE0(W8Character*, W8CharacterCreationState*);
-void Function557B20(W8Character*, W8CharacterCreationState*);
-void Function557BC0(W8Character*, W8CharacterCreationState*, unsigned int, int);
-void Function557C90(W8Character*, W8CharacterCreationState*, int);
-void Function557D20(W8Character*, W8CharacterCreationState*, int);
-void Function557D80(W8Character*, W8CharacterCreationState*);
-void Function557EB0(W8Character*, W8CharacterCreationState*);
-void Function557F90(W8Character*, W8CharacterCreationState*);
-void Function558070(W8Character*, W8CharacterCreationState*);
-int Function558180(W8Character*, W8CharacterCreationState*);
-int Function558330(W8Character*, W8CharacterCreationState*);
+void RecomputeSkillLimits(W8Character*, W8CharacterCreationState*);
+void InitializeLevelUpAttributePool(W8Character*, W8CharacterCreationState*, unsigned int, int);
+void ResetSkillContribution(W8Character*, W8CharacterCreationState*, int);
+void RefundSkillAllocation(W8Character*, W8CharacterCreationState*, int);
+void RebuildSkillAllocations(W8Character*, W8CharacterCreationState*);
+void ClampSkillsToBudget(W8Character*, W8CharacterCreationState*);
+void RefundAllSkillPoints(W8Character*, W8CharacterCreationState*);
+void FinalizeSpellPointPool(W8Character*, W8CharacterCreationState*);
+int CountRemainingSpellPoints(W8Character*, W8CharacterCreationState*);
+int ComputeLevelUpSpellPointAward(W8Character*, W8CharacterCreationState*);
 void Function5584E0(W8Character*, W8CharacterCreationState*, unsigned int spell);
 void Function558560(W8Character*, W8CharacterCreationState*, unsigned int spell);
 void Function5585D0(W8Character*, W8CharacterCreationState*);

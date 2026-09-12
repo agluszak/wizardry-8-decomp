@@ -155,7 +155,6 @@ void Function5248D0(W8MonsterInfo* monster_info);
 void Function58AB60(int value_1, int value_2, void* notice, W8WideChar* name);
 /* __stdcall, not __cdecl: 0x0042E650 ends in `ret 0x4`, and both callers here
    clean only three of the four dwords they push across the tail. */
-void Function509EA0(int value);
 void Function508D70(unsigned int monster_list_index);
 unsigned char Function531920(W8MonsterGroup* monster_group);
 void StartCombat(int surprise);
@@ -879,7 +878,7 @@ void DestroyUngroupedMonsters(void)
             }
             (void)g_octree_6598a4;
             Function42E650(static_cast<unsigned short>(monster_info->location_id));
-            Function509EA0(monster_info->runtime_value_2f1);
+            ReleaseNpcBinding(monster_info->runtime_value_2f1);
             void* removed = PLRemoveAt(gXStatus.plsMonsterList, index);
             if (removed != 0) {
                 free(removed);
@@ -1320,7 +1319,7 @@ unsigned char RemoveMonster(
         }
         (void)g_octree_6598a4;
         Function42E650(static_cast<unsigned short>(monster_info->location_id));
-        Function509EA0(monster_info->runtime_value_2f1);
+        ReleaseNpcBinding(monster_info->runtime_value_2f1);
         void* removed = PLRemoveAt(gXStatus.plsMonsterList, monster_list_index);
         if (removed != 0) {
             free(removed);
@@ -1665,7 +1664,7 @@ void ProcessMonsterManagerFrame(void)
                     monster_info->monster = 0;
                 }
                 Function42E650(static_cast<unsigned short>(monster_info->location_id));
-                Function509EA0(monster_info->runtime_value_2f1);
+                ReleaseNpcBinding(monster_info->runtime_value_2f1);
                 void* removed = PLRemoveAt(gXStatus.plsMonsterList, monster_list_index);
                 if (removed != 0) {
                     free(removed);

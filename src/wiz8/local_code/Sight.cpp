@@ -16,6 +16,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/notices.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/magic.h"
@@ -851,7 +852,7 @@ after_sight:
                             && (g_sight_fade_in_tick_00689b70 == 0
                                 || now - g_sight_fade_in_tick_00689b70 > 199)) {
                             g_sight_fade_in_tick_00689b70 = now;
-                            Function58AC00(
+                            ShowNotice(
                                 8, gppStringList[0x774 / 4], -1, -1, 0);
                         }
                     }
@@ -875,7 +876,7 @@ after_sight:
                 && (g_sight_fade_out_tick_00689b74 == 0
                     || now - g_sight_fade_out_tick_00689b74 > 199)) {
                 g_sight_fade_out_tick_00689b74 = now;
-                Function58AC00(
+                ShowNotice(
                     8, gppStringList[0x778 / 4], -1, -1, 0);
             }
         }

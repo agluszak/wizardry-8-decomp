@@ -372,7 +372,7 @@ void W8StartupRuntimeState::ProcessOwnedEntry(W8StartupStateElement005EE748* ent
    incapacitation events. Which pair is available is selected by the two data
    flags; successfully queueing the event clears the matching held effect. */
 // FUNCTION: WIZ8 0x0052F060
-void Function52F060(unsigned int party_slot)
+void MaybeStartIncapacitationEvent(unsigned int party_slot)
 {
     W8Character* character = &g_party_characters[party_slot];
     int effect;
@@ -437,7 +437,7 @@ int Function52E750(void)
                 }
             }
             if (scan == 8) {
-                Function52F060(party_slot);
+                MaybeStartIncapacitationEvent(party_slot);
             }
         }
         else {
@@ -455,7 +455,7 @@ int Function52E750(void)
                     }
                 }
                 if (scan == 8) {
-                    Function52F060(party_slot);
+                    MaybeStartIncapacitationEvent(party_slot);
                 }
             }
             else {

@@ -391,7 +391,7 @@ void W8CharacterPage005EF5C8::Activate()
 // FUNCTION: WIZ8 0x005c76c0
 void W8CharacterPage005EF5C8::Accept()
 {
-    Function557F90(m_character_060, m_creation_state_064);
+    RefundAllSkillPoints(m_character_060, m_creation_state_064);
     Invalidate(0);
     m_dirty_06d = 1;
     m_screen_05c->UpdateNavigation(this);
@@ -422,7 +422,7 @@ void W8CharacterPage005EF5C8::AdjustEntry(
 {
     entry->MarkDirty();
     m_dirty_06d = 1;
-    Function557BC0(m_character_060, m_creation_state_064, entry->m_id_02c, delta);
+    InitializeLevelUpAttributePool(m_character_060, m_creation_state_064, entry->m_id_02c, delta);
     m_screen_05c->UpdateNavigation(this);
 }
 

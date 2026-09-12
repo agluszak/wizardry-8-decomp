@@ -115,7 +115,6 @@ extern const float g_world_scale_005ebc40;
 extern unsigned char g_force_encounter_culling; /* 0x00687500 */
 // GLOBAL
 unsigned char g_force_encounter_culling;
-extern W8NpcState* Function50A440(unsigned int monster_list_index);
 extern const double g_monster_script_direction_step_005ed2b8;
 extern const double g_monster_facing_tolerance_005ec2b0;
 extern const double g_monster_group_nearest_range_005ed2c0;
@@ -2228,7 +2227,7 @@ void W8Monster::ProcessScript004C80E0()
                     }
                 }
                 Function56C590(
-                    Function50A440(MonsterGetIndexByLocationID(
+                    FindNpcBindingForMonster(MonsterGetIndexByLocationID(
                         command == MONSCR_SAY ? 0x1ac9 : 0x1b77,
                         MONSTER_CPP, propagated_value_1e4, 1)),
                     0, line_number,
