@@ -353,10 +353,7 @@ unsigned char PathAIAddPoint004A9C30(W8PathAI* path, const srVector3T<float>* po
     for (index = 0; index < path->nodes_0c->count - 1; ++index) {
         const srVector3T<float>* first = *path->nodes_0c->GetAt(index);
         const srVector3T<float>* second = *path->nodes_0c->GetAt(index + 1);
-        float x = first->x - second->x;
-        float y = first->y - second->y;
-        float z = first->z - second->z;
-        total_length += static_cast<float>(sqrt(x * x + y * y + z * z));
+        total_length += (*first - *second).Length();
     }
     path->scale_34 = total_length;
     if (path->value_04 > g_float_005ebb34 && total_length > g_float_005ebb34) {

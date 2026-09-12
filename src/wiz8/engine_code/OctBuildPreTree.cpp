@@ -518,10 +518,7 @@ void W8OctBuildPreTree004AFDA0::AssignInitialRegions004B1D90(
                     for (int vertex_index = 0; vertex_index != 3; ++vertex_index) {
                         const srVector3T<float>& position =
                             polygon->vertices_34[vertex_index]->position_0c;
-                        float dx = center.x - position.x;
-                        float dy = center.y - position.y;
-                        float dz = center.z - position.z;
-                        float distance = sqrt(dx * dx + dy * dy + dz * dz);
+                        float distance = (center - position).Length();
                         if (spatial_00.positional_60 < distance) {
                             spatial_00.positional_60 = distance;
                         }
@@ -672,10 +669,7 @@ unsigned char W8OctBuildPreTree004AFDA0::MergeRegion004B25C0(W8OctBuildNode00446
 
     srVector3T<float>& node_center = region_centers_fc[node_region];
     srVector3T<float>& neighbor_center = region_centers_fc[neighbor_region];
-    float delta_x = node_center.x - neighbor_center.x;
-    float delta_y = node_center.y - neighbor_center.y;
-    float delta_z = node_center.z - neighbor_center.z;
-    float distance = (float)sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
+    float distance = (node_center - neighbor_center).Length();
     if (!(distance < spatial_00.positional_54 * g_float_005ec52c)) {
         return 0;
     }

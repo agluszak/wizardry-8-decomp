@@ -549,6 +549,7 @@ public:
     void AdjugateFrom(T* source);
     T Det() const;
     srVector3T<T> TransformPoint(const srVector3T<T>& point) const;
+    srVector3T<T> TransformDirection(const srVector3T<T>& direction) const;
     srVector4T<T> Transform(const srVector3T<T>& point) const;
 
     srVector4T<T> vectors[4];
@@ -582,6 +583,19 @@ template <class T> srVector3T<T> srMatrix4T<T>::TransformPoint(const srVector3T<
         vectors[1].x * point.x + vectors[1].y * point.y + vectors[1].z * point.z + vectors[1].w;
     result.z =
         vectors[2].x * point.x + vectors[2].y * point.y + vectors[2].z * point.z + vectors[2].w;
+    return result;
+}
+
+/* Linear 3×3 of a 4×4: dest.i = row_i.xyz·direction, no translation.
+   Monster GetCycleMappedPosition 0x004C7960 adds owner position separately.
+   Distinct from TransformPoint, which adds row .w. */
+template <class T>
+srVector3T<T> srMatrix4T<T>::TransformDirection(const srVector3T<T>& direction) const
+{
+    srVector3T<T> result;
+    result.x = vectors[0].x * direction.x + vectors[0].y * direction.y + vectors[0].z * direction.z;
+    result.y = vectors[1].x * direction.x + vectors[1].y * direction.y + vectors[1].z * direction.z;
+    result.z = vectors[2].x * direction.x + vectors[2].y * direction.y + vectors[2].z * direction.z;
     return result;
 }
 

@@ -547,8 +547,7 @@ unsigned char PointInsideFrustum0046D880(const srVector3T<float>* point,
                                          const srVector4T<float>* planes)
 {
     for (int index = 0; index < 6; ++index) {
-        float distance = planes[index].x * point->x + planes[index].y * point->y +
-                         planes[index].z * point->z + planes[index].w;
+        float distance = SignedPlaneDistance(planes[index], *point);
 
         if (distance < g_float_005ebb34) {
             return 0;

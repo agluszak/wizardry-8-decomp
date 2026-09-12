@@ -835,10 +835,7 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
 static __forceinline double DistanceBetweenPositions(const srVector3T<float>* first,
                                                      const srVector3T<float>& second)
 {
-    float x = first->x - second.x;
-    float y = first->y - second.y;
-    float z = first->z - second.z;
-    return sqrt(x * x + y * y + z * z);
+    return (*first - second).Length();
 }
 
 // FUNCTION: WIZ8 0x004e61e0

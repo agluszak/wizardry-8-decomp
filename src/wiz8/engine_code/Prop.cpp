@@ -78,24 +78,8 @@ W8Prop::W8Prop()
     m_animation_timer = new W8GameTimer();
     position_02c.SetZero();
     position_03c.SetZero();
-    rotation_048.vectors[0].x = 1.0f;
-    rotation_048.vectors[0].y = 0.0f;
-    rotation_048.vectors[0].z = 0.0f;
-    rotation_048.vectors[1].x = 0.0f;
-    rotation_048.vectors[1].y = 1.0f;
-    rotation_048.vectors[1].z = 0.0f;
-    rotation_048.vectors[2].x = 0.0f;
-    rotation_048.vectors[2].y = 0.0f;
-    rotation_048.vectors[2].z = 1.0f;
-    rotation_06c.vectors[0].x = 1.0f;
-    rotation_06c.vectors[0].y = 0.0f;
-    rotation_06c.vectors[0].z = 0.0f;
-    rotation_06c.vectors[1].x = 0.0f;
-    rotation_06c.vectors[1].y = 1.0f;
-    rotation_06c.vectors[1].z = 0.0f;
-    rotation_06c.vectors[2].x = 0.0f;
-    rotation_06c.vectors[2].y = 0.0f;
-    rotation_06c.vectors[2].z = 1.0f;
+    rotation_048.SetIdentity();
+    rotation_06c.SetIdentity();
     m_gd_prop = 0;
     if (m_pRep == 0) {
         srAssertFail("m_pRep", PROP_CPP, 0x30e, "Prop::Prop() out of memory allocating m_pRep");
@@ -284,9 +268,7 @@ void W8Prop::GetCenterPosition(srVector3T<float>* position)
     srVector3T<float> second;
 
     AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->flag_064, &first, &second);
-    position->x = (first.x + second.x) * 0.5f;
-    position->y = (first.y + second.y) * 0.5f;
-    position->z = (first.z + second.z) * 0.5f;
+    *position = (first + second) * 0.5;
 }
 
 Trigger* g_selected_prop_trigger_00659a60;
@@ -364,17 +346,11 @@ char ResolvePickedProp(W8World* world)
                 representation->active != 0) {
                 srVector3T<float> minimum;
                 srVector3T<float> maximum;
-                float dx;
-                float dy;
-                float dz;
                 float distance;
 
                 AnimObjGetBounds004A1710(representation->animation, 2, representation->flag_064,
                                          &minimum, &maximum);
-                dx = (minimum.x + maximum.x) * 0.5f - camera_position.x;
-                dy = (minimum.y + maximum.y) * 0.5f - camera_position.y;
-                dz = (minimum.z + maximum.z) * 0.5f - camera_position.z;
-                distance = static_cast<float>(sqrt(dx * dx + dy * dy + dz * dz));
+                distance = ((minimum + maximum) * 0.5 - camera_position).Length();
                 if (trigger->range_minimum_0a4 <= distance) {
                     g_selected_prop_index_00607b98 = prop_index;
                     if (distance <= trigger->range_maximum_0a8) {

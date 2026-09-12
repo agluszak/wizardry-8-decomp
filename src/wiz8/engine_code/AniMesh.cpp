@@ -160,10 +160,7 @@ float GetAniMeshFrameRadius004B5C10(W8AniMesh* mesh, unsigned char frame)
                 model = model->next;
             } while (model != 0);
 
-            float x = minimum.x - maximum.x;
-            float y = minimum.y - maximum.y;
-            float z = minimum.z - maximum.z;
-            return static_cast<float>(sqrt(x * x + y * y + z * z) * g_double_005ebe80);
+            return static_cast<float>((minimum - maximum).Length() * g_double_005ebe80);
         }
     }
     return g_float_005ebb34;

@@ -273,36 +273,20 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         world_location = getWorldSpaceLocation();
         world_scale = getWorldSpaceScale();
 
-        transformed_location.x = view.vectors[0].x * (float)world_location.x +
-                                 view.vectors[0].y * (float)world_location.y +
-                                 view.vectors[0].z * (float)world_location.z + view.vectors[0].w;
-        transformed_location.y = view.vectors[1].x * (float)world_location.x +
-                                 view.vectors[1].y * (float)world_location.y +
-                                 view.vectors[1].z * (float)world_location.z + view.vectors[1].w;
-        transformed_location.z = view.vectors[2].x * (float)world_location.x +
-                                 view.vectors[2].y * (float)world_location.y +
-                                 view.vectors[2].z * (float)world_location.z + view.vectors[2].w;
-        transformed_location.w = view.vectors[3].x * (float)world_location.x +
-                                 view.vectors[3].y * (float)world_location.y +
-                                 view.vectors[3].z * (float)world_location.z + view.vectors[3].w;
+        srVector3T<float> location;
+        location = world_location;
+        transformed_location = view.Transform(location);
 
-        basis_x = (float)sqrt(view.vectors[0].x * view.vectors[0].x +
-                              view.vectors[1].x * view.vectors[1].x +
-                              view.vectors[2].x * view.vectors[2].x);
-        basis_y = (float)sqrt(view.vectors[0].y * view.vectors[0].y +
-                              view.vectors[1].y * view.vectors[1].y +
-                              view.vectors[2].y * view.vectors[2].y);
-        basis_z = (float)sqrt(view.vectors[0].z * view.vectors[0].z +
-                              view.vectors[1].z * view.vectors[1].z +
-                              view.vectors[2].z * view.vectors[2].z);
+        srVector3T<float> column_x(view.vectors[0].x, view.vectors[1].x, view.vectors[2].x);
+        srVector3T<float> column_y(view.vectors[0].y, view.vectors[1].y, view.vectors[2].y);
+        srVector3T<float> column_z(view.vectors[0].z, view.vectors[1].z, view.vectors[2].z);
+        basis_x = column_x.Length();
+        basis_y = column_y.Length();
+        basis_z = column_z.Length();
 
-        float determinant =
-            (view.vectors[1].y * view.vectors[2].z - view.vectors[1].z * view.vectors[2].y) *
-                view.vectors[0].x +
-            view.vectors[2].x *
-                (view.vectors[0].y * view.vectors[1].z - view.vectors[0].z * view.vectors[1].y) +
-            view.vectors[1].x *
-                (view.vectors[0].z * view.vectors[2].y - view.vectors[0].y * view.vectors[2].z);
+        float determinant = Det3(view.vectors[0].x, view.vectors[0].y, view.vectors[0].z,
+                                 view.vectors[1].x, view.vectors[1].y, view.vectors[1].z,
+                                 view.vectors[2].x, view.vectors[2].y, view.vectors[2].z);
         if (determinant > g_zero_005ebb40) {
             basis_x = -basis_x;
             basis_y = -basis_y;

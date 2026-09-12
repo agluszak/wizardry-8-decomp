@@ -836,50 +836,9 @@ void GDCamera::SetPitch(float pitch)
     }
     m_pitch = pitch;
 
-    m_pitch_rotation.vectors[0].x = 1.0f;
-    m_pitch_rotation.vectors[0].y = 0.0f;
-    m_pitch_rotation.vectors[0].z = 0.0f;
-    m_pitch_rotation.vectors[1].x = 0.0f;
-    m_pitch_rotation.vectors[1].y = 1.0f;
-    m_pitch_rotation.vectors[1].z = 0.0f;
-    m_pitch_rotation.vectors[2].x = 0.0f;
-    m_pitch_rotation.vectors[2].y = 0.0f;
-    m_pitch_rotation.vectors[2].z = 1.0f;
+    m_pitch_rotation.SetIdentity();
     if ((double)pitch != g_zero_005ebb40) {
-        float sine = (float)sin((double)pitch);
-        float cosine = (float)cos((double)pitch);
-        srVector3T<float> rotation[3];
-        rotation[0].x = 1.0f;
-        rotation[0].y = 0.0f;
-        rotation[0].z = 0.0f;
-        rotation[1].x = 0.0f;
-        rotation[1].y = cosine;
-        rotation[1].z = -sine;
-        rotation[2].x = 0.0f;
-        rotation[2].y = sine;
-        rotation[2].z = cosine;
-
-        srVector3T<float> result[3];
-        float* result_values = &result[0].x;
-        const float* rotation_values = &rotation[0].x;
-        for (int index = 0; index != 3; ++index) {
-            srVector3T<float> column;
-            column.x = rotation_values[index];
-            column.y = rotation_values[index + 3];
-            column.z = rotation_values[index + 6];
-            result_values[index] = DotProduct(m_pitch_rotation.vectors[0], column);
-            result_values[index + 3] = DotProduct(m_pitch_rotation.vectors[1], column);
-            result_values[index + 6] = DotProduct(m_pitch_rotation.vectors[2], column);
-        }
-        m_pitch_rotation.vectors[0].x = result[0].x;
-        m_pitch_rotation.vectors[0].y = result[0].y;
-        m_pitch_rotation.vectors[0].z = result[0].z;
-        m_pitch_rotation.vectors[1].x = result[1].x;
-        m_pitch_rotation.vectors[1].y = result[1].y;
-        m_pitch_rotation.vectors[1].z = result[1].z;
-        m_pitch_rotation.vectors[2].x = result[2].x;
-        m_pitch_rotation.vectors[2].y = result[2].y;
-        m_pitch_rotation.vectors[2].z = result[2].z;
+        m_pitch_rotation.RotateAboutX(sin((double)pitch), cos((double)pitch));
     }
     MarkRendererReady();
 }
@@ -895,15 +854,7 @@ void GDCamera::SetYaw(float angle)
     }
     m_yaw = angle;
 
-    m_yaw_rotation.vectors[0].x = 1.0f;
-    m_yaw_rotation.vectors[0].y = 0.0f;
-    m_yaw_rotation.vectors[0].z = 0.0f;
-    m_yaw_rotation.vectors[1].x = 0.0f;
-    m_yaw_rotation.vectors[1].y = 1.0f;
-    m_yaw_rotation.vectors[1].z = 0.0f;
-    m_yaw_rotation.vectors[2].x = 0.0f;
-    m_yaw_rotation.vectors[2].y = 0.0f;
-    m_yaw_rotation.vectors[2].z = 1.0f;
+    m_yaw_rotation.SetIdentity();
     if ((double)angle != g_zero_005ebb40) {
         m_yaw_rotation.RotateAboutY(sin((double)angle), cos((double)angle));
     }
@@ -920,15 +871,7 @@ void GDCamera::SetOrientation(float angle, float pitch)
         angle += g_camera_angle_period_005ec54c;
     }
     m_yaw = angle;
-    m_yaw_rotation.vectors[0].x = 1.0f;
-    m_yaw_rotation.vectors[0].y = 0.0f;
-    m_yaw_rotation.vectors[0].z = 0.0f;
-    m_yaw_rotation.vectors[1].x = 0.0f;
-    m_yaw_rotation.vectors[1].y = 1.0f;
-    m_yaw_rotation.vectors[1].z = 0.0f;
-    m_yaw_rotation.vectors[2].x = 0.0f;
-    m_yaw_rotation.vectors[2].y = 0.0f;
-    m_yaw_rotation.vectors[2].z = 1.0f;
+    m_yaw_rotation.SetIdentity();
     if ((double)angle != g_zero_005ebb40) {
         m_yaw_rotation.RotateAboutY(sin((double)angle), cos((double)angle));
     }
@@ -940,15 +883,7 @@ void GDCamera::SetOrientation(float angle, float pitch)
         pitch = g_camera_pitch_lower_005ec554;
     }
     m_pitch = pitch;
-    m_pitch_rotation.vectors[0].x = 1.0f;
-    m_pitch_rotation.vectors[0].y = 0.0f;
-    m_pitch_rotation.vectors[0].z = 0.0f;
-    m_pitch_rotation.vectors[1].x = 0.0f;
-    m_pitch_rotation.vectors[1].y = 1.0f;
-    m_pitch_rotation.vectors[1].z = 0.0f;
-    m_pitch_rotation.vectors[2].x = 0.0f;
-    m_pitch_rotation.vectors[2].y = 0.0f;
-    m_pitch_rotation.vectors[2].z = 1.0f;
+    m_pitch_rotation.SetIdentity();
     if ((double)pitch != g_zero_005ebb40) {
         m_pitch_rotation.RotateAboutX(sin((double)pitch), cos((double)pitch));
     }
@@ -961,31 +896,9 @@ void GDCamera::SetOrientation(float angle, float pitch)
 // FUNCTION: WIZ8 0x00478BD0
 void GDCamera::GetRotationMatrix(srMatrix3T<float>* output)
 {
-    srMatrix3T<float>* composed = &m_rotation;
-    *composed = m_yaw_rotation;
-    const float* right_values = &m_pitch_rotation.vectors[0].x;
-    srVector3T<float> result[3];
-    float* result_values = &result[0].x;
-    const float* left_values = &composed->vectors[0].x;
-    for (int index = 0; index != 3; ++index) {
-        float x = right_values[index];
-        float y = right_values[index + 3];
-        float z = right_values[index + 6];
-
-        result_values[index] = x * left_values[0] + y * left_values[1] + z * left_values[2];
-        result_values[index + 3] = x * left_values[3] + y * left_values[4] + z * left_values[5];
-        result_values[index + 6] = x * left_values[6] + y * left_values[7] + z * left_values[8];
-    }
-    composed->vectors[0].x = result[0].x;
-    composed->vectors[0].y = result[0].y;
-    composed->vectors[0].z = result[0].z;
-    composed->vectors[1].x = result[1].x;
-    composed->vectors[1].y = result[1].y;
-    composed->vectors[2].x = result[2].x;
-    composed->vectors[1].z = result[1].z;
-    composed->vectors[2].y = result[2].y;
-    composed->vectors[2].z = result[2].z;
-    *output = *composed;
+    m_rotation = m_yaw_rotation;
+    m_rotation.MultiplyBy(m_pitch_rotation);
+    *output = m_rotation;
 }
 
 // FUNCTION: WIZ8 0x00478CC0

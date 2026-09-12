@@ -26,15 +26,7 @@ W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8()
     location_004.SetZero();
     local_location_010.SetZero();
     parent_location_01c.SetZero();
-    rotation_028.vectors[0].x = 1.0f;
-    rotation_028.vectors[0].y = 0.0f;
-    rotation_028.vectors[0].z = 0.0f;
-    rotation_028.vectors[1].x = 0.0f;
-    rotation_028.vectors[1].y = 1.0f;
-    rotation_028.vectors[1].z = 0.0f;
-    rotation_028.vectors[2].x = 0.0f;
-    rotation_028.vectors[2].y = 0.0f;
-    rotation_028.vectors[2].z = 1.0f;
+    rotation_028.SetIdentity();
     value_04c.value_00 = 0;
     value_04c.value_04 = 0;
     value_04c.value_08 = 0;

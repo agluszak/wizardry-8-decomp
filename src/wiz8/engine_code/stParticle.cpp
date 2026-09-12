@@ -185,9 +185,7 @@ stParticle::stParticle(srNode* parent, unsigned int count)
         static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
     unsigned int i;
     for (i = 0; i < count; ++i) {
-        allocation_148[i].x = 0.0f;
-        allocation_148[i].y = 0.0f;
-        allocation_148[i].z = 0.0f;
+        allocation_148[i] = 0.0f;
     }
 
     vertex_count_158 = count * 4;
@@ -210,9 +208,7 @@ stParticle::stParticle(srNode* parent, unsigned int count)
         allocation_168[triangle + 1].y = vertex + 3;
         allocation_168[triangle + 1].z = vertex;
 
-        allocation_148[i].x = 0.0f;
-        allocation_148[i].y = 0.0f;
-        allocation_148[i].z = 0.0f;
+        allocation_148[i] = 0.0f;
 
         allocation_164[vertex].x = 0.0f;
         allocation_164[vertex].y = 0.0f;
@@ -325,16 +321,12 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
     srVector3T<float>& velocity = allocation_198[index];
     switch (value_1b8) {
     case 1:
-        velocity.x = direction_1e8.x * magnitude;
-        velocity.y = direction_1e8.y * magnitude;
-        velocity.z = direction_1e8.z * magnitude;
+        velocity = direction_1e8 * magnitude;
         break;
 
     case 2: {
         srVector3T<double> direction = getWorldSpaceDOF();
-        velocity.x = (float)(magnitude * direction.x);
-        velocity.y = (float)(magnitude * direction.y);
-        velocity.z = (float)(magnitude * direction.z);
+        velocity = direction * magnitude;
         break;
     }
 
@@ -362,23 +354,17 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
 
         direction.Normalize();
 
-        velocity.x = direction.x * magnitude;
-        velocity.y = direction.y * magnitude;
-        velocity.z = direction.z * magnitude;
+        velocity = direction * magnitude;
         break;
     }
 
     default:
-        velocity.x = 0.0f;
-        velocity.y = 0.0f;
-        velocity.z = 0.0f;
+        velocity = 0.0f;
         break;
     }
 
     srVector3T<double> location = getLocation();
-    allocation_148[index].x = (float)location.x;
-    allocation_148[index].y = (float)location.y;
-    allocation_148[index].z = (float)location.z;
+    allocation_148[index] = location;
 
     if (m_pflFlutterAngle != 0) {
         m_pflFlutterAngle[index] = (float)(rand() & 0x7fff) * g_float_005ecc40;
@@ -504,21 +490,11 @@ void stParticle::Update00499FA0()
                 double distance;
                 if (value_234.x == g_float_005ebb34 && value_234.y == g_float_005ebb34 &&
                     value_234.z == g_float_005ebb34) {
-                    float x = candidate.x - node_location.x;
-                    float y = candidate.y - node_location.y;
-                    float z = candidate.z - node_location.z;
-                    distance = sqrt(x * x + y * y + z * z);
+                    distance = (candidate - node_location).Length();
                 } else {
-                    srVector3T<float> rotated = rotation.Transform(value_234);
-                    float center_x = rotated.x;
-                    float center_y = rotated.y;
-                    float center_z = rotated.z;
-                    srVector3T<float> center(center_x + node_location.x, center_y + node_location.y,
-                                             center_z + node_location.z);
-                    srVector3T<float> difference(candidate.x - center.x, candidate.y - center.y,
-                                                 candidate.z - center.z);
-                    distance = sqrt(difference.y * difference.y + difference.z * difference.z +
-                                    difference.x * difference.x);
+                    srVector3T<float> center = rotation.Transform(value_234) + node_location;
+                    srVector3T<float> difference = candidate - center;
+                    distance = difference.Length();
                 }
 
                 if (value_278 * value_240 < distance) {
@@ -528,9 +504,7 @@ void stParticle::Update00499FA0()
                     continue;
                 }
             } else if (value_1a4 == 1) {
-                srVector3T<float> local(candidate.x - node_location.x,
-                                        candidate.y - node_location.y,
-                                        candidate.z - node_location.z);
+                srVector3T<float> local = candidate - node_location;
                 srVector4T<float> transformed = transform.Transform(local);
                 srVector3T<float> local_point;
                 local_point.Set(transformed.x, transformed.y, transformed.z);

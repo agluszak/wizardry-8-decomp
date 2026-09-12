@@ -78,6 +78,13 @@ inline void SetPlaneFromThreePoints(float* plane, const srVector3T<float>* first
     plane[3] = (distances[0] + distances[1] + distances[2]) * g_float_005ec1a8;
 }
 
+/* Signed plane distance n·p + w. Independent TUs: 3d.cpp PointInsideFrustum
+   0x0046D880 and stLight ContainsPoint 0x0049E460. No Wiz8 COMDAT. */
+inline float SignedPlaneDistance(const srVector4T<float>& plane, const srVector3T<float>& point)
+{
+    return plane.x * point.x + plane.y * point.y + plane.z * point.z + plane.w;
+}
+
 void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface* surface);
 void BuildTrianglePlane00449A40(float* plane, const srVector3T<float>* first,
                                 const srVector3T<float>* second, const srVector3T<float>* third);

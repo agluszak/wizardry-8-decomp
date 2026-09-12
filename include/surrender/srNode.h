@@ -25,10 +25,10 @@ public:
             unsigned long value;
         };
 
-        srArray<srNode*> nodes;   /* 0x00 */
-        srArray<Entry> entries;   /* 0x08 */
-        unsigned int entry_count; /* 0x10 */
-        unsigned int node_count;  /* 0x14 */
+        srArray<srNode*> nodes;              /* 0x00 */
+        srArray<Entry> entries;              /* 0x08 */
+        unsigned int entry_count;           /* 0x10 */
+        unsigned int node_count;            /* 0x14 */
     };
     struct ProcessInfo {
         class srGERD* renderer;
@@ -44,9 +44,15 @@ public:
         int state_28;
     };
 
-    enum e_processType { PROCESS_TYPE_POSITIONAL_0 = 0 };
+    enum e_processType {
+        PROCESS_TYPE_POSITIONAL_0 = 0
+    };
 
-    enum e_flag { FLAG_POSITIONAL_0 = 0, FLAG_POSITIONAL_1 = 1, FLAG_POSITIONAL_2 = 2 };
+    enum e_flag {
+        FLAG_POSITIONAL_0 = 0,
+        FLAG_POSITIONAL_1 = 1,
+        FLAG_POSITIONAL_2 = 2
+    };
 
     enum e_notify {};
 
@@ -78,7 +84,8 @@ public:
     SR_DLL_IMPORT srNode* cloneHierarchy(srNode* parent);
     SR_DLL_IMPORT void dumpHierarchy(std::ostream& stream, long indent) const;
     SR_DLL_IMPORT srNode* findChild(const char* name) const;
-    SR_DLL_IMPORT srNode* findChildByNameAndType(const char* name, unsigned long class_id) const;
+    SR_DLL_IMPORT srNode* findChildByNameAndType(
+        const char* name, unsigned long class_id) const;
     SR_DLL_IMPORT srNode* findParent(const char* name) const;
     SR_DLL_IMPORT srNode* findParentByType(unsigned long class_id) const;
     SR_DLL_IMPORT srNode* getChild() const;
@@ -106,20 +113,26 @@ public:
     SR_DLL_IMPORT void getRotation(srMatrix3T<float>& rotation) const;
     SR_DLL_IMPORT void getRotation(srMatrix3T<double>& rotation) const;
     SR_DLL_IMPORT srVector3T<double> getScale() const;
-    SR_DLL_IMPORT void getWorldSpaceCoordinates(srMatrix3T<float>& rotation,
-                                                srVector3T<float>& location,
-                                                srVector3T<float>& scale) const;
-    SR_DLL_IMPORT void getWorldSpaceCoordinates(srMatrix3T<double>& rotation,
-                                                srVector3T<double>& location,
-                                                srVector3T<double>& scale) const;
+    SR_DLL_IMPORT void getWorldSpaceCoordinates(
+        srMatrix3T<float>& rotation,
+        srVector3T<float>& location,
+        srVector3T<float>& scale) const;
+    SR_DLL_IMPORT void getWorldSpaceCoordinates(
+        srMatrix3T<double>& rotation,
+        srVector3T<double>& location,
+        srVector3T<double>& scale) const;
     SR_DLL_IMPORT srVector3T<double> getWorldSpaceDOF() const;
     SR_DLL_IMPORT srVector3T<double> getWorldSpaceLocation() const;
     SR_DLL_IMPORT void getWorldSpaceMatrix(srMatrix4T<float>& matrix) const;
     SR_DLL_IMPORT void getWorldSpaceMatrix(srMatrix4T<double>& matrix) const;
-    SR_DLL_IMPORT void getWorldSpaceMatrix(srMatrix4x3T<float>& matrix) const;
-    SR_DLL_IMPORT void getWorldSpaceMatrix(srMatrix4x3T<double>& matrix) const;
-    SR_DLL_IMPORT void getWorldSpaceRotation(srMatrix3T<float>& rotation) const;
-    SR_DLL_IMPORT void getWorldSpaceRotation(srMatrix3T<double>& rotation) const;
+    SR_DLL_IMPORT void getWorldSpaceMatrix(
+        srMatrix4x3T<float>& matrix) const;
+    SR_DLL_IMPORT void getWorldSpaceMatrix(
+        srMatrix4x3T<double>& matrix) const;
+    SR_DLL_IMPORT void getWorldSpaceRotation(
+        srMatrix3T<float>& rotation) const;
+    SR_DLL_IMPORT void getWorldSpaceRotation(
+        srMatrix3T<double>& rotation) const;
     SR_DLL_IMPORT srVector3T<double> getWorldSpaceScale() const;
     SR_DLL_IMPORT void move(const srVector3T<double>& offset);
     SR_DLL_IMPORT void moveBackward(double distance);
@@ -130,13 +143,16 @@ public:
     SR_DLL_IMPORT void moveUp(double distance);
     SR_DLL_IMPORT void offsetLocation(const srVector3T<double>& offset);
     SR_DLL_IMPORT void offsetLocation(double x, double y, double z);
-    SR_DLL_IMPORT void pitchAt(const srVector3T<double>& target, double amount);
+    SR_DLL_IMPORT void pitchAt(
+        const srVector3T<double>& target, double amount);
     SR_DLL_IMPORT void pitchAt(const srNode* target, double amount);
-    SR_DLL_IMPORT void rollAt(const srVector3T<double>& target, double amount);
+    SR_DLL_IMPORT void rollAt(
+        const srVector3T<double>& target, double amount);
     SR_DLL_IMPORT void rollAt(const srNode* target, double amount);
     SR_DLL_IMPORT void rollUp(double amount);
     SR_DLL_IMPORT void rotate(const srMatrix3T<double>& rotation);
-    SR_DLL_IMPORT void rotate(double angle, const srVector3T<double>& axis);
+    SR_DLL_IMPORT void rotate(
+        double angle, const srVector3T<double>& axis);
     SR_DLL_IMPORT void rotateX(double angle);
     SR_DLL_IMPORT void rotateY(double angle);
     SR_DLL_IMPORT void rotateZ(double angle);
@@ -148,16 +164,23 @@ public:
     SR_DLL_IMPORT void setLocationZ(double z);
     SR_DLL_IMPORT void setRotation(const srMatrix3T<float>& rotation);
     SR_DLL_IMPORT void setRotation(const srMatrix3T<double>& rotation);
-    SR_DLL_IMPORT void setRotation(const srVector3T<double>& first,
-                                   const srVector3T<double>& second, double amount);
-    SR_DLL_IMPORT void setRotation(const srVector3T<double>& direction, double amount);
-    SR_DLL_IMPORT void setRotation(double amount, const srVector3T<double>& direction);
+    SR_DLL_IMPORT void setRotation(
+        const srVector3T<double>& first,
+        const srVector3T<double>& second,
+        double amount);
+    SR_DLL_IMPORT void setRotation(
+        const srVector3T<double>& direction, double amount);
+    SR_DLL_IMPORT void setRotation(
+        double amount, const srVector3T<double>& direction);
     SR_DLL_IMPORT void setRotation(double x, double y, double z);
     SR_DLL_IMPORT void setScale(const srVector3T<double>& scale);
     SR_DLL_IMPORT void setScale(double scale);
-    SR_DLL_IMPORT void setWorldSpaceLocation(const srVector3T<double>& location);
-    SR_DLL_IMPORT void setWorldSpaceMatrix(const srMatrix4T<double>& matrix);
-    SR_DLL_IMPORT void setWorldSpaceRotation(const srMatrix3T<double>& rotation);
+    SR_DLL_IMPORT void setWorldSpaceLocation(
+        const srVector3T<double>& location);
+    SR_DLL_IMPORT void setWorldSpaceMatrix(
+        const srMatrix4T<double>& matrix);
+    SR_DLL_IMPORT void setWorldSpaceRotation(
+        const srMatrix3T<double>& rotation);
     SR_DLL_IMPORT void setFlag(e_flag flag);
     SR_DLL_IMPORT void clearFlag(e_flag flag);
     SR_DLL_IMPORT void notifyChildren(const srFlags<e_notify>& notifications);
@@ -165,25 +188,18 @@ public:
     SR_DLL_IMPORT void notifyParents(const srFlags<e_notify>& notifications);
     SR_DLL_IMPORT void signal(unsigned long signal, void* value);
     SR_DLL_IMPORT int testFlag(e_flag flag) const;
-    SR_DLL_IMPORT void yawAt(const srVector3T<double>& target, double amount);
+    SR_DLL_IMPORT void yawAt(
+        const srVector3T<double>& target, double amount);
     SR_DLL_IMPORT void yawAt(const srNode* target, double amount);
-    srNode* nextSibling() const
-    {
-        return next_sibling_;
-    }
-    srNode* parentNode() const
-    {
-        return parent_;
-    }
-    srNode* firstChild() const
-    {
-        return first_child_;
-    }
+    srNode* nextSibling() const { return next_sibling_; }
+    srNode* parentNode() const { return parent_; }
+    srNode* firstChild() const { return first_child_; }
 
 private:
     SR_DLL_IMPORT void checkTransformation() const;
     SR_DLL_IMPORT srNode* cloneHierarchyInternal(srNode* parent);
-    SR_DLL_IMPORT srNode* findChildByNameAndTypeInternal(const char* name, unsigned long class_id);
+    SR_DLL_IMPORT srNode* findChildByNameAndTypeInternal(
+        const char* name, unsigned long class_id);
     SR_DLL_IMPORT srNode* findChildInternal(const char* name);
     SR_DLL_IMPORT srNode* findParentByTypeInternal(unsigned long class_id);
     SR_DLL_IMPORT srNode* findParentInternal(const char* name);
@@ -197,29 +213,31 @@ private:
     static SR_DLL_IMPORT srCriticalSection sceneGraphCSect;
     static SR_DLL_IMPORT long sceneGraphLockCount;
 
-    srMatrix3T<double> rotation_18;          /* 0x018 */
-    srVector3T<double> location_60;          /* 0x060 */
-    srVector3T<double> scale_78;             /* 0x078 */
+    srMatrix3T<double> rotation_18;         /* 0x018 */
+    srVector3T<double> location_60;         /* 0x060 */
+    srVector3T<double> scale_78;            /* 0x078 */
     srMatrix4x3T<double> world_transform_90; /* 0x090: cached affine world transform */
-    srMatrix4x3T<float> world_transform_f0;  /* 0x0f0 */
-    srFlags<e_notify> notifications_120;     /* 0x120 */
-    srFlags<e_flag> flags_124;               /* 0x124 */
-    srNode* next_sibling_;                   /* 0x128 */
-    srNode* previous_sibling_;               /* 0x12c */
-    srNode* parent_;                         /* 0x130 */
-    srNode* first_child_;                    /* 0x134 */
+    srMatrix4x3T<float> world_transform_f0; /* 0x0f0 */
+    srFlags<e_notify> notifications_120;    /* 0x120 */
+    srFlags<e_flag> flags_124;              /* 0x124 */
+    srNode* next_sibling_;                  /* 0x128 */
+    srNode* previous_sibling_;              /* 0x12c */
+    srNode* parent_;                        /* 0x130 */
+    srNode* first_child_;                   /* 0x134 */
 };
 
 /* SR.DLL's exported primary and secondary vtable names establish the exact
    srNode/srVertexProcessor multiple-inheritance prefix. */
-class srIlluminator : public srClassSupport<srIlluminator, srNode, false, 0x1200>,
-                      public srVertexProcessor {
+class srIlluminator
+    : public srClassSupport<srIlluminator, srNode, false, 0x1200>,
+      public srVertexProcessor {
 public:
     SR_DLL_IMPORT srIlluminator(srNode* parent);
     SR_DLL_IMPORT srIlluminator& operator=(const srIlluminator& other);
     static SR_DLL_IMPORT const char* sGetClassName();
     virtual SR_DLL_IMPORT void traverse(TraverseInfo& info) override;
-    virtual SR_DLL_IMPORT void process(const ProcessInfo& info, e_processType type) override;
+    virtual SR_DLL_IMPORT void process(
+        const ProcessInfo& info, e_processType type) override;
     virtual int isActive(srVertexPipe& pipe) override = 0;
     virtual void process(srVertexPipe& pipe) override = 0;
     SR_DLL_IMPORT unsigned long getGroupMask() const;
@@ -254,6 +272,7 @@ public:
 };
 
 static_assert((sizeof(srNode) == 0x138), "srNode_must_be_0x138");
-static_assert((sizeof(srIlluminator) == 0x168), "srIlluminator_must_be_0x168");
+static_assert((sizeof(srIlluminator) == 0x168),
+              "srIlluminator_must_be_0x168");
 static_assert((sizeof(srNode::TraverseInfo) == 0x18), "srNode_TraverseInfo_must_be_0x18");
 static_assert((sizeof(srNode::BoundInfo) == 0x2c), "srNode_BoundInfo_must_be_0x2c");

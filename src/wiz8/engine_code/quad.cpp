@@ -159,10 +159,7 @@ float GetHeadingAngle(const srVector3T<float>* source, const srVector3T<float>* 
 // FUNCTION: WIZ8 0x004BE490
 float GetElevationAngle(const srVector3T<float>* source, const srVector3T<float>* target)
 {
-    float x = target->x - source->x;
-    float y = target->y - source->y;
-    float z = target->z - source->z;
-    float length = sqrt(x * x + y * y + z * z);
+    float length = (*target - *source).Length();
     float angle;
 
     if (length == g_float_005ebb34) {

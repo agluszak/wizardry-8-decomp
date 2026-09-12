@@ -967,9 +967,6 @@ void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector
         W8Monster* monster = monster_info->monster;
         W8MonsterRecord* record;
         srVector3T<float> position;
-        float dx;
-        float dy;
-        float dz;
 
         if (monster_info->flag_14 == 0 || monster_info->hp_current == 0 ||
             monster_info->condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0) {
@@ -984,11 +981,7 @@ void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector
         }
 
         position = monster->GetPosition();
-        dx = centre->x - position.x;
-        dy = centre->y - position.y;
-        dz = centre->z - position.z;
-
-        if (radius < (float)sqrt(dx * dx + dy * dy + dz * dz) - monster->radius_084) {
+        if (radius < (*centre - position).Length() - monster->radius_084) {
             if (highlighting != 0) {
                 SetMonsterHighlightColour(monster, 0.0f, 0.0f, 0.0f, 0.0f);
             }

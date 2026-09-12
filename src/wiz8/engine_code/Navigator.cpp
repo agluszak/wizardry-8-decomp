@@ -530,10 +530,7 @@ srVector3T<float> W8Navigator::GetPosition()
 // FUNCTION: WIZ8 0x00454950
 unsigned char W8Navigator::UpdateTrackedPosition00454950()
 {
-    float dx = tracked_position_0a4.x - movement_0c0.position_040.x;
-    float dy = tracked_position_0a4.y - movement_0c0.position_040.y;
-    float dz = tracked_position_0a4.z - movement_0c0.position_040.z;
-    float distance = (float)sqrt(dx * dx + dy * dy + dz * dz);
+    float distance = (tracked_position_0a4 - movement_0c0.position_040).Length();
 
     if (distance > tracked_distance_0b0) {
         tracked_position_0a4 = movement_0c0.position_040;
@@ -905,8 +902,7 @@ void W8Navigator::UpdateFacing(char immediate)
     forward.RotateAboutY(sin(movement_0c0.yaw), cos(movement_0c0.yaw));
     g_octree_6598a4->GetPathSurfaceNormal00433A70(&movement_0c0.position_040, &normal);
     if (movement_0c0.pitch_enabled_074 != 0) {
-        float angle =
-            (float)acos(normal.x * forward.x + normal.y * forward.y + normal.z * forward.z);
+        float angle = (float)acos(DotProduct(normal, forward));
         if (angle < g_float_005ec2a8) {
             angle += NAVIGATOR_THREE_QUARTER_TURN;
         } else {
@@ -1852,9 +1848,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
                 minimum_speed = g_navigator_minimum_speed_006081ec;
             }
             movement_0c0.movement_speed_064 =
-                (float)sqrt(velocity.x * velocity.x + velocity.y * velocity.y +
-                            velocity.z * velocity.z) /
-                (movement_0c0.movement_scale_060 * g_world_scale_005ebc40);
+                velocity.Length() / (movement_0c0.movement_scale_060 * g_world_scale_005ebc40);
             if (movement_0c0.movement_speed_064 < minimum_speed) {
                 movement_0c0.movement_speed_064 = minimum_speed;
             }
@@ -1875,10 +1869,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
     }
 
     {
-        float dx = tracked_position_0a4.x - movement_0c0.position_040.x;
-        float dy = tracked_position_0a4.y - movement_0c0.position_040.y;
-        float dz = tracked_position_0a4.z - movement_0c0.position_040.z;
-        if (tracked_distance_0b0 < (float)sqrt(dx * dx + dy * dy + dz * dz)) {
+        if (tracked_distance_0b0 < (tracked_position_0a4 - movement_0c0.position_040).Length()) {
             tracked_position_0a4 = movement_0c0.position_040;
             tracked_dirty_0b4 = 1;
         }
@@ -1903,20 +1894,15 @@ int W8Navigator::ResolveMovement()
     }
 
     if ((movement_0c0.attachment_0ac->flags_00 & 0x10000) == 0) {
-        float dx = target->movement_0c0.position_040.x - target_last_position_050.x;
-        float dy = target->movement_0c0.position_040.y - target_last_position_050.y;
-        float dz = target->movement_0c0.position_040.z - target_last_position_050.z;
-        float target_motion = (float)sqrt(dx * dx + dy * dy + dz * dz);
+        float target_motion =
+            (target->movement_0c0.position_040 - target_last_position_050).Length();
 
         if ((double)target_motion > g_double_005ec030 ||
             (target == g_startup_world_659c0c && target_motion > g_double_005ec150)) {
             target_last_position_050 = target->movement_0c0.position_040;
 
-            dx = target->movement_0c0.position_040.x - movement_0c0.position_040.x;
-            dy = target->movement_0c0.position_040.y - movement_0c0.position_040.y;
-            dz = target->movement_0c0.position_040.z - movement_0c0.position_040.z;
             if (target->radius_084 + radius_084 + (float)collision_margin_010 <
-                (float)sqrt(dx * dx + dy * dy + dz * dz)) {
+                (target->movement_0c0.position_040 - movement_0c0.position_040).Length()) {
                 int index;
 
                 flag_024 = 0;

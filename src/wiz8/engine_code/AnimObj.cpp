@@ -571,18 +571,11 @@ void TransformBounds004A1DF0(const srMatrix3T<float>* rotation,
     for (i = 0; i < 2; ++i) {
         for (j = 0; j < 2; ++j) {
             for (k = 0; k < 2; ++k) {
-                float x = corner[i * 3];
-                float y = corner[j * 3 + 1];
-                float z = corner[k * 3 + 2];
-                float tx = (x * rotation->vectors[0].x + y * rotation->vectors[0].y +
-                            z * rotation->vectors[0].z + translation->x) *
-                           scale->x;
-                float ty = (x * rotation->vectors[1].x + y * rotation->vectors[1].y +
-                            z * rotation->vectors[1].z + translation->y) *
-                           scale->y;
-                float tz = (y * rotation->vectors[2].y + z * rotation->vectors[2].z +
-                            x * rotation->vectors[2].x + translation->z) *
-                           scale->z;
+                srVector3T<float> point(corner[i * 3], corner[j * 3 + 1], corner[k * 3 + 2]);
+                srVector3T<float> transformed = rotation->Transform(point);
+                float tx = (transformed.x + translation->x) * scale->x;
+                float ty = (transformed.y + translation->y) * scale->y;
+                float tz = (transformed.z + translation->z) * scale->z;
 
                 if (i == 0 && j == 0 && k == 0) {
                     maximum->x = tx;

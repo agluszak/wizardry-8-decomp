@@ -865,7 +865,7 @@ unsigned char W8Octree::PrepareNavigatorTarget00434250(W8NavigatorMovementState*
     delta.x = movement->target_position_04c.x - movement->position_040.x;
     delta.y = 0.0f;
     delta.z = movement->target_position_04c.z - movement->position_040.z;
-    if (sqrt(delta.x * delta.x + delta.z * delta.z) < NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE) {
+    if (srVector2T<float>(delta.x, delta.z).Length() < NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE) {
         return 0;
     }
     if ((movement->attachment_0ac->flags_00 & 0x10000) == 0) {
@@ -908,18 +908,15 @@ unsigned char W8Octree::PrepareNavigatorTarget00434250(W8NavigatorMovementState*
         return result;
     }
     delta = movement->target_position_04c - movement->position_040;
-    float squared_length = delta.x * delta.x + delta.y * delta.y + delta.z * delta.z;
-    float gap = (float)sqrt(squared_length) - separation;
+    float length = delta.Length();
+    float gap = length - separation;
     if (gap < g_float_005ebb34) {
         movement->attachment_0ac->InitializeSegment004563E0(&movement->position_040,
                                                             &movement->position_040);
         return 1;
     }
     if (gap < g_world_scale_005ebc40) {
-        if (squared_length != g_zero_005ebb40) {
-            float scale = (float)(gap * g_float_005ec028 / sqrt(squared_length));
-            delta *= scale;
-        }
+        delta.SetLength(gap * g_float_005ec028);
         delta += movement->position_040;
         movement->attachment_0ac->InitializeSegment004563E0(&movement->position_040, &delta);
         return 1;
@@ -944,10 +941,8 @@ unsigned char __stdcall IsNavigatorAtTarget004347D0(W8NavigatorMovementState* mo
     } else {
         target = movement->target_position_04c;
     }
-    float dx = target.x - movement->position_040.x;
-    float dy = target.y - movement->position_040.y;
-    float dz = target.z - movement->position_040.z;
-    if (movement->movement_scale_060 * g_world_scale_005ebc40 < sqrt(dx * dx + dy * dy + dz * dz)) {
+    if (movement->movement_scale_060 * g_world_scale_005ebc40 <
+        (target - movement->position_040).Length()) {
         return 0;
     }
     return 1;
@@ -972,10 +967,8 @@ unsigned char W8Octree::PrepareNavigatorPatrol00434880(W8NavigatorMovementState*
         movement->attachment_0ac->GetNextPosition00456660(&movement->target_position_04c);
         srVector3T<float> delta;
         delta = movement->target_position_04c - movement->position_040;
-        float squared_length = delta.x * delta.x + delta.y * delta.y + delta.z * delta.z;
-        if (step < sqrt(squared_length) && squared_length != g_zero_005ebb40) {
-            float scale = (float)(step / sqrt(squared_length));
-            delta *= scale;
+        if (step < delta.Length()) {
+            delta.SetLength(step);
         }
         movement->target_position_04c = delta + movement->position_040;
     }
@@ -2473,7 +2466,7 @@ unsigned int W8Octree::AdvanceNavigator(W8NavigatorMovementState* movement, floa
     }
     vecDir = movement->target_position_04c - movement->position_040;
     vecDir.y = 0.0f;
-    distance = (float)sqrt(vecDir.x * vecDir.x + vecDir.z * vecDir.z);
+    distance = srVector2T<float>(vecDir.x, vecDir.z).Length();
     step = g_object_6598bc->GetValue28() * movement->movement_scale_060 * g_rate_006068EC *
            g_world_scale_005ebc40;
     if (step >= distance) {
@@ -2482,10 +2475,7 @@ unsigned int W8Octree::AdvanceNavigator(W8NavigatorMovementState* movement, floa
         reached = 0;
     }
     if ((double)(vecDir.x * vecDir.x + vecDir.z * vecDir.z) != g_zero_005ebb40) {
-        vecDir.y = 0.0f;
-        step = step / (float)sqrt(vecDir.x * vecDir.x + vecDir.z * vecDir.z);
-        vecDir.x = vecDir.x * step;
-        vecDir.z = vecDir.z * step;
+        vecDir.SetLength(step);
     }
     vecPos = vecDir + movement->position_040;
     movement->position_040 = vecPos;
