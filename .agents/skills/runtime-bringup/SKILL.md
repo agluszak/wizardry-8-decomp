@@ -22,6 +22,11 @@ stages and builds its own semantic-test image. `debug` drives Wine's GDB proxy w
 stop policy and symbolizes the captured frames. For visual harness debugging use
 `WIZ8_RUNTIME_DISPLAY=host uv run wiz8 runtime-test`.
 
+The canonical `runtime-test` suite includes the full `main-game-start` flow and drives the real
+character commit/start pathways. `new-game-entry` remains a lower-level bring-up scenario; do not use
+it as a substitute for acceptance of the complete new-game-to-main-game transition. When scenario
+input depends on UI geometry, derive it from live regions/controls instead of hard-coded coordinates.
+
 Both runnable products install the same in-process exception filter. The filter records every
 general-purpose register, scans registers as well as stack words for image addresses, and
 `uv run wiz8 run`/`runtime-test` symbolize the record through the product MAP, including the
