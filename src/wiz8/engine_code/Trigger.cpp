@@ -854,12 +854,12 @@ W8TriggerActionData::W8TriggerActionData() : type_004(-1) {}
 W8TriggerActionData::~W8TriggerActionData() {}
 
 /* Trigger::Run inlines type-5 construction and installs 0x005EC148; the
-   ordinary destructor writes 0x005EC138. That second table is compiler
-   emission of this class, so only the final table keeps the VTABLE marker.
-   0x00445EC0 is the deleting wrapper of the same class, also reused as
-   type-10's inherited slot. */
+   ordinary destructor writes 0x005EC138. 0x005EC148 is that same class's
+   construction-phase table, so only the final table keeps the VTABLE marker.
+   0x00445EC0 is the construction-phase deleting wrapper; type-10's inherited
+   slot folds onto it in retail. */
 // SYNTHETIC: WIZ8 0x00445ec0
-// W8TriggerActionData::`scalar deleting destructor' (second copy)
+// W8TriggerActionData::`scalar deleting destructor' (construction-phase copy)
 
 // VTABLE: WIZ8 0x005ec134
 // class W8TriggerActionData005EC134
