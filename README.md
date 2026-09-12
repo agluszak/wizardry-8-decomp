@@ -10,8 +10,10 @@ SFI Source Code License Agreement in `src/sgp`. This project accepts those terms
 the reconstructed component is not offered under broader or commercial-use terms.
 
 For initial setup, copy `.env.example` to `.env`, set its absolute machine paths, and copy
-`config/local-inputs.example.yml` to the gitignored `config/local-inputs.yml`. The following commands
-are available; this is not a required sequence. Follow `AGENTS.md` for change-specific verification:
+`config/local-inputs.example.yml` to the gitignored `config/local-inputs.yml`. Only the primary GOG
+installer is required for the normal bootstrap; configured demo, patch, and compatibility-fix inputs
+may be absent and remain optional corpus material. The following commands are available; this is not
+a required sequence. Follow `AGENTS.md` for change-specific verification:
 
 ```sh
 uv sync --frozen
@@ -21,7 +23,7 @@ uv run wiz8 toolchain build vc6-sp5 # once, or after the toolchain Dockerfile ch
 uv run wiz8 check
 uv run wiz8 lint
 uv run wiz8 build
-uv run wiz8 compare
+uv run wiz8 compare ADDRESS...
 uv run wiz8 run
 uv run wiz8 run --original
 uv run wiz8 debug
@@ -35,7 +37,12 @@ Python tests directly with `uv run pytest -q PATH`.
 
 `lint` compile-checks the recovered C++ with clang-cl diagnostics, over the same component object
 targets the VC6 product build links; `diagnostics` is its non-gating variant. `check` is the fast
-public lane: ruff, pyright, repository validators and Python tests, with no compiler build.
+public lane: ruff, pyright, repository validators and Python tests, with no product build. Its
+compiler-backed source-index writer also validates synthetic-marker shape and cross-TU external
+declarations. The lint compile database is adapted to host paths and reccmp performs one cached native
+source-index collection; selected `compare` refreshes that same projection before function selection.
+`uv run wiz8 analyze source-index` is therefore an inspection/debug command, not a prerequisite for
+`check` or `compare`.
 
 `uv run wiz8 run` stages the prepared game under `build/runtime/wiz8`, copies the already-built
 `Wiz8Runtime.exe` into it, and launches it with `/WINDOW`. Source variants stay immutable. The process
@@ -45,12 +52,13 @@ command result. `uv run wiz8 run --original` stages and launches the retail `Wiz
 `uv run wiz8 debug` stages the recomp under `build/runtime/debug` and drives it through Wine's GDB
 proxy with a deterministic stop policy, then symbolizes the captured frames.
 
-`uv run wiz8 runtime-test` runs named main-menu scenarios in the optimized semantic-test executable.
-The real menu handlers execute on the UI thread; the host reruns the scenarios in reverse order and
-requires identical normalized observations. Its same-process exception handler records every
-general-purpose register and scans registers as well as stack words for first-party image addresses;
-Python symbolizes the candidates against the runtime-test MAP and correlates their objects with the
-unresolved-symbol report. Failures are not rerun under GDB.
+`uv run wiz8 runtime-test` runs the canonical deterministic semantic-scenario suite in the optimized
+semantic-test executable, including the real new-game-to-main-game transition. The real menu handlers
+execute on the UI thread; the host reruns the scenarios in reverse order and requires identical
+normalized observations. Its same-process exception handler records every general-purpose register
+and scans registers as well as stack words for first-party image addresses; Python symbolizes the
+candidates against the runtime-test MAP and correlates their objects with the unresolved-symbol
+report. Failures are not rerun under GDB.
 
 Agent workflows live in the shared [matching-decomp](.agents/skills/matching-decomp/SKILL.md),
 [class-triage](.agents/skills/class-triage/SKILL.md), and
