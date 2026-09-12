@@ -119,10 +119,9 @@ bool CurrentTextLineHasContent(void)
 // FUNCTION: WIZ8 0x0058b910
 void ScrollTextBoxToCursor(void)
 {
-    if (g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] > 8) {
+    if (g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] > 7) {
         ScrollTextBoxTo(
-            g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] - 8 +
-            1);
+            g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] - 7);
         return;
     }
     ScrollTextBoxTo(0);
