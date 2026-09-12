@@ -23,8 +23,6 @@ public:
     static SR_DLL_IMPORT long getID(const char* filename);
     static SR_DLL_IMPORT void release();
 
-    /* CopyDwordBuffer00470180 CALLINDs +0x10 in retail; this overload binds
-       the memcpy slot at +0x0c. */
     static inline void memcopy(void* destination, const void* source, SRDWORD bytes)
     {
         vp->_memcopy(destination, source, bytes);

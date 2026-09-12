@@ -221,12 +221,12 @@ W8WorldCursorNode0048DB30* CreateWorldCursorCube0048D080(void)
         unsigned long state = model->control_state_390 | 1;
         model->control_state_390 = state;
         model->control_state_390 = state | 8;
-        model->reindexPolygons(0);
+        model->updateAllClients(static_cast<srModel::Client::e_update>(0));
     }
 
-    srVector3T<float> center;
-    float radius;
-    model->getBoundingSphere(center, radius);
+    srVector3T<float> minimum;
+    srVector3T<float> maximum;
+    model->getBoundingBox(minimum, maximum);
     model->autoRelease();
     model->setName("stCube");
     instance->assignModel(model);
