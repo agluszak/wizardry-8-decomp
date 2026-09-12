@@ -176,6 +176,7 @@ unsigned char CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
     } else {
         ranged_bonus = 0;
     }
+    source_record = GetMonsterDataForInfo(source);
     threshold =
         ComputeSightThreshold(observer_position, target_position, observer_yaw,
                               source->converted_attributes_247[4], static_cast<int>(ranged_bonus),
@@ -221,9 +222,10 @@ float ComputeSightThreshold(srVector3T<float> observer_position, srVector3T<floa
         skip_field_of_view != 0 || penalty_modifier != 0 || distance == g_float_005ebb34) {
         sight_percent = 100;
     } else {
-        sight_percent = static_cast<int>(
-            static_cast<float>(ranged_bonus - static_cast<int>(perception_attribute) * 2) *
-            (viewing_distance - distance) / distance);
+        float sight_factor =
+            static_cast<float>(ranged_bonus - static_cast<int>(perception_attribute) * 2);
+        float sight_ratio = (viewing_distance - distance) / distance;
+        sight_percent = (int)(sight_factor * sight_ratio);
     }
     if (penalty_source != 0) {
         if (penalty_modifier == 0) {
