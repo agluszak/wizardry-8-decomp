@@ -423,10 +423,8 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                     W8Monster* other_monster = other->monster;
                     float distance;
 
-                    other_position.x = other_monster->movement_0c0.position_040.x;
-                    other_position.y = other_monster->movement_0c0.position_040.y +
-                                       other_monster->movement_0c0.height_offset_0b8;
-                    other_position.z = other_monster->movement_0c0.position_040.z;
+                    other_position = other_monster->movement_0c0.position_040;
+                    other_position.y += other_monster->movement_0c0.height_offset_0b8;
                     entry->flag_0b = 0;
                     entry->line_of_sight_28 = 0;
                     distance = monster->GetDistanceToMonster004C7DD0(other->monster);

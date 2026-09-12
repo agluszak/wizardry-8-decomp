@@ -1323,12 +1323,10 @@ unsigned int W8PathingService::CollectPathProbes004656A0(W8NavigatorMovementStat
     float extent = g_path_limit_006081e8 + radius;
     srVector3T<float> lower;
     srVector3T<float> upper;
-    lower.x = movement->position_040.x - extent;
-    lower.y = movement->position_040.y - extent;
-    lower.z = movement->position_040.z - extent;
-    upper.x = movement->position_040.x + extent;
-    upper.y = movement->position_040.y + extent;
-    upper.z = movement->position_040.z + extent;
+    srVector3T<float> half_extent;
+    half_extent.Set(extent, extent, extent);
+    lower = movement->position_040 - half_extent;
+    upper = movement->position_040 + half_extent;
 
     path_candidates_098 = 0;
     path_candidate_count_094 =

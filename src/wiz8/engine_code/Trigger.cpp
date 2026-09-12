@@ -547,13 +547,11 @@ unsigned char Trigger::HasActorWithinRadius(float radius, unsigned char include_
 
         srVector3T<float> lower;
         srVector3T<float> upper;
+        srVector3T<float> extent;
         int* locations = 0;
-        lower.x = center.x - radius;
-        lower.y = center.y - radius;
-        lower.z = center.z - radius;
-        upper.x = center.x + radius;
-        upper.y = center.y + radius;
-        upper.z = center.z + radius;
+        extent.Set(radius, radius, radius);
+        lower = center - extent;
+        upper = center + extent;
 
         unsigned int count =
             FindMonsterLocationsInBox0042F280(&locations, &lower, &upper, 0x0c, -1);
