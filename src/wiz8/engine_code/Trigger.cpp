@@ -3343,6 +3343,9 @@ Trigger::~Trigger()
 // SYNTHETIC: WIZ8 0x00445e90
 // srClassSupport<Trigger,srClass,1,65544>::`scalar deleting destructor'
 
+// TEMPLATE: WIZ8 0x00445EF0
+// srClassSupport<srNode,srNode,0,4096>::getClassNode
+
 // TEMPLATE: WIZ8 0x00445f30
 // srClassSupport<Trigger,srClass,1,65544>::getClassNode
 

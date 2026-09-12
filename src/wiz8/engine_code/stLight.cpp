@@ -188,6 +188,21 @@ void stLight::Reset0049D070()
     m_positional_23c = m_positional_24c;
 }
 
+// TEMPLATE: WIZ8 0x0049DB10
+// srClassSupport<srIlluminator,srNode,0,4608>::getClassID
+
+// TEMPLATE: WIZ8 0x0049DB30
+// srClassSupport<srIlluminator,srNode,0,4608>::getClassNode
+
+// TEMPLATE: WIZ8 0x0049DC60
+// srClassSupport<stLight,srLight,0,65542>::getClassID
+
+// TEMPLATE: WIZ8 0x0049DC70
+// srClassSupport<stLight,srLight,0,65542>::getClassName
+
+// TEMPLATE: WIZ8 0x0049DC80
+// srClassSupport<stLight,srLight,0,65542>::getClassNode
+
 // TEMPLATE: WIZ8 0x0049DD60
 // srClassSupport<stLight,srLight,0,65542>::clone
 
@@ -223,3 +238,6 @@ unsigned char W8OctRegionVolume0049E460::ContainsPoint0049E460(const srVector3T<
     }
     return 1;
 }
+
+// SYNTHETIC: WIZ8 0x004A2200
+// stLightDefinition005ECDBC::`scalar deleting destructor'
