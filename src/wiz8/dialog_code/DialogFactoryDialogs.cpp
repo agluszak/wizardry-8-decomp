@@ -816,10 +816,10 @@ unsigned char W8Dialog005CD710::CreateButtons005CD8D0()
                                 0, -1, 0, 0);
     m_buttons_74[12]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 3, 3, 3, 3, 0,
                                 Function5CEAF0, 0, 0x7e, -1, 0, 0);
-    m_buttons_74[5]->unknown_037 = 1;
-    m_buttons_74[6]->unknown_037 = 1;
-    m_buttons_74[7]->unknown_037 = 1;
-    m_buttons_74[8]->unknown_037 = 1;
+    m_buttons_74[5]->m_right_toggles = 1;
+    m_buttons_74[6]->m_right_toggles = 1;
+    m_buttons_74[7]->m_right_toggles = 1;
+    m_buttons_74[8]->m_right_toggles = 1;
     for (index = 0; index < 13; ++index) {
         if (m_buttons_74[index] == 0) {
             for (index = 0; index < 13; ++index) {
