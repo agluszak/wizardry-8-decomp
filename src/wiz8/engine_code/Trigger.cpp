@@ -2673,8 +2673,8 @@ void Trigger::Run(int source)
                 } else {
                     spell_id = 0x2a;
                 }
-                PointCastSpell((float)position.x, (float)position.y, (float)position.z, spell_id,
-                               (unsigned int)m_lData3);
+                PointCastSpell(srVector3T<float>((float)position.x, (float)position.y, (float)position.z),
+                               spell_id, (unsigned int)m_lData3);
                 if (action_230 == 0x2b) {
                     RemoveAllConditionsFromParty();
                 }

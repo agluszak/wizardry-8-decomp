@@ -42,7 +42,7 @@ char GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize,
                                      W8TargetingContext context);
 int GetTargetNeededForSpellHostile(int spell_id);
 unsigned int MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsigned int power_level);
-int PointCastSpell(float x, float y, float z, int spell_id, unsigned int power_level);
+int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_level);
 
 bool CanCastFromItem(const W8Character* caster, const W8ItemInstance* item);
 
