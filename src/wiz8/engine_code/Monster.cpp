@@ -3013,8 +3013,11 @@ float W8Monster::GetDistanceToMonster004C7DD0(W8Monster* monster)
 float W8Monster::GetPointDistanceToMonster004C7E80(W8Monster* monster, srVector3T<float> point)
 {
     srVector3T<float> position = monster->GetPosition();
-    float distance = (point - position).Length() - movement_0c0.alternate_radius_0b4 -
-                     monster->movement_0c0.alternate_radius_0b4;
+    float delta_x = point.x - position.x;
+    float delta_y = point.y - position.y;
+    float delta_z = point.z - position.z;
+    float distance = (float)sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z) -
+                     movement_0c0.alternate_radius_0b4 - monster->movement_0c0.alternate_radius_0b4;
 
     if (distance < g_float_005ebb34) {
         distance = g_float_005ebb34;
@@ -4538,6 +4541,18 @@ void MonsterSetRuntimeBlock4C(W8Monster* monster, W8MonsterRuntimeBlock4C block)
     if (monster != 0 && monster->Query(6) != 0x15) {
         monster->m_pRep->render_state_04c = block;
     }
+}
+
+/* Highlight tint call sites pass four floats as one render-state block. */
+void SetMonsterHighlightColour(W8Monster* monster, float red, float green, float blue, float alpha)
+{
+    W8MonsterRuntimeBlock4C block;
+    float* channels = reinterpret_cast<float*>(&block); // reinterpret-ok: retail highlight paths store rgba in render_state_04c as four floats
+    channels[0] = red;
+    channels[1] = green;
+    channels[2] = blue;
+    channels[3] = alpha;
+    MonsterSetRuntimeBlock4C(monster, block);
 }
 
 /* The engine object a monster holds at 0x0c, or nothing when there is no
