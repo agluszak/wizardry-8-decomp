@@ -58,6 +58,8 @@ public:
         FLAG_IGNORE_TRANSFORM = 3
     };
 
+    /* Dump walks +0x120 with DAT_100a4a04; that pointer is unset on disk, so
+       dump prints numeric bit indices. Wizardry does not call setNotify. */
     enum e_notify { NOTIFY_POSITIONAL_0 = 0 };
 
     SR_DLL_IMPORT srNode(srNode* parent);

@@ -28,7 +28,7 @@ public:
         TriMesh()
         {
             for (int pass = 0; pass != 4; ++pass) {
-                shaders_b0[pass].value = 0x0100241b;
+                shaders_b0[pass].value = 0x0100241b; /* default packed srShader */
             }
         }
 

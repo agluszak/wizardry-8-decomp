@@ -1120,8 +1120,8 @@ void PublishLightDirection(const EnvironmentColour* direction)
 void SetRendererOption4Enabled(char enabled)
 {
     if (g_gerd_659634 != 0) {
-        if ((!enabled && g_gerd_659634->isEnabled(static_cast<srGERD::e_enable>(4))) ||
-            (enabled && !g_gerd_659634->isEnabled(static_cast<srGERD::e_enable>(4)))) {
+        if ((!enabled && g_gerd_659634->isEnabled(srGERD::ENABLE_POSITIONAL_4)) ||
+            (enabled && !g_gerd_659634->isEnabled(srGERD::ENABLE_POSITIONAL_4))) {
             g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_4);
         }
     }
@@ -1209,7 +1209,7 @@ static srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* su
 
     shader.value = overlay ? g_surface_state_654ad8 : g_surface_state_6595dc;
     if (!surface) {
-        shader.value &= 0xffff7fff;
+        shader.value &= ~srShader::TEXTURING;
     } else {
         texture = SR_NEW(srTextureMap)(static_cast<srColorSurfaceIFace*>(0));
         texture->autoRelease();

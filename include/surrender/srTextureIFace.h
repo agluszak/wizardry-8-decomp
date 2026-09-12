@@ -45,6 +45,9 @@ public:
     /* Dump: NONE / FASTEST / BEST, else DEFAULT. GOOD is not a mipmap
        enumerator. setTextureDefaultMipmap remaps DEFAULT (3) to FASTEST. */
     enum e_mipmap { MIPMAP_NONE = 0, MIPMAP_FASTEST = 1, MIPMAP_BEST = 2, MIPMAP_DEFAULT = 3 };
+    /* enableHint ORs 1<<hint into srTexture+0x40. srTexture::dump does not
+       print these. Wizardry 2D tiles pair 1/2 with shader ALPHATEST; overlay
+       and poster paths also set 3; stTexture2D's ctor also sets 6. */
     enum e_hint {
         HINT_POSITIONAL_1 = 1,
         HINT_POSITIONAL_2 = 2,

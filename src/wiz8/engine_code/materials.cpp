@@ -176,7 +176,7 @@ unsigned char LoadMaterial004B8A70(const char* bitmap_folder,
     unsigned char has_alpha = 0;
     int index;
 
-    *render_flags = 0x0100a51b;
+    *render_flags = 0x0100a51b; /* packed srShader; TEXTURING set until no texture */
     for (index = 0; index < 4; ++index) {
         if (source->texture_names_029[index][0] != '\0') {
             if (bitmap_folder[0] == '\0') {
@@ -190,7 +190,7 @@ unsigned char LoadMaterial004B8A70(const char* bitmap_folder,
     }
 
     if (texture_path[0] == '\0') {
-        *render_flags &= ~0x8000UL;
+        *render_flags &= ~srShader::TEXTURING;
     } else {
         _splitpath(texture_path, drive, directory, file_name, extension);
         strcpy(texture_folder, drive);

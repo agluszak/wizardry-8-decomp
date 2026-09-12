@@ -60,8 +60,10 @@ public:
     /* OpenGL: 0 disables GL_CULL_FACE, 1 enables + GL_BACK, 2 enables + GL_FRONT.
        DirectX7: D3DCULL_NONE / D3DCULL_CCW / D3DCULL_CW. */
     enum e_cullMode { CULL_NONE = 0, CULL_BACK = 1, CULL_FRONT = 2 };
-    /* toggle XORs 1<<option into +0x20. Option 0 also dirties dirty_24 bit 0;
-       option 5 wraps/unwraps srDebugDD. GERD dump has no enable-name table. */
+    /* toggle XORs 1<<option into +0x20. Option 0 also dirties dirty_24 bit 0
+       (Wizardry render-option 5). Option 1 is the particle path. Option 4 is
+       SetRendererOption4Enabled. Option 5 wraps/unwraps srDebugDD. GERD dump
+       has no enable-name table. */
     enum e_enable { ENABLE_POSITIONAL_0 = 0, ENABLE_POSITIONAL_1 = 1, ENABLE_POSITIONAL_4 = 4 };
     enum e_winding { WINDING_POSITIONAL_0 = 0 };
     enum e_visibility { VISIBILITY_POSITIONAL_0 = 0 };

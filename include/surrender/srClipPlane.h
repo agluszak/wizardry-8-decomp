@@ -12,9 +12,9 @@ class SR_DLL_IMPORT srClipPlane : public srNode {
 public:
     typedef srClassSupport<srClipPlane, srClipPlane, false, 0x1500> ClientType;
 
-    enum e_clip {
-        CLIP_POSITIONAL_0 = 0
-    };
+    /* Dump prints +0x148 as a decimal "Clip type"; no name table. Wizardry
+       always writes 0. */
+    enum e_clip { CLIP_POSITIONAL_0 = 0 };
 
     srClipPlane(srNode* parent);
     srClipPlane& operator=(const srClipPlane& other);
@@ -28,9 +28,7 @@ public:
     virtual ~srClipPlane() override;
     virtual srClass* vInstance() override;
     virtual void traverse(TraverseInfo& info) override;
-    virtual void process(
-        const ProcessInfo& info,
-        e_processType type) override;
+    virtual void process(const ProcessInfo& info, e_processType type) override;
 
     void setClipPlane(const srVector4T<float>& plane)
     {
@@ -43,10 +41,9 @@ public:
     }
 
 protected:
-    srVector4T<float> clip_plane_;          /* 0x138 */
-    e_clip clip_type_;                      /* 0x148 */
+    srVector4T<float> clip_plane_; /* 0x138 */
+    e_clip clip_type_;             /* 0x148 */
     unsigned char unknown_14c_[4];
 };
 
-static_assert(sizeof(srClipPlane) == 0x150,
-              "srClipPlane_must_be_0x150");
+static_assert(sizeof(srClipPlane) == 0x150, "srClipPlane_must_be_0x150");

@@ -332,7 +332,8 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         emissive.w = g_float_005ebb38;
         m_pGlowMaterial_17c->setEmissive(emissive);
         mesh.materials_70[0][0] = m_pGlowMaterial_17c;
-        mesh.shaders_b0[0].value = (mesh.shaders_b0[0].value & ~0x400UL) | 0x800UL;
+        mesh.shaders_b0[0].value =
+            (mesh.shaders_b0[0].value & ~srShader::GRADIENT_MODULATE) | srShader::GRADIENT_ADD;
     }
 
 render_mesh:

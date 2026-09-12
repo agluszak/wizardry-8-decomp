@@ -26,7 +26,7 @@ MonsterLight::MonsterLight(srNode* parent, unsigned char cycle_color, float rang
     setName("MonFixedLight");
     attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
     enable_flags_194 |= 0x10; /* ENABLE_RANGE_FAR */
-    enable_flags_194 |= 4;    /* ENABLE_POSITIONAL_2 */
+    enable_flags_194 |= 4;    /* ENABLE_BOUNDING_SPHERE */
     far_end_170 = range;
     near_start_158 = 0.0;
     near_end_160 = 0.0;

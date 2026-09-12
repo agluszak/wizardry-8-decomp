@@ -48,7 +48,7 @@ public:
     struct Pass {
         inline Pass()
         {
-            flags_08.value = 0x0100241b;
+            flags_08.value = 0x0100241b; /* default packed srShader */
         }
 
         srTextureIFace* texture_00;

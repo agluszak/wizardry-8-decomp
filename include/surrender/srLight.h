@@ -13,11 +13,13 @@ public:
     /* enable/disable/isEnabled take these as bit indices into +0x194.
        Dump's Control-flags name table is unset on disk. process uses bit 3
        as the 3DStudio near-range gate and bit 4 as the far-range gate.
-       Ctor always ORs bit 4; Wizardry also ORs bit 2. */
+       Ctor always ORs bit 4; Wizardry also ORs ENABLE_BOUNDING_SPHERE. */
     enum e_enable {
         ENABLE_POSITIONAL_0 = 0,
         ENABLE_POSITIONAL_1 = 1,
-        ENABLE_POSITIONAL_2 = 2,
+        /* Node process: with RANGE_FAR, run testBoundingSphere on
+           safe_range+far_end and clear activity bit 0 when culled. */
+        ENABLE_BOUNDING_SPHERE = 2,
         ENABLE_RANGE_NEAR = 3,
         ENABLE_RANGE_FAR = 4
     };

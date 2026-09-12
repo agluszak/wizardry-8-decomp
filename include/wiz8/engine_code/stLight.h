@@ -165,7 +165,7 @@ public:
     {
         attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
         enable_flags_194 |= 0x10; /* ENABLE_RANGE_FAR */
-        enable_flags_194 |= 4;    /* ENABLE_POSITIONAL_2 */
+        enable_flags_194 |= 4;    /* ENABLE_BOUNDING_SPHERE */
     }
 
 public:
