@@ -901,7 +901,7 @@ unsigned char CharacterCanSwitchTo(int party_slot, W8TargetingContext context, i
         if (value_a == 0) {
             return 0;
         }
-        if (Function4F9750(character, value_a) == 0) {
+        if (CanCharacterCastSpell(character, value_a) == 0) {
             return 0;
         }
         break;

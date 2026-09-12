@@ -23,7 +23,6 @@ struct W8ItemInstance;
 void Function51EB90(W8Character* character, W8ItemInstance* item, int a, int b); /* 0x0051EB90 */
 void Function51EA90(W8Character* character, W8ItemInstance* item);               /* 0x0051EA90 */
 unsigned char Function4F96F0(W8Character* character);                            /* 0x004F96F0 */
-unsigned char Function4F9750(W8Character* character, int target);                /* 0x004F9750 */
 void Function4ECC80(W8TargetSource* source, W8CombatSlot* target);               /* 0x004ECC80 */
 void Function537540(int party_slot);                                             /* 0x00537540 */
 void Function4EA5C0(int party_slot);                                             /* 0x004EA5C0 */
