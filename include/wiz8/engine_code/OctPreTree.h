@@ -18,8 +18,7 @@ struct W8OctRegionVolume0049E460 {
     srVector3T<float> points_1c[9];
     srVector4T<float> planes_88[6];
 
-    unsigned char ContainsPoint0049E460(
-        const srVector3T<float>* point) const;
+    unsigned char ContainsPoint0049E460(const srVector3T<float>* point) const;
 };
 
 /* A reusable, non-polymorphic 0x9c spatial record.  Octree.cpp constructs one
@@ -28,13 +27,11 @@ struct W8OctRegionVolume0049E460 {
    inserting surfaces.  Same-address construction proves the common value
    boundary, but not whether either owner used inheritance or a first member. */
 struct W8OctSpatialState0046CCC0 {
-    explicit W8OctSpatialState0046CCC0(
-        const W8OctSpatialState0046CCC0* source = 0);
+    explicit W8OctSpatialState0046CCC0(const W8OctSpatialState0046CCC0* source = 0);
     ~W8OctSpatialState0046CCC0();
 
     void Reset0046CDC0();
-    void GetClippedBounds0046CE30(
-        srVector3T<float>* minimum, srVector3T<float>* maximum);
+    void GetClippedBounds0046CE30(srVector3T<float>* minimum, srVector3T<float>* maximum);
 
     unsigned long flags_00;
     float extent_04;
@@ -69,27 +66,18 @@ struct W8OctSpatialState0046CCC0 {
     void* owned_98;
 };
 
-unsigned char TestSpatialTriangle0046CE60(
-    const srVector3T<float>* bounds,
-    const srVector3T<float>* vertices,
-    const srVector3T<float>* plane_normal);
-unsigned char BoundsOverlap0046D470(
-    const srVector3T<float>* first,
-    const srVector3T<float>* second);
-unsigned char PointInsideBounds0046D4D0(
-    const srVector3T<float>* bounds,
-    const srVector3T<float>* point);
+unsigned char TestSpatialTriangle0046CE60(const srVector3T<float>* bounds,
+                                          const srVector3T<float>* vertices,
+                                          const srVector3T<float>* plane_normal);
+unsigned char BoundsOverlap0046D470(const srVector3T<float>* first,
+                                    const srVector3T<float>* second);
+unsigned char PointInsideBounds0046D4D0(const srVector3T<float>* bounds,
+                                        const srVector3T<float>* point);
 
-static_assert(sizeof(W8OctSpatialState0046CCC0) == 0x9c,
-              "W8OctSpatialState0046CCC0_must_be_0x9c");
-static_assert(sizeof(W8OctRegionVolume0049E460) == 0xe8,
-              "W8OctRegionVolume0049E460_must_be_0xe8");
+static_assert(sizeof(W8OctSpatialState0046CCC0) == 0x9c, "W8OctSpatialState0046CCC0_must_be_0x9c");
+static_assert(sizeof(W8OctRegionVolume0049E460) == 0xe8, "W8OctRegionVolume0049E460_must_be_0xe8");
 
-
-void SortPathCandidates004677A0(
-    unsigned short* waypoints,
-    unsigned int* distances,
-    int first,
-    int last);
+void SortPathCandidates004677A0(unsigned short* waypoints, unsigned int* distances, int first,
+                                int last);
 
 #endif

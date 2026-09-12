@@ -19,25 +19,22 @@ public:
     W8SpellEmitterHost(const W8SpellEmitterHost& other);
     virtual ~W8SpellEmitterHost() override;
     virtual W8AnimRepBase005EC1D8* Clone() override;
-    virtual srModelInstance* SetCycleFrameLod(
-        signed char cycle, signed char frame, signed char lod) override;
+    virtual srModelInstance* SetCycleFrameLod(signed char cycle, signed char frame,
+                                              signed char lod) override;
     virtual unsigned int ApplyEmitterSetting(char emitter) override;
     virtual W8AniMesh* GetEmitterAniMesh(char emitter) override;
-    unsigned char ReadCycleData004AB340(
-        W8ReadLevelInfo* info,
-        W8SpellVisual* visual,
-        int positional_2,
-        int emitter_index);
+    unsigned char ReadCycleData004AB340(W8ReadLevelInfo* info, W8SpellVisual* visual,
+                                        int positional_2, int emitter_index);
 
     unsigned int value_0ac;
     unsigned int value_0b0;
     unsigned char unknown_0b4[0x24];
-    W8AnimObj* emitters[28];              /* 0x0d8 */
-    float emitter_values[28];             /* 0x148 */
+    W8AnimObj* emitters[28];                                       /* 0x0d8 */
+    float emitter_values[28];                                      /* 0x148 */
     W8GrowableVector<W8GrowableVector<stLight*>*> light_lists[28]; /* 0x1b8 */
     unsigned char flag_378;
     unsigned char unknown_379[3];
-};                                        /* 0x37c */
+}; /* 0x37c */
 
 static_assert(sizeof(W8SpellEmitterHost) == 0x37c, "W8SpellEmitterHost_size_must_be_0x37c");
 

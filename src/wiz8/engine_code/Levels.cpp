@@ -122,7 +122,6 @@ int g_cd_index_00604474;
 // GLOBAL: WIZ8 0x00659738
 W8MaterialMapper00482010 g_material_mapper_00659738;
 
-
 // FUNCTION: WIZ8 0x0042b720
 int GetLevelCdNumber0042B720(int level)
 {
@@ -132,8 +131,7 @@ int GetLevelCdNumber0042B720(int level)
 // FUNCTION: WIZ8 0x0042b6f0
 unsigned char IsLevelCdMissing0042B6F0(int level)
 {
-    return FindGameDataPath0042B590(
-               gzCdDirectory, g_level_folders[level].cd_number) == 0;
+    return FindGameDataPath0042B590(gzCdDirectory, g_level_folders[level].cd_number) == 0;
 }
 
 /* Scan every logical drive for the CD whose volume label is WIZ8_<cd_number>,
@@ -172,9 +170,8 @@ unsigned char FindGameDataPath0042B590(char* path, int cd_number)
         sprintf(expected_label, "WIZ8_%d", cd_number);
 
         UINT previous_mode = SetErrorMode(1);
-        if (GetVolumeInformationA(
-                path, volume_name, 32, 0, 0, 0, 0, 0) != 0
-            && _stricmp(expected_label, volume_name) == 0) {
+        if (GetVolumeInformationA(path, volume_name, 32, 0, 0, 0, 0, 0) != 0 &&
+            _stricmp(expected_label, volume_name) == 0) {
             found = 1;
             g_cd_index_00604474 = cd_number;
         }
@@ -232,8 +229,7 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
 
     if (level < 47) {
         sky_index = g_level_folders[level].sky_index;
-    }
-    else {
+    } else {
         sky_index = 0;
     }
     if (sky_index == g_loaded_sky_index_00604470) {
@@ -259,8 +255,7 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
     if (sky_world == 0) {
         return 0;
     }
-    if (!LoadWorld(sky_world, info->sky_file_name, info->sky_folder,
-                   info->sky_bitmap_folder, 0)) {
+    if (!LoadWorld(sky_world, info->sky_file_name, info->sky_folder, info->sky_bitmap_folder, 0)) {
         return 0;
     }
 
@@ -287,8 +282,7 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
     material->m_field_78 = 0;
     material->setMapper(&g_material_mapper_00659738);
 
-    for (srNode* node = sky_world->level->firstChild();
-         node != 0; node = node->nextSibling()) {
+    for (srNode* node = sky_world->level->firstChild(); node != 0; node = node->nextSibling()) {
         if (node->getClassID() == 0x10004) {
             srModelInstance* instance = static_cast<srModelInstance*>(node);
             srMeshModel* mesh = static_cast<srMeshModel*>(instance->model());
@@ -307,11 +301,9 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
             srModelInstance* instance = prop->ToggleRepAnimation(0);
 
             if (instance != 0) {
-                for (stMeshModel* mesh =
-                         static_cast<stMeshModel*>(instance->model());
-                     mesh != 0; mesh = mesh->next) {
-                    mesh->setMaterial(
-                        material, 0, static_cast<srMeshModel::e_side>(0));
+                for (stMeshModel* mesh = static_cast<stMeshModel*>(instance->model()); mesh != 0;
+                     mesh = mesh->next) {
+                    mesh->setMaterial(material, 0, static_cast<srMeshModel::e_side>(0));
                 }
             }
         }
@@ -326,17 +318,14 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
     return 1;
 }
 
-
-
 extern float g_runtime_world_scale_6081e8;
 
 // GLOBAL: WIZ8 0x00605820
 unsigned short g_level_name_indices_605820[47] = {
-    0x6f7, 0x6f8, 0x6f9, 0x6fa, 0x6fb, 0x6fd, 0x6fc, 0x6fe, 0x6ff, 0x700,
-    0x701, 0x719, 0x702, 0x703, 0x704, 0x705, 0x706, 0x707, 0x708, 0x709,
-    0x70a, 0x70b, 0x70c, 0x719, 0x70d, 0x70e, 0x70f, 0x710, 0x719, 0x711,
-    0x719, 0x712, 0x713, 0x714, 0x719, 0x715, 0x716, 0x717, 0x706, 0x718,
-    0x719, 0x719, 0x719, 0x719, 0x719, 0x719, 0x719,
+    0x6f7, 0x6f8, 0x6f9, 0x6fa, 0x6fb, 0x6fd, 0x6fc, 0x6fe, 0x6ff, 0x700, 0x701, 0x719,
+    0x702, 0x703, 0x704, 0x705, 0x706, 0x707, 0x708, 0x709, 0x70a, 0x70b, 0x70c, 0x719,
+    0x70d, 0x70e, 0x70f, 0x710, 0x719, 0x711, 0x719, 0x712, 0x713, 0x714, 0x719, 0x715,
+    0x716, 0x717, 0x706, 0x718, 0x719, 0x719, 0x719, 0x719, 0x719, 0x719, 0x719,
 };
 
 // GLOBAL
@@ -364,9 +353,8 @@ unsigned char g_flag_00687607;
 char g_ambient_sound_filename_006059e0[] = "SCF";
 // GLOBAL: WIZ8 0x00605880
 const char* g_sky_names_00605880[] = {
-    "DefaultSky", "RapaxSky",   "MountainPassSky", "RiftSky1",
-    "TrynnieSky1", "TrynnieSky2", "RatkinSky1",       "CampSky",
-    "BluffSky1",   "BluffSky2",   "CircleSky",
+    "DefaultSky", "RapaxSky", "MountainPassSky", "RiftSky1",  "TrynnieSky1", "TrynnieSky2",
+    "RatkinSky1", "CampSky",  "BluffSky1",       "BluffSky2", "CircleSky",
 };
 
 /* Resolve a database level number into all level and sky resource paths. The
@@ -380,34 +368,25 @@ unsigned char LevelBuildInfoByID(int level, W8LevelInfo* info)
     char pvl_path[1020];
 
     if ((unsigned int)level >= 57) {
-        srAssertFail(
-            "ulLevel < TEST_LEVEL_COUNT",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\Levels.cpp",
-            237, 0);
+        srAssertFail("ulLevel < TEST_LEVEL_COUNT",
+                     "C:\\Projects\\Wizardry 8\\Engine Code\\Levels.cpp", 237, 0);
     }
 
     if (level < 47) {
-        sprintf(info->level_folder, "%s\\%s", "Levels",
-                g_level_folders[level].folder_name);
-        sprintf(info->level_file_name, "%s.%s",
-                g_level_folders[level].level_name, "LVL");
+        sprintf(info->level_folder, "%s\\%s", "Levels", g_level_folders[level].folder_name);
+        sprintf(info->level_file_name, "%s.%s", g_level_folders[level].level_name, "LVL");
         if (g_level_folders[level].sky_index == -1) {
             info->sky_file_name[0] = '\0';
-        }
-        else {
+        } else {
             sprintf(info->sky_file_name, "%s.%s",
-                    g_sky_names_00605880[g_level_folders[level].sky_index],
-                    "LVL");
+                    g_sky_names_00605880[g_level_folders[level].sky_index], "LVL");
         }
-    }
-    else {
+    } else {
         sprintf(info->level_folder, "%s\\Test", "Levels");
         if (level == 56) {
             sprintf(info->level_file_name, "DefaultLevel.%s", "LVL");
-            sprintf(info->sky_file_name, "%s.%s",
-                    g_sky_names_00605880[0], "LVL");
-        }
-        else {
+            sprintf(info->sky_file_name, "%s.%s", g_sky_names_00605880[0], "LVL");
+        } else {
             char test_level = static_cast<char>(level + 2);
             sprintf(info->level_file_name, "level%c.%s", test_level, "LVL");
             sprintf(info->sky_file_name, "sky%c.%s", test_level, "LVL");
@@ -417,36 +396,28 @@ unsigned char LevelBuildInfoByID(int level, W8LevelInfo* info)
     strcpy(info->sky_folder, info->level_folder);
     sprintf(info->level_bitmap_folder, "%s\\Bitmaps", info->level_folder);
     sprintf(info->sky_bitmap_folder, "%s\\Bitmaps", info->sky_folder);
-    sprintf(info->level_path, "%s\\%s", info->level_folder,
-            info->level_file_name);
+    sprintf(info->level_path, "%s\\%s", info->level_folder, info->level_file_name);
 
     strcpy(oct_path, info->level_path);
     strcpy(oct_path + strlen(oct_path) - 3, "oct");
     strcpy(pvl_path, info->level_path);
     strcpy(pvl_path + strlen(pvl_path) - 3, "pvl");
-    if (!FileExists(info->level_path)
-        && (!FileExists(oct_path) || !FileExists(pvl_path))) {
+    if (!FileExists(info->level_path) && (!FileExists(oct_path) || !FileExists(pvl_path))) {
         return 0;
     }
 
-    sprintf(info->sky_path, "%s\\%s", info->sky_folder,
-            info->sky_file_name);
+    sprintf(info->sky_path, "%s\\%s", info->sky_folder, info->sky_file_name);
     if (level < 47) {
-        if (g_level_folders[level].sky_index != -1
-            && !FileExists(info->sky_path)) {
+        if (g_level_folders[level].sky_index != -1 && !FileExists(info->sky_path)) {
             sprintf(info->sky_folder, "%s\\Test", "Levels");
-            sprintf(info->sky_file_name, "%s.%s",
-                    g_sky_names_00605880[0], "LVL");
-            sprintf(info->sky_bitmap_folder, "%s\\Bitmaps",
-                    info->sky_folder);
-            sprintf(info->sky_path, "%s\\%s", info->sky_folder,
-                    info->sky_file_name);
+            sprintf(info->sky_file_name, "%s.%s", g_sky_names_00605880[0], "LVL");
+            sprintf(info->sky_bitmap_folder, "%s\\Bitmaps", info->sky_folder);
+            sprintf(info->sky_path, "%s\\%s", info->sky_folder, info->sky_file_name);
             if (!FileExists(info->sky_path)) {
                 return 0;
             }
         }
-    }
-    else if (!FileExists(info->sky_path)) {
+    } else if (!FileExists(info->sky_path)) {
         info->sky_file_name[0] = '\0';
     }
     return 1;
@@ -457,8 +428,7 @@ unsigned char LevelBuildInfoByID(int level, W8LevelInfo* info)
    rollback boundary, entry positioning, first-visit work and final renderer
    publication. */
 // FUNCTION: WIZ8 0x0042A6F0
-unsigned char LoadLevel(
-    int requested_level, int entrance, unsigned char restoring_game)
+unsigned char LoadLevel(int requested_level, int entrance, unsigned char restoring_game)
 {
     int level = NormalizeMasterFunctionValue004D9700(requested_level);
     W8LevelInfo level_info;
@@ -468,10 +438,8 @@ unsigned char LoadLevel(
     char music_path[260];
 
     if (level >= 57) {
-        srAssertFail(
-            "iLevel < TEST_LEVEL_COUNT",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\Levels.cpp",
-            385, 0);
+        srAssertFail("iLevel < TEST_LEVEL_COUNT",
+                     "C:\\Projects\\Wizardry 8\\Engine Code\\Levels.cpp", 385, 0);
     }
     if (!LevelBuildInfoByID(level, &level_info)) {
         return 0;
@@ -488,16 +456,11 @@ unsigned char LoadLevel(
 
     previous_level = g_status_685170.current_level;
     g_status_685170.current_level = level;
-    sprintf(
-        music_path, "Data\\Music\\%s.MPL",
-        g_level_folders[level].folder_name);
+    sprintf(music_path, "Data\\Music\\%s.MPL", g_level_folders[level].folder_name);
     if (FileExists(music_path)) {
-        sprintf(
-            music_path, "%s.MPL",
-            g_level_folders[g_status_685170.current_level].folder_name);
+        sprintf(music_path, "%s.MPL", g_level_folders[g_status_685170.current_level].folder_name);
         StartMusicResource0048FC10(music_path, 1, 1);
-    }
-    else {
+    } else {
         StartMusicResource0048FC10("", 1, 1);
     }
     ServiceMusicPlaylist0048F9E0();
@@ -508,9 +471,8 @@ unsigned char LoadLevel(
     InitializeMonsterManagerState();
     InitializeItemManagerState();
     Function443A50();
-    if (!ForwardLoadWorld(
-            GetWorld(), level_info.level_file_name, level_info.level_folder,
-            level_info.level_bitmap_folder, 1)) {
+    if (!ForwardLoadWorld(GetWorld(), level_info.level_file_name, level_info.level_folder,
+                          level_info.level_bitmap_folder, 1)) {
         /* This is the complete canonical rollback here: restore the level ID.
            The already-installed replacement world is not destroyed. */
         g_status_685170.current_level = previous_level;
@@ -531,9 +493,7 @@ unsigned char LoadLevel(
 
         if (level < 47) {
             char trigger_name[8];
-            sprintf(
-                trigger_name, "%3s%02d",
-                g_level_folders[level].level_name, entrance);
+            sprintf(trigger_name, "%3s%02d", g_level_folders[level].level_name, entrance);
             trigger = FindTriggerByName(trigger_name);
         }
         if (trigger != 0 && trigger->flag_0a0_11) {
@@ -542,10 +502,9 @@ unsigned char LoadLevel(
 
             trigger->GetPosition(&trigger_position);
             position = trigger_position;
-            position.y = SettlePositionToGround00420BD0(&trigger_position, 0)
-                       + g_default_world_height_00603ac8;
-            if (fabs(position.y - trigger_position.y)
-                > g_position_height_epsilon_005ebfdc) {
+            position.y = SettlePositionToGround00420BD0(&trigger_position, 0) +
+                         g_default_world_height_00603ac8;
+            if (fabs(position.y - trigger_position.y) > g_position_height_epsilon_005ebfdc) {
                 position.y = trigger_position.y;
             }
             SetWorldScenePosition004511D0(GetWorld(), &position);
@@ -561,22 +520,20 @@ unsigned char LoadLevel(
                 rotation.vectors[1].Set(0.0, 1.0, 0.0);
                 rotation.vectors[2].Set(0.0, 0.0, 1.0);
                 if (trigger->angle_0fc != 0.0f) {
-                    rotation.RotateAroundAxis(
-                        sin(trigger->angle_0fc), cos(trigger->angle_0fc), axis);
+                    rotation.RotateAroundAxis(sin(trigger->angle_0fc), cos(trigger->angle_0fc),
+                                              axis);
                 }
                 ApplyCameraRotation(&rotation);
             }
-        }
-        else {
+        } else {
             srVector3T<float> position;
 
             position.Set(0.0f, g_default_world_height_00603ac8, 0.0f);
             SetWorldScenePosition004511D0(GetWorld(), &position);
         }
-    }
-    else {
-        MoveWorldToPoint(
-            GetWorld(), GetWorld659AB8(), &g_status_685170.pending_move_location.point);
+    } else {
+        MoveWorldToPoint(GetWorld(), GetWorld659AB8(),
+                         &g_status_685170.pending_move_location.point);
     }
 
     if (level < 47 && !g_status_685170.level_progress[level].visited) {
@@ -586,9 +543,8 @@ unsigned char LoadLevel(
         first_visit = 1;
     }
 
-    sprintf(
-        path, "%s\\%s\\%s", level_info.level_folder,
-        level_info.level_file_name, g_ambient_sound_filename_006059e0);
+    sprintf(path, "%s\\%s\\%s", level_info.level_folder, level_info.level_file_name,
+            g_ambient_sound_filename_006059e0);
     LoadAmbientSoundList0047AB40(path);
     if (!g_environment_load_flag_00603ad0) {
         ResetCurrentEnvironment0041AA40();
@@ -608,11 +564,9 @@ unsigned char LoadLevel(
             Function5777C0();
             g_combat_countdown_6850b0 = 0;
         }
-        if (g_flag_00687607
-            && (GetFact(0x4c) || GetFact(0x4b))) {
+        if (g_flag_00687607 && (GetFact(0x4c) || GetFact(0x4b))) {
             DespawnAllActiveMonsterGroups0048C9F0();
-        }
-        else {
+        } else {
             UpdateRandomEncounterBudget(first_visit);
         }
         if (!first_visit) {
@@ -622,8 +576,7 @@ unsigned char LoadLevel(
         for (int index = g_spell_effects.GetCount() - 1; index >= 0; --index) {
             delete g_spell_effects.RemoveAt(index);
         }
-    }
-    else {
+    } else {
         W8SpellEffectEntry* effect = FindMonsterControlSpellEffect();
 
         if (effect != 0) {
@@ -649,7 +602,8 @@ unsigned char UnloadLevel(const char* save_directory)
     }
 
     if (g_status_685170.current_level < 47) {
-        g_status_685170.level_progress[g_status_685170.current_level].sight_clock = g_status_685170.world_clock;
+        g_status_685170.level_progress[g_status_685170.current_level].sight_clock =
+            g_status_685170.world_clock;
     }
 
     if (g_world_cleanup_flag_00659757 != 0) {
@@ -718,10 +672,8 @@ unsigned char UnloadLevel(const char* save_directory)
 
     while (clip_plane != 0) {
         srClass* next = static_cast<srClass*>(
-            registry->find(
-                srClassSupport<
-                    srClipPlane, srClipPlane, false, 0x1500>::sGetClassNode(),
-                0, clip_plane));
+            registry->find(srClassSupport<srClipPlane, srClipPlane, false, 0x1500>::sGetClassNode(),
+                           0, clip_plane));
         clip_plane->release();
         clip_plane = next;
     }

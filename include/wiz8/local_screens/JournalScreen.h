@@ -12,9 +12,7 @@ extern int g_value_006850d5;
 /* Local Screens\JournalScreen.cpp's live panel.  Construction starts with a
    complete Controls at +0, then installs the independently evidenced callback
    base at +0x4c before the five owned display objects. */
-class W8JournalPanel005EF340
-    : public Controls,
-      public W8TextControl::Listener {
+class W8JournalPanel005EF340 : public Controls, public W8TextControl::Listener {
 public:
     explicit W8JournalPanel005EF340(unsigned int* region_set);
     virtual ~W8JournalPanel005EF340();
@@ -30,8 +28,7 @@ public:
     unsigned char m_pad_065[3];
 };
 
-static_assert(sizeof(W8JournalPanel005EF340) == 0x68,
-              "W8JournalPanel005EF340_size");
+static_assert(sizeof(W8JournalPanel005EF340) == 0x68, "W8JournalPanel005EF340_size");
 
 struct W8JournalEntry {
     int level;

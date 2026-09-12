@@ -11,7 +11,10 @@ struct W8Character;
 class W8CampItemRange : public W8RangeListener {
 public:
     W8CampItemRange();
-    ~W8CampItemRange() { delete m_range; }
+    ~W8CampItemRange()
+    {
+        delete m_range;
+    }
     virtual void OnRangeChanged(W8RangeControl* control) override;
     W8RangeControl* m_range;
 };
@@ -71,28 +74,28 @@ static_assert(sizeof(W8CampCharacterInfo) == 0x6c, "W8CampCharacterInfo_size");
    the screen-state stack retains the arguments needed to recreate it. */
 struct W8CampScreenState0069C0F4 {
     wchar_t caption[120];
-    int page;                            /* 0x0f0 */
+    int page; /* 0x0f0 */
     unsigned int hover_region;
     unsigned int redraw_flags;
     unsigned int item_redraw_flags;
     unsigned char unknown_100[0x3c0];
-    int spell_scroll[6];                 /* 0x4c0 */
+    int spell_scroll[6]; /* 0x4c0 */
     unsigned char unknown_4d8[4];
-    unsigned char realm_flags[6];       /* 0x4dc */
+    unsigned char realm_flags[6]; /* 0x4dc */
     unsigned char unknown_4e2[2];
     int item_scroll;
     unsigned char unknown_4e8[0x7d4];
-    W8CampItemRange* item_range;         /* 0xcbc */
+    W8CampItemRange* item_range; /* 0xcbc */
     W8CampSpellRange* spell_ranges[6];
-    W8CampSkillRange* skill_range;       /* 0xcd8 */
+    W8CampSkillRange* skill_range; /* 0xcd8 */
     W8CampSkillControls* skill_controls;
-    unsigned int item_timer;            /* 0xce0 */
+    unsigned int item_timer; /* 0xce0 */
     unsigned char item_timer_active;
     unsigned char item_timer_expired;
     unsigned char unknown_ce6[2];
     unsigned int animation_timer;
     int animation_frames[6];
-    int input_mode;                     /* 0xd04 */
+    int input_mode; /* 0xd04 */
     unsigned char skill_flag;
     unsigned char unknown_d09[3];
     int skill_scroll;
@@ -137,4 +140,3 @@ extern int g_effect_argument_005ed8cc;
 void Function5A20E0(int);
 void Function5A23E0(void);
 void Function5187E0(void);
-

@@ -33,7 +33,8 @@ void GetCharacterHandDamageDice(const W8Character* character, int hand, W8Dice* 
         slot = 6;
         if (ItemHasSingledOutGenericName(character->equipment[6].item_id)) {
             int partner = GetPairedEquipSlot(6);
-            if (partner != -1) slot = partner;
+            if (partner != -1)
+                slot = partner;
         }
     } else {
         slot = 7;
@@ -52,7 +53,6 @@ enum { W8_ATTACK_MODE_COUNT = 9 };
 
 /* Bit two of the monster record's flag word: the monster attacks at all. */
 enum { W8_MONSTER_FLAG_ATTACKS = 4 };
-
 
 /* Clear a forty-eight byte attack block. */
 // FUNCTION: WIZ8 0x00543260
@@ -144,11 +144,11 @@ bool CanMonsterAttack(W8MonsterInfo* monster_info)
    remainder is taken as a percentage rounding to nearest, and nothing goes
    below zero. */
 // FUNCTION: WIZ8 0x005459b0
-int ApplyDamageReduction(
-    const W8MonsterInfo* monster_info, const W8MonsterRecord* record, int damage)
+int ApplyDamageReduction(const W8MonsterInfo* monster_info, const W8MonsterRecord* record,
+                         int damage)
 {
-    int reduction = monster_info->modifiers_1db.damage_reduction_adjustment +
-                    record->damage_reduction;
+    int reduction =
+        monster_info->modifiers_1db.damage_reduction_adjustment + record->damage_reduction;
 
     if (reduction != 0) {
         damage = ((100 - reduction) * damage + 50) / 100;
@@ -263,8 +263,7 @@ bool CanMonsterAttackItsTarget(W8MonsterInfo* monster_info)
 
     if (monster_info->flag_14 != 0 && monster_info->fInCombat != 0 &&
         monster_info->hp_current != 0 && (unsigned int)monster_info->value_107 < 0xc &&
-        (record->flags_0d0 & W8_MONSTER_FLAG_ATTACKS) != 0 &&
-        record->attacks[0].fHasAttack != 0) {
+        (record->flags_0d0 & W8_MONSTER_FLAG_ATTACKS) != 0 && record->attacks[0].fHasAttack != 0) {
         return MonsterHasAttackOn(monster_info, &monster_info->Target) != 0;
     }
     return false;
@@ -288,8 +287,8 @@ bool CanCharacterAttackItsTarget(int party_slot)
     if (character->unknown_0b01 >= 0xc || character->hand_attacks[0].in_play == 0) {
         return false;
     }
-    return CharacterHasAttackOn(
-               party_slot, &g_party_slot_rows[party_slot].target_out_of_combat) != 0;
+    return CharacterHasAttackOn(party_slot, &g_party_slot_rows[party_slot].target_out_of_combat) !=
+           0;
 }
 
 /* What an attack mode is worth to hit with, which depends on whether the

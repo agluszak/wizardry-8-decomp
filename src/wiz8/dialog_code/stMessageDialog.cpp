@@ -28,16 +28,8 @@ extern unsigned char g_dialog_font_background_64fded;
 
 // FUNCTION: WIZ8 0x005d25b0
 W8ModalDialogBase::W8ModalDialogBase()
-    : close_result(0),
-      is_open(1),
-      m_field_56(-1),
-      m_field_58(-1),
-      m_field_5c(-1),
-      m_field_60(-1),
-      m_field_74(-1),
-      m_field_78(-1),
-      m_lines(0),
-      m_line_count(0)
+    : close_result(0), is_open(1), m_field_56(-1), m_field_58(-1), m_field_5c(-1), m_field_60(-1),
+      m_field_74(-1), m_field_78(-1), m_lines(0), m_line_count(0)
 {
 }
 
@@ -61,12 +53,9 @@ void W8ModalDialogBase::Draw()
     W8DialogBase::Draw();
     DrawButton(m_field_58);
     if (!m_field_94 && !allow_cancel) {
-        y = m_y +
-            (m_height - GetFontHeight(g_dialog_font_64fde8) * m_line_count) / 2;
-    }
-    else {
-        y = m_y + ((m_height - 0x21) -
-                   GetFontHeight(g_dialog_font_64fde8) * m_line_count) / 2;
+        y = m_y + (m_height - GetFontHeight(g_dialog_font_64fde8) * m_line_count) / 2;
+    } else {
+        y = m_y + ((m_height - 0x21) - GetFontHeight(g_dialog_font_64fde8) * m_line_count) / 2;
     }
     if (m_lines) {
         SaveFontSettings();
@@ -75,8 +64,7 @@ void W8ModalDialogBase::Draw()
         SetFontBackground(g_dialog_font_background_64fded);
         for (index = 0; index < m_line_count; ++index) {
             wchar_t* line = m_lines[index];
-            short width = StringPixLengthArg(
-                g_dialog_font_64fde8, wcslen(line), line, y, line);
+            short width = StringPixLengthArg(g_dialog_font_64fde8, wcslen(line), line, y, line);
             gprintf(m_x + (m_width - width) / 2, y, line);
             y += GetFontHeight(g_dialog_font_64fde8);
         }
@@ -93,19 +81,16 @@ void W8ModalDialogBase::Draw()
 }
 
 // FUNCTION: WIZ8 0x005d2800
-void W8ModalDialogBase::SetMessage(
-    void* payload, int line_count, int characters_per_line,
-    int confirmation, int cancel, int size_to_message, int wrap_message,
-    int maximum_width, int maximum_height)
+void W8ModalDialogBase::SetMessage(void* payload, int line_count, int characters_per_line,
+                                   int confirmation, int cancel, int size_to_message,
+                                   int wrap_message, int maximum_width, int maximum_height)
 {
     wchar_t* message = static_cast<wchar_t*>(payload);
     unsigned int index;
 
     if (!message) {
-        srAssertFail(
-            "pMessage",
-            "C:\\Projects\\Wizardry 8\\Dialog Code\\stMessageDialog.cpp",
-            0x83, 0);
+        srAssertFail("pMessage", "C:\\Projects\\Wizardry 8\\Dialog Code\\stMessageDialog.cpp", 0x83,
+                     0);
     }
     if (m_lines) {
         for (index = 0; index < m_line_count; ++index) {
@@ -116,10 +101,8 @@ void W8ModalDialogBase::SetMessage(
     }
     if (line_count == 1 && wrap_message) {
         line_count = WrapMessage(message);
-    }
-    else {
-        m_lines = static_cast<wchar_t**>(
-            malloc(line_count * sizeof(wchar_t*)));
+    } else {
+        m_lines = static_cast<wchar_t**>(malloc(line_count * sizeof(wchar_t*)));
         for (index = 0; index < static_cast<unsigned int>(line_count); ++index) {
             m_lines[index] = static_cast<wchar_t*>(
                 malloc(characters_per_line * sizeof(wchar_t) + sizeof(wchar_t)));
@@ -135,8 +118,7 @@ void W8ModalDialogBase::SetMessage(
         int height;
 
         for (index = 0; index < m_line_count; ++index) {
-            short line_width = StringPixLength(
-                m_lines[index], g_dialog_font_64fde8);
+            short line_width = StringPixLength(m_lines[index], g_dialog_font_64fde8);
             if (width < static_cast<unsigned int>(line_width)) {
                 width = line_width;
             }
@@ -162,8 +144,7 @@ void W8ModalDialogBase::SetMessage(
         int old_width = m_width;
         int old_height = m_height;
         SetExtent(width, height);
-        SetOrigin(m_x + (old_width - static_cast<int>(width)) / 2,
-                  m_y + (old_height - height) / 2);
+        SetOrigin(m_x + (old_width - static_cast<int>(width)) / 2, m_y + (old_height - height) / 2);
     }
 }
 
@@ -176,17 +157,14 @@ unsigned int W8ModalDialogBase::WrapMessage(wchar_t* message)
     unsigned int line_index = 0;
     unsigned int words_on_line = 0;
     int line_width = 0;
-    int space_width = StringPixLength(
-        const_cast<unsigned short*>(L" "), g_dialog_font_64fde8);
+    int space_width = StringPixLength(const_cast<unsigned short*>(L" "), g_dialog_font_64fde8);
     int maximum_width = m_width + 0xf;
     unsigned int index;
 
     remaining = new wchar_t[wcslen(message) + 1];
     if (!remaining) {
-        srAssertFail(
-            "pRemainingText",
-            "C:\\Projects\\Wizardry 8\\Dialog Code\\stMessageDialog.cpp",
-            0xd5, 0);
+        srAssertFail("pRemainingText", "C:\\Projects\\Wizardry 8\\Dialog Code\\stMessageDialog.cpp",
+                     0xd5, 0);
     }
     wcscpy(remaining, message);
     for (index = 0; index < 32; ++index) {
@@ -205,14 +183,12 @@ unsigned int W8ModalDialogBase::WrapMessage(wchar_t* message)
                 wcscpy(line, remaining);
                 line_width = word_width;
                 words_on_line = 1;
-            }
-            else {
+            } else {
                 wcscat(line, remaining);
                 line_width += space_width + word_width;
                 ++words_on_line;
             }
-        }
-        else {
+        } else {
             if (words_on_line != 0) {
                 wcscat(line, L" ");
             }
@@ -228,8 +204,7 @@ unsigned int W8ModalDialogBase::WrapMessage(wchar_t* message)
     if (line_width + word_width > m_width) {
         ++line_index;
         wcscpy(lines[line_index], remaining);
-    }
-    else {
+    } else {
         wcscat(lines[line_index], L" ");
         wcscat(lines[line_index], remaining);
     }
@@ -237,8 +212,8 @@ unsigned int W8ModalDialogBase::WrapMessage(wchar_t* message)
     unsigned int count = line_index + 1;
     m_lines = static_cast<wchar_t**>(malloc(count * sizeof(wchar_t*)));
     for (index = 0; index < count; ++index) {
-        m_lines[index] = static_cast<wchar_t*>(
-            malloc((wcslen(lines[index]) + 1) * sizeof(wchar_t)));
+        m_lines[index] =
+            static_cast<wchar_t*>(malloc((wcslen(lines[index]) + 1) * sizeof(wchar_t)));
         wcscpy(m_lines[index], lines[index]);
     }
     return count;
@@ -251,8 +226,7 @@ void W8ModalDialogBase::SetClientExtent(int width, int height)
     int old_height = m_height;
 
     SetExtent(width, height);
-    SetOrigin(m_x + (old_width - width) / 2,
-              m_y + (old_height - height) / 2);
+    SetOrigin(m_x + (old_width - width) / 2, m_y + (old_height - height) / 2);
 }
 
 // FUNCTION: WIZ8 0x005d2d00
@@ -261,45 +235,31 @@ int W8ModalDialogBase::CreateControls()
     W8DialogBase::CreateControls();
     if (m_field_56 == -1) {
         m_field_56 = LoadGenericButtonImages(
-            0,
-            reinterpret_cast<unsigned char*>(
-                const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
-            0,
-            reinterpret_cast<unsigned char*>(
-                const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
+            0, reinterpret_cast<unsigned char*>(const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
+            0, reinterpret_cast<unsigned char*>(const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
             0, reinterpret_cast<unsigned char*>(m_background_path),
             static_cast<short>(m_background_flags), 0, 0);
         if (m_field_56 == -1) {
             return m_error = 3;
         }
     }
-    m_field_58 = CreateTextButton(
-        0, g_dialog_font_64fde8,
-        g_dialog_font_foreground_64fdec,
-        g_dialog_font_background_64fded,
-        m_field_56, static_cast<short>(m_x + 9),
-        static_cast<short>(m_y + 9),
-        static_cast<short>(m_width - 0x12),
-        static_cast<short>(m_height - 0x12),
-        0x8004, 0x7e, 0, 0);
+    m_field_58 =
+        CreateTextButton(0, g_dialog_font_64fde8, g_dialog_font_foreground_64fdec,
+                         g_dialog_font_background_64fded, m_field_56, static_cast<short>(m_x + 9),
+                         static_cast<short>(m_y + 9), static_cast<short>(m_width - 0x12),
+                         static_cast<short>(m_height - 0x12), 0x8004, 0x7e, 0, 0);
 
-    m_field_60 = LoadButtonImage(
-        reinterpret_cast<unsigned char*>(
-            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.sti")),
-        3, 0, 1, 2, 2);
+    m_field_60 = LoadButtonImage(reinterpret_cast<unsigned char*>(
+                                     const_cast<char*>("Data\\Dialogs\\DialogConfirmation.sti")),
+                                 3, 0, 1, 2, 2);
     if (m_field_60 != -1) {
-        m_field_5c = QuickCreateButton(
-            m_field_60, 0, 0, 4, 0x7f,
-            Function5D32C0, Function5D32C0);
+        m_field_5c = QuickCreateButton(m_field_60, 0, 0, 4, 0x7f, Function5D32C0, Function5D32C0);
     }
-    m_field_78 = LoadButtonImage(
-        reinterpret_cast<unsigned char*>(
-            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.sti")),
-        7, 4, 5, 6, 6);
+    m_field_78 = LoadButtonImage(reinterpret_cast<unsigned char*>(
+                                     const_cast<char*>("Data\\Dialogs\\DialogConfirmation.sti")),
+                                 7, 4, 5, 6, 6);
     if (m_field_78 != -1) {
-        m_field_74 = QuickCreateButton(
-            m_field_78, 0, 0, 4, 0x7f,
-            Function5D3370, Function5D3370);
+        m_field_74 = QuickCreateButton(m_field_78, 0, 0, 4, 0x7f, Function5D3370, Function5D3370);
     }
     if (m_field_5c != -1 && m_field_74 != -1) {
         int button_width;
@@ -312,15 +272,12 @@ int W8ModalDialogBase::CreateControls()
         button_y = m_y + m_height - GetButtonHeight(m_field_5c) - 0xf;
         if (allow_cancel) {
             button_x = m_x + (m_width - button_width * 3) / 2;
-        }
-        else {
+        } else {
             button_x = m_x + (m_width - button_width) / 2;
         }
         SetButtonPosition(m_field_5c, button_x, button_y);
-        SetButtonPosition(
-            m_field_74,
-            m_x + m_width / 2 + GetButtonWidth(m_field_5c) / 2,
-            GetButtonY(m_field_5c));
+        SetButtonPosition(m_field_74, m_x + m_width / 2 + GetButtonWidth(m_field_5c) / 2,
+                          GetButtonY(m_field_5c));
         return 0;
     }
     DestroyControls();
@@ -367,8 +324,7 @@ void W8ModalDialogBase::DestroyControls()
 }
 
 // FUNCTION: WIZ8 0x005d3020
-unsigned char W8ModalDialogBase::HandleInput(
-    const InputAtom* input)
+unsigned char W8ModalDialogBase::HandleInput(const InputAtom* input)
 {
     if (input->usEvent != KEY_DOWN) {
         return is_open;
@@ -398,12 +354,7 @@ unsigned char W8ModalDialogBase::ProcessInput()
     InputAtom input;
 
     SGPMouseGetPos(&mouse);
-    MSYS_SGP_Mouse_Handler_Hook(
-        MOUSE_POS,
-        mouse.x,
-        mouse.y,
-        gfLeftButtonState,
-        gfRightButtonState);
+    MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
 
     while (DequeueEvent(&input)) {
         unsigned short mouse_event;
@@ -426,12 +377,8 @@ unsigned char W8ModalDialogBase::ProcessInput()
             return HandleInput(&input);
         }
 
-        MSYS_SGP_Mouse_Handler_Hook(
-            mouse_event,
-            mouse.x,
-            mouse.y,
-            gfLeftButtonState,
-            gfRightButtonState);
+        MSYS_SGP_Mouse_Handler_Hook(mouse_event, mouse.x, mouse.y, gfLeftButtonState,
+                                    gfRightButtonState);
     }
 
     return is_open;
@@ -442,30 +389,25 @@ void Function5D32C0(GUI_BUTTON* button, int reason)
 {
     W8ModalDialogBase* dialog = GetButtonUserDataPointer<W8ModalDialogBase>(button);
     if (!dialog) {
-        srAssertFail(
-            "pDialog",
-            "C:\\Projects\\Wizardry 8\\Dialog Code\\stMessageDialog.cpp",
-            0x267, 0);
+        srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stMessageDialog.cpp", 0x267,
+                     0);
     }
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
         if (!(button->uiFlags & 2)) {
             button->uiFlags |= 2;
             dialog->m_dirty_flags |= 1;
         }
-    }
-    else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
+    } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
         if (button->uiFlags & 2) {
             dialog->close_result = 1;
             dialog->is_open = 0;
             button->uiFlags &= ~2u;
             dialog->m_dirty_flags |= 1;
         }
-    }
-    else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
+    } else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
         button->Area.uiFlags |= 1;
         dialog->m_dirty_flags |= 1;
-    }
-    else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
+    } else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
         button->Area.uiFlags &= ~1u;
         dialog->m_dirty_flags |= 1;
     }
@@ -476,30 +418,25 @@ void Function5D3370(GUI_BUTTON* button, int reason)
 {
     W8ModalDialogBase* dialog = GetButtonUserDataPointer<W8ModalDialogBase>(button);
     if (!dialog) {
-        srAssertFail(
-            "pDialog",
-            "C:\\Projects\\Wizardry 8\\Dialog Code\\stMessageDialog.cpp",
-            0x28c, 0);
+        srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stMessageDialog.cpp", 0x28c,
+                     0);
     }
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
         if (!(button->uiFlags & 2)) {
             button->uiFlags |= 2;
             dialog->m_dirty_flags |= 1;
         }
-    }
-    else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
+    } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
         if (button->uiFlags & 2) {
             dialog->close_result = 0;
             dialog->is_open = 0;
             button->uiFlags &= ~2u;
             dialog->m_dirty_flags |= 1;
         }
-    }
-    else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
+    } else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
         button->Area.uiFlags |= 1;
         dialog->m_dirty_flags |= 1;
-    }
-    else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
+    } else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
         button->Area.uiFlags &= ~1u;
         dialog->m_dirty_flags |= 1;
     }

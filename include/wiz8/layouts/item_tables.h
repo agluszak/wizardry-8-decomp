@@ -7,51 +7,51 @@
 #pragma pack(push, 1)
 
 struct W8ItemTableEntry {
-    short selector_00;                    /* 0x00: zero disables the slot */
-    unsigned short item_id;               /* 0x02: index into Items.dbs */
-    unsigned char weight;                 /* 0x04 */
-};                                        /* 0x05 */
+    short selector_00;      /* 0x00: zero disables the slot */
+    unsigned short item_id; /* 0x02: index into Items.dbs */
+    unsigned char weight;   /* 0x04 */
+}; /* 0x05 */
 
 struct W8ItemTableRecord {
-    char name[256];                       /* 0x000 */
-    unsigned int category_id;             /* 0x100 */
-    W8ItemTableEntry entries[40];         /* 0x104 */
-    unsigned char level_scaled;           /* 0x1cc */
-    W8Dice item_count_dice;               /* 0x1cd */
+    char name[256];               /* 0x000 */
+    unsigned int category_id;     /* 0x100 */
+    W8ItemTableEntry entries[40]; /* 0x104 */
+    unsigned char level_scaled;   /* 0x1cc */
+    W8Dice item_count_dice;       /* 0x1cd */
     unsigned char unknown_1d1[4];
-    W8Dice gold_dice;                     /* 0x1d5 */
+    W8Dice gold_dice; /* 0x1d5 */
     unsigned char unknown_1d9[0x18];
-};                                        /* 0x1f1 */
+}; /* 0x1f1 */
 
 /* One "you need this much of that" entry. CanCharacterUseItem walks two of
    these for attributes and two for skills, stopping at an id of 0xff. */
 struct W8ItemRequirement {
-    unsigned char stat_id;                /* 0xff when the entry is unused */
+    unsigned char stat_id; /* 0xff when the entry is unused */
     unsigned char minimum;
-};                                        /* 0x02 */
+}; /* 0x02 */
 
 struct W8ItemDatabaseRecord {
-    W8WideChar display_name[30];          /* 0x000 */
+    W8WideChar display_name[30]; /* 0x000 */
     unsigned char unknown_03c[2];
-    unsigned char equip_class;            /* 0x03e: zero through twelve */
+    unsigned char equip_class;              /* 0x03e: zero through twelve */
     unsigned short unidentified_name_index; /* 0x03f */
-    unsigned char flags_041;              /* 0x041 */
-    unsigned char category;               /* 0x042: three is a spell source */
+    unsigned char flags_041;                /* 0x041 */
+    unsigned char category;                 /* 0x042: three is a spell source */
     unsigned char unknown_043[3];
-    unsigned char weapon_skill;           /* 0x046 */
-    unsigned char wield_group;            /* 0x047 */
-    signed char attack_damage_bonus;      /* 0x048 */
-    signed char attack_hit_bonus;         /* 0x049 */
-    W8Dice damage_dice;                   /* 0x04a */
+    unsigned char weapon_skill;      /* 0x046 */
+    unsigned char wield_group;       /* 0x047 */
+    signed char attack_damage_bonus; /* 0x048 */
+    signed char attack_hit_bonus;    /* 0x049 */
+    W8Dice damage_dice;              /* 0x04a */
     unsigned short attack_flags_04e;
     unsigned char unknown_050[0x12];
-    signed char armor_class_bonus;        /* 0x062 */
-    unsigned char spell_id;               /* 0x063 */
+    signed char armor_class_bonus; /* 0x062 */
+    unsigned char spell_id;        /* 0x063 */
     unsigned char unknown_064[2];
-    unsigned char quantity_kind;          /* 0x066 */
-    W8Dice initial_quantity;              /* 0x067 */
+    unsigned char quantity_kind; /* 0x066 */
+    W8Dice initial_quantity;     /* 0x067 */
     /* The stack merge path clamps quantity-kind 1 items to this byte. */
-    unsigned char maximum_quantity;      /* 0x06b */
+    unsigned char maximum_quantity; /* 0x06b */
     /* 0x06c..0x06e: three per-item modifier bytes the equipment fold adds to
        the derived block's own unknowns; 0x06f..0x074 are the six resistance
        bonuses it sums and clamps. */
@@ -60,28 +60,28 @@ struct W8ItemDatabaseRecord {
     unsigned char modifier_06e;
     signed char resistance_bonus_06f[6]; /* 0x06f .. 0x074 */
     unsigned char unknown_075;
-    unsigned short profession_mask;       /* 0x076 */
-    unsigned int race_mask;               /* 0x078 */
+    unsigned short profession_mask; /* 0x076 */
+    unsigned int race_mask;         /* 0x078 */
     /* 0x07c: one bit per sex; three admits either, and
        CanCharacterUseItem indexes it with the character's own field. */
     unsigned char gender_mask;
     W8ItemRequirement attribute_requirements[2]; /* 0x07d */
-    W8ItemRequirement skill_requirements[2]; /* 0x081 */
-    unsigned char identify_difficulty;    /* 0x085 */
-    unsigned int value;                   /* 0x086 */
-    unsigned short weight;                /* 0x08a */
-    unsigned char binds_on_equip;         /* 0x08c */
-    char internal_name[0x24];             /* 0x08d .. 0x0b0 */
+    W8ItemRequirement skill_requirements[2];     /* 0x081 */
+    unsigned char identify_difficulty;           /* 0x085 */
+    unsigned int value;                          /* 0x086 */
+    unsigned short weight;                       /* 0x08a */
+    unsigned char binds_on_equip;                /* 0x08c */
+    char internal_name[0x24];                    /* 0x08d .. 0x0b0 */
     /* 0x0b1/0x0b3: the item's (index, value) modifier pairs the equipment
        fold adds to the derived block's two byte tables. 0xff is no pair. */
     signed char modifier_0b1_index;
     unsigned char modifier_0b1_value;
     signed char modifier_0b3_index;
     unsigned char modifier_0b3_value;
-    unsigned char unknown_0b5[0x18];      /* 0x0b5 .. 0x0cc */
+    unsigned char unknown_0b5[0x18]; /* 0x0b5 .. 0x0cc */
     /* GetOrCreateVideoObject treats this fixed buffer as the item image name. */
-    char video_object_name[0x40];         /* 0x0cd */
-};                                        /* 0x10d */
+    char video_object_name[0x40]; /* 0x0cd */
+}; /* 0x10d */
 
 static_assert(sizeof(W8ItemDatabaseRecord) == 0x10d, "W8ItemDatabaseRecord_size_must_be_0x10d");
 static_assert(sizeof(W8ItemTableRecord) == 0x1f1, "W8ItemTableRecord_size_must_be_0x1f1");

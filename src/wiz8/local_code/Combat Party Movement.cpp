@@ -89,8 +89,7 @@ unsigned char CanPartyMove(void)
         srAssertFail("gXStatus.fCombatMode", COMBAT_MOVEMENT_CPP, 613, 0);
     }
     status = g_combat_state->uiCurrentPartyActionStatus;
-    if (g_combat_state->uiCurrentPartyAction == 0 ||
-        status == W8_ACTION_STATUS_FINISHED) {
+    if (g_combat_state->uiCurrentPartyAction == 0 || status == W8_ACTION_STATUS_FINISHED) {
         if (g_combat_state->uiNextPartyAction != 0) {
             return 1;
         }
@@ -176,7 +175,7 @@ void RoundPhaseToStep(unsigned int* phase, unsigned int base)
         ClampUnsignedInteger(phase, base, W8_PHASES_PER_ROUND);
     }
     if (*phase == 0 || *phase > W8_PHASES_PER_ROUND) {
-        srAssertFail("( *puiPhase > 0 ) && ( *puiPhase <= PHASES_PER_ROUND )",
-                     COMBAT_MOVEMENT_CPP, 410, 0);
+        srAssertFail("( *puiPhase > 0 ) && ( *puiPhase <= PHASES_PER_ROUND )", COMBAT_MOVEMENT_CPP,
+                     410, 0);
     }
 }

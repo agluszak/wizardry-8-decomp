@@ -31,8 +31,7 @@ public:
     unsigned char unknown_036[2];
 };
 
-static_assert(sizeof(W8TriggerEvent) == 0x38,
-              "W8TriggerEvent_must_be_0x38");
+static_assert(sizeof(W8TriggerEvent) == 0x38, "W8TriggerEvent_must_be_0x38");
 
 void UpdateTimedTriggerEvents00443D30(void);
 
@@ -63,8 +62,7 @@ public:
     };
 };
 
-static_assert(sizeof(W8TriggerActionData) == 0x0c,
-              "W8TriggerActionData_must_be_0x0c");
+static_assert(sizeof(W8TriggerActionData) == 0x0c, "W8TriggerActionData_must_be_0x0c");
 
 /* The level loader allocates 0x98 bytes for type 10. Its first twelve bytes
    are the common polymorphic payload above; the remaining bytes are the
@@ -95,8 +93,7 @@ struct W8TriggerState370 {
 };
 #pragma pack(pop)
 
-static_assert(sizeof(W8TriggerState370) == 9,
-              "W8TriggerState370_must_be_9");
+static_assert(sizeof(W8TriggerState370) == 9, "W8TriggerState370_must_be_9");
 
 /* Engine Code\Trigger.cpp. Trigger is registered directly below srClass. It is
    not an srNode: the temporary table installed while srClassSupport is under
@@ -104,9 +101,12 @@ static_assert(sizeof(W8TriggerState370) == 9,
    table contains any srNode slots. */
 class Trigger : public srClassSupport<Trigger, srClass, 1, 0x10008> {
 public:
-    typedef unsigned char (__cdecl *ActivationCallback)(Trigger* trigger);
+    typedef unsigned char(__cdecl* ActivationCallback)(Trigger* trigger);
 
-    static const char* sGetClassName() { return "Trigger"; }
+    static const char* sGetClassName()
+    {
+        return "Trigger";
+    }
 
     Trigger();
     virtual ~Trigger() override;
@@ -169,8 +169,14 @@ public:
             unsigned int flag_0a0_31 : 1;
         };
     };
-    union { int value_0a4; float range_minimum_0a4; };
-    union { int value_0a8; float range_maximum_0a8; };
+    union {
+        int value_0a4;
+        float range_minimum_0a4;
+    };
+    union {
+        int value_0a8;
+        float range_maximum_0a8;
+    };
     int value_0ac;
     unsigned char value_0b0;
     unsigned char value_0b1;
@@ -259,12 +265,8 @@ extern int g_value_005ee59c;
 extern int g_value_005ee5a0;
 extern int g_value_005ed8c8;
 
-unsigned char CreateTriggerShakeEvent00444F70(
-    int intensity, float duration, float countdown_duration,
-    unsigned char reverse);
+unsigned char CreateTriggerShakeEvent00444F70(int intensity, float duration,
+                                              float countdown_duration, unsigned char reverse);
 unsigned char Function445140(W8World* world);
 
-
-stLight* FindLightByName00445A10(
-    const char* name, const srRuntimeClass* relative_to);
-
+stLight* FindLightByName00445A10(const char* name, const srRuntimeClass* relative_to);

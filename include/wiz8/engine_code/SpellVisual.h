@@ -22,26 +22,24 @@ public:
     virtual void AdvanceAnimationFrame(int value, int flags) override;
     virtual W8AniMesh* GetCurrentAniMesh() override;
 
-    virtual void StartIfHostActive();    /* 0x004ABDC0 */
+    virtual void StartIfHostActive(); /* 0x004ABDC0 */
     /* Search backward from a subcycle for the first cycle this visual
        supports; returns -1 when none does. */
-    virtual int FindSupportedCycle004AC530(
-        signed char group, signed char subcycle);
+    virtual int FindSupportedCycle004AC530(signed char group, signed char subcycle);
 
     int value_1d8;
     int target_location_id_1dc;
-    W8SpellEmitterHost* host;            /* 0x1e0 */
-    unsigned char started;               /* 0x1e4 */
+    W8SpellEmitterHost* host; /* 0x1e0 */
+    unsigned char started;    /* 0x1e4 */
     unsigned char flag_1e5;
     unsigned char flag_1e6;
     unsigned char flag_1e7;
     float value_1e8;
     int value_1ec;
-    int value_1f0;                       /* 0x1f0 */
-    int value_1f4;                       /* 0x1f4 */
+    int value_1f0; /* 0x1f0 */
+    int value_1f4; /* 0x1f4 */
 };
 
-static_assert(sizeof(W8SpellVisual) == 0x1f8,
-              "W8SpellVisual_size_must_be_0x1f8");
+static_assert(sizeof(W8SpellVisual) == 0x1f8, "W8SpellVisual_size_must_be_0x1f8");
 
-void DestroyAllSpellVisuals(W8World* world);        /* 0x004AC3D0 */
+void DestroyAllSpellVisuals(W8World* world); /* 0x004AC3D0 */

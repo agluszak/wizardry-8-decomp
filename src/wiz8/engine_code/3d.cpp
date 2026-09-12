@@ -30,8 +30,7 @@ void UpdateWorldMonsters0046DD70(W8World* world)
     unsigned int count = PLLength(world->plsMonsters);
     UpdateNearestMonsterGroupMembers004CA570();
     for (int index = 0; index < static_cast<int>(count); ++index) {
-        W8Monster* monster =
-            static_cast<W8Monster*>(PLGet(world->plsMonsters, index));
+        W8Monster* monster = static_cast<W8Monster*>(PLGet(world->plsMonsters, index));
         if (monster != 0) {
             monster->DetachRepresentation004A7A70(world);
             monster->SelectLOD004A7BE0(&position);
@@ -54,8 +53,7 @@ void DetachWorldItemMeshes0046DE40(W8World* world)
     }
     unsigned int count = PLLength(world->plsItems);
     for (int index = 0; index < static_cast<int>(count); ++index) {
-        W8Item* item =
-            static_cast<W8Item*>(PLGet(world->plsItems, index));
+        W8Item* item = static_cast<W8Item*>(PLGet(world->plsItems, index));
         if (item != 0) {
             item->DetachMesh0049FA30(world);
             item->UpdateAnimation0049F730();
@@ -80,8 +78,7 @@ void DestroyWorldLights0046E4A0(W8World* world)
             srAssertFail("pLight", THREE_D_CPP, 0x279, 0);
         }
         PListRemove(lights, light);
-        world->lights_to_update->RemoveAt(
-            world->lights_to_update->IndexOf(light));
+        world->lights_to_update->RemoveAt(world->lights_to_update->IndexOf(light));
         if (light != 0) {
             light->release();
         }
@@ -106,30 +103,16 @@ void FinalizeStaticScene0046F3A0(srScene* scene)
 }
 
 // FUNCTION: WIZ8 0x0046F510
-void ExpandBounds0046F510(
-    srVector3T<float>* minimum,
-    srVector3T<float>* maximum,
-    const srVector3T<float>* candidate_minimum,
-    const srVector3T<float>* candidate_maximum)
+void ExpandBounds0046F510(srVector3T<float>* minimum, srVector3T<float>* maximum,
+                          const srVector3T<float>* candidate_minimum,
+                          const srVector3T<float>* candidate_maximum)
 {
-    minimum->x = minimum->x < candidate_minimum->x
-                     ? minimum->x
-                     : candidate_minimum->x;
-    minimum->y = minimum->y < candidate_minimum->y
-                     ? minimum->y
-                     : candidate_minimum->y;
-    minimum->z = minimum->z < candidate_minimum->z
-                     ? minimum->z
-                     : candidate_minimum->z;
-    maximum->x = maximum->x > candidate_maximum->x
-                     ? maximum->x
-                     : candidate_maximum->x;
-    maximum->y = maximum->y > candidate_maximum->y
-                     ? maximum->y
-                     : candidate_maximum->y;
-    maximum->z = maximum->z > candidate_maximum->z
-                     ? maximum->z
-                     : candidate_maximum->z;
+    minimum->x = minimum->x < candidate_minimum->x ? minimum->x : candidate_minimum->x;
+    minimum->y = minimum->y < candidate_minimum->y ? minimum->y : candidate_minimum->y;
+    minimum->z = minimum->z < candidate_minimum->z ? minimum->z : candidate_minimum->z;
+    maximum->x = maximum->x > candidate_maximum->x ? maximum->x : candidate_maximum->x;
+    maximum->y = maximum->y > candidate_maximum->y ? maximum->y : candidate_maximum->y;
+    maximum->z = maximum->z > candidate_maximum->z ? maximum->z : candidate_maximum->z;
 }
 
 /* Build the concrete first-party instance used for an already-created mesh.
@@ -153,8 +136,7 @@ stModelInstance* CreateModelInstance0046F5C0(stMeshModel* model)
 }
 
 // FUNCTION: WIZ8 0x0046F680
-stModelInstance* DuplicateModelInstance0046F680(
-    stModelInstance* instance)
+stModelInstance* DuplicateModelInstance0046F680(stModelInstance* instance)
 {
     stModelInstance* copy;
 
@@ -196,8 +178,7 @@ stLight* CreateWorldLight0046E030(W8World* world, const char* name)
 
     if (world != 0) {
         light = new stLight(world->dynamic_scene);
-    }
-    else {
+    } else {
         light = new stLight(0);
     }
 
@@ -291,11 +272,8 @@ void WorldUpdateProps(W8World* world)
     W8Prop* prop;
 
     if (!world || !world->plsProps) {
-        srAssertFail(
-            "pWorld && pWorld->plsProps",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\3d.cpp",
-            0x158,
-            0);
+        srAssertFail("pWorld && pWorld->plsProps", "C:\\Projects\\Wizardry 8\\Engine Code\\3d.cpp",
+                     0x158, 0);
     }
     count = (int)PLLength(world->plsProps);
     for (index = 0; index < count; index++) {
@@ -383,9 +361,8 @@ void SetSceneMeshShaderBit3_0046E640(srNode* node, int argument)
     for (; node != 0; node = node->nextSibling()) {
         if (node->getClassID() == 0x10004) {
             stModelInstance* instance = static_cast<stModelInstance*>(node);
-            for (stMeshModel* mesh =
-                     static_cast<stMeshModel*>(instance->model());
-                 mesh != 0; mesh = mesh->next) {
+            for (stMeshModel* mesh = static_cast<stMeshModel*>(instance->model()); mesh != 0;
+                 mesh = mesh->next) {
                 srShader* polygon_shader = mesh->getPolyShader(0, 0);
                 bool clear = argument == 0 || (mesh->flags_3a0 & 1) != 0;
 
@@ -393,21 +370,16 @@ void SetSceneMeshShaderBit3_0046E640(srNode* node, int argument)
                     srShader shader = mesh->getShader(0);
                     if (clear) {
                         shader.value &= 0xfffffff7;
-                    }
-                    else {
+                    } else {
                         shader.value |= 8;
                     }
                     mesh->setShader(shader, 0);
-                }
-                else if (clear) {
-                    for (long index = 0; index < mesh->polygon_count_230;
-                         ++index) {
+                } else if (clear) {
+                    for (long index = 0; index < mesh->polygon_count_230; ++index) {
                         polygon_shader[index].value &= 0xfffffff7;
                     }
-                }
-                else {
-                    for (long index = 0; index < mesh->polygon_count_230;
-                         ++index) {
+                } else {
+                    for (long index = 0; index < mesh->polygon_count_230; ++index) {
                         polygon_shader[index].value |= 8;
                     }
                 }
@@ -428,9 +400,8 @@ void SetSceneMeshShaderLowBits0046E750(srNode* node, int argument)
     for (; node != 0; node = node->nextSibling()) {
         if (node->getClassID() == 0x10004) {
             stModelInstance* instance = static_cast<stModelInstance*>(node);
-            for (stMeshModel* mesh =
-                     static_cast<stMeshModel*>(instance->model());
-                 mesh != 0; mesh = mesh->next) {
+            for (stMeshModel* mesh = static_cast<stMeshModel*>(instance->model()); mesh != 0;
+                 mesh = mesh->next) {
                 if ((mesh->flags_3a0 & 1) != 0) {
                     continue;
                 }
@@ -439,21 +410,16 @@ void SetSceneMeshShaderLowBits0046E750(srNode* node, int argument)
                     srShader shader = mesh->getShader(0);
                     if (argument == 0) {
                         shader.value |= 7;
-                    }
-                    else {
+                    } else {
                         shader.value = (shader.value & 0xfffffffb) | 3;
                     }
                     mesh->setShader(shader, 0);
-                }
-                else if (argument == 0) {
-                    for (long index = 0; index < mesh->polygon_count_230;
-                         ++index) {
+                } else if (argument == 0) {
+                    for (long index = 0; index < mesh->polygon_count_230; ++index) {
                         polygon_shader[index].value |= 7;
                     }
-                }
-                else {
-                    for (long index = 0; index < mesh->polygon_count_230;
-                         ++index) {
+                } else {
+                    for (long index = 0; index < mesh->polygon_count_230; ++index) {
                         polygon_shader[index].value =
                             (polygon_shader[index].value & 0xfffffffb) | 3;
                     }
@@ -577,14 +543,12 @@ void __stdcall SetOctreeGameData0046D7D0(W8GameData* value)
 /* Test one point against all six frustum planes: outside if any signed
    distance is negative. */
 // FUNCTION: WIZ8 0x0046d880
-unsigned char PointInsideFrustum0046D880(
-    const srVector3T<float>* point, const srVector4T<float>* planes)
+unsigned char PointInsideFrustum0046D880(const srVector3T<float>* point,
+                                         const srVector4T<float>* planes)
 {
     for (int index = 0; index < 6; ++index) {
-        float distance = planes[index].x * point->x +
-                         planes[index].y * point->y +
-                         planes[index].z * point->z +
-                         planes[index].w;
+        float distance = planes[index].x * point->x + planes[index].y * point->y +
+                         planes[index].z * point->z + planes[index].w;
 
         if (distance < g_float_005ebb34) {
             return 0;
@@ -601,11 +565,8 @@ unsigned char PointInsideFrustum0046D880(
 // three-point copy and the cyclic normal sum) that the straight-line API
 // cannot express. Revisit with the loop form when byte fidelity matters.
 // FUNCTION: WIZ8 0x0046d660
-void BuildPlaneFromPoints0046D660(
-    srVector4T<float>* plane,
-    const srVector3T<float>* first,
-    const srVector3T<float>* second,
-    const srVector3T<float>* third)
+void BuildPlaneFromPoints0046D660(srVector4T<float>* plane, const srVector3T<float>* first,
+                                  const srVector3T<float>* second, const srVector3T<float>* third)
 {
     srVector3T<float> a = *first;
     srVector3T<float> b = *second;
@@ -619,9 +580,7 @@ void BuildPlaneFromPoints0046D660(
     normal.x *= scale;
     normal.y *= scale;
     normal.z *= scale;
-    plane->Set(
-        normal.x, normal.y, normal.z,
-        (DotProduct(normal, a) + DotProduct(normal, b) +
-         DotProduct(normal, c)) *
-            g_float_005ec1a8);
+    plane->Set(normal.x, normal.y, normal.z,
+               (DotProduct(normal, a) + DotProduct(normal, b) + DotProduct(normal, c)) *
+                   g_float_005ec1a8);
 }

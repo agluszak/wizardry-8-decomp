@@ -18,14 +18,9 @@ float g_float_005ebccc = 0.75f;
 #include <stdlib.h>
 #include <string.h>
 
-
 // FUNCTION: WIZ8 0x004b6e00
-GDProp::GDProp(
-    srModelInstance* instance,
-    const unsigned char* path_name,
-    unsigned short prop_number,
-    unsigned char surface_flag,
-    unsigned char vertex_flag)
+GDProp::GDProp(srModelInstance* instance, const unsigned char* path_name,
+               unsigned short prop_number, unsigned char surface_flag, unsigned char vertex_flag)
 {
     m_flags_00 = 0;
     m_path_handle_04 = 0;
@@ -46,17 +41,13 @@ GDProp::GDProp(
     m_path_bound_4e = 0;
     m_path_bound_4c = 0;
 
-    if (g_octree_6598a4 != 0 &&
-        g_octree_6598a4->pathing_180 != 0) {
-        m_path_handle_04 = g_octree_6598a4->pathing_180->FindPathHandle(
-            path_name,
-            &m_path_bound_4c,
-            &m_path_range_28);
+    if (g_octree_6598a4 != 0 && g_octree_6598a4->pathing_180 != 0) {
+        m_path_handle_04 = g_octree_6598a4->pathing_180->FindPathHandle(path_name, &m_path_bound_4c,
+                                                                        &m_path_range_28);
     }
 
     if (instance != 0) {
-        if (m_path_handle_04 != 0 &&
-            g_octree_6598a4->pathing_180 != 0) {
+        if (m_path_handle_04 != 0 && g_octree_6598a4->pathing_180 != 0) {
             g_octree_6598a4->pathing_180->LinkSurfaces00460020();
             g_octree_6598a4->pathing_180->LinkEdges004600B0();
         }
@@ -103,14 +94,10 @@ void GDProp::PrepareGeometry004B6F30(srModelInstance* instance)
         if (m_pGDSurfaces != 0) {
             free(m_pGDSurfaces);
         }
-        m_pGDSurfaces = static_cast<W8GDSurface*>(
-            malloc(m_surface_count_14 * sizeof(W8GDSurface)));
+        m_pGDSurfaces = static_cast<W8GDSurface*>(malloc(m_surface_count_14 * sizeof(W8GDSurface)));
         if (m_pGDSurfaces == 0) {
-            srAssertFail(
-                "m_pGDSurfaces",
-                "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp",
-                0xa0,
-                0);
+            srAssertFail("m_pGDSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp", 0xa0,
+                         0);
         }
         memset(m_pGDSurfaces, 0, m_surface_count_14 * sizeof(W8GDSurface));
     }
@@ -123,11 +110,8 @@ void GDProp::PrepareGeometry004B6F30(srModelInstance* instance)
         m_pVertices = static_cast<srVector3T<float>*>(
             srHeap.allocate(m_vertex_count_18 * sizeof(srVector3T<float>)));
         if (m_pVertices == 0) {
-            srAssertFail(
-                "m_pVertices",
-                "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp",
-                0xae,
-                0);
+            srAssertFail("m_pVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp", 0xae,
+                         0);
         }
         memset(m_pVertices, 0, m_vertex_count_18 * sizeof(srVector3T<float>));
     }
@@ -138,17 +122,12 @@ void GDProp::PrepareGeometry004B6F30(srModelInstance* instance)
    into world space before each accumulated triangle receives its plane,
    dominant axis, slope classification and caller-provided material bytes. */
 // FUNCTION: WIZ8 0x004b7060
-void GDProp::Initialize(
-    srModelInstance* instance,
-    unsigned char attach,
-    unsigned short prop_number,
-    unsigned char surface_flag,
-    unsigned char vertex_flag)
+void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigned short prop_number,
+                        unsigned char surface_flag, unsigned char vertex_flag)
 {
     if (attach == 0) {
         m_flags_00 |= 4;
-    }
-    else {
+    } else {
         m_flags_00 &= 0xfffb;
         m_prop_number_02 = prop_number;
     }
@@ -177,24 +156,20 @@ void GDProp::Initialize(
             srVector3T<float>* destination = &m_pVertices[vertex_base + vertex];
             srVector3T<float>* source = &source_vertices[vertex];
             destination->x =
-                source->x * matrix[0] + source->y * matrix[1] +
-                source->z * matrix[2] + matrix[3];
+                source->x * matrix[0] + source->y * matrix[1] + source->z * matrix[2] + matrix[3];
             destination->y =
-                source->x * matrix[4] + source->y * matrix[5] +
-                source->z * matrix[6] + matrix[7];
+                source->x * matrix[4] + source->y * matrix[5] + source->z * matrix[6] + matrix[7];
             destination->z =
-                source->x * matrix[8] + source->y * matrix[9] +
-                source->z * matrix[10] + matrix[11];
+                source->x * matrix[8] + source->y * matrix[9] + source->z * matrix[10] + matrix[11];
         }
         vertex_base += mesh->vertex_location_count_22c;
 
         for (int surface_index = 0; surface_index < surface_total; ++surface_index) {
             W8GDSurface* surface = &m_pGDSurfaces[surface_index];
-            BuildTrianglePlane00449A40(
-                surface->plane_24,
-                &m_pVertices[surface->vertex_indices_18[0]],
-                &m_pVertices[surface->vertex_indices_18[1]],
-                &m_pVertices[surface->vertex_indices_18[2]]);
+            BuildTrianglePlane00449A40(surface->plane_24,
+                                       &m_pVertices[surface->vertex_indices_18[0]],
+                                       &m_pVertices[surface->vertex_indices_18[1]],
+                                       &m_pVertices[surface->vertex_indices_18[2]]);
 
             int dominant_axis;
             float largest = 0.0f;
@@ -218,12 +193,10 @@ void GDProp::Initialize(
                 surface->flags_00 |= 4;
                 if (g_float_005ebccc < surface->plane_24[1]) {
                     surface->value_48 = 1.0f;
-                }
-                else {
+                } else {
                     surface->value_48 = surface->plane_24[1];
                 }
-            }
-            else {
+            } else {
                 surface->value_48 = 0.0f;
                 surface->value_40 = 500.0f;
             }
@@ -238,17 +211,14 @@ void GDProp::Initialize(
                 m_prop_number_02 = 0xffff;
                 pathing->SetConditionalPathFrame00457EA0(m_path_handle_04, -1);
             }
-        }
-        else {
-            pathing->SetConditionalPathFrame00457EA0(
-                m_path_handle_04, (short)m_prop_number_02);
+        } else {
+            pathing->SetConditionalPathFrame00457EA0(m_path_handle_04, (short)m_prop_number_02);
             if (m_waypoint_count_0a != 0) {
-                pathing->CheckConditionalWaypointStatus004601B0(
-                    m_waypoint_count_0a, m_waypoints_10);
+                pathing->CheckConditionalWaypointStatus004601B0(m_waypoint_count_0a,
+                                                                m_waypoints_10);
             }
             if (m_link_count_08 != 0) {
-                pathing->CheckConditionalLinkStatus00460250(
-                    m_link_count_08, m_links_0c);
+                pathing->CheckConditionalLinkStatus00460250(m_link_count_08, m_links_0c);
             }
         }
     }
@@ -259,13 +229,12 @@ void GDProp::Initialize(
         if (action != 0 && action->type_004 == 10) {
             unsigned int flags = 0x08000000;
             if ((owner->value_368 != 0 && owner->state_370.state == 0) ||
-                ((owner->flags_0a0 & 0x100) == 0 ||
-                 (action->flags_008 & 5) != 0)) {
+                ((owner->flags_0a0 & 0x100) == 0 || (action->flags_008 & 5) != 0)) {
                 flags = 0x28000000;
             }
             if (pathing != 0) {
-                pathing->UpdateConditionalPathFlags00465FB0(
-                    m_path_handle_04, m_prop_number_02, flags);
+                pathing->UpdateConditionalPathFlags00465FB0(m_path_handle_04, m_prop_number_02,
+                                                            flags);
             }
         }
     }
@@ -273,8 +242,7 @@ void GDProp::Initialize(
     if (m_list_54 != 0) {
         unsigned int count = PLLength(m_list_54);
         for (unsigned int index = 0; index < count; ++index) {
-            W8WorldItem* item = static_cast<W8WorldItem*>(
-                PLGet(m_list_54, (int)index));
+            W8WorldItem* item = static_cast<W8WorldItem*>(PLGet(m_list_54, (int)index));
             if (item != 0) {
                 SetWorldItemFlag02(item, 1);
             }
@@ -294,19 +262,17 @@ void GDProp::BindTrigger(Trigger* owner)
             m_flags_00 |= 2;
             unsigned int path_flags = 0x08000000;
             if ((owner->value_368 == 0 || owner->state_370.state != 0) &&
-                (owner->flags_0a0 & 0x100) != 0 &&
-                (action->flags_008 & 5) == 0) {
+                (owner->flags_0a0 & 0x100) != 0 && (action->flags_008 & 5) == 0) {
                 m_flags_00 |= 8;
-            }
-            else {
+            } else {
                 path_flags = 0x28000000;
                 m_flags_00 &= 0xfff7;
             }
 
             W8PathingService* pathing = g_octree_6598a4->pathing_180;
             if (pathing != 0) {
-                pathing->UpdateConditionalPathFlags00465FB0(
-                    m_path_handle_04, m_prop_number_02, path_flags);
+                pathing->UpdateConditionalPathFlags00465FB0(m_path_handle_04, m_prop_number_02,
+                                                            path_flags);
             }
         }
     }
@@ -315,11 +281,10 @@ void GDProp::BindTrigger(Trigger* owner)
 /* The pathing record supplies inclusive unsigned coordinate bounds at
    +0x4c..+0x52. */
 // FUNCTION: WIZ8 0x004B75F0
-unsigned char GDProp::ContainsPathCoordinate004B75F0(
-    unsigned short x, unsigned short y) const
+unsigned char GDProp::ContainsPathCoordinate004B75F0(unsigned short x, unsigned short y) const
 {
-    if (x >= m_path_bound_4c && x <= m_path_bound_4e &&
-        y >= m_path_bound_50 && y <= m_path_bound_52) {
+    if (x >= m_path_bound_4c && x <= m_path_bound_4e && y >= m_path_bound_50 &&
+        y <= m_path_bound_52) {
         return 1;
     }
     return 0;

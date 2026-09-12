@@ -48,14 +48,12 @@ extern float g_path_endpoint_scale_005ec1a4;
 // GLOBAL: WIZ8 0x005ec1a4
 float g_path_endpoint_scale_005ec1a4 = 0.9900000095367432f;
 
-
 /* Opens a game-data file, builds its record, and pulls the polygon and
    vertex banks through the record reader. */
 // FUNCTION: WIZ8 0x00447570
 W8GameData* ReadGameData00447570(const char* path, void* parent)
 {
-    HANDLE file = CreateFileA(
-        path, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    HANDLE file = CreateFileA(path, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     W8GameData* game_data;
     unsigned char got_polygons;
     unsigned char got_vertices;
@@ -65,10 +63,7 @@ W8GameData* ReadGameData00447570(const char* path, void* parent)
     }
     game_data = new W8GameData(0, parent);
     if (game_data == 0) {
-        srAssertFail(
-            "pGameData",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
-            0xa7, 0);
+        srAssertFail("pGameData", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0xa7, 0);
     }
     got_polygons = game_data->Function447660(file, 0);
     got_vertices = game_data->Function447660(file, 1);
@@ -80,26 +75,24 @@ W8GameData* ReadGameData00447570(const char* path, void* parent)
 }
 
 // FUNCTION: WIZ8 0x00448310
-void W8GameData::AddTriggerPlane(
-    const srVector3T<float>* trigger_vertices, Trigger* trigger)
+void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trigger* trigger)
 {
     int trigger_index = 0;
     int index;
     if (positional_04 != 0) {
         if (trigger_table_50 == 0) {
             g_integrated_trigger_count_00659a58 = 0;
-            trigger_table_50 = static_cast<Trigger**>(
-                malloc(total_surface_count_44 * sizeof(Trigger*) + 4));
+            trigger_table_50 =
+                static_cast<Trigger**>(malloc(total_surface_count_44 * sizeof(Trigger*) + 4));
             if (trigger_table_50 == 0) {
-                srAssertFail("m_ppTriggers",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
-                    0x256, "AddTriggerPlane: Couldn't allocate trigger array.");
+                srAssertFail("m_ppTriggers", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                             0x256, "AddTriggerPlane: Couldn't allocate trigger array.");
             }
         }
         if (g_integrated_trigger_count_00659a58 >= total_surface_count_44) {
             srAssertFail("iTriggerCount < m_iNumTriggers",
-                "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
-                0x259, "AddTriggerPlane: Too many triggers.");
+                         "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x259,
+                         "AddTriggerPlane: Too many triggers.");
         }
         trigger_table_50[g_integrated_trigger_count_00659a58++] = trigger;
         return;
@@ -108,22 +101,19 @@ void W8GameData::AddTriggerPlane(
     if (overflow_surfaces_48 == 0) {
         overflow_surfaces_48 = static_cast<W8GDSurface*>(malloc(500 * sizeof(W8GDSurface)));
         if (overflow_surfaces_48 == 0) {
-            srAssertFail("m_pTrigSurfaces",
-                "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
-                0x263, "AddTriggerPlane: Couldn't allocate trigger surfaces.");
+            srAssertFail("m_pTrigSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x263, "AddTriggerPlane: Couldn't allocate trigger surfaces.");
         }
-        overflow_vertices_4c = static_cast<srVector3T<float>*>(
-            srHeap.allocate(1000 * sizeof(srVector3T<float>)));
+        overflow_vertices_4c =
+            static_cast<srVector3T<float>*>(srHeap.allocate(1000 * sizeof(srVector3T<float>)));
         if (overflow_vertices_4c == 0) {
-            srAssertFail("m_pTrigVertices",
-                "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
-                0x265, "AddTriggerPlane: Couldn't allocate trigger vertices.");
+            srAssertFail("m_pTrigVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x265, "AddTriggerPlane: Couldn't allocate trigger vertices.");
         }
         trigger_table_50 = static_cast<Trigger**>(malloc(500 * sizeof(Trigger*)));
         if (trigger_table_50 == 0) {
-            srAssertFail("m_ppTriggers",
-                "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
-                0x267, "AddTriggerPlane: Couldn't allocate trigger array.");
+            srAssertFail("m_ppTriggers", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x267, "AddTriggerPlane: Couldn't allocate trigger array.");
         }
         overflow_surface_count_3c = 0;
         overflow_vertex_count_40 = 0;
@@ -131,8 +121,7 @@ void W8GameData::AddTriggerPlane(
     }
     if (overflow_surface_count_3c >= 500) {
         srAssertFail("m_iNumTrigSurfaces < MAX_TRIG_SURFACES",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
-            0x26c, 0);
+                     "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x26c, 0);
     }
 
     for (index = 0; index < total_surface_count_44 && trigger_index == 0; ++index) {
@@ -193,18 +182,13 @@ void W8GameData::IntegrateTriggers()
     }
 
     int combined_vertex_count = vertex_count_20 + overflow_vertex_count_40;
-    srVector3T<float>* combined_vertices =
-        static_cast<srVector3T<float>*>(srHeap.allocate(
-            (combined_vertex_count + 1) * sizeof(srVector3T<float>)));
+    srVector3T<float>* combined_vertices = static_cast<srVector3T<float>*>(
+        srHeap.allocate((combined_vertex_count + 1) * sizeof(srVector3T<float>)));
     if (combined_vertices == 0) {
-        srAssertFail(
-            "pNewVertices",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
-            0x31b,
-            "IntegrateTriggers: Couldn't allocate new vertex array.");
+        srAssertFail("pNewVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x31b,
+                     "IntegrateTriggers: Couldn't allocate new vertex array.");
     }
-    memcpy(combined_vertices, vertices_24,
-           vertex_count_20 * sizeof(srVector3T<float>));
+    memcpy(combined_vertices, vertices_24, vertex_count_20 * sizeof(srVector3T<float>));
     memcpy(combined_vertices + vertex_count_20, overflow_vertices_4c,
            overflow_vertex_count_40 * sizeof(srVector3T<float>));
     vertex_count_20 = combined_vertex_count;
@@ -215,25 +199,21 @@ void W8GameData::IntegrateTriggers()
     overflow_vertices_4c = 0;
     overflow_vertex_count_40 = 0;
 
-    W8GDSurface* new_surfaces = static_cast<W8GDSurface*>(
-        malloc((overflow_surface_count_3c + 1) * sizeof(W8GDSurface)));
+    W8GDSurface* new_surfaces =
+        static_cast<W8GDSurface*>(malloc((overflow_surface_count_3c + 1) * sizeof(W8GDSurface)));
     if (new_surfaces == 0) {
-        srAssertFail(
-            "pNewSurfaces",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
-            0x32c,
-            "IntegrateTriggers: Couldn't allocate new surface array.");
+        srAssertFail("pNewSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x32c,
+                     "IntegrateTriggers: Couldn't allocate new surface array.");
     }
-    memcpy(new_surfaces, overflow_surfaces_48,
-           overflow_surface_count_3c * sizeof(W8GDSurface));
+    memcpy(new_surfaces, overflow_surfaces_48, overflow_surface_count_3c * sizeof(W8GDSurface));
     free(overflow_surfaces_48);
     overflow_surfaces_48 = new_surfaces;
 
     int end = surface_count_28 + overflow_surface_count_3c;
     for (int index = surface_count_28; index < end; ++index) {
         W8GDSurface* surface = index < surface_count_28
-            ? &surfaces_38[index]
-            : &overflow_surfaces_48[index - surface_count_28];
+                                   ? &surfaces_38[index]
+                                   : &overflow_surfaces_48[index - surface_count_28];
         geometry_index_00->InsertSurface00446820(surface, 3);
     }
     bits_58 = new BitArray(total_surface_count_44);
@@ -294,10 +274,8 @@ W8GameData::W8GameData(int handle, void* parent)
         environ_count_80 = 1;
         environs_84 = static_cast<W8EnvironRecord**>(malloc(0x28));
         if (environs_84 == 0) {
-            srAssertFail(
-                "m_ppEnvirons",
-                "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
-                0x441, 0);
+            srAssertFail("m_ppEnvirons", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x441, 0);
         }
         for (int index = 0; index < 10; ++index) {
             environs_84[index] = 0;
@@ -305,8 +283,7 @@ W8GameData::W8GameData(int handle, void* parent)
         W8EnvironRecord* environ_record = new W8EnvironRecord();
         if (environ_record == 0) {
             environ_record = 0;
-        }
-        else {
+        } else {
             environ_record->value_00 = 0;
             environ_record->value_04 = 0;
             environ_record->value_08 = 0;
@@ -352,13 +329,13 @@ unsigned char InitializeGameData004497C0(W8GameData* game_data)
     srVector3T<float> minimum = game_data->minimum_08;
     srVector3T<float> maximum = game_data->maximum_14;
     if (game_data->geometry_index_00 == 0) {
-        game_data->geometry_index_00 = new W8OctBuildTree00446390(
-            2000.0f, &minimum, &maximum, 0x40, 0);
+        game_data->geometry_index_00 =
+            new W8OctBuildTree00446390(2000.0f, &minimum, &maximum, 0x40, 0);
     }
 
     for (int index = 0; index < game_data->surface_count_28; ++index) {
-        if (game_data->geometry_index_00->InsertSurface00446820(
-                &game_data->surfaces_38[index], 3) == 0) {
+        if (game_data->geometry_index_00->InsertSurface00446820(&game_data->surfaces_38[index],
+                                                                3) == 0) {
             return 0;
         }
     }
@@ -369,14 +346,11 @@ unsigned char InitializeGameData004497C0(W8GameData* game_data)
    carried by the level-geometry record. Bit 0x80 requests dominant-axis
    selection; bit 4 is the walkable slope classification. */
 // FUNCTION: WIZ8 0x004498c0
-void ClassifySurfacePlane004498C0(
-    const srVector3T<float>* vertices, W8GDSurface* surface)
+void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface* surface)
 {
-    BuildTrianglePlane00449A40(
-        surface->plane_24,
-        &vertices[surface->vertex_indices_18[0]],
-        &vertices[surface->vertex_indices_18[1]],
-        &vertices[surface->vertex_indices_18[2]]);
+    BuildTrianglePlane00449A40(surface->plane_24, &vertices[surface->vertex_indices_18[0]],
+                               &vertices[surface->vertex_indices_18[1]],
+                               &vertices[surface->vertex_indices_18[2]]);
 
     unsigned int flags = surface->flags_00;
     if ((flags & 0x80) != 0) {
@@ -399,8 +373,7 @@ void ClassifySurfacePlane004498C0(
 
     float upper_value = g_float_005ebb38;
     if (g_float_005ebc7c < surface->plane_24[1]) {
-        if ((surface->flags_00 & 4) == 0 &&
-            g_float_005ec1a0 < surface->plane_24[1]) {
+        if ((surface->flags_00 & 4) == 0 && g_float_005ec1a0 < surface->plane_24[1]) {
             surface->flags_00 |= 4;
             surface->value_48 = g_float_005ebb38;
         }
@@ -408,10 +381,8 @@ void ClassifySurfacePlane004498C0(
             surface->flags_00 |= 0x20;
             surface->value_48 = g_float_005ebb34;
         }
-    }
-    else if (surface->value_40 < g_float_005ec028 &&
-             g_path_endpoint_scale_005ec1a4 < surface->value_40 &&
-             (surface->flags_00 & 4) != 0) {
+    } else if (surface->value_40 < g_float_005ec028 &&
+               g_path_endpoint_scale_005ec1a4 < surface->value_40 && (surface->flags_00 & 4) != 0) {
         surface->value_40 = 0.1f;
     }
 
@@ -419,9 +390,7 @@ void ClassifySurfacePlane004498C0(
     surface->value_40 *= g_world_scale_005ebc40;
     if ((flags & 4) == 0) {
         surface->value_48 = g_float_005ebb34;
-    }
-    else if (surface->value_48 < g_float_005ebc58 &&
-             (flags & 0x20) == 0) {
+    } else if (surface->value_48 < g_float_005ebc58 && (flags & 0x20) == 0) {
         if (surface->plane_24[1] <= g_float_005ebccc) {
             upper_value = surface->plane_24[1];
         }
@@ -435,11 +404,8 @@ void ClassifySurfacePlane004498C0(
    winding, normal direction and degenerate-triangle division all remain the
    retail behavior. */
 // FUNCTION: WIZ8 0x00449a40
-void BuildTrianglePlane00449A40(
-    float* plane,
-    const srVector3T<float>* first,
-    const srVector3T<float>* second,
-    const srVector3T<float>* third)
+void BuildTrianglePlane00449A40(float* plane, const srVector3T<float>* first,
+                                const srVector3T<float>* second, const srVector3T<float>* third)
 {
     srVector3T<float> vertices[3];
     short index = 2;
@@ -457,32 +423,25 @@ void BuildTrianglePlane00449A40(
         short following = (short)(index % 3);
         srVector3T<float>& vertex = vertices[index - 2];
 
-        plane[0] += vertex.y *
-                    (vertices[next].z - vertices[following].z);
-        plane[1] += vertex.z *
-                    (vertices[next].x - vertices[following].x);
-        plane[2] += vertex.x *
-                    (vertices[next].y - vertices[following].y);
+        plane[0] += vertex.y * (vertices[next].z - vertices[following].z);
+        plane[1] += vertex.z * (vertices[next].x - vertices[following].x);
+        plane[2] += vertex.x * (vertices[next].y - vertices[following].y);
         ++index;
     } while ((short)(index - 2) < 3);
 
     float scale = g_float_005ebb38 /
-                  (float)sqrt(
-                      plane[0] * plane[0] + plane[1] * plane[1] +
-                      plane[2] * plane[2]);
+                  (float)sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
     plane[0] *= scale;
     plane[1] *= scale;
     plane[2] *= scale;
 
     float distances[3];
     for (int vertex_index = 0; vertex_index != 3; ++vertex_index) {
-        distances[vertex_index] =
-            plane[0] * vertices[vertex_index].x +
-            plane[1] * vertices[vertex_index].y +
-            plane[2] * vertices[vertex_index].z;
+        distances[vertex_index] = plane[0] * vertices[vertex_index].x +
+                                  plane[1] * vertices[vertex_index].y +
+                                  plane[2] * vertices[vertex_index].z;
     }
-    plane[3] =
-        (distances[0] + distances[1] + distances[2]) * g_float_005ec1a8;
+    plane[3] = (distances[0] + distances[1] + distances[2]) * g_float_005ec1a8;
 }
 
 /* Tears down owned storage: the geometry index, heap and malloc'd banks,

@@ -26,8 +26,8 @@ public:
     virtual ~W8EmitterHost() override;
     /* All three are chars: neither override widens them, and both
        0x004A8360 and 0x004A7470 push the containing dword unextended. */
-    virtual srModelInstance* SetCycleFrameLod(
-        signed char cycle, signed char frame, signed char lod) = 0;
+    virtual srModelInstance* SetCycleFrameLod(signed char cycle, signed char frame,
+                                              signed char lod) = 0;
     virtual unsigned int ApplyEmitterSetting(char emitter) = 0;
     /* Not a stop: both overrides tail-return AnimObjEntry004A1660's result,
        and GrCycle's 0x004A7470 hands that result straight to
@@ -49,12 +49,12 @@ public:
        cycle/subcycle and pending cycle. Missile and Spell use current_cycle
        for the same role; there is no separate Monster view. Only +0xa6 stays
        positional until behavior outside Monster establishes its meaning. */
-    signed char current_cycle;          /* 0xa4 */
-    signed char current_subcycle;       /* 0xa5 */
-    signed char selection_value_0a6;    /* 0xa6 */
-    signed char pending_cycle;          /* 0xa7 */
+    signed char current_cycle;       /* 0xa4 */
+    signed char current_subcycle;    /* 0xa5 */
+    signed char selection_value_0a6; /* 0xa6 */
+    signed char pending_cycle;       /* 0xa7 */
     float value_0a8;
-};                                       /* 0xac */
+}; /* 0xac */
 
 static_assert(sizeof(W8EmitterHost) == 0xac, "W8EmitterHost_size_must_be_0xac");
 

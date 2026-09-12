@@ -25,10 +25,8 @@
 // FUNCTION: WIZ8 0x0050E700
 void RebuildPartyEffectBlock0050E700(void)
 {
-    memset(&g_status_685170.party_modifiers_22e3, 0,
-           sizeof(W8GameplayModifierBlock));
-    ApplyPartyEffectSlots(g_status_685170.effect_slots_17af,
-                          &g_status_685170.party_modifiers_22e3);
+    memset(&g_status_685170.party_modifiers_22e3, 0, sizeof(W8GameplayModifierBlock));
+    ApplyPartyEffectSlots(g_status_685170.effect_slots_17af, &g_status_685170.party_modifiers_22e3);
     if (gXStatus.fCombatMode != 0) {
         unsigned char value = g_status_685170.party_modifiers_22e3.armor_bonus_05;
 

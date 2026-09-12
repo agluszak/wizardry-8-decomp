@@ -21,41 +21,17 @@ void InvalidateAndRecalculateCharacterClassData00558610(W8Character* character)
    trait. */
 // GLOBAL: WIZ8 0x0061507C
 W8ProfessionAbilitySet g_profession_abilities[15] = {
-    {{0, 19, 20}},
-    {{1, -1, -1}},
-    {{2, -1, -1}},
-    {{4, 12, -1}},
-    {{3, 16, -1}},
-    {{5, 21, -1}},
-    {{6, 7, -1}},
-    {{9, -1, -1}},
-    {{8, -1, -1}},
-    {{10, -1, -1}},
-    {{11, 17, -1}},
-    {{18, -1, -1}},
-    {{13, 17, -1}},
-    {{3, 14, -1}},
-    {{15, -1, -1}},
+    {{0, 19, 20}},  {{1, -1, -1}},  {{2, -1, -1}},  {{4, 12, -1}}, {{3, 16, -1}},
+    {{5, 21, -1}},  {{6, 7, -1}},   {{9, -1, -1}},  {{8, -1, -1}}, {{10, -1, -1}},
+    {{11, 17, -1}}, {{18, -1, -1}}, {{13, 17, -1}}, {{3, 14, -1}}, {{15, -1, -1}},
 };
 
 // GLOBAL: WIZ8 0x00615130
 W8RaceAbilitySet g_race_abilities[16] = {
-    {{-1, -1, -1, -1, -1}},
-    {{-1, -1, -1, -1, -1}},
-    {{29, -1, -1, -1, -1}},
-    {{-1, -1, -1, -1, -1}},
-    {{-1, -1, -1, -1, -1}},
-    {{22, 26, 23, 25, 24}},
-    {{27, -1, -1, -1, -1}},
-    {{28, -1, -1, -1, -1}},
-    {{-1, -1, -1, -1, -1}},
-    {{-1, -1, -1, -1, -1}},
-    {{-1, -1, -1, -1, -1}},
-    {{-1, -1, -1, -1, -1}},
-    {{-1, -1, -1, -1, -1}},
-    {{-1, -1, -1, -1, -1}},
-    {{-1, -1, -1, -1, -1}},
-    {{30, 31, -1, -1, -1}},
+    {{-1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1}}, {{29, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1}},
+    {{-1, -1, -1, -1, -1}}, {{22, 26, 23, 25, 24}}, {{27, -1, -1, -1, -1}}, {{28, -1, -1, -1, -1}},
+    {{-1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1}},
+    {{-1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1}}, {{30, 31, -1, -1, -1}},
 };
 
 // GLOBAL: WIZ8 0x00615270
@@ -91,8 +67,7 @@ bool CharacterHasTrait00547940(const W8Character* character, int trait)
         return false;
     }
     if (character->current_profession != -1) {
-        const int* abilities =
-            g_profession_abilities[character->current_profession].ability_ids;
+        const int* abilities = g_profession_abilities[character->current_profession].ability_ids;
         for (index = 0; index < 3; ++index) {
             if (abilities[index] == trait) {
                 return true;
@@ -134,10 +109,8 @@ float ScaleValueByProfessionLevel005479B0(W8Character* character, int, float bas
    attribute records instead, and count as available only once the attribute has
    reached its cap. */
 // FUNCTION: WIZ8 0x00553d90
-bool IsCharacterSkillAvailable(
-    W8Character* character,
-    unsigned int skill_id,
-    const unsigned char* expert_realm_flags)
+bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
+                               const unsigned char* expert_realm_flags)
 {
     int profession;
     unsigned int index;
@@ -232,12 +205,10 @@ void ResetCharacterAttributes005539E0(W8Character* character)
 
     for (index = 0; index < 7; ++index) {
         int value =
-            character->bonus_1770.attribute_adjustments[index] +
-            character->attributes[index].value;
+            character->bonus_1770.attribute_adjustments[index] + character->attributes[index].value;
         if (value > 0x7d) {
             value = 0x7d;
-        }
-        else if (value < 1) {
+        } else if (value < 1) {
             value = 1;
         }
         character->attributes[index].effective = value;
@@ -247,8 +218,7 @@ void ResetCharacterAttributes005539E0(W8Character* character)
         int first = g_skill_attributes[index].unknown_04;
         int second = g_skill_attributes[index].unknown_08;
         character->skills[index].base_level_0a =
-            (character->attributes[first].value +
-             character->attributes[second].value) >> 1;
+            (character->attributes[first].value + character->attributes[second].value) >> 1;
     }
 }
 
@@ -273,8 +243,7 @@ void ResetCharacterSkills00553A60(W8Character* character)
         value += static_cast<signed char>(character->bonus_1770.unknown_13[index]);
         if (value > 0x7d) {
             value = 0x7d;
-        }
-        else if (value < 0) {
+        } else if (value < 0) {
             value = 0;
         }
         character->skills[index].level = value;
@@ -292,8 +261,7 @@ void InitializeSkillBaseLevels00553C90(W8Character* character)
         int first = g_skill_attributes[index].unknown_04;
         int second = g_skill_attributes[index].unknown_08;
         character->skills[index].base_level_0a =
-            (character->attributes[first].value +
-             character->attributes[second].value) >> 1;
+            (character->attributes[first].value + character->attributes[second].value) >> 1;
     }
 }
 
@@ -310,14 +278,12 @@ void RefreshCharacterSkillAvailability00553CD0(W8Character* character)
         expert_realm_flags[index] = 0;
     }
     for (index = 0; index < 0x72; ++index) {
-        if (character->spell_learned[index + 1] == -1 ||
-            character->spell_learned[index + 1] == 2) {
+        if (character->spell_learned[index + 1] == -1 || character->spell_learned[index + 1] == 2) {
             expert_realm_flags[g_spell_records[index].realm] = 1;
         }
     }
     for (index = 0; index < 0x29; ++index) {
-        bool available =
-            IsCharacterSkillAvailable(character, index, expert_realm_flags);
+        bool available = IsCharacterSkillAvailable(character, index, expert_realm_flags);
         if (!available) {
             if (character->skills[index].flag_00) {
                 character->skills[index].flag_00 = 0;
@@ -325,8 +291,7 @@ void RefreshCharacterSkillAvailability00553CD0(W8Character* character)
                     Function5B1B30(index);
                 }
             }
-        }
-        else if (!character->skills[index].flag_00) {
+        } else if (!character->skills[index].flag_00) {
             character->skills[index].flag_00 = 1;
             if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
                 Function5B1AF0(index);
@@ -340,8 +305,7 @@ void RefreshCharacterSkillAvailability00553CD0(W8Character* character)
 // FUNCTION: WIZ8 0x00553ee0
 unsigned int GetSkillQuarterValue00553EE0(W8Character* character, int skill_id)
 {
-    unsigned int value =
-        (character->skills[skill_id].value_02 * 0x19) / 100;
+    unsigned int value = (character->skills[skill_id].value_02 * 0x19) / 100;
     if (value == 0) {
         value = 1;
     }
@@ -374,47 +338,13 @@ float g_profession_hit_point_factors[15] = {
 };
 // GLOBAL: WIZ8 0x006155b0
 W8SkillAttributes g_skill_attributes[0x29] = {
-    {0, 1, 0, 4},
-    {0, 1, 0, 4},
-    {0, 1, 0, 4},
-    {0, 1, 0, 4},
-    {0, 1, 4, 5},
-    {0, 0, 0, 4},
-    {0, 1, 0, 4},
-    {0, 1, 4, 5},
-    {0, 1, 4, 0},
-    {0, 0, 4, 0},
-    {1, 1, 4, 1},
-    {1, 1, 4, 1},
-    {1, 2, 4, 1},
-    {1, 1, 4, 5},
-    {0, 1, 4, 5},
-    {1, 2, 6, 1},
-    {2, 0, 6, 1},
-    {2, 0, 6, 1},
-    {2, 1, 4, 6},
-    {2, 1, 6, 5},
-    {2, 0, 1, 6},
-    {2, 0, 6, 1},
-    {2, 0, 1, 6},
-    {2, 2, 1, 4},
-    {3, 1, 1, 1},
-    {3, 1, 2, 2},
-    {3, 1, 4, 1},
-    {3, 1, 6, 1},
-    {3, 1, 1, 2},
-    {3, 1, 1, 2},
-    {3, 1, 1, 2},
-    {3, 1, 1, 2},
-    {3, 1, 1, 2},
-    {3, 1, 1, 2},
-    {4, 3, 0, 0},
-    {4, 3, 1, 1},
-    {4, 3, 2, 2},
-    {4, 3, 3, 3},
-    {4, 3, 4, 4},
-    {4, 3, 5, 5},
-    {4, 3, 6, 6},
+    {0, 1, 0, 4}, {0, 1, 0, 4}, {0, 1, 0, 4}, {0, 1, 0, 4}, {0, 1, 4, 5}, {0, 0, 0, 4},
+    {0, 1, 0, 4}, {0, 1, 4, 5}, {0, 1, 4, 0}, {0, 0, 4, 0}, {1, 1, 4, 1}, {1, 1, 4, 1},
+    {1, 2, 4, 1}, {1, 1, 4, 5}, {0, 1, 4, 5}, {1, 2, 6, 1}, {2, 0, 6, 1}, {2, 0, 6, 1},
+    {2, 1, 4, 6}, {2, 1, 6, 5}, {2, 0, 1, 6}, {2, 0, 6, 1}, {2, 0, 1, 6}, {2, 2, 1, 4},
+    {3, 1, 1, 1}, {3, 1, 2, 2}, {3, 1, 4, 1}, {3, 1, 6, 1}, {3, 1, 1, 2}, {3, 1, 1, 2},
+    {3, 1, 1, 2}, {3, 1, 1, 2}, {3, 1, 1, 2}, {3, 1, 1, 2}, {4, 3, 0, 0}, {4, 3, 1, 1},
+    {4, 3, 2, 2}, {4, 3, 3, 3}, {4, 3, 4, 4}, {4, 3, 5, 5}, {4, 3, 6, 6},
 };
 // GLOBAL: WIZ8 0x00615840
 int g_profession_skill_availability[0x29][15] = {
@@ -466,21 +396,9 @@ int g_profession_bonus_skills[15] = {
 };
 // GLOBAL: WIZ8 0x00616218
 int g_profession_skills[15][4] = {
-    {17, 0, 1, 6},
-    {16, 0, 4, -1},
-    {16, 21, 1, -1},
-    {15, 8, 21, -1},
-    {16, 18, 19, -1},
-    {16, 14, 9, 11},
-    {16, 19, 5, 11},
-    {4, 18, 13, 11},
-    {17, 23, 10, -1},
-    {12, 21, 20, -1},
-    {3, 5, 22, -1},
-    {21, 9, -1, -1},
-    {26, 24, 25, 27},
-    {22, 21, 32, -1},
-    {28, 29, 30, 32},
+    {17, 0, 1, 6},   {16, 0, 4, -1},  {16, 21, 1, -1},  {15, 8, 21, -1},  {16, 18, 19, -1},
+    {16, 14, 9, 11}, {16, 19, 5, 11}, {4, 18, 13, 11},  {17, 23, 10, -1}, {12, 21, 20, -1},
+    {3, 5, 22, -1},  {21, 9, -1, -1}, {26, 24, 25, 27}, {22, 21, 32, -1}, {28, 29, 30, 32},
 };
 // GLOBAL: WIZ8 0x00616310
 int g_profession_magic_level_offsets[15] = {

@@ -65,8 +65,7 @@ struct W8GameSettings {
 };
 #pragma pack(pop)
 
-static_assert(sizeof(W8GameSettings) == 0xa4,
-              "W8GameSettings_must_be_0xa4");
+static_assert(sizeof(W8GameSettings) == 0xa4, "W8GameSettings_must_be_0xa4");
 
 extern W8GameSettings g_settings_6850c8;
 

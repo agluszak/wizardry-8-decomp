@@ -14,18 +14,15 @@ inline unsigned int W8HashValue(unsigned short key)
     return W8HashValue(static_cast<unsigned int>(key));
 }
 
-template <class Key, class Value>
-struct W8HashEntry {
+template <class Key, class Value> struct W8HashEntry {
     int next_index;
     Key key;
     Value value;
 };
 
-template <class Key, class Value>
-class W8HashTable {
+template <class Key, class Value> class W8HashTable {
 public:
-    W8HashTable()
-        : bucket_heads(0), entries(0), free_head(-1), bucket_count(0)
+    W8HashTable() : bucket_heads(0), entries(0), free_head(-1), bucket_count(0)
     {
         Grow();
     }
@@ -64,8 +61,7 @@ public:
     unsigned int bucket_count;
 };
 
-template <class Key, class Value>
-Value W8HashTable<Key, Value>::Lookup(const Key* key) const
+template <class Key, class Value> Value W8HashTable<Key, Value>::Lookup(const Key* key) const
 {
     Key wanted = *key;
     int slot = bucket_heads[W8HashValue(wanted) & (bucket_count - 1)];
@@ -78,12 +74,10 @@ Value W8HashTable<Key, Value>::Lookup(const Key* key) const
     return 0;
 }
 
-template <class Key, class Value>
-void W8HashTable<Key, Value>::Remove(const Key* key)
+template <class Key, class Value> void W8HashTable<Key, Value>::Remove(const Key* key)
 {
     Key wanted = *key;
-    int* bucket =
-        bucket_heads + (W8HashValue(wanted) & (bucket_count - 1));
+    int* bucket = bucket_heads + (W8HashValue(wanted) & (bucket_count - 1));
     int slot = *bucket;
     int previous = -1;
 
@@ -92,8 +86,7 @@ void W8HashTable<Key, Value>::Remove(const Key* key)
         if (entry->key == wanted) {
             if (previous == -1) {
                 *bucket = entry->next_index;
-            }
-            else {
+            } else {
                 entries[previous].next_index = entry->next_index;
             }
             entry->next_index = free_head;
@@ -106,14 +99,12 @@ void W8HashTable<Key, Value>::Remove(const Key* key)
 }
 
 template <class Key, class Value>
-int W8HashTable<Key, Value>::FindNextEntry(
-    const Key* key, int previous) const
+int W8HashTable<Key, Value>::FindNextEntry(const Key* key, int previous) const
 {
     int slot;
     if (previous == -1) {
         slot = bucket_heads[W8HashValue(*key) & (bucket_count - 1)];
-    }
-    else {
+    } else {
         slot = entries[previous].next_index;
     }
     while (slot != -1 && entries[slot].key != *key) {
@@ -139,8 +130,7 @@ template <class Key, class Value>
 void W8HashTable<Key, Value>::Remove(const Key* key, const Value* value)
 {
     Key wanted = *key;
-    int* bucket =
-        bucket_heads + (W8HashValue(wanted) & (bucket_count - 1));
+    int* bucket = bucket_heads + (W8HashValue(wanted) & (bucket_count - 1));
     int slot = *bucket;
     int previous = -1;
 
@@ -149,8 +139,7 @@ void W8HashTable<Key, Value>::Remove(const Key* key, const Value* value)
         if (entry->key == wanted && entry->value == *value) {
             if (previous == -1) {
                 *bucket = entry->next_index;
-            }
-            else {
+            } else {
                 entries[previous].next_index = entry->next_index;
             }
             entry->next_index = free_head;
@@ -162,16 +151,14 @@ void W8HashTable<Key, Value>::Remove(const Key* key, const Value* value)
     }
 }
 
-template <class Key, class Value>
-void W8HashTable<Key, Value>::Grow()
+template <class Key, class Value> void W8HashTable<Key, Value>::Grow()
 {
     unsigned int capacity = bucket_count << 1;
     if (capacity < 4) {
         capacity = 4;
     }
 
-    W8HashEntry<Key, Value>* new_entries =
-        new W8HashEntry<Key, Value>[capacity];
+    W8HashEntry<Key, Value>* new_entries = new W8HashEntry<Key, Value>[capacity];
     int* new_buckets = new int[capacity];
 
     W8HashEntry<Key, Value>* fill_entry = new_entries;
@@ -194,8 +181,7 @@ void W8HashTable<Key, Value>::Grow()
             while (slot != -1) {
                 W8HashEntry<Key, Value>* source = entries + slot;
                 new_entries[used].key = source->key;
-                unsigned int new_bucket =
-                    W8HashValue(source->key) & (capacity - 1);
+                unsigned int new_bucket = W8HashValue(source->key) & (capacity - 1);
                 new_entries[used].value = source->value;
                 new_entries[used].next_index = new_buckets[new_bucket];
                 new_buckets[new_bucket] = used;
@@ -221,8 +207,7 @@ void W8HashTable<Key, Value>::Grow()
     bucket_heads = new_buckets;
 }
 
-template <class Key, class Value>
-int W8HashTable<Key, Value>::AllocateEntry()
+template <class Key, class Value> int W8HashTable<Key, Value>::AllocateEntry()
 {
     if (free_head == -1) {
         Grow();

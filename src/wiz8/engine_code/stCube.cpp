@@ -30,15 +30,14 @@ int g_world_cursor_node_count_65ba5c;
 class W8WorldCursorNode0048DB30 {
 public:
     virtual ~W8WorldCursorNode0048DB30() {}
-    srNode* node_04;                      /* 0x04 */
+    srNode* node_04; /* 0x04 */
     unsigned char unknown_08[0x10];
-    void* buffer_18;                      /* 0x18 */
-    int size_1c;                          /* 0x1c */
-    int value_20;                         /* 0x20 */
-    unsigned char unknown_24[0x20];       /* 0x24 */
+    void* buffer_18;                /* 0x18 */
+    int size_1c;                    /* 0x1c */
+    int value_20;                   /* 0x20 */
+    unsigned char unknown_24[0x20]; /* 0x24 */
 };
-static_assert(sizeof(W8WorldCursorNode0048DB30) == 0x44,
-              "W8WorldCursorNode0048DB30_size");
+static_assert(sizeof(W8WorldCursorNode0048DB30) == 0x44, "W8WorldCursorNode0048DB30_size");
 
 // GLOBAL: WIZ8 0x0065ba64
 W8WorldCursorNode0048DB30** g_world_cursor_nodes_65ba64;
@@ -144,8 +143,7 @@ void ReleaseWorldCursorNodes0048DB30(void)
             entry->node_04->release();
             for (int index = 0; index < g_world_cursor_node_count_65ba5c; ++index) {
                 if (g_world_cursor_nodes_65ba64[index] == entry) {
-                    for (int shift = index; shift < g_world_cursor_node_count_65ba5c - 1;
-                         ++shift) {
+                    for (int shift = index; shift < g_world_cursor_node_count_65ba5c - 1; ++shift) {
                         g_world_cursor_nodes_65ba64[shift] = g_world_cursor_nodes_65ba64[shift + 1];
                     }
                     --g_world_cursor_node_count_65ba5c;

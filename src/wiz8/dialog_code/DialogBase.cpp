@@ -12,10 +12,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 // GLOBAL: WIZ8 0x0069CA28
 int g_dword_69ca28;
-
 
 // FUNCTION: WIZ8 0x005dc7a0
 W8DialogBase::W8DialogBase()
@@ -65,19 +63,15 @@ void W8DialogBase::Draw()
         CreateControls();
     }
     if (m_error == 0 && m_resource != -1) {
-        if (m_width != GetButtonWidth(m_resource) ||
-            m_height != GetButtonHeight(m_resource)) {
-            ResizeButton(m_resource,
-                         static_cast<short>(m_width),
-                         static_cast<short>(m_height));
+        if (m_width != GetButtonWidth(m_resource) || m_height != GetButtonHeight(m_resource)) {
+            ResizeButton(m_resource, static_cast<short>(m_width), static_cast<short>(m_height));
         }
         if (!DrawButton(m_resource)) {
             m_error = 9;
             m_dirty_flags &= ~1u;
             return;
         }
-        InvalidateRegion(
-            m_x, m_y, m_x + m_width, m_y + m_height, 1);
+        InvalidateRegion(m_x, m_y, m_x + m_width, m_y + m_height, 1);
     }
     m_dirty_flags &= ~1u;
 }
@@ -91,8 +85,7 @@ void W8DialogBase::SetText(const wchar_t* text)
     }
     if (text) {
         if (wcslen(text) != 0) {
-            m_text = static_cast<wchar_t*>(
-                malloc((wcslen(text) + 1) * sizeof(wchar_t)));
+            m_text = static_cast<wchar_t*>(malloc((wcslen(text) + 1) * sizeof(wchar_t)));
             wcscpy(m_text, text);
         }
     }
@@ -108,8 +101,7 @@ void W8DialogBase::SetOrigin(int x, int y)
     m_x = x;
     m_y = y;
     if (m_resource != -1) {
-        SetButtonPosition(
-            m_resource, static_cast<short>(x), static_cast<short>(y));
+        SetButtonPosition(m_resource, static_cast<short>(x), static_cast<short>(y));
     }
     m_dirty_flags |= 1;
 }
@@ -119,10 +111,8 @@ void W8DialogBase::SetExtent(int width, int height)
 {
     if (m_width != width || m_height != height) {
         if (m_initialized && m_width > 0 && m_height > 0) {
-            ClearSurfaceRect(m_x, m_y,
-                             m_x + m_width + 1, m_y + m_height + 1);
-            InvalidateRegion(m_x, m_y,
-                                m_x + m_width + 1, m_y + m_height + 1, 1);
+            ClearSurfaceRect(m_x, m_y, m_x + m_width + 1, m_y + m_height + 1);
+            InvalidateRegion(m_x, m_y, m_x + m_width + 1, m_y + m_height + 1, 1);
         }
         m_width = width;
         m_height = height;
@@ -165,22 +155,19 @@ int W8DialogBase::CreateControls()
     if (m_border == -1) {
         m_border = LoadGenericButtonImages(
             0,
-            reinterpret_cast<unsigned char*>(
-                const_cast<char*>("Data\\Dialogs\\DialogBorder.STI")),
+            reinterpret_cast<unsigned char*>(const_cast<char*>("Data\\Dialogs\\DialogBorder.STI")),
             0,
-            reinterpret_cast<unsigned char*>(
-                const_cast<char*>("Data\\Dialogs\\DialogBorder.STI")),
+            reinterpret_cast<unsigned char*>(const_cast<char*>("Data\\Dialogs\\DialogBorder.STI")),
             0, reinterpret_cast<unsigned char*>(m_background_path),
             static_cast<short>(m_background_flags), 0, 0);
         if (m_border == -1) {
             return m_error = 4;
         }
     }
-    m_resource = CreateTextButton(
-        0, m_font, m_foreground, m_background, m_border,
-        static_cast<short>(m_x), static_cast<short>(m_y),
-        static_cast<short>(m_width), static_cast<short>(m_height),
-        0x8004, 0x7d, 0, 0);
+    m_resource =
+        CreateTextButton(0, m_font, m_foreground, m_background, m_border, static_cast<short>(m_x),
+                         static_cast<short>(m_y), static_cast<short>(m_width),
+                         static_cast<short>(m_height), 0x8004, 0x7d, 0, 0);
     if (m_resource != -1) {
         SpecifyButtonTextOffsets(m_resource, 3, 3, 1);
         SpecifyButtonMultiColorFont(m_resource, g_dialog_font_enabled_69ca32);
@@ -212,8 +199,7 @@ void W8DialogBase::DestroyControls()
         m_background_flags = 0;
     }
     ClearSurfaceRect(m_x, m_y, m_x + m_width + 1, m_y + m_height + 1);
-    InvalidateRegion(
-        m_x, m_y, m_x + m_width + 1, m_y + m_height + 1, 1);
+    InvalidateRegion(m_x, m_y, m_x + m_width + 1, m_y + m_height + 1, 1);
     m_initialized = 0;
 }
 
@@ -224,31 +210,26 @@ unsigned char W8DialogBase::ProcessInput()
     InputAtom input;
 
     SGPMouseGetPos(&mouse);
-    MSYS_SGP_Mouse_Handler_Hook(
-        MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
+    MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
     while (DequeueEvent(&input)) {
         switch (input.usEvent) {
         case RIGHT_BUTTON_DOWN:
-            MSYS_SGP_Mouse_Handler_Hook(
-                RIGHT_BUTTON_DOWN, mouse.x, mouse.y,
-                gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
+                                        gfRightButtonState);
             OnRightButtonDown();
             break;
         case LEFT_BUTTON_DOWN:
         case LEFT_BUTTON_REPEAT:
-            MSYS_SGP_Mouse_Handler_Hook(
-                LEFT_BUTTON_DOWN, mouse.x, mouse.y,
-                gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
+                                        gfRightButtonState);
             break;
         case LEFT_BUTTON_UP:
-            MSYS_SGP_Mouse_Handler_Hook(
-                LEFT_BUTTON_UP, mouse.x, mouse.y,
-                gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
+                                        gfRightButtonState);
             break;
         case RIGHT_BUTTON_UP:
-            MSYS_SGP_Mouse_Handler_Hook(
-                RIGHT_BUTTON_UP, mouse.x, mouse.y,
-                gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
+                                        gfRightButtonState);
             OnRightButtonUp();
             break;
         case MOUSE_WHEEL:
@@ -272,9 +253,7 @@ int W8DialogBase::GetDialogType()
 
 /* Shared one-argument no-op at 0x005B1BE0, also emitted for widget Redraw.
    Keep its existing source marker at that owner. */
-void W8DialogBase::OnNumericInputChanged(int)
-{
-}
+void W8DialogBase::OnNumericInputChanged(int) {}
 
 // FUNCTION: WIZ8 0x005ad270
 void W8DialogBase::OnRightButtonDown()
@@ -283,11 +262,7 @@ void W8DialogBase::OnRightButtonDown()
 }
 
 // FUNCTION: WIZ8 0x005b1bf0
-void W8DialogBase::OnRightButtonUp()
-{
-}
+void W8DialogBase::OnRightButtonUp() {}
 
 /* Same 0x005B1BE0 no-op as OnNumericInputChanged. */
-void W8DialogBase::OnMouseWheel(int)
-{
-}
+void W8DialogBase::OnMouseWheel(int) {}

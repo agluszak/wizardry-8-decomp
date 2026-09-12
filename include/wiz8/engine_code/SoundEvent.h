@@ -2,8 +2,7 @@
 
 #include "surrender/srMath.h"
 
-template <class T>
-class W8GrowableVector;
+template <class T> class W8GrowableVector;
 
 /* Engine Code\SoundEvent.cpp. The unit's assertion-backed interval starts at
    the factory below. */
@@ -38,58 +37,42 @@ public:
         value_034 = 30;
     }
 
-    ~W8SoundEvent();                     /* 0x004D5770 */
+    ~W8SoundEvent(); /* 0x004D5770 */
 
     /* Play this event at one position through the 3D sound boundary. The
        cycle is the animation cycle that triggered it; the remaining call-site
        values are accepted but not needed by this body. */
-    unsigned char Play004D5A10(
-        unsigned int mask,
-        const srVector3T<float>* position,
-        int cycle,
-        unsigned int frame,
-        int subcycle);
+    unsigned char Play004D5A10(unsigned int mask, const srVector3T<float>* position, int cycle,
+                               unsigned int frame, int subcycle);
 
-    int value_000;                       /* 0x00 */
-    int value_004;                       /* 0x04: starts -1 */
-    int value_008;                       /* 0x08: starts -1 */
-    int value_00c;                       /* 0x0c */
-    char* m_pacWaveName;                 /* 0x10: owned */
-    int value_014;                       /* 0x14 */
-    int value_018;                       /* 0x18 */
-    int value_01c;                       /* 0x1c */
-    int handle_020;                      /* 0x20: starts -1, released when flag_025 */
-    unsigned char value_024;             /* 0x24: starts 0x64 */
-    unsigned char flag_025;              /* 0x25 */
+    int value_000;           /* 0x00 */
+    int value_004;           /* 0x04: starts -1 */
+    int value_008;           /* 0x08: starts -1 */
+    int value_00c;           /* 0x0c */
+    char* m_pacWaveName;     /* 0x10: owned */
+    int value_014;           /* 0x14 */
+    int value_018;           /* 0x18 */
+    int value_01c;           /* 0x1c */
+    int handle_020;          /* 0x20: starts -1, released when flag_025 */
+    unsigned char value_024; /* 0x24: starts 0x64 */
+    unsigned char flag_025;  /* 0x25 */
     unsigned char unknown_026[2];
-    int value_028;                       /* 0x28 */
-    unsigned int value_02c;              /* 0x2c: starts 0x46435000 */
-    int value_030;                       /* 0x30: starts 10 */
-    int value_034;                       /* 0x34: starts 30 */
+    int value_028;          /* 0x28 */
+    unsigned int value_02c; /* 0x2c: starts 0x46435000 */
+    int value_030;          /* 0x30: starts 10 */
+    int value_034;          /* 0x34: starts 30 */
 };
 
-static_assert(sizeof(W8SoundEvent) == 0x38,
-              "W8SoundEvent_must_be_0x38");
+static_assert(sizeof(W8SoundEvent) == 0x38, "W8SoundEvent_must_be_0x38");
 
-W8SoundEvent* CreateSoundEvent004D57A0(
-    int value_000,
-    int value_004,
-    int value_008,
-    int value_00c,
-    const char* wave_name,
-    unsigned char flag_025);
+W8SoundEvent* CreateSoundEvent004D57A0(int value_000, int value_004, int value_008, int value_00c,
+                                       const char* wave_name, unsigned char flag_025);
 
-unsigned char UpdateSoundEvents004D5890(
-    W8GrowableVector<W8SoundEvent*>* events,
-    const srVector3T<float>* position,
-    unsigned int event_mask,
-    int cycle,
-    unsigned int frame,
-    int subcycle);
+unsigned char UpdateSoundEvents004D5890(W8GrowableVector<W8SoundEvent*>* events,
+                                        const srVector3T<float>* position, unsigned int event_mask,
+                                        int cycle, unsigned int frame, int subcycle);
 
 /* Reports the ground surface and material at one position. Its original
    translation unit is not yet attributed; only this unit's player consumes
    it, so its seam lives here until that owner is established. */
-float Function420CA0(
-    const srVector3T<float>* position, char* surface, char* material);
-
+float Function420CA0(const srVector3T<float>* position, char* surface, char* material);

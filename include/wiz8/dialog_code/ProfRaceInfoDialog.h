@@ -33,11 +33,11 @@ public:
     virtual ~W8ProfRaceInfoDialogBase005DEAF0() override;
 
 protected:
-    unsigned int m_uiTitleId;            /* 0x054 */
-    unsigned int m_uiSummaryId;          /* 0x058 */
-    unsigned int m_uiNameId;             /* 0x05c */
-    unsigned int m_uiHeadingId;          /* 0x060 */
-    unsigned int m_uiDetailId;           /* 0x064 */
+    unsigned int m_uiTitleId;                  /* 0x054 */
+    unsigned int m_uiSummaryId;                /* 0x058 */
+    unsigned int m_uiNameId;                   /* 0x05c */
+    unsigned int m_uiHeadingId;                /* 0x060 */
+    unsigned int m_uiDetailId;                 /* 0x064 */
     int m_minimums[W8_DIALOG_ATTRIBUTE_COUNT]; /* 0x068 */
     W8DialogScrollBar scrollbar_084;
     W8DialogButton button_0d0;
@@ -50,7 +50,7 @@ public:
     virtual ~W8ProfessionInfoDialog005EFBFC() override;
 
 private:
-    unsigned int m_uiIndex;              /* 0x170 */
+    unsigned int m_uiIndex; /* 0x170 */
 };
 
 class W8RaceInfoDialog005EFC38 : public W8ProfRaceInfoDialogBase005DEAF0 {
@@ -59,16 +59,13 @@ public:
     virtual ~W8RaceInfoDialog005EFC38() override;
 
 private:
-    unsigned int m_uiIndex;              /* 0x170 */
+    unsigned int m_uiIndex; /* 0x170 */
 };
 
-static_assert(sizeof(W8AttributeMinimums) == 0x1c,
-              "W8AttributeMinimums_must_be_0x1c");
-static_assert(sizeof(W8ProfRaceInfoRow) == 0x0c,
-              "W8ProfRaceInfoRow_must_be_0x0c");
+static_assert(sizeof(W8AttributeMinimums) == 0x1c, "W8AttributeMinimums_must_be_0x1c");
+static_assert(sizeof(W8ProfRaceInfoRow) == 0x0c, "W8ProfRaceInfoRow_must_be_0x0c");
 static_assert(sizeof(W8ProfRaceInfoDialogBase005DEAF0) == 0x170,
               "W8ProfRaceInfoDialogBase005DEAF0_must_be_0x170");
 static_assert(sizeof(W8ProfessionInfoDialog005EFBFC) == 0x174,
               "W8ProfessionInfoDialog005EFBFC_must_be_0x174");
-static_assert(sizeof(W8RaceInfoDialog005EFC38) == 0x174,
-              "W8RaceInfoDialog005EFC38_must_be_0x174");
+static_assert(sizeof(W8RaceInfoDialog005EFC38) == 0x174, "W8RaceInfoDialog005EFC38_must_be_0x174");

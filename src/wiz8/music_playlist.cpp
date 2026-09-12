@@ -59,11 +59,9 @@ int AnalyzeMusicPlaylist0048FF50(stScript* playlist, int* total_weight)
         if (line[0] == '#') {
             if (_strnicmp(line + 1, "PAUSEMIN=", 9) == 0) {
                 g_music_state_60aae8 = atoi(line + 10);
-            }
-            else if (_strnicmp(line + 1, "PAUSEMAX=", 9) == 0) {
+            } else if (_strnicmp(line + 1, "PAUSEMAX=", 9) == 0) {
                 g_music_state_60aaec = atoi(line + 10);
-            }
-            else if (_strnicmp(line + 1, "PAUSECHANCE=", 12) == 0) {
+            } else if (_strnicmp(line + 1, "PAUSECHANCE=", 12) == 0) {
                 g_music_state_60aaf0 = atoi(line + 13);
             }
             continue;
@@ -74,8 +72,7 @@ int AnalyzeMusicPlaylist0048FF50(stScript* playlist, int* total_weight)
             const char* weight = strchr(line, '(');
             if (weight != 0) {
                 *total_weight += atoi(weight + 1);
-            }
-            else {
+            } else {
                 found_unweighted = 1;
                 *total_weight = 0;
             }
@@ -92,8 +89,7 @@ void ServiceMusicPlaylist0048F9E0(void)
     if (g_music_playlist_active_65ba7e == 0) {
         return;
     }
-    if (g_music_sample_handle_60aae0 != -1 &&
-        SoundIsPlaying(g_music_sample_handle_60aae0) != 0) {
+    if (g_music_sample_handle_60aae0 != -1 && SoundIsPlaying(g_music_sample_handle_60aae0) != 0) {
         return;
     }
     if (GetTickCount() <= g_music_playlist_tick_65ba78) {
@@ -104,8 +100,7 @@ void ServiceMusicPlaylist0048F9E0(void)
         Random(100) <= static_cast<unsigned int>(g_music_state_60aaf0)) {
         g_music_playlist_tick_65ba78 =
             GetTickCount() + g_music_state_60aae8 * 1000 +
-            Random(g_music_state_60aaec * 1000 -
-                   g_music_state_60aae8 * 1000);
+            Random(g_music_state_60aaec * 1000 - g_music_state_60aae8 * 1000);
         return;
     }
 
@@ -114,14 +109,11 @@ void ServiceMusicPlaylist0048F9E0(void)
 
         if (g_music_playlist_weight_total_65ba80 == 0) {
             selected = Random(g_music_playlist_track_count_65ba84);
-        }
-        else {
+        } else {
             unsigned int target = Random(g_music_playlist_weight_total_65ba80);
             unsigned int accumulated = 0;
-            for (int index = 0;
-                 index < g_music_playlist_65ba74->lines.GetCount(); ++index) {
-                const char* line =
-                    (*g_music_playlist_65ba74->lines.GetAt(index))->text;
+            for (int index = 0; index < g_music_playlist_65ba74->lines.GetCount(); ++index) {
+                const char* line = (*g_music_playlist_65ba74->lines.GetAt(index))->text;
                 if (line[0] == '#') {
                     continue;
                 }
@@ -139,8 +131,7 @@ void ServiceMusicPlaylist0048F9E0(void)
         }
 
         char track[260];
-        strcpy(track,
-               (*g_music_playlist_65ba74->lines.GetAt(selected))->text);
+        strcpy(track, (*g_music_playlist_65ba74->lines.GetAt(selected))->text);
         char* weight = strchr(track, '(');
         if (weight != 0) {
             *weight = 0;
@@ -157,8 +148,7 @@ void ServiceMusicPlaylist0048F9E0(void)
 }
 
 // FUNCTION: WIZ8 0x0048FC10
-unsigned char StartMusicResource0048FC10(
-    const char* resource, int fade, int replace_current)
+unsigned char StartMusicResource0048FC10(const char* resource, int fade, int replace_current)
 {
     char path[260];
 
@@ -186,14 +176,11 @@ unsigned char StartMusicResource0048FC10(
 
         if (g_music_fade_60aae4 != 0) {
             if (g_music_sample_handle_60aae0 != -1) {
-                SoundSetFadeVolume(
-                    g_music_sample_handle_60aae0, 0, 2000, 1);
+                SoundSetFadeVolume(g_music_sample_handle_60aae0, 0, 2000, 1);
             }
             SoundSetVolume(handle, 0);
-            SoundSetFadeVolume(
-                handle, g_settings_6850c8.music_volume, 5000, 0);
-        }
-        else {
+            SoundSetFadeVolume(handle, g_settings_6850c8.music_volume, 5000, 0);
+        } else {
             if (g_music_sample_handle_60aae0 != -1) {
                 SoundStop(g_music_sample_handle_60aae0);
             }
@@ -221,18 +208,15 @@ unsigned char StartMusicResource0048FC10(
         if (g_music_sample_handle_60aae0 != -1) {
             if (g_music_fade_60aae4 == 0) {
                 SoundStop(g_music_sample_handle_60aae0);
-            }
-            else {
-                SoundSetFadeVolume(
-                    g_music_sample_handle_60aae0, 0, 2000, 1);
+            } else {
+                SoundSetFadeVolume(g_music_sample_handle_60aae0, 0, 2000, 1);
             }
         }
         g_music_sample_handle_60aae0 = -1;
     }
 
     g_music_playlist_track_count_65ba84 = AnalyzeMusicPlaylist0048FF50(
-        g_music_playlist_65ba74,
-        &g_music_playlist_weight_total_65ba80);
+        g_music_playlist_65ba74, &g_music_playlist_weight_total_65ba80);
     if (g_music_playlist_track_count_65ba84 != 0) {
         g_music_playlist_65ba74->setName(resource);
         g_music_playlist_active_65ba7e = 1;
@@ -251,8 +235,7 @@ void StopMusicPlaylist(unsigned char fade)
             g_music_playlist_active_65ba7e = 0;
             return;
         }
-    }
-    else {
+    } else {
         SoundStopMusic();
     }
     g_music_sample_handle_60aae0 = -1;

@@ -7,17 +7,19 @@ class W8MonsterShakeCallback;
 class srGERD;
 class stTextureAnim;
 
-class stParticle
-    : public srClassSupport<stParticle, srNode, 0, 0x10009> {
+class stParticle : public srClassSupport<stParticle, srNode, 0, 0x10009> {
 public:
-    static const char* sGetClassName() { return "stParticle"; }
+    static const char* sGetClassName()
+    {
+        return "stParticle";
+    }
     stParticle(srNode* parent, unsigned int count); /* 0x00497AF0 */
-    stParticle(const stParticle& other);           /* 0x00498180 */
+    stParticle(const stParticle& other);            /* 0x00498180 */
     void SetActive(unsigned char active);
     void SetTraversalEnabled00498D90(unsigned char enabled);
     void DeactivateParticle00499F70(unsigned int index);
-    unsigned char ActivateParticle00499A50(
-        unsigned int* out_index, unsigned char replace_when_full);
+    unsigned char ActivateParticle00499A50(unsigned int* out_index,
+                                           unsigned char replace_when_full);
     void InitializeParticlePosition0049A990(srVector3T<float>* output);
     void SetTexture0049AB00(srTextureIFace* texture);
     void SetRetainedObject0049ACA0(srMaterialIFace* material);
@@ -26,21 +28,19 @@ public:
     void Function4994D0(srGERD* renderer);
     /* The per-particle age/cull/move step and billboard-corner expansion used
        by the submitted batch. Their retail names remain unavailable. */
-    void Update00499FA0();                          /* 0x00499FA0 */
+    void Update00499FA0();                                 /* 0x00499FA0 */
     void PrepareRenderer00498DD0(srMatrix4T<float>& view); /* 0x00498DD0 */
     srShader GetRenderFlags00498A10() const;
-    unsigned char ReplaceTexture0049AC30(
-        const char* old_name, srTextureIFace* replacement);
-    virtual srClass* vInstance() override;         /* 0x004980E0 */
+    unsigned char ReplaceTexture0049AC30(const char* old_name, srTextureIFace* replacement);
+    virtual srClass* vInstance() override;                      /* 0x004980E0 */
     virtual void traverse(srNode::TraverseInfo& info) override; /* 0x00498C40 */
-    virtual void process(
-        const srNode::ProcessInfo& info, srNode::e_processType type) override; /* 0x00498D60 */
+    virtual void process(const srNode::ProcessInfo& info,
+                         srNode::e_processType type) override; /* 0x00498D60 */
 
 protected:
-    virtual ~stParticle() override;                /* 0x00498A20 */
+    virtual ~stParticle() override; /* 0x00498A20 */
 
 public:
-
     unsigned int value_138;
     unsigned char unknown_13c[4];
     double value_140;
@@ -57,7 +57,7 @@ public:
     void* allocation_170;
     float* allocation_174;
     stTextureAnim** texture_frames_178;
-    float* m_pflFlutterAngle;                     /* 0x17c */
+    float* m_pflFlutterAngle; /* 0x17c */
     unsigned int particle_count_180;
     /* Both unsigned: 0x004994D0 gates the particle off with the unsigned
        `state_184 != 0 && state_184 <= value_188` pair. */

@@ -93,8 +93,7 @@ void EnablePortraitAdvanceRegions0059BB70(void)
 // FUNCTION: WIZ8 0x0059BBD0
 void InvalidatePortraitControl0059BBD0(unsigned int party_slot)
 {
-    if (party_slot < 8 &&
-        g_status_685170.buffers.party_rows[party_slot].occupied) {
+    if (party_slot < 8 && g_status_685170.buffers.party_rows[party_slot].occupied) {
         g_portrait_controls_0069b920[party_slot]->Invalidate(0);
     }
 }

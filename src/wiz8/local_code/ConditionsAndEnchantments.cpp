@@ -25,33 +25,25 @@
 #include "wiz8/character_skills.h"
 #include "wiz8/npc_state.h"
 
-
 /* Condition-to-notice word table. Only the first word of each four-word
    stride is read, hence the multiplied index. */
 // GLOBAL: WIZ8 0x0061e570
 unsigned short g_condition_notices_0061E570[128] = {
-    0x348, 0x349, 0x34a, 0x34b, 0x34c, 0x34d, 0x34e, 0x34f,
-    0x350, 0x351, 0x352, 0x353, 0x354, 0x355, 0x356, 0x357,
-    0x358, 0x359, 0x35a, 0x35b, 0x35c, 0x35d, 0x35e, 0x35f,
-    0x360, 0x361, 0x362, 0x363, 0x364, 0x365, 0x366, 0x367,
-    0x368, 0x369, 0x36a, 0x36b, 0x36c, 0x36d, 0x36e, 0x36f,
-    0x370, 0x371, 0x372, 0x373, 0x374, 0x375, 0x376, 0x377,
-    0x378, 0x379, 0x37a, 0x37b, 0x37c, 0x37d, 0x37e, 0x37f,
-    0x380, 0x381, 0x382, 0x383, 0x384, 0x385, 0x386, 0x387,
-    0x38c, 0x38d, 0x38e, 0x38f, 0x388, 0x389, 0x38a, 0x38b,
-    0x390, 0x391, 0x392, 0x393, 0x394, 0x395, 0x396, 0x397,
-    0x273, 0x65d, 0x65e, 0x65f, 0x660, 0x661, 0x662, 0x663,
-    0x664, 0x665, 0x666, 0x667, 0x668, 0x669, 0x66a, 0x66b,
-    0x66c, 0x66d, 0x66e, 0x66f, 0x398, 0x399, 0x39a, 0x39b,
-    0x39c, 0x39d, 0x39e, 0x39f, 0x273, 0x670, 0x671, 0x672,
-    0x673, 0x674, 0x675, 0x676, 0x3a0, 0x3a1, 0x3a2, 0x3a3,
-    0x3a4, 0x3a5, 0x3a6, 0x3a7, 0x3a8, 0x3a9, 0x3aa, 0x3ab,
+    0x348, 0x349, 0x34a, 0x34b, 0x34c, 0x34d, 0x34e, 0x34f, 0x350, 0x351, 0x352, 0x353, 0x354,
+    0x355, 0x356, 0x357, 0x358, 0x359, 0x35a, 0x35b, 0x35c, 0x35d, 0x35e, 0x35f, 0x360, 0x361,
+    0x362, 0x363, 0x364, 0x365, 0x366, 0x367, 0x368, 0x369, 0x36a, 0x36b, 0x36c, 0x36d, 0x36e,
+    0x36f, 0x370, 0x371, 0x372, 0x373, 0x374, 0x375, 0x376, 0x377, 0x378, 0x379, 0x37a, 0x37b,
+    0x37c, 0x37d, 0x37e, 0x37f, 0x380, 0x381, 0x382, 0x383, 0x384, 0x385, 0x386, 0x387, 0x38c,
+    0x38d, 0x38e, 0x38f, 0x388, 0x389, 0x38a, 0x38b, 0x390, 0x391, 0x392, 0x393, 0x394, 0x395,
+    0x396, 0x397, 0x273, 0x65d, 0x65e, 0x65f, 0x660, 0x661, 0x662, 0x663, 0x664, 0x665, 0x666,
+    0x667, 0x668, 0x669, 0x66a, 0x66b, 0x66c, 0x66d, 0x66e, 0x66f, 0x398, 0x399, 0x39a, 0x39b,
+    0x39c, 0x39d, 0x39e, 0x39f, 0x273, 0x670, 0x671, 0x672, 0x673, 0x674, 0x675, 0x676, 0x3a0,
+    0x3a1, 0x3a2, 0x3a3, 0x3a4, 0x3a5, 0x3a6, 0x3a7, 0x3a8, 0x3a9, 0x3aa, 0x3ab,
 };
 // FUNCTION: WIZ8 0x005248a0
 unsigned char Function5248A0(int party_slot, int condition)
 {
-    return g_status_685170.buffers.characters[party_slot]
-        .conditions_1817[condition].value_08;
+    return g_status_685170.buffers.characters[party_slot].conditions_1817[condition].value_08;
 }
 
 // GLOBAL
@@ -78,51 +70,42 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
     W8Character* found_character;
     unsigned char can_rest;
 
-    if (character->condition_turns[condition] != 0
-        || g_byte_00687500 == 0) {
+    if (character->condition_turns[condition] != 0 || g_byte_00687500 == 0) {
         if (row->occupied == 0) {
-            srAssertFail(
-                "fCHAR_OCCUPIED(uiChar)",
-                "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
-                0xf4, 0);
+            srAssertFail("fCHAR_OCCUPIED(uiChar)",
+                         "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
+                         0xf4, 0);
         }
         if (character->condition_turns[condition] == 0) {
-            srAssertFail(
-                "gStatus.Char[uiChar].uiCondition[uiCondition] > 0",
-                "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
-                0xf5, 0);
+            srAssertFail("gStatus.Char[uiChar].uiCondition[uiCondition] > 0",
+                         "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
+                         0xf5, 0);
         }
-        if (party_slot >= 0 && party_slot < 8 && row->occupied != 0
-            && character->hp_current != 0) {
+        if (party_slot >= 0 && party_slot < 8 && row->occupied != 0 && character->hp_current != 0) {
             can_rest = character->unknown_0b01 < 0xd;
-        }
-        else {
+        } else {
             can_rest = 0;
         }
         if (condition == 9) {
-            if (character->condition_turns[W8_CONDITION_SURVIVES_DEATH] != 0
-                && Function42B740(g_loaded_level_id) != '\t'
-                && Function42B740(g_loaded_level_id) != '\n') {
+            if (character->condition_turns[W8_CONDITION_SURVIVES_DEATH] != 0 &&
+                Function42B740(g_loaded_level_id) != '\t' &&
+                Function42B740(g_loaded_level_id) != '\n') {
                 return;
             }
-        }
-        else if (condition == 0xb
-                 && FindItemOnParty(
-                        0x243, &found_item, &found_character, 2, 0) != 0
-                 && found_item != &g_status_685170.item_in_hand_235b) {
+        } else if (condition == 0xb &&
+                   FindItemOnParty(0x243, &found_item, &found_character, 2, 0) != 0 &&
+                   found_item != &g_status_685170.item_in_hand_235b) {
             if (found_character == 0) {
                 found_character = FindPartyMemberWithLowestResistance4();
             }
-            if (CharacterPointerToPartySlot(found_character)
-                    == (unsigned int)party_slot
-                && !FindItemOnCharacter(found_character, 0x239, 0, 0, 0)) {
+            if (CharacterPointerToPartySlot(found_character) == (unsigned int)party_slot &&
+                !FindItemOnCharacter(found_character, 0x239, 0, 0, 0)) {
                 return;
             }
         }
         if (announce != 0) {
-            PostCharacterNotice(
-                party_slot, gppStringList[0x90c / 4],
-                gppStringList[g_condition_notices_0061E570[condition * 4]]);
+            PostCharacterNotice(party_slot, gppStringList[0x90c / 4],
+                                gppStringList[g_condition_notices_0061E570[condition * 4]]);
         }
         character->condition_turns[condition] = 0;
         Function5237E0(party_slot);
@@ -139,8 +122,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
             g_enchantment_six_cleared_006840bb = 1;
             break;
         case 0xb:
-            if (gXStatus.fCombatMode != 0
-                && g_combat_state->characters[party_slot].flag_80 != 0) {
+            if (gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].flag_80 != 0) {
                 row->target_out_of_combat = row->target_in_combat;
             }
             break;
@@ -152,11 +134,10 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
         }
         Function50E650(party_slot);
         Function52F790(character, condition);
-        if (!can_rest && party_slot > -1 && party_slot < 8
-            && row->occupied != 0 && character->hp_current != 0
-            && character->unknown_0b01 < 0xd && gXStatus.fCombatMode != 0
-            && CharacterCanSwitchTo(
-                   party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) != 0) {
+        if (!can_rest && party_slot > -1 && party_slot < 8 && row->occupied != 0 &&
+            character->hp_current != 0 && character->unknown_0b01 < 0xd &&
+            gXStatus.fCombatMode != 0 &&
+            CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) != 0) {
             Function53A930(party_slot, &row->target_in_combat);
         }
     }
@@ -186,8 +167,7 @@ void NormalizeItemQuantityKind(W8ItemInstance* item)
 
     quantity_kind = g_item_records[item->item_id].quantity_kind;
     if (quantity_kind != 1) {
-        if (quantity_kind <= 1 || quantity_kind > 4 ||
-            item->stack_count <= 0) {
+        if (quantity_kind <= 1 || quantity_kind > 4 || item->stack_count <= 0) {
             return;
         }
         if (item->uses_or_charges > 0) {
@@ -223,7 +203,7 @@ struct W8ConditionImmunity {
     unsigned char kind;
     unsigned char pad;
     int conditions[20];
-};                                              /* 0x52 */
+}; /* 0x52 */
 #pragma pack(pop)
 
 // GLOBAL: WIZ8 0x006171AA
@@ -237,9 +217,8 @@ W8ConditionImmunity g_condition_immunities_006171AA[3] = {
    and motion update as clearing it, plus immunity, argument and combat-hate
    handling on the way in. */
 // FUNCTION: WIZ8 0x00523C00
-void SetMonsterCondition(
-    int location_id, int condition, int duration, int argument,
-    W8TargetSource* target, int quiet)
+void SetMonsterCondition(int location_id, int condition, int duration, int argument,
+                         W8TargetSource* target, int quiet)
 {
     unsigned int list_index;
     W8MonsterInfo* monster_info;
@@ -253,10 +232,9 @@ void SetMonsterCondition(
     unsigned char handled;
 
     if (argument != 0 && condition != W8_CONDITION_WITH_ARGUMENT) {
-        srAssertFail(
-            "(uiPoisonStrength == 0) || (uiCondition == COND_POISONED)",
-            "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
-            0x220, 0);
+        srAssertFail("(uiPoisonStrength == 0) || (uiCondition == COND_POISONED)",
+                     "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", 0x220,
+                     0);
     }
     if (condition == W8_CONDITION_WITH_ARGUMENT && argument == 0) {
         return;
@@ -275,17 +253,15 @@ void SetMonsterCondition(
         break;
     }
     list_index = MonsterGetIndexByLocationID(
-        0x23c,
-        "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
-        location_id, 1);
+        0x23c, "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", location_id,
+        1);
     monster_info = MonsterGetScriptPartByLocationIndex(list_index);
     record = GetMonsterDataForInfo(monster_info);
     if (monster_info->hp_current == 0) {
         return;
     }
     kind = record->kind_0cb;
-    for (immunity = g_condition_immunities_006171AA;
-         immunity < g_condition_immunities_006171AA + 3;
+    for (immunity = g_condition_immunities_006171AA; immunity < g_condition_immunities_006171AA + 3;
          ++immunity) {
         if (immunity->kind == kind) {
             for (index = 0; index < 0x14; ++index) {
@@ -301,14 +277,12 @@ void SetMonsterCondition(
         if (old_duration == 0) {
             if (condition == 9 || condition == 0xC) {
                 RefreshMonsterSight(monster_info);
-            }
-            else if (condition == W8_CONDITION_HOSTILE) {
+            } else if (condition == W8_CONDITION_HOSTILE) {
                 if (monster_info->flag_16 == 0) {
                     monster_info->condition_turns[W8_CONDITION_HOSTILE] = 0;
                     return;
                 }
-                Function5477D0(
-                    monster_info, (monster_info->flag_16 == 1) + 1);
+                Function5477D0(monster_info, (monster_info->flag_16 == 1) + 1);
             }
         }
         slot = 0x13;
@@ -320,35 +294,29 @@ void SetMonsterCondition(
         }
         monster_info->value_107 = slot;
         list_index = GetMonsterGroupIndexByID(
-            0x34e,
-            "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
+            0x34e, "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
             monster_info->monster_group_id, 1);
         monster_group = GetMonsterGroupByListIndex(list_index);
         RecountActiveMonsterGroupMembers(monster_group);
         if (monster_info->flag_14 != 0) {
-            MonsterInfoSetMotionless(
-                monster_info,
-                (unsigned int)monster_info->value_107 < 0xE ? 0 : 1);
+            MonsterInfoSetMotionless(monster_info,
+                                     (unsigned int)monster_info->value_107 < 0xE ? 0 : 1);
         }
         if (old_duration == 0 && condition != 0 && condition <= 0x12) {
             Function4ACD80(monster_info->monster, condition - 1, 1);
         }
-        if (monster_info->fInCombat != 0
-            && TargetSourceIsCharacter(target, 0) != 0
-            && target->iChar != -1) {
+        if (monster_info->fInCombat != 0 && TargetSourceIsCharacter(target, 0) != 0 &&
+            target->iChar != -1) {
             int* hate = (int*)&monster_info->pCombat->unknown_01a[target->iChar * 4];
             record = GetMonsterDataForInfo(monster_info);
             *hate += (record->missile_value_24f * (unsigned int)condition) / 3;
         }
         handled = 1;
-    }
-    else {
+    } else {
         handled = 0;
     }
-    if (TargetSourceIsCharacter(target, 0) != 0
-        || TargetSourceIsMonster(target, 0) != 0) {
-        if (target->fBackfire == 0 && target->fReflection == 0
-            && target->unknown_1d[1] == 0) {
+    if (TargetSourceIsCharacter(target, 0) != 0 || TargetSourceIsMonster(target, 0) != 0) {
+        if (target->fBackfire == 0 && target->fReflection == 0 && target->unknown_1d[1] == 0) {
             monster_info->condition_target_304 = *target;
         }
     }
@@ -367,13 +335,12 @@ void SetMonsterCondition(
         MonsterStartsDying(monster_info, quiet);
         return;
     }
-    if (quiet != 0
-        && (gXStatus.fCombatMode != 0 || monster_info->party_threat.flag_25 != 0)) {
+    if (quiet != 0 && (gXStatus.fCombatMode != 0 || monster_info->party_threat.flag_25 != 0)) {
         wchar_t* name = GetMonsterName(monster_info, 0, 0);
         WriteGameLog(9, L"%s %s!", name, g_condition_notices_0061E570[condition * 4]);
     }
-    if (monster_info->monster->IsCycleInterruptable(
-            monster_info->monster->m_pRep->pending_cycle) != 0) {
+    if (monster_info->monster->IsCycleInterruptable(monster_info->monster->m_pRep->pending_cycle) !=
+        0) {
         StartMonsterCycle(monster_info, 0x14, 1);
     }
 }
@@ -388,30 +355,25 @@ void ClearMonsterCondition(int location_id, int condition)
     int slot;
 
     list_index = MonsterGetIndexByLocationID(
-        0x2d0,
-        "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
-        location_id, 1);
+        0x2d0, "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", location_id,
+        1);
     monster_info = MonsterGetScriptPartByLocationIndex(list_index);
     if (monster_info->hp_current != 0) {
         if (monster_info->condition_turns[condition] == 0) {
-            srAssertFail(
-                "pMonsterInfo->uiCondition[uiCondition] > 0",
-                "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
-                0x2d8, 0);
+            srAssertFail("pMonsterInfo->uiCondition[uiCondition] > 0",
+                         "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
+                         0x2d8, 0);
         }
         if (condition == 0xd && monster_info->condition_turns[0xd] != 0) {
             list_index = GetMonsterGroupIndexByID(
-                0x2e0,
-                "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
+                0x2e0, "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
                 monster_info->monster_group_id, 1);
             monster_group = GetMonsterGroupByListIndex(list_index);
             Function5477D0(monster_info, monster_group->flag_2a);
         }
         if (gXStatus.fCombatMode != 0 || monster_info->party_threat.flag_25 != 0) {
-            WriteGameLog(
-                9, gppStringList[0x910 / 4],
-                GetMonsterName(monster_info, 0, 0),
-                g_condition_notices_0061E570[condition * 4]);
+            WriteGameLog(9, gppStringList[0x910 / 4], GetMonsterName(monster_info, 0, 0),
+                         g_condition_notices_0061E570[condition * 4]);
         }
         monster_info->condition_turns[condition] = 0;
         slot = 0x13;
@@ -423,14 +385,13 @@ void ClearMonsterCondition(int location_id, int condition)
         }
         monster_info->value_107 = slot;
         list_index = GetMonsterGroupIndexByID(
-            0x34e,
-            "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
+            0x34e, "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
             monster_info->monster_group_id, 1);
         monster_group = GetMonsterGroupByListIndex(list_index);
         RecountActiveMonsterGroupMembers(monster_group);
         if (monster_info->flag_14 != 0) {
-            MonsterInfoSetMotionless(
-                monster_info, (unsigned int)monster_info->value_107 < 0xE ? 0 : 1);
+            MonsterInfoSetMotionless(monster_info,
+                                     (unsigned int)monster_info->value_107 < 0xE ? 0 : 1);
         }
         if (condition != 0 && condition < 0x13) {
             Function4ACD80(monster_info->monster, condition - 1, 0);
@@ -459,13 +420,12 @@ void ClearMonsterCondition(int location_id, int condition)
    switch, trait gates, and the same rescan/notify/tail handling as the other
    transitions. */
 // FUNCTION: WIZ8 0x00522FE0
-unsigned char SetCharacterCondition(
-    int party_slot, int condition, int duration, int argument,
-    char value_5, char value_6)
+unsigned char SetCharacterCondition(int party_slot, int condition, int duration, int argument,
+                                    char value_5, char value_6)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
-/* Retail compiled this comparison with VC6's mixed-sign operands; the
+    /* Retail compiled this comparison with VC6's mixed-sign operands; the
    signedness is part of the recovered body and changing it would change
    the compare and branch. Suppress only this diagnostic here. */
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
@@ -475,23 +435,20 @@ unsigned char SetCharacterCondition(
     unsigned char handled;
 
     if (row->occupied == 0) {
-        srAssertFail(
-            "fCHAR_OCCUPIED(uiChar)",
-            "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
-            0x2a, 0);
+        srAssertFail("fCHAR_OCCUPIED(uiChar)",
+                     "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", 0x2a,
+                     0);
     }
     if (argument != 0 && condition != W8_CONDITION_WITH_ARGUMENT) {
-        srAssertFail(
-            "(uiPoisonStrength == 0) || (uiCondition == COND_POISONED)",
-            "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
-            0x2d, 0);
+        srAssertFail("(uiPoisonStrength == 0) || (uiCondition == COND_POISONED)",
+                     "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", 0x2d,
+                     0);
     }
     if (condition == W8_CONDITION_WITH_ARGUMENT && argument == 0) {
         return 0;
     }
-    if (condition == 0x12
-        && CharacterHasTrait00547940(character, 2) != 0
-        && character->condition_turns[17] < 7) {
+    if (condition == 0x12 && CharacterHasTrait00547940(character, 2) != 0 &&
+        character->condition_turns[17] < 7) {
         Function547A50(party_slot);
         return 0;
     }
@@ -509,9 +466,8 @@ unsigned char SetCharacterCondition(
         break;
     }
     if (g_byte_00687500 != 0) {
-        PostCharacterNotice(
-            party_slot, gppStringList[0x908 / 4],
-            gppStringList[g_condition_notices_0061E570[condition * 4]]);
+        PostCharacterNotice(party_slot, gppStringList[0x908 / 4],
+                            gppStringList[g_condition_notices_0061E570[condition * 4]]);
         return 0;
     }
     switch (condition) {
@@ -549,14 +505,12 @@ unsigned char SetCharacterCondition(
         if (old_duration == 0) {
             if (condition == 9 || condition == 0xC) {
                 g_enchantment_six_cleared_006840bb = 1;
-            }
-            else if (condition == 0xd) {
+            } else if (condition == 0xd) {
                 SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT);
             }
         }
         handled = 1;
-    }
-    else {
+    } else {
         handled = 0;
     }
     if ((unsigned int)character->condition_argument < (unsigned int)argument) {
@@ -569,8 +523,7 @@ unsigned char SetCharacterCondition(
     }
     if (condition == 0x12) {
         CharacterDies(party_slot);
-    }
-    else if (!(condition < 0x12)) {
+    } else if (!(condition < 0x12)) {
         SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
     }
     if (old_b01 != character->unknown_0b01) {
@@ -579,16 +532,14 @@ unsigned char SetCharacterCondition(
     if (value_6 != 0) {
         if (condition == 0x13 && value_5 != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x754 / 4]);
-        }
-        else {
-            PostCharacterNotice(
-                party_slot, L"%s!",
-                gppStringList[g_condition_notices_0061E570[condition * 4]]);
+        } else {
+            PostCharacterNotice(party_slot, L"%s!",
+                                gppStringList[g_condition_notices_0061E570[condition * 4]]);
         }
     }
-    if ((party_slot < 0 || party_slot > 7 || row->occupied == 0
-         || character->hp_current == 0 || character->unknown_0b01 > 0xC)
-        && gXStatus.fCombatMode != 0) {
+    if ((party_slot < 0 || party_slot > 7 || row->occupied == 0 || character->hp_current == 0 ||
+         character->unknown_0b01 > 0xC) &&
+        gXStatus.fCombatMode != 0) {
         ClearPartySlotMonsterHighlights(party_slot);
     }
     return 1;
@@ -613,8 +564,7 @@ void CopyCharacterConditionsToTarget(const W8Character* character, const int* ta
             if (condition == W8_CONDITION_WITH_ARGUMENT) {
                 argument = character->condition_argument;
                 duration = character->condition_turns[W8_CONDITION_WITH_ARGUMENT];
-            }
-            else {
+            } else {
                 argument = 0;
             }
             SetMonsterCondition(*target, condition, duration, argument, &target_block, 0);
@@ -750,8 +700,7 @@ void RemoveConditionFromEveryone(int condition)
         }
     }
 
-    for (monster_index = 0; monster_index < PLLength(gXStatus.plsMonsterList);
-         ++monster_index) {
+    for (monster_index = 0; monster_index < PLLength(gXStatus.plsMonsterList); ++monster_index) {
         monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
         if (monster_info->condition_turns[condition] != 0) {
             ClearMonsterCondition(monster_info->location_id, condition);

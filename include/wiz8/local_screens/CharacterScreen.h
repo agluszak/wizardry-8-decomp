@@ -29,25 +29,24 @@ public:
 /* One value row shared by the skills and attributes pages. */
 class W8CharacterPageEntry : public W8TextControl::Listener {
 public:
-    W8CharacterPageEntry(Controls* owner, int x, int y,
-                         bool compact);        /* 0x005AF690 */
+    W8CharacterPageEntry(Controls* owner, int x, int y, bool compact); /* 0x005AF690 */
     virtual ~W8CharacterPageEntry()
     {
         delete m_label_014;
         delete m_first_text_018;
         delete m_second_text_01c;
     }
-    void SetContent(unsigned int id, const wchar_t* label, unsigned int* first,
-                    int* second, int* third, int help_id); /* 0x005AF9E0 */
-    void SetEnabled(bool enabled);             /* 0x005AFA90 */
-    void SetIncrementAllowed(bool allowed);    /* 0x005AFC20 */
-    void Redraw();                                      /* 0x005AFAF0 */
-    void SetLabelFontState(int state);                  /* 0x005AFBF0 */
-    void MarkDirty();                                   /* 0x005AFC00 */
-    void UpdateButtons();                               /* 0x005AFD10 */
-    virtual void OnPrimary(W8TextControl* control) override; /* 0x005AFC50 */
+    void SetContent(unsigned int id, const wchar_t* label, unsigned int* first, int* second,
+                    int* third, int help_id);                  /* 0x005AF9E0 */
+    void SetEnabled(bool enabled);                             /* 0x005AFA90 */
+    void SetIncrementAllowed(bool allowed);                    /* 0x005AFC20 */
+    void Redraw();                                             /* 0x005AFAF0 */
+    void SetLabelFontState(int state);                         /* 0x005AFBF0 */
+    void MarkDirty();                                          /* 0x005AFC00 */
+    void UpdateButtons();                                      /* 0x005AFD10 */
+    virtual void OnPrimary(W8TextControl* control) override;   /* 0x005AFC50 */
     virtual void OnSecondary(W8TextControl* control) override; /* 0x005AFCB0 */
-    void SetHelpActive005AFAE0(bool active);        /* 0x005AFAE0 */
+    void SetHelpActive005AFAE0(bool active);                   /* 0x005AFAE0 */
 
     W8CharacterPageEntryListener* m_listener_004;
     W8TextControl* m_increment_008;
@@ -67,28 +66,25 @@ public:
     bool m_enabled_03a;
     bool m_increment_allowed_03b;
 };
-static_assert(sizeof(W8CharacterPageEntry) == 0x3c,
-              "W8CharacterPageEntry_size");
+static_assert(sizeof(W8CharacterPageEntry) == 0x3c, "W8CharacterPageEntry_size");
 
 /* Common 0x70-byte base constructed by 0x005AFD90.  The four page constructors
    below all call it and SelectPage dispatches these primary slots. */
 class W8CharacterPage : public Controls {
 public:
-    W8CharacterPage(int render_target);                /* 0x005AFD90 */
-    virtual ~W8CharacterPage();                        /* 0x005AFE40 */
+    W8CharacterPage(int render_target);                           /* 0x005AFD90 */
+    virtual ~W8CharacterPage();                                   /* 0x005AFE40 */
     virtual void Invalidate(const W8ControlsRect* rect) override; /* 0x005AFF50 */
-    virtual void Redraw() override;                    /* 0x005AFF20 */
-    virtual void SetCharacter(W8Character* character,
-                              W8CharacterCreationState* creation_state,
-                              int mode);                /* 0x005AFF00 */
+    virtual void Redraw() override;                               /* 0x005AFF20 */
+    virtual void SetCharacter(W8Character* character, W8CharacterCreationState* creation_state,
+                              int mode); /* 0x005AFF00 */
     virtual void Activate() = 0;
-    virtual void Deactivate();                          /* 0x005CA1F0 */
+    virtual void Deactivate(); /* 0x005CA1F0 */
     virtual void Accept() = 0;
-    virtual void GetNavigationState(bool* next_enabled,
-                                    bool* exit_enabled) = 0;
-    virtual void HandleInput(InputAtom* input);         /* 0x005B1BE0 */
-    virtual void Refresh();                            /* 0x005B1BF0 */
-    virtual void Prepare();                            /* 0x005AFFA0 */
+    virtual void GetNavigationState(bool* next_enabled, bool* exit_enabled) = 0;
+    virtual void HandleInput(InputAtom* input); /* 0x005B1BE0 */
+    virtual void Refresh();                     /* 0x005B1BF0 */
+    virtual void Prepare();                     /* 0x005AFFA0 */
     W8GrowableVector<W8CharacterPageEntry*> m_entries_04c;
     W8CharacterScreen* m_screen_05c;
     W8Character* m_character_060;
@@ -98,7 +94,7 @@ public:
     unsigned char m_dirty_06d;
     unsigned char pad_06e[2];
 
-    void AddEntry(W8CharacterPageEntry* entry);         /* 0x005AFFC0 */
+    void AddEntry(W8CharacterPageEntry* entry); /* 0x005AFFC0 */
 };
 static_assert(sizeof(W8CharacterPage) == 0x70, "W8CharacterPage_size");
 
@@ -115,8 +111,7 @@ struct W8CharacterStatsRecord {
     unsigned char enabled_0e;
     unsigned char pad_0f;
 };
-static_assert(sizeof(W8CharacterStatsRecord) == 0x10,
-              "W8CharacterStatsRecord_size");
+static_assert(sizeof(W8CharacterStatsRecord) == 0x10, "W8CharacterStatsRecord_size");
 
 /* The 0xEF6B0 value control: it carries the record currently shown and the
    record to fall back to when the character has none. 0x005C8F60 is the
@@ -124,9 +119,8 @@ static_assert(sizeof(W8CharacterStatsRecord) == 0x10,
 // VTABLE: WIZ8 0x005ef6b0 W8CharacterStatsValue005EF6B0
 class W8CharacterStatsValue005EF6B0 : public W8TextControl {
 public:
-    W8CharacterStatsValue005EF6B0(
-        Controls* owner, int x, int y,
-        const W8CharacterStatsRecord* default_record);
+    W8CharacterStatsValue005EF6B0(Controls* owner, int x, int y,
+                                  const W8CharacterStatsRecord* default_record);
     virtual void Redraw(int full_redraw) override;
     virtual void OnRightButtonUp(int event) override;
     void SetRecord(const W8CharacterStatsRecord* record);
@@ -134,8 +128,7 @@ public:
     const W8CharacterStatsRecord* m_record_0b8;
     const W8CharacterStatsRecord* m_default_record_0bc;
 };
-static_assert(sizeof(W8CharacterStatsValue005EF6B0) == 0xc0,
-              "W8CharacterStatsValue005EF6B0_size");
+static_assert(sizeof(W8CharacterStatsValue005EF6B0) == 0xc0, "W8CharacterStatsValue005EF6B0_size");
 
 /* Stats-row callbacks installed at +0x70 of the page. The row itself raises
    slots 0 and 3; the page's input handling raises slots 1 and 2. */
@@ -156,12 +149,12 @@ public:
     W8CharacterStatsRow005EF750();
     virtual void OnPrimary(W8TextControl* control) override;   /* 0x005c9760 */
     virtual void OnSecondary(W8TextControl* control) override; /* 0x005c9a50 */
-    void Initialize(Controls* owner, unsigned int* region_set, int x, int y,
-                    int count, const W8CharacterStatsRecord* table,
-                    const W8CharacterStatsRecord* default_record, int help_first,
-                    int help_second, int help_value); /* 0x005c9310 */
-    void BuildSubpanel();                             /* 0x005c94e0 */
-    void SetValue(int index);                         /* 0x005c96c0 */
+    void Initialize(Controls* owner, unsigned int* region_set, int x, int y, int count,
+                    const W8CharacterStatsRecord* table,
+                    const W8CharacterStatsRecord* default_record, int help_first, int help_second,
+                    int help_value); /* 0x005c9310 */
+    void BuildSubpanel();            /* 0x005c94e0 */
+    void SetValue(int index);        /* 0x005c96c0 */
 
     int m_value_004;
     unsigned short m_count_008;
@@ -177,8 +170,7 @@ public:
     W8TextControl** m_subpanel_entries_02c;
     W8CharacterStatsRowListener005EF768* m_listener_030;
 };
-static_assert(sizeof(W8CharacterStatsRow005EF750) == 0x34,
-              "W8CharacterStatsRow005EF750_size");
+static_assert(sizeof(W8CharacterStatsRow005EF750) == 0x34, "W8CharacterStatsRow005EF750_size");
 
 class W8CharacterPage005EF778 : public W8CharacterPage,
                                 public W8CharacterStatsRowListener005EF768,
@@ -188,8 +180,7 @@ public:
     W8CharacterPage005EF778() : W8CharacterPage(0x104) {}
     virtual ~W8CharacterPage005EF778() override;
     virtual void Redraw() override;
-    virtual void SetCharacter(W8Character*,
-                              W8CharacterCreationState*, int) override;
+    virtual void SetCharacter(W8Character*, W8CharacterCreationState*, int) override;
     virtual void Activate() override;
     virtual void Accept() override;
     virtual void GetNavigationState(bool*, bool*) override;
@@ -238,8 +229,7 @@ class W8CharacterSpellList;
 
 /* CGSSpellsPage.cpp: the 0x558-byte middle is 114 spell entries, not an
    embedded framework object. The range-list callbacks use the +0x70 base. */
-class W8CharacterPage005EF664 : public W8CharacterPage,
-                                public W8CharacterSpellListListener {
+class W8CharacterPage005EF664 : public W8CharacterPage, public W8CharacterSpellListListener {
 public:
     W8CharacterPage005EF664();
     virtual ~W8CharacterPage005EF664() override;
@@ -252,6 +242,7 @@ public:
     virtual void Refresh() override;
     virtual void SelectSpell(unsigned int entry) override;
     virtual void ShowSpellInfo(unsigned int entry) override;
+
 private:
     void UpdateSpellLists();
     W8CharacterSpellList* m_realms_074[6];
@@ -262,8 +253,7 @@ private:
 };
 static_assert(sizeof(W8CharacterPage005EF664) == 0x624, "W8CharacterPage005EF664_size");
 
-class W8CharacterPage005EF5C8 : public W8CharacterPage,
-                                public W8CharacterPageEntryListener {
+class W8CharacterPage005EF5C8 : public W8CharacterPage, public W8CharacterPageEntryListener {
 public:
     W8CharacterPage005EF5C8() : W8CharacterPage(0x108) {}
     virtual ~W8CharacterPage005EF5C8() override {}
@@ -275,8 +265,9 @@ public:
     virtual void AdjustEntry(W8CharacterPageEntry*, int) override;
     virtual void ShowEntryInfo(W8CharacterPageEntry*) override;
     virtual void Refresh() override;
+
 private:
-    void UpdateEntries();                               /* 0x005C7B50 */
+    void UpdateEntries(); /* 0x005C7B50 */
     unsigned char m_force_redraw_074;
     unsigned char m_show_fifth_category_075;
     bool m_navigation_state_076;
@@ -284,14 +275,14 @@ private:
 };
 static_assert(sizeof(W8CharacterPage005EF5C8) == 0x78, "W8CharacterPage005EF5C8_size");
 
-class W8CharacterPage005EF57C
-    : public W8CharacterPage,
-      public W8ControlSelectionListener,
-      public W8TextControl::Listener {
+class W8CharacterPage005EF57C : public W8CharacterPage,
+                                public W8ControlSelectionListener,
+                                public W8TextControl::Listener {
 public:
     W8CharacterPage005EF57C()
-        : W8CharacterPage(0x105), m_animation_timer_0d4(0.4f, 1),
-          m_animation_active_0fc(0) {}
+        : W8CharacterPage(0x105), m_animation_timer_0d4(0.4f, 1), m_animation_active_0fc(0)
+    {
+    }
     virtual ~W8CharacterPage005EF57C() override;
     virtual void Redraw() override;
     virtual void SetCharacter(W8Character*, W8CharacterCreationState*, int) override;
@@ -303,6 +294,7 @@ public:
     virtual void Refresh() override;
     virtual void OnSelectionChanged(W8ControlSelection*, int) override;
     virtual void OnPrimary(W8TextControl*) override;
+
 private:
     W8TextControl* m_control_078;
     W8TextControl* m_control_07c;
@@ -375,21 +367,19 @@ public:
 };
 static_assert(sizeof(W8CharacterPageHost) == 0x4, "W8CharacterPageHost_size");
 
-class W8CharacterScreen : public W8CharacterPageHost,
-                          public W8TextControl::Listener {
+class W8CharacterScreen : public W8CharacterPageHost, public W8TextControl::Listener {
 public:
-    W8CharacterScreen(int mode, W8Character* character); /* 0x005B0040 */
-    void BuildControls();                                /* 0x005B0140 */
-    void UpdateDialog();                                 /* 0x005B04B0 */
-    void AdvancePage(unsigned char forward);             /* 0x005B0B50 */
-    void SelectPage(int index);                          /* 0x005B0D50 */
-    void SyncCharacterForPage(int index);                /* 0x005B0F30 */
-    unsigned char CommitCharacter();                     /* 0x005B0FD0 */
-    void DrawHeader();                                   /* 0x005B1110 */
-    void ShowMessage(wchar_t* text, int confirmation,
-                     int response);                      /* 0x005B1430 */
-    void HandleDialogResult(int response, unsigned char accepted); /* 0x005B1520 */
-    unsigned char ValidateName();                        /* 0x005B1670 */
+    W8CharacterScreen(int mode, W8Character* character);             /* 0x005B0040 */
+    void BuildControls();                                            /* 0x005B0140 */
+    void UpdateDialog();                                             /* 0x005B04B0 */
+    void AdvancePage(unsigned char forward);                         /* 0x005B0B50 */
+    void SelectPage(int index);                                      /* 0x005B0D50 */
+    void SyncCharacterForPage(int index);                            /* 0x005B0F30 */
+    unsigned char CommitCharacter();                                 /* 0x005B0FD0 */
+    void DrawHeader();                                               /* 0x005B1110 */
+    void ShowMessage(wchar_t* text, int confirmation, int response); /* 0x005B1430 */
+    void HandleDialogResult(int response, unsigned char accepted);   /* 0x005B1520 */
+    unsigned char ValidateName();                                    /* 0x005B1670 */
 
     virtual void UpdateNavigation(W8CharacterPage* page) override;
     virtual void ShowDialog005B0610(int value) override;

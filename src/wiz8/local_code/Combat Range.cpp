@@ -48,8 +48,7 @@ W8RangeCategory GetBestHandRangeCategory(const W8Character* character)
 
     for (hand = 0; hand < 2; ++hand) {
         if (character->hand_attacks[hand].in_play != 0) {
-            category = static_cast<W8RangeCategory>(
-                CalcRangeCategoryToTarget(character, hand));
+            category = static_cast<W8RangeCategory>(CalcRangeCategoryToTarget(character, hand));
             if (category > best) {
                 best = category;
             }
@@ -60,8 +59,8 @@ W8RangeCategory GetBestHandRangeCategory(const W8Character* character)
 
 /* Whether the first lighting condition applies at distant or extreme range. */
 // FUNCTION: WIZ8 0x00519be0
-unsigned char RangeCategoryUsesSightCondition(
-    const W8MonsterInfo* monster, W8RangeCategory range_category)
+unsigned char RangeCategoryUsesSightCondition(const W8MonsterInfo* monster,
+                                              W8RangeCategory range_category)
 {
     if (range_category >= W8_RANGE_LONG && range_category <= W8_RANGE_EXTREME) {
         return GetSightCondition37A(monster);
@@ -81,8 +80,7 @@ W8RangeCategory GetBestMonsterAttackRange(const W8MonsterRecord* record, char cl
     for (attack = 0; attack < W8_MAX_MONSTER_ATTACKS; ++attack) {
         if (record->attacks[attack].fHasAttack != 0) {
             category = record->attacks[attack].range_category;
-            if ((close_quarters_only == 0 || category < W8_RANGE_LONG) &&
-                (int)category > best) {
+            if ((close_quarters_only == 0 || category < W8_RANGE_LONG) && (int)category > best) {
                 best = static_cast<W8RangeCategory>(category);
             }
         }
@@ -94,8 +92,8 @@ W8RangeCategory GetBestMonsterAttackRange(const W8MonsterRecord* record, char cl
    the spell record; two of the actions have a fixed answer and the rest have
    none. A plain attack takes it from the attack itself, which has to exist. */
 // FUNCTION: WIZ8 0x0051a730
-W8RangeCategory GetMonsterActionRangeCategory(
-    const W8MonsterInfo* monster_info, const W8MonsterRecord* record, unsigned int attack)
+W8RangeCategory GetMonsterActionRangeCategory(const W8MonsterInfo* monster_info,
+                                              const W8MonsterRecord* record, unsigned int attack)
 {
     switch (monster_info->action_kind) {
     case 0:
@@ -199,10 +197,8 @@ bool AnyoneStandsAhead(unsigned char position)
 // FUNCTION: WIZ8 0x0051b000
 bool FrontRankScreens(unsigned int from_position, unsigned int to_position)
 {
-    unsigned char from_row =
-        g_status_685170.formation.positions[from_position].row;
-    unsigned char to_row =
-        g_status_685170.formation.positions[to_position].row;
+    unsigned char from_row = g_status_685170.formation.positions[from_position].row;
+    unsigned char to_row = g_status_685170.formation.positions[to_position].row;
     int rows_apart;
     int found;
     unsigned int index;
@@ -269,11 +265,9 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int kind)
     float best = 1000000.0f;
 
     *out = 0;
-    if (monster_info->flag_16 == 1
-        && IsVisibleUnderConditions(
-               monster_info, &monster_info->player_visibility, kind)
-        && (best = monster_info->monster->GetDistanceToPlayer004C7CB0(),
-            best < 1000000.0f)) {
+    if (monster_info->flag_16 == 1 &&
+        IsVisibleUnderConditions(monster_info, &monster_info->player_visibility, kind) &&
+        (best = monster_info->monster->GetDistanceToPlayer004C7CB0(), best < 1000000.0f)) {
         *out = 2;
     }
     if (*out == 0 || monster_info->pCombat->unknown_151[1] == 0) {
@@ -282,15 +276,12 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int kind)
         for (unsigned int index = 0; index < count; ++index) {
             W8MonsterInfo* other = MonsterGetScriptPartByLocationIndex(index);
 
-            if (other != monster_info && other->flag_14 != 0
-                && other->hp_current != 0 && other->fInCombat != 0
-                && MonsterHostility00546F80(monster_info, other) == 1) {
-                W8VisibilityRecord* row =
-                    FindMonToMonVisibility(monster_info, other);
+            if (other != monster_info && other->flag_14 != 0 && other->hp_current != 0 &&
+                other->fInCombat != 0 && MonsterHostility00546F80(monster_info, other) == 1) {
+                W8VisibilityRecord* row = FindMonToMonVisibility(monster_info, other);
                 if (IsVisibleUnderConditions(monster_info, row, kind)) {
                     float distance =
-                        monster_info->monster->GetDistanceToMonster004C7DD0(
-                            other->monster);
+                        monster_info->monster->GetDistanceToMonster004C7DD0(other->monster);
                     if (distance < best) {
                         *out = 3;
                         out[2] = other->location_id;

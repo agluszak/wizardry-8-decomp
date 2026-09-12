@@ -32,8 +32,7 @@ W8GrObject::W8GrObject(const W8GrObject& other)
     unknown_008 = other.unknown_008;
     if (other.m_pAI != 0) {
         m_pAI = CloneAIRecord004A91C0(other.m_pAI);
-    }
-    else {
+    } else {
         m_pAI = 0;
     }
     if (other.m_plsSoundEvents != 0) {
@@ -46,15 +45,13 @@ W8GrObject::W8GrObject(const W8GrObject& other)
         }
         count = other.m_plsSoundEvents->GetCount();
         for (index = 0; index < count; ++index) {
-            W8SoundEvent* pse =
-                *other.m_plsSoundEvents->GetAt(index);
+            W8SoundEvent* pse = *other.m_plsSoundEvents->GetAt(index);
 
-            m_plsSoundEvents->Add(CreateSoundEvent004D57A0(
-                pse->value_000, pse->value_004, pse->value_008,
-                pse->value_00c, pse->m_pacWaveName, 0));
+            m_plsSoundEvents->Add(CreateSoundEvent004D57A0(pse->value_000, pse->value_004,
+                                                           pse->value_008, pse->value_00c,
+                                                           pse->m_pacWaveName, 0));
         }
-    }
-    else {
+    } else {
         m_plsSoundEvents = 0;
     }
 }

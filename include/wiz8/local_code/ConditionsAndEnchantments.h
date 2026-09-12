@@ -3,9 +3,8 @@
 struct W8TargetSource;
 
 void RemoveCharacterCondition(int party_slot, int condition, int announce);
-void SetMonsterCondition(
-    int location_id, int condition, int duration, int argument,
-    W8TargetSource* target, int quiet);
+void SetMonsterCondition(int location_id, int condition, int duration, int argument,
+                         W8TargetSource* target, int quiet);
 void ClearMonsterCondition(int location_id, int condition);
 void ClearMonsterEnchantmentSlot(int location_id, int slot);
 /* 0x00524110: the per-condition aging tick the sight producer runs while a

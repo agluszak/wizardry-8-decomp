@@ -17,15 +17,16 @@ public:
     int type_04;
 };
 
-static_assert(sizeof(stLightDefinition) == 0x8,
-              "stLightDefinition_size_must_be_0x8");
+static_assert(sizeof(stLightDefinition) == 0x8, "stLightDefinition_size_must_be_0x8");
 
 // VTABLE: WIZ8 0x005ecdbc
 class stLightDefinition005ECDBC : public stLightDefinition {
 public:
-    stLightDefinition005ECDBC() { type_04 = 1; }
-    stLightDefinition005ECDBC(
-        const stLightDefinition005ECDBC& other)
+    stLightDefinition005ECDBC()
+    {
+        type_04 = 1;
+    }
+    stLightDefinition005ECDBC(const stLightDefinition005ECDBC& other)
     {
         type_04 = 1;
         flags_08 = other.flags_08;
@@ -52,8 +53,7 @@ public:
     }
 
     // FUNCTION: WIZ8 0x004A21E0
-    virtual bool IsEnabledForSubcycle(
-        unsigned char subcycle) override
+    virtual bool IsEnabledForSubcycle(unsigned char subcycle) override
     {
         if (subcycle >= value_3c && subcycle <= value_40) {
             return true;
@@ -83,15 +83,13 @@ static_assert(sizeof(stLightDefinition005ECDBC) == 0x44,
 class stLightDefinition005ECDA0 : public stLightDefinition {
 public:
     stLightDefinition005ECDA0()
-        : values_08(5), values_18(5), values_28(5), values_38(5),
-          value_48(0), time_4c(0.0f)
+        : values_08(5), values_18(5), values_28(5), values_38(5), value_48(0), time_4c(0.0f)
     {
         type_04 = 2;
     }
     virtual ~stLightDefinition005ECDA0() override;
     virtual stLightDefinition* Clone() const override;
-    virtual bool IsEnabledForSubcycle(
-        unsigned char subcycle) override;
+    virtual bool IsEnabledForSubcycle(unsigned char subcycle) override;
 
     W8GrowableVector<int> values_08;
     W8GrowableVector<int> values_18;
@@ -126,29 +124,43 @@ class stLight : public srClassSupport<stLight, srLight, false, 0x10006> {
     friend class Trigger;
 
 public:
-    static const char* sGetClassName() { return "stLight"; }
+    static const char* sGetClassName()
+    {
+        return "stLight";
+    }
 
     stLight() {}
-    explicit stLight(srNode* parent);                /* 0x0049C2C0 */
-    stLight& operator=(const stLight& other);         /* 0x0049C690 */
+    explicit stLight(srNode* parent);         /* 0x0049C2C0 */
+    stLight& operator=(const stLight& other); /* 0x0049C690 */
 
 protected:
-    virtual ~stLight() override;                    /* 0x0049C430 */
+    virtual ~stLight() override; /* 0x0049C430 */
 
 public:
-    virtual srClass* vInstance() override;          /* 0x0049E3A0 */
+    virtual srClass* vInstance() override;                      /* 0x0049E3A0 */
     virtual void traverse(srNode::TraverseInfo& info) override; /* 0x0049C7A0 */
-    virtual void process(
-        const srNode::ProcessInfo& info,
-        srNode::e_processType type) override;       /* 0x0049C8D0 */
-    void Reset0049D070();                           /* 0x0049D070 */
-    void SetDefinitionTime0049C940(float time);      /* 0x0049C940 */
-    void Update0049C960();                           /* 0x0049C960 */
+    virtual void process(const srNode::ProcessInfo& info,
+                         srNode::e_processType type) override; /* 0x0049C8D0 */
+    void Reset0049D070();                                      /* 0x0049D070 */
+    void SetDefinitionTime0049C940(float time);                /* 0x0049C940 */
+    void Update0049C960();                                     /* 0x0049C960 */
 
-    float positionalX() const { return m_positional_228.x; }
-    float positionalY() const { return m_positional_228.y; }
-    float positionalZ() const { return m_positional_228.z; }
-    stLightDefinition* definition() const { return m_definition_234; }
+    float positionalX() const
+    {
+        return m_positional_228.x;
+    }
+    float positionalY() const
+    {
+        return m_positional_228.y;
+    }
+    float positionalZ() const
+    {
+        return m_positional_228.z;
+    }
+    stLightDefinition* definition() const
+    {
+        return m_definition_234;
+    }
     void ConfigureMonsterCopy()
     {
         m_positional_18 = 2;
@@ -160,22 +172,21 @@ public:
     /* One value, not three floats: 0x0049C690 copies it through the base-pointer
        form VC6 emits for a class type's memberwise assignment, not through three
        independent displacement loads. */
-    srVector3T<float> m_positional_228;             /* 0x228 */
-    stLightDefinition* m_definition_234;            /* 0x234: owned */
-    unsigned char m_positional_238;                 /* 0x238 */
-    unsigned char m_positional_239;                 /* 0x239 */
-    unsigned char m_positional_23a;                 /* 0x23a */
+    srVector3T<float> m_positional_228;  /* 0x228 */
+    stLightDefinition* m_definition_234; /* 0x234: owned */
+    unsigned char m_positional_238;      /* 0x238 */
+    unsigned char m_positional_239;      /* 0x239 */
+    unsigned char m_positional_23a;      /* 0x23a */
     unsigned char m_padding_23b;
-    float m_positional_23c;                         /* 0x23c */
-    unsigned long m_positional_240;                 /* 0x240 */
-    W8PathAI* m_owned_244;                          /* 0x244 */
-    unsigned long m_positional_248;                 /* 0x248 */
-    float m_positional_24c;                         /* 0x24c */
-    unsigned long m_positional_250;                 /* 0x250 */
-    W8Prop* m_prop_254;                             /* 0x254 */
+    float m_positional_23c;         /* 0x23c */
+    unsigned long m_positional_240; /* 0x240 */
+    W8PathAI* m_owned_244;          /* 0x244 */
+    unsigned long m_positional_248; /* 0x248 */
+    float m_positional_24c;         /* 0x24c */
+    unsigned long m_positional_250; /* 0x250 */
+    W8Prop* m_prop_254;             /* 0x254 */
 };
 
 static_assert(sizeof(stLight) == 0x258, "stLight_must_be_0x258");
 
 void Function49D120(int handle);
-

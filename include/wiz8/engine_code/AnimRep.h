@@ -83,12 +83,9 @@ public:
     unsigned char unknown_096[2];
 };
 
-static_assert(sizeof(W8AnimRepValue4) == 0x10,
-              "W8AnimRepValue4_size_must_be_0x10");
-static_assert(sizeof(W8AnimRepBase005EC1D8) == 0x64,
-              "W8AnimRepBase005EC1D8_size_must_be_0x64");
-static_assert(sizeof(W8AnimRep005ED050) == 0x98,
-              "W8AnimRep005ED050_size_must_be_0x98");
+static_assert(sizeof(W8AnimRepValue4) == 0x10, "W8AnimRepValue4_size_must_be_0x10");
+static_assert(sizeof(W8AnimRepBase005EC1D8) == 0x64, "W8AnimRepBase005EC1D8_size_must_be_0x64");
+static_assert(sizeof(W8AnimRep005ED050) == 0x98, "W8AnimRep005ED050_size_must_be_0x98");
 
 #pragma pack(pop)
 

@@ -134,29 +134,24 @@ void ReleaseMonToMonVisibilityInfoAbout(int location_id)
     W8MonsterInfo* monster_info;
     W8VisibilityRecord* visibility;
 
-    for (monster_index = 0; monster_index < PLLength(gXStatus.plsMonsterList);
-         ++monster_index) {
+    for (monster_index = 0; monster_index < PLLength(gXStatus.plsMonsterList); ++monster_index) {
         monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
         if (monster_info->flag_14 == 0) {
             continue;
         }
-        for (index = 0;
-             index < (int)PLLength(monster_info->mon_to_mon_visibility);
-             ++index) {
-            visibility =
-                (W8VisibilityRecord*)PLGet(monster_info->mon_to_mon_visibility, index);
+        for (index = 0; index < (int)PLLength(monster_info->mon_to_mon_visibility); ++index) {
+            visibility = (W8VisibilityRecord*)PLGet(monster_info->mon_to_mon_visibility, index);
             if (visibility == 0) {
                 return;
             }
             if (visibility->about_location_id == location_id) {
-                visibility = (W8VisibilityRecord*)PLRemoveAt(
-                    monster_info->mon_to_mon_visibility, index);
+                visibility =
+                    (W8VisibilityRecord*)PLRemoveAt(monster_info->mon_to_mon_visibility, index);
                 if (visibility == 0) {
-                    srAssertFail(
-                        "pVisibility != NULL", SIGHT_CPP, 968,
-                        FormatString(
-                            "ReleaseMonToMonVisibilityInfoAbout: ERROR - PLRemoveAt failed, index %d",
-                            index));
+                    srAssertFail("pVisibility != NULL", SIGHT_CPP, 968,
+                                 FormatString("ReleaseMonToMonVisibilityInfoAbout: ERROR - "
+                                              "PLRemoveAt failed, index %d",
+                                              index));
                 }
                 free(visibility);
                 break;
@@ -173,12 +168,10 @@ void ReleaseMonToMonVisibilityList(W8MonsterInfo* monster_info)
     W8VisibilityRecord* visibility;
 
     while ((int)PLLength(monster_info->mon_to_mon_visibility) > 0) {
-        visibility =
-            (W8VisibilityRecord*)PLRemoveAt(monster_info->mon_to_mon_visibility, 0);
+        visibility = (W8VisibilityRecord*)PLRemoveAt(monster_info->mon_to_mon_visibility, 0);
         if (visibility == 0) {
-            srAssertFail(
-                "pVisibility != NULL", SIGHT_CPP, 990,
-                FormatString("ReleaseMonToMonVisibilityList: ERROR - PLRemoveAt failed"));
+            srAssertFail("pVisibility != NULL", SIGHT_CPP, 990,
+                         FormatString("ReleaseMonToMonVisibilityList: ERROR - PLRemoveAt failed"));
         }
         free(visibility);
     }
@@ -227,8 +220,7 @@ char GetSightCondition37CIndex(const W8MonsterInfo* monster)
    that the monster's missile and spell conditions choose between; the rest are
    fixed, and anything past the named kinds falls back to the last flag. */
 // FUNCTION: WIZ8 0x00505dd0
-bool IsVisibleUnderConditions(
-    const W8MonsterInfo* monster, const W8VisibilityRecord* row, int kind)
+bool IsVisibleUnderConditions(const W8MonsterInfo* monster, const W8VisibilityRecord* row, int kind)
 {
     if (row == 0) {
         return false;
@@ -283,8 +275,7 @@ unsigned int AgeAllMonsterSight(void)
    to be in the world - the two assertions name that field fActive - and a null
    entry in the list is itself an error rather than an end marker. */
 // FUNCTION: WIZ8 0x00505d20
-W8VisibilityRecord* FindMonToMonVisibility(
-    W8MonsterInfo* source, W8MonsterInfo* target)
+W8VisibilityRecord* FindMonToMonVisibility(W8MonsterInfo* source, W8MonsterInfo* target)
 {
     int index;
     W8VisibilityRecord* visibility;
@@ -297,12 +288,10 @@ W8VisibilityRecord* FindMonToMonVisibility(
     }
 
     for (index = 0; index < (int)PLLength(source->mon_to_mon_visibility); ++index) {
-        visibility =
-            (W8VisibilityRecord*)PLGet(source->mon_to_mon_visibility, index);
+        visibility = (W8VisibilityRecord*)PLGet(source->mon_to_mon_visibility, index);
         if (visibility == 0) {
             srAssertFail("FALSE", SIGHT_CPP, 1030, 0);
-        }
-        else if (visibility->about_location_id == target->location_id) {
+        } else if (visibility->about_location_id == target->location_id) {
             return visibility;
         }
     }
@@ -318,13 +307,10 @@ void ResetAndRefreshAllSight005060C0(void)
     unsigned int index;
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
-        W8MonsterInfo* monster_info =
-            MonsterGetScriptPartByLocationIndex(index);
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
-        memset(&monster_info->party_threat, 0,
-               sizeof(monster_info->party_threat));
-        memset(&monster_info->player_visibility, 0,
-               sizeof(monster_info->player_visibility));
+        memset(&monster_info->party_threat, 0, sizeof(monster_info->party_threat));
+        memset(&monster_info->player_visibility, 0, sizeof(monster_info->player_visibility));
     }
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 1, 0);
@@ -375,8 +361,8 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
     srVector3T<float> other_position;
     srVector3T<float> trace_position;
 
-    if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME
-        || monster_info->flag_14 == 0 || monster_info->hp_current == 0) {
+    if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME || monster_info->flag_14 == 0 ||
+        monster_info->hp_current == 0) {
         return;
     }
     viewing_distance = static_cast<float>(WorldGetFarClip(GetWorld()));
@@ -386,8 +372,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
     record = GetMonsterDataForInfo(monster_info);
     monster = monster_info->monster;
     own_x = monster->movement_0c0.position_040.x;
-    own_y = monster->movement_0c0.position_040.y
-            + monster->movement_0c0.height_offset_0b8;
+    own_y = monster->movement_0c0.position_040.y + monster->movement_0c0.height_offset_0b8;
     own_z = monster->movement_0c0.position_040.z;
 
     if (direction == 0) {
@@ -405,14 +390,13 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
         do {
             W8MonsterInfo* other = MonsterGetScriptPartByLocationIndex(index);
 
-            if (other != monster_info && other->fInCombat != 0
-                && other->flag_14 != 0 && other->hp_current != 0) {
+            if (other != monster_info && other->fInCombat != 0 && other->flag_14 != 0 &&
+                other->hp_current != 0) {
                 W8VisibilityRecord* entry = 0;
                 bool found = false;
                 unsigned int record_index;
 
-                for (record_index = 0;
-                     record_index < PLLength(monster_info->mon_to_mon_visibility);
+                for (record_index = 0; record_index < PLLength(monster_info->mon_to_mon_visibility);
                      ++record_index) {
                     entry = static_cast<W8VisibilityRecord*>(
                         PLGet(monster_info->mon_to_mon_visibility, record_index));
@@ -425,15 +409,13 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                     }
                 }
                 if (!found) {
-                    entry = static_cast<W8VisibilityRecord*>(
-                        malloc(sizeof(*entry)));
+                    entry = static_cast<W8VisibilityRecord*>(malloc(sizeof(*entry)));
                     if (entry == 0) {
                         return;
                     }
                     memset(entry, 0, sizeof(*entry));
                     entry->about_location_id = other->location_id;
-                    if (PLAdoptAppend(
-                            monster_info->mon_to_mon_visibility, entry) == -1) {
+                    if (PLAdoptAppend(monster_info->mon_to_mon_visibility, entry) == -1) {
                         return;
                     }
                 }
@@ -441,32 +423,25 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                     W8Monster* other_monster = other->monster;
                     float distance;
 
-                    other_position.x =
-                        other_monster->movement_0c0.position_040.x;
-                    other_position.y =
-                        other_monster->movement_0c0.position_040.y
-                        + other_monster->movement_0c0.height_offset_0b8;
-                    other_position.z =
-                        other_monster->movement_0c0.position_040.z;
+                    other_position.x = other_monster->movement_0c0.position_040.x;
+                    other_position.y = other_monster->movement_0c0.position_040.y +
+                                       other_monster->movement_0c0.height_offset_0b8;
+                    other_position.z = other_monster->movement_0c0.position_040.z;
                     entry->flag_0b = 0;
                     entry->line_of_sight_28 = 0;
-                    distance = monster->GetDistanceToMonster004C7DD0(
-                        other->monster);
+                    distance = monster->GetDistanceToMonster004C7DD0(other->monster);
                     if (viewing_distance >= distance) {
                         unsigned char line_of_sight =
-                            monster->HasLineOfSightToMonster004C4AF0(
-                                other_monster);
+                            monster->HasLineOfSightToMonster004C4AF0(other_monster);
 
                         entry->line_of_sight_28 = line_of_sight;
                         if (line_of_sight != 0) {
-                            unsigned char can_see =
-                                Function5058A0(monster_info, other, entry);
+                            unsigned char can_see = Function5058A0(monster_info, other, entry);
 
                             entry->flag_0b = can_see;
                             if (can_see != 0) {
                                 entry->state_04 = 1;
-                                entry->last_seen_clock_0c =
-                                    g_status_685170.world_clock;
+                                entry->last_seen_clock_0c = g_status_685170.world_clock;
                                 entry->subject_position_10.x = own_x;
                                 entry->subject_position_10.y = own_y;
                                 entry->subject_position_10.z = own_z;
@@ -479,36 +454,30 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                     }
                     if (entry->last_seen_clock_0c == 0) {
                         entry->state_04 = 0;
-                    }
-                    else {
+                    } else {
                         entry->state_04 = static_cast<unsigned char>(
-                            (0xf0U < static_cast<unsigned int>(
-                                g_status_685170.world_clock
-                                - entry->last_seen_clock_0c)) ? 0 : 2);
+                            (0xf0U < static_cast<unsigned int>(g_status_685170.world_clock -
+                                                               entry->last_seen_clock_0c))
+                                ? 0
+                                : 2);
                     }
                 sight_flags:
                     if (entry->line_of_sight_28 == 0) {
                         memset(entry->sight_flags_05, 0, 4);
-                    }
-                    else {
-                        monster->GetMonsterSightFlags004C4B70(
-                            other->monster, entry->sight_flags_05,
-                            entry->sight_flags_05 + 2);
+                    } else {
+                        monster->GetMonsterSightFlags004C4B70(other->monster, entry->sight_flags_05,
+                                                              entry->sight_flags_05 + 2);
                         if (monster_info->has_missile_37a != 0) {
                             unsigned char found =
-                                monster->GetProjectilePosition004C77F0(
-                                    &trace_position);
+                                monster->GetProjectilePosition004C77F0(&trace_position);
                             unsigned char clear;
 
                             if (found == 0) {
-                                srAssertFail(
-                                    "fFoundMissileVertex", SIGHT_CPP, 0x1f5, 0);
+                                srAssertFail("fFoundMissileVertex", SIGHT_CPP, 0x1f5, 0);
                                 clear = 0;
-                            }
-                            else {
+                            } else {
                                 short line = g_octree_6598a4->TraceLineOfSight(
-                                    &trace_position, &other_position, 1,
-                                    monster_info->location_id,
+                                    &trace_position, &other_position, 1, monster_info->location_id,
                                     other->location_id, 1, 1);
 
                                 clear = (line != 0) ? 0 : 1;
@@ -517,18 +486,14 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                         }
                         if (monster_info->has_spell_37c != 0) {
                             unsigned char found =
-                                monster->GetSpellPosition004C78E0(
-                                    &trace_position);
+                                monster->GetSpellPosition004C78E0(&trace_position);
 
                             if (found == 0) {
-                                srAssertFail(
-                                    "fFoundSpellVertex", SIGHT_CPP, 0x1fd, 0);
+                                srAssertFail("fFoundSpellVertex", SIGHT_CPP, 0x1fd, 0);
                                 entry->sight_flags_05[3] = 0;
-                            }
-                            else {
+                            } else {
                                 short line = g_octree_6598a4->TraceLineOfSight(
-                                    &trace_position, &other_position, 1, -3,
-                                    -3, 1, 0);
+                                    &trace_position, &other_position, 1, -3, -3, 1, 0);
 
                                 entry->sight_flags_05[3] = (line == 1) ? 0 : 1;
                             }
@@ -555,12 +520,13 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
         if (viewing_distance < distance) {
             if (monster_info->player_visibility.last_seen_clock_0c == 0) {
                 monster_info->player_visibility.state_04 = 0;
-            }
-            else {
+            } else {
                 monster_info->player_visibility.state_04 = static_cast<unsigned char>(
-                    (0xf0U < static_cast<unsigned int>(
-                        g_status_685170.world_clock - monster_info->player_visibility.last_seen_clock_0c))
-                        ? 0 : 2);
+                    (0xf0U <
+                     static_cast<unsigned int>(g_status_685170.world_clock -
+                                               monster_info->player_visibility.last_seen_clock_0c))
+                        ? 0
+                        : 2);
             }
             goto after_sight;
         }
@@ -571,8 +537,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
         }
         if (monster_info->hp_current == 0 || monster_info->value_107 > 0xe) {
             visible_to_player = 0;
-        }
-        else {
+        } else {
             float yaw = GetCameraYawRadians();
             unsigned int light;
             unsigned int minimum_level = 9999;
@@ -581,17 +546,15 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
 
             if (gXStatus.fCombatMode == 0) {
                 light = g_status_685170.party_modifiers_22e3.flag_4a;
-            }
-            else {
+            } else {
                 light = 0;
             }
             for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
                 W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
                 W8Character* character = &g_status_685170.buffers.characters[slot];
 
-                if (row->occupied != 0 && character->hp_current != 0
-                    && character->unknown_0b01 < 0xf
-                    && character->level < minimum_level) {
+                if (row->occupied != 0 && character->hp_current != 0 &&
+                    character->unknown_0b01 < 0xf && character->level < minimum_level) {
                     minimum_level = character->level;
                 }
             }
@@ -601,24 +564,20 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                 int bonus = record->missile_value_24f * 5;
 
                 fade_flag = static_cast<unsigned char>(bonus > 0x7d ? 0x7d : bonus);
-            }
-            else {
+            } else {
                 fade_flag = 0;
             }
             {
                 float threshold = Function505A40(
-                    own_x, own_y, own_z, camera_position.x, camera_position.y,
-                    camera_position.z, yaw,
-                    monster_info->converted_attributes_247[4], fade_flag,
-                    monster_info->condition_turns[0xc] != 0,
-                    record->kind_0cb == 0xc, static_cast<int>(minimum_level),
-                    static_cast<int>(light), monster_info->player_visibility.state_04, 0,
-                    player_distance);
+                    own_x, own_y, own_z, camera_position.x, camera_position.y, camera_position.z,
+                    yaw, monster_info->converted_attributes_247[4], fade_flag,
+                    monster_info->condition_turns[0xc] != 0, record->kind_0cb == 0xc,
+                    static_cast<int>(minimum_level), static_cast<int>(light),
+                    monster_info->player_visibility.state_04, 0, player_distance);
 
                 if (threshold < player_distance) {
                     visible_to_player = 0;
-                }
-                else {
+                } else {
                     visible_to_player = 1;
                 }
             }
@@ -641,39 +600,33 @@ after_sight:
         monster_info->player_visibility.sight_flags_05[1] = 0;
         monster_info->player_visibility.sight_flags_05[2] = 0;
         monster_info->player_visibility.sight_flags_05[3] = 0;
-    }
-    else {
-        monster->GetPlayerSightFlags004C4870(
-            monster_info->player_visibility.sight_flags_05, monster_info->player_visibility.sight_flags_05 + 2);
+    } else {
+        monster->GetPlayerSightFlags004C4870(monster_info->player_visibility.sight_flags_05,
+                                             monster_info->player_visibility.sight_flags_05 + 2);
         if (monster_info->has_missile_37a != 0) {
-            unsigned char found =
-                monster->GetProjectilePosition004C77F0(&trace_position);
+            unsigned char found = monster->GetProjectilePosition004C77F0(&trace_position);
             unsigned char clear;
 
             if (found == 0) {
                 srAssertFail("fFoundMissileVertex", SIGHT_CPP, 0x9b, 0);
                 clear = 0;
-            }
-            else {
-                short line = g_octree_6598a4->TraceLineOfSight(
-                    &trace_position, &camera_position, 1,
-                    monster_info->location_id, -1, 1, 1);
+            } else {
+                short line = g_octree_6598a4->TraceLineOfSight(&trace_position, &camera_position, 1,
+                                                               monster_info->location_id, -1, 1, 1);
 
                 clear = (line != 0) ? 0 : 1;
             }
             monster_info->player_visibility.sight_flags_05[1] = clear;
         }
         if (monster_info->has_spell_37c != 0) {
-            unsigned char found =
-                monster->GetSpellPosition004C78E0(&trace_position);
+            unsigned char found = monster->GetSpellPosition004C78E0(&trace_position);
 
             if (found == 0) {
                 srAssertFail("fFoundSpellVertex", SIGHT_CPP, 0xa3, 0);
                 monster_info->player_visibility.sight_flags_05[3] = 0;
-            }
-            else {
-                short line = g_octree_6598a4->TraceLineOfSight(
-                    &trace_position, &camera_position, 1, -3, -3, 1, 0);
+            } else {
+                short line = g_octree_6598a4->TraceLineOfSight(&trace_position, &camera_position, 1,
+                                                               -3, -3, 1, 0);
 
                 monster_info->player_visibility.sight_flags_05[3] = (line == 1) ? 0 : 1;
             }
@@ -692,10 +645,8 @@ after_sight:
             if (monster_info->party_threat.state_04 != 0) {
                 use_bounds = 1;
             }
-            monster_info->party_threat.threat_state_24 =
-                static_cast<unsigned char>(use_bounds);
-            seen_by_party =
-                monster->IsVisibleToPlayer004C4920(use_bounds) != 0;
+            monster_info->party_threat.threat_state_24 = static_cast<unsigned char>(use_bounds);
+            seen_by_party = monster->IsVisibleToPlayer004C4920(use_bounds) != 0;
             monster_info->party_threat.flag_25 = seen_by_party ? 1 : 0;
             if (seen_by_party) {
                 float yaw;
@@ -715,16 +666,13 @@ after_sight:
                     W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
                     W8Character* character = &g_status_685170.buffers.characters[slot];
 
-                    if (row->occupied != 0 && character->hp_current != 0
-                        && character->unknown_0b01 < 0xf) {
+                    if (row->occupied != 0 && character->hp_current != 0 &&
+                        character->unknown_0b01 < 0xf) {
                         float threshold = Function505A40(
-                            camera_position.x, camera_position.y,
-                            camera_position.z, own_x, own_y, own_z, yaw,
-                            character->attributes[6].effective,
-                            static_cast<unsigned char>(
-                                character->skills[15].level),
-                            character->condition_turns[12] != 0,
-                            character->current_profession == 6,
+                            camera_position.x, camera_position.y, camera_position.z, own_x, own_y,
+                            own_z, yaw, character->attributes[6].effective,
+                            static_cast<unsigned char>(character->skills[15].level),
+                            character->condition_turns[12] != 0, character->current_profession == 6,
                             record->missile_value_24f, npc_fade_flag,
                             static_cast<int>(monster_info->party_threat.state_04),
                             g_status_685170.party_modifiers_22e3.flag_4a, distance);
@@ -741,27 +689,22 @@ after_sight:
                 monster_info->party_threat.flag_07 = seen_by_party ? 1 : 0;
                 if (seen_by_party) {
                     if (GetViewDistance() == g_sight_default_005ec254) {
-                        if (record == 0
-                            || (SetFactionFlag(
-                                    static_cast<char>(record->faction_id_25f),
-                                    1),
-                                (record->flags_0d0 & 1) == 0)) {
-                            unsigned int now = static_cast<unsigned int>(
-                                g_object_6598bc->GetValue30());
+                        if (record == 0 ||
+                            (SetFactionFlag(static_cast<char>(record->faction_id_25f), 1),
+                             (record->flags_0d0 & 1) == 0)) {
+                            unsigned int now =
+                                static_cast<unsigned int>(g_object_6598bc->GetValue30());
 
-                            if ((((monster_info->party_threat.last_seen_clock_08 == 0)
-                                  || (0x78U < static_cast<unsigned int>(
-                                      g_status_685170.world_clock
-                                      - monster_info->party_threat.last_seen_clock_08)))
-                                 && (ShowMonsterTargetMarker(monster_info) == 0))
-                                && (monster_info->flag_16 == 1
-                                    || monster_info->flag_16 == 0)
-                                && (g_sight_marker_tick_00689b6c == 0
-                                    || now - g_sight_marker_tick_00689b6c
-                                           > 199)) {
+                            if ((((monster_info->party_threat.last_seen_clock_08 == 0) ||
+                                  (0x78U < static_cast<unsigned int>(
+                                               g_status_685170.world_clock -
+                                               monster_info->party_threat.last_seen_clock_08))) &&
+                                 (ShowMonsterTargetMarker(monster_info) == 0)) &&
+                                (monster_info->flag_16 == 1 || monster_info->flag_16 == 0) &&
+                                (g_sight_marker_tick_00689b6c == 0 ||
+                                 now - g_sight_marker_tick_00689b6c > 199)) {
                                 g_sight_marker_tick_00689b6c = now;
-                                int party_slot =
-                                    GetRandomCharacter(0, 0, -1, -1);
+                                int party_slot = GetRandomCharacter(0, 0, -1, -1);
 
                                 if (party_slot != -1) {
                                     int effect = g_sight_effect_005ee694;
@@ -770,15 +713,12 @@ after_sight:
                                         effect = g_sight_effect_005ee698;
                                     }
                                     W8StartupStateElement005EE748* notice =
-                                        Function52E690(
-                                            reinterpret_cast<W8Character*>(
-                                                reinterpret_cast<char*>(
-                                                    g_status_685170.buffers
-                                                        .characters)
-                                                + party_slot * 0x1862),
-                                            effect, 0,
-                                            g_effect_argument_005ed8c8,
-                                            g_effect_argument_005ed914);
+                                        Function52E690(reinterpret_cast<W8Character*>(
+                                                           reinterpret_cast<char*>(
+                                                               g_status_685170.buffers.characters) +
+                                                           party_slot * 0x1862),
+                                                       effect, 0, g_effect_argument_005ed8c8,
+                                                       g_effect_argument_005ed914);
 
                                     if (notice != 0) {
                                         notice->value_30 = 0x5dc;
@@ -786,72 +726,55 @@ after_sight:
                                     }
                                 }
                             }
-                        }
-                        else {
-                            W8NpcState* npc =
-                                GetNpcStateByKind(record->unknown_0cd[0]);
+                        } else {
+                            W8NpcState* npc = GetNpcStateByKind(record->unknown_0cd[0]);
 
                             if (npc == 0) {
-                                srAssertFail("pNPC != NULL", SIGHT_CPP, 0xe9,
-                                             0);
-                            }
-                            else if (npc->unknown_2d == 0
-                                     && npc->record->unknown_054 == 0
-                                     && ShowMonsterTargetMarker(monster_info)
-                                            != 0) {
+                                srAssertFail("pNPC != NULL", SIGHT_CPP, 0xe9, 0);
+                            } else if (npc->unknown_2d == 0 && npc->record->unknown_054 == 0 &&
+                                       ShowMonsterTargetMarker(monster_info) != 0) {
                                 srVector3T<float> own_position;
                                 srVector3T<float> delta;
 
                                 own_position.Set(own_x, own_y, own_z);
-                                delta = own_position
-                                        - g_startup_world_659c0c->GetPosition();
-                                if (delta.Length() < 25000.0f
-                                    && (npc->unknown_2d = 1,
-                                        gXStatus.fSurprisePossible == 0)
-                                    && g_status_685170.current_level != 4) {
-                                    int party_slot =
-                                        GetRandomCharacter(0, 0, -1, -1);
+                                delta = own_position - g_startup_world_659c0c->GetPosition();
+                                if (delta.Length() < 25000.0f &&
+                                    (npc->unknown_2d = 1, gXStatus.fSurprisePossible == 0) &&
+                                    g_status_685170.current_level != 4) {
+                                    int party_slot = GetRandomCharacter(0, 0, -1, -1);
 
                                     if (party_slot != -1) {
                                         int effect = g_sight_effect_005ee620;
 
-                                        if (npc->name_style == 0x18
-                                            && GetFact(0x2ee) != 0) {
+                                        if (npc->name_style == 0x18 && GetFact(0x2ee) != 0) {
                                             effect = g_sight_effect_005ee66c;
                                         }
-                                        W8StartupStateElement005EE748* notice =
-                                            Function52E690(
-                                                reinterpret_cast<W8Character*>(
-                                                    reinterpret_cast<char*>(
-                                                        g_status_685170.buffers
-                                                            .characters)
-                                                    + party_slot * 0x1862),
-                                                effect, 0,
-                                                g_effect_argument_005ed8c8,
-                                                g_effect_argument_005ed914);
+                                        W8StartupStateElement005EE748* notice = Function52E690(
+                                            reinterpret_cast<W8Character*>(
+                                                reinterpret_cast<char*>(
+                                                    g_status_685170.buffers.characters) +
+                                                party_slot * 0x1862),
+                                            effect, 0, g_effect_argument_005ed8c8,
+                                            g_effect_argument_005ed914);
 
                                         if (notice != 0) {
                                             notice->value_30 = 0x5dc;
-                                            notice->clock_34 =
-                                                GetTickCount();
+                                            notice->clock_34 = GetTickCount();
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                    if (monster_info->party_threat.state_04 != 1
-                        && record->flag_248 != 0) {
-                        unsigned int now = static_cast<unsigned int>(
-                            g_object_6598bc->GetValue30());
+                    if (monster_info->party_threat.state_04 != 1 && record->flag_248 != 0) {
+                        unsigned int now = static_cast<unsigned int>(g_object_6598bc->GetValue30());
 
                         monster->BeginFadeIn004C4F80(5.0f);
-                        if (gXStatus.fSurprisePossible == 0
-                            && (g_sight_fade_in_tick_00689b70 == 0
-                                || now - g_sight_fade_in_tick_00689b70 > 199)) {
+                        if (gXStatus.fSurprisePossible == 0 &&
+                            (g_sight_fade_in_tick_00689b70 == 0 ||
+                             now - g_sight_fade_in_tick_00689b70 > 199)) {
                             g_sight_fade_in_tick_00689b70 = now;
-                            ShowNotice(
-                                8, gppStringList[0x774 / 4], -1, -1, 0);
+                            ShowNotice(8, gppStringList[0x774 / 4], -1, -1, 0);
                         }
                     }
                     monster_info->party_threat.state_04 = 1;
@@ -866,34 +789,30 @@ after_sight:
             (void)seen_by_party;
         }
         if (monster_info->party_threat.state_04 == 1 && record->flag_248 != 0) {
-            unsigned int now = static_cast<unsigned int>(
-                g_object_6598bc->GetValue30());
+            unsigned int now = static_cast<unsigned int>(g_object_6598bc->GetValue30());
 
             monster->BeginFadeOut004C5150(5.0f);
-            if (gXStatus.fSurprisePossible == 0
-                && (g_sight_fade_out_tick_00689b74 == 0
-                    || now - g_sight_fade_out_tick_00689b74 > 199)) {
+            if (gXStatus.fSurprisePossible == 0 && (g_sight_fade_out_tick_00689b74 == 0 ||
+                                                    now - g_sight_fade_out_tick_00689b74 > 199)) {
                 g_sight_fade_out_tick_00689b74 = now;
-                ShowNotice(
-                    8, gppStringList[0x778 / 4], -1, -1, 0);
+                ShowNotice(8, gppStringList[0x778 / 4], -1, -1, 0);
             }
         }
         if (monster_info->party_threat.last_seen_clock_08 == 0) {
             monster_info->party_threat.state_04 = 0;
-        }
-        else {
+        } else {
             monster_info->party_threat.state_04 = static_cast<unsigned char>(
-                (0x78U < static_cast<unsigned int>(
-                    g_status_685170.world_clock - monster_info->party_threat.last_seen_clock_08))
-                    ? 0 : 2);
+                (0x78U < static_cast<unsigned int>(g_status_685170.world_clock -
+                                                   monster_info->party_threat.last_seen_clock_08))
+                    ? 0
+                    : 2);
         }
         if (record != 0 && (record->flags_0d0 & 1) != 0) {
             W8NpcState* npc = GetNpcStateByKind(record->unknown_0cd[0]);
 
             if (npc == 0) {
                 srAssertFail("pNPC != NULL", SIGHT_CPP, 0x15b, 0);
-            }
-            else if (npc->marked_e9 != 0) {
+            } else if (npc->marked_e9 != 0) {
                 Function50CF70(npc, 0);
             }
         }
@@ -905,8 +824,8 @@ final_sight_flags:
         monster_info->party_threat.unknown_05[1] = 0;
         return;
     }
-    monster->GetPlayerToMonsterSightFlags004C4A20(
-        monster_info->party_threat.unknown_05, monster_info->party_threat.unknown_05 + 1, 0);
+    monster->GetPlayerToMonsterSightFlags004C4A20(monster_info->party_threat.unknown_05,
+                                                  monster_info->party_threat.unknown_05 + 1, 0);
 }
 
 /* Advance one monster's whole aging cycle by the elapsed minutes: the
@@ -936,9 +855,8 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
         srVector3T<float> delta;
 
         MonsterGetLocation(monster, &location);
-        if (monster->formation.x == g_float_005ebb34
-            && monster->formation.y == g_float_005ebb34
-            && monster->formation.z == g_float_005ebb34) {
+        if (monster->formation.x == g_float_005ebb34 && monster->formation.y == g_float_005ebb34 &&
+            monster->formation.z == g_float_005ebb34) {
             monster->formation = monster->GetPosition();
         }
         last_seen = monster->formation;
@@ -949,24 +867,20 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
 
             probe.y += g_float_005ebc64;
             GetCameraPosition(&camera);
-            if (ProjectPointThroughCamera004BE940(&probe) == 0
-                && g_octree_6598a4->HasLineOfSight(&camera, &probe, 1) == 0) {
+            if (ProjectPointThroughCamera004BE940(&probe) == 0 &&
+                g_octree_6598a4->HasLineOfSight(&camera, &probe, 1) == 0) {
                 srVector3T<float> notify_position = last_seen;
-                unsigned int group_index = GetMonsterGroupIndexByID(
-                    0x4d2, SIGHT_CPP, monster_info->monster_group_id, 1);
-                W8MonsterGroup* group =
-                    GetMonsterGroupByListIndex(group_index);
+                unsigned int group_index =
+                    GetMonsterGroupIndexByID(0x4d2, SIGHT_CPP, monster_info->monster_group_id, 1);
+                W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
 
-                Function510CC0(
-                    group, &notify_position, monster->GetYaw(), 0, 0, 0, 0);
+                Function510CC0(group, &notify_position, monster->GetYaw(), 0, 0, 0, 0);
                 for (int index = 0; index < 4; ++index) {
                     if (group->allied_group_ids[index] != 0) {
-                        group_index = GetMonsterGroupIndexByID(
-                            0x4d9, SIGHT_CPP, group->allied_group_ids[index], 1);
+                        group_index = GetMonsterGroupIndexByID(0x4d9, SIGHT_CPP,
+                                                               group->allied_group_ids[index], 1);
                         group = GetMonsterGroupByListIndex(group_index);
-                        Function510CC0(
-                            group, &notify_position, monster->GetYaw(), 0, 0, 0,
-                            0);
+                        Function510CC0(group, &notify_position, monster->GetYaw(), 0, 0, 0, 0);
                     }
                 }
             }
@@ -976,9 +890,8 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
     if (GetViewDistance() != g_sight_default_005ec254) {
         goto after_early;
     }
-    if ((monster->linked_navigator_05c == 0 && monster->flag_025 == 0)
-        && ((signed char)monster_info->unknown_254 > 1
-            || monster->flag_024 == 0)) {
+    if ((monster->linked_navigator_05c == 0 && monster->flag_025 == 0) &&
+        ((signed char)monster_info->unknown_254 > 1 || monster->flag_024 == 0)) {
         srVector3T<float> location;
         srVector3T<float> previous;
         srVector3T<float> delta;
@@ -1003,18 +916,16 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
                 bool cleared = false;
 
                 if (delta.Length() < 500.0f) {
-                    srVector3T<float> navigator_position =
-                        monster->GetPosition();
+                    srVector3T<float> navigator_position = monster->GetPosition();
 
-                    if (g_pathing_00659c60->SnapWaypointPosition00462E60(
-                            &navigator_position, 0) == 0
-                        && monster_info->party_threat.flag_25 == 0) {
+                    if (g_pathing_00659c60->SnapWaypointPosition00462E60(&navigator_position, 0) ==
+                            0 &&
+                        monster_info->party_threat.flag_25 == 0) {
                         srVector3T<float> next_position;
 
-                        monster->movement_0c0.attachment_0ac
-                            ->GetNextPosition00456660(&next_position);
-                        if (next_position.Length()
-                            == static_cast<float>(g_zero_005ebb40)) {
+                        monster->movement_0c0.attachment_0ac->GetNextPosition00456660(
+                            &next_position);
+                        if (next_position.Length() == static_cast<float>(g_zero_005ebb40)) {
                             next_position = monster->GetPosition();
                         }
                         {
@@ -1022,31 +933,22 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
                             srVector3T<float> probe = next_position;
 
                             GetCameraPosition(&camera);
-                            if (ProjectPointThroughCamera004BE940(&probe) == 0
-                                && g_octree_6598a4->HasLineOfSight(
-                                       &camera, &probe, 1) == 0) {
-                                srVector3T<float> notify_position =
-                                    next_position;
-                                unsigned int group_index =
-                                    GetMonsterGroupIndexByID(
-                                        0x50f, SIGHT_CPP,
-                                        monster_info->monster_group_id, 1);
-                                W8MonsterGroup* group =
-                                    GetMonsterGroupByListIndex(group_index);
+                            if (ProjectPointThroughCamera004BE940(&probe) == 0 &&
+                                g_octree_6598a4->HasLineOfSight(&camera, &probe, 1) == 0) {
+                                srVector3T<float> notify_position = next_position;
+                                unsigned int group_index = GetMonsterGroupIndexByID(
+                                    0x50f, SIGHT_CPP, monster_info->monster_group_id, 1);
+                                W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
 
-                                Function510CC0(
-                                    group, &notify_position, monster->GetYaw(),
-                                    0, 0, 0, 0);
+                                Function510CC0(group, &notify_position, monster->GetYaw(), 0, 0, 0,
+                                               0);
                                 for (int index = 0; index < 4; ++index) {
                                     if (group->allied_group_ids[index] != 0) {
                                         group_index = GetMonsterGroupIndexByID(
-                                            0x516, SIGHT_CPP,
-                                            group->allied_group_ids[index], 1);
-                                        group = GetMonsterGroupByListIndex(
-                                            group_index);
-                                        Function510CC0(
-                                            group, &notify_position,
-                                            monster->GetYaw(), 0, 0, 0, 0);
+                                            0x516, SIGHT_CPP, group->allied_group_ids[index], 1);
+                                        group = GetMonsterGroupByListIndex(group_index);
+                                        Function510CC0(group, &notify_position, monster->GetYaw(),
+                                                       0, 0, 0, 0);
                                     }
                                 }
                                 cleared = true;
@@ -1056,8 +958,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
                 }
                 cycle_cleared = cleared;
                 flags_cleared = true;
-            }
-            else {
+            } else {
                 srVector3T<float> camera;
                 srVector3T<float> probe;
                 srVector3T<float> location2;
@@ -1066,54 +967,43 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
                 location2 = monster->GetPosition();
                 probe = location2;
                 probe.y += g_float_005ebc64;
-                if (ProjectPointThroughCamera004BE940(&location2) == 0
-                    && g_octree_6598a4->HasLineOfSight(&camera, &probe, 1)
-                           == 0) {
-                    if (monster->formation.x == g_float_005ebb34
-                        && monster->formation.y == g_float_005ebb34
-                        && monster->formation.z == g_float_005ebb34) {
+                if (ProjectPointThroughCamera004BE940(&location2) == 0 &&
+                    g_octree_6598a4->HasLineOfSight(&camera, &probe, 1) == 0) {
+                    if (monster->formation.x == g_float_005ebb34 &&
+                        monster->formation.y == g_float_005ebb34 &&
+                        monster->formation.z == g_float_005ebb34) {
                         monster->formation = monster->GetPosition();
                     }
                     probe = monster->formation;
                     probe.y += g_float_005ebc64;
-                    if (ProjectPointThroughCamera004BE940(&location2) == 0
-                        && g_octree_6598a4->HasLineOfSight(
-                               &camera, &probe, 1) == 0) {
-                        if (monster->formation.x == g_float_005ebb34
-                            && monster->formation.y == g_float_005ebb34
-                            && monster->formation.z == g_float_005ebb34) {
+                    if (ProjectPointThroughCamera004BE940(&location2) == 0 &&
+                        g_octree_6598a4->HasLineOfSight(&camera, &probe, 1) == 0) {
+                        if (monster->formation.x == g_float_005ebb34 &&
+                            monster->formation.y == g_float_005ebb34 &&
+                            monster->formation.z == g_float_005ebb34) {
                             monster->formation = monster->GetPosition();
                         }
                         {
-                            srVector3T<float> notify_position =
-                                monster->formation;
-                            unsigned int group_index =
-                                GetMonsterGroupIndexByID(
-                                    0x53b, SIGHT_CPP,
-                                    monster_info->monster_group_id, 1);
-                            W8MonsterGroup* group =
-                                GetMonsterGroupByListIndex(group_index);
+                            srVector3T<float> notify_position = monster->formation;
+                            unsigned int group_index = GetMonsterGroupIndexByID(
+                                0x53b, SIGHT_CPP, monster_info->monster_group_id, 1);
+                            W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
 
-                            Function510CC0(
-                                group, &notify_position, monster->GetYaw(), 0, 0,
-                                0, 0);
+                            Function510CC0(group, &notify_position, monster->GetYaw(), 0, 0, 0, 0);
                             for (int index = 0; index < 4; ++index) {
                                 if (group->allied_group_ids[index] != 0) {
                                     group_index = GetMonsterGroupIndexByID(
-                                        0x542, SIGHT_CPP,
-                                        group->allied_group_ids[index], 1);
-                                    group = GetMonsterGroupByListIndex(
-                                        group_index);
-                                    Function510CC0(
-                                        group, &notify_position,
-                                        monster->GetYaw(), 0, 0, 0, 0);
+                                        0x542, SIGHT_CPP, group->allied_group_ids[index], 1);
+                                    group = GetMonsterGroupByListIndex(group_index);
+                                    Function510CC0(group, &notify_position, monster->GetYaw(), 0, 0,
+                                                   0, 0);
                                 }
                             }
                         }
-                    cycle_cleared = true;
-                    flags_cleared = true;
+                        cycle_cleared = true;
+                        flags_cleared = true;
+                    }
                 }
-            }
             }
             if (cycle_cleared) {
                 monster_info->unknown_254 = 0;
@@ -1126,41 +1016,34 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
         if ((signed char)monster_info->unknown_254 > 0) {
             ++monster_info->unknown_254;
         }
-        monster_info->runtime_values_338[0] =
-            static_cast<int>(monster_info->position_17.x);
-        monster_info->runtime_values_338[1] =
-            static_cast<int>(monster_info->position_17.y);
-        monster_info->runtime_values_338[2] =
-            static_cast<int>(monster_info->position_17.z);
+        monster_info->runtime_values_338[0] = static_cast<int>(monster_info->position_17.x);
+        monster_info->runtime_values_338[1] = static_cast<int>(monster_info->position_17.y);
+        monster_info->runtime_values_338[2] = static_cast<int>(monster_info->position_17.z);
     }
 
-after_early:
-    {
-        unsigned int amount =
-            monster_info->modifiers_1db.unknown_08[0];
+after_early: {
+    unsigned int amount = monster_info->modifiers_1db.unknown_08[0];
 
-        if (amount != 0) {
-            W8TargetSource source;
+    if (amount != 0) {
+        W8TargetSource source;
 
-            amount *= minutes;
-            if (monster_info->fInCombat != 0) {
-                amount += amount >> 1;
-            }
-            ResetTargetSource(&source);
-            Function52BB60(
-                monster_info, amount, &source, 1, gXStatus.fCombatMode, 0, 0, 0);
+        amount *= minutes;
+        if (monster_info->fInCombat != 0) {
+            amount += amount >> 1;
         }
+        ResetTargetSource(&source);
+        Function52BB60(monster_info, amount, &source, 1, gXStatus.fCombatMode, 0, 0, 0);
     }
+}
     if (monster_info->condition_turns[2] != 0) {
         frost_condition = true;
     }
     {
         W8MonsterRecord* data = GetMonsterDataForInfo(monster_info);
-        int amount = (static_cast<int>(
-                          static_cast<signed char>(data->unknown_150[0x2c]))
-                      + static_cast<int>(static_cast<signed char>(
-                            monster_info->modifiers_1db.unknown_08[1])))
-                     * static_cast<int>(minutes);
+        int amount = (static_cast<int>(static_cast<signed char>(data->unknown_150[0x2c])) +
+                      static_cast<int>(
+                          static_cast<signed char>(monster_info->modifiers_1db.unknown_08[1]))) *
+                     static_cast<int>(minutes);
 
         if (amount < 1) {
             if (amount < 0) {
@@ -1169,26 +1052,21 @@ after_early:
                 ResetTargetSource(&source);
                 Function52BB60(monster_info, -amount, &source, 0, 0, 0, 0, 0);
             }
-        }
-        else if (monster_info->hp_current < monster_info->hp_max) {
+        } else if (monster_info->hp_current < monster_info->hp_max) {
             HealMonster(monster_info, amount, 0);
         }
     }
     {
         int amount =
-            (static_cast<int>(
-                 static_cast<signed char>(
-                     monster_info->modifiers_1db.unknown_08[2]))
-             + static_cast<int>(static_cast<signed char>(record->unknown_0cd[1])))
-            * static_cast<int>(minutes);
+            (static_cast<int>(static_cast<signed char>(monster_info->modifiers_1db.unknown_08[2])) +
+             static_cast<int>(static_cast<signed char>(record->unknown_0cd[1]))) *
+            static_cast<int>(minutes);
 
         if (amount < 1) {
             if (amount < 0) {
                 FatigueMonster(monster_info, -amount, 0);
             }
-        }
-        else if (monster_info->runtime_stat_current_33
-                 < monster_info->runtime_stat_max_2f) {
+        } else if (monster_info->runtime_stat_current_33 < monster_info->runtime_stat_max_2f) {
             RestoreMonsterStamina(monster_info, amount, 0);
         }
     }
@@ -1198,12 +1076,10 @@ after_early:
         if (gXStatus.fSurprisePossible == 0 && arg_3 == 0) {
             if (monster_info->fInCombat == 0) {
                 heal_scale = 0.5f;
-            }
-            else {
+            } else {
                 heal_scale = 0.0f;
             }
-        }
-        else {
+        } else {
             heal_scale = 1.0f;
         }
         if (frost_condition) {
@@ -1212,50 +1088,38 @@ after_early:
         if (heal_scale > g_float_005ebb34) {
             if (monster_info->hp_current < monster_info->hp_max) {
                 monster_info->hp_regen_accumulator_4b =
-                    static_cast<float>(minutes)
-                        * monster_info->hp_regen_rate_47 * heal_scale
-                    + monster_info->hp_regen_accumulator_4b;
-                int healed =
-                    static_cast<int>(monster_info->hp_regen_accumulator_4b);
+                    static_cast<float>(minutes) * monster_info->hp_regen_rate_47 * heal_scale +
+                    monster_info->hp_regen_accumulator_4b;
+                int healed = static_cast<int>(monster_info->hp_regen_accumulator_4b);
 
                 HealMonster(monster_info, healed, 0);
-                monster_info->hp_regen_accumulator_4b -=
-                    static_cast<float>(healed);
+                monster_info->hp_regen_accumulator_4b -= static_cast<float>(healed);
             }
-            if (monster_info->runtime_stat_current_33
-                < monster_info->runtime_stat_max_2f) {
+            if (monster_info->runtime_stat_current_33 < monster_info->runtime_stat_max_2f) {
                 monster_info->stamina_regen_accumulator_53 =
-                    static_cast<float>(minutes)
-                        * monster_info->stamina_regen_rate_4f * heal_scale
-                    + monster_info->stamina_regen_accumulator_53;
-                int restored =
-                    static_cast<int>(monster_info->stamina_regen_accumulator_53);
+                    static_cast<float>(minutes) * monster_info->stamina_regen_rate_4f * heal_scale +
+                    monster_info->stamina_regen_accumulator_53;
+                int restored = static_cast<int>(monster_info->stamina_regen_accumulator_53);
 
                 RestoreMonsterStamina(monster_info, restored, 0);
-                monster_info->stamina_regen_accumulator_53 -=
-                    static_cast<float>(restored);
+                monster_info->stamina_regen_accumulator_53 -= static_cast<float>(restored);
             }
         }
     }
     for (int condition = 0; condition < 0x14; ++condition) {
-        if (monster_info->condition_turns[condition] != 0
-            && static_cast<unsigned int>(
-                   monster_info->condition_turns[condition])
-                   < 9999) {
+        if (monster_info->condition_turns[condition] != 0 &&
+            static_cast<unsigned int>(monster_info->condition_turns[condition]) < 9999) {
             Function524110(monster_info->location_id, condition, minutes);
         }
     }
     for (int enchant = 0; enchant < 8; ++enchant) {
-        float remaining =
-            static_cast<float>(monster_info->enchantments[enchant].value_08);
+        float remaining = static_cast<float>(monster_info->enchantments[enchant].value_08);
 
-        if (remaining != 0.0f
-            && static_cast<unsigned int>(remaining) < 9999) {
+        if (remaining != 0.0f && static_cast<unsigned int>(remaining) < 9999) {
             if (minutes < static_cast<unsigned int>(remaining)) {
                 monster_info->enchantments[enchant].value_08 =
                     static_cast<int>(remaining) - static_cast<int>(minutes);
-            }
-            else {
+            } else {
                 ClearMonsterEnchantmentSlot(monster_info->location_id, enchant);
             }
         }
@@ -1263,8 +1127,7 @@ after_early:
     if (monster_info->hp_max <= monster_info->hp_current) {
         monster_info->hp_regen_accumulator_4b = 0.0f;
     }
-    if (monster_info->runtime_stat_max_2f
-        <= monster_info->runtime_stat_current_33) {
+    if (monster_info->runtime_stat_max_2f <= monster_info->runtime_stat_current_33) {
         monster_info->stamina_regen_accumulator_53 = 0.0f;
     }
     {
@@ -1273,13 +1136,11 @@ after_early:
         for (int owned_index = 0; owned_index < 0xc; ++owned_index) {
             if (slot->active != 0) {
                 if (minutes < static_cast<unsigned int>(slot->duration_0d)) {
-                    slot->duration_0d = static_cast<int>(slot->duration_0d)
-                                        - static_cast<int>(minutes);
-                }
-                else if (monster_info == 0) {
+                    slot->duration_0d =
+                        static_cast<int>(slot->duration_0d) - static_cast<int>(minutes);
+                } else if (monster_info == 0) {
                     ResetPartyEffectBlock(slot);
-                }
-                else {
+                } else {
                     ClearEffectSlot(monster_info, slot);
                 }
             }
@@ -1288,35 +1149,29 @@ after_early:
     }
     if (monster_info->fInCombat != 0) {
         for (int combat_index = 0; combat_index < 9; ++combat_index) {
-            W8EffectSlot* slot =
-                &monster_info->pCombat->entries_3e[combat_index];
+            W8EffectSlot* slot = &monster_info->pCombat->entries_3e[combat_index];
 
             if (slot->active != 0) {
                 if (minutes < static_cast<unsigned int>(slot->duration_0d)) {
-                    slot->duration_0d = static_cast<int>(slot->duration_0d)
-                                        - static_cast<int>(minutes);
-                }
-                else if (monster_info == 0) {
+                    slot->duration_0d =
+                        static_cast<int>(slot->duration_0d) - static_cast<int>(minutes);
+                } else if (monster_info == 0) {
                     ResetPartyEffectBlock(slot);
-                }
-                else {
+                } else {
                     ClearEffectSlot(monster_info, slot);
                 }
             }
         }
         for (int d7_index = 0; d7_index < 6; ++d7_index) {
-            W8EffectSlot* slot =
-                &monster_info->pCombat->entries_d7[d7_index];
+            W8EffectSlot* slot = &monster_info->pCombat->entries_d7[d7_index];
 
             if (slot->active != 0) {
                 if (minutes < static_cast<unsigned int>(slot->duration_0d)) {
-                    slot->duration_0d = static_cast<int>(slot->duration_0d)
-                                        - static_cast<int>(minutes);
-                }
-                else if (monster_info == 0) {
+                    slot->duration_0d =
+                        static_cast<int>(slot->duration_0d) - static_cast<int>(minutes);
+                } else if (monster_info == 0) {
                     ResetPartyEffectBlock(slot);
-                }
-                else {
+                } else {
                     ClearEffectSlot(monster_info, slot);
                 }
             }

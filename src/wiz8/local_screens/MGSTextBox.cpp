@@ -49,8 +49,7 @@ void Function58FD30(void)
 {
     for (int row = 0; row < 4; ++row) {
         for (int index = 0; index < 0x15e; ++index) {
-            W8MessageStorageRecord* record =
-                &g_message_storage_68f2d8[row][index];
+            W8MessageStorageRecord* record = &g_message_storage_68f2d8[row][index];
             if (record->allocation_00) {
                 free(record->allocation_00);
             }
@@ -138,7 +137,8 @@ void ScrollTextBoxToCursor(void)
 unsigned char GetOpenDialogueFlag(void)
 {
     if (g_level_block->dialogue_open != 0 && g_level_block->dialogue_owner != 0) {
-        return reinterpret_cast<unsigned char*>(g_level_block->dialogue_owner)[0x2d]; /* reinterpret-ok: flag byte in the unrecovered renderer-object tail */
+        return reinterpret_cast<unsigned char*>(g_level_block->dialogue_owner)
+            [0x2d]; /* reinterpret-ok: flag byte in the unrecovered renderer-object tail */
     }
     return 0;
 }
@@ -174,7 +174,6 @@ void RedrawTextBoxComplete(void)
     screen->m_action_panel_014->Invalidate(0);
 }
 
-
 /* The last message on the current line whose clock has stopped, searched from
    the newest backwards - so the first one found is the most recent finished
    message rather than the oldest. */
@@ -187,8 +186,8 @@ int FindStoppedTextLine(void)
         return -1;
     }
     while (--index >= 0) {
-        if (ClockIsTicking(
-                g_message_storage_68f2d8[g_text_line_cursor_00686905][index].clock_08) == 0) {
+        if (ClockIsTicking(g_message_storage_68f2d8[g_text_line_cursor_00686905][index].clock_08) ==
+            0) {
             return index;
         }
     }
@@ -200,13 +199,11 @@ int FindStoppedTextLine(void)
 // FUNCTION: WIZ8 0x0058a8f0
 char TextBoxHandleKey(const void* event)
 {
-    W8MainGameTextPanel* panel =
-        g_main_game_screen->m_text_panel_00c;
+    W8MainGameTextPanel* panel = g_main_game_screen->m_text_panel_00c;
     int before = panel->m_selection_078;
     char handled;
 
-    handled = panel->m_key_handler_074->HandleKey(
-        *(const unsigned short*)((const char*)event + 8));
+    handled = panel->m_key_handler_074->HandleKey(*(const unsigned short*)((const char*)event + 8));
 
     if (handled != 0 && panel->m_selection_078 != before) {
         ResetButtonSoundScheme();

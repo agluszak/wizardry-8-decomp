@@ -18,9 +18,9 @@ public:
     void SetTarget(IDirectDrawSurface2* target);
 
 private:
-    HBINK m_handle;                  /* 0x00 */
-    int m_value_04;                  /* 0x04: constructor clears; use unresolved */
-    IDirectDrawSurface2* m_target;   /* 0x08 */
+    HBINK m_handle;                /* 0x00 */
+    int m_value_04;                /* 0x04: constructor clears; use unresolved */
+    IDirectDrawSurface2* m_target; /* 0x08 */
 };
 
 static_assert(sizeof(W8BinkVideo) == 0x0c, "W8BinkVideo_must_be_0x0c");

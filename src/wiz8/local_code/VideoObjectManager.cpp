@@ -700,501 +700,70 @@ W8VideoFrame g_video_frames_62c430[1658] = {
 #pragma clang diagnostic ignored "-Wmissing-field-initializers"
 // GLOBAL: WIZ8 0x006448c8
 W8VideoObjectSlot g_video_slots_6448c8[494] = {
-    {0, 0},
-    {0, 1},
-    {0, 2},
-    {0, 7},
-    {0, 12},
-    {0, 13},
-    {0, 14},
-    {0, 18},
-    {0, 22},
-    {0, 23},
-    {0, 24},
-    {0, 29},
-    {0, 30},
-    {0, 31},
-    {0, 35},
-    {0, 36},
-    {0, 37},
-    {1, 0},
-    {81, 0},
-    {161, 0},
-    {241, 0},
-    {242, 0},
-    {243, 0},
-    {244, 0},
-    {245, 0},
-    {246, 0},
-    {247, 0},
-    {248, 0},
-    {249, 0},
-    {250, 0},
-    {251, 0},
-    {252, 0},
-    {253, 0},
-    {254, 0},
-    {255, 0},
-    {256, 0},
-    {257, 0},
-    {258, 0},
-    {259, 0},
-    {260, 0},
-    {261, 0},
-    {262, 0},
-    {277, 0},
-    {275, 0},
-    {276, 0},
-    {279, 0},
-    {280, 0},
-    {281, 0},
-    {282, 0},
-    {283, 0},
-    {284, 0},
-    {285, 0},
-    {286, 0},
-    {265, 0},
-    {264, 0},
-    {263, 0},
-    {268, 0},
-    {267, 0},
-    {266, 0},
-    {271, 0},
-    {270, 0},
-    {269, 0},
-    {274, 0},
-    {273, 0},
-    {272, 0},
-    {278, 0},
-    {287, 0},
-    {288, 0},
-    {289, 0},
-    {290, 0},
-    {291, 0},
-    {292, 0},
-    {293, 0},
-    {294, 0},
-    {295, 0},
-    {296, 0},
-    {297, 0},
-    {298, 0},
-    {299, 0},
-    {300, 0},
-    {301, 0},
-    {302, 0},
-    {303, 0},
-    {304, 0},
-    {305, 0},
-    {306, 0},
-    {307, 0},
-    {308, 0},
-    {309, 0},
-    {310, 0},
-    {311, 0},
-    {312, 0},
-    {313, 0},
-    {314, 0},
-    {315, 0},
-    {316, 0},
-    {317, 0},
-    {318, 0},
-    {319, 0},
-    {320, 0},
-    {321, 0},
-    {322, 0},
-    {323, 0},
-    {324, 0},
-    {325, 0},
-    {326, 0},
-    {327, 0},
-    {328, 0},
-    {329, 0},
-    {330, 0},
-    {331, 0},
-    {332, 0},
-    {333, 0},
-    {334, 0},
-    {335, 0},
-    {336, 0},
-    {337, 0},
-    {338, 0},
-    {339, 0},
-    {340, 0},
-    {341, 0},
-    {345, 0},
-    {346, 0},
-    {344, 0},
-    {342, 0},
-    {343, 0},
-    {347, 0},
-    {348, 0},
-    {349, 0},
-    {350, 0},
-    {351, 0},
-    {352, 0},
-    {353, 0},
-    {354, 0},
-    {355, 0},
-    {356, 0},
-    {357, 0},
-    {358, 0},
-    {359, 0},
-    {360, 0},
-    {361, 0},
-    {362, 0},
-    {363, 0},
-    {364, 0},
-    {365, 0},
-    {366, 0},
-    {367, 0},
-    {368, 0},
-    {369, 0},
-    {370, 0},
-    {371, 0},
-    {372, 0},
-    {373, 0},
-    {374, 0},
-    {375, 0},
-    {376, 0},
-    {377, 0},
-    {378, 0},
-    {379, 0},
-    {380, 0},
-    {381, 0},
-    {382, 0},
-    {383, 0},
-    {384, 0},
-    {385, 0},
-    {386, 0},
-    {387, 0},
-    {388, 0},
-    {389, 0},
-    {390, 0},
-    {391, 0},
-    {392, 0},
-    {393, 0},
-    {394, 0},
-    {395, 0},
-    {396, 0},
-    {397, 0},
-    {398, 0},
-    {399, 0},
-    {400, 0},
-    {401, 0},
-    {402, 0},
-    {403, 0},
-    {404, 0},
-    {405, 0},
-    {406, 0},
-    {407, 0},
-    {408, 0},
-    {409, 0},
-    {410, 0},
-    {411, 0},
-    {412, 0},
-    {413, 0},
-    {414, 0},
-    {415, 0},
-    {416, 0},
-    {417, 0},
-    {418, 0},
-    {419, 0},
-    {420, 0},
-    {421, 0},
-    {422, 0},
-    {423, 0},
-    {424, 0},
-    {425, 0},
-    {426, 0},
-    {427, 0},
-    {428, 0},
-    {429, 0},
-    {430, 0},
-    {431, 0},
-    {432, 0},
-    {433, 0},
-    {434, 0},
-    {435, 0},
-    {436, 0},
-    {437, 0},
-    {438, 0},
-    {439, 0},
-    {440, 0},
-    {441, 0},
-    {442, 0},
-    {443, 0},
-    {444, 0},
-    {445, 0},
-    {446, 0},
-    {447, 0},
-    {448, 0},
-    {449, 0},
-    {450, 0},
-    {451, 0},
-    {452, 0},
-    {453, 0},
-    {454, 0},
-    {455, 0},
-    {456, 0},
-    {457, 0},
-    {458, 0},
-    {459, 0},
-    {460, 0},
-    {461, 0},
-    {462, 0},
-    {463, 0},
-    {464, 0},
-    {465, 0},
-    {466, 0},
-    {467, 0},
-    {468, 0},
-    {469, 0},
-    {470, 0},
-    {471, 0},
-    {472, 0},
-    {473, 0},
-    {474, 0},
-    {475, 0},
-    {476, 0},
-    {477, 0},
-    {478, 0},
-    {479, 0},
-    {480, 0},
-    {481, 0},
-    {482, 0},
-    {483, 0},
-    {484, 0},
-    {485, 0},
-    {486, 0},
-    {487, 0},
-    {488, 0},
-    {489, 0},
-    {490, 0},
-    {491, 0},
-    {492, 0},
-    {493, 0},
-    {494, 0},
-    {495, 0},
-    {496, 0},
-    {497, 0},
-    {498, 0},
-    {499, 0},
-    {500, 0},
-    {501, 0},
-    {502, 0},
-    {503, 0},
-    {504, 0},
-    {505, 0},
-    {506, 0},
-    {507, 0},
-    {508, 0},
-    {509, 0},
-    {510, 0},
-    {511, 0},
-    {512, 0},
-    {513, 0},
-    {514, 0},
-    {515, 0},
-    {516, 0},
-    {517, 0},
-    {518, 0},
-    {519, 0},
-    {520, 0},
-    {521, 0},
-    {522, 0},
-    {523, 0},
-    {524, 0},
-    {525, 0},
-    {526, 0},
-    {527, 0},
-    {528, 0},
-    {529, 0},
-    {530, 0},
-    {531, 0},
-    {532, 0},
-    {533, 0},
-    {534, 0},
-    {535, 0},
-    {536, 0},
-    {537, 0},
-    {538, 0},
-    {539, 0},
-    {540, 0},
-    {541, 0},
-    {542, 0},
-    {543, 0},
-    {544, 0},
-    {545, 0},
-    {546, 0},
-    {547, 0},
-    {548, 0},
-    {549, 0},
-    {550, 0},
-    {572, 0},
-    {573, 0},
-    {573, 1},
-    {573, 2},
-    {573, 3},
-    {573, 4},
-    {574, 0},
-    {574, 1},
-    {574, 2},
-    {574, 3},
-    {575, 0},
-    {575, 1},
-    {575, 2},
-    {575, 3},
-    {575, 4},
-    {575, 5},
-    {575, 6},
-    {575, 7},
-    {576, 0},
-    {576, 1},
-    {576, 2},
-    {576, 3},
-    {576, 4},
-    {576, 5},
-    {576, 6},
-    {576, 7},
-    {576, 8},
-    {576, 9},
-    {576, 10},
-    {576, 11},
-    {577, 0},
-    {577, 1},
-    {577, 2},
-    {577, 3},
-    {577, 4},
-    {577, 5},
-    {577, 6},
-    {577, 7},
-    {577, 8},
-    {577, 9},
-    {577, 10},
-    {577, 11},
-    {577, 12},
-    {577, 13},
-    {577, 14},
-    {577, 15},
-    {577, 16},
-    {577, 17},
-    {577, 18},
-    {577, 19},
-    {578, 0},
-    {578, 1},
-    {578, 2},
-    {578, 3},
-    {578, 4},
-    {578, 5},
-    {578, 6},
-    {578, 7},
-    {579, 0},
-    {579, 1},
-    {579, 2},
-    {579, 3},
-    {579, 4},
-    {579, 5},
-    {579, 6},
-    {579, 7},
-    {579, 8},
-    {579, 9},
-    {579, 10},
-    {579, 11},
-    {580, 0},
-    {581, 0},
-    {582, 0},
-    {583, 0},
-    {584, 0},
-    {585, 0},
-    {586, 0},
-    {587, 0},
-    {588, 0},
-    {589, 0},
-    {590, 0},
-    {591, 0},
-    {591, 8},
-    {592, 0},
-    {593, 0},
-    {593, 8},
-    {594, 0},
-    {595, 0},
-    {595, 1},
-    {595, 2},
-    {595, 3},
-    {595, 4},
-    {595, 5},
-    {596, 0},
-    {596, 1},
-    {597, 0},
-    {598, 0},
-    {599, 0},
-    {600, 0},
-    {601, 0},
-    {602, 0},
-    {603, 0},
-    {604, 0},
-    {605, 0},
-    {606, 0},
-    {607, 0},
-    {608, 0},
-    {609, 0},
-    {610, 0},
-    {611, 0},
-    {612, 0},
-    {613, 0},
-    {614, 0},
-    {615, 0},
-    {616, 0},
-    {617, 0},
-    {618, 0},
-    {619, 0},
-    {620, 0},
-    {621, 0},
-    {622, 0},
-    {623, 0},
-    {624, 0},
-    {625, 0},
-    {626, 0},
-    {627, 0},
-    {628, 0},
-    {629, 0},
-    {630, 0},
-    {631, 0},
-    {632, 0},
-    {633, 0},
-    {634, 0},
-    {635, 0},
-    {636, 0},
-    {637, 0},
-    {638, 0},
-    {639, 0},
-    {640, 0},
-    {641, 0},
-    {642, 0},
-    {643, 0},
-    {644, 0},
-    {645, 0},
-    {646, 0},
-    {647, 0},
-    {648, 0},
-    {649, 0},
-    {650, 0},
-    {651, 0},
-    {652, 0},
-    {653, 0},
-    {654, 0},
-    {655, 0},
-    {656, 0},
-    {551, 0},
-    {566, 0},
-    {567, 0},
-    {568, 0},
-    {569, 0},
-    {570, 0},
-    {571, 0},
+    {0, 0},    {0, 1},    {0, 2},    {0, 7},    {0, 12},   {0, 13},   {0, 14},   {0, 18},
+    {0, 22},   {0, 23},   {0, 24},   {0, 29},   {0, 30},   {0, 31},   {0, 35},   {0, 36},
+    {0, 37},   {1, 0},    {81, 0},   {161, 0},  {241, 0},  {242, 0},  {243, 0},  {244, 0},
+    {245, 0},  {246, 0},  {247, 0},  {248, 0},  {249, 0},  {250, 0},  {251, 0},  {252, 0},
+    {253, 0},  {254, 0},  {255, 0},  {256, 0},  {257, 0},  {258, 0},  {259, 0},  {260, 0},
+    {261, 0},  {262, 0},  {277, 0},  {275, 0},  {276, 0},  {279, 0},  {280, 0},  {281, 0},
+    {282, 0},  {283, 0},  {284, 0},  {285, 0},  {286, 0},  {265, 0},  {264, 0},  {263, 0},
+    {268, 0},  {267, 0},  {266, 0},  {271, 0},  {270, 0},  {269, 0},  {274, 0},  {273, 0},
+    {272, 0},  {278, 0},  {287, 0},  {288, 0},  {289, 0},  {290, 0},  {291, 0},  {292, 0},
+    {293, 0},  {294, 0},  {295, 0},  {296, 0},  {297, 0},  {298, 0},  {299, 0},  {300, 0},
+    {301, 0},  {302, 0},  {303, 0},  {304, 0},  {305, 0},  {306, 0},  {307, 0},  {308, 0},
+    {309, 0},  {310, 0},  {311, 0},  {312, 0},  {313, 0},  {314, 0},  {315, 0},  {316, 0},
+    {317, 0},  {318, 0},  {319, 0},  {320, 0},  {321, 0},  {322, 0},  {323, 0},  {324, 0},
+    {325, 0},  {326, 0},  {327, 0},  {328, 0},  {329, 0},  {330, 0},  {331, 0},  {332, 0},
+    {333, 0},  {334, 0},  {335, 0},  {336, 0},  {337, 0},  {338, 0},  {339, 0},  {340, 0},
+    {341, 0},  {345, 0},  {346, 0},  {344, 0},  {342, 0},  {343, 0},  {347, 0},  {348, 0},
+    {349, 0},  {350, 0},  {351, 0},  {352, 0},  {353, 0},  {354, 0},  {355, 0},  {356, 0},
+    {357, 0},  {358, 0},  {359, 0},  {360, 0},  {361, 0},  {362, 0},  {363, 0},  {364, 0},
+    {365, 0},  {366, 0},  {367, 0},  {368, 0},  {369, 0},  {370, 0},  {371, 0},  {372, 0},
+    {373, 0},  {374, 0},  {375, 0},  {376, 0},  {377, 0},  {378, 0},  {379, 0},  {380, 0},
+    {381, 0},  {382, 0},  {383, 0},  {384, 0},  {385, 0},  {386, 0},  {387, 0},  {388, 0},
+    {389, 0},  {390, 0},  {391, 0},  {392, 0},  {393, 0},  {394, 0},  {395, 0},  {396, 0},
+    {397, 0},  {398, 0},  {399, 0},  {400, 0},  {401, 0},  {402, 0},  {403, 0},  {404, 0},
+    {405, 0},  {406, 0},  {407, 0},  {408, 0},  {409, 0},  {410, 0},  {411, 0},  {412, 0},
+    {413, 0},  {414, 0},  {415, 0},  {416, 0},  {417, 0},  {418, 0},  {419, 0},  {420, 0},
+    {421, 0},  {422, 0},  {423, 0},  {424, 0},  {425, 0},  {426, 0},  {427, 0},  {428, 0},
+    {429, 0},  {430, 0},  {431, 0},  {432, 0},  {433, 0},  {434, 0},  {435, 0},  {436, 0},
+    {437, 0},  {438, 0},  {439, 0},  {440, 0},  {441, 0},  {442, 0},  {443, 0},  {444, 0},
+    {445, 0},  {446, 0},  {447, 0},  {448, 0},  {449, 0},  {450, 0},  {451, 0},  {452, 0},
+    {453, 0},  {454, 0},  {455, 0},  {456, 0},  {457, 0},  {458, 0},  {459, 0},  {460, 0},
+    {461, 0},  {462, 0},  {463, 0},  {464, 0},  {465, 0},  {466, 0},  {467, 0},  {468, 0},
+    {469, 0},  {470, 0},  {471, 0},  {472, 0},  {473, 0},  {474, 0},  {475, 0},  {476, 0},
+    {477, 0},  {478, 0},  {479, 0},  {480, 0},  {481, 0},  {482, 0},  {483, 0},  {484, 0},
+    {485, 0},  {486, 0},  {487, 0},  {488, 0},  {489, 0},  {490, 0},  {491, 0},  {492, 0},
+    {493, 0},  {494, 0},  {495, 0},  {496, 0},  {497, 0},  {498, 0},  {499, 0},  {500, 0},
+    {501, 0},  {502, 0},  {503, 0},  {504, 0},  {505, 0},  {506, 0},  {507, 0},  {508, 0},
+    {509, 0},  {510, 0},  {511, 0},  {512, 0},  {513, 0},  {514, 0},  {515, 0},  {516, 0},
+    {517, 0},  {518, 0},  {519, 0},  {520, 0},  {521, 0},  {522, 0},  {523, 0},  {524, 0},
+    {525, 0},  {526, 0},  {527, 0},  {528, 0},  {529, 0},  {530, 0},  {531, 0},  {532, 0},
+    {533, 0},  {534, 0},  {535, 0},  {536, 0},  {537, 0},  {538, 0},  {539, 0},  {540, 0},
+    {541, 0},  {542, 0},  {543, 0},  {544, 0},  {545, 0},  {546, 0},  {547, 0},  {548, 0},
+    {549, 0},  {550, 0},  {572, 0},  {573, 0},  {573, 1},  {573, 2},  {573, 3},  {573, 4},
+    {574, 0},  {574, 1},  {574, 2},  {574, 3},  {575, 0},  {575, 1},  {575, 2},  {575, 3},
+    {575, 4},  {575, 5},  {575, 6},  {575, 7},  {576, 0},  {576, 1},  {576, 2},  {576, 3},
+    {576, 4},  {576, 5},  {576, 6},  {576, 7},  {576, 8},  {576, 9},  {576, 10}, {576, 11},
+    {577, 0},  {577, 1},  {577, 2},  {577, 3},  {577, 4},  {577, 5},  {577, 6},  {577, 7},
+    {577, 8},  {577, 9},  {577, 10}, {577, 11}, {577, 12}, {577, 13}, {577, 14}, {577, 15},
+    {577, 16}, {577, 17}, {577, 18}, {577, 19}, {578, 0},  {578, 1},  {578, 2},  {578, 3},
+    {578, 4},  {578, 5},  {578, 6},  {578, 7},  {579, 0},  {579, 1},  {579, 2},  {579, 3},
+    {579, 4},  {579, 5},  {579, 6},  {579, 7},  {579, 8},  {579, 9},  {579, 10}, {579, 11},
+    {580, 0},  {581, 0},  {582, 0},  {583, 0},  {584, 0},  {585, 0},  {586, 0},  {587, 0},
+    {588, 0},  {589, 0},  {590, 0},  {591, 0},  {591, 8},  {592, 0},  {593, 0},  {593, 8},
+    {594, 0},  {595, 0},  {595, 1},  {595, 2},  {595, 3},  {595, 4},  {595, 5},  {596, 0},
+    {596, 1},  {597, 0},  {598, 0},  {599, 0},  {600, 0},  {601, 0},  {602, 0},  {603, 0},
+    {604, 0},  {605, 0},  {606, 0},  {607, 0},  {608, 0},  {609, 0},  {610, 0},  {611, 0},
+    {612, 0},  {613, 0},  {614, 0},  {615, 0},  {616, 0},  {617, 0},  {618, 0},  {619, 0},
+    {620, 0},  {621, 0},  {622, 0},  {623, 0},  {624, 0},  {625, 0},  {626, 0},  {627, 0},
+    {628, 0},  {629, 0},  {630, 0},  {631, 0},  {632, 0},  {633, 0},  {634, 0},  {635, 0},
+    {636, 0},  {637, 0},  {638, 0},  {639, 0},  {640, 0},  {641, 0},  {642, 0},  {643, 0},
+    {644, 0},  {645, 0},  {646, 0},  {647, 0},  {648, 0},  {649, 0},  {650, 0},  {651, 0},
+    {652, 0},  {653, 0},  {654, 0},  {655, 0},  {656, 0},  {551, 0},  {566, 0},  {567, 0},
+    {568, 0},  {569, 0},  {570, 0},  {571, 0},
 };
 #pragma clang diagnostic pop
-
 
 /* The two loaders consume the released SGP object and surface request records.
    Their 0x6c and 0x70 sizes account exactly for this function's 0xe0-byte pair
@@ -1230,8 +799,8 @@ void ReleaseLoadedVideoFrames(void)
 }
 
 // FUNCTION: WIZ8 0x00548f90
-void DrawCatalogImage(int target, int object, int frame, short image,
-                      int left, int top, int mode, int flags)
+void DrawCatalogImage(int target, int object, int frame, short image, int left, int top, int mode,
+                      int flags)
 {
     W8VideoObjectSlot* slot;
     short row;
@@ -1253,8 +822,7 @@ void DrawCatalogImage(int target, int object, int frame, short image,
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
     }
     if (g_video_frames_62c430[slot->first_frame + frame].mode == 0) {
-        ok = BltVideoObjectFromIndex(
-            target, surface, row, left, top, mode, (blt_fx*)flags);
+        ok = BltVideoObjectFromIndex(target, surface, row, left, top, mode, (blt_fx*)flags);
     } else {
         ok = BltVideoSurface(target, surface, row, left, top, mode, 0);
     }
@@ -1262,7 +830,6 @@ void DrawCatalogImage(int target, int object, int frame, short image,
         srAssertFail("fReturnCode", VIDEO_OBJECT_MANAGER_CPP, 0x3e, 0);
     }
 }
-
 
 /* Loads one frame's surface the first time it is drawn. The path comes out of
    the frame record itself, and the mode picks which loader receives it. A
@@ -1321,8 +888,7 @@ unsigned short* CopyCatalogImagePalette16BPP(int object, int frame)
     unsigned short* palette;
 
     if (!gfVideoObjectsInit) {
-        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
-                     0xaf, 0);
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xaf, 0);
     }
     palette = (unsigned short*)malloc(0x200);
     if (!palette) {
@@ -1330,12 +896,10 @@ unsigned short* CopyCatalogImagePalette16BPP(int object, int frame)
     }
     EnsureCatalogFrameLoaded(object, frame);
     if (!gfVideoObjectsInit) {
-        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
-                     0xe6, 0);
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xe6, 0);
     }
     if (!CopyVideoObjectPalette16BPP(
-            g_video_frames_62c430[
-                g_video_slots_6448c8[object].first_frame + frame].handle,
+            g_video_frames_62c430[g_video_slots_6448c8[object].first_frame + frame].handle,
             palette)) {
         return 0;
     }
@@ -1346,20 +910,17 @@ unsigned short* CopyCatalogImagePalette16BPP(int object, int frame)
 unsigned int GetCatalogVideoObjectHandle(int object, int frame)
 {
     if (!gfVideoObjectsInit) {
-        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
-                     0xe6, 0);
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xe6, 0);
     }
     EnsureCatalogFrameLoaded(object, frame);
-    return g_video_frames_62c430[
-        g_video_slots_6448c8[object].first_frame + frame].handle;
+    return g_video_frames_62c430[g_video_slots_6448c8[object].first_frame + frame].handle;
 }
 
 // FUNCTION: WIZ8 0x005493e0
 short GetCatalogVideoObjectYOffset(int object)
 {
     if (!gfVideoObjectsInit) {
-        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
-                     0xf2, 0);
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xf2, 0);
     }
     return g_video_slots_6448c8[object].y_offset;
 }
@@ -1369,8 +930,7 @@ short GetCatalogVideoObjectYOffset(int object)
    surface-backed objects expose the dimensions on the canonical SGP surface
    record returned by GetVideoSurface. */
 // FUNCTION: WIZ8 0x005494f0
-void InvalidateCatalogImageRect(int object, int frame, int image,
-                                int left, int top, int flags)
+void InvalidateCatalogImageRect(int object, int frame, int image, int left, int top, int flags)
 {
     W8VideoObjectSlot* slot;
     W8VideoFrame* record;
@@ -1383,14 +943,11 @@ void InvalidateCatalogImageRect(int object, int frame, int image,
     subimage = slot->y_offset + image;
     record = &g_video_frames_62c430[slot->first_frame + frame];
     if (!gfVideoObjectsInit) {
-        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
-                     0xdd, 0);
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
     }
     if (record->mode == 0) {
-        GetVideoObjectETRLESubregionProperties(
-            record->handle, subimage, &width, &height);
-    }
-    else {
+        GetVideoObjectETRLESubregionProperties(record->handle, subimage, &width, &height);
+    } else {
         HVSURFACE surface;
         if (GetVideoSurface(&surface, record->handle)) {
             height = surface->usHeight;
@@ -1399,8 +956,7 @@ void InvalidateCatalogImageRect(int object, int frame, int image,
     }
 
     if (width != 0 && height != 0) {
-        InvalidateRegion(
-            left, top, left + width, top + height, flags);
+        InvalidateRegion(left, top, left + width, top + height, flags);
     }
 }
 
@@ -1408,11 +964,10 @@ void InvalidateCatalogImageRect(int object, int frame, int image,
    argument is truncated to a short for the draw and passed whole to the mark,
    and the seventh reaches the mark only as whether it equals two. */
 // FUNCTION: WIZ8 0x00549600
-void DrawCatalogImageAndInvalidate(int target, int object, int frame, int image,
-                                   int left, int top, int mode, int flags)
+void DrawCatalogImageAndInvalidate(int target, int object, int frame, int image, int left, int top,
+                                   int mode, int flags)
 {
-    DrawCatalogImage(
-        target, object, frame, (short)image, left, top, mode, flags);
+    DrawCatalogImage(target, object, frame, (short)image, left, top, mode, flags);
     InvalidateCatalogImageRect(object, frame, image, left, top, mode == 2);
 }
 
@@ -1420,8 +975,7 @@ void DrawCatalogImageAndInvalidate(int target, int object, int frame, int image,
    ETRLE subimages. Surface-backed records have no ETRLE table, so the retail
    body intentionally leaves the caller's outputs untouched for them. */
 // FUNCTION: WIZ8 0x00549660
-void GetCatalogImageSize(int object, int frame, int image,
-                         short* width, short* height)
+void GetCatalogImageSize(int object, int frame, int image, short* width, short* height)
 {
     W8VideoObjectSlot* slot;
     W8VideoFrame* record;
@@ -1432,21 +986,18 @@ void GetCatalogImageSize(int object, int frame, int image,
     subimage = slot->y_offset + image;
     record = &g_video_frames_62c430[slot->first_frame + frame];
     if (!gfVideoObjectsInit) {
-        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
-                     0xdd, 0);
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
     }
     if (record->mode == 0) {
-        GetVideoObjectETRLESubregionProperties(
-            record->handle, subimage,
-            (unsigned short*)width, (unsigned short*)height);
+        GetVideoObjectETRLESubregionProperties(record->handle, subimage, (unsigned short*)width,
+                                               (unsigned short*)height);
     }
 }
 
 /* The image's own offset inside its frame, read from the video object's ETRLE
    table; only uncompressed frames carry one. */
 // FUNCTION: WIZ8 0x00549700
-void GetCatalogImagePosition00549700(
-    int object, int frame, int image, short* x, short* y)
+void GetCatalogImagePosition00549700(int object, int frame, int image, short* x, short* y)
 {
     W8VideoObjectSlot* slot;
     W8VideoFrame* record;
@@ -1458,8 +1009,7 @@ void GetCatalogImagePosition00549700(
     subimage = slot->y_offset + image;
     record = &g_video_frames_62c430[slot->first_frame + frame];
     if (!gfVideoObjectsInit) {
-        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
-                     0xdd, 0);
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
     }
     if (record->mode == 0) {
         GetVideoObject(&video_object, record->handle);
@@ -1473,9 +1023,8 @@ void GetCatalogImagePosition00549700(
    caller-provided source coordinates. Both surfaces remain locked for exactly
    the pinned SGP conversion call. */
 // FUNCTION: WIZ8 0x005497c0
-unsigned char BlitCatalogSurfaceRectTo16BPP(
-    int target, int left, int top, int right, int bottom, int object,
-    int source_x, int source_y)
+unsigned char BlitCatalogSurfaceRectTo16BPP(int target, int left, int top, int right, int bottom,
+                                            int object, int source_x, int source_y)
 {
     SGPRect source_rect;
     HVSURFACE source_surface;
@@ -1491,18 +1040,16 @@ unsigned char BlitCatalogSurfaceRectTo16BPP(
     source_rect.iBottom = source_y + bottom - top;
 
     if (!gfVideoObjectsInit) {
-        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
-                     0x19d, 0);
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0x19d, 0);
     }
     EnsureCatalogFrameLoaded(object, 0);
-    source_handle =
-        g_video_frames_62c430[g_video_slots_6448c8[object].first_frame].handle;
+    source_handle = g_video_frames_62c430[g_video_slots_6448c8[object].first_frame].handle;
     GetVideoSurface(&source_surface, source_handle);
     target_pixels = LockVideoSurface(target, &target_pitch);
     source_pixels = LockVideoSurface(source_handle, &source_pitch);
-    Blt8BPPDataSubTo16BPPBuffer(
-        reinterpret_cast<unsigned short*>(target_pixels), target_pitch,
-        source_surface, source_pixels, source_pitch, left, top, &source_rect);
+    Blt8BPPDataSubTo16BPPBuffer(reinterpret_cast<unsigned short*>(target_pixels), target_pitch,
+                                source_surface, source_pixels, source_pitch, left, top,
+                                &source_rect);
     UnLockVideoSurface(target);
     UnLockVideoSurface(source_handle);
     return 1;

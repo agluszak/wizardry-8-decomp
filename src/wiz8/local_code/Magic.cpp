@@ -2116,8 +2116,7 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
                 if (effect->target.iType == W8_TARGET_KIND_CHARACTER) {
                     Function5905F0(
                         FormatWideString(
-                            L"%s %s",
-                            g_status_685170.buffers.characters[effect->target.iChar].name,
+                            L"%s %s", g_status_685170.buffers.characters[effect->target.iChar].name,
                             gppStringList[band_text[0]]),
                         -1);
                 } else if (effect->target.iType == W8_TARGET_KIND_MONSTER) {
@@ -2154,7 +2153,7 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
             } else if (report->kind == 3) {
                 SetTextBoxMode(0, -1);
                 WriteGameLog(9, L"%s %s", report->text,
-                               gppStringList[g_spell_band_text_0061e57a[W8_SPELL_REPORT_BAND * 4]]);
+                             gppStringList[g_spell_band_text_0061e57a[W8_SPELL_REPORT_BAND * 4]]);
                 effect->reported_124 = 1;
             }
             free(report);

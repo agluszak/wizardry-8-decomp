@@ -35,12 +35,12 @@
    the percentage at 0x24 scales both. */
 struct W8SpellEffectDefinition {
     unsigned char unknown_00[4];
-    W8Dice magnitude;                     /* 0x04 */
+    W8Dice magnitude; /* 0x04 */
     unsigned char unknown_08[0x18];
-    int duration_scale;                   /* 0x20 */
-    unsigned int percent;                 /* 0x24 */
-    int duration_base;                    /* 0x28 */
-    int duration_per_power;               /* 0x2c */
+    int duration_scale;     /* 0x20 */
+    unsigned int percent;   /* 0x24 */
+    int duration_base;      /* 0x28 */
+    int duration_per_power; /* 0x2c */
 };
 
 #pragma pack(pop)
@@ -53,155 +53,25 @@ enum { W8_EFFECT_PERMANENT = 9999 };
    the next unrelated data region begins. */
 // GLOBAL: WIZ8 0x0060cffc
 const int g_effect_visual_table[149][2] = {
-    {-1, -1},
-    {-1, 224},
-    {34, -1},
-    {38, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {1, 213},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {15, -1},
-    {14, -1},
-    {-1, -1},
-    {-1, -1},
-    {11, -1},
-    {-1, 211},
-    {-1, -1},
-    {-1, -1},
-    {-1, 212},
-    {25, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {10, -1},
-    {-1, 215},
-    {27, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {4, -1},
-    {13, 209},
-    {24, 210},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, 214},
-    {26, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, 216},
-    {-1, -1},
-    {7, -1},
-    {-1, 219},
-    {29, 218},
-    {28, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, 225},
-    {35, -1},
-    {-1, -1},
-    {-1, -1},
-    {21, -1},
-    {-1, -1},
-    {-1, 226},
-    {36, -1},
-    {39, -1},
-    {22, 227},
-    {37, -1},
-    {-1, 217},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {8, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, 220},
-    {30, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, 223},
-    {33, 221},
-    {31, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {12, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, 222},
-    {32, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
-    {-1, -1},
+    {-1, -1},  {-1, 224}, {34, -1},  {38, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {1, 213},
+    {-1, -1},  {-1, -1},  {-1, -1},  {15, -1},  {14, -1},  {-1, -1},  {-1, -1}, {11, -1},
+    {-1, 211}, {-1, -1},  {-1, -1},  {-1, 212}, {25, -1},  {-1, -1},  {-1, -1}, {-1, -1},
+    {10, -1},  {-1, 215}, {27, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {4, -1},  {13, 209},
+    {24, 210}, {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, 214},
+    {26, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, 216}, {-1, -1},  {7, -1},  {-1, 219},
+    {29, 218}, {28, -1},  {-1, -1},  {-1, -1},  {-1, 225}, {35, -1},  {-1, -1}, {-1, -1},
+    {21, -1},  {-1, -1},  {-1, 226}, {36, -1},  {39, -1},  {22, 227}, {37, -1}, {-1, 217},
+    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {8, -1},   {-1, -1}, {-1, -1},
+    {-1, -1},  {-1, -1},  {-1, -1},  {-1, 220}, {30, -1},  {-1, -1},  {-1, -1}, {-1, 223},
+    {33, 221}, {31, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, -1},
+    {-1, -1},  {12, -1},  {-1, -1},  {-1, -1},  {-1, 222}, {32, -1},  {-1, -1}, {-1, -1},
+    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, -1},
+    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, -1},
+    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, -1},
+    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, -1},
+    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, -1},
+    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, -1},
+    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},
 };
 
 // FUNCTION: WIZ8 0x005af2d0
@@ -233,8 +103,8 @@ unsigned int RollEffectMagnitude(W8SpellEffectDefinition* definition)
 // FUNCTION: WIZ8 0x005519c0
 unsigned int RollEffectDuration(W8SpellEffectDefinition* definition)
 {
-    int combined = definition->duration_per_power * definition->duration_scale +
-                   definition->duration_base;
+    int combined =
+        definition->duration_per_power * definition->duration_scale + definition->duration_base;
     unsigned int duration;
     int roll;
 
@@ -248,8 +118,7 @@ unsigned int RollEffectDuration(W8SpellEffectDefinition* definition)
         if (duration >= 2) {
             ++duration;
         }
-    }
-    else if (roll == 1 && duration <= 2) {
+    } else if (roll == 1 && duration <= 2) {
         ++duration;
     }
 
@@ -279,8 +148,7 @@ void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* slot)
     int index;
 
     if (slot->active != 0) {
-        DropMonsterVisual(monster_info->monster,
-                          g_effect_visual_table[slot->effect_id][0], 0);
+        DropMonsterVisual(monster_info->monster, g_effect_visual_table[slot->effect_id][0], 0);
     }
     for (index = 0; index < 9; ++index) {
         bytes[index] = 0;
@@ -318,10 +186,9 @@ void AnnounceEffectResisted(W8CombatSlot* target)
         return;
     }
     if (target->iType == W8_TARGET_KIND_MONSTER) {
-        PostMonsterNotice(
-            MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                3758, MAGIC_EFFECTS_CPP, target->iMonsterID, 1)),
-            gppStringList[0x6cc / 4]);
+        PostMonsterNotice(MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+                              3758, MAGIC_EFFECTS_CPP, target->iMonsterID, 1)),
+                          gppStringList[0x6cc / 4]);
         return;
     }
     PostCharacterNotice(target->iChar, gppStringList[0x6cc / 4]);
@@ -338,10 +205,9 @@ void ApplyEffectAndAnnounce(int* result, W8CombatSlot* target, int arg_3, int ar
         return;
     }
     if (target->iType == W8_TARGET_KIND_MONSTER) {
-        PostMonsterNotice(
-            MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                3758, MAGIC_EFFECTS_CPP, target->iMonsterID, 1)),
-            gppStringList[0x6cc / 4]);
+        PostMonsterNotice(MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+                              3758, MAGIC_EFFECTS_CPP, target->iMonsterID, 1)),
+                          gppStringList[0x6cc / 4]);
         return;
     }
     PostCharacterNotice(target->iChar, gppStringList[0x6cc / 4]);
@@ -378,7 +244,7 @@ int GetConditionDisplaySlot(int condition)
    caster out of it. */
 struct W8SpellQueueEntry {
     unsigned char unknown_00[0x5c];
-    W8TargetSource Source;               /* 0x5c */
+    W8TargetSource Source; /* 0x5c */
 };
 
 /* 0x00450610 */
@@ -445,11 +311,9 @@ void RecalculateCharacterResistances(W8Character* character)
         W8CharacterResistance* resistance = &character->resistances[index];
 
         resistance->base = 25;
-        resistance->base =
-            character->skills[W8_FIRST_RESISTANCE_SKILL + index].level / 10 + 25;
+        resistance->base = character->skills[W8_FIRST_RESISTANCE_SKILL + index].level / 10 + 25;
         if (character->skills[W8_RESISTANCE_BONUS_SKILL].flag_00 != 0) {
-            resistance->base +=
-                character->skills[W8_RESISTANCE_BONUS_SKILL].level / 5 + 5;
+            resistance->base += character->skills[W8_RESISTANCE_BONUS_SKILL].level / 5 + 5;
         }
         if (character->current_profession == 14) {
             resistance->base += 5;
@@ -458,29 +322,27 @@ void RecalculateCharacterResistances(W8Character* character)
 
     if (character->race != -1) {
         for (index = 0; index < W8_RESISTANCE_COUNT; ++index) {
-            channel = g_race_resistance_profiles[character->race]
-                          .adjustments[index].resistance_index;
+            channel =
+                g_race_resistance_profiles[character->race].adjustments[index].resistance_index;
             if (channel == -1) {
                 break;
             }
             adjustment = g_race_resistance_profiles[character->race]
-                             .adjustments[index].adjustment_or_attribute;
+                             .adjustments[index]
+                             .adjustment_or_attribute;
             if (static_cast<int>(adjustment) > W8_RACE_ADJUSTMENT_ATTRIBUTE_BIAS) {
                 adjustment =
-                    character->attributes[adjustment - W8_RACE_ADJUSTMENT_ATTRIBUTE_BIAS]
-                        .value / 5;
+                    character->attributes[adjustment - W8_RACE_ADJUSTMENT_ATTRIBUTE_BIAS].value / 5;
             }
             character->resistances[channel].base += adjustment;
         }
     }
 
     if (character->attributes[1].effective > 0x50) {
-        character->resistances[4].base +=
-            (character->attributes[1].effective - 0x50) >> 1;
+        character->resistances[4].base += (character->attributes[1].effective - 0x50) >> 1;
     }
     if (character->attributes[2].effective > 0x50) {
-        character->resistances[5].base +=
-            (character->attributes[2].effective - 0x50) >> 1;
+        character->resistances[5].base += (character->attributes[2].effective - 0x50) >> 1;
     }
 
     for (index = 0; index < W8_RESISTANCE_COUNT; ++index) {

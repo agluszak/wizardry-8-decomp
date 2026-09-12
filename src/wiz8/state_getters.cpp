@@ -60,8 +60,8 @@ int FindLevelIdByLocationCode(const char* location_code)
         return -1;
     }
     if (level_id < 47) {
-        if (strlen(g_level_folders[level_id].folder_name) == 0
-            || strlen(g_level_folders[level_id].level_name) == 0) {
+        if (strlen(g_level_folders[level_id].folder_name) == 0 ||
+            strlen(g_level_folders[level_id].level_name) == 0) {
             return -1;
         }
     }

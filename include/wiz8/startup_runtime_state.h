@@ -7,9 +7,8 @@
 struct W8Character;
 
 struct W8StartupStateElement005EE748 {
-    W8StartupStateElement005EE748(
-        W8Character* character, unsigned int type, int value_0c,
-        unsigned int flags, int value_14);
+    W8StartupStateElement005EE748(W8Character* character, unsigned int type, int value_0c,
+                                  unsigned int flags, int value_14);
 
     unsigned char handled_00;
     unsigned char unknown_01[3];
@@ -31,10 +30,10 @@ struct W8StartupStateElement005EE748 {
     unsigned int clock_34;
 
     /* Applies this entry's queued runtime consequence. */
-    void Process0052CED0();          /* 0x0052CED0 */
+    void Process0052CED0(); /* 0x0052CED0 */
 
     /* Returns this entry's formatted quote text in the shared wide buffer. */
-    wchar_t* GetQuoteText();         /* 0x0052D240 */
+    wchar_t* GetQuoteText(); /* 0x0052D240 */
 };
 
 static_assert(sizeof(W8StartupStateElement005EE748) == 0x38,
@@ -58,14 +57,12 @@ struct W8StartupRuntimeState {
     ~W8StartupRuntimeState();
     void ClearOwnedEntries();
     int QueueEntry(W8StartupStateElement005EE748* entry);
-    void SetEventCharacterMask(
-        unsigned int event_type, unsigned int party_slot, bool enabled);
+    void SetEventCharacterMask(unsigned int event_type, unsigned int party_slot, bool enabled);
     void ProcessOwnedEntry(W8StartupStateElement005EE748* entry);
     void ProcessNextPendingEntry();
     /* Restarts the follow-up clock for entries of the middle event band while
        the state flag selects it. QueueEntry reaches it for stolen entries. */
     void RestartFollowUpClock(W8StartupStateElement005EE748* entry);
-
 };
 
 static_assert(sizeof(W8StartupRuntimeState) == 0x6c, "W8StartupRuntimeState_must_be_0x6c");

@@ -8,7 +8,6 @@
 
 #include <string.h>
 
-
 // VTABLE: WIZ8 0x005EC5F8
 // class stTextureFile
 
@@ -38,10 +37,7 @@
 
 // FUNCTION: WIZ8 0x0047C630
 stTextureFile::stTextureFile(const char* file_name, int cached)
-    : cached_54(cached),
-      file_name_58(0),
-      surface_5c(0),
-      frame_handle_60(getNewFrameHandle()),
+    : cached_54(cached), file_name_58(0), surface_5c(0), frame_handle_60(getNewFrameHandle()),
       has_alpha_64(0)
 {
     invalidate();
@@ -183,10 +179,8 @@ void stTextureFile::getMipmapData(MultiRequest& request)
         request.destinations[level]->copy(*surface_5c);
     }
     for (++level; level <= static_cast<long>(request.unknown_04); ++level) {
-        if (request.destinations[level] != 0 &&
-            request.destinations[level - 1] != 0) {
-            request.destinations[level]->copy(
-                *request.destinations[level - 1]);
+        if (request.destinations[level] != 0 && request.destinations[level - 1] != 0) {
+            request.destinations[level]->copy(*request.destinations[level - 1]);
         }
     }
 
@@ -196,10 +190,6 @@ void stTextureFile::getMipmapData(MultiRequest& request)
     }
 }
 
-void stTextureFile::getMipmapLevelPartial(PartialRequest&)
-{
-}
+void stTextureFile::getMipmapLevelPartial(PartialRequest&) {}
 
-void stTextureFile::dump(std::ostream&)
-{
-}
+void stTextureFile::dump(std::ostream&) {}

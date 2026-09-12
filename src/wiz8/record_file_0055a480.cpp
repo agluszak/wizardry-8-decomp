@@ -85,14 +85,13 @@ unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record)
         disk_sub_count = entry->sub_entry_count;
         if (disk_sub_count != 0) {
             entry->sub_entry_count = 0;
-            entry->sub_entries = static_cast<W8FileSubEntry0055A140*>(
-                malloc(disk_sub_count * 8));
+            entry->sub_entries = static_cast<W8FileSubEntry0055A140*>(malloc(disk_sub_count * 8));
             if (entry->sub_entries == 0) {
                 return 0;
             }
             entry->sub_entry_count = entry->sub_entry_count + disk_sub_count;
-            memset(entry->sub_entries + (entry->sub_entry_count - disk_sub_count),
-                   0, disk_sub_count * 8);
+            memset(entry->sub_entries + (entry->sub_entry_count - disk_sub_count), 0,
+                   disk_sub_count * 8);
             total_sub_entries = total_sub_entries + entry->sub_entry_count;
             for (sub_index = 0; sub_index < entry->sub_entry_count; ++sub_index) {
                 sub_entry = entry->sub_entries + sub_index;

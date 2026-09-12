@@ -15,14 +15,10 @@
    Nothing names the class, so it is qualified by its vtable address. */
 
 // FUNCTION: WIZ8 0x0043a4e0
-W8IntervalGate::W8IntervalGate()
-    : W8GameTimer(1.0f, 0), m_finished(0)
-{
-}
+W8IntervalGate::W8IntervalGate() : W8GameTimer(1.0f, 0), m_finished(0) {}
 
 // FUNCTION: WIZ8 0x0043a500
-W8IntervalGate::W8IntervalGate(
-    float duration, unsigned char raw_time, bool set_flag_2)
+W8IntervalGate::W8IntervalGate(float duration, unsigned char raw_time, bool set_flag_2)
     : W8GameTimer(duration, raw_time), m_finished(0)
 {
     if (set_flag_2) {
@@ -31,9 +27,7 @@ W8IntervalGate::W8IntervalGate(
 }
 
 // FUNCTION: WIZ8 0x004218d0
-W8IntervalGate::~W8IntervalGate()
-{
-}
+W8IntervalGate::~W8IntervalGate() {}
 
 // FUNCTION: WIZ8 0x0043A530
 void W8IntervalGate::Arm()
@@ -49,8 +43,8 @@ unsigned int W8IntervalGate::PollElapsedIntervals()
     if (m_finished != 0) {
         return 1;
     }
-    unsigned int intervals = (unsigned int)(ReadClock() - m_start)
-                             / (unsigned int)(m_end - m_start);
+    unsigned int intervals =
+        (unsigned int)(ReadClock() - m_start) / (unsigned int)(m_end - m_start);
     if ((int)intervals > 0) {
         if ((m_flags & 2) != 0) {
             m_finished = 1;
@@ -68,8 +62,7 @@ BOOLEAN W8IntervalGate::Load(int handle)
     if ((m_flags & 2) == 0) {
         return W8GameTimer::Load(handle);
     }
-    BOOLEAN loaded = FileRead(
-        handle, &m_duration_seconds, sizeof(m_duration_seconds), 0);
+    BOOLEAN loaded = FileRead(handle, &m_duration_seconds, sizeof(m_duration_seconds), 0);
     if (loaded != 0) {
         m_start = ReadClock();
         m_duration = (int)(m_duration_seconds * m_duration_scale * 10000.0f);
@@ -84,8 +77,8 @@ BOOLEAN W8IntervalGate::Save(int handle)
     float elapsed;
     if ((m_flags & 2) == 0) {
         int sample = ReadClock();
-        float progress = (float)(unsigned int)(sample - m_start) /
-                         (float)(unsigned int)(m_end - m_start);
+        float progress =
+            (float)(unsigned int)(sample - m_start) / (float)(unsigned int)(m_end - m_start);
         // The on-disk pair and its OR-combined result mirror W8GameTimer::Load.
         BOOLEAN saved = FileWrite(handle, &progress, sizeof(progress), 0);
         saved |= FileWrite(handle, &m_duration_scale, sizeof(m_duration_scale), 0);
@@ -93,8 +86,7 @@ BOOLEAN W8IntervalGate::Save(int handle)
     }
     if (m_finished != 0) {
         elapsed = 0.0f;
-    }
-    else {
+    } else {
         elapsed = GetElapsedSeconds();
     }
     return FileWrite(handle, &elapsed, sizeof(elapsed), 0);

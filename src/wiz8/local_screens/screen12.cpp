@@ -18,7 +18,6 @@ extern int g_value_64c1c8;
 // GLOBAL: WIZ8 0x0064c1c8
 int g_value_64c1c8 = -1;
 
-
 // FUNCTION: WIZ8 0x00591780
 void RequestExitScreen(void)
 {
@@ -72,8 +71,7 @@ void ExitScreenFrame(void)
         if (gfProgramIsRunning != 0) {
             return;
         }
-    }
-    else {
+    } else {
         gfProgramIsRunning = 0;
     }
     ClearFlag603C60();

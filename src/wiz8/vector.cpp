@@ -334,7 +334,6 @@ class W8Navigator;
 // TEMPLATE: WIZ8 0x004aab10
 // W8GrowableVector<srVector3T<float>*>::~W8GrowableVector<srVector3T<float>*>
 
-
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
 /* Engine Code\Spells.cpp's g_sound3d_instances_65be40. */

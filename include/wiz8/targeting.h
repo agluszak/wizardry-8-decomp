@@ -37,20 +37,20 @@ enum W8TargetSourceKind {
 };
 
 struct W8TargetSource {
-    W8TargetSourceKind iType;             /* 0x00 */
-    int iChar;                            /* 0x04, -1 when empty */
-    int iMonsterID;                       /* 0x08, -1 when empty */
+    W8TargetSourceKind iType; /* 0x00 */
+    int iChar;                /* 0x04, -1 when empty */
+    int iMonsterID;           /* 0x08, -1 when empty */
     /* 0x0c: the world point, for a source that is a place rather than
        somebody. Note that this is not where the combat slot keeps its own
        point - that one has a group id at 0x0c and the point at 0x10 - so the
        two blocks are related but not the same shape. */
     srVector3T<float> point;
-    unsigned char unknown_18[3];         /* 0x18..0x1a; [1] is the name-known flag
+    unsigned char unknown_18[3]; /* 0x18..0x1a; [1] is the name-known flag
                                             SpellTargetString reads */
-    unsigned char fReflection;            /* 0x1b */
-    unsigned char fBackfire;              /* 0x1c */
+    unsigned char fReflection;   /* 0x1b */
+    unsigned char fBackfire;     /* 0x1c */
     unsigned char unknown_1d[0x17];
-};                                        /* 0x34 */
+}; /* 0x34 */
 
 /* The target-kind domain a combat slot's leading field takes. The kinds that
    name something put it in their own field, which is what pairs each kind with
@@ -78,17 +78,17 @@ struct W8CombatSlot {
        pTarget->iChar, pTarget->iMonsterID, pTarget->iGroupID and
        pTarget->pPCItem - and they are the same four the source block carries
        under the same names, one per target kind. */
-    W8TargetKind iType;                   /* 0x00 */
-    int iChar;                            /* 0x04, -1 when empty */
-    int iMonsterID;                       /* 0x08, -1 when empty */
-    int iGroupID;                         /* 0x0c, -1 when empty */
+    W8TargetKind iType; /* 0x00 */
+    int iChar;          /* 0x04, -1 when empty */
+    int iMonsterID;     /* 0x08, -1 when empty */
+    int iGroupID;       /* 0x0c, -1 when empty */
     /* Place targets store the ordinary world vector here. Other target kinds
        reuse byte +0x19 as the "name known" flag; that overlapping byte use
        does not establish a second source type or union boundary. */
-    srVector3T<float> point;               /* 0x10 */
+    srVector3T<float> point; /* 0x10 */
     /* 0x1c: the item aimed at, for the one kind that aims at one. */
     W8ItemInstance* pPCItem;
-};                                        /* 0x20 */
+}; /* 0x20 */
 /* The two-word block an action carries beside itself. A spell's holds the
    power level and a spare word; an item use's holds the use kind and the item.
    It is the party slot row's own pair in both cases rather than a copy, which
@@ -102,7 +102,7 @@ union W8ActionDetailBlock {
         int kind;
         W8ItemInstance* item;
     } item_use;
-};                                        /* 0x08 */
+}; /* 0x08 */
 
 /* The targeting contexts. Six of them name a block the slot carries; the
    seventh, "current", is not a context at all but the request to work out
@@ -136,7 +136,6 @@ extern W8CombatSlot g_shared_target_0068408b;
    both addresses and stores the selected use-item value in the block. */
 extern W8ActionDetailBlock g_shared_action_detail_006840ab;
 void ResetTargetingState(void);
-
 
 unsigned char GetFactionFlag(char faction);
 void AimByKind(int actor, W8TargetKind kind, W8TargetingContext context);
@@ -179,17 +178,15 @@ unsigned char Function53C630(W8CombatSlot* slot, int arg_2);
 void AimCombatSlotAtParty(W8CombatSlot* combat_slot, int hostile);
 void ApplyTarget(W8CombatSlot* target, W8TargetingContext context);
 bool IsTargetStillPresent(const W8CombatSlot* target);
-bool IsTargetSourceInRangeOfGroup(
-    const W8TargetSource* source, W8MonsterGroup* group, W8TargetingContext context);
+bool IsTargetSourceInRangeOfGroup(const W8TargetSource* source, W8MonsterGroup* group,
+                                  W8TargetingContext context);
 void NoteTargetChosen(const W8TargetSource* source, const W8CombatSlot* target);
 
-
-unsigned char CanTargetMonster(
-    int party_slot, int location_id, int allow_single_target, int reason); /* 0x00536AD0 */
+unsigned char CanTargetMonster(int party_slot, int location_id, int allow_single_target,
+                               int reason); /* 0x00536AD0 */
 void ClearTargetingMode0053B050(int party_slot);
-unsigned char Function536F60(
-    int party_slot, int value,
-    W8TargetingContext context = W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
+unsigned char Function536F60(int party_slot, int value,
+                             W8TargetingContext context = W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
 void Function5398D0(void);
 unsigned char Function53A1D0(void);
 void Function53B1D0(void);
@@ -199,15 +196,15 @@ void Function53B310(void);
    opaque dwords (zeroing the middle one, i.e. its count) and forwards them.
    Both pointer parameters stay untyped until its recovery types them. */
 void Function53B660(const void* position, void* target, int enabled);
-unsigned char TargetIsInPlay(int party_slot, int arg_2, int arg_3);   /* 0x00536F60 */
+unsigned char TargetIsInPlay(int party_slot, int arg_2, int arg_3); /* 0x00536F60 */
 
-void Function53AE00(void);          /* 0x0053AE00 */
-void Function53CD60(void);          /* 0x0053CD60 */
+void Function53AE00(void); /* 0x0053AE00 */
+void Function53CD60(void); /* 0x0053CD60 */
 /* Combat action-selection helpers used across the combat units. */
-bool CanPartySlotParticipate(int party_slot); /* 0x0053C270 */
-W8TargetingContext Function53BC90(int party_slot);                  /* 0x0053BC90 */
-W8TargetingContext GetValidatedTargetingContext(
-    int party_slot, W8TargetingContext context); /* 0x0053BBD0 */
-void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source); /* 0x0053A9D0 */
+bool CanPartySlotParticipate(int party_slot);      /* 0x0053C270 */
+W8TargetingContext Function53BC90(int party_slot); /* 0x0053BC90 */
+W8TargetingContext GetValidatedTargetingContext(int party_slot,
+                                                W8TargetingContext context); /* 0x0053BBD0 */
+void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source);     /* 0x0053A9D0 */
 
 #endif

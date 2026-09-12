@@ -14,8 +14,8 @@
    the entries. visible_lines references entries selected/ordered from it. */
 class W8DialogTextArea {
 public:
-    W8DialogTextArea();           /* 0x005D14D0 */
-    ~W8DialogTextArea();          /* 0x005D1590 */
+    W8DialogTextArea();  /* 0x005D14D0 */
+    ~W8DialogTextArea(); /* 0x005D1590 */
     void Configure(const W8ControlsRect* bounds, int font, unsigned int flags);
     void Draw(unsigned char force);
     void SetFirstVisibleLine(int line);
@@ -35,8 +35,8 @@ public:
     W8DialogTextEntry* GetEntry(unsigned int index);
     int GetOwningEntryIndex(int visible_index);
     void SetEntryState60(int index, unsigned char state);
-    int AddEntry(const wchar_t* prefix, const wchar_t* text,
-                 unsigned int prefix_palette, unsigned int text_palette, unsigned char category);
+    int AddEntry(const wchar_t* prefix, const wchar_t* text, unsigned int prefix_palette,
+                 unsigned int text_palette, unsigned char category);
     void RemoveEntry(unsigned int index);
     void RebuildVisibleEntries();
     void SetCategoryFilter(signed char category);
@@ -46,7 +46,7 @@ public:
     void SetFirstVisibleEntry(unsigned int index);
 
 private:
-    W8ControlsRect m_bounds;              /* 0x00: passed to entry construction */
+    W8ControlsRect m_bounds; /* 0x00: passed to entry construction */
     int unknown_010;
     int unknown_014;
     int unknown_018;
@@ -65,4 +65,4 @@ private:
     signed char unknown_055;
     unsigned char unknown_056;
     unsigned char unknown_057;
-};                                      /* modeled minimum 0x58 */
+}; /* modeled minimum 0x58 */

@@ -47,7 +47,8 @@ void W8Item::ApplyRepTransform0049FAA0()
     srNode* mesh;
 
     if (static_cast<W8ItemRep*>(m_pRep)->m_psrMesh == 0) {
-        srAssertFail("m_pRep->m_psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\Item.cpp", 0x266, 0);
+        srAssertFail("m_pRep->m_psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\Item.cpp", 0x266,
+                     0);
     }
     mesh = static_cast<W8ItemRep*>(m_pRep)->m_psrMesh;
     m_pRep->GetLocation004B8890(&location);
@@ -110,8 +111,7 @@ unsigned int W8ItemRep::SetFlags(unsigned int mask, bool enabled)
 {
     if (enabled != 0) {
         flags |= mask;
-    }
-    else {
+    } else {
         flags &= ~mask;
     }
     return flags;

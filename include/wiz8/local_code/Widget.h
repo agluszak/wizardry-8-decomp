@@ -17,14 +17,13 @@ public:
     friend struct Controls;
 
     W8Widget()
-        : m_enabled(1), m_active(0), m_dirty(0),
-          m_left(0), m_top(0), m_right(0), m_bottom(0), m_region(-1),
-          m_pPanel(0), m_primaryActivationCallback(0), m_leftButtonDownCallback(0),
-          m_secondaryActivationCallback(0), m_rightButtonDownCallback(0), m_leftDoubleClickCallback(0)
+        : m_enabled(1), m_active(0), m_dirty(0), m_left(0), m_top(0), m_right(0), m_bottom(0),
+          m_region(-1), m_pPanel(0), m_primaryActivationCallback(0), m_leftButtonDownCallback(0),
+          m_secondaryActivationCallback(0), m_rightButtonDownCallback(0),
+          m_leftDoubleClickCallback(0)
     {
     }
-    W8Widget(Controls* owner, unsigned int region,
-                         int left, int top, int right, int bottom);
+    W8Widget(Controls* owner, unsigned int region, int left, int top, int right, int bottom);
 
     void SetPanel(Controls* panel);
     void SetRegion(unsigned int region);
@@ -58,23 +57,23 @@ public:
 
     /* Read from outside the class by Local Screens\RCSCommon.cpp, which is what
        keeps the three flags reachable rather than protected. */
-    bool m_enabled;            /* 0x04: interaction and enabled appearance */
-    bool m_active;             /* 0x05: panel participation and region input */
-    bool m_dirty;              /* 0x06: pending widget redraw */
+    bool m_enabled; /* 0x04: interaction and enabled appearance */
+    bool m_active;  /* 0x05: panel participation and region input */
+    bool m_dirty;   /* 0x06: pending widget redraw */
     unsigned char pad_007;
     /* 0x08: the widget's rectangle, relative to the owner's origin. The
        constructor adds the origin to all four before handing them to the
        region, which is what makes right and bottom edges rather than a size. */
-    int m_left;                          /* 0x08 */
-    int m_top;                           /* 0x0c */
-    int m_right;                         /* 0x10 */
-    int m_bottom;                        /* 0x14 */
-    int m_region;                     /* 0x18: handed to DisableRegionInput unless -1 */
-    Controls* m_pPanel;                  /* 0x1c: named by Controls.cpp:1849 */
-    W8ControlCallback m_primaryActivationCallback; /* 0x20: invoked by text-control activation */
-    W8ControlCallback m_leftButtonDownCallback;    /* 0x24 */
-    W8ControlCallback m_secondaryActivationCallback;/* 0x28 */
-    W8ControlCallback m_rightButtonDownCallback;   /* 0x2c */
-    W8ControlCallback m_leftDoubleClickCallback;    /* 0x30 */
-};                                       /* 0x34 established */
+    int m_left;         /* 0x08 */
+    int m_top;          /* 0x0c */
+    int m_right;        /* 0x10 */
+    int m_bottom;       /* 0x14 */
+    int m_region;       /* 0x18: handed to DisableRegionInput unless -1 */
+    Controls* m_pPanel; /* 0x1c: named by Controls.cpp:1849 */
+    W8ControlCallback m_primaryActivationCallback;   /* 0x20: invoked by text-control activation */
+    W8ControlCallback m_leftButtonDownCallback;      /* 0x24 */
+    W8ControlCallback m_secondaryActivationCallback; /* 0x28 */
+    W8ControlCallback m_rightButtonDownCallback;     /* 0x2c */
+    W8ControlCallback m_leftDoubleClickCallback;     /* 0x30 */
+}; /* 0x34 established */
 static_assert(sizeof(W8Widget) == 0x34, "W8Widget_size");

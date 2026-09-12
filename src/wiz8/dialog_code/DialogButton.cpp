@@ -17,9 +17,8 @@ void W8DialogButton::Draw()
         int left = GetButtonX(m_resource_01c);
         int top = GetButtonY(m_resource_01c);
         DrawButton(m_resource_01c);
-        InvalidateRegion(left, top,
-                            left + GetButtonWidth(m_resource_01c),
-                            top + GetButtonHeight(m_resource_01c), 0);
+        InvalidateRegion(left, top, left + GetButtonWidth(m_resource_01c),
+                         top + GetButtonHeight(m_resource_01c), 0);
         m_dirty = 0;
     }
 }
@@ -69,8 +68,7 @@ void W8DialogButton::SetEnabled(bool enabled)
                 button->uiFlags |= BUTTON_ENABLED;
                 m_dirty = 1;
             }
-        }
-        else if (button->uiFlags & BUTTON_ENABLED) {
+        } else if (button->uiFlags & BUTTON_ENABLED) {
             button->uiFlags &= ~BUTTON_ENABLED;
             m_dirty = 1;
         }
@@ -94,8 +92,7 @@ void W8DialogButton::SetPressed(bool pressed)
                 button->uiFlags |= BUTTON_CLICKED_ON;
                 m_dirty = 1;
             }
-        }
-        else if (button->uiFlags & BUTTON_CLICKED_ON) {
+        } else if (button->uiFlags & BUTTON_CLICKED_ON) {
             button->uiFlags &= ~BUTTON_CLICKED_ON;
             m_dirty = 1;
         }
@@ -116,8 +113,7 @@ void W8DialogButton::SetVisible(bool visible)
             ShowButton(m_resource_01c);
             MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, 0, 0, gfLeftButtonState, gfRightButtonState);
         }
-    }
-    else if (GetButtonPtr(m_resource_01c)->Area.uiFlags & MSYS_REGION_ENABLED) {
+    } else if (GetButtonPtr(m_resource_01c)->Area.uiFlags & MSYS_REGION_ENABLED) {
         HideButton(m_resource_01c);
         MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, 0, 0, gfLeftButtonState, gfRightButtonState);
     }

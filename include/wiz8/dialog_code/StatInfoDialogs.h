@@ -24,9 +24,9 @@ public:
     virtual ~W8StatInfoDialog005DFC70() override;
 
 private:
-    unsigned int m_value_140;            /* 0x140 */
-    unsigned int m_value_144;            /* 0x144 */
-    unsigned int m_uiIndex;              /* 0x148 */
+    unsigned int m_value_140; /* 0x140 */
+    unsigned int m_value_144; /* 0x144 */
+    unsigned int m_uiIndex;   /* 0x148 */
 };
 
 class W8StatInfoDialog005E0180 : public W8StatInfoDialogBase005DF880 {
@@ -35,16 +35,16 @@ public:
     virtual ~W8StatInfoDialog005E0180() override;
 
 private:
-    unsigned int m_value_140;            /* 0x140 */
-    unsigned int m_value_144;            /* 0x144 */
-    unsigned int m_uiIndex;              /* 0x148 */
+    unsigned int m_value_140; /* 0x140 */
+    unsigned int m_value_144; /* 0x144 */
+    unsigned int m_uiIndex;   /* 0x148 */
 };
 
 // VTABLE: WIZ8 0x005efd08
 class W8SkillInfoDialog005EFD08 : public W8StatInfoDialogBase005DF880 {
 public:
-    W8SkillInfoDialog005EFD08(unsigned int skill, unsigned char first,
-                              unsigned char second, unsigned char bonus);
+    W8SkillInfoDialog005EFD08(unsigned int skill, unsigned char first, unsigned char second,
+                              unsigned char bonus);
     virtual ~W8SkillInfoDialog005EFD08() override;
 
 private:
@@ -59,9 +59,7 @@ private:
 
 static_assert(sizeof(W8StatInfoDialogBase005DF880) == 0x140,
               "W8StatInfoDialogBase005DF880_must_be_0x140");
-static_assert(sizeof(W8StatInfoDialog005DFC70) == 0x14c,
-              "W8StatInfoDialog005DFC70_must_be_0x14c");
-static_assert(sizeof(W8StatInfoDialog005E0180) == 0x14c,
-              "W8StatInfoDialog005E0180_must_be_0x14c");
+static_assert(sizeof(W8StatInfoDialog005DFC70) == 0x14c, "W8StatInfoDialog005DFC70_must_be_0x14c");
+static_assert(sizeof(W8StatInfoDialog005E0180) == 0x14c, "W8StatInfoDialog005E0180_must_be_0x14c");
 static_assert(sizeof(W8SkillInfoDialog005EFD08) == 0x150,
               "W8SkillInfoDialog005EFD08_must_be_0x150");

@@ -92,8 +92,7 @@ W8Dialog005CBB40::~W8Dialog005CBB40()
 void W8Dialog005CBB40::SetText(const wchar_t* text)
 {
     if (m_text_button_08c != -1) {
-        SpecifyButtonText(m_text_button_08c,
-                          const_cast<unsigned short*>(text));
+        SpecifyButtonText(m_text_button_08c, const_cast<unsigned short*>(text));
         W8DialogBase::SetText(0);
         return;
     }
@@ -116,15 +115,15 @@ int W8Dialog005CBB40::CreateControls()
         0,
         reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
             const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
-        0, reinterpret_cast<unsigned char*>(m_background_path), // reinterpret-ok: SGP image API takes UINT8*
+        0,
+        reinterpret_cast<unsigned char*>(
+            m_background_path), // reinterpret-ok: SGP image API takes UINT8*
         static_cast<short>(m_background_flags), 0, 0);
     m_text_button_08c = CreateTextButton(
         m_text, g_dialog_font_64fde8, g_dialog_font_foreground_64fdec,
-        g_dialog_font_background_64fded, m_inlay_image_0f8,
-        static_cast<short>(m_x) + 9, static_cast<short>(m_y) + 9,
-        static_cast<short>(m_width) - 0x12,
-        static_cast<short>(GetFontHeight(g_dialog_font_64fde8) * 0x96 / 100),
-        0x8004, 0x7e, 0, 0);
+        g_dialog_font_background_64fded, m_inlay_image_0f8, static_cast<short>(m_x) + 9,
+        static_cast<short>(m_y) + 9, static_cast<short>(m_width) - 0x12,
+        static_cast<short>(GetFontHeight(g_dialog_font_64fde8) * 0x96 / 100), 0x8004, 0x7e, 0, 0);
     if (m_text_button_08c == -1) {
         m_error = 7;
         return 7;
@@ -136,8 +135,7 @@ int W8Dialog005CBB40::CreateControls()
         m_error = 7;
         return 7;
     }
-    SpecifyButtonMultiColorFont(m_text_button_08c,
-                                g_dialog_font_enabled_69ca32);
+    SpecifyButtonMultiColorFont(m_text_button_08c, g_dialog_font_enabled_69ca32);
     m_inlay_image_094 = LoadGenericButtonImages(
         0,
         reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
@@ -154,14 +152,12 @@ int W8Dialog005CBB40::CreateControls()
         return 4;
     }
     m_area_button_098 = CreateTextButton(
-        0, g_dialog_font_64fde8, g_dialog_font_foreground_64fdec,
-        g_dialog_font_background_64fded, m_inlay_image_094,
-        static_cast<short>(m_x + (GetButtonX(m_text_button_08c) - m_x)),
+        0, g_dialog_font_64fde8, g_dialog_font_foreground_64fdec, g_dialog_font_background_64fded,
+        m_inlay_image_094, static_cast<short>(m_x + (GetButtonX(m_text_button_08c) - m_x)),
         static_cast<short>(
-            m_y + (GetButtonY(m_text_button_08c) +
-                   GetButtonHeight(m_text_button_08c) + 4 - m_y)),
-        static_cast<short>(GetButtonWidth(m_text_button_08c)),
-        0x14, 4, 0x7e, Function5CCE70, Function5CCE70);
+            m_y + (GetButtonY(m_text_button_08c) + GetButtonHeight(m_text_button_08c) + 4 - m_y)),
+        static_cast<short>(GetButtonWidth(m_text_button_08c)), 0x14, 4, 0x7e, Function5CCE70,
+        Function5CCE70);
     if (m_area_button_098 == -1) {
         m_error = 7;
         return 7;
@@ -172,48 +168,44 @@ int W8Dialog005CBB40::CreateControls()
             const_cast<char*>("Data\\Dialogs\\DialogUpArrow.STI")),
         3, 0, 1, 2, 2);
     if (m_up_image_0a0 != -1) {
-        m_up_button_09c = QuickCreateButton(m_up_image_0a0, 0, 0, 4, 0x7e,
-                                            Function5CCF30, Function5CCF30);
+        m_up_button_09c =
+            QuickCreateButton(m_up_image_0a0, 0, 0, 4, 0x7e, Function5CCF30, Function5CCF30);
     }
     m_down_image_0a8 = LoadButtonImage(
         reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
             const_cast<char*>("Data\\Dialogs\\DialogDownArrow.STI")),
         3, 0, 1, 2, 2);
     if (m_down_image_0a8 != -1) {
-        m_down_button_0a4 = QuickCreateButton(m_down_image_0a8, 0, 0, 4, 0x7e,
-                                              Function5CCFE0, Function5CCFE0);
+        m_down_button_0a4 =
+            QuickCreateButton(m_down_image_0a8, 0, 0, 4, 0x7e, Function5CCFE0, Function5CCFE0);
     }
     m_slider_image_0b0 = LoadButtonImage(
         reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
             const_cast<char*>("Data\\Dialogs\\DialogSlideBar.STI")),
         -1, 0, -1, -1, -1);
     if (m_slider_image_0b0 != -1) {
-        m_slider_button_0ac = QuickCreateButton(
-            m_slider_image_0b0, 0, 0, 4, 0x7d, 0, 0);
+        m_slider_button_0ac = QuickCreateButton(m_slider_image_0b0, 0, 0, 4, 0x7d, 0, 0);
     }
     m_ok_image_0c0 = LoadButtonImage(
         reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
             const_cast<char*>("Data\\Dialogs\\DialogConfirmation.STI")),
         3, 0, 1, 2, 2);
     if (m_ok_image_0c0 != -1) {
-        m_ok_button_0bc = QuickCreateButton(m_ok_image_0c0, 0, 0, 4, 0x7f,
-                                            Function5CD090, Function5CD090);
+        m_ok_button_0bc =
+            QuickCreateButton(m_ok_image_0c0, 0, 0, 4, 0x7f, Function5CD090, Function5CD090);
     }
     m_cancel_image_0d8 = LoadButtonImage(
         reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
             const_cast<char*>("Data\\Dialogs\\DialogConfirmation.STI")),
         7, 4, 5, 6, 6);
     if (m_cancel_image_0d8 != -1) {
-        m_cancel_button_0d4 = QuickCreateButton(m_cancel_image_0d8, 0, 0, 4,
-                                                0x7f, Function5CD130,
-                                                Function5CD130);
+        m_cancel_button_0d4 =
+            QuickCreateButton(m_cancel_image_0d8, 0, 0, 4, 0x7f, Function5CD130, Function5CD130);
     }
-    if (m_up_button_09c == -1 || m_down_button_0a4 == -1 ||
-        m_slider_button_0ac == -1 || m_ok_button_0bc == -1 ||
-        m_cancel_button_0d4 == -1) {
+    if (m_up_button_09c == -1 || m_down_button_0a4 == -1 || m_slider_button_0ac == -1 ||
+        m_ok_button_0bc == -1 || m_cancel_button_0d4 == -1) {
         DestroyControls();
-    }
-    else {
+    } else {
         SetButtonUserDataPointer(m_up_button_09c, this);
         SetButtonUserDataPointer(m_down_button_0a4, this);
         SetButtonUserDataPointer(m_slider_button_0ac, this);
@@ -231,46 +223,37 @@ int W8Dialog005CBB40::CreateControls()
                 const_cast<char*>("Data\\Dialogs\\DialogBackground_dark.STI")),
             0, 3, 3);
         if (m_inlay_image_0b4 != -1) {
-            m_third_text_button_0b8 = CreateTextButton(
-                0, g_dialog_font_64fde8, g_dialog_font_foreground_64fdec,
-                g_dialog_font_background_64fded, m_inlay_image_0b4,
-                0, 0, 1, 1, 4, 0x7d, Function5CD1E0, Function5CD1E0);
+            m_third_text_button_0b8 =
+                CreateTextButton(0, g_dialog_font_64fde8, g_dialog_font_foreground_64fdec,
+                                 g_dialog_font_background_64fded, m_inlay_image_0b4, 0, 0, 1, 1, 4,
+                                 0x7d, Function5CD1E0, Function5CD1E0);
             if (m_third_text_button_0b8 != -1) {
                 SetButtonUserDataPointer(m_third_text_button_0b8, this);
                 m_second_text_button_090 = CreateTextButton(
-                    0, g_dialog_font_64fde8,
-                    g_dialog_font_foreground_64fdec,
-                    g_dialog_font_background_64fded, m_inlay_image_0f8,
-                    static_cast<short>(m_x + 9),
-                    static_cast<short>(
-                        (m_height -
-                         GetButtonHeight(m_ok_button_0bc) * 0x96 / 100) -
-                        9 + m_y),
+                    0, g_dialog_font_64fde8, g_dialog_font_foreground_64fdec,
+                    g_dialog_font_background_64fded, m_inlay_image_0f8, static_cast<short>(m_x + 9),
+                    static_cast<short>((m_height - GetButtonHeight(m_ok_button_0bc) * 0x96 / 100) -
+                                       9 + m_y),
                     static_cast<short>(m_width - 0x12),
-                    static_cast<short>(
-                        GetButtonHeight(m_ok_button_0bc) * 0x96 / 100),
-                    0x8004, 0x7e, 0, 0);
-                SetButtonPosition(
-                    m_cancel_button_0d4,
-                    GetButtonX(m_second_text_button_090) -
-                        GetButtonWidth(m_cancel_button_0d4) +
-                        GetButtonWidth(m_second_text_button_090),
-                    GetButtonHeight(m_second_text_button_090) / 2 -
-                        GetButtonHeight(m_cancel_button_0d4) / 2 +
-                        GetButtonY(m_second_text_button_090));
-                SetButtonPosition(
-                    m_ok_button_0bc,
-                    GetButtonX(m_cancel_button_0d4) -
-                        GetButtonWidth(m_cancel_button_0d4) / 2 -
-                        GetButtonWidth(m_ok_button_0bc),
-                    GetButtonY(m_cancel_button_0d4));
-                ResizeButton(
-                    m_area_button_098,
-                    static_cast<short>(GetButtonWidth(m_text_button_08c)),
-                    static_cast<short>(
-                        -6 - GetButtonY(m_text_button_08c) -
-                        GetButtonHeight(m_text_button_08c) +
-                        GetButtonY(m_second_text_button_090)));
+                    static_cast<short>(GetButtonHeight(m_ok_button_0bc) * 0x96 / 100), 0x8004, 0x7e,
+                    0, 0);
+                SetButtonPosition(m_cancel_button_0d4,
+                                  GetButtonX(m_second_text_button_090) -
+                                      GetButtonWidth(m_cancel_button_0d4) +
+                                      GetButtonWidth(m_second_text_button_090),
+                                  GetButtonHeight(m_second_text_button_090) / 2 -
+                                      GetButtonHeight(m_cancel_button_0d4) / 2 +
+                                      GetButtonY(m_second_text_button_090));
+                SetButtonPosition(m_ok_button_0bc,
+                                  GetButtonX(m_cancel_button_0d4) -
+                                      GetButtonWidth(m_cancel_button_0d4) / 2 -
+                                      GetButtonWidth(m_ok_button_0bc),
+                                  GetButtonY(m_cancel_button_0d4));
+                ResizeButton(m_area_button_098,
+                             static_cast<short>(GetButtonWidth(m_text_button_08c)),
+                             static_cast<short>(-6 - GetButtonY(m_text_button_08c) -
+                                                GetButtonHeight(m_text_button_08c) +
+                                                GetButtonY(m_second_text_button_090)));
                 int selected = m_selected_line_0f4;
                 m_selected_line_0f4 = 0;
                 SetCurrentLine005CCB80(selected);
@@ -387,56 +370,43 @@ void W8Dialog005CBB40::Draw()
     DrawButton(m_text_button_08c);
     DrawButton(m_second_text_button_090);
     int dx = GetButtonX(m_text_button_08c) - m_x;
-    int dy = GetButtonY(m_text_button_08c) +
-             GetButtonHeight(m_text_button_08c) + 4 - m_y;
+    int dy = GetButtonY(m_text_button_08c) + GetButtonHeight(m_text_button_08c) + 4 - m_y;
     int width = GetButtonWidth(m_text_button_08c);
-    int height = -6 - GetButtonY(m_text_button_08c) -
-                 GetButtonHeight(m_text_button_08c) +
+    int height = -6 - GetButtonY(m_text_button_08c) - GetButtonHeight(m_text_button_08c) +
                  GetButtonY(m_second_text_button_090);
     unsigned int visible_lines;
-    if (m_lines_054.GetCount() <
-        height / (int)(unsigned int)GetFontHeight(g_dialog_font_64fde8)) {
+    if (m_lines_054.GetCount() < height / (int)(unsigned int)GetFontHeight(g_dialog_font_64fde8)) {
         m_field_0ec = 0;
         visible_lines = m_lines_054.GetCount();
-    }
-    else {
-        int rows = height /
-                   (int)(unsigned int)GetFontHeight(g_dialog_font_64fde8);
+    } else {
+        int rows = height / (int)(unsigned int)GetFontHeight(g_dialog_font_64fde8);
         if (m_lines_054.GetCount() > rows) {
             width = width + (-7 - GetButtonWidth(m_up_button_09c));
             m_field_0ec = 1;
             visible_lines = rows;
-        }
-        else {
+        } else {
             m_field_0ec = 0;
             visible_lines = m_lines_054.GetCount();
         }
     }
-    ResizeButton(m_area_button_098, static_cast<short>(width),
-                 static_cast<short>(height));
+    ResizeButton(m_area_button_098, static_cast<short>(width), static_cast<short>(height));
     DrawButton(m_area_button_098);
     if (m_field_0ec != 0) {
-        SetButtonPosition(m_up_button_09c, m_x + dx + 4 + width,
-                          m_y + 4 + dy);
-        SetButtonPosition(
-            m_down_button_0a4, m_x + dx + 4 + width,
-            m_y + dy + height - GetButtonHeight(m_down_button_0a4) - 4);
-        SetButtonPosition(
-            m_slider_button_0ac, m_x + dx + 4 + width,
-            GetButtonHeight(m_area_button_098) +
-                ((height - GetButtonHeight(m_up_button_09c) -
-                  GetButtonHeight(m_down_button_0a4) - 7) *
-                 m_selected_line_0f4) /
-                    m_lines_054.GetCount() +
-                m_y + 3 + dy);
+        SetButtonPosition(m_up_button_09c, m_x + dx + 4 + width, m_y + 4 + dy);
+        SetButtonPosition(m_down_button_0a4, m_x + dx + 4 + width,
+                          m_y + dy + height - GetButtonHeight(m_down_button_0a4) - 4);
+        SetButtonPosition(m_slider_button_0ac, m_x + dx + 4 + width,
+                          GetButtonHeight(m_area_button_098) +
+                              ((height - GetButtonHeight(m_up_button_09c) -
+                                GetButtonHeight(m_down_button_0a4) - 7) *
+                               m_selected_line_0f4) /
+                                  m_lines_054.GetCount() +
+                              m_y + 3 + dy);
         ColorFillVideoSurfaceArea(
-            -0xe, m_x + width + dx,
-            m_y + dy + GetButtonHeight(m_up_button_09c),
+            -0xe, m_x + width + dx, m_y + dy + GetButtonHeight(m_up_button_09c),
             m_x + width + dx + GetButtonWidth(m_up_button_09c),
-            m_y + height + dy - GetButtonHeight(m_down_button_0a4),
-            Get16BPPColor(m_field_088));
-        SetButtonPosition(m_third_text_button_0b8, m_x + dx + width,
-                          m_y + dy);
+            m_y + height + dy - GetButtonHeight(m_down_button_0a4), Get16BPPColor(m_field_088));
+        SetButtonPosition(m_third_text_button_0b8, m_x + dx + width, m_y + dy);
         ResizeButton(m_third_text_button_0b8,
                      static_cast<short>(GetButtonWidth(m_up_button_09c) + 7),
                      static_cast<short>(height));
@@ -454,10 +424,8 @@ void W8Dialog005CBB40::Draw()
     SetFont(g_dialog_font_64fde8);
     GetButtonArea(m_area_button_098, &rect);
     SaveFontSettings();
-    SetFontDestBuffer(-0xe, rect.iLeft + 3, rect.iTop + 3, rect.iRight - 3,
-                      rect.iBottom - 3, 0);
-    if (m_lines_054.GetCount() <=
-        (int)(visible_lines + m_first_visible_line_0f0)) {
+    SetFontDestBuffer(-0xe, rect.iLeft + 3, rect.iTop + 3, rect.iRight - 3, rect.iBottom - 3, 0);
+    if (m_lines_054.GetCount() <= (int)(visible_lines + m_first_visible_line_0f0)) {
         visible_lines = m_lines_054.GetCount() - m_first_visible_line_0f0;
     }
     for (index = 0; index < (int)visible_lines; ++index) {
@@ -466,20 +434,14 @@ void W8Dialog005CBB40::Draw()
         if (line == m_selected_line_0f4) {
             ColorFillVideoSurfaceArea(
                 -0xe, m_x + 3 + dx,
-                m_y + (unsigned int)GetFontHeight(g_dialog_font_64fde8) *
-                          index +
-                    2 + dy,
+                m_y + (unsigned int)GetFontHeight(g_dialog_font_64fde8) * index + 2 + dy,
                 width + m_x - 3 + dx,
                 (unsigned int)GetFontHeight(g_dialog_font_64fde8) + m_y +
-                    (unsigned int)GetFontHeight(g_dialog_font_64fde8) *
-                        index +
-                    dy,
+                    (unsigned int)GetFontHeight(g_dialog_font_64fde8) * index + dy,
                 Get16BPPColor(m_field_088));
         }
         gprintf(m_x + 3 + dx,
-                (unsigned int)GetFontHeight(g_dialog_font_64fde8) * index +
-                    m_y + 2 + dy,
-                text);
+                (unsigned int)GetFontHeight(g_dialog_font_64fde8) * index + m_y + 2 + dy, text);
     }
     RestoreFontSettings();
 }
@@ -492,49 +454,41 @@ unsigned char W8Dialog005CBB40::ProcessInput()
 
     if (gfLeftButtonState != 0) {
         if (m_selected_line_0f4 != -1 &&
-            IsCursorInRectangle(m_ok_rect_0c4.left, m_ok_rect_0c4.top,
-                                m_ok_rect_0c4.right,
+            IsCursorInRectangle(m_ok_rect_0c4.left, m_ok_rect_0c4.top, m_ok_rect_0c4.right,
                                 m_ok_rect_0c4.bottom)) {
             m_field_41 = 0;
             return 0;
         }
         if (IsCursorInRectangle(m_cancel_rect_0dc.left, m_cancel_rect_0dc.top,
-                                m_cancel_rect_0dc.right,
-                                m_cancel_rect_0dc.bottom)) {
+                                m_cancel_rect_0dc.right, m_cancel_rect_0dc.bottom)) {
             m_selected_line_0f4 = -1;
             m_field_41 = 0;
             return 0;
         }
     }
     SGPMouseGetPos(&mouse);
-    MSYS_SGP_Mouse_Handler_Hook(
-        MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
+    MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
     while (DequeueEvent(&input) == 1) {
         switch (input.usEvent) {
         case LEFT_BUTTON_DOWN:
         case LEFT_BUTTON_REPEAT:
-            MSYS_SGP_Mouse_Handler_Hook(
-                LEFT_BUTTON_DOWN, mouse.x, mouse.y,
-                gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
+                                        gfRightButtonState);
             break;
         case LEFT_BUTTON_UP:
-            MSYS_SGP_Mouse_Handler_Hook(
-                LEFT_BUTTON_UP, mouse.x, mouse.y,
-                gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
+                                        gfRightButtonState);
             break;
         case RIGHT_BUTTON_DOWN:
-            MSYS_SGP_Mouse_Handler_Hook(
-                RIGHT_BUTTON_DOWN, mouse.x, mouse.y,
-                gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
+                                        gfRightButtonState);
             break;
         case RIGHT_BUTTON_UP:
-            MSYS_SGP_Mouse_Handler_Hook(
-                RIGHT_BUTTON_UP, mouse.x, mouse.y,
-                gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
+                                        gfRightButtonState);
             break;
         case MOUSE_WHEEL:
-            SetCurrentLine005CCB80(
-                m_selected_line_0f4 - GetMouseWheelDeltaValue(input.uiParam));
+            SetCurrentLine005CCB80(m_selected_line_0f4 - GetMouseWheelDeltaValue(input.uiParam));
             break;
         default:
             HandleInputEvent005CD2B0(&input);
@@ -739,42 +693,35 @@ unsigned char W8Dialog005D97D0::ProcessInput()
     InputAtom input;
 
     SGPMouseGetPos(&mouse);
-    MSYS_SGP_Mouse_Handler_Hook(
-        MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
+    MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
     while (DequeueEvent(&input) == 1) {
         switch (input.usEvent) {
         case LEFT_BUTTON_DOWN:
-            MSYS_SGP_Mouse_Handler_Hook(
-                LEFT_BUTTON_DOWN, mouse.x, mouse.y,
-                gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
+                                        gfRightButtonState);
             break;
         case LEFT_BUTTON_REPEAT:
-            MSYS_SGP_Mouse_Handler_Hook(
-                LEFT_BUTTON_REPEAT, mouse.x, mouse.y,
-                gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_REPEAT, mouse.x, mouse.y, gfLeftButtonState,
+                                        gfRightButtonState);
             break;
         case LEFT_BUTTON_UP:
             if (m_active_field_7c != 0) {
                 m_active_field_7c->SetActive(0);
             }
-            MSYS_SGP_Mouse_Handler_Hook(
-                LEFT_BUTTON_UP, mouse.x, mouse.y,
-                gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
+                                        gfRightButtonState);
             break;
         case RIGHT_BUTTON_DOWN:
-            MSYS_SGP_Mouse_Handler_Hook(
-                RIGHT_BUTTON_DOWN, mouse.x, mouse.y,
-                gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
+                                        gfRightButtonState);
             break;
         case RIGHT_BUTTON_UP:
-            MSYS_SGP_Mouse_Handler_Hook(
-                RIGHT_BUTTON_UP, mouse.x, mouse.y,
-                gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
+                                        gfRightButtonState);
             break;
         case RIGHT_BUTTON_REPEAT:
-            MSYS_SGP_Mouse_Handler_Hook(
-                RIGHT_BUTTON_REPEAT, mouse.x, mouse.y,
-                gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_REPEAT, mouse.x, mouse.y, gfLeftButtonState,
+                                        gfRightButtonState);
             break;
         default:
             HandleInputEvent005DA180(&input);
@@ -843,45 +790,32 @@ unsigned char W8Dialog005CD710::CreateButtons005CD8D0()
         }
         m_buttons_74[index]->m_owner_040 = this;
     }
-    m_buttons_74[0]->Configure(
-        "Data\\Dialogs\\popup_chest_selectionbuttons.sti", 3, 0, 1, 2, 2,
-        Function5CE5F0, 0, 0, 0x7f, 0x15, 0, 0);
-    m_buttons_74[1]->Configure(
-        "Data\\Dialogs\\chest_confirmationbuttons.sti", 0xd, 10, 0xb, 0xc, 0xc,
-        Function5CE6A0, 0, 0, 0x7f, 0x13, 0, 0);
-    m_buttons_74[2]->Configure(
-        "Data\\Dialogs\\chest_confirmationbuttons.sti", 3, 0, 1, 2, 2,
-        Function5CE6C0, 0, 0, 0x7f, 0x14, 0, 0);
-    m_buttons_74[3]->Configure(
-        "Data\\Dialogs\\chest_confirmationbuttons.sti", 8, 5, 6, 7, 7,
-        Function5CE6E0, 0, 0, 0x7f, 0x16, 0, 0);
-    m_buttons_74[4]->Configure(
-        "Data\\Dialogs\\popup_chest2.sti", -1, 0, -1, -1, -1, 0, 0, 0, 0, -1,
-        0, 0);
-    m_buttons_74[5]->Configure(
-        "Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1, Function5CE6F0,
-        0, 1, 0x7e, -1, Function5CE970, 0);
-    m_buttons_74[6]->Configure(
-        "Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1, Function5CE790,
-        0, 1, 0x7e, -1, Function5CE9B0, 0);
-    m_buttons_74[7]->Configure(
-        "Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1, Function5CE830,
-        0, 1, 0x7e, -1, Function5CE9F0, 0);
-    m_buttons_74[8]->Configure(
-        "Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1, Function5CE8D0,
-        0, 1, 0x7e, -1, Function5CEA30, 0);
-    m_buttons_74[9]->Configure(
-        "Data\\Dialogs\\maininterface_scroll.STI", 3, 0, 1, 2, 2,
-        Function5CEA70, 0, 0, 0x7f, -1, 0, 0);
-    m_buttons_74[10]->Configure(
-        "Data\\Dialogs\\maininterface_scroll.STI", 0xb, 8, 9, 10, 10,
-        Function5CEAB0, 0, 0, 0x7f, -1, 0, 0);
-    m_buttons_74[11]->Configure(
-        "Data\\Dialogs\\maininterface_scroll.STI", 7, 4, 5, 6, 6, 0, 0, 0, 0,
-        -1, 0, 0);
-    m_buttons_74[12]->Configure(
-        "Data\\Dialogs\\popup_chest2.sti", -1, 3, 3, 3, 3, 0, Function5CEAF0,
-        0, 0x7e, -1, 0, 0);
+    m_buttons_74[0]->Configure("Data\\Dialogs\\popup_chest_selectionbuttons.sti", 3, 0, 1, 2, 2,
+                               Function5CE5F0, 0, 0, 0x7f, 0x15, 0, 0);
+    m_buttons_74[1]->Configure("Data\\Dialogs\\chest_confirmationbuttons.sti", 0xd, 10, 0xb, 0xc,
+                               0xc, Function5CE6A0, 0, 0, 0x7f, 0x13, 0, 0);
+    m_buttons_74[2]->Configure("Data\\Dialogs\\chest_confirmationbuttons.sti", 3, 0, 1, 2, 2,
+                               Function5CE6C0, 0, 0, 0x7f, 0x14, 0, 0);
+    m_buttons_74[3]->Configure("Data\\Dialogs\\chest_confirmationbuttons.sti", 8, 5, 6, 7, 7,
+                               Function5CE6E0, 0, 0, 0x7f, 0x16, 0, 0);
+    m_buttons_74[4]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 0, -1, -1, -1, 0, 0, 0, 0, -1,
+                               0, 0);
+    m_buttons_74[5]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1, Function5CE6F0,
+                               0, 1, 0x7e, -1, Function5CE970, 0);
+    m_buttons_74[6]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1, Function5CE790,
+                               0, 1, 0x7e, -1, Function5CE9B0, 0);
+    m_buttons_74[7]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1, Function5CE830,
+                               0, 1, 0x7e, -1, Function5CE9F0, 0);
+    m_buttons_74[8]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1, Function5CE8D0,
+                               0, 1, 0x7e, -1, Function5CEA30, 0);
+    m_buttons_74[9]->Configure("Data\\Dialogs\\maininterface_scroll.STI", 3, 0, 1, 2, 2,
+                               Function5CEA70, 0, 0, 0x7f, -1, 0, 0);
+    m_buttons_74[10]->Configure("Data\\Dialogs\\maininterface_scroll.STI", 0xb, 8, 9, 10, 10,
+                                Function5CEAB0, 0, 0, 0x7f, -1, 0, 0);
+    m_buttons_74[11]->Configure("Data\\Dialogs\\maininterface_scroll.STI", 7, 4, 5, 6, 6, 0, 0, 0,
+                                0, -1, 0, 0);
+    m_buttons_74[12]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 3, 3, 3, 3, 0,
+                                Function5CEAF0, 0, 0x7e, -1, 0, 0);
     m_buttons_74[5]->unknown_037 = 1;
     m_buttons_74[6]->unknown_037 = 1;
     m_buttons_74[7]->unknown_037 = 1;
@@ -926,13 +860,11 @@ void W8Dialog005CD710::RefreshScrollButtons005CE420()
             if (item < 0 || item >= items_54.GetCount()) {
                 unsigned char flag = 0;
                 (*button)->SetPressed(flag);
-            }
-            else {
+            } else {
                 unsigned char flag = *flags_64.GetAt(item);
                 (*button)->SetPressed(flag);
             }
-        }
-        else if ((*button)->IsPressed() != 0) {
+        } else if ((*button)->IsPressed() != 0) {
             (*button)->SetPressed(0);
             (*button)->SetVisible(0);
         }
@@ -966,8 +898,7 @@ unsigned char W8Dialog005CD710::HandleInputEvent005CEC20(const InputAtom* input)
             if (gfKeyState[VK_DOWN] != 0) {
                 SetFirstVisible(m_first_item_0a8 + 1);
             }
-        }
-        else {
+        } else {
             SetFirstVisible(m_first_item_0a8 - 1);
         }
         switch (toupper(input->usParam)) {
@@ -981,7 +912,8 @@ unsigned char W8Dialog005CD710::HandleInputEvent005CEC20(const InputAtom* input)
             }
             SetFirstVisible(target);
             return m_field_41;
-        }        case VK_NEXT: {
+        }
+        case VK_NEXT: {
             int target = m_first_item_0a8 + 4;
             if (target > items_54.GetCount() - 4) {
                 target = items_54.GetCount() - 4;
@@ -1004,18 +936,14 @@ unsigned char W8Dialog005CD710::HandleInputEvent005CEC20(const InputAtom* input)
                 unsigned char flag;
                 if (index < 0) {
                     flag = 0;
-                }
-                else {
+                } else {
                     flag = *flags_64.GetAt(index);
                 }
                 if (index >= 0 && index < items_54.GetCount()) {
                     flags_64.SetAt(index, flag == 0);
-                    if (index >= m_first_item_0a8 &&
-                        index <= m_first_item_0a8 + 3) {
-                        m_buttons_74[5 + index - m_first_item_0a8]
-                            ->SetPressed(flag == 0);
-                        m_buttons_74[5 + index - m_first_item_0a8]
-                            ->m_dirty = 1;
+                    if (index >= m_first_item_0a8 && index <= m_first_item_0a8 + 3) {
+                        m_buttons_74[5 + index - m_first_item_0a8]->SetPressed(flag == 0);
+                        m_buttons_74[5 + index - m_first_item_0a8]->m_dirty = 1;
                         return m_field_41;
                     }
                 }
@@ -1090,8 +1018,7 @@ int W8Dialog005CD710::AddItem005CE210(W8WorldItem* item)
                 ++index;
             }
             if (index < items_54.GetCount()) {
-                while (index < items_54.GetCount() &&
-                       other->item.item_id != instance->item_id) {
+                while (index < items_54.GetCount() && other->item.item_id != instance->item_id) {
                     other = *items_54.GetAt(index);
                     ++index;
                 }
@@ -1121,11 +1048,9 @@ unsigned char W8Dialog005CD710::ProcessInput()
     InputAtom input;
 
     SGPMouseGetPos(&mouse);
-    MSYS_SGP_Mouse_Handler_Hook(
-        MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
+    MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
     while (DequeueEvent(&input)) {
-        if ((input.usEvent == LEFT_BUTTON_DOWN ||
-             input.usEvent == RIGHT_BUTTON_DOWN) &&
+        if ((input.usEvent == LEFT_BUTTON_DOWN || input.usEvent == RIGHT_BUTTON_DOWN) &&
             Function577A40() != 0) {
             continue;
         }
@@ -1135,33 +1060,27 @@ unsigned char W8Dialog005CD710::ProcessInput()
         switch (input.usEvent) {
         case LEFT_BUTTON_DOWN:
         case LEFT_BUTTON_REPEAT:
-            MSYS_SGP_Mouse_Handler_Hook(
-                LEFT_BUTTON_DOWN, mouse.x, mouse.y,
-                gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
+                                        gfRightButtonState);
             break;
         case LEFT_BUTTON_UP:
-            MSYS_SGP_Mouse_Handler_Hook(
-                LEFT_BUTTON_UP, mouse.x, mouse.y,
-                gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
+                                        gfRightButtonState);
             break;
         case RIGHT_BUTTON_DOWN:
-            MSYS_SGP_Mouse_Handler_Hook(
-                RIGHT_BUTTON_DOWN, mouse.x, mouse.y,
-                gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
+                                        gfRightButtonState);
             break;
         case RIGHT_BUTTON_UP:
-            MSYS_SGP_Mouse_Handler_Hook(
-                RIGHT_BUTTON_UP, mouse.x, mouse.y,
-                gfLeftButtonState, gfRightButtonState);
+            MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_UP, mouse.x, mouse.y, gfLeftButtonState,
+                                        gfRightButtonState);
             break;
         case MOUSE_WHEEL: {
             short delta = GetMouseWheelDeltaValue(input.uiParam);
             int first_item = m_first_item_0a8 - delta;
             if (items_54.GetCount() < 5) {
                 m_first_item_0a8 = 0;
-            }
-            else if (first_item >= 0 &&
-                     first_item <= items_54.GetCount() - 4) {
+            } else if (first_item >= 0 && first_item <= items_54.GetCount() - 4) {
                 m_first_item_0a8 = first_item;
                 m_dirty_flags |= 1;
             }
@@ -1187,11 +1106,9 @@ void W8Dialog005CD710::Draw()
     int visible_rows;
     if (count < 3) {
         visible_rows = 2;
-    }
-    else if (count > 3) {
+    } else if (count > 3) {
         visible_rows = 4;
-    }
-    else {
+    } else {
         visible_rows = count;
     }
 
@@ -1206,8 +1123,7 @@ void W8Dialog005CD710::Draw()
             m_buttons_74[index]->m_dirty = 1;
         }
         SetExtent(m_buttons_74[4]->GetWidth() + 0xe,
-                  m_buttons_74[5]->GetHeight() * visible_rows +
-                      m_buttons_74[4]->GetHeight() + 0xe);
+                  m_buttons_74[5]->GetHeight() * visible_rows + m_buttons_74[4]->GetHeight() + 0xe);
         W8DialogBase::Draw();
     }
 
@@ -1222,16 +1138,13 @@ void W8Dialog005CD710::Draw()
             m_buttons_74[11]->m_dirty = 1;
         }
 
-        m_buttons_74[12]->SetPosition(
-            m_x + m_width - m_buttons_74[12]->GetWidth() - 9, m_y + 7);
+        m_buttons_74[12]->SetPosition(m_x + m_width - m_buttons_74[12]->GetWidth() - 9, m_y + 7);
         m_buttons_74[12]->Draw();
-        m_buttons_74[9]->SetPosition(m_buttons_74[12]->GetX() + 4,
-                                     m_buttons_74[12]->GetY() + 3);
+        m_buttons_74[9]->SetPosition(m_buttons_74[12]->GetX() + 4, m_buttons_74[12]->GetY() + 3);
         m_buttons_74[9]->Draw();
-        m_buttons_74[10]->SetPosition(
-            m_buttons_74[9]->GetX(),
-            m_buttons_74[12]->GetY() + m_buttons_74[12]->GetHeight() - 4 -
-                m_buttons_74[10]->GetHeight());
+        m_buttons_74[10]->SetPosition(m_buttons_74[9]->GetX(),
+                                      m_buttons_74[12]->GetY() + m_buttons_74[12]->GetHeight() - 4 -
+                                          m_buttons_74[10]->GetHeight());
         m_buttons_74[10]->Draw();
 
         int progress = 0;
@@ -1241,42 +1154,33 @@ void W8Dialog005CD710::Draw()
                 progress = m_first_item_0a8 + 2;
             }
         }
-        int travel = m_buttons_74[12]->GetHeight() -
-                     m_buttons_74[9]->GetHeight() -
-                     m_buttons_74[10]->GetHeight() -
-                     m_buttons_74[11]->GetHeight();
-        m_buttons_74[11]->SetPosition(
-            m_buttons_74[9]->GetX(),
-            m_buttons_74[9]->GetHeight() + m_buttons_74[12]->GetY() +
-                travel * progress / items_54.GetCount() + 1);
+        int travel = m_buttons_74[12]->GetHeight() - m_buttons_74[9]->GetHeight() -
+                     m_buttons_74[10]->GetHeight() - m_buttons_74[11]->GetHeight();
+        m_buttons_74[11]->SetPosition(m_buttons_74[9]->GetX(),
+                                      m_buttons_74[9]->GetHeight() + m_buttons_74[12]->GetY() +
+                                          travel * progress / items_54.GetCount() + 1);
         m_buttons_74[11]->Draw();
-    }
-    else {
+    } else {
         m_buttons_74[12]->SetVisible(0);
         m_buttons_74[9]->SetVisible(0);
         m_buttons_74[10]->SetVisible(0);
         m_buttons_74[11]->SetVisible(0);
     }
 
-    m_buttons_74[4]->SetPosition(
-        m_x + 7, m_y + m_height - m_buttons_74[4]->GetHeight() - 5);
+    m_buttons_74[4]->SetPosition(m_x + 7, m_y + m_height - m_buttons_74[4]->GetHeight() - 5);
     m_buttons_74[4]->Draw();
-    m_buttons_74[3]->SetPosition(
-        m_buttons_74[4]->GetX() - m_buttons_74[3]->GetWidth() +
-            m_buttons_74[4]->GetWidth() - 1,
-        m_buttons_74[4]->GetY());
+    m_buttons_74[3]->SetPosition(m_buttons_74[4]->GetX() - m_buttons_74[3]->GetWidth() +
+                                     m_buttons_74[4]->GetWidth() - 1,
+                                 m_buttons_74[4]->GetY());
     m_buttons_74[3]->Draw();
-    m_buttons_74[2]->SetPosition(
-        m_buttons_74[3]->GetX() - m_buttons_74[2]->GetWidth(),
-        m_buttons_74[4]->GetY());
+    m_buttons_74[2]->SetPosition(m_buttons_74[3]->GetX() - m_buttons_74[2]->GetWidth(),
+                                 m_buttons_74[4]->GetY());
     m_buttons_74[2]->Draw();
-    m_buttons_74[1]->SetPosition(
-        m_buttons_74[2]->GetX() - m_buttons_74[1]->GetWidth(),
-        m_buttons_74[4]->GetY());
+    m_buttons_74[1]->SetPosition(m_buttons_74[2]->GetX() - m_buttons_74[1]->GetWidth(),
+                                 m_buttons_74[4]->GetY());
     m_buttons_74[1]->Draw();
-    m_buttons_74[0]->SetPosition(
-        m_buttons_74[1]->GetX() - m_buttons_74[0]->GetWidth(),
-        m_buttons_74[4]->GetY());
+    m_buttons_74[0]->SetPosition(m_buttons_74[1]->GetX() - m_buttons_74[0]->GetWidth(),
+                                 m_buttons_74[4]->GetY());
     m_buttons_74[0]->Draw();
     RefreshScrollButtons005CE420();
 
@@ -1284,8 +1188,7 @@ void W8Dialog005CD710::Draw()
         W8DialogButton* button = m_buttons_74[5 + row];
 
         button->SetVisible(1);
-        button->SetPosition(m_x + 7,
-                            m_y + button->GetHeight() * row + 7);
+        button->SetPosition(m_x + 7, m_y + button->GetHeight() * row + 7);
         if (!button->m_dirty) {
             continue;
         }
@@ -1299,26 +1202,20 @@ void W8Dialog005CD710::Draw()
         }
         W8WorldItem* world_item = *items_54.GetAt(item_index);
         W8ItemInstance* item = &world_item->item;
-        int video_object =
-            g_item_video_objects_68ec68.GetOrCreateVideoObject(item->item_id);
-        DrawCatalogImage(-0xe, video_object, 0, 0, button->GetX() + 2,
-                         button->GetY() + 2, 2, 0);
+        int video_object = g_item_video_objects_68ec68.GetOrCreateVideoObject(item->item_id);
+        DrawCatalogImage(-0xe, video_object, 0, 0, button->GetX() + 2, button->GetY() + 2, 2, 0);
         SetFont(g_wiz_text_font_683640);
         if (item->stack_count > 1) {
             W8WideChar* name = GetItemDisplayName(item);
-            gprintf(button->GetX() + 0x3c, button->GetY() + 6,
-                    (unsigned short*)L"%s (%d)", name, item->stack_count);
-        }
-        else {
+            gprintf(button->GetX() + 0x3c, button->GetY() + 6, (unsigned short*)L"%s (%d)", name,
+                    item->stack_count);
+        } else {
             W8WideChar* name = GetItemDisplayName(item);
-            gprintf(button->GetX() + 0x3c, button->GetY() + 6,
-                    (unsigned short*)name);
+            gprintf(button->GetX() + 0x3c, button->GetY() + 6, (unsigned short*)name);
         }
         unsigned short weight = g_item_records[item->item_id].weight;
-        gprintf(button->GetX() + 0x3c,
-                button->GetY() + GetFontHeight(g_wiz_text_font_683640) + 6,
-                (unsigned short*)L"%4.1f lbs",
-                (double)((float)weight * 0.1f));
+        gprintf(button->GetX() + 0x3c, button->GetY() + GetFontHeight(g_wiz_text_font_683640) + 6,
+                (unsigned short*)L"%4.1f lbs", (double)((float)weight * 0.1f));
     }
 }
 

@@ -6,21 +6,22 @@
    name is not exposed; the vtable address remains the stable identity. */
 class W8IntervalGate : public W8GameTimer {
 public:
-    W8IntervalGate();                                  /* 0x0043A4E0 */
-    W8IntervalGate(
-        float duration, unsigned char raw_time, bool set_flag_2);
-                                                        /* 0x0043A500 */
-    virtual ~W8IntervalGate() override;               /* 0x004218D0 */
-    void Arm();                              /* 0x0043A530 */
-    unsigned int PollElapsedIntervals();                      /* 0x0043A5D0 */
-    bool IsFinished() const { return m_finished; }
+    W8IntervalGate(); /* 0x0043A4E0 */
+    W8IntervalGate(float duration, unsigned char raw_time, bool set_flag_2);
+    /* 0x0043A500 */
+    virtual ~W8IntervalGate() override;  /* 0x004218D0 */
+    void Arm();                          /* 0x0043A530 */
+    unsigned int PollElapsedIntervals(); /* 0x0043A5D0 */
+    bool IsFinished() const
+    {
+        return m_finished;
+    }
     BOOLEAN Load(int handle);
     BOOLEAN Save(int handle);
 
 private:
-    bool m_finished;                     /* 0x024 */
+    bool m_finished; /* 0x024 */
     unsigned char m_padding_025[3];
 };
 
-static_assert(sizeof(W8IntervalGate) == 0x28,
-              "W8IntervalGate_must_be_0x28");
+static_assert(sizeof(W8IntervalGate) == 0x28, "W8IntervalGate_must_be_0x28");

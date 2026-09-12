@@ -24,10 +24,8 @@ struct W8LevelProgressRow {
 
 #pragma pack(pop)
 
-static_assert(sizeof(W8LevelFolderRecord) == 0x6b,
-              "W8LevelFolderRecord_must_be_0x6b");
-static_assert(sizeof(W8LevelProgressRow) == 0x21,
-              "W8LevelProgressRow_must_be_0x21");
+static_assert(sizeof(W8LevelFolderRecord) == 0x6b, "W8LevelFolderRecord_must_be_0x6b");
+static_assert(sizeof(W8LevelProgressRow) == 0x21, "W8LevelProgressRow_must_be_0x21");
 
 /* Engine Code\Levels.cpp. LevelBuildInfoByID fills eight consecutive path
    buffers. LoadLevel passes the first three to LoadWorld as the level folder,
@@ -44,8 +42,7 @@ struct W8LevelInfo {
     char sky_path[0x100];
 };
 
-static_assert(sizeof(W8LevelInfo) == 0x458,
-              "W8LevelInfo_must_be_0x458");
+static_assert(sizeof(W8LevelInfo) == 0x458, "W8LevelInfo_must_be_0x458");
 
 extern W8LevelFolderRecord g_level_folders[47];
 
@@ -58,8 +55,7 @@ extern unsigned short g_level_name_indices_605820[47];
 
 unsigned char LevelBuildInfoByID(int level_id, W8LevelInfo* info);
 unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info);
-unsigned char LoadLevel(
-    int requested_level, int entrance, unsigned char restoring_game);
+unsigned char LoadLevel(int requested_level, int entrance, unsigned char restoring_game);
 unsigned char UnloadLevel(const char* save_directory);
 
 unsigned char IsLevelCdMissing0042B6F0(int level);
@@ -78,6 +74,4 @@ extern unsigned char g_flag_00687607;
 
 unsigned char Function42AF60(int level, int entrance);
 
-
 void Function42B770(int, int);
-

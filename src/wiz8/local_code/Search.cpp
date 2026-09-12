@@ -17,10 +17,7 @@ void RegisterSearchableWorldItem00516E20(W8WorldItem* item)
 {
     W8Searchable* searchable = new W8Searchable;
     if (searchable == 0) {
-        srAssertFail(
-            "pSearchable",
-            "C:\\Projects\\Wizardry 8\\Local Code\\search.cpp",
-            0x125, 0);
+        srAssertFail("pSearchable", "C:\\Projects\\Wizardry 8\\Local Code\\search.cpp", 0x125, 0);
     }
     searchable->value_00 = item;
     g_searchables_00689fa8.Add(searchable);
@@ -31,10 +28,7 @@ void RegisterSearchableTrigger00516F00(Trigger* trigger)
 {
     W8Searchable* searchable = new W8Searchable;
     if (searchable == 0) {
-        srAssertFail(
-            "pSearchable",
-            "C:\\Projects\\Wizardry 8\\Local Code\\search.cpp",
-            0x151, 0);
+        srAssertFail("pSearchable", "C:\\Projects\\Wizardry 8\\Local Code\\search.cpp", 0x151, 0);
     }
     searchable->object_08 = trigger;
     g_searchables_00689fa8.Add(searchable);

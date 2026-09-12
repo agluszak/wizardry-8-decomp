@@ -31,16 +31,11 @@ struct W8GDSurface {
 
 static_assert(sizeof(W8GDSurface) == 0x4c, "W8GDSurface_must_be_0x4c");
 
-void ClassifySurfacePlane004498C0(
-    const srVector3T<float>* vertices, W8GDSurface* surface);
-void BuildTrianglePlane00449A40(
-    float* plane,
-    const srVector3T<float>* first,
-    const srVector3T<float>* second,
-    const srVector3T<float>* third);
-unsigned char PointInsideBounds004BE870(
-    const srVector3T<float>* point,
-    const srVector3T<float>* minimum,
-    const srVector3T<float>* maximum);
+void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface* surface);
+void BuildTrianglePlane00449A40(float* plane, const srVector3T<float>* first,
+                                const srVector3T<float>* second, const srVector3T<float>* third);
+unsigned char PointInsideBounds004BE870(const srVector3T<float>* point,
+                                        const srVector3T<float>* minimum,
+                                        const srVector3T<float>* maximum);
 
 #endif

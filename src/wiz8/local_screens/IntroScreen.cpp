@@ -30,13 +30,8 @@ extern void ContinueAfterDarkEndingVideo005AE770(void);
 // GLOBAL: WIZ8 0x0064d8ac
 unsigned long g_intro_video_index = 6;
 static const char g_intro_video_names[7][40] = {
-    "Wizardry8.bik",
-    "unaligned.bik",
-    "Umpani.bik",
-    "T'Rang.bik",
-    "virgin.bik",
-    "darkend.bik",
-    "sirtech.bik",
+    "Wizardry8.bik", "unaligned.bik", "Umpani.bik",  "T'Rang.bik",
+    "virgin.bik",    "darkend.bik",   "sirtech.bik",
 };
 W8BinkVideo* gpVideo;
 
@@ -66,11 +61,7 @@ unsigned char IntroScreenEnter(void)
     ClearFlag603C60();
     gpVideo = new W8BinkVideo();
     if (gpVideo == 0) {
-        srAssertFail(
-            "gpVideo",
-            "C:\\Projects\\Wizardry 8\\Local Screens\\IntroScreen.cpp",
-            98,
-            0);
+        srAssertFail("gpVideo", "C:\\Projects\\Wizardry 8\\Local Screens\\IntroScreen.cpp", 98, 0);
     }
     gpVideo->SetTarget(BeginVideoPresentation());
     if (!gpVideo->Open(path, 0)) {
@@ -78,7 +69,6 @@ unsigned char IntroScreenEnter(void)
         gpVideo = 0;
     }
     return 1;
-
 }
 
 void AdvanceIntroScreen(void);
@@ -134,7 +124,7 @@ void AdvanceIntroScreen(void)
         FinishVideoPresentation();
         video = gpVideo;
     } else {
-ordinary_destroy:
+    ordinary_destroy:
         if (gpVideo == 0) {
             goto cleared;
         }
@@ -168,8 +158,7 @@ cleared:
         }
         break;
     case 5:
-        ShowModalMessage005A6620(0, 0, 1,
-                                ContinueAfterDarkEndingVideo005AE770, 1, 1);
+        ShowModalMessage005A6620(0, 0, 1, ContinueAfterDarkEndingVideo005AE770, 1, 1);
         break;
     }
     SetFlag603C60();

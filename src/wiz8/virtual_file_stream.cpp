@@ -24,8 +24,7 @@
    assertion below checks, and it holds only if the srBinIStream base really is
    vptr, vbptr and a virtual srBinStream subobject placed last. */
 // FUNCTION: WIZ8 0x0047CBD0
-W8VirtualFileBinIStream::W8VirtualFileBinIStream(const char* path)
-    : m_hFile(0)
+W8VirtualFileBinIStream::W8VirtualFileBinIStream(const char* path) : m_hFile(0)
 {
     char* normalized;
     unsigned long index;
@@ -55,8 +54,7 @@ W8VirtualFileBinIStream::~W8VirtualFileBinIStream()
 }
 
 // FUNCTION: WIZ8 0x0047D4D0
-srBinStream& W8VirtualFileBinIStream::seek(
-    unsigned long position, e_seekDir direction)
+srBinStream& W8VirtualFileBinIStream::seek(unsigned long position, e_seekDir direction)
 {
     static const int origins[] = {1, 4, 2};
     if (!FileSeek(m_hFile, position, origins[direction])) {
@@ -88,8 +86,7 @@ unsigned long W8VirtualFileBinIStream::vread(void* buffer, unsigned long size)
     /* SurRender spells its 32-bit count unsigned long; SGP spells the same
        ABI word UINT32 (unsigned int). The canonical body reuses this parameter
        slot, so keep that ownership explicit at the header boundary. */
-    if (FileRead(
-            m_hFile, buffer, size, reinterpret_cast<unsigned int*>(&size))) {
+    if (FileRead(m_hFile, buffer, size, reinterpret_cast<unsigned int*>(&size))) {
         return size;
     }
     return 0;
@@ -124,8 +121,6 @@ void InitializeVirtualFileImageImporters(void)
 {
     srExtension::load("JPEGImporter", NULL);
     srExtension::load("TargaImporter", NULL);
-    srCore.getIStreamOpener()->addStreamType(
-        &g_virtual_file_stream_opener_65a124, "jpg");
-    srCore.getIStreamOpener()->addStreamType(
-        &g_virtual_file_stream_opener_65a124, "tga");
+    srCore.getIStreamOpener()->addStreamType(&g_virtual_file_stream_opener_65a124, "jpg");
+    srCore.getIStreamOpener()->addStreamType(&g_virtual_file_stream_opener_65a124, "tga");
 }

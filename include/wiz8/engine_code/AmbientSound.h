@@ -15,16 +15,15 @@ struct W8AmbientSoundConfig0047A790 {
    the complete 0x12c-byte object and four members used by its lifetime. */
 class W8AmbientSound {
 public:
-    W8AmbientSound();                    /* 0x00479040 */
-    ~W8AmbientSound();                   /* 0x0047A780 */
+    W8AmbientSound();  /* 0x00479040 */
+    ~W8AmbientSound(); /* 0x0047A780 */
 
     void ApplyPosition00479350(const srVector3T<float>* position);
     void SetState00479970(int state);
     void Update0047A310();
-    W8AmbientSound* FindNextMatching0047A260(
-        const char* match_name, W8AmbientSound* previous);
+    W8AmbientSound* FindNextMatching0047A260(const char* match_name, W8AmbientSound* previous);
 
-    char* pacSoundName;                  /* 0x000: assertion-backed at 0x47A790 */
+    char* pacSoundName;                      /* 0x000: assertion-backed at 0x47A790 */
     W8AmbientSoundConfig0047A790 config_004; /* 0x004 */
     unsigned char flag_84;
     unsigned char unknown_085[3];
@@ -55,11 +54,9 @@ public:
     W8GameTimer timer_108;
 };
 
-static_assert(sizeof(W8AmbientSound) == 0x12c,
-              "W8AmbientSound_must_be_0x12c");
+static_assert(sizeof(W8AmbientSound) == 0x12c, "W8AmbientSound_must_be_0x12c");
 
-void BuildFootstepPath0047A540(
-    char* path, char surface, char material, char kind, int variant);
+void BuildFootstepPath0047A540(char* path, char surface, char material, char kind, int variant);
 int PlayFootstep0047A440(char surface, char material, int argument);
 void UpdateAmbientSounds0047A3E0(W8World* world);
 void RepositionAmbientSounds0047A600(W8World* world);
@@ -72,12 +69,10 @@ void DestroyAmbientSound0047A700(W8AmbientSound* ambient);
 unsigned char AddAmbientSound0047A790(
     W8World* world, const char* name, const W8AmbientSoundConfig0047A790* config,
     const srVector3T<float>* vector_88, const srVector3T<float>* vector_c8,
-    const srVector3T<float>* vector_d4, int value_94, int value_98,
-    int value_ac, int value_b0, int value_a4, int value_a8, int value_b4,
-    unsigned char flag_b9, unsigned char flag_c5,
-    const srVector3T<float>* vector_e0, int value_ec,
-    const srVector3T<float>* vector_f0, const srVector3T<float>* vector_fc,
-    unsigned char flag_c4);
+    const srVector3T<float>* vector_d4, int value_94, int value_98, int value_ac, int value_b0,
+    int value_a4, int value_a8, int value_b4, unsigned char flag_b9, unsigned char flag_c5,
+    const srVector3T<float>* vector_e0, int value_ec, const srVector3T<float>* vector_f0,
+    const srVector3T<float>* vector_fc, unsigned char flag_c4);
 
 void SaveAmbientSoundList0047B140(HWFILE handle);
 
@@ -92,4 +87,3 @@ extern unsigned char g_footstep_alternate_65a10a;
 extern int g_previous_footstep_variant_65a10c;
 
 void Function479030(void);
-

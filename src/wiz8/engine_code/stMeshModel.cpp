@@ -20,7 +20,6 @@
  * well: its vtable sits immediately after the mesh-model vector vftables.
  */
 
-
 // FUNCTION: WIZ8 0x00473fa0
 void stMeshModel::ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* excluded_textures)
 {
@@ -42,9 +41,11 @@ void stMeshModel::ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* exclu
                 strcpy(name, (*texture)->getName());
                 bool include = true;
                 for (int index = 0; index < excluded_textures->count; ++index) {
-                    if (_stricmp(name, *excluded_textures->GetAt(index)) == 0) include = false;
+                    if (_stricmp(name, *excluded_textures->GetAt(index)) == 0)
+                        include = false;
                 }
-                if (include) automap_polygons[automap_polygon_count++] = polygon;
+                if (include)
+                    automap_polygons[automap_polygon_count++] = polygon;
             }
         }
     }
@@ -138,8 +139,7 @@ srPtr<srTextureIFace>* stMeshModel::GetTextureTable00473720(int table)
    skin-blanking state used by the renderer. Table ids are the lowest free
    non-negative integer and remain stable independently of vector position. */
 // FUNCTION: WIZ8 0x00473260
-int stMeshModel::CreateSkinTable00473260(
-    const char* name, int base_table)
+int stMeshModel::CreateSkinTable00473260(const char* name, int base_table)
 {
     int base_index = skin_table_ids.IndexOf(base_table);
 
@@ -150,8 +150,7 @@ int stMeshModel::CreateSkinTable00473260(
     srPtr<srTextureIFace>* source;
     if (base_index == -1) {
         source = getPolyTexture(0, 0, 0);
-    }
-    else {
+    } else {
         source = *skin_texture_tables.GetAt(base_index);
     }
     if (source == 0) {
@@ -163,8 +162,7 @@ int stMeshModel::CreateSkinTable00473260(
         ++table;
     }
 
-    srPtr<srTextureIFace>* textures =
-        new srPtr<srTextureIFace>[polygon_count_230];
+    srPtr<srTextureIFace>* textures = new srPtr<srTextureIFace>[polygon_count_230];
     for (int polygon = 0; polygon < polygon_count_230; ++polygon) {
         textures[polygon] = source[polygon];
     }
@@ -178,11 +176,8 @@ int stMeshModel::CreateSkinTable00473260(
     if (skin_blanking_apt_458 == 0) {
         skin_blanking_apt_458 = new W8GrowableVector<int*>;
         if (skin_blanking_apt_458 == 0) {
-            srAssertFail(
-                "m_plsSkinBlankingAPT",
-                "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp",
-                0x5cd,
-                0);
+            srAssertFail("m_plsSkinBlankingAPT",
+                         "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x5cd, 0);
         }
     }
     skin_blanking_apt_458->Add(0);
@@ -190,11 +185,8 @@ int stMeshModel::CreateSkinTable00473260(
     if (skin_blanking_apt_number_45c == 0) {
         skin_blanking_apt_number_45c = new W8GrowableVector<int>;
         if (skin_blanking_apt_number_45c == 0) {
-            srAssertFail(
-                "m_plsSkinBlankingAPTNum",
-                "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp",
-                0x5d6,
-                0);
+            srAssertFail("m_plsSkinBlankingAPTNum",
+                         "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x5d6, 0);
         }
     }
     skin_blanking_apt_number_45c->Add(0);
@@ -202,11 +194,8 @@ int stMeshModel::CreateSkinTable00473260(
     if (skin_blanking_checked_460 == 0) {
         skin_blanking_checked_460 = new W8GrowableVector<unsigned char>;
         if (skin_blanking_checked_460 == 0) {
-            srAssertFail(
-                "m_plsSkinBlankingChecked",
-                "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp",
-                0x5df,
-                0);
+            srAssertFail("m_plsSkinBlankingChecked",
+                         "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x5df, 0);
         }
     }
     skin_blanking_checked_460->Add(0);
@@ -394,22 +383,18 @@ void srTriMeshPipeline::FlushSlots00475600()
 
     if (value_6c != 1) {
         if (value_6c == 0 && value_20 != 0) {
-            srVectorProcessor::minMax(
-                value_38, value_44, value_50, value_20);
+            srVectorProcessor::minMax(value_38, value_44, value_50, value_20);
         }
 
         srVector3T<float> center;
-        center.Set(
-            (value_44.x + value_50.x) * 0.5,
-            (value_44.y + value_50.y) * 0.5,
-            (value_44.z + value_50.z) * 0.5);
+        center.Set((value_44.x + value_50.x) * 0.5, (value_44.y + value_50.y) * 0.5,
+                   (value_44.z + value_50.z) * 0.5);
         value_5c = center;
 
         float x = value_5c.x - value_44.x;
         float y = value_5c.y - value_44.y;
         float z = value_5c.z - value_44.z;
-        value_68 = static_cast<float>(sqrt(x * x + y * y + z * z))
-                   * 1.001f;
+        value_68 = static_cast<float>(sqrt(x * x + y * y + z * z)) * 1.001f;
     }
 
     srVector3T<float> eye_center;
@@ -420,30 +405,24 @@ void srTriMeshPipeline::FlushSlots00475600()
     srMatrix4T<float> project_clip_near;
     srMatrix4T<float> normal_matrix;
 
-    renderer_88->getEyeSpaceBounds(
-        eye_center, eye_radius, value_5c, value_68);
+    renderer_88->getEyeSpaceBounds(eye_center, eye_radius, value_5c, value_68);
     renderer_88->getMatrix(srGERD::MATRIX_MODE_POSITIONAL_0, model_view);
     renderer_88->getInverseModelViewMatrix(inverse_model_view);
     renderer_88->getClipPlanes(clip_planes);
     renderer_88->getProjectClipNearMatrix(project_clip_near);
     renderer_88->getNormalMatrix(normal_matrix);
 
-    srMatrix4T<float>::e_scaleType scale_type =
-        renderer_88->getModelViewScaleType();
+    srMatrix4T<float>::e_scaleType scale_type = renderer_88->getModelViewScaleType();
     srGERD::e_cullMode cull_mode = renderer_88->getCullMode();
     srGERD::e_winding winding = renderer_88->getWinding();
 
     srTriangleCuller::Input culler_input;
     if (cull_mode == srGERD::CULL_MODE_POSITIONAL_2) {
         culler_input.cull_mode_0c = 2;
-    }
-    else if (cull_mode == srGERD::CULL_MODE_POSITIONAL_1) {
-        culler_input.cull_mode_0c =
-            winding == srGERD::WINDING_POSITIONAL_0;
-    }
-    else {
-        culler_input.cull_mode_0c =
-            winding != srGERD::WINDING_POSITIONAL_0;
+    } else if (cull_mode == srGERD::CULL_MODE_POSITIONAL_1) {
+        culler_input.cull_mode_0c = winding == srGERD::WINDING_POSITIONAL_0;
+    } else {
+        culler_input.cull_mode_0c = winding != srGERD::WINDING_POSITIONAL_0;
     }
 
     culler_input.vertex_count_04 = value_20;
@@ -455,33 +434,24 @@ void srTriMeshPipeline::FlushSlots00475600()
 
     if ((flags_28 & 1) == 0) {
         culler_input.clip_mask_30 = 0;
-    }
-    else {
+    } else {
         float depth;
         unsigned long clip_mask = srTriangleCuller::getClipMask(
-            eye_center,
-            eye_radius,
-            clip_planes.planes_000,
-            clip_planes.mask_200,
-            depth);
-        int retain_clip_mask =
-            clip_mask != 0
-            && ((clip_mask & 0xffffffc0UL) != 0
-                || (slot_count_84 * value_1c > 45 && depth > 0.23f));
+            eye_center, eye_radius, clip_planes.planes_000, clip_planes.mask_200, depth);
+        int retain_clip_mask = clip_mask != 0 && ((clip_mask & 0xffffffc0UL) != 0 ||
+                                                  (slot_count_84 * value_1c > 45 && depth > 0.23f));
         culler_input.clip_mask_30 = retain_clip_mask ? clip_mask : 0;
     }
 
     if (value_2c == 0) {
-        srCore.getStatisticsManager()->statistics_00
-            .triangles_submitted_10 += slot_count_84 * value_1c;
-    }
-    else {
-        srCore.getStatisticsManager()->statistics_00
-            .triangles_submitted_10 += slot_count_84 * value_24;
+        srCore.getStatisticsManager()->statistics_00.triangles_submitted_10 +=
+            slot_count_84 * value_1c;
+    } else {
+        srCore.getStatisticsManager()->statistics_00.triangles_submitted_10 +=
+            slot_count_84 * value_24;
     }
     ++srCore.getStatisticsManager()->statistics_00.meshes_submitted_0c;
-    srCore.getStatisticsManager()->statistics_00.vertices_submitted_18 +=
-        slot_count_84 * value_20;
+    srCore.getStatisticsManager()->statistics_00.vertices_submitted_18 += slot_count_84 * value_20;
 
     unsigned long total = value_2c == 0 ? value_1c : value_24;
     unsigned long batch_limit = total;
@@ -490,8 +460,7 @@ void srTriMeshPipeline::FlushSlots00475600()
         if (ratio > 3.0f) {
             ratio = 3.0f;
         }
-        batch_limit = static_cast<unsigned long>(
-            1300.0f / (slot_count_84 * ratio));
+        batch_limit = static_cast<unsigned long>(1300.0f / (slot_count_84 * ratio));
         if (cull_mode == srGERD::CULL_MODE_POSITIONAL_2) {
             batch_limit >>= 1;
         }
@@ -500,8 +469,7 @@ void srTriMeshPipeline::FlushSlots00475600()
         }
     }
 
-    unsigned long* scratch =
-        values_0c.ensure(batch_limit + value_20 * 2);
+    unsigned long* scratch = values_0c.ensure(batch_limit + value_20 * 2);
     srTriangleCuller::Output culler_output;
     culler_output.indices_00 = scratch;
     culler_output.avt_04 = scratch + batch_limit;
@@ -520,8 +488,7 @@ void srTriMeshPipeline::FlushSlots00475600()
             culler_input.active_triangles_10 = 0;
             culler_input.projected_vertices_14 = value_30 + processed;
             culler_input.triangles_18 = value_34 + processed;
-        }
-        else {
+        } else {
             culler_input.triangle_count_00 = value_1c;
             culler_input.active_triangle_count_08 = batch_count;
             culler_input.active_triangles_10 = value_2c + processed;
@@ -530,44 +497,31 @@ void srTriMeshPipeline::FlushSlots00475600()
         }
 
         if (srTriangleCuller::cull(culler_output, culler_input)) {
-            srCore.getStatisticsManager()->statistics_00
-                .triangles_after_culling_14 +=
+            srCore.getStatisticsManager()->statistics_00.triangles_after_culling_14 +=
                 slot_count_84 * culler_output.triangle_count_0c;
-            srCore.getStatisticsManager()->statistics_00
-                .vertices_after_culling_1c +=
+            srCore.getStatisticsManager()->statistics_00.vertices_after_culling_1c +=
                 slot_count_84 * culler_output.vertex_count_10;
 
             srGERD::Renderer* renderer = renderer_88->lockRenderer();
 
             (void)vertex_arrays_a4[slot_count_84];
             srVertexArray* vertex_arrays = &vertex_arrays_a4[0];
-            renderer->allocVertexArray(
-                vertex_arrays[0],
-                slot_count_84 * culler_output.vertex_count_10);
+            renderer->allocVertexArray(vertex_arrays[0],
+                                       slot_count_84 * culler_output.vertex_count_10);
 
             for (unsigned long slot = 1; slot < slot_count_84; ++slot) {
-                unsigned long offset =
-                    slot * culler_output.vertex_count_10;
-                vertex_arrays[slot].values_00 =
-                    vertex_arrays[0].values_00 + offset;
-                vertex_arrays[slot].values_04 =
-                    vertex_arrays[0].values_04 + offset;
-                vertex_arrays[slot].values_08 =
-                    vertex_arrays[0].values_08 + offset;
-                vertex_arrays[slot].values_0c =
-                    vertex_arrays[0].values_0c + offset;
-                vertex_arrays[slot].values_10 =
-                    vertex_arrays[0].values_10 + offset;
-                vertex_arrays[slot].values_14 =
-                    vertex_arrays[0].values_14 + offset;
-                vertex_arrays[slot].values_18 =
-                    vertex_arrays[0].values_18 + offset;
-                vertex_arrays[slot].values_1c =
-                    vertex_arrays[0].values_1c + offset;
+                unsigned long offset = slot * culler_output.vertex_count_10;
+                vertex_arrays[slot].values_00 = vertex_arrays[0].values_00 + offset;
+                vertex_arrays[slot].values_04 = vertex_arrays[0].values_04 + offset;
+                vertex_arrays[slot].values_08 = vertex_arrays[0].values_08 + offset;
+                vertex_arrays[slot].values_0c = vertex_arrays[0].values_0c + offset;
+                vertex_arrays[slot].values_10 = vertex_arrays[0].values_10 + offset;
+                vertex_arrays[slot].values_14 = vertex_arrays[0].values_14 + offset;
+                vertex_arrays[slot].values_18 = vertex_arrays[0].values_18 + offset;
+                vertex_arrays[slot].values_1c = vertex_arrays[0].values_1c + offset;
             }
 
-            unsigned long processor_count =
-                renderer_88->getVertexProcessorCount();
+            unsigned long processor_count = renderer_88->getVertexProcessorCount();
             srVertexProcessor** processors = 0;
             if (processor_count != 0) {
                 processors = vertex_processors_04.ensure(processor_count);
@@ -580,18 +534,15 @@ void srTriMeshPipeline::FlushSlots00475600()
             float environment_scale;
             float environment_inverse_scale;
             renderer_88->getAmbientLight(ambient_light);
-            renderer_88->getEnvironmentRange(
-                environment_minimum, environment_maximum);
-            renderer_88->getEnvironmentScaleFactor(
-                environment_scale, environment_inverse_scale);
+            renderer_88->getEnvironmentRange(environment_minimum, environment_maximum);
+            renderer_88->getEnvironmentScaleFactor(environment_scale, environment_inverse_scale);
             unsigned long exclusion_mask = renderer_88->getExclusionMask();
 
             srVertexPipe::Input pipe_input;
             pipe_input.record_count_00 = slot_count_84;
             pipe_input.vertex_count_04 = culler_output.vertex_count_10;
             pipe_input.indices_08 = culler_output.avt_04;
-            pipe_input.position_is_float3_0c =
-                culler_output.linear_14 == 0;
+            pipe_input.position_is_float3_0c = culler_output.linear_14 == 0;
             pipe_input.positions_10 = value_38;
             pipe_input.values_14 = value_3c;
             pipe_input.eye_center_18 = eye_center;
@@ -607,8 +558,7 @@ void srTriMeshPipeline::FlushSlots00475600()
             pipe_input.environment_minimum_54 = environment_minimum;
             pipe_input.environment_maximum_58 = environment_maximum;
             pipe_input.environment_scale_5c = environment_scale;
-            pipe_input.environment_inverse_scale_60 =
-                environment_inverse_scale;
+            pipe_input.environment_inverse_scale_60 = environment_inverse_scale;
 
             if (value_2c == 0 && processed != 0) {
                 for (unsigned long index = 0; index < batch_count; ++index) {
@@ -621,44 +571,35 @@ void srTriMeshPipeline::FlushSlots00475600()
                 renderer_disable_mask = 0x140;
             }
 
-            for (unsigned long pass_index = 0;
-                 pass_index < slot_count_84;
-                 ++pass_index) {
-                passes_9c[pass_index].value_18 =
-                    records_94[pass_index].value_20;
+            for (unsigned long pass_index = 0; pass_index < slot_count_84; ++pass_index) {
+                passes_9c[pass_index].value_18 = records_94[pass_index].value_20;
 
                 unsigned long disable_mask;
                 if (passes_9c[pass_index].value_14 != 0) {
                     srFlags<srVertexProcessor::e_channel> flags =
-                        srVertexPipe::getShaderDisableMask(
-                            passes_9c[pass_index].value_14,
-                            culler_output.indices_00,
-                            culler_output.triangle_count_0c);
+                        srVertexPipe::getShaderDisableMask(passes_9c[pass_index].value_14,
+                                                           culler_output.indices_00,
+                                                           culler_output.triangle_count_0c);
                     disable_mask = flags.value;
-                }
-                else {
+                } else {
                     srFlags<srVertexProcessor::e_channel> flags =
-                        srVertexPipe::getShaderDisableMask(
-                            passes_9c[pass_index].flags_08);
+                        srVertexPipe::getShaderDisableMask(passes_9c[pass_index].flags_08);
                     disable_mask = flags.value;
                 }
-                records_94[pass_index].value_04 =
-                    disable_mask | renderer_disable_mask;
+                records_94[pass_index].value_04 = disable_mask | renderer_disable_mask;
             }
 
             vertex_pipe_90->process(pipe_input);
 
             srGERD::Renderer::TriInput render_input;
-            render_input.triangle_count_00 =
-                culler_output.triangle_count_0c;
+            render_input.triangle_count_00 = culler_output.triangle_count_0c;
             render_input.record_count_04 = slot_count_84;
             render_input.vertex_count_08 = culler_output.vertex_count_10;
             render_input.indices_0c = culler_output.indices_00;
             render_input.triangles_10 = value_34;
             render_input.vertices_14 = culler_output.clip_flags_08;
             render_input.passes_18 = &passes_9c[0];
-            render_input.position_is_float3_1c =
-                culler_output.linear_14 == 0;
+            render_input.position_is_float3_1c = culler_output.linear_14 == 0;
             render_input.project_clip_near_20 = &project_clip_near;
             render_input.value_24 = value_40;
             renderer->render(render_input);
@@ -713,6 +654,4 @@ srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
     return pipe;
 }
 // FUNCTION: WIZ8 0x005aa400
-void stMeshModel::Function5AA400(stMeshModel*)
-{
-}
+void stMeshModel::Function5AA400(stMeshModel*) {}

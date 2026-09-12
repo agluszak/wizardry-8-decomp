@@ -138,13 +138,11 @@ void stTextureAnim::UpdateFrame004854B0()
         if (flag_78 == 0 || frame_count == 0) {
             return;
         }
-    }
-    else if (frame_count == 0) {
+    } else if (frame_count == 0) {
         return;
     }
 
-    elapsed_frames = (int)((GetTickCount() - frame_tick_6c) *
-                           frame_rate_68 * g_float_005ec128);
+    elapsed_frames = (int)((GetTickCount() - frame_tick_6c) * frame_rate_68 * g_float_005ec128);
     if (flag_60 == 0) {
         int frame = (value_5c * elapsed_frames) % frame_count;
         if (frame < frame_58) {
@@ -153,13 +151,11 @@ void stTextureAnim::UpdateFrame004854B0()
             return;
         }
         frame_58 = frame;
-    }
-    else if (flag_60 == 1) {
+    } else if (flag_60 == 1) {
         if ((elapsed_frames / frame_count & 1) != 0) {
             value_5c = -1;
             frame_58 = frame_count - elapsed_frames % frame_count - 1;
-        }
-        else {
+        } else {
             if (value_5c == -1) {
                 flag_78 = 0;
                 return;
@@ -167,13 +163,11 @@ void stTextureAnim::UpdateFrame004854B0()
             value_5c = 1;
             frame_58 = elapsed_frames % frame_count;
         }
-    }
-    else if (flag_60 == 2) {
+    } else if (flag_60 == 2) {
         if (elapsed_frames >= frame_count) {
             flag_78 = 0;
             frame_58 = frame_count > 0 ? frame_count - 1 : 0;
-        }
-        else {
+        } else {
             frame_58 = elapsed_frames;
         }
     }
@@ -239,9 +233,7 @@ const char* stTextureAnim::getTextureName()
     return (*textures_54->GetAt(frame_58))->getTextureName();
 }
 
-void stTextureAnim::invalidate()
-{
-}
+void stTextureAnim::invalidate() {}
 
 // FUNCTION: WIZ8 0x00485760
 void stTextureAnim::setupDefaultValues()
@@ -251,8 +243,7 @@ void stTextureAnim::setupDefaultValues()
     if (texture != 0) {
         texture->getDimensions(texture_dimensions_);
         texture_flags_ &= ~2U;
-    }
-    else {
+    } else {
         texture_dimensions_.width = 1;
         texture_dimensions_.height = 1;
         if (texture_filter_ != 0) {

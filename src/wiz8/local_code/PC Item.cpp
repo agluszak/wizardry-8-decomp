@@ -1947,7 +1947,7 @@ void NormalizeItemStack(W8ItemInstance* item)
    the caller can refresh carrying capacity before placing the remainder. */
 // FUNCTION: WIZ8 0x0051f900
 unsigned char MergeItemStacks(W8ItemInstance* destination, W8ItemInstance* source,
-                             unsigned char* partially_merged)
+                              unsigned char* partially_merged)
 {
     if (destination->item_id == -1) {
         return 0;
@@ -2476,7 +2476,7 @@ bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char 
     if (g_item_records[item->item_id].quantity_kind == 1 && !skip_stacking) {
         while (index < (unsigned int)g_status_685170.party_item_count_1791) {
             if (MergeItemStacks(&g_status_685170.party_item_pool_0021[index], item,
-                               &partially_merged)) {
+                                &partially_merged)) {
                 stored = true;
                 break;
             }

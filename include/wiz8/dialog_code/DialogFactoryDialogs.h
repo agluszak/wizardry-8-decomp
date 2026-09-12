@@ -22,22 +22,22 @@ class W8DialogNumericInput {
 public:
     void Initialize(int flags, const W8ControlsRect* bounds, int value, int font,
                     W8DialogBase* dialog, W8DialogButton* button); /* 0x005E1460 */
-    void SetValue(int value);             /* 0x005E14C0 */
-    void SetActive(unsigned char active); /* 0x005E14D0 */
-    void Draw(unsigned char force);       /* 0x005E15C0 */
-    unsigned char HandleInput(const InputAtom* input); /* 0x005E19A0 */
+    void SetValue(int value);                                      /* 0x005E14C0 */
+    void SetActive(unsigned char active);                          /* 0x005E14D0 */
+    void Draw(unsigned char force);                                /* 0x005E15C0 */
+    unsigned char HandleInput(const InputAtom* input);             /* 0x005E19A0 */
 
-    W8ControlsRect m_bounds;        /* 0x00 */
-    int m_caret;                    /* 0x10: -1 when inactive */
-    int m_font;                     /* 0x14 */
-    int m_value;                    /* 0x18 */
-    unsigned char m_dirty;          /* 0x1c */
-    unsigned char m_active;         /* 0x1d */
+    W8ControlsRect m_bounds; /* 0x00 */
+    int m_caret;             /* 0x10: -1 when inactive */
+    int m_font;              /* 0x14 */
+    int m_value;             /* 0x18 */
+    unsigned char m_dirty;   /* 0x1c */
+    unsigned char m_active;  /* 0x1d */
     unsigned char unknown_01e[2];
-    int m_maximum;                  /* 0x20: -1, then 1000000 for the split dialog */
-    W8DialogBase* m_dialog;         /* 0x24 */
-    W8DialogButton* m_button;       /* 0x28 */
-    int m_field_2c;                 /* 0x2c */
+    int m_maximum;            /* 0x20: -1, then 1000000 for the split dialog */
+    W8DialogBase* m_dialog;   /* 0x24 */
+    W8DialogButton* m_button; /* 0x28 */
+    int m_field_2c;           /* 0x2c */
 };
 static_assert(sizeof(W8DialogNumericInput) == 0x30, "W8DialogNumericInput_size");
 
@@ -46,7 +46,7 @@ static_assert(sizeof(W8DialogNumericInput) == 0x30, "W8DialogNumericInput_size")
 // VTABLE: WIZ8 0x005ef7c8
 class W8Dialog005CBB40 : public W8DialogBase {
 public:
-    W8Dialog005CBB40();                  /* 0x005CBB40 */
+    W8Dialog005CBB40(); /* 0x005CBB40 */
     virtual ~W8Dialog005CBB40() override;
     virtual int CreateControls() override;
     virtual void DestroyControls() override;
@@ -81,47 +81,47 @@ public:
        constructs, clears and destroys it; `void*` would erase the proven
        element type. */
     W8GrowableVector<void (*)(int)> m_field_064;
-    int m_field_074;                /* 0x074 */
-    float m_field_078;              /* 0x078: 0.05 */
-    float m_field_07c;              /* 0x07c: 0.2 */
-    float m_field_080;              /* 0x080: 0.9 */
-    float m_field_084;              /* 0x084: 0.75 */
-    int m_field_088;                /* 0x088: highlight fill colour */
-    int m_text_button_08c;          /* 0x08c */
-    int m_second_text_button_090;   /* 0x090 */
-    short m_inlay_image_094;        /* 0x094: DialogInlay inlay for 0x098 */
+    int m_field_074;              /* 0x074 */
+    float m_field_078;            /* 0x078: 0.05 */
+    float m_field_07c;            /* 0x07c: 0.2 */
+    float m_field_080;            /* 0x080: 0.9 */
+    float m_field_084;            /* 0x084: 0.75 */
+    int m_field_088;              /* 0x088: highlight fill colour */
+    int m_text_button_08c;        /* 0x08c */
+    int m_second_text_button_090; /* 0x090 */
+    short m_inlay_image_094;      /* 0x094: DialogInlay inlay for 0x098 */
     short unknown_096;
-    int m_area_button_098;          /* 0x098: scrolling text area */
-    int m_up_button_09c;            /* 0x09c */
-    int m_up_image_0a0;             /* 0x0a0 */
-    int m_down_button_0a4;          /* 0x0a4 */
-    int m_down_image_0a8;           /* 0x0a8 */
-    int m_slider_button_0ac;        /* 0x0ac */
-    int m_slider_image_0b0;         /* 0x0b0 */
-    short m_inlay_image_0b4;        /* 0x0b4: DialogInlay inlay for 0x0b8 */
+    int m_area_button_098;   /* 0x098: scrolling text area */
+    int m_up_button_09c;     /* 0x09c */
+    int m_up_image_0a0;      /* 0x0a0 */
+    int m_down_button_0a4;   /* 0x0a4 */
+    int m_down_image_0a8;    /* 0x0a8 */
+    int m_slider_button_0ac; /* 0x0ac */
+    int m_slider_image_0b0;  /* 0x0b0 */
+    short m_inlay_image_0b4; /* 0x0b4: DialogInlay inlay for 0x0b8 */
     short unknown_0b6;
-    int m_third_text_button_0b8;    /* 0x0b8 */
-    int m_ok_button_0bc;            /* 0x0bc */
-    int m_ok_image_0c0;             /* 0x0c0 */
+    int m_third_text_button_0b8; /* 0x0b8 */
+    int m_ok_button_0bc;         /* 0x0bc */
+    int m_ok_image_0c0;          /* 0x0c0 */
     /* 0x0c4 and 0x0dc are the inclusive click rectangles ProcessInput tests
        with the cursor position. No writer for either has been recovered in
        this unit, so the producer remains unknown. */
     W8ControlsRect m_ok_rect_0c4;
-    int m_cancel_button_0d4;        /* 0x0d4 */
-    int m_cancel_image_0d8;         /* 0x0d8 */
+    int m_cancel_button_0d4; /* 0x0d4 */
+    int m_cancel_image_0d8;  /* 0x0d8 */
     W8ControlsRect m_cancel_rect_0dc;
-    unsigned char m_field_0ec;      /* 0x0ec: scrolling area is scrollable */
+    unsigned char m_field_0ec; /* 0x0ec: scrolling area is scrollable */
     unsigned char unknown_0ed[3];
-    int m_first_visible_line_0f0;   /* 0x0f0 */
-    int m_selected_line_0f4;        /* 0x0f4 */
-    short m_inlay_image_0f8;        /* 0x0f8: DialogEdge inlay for the text buttons */
+    int m_first_visible_line_0f0; /* 0x0f0 */
+    int m_selected_line_0f4;      /* 0x0f4 */
+    short m_inlay_image_0f8;      /* 0x0f8: DialogEdge inlay for the text buttons */
     short unknown_0fa;
-};                                      /* 0xfc */
+}; /* 0xfc */
 
 // VTABLE: WIZ8 0x005ef9f0
 class W8Dialog005D97D0 : public W8DialogBase {
 public:
-    W8Dialog005D97D0();                  /* 0x005D97D0 */
+    W8Dialog005D97D0(); /* 0x005D97D0 */
     virtual ~W8Dialog005D97D0() override;
     virtual int CreateControls() override;
     virtual void DestroyControls() override;
@@ -161,16 +161,14 @@ private:
     W8DialogNumericInput* m_field_78;
     /* 0x07c: the numeric field while the cursor or keyboard owns it. */
     W8DialogNumericInput* m_active_field_7c;
-    int m_remaining_080;            /* 0x080: total minus the field value */
-    int m_taken_084;                /* 0x084: the field value */
-    int m_total_088;                /* 0x088 */
-    int m_result_08c;               /* 0x08c: 1 confirms, 2 cancels */
-};                                      /* 0x90 */
+    int m_remaining_080; /* 0x080: total minus the field value */
+    int m_taken_084;     /* 0x084: the field value */
+    int m_total_088;     /* 0x088 */
+    int m_result_08c;    /* 0x08c: 1 confirms, 2 cancels */
+}; /* 0x90 */
 
-static_assert(sizeof(W8Dialog005CBB40) == 0xfc,
-              "W8Dialog005CBB40_must_be_0xfc");
-static_assert(sizeof(W8Dialog005D97D0) == 0x90,
-              "W8Dialog005D97D0_must_be_0x90");
+static_assert(sizeof(W8Dialog005CBB40) == 0xfc, "W8Dialog005CBB40_must_be_0xfc");
+static_assert(sizeof(W8Dialog005D97D0) == 0x90, "W8Dialog005D97D0_must_be_0x90");
 
 /* The trigger-owned item picker. Its constructor is 0x005CD710, its primary
    table 0x005EF810, and its complete object 0xB0 bytes. The 13 button slots
@@ -180,12 +178,12 @@ static_assert(sizeof(W8Dialog005D97D0) == 0x90,
 // VTABLE: WIZ8 0x005ef810
 class W8Dialog005CD710 : public W8DialogBase {
 public:
-    W8Dialog005CD710();                       /* 0x005CD710 */
-    virtual ~W8Dialog005CD710() override;     /* 0x005CD820 */
-    virtual int CreateControls() override;    /* 0x005CDC10 */
-    virtual void DestroyControls() override;  /* 0x005CDC40 */
-    virtual void Draw() override;             /* 0x005CDC70 */
-    virtual int GetDialogType() override;     /* 0x005CF240 */
+    W8Dialog005CD710();                            /* 0x005CD710 */
+    virtual ~W8Dialog005CD710() override;          /* 0x005CD820 */
+    virtual int CreateControls() override;         /* 0x005CDC10 */
+    virtual void DestroyControls() override;       /* 0x005CDC40 */
+    virtual void Draw() override;                  /* 0x005CDC70 */
+    virtual int GetDialogType() override;          /* 0x005CF240 */
     virtual unsigned char ProcessInput() override; /* 0x005CEF00 */
 
     int AddItem005CE210(W8WorldItem* item);
@@ -222,7 +220,6 @@ private:
     static void Function5CEAF0(W8DialogButton* button);
 
 public:
-
 public:
     W8GrowableVector<W8WorldItem*> items_54;
     W8GrowableVector<unsigned char> flags_64;
@@ -231,5 +228,4 @@ public:
     W8WorldItem* m_item_group_0ac;
 };
 
-static_assert(sizeof(W8Dialog005CD710) == 0xb0,
-              "W8Dialog005CD710_must_be_0xb0");
+static_assert(sizeof(W8Dialog005CD710) == 0xb0, "W8Dialog005CD710_must_be_0xb0");

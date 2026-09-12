@@ -12,15 +12,11 @@ class stMeshModel;
    receiver. Only fields whose roles are established by those bodies are named. */
 class OctMeshModel {
 public:
-    OctMeshModel();                                      /* 0x0049E4C0 */
-    ~OctMeshModel();                                     /* 0x0049E500 */
-    stMeshModel* Read0049E9A0(
-        int file,
-        srMaterialIFace** materials,
-        srTextureIFace** textures,
-        unsigned long* render_flags,
-        stMeshModel** meshes,
-        int material_count);
+    OctMeshModel();  /* 0x0049E4C0 */
+    ~OctMeshModel(); /* 0x0049E500 */
+    stMeshModel* Read0049E9A0(int file, srMaterialIFace** materials, srTextureIFace** textures,
+                              unsigned long* render_flags, stMeshModel** meshes,
+                              int material_count);
 
     short version_00;
     short padding_02;
@@ -43,5 +39,4 @@ public:
     int polygon_count_44;
 };
 
-static_assert(sizeof(OctMeshModel) == 0x48,
-              "OctMeshModel_size_must_be_0x48");
+static_assert(sizeof(OctMeshModel) == 0x48, "OctMeshModel_size_must_be_0x48");

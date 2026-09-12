@@ -38,12 +38,14 @@ public:
     W8MaterialMapper004B89A0();
     virtual ~W8MaterialMapper004B89A0() override {}
     // FUNCTION: WIZ8 0x004D6190
-    virtual int isActive(srVertexPipe&) override { return 1; }
+    virtual int isActive(srVertexPipe&) override
+    {
+        return 1;
+    }
     virtual void process(srVertexPipe& pipe) override;
 };
 
-static_assert(sizeof(W8MaterialMapper004B89A0) == 4,
-              "W8MaterialMapper004B89A0_must_be_4");
+static_assert(sizeof(W8MaterialMapper004B89A0) == 4, "W8MaterialMapper004B89A0_must_be_4");
 
 // GLOBAL: WIZ8 0x0065BEA8
 W8MaterialMapper004B89A0 g_material_mapper_0065bea8;
@@ -58,9 +60,7 @@ unsigned char g_material_emissive_override_enabled_0065baa4;
 float g_material_emissive_override_0065baa8;
 
 // FUNCTION: WIZ8 0x004B89A0
-W8MaterialMapper004B89A0::W8MaterialMapper004B89A0()
-{
-}
+W8MaterialMapper004B89A0::W8MaterialMapper004B89A0() {}
 
 /* Convert eye-space normals to the material's first texture-coordinate set.
    The exported srVertexPipe queries preserve the closed renderer's ownership
@@ -73,20 +73,16 @@ void W8MaterialMapper004B89A0::process(srVertexPipe& pipe)
     unsigned long count;
     unsigned long index;
 
-    if (!pipe.isChannelAvailable(
-            static_cast<srVertexProcessor::e_channel>(5))) {
+    if (!pipe.isChannelAvailable(static_cast<srVertexProcessor::e_channel>(5))) {
         return;
     }
     normals = pipe.getEyeSpaceNormal();
     coordinates = pipe.getST(0, 0);
     count = pipe.getVertexCount();
-    srCore.getStatisticsManager()->statistics_00
-        .texture_coordinate_operations_34 += count;
+    srCore.getStatisticsManager()->statistics_00.texture_coordinate_operations_34 += count;
     for (index = 0; index < count; ++index) {
-        coordinates[index].x =
-            (normals[index].x + g_float_005ebb38) * g_float_005ebc7c;
-        coordinates[index].y =
-            (normals[index].y + g_float_005ebb38) * g_float_005ebc7c;
+        coordinates[index].x = (normals[index].x + g_float_005ebb38) * g_float_005ebc7c;
+        coordinates[index].y = (normals[index].y + g_float_005ebb38) * g_float_005ebc7c;
     }
 }
 
@@ -163,10 +159,10 @@ stMaterial::~stMaterial()
    established cdecl extra argument: retail 0x004B8A70 never reads it and
    always passes required=1 to the texture loaders. */
 // FUNCTION: WIZ8 0x004B8A70
-unsigned char LoadMaterial004B8A70(
-    const char* bitmap_folder, const W8MaterialRecord004B8A70* source,
-    srMaterialIFace** material, srTextureIFace** texture,
-    unsigned long* render_flags, int)
+unsigned char LoadMaterial004B8A70(const char* bitmap_folder,
+                                   const W8MaterialRecord004B8A70* source,
+                                   srMaterialIFace** material, srTextureIFace** texture,
+                                   unsigned long* render_flags, int)
 {
     char texture_path[80] = "";
     char material_name[80] = "";
@@ -185,10 +181,8 @@ unsigned char LoadMaterial004B8A70(
         if (source->texture_names_029[index][0] != '\0') {
             if (bitmap_folder[0] == '\0') {
                 strcpy(texture_path, source->texture_names_029[index]);
-            }
-            else {
-                sprintf(texture_path, "%s\\%s", bitmap_folder,
-                        source->texture_names_029[index]);
+            } else {
+                sprintf(texture_path, "%s\\%s", bitmap_folder, source->texture_names_029[index]);
             }
             texture_index = index;
             break;
@@ -197,22 +191,17 @@ unsigned char LoadMaterial004B8A70(
 
     if (texture_path[0] == '\0') {
         *render_flags &= ~0x8000UL;
-    }
-    else {
+    } else {
         _splitpath(texture_path, drive, directory, file_name, extension);
         strcpy(texture_folder, drive);
         strcat(texture_folder, directory);
         strcpy(texture_file, file_name);
         strcat(texture_file, extension);
 
-        if (strlen(texture_path) > 3 &&
-            _strnicmp(extension, ".IFL", 4) == 0) {
-            *texture = LoadAnimatedTexture004B98F0(
-                texture_folder, texture_file, source, 1);
-        }
-        else {
-            *texture = LoadTexture004B95D0(
-                texture_folder, texture_file, 1);
+        if (strlen(texture_path) > 3 && _strnicmp(extension, ".IFL", 4) == 0) {
+            *texture = LoadAnimatedTexture004B98F0(texture_folder, texture_file, source, 1);
+        } else {
+            *texture = LoadTexture004B95D0(texture_folder, texture_file, 1);
         }
         if (*texture == 0) {
             return 0;
@@ -228,13 +217,11 @@ unsigned char LoadMaterial004B8A70(
             if (animation->Prepare004857B0()) {
                 has_alpha = 1;
             }
-            if (source->version_00 > 3 &&
-                source->texture_modes_11a[texture_index] > 0.0f) {
+            if (source->version_00 > 3 && source->texture_modes_11a[texture_index] > 0.0f) {
                 float mode = source->texture_modes_11a[texture_index];
                 if (mode <= 1.0f) {
                     animation->value_70 = 1;
-                }
-                else {
+                } else {
                     animation->value_70 = 2;
                     mode -= 1.0f;
                 }
@@ -246,8 +233,7 @@ unsigned char LoadMaterial004B8A70(
     if (source->opacity_0fd < 1.0f || has_alpha) {
         if (texture_index == 0 || texture_index == 1) {
             *render_flags = (*render_flags & 0xffffdfbfUL) | 0x40a0;
-        }
-        else if (texture_index == 2 || texture_index == 3) {
+        } else if (texture_index == 2 || texture_index == 3) {
             *render_flags = (*render_flags & 0xffffdc3fUL) | 0x4020;
         }
         *render_flags &= ~8UL;
@@ -256,14 +242,11 @@ unsigned char LoadMaterial004B8A70(
     sprintf(material_name,
             "Mt%1.2f%1.2f%1.2f%1.2f%1.2f%1.2f%1.2f%1.2f%1.2f"
             "%1.2f%1.2f%1.2f%1.2f%1.2f%d%c",
-            source->ambient_0c9[0], source->ambient_0c9[1],
-            source->ambient_0c9[2], source->diffuse_0d5[0],
-            source->diffuse_0d5[1], source->diffuse_0d5[2],
-            source->specular_0ed[0], source->specular_0ed[1],
-            source->specular_0ed[2], source->positional_0f9,
-            source->opacity_0fd, source->emission_101,
-            source->emission_101, source->emission_101,
-            static_cast<int>(source->shader_flags_116),
+            source->ambient_0c9[0], source->ambient_0c9[1], source->ambient_0c9[2],
+            source->diffuse_0d5[0], source->diffuse_0d5[1], source->diffuse_0d5[2],
+            source->specular_0ed[0], source->specular_0ed[1], source->specular_0ed[2],
+            source->positional_0f9, source->opacity_0fd, source->emission_101, source->emission_101,
+            source->emission_101, static_cast<int>(source->shader_flags_116),
             texture_path[0] == '\0' ? 'F' : 'T');
 
     {
@@ -274,13 +257,11 @@ unsigned char LoadMaterial004B8A70(
         if (node == 0) {
             node = registry->registerClass(
                 "stMaterial",
-                srClassSupport<srMaterial, srMaterialIFace, false,
-                               0x2210>::sGetClassNode(),
+                srClassSupport<srMaterial, srMaterialIFace, false, 0x2210>::sGetClassNode(),
                 0x10002, 0);
         }
         concrete = static_cast<stMaterial*>(
-            registry->find(node, material_name,
-                           static_cast<const srRuntimeClass*>(0)));
+            registry->find(node, material_name, static_cast<const srRuntimeClass*>(0)));
         *material = concrete;
         if (concrete == 0) {
             concrete = new stMaterial;
@@ -291,9 +272,8 @@ unsigned char LoadMaterial004B8A70(
             concrete->setName(material_name);
             concrete->autoRelease();
 
-            concrete->parms_18.specular.Set(
-                source->specular_0ed[0], source->specular_0ed[1],
-                source->specular_0ed[2], 0.0f);
+            concrete->parms_18.specular.Set(source->specular_0ed[0], source->specular_0ed[1],
+                                            source->specular_0ed[2], 0.0f);
             concrete->dirty_74 = 1;
             concrete->parms_18.shininess = 1.0f;
             concrete->dirty_74 = 1;
@@ -301,27 +281,21 @@ unsigned char LoadMaterial004B8A70(
             concrete->parms_18.diffuse.x = source->diffuse_0d5[0];
             concrete->parms_18.diffuse.y = source->diffuse_0d5[1];
             concrete->parms_18.diffuse.z = source->diffuse_0d5[2];
-            concrete->parms_18.diffuse.w =
-                source->opacity_0fd == 0.0f ? 0.7f : source->opacity_0fd;
+            concrete->parms_18.diffuse.w = source->opacity_0fd == 0.0f ? 0.7f : source->opacity_0fd;
             concrete->dirty_74 = 1;
-            concrete->setOpacity(
-                source->opacity_0fd == 0.0f ? 0.7 : source->opacity_0fd);
+            concrete->setOpacity(source->opacity_0fd == 0.0f ? 0.7 : source->opacity_0fd);
 
             if (texture_path[0] == '\0') {
-                concrete->parms_18.ambient.Set(
-                    source->diffuse_0d5[0], source->diffuse_0d5[1],
-                    source->diffuse_0d5[2], 1.0f);
+                concrete->parms_18.ambient.Set(source->diffuse_0d5[0], source->diffuse_0d5[1],
+                                               source->diffuse_0d5[2], 1.0f);
                 concrete->dirty_74 = 1;
                 concrete->parms_18.emissive = 0.0f;
-            }
-            else {
-                concrete->parms_18.ambient.Set(
-                    source->ambient_0c9[0], source->ambient_0c9[1],
-                    source->ambient_0c9[2], 0.0f);
+            } else {
+                concrete->parms_18.ambient.Set(source->ambient_0c9[0], source->ambient_0c9[1],
+                                               source->ambient_0c9[2], 0.0f);
                 concrete->dirty_74 = 1;
-                concrete->parms_18.emissive.Set(
-                    source->emission_101, source->emission_101,
-                    source->emission_101, 1.0f);
+                concrete->parms_18.emissive.Set(source->emission_101, source->emission_101,
+                                                source->emission_101, 1.0f);
             }
             concrete->dirty_74 = 1;
             concrete->m_field_78 = source->shader_flags_116;
@@ -335,8 +309,7 @@ unsigned char LoadMaterial004B8A70(
 }
 
 // FUNCTION: WIZ8 0x004B95D0
-srTexture* LoadTexture004B95D0(
-    const char* folder, const char* name, unsigned char required)
+srTexture* LoadTexture004B95D0(const char* folder, const char* name, unsigned char required)
 {
     char path[_MAX_PATH];
     char* extension;
@@ -355,8 +328,7 @@ srTexture* LoadTexture004B95D0(
     registry = srCore.getRegistry();
     node = registry->getClassNode(0x10001);
     if (node == 0) {
-        node = registry->registerClass(
-            "stTextureFile", stTextureFile::sGetClassNode(), 0x10001, 0);
+        node = registry->registerClass("stTextureFile", stTextureFile::sGetClassNode(), 0x10001, 0);
     }
     texture = static_cast<stTextureFile*>(
         registry->find(node, name, static_cast<const srRuntimeClass*>(0)));
@@ -380,18 +352,17 @@ srTexture* LoadTexture004B95D0(
                     g_gerd_659634->setTexture(0, 0);
                 }
                 if (texture->getTextureFrameHandle() == 0) {
-                    ShutdownWithErrorBox(reinterpret_cast<const char*>(
-                        String("Missing texture file: %s", path)));
+                    ShutdownWithErrorBox(
+                        reinterpret_cast<const char*>(String("Missing texture file: %s", path)));
                 }
             }
-        }
-        else {
+        } else {
             if (!FileExists(path)) {
                 *extension = '\0';
                 strcat(extension, "jpg");
                 if (!FileExists(path)) {
-                    ShutdownWithErrorBox(reinterpret_cast<const char*>(
-                        String("Missing texture file: %s", path)));
+                    ShutdownWithErrorBox(
+                        reinterpret_cast<const char*>(String("Missing texture file: %s", path)));
                 }
             }
             texture = new stTextureFile(path, g_flag_65beaf);
@@ -407,9 +378,9 @@ srTexture* LoadTexture004B95D0(
 }
 
 // FUNCTION: WIZ8 0x004B98F0
-stTextureAnim* LoadAnimatedTexture004B98F0(
-    const char* folder, const char* name,
-    const W8MaterialRecord004B8A70* source, unsigned char required)
+stTextureAnim* LoadAnimatedTexture004B98F0(const char* folder, const char* name,
+                                           const W8MaterialRecord004B8A70* source,
+                                           unsigned char required)
 {
     char buffer[_MAX_PATH];
     unsigned char more = 1;
@@ -420,8 +391,8 @@ stTextureAnim* LoadAnimatedTexture004B98F0(
     strcat(buffer, name);
     handle = FileOpen(buffer, 0x41, 0);
     if (handle == 0) {
-        ShutdownWithErrorBox(reinterpret_cast<const char*>(
-            String("Cannot load/find material: %s", buffer)));
+        ShutdownWithErrorBox(
+            reinterpret_cast<const char*>(String("Cannot load/find material: %s", buffer)));
     }
 
     animation = new stTextureAnim;
@@ -431,8 +402,7 @@ stTextureAnim* LoadAnimatedTexture004B98F0(
         ReadTextLine004CEE40(handle, buffer, 200, &more);
         if (strlen(buffer) <= 2) {
             more = 0;
-        }
-        else {
+        } else {
             srTexture* texture = LoadTexture004B95D0(folder, buffer, required);
             if (texture != 0) {
                 animation->AddTexture00485420(texture);
@@ -469,8 +439,7 @@ unsigned char MeshHasAnimatedTexture004B9AA0(srMeshModel* model)
             for (polygon = 0; polygon < model->polygon_count_230; ++polygon) {
                 srTextureIFace* texture = textures[polygon].get();
 
-                if (texture != 0 &&
-                    texture->getClassID() == stTextureAnim::CLASS_ID) {
+                if (texture != 0 && texture->getClassID() == stTextureAnim::CLASS_ID) {
                     return 1;
                 }
             }
@@ -482,8 +451,7 @@ unsigned char MeshHasAnimatedTexture004B9AA0(srMeshModel* model)
 /* The model instance's srModel::Client base supplies its mesh model. The first
    polygon texture is the shared animation object whose frame is restarted. */
 // FUNCTION: WIZ8 0x004b9b00
-void SetModelAnimatedTextureFrame004B9B00(
-    srModelInstance* instance, int frame)
+void SetModelAnimatedTextureFrame004B9B00(srModelInstance* instance, int frame)
 {
     if (instance != 0) {
         srMeshModel* model = static_cast<srMeshModel*>(instance->model());
@@ -494,8 +462,7 @@ void SetModelAnimatedTextureFrame004B9B00(
             if (textures != 0) {
                 srTextureIFace* texture = textures[0].get();
 
-                if (texture != 0 &&
-                    texture->getClassID() == stTextureAnim::CLASS_ID) {
+                if (texture != 0 && texture->getClassID() == stTextureAnim::CLASS_ID) {
                     static_cast<stTextureAnim*>(texture)->SetFrame00485400(frame);
                 }
             }
@@ -515,8 +482,7 @@ stTextureAnim* GetModelAnimatedTexture004B9B50(srModelInstance* instance)
             if (textures != 0) {
                 srTextureIFace* texture = textures[0].get();
 
-                if (texture != 0 &&
-                    texture->getClassID() == stTextureAnim::CLASS_ID) {
+                if (texture != 0 && texture->getClassID() == stTextureAnim::CLASS_ID) {
                     return static_cast<stTextureAnim*>(texture);
                 }
             }

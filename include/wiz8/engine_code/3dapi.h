@@ -18,4 +18,3 @@ extern unsigned char g_world_mesh_update_enabled_00607d7d;
 void Function44FC20(W8World* world, unsigned int flags);
 void Function450210(W8World* world, unsigned int flags);
 void UpdateCameraView00450080(srCamera* camera, int mode);
-

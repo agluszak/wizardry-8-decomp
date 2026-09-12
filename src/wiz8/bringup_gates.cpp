@@ -12,8 +12,6 @@ unsigned char ScreenLifecycleSuccess(void)
     return 1;
 }
 
-
-
 // FUNCTION: WIZ8 0x005588e0
 void SetFactNotificationsSuppressed(unsigned char suppressed)
 {
@@ -22,6 +20,4 @@ void SetFactNotificationsSuppressed(unsigned char suppressed)
 
 /* Shared folded empty entry; product callers retain their established names. */
 // FUNCTION: WIZ8 0x004023a0
-void NoOp(void)
-{
-}
+void NoOp(void) {}

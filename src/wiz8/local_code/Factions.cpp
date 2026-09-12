@@ -106,18 +106,12 @@ W8FactionDisposition GetFactionDisposition(signed char faction)
     signed char disposition_score;
 
     if (faction < 0) {
-        srAssertFail(
-            "bFaction >= 0",
-            "C:\\Projects\\Wizardry 8\\Local Code\\Factions.cpp",
-            0xaf,
-            0);
+        srAssertFail("bFaction >= 0", "C:\\Projects\\Wizardry 8\\Local Code\\Factions.cpp", 0xaf,
+                     0);
     }
     if (faction >= W8_FACTION_COUNT) {
-        srAssertFail(
-            "bFaction < FACTION_COUNT",
-            "C:\\Projects\\Wizardry 8\\Local Code\\Factions.cpp",
-            0xb0,
-            0);
+        srAssertFail("bFaction < FACTION_COUNT",
+                     "C:\\Projects\\Wizardry 8\\Local Code\\Factions.cpp", 0xb0, 0);
     }
 
     disposition_score = g_factions[faction].disposition_score;

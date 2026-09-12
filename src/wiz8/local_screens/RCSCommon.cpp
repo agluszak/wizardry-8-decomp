@@ -52,8 +52,7 @@ bool CanSelectRcsPartySlot(int ui_slot)
 {
     if (!g_party_slot_rows[ui_slot].occupied) {
         srAssertFail("gStatus.XChar[uiSlot].fOccupied",
-                     "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp",
-                     0x9ac, 0);
+                     "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp", 0x9ac, 0);
     }
 
     W8Character* character = &g_party_characters[ui_slot];
@@ -81,8 +80,7 @@ bool CanSelectRcsPartySlot(int ui_slot)
 }
 
 // FUNCTION: WIZ8 0x005b6df0
-void DrawRcsText(const wchar_t* text, int left, int top, int width,
-                 unsigned int layout_mode)
+void DrawRcsText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode)
 {
     W8ControlsRect bounds = {left, top, left + width, top + 12};
     W8TextBuffer buffer(&bounds, text, g_font_683660, layout_mode, 4);
@@ -90,18 +88,15 @@ void DrawRcsText(const wchar_t* text, int left, int top, int width,
 }
 
 // FUNCTION: WIZ8 0x005b6e90
-void DrawRcsBoldText(const wchar_t* text, int left, int top, int width,
-                     unsigned int layout_mode)
+void DrawRcsBoldText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode)
 {
     W8ControlsRect bounds = {left, top, left + width, top + 12};
-    W8TextBuffer buffer(
-        &bounds, text, g_wiz_text_bold_font_683664, layout_mode, 4);
+    W8TextBuffer buffer(&bounds, text, g_wiz_text_bold_font_683664, layout_mode, 4);
     buffer.RenderToTarget(0, 0, -14);
 }
 
 // FUNCTION: WIZ8 0x005b6f30
-void DrawTallRcsText(const wchar_t* text, int left, int top, int width,
-                     unsigned int layout_mode)
+void DrawTallRcsText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode)
 {
     W8ControlsRect bounds = {left, top, left + width, top + 18};
     W8TextBuffer buffer(&bounds, text, g_font_683660, layout_mode, 4);
@@ -113,8 +108,7 @@ void OpenLevelUpCharacterScreen(void)
 {
     if (!g_party_slot_rows[g_rcs_mode_0064cbe8].occupied) {
         srAssertFail("fCHAR_OCCUPIED(giReviewCharSlot)",
-                     "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp",
-                     0x888, 0);
+                     "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp", 0x888, 0);
     }
     g_current_screen_state.parameter_2 = g_rcs_mode_0064cbe8;
     g_current_screen_state.parameter_3 = g_value_0069c0f8;
@@ -129,24 +123,19 @@ void CreateRcsLevelUpPanel(void)
     g_level_up_panel_0069c3c4 = 0;
     g_level_up_button_0069c3c0 = 0;
 
-    g_level_up_panel_0069c3c4 =
-        new Controls(0xe9, 0x3f, 0xfb, 0x51, -1, 0, -1);
+    g_level_up_panel_0069c3c4 = new Controls(0xe9, 0x3f, 0xfb, 0x51, -1, 0, -1);
     if (g_level_up_panel_0069c3c4 == 0) {
-        srAssertFail("gpLevelUpPanel",
-                     "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp",
+        srAssertFail("gpLevelUpPanel", "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp",
                      0x84e, 0);
     }
 
-    g_level_up_button_0069c3c0 = new W8TextControl(
-        g_level_up_panel_0069c3c4, 0xe7, 0, 0, 0x12, 0x12,
-        0xa7, 0, 0, 2, 1, 4, 3);
+    g_level_up_button_0069c3c0 = new W8TextControl(g_level_up_panel_0069c3c4, 0xe7, 0, 0, 0x12,
+                                                   0x12, 0xa7, 0, 0, 2, 1, 4, 3);
     if (g_level_up_button_0069c3c0 == 0) {
-        srAssertFail("gpLevelUpButton",
-                     "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp",
+        srAssertFail("gpLevelUpButton", "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp",
                      0x852, 0);
     }
-    g_level_up_button_0069c3c0->m_primaryActivationCallback =
-        OpenLevelUpCharacterScreen;
+    g_level_up_button_0069c3c0->m_primaryActivationCallback = OpenLevelUpCharacterScreen;
     g_level_up_panel_0069c3c4->SetEnabled(1);
     g_level_up_button_0069c3c0->SetActive(0);
 }
@@ -188,14 +177,12 @@ void UpdateRcsLevelUpPanel(void)
 {
     bool enabled = IsCharacterReadyToAdvance(g_rcs_mode_0064cbe8);
     if (!enabled || gXStatus.fCombatMode ||
-        (!g_party_slot_rows[g_rcs_mode_0064cbe8].flag_105 &&
-         g_status_685170.game_started) ||
+        (!g_party_slot_rows[g_rcs_mode_0064cbe8].flag_105 && g_status_685170.game_started) ||
         gXStatus.fCampMode) {
         if (g_level_up_button_0069c3c0->m_active) {
             g_level_up_button_0069c3c0->SetActive(0);
         }
-    }
-    else if (!g_level_up_button_0069c3c0->m_active) {
+    } else if (!g_level_up_button_0069c3c0->m_active) {
         g_level_up_button_0069c3c0->SetActive(1);
         g_level_up_panel_0069c3c4->Invalidate(0);
     }
@@ -208,24 +195,19 @@ void CreateRcsDismissPanel(void)
     g_dismiss_panel_0069c3c8 = 0;
     g_dismiss_button_0069c400 = 0;
 
-    g_dismiss_panel_0069c3c8 =
-        new Controls(0xa7, 0x41, 0xbe, 0x51, -1, 0, -1);
+    g_dismiss_panel_0069c3c8 = new Controls(0xa7, 0x41, 0xbe, 0x51, -1, 0, -1);
     if (g_dismiss_panel_0069c3c8 == 0) {
-        srAssertFail("gpDismissPanel",
-                     "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp",
+        srAssertFail("gpDismissPanel", "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp",
                      0x8cf, 0);
     }
 
-    g_dismiss_button_0069c400 = new W8TextControl(
-        g_dismiss_panel_0069c3c8, 0xe8, 0, 0, 0x17, 0x10,
-        0x113, 0, 0, 2, 1, 2, 3);
+    g_dismiss_button_0069c400 = new W8TextControl(g_dismiss_panel_0069c3c8, 0xe8, 0, 0, 0x17, 0x10,
+                                                  0x113, 0, 0, 2, 1, 2, 3);
     if (g_dismiss_button_0069c400 == 0) {
-        srAssertFail("gpDismissButton",
-                     "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp",
+        srAssertFail("gpDismissButton", "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp",
                      0x8d3, 0);
     }
-    g_dismiss_button_0069c400->m_primaryActivationCallback =
-        ShowDismissCharacterDialog;
+    g_dismiss_button_0069c400->m_primaryActivationCallback = ShowDismissCharacterDialog;
     g_dismiss_panel_0069c3c8->SetEnabled(1);
     g_dismiss_button_0069c400->SetActive(0);
 }
@@ -235,12 +217,10 @@ void ShowDismissCharacterDialog(void)
 {
     if (!g_party_slot_rows[g_rcs_mode_0064cbe8].occupied) {
         srAssertFail("fCHAR_OCCUPIED(giReviewCharSlot)",
-                     "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp",
-                     0x90a, 0);
+                     "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp", 0x90a, 0);
     }
 
-    W8ModalDialogBase* dialog =
-        static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+    W8ModalDialogBase* dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
     dialog->SetClientExtent(0xfa, 200);
 
     W8Character* character = &g_party_characters[g_rcs_mode_0064cbe8];
@@ -248,17 +228,13 @@ void ShowDismissCharacterDialog(void)
     if (character->condition_turns[19] == 0) {
         if (character->condition_turns[W8_CONDITION_EQUIPMENT_UNLOCKED] == 0) {
             format = gppStringList[0x92d];
-        }
-        else {
+        } else {
             format = gppStringList[0x92e];
         }
-    }
-    else {
+    } else {
         format = gppStringList[0x92f];
     }
-    dialog->SetMessage(
-        FormatWideString(format, character->name), 1, 0x32, 1, 1, 1, 1, 0,
-        0x15e);
+    dialog->SetMessage(FormatWideString(format, character->name), 1, 0x32, 1, 1, 1, 1, 0, 0x15e);
     SetDialogDestroyCallback(dialog, OnDismissCharacterDialogClosed);
     DisplayCampDialog(dialog);
 }
@@ -266,8 +242,7 @@ void ShowDismissCharacterDialog(void)
 // FUNCTION: WIZ8 0x005b6a60
 void OnDismissCharacterDialogClosed(W8DialogBase* base)
 {
-    if (GetDialogResult(base) &&
-        g_party_slot_rows[g_rcs_mode_0064cbe8].animation_0fa != -1) {
+    if (GetDialogResult(base) && g_party_slot_rows[g_rcs_mode_0064cbe8].animation_0fa != -1) {
         g_value_006840be = static_cast<unsigned short>(g_rcs_mode_0064cbe8);
         DismissSelectedPartyCharacter();
     }
@@ -295,14 +270,13 @@ void DestroyRcsDismissPanel(void)
 // FUNCTION: WIZ8 0x005b68e0
 void UpdateRcsDismissPanel(void)
 {
-    if ((g_rcs_mode_0064cbe8 == 0 || g_rcs_mode_0064cbe8 == 1) &&
-        gXStatus.fCombatMode == 0 && gXStatus.fCampMode == 0) {
+    if ((g_rcs_mode_0064cbe8 == 0 || g_rcs_mode_0064cbe8 == 1) && gXStatus.fCombatMode == 0 &&
+        gXStatus.fCampMode == 0) {
         if (!g_dismiss_button_0069c400->m_active) {
             g_dismiss_button_0069c400->SetActive(1);
             g_dismiss_panel_0069c3c8->Invalidate(0);
         }
-    }
-    else if (g_dismiss_button_0069c400->m_active) {
+    } else if (g_dismiss_button_0069c400->m_active) {
         g_dismiss_button_0069c400->SetActive(0);
     }
     g_dismiss_panel_0069c3c8->Redraw();

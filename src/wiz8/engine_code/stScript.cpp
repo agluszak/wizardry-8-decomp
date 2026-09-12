@@ -12,8 +12,7 @@
    `more`.  The terminator is not retained and CRLF is normalised by removing
    the CR after the loop. */
 // FUNCTION: WIZ8 0x004CEE40
-unsigned char ReadTextLine004CEE40(
-    int handle, char* destination, int capacity, unsigned char* more)
+unsigned char ReadTextLine004CEE40(int handle, char* destination, int capacity, unsigned char* more)
 {
     unsigned char result;
     unsigned int transferred;
@@ -32,8 +31,7 @@ unsigned char ReadTextLine004CEE40(
         }
         if (result == 0) {
             *more = 0;
-        }
-        else {
+        } else {
             if (character == '\n') {
                 break;
             }
@@ -139,8 +137,7 @@ unsigned char stScript::Load004CF3B0(const char* path)
             FileClose(handle);
             return 1;
         }
-        while (ReadTextLine004CEE40(
-                   handle, buffer, sizeof(buffer), &more) == 0) {
+        while (ReadTextLine004CEE40(handle, buffer, sizeof(buffer), &more) == 0) {
             if (more == 0) {
                 FileClose(handle);
                 return 1;
@@ -199,7 +196,6 @@ unsigned char stScript::Load004CF3B0(const char* path)
         }
         ++script_line;
     }
-
 }
 
 /* The label table stores fixed 31-character, case-insensitive identifiers and

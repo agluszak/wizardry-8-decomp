@@ -18,8 +18,7 @@ struct W8SaveScreenshot {
     unsigned short pixels[60][80];
 };
 
-static_assert(sizeof(W8SaveScreenshot) == 0x2588,
-              "W8SaveScreenshot_must_be_0x2588");
+static_assert(sizeof(W8SaveScreenshot) == 0x2588, "W8SaveScreenshot_must_be_0x2588");
 
 /* Save-list entries are allocated as 0x2640 bytes by both the enumerator and
    the Options controller. The SHOT chunk occupies the embedded screenshot. */
@@ -59,10 +58,8 @@ struct W8GlobalStatus;
 unsigned char SaveSlotFileExists(const char* slot_name);
 unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
                             char report_failure);
-void BuildCharacterFilePath00514FA0(char* destination, const char* filename,
-                                    int slot);
-void BuildCharacterPath00514EC0(char* destination, const wchar_t* name,
-                                int slot);
+void BuildCharacterFilePath00514FA0(char* destination, const char* filename, int slot);
+void BuildCharacterPath00514EC0(char* destination, const wchar_t* name, int slot);
 unsigned char SaveGameExists(void);
 void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status);
 /* 0x00512920: load a save slot by name; the Please Wait screen drives it. */
@@ -77,8 +74,8 @@ unsigned char SaveStatusHeader(W8Chunk* chunks);
    save scan behind SaveLevelStatus. Both keep their address names until a
    reviewed body supplies a semantic one. */
 unsigned char LoadItemStatus(W8Chunk* chunk, int level);
-unsigned char MeasureLevelStatusChunks00514DF0(
-    W8Chunk* chunk, int level, unsigned int* empty_percent);
+unsigned char MeasureLevelStatusChunks00514DF0(W8Chunk* chunk, int level,
+                                               unsigned int* empty_percent);
 
 extern unsigned char g_flag_659756;
 extern unsigned char g_save_pending_00689f98;
@@ -87,9 +84,8 @@ extern unsigned char g_save_notice_shown_0068506b;
 char Function5155B0(const char* path, int slot, W8Character* character);
 char Function5156C0(const char* path, W8Character* character);
 void Function515B00(void);
-void SaveMonsterStatus(W8Chunk* chunks);                         /* 0x005145A0 */
-
+void SaveMonsterStatus(W8Chunk* chunks); /* 0x005145A0 */
 
 void Function512C40(void);
 
-void ReportSaveFailed(char quiet);  /* 0x00515AC0 */
+void ReportSaveFailed(char quiet); /* 0x00515AC0 */

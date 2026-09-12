@@ -20,5 +20,4 @@ private:
     W8GameTimer m_timer_144;
     unsigned int m_value_168;
 };
-static_assert(sizeof(W8SpellInfoDialog005EFAB0) == 0x16c,
-              "W8SpellInfoDialog005EFAB0_size");
+static_assert(sizeof(W8SpellInfoDialog005EFAB0) == 0x16c, "W8SpellInfoDialog005EFAB0_size");

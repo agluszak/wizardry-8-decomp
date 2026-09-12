@@ -11,7 +11,7 @@ struct W8RegionSet {
     unsigned int enabled;
     unsigned int first_region;
     unsigned int last_region;
-};                                       /* 0x0c */
+}; /* 0x0c */
 
 struct W8RegionEvent {
     unsigned int time;
@@ -39,8 +39,7 @@ enum W8RegionFlags {
 };
 
 struct W8Region;
-typedef unsigned char (*W8RegionCallback)(
-    const W8RegionEvent* event, struct W8Region* region);
+typedef unsigned char (*W8RegionCallback)(const W8RegionEvent* event, struct W8Region* region);
 
 struct W8Region {
     unsigned int flags;
@@ -54,7 +53,7 @@ struct W8Region {
     unsigned char unknown_13;
     int help_text_id;
     void* owner;
-};                                       /* 0x1c */
+}; /* 0x1c */
 
 void InitializeRegionHelpState(void);
 
@@ -118,10 +117,9 @@ unsigned char Function005BBBB0(const W8RegionEvent*, W8Region*);
 unsigned char Function005BBC70(const W8RegionEvent*, W8Region*);
 unsigned char Function005BC7A0(const W8RegionEvent*, W8Region*);
 
-
-extern unsigned int g_region_set_count;  /* guiRegsetCount */
+extern unsigned int g_region_set_count; /* guiRegsetCount */
 extern W8RegionSet g_region_sets[];
-extern unsigned int g_region_count;      /* guiRegionCount */
+extern unsigned int g_region_count; /* guiRegionCount */
 extern W8Region g_regions[];
 extern int g_region_help_delay;
 extern int g_region_help_clock;
@@ -141,25 +139,17 @@ void EnableRegionSetInput(unsigned int region_set_index);
 void DisableRegionSetInput(unsigned int region_set_index);
 void EnableRegionInput(unsigned int region_index);
 void DisableRegionInput(unsigned int region_index);
-void SetRegionBounds(
-    unsigned int region_index,
-    unsigned short x1,
-    unsigned short y1,
-    unsigned short x2,
-    unsigned short y2);
-bool RegionContainsPoint(
-    unsigned int region_index, unsigned short x, unsigned short y);
+void SetRegionBounds(unsigned int region_index, unsigned short x1, unsigned short y1,
+                     unsigned short x2, unsigned short y2);
+bool RegionContainsPoint(unsigned int region_index, unsigned short x, unsigned short y);
 bool RegionHasFlags(unsigned int region_index, unsigned int flags);
 unsigned int CreateRegionSet(void);
 void ResetRegionSet(unsigned int region_set_index);
 unsigned int AddRegionToSet(unsigned int region_set_index);
-void SetRegionCallback(
-    unsigned int region_index,
-    W8RegionCallback callback,
-    unsigned short callback_id);
+void SetRegionCallback(unsigned int region_index, W8RegionCallback callback,
+                       unsigned short callback_id);
 void SetRegionOwner(unsigned int region_index, void* owner);
-void SetRegionHelp(
-    unsigned int region_index, unsigned char enabled, int help_text_id);
+void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_text_id);
 void ClearHotRegion004F2A80(void);
 void UpdateRegionHelp(void);
 void ShowRegionHelp(unsigned int region_index);
@@ -172,7 +162,6 @@ unsigned char ClearActiveRegionIfMatches(unsigned int region_index);
 void ActivateDialogRegion(unsigned int region_index); /* 0x004F2040 */
 /* 0x004F1910 returns the byte produced by the selected region callback. */
 unsigned char DispatchRegionInput(const InputAtom* event);
-
 
 unsigned int Function568950(const InputAtom* input);
 

@@ -72,7 +72,6 @@ extern void Function518510(void* notice);
    address. The receiver is the output slot. */
 /* Draw the probe box through the world camera. */
 
-
 // GLOBAL: WIZ8 0x006598a4
 W8Octree* g_octree_6598a4;
 

@@ -11,7 +11,6 @@
 #include <wchar.h>
 #include <wctype.h>
 
-
 /* Local Screens\MGSKeyboard.cpp owns the binding vector, its command-keyed
    lookup and the singleton ResetMGSKeyboardBindings installs.
    MGSKeyboard::LoadDefaults moved to Local Code\InputMapper.cpp. */
@@ -20,9 +19,7 @@
 MGSKeyboard* g_mgs_keyboard;
 
 // FUNCTION: WIZ8 0x0055CFD0
-MGSKeyboard::MGSKeyboard()
-{
-}
+MGSKeyboard::MGSKeyboard() {}
 
 // SYNTHETIC: WIZ8 0x0055D160
 // MGSKeyboard::`scalar deleting destructor'
@@ -137,8 +134,7 @@ void ResetMGSKeyboardBindings()
 {
     if (g_mgs_keyboard == 0) {
         g_mgs_keyboard = new MGSKeyboard;
-    }
-    else {
+    } else {
         g_mgs_keyboard->Clear();
     }
     g_mgs_keyboard->LoadDefaults("Data\\Strings\\MGSKeyboard.ini");

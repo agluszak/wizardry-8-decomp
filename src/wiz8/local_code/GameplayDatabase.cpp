@@ -596,7 +596,7 @@ unsigned char LoadMonsterDatabase(W8MonsterRecord** records)
    a failed seek leaves the handle open where every other failure closes it. */
 // FUNCTION: WIZ8 0x0054a9a0
 unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int uiEndIndex,
-                             unsigned int unused, W8MonsterRecord* records)
+                                       unsigned int unused, W8MonsterRecord* records)
 {
     char path[56];
     int handle;

@@ -20,10 +20,7 @@ void NoOp(int result, int line, const char* source)
 }
 
 // FUNCTION: WIZ8 0x005e2f90
-W8BinkVideo::W8BinkVideo()
-    : m_handle(0), m_value_04(0)
-{
-}
+W8BinkVideo::W8BinkVideo() : m_handle(0), m_value_04(0) {}
 
 // FUNCTION: WIZ8 0x005e2fa0
 W8BinkVideo::~W8BinkVideo()
@@ -39,8 +36,7 @@ W8BinkVideo::~W8BinkVideo()
 // FUNCTION: WIZ8 0x005e2fe0
 unsigned char W8BinkVideo::Open(const char* path, int flags)
 {
-    BinkSetSoundSystem(
-        BinkOpenMiles, reinterpret_cast<U32>(SoundGetDriverHandle()));
+    BinkSetSoundSystem(BinkOpenMiles, reinterpret_cast<U32>(SoundGetDriverHandle()));
     m_handle = BinkOpen(path, flags);
     return m_handle != 0;
 }
@@ -73,14 +69,12 @@ unsigned char W8BinkVideo::CopyFrameToPrimarySurface()
         return 0;
     }
 
-    BinkCopyToBuffer(
-        m_handle, pixels, pitch, 0x1e0, 0, 0, BINKSURFACE555);
+    BinkCopyToBuffer(m_handle, pixels, pitch, 0x1e0, 0, 0, BINKSURFACE555);
     UnlockPrimarySurface();
     int count = BinkGetRects(m_handle, 0);
     for (int index = 0; index < count; ++index) {
         const BINKRECT& rect = m_handle->FrameRects[index];
-        InvalidateRegion(rect.Left, rect.Top,
-                            rect.Left + rect.Width, rect.Top + rect.Height, 0);
+        InvalidateRegion(rect.Left, rect.Top, rect.Left + rect.Width, rect.Top + rect.Height, 0);
     }
     return 1;
 }
@@ -110,8 +104,8 @@ unsigned char W8BinkVideo::CopyFrameToTargetSurface()
         result = m_target->Lock(0, &description, DDLOCK_WAIT, 0);
     }
 
-    BinkCopyToBuffer(m_handle, description.lpSurface, description.lPitch,
-                     m_handle->Height, 0, 0, surface_type);
+    BinkCopyToBuffer(m_handle, description.lpSurface, description.lPitch, m_handle->Height, 0, 0,
+                     surface_type);
     m_target->Unlock(description.lpSurface);
     return 1;
 }

@@ -168,9 +168,7 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
         }
         break;
     case W8_SCREEN_MAIN_GAME:
-        if (g_level_block->value_0fc == 0 ||
-            g_level_block->party_bytes_109[party_slot] !=
-                0) {
+        if (g_level_block->value_0fc == 0 || g_level_block->party_bytes_109[party_slot] != 0) {
             switch (party_slot) {
             case 0:
             case 1:

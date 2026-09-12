@@ -40,9 +40,8 @@ const char g_quote_personality_names_005ed91c[9][0x14] = {
 unsigned int g_value_0068c554;
 // GLOBAL: WIZ8 0x0061cb44
 int g_pose_transition_table_0061cb44[30] = {
-    0x1380080, 0x1380080, 0x130013, 0x670067, 0xbc00bc,
-    0x1110111, 1, 3, 3, 4, 5, 3, 2, 3, 3,
-    3, 1, 2, 3, 4, 1, 1, 3, 3, 4, 1, 1, 1, 1, 1,
+    0x1380080, 0x1380080, 0x130013, 0x670067, 0xbc00bc, 0x1110111, 1, 3, 3, 4, 5, 3, 2, 3, 3,
+    3,         1,         2,        3,        4,        1,         1, 3, 3, 4, 1, 1, 1, 1, 1,
 };
 // GLOBAL: WIZ8 0x005ED8C8
 int g_effect_argument_005ed8c8 = 0;
@@ -121,20 +120,18 @@ void SetVoiceMuted(unsigned char muted)
             g_settings_6850c8.muted_voice_volume = g_settings_6850c8.voice_volume;
             g_settings_6850c8.voice_volume = 0;
         }
-    }
-    else if (g_settings_6850c8.muted_voice_volume != 0xff) {
+    } else if (g_settings_6850c8.muted_voice_volume != 0xff) {
         g_settings_6850c8.voice_volume = g_settings_6850c8.muted_voice_volume;
         g_settings_6850c8.muted_voice_volume = 0xff;
     }
 }
 
 // FUNCTION: WIZ8 0x0052C810
-W8StartupStateElement005EE748::W8StartupStateElement005EE748(
-    W8Character* character, unsigned int type, int value_0c_arg,
-    unsigned int flags, int value_14_arg)
-    : handled_00(0), character_04(character), type_08(type),
-      value_0c(value_0c_arg), flags_10(flags), value_14(value_14_arg),
-      value_30(0)
+W8StartupStateElement005EE748::W8StartupStateElement005EE748(W8Character* character,
+                                                             unsigned int type, int value_0c_arg,
+                                                             unsigned int flags, int value_14_arg)
+    : handled_00(0), character_04(character), type_08(type), value_0c(value_0c_arg),
+      flags_10(flags), value_14(value_14_arg), value_30(0)
 {
     item_24.item_id = -1;
     switch (type) {
@@ -165,8 +162,8 @@ W8StartupStateElement005EE748::W8StartupStateElement005EE748(
    selects an entry of the sex/personality/voice quote file, which is then
    wrapped in quotes. Clears the buffer and answers zero when no quote exists. */
 // FUNCTION: WIZ8 0x0052D0B0
-unsigned char FormatCharacterQuoteText(
-    W8Character* character, unsigned int type, unsigned int* metadata)
+unsigned char FormatCharacterQuoteText(W8Character* character, unsigned int type,
+                                       unsigned int* metadata)
 {
     char path[80];
     wchar_t text[500];
@@ -181,28 +178,23 @@ unsigned char FormatCharacterQuoteText(
     }
     npc_index = -1;
     has_npc = 0;
-    if (character->in_party != 0 &&
-        g_current_screen_state.id != W8_SCREEN_CHARACTER) {
+    if (character->in_party != 0 && g_current_screen_state.id != W8_SCREEN_CHARACTER) {
         unsigned int slot = CharacterPointerToPartySlot(character);
         npc_index = g_status_685170.buffers.party_rows[slot].animation_0fa;
         has_npc = npc_index != -1;
     }
     if (!has_npc) {
-        char gender_code =
-            static_cast<char>(((character->gender != 0) - 1U & 7) + 0x66);
-        sprintf(path, "Data\\Quotes\\PCs\\%c_%s%d0.MSG",
-                gender_code,
+        char gender_code = static_cast<char>(((character->gender != 0) - 1U & 7) + 0x66);
+        sprintf(path, "Data\\Quotes\\PCs\\%c_%s%d0.MSG", gender_code,
                 g_quote_personality_names_005ed91c[character->personality_0081],
                 (character->voice_0085 != 0) + 1);
         if (!FileExists(path)) {
             g_character_text_0068c580[0] = 0;
             return 0;
         }
-        GetStringFromStringDatabase(
-            path, type, g_character_text_0068c580, 0, metadata);
+        GetStringFromStringDatabase(path, type, g_character_text_0068c580, 0, metadata);
         g_character_text_0068c580[wcslen(g_character_text_0068c580) - 1] = 0;
-    }
-    else {
+    } else {
         W8NpcState* npc = GetNpcState(npc_index);
         if (GetNpcQuoteText(npc, type, g_character_text_0068c580) == 0) {
             g_character_text_0068c580[0] = 0;
@@ -241,8 +233,7 @@ void W8StartupRuntimeState::RestartFollowUpClock(W8StartupStateElement005EE748* 
     }
     if ((flags & 2) == 0) {
         duration = Random(60000) + 300000;
-    }
-    else {
+    } else {
         duration = Random(6000) + 2000;
     }
     unknown_60 = SetCountdownClock(duration);
@@ -267,8 +258,7 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
         return 0;
     }
     if (entry->type_08 > 0x91 && (entry->flags_10 & 0x20) == 0) {
-        W8MonsterManagerEntry* slot =
-            &g_monster_manager_entries[party_slot];
+        W8MonsterManagerEntry* slot = &g_monster_manager_entries[party_slot];
         if (slot->field_071 != 0) {
             vector_40.Remove(slot->field_071);
             RestartFollowUpClock(slot->field_071);
@@ -291,8 +281,7 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
             }
         }
     }
-    if ((Function525DF0(0) != 0 || Function525DD0() != 0) &&
-        (entry->flags_10 & 8) == 0) {
+    if ((Function525DF0(0) != 0 || Function525DD0() != 0) && (entry->flags_10 & 8) == 0) {
         vector_30.Add(entry);
         return 1;
     }
@@ -301,8 +290,8 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
 }
 
 // FUNCTION: WIZ8 0x0052DD20
-void W8StartupRuntimeState::SetEventCharacterMask(
-    unsigned int event_type, unsigned int party_slot, bool enabled)
+void W8StartupRuntimeState::SetEventCharacterMask(unsigned int event_type, unsigned int party_slot,
+                                                  bool enabled)
 {
     unsigned char mask = (unsigned char)(1 << (party_slot & 31));
 
@@ -311,34 +300,27 @@ void W8StartupRuntimeState::SetEventCharacterMask(
     }
     if (!enabled) {
         bytes_68[event_type] &= (unsigned char)~mask;
-    }
-    else {
+    } else {
         bytes_68[event_type] |= mask;
     }
 }
 
 // FUNCTION: WIZ8 0x0052E690
-W8StartupStateElement005EE748* Function52E690(
-    W8Character* character, int effect, int argument, int value_1,
-    unsigned int value_2)
+W8StartupStateElement005EE748* Function52E690(W8Character* character, int effect, int argument,
+                                              int value_1, unsigned int value_2)
 {
     W8StartupStateElement005EE748* entry;
 
     if (g_settings_6850c8.field_040 == 0 &&
-        (effect == g_special_event_0068c50c ||
-         effect == g_special_event_0068c568)) {
+        (effect == g_special_event_0068c50c || effect == g_special_event_0068c568)) {
         return 0;
     }
-    if (effect != g_special_event_0068c504 &&
-        effect != g_special_event_0068c550 &&
-        effect != g_special_event_0068c51c &&
-        effect != g_special_event_0068c538 &&
-        effect != g_special_event_0068c540 &&
-        effect != g_special_event_0068c564) {
+    if (effect != g_special_event_0068c504 && effect != g_special_event_0068c550 &&
+        effect != g_special_event_0068c51c && effect != g_special_event_0068c538 &&
+        effect != g_special_event_0068c540 && effect != g_special_event_0068c564) {
         value_2 = value_2 * 70 / 100;
     }
-    entry = new W8StartupStateElement005EE748(
-        character, effect, argument, value_1, value_2);
+    entry = new W8StartupStateElement005EE748(character, effect, argument, value_1, value_2);
     if (entry != 0 && g_startup_runtime_state->QueueEntry(entry) == 0) {
         return 0;
     }
@@ -359,8 +341,7 @@ void W8StartupRuntimeState::ProcessOwnedEntry(W8StartupStateElement005EE748* ent
     if ((value_5c & 1) != 0 && entry->type_08 >= 14 && entry->type_08 < 16) {
         if ((value_5c & 2) == 0) {
             unknown_60 = SetCountdownClock(Random(60000) + 300000);
-        }
-        else {
+        } else {
             unknown_60 = SetCountdownClock(Random(6000) + 2000);
         }
     }
@@ -387,9 +368,8 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
         }
         effect = Random(2) == 0 ? g_effect_005ee590 : g_effect_005ee5f8;
     }
-    if (effect != -1 &&
-        Function52E690(character, effect, 0,
-                       g_effect_argument_005ed8c8, g_effect_argument_005ed914) != 0) {
+    if (effect != -1 && Function52E690(character, effect, 0, g_effect_argument_005ed8c8,
+                                       g_effect_argument_005ed914) != 0) {
         g_startup_runtime_state->SetEventCharacterMask(effect, party_slot, 1);
     }
 }
@@ -416,13 +396,11 @@ int Function52E750(void)
                 if (record->field_081 == 0) {
                     if (record->field_071 == 0) {
                         Function52F890(party_slot, 0, -1, 0, 1);
-                    }
-                    else {
+                    } else {
                         g_startup_runtime_state->ProcessOwnedEntry(record->field_071);
                     }
                 }
-            }
-            else {
+            } else {
                 Function5E2F40(record->field_001, &record->unknown_005[0]);
                 sound_active = record->field_015;
             }
@@ -439,8 +417,7 @@ int Function52E750(void)
             if (scan == 8) {
                 MaybeStartIncapacitationEvent(party_slot);
             }
-        }
-        else {
+        } else {
             W8Character* character = &g_party_characters[party_slot];
             if ((character->unknown_0b01 > 14 || character->hp_current == 0) &&
                 record->field_071 != 0) {
@@ -457,8 +434,7 @@ int Function52E750(void)
                 if (scan == 8) {
                     MaybeStartIncapacitationEvent(party_slot);
                 }
-            }
-            else {
+            } else {
                 any_active = 1;
                 if (sound_active == 0) {
                     if (ClockIsTicking(record->field_07d) == 0) {
@@ -467,11 +443,10 @@ int Function52E750(void)
                             record->field_079 = 6;
                             record->field_09a = 1;
                             record->field_081 = 0;
-                        }
-                        else {
-                            int direction =
-                                ChooseDifferentMonsterDirection004C2E00(
-                                    (short)record->field_079 - 6) + 6;
+                        } else {
+                            int direction = ChooseDifferentMonsterDirection004C2E00(
+                                                (short)record->field_079 - 6) +
+                                            6;
                             if (g_value_0068c57c <= record->field_113 &&
                                 record->field_113 <= g_value_0068c554) {
                                 direction = 8;
@@ -483,8 +458,7 @@ int Function52E750(void)
                             record->field_081 -= 120;
                         }
                     }
-                }
-                else {
+                } else {
                     record->field_075 = record->field_079;
                     record->field_079 = 6;
                     record->field_09a = 1;
@@ -492,38 +466,30 @@ int Function52E750(void)
             }
         }
 
-        if (gXStatus.field_01f != 0 && (party_slot & 1) != 0 &&
-            Function56EC90(party_slot) != 0) {
+        if (gXStatus.field_01f != 0 && (party_slot & 1) != 0 && Function56EC90(party_slot) != 0) {
             continue;
         }
         if (record->field_09b == 0 && record->field_0bd == 0 &&
-            (g_current_screen_state.id != W8_SCREEN_CHARACTER ||
-             record->field_000 != 0)) {
+            (g_current_screen_state.id != W8_SCREEN_CHARACTER || record->field_000 != 0)) {
             if (record->field_099 == 0) {
                 if (record->field_089 == record->field_08d) {
-                    if (record->field_089 == 1 &&
-                        ClockIsTicking(record->field_095) == 0) {
+                    if (record->field_089 == 1 && ClockIsTicking(record->field_095) == 0) {
                         record->field_099 = 1;
-                        record->field_095 =
-                            SetCountdownClock(Random(5000) + 5000);
+                        record->field_095 = SetCountdownClock(Random(5000) + 5000);
                     }
-                }
-                else if (ClockIsTicking(record->field_091) == 0) {
+                } else if (ClockIsTicking(record->field_091) == 0) {
                     int pose = record->field_089;
                     record->field_085 = pose;
                     record->field_089 =
-                        g_pose_transition_table_0061cb44
-                            [pose * 5 + record->field_08d];
+                        g_pose_transition_table_0061cb44[pose * 5 + record->field_08d];
                     record->field_099 = 1;
                     record->field_091 = SetCountdownClock(Random(50) + 50);
                 }
-            }
-            else if (ClockIsTicking(record->field_091) == 0) {
+            } else if (ClockIsTicking(record->field_091) == 0) {
                 int pose = record->field_089;
                 if (pose != 2) {
                     record->field_085 = pose;
-                    record->field_089 =
-                        g_pose_transition_table_0061cb44[pose * 5 + 2];
+                    record->field_089 = g_pose_transition_table_0061cb44[pose * 5 + 2];
                     record->field_099 = 1;
                     record->field_091 = SetCountdownClock(Random(50) + 50);
                 }
@@ -531,8 +497,7 @@ int Function52E750(void)
                     record->field_099 = 0;
                 }
             }
-            if ((record->field_099 != 0 || record->field_09a != 0) &&
-                record->field_0cf == 0) {
+            if ((record->field_099 != 0 || record->field_09a != 0) && record->field_0cf == 0) {
                 RefreshPartySlotDisplay(party_slot);
             }
         }
