@@ -28,6 +28,10 @@
 #   and stLightDefinition deliberately reset registry/runtime bases.
 # - bugprone-unhandled-self-assignment: hundreds of hits in vector/srArray/
 #   srPtr assignment templates; too noisy to gate.
+# - readability-duplicate-include: with HeaderFilterRegex it reports unique
+#   #include lines as duplicates when a skipped system or sibling header already
+#   pulled in the same spelling, and the same hits on self-contained headers
+#   would delete required includes. Real same-file repeats stay a review item.
 Checks: >
   -*,
   bugprone-misplaced-widening-cast,
@@ -36,7 +40,6 @@ Checks: >
   bugprone-swapped-arguments,
   bugprone-suspicious-enum-usage,
   bugprone-pointer-arithmetic-on-polymorphic-object,
-  readability-duplicate-include,
   readability-redundant-declaration
 CheckOptions:
   bugprone-sizeof-expression.WarnOnSizeOfPointerToAggregate: 'false'

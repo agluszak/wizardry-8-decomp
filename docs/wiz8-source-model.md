@@ -290,7 +290,7 @@ variable declarations and the `extern T[]` vs `T[N]` compatibility rule.
 
 The lint lane itself runs on the trixie image with LLVM 19, and the
 clang-tidy profile includes `readability-redundant-casting`,
-`readability-duplicate-include`, `readability-redundant-declaration`,
+`readability-redundant-declaration`,
 `bugprone-misplaced-widening-cast`, `bugprone-swapped-arguments`,
 `bugprone-suspicious-enum-usage`, `bugprone-sizeof-expression` with the
 pointer-to-aggregate and pointer `sizeof` heuristics turned off, and
