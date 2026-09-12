@@ -258,8 +258,17 @@ extern "C" {
 #define STRICT
 #endif
 
+#if defined(__clang__)
+/* Miles includes Win32 headers under pack(1) so PCMWAVEFORMAT in the driver
+   record matches the original MSS.H layout. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpragma-pack-suspicious-include"
+#endif
 #include <windows.h>
 #include <mmsystem.h>
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 #define MSS_MAIN_DEF __cdecl
 
