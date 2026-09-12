@@ -949,7 +949,7 @@ render_world:
         } else {
             active = 1;
         }
-        Function427830(active);
+        SetWorldModelPickingEnabled(active);
         if (gXStatus.unknown_026[1] && !gXStatus.field_01f && !gXStatus.fCombatMode &&
             !g_level_block->transition_active) {
             Function4EF1F0();

@@ -523,7 +523,7 @@ public:
     W8State5OptionPanel005EF4AC();
     virtual ~W8State5OptionPanel005EF4AC();
     virtual void Redraw() override;
-    void Function5C05F0(int mode);
+    void SetOptionPanelMode(int mode);
 
     int m_mode_4c;
     W8ControlSelection m_options_50;
@@ -559,7 +559,7 @@ public:
     void SetSelection(int selection, int highlighted, int refresh);
     void OpenNotification(const wchar_t* message, int kind, int value);
     void Setup();
-    void Function5C1ED0();
+    void InvalidateState5Composition();
     void DrawState5Composition();
     void ApplyState5Confirmation(int value, unsigned char result);
     void LoadImportedPartyFile(int selection);
@@ -1136,7 +1136,7 @@ unsigned char W8State5InputHandler005C0E50::HandleInput(const InputAtom* input)
    session. The panel's three difficulty controls are interactive only in
    mode zero. */
 // FUNCTION: WIZ8 0x005c05f0
-void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
+void W8State5OptionPanel005EF4AC::SetOptionPanelMode(int mode)
 {
     m_mode_4c = mode;
     while (m_entries_7c.count > 0) {
@@ -1479,17 +1479,17 @@ void W8State5Controller::SetMode(int mode)
         m_text_50->SetActive(0);
         m_control_30->SetEnabled(1);
         m_control_30->EnableRegionSet(1);
-        m_control_30->Function5C05F0(0);
+        m_control_30->SetOptionPanelMode(0);
         label = gppStringList[0x1ad8 / 4];
         break;
     case 3:
         m_text_50->SetActive(0);
-        m_control_30->Function5C05F0(1);
+        m_control_30->SetOptionPanelMode(1);
         label = gppStringList[0x1adc / 4];
         break;
     case 4:
         m_text_50->SetActive(0);
-        m_control_30->Function5C05F0(2);
+        m_control_30->SetOptionPanelMode(2);
         label = gppStringList[0x1adc / 4];
         break;
     default:
@@ -1753,7 +1753,7 @@ void W8State5Controller::OnToggle(int value)
 }
 
 // FUNCTION: WIZ8 0x005c1ed0
-void W8State5Controller::Function5C1ED0()
+void W8State5Controller::InvalidateState5Composition()
 {
     m_redraw_backdrop_14 = 1;
     m_range->Invalidate(0);
@@ -2106,7 +2106,7 @@ void PartySelectionScreenFrame(void)
             delete controller->m_dialog_68;
             controller->m_dialog_68 = 0;
             ClearActiveRegionIfMatches(0x138);
-            controller->Function5C1ED0();
+            controller->InvalidateState5Composition();
             controller->ApplyState5Confirmation(controller->m_dialog_value_6c, result);
         }
     }

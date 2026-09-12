@@ -696,7 +696,7 @@ void stParticle::SetTraversalEnabled00498D90(unsigned char enabled)
 void stParticle::process(const ProcessInfo& info, e_processType)
 {
     info.renderer->pushMatrix();
-    Function4994D0(info.renderer);
+    SubmitToRenderer(info.renderer);
     info.renderer->popMatrix();
 }
 
@@ -817,7 +817,7 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
    activity has run out notifies its shake callback and, when active_190 marks
    it as self-owned, releases itself. */
 // FUNCTION: WIZ8 0x004994D0
-void stParticle::Function4994D0(srGERD* renderer)
+void stParticle::SubmitToRenderer(srGERD* renderer)
 {
     srVector3T<float> position;
 

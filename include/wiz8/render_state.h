@@ -136,7 +136,7 @@ void AssertFailureHandler(const char* expression, const char* file, long line, c
 unsigned char ClearFlag603C60(void);
 unsigned char SetFlag603C60(void);
 void SetValue659668(const int* value);
-void Function427830(char enabled);
+void SetWorldModelPickingEnabled(char enabled);
 unsigned char RendererBufferIsLockable(void);
 void SetRendererOption4Enabled(char enabled);
 unsigned char HasEnoughFreeDiskSpace(void);

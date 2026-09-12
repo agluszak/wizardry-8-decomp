@@ -167,11 +167,11 @@ public:
     unsigned short ConfigureMovementToNavigator004529A0(
         W8Navigator* target, float separation, float maximum_distance, srVector3T<float> position,
         int trace_mode, float facing, unsigned char* probe_result); /* 0x004529A0 */
-    void Function453690(const srVector3T<float>* position);         /* 0x00453690 */
+    void AddPathPoint(const srVector3T<float>* position);           /* 0x00453690 */
     void SetPositionInternal00453590(const srVector3T<float>* position);
     void SetObject68Flag38(char value);                                            /* 0x004537C0 */
     unsigned char LinkToNavigator004527A0(W8Navigator* target, double separation); /* 0x004527A0 */
-    void Function454040(const srVector3T<float>* position);                        /* 0x00454040 */
+    void SetFacingToward(const srVector3T<float>* position);                       /* 0x00454040 */
     void AimAtPosition(const srVector3T<float>* position);                         /* 0x00453F30 */
     void StartPatrol(const srVector3T<float>* home, float distance, float variation);
     void SetFlag25(char value);                                            /* 0x004531F0 */

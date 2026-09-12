@@ -331,7 +331,7 @@ unsigned char AutomapScreenEnter(void)
     UpdateWorldMesh004BAF60(g_world);
     Function46F760(g_world, 1);
     g_light_update_flags_0060bfdc &= ~1u;
-    Function427830(0);
+    SetWorldModelPickingEnabled(0);
     if (!g_automap_state) {
         g_automap_state = static_cast<W8AutomapState*>(malloc(sizeof(W8AutomapState)));
         if (!g_automap_state)
@@ -729,7 +729,7 @@ void RestoreAutomapWorldSettings(void)
     Function46F760(g_world, 0);
     g_light_update_flags_0060bfdc |= 1u;
     SetResidentTexturePolicy(g_resident_texture_policy_659714);
-    Function427830(1);
+    SetWorldModelPickingEnabled(1);
 }
 
 // FUNCTION: WIZ8 0x0057efe0

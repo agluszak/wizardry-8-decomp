@@ -1144,7 +1144,7 @@ unsigned char RendererBufferIsLockable(void)
 }
 
 // FUNCTION: WIZ8 0x00427830
-void Function427830(char enabled)
+void SetWorldModelPickingEnabled(char enabled)
 {
     g_flag_603c38 = enabled;
     if (enabled == 0) {

@@ -4791,7 +4791,7 @@ unsigned char MonsterForward452630(W8Monster* monster, const srVector3T<float>* 
 void MonsterForward453690(W8Monster* monster, void* argument)
 {
     if (monster != 0) {
-        monster->Function453690(static_cast<const srVector3T<float>*>(argument));
+        monster->AddPathPoint(static_cast<const srVector3T<float>*>(argument));
     }
 }
 
@@ -4906,7 +4906,7 @@ void MonsterForwardReferencePosition(W8Monster* monster, char alternate)
         if (monster_info->control_state != 1) {
             GetCameraPosition(&position);
             if (alternate != 0) {
-                monster->Function454040(&position);
+                monster->SetFacingToward(&position);
             } else {
                 monster->AimAtPosition(&position);
             }
@@ -4931,7 +4931,7 @@ void MonsterAimAtMonster004C62C0(W8Monster* monster, W8Monster* target, char alt
             target_position = target->GetPosition();
             position = target_position;
             if (alternate != 0) {
-                monster->Function454040(&position);
+                monster->SetFacingToward(&position);
             } else {
                 monster->AimAtPosition(&position);
             }
