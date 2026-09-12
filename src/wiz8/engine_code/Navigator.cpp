@@ -686,7 +686,6 @@ void W8Navigator::StartPatrol(const srVector3T<float>* home, float distance, flo
 extern unsigned char g_navigator_vertical_enabled_006081f8;
 // GLOBAL: WIZ8 0x00659c10
 unsigned char g_navigator_link_mode_00659c10;
-extern float g_navigator_linked_radius_scale_005ebc98;
 // GLOBAL: WIZ8 0x005ebc98
 float g_navigator_linked_radius_scale_005ebc98 = 4.0f;
 // GLOBAL: WIZ8 0x005ebcc8

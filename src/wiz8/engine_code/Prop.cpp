@@ -8,6 +8,7 @@
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/Navigator.h"
 #include "wiz8/3d_code/PList.h"
 
 #include <string.h>

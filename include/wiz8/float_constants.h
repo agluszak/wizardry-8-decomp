@@ -81,11 +81,8 @@ extern const float g_float_005ec2a8;
 extern const float g_float_005ed1e8;
 
 extern float g_navigator_gravity_00603acc;
-extern float g_default_world_height_00603ac8;
-extern float g_camera_level_forward_scale_603aac;
 extern float g_float_00603ab8;
 extern float g_float_00603abc;
-extern float g_navigator_linked_radius_scale_005ebc98;
 extern const float g_camera_snap_epsilon_005ebc2c;
 extern const float g_float_005ebca0;
 extern float g_movement_speed_step_005ed490;

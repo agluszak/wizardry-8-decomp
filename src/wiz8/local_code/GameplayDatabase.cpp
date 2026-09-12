@@ -42,7 +42,6 @@ unsigned char g_status_block_685078[56];
 extern unsigned char IsSoundPlaying(int sound_handle);
 extern unsigned char StopSound(int sound_handle);
 extern void QueueGameplayEvent(int event_type, int party_slot);
-extern void PostCharacterMessage(int party_slot, const W8WideChar* format, ...);
 /* 0x0054B300 resets one of eight slots. */
 /* The gStatus object owned by GameplayDatabase.cpp. */
 // GLOBAL: WIZ8 0x00685170

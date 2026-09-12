@@ -65,8 +65,6 @@ unsigned int g_camp_skill_controls_region_set;
 // GLOBAL: WIZ8 0x0069c408
 unsigned int g_camp_character_info_region_set;
 
-extern unsigned char g_flag_689b32;
-
 // GLOBAL: WIZ8 0x005ee6ec
 int g_effect_005ee6ec = 109;
 

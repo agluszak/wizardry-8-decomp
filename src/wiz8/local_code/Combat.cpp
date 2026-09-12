@@ -271,7 +271,6 @@ extern unsigned int g_flee_hp_fraction_005ed8f8;
 extern unsigned int g_flee_chance_005ed908;
 // GLOBAL: WIZ8 0x005ed908
 unsigned int g_flee_chance_005ed908 = 15;
-extern float g_movement_speed_step_005ed490;
 // GLOBAL: WIZ8 0x005ed490
 float g_movement_speed_step_005ed490 = 0.009999999776482582f;
 /* 0x00683FE7-adjacent: the per-character per-hand attack values combat saved

@@ -31,7 +31,6 @@ enum { W8_PHASES_PER_ROUND = 100 };
 /* The finished party-action status hands movement back to the party; the
    assertion corpus names this value ACTION_STATUS_FINISHED. */
 enum { W8_ACTION_STATUS_FINISHED = 3 };
-extern float g_movement_speed_step_005ed490;
 
 /* Note that the party has started moving. */
 // FUNCTION: WIZ8 0x004efbe0

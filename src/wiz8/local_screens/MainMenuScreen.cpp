@@ -38,8 +38,6 @@
  * regions share the global RegionManager catalog and screen-state dispatcher.
  */
 
-extern unsigned char g_flag_689b32;
-
 /* The screen's own state. */
 // GLOBAL: WIZ8 0x0069c4ba
 unsigned char g_main_menu_has_save_games;

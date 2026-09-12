@@ -89,6 +89,8 @@ unsigned char ProjectPointThroughCamera004BE940(srVector3T<float>* position);
 int GetCameraYawDegrees(void);
 void PlacePartyAtPoint(const srVector3T<float>* point);
 
+extern float g_camera_level_forward_scale_603aac;
+
 static_assert(sizeof(GDCamera) == 0xc0, "GDCamera_must_be_0xc0");
 
 unsigned char IsCameraTransitionActive00420E10(void);

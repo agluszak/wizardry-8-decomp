@@ -29,6 +29,7 @@
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/Navigator.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/GameplayCode.h"
@@ -257,7 +258,6 @@ void Function530110(void);
 void Function530150(int value);
 void Function56E510(void);
 void Function586740(void);
-void UpdateMainGameScreen(void);
 void Function593360(void);
 void Function56C6D0(int, int, int, int, int);
 unsigned char Function57E3C0(void);

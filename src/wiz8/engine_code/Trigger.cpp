@@ -21,6 +21,7 @@
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/Navigator.h"
 #include "wiz8/engine_code/stLight.h"
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/engine_code/stSound3D.h"
