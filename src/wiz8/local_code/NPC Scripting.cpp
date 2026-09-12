@@ -229,13 +229,13 @@ void SetFlag68C500(unsigned char value)
 }
 
 // FUNCTION: WIZ8 0x00525DD0
-unsigned char Function525DD0(void)
+unsigned char IsNpcScriptSessionActive(void)
 {
     return g_flag_68c4a0 != 0 || g_flag_68c4f6 != 0;
 }
 
 // FUNCTION: WIZ8 0x00525DF0
-unsigned char Function525DF0(unsigned char require_group_entry)
+unsigned char ShouldDeferCharacterEventForNpcScript(unsigned char require_group_entry)
 {
     if (g_flag_68c4f7 != 0) {
         return 0;
@@ -303,7 +303,7 @@ void UpdateNpcDialogueVoiceIdle(void)
             if (g_flag_68c4a1 == 0) {
                 now = GetTickCount();
                 if (g_value_68c4b4 < now - g_value_68c4b8) {
-                    Function525C50(1);
+                    FinishNpcVoicePlayback(1);
                 }
                 if (g_flag_68c4a1 == 0) {
                     goto update_cursor;
@@ -320,7 +320,7 @@ void UpdateNpcDialogueVoiceIdle(void)
     } else {
         now = GetTickCount();
         if (g_value_68c4b4 < now - g_value_68c4b8) {
-            Function525C50(1);
+            FinishNpcVoicePlayback(1);
         }
     }
 update_cursor:
@@ -388,7 +388,7 @@ void ProcessNpcScriptingIdlePass(void)
     }
     if (g_flag_68c4f7 == 0 && g_flag_68c4a0 == 0 && g_flag_68c4f6 == 0) {
         if (g_screen_state_00649f1c->script_busy < 1) {
-            Function526E90();
+            ProcessMessageBoxQueue();
             if (g_flag_68c4a0 != 0) {
                 return;
             }
@@ -414,15 +414,15 @@ void ProcessNpcScriptingIdlePass(void)
             }
             if (g_screen_state_00649f1c->script_busy == 0 &&
                 g_screen_state_00649f1c->dialogue_panel_hidden != 0 &&
-                Function52E470(gXStatus.pStartupRuntime) != 0) {
-                Function577880(1);
+                StartupRuntimeDeferredQueueEmpty(gXStatus.pStartupRuntime) != 0) {
+                SetNpcDialoguePanelVisible(1);
             }
         }
     }
 }
 
 // FUNCTION: WIZ8 0x00524bd0
-void Function524BD0(W8NpcState* npc, char* output)
+void FormatNpcVoiceSoundPath(W8NpcState* npc, char* output)
 
 {
     const char* pcVar1;
@@ -443,7 +443,7 @@ void Function524BD0(W8NpcState* npc, char* output)
 }
 
 // FUNCTION: WIZ8 0x00524ca0
-void Function524CA0(W8NpcState* npc)
+void ReloadNpcScriptResources(W8NpcState* npc)
 
 {
     const char* pcVar1;
@@ -486,7 +486,7 @@ void Function524CA0(W8NpcState* npc)
 }
 
 // FUNCTION: WIZ8 0x00525110
-void Function525110(W8NpcState* npc, unsigned char preserve_state)
+void BeginNpcScriptDialogue(W8NpcState* npc, unsigned char preserve_state)
 {
     if (preserve_state != 0) {
         g_flag_68c4f5 = 1;
@@ -509,7 +509,7 @@ void Function525110(W8NpcState* npc, unsigned char preserve_state)
 }
 
 // FUNCTION: WIZ8 0x00525c50
-void Function525C50(unsigned char resume_script)
+void FinishNpcVoicePlayback(unsigned char resume_script)
 
 {
     int iVar1;
@@ -539,7 +539,8 @@ void Function525C50(unsigned char resume_script)
         pWVar2 = GetNpcGroupEntry(g_npc_state_68c4ac);
         if (pWVar2 != 0) {
             if (pWVar2->field_071 == 0) {
-                Function52F890(g_npc_state_68c4ac->group_index, 0, -1, 0, 1);
+                SetPartyPortraitEventState(g_npc_state_68c4ac->group_index, 0,
+                                           static_cast<unsigned int>(-1), 0, 1);
             } else {
                 (gXStatus.pStartupRuntime)->ProcessOwnedEntry(pWVar2->field_071);
             }
@@ -563,7 +564,7 @@ void Function525C50(unsigned char resume_script)
 }
 
 // FUNCTION: WIZ8 0x00525e60
-int Function525E60(wchar_t* text)
+int ComputePortraitMessageDuration(wchar_t* text)
 
 {
     size_t sVar1;
@@ -573,7 +574,7 @@ int Function525E60(wchar_t* text)
 }
 
 // FUNCTION: WIZ8 0x00525fa0
-void Function525FA0(int script_line, unsigned char param)
+void RunNpcScriptLine(int script_line, unsigned char param)
 
 {
     unsigned char* pbVar1;
@@ -895,7 +896,7 @@ void Function525FA0(int script_line, unsigned char param)
 
 // WARNING: Globals starting with '_' overlap smaller symbols at the same address
 // FUNCTION: WIZ8 0x00526e90
-void Function526E90(void)
+void ProcessMessageBoxQueue(void)
 
 {
     int iVar1;
@@ -1010,7 +1011,7 @@ void Function526E90(void)
                                         pcVar16 = pcVar16 + 0x12;
                                         if ((int)uVar9 <= iVar17) {
                                         LAB_00528390:
-                                            Function525FA0(0x1f, 0);
+                                            RunNpcScriptLine(0x1f, 0);
                                             return;
                                         }
                                     }
@@ -1086,7 +1087,7 @@ void Function526E90(void)
                             ((cVar2 == '\x1e' ||
                               (uVar3 = NpcKnowsFact(g_npc_state_68c4ac, puVar15->unknown_00),
                                uVar3 == '\0')))) {
-                            Function525FA0(0x12, 0);
+                            RunNpcScriptLine(0x12, 0);
                             g_screen_state_00649f1c->script_busy = 0xff;
                             uVar9 = puVar15->unknown_00;
                             puVar13 = new W8MessageBoxLine;
@@ -1155,7 +1156,7 @@ void Function526E90(void)
                     } while (iVar17 < (int)(unsigned int)*(unsigned short*)(iVar14 + 9));
                 }
             }
-            Function525FA0(puVar15->unknown_00, 0);
+            RunNpcScriptLine(puVar15->unknown_00, 0);
         }
         iVar14 = 0;
         ppLine = g_message_box_lines;
@@ -1464,7 +1465,7 @@ void Function526E90(void)
         break;
     }
     case 0x1f:
-        Function577880(1);
+        SetNpcDialoguePanelVisible(1);
         break;
     case 0x20:
         Function56E800(0);
@@ -1560,7 +1561,7 @@ void Function526E90(void)
             QueueCharacterEvent(&g_status_685170.buffers.characters[iVar14],
                                 reinterpret_cast<int>(local_20->text), g_effect_argument_005ed8e0,
                                 g_effect_argument_005ed8c8, g_effect_argument_005ed914);
-            Function577880(0);
+            SetNpcDialoguePanelVisible(0);
             if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
                 g_screen_state_00649f1c->unknown_23c[0] = 1;
             }

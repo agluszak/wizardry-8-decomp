@@ -9,8 +9,8 @@ extern unsigned char g_flag_68c4f7;
 struct W8NpcState;
 extern W8NpcState* g_npc_state_68c4ac;
 
-unsigned char Function525DD0(void);
-unsigned char Function525DF0(unsigned char require_group_entry);
+unsigned char IsNpcScriptSessionActive(void);
+unsigned char ShouldDeferCharacterEventForNpcScript(unsigned char require_group_entry);
 
 /* 0x005294C0: format the bound NPC's quote for one event type into the wide
    output. Answers zero outside the NPC's quote count or with no text there;
@@ -20,10 +20,10 @@ unsigned char GetNpcQuoteText(W8NpcState* npc, unsigned int type, wchar_t* outpu
 
 bool IsPartySlotEligible00524A10(int slot);
 
-void Function524BD0(W8NpcState* npc, char* output);
-void Function525110(W8NpcState* npc, unsigned char preserve_state);
-void Function525C50(unsigned char resume_script);
-int Function525E60(wchar_t* text);
-void Function525FA0(int script_line, unsigned char param);
+void FormatNpcVoiceSoundPath(W8NpcState* npc, char* output);
+void BeginNpcScriptDialogue(W8NpcState* npc, unsigned char preserve_state);
+void FinishNpcVoicePlayback(unsigned char resume_script);
+int ComputePortraitMessageDuration(wchar_t* text);
+void RunNpcScriptLine(int script_line, unsigned char param);
 void ProcessNpcScriptingIdlePass(void);
 void UpdateNpcDialogueVoiceIdle(void);

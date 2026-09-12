@@ -36,6 +36,7 @@ extern W8MainGameResourceSlot g_main_game_resource_slots[17];
 #include "wiz8/local_code/RangeControl.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/local_code/Controls.h"
+#include "wiz8/dialog_code/DialogTextArea.h"
 
 #include <cstddef>
 
@@ -290,6 +291,30 @@ public:
 };
 static_assert(sizeof(W8MainGameStatusPanel005EEBC0) == 0x6c, "W8MainGameStatusPanel005EEBC0_size");
 
+/* 0x0055DE40 constructs this Controls-derived NPC dialogue text controller.
+   W8MainScreenState stores the live instance at +0x1b0. */
+class W8NpcDialogueTextController : public Controls {
+public:
+    int unknown_4c;
+    int unknown_50;
+    int visible;                /* 0x54 */
+    int line_height;            /* 0x58 */
+    int margin;                 /* 0x5c */
+    int scroll_height;          /* 0x60 */
+    W8DialogTextArea text_area; /* 0x64 */
+};
+static_assert(sizeof(W8NpcDialogueTextController) == 0xbc, "W8NpcDialogueTextController_size");
+static_assert(offsetof(W8NpcDialogueTextController, visible) == 0x54,
+              "W8NpcDialogueTextController_visible");
+static_assert(offsetof(W8NpcDialogueTextController, line_height) == 0x58,
+              "W8NpcDialogueTextController_line_height");
+static_assert(offsetof(W8NpcDialogueTextController, margin) == 0x5c,
+              "W8NpcDialogueTextController_margin");
+static_assert(offsetof(W8NpcDialogueTextController, scroll_height) == 0x60,
+              "W8NpcDialogueTextController_scroll_height");
+static_assert(offsetof(W8NpcDialogueTextController, text_area) == 0x64,
+              "W8NpcDialogueTextController_text_area");
+
 /* 0x005eebdc is the construction-phase primary table installed at the start
    of 0x00589160; 0x005eebd8 is the complete-object table. Slot 0 is a pure
    virtual the complete object implements at 0x00589550 (the text-entry
@@ -350,7 +375,13 @@ struct W8MainScreenState {
     int value_fc; /* 0xfc: dialogue layout mode; 577880 requires 3 */
     unsigned char unknown_100[4];
     int value_104;
-    unsigned char unknown_108[0xcc];
+    unsigned char unknown_108[0x2c];
+    W8Widget* dialogue_widget_134; /* 0x134 */
+    W8Widget* dialogue_widget_138; /* 0x138 */
+    unsigned char unknown_13c[0x74];
+    W8NpcDialogueTextController* npc_dialogue_controller_1b0; /* 0x1b0 */
+    Controls* npc_dialogue_panel_1b4;                         /* 0x1b4 */
+    unsigned char unknown_1b8[0x1c];
     int value_1d4;
     /* 0x1d8 and 0x1ec: two bytes the screen reset writes 0xff and 0. */
     unsigned char flag_1d8;
@@ -378,6 +409,14 @@ struct W8MainScreenState {
 };
 #pragma pack(pop)
 static_assert(sizeof(W8MainScreenState) == 0x268, "W8MainScreenState_size");
+static_assert(offsetof(W8MainScreenState, dialogue_widget_134) == 0x134,
+              "W8MainScreenState_dialogue_widget_134");
+static_assert(offsetof(W8MainScreenState, dialogue_widget_138) == 0x138,
+              "W8MainScreenState_dialogue_widget_138");
+static_assert(offsetof(W8MainScreenState, npc_dialogue_controller_1b0) == 0x1b0,
+              "W8MainScreenState_npc_dialogue_controller_1b0");
+static_assert(offsetof(W8MainScreenState, npc_dialogue_panel_1b4) == 0x1b4,
+              "W8MainScreenState_npc_dialogue_panel_1b4");
 static_assert(offsetof(W8MainScreenState, script_busy) == 0x1fa, "W8MainScreenState_script_busy");
 static_assert(offsetof(W8MainScreenState, dialogue_cursor_flag) == 0x228,
               "W8MainScreenState_dialogue_cursor_flag");
@@ -419,12 +458,14 @@ wchar_t* ParseKeywordToken(wchar_t* line, wchar_t* field);
 
 void Function577260(void);
 unsigned char Function577850(void);
-unsigned char Function577880(int value); /* 0x00577880: toggle NPC dialogue panel */
+unsigned char SetNpcDialoguePanelVisible(int value); /* 0x00577880 */
 unsigned char Function577A40(void);
-void Function55E2C0(void);          /* 0x0055E2C0 */
-void Function55E1E0(void);          /* 0x0055E1E0 */
-void Function55EAE0(void);          /* 0x0055EAE0 */
-unsigned char Function55E2B0(void); /* 0x0055E2B0 */
+void __fastcall
+CollapseNpcDialogueTextArea(W8NpcDialogueTextController* controller);               /* 0x0055E2C0 */
+void __fastcall ExpandNpcDialogueTextArea(W8NpcDialogueTextController* controller); /* 0x0055E1E0 */
+void __fastcall
+ClearNpcDialogueTextBackground(W8NpcDialogueTextController* controller);            /* 0x0055EAE0 */
+bool __fastcall IsNpcDialogueTextExpanded(W8NpcDialogueTextController* controller); /* 0x0055E2B0 */
 /* Which party portrait the pointer is over, if any. */
 unsigned int HitTestPartyPortrait(const InputAtom* event);
 void RequestRefreshPartyState(void);
