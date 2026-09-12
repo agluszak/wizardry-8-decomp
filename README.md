@@ -18,8 +18,8 @@ a required sequence. Follow `AGENTS.md` for change-specific verification:
 ```sh
 uv sync --frozen
 uv run wiz8 doctor
-uv run wiz8 prepare
 uv run wiz8 toolchain build vc6-sp5 # once, or after the toolchain Dockerfile changes
+uv run wiz8 prepare
 uv run wiz8 check
 uv run wiz8 lint
 uv run wiz8 build
@@ -31,7 +31,8 @@ uv run wiz8 runtime-test
 ```
 
 `prepare` idempotently materializes the primary game's extraction and `gog-base` variant plus pinned
-source dependencies; optional corpus variants stay behind explicit `wiz8 corpus` operations. `build`
+source dependencies, then writes the source index and reccmp data source, so it needs the built
+toolchain image; optional corpus variants stay behind explicit `wiz8 corpus` operations. `build`
 configures automatically. `compare` is reccmp's live linked-image and exact-body diagnostic. Run
 Python tests directly with `uv run pytest -q PATH`.
 
