@@ -835,11 +835,11 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
         }
         animation = CreateAnimObj004A01A0();
         animation->entries_18[2] = mesh;
-        animation->unknown_00[0] = 1;
-        animation->unknown_00[1] = b0;
+        animation->group_count = 1;
+        animation->unknown_01 = b0;
         animation->value_02 = b1;
-        animation->unknown_03[0] = b2;
-        animation->unknown_03[1] = 0;
+        animation->unknown_03 = b2;
+        animation->cycle = 0;
         animation->flag_05 = 0;
         animation->playback_scale_08 = playback_scale;
         this->animation = animation;
@@ -932,8 +932,8 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
         if (AnimationIsRunning(animation) == 1) {
             animation->value_16 = frame_count;
         }
-        this->value_0a8 = *(float*)(animation->unknown_0c + 4);
-        this->flag_0a5 = animation->unknown_0c[0] != 0;
+        this->value_0a8 = animation->value_10;
+        this->flag_0a5 = animation->flag_0c != 0;
         list_count = AnimObjValue004A15D0(animation, 2);
         for (entry_index = 0; entry_index < list_count; ++entry_index) {
             srModelInstance* instance;
@@ -975,9 +975,9 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
     }
 
     this->active = 1;
-    this->flag_070 = animation->unknown_03[0];
+    this->flag_070 = animation->unknown_03;
     this->flag_06f = animation->value_02;
-    this->flag_06d = animation->unknown_00[1];
+    this->flag_06d = animation->unknown_01;
     this->flag_06e = 1;
     this->animation_speed = animation->playback_scale_08;
     this->timer_068 = GetTickCount();

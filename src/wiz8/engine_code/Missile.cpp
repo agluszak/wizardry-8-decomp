@@ -355,7 +355,7 @@ unsigned char W8MissileRep::ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missi
     }
     animation = CreateAnimObj004A01A0();
     success = AnimObjReadFromFile004A05C0(info, animation, 1, lights, 1);
-    emitter = static_cast<signed char>(animation->unknown_03[1]);
+    emitter = static_cast<signed char>(animation->cycle);
 
     if (lights->GetCount() == 0) {
         delete lights;
@@ -373,9 +373,9 @@ unsigned char W8MissileRep::ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missi
     active = 1;
     flag_06e = 1;
     timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    flag_070 = animation->unknown_03[0];
+    flag_070 = animation->unknown_03;
     flag_06f = animation->value_02;
-    flag_06d = animation->unknown_00[1];
+    flag_06d = animation->unknown_01;
     emitters[emitter] = animation;
 
     if (missile != 0) {
@@ -653,7 +653,7 @@ void W8Missile::SetCycle(signed char cycle)
     }
     m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     m_pRep->flag_06f = animation->value_02;
-    m_pRep->flag_06d = animation->unknown_00[1];
+    m_pRep->flag_06d = animation->unknown_01;
     m_pRep->flag_064 = 0;
 
     lights = *m_pRep->light_lists[cycle].GetAt(0);

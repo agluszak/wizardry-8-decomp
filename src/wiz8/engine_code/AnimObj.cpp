@@ -53,11 +53,11 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
     }
     handle = info->hFile;
     success = FileRead(handle, &version, 1, 0);
-    success = success && FileRead(handle, &animation->unknown_00[0], 1, 0);
-    success = success && FileRead(handle, &animation->unknown_00[1], 1, 0);
+    success = success && FileRead(handle, &animation->group_count, 1, 0);
+    success = success && FileRead(handle, &animation->unknown_01, 1, 0);
     success = success && FileRead(handle, &animation->value_02, 1, 0);
-    success = success && FileRead(handle, &animation->unknown_03[0], 1, 0);
-    success = success && FileRead(handle, &animation->unknown_03[1], 1, 0);
+    success = success && FileRead(handle, &animation->unknown_03, 1, 0);
+    success = success && FileRead(handle, &animation->cycle, 1, 0);
     success = success && FileRead(handle, &animation->flag_05, 1, 0);
 
     if (version < 3) {
@@ -76,17 +76,17 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
         success = success && FileRead(handle, &animation->end_frame_15, 1, 0);
     }
     if (version < 6) {
-        animation->unknown_0c[0] = 0;
+        animation->flag_0c = 0;
         animation->value_10 = 1.0f;
     } else {
-        success = success && FileRead(handle, &animation->unknown_0c[0], 1, 0);
+        success = success && FileRead(handle, &animation->flag_0c, 1, 0);
         success = success && FileRead(handle, &animation->value_10, 4, 0);
     }
     success = success && FileRead(handle, discarded, sizeof(discarded), 0);
     if (!success) {
         srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x117, 0);
     }
-    for (index = 0; index < (signed char)animation->unknown_00[0]; ++index) {
+    for (index = 0; index < (signed char)animation->group_count; ++index) {
         success = success && FileRead(handle, &channel_bytes[index], 1, 0);
     }
 
@@ -233,7 +233,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
 
     if (animation->flag_05 == 0) {
         int mesh_index;
-        for (mesh_index = 0; mesh_index < (signed char)animation->unknown_00[0]; ++mesh_index) {
+        for (mesh_index = 0; mesh_index < (signed char)animation->group_count; ++mesh_index) {
             W8AniMesh* mesh = CreateAniMesh004B57E0();
             signed char channel;
 
@@ -251,7 +251,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
             animation->meshes_28[index] = PLCreate();
             animation->paths_34[index] = PLCreate();
         }
-        for (group = 0; group < (signed char)animation->unknown_00[0]; ++group) {
+        for (group = 0; group < (signed char)animation->group_count; ++group) {
             signed char entry_count;
             int entry;
             success = FileRead(handle, &entry_count, 1, 0);
@@ -329,14 +329,14 @@ W8AnimObj* CloneAnimObj004A0320(const W8AnimObj* source)
         srAssertFail("pao", ANIM_OBJ_CPP, 0x24, 0);
     }
     memset(copy, 0, sizeof(W8AnimObj));
-    copy->unknown_00[0] = source->unknown_00[0];
-    copy->unknown_00[1] = source->unknown_00[1];
+    copy->group_count = source->group_count;
+    copy->unknown_01 = source->unknown_01;
     copy->value_02 = source->value_02;
-    copy->unknown_03[0] = source->unknown_03[0];
-    copy->unknown_03[1] = source->unknown_03[1];
+    copy->unknown_03 = source->unknown_03;
+    copy->cycle = source->cycle;
     copy->flag_05 = source->flag_05;
     copy->playback_scale_08 = source->playback_scale_08;
-    copy->unknown_0c[0] = source->unknown_0c[0];
+    copy->flag_0c = source->flag_0c;
     copy->value_10 = source->value_10;
     copy->start_frame_14 = source->start_frame_14;
     copy->end_frame_15 = source->end_frame_15;

@@ -982,7 +982,7 @@ unsigned char W8MonsterRep::ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monst
     animation = CreateAnimObj004A01A0();
     success = AnimObjReadFromFile004A05C0(info, animation, value, lights, 0);
     if (cycle_index == -1) {
-        cycle_index = static_cast<signed char>(animation->unknown_03[1]);
+        cycle_index = static_cast<signed char>(animation->cycle);
     }
     cycle = static_cast<signed char>(cycle_index);
     if (cycle < 0 || cycle >= W8_MONSTER_CYCLE_COUNT) {
@@ -1003,9 +1003,9 @@ unsigned char W8MonsterRep::ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monst
     flag_06e = 1;
     m_bLOD = 2;
     timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    flag_070 = animation->unknown_03[0];
+    flag_070 = animation->unknown_03;
     flag_06f = animation->value_02;
-    flag_06d = animation->unknown_00[1];
+    flag_06d = animation->unknown_01;
     if (current_cycle == -1) {
         current_cycle = cycle;
     }
