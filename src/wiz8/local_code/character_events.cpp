@@ -107,7 +107,7 @@ int g_item_message_005ee690 = 66;
 // GLOBAL: WIZ8 0x005ee6fc
 int g_item_message_005ee6fc = 132;
 // GLOBAL: WIZ8 0x005EE70C
-unsigned int g_last_event_005ee70c = 146;
+unsigned int g_normal_event_count_005ee70c = 146; /* ordinary-event count */
 // GLOBAL: WIZ8 0x005EE710
 unsigned int g_remapped_event_count_005ee710 = 31;
 // GLOBAL: WIZ8 0x005EE718
@@ -116,15 +116,15 @@ unsigned int g_first_remapped_event_005ee718 = 500;
 /* 0x005EE000: eight-byte dispatch records indexed by remapped event type.
    The table ends at 0x005EE588 where g_effect_005ee588 begins. TryAdjustQueuedEvent
    reads field_00 at +4; ProcessDeferredCharacterEvents reads field_01 at +5. */
-struct W8EventDispatchRecord {
+struct W8CharacterEventDescriptor {
     int value_00;
     unsigned char field_00;
     unsigned char field_01;
     unsigned char unknown_06[2];
 };
-static_assert(sizeof(W8EventDispatchRecord) == 8, "W8EventDispatchRecord_must_be_8");
+static_assert(sizeof(W8CharacterEventDescriptor) == 8, "W8CharacterEventDescriptor_must_be_8");
 // GLOBAL: WIZ8 0x005EE000
-W8EventDispatchRecord g_event_dispatch_records_005ee000[0xb1] = {
+W8CharacterEventDescriptor g_character_event_descriptors_005ee000[0xb1] = {
     {0x00000001, 0x00, 0x00, {0x00, 0x00}}, {0x00000005, 0x00, 0x01, {0x00, 0x00}},
     {0x00000004, 0x00, 0x01, {0x00, 0x00}}, {0x00000002, 0x00, 0x01, {0x00, 0x00}},
     {0x00000003, 0x01, 0x01, {0x00, 0x00}}, {0x00000003, 0x01, 0x01, {0x00, 0x00}},
@@ -238,6 +238,21 @@ int g_special_event_0068c558;
 int g_special_event_0068c564;
 // GLOBAL: WIZ8 0x0068C568
 int g_special_event_0068c568;
+
+static bool MapEventTypeToDescriptorIndex(unsigned int event_type, unsigned int* descriptor_index)
+{
+    if (event_type < g_normal_event_count_005ee70c) {
+        *descriptor_index = event_type;
+        return true;
+    }
+    if (event_type >= g_first_remapped_event_005ee718 &&
+        event_type < g_first_remapped_event_005ee718 + g_remapped_event_count_005ee710) {
+        *descriptor_index =
+            g_normal_event_count_005ee70c + event_type - g_first_remapped_event_005ee718;
+        return true;
+    }
+    return false;
+}
 
 /* Character-event queue and portrait/voice updates. The original
    translation-unit name is unknown; the existing unit is retained intact. */
@@ -463,6 +478,7 @@ unsigned char W8CharacterEvent::DispatchCharacterEventEntry()
     unsigned int party_slot;
     unsigned int event_type;
     unsigned int metadata;
+    unsigned int descriptor_index;
     W8Character* character;
     W8MonsterManagerEntry* slot;
     W8PartySlotRow* row;
@@ -471,19 +487,15 @@ unsigned char W8CharacterEvent::DispatchCharacterEventEntry()
     unsigned char has_quote;
 
     metadata = 0xffffffff;
-    party_slot = CharacterPointerToPartySlot(character_04);
-    event_type = type_08;
-    if (g_last_event_005ee70c <= event_type) {
-        if (event_type < g_first_remapped_event_005ee718) {
-            return 0;
-        }
-        if (g_remapped_event_count_005ee710 + g_first_remapped_event_005ee718 <= event_type) {
-            return 0;
-        }
-    }
     if (character_04 == 0) {
         return 0;
     }
+    party_slot = CharacterPointerToPartySlot(character_04);
+    event_type = type_08;
+    if (!MapEventTypeToDescriptorIndex(event_type, &descriptor_index)) {
+        return 0;
+    }
+    metadata = 0xffffffff;
     if ((flags_10 & 4) == 0) {
         if (Function52CFB0(party_slot, event_type, flags_10) == 0 ||
             Function52C910(event_type) == 0) {
@@ -512,7 +524,7 @@ unsigned char W8CharacterEvent::DispatchCharacterEventEntry()
         npc_index = row->animation_0fa;
         if (npc_index != -1 && type_08 < 0x93) {
             npc = GetNpcState(npc_index);
-            *reinterpret_cast<unsigned int*>(row->unknown_ff) = type_08; /* reinterpret-ok: W8PartySlotRow pending event type at +0xff */
+            row->pending_event_type_ff = type_08;
             if (npc == 0) {
                 return 1;
             }
@@ -561,15 +573,12 @@ unsigned char W8CharacterEvent::DispatchCharacterEventEntry()
                     party_slot, 1, event_type, (int)g_character_text_0068c580,
                     1 - (((unsigned char)flags_10 & g_character_event_flags_mask_005ed8e4) != 0));
                 slot->field_071 = this;
-                *reinterpret_cast<unsigned int*>(row->unknown_ff) = type_08; /* reinterpret-ok: W8PartySlotRow pending event type at +0xff */
-                *reinterpret_cast<unsigned int*>(
-                    reinterpret_cast<unsigned char*>(&slot->field_113) + /* reinterpret-ok: retail stores event type in slot->field_114 */
-                    1) = type_08;
+                row->pending_event_type_ff = type_08;
+                slot->pending_event_type_114 = type_08;
                 return 1;
             }
             Function52F890(party_slot, 1, event_type, 0, 1);
-            *reinterpret_cast<unsigned int*>(reinterpret_cast<unsigned char*>(&slot->field_113) +
-                                             1) = type_08; /* reinterpret-ok: retail stores event type in slot->field_114 */
+            slot->pending_event_type_114 = type_08;
             return 1;
         }
         Process0052CED0();
@@ -678,26 +687,27 @@ void W8CharacterEventQueue::SetEventCharacterMask(unsigned int event_type, unsig
 {
     unsigned char mask = (unsigned char)(1 << (party_slot & 31));
 
-    if (event_type >= g_first_remapped_event_005ee718) {
-        event_type += g_last_event_005ee70c - g_first_remapped_event_005ee718;
+    unsigned int mask_index;
+    if (!MapEventTypeToDescriptorIndex(event_type, &mask_index)) {
+        return;
     }
     if (!enabled) {
-        bytes_68[event_type] &= (unsigned char)~mask;
+        bytes_68[mask_index] &= (unsigned char)~mask;
     } else {
-        bytes_68[event_type] |= mask;
+        bytes_68[mask_index] |= mask;
     }
 }
 
 // FUNCTION: WIZ8 0x0052DD90
 bool W8CharacterEventQueue::HasEventCharacter(unsigned int event_type, unsigned int party_slot)
 {
-    if (event_type >= g_first_remapped_event_005ee718) {
-        event_type += g_last_event_005ee70c - g_first_remapped_event_005ee718;
-    }
-
+    unsigned int mask_index;
     unsigned char mask = (unsigned char)(1 << (party_slot & 31));
 
-    return (bytes_68[event_type] & mask) != 0;
+    if (!MapEventTypeToDescriptorIndex(event_type, &mask_index)) {
+        return false;
+    }
+    return (bytes_68[mask_index] & mask) != 0;
 }
 
 // FUNCTION: WIZ8 0x0052DC80
@@ -719,15 +729,11 @@ unsigned char W8CharacterEventQueue::TryAdjustQueuedEvent(W8CharacterEvent* entr
     }
 
     unsigned int event_type = entry->type_08;
-    if (event_type > g_last_event_005ee70c) {
+    unsigned int descriptor_index;
+    if (!MapEventTypeToDescriptorIndex(event_type, &descriptor_index)) {
         return 1;
     }
-
-    unsigned int event_index = event_type;
-    if (event_type >= g_first_remapped_event_005ee718) {
-        event_index = (g_last_event_005ee70c - g_first_remapped_event_005ee718) + event_type;
-    }
-    if (g_event_dispatch_records_005ee000[event_index].field_00 == 0) {
+    if (g_character_event_descriptors_005ee000[descriptor_index].field_00 == 0) {
         return 1;
     }
 
@@ -739,12 +745,10 @@ unsigned char W8CharacterEventQueue::TryAdjustQueuedEvent(W8CharacterEvent* entr
     return 1;
 }
 
-static unsigned int RemapEventIndex(unsigned int event_type)
+// FUNCTION: WIZ8 0x0052E470
+unsigned char W8CharacterEventQueue::IsMainQueueEmpty() const
 {
-    if (event_type >= g_first_remapped_event_005ee718) {
-        return (g_last_event_005ee70c - g_first_remapped_event_005ee718) + event_type;
-    }
-    return event_type;
+    return vector_10.count < 1;
 }
 
 // FUNCTION: WIZ8 0x0052DDD0
@@ -789,7 +793,7 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
         if (conflict_count > 3) {
             remaining_conflicts = conflict_count;
             while (remaining_conflicts > 3) {
-                int pick = Random(remaining_conflicts);
+                int pick = Random(conflict_count);
                 if (conflict_indices[pick] != -1) {
                     conflict_indices[pick] = -1;
                     --remaining_conflicts;
@@ -816,9 +820,10 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
     while (index < vector_10.count) {
         entry = vector_10.data[index];
         event_type = entry->type_08;
-        if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME &&
-            event_type <= g_last_event_005ee70c) {
-            if (g_event_dispatch_records_005ee000[RemapEventIndex(event_type)].field_01 != 0) {
+        if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
+            unsigned int descriptor_index;
+            if (MapEventTypeToDescriptorIndex(event_type, &descriptor_index) &&
+                g_character_event_descriptors_005ee000[descriptor_index].field_01 != 0) {
                 ++index;
                 continue;
             }

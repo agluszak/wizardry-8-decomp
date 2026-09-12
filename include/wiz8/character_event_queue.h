@@ -65,6 +65,7 @@ struct W8CharacterEventQueue {
     bool HasEventCharacter(unsigned int event_type, unsigned int party_slot); /* 0x0052DD90 */
     void ProcessDeferredCharacterEvents();                                    /* 0x0052DDD0 */
     unsigned char TryAdjustQueuedEvent(W8CharacterEvent* entry);              /* 0x0052DC80 */
+    unsigned char IsMainQueueEmpty() const;                                   /* 0x0052E470 */
     void ProcessOwnedEntry(W8CharacterEvent* entry);
     void ProcessNextPendingEntry();
     /* Restarts the follow-up clock for entries of the middle event band while

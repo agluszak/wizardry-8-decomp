@@ -85,8 +85,8 @@ struct W8MonsterManagerEntry {
     W8GrowableVector<int> highlighted_monsters; /* 0x0d8 */
     unsigned char field_0e8;
     unsigned char unknown_0e9[0x2a];
-    unsigned int field_113;
-    unsigned char unknown_117;
+    unsigned char field_113;             /* 0x113: pose/direction threshold comparisons */
+    unsigned int pending_event_type_114; /* 0x114: last queued portrait event type */
 }; /* 0x118 */
 #pragma pack(pop)
 
