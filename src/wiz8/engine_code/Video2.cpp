@@ -1209,7 +1209,7 @@ static srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* su
 
     shader.value = overlay ? g_surface_state_654ad8 : g_surface_state_6595dc;
     if (!surface) {
-        shader.value &= ~srShader::TEXTURING;
+        shader.value &= ~srShader::MASK_TEXTURING;
     } else {
         texture = SR_NEW(srTextureMap)(static_cast<srColorSurfaceIFace*>(0));
         texture->autoRelease();

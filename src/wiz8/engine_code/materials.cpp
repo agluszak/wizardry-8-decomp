@@ -190,7 +190,7 @@ unsigned char LoadMaterial004B8A70(const char* bitmap_folder,
     }
 
     if (texture_path[0] == '\0') {
-        *render_flags &= ~srShader::TEXTURING;
+        *render_flags &= ~srShader::MASK_TEXTURING;
     } else {
         _splitpath(texture_path, drive, directory, file_name, extension);
         strcpy(texture_folder, drive);

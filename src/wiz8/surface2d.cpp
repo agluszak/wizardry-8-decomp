@@ -230,14 +230,14 @@ void stSurface2D::invalidateTiles()
 void stSurface2D::setTextureHint2Enabled(unsigned char enabled)
 {
     if (!enabled) {
-        flags &= ~srShader::ALPHATEST;
+        flags &= ~srShader::MASK_ALPHATEST;
         for (int index = 0; index < tile_count; ++index) {
             tiles[index]->disableHint(srTextureIFace::HINT_POSITIONAL_2);
             tiles[index]->enableHint(srTextureIFace::HINT_POSITIONAL_1);
             tiles[index]->invalidate();
         }
     } else {
-        flags |= srShader::ALPHATEST;
+        flags |= srShader::MASK_ALPHATEST;
         for (int index = 0; index < tile_count; ++index) {
             tiles[index]->disableHint(srTextureIFace::HINT_POSITIONAL_1);
             tiles[index]->enableHint(srTextureIFace::HINT_POSITIONAL_2);

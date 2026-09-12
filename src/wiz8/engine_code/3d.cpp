@@ -369,18 +369,18 @@ void SetSceneMeshShaderBit3_0046E640(srNode* node, int argument)
                 if (polygon_shader == 0) {
                     srShader shader = mesh->getShader(0);
                     if (clear) {
-                        shader.value &= ~srShader::DEPTH_WRITE;
+                        shader.value &= ~srShader::MASK_DEPTH_WRITE;
                     } else {
-                        shader.value |= srShader::DEPTH_WRITE;
+                        shader.value |= srShader::MASK_DEPTH_WRITE;
                     }
                     mesh->setShader(shader, 0);
                 } else if (clear) {
                     for (long index = 0; index < mesh->polygon_count_230; ++index) {
-                        polygon_shader[index].value &= ~srShader::DEPTH_WRITE;
+                        polygon_shader[index].value &= ~srShader::MASK_DEPTH_WRITE;
                     }
                 } else {
                     for (long index = 0; index < mesh->polygon_count_230; ++index) {
-                        polygon_shader[index].value |= srShader::DEPTH_WRITE;
+                        polygon_shader[index].value |= srShader::MASK_DEPTH_WRITE;
                     }
                 }
             }

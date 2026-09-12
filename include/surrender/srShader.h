@@ -56,19 +56,19 @@ public:
        ADD=0x800). Detail color/alpha 0 sit at bits 16–22; unit 1 at 25–31. */
     enum {
         PASS_MASK = 7,
-        DEPTH_WRITE = 0x8,
-        COLOR_WRITE = 0x10,
+        MASK_DEPTH_WRITE = 0x8,
+        MASK_COLOR_WRITE = 0x10,
         DSTBLEND_SHIFT = 5,
         FOG_SHIFT = 8,
-        GRADIENT_MODULATE = 0x400,
-        GRADIENT_ADD = 0x800,
-        SECONDARY_GRADIENT = 0x1000,
+        MASK_GRADIENT_MODULATE = 0x400,
+        MASK_GRADIENT_ADD = 0x800,
+        MASK_SECONDARY_GRADIENT = 0x1000,
         SRCBLEND_SHIFT = 13,
-        TEXTURING = 0x8000,
+        MASK_TEXTURING = 0x8000,
         DETAILCOLOR0_SHIFT = 16,
         DETAILALPHA0_SHIFT = 20,
-        ALPHATEST = 0x800000,
-        DITHER = 0x1000000,
+        MASK_ALPHATEST = 0x800000,
+        MASK_DITHER = 0x1000000,
         DETAILCOLOR1_SHIFT = 25,
         DETAILALPHA1_SHIFT = 29
     };
