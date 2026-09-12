@@ -15,12 +15,19 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/engine_code/Navigator.h"
+#include "wiz8/game_status.h"
+#include "wiz8/render_state.h"
+#include "wiz8/regions.h"
+#include "wiz8/3d_code/PList.h"
 
 #include <wchar.h>
+#include <string.h>
 
 #include <stdlib.h>
 
 static const char MONSTER_GROUP_CPP[] = "C:\\Projects\\Wizardry 8\\Local Code\\MonsterGroup.cpp";
+
+float Function4BE5C0(srVector3T<float>* position);
 
 /* Group list indices above this select the encounter list instead, biased by
    exactly this much - the same split the monster list uses. */
@@ -728,6 +735,132 @@ unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader, W8MonsterGroup* m
         Function48C750(monster_group);
     }
     return 1;
+}
+
+/* Allocate one live monster group, create its members, activate them, and
+   register it on the species or encounter list. */
+// FUNCTION: WIZ8 0x0050F1A0
+W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
+                            const srVector3T<float>* position, unsigned char use_alternate_name,
+                            unsigned char announce_spawn, unsigned char place_on_ground)
+{
+    W8MonsterGroup* group;
+    W8MonsterRecord* record;
+    W8PList* list;
+    unsigned int index;
+    unsigned int created;
+    int registry_before;
+    float yaw;
+
+    if (count > 9) {
+        count = 9;
+    }
+    group = static_cast<W8MonsterGroup*>(malloc(sizeof(W8MonsterGroup)));
+    if (group == 0) {
+        return 0;
+    }
+    memset(group, 0, sizeof(W8MonsterGroup));
+
+    record = MonsterDBFromSpecies(monster_id);
+    if (record == 0) {
+        free(group);
+        return 0;
+    }
+
+    do {
+        group->group_id = g_status_685170.next_group_id_2630;
+        g_status_685170.next_group_id_2630 = g_status_685170.next_group_id_2630 + 1;
+    } while (group->group_id == 0);
+
+    group->leader_group_id = 0;
+    group->allied_group_ids[0] = 0;
+    group->allied_group_ids[1] = 0;
+    group->allied_group_ids[2] = 0;
+    group->allied_group_ids[3] = 0;
+    group->member_count = 0;
+    group->active_member_count = 0;
+    group->monster_id = monster_id;
+    group->centre = *position;
+    group->flag_28 = 0;
+    group->flag_29 = 0;
+    group->unknown_2b = 3;
+    if (use_alternate_name != 0 || (record->flags_0d0 & 0x10) != 0) {
+        group->flag_2c = 1;
+    } else {
+        group->flag_2c = 0;
+    }
+    group->unknown_2d[0] = 0;
+    group->unknown_2d[1] = 0;
+    group->unknown_2d[2] = 0xff;
+    group->unknown_2d[3] = 0xff;
+    group->unknown_2d[4] = 0xff;
+    group->unknown_2d[5] = 0xff;
+    group->spawn_time = g_status_685170.world_clock;
+
+    group->monsters = ILCreate();
+    if (group->monsters == 0) {
+        free(group);
+        return 0;
+    }
+
+    list = gXStatus.plsMonsterGroupList;
+    if (record->flag_26a != 0) {
+        list = gXStatus.plsMonsterGroupEncounterList;
+    }
+    registry_before = GetUsedPageFileBytes();
+    if (PLAdoptAppend(list, group) == -1) {
+        free(group);
+        return 0;
+    }
+
+    created = 0;
+    if (count != 0) {
+        do {
+            if (CreateMonsterInfo(group, record, const_cast<srVector3T<float>*>(position)) == 0) {
+                free(group);
+                return 0;
+            }
+            ++created;
+        } while (created < count);
+    }
+
+    group->value_9f = g_status_685170.monster_group_value_seed_2634 - 1;
+    group->highlighted_member = -1;
+
+    index = 0;
+    while (index < ILLength(group->monsters)) {
+        int location_id = IListGetAt(group->monsters, index);
+        unsigned int monster_index =
+            MonsterGetIndexByLocationID(0x12d, MONSTER_GROUP_CPP, location_id, 1);
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
+
+        if (monster_info->flag_14 == 0) {
+            ActivateMonsterInWorld(monster_info);
+        }
+        ++index;
+    }
+
+    group->flag_28 = 1;
+    yaw = Function4BE5C0(const_cast<srVector3T<float>*>(position));
+    Function510CC0(group, const_cast<srVector3T<float>*>(position), yaw, 0, 0, 0, 0);
+    Function510590(group);
+    Function547570(group, MonsterGroupCalcDefaultDisposition(group), 0);
+
+    if (announce_spawn != 0 && g_flag_689b32 != 0) {
+        int registry_after = GetUsedPageFileBytes();
+        const wchar_t* verb = count == 1 ? L"appears" : L"appear";
+        const W8WideChar* name = record->name_00;
+
+        if (group->flag_2c == 0) {
+            name += (group->member_count != 1) + 2;
+        } else if (group->member_count != 1) {
+            name += 1;
+        }
+        WriteGameLog(9, L"%d %s %s nearby! (%dK)", count, name, verb,
+                     (registry_after - registry_before) >> 10);
+    }
+
+    return group;
 }
 
 /* Destroys one monster group. It is taken out of whatever is tracking it, then

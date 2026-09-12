@@ -8,6 +8,7 @@
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/utility.h"
 
 #include <string.h>
 
@@ -185,6 +186,103 @@ void ApplyModifierBlock(W8GameplayModifierBlock* target, const W8GameplayModifie
     if (target->value_49 < source->value_49) {
         target->value_49 = source->value_49;
     }
+}
+
+/* Fold the party's twelve effect slots into the shared modifier block. */
+// FUNCTION: WIZ8 0x0050EDC0
+void ApplyPartyEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock* target)
+{
+    const W8EffectSlot* slot = source;
+    int remaining = 12;
+
+    do {
+        if (slot->active != 0) {
+            unsigned char amount = static_cast<unsigned char>(slot->amount);
+            unsigned int percent = slot->percent;
+            unsigned char adjusted = amount;
+
+            switch (slot->effect_id) {
+            case 8:
+                AdjustByteByPercent(&adjusted, percent);
+                target->light_47 = adjusted << 1;
+                break;
+            case 0x11:
+                target->out_of_formation = 1;
+                break;
+            case 0x14:
+                adjusted = static_cast<unsigned char>((slot->amount + 1) / 2);
+                AdjustByteByPercent(&adjusted, percent);
+                target->value_01 += adjusted;
+                break;
+            case 0x1a:
+                adjusted = static_cast<unsigned char>((slot->amount + 5) * 5);
+                AdjustByteByPercent(&adjusted, percent);
+                target->value_49 = adjusted;
+                break;
+            case 0x20:
+                adjusted = static_cast<unsigned char>((slot->amount + 1) / 2);
+                AdjustByteByPercent(&adjusted, percent);
+                target->armor_bonus_05 += adjusted;
+                break;
+            case 0x21:
+                AdjustByteByPercent(&adjusted, percent);
+                target->value_48 = adjusted;
+                break;
+            case 0x28:
+                adjusted = static_cast<unsigned char>(slot->amount * 4 + 7);
+                AdjustByteByPercent(&adjusted, percent);
+                target->damage_reduction_adjustment += adjusted;
+                break;
+            case 0x2d:
+                target->flag_4a = 1;
+                break;
+            }
+        }
+        const unsigned char* bytes = reinterpret_cast<const unsigned char*>(slot); /* reinterpret-ok: advance one 0x11-byte party effect record */
+        slot = reinterpret_cast<const W8EffectSlot*>(bytes + sizeof(W8EffectSlot)); /* reinterpret-ok: resume at the next party effect record */
+        --remaining;
+    } while (remaining != 0);
+}
+
+/* Fold the six combat effect records at +0x85a into the shared modifier block. */
+// FUNCTION: WIZ8 0x0050EF50
+void ApplyCombatEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock* target)
+{
+    const W8EffectSlot* slot = source;
+    int remaining = 6;
+
+    do {
+        if (slot->active != 0) {
+            unsigned char adjusted;
+            unsigned int percent = slot->percent;
+
+            switch (slot->effect_id) {
+            case 2:
+                adjusted = 2;
+                AdjustByteByPercent(&adjusted, percent);
+                target->armor_bonus_04 += adjusted;
+                target->value_01 += adjusted;
+                break;
+            case 0x35:
+                adjusted = static_cast<unsigned char>(slot->amount * 7);
+                AdjustByteByPercent(&adjusted, percent);
+                target->resistance_bonus[0] += adjusted;
+                target->resistance_bonus[1] += adjusted;
+                target->resistance_bonus[2] += adjusted;
+                target->resistance_bonus[3] += adjusted;
+                break;
+            case 0x3b:
+                adjusted = static_cast<unsigned char>(slot->amount * 10);
+                AdjustByteByPercent(&adjusted, percent);
+                target->resistance_bonus[5] += adjusted;
+                target->resistance_bonus[4] += adjusted;
+                break;
+            }
+        }
+        const unsigned char* bytes = reinterpret_cast<const unsigned char*>(slot); /* reinterpret-ok: advance one 0x11-byte combat effect record */
+        slot = reinterpret_cast<const W8EffectSlot*>(bytes + sizeof(W8EffectSlot)); /* reinterpret-ok: resume at the next combat effect record */
+        --remaining;
+    } while (remaining != 0);
 }
 
 /* Rebuild one character's derived modifier block from the equipment,

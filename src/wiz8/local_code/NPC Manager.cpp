@@ -30,8 +30,6 @@
 
 extern unsigned char FindEntityByName(const char* name, srVector3T<float>* position, int* value,
                                       srVector3T<float>* direction);
-unsigned char Function50F1A0(unsigned int monster_species, int count, srVector3T<float>* position,
-                             int a, int b, int c);
 
 /*
  * Local Code\NPC Manager.cpp.
@@ -916,7 +914,7 @@ void UpdateNpcEvents0050D530(void)
                     } else {
                         int event = Random(2) == 0 ? 0x57 : 0x58;
                         QueueCharacterEvent(character, event, 0, g_effect_argument_005ed8c8,
-                                       g_effect_argument_005ed914);
+                                            g_effect_argument_005ed914);
                         npc_state->event_clock_eb = g_status_685170.world_clock;
                     }
                 }
@@ -1107,7 +1105,7 @@ unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, char* entity_name)
             return 0;
         }
         copied = position;
-        Function50F1A0(index, 1, &copied, 1, 0, 1);
+        CreateGroup(index, 1, &copied, 1, 0, 1);
         return 1;
     }
     if (npc->is_present == 0) {

@@ -99,6 +99,8 @@ extern W8MonsterManagerEntry g_monster_manager_entries[8];
 extern W8GrowableVector<int> g_target_marker_vector_0068406f;
 
 W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);
+W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
+                                 srVector3T<float>* position);
 unsigned char LoadMonsterDatabaseRecord(unsigned int monster_species, W8MonsterRecord* record);
 
 /* One queued monster action, 0x30 bytes: the kind/detail pair, the attack

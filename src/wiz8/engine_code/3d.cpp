@@ -361,7 +361,8 @@ void ForwardThroughMember3C_46E640(W8World* owner, int argument)
 // FUNCTION: WIZ8 0x0046e640
 void SetSceneMeshShaderBit3_0046E640(srNode* node, int argument)
 {
-    Function00424A40();
+    unsigned int shader_default;
+    Function00424A40(&shader_default);
     for (; node != 0; node = node->nextSibling()) {
         if (node->getClassID() == 0x10004) {
             stModelInstance* instance = static_cast<stModelInstance*>(node);
@@ -400,7 +401,8 @@ void SetSceneMeshShaderBit3_0046E640(srNode* node, int argument)
 // FUNCTION: WIZ8 0x0046e750
 void SetSceneMeshShaderLowBits0046E750(srNode* node, int argument)
 {
-    Function00424A40();
+    unsigned int shader_default;
+    Function00424A40(&shader_default);
     for (; node != 0; node = node->nextSibling()) {
         if (node->getClassID() == 0x10004) {
             stModelInstance* instance = static_cast<stModelInstance*>(node);

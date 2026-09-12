@@ -131,7 +131,10 @@ struct W8GlobalStatus {
     unsigned char unknown_248b[8];
     int value_2493;
     unsigned char flag_2497;
-    unsigned char unknown_2498[0xc88];
+    unsigned char unknown_2498[0x198];
+    int next_group_id_2630;
+    int monster_group_value_seed_2634;
+    unsigned char unknown_2638[0xae8];
     unsigned char log_fact_checks_3120;
     /* 0x3121 (ABS 0x688291): 1000 consecutive dwords. EndCombat walks exactly
        this run flipping 1 -> 2; the extent is representation-proven even
@@ -196,6 +199,10 @@ static_assert(offsetof(W8GlobalStatus, monster_name_buffer_2453) == 0x2453,
 static_assert(offsetof(W8GlobalStatus, alternate_name_slot_247f) == 0x247f,
               "W8GlobalStatus_alternate_name_slot_offset");
 static_assert(offsetof(W8GlobalStatus, flag_2497) == 0x2497, "W8GlobalStatus_flag_2497_offset");
+static_assert(offsetof(W8GlobalStatus, next_group_id_2630) == 0x2630,
+              "W8GlobalStatus_next_group_id_offset");
+static_assert(offsetof(W8GlobalStatus, monster_group_value_seed_2634) == 0x2634,
+              "W8GlobalStatus_monster_group_value_seed_offset");
 static_assert(offsetof(W8GlobalStatus, log_fact_checks_3120) == 0x3120,
               "W8GlobalStatus_log_fact_checks_offset");
 static_assert(offsetof(W8GlobalStatus, text_box_lines_shown_49a7) == 0x49a7,
