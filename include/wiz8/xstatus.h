@@ -6,7 +6,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/local_code/MonsterManager.h"
 
-struct W8StartupRuntimeState;
+struct W8CharacterEventQueue;
 
 /* Packed gXStatus at 0x006836B8. The thiscall constructor at 0x004E6970
    constructs eight W8MonsterManagerEntry objects at this, then the growable
@@ -64,7 +64,9 @@ struct W8XStatus {
     unsigned char fPartyMovementMode; /* 0x916: 0x00683FCE */
     float flPartyMoveDistLimit;       /* 0x917 */
     float field_05b;
-    W8StartupRuntimeState* pStartupRuntime; /* 0x91f: 0x00683FD7 */
+    /* 0x91f: 0x00683FD7. InitializeGameplayRuntimeObjects stores the queue
+       here; a standalone BSS pointer at this address is the same member. */
+    W8CharacterEventQueue* character_event_queue;
     int iCurrentCursor;                     /* 0x923 */
     int current_cursor_frame;               /* 0x927 */
     int current_cursor_time;                /* 0x92b */
@@ -94,7 +96,8 @@ static_assert(offsetof(W8XStatus, fPartyMovementMode) == 0x916,
               "W8XStatus_party_movement_mode_offset");
 static_assert(offsetof(W8XStatus, flPartyMoveDistLimit) == 0x917,
               "W8XStatus_party_movement_limit_offset");
-static_assert(offsetof(W8XStatus, pStartupRuntime) == 0x91f, "W8XStatus_startup_runtime_offset");
+static_assert(offsetof(W8XStatus, character_event_queue) == 0x91f,
+              "W8XStatus_character_event_queue_offset");
 static_assert(offsetof(W8XStatus, iCurrentCursor) == 0x923, "W8XStatus_cursor_offset");
 static_assert(offsetof(W8XStatus, iTargetingMode) == 0x92f, "W8XStatus_targeting_mode_offset");
 static_assert(offsetof(W8XStatus, party_slot_state) == 0x948, "W8XStatus_party_slot_state_offset");

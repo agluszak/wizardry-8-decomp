@@ -23,7 +23,7 @@
 #include "wiz8/monster_generators.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/npc_state.h"
-#include "wiz8/startup_runtime_state.h"
+#include "wiz8/character_event_queue.h"
 #include "random.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/screen_state.h"
@@ -704,7 +704,7 @@ after_sight:
                                     if (Random(2) == 0) {
                                         effect = g_sight_effect_005ee698;
                                     }
-                                    W8StartupStateElement005EE748* notice = QueueCharacterEvent(
+                                    W8CharacterEvent* notice = QueueCharacterEvent(
                                         &g_status_685170.buffers.characters[party_slot], effect, 0,
                                         g_effect_argument_005ed8c8, g_effect_argument_005ed914);
 
@@ -734,7 +734,7 @@ after_sight:
                                         if (npc->name_style == 0x18 && GetFact(0x2ee) != 0) {
                                             effect = g_sight_effect_005ee66c;
                                         }
-                                        W8StartupStateElement005EE748* notice = QueueCharacterEvent(
+                                        W8CharacterEvent* notice = QueueCharacterEvent(
                                             &g_status_685170.buffers.characters[party_slot], effect,
                                             0, g_effect_argument_005ed8c8,
                                             g_effect_argument_005ed914);

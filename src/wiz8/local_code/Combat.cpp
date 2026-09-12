@@ -668,9 +668,7 @@ void Function4E7EE0(int party_slot, int action, int detail, const void* data, in
                 character = &g_status_685170.buffers.characters[party_slot_index];
                 row = &g_combat_state->characters[party_slot_index];
                 if (g_status_685170.buffers.party_rows[party_slot_index].occupied != 0 &&
-                    *reinterpret_cast<int*>(reinterpret_cast<char*>(character) + 0xb11) != 0 &&
-                    *reinterpret_cast<unsigned int*>(reinterpret_cast<char*>(character) + 0xb01) <
-                        0xf &&
+                    character->hp_current != 0 && character->highest_condition < 0xf &&
                     row->flag_34 != 0) {
                     SetPendingMoveKind(action);
                     goto finish_move_ui;

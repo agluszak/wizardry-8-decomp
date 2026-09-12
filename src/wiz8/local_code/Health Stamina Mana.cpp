@@ -2,7 +2,7 @@
 #include "soundman.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
-#include "wiz8/startup_runtime_state.h"
+#include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
@@ -360,15 +360,17 @@ void HealCharacter(int party_slot, int amount, char announce)
 
     fraction = (character->hp_current * 100) / (unsigned int)character->hp_max;
     if (fraction >= g_effect_threshold_005ed904) {
-        if (CharacterHasEffect(reinterpret_cast<void*>(g_effect_005ee594), party_slot)) {
-            gXStatus.pStartupRuntime->SetEventCharacterMask(g_effect_005ee594, party_slot, 0);
+        if (gXStatus.character_event_queue->HasEventCharacter(g_effect_005ee594, party_slot)) {
+            gXStatus.character_event_queue->SetEventCharacterMask(g_effect_005ee594, party_slot, 0);
         }
         if (fraction >= g_effect_threshold_005ed900) {
-            if (CharacterHasEffect(reinterpret_cast<void*>(g_effect_005ee590), party_slot)) {
-                gXStatus.pStartupRuntime->SetEventCharacterMask(g_effect_005ee590, party_slot, 0);
+            if (gXStatus.character_event_queue->HasEventCharacter(g_effect_005ee590, party_slot)) {
+                gXStatus.character_event_queue->SetEventCharacterMask(g_effect_005ee590, party_slot,
+                                                                      0);
             }
-            if (CharacterHasEffect(reinterpret_cast<void*>(g_effect_005ee5f8), party_slot)) {
-                gXStatus.pStartupRuntime->SetEventCharacterMask(g_effect_005ee5f8, party_slot, 0);
+            if (gXStatus.character_event_queue->HasEventCharacter(g_effect_005ee5f8, party_slot)) {
+                gXStatus.character_event_queue->SetEventCharacterMask(g_effect_005ee5f8, party_slot,
+                                                                      0);
             }
         }
     }
@@ -534,7 +536,7 @@ void DamageCharacter(int party_slot, int unused, int damage, char announce)
             SetCharacterCondition(party_slot, 1, W8_CONDITION_INDEFINITE, 0, 0, 0);
         }
         if (character->hp_current != 0) {
-            Function52F2C0(character);
+            QueueDamageReactionEvents(character);
         }
     }
 }

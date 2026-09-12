@@ -17,10 +17,6 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/local_screens/MainGameScreen.h"
-#include "wiz8/dialog_code/DialogTextArea.h"
-#include "wiz8/local_code/TextBuffer.h"
-#include "wiz8/xstatus.h"
-#include "wiz8/startup_runtime_state.h"
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/npc_state.h"
 #include "wiz8/fact_state.h"
@@ -48,6 +44,8 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/local_screens/MGSUseItemSelect.h"
+#include "wiz8/character_event_queue.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/world_cursor.h"
 
@@ -1347,165 +1345,6 @@ unsigned char Function577850(void)
     return gXStatus.fNpcDialogueMode != 0 && g_screen_state_00649f1c->flag_252 != 0;
 }
 
-// FUNCTION: WIZ8 0x0055E2C0
-void __fastcall CollapseNpcDialogueTextArea(W8NpcDialogueTextController* controller)
-{
-    W8ControlsRect bounds;
-    int top;
-
-    controller->visible = 0;
-    top = (controller->origin_y -
-           (controller->scroll_height / controller->line_height) * controller->line_height) -
-          controller->margin;
-    ClearSurfaceRect(controller->origin_x, top, controller->right, controller->bottom);
-    controller->Invalidate(0);
-    InvalidateRegion(controller->origin_x, top, controller->right, controller->bottom, 0);
-    if (top < 0x67) {
-        RequestRedraw(2);
-        RequestRedraw(8);
-        RequestRedraw(0x20);
-        RequestRedraw(0x80);
-    } else if (top < 0xbc) {
-        RequestRedraw(8);
-        RequestRedraw(0x20);
-        RequestRedraw(0x80);
-    } else if (top < 0x111) {
-        RequestRedraw(0x20);
-        RequestRedraw(0x80);
-    } else {
-        RequestRedraw(0x80);
-    }
-    controller->scroll_height = controller->line_height;
-    bounds.left = controller->origin_x + 6;
-    bounds.right = controller->origin_x + 0x7c;
-    bounds.bottom = controller->origin_y + 0x12;
-    bounds.top = bounds.bottom - controller->line_height;
-    controller->text_area.Configure(&bounds, g_font_683660,
-                                    g_W8TextBufferLayoutMask005ED548 |
-                                        g_W8TextBufferLayoutMask005ED54C |
-                                        g_W8TextBufferLayoutMask005ED550);
-    RegionSetDisable(3);
-    DisableRegionInput(9);
-    g_screen_state_00649f1c->npc_dialogue_panel_1b4->SetEnabled(0);
-}
-
-// FUNCTION: WIZ8 0x0055E1E0
-void __fastcall ExpandNpcDialogueTextArea(W8NpcDialogueTextController* controller)
-{
-    W8ControlsRect bounds;
-    int line_height;
-    int text_height;
-
-    controller->visible = 1;
-    line_height = controller->text_area.GetLineHeight();
-    text_height = line_height * controller->text_area.GetTotalLineCount();
-    if (text_height >= 0xff) {
-        text_height = 0xff;
-    }
-    bounds.left = controller->origin_x + 6;
-    bounds.right = controller->origin_x + 0x7c;
-    bounds.bottom = controller->origin_y + 0x12;
-    bounds.top = bounds.bottom - text_height;
-    controller->scroll_height = text_height;
-    controller->text_area.Configure(&bounds, g_font_683660,
-                                    g_W8TextBufferLayoutMask005ED548 |
-                                        g_W8TextBufferLayoutMask005ED54C |
-                                        g_W8TextBufferLayoutMask005ED550);
-    if (controller->scroll_height != 0xff) {
-        controller->text_area.SetFirstVisibleEntry(0);
-    }
-    SetRegionBounds(
-        9, static_cast<unsigned short>(bounds.left), static_cast<unsigned short>(bounds.top),
-        static_cast<unsigned short>(bounds.right), static_cast<unsigned short>(bounds.bottom));
-    RegionSetEnable(3);
-    EnableRegionInput(9);
-    controller->Invalidate(0);
-}
-
-// FUNCTION: WIZ8 0x0055EAE0
-void __fastcall ClearNpcDialogueTextBackground(W8NpcDialogueTextController* controller)
-{
-    int top;
-
-    top = ((1 - controller->scroll_height / controller->line_height) * controller->line_height -
-           controller->margin) +
-          controller->origin_y;
-    ClearSurfaceRect(controller->origin_x, top, controller->right, controller->bottom);
-    InvalidateRegion(controller->origin_x, top, controller->right, controller->bottom, 0);
-    if (top < 0x67) {
-        RequestRedraw(2);
-        RequestRedraw(8);
-        RequestRedraw(0x20);
-        RequestRedraw(0x80);
-        return;
-    }
-    if (top < 0xbc) {
-        RequestRedraw(8);
-        RequestRedraw(0x20);
-        RequestRedraw(0x80);
-        return;
-    }
-    if (top < 0x111) {
-        RequestRedraw(0x20);
-        RequestRedraw(0x80);
-        return;
-    }
-    RequestRedraw(0x80);
-}
-
-// FUNCTION: WIZ8 0x0055E2B0
-bool __fastcall IsNpcDialogueTextExpanded(W8NpcDialogueTextController* controller)
-{
-    return controller->scroll_height == 0xff;
-}
-
-// FUNCTION: WIZ8 0x00577880
-unsigned char SetNpcDialoguePanelVisible(int value)
-{
-    W8NpcDialogueTextController* controller;
-    unsigned char expanded;
-
-    if (gXStatus.fNpcDialogueMode != 0 && g_screen_state_00649f1c->flag_252 == 0 &&
-        g_screen_state_00649f1c->value_fc == 3) {
-        if (value == 0) {
-            controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
-            CollapseNpcDialogueTextArea(controller);
-            controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
-            controller->SetEnabled(0);
-            g_screen_state_00649f1c->npc_dialogue_panel_1b4->SetEnabled(0);
-            controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
-            ClearNpcDialogueTextBackground(controller);
-            ClearSurfaceRect(0x1dc, 0x11b, 0x269, 0x1c2);
-            InvalidateRegion(0x1dc, 0x11b, 0x269, 0x1c2, 0);
-            RequestRedraw(2);
-            RequestRedraw(8);
-            RequestRedraw(0x20);
-            RequestRedraw(0x80);
-            RequestRedraw(0x200);
-            g_screen_state_00649f1c->dialogue_panel_hidden = 1;
-            return 1;
-        }
-
-        controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
-        controller->SetEnabled(1);
-        g_screen_state_00649f1c->npc_dialogue_panel_1b4->SetEnabled(1);
-        controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
-        ExpandNpcDialogueTextArea(controller);
-        controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
-        expanded = IsNpcDialogueTextExpanded(controller);
-        if (expanded == 0) {
-            g_screen_state_00649f1c->dialogue_widget_134->SetEnabled(0);
-        } else {
-            g_screen_state_00649f1c->dialogue_widget_134->SetEnabled(1);
-        }
-        g_screen_state_00649f1c->dialogue_widget_138->SetEnabled(expanded != 0);
-        RequestRedraw(0x200);
-        g_screen_state_00649f1c->dialogue_panel_hidden = 0;
-        return 1;
-    }
-    return 0;
-}
-
 // FUNCTION: WIZ8 0x005929d0
 void HandleManualCameraHotkeys(void)
 {
@@ -2021,7 +1860,7 @@ update_screen:
     Function575C50();
     NoOp();
     Function577560();
-    gXStatus.pStartupRuntime->ProcessQueuedCharacterEvents();
+    gXStatus.character_event_queue->ProcessDeferredCharacterEvents();
     UpdateCharacterEventState();
     Function59B1A0();
     if (gXStatus.fCombatMode) {
@@ -2061,8 +1900,7 @@ update_screen:
     SGPMouseGetPos(&point);
     if (!IsWorldCursorVisible()) {
         if (!g_modal_owner_0068edd0) {
-            if ((!ShouldDeferCharacterEventForNpcScript(1) || !gXStatus.fNpcDialogueMode) &&
-                !g_status_685170.value_2435) {
+            if ((!Function525DF0(1) || !gXStatus.fNpcDialogueMode) && !g_status_685170.value_2435) {
                 g_level_block->hover_region = UpdateRegionMousePosition(point.x, point.y);
             } else {
                 g_level_block->hover_region = FindRegionAtPoint(
