@@ -7,18 +7,11 @@
 #include "srShader.h"
 #include "srFlags.h"
 
+#include "srRendererDefs.h"
 #include "srDD.h"
 class srModelInstance;
 class srVertexProcessor;
 struct srVertexArray;
-
-class srRendererDefs {
-public:
-    enum e_primitive {};
-    enum e_clip {};
-    enum e_type { TYPE_POSITIONAL_1 = 1 };
-    enum e_vertexArray {};
-};
 
 class SR_DLL_IMPORT srGERD : public srRuntimeClass {
 public:

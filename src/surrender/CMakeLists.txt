@@ -1,10 +1,15 @@
 add_library(wiz8_surrender_objects OBJECT
     bounder.cpp
     core.cpp
+    debug_dd.cpp
     dynamic_library.cpp
+    environment_mapper.cpp
+    exponent_table.cpp
     extension.cpp
+    io_managers.cpp
     string_table.cpp
     system.cpp
+    triangulator.cpp
     type_registry.cpp
     vector_processor.cpp
 )

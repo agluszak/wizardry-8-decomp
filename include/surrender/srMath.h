@@ -467,6 +467,7 @@ template <class T>
 class srMatrix4T {
 public:
     enum e_scaleType {};
+    enum e_type {};
 
     srMatrix4T<T>* Invert();
     T* Scale(double scale);
