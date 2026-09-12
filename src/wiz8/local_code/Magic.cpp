@@ -711,7 +711,7 @@ void UpdateSpellEffects00500930(void)
                         0x1505, MAGIC_CPP, effect->source.iMonsterID, 1);
                 W8MonsterInfo* monster_info =
                     MonsterGetScriptPartByLocationIndex(monster_list_index);
-                if (g_in_combat_00683f94 != 0 &&
+                if (gXStatus.fCombatMode != 0 &&
                     g_combat_state->eCombatActionStatus != 0 &&
                     g_combat_state->pActionMonsterInfo != 0 &&
                     *(int*)g_combat_state->pActionMonsterInfo ==

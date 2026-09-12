@@ -31,7 +31,7 @@ unsigned int g_combat_countdown_6850b0;
 #include "wiz8/local_screens/MGSPortraits.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MGSPartyMovement.h"
-#include "wiz8/3d_code/IList.h"
+#include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/location_variables.h"
 #include "wiz8/screen_state.h"
@@ -503,10 +503,10 @@ void SwitchCharacterTo(int party_slot, int action)
 // FUNCTION: WIZ8 0x004ea310
 void EndCombat004EA310(int mode)
 {
-    if (g_flag_00683fce != 0) {
+    if (gXStatus.fPartyMovementMode != 0) {
         BeginFreeTurnPhase();
     }
-    if (g_flag_00683fcd != 0) {
+    if (gXStatus.field_055 != 0) {
         ReleasePartyMovement();
     }
     RequestRedrawCombatBar();
@@ -517,7 +517,7 @@ void EndCombat004EA310(int mode)
     Function524540();
     Function552530();
     ProcessMonstersAtCombatEnd(mode);
-    unsigned int group_count = ILLength(g_combat_group_list_00683fb1);
+    unsigned int group_count = PLLength(gXStatus.plsMonsterGroupList);
     for (unsigned int group_index = 0;
          group_index < group_count;
          ++group_index) {
@@ -525,7 +525,7 @@ void EndCombat004EA310(int mode)
         if (group->flag_29 != 0) {
             MonsterGroupLeaveCombat(group);
         }
-        group_count = ILLength(g_combat_group_list_00683fb1);
+        group_count = PLLength(gXStatus.plsMonsterGroupList);
     }
     if (g_combat_state->flag_a54 != 0) {
         const wchar_t* message =

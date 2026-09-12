@@ -180,7 +180,6 @@ void EndMonsterTurn(W8MonsterInfo* monster_info);
 void SetSlotAction(int party_slot, int action_kind, int action_detail);
 int GetHandAttackValue(int party_slot, unsigned int hand);
 int NormalizeAttackMode(int attack_mode);
-void ClearAttackBlock(void* block);
 unsigned int ChooseAttackMode(unsigned int attack_modes);
 
 unsigned char CanCharReBreathe(int party_slot);

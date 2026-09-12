@@ -891,7 +891,7 @@ void UpdateNpcEvents0050D530(void)
         }
     }
 
-    if (g_in_combat_00683f94 == 0 && g_status_685170.value_498b > 1) {
+    if (gXStatus.fCombatMode == 0 && g_status_685170.value_498b > 1) {
         bool run_event = GetFact(0x216) != 0;
 
         if (!run_event) {
@@ -923,7 +923,7 @@ void UpdateNpcEvents0050D530(void)
         }
     }
 
-    if (g_sight_messages_enabled_00683fc5 == 0) {
+    if (gXStatus.fSurprisePossible == 0) {
         unsigned int row_offset = 0;
         unsigned int character_offset = 0;
 

@@ -27,10 +27,6 @@ bool GetSightCondition37A(const W8MonsterInfo* monster);
 
 extern float g_sight_default_005ec254;
 
-/* 0x00683FC5: cleared to mute the sight notices and set when the level wants
-   them; the NPC manager's event pass reads it too. */
-extern unsigned char g_sight_messages_enabled_00683fc5;
-
 bool IsVisibleUnderConditions(
     const W8MonsterInfo* monster, const W8VisibilityRecord* row,
     int kind); /* 0x00504B00 */

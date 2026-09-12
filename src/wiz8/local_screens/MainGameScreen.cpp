@@ -133,30 +133,6 @@ unsigned char g_flag_00685076;
 signed char g_value_00685077;
 extern int g_value_006850d5;
 
-// GLOBAL: WIZ8 0x00683f95
-unsigned char g_flag_00683f95;
-
-// GLOBAL: WIZ8 0x00683f96
-unsigned char g_flag_00683f96;
-
-// GLOBAL: WIZ8 0x00683f97
-unsigned char g_flag_00683f97;
-
-// GLOBAL: WIZ8 0x00683f98
-unsigned char g_flag_00683f98;
-
-// GLOBAL: WIZ8 0x00683f99
-unsigned char g_flag_00683f99;
-
-// GLOBAL: WIZ8 0x00683f9a
-unsigned char g_flag_00683f9a;
-
-// GLOBAL: WIZ8 0x00683fcd
-unsigned char g_flag_00683fcd;
-
-// GLOBAL: WIZ8 0x00683fce
-unsigned char g_flag_00683fce;
-
 // GLOBAL: WIZ8 0x006850ce
 int g_flag_006850ce;
 
@@ -276,13 +252,13 @@ void Function58A750(void)
 // FUNCTION: WIZ8 0x00577850
 unsigned char Function577850(void)
 {
-    return g_flag_00683f97 != 0 && g_screen_state_00649f1c->flag_252 != 0;
+    return gXStatus.field_01f != 0 && g_screen_state_00649f1c->flag_252 != 0;
 }
 
 // FUNCTION: WIZ8 0x005929d0
 void Function5929D0(void)
 {
-    if (g_modal_owner_0068edd0 == 0 && g_flag_00683f97 == 0) {
+    if (g_modal_owner_0068edd0 == 0 && gXStatus.field_01f == 0) {
         if (g_mgs_keyboard->IsCommandPressed(0x25a)) {
             BeginManualCameraControl();
         }
@@ -636,7 +612,7 @@ unsigned char MainGameScreenEnter(void)
     }
     ResetTransientRenderScenes();
     MoveTimer(4);
-    if (!g_flag_006840bc && !g_in_combat_00683f94) {
+    if (!g_flag_006840bc && !gXStatus.fCombatMode) {
         SetEnvironmentTimeEnabled00482990(1);
     }
     {
@@ -674,7 +650,7 @@ unsigned char MainGameScreenEnter(void)
             g_value_00685077 = -1;
         }
     }
-    if (!g_in_combat_00683f94) {
+    if (!gXStatus.fCombatMode) {
         Function42B770(1, 1);
     }
     return 1;
@@ -1021,7 +997,7 @@ unsigned char MainGameScreenLeave(int leaving)
     int index;
 
     if (g_main_game_mode_0068eddc == 3) {
-        if (g_flag_00683f97) {
+        if (gXStatus.field_01f) {
             Function56E800(0);
         }
     } else if (g_main_game_mode_0068eddc == 5) {
@@ -1044,23 +1020,23 @@ unsigned char MainGameScreenLeave(int leaving)
         Function490AF0();
     }
     Function59B270();
-    if (g_flag_00683f98)
+    if (gXStatus.field_020)
         Function5879A0(0);
-    if (g_flag_00683f99)
+    if (gXStatus.field_021)
         Function58A790(0);
-    if (g_flag_00683f95)
+    if (gXStatus.field_01d)
         Function59F2B0();
-    if (g_flag_00683f96)
+    if (gXStatus.fItemSelectMode)
         Function59C9C0();
-    if (g_flag_00683f9a)
+    if (gXStatus.field_022)
         Function5B2200();
-    if (g_flag_00683f97)
+    if (gXStatus.field_01f)
         Function56E800(0);
     if (g_level_block->flag_314)
         Function592E60();
     Function59BAD0();
     Function59BF70();
-    if (g_flag_00683fcd)
+    if (gXStatus.field_055)
         DisableRegionSet1C();
     Function529510();
     if (GetFlag68F105())
@@ -1451,7 +1427,7 @@ void ShortenTextToWidth00577410(wchar_t* output, const wchar_t* text, unsigned i
 // FUNCTION: WIZ8 0x0056C590
 void Function56C590(W8NpcState* npc, int value, int line, int suppress)
 {
-    if (g_flag_00683f97 == 0 && g_in_combat_00683f94 == 0 &&
+    if (gXStatus.field_01f == 0 && gXStatus.fCombatMode == 0 &&
         (npc->record->kind != 7 || GetFact(0x1c) != 1)) {
         Function56C5E0(npc, value, line, suppress, 0);
     }

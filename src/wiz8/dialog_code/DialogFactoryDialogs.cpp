@@ -10,6 +10,7 @@
 #include "wiz8/item_video_object_vector.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/video_object_catalog.h"
@@ -1197,7 +1198,7 @@ void W8Dialog005CD710::Draw()
     if (m_initialized == 0) {
         CreateControls();
     }
-    if (g_in_combat_00683f94 != 0) {
+    if (gXStatus.fCombatMode != 0) {
         m_buttons_74[2]->SetEnabled(0);
     }
     if ((m_dirty_flags & 1) != 0) {

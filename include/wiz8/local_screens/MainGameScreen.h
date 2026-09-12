@@ -201,9 +201,12 @@ public:
 };
 static_assert(sizeof(W8MainGameStatusPanel005EEBC0) == 0x6c, "W8MainGameStatusPanel005EEBC0_size");
 
-/* The primary base supplies the pure virtual destructor table installed at
-   the start of 0x00589160.  W8TextControl::Listener is the proven
-   secondary base at +0x04. */
+/* 0x005eebdc is the construction-phase primary table installed at the start
+   of 0x00589160; 0x005eebd8 is the complete-object table. No independent base
+   constructor, destructor, or source identity names a distinct authored type
+   for that first vptr. The empty primary remains because W8TextControl::Listener
+   is the proven secondary base at +0x04: collapsing it into Listener-only
+   inheritance would move Listener to +0 and shrink the object. */
 // VTABLE: WIZ8 0x005eebdc
 class W8MainGameScreenBase005EEBDC {
 public:
@@ -329,16 +332,9 @@ extern unsigned char g_flag_00685076;
 extern signed char g_value_00685077;
 extern unsigned char g_flag_006840bc;
 extern unsigned char g_flag_00685070;
-extern unsigned char g_flag_00683f95;
-extern unsigned char g_flag_00683f96;
-extern unsigned char g_flag_00683f97;
 
 void Function5929D0(void);
 void Function592A10(void);
-extern unsigned char g_flag_00683f98;
-extern unsigned char g_flag_00683f99;
-extern unsigned char g_flag_00683f9a;
-extern unsigned char g_flag_00683fcd;
 extern int g_flag_006850ce;
 extern unsigned char g_flag_0068edbc;
 extern unsigned char g_flag_0068edc8;
@@ -386,4 +382,3 @@ void SetCombatTarget(int value);    /* 0x0056A2D0 */
 void RequestRedrawCombatBar(void);    /* 0x005699B0 */
 void UpdateScreenOverlays(int frame); /* 0x0056AF20 */
 void DisableMainRegionSet(void);      /* 0x00561FB0 */
-extern unsigned char g_flag_00683fce;

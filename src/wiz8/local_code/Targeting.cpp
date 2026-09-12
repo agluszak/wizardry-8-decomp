@@ -1559,7 +1559,7 @@ unsigned char SlotHasAnyValidTarget(int party_slot)
     return 1;
 }
 
-/* 0x00683FB1: every monster group in the level. */
+/* gXStatus.plsMonsterGroupList: every monster group in the level. */
 
 /* The spell target kinds this has an opinion about. Everything else is
    answered yes outright, so the question only ever narrows. */

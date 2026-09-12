@@ -7,7 +7,9 @@
 
 /* The 0x3c-byte anchor a character carries and the recall effect restores.
    Only the leading point is read field by field; the rest travels as one
-   block, so nothing beyond it is named. */
+   block, so nothing beyond it is named. Same width as W8WorldCameraState, but
+   the function that writes this record is still unrecovered, so identity with
+   the camera save record is unproven. */
 struct W8SavedLocation {
     srVector3T<float> point;              /* 0x00 */
     unsigned char unknown_0c[0x30];

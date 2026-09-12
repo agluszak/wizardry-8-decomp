@@ -6,6 +6,7 @@
 #include "wiz8/game_status.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/local_code/MonsterManager.h"
 
 #include <string.h>
@@ -28,7 +29,7 @@ void RebuildPartyEffectBlock0050E700(void)
            sizeof(W8GameplayModifierBlock));
     ApplyPartyEffectSlots(g_status_685170.effect_slots_17af,
                           &g_status_685170.party_modifiers_22e3);
-    if (g_in_combat_00683f94 != 0) {
+    if (gXStatus.fCombatMode != 0) {
         unsigned char value = g_status_685170.party_modifiers_22e3.armor_bonus_05;
 
         for (int index = 0; index < 9; ++index) {
@@ -113,7 +114,7 @@ void AccumulateEquipmentModifiers(W8Character* character,
                 record->modifier_0b1_value;
         }
         if (record->modifier_0b3_index != -1) {
-            equipment_bonus->unknown_0c[record->modifier_0b3_index] +=
+            equipment_bonus->attribute_adjustments[record->modifier_0b3_index] +=
                 record->modifier_0b3_value;
         }
         for (index = 0; index < 6; ++index) {
@@ -148,14 +149,14 @@ void ApplyModifierBlock(W8GameplayModifierBlock* target,
     target->value_4b += source->value_4b;
     target->armor_bonus_04 += source->armor_bonus_04;
     target->armor_bonus_05 += source->armor_bonus_05;
-    target->value_06 += source->value_06;
+    target->damage_reduction_adjustment += source->damage_reduction_adjustment;
     target->resistance_bonus_all += source->resistance_bonus_all;
     target->unknown_08[0] += source->unknown_08[0];
     target->unknown_08[1] += source->unknown_08[1];
     target->unknown_08[2] += source->unknown_08[2];
     target->unknown_08[3] += source->unknown_08[3];
     for (index = 0; index < 7; ++index) {
-        target->unknown_0c[index] += source->unknown_0c[index];
+        target->attribute_adjustments[index] += source->attribute_adjustments[index];
     }
     for (index = 0; index < 0x29; ++index) {
         target->unknown_13[index] += source->unknown_13[index];

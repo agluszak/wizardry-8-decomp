@@ -17,6 +17,7 @@
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/notices.h"
 #include "wiz8/chunk.h"
@@ -956,9 +957,7 @@ void DeleteCurrentSaveFiles(void)
 extern unsigned char g_flag_006875a5;
 
 /* gXStatus.fCombatMode and gXStatus.fCampMode reach this unit through
-   combat_state.h, so they are used rather than redeclared. 0x00683F97 has no
-   header owner and is declared here under the
-   name MainGameScreen.cpp already gives it. */
+   xstatus.h. */
 /* Byte-sized, not int: the refusal below returns through `mov al,1` and the
    save arm returns this result unchanged, so both share one byte register. */
 

@@ -124,8 +124,8 @@ W8MonsterInfo* CreateMonsterInfo(
     monster_info->value_107 = 0;
     monster_info->condition_argument = 0;
     monster_info->effect_2de = 0;
-    memset(&monster_info->runtime_block_1db, 0,
-           sizeof(monster_info->runtime_block_1db));
+    memset(&monster_info->modifiers_1db, 0,
+           sizeof(monster_info->modifiers_1db));
     monster_info->motionless = 0;
     monster_info->flag_255 = 0;
     monster_info->value_2da = 0;
@@ -802,7 +802,7 @@ void ConvertMonsterAttributes(W8MonsterInfo* monster_info)
                 "ConvertMonsterAttribute: ERROR - Invalid monster attribute");
         }
 
-        value += monster_info->runtime_block_1db.attribute_adjustments[attribute_index];
+        value += monster_info->modifiers_1db.attribute_adjustments[attribute_index];
         if (value > 125) {
             value = 125;
         }

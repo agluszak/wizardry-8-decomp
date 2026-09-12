@@ -9,6 +9,7 @@
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/dialog_code/SpellInfoDialog.h"
 #include "wiz8/local_screens/CharacterScreen.h"
+#include "wiz8/xstatus.h"
 
 #include "wiz8/cursor.h"
 #include "wiz8/combat_state.h"
@@ -47,7 +48,6 @@ extern void Function52DDD0(void);
 
 extern unsigned char SaveCharacter(W8Character*, int, char, void (*)(void));
 
-extern unsigned char g_in_combat_00683f94;
 // GLOBAL: WIZ8 0x0061e3a4
 unsigned short g_character_description_first_ids_61e3a4[22] = {
     0x274, 0x275, 0x276, 0x277, 0x278, 0x279, 0x27a, 0, 0x27b, 0x27c, 0x27d,
@@ -186,7 +186,7 @@ void W8CharacterScreen::BuildControls()
     if (m_mode_008 == 1 && g_status_685170.game_started != 0 &&
         CharacterPointerToPartySlot(m_original_014) > 1) {
         m_reset_1b04->SetActive(1);
-        if (g_in_combat_00683f94 != 0) {
+        if (gXStatus.fCombatMode != 0) {
             m_reset_1b04->SetEnabled(0);
         }
     }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stddef.h>
+
 #include "surrender/srMath.h"
 #include "surrender/srNode.h"
 #include "wiz8/engine_code/AnimRep.h"
@@ -14,9 +16,9 @@ class Trigger;
    owner, so the position and flag members the manager uses live here too. */
 struct W8ItemRep : public W8AnimRepBase005EC1D8 {
     virtual ~W8ItemRep() override;
-    srNode* m_psrMesh;                    /* 0x64 */
+    srNode* m_psrMesh; /* 0x64 */
     unsigned char unknown_68[0x28];
-    unsigned int flags;                   /* 0x90 */
+    unsigned int flags; /* 0x90 */
 
     unsigned int SetFlags(unsigned int mask, bool enabled); /* 0x0049F310 */
 };
@@ -35,13 +37,15 @@ struct W8Item : public W8GrObject {
     srNode* GetMesh();
 };
 
-/* Both sizes are the last proven member plus its width, not a proven extent. */
-static_assert(sizeof(W8ItemRep) == 0x94, "W8ItemRep_must_be_0x94");
-static_assert(sizeof(W8Item) == 0x20, "W8Item_must_be_0x20");
+/* The last proven members plus their widths are not a proven object extent.
+   Allocation, array stride, enclosing member, and constructor evidence for
+   either complete size is still missing. */
+static_assert(offsetof(W8ItemRep, m_psrMesh) == 0x64, "W8ItemRep_m_psrMesh_offset");
+static_assert(offsetof(W8ItemRep, flags) == 0x90, "W8ItemRep_flags_offset");
+static_assert(offsetof(W8Item, trigger_018) == 0x18, "W8Item_trigger_offset");
+static_assert(offsetof(W8Item, value_01c) == 0x1c, "W8Item_value_01c_offset");
 
-unsigned char Function49F4A0(void* context, const char* name,
-                                    void* out, int value);   /* 0x0049F4A0 */
+unsigned char Function49F4A0(void* context, const char* name, void* out,
+                             int value); /* 0x0049F4A0 */
 
-
-void GetWorldItemBounds(float* lower, float* upper);              /* 0x0049FB30 */
-
+void GetWorldItemBounds(float* lower, float* upper); /* 0x0049FB30 */
