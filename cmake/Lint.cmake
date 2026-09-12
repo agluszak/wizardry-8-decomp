@@ -68,6 +68,7 @@ set(WIZ8_RECOVERY_WARNINGS
     -Wmissing-field-initializers
     $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual>
     $<$<COMPILE_LANGUAGE:CXX>:-Winconsistent-missing-override>
+    $<$<COMPILE_LANGUAGE:CXX>:-Wshadow-field>
 )
 
 function(wiz8_configure_lint_target target)
