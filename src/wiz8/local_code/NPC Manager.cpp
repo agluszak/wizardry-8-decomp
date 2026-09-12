@@ -474,6 +474,97 @@ const char* GetNpcDisplayName(W8NpcState* npc)
     return npc->record->display_name;
 }
 
+/* Choose the new-game start level and entrance, then bind the intro NPCs that
+   belong to that campaign path. Import 0x4c is Gigas, 0x4b is the bluff, and
+   0x4e or neither is the monastery. */
+// FUNCTION: WIZ8 0x005092f0
+void ChooseNewGameStartLocation(int* level, int* entrance)
+{
+    unsigned char value;
+    wchar_t display_value[10];
+    int start_level;
+
+    value = EvaluateFact(0x4e);
+    if (g_status_685170.log_fact_checks_3120) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        } else {
+            wcscpy(display_value, L"FALSE");
+        }
+        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4e].symbolic_name,
+                     display_value);
+    }
+    if (value != 0) {
+        start_level = 8;
+    } else {
+        value = EvaluateFact(0x4c);
+        if (g_status_685170.log_fact_checks_3120) {
+            if (value) {
+                wcscpy(display_value, L"TRUE");
+            } else {
+                wcscpy(display_value, L"FALSE");
+            }
+            WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4c].symbolic_name,
+                         display_value);
+        }
+        if (value != 0) {
+            start_level = 0xe;
+        } else {
+            start_level = GetFact(0x4b) != 0 ? 6 : 8;
+        }
+    }
+    *level = start_level;
+    *entrance = 0;
+    g_status_685170.flag_2497 = 1;
+
+    value = EvaluateFact(0x4e);
+    if (g_status_685170.log_fact_checks_3120) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        } else {
+            wcscpy(display_value, L"FALSE");
+        }
+        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4e].symbolic_name,
+                     display_value);
+    }
+    if (value != 0) {
+        return;
+    }
+
+    value = EvaluateFact(0x4c);
+    if (g_status_685170.log_fact_checks_3120) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        } else {
+            wcscpy(display_value, L"FALSE");
+        }
+        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4c].symbolic_name,
+                     display_value);
+    }
+    if (value != 0) {
+        Function50C1C0(0x18, 0xe, "NP_ViGigas");
+        Function50C1C0(0xc, 0xe, "NP_BalbrakIntro");
+        return;
+    }
+
+    value = EvaluateFact(0x4b);
+    if (g_status_685170.log_fact_checks_3120) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        } else {
+            wcscpy(display_value, L"FALSE");
+        }
+        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4b].symbolic_name,
+                     display_value);
+    }
+    if (value != 0) {
+        Function50C1C0(0x18, 6, "NP_ViBluff");
+        Function50C1C0(0x8c, 6, "NP_GuardBluff");
+        return;
+    }
+    Function50C1C0(0x18, 8, "NP_ViMon");
+}
+
 /* New-game start level from the campaign facts InitializeFactState planted.
    Import path 0x4c is level 14, 0x4b is level 6, and 0x4e or neither is 8. */
 // FUNCTION: WIZ8 0x00509750

@@ -48,6 +48,12 @@
 #include <string.h>
 #include <sys/stat.h>
 #include "wiz8/game_status.h"
+#include "wiz8/spell_effect.h"
+#include "wiz8/character_event_queue.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/npc_interaction.h"
+#include "soundman.h"
+#include "wiz8/engine_code/Octree.h"
 
 /* Local Code\LoadSaveGame.cpp. The unit is established by its own assertions:
    evidence/observations/wiz8/assertions.csv places line 870 at 0x00512E80 and
@@ -651,6 +657,33 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
         }
     }
     return 1;
+}
+
+/* Tear down the live session before a new-game or save load replaces it:
+   unload the current level, empty queued character events and spell effects,
+   and reset the main-game screen and gameplay status blocks. */
+// FUNCTION: WIZ8 0x00512c40
+void ResetLiveSessionForLoad(void)
+{
+    int index;
+    W8SpellEffectEntry* effect;
+
+    if (g_status_685170.current_level != -1) {
+        UnloadLevel("");
+        SoundEmptyCache();
+    }
+    if (gXStatus.character_event_queue != 0) {
+        gXStatus.character_event_queue->ClearOwnedEntries();
+    }
+    ResetMainGameScreenState();
+    ClearNpcMessageQueue();
+    ResetMainScreenStateBlock();
+    for (index = g_spell_effects.GetCount() - 1; index >= 0; --index) {
+        effect = g_spell_effects.RemoveAt(index);
+        delete effect;
+    }
+    ReleaseAllTriggers();
+    ResetGameplayStatusBlock();
 }
 
 /* Makes sure the three save directories exist and are writable before anything

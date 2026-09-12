@@ -19,3 +19,4 @@ unsigned char Function525DF0(unsigned char require_group_entry);
 unsigned char GetNpcQuoteText(W8NpcState* npc, unsigned int type, wchar_t* output);
 
 bool IsPartySlotEligible00524A10(int slot);
+void ClearNpcMessageQueue(void); /* 0x00524C50 */
