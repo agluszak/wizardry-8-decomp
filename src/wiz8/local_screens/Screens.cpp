@@ -168,9 +168,7 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
         }
         break;
     case W8_SCREEN_MAIN_GAME:
-        if (g_level_block->value_0fc == 0 ||
-            g_level_block->party_bytes_109[party_slot] !=
-                0) {
+        if (g_level_block->value_0fc == 0 || g_level_block->party_bytes_109[party_slot] != 0) {
             switch (party_slot) {
             case 0:
             case 1:
@@ -341,11 +339,11 @@ void ClearHeldItemDisplay(void)
 // GLOBAL: WIZ8 0x00647ccc
 unsigned char g_table_647ccc[128];
 
-// FUNCTION: WIZ8 0x0055F2B0
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wchar-subscripts"
 /* The recovered index is a char; the 128-entry table is the domain, and this
    helper is not a virtual whose mangling we can widen. */
+// FUNCTION: WIZ8 0x0055F2B0
 unsigned char GetTable647CCCEntry(char index)
 {
     return g_table_647ccc[index];

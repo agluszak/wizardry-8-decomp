@@ -141,11 +141,11 @@ const char* g_footstep_fixed_name_609f44 = "Jump";
 // GLOBAL: WIZ8 0x00609f48
 const char* g_footstep_scuff_name_609f48 = "Scuff";
 
-// FUNCTION: WIZ8 0x0047a440
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wchar-subscripts"
 /* Surface and material ids are recovered as char and range-checked against
    1..9 / 1..25 before indexing the name tables. */
+// FUNCTION: WIZ8 0x0047a440
 int PlayFootstep0047A440(char surface, char material, int argument)
 {
     char selected_surface;

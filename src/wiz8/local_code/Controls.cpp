@@ -1491,12 +1491,12 @@ __forceinline W8RangeButton::W8RangeButton(Controls* panel, unsigned int region,
    Retail construction passes five stack arguments and proves all three
    allocation sizes, the ordered child construction, and the four EH cleanup
    states. */
-// FUNCTION: WIZ8 0x004f61f0
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshadow-field"
 /* Controls stores panel bounds as `right`/`bottom`; this constructor forwards
    those same names to the base. That is original constructor style, not a
    second inherited field. */
+// FUNCTION: WIZ8 0x004f61f0
 W8RangeControl::W8RangeControl(int left, int top, int right, int bottom,
                                unsigned int* shared_region_set)
     : Controls(left, top, right, bottom, -1, -1, -1), m_minimum(0), m_maximum(1), m_value(0),
