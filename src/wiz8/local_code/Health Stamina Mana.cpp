@@ -284,9 +284,6 @@ unsigned int FatigueArmorPenalty(int fatigue_band)
     default: return fatigue_band;
     }
 }
-/* 0x0052AF50 */
-
-/* 0x00523C00 */
 
 /* Two effects the party is holding that a wounded character can no longer
    sustain, and the third that only the deeper threshold breaks. */
