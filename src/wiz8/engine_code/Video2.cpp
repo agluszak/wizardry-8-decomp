@@ -2120,16 +2120,16 @@ unsigned char SetFlag603C60(void)
     return 1;
 }
 
-/* Release a renderer-owned object, leaving the renderer in 2D mode, or in
-   the paired mode when its state byte says otherwise. The +0x160 flag lives
-   past the 0x160-byte srModelInstance base, so the object is a larger
-   derivative (stModelInstance-family shape); the filling producer is
-   unrecovered, hence the offset read stays marked. */
+/* Release an srClass, leaving the renderer in 2D mode, or in the paired
+   mode when the +0x160 flag says otherwise. That flag is the first dword
+   past sizeof(srModelInstance); both stModelInstance and stModelInstance2D
+   store state_160 there. Recovered code never fills dialogue_owner or the
+   three teardown slots, so the concrete parameter type stays unresolved. */
 // FUNCTION: WIZ8 0x004257F0
-void ReleaseRendererObject004257F0(srClass* object)
+void ReleaseObject004257F0(srClass* object)
 {
     if ((reinterpret_cast<unsigned char*>(object)[0x160] & 1) !=
-        0) { /* reinterpret-ok: unrecovered derivative tail past the srModelInstance base */
+        0) { /* reinterpret-ok: unresolved derived state_160 past srModelInstance */
         g_dword_6596ec = 2;
     } else {
         g_dword_6596f0 = 2;

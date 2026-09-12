@@ -1,23 +1,14 @@
 """Exact structural invariants for recovered source.
 
-The gate keeps the one check that a regular expression can decide exactly:
-a constant index past the end of a fixed-size array field declared in the
-recovered headers.
+The gate keeps the checks that a regular expression can decide exactly: a
+constant index past the end of a fixed-size array field declared in the
+recovered headers, and newly added ``W8GrowableVector<void*>`` element claims.
 
-The earlier constant-byte-offset regex was removed deliberately. It inspected
-one source line at a time, recognized only ``reinterpret_cast<char*>(x) + N``,
-and therefore could not see the equivalent escapes it claimed to protect
-against (a typed pointer plus one, a cast split across lines, a byte field
-reached through a member name). A partial regex invites false confidence at the
-wrong level.
-
-The replacement invariant is a review criterion rather than a rewrite of that
-regex: a cast from a complete recovered object type to a byte pointer is only
-allowed at an explicitly designated serialization/ABI boundary, and a byte
-pointer must not walk an object by constant offsets outside such a boundary.
-New casts must carry their ``reinterpret-ok: reason`` marker (the cast gate
-enforces that on the change diff), and substantial new bodies are reviewed
-against the typed-object-escape rule before acceptance.
+An unresolved pointer-vector specialization keeps its element type unknown
+until a producer or consumer identifies it; erasing it to ``void*`` hides that
+missing evidence. A new occurrence needs ``vector-void-ok: <reason>`` when
+``void*`` is genuinely the source element type. Existing occurrences are not
+re-litigated; only lines introduced by the current change need the marker.
 """
 
 from __future__ import annotations
@@ -25,6 +16,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 from typing import Any
+
+from .cast_lint import added_lines_without_marker, baseline_diff
 
 SCOPE_PREFIXES = ("src/wiz8/", "include/wiz8/")
 
@@ -36,6 +29,8 @@ _ARRAY_DECLARATION = re.compile(
 # Only member accesses: a field name can be shadowed by a local, and a local
 # array is not the declaration this gate knows about.
 _ARRAY_INDEX = re.compile(r"(?:\.|->)\s*([A-Za-z_]\w*)\s*\[\s*(0[xX][0-9a-fA-F]+|\d+)\s*\]")
+_VOID_ELEMENT = re.compile(r"W8GrowableVector\s*<\s*void\s*\*>")
+_VOID_MARKER = re.compile(r"vector-void-ok:\s*\S", re.IGNORECASE)
 
 
 def _number(text: str) -> int:
@@ -48,7 +43,7 @@ def _scoped(path: Path, repo_dir: Path) -> bool:
 
 
 class StructuralGateError(RuntimeError):
-    """A constant index past a fixed-size array field."""
+    """A recovered source-model invariant failed."""
 
 
 def validate_structures(repo_dir: Path) -> dict[str, Any]:
@@ -58,7 +53,7 @@ def validate_structures(repo_dir: Path) -> dict[str, Any]:
             f"{item['file']}:{item['line']} {item['kind']}: {item['detail']}" for item in violations
         ]
         raise StructuralGateError(
-            "recovered source indexes a fixed-size array past its end:\n  " + "\n  ".join(rendered)
+            "recovered source breaks a structural invariant:\n  " + "\n  ".join(rendered)
         )
     return {"ok": True, "gate": "structural-invariants"}
 
@@ -108,4 +103,16 @@ def structural_violations(repo_dir: Path) -> list[dict[str, Any]]:
                             ),
                         }
                     )
+    for item in added_lines_without_marker(baseline_diff(repo_dir)[1], _VOID_ELEMENT, _VOID_MARKER):
+        violations.append(
+            {
+                "kind": "unresolved-void-vector",
+                "file": item["file"],
+                "line": item["line"],
+                "detail": (
+                    "new W8GrowableVector<void*> needs a 'vector-void-ok: reason' "
+                    f"comment: {item['text']}"
+                ),
+            }
+        )
     return violations

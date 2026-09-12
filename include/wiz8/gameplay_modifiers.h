@@ -5,8 +5,10 @@
  * The two packed records the gameplay-modifier passes accumulate through.
  *
  * A W8EffectSlot is one running effect or condition: the party keeps twelve in
- * the status block, a monster keeps twelve more, and each combat state keeps
- * the nine-plus-six run. A W8GameplayModifierBlock is the 0x67-byte
+ * the status block, a monster keeps twelve more, and combat keeps nine records
+ * at +0x7c1. The six 0x11-byte records at combat +0x85a share storage with
+ * later independently typed fields; their originating array bound is
+ * unresolved. A W8GameplayModifierBlock is the 0x67-byte
  * accumulator those slots and the worn equipment fold into, one block per
  * character plus the party-wide block in the status record.
  */

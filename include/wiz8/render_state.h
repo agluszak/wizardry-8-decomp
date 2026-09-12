@@ -116,11 +116,11 @@ void PublishLightDirection(const EnvironmentColour* direction);
    srVector3T saturation method survives in the SurRender headers, so this stays
    the product's free fastcall. */
 srVector3T<float>* __fastcall SaturateColor004299B0(srVector3T<float>* color);
-/* Release a renderer-owned object, leaving the renderer in its 2D mode. The
-   +0x160 flag lives past the 0x160-byte srModelInstance base, so the object
-   is a larger derivative (stModelInstance-family shape); the filling
-   producer is unrecovered, hence the offset read stays marked. */
-void ReleaseRendererObject004257F0(srClass* object);
+/* Release an srClass whose +0x160 flag selects the renderer mode pair.
+   stModelInstance and stModelInstance2D both store that flag as state_160,
+   but recovered code never constructs these four slots, so the parameter
+   stays the release() ancestor. */
+void ReleaseObject004257F0(srClass* object);
 
 void Initialize16BitPixelFormatMasks(void);
 unsigned char CreateWizardryWindow(void);

@@ -38,8 +38,11 @@ void RebuildPartyEffectBlock0050E700(void)
                 g_status_685170.party_modifiers_22e3.armor_bonus_05 = value;
             }
         }
-        ApplyCombatEffectSlots(g_combat_state->effect_slots_tail,
-                               &g_status_685170.party_modifiers_22e3);
+        // clang-format off
+        ApplyCombatEffectSlots(
+            reinterpret_cast<const W8EffectSlot*>(g_combat_state->effect_storage_85a), /* reinterpret-ok: six 0x11-byte records at +0x85a; helper unrecovered */
+            &g_status_685170.party_modifiers_22e3);
+        // clang-format on
     }
     int active = 0;
     unsigned int slot_byte = 0;

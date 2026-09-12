@@ -328,15 +328,15 @@ W8TextControl* g_panel_controls_69c2f8[3];
 void Function5B1C00(void)
 {
     if (g_level_block->unknown_2a0 != 0) {
-        ReleaseRendererObject004257F0(g_level_block->unknown_2a0);
+        ReleaseObject004257F0(g_level_block->unknown_2a0);
         g_level_block->unknown_2a0 = 0;
     }
     if (g_level_block->unknown_2a4 != 0) {
-        ReleaseRendererObject004257F0(g_level_block->unknown_2a4);
+        ReleaseObject004257F0(g_level_block->unknown_2a4);
         g_level_block->unknown_2a4 = 0;
     }
     if (g_level_block->unknown_2a8 != 0) {
-        ReleaseRendererObject004257F0(g_level_block->unknown_2a8);
+        ReleaseObject004257F0(g_level_block->unknown_2a8);
         g_level_block->unknown_2a8 = 0;
     }
 }

@@ -166,11 +166,71 @@ static void MoveScenarioMouse(int client_x, int client_y)
 /* SGP's queue belongs to the game thread. SendInput reaches its WH_KEYBOARD
    hook; posting WM_KEYDOWN directly does not. The private display parks the
    pointer at the window centre, which sits on the Load Game item, so every
-   key send first moves it off every menu region: otherwise hover overrules
+   key send first moves it off every enabled region: otherwise hover overrules
    the keyboard selection non-deterministically. */
+static bool PointHitsEnabledRegion(int x, int y)
+{
+    unsigned short px = static_cast<unsigned short>(x);
+    unsigned short py = static_cast<unsigned short>(y);
+    for (unsigned int set = 0; set < g_region_set_count; ++set) {
+        if (g_region_sets[set].enabled != 1 ||
+            g_region_sets[set].first_region > g_region_sets[set].last_region) {
+            continue;
+        }
+        unsigned int first = g_region_sets[set].first_region;
+        unsigned int last = g_region_sets[set].last_region;
+        for (unsigned int region = first; region <= last && region < g_region_count; ++region) {
+            if (RegionContainsPoint(region, px, py)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+static void ParkMouseOutsideActiveRegions()
+{
+    RECT client;
+    if (ghWindow == NULL || !GetClientRect(ghWindow, &client)) {
+        return;
+    }
+    int width = client.right - client.left;
+    int height = client.bottom - client.top;
+    if (width < 1 || height < 1) {
+        return;
+    }
+    int candidates[8][2] = {
+        {width - 1, 0},          {0, 0},
+        {width - 1, height - 1}, {0, height - 1},
+        {width / 2, 0},          {width - 1, height / 2},
+        {0, height / 2},         {width / 2, height - 1},
+    };
+    for (int index = 0; index < 8; ++index) {
+        int x = candidates[index][0];
+        int y = candidates[index][1];
+        if (!PointHitsEnabledRegion(x, y)) {
+            MoveScenarioMouse(x, y);
+            return;
+        }
+    }
+    for (int x = 0; x < width; ++x) {
+        if (!PointHitsEnabledRegion(x, 0)) {
+            MoveScenarioMouse(x, 0);
+            return;
+        }
+    }
+    for (int x = 0; x < width; ++x) {
+        if (!PointHitsEnabledRegion(x, height - 1)) {
+            MoveScenarioMouse(x, height - 1);
+            return;
+        }
+    }
+    MoveScenarioMouse(width - 1, 0);
+}
+
 static void SendScenarioKey(WORD key, DWORD flags = 0)
 {
-    MoveScenarioMouse(600, 460);
+    ParkMouseOutsideActiveRegions();
     INPUT events[2];
     memset(events, 0, sizeof(events));
     events[0].type = INPUT_KEYBOARD;
@@ -555,7 +615,7 @@ static DWORD WINAPI DriveScenario(void*)
         if (WaitForTooltip(true, 2000)) {
             g_observation.tooltip_shown = 1;
         }
-        MoveScenarioMouse(636, 4);
+        ParkMouseOutsideActiveRegions();
         if (WaitForTooltip(false, 2000)) {
             g_observation.tooltip_removed = 1;
         }
@@ -594,7 +654,7 @@ static DWORD WINAPI DriveScenario(void*)
             if (WaitForTooltip(true, 2000)) {
                 g_observation.skill_tooltip_shown = 1;
             }
-            MoveScenarioMouse(636, 4);
+            ParkMouseOutsideActiveRegions();
             if (WaitForTooltip(false, 2000)) {
                 g_observation.skill_tooltip_removed = 1;
             }
@@ -706,9 +766,9 @@ static DWORD WINAPI DriveScenario(void*)
 
             if (strcmp(g_scenario, "main-game-start") == 0) {
                 /* The product's start control requires a six-member party, so
-                   the remaining slots are fixture data; the selector, the mode
-                   progression it drives and the start callback are the real
-                   product path under test. */
+                   the remaining members are fixture copies; they still enter
+                   through the recovered party-add path rather than by writing
+                   occupied flags directly. */
                 int populated = -1;
                 for (int roster_slot = 0; roster_slot < 8; ++roster_slot) {
                     if (g_party_slot_rows[roster_slot].occupied &&
@@ -720,19 +780,12 @@ static DWORD WINAPI DriveScenario(void*)
                 if (populated < 0) {
                     return FailScenario();
                 }
-                for (int fixture_slot = 2; fixture_slot < 8; ++fixture_slot) {
-                    if (g_party_slot_rows[fixture_slot].occupied &&
-                        g_party_characters[fixture_slot].hp_current != 0) {
-                        continue;
+                while (CountActiveCharacters() < 6) {
+                    int before = CountActiveCharacters();
+                    if (Function4EF4A0(&g_party_characters[populated], -1) < 0 ||
+                        CountActiveCharacters() <= before) {
+                        return FailScenario();
                     }
-                    memcpy(&g_party_characters[fixture_slot], &g_party_characters[populated],
-                           sizeof(W8Character));
-                    g_party_characters[fixture_slot].hp_current = 1;
-                    g_party_characters[fixture_slot].unknown_0b01 = 0;
-                    g_party_slot_rows[fixture_slot].occupied = 1;
-                }
-                if (CountActiveCharacters() < 6) {
-                    return FailScenario();
                 }
                 unsigned int bottom_set =
                     *(volatile unsigned int*)&g_state5_bottom_action_region_set_69c508;

@@ -64,9 +64,12 @@ struct W8PartySlotRow {
 static_assert(sizeof(W8PartySlotRow) == 0x106,
               "W8PartySlotRow_must_be_0x106");
 
-/* The combat effect run: nine live slots at +0x7c1 and six more at +0x85a.
-   The condition predicate still scans nine of the second run, so it reads
-   past the member into the fields below, exactly as retail does. */
+/* Nine 0x11-byte effect records at +0x7c1 are independently established.
+   +0x85a..+0x8f3 is an unresolved overlapping layout: six 0x11-byte records
+   occupy +0x85a..+0x8bf, then the independently proven engaged_missile at
+   +0x8c0 and TargetHit at +0x8c5. CombatHasCondition still advances 0x11
+   nine times from +0x85a, which overlaps those later fields; that stride
+   is not a typed array. */
 static_assert(sizeof(W8EffectSlot) == 0x11, "W8EffectSlot_must_be_0x11");
 
 /* One combat participant's row, 0xd4 bytes per character. The eight rows live
@@ -118,7 +121,7 @@ struct W8CombatState {
     struct W8MonsterInfo* pActionMonsterInfo; /* 0x7b8 */
     unsigned char unknown_7bc[5];
     W8EffectSlot effect_slots[9];         /* 0x7c1, 0x11 stride */
-    W8EffectSlot effect_slots_tail[6];    /* 0x85a, 0x11 stride */
+    unsigned char effect_storage_85a[0x66]; /* 0x85a..0x8bf: six 0x11-byte records */
     W8Missile* engaged_missile;           /* 0x8c0: live missile that blocks ending combat */
     unsigned char unknown_8c4;            /* 0x8c4 */
     /* 0x8c5: exact name from the attack assertions; the slot is unaligned
