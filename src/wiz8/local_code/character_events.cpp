@@ -27,6 +27,8 @@
 extern unsigned char IsSoundPlaying(int sound_handle);
 extern unsigned char StopSound(int sound_handle);
 extern void QueueGameplayEvent(int event_type, int party_slot);
+void Function524DA0(void); /* 0x00524DA0 */
+void Function524EB0(void); /* 0x00524EB0 */
 
 #include <stdio.h>
 #include <wchar.h>
@@ -92,6 +94,17 @@ int g_item_message_005ee6fc = 132;
 unsigned int g_last_event_005ee70c = 146;
 // GLOBAL: WIZ8 0x005EE718
 unsigned int g_first_remapped_event_005ee718 = 500;
+
+/* 0x005EE004: eight-byte dispatch records indexed by remapped event type.
+   TryAdjustQueuedEvent reads field_00; ProcessDeferredCharacterEvents reads
+   field_01 before attempting to hand an entry to the owned queue. */
+struct W8EventDispatchRecord {
+    unsigned char field_00;
+    unsigned char field_01;
+    unsigned char unknown_02[6];
+};
+// GLOBAL: WIZ8 0x005EE004
+W8EventDispatchRecord g_event_dispatch_records_005ee004[0xb1];
 
 // GLOBAL: WIZ8 0x0068C504
 int g_special_event_0068c504;
@@ -354,14 +367,10 @@ void W8StartupRuntimeState::RestartFollowUpClock(W8StartupStateElement005EE748* 
 // FUNCTION: WIZ8 0x0052D610
 int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
 {
-    unsigned int event_index = entry->type_08;
     unsigned int party_slot;
 
-    if (event_index >= g_first_remapped_event_005ee718) {
-        event_index += g_last_event_005ee70c - g_first_remapped_event_005ee718;
-    }
     party_slot = CharacterPointerToPartySlot(entry->character_04);
-    if ((bytes_68[event_index] & (1 << (party_slot & 31))) != 0) {
+    if (HasEventCharacter(entry->type_08, party_slot)) {
         delete entry;
         return 0;
     }
@@ -377,7 +386,7 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
             slot->field_071->Process0052CED0();
             delete slot->field_071;
         }
-        Function52CA60();
+        Function52CA60(entry);
         return 1;
     }
     if (entry->type_08 == 0x21) {
@@ -427,6 +436,164 @@ bool W8StartupRuntimeState::HasEventCharacter(unsigned int event_type, unsigned 
     unsigned char mask = (unsigned char)(1 << (party_slot & 31));
 
     return (bytes_68[event_type] & mask) != 0;
+}
+
+// FUNCTION: WIZ8 0x0052DC80
+unsigned char W8StartupRuntimeState::TryAdjustQueuedEvent(W8StartupStateElement005EE748* entry)
+{
+    if (entry == 0 || value_50 == -1 || entry->type_08 != (unsigned int)value_50) {
+        return 1;
+    }
+
+    unsigned int party_slot = CharacterPointerToPartySlot(entry->character_04);
+    if (party_slot == (unsigned int)value_54) {
+        return 1;
+    }
+
+    if (ClockIsTicking(unknown_58) == 0) {
+        value_50 = -1;
+        value_54 = -1;
+        return 1;
+    }
+
+    unsigned int event_type = entry->type_08;
+    if (event_type > g_last_event_005ee70c) {
+        return 1;
+    }
+
+    unsigned int event_index = event_type;
+    if (event_type >= g_first_remapped_event_005ee718) {
+        event_index = (g_last_event_005ee70c - g_first_remapped_event_005ee718) + event_type;
+    }
+    if (g_event_dispatch_records_005ee004[event_index].field_00 == 0) {
+        return 1;
+    }
+
+    *reinterpret_cast<unsigned int*>(entry->unknown_20) =
+        event_type; /* reinterpret-ok: retail stores the pending type at +0x20 */
+    if (event_type == 4) {
+        return 0;
+    }
+    entry->type_08 = 10;
+    return 1;
+}
+
+static unsigned int RemapEventIndex(unsigned int event_type)
+{
+    if (event_type >= g_first_remapped_event_005ee718) {
+        return (g_last_event_005ee70c - g_first_remapped_event_005ee718) + event_type;
+    }
+    return event_type;
+}
+
+// FUNCTION: WIZ8 0x0052DDD0
+void W8StartupRuntimeState::ProcessDeferredCharacterEvents()
+{
+    W8StartupStateElement005EE748* entry;
+    W8StartupStateElement005EE748* baseline;
+    int index;
+    int scan;
+    int conflict_count;
+    int* conflict_indices;
+    int remaining_conflicts;
+    unsigned int event_type;
+    unsigned int party_slot;
+
+    if (gXStatus.fSurprisePossible != 0) {
+        return;
+    }
+
+    if (vector_30.count > 0 && Function525DF0(0) == 0 && Function525DD0() == 0) {
+        for (index = 0; index < vector_30.count; ++index) {
+            QueueEntry(vector_30.data[index]);
+        }
+        vector_30.count = 0;
+    }
+
+    if (vector_10.count != 0) {
+        conflict_count = 1;
+        baseline = vector_10.data[0];
+        conflict_indices = new int[vector_10.count];
+        conflict_indices[0] = 0;
+        for (index = 1; index < vector_10.count; ++index) {
+            entry = vector_10.data[index];
+            event_type = entry->type_08;
+            if (event_type == baseline->type_08 && entry->character_04 != baseline->character_04 &&
+                event_type != 0x2a && event_type != 0x24) {
+                conflict_indices[conflict_count] = index;
+                ++conflict_count;
+            }
+        }
+
+        if (conflict_count > 3) {
+            remaining_conflicts = conflict_count;
+            while (remaining_conflicts > 3) {
+                int pick = Random(remaining_conflicts);
+                if (conflict_indices[pick] != -1) {
+                    conflict_indices[pick] = -1;
+                    --remaining_conflicts;
+                }
+            }
+            for (index = conflict_count - 1; index >= 0; --index) {
+                if (conflict_indices[index] != -1) {
+                    delete vector_10.RemoveAt(conflict_indices[index]);
+                }
+            }
+        }
+        delete[] conflict_indices;
+    }
+
+    if (vector_10.count == 0) {
+        Function524DA0();
+        if (PartyPortraitEventsIdle() != 0) {
+            Function524EB0();
+        }
+        return;
+    }
+
+    index = 0;
+    while (index < vector_10.count) {
+        entry = vector_10.data[index];
+        event_type = entry->type_08;
+        if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME &&
+            event_type <= g_last_event_005ee70c) {
+            if (g_event_dispatch_records_005ee004[RemapEventIndex(event_type)].field_01 != 0) {
+                ++index;
+                continue;
+            }
+        }
+
+        if (entry->character_04->in_party != 0) {
+            party_slot = CharacterPointerToPartySlot(entry->character_04);
+            if (!HasEventCharacter(event_type, party_slot)) {
+                if (PartyPortraitEventsIdle() == 0) {
+                    return;
+                }
+                if (entry->value_30 != 0 &&
+                    GetTickCount() - entry->clock_34 <= (unsigned int)entry->value_30) {
+                    return;
+                }
+                vector_10.RemoveAt(index);
+                if (TryAdjustQueuedEvent(entry) == 0) {
+                    delete entry;
+                    return;
+                }
+                if (Function52CA60(entry) == 0) {
+                    return;
+                }
+                vector_40.Add(entry);
+                return;
+            }
+        }
+
+        for (scan = 0; scan < vector_10.count; ++scan) {
+            if (vector_10.data[scan] == entry) {
+                vector_10.RemoveAt(scan);
+                return;
+            }
+        }
+        return;
+    }
 }
 
 // FUNCTION: WIZ8 0x0052E690
