@@ -117,3 +117,7 @@ import surface proves the original call went out of line.
 Batch related Ghidra reads in one session. Keep native objects while computing; filter before printing.
 Write large listings/decompilations to named `build/` artifacts and print the useful result/path.
 Do not repeatedly dump whole files or parse textual output when a structured API/result exists.
+
+## Compiled files are not evidence ledgers
+
+Do not create a `.cpp` solely to park `VTABLE`, `TEMPLATE`, `SYNTHETIC`, globals, or unrelated recovered bodies. A normal `.cpp` should represent a proved retail translation unit. Unknown ownership stays an unresolved fragment. Compiler-emission files are exceptional and contain no arbitrary game logic. Never infer authored TU structure from semantic similarity.

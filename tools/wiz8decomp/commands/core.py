@@ -269,6 +269,7 @@ def register(app: typer.Typer) -> None:
     analyze_app.command("trace")(trace_command)
     analyze_app.command("source-layouts")(verify_source_layouts_command)
     analyze_app.command("source-index")(source_index_command)
+    analyze_app.command("debt")(debt_command)
 
 
 def source_index_command() -> None:
@@ -277,6 +278,14 @@ def source_index_command() -> None:
     from ..source_index import write_source_index
 
     cli.emit(write_source_index(cli.settings()))
+
+
+def debt_command() -> None:
+    """Ranked source-model inconsistencies: empty TUs, overlaps, placement, types."""
+    from .. import command_support as cli
+    from ..debt import structural_debt_report
+
+    cli.emit(structural_debt_report(cli.settings().repo_dir))
 
 
 def unresolved_report_command(

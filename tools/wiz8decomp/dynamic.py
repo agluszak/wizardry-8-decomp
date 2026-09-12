@@ -86,7 +86,7 @@ def bring_up_points(repo: Path) -> list[TracePoint]:
         path = Path(function.source_file)
         if not (
             path.stem.startswith("startup_")
-            or path.name in {"bringup_gates.cpp", "game_init.cpp", "winmain.cpp"}
+            or path.name in {"game_init.cpp", "winmain.cpp"}
         ):
             continue
         points.append(
