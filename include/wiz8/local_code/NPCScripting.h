@@ -23,7 +23,6 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility,
                               char recurse);            /* 0x00547570 */
 void Function553AD0(W8Character* character, int value); /* 0x00553AD0 */
 void Function553C10(W8Character* character, int skill); /* 0x00553C10 */
-void Function56E800(int value);                         /* 0x0056E800 */
 void Function420F90(srVector3T<float>* position);       /* 0x00420F90 */
 void Function4F6CF0(W8WorldItem* item);                 /* 0x004F6CF0 */
 void Function5A6580(void);                              /* 0x005A6580 */

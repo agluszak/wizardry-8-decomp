@@ -19,6 +19,7 @@
 #include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/character_events.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/location_variables.h"
 #include "wiz8/magic.h"
 #include "wiz8/npc_state.h"
