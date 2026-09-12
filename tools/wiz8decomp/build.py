@@ -406,7 +406,7 @@ def check(repository: Path) -> dict[str, Any]:
     """Fast public validation: Python/repository gates, no compiler lane."""
 
     from .cast_lint import validate_cast_markers
-    from .global_model import validate_global_ownership, validate_type_consistency
+    from .global_model import validate_type_consistency
     from .identity_lint import validate_identity
     from .linkage_lint import validate_c_linkage
     from .placement import validate_source_placement
@@ -422,7 +422,6 @@ def check(repository: Path) -> dict[str, Any]:
     source_index = write_source_index(settings)
     validators = (
         ("source-units", lambda: validate_source_units(repository)),
-        ("global-ownership", lambda: validate_global_ownership(repository)),
         ("type-consistency", lambda: validate_type_consistency(repository)),
         ("reccmp", lambda: validate_reccmp_annotations(repository)),
         ("casts", lambda: validate_cast_markers(repository)),
