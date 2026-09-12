@@ -18,6 +18,7 @@
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/xstatus.h"
+#include "wiz8/startup_runtime_state.h"
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/npc_state.h"
 #include "wiz8/fact_state.h"
@@ -238,7 +239,6 @@ void Function5542E0(void);
 void Function59A3A0(void);
 void Function575C50(void);
 void Function577560(void);
-void Function52DDD0(void);
 void Function59B1A0(void);
 void Function59B4C0(void);
 void Function59B390(void);
@@ -1860,7 +1860,7 @@ update_screen:
     Function575C50();
     NoOp();
     Function577560();
-    Function52DDD0();
+    gXStatus.pStartupRuntime->ProcessQueuedCharacterEvents();
     UpdateCharacterEventState();
     Function59B1A0();
     if (gXStatus.fCombatMode) {

@@ -30,6 +30,7 @@ extern void QueueGameplayEvent(int event_type, int party_slot);
 
 #include <stdio.h>
 #include <wchar.h>
+#include <windows.h>
 
 // GLOBAL: WIZ8 0x0068c57c
 unsigned int g_value_0068c57c;
@@ -92,6 +93,29 @@ int g_item_message_005ee6fc = 132;
 unsigned int g_last_event_005ee70c = 146;
 // GLOBAL: WIZ8 0x005EE718
 unsigned int g_first_remapped_event_005ee718 = 500;
+
+// GLOBAL: WIZ8 0x005ee000
+const W8CharacterEventDescriptor g_character_event_descriptors_005ee000[0x92] = {
+    {1, 0, 0}, {5, 0, 1}, {4, 0, 1}, {2, 0, 1}, {3, 1, 1}, {3, 1, 1}, {3, 1, 1}, {3, 1, 1},
+    {1, 1, 0}, {1, 1, 1}, {1, 0, 1}, {5, 0, 1}, {1, 0, 1}, {4, 0, 1}, {1, 0, 1}, {1, 0, 1},
+    {4, 0, 1}, {4, 0, 1}, {4, 0, 1}, {4, 0, 1}, {4, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1},
+    {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {4, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {5, 0, 1},
+    {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {5, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1},
+    {5, 0, 1}, {1, 0, 1}, {1, 0, 1}, {5, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1},
+    {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 0}, {4, 0, 1}, {5, 0, 0},
+    {5, 0, 1}, {1, 0, 1}, {5, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1},
+    {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1},
+    {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1},
+    {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1},
+    {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1},
+    {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1},
+    {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 0}, {1, 0, 1}, {1, 0, 1},
+    {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1},
+    {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1},
+    {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1},
+    {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1}, {1, 0, 1},
+    {1, 0, 1}, {1, 0, 1},
+};
 
 // GLOBAL: WIZ8 0x0068C504
 int g_special_event_0068c504;
@@ -377,7 +401,7 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
             slot->field_071->Process0052CED0();
             delete slot->field_071;
         }
-        Function52CA60();
+        Function52CA60(entry);
         return 1;
     }
     if (entry->type_08 == 0x21) {
@@ -633,4 +657,199 @@ int UpdateCharacterEventState(void)
         }
     }
     return any_active;
+}
+
+// FUNCTION: WIZ8 0x0052dc80
+unsigned char W8StartupRuntimeState::FilterFollowUpQueuedEvent(W8StartupStateElement005EE748* entry)
+{
+    unsigned int party_slot;
+    unsigned int event_type;
+
+    if (entry == 0 || value_50 == -1 || entry->type_08 != (unsigned int)value_50) {
+        return 1;
+    }
+    party_slot = CharacterPointerToPartySlot(entry->character_04);
+    if (party_slot == (unsigned int)value_54) {
+        return 1;
+    }
+    if (ClockIsTicking(unknown_58) == 0) {
+        value_50 = -1;
+        value_54 = -1;
+        return 1;
+    }
+    event_type = entry->type_08;
+    if (event_type > g_last_event_005ee70c) {
+        return 1;
+    }
+    if (event_type >= g_first_remapped_event_005ee718) {
+        event_type += g_last_event_005ee70c - g_first_remapped_event_005ee718;
+    }
+    if (g_character_event_descriptors_005ee000[event_type].followup_remap_04 == 0) {
+        return 1;
+    }
+    *reinterpret_cast<unsigned int*>(&entry->unknown_20[0]) = entry->type_08;
+    if (entry->type_08 == 4) {
+        return 0;
+    }
+    entry->type_08 = 10;
+    return 1;
+}
+
+/* Drain deferred character-event queues, optionally cull duplicate pending
+   events, then dispatch one ready entry or run the NPC idle helpers. */
+// FUNCTION: WIZ8 0x0052ddd0
+void W8StartupRuntimeState::ProcessQueuedCharacterEvents()
+{
+    W8StartupStateElement005EE748* entry;
+    W8StartupStateElement005EE748** pending;
+    int* duplicate_indices;
+    int duplicate_count;
+    int index;
+    int pending_count;
+    unsigned int event_type;
+    unsigned int party_slot;
+    unsigned int delay;
+    unsigned int now;
+
+    if (gXStatus.fSurprisePossible != 0) {
+        return;
+    }
+    if (vector_30.count > 0 && Function525DF0(0) == 0 && Function525DD0() == 0) {
+        pending_count = vector_30.count;
+        for (index = 0; index < pending_count; ++index) {
+            pending = vector_30.data;
+            if (index < vector_30.count) {
+                pending += index;
+            }
+            QueueEntry(*pending);
+        }
+        vector_30.count = 0;
+    }
+    pending_count = vector_10.count;
+    duplicate_count = 1;
+    if (pending_count != 0) {
+        duplicate_indices = new int[pending_count];
+        entry = vector_10.data[0];
+        duplicate_indices[0] = 0;
+        if (pending_count > 1) {
+            int write_index = 1;
+            for (index = 1; index < vector_10.count; ++index) {
+                pending = vector_10.data + index;
+                event_type = (*pending)->type_08;
+                if (event_type == entry->type_08 &&
+                    (*pending)->character_04 != entry->character_04 && event_type != 0x2a &&
+                    event_type != 0x24) {
+                    duplicate_indices[write_index] = index;
+                    ++write_index;
+                    ++duplicate_count;
+                }
+            }
+            int survivors = duplicate_count;
+            while (survivors > 3) {
+                int pick = Random(duplicate_count);
+                if (duplicate_indices[pick] != -1) {
+                    duplicate_indices[pick] = -1;
+                    --survivors;
+                }
+            }
+            for (index = duplicate_count - 1; index >= 0; --index) {
+                if (duplicate_indices[index] == -1) {
+                    continue;
+                }
+                int remove_index = duplicate_indices[index];
+                if (remove_index >= 0 && remove_index < vector_10.count) {
+                    entry = vector_10.data[remove_index];
+                    if (remove_index < vector_10.count - 1) {
+                        int move_index = remove_index;
+                        while (move_index < vector_10.count - 1) {
+                            vector_10.data[move_index] = vector_10.data[move_index + 1];
+                            ++move_index;
+                        }
+                    }
+                    --vector_10.count;
+                    delete entry;
+                }
+            }
+        }
+        delete[] duplicate_indices;
+    }
+    pending_count = vector_10.count;
+    if (pending_count == 0) {
+        UpdateNpcDialogueVoiceIdle();
+        if (PartyPortraitEventsIdle() != 0) {
+            ProcessNpcScriptingIdlePass();
+        }
+        return;
+    }
+    for (index = 0; index < pending_count; ++index) {
+        pending = vector_10.data;
+        if (index < vector_10.count) {
+            pending += index;
+        }
+        entry = *pending;
+        if (g_current_screen_state.id == W8_SCREEN_CHARACTER ||
+            entry->type_08 > g_last_event_005ee70c) {
+            goto dispatch_entry;
+        }
+        event_type = entry->type_08;
+        if (event_type >= g_first_remapped_event_005ee718) {
+            event_type += g_last_event_005ee70c - g_first_remapped_event_005ee718;
+        }
+        if (g_character_event_descriptors_005ee000[event_type].defer_off_char_screen_05 == 0) {
+        dispatch_entry:
+            if (entry->character_04->in_party != 0) {
+                event_type = entry->type_08;
+                party_slot = CharacterPointerToPartySlot(entry->character_04);
+                if (event_type >= g_first_remapped_event_005ee718) {
+                    event_type += g_last_event_005ee70c - g_first_remapped_event_005ee718;
+                }
+                if ((bytes_68[event_type] & (unsigned char)(1 << (party_slot & 31))) == 0) {
+                    if (PartyPortraitEventsIdle() == 0) {
+                        return;
+                    }
+                    delay = entry->value_30;
+                    if (delay != 0) {
+                        now = entry->clock_34;
+                        if (GetTickCount() - now <= delay) {
+                            return;
+                        }
+                    }
+                    if (index >= 0 && index < vector_10.count) {
+                        while (index < vector_10.count - 1) {
+                            vector_10.data[index] = vector_10.data[index + 1];
+                            ++index;
+                        }
+                        --vector_10.count;
+                    }
+                    if (FilterFollowUpQueuedEvent(entry) == 0) {
+                        delete entry;
+                        return;
+                    }
+                    if (Function52CA60(entry) == 0) {
+                        return;
+                    }
+                    vector_40.Add(entry);
+                    return;
+                }
+            }
+            pending_count = vector_10.count;
+            index = 0;
+            if (pending_count < 1) {
+                return;
+            }
+            pending = vector_10.data;
+            while (*pending != entry) {
+                ++index;
+                ++pending;
+                if (index >= pending_count) {
+                    return;
+                }
+            }
+            if (index < 0) {
+                return;
+            }
+            vector_10.RemoveAt(index);
+            return;
+        }
+    }
 }

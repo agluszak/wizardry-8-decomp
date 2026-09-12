@@ -11,8 +11,8 @@
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/xstatus.h"
+#include "wiz8/startup_runtime_state.h"
 
-extern void Function52DDD0(void);
 
 #include "wiz8/cursor.h"
 #include "wiz8/combat_state.h"
@@ -193,7 +193,7 @@ void W8CharacterScreen::UpdateDialog()
 {
     if (m_dialog_1b1c != 0) {
         if (m_dialog_response_1b20 == 1) {
-            Function52DDD0();
+            gXStatus.pStartupRuntime->ProcessQueuedCharacterEvents();
             if (UpdateCharacterEventState() == 0 &&
                 static_cast<W8ModalDialogBase*>(m_dialog_1b1c)->close_result) {
                 m_dialog_1b1c->m_keep_open = 0;

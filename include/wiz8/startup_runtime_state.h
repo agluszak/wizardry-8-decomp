@@ -63,6 +63,10 @@ struct W8StartupRuntimeState {
     /* Restarts the follow-up clock for entries of the middle event band while
        the state flag selects it. QueueEntry reaches it for stolen entries. */
     void RestartFollowUpClock(W8StartupStateElement005EE748* entry);
+    /* 0x0052DC80: follow-up remap for a queued entry from another party slot. */
+    unsigned char FilterFollowUpQueuedEvent(W8StartupStateElement005EE748* entry);
+    /* 0x0052DDD0: drain deferred queues and dispatch the next character event. */
+    void ProcessQueuedCharacterEvents();
 };
 
 static_assert(sizeof(W8StartupRuntimeState) == 0x6c, "W8StartupRuntimeState_must_be_0x6c");
