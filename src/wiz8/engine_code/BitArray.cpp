@@ -115,7 +115,6 @@ unsigned char BitArray::Load(int handle)
     unsigned int file_bit_count;
     unsigned long* decoded;
     unsigned long remaining;
-    unsigned long* cursor;
 
     if (FileRead(handle, &magic, 4, 0) == 0 || magic != 0xdeadd00d) {
         return 0;
@@ -143,11 +142,13 @@ unsigned char BitArray::Load(int handle)
                 remaining = decoder.getDataCount();
                 if (remaining != 0) {
                     decoded = static_cast<unsigned long*>(::operator new(remaining * 4));
-                    cursor = decoded;
-                    while (remaining > 0) {
-                        *cursor = decoder.decompressSymbol();
-                        ++cursor;
-                        --remaining;
+                    if (remaining > 0) {
+                        unsigned long* cursor = decoded;
+                        do {
+                            *cursor = decoder.decompressSymbol();
+                            ++cursor;
+                            --remaining;
+                        } while (remaining != 0);
                     }
                 }
             }
