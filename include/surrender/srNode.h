@@ -33,17 +33,18 @@ public:
     struct ProcessInfo {
         class srGERD* renderer;
     };
-    /* srBounder::getBounds copies 11 dwords from this+0x13c. Wiz8 does not
-       instantiate srBounder; the nested record is the scene-node bounds ABI. */
+    /* srBounder::getBounds copies 11 dwords from this+0x13c. Bounder's
+       constructor writes 2 into the last dword. */
     struct BoundInfo {
-        unsigned char unknown_00_[0x2c];
+        unsigned char unknown_00_[0x28];
+        unsigned long unknown_28_;
     };
 
     enum e_processType { PROCESS_TYPE_POSITIONAL_0 = 0 };
 
     enum e_flag { FLAG_POSITIONAL_0 = 0, FLAG_POSITIONAL_1 = 1, FLAG_POSITIONAL_2 = 2 };
 
-    enum e_notify {};
+    enum e_notify { NOTIFY_POSITIONAL_0 = 0 };
 
     SR_DLL_IMPORT srNode(srNode* parent);
     SR_DLL_IMPORT srNode(const srNode& other);

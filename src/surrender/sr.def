@@ -75,3 +75,13 @@ EXPORTS
     ?getID@srVectorProcessor@@SAJPBD@Z
     ?release@srVectorProcessor@@SAXXZ
     ?vp@srVectorProcessor@@0PAVsrVP@@A DATA
+    ??0srBounder@@QAE@PAVsrNode@@@Z
+    ??1srBounder@@UAE@XZ
+    ?sGetClassName@srBounder@@SAPBDXZ
+    ?vInstance@srBounder@@UAEPAVsrClass@@XZ
+    ?getBoundMode@srBounder@@QBE?AW4e_boundMode@1@XZ
+    ?setBoundMode@srBounder@@QAEXW4e_boundMode@1@@Z
+    ?getBounds@srBounder@@QAEXAAUBoundInfo@srNode@@@Z
+    ?setBounds@srBounder@@QAEXABUBoundInfo@srNode@@@Z
+    ?checkBounds@srBounder@@AAEXXZ
+    ?forceUpdateBounds@srBounder@@QAEXXZ
