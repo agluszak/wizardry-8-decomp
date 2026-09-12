@@ -29,6 +29,25 @@ void CopyDwordBuffer00470180(void* destination, const void* source, int count)
     }
 }
 
+/* Fill `count` dwords through vp->_copy(SRDWORD*, SRDWORD, SRDWORD). */
+// FUNCTION: WIZ8 0x00474700
+void FillDwordBuffer00474700(void* destination, unsigned int value, int count)
+{
+    if (count != 0) {
+        srVectorProcessor::copy(static_cast<SRDWORD*>(destination), value,
+                                static_cast<SRDWORD>(count));
+    }
+}
+
+/* dest[i] += source[i] through vp->_add(float*, dest, source, count). */
+// FUNCTION: WIZ8 0x00474730
+void AddFloatBuffer00474730(float* destination, const float* source, int count)
+{
+    if (count != 0) {
+        srVectorProcessor::add(destination, destination, source, static_cast<SRDWORD>(count));
+    }
+}
+
 // FUNCTION: WIZ8 0x00473fa0
 void stMeshModel::ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* excluded_textures)
 {

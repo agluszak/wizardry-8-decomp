@@ -15,7 +15,9 @@
    FUN_00474730, FlushSlots00475600, FUN_0047f930, FUN_00486970,
    PrepareGeometry004B6F30, GDProp::Initialize, FUN_00580270 and FUN_005809f0.
    Offsets +0x210/+0x218/+0x224 sit past the 100-slot table and are not vp
-   methods. srDebugVP is not reconstructed. */
+   methods. FillDwordBuffer00474700 / AddFloatBuffer00474730 call the dword
+   `_copy` and float `_add` overloads (header +0x20 / +0xc4); retail CALLIND
+   is +0x38 / +0xd8. Those header slots stay put so `_minMax` remains +0x18c. */
 class srVectorProcessor {
 public:
     static SR_DLL_IMPORT const char* getName();
@@ -33,6 +35,11 @@ public:
         vp->_memcopy(destination, source, bytes);
     }
 
+    static inline void copy(SRDWORD* destination, SRDWORD constant, SRDWORD count)
+    {
+        vp->_copy(destination, constant, count);
+    }
+
     static inline void copy(srVector4* destination, const srVector4& constant, SRDWORD count)
     {
         vp->_copy(destination, constant, count);
@@ -42,6 +49,12 @@ public:
                             SRDWORD count)
     {
         vp->_copy(destination, source, w, count);
+    }
+
+    static inline void add(float* destination, const float* source_0, const float* source_1,
+                           SRDWORD count)
+    {
+        vp->_add(destination, source_0, source_1, count);
     }
 
     static inline void add(srVector4* destination, const srVector4& constant,
