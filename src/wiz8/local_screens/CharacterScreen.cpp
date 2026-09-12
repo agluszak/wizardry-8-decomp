@@ -561,7 +561,7 @@ unsigned char W8CharacterScreen::CommitCharacter()
     W8Character backup;
     memcpy(&backup, &m_character_018, sizeof(backup));
     if (mode != 1) {
-        Function557580(&m_character_018, &m_creation_state_187c, mode == 0);
+        FinalizeCreatedCharacter(&m_character_018, &m_creation_state_187c, mode == 0);
     }
     if (!g_status_685170.game_started && !g_status_685170.skip_loose_character_check_2444) {
         if (m_original_014 != 0) {
@@ -584,7 +584,7 @@ unsigned char W8CharacterScreen::CommitCharacter()
             m_original_014->in_party = 1;
         if (m_original_014->current_profession == 8)
             Function5218C0(m_original_014);
-        Function51D960(m_original_014);
+        UnequipUnusableItems(m_original_014);
     }
     return 1;
 }
@@ -660,18 +660,18 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
             break;
         }
         case 6:
-            Function557580(&m_character_018, &m_creation_state_187c, 0);
+            FinalizeCreatedCharacter(&m_character_018, &m_creation_state_187c, 0);
             Function4EF7E0(m_original_014, &m_character_018, 1);
             RequestScreenTransition();
             break;
         case 7:
-            Function557580(&m_character_018, &m_creation_state_187c, 0);
+            FinalizeCreatedCharacter(&m_character_018, &m_creation_state_187c, 0);
             Function4EF7E0(m_original_014, &m_character_018, 0);
             RequestScreenTransition();
             break;
         }
     } else if (response == 6) {
-        Function557580(&m_character_018, &m_creation_state_187c, 0);
+        FinalizeCreatedCharacter(&m_character_018, &m_creation_state_187c, 0);
         Function4EF7E0(m_original_014, &m_character_018, 0);
         RequestScreenTransition();
     }

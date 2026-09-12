@@ -708,7 +708,7 @@ update_screen:
         Function5542E0();
     }
     if (!g_level_block->transition_active && !gXStatus.fCombatMode && gXStatus.field_028) {
-        Function4EDD20();
+        RedistributePartyEncumbrance();
     }
     Function59A3A0();
     if (g_modal_owner_0068edd0) {

@@ -884,7 +884,7 @@ int Function4EF4A0(W8Character* character, int slot_kind)
     }
 
     RebuildCharacterModifierBlock(destination);
-    Function4ED9D0(destination);
+    RecalculateCharacterDerivedStats(destination);
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         Function561EC0();
     }

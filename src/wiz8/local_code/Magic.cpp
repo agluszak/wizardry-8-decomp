@@ -1815,8 +1815,8 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
                the condition does not: the item they are carrying asks for more
                than the condition does. */
             if (row->spell_target.iType == W8_TARGET_KIND_CHARACTER &&
-                power_level <= Function520C70(row->spell_target.iChar)) {
-                power_level = Function520C70(row->spell_target.iChar);
+                power_level <= GetWornBindingDifficulty(row->spell_target.iChar)) {
+                power_level = GetWornBindingDifficulty(row->spell_target.iChar);
             }
             break;
         case W8_SPELL_CURE_GROUP_B:

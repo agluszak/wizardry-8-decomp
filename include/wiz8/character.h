@@ -391,7 +391,7 @@ void Function5218C0(W8Character*);
 void Function52F2C0(W8Character* character);
 void ApplyCharacterEffect(W8Character* character, int effect, int arg_3, int arg_4, int arg_5);
 int CalcRangeCategoryToTarget(const W8Character* character, int hand);
-int Function51C5A0(W8Character* character, int item_id);
+int ChooseCharacterEquipSlot(W8Character* character, int item_id);
 bool RecalculateCarriedWeight(W8Character* character);
 void CalcXPGoal(W8Character* character);
 int GetSpellbookForSpell(const W8Character* character, int spell_id, int a, int b, int c);
@@ -401,13 +401,11 @@ unsigned char CharacterHasCondition(const W8Character* character, int condition)
 /* Character generation and skill/encumbrance helpers whose bodies were split
    across CharGeneration.cpp, character_skills.cpp and the encumbrance unit. */
 bool RecalculateCarryingCapacity004EDC10(W8Character* character);
-/* 0x004ED9D0: the full derived-stat recompute, and the two equipment-bonus
-   passes an NPC character's initialization runs. */
-void Function4ED9D0(W8Character* character);
+void RecalculateCharacterDerivedStats(W8Character* character);
 void AccumulateEquipmentModifiers(W8Character* character, W8GameplayModifierBlock* equipment_bonus);
 void RebuildCharacterModifierBlock(W8Character* character);
-void Function52A3E0(W8Character* character);
-void Function52A500(W8Character* character);
+void RecalculateCharacterStamina(W8Character* character);
+void RecalculateRealmSpellPoints(W8Character* character);
 void InitializeSkillBaseLevels00553C90(W8Character* character);
 void RefreshCharacterSkillAvailability00553CD0(W8Character* character);
 unsigned int GetSkillQuarterValue00553EE0(W8Character* character, int skill_id);

@@ -212,7 +212,7 @@ void ResetCharacterAttributes005539E0(W8Character* character)
             value = 1;
         }
         character->attributes[index].effective = value;
-        Function51D960(character);
+        UnequipUnusableItems(character);
     }
     for (index = 0; index < 0x29; ++index) {
         int first = g_skill_attributes[index].unknown_04;
@@ -247,7 +247,7 @@ void ResetCharacterSkills00553A60(W8Character* character)
             value = 0;
         }
         character->skills[index].level = value;
-        Function51D960(character);
+        UnequipUnusableItems(character);
     }
 }
 
