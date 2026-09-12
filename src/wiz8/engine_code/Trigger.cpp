@@ -2598,7 +2598,7 @@ void Trigger::Run(int source)
             if (angle_0fc != 0.0f) {
                 rotation.RotateAroundAxis(sin(angle_0fc), cos(angle_0fc), axis);
             }
-            transformed = rotation * target_position;
+            rotation.Transform(target_position, transformed);
             FireMissile004A2D30((unsigned int)m_lData1, &source_position, &transformed, 0, 1, 1,
                                 0x47435000);
         } else if (m_pEvent == 0) {

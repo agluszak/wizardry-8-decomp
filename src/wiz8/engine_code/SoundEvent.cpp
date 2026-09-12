@@ -189,7 +189,8 @@ unsigned char W8SoundEvent::Play004D5A10(unsigned int mask, const srVector3T<flo
 
         srVector3T<float> offset(position->x - camera_position.x, position->y - camera_position.y,
                                  position->z - camera_position.z);
-        srVector3T<float> local = rotation * offset;
+        srVector3T<float> local;
+        rotation.Transform(offset, local);
         SOUND3DPARMS options;
 
         memset(&options, 0xff, sizeof(options));

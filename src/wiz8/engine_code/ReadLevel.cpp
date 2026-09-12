@@ -803,7 +803,7 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             adjustment.SetRows(first, second, third);
             rotation.MultiplyBy(adjustment);
             direction.Set(0.0, 0.0, -1.0);
-            transformed = rotation * direction;
+            rotation.Transform(direction, transformed);
             length = transformed.Length();
             if (length != 0.0f) {
                 transformed /= length;

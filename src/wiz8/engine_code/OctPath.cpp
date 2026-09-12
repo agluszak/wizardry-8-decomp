@@ -1711,7 +1711,8 @@ unsigned short W8PathingService::PlanMovement00463460(W8NavigatorMovementState* 
                 if ((double)angle != g_zero_005ebb40) {
                     rotation.RotateAboutY(sin(angle), cos(angle));
                 }
-                srVector3T<float> transformed = rotation * trace_offset_0ac;
+                srVector3T<float> transformed;
+                rotation.Transform(trace_offset_0ac, transformed);
                 srVector3T<float> trace_source;
                 trace_source = m_owned_0c8[walk].position_20 + transformed;
                 short trace = g_octree_6598a4->TraceLineOfSight(&trace_source, &trace_target, 1, -3,
@@ -1737,7 +1738,8 @@ unsigned short W8PathingService::PlanMovement00463460(W8NavigatorMovementState* 
             if ((double)angle != g_zero_005ebb40) {
                 rotation.RotateAboutY(sin(angle), cos(angle));
             }
-            srVector3T<float> transformed = rotation * trace_offset_0ac;
+            srVector3T<float> transformed;
+            rotation.Transform(trace_offset_0ac, transformed);
             srVector3T<float> trace_source;
             trace_source = m_owned_0c8[walk].position_20 + transformed;
             short trace =
@@ -2098,7 +2100,8 @@ W8PathingService::TestSearchPositionVisibility00464CC0(const srVector3T<float>* 
         rotation.RotateAboutY(sin(angle), cos(angle));
     }
 
-    srVector3T<float> transformed = rotation * trace_offset_0ac;
+    srVector3T<float> transformed;
+    rotation.Transform(trace_offset_0ac, transformed);
 
     srVector3T<float> trace_source;
     trace_source.x = position->x + transformed.x;

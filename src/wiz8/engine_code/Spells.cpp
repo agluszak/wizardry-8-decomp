@@ -863,7 +863,8 @@ void stSound3D::BuildSoundOptions004AECC0(const srVector3T<float>* listener, SOU
     getLocation(node_position);
     offset = srVector3T<float>(node_position.x - listener->x, node_position.y - listener->y,
                                node_position.z - listener->z);
-    srVector3T<float> local = rotation * offset;
+    srVector3T<float> local;
+    rotation.Transform(offset, local);
 
     memset(options, 0xff, sizeof(*options));
     srVector3T<float> listener_offset(listener->x - node_position.x, listener->y - node_position.y,

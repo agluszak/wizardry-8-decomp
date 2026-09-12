@@ -339,6 +339,7 @@ public:
     srMatrix3T<T>* RotateAboutX(double sine, double cosine);
     srMatrix3T<T>* RotateAboutZ(double sine, double cosine);
     srMatrix3T<T>* RotateAroundAxis(double sine, double cosine, const srVector3T<T>& axis);
+    void Transform(const srVector3T<T>& vector, srVector3T<T>& out) const;
 
     srVector3T<T> vectors[3];
 };
@@ -486,19 +487,25 @@ srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double sine, double cosine,
     return this;
 }
 
+template <class T>
+void srMatrix3T<T>::Transform(const srVector3T<T>& vector, srVector3T<T>& out) const
+{
+    out.x = DotProduct(vectors[0], vector);
+    out.y = DotProduct(vectors[1], vector);
+    out.z = DotProduct(vectors[2], vector);
+}
+
 /* Row-wise matrix×vector: out.k = DotProduct(matrix.vectors[k], value).
    Independent TUs: SoundEvent 0x004d5a10, Spells 0x004AECC0, Environment
    0x00482a20, ReadLevel 0x004BD0D0, OctPath 0x00463460, Trigger 0x0043d940.
    Particle/GrCycle/GDCamera sometimes lower row 0 as multiply-adds; that is
    the same helper with partial inlining, not a second operator. No Wiz8 COMDAT.
-   Return-by-value is the shape under trial; out-parameter Transform and
-   Vector::Transform remain unadopted unless compare prefers them. */
+   Out-parameter Transform is the alias-safe in-place shape; operator* builds
+   a temporary and is used when the destination aliases the source. */
 template <class T> srVector3T<T> operator*(const srMatrix3T<T>& matrix, const srVector3T<T>& vector)
 {
     srVector3T<T> result;
-    result.x = DotProduct(matrix.vectors[0], vector);
-    result.y = DotProduct(matrix.vectors[1], vector);
-    result.z = DotProduct(matrix.vectors[2], vector);
+    matrix.Transform(vector, result);
     return result;
 }
 
@@ -526,7 +533,7 @@ template <class T> srMatrix4T<T>* srMatrix4T<T>::Invert()
     inverse.AdjugateFrom(&vectors[0].x);
 
     T determinant = Det();
-    if (determinant != (T)1) {
+    if (determinant != 1.0) {
         inverse.Scale(1.0 / determinant);
     }
 
