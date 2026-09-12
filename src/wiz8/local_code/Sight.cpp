@@ -18,6 +18,8 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/notices.h"
 #include "wiz8/engine_code/Levels.h"
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/quad.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/magic.h"
 #include "wiz8/monster_generators.h"
@@ -123,6 +125,132 @@ void RefreshAllSight(void)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 0, 0);
     }
+}
+
+extern const double g_monster_facing_tolerance_005ec2b0;
+
+/* Whether one monster can see another in combat once line of sight is clear. */
+// FUNCTION: WIZ8 0x005058a0
+unsigned char CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
+                                   W8VisibilityRecord* record)
+{
+    W8MonsterRecord* target_record;
+    W8Monster* source_monster;
+    float observer_x;
+    float observer_y;
+    float observer_z;
+    W8Monster* target_monster;
+    float target_x;
+    float target_y;
+    float target_z;
+    float observer_yaw;
+    int penalty_modifier;
+    float distance;
+    W8MonsterRecord* source_record;
+    unsigned char ranged_bonus;
+    float threshold;
+
+    if (source->hp_current == 0 || source->highest_condition >= 0xf) {
+        return 0;
+    }
+    target_record = GetMonsterDataForInfo(target);
+    source_monster = source->monster;
+    observer_x = source_monster->movement_0c0.position_040.x;
+    observer_y = source_monster->movement_0c0.position_040.y +
+                 source_monster->movement_0c0.height_offset_0b8;
+    observer_z = source_monster->movement_0c0.position_040.z;
+    target_monster = target->monster;
+    target_x = target_monster->movement_0c0.position_040.x;
+    target_y = target_monster->movement_0c0.position_040.y +
+               target_monster->movement_0c0.height_offset_0b8;
+    target_z = target_monster->movement_0c0.position_040.z;
+    observer_yaw = source_monster->GetYaw();
+    if (target->fInCombat == 0) {
+        penalty_modifier = target_record->flag_248;
+    } else {
+        penalty_modifier = 0;
+    }
+    distance = source_monster->GetDistanceToMonster004C7DD0(target_monster);
+    source_record = GetMonsterDataForInfo(source);
+    if (source_record->kind_0cb == 4) {
+        ranged_bonus = source_record->missile_value_24f * 5;
+        if (ranged_bonus > 0x7d) {
+            ranged_bonus = 0x7d;
+        }
+    } else {
+        ranged_bonus = 0;
+    }
+    threshold = ComputeSightThreshold(
+        observer_x, observer_y, observer_z, target_x, target_y, target_z, observer_yaw,
+        source->converted_attributes_247[4], static_cast<int>(ranged_bonus),
+        static_cast<unsigned char>(source->condition_turns[12] != 0),
+        static_cast<unsigned char>(source_record->kind_0cb == 12),
+        static_cast<int>(target_record->missile_value_24f), penalty_modifier,
+        static_cast<int>(record->state_04), 0, distance);
+    if (threshold < distance) {
+        return 0;
+    }
+    return 1;
+}
+
+/* Maximum distance at which the observer can perceive the target. */
+// FUNCTION: WIZ8 0x00505a40
+float ComputeSightThreshold(float observer_x, float observer_y, float observer_z, float target_x,
+                            float target_y, float target_z, float observer_yaw,
+                            unsigned int perception_attribute, int ranged_bonus,
+                            unsigned char blinded, unsigned char extended_sight_active,
+                            int penalty_source, int penalty_modifier, int skip_field_of_view,
+                            int unused, float distance)
+{
+    (void)unused;
+    W8World* world;
+    double far_clip;
+    float viewing_distance;
+    srVector3T<float> observer;
+    srVector3T<float> target;
+    float heading;
+    float angle_delta;
+    int sight_percent;
+    int penalty;
+
+    world = GetWorld();
+    far_clip = WorldGetFarClip(world);
+    viewing_distance = static_cast<float>(far_clip);
+    if (viewing_distance <= g_float_005ebb34) {
+        srAssertFail("flViewingDistance > 0", SIGHT_CPP, 0x30c, 0);
+    }
+    observer.x = observer_x;
+    observer.y = observer_y;
+    observer.z = observer_z;
+    target.x = target_x;
+    target.y = target_y;
+    target.z = target_z;
+    heading = GetHeadingAngle(&observer, &target);
+    angle_delta = ShortestAngleDistance(observer_yaw, heading);
+    if (blinded != 0 && extended_sight_active == 0) {
+        return g_float_005ebb34;
+    }
+    if (angle_delta < static_cast<float>(g_monster_facing_tolerance_005ec2b0) ||
+        skip_field_of_view != 0 || penalty_modifier != 0 || distance == g_float_005ebb34) {
+        sight_percent = 100;
+    } else {
+        sight_percent = static_cast<int>(
+            static_cast<float>(static_cast<int>(perception_attribute) - ranged_bonus * 2) *
+            (viewing_distance - distance) / distance);
+    }
+    if (penalty_source != 0) {
+        if (penalty_modifier == 0) {
+            penalty = penalty_source * -10;
+        } else {
+            penalty = penalty_source * -5;
+        }
+        sight_percent += penalty;
+    }
+    if (perception_attribute != 0) {
+        sight_percent = (static_cast<int>(perception_attribute) + 100) * sight_percent / 100;
+    }
+    ClampInteger(&sight_percent, 2, 100);
+    return static_cast<float>(sight_percent) * viewing_distance * g_movement_speed_step_005ed490;
 }
 
 /* Drop every visibility record anyone held about one departing monster. */
@@ -436,7 +564,8 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
 
                         entry->line_of_sight_28 = line_of_sight;
                         if (line_of_sight != 0) {
-                            unsigned char can_see = Function5058A0(monster_info, other, entry);
+                            unsigned char can_see =
+                                CanMonsterSeeMonster(monster_info, other, entry);
 
                             entry->flag_0b = can_see;
                             if (can_see != 0) {
@@ -568,7 +697,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                 fade_flag = 0;
             }
             {
-                float threshold = Function505A40(
+                float threshold = ComputeSightThreshold(
                     own_x, own_y, own_z, camera_position.x, camera_position.y, camera_position.z,
                     yaw, monster_info->converted_attributes_247[4], fade_flag,
                     monster_info->condition_turns[0xc] != 0, record->kind_0cb == 0xc,
@@ -668,7 +797,7 @@ after_sight:
 
                     if (row->occupied != 0 && character->hp_current != 0 &&
                         character->highest_condition < 0xf) {
-                        float threshold = Function505A40(
+                        float threshold = ComputeSightThreshold(
                             camera_position.x, camera_position.y, camera_position.z, own_x, own_y,
                             own_z, yaw, character->attributes[6].effective,
                             static_cast<unsigned char>(character->skills[15].level),
