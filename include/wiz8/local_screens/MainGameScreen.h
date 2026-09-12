@@ -306,14 +306,19 @@ public:
 // VTABLE: WIZ8 0x005eebd8
 class W8MainGameScreen : public W8MainGameScreenBase005EEBDC, public W8TextControl::Listener {
 public:
-    W8MainGameScreen(void* owner); /* 0x00589160 */
-    ~W8MainGameScreen();           /* 0x005894B0 */
+    W8MainGameScreen(Trigger* owner); /* 0x00589160 */
+    ~W8MainGameScreen();              /* 0x005894B0 */
     virtual void SelectTextEntry(int index) override;
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSecondary(W8TextControl*) override {}
-    void RefreshActionPanel(); /* 0x00589D90 */
+    void Update();                           /* 0x00589A80 */
+    void RefreshActionPanel();               /* 0x00589D90 */
+    void EnablePanelRegionSets(bool enable); /* 0x0058A030 */
+    void ApplyInspectSuccess();              /* 0x0058A060 */
+    void CastTrapSpell();                    /* 0x0058A200 */
+    void UseTrapItem();                      /* 0x0058A3E0 */
 
-    void* m_owner_008;
+    Trigger* m_owner_008;
     W8MainGameTextPanel* m_text_panel_00c;
     W8MainGameStatusPanel005EEBC0* m_status_panel_010;
     Controls* m_action_panel_014;
@@ -459,6 +464,7 @@ void Function5777C0(void);
 void Function587510(int value);
 void Function5879A0(int);
 void Function58A470(int value);
+void UpdateMainGameScreen(void); /* 0x0058A750 */
 void Function58A790(int);
 void Function595600(void);
 int GetPartySlotSkill10Level(int slot);
