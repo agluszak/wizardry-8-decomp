@@ -18,7 +18,13 @@
 #include "timer.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_code/Strings.h"
+#include "wiz8/engine_code/Video2.h"
+#include "wiz8/notices.h"
+#include "wiz8/regions.h"
+#include "sgp.h"
 #undef S32
 #undef U32
 #include "bink.h"
@@ -28,12 +34,21 @@ extern unsigned char IsSoundPlaying(int sound_handle);
 extern unsigned char StopSound(int sound_handle);
 extern void QueueGameplayEvent(int event_type, int party_slot);
 extern void SetFlag68C500(unsigned char value);
-extern void Function524BD0(W8NpcState* npc, char* output);
-extern void Function524CA0(W8NpcState* npc);
-extern void Function525110(W8NpcState* npc, unsigned char value);
-extern void Function525FA0(int event_type, unsigned char value);
-extern int Function525E60(wchar_t* text);
+extern void FormatNpcVoiceSoundPath(W8NpcState* npc, char* output);
+extern void ReloadNpcScriptResources(W8NpcState* npc);
+extern void BeginNpcScriptDialogue(W8NpcState* npc, unsigned char value);
+extern void RunNpcScriptLine(int event_type, unsigned char value);
+extern int ComputePortraitMessageDuration(wchar_t* text);
 extern void Function5E2D10(char* path, int* gap_data);
+extern int LayoutPortraitQuoteBubble(int surface_handle, unsigned char param_2,
+                                     unsigned char param_3, const wchar_t* text,
+                                     unsigned int max_width, int param_6, int param_7, int param_8,
+                                     unsigned short* out_width, unsigned short* out_height,
+                                     unsigned int font_palette);
+extern unsigned char ReleasePortraitQuoteBubble(int quote_handle);
+extern void RefreshSelectedPartyPortrait(unsigned int party_slot);
+extern const wchar_t* FormatPortraitQuoteNoticeText(int quote_handle, int channel, int scroll_range,
+                                                    const void* unused);
 
 #include <stdio.h>
 #include <wchar.h>
@@ -397,7 +412,7 @@ unsigned char W8StartupStateElement005EE748::PlayEventSound()
     } else {
         npc = GetNpcState(npc_index);
         if (npc != 0) {
-            Function524BD0(npc, npc_sound_name);
+            FormatNpcVoiceSoundPath(npc, npc_sound_name);
             sprintf(sound_path, "Data\\Sound\\PCs\\%s\\%s_%03d.wav", npc_sound_name, npc_sound_name,
                     sound_event);
         }
@@ -412,9 +427,10 @@ unsigned char W8StartupStateElement005EE748::PlayEventSound()
     if (sound_handle == 0xffffffff) {
         if (type_08 > 0x91) {
             static const wchar_t kFallbackVoiceText[] = L"Ouch play this sound";
-            record->field_081 = Function525E60(const_cast<wchar_t*>(kFallbackVoiceText));
+            record->field_081 =
+                ComputePortraitMessageDuration(const_cast<wchar_t*>(kFallbackVoiceText));
         } else {
-            record->field_081 = Function525E60(g_character_text_0068c580);
+            record->field_081 = ComputePortraitMessageDuration(g_character_text_0068c580);
         }
         return 1;
     }
@@ -500,7 +516,7 @@ unsigned char DispatchQueuedCharacterEvent(W8StartupStateElement005EE748* entry)
         return 0;
     }
     if (event_type == 51) {
-        Function577880(0);
+        SetNpcDialoguePanelVisible(0);
     }
     party_row = &g_status_685170.buffers.party_rows[party_slot];
     npc_index = party_row->animation_0fa;
@@ -518,14 +534,14 @@ unsigned char DispatchQueuedCharacterEvent(W8StartupStateElement005EE748* entry)
         if ((entry->flags_10 & 0x40) != 0) {
             SetFlag68C500(1);
             ReleaseRecordFile0055A0A0(npc->record_file);
-            Function524CA0(npc);
+            ReloadNpcScriptResources(npc);
         }
-        Function525110(npc, 1);
-        Function525FA0(event_type, (entry->flags_10 & 0x40) != 0);
+        BeginNpcScriptDialogue(npc, 1);
+        RunNpcScriptLine(event_type, (entry->flags_10 & 0x40) != 0);
         if ((entry->flags_10 & 0x40) != 0) {
             SetFlag68C500(0);
             ReleaseRecordFile0055A0A0(npc->record_file);
-            Function524CA0(npc);
+            ReloadNpcScriptResources(npc);
         }
         record->field_071 = entry;
         RecordDispatchedCharacterEvent(party_slot, entry->type_08);
@@ -538,10 +554,8 @@ unsigned char DispatchQueuedCharacterEvent(W8StartupStateElement005EE748* entry)
         RecordDispatchedCharacterEvent(party_slot, entry->type_08);
         event_type = entry->type_08;
         if (event_type < 0x92) {
-            Function52F890(party_slot, 1, event_type,
-                           reinterpret_cast<int>(g_character_text_0068c580),
-                           1 - ((entry->flags_10 & g_event_flags_mask_005ed8e4) !=
-                                0)); // reinterpret-ok: wide buffer passed as integer argument
+            SetPartyPortraitEventState(party_slot, 1, event_type, g_character_text_0068c580,
+                                       1 - ((entry->flags_10 & g_event_flags_mask_005ed8e4) != 0));
             record->field_071 = entry;
             *reinterpret_cast<unsigned int*>(party_row->unknown_ff) =
                 event_type; // reinterpret-ok: party-row event-type dword at +0xff
@@ -550,7 +564,7 @@ unsigned char DispatchQueuedCharacterEvent(W8StartupStateElement005EE748* entry)
                 event_type; // reinterpret-ok: retail stores beside portrait-range dword
             return 1;
         }
-        Function52F890(party_slot, 1, event_type, 0, 1);
+        SetPartyPortraitEventState(party_slot, 1, event_type, 0, 1);
         *reinterpret_cast<unsigned int*>(reinterpret_cast<unsigned char*>(&record->field_113) + 1) =
             event_type; // reinterpret-ok: retail stores beside portrait-range dword
         return 1;
@@ -575,6 +589,205 @@ unsigned char DispatchQueuedCharacterEvent(W8StartupStateElement005EE748* entry)
         gXStatus.pStartupRuntime->unknown_60 = SetCountdownClock(Random(60000) + 300000);
     }
     return 0;
+}
+
+/* 0x0052F890: turn a party-slot portrait/voice event on or off, optionally
+   laying out the quote bubble and posting subtitle notices when one ends. */
+// FUNCTION: WIZ8 0x0052F890
+void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
+                                unsigned int event_type, const void* quote_text, int show_quote)
+{
+    // clang-format off
+    W8MonsterManagerEntry* record = &gXStatus.monster_manager_entries[party_slot];
+    unsigned char* bubble = record->unknown_016;
+    char* character_bytes = reinterpret_cast<char*>(g_status_685170.buffers.characters); // reinterpret-ok: serialized party-character stride base
+    int* quote_handle = reinterpret_cast<int*>(bubble + 3); // reinterpret-ok: quote-bubble handle in portrait record
+    short* bubble_x = reinterpret_cast<short*>(bubble + 7); // reinterpret-ok: quote-bubble x in portrait record
+    short* bubble_y = reinterpret_cast<short*>(bubble + 9); // reinterpret-ok: quote-bubble y in portrait record
+    short* bubble_width = reinterpret_cast<short*>(bubble + 0xb); // reinterpret-ok: quote-bubble width in portrait record
+    short* bubble_height = reinterpret_cast<short*>(bubble + 0xd); // reinterpret-ok: quote-bubble height in portrait record
+    char* portrait_quote_tables = reinterpret_cast<char*>(g_pose_transition_table_0061cb44); // reinterpret-ok: portrait quote tables precede pose transitions
+
+    if (record->field_000 == active) {
+        return;
+    }
+
+    if (active == 0) {
+        record->field_000 = 0;
+        if (gfCapturingVideo != 0) {
+            return;
+        }
+        record->field_075 = record->field_079;
+        record->field_079 = 6;
+        record->field_09b = 1;
+        int pc_slot = RPCPtrToPCSlot(record);
+        record->field_099 = 0;
+        unsigned int highest_condition = *reinterpret_cast<unsigned int*>(character_bytes + pc_slot * W8_CHARACTER_SERIALIZED_SIZE + 0xb01); // reinterpret-ok: serialized character highest_condition
+        if (highest_condition < 0xf && gXStatus.fSurprisePossible == 0) {
+            if (record->field_08d != 1) {
+                record->field_08d = 1;
+            }
+        } else {
+            record->field_08d = 2;
+        }
+        if (*quote_handle == -1) {
+            record->field_000 = active;
+            return;
+        }
+        unsigned int stored_event = *reinterpret_cast<unsigned int*>(reinterpret_cast<unsigned char*>(&record->field_113) + 1); // reinterpret-ok: retail stores beside portrait-range dword
+        unsigned int mapped_event = stored_event;
+        if ((int)g_last_event_005ee70c < (int)mapped_event) {
+        show_deactivate_quote:
+            wchar_t formatted[100];
+            const wchar_t* character_name = reinterpret_cast<const wchar_t*>(character_bytes + party_slot * W8_CHARACTER_SERIALIZED_SIZE + 5); // reinterpret-ok: serialized character name at retail offset
+            swprintf(formatted, L"%s", character_name);
+            int scroll_range = GetTextBoxScrollRange();
+            ShowNotice(1, formatted, 3, scroll_range, 0);
+            const wchar_t* suffix =
+                FormatPortraitQuoteNoticeText(*quote_handle, 3, scroll_range, 0);
+            ShowNotice(0xf, suffix);
+        } else {
+            if (g_first_remapped_event_005ee718 <= mapped_event) {
+                mapped_event =
+                    (g_last_event_005ee70c - g_first_remapped_event_005ee718) + mapped_event;
+            }
+            if (reinterpret_cast<const unsigned char*>(&g_character_event_descriptors_005ee000[mapped_event])[6] != 0) { // reinterpret-ok: retail deactivate-quote flag byte at descriptor+6
+                goto show_deactivate_quote;
+            }
+        }
+        ReleasePortraitQuoteBubble(*quote_handle);
+        if (g_current_screen_state.id == W8_SCREEN_CAMP ||
+            (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block->flag_327 == 0)) {
+            int left = *bubble_x;
+            int top = *bubble_y;
+            ClearSurfaceRect(left, top, *bubble_width + left, *bubble_height + top);
+            InvalidateRegion(left, top, *bubble_width + left, *bubble_height + top, 0);
+        }
+        RegionSetDisable(party_slot + 0x1d);
+        DisableRegionSetInput(party_slot + 0x1d);
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+            RequestRedraw(0x8000);
+            RequestRedrawParty();
+            record->field_000 = 0;
+            return;
+        }
+        if (g_current_screen_state.id == W8_SCREEN_CAMP) {
+            g_camp_screen_0069c0f4->redraw_flags |= 0x0fffffff;
+        }
+        record->field_000 = active;
+        return;
+    }
+
+    record->field_000 = 1;
+    if (gfCapturingVideo != 0) {
+        return;
+    }
+    record->field_075 = record->field_079;
+    record->field_079 = 7;
+    record->field_09b = 1;
+    record->field_07d = SetCountdownClock(0x78);
+    int pose_category;
+    if ((int)g_last_event_005ee70c < (int)event_type) {
+        pose_category = 1;
+    } else {
+        unsigned int mapped_event = event_type;
+        if (g_first_remapped_event_005ee718 <= event_type) {
+            mapped_event = (g_last_event_005ee70c - g_first_remapped_event_005ee718) + event_type;
+        }
+        pose_category = g_character_event_descriptors_005ee000[mapped_event].category_00;
+    }
+    int pc_slot = RPCPtrToPCSlot(record);
+    record->field_099 = 0;
+    unsigned int highest_condition = *reinterpret_cast<unsigned int*>(character_bytes + pc_slot * W8_CHARACTER_SERIALIZED_SIZE + 0xb01); // reinterpret-ok: serialized character highest_condition
+    if (highest_condition < 0xf && gXStatus.fSurprisePossible == 0) {
+        if (record->field_08d != pose_category) {
+            record->field_08d = pose_category;
+        }
+    } else {
+        record->field_08d = 2;
+    }
+    if (quote_text == 0 || show_quote == 0) {
+        bubble[3] = 0xff;
+        bubble[4] = 0xff;
+        bubble[5] = 0xff;
+        bubble[6] = 0xff;
+    } else {
+        unsigned char layout_quote = 0;
+        unsigned char use_modal_gate = 0;
+        if ((int)g_last_event_005ee70c < (int)event_type) {
+            use_modal_gate = 1;
+        } else {
+            unsigned int mapped_event = event_type;
+            if (g_first_remapped_event_005ee718 <= event_type) {
+                mapped_event =
+                    (g_last_event_005ee70c - g_first_remapped_event_005ee718) + event_type;
+            }
+            if (g_character_event_descriptors_005ee000[mapped_event].defer_off_char_screen_05 !=
+                0) {
+                use_modal_gate = 1;
+            } else if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+                use_modal_gate = 1;
+            } else {
+                layout_quote = 1;
+            }
+        }
+        if (use_modal_gate != 0) {
+            if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && IsModalOpen() == 0) {
+                layout_quote = 1;
+            }
+        }
+        if (layout_quote == 0 || g_settings_6850c8.pc_subtitles == 0) {
+            bubble[3] = 0xff;
+            bubble[4] = 0xff;
+            bubble[5] = 0xff;
+            bubble[6] = 0xff;
+        } else {
+            unsigned short width;
+            unsigned short height;
+            *quote_handle =
+                LayoutPortraitQuoteBubble(-1, 0, 0, static_cast<const wchar_t*>(quote_text), 200, 0,
+                                          0, 0, &width, &height, 0xffffffff);
+            *bubble_width = static_cast<short>(width);
+            *bubble_height = static_cast<short>(height);
+            if (g_current_screen_state.id == W8_SCREEN_CAMP) {
+                if (static_cast<int>(party_slot) == g_rcs_mode_0064cbe8) {
+                    bubble[7] = 10;
+                    bubble[8] = 1;
+                    bubble[9] = 8;
+                    bubble[10] = 0;
+                } else {
+                    *bubble_x = static_cast<short>(((party_slot & 1) * 0x30) + 0x36);
+                    *bubble_y = static_cast<short>((party_slot >> 1) * 0x27 + 5);
+                }
+                g_camp_screen_0069c0f4->redraw_flags |= 0x0fffffff;
+            } else {
+                unsigned short base_x = *reinterpret_cast<unsigned short*>(portrait_quote_tables - 8 + party_slot * 2); // reinterpret-ok: portrait quote x table at 0x0061cb3c
+                *bubble_x = base_x;
+                *bubble_y = *reinterpret_cast<unsigned short*>(portrait_quote_tables + party_slot * 2 + 8); // reinterpret-ok: portrait quote y table beside pose transitions
+                if ((party_slot & 1) == 1) {
+                    *bubble_x = static_cast<short>(base_x - *bubble_width + 200);
+                }
+                if (*bubble_y + *bubble_height > 0x165) {
+                    *bubble_y = static_cast<short>(0x165 - *bubble_height);
+                }
+            }
+            unsigned short x = *bubble_x;
+            unsigned short y = *bubble_y;
+            SetRegionBounds(party_slot + 0x12e, x, y, x + *bubble_width, *bubble_height + y);
+            RegionSetEnable(party_slot + 0x1d);
+            EnableRegionSetInput(party_slot + 0x1d);
+        }
+    }
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_settings_6850c8.field_006 != 0 &&
+        g_level_block->party_bytes_109[party_slot] == 0 &&
+        event_type != static_cast<unsigned int>(g_special_event_0068c568)) {
+        RefreshSelectedPartyPortrait(party_slot);
+        record->field_0cf = 1;
+        record->field_000 = active;
+        return;
+    }
+    record->field_000 = active;
+    // clang-format on
 }
 
 /* 0x0052D0B0: format one character quote for the given event type into the
@@ -727,7 +940,7 @@ void W8StartupStateElement005EE748::Process0052CED0()
             handled_00 = 1;
             StopSound(slot->field_001);
         }
-        Function52F890(party_slot, 0, -1, 0, 1);
+        SetPartyPortraitEventState(party_slot, 0, static_cast<unsigned int>(-1), 0, 1);
     }
     if (type_08 == 23 || type_08 == 24) {
         if ((flags_10 & 0x40) == 0) {
@@ -805,7 +1018,8 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
             }
         }
     }
-    if ((Function525DF0(0) != 0 || Function525DD0() != 0) && (entry->flags_10 & 8) == 0) {
+    if ((ShouldDeferCharacterEventForNpcScript(0) != 0 || IsNpcScriptSessionActive() != 0) &&
+        (entry->flags_10 & 8) == 0) {
         vector_30.Add(entry);
         return 1;
     }
@@ -899,7 +1113,7 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
 }
 
 // FUNCTION: WIZ8 0x0052E470
-unsigned char __fastcall Function52E470(W8StartupRuntimeState* state)
+unsigned char __fastcall StartupRuntimeDeferredQueueEmpty(W8StartupRuntimeState* state)
 {
     return *reinterpret_cast<const int*>(reinterpret_cast<const char*>(state) + 0x14) <= 0;
 }
@@ -942,7 +1156,8 @@ int UpdateCharacterEventState(void)
             if (record->field_001 == -1) {
                 if (record->field_081 == 0) {
                     if (record->field_071 == 0) {
-                        Function52F890(party_slot, 0, -1, 0, 1);
+                        SetPartyPortraitEventState(party_slot, 0, static_cast<unsigned int>(-1), 0,
+                                                   1);
                     } else {
                         gXStatus.pStartupRuntime->ProcessOwnedEntry(record->field_071);
                     }
@@ -1108,7 +1323,8 @@ void W8StartupRuntimeState::ProcessQueuedCharacterEvents()
     if (gXStatus.fSurprisePossible != 0) {
         return;
     }
-    if (vector_30.count > 0 && Function525DF0(0) == 0 && Function525DD0() == 0) {
+    if (vector_30.count > 0 && ShouldDeferCharacterEventForNpcScript(0) == 0 &&
+        IsNpcScriptSessionActive() == 0) {
         pending_count = vector_30.count;
         for (index = 0; index < pending_count; ++index) {
             pending = vector_30.data;

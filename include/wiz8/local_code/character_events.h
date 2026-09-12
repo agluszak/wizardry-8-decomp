@@ -36,8 +36,9 @@ extern int g_effect_argument_005ed8c8;
 extern int g_effect_argument_005ed914;
 
 /* True when no occupied party slot has an active portrait/voice record. */
-unsigned char PartyPortraitEventsIdle(void);                           /* 0x0052E590 */
-unsigned char __fastcall Function52E470(W8StartupRuntimeState* state); /* 0x0052E470 */
+unsigned char PartyPortraitEventsIdle(void); /* 0x0052E590 */
+unsigned char __fastcall
+StartupRuntimeDeferredQueueEmpty(W8StartupRuntimeState* state); /* 0x0052E470 */
 int ApplyItemEffectToRandomCharacter0052E5C0(unsigned int item_id, int character_filter,
                                              int value_3, int value_4);
 unsigned char CharacterHasEffect(void* effect, int party_slot); /* 0x0052DD90 */
@@ -48,5 +49,6 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot); /* 0x0052F060 */
 void Function52F110(int party_slot);
 void Function52F430(void* character);
 void Function52F790(void* character, int condition);
-void Function52F890(int party_slot, int value_1, int value_2, int value_3, int value_4);
+void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
+                                unsigned int event_type, const void* quote_text, int show_quote);
 void PostCharacterMessage(int party_slot, const wchar_t* format, ...);
