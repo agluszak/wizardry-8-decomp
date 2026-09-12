@@ -20,8 +20,12 @@ public:
     public:
         Vertex();
 
-    private:
-        unsigned char unknown_00_[0x110];
+        /* stCube.cpp writes the modelled position and the first of the eight
+           UV slots the Polygon constructor layout-initializes at +0xC0. */
+        srVector3T<float> position_00;
+        unsigned char unknown_0c_[0xb4];
+        srVector2T<float> uv_c0[8];
+        unsigned char unknown_100_[0x10];
     };
 
     class Polygon {
@@ -29,9 +33,10 @@ public:
         Polygon(int vertices);
         ~Polygon();
 
-    private:
         unsigned char unknown_00_[0x20];
         srShader shaders_20[4];
+        /* Engine Code\stCube.cpp assigns positions and UVs through this table
+           after Polygon(4) allocates it. */
         Vertex* vertices_30;
         int vertex_count_34;
         unsigned long unknown_38_;

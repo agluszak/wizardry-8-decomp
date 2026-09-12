@@ -21,6 +21,7 @@ public:
     virtual unsigned long getTextureFrameHandle() override;
     virtual void getMipmapData(MultiRequest& request) override;
     void setSurfacePtr(srColorSurfaceIFace* surface);
+    srColorSurfaceIFace* getSurfacePtr() const;
     virtual void invalidate() override;
 
 protected:

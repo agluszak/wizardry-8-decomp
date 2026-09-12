@@ -16,7 +16,8 @@ public:
         return "stMeshModel";
     }
 
-    stMeshModel(long polygons, long vertices); /* 0x00470B00 */
+    // FUNCTION: WIZ8 0x00470B00
+    stMeshModel(long polygons, long vertices);
 
     int FindMappedIndex(short key); /* 0x004712D0 */
     void SetMappedVertex00471160(short vertex, short key);
@@ -68,3 +69,8 @@ public:
 static_assert(sizeof(stMeshModel) == 0x464, "stMeshModel_size_must_be_0x464");
 
 int FindMappedIndexInMeshChain(stMeshModel** mesh, int key); /* 0x004A8D10 */
+/* Copy `count` dwords when the buffers differ. Callers pass 3*n for vec3
+   arrays. Retail CALLINDs vp+0x10 (the byte-fill _memcopy); the void*
+   facade binds +0x0c. */
+void CopyDwordBuffer00470180(void* destination, const void* source, int count);
+*/

@@ -20,6 +20,15 @@
  * well: its vtable sits immediately after the mesh-model vector vftables.
  */
 
+/* Copy `count` dwords between distinct buffers through the imported vp. */
+// FUNCTION: WIZ8 0x00470180
+void CopyDwordBuffer00470180(void* destination, const void* source, int count)
+{
+    if (count != 0 && destination != source) {
+        srVectorProcessor::memcopy(destination, source, count << 2);
+    }
+}
+
 // FUNCTION: WIZ8 0x00473fa0
 void stMeshModel::ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* excluded_textures)
 {

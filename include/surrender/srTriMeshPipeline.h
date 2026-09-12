@@ -97,6 +97,11 @@ public:
     const unsigned long* value_2c;
     const srVector4T<float>* value_30;
     const srVector3i* value_34;
+    /* stParticle stores allocation_160 (vec3*) here; Reset/Get null it.
+       FlushSlots00475600 then CALLINDs vp+0x18c (_minMax vec4) with this
+       pointer and the packed vec3 min/max at +0x44/+0x50. Stores and the
+       xyz-only center math keep these as vec3; the vec4 slot is recorded,
+       not a reason to widen the fields. */
     const srVector3T<float>* value_38;
     const void* value_3c;
     unsigned long value_40;
