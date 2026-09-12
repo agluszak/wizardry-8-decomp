@@ -315,10 +315,25 @@ srCamera* CreateOrSetGameCamera(srNode* parent, srCamera* camera)
     return g_gd_camera_65a0f8->CreateOrAttachCamera(parent, camera);
 }
 
+// GLOBAL: WIZ8 0x005ebcf0
+const float g_float_005ebcf0 = 57.295784f;
+
+// FUNCTION: WIZ8 0x00420dc0
+float GetCameraYawInDegrees()
+{
+    return g_gd_camera_65a0f8->m_yaw * g_float_005ebcf0;
+}
+
 // FUNCTION: WIZ8 0x00420DD0
 float GetCameraYawRadians()
 {
     return g_gd_camera_65a0f8->m_yaw;
+}
+
+// FUNCTION: WIZ8 0x00420de0
+float GetCameraPitchInDegrees()
+{
+    return g_gd_camera_65a0f8->m_pitch * g_float_005ebcf0;
 }
 
 // FUNCTION: WIZ8 0x00420DF0
@@ -371,6 +386,25 @@ void ApplyCameraRotation(srMatrix3T<float>* rotation)
 void GetCameraPosition(srVector3T<float>* position)
 {
     *position = g_gd_camera_65a0f8->m_position_08c;
+}
+
+/* Zero two six-float angle records, then write GDCamera yaw into the first
+   and pitch into the second. GetWorldCameraState packs them at CamPos +0x24
+   and +0x0c; mouselook and the same-level reload keep them as standalone
+   locals. */
+// FUNCTION: WIZ8 0x004213a0
+void GetCameraAngleRecords(float* yaw_record, float* pitch_record)
+{
+    int i;
+
+    for (i = 0; i < 6; ++i) {
+        yaw_record[i] = 0.0f;
+    }
+    for (i = 0; i < 6; ++i) {
+        pitch_record[i] = 0.0f;
+    }
+    yaw_record[0] = g_gd_camera_65a0f8->m_yaw;
+    pitch_record[0] = g_gd_camera_65a0f8->m_pitch;
 }
 
 // FUNCTION: WIZ8 0x004213E0

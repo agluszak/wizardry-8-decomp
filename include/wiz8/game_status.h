@@ -69,7 +69,9 @@ struct W8GlobalStatus {
     unsigned char status_header_block_1904[0x100];
     W8LevelProgressRow level_progress[47];
     unsigned char unknown_2013[0x294];
-    W8SavedLocation pending_move_location;
+    /* 0x22a7: CamPos staged by recall when the anchor is on another level;
+       LoadLevel restores it after the new world exists. */
+    W8CamPos pending_move_location;
     /* 0x22e3: the party-wide modifier block the effect rebuild clears and
        refills. Its +0x4a flag is the light gate the monster-sight threshold
        pass reads. */
@@ -162,6 +164,8 @@ static_assert(offsetof(W8GlobalStatus, party_facing) == 0x18d0,
               "W8GlobalStatus_party_facing_offset");
 static_assert(offsetof(W8GlobalStatus, current_level) == 0x1900,
               "W8GlobalStatus_current_level_offset");
+static_assert(offsetof(W8GlobalStatus, pending_move_location) == 0x22a7,
+              "W8GlobalStatus_pending_move_location_offset");
 static_assert(offsetof(W8GlobalStatus, formation) == 0x23a1, "W8GlobalStatus_formation_offset");
 static_assert(offsetof(W8GlobalStatus, value_2390) == 0x2390, "W8GlobalStatus_value_2390_offset");
 static_assert(offsetof(W8GlobalStatus, selected_party_member_2434) == 0x2434,

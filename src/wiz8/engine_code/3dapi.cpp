@@ -27,6 +27,9 @@
 #include "wiz8/engine_code/quad.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/Levels.h"
+#include "wiz8/engine_code/Navigator.h"
+#include "wiz8/startup_world.h"
 #include "wiz8/engine_code/stLight.h"
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/spell_effect.h"
@@ -669,6 +672,96 @@ void WorldSetCameraLocation(W8World* world, const float* location)
         position.z = location[2];
         ((srNode*)world->camera_light)->setLocation(position);
     }
+}
+
+/* Apply a CamPos to this world's camera and camera light. Assertions at
+   3dapi.cpp:1087, 1092 and 1102 name pWorld and CamPos. The source-world
+   orientation rewrite sits after the pWorld join, so automap restore can
+   pass null and skip it. */
+// FUNCTION: WIZ8 0x004504b0
+void ApplyWorldCamPos(W8World* world, W8World* source, W8CamPos* state)
+{
+    srVector3T<float> position;
+    srVector3T<double> render_position;
+    srMatrix3T<float> rotation;
+
+    if (!world) {
+        srAssertFail("pWorld", THREE_D_API_CPP, 0x43f, 0);
+    } else {
+        if (!state) {
+            srAssertFail("CamPos", THREE_D_API_CPP, 0x444, 0);
+        }
+        position = state->position;
+        if (world->camera != 0) {
+            render_position.x = position.x;
+            render_position.y = position.y;
+            render_position.z = position.z;
+            ((srNode*)world->camera)->setLocation(render_position);
+            PlacePartyAtPoint(&position);
+        }
+        if (world->camera_light != 0) {
+            render_position.x = position.x;
+            render_position.y = position.y;
+            render_position.z = position.z;
+            ((srNode*)world->camera_light)->setLocation(render_position);
+        }
+        world->camera->getRotation(rotation);
+        SetCameraOrientation(state->yaw_record, state->pitch_record, &rotation);
+        world->camera->setRotation(rotation);
+    }
+    if (source != 0) {
+        if (!state) {
+            srAssertFail("CamPos", THREE_D_API_CPP, 0x44e, 0);
+        }
+        world->camera->getRotation(rotation);
+        SetCameraOrientation(state->yaw_record, state->pitch_record, &rotation);
+        world->camera->setRotation(rotation);
+    }
+}
+
+/* Restore the saved CamPos onto the world camera, then copy the resulting
+   view into the party navigator. 3dapi.cpp:1131 names pWorld. */
+// FUNCTION: WIZ8 0x00450610
+void RestoreWorldCameraState(W8World* world, W8World* source, W8CamPos* state)
+{
+    srVector3T<double> world_location;
+    srVector3T<float> location;
+
+    if (!world) {
+        srAssertFail("pWorld", THREE_D_API_CPP, 0x46b, 0);
+    }
+    ApplyWorldCamPos(world, source, state);
+    world_location = world->camera->getLocation();
+    location.x = (float)world_location.x;
+    location.y = (float)world_location.y;
+    location.z = (float)world_location.z;
+    g_startup_world_659c0c->SetAngles004538F0(GetCameraYawInDegrees());
+    g_startup_world_659c0c->SetPitch(GetCameraPitchInDegrees());
+    location.y = location.y - g_default_world_height_00603ac8;
+    g_startup_world_659c0c->SetPositionInternal00453590(&location);
+}
+
+/* Snapshot the world's camera into CamPos. 3dapi.cpp:1160 names CamPos. */
+// FUNCTION: WIZ8 0x004506c0
+void GetWorldCameraState(W8World* world, W8CamPos* state)
+{
+    if (world == 0) {
+        return;
+    }
+    if (!state) {
+        srAssertFail("CamPos", THREE_D_API_CPP, 0x488, 0);
+    }
+    if (world->camera != 0) {
+        state->position.x = (float)world->camera->getLocationX();
+        state->position.y = (float)world->camera->getLocationY();
+        state->position.z = (float)world->camera->getLocationZ();
+        GetCameraAngleRecords(state->yaw_record, state->pitch_record);
+        return;
+    }
+    state->position.x = 0.0f;
+    state->position.y = 0.0f;
+    state->position.z = 0.0f;
+    GetCameraAngleRecords(state->yaw_record, state->pitch_record);
 }
 
 /* Read the camera node's double-precision renderer position back into the

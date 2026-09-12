@@ -4,6 +4,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/geometry.h"
+#include "wiz8/saved_location.h"
 #include "wiz8/vector.h"
 
 class srCamera;
@@ -52,18 +53,6 @@ struct W8WorldCameraEntry {
     unsigned char positional_14[4];
     W8PathAI* path;
 };
-
-/* The 0x3c-byte camera save/restore record. GetWorldCameraState at 0x00450610
-   and RestoreWorldCameraState at 0x004504b0 (3dapi.cpp:1087-1160) are still
-   unrecovered; assertions name pWorld and CamPos. The trailing 0x30 bytes are
-   two six-word angle records. W8SavedLocation is the same width with a leading
-   point, but no recovered producer copies one type onto the other, so they
-   stay distinct. */
-struct W8WorldCameraState {
-    srVector3T<float> position;
-    unsigned char angle_records[0x30];
-};
-static_assert(sizeof(W8WorldCameraState) == 0x3c, "W8WorldCameraState_size");
 
 static_assert(sizeof(W8WorldCameraEntry) == 0x1c, "W8WorldCameraEntry_must_be_0x1c");
 
@@ -139,8 +128,9 @@ float WorldGetValue78(W8World* world);
 double WorldGetFarClip(W8World* world);
 void WorldSetFarClip(W8World* world, float distance);
 void WorldSetValue74(W8World* world, float value);
-void GetWorldCameraState(W8World* world, W8WorldCameraState* state);
-void RestoreWorldCameraState(W8World* world, int mode, const W8WorldCameraState* state);
+void ApplyWorldCamPos(W8World* world, W8World* source, W8CamPos* state);
+void RestoreWorldCameraState(W8World* world, W8World* source, W8CamPos* state);
+void GetWorldCameraState(W8World* world, W8CamPos* state);
 void UpdateWorldMesh004BAF60(W8World* world);
 void WorldGetCameraRotation(W8World* world, srMatrix3T<float>* rotation);
 void WorldGetCameraLocation(W8World* world, srVector3T<float>* location);
@@ -158,7 +148,6 @@ static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");
 void SetWorld659AB8(W8World* world);
 
 void Function44E830(W8World* world, int handle);
-void MoveWorldToPoint(W8World* destination, W8World* source, const srVector3T<float>* point);
 void SetWorldEnvironmentValue00483AE0(W8World* world, float value);
 void Function48F280(W8World* world, const char* name, int active);
 Trigger* FindTriggerForProp00443830(W8World* world, W8Prop* prop);

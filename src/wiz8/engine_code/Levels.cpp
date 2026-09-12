@@ -532,8 +532,8 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
             SetWorldScenePosition004511D0(GetWorld(), &position);
         }
     } else {
-        MoveWorldToPoint(GetWorld(), GetWorld659AB8(),
-                         &g_status_685170.pending_move_location.point);
+        RestoreWorldCameraState(GetWorld(), GetWorld659AB8(),
+                                &g_status_685170.pending_move_location);
     }
 
     if (level < 47 && !g_status_685170.level_progress[level].visited) {

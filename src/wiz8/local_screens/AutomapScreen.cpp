@@ -111,7 +111,7 @@ EnvironmentColour g_automap_saved_ambient_light;
 // GLOBAL: WIZ8 0x0068f150
 unsigned char g_automap_saved_sky;
 // GLOBAL: WIZ8 0x0068f154
-W8WorldCameraState g_automap_saved_camera;
+W8CamPos g_automap_saved_camera;
 // GLOBAL: WIZ8 0x0068f190
 float g_automap_saved_far_clip;
 // GLOBAL: WIZ8 0x0068f194
