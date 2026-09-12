@@ -16,6 +16,7 @@
 #include "surrender/srCore.h"
 #include "surrender/srFog.h"
 #include "surrender/srMaterial.h"
+#include "surrender/srVertexPipe.h"
 #include "surrender/srNode.h"
 #include "surrender/srCamera.h"
 #include "surrender/srScene.h"

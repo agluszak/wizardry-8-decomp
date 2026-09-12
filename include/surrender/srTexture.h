@@ -39,8 +39,7 @@ protected:
     Dimensions texture_dimensions_;              /* 0x20 */
     srClass* texture_filter_;                    /* 0x28 */
     srPixelConvert::PixelFormat surface_format_; /* 0x2c */
-    unsigned char unknown_30_[0x10];
-    unsigned long hints_40; /* 0x40 */
+    unsigned long hints_40;                      /* 0x40 */
     unsigned char unknown_44_[0x0c];
     unsigned long texture_flags_; /* 0x50 */
 };

@@ -100,8 +100,7 @@ private:
     unsigned long processor_heap_capacity_08;         /* 0x08 */
     unsigned long channel_mask_0c;                    /* 0x0c */
     unsigned long lazy_setup_mask_10;                 /* 0x10 */
-    srVertexProcessor::MaterialInfo material_info_14; /* 0x14 */
-    unsigned long extra_disable_mask_64;              /* 0x64 */
+    srVertexProcessor::MaterialInfo material_info_14; /* 0x14 through 0x67; flags at +0x64 */
     srMaterialIFace* material_68;                     /* 0x68 */
     const Input* input_6c;                            /* 0x6c */
     const unsigned long* avt_70;                      /* 0x70 */
