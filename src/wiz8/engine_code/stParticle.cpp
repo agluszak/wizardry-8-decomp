@@ -350,7 +350,10 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
 
         srMatrix3T<float> rotation;
         getWorldSpaceRotation(rotation);
-        velocity = rotation * direction;
+        velocity.x = rotation.vectors[0].x * direction.x + rotation.vectors[0].y * direction.y +
+                     rotation.vectors[0].z * direction.z;
+        velocity.y = DotProduct(rotation.vectors[1], direction);
+        velocity.z = DotProduct(rotation.vectors[2], direction);
         break;
     }
 
@@ -509,10 +512,11 @@ void stParticle::Update00499FA0()
                     float z = candidate.z - node_location.z;
                     distance = sqrt(x * x + y * y + z * z);
                 } else {
-                    srVector3T<float> center = rotation * value_234;
-                    center.x += node_location.x;
-                    center.y += node_location.y;
-                    center.z += node_location.z;
+                    float center_x = DotProduct(rotation.vectors[0], value_234);
+                    float center_y = DotProduct(rotation.vectors[1], value_234);
+                    float center_z = DotProduct(rotation.vectors[2], value_234);
+                    srVector3T<float> center(center_x + node_location.x, center_y + node_location.y,
+                                             center_z + node_location.z);
                     srVector3T<float> difference(candidate.x - center.x, candidate.y - center.y,
                                                  candidate.z - center.z);
                     distance = sqrt(difference.y * difference.y + difference.z * difference.z +
@@ -851,10 +855,10 @@ void stParticle::Function4994D0(srGERD* renderer)
             visibility = renderer->testBoundingSphere(position, value_278 * value_240);
         } else {
             getRotation(rotation);
-            srVector3T<float> center = rotation * extent;
-            center.x += position.x;
-            center.y += position.y;
-            center.z += position.z;
+            float x = DotProduct(rotation.vectors[0], extent);
+            float y = DotProduct(rotation.vectors[1], extent);
+            float z = DotProduct(rotation.vectors[2], extent);
+            srVector3T<float> center(x + position.x, position.y + y, position.z + z);
             visibility = renderer->testBoundingSphere(center, value_278 * value_240);
         }
         if (visibility == srGERD::VISIBILITY_POSITIONAL_0) {
@@ -864,15 +868,15 @@ void stParticle::Function4994D0(srGERD* renderer)
 
     if (value_1a4 == 1) {
         getRotation(rotation);
-        srVector3T<float> minimum = rotation * minimum_21c;
-        minimum.x += position.x;
-        minimum.y += position.y;
-        minimum.z += position.z;
+        float x = DotProduct(rotation.vectors[0], minimum_21c);
+        float y = DotProduct(rotation.vectors[1], minimum_21c);
+        float z = DotProduct(rotation.vectors[2], minimum_21c);
+        srVector3T<float> minimum(x + position.x, position.y + y, position.z + z);
 
-        srVector3T<float> maximum = rotation * maximum_228;
-        maximum.x += position.x;
-        maximum.y += position.y;
-        maximum.z += position.z;
+        x = DotProduct(rotation.vectors[0], maximum_228);
+        y = DotProduct(rotation.vectors[1], maximum_228);
+        z = DotProduct(rotation.vectors[2], maximum_228);
+        srVector3T<float> maximum(x + position.x, position.y + y, position.z + z);
 
         srGERD::e_visibility visibility = renderer->testBoundingBox(minimum, maximum);
         if (visibility == srGERD::VISIBILITY_POSITIONAL_0) {

@@ -163,8 +163,9 @@ void AdvanceEnvironmentTime00482A20(int elapsed)
     }
 
     srVector3T<float> position;
-    rotation.Transform(direction, position);
-    position += g_environment_origin_65ad88;
+    position.x = DotProduct(rotation.vectors[0], direction) + g_environment_origin_65ad88.x;
+    position.y = DotProduct(rotation.vectors[1], direction) + g_environment_origin_65ad88.y;
+    position.z = DotProduct(rotation.vectors[2], direction) + g_environment_origin_65ad88.z;
 
     W8Prop* moving = day ? g_environment_value_0065a160 : g_environment_value_0065ad84;
     W8Prop* opposite = day ? g_environment_value_0065ad84 : g_environment_value_0065a160;

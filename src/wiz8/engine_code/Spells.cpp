@@ -863,8 +863,9 @@ void stSound3D::BuildSoundOptions004AECC0(const srVector3T<float>* listener, SOU
     getLocation(node_position);
     offset = srVector3T<float>(node_position.x - listener->x, node_position.y - listener->y,
                                node_position.z - listener->z);
-    srVector3T<float> local;
-    rotation.Transform(offset, local);
+    float x = DotProduct(rotation.vectors[0], offset);
+    float y = DotProduct(rotation.vectors[1], offset);
+    float z = DotProduct(rotation.vectors[2], offset);
 
     memset(options, 0xff, sizeof(*options));
     srVector3T<float> listener_offset(listener->x - node_position.x, listener->y - node_position.y,
@@ -872,15 +873,15 @@ void stSound3D::BuildSoundOptions004AECC0(const srVector3T<float>* listener, SOU
     options->uiVolume = static_cast<unsigned int>(
         (g_float_005ebb38 - listener_offset.Length() / value_144) * volume);
     options->uiLoop = 1;
-    options->Pos.flX = local.x;
-    options->Pos.flY = local.y;
-    options->Pos.flZ = local.z;
+    options->Pos.flX = x;
+    options->Pos.flY = y;
+    options->Pos.flZ = z;
     options->Pos.flVelX = 0.0f;
     options->Pos.flVelY = 0.0f;
     options->Pos.flVelZ = 0.0f;
-    options->Pos.flFaceX = -local.x;
-    options->Pos.flFaceY = -local.y;
-    options->Pos.flFaceZ = -local.z;
+    options->Pos.flFaceX = -x;
+    options->Pos.flFaceY = -y;
+    options->Pos.flFaceZ = -z;
     options->Pos.flUpX = 0.0f;
     options->Pos.flUpY = g_float_005ebb38;
     options->Pos.flUpZ = 0.0f;

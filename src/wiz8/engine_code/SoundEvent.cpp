@@ -189,8 +189,9 @@ unsigned char W8SoundEvent::Play004D5A10(unsigned int mask, const srVector3T<flo
 
         srVector3T<float> offset(position->x - camera_position.x, position->y - camera_position.y,
                                  position->z - camera_position.z);
-        srVector3T<float> local;
-        rotation.Transform(offset, local);
+        float x = DotProduct(rotation.vectors[0], offset);
+        float y = DotProduct(rotation.vectors[1], offset);
+        float z = DotProduct(rotation.vectors[2], offset);
         SOUND3DPARMS options;
 
         memset(&options, 0xff, sizeof(options));
@@ -200,15 +201,15 @@ unsigned char W8SoundEvent::Play004D5A10(unsigned int mask, const srVector3T<flo
         if (event_volume != 0) {
             options.uiVolume = event_volume;
             options.uiLoop = (flag_025 == 0);
-            options.Pos.flX = local.x;
-            options.Pos.flY = local.y;
-            options.Pos.flZ = local.z;
+            options.Pos.flX = x;
+            options.Pos.flY = y;
+            options.Pos.flZ = z;
             options.Pos.flVelX = 0.0f;
             options.Pos.flVelY = 0.0f;
             options.Pos.flVelZ = 0.0f;
-            options.Pos.flFaceX = -local.x;
-            options.Pos.flFaceY = -local.y;
-            options.Pos.flFaceZ = -local.z;
+            options.Pos.flFaceX = -x;
+            options.Pos.flFaceY = -y;
+            options.Pos.flFaceZ = -z;
             options.Pos.flUpX = 0.0f;
             options.Pos.flUpY = g_float_005ebb38;
             options.Pos.flUpZ = 0.0f;

@@ -1098,7 +1098,10 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
         offset.x = offset.x * scale_x;
         offset.y = offset.y * scale_y;
         offset.z = offset.z * scale_z;
-        placed = rotation * offset;
+        placed.x = rotation.vectors[0].x * offset.x + rotation.vectors[0].y * offset.y +
+                   rotation.vectors[0].z * offset.z;
+        placed.y = DotProduct(rotation.vectors[1], offset);
+        placed.z = DotProduct(rotation.vectors[2], offset);
         location = current_model_instance_1a8->getLocation();
         placed.x = placed.x + (float)location.x;
         placed.y = (float)location.y + placed.y;

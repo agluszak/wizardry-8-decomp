@@ -151,10 +151,16 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
         surface_total += mesh->polygon_count_230;
 
         srVector3T<float>* source_vertices = mesh->getVertexLoc();
+        float* matrix = &world_matrix.vectors[0].x;
         for (int vertex = 0; vertex < mesh->vertex_location_count_22c; ++vertex) {
             srVector3T<float>* destination = &m_pVertices[vertex_base + vertex];
             srVector3T<float>* source = &source_vertices[vertex];
-            *destination = TransformPoint(world_matrix, *source);
+            destination->x =
+                source->x * matrix[0] + source->y * matrix[1] + source->z * matrix[2] + matrix[3];
+            destination->y =
+                source->x * matrix[4] + source->y * matrix[5] + source->z * matrix[6] + matrix[7];
+            destination->z =
+                source->x * matrix[8] + source->y * matrix[9] + source->z * matrix[10] + matrix[11];
         }
         vertex_base += mesh->vertex_location_count_22c;
 

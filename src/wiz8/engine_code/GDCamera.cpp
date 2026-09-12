@@ -1001,7 +1001,14 @@ void GDCamera::GetForwardPoint(float distance, srVector3T<float>* output)
     m_rotation = m_yaw_rotation;
     m_rotation.MultiplyBy(m_pitch_rotation);
     m_direction_078.Set(0.0f, 0.0f, 1.0f);
-    m_direction_078 = m_rotation * m_direction_078;
+    float x = m_rotation.vectors[0].x * m_direction_078.x +
+              m_rotation.vectors[0].y * m_direction_078.y +
+              m_rotation.vectors[0].z * m_direction_078.z;
+    float y = m_rotation.vectors[1].x * m_direction_078.x +
+              m_rotation.vectors[1].y * m_direction_078.y +
+              m_rotation.vectors[1].z * m_direction_078.z;
+    float z = DotProduct(m_rotation.vectors[2], m_direction_078);
+    m_direction_078.Set(x, y, z);
     *output = m_direction_078;
     output->SetLength(distance);
     *output += m_position_08c;

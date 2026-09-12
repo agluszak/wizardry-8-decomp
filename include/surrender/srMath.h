@@ -245,6 +245,11 @@ template <class T> T DotProduct(const srVector3T<T>& first, const srVector3T<T>&
     return first.x * second.x + first.y * second.y + first.z * second.z;
 }
 
+/* Matrix×vector as operator*(matrix, vector) and void Transform(in, out)
+   were trialed at SoundEvent, Spells, Environment, and ReadLevel. Neither
+   return-by-value nor the out-parameter improved two independent TUs;
+   call sites keep the three row DotProduct expansions. */
+
 /* Ordinary edge×edge cross. OctPath GetPathSurfaceNormal 0x0045b730 expands
    this; the Newell cyclic sum in the plane builders is a different helper. */
 template <class T>
@@ -339,7 +344,6 @@ public:
     srMatrix3T<T>* RotateAboutX(double sine, double cosine);
     srMatrix3T<T>* RotateAboutZ(double sine, double cosine);
     srMatrix3T<T>* RotateAroundAxis(double sine, double cosine, const srVector3T<T>& axis);
-    void Transform(const srVector3T<T>& vector, srVector3T<T>& out) const;
 
     srVector3T<T> vectors[3];
 };
@@ -485,28 +489,6 @@ srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double sine, double cosine,
     rotation.vectors[2] = basis[2];
     MultiplyBy(rotation);
     return this;
-}
-
-template <class T>
-void srMatrix3T<T>::Transform(const srVector3T<T>& vector, srVector3T<T>& out) const
-{
-    out.x = DotProduct(vectors[0], vector);
-    out.y = DotProduct(vectors[1], vector);
-    out.z = DotProduct(vectors[2], vector);
-}
-
-/* Row-wise matrix×vector: out.k = DotProduct(matrix.vectors[k], value).
-   Independent TUs: SoundEvent 0x004d5a10, Spells 0x004AECC0, Environment
-   0x00482a20, ReadLevel 0x004BD0D0, OctPath 0x00463460, Trigger 0x0043d940.
-   Particle/GrCycle/GDCamera sometimes lower row 0 as multiply-adds; that is
-   the same helper with partial inlining, not a second operator. No Wiz8 COMDAT.
-   Out-parameter Transform is the alias-safe in-place shape; operator* builds
-   a temporary and is used when the destination aliases the source. */
-template <class T> srVector3T<T> operator*(const srMatrix3T<T>& matrix, const srVector3T<T>& vector)
-{
-    srVector3T<T> result;
-    matrix.Transform(vector, result);
-    return result;
 }
 
 template <class T> class srMatrix4T {
@@ -656,20 +638,6 @@ template <class T> void srMatrix4T<T>::AdjugateFrom(T* source)
     fVar5 = fVar10 * fVar5 - fVar9 * fVar6;
     param_1[11] = -(fVar5 * fVar4 + (fVar14 * fVar1 - fVar8 * fVar2));
     param_1[15] = fVar5 * fVar3 + (fVar13 * fVar1 - fVar7 * fVar2);
-}
-
-/* Affine point transform (row 0-2, w=1). GDProp 0x004b7060 is the proven
-   consumer; stParticle 0x00499FA0 keeps the four-component homogeneous form
-   because retail also evaluates row 3. */
-template <class T>
-srVector3T<T> TransformPoint(const srMatrix4T<T>& matrix, const srVector3T<T>& point)
-{
-    const T* row = &matrix.vectors[0].x;
-    srVector3T<T> result;
-    result.x = point.x * row[0] + point.y * row[1] + point.z * row[2] + row[3];
-    result.y = point.x * row[4] + point.y * row[5] + point.z * row[6] + row[7];
-    result.z = point.x * row[8] + point.y * row[9] + point.z * row[10] + row[11];
-    return result;
 }
 
 float Det3(float param_1, float param_2, float param_3, float param_4, float param_5, float param_6,
