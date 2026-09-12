@@ -106,7 +106,10 @@ struct W8GlobalStatus {
     unsigned char selected_party_member_2434;
     /* 0x2435: read as a gate by the main-game frame's world-cursor path. */
     unsigned char value_2435;
-    unsigned char unknown_2436[0x0e];
+    unsigned char unknown_2436[4];
+    /* 0x243a: the five RPC race ids AssayDialog walks as NUM_RPC_RACES. */
+    unsigned char rpc_races_243a[5];
+    unsigned char unknown_243f[5];
     /* Character creation skips the loose CHR collision check when set. */
     unsigned char skip_loose_character_check_2444;
     unsigned char unknown_2445[2];
@@ -177,6 +180,8 @@ static_assert(offsetof(W8GlobalStatus, formation) == 0x23a1, "W8GlobalStatus_for
 static_assert(offsetof(W8GlobalStatus, value_2390) == 0x2390, "W8GlobalStatus_value_2390_offset");
 static_assert(offsetof(W8GlobalStatus, selected_party_member_2434) == 0x2434,
               "W8GlobalStatus_selected_party_member_offset");
+static_assert(offsetof(W8GlobalStatus, rpc_races_243a) == 0x243a,
+              "W8GlobalStatus_rpc_races_offset");
 static_assert(offsetof(W8GlobalStatus, save_slot_flags_2367) == 0x2367,
               "W8GlobalStatus_save_slot_flags_offset");
 static_assert(offsetof(W8GlobalStatus, monster_name_buffer_2453) == 0x2453,

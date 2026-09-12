@@ -48,7 +48,13 @@ unsigned int CountItemOnParty(int item_id, W8ItemInstance** found, W8Character**
                               int include_backpack);
 /* 0x00521360: whether every occupied party slot carries one item. */
 bool EveryCharacterHasItem(int item_id, int include_backpack);
+unsigned int GetItemUnitWeight(const W8ItemInstance* item);
 unsigned int GetItemStackWeight(const W8ItemInstance* item);
+unsigned char GetItemEquipClass(const W8ItemInstance* item);
+int GetItemDefaultEquipSlot(int item_id);
+unsigned short GetItemEquipSlotMask(int item_id, char primary_off_hand_free,
+                                    char alternate_off_hand_free, char primary_main_hand_free,
+                                    char alternate_main_hand_free);
 void CreateItemIntoHandOrPool(int item_id, unsigned char quality);
 void AddPartyGold(int amount, char announce);
 

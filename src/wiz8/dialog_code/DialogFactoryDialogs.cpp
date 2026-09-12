@@ -1248,3 +1248,11 @@ void W8Dialog005CD710::DestroyControls()
         }
     }
 }
+
+// FUNCTION: WIZ8 0x005ce6e0
+void W8Dialog005CD710::Function5CE6E0(W8DialogButton* button)
+{
+    if (button != 0) {
+        button->m_owner_040->m_keep_open = 0;
+    }
+}

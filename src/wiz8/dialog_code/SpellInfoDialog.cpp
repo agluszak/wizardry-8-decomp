@@ -6,14 +6,60 @@
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/magic.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/sr_api.h"
+#include "wiz8/string_database.h"
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
 #include "Font.h"
 
+#include <wchar.h>
+
 // GLOBAL: WIZ8 0x0064fccc
 const char* g_spell_info_background_path = "Data\\Dialogs\\popup_spellinfo.sti";
+// GLOBAL: WIZ8 0x0064fcd0
+const char* g_spell_effect_database_path = "Data\\Databases\\SpellEffect.dbs";
+// GLOBAL: WIZ8 0x0064fcd4
+const char* g_spell_desc_database_path = "Data\\Databases\\SpellDesc.dbs";
 // GLOBAL: WIZ8 0x0061a128
 const wchar_t g_format_d_s_0061a128[] = L"%d %s";
+// GLOBAL: WIZ8 0x00619794
+const wchar_t g_comma_space_00619794[] = L", ";
+// GLOBAL: WIZ8 0x0060cff0
+const unsigned short g_spellbook_name_ids_60cff0[4] = {791, 792, 793, 794};
+// GLOBAL: WIZ8 0x0060d4a8
+const unsigned short g_spell_usage_name_ids_60d4a8[5] = {795, 797, 796, 796, 796};
+// GLOBAL: WIZ8 0x0060d4b4
+const unsigned short g_spell_target_type_name_ids_60d4b4[11] = {798, 799, 800, 801, 802, 803,
+                                                                804, 805, 806, 807, 807};
+// GLOBAL: WIZ8 0x0060d4cc
+const wchar_t g_spell_target_mark_fff4[] = {0xfff4, 0};
+// GLOBAL: WIZ8 0x0060d4d0
+const wchar_t g_spell_target_mark_fff0[] = {0xfff0, 0};
+// GLOBAL: WIZ8 0x0060d4d4
+const wchar_t g_spell_target_mark_fff1[] = {0xfff1, 0};
+// GLOBAL: WIZ8 0x0060d4d8
+const wchar_t g_spell_target_mark_fff2[] = {0xfff2, 0};
+// GLOBAL: WIZ8 0x0060d4dc
+const wchar_t g_spell_target_mark_fff3[] = {0xfff3, 0};
+// GLOBAL: WIZ8 0x0060d4e0
+const wchar_t* g_spell_target_parentheticals_60d4e0[11] = {
+    g_spell_target_mark_fff4, g_spell_target_mark_fff2, g_spell_target_mark_fff4,
+    g_spell_target_mark_fff2, g_spell_target_mark_fff3, g_spell_target_mark_fff1,
+    g_spell_target_mark_fff0, g_spell_target_mark_fff4, g_spell_target_mark_fff0,
+    g_spell_target_mark_fff4, g_spell_target_mark_fff4,
+};
+// GLOBAL: WIZ8 0x0061e9a0
+const unsigned short g_spell_range_name_ids_61e9a0[8] = {1307, 1308, 1309, 1310,
+                                                         1311, 1312, 1313, 1314};
+// GLOBAL: WIZ8 0x0064fdcc
+const wchar_t g_format_d_space_0064fdcc[] = L"%d ";
+// GLOBAL: WIZ8 0x0064fdc4
+const wchar_t g_plus_space_0064fdc4[] = L"+ ";
+// GLOBAL: WIZ8 0x0064fdd4
+const wchar_t g_format_d_d_s_0064fdd4[] = L"%d-%d %s";
+
+static const char SPELL_INFO_DIALOG_CPP[] =
+    "C:\\Projects\\Wizardry 8\\Dialog Code\\SpellInfoDialog.cpp";
 
 // SYNTHETIC: WIZ8 0x005dbc30
 // W8SpellInfoDialog::`scalar deleting destructor'
@@ -99,6 +145,171 @@ void W8SpellInfoDialog::Draw()
         DrawCatalogImageAndInvalidate(-0xe, animation->image, 0, m_animation_frame, m_x + 0xe,
                                       m_y + 0xe, 2, 0);
     }
+}
+
+// FUNCTION: WIZ8 0x005dbee0
+unsigned char W8SpellInfoDialog::PopulateText()
+{
+    W8ControlsRect bounds;
+    W8SpellRuntimeRecord* record;
+    wchar_t text[2000];
+    unsigned int spellbook_mask;
+    unsigned int book;
+    int count;
+    int target_type;
+    int duration_per_level;
+    int duration_base;
+    int ui_units;
+    int ui_units_lvl;
+    int display;
+    int display_base;
+
+    bounds.left = m_x + 0x11;
+    bounds.top = m_y + 0x43;
+    bounds.right = m_x + 0x11f;
+    bounds.bottom = m_y + 0xfc;
+    m_text_area_0ec.Configure(&bounds, g_font_683660, 0);
+    m_text_area_0ec.SetEntrySpacing(1);
+
+    record = &g_spell_records[m_spell_054];
+    text[0] = L'\0';
+    spellbook_mask = 0;
+    if (record->wizardry_spell != 0) {
+        spellbook_mask |= W8_SPELLBOOK_WIZARDRY;
+    }
+    if (record->divinity_spell != 0) {
+        spellbook_mask |= W8_SPELLBOOK_DIVINITY;
+    }
+    if (record->alchemy_spell != 0) {
+        spellbook_mask |= W8_SPELLBOOK_ALCHEMY;
+    }
+    if (record->psionics_spell != 0) {
+        spellbook_mask |= W8_SPELLBOOK_PSIONICS;
+    }
+    count = 0;
+    for (book = 0; book < 4; ++book) {
+        if ((spellbook_mask & (1 << book)) != 0) {
+            if (count > 0) {
+                wcscat(text, g_comma_space_00619794);
+            }
+            wcscat(text, gppStringList[g_spellbook_name_ids_60cff0[book]]);
+            ++count;
+        }
+    }
+    m_text_area_0ec.AddEntry(gppStringList[0x470 / 4], text, 10, 0xf, 0);
+    m_text_area_0ec.AddEntry(gppStringList[0x474 / 4],
+                             gppStringList[g_spell_usage_name_ids_60d4a8[record->usable_when]], 10,
+                             0xf, 0);
+
+    target_type = GetSpellTargetType(m_spell_054, 0);
+    m_text_area_0ec.AddEntry(
+        gppStringList[0x478 / 4],
+        FormatWideString(g_format_s_parenthesized_s_00617584,
+                         gppStringList[g_spell_target_type_name_ids_60d4b4[target_type]],
+                         g_spell_target_parentheticals_60d4e0[target_type]),
+        10, 0xf, 0);
+    m_text_area_0ec.AddEntry(gppStringList[0x47c / 4],
+                             gppStringList[g_spell_range_name_ids_61e9a0[record->range_category]],
+                             10, 0xf, 0);
+
+    if (record->field_147 != 0 &&
+        (record->effect_dice.base != 0 || record->effect_dice.count != 0)) {
+        if (record->effect_dice.count == 0) {
+            m_text_area_0ec.AddEntry(gppStringList[0x480 / 4],
+                                     FormatWideString(g_format_d_s_0061a128,
+                                                      (int)record->effect_dice.base,
+                                                      gppStringList[0x484 / 4]),
+                                     10, 0xf, 0);
+        } else {
+            m_text_area_0ec.AddEntry(
+                gppStringList[0x480 / 4],
+                FormatWideString(g_format_d_d_s_0064fdd4,
+                                 record->effect_dice.count + (int)record->effect_dice.base,
+                                 record->effect_dice.sides * record->effect_dice.count +
+                                     (int)record->effect_dice.base,
+                                 gppStringList[0x484 / 4]),
+                10, 0xf, 0);
+        }
+    }
+
+    duration_per_level = record->duration_per_level_04d;
+    duration_base = record->duration_044;
+    if (duration_per_level != 0 || duration_base != 0) {
+        text[0] = L'\0';
+        ui_units = 0;
+        display = 0;
+        if (duration_per_level > 0) {
+            if (duration_per_level == 9999) {
+                ui_units = 0x129;
+                display = 0;
+            } else if (duration_per_level * 10 < 300) {
+                ui_units = 0x123;
+                display = duration_per_level;
+            } else if (duration_per_level * 0x78 < 0x3840) {
+                display = (duration_per_level * 10) / 0x3c;
+                ui_units = 0x125;
+            } else {
+                display = (duration_per_level * 0x78) / 0xe10;
+                ui_units = 0x127;
+            }
+            if (display > 0) {
+                wcscat(text, FormatWideString(g_format_d_space_0064fdcc, display));
+            }
+            if (duration_base > 0) {
+                wcscat(text, g_plus_space_0064fdc4);
+            }
+        }
+        ui_units_lvl = ui_units;
+        display_base = 0;
+        if (duration_base > 0) {
+            if (duration_base == 9999) {
+                ui_units_lvl = 0x129;
+                display_base = 0;
+            } else if (duration_base * 10 < 300) {
+                ui_units_lvl = 0x123;
+                display_base = duration_base;
+            } else if (duration_base * 0x78 < 0x3840) {
+                display_base = (duration_base * 10) / 0x3c;
+                ui_units_lvl = 0x125;
+            } else {
+                display_base = (duration_base * 0x78) / 0xe10;
+                ui_units_lvl = 0x127;
+            }
+            if (duration_per_level != 0 && ui_units != ui_units_lvl) {
+                srAssertFail("uiUnits == uiUnitsLvl", SPELL_INFO_DIALOG_CPP, 0xc5,
+                             FormatString("Spell %S duration has mismatched base & per-lvl units",
+                                          record->display_name));
+            }
+            wcscat(text, FormatWideString(g_format_d_space_0064fdcc, display_base));
+        }
+        if ((duration_per_level == 1 && display_base == 0) ||
+            (duration_per_level == 0 && display_base == 1)) {
+            if (ui_units_lvl == 0x123) {
+                ui_units_lvl = 0x124;
+            } else if (ui_units_lvl == 0x125) {
+                ui_units_lvl = 0x126;
+            } else if (ui_units_lvl == 0x127) {
+                ui_units_lvl = 0x128;
+            }
+        }
+        wcscat(text, gppStringList[ui_units_lvl]);
+        if (display_base > 0) {
+            wcscat(text, gppStringList[0x4a8 / 4]);
+        }
+        m_text_area_0ec.AddEntry(gppStringList[0x488 / 4], text, 10, 0xf, 0);
+    }
+
+    text[0] = L'\0';
+    if (GetStringFromStringDatabase(g_spell_effect_database_path, m_spell_054, text, 0, 0) != 0 &&
+        text[0] != L'\0') {
+        m_text_area_0ec.AddEntry(gppStringList[0x4ac / 4], text, 10, 0xf, 0);
+    }
+    text[0] = L'\0';
+    if (GetStringFromStringDatabase(g_spell_desc_database_path, m_spell_054, text, 0, 0) != 0 &&
+        text[0] != L'\0') {
+        m_text_area_0ec.AddEntry(gppStringList[0x4b0 / 4], text, 10, 0xf, 0);
+    }
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x005dc490

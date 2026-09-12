@@ -124,10 +124,13 @@ enum { W8_SPELL_NONE = 0 };
 /* One spell, as the database holds it at run time. */
 struct W8SpellRuntimeRecord {
     char database_name[64]; /* 0x000 */
-    unsigned char unknown_040[8];
+    unsigned char unknown_040[4];
+    /* 0x044: base duration the spell-info dialog prints. */
+    int duration_044;
     unsigned char alchemy_spell; /* 0x048 */
     int spell_point_cost;        /* 0x049: per power level */
-    unsigned char unknown_04d[4];
+    /* 0x04d: per-level duration added to duration_044 on the same line. */
+    int duration_per_level_04d;
     W8Dice effect_dice; /* 0x051 */
     unsigned char unknown_055;
     int spell_level;              /* 0x056: zero through seven */
@@ -158,9 +161,17 @@ struct W8SpellRuntimeRecord {
     /* 0x144: gates the effect's activation message in the per-frame spell
        update. */
     unsigned char field_144;
-    unsigned char unknown_145[6];
+    unsigned char unknown_145[2];
+    /* 0x147: SpellInfoDialog prints the effect-dice line when this is set. */
+    int field_147;
     char sound_name[0x74]; /* 0x14b: relative to Data\Spells\Sounds */
 }; /* 0x1bf */
+static_assert(sizeof(W8SpellRuntimeRecord) == 0x1bf, "W8SpellRuntimeRecord_size");
+static_assert(offsetof(W8SpellRuntimeRecord, duration_044) == 0x044,
+              "W8SpellRuntimeRecord_duration_044");
+static_assert(offsetof(W8SpellRuntimeRecord, duration_per_level_04d) == 0x04d,
+              "W8SpellRuntimeRecord_duration_per_level");
+static_assert(offsetof(W8SpellRuntimeRecord, field_147) == 0x147, "W8SpellRuntimeRecord_field_147");
 
 struct W8FactDatabaseRecord {
     unsigned int identifier;  /* 0x000 */
