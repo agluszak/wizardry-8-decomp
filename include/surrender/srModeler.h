@@ -35,6 +35,7 @@ public:
         Vertex* vertices_30;
         int vertex_count_34;
         unsigned long unknown_38_;
+        unsigned long unknown_3c_;
         int capacity_40;
     };
 
