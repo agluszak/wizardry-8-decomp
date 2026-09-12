@@ -1,7 +1,6 @@
 #include "wiz8/dialog_code/MonsterInfoDialog.h"
 #include "wiz8/fonts.h"
 #include "wiz8/local_code/MonsterManager.h"
-#include "wiz8/screen_state.h"
 #include "Font.h"
 
 static const char MONSTER_INFO_DIALOG_CPP[] =
@@ -23,7 +22,6 @@ W8MonsterInfoDialog::~W8MonsterInfoDialog()
 {
     m_scroll_bar_58.DestroyControls();
     W8DialogBase::DestroyControls();
-    NoOp();
 }
 
 // FUNCTION: WIZ8 0x005d6e60
