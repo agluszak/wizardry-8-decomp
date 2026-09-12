@@ -12,6 +12,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/item_tables.h"
+#include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"

@@ -427,3 +427,6 @@ extern W8CharacterScreen* g_character_screen_0069c2e8;
 
 /* Refresh the character-screen response when a party slot changes. */
 void RefreshCharacterScreenPartySlot(unsigned int party_slot); /* 0x005B1AD0 */
+unsigned char CharacterScreenEnter(void);
+void CharacterScreenFrame(void);
+unsigned char CharacterScreenLeave(int leaving);

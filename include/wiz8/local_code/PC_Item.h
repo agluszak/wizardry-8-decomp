@@ -100,3 +100,6 @@ void RemoveCharacterItem(int party_slot, W8ItemInstance* item, int arg_3);
 unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all);
 
 unsigned char Function522A30(int party_slot, const W8ItemInstance* item);
+int ChooseCharacterEquipSlot(W8Character* character, int item_id);
+void Function51EB90(W8Character* character, W8ItemInstance* item, int a, int b); /* 0x0051EB90 */
+void Function51EA90(W8Character* character, W8ItemInstance* item);               /* 0x0051EA90 */

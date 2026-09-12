@@ -8,6 +8,7 @@
 #include "wiz8/game_status.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/local_screens/JournalScreen.h"
+#include "wiz8/local_screens/Screens.h"
 
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Levels.h"

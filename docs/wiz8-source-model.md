@@ -50,6 +50,28 @@ the current source-index placement and enforces every anchored function. The ear
 exemptions are gone: the cursor, window and dirty-tile bodies were consolidated into
 `src/wiz8/engine_code/Video2.cpp` rather than kept in invented semantic units.
 
+## Header architecture
+
+TU ranges place out-of-line functions. They do not by themselves prove original header
+filenames. Only `AnimRep.hpp`, `Trigger.hpp`, `stHeap.hpp` and `stLight.hpp` occur as
+actual source paths in assertion evidence.
+
+Recovered headers therefore have an explicit role, recorded in
+`src/wiz8/header_architecture.json` and enforced by `wiz8 check`:
+
+- **shared-layout** (`include/wiz8/layouts/…`, plus leaf records such as
+  `gameplay_modifiers.h`): packed records, enums and the globals that *are* that
+  storage. No behavioral API.
+- **tu-interface**: declarations whose implementations belong to one original TU.
+- **reconstructed-declarations**: a deliberate header split (Controls `Widget.h` /
+  `TextBuffer.h`, and similar) that names one or more implementation TUs and does not
+  claim original header filenames.
+- **bridge**: `sgp_bridge.h`, the C linkage SGP C sources consume.
+
+`wiz8 report header-architecture` writes
+`build/reports/header-architecture/report.json`. Unclassified mixed headers stay in
+that report until they are split or given a role; they are not a check failure.
+
 ## RTTI result
 
 The canonical executable contains no MSVC Type Descriptor strings beginning with `.?AV` or `.?AU`.

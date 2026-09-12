@@ -1,6 +1,7 @@
 #include "soundman.h"
 #include "wiz8/character.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/render_state.h"

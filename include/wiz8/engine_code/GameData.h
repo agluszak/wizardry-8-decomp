@@ -128,13 +128,12 @@ extern W8GameData* g_octree_game_data_00652db0;
    now lives in GDFileIO.cpp. */
 extern W8EnvironRecord* g_environ_00652DB4;
 
-W8GameData* ReadGameData00447570(const char* path, void* parent); /* 0x00447570 */
+#include "wiz8/engine_code/GDFileIO.h"
 
 void ResetInactiveLevelDataVectors0041EF50(void);
 void UpdateSharedGameDataObject0041F1F0();
 void UpdateGameDataRuntime0041F260();
 unsigned char LoadSurfaceVertices004214D0(srVector3T<float>* output, const int* vertex_indices);
-unsigned char InitializeGameData004497C0(W8GameData* game_data);
 
 void ClearLevelDataFlag6(void);
 void ResetLevelDataVectors0041F0D0(void);

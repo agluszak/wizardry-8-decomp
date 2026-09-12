@@ -31,5 +31,12 @@ void RestorePartySpellPoints(int amount);
 void RecalculateCharacterHitPoints(W8Character* character);
 void StartBreathCycle(int party_slot, int arg_2); /* 0x0052FE80 */
 
+int SumCharacterSpellPoints(const W8Character* character);
+int GetCharacterRealmSpellPoints(const W8Character* character, int realm);
+void RecalculateCharacterStamina(W8Character* character);
+void RecalculateRealmSpellPoints(W8Character* character);
+int RebuildRealmSpellPointCeilings0052A540(W8Character* character);
+void ApplyCharacterEffect(W8Character* character, int effect, int arg_3, int arg_4, int arg_5);
+
 void ApplyHealthChangeToCharacter(int party_slot, int amount, int arg_3, int arg_4, int arg_5,
                                   int arg_6, int arg_7);

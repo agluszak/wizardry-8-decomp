@@ -1,6 +1,7 @@
 #pragma once
 
-#include "wiz8/targeting.h"
+#include "wiz8/layouts/targeting.h"
+#include "wiz8/layouts/gameplay_databases.h"
 
 struct W8MonsterInfo;
 struct W8MonsterRecord;
@@ -20,3 +21,6 @@ unsigned char IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingCont
                                    int arg_4); /* 0x00519920 */
 float MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int kind);
 float GetRangeConstant5EC35C(void);
+bool AnyoneStandsAhead(unsigned char position);
+W8RangeCategory GetBestMonsterAttackRange(const W8MonsterRecord* record, char close_quarters_only);
+float CalcRangeDistance(W8RangeCategory range_category);

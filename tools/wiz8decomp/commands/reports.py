@@ -139,6 +139,16 @@ def context_command(
     )
 
 
+@app.command("header-architecture")
+def header_architecture_command() -> None:
+    """Write the header-role ownership report from recovered TUs and declarations."""
+
+    from .. import command_support as cli
+    from ..header_architecture import write_header_architecture_report
+
+    cli.emit(write_header_architecture_report(cli.settings().repo_dir))
+
+
 @app.command("translation-units")
 def translation_units_command() -> None:
     """Generate source ownership and hard-hull projections from the live layout."""

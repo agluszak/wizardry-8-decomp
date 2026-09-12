@@ -20,6 +20,9 @@ void ApplyMonsterCondition(int location_id, int condition, int arg_3);
    first live index into W8Character::highest_condition. */
 void Function5237E0(int party_slot);
 
+unsigned char SetCharacterCondition(int party_slot, int condition, int duration, int argument,
+                                    char value_5, char value_6);
+
 void RemoveConditionFromEveryone(int condition); /* 0x005244A0 */
 void RemoveConditionFromParty(int condition);    /* 0x005246C0 */
 void Function524540(void);                       /* 0x00524540 */

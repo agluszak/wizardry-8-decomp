@@ -3,6 +3,7 @@
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/engine_code/Object0043A910.h"

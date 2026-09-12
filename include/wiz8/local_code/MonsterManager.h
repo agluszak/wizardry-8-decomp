@@ -96,7 +96,6 @@ extern W8MonsterManagerEntry g_monster_manager_entries[8];
 W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);
 W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
                                  srVector3T<float>* position);
-unsigned char LoadMonsterDatabaseRecord(unsigned int monster_species, W8MonsterRecord* record);
 
 /* One queued monster action, 0x30 bytes: the kind/detail pair, the attack
    index the plain attack alone carries, an inline combat slot whose type and
@@ -304,7 +303,6 @@ float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info);
 void UpdateMonsterDamageAppearance(W8MonsterInfo* monster_info);
 W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
 int GetMonsterQuadrant(W8MonsterInfo* monster_info);
-int GetQuadrantForPosition(srVector3T<float> position);
 int Function4E5B50(unsigned int monster_species);
 void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup);
 void ConvertMonsterAttributes(W8MonsterInfo* monster_info);

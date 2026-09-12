@@ -6,6 +6,8 @@ class W8Monster;
 struct W8World;
 class srScene;
 class srNode;
+class srLight;
+class stLight;
 class stMeshModel;
 class stModelInstance;
 struct W8Item;
@@ -21,6 +23,7 @@ void ExpandBounds0046F510(srVector3T<float>* minimum, srVector3T<float>* maximum
                           const srVector3T<float>* candidate_minimum,
                           const srVector3T<float>* candidate_maximum);
 void UpdateWorldMonsters0046DD70(W8World* world);
+void WorldUpdateProps(W8World* world);
 void ForwardThroughMember3C_46E750(W8World* owner, int argument);
 void ForwardThroughMember3C_46E640(W8World* owner, int argument);
 /* Video2.cpp's prologue for the scene shader walks. */
@@ -41,3 +44,16 @@ unsigned char HasLineOfSightToBounds0046FD70(const srVector3T<float>* origin,
                                              srVector3T<float>* minimum,
                                              srVector3T<float>* maximum);
 unsigned char ShowTargetMarker(void* eye, void* lower, void* upper); /* 0x0046F820 */
+
+void WorldUpdateLights(W8World* world);
+float WorldGetValue78(W8World* world);
+double WorldGetFarClip(W8World* world);
+void WorldSetFarClip(W8World* world, float distance);
+void WorldSetValue74(W8World* world, float value);
+stLight* CreateLight0046DF90(srNode* parent, const char* name);
+stLight* CreateWorldLight0046E030(W8World* world, const char* name);
+stLight* CreateWorldLight0046E140(W8World* world, const char* name);
+void ConfigureWorldLight0046E300(srLight* light, float range);
+void WorldRemoveLight(W8World* world, stLight* light); /* 0x0046E250 */
+void DestroyWorldLights0046E4A0(W8World* world);
+void DetachWorldItemMeshes0046DE40(W8World* world);

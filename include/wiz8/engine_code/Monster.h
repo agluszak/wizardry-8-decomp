@@ -377,7 +377,6 @@ void NotifyMonsterIdle(W8Monster* monster, int arg_2);
 void NotifyMonsterFacing(W8Monster* monster, W8Monster* target, int arg_3);
 void Function4ACD80(W8Monster* monster, int slot, int arg_3);
 void DropMonsterVisual(W8Monster* monster, int visual, int arg_3);
-void PrepareMonsterCycleForDestruction004ACF90(W8Monster* cycle);
 
 void Function4C4DE0(int arg_1, int arg_2, int arg_3);
 void MonsterForward4C4DE0(int arg_1, int arg_2, int arg_3);

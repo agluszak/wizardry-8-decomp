@@ -1,5 +1,6 @@
 #include "wiz8/dialog_code/StatInfoDialogs.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/sr_api.h"
 
 /* Dialog Code\StatInfoDialogs.cpp. Two attribute-info dialogs whose

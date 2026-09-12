@@ -9,6 +9,7 @@
 #include "wiz8/local_screens/MGSRadarMap.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/fonts.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"

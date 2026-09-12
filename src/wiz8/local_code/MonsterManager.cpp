@@ -8,6 +8,9 @@
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/local_code/FormationAndFacing.h"
+#include "wiz8/engine_code/Spells.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/float_constants.h"
@@ -1579,7 +1582,7 @@ W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
 }
 
 // FUNCTION: WIZ8 0x004EFB60
-float GetAveragePartyLevel(void)
+static float GetAveragePartyLevel004EFB60(void)
 {
     float total = 0.0f;
     float count = 0.0f;
@@ -1641,7 +1644,7 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, W8WideChar* health_text)
     if (monster_info->value_2da == 1) {
         health_knowledge = 125;
     } else {
-        float average_party_level = GetAveragePartyLevel();
+        float average_party_level = GetAveragePartyLevel004EFB60();
         W8MonsterRecord* record;
         int best_party_slot;
         int monster_level;

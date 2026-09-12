@@ -6,6 +6,7 @@
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/magic.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/string_database.h"
 #include "wiz8/utility.h"

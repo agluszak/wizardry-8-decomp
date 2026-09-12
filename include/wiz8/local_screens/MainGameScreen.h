@@ -541,3 +541,7 @@ void Function59C930(int slot);
 void Function598AE0(void);
 void Function59B270(void);
 void Function59C9C0(void);
+unsigned char MainGameScreenInitialize(void);
+unsigned char MainGameScreenEnter(void);
+void MainGameScreenFrame(void);
+unsigned char MainGameScreenLeave(int leaving);

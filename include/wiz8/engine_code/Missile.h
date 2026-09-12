@@ -9,6 +9,7 @@ void ReleaseMissileDatabase(void);
 
 struct W8AIMissile;
 struct W8ReadLevelInfo;
+struct W8World;
 class stLight;
 class W8Missile;
 
@@ -136,3 +137,4 @@ W8Missile* NextMissile004A2760(char restart);
 W8Missile* CreateMissile004A28D0(unsigned int missile_table_index, srVector3T<float>* source,
                                  float value_3, float value_4, unsigned int value_5,
                                  unsigned int value_6, unsigned int value_7, unsigned int value_8);
+void UpdateWorldMissiles004A27C0(W8World* world);

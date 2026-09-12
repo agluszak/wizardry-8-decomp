@@ -1,4 +1,5 @@
 #include "wiz8/screen_state.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/render_state.h"
@@ -8,6 +9,7 @@
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/local_screens/OptionsScreen.h"
 #include "wiz8/local_screens/JournalScreen.h"
 #include "wiz8/local_screens/MainGameScreen.h"

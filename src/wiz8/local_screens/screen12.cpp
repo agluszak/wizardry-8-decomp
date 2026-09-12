@@ -1,5 +1,6 @@
 #include "wiz8/regions.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/cursor.h"
 #include "input.h"

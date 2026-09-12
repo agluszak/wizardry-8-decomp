@@ -64,3 +64,8 @@ int ComputeLevelUpSpellPointAward(W8Character*, W8CharacterCreationState*);
 void Function5584E0(W8Character*, W8CharacterCreationState*, unsigned int spell);
 void Function558560(W8Character*, W8CharacterCreationState*, unsigned int spell);
 void Function5585D0(W8Character*, W8CharacterCreationState*);
+int ComputeRealmSkillDebt(W8Character* original, W8Character* edited);
+void Function4EF7E0(W8Character*, W8Character*, int);
+int Function558640(W8Character*);
+unsigned char Function5586B0(W8Character*);
+void Function5218C0(W8Character*);

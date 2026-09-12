@@ -1,5 +1,6 @@
 #include "wiz8/world_cursor.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/3d_code/PList.h"

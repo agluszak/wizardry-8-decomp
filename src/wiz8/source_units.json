@@ -43,7 +43,6 @@
     "src/wiz8/music_playlist.cpp",
     "src/wiz8/npc_items.cpp",
     "src/wiz8/record_file_0055a480.cpp",
-    "src/wiz8/render_options.cpp",
     "src/wiz8/sound_man.cpp",
     "src/wiz8/startup_render_state.cpp",
     "src/wiz8/startup_subsystems.cpp",
