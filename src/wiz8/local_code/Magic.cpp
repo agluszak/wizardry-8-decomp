@@ -800,12 +800,12 @@ unsigned int ScaleByCombatPace(int party_slot, unsigned int* value)
         return gXStatus.fCombatMode;
     }
 
-    if (g_settings_6850c8.difficulty == 0) {
+    if (g_settings_6850c8.difficulty == W8_DIFFICULTY_NOVICE) {
         pace = 0x50;
-    } else if (g_settings_6850c8.difficulty == 1) {
+    } else if (g_settings_6850c8.difficulty == W8_DIFFICULTY_NORMAL) {
         pace = 0x3c;
     } else {
-        if (g_settings_6850c8.difficulty != 2) {
+        if (g_settings_6850c8.difficulty != W8_DIFFICULTY_EXPERT) {
             srAssertFail("FALSE", MAGIC_CPP, 5352, 0);
         }
         pace = 0x28;

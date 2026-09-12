@@ -423,7 +423,7 @@ W8StartupStateElement005EE748* Function52E690(W8Character* character, int effect
 {
     W8StartupStateElement005EE748* entry;
 
-    if (g_settings_6850c8.field_040 == 0 &&
+    if (g_settings_6850c8.pc_confirmations == 0 &&
         (effect == g_special_event_0068c50c || effect == g_special_event_0068c568)) {
         return 0;
     }

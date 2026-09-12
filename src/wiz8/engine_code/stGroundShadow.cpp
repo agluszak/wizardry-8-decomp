@@ -93,7 +93,7 @@ void stGroundShadow::traverse(TraverseInfo& info)
 // FUNCTION: WIZ8 0x004d6640
 void stGroundShadow::process(const ProcessInfo& info, e_processType)
 {
-    if (g_settings_6850c8.field_048 != 0) {
+    if (g_settings_6850c8.monster_shadows != 0) {
         if (!info.renderer->isPickStackEmpty()) {
             srGERD::Pick pick;
             info.renderer->popPick(pick);

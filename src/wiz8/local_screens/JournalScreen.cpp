@@ -108,13 +108,13 @@ void RecordFactChangeForJournal(int fact_id)
         return;
     }
     int visibility;
-    if (g_settings_6850c8.difficulty == 0) {
+    if (g_settings_6850c8.difficulty == W8_DIFFICULTY_NOVICE) {
         visibility = 2;
-    } else if (g_settings_6850c8.difficulty == 1) {
+    } else if (g_settings_6850c8.difficulty == W8_DIFFICULTY_NORMAL) {
         visibility = 1;
     } else {
         visibility = fact_id;
-        if (g_settings_6850c8.difficulty == 2) {
+        if (g_settings_6850c8.difficulty == W8_DIFFICULTY_EXPERT) {
             visibility = 0;
         }
     }
@@ -388,13 +388,13 @@ unsigned char JournalScreenEnter(void)
     g_journal_panel_0069c4d4 = new W8JournalPanel005EF340(&g_journal_region_set_0069c4dc);
 
     switch (g_settings_6850c8.difficulty) {
-    case 0:
+    case W8_DIFFICULTY_NOVICE:
         maximum_visibility = 2;
         break;
-    case 1:
+    case W8_DIFFICULTY_NORMAL:
         maximum_visibility = 1;
         break;
-    case 2:
+    case W8_DIFFICULTY_EXPERT:
         maximum_visibility = 0;
         break;
     }

@@ -1120,8 +1120,8 @@ void W8OptionsAudioPanel::Populate()
         }
     }
     m_content_top_050 += 22;
-    AddCheckbox(0x823, &g_options_values.value_084);
-    AddCheckbox(0x824, &g_options_values.value_088);
+    AddCheckbox(0x823, &g_options_values.pc_confirmations);
+    AddCheckbox(0x824, &g_options_values.pc_subtitles);
 }
 
 // FUNCTION: WIZ8 0x005aa620
@@ -1226,10 +1226,10 @@ void W8OptionsGraphicsPanel::Populate()
     slider->SetEnabled(GetRendererModeByte());
     m_content_top_050 += 22;
     AddCheckbox(0x816, &g_options_values.render_options[4]);
-    AddCheckbox(0x819, &g_options_values.values_078[1]);
-    AddCheckbox(0x81a, &g_options_values.values_078[2]);
+    AddCheckbox(0x819, &g_options_values.smooth_monster_animations);
+    AddCheckbox(0x81a, &g_options_values.smooth_world_animations);
     AddCheckbox(0x81b, &g_options_values.render_options[6]);
-    AddCheckbox(0x818, &g_options_values.values_078[0]);
+    AddCheckbox(0x818, &g_options_values.monster_shadows);
     AddCheckbox(0x817, &g_options_values.render_options[5]);
     AddCheckbox(0x81d, &g_options_values.render_options[8]);
 }
@@ -1510,8 +1510,8 @@ void W8OptionsValues::TransferSettings()
     } else {
         g_settings_6850c8.gamma = gamma;
     }
-    TransferByte(&value_084, &g_settings_6850c8.field_040);
-    TransferByte(&value_088, &g_settings_6850c8.field_042);
+    TransferByte(&pc_confirmations, &g_settings_6850c8.pc_confirmations);
+    TransferByte(&pc_subtitles, &g_settings_6850c8.pc_subtitles);
     if (applying == 0) {
         text_display_delay_ms = static_cast<float>(g_settings_6850c8.text_display_delay_ms);
     } else {
@@ -1537,9 +1537,9 @@ void W8OptionsValues::TransferSettings()
     TransferRenderOption(&render_options[6], 11);
     TransferRenderOption(&render_options[7], 12);
     TransferRenderOption(&render_options[8], 16);
-    TransferByte(&values_078[0], &g_settings_6850c8.field_048);
-    TransferByte(&values_078[1], &g_settings_6850c8.field_049);
-    TransferByte(&values_078[2], &g_settings_6850c8.field_04a);
+    TransferByte(&monster_shadows, &g_settings_6850c8.monster_shadows);
+    TransferByte(&smooth_monster_animations, &g_settings_6850c8.smooth_monster_animations);
+    TransferByte(&smooth_world_animations, &g_settings_6850c8.smooth_world_animations);
     if (applying == 0) {
         combat_speed = static_cast<float>(g_settings_6850c8.combat_delay_ms - 5000) * -0.0002f;
         camera_auto_rotation = g_settings_6850c8.camera_rotation_mode == 2

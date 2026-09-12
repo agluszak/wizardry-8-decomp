@@ -3300,7 +3300,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         model = GetCurrentModelInstance004A8250();
         if (model != 0) {
             static_cast<stModelInstance*>(model)->value_1ac =
-                g_settings_6850c8.field_049 != 0 ? unknown_1d4 : 0.0f;
+                g_settings_6850c8.smooth_monster_animations != 0 ? unknown_1d4 : 0.0f;
             SetChainValue15C((char*)model, 4);
         }
         if (m_pRep->monster_light_624 != 0) {
