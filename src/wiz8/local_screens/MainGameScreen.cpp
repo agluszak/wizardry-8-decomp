@@ -1011,7 +1011,7 @@ unsigned char MainGameScreenLeave(int leaving)
     if (g_level_block->flag_314)
         Function592E60();
     ReleasePortraitControls();
-    Function59BF70();
+    ReleaseConditionButtons();
     if (gXStatus.fPartyMovementUi)
         DisableRegionSet1C();
     Function529510();
