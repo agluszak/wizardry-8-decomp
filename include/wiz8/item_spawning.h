@@ -50,13 +50,6 @@ W8WorldItem* SpawnItem(
     int unknown,
     unsigned char add_to_world);
 
-void ReplaceOrCreateItem(
-    W8ItemInstance* item,
-    int item_id,
-    unsigned char maximum_quantity,
-    unsigned char force_identified,
-    unsigned char mark_special);
-
 bool ItemHasFlags(W8WorldItem* item, unsigned int mask);
 void SetItemFlags(W8WorldItem* item, unsigned int mask, bool enabled);
 void SetItemAndEntityFlags(W8WorldItem* item, unsigned int mask, bool enabled);

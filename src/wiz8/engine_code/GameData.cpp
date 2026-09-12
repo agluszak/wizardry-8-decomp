@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/OctBuildTree.h"
 #include "wiz8/engine_code/Object0043A910.h"
 #include "wiz8/engine_code/BitArray.h"
@@ -39,7 +40,6 @@ enum {
 };
 
 extern unsigned char g_level_override_00652dba;
-extern unsigned char g_environment_load_flag_00603ad0;
 // GLOBAL: WIZ8 0x00652dba
 unsigned char g_level_override_00652dba;
 // GLOBAL: WIZ8 0x00652dce

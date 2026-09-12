@@ -4,6 +4,7 @@
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/item_tables.h"
 #include "wiz8/item_spawning.h"
+#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/monster_runtime.h"
 #include "random.h"
 #include <stdlib.h>

@@ -67,5 +67,6 @@ int GetRandomCharacter(
     int require_primary, int require_secondary, int excluded_slot,
     signed char excluded_gender);
 
+extern char** g_string_table; /* 0x0068C09C */
+
 #endif
-extern char** g_string_table;       /* 0x0068C09C */

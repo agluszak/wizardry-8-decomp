@@ -272,6 +272,8 @@ void ResumeAllNavigators004531A0(void);
 void NavigatorDefaultCallback00451EA0(W8Navigator* navigator);
 
 extern float g_navigator_vertical_phase_step_005ebcc8;
+extern unsigned char g_flag_006081e4;
+extern unsigned char g_navigator_link_mode_00659c10;
 
 void Function454C80(void); /* 0x00454C80 */
 unsigned char Function5323F0(W8MonsterInfo* monster_info, int a, int b, int c);

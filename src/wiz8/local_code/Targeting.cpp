@@ -4,6 +4,7 @@
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/quad.h"
 #include "wiz8/cursor.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/PList.h"
@@ -145,7 +146,6 @@ extern const char g_faction_names[W8_FACTION_COUNT][0x1e] = {
     "FACTION_filler4",
 };
 
-extern unsigned char Function519180(int party_slot, int arg_2, W8TargetingContext context);
 extern unsigned char g_targeting_flag_00685116;
 // GLOBAL: WIZ8 0x00685116
 unsigned char g_targeting_flag_00685116;
@@ -844,8 +844,6 @@ bool IsTargetStillPresent(const W8CombatSlot* target)
     return true;
 }
 
-extern unsigned char Function547510(void); /* 0x00547510 */
-
 /* Tint one monster to say whether the character could act on it, and move the
    cursor to match. Green means yes and red means no; asking for no highlight at
    all tints it to nothing and answers no without touching the cursor.
@@ -1100,9 +1098,6 @@ W8CombatSlot* GetTargetBlockForContext(int party_slot, W8TargetingContext contex
     }
     return 0;
 }
-
-extern unsigned char CanReachTarget(int party_slot, int kind, W8MonsterInfo* monster_info,
-                                    W8TargetingContext context, int arg_5);
 
 /* Replace a monster's current combat target with one monster id. The target
    block is cleared as a whole before its four discriminating fields are

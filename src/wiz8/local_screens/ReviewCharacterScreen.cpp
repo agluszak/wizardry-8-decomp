@@ -5,6 +5,7 @@
 #include "wiz8/render_state.h"
 #include "wiz8/targeting.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
+#include "wiz8/local_screens/MGSRadarMap.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/fonts.h"
@@ -69,7 +70,6 @@ int g_camp_spell_animations[6][3] = {
     {8, 489, 21}, {1, 490, 16}, {14, 491, 24}
 };
 
-extern unsigned char g_flag_689b32;
 
 // GLOBAL: WIZ8 0x005ee6ec
 int g_effect_005ee6ec = 109;
@@ -77,7 +77,6 @@ int g_effect_005ee6ec = 109;
 // GLOBAL: WIZ8 0x005ed8cc
 int g_effect_argument_005ed8cc = 1;
 
-void Function5187E0(void);
 #include "line.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_screens/RCSCommon.h"

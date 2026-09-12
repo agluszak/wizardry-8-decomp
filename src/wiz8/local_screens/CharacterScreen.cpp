@@ -9,6 +9,7 @@
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/dialog_code/SpellInfoDialog.h"
 #include "wiz8/local_screens/CharacterScreen.h"
+#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/xstatus.h"
 
 #include "wiz8/cursor.h"

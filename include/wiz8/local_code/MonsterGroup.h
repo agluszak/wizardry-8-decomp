@@ -121,6 +121,6 @@ void Function5103E0(W8MonsterGroup* monster_group);
 
 void Function50E5C0(int party_slot);
 void Function50E8C0(int location_id);
+void MonsterGroupLeaveCombat(W8MonsterGroup* monster_group); /* 0x0050FAD0 */
 
 #endif
-void MonsterGroupLeaveCombat(W8MonsterGroup* monster_group); /* 0x0050FAD0 */

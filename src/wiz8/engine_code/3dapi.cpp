@@ -59,7 +59,6 @@ extern void SetRendererReady(void);
 
 // GLOBAL: WIZ8 0x00607d7c
 unsigned char g_renderer_ready_00607d7c = 1;
-extern int CheckLevelAssetSet0042CCC0(const char* level_path);
 
 class W8AmbientSound;
 

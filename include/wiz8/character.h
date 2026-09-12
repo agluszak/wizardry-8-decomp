@@ -400,7 +400,6 @@ void Function4EF7E0(W8Character*, W8Character*, int);
 int Function558640(W8Character*);
 unsigned char Function5586B0(W8Character*);
 void Function5218C0(W8Character*);
-void Function51D960(W8Character*);
 void Function52F2C0(W8Character* character);
 void ApplyCharacterEffect(
     W8Character* character, int effect, int arg_3, int arg_4, int arg_5);

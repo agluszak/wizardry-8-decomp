@@ -132,7 +132,6 @@ float g_monster_attachment_scales_0060e914[9] = {0.0f,  0.3f,  0.2f,  0.15f, 0.1
                                                  0.15f, 0.15f, 0.15f, 0.15f};
 extern float g_startup_depth_603ac8;
 extern const float g_camera_transition_epsilon_005ebc84;
-extern const float g_world_scale_005ebc40;
 extern unsigned char g_force_encounter_culling; /* 0x00687500 */
 // GLOBAL
 unsigned char g_force_encounter_culling;
@@ -3910,16 +3909,13 @@ void W8Monster::AdvanceAnimationFrame(int value, int)
     }
 }
 
-extern int g_spell_effect_frame_0064c158;
 // GLOBAL: WIZ8 0x0064c158
 int g_spell_effect_frame_0064c158 = 1;
-extern int g_spell_index_0069b7dc;
 // GLOBAL: WIZ8 0x0069b7dc
 int g_spell_index_0069b7dc;
 extern int CalculateMonsterMissileAccuracy(W8MonsterInfo* monster_info,
                                            const W8MonsterAttack* attack, int attack_mode,
                                            int flags);
-extern unsigned int g_missile_table_count_65bddc;
 
 // VTABLE: WIZ8 0x005ed288
 // class W8MonsterShakeCallback
@@ -4567,8 +4563,6 @@ void W8Monster::GetMappedPosition004C72A0(srVector3T<float>* position)
 /* The caller proves only the roles below: the first global selects a frame in
    the spell animation, and the second indexes g_spell_records. Their original
    descriptive names have not been recovered. */
-extern int g_spell_effect_frame_0064c158;
-extern int g_spell_index_0069b7dc;
 extern void* CreateSpellEffect004AD8A0(const char* mls_name, int frame, W8Monster* parent,
                                        int value, int flags);
 

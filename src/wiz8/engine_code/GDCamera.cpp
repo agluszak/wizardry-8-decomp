@@ -35,7 +35,6 @@ extern const float g_camera_half_period_005ec564;
 extern const float g_camera_angle_dead_zone_005ec578;
 extern const float g_camera_transition_duration_scale_005ec57c;
 extern const double g_camera_smoothing_scale_005ec580;
-extern double g_double_005ebe80;
 extern const float g_camera_input_deceleration_005ec590;
 extern const float g_camera_negative_input_deceleration_005ec58c;
 extern const float g_camera_velocity_stop_scale_005ec588;
@@ -107,7 +106,6 @@ float g_camera_max_yaw_velocity_609ea4 = 0.3490658700466156f;
 extern float g_camera_level_forward_scale_603aac;
 // GLOBAL: WIZ8 0x00603aac
 float g_camera_level_forward_scale_603aac = 375.0f;
-extern unsigned char g_flag_006875a5;
 // GLOBAL: WIZ8 0x006875a5
 unsigned char g_flag_006875a5;
 

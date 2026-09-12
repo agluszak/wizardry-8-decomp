@@ -1269,9 +1269,6 @@ int GetAffordableSpellPowerLevel(int party_slot)
     return 0;
 }
 
-extern W8ItemInstance* FindCharacterItemAt(int party_slot, unsigned char origin,
-                                           unsigned short slot); /* 0x00522180 */
-
 /* The origin that means the item is worn or held rather than carried; in
    combat an equipped item is not re-fetched. */
 enum { W8_ITEM_ORIGIN_EQUIPPED = 2 };

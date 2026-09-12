@@ -40,7 +40,6 @@ extern W8GrowableVector<W8JournalEntry>* g_journal_entries_0069c4e4;
 extern unsigned char g_journal_show_all_0069c4e0;
 // GLOBAL: WIZ8 0x0069c4e0
 unsigned char g_journal_show_all_0069c4e0;
-extern int g_value_006850d5;
 // GLOBAL: WIZ8 0x006850d5
 int g_value_006850d5;
 // GLOBAL: WIZ8 0x0064d7b8

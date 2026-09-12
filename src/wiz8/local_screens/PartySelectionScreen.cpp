@@ -18,6 +18,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/cursor.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/dialog_code/ModalDialogBase.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/game_status.h"
@@ -51,15 +52,6 @@ void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigne
                     char right_button, char left_button);
 int Function558C40(const char* path);
 
-extern int g_font_683660;
-extern int g_wiz_text_bold_font_683664;
-extern unsigned short* g_colour_68ee08;
-extern unsigned short* g_font_palette_wiz_text_bold_68ee0c;
-extern unsigned short* g_font_state_palettes_68ee1c[15];
-extern unsigned char g_flag_689b32;
-extern HVOBJECT g_wiz_text_font_secondary_object_683680;
-extern int g_options_title_font_68368c;
-extern int g_options_detail_font_683614;
 extern unsigned short g_profession_name_message_ids_61e3f0[];
 extern unsigned short g_race_name_message_ids_61e3d0[];
 extern unsigned short g_gender_name_message_rows_61e430[][4];

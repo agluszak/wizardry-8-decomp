@@ -215,7 +215,6 @@ void Function589A80(void);
 void Function593360(void);
 void Function56C6D0(int, int, int, int, int);
 unsigned char Function57E3C0(void);
-void Function4EF1F0(void);
 
 // FUNCTION: WIZ8 0x00587960
 void Function587960(void)

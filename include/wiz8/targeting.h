@@ -201,7 +201,6 @@ void Function53B310(void);
 void Function53B660(const void* position, void* target, int enabled);
 unsigned char TargetIsInPlay(int party_slot, int arg_2, int arg_3);   /* 0x00536F60 */
 
-#endif
 void Function53AE00(void);          /* 0x0053AE00 */
 void Function53CD60(void);          /* 0x0053CD60 */
 /* Combat action-selection helpers used across the combat units. */
@@ -210,3 +209,5 @@ W8TargetingContext Function53BC90(int party_slot);                  /* 0x0053BC9
 W8TargetingContext GetValidatedTargetingContext(
     int party_slot, W8TargetingContext context); /* 0x0053BBD0 */
 void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source); /* 0x0053A9D0 */
+
+#endif

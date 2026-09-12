@@ -34,8 +34,6 @@ double g_double_005ec030 = 2500.0;
    interval, so it keeps an address-qualified name. */
 /* Tracks the largest radius any navigator has been given. */
 extern float g_navigator_largest_extent_6081e8;
-extern unsigned char g_flag_006081e4;
-extern unsigned char g_navigator_link_mode_00659c10;
 extern W8GrowableVector<W8Navigator*> g_navigator_group_659bf8;
 
 namespace {
@@ -675,7 +673,6 @@ float g_navigator_snap_angle_005ec2f0 = 0.029999999329447746f;
 extern float g_navigator_mode3_scale_005ebca4;
 // GLOBAL: WIZ8 0x005ebca4
 float g_navigator_mode3_scale_005ebca4 = 0.4000000059604645f;
-extern unsigned char g_flag_006081e4;
 // GLOBAL: WIZ8 0x006081e4
 unsigned char g_flag_006081e4 = 1;
 
@@ -738,7 +735,6 @@ void W8Navigator::StartPatrol(
     navigator->ConfigureMovement00453D20(distance, variation);
 }
 extern unsigned char g_navigator_vertical_enabled_006081f8;
-extern unsigned char g_navigator_link_mode_00659c10;
 // GLOBAL: WIZ8 0x00659c10
 unsigned char g_navigator_link_mode_00659c10;
 extern float g_navigator_speed_006850ff;
@@ -747,7 +743,6 @@ float g_navigator_speed_006850ff;
 extern float g_navigator_linked_radius_scale_005ebc98;
 // GLOBAL: WIZ8 0x005ebc98
 float g_navigator_linked_radius_scale_005ebc98 = 4.0f;
-extern float g_navigator_vertical_phase_step_005ebcc8;
 // GLOBAL: WIZ8 0x005ebcc8
 float g_navigator_vertical_phase_step_005ebcc8 = 0.25f;
 // GLOBAL: WIZ8 0x005ec150
@@ -758,7 +753,6 @@ float g_navigator_minimum_speed_006081ec = 0.5f;
 extern float g_navigator_minimum_speed_mode23_006081f0;
 // GLOBAL: WIZ8 0x006081f0
 float g_navigator_minimum_speed_mode23_006081f0 = 0.8999999761581421f;
-extern const float g_world_scale_005ebc40;
 // GLOBAL: WIZ8 0x00659bf8
 W8GrowableVector<W8Navigator*> g_navigator_group_659bf8;
 

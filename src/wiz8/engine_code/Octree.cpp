@@ -67,13 +67,11 @@ unsigned char g_octree_update_suspended_00659898;
 // GLOBAL: WIZ8 0x00659899
 unsigned char g_octree_trace_enabled_00659899;
 extern void Function518510(void* notice);
-extern unsigned char g_navigator_link_mode_00659c10;
 
 /* Build a packed four-byte colour from four components and answer its
    address. The receiver is the output slot. */
 /* Draw the probe box through the world camera. */
 
-extern const float g_world_scale_005ebc40;
 
 // GLOBAL: WIZ8 0x006598a4
 W8Octree* g_octree_6598a4;

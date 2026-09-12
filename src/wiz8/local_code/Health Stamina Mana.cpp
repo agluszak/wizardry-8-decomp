@@ -284,7 +284,6 @@ unsigned int FatigueArmorPenalty(int fatigue_band)
     default: return fatigue_band;
     }
 }
-extern void RecalculateCharacterHitPoints(W8Character* character);
 /* 0x0052AF50 */
 
 /* 0x00523C00 */
