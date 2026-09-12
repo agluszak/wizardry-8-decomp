@@ -39,8 +39,10 @@ protected:
     Dimensions texture_dimensions_;              /* 0x20 */
     srClass* texture_filter_;                    /* 0x28 */
     srPixelConvert::PixelFormat surface_format_; /* 0x2c */
-    /* enableHint/disableHint operate on the first dword; stTextureAnim reads
-       byte +0x42 as an alpha probe. */
+    /* enableHint ORs 1<<hint into the first dword. stTextureAnim reads byte
+       +0x42 as an alpha probe, so the span stays byte-addressable. Dump of
+       +0x50 uses GENERATESURFACE_FAILURE,DIRTY_DEFAULTS (bit 1 is the
+       DIRTY_DEFAULTS flag stTexture2D clears). */
     unsigned char unknown_40_[0x10];
     unsigned long texture_flags_; /* 0x50 */
 };

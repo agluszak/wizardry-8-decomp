@@ -33,8 +33,18 @@ public:
         float mipmap_bias_04;
     };
     static_assert(sizeof(Parameters) == 0x08, "srTextureIFace_Parameters_must_be_0x08");
-    enum e_filter {};
-    enum e_mipmap {};
+    /* srTexture::dump: NONE / FASTEST / GOOD / BEST, else DEFAULT.
+       setTextureDefaultMagFilter remaps DEFAULT (4) to GOOD. */
+    enum e_filter {
+        FILTER_NONE = 0,
+        FILTER_FASTEST = 1,
+        FILTER_GOOD = 2,
+        FILTER_BEST = 3,
+        FILTER_DEFAULT = 4
+    };
+    /* Dump: NONE / FASTEST / BEST, else DEFAULT. GOOD is not a mipmap
+       enumerator. setTextureDefaultMipmap remaps DEFAULT (3) to FASTEST. */
+    enum e_mipmap { MIPMAP_NONE = 0, MIPMAP_FASTEST = 1, MIPMAP_BEST = 2, MIPMAP_DEFAULT = 3 };
     enum e_hint {
         HINT_POSITIONAL_1 = 1,
         HINT_POSITIONAL_2 = 2,
@@ -43,7 +53,14 @@ public:
     };
     /* Dump prints REPEAT then CLAMP for wrap S/T. Wizardry requests 1. */
     enum e_wrap { WRAP_REPEAT = 0, WRAP_CLAMP = 1 };
-    enum e_correction {};
+    /* Dump: FASTEST / GOOD / BEST, else DEFAULT. Packed in bits 0–1 of
+       srTexture+0x18. */
+    enum e_correction {
+        CORRECTION_FASTEST = 0,
+        CORRECTION_GOOD = 1,
+        CORRECTION_BEST = 2,
+        CORRECTION_DEFAULT = 3
+    };
 
     static const char* sGetClassName()
     {

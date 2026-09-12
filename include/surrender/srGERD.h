@@ -231,7 +231,7 @@ private:
     unsigned long dirty_21c0_;
     srFlags<srRendererDefs::e_vertexArray> vertex_array_mask_21c4_;
     unsigned long vertex_count_21c8_;
-    unsigned char unknown_21cc_[4];
+    srFlags<srRendererDefs::e_clip> clip_state_21cc_;
     long array_components_21d0_[6];
     srRendererDefs::e_type array_types_21e8_[6];
     unsigned long array_strides_2200_[6];

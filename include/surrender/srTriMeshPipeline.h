@@ -3,6 +3,7 @@
 #include "srArray.h"
 #include "srMaterialIFace.h"
 #include "srMath.h"
+#include "srPtr.h"
 #include "srShader.h"
 #include "srTextureIFace.h"
 #include "srVertexPipe.h"
@@ -29,14 +30,19 @@ public:
         unsigned long flags_00;
         unsigned long disable_mask_04;
         srMaterialIFace* material_08;
+        /* Bit 0: DIG or particle colors (+0x0c) with format at +0x10.
+           Bit 1: DCG at +0x14. Bit 2: SCG at +0x18. */
         void* colors_0c;
         unsigned long color_format_10;
-        unsigned char unknown_14_[8];
+        srVector4T<float>* dcg_14;
+        srVector4T<float>* scg_18;
         /* Optional per-vertex arrays, each gated by its own flags_00 bit:
            0x004994D0 sets +0x1c under bit 3 and +0x20 under bit 4. */
         float* alphas_1c;
         srVector2T<float>* st0_20;
-        unsigned char unknown_24_[0x38];
+        srVector2T<float>* st1_24;
+        srPtr<srMaterialIFace>* vertex_materials_28;
+        unsigned char unknown_2c_[0x30];
     };
 
     struct Pass {

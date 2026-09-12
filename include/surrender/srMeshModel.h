@@ -11,22 +11,43 @@
 class SR_DLL_IMPORT srMeshModel : public srClassSupport<srMeshModel, srModel, 0, 0x2010> {
 public:
     enum e_side {};
-    /* SR.DLL's getTriMesh copies 0x154 bytes into this value. Wiz8's 2D
-       model path independently proves the material at +0x70 and the four
-       pass shaders beginning at +0xb0; the rest remains renderer-owned. */
+    /* Detached 0x154-byte value at srMeshModel+0x23c. updateTriMesh fills it
+       from the live tables; getTriMesh copies or returns it; renderTriMesh
+       feeds srTriMeshPipeline from these slots. */
     struct TriMesh {
         TriMesh()
         {
             for (int pass = 0; pass != 4; ++pass) {
-                shaders_0b0[pass].value = 0x0100241b;
+                shaders_b0[pass].value = 0x0100241b;
             }
         }
 
-        unsigned char unknown_000[0x70];
-        srMaterial* material_070;
-        unsigned char unknown_074[0x3c];
-        srShader shaders_0b0[4];
-        unsigned char unknown_0c0[0x94];
+        long vertex_count_00;
+        long polygon_count_04;
+        long pass_count_08;
+        unsigned long control_flags_0c;
+        srVector3i* poly_vertices_10;
+        srVector4T<float>* poly_equations_14;
+        srVector2T<float>* texcoords_18[4][2];
+        srVector3T<float>* positions_38;
+        srVector3T<float>* normals_3c;
+        srVector3T<float>* dig_40[4];
+        srVector4T<float>* dcg_50[4];
+        srVector4T<float>* scg_60[4];
+        srMaterial* materials_70[4][2];
+        srTextureIFace* textures_90[4][2];
+        srShader shaders_b0[4];
+        srPtr<srMaterialIFace>* vertex_materials_c0[4][2];
+        srPtr<srTextureIFace>* poly_textures_e0[4][2];
+        srShader* poly_shaders_100[4];
+        srVector3i* poly_uv_110[4];
+        srVector3T<float> bounds_minimum_120;
+        srVector3T<float> bounds_maximum_12c;
+        srVector3T<float> bounds_center_138;
+        float bounds_radius_144;
+        float sort_bias_148;
+        unsigned long* active_polygons_14c;
+        unsigned long active_polygon_count_150;
     };
 
     srMeshModel(long polygons, long vertices);
@@ -95,13 +116,20 @@ protected:
     virtual void calculateVertexNormals();
 
 public:
-    unsigned char unknown_1c_[0x210];
+    /* setMaterial indexes [pass][side]; ctor default-constructs eight slots. */
+    srMaterialIFace* materials_1c[4][2];
+    srTextureIFace* textures_3c[4][2];
+    srShader shaders_5c[4];
+    unsigned char unknown_6c_[0x1bc];
+    long pass_count_228;
     /* GrCycle.cpp's 0x004A7E50 clamps a vertex index against this before
        indexing the location array, which is what makes it that array's
        length rather than one more opaque dword. */
     long vertex_location_count_22c;
     long polygon_count_230;
-    unsigned char unknown_234_[0x15c];
+    long uv_count_234;
+    float sort_bias_238;
+    TriMesh tri_mesh_23c;
     unsigned long control_state_390;
     unsigned long control_state_394;
 };

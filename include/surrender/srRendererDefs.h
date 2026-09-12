@@ -14,6 +14,8 @@ public:
         PRIMITIVE_TRIANGLE_FAN = 4,
         PRIMITIVE_TRIANGLES = 5
     };
+    /* Wizardry's 2D surface path writes 0x3f (six low bits). srGERD stores
+       that mask at +0x21cc; the individual plane names are still unnamed. */
     enum e_clip {};
     /* OpenGL vertex-array setup uses GL_FLOAT (0x1406) for this value.
        Wizardry passes it for float[] position and texcoord arrays. */

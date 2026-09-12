@@ -1215,16 +1215,17 @@ static srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* su
         texture->autoRelease();
         texture->setName("Video2DMakePolygonBrush");
         texture->setSurfacePtr(surface);
-        texture->setCorrection(static_cast<srTextureIFace::e_correction>(0));
-        texture->setMagFilter(static_cast<srTextureIFace::e_filter>(3));
-        texture->setMinFilter(static_cast<srTextureIFace::e_filter>(3));
-        texture->setMipmap(static_cast<srTextureIFace::e_mipmap>(0));
+        texture->setCorrection(srTextureIFace::CORRECTION_FASTEST);
+        texture->setMagFilter(srTextureIFace::FILTER_BEST);
+        texture->setMinFilter(srTextureIFace::FILTER_BEST);
+        texture->setMipmap(srTextureIFace::MIPMAP_NONE);
         texture->setWrapS(srTextureIFace::WRAP_CLAMP);
         texture->setWrapT(srTextureIFace::WRAP_CLAMP);
         model->setMaterial(g_blit_material_65967c, 0, static_cast<srMeshModel::e_side>(0));
         model->setTexture(texture, 0, 0);
-        texture->enableHint(static_cast<srTextureIFace::e_hint>(overlay ? 2 : 1));
-        texture->enableHint(static_cast<srTextureIFace::e_hint>(3));
+        texture->enableHint(overlay ? srTextureIFace::HINT_POSITIONAL_2
+                                    : srTextureIFace::HINT_POSITIONAL_1);
+        texture->enableHint(srTextureIFace::HINT_POSITIONAL_3);
     }
     model->setShader(shader, 0);
 

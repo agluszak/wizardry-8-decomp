@@ -312,8 +312,8 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
             if (m_pGlowMaterial_17c == 0) {
                 srAssertFail("m_pGlowMaterial", ST_MODEL_INSTANCE_CPP, 926, 0);
             }
-            if (mesh.material_070 != 0) {
-                *m_pGlowMaterial_17c = *mesh.material_070;
+            if (mesh.materials_70[0][0] != 0) {
+                *m_pGlowMaterial_17c = *mesh.materials_70[0][0];
             }
             if (m_pGlowMaterial_17c == 0) {
                 goto render_mesh;
@@ -331,8 +331,8 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         emissive.z = vector_174->z * base_weight + vector_178->z * glow_weight;
         emissive.w = g_float_005ebb38;
         m_pGlowMaterial_17c->setEmissive(emissive);
-        mesh.material_070 = m_pGlowMaterial_17c;
-        mesh.shaders_0b0[0].value = (mesh.shaders_0b0[0].value & ~0x400UL) | 0x800UL;
+        mesh.materials_70[0][0] = m_pGlowMaterial_17c;
+        mesh.shaders_b0[0].value = (mesh.shaders_b0[0].value & ~0x400UL) | 0x800UL;
     }
 
 render_mesh:

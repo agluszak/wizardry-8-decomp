@@ -7,7 +7,7 @@ stTexture2D::stTexture2D()
     : srClassSupport<stTexture2D, srTexture, false, 0x1000f>(), left(0), top(0), right(128),
       bottom(128), frame_handle(getNewFrameHandle()), surface(0)
 {
-    setMipmap((e_mipmap)0);
+    setMipmap(MIPMAP_NONE);
     enableHint(HINT_POSITIONAL_3);
     enableHint(HINT_POSITIONAL_6);
     enableHint(HINT_POSITIONAL_1);
