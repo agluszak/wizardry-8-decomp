@@ -1486,7 +1486,7 @@ void RefreshTargetMarker(void)
     if (position.x != g_target_position_0068407f.x || position.y != g_target_position_0068407f.y ||
         position.z != g_target_position_0068407f.z) {
         g_target_position_0068407f = position;
-        PopulateTargetMarkerForCurrentAction(&position, &g_target_marker_vector_0068406f, 1);
+        PopulateTargetMarkerForCurrentAction(&position, &gXStatus.target_markers, 1);
     }
 }
 
