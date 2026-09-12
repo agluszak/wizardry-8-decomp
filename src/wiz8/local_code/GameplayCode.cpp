@@ -76,15 +76,6 @@ const int g_character_table_00616604[480] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-// GLOBAL: WIZ8 0x00683F94
-unsigned char g_in_combat_00683f94;
-
-// GLOBAL: WIZ8 0x00683FAD
-W8IList* g_combat_monster_list_00683fad;
-
-// GLOBAL: WIZ8 0x00683FB1
-W8IList* g_combat_group_list_00683fb1;
-
 static const unsigned char g_armor_class_location_weights[5] = {
     15, 40, 30, 10, 5
 };
@@ -712,7 +703,7 @@ void CalcAttacks(W8Character* character)
 void CalcArmorClasses(W8Character* character)
 {
     bool defensive_action = false;
-    if (g_in_combat_00683f94) {
+    if (gXStatus.fCombatMode) {
         unsigned int slot = CharacterPointerToPartySlot(character);
         defensive_action =
             TryCharacterAction(slot, 4, 0) || TryCharacterAction(slot, 5, 0);
@@ -929,7 +920,7 @@ int Function4EF4A0(W8Character* character, int slot_kind)
     memcpy(destination, character, sizeof(W8Character));
     destination->in_party = 1;
     ResetPartySlotRow(slot);
-    Function54B300(slot);
+    ResetGameplaySlot(slot);
 
     W8PartySlotRow* row = &g_party_slot_rows[slot];
     row->animation_0fa = slot_kind;

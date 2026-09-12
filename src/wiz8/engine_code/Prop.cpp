@@ -62,9 +62,8 @@ struct PropModelInstanceAccess : srModelInstance {
 
         alignment_flags_148 |= 1;
         align_axis_14c.Set(0.0f, 1.0f, 0.0f);
-        length_squared = align_axis_14c.z * align_axis_14c.z +
-            align_axis_14c.y * align_axis_14c.y +
-            align_axis_14c.x * align_axis_14c.x;
+        length_squared = align_axis_14c.z * align_axis_14c.z + align_axis_14c.y * align_axis_14c.y +
+                         align_axis_14c.x * align_axis_14c.x;
         if ((double)length_squared != g_zero_005ebb40) {
             scale = (float)(g_double_005ebc30 / sqrt((double)length_squared));
             align_axis_14c *= scale;
@@ -123,14 +122,11 @@ W8Prop::W8Prop()
     rotation_06c.vectors[2].z = 1.0f;
     m_gd_prop = 0;
     if (m_pRep == 0) {
-        srAssertFail(
-            "m_pRep", PROP_CPP, 0x30e,
-            "Prop::Prop() out of memory allocating m_pRep");
+        srAssertFail("m_pRep", PROP_CPP, 0x30e, "Prop::Prop() out of memory allocating m_pRep");
     }
     if (m_animation_timer == 0) {
-        srAssertFail(
-            "m_animation_timer", PROP_CPP, 0x30f,
-            "Prop::Prop() out of memory allocating m_animation_timer");
+        srAssertFail("m_animation_timer", PROP_CPP, 0x30f,
+                     "Prop::Prop() out of memory allocating m_animation_timer");
     }
 }
 
@@ -138,16 +134,9 @@ W8Prop::W8Prop()
    with the source capacity.  Clone's vtable slot allocates 0xc4 and lands here. */
 // FUNCTION: WIZ8 0x0044ad10
 W8PropRepresentation::W8PropRepresentation(const W8PropRepresentation& other)
-    : W8AnimRep005ED050(other),
-      animation_speed(other.animation_speed),
-      value_0a0(other.value_0a0),
-      flag_0a4(other.flag_0a4),
-      flag_0a5(other.flag_0a5),
-      value_0a8(other.value_0a8),
-      flag_0ac(other.flag_0ac),
-      flag_0ad(other.flag_0ad),
-      slots(5),
-      flag_0c0(other.flag_0c0),
+    : W8AnimRep005ED050(other), animation_speed(other.animation_speed), value_0a0(other.value_0a0),
+      flag_0a4(other.flag_0a4), flag_0a5(other.flag_0a5), value_0a8(other.value_0a8),
+      flag_0ac(other.flag_0ac), flag_0ad(other.flag_0ad), slots(5), flag_0c0(other.flag_0c0),
       flag_0c1(other.flag_0c1)
 {
     animation = CloneAnimObj004A0320(other.animation);
@@ -185,15 +174,15 @@ void UpdateWorldProps0044E010(W8World* world)
     int index;
 
     if (world == 0 || world->plsProps == 0) {
-        srAssertFail("pWorld && pWorld->plsProps", "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp", 0x969, 0);
+        srAssertFail("pWorld && pWorld->plsProps",
+                     "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp", 0x969, 0);
     }
     count = PLLength(world->plsProps);
     for (index = 0; index < static_cast<int>(count); ++index) {
         W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
         Trigger* trigger;
 
-        if (prop != 0 &&
-            (trigger = FindTriggerForProp00443830(world, prop)) != 0 &&
+        if (prop != 0 && (trigger = FindTriggerForProp00443830(world, prop)) != 0 &&
             prop->m_gd_prop != 0) {
             prop->flags_1c |= 0x80;
             prop->m_gd_prop->BindTrigger(trigger);
@@ -229,10 +218,8 @@ W8Prop* FindPropByName(W8World* world, const char* name)
         unsigned int count = PLLength(world->plsProps);
 
         for (index = 0; index < (int)count; ++index) {
-            W8Prop* prop = static_cast<W8Prop*>(
-                PLGet(world->plsProps, index));
-            if (prop->m_name != 0 &&
-                _stricmp(prop->m_name, name) == 0) {
+            W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
+            if (prop->m_name != 0 && _stricmp(prop->m_name, name) == 0) {
                 return prop;
             }
         }
@@ -311,8 +298,8 @@ void W8Prop::SetSetting6C(unsigned char value)
 /* Retail routes this integer-tail call to the bounds body at 0x004A1710.
    The W8Prop operation's semantic identity remains unresolved, so preserve
    its observed arguments without describing the mismatch as compatibility. */
-typedef void (*AnimObjIntegerTailCall)(
-    W8AnimObj* animation, int channel, unsigned char argument, int from, int to);
+typedef void (*AnimObjIntegerTailCall)(W8AnimObj* animation, int channel, unsigned char argument,
+                                       int from, int to);
 
 // FUNCTION: WIZ8 0x0044d5f0
 void W8Prop::GetCenterPosition(srVector3T<float>* position)
@@ -320,9 +307,7 @@ void W8Prop::GetCenterPosition(srVector3T<float>* position)
     srVector3T<float> first;
     srVector3T<float> second;
 
-    AnimObjGetBounds004A1710(
-        Rep()->animation, 2, Rep()->flag_064,
-        &first, &second);
+    AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->flag_064, &first, &second);
     position->x = (first.x + second.x) * 0.5f;
     position->y = (first.y + second.y) * 0.5f;
     position->z = (first.z + second.z) * 0.5f;
@@ -374,12 +359,10 @@ char ResolvePickedProp(W8World* world)
 
         instance = 0;
         if (AnimationIsRunning(representation->animation) == 1) {
-            int count = static_cast<int>(AnimObjListCount004A1620(
-                representation->animation, 2));
+            int count = static_cast<int>(AnimObjListCount004A1620(representation->animation, 2));
             for (instance_index = 0; instance_index < count; ++instance_index) {
-                instance = AnimObjDispatchList004A1560(
-                    representation->animation, 2,
-                    static_cast<signed char>(instance_index));
+                instance = AnimObjDispatchList004A1560(representation->animation, 2,
+                                                       static_cast<signed char>(instance_index));
                 if (GetValue65962C() == instance) {
                     break;
                 }
@@ -388,8 +371,7 @@ char ResolvePickedProp(W8World* world)
                 continue;
             }
         } else {
-            instance = representation->ToggleAnimation(
-                representation->flag_064);
+            instance = representation->ToggleAnimation(representation->flag_064);
             if (GetValue65962C() != instance) {
                 continue;
             }
@@ -399,11 +381,9 @@ char ResolvePickedProp(W8World* world)
             Trigger* trigger = prop->trigger_18;
             g_selected_prop_trigger_00659a60 = trigger;
             if (trigger != 0 && (trigger->flags_0a0 & 0x100) != 0 &&
-                ((trigger->flags_0a0 & 0x40000) == 0 ||
-                 (trigger->flags_0a0 & 0x80000) == 0) &&
+                ((trigger->flags_0a0 & 0x40000) == 0 || (trigger->flags_0a0 & 0x80000) == 0) &&
                 (g_flag_6081e4 ||
-                 (trigger->m_pActionData != 0 &&
-                  trigger->m_pActionData->type_004 == 10 &&
+                 (trigger->m_pActionData != 0 && trigger->m_pActionData->type_004 == 10 &&
                   (trigger->m_pActionData->flags_008 & 1) == 0)) &&
                 representation->active != 0) {
                 srVector3T<float> minimum;
@@ -413,9 +393,8 @@ char ResolvePickedProp(W8World* world)
                 float dz;
                 float distance;
 
-                AnimObjGetBounds004A1710(
-                    representation->animation, 2, representation->flag_064,
-                    &minimum, &maximum);
+                AnimObjGetBounds004A1710(representation->animation, 2, representation->flag_064,
+                                         &minimum, &maximum);
                 dx = (minimum.x + maximum.x) * 0.5f - camera_position.x;
                 dy = (minimum.y + maximum.y) * 0.5f - camera_position.y;
                 dz = (minimum.z + maximum.z) * 0.5f - camera_position.z;
@@ -469,8 +448,7 @@ unsigned char W8PropRepresentation::SelectAnimationSlot(unsigned char tag)
             }
             if (value_069 <= counter_094) {
                 flag_06e = 3;
-            }
-            else {
+            } else {
                 flag_06e = 1;
             }
             flag_06d = 1;
@@ -488,7 +466,7 @@ int W8PropRepresentation::FindCurrentAnimationSlot()
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
-/* Retail compiled this comparison with VC6's mixed-sign operands; the
+    /* Retail compiled this comparison with VC6's mixed-sign operands; the
    signedness is part of the recovered body and changing it would change
    the compare and branch. Suppress only this diagnostic here. */
     int index;
@@ -507,7 +485,7 @@ unsigned char W8PropRepresentation::AdvanceAnimationSegment()
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
-/* Retail compiled this comparison with VC6's mixed-sign operands; the
+    /* Retail compiled this comparison with VC6's mixed-sign operands; the
    signedness is part of the recovered body and changing it would change
    the compare and branch. Suppress only this diagnostic here. */
     int segment;
@@ -524,15 +502,11 @@ unsigned char W8PropRepresentation::AdvanceAnimationSegment()
         segment = -1;
     }
     if (segment == -1) {
-        srAssertFail(
-            "lSegment!=(-1)",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp",
-            0x2c3, 0);
+        srAssertFail("lSegment!=(-1)", "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp", 0x2c3, 0);
     }
     if (segment == slots.count - 2) {
         segment = 0;
-    }
-    else {
+    } else {
         ++segment;
     }
     counter_094 = slots.data[segment][0];
@@ -575,8 +549,13 @@ srModelInstance* W8Prop::ToggleRepAnimationDefault()
 // FUNCTION: WIZ8 0x0044d5c0
 int W8Prop::PlayRepAnimation(int from, int to)
 {
-    ((AnimObjIntegerTailCall)AnimObjGetBounds004A1710)(
-        Rep()->animation, 2, Rep()->flag_064, from, to);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
+    /* Retail tail-calls the bounds body with two extra integer arguments.
+       Do not invent a thunk. */
+    ((AnimObjIntegerTailCall)AnimObjGetBounds004A1710)(Rep()->animation, 2, Rep()->flag_064, from,
+                                                       to);
+#pragma clang diagnostic pop
     return 1;
 }
 
@@ -597,8 +576,7 @@ void W8Prop::SetSetting6E(unsigned char value, unsigned char fallback)
 /* Set the live representation state. When requested, choose the direction
    and endpoint of the transition from the current and target animation tags. */
 // FUNCTION: WIZ8 0x0044da80
-void W8Prop::SetRepresentationActive(
-    unsigned char active, unsigned char update_animation)
+void W8Prop::SetRepresentationActive(unsigned char active, unsigned char update_animation)
 {
     Rep()->flag_06d = active;
     if (active == 0) {
@@ -611,10 +589,8 @@ void W8Prop::SetRepresentationActive(
     }
 
     if (Rep()->flag_070 == 1) {
-        if ((Rep()->flag_06e == 2 &&
-             Rep()->flag_06f != 2) ||
-            (Rep()->flag_06e != 2 &&
-             Rep()->flag_06f == 2)) {
+        if ((Rep()->flag_06e == 2 && Rep()->flag_06f != 2) ||
+            (Rep()->flag_06e != 2 && Rep()->flag_06f == 2)) {
             Rep()->flag_06e = 1;
             Rep()->flag_064 = Rep()->counter_094;
             return;
@@ -624,10 +600,8 @@ void W8Prop::SetRepresentationActive(
         return;
     }
     if (Rep()->flag_070 == 2) {
-        if ((Rep()->flag_06e == 2 &&
-             Rep()->flag_06f != 2) ||
-            (Rep()->flag_06e != 2 &&
-             Rep()->flag_06f == 2)) {
+        if ((Rep()->flag_06e == 2 && Rep()->flag_06f != 2) ||
+            (Rep()->flag_06e != 2 && Rep()->flag_06f == 2)) {
             Rep()->flag_06e = 1;
             Rep()->flag_064 = Rep()->counter_094;
             return;
@@ -662,9 +636,8 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
         (action != 0 && (action->flags_008 & 5) != 0)) {
         return false;
     }
-    if (!m_gd_prop->ContainsPathCoordinate004B75F0(
-            static_cast<unsigned short>(arg_2),
-            static_cast<unsigned short>(arg_3))) {
+    if (!m_gd_prop->ContainsPathCoordinate004B75F0(static_cast<unsigned short>(arg_2),
+                                                   static_cast<unsigned short>(arg_3))) {
         return false;
     }
     if (notify) {
@@ -672,7 +645,6 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
     }
     return true;
 }
-
 
 /* After a successful load, bind the current animation frame's mesh to its
    path and, when the animation is already running, snapshot the live
@@ -683,8 +655,7 @@ void W8Prop::Method44C670()
     unsigned int count;
     int index;
 
-    if (AnimationIsRunning(
-            static_cast<W8PropRepresentation*>(m_pRep)->animation) != 1) {
+    if (AnimationIsRunning(static_cast<W8PropRepresentation*>(m_pRep)->animation) != 1) {
         W8PropRepresentation* rep = static_cast<W8PropRepresentation*>(m_pRep);
         unsigned char frame = rep->flag_064;
         srModelInstance* mesh;
@@ -692,8 +663,7 @@ void W8Prop::Method44C670()
 
         if (AnimationIsRunning(rep->animation) == 0) {
             mesh = AnimObjDispatch004A14D0(rep->animation, 2, frame);
-        }
-        else {
+        } else {
             mesh = AnimObjDispatchList004A1560(rep->animation, 2, 0);
         }
         if (mesh == 0) {
@@ -701,55 +671,45 @@ void W8Prop::Method44C670()
         }
         path = static_cast<W8PropRepresentation*>(m_pRep)->animation->path_24;
         if (path != 0) {
-            PathAISetValue004A9F60(
-                path,
-                (float)static_cast<W8PropRepresentation*>(m_pRep)->flag_064);
-            PathAIApply004AA520(
-                static_cast<W8PropRepresentation*>(m_pRep)
-                        ->animation->path_24,
-                static_cast<stModelInstance*>(mesh));
+            PathAISetValue004A9F60(path,
+                                   (float)static_cast<W8PropRepresentation*>(m_pRep)->flag_064);
+            PathAIApply004AA520(static_cast<W8PropRepresentation*>(m_pRep)->animation->path_24,
+                                static_cast<stModelInstance*>(mesh));
         }
         return;
     }
 
-    count = AnimObjListCount004A1620(
-        static_cast<W8PropRepresentation*>(m_pRep)->animation, 2);
+    count = AnimObjListCount004A1620(static_cast<W8PropRepresentation*>(m_pRep)->animation, 2);
     for (index = 0; index < (int)count; ++index) {
         srModelInstance* mesh = AnimObjDispatchList004A1560(
-            static_cast<W8PropRepresentation*>(m_pRep)->animation,
-            2,
-            (signed char)index);
+            static_cast<W8PropRepresentation*>(m_pRep)->animation, 2, (signed char)index);
         W8PathAI* path;
 
         if (mesh == 0) {
             srAssertFail("psrMesh", PROP_CPP, 0x56f, 0);
         }
         path = reinterpret_cast<W8PathAI*>(AnimObjListEntry004A16C0(
-            static_cast<W8PropRepresentation*>(m_pRep)->animation,
-            2,
-            (signed char)index));
+            static_cast<W8PropRepresentation*>(m_pRep)->animation, 2, (signed char)index));
         if (path != 0) {
             srVector3T<float> location;
 
-            PathAISetValue004A9F60(
-                path,
-                (float)static_cast<W8PropRepresentation*>(m_pRep)->flag_064);
-            PathAIApply004AA520(
-                path, static_cast<stModelInstance*>(mesh));
+            PathAISetValue004A9F60(path,
+                                   (float)static_cast<W8PropRepresentation*>(m_pRep)->flag_064);
+            PathAIApply004AA520(path, static_cast<stModelInstance*>(mesh));
             static_cast<srNode*>(mesh)->getLocation(location);
             position_02c = location;
             position_03c = location;
         }
     }
     flags_1c |= 0x20;
-    Function44DEA0();
+    BuildOrRefreshPathingRepresentation();
 }
 
 /* Build or refresh the pathing representation for a collidable Prop.  Retail
    requires a transitive animation with one mesh, then either constructs the
    owned GDProp or reinitializes it for the current animation frame. */
 // FUNCTION: WIZ8 0x0044dea0
-int W8Prop::Function44DEA0()
+int W8Prop::BuildOrRefreshPathingRepresentation()
 {
     srModelInstance* instance;
 
@@ -757,8 +717,7 @@ int W8Prop::Function44DEA0()
         return 0;
     }
     if (AnimationIsRunning(Rep()->animation) != 1) {
-        ShutdownWithErrorBox(
-            "Collidable props can be of Transitive animation type only.");
+        ShutdownWithErrorBox("Collidable props can be of Transitive animation type only.");
     }
     if (AnimObjListCount004A1620(Rep()->animation, 2) != 1) {
         ShutdownWithErrorBox("Collideable props should have a single mesh.");
@@ -769,20 +728,15 @@ int W8Prop::Function44DEA0()
     }
 
     if (m_gd_prop == 0) {
-        m_gd_prop = new GDProp(
-            instance, reinterpret_cast<unsigned char*>(m_name),
-            static_cast<unsigned short>(Rep()->flag_064), Rep()->flag_0c0,
-            Rep()->flag_0c1);
-    }
-    else {
+        m_gd_prop = new GDProp(instance, reinterpret_cast<unsigned char*>(m_name),
+                               static_cast<unsigned short>(Rep()->flag_064), Rep()->flag_0c0,
+                               Rep()->flag_0c1);
+    } else {
         if ((flags_1c & 0x20) != 0) {
-            m_gd_prop->Initialize(
-                instance, 1, static_cast<unsigned short>(Rep()->flag_064),
-                Rep()->flag_0c0, Rep()->flag_0c1);
-        }
-        else {
-            m_gd_prop->Initialize(
-                instance, 0, 0, Rep()->flag_0c0, Rep()->flag_0c1);
+            m_gd_prop->Initialize(instance, 1, static_cast<unsigned short>(Rep()->flag_064),
+                                  Rep()->flag_0c0, Rep()->flag_0c1);
+        } else {
+            m_gd_prop->Initialize(instance, 0, 0, Rep()->flag_0c0, Rep()->flag_0c1);
         }
         if (Rep()->flag_070 == 1) {
             g_byte_00659a64 = 1;
@@ -792,8 +746,7 @@ int W8Prop::Function44DEA0()
 }
 
 // FUNCTION: WIZ8 0x0044bf50
-unsigned char CreateAndLoadProp0044BF50(
-    W8ReadLevelInfo* info, W8Prop** prop_out)
+unsigned char CreateAndLoadProp0044BF50(W8ReadLevelInfo* info, W8Prop** prop_out)
 {
     W8Prop* prop;
     unsigned char success;
@@ -805,13 +758,11 @@ unsigned char CreateAndLoadProp0044BF50(
     if (prop == 0) {
         srAssertFail("pProp", PROP_CPP, 0x348, 0);
     }
-    success = static_cast<W8PropRepresentation*>(prop->m_pRep)->LoadProp0044AEE0(
-        info, prop);
+    success = static_cast<W8PropRepresentation*>(prop->m_pRep)->LoadProp0044AEE0(info, prop);
     if (success != 0) {
         *prop_out = prop;
         prop->m_animation_timer->SetDuration(
-            g_float_005ebb38 /
-            static_cast<W8PropRepresentation*>(prop->m_pRep)->animation_speed);
+            g_float_005ebb38 / static_cast<W8PropRepresentation*>(prop->m_pRep)->animation_speed);
         prop->Method44C670();
     }
     return success;
@@ -821,8 +772,7 @@ unsigned char CreateAndLoadProp0044BF50(
    prop->m_pRep into ECX before the two stack arguments, so this is a
    PropRep method: LoadProp(pInfo, pProp). */
 // FUNCTION: WIZ8 0x0044aee0
-unsigned char W8PropRepresentation::LoadProp0044AEE0(
-    W8ReadLevelInfo* info, W8Prop* prop)
+unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
 {
     int hFile;
     unsigned char success;
@@ -837,8 +787,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
     long fail_line;
 
     if (info == 0 || info->hFile == 0 || prop == 0) {
-        srAssertFail(
-            "pInfo && pInfo->hFile && pProp", PROP_CPP, 0xae, 0);
+        srAssertFail("pInfo && pInfo->hFile && pProp", PROP_CPP, 0xae, 0);
     }
     hFile = info->hFile;
     success = FileRead(hFile, &version, 1, 0);
@@ -849,13 +798,11 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
         int ok;
         W8AniMesh* mesh;
 
-        if (success == 0 ||
-            (success = FileRead(hFile, &b0, 1, 0), success == 0) ||
+        if (success == 0 || (success = FileRead(hFile, &b0, 1, 0), success == 0) ||
             (success = FileRead(hFile, &b1, 1, 0), success == 0) ||
             (success = FileRead(hFile, &b2, 1, 0), success == 0)) {
             ok = 0;
-        }
-        else {
+        } else {
             ok = 1;
         }
         if (version < 2) {
@@ -864,8 +811,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
                 fail_line = 0xcb;
                 goto fail;
             }
-        }
-        else {
+        } else {
             if (!ok) {
                 fail_line = 0xcb;
                 goto fail;
@@ -897,8 +843,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
         animation->flag_05 = 0;
         animation->playback_scale_08 = playback_scale;
         this->animation = animation;
-    }
-    else {
+    } else {
         unsigned int entry_index;
         unsigned int list_count;
         signed char slot_count;
@@ -946,8 +891,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
             } while (*scan++ != '\0');
             if (length == -2) {
                 delete[] buffer;
-            }
-            else {
+            } else {
                 if (prop->m_name != 0) {
                     delete[] prop->m_name;
                 }
@@ -960,29 +904,22 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
             for (slot_i = 0; slot_i < slot_count; ++slot_i) {
                 unsigned short frame_tmp = 0;
                 unsigned short tag_tmp = 0;
-                unsigned char* slot =
-                    new unsigned char[2];
+                unsigned char* slot = new unsigned char[2];
 
                 FileRead(hFile, &frame_tmp, 2, 0);
                 slot[0] = (unsigned char)frame_tmp;
                 FileRead(hFile, &tag_tmp, 2, 0);
                 slot[1] = (unsigned char)tag_tmp;
                 if (frame_count <= frame_tmp) {
-                    srAssertFail(
-                        "(usTemp < (UINT16)ubNumFrames)",
-                        PROP_CPP,
-                        0x11f,
-                        reinterpret_cast<const char*>(String(
-                            "%s Prop Error Segment %d frame n",
-                            prop->m_name,
-                            (unsigned int)tag_tmp,
-                            (unsigned int)frame_tmp)));
+                    srAssertFail("(usTemp < (UINT16)ubNumFrames)", PROP_CPP, 0x11f,
+                                 reinterpret_cast<const char*>(
+                                     String("%s Prop Error Segment %d frame n", prop->m_name,
+                                            (unsigned int)tag_tmp, (unsigned int)frame_tmp)));
                 }
                 {
                     int next_count = this->slots.count + 1;
 
-                    if (next_count <= this->slots.capacity ||
-                        this->slots.Grow(next_count) != 0) {
+                    if (next_count <= this->slots.capacity || this->slots.Grow(next_count) != 0) {
                         this->slots.data[this->slots.count] = slot;
                         this->slots.count = next_count;
                     }
@@ -1004,15 +941,11 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
             char* named;
 
             if (AnimationIsRunning(this->animation) == 0) {
-                instance = AnimObjDispatch004A14D0(
-                    this->animation, 2, (unsigned char)entry_index);
+                instance = AnimObjDispatch004A14D0(this->animation, 2, (unsigned char)entry_index);
+            } else {
+                instance = AnimObjDispatchList004A1560(this->animation, 2, 0);
             }
-            else {
-                instance = AnimObjDispatchList004A1560(
-                    this->animation, 2, 0);
-            }
-            named = reinterpret_cast<char*>(
-                String("Prop: %s", prop->m_name));
+            named = reinterpret_cast<char*>(String("Prop: %s", prop->m_name));
             instance->setName(named);
             mesh_model = static_cast<stMeshModel*>(instance->model());
             for (; mesh_model != 0; mesh_model = mesh_model->next) {
@@ -1023,25 +956,21 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
             if (option_byte != 0) {
                 srNode* child;
 
-                static_cast<PropModelInstanceAccess*>(instance)
-                    ->WriteAlignAxisYUp();
+                static_cast<PropModelInstanceAccess*>(instance)->WriteAlignAxisYUp();
                 child = instance->firstChild();
                 if (child != 0) {
-                    static_cast<PropModelInstanceAccess*>(child)
-                        ->WriteAlignAxisYUp();
+                    static_cast<PropModelInstanceAccess*>(child)->WriteAlignAxisYUp();
                 }
             }
         }
         list_count = AnimObjListCount004A1620(animation, 2);
         for (entry_index = 0; entry_index < list_count; ++entry_index) {
             W8PathAI* path = reinterpret_cast<W8PathAI*>(
-                AnimObjListEntry004A16C0(
-                    animation, 2, (signed char)entry_index));
+                AnimObjListEntry004A16C0(animation, 2, (signed char)entry_index));
             if (path != 0) {
                 PathAISetFlag38004AA9D0(path, 1);
                 PathAISetFlag1C004AAA10(path, 1);
-                PathAISetScale004AA9C0(
-                    path, animation->playback_scale_08);
+                PathAISetScale004AA9C0(path, animation->playback_scale_08);
             }
         }
     }
@@ -1055,16 +984,13 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
     this->timer_068 = GetTickCount();
     if (this->flag_070 == 1 || this->flag_070 == 2) {
         this->flag_06d = 0;
-        this->flag_06e =
-            (unsigned char)(((this->flag_06f != 2) - 1U & 2) + 2);
+        this->flag_06e = (unsigned char)(((this->flag_06f != 2) - 1U & 2) + 2);
     }
 
     if (animation->flag_05 == 0) {
-        W8AniMesh* mesh = reinterpret_cast<W8AniMesh*>(
-            AnimObjEntry004A1660(animation, 2, 0));
+        W8AniMesh* mesh = reinterpret_cast<W8AniMesh*>(AnimObjEntry004A1660(animation, 2, 0));
         unsigned char value_count = AniMeshValue004B64F0(mesh);
-        stModelInstance* frame =
-            GetAniMeshFrame004B6550(mesh, 0);
+        stModelInstance* frame = GetAniMeshFrame004B6550(mesh, 0);
         srVector3T<float> minimum;
         srVector3T<float> maximum;
         unsigned int frame_i;
@@ -1124,8 +1050,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
     if (version > 2) {
         if (result == 0) {
             result = 0;
-        }
-        else {
+        } else {
             success = FileRead(hFile, &attach_flag, 1, 0);
             result = success != 0 ? 1 : 0;
         }
@@ -1140,20 +1065,16 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
             if (trigger->initial_action_22a == 0x40) {
                 InitializeStateDrivenPropVariables00445200(trigger);
             }
-            if (trigger->trigger_kind_018 == 1 &&
-                trigger->initial_action_22a == 8) {
+            if (trigger->trigger_kind_018 == 1 && trigger->initial_action_22a == 8) {
                 unsigned int path_count;
                 unsigned int path_i;
 
                 this->flag_0a4 = 1;
                 if (AnimationIsRunning(this->animation) == 1) {
-                    path_count = AnimObjListCount004A1620(
-                        this->animation, 2);
+                    path_count = AnimObjListCount004A1620(this->animation, 2);
                     for (path_i = 0; path_i < path_count; ++path_i) {
                         W8PathAI* path = reinterpret_cast<W8PathAI*>(
-                            AnimObjListEntry004A16C0(
-                                this->animation, 2,
-                                (signed char)path_i));
+                            AnimObjListEntry004A16C0(this->animation, 2, (signed char)path_i));
                         path->flag_39 = 1;
                     }
                 }
@@ -1182,16 +1103,10 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
             result = success != 0 ? 1 : 0;
         }
         if (extra != 0) {
-            if (result != 0 &&
-                (success = FileRead(
-                     hFile, &this->flag_0c0, 1, 0),
-                 success != 0) &&
-                (success = FileRead(
-                     hFile, &this->flag_0c1, 1, 0),
-                 success != 0)) {
+            if (result != 0 && (success = FileRead(hFile, &this->flag_0c0, 1, 0), success != 0) &&
+                (success = FileRead(hFile, &this->flag_0c1, 1, 0), success != 0)) {
                 result = 1;
-            }
-            else {
+            } else {
                 result = 0;
             }
         }

@@ -82,16 +82,12 @@ W8GrowableVector<int> g_location_variable_values_00659990;
 
 // GLOBAL: WIZ8 0x00606994
 unsigned char g_flag_00606994 = 1;
-extern unsigned char FindEntityByName(
-    const char* name,
-    srVector3T<float>* position,
-    int* location_id,
-    srVector3T<float>* direction);
-extern void RequestLevelTransition005615F0(
-    int location_id, int entrance, unsigned char show_message);
+extern unsigned char FindEntityByName(const char* name, srVector3T<float>* position,
+                                      int* location_id, srVector3T<float>* direction);
+extern void RequestLevelTransition005615F0(int location_id, int entrance,
+                                           unsigned char show_message);
 
 extern void UpdateCameraView00450080(srCamera* camera, int mode);
-
 
 // GLOBAL: WIZ8 0x0068506e
 unsigned char g_flag_0068506e;
@@ -142,22 +138,17 @@ void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, unsigned char 
             if (restoring) {
                 FileWrite(handle, &trigger->value_368, sizeof(trigger->value_368), 0);
                 FileWrite(handle, &trigger->value_36c, sizeof(trigger->value_36c), 0);
-                FileWrite(handle, &trigger->state_370.state,
-                          sizeof(trigger->state_370.state), 0);
+                FileWrite(handle, &trigger->state_370.state, sizeof(trigger->state_370.state), 0);
                 FileWrite(handle, &trigger->state_370.value_01,
-                          sizeof(trigger->state_370.value_01) +
-                              sizeof(trigger->state_370.value_05),
+                          sizeof(trigger->state_370.value_01) + sizeof(trigger->state_370.value_05),
                           0);
                 FileWrite(handle, &trigger->value_37c, sizeof(trigger->value_37c), 0);
                 FileWrite(handle, &trigger->value_380, sizeof(trigger->value_380), 0);
                 FileWrite(handle, &trigger->value_384, sizeof(trigger->value_384), 0);
-            }
-            else {
-                FileWrite(handle, &trigger->state_370.state,
-                          sizeof(trigger->state_370.state), 0);
+            } else {
+                FileWrite(handle, &trigger->state_370.state, sizeof(trigger->state_370.state), 0);
                 FileWrite(handle, &trigger->state_370.value_01,
-                          sizeof(trigger->state_370.value_01) +
-                              sizeof(trigger->state_370.value_05),
+                          sizeof(trigger->state_370.value_01) + sizeof(trigger->state_370.value_05),
                           0);
                 FileWrite(handle, &trigger->value_384, sizeof(trigger->value_384), 0);
                 FileWrite(handle, &trigger->value_388, sizeof(trigger->value_388), 0);
@@ -185,20 +176,17 @@ unsigned char Trigger::Save0043BE60(int hFile)
     unsigned char has_world_item;
 
     if (hFile == 0) {
-        srAssertFail(
-            "hFile",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-            0x183, 0);
+        srAssertFail("hFile", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x183, 0);
     }
     header_ok = FileWrite(hFile, &version, sizeof(version), 0) &&
-        FileWrite(hFile, reserved, sizeof(reserved), 0) &&
-        FileWrite(hFile, name_01c, 0x80, 0) &&
-        FileWrite(hFile, &flags_0a0, sizeof(flags_0a0), 0) &&
-        FileWrite(hFile, &value_0b1, sizeof(value_0b1), 0) &&
-        FileWrite(hFile, &value_0b2, sizeof(value_0b2), 0) &&
-        FileWrite(hFile, &action_230, sizeof(action_230), 0) &&
-        FileWrite(hFile, &action_state_232, sizeof(action_state_232), 0) &&
-        FileWrite(hFile, &value_23c, sizeof(value_23c), 0);
+                FileWrite(hFile, reserved, sizeof(reserved), 0) &&
+                FileWrite(hFile, name_01c, 0x80, 0) &&
+                FileWrite(hFile, &flags_0a0, sizeof(flags_0a0), 0) &&
+                FileWrite(hFile, &value_0b1, sizeof(value_0b1), 0) &&
+                FileWrite(hFile, &value_0b2, sizeof(value_0b2), 0) &&
+                FileWrite(hFile, &action_230, sizeof(action_230), 0) &&
+                FileWrite(hFile, &action_state_232, sizeof(action_state_232), 0) &&
+                FileWrite(hFile, &value_23c, sizeof(value_23c), 0);
     action_data = m_pActionData;
     has_action_data = action_data != 0;
     FileWrite(hFile, &has_action_data, sizeof(has_action_data), 0);
@@ -241,13 +229,11 @@ unsigned char Trigger::Save0043BE60(int hFile)
                 action_flags |= 0x200;
             }
             FileWrite(hFile, &action_flags, sizeof(action_flags), 0);
-            if (m_lData1 != 0 && m_pEvent != 0 &&
-                g_timed_events_006599b8.IndexOf(m_pEvent) != -1) {
+            if (m_lData1 != 0 && m_pEvent != 0 && g_timed_events_006599b8.IndexOf(m_pEvent) != -1) {
                 float progress = m_pEvent->timer_008.GetProgress();
                 if (progress <= g_float_005ec124) {
                     progress_delay = (unsigned int)m_pEvent->timer_008.GetProgress();
-                }
-                else {
+                } else {
                     progress_delay = 64000;
                 }
             }
@@ -324,8 +310,8 @@ Trigger* FindTriggerByName(const char* name)
     if (uppercase_name != 0) {
         strcpy(uppercase_name, name);
         _strupr(uppercase_name);
-        trigger = static_cast<Trigger*>(srCore.getRegistry()->find(
-            Trigger::sGetClassNode(), uppercase_name, 0));
+        trigger = static_cast<Trigger*>(
+            srCore.getRegistry()->find(Trigger::sGetClassNode(), uppercase_name, 0));
     }
     free(uppercase_name);
     return trigger;
@@ -335,8 +321,7 @@ Trigger* FindTriggerByName(const char* name)
 // class W8TriggerEvent
 
 W8TriggerEvent::W8TriggerEvent()
-    : action_004(-1), timer_008(), m_pCountdown(0), trigger_030(0),
-      repeat_034(0), completed_035(0)
+    : action_004(-1), timer_008(), m_pCountdown(0), trigger_030(0), repeat_034(0), completed_035(0)
 {
 }
 
@@ -344,9 +329,7 @@ W8TriggerEvent::W8TriggerEvent()
 // W8TriggerEvent::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x004409a0
-W8TriggerEvent::~W8TriggerEvent()
-{
-}
+W8TriggerEvent::~W8TriggerEvent() {}
 
 class W8TriggerShakeEvent : public W8TriggerEvent {
 public:
@@ -359,16 +342,12 @@ public:
     unsigned char unknown_041[3];
 };
 
-static_assert(sizeof(W8TriggerShakeEvent) == 0x44,
-              "W8TriggerShakeEvent_must_be_0x44");
+static_assert(sizeof(W8TriggerShakeEvent) == 0x44, "W8TriggerShakeEvent_must_be_0x44");
 
 // VTABLE: WIZ8 0x005ec140
 // class W8TriggerShakeEvent
 
-W8TriggerShakeEvent::W8TriggerShakeEvent()
-    : effect_038(0), intensity_03c(1), reverse_040(0)
-{
-}
+W8TriggerShakeEvent::W8TriggerShakeEvent() : effect_038(0), intensity_03c(1), reverse_040(0) {}
 
 // GLOBAL: WIZ8 0x006599a0
 srVector3T<float> g_trigger_camera_006599a0;
@@ -393,22 +372,19 @@ void UpdateWorldTriggers00443AE0(W8World* world)
             (trigger->m_pProp->GetAnimationState0044EBE0() < 2 ||
              trigger->m_pProp->Rep()->flag_06d == 0)) {
             trigger->GenerateItemGroup();
-            if (g_modal_owner_0068edd0 == 0 &&
-                trigger->world_item_group_34c != 0) {
+            if (g_modal_owner_0068edd0 == 0 && trigger->world_item_group_34c != 0) {
                 W8Dialog005CD710* dialog = new W8Dialog005CD710;
                 if (dialog != 0) {
                     dialog->m_user_data = reinterpret_cast<int>(trigger);
-                    dialog->SetItemGroup005CF0C0(
-                        trigger->world_item_group_34c);
+                    dialog->SetItemGroup005CF0C0(trigger->world_item_group_34c);
                     dialog->m_destroy_callback = OnItemDialogClosed004456C0;
                     g_flag_0068506e = 0;
                     g_modal_owner_0068edd0 = dialog;
                 }
             }
         }
-        if (g_environment_load_flag_00603ad0 != 0 &&
-            trigger->trigger_kind_018 == 2 && trigger->flag_0a0_08 != 0 &&
-            trigger->flag_0a0_11 != 0 && trigger->flag_0a0_02 == 0) {
+        if (g_environment_load_flag_00603ad0 != 0 && trigger->trigger_kind_018 == 2 &&
+            trigger->flag_0a0_08 != 0 && trigger->flag_0a0_11 != 0 && trigger->flag_0a0_02 == 0) {
             float dx = trigger->position_118 - camera.x;
             float dy = trigger->position_11c - camera.y;
             float dz = trigger->position_120 - camera.z;
@@ -417,9 +393,7 @@ void UpdateWorldTriggers00443AE0(W8World* world)
                 if (trigger->flag_0a0_06 != 0) {
                     trigger->FinishAction();
                 }
-            }
-            else if (trigger->flag_0a0_06 == 0 &&
-                     trigger->range_minimum_0a4 <= distance) {
+            } else if (trigger->flag_0a0_06 == 0 && trigger->range_minimum_0a4 <= distance) {
                 activated = true;
                 if (trigger->flag_0a0_20 == 0 || !running) {
                     trigger->Run(-1);
@@ -442,8 +416,7 @@ void OnItemDialogClosed004456C0(W8DialogBase* base)
 
     if (dialog != 0) {
         dialog->ReturnItemsToGroup005CF110();
-        reinterpret_cast<Trigger*>(dialog->m_user_data)->flags_0a0 &=
-            0xfdffffff;
+        reinterpret_cast<Trigger*>(dialog->m_user_data)->flags_0a0 &= 0xfdffffff;
     }
 }
 
@@ -473,8 +446,8 @@ void W8TriggerShakeEvent::Update()
         if (intensity > 1.0f) {
             intensity = 1.0f;
         }
-        effect_038 = CreateCameraShakeEffect004AE080(
-            m_pCountdown->m_duration_seconds, 0, intensity, 0, 0);
+        effect_038 =
+            CreateCameraShakeEffect004AE080(m_pCountdown->m_duration_seconds, 0, intensity, 0, 0);
         effect_038->flags_00 &= ~2;
         if (reverse_040 != 0) {
             effect_038->flags_00 |= 0x10;
@@ -497,16 +470,14 @@ void W8TriggerShakeEvent::Update()
    The caller passes the intensity, the effect duration and the optional
    countdown duration, all scaled by the trigger unit's 0.001 factor. */
 // FUNCTION: WIZ8 0x00444F70
-unsigned char CreateTriggerShakeEvent00444F70(
-    int intensity, float duration, float countdown_duration,
-    unsigned char reverse)
+unsigned char CreateTriggerShakeEvent00444F70(int intensity, float duration,
+                                              float countdown_duration, unsigned char reverse)
 {
     W8TriggerShakeEvent* pEvent = new W8TriggerShakeEvent;
 
     if (pEvent == 0) {
-        srAssertFail(
-            "pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-            0x1372, "Out of memory creating shake camera event");
+        srAssertFail("pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x1372,
+                     "Out of memory creating shake camera event");
     }
     pEvent->repeat_034 = 1;
     pEvent->intensity_03c = intensity;
@@ -515,9 +486,8 @@ unsigned char CreateTriggerShakeEvent00444F70(
     }
     pEvent->m_pCountdown = new W8GameTimer;
     if (pEvent->m_pCountdown == 0) {
-        srAssertFail(
-            "m_pCountdown", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-            0x12de, 0);
+        srAssertFail("m_pCountdown", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x12de,
+                     0);
     }
     pEvent->m_pCountdown->SetDuration(countdown_duration * g_float_005ec128);
     pEvent->m_pCountdown->Restart();
@@ -547,17 +517,14 @@ void Trigger::Activate00444750()
 {
     W8TriggerActionData* action_data = m_pActionData;
     if (action_data != 0 && action_data->type_004 == 10 &&
-        (value_368 == 0 || state_370.state != 0) &&
-        (action_data->flags_008 & 4) == 0) {
+        (value_368 == 0 || state_370.state != 0) && (action_data->flags_008 & 4) == 0) {
         if ((action_data->flags_008 & 1) == 0) {
             flag_364 = 1;
             Run(-1);
             flag_364 = 0;
-        }
-        else {
+        } else {
             W8TriggerEvent* event = m_pEvent;
-            if (event != 0 &&
-                g_timed_events_006599b8.IndexOf(event) != -1) {
+            if (event != 0 && g_timed_events_006599b8.IndexOf(event) != -1) {
                 event->timer_008.Restart();
                 if (event->m_pCountdown != 0) {
                     event->m_pCountdown->Restart();
@@ -568,16 +535,14 @@ void Trigger::Activate00444750()
 }
 
 // FUNCTION: WIZ8 0x00444810
-unsigned char Trigger::HasActorWithinRadius(
-    float radius, unsigned char include_party)
+unsigned char Trigger::HasActorWithinRadius(float radius, unsigned char include_party)
 {
     srVector3T<float> center;
 
     if (flag_0a0_11 != 0 || m_pProp != 0) {
         if (m_pProp == 0) {
             center.Set(position_118, position_11c, position_120);
-        }
-        else {
+        } else {
             m_pProp->GetCenterPosition(&center);
         }
 
@@ -591,22 +556,18 @@ unsigned char Trigger::HasActorWithinRadius(
         upper.y = center.y + radius;
         upper.z = center.z + radius;
 
-        unsigned int count = FindMonsterLocationsInBox0042F280(
-            &locations, &lower, &upper, 0x0c, -1);
+        unsigned int count =
+            FindMonsterLocationsInBox0042F280(&locations, &lower, &upper, 0x0c, -1);
         for (unsigned int index = 0; index < count; ++index) {
             int location_id = locations[index];
             if (location_id == 0) {
                 break;
             }
             unsigned int monster_index = MonsterGetIndexByLocationID(
-                0x1246,
-                "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                location_id, 1);
-            W8MonsterInfo* monster_info =
-                MonsterGetScriptPartByLocationIndex(monster_index);
+                0x1246, "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", location_id, 1);
+            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             if (monster_info != 0 && monster_info->monster != 0) {
-                srVector3T<float> monster_position =
-                    monster_info->monster->GetPosition();
+                srVector3T<float> monster_position = monster_info->monster->GetPosition();
                 float x = monster_position.x - center.x;
                 float y = monster_position.y - center.y;
                 float z = monster_position.z - center.z;
@@ -618,8 +579,7 @@ unsigned char Trigger::HasActorWithinRadius(
     }
 
     if (include_party != 0) {
-        srVector3T<float> party_position =
-            g_startup_world_659c0c->GetPosition();
+        srVector3T<float> party_position = g_startup_world_659c0c->GetPosition();
         float x = party_position.x - center.x;
         float y = party_position.y - center.y;
         float z = party_position.z - center.z;
@@ -647,8 +607,7 @@ unsigned char Trigger::PlayActionSound(const char* sound_name, int volume)
             return 0;
         }
         m_pProp->GetCenterPosition(&position);
-    }
-    else {
+    } else {
         position.Set(position_118, position_11c, position_120);
     }
 
@@ -675,35 +634,29 @@ void W8TriggerEvent::Update()
         unsigned short flags = timer_008.m_flags;
 
         if (g_flag_6081e4 == 0) {
-            if ((flags & 8) != 0 ||
-                (g_shared_timer_paused != 0 && (flags & 1) == 0) ||
+            if ((flags & 8) != 0 || (g_shared_timer_paused != 0 && (flags & 1) == 0) ||
                 g_shared_timer_flag_d1 != 0) {
                 return;
             }
             timer_008.m_flags = flags | 8;
-            timer_008.m_start =
-                timer_008.Method00439A60() - timer_008.m_start;
+            timer_008.m_start = timer_008.Method00439A60() - timer_008.m_start;
             return;
         }
-        if ((flags & 8) != 0 ||
-            (g_shared_timer_paused != 0 && (flags & 1) == 0) ||
+        if ((flags & 8) != 0 || (g_shared_timer_paused != 0 && (flags & 1) == 0) ||
             g_shared_timer_flag_d1 != 0) {
             timer_008.m_flags = flags & ~8;
-            timer_008.m_start =
-                timer_008.Method00439A60() - timer_008.m_start;
+            timer_008.m_start = timer_008.Method00439A60() - timer_008.m_start;
             timer_008.SetDuration(-1.0f);
         }
     }
 
-    if (timer_008.GetProgress() <= 1.0f ||
-        trigger_030->HasActorWithinRadius(5000.0f, 1) != 0) {
+    if (timer_008.GetProgress() <= 1.0f || trigger_030->HasActorWithinRadius(5000.0f, 1) != 0) {
         return;
     }
 
     switch (action_004) {
     case 2:
-        if (trigger_030->m_pActionData != 0 &&
-            trigger_030->m_pActionData->type_004 == 10 &&
+        if (trigger_030->m_pActionData != 0 && trigger_030->m_pActionData->type_004 == 10 &&
             (trigger_030->m_pActionData->flags_008 & 1) != 0) {
             trigger_030->Run(-1);
         }
@@ -737,19 +690,15 @@ void W8TriggerEvent::Update()
             rotation.vectors[2] = row_2;
 
             if (trigger_030->angle_0fc != 0.0f) {
-                rotation.RotateAroundAxis(
-                    sin(trigger_030->angle_0fc),
-                    cos(trigger_030->angle_0fc),
-                    axis);
+                rotation.RotateAroundAxis(sin(trigger_030->angle_0fc), cos(trigger_030->angle_0fc),
+                                          axis);
             }
 
             transformed.x = DotProduct(rotation.vectors[1], target);
             transformed.y = DotProduct(rotation.vectors[2], target);
             transformed.z = DotProduct(row_3, target);
-            FireMissile004A2D30(
-                (unsigned int)trigger_030->m_lData1,
-                &source, &transformed,
-                0, 1, 1, 0x47435000);
+            FireMissile004A2D30((unsigned int)trigger_030->m_lData1, &source, &transformed, 0, 1, 1,
+                                0x47435000);
         }
         break;
     }
@@ -790,8 +739,7 @@ void W8TriggerEvent::Update()
 
             if (comma == 0) {
                 name = 0;
-            }
-            else {
+            } else {
                 name = strchr(name, ',') + 1;
                 *comma = '\0';
             }
@@ -824,29 +772,32 @@ void InitializeStateDrivenPropVariables00445200(Trigger* trigger)
     if (trigger->m_pacStateToMod == 0) {
         return;
     }
-    for (slot = 0;
-         slot < static_cast<signed char>(trigger->m_pProp->Rep()->slots.GetCount());
+    for (slot = 0; slot < static_cast<signed char>(trigger->m_pProp->Rep()->slots.GetCount());
          ++slot) {
         char name[132];
         int variable_id;
 
         if (trigger->m_bRepType != 2) {
-            srAssertFail(
-                "m_bRepType == TRIGGER_REP_PROP",
-                "..\\Engine Code\\Include\\Trigger.hpp", 0x3ed, 0);
+            srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
+                         0x3ed, 0);
         }
         sprintf(name, "%s%d", trigger->m_pacStateToMod, slot);
+        /* `name` is a stack array; the assertion still names pacName. The
+           source pointer is already rejected at the top of this function.
+           Do not collapse the recovered test until a body comparison says
+           retail omitted it. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wtautological-compare"
         if (name == 0) {
-            srAssertFail("pacName", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x1094, 0);
+#pragma clang diagnostic pop
+            srAssertFail("pacName", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x1094,
+                         0);
         }
 
         variable_id = 0;
         while (variable_id < g_location_variable_names_006598f8.GetCount()) {
-            if (_stricmp(
-                    *g_location_variable_names_006598f8.GetAt(variable_id),
-                    name) == 0 &&
-                *g_location_variable_levels_006598e0.GetAt(variable_id) ==
-                    g_loaded_level_id) {
+            if (_stricmp(*g_location_variable_names_006598f8.GetAt(variable_id), name) == 0 &&
+                *g_location_variable_levels_006598e0.GetAt(variable_id) == g_loaded_level_id) {
                 break;
             }
             ++variable_id;
@@ -854,10 +805,8 @@ void InitializeStateDrivenPropVariables00445200(Trigger* trigger)
         if (variable_id == g_location_variable_names_006598f8.GetCount()) {
             char* variable_name = new char[strlen(name) + 1];
             if (variable_name == 0) {
-                srAssertFail(
-                    "pacVariableName",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0x109c, 0);
+                srAssertFail("pacVariableName",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x109c, 0);
             }
             strcpy(variable_name, name);
             g_location_variable_names_006598f8.Add(variable_name);
@@ -877,19 +826,15 @@ void SetTriggerVariableByName00444030(const char* name, int value)
     int index;
 
     for (index = 0; index < count; ++index) {
-        if (_stricmp(
-                *g_location_variable_names_006598f8.GetAt(index), name) == 0 &&
-            *g_location_variable_levels_006598e0.GetAt(index) ==
-                g_status_685170.current_level) {
+        if (_stricmp(*g_location_variable_names_006598f8.GetAt(index), name) == 0 &&
+            *g_location_variable_levels_006598e0.GetAt(index) == g_status_685170.current_level) {
             break;
         }
     }
     if (index >= count) {
         index = -1;
-        srAssertFail(
-            "iVar != BAD_INDEX",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-            0x10c9, 0);
+        srAssertFail("iVar != BAD_INDEX", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                     0x10c9, 0);
     }
     if (index < g_location_variable_values_00659990.GetCount()) {
         *g_location_variable_values_00659990.GetAt(index) = value;
@@ -899,18 +844,13 @@ void SetTriggerVariableByName00444030(const char* name, int value)
 // VTABLE: WIZ8 0x005ec138
 // class W8TriggerActionData
 
-W8TriggerActionData::W8TriggerActionData()
-    : type_004(-1)
-{
-}
+W8TriggerActionData::W8TriggerActionData() : type_004(-1) {}
 
 // SYNTHETIC: WIZ8 0x0043c7f0
 // W8TriggerActionData::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00445ee0
-W8TriggerActionData::~W8TriggerActionData()
-{
-}
+W8TriggerActionData::~W8TriggerActionData() {}
 
 // VTABLE: WIZ8 0x005ec148
 // class W8TriggerActionData005EC148
@@ -965,15 +905,13 @@ W8TriggerActionData* LoadTriggerActionData004417C0(int handle)
     for (int bit = 0; bit < 8; ++bit) {
         if (flags[bit] != 0) {
             data->flags_008 |= 1 << bit;
-        }
-        else {
+        } else {
             data->flags_008 &= ~(1 << bit);
         }
     }
     if (flags[8] != 0) {
         data->flags_009 |= 1;
-    }
-    else {
+    } else {
         data->flags_009 &= ~1;
     }
     data->item_00a = item;
@@ -990,15 +928,14 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-/* The decompiled body reads this storage only after the same short-circuit
+    /* The decompiled body reads this storage only after the same short-circuit
    chain that clang's flow analysis cannot see through; retail leaves it
    uninitialised on the failed-read path. Suppress only this diagnostic. */
     Trigger* trigger = 0;
     unsigned char record_version;
     unsigned char record_type;
     if (handle == 0) {
-        srAssertFail("hFile",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0xca3, 0);
+        srAssertFail("hFile", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0xca3, 0);
     }
     if (FileRead(handle, &record_version, 1, 0) != 0) {
         FileRead(handle, &record_type, 1, 0);
@@ -1007,9 +944,8 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
     if (record_type != 3) {
         trigger = new Trigger;
         if (trigger == 0) {
-            srAssertFail("pTrigger",
-                "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0xcb2,
-                "Out of memory - Trigger::CreateAndLoadLevelTrigger");
+            srAssertFail("pTrigger", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0xcb2,
+                         "Out of memory - Trigger::CreateAndLoadLevelTrigger");
         }
         trigger->trigger_id_09c = g_status_685170.next_trigger_id_2356++;
         trigger->m_pWorld = world;
@@ -1068,8 +1004,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                 FileRead(handle, &action_data_kind, 1, 0);
                 if (action_data_kind == 1) {
                     trigger->m_pActionData = LoadTriggerActionData004417C0(handle);
-                    trigger->value_0b1 =
-                        (trigger->m_pActionData->flags_008 & 1) != 0;
+                    trigger->value_0b1 = (trigger->m_pActionData->flags_008 & 1) != 0;
                 }
             }
         }
@@ -1088,11 +1023,26 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         trigger->value_0b3 = byte_b3;
         trigger->value_0ac = action_value;
         trigger->initial_action_22a = action;
-        if (flag_0 != 0.0f) trigger->flags_0a0 |= 1; else trigger->flags_0a0 &= ~1U;
-        if (flag_1 != 0) trigger->flags_0a0 |= 2; else trigger->flags_0a0 &= ~2U;
-        if (flag_8 != 0) trigger->flags_0a0 |= 0x100; else trigger->flags_0a0 &= ~0x100U;
-        if ((packed_flags & 2) != 0) trigger->flags_0a0 |= 0x200; else trigger->flags_0a0 &= ~0x200U;
-        if ((packed_flags & 1) != 0) trigger->flags_0a0 |= 0x80; else trigger->flags_0a0 &= ~0x80U;
+        if (flag_0 != 0.0f)
+            trigger->flags_0a0 |= 1;
+        else
+            trigger->flags_0a0 &= ~1U;
+        if (flag_1 != 0)
+            trigger->flags_0a0 |= 2;
+        else
+            trigger->flags_0a0 &= ~2U;
+        if (flag_8 != 0)
+            trigger->flags_0a0 |= 0x100;
+        else
+            trigger->flags_0a0 &= ~0x100U;
+        if ((packed_flags & 2) != 0)
+            trigger->flags_0a0 |= 0x200;
+        else
+            trigger->flags_0a0 &= ~0x200U;
+        if ((packed_flags & 1) != 0)
+            trigger->flags_0a0 |= 0x80;
+        else
+            trigger->flags_0a0 &= ~0x80U;
         world->triggers->Add(trigger);
         if (trigger->name_01c[0] != 0) {
             trigger->setName(trigger->name_01c);
@@ -1131,7 +1081,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         if (version > 1) {
             FileRead(handle, &packed_flag, 1, 0);
             FileRead(handle, trigger->representation_vectors_0cc,
-                            sizeof(trigger->representation_vectors_0cc), 0);
+                     sizeof(trigger->representation_vectors_0cc), 0);
             for (int vector = 0; vector < 4; ++vector) {
                 trigger->representation_vectors_0cc[vector].x *= 500.0f;
                 trigger->representation_vectors_0cc[vector].y *= 500.0f;
@@ -1148,8 +1098,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             FileRead(handle, &unused, 1, 0);
             FileRead(handle, action_string, sizeof(action_string), 0);
             if (action == 17) {
-                W8TriggerActionData005EC158* data =
-                    new W8TriggerActionData005EC158;
+                W8TriggerActionData005EC158* data = new W8TriggerActionData005EC158;
                 data->type_004 = 6;
                 data->owned_string_008 = 0;
                 delete trigger->m_pActionData;
@@ -1174,8 +1123,8 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                     unsigned char legacy_flags[2];
                     FileRead(handle, &count, 1, 0);
                     for (int index = 0; index < 36; ++index) {
-                        FileRead(handle, &legacy_vertices[index],
-                                        sizeof(legacy_vertices[index]), 0);
+                        FileRead(handle, &legacy_vertices[index], sizeof(legacy_vertices[index]),
+                                 0);
                         legacy_vertices[index].x *= 500.0f;
                         legacy_vertices[index].y *= 500.0f;
                         legacy_vertices[index].z *= 500.0f;
@@ -1196,19 +1145,27 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         trigger->initial_action_22a = static_cast<unsigned short>(action);
         trigger->value_0c8 = value_c8;
         trigger->flags_0a0 |= 0x800;
-        if (flag_7 != 0) trigger->flags_0a0 |= 0x80; else trigger->flags_0a0 &= ~0x80U;
-        if (flag_8 != 0) trigger->flags_0a0 |= 0x100; else trigger->flags_0a0 &= ~0x100U;
-        if (flag_3 != 0) trigger->flags_0a0 |= 8; else trigger->flags_0a0 &= ~8U;
-        if (packed_flag == 1) trigger->flags_0a0 |= 4;
+        if (flag_7 != 0)
+            trigger->flags_0a0 |= 0x80;
+        else
+            trigger->flags_0a0 &= ~0x80U;
+        if (flag_8 != 0)
+            trigger->flags_0a0 |= 0x100;
+        else
+            trigger->flags_0a0 &= ~0x100U;
+        if (flag_3 != 0)
+            trigger->flags_0a0 |= 8;
+        else
+            trigger->flags_0a0 &= ~8U;
+        if (packed_flag == 1)
+            trigger->flags_0a0 |= 4;
         trigger->m_pacRecipients = new char[strlen(recipients) + 1];
         strcpy(trigger->m_pacRecipients, recipients);
         if ((trigger->flags_0a0 & 4) != 0 && world->m_owned_04c != 0 &&
             world->m_owned_04c->geometry_index_00 != 0) {
-            world->m_owned_04c->AddTriggerPlane(
-                trigger->representation_vectors_0cc, trigger);
+            world->m_owned_04c->AddTriggerPlane(trigger->representation_vectors_0cc, trigger);
         }
-        if (trigger->initial_action_22a == 0x34 &&
-            trigger->m_pacRecipients[0] == 0) {
+        if (trigger->initial_action_22a == 0x34 && trigger->m_pacRecipients[0] == 0) {
             trigger->range_minimum_0a4 = 0.0f;
             trigger->range_maximum_0a8 = 0.0f;
         }
@@ -1273,16 +1230,20 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         if (version > 4) {
             FileRead(handle, &flag_c4, 1, 0);
         }
-        vector_88.x *= 500.0f; vector_88.y *= 500.0f; vector_88.z *= 500.0f;
-        vector_c8.x *= 500.0f; vector_c8.y *= 500.0f; vector_c8.z *= 500.0f;
-        vector_d4.x *= 500.0f; vector_d4.y *= 500.0f; vector_d4.z *= 500.0f;
+        vector_88.x *= 500.0f;
+        vector_88.y *= 500.0f;
+        vector_88.z *= 500.0f;
+        vector_c8.x *= 500.0f;
+        vector_c8.y *= 500.0f;
+        vector_c8.z *= 500.0f;
+        vector_d4.x *= 500.0f;
+        vector_d4.y *= 500.0f;
+        vector_d4.z *= 500.0f;
         value_b4 *= 500.0f;
-        AddAmbientSound0047A790(world, optional_name, &config,
-            &vector_88, &vector_c8, &vector_d4, value_94, value_98,
-            value_ac, value_b0, value_a4, value_a8,
-            static_cast<int>(value_b4),
-            flag_b9 == 0, flag_c5, &vector_e0, value_ec,
-            &vector_f0, &vector_fc, flag_c4);
+        AddAmbientSound0047A790(world, optional_name, &config, &vector_88, &vector_c8, &vector_d4,
+                                value_94, value_98, value_ac, value_b0, value_a4, value_a8,
+                                static_cast<int>(value_b4), flag_b9 == 0, flag_c5, &vector_e0,
+                                value_ec, &vector_f0, &vector_fc, flag_c4);
         return 0;
     }
 
@@ -1311,8 +1272,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         unsigned char representation_kind = 0;
 
         FileRead(handle, &version, 1, 0);
-        FileRead(handle, trigger->name_01c,
-                        sizeof(trigger->name_01c), 0);
+        FileRead(handle, trigger->name_01c, sizeof(trigger->name_01c), 0);
         FileRead(handle, &packed_flags, 1, 0);
         FileRead(handle, &flag_8, 1, 0);
         FileRead(handle, &flag_7, 1, 0);
@@ -1325,8 +1285,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         FileRead(handle, &fallback_action, 4, 0);
         FileRead(handle, recipients, sizeof(recipients), 0);
         FileRead(handle, &searchable, 1, 0);
-        FileRead(handle, location_variable,
-                        sizeof(location_variable), 0);
+        FileRead(handle, location_variable, sizeof(location_variable), 0);
         FileRead(handle, &flag_16, 1, 0);
         FileRead(handle, &action_value, 4, 0);
         FileRead(handle, &flag_1, 1, 0);
@@ -1352,41 +1311,66 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             FileRead(handle, &unused, 4, 0);
         }
 
-        trigger->trigger_kind_018 =
-            ((packed_flags & 1) != 0 || searchable == 1) ? 1 : 2;
-        if ((packed_flags & 2) != 0) trigger->flags_0a0 |= 0x20000;
-        if ((packed_flags & 4) != 0) trigger->flags_0a0 |= 0x40000;
-        if ((packed_flags & 8) != 0) trigger->flags_0a0 |= 0x100000;
-        if ((packed_flags & 0x10) != 0) trigger->flags_0a0 |= 0x200000;
-        if ((packed_flags & 0x20) != 0) trigger->flags_0a0 |= 0x400000;
+        trigger->trigger_kind_018 = ((packed_flags & 1) != 0 || searchable == 1) ? 1 : 2;
+        if ((packed_flags & 2) != 0)
+            trigger->flags_0a0 |= 0x20000;
+        if ((packed_flags & 4) != 0)
+            trigger->flags_0a0 |= 0x40000;
+        if ((packed_flags & 8) != 0)
+            trigger->flags_0a0 |= 0x100000;
+        if ((packed_flags & 0x10) != 0)
+            trigger->flags_0a0 |= 0x200000;
+        if ((packed_flags & 0x20) != 0)
+            trigger->flags_0a0 |= 0x400000;
 
         if (recipients[0] != 0) {
             trigger->m_pacRecipients = new char[strlen(recipients) + 1];
             if (trigger->m_pacRecipients == 0) {
-                srAssertFail(
-                    "pTrigger->m_pacRecipients",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0xe48, "Out of memory - Trigger.cpp");
+                srAssertFail("pTrigger->m_pacRecipients",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0xe48,
+                             "Out of memory - Trigger.cpp");
             }
             strcpy(trigger->m_pacRecipients, recipients);
         }
-        trigger->value_23c =
-            location_variable[0] == 0 ? -1 : atoi(location_variable);
+        trigger->value_23c = location_variable[0] == 0 ? -1 : atoi(location_variable);
         trigger->value_22c = static_cast<unsigned short>(alternate_action);
-        trigger->initial_action_22a =
-            static_cast<unsigned short>(initial_action);
-        trigger->fallback_action_22e =
-            static_cast<unsigned short>(fallback_action);
+        trigger->initial_action_22a = static_cast<unsigned short>(initial_action);
+        trigger->fallback_action_22e = static_cast<unsigned short>(fallback_action);
         trigger->value_0c8 = searchable;
-        if (flag_8 != 0) trigger->flags_0a0 |= 0x100; else trigger->flags_0a0 &= ~0x100U;
-        if (flag_7 != 0) trigger->flags_0a0 |= 0x80; else trigger->flags_0a0 &= ~0x80U;
-        if (flag_9 != 0) trigger->flags_0a0 |= 0x200; else trigger->flags_0a0 &= ~0x200U;
-        if (flag_3 != 0) trigger->flags_0a0 |= 8; else trigger->flags_0a0 &= ~8U;
-        if (flag_12 != 0) trigger->flags_0a0 |= 0x1000; else trigger->flags_0a0 &= ~0x1000U;
-        if (flag_16 != 0) trigger->flags_0a0 |= 0x10000; else trigger->flags_0a0 &= ~0x10000U;
-        if (flag_1 != 0) trigger->flags_0a0 |= 2; else trigger->flags_0a0 &= ~2U;
-        if (flag_15 != 0) trigger->flags_0a0 |= 0x8000; else trigger->flags_0a0 &= ~0x8000U;
-        if (trigger->value_22c != 0) trigger->flags_0a0 |= 0x2000;
+        if (flag_8 != 0)
+            trigger->flags_0a0 |= 0x100;
+        else
+            trigger->flags_0a0 &= ~0x100U;
+        if (flag_7 != 0)
+            trigger->flags_0a0 |= 0x80;
+        else
+            trigger->flags_0a0 &= ~0x80U;
+        if (flag_9 != 0)
+            trigger->flags_0a0 |= 0x200;
+        else
+            trigger->flags_0a0 &= ~0x200U;
+        if (flag_3 != 0)
+            trigger->flags_0a0 |= 8;
+        else
+            trigger->flags_0a0 &= ~8U;
+        if (flag_12 != 0)
+            trigger->flags_0a0 |= 0x1000;
+        else
+            trigger->flags_0a0 &= ~0x1000U;
+        if (flag_16 != 0)
+            trigger->flags_0a0 |= 0x10000;
+        else
+            trigger->flags_0a0 &= ~0x10000U;
+        if (flag_1 != 0)
+            trigger->flags_0a0 |= 2;
+        else
+            trigger->flags_0a0 &= ~2U;
+        if (flag_15 != 0)
+            trigger->flags_0a0 |= 0x8000;
+        else
+            trigger->flags_0a0 &= ~0x8000U;
+        if (trigger->value_22c != 0)
+            trigger->flags_0a0 |= 0x2000;
 
         unsigned char value_b0;
         unsigned char flag_0;
@@ -1397,106 +1381,93 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         FileRead(handle, &value_b0, 1, 0);
         FileRead(handle, &flag_0, 1, 0);
         FileRead(handle, &value_b3, 1, 0);
-        FileRead(handle, required_states,
-                        sizeof(required_states), 0);
-        FileRead(handle, state_to_modify,
-                        sizeof(state_to_modify), 0);
+        FileRead(handle, required_states, sizeof(required_states), 0);
+        FileRead(handle, state_to_modify, sizeof(state_to_modify), 0);
         FileRead(handle, &value_b4, 1, 0);
         _strupr(required_states);
         _strupr(state_to_modify);
         if (required_states[0] != 0) {
-            trigger->m_pacRequiredStates =
-                new char[strlen(required_states) + 1];
+            trigger->m_pacRequiredStates = new char[strlen(required_states) + 1];
             if (trigger->m_pacRequiredStates == 0) {
-                srAssertFail(
-                    "pTrigger->m_pacRequiredStates",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0xe6f, "Out of memory - Trigger.cpp");
+                srAssertFail("pTrigger->m_pacRequiredStates",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0xe6f,
+                             "Out of memory - Trigger.cpp");
             }
             strcpy(trigger->m_pacRequiredStates, required_states);
         }
         if (state_to_modify[0] != 0) {
-            trigger->m_pacStateToMod =
-                new char[strlen(state_to_modify) + 1];
+            trigger->m_pacStateToMod = new char[strlen(state_to_modify) + 1];
             if (trigger->m_pacStateToMod == 0) {
-                srAssertFail(
-                    "pTrigger->m_pacStateToMod",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0xe75, "Out of memory - Trigger.cpp");
+                srAssertFail("pTrigger->m_pacStateToMod",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0xe75,
+                             "Out of memory - Trigger.cpp");
             }
             strcpy(trigger->m_pacStateToMod, state_to_modify);
         }
         trigger->value_0b0 = value_b0;
         trigger->value_0b3 = value_b3;
         trigger->value_0b4 = value_b4;
-        if (flag_0 != 0) trigger->flags_0a0 |= 1; else trigger->flags_0a0 &= ~1U;
+        if (flag_0 != 0)
+            trigger->flags_0a0 |= 1;
+        else
+            trigger->flags_0a0 &= ~1U;
 
         if (trigger->m_pacStateToMod != 0 &&
             (initial_location_value == 0 || initial_location_value == 1)) {
             int variable_id = 0;
-            while (variable_id <
-                   g_location_variable_names_006598f8.GetCount()) {
-                if (_stricmp(
-                        *g_location_variable_names_006598f8.GetAt(variable_id),
-                        trigger->m_pacStateToMod) == 0 &&
+            while (variable_id < g_location_variable_names_006598f8.GetCount()) {
+                if (_stricmp(*g_location_variable_names_006598f8.GetAt(variable_id),
+                             trigger->m_pacStateToMod) == 0 &&
                     *g_location_variable_levels_006598e0.GetAt(variable_id) ==
                         g_status_685170.current_level) {
                     break;
                 }
                 ++variable_id;
             }
-            if (variable_id ==
-                g_location_variable_names_006598f8.GetCount()) {
-                char* variable_name =
-                    new char[strlen(trigger->m_pacStateToMod) + 1];
+            if (variable_id == g_location_variable_names_006598f8.GetCount()) {
+                char* variable_name = new char[strlen(trigger->m_pacStateToMod) + 1];
                 if (variable_name == 0) {
-                    srAssertFail(
-                        "pacVariableName",
-                        "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                        0x109c, 0);
+                    srAssertFail("pacVariableName",
+                                 "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x109c, 0);
                 }
                 strcpy(variable_name, trigger->m_pacStateToMod);
                 g_location_variable_names_006598f8.Add(variable_name);
-                g_location_variable_values_00659990.Add(
-                    initial_location_value);
-                g_location_variable_levels_006598e0.Add(
-                    g_status_685170.current_level);
+                g_location_variable_values_00659990.Add(initial_location_value);
+                g_location_variable_levels_006598e0.Add(g_status_685170.current_level);
             }
         }
 
         int unused_value;
         FileRead(handle, &trigger->range_minimum_0a4, 4, 0);
         FileRead(handle, &trigger->range_maximum_0a8, 4, 0);
-        FileRead(handle, trigger->inline_action_data_24c,
-                        sizeof(trigger->inline_action_data_24c), 0);
+        FileRead(handle, trigger->inline_action_data_24c, sizeof(trigger->inline_action_data_24c),
+                 0);
         FileRead(handle, &unused_value, 4, 0);
         _strupr(trigger->inline_action_data_24c);
         trigger->range_minimum_0a4 *= 500.0f;
         trigger->range_maximum_0a8 *= 500.0f;
         if (version > 2) {
             FileRead(handle, sound, sizeof(sound), 0);
-            sprintf(trigger->alternate_action_data_1a8,
-                    "data\\sound\\%s", sound);
-            if (flag_23 != 0) trigger->flags_0a0 |= 0x800000; else trigger->flags_0a0 &= ~0x800000U;
+            sprintf(trigger->alternate_action_data_1a8, "data\\sound\\%s", sound);
+            if (flag_23 != 0)
+                trigger->flags_0a0 |= 0x800000;
+            else
+                trigger->flags_0a0 &= ~0x800000U;
         }
 
         if ((packed_flags & 1) == 0) {
             FileRead(handle, &representation_kind, 1, 0);
             if (representation_kind == 1) {
-                FileRead(handle, &trigger->position_118,
-                                sizeof(srVector3T<float>), 0);
+                FileRead(handle, &trigger->position_118, sizeof(srVector3T<float>), 0);
                 FileRead(handle, &trigger->angle_0fc, 4, 0);
-                FileRead(handle, &trigger->value_100,
-                                sizeof(srVector3T<float>), 0);
+                FileRead(handle, &trigger->value_100, sizeof(srVector3T<float>), 0);
                 trigger->position_118 *= 500.0f;
                 trigger->position_11c *= 500.0f;
                 trigger->position_120 *= 500.0f;
                 trigger->flags_0a0 |= 0x800;
-            }
-            else if (representation_kind == 2) {
+            } else if (representation_kind == 2) {
                 FileRead(handle, trigger->representation_vectors_0cc,
-                                sizeof(trigger->representation_vectors_0cc),
-                                0);
+                         sizeof(trigger->representation_vectors_0cc), 0);
                 for (int vector = 0; vector < 4; ++vector) {
                     trigger->representation_vectors_0cc[vector].x *= 500.0f;
                     trigger->representation_vectors_0cc[vector].y *= 500.0f;
@@ -1521,17 +1492,14 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             FileRead(handle, &action_data_kind, 1, 0);
             if (action_data_kind == 1) {
                 trigger->m_pActionData = LoadTriggerActionData004417C0(handle);
-                trigger->value_0b1 =
-                    (trigger->m_pActionData->flags_008 & 1) != 0;
-            }
-            else if (action_data_kind == 2) {
+                trigger->value_0b1 = (trigger->m_pActionData->flags_008 & 1) != 0;
+            } else if (action_data_kind == 2) {
                 unsigned char count;
                 srVector3T<float> legacy_vertices[36];
                 unsigned char legacy_flags[2];
                 FileRead(handle, &count, 1, 0);
                 for (int index = 0; index < 36; ++index) {
-                    FileRead(handle, &legacy_vertices[index],
-                                    sizeof(legacy_vertices[index]), 0);
+                    FileRead(handle, &legacy_vertices[index], sizeof(legacy_vertices[index]), 0);
                     legacy_vertices[index].x *= 500.0f;
                     legacy_vertices[index].y *= 500.0f;
                     legacy_vertices[index].z *= 500.0f;
@@ -1543,11 +1511,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
 
         if (representation_kind == 2 && world->m_owned_04c != 0 &&
             world->m_owned_04c->geometry_index_00 != 0) {
-            world->m_owned_04c->AddTriggerPlane(
-                trigger->representation_vectors_0cc, trigger);
+            world->m_owned_04c->AddTriggerPlane(trigger->representation_vectors_0cc, trigger);
         }
-        if (trigger->initial_action_22a == 0x34 &&
-            trigger->m_pacRecipients == 0) {
+        if (trigger->initial_action_22a == 0x34 && trigger->m_pacRecipients == 0) {
             trigger->range_minimum_0a4 = 0.0f;
             trigger->range_maximum_0a8 = 0.0f;
         }
@@ -1560,35 +1526,27 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         }
         if (trigger->initial_action_22a == 0x0c) {
             if (trigger->m_lData1 < 0 ||
-                trigger->m_lData1 >=
-                    static_cast<int>(g_missile_table_count_65bddc)) {
+                trigger->m_lData1 >= static_cast<int>(g_missile_table_count_65bddc)) {
                 srAssertFail(
                     "((pTrigger->m_lData1 >= 0) && (pTrigger->m_lData1 < Missile::GetNumTypes()))",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0xf14,
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0xf14,
                     reinterpret_cast<const char*>(String(
-                        "Trigger %s: You must enter a valid missile number",
-                        trigger->name_01c)));
+                        "Trigger %s: You must enter a valid missile number", trigger->name_01c)));
             }
             if (trigger->m_lData2 == -1) {
                 srAssertFail(
                     "(pTrigger->m_lData2!=(-1))",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0xf15,
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0xf15,
                     reinterpret_cast<const char*>(String(
-                        "Trigger %s: You must enter a time value in Data2",
-                        trigger->name_01c)));
+                        "Trigger %s: You must enter a time value in Data2", trigger->name_01c)));
             }
             if (trigger->m_lData2 < 0) {
                 trigger->m_pEvent = new W8TriggerEvent;
                 if (trigger->m_pEvent == 0) {
-                    srAssertFail(
-                        "pTrigger->m_pEvent",
-                        "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                        0xf1e, 0);
+                    srAssertFail("pTrigger->m_pEvent",
+                                 "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0xf1e, 0);
                 }
-                trigger->m_pEvent->action_004 =
-                    static_cast<short>(trigger->initial_action_22a);
+                trigger->m_pEvent->action_004 = static_cast<short>(trigger->initial_action_22a);
                 trigger->m_pEvent->timer_008.SetDuration(
                     static_cast<float>(abs(trigger->m_lData2)) * 0.001f);
                 trigger->m_pEvent->timer_008.Restart();
@@ -1596,10 +1554,8 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                 trigger->flags_0a0 |= 0x40;
                 g_timed_events_006599b8.Add(trigger->m_pEvent);
             }
-        }
-        else if (trigger->initial_action_22a > 0x24 &&
-                 trigger->initial_action_22a < 0x2c &&
-                 trigger->m_lData1 >= 0) {
+        } else if (trigger->initial_action_22a > 0x24 && trigger->initial_action_22a < 0x2c &&
+                   trigger->m_lData1 >= 0) {
             trigger->value_35c = trigger->m_lData1;
         }
         break;
@@ -1695,22 +1651,17 @@ void Trigger::UpdateActionAnimation()
         if (action_data_mode_228 == 0) {
             if (flag_0a0_24 == 0) {
                 flag_0a0_24 = 1;
-            }
-            else {
+            } else {
                 action_data = alternate_action_data_1a8;
                 flag_0a0_24 = 0;
             }
-        }
-        else if (action_data_mode_228 == 1) {
+        } else if (action_data_mode_228 == 1) {
             if (action_230 == value_22c) {
-                PlayActionSound(
-                    (const char*)alternate_action_data_1a8, value_229);
+                PlayActionSound((const char*)alternate_action_data_1a8, value_229);
                 return;
             }
-        }
-        else if (action_data_mode_228 == 2 && action_230 == fallback_action_22e) {
-            PlayActionSound(
-                (const char*)alternate_action_data_1a8, value_229);
+        } else if (action_data_mode_228 == 2 && action_230 == fallback_action_22e) {
+            PlayActionSound((const char*)alternate_action_data_1a8, value_229);
             return;
         }
     }
@@ -1776,36 +1727,28 @@ void Trigger::FinishAction()
                 char* comma = strchr(g_trigger_parse_buffer_00659908, ',');
                 if (comma == 0) {
                     recipient = 0;
-                }
-                else {
+                } else {
                     recipient = strchr(recipient, ',') + 1;
                     *comma = '\0';
                 }
 
-                stLight* light = FindLightByName00445A10(
-                    g_trigger_parse_buffer_00659908, 0);
+                stLight* light = FindLightByName00445A10(g_trigger_parse_buffer_00659908, 0);
                 if (light != 0) {
                     light->m_positional_23a = 1;
                     if (light->testFlag(srNode::FLAG_POSITIONAL_0) == 0) {
                         light->setFlag(srNode::FLAG_POSITIONAL_0);
-                    }
-                    else {
+                    } else {
                         light->clearFlag(srNode::FLAG_POSITIONAL_0);
                     }
                     action_completed = 1;
                 }
             }
-        }
-        else if (action_230 == 0x22) {
+        } else if (action_230 == 0x22) {
             if (m_pActionData == 0) {
-                srAssertFail(
-                    "m_pActionData",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    2822,
-                    "Trigger.cpp: Dark Area doesn't have action data");
+                srAssertFail("m_pActionData", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                             2822, "Trigger.cpp: Dark Area doesn't have action data");
             }
-            SetWorldEnvironmentValue00483AE0(
-                g_world, m_pActionData->float_value_008);
+            SetWorldEnvironmentValue00483AE0(g_world, m_pActionData->float_value_008);
             delete m_pActionData;
             m_pActionData = 0;
             goto finish_linked_triggers;
@@ -1824,14 +1767,12 @@ finish_linked_triggers:
             char* comma = strchr(g_trigger_parse_buffer_00659908, ',');
             if (comma == 0) {
                 recipient = 0;
-            }
-            else {
+            } else {
                 recipient = strchr(recipient, ',') + 1;
                 *comma = '\0';
             }
 
-            Trigger* trigger = FindTriggerByName(
-                g_trigger_parse_buffer_00659908);
+            Trigger* trigger = FindTriggerByName(g_trigger_parse_buffer_00659908);
             if (trigger != 0) {
                 trigger->FinishAction();
             }
@@ -1846,14 +1787,12 @@ reactivate_linked_triggers:
             char* comma = strchr(g_trigger_parse_buffer_00659908, ',');
             if (comma == 0) {
                 recipient = 0;
-            }
-            else {
+            } else {
                 recipient = strchr(recipient, ',') + 1;
                 *comma = '\0';
             }
 
-            Trigger* trigger = FindTriggerByName(
-                g_trigger_parse_buffer_00659908);
+            Trigger* trigger = FindTriggerByName(g_trigger_parse_buffer_00659908);
             if (trigger != 0) {
                 trigger->Run(-1);
             }
@@ -1874,8 +1813,7 @@ static char* NextTriggerRecipient(char** cursor)
     if (comma != 0) {
         *cursor = strchr(*cursor, ',') + 1;
         *comma = '\0';
-    }
-    else {
+    } else {
         *cursor = 0;
     }
     return g_trigger_parse_buffer_00659908;
@@ -1891,8 +1829,7 @@ void Trigger::CommitActionResult(unsigned char apply_state_changes)
     if (m_pacRecipients != 0 && flag_0a0_07 != 0 && flag_0a0_09 == 0) {
         recipient = m_pacRecipients;
         while (recipient != 0) {
-            Trigger* trigger = FindTriggerByName(
-                NextTriggerRecipient(&recipient));
+            Trigger* trigger = FindTriggerByName(NextTriggerRecipient(&recipient));
             if (trigger != 0) {
                 unsigned char was_running = flag_0a0_06;
                 flag_0a0_06 = 1;
@@ -1909,42 +1846,30 @@ void Trigger::CommitActionResult(unsigned char apply_state_changes)
         if (value_0b4 == 1) {
             state_id = GetLocationVarIDByName(m_pacStateToMod);
             if (state_id == -1) {
-                srAssertFail(
-                    "iVar != BAD_INDEX",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    4297, 0);
+                srAssertFail("iVar != BAD_INDEX",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 4297, 0);
             }
             state_value = 1;
-        }
-        else if (value_0b4 == 2) {
+        } else if (value_0b4 == 2) {
             state_id = GetLocationVarIDByName(m_pacStateToMod);
             if (state_id == -1) {
-                srAssertFail(
-                    "iVar != BAD_INDEX",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    4297, 0);
+                srAssertFail("iVar != BAD_INDEX",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 4297, 0);
             }
             state_value = 0;
-        }
-        else if (value_0b4 == 3) {
+        } else if (value_0b4 == 3) {
             state_id = GetLocationVarIDByName(m_pacStateToMod);
             if (state_id == -1) {
-                srAssertFail(
-                    "iVar != BAD_INDEX",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    4317, 0);
+                srAssertFail("iVar != BAD_INDEX",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 4317, 0);
             }
-            state_value =
-                *g_location_variable_values_00659990.GetAt(state_id) == 0;
+            state_value = *g_location_variable_values_00659990.GetAt(state_id) == 0;
             state_id = GetLocationVarIDByName(m_pacStateToMod);
             if (state_id == -1) {
-                srAssertFail(
-                    "iVar != BAD_INDEX",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    4297, 0);
+                srAssertFail("iVar != BAD_INDEX",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 4297, 0);
             }
-        }
-        else {
+        } else {
             goto show_action_message;
         }
         g_location_variable_values_00659990.SetAt(state_id, state_value);
@@ -1957,14 +1882,11 @@ show_action_message:
 
         if (action_state_232 == 2) {
             message_id = m_lData1;
-        }
-        else if (action_state_232 == 3) {
+        } else if (action_state_232 == 3) {
             message_id = m_lData2;
-        }
-        else if (action_state_232 == 4) {
+        } else if (action_state_232 == 4) {
             message_id = m_lData3;
-        }
-        else {
+        } else {
             goto action_complete;
         }
 
@@ -1976,8 +1898,7 @@ show_action_message:
                 level_folder = "";
             }
             sprintf(path, "Data\\Messages\\%s.msg", level_folder);
-            if (GetStringFromStringDatabase(
-                    path, message_id, text, 0, 0) != 0) {
+            if (GetStringFromStringDatabase(path, message_id, text, 0, 0) != 0) {
                 ShowString(text);
             }
         }
@@ -1996,7 +1917,7 @@ void Trigger::RunDestination00440DD0(const char* destination)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-/* The decompiled body reads this storage only after the same short-circuit
+    /* The decompiled body reads this storage only after the same short-circuit
    chain that clang's flow analysis cannot see through; retail leaves it
    uninitialised on the failed-read path. Suppress only this diagnostic. */
     srVector3T<float> destination_position;
@@ -2016,9 +1937,8 @@ void Trigger::RunDestination00440DD0(const char* destination)
 
     ResetInactiveLevelDataVectors0041EF50();
     current_location = g_status_685170.current_level;
-    named_entity = FindEntityByName(
-        destination, &destination_position, &entity_value,
-        &destination_direction);
+    named_entity =
+        FindEntityByName(destination, &destination_position, &entity_value, &destination_direction);
     /* Retail leaves location_id and entrance uninitialised on the named-entity
        path. Both GOG builds then read the stack slot holding this for those
        values. Preserve that source bug rather than assigning entity_value and
@@ -2040,9 +1960,8 @@ void Trigger::RunDestination00440DD0(const char* destination)
     ResetInactiveLevelDataVectors0041EF50();
 
     if (location_id != current_location) {
-        RequestLevelTransition005615F0(
-            location_id, entrance,
-            m_lData1 < 0 ? 0 : (unsigned char)m_lData1);
+        RequestLevelTransition005615F0(location_id, entrance,
+                                       m_lData1 < 0 ? 0 : (unsigned char)m_lData1);
         return;
     }
 
@@ -2056,14 +1975,12 @@ void Trigger::RunDestination00440DD0(const char* destination)
         destination_direction.x = target->value_100;
         destination_direction.y = target->value_104;
         destination_direction.z = target->value_108;
-    }
-    else {
+    } else {
         angle = 0.0f;
     }
 
     source_position.Set(position_118, position_11c, position_120);
-    g_octree_6598a4->AdjustPortalDestination(
-        &destination_position, &source_position);
+    g_octree_6598a4->AdjustPortalDestination(&destination_position, &source_position);
     SetWorldScenePosition004511D0(GetWorld(), &destination_position);
 
     rotation.vectors[0].Set(1.0, 0.0, 0.0);
@@ -2154,94 +2071,71 @@ void Trigger::Run(int source)
 
             id = GetLocationVarIDByName("Switch0");
             if (id == -1) {
-                srAssertFail(
-                    "iVar != BAD_INDEX",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0x10dd, 0);
+                srAssertFail("iVar != BAD_INDEX",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x10dd, 0);
             }
             switch0 = *g_location_variable_values_00659990.GetAt(id);
             id = GetLocationVarIDByName("Switch1");
             if (id == -1) {
-                srAssertFail(
-                    "iVar != BAD_INDEX",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0x10dd, 0);
+                srAssertFail("iVar != BAD_INDEX",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x10dd, 0);
             }
             switch1 = *g_location_variable_values_00659990.GetAt(id);
             id = GetLocationVarIDByName("Switch2");
             if (id == -1) {
-                srAssertFail(
-                    "iVar != BAD_INDEX",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0x10dd, 0);
+                srAssertFail("iVar != BAD_INDEX",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x10dd, 0);
             }
             switch2 = *g_location_variable_values_00659990.GetAt(id);
             id = GetLocationVarIDByName("Switch3");
             if (id == -1) {
-                srAssertFail(
-                    "iVar != BAD_INDEX",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0x10dd, 0);
+                srAssertFail("iVar != BAD_INDEX",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x10dd, 0);
             }
             switch3 = *g_location_variable_values_00659990.GetAt(id);
             id = GetLocationVarIDByName("Switch4");
             if (id == -1) {
-                srAssertFail(
-                    "iVar != BAD_INDEX",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0x10dd, 0);
+                srAssertFail("iVar != BAD_INDEX",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x10dd, 0);
             }
             switch4 = *g_location_variable_values_00659990.GetAt(id);
             id = GetLocationVarIDByName("Switch5");
             if (id == -1) {
-                srAssertFail(
-                    "iVar != BAD_INDEX",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0x10dd, 0);
+                srAssertFail("iVar != BAD_INDEX",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x10dd, 0);
             }
             switch5 = *g_location_variable_values_00659990.GetAt(id);
             id = GetLocationVarIDByName("Switch6");
             if (id == -1) {
-                srAssertFail(
-                    "iVar != BAD_INDEX",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0x10dd, 0);
+                srAssertFail("iVar != BAD_INDEX",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x10dd, 0);
             }
             switch6 = *g_location_variable_values_00659990.GetAt(id);
 
             if (switch0 == 1 && switch1 == 1) {
                 camera = 2;
-            }
-            else if (switch0 == 0 && switch1 == 1) {
+            } else if (switch0 == 0 && switch1 == 1) {
                 if (switch4 == 0 && switch6 == 1) {
                     camera = 1;
-                }
-                else if (switch3 == 1 && switch4 == 1) {
+                } else if (switch3 == 1 && switch4 == 1) {
                     camera = 3;
-                }
-                else if (switch4 == 0 && switch6 == 0) {
+                } else if (switch4 == 0 && switch6 == 0) {
                     camera = 4;
-                }
-                else if (switch3 == 0 && switch4 == 1) {
+                } else if (switch3 == 0 && switch4 == 1) {
                     camera = 5;
                 }
-            }
-            else if (switch1 == 0) {
+            } else if (switch1 == 0) {
                 if (switch2 == 1) {
                     if (switch3 == 1 && switch5 == 1) {
                         camera = 6;
-                    }
-                    else if (switch5 == 0 && switch6 == 0) {
+                    } else if (switch5 == 0 && switch6 == 0) {
                         camera = 7;
-                    }
-                    else if (switch3 == 0 && switch5 == 1) {
+                    } else if (switch3 == 0 && switch5 == 1) {
                         camera = 9;
-                    }
-                    else if (switch5 == 0 && switch6 == 1) {
+                    } else if (switch5 == 0 && switch6 == 1) {
                         camera = 10;
                     }
-                }
-                else if (switch2 == 0) {
+                } else if (switch2 == 0) {
                     camera = 8;
                 }
             }
@@ -2257,13 +2151,11 @@ void Trigger::Run(int source)
         }
 
         case 0x0e:
-            if (m_pacRecipients == 0 ||
-                _stricmp(m_pacRecipients, "party") != 0) {
+            if (m_pacRecipients == 0 || _stricmp(m_pacRecipients, "party") != 0) {
                 break;
             }
             ApplyItemEffectToRandomCharacter0052E5C0(
-                Random(2) != 0 ? g_value_005ee59c : g_value_005ee5a0,
-                -1, 0, g_value_005ed8c8);
+                Random(2) != 0 ? g_value_005ee59c : g_value_005ee5a0, -1, 0, g_value_005ed8c8);
             flag_0a0_06 = 1;
             goto commit_action;
 
@@ -2290,21 +2182,16 @@ void Trigger::Run(int source)
             if (m_pEvent == 0) {
                 m_pEvent = new W8TriggerEvent;
                 if (m_pEvent == 0) {
-                    srAssertFail(
-                        "m_pEvent",
-                        "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                        0x5fa, 0);
+                    srAssertFail("m_pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                                 0x5fa, 0);
                 }
                 m_pEvent->trigger_030 = this;
                 m_pEvent->action_004 = (short)action_230;
                 m_pEvent->timer_008.SetDuration(0.5f);
-            }
-            else {
+            } else {
                 if (g_timed_events_006599b8.IndexOf(m_pEvent) != -1) {
-                    srAssertFail(
-                        "glsTimedEvents.Find(m_pEvent) == -1",
-                        "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                        0x603, 0);
+                    srAssertFail("glsTimedEvents.Find(m_pEvent) == -1",
+                                 "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x603, 0);
                 }
             }
             m_pEvent->timer_008.Restart();
@@ -2337,8 +2224,7 @@ void Trigger::Run(int source)
                 break;
             }
             if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
-                action_data =
-                    static_cast<W8TriggerActionData005EC134*>(m_pActionData);
+                action_data = static_cast<W8TriggerActionData005EC134*>(m_pActionData);
             }
             if (action_data != 0 && (action_data->flags_008 & 4) != 0 &&
                 action_data->item_00a != -1) {
@@ -2359,8 +2245,7 @@ void Trigger::Run(int source)
             }
 
             if (m_lData1 != 0) {
-                if (m_pEvent != 0 &&
-                    g_timed_events_006599b8.IndexOf(m_pEvent) != -1) {
+                if (m_pEvent != 0 && g_timed_events_006599b8.IndexOf(m_pEvent) != -1) {
                     m_pEvent->timer_008.Restart();
                     if (m_pEvent->m_pCountdown != 0) {
                         m_pEvent->m_pCountdown->Restart();
@@ -2371,8 +2256,7 @@ void Trigger::Run(int source)
                 m_pEvent = new W8TriggerEvent;
                 m_pEvent->trigger_030 = this;
                 m_pEvent->action_004 = 2;
-                m_pEvent->timer_008.SetDuration(
-                    m_lData1 < 0 ? 10.0f : (float)m_lData1);
+                m_pEvent->timer_008.SetDuration(m_lData1 < 0 ? 10.0f : (float)m_lData1);
                 m_pEvent->timer_008.Restart();
                 m_pEvent->repeat_034 = 1;
                 g_timed_events_006599b8.Add(m_pEvent);
@@ -2399,8 +2283,7 @@ void Trigger::Run(int source)
             if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
                 if (value_0b1 == 0) {
                     m_pActionData->flags_008 &= ~1;
-                }
-                else {
+                } else {
                     m_pActionData->flags_008 |= 1;
                 }
             }
@@ -2411,19 +2294,16 @@ void Trigger::Run(int source)
             signed char previous = (signed char)value_0b1;
 
             if (value_0b0 > 1) {
-                signed char next =
-                    (signed char)value_0b1 + (signed char)value_0b2;
+                signed char next = (signed char)value_0b1 + (signed char)value_0b2;
                 value_0b1 = (unsigned char)next;
                 if ((unsigned char)next == value_0b0) {
                     if (value_0b3 == 0) {
                         value_0b1 = 0;
-                    }
-                    else {
+                    } else {
                         value_0b1 = value_0b0 - 2;
                         value_0b2 = 0xff;
                     }
-                }
-                else if (next < 0) {
+                } else if (next < 0) {
                     value_0b1 = 1;
                     value_0b2 = 1;
                 }
@@ -2435,23 +2315,18 @@ void Trigger::Run(int source)
                 unsigned int index;
 
                 if (m_pProp == 0 || m_bRepType != 2) {
-                    srAssertFail(
-                        "m_pProp && m_bRepType == TRIGGER_REP_PROP",
-                        "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                        0x592, 0);
+                    srAssertFail("m_pProp && m_bRepType == TRIGGER_REP_PROP",
+                                 "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x592, 0);
                 }
                 animation = m_pProp->Rep()->animation;
                 if (AnimationIsRunning(animation) == 1) {
                     count = AnimObjListCount004A1620(animation, 2);
                     for (index = 0; index < count; ++index) {
                         W8PathAI* path = static_cast<W8PathAI*>(
-                            AnimObjListEntry004A16C0(
-                                animation, 2, (signed char)index));
-                        PathAIUpdate004A9260(
-                            path, previous <= (signed char)value_0b1 ? 1 : -1);
+                            AnimObjListEntry004A16C0(animation, 2, (signed char)index));
+                        PathAIUpdate004A9260(path, previous <= (signed char)value_0b1 ? 1 : -1);
                     }
-                }
-                else {
+                } else {
                     m_pProp->SetSetting66((char)value_0b1);
                 }
             }
@@ -2463,8 +2338,7 @@ void Trigger::Run(int source)
             unsigned char was_active;
 
             if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
-                action_data =
-                    static_cast<W8TriggerActionData005EC134*>(m_pActionData);
+                action_data = static_cast<W8TriggerActionData005EC134*>(m_pActionData);
             }
             if (action_data != 0 && (action_data->flags_008 & 4) != 0 &&
                 action_data->item_00a != -1) {
@@ -2484,13 +2358,11 @@ void Trigger::Run(int source)
             }
             if (was_active == 0) {
                 flag_0a0_06 = 1;
-            }
-            else {
+            } else {
                 flag_0a0_06 = 0;
             }
             if (action_data != 0) {
-                action_data->flags_008 =
-                    (action_data->flags_008 & ~1) | (value_0b1 & 1);
+                action_data->flags_008 = (action_data->flags_008 & ~1) | (value_0b1 & 1);
             }
             goto commit_action;
         }
@@ -2529,14 +2401,13 @@ void Trigger::Run(int source)
         if (inline_action_data_24c[0] != '\0') {
             if (g_status_685170.item_in_cursor != 0) {
                 srVector3T<float> item_position;
-                W8WorldItem* item = CreateWorldItem(
-                    &g_status_685170.item_in_hand_235b, &item_position, 3, 0);
+                W8WorldItem* item =
+                    CreateWorldItem(&g_status_685170.item_in_hand_235b, &item_position, 3, 0);
 
                 if (item != 0) {
                     if (world_item_group_34c == 0) {
                         srVector3T<float> group_position;
-                        world_item_group_34c = SpawnItem(
-                            0x23c, &group_position, 0, 0);
+                        world_item_group_34c = SpawnItem(0x23c, &group_position, 0, 0);
                     }
                     ItemInfoAddToGroup(world_item_group_34c, item);
                 }
@@ -2552,13 +2423,11 @@ void Trigger::Run(int source)
                 GenerateItemGroup();
             }
             if (world_item_group_34c != 0) {
-                int item_count =
-                    ItemInfoGetNumInGroup(world_item_group_34c) - 1;
+                int item_count = ItemInfoGetNumInGroup(world_item_group_34c) - 1;
                 W8WorldItem* item;
                 int contained_items = 0;
 
-                if (item_count != 1 &&
-                    m_pProp->Rep()->flag_064 != 0) {
+                if (item_count != 1 && m_pProp->Rep()->flag_064 != 0) {
                     action_succeeded = 0;
                 }
 
@@ -2581,23 +2450,18 @@ void Trigger::Run(int source)
 
                 if (item_count == 1) {
                     if (m_pProp->Rep()->flag_064 == 0) {
-                        ApplyItemEffectToRandomCharacter0052E5C0(
-                            Random(2) != 0 ? g_value_0068c548
-                                           : g_value_0068c520,
-                            -1, 0, g_value_005ed8c8);
+                        ApplyItemEffectToRandomCharacter0052E5C0(Random(2) != 0 ? g_value_0068c548
+                                                                                : g_value_0068c520,
+                                                                 -1, 0, g_value_005ed8c8);
                     }
-                }
-                else if (item_count == 2 &&
-                         g_status_685170.item_in_cursor == 0) {
+                } else if (item_count == 2 && g_status_685170.item_in_cursor == 0) {
                     item = world_item_group_34c->next;
-                    MoveItem(&g_status_685170.item_in_hand_235b,
-                             &item->item, 0, 1);
+                    MoveItem(&g_status_685170.item_in_hand_235b, &item->item, 0, 1);
                     ItemInfoRemoveFromGroup(world_item_group_34c, item);
                     if (m_pProp->Rep()->flag_064 != 0) {
                         goto toggle_item_prop;
                     }
-                }
-                else {
+                } else {
                     flag_0a0_25 = 1;
                 }
 
@@ -2607,7 +2471,7 @@ void Trigger::Run(int source)
             }
         }
 
-toggle_item_prop:
+    toggle_item_prop:
         m_pProp->SetRepresentationActive(was_active == 0, 1);
         value_0b1 = value_0b1 == 0;
         if (m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
@@ -2615,8 +2479,7 @@ toggle_item_prop:
         }
         if (was_active == 0) {
             flag_0a0_06 = 1;
-        }
-        else {
+        } else {
             flag_0a0_06 = 0;
         }
         break;
@@ -2628,24 +2491,20 @@ toggle_item_prop:
         char* recipient = m_pacRecipients;
 
         while (recipient != 0) {
-            stLight* light = FindLightByName00445A10(
-                NextTriggerRecipient(&recipient), 0);
+            stLight* light = FindLightByName00445A10(NextTriggerRecipient(&recipient), 0);
             if (light != 0) {
                 light->m_positional_23a = 1;
                 if (action_230 == 4) {
                     if (light->testFlag(srNode::FLAG_POSITIONAL_0) == 0) {
                         light->setFlag(srNode::FLAG_POSITIONAL_0);
-                    }
-                    else {
+                    } else {
                         light->clearFlag(srNode::FLAG_POSITIONAL_0);
                     }
-                }
-                else if (action_230 == 0x30) {
+                } else if (action_230 == 0x30) {
                     if (light->testFlag(srNode::FLAG_POSITIONAL_0) != 0) {
                         light->clearFlag(srNode::FLAG_POSITIONAL_0);
                     }
-                }
-                else if (light->testFlag(srNode::FLAG_POSITIONAL_0) == 0) {
+                } else if (light->testFlag(srNode::FLAG_POSITIONAL_0) == 0) {
                     light->setFlag(srNode::FLAG_POSITIONAL_0);
                 }
                 action_succeeded = 1;
@@ -2670,20 +2529,14 @@ toggle_item_prop:
             return;
         }
         monster_id = atoi(m_pacRecipients);
-        for (index = 0;
-             index < (int)PLLength(gXStatus.plsMonsterGroupList);
-             ++index) {
-            group = static_cast<W8MonsterGroup*>(
-                PLGet(gXStatus.plsMonsterGroupList, index));
+        for (index = 0; index < (int)PLLength(gXStatus.plsMonsterGroupList); ++index) {
+            group = static_cast<W8MonsterGroup*>(PLGet(gXStatus.plsMonsterGroupList, index));
             if (group->monster_id == monster_id) {
                 int location_id = IListGetAt(group->monsters, 0);
                 unsigned int monster_index = MonsterGetIndexByLocationID(
-                    0x7aa,
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    location_id, 1);
+                    0x7aa, "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", location_id, 1);
 
-                monster_info = MonsterGetScriptPartByLocationIndex(
-                    monster_index);
+                monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
                 break;
             }
         }
@@ -2709,8 +2562,7 @@ toggle_item_prop:
             return;
         }
         while (recipient != 0) {
-            Trigger* target = FindTriggerByName(
-                NextTriggerRecipient(&recipient));
+            Trigger* target = FindTriggerByName(NextTriggerRecipient(&recipient));
             if (target != 0) {
                 unsigned char was_running = flag_0a0_06;
                 flag_0a0_06 = 1;
@@ -2746,32 +2598,23 @@ toggle_item_prop:
             if (angle_0fc != 0.0f) {
                 rotation.RotateAroundAxis(sin(angle_0fc), cos(angle_0fc), axis);
             }
-            transformed.x = DotProduct(
-                rotation.vectors[0], target_position);
-            transformed.y = DotProduct(
-                rotation.vectors[1], target_position);
-            transformed.z = DotProduct(
-                rotation.vectors[2], target_position);
-            FireMissile004A2D30(
-                (unsigned int)m_lData1, &source_position,
-                &transformed, 0, 1, 1, 0x47435000);
-        }
-        else if (m_pEvent == 0) {
+            transformed.x = DotProduct(rotation.vectors[0], target_position);
+            transformed.y = DotProduct(rotation.vectors[1], target_position);
+            transformed.z = DotProduct(rotation.vectors[2], target_position);
+            FireMissile004A2D30((unsigned int)m_lData1, &source_position, &transformed, 0, 1, 1,
+                                0x47435000);
+        } else if (m_pEvent == 0) {
             float duration = (float)abs(m_lData2) * 0.001f;
 
             if (m_lData2 > 0 && trigger_kind_018 != 2) {
-                srAssertFail(
-                    "m_lData2 < 0 || m_iType == TRIGGER_INVISIBLE",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0x87f,
-                    "Continous firing missile must be invisible trigger.");
+                srAssertFail("m_lData2 < 0 || m_iType == TRIGGER_INVISIBLE",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x87f,
+                             "Continous firing missile must be invisible trigger.");
             }
             m_pEvent = new W8TriggerEvent;
             if (m_pEvent == 0) {
-                srAssertFail(
-                    "m_pEvent",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0x883, 0);
+                srAssertFail("m_pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                             0x883, 0);
             }
             m_pEvent->action_004 = (short)action_230;
             m_pEvent->timer_008.SetDuration(duration);
@@ -2783,8 +2626,7 @@ toggle_item_prop:
         break;
 
     case 0x10:
-        UpdateCameraView00450080(
-            m_pWorld->camera, source > 0 ? 1 : -1);
+        UpdateCameraView00450080(m_pWorld->camera, source > 0 ? 1 : -1);
         return;
 
     case 0x24: {
@@ -2799,9 +2641,7 @@ toggle_item_prop:
         if (m_lData3 < 0) {
             m_lData3 = 2;
         }
-        SetDice(
-            &dice, (unsigned char)m_lData1, (unsigned char)m_lData2,
-            (short)m_lData3);
+        SetDice(&dice, (unsigned char)m_lData1, (unsigned char)m_lData2, (short)m_lData3);
         ApplyRolledHealthChangeToParty(&dice, 0, 1);
         if (trigger_kind_018 == 2) {
             flag_0a0_06 = 1;
@@ -2820,35 +2660,28 @@ toggle_item_prop:
             if (action_230 == 0x25) {
                 RestorePartyStaminaByDice(0, 0, (short)m_lData3);
                 PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
-            }
-            else if (action_230 == 0x26) {
+            } else if (action_230 == 0x26) {
                 HealPartyByDice(0, 0, (short)m_lData3);
                 PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
-            }
-            else if (action_230 == 0x27) {
+            } else if (action_230 == 0x27) {
                 RestorePartySpellPoints(m_lData3);
                 ShowString(gppStringList[0x1c88 / 4]);
                 PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
-            }
-            else {
+            } else {
                 int spell_id;
                 srVector3T<double> position = g_world->camera->getLocation();
 
                 if (action_230 == 0x28) {
                     spell_id = 0x44;
-                }
-                else if (action_230 == 0x29) {
+                } else if (action_230 == 0x29) {
                     spell_id = 0x45;
-                }
-                else if (action_230 == 0x2a) {
+                } else if (action_230 == 0x2a) {
                     spell_id = 0x0c;
-                }
-                else {
+                } else {
                     spell_id = 0x2a;
                 }
-                PointCastSpell(
-                    (float)position.x, (float)position.y, (float)position.z,
-                    spell_id, (unsigned int)m_lData3);
+                PointCastSpell((float)position.x, (float)position.y, (float)position.z, spell_id,
+                               (unsigned int)m_lData3);
                 if (action_230 == 0x2b) {
                     RemoveAllConditionsFromParty();
                 }
@@ -2859,16 +2692,13 @@ toggle_item_prop:
             if (m_lData1 != -1) {
                 return;
             }
-        }
-        else {
+        } else {
             --value_35c;
             if (m_lData2 > 0 && m_pEvent == 0) {
                 m_pEvent = new W8TriggerEvent;
                 if (m_pEvent == 0) {
-                    srAssertFail(
-                        "m_pEvent",
-                        "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                        0x84c, 0);
+                    srAssertFail("m_pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                                 0x84c, 0);
                 }
                 m_pEvent->action_004 = (short)action_230;
                 m_pEvent->timer_008.SetDuration(m_lData2 * 720.0f);
@@ -2893,16 +2723,13 @@ toggle_item_prop:
             return;
         }
         while (recipient != 0) {
-            Trigger* target = FindTriggerByName(
-                NextTriggerRecipient(&recipient));
+            Trigger* target = FindTriggerByName(NextTriggerRecipient(&recipient));
             if (target != 0) {
                 if (action_230 == 0x2d) {
                     target->flag_0a0_04 = 1;
-                }
-                else if (action_230 == 0x2e) {
+                } else if (action_230 == 0x2e) {
                     target->flag_0a0_04 = 0;
-                }
-                else {
+                } else {
                     target->flag_0a0_04 = target->flag_0a0_04 == 0;
                 }
                 action_succeeded = 1;
@@ -2919,10 +2746,8 @@ toggle_item_prop:
         if (m_bRepType != 2 || m_pProp == 0) {
             return;
         }
-        if ((action_230 == 0x32 &&
-             m_pProp->Rep()->flag_06d != 0) ||
-            (action_230 == 0x33 &&
-             m_pProp->Rep()->flag_06d == 0)) {
+        if ((action_230 == 0x32 && m_pProp->Rep()->flag_06d != 0) ||
+            (action_230 == 0x33 && m_pProp->Rep()->flag_06d == 0)) {
             return;
         }
         m_pProp->SetRepresentationActive(action_230 == 0x32, 1);
@@ -2932,8 +2757,7 @@ toggle_item_prop:
         }
         if (action_230 == 0x32) {
             flag_0a0_06 = 1;
-        }
-        else {
+        } else {
             flag_0a0_06 = 0;
         }
         break;
@@ -2941,8 +2765,7 @@ toggle_item_prop:
     case 0x36:
         if (action_state_232 == 4 && action_data_mode_228 == 2) {
             PlayActionSound((const char*)alternate_action_data_1a8, 0);
-        }
-        else {
+        } else {
             PlayActionSound((const char*)action_data_128, 0);
         }
         return;
@@ -2956,15 +2779,12 @@ toggle_item_prop:
             event = new W8TriggerShakeEvent;
             m_pEvent = event;
             if (m_pEvent == 0) {
-                srAssertFail(
-                    "m_pEvent",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0x7c4, 0);
+                srAssertFail("m_pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                             0x7c4, 0);
             }
             event->trigger_030 = this;
             event->action_004 = (short)action_230;
-            event->timer_008.SetDuration(
-                m_lData2 == -1 ? 0.07f : m_lData2 * 0.001f);
+            event->timer_008.SetDuration(m_lData2 == -1 ? 0.07f : m_lData2 * 0.001f);
             event->timer_008.Restart();
             event->intensity_03c = m_lData1 == -1 ? 800 : m_lData1;
 
@@ -2972,20 +2792,16 @@ toggle_item_prop:
                 delete event->m_pCountdown;
                 event->m_pCountdown = new W8GameTimer;
                 if (event->m_pCountdown == 0) {
-                    srAssertFail(
-                        "m_pCountdown",
-                        "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                        0x12de, 0);
+                    srAssertFail("m_pCountdown",
+                                 "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x12de, 0);
                 }
-                event->m_pCountdown->SetDuration(
-                    (float)abs(m_lData3) * 0.001f);
+                event->m_pCountdown->SetDuration((float)abs(m_lData3) * 0.001f);
                 event->m_pCountdown->Restart();
                 if (m_lData3 < 0) {
                     event->reverse_040 = 1;
                 }
             }
-        }
-        else {
+        } else {
             event = static_cast<W8TriggerShakeEvent*>(m_pEvent);
             event->timer_008.Restart();
             if (event->m_pCountdown != 0) {
@@ -2997,13 +2813,9 @@ toggle_item_prop:
             g_timed_events_006599b8.Add(m_pEvent);
             if (trigger_kind_018 == 2) {
                 flag_0a0_06 = 1;
-            }
-            else if (m_lData3 == -1) {
-                srAssertFail(
-                    "m_lData3 != -1",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0x7e4,
-                    "Non invisible triggers with shake must have a duration.");
+            } else if (m_lData3 == -1) {
+                srAssertFail("m_lData3 != -1", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                             0x7e4, "Non invisible triggers with shake must have a duration.");
             }
         }
         break;
@@ -3017,12 +2829,10 @@ toggle_item_prop:
         break;
 
     case 0x3b:
-        if (m_pProp == 0 || source != m_lData1 ||
-            m_pProp->Rep()->flag_06d == 0) {
+        if (m_pProp == 0 || source != m_lData1 || m_pProp->Rep()->flag_06d == 0) {
             return;
         }
-        m_pProp->SetRepresentationActive(
-            m_pProp->Rep()->flag_06d == 0, 1);
+        m_pProp->SetRepresentationActive(m_pProp->Rep()->flag_06d == 0, 1);
         value_0b1 = value_0b1 == 0;
         if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
             Function41C680(value_0b8, value_0b1);
@@ -3033,8 +2843,7 @@ toggle_item_prop:
         if (m_pProp == 0 || source != m_lData1) {
             return;
         }
-        m_pProp->SetRepresentationActive(
-            m_pProp->Rep()->flag_06d == 0, 1);
+        m_pProp->SetRepresentationActive(m_pProp->Rep()->flag_06d == 0, 1);
         value_0b1 = value_0b1 == 0;
         if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
             Function41C680(value_0b8, value_0b1);
@@ -3059,23 +2868,18 @@ toggle_item_prop:
         if (m_pEvent == 0) {
             m_pEvent = new W8TriggerEvent;
             if (m_pEvent == 0) {
-                srAssertFail(
-                    "m_pEvent",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0x8a4, 0);
+                srAssertFail("m_pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                             0x8a4, 0);
             }
             m_pEvent->action_004 = (short)action_230;
             m_pEvent->timer_008.SetDuration(m_lData1 * 0.001f);
             m_pEvent->timer_008.Restart();
             m_pEvent->trigger_030 = this;
             m_pEvent->repeat_034 = 1;
-        }
-        else {
+        } else {
             if (g_timed_events_006599b8.IndexOf(m_pEvent) != -1) {
-                srAssertFail(
-                    "glsTimedEvents.Find(m_pEvent) == -1",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0x8ae, 0);
+                srAssertFail("glsTimedEvents.Find(m_pEvent) == -1",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x8ae, 0);
             }
             m_pEvent->timer_008.Restart();
             if (m_pEvent->m_pCountdown != 0) {
@@ -3093,15 +2897,11 @@ toggle_item_prop:
             char state_name[132];
             int state_id;
 
-            sprintf(
-                state_name, "%s%d", m_pacStateToMod,
-                (int)(signed char)value_0b1);
+            sprintf(state_name, "%s%d", m_pacStateToMod, (int)(signed char)value_0b1);
             state_id = GetLocationVarIDByName(state_name);
             if (state_id == -1) {
-                srAssertFail(
-                    "iVar != BAD_INDEX",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0x10c9, 0);
+                srAssertFail("iVar != BAD_INDEX",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x10c9, 0);
             }
             g_location_variable_values_00659990.SetAt(state_id, 0);
         }
@@ -3111,15 +2911,11 @@ toggle_item_prop:
             char state_name[132];
             int state_id;
 
-            sprintf(
-                state_name, "%s%d", m_pacStateToMod,
-                (int)(signed char)value_0b1);
+            sprintf(state_name, "%s%d", m_pacStateToMod, (int)(signed char)value_0b1);
             state_id = GetLocationVarIDByName(state_name);
             if (state_id == -1) {
-                srAssertFail(
-                    "iVar != BAD_INDEX",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    0x10c9, 0);
+                srAssertFail("iVar != BAD_INDEX",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x10c9, 0);
             }
             g_location_variable_values_00659990.SetAt(state_id, 1);
         }
@@ -3138,11 +2934,9 @@ toggle_item_prop:
             const char* name = NextTriggerRecipient(&recipient);
             if (action_230 == 0x41) {
                 PositionAmbientSoundByName0047A950((int)g_world, name);
-            }
-            else if (action_230 == 0x42) {
+            } else if (action_230 == 0x42) {
                 StopAmbientSoundByName0047A9E0((int)g_world, name);
-            }
-            else {
+            } else {
                 ToggleAmbientSoundByName0047AA70((int)g_world, name);
             }
             action_succeeded = 1;
@@ -3159,17 +2953,14 @@ toggle_item_prop:
             return;
         }
         while (recipient != 0) {
-            stParticle* particle = FindParticleByName(
-                g_world, NextTriggerRecipient(&recipient));
+            stParticle* particle = FindParticleByName(g_world, NextTriggerRecipient(&recipient));
             if (particle != 0) {
                 particle->trigger_flag_192 = 1;
                 if (action_230 == 0x44) {
                     particle->SetActive(1);
-                }
-                else if (action_230 == 0x45) {
+                } else if (action_230 == 0x45) {
                     particle->SetActive(0);
-                }
-                else {
+                } else {
                     particle->SetActive(particle->active_1a0 == 0);
                 }
                 action_succeeded = 1;
@@ -3189,8 +2980,7 @@ toggle_item_prop:
         }
         action_succeeded = 0;
         while (recipient != 0) {
-            stParticle* particle = FindParticleByName(
-                g_world, NextTriggerRecipient(&recipient));
+            stParticle* particle = FindParticleByName(g_world, NextTriggerRecipient(&recipient));
             if (particle != 0) {
                 particle->trigger_flag_192 = 1;
                 particle->SetActive(1);
@@ -3203,10 +2993,8 @@ toggle_item_prop:
 
         m_pEvent = new W8TriggerEvent;
         if (m_pEvent == 0) {
-            srAssertFail(
-                "m_pEvent",
-                "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                0x940, 0);
+            srAssertFail("m_pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x940,
+                         0);
         }
         g_timed_events_006599b8.Add(m_pEvent);
         m_pEvent->trigger_030 = this;
@@ -3214,13 +3002,10 @@ toggle_item_prop:
         delete m_pEvent->m_pCountdown;
         m_pEvent->m_pCountdown = new W8GameTimer;
         if (m_pEvent->m_pCountdown == 0) {
-            srAssertFail(
-                "m_pCountdown",
-                "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                0x12de, 0);
+            srAssertFail("m_pCountdown", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                         0x12de, 0);
         }
-        m_pEvent->m_pCountdown->SetDuration(
-            m_lData1 == -1 ? 10.0f : m_lData1 * 0.001f);
+        m_pEvent->m_pCountdown->SetDuration(m_lData1 == -1 ? 10.0f : m_lData1 * 0.001f);
         m_pEvent->m_pCountdown->Restart();
         m_pEvent->repeat_034 = 1;
         break;
@@ -3254,8 +3039,7 @@ toggle_item_prop:
             return;
         }
         while (recipient != 0) {
-            W8Prop* prop = FindPropByName(
-                g_world, NextTriggerRecipient(&recipient));
+            W8Prop* prop = FindPropByName(g_world, NextTriggerRecipient(&recipient));
             if (prop != 0) {
                 prop->SetAnimationSpeed((float)m_lData1);
             }
@@ -3319,8 +3103,7 @@ unsigned char Trigger::CanRunLinkedTriggers()
         if (comma != 0) {
             recipient = strchr(recipient, ',') + 1;
             *comma = '\0';
-        }
-        else {
+        } else {
             recipient = 0;
         }
         trigger = FindTriggerByName(g_trigger_parse_buffer_00659908);
@@ -3337,8 +3120,7 @@ unsigned char Trigger::SelectAction()
     unsigned char fallback_selected = 0;
     unsigned char result = 1;
 
-    if (g_flag_6081e4 == 0 && m_pActionData != 0 &&
-        m_pActionData->type_004 == 10 &&
+    if (g_flag_6081e4 == 0 && m_pActionData != 0 && m_pActionData->type_004 == 10 &&
         (m_pActionData->flags_008 & 1) != 0) {
         return 0;
     }
@@ -3353,18 +3135,15 @@ unsigned char Trigger::SelectAction()
         if (strchr(m_pacRequiredStates, ',') == 0) {
             int state_id = GetLocationVarIDByName(m_pacRequiredStates);
             if (state_id == -1) {
-                srAssertFail(
-                    "iVar != BAD_INDEX",
-                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                    4317, 0);
+                srAssertFail("iVar != BAD_INDEX",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 4317, 0);
             }
             if (*g_location_variable_values_00659990.GetAt(state_id) == 0) {
                 action_230 = fallback_action_22e;
                 action_state_232 = 4;
                 fallback_selected = 1;
             }
-        }
-        else {
+        } else {
             char* required_state = 0;
             unsigned char more_states = 1;
             char state_name[128];
@@ -3375,25 +3154,21 @@ unsigned char Trigger::SelectAction()
 
                 if (required_state == 0) {
                     required_state = m_pacRequiredStates;
-                }
-                else {
+                } else {
                     required_state = strchr(required_state, ',') + 1;
                 }
                 strcpy(state_name, required_state);
                 comma = strchr(state_name, ',');
                 if (comma == 0) {
                     more_states = 0;
-                }
-                else {
+                } else {
                     *comma = '\0';
                 }
 
                 state_id = GetLocationVarIDByName(state_name);
                 if (state_id == -1) {
-                    srAssertFail(
-                        "iVar != BAD_INDEX",
-                        "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                        4317, 0);
+                    srAssertFail("iVar != BAD_INDEX",
+                                 "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 4317, 0);
                 }
                 if (*g_location_variable_values_00659990.GetAt(state_id) == 0) {
                     action_230 = fallback_action_22e;
@@ -3412,8 +3187,7 @@ unsigned char Trigger::SelectAction()
                     RemovePartyItemByID005215D0(value_23c, 0);
                     value_23c = -1;
                 }
-            }
-            else {
+            } else {
                 if (m_lData2 == 1 && activation_callback_360 != 0) {
                     activation_callback_360(this);
                 }
@@ -3422,16 +3196,14 @@ unsigned char Trigger::SelectAction()
                 fallback_selected = 1;
             }
         }
-    }
-    else {
+    } else {
         W8TriggerActionData005EC134* action_data =
             static_cast<W8TriggerActionData005EC134*>(m_pActionData);
         unsigned char linked_trigger_blocked = 0;
 
         if (m_pProp != 0 && m_pProp->Rep()->flag_06d != 0) {
             linked_trigger_blocked = 1;
-        }
-        else {
+        } else {
             char* cursor = m_pacRecipients;
             char* name;
             while ((name = NextTriggerRecipient(&cursor)) != 0) {
@@ -3465,16 +3237,14 @@ unsigned char Trigger::SelectAction()
                 action_230 = fallback_action_22e;
                 action_state_232 = 4;
                 fallback_selected = 1;
-            }
-            else {
+            } else {
                 state_370.state = 1;
                 action_data->flags_008 &= ~4;
                 if (action_data->linked_trigger_00c[0] != '\0') {
                     Trigger* linked_trigger;
                     action_state_232 = 1;
                     result = 0;
-                    linked_trigger = FindTriggerByName(
-                        action_data->linked_trigger_00c);
+                    linked_trigger = FindTriggerByName(action_data->linked_trigger_00c);
                     if (linked_trigger != 0) {
                         linked_trigger->Run(-1);
                         if (flag_364 == 0) {
@@ -3506,16 +3276,14 @@ unsigned char Trigger::SelectAction()
             if (flag_0a0_13 != 0) {
                 flag_0a0_14 = 1;
             }
-        }
-        else {
+        } else {
             action_230 = value_22c;
             action_state_232 = 3;
             if (flag_0a0_15 != 0) {
                 flag_0a0_14 = 0;
             }
         }
-    }
-    else if (action_230 == 0) {
+    } else if (action_230 == 0) {
         action_state_232 = 1;
         return 0;
     }

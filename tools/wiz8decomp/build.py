@@ -12,6 +12,7 @@ from typing import Any
 
 from .binary.coff_archive import named_iat_archive
 from .config import Settings, load_settings
+from .paths import compile_database_relative
 from .reccmp_data import write_wiz8_data_source
 from .subprocesses import resolve_executable, run
 
@@ -332,10 +333,10 @@ def run_clang_tidy(prefix: list[str], output: Path, repository: Path) -> None:
     }
 
     def first_party(path: str) -> bool:
-        if path.startswith("/repo/src/sgp/"):
+        relative = compile_database_relative(path, repository)
+        if relative is None or relative.startswith("src/sgp/"):
             return False
-        candidate = path.removeprefix("/repo/")
-        return any(candidate == root or candidate.startswith(root + "/") for root in roots)
+        return any(relative == root or relative.startswith(root + "/") for root in roots)
 
     files = sorted({entry["file"] for entry in database if first_party(entry["file"])})
     if not files:

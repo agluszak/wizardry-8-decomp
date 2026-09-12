@@ -21,9 +21,9 @@ struct W8NpcItemEntry {
        stock. Zero is the ordinary tradeable entry, and the restock helper at
        0x0055AA80 writes a clock reading plus a delay here. */
     unsigned int available_at;
-    W8ItemInstance item;                 /* 0x04 */
-    unsigned char quantity;              /* 0x10: non-stack remaining quantity */
-};                                       /* 0x14 by allocation */
+    W8ItemInstance item;    /* 0x04 */
+    unsigned char quantity; /* 0x10: non-stack remaining quantity */
+}; /* 0x14 by allocation */
 
 #pragma pack(push, 1)
 
@@ -33,16 +33,16 @@ struct W8NpcItemEntry {
 struct W8NpcState {
     int unknown_00;
     unsigned short unknown_04;
-    W8NpcDatabaseRecord* record;          /* 0x06 */
-    W8PList* items;                       /* 0x0a: W8NpcItemEntry* elements */
+    W8NpcDatabaseRecord* record; /* 0x06 */
+    W8PList* items;              /* 0x0a: W8NpcItemEntry* elements */
     /* 0x0e and 0x12: two world-clock stamps, both set when the stock is first
        populated at 0x0055A630. 0x0055AFA0 reads them as separate windows: it
        reruns the stock-rule pass once 0x0e is more than 0xa8c0 old, and the
        decay and restock pass once 0x12 is more than 0x15180 old. */
-    int restock_clock;                    /* 0x0e */
-    int maintenance_clock;                /* 0x12 */
-    int location_id;                      /* 0x16 */
-    bool has_monster;                     /* 0x1a */
+    int restock_clock;     /* 0x0e */
+    int maintenance_clock; /* 0x12 */
+    int location_id;       /* 0x16 */
+    bool has_monster;      /* 0x1a */
     /* 0x1b: the NPC's disposition. Setting a band writes one of three
        representative values rather than a range. */
     unsigned char disposition;
@@ -52,13 +52,13 @@ struct W8NpcState {
     unsigned char unknown_1e[6];
     /* 0x24: the level-band value the rebinding stamps from the level's own. */
     unsigned char value_24;
-    bool is_present;             /* 0x25 */
-    bool is_grouped;             /* 0x26 */
+    bool is_present; /* 0x25 */
+    bool is_grouped; /* 0x26 */
     /* 0x27: the NPC's group-member character. CreateNpcRuntimeNode allocates
        the 0x1862-byte block only when the record belongs to a group, and the
        state reset deletes it here. */
     W8Character* character;
-    signed char group_index;              /* 0x2b */
+    signed char group_index; /* 0x2b */
     /* 0x2c: this node's own slot in g_npc_states, written by
        CreateNpcRuntimeNode; the release pass follows the index a partner
        names. */
@@ -110,7 +110,7 @@ struct W8NpcState {
     /* 0x115: the forty entry weights matching item_ids_30; only the slots
        whose table selector was set carry a weight. */
     unsigned char item_weights_115[40];
-};                                        /* 0x13d by allocation */
+}; /* 0x13d by allocation */
 
 #pragma pack(pop)
 
@@ -142,16 +142,22 @@ unsigned char Function50C560(W8NpcState* npc, void* data);
 void Function55A0A0(int binding);
 /* 0x0050ABF0: the activation callback the rebinding installs on the level's
    NPC triggers. */
-unsigned char Function50ABF0(struct Trigger* trigger);
+unsigned char Function50ABF0(Trigger* trigger);
 /* 0x00524CA0: the NPC-side rebinding pass. */
 void Function524CA0(W8NpcState* npc);
 void ResetNpcBindingsForParty0050DB50(void);
 void ClearPendingNpcLevelFlags0050C270(void);
 void ReleaseNpcMonsterBindings0050C2E0(void);
 void ReleaseMarkedNpcBindings0050DA00(void);
-void RebindNpcLevelTriggers0050AC60(void);W8NpcState* GetNpcState(int index);
+void RebindNpcLevelTriggers0050AC60(void);
+W8NpcState* GetNpcState(int index);
 W8NpcState* GetNpcStateByKind(int kind);
-unsigned char Function50B8F0(unsigned int kind);
+bool NpcLeadHasNameStyle(unsigned int kind);
+/* 0x00509EA0: clear one NPC binding's monster link and hand the handle to the
+   owned item-list teardown. */
+void ReleaseNpcBinding(int value);
+/* 0x0050A440: the NPC binding selected by a monster-list index, or null. */
+W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index);
 unsigned char GetNpcDispositionBand(W8NpcState* npc);
 int AddNpcItemFromInstance(W8NpcState* npc, const W8ItemInstance* item, char quantity);
 int AddNpcItemWithDelay(W8NpcState* npc, int item_id, unsigned int quantity, int delay);

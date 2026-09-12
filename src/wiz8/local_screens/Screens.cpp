@@ -168,9 +168,9 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
         }
         break;
     case W8_SCREEN_MAIN_GAME:
-        if (*reinterpret_cast<int*>(&g_level_block->unknown_0f8[4]) == 0 ||
-            g_level_block->unknown_108[1 + party_slot] !=
-                0) { /* reinterpret-ok: int gate at +0xfc in opaque 0xf8 range */
+        if (g_level_block->value_0fc == 0 ||
+            g_level_block->party_bytes_109[party_slot] !=
+                0) {
             switch (party_slot) {
             case 0:
             case 1:
@@ -196,16 +196,13 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
                 PreparePartyPortraitOverlay(party_slot, (party_slot & 1) << 9 | 0x14, top);
             highlighted = 0;
             if (party_slot == static_cast<unsigned int>(g_level_block->highlight_override) ||
-                party_slot == *reinterpret_cast<unsigned int*>(&g_level_block->unknown_170[0x1c]) ||
+                party_slot == static_cast<unsigned int>(g_level_block->values_170[7]) ||
                 party_slot == static_cast<unsigned int>(g_level_block->held_item_display_190)) {
-                /* reinterpret-ok: int at +0x18c in opaque unknown_170 */
                 highlighted = 1;
             }
             RedrawPartyPortraitOverlay(party_slot, highlighted, overlay_ready,
-                                       g_level_block->unknown_108[1 + party_slot] == 0);
-            reinterpret_cast<unsigned char*>(
-                &g_portrait_animation_states_68372d[party_slot])[0x5c] =
-                1; /* reinterpret-ok: dirty byte at +0x5c in portrait animation state */
+                                       g_level_block->party_bytes_109[party_slot] == 0);
+            g_portrait_animation_states[party_slot].flag_5c = 1;
             InvalidatePortraitControl0059BBD0(party_slot);
             return;
         }
@@ -218,12 +215,12 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
 // FUNCTION: WIZ8 0x0055EF80
 int GetTextInputCursor(void)
 {
-    return 8;
+    return W8_CURSOR_TEXT_INPUT;
 }
 
 /* Install a named cursor, or restore the held-item / default cursor when the
-   caller passes -1. Unchanged ids are ignored; a new id resets the frame and
-   applies through ApplyCurrentCursor. */
+   caller passes W8_CURSOR_NONE (-1). Unchanged ids are ignored; a new id resets
+   the frame and applies through ApplyCurrentCursor. */
 // FUNCTION: WIZ8 0x0055EE70
 void SetTargetCursor(int cursor)
 {
@@ -303,18 +300,17 @@ void ApplyCurrentCursor(void)
         srAssertFail("gXStatus.iCurrentCursor != -1",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\Screens.cpp", 0x18d, 0);
     }
-    if (g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].object != 0) {
-        ResizeMouseCursorSurface(g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].size_x,
-                                 g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].size_y);
+    if (g_main_game_resource_slots[gXStatus.iCurrentCursor].object != 0) {
+        ResizeMouseCursorSurface(g_main_game_resource_slots[gXStatus.iCurrentCursor].size_x,
+                                 g_main_game_resource_slots[gXStatus.iCurrentCursor].size_y);
         SetMouseCursorTexture(static_cast<stTextureAnim*>(
-            g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].object));
-        static_cast<stTextureAnim*>(
-            g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].object)
+            g_main_game_resource_slots[gXStatus.iCurrentCursor].object));
+        static_cast<stTextureAnim*>(g_main_game_resource_slots[gXStatus.iCurrentCursor].object)
             ->SetFrame00485400(gXStatus.current_cursor_frame);
-        SetMouseCursorHotspot(g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].hotspot_x,
-                              g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].hotspot_y);
+        SetMouseCursorHotspot(g_main_game_resource_slots[gXStatus.iCurrentCursor].hotspot_x,
+                              g_main_game_resource_slots[gXStatus.iCurrentCursor].hotspot_y);
     }
-    if (g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].frame_count > 1) {
+    if (g_main_game_resource_slots[gXStatus.iCurrentCursor].frame_count > 1) {
         gXStatus.current_cursor_time = SetCountdownClock(0xfa);
     }
 }
@@ -346,10 +342,15 @@ void ClearHeldItemDisplay(void)
 unsigned char g_table_647ccc[128];
 
 // FUNCTION: WIZ8 0x0055F2B0
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wchar-subscripts"
+/* The recovered index is a char; the 128-entry table is the domain, and this
+   helper is not a virtual whose mangling we can widen. */
 unsigned char GetTable647CCCEntry(char index)
 {
     return g_table_647ccc[index];
 }
+#pragma clang diagnostic pop
 
 /* Point the mouse cursor at an item's video object, blitting it down as well.
    A negative held item id means the cursor keeps whatever it has. */
@@ -394,119 +395,102 @@ void InitializeMainGameLevelBlock(void)
 {
     int previous_mode;
     int slot;
-    unsigned int offset;
 
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->redraw_flags = static_cast<unsigned int>(-1);
     }
     g_level_block->transition_pending = 0;
     g_level_block->camera_mode_100 = 7;
-    g_level_block->unknown_000[0xf0] = IsMessageBoxActive();
-    g_level_block->unknown_108[0] = 0;
-    g_level_block->unknown_200[0x10] = 0;
-    *reinterpret_cast<int*>(g_level_block->unknown_194) = -1; /* reinterpret-ok: int at +0x194 */
+    g_level_block->flag_0f0 = IsMessageBoxActive();
+    g_level_block->flag_108 = 0;
+    g_level_block->flag_210 = 0;
+    g_level_block->values_194[0] = -1;
     g_level_block->highlight_override = -1;
-    *reinterpret_cast<int*>(&g_level_block->unknown_170[0x00]) =
-        -1; /* reinterpret-ok: opaque ints */
-    *reinterpret_cast<int*>(&g_level_block->unknown_170[0x04]) = -1;
-    *reinterpret_cast<int*>(&g_level_block->unknown_170[0x08]) = -1;
-    *reinterpret_cast<int*>(&g_level_block->unknown_170[0x0c]) = -1;
-    *reinterpret_cast<int*>(&g_level_block->unknown_170[0x14]) = -1;
-    *reinterpret_cast<int*>(&g_level_block->unknown_170[0x10]) = -1;
-    *reinterpret_cast<int*>(&g_level_block->unknown_170[0x18]) = 0;
-    *reinterpret_cast<int*>(&g_level_block->unknown_170[0x1c]) = -1;
+    g_level_block->values_170[0] = -1;
+    g_level_block->values_170[1] = -1;
+    g_level_block->values_170[2] = -1;
+    g_level_block->values_170[3] = -1;
+    g_level_block->values_170[5] = -1;
+    g_level_block->values_170[4] = -1;
+    g_level_block->values_170[6] = 0;
+    g_level_block->values_170[7] = -1;
     g_level_block->held_item_display_190 = -1;
-    *reinterpret_cast<int*>(&g_level_block->unknown_200[0x3c]) = -1; /* reinterpret-ok: +0x23c */
-    *reinterpret_cast<int*>(&g_level_block->unknown_200[0x40]) = 0;  /* +0x240 */
-    *reinterpret_cast<int*>(&g_level_block->unknown_194[0x04]) = 0x35;
-    *reinterpret_cast<int*>(&g_level_block->unknown_200[0x00]) = -1;
-    *reinterpret_cast<int*>(&g_level_block->unknown_200[0x04]) = -1;
-    *reinterpret_cast<int*>(&g_level_block->unknown_200[0x08]) = -1;
-    *reinterpret_cast<int*>(&g_level_block->unknown_200[0x0c]) = -1;
-    *reinterpret_cast<int*>(&g_level_block->unknown_194[0x0c]) =
-        CurrentTextLineHasContent() ? 0x57 : -1;
-    *reinterpret_cast<int*>(&g_level_block->unknown_194[0x10]) =
-        CurrentDialogueLineHasContent() ? 0x5a : -1;
+    g_level_block->value_23c = -1;
+    g_level_block->value_240 = 0;
+    g_level_block->values_194[1] = 0x35;
+    g_level_block->values_200[0] = -1;
+    g_level_block->values_200[1] = -1;
+    g_level_block->values_200[2] = -1;
+    g_level_block->values_200[3] = -1;
+    g_level_block->values_194[3] = CurrentTextLineHasContent() ? 0x57 : -1;
+    g_level_block->values_194[4] = CurrentDialogueLineHasContent() ? 0x5a : -1;
     g_level_block->world_update_flags = 0;
     g_level_block->world_render_flags = 0;
     g_level_block->highlighted_item = -1;
     g_level_block->selected_item = -1;
-    *reinterpret_cast<unsigned int*>(&g_level_block->unknown_200[0x14]) = GetClock(); /* +0x214 */
-    g_level_block->unknown_200[0x18] = 0;
-    slot = 0;
-    offset = 0x134;
-    do {
-        g_level_block->unknown_108[1 + slot] = 0;
-        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset - 0x20) =
-            0; /* reinterpret-ok: parallel int arrays at +0x114/+0x134 */
-        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset) = 0;
-        offset += 4;
-        ++slot;
-    } while (offset < 0x154);
+    g_level_block->clock_214 = GetClock();
+    g_level_block->flag_218 = 0;
+    for (slot = 0; slot < 8; ++slot) {
+        g_level_block->party_bytes_109[slot] = 0;
+        g_level_block->values_114[slot] = 0;
+        g_level_block->values_134[slot] = 0;
+    }
     g_level_block->combat_end_notification = -1;
     previous_mode = g_flag_006850ce;
     g_flag_006850ce = -1;
     ApplyMainGameModeFlag(previous_mode, 1);
     g_level_block->character_update_timer = SetCountdownClock(0);
     g_level_block->world_update_timer = SetCountdownClock(0);
-    *reinterpret_cast<unsigned int*>(&g_level_block->unknown_258[0]) =
-        SetCountdownClock(60000); /* reinterpret-ok: timer dword at +0x258 */
-    *reinterpret_cast<unsigned int*>(&g_level_block->unknown_258[4]) = SetCountdownClock(0);
-    *reinterpret_cast<unsigned int*>(&g_level_block->unknown_26c[0]) = SetCountdownClock(0xfa);
-    g_level_block->unknown_26c[4] = 1;
-    g_level_block->unknown_26c[5] = 1;
+    g_level_block->countdown_258 = SetCountdownClock(60000);
+    g_level_block->countdown_25c = SetCountdownClock(0);
+    g_level_block->countdown_26c = SetCountdownClock(0xfa);
+    g_level_block->flag_270 = 1;
+    g_level_block->flag_271 = 1;
     g_level_block->dialogue_open = 0;
-    g_level_block->unknown_26c[6] = 0;
+    g_level_block->flag_272 = 0;
     g_level_block->dialogue_owner = 0;
-    *reinterpret_cast<int*>(&g_level_block->unknown_26c[0x0c]) = 0;
-    *reinterpret_cast<unsigned int*>(&g_level_block->unknown_26c[8]) = GetTickCount();
-    *reinterpret_cast<int*>(&g_level_block->unknown_284[0]) = 0;
-    *reinterpret_cast<int*>(&g_level_block->unknown_284[4]) = 0;
+    g_level_block->value_278 = 0;
+    g_level_block->tick_274 = GetTickCount();
+    g_level_block->value_284 = 0;
+    g_level_block->value_288 = 0;
     DisableRegionInput(0xe5);
-    *reinterpret_cast<int*>(&g_level_block->unknown_284[8]) = -1;
-    *reinterpret_cast<int*>(&g_level_block->unknown_2ac[0]) = 0;
-    *reinterpret_cast<int*>(&g_level_block->unknown_2ac[8]) = 0;
-    *reinterpret_cast<int*>(&g_level_block->unknown_2ac[4]) = 0;
+    g_level_block->value_28c = -1;
+    g_level_block->value_2ac = 0;
+    g_level_block->value_2b4 = 0;
+    g_level_block->value_2b0 = 0;
     g_level_block->text_lines[4 + g_text_line_cursor_00686905] = FindStoppedTextLine();
     g_level_block->refresh_combat_panel = 1;
     g_level_block->combat_panel_timer = SetCountdownClock(0);
     g_level_block->refresh_party_panel = 1;
     g_level_block->unknown_158[1] = 1;
     SetTextBoxRegionBounds(0xa8, 0x16e, 0x1c4, 0x1ba);
-    offset = 0x1b8;
-    do {
-        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset - 0x10) =
-            0; /* reinterpret-ok: text_lines / text_slots clear loop */
-        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset) = 0;
-        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset + 0x10) =
-            0;
-        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset + 0x20) =
-            -1;
-        *reinterpret_cast<int*>(reinterpret_cast<unsigned char*>(g_level_block) + offset + 0x30) =
-            -1;
-        offset += 4;
-    } while (offset < 0x1c8);
+    for (int line = 0; line < 12; ++line) {
+        g_level_block->text_lines[line] = 0;
+    }
+    for (int slot_index = 0; slot_index < 4; ++slot_index) {
+        g_level_block->text_slots_1d8[slot_index] = -1;
+        g_level_block->text_slots_1e8[slot_index] = -1;
+    }
     g_level_block->unknown_2e4[0] = 0;
     g_level_block->value_2e8 = g_font_683660;
-    *reinterpret_cast<unsigned short**>(g_level_block->unknown_2ec) =
-        g_colour_68ee08; /* reinterpret-ok: palette pointer at +0x2ec */
+    g_level_block->palette_2ec = g_colour_68ee08;
     g_level_block->selection_kind = -1;
-    *reinterpret_cast<int*>(g_level_block->unknown_2f4) = -1;
+    g_level_block->value_2f4 = -1;
     g_level_block->selection_settled = 0;
     g_level_block->tooltip_since = 0;
     g_level_block->tooltip_pending = 0;
     g_level_block->tooltip_subject = -1;
     g_level_block->tooltip_kind = -1;
-    *reinterpret_cast<unsigned int*>(g_level_block->unknown_30c) = SetCountdownClock(0);
+    g_level_block->countdown_30c = SetCountdownClock(0);
     g_level_block->combat_slot = -1;
     g_level_block->flag_314 = 0;
     g_level_block->hover_combat_slot = -1;
-    g_level_block->unknown_31c[0] = 0;
-    *reinterpret_cast<unsigned int*>(&g_level_block->unknown_31c[4]) = SetCountdownClock(0);
-    g_level_block->unknown_31c[8] = 0;
-    g_level_block->unknown_31c[9] = 0;
-    g_level_block->unknown_31c[10] = 0;
+    g_level_block->flag_31c = 0;
+    g_level_block->countdown_320 = SetCountdownClock(0);
+    g_level_block->flag_324 = 0;
+    g_level_block->flag_325 = 0;
+    g_level_block->flag_326 = 0;
     g_level_block->flag_327 = 0;
-    *reinterpret_cast<unsigned int*>(&g_level_block->unknown_329[3]) = SetCountdownClock(0);
+    g_level_block->countdown_32c = SetCountdownClock(0);
     ResetMessageStorage();
 }

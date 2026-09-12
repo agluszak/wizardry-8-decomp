@@ -23,10 +23,9 @@
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/character_skills.h"
+#include "wiz8/npc_state.h"
 
 
-// GLOBAL
-unsigned char g_flag_00683F94;
 /* Condition-to-notice word table. Only the first word of each four-word
    stride is read, hence the multiplied index. */
 // GLOBAL: WIZ8 0x0061e570
@@ -48,15 +47,12 @@ unsigned short g_condition_notices_0061E570[128] = {
     0x673, 0x674, 0x675, 0x676, 0x3a0, 0x3a1, 0x3a2, 0x3a3,
     0x3a4, 0x3a5, 0x3a6, 0x3a7, 0x3a8, 0x3a9, 0x3aa, 0x3ab,
 };
-extern void Function53A930(int party_slot, W8CombatSlot* target);
 // FUNCTION: WIZ8 0x005248a0
 unsigned char Function5248A0(int party_slot, int condition)
 {
     return g_status_685170.buffers.characters[party_slot]
         .conditions_1817[condition].value_08;
 }
-
-extern void Function50E650(int party_slot);
 
 // GLOBAL
 unsigned char g_byte_00687500;
@@ -143,8 +139,8 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
             g_enchantment_six_cleared_006840bb = 1;
             break;
         case 0xb:
-            if (g_flag_00683F94 != 0
-                && ((unsigned char*)g_combat_state)[0x98 + party_slot * 0xD4] != 0) {
+            if (gXStatus.fCombatMode != 0
+                && g_combat_state->characters[party_slot].flag_80 != 0) {
                 row->target_out_of_combat = row->target_in_combat;
             }
             break;
@@ -158,15 +154,13 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
         Function52F790(character, condition);
         if (!can_rest && party_slot > -1 && party_slot < 8
             && row->occupied != 0 && character->hp_current != 0
-            && character->unknown_0b01 < 0xd && g_flag_00683F94 != 0
+            && character->unknown_0b01 < 0xd && gXStatus.fCombatMode != 0
             && CharacterCanSwitchTo(
                    party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) != 0) {
             Function53A930(party_slot, &row->target_in_combat);
         }
     }
 }
-
-extern void Function50E650(int party_slot);
 
 /*
  * Original translation unit: Local Code\Conditions & Enchantments.cpp.
@@ -374,7 +368,7 @@ void SetMonsterCondition(
         return;
     }
     if (quiet != 0
-        && (g_flag_00683F94 != 0 || monster_info->party_threat.flag_25 != 0)) {
+        && (gXStatus.fCombatMode != 0 || monster_info->party_threat.flag_25 != 0)) {
         wchar_t* name = GetMonsterName(monster_info, 0, 0);
         WriteGameLog(9, L"%s %s!", name, g_condition_notices_0061E570[condition * 4]);
     }
@@ -413,7 +407,7 @@ void ClearMonsterCondition(int location_id, int condition)
             monster_group = GetMonsterGroupByListIndex(list_index);
             Function5477D0(monster_info, monster_group->flag_2a);
         }
-        if (g_flag_00683F94 != 0 || monster_info->party_threat.flag_25 != 0) {
+        if (gXStatus.fCombatMode != 0 || monster_info->party_threat.flag_25 != 0) {
             WriteGameLog(
                 9, gppStringList[0x910 / 4],
                 GetMonsterName(monster_info, 0, 0),
@@ -594,8 +588,8 @@ unsigned char SetCharacterCondition(
     }
     if ((party_slot < 0 || party_slot > 7 || row->occupied == 0
          || character->hp_current == 0 || character->unknown_0b01 > 0xC)
-        && g_flag_00683F94 != 0) {
-        Function53AEB0(party_slot);
+        && gXStatus.fCombatMode != 0) {
+        ClearPartySlotMonsterHighlights(party_slot);
     }
     return 1;
 #pragma clang diagnostic pop

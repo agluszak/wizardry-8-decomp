@@ -2,13 +2,12 @@
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 // GLOBAL: WIZ8 0x0068f2d4
-W8MainGameScreen005EEBD8* g_main_game_screen_0068f2d4;
+W8MainGameScreen* g_main_game_screen;
 #include "wiz8/local_code/ButtonSound.h"
 #include "wiz8/notices.h"
 #include "wiz8/xstatus.h"
 #include "timer.h"
 #include "wiz8/local_code/Controls.h"
-#include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/AutomapScreen.h"
 
 #include <stdlib.h>
@@ -26,13 +25,10 @@ W8MainGameScreen005EEBD8* g_main_game_screen_0068f2d4;
 /* The redraw the text box asks for whenever anything it shows changes. */
 enum { W8_REDRAW_TEXT_BOX = 0x800 };
 
-extern unsigned char g_text_box_mode_0069b7b8;
 // GLOBAL: WIZ8 0x0069b7b8
 unsigned char g_text_box_mode_0069b7b8;
-extern int g_text_box_value_0064bd54;
 // GLOBAL: WIZ8 0x0064bd54
 int g_text_box_value_0064bd54 = 12;
-extern int g_text_line_cursor_00686905;
 // GLOBAL: WIZ8 0x00686905
 int g_text_line_cursor_00686905;
 /* 0x00689B17: one entry per line, how many messages that line holds.
@@ -171,7 +167,7 @@ void SetTextBoxMode(unsigned char mode, int value)
 // FUNCTION: WIZ8 0x0058a8c0
 void RedrawTextBoxComplete(void)
 {
-    W8MainGameScreen005EEBD8* screen = g_main_game_screen_0068f2d4;
+    W8MainGameScreen* screen = g_main_game_screen;
 
     screen->m_text_panel_00c->Invalidate(0);
     RedrawTextBoxBody();
@@ -204,8 +200,8 @@ int FindStoppedTextLine(void)
 // FUNCTION: WIZ8 0x0058a8f0
 char TextBoxHandleKey(const void* event)
 {
-    W8MainGameTextPanel005EEBA8* panel =
-        g_main_game_screen_0068f2d4->m_text_panel_00c;
+    W8MainGameTextPanel* panel =
+        g_main_game_screen->m_text_panel_00c;
     int before = panel->m_selection_078;
     char handled;
 
@@ -225,7 +221,7 @@ char TextBoxHandleKey(const void* event)
 // FUNCTION: WIZ8 0x0058a9c0
 void SetKnockKnockTarget(int target)
 {
-    W8MainGameScreen005EEBD8* screen = g_main_game_screen_0068f2d4;
+    W8MainGameScreen* screen = g_main_game_screen;
 
     if (gXStatus.field_021 == 0) {
         ShowNotice(0xc, L"You can't cast Knock Knock here!", -1, -1, 0);

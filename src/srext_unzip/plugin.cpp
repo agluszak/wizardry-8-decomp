@@ -15,17 +15,12 @@ extern "C" {
 void WINAPI Wiz_NoPrinting(int disabled);
 }
 
-extern "C" int WINAPI srWizUnzipToMemory(
-    char* archive,
-    char* member,
-    LPUSERFUNCTIONS callbacks,
-    UzpBuffer* result,
-    int case_insensitive);
+extern "C" int WINAPI srWizUnzipToMemory(char* archive, char* member, LPUSERFUNCTIONS callbacks,
+                                         UzpBuffer* result, int case_insensitive);
 
 class srOwnedBinIMStream : public srBinIMStream {
 public:
-    srOwnedBinIMStream(void* allocation, unsigned long size)
-        : srBinIMStream(allocation, size)
+    srOwnedBinIMStream(void* allocation, unsigned long size) : srBinIMStream(allocation, size)
     {
         allocation_ = allocation;
     }
@@ -61,9 +56,18 @@ struct srInlineString {
         return operator=(source.data_);
     }
 
-    char* data() { return data_; }
-    const char* data() const { return data_; }
-    unsigned long size() const { return size_; }
+    char* data()
+    {
+        return data_;
+    }
+    const char* data() const
+    {
+        return data_;
+    }
+    unsigned long size() const
+    {
+        return size_;
+    }
 
     void erasePrefix(unsigned long count)
     {
@@ -82,9 +86,7 @@ struct srInlineString {
 
 static_assert((sizeof(srInlineString) == 0x0c), "srInlineString_must_be_0x0c");
 
-srInlineString operator+(
-    const srInlineString& left,
-    const srInlineString& right);
+srInlineString operator+(const srInlineString& left, const srInlineString& right);
 
 class srZipAdapter;
 
@@ -105,7 +107,10 @@ public:
         strcpy(destination, archive_path_.data_);
         ++callback_count_;
     }
-    void setArchivePath(const char* path) { archive_path_ = path; }
+    void setArchivePath(const char* path)
+    {
+        archive_path_ = path;
+    }
 
 private:
     srInlineString archive_path_;
@@ -182,8 +187,7 @@ srBinIStream* srZipOpener::open(const char* path)
             prefix = begin == end ? srInlineString("") : srInlineString(prefix, begin, end);
         }
 
-        for (end = static_cast<long>(prefix.size()) - 2;
-             end >= 0 && prefix.data()[end] == ' ';
+        for (end = static_cast<long>(prefix.size()) - 2; end >= 0 && prefix.data()[end] == ' ';
              --end) {
         }
         if (end != static_cast<long>(prefix.size()) - 2) {
@@ -244,10 +248,7 @@ srBinIStream* srZipOpener::openArchivePath(srInlineString path)
 }
 
 // FUNCTION: SREXT_UNZIP 0x10010D50
-srInlineString::srInlineString(
-    const srInlineString& source,
-    long begin,
-    long end)
+srInlineString::srInlineString(const srInlineString& source, long begin, long end)
 {
     inline_[0] = '\0';
     data_ = inline_;
@@ -301,9 +302,9 @@ static int WINAPI discardReplace(char*)
 }
 
 // FUNCTION: SREXT_UNZIP 0x100115E0
-static void WINAPI discardMessage(
-    unsigned long, unsigned long, unsigned, unsigned, unsigned, unsigned,
-    unsigned, unsigned, char, char*, char*, unsigned long, char)
+static void WINAPI discardMessage(unsigned long, unsigned long, unsigned, unsigned, unsigned,
+                                  unsigned, unsigned, unsigned, char, char*, char*, unsigned long,
+                                  char)
 {
 }
 
@@ -312,12 +313,8 @@ static void WINAPI discardMessage(
 // path and counts the callback so ambiguous multi-member results can be
 // rejected.
 // FUNCTION: SREXT_UNZIP 0x100115F0
-static int WINAPI noteArchive(
-    char* destination,
-    int,
-    const char*,
-    const char*,
-    srZipAdapter* adapter)
+static int WINAPI noteArchive(char* destination, int, const char*, const char*,
+                              srZipAdapter* adapter)
 {
     adapter->noteCallback(destination);
     return 0;
@@ -329,12 +326,20 @@ srZipAdapter::srZipAdapter()
     Wiz_NoPrinting(1);
     callbacks_ = new srZipCallbacks;
     memset(callbacks_, 0, sizeof(*callbacks_));
-    callbacks_->password = reinterpret_cast<DLLPASSWORD*>(noteArchive);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
+    /* The adapter password bridge carries an extra srZipAdapter* after the
+       four Info-ZIP arguments; the service slot reuses the two-argument
+       print body. Retail stores both pointers as-is. */
+    // clang-format off
+    callbacks_->password = reinterpret_cast<DLLPASSWORD*>(noteArchive); /* reinterpret-ok: Info-ZIP password slot cannot express the adapter argument */
     callbacks_->print = discardPrintOrService;
     callbacks_->sound = 0;
     callbacks_->replace = discardReplace;
     callbacks_->SendApplicationMessage = discardMessage;
-    callbacks_->ServCallBk = reinterpret_cast<DLLSERVICE*>(discardPrintOrService);
+    callbacks_->ServCallBk = reinterpret_cast<DLLSERVICE*>(discardPrintOrService); /* reinterpret-ok: Info-ZIP service slot reuses the print body */
+    // clang-format on
+#pragma clang diagnostic pop
     callbacks_->adapter = this;
 }
 
@@ -380,18 +385,12 @@ srBinIStream* srZipAdapter::openMember(char* archive, char* member)
     UzpBuffer result;
 
     case_insensitive_ = 0;
-    if (srConfig.exists("ZIP_CASE_INSENSITIVE") &&
-        srConfig.getBool("ZIP_CASE_INSENSITIVE")) {
+    if (srConfig.exists("ZIP_CASE_INSENSITIVE") && srConfig.getBool("ZIP_CASE_INSENSITIVE")) {
         case_insensitive_ = 1;
     }
 
     callback_count_ = 0;
-    srWizUnzipToMemory(
-        archive,
-        member,
-        callbacks_,
-        &result,
-        case_insensitive_);
+    srWizUnzipToMemory(archive, member, callbacks_, &result, case_insensitive_);
 
     if (callback_count_ < 2) {
         srBinIStream* stream = 0;
@@ -416,9 +415,7 @@ const char* srUnzipPlugin::getDescription() const
 }
 
 // FUNCTION: SREXT_UNZIP 0x10011240
-srZipOpener::~srZipOpener()
-{
-}
+srZipOpener::~srZipOpener() {}
 
 // FUNCTION: SREXT_UNZIP 0x100112A0
 srUnzipPlugin::~srUnzipPlugin()
@@ -442,17 +439,14 @@ srInlineString::srInlineString()
 }
 
 // FUNCTION: SREXT_UNZIP 0x100113D0
-srInlineString operator+(
-    const srInlineString& left,
-    const srInlineString& right)
+srInlineString operator+(const srInlineString& left, const srInlineString& right)
 {
     srInlineString result(left);
     if (right.data() == 0 || *right.data() == '\0') {
         return result;
     }
 
-    const unsigned long combined_size =
-        result.size() + strlen(right.data());
+    const unsigned long combined_size = result.size() + strlen(right.data());
     char* combined = static_cast<char*>(srHeap.allocate(combined_size));
     strcpy(combined, result.data());
     strcpy(combined + result.size() - 1, right.data());

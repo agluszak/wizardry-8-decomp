@@ -14,7 +14,6 @@
 #include "wiz8/startup_runtime_state.h"
 #include "random.h"
 #include "timer.h"
-#include "wiz8/local_code/character_events.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "bink.h"
@@ -23,9 +22,6 @@
 #include <stdio.h>
 #include <wchar.h>
 
-extern void Function52F890(
-    int party_slot, int active, int animation, int argument, int show_text);
-extern unsigned int g_value_0068c57c;
 // GLOBAL: WIZ8 0x0068c57c
 unsigned int g_value_0068c57c;
 /* 0x0068C580: the shared wide buffer formatted character text lands in. The
@@ -40,7 +36,6 @@ wchar_t g_character_text_0068c580[2000];
 const char g_quote_personality_names_005ed91c[9][0x14] = {
     "aggr", "intell", "burly", "chaos", "cun", "ecc", "kind", "laid", "loner",
 };
-extern unsigned int g_value_0068c554;
 // GLOBAL: WIZ8 0x0068c554
 unsigned int g_value_0068c554;
 // GLOBAL: WIZ8 0x0061cb44
@@ -49,23 +44,6 @@ int g_pose_transition_table_0061cb44[30] = {
     0x1110111, 1, 3, 3, 4, 5, 3, 2, 3, 3,
     3, 1, 2, 3, 4, 1, 1, 3, 3, 4, 1, 1, 1, 1, 1,
 };
-extern unsigned int g_value_005ed8fc;
-extern unsigned int g_flee_hp_fraction_005ed8f8;
-extern int g_effect_005ee594;
-extern int g_effect_005ee590;
-extern int g_effect_005ee5f8;
-extern unsigned int g_first_remapped_event_005ee718;
-extern unsigned int g_last_event_005ee70c;
-extern int g_special_event_0068c504;
-extern int g_special_event_0068c50c;
-extern int g_special_event_0068c51c;
-extern int g_special_event_0068c538;
-extern int g_special_event_0068c540;
-extern int g_special_event_0068c550;
-extern int g_special_event_0068c564;
-extern int g_special_event_0068c568;
-extern int g_special_event_0068c558;
-
 // GLOBAL: WIZ8 0x005ED8C8
 int g_effect_argument_005ed8c8 = 0;
 // GLOBAL: WIZ8 0x005ED8F8
@@ -394,7 +372,7 @@ void W8StartupRuntimeState::ProcessOwnedEntry(W8StartupStateElement005EE748* ent
    incapacitation events. Which pair is available is selected by the two data
    flags; successfully queueing the event clears the matching held effect. */
 // FUNCTION: WIZ8 0x0052F060
-void Function52F060(unsigned int party_slot)
+void MaybeStartIncapacitationEvent(unsigned int party_slot)
 {
     W8Character* character = &g_party_characters[party_slot];
     int effect;
@@ -459,7 +437,7 @@ int Function52E750(void)
                 }
             }
             if (scan == 8) {
-                Function52F060(party_slot);
+                MaybeStartIncapacitationEvent(party_slot);
             }
         }
         else {
@@ -477,7 +455,7 @@ int Function52E750(void)
                     }
                 }
                 if (scan == 8) {
-                    Function52F060(party_slot);
+                    MaybeStartIncapacitationEvent(party_slot);
                 }
             }
             else {

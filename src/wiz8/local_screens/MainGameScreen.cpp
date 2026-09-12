@@ -59,23 +59,16 @@
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/3dapi.h"
 #include "wiz8/local_code/ItemManager.h"
-#include "wiz8/local_code/LoadSaveGame.h"
-#include "wiz8/targeting.h"
-#include "wiz8/local_screens/MGSUseItemSelect.h"
-#include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/MGSPartyMovement.h"
-#include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/Cursor3d.h"
 #include "wiz8/local_code/NPCScripting.h"
-#include "wiz8/local_screens/MGSKeyboard.h"
 #include "wiz8/local_screens/Screens.h"
-#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/mipe.h"
 #include "wiz8/local_screens/MGSPortraits.h"
-#include "wiz8/local_screens/MGSUseItemSelect.h"
-#include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_screens/IntroScreen.h"
+#include "wiz8/local_screens/JournalScreen.h"
+#include "wiz8/engine_code/Prop.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -102,15 +95,6 @@ W8DialogBase* g_modal_owner_0068edd0;
 // GLOBAL: WIZ8 0x0068edd4
 W8DialogBase* g_pending_main_game_dialog_0068edd4;
 
-extern void Function598AB0(void);
-extern void Function59C930(int slot);
-extern void Function5187E0(void);
-extern void Function598AE0(void);
-extern void Function59B270(void);
-extern void Function59BAD0(void);
-extern void Function59BF70(void);
-extern void Function59C9C0(void);
-
 // GLOBAL: WIZ8 0x006840bc
 unsigned char g_flag_006840bc;
 
@@ -131,31 +115,6 @@ unsigned char g_flag_00685076;
 
 // GLOBAL: WIZ8 0x00685077
 signed char g_value_00685077;
-extern int g_value_006850d5;
-
-// GLOBAL: WIZ8 0x00683f95
-unsigned char g_flag_00683f95;
-
-// GLOBAL: WIZ8 0x00683f96
-unsigned char g_flag_00683f96;
-
-// GLOBAL: WIZ8 0x00683f97
-unsigned char g_flag_00683f97;
-
-// GLOBAL: WIZ8 0x00683f98
-unsigned char g_flag_00683f98;
-
-// GLOBAL: WIZ8 0x00683f99
-unsigned char g_flag_00683f99;
-
-// GLOBAL: WIZ8 0x00683f9a
-unsigned char g_flag_00683f9a;
-
-// GLOBAL: WIZ8 0x00683fcd
-unsigned char g_flag_00683fcd;
-
-// GLOBAL: WIZ8 0x00683fce
-unsigned char g_flag_00683fce;
 
 // GLOBAL: WIZ8 0x006850ce
 int g_flag_006850ce;
@@ -176,7 +135,7 @@ unsigned char g_flag_0068edd8;
 int g_main_game_mode_0068eddc;
 
 // GLOBAL: WIZ8 0x0064827c
-W8MainGameResourceSlot g_main_game_resource_slots_64827c[17] = {
+W8MainGameResourceSlot g_main_game_resource_slots[17] = {
     {0, 1, 0, 0, 0, 0, 2},  {0, 5, 0, 0, 0, 0, 3},  {0, 1, 0, 0, 0, 0, 4},  {0, 1, 0, 0, 0, 0, 5},
     {0, 1, 0, 0, 0, 0, 6},  {0, 4, 0, 0, 0, 0, 7},  {0, 4, 0, 0, 0, 0, 0},  {0, 0, 0, 0, 0, 0, 8},
     {0, 1, 0, 0, 0, 0, 9},  {0, 1, 0, 0, 0, 0, 10}, {0, 5, 0, 0, 0, 0, 11}, {0, 1, 0, 0, 0, 0, 12},
@@ -186,14 +145,12 @@ W8MainGameResourceSlot g_main_game_resource_slots_64827c[17] = {
 
 // GLOBAL: WIZ8 0x0065bd2c
 unsigned char g_build_level_links_0065bd2c;
-extern unsigned char g_flag_689b32;
 
 // GLOBAL: WIZ8 0x0068ede8
 int g_next_link_level_0068ede8;
 
 // GLOBAL: WIZ8 0x0068edd9
 unsigned char g_flag_0068edd9;
-extern unsigned char g_byte_00659a64;
 
 // GLOBAL: WIZ8 0x0068ee90
 W8MainScreenState g_screen_state_storage_0068ee90;
@@ -257,7 +214,6 @@ void Function586740(void);
 void Function589A80(void);
 void Function593360(void);
 void Function56C6D0(int, int, int, int, int);
-extern unsigned char g_flag_006875a5;
 unsigned char Function57E3C0(void);
 void Function4EF1F0(void);
 
@@ -276,13 +232,13 @@ void Function58A750(void)
 // FUNCTION: WIZ8 0x00577850
 unsigned char Function577850(void)
 {
-    return g_flag_00683f97 != 0 && g_screen_state_00649f1c->flag_252 != 0;
+    return gXStatus.field_01f != 0 && g_screen_state_00649f1c->flag_252 != 0;
 }
 
 // FUNCTION: WIZ8 0x005929d0
 void Function5929D0(void)
 {
-    if (g_modal_owner_0068edd0 == 0 && g_flag_00683f97 == 0) {
+    if (g_modal_owner_0068edd0 == 0 && gXStatus.field_01f == 0) {
         if (g_mgs_keyboard->IsCommandPressed(0x25a)) {
             BeginManualCameraControl();
         }
@@ -345,7 +301,7 @@ void Function577540(void)
 {
     g_flag_006875a5 = 0;
     ClearLevelDataFlag6();
-    SetTargetCursor(-1);
+    SetTargetCursor(W8_CURSOR_NONE);
 }
 
 // FUNCTION: WIZ8 0x00577220
@@ -565,7 +521,7 @@ void ReloadKeywordLists(void)
 /* Reset the screen state block: zero its 0x268 bytes, write its reset values,
    clear the keyword status byte, and reload the keyword lists. */
 // FUNCTION: WIZ8 0x0056c520
-void Function56C520(void)
+void ResetMainScreenStateBlock(void)
 {
     int unset = -1;
 
@@ -617,7 +573,7 @@ unsigned char MainGameScreenEnter(void)
         DisableSky();
     }
     if (TakePendingSaveFlag()) {
-        Function58AC00(0xc, gppStringList[0x1e08 / 4], -1, -1, 0);
+        ShowNotice(0xc, gppStringList[0x1e08 / 4], -1, -1, 0);
     }
     if (g_value_006850d5 != difficulty) {
         g_value_006850d5 = difficulty;
@@ -632,11 +588,11 @@ unsigned char MainGameScreenEnter(void)
             display_mode = 0x7fa;
             break;
         }
-        Function58AAD0(0xc, gppStringList[0x1e30 / 4], gppStringList[display_mode]);
+        WriteGameLog(0xc, gppStringList[0x1e30 / 4], gppStringList[display_mode]);
     }
     ResetTransientRenderScenes();
     MoveTimer(4);
-    if (!g_flag_006840bc && !g_in_combat_00683f94) {
+    if (!g_flag_006840bc && !gXStatus.fCombatMode) {
         SetEnvironmentTimeEnabled00482990(1);
     }
     {
@@ -654,7 +610,7 @@ unsigned char MainGameScreenEnter(void)
     } else {
         ClearHeldItemDisplay();
     }
-    Function53A320(0);
+    SetTargetingMode(0);
     SetPrimarySurfaceTextureHint2Enabled(1);
     if (gXStatus.field_024) {
         Function587510(0);
@@ -674,7 +630,7 @@ unsigned char MainGameScreenEnter(void)
             g_value_00685077 = -1;
         }
     }
-    if (!g_in_combat_00683f94) {
+    if (!gXStatus.fCombatMode) {
         Function42B770(1, 1);
     }
     return 1;
@@ -749,7 +705,7 @@ update_screen:
         gXStatus.unknown_026[0] = 0;
         Function577220();
     }
-    if (!Function554540()) {
+    if (!IsScreenBusy()) {
         Function5542E0();
     }
     if (!g_level_block->transition_active && !gXStatus.fCombatMode && gXStatus.field_028) {
@@ -902,12 +858,12 @@ render_world:
             Function59B2D0();
         }
         if (gXStatus.iCurrentCursor != -1 && gXStatus.iCurrentCursor != 7 &&
-            g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].frame_count > 1 &&
+            g_main_game_resource_slots[gXStatus.iCurrentCursor].frame_count > 1 &&
             !ClockIsTicking(gXStatus.current_cursor_time) && !IsWorldCursorVisible() &&
             !g_flag_0068edd8) {
             ++gXStatus.current_cursor_frame;
             if (gXStatus.current_cursor_frame ==
-                g_main_game_resource_slots_64827c[gXStatus.iCurrentCursor].frame_count) {
+                g_main_game_resource_slots[gXStatus.iCurrentCursor].frame_count) {
                 gXStatus.current_cursor_frame = 0;
             }
             ApplyCurrentCursor();
@@ -1021,7 +977,7 @@ unsigned char MainGameScreenLeave(int leaving)
     int index;
 
     if (g_main_game_mode_0068eddc == 3) {
-        if (g_flag_00683f97) {
+        if (gXStatus.field_01f) {
             Function56E800(0);
         }
     } else if (g_main_game_mode_0068eddc == 5) {
@@ -1044,23 +1000,23 @@ unsigned char MainGameScreenLeave(int leaving)
         Function490AF0();
     }
     Function59B270();
-    if (g_flag_00683f98)
+    if (gXStatus.field_020)
         Function5879A0(0);
-    if (g_flag_00683f99)
+    if (gXStatus.field_021)
         Function58A790(0);
-    if (g_flag_00683f95)
+    if (gXStatus.field_01d)
         Function59F2B0();
-    if (g_flag_00683f96)
+    if (gXStatus.fItemSelectMode)
         Function59C9C0();
-    if (g_flag_00683f9a)
+    if (gXStatus.field_022)
         Function5B2200();
-    if (g_flag_00683f97)
+    if (gXStatus.field_01f)
         Function56E800(0);
     if (g_level_block->flag_314)
         Function592E60();
     Function59BAD0();
     Function59BF70();
-    if (g_flag_00683fcd)
+    if (gXStatus.field_055)
         DisableRegionSet1C();
     Function529510();
     if (GetFlag68F105())
@@ -1076,9 +1032,9 @@ unsigned char MainGameScreenLeave(int leaving)
 
     if (static_cast<unsigned char>(leaving)) {
         for (index = 0; index < 17; ++index) {
-            if (g_main_game_resource_slots_64827c[index].object != 0) {
-                g_main_game_resource_slots_64827c[index].object->release();
-                g_main_game_resource_slots_64827c[index].object = 0;
+            if (g_main_game_resource_slots[index].object != 0) {
+                g_main_game_resource_slots[index].object->release();
+                g_main_game_resource_slots[index].object = 0;
             }
         }
     }
@@ -1092,7 +1048,7 @@ unsigned char MainGameScreenLeave(int leaving)
     if (g_level_block->flag_156) {
         g_level_block->flag_156 = 0;
         RegionSetDisable(0x13);
-        Function5B1C00();
+        ReleaseRuntimeDialogOwners();
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
             g_level_block->redraw_flags |= 0x8200;
         }
@@ -1269,7 +1225,7 @@ void ClearCombatSelection(void)
     SetCombatSelection(-1);
     SetCombatTarget(-1);
     SetCombatAction(-1);
-    SetTargetCursor(Function53A3D0(0));
+    SetTargetCursor(GetTargetingCursorForState(0));
 }
 
 /* Drop the highlight when the thing being highlighted is the one going away. */
@@ -1302,10 +1258,6 @@ int IsScreenInputBlocked(void)
 
 // GLOBAL
 unsigned char g_map_loading_00659757;
-extern void Function5879A0(int arg_1);
-extern void Function58A790(int arg_1);
-extern void Function59F2B0(void);
-extern void Function59CAC0(void);
 
 /* Whether the screen is idle - none of the six overlays is up. The same six
    flags the input block reads, but all of them and unconditionally. */
@@ -1328,7 +1280,7 @@ bool LoadCurrentLevelData(void)
     bool loaded = true;
 
     if (g_status_685170.current_level != -1) {
-        SetTargetCursor(9);
+        SetTargetCursor(W8_CURSOR_MAP_LOAD);
         g_map_loading_00659757 = 1;
         Function42B3E0();
         loaded = UnloadLevel("MAP") != 0;
@@ -1451,7 +1403,7 @@ void ShortenTextToWidth00577410(wchar_t* output, const wchar_t* text, unsigned i
 // FUNCTION: WIZ8 0x0056C590
 void Function56C590(W8NpcState* npc, int value, int line, int suppress)
 {
-    if (g_flag_00683f97 == 0 && g_in_combat_00683f94 == 0 &&
+    if (gXStatus.field_01f == 0 && gXStatus.fCombatMode == 0 &&
         (npc->record->kind != 7 || GetFact(0x1c) != 1)) {
         Function56C5E0(npc, value, line, suppress, 0);
     }

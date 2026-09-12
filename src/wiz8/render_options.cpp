@@ -15,44 +15,15 @@
  *
  * The stored bytes live two bytes into the block at 0x0065A118, which is what
  * the +2 in the accessor is. Nothing here establishes what that leading pair
- * holds, so it is not modelled.
+ * holds, so it is not modelled. Texture-cache size, swap interval, and
+ * surface scale are separate Video2.cpp CALL targets, not inlined pieces of
+ * this switch.
  */
 
 float g_render_brightness_60a210;
 float g_render_fog_distance_60e610;
 unsigned char g_render_flag_60a20c;
 unsigned char g_render_flag_603c6c;
-unsigned char g_swap_interval_enabled_659718;
-float g_surface_scale_659680;
-
-static void SetSurfaceScale(float scale)
-{
-    float* values = (float*)((unsigned char*)g_surface_node_659664 + 0x170);
-    float factor = 1.0f / (float)*(int*)((unsigned char*)g_surface_node_659664 + 0x144);
-    float previous = *(float*)((unsigned char*)g_surface_node_659664 + 0x190);
-    int index;
-
-    for (index = 0; index != 8; ++index) {
-        values[index] += (scale - previous) * factor;
-    }
-    *(float*)((unsigned char*)g_surface_node_659664 + 0x190) = scale;
-    g_surface_scale_659680 = scale;
-}
-
-static void SetTextureCacheSize(unsigned long bytes)
-{
-    if (bytes > 0x7fffff && bytes != g_gerd_659634->getTextureCacheSize()) {
-        g_gerd_659634->invalidateResidentTextures();
-        g_gerd_659634->invalidateTextureCache();
-        g_gerd_659634->setTextureCacheSize(bytes);
-    }
-}
-
-static void SetSwapInterval(unsigned char enabled)
-{
-    g_swap_interval_enabled_659718 = enabled;
-    g_gerd_659634->setSwapInterval(enabled ? 1 : 0);
-}
 
 // FUNCTION: WIZ8 0x0047b570
 void DestroyRenderQuality0047B570(void)
@@ -75,29 +46,53 @@ void EnableRenderOption(int option)
 void SetRenderOption(int option, int enabled)
 {
     switch (option) {
-    case 2: g_gerd_659634->setTextureDefaultMagFilter((srTextureIFace::e_filter)(enabled ? 3 : 0)); break;
-    case 3: g_gerd_659634->setTextureDefaultMinFilter((srTextureIFace::e_filter)(enabled ? 3 : 0)); break;
-    case 4: g_gerd_659634->setTextureDefaultMipmap((srTextureIFace::e_mipmap)(enabled ? 2 : 0)); break;
+    case 2:
+        g_gerd_659634->setTextureDefaultMagFilter((srTextureIFace::e_filter)(enabled ? 3 : 0));
+        break;
+    case 3:
+        g_gerd_659634->setTextureDefaultMinFilter((srTextureIFace::e_filter)(enabled ? 3 : 0));
+        break;
+    case 4:
+        g_gerd_659634->setTextureDefaultMipmap((srTextureIFace::e_mipmap)(enabled ? 2 : 0));
+        break;
     case 5:
         if (((*((unsigned char*)g_gerd_659634 + 0x20) & 1) != 0) != (enabled != 0)) {
             g_gerd_659634->toggle((srGERD::e_enable)0);
         }
         break;
-    case 6: g_render_brightness_60a210 = enabled ? 1.0f : 0.8f; break;
+    case 6:
+        g_render_brightness_60a210 = enabled ? 1.0f : 0.8f;
+        break;
     case 7:
-        if (!enabled && g_render_fog_distance_60e610 < 0.7f) g_render_fog_distance_60e610 = 0.7f;
-        if (enabled && g_render_fog_distance_60e610 > 0.3f) g_render_fog_distance_60e610 = 0.3f;
+        if (!enabled && g_render_fog_distance_60e610 < 0.7f)
+            g_render_fog_distance_60e610 = 0.7f;
+        if (enabled && g_render_fog_distance_60e610 > 0.3f)
+            g_render_fog_distance_60e610 = 0.3f;
         break;
     case 8:
-        if (!enabled && g_render_fog_distance_60e610 < 0.9f) g_render_fog_distance_60e610 = 0.9f;
-        if (enabled && g_render_fog_distance_60e610 > 0.1f) g_render_fog_distance_60e610 = 0.1f;
+        if (!enabled && g_render_fog_distance_60e610 < 0.9f)
+            g_render_fog_distance_60e610 = 0.9f;
+        if (enabled && g_render_fog_distance_60e610 > 0.1f)
+            g_render_fog_distance_60e610 = 0.1f;
         break;
-    case 9: g_render_flag_60a20c = enabled != 0; break;
-    case 10: g_render_flag_603c6c = enabled != 0; break;
-    case 11: SetResidentTexturePolicy(enabled ? 0 : 1); break;
-    case 12: SetTextureCacheSize(enabled ? 0x2000000 : 0x1000000); break;
-    case 13: SetSwapInterval(enabled != 0); break;
-    case 16: SetSurfaceScale(enabled ? 0.5f : 0.0f); break;
+    case 9:
+        g_render_flag_60a20c = enabled != 0;
+        break;
+    case 10:
+        g_render_flag_603c6c = enabled != 0;
+        break;
+    case 11:
+        SetResidentTexturePolicy(enabled ? 0 : 1);
+        break;
+    case 12:
+        SetTextureCacheSize00426740(enabled ? 0x2000000 : 0x1000000);
+        break;
+    case 13:
+        SetSwapInterval00426710(enabled != 0);
+        break;
+    case 16:
+        SetSurfaceScale004297E0(enabled ? 0.5f : 0.0f);
+        break;
     }
     if (option < 0x11) {
         g_render_options_65a118[2 + option] = enabled != 0;

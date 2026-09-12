@@ -150,17 +150,6 @@ struct W8MonsterCombatState {
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-/* One initialization unit inside W8MonsterInfo. The creator clears all 0x67
-   bytes in one constant-sized operation; later consumers independently name
-   the damage reduction and per-attribute adjustments inside it. */
-struct W8MonsterRuntimeBlock1DB {
-    unsigned char unknown_00[6];
-    signed char damage_reduction;              /* +0x06, W8MonsterInfo +0x1e1 */
-    unsigned char unknown_07[5];
-    signed char attribute_adjustments[7];      /* +0x0c, W8MonsterInfo +0x1e7 */
-    unsigned char unknown_13[0x54];
-};                                             /* 0x67 */
-
 /* 0x286: the party-side sight record for one monster. The live-threat gate,
    the clock and two position triples the player-sight pass stamps, the
    use-bounds flag IsVisibleToPlayer consumes, and its two sight flags. The
@@ -240,7 +229,7 @@ struct W8MonsterInfo {
        copied onto a character. */
     int condition_argument;
     W8EffectSlot effect_slots_10f[12];
-    W8MonsterRuntimeBlock1DB runtime_block_1db; /* 0x1db */
+    W8GameplayModifierBlock modifiers_1db; /* 0x1db */
     int runtime_value_242;                /* 0x242: derived from runtime_stat_current_33 */
     unsigned char unknown_246;
     unsigned char converted_attributes_247[5]; /* 0x247: values clamped to 1..125 */
@@ -300,7 +289,8 @@ struct W8MonsterInfo {
 #pragma pack(pop)
 
 static_assert(sizeof(W8MonsterInfo) == 0x425, "W8MonsterInfo_size_must_be_0x425");
-static_assert(sizeof(W8MonsterRuntimeBlock1DB) == 0x67, "W8MonsterRuntimeBlock1DB_size_must_be_0x67");
+static_assert(offsetof(W8MonsterInfo, modifiers_1db) == 0x1db,
+              "W8MonsterInfo_modifiers_1db_offset");
 
 
 W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index);

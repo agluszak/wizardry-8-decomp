@@ -14,6 +14,7 @@ from typing import Any
 from reccmp.source import SourceIndex, SourceIndexError, SourceMarker
 
 from .config import Settings
+from .paths import compile_database_relative
 
 _SOURCE_SUFFIXES = frozenset({".c", ".cpp", ".h", ".hpp"})
 _SYNTHETIC_MARKER = re.compile(r"^\s*//\s*SYNTHETIC:\s+")
@@ -131,7 +132,7 @@ def _cmake_configure_inputs(repository: Path) -> tuple[Path, ...]:
     return tuple(seen)
 
 
-def _compile_db_files(database: Path) -> set[str]:
+def _compile_db_files(database: Path, repository: Path) -> set[str]:
     try:
         entries = json.loads(database.read_text(encoding="utf-8"))
     except (OSError, ValueError):
@@ -139,12 +140,11 @@ def _compile_db_files(database: Path) -> set[str]:
     files: set[str] = set()
     for entry in entries if isinstance(entries, list) else []:
         raw = str((entry or {}).get("file", ""))
-        if raw.startswith("/repo/"):
-            files.add(raw[len("/repo/") :])
-        elif raw.startswith("/"):
+        if not raw:
             continue
-        elif raw:
-            files.add(raw)
+        relative = compile_database_relative(raw, repository)
+        if relative:
+            files.add(relative)
     return files
 
 
@@ -162,7 +162,7 @@ def indexed_targets(repository: Path, database: Path | None = None) -> dict[str,
         target: _source_roots(config) for target, config in targets.items() if _source_roots(config)
     }
     if database is not None and database.is_file():
-        covered = _compile_db_files(database)
+        covered = _compile_db_files(database, repository)
         if covered:
             filtered = {}
             for target, roots in candidates.items():
@@ -537,7 +537,7 @@ def _prepare_analysis_indexer(settings: Settings, cache: Path) -> None:
     command.extend(("--entrypoint", str(binary), VC6_IMAGE))
     wrapper = cache / "docker-indexer"
     wrapper.write_text(
-        f"#!/bin/sh\n# indexer {digest}\nexec {shlex.join(command)} \"$@\"\n",
+        f'#!/bin/sh\n# indexer {digest}\nexec {shlex.join(command)} "$@"\n',
         encoding="utf-8",
     )
     wrapper.chmod(0o755)
@@ -553,9 +553,10 @@ def _collect_source_index(
     force: bool = False,
 ) -> SourceIndex:
     """Project adapter: host-path compile DB, then one reccmp collection."""
-    roots = indexed_targets(repository, database)
     cache = repository / "build" / "reccmp-source"
-    host_database = host_compile_database(repository, database, settings, roots)
+    host_database = host_compile_database(
+        repository, database, settings, indexed_targets(repository, database)
+    )
     _prepare_analysis_indexer(settings, cache)
     return SourceIndex.from_compile_database(
         repository,

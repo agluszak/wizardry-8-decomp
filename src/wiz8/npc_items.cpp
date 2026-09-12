@@ -54,48 +54,45 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
         repeats = 1;
     }
     added = 0;
-    if (repeats > 0) {
-        do {
-            index = -1;
-            if (record->equip_class != 4) {
-                existing_count = PLLength(npc->items);
-                for (search = 0; search < existing_count; ++search) {
-                    entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, search));
-                    if (entry != 0 && entry->item.item_id == item_id) {
-                        index = search;
-                        break;
-                    }
+    for (; added < repeats; ++added) {
+        index = -1;
+        if (record->equip_class != 4) {
+            existing_count = PLLength(npc->items);
+            for (search = 0; search < existing_count; ++search) {
+                entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, search));
+                if (entry != 0 && entry->item.item_id == item_id) {
+                    index = search;
+                    break;
                 }
             }
-            if (index == -1) {
-                entry = new W8NpcItemEntry;
-                if (entry != 0) {
-                    memset(entry, 0, sizeof(*entry));
-                    ReplaceOrCreateItem(&entry->item, item_id, 1, 1, 0);
-                }
-                entry->item.stack_count = 0;
-                index = PLAdoptAppend(npc->items, entry);
+        }
+        if (index == -1) {
+            entry = new W8NpcItemEntry;
+            if (entry != 0) {
+                memset(entry, 0, sizeof(*entry));
+                ReplaceOrCreateItem(&entry->item, item_id, 1, 1, 0);
             }
-            else {
-                entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
-            }
-            if (entry == 0) {
-                return -1;
-            }
-            if (record->equip_class == 4) {
-                entry->item.stack_count = 0x19;
-                entry->quantity = 1;
-            }
-            else if (record->quantity_kind == 1) {
-                entry->item.stack_count += quantity;
-                entry->quantity = 1;
-            }
-            else {
-                entry->item.stack_count = 1;
-                entry->quantity += quantity;
-            }
-            ++added;
-        } while (added < repeats);
+            entry->item.stack_count = 0;
+            index = PLAdoptAppend(npc->items, entry);
+        }
+        else {
+            entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
+        }
+        if (entry == 0) {
+            return -1;
+        }
+        if (record->equip_class == 4) {
+            entry->item.stack_count = 0x19;
+            entry->quantity = 1;
+        }
+        else if (record->quantity_kind == 1) {
+            entry->item.stack_count += quantity;
+            entry->quantity = 1;
+        }
+        else {
+            entry->item.stack_count = 1;
+            entry->quantity += quantity;
+        }
     }
     return index;
 #pragma clang diagnostic pop

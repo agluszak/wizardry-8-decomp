@@ -6,6 +6,7 @@
 #include "wiz8/game_status.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/local_code/MonsterManager.h"
 
 #include <string.h>
@@ -28,7 +29,7 @@ void RebuildPartyEffectBlock0050E700(void)
            sizeof(W8GameplayModifierBlock));
     ApplyPartyEffectSlots(g_status_685170.effect_slots_17af,
                           &g_status_685170.party_modifiers_22e3);
-    if (g_in_combat_00683f94 != 0) {
+    if (gXStatus.fCombatMode != 0) {
         unsigned char value = g_status_685170.party_modifiers_22e3.armor_bonus_05;
 
         for (int index = 0; index < 9; ++index) {
@@ -48,9 +49,8 @@ void RebuildPartyEffectBlock0050E700(void)
     unsigned int slot_byte = 0;
     while (slot_byte <= 0x82f) {
         W8Character* character = &g_party_characters[active];
-        if (g_party_slot_rows[active].occupied != 0
-            && character->hp_current != 0 && character->unknown_0b01 == 0
-            && CharacterHasTrait00547940(character, 10) != 0) {
+        if (g_party_slot_rows[active].occupied != 0 && character->hp_current != 0 &&
+            character->unknown_0b01 == 0 && CharacterHasTrait00547940(character, 10) != 0) {
             break;
         }
         slot_byte += 0x106;
@@ -66,12 +66,10 @@ void RebuildPartyEffectBlock0050E700(void)
             W8Character* character = &g_party_characters[party_slot];
 
             memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
-            ApplyModifierBlock(&character->bonus_1770,
-                               &character->equipment_bonus_1709);
+            ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
             ApplyModifierBlock(&character->bonus_1770, &character->unknown_16a2);
             if (character->in_party != 0) {
-                ApplyModifierBlock(&character->bonus_1770,
-                                   &g_status_685170.party_modifiers_22e3);
+                ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
             }
             Function4ED9D0(character);
         }
@@ -81,9 +79,8 @@ void RebuildPartyEffectBlock0050E700(void)
         return;
     }
     SetSkyNodeVisible(1);
-    SetSkyNodeValue1D0(
-        (int)((float)g_status_685170.party_modifiers_22e3.light_47
-              + g_environment_near_scale_005ec0b0));
+    SetCameraLightIntensity00483E30((float)g_status_685170.party_modifiers_22e3.light_47 +
+                                    g_environment_near_scale_005ec0b0);
 }
 
 /* Fold the worn items into one character's equipment bonus block: the twelve
@@ -91,8 +88,7 @@ void RebuildPartyEffectBlock0050E700(void)
    two hand slots contribute no attack values, and the six per-item
    resistance bytes are summed and clamped into the block's resistance run. */
 // FUNCTION: WIZ8 0x0050e980
-void AccumulateEquipmentModifiers(W8Character* character,
-                                  W8GameplayModifierBlock* equipment_bonus)
+void AccumulateEquipmentModifiers(W8Character* character, W8GameplayModifierBlock* equipment_bonus)
 {
     int resistance_totals[6] = {0};
     unsigned int slot;
@@ -112,11 +108,10 @@ void AccumulateEquipmentModifiers(W8Character* character,
         equipment_bonus->unknown_08[2] += record->modifier_06d;
         equipment_bonus->unknown_08[3] += record->modifier_06e;
         if (record->modifier_0b1_index != -1) {
-            equipment_bonus->unknown_13[record->modifier_0b1_index] +=
-                record->modifier_0b1_value;
+            equipment_bonus->unknown_13[record->modifier_0b1_index] += record->modifier_0b1_value;
         }
         if (record->modifier_0b3_index != -1) {
-            equipment_bonus->unknown_0c[record->modifier_0b3_index] +=
+            equipment_bonus->attribute_adjustments[record->modifier_0b3_index] +=
                 record->modifier_0b3_value;
         }
         for (index = 0; index < 6; ++index) {
@@ -128,8 +123,7 @@ void AccumulateEquipmentModifiers(W8Character* character,
         int value = resistance_totals[index];
         if (value < -0x7c) {
             value = -0x7d;
-        }
-        else if (value > 0x7c) {
+        } else if (value > 0x7c) {
             value = 0x7d;
         }
         equipment_bonus->resistance_bonus[index] = (signed char)value;
@@ -139,8 +133,7 @@ void AccumulateEquipmentModifiers(W8Character* character,
 /* Add one modifier block into another: the byte fields sum, the six flags
    latch, and the light and max-combined bytes keep the larger source. */
 // FUNCTION: WIZ8 0x0050f090
-void ApplyModifierBlock(W8GameplayModifierBlock* target,
-                        const W8GameplayModifierBlock* source)
+void ApplyModifierBlock(W8GameplayModifierBlock* target, const W8GameplayModifierBlock* source)
 {
     unsigned int index;
 
@@ -151,14 +144,14 @@ void ApplyModifierBlock(W8GameplayModifierBlock* target,
     target->value_4b += source->value_4b;
     target->armor_bonus_04 += source->armor_bonus_04;
     target->armor_bonus_05 += source->armor_bonus_05;
-    target->value_06 += source->value_06;
+    target->damage_reduction_adjustment += source->damage_reduction_adjustment;
     target->resistance_bonus_all += source->resistance_bonus_all;
     target->unknown_08[0] += source->unknown_08[0];
     target->unknown_08[1] += source->unknown_08[1];
     target->unknown_08[2] += source->unknown_08[2];
     target->unknown_08[3] += source->unknown_08[3];
     for (index = 0; index < 7; ++index) {
-        target->unknown_0c[index] += source->unknown_0c[index];
+        target->attribute_adjustments[index] += source->attribute_adjustments[index];
     }
     for (index = 0; index < 0x29; ++index) {
         target->unknown_13[index] += source->unknown_13[index];
@@ -204,8 +197,7 @@ void RebuildCharacterModifierBlock(W8Character* character)
     ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
     ApplyModifierBlock(&character->bonus_1770, &character->unknown_16a2);
     if (character->in_party != 0) {
-        ApplyModifierBlock(&character->bonus_1770,
-                           &g_status_685170.party_modifiers_22e3);
+        ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
     }
 }
 
@@ -222,8 +214,7 @@ void Function50E540(W8Character* character)
     ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
     ApplyModifierBlock(&character->bonus_1770, &character->unknown_16a2);
     if (character->in_party != 0) {
-        ApplyModifierBlock(&character->bonus_1770,
-                           &g_status_685170.party_modifiers_22e3);
+        ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
     }
     Function4ED9D0(character);
 }

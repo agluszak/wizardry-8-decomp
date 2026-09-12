@@ -44,6 +44,30 @@ def json_hash(value: Any) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
+# The clang lint container mounts the checkout at /repo. Compile-database
+# entries from that lane use that prefix; a local configure uses the real
+# workspace path. Both must collapse to the same repository-relative name.
+_DOCKER_SOURCE_PREFIX = "/repo/"
+
+
+def compile_database_relative(path: str, repository: Path) -> str | None:
+    """Return a repository-relative path from a compile_commands ``file`` entry.
+
+    Docker records ``/repo/src/wiz8/...``. A local clang-cl configure records
+    ``<checkout>/src/wiz8/...``. Relative entries are returned unchanged.
+    Paths outside the checkout (pinned jpeg/zlib/Info-ZIP mounts) yield None.
+    """
+    posix = path.replace("\\", "/")
+    if posix.startswith(_DOCKER_SOURCE_PREFIX):
+        return posix[len(_DOCKER_SOURCE_PREFIX) :]
+    if posix.startswith("/") or (len(posix) > 1 and posix[1] == ":"):
+        try:
+            return Path(path).resolve().relative_to(repository.resolve()).as_posix()
+        except ValueError:
+            return None
+    return posix
+
+
 def safe_relative(path: Path, root: Path) -> str:
     resolved = path.resolve()
     try:

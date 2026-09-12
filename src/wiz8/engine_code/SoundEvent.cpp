@@ -4,6 +4,7 @@
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
@@ -191,7 +192,7 @@ unsigned char W8SoundEvent::Play004D5A10(
             track_sound = true;
             if (value_028 != 0) {
                 monster = GetMonsterByLocationID(value_028);
-                if (g_in_combat_00683f94 != 0 || monster->flag_218 != 0) {
+                if (gXStatus.fCombatMode != 0 || monster->flag_218 != 0) {
                     base_volume = value_034;
                 }
             }

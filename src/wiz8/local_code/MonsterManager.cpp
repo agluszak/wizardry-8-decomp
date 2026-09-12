@@ -65,10 +65,14 @@ float Function4BE5C0(srVector3T<float>* position);
 int CalculateMonsterHealthTier(int current, int maximum)
 {
     int percentage_lost = 100 - current * 100 / static_cast<unsigned int>(maximum);
-    if (percentage_lost < 50) return 0;
-    if (percentage_lost < 70) return 1;
-    if (percentage_lost < 85) return 2;
-    if (percentage_lost < 95) return 3;
+    if (percentage_lost < 50)
+        return 0;
+    if (percentage_lost < 70)
+        return 1;
+    if (percentage_lost < 85)
+        return 2;
+    if (percentage_lost < 95)
+        return 3;
     return 4;
 }
 
@@ -80,13 +84,10 @@ void MonsterDies(W8MonsterInfo* monster_info, int display_message);
 /* The character array the alternate-name form indexes, and the slot it uses. */
 
 // FUNCTION: WIZ8 0x004e3930
-W8MonsterInfo* CreateMonsterInfo(
-    W8MonsterGroup* group,
-    W8MonsterRecord* record,
-    srVector3T<float>* position)
+W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
+                                 srVector3T<float>* position)
 {
-    W8MonsterInfo* monster_info =
-        static_cast<W8MonsterInfo*>(malloc(sizeof(W8MonsterInfo)));
+    W8MonsterInfo* monster_info = static_cast<W8MonsterInfo*>(malloc(sizeof(W8MonsterInfo)));
     int value;
 
     if (monster_info == 0) {
@@ -95,8 +96,7 @@ W8MonsterInfo* CreateMonsterInfo(
 
     memset(monster_info, 0, sizeof(W8MonsterInfo));
     monster_info->location_id = g_status_685170.next_monster_location_id_234e;
-    while (g_status_685170.next_monster_location_id_234e++,
-           monster_info->location_id == 0) {
+    while (g_status_685170.next_monster_location_id_234e++, monster_info->location_id == 0) {
         monster_info->location_id = g_status_685170.next_monster_location_id_234e;
     }
 
@@ -124,18 +124,16 @@ W8MonsterInfo* CreateMonsterInfo(
     monster_info->value_107 = 0;
     monster_info->condition_argument = 0;
     monster_info->effect_2de = 0;
-    memset(&monster_info->runtime_block_1db, 0,
-           sizeof(monster_info->runtime_block_1db));
+    memset(&monster_info->modifiers_1db, 0, sizeof(monster_info->modifiers_1db));
     monster_info->motionless = 0;
     monster_info->flag_255 = 0;
     monster_info->value_2da = 0;
     monster_info->value_344 = -1;
-    memset(monster_info->runtime_values_338, 0,
-           sizeof(monster_info->runtime_values_338));
+    memset(monster_info->runtime_values_338, 0, sizeof(monster_info->runtime_values_338));
 
-    if (PLAdoptAppend(
-            record->flag_26a != 0 ? gXStatus.plsUnbornMonsterList : gXStatus.plsMonsterList,
-            monster_info) == -1) {
+    if (PLAdoptAppend(record->flag_26a != 0 ? gXStatus.plsUnbornMonsterList
+                                            : gXStatus.plsMonsterList,
+                      monster_info) == -1) {
         free(monster_info);
         return 0;
     }
@@ -144,8 +142,8 @@ W8MonsterInfo* CreateMonsterInfo(
     ++group->member_count;
     ++group->active_member_count;
     RequestRedrawParty();
-    g_octree_6598a4->VisitPointCopy0042E620(
-        static_cast<unsigned short>(monster_info->location_id), position);
+    g_octree_6598a4->VisitPointCopy0042E620(static_cast<unsigned short>(monster_info->location_id),
+                                            position);
     return monster_info;
 }
 
@@ -155,7 +153,6 @@ void Function5248D0(W8MonsterInfo* monster_info);
 void Function58AB60(int value_1, int value_2, void* notice, W8WideChar* name);
 /* __stdcall, not __cdecl: 0x0042E650 ends in `ret 0x4`, and both callers here
    clean only three of the four dwords they push across the tail. */
-void Function509EA0(int value);
 void Function508D70(unsigned int monster_list_index);
 unsigned char Function531920(W8MonsterGroup* monster_group);
 void StartCombat(int surprise);
@@ -167,8 +164,7 @@ extern int g_monster_cycle_registry_weight_0065ba4c;
 extern float g_float_005ec52c;
 extern unsigned char g_flag_689b32;
 
-static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(
-    unsigned int monster_species);
+static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(unsigned int monster_species);
 
 /* Materialize one inactive script record in the world. Existing engine
    Monsters are reattached without rebuilding their representation; absent or
@@ -190,96 +186,70 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
     }
 
     record = MonsterDBFromSpeciesInline(monster_info->monster_species);
-    if (monster_info->monster == 0 ||
-        monster_info->monster->GetFlag216004CA290() != 0) {
+    if (monster_info->monster == 0 || monster_info->monster->GetFlag216004CA290() != 0) {
         registry_before = Function428E20();
         ActivateMonster(monster_info, 0);
-        MonsterPropagateValue004C5870(
-            monster_info->monster, monster_info->location_id);
-        MonsterSetAdjustedPosition004C5F00(
-            monster_info->monster, &monster_info->position_17);
+        MonsterPropagateValue004C5870(monster_info->monster, monster_info->location_id);
+        MonsterSetAdjustedPosition004C5F00(monster_info->monster, &monster_info->position_17);
 
         if (PListIndexOf(gXStatus.plsUnbornMonsterList, monster_info) != -1) {
             if (MonsterIsCycleSupported(monster_info->monster, 0) == 0) {
-                srAssertFail(
-                    "MonsterIsCycleSupported(pMonsterInfo->p3D, CYCLE_BIRTH)",
-                    MONSTER_MANAGER_CPP,
-                    0x190,
-                    "Unborn monsters must have CYCLE_BIRTH!");
+                srAssertFail("MonsterIsCycleSupported(pMonsterInfo->p3D, CYCLE_BIRTH)",
+                             MONSTER_MANAGER_CPP, 0x190, "Unborn monsters must have CYCLE_BIRTH!");
             }
             MonsterSetBehaviour(monster_info->monster, 1);
             MonsterSetCycle(monster_info->monster, 0);
             if (MonsterQuery(monster_info->monster, 0) == -1) {
-                srAssertFail(
-                    "MonsterQuery(pMonsterInfo->p3D, QUERY_NUM_FRAMES) != -1",
-                    MONSTER_MANAGER_CPP,
-                    0x196,
-                    0);
+                srAssertFail("MonsterQuery(pMonsterInfo->p3D, QUERY_NUM_FRAMES) != -1",
+                             MONSTER_MANAGER_CPP, 0x196, 0);
             }
             MonsterSetSubCycle(monster_info->monster, 0);
             MonsterSetAnimating(monster_info->monster, 0);
             monster_info->monster->state_088 = 0;
             monster_info->monster->flag_215 = 1;
-        }
-        else {
+        } else {
             MonsterSetCycle(monster_info->monster, 1);
             MonsterSetBehaviour(monster_info->monster, 3);
             if (MonsterQuery(monster_info->monster, 0) == -1) {
-                srAssertFail(
-                    "MonsterQuery(pMonsterInfo->p3D, QUERY_NUM_FRAMES) != -1",
-                    MONSTER_MANAGER_CPP,
-                    0x1a4,
-                    0);
+                srAssertFail("MonsterQuery(pMonsterInfo->p3D, QUERY_NUM_FRAMES) != -1",
+                             MONSTER_MANAGER_CPP, 0x1a4, 0);
             }
-            MonsterSetSubCycle(
-                monster_info->monster,
-                Random(MonsterQuery(monster_info->monster, 0)));
-            MonsterSetAnimating(
-                monster_info->monster, monster_info->motionless == 0);
+            MonsterSetSubCycle(monster_info->monster,
+                               Random(MonsterQuery(monster_info->monster, 0)));
+            MonsterSetAnimating(monster_info->monster, monster_info->motionless == 0);
         }
 
-        WorldAddToList00(GetWorld(), monster_info->monster);
-        MonsterSetFacing004C5B60(
-            monster_info->monster, monster_info->derived_23);
+        AddMonsterToWorld0046E580(GetWorld(), monster_info->monster);
+        MonsterSetFacing004C5B60(monster_info->monster, monster_info->derived_23);
         Function50E8C0(monster_info->location_id);
         monster_info->monster->movement_0c0.value_008 =
             static_cast<unsigned int>(record->missile_value_24f) * 0x10000U +
             monster_info->location_id;
-        MonsterPropagateValue004C5870(
-            monster_info->monster, monster_info->location_id);
+        MonsterPropagateValue004C5870(monster_info->monster, monster_info->location_id);
         monster_info->monster->flag_216 = 0;
 
         registry_after = Function428E20();
-        monster_info->monster->registry_weight_27c =
-            registry_after - registry_before;
-        g_monster_cycle_registry_weight_0065ba4c +=
-            registry_after - registry_before;
+        monster_info->monster->registry_weight_27c = registry_after - registry_before;
+        g_monster_cycle_registry_weight_0065ba4c += registry_after - registry_before;
         if (GetFlag68F105() != 0) {
-            WriteGameLog(
-                7,
-                L"%dK\n",
-                static_cast<unsigned int>(registry_after - registry_before) >> 10);
+            WriteGameLog(7, L"%dK\n",
+                         static_cast<unsigned int>(registry_after - registry_before) >> 10);
         }
-        Function51B420(
-            monster_info,
-            MonsterDBFromSpeciesInline(monster_info->monster_species));
+        Function51B420(monster_info, MonsterDBFromSpeciesInline(monster_info->monster_species));
     }
 
     WorldGetCameraLocation(GetWorld(), &camera_position);
     MonsterForward4A7BE0(monster_info->monster, &camera_position);
     UpdateCycleRepresentation004C59B0(monster_info->monster, GetWorld());
-    g_octree_6598a4->VisitPointCopy0042E620(
-        static_cast<unsigned short>(monster_info->location_id),
-        &monster_info->position_17);
+    g_octree_6598a4->VisitPointCopy0042E620(static_cast<unsigned short>(monster_info->location_id),
+                                            &monster_info->position_17);
     monster_info->flag_14 = 1;
     ++gXStatus.active_monster_count;
     if (monster_info->monster != 0) {
-        int damage_stage_count =
-            monster_info->monster->GetDamageStageCount004C6A50();
+        int damage_stage_count = monster_info->monster->GetDamageStageCount004C6A50();
         if (damage_stage_count > 1) {
             int damage_stage =
-                ((monster_info->hp_max - monster_info->hp_current) *
-                 damage_stage_count) /
+                ((monster_info->hp_max - monster_info->hp_current) * damage_stage_count) /
                 monster_info->hp_max;
             if (damage_stage >= damage_stage_count - 1) {
                 damage_stage = damage_stage_count - 1;
@@ -289,19 +259,14 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
     }
     monster_info->mon_to_mon_visibility = PLCreate();
     if (monster_info->mon_to_mon_visibility == 0) {
-        srAssertFail(
-            "pMonsterInfo->plsVisMonToMon != NULL",
-            MONSTER_MANAGER_CPP,
-            0x1de,
-            0);
+        srAssertFail("pMonsterInfo->plsVisMonToMon != NULL", MONSTER_MANAGER_CPP, 0x1de, 0);
     }
     RequestRefreshPartyState();
     Function593330();
     if (record->unknown_0c0[0] != 0) {
         monster_info->monster->movement_0c0.unknown_000 |= 0x10000000;
     }
-    Function509CD0(
-        record->unknown_0cd[0], 1, monster_info->location_id);
+    Function509CD0(record->unknown_0cd[0], 1, monster_info->location_id);
 }
 
 /* Activate the representation lazily. The mode selects whether all available
@@ -315,12 +280,10 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode)
     unsigned char success;
 
     if (monster_info == 0) {
-        srAssertFail(
-            "pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x1f5, 0);
+        srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x1f5, 0);
     }
     if (monster_info->flag_14 != 0) {
-        srAssertFail(
-            "!pMonsterInfo->fActive", MONSTER_MANAGER_CPP, 0x1f6, 0);
+        srAssertFail("!pMonsterInfo->fActive", MONSTER_MANAGER_CPP, 0x1f6, 0);
     }
     if (monster_info->monster != 0) {
         return;
@@ -332,47 +295,29 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode)
 
     if (mode == 0) {
         success = MonsterReadAllCycles004C58E0(
-            &context,
-            record->cycle_name_189,
-            &monster_info->monster,
-            1,
-            monster_info->location_id);
+            &context, record->cycle_name_189, &monster_info->monster, 1, monster_info->location_id);
         if (success == 0) {
-            srAssertFail(
-                "fSuccess",
-                MONSTER_MANAGER_CPP,
-                0x20a,
-                "ActivateMonster: ERROR - MonsterReadAllCycles failed");
+            srAssertFail("fSuccess", MONSTER_MANAGER_CPP, 0x20a,
+                         "ActivateMonster: ERROR - MonsterReadAllCycles failed");
         }
-    }
-    else if (mode == 1) {
+    } else if (mode == 1) {
         success = MonsterReadAllCycles004C58E0(
-            &context,
-            record->cycle_name_189,
-            &monster_info->monster,
-            0,
-            monster_info->location_id);
+            &context, record->cycle_name_189, &monster_info->monster, 0, monster_info->location_id);
         if (success == 0) {
-            srAssertFail(
-                "fSuccess",
-                MONSTER_MANAGER_CPP,
-                0x20f,
-                "ActivateMonster: ERROR - MonsterReadAllCycles failed");
+            srAssertFail("fSuccess", MONSTER_MANAGER_CPP, 0x20f,
+                         "ActivateMonster: ERROR - MonsterReadAllCycles failed");
         }
         MonsterSetCycle(monster_info->monster, 1);
     }
 
     if (monster_info->scale_24f < g_float_005ebb34 ||
         g_status_685170.level_progress[g_status_685170.current_level].visited == 0) {
-        monster_info->unknown_301 =
-            MonsterGetCycle17State(monster_info->monster);
+        monster_info->unknown_301 = MonsterGetCycle17State(monster_info->monster);
         monster_info->scale_24f = CalculateMonsterScale(monster_info);
         MonsterSetScale(monster_info->monster, monster_info->scale_24f);
-    }
-    else {
+    } else {
         MonsterSetScale(monster_info->monster, monster_info->scale_24f);
-        MonsterSetCycle17State(
-            monster_info->monster, monster_info->unknown_301);
+        MonsterSetCycle17State(monster_info->monster, monster_info->unknown_301);
     }
 
     Function4C5810(monster_info->monster);
@@ -393,8 +338,7 @@ void Function4E4600(W8MonsterInfo* monster_info)
     MonsterForward4537E0(monster_info->monster);
     if (monster_info->motionless == 0) {
         result = MonsterQuery(monster_info->monster, 6);
-        if (result != 1 && result != 2 &&
-            monster_info->monster->m_pRep->pending_cycle == -1) {
+        if (result != 1 && result != 2 && monster_info->monster->m_pRep->pending_cycle == -1) {
             StartMonsterCycle(monster_info, 1, 3);
         }
     }
@@ -408,21 +352,14 @@ void MonsterStartsDying(W8MonsterInfo* monster_info, int display_message)
         DeactivateMonster(monster_info);
         MonsterDies(monster_info, display_message);
         RemoveMonster(
-            MonsterGetIndexByLocationID(
-                0x31f,
-                MONSTER_MANAGER_CPP,
-                monster_info->location_id,
-                1),
+            MonsterGetIndexByLocationID(0x31f, MONSTER_MANAGER_CPP, monster_info->location_id, 1),
             0);
     }
 }
 
 // FUNCTION: WIZ8 0x004e5550
-unsigned int MonsterGetIndexByLocationID(
-    int caller_line,
-    const char* caller_file,
-    int location_id,
-    unsigned char assert_on_failure)
+unsigned int MonsterGetIndexByLocationID(int caller_line, const char* caller_file, int location_id,
+                                         unsigned char assert_on_failure)
 {
     unsigned int index;
     W8MonsterInfo* monster;
@@ -443,14 +380,9 @@ unsigned int MonsterGetIndexByLocationID(
 
     if (assert_on_failure != 0) {
         srAssertFail(
-            "FALSE",
-            MONSTER_MANAGER_CPP,
-            0x5c1,
-            reinterpret_cast<const char*>(String(
-                "MonsterIndex: ID %d not found (%s line %d)",
-                location_id,
-                caller_file,
-                caller_line)));
+            "FALSE", MONSTER_MANAGER_CPP, 0x5c1,
+            reinterpret_cast<const char*>(String("MonsterIndex: ID %d not found (%s line %d)",
+                                                 location_id, caller_file, caller_line)));
     }
     return 0xffffffff;
 }
@@ -464,39 +396,30 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
 
     if (monster_list_index < 10000 || monster_list_index >= 20000) {
         if (monster_list_index >= PLLength(gXStatus.plsMonsterList)) {
-            srAssertFail(
-                "uiMonsterListIndex < (UINT32) PLLength(gXStatus.plsMonsterList)",
-                MONSTER_MANAGER_CPP,
-                0x5da,
-                0);
+            srAssertFail("uiMonsterListIndex < (UINT32) PLLength(gXStatus.plsMonsterList)",
+                         MONSTER_MANAGER_CPP, 0x5da, 0);
         }
         result = (W8MonsterInfo*)PLGet(gXStatus.plsMonsterList, monster_list_index);
         if (result != 0) {
             return result;
         }
-        detail = reinterpret_cast<const char*>(String(
-            "MonsterInfo: ERROR - PLGet failed, index %d, pList %d",
-            monster_list_index,
-            gXStatus.plsMonsterList));
+        detail = reinterpret_cast<const char*>(
+            String("MonsterInfo: ERROR - PLGet failed, index %d, pList %d", monster_list_index,
+                   gXStatus.plsMonsterList));
         line = 0x5de;
-    }
-    else {
+    } else {
         if (monster_list_index - 10000 >= PLLength(gXStatus.plsUnbornMonsterList)) {
             srAssertFail(
                 "(uiMonsterListIndex-10000) < (UINT32) PLLength(gXStatus.plsUnbornMonsterList)",
-                MONSTER_MANAGER_CPP,
-                0x5d1,
-                0);
+                MONSTER_MANAGER_CPP, 0x5d1, 0);
         }
-        result = (W8MonsterInfo*)PLGet(
-            gXStatus.plsUnbornMonsterList, monster_list_index - 10000);
+        result = (W8MonsterInfo*)PLGet(gXStatus.plsUnbornMonsterList, monster_list_index - 10000);
         if (result != 0) {
             return result;
         }
-        detail = reinterpret_cast<const char*>(String(
-            "MonsterInfo: ERROR - PLGet failed, index %d, pList %d",
-            monster_list_index,
-            gXStatus.plsMonsterList));
+        detail = reinterpret_cast<const char*>(
+            String("MonsterInfo: ERROR - PLGet failed, index %d, pList %d", monster_list_index,
+                   gXStatus.plsMonsterList));
         line = 0x5d5;
     }
     /* One tail, reached from both branches with only the line number differing.
@@ -512,11 +435,7 @@ static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(unsigned int monster
     W8MonsterRecord* record;
 
     if (monster_species >= MAX_MONSTERS_IN_DATABASE) {
-        srAssertFail(
-            "uiMonsterSpecies < MAX_MONSTERS_IN_DATABASE",
-            MONSTER_MANAGER_CPP,
-            0x5f3,
-            0);
+        srAssertFail("uiMonsterSpecies < MAX_MONSTERS_IN_DATABASE", MONSTER_MANAGER_CPP, 0x5f3, 0);
     }
     record = g_monster_record_cache[monster_species];
     if (record == 0) {
@@ -537,11 +456,7 @@ static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(unsigned int monster
 W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info)
 {
     if (monster_info == 0) {
-        srAssertFail(
-            "pMonsterInfo != NULL",
-            MONSTER_MANAGER_CPP,
-            0x5e9,
-            0);
+        srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
     }
     return MonsterDBFromSpeciesInline(monster_info->monster_species);
 }
@@ -552,11 +467,9 @@ W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species)
     return MonsterDBFromSpeciesInline(monster_species);
 }
 
-static __inline W8MonsterInfo* MonsterInfoFromIDInline(
-    int caller_line,
-    const char* caller_file,
-    int location_id,
-    unsigned char assert_on_failure)
+static __inline W8MonsterInfo* MonsterInfoFromIDInline(int caller_line, const char* caller_file,
+                                                       int location_id,
+                                                       unsigned char assert_on_failure)
 {
     W8MonsterInfo* monster = 0;
     unsigned int index;
@@ -567,30 +480,18 @@ static __inline W8MonsterInfo* MonsterInfoFromIDInline(
     }
     if (monster == 0 && assert_on_failure != 0) {
         srAssertFail(
-            "FALSE",
-            MONSTER_MANAGER_CPP,
-            0x626,
-            reinterpret_cast<const char*>(String(
-                "MonsterInfoFromID: ID %d not found (%s line %d)",
-                location_id,
-                caller_file,
-                caller_line)));
+            "FALSE", MONSTER_MANAGER_CPP, 0x626,
+            reinterpret_cast<const char*>(String("MonsterInfoFromID: ID %d not found (%s line %d)",
+                                                 location_id, caller_file, caller_line)));
     }
     return monster;
 }
 
 // FUNCTION: WIZ8 0x004e5840
-W8MonsterInfo* MonsterInfoFromID(
-    int caller_line,
-    const char* caller_file,
-    int location_id,
-    unsigned char assert_on_failure)
+W8MonsterInfo* MonsterInfoFromID(int caller_line, const char* caller_file, int location_id,
+                                 unsigned char assert_on_failure)
 {
-    return MonsterInfoFromIDInline(
-        caller_line,
-        caller_file,
-        location_id,
-        assert_on_failure);
+    return MonsterInfoFromIDInline(caller_line, caller_file, location_id, assert_on_failure);
 }
 
 // FUNCTION: WIZ8 0x004e58b0
@@ -632,19 +533,11 @@ float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info)
     float result;
 
     if (monster_info == 0) {
-        srAssertFail(
-            "pMonsterInfo != NULL",
-            MONSTER_MANAGER_CPP,
-            0x5e9,
-            0);
+        srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
     }
     record = MonsterDBFromSpeciesInline(monster_info->monster_species);
     if (record == 0) {
-        srAssertFail(
-            "pMonsterDB",
-            MONSTER_MANAGER_CPP,
-            0x66a,
-            0);
+        srAssertFail("pMonsterDB", MONSTER_MANAGER_CPP, 0x66a, 0);
     }
     result = record->float_1ba * g_monster_record_float_scale;
     return result;
@@ -658,8 +551,8 @@ void UpdateMonsterDamageAppearance(W8MonsterInfo* monster_info)
     if (monster != 0) {
         int count = monster->GetDamageStageCount004C6A50();
         if (count > 1) {
-            int value = ((monster_info->hp_max - monster_info->hp_current) * count) /
-                        monster_info->hp_max;
+            int value =
+                ((monster_info->hp_max - monster_info->hp_current) * count) / monster_info->hp_max;
             if (value >= count - 1) {
                 value = count - 1;
             }
@@ -719,16 +612,12 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
-        if (monster_info->flag_14 != 0 &&
-            static_cast<unsigned int>(monster_info->hp_current) > 0 &&
+        if (monster_info->flag_14 != 0 && static_cast<unsigned int>(monster_info->hp_current) > 0 &&
             monster_info->condition_turns[W8_CONDITION_EQUIPMENT_UNLOCKED] == 0 &&
             monster_info->value_2da != 0) {
             if (forced_cleanup == 0) {
-                Function58AB60(
-                    9,
-                    0,
-                    gppStringList[W8_NOTICE_MONSTER_SLAIN],
-                    GetMonsterName(monster_info, 0, 0));
+                Function58AB60(9, 0, gppStringList[W8_NOTICE_MONSTER_SLAIN],
+                               GetMonsterName(monster_info, 0, 0));
             }
             Function5248D0(monster_info);
             if (forced_cleanup == 0) {
@@ -737,13 +626,9 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
                     StartMonsterCycle(monster_info, 0x15, 1);
                     DeactivateMonster(monster_info);
                     MonsterDies(monster_info, 1);
-                    RemoveMonster(
-                        MonsterGetIndexByLocationID(
-                            0x31f,
-                            MONSTER_MANAGER_CPP,
-                            monster_info->location_id,
-                            1),
-                        0);
+                    RemoveMonster(MonsterGetIndexByLocationID(0x31f, MONSTER_MANAGER_CPP,
+                                                              monster_info->location_id, 1),
+                                  0);
                 }
             }
         }
@@ -761,22 +646,14 @@ void ConvertMonsterAttributes(W8MonsterInfo* monster_info)
         int value;
 
         if (monster_info == 0) {
-            srAssertFail(
-                "pMonsterInfo != NULL",
-                MONSTER_MANAGER_CPP,
-                0x5e9,
-                0);
+            srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
         }
         record = MonsterDBFromSpeciesInline(monster_info->monster_species);
         value = record->attribute_values_d1[monster_attribute];
         attribute_index = 0;
 
         if (monster_attribute >= 5) {
-            srAssertFail(
-                "uiMonsterAttribute < MONSTER_ATTR_COUNT",
-                MONSTER_MANAGER_CPP,
-                0x78d,
-                0);
+            srAssertFail("uiMonsterAttribute < MONSTER_ATTR_COUNT", MONSTER_MANAGER_CPP, 0x78d, 0);
         }
         switch (monster_attribute) {
         case 0:
@@ -795,18 +672,14 @@ void ConvertMonsterAttributes(W8MonsterInfo* monster_info)
             attribute_index = 6;
             break;
         default:
-            srAssertFail(
-                "FALSE",
-                MONSTER_MANAGER_CPP,
-                0x798,
-                "ConvertMonsterAttribute: ERROR - Invalid monster attribute");
+            srAssertFail("FALSE", MONSTER_MANAGER_CPP, 0x798,
+                         "ConvertMonsterAttribute: ERROR - Invalid monster attribute");
         }
 
-        value += monster_info->runtime_block_1db.attribute_adjustments[attribute_index];
+        value += monster_info->modifiers_1db.attribute_adjustments[attribute_index];
         if (value > 125) {
             value = 125;
-        }
-        else if (value < 1) {
+        } else if (value < 1) {
             value = 1;
         }
         monster_info->converted_attributes_247[monster_attribute] =
@@ -861,8 +734,7 @@ void DestroyUngroupedMonsters(void)
             if (monster != 0) {
                 unsigned int flags = monster->flags_1dc;
                 flags >>= 8;
-                if ((flags & 1) != 0 &&
-                    monster->state_22e != 0) {
+                if ((flags & 1) != 0 && monster->state_22e != 0) {
                     monster->ApplyRemovalStateEffects();
                 }
             }
@@ -879,7 +751,7 @@ void DestroyUngroupedMonsters(void)
             }
             (void)g_octree_6598a4;
             Function42E650(static_cast<unsigned short>(monster_info->location_id));
-            Function509EA0(monster_info->runtime_value_2f1);
+            ReleaseNpcBinding(monster_info->runtime_value_2f1);
             void* removed = PLRemoveAt(gXStatus.plsMonsterList, index);
             if (removed != 0) {
                 free(removed);
@@ -898,21 +770,15 @@ void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state)
     switch (control_state) {
     case 0:
     case 2:
-        if (monster_info->control_state == 1 &&
-            monster_info->monster->linked_navigator_05c == 0) {
+        if (monster_info->control_state == 1 && monster_info->monster->linked_navigator_05c == 0) {
             monster_info->monster->ClearMovement();
             monster_info->flag_255 = 0;
         }
         break;
     }
     monster_info->control_state = control_state;
-    RecountActiveMonsterGroupMembers(
-        GetMonsterGroupByListIndex(
-            GetMonsterGroupIndexByID(
-                0x872,
-                MONSTER_MANAGER_CPP,
-                monster_info->monster_group_id,
-                1)));
+    RecountActiveMonsterGroupMembers(GetMonsterGroupByListIndex(
+        GetMonsterGroupIndexByID(0x872, MONSTER_MANAGER_CPP, monster_info->monster_group_id, 1)));
 }
 
 // FUNCTION: WIZ8 0x004e60b0
@@ -929,8 +795,7 @@ void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, unsigned char motionl
                 StartMonsterCycle(monster_info, 1, 3);
             }
         }
-    }
-    else if (previous == 0) {
+    } else if (previous == 0) {
         signed char cycle_value = monster->m_pRep->pending_cycle;
 
         if (cycle_value != -1) {
@@ -957,8 +822,7 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
     if (MonsterIsCycleSupported(monster_info->monster, 0) != 0) {
         MonsterSetCycle(monster_info->monster, 0);
         MonsterSetBehaviour(monster_info->monster, 1);
-    }
-    else {
+    } else {
         MonsterSetCycle(monster_info->monster, 1);
         MonsterSetBehaviour(monster_info->monster, 3);
     }
@@ -968,9 +832,8 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
     monster_info->monster->flag_215 = 0;
 }
 
-static __forceinline double DistanceBetweenPositions(
-    const srVector3T<float>* first,
-    const srVector3T<float>& second)
+static __forceinline double DistanceBetweenPositions(const srVector3T<float>* first,
+                                                     const srVector3T<float>& second)
 {
     float x = first->x - second.x;
     float y = first->y - second.y;
@@ -979,9 +842,7 @@ static __forceinline double DistanceBetweenPositions(
 }
 
 // FUNCTION: WIZ8 0x004e61e0
-W8MonsterInfo* FindNearestMonsterInfo(
-    const srVector3T<float>* position,
-    double maximum_distance)
+W8MonsterInfo* FindNearestMonsterInfo(const srVector3T<float>* position, double maximum_distance)
 {
     W8MonsterInfo* nearest = 0;
     double nearest_distance = 1.0e11;
@@ -989,9 +850,7 @@ W8MonsterInfo* FindNearestMonsterInfo(
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(gXStatus.plsMonsterList, index);
-        double distance = DistanceBetweenPositions(
-            position,
-            monster_info->monster->GetPosition());
+        double distance = DistanceBetweenPositions(position, monster_info->monster->GetPosition());
 
         if (distance < nearest_distance &&
             (maximum_distance == 0.0 || distance < maximum_distance)) {
@@ -1002,9 +861,7 @@ W8MonsterInfo* FindNearestMonsterInfo(
 
     for (index = 0; index < PLLength(gXStatus.plsUnbornMonsterList); ++index) {
         W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(gXStatus.plsUnbornMonsterList, index);
-        double distance = DistanceBetweenPositions(
-            position,
-            monster_info->monster->GetPosition());
+        double distance = DistanceBetweenPositions(position, monster_info->monster->GetPosition());
 
         if (distance < nearest_distance &&
             (maximum_distance == 0.0 || distance < maximum_distance)) {
@@ -1026,11 +883,7 @@ void InitializeMonsterRuntimeStats(void)
         int value;
 
         if (monster_info == 0) {
-            srAssertFail(
-                "pMonsterInfo != NULL",
-                MONSTER_MANAGER_CPP,
-                0x5e9,
-                0);
+            srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
         }
         record = MonsterDBFromSpeciesInline(monster_info->monster_species);
         value = RollDice(&record->hit_points_d6);
@@ -1052,11 +905,7 @@ void InitializeMonsterRuntimeStats(void)
         int value;
 
         if (monster_info == 0) {
-            srAssertFail(
-                "pMonsterInfo != NULL",
-                MONSTER_MANAGER_CPP,
-                0x5e9,
-                0);
+            srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
         }
         record = MonsterDBFromSpeciesInline(monster_info->monster_species);
         value = RollDice(&record->hit_points_d6);
@@ -1085,19 +934,16 @@ float CalculateMonsterScale(W8MonsterInfo* monster_info)
     }
 
     if (monster_info == 0) {
-        srAssertFail(
-            "pMonsterInfo != NULL",
-            MONSTER_MANAGER_CPP,
-            0x5e9,
-            0);
+        srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
     }
     W8MonsterRecord* record = MonsterDBFromSpeciesInline(monster_info->monster_species);
     int minimum_hp = record->hit_points_d6.base + record->hit_points_d6.count;
-    int maximum_hp = record->hit_points_d6.base +
-                     record->hit_points_d6.count * record->hit_points_d6.sides;
-    float scale = ((maximum - minimum) *
-                   ((float)(unsigned int)monster_info->hp_max - (float)minimum_hp)) /
-                  ((float)maximum_hp - (float)minimum_hp) + minimum;
+    int maximum_hp =
+        record->hit_points_d6.base + record->hit_points_d6.count * record->hit_points_d6.sides;
+    float scale =
+        ((maximum - minimum) * ((float)(unsigned int)monster_info->hp_max - (float)minimum_hp)) /
+            ((float)maximum_hp - (float)minimum_hp) +
+        minimum;
     float result = (maximum - minimum) * (Random(1000) * 0.0004f - 0.2f) + scale;
 
     if (result < minimum) {
@@ -1110,16 +956,11 @@ float CalculateMonsterScale(W8MonsterInfo* monster_info)
 }
 
 // FUNCTION: WIZ8 0x004e67a0
-void TryStartMonsterCycle2(
-    W8MonsterInfo* monster_info,
-    W8Monster* monster,
-    int query_state)
+void TryStartMonsterCycle2(W8MonsterInfo* monster_info, W8Monster* monster, int query_state)
 {
-    if (monster_info->flag_14 != 0 &&
-        static_cast<unsigned int>(monster_info->hp_current) > 0 &&
+    if (monster_info->flag_14 != 0 && static_cast<unsigned int>(monster_info->hp_current) > 0 &&
         monster_info->condition_turns[W8_CONDITION_EQUIPMENT_UNLOCKED] == 0 &&
-        monster_info->flag_24d != 0 &&
-        query_state == 1) {
+        monster_info->flag_24d != 0 && query_state == 1) {
         int result = MonsterQuery(monster, 2);
 
         if (result != 0 && monster_info->motionless == 0) {
@@ -1127,19 +968,13 @@ void TryStartMonsterCycle2(
             if (MonsterIsCycleSupported(monster, 2) != 0) {
                 signed char cycle = monster->m_pRep->pending_cycle;
 
-                if (cycle == 2 ||
-                    monster->IsCycleInterruptable(cycle) == 0 ||
-                    (gXStatus.fCombatMode != 0 &&
-                     g_combat_state->eCombatActionStatus != 0 &&
+                if (cycle == 2 || monster->IsCycleInterruptable(cycle) == 0 ||
+                    (gXStatus.fCombatMode != 0 && g_combat_state->eCombatActionStatus != 0 &&
                      g_combat_state->pActionMonsterInfo == monster_info)) {
                     return;
                 }
-                W8MonsterGroup* group = GetMonsterGroupByListIndex(
-                    GetMonsterGroupIndexByID(
-                        0x987,
-                        MONSTER_MANAGER_CPP,
-                        monster_info->monster_group_id,
-                        1));
+                W8MonsterGroup* group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
+                    0x987, MONSTER_MANAGER_CPP, monster_info->monster_group_id, 1));
                 unsigned int chance = group->member_count * 20;
 
                 if (gXStatus.field_01f == 0 && Random(chance) == 0) {
@@ -1193,8 +1028,7 @@ bool InitializeMonsterManagerState(void)
     }
     if (gXStatus.plsMonsterList == 0) {
         gXStatus.plsMonsterList = PLCreate();
-    }
-    else {
+    } else {
         PListClear(gXStatus.plsMonsterList);
     }
     if (gXStatus.plsMonsterList == 0) {
@@ -1202,8 +1036,7 @@ bool InitializeMonsterManagerState(void)
     }
     if (gXStatus.plsMonsterGroupList == 0) {
         gXStatus.plsMonsterGroupList = PLCreate();
-    }
-    else {
+    } else {
         PListClear(gXStatus.plsMonsterGroupList);
     }
     if (gXStatus.plsMonsterGroupList == 0) {
@@ -1211,8 +1044,7 @@ bool InitializeMonsterManagerState(void)
     }
     if (gXStatus.plsUnbornMonsterList == 0) {
         gXStatus.plsUnbornMonsterList = PLCreate();
-    }
-    else {
+    } else {
         PListClear(gXStatus.plsUnbornMonsterList);
     }
     if (gXStatus.plsMonsterList == 0) {
@@ -1236,8 +1068,7 @@ unsigned char ShutdownMonsterManager(void)
     W8MonsterRecord** slot;
 
     if (gXStatus.plsMonsterGroupList == 0) {
-        srAssertFail(
-            "gXStatus.plsMonsterGroupList != NULL", MONSTER_MANAGER_CPP, 0x5c, 0);
+        srAssertFail("gXStatus.plsMonsterGroupList != NULL", MONSTER_MANAGER_CPP, 0x5c, 0);
     }
     if (gXStatus.plsMonsterList == 0) {
         srAssertFail("gXStatus.plsMonsterList != NULL", MONSTER_MANAGER_CPP, 0x5d, 0);
@@ -1263,8 +1094,7 @@ unsigned char ShutdownMonsterManager(void)
         return 0;
     }
     gXStatus.plsMonsterGroupEncounterList = 0;
-    for (slot = g_monster_record_cache;
-         slot < g_monster_record_cache + MAX_MONSTERS_IN_DATABASE;
+    for (slot = g_monster_record_cache; slot < g_monster_record_cache + MAX_MONSTERS_IN_DATABASE;
          ++slot) {
         if (*slot != 0) {
             free(*slot);
@@ -1275,9 +1105,7 @@ unsigned char ShutdownMonsterManager(void)
 }
 
 // FUNCTION: WIZ8 0x004e3af0
-unsigned char RemoveMonster(
-    unsigned int monster_list_index,
-    unsigned char destroy_monster)
+unsigned char RemoveMonster(unsigned int monster_list_index, unsigned char destroy_monster)
 {
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
 
@@ -1285,9 +1113,8 @@ unsigned char RemoveMonster(
         MonsterInfoLeaveCombat(monster_info);
     }
     if (monster_info->monster_group_id != 0) {
-        W8MonsterGroup* monster_group = GetMonsterGroupByListIndex(
-            GetMonsterGroupIndexByID(
-                0x125, MONSTER_MANAGER_CPP, monster_info->monster_group_id, 1));
+        W8MonsterGroup* monster_group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
+            0x125, MONSTER_MANAGER_CPP, monster_info->monster_group_id, 1));
 
         IListRemove(monster_group->monsters, monster_info->location_id);
         --monster_group->member_count;
@@ -1320,7 +1147,7 @@ unsigned char RemoveMonster(
         }
         (void)g_octree_6598a4;
         Function42E650(static_cast<unsigned short>(monster_info->location_id));
-        Function509EA0(monster_info->runtime_value_2f1);
+        ReleaseNpcBinding(monster_info->runtime_value_2f1);
         void* removed = PLRemoveAt(gXStatus.plsMonsterList, monster_list_index);
         if (removed != 0) {
             free(removed);
@@ -1361,8 +1188,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         --gXStatus.active_monster_count;
         if (gXStatus.fCombatMode != 0) {
             RefreshAllSight();
-            SetTargetToMonster(
-                monster_info->location_id, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
+            SetTargetToMonster(monster_info->location_id, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
             Function593330();
             Function546E70();
             if (g_combat_state->pActionMonsterInfo == monster_info) {
@@ -1392,7 +1218,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
     if (monster_info == 0) {
         srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x2f7, 0);
     }
-        MonsterReplacePath(monster_info->monster, 0);
+    MonsterReplacePath(monster_info->monster, 0);
     monster_info->monster->flags_00c &= 0xdfffffff;
     MonsterForward4537E0(monster_info->monster);
     if (monster_info->motionless == 0) {
@@ -1532,35 +1358,29 @@ void ToggleCombatMode(void)
     }
     if (gXStatus.field_02d != 0 || g_combat_state->flag_a54 != 0) {
         if (g_combat_state->value_004 != 0) {
-            ShowNotice(
-                0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END], -1, -1, 0);
+            ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END], -1, -1, 0);
             return;
         }
-        for (group_list_index = 0;
-             group_list_index < PLLength(gXStatus.plsMonsterGroupList);
+        for (group_list_index = 0; group_list_index < PLLength(gXStatus.plsMonsterGroupList);
              ++group_list_index) {
             monster_group = GetMonsterGroupByListIndex(group_list_index);
             if (monster_group->flag_28 != 0 && monster_group->flag_29 != 0 &&
                 Function531920(monster_group) != 0) {
-                ShowNotice(
-                    0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END], -1, -1, 0);
+                ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END], -1, -1, 0);
                 return;
             }
         }
     }
-    for (missile = NextMissile004A2760(1); missile != 0;
-         missile = NextMissile004A2760(0)) {
+    for (missile = NextMissile004A2760(1); missile != 0; missile = NextMissile004A2760(0)) {
         if ((missile == g_combat_state->engaged_missile ||
              g_missile_table_65bde0[missile->missile_table_index_1d8].flag_154 != 0) &&
             missile->BlocksEndingCombat004A5790() != 0) {
-            ShowNotice(
-                0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END_ENGAGED], -1, -1, 0);
+            ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END_ENGAGED], -1, -1, 0);
             return;
         }
     }
     if (g_combat_state->flag_000 != 0) {
-        ShowNotice(
-            0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END_PENDING], -1, -1, 1);
+        ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END_PENDING], -1, -1, 1);
         return;
     }
     EndCombat(0);
@@ -1604,9 +1424,7 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
                 return;
             }
             srAssertFail(
-                "FALSE",
-                MONSTER_MANAGER_CPP,
-                0x497,
+                "FALSE", MONSTER_MANAGER_CPP, 0x497,
                 reinterpret_cast<const char*>(String(
                     "%ls starting new cycle (%s) with an uninterruptable cycle pending (%s)!",
                     GetMonsterName(monster_info, 0, 0),
@@ -1616,8 +1434,7 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
         }
         if (static_cast<signed char>(cycle) == W8_CYCLE_STOP ||
             static_cast<signed char>(cycle) == W8_CYCLE_DEATH ||
-            static_cast<signed char>(cycle) == 0 ||
-            monster_info->motionless == 0) {
+            static_cast<signed char>(cycle) == 0 || monster_info->motionless == 0) {
             MonsterSetAnimating(monster, 1);
             MonsterSetRuntimeBehaviour(monster, static_cast<signed char>(behavior));
             MonsterSetPendingCycle(monster, cycle);
@@ -1641,11 +1458,9 @@ void ProcessMonsterManagerFrame(void)
 {
     unsigned int monster_list_index;
 
-    for (monster_list_index = 0;
-         monster_list_index < PLLength(gXStatus.plsMonsterList);
+    for (monster_list_index = 0; monster_list_index < PLLength(gXStatus.plsMonsterList);
          ++monster_list_index) {
-        W8MonsterInfo* monster_info =
-            MonsterGetScriptPartByLocationIndex(monster_list_index);
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         W8Monster* monster = monster_info->monster;
 
         if ((monster->flags_1dc & 0x100) != 0) {
@@ -1665,19 +1480,17 @@ void ProcessMonsterManagerFrame(void)
                     monster_info->monster = 0;
                 }
                 Function42E650(static_cast<unsigned short>(monster_info->location_id));
-                Function509EA0(monster_info->runtime_value_2f1);
+                ReleaseNpcBinding(monster_info->runtime_value_2f1);
                 void* removed = PLRemoveAt(gXStatus.plsMonsterList, monster_list_index);
                 if (removed != 0) {
                     free(removed);
                 }
                 --monster_list_index;
             }
-        }
-        else if ((monster->flags_1dc & 0x200) != 0) {
+        } else if ((monster->flags_1dc & 0x200) != 0) {
             RemoveMonster(monster_list_index, 1);
             --monster_list_index;
-        }
-        else if ((monster->flags_1dc & 0x20) == 0) {
+        } else if ((monster->flags_1dc & 0x20) == 0) {
             if ((monster->flags_1dc & 0x40) == 0) {
                 int query_state = MonsterQuery(monster, 6);
                 TryStartMonsterCycle2(monster_info, monster, query_state);
@@ -1694,8 +1507,7 @@ void ProcessMonsterManagerFrame(void)
                         break;
                     case 0x15:
                         if ((monster->flags_1dc & 0x100) == 0) {
-                            monster_info =
-                                MonsterGetScriptPartByLocationIndex(monster_list_index);
+                            monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
                             Function508D70(monster_list_index);
                             if (monster_info->monster_group_id != 0) {
                                 RemoveMonster(monster_list_index, 0);
@@ -1706,20 +1518,21 @@ void ProcessMonsterManagerFrame(void)
                         break;
                     default:
                         if (monster_info->motionless == 0) {
-                            if (monster_info->monster->m_pRep->pending_cycle ==
-                                W8_CYCLE_NONE) {
+                            /* pending_cycle is signed char; the rest of this
+                               unit and the representation compare the empty
+                               slot to -1. W8_CYCLE_NONE is 0xff as int 255,
+                               which a signed char never equals. */
+                            if (monster_info->monster->m_pRep->pending_cycle == -1) {
                                 StartMonsterCycle(monster_info, 1, 3);
                             }
-                        }
-                        else if (MonsterIsAnimating(monster) != 0) {
+                        } else if (MonsterIsAnimating(monster) != 0) {
                             MonsterSetAnimating(monster, 0);
                         }
                         break;
                     }
                 }
             }
-        }
-        else {
+        } else {
             RemoveMonster(monster_list_index, 1);
             --monster_list_index;
         }
@@ -1752,21 +1565,16 @@ W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
         record = MonsterDBFromSpeciesInline(monster_info->monster_species);
     }
     if (record->record_id_187 == W8_MONSTER_RECORD_ALTERNATE_NAME) {
-        swprintf(
-            g_monster_name_buffer,
-            L"Al-%s",
-            g_party_characters[g_alternate_name_slot].name);
+        swprintf(g_monster_name_buffer, L"Al-%s", g_party_characters[g_alternate_name_slot].name);
         return g_monster_name_buffer;
     }
     if (monster_info->monster_group_id == 0) {
         if (monster_info->monster->IsDying() == 0) {
-            FormatDebugMessage(
-                1, "ERROR: Monster ID %d has no group", monster_info->location_id);
+            FormatDebugMessage(1, "ERROR: Monster ID %d has no group", monster_info->location_id);
         }
     } else {
-        monster_group = GetMonsterGroupByListIndex(
-            GetMonsterGroupIndexByID(
-                0x54c, MONSTER_MANAGER_CPP, monster_info->monster_group_id, 1));
+        monster_group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
+            0x54c, MONSTER_MANAGER_CPP, monster_info->monster_group_id, 1));
         if (monster_group == 0) {
             srAssertFail("pMonsterGroup", MONSTER_MANAGER_CPP, 0x54d, 0);
         }
@@ -1788,7 +1596,8 @@ float GetAveragePartyLevel(void)
             count += 1.0f;
         }
     }
-    if (count == 0.0f) return 1.0f;
+    if (count == 0.0f)
+        return 1.0f;
     return total / count;
 }
 
@@ -1799,14 +1608,15 @@ unsigned int GetBestPartySkillLevel(int skill_index, int* party_slot)
     int best_slot = -1;
     for (int index = 0; index < 8; ++index) {
         W8Character* character = &g_party_characters[index];
-        if (g_party_slot_rows[index].occupied != 0 &&
-            character->hp_current != 0 && character->unknown_0b01 < 0xd &&
+        if (g_party_slot_rows[index].occupied != 0 && character->hp_current != 0 &&
+            character->unknown_0b01 < 0xd &&
             (character->skills[skill_index].level > best_level || best_slot == -1)) {
             best_level = character->skills[skill_index].level;
             best_slot = index;
         }
     }
-    if (party_slot != 0) *party_slot = best_slot;
+    if (party_slot != 0)
+        *party_slot = best_slot;
     return best_level;
 }
 
@@ -1814,9 +1624,7 @@ unsigned int GetBestPartySkillLevel(int skill_index, int* party_slot)
    records can suppress exact values, and ordinary monsters expose current and
    maximum HP independently at knowledge thresholds ten and five. */
 // FUNCTION: WIZ8 0x004e52c0
-void FormatMonsterHealth(
-    W8MonsterInfo* monster_info,
-    W8WideChar* health_text)
+void FormatMonsterHealth(W8MonsterInfo* monster_info, W8WideChar* health_text)
 {
     unsigned char suppress_exact_health = 0;
     unsigned int health_knowledge;
@@ -1826,8 +1634,7 @@ void FormatMonsterHealth(
         W8NpcState* npc;
 
         if (monster_info == 0) {
-            srAssertFail(
-                "pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
+            srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
         }
         record = MonsterDBFromSpeciesInline(monster_info->monster_species);
         if ((record->flags_0d0 & 1) != 0) {
@@ -1840,16 +1647,14 @@ void FormatMonsterHealth(
 
     if (monster_info->value_2da == 1) {
         health_knowledge = 125;
-    }
-    else {
+    } else {
         float average_party_level = GetAveragePartyLevel();
         W8MonsterRecord* record;
         int best_party_slot;
         int monster_level;
 
         if (monster_info == 0) {
-            srAssertFail(
-                "pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
+            srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
         }
         record = MonsterDBFromSpeciesInline(monster_info->monster_species);
         monster_level = record->unknown_250[1];
@@ -1857,8 +1662,7 @@ void FormatMonsterHealth(
         if (static_cast<int>(average_party_level) < monster_level) {
             float adjusted_knowledge =
                 static_cast<float>(health_knowledge) -
-                (static_cast<float>(monster_level) - average_party_level) *
-                    g_float_005ec52c +
+                (static_cast<float>(monster_level) - average_party_level) * g_float_005ec52c +
                 g_float_005ebc7c;
             if (adjusted_knowledge < g_float_005ebb34) {
                 adjusted_knowledge = g_float_005ebb34;
@@ -1868,16 +1672,13 @@ void FormatMonsterHealth(
     }
 
     if (g_flag_689b32 != 0) {
-        wcscpy(
-            health_text,
-            FormatWideString(
-                L"%d/%d", monster_info->hp_current, monster_info->hp_max));
+        wcscpy(health_text,
+               FormatWideString(L"%d/%d", monster_info->hp_current, monster_info->hp_max));
         return;
     }
     if (health_knowledge < 10 || suppress_exact_health != 0) {
         wcscpy(health_text, L"");
-    }
-    else {
+    } else {
         wcscpy(health_text, FormatWideString(L"%d", monster_info->hp_current));
     }
     wcscat(health_text, L"/");
@@ -1900,11 +1701,7 @@ W8GrowableVector<int> g_target_marker_vector_0068406f;
 // `dynamic atexit destructor for 'g_monster_manager_entries' / 'g_target_marker_vector_0068406f''
 
 // FUNCTION: WIZ8 0x004e6a10
-W8MonsterManagerEntry::~W8MonsterManagerEntry()
-{
-}
+W8MonsterManagerEntry::~W8MonsterManagerEntry() {}
 
 // FUNCTION: WIZ8 0x004e6a30
-W8MonsterManagerEntry::W8MonsterManagerEntry()
-{
-}
+W8MonsterManagerEntry::W8MonsterManagerEntry() {}

@@ -1,8 +1,6 @@
 #include "wiz8/character.h"
 #include "wiz8/local_code/CombatRange.h"
-#include "wiz8/3d_code/IList.h"
 #include "wiz8/local_code/CombatHostility.h"
-#include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/xstatus.h"
@@ -280,7 +278,7 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int kind)
         *out = 2;
     }
     if (*out == 0 || monster_info->pCombat->unknown_151[1] == 0) {
-        unsigned int count = ILLength(g_combat_monster_list_00683fad);
+        unsigned int count = PLLength(gXStatus.plsMonsterList);
 
         for (unsigned int index = 0; index < count; ++index) {
             W8MonsterInfo* other = MonsterGetScriptPartByLocationIndex(index);
@@ -301,7 +299,7 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int kind)
                     }
                 }
             }
-            count = ILLength(g_combat_monster_list_00683fad);
+            count = PLLength(gXStatus.plsMonsterList);
         }
     }
     return best;

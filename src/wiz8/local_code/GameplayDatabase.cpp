@@ -295,9 +295,7 @@ unsigned char InitializeNpcDatabase(void)
                         FileClose(handle);
                         return 0;
                     }
-                    PListInsert(
-                        g_npc_records[index].item_stock_rules,
-                        entry, element);
+                    PListInsert(g_npc_records[index].item_stock_rules, entry, element);
                 }
             }
         }
@@ -348,8 +346,8 @@ unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRe
     int handle;
 
     if (!(index < gXStatus.uiMonstersInDatabase)) {
-        srAssertFail("uiMonsterIndex < gXStatus.uiMonstersInDatabase",
-                     GAMEPLAY_DATABASE_CPP, 0x140, 0);
+        srAssertFail("uiMonsterIndex < gXStatus.uiMonstersInDatabase", GAMEPLAY_DATABASE_CPP, 0x140,
+                     0);
     }
     sprintf(path, "%s\\%s.%s", "Data\\Databases", "Monsters", "DBS");
     handle = FileOpen(path, 1, 0);
@@ -359,7 +357,7 @@ unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRe
     if (!FileSeek(handle, index * 0x297 + 4, 1)) {
         return 0;
     }
-    if (!FileRead(handle, record, 0x297, (unsigned int*)&uiMonsterIndex)) {
+    if (!FileRead(handle, record, 0x297, &uiMonsterIndex)) {
         FileClose(handle);
         return 0;
     }
@@ -404,20 +402,18 @@ void FreeIfNotNull(void* block)
 // FUNCTION: WIZ8 0x0054b4c0
 unsigned char AllocateStatusBuffers(W8StatusBuffers* status)
 {
-    status->characters = static_cast<W8Character*>(
-        malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
+    status->characters =
+        static_cast<W8Character*>(malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
     if (!status->characters) {
         return 0;
     }
-    status->party_rows = static_cast<W8PartySlotRow*>(
-        malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
+    status->party_rows =
+        static_cast<W8PartySlotRow*>(malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
     if (!status->party_rows) {
         return 0;
     }
-    memset(status->characters, 0,
-           sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
-    memset(status->party_rows, 0,
-           sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
+    memset(status->characters, 0, sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
+    memset(status->party_rows, 0, sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
     return 1;
 }
 
@@ -461,7 +457,7 @@ void ResetTargetingState(void)
     unsigned int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        Function54B300(slot);
+        ResetGameplaySlot(slot);
     }
     g_target_state_6840b3 = -1;
     g_picked_group_006840b7 = -1;
@@ -497,7 +493,7 @@ void DestroyItemTables(void)
    runs a fixed opening sequence. The two calls into 0x00482720 and 0x00482740
    share one stack cleanup, as consecutive cdecl calls do. */
 // FUNCTION: WIZ8 0x0054b250
-void Function54B250(unsigned char notify, const wchar_t* target)
+void RunNewGameOpeningSequence(unsigned char notify, const wchar_t* target)
 {
     g_status_685170.game_started = 1;
     if (target) {
@@ -515,7 +511,7 @@ void Function54B250(unsigned char notify, const wchar_t* target)
     ResetNpcStates();
     InitializeFactJournal();
     ResetFactions();
-    Function56C520();
+    ResetMainScreenStateBlock();
     SetPendingScreenState(W8_SCREEN_GAME_START_ROUTER);
 }
 
@@ -524,7 +520,7 @@ void Function54B250(unsigned char notify, const wchar_t* target)
    inside it - and allocates them again. Either allocation failing leaves the
    block cleared and the other buffer live, as the original does. */
 // FUNCTION: WIZ8 0x0054af30
-void Function54AF30(unsigned char release)
+void ResetGameStatus(unsigned char release)
 {
     if (release) {
         if (g_status_685170.buffers.characters) {
@@ -538,28 +534,24 @@ void Function54AF30(unsigned char release)
     }
     memset(&g_status_685170, 0, sizeof(g_status_685170));
     g_status_685170.buffers.characters =
-        static_cast<W8Character*>(
-            malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
+        static_cast<W8Character*>(malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
     if (!g_status_685170.buffers.characters) {
         return;
     }
     g_status_685170.buffers.party_rows =
-        static_cast<W8PartySlotRow*>(
-            malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
+        static_cast<W8PartySlotRow*>(malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
     if (!g_status_685170.buffers.party_rows) {
         return;
     }
-    memset(g_status_685170.buffers.characters, 0,
-           sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
-    memset(g_status_685170.buffers.party_rows, 0,
-           sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
+    memset(g_status_685170.buffers.characters, 0, sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
+    memset(g_status_685170.buffers.party_rows, 0, sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
 }
 
 /* Reads MONSTERS.DBS whole: the count into gXStatus, then - only when the
    caller wants them - every record into one allocation handed back through the
    out-parameter. InitializeGame calls it with null just to publish the count. */
 // FUNCTION: WIZ8 0x0054a760
-unsigned char Function54A760(W8MonsterRecord** records)
+unsigned char LoadMonsterDatabase(W8MonsterRecord** records)
 {
     char path[60];
     unsigned int transferred;
@@ -603,15 +595,14 @@ unsigned char Function54A760(W8MonsterRecord** records)
    out-parameter is uiEndIndex's own slot, dead once copied into a register, and
    a failed seek leaves the handle open where every other failure closes it. */
 // FUNCTION: WIZ8 0x0054a9a0
-unsigned char Function54A9A0(unsigned int uiStartIndex, unsigned int uiEndIndex,
+unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int uiEndIndex,
                              unsigned int unused, W8MonsterRecord* records)
 {
     char path[56];
     int handle;
 
     if (!(uiEndIndex < gXStatus.uiMonstersInDatabase)) {
-        srAssertFail("uiEndIndex < gXStatus.uiMonstersInDatabase",
-                     GAMEPLAY_DATABASE_CPP, 0x17a, 0);
+        srAssertFail("uiEndIndex < gXStatus.uiMonstersInDatabase", GAMEPLAY_DATABASE_CPP, 0x17a, 0);
     }
     sprintf(path, "%s\\%s.%s", "Data\\Databases", "Monsters", "DBS");
     handle = FileOpen(path, 1, 0);
@@ -619,11 +610,9 @@ unsigned char Function54A9A0(unsigned int uiStartIndex, unsigned int uiEndIndex,
         return 0;
     }
     if (!FileSeek(handle, uiStartIndex * 0x297 + 4, 1)) {
-        return 0;
+        return 0; /* retail: failed seek leaves the handle open */
     }
-    if (!FileRead(handle, records,
-                         (uiEndIndex + 1) * 0x297 - uiStartIndex * 0x297,
-                         (unsigned int*)&uiEndIndex)) {
+    if (!FileRead(handle, records, (uiEndIndex + 1) * 0x297 - uiStartIndex * 0x297, &uiEndIndex)) {
         FileClose(handle);
         return 0;
     }
@@ -631,12 +620,13 @@ unsigned char Function54A9A0(unsigned int uiStartIndex, unsigned int uiEndIndex,
     return 1;
 }
 
-/* The new-game reset. It repeats Function54AF30's status-block cycle inline
-   rather than calling it, clears the item in hand and the carried pool, then
+/* The new-game reset. It repeats ResetGameStatus's status-block cycle inline
+   rather than calling it; retail: that duplication is the authored body, not a
+   missing helper. It then clears the item in hand and the carried pool, and
    grants the starting items. The pool and the id list are both walked by
    address against the symbol that follows them, not by index. */
 // FUNCTION: WIZ8 0x0054b100
-void Function54B100(void)
+void ResetForNewGame(void)
 {
     W8ItemInstance item;
     W8ItemInstance* slot;
@@ -653,12 +643,10 @@ void Function54B100(void)
     }
     memset(&g_status_685170, 0, sizeof(g_status_685170));
     g_status_685170.buffers.characters =
-        static_cast<W8Character*>(
-            malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
+        static_cast<W8Character*>(malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
     if (g_status_685170.buffers.characters) {
         g_status_685170.buffers.party_rows =
-            static_cast<W8PartySlotRow*>(
-                malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
+            static_cast<W8PartySlotRow*>(malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
         if (g_status_685170.buffers.party_rows) {
             memset(g_status_685170.buffers.characters, 0,
                    sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
@@ -667,10 +655,10 @@ void Function54B100(void)
         }
     }
     Function58FD30();
-    Function520070(&g_status_685170.item_in_hand_235b, 0, 1);
+    EmptyItemRecord(&g_status_685170.item_in_hand_235b, 0, 1);
     slot = g_status_685170.party_item_pool_0021;
     do {
-        Function520070(slot, 0, 1);
+        EmptyItemRecord(slot, 0, 1);
         ++slot;
     } while (slot < (W8ItemInstance*)&g_status_685170.party_item_count_1791);
     id = g_starting_item_ids;
@@ -695,7 +683,7 @@ void Function54B100(void)
    and 0xff are each used many times over, which is why VC6 holds them in
    registers rather than spelling out immediates. */
 // FUNCTION: WIZ8 0x0054b560
-void Function54B560(void)
+void ResetGameplaySettings(void)
 {
     memset(&g_settings_6850c8, 0, sizeof(g_settings_6850c8));
     g_settings_6850c8.sound_effects_volume = 0x40;
@@ -759,7 +747,7 @@ void Function54B560(void)
    and 2 here. The five countdown clocks and the Random call share one stack
    cleanup, as consecutive cdecl calls do. */
 // FUNCTION: WIZ8 0x0054b300
-void Function54B300(unsigned int slot)
+void ResetGameplaySlot(unsigned int slot)
 {
     W8MonsterManagerEntry* record = &g_monster_manager_entries[slot];
     int tier;
@@ -872,8 +860,7 @@ void W8StartupRuntimeState::ProcessNextPendingEntry()
         if ((value_5c & 1) != 0 && entry->type_08 >= 14 && entry->type_08 < 16) {
             if ((value_5c & 2) != 0) {
                 unknown_60 = SetCountdownClock(Random(6000) + 2000);
-            }
-            else {
+            } else {
                 unknown_60 = SetCountdownClock(Random(60000) + 300000);
             }
         }
@@ -903,19 +890,13 @@ void W8StartupStateElement005EE748::Process0052CED0()
     if (type_08 == 23 || type_08 == 24) {
         if ((flags_10 & 0x40) == 0) {
             if (item_24.item_id == -1) {
-                PostCharacterMessage(
-                    party_slot,
-                    gppStringList[0x1dc4 / 4]);
-            }
-            else {
-                PostCharacterMessage(
-                    party_slot,
-                    gppStringList[0x1dc8 / 4],
-                    GetItemDisplayName(&item_24));
+                PostCharacterMessage(party_slot, gppStringList[0x1dc4 / 4]);
+            } else {
+                PostCharacterMessage(party_slot, gppStringList[0x1dc8 / 4],
+                                     GetItemDisplayName(&item_24));
             }
         }
-    }
-    else if (type_08 == 51) {
+    } else if (type_08 == 51) {
         QueueGameplayEvent(30, party_slot);
     }
 }
@@ -935,7 +916,7 @@ void InitializeGameplayRuntimeObjects(void)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfortify-source"
-/* Retail 0x0054AFD0 zeroes ECX=0x682 dwords plus 0x6C words from 0x006836B8:
+    /* Retail 0x0054AFD0 zeroes ECX=0x682 dwords plus 0x6C words from 0x006836B8:
    a 0x1AE0-byte bulk reset spanning g_monster_manager_entries, gXStatus, the
    targeting globals and further runtime state up to 0x00685098. That span is
    a reset region, not one C++ object; the start address is the entries array.

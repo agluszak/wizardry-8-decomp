@@ -32,10 +32,6 @@ unsigned char g_fact_values[1001];
 // GLOBAL
 unsigned char g_import_flags[0x60];
 
-/* 0x0055A0A0 and 0x00524CA0 tear down an NPC item list. */
-extern void Function55A0A0(int handle);
-extern void Function524CA0(W8NpcState* npc);
-
 // FUNCTION: WIZ8 0x00506280
 unsigned char GetFact(int fact_id)
 {
@@ -251,14 +247,14 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x3a);
             if (g_log_fact_checks) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                Function58AAD0(5, L"Checking fact %S which is %s",
+                WriteGameLog(5, L"Checking fact %S which is %s",
                                g_fact_records[58].symbolic_name, text);
             }
             if (value == 0) {
                 value = EvaluateFact(0x3c);
                 if (g_log_fact_checks) {
                     wcscpy(text, value ? L"TRUE" : L"FALSE");
-                    Function58AAD0(5, L"Checking fact %S which is %s",
+                    WriteGameLog(5, L"Checking fact %S which is %s",
                                    g_fact_records[60].symbolic_name, text);
                 }
                 if (value == 0) {
@@ -267,7 +263,7 @@ unsigned char EvaluateFact(int fact_id)
             }
             return 0;
         case 0x4f:
-            if (Function50B8F0(0x11) == 0 || Function50B8F0(0x10) == 0) {
+            if (NpcLeadHasNameStyle(0x11) == 0 || NpcLeadHasNameStyle(0x10) == 0) {
                 return 0;
             }
             break;
@@ -291,14 +287,14 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x86);
             if (g_log_fact_checks) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                Function58AAD0(5, L"Checking fact %S which is %s",
+                WriteGameLog(5, L"Checking fact %S which is %s",
                                g_fact_records[134].symbolic_name, text);
             }
             if (value == 0) {
                 value = EvaluateFact(0x83);
                 if (g_log_fact_checks) {
                     wcscpy(text, value ? L"TRUE" : L"FALSE");
-                    Function58AAD0(5, L"Checking fact %S which is %s",
+                    WriteGameLog(5, L"Checking fact %S which is %s",
                                    g_fact_records[131].symbolic_name, text);
                 }
                 if (value != 0 && FindItemOnParty(0x271, 0, 0, 2, 0) == 0 &&
@@ -308,11 +304,11 @@ unsigned char EvaluateFact(int fact_id)
             }
             return 0;
         case 0x88:
-            if (g_status_685170.status_suffix_40ab[0] == 0) {
+            if (g_status_685170.flag_40c1 == 0) {
                 if (CountItemOnParty(0x1c4, 0, 0, 2) < 5) {
                     return 0;
                 }
-                g_status_685170.status_suffix_40ab[0] = 1;
+                g_status_685170.flag_40c1 = 1;
                 return 1;
             }
             break;
@@ -337,11 +333,11 @@ unsigned char EvaluateFact(int fact_id)
             break;
         }
         case 0xbd:
-            return Function50B8F0(0x10) != 0;
+            return NpcLeadHasNameStyle(0x10) != 0;
         case 0xbe:
-            return Function50B8F0(0x11) != 0;
+            return NpcLeadHasNameStyle(0x11) != 0;
         case 0xc3:
-            return Function50B8F0(0x18) != 0;
+            return NpcLeadHasNameStyle(0x18) != 0;
         case 0xc9:
             return GetFactionDisposition(W8_FACTION_HIGARDI_HLL) == W8_FACTION_FRIENDLY;
         case 0xca:
@@ -358,14 +354,14 @@ unsigned char EvaluateFact(int fact_id)
         case 0xce:
             return FindItemOnParty(0x294, 0, 0, 2, 0);
         case 0xd1:
-            return Function50B8F0(7) != 0;
+            return NpcLeadHasNameStyle(7) != 0;
         case 0x103:
             goto triple;
         case 0x10c:
             value = EvaluateFact(0x22);
             if (g_log_fact_checks) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                Function58AAD0(5, L"Checking fact %S which is %s",
+                WriteGameLog(5, L"Checking fact %S which is %s",
                                g_fact_records[34].symbolic_name, text);
             }
             if (value != 0) {
@@ -374,7 +370,7 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x30);
             if (g_log_fact_checks) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                Function58AAD0(5, L"Checking fact %S which is %s",
+                WriteGameLog(5, L"Checking fact %S which is %s",
                                g_fact_records[48].symbolic_name, text);
             }
             if (value != 0) {
@@ -383,7 +379,7 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x31);
             if (g_log_fact_checks) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                Function58AAD0(5, L"Checking fact %S which is %s",
+                WriteGameLog(5, L"Checking fact %S which is %s",
                                g_fact_records[49].symbolic_name, text);
             }
             if (value != 0) {
@@ -393,12 +389,11 @@ unsigned char EvaluateFact(int fact_id)
         case 0x11e:
             return GetFactionDisposition(W8_FACTION_TRANG) == W8_FACTION_FRIENDLY;
         case 0x14c:
-            if (g_status_685170.unknown_244b[0x3e] != 0) {
-                int* marked_slot = reinterpret_cast<int*>(&g_status_685170.status_suffix_40ab[0x17c]); /* reinterpret-ok: single int slot inside the unrecovered suffix */
+            if (g_status_685170.flag_2489 != 0) {
                 unsigned int slot = 0;
                 do {
                     if (g_party_slot_rows[slot].occupied != 0 &&
-                        slot == (unsigned int)*marked_slot) {
+                        slot == (unsigned int)g_status_685170.value_423d) {
                         return 1;
                     }
                     ++slot;
@@ -417,11 +412,11 @@ unsigned char EvaluateFact(int fact_id)
         }
         switch (fact_id) {
         case 0x19a:
-            return Function50B8F0(0x38) != 0;
+            return NpcLeadHasNameStyle(0x38) != 0;
         case 0x1a8:
             return GetFactionDisposition(W8_FACTION_RAPAX_COMMON) == W8_FACTION_FRIENDLY;
         case 0x216: {
-            if (Function50B8F0(0x18) == 0) {
+            if (NpcLeadHasNameStyle(0x18) == 0) {
                 return g_fact_values[fact_id];
             }
             W8NpcState* npc = GetNpcStateByKind(0x18);
@@ -435,7 +430,7 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x268);
             if (g_log_fact_checks) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                Function58AAD0(5, L"Checking fact %S which is %s",
+                WriteGameLog(5, L"Checking fact %S which is %s",
                                g_fact_records[616].symbolic_name, text);
             }
             if (value == 0) {
@@ -444,7 +439,7 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x323);
             if (g_log_fact_checks) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                Function58AAD0(5, L"Checking fact %S which is %s",
+                WriteGameLog(5, L"Checking fact %S which is %s",
                                g_fact_records[803].symbolic_name, text);
             }
             if (value == 0) {
@@ -458,7 +453,7 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x7d);
             if (g_log_fact_checks) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                Function58AAD0(5, L"Checking fact %S which is %s",
+                WriteGameLog(5, L"Checking fact %S which is %s",
                                g_fact_records[125].symbolic_name, text);
             }
             if (value != 0) {
@@ -467,7 +462,7 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x3e);
             if (g_log_fact_checks) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                Function58AAD0(5, L"Checking fact %S which is %s",
+                WriteGameLog(5, L"Checking fact %S which is %s",
                                g_fact_records[62].symbolic_name, text);
             }
             if (value != 0) {
@@ -482,7 +477,7 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x156);
             if (g_log_fact_checks) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                Function58AAD0(5, L"Checking fact %S which is %s",
+                WriteGameLog(5, L"Checking fact %S which is %s",
                                g_fact_records[342].symbolic_name, text);
             }
             return value;

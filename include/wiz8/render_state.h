@@ -90,6 +90,9 @@ void SetRenderOption(int option, int enabled);
 unsigned char LoadRenderOptions0047B890(int handle);
 bool SaveRenderOptions0047B920(int handle);
 void SetResidentTexturePolicy(int policy);
+void SetSurfaceScale004297E0(float scale);
+void SetTextureCacheSize00426740(unsigned long bytes);
+void SetSwapInterval00426710(unsigned char enabled);
 void DisableRenderOption(int option);
 void EnableRenderOption(int option);
 unsigned char GetRendererModeByte(void);
@@ -126,7 +129,7 @@ void Initialize16BitPixelFormatMasks(void);
 unsigned char CreateWizardryWindow(void);
 unsigned char InitializePrimaryDirectDrawSurface(void);
 unsigned char InitializeVideoDevice(void);
-unsigned char Function422800(void);
+unsigned char OpenRendererWindow(void);
 void Function427440(void);
 
 void AssertFailureHandler(const char* expression, const char* file, long line, const char* message);

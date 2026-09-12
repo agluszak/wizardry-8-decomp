@@ -42,8 +42,6 @@ W8TextControl* g_level_up_button_0069c3c0;
 // GLOBAL: WIZ8 0x0069c400
 W8TextControl* g_dismiss_button_0069c400;
 
-extern unsigned char g_camp_open_00683f9b;
-
 extern void DisplayCampDialog(W8DialogBase* dialog);
 extern void DismissSelectedPartyCharacter(void);
 void ShowDismissCharacterDialog(void);
@@ -71,7 +69,7 @@ bool CanSelectRcsPartySlot(int ui_slot)
     if (character->condition_turns[13] != 0) {
         return false;
     }
-    if (g_in_combat_00683f94) {
+    if (gXStatus.fCombatMode) {
         if (!g_combat_state->flag_a50) {
             return false;
         }
@@ -189,10 +187,10 @@ void DestroyRcsLevelUpPanel(void)
 void UpdateRcsLevelUpPanel(void)
 {
     bool enabled = IsCharacterReadyToAdvance(g_rcs_mode_0064cbe8);
-    if (!enabled || g_in_combat_00683f94 ||
+    if (!enabled || gXStatus.fCombatMode ||
         (!g_party_slot_rows[g_rcs_mode_0064cbe8].flag_105 &&
          g_status_685170.game_started) ||
-        g_camp_open_00683f9b) {
+        gXStatus.fCampMode) {
         if (g_level_up_button_0069c3c0->m_active) {
             g_level_up_button_0069c3c0->SetActive(0);
         }
@@ -325,7 +323,7 @@ W8TextControl* g_panel_controls_69c2f8[3];
 /* Release the three level-runtime dialogue owners through the shared
    teardown, then clear the slots. */
 // FUNCTION: WIZ8 0x005B1C00
-void Function5B1C00(void)
+void ReleaseRuntimeDialogOwners(void)
 {
     if (g_level_block->unknown_2a0 != 0) {
         ReleaseObject004257F0(g_level_block->unknown_2a0);
@@ -373,7 +371,7 @@ void Function5B2580(void)
 void Function5B2200(void)
 {
     Function5B2580();
-    g_flag_00683f9a = 0;
+    gXStatus.field_022 = 0;
     UpdateHeldItemCursor();
     RegionSetDisable(0x1b);
     RequestRedraw(0x200);

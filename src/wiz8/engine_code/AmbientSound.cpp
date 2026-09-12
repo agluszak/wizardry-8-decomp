@@ -15,24 +15,11 @@
 #include <string.h>
 #include <stdio.h>
 
-
 // FUNCTION: WIZ8 0x00479040
 W8AmbientSound::W8AmbientSound()
-    : value_94(0),
-      value_98(0),
-      value_a0(0),
-      value_a4(0),
-      value_a8(0),
-      value_ac(0),
-      value_b0(0),
-      value_b4(0),
-      flag_b8(0),
-      flag_b9(0),
-      sound_handle_bc(-1),
-      sound_handle_c0(-1),
-      flag_c4(0),
-      flag_c5(0),
-      value_ec(0)
+    : value_94(0), value_98(0), value_a0(0), value_a4(0), value_a8(0), value_ac(0), value_b0(0),
+      value_b4(0), flag_b8(0), flag_b9(0), sound_handle_bc(-1), sound_handle_c0(-1), flag_c4(0),
+      flag_c5(0), value_ec(0)
 {
     config_004.match_name[0] = 0;
     vector_88.SetZero();
@@ -43,8 +30,8 @@ W8AmbientSound::W8AmbientSound()
 /* The contiguous class lifecycle and shared world-list accesses identify these
    pre-assertion bodies as the same AmbientSound.cpp unit. */
 // FUNCTION: WIZ8 0x0047a260
-W8AmbientSound* W8AmbientSound::FindNextMatching0047A260(
-    const char* match_name, W8AmbientSound* previous)
+W8AmbientSound* W8AmbientSound::FindNextMatching0047A260(const char* match_name,
+                                                         W8AmbientSound* previous)
 {
     int count;
     int index;
@@ -55,8 +42,7 @@ W8AmbientSound* W8AmbientSound::FindNextMatching0047A260(
     count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
     if (previous == 0) {
         index = 0;
-    }
-    else {
+    } else {
         index = PListIndexOf(g_world->plsAmbientSounds, previous) + 1;
         if (index < 0 || index > count) {
             return 0;
@@ -66,8 +52,8 @@ W8AmbientSound* W8AmbientSound::FindNextMatching0047A260(
         return 0;
     }
     do {
-        W8AmbientSound* candidate = static_cast<W8AmbientSound*>(
-            PLGet(g_world->plsAmbientSounds, index));
+        W8AmbientSound* candidate =
+            static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
         if (candidate != 0 && candidate != this && candidate->flag_c4 != 0 &&
             _stricmp(candidate->config_004.match_name, match_name) == 0) {
             return candidate;
@@ -87,11 +73,9 @@ void W8AmbientSound::Update0047A310()
             if (timer->GetProgress() >= 1.0f) {
                 if (value_9c > value_a0) {
                     ++value_a0;
-                }
-                else if (value_9c < value_a0) {
+                } else if (value_9c < value_a0) {
                     --value_a0;
-                }
-                else if ((timer->m_flags & 8) == 0) {
+                } else if ((timer->m_flags & 8) == 0) {
                     timer->m_flags |= 8;
                     timer->m_start = timer->Method00439A60() - timer->m_start;
                 }
@@ -116,8 +100,8 @@ void UpdateAmbientSounds0047A3E0(W8World* world)
         SoundServiceStreams();
         count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
-            W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                PLGet(world->plsAmbientSounds, index));
+            W8AmbientSound* sound =
+                static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
             if (sound != 0) {
                 sound->SetState00479970(0);
                 sound->Update0047A310();
@@ -141,12 +125,11 @@ int g_previous_footstep_variant_65a10c;
 
 // GLOBAL: WIZ8 0x00609edc
 const char* g_footstep_names_609edc[] = {
-    "None",       "Gritty",      "Grass",          "Stone",         "ShallowWater",
-    "CreakyWood", "SolidWood",   "HollowWood",     "Metal",         "Gravel",
-    "RoughStone", "Marble",      "Mud",            "Sand",          "Leaves",
-    "Snow",       "Carpet",      "Magic",          "ClimbLadder",   "ClimbRock",
-    "ClimbRope",  "SwimSurface", "SwimUnderwater", "Crawl",         "Fly",
-    "",
+    "None",        "Gritty",     "Grass",     "Stone",       "ShallowWater",   "CreakyWood",
+    "SolidWood",   "HollowWood", "Metal",     "Gravel",      "RoughStone",     "Marble",
+    "Mud",         "Sand",       "Leaves",    "Snow",        "Carpet",         "Magic",
+    "ClimbLadder", "ClimbRock",  "ClimbRope", "SwimSurface", "SwimUnderwater", "Crawl",
+    "Fly",         "",
 };
 // GLOBAL: WIZ8 0x00609eb8
 const char* g_footstep_surfaces_609eb8[] = {
@@ -159,6 +142,10 @@ const char* g_footstep_fixed_name_609f44 = "Jump";
 const char* g_footstep_scuff_name_609f48 = "Scuff";
 
 // FUNCTION: WIZ8 0x0047a440
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wchar-subscripts"
+/* Surface and material ids are recovered as char and range-checked against
+   1..9 / 1..25 before indexing the name tables. */
 int PlayFootstep0047A440(char surface, char material, int argument)
 {
     char selected_surface;
@@ -182,15 +169,13 @@ int PlayFootstep0047A440(char surface, char material, int argument)
     if (selected_material >= 18) {
         sprintf(path, "Data\\Sound\\Footsteps\\Step_%s.WAV",
                 g_footstep_names_609edc[selected_material]);
-    }
-    else {
+    } else {
         int variant;
         do {
             variant = Random(4) + 1;
             ++attempts;
         } while (variant == g_previous_footstep_variant_65a10c && attempts < 100);
-        BuildFootstepPath0047A540(
-            path, selected_surface, selected_material, argument, variant);
+        BuildFootstepPath0047A540(path, selected_surface, selected_material, argument, variant);
         g_previous_footstep_variant_65a10c = variant;
     }
     memset(&options, -1, sizeof(options));
@@ -200,31 +185,27 @@ int PlayFootstep0047A440(char surface, char material, int argument)
 }
 
 // FUNCTION: WIZ8 0x0047a540
-void BuildFootstepPath0047A540(
-    char* path, char surface, char material, char kind, int variant)
+void BuildFootstepPath0047A540(char* path, char surface, char material, char kind, int variant)
 {
     if (kind == 0) {
         sprintf(path, "Data\\Sound\\Footsteps\\%s\\Step_%s_%s_%.2d.WAV",
-                g_footstep_names_609edc[material],
-                g_footstep_surfaces_609eb8[surface],
+                g_footstep_names_609edc[material], g_footstep_surfaces_609eb8[surface],
                 g_footstep_names_609edc[material], variant);
         return;
     }
     if (kind == 1) {
         sprintf(path, "Data\\Sound\\Footsteps\\%s\\Step_%s_%s_%s.WAV",
-                g_footstep_names_609edc[material],
-                g_footstep_surfaces_609eb8[surface],
+                g_footstep_names_609edc[material], g_footstep_surfaces_609eb8[surface],
                 g_footstep_names_609edc[material], g_footstep_fixed_name_609f44);
         return;
     }
     if (kind == 2) {
         sprintf(path, "Data\\Sound\\Footsteps\\%s\\Step_%s_%s_%s_%.2d.WAV",
-                g_footstep_names_609edc[material],
-                g_footstep_surfaces_609eb8[surface],
-                g_footstep_names_609edc[material], g_footstep_scuff_name_609f48,
-                variant);
+                g_footstep_names_609edc[material], g_footstep_surfaces_609eb8[surface],
+                g_footstep_names_609edc[material], g_footstep_scuff_name_609f48, variant);
     }
 }
+#pragma clang diagnostic pop
 
 // FUNCTION: WIZ8 0x0047a600
 void RepositionAmbientSounds0047A600(W8World* world)
@@ -236,8 +217,8 @@ void RepositionAmbientSounds0047A600(W8World* world)
         SoundServiceRandom();
         count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
-            W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                PLGet(world->plsAmbientSounds, index));
+            W8AmbientSound* sound =
+                static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
             if (sound != 0) {
                 srVector3T<float> position;
                 GetCameraPosition(&position);
@@ -263,7 +244,8 @@ W8AmbientSound* CreateAmbientSound0047A670()
 void DestroyAmbientSound0047A700(W8AmbientSound* ambient)
 {
     if (ambient == 0) {
-        srAssertFail("pAmbient", "C:\\Projects\\Wizardry 8\\Engine Code\\AmbientSound.cpp", 0x2fd, 0);
+        srAssertFail("pAmbient", "C:\\Projects\\Wizardry 8\\Engine Code\\AmbientSound.cpp", 0x2fd,
+                     0);
     }
     if (ambient->sound_handle_bc != -1) {
         SoundStop(ambient->sound_handle_bc);
@@ -278,9 +260,7 @@ void DestroyAmbientSound0047A700(W8AmbientSound* ambient)
 }
 
 // FUNCTION: WIZ8 0x0047a780
-W8AmbientSound::~W8AmbientSound()
-{
-}
+W8AmbientSound::~W8AmbientSound() {}
 
 /* Build a complete ambient-sound row and attach it to the world's list. The
    twenty parameters and their widths come directly from the stack reads. */
@@ -288,12 +268,10 @@ W8AmbientSound::~W8AmbientSound()
 unsigned char AddAmbientSound0047A790(
     W8World* world, const char* name, const W8AmbientSoundConfig0047A790* config,
     const srVector3T<float>* vector_88, const srVector3T<float>* vector_c8,
-    const srVector3T<float>* vector_d4, int value_94, int value_98,
-    int value_ac, int value_b0, int value_a4, int value_a8, int value_b4,
-    unsigned char flag_b9, unsigned char flag_c5,
-    const srVector3T<float>* vector_e0, int value_ec,
-    const srVector3T<float>* vector_f0, const srVector3T<float>* vector_fc,
-    unsigned char flag_c4)
+    const srVector3T<float>* vector_d4, int value_94, int value_98, int value_ac, int value_b0,
+    int value_a4, int value_a8, int value_b4, unsigned char flag_b9, unsigned char flag_c5,
+    const srVector3T<float>* vector_e0, int value_ec, const srVector3T<float>* vector_f0,
+    const srVector3T<float>* vector_fc, unsigned char flag_c4)
 {
     W8AmbientSound* sound = CreateAmbientSound0047A670();
 
@@ -301,8 +279,8 @@ unsigned char AddAmbientSound0047A790(
         sound->pacSoundName = new char[strlen(name) + 1];
         if (sound->pacSoundName == 0) {
             srAssertFail("pSound->pacSoundName",
-                         "C:\\Projects\\Wizardry 8\\Engine Code\\AmbientSound.cpp",
-                         0x35e, "AmbientSound.cpp: Error allocating sound name");
+                         "C:\\Projects\\Wizardry 8\\Engine Code\\AmbientSound.cpp", 0x35e,
+                         "AmbientSound.cpp: Error allocating sound name");
         }
         strcpy(sound->pacSoundName, name);
     }
@@ -335,8 +313,8 @@ void PositionAmbientSoundByName0047A950(int /* unused */, const char* name)
     int index;
 
     for (index = 0; index < count; ++index) {
-        W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-            PLGet(g_world->plsAmbientSounds, index));
+        W8AmbientSound* sound =
+            static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
             srVector3T<float> position;
             GetCameraPosition(&position);
@@ -354,8 +332,8 @@ void StopAmbientSoundByName0047A9E0(int /* unused */, const char* name)
     int index;
 
     for (index = 0; index < count; ++index) {
-        W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-            PLGet(g_world->plsAmbientSounds, index));
+        W8AmbientSound* sound =
+            static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
             SoundStop(sound->sound_handle_bc);
             sound->flag_b8 = 0;
@@ -373,8 +351,8 @@ void ToggleAmbientSoundByName0047AA70(int /* unused */, const char* name)
     int index;
 
     for (index = 0; index < count; ++index) {
-        W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-            PLGet(g_world->plsAmbientSounds, index));
+        W8AmbientSound* sound =
+            static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
             if (sound->flag_84 != 0) {
                 srVector3T<float> position;
@@ -422,21 +400,18 @@ unsigned char LoadAmbientSoundList0047AB40(char* filename)
         memset(line, 0, sizeof(line));
         ReadTextLine004CEE40(handle, line, sizeof(line), &more);
         if (strlen(line) != 0) {
-            sscanf(line, "%s %d %d %d %d %d %d %d", name,
-                   &configured[2], &configured[3], &configured[4],
-                   &configured[5], &configured[0], &configured[1],
+            sscanf(line, "%s %d %d %d %d %d %d %d", name, &configured[2], &configured[3],
+                   &configured[4], &configured[5], &configured[0], &configured[1],
                    &direct_selector);
             sprintf(path, "%s\\%s", directory, name);
             SoundSetCacheThreshhold(0xc8000);
             if (direct_selector == -1) {
                 configured[8] = -16;
                 SoundPlayRandom(path, (RANDOMPARMS*)configured);
-            }
-            else {
+            } else {
                 direct.uiLoop = direct_selector;
                 direct.uiPriority = -16;
-                direct.uiVolume =
-                    (g_settings_6850c8.sound_effects_volume * configured[5]) / 0x7f;
+                direct.uiVolume = (g_settings_6850c8.sound_effects_volume * configured[5]) / 0x7f;
                 SoundPlay(path, &direct);
             }
         }
@@ -457,8 +432,8 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
     if (g_world != 0 && g_world->plsAmbientSounds != 0) {
         count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
-            W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                PLGet(g_world->plsAmbientSounds, index));
+            W8AmbientSound* sound =
+                static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
             if (sound != 0) {
                 if (sound->sound_handle_bc != -1) {
                     unsigned int adjusted =
@@ -477,8 +452,8 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
         SoundServiceRandom();
         count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
-            W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                PLGet(world->plsAmbientSounds, index));
+            W8AmbientSound* sound =
+                static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
             if (sound != 0) {
                 srVector3T<float> position;
                 GetCameraPosition(&position);
@@ -489,8 +464,8 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
         SoundServiceStreams();
         count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
-            W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                PLGet(world->plsAmbientSounds, index));
+            W8AmbientSound* sound =
+                static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
             if (sound != 0) {
                 sound->SetState00479970(0);
                 sound->Update0047A310();
@@ -559,8 +534,7 @@ void SetAmbientSoundMuted(unsigned char muted)
                 return;
             }
         }
-    }
-    else if (g_settings_6850c8.muted_sound_effects_volume != 0xff) {
+    } else if (g_settings_6850c8.muted_sound_effects_volume != 0xff) {
         g_settings_6850c8.sound_effects_volume = g_settings_6850c8.muted_sound_effects_volume;
         SoundSetDefaultVolume(g_settings_6850c8.muted_sound_effects_volume);
         if (g_world != 0 && g_world->plsAmbientSounds != 0) {
@@ -631,15 +605,14 @@ void SaveAmbientSoundList0047B140(HWFILE handle)
     count = PLLength(g_world->plsAmbientSounds);
     ok = ok && FileWrite(handle, &count, 4, 0);
     for (index = 0; index < static_cast<int>(count); ++index) {
-        W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-            PLGet(g_world->plsAmbientSounds, index));
+        W8AmbientSound* sound =
+            static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
         if (sound != 0) {
             if (sound->pacSoundName == 0) {
                 if (ok) {
                     ok = FileWrite(handle, empty_name, sizeof(empty_name), 0);
                 }
-            }
-            else if (ok) {
+            } else if (ok) {
                 ok = FileWrite(handle, sound->pacSoundName, 0x80, 0);
             }
             if (ok) {

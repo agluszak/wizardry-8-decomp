@@ -167,7 +167,7 @@ void Function584250(const InputAtom* input);
 void Function581460(W8AutomapNote* note);
 void Function57FFC0(const srVector3T<float>* position);
 void Function57FC70(const srVector3T<float>* position);
-void Function57FD90(int update);
+void SetAutomapButtonMode(int update);
 void Function57FE40(void);
 void Function427460(int x, int y);
 void Function581030(void);
@@ -320,7 +320,7 @@ unsigned char AutomapScreenEnter(void)
     stScript script;
     MSYS_Init();
     GetLightDirection(&g_automap_saved_light_direction);
-    GetWorldLightValue(g_world, reinterpret_cast<int*>(&g_automap_saved_ambient_light));
+    GetWorldLightValue(g_world, &g_automap_saved_ambient_light);
     GetWorldCameraState(GetWorld(), &g_automap_saved_camera);
     g_automap_saved_far_clip = static_cast<float>(WorldGetFarClip(g_world));
     g_automap_saved_world_value = WorldGetValue78(g_world);
@@ -468,7 +468,7 @@ unsigned char AutomapScreenEnter(void)
         position.y = g_automap_top_y;
         Function57FC70(&position);
         Function5820F0(g_automap_tool);
-        Function57FD90(0);
+        SetAutomapButtonMode(0);
     } else {
         g_automap_position.x = g_automap_saved_camera.position.x;
         g_automap_position.z = g_automap_saved_camera.position.z;
@@ -629,13 +629,13 @@ void AutomapScreenFrame(void)
                         position.y = g_automap_top_y;
                         Function57FC70(&position);
                         Function5820F0(g_automap_tool);
-                        Function57FD90(0);
+                        SetAutomapButtonMode(0);
                     } else {
                         float ground_y = g_automap_position.y - g_automap_zoom;
                         float height = g_automap_top_y - (g_automap_top_y - ground_y) * 0.5f;
                         if (g_automap_position.y <= height) {
                             g_automap_position.y = height;
-                            Function57FD90(1);
+                            SetAutomapButtonMode(1);
                             g_automap_zoom = g_automap_position.y - ground_y;
                             Function57FC70(&g_automap_position);
                             Function5820F0(g_automap_tool);
@@ -835,7 +835,7 @@ unsigned char GetFlag68F104(void)
 /* Select which automap buttons are enabled for the update mode, then dirty
    and redraw both and remember the mode. */
 // FUNCTION: WIZ8 0x0057FD90
-void Function57FD90(int update)
+void SetAutomapButtonMode(int update)
 {
     if (g_automap_buttons == 0) {
         g_automap_zoom_mode = update;

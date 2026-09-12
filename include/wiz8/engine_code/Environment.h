@@ -19,8 +19,7 @@ struct EnvironmentColour {
     float blue;
 };
 
-static_assert(sizeof(EnvironmentColour) == 0x0c,
-              "EnvironmentColour_must_be_0x0c");
+static_assert(sizeof(EnvironmentColour) == 0x0c, "EnvironmentColour_must_be_0x0c");
 
 /* Environment.cpp. The vertex processor that scrolls the first texture
    coordinate set of the sky's AnimatedCloudMaterial by a fixed per-frame
@@ -34,15 +33,14 @@ public:
     virtual int isActive(srVertexPipe& pipe) override;
     virtual void process(srVertexPipe& pipe) override;
 
-    float value_04;                      /* 0x04 */
-    float value_08;                      /* 0x08 */
-    unsigned char unknown_0c[8];         /* 0x0c */
-    float offset_14;                     /* 0x14 */
-    float offset_18;                     /* 0x18 */
+    float value_04;              /* 0x04 */
+    float value_08;              /* 0x08 */
+    unsigned char unknown_0c[8]; /* 0x0c */
+    float offset_14;             /* 0x14 */
+    float offset_18;             /* 0x18 */
 };
 
-static_assert(sizeof(W8MaterialMapper00482010) == 0x1c,
-              "W8MaterialMapper00482010_must_be_0x1c");
+static_assert(sizeof(W8MaterialMapper00482010) == 0x1c, "W8MaterialMapper00482010_must_be_0x1c");
 
 extern W8MaterialMapper00482010 g_material_mapper_00659738;
 
@@ -50,7 +48,6 @@ extern W8MaterialMapper00482010 g_material_mapper_00659738;
    Produced from the day-phase colour table and consumed as fog-vector
    floats; the word copies below move it without reinterpreting it. */
 extern EnvironmentColour g_light_direction_0065ad78;
-
 
 extern EnvironmentColour g_environment_colours_65a178[256];
 extern EnvironmentColour g_environment_colours_65ad98[256];
@@ -64,8 +61,7 @@ void BuildEnvironmentColourRamp00483210(void);
 void BuildLightColourRamp00483360(void);
 void UpdateEnvironmentLight004834B0(void);
 void RefreshEnvironment00483560(void);
-void SetWorldEnvironmentColour00483A60(
-    W8World* world, EnvironmentColour colour);
+void SetWorldEnvironmentColour00483A60(W8World* world, EnvironmentColour colour);
 
 void SetSkyEnabled(bool enabled);
 void EnableSky(void);
@@ -73,10 +69,10 @@ void SetFogEnabled(bool enabled);
 bool IsFogEnabled(void);
 void DisableSky(void);
 bool IsSkyEnabled(void);
-/* The ambient light the world contributes, as three raw words: the two callers
-   keep them as EnvironmentColour and srVector3T<float> respectively, so the
-   untyped word triple is retail's own answer, not a recovered gap. */
-void GetWorldLightValue(const W8World* world, int* light_value);
+/* The ambient light the world contributes as an EnvironmentColour. The
+   Automap caller already stores the result in that type; Video2 converts
+   to srVector3T<float> at its own boundary. */
+void GetWorldLightValue(const W8World* world, EnvironmentColour* pLightValue);
 void SetLightDirection(const EnvironmentColour* direction);
 void GetLightDirection(EnvironmentColour* direction);
 extern bool g_sky_enabled_0065b9ae;
@@ -84,8 +80,8 @@ void ResetEnvironment(void);
 void InitializeLevelEnvironment00482410(void);
 /* Apply one day-phase colour and intensity to the world, its environment
    lights, and the animated cloud material. */
-void ApplyEnvironmentColour00483BA0(
-    W8World* world, float intensity, const EnvironmentColour* colour);
+void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,
+                                    const EnvironmentColour* colour);
 void ReleaseEnvironmentObjects(void);
 
 /* Turn the environment clock on or off; enabling resets its tick baseline. */
@@ -98,13 +94,14 @@ void UpdateEnvironment482770(void);
 void UpdateEnvironmentLighting00484300(void);
 float GetWorldValue24(const void* world);
 void SetSkyNodeVisible(bool visible);
-void SetSkyNodeValue1D0(int value);
+void SetCameraLightIntensity00483E30(float value);
 void RefreshFogRanges004836A0(void);
 
 void SetViewDistance(float distance);
 
 extern int g_environment_value_0060a3a8;
-extern bool g_fog_enabled_0065b9ad;/* Zero unless the environment update is bypassed, in which case 0x00484300
+extern bool
+    g_fog_enabled_0065b9ad; /* Zero unless the environment update is bypassed, in which case 0x00484300
    runs instead. */
 extern float g_environment_value_0065b9b8;
 /* Last day phase the light direction and the world colour came from. */

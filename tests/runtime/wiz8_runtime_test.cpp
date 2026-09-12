@@ -811,7 +811,7 @@ static DWORD WINAPI DriveScenario(void*)
             } else {
                 /* Direct product new-game entry is the low-level bring-up
                    path; the behavioral scenario must not call it. */
-                Function54B250(1, 0);
+                RunNewGameOpeningSequence(1, 0);
             }
 
             started = GetTickCount();

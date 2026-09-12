@@ -18,7 +18,7 @@
    names their unit. */
 
 // GLOBAL: WIZ8 0x0065ba5c
-int g_value_65ba5c;
+int g_world_cursor_node_count_65ba5c;
 
 /* One record of the world cursor's node table. The 0x0048D080 constructor
    allocates 0x44 bytes and installs the 0x005ECAB8 vtable; 0x0048DB30 frees
@@ -27,9 +27,9 @@ int g_value_65ba5c;
    dwords at 0x0c-0x14 and the field at 0x20 are not reached by the recovered
    bodies. No authored name survives, so the release body's address names the
    class. */
-class W8CursorNode0048DB30 {
+class W8WorldCursorNode0048DB30 {
 public:
-    virtual ~W8CursorNode0048DB30() {}
+    virtual ~W8WorldCursorNode0048DB30() {}
     srNode* node_04;                      /* 0x04 */
     unsigned char unknown_08[0x10];
     void* buffer_18;                      /* 0x18 */
@@ -37,11 +37,11 @@ public:
     int value_20;                         /* 0x20 */
     unsigned char unknown_24[0x20];       /* 0x24 */
 };
-static_assert(sizeof(W8CursorNode0048DB30) == 0x44,
-              "W8CursorNode0048DB30_size");
+static_assert(sizeof(W8WorldCursorNode0048DB30) == 0x44,
+              "W8WorldCursorNode0048DB30_size");
 
 // GLOBAL: WIZ8 0x0065ba64
-W8CursorNode0048DB30** g_array_65ba64;
+W8WorldCursorNode0048DB30** g_world_cursor_nodes_65ba64;
 
 /* The double selection range at 0x005ECAC8: node distances below it select the
    node. Read as 75000.0, not the zero a float view would give. */
@@ -52,9 +52,9 @@ const double g_double_005ecac8 = 75000.0;
 int g_cursor_node_index_0060a9b0 = -1;
 
 // FUNCTION: WIZ8 0x0048ED00
-int GetValue65BA5C(void)
+int GetWorldCursorNodeCount0048ED00(void)
 {
-    return g_value_65ba5c;
+    return g_world_cursor_node_count_65ba5c;
 }
 
 /* Reparent the world's cursor-attached nodes onto the dynamic scene, or
@@ -63,10 +63,10 @@ int GetValue65BA5C(void)
 // FUNCTION: WIZ8 0x0048ED70
 void SetWorldCursorNodesVisible0048ED70(unsigned char visible)
 {
-    unsigned int count = g_value_65ba5c;
+    unsigned int count = g_world_cursor_node_count_65ba5c;
 
     for (unsigned int index = 0; index < count; ++index) {
-        W8CursorNode0048DB30* entry = g_array_65ba64[index];
+        W8WorldCursorNode0048DB30* entry = g_world_cursor_nodes_65ba64[index];
 
         if (entry != 0) {
             srNode* parent = 0;
@@ -79,9 +79,12 @@ void SetWorldCursorNodesVisible0048ED70(unsigned char visible)
 }
 
 /* Select the cursor node nearest the camera within the selection distance,
-   remembering it for the next call. Answers whether one was close enough. */
+   remembering it for the next call. Answers whether one was close enough.
+   Retail loads entry->node_04->getLocation() before TEST ESI,ESI on both the
+   cached-index path and the table scan; there is no separate node_04 null
+   check. Keep that load order. */
 // FUNCTION: WIZ8 0x0048EFC0
-unsigned char SelectWorldCursorNode0048EFC0(void)
+bool SelectWorldCursorNode0048EFC0(void)
 {
     if (g_world != 0 && g_world->camera != 0) {
         srVector3T<float> camera_position;
@@ -90,8 +93,8 @@ unsigned char SelectWorldCursorNode0048EFC0(void)
         GetCameraPosition(&camera_position);
         camera_location.SetFromFloat(&camera_position);
         int selected = g_cursor_node_index_0060a9b0;
-        if (selected >= 0 && selected < g_value_65ba5c) {
-            W8CursorNode0048DB30* entry = g_array_65ba64[selected];
+        if (selected >= 0 && selected < g_world_cursor_node_count_65ba5c) {
+            W8WorldCursorNode0048DB30* entry = g_world_cursor_nodes_65ba64[selected];
             srVector3T<double> target = entry->node_04->getLocation();
 
             if (entry != 0) {
@@ -103,9 +106,9 @@ unsigned char SelectWorldCursorNode0048EFC0(void)
                 }
             }
         }
-        int count = g_value_65ba5c;
+        int count = g_world_cursor_node_count_65ba5c;
         for (int index = 0; index < count; ++index) {
-            W8CursorNode0048DB30* entry = g_array_65ba64[index];
+            W8WorldCursorNode0048DB30* entry = g_world_cursor_nodes_65ba64[index];
             srVector3T<double> target = entry->node_04->getLocation();
 
             if (entry != 0) {
@@ -128,8 +131,8 @@ unsigned char SelectWorldCursorNode0048EFC0(void)
 // FUNCTION: WIZ8 0x0048DB30
 void ReleaseWorldCursorNodes0048DB30(void)
 {
-    while (g_value_65ba5c != 0) {
-        W8CursorNode0048DB30* entry = g_array_65ba64[0];
+    while (g_world_cursor_node_count_65ba5c != 0) {
+        W8WorldCursorNode0048DB30* entry = g_world_cursor_nodes_65ba64[0];
 
         if (entry != 0) {
             if (entry->buffer_18 != 0) {
@@ -139,13 +142,13 @@ void ReleaseWorldCursorNodes0048DB30(void)
             entry->size_1c = 0;
             entry->node_04->setParent(0, 1);
             entry->node_04->release();
-            for (int index = 0; index < g_value_65ba5c; ++index) {
-                if (g_array_65ba64[index] == entry) {
-                    for (int shift = index; shift < g_value_65ba5c - 1;
+            for (int index = 0; index < g_world_cursor_node_count_65ba5c; ++index) {
+                if (g_world_cursor_nodes_65ba64[index] == entry) {
+                    for (int shift = index; shift < g_world_cursor_node_count_65ba5c - 1;
                          ++shift) {
-                        g_array_65ba64[shift] = g_array_65ba64[shift + 1];
+                        g_world_cursor_nodes_65ba64[shift] = g_world_cursor_nodes_65ba64[shift + 1];
                     }
-                    --g_value_65ba5c;
+                    --g_world_cursor_node_count_65ba5c;
                     break;
                 }
             }

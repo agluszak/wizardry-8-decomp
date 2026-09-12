@@ -5,6 +5,7 @@
 #include "wiz8/game_status.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/magic.h"
@@ -416,9 +417,9 @@ void RecallCasterToSavedLocation(W8SpellQueueEntry* pQueue)
    or a current state past the idle slot all answer yes; otherwise the idle
    check decides. */
 // FUNCTION: WIZ8 0x00554540
-unsigned char Function554540(void)
+unsigned char IsScreenBusy(void)
 {
-    if (g_in_combat_00683f94 != 0) {
+    if (gXStatus.fCombatMode != 0) {
         return 1;
     }
     if (IsModalOpen()) {

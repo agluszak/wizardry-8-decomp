@@ -1,6 +1,8 @@
 #ifndef WIZ8_GAMEPLAY_MODIFIERS_H
 #define WIZ8_GAMEPLAY_MODIFIERS_H
 
+#include <stddef.h>
+
 /*
  * The two packed records the gameplay-modifier passes accumulate through.
  *
@@ -10,7 +12,8 @@
  * later independently typed fields; their originating array bound is
  * unresolved. A W8GameplayModifierBlock is the 0x67-byte
  * accumulator those slots and the worn equipment fold into, one block per
- * character plus the party-wide block in the status record.
+ * character plus the party-wide block in the status record. Monsters keep
+ * the same record at W8MonsterInfo::modifiers_1db.
  */
 
 #pragma pack(push, 1)
@@ -42,10 +45,10 @@ struct W8GameplayModifierBlock {
     signed char value_03;                 /* 0x03: added to the hand attack damage bonus */
     signed char armor_bonus_04;           /* 0x04 */
     signed char armor_bonus_05;           /* 0x05 */
-    unsigned char value_06;               /* 0x06: added to damage reduction */
+    signed char damage_reduction_adjustment; /* 0x06: added to damage reduction */
     signed char resistance_bonus_all;     /* 0x07: added to every resistance */
     unsigned char unknown_08[4];          /* 0x08 .. 0x0b */
-    unsigned char unknown_0c[7];          /* 0x0c .. 0x12 */
+    signed char attribute_adjustments[7]; /* 0x0c .. 0x12 */
     unsigned char unknown_13[0x29];       /* 0x13 .. 0x3b */
     signed char resistance_bonus[6];      /* 0x3c .. 0x41 */
     unsigned char flag_42;                /* 0x42 .. 0x44: doubled from the trait pass */
@@ -61,6 +64,10 @@ struct W8GameplayModifierBlock {
     unsigned char unknown_4c[0x1b];       /* 0x4c .. 0x66 */
 };                                        /* 0x67 */
 
+static_assert(offsetof(W8GameplayModifierBlock, damage_reduction_adjustment) == 0x06,
+              "W8GameplayModifierBlock_damage_reduction_offset");
+static_assert(offsetof(W8GameplayModifierBlock, attribute_adjustments) == 0x0c,
+              "W8GameplayModifierBlock_attribute_adjustments_offset");
 static_assert(sizeof(W8GameplayModifierBlock) == 0x67,
               "W8GameplayModifierBlock_must_be_0x67");
 

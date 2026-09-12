@@ -25,7 +25,7 @@ struct W8MainGameResourceSlot {
     int image_id;
 };
 static_assert(sizeof(W8MainGameResourceSlot) == 0x14, "W8MainGameResourceSlot_size");
-extern W8MainGameResourceSlot g_main_game_resource_slots_64827c[17];
+extern W8MainGameResourceSlot g_main_game_resource_slots[17];
 
 #include "wiz8/screen_state.h"
 
@@ -37,26 +37,35 @@ extern W8MainGameResourceSlot g_main_game_resource_slots_64827c[17];
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/local_code/Controls.h"
 
+#include <cstddef>
+
 /* Local Screens\MainGameScreen.cpp owns the live level-screen state. */
 
 #pragma pack(push, 1)
 struct W8LevelRuntimeBlock {
-    unsigned char unknown_000[0xf4];
-    unsigned int redraw_flags;
-    unsigned char unknown_0f8[8];
-    int camera_mode_100;
-    unsigned int hover_region;
-    unsigned char unknown_108[0x4c];
+    unsigned char unknown_000[0xf0];
+    unsigned char flag_0f0; /* 0x0f0 */
+    unsigned char unknown_0f1[3];
+    unsigned int redraw_flags; /* 0x0f4 */
+    unsigned char unknown_0f8[4];
+    int value_0fc;                    /* 0x0fc */
+    int camera_mode_100;              /* 0x100 */
+    unsigned int hover_region;        /* 0x104 */
+    unsigned char flag_108;           /* 0x108 */
+    unsigned char party_bytes_109[8]; /* 0x109 */
+    unsigned char unknown_111[3];
+    int values_114[8]; /* 0x114 */
+    int values_134[8]; /* 0x134 */
     unsigned char pick_changed_154;
     unsigned char flag_155;
     unsigned char flag_156;
     unsigned char flag_157;
     unsigned char unknown_158[0x14];
-    int highlight_override;
-    unsigned char unknown_170[0x20];
-    int held_item_display_190;
-    unsigned char unknown_194[0x14];
-    int text_lines[12];
+    int highlight_override;    /* 0x16c */
+    int values_170[8];         /* 0x170 */
+    int held_item_display_190; /* 0x190 */
+    int values_194[5];         /* 0x194 */
+    int text_lines[12];        /* 0x1a8 */
     int text_slots_1d8[4];
     int text_slots_1e8[4];
     unsigned char dialogue_open;
@@ -66,7 +75,14 @@ struct W8LevelRuntimeBlock {
        and the three teardown slots below; the filling producers are
        unrecovered, so the concrete class stays unresolved. */
     srClass* dialogue_owner;
-    unsigned char unknown_200[0x44];
+    int values_200[4];      /* 0x200 */
+    unsigned char flag_210; /* 0x210 */
+    unsigned char unknown_211[3];
+    unsigned int clock_214; /* 0x214 */
+    unsigned char flag_218; /* 0x218 */
+    unsigned char unknown_219[0x23];
+    int value_23c;                   /* 0x23c */
+    int value_240;                   /* 0x240 */
     unsigned int world_update_flags; /* 0x244 */
     unsigned int world_render_flags; /* 0x248 */
     unsigned char unknown_24c;
@@ -74,20 +90,33 @@ struct W8LevelRuntimeBlock {
     unsigned char unknown_24e[2];
     unsigned int character_update_timer; /* 0x250 */
     unsigned int world_update_timer;     /* 0x254 */
-    unsigned char unknown_258[8];
-    unsigned char transition_active;  /* 0x260 */
-    unsigned char transition_pending; /* 0x261 */
+    unsigned int countdown_258;          /* 0x258 */
+    unsigned int countdown_25c;          /* 0x25c */
+    unsigned char transition_active;     /* 0x260 */
+    unsigned char transition_pending;    /* 0x261 */
     unsigned char unknown_262[2];
     int highlighted_item;
     int selected_item;
-    unsigned char unknown_26c[0x10];
+    unsigned int countdown_26c; /* 0x26c */
+    unsigned char flag_270;
+    unsigned char flag_271;
+    unsigned char flag_272;
+    unsigned char unknown_273;
+    unsigned int tick_274; /* 0x274 */
+    int value_278;         /* 0x278 */
     int pending_level;
     int pending_entry_id;
-    unsigned char unknown_284[0x1c];
+    int value_284; /* 0x284 */
+    int value_288; /* 0x288 */
+    int value_28c; /* 0x28c */
+    unsigned char unknown_290[0x10];
     srClass* unknown_2a0;
     srClass* unknown_2a4;
     srClass* unknown_2a8;
-    unsigned char unknown_2ac[0x14];
+    int value_2ac; /* 0x2ac */
+    int value_2b0; /* 0x2b0 */
+    int value_2b4; /* 0x2b4 */
+    unsigned char unknown_2b8[8];
     unsigned char refresh_combat_panel;
     unsigned char unknown_2c1[3];
     unsigned int combat_panel_timer;
@@ -102,9 +131,9 @@ struct W8LevelRuntimeBlock {
     int move_budget_2e0;
     unsigned char unknown_2e4[4];
     int value_2e8;
-    unsigned char unknown_2ec[4];
+    unsigned short* palette_2ec; /* 0x2ec */
     int selection_kind;
-    unsigned char unknown_2f4[4];
+    int value_2f4; /* 0x2f4 */
     unsigned char selection_settled;
     unsigned char unknown_2f9[3];
     unsigned int tooltip_since;
@@ -112,27 +141,52 @@ struct W8LevelRuntimeBlock {
     unsigned char unknown_301[3];
     int tooltip_subject;
     int tooltip_kind;
-    unsigned char unknown_30c[4];
-    int combat_slot; /* 0x310 */
+    unsigned int countdown_30c; /* 0x30c */
+    int combat_slot;            /* 0x310 */
     unsigned char flag_314;
     unsigned char unknown_315[3];
     int hover_combat_slot; /* 0x318 */
-    unsigned char unknown_31c[0xb];
+    unsigned char flag_31c;
+    unsigned char unknown_31d[3];
+    unsigned int countdown_320;
+    unsigned char flag_324;
+    unsigned char flag_325;
+    unsigned char flag_326;
     unsigned char flag_327;
     unsigned char flag_328;
-    unsigned char unknown_329[7];
+    unsigned char unknown_329[3];
+    unsigned int countdown_32c;
 };
 #pragma pack(pop)
 
 static_assert(sizeof(W8LevelRuntimeBlock) == 0x330, "W8LevelRuntimeBlock_must_be_0x330");
+static_assert(offsetof(W8LevelRuntimeBlock, flag_0f0) == 0x0f0, "W8LevelRuntimeBlock_flag_0f0");
+static_assert(offsetof(W8LevelRuntimeBlock, value_0fc) == 0x0fc, "W8LevelRuntimeBlock_value_0fc");
+static_assert(offsetof(W8LevelRuntimeBlock, party_bytes_109) == 0x109,
+              "W8LevelRuntimeBlock_party_bytes_109");
+static_assert(offsetof(W8LevelRuntimeBlock, values_114) == 0x114, "W8LevelRuntimeBlock_values_114");
+static_assert(offsetof(W8LevelRuntimeBlock, values_134) == 0x134, "W8LevelRuntimeBlock_values_134");
+static_assert(offsetof(W8LevelRuntimeBlock, values_170) == 0x170, "W8LevelRuntimeBlock_values_170");
+static_assert(offsetof(W8LevelRuntimeBlock, values_194) == 0x194, "W8LevelRuntimeBlock_values_194");
+static_assert(offsetof(W8LevelRuntimeBlock, values_200) == 0x200, "W8LevelRuntimeBlock_values_200");
+static_assert(offsetof(W8LevelRuntimeBlock, flag_210) == 0x210, "W8LevelRuntimeBlock_flag_210");
+static_assert(offsetof(W8LevelRuntimeBlock, clock_214) == 0x214, "W8LevelRuntimeBlock_clock_214");
+static_assert(offsetof(W8LevelRuntimeBlock, countdown_258) == 0x258,
+              "W8LevelRuntimeBlock_countdown_258");
+static_assert(offsetof(W8LevelRuntimeBlock, countdown_26c) == 0x26c,
+              "W8LevelRuntimeBlock_countdown_26c");
+static_assert(offsetof(W8LevelRuntimeBlock, palette_2ec) == 0x2ec,
+              "W8LevelRuntimeBlock_palette_2ec");
+static_assert(offsetof(W8LevelRuntimeBlock, countdown_32c) == 0x32c,
+              "W8LevelRuntimeBlock_countdown_32c");
 
-class W8MainGameScreen005EEBD8;
+class W8MainGameScreen;
 
 /* 0x00587CF0 constructs this concrete key handler.  Its primary vtable is the
    W8Widget table extended by one entry: slot 0x48 points at
    0x00588170 and accepts the key code forwarded by TextBoxHandleKey. */
 // VTABLE: WIZ8 0x005eeafc
-class W8MainGameTextKeyHandler005EEAFC : public W8Widget, public W8RangeListener {
+class W8MainGameTextKeyHandler : public W8Widget, public W8RangeListener {
 public:
     virtual char HandleKey(unsigned short key);
     virtual void OnRangeChanged(W8RangeControl* control) override;
@@ -146,28 +200,27 @@ public:
     int m_field_0b8;
     W8RangeListener* m_range_listener_0bc;
 };
-static_assert(sizeof(W8MainGameTextKeyHandler005EEAFC) == 0xc0,
-              "W8MainGameTextKeyHandler005EEAFC_size");
+static_assert(sizeof(W8MainGameTextKeyHandler) == 0xc0, "W8MainGameTextKeyHandler_size");
 
 /* The text panel's constructor at 0x005884D0 begins with Controls::Controls.
    The two secondary bases are installed at 0x4c and 0x50, before its own
    fields. */
 // VTABLE: WIZ8 0x005eeba8
-class W8MainGameTextPanel005EEBA8 : public Controls,
-                                    public W8TextControl::Listener,
-                                    public W8RangeListener {
+class W8MainGameTextPanel : public Controls,
+                            public W8TextControl::Listener,
+                            public W8RangeListener {
 public:
-    W8MainGameTextPanel005EEBA8();          /* 0x005884D0 */
-    virtual ~W8MainGameTextPanel005EEBA8(); /* 0x00588770 */
+    W8MainGameTextPanel();          /* 0x005884D0 */
+    virtual ~W8MainGameTextPanel(); /* 0x00588770 */
     virtual void Redraw() override;
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSecondary(W8TextControl*) override {}
     virtual void OnRangeChanged(W8RangeControl* control) override;
 
     W8TextControl* m_entries_054[8];
-    W8MainGameTextKeyHandler005EEAFC* m_key_handler_074;
+    W8MainGameTextKeyHandler* m_key_handler_074;
     int m_selection_078;
-    W8MainGameScreen005EEBD8* m_screen_07c;
+    W8MainGameScreen* m_screen_07c;
     int* m_values_080;
     unsigned char m_flag_084;
     unsigned char m_unknown_085[0xf];
@@ -180,7 +233,7 @@ public:
     unsigned char m_flag_141;
     unsigned char m_pad_142[2];
 };
-static_assert(sizeof(W8MainGameTextPanel005EEBA8) == 0x144, "W8MainGameTextPanel005EEBA8_size");
+static_assert(sizeof(W8MainGameTextPanel) == 0x144, "W8MainGameTextPanel_size");
 
 /* The 0x00588A90 constructor establishes a Controls-derived status panel. */
 // VTABLE: WIZ8 0x005eebc0
@@ -201,9 +254,15 @@ public:
 };
 static_assert(sizeof(W8MainGameStatusPanel005EEBC0) == 0x6c, "W8MainGameStatusPanel005EEBC0_size");
 
-/* The primary base supplies the pure virtual destructor table installed at
-   the start of 0x00589160.  W8TextControl::Listener is the proven
-   secondary base at +0x04. */
+/* 0x005eebdc is the construction-phase primary table installed at the start
+   of 0x00589160; 0x005eebd8 is the complete-object table. The primary is a
+   4-byte table whose only recovered slot is a pure destructor. No independent
+   base constructor, destructor, or source identity names a distinct authored
+   type for that first vptr. The constructor and destructor bodies themselves
+   are unrecovered, so this empty primary is retained as the ABI prefix rather
+   than collapsed on the vptr observation alone. W8TextControl::Listener is the
+   proven secondary base at +0x04: collapsing it into Listener-only inheritance
+   would move Listener to +0 and shrink the object. */
 // VTABLE: WIZ8 0x005eebdc
 class W8MainGameScreenBase005EEBDC {
 public:
@@ -211,16 +270,15 @@ public:
 };
 
 // VTABLE: WIZ8 0x005eebd8
-class W8MainGameScreen005EEBD8 : public W8MainGameScreenBase005EEBDC,
-                                 public W8TextControl::Listener {
+class W8MainGameScreen : public W8MainGameScreenBase005EEBDC, public W8TextControl::Listener {
 public:
-    W8MainGameScreen005EEBD8(void* owner);        /* 0x00589160 */
-    virtual ~W8MainGameScreen005EEBD8() override; /* 0x005894B0 */
+    W8MainGameScreen(void* owner);        /* 0x00589160 */
+    virtual ~W8MainGameScreen() override; /* 0x005894B0 */
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSecondary(W8TextControl*) override {}
 
     void* m_owner_008;
-    W8MainGameTextPanel005EEBA8* m_text_panel_00c;
+    W8MainGameTextPanel* m_text_panel_00c;
     W8MainGameStatusPanel005EEBC0* m_status_panel_010;
     Controls* m_action_panel_014;
     int m_state_018;
@@ -233,10 +291,10 @@ public:
     int m_field_150;
     W8GameTimer m_timer_154;
 };
-static_assert(sizeof(W8MainGameScreen005EEBD8) == 0x178, "W8MainGameScreen005EEBD8_size");
+static_assert(sizeof(W8MainGameScreen) == 0x178, "W8MainGameScreen_size");
 
 extern W8LevelRuntimeBlock* g_level_block;
-extern W8MainGameScreen005EEBD8* g_main_game_screen_0068f2d4;
+extern W8MainGameScreen* g_main_game_screen;
 
 class W8DialogBase;
 extern W8DialogBase* g_modal_owner_0068edd0;
@@ -281,7 +339,7 @@ void Function56C5E0(W8NpcState* npc, int value, int line, int suppress, int arg)
 void ResetMainGameScreenState(void);
 /* 0x0056C520: zero W8MainScreenState, write its reset values, and reload the
    keyword lists through the loader below. */
-void Function56C520(void);
+void ResetMainScreenStateBlock(void);
 
 /* 0x0068EE80: the dialogue keyword tables, one file list per language;
    element zero is English_Keywords.txt and element one the translated list.
@@ -311,8 +369,6 @@ unsigned char Function577A40(void);
 unsigned int HitTestPartyPortrait(const InputAtom* event);
 void RequestRefreshPartyState(void);
 void Function593330(void);
-/* 0x0058AC00: post the wide message through the notice pane. */
-void Function58AC00(int a, const wchar_t* message, int b, int c, int d);
 int IsScreenIdle(void);
 bool IsModalOpen(void);
 
@@ -329,16 +385,9 @@ extern unsigned char g_flag_00685076;
 extern signed char g_value_00685077;
 extern unsigned char g_flag_006840bc;
 extern unsigned char g_flag_00685070;
-extern unsigned char g_flag_00683f95;
-extern unsigned char g_flag_00683f96;
-extern unsigned char g_flag_00683f97;
 
 void Function5929D0(void);
 void Function592A10(void);
-extern unsigned char g_flag_00683f98;
-extern unsigned char g_flag_00683f99;
-extern unsigned char g_flag_00683f9a;
-extern unsigned char g_flag_00683fcd;
 extern int g_flag_006850ce;
 extern unsigned char g_flag_0068edbc;
 extern unsigned char g_flag_0068edc8;
@@ -386,4 +435,8 @@ void SetCombatTarget(int value);    /* 0x0056A2D0 */
 void RequestRedrawCombatBar(void);    /* 0x005699B0 */
 void UpdateScreenOverlays(int frame); /* 0x0056AF20 */
 void DisableMainRegionSet(void);      /* 0x00561FB0 */
-extern unsigned char g_flag_00683fce;
+void Function598AB0(void);
+void Function59C930(int slot);
+void Function598AE0(void);
+void Function59B270(void);
+void Function59C9C0(void);

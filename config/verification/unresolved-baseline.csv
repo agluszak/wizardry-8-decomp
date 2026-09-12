@@ -125,7 +125,7 @@ symbol
 ?FindLightByName00445A10@@YAPAVstLight@@PBDPBVsrRuntimeClass@@@Z
 ?FindMonsterLocationsInBox0042F280@@YAIPAPAHPBV?$srVector3T@M@@1HH@Z
 ?FindPathHandle@W8Pathing00457CF0@@QAEIPBEPAGPAM@Z
-?FireMissileSourceToTarget@@YAXHPAUW8TargetSource@@PAUW8CombatSlot@@PAXEIH@Z
+?FireMissileSourceToTarget@@YAXHPAUW8TargetSource@@PAUW8CombatSlot@@PAUW8MissileAttackBlock@@EIH@Z
 ?FormatItemDisplayName@@YAPAGPBUW8ItemInstance@@H@Z
 ?FormatString@@YAPADPBDZZ
 ?Function401920@@YAXPBD@Z

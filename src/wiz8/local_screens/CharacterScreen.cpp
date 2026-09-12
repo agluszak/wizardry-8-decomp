@@ -9,6 +9,7 @@
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/dialog_code/SpellInfoDialog.h"
 #include "wiz8/local_screens/CharacterScreen.h"
+#include "wiz8/xstatus.h"
 
 #include "wiz8/cursor.h"
 #include "wiz8/combat_state.h"
@@ -47,7 +48,6 @@ extern void Function52DDD0(void);
 
 extern unsigned char SaveCharacter(W8Character*, int, char, void (*)(void));
 
-extern unsigned char g_in_combat_00683f94;
 // GLOBAL: WIZ8 0x0061e3a4
 unsigned short g_character_description_first_ids_61e3a4[22] = {
     0x274, 0x275, 0x276, 0x277, 0x278, 0x279, 0x27a, 0, 0x27b, 0x27c, 0x27d,
@@ -186,7 +186,7 @@ void W8CharacterScreen::BuildControls()
     if (m_mode_008 == 1 && g_status_685170.game_started != 0 &&
         CharacterPointerToPartySlot(m_original_014) > 1) {
         m_reset_1b04->SetActive(1);
-        if (g_in_combat_00683f94 != 0) {
+        if (gXStatus.fCombatMode != 0) {
             m_reset_1b04->SetEnabled(0);
         }
     }
@@ -334,7 +334,7 @@ void W8CharacterScreen::OnPrimary(W8TextControl* control)
     else if (control == m_reset_1b04) {
         memset(m_page_enabled_1b08, 1, sizeof(m_page_enabled_1b08));
         m_force_transition_1aee = 1;
-        Function556DC0(&m_character_018, &m_creation_state_187c);
+        InitializeCharacterCreation(&m_character_018, &m_creation_state_187c);
         m_mode_008 = 0;
         m_pages_1b0c[3]->m_mode_068 = 0;
         m_reset_1b04->SetActive(0);
@@ -379,7 +379,7 @@ void W8CharacterScreen::AdvancePage(unsigned char forward)
             if (m_mode_008 == 2 &&
                 m_character_018.current_profession != m_original_014->current_profession &&
                 !m_confirm_profession_1aed) {
-                int value = Function557FD0(m_original_014, &m_character_018);
+                int value = ComputeRealmSkillDebt(m_original_014, &m_character_018);
                 if (value > 0) {
                     ShowMessage(FormatWideString(
                         gppStringList[0x36c / 4],
@@ -483,11 +483,11 @@ void W8CharacterScreen::SyncCharacterForPage(int index)
 {
     if (m_page_index_00c > index) return;
     if (index == 0) {
-        if (m_mode_008 == 0) Function556DC0(&m_character_018, &m_creation_state_187c);
-        else if (m_mode_008 == 2) Function556CC0(&m_character_018, &m_creation_state_187c);
+        if (m_mode_008 == 0) InitializeCharacterCreation(&m_character_018, &m_creation_state_187c);
+        else if (m_mode_008 == 2) InitializeCharacterLevelUp(&m_character_018, &m_creation_state_187c);
     }
     else if (index == 1) {
-        Function558180(&m_character_018, &m_creation_state_187c);
+        CountRemainingSpellPoints(&m_character_018, &m_creation_state_187c);
     }
     else if (index == 3) {
         if (m_character_018.table_value_0079 < 0) DeriveCharacterPersonality004EFA30(&m_character_018);
@@ -603,7 +603,7 @@ unsigned char W8CharacterScreen::CommitCharacter()
 void Function5B1AF0(int skill_id)
 {
     W8CharacterScreen* screen = g_character_screen_0069c2e8;
-    Function557C90(&screen->m_character_018, &screen->m_creation_state_187c, skill_id);
+    ResetSkillContribution(&screen->m_character_018, &screen->m_creation_state_187c, skill_id);
     if (screen->m_pages_1b0c[2] != 0) {
         screen->m_pages_1b0c[2]->Refresh();
     }
@@ -613,7 +613,7 @@ void Function5B1AF0(int skill_id)
 void Function5B1B30(int skill_id)
 {
     W8CharacterScreen* screen = g_character_screen_0069c2e8;
-    Function557D20(&screen->m_character_018, &screen->m_creation_state_187c, skill_id);
+    RefundSkillAllocation(&screen->m_character_018, &screen->m_creation_state_187c, skill_id);
     if (screen->m_pages_1b0c[2] != 0) {
         screen->m_pages_1b0c[2]->Refresh();
     }

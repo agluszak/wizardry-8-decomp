@@ -23,8 +23,6 @@
 static const char MONSTER_GROUP_CPP[] =
     "C:\\Projects\\Wizardry 8\\Local Code\\MonsterGroup.cpp";
 
-extern W8NpcState* Function50A440(unsigned int monster_list_index);  /* 0x0050A440 */
-
 /* Group list indices above this select the encounter list instead, biased by
    exactly this much - the same split the monster list uses. */
 enum { W8_ENCOUNTER_GROUP_INDEX_BIAS = 10000 };
@@ -102,7 +100,7 @@ unsigned char MonsterGroupCalcDefaultDisposition(W8MonsterGroup* monster_group)
     }
     record = MonsterDBFromSpecies(monster_group->monster_id);
     if ((record->flags_0d0 & 1) != 0) {
-        npc_record = Function50A440(
+        npc_record = FindNpcBindingForMonster(
             MonsterGetIndexByLocationID(
                 0x75a, MONSTER_GROUP_CPP,
                 IListGetAt(monster_group->monsters, 0), 1));

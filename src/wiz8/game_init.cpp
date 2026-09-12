@@ -83,7 +83,7 @@ unsigned char InitializeGame(void)
         DisableMouseFastHelp();
     }
     SetFastHelpDelay((unsigned short)g_settings_6850c8.tooltip_delay_ms);
-    Function54AF30(0);
+    ResetGameStatus(0);
     InitializeGameplayRuntimeObjects();
     UpdateHeldItemCursor();
     if (!VerifyDataSubdirs()) {
@@ -95,7 +95,7 @@ unsigned char InitializeGame(void)
     if (!InitializeItemTables()) {
         return 0;
     }
-    if (!Function54A760(0)) {
+    if (!LoadMonsterDatabase(0)) {
         return 0;
     }
     if (!InitializeNpcDatabase()) {

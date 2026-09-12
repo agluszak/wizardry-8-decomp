@@ -20,6 +20,30 @@ def _settings(tmp_path: Path) -> Settings:
     )
 
 
+def test_compile_db_files_include_local_checkout_paths(tmp_path: Path) -> None:
+    repository = tmp_path / "checkout"
+    local = repository / "src/wiz8/Combat.cpp"
+    local.parent.mkdir(parents=True)
+    local.write_text("", encoding="utf-8")
+    database = tmp_path / "compile_commands.json"
+    database.write_text(
+        json.dumps(
+            [
+                {"file": "/repo/src/wiz8/Combat.cpp"},
+                {"file": str(local)},
+                {"file": "/zlib/adler32.c"},
+                {"file": "src/surrender/srCore.cpp"},
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    assert source_index._compile_db_files(database, repository) == {
+        "src/wiz8/Combat.cpp",
+        "src/surrender/srCore.cpp",
+    }
+
+
 def test_program_target_resolution_uses_configured_identity() -> None:
     repository = Path(__file__).resolve().parents[2]
 

@@ -21,7 +21,7 @@ struct W8WorldCursorState {
     /* 0x28: read back by the path-visualization update as a world point. */
     srVector3T<float> position_28;
     unsigned char unknown_34[0xc];
-    unsigned char visible_40;
+    bool visible_40;
     unsigned char unknown_41[0x0b];
     /* 0x4c: the camera-distance value restored to the shared slot when the
        cursor is destroyed. */
@@ -30,14 +30,14 @@ struct W8WorldCursorState {
 };
 #pragma pack(pop)
 
-static_assert(sizeof(W8WorldCursorState) == 0xe0,
-              "W8WorldCursorState_size");
+static_assert(sizeof(W8WorldCursorState) == 0xe0, "W8WorldCursorState_size");
 
 extern W8WorldCursorState* g_world_cursor_0065ba8c;
 bool IsWorldCursorVisible(void);
 void GetWorldCursorPosition00490BF0(srVector3T<float>* position);
 void SetWorldCursorNodesVisible0048ED70(unsigned char visible);
-unsigned char SelectWorldCursorNode0048EFC0(void);
+bool SelectWorldCursorNode0048EFC0(void);
+int GetWorldCursorNodeCount0048ED00(void);
 void HideWorldCursor00490B90(void);
 void ReleaseWorldCursor004909C0(void);
 void ReleaseWorldCursorNodes0048DB30(void);

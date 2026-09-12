@@ -67,7 +67,7 @@ void ReleaseWorldCursor004909C0(void)
     g_float_60ab44 = cursor->value_4c;
     SetFlag603C60();
     RequestRefreshPartyState();
-    Function53B160();
+    ClearTargetMarker();
     free(cursor);
     g_world_cursor_0065ba8c = 0;
 }
