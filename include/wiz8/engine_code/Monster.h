@@ -161,9 +161,9 @@ public:
     unsigned char GetPatrolPoint004CA360(srVector3T<float>* point);
     void TrackSoundHandle004CA6E0(int handle);
     float GetDistanceToPlayer004C7CB0();
-    float GetPointDistanceToPlayer004C7D50(float x, float y, float z);
+    float GetPointDistanceToPlayer004C7D50(srVector3T<float> point);
     float GetDistanceToMonster004C7DD0(W8Monster* monster);
-    float GetPointDistanceToMonster004C7E80(W8Monster* monster, float x, float y, float z);
+    float GetPointDistanceToMonster004C7E80(W8Monster* monster, srVector3T<float> point);
     unsigned char SetScript004C7F10(const char* script_name, unsigned char reset_orders);
     void ProcessScript004C80E0();
     unsigned char GetProjectilePosition004C77F0(srVector3T<float>* position);

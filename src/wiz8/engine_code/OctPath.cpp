@@ -2048,11 +2048,10 @@ W8PathingService::TestSearchPositionVisibility00464CC0(const srVector3T<float>* 
     W8Monster* monster = GetMonsterByLocationID((unsigned int)movement->location_id_004);
     float distance;
     if (trace_target_location_0c0 == -1) {
-        distance = monster->GetPointDistanceToPlayer004C7D50(position->x, position->y, position->z);
+        distance = monster->GetPointDistanceToPlayer004C7D50(*position);
     } else {
         W8Monster* target = GetMonsterByLocationID(trace_target_location_0c0);
-        distance = monster->GetPointDistanceToMonster004C7E80(target, position->x, position->y,
-                                                              position->z);
+        distance = monster->GetPointDistanceToMonster004C7E80(target, *position);
     }
     if (trace_max_distance_0a8 < distance) {
         return 0;

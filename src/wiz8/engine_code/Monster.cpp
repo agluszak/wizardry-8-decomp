@@ -2980,10 +2980,9 @@ float W8Monster::GetDistanceToPlayer004C7CB0()
 }
 
 // FUNCTION: WIZ8 0x004c7d50
-float W8Monster::GetPointDistanceToPlayer004C7D50(float x, float y, float z)
+float W8Monster::GetPointDistanceToPlayer004C7D50(srVector3T<float> point)
 {
     srVector3T<float> player_position;
-    srVector3T<float> point(x, y, z);
     float distance;
 
     GetCameraPosition(&player_position);
@@ -3011,10 +3010,9 @@ float W8Monster::GetDistanceToMonster004C7DD0(W8Monster* monster)
 }
 
 // FUNCTION: WIZ8 0x004c7e80
-float W8Monster::GetPointDistanceToMonster004C7E80(W8Monster* monster, float x, float y, float z)
+float W8Monster::GetPointDistanceToMonster004C7E80(W8Monster* monster, srVector3T<float> point)
 {
     srVector3T<float> position = monster->GetPosition();
-    srVector3T<float> point(x, y, z);
     float distance = (point - position).Length() - movement_0c0.alternate_radius_0b4 -
                      monster->movement_0c0.alternate_radius_0b4;
 
