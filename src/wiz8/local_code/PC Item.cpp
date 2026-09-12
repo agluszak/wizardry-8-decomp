@@ -1023,7 +1023,8 @@ void GetOriginOfCharacterItem(int character_index, void* item, unsigned char* or
         }
     }
 
-    for (pool_index = 0; pool_index < g_status_685170.party_item_count_1791; ++pool_index) {
+    for (pool_index = 0; pool_index < (unsigned int)g_status_685170.party_item_count_1791;
+         ++pool_index) {
         if (item == &g_status_685170.party_item_pool_0021[pool_index]) {
             *origin = 2;
             *slot = (unsigned short)pool_index;
