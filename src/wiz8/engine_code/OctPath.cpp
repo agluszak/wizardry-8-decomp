@@ -1107,18 +1107,17 @@ unsigned char W8PathingService::CanReachSearchNode00465AF0(const srVector3T<floa
                                                            float clearance)
 {
     W8PathSearchNode* target = &m_owned_0c8[target_node];
-    float delta_x = target->position_20.x - position->x;
-    float delta_z = target->position_20.z - position->z;
+    srVector3T<float> delta = target->position_20 - *position;
     float scale;
-    if ((float)fabs(delta_x) > (float)fabs(delta_z)) {
-        scale = (float)fabs(grid_scale_01c / delta_x);
+    if ((float)fabs(delta.x) > (float)fabs(delta.z)) {
+        scale = (float)fabs(grid_scale_01c / delta.x);
     } else {
-        scale = (float)fabs(grid_scale_01c / delta_z);
+        scale = (float)fabs(grid_scale_01c / delta.z);
     }
 
     srVector3T<float> probe = *position;
-    float step_x = delta_x * scale;
-    float step_z = delta_z * scale;
+    float step_x = delta.x * scale;
+    float step_z = delta.z * scale;
     W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pVisitedCells_074);
     unsigned char blocked = 0;
 
@@ -3913,18 +3912,12 @@ stModelInstance* W8PathingService::BuildPathVisualization0045BE30()
                 vertices[base_vertex].y += g_float_005ec370;
                 vertices[base_vertex + 3] = destination->position_04;
                 vertices[base_vertex + 3].y += g_float_005ec370;
-                vertices[base_vertex + 1].x = source->position_04.x + perpendicular_x;
-                vertices[base_vertex + 1].y = source->position_04.y + g_world_scale_005ebc40;
-                vertices[base_vertex + 1].z = source->position_04.z + perpendicular_z;
-                vertices[base_vertex + 2].x = source->position_04.x - perpendicular_x;
-                vertices[base_vertex + 2].y = source->position_04.y + g_world_scale_005ebc40;
-                vertices[base_vertex + 2].z = source->position_04.z - perpendicular_z;
-                vertices[base_vertex + 4].x = destination->position_04.x + perpendicular_x;
-                vertices[base_vertex + 4].y = destination->position_04.y + g_world_scale_005ebc40;
-                vertices[base_vertex + 4].z = destination->position_04.z + perpendicular_z;
-                vertices[base_vertex + 5].x = destination->position_04.x - perpendicular_x;
-                vertices[base_vertex + 5].y = destination->position_04.y + g_world_scale_005ebc40;
-                vertices[base_vertex + 5].z = destination->position_04.z - perpendicular_z;
+                srVector3T<float> offset;
+                offset.Set(perpendicular_x, g_world_scale_005ebc40, perpendicular_z);
+                vertices[base_vertex + 1] = source->position_04 + offset;
+                vertices[base_vertex + 2] = source->position_04 - offset;
+                vertices[base_vertex + 4] = destination->position_04 + offset;
+                vertices[base_vertex + 5] = destination->position_04 - offset;
 
                 for (index = 0; index < 6; ++index) {
                     colors[base_vertex + index].x = 0.0f;
@@ -4647,22 +4640,16 @@ unsigned char W8PathingService::PreparePathVisualization0045E840(const srVector3
             unsigned short probe_waypoint;
 
             distance += g_path_waypoint_exact_distance_005ebc64;
-            probe.x = source_surface->position_04.x + direction->x * distance;
-            probe.y = source_surface->position_04.y + direction->y * distance;
-            probe.z = source_surface->position_04.z + direction->z * distance;
+            probe = source_surface->position_04 + *direction * distance;
             probe_waypoint = FindWaypoint0045B120(&probe, 0);
             if (probe_waypoint != 0 && probe_waypoint != source_waypoint) {
                 W8PathSurface* candidate = &m_pSurfaces_048[probe_waypoint];
                 srVector3T<float> candidate_direction;
                 float alignment;
 
-                candidate_direction.x = candidate->position_04.x - source_surface->position_04.x;
-                candidate_direction.y = candidate->position_04.y - source_surface->position_04.y;
-                candidate_direction.z = candidate->position_04.z - source_surface->position_04.z;
+                candidate_direction = candidate->position_04 - source_surface->position_04;
                 candidate_direction.Normalize();
-                alignment = candidate_direction.x * direction->x +
-                            candidate_direction.y * direction->y +
-                            candidate_direction.z * direction->z;
+                alignment = DotProduct(candidate_direction, *direction);
                 if (alignment > best_alignment) {
                     best_alignment = alignment;
                     best_waypoint = probe_waypoint;
