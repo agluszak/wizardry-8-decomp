@@ -295,9 +295,7 @@ unsigned char InitializeNpcDatabase(void)
                         FileClose(handle);
                         return 0;
                     }
-                    PListInsert(
-                        g_npc_records[index].item_stock_rules,
-                        entry, element);
+                    PListInsert(g_npc_records[index].item_stock_rules, entry, element);
                 }
             }
         }
@@ -348,8 +346,8 @@ unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRe
     int handle;
 
     if (!(index < gXStatus.uiMonstersInDatabase)) {
-        srAssertFail("uiMonsterIndex < gXStatus.uiMonstersInDatabase",
-                     GAMEPLAY_DATABASE_CPP, 0x140, 0);
+        srAssertFail("uiMonsterIndex < gXStatus.uiMonstersInDatabase", GAMEPLAY_DATABASE_CPP, 0x140,
+                     0);
     }
     sprintf(path, "%s\\%s.%s", "Data\\Databases", "Monsters", "DBS");
     handle = FileOpen(path, 1, 0);
@@ -359,7 +357,7 @@ unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRe
     if (!FileSeek(handle, index * 0x297 + 4, 1)) {
         return 0;
     }
-    if (!FileRead(handle, record, 0x297, (unsigned int*)&uiMonsterIndex)) {
+    if (!FileRead(handle, record, 0x297, &uiMonsterIndex)) {
         FileClose(handle);
         return 0;
     }
@@ -404,20 +402,18 @@ void FreeIfNotNull(void* block)
 // FUNCTION: WIZ8 0x0054b4c0
 unsigned char AllocateStatusBuffers(W8StatusBuffers* status)
 {
-    status->characters = static_cast<W8Character*>(
-        malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
+    status->characters =
+        static_cast<W8Character*>(malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
     if (!status->characters) {
         return 0;
     }
-    status->party_rows = static_cast<W8PartySlotRow*>(
-        malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
+    status->party_rows =
+        static_cast<W8PartySlotRow*>(malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
     if (!status->party_rows) {
         return 0;
     }
-    memset(status->characters, 0,
-           sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
-    memset(status->party_rows, 0,
-           sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
+    memset(status->characters, 0, sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
+    memset(status->party_rows, 0, sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
     return 1;
 }
 
@@ -538,21 +534,17 @@ void Function54AF30(unsigned char release)
     }
     memset(&g_status_685170, 0, sizeof(g_status_685170));
     g_status_685170.buffers.characters =
-        static_cast<W8Character*>(
-            malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
+        static_cast<W8Character*>(malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
     if (!g_status_685170.buffers.characters) {
         return;
     }
     g_status_685170.buffers.party_rows =
-        static_cast<W8PartySlotRow*>(
-            malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
+        static_cast<W8PartySlotRow*>(malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
     if (!g_status_685170.buffers.party_rows) {
         return;
     }
-    memset(g_status_685170.buffers.characters, 0,
-           sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
-    memset(g_status_685170.buffers.party_rows, 0,
-           sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
+    memset(g_status_685170.buffers.characters, 0, sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
+    memset(g_status_685170.buffers.party_rows, 0, sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
 }
 
 /* Reads MONSTERS.DBS whole: the count into gXStatus, then - only when the
@@ -610,8 +602,7 @@ unsigned char Function54A9A0(unsigned int uiStartIndex, unsigned int uiEndIndex,
     int handle;
 
     if (!(uiEndIndex < gXStatus.uiMonstersInDatabase)) {
-        srAssertFail("uiEndIndex < gXStatus.uiMonstersInDatabase",
-                     GAMEPLAY_DATABASE_CPP, 0x17a, 0);
+        srAssertFail("uiEndIndex < gXStatus.uiMonstersInDatabase", GAMEPLAY_DATABASE_CPP, 0x17a, 0);
     }
     sprintf(path, "%s\\%s.%s", "Data\\Databases", "Monsters", "DBS");
     handle = FileOpen(path, 1, 0);
@@ -621,9 +612,7 @@ unsigned char Function54A9A0(unsigned int uiStartIndex, unsigned int uiEndIndex,
     if (!FileSeek(handle, uiStartIndex * 0x297 + 4, 1)) {
         return 0;
     }
-    if (!FileRead(handle, records,
-                         (uiEndIndex + 1) * 0x297 - uiStartIndex * 0x297,
-                         (unsigned int*)&uiEndIndex)) {
+    if (!FileRead(handle, records, (uiEndIndex + 1) * 0x297 - uiStartIndex * 0x297, &uiEndIndex)) {
         FileClose(handle);
         return 0;
     }
@@ -653,12 +642,10 @@ void Function54B100(void)
     }
     memset(&g_status_685170, 0, sizeof(g_status_685170));
     g_status_685170.buffers.characters =
-        static_cast<W8Character*>(
-            malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
+        static_cast<W8Character*>(malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
     if (g_status_685170.buffers.characters) {
         g_status_685170.buffers.party_rows =
-            static_cast<W8PartySlotRow*>(
-                malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
+            static_cast<W8PartySlotRow*>(malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
         if (g_status_685170.buffers.party_rows) {
             memset(g_status_685170.buffers.characters, 0,
                    sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
@@ -872,8 +859,7 @@ void W8StartupRuntimeState::ProcessNextPendingEntry()
         if ((value_5c & 1) != 0 && entry->type_08 >= 14 && entry->type_08 < 16) {
             if ((value_5c & 2) != 0) {
                 unknown_60 = SetCountdownClock(Random(6000) + 2000);
-            }
-            else {
+            } else {
                 unknown_60 = SetCountdownClock(Random(60000) + 300000);
             }
         }
@@ -903,19 +889,13 @@ void W8StartupStateElement005EE748::Process0052CED0()
     if (type_08 == 23 || type_08 == 24) {
         if ((flags_10 & 0x40) == 0) {
             if (item_24.item_id == -1) {
-                PostCharacterMessage(
-                    party_slot,
-                    gppStringList[0x1dc4 / 4]);
-            }
-            else {
-                PostCharacterMessage(
-                    party_slot,
-                    gppStringList[0x1dc8 / 4],
-                    GetItemDisplayName(&item_24));
+                PostCharacterMessage(party_slot, gppStringList[0x1dc4 / 4]);
+            } else {
+                PostCharacterMessage(party_slot, gppStringList[0x1dc8 / 4],
+                                     GetItemDisplayName(&item_24));
             }
         }
-    }
-    else if (type_08 == 51) {
+    } else if (type_08 == 51) {
         QueueGameplayEvent(30, party_slot);
     }
 }
@@ -935,7 +915,7 @@ void InitializeGameplayRuntimeObjects(void)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfortify-source"
-/* Retail 0x0054AFD0 zeroes ECX=0x682 dwords plus 0x6C words from 0x006836B8:
+    /* Retail 0x0054AFD0 zeroes ECX=0x682 dwords plus 0x6C words from 0x006836B8:
    a 0x1AE0-byte bulk reset spanning g_monster_manager_entries, gXStatus, the
    targeting globals and further runtime state up to 0x00685098. That span is
    a reset region, not one C++ object; the start address is the entries array.

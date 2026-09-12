@@ -63,4 +63,7 @@ uv run wiz8 diagnostics
 overrides, and related source-model problems. `diagnostics` emits additional non-gating recovery
 diagnostics. Use them when those questions matter, not for every exact body. Retail instructions,
 call sites, and accepted source decide which side is wrong; do not silence diagnostics with
-`reinterpret_cast`. Validate the affected ABI bundle when declaration/layout changes reach callers.
+`reinterpret_cast`. A same-type cast that clang-tidy reports as redundant means the canonical
+type already agrees: delete the cast rather than leaving a conversion that no longer converts.
+Do not skip gating diagnostics as pre-existing. Validate the affected ABI bundle when
+declaration/layout changes reach callers.

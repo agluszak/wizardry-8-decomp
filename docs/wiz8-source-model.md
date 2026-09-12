@@ -250,15 +250,21 @@ it as unused and never reproduces EH bytes).
 
 An intentional original behavior that trips a recovery diagnostic gets a
 function-local `#pragma clang diagnostic` with the binary/source evidence in
-the comment. Compiler suppressions are split: shared Clang/VC6 compatibility
-flags, an empty recovered-suppression bucket, and vendor-only suppressions
-for retained SGP C. Recovered C++ gates callback-prototype, tautological
-compare, char-subscript, mismatched-tag, and unknown-escape diagnostics
-that vendor source still has to silence. The retained SGP C library is the
-one target-level exception: its upstream C style warnings stay report-only
-because fixing them would mean rewriting vendor source. `wiz8 diagnostics`
-is fully non-gating: SGP gets its four recovery warnings report-only there
-and promotes them to errors only in the gating lane.
+the comment. Those site-local pragmas exist because the recovered ABI is the
+behavior (callback-table pointer width, VC6 null-`this`, `char` index
+parameters, incomplete `e_processType` integers). Do not invent thunks or
+enumerator names to retire them, and do not replace them with a path filter
+that hides the diagnostic in one environment. Compiler suppressions are split:
+shared Clang/VC6 compatibility flags, an empty recovered-suppression bucket,
+and vendor-only suppressions for retained SGP C. `.clang-tidy`'s
+`HeaderFilterRegex` matches first-party trees by repository-relative path so
+Docker's `/repo` mount and a local checkout share one config. Recovered C++
+gates callback-prototype, tautological compare, char-subscript, mismatched-tag,
+and unknown-escape diagnostics that vendor source still has to silence. The
+retained SGP C library is the one target-level exception: its upstream C style
+warnings stay report-only because fixing them would mean rewriting vendor
+source. `wiz8 diagnostics` is fully non-gating: SGP gets its four recovery
+warnings report-only there and promotes them to errors only in the gating lane.
 
 The same Clang projection feeds `build/source-index.json`. Index targets
 derive from every reccmp target with a `source-root` that has compile-database

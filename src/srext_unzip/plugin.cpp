@@ -340,7 +340,6 @@ srZipAdapter::srZipAdapter()
     callbacks_->ServCallBk = reinterpret_cast<DLLSERVICE*>(discardPrintOrService); /* reinterpret-ok: Info-ZIP service slot reuses the print body */
     // clang-format on
 #pragma clang diagnostic pop
-#pragma clang diagnostic pop
     callbacks_->adapter = this;
 }
 

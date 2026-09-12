@@ -42,5 +42,8 @@ CheckOptions:
   bugprone-suspicious-enum-usage.StrictMode: 'false'
   bugprone-pointer-arithmetic-on-polymorphic-object.IgnoreInheritedVirtualFunctions: 'true'
 WarningsAsErrors: '*'
-HeaderFilterRegex: '^/repo/(include/wiz8|include/surrender|src/wiz8|src/surrender|src/srext_jpegimporter|src/srext_unzip)/'
+# Match first-party trees by repository-relative path so the same filter
+# works under Docker's /repo mount, a local checkout, and relative
+# compile-database entries. Do not hard-code /repo here.
+HeaderFilterRegex: '(^|/)(include/wiz8|include/surrender|src/wiz8|src/surrender|src/srext_jpegimporter|src/srext_unzip)/'
 FormatStyle: none

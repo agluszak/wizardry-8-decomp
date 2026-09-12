@@ -3917,9 +3917,9 @@ int g_spell_effect_frame_0064c158 = 1;
 extern int g_spell_index_0069b7dc;
 // GLOBAL: WIZ8 0x0069b7dc
 int g_spell_index_0069b7dc;
-extern int CalculateMonsterMissileAccuracy(
-    W8MonsterInfo* monster_info, const W8MonsterAttack* attack,
-    int attack_mode, int flags);
+extern int CalculateMonsterMissileAccuracy(W8MonsterInfo* monster_info,
+                                           const W8MonsterAttack* attack, int attack_mode,
+                                           int flags);
 extern unsigned int g_missile_table_count_65bddc;
 
 // VTABLE: WIZ8 0x005ed288
