@@ -154,7 +154,6 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/Traps.cpp
     src/wiz8/local_code/Gameloop.cpp
     src/wiz8/game_init.cpp
-    src/wiz8/message_box.cpp
     src/wiz8/monster_info_dialog.cpp
     src/wiz8/dialog_code/DialogTextArea.cpp
     src/wiz8/dialog_code/DialogButton.cpp

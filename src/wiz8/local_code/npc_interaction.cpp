@@ -9,8 +9,6 @@
 unsigned char g_flag_68c4a0;
 // GLOBAL: WIZ8 0x0068C4AC
 W8NpcState* g_npc_state_68c4ac;
-// GLOBAL: WIZ8 0x0068C4C0
-int g_value_68c4c0;
 // GLOBAL: WIZ8 0x0068C4F6
 unsigned char g_flag_68c4f6;
 // GLOBAL: WIZ8 0x0068C4F7

@@ -40,7 +40,6 @@
     "src/wiz8/local_screens/JournalScreen.cpp",
     "src/wiz8/local_screens/PartySelectionScreen.cpp",
     "src/wiz8/local_screens/screen12.cpp",
-    "src/wiz8/message_box.cpp",
     "src/wiz8/monster_info_dialog.cpp",
     "src/wiz8/music_playlist.cpp",
     "src/wiz8/npc_items.cpp",

@@ -39,6 +39,7 @@ CATCH_ALL_NAMES = frozenset(
         "gameplay_teardown.cpp",
         "bringup_gates.cpp",
         "unattributed_helpers.cpp",
+        "message_box.cpp",
     }
 )
 

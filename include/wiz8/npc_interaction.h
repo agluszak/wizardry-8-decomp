@@ -5,7 +5,6 @@
 extern unsigned char g_flag_68c4a0;
 extern unsigned char g_flag_68c4f6;
 extern unsigned char g_flag_68c4f7;
-extern int g_value_68c4c0;
 
 struct W8NpcState;
 extern W8NpcState* g_npc_state_68c4ac;
@@ -17,7 +16,6 @@ unsigned char Function525DF0(unsigned char require_group_entry);
    output. Answers zero outside the NPC's quote count or with no text there;
    the body remains a frontier because the bound-object quote table is not yet
    typed. */
-unsigned char GetNpcQuoteText(
-    W8NpcState* npc, unsigned int type, wchar_t* output);
+unsigned char GetNpcQuoteText(W8NpcState* npc, unsigned int type, wchar_t* output);
 
 bool IsPartySlotEligible00524A10(int slot);
