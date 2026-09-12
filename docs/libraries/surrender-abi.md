@@ -131,6 +131,60 @@ fifteen vbtables, which catches a decode that drifts. It does not catch one that
 way in every build, and the srMaterial case below is exactly that, so the agreement is a guard
 against instability rather than proof of a boundary.
 
+## Foundational types the export table names
+
+Diffing every `class`/`struct`/`enum` token in the gog-base `sr.dll` export snapshot against
+`include/surrender` is the mechanical way to find holes that "a game engine probably had X" guesswork
+would miss. Wizardry's 461 imports span 51 classes; the provider exports far more.
+
+`srARGB` was the important mis-model: the header had only `e_index` and therefore `sizeof` 1, while
+palette APIs take `srARGB*` as a color array. The SR bodies settle a 4-byte packed value, not floats:
+
+- `srPalette::getColor` at `0x100048a0` loads `colors[index]` as a dword (`index * 4`) and stores it
+  through the hidden return pointer (`RET 8`);
+- `setColor` / `setColors` copy the same 4-byte stride;
+- `Sampler::shiftDown` at `0x100062a0` shifts all four bytes;
+- `Sampler::addColor` forces byte 3 to `0xff` (opaque alpha) and hashes bytes 0-2;
+- `Quantizer::quantize` and `Optimizer::setupLUT` consume bytes 2, 1, 0 as R, G, B.
+
+Memory order is therefore B, G, R, A (little-endian `0xAARRGGBB`). `e_index` is the logical ARGB
+channel. `getChannelStatistics` at `0x10059240` reads byte `(3 - channel)` of each packed pixel, so
+`INDEX_ALPHA` is offset 3 and `INDEX_BLUE` is offset 0. That function also fills `srStat`: sample
+count at `+0x00`, mean double at `+0x08`, standard deviation at `+0x10`, median at `+0x18`, min/max
+bins at `+0x1c` / `+0x20` (`sizeof` `0x24`).
+
+`srCamera` was already recovered (0x188, view plane, FOV, clip and environment ranges) but lived at
+the bottom of `srScene.h`. It now has `srCamera.h`. `srPixelConvert` stays with the color-surface
+header; there is no evidence for a second generic `srColor` type.
+
+The same census does **not** support adding speculative `srFont`, `srText`, `srViewport`,
+`srTransform`, `srImage`, `srSprite` or `srAnimation`. No such export names exist. Viewport is a
+`const int*` into `RenderScene`. Text lives in SGP `Font.*` and Wizardry's font catalogue. SR does
+export `srWindow::{getWidth,getHeight,isWindow}` as static helpers, which is not a widget/text
+system.
+
+These exported top-level types still have no `include/surrender` declaration. Do not treat the list
+as a license to invent layouts; it is the remaining identity surface:
+
+| Type | Why it is real | What is still missing |
+| --- | --- | --- |
+| `srDD` nested records (`Palette`, `Texture`, `PixelFormat`, `Scissor`, `ViewPort`, `OpenInfo`, …) and `srDebugDD` | `srDebugDD` is the forwarding wrapper; its virtuals are the device interface | object layout and the `srDD` vtable itself |
+| `srHierarchyIOManager`, `srModelIOManager` | constructors, vftables, `import`/`export` members; `srCore` owns both | fields; compare with recovered `srSurfaceIOManager` |
+| `srVideoManager` (`Stream`, `VStream`, `openVStream`) | exact name on `srCore`; AVI/FLIC extensions consume video | class layout and the rest of the stream API |
+| `srVP` / `srDebugVP` | Generic VP factory and debug wrapper | backend implementation; debug is only a ctor plus `resetInternalStatistics` in the export table |
+| `srBounder` | `srNode`-derived vftable, bounds get/set, `e_boundMode` | layout |
+| `srEnvironmentMapper` | vftable; `process(srVertexPipe&)` | layout |
+| `srHuffman` | bit streams, sampler, compressor | layout; not a scene type |
+| `srQuaternion`, `srMatrix2T`, `srVector4i` | named in signatures | storage; `srMath.h` already has the rest of the math family |
+| `srTriangulator` | polygon ear-clip helper | layout |
+| `srTextureFile` | 17-slot SR vftable | Wizardry's `stTextureFile` is a parallel first-party class (`0x10001`), not an import of this type |
+| `srCachedExponentTable`, `srExponentTable` | lighting LUT helpers | layout |
+| `srDummyStreamBuf`, `srOStream_withassign`, `srWindowOut` | iostream glue | ignore; not engine domain types |
+
+`srCore` still forward-declares `srHierarchyIOManager`, `srModelIOManager` and `srVideoManager`.
+Those forwards are honest until allocation sizes exist. Nested `srDD::*` names are similarly real
+and still incomplete: `srDD.h` remains the driver-factory surface, not the recovered device class.
+
 ## The Wizardry side derives from these classes
 
 The Ghidra vtable-reference index records Wizardry installing imported SurRender vftables in its own

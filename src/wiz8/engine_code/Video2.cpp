@@ -32,6 +32,7 @@
 #include "surrender/srMaterial.h"
 #include "surrender/srMeshModel.h"
 #include "surrender/srModelInstance.h"
+#include "surrender/srCamera.h"
 #include "surrender/srScene.h"
 #include "surrender/srStatisticsManager.h"
 #include "surrender/srStringTable.h"

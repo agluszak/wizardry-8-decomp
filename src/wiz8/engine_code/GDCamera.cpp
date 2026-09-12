@@ -3,6 +3,7 @@
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/quad.h"
 
+#include "surrender/srCamera.h"
 #include "surrender/srNode.h"
 #include "surrender/srScene.h"
 #include "wiz8/engine_code/GameData.h"
