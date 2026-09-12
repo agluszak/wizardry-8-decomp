@@ -179,7 +179,7 @@ void LoadFactState(int save_handle)
         npc = GetNpcStateByKind(0x20);
         if (npc && npc->has_monster) {
             ReleaseRecordFile0055A0A0(npc->record_file);
-            Function524CA0(npc);
+            ReloadNpcScriptResources(npc);
         }
     }
     if (!CheckFactLogged(0x4b)) {

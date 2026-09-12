@@ -436,7 +436,7 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other) : W8GrObject(other), W8Navigator(ot
             }
             copied_light->ConfigureMonsterCopy();
             copied_light->setLocation(x, y, z);
-            copied_light->setFlag(srNode::FLAG_POSITIONAL_1);
+            copied_light->setFlag(srNode::FLAG_TERMINATE);
             PLAdoptAppend(&g_world->m_lights_0a8, copied_light);
             if (copied_light->definition() != 0) {
                 g_world->lights_to_update->Add(copied_light);
@@ -856,16 +856,15 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
                     psrMesh->scale_1a4 = pRep->value_05c;
                 }
             }
-            psrMesh->clearFlag(srNode::FLAG_POSITIONAL_0);
+            psrMesh->clearFlag(srNode::FLAG_DISABLE);
             psrMesh->setParent(pWorld->dynamic_scene, 0);
             path = AnimObjListEntry004A16C0(animation, pRep->m_bLOD, (signed char)index);
             if (path != 0) {
                 PathAIApply004AA520(path, psrMesh);
             }
             vecPos = movement_0c0.position_040;
-            location.x = vecPos.x;
-            location.y = vecPos.y + movement_0c0.vertical_offset_0c0;
-            location.z = vecPos.z;
+            location.SetFromFloat(&vecPos);
+            location.y += movement_0c0.vertical_offset_0c0;
             psrMesh->setLocation(location);
             pRep->GetRotation004B88F0(&rotation);
             psrMesh->getRotation(current);
@@ -892,15 +891,14 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             }
         }
         vecPos = movement_0c0.position_040;
-        location.x = vecPos.x;
-        location.y = vecPos.y + movement_0c0.vertical_offset_0c0;
-        location.z = vecPos.z;
+        location.SetFromFloat(&vecPos);
+        location.y += movement_0c0.vertical_offset_0c0;
         pRep->GetRotation004B88F0(&rotation);
         child = psrMesh->firstChild();
         if (child == 0) {
             psrMesh->setLocation(location);
             psrMesh->setRotation(rotation);
-            psrMesh->clearFlag(srNode::FLAG_POSITIONAL_0);
+            psrMesh->clearFlag(srNode::FLAG_DISABLE);
         } else {
             do {
                 child->setLocation(location);
@@ -909,7 +907,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             } while (child != 0);
         }
         current_model_instance_1a8 = psrMesh;
-        psrMesh->clearFlag(srNode::FLAG_POSITIONAL_1);
+        psrMesh->clearFlag(srNode::FLAG_TERMINATE);
         psrMesh->setParent(pWorld->dynamic_scene, 0);
     }
     UpdateParticleAttachments004A7E50();
@@ -919,7 +917,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         location.SetFromFloat(&position);
         m_ground_shadow->setLocation(location);
         m_ground_shadow->angle_138 = GetYaw();
-        m_ground_shadow->clearFlag(srNode::FLAG_POSITIONAL_1);
+        m_ground_shadow->clearFlag(srNode::FLAG_TERMINATE);
         m_ground_shadow->setParent(g_world->dynamic_scene, 0);
     }
     if (m_plsLights != 0) {
@@ -930,21 +928,16 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             pRep->GetLocation004B8890(&origin);
         } else {
             vecPos = movement_0c0.position_040;
-            origin.x = vecPos.x;
-            origin.y = vecPos.y + movement_0c0.vertical_offset_0c0;
-            origin.z = vecPos.z;
+            origin = vecPos;
+            origin.y += movement_0c0.vertical_offset_0c0;
         }
         pRep->GetRotation004B88F0(&rotation);
         for (index = 0; index < count; ++index) {
             stLight* light = *m_plsLights->GetAt(index);
             srVector3T<float> offset = light->m_positional_228;
 
-            location.x = rotation.vectors[0].x * offset.x + rotation.vectors[0].y * offset.y +
-                         rotation.vectors[0].z * offset.z + origin.x;
-            location.y = rotation.vectors[1].x * offset.x + rotation.vectors[1].y * offset.y +
-                         rotation.vectors[1].z * offset.z + origin.y;
-            location.z = rotation.vectors[2].x * offset.x + rotation.vectors[2].y * offset.y +
-                         rotation.vectors[2].z * offset.z + origin.z;
+            srVector3T<float> placed = rotation.Transform(offset) + origin;
+            location.SetFromFloat(&placed);
             light->setLocation(location);
         }
     }
@@ -969,7 +962,7 @@ void W8GrCycle::DetachRepresentation004A7A70(W8World* world)
             if (ani_mesh != 0) {
                 AniMeshSetFlag10004B6860(ani_mesh, 0);
             }
-            mesh->setFlag(srNode::FLAG_POSITIONAL_0);
+            mesh->setFlag(srNode::FLAG_DISABLE);
             mesh->setParent(0, 1);
         }
     } else if (current_model_instance_1a8 != 0) {
@@ -978,14 +971,14 @@ void W8GrCycle::DetachRepresentation004A7A70(W8World* world)
         }
         W8AniMesh* ani_mesh = representation->GetEmitterAniMesh(representation->current_cycle);
         AniMeshSetFlag10004B6860(ani_mesh, 0);
-        current_model_instance_1a8->setFlag(srNode::FLAG_POSITIONAL_0);
-        current_model_instance_1a8->setFlag(srNode::FLAG_POSITIONAL_1);
+        current_model_instance_1a8->setFlag(srNode::FLAG_DISABLE);
+        current_model_instance_1a8->setFlag(srNode::FLAG_TERMINATE);
         current_model_instance_1a8->setParent(0, 0);
         current_model_instance_1a8 = 0;
     }
 
     if (m_ground_shadow != 0) {
-        m_ground_shadow->setFlag(srNode::FLAG_POSITIONAL_1);
+        m_ground_shadow->setFlag(srNode::FLAG_TERMINATE);
         m_ground_shadow->setParent(0, 1);
     }
 }
@@ -1098,9 +1091,9 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
         offset.z = offset.z * scale_z;
         placed = rotation.Transform(offset);
         location = current_model_instance_1a8->getLocation();
-        placed.x = placed.x + (float)location.x;
-        placed.y = (float)location.y + placed.y;
-        placed.z = (float)location.z + placed.z;
+        srVector3T<float> anchor;
+        anchor.SetFromDouble(&location);
+        placed += anchor;
 
         if (unknown_1bf != 0 && particle->value_1b8 == 3) {
             target.SetFromFloat(&placed);
@@ -1109,9 +1102,7 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
         } else if (particle->value_1b8 != 4) {
             combined = rotation;
             combined.MultiplyBy(attachment->rotation_18);
-            world.vectors[0].x = combined.vectors[0].x;
-            world.vectors[0].y = combined.vectors[0].y;
-            world.vectors[0].z = combined.vectors[0].z;
+            world.vectors[0].SetFromFloat(&combined.vectors[0]);
             world.vectors[1].SetFromFloat(&combined.vectors[1]);
             world.vectors[2].SetFromFloat(&combined.vectors[2]);
             particle->setWorldSpaceRotation(world);
@@ -1497,9 +1488,9 @@ void W8GrCycle::SetGroundShadowVisible(char visible)
 {
     if (m_ground_shadow != 0) {
         if (visible) {
-            m_ground_shadow->clearFlag(srNode::FLAG_POSITIONAL_0);
+            m_ground_shadow->clearFlag(srNode::FLAG_DISABLE);
         } else {
-            m_ground_shadow->setFlag(srNode::FLAG_POSITIONAL_0);
+            m_ground_shadow->setFlag(srNode::FLAG_DISABLE);
         }
     }
 }

@@ -1102,18 +1102,17 @@ unsigned char W8PathingService::CanReachSearchNode00465AF0(const srVector3T<floa
                                                            float clearance)
 {
     W8PathSearchNode* target = &m_owned_0c8[target_node];
-    float delta_x = target->position_20.x - position->x;
-    float delta_z = target->position_20.z - position->z;
+    srVector3T<float> delta = target->position_20 - *position;
     float scale;
-    if ((float)fabs(delta_x) > (float)fabs(delta_z)) {
-        scale = (float)fabs(grid_scale_01c / delta_x);
+    if ((float)fabs(delta.x) > (float)fabs(delta.z)) {
+        scale = (float)fabs(grid_scale_01c / delta.x);
     } else {
-        scale = (float)fabs(grid_scale_01c / delta_z);
+        scale = (float)fabs(grid_scale_01c / delta.z);
     }
 
     srVector3T<float> probe = *position;
-    float step_x = delta_x * scale;
-    float step_z = delta_z * scale;
+    float step_x = delta.x * scale;
+    float step_z = delta.z * scale;
     W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pVisitedCells_074);
     unsigned char blocked = 0;
 
@@ -1283,14 +1282,14 @@ int W8PathingService::ProcessSearchNodeProps004663D0(unsigned int node_index,
     float half_cell = grid_scale_01c * g_float_005ebc7c;
 
     srVector3T<float> lower;
-    lower.x = node->position_20.x - half_cell;
-    lower.y = node->position_20.y;
-    lower.z = node->position_20.z - half_cell;
-
     srVector3T<float> upper;
-    upper.x = node->position_20.x + half_cell;
-    upper.y = node->position_20.y + grid_scale_01c + grid_scale_01c;
-    upper.z = node->position_20.z + half_cell;
+    srVector3T<float> lower_extent;
+    srVector3T<float> upper_extent;
+    float vertical_extent = grid_scale_01c + grid_scale_01c;
+    lower_extent.Set(half_cell, 0.0f, half_cell);
+    upper_extent.Set(half_cell, vertical_extent, half_cell);
+    lower = node->position_20 - lower_extent;
+    upper = node->position_20 + upper_extent;
 
     int* candidates = 0;
     unsigned int count = g_octree_6598a4->QueryObjects0042F280(&candidates, &lower, &upper, 8, -1);
@@ -1318,12 +1317,10 @@ unsigned int W8PathingService::CollectPathProbes004656A0(W8NavigatorMovementStat
     float extent = g_runtime_world_scale_6081e8 + radius;
     srVector3T<float> lower;
     srVector3T<float> upper;
-    lower.x = movement->position_040.x - extent;
-    lower.y = movement->position_040.y - extent;
-    lower.z = movement->position_040.z - extent;
-    upper.x = movement->position_040.x + extent;
-    upper.y = movement->position_040.y + extent;
-    upper.z = movement->position_040.z + extent;
+    srVector3T<float> half_extent;
+    half_extent.Set(extent, extent, extent);
+    lower = movement->position_040 - half_extent;
+    upper = movement->position_040 + half_extent;
 
     path_candidates_098 = 0;
     path_candidate_count_094 =
@@ -1441,12 +1438,10 @@ unsigned short W8PathingService::PlanMovement00463460(W8NavigatorMovementState* 
         search_extent += g_runtime_world_scale_6081e8 + radius;
         srVector3T<float> lower;
         srVector3T<float> upper;
-        lower.x = start.x - search_extent;
-        lower.y = start.y - search_extent;
-        lower.z = start.z - search_extent;
-        upper.x = start.x + search_extent;
-        upper.y = start.y + search_extent;
-        upper.z = start.z + search_extent;
+        srVector3T<float> half_extent;
+        half_extent.Set(search_extent, search_extent, search_extent);
+        lower = start - half_extent;
+        upper = start + half_extent;
         CollectPathProbes004656A0(movement, radius);
         path_candidates_098 = 0;
         path_candidate_count_094 =
@@ -2043,11 +2038,10 @@ W8PathingService::TestSearchPositionVisibility00464CC0(const srVector3T<float>* 
     W8Monster* monster = GetMonsterByLocationID((unsigned int)movement->location_id_004);
     float distance;
     if (trace_target_location_0c0 == -1) {
-        distance = monster->GetPointDistanceToPlayer004C7D50(position->x, position->y, position->z);
+        distance = monster->GetPointDistanceToPlayer004C7D50(*position);
     } else {
         W8Monster* target = GetMonsterByLocationID(trace_target_location_0c0);
-        distance = monster->GetPointDistanceToMonster004C7E80(target, position->x, position->y,
-                                                              position->z);
+        distance = monster->GetPointDistanceToMonster004C7E80(target, *position);
     }
     if (trace_max_distance_0a8 < distance) {
         return 0;
@@ -2058,9 +2052,7 @@ W8PathingService::TestSearchPositionVisibility00464CC0(const srVector3T<float>* 
     float target_yaw = NormalizeAngle(trace_target_yaw_0c4);
 
     srMatrix3T<float> rotation;
-    rotation.vectors[0].Set(1.0f, 0.0f, 0.0f);
-    rotation.vectors[1].Set(0.0f, 1.0f, 0.0f);
-    rotation.vectors[2].Set(0.0f, 0.0f, 1.0f);
+    rotation.SetIdentity();
     float angle = bearing - target_yaw;
     if ((double)angle != g_zero_005ebb40) {
         rotation.RotateAboutY(sin(angle), cos(angle));
@@ -2068,10 +2060,7 @@ W8PathingService::TestSearchPositionVisibility00464CC0(const srVector3T<float>* 
 
     srVector3T<float> transformed = rotation.Transform(trace_offset_0ac);
 
-    srVector3T<float> trace_source;
-    trace_source.x = position->x + transformed.x;
-    trace_source.y = position->y + transformed.y;
-    trace_source.z = position->z + transformed.z;
+    srVector3T<float> trace_source = *position + transformed;
     srVector3T<float> trace_target = movement->target_position_04c;
     trace_target.y += trace_height_offset_0bc;
 
@@ -2096,12 +2085,11 @@ W8PathingService::TestSearchPositionVisibility00464CC0(const srVector3T<float>* 
 // FUNCTION: WIZ8 0x00464b00
 unsigned short W8PathingService::ConfigureMovementSearch00464B00(
     W8NavigatorMovementState* movement, int target_location, float radius, float separation,
-    float maximum_distance, float offset_x, float offset_y, float offset_z,
-    int requested_trace_mode, float target_height_offset, float target_yaw,
-    unsigned char* probe_result)
+    float maximum_distance, srVector3T<float> trace_offset, int requested_trace_mode,
+    float target_height_offset, float target_yaw, unsigned char* probe_result)
 {
     trace_max_distance_0a8 = maximum_distance;
-    trace_offset_0ac.Set(offset_x, offset_y, offset_z);
+    trace_offset_0ac = trace_offset;
     trace_mode_0b8 = requested_trace_mode;
     flag_0a4 = 1;
     trace_height_offset_0bc = target_height_offset;
@@ -2117,9 +2105,8 @@ unsigned short W8PathingService::ConfigureMovementSearch00464B00(
     unsigned short result = 0;
     W8NavigatorAttachment* attachment = movement->attachment_0ac;
     if ((attachment->flags_00 & 0x00010000) != 0) {
-        float delta_x = movement->target_position_04c.x - movement->position_040.x;
-        float delta_z = movement->target_position_04c.z - movement->position_040.z;
-        float horizontal_clearance = srVector2T<float>(delta_x, delta_z).Length() - radius;
+        srVector3T<float> delta = movement->target_position_04c - movement->position_040;
+        float horizontal_clearance = srVector2T<float>(delta.x, delta.z).Length() - radius;
         float target_radius;
         if (target_location == 0) {
             target_radius = g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
@@ -3414,12 +3401,10 @@ unsigned short W8PathingService::FindWaypoint0045B120(const srVector3T<float>* p
 
     srVector3T<float> lower;
     srVector3T<float> upper;
-    lower.x = query.x - g_float_005ec360;
-    lower.y = query.y - g_float_005ec35c;
-    lower.z = query.z - g_float_005ec360;
-    upper.x = query.x + g_float_005ec360;
-    upper.y = query.y + g_float_005ec35c;
-    upper.z = query.z + g_float_005ec360;
+    srVector3T<float> half_extent;
+    half_extent.Set(g_float_005ec360, g_float_005ec35c, g_float_005ec360);
+    lower = query - half_extent;
+    upper = query + half_extent;
 
     int* candidates = 0;
     int count = g_octree_6598a4->QueryObjects0042F280(&candidates, &lower, &upper, 9, -1);
@@ -3607,9 +3592,7 @@ void W8PathingService::ActivateMovementTrigger0045B880(W8NavigatorMovementState*
             return;
         }
         lower = movement->position_040;
-        upper.x = movement->position_040.x + movement->velocity_034.x * 2.0f;
-        upper.y = movement->position_040.y + movement->velocity_034.y * 2.0f;
-        upper.z = movement->position_040.z + movement->velocity_034.z * 2.0f;
+        upper = movement->position_040 + movement->velocity_034 * 2.0;
     } else {
         W8NavigatorAttachment* attachment = movement->attachment_0ac;
 
@@ -3674,9 +3657,7 @@ void W8PathingService::ActivateMovementTrigger0045B880(W8NavigatorMovementState*
         selected = trigger;
     } else {
         srVector3T<float> midpoint;
-        midpoint.x = (float)((upper.x - lower.x) * g_double_005ebe80) + lower.x;
-        midpoint.y = (float)((upper.y - lower.y) * g_double_005ebe80) + lower.y;
-        midpoint.z = (float)((upper.z - lower.z) * g_double_005ebe80) + lower.z;
+        midpoint = (upper + lower) * g_double_005ebe80;
         double nearest_distance = 1e32;
 
         for (int index = 0; index < count; ++index) {
@@ -3685,11 +3666,8 @@ void W8PathingService::ActivateMovementTrigger0045B880(W8NavigatorMovementState*
             if (prop->GetSetting6C() != 0 && trigger != 0 && (trigger->flags_0a0 & 0x100) != 0) {
                 srVector3T<float> center;
                 prop->GetCenterPosition(&center);
-                float difference_x = center.x - midpoint.x;
-                float difference_y = center.y - midpoint.y;
-                float difference_z = center.z - midpoint.z;
-                double distance = difference_x * difference_x + difference_y * difference_y +
-                                  difference_z * difference_z;
+                srVector3T<float> difference = center - midpoint;
+                double distance = difference.LengthSquared();
                 if (distance < nearest_distance) {
                     nearest_distance = distance;
                     selected = trigger;
@@ -3726,7 +3704,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
         if (CollectPathVisualization0045D880(&adjusted) != 0) {
             if (m_owned_054 != 0) {
                 BuildPathVisualization0045BE30();
-                m_owned_054->clearFlag(srNode::FLAG_POSITIONAL_0);
+                m_owned_054->clearFlag(srNode::FLAG_DISABLE);
                 return;
             }
 
@@ -3734,17 +3712,17 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
             node = m_owned_054;
             if (node != 0) {
                 node->setParent(world->dynamic_scene, 1);
-                node->clearFlag(srNode::FLAG_POSITIONAL_0);
+                node->clearFlag(srNode::FLAG_DISABLE);
                 return;
             }
-            node->clearFlag(srNode::FLAG_POSITIONAL_0);
+            node->clearFlag(srNode::FLAG_DISABLE);
             return;
         }
 
         node = m_owned_054;
         if (node != 0) {
-            node->setFlag(srNode::FLAG_POSITIONAL_0);
-            node->setFlag(srNode::FLAG_POSITIONAL_1);
+            node->setFlag(srNode::FLAG_DISABLE);
+            node->setFlag(srNode::FLAG_TERMINATE);
         }
         return;
     }
@@ -3753,8 +3731,8 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
         DrawPathPosition0045C9A0(*source, 0);
         node = m_owned_054;
         if (node != 0) {
-            node->setFlag(srNode::FLAG_POSITIONAL_0);
-            node->setFlag(srNode::FLAG_POSITIONAL_1);
+            node->setFlag(srNode::FLAG_DISABLE);
+            node->setFlag(srNode::FLAG_TERMINATE);
         }
         return;
     }
@@ -3764,9 +3742,9 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
             EnsurePathVisualization0045D530();
             node = m_owned_054;
             node->setParent(world->dynamic_scene, 1);
-            node->setFlag(srNode::FLAG_POSITIONAL_1);
+            node->setFlag(srNode::FLAG_TERMINATE);
             if (m_owned_054 == 0) {
-                node->clearFlag(srNode::FLAG_POSITIONAL_0);
+                node->clearFlag(srNode::FLAG_DISABLE);
                 return;
             }
         }
@@ -3776,7 +3754,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
         DrawPathPosition0045C9A0(adjusted, 1);
     }
 
-    m_owned_054->clearFlag(srNode::FLAG_POSITIONAL_0);
+    m_owned_054->clearFlag(srNode::FLAG_DISABLE);
 }
 
 /* Populate the editor mesh from the currently visible waypoint set. Marker
@@ -3927,18 +3905,12 @@ stModelInstance* W8PathingService::BuildPathVisualization0045BE30()
                 vertices[base_vertex].y += g_float_005ec370;
                 vertices[base_vertex + 3] = destination->position_04;
                 vertices[base_vertex + 3].y += g_float_005ec370;
-                vertices[base_vertex + 1].x = source->position_04.x + perpendicular_x;
-                vertices[base_vertex + 1].y = source->position_04.y + g_world_scale_005ebc40;
-                vertices[base_vertex + 1].z = source->position_04.z + perpendicular_z;
-                vertices[base_vertex + 2].x = source->position_04.x - perpendicular_x;
-                vertices[base_vertex + 2].y = source->position_04.y + g_world_scale_005ebc40;
-                vertices[base_vertex + 2].z = source->position_04.z - perpendicular_z;
-                vertices[base_vertex + 4].x = destination->position_04.x + perpendicular_x;
-                vertices[base_vertex + 4].y = destination->position_04.y + g_world_scale_005ebc40;
-                vertices[base_vertex + 4].z = destination->position_04.z + perpendicular_z;
-                vertices[base_vertex + 5].x = destination->position_04.x - perpendicular_x;
-                vertices[base_vertex + 5].y = destination->position_04.y + g_world_scale_005ebc40;
-                vertices[base_vertex + 5].z = destination->position_04.z - perpendicular_z;
+                srVector3T<float> offset;
+                offset.Set(perpendicular_x, g_world_scale_005ebc40, perpendicular_z);
+                vertices[base_vertex + 1] = source->position_04 + offset;
+                vertices[base_vertex + 2] = source->position_04 - offset;
+                vertices[base_vertex + 4] = destination->position_04 + offset;
+                vertices[base_vertex + 5] = destination->position_04 - offset;
 
                 for (index = 0; index < 6; ++index) {
                     colors[base_vertex + index].x = 0.0f;
@@ -4401,7 +4373,7 @@ stModelInstance* W8PathingService::EnsurePathVisualization0045D530()
     }
     m_owned_054->setName("WayPoint Mesh");
     m_owned_054->setExclusionMask(3);
-    m_owned_054->setFlag(srNode::FLAG_POSITIONAL_0);
+    m_owned_054->setFlag(srNode::FLAG_DISABLE);
     return m_owned_054;
 }
 
@@ -4661,22 +4633,16 @@ unsigned char W8PathingService::PreparePathVisualization0045E840(const srVector3
             unsigned short probe_waypoint;
 
             distance += g_float_005ebc64;
-            probe.x = source_surface->position_04.x + direction->x * distance;
-            probe.y = source_surface->position_04.y + direction->y * distance;
-            probe.z = source_surface->position_04.z + direction->z * distance;
+            probe = source_surface->position_04 + *direction * distance;
             probe_waypoint = FindWaypoint0045B120(&probe, 0);
             if (probe_waypoint != 0 && probe_waypoint != source_waypoint) {
                 W8PathSurface* candidate = &m_pSurfaces_048[probe_waypoint];
                 srVector3T<float> candidate_direction;
                 float alignment;
 
-                candidate_direction.x = candidate->position_04.x - source_surface->position_04.x;
-                candidate_direction.y = candidate->position_04.y - source_surface->position_04.y;
-                candidate_direction.z = candidate->position_04.z - source_surface->position_04.z;
+                candidate_direction = candidate->position_04 - source_surface->position_04;
                 candidate_direction.Normalize();
-                alignment = candidate_direction.x * direction->x +
-                            candidate_direction.y * direction->y +
-                            candidate_direction.z * direction->z;
+                alignment = DotProduct(candidate_direction, *direction);
                 if (alignment > best_alignment) {
                     best_alignment = alignment;
                     best_waypoint = probe_waypoint;

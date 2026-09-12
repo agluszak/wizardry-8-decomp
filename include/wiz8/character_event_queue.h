@@ -22,7 +22,9 @@ struct W8CharacterEvent {
     int value_14;
     int value_18;
     int value_1c;
-    unsigned char unknown_20[4];
+    /* 0x20: the pending event type TryAdjustQueuedEvent stores before rewriting
+       type_08 to the shared follow-up id 10. */
+    unsigned int pending_event_type_20;
     /* 0x24: an embedded item instance: the event consumer passes it to
        GetItemDisplayName, which reads both the id and the identified flag.
        Only the id is ever established here; the remaining bytes keep whatever
@@ -37,6 +39,9 @@ struct W8CharacterEvent {
 
     /* Returns this entry's formatted quote text in the shared wide buffer. */
     wchar_t* GetQuoteText(); /* 0x0052D240 */
+
+    /* Starts portrait/voice dispatch for this queued entry. */
+    unsigned char DispatchCharacterEventEntry(); /* 0x0052CA60 */
 };
 
 static_assert(sizeof(W8CharacterEvent) == 0x38, "W8CharacterEvent_must_be_0x38");
@@ -64,6 +69,10 @@ struct W8CharacterEventQueue {
     void ClearOwnedEntries();
     int QueueEntry(W8CharacterEvent* entry);
     void SetEventCharacterMask(unsigned int event_type, unsigned int party_slot, bool enabled);
+    bool HasEventCharacter(unsigned int event_type, unsigned int party_slot); /* 0x0052DD90 */
+    void ProcessDeferredCharacterEvents();                                    /* 0x0052DDD0 */
+    unsigned char TryAdjustQueuedEvent(W8CharacterEvent* entry);              /* 0x0052DC80 */
+    unsigned char IsMainQueueEmpty() const;                                   /* 0x0052E470 */
     void ProcessOwnedEntry(W8CharacterEvent* entry);
     void ProcessNextPendingEntry();
     /* Restarts the follow-up clock for entries of the middle event band while

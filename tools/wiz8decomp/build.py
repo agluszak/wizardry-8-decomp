@@ -153,11 +153,13 @@ def prepare(settings: Settings) -> dict[str, Any]:
     from .extract.variants import extract_role, materialize_variants
     from .ghidra.fid_seeds import fetch_seed_sources
     from .inputs.scan import load_manifest
+    from .source_index import write_source_index
 
     manifest = load_manifest(settings)
     extraction = extract_role(settings, "gog-media")
     variants = materialize_variants(settings, only=["gog-base"])
     sources = fetch_seed_sources(settings)
+    write_source_index(settings)
     write_wiz8_data_source(settings.repo_dir)
     run(
         [

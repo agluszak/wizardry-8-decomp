@@ -47,9 +47,9 @@ extern void QueueGameplayEvent(int event_type, int party_slot);
 /* The gStatus object owned by GameplayDatabase.cpp. */
 // GLOBAL: WIZ8 0x00685170
 W8GlobalStatus g_status_685170;
-/* The packed runtime status prefix named by the database and manager
-   assertions. Record arrays remain separate roots at their own addresses. */
-// GLOBAL: WIZ8 0x00683F78
+/* Packed gXStatus named by the database and manager assertions. Record
+   arrays remain separate roots at their own addresses. */
+// GLOBAL: WIZ8 0x006836B8
 W8XStatus gXStatus;
 /* Persistent database roots owned by this translation unit.  Leaving these as
    unresolved externals made the runnable image relocate every load/store to
@@ -764,7 +764,7 @@ void ResetGameplaySettings(void)
 // FUNCTION: WIZ8 0x0054b300
 void ResetGameplaySlot(unsigned int slot)
 {
-    W8MonsterManagerEntry* record = &g_monster_manager_entries[slot];
+    W8MonsterManagerEntry* record = &gXStatus.monster_manager_entries[slot];
     int tier;
 
     memset(static_cast<void*>(record), 0, sizeof(W8MonsterManagerEntry));
@@ -829,12 +829,9 @@ void InitializeGameplayRuntimeObjects(void)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfortify-source"
     /* Retail 0x0054AFD0 zeroes ECX=0x682 dwords plus 0x6C words from 0x006836B8:
-   a 0x1AE0-byte bulk reset spanning g_monster_manager_entries, gXStatus, the
-   targeting globals and further runtime state up to 0x00685098. That span is
-   a reset region, not one C++ object; the start address is the entries array.
-   Suppress only this diagnostic: the size argument deliberately exceeds the
-   array because retail clears the neighbours too. */
-    memset(static_cast<void*>(g_monster_manager_entries), 0, 0x1ae0);
+       a 0x1A0A-byte bulk reset spanning gXStatus and neighbouring runtime state.
+       That span is a reset region, not one C++ object. */
+    memset(static_cast<void*>(&gXStatus), 0, 0x1a0a);
 #pragma clang diagnostic pop
     gXStatus.character_event_queue = new W8CharacterEventQueue();
     g_gameplay_timer_685067 = new W8GameTimer(300.0f, 0);

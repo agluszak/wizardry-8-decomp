@@ -11,6 +11,7 @@
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srCamera.h"
+#include "surrender/srIlluminator.h"
 #include "surrender/srScene.h"
 
 #include <new>
@@ -164,9 +165,9 @@ stLight* CreateLight0046DF90(srNode* parent, const char* name)
 
     if (light != 0) {
         light->setName(name);
-        light->m_positional_18 = 2;
-        light->m_positional_flags_5c |= 0x10;
-        light->m_positional_flags_5c |= 4;
+        light->attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
+        light->enable_flags_194 |= 0x10; /* ENABLE_RANGE_FAR */
+        light->enable_flags_194 |= 4;    /* ENABLE_BOUNDING_SPHERE */
     }
     return light;
 }
@@ -190,9 +191,9 @@ stLight* CreateWorldLight0046E030(W8World* world, const char* name)
         srAssertFail("pLight", THREE_D_CPP, 579, 0);
     }
     light->setName(name);
-    light->m_positional_18 = 2;
-    light->m_positional_flags_5c |= 0x10;
-    light->m_positional_flags_5c |= 4;
+    light->attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
+    light->enable_flags_194 |= 0x10; /* ENABLE_RANGE_FAR */
+    light->enable_flags_194 |= 4;    /* ENABLE_BOUNDING_SPHERE */
 
     if (world != 0) {
         PLAdoptAppend(&world->m_lights_0a8, light);
@@ -217,18 +218,15 @@ stLight* CreateWorldLight0046E140(W8World* world, const char* name)
         srAssertFail("pLight", THREE_D_CPP, 608, 0);
     }
 
-    light->m_positional_18 = 2;
-    light->m_positional_flags_5c |= 0x10;
-    light->m_positional_flags_5c |= 4;
+    light->attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
+    light->enable_flags_194 |= 0x10; /* ENABLE_RANGE_FAR */
+    light->enable_flags_194 |= 4;    /* ENABLE_BOUNDING_SPHERE */
     light->setName(name);
-    light->m_positional_20 = 0.0f;
-    light->m_positional_28 = 0.0f;
-    light->m_positional_168 = 0.0f;
-    light->m_positional_24 = 0.0f;
-    light->unknown_2c = 0;
-    light->m_positional_16c = 0.0f;
-    light->m_range_170 = 1500.0;
-    light->m_positional_1d4 = 5000.0f;
+    light->near_start_158 = 0.0;
+    light->near_end_160 = 0.0;
+    light->far_start_168 = 0.0;
+    light->far_end_170 = 1500.0;
+    light->safe_range_1d4 = 5000.0f;
     light->setLinearAttenuation(1500.0f, 0.0019569471f);
     PLAdoptAppend(&world->m_lights_0a8, light);
     return light;
@@ -255,14 +253,11 @@ void WorldRemoveLight(W8World* world, stLight* light)
 // FUNCTION: WIZ8 0x0046E300
 void ConfigureWorldLight0046E300(srLight* light, float range)
 {
-    light->m_range_170 = (double)range;
-    light->m_positional_20 = 0.0f;
-    light->m_positional_28 = 0.0f;
-    light->m_positional_168 = 0.0f;
-    light->m_positional_24 = 0.0f;
-    light->unknown_2c = 0;
-    light->m_positional_16c = 0.0f;
-    light->m_positional_1d4 = 5000.0f;
+    light->far_end_170 = (double)range;
+    light->near_start_158 = 0.0;
+    light->near_end_160 = 0.0;
+    light->far_start_168 = 0.0;
+    light->safe_range_1d4 = 5000.0f;
     light->setLinearAttenuation(range, 0.0019569471f);
 }
 
@@ -356,12 +351,14 @@ void ForwardThroughMember3C_46E640(W8World* owner, int argument)
     SetSceneMeshShaderBit3_0046E640(owner->static_scene, argument);
 }
 
-/* Walk one scene subtree and toggle shader bit 3 on every mesh model of every
-   model instance; the instance's flags_3a0 bit zero selects the off state. */
+/* Walk one scene subtree and toggle shader DEPTH_WRITE on every mesh model of
+   every model instance; the instance's flags_3a0 bit zero selects the off
+   state. */
 // FUNCTION: WIZ8 0x0046e640
 void SetSceneMeshShaderBit3_0046E640(srNode* node, int argument)
 {
-    Function00424A40();
+    unsigned int shader_default;
+    Function00424A40(&shader_default);
     for (; node != 0; node = node->nextSibling()) {
         if (node->getClassID() == 0x10004) {
             stModelInstance* instance = static_cast<stModelInstance*>(node);
@@ -373,18 +370,18 @@ void SetSceneMeshShaderBit3_0046E640(srNode* node, int argument)
                 if (polygon_shader == 0) {
                     srShader shader = mesh->getShader(0);
                     if (clear) {
-                        shader.value &= 0xfffffff7;
+                        shader.value &= ~srShader::MASK_DEPTH_WRITE;
                     } else {
-                        shader.value |= 8;
+                        shader.value |= srShader::MASK_DEPTH_WRITE;
                     }
                     mesh->setShader(shader, 0);
                 } else if (clear) {
                     for (long index = 0; index < mesh->polygon_count_230; ++index) {
-                        polygon_shader[index].value &= 0xfffffff7;
+                        polygon_shader[index].value &= ~srShader::MASK_DEPTH_WRITE;
                     }
                 } else {
                     for (long index = 0; index < mesh->polygon_count_230; ++index) {
-                        polygon_shader[index].value |= 8;
+                        polygon_shader[index].value |= srShader::MASK_DEPTH_WRITE;
                     }
                 }
             }
@@ -395,12 +392,13 @@ void SetSceneMeshShaderBit3_0046E640(srNode* node, int argument)
     }
 }
 
-/* The sibling walker that leaves shader bit 2 clear and writes the low three
-   bits: seven when the argument is zero, otherwise three. */
+/* The sibling walker that leaves PASS bit 2 clear and writes the low three
+   bits: PASS_ALWAYS when the argument is zero, otherwise PASS_LEQUAL. */
 // FUNCTION: WIZ8 0x0046e750
 void SetSceneMeshShaderLowBits0046E750(srNode* node, int argument)
 {
-    Function00424A40();
+    unsigned int shader_default;
+    Function00424A40(&shader_default);
     for (; node != 0; node = node->nextSibling()) {
         if (node->getClassID() == 0x10004) {
             stModelInstance* instance = static_cast<stModelInstance*>(node);
@@ -413,19 +411,19 @@ void SetSceneMeshShaderLowBits0046E750(srNode* node, int argument)
                 if (polygon_shader == 0) {
                     srShader shader = mesh->getShader(0);
                     if (argument == 0) {
-                        shader.value |= 7;
+                        shader.value |= srShader::PASS_ALWAYS;
                     } else {
-                        shader.value = (shader.value & 0xfffffffb) | 3;
+                        shader.value = (shader.value & 0xfffffffb) | srShader::PASS_LEQUAL;
                     }
                     mesh->setShader(shader, 0);
                 } else if (argument == 0) {
                     for (long index = 0; index < mesh->polygon_count_230; ++index) {
-                        polygon_shader[index].value |= 7;
+                        polygon_shader[index].value |= srShader::PASS_ALWAYS;
                     }
                 } else {
                     for (long index = 0; index < mesh->polygon_count_230; ++index) {
                         polygon_shader[index].value =
-                            (polygon_shader[index].value & 0xfffffffb) | 3;
+                            (polygon_shader[index].value & 0xfffffffb) | srShader::PASS_LEQUAL;
                     }
                 }
             }

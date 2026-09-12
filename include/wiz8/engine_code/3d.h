@@ -23,8 +23,8 @@ void ExpandBounds0046F510(srVector3T<float>* minimum, srVector3T<float>* maximum
 void UpdateWorldMonsters0046DD70(W8World* world);
 void ForwardThroughMember3C_46E750(W8World* owner, int argument);
 void ForwardThroughMember3C_46E640(W8World* owner, int argument);
-/* Video2.cpp's prologue for the scene shader walks; body unrecovered. */
-void Function00424A40(void);
+/* Video2.cpp's prologue for the scene shader walks. */
+void __fastcall Function00424A40(unsigned int* destination);
 void FinalizeStaticScene0046F3A0(srScene* scene);
 stModelInstance* CreateModelInstance0046F5C0(stMeshModel* model);
 

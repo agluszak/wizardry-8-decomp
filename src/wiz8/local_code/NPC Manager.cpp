@@ -259,7 +259,7 @@ W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc)
     if (!npc->is_grouped) {
         return 0;
     }
-    return &g_monster_manager_entries[npc->group_index];
+    return &gXStatus.monster_manager_entries[npc->group_index];
 }
 
 /* The party character occupying this NPC's group slot. */
@@ -1265,7 +1265,7 @@ unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, char* entity_name)
             return 0;
         }
         copied = position;
-        Function50F1A0(index, 1, &copied, 1, 0, 1);
+        CreateGroup(index, 1, &copied, 1, 0, 1);
         return 1;
     }
     if (npc->is_present == 0) {
@@ -1434,7 +1434,7 @@ void RebindNpcLevelTriggers0050AC60(void)
                     npc->level_band =
                         static_cast<unsigned char>(Function42B740(g_status_685170.current_level));
                     npc->bound_level = static_cast<unsigned char>(g_status_685170.current_level);
-                    Function524CA0(npc);
+                    ReloadNpcScriptResources(npc);
                     npc->is_present = 0;
                 }
             }

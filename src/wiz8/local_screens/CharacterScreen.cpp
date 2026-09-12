@@ -10,6 +10,7 @@
 #include "wiz8/dialog_code/SpellInfoDialog.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
 
 #include "wiz8/cursor.h"
@@ -42,8 +43,6 @@
 
 extern void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                                         char right_button, char left_button);
-
-extern void Function52DDD0(void);
 
 extern unsigned char SaveCharacter(W8Character*, int, char, void (*)(void));
 
@@ -195,7 +194,7 @@ void W8CharacterScreen::UpdateDialog()
 {
     if (m_dialog_1b1c != 0) {
         if (m_dialog_response_1b20 == 1) {
-            Function52DDD0();
+            gXStatus.character_event_queue->ProcessDeferredCharacterEvents();
             if (UpdateCharacterEventState() == 0 &&
                 static_cast<W8ModalDialogBase*>(m_dialog_1b1c)->close_result) {
                 m_dialog_1b1c->m_keep_open = 0;

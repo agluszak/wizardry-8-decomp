@@ -16,6 +16,7 @@
 #include "surrender/srCore.h"
 #include "surrender/srFog.h"
 #include "surrender/srMaterial.h"
+#include "surrender/srVertexPipe.h"
 #include "surrender/srNode.h"
 #include "surrender/srCamera.h"
 #include "surrender/srScene.h"
@@ -101,7 +102,7 @@ void W8MaterialMapper00482010::process(srVertexPipe& pipe)
     float offset_x;
     float offset_y;
 
-    if (!pipe.isChannelAvailable(static_cast<srVertexProcessor::e_channel>(5))) {
+    if (!pipe.isChannelAvailable(srVertexProcessor::CHANNEL_ST0)) {
         return;
     }
     unsigned long count = pipe.getVertexCount();
@@ -155,9 +156,7 @@ void AdvanceEnvironmentTime00482A20(int elapsed)
     direction.Set(0.0, g_environment_value_0060a3a4, 0.0);
 
     srMatrix3T<float> rotation;
-    rotation.vectors[0].Set(1.0, 0.0, 0.0);
-    rotation.vectors[1].Set(0.0, 1.0, 0.0);
-    rotation.vectors[2].Set(0.0, 0.0, 1.0);
+    rotation.SetIdentity();
 
     angle -= 3.141592653589793 * (double)(1.0f / 180.0f) * 40.0;
     if (angle != 0.0) {
@@ -406,17 +405,17 @@ void SetSkyEnabled(bool enabled)
 
         g_environment_object_0065b9b0 = SR_NEW(srFog)(g_world->static_scene);
         g_environment_object_0065b9b4 = SR_NEW(srFog)(g_world->dynamic_scene);
-        g_environment_object_0065b9b0->m_positional_28 = 1.0f;
-        g_environment_object_0065b9b4->m_positional_28 = 1.0f;
+        g_environment_object_0065b9b0->density_160 = 1.0f;
+        g_environment_object_0065b9b4->density_160 = 1.0f;
 
         if (g_environment_object_0065b9b0 != 0 && g_world != 0) {
-            g_environment_object_0065b9b0->m_positional_double_20 =
+            g_environment_object_0065b9b0->fog_end_158 =
                 WorldGetFarClip(g_world) * g_world->environment_range_end_018;
-            g_environment_object_0065b9b0->m_positional_double_18 =
+            g_environment_object_0065b9b0->fog_start_150 =
                 WorldGetFarClip(g_world) * g_world->environment_range_start_014;
-            g_environment_object_0065b9b4->m_positional_double_18 =
+            g_environment_object_0065b9b4->fog_start_150 =
                 WorldGetFarClip(g_world) * g_world->environment_range_start_014;
-            g_environment_object_0065b9b4->m_positional_double_20 =
+            g_environment_object_0065b9b4->fog_end_158 =
                 WorldGetFarClip(g_world) * g_world->environment_range_end_018;
         }
 
@@ -579,13 +578,13 @@ bool IsSkyEnabled(void)
 void RefreshFogRanges004836A0(void)
 {
     if (g_environment_object_0065b9b0 != 0 && g_world != 0) {
-        g_environment_object_0065b9b0->m_positional_double_20 =
+        g_environment_object_0065b9b0->fog_end_158 =
             WorldGetFarClip(g_world) * g_world->environment_range_end_018;
-        g_environment_object_0065b9b0->m_positional_double_18 =
+        g_environment_object_0065b9b0->fog_start_150 =
             WorldGetFarClip(g_world) * g_world->environment_range_start_014;
-        g_environment_object_0065b9b4->m_positional_double_18 =
+        g_environment_object_0065b9b4->fog_start_150 =
             WorldGetFarClip(g_world) * g_world->environment_range_start_014;
-        g_environment_object_0065b9b4->m_positional_double_20 =
+        g_environment_object_0065b9b4->fog_end_158 =
             WorldGetFarClip(g_world) * g_world->environment_range_end_018;
     }
 }
@@ -746,7 +745,7 @@ void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,
 
         scaled *= (double)intensity;
         SaturateColor004299B0(&scaled);
-        light->m_direction_60 = scaled;
+        light->ambient_198 = scaled;
     }
     {
         srRegistry* registry = srCore.getRegistry();
@@ -793,9 +792,9 @@ void SetSkyNodeVisible(bool visible)
 
     if (sky != 0) {
         if (visible) {
-            sky->clearFlag(srNode::FLAG_POSITIONAL_0);
+            sky->clearFlag(srNode::FLAG_DISABLE);
         } else {
-            sky->setFlag(srNode::FLAG_POSITIONAL_0);
+            sky->setFlag(srNode::FLAG_DISABLE);
         }
     }
 }

@@ -518,7 +518,7 @@ def status_member_accesses(repo_dir: Path) -> list[dict[str, Any]]:
 GSTATUS_START = 0x00685170
 GSTATUS_SIZE = 0x49C2
 GSTATUS_END = GSTATUS_START + GSTATUS_SIZE
-GXSTATUS_START = 0x00683F78
+GXSTATUS_START = 0x006836B8
 
 
 def classify_status_region(definitions: list[dict[str, Any]]) -> list[dict[str, Any]]:

@@ -25,17 +25,15 @@ struct W8CycleNameRow {
 
 extern W8CycleNameRow g_cycle_names[];
 
-/* Eight party-slot records at 0x006836B8. The element constructor and
-   destructor at 0x004E6A30 and 0x004E6A10 exist because each record owns the
-   ordinary vector at +0x0D8. The reset at 0x0054B300 clears a record wholesale
-   despite that non-trivial member; that source behavior does not turn the
-   vector into a second layout projection.
+/* One party-slot record. The element constructor and destructor at
+   0x004E6A30 and 0x004E6A10 exist because each record owns the ordinary
+   vector at +0x0D8. The reset at 0x0054B300 clears a record wholesale despite
+   that non-trivial member; that source behavior does not turn the vector into
+   a second layout projection.
 
-   These are not members of a larger "manager state" object: gXStatus begins
-   immediately after the array at 0x00683F78, and a separate targeting vector
-   lives at 0x0068406F. Startup 0x004E6970 / atexit 0x004E6940 are the TU
-   dynamic initializer and destructor for those two globals, not a class
-   constructor/destructor over contiguous BSS. */
+   Eight of these are the leading member of packed gXStatus at 0x006836B8.
+   The constructor at 0x004E6970 and destructor at 0x004E6940 are W8XStatus
+   lifecycle, not TU dynamic initializers for standalone globals. */
 #pragma pack(push, 1)
 struct W8MonsterManagerEntry {
     W8MonsterManagerEntry();
@@ -85,8 +83,8 @@ struct W8MonsterManagerEntry {
     W8GrowableVector<int> highlighted_monsters; /* 0x0d8 */
     unsigned char field_0e8;
     unsigned char unknown_0e9[0x2a];
-    unsigned int field_113;
-    unsigned char unknown_117;
+    unsigned char field_113;             /* 0x113: pose/direction threshold comparisons */
+    unsigned int pending_event_type_114; /* 0x114: last queued portrait event type */
 }; /* 0x118 */
 #pragma pack(pop)
 
@@ -94,11 +92,13 @@ static_assert(sizeof(W8GrowableVector<int>) == 0x10, "W8GrowableVector_int_size_
 static_assert(sizeof(W8MonsterManagerEntry) == 0x118, "W8MonsterManagerEntry_size_must_be_0x118");
 
 extern W8MonsterManagerEntry g_monster_manager_entries[8];
-/* Cleared with the target marker and handed to Function53B660; sits
-   immediately before g_target_position_0068407f. */
+/* Cleared with the target marker and handed to PopulateTargetMarkerForCurrentAction;
+   sits immediately before g_target_position_0068407f. */
 extern W8GrowableVector<int> g_target_marker_vector_0068406f;
 
 W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);
+W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
+                                 srVector3T<float>* position);
 unsigned char LoadMonsterDatabaseRecord(unsigned int monster_species, W8MonsterRecord* record);
 
 /* One queued monster action, 0x30 bytes: the kind/detail pair, the attack

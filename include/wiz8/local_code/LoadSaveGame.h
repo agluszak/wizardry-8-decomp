@@ -48,11 +48,14 @@ unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots);
 
 unsigned char SaveGame(const char* name, W8SaveScreenshot* screenshot);
 
+struct W8Character;
+unsigned char SaveCharacter(W8Character* character, int slot, char report_failure,
+                            void (*continuation)(void)); /* 0x00515090 */
+
 unsigned char AutoSaveIfAllowed(char forced);
 
 unsigned char TakePendingSaveFlag(void);
 
-struct W8Character;
 struct W8Chunk;
 struct W8GlobalStatus;
 unsigned char SaveSlotFileExists(const char* slot_name);

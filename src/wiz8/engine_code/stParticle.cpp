@@ -426,10 +426,7 @@ void stParticle::Update00499FA0()
         getLocation(node_location);
 
         double elapsed = (double)elapsed_ticks;
-        srVector3T<float> acceleration_step;
-        acceleration_step.Set(acceleration_1f4.x * elapsed * g_double_005ec8d0,
-                              acceleration_1f4.y * elapsed * g_double_005ec8d0,
-                              acceleration_1f4.z * elapsed * g_double_005ec8d0);
+        srVector3T<float> acceleration_step = acceleration_1f4 * (elapsed * g_double_005ec8d0);
 
         unsigned int index;
         for (index = 0; index < particle_count_180; ++index) {
@@ -473,15 +470,10 @@ void stParticle::Update00499FA0()
             }
 
             if (value_1a8 == 1) {
-                allocation_198[index].x += acceleration_step.x;
-                allocation_198[index].y += acceleration_step.y;
-                allocation_198[index].z += acceleration_step.z;
+                allocation_198[index] += acceleration_step;
             }
 
-            srVector3T<float> movement;
-            movement.Set(allocation_198[index].x * elapsed * g_double_005ec8d0,
-                         allocation_198[index].y * elapsed * g_double_005ec8d0,
-                         allocation_198[index].z * elapsed * g_double_005ec8d0);
+            srVector3T<float> movement = allocation_198[index] * (elapsed * g_double_005ec8d0);
 
             srVector3T<float> candidate;
             candidate = allocation_148[index] + movement;
@@ -588,19 +580,11 @@ void stParticle::InitializeParticlePosition0049A990(srVector3T<float>* output)
     output->z = (maximum_1dc.z - minimum_1d0.z) * (float)(rand() & 0x7fff) * g_float_005ec438 +
                 minimum_1d0.z;
 
-    output->x *= value_278;
-    output->y *= value_278;
-    output->z *= value_278;
+    *output *= value_278;
 
     srMatrix3T<float> rotation;
     getRotation(rotation);
-    srVector3T<float> original = *output;
-    output->x = rotation.vectors[0].x * original.x + rotation.vectors[0].z * original.z +
-                rotation.vectors[0].y * original.y;
-    output->y = rotation.vectors[1].z * original.z + rotation.vectors[1].y * original.y +
-                rotation.vectors[1].x * original.x;
-    output->z = rotation.vectors[2].z * original.z + rotation.vectors[2].y * original.y +
-                rotation.vectors[2].x * original.x;
+    output->Transform(rotation);
 
     srVector3T<double> location = getLocation();
     output->x += (float)location.x;
@@ -621,7 +605,7 @@ void stParticle::traverse(srNode::TraverseInfo& info)
         nextSibling()->traverse(info);
     }
 
-    if (!testFlag(FLAG_POSITIONAL_0)) {
+    if (!testFlag(FLAG_DISABLE)) {
         if ((active_1a0 != 0 || active_particle_count_18c != 0) && flag_1a1 != 0) {
             srNode::TraverseInfo::Entry& entry = info.entries[info.entry_count];
             entry.node = this;
@@ -630,7 +614,7 @@ void stParticle::traverse(srNode::TraverseInfo& info)
         }
     }
 
-    if (!testFlag(FLAG_POSITIONAL_1) && firstChild() != 0) {
+    if (!testFlag(FLAG_TERMINATE) && firstChild() != 0) {
         firstChild()->traverse(info);
     }
 }
@@ -664,51 +648,31 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
         srVector3T<float>(0.5f, -0.5f, 0.0f), srVector3T<float>(-0.5f, -0.5f, 0.0f)};
     static srVector3T<float> offsets[4];
 
-    float* matrix = &view.vectors[0].x;
-    matrix[3] = 0.0f;
-    matrix[7] = 0.0f;
-    matrix[11] = 0.0f;
+    view.vectors[0].w = 0.0f;
+    view.vectors[1].w = 0.0f;
+    view.vectors[2].w = 0.0f;
 
-    float normalization =
-        (float)(g_double_005ebc30 / sqrt(matrix[0] * matrix[0] + matrix[1] * matrix[1] +
-                                         matrix[2] * matrix[2] + matrix[3] * matrix[3]));
-    matrix[0] *= normalization;
-    matrix[1] *= normalization;
-    matrix[2] *= normalization;
-    matrix[3] *= normalization;
-    matrix[4] *= normalization;
-    matrix[5] *= normalization;
-    matrix[6] *= normalization;
-    matrix[7] *= normalization;
-    matrix[8] *= normalization;
-    matrix[9] *= normalization;
-    matrix[10] *= normalization;
-    matrix[11] *= normalization;
+    float normalization = (float)(g_double_005ebc30 / view.vectors[0].Length());
+    view.vectors[0] *= normalization;
+    view.vectors[1] *= normalization;
+    view.vectors[2] *= normalization;
 
     for (unsigned int index = 0; index < 4; ++index) {
         srVector4T<float> transformed = view.Transform(corners[index]);
 
         float scale = (float)value_140 * value_278;
-        offsets[index].x = transformed.x * scale;
-        offsets[index].y = transformed.y * scale;
-        offsets[index].z = transformed.z * scale;
+        offsets[index] =
+            srVector3T<float>(transformed.x, transformed.y, transformed.z) * (double)scale;
     }
 
     if (value_1c0 == 0) {
         for (unsigned int direct_index = 0; direct_index < particle_count_180; ++direct_index) {
             unsigned int vertex = direct_index * 4;
             const srVector3T<float>& position = allocation_148[direct_index];
-            allocation_160[vertex].x = position.x + offsets[0].x;
-            allocation_160[vertex].y = position.y + offsets[0].y;
-            allocation_160[vertex].z = position.z + offsets[0].z;
-            allocation_160[vertex + 1].x = position.x + offsets[1].x;
-            allocation_160[vertex + 1].y = position.y + offsets[1].y;
-            allocation_160[vertex + 1].z = position.z + offsets[1].z;
-
-            allocation_160[vertex + 2] = srVector3T<float>(
-                position.x + offsets[2].x, position.y + offsets[2].y, position.z + offsets[2].z);
-            allocation_160[vertex + 3] = srVector3T<float>(
-                position.x + offsets[3].x, position.y + offsets[3].y, position.z + offsets[3].z);
+            allocation_160[vertex] = position + offsets[0];
+            allocation_160[vertex + 1] = position + offsets[1];
+            allocation_160[vertex + 2] = position + offsets[2];
+            allocation_160[vertex + 3] = position + offsets[3];
         }
         return;
     }
@@ -742,14 +706,9 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
         }
 
         unsigned int vertex = particle_index * 4;
-        allocation_160[vertex].x = position.x + offsets[0].x;
-        allocation_160[vertex].y = position.y + offsets[0].y;
-        allocation_160[vertex].z = position.z + offsets[0].z;
-        allocation_160[vertex + 1].x = position.x + offsets[1].x;
-        allocation_160[vertex + 1].y = position.y + offsets[1].y;
-        allocation_160[vertex + 1].z = position.z + offsets[1].z;
-        allocation_160[vertex + 2] = srVector3T<float>(
-            position.x + offsets[2].x, position.y + offsets[2].y, position.z + offsets[2].z);
+        allocation_160[vertex] = position + offsets[0];
+        allocation_160[vertex + 1] = position + offsets[1];
+        allocation_160[vertex + 2] = position + offsets[2];
         allocation_160[vertex + 3] = position + offsets[3];
     }
 }
@@ -812,11 +771,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
             visibility = renderer->testBoundingSphere(position, value_278 * value_240);
         } else {
             getRotation(rotation);
-            srVector3T<float> rotated = rotation.Transform(extent);
-            float x = rotated.x;
-            float y = rotated.y;
-            float z = rotated.z;
-            srVector3T<float> center(x + position.x, position.y + y, position.z + z);
+            srVector3T<float> center = rotation.Transform(extent) + position;
             visibility = renderer->testBoundingSphere(center, value_278 * value_240);
         }
         if (visibility == srGERD::VISIBILITY_POSITIONAL_0) {
@@ -826,17 +781,8 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 
     if (value_1a4 == 1) {
         getRotation(rotation);
-        srVector3T<float> rotated_min = rotation.Transform(minimum_21c);
-        float x = rotated_min.x;
-        float y = rotated_min.y;
-        float z = rotated_min.z;
-        srVector3T<float> minimum(x + position.x, position.y + y, position.z + z);
-
-        srVector3T<float> rotated_max = rotation.Transform(maximum_228);
-        x = rotated_max.x;
-        y = rotated_max.y;
-        z = rotated_max.z;
-        srVector3T<float> maximum(x + position.x, position.y + y, position.z + z);
+        srVector3T<float> minimum = rotation.Transform(minimum_21c) + position;
+        srVector3T<float> maximum = rotation.Transform(maximum_228) + position;
 
         srGERD::e_visibility visibility = renderer->testBoundingBox(minimum, maximum);
         if (visibility == srGERD::VISIBILITY_POSITIONAL_0) {
@@ -858,45 +804,45 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     }
 
     renderer->pushEnable();
-    renderer->matrixMode(srGERD::MATRIX_MODE_POSITIONAL_0);
+    renderer->matrixMode(srGERD::MATRIX_MODELVIEW);
 
     srMatrix4T<float> view;
-    renderer->getMatrix(srGERD::MATRIX_MODE_POSITIONAL_0, view);
+    renderer->getMatrix(srGERD::MATRIX_MODELVIEW, view);
     view.Invert();
     PrepareRenderer00498DD0(view);
 
     if (value_138 != 0 && !renderer->isEnabled(srGERD::ENABLE_POSITIONAL_1)) {
         renderer->toggle(srGERD::ENABLE_POSITIONAL_1);
     }
-    renderer->setCullMode(srGERD::CULL_MODE_POSITIONAL_2);
+    renderer->setCullMode(srGERD::CULL_FRONT);
     renderer->setPickKey(0);
 
     srTriMeshPipeline* pipeline = srTriMeshPipeline::Get004750A0(renderer);
 
     /* Three array/count pairs: the index pairs rebuilt above, the polygon
        index list, and the transformed vertex positions. */
-    pipeline->value_2c = allocation_254;
-    pipeline->value_24 = active_particle_count_18c * 2;
-    pipeline->value_34 = allocation_168;
-    pipeline->value_1c = texture_frame_count_15c;
-    pipeline->value_38 = allocation_160;
-    pipeline->value_20 = vertex_count_158;
+    pipeline->active_triangles_2c = allocation_254;
+    pipeline->active_triangle_count_24 = active_particle_count_18c * 2;
+    pipeline->triangles_34 = allocation_168;
+    pipeline->triangle_count_1c = texture_frame_count_15c;
+    pipeline->positions_38 = allocation_160;
+    pipeline->vertex_count_20 = vertex_count_158;
     if (allocation_170 != 0) {
-        pipeline->value_3c = allocation_170;
+        pipeline->vertex_extras_3c = allocation_170;
     }
 
     pipeline->current_record_14->flags_00 = 0;
-    pipeline->current_pass_18->value_14 = 0;
-    pipeline->current_pass_18->value_0c = 0;
+    pipeline->current_pass_18->shader_14 = 0;
+    pipeline->current_pass_18->texture_array_0c = 0;
     pipeline->current_pass_18->value_10 = 0;
 
     if (allocation_16c != 0) {
-        pipeline->current_record_14->value_0c = allocation_16c;
-        pipeline->current_record_14->value_10 = 1;
+        pipeline->current_record_14->colors_0c = allocation_16c;
+        pipeline->current_record_14->color_format_10 = 1;
         pipeline->current_record_14->flags_00 |= 1;
     }
     if (allocation_174 != 0) {
-        pipeline->current_record_14->value_1c = allocation_174;
+        pipeline->current_record_14->alphas_1c = allocation_174;
         pipeline->current_record_14->flags_00 |= 8;
     }
 
@@ -908,18 +854,18 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     pipeline->SetFlags004752C0(render_flags_150);
 
     if (allocation_164 != 0) {
-        pipeline->current_record_14->value_20 = allocation_164;
+        pipeline->current_record_14->st0_20 = allocation_164;
         pipeline->current_record_14->flags_00 |= 0x10;
     }
 
     if (texture_frames_178 != 0) {
-        pipeline->current_pass_18->value_0c = texture_frames_178;
+        pipeline->current_pass_18->texture_array_0c = texture_frames_178;
     } else {
         srTextureIFace* texture = texture_154;
 
         if (texture != 0) {
-            pipeline->value_78 = texture;
-            pipeline->current_pass_18->value_00 = texture;
+            pipeline->texture_78 = texture;
+            pipeline->current_pass_18->texture_00 = texture;
         }
     }
 

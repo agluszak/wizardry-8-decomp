@@ -2,9 +2,33 @@
 
 class srRendererDefs {
 public:
-    enum e_primitive {};
-    enum e_clip {};
-    enum e_type { TYPE_POSITIONAL_1 = 1 };
+    /* OpenGL srDD maps these to glDrawArrays modes (POINTS, LINE_STRIP, LINES,
+       TRIANGLE_STRIP, TRIANGLE_FAN, TRIANGLES). DirectX7 keeps the same SR
+       values as the draw-helper primitive key (value 5 is the triangle-list
+       merge case; value 3 is the four-vertex strip Wizardry draws). */
+    enum e_primitive {
+        PRIMITIVE_POINTS = 0,
+        PRIMITIVE_LINE_STRIP = 1,
+        PRIMITIVE_LINES = 2,
+        PRIMITIVE_TRIANGLE_STRIP = 3,
+        PRIMITIVE_TRIANGLE_FAN = 4,
+        PRIMITIVE_TRIANGLES = 5
+    };
+    /* Bit indices into srGERD clip_state_21cc_ / getClipMask. applyClipPlaneChanges
+       fills the six frustum planes at GERD+0x1418 in this order (X pair, Y pair,
+       then constant Z near/far). Bits 6+ are extra user planes from pushClipPlane.
+       Wizardry's 2D path writes the six-bit mask 0x3f. */
+    enum e_clip {
+        CLIP_LEFT = 0,
+        CLIP_RIGHT = 1,
+        CLIP_BOTTOM = 2,
+        CLIP_TOP = 3,
+        CLIP_NEAR = 4,
+        CLIP_FAR = 5
+    };
+    /* OpenGL vertex-array setup uses GL_FLOAT (0x1406) for this value.
+       Wizardry passes it for float[] position and texcoord arrays. */
+    enum e_type { TYPE_FLOAT = 1 };
     enum e_vertexArray {};
     enum e_indexType {};
     struct VertexArrayInfo;

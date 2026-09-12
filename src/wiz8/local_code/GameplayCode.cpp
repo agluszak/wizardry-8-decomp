@@ -820,11 +820,6 @@ unsigned int GetAveragePartyLevel(void)
     return total_level / occupied_slots;
 }
 
-/* 0x00684000: one twelve-byte record per party slot; the join entry stamps
-   the record's first byte once the game is already running. */
-// GLOBAL: WIZ8 0x00684000
-unsigned char g_party_slot_state_684000[8][0xc];
-
 /* Add one character to the party: find a free slot in the requested band,
    copy the record, mark it in party, rebuild its row and formation position
    and enter it in the marching order. The band is 2..7 for a regular member
@@ -874,7 +869,7 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
     g_status_685170.formation.positions[slot].unknown_01[0] = 0xff;
 
     if (g_status_685170.game_started != 0) {
-        g_party_slot_state_684000[slot][0] = 0xff;
+        gXStatus.party_slot_state[slot][0] = 0xff;
         PostCharacterNotice(slot, gppStringList[0x940 / 4]);
     }
     ++g_status_685170.unknown_000d[2];

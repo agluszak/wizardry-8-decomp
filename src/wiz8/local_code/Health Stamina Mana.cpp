@@ -358,15 +358,15 @@ void HealCharacter(int party_slot, int amount, char announce)
 
     fraction = (character->hp_current * 100) / (unsigned int)character->hp_max;
     if (fraction >= g_effect_threshold_005ed904) {
-        if (CharacterHasEffect(reinterpret_cast<void*>(g_effect_005ee594), party_slot)) {
+        if (gXStatus.character_event_queue->HasEventCharacter(g_effect_005ee594, party_slot)) {
             gXStatus.character_event_queue->SetEventCharacterMask(g_effect_005ee594, party_slot, 0);
         }
         if (fraction >= g_effect_threshold_005ed900) {
-            if (CharacterHasEffect(reinterpret_cast<void*>(g_effect_005ee590), party_slot)) {
+            if (gXStatus.character_event_queue->HasEventCharacter(g_effect_005ee590, party_slot)) {
                 gXStatus.character_event_queue->SetEventCharacterMask(g_effect_005ee590, party_slot,
                                                                       0);
             }
-            if (CharacterHasEffect(reinterpret_cast<void*>(g_effect_005ee5f8), party_slot)) {
+            if (gXStatus.character_event_queue->HasEventCharacter(g_effect_005ee5f8, party_slot)) {
                 gXStatus.character_event_queue->SetEventCharacterMask(g_effect_005ee5f8, party_slot,
                                                                       0);
             }
@@ -534,7 +534,7 @@ void DamageCharacter(int party_slot, int unused, int damage, char announce)
             SetCharacterCondition(party_slot, 1, W8_CONDITION_INDEFINITE, 0, 0, 0);
         }
         if (character->hp_current != 0) {
-            Function52F2C0(character);
+            QueueDamageReactionEvents(character);
         }
     }
 }
@@ -887,7 +887,7 @@ void CharacterDies(int party_slot)
             g_combat_state->iActionChar = -1;
         }
         row->pending_action = -1;
-        g_combat_state->characters[party_slot].value_00 = 0;
+        g_combat_state->characters[party_slot].phase = 0;
         g_combat_state->characters[party_slot].flag_34 = 1;
         DropCharacterFromRound(party_slot);
     }

@@ -358,8 +358,8 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
             srModelInstance* instance = static_cast<srModelInstance*>(node);
             srMeshModel* mesh = static_cast<srMeshModel*>(instance->model());
 
-            mesh->setControlMask(0x20);
-            mesh->setControlMask(0x10);
+            mesh->setControlMask(0x20); /* CONTROL_SKIP_AUTO_SPHERE */
+            mesh->setControlMask(0x10); /* CONTROL_SKIP_AUTO_BOX */
         }
     }
 
@@ -584,9 +584,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
                 axis.x = trigger->value_100;
                 axis.y = trigger->value_104;
                 axis.z = trigger->value_108;
-                rotation.vectors[0].Set(1.0, 0.0, 0.0);
-                rotation.vectors[1].Set(0.0, 1.0, 0.0);
-                rotation.vectors[2].Set(0.0, 0.0, 1.0);
+                rotation.SetIdentity();
                 if (trigger->angle_0fc != 0.0f) {
                     rotation.RotateAroundAxis(sin(trigger->angle_0fc), cos(trigger->angle_0fc),
                                               axis);

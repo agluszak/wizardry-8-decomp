@@ -24,21 +24,18 @@ MonsterLight::MonsterLight(srNode* parent, unsigned char cycle_color, float rang
       m_cycle_color_248(cycle_color), m_fade_out_249(0)
 {
     setName("MonFixedLight");
-    m_positional_18 = 2;
-    m_positional_flags_5c |= 0x10;
-    m_positional_flags_5c |= 4;
-    m_range_170 = range;
-    m_positional_20 = 0.0f;
-    m_positional_28 = 0.0f;
-    m_positional_168 = 0.0f;
-    m_positional_1d4 = 5000.0f;
-    m_positional_24 = 0.0f;
-    unknown_2c = 0;
-    m_positional_16c = 0.0f;
+    attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
+    enable_flags_194 |= 0x10; /* ENABLE_RANGE_FAR */
+    enable_flags_194 |= 4;    /* ENABLE_BOUNDING_SPHERE */
+    far_end_170 = range;
+    near_start_158 = 0.0;
+    near_end_160 = 0.0;
+    far_start_168 = 0.0;
+    safe_range_1d4 = 5000.0f;
     setLinearAttenuation(range, 0.0019569471f);
-    m_position_78.SetZero();
-    m_color_6c = *first_color;
-    setFlag(srNode::FLAG_POSITIONAL_0);
+    specular_1b0.SetZero();
+    diffuse_1a4 = *first_color;
+    setFlag(srNode::FLAG_DISABLE);
     m_start_time_244 = g_object_6598bc->GetValue30();
 }
 
@@ -51,9 +48,9 @@ MonsterLight::~MonsterLight() {}
 void MonsterLight::SetVisible0049D970(char visible)
 {
     if (visible != 0) {
-        clearFlag(srNode::FLAG_POSITIONAL_0);
+        clearFlag(srNode::FLAG_DISABLE);
     } else {
-        setFlag(srNode::FLAG_POSITIONAL_0);
+        setFlag(srNode::FLAG_DISABLE);
     }
 }
 
@@ -76,9 +73,9 @@ void MonsterLight::Update0049D990(const srVector3T<float>* position)
             g_float_005ebc7c;
         float second_weight = g_float_005ebb38 - first_weight;
 
-        m_color_6c.x = m_color_first_22c.x * first_weight + m_color_second_238.x * second_weight;
-        m_color_6c.y = m_color_first_22c.y * first_weight + m_color_second_238.y * second_weight;
-        m_color_6c.z = m_color_first_22c.z * first_weight + m_color_second_238.z * second_weight;
+        diffuse_1a4.x = m_color_first_22c.x * first_weight + m_color_second_238.x * second_weight;
+        diffuse_1a4.y = m_color_first_22c.y * first_weight + m_color_second_238.y * second_weight;
+        diffuse_1a4.z = m_color_first_22c.z * first_weight + m_color_second_238.z * second_weight;
     }
 
     srVector3T<double> location;

@@ -349,7 +349,7 @@ stMeshModel* BuildSingleLevelMesh00488650(int face_count, W8ReadMeshFace* faces,
         model->control_state_390 |= 8;
         if ((polygon_types.data[type] & 0x6000) == 0x4000) {
             model->flags_3a0 |= 1;
-            model->control_state_394 |= 0x40;
+            model->control_state_394 |= 0x40; /* CONTROL_STARTUP */
             model->control_state_390 |= 8;
         } else {
             model->flags_3a0 &= ~1U;
@@ -663,14 +663,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
         loaded_instance->setName("ReadSTMeshFromFile");
         if (version > 1 && loaded_instance != 0) {
             const double angle = 3.14159265358979323846;
-            const float cosine = static_cast<float>(cos(angle));
-            const float sine = static_cast<float>(sin(angle));
-            srVector3T<float> first(1.0f, 0.0f, 0.0f);
-            srVector3T<float> second(0.0f, cosine, -sine);
-            srVector3T<float> third(0.0f, sine, cosine);
-            srMatrix3T<float> conversion;
-            conversion.SetRows(first, second, third);
-            rotation.MultiplyBy(conversion);
+            rotation.RotateAboutX(sin(angle), cos(angle));
             srVector3T<double> translated(location.x * 500.0, location.y * 500.0,
                                           location.z * 500.0);
             loaded_instance->setLocation(translated);

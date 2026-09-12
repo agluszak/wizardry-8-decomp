@@ -57,7 +57,7 @@ struct W8PartySlotRow {
     int animation_0fa;
     /* 0x0fe: cleared by the level-entry NPC-binding reset. */
     unsigned char flag_fe;
-    unsigned char unknown_ff[4];
+    unsigned int pending_event_type_ff; /* 0xff: last queued portrait event type */
     /* 0x103: portrait advance is only allowed while this is set. */
     unsigned char flag_103;
     unsigned char action_is_kind_one;
@@ -80,7 +80,7 @@ static_assert(sizeof(W8EffectSlot) == 0x11, "W8EffectSlot_must_be_0x11");
    header, not part of every row. Only the fields the fatigue, death and
    engagement paths touch are established. */
 struct W8CombatCharacterRow {
-    unsigned int value_00; /* 0x00: cleared when the character dies */
+    unsigned int phase; /* 0x00: combat phase; cleared when the character dies */
     unsigned char unknown_04[0x30];
     unsigned char flag_34; /* 0x34: raised when the character dies */
     unsigned char unknown_35[3];
@@ -185,5 +185,6 @@ int NormalizeAttackMode(int attack_mode);
 unsigned int ChooseAttackMode(unsigned int attack_modes);
 
 unsigned char CanCharReBreathe(int party_slot);
+void CatchUpCombatActor(W8CombatCharacterRow* row); /* 0x004ECEB0 */
 
 #endif

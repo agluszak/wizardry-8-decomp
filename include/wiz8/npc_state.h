@@ -143,7 +143,9 @@ unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, char* entity_name);
    NPC triggers. */
 unsigned char Function50ABF0(Trigger* trigger);
 /* 0x00524CA0: the NPC-side rebinding pass. */
-void Function524CA0(W8NpcState* npc);
+void ReloadNpcScriptResources(W8NpcState* npc);
+/* 0x00526E90: message-box idle processor for queued script lines. */
+void ProcessMessageBoxQueue(void);
 void ResetNpcBindingsForParty0050DB50(void);
 void ClearPendingNpcLevelFlags0050C270(void);
 void ReleaseNpcMonsterBindings0050C2E0(void);

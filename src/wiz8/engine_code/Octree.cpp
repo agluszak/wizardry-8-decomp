@@ -39,6 +39,7 @@
 #include "wiz8/engine_code/stCube.h"
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/Navigator.h"
+#include "wiz8/screen_state.h"
 
 #include <math.h>
 
@@ -79,6 +80,8 @@ W8Octree* g_octree_6598a4;
 
 // GLOBAL: WIZ8 0x006598a8
 unsigned char g_flag_6598a8;
+// GLOBAL: WIZ8 0x006598b0
+unsigned short g_octree_region_debug_last_006598b0;
 
 // FUNCTION: WIZ8 0x0042bc00
 void NoOct(void)
@@ -152,8 +155,8 @@ void W8Octree::UpdateVisibility004304A0()
                 stModelInstance* mesh =
                     static_cast<stModelInstance*>(g_world->psrMeshes[mesh_index]);
                 if (mesh != 0) {
-                    mesh->setFlag(srNode::FLAG_POSITIONAL_0);
-                    mesh->setFlag(srNode::FLAG_POSITIONAL_1);
+                    mesh->setFlag(srNode::FLAG_DISABLE);
+                    mesh->setFlag(srNode::FLAG_TERMINATE);
                 }
             }
         }
@@ -222,8 +225,8 @@ void W8Octree::UpdateVisibility004304A0()
             stModelInstance* mesh =
                 static_cast<stModelInstance*>(g_world->psrMeshes[submesh->mesh_04]);
             if (mesh != 0) {
-                mesh->setFlag(srNode::FLAG_POSITIONAL_0);
-                mesh->setFlag(srNode::FLAG_POSITIONAL_1);
+                mesh->setFlag(srNode::FLAG_DISABLE);
+                mesh->setFlag(srNode::FLAG_TERMINATE);
             }
         }
         bit = m_previous_regions_164->NextSetBit(0);
@@ -237,8 +240,8 @@ void W8Octree::UpdateVisibility004304A0()
             submesh->flags_00 |= 0x28;
             stModelInstance* mesh = static_cast<stModelInstance*>(g_world->psrMeshes[mesh_index]);
             if (mesh != 0) {
-                mesh->clearFlag(srNode::FLAG_POSITIONAL_0);
-                mesh->clearFlag(srNode::FLAG_POSITIONAL_1);
+                mesh->clearFlag(srNode::FLAG_DISABLE);
+                mesh->clearFlag(srNode::FLAG_TERMINATE);
             }
         }
         MarkMeshLinksVisible00430A70(bit);
@@ -333,12 +336,6 @@ void W8Octree::MarkMeshLinksVisible00430A70(unsigned int mesh)
     }
 }
 
-/* The two per-frame visibility helpers behind the cell walk. Both take only
-   the receiver in ECX and their bodies are unrecovered, so they keep
-   address-qualified names. */
-/* Point the visibility filter at the octree so it answers over this frame's
-   cell set. */
-
 /* Expand the camera box over the spatial levels and collect the regions the
    camera can occupy.
 
@@ -347,7 +344,90 @@ void W8Octree::MarkMeshLinksVisible00430A70(unsigned int mesh)
    box while the node extent shrinks per level; the deepest level looks the
    camera cell up in the region-link table and adds every linked region to the
    projected set. The leaf the walk ends on contributes its region list through
-   0x00431050. */
+   ProjectLinkedRegionsForLocation00431050. */
+// FUNCTION: WIZ8 0x00431050
+short W8Octree::ProjectLinkedRegionsForLocation00431050(srVector3T<float>* location,
+                                                        unsigned short* region_list)
+{
+    if (m_positional_169 == 0) {
+        return 0;
+    }
+
+    short match_count = 0;
+    char expected_regions[256];
+    expected_regions[0] = '\0';
+    char region_label[128];
+
+    if (region_list != 0 && region_list[0] != 0) {
+        for (unsigned short* cursor = region_list; *cursor != 0; ++cursor) {
+            unsigned short region_index = *cursor;
+            sprintf(region_label, "%d  ", region_index);
+            strcat(expected_regions, region_label);
+
+            W8OctRegionVolume0049E460* volume = &spatial_000.owned_5c[region_index];
+            if (PointInsideFrustum0046D880(location, volume->planes_88) == 0) {
+                continue;
+            }
+            if (match_count == 0) {
+                m_projected_regions_15c->ClearAll();
+                m_projected_regions_valid_16a = 0;
+            }
+            ++match_count;
+            unsigned int key = region_index;
+            for (int slot = m_pRegionLinks_150->FindNextEntry(&key, -1); slot != -1;
+                 slot = m_pRegionLinks_150->FindNextEntry(&key, slot)) {
+                m_projected_regions_15c->Set(m_pRegionLinks_150->entries[slot].value);
+                m_projected_regions_valid_16a = 1;
+            }
+        }
+        if (match_count != 0) {
+            m_positional_16b = 1;
+            return match_count;
+        }
+    }
+
+    char point_region_label[128];
+    strcpy(point_region_label, expected_regions);
+
+    if (spatial_000.positional_46 < 2) {
+        return 0;
+    }
+
+    unsigned short reported_region = 0;
+    for (unsigned short region_index = 1; region_index < spatial_000.positional_46;
+         ++region_index) {
+        if (match_count != 0) {
+            break;
+        }
+        W8OctRegionVolume0049E460* volume = &spatial_000.owned_5c[region_index];
+        if (PointInsideFrustum0046D880(location, volume->planes_88) == 0) {
+            continue;
+        }
+        if (reported_region == 0 && region_index != g_octree_region_debug_last_006598b0) {
+            sprintf(expected_regions, "Point in region %d, expected regions: %s\n", region_index,
+                    point_region_label);
+            NoOp();
+            g_octree_region_debug_last_006598b0 = region_index;
+            reported_region = region_index;
+        }
+        m_projected_regions_15c->ClearAll();
+        m_projected_regions_valid_16a = 0;
+        match_count = 1;
+        unsigned int key = region_index;
+        for (int slot = m_pRegionLinks_150->FindNextEntry(&key, -1); slot != -1;
+             slot = m_pRegionLinks_150->FindNextEntry(&key, slot)) {
+            m_projected_regions_15c->Set(m_pRegionLinks_150->entries[slot].value);
+            m_projected_regions_valid_16a = 1;
+        }
+    }
+
+    if (match_count == 0) {
+        return 0;
+    }
+    m_positional_16b = 1;
+    return match_count;
+}
+
 // FUNCTION: WIZ8 0x00430d50
 unsigned char W8Octree::CollectVisibleRegions00430D50(srVector3T<float>* location, int* cells,
                                                       float* depth, unsigned char mode)
@@ -414,11 +494,11 @@ unsigned char W8Octree::CollectVisibleRegions00430D50(srVector3T<float>* locatio
     if (node != 0) {
         unsigned long region_offset = m_owned_0a0[node].region_offset_04;
         if (region_offset != 0) {
-            Function00431050(location, m_owned_148 + region_offset);
+            ProjectLinkedRegionsForLocation00431050(location, m_owned_148 + region_offset);
             return 1;
         }
     }
-    Function00431050(location, 0);
+    ProjectLinkedRegionsForLocation00431050(location, 0);
     return 1;
 }
 
@@ -438,11 +518,9 @@ void W8Octree::MarkVisibleRegions004301C0()
             !m_projected_regions_15c->Test(volume->region_bit_0c)) {
             continue;
         }
-        float dx = camera_location_1c0.x - volume->points_1c[0].x;
-        float dy = camera_location_1c0.y - volume->points_1c[0].y;
-        float dz = camera_location_1c0.z - volume->points_1c[0].z;
+        srVector3T<float> delta = camera_location_1c0 - volume->points_1c[0];
 
-        if (dx * dx + dy * dy + dz * dz >= radius_squared) {
+        if (delta.LengthSquared() >= radius_squared) {
             continue;
         }
         unsigned char visible =
@@ -821,8 +899,8 @@ void W8Octree::ToggleUpdateSuspension00434020(W8World* world)
     }
     g_octree_update_suspended_00659898 = (g_octree_update_suspended_00659898 == 0);
     if (g_octree_update_suspended_00659898 == 0) {
-        g_octree_trace_node_00659894->setFlag(srNode::FLAG_POSITIONAL_0);
-        g_octree_trace_node_00659894->setFlag(srNode::FLAG_POSITIONAL_1);
+        g_octree_trace_node_00659894->setFlag(srNode::FLAG_DISABLE);
+        g_octree_trace_node_00659894->setFlag(srNode::FLAG_TERMINATE);
         m_reset_visibility_168 = 1;
         MarkRendererReady();
         return;
@@ -832,9 +910,9 @@ void W8Octree::ToggleUpdateSuspension00434020(W8World* world)
             .mesh_04 = mesh_index;
         m_pSubmeshes[mesh_index + 1].flags_00 &= 0xffffffc7;
         static_cast<stModelInstance*>(world->psrMeshes[mesh_index])
-            ->setFlag(srNode::FLAG_POSITIONAL_0);
+            ->setFlag(srNode::FLAG_DISABLE);
         static_cast<stModelInstance*>(world->psrMeshes[mesh_index])
-            ->setFlag(srNode::FLAG_POSITIONAL_1);
+            ->setFlag(srNode::FLAG_TERMINATE);
     }
     memset(m_pfRegsVisited, 0, spatial_000.positional_58 + 1);
     if (g_octree_trace_node_00659894 == 0) {
@@ -842,8 +920,8 @@ void W8Octree::ToggleUpdateSuspension00434020(W8World* world)
         g_octree_trace_node_00659894->setParent(world->static_scene, 1);
         SetChainValue15C(reinterpret_cast<char*>(g_octree_trace_node_00659894), 2);
     }
-    g_octree_trace_node_00659894->clearFlag(srNode::FLAG_POSITIONAL_0);
-    g_octree_trace_node_00659894->clearFlag(srNode::FLAG_POSITIONAL_1);
+    g_octree_trace_node_00659894->clearFlag(srNode::FLAG_DISABLE);
+    g_octree_trace_node_00659894->clearFlag(srNode::FLAG_TERMINATE);
 }
 
 // FUNCTION: WIZ8 0x00434250
@@ -863,10 +941,8 @@ unsigned char W8Octree::PrepareNavigatorTarget00434250(W8NavigatorMovementState*
     if (pathing_180 == 0) {
         return 1;
     }
-    srVector3T<float> delta;
-    delta.x = movement->target_position_04c.x - movement->position_040.x;
+    srVector3T<float> delta = movement->target_position_04c - movement->position_040;
     delta.y = 0.0f;
-    delta.z = movement->target_position_04c.z - movement->position_040.z;
     if (srVector2T<float>(delta.x, delta.z).Length() < NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE) {
         return 0;
     }

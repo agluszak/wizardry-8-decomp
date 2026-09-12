@@ -8,21 +8,21 @@
    identity. */
 
 // FUNCTION: WIZ8 0x00554580
-void InitializePartyFormation(W8PartyFormationState* state)
+void InitializePartyFormation(W8PartyFormationState* formation)
 {
     unsigned int index;
 
-    memset(state, 0, sizeof(*state));
+    memset(formation, 0, sizeof(*formation));
     for (index = 0; index < 5; ++index) {
-        state->rows[index].slots[0] = -1;
-        state->rows[index].slots[1] = -1;
-        state->rows[index].slots[2] = -1;
-        state->flags_0f[index] = 0;
+        formation->rows[index].slots[0] = -1;
+        formation->rows[index].slots[1] = -1;
+        formation->rows[index].slots[2] = -1;
+        formation->flags_0f[index] = 0;
     }
     for (index = 0; index < 8; ++index) {
-        state->positions[index].row = 0xff;
-        state->positions[index].unknown_01[0] = 0xff;
-        state->positions[index].unknown_01[1] = 0xff;
-        state->positions[index].facing = 4;
+        formation->positions[index].row = 0xff;
+        formation->positions[index].unknown_01[0] = 0xff;
+        formation->positions[index].unknown_01[1] = 0xff;
+        formation->positions[index].facing = 4;
     }
 }

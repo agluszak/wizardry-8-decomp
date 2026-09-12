@@ -26,6 +26,10 @@ public:
     void setWrapS(e_wrap wrap);
     void setWrapT(e_wrap wrap);
 
+    /* Dump of +0x50: GENERATESURFACE_FAILURE,DIRTY_DEFAULTS. Bit indices into
+       texture_flags_; ctor ORs DIRTY_DEFAULTS. */
+    enum e_flag { FLAG_GENERATESURFACE_FAILURE = 0, FLAG_DIRTY_DEFAULTS = 1 };
+
 protected:
     friend class stSurface2D;
     srTexture();
@@ -34,10 +38,13 @@ protected:
     void invalidateFrameHandle(unsigned long handle);
     void setupDefaultValuesFromSurface(srColorSurfaceIFace* surface);
 
-    unsigned char unknown_18_[0x08];
+    unsigned long packed_state_18;               /* 0x18: correction/mag/min/mipmap/wrap bits */
+    float mipmap_bias_1c;                        /* 0x1c */
     Dimensions texture_dimensions_;              /* 0x20 */
     srClass* texture_filter_;                    /* 0x28 */
     srPixelConvert::PixelFormat surface_format_; /* 0x2c */
+    /* enableHint ORs 1<<hint into the first dword. stTextureAnim reads byte
+       +0x42 as an alpha probe, so the span stays byte-addressable. */
     unsigned char unknown_40_[0x10];
     unsigned long texture_flags_; /* 0x50 */
 };

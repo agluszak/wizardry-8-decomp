@@ -1120,9 +1120,9 @@ void PublishLightDirection(const EnvironmentColour* direction)
 void SetRendererOption4Enabled(char enabled)
 {
     if (g_gerd_659634 != 0) {
-        if ((!enabled && g_gerd_659634->isEnabled(static_cast<srGERD::e_enable>(4))) ||
-            (enabled && !g_gerd_659634->isEnabled(static_cast<srGERD::e_enable>(4)))) {
-            g_gerd_659634->toggle(static_cast<srGERD::e_enable>(4));
+        if ((!enabled && g_gerd_659634->isEnabled(srGERD::ENABLE_POSITIONAL_4)) ||
+            (enabled && !g_gerd_659634->isEnabled(srGERD::ENABLE_POSITIONAL_4))) {
+            g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_4);
         }
     }
 }
@@ -1209,22 +1209,23 @@ static srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* su
 
     shader.value = overlay ? g_surface_state_654ad8 : g_surface_state_6595dc;
     if (!surface) {
-        shader.value &= 0xffff7fff;
+        shader.value &= ~srShader::MASK_TEXTURING;
     } else {
         texture = SR_NEW(srTextureMap)(static_cast<srColorSurfaceIFace*>(0));
         texture->autoRelease();
         texture->setName("Video2DMakePolygonBrush");
         texture->setSurfacePtr(surface);
-        texture->setCorrection(static_cast<srTextureIFace::e_correction>(0));
-        texture->setMagFilter(static_cast<srTextureIFace::e_filter>(3));
-        texture->setMinFilter(static_cast<srTextureIFace::e_filter>(3));
-        texture->setMipmap(static_cast<srTextureIFace::e_mipmap>(0));
-        texture->setWrapS(static_cast<srTextureIFace::e_wrap>(1));
-        texture->setWrapT(static_cast<srTextureIFace::e_wrap>(1));
+        texture->setCorrection(srTextureIFace::CORRECTION_FASTEST);
+        texture->setMagFilter(srTextureIFace::FILTER_BEST);
+        texture->setMinFilter(srTextureIFace::FILTER_BEST);
+        texture->setMipmap(srTextureIFace::MIPMAP_NONE);
+        texture->setWrapS(srTextureIFace::WRAP_CLAMP);
+        texture->setWrapT(srTextureIFace::WRAP_CLAMP);
         model->setMaterial(g_blit_material_65967c, 0, static_cast<srMeshModel::e_side>(0));
         model->setTexture(texture, 0, 0);
-        texture->enableHint(static_cast<srTextureIFace::e_hint>(overlay ? 2 : 1));
-        texture->enableHint(static_cast<srTextureIFace::e_hint>(3));
+        texture->enableHint(overlay ? srTextureIFace::HINT_POSITIONAL_2
+                                    : srTextureIFace::HINT_POSITIONAL_1);
+        texture->enableHint(srTextureIFace::HINT_POSITIONAL_3);
     }
     model->setShader(shader, 0);
 
@@ -1315,8 +1316,8 @@ BOOLEAN ResizeMouseCursorSurface(int width, int height)
     g_cursor_model_65968c->enableStartupControls();
     g_cursor_model_65968c->setName("Mouse Cursor Mesh");
     g_cursor_texture_659690 = static_cast<srTexture*>(g_cursor_model_65968c->getTexture(0, 0));
-    g_cursor_texture_659690->setWrapS(static_cast<srTextureIFace::e_wrap>(1));
-    g_cursor_texture_659690->setWrapT(static_cast<srTextureIFace::e_wrap>(1));
+    g_cursor_texture_659690->setWrapS(srTextureIFace::WRAP_CLAMP);
+    g_cursor_texture_659690->setWrapT(srTextureIFace::WRAP_CLAMP);
     g_cursor_texture_659690->addReference();
     return TRUE;
 }
@@ -1540,8 +1541,8 @@ unsigned char InitializeMouseCursorScene(void)
         g_cursor_model_65968c->enableStartupControls();
         static_cast<stModelInstance2D*>(g_cursor_node_659694)->setRenderDepth(0xc7c35000);
         g_cursor_texture_659690 = static_cast<srTexture*>(g_cursor_model_65968c->getTexture(0, 0));
-        g_cursor_texture_659690->setWrapS(static_cast<srTextureIFace::e_wrap>(1));
-        g_cursor_texture_659690->setWrapT(static_cast<srTextureIFace::e_wrap>(1));
+        g_cursor_texture_659690->setWrapS(srTextureIFace::WRAP_CLAMP);
+        g_cursor_texture_659690->setWrapT(srTextureIFace::WRAP_CLAMP);
         g_cursor_texture_659690->addReference();
         PositionMouseCursor(640, 480, 1);
     }
@@ -1851,8 +1852,8 @@ srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
     texture->autoRelease();
     texture->setName("VideoMakePoster");
     texture->setSurfacePtr(surface);
-    texture->setWrapS(srTextureIFace::WRAP_POSITIONAL_1);
-    texture->setWrapT(srTextureIFace::WRAP_POSITIONAL_1);
+    texture->setWrapS(srTextureIFace::WRAP_CLAMP);
+    texture->setWrapT(srTextureIFace::WRAP_CLAMP);
     if (positional_3 == 0) {
         hint = srTextureIFace::HINT_POSITIONAL_1;
     } else {
@@ -2101,7 +2102,7 @@ void PurgeInactiveSceneInstances(srScene* scene)
 void ClearNodeFlag(srNode* node)
 {
     if (node) {
-        node->setFlag(srNode::FLAG_POSITIONAL_0);
+        node->setFlag(srNode::FLAG_DISABLE);
     }
 }
 
@@ -2122,6 +2123,13 @@ unsigned char ClearFlag603C60(void)
 {
     g_flag_603c60 = 0;
     return 1;
+}
+
+/* Initialize the default mesh-shader dword the scene walks keep on the stack. */
+// FUNCTION: WIZ8 0x00424A40
+void __fastcall Function00424A40(unsigned int* destination)
+{
+    *destination = 0x0100241b;
 }
 
 // FUNCTION: WIZ8 0x00428020

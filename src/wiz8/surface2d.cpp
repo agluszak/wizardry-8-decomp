@@ -7,10 +7,10 @@ stTexture2D::stTexture2D()
     : srClassSupport<stTexture2D, srTexture, false, 0x1000f>(), left(0), top(0), right(128),
       bottom(128), frame_handle(getNewFrameHandle()), surface(0)
 {
-    setMipmap((e_mipmap)0);
-    enableHint((e_hint)3);
-    enableHint((e_hint)6);
-    enableHint((e_hint)1);
+    setMipmap(MIPMAP_NONE);
+    enableHint(HINT_POSITIONAL_3);
+    enableHint(HINT_POSITIONAL_6);
+    enableHint(HINT_POSITIONAL_1);
     texture_dimensions_.width = 128;
     texture_dimensions_.height = 128;
 }
@@ -78,7 +78,7 @@ void stTexture2D::setupDefaultValues()
             texture_filter_ = 0;
         }
     }
-    texture_flags_ &= ~2UL;
+    texture_flags_ &= ~(1UL << FLAG_DIRTY_DEFAULTS);
 }
 
 // FUNCTION: WIZ8 0x0047DAE0
@@ -108,8 +108,8 @@ stSurface2D::stSurface2D(srColorSurfaceIFace* source, int source_width, int sour
             texture->top = row * tile_extent;
             texture->right = texture->left + tile_extent;
             texture->bottom = texture->top + tile_extent;
-            texture->setWrapS((srTextureIFace::e_wrap)1);
-            texture->setWrapT((srTextureIFace::e_wrap)1);
+            texture->setWrapS(srTextureIFace::WRAP_CLAMP);
+            texture->setWrapT(srTextureIFace::WRAP_CLAMP);
             tiles[index++] = texture;
         }
     }
@@ -154,14 +154,14 @@ void stSurface2D::traverse(TraverseInfo& info)
         nextSibling()->traverse(info);
     }
 
-    if (!testFlag(FLAG_POSITIONAL_0)) {
+    if (!testFlag(FLAG_DISABLE)) {
         TraverseInfo::Entry& entry = info.entries[info.entry_count];
         entry.node = this;
         entry.value = 0;
         ++info.entry_count;
     }
 
-    if (!testFlag(FLAG_POSITIONAL_1) && firstChild() != 0) {
+    if (!testFlag(FLAG_TERMINATE) && firstChild() != 0) {
         firstChild()->traverse(info);
     }
 }
@@ -174,18 +174,18 @@ void stSurface2D::process(const ProcessInfo& info, e_processType)
     int column;
     int index = 0;
 
-    renderer->matrixMode((srGERD::e_matrixMode)1);
+    renderer->matrixMode(srGERD::MATRIX_PROJECTION);
     renderer->pushMatrix();
     renderer->loadIdentity();
     renderer->ortho(0.0, 1.0, 1.0, 0.0, 0.0, 1.0);
     renderer->setVertexArrayMask(srFlags<srRendererDefs::e_vertexArray>(state));
-    renderer->setCullMode(srGERD::CULL_MODE_POSITIONAL_2);
+    renderer->setCullMode(srGERD::CULL_FRONT);
     srShader shader;
     shader.value = flags;
     renderer->setShader(shader);
-    renderer->setTexCoordPointer(2, srRendererDefs::TYPE_POSITIONAL_1, 8, coordinates, 0);
-    renderer->setClipState(srFlags<srRendererDefs::e_clip>(0x3f));
-    renderer->setAntiAlias((srGERD::e_antiAlias)0);
+    renderer->setTexCoordPointer(2, srRendererDefs::TYPE_FLOAT, 8, coordinates, 0);
+    renderer->setClipState(srFlags<srRendererDefs::e_clip>(0x3f)); /* CLIP_LEFT..CLIP_FAR */
+    renderer->setAntiAlias(srGERD::ANTIALIAS_NONE);
 
     for (row = 0; row != rows; ++row) {
         for (column = 0; column != columns; ++column) {
@@ -209,12 +209,12 @@ void stSurface2D::process(const ProcessInfo& info, e_processType)
             vertices[11] = -0.1f;
 
             renderer->setTexture(tiles[index++], 0);
-            renderer->setVertexPointer(3, srRendererDefs::TYPE_POSITIONAL_1, 0xc, vertices, 4);
-            renderer->drawArrays((srRendererDefs::e_primitive)3, 0, 4);
+            renderer->setVertexPointer(3, srRendererDefs::TYPE_FLOAT, 0xc, vertices, 4);
+            renderer->drawArrays(srRendererDefs::PRIMITIVE_TRIANGLE_STRIP, 0, 4);
         }
     }
     renderer->setTexture(0, 0);
-    renderer->matrixMode((srGERD::e_matrixMode)1);
+    renderer->matrixMode(srGERD::MATRIX_PROJECTION);
     renderer->popMatrix();
 }
 
@@ -230,17 +230,17 @@ void stSurface2D::invalidateTiles()
 void stSurface2D::setTextureHint2Enabled(unsigned char enabled)
 {
     if (!enabled) {
-        flags &= ~0x800000UL;
+        flags &= ~srShader::MASK_ALPHATEST;
         for (int index = 0; index < tile_count; ++index) {
-            tiles[index]->disableHint((srTextureIFace::e_hint)2);
-            tiles[index]->enableHint((srTextureIFace::e_hint)1);
+            tiles[index]->disableHint(srTextureIFace::HINT_POSITIONAL_2);
+            tiles[index]->enableHint(srTextureIFace::HINT_POSITIONAL_1);
             tiles[index]->invalidate();
         }
     } else {
-        flags |= 0x800000UL;
+        flags |= srShader::MASK_ALPHATEST;
         for (int index = 0; index < tile_count; ++index) {
-            tiles[index]->disableHint((srTextureIFace::e_hint)1);
-            tiles[index]->enableHint((srTextureIFace::e_hint)2);
+            tiles[index]->disableHint(srTextureIFace::HINT_POSITIONAL_1);
+            tiles[index]->enableHint(srTextureIFace::HINT_POSITIONAL_2);
             tiles[index]->invalidate();
         }
     }

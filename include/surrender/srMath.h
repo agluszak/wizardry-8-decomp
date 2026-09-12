@@ -107,6 +107,7 @@ public:
     srVector3T<T>& operator*=(double scalar);
     srVector3T<T>& operator/=(double scalar);
     T Length() const;
+    T LengthSquared() const;
     srVector3T<T>* SetFromDouble(const srVector3T<double>* source);
     srVector3T<T>* SetFromFloat(const srVector3T<float>* source);
     srVector3T<T>* RotateAboutY(double sine, double cosine);
@@ -221,6 +222,14 @@ template <class T> T srVector3T<T>::Length() const
     return (T)sqrt(x * x + y * y + z * z);
 }
 
+/* Squared length without sqrt. Independent TUs: Navigator UpdateLinkedNavigator
+   0x00454D70, Octree MarkVisibleRegions 0x004301C0, OctPath nearest-trigger
+   0x00463xxx. Original spelling unknown. */
+template <class T> T srVector3T<T>::LengthSquared() const
+{
+    return x * x + y * y + z * z;
+}
+
 // TEMPLATE: WIZ8 0x00446110
 template <class T> srVector3T<T>* srVector3T<T>::SetFromDouble(const srVector3T<double>* source)
 {
@@ -315,6 +324,8 @@ public:
     srVector4T<T>() {}
 
     srVector4T<T>* Set(T source_0, T source_1, T source_2, T source_3);
+    T Length() const;
+    srVector4T<T>& operator*=(double scalar);
     srVector4T<T>& operator=(T value)
     {
         x = value;
@@ -338,6 +349,20 @@ template <class T> srVector4T<T>* srVector4T<T>::Set(T source_0, T source_1, T s
     z = source_2;
     w = source_3;
     return this;
+}
+
+template <class T> T srVector4T<T>::Length() const
+{
+    return (T)sqrt(x * x + y * y + z * z + w * w);
+}
+
+template <class T> srVector4T<T>& srVector4T<T>::operator*=(double scalar)
+{
+    x = (T)(x * scalar);
+    y = (T)(y * scalar);
+    z = (T)(z * scalar);
+    w = (T)(w * scalar);
+    return *this;
 }
 
 template <class T> class srMatrix2T {

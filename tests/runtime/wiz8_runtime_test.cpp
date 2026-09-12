@@ -17,6 +17,10 @@
 #include "wiz8/xstatus.h"
 #include "wiz8_crash_report.h"
 
+struct SightSemanticResult;
+bool RunSightSemanticTests(SightSemanticResult* result);
+void PrintSightSemanticResults(const SightSemanticResult* result);
+
 #include "english.h"
 #include "FileMan.h"
 #include "input.h"
@@ -904,14 +908,33 @@ static DWORD WINAPI DriveScenario(void*)
 int main(int argc, char** argv)
 {
     W8SetCrashContextWriter(WriteRuntimeTestContext);
-    if (argc != 3 || strcmp(argv[1], "--scenario") != 0 ||
-        (strcmp(argv[2], "main-menu-startup") != 0 &&
-         strcmp(argv[2], "main-menu-exit-auto-repeat") != 0 &&
-         strcmp(argv[2], "main-game-start") != 0 && strcmp(argv[2], "new-game-entry") != 0 &&
-         strcmp(argv[2], "main-menu-new-game") != 0)) {
-        fprintf(stderr, "usage: Wiz8RuntimeTest --scenario "
-                        "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-"
-                        "start|new-game-entry\n");
+    if (argc != 3 || strcmp(argv[1], "--scenario") != 0) {
+        fprintf(stderr,
+                "usage: Wiz8RuntimeTest --scenario "
+                "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
+                "new-game-entry|sight-threshold\n");
+        return 64;
+    }
+
+    if (strcmp(argv[2], "sight-threshold") == 0) {
+        SightSemanticResult sight_result;
+
+        if (!RunSightSemanticTests(&sight_result)) {
+            PrintSightSemanticResults(&sight_result);
+            return 1;
+        }
+        PrintSightSemanticResults(&sight_result);
+        return 0;
+    }
+
+    if (strcmp(argv[2], "main-menu-startup") != 0 &&
+        strcmp(argv[2], "main-menu-exit-auto-repeat") != 0 &&
+        strcmp(argv[2], "main-game-start") != 0 && strcmp(argv[2], "new-game-entry") != 0 &&
+        strcmp(argv[2], "main-menu-new-game") != 0) {
+        fprintf(stderr,
+                "usage: Wiz8RuntimeTest --scenario "
+                "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
+                "new-game-entry|sight-threshold\n");
         return 64;
     }
 

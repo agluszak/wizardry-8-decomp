@@ -3,9 +3,7 @@
 #include "srMaterialIFace.h"
 #include "srMath.h"
 #include "srTypeRegistry.h"
-#include "srVertexProcessor.h"
-
-class srVertexPipe;
+#include "srVertexPipe.h"
 
 /* srMaterial's exported vftable has thirteen slots, and the first seven are
    srClass's: evidence/snapshots/surrender-abi/vftable-slots.csv resolves slots

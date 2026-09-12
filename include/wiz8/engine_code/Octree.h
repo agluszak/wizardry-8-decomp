@@ -180,7 +180,8 @@ public:
     void MarkVisibleRegions004301C0(); /* 0x004301C0 */
     /* Build the six frustum planes from the camera basis and far clip. */
     void BuildFrustumPlanes004302E0(); /* 0x004302E0 */
-    void Function00431050(srVector3T<float>* location, unsigned short* regions);
+    short ProjectLinkedRegionsForLocation00431050(srVector3T<float>* location,
+                                                  unsigned short* region_list); /* 0x00431050 */
 
     bool HasLoadError() const
     {

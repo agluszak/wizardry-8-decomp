@@ -543,13 +543,11 @@ unsigned char Trigger::HasActorWithinRadius(float radius, unsigned char include_
 
         srVector3T<float> lower;
         srVector3T<float> upper;
+        srVector3T<float> extent;
         int* locations = 0;
-        lower.x = center.x - radius;
-        lower.y = center.y - radius;
-        lower.z = center.z - radius;
-        upper.x = center.x + radius;
-        upper.y = center.y + radius;
-        upper.z = center.z + radius;
+        extent.Set(radius, radius, radius);
+        lower = center - extent;
+        upper = center + extent;
 
         unsigned int count =
             FindMonsterLocationsInBox0042F280(&locations, &lower, &upper, 0x0c, -1);
@@ -657,9 +655,6 @@ void W8TriggerEvent::Update()
             srVector3T<float> target;
             srVector3T<float> transformed;
             srVector3T<float> axis;
-            srVector3T<float> row_1;
-            srVector3T<float> row_2;
-            srVector3T<float> row_3;
             srMatrix3T<float> rotation;
 
             source.x = trigger_030->position_118;
@@ -668,15 +663,11 @@ void W8TriggerEvent::Update()
             target = source;
             target.z += 100.0f;
 
-            row_1.Set(1.0, 0.0, 0.0);
-            row_2.Set(0.0, 1.0, 0.0);
-            row_3.Set(0.0, 0.0, 1.0);
-            axis = row_3;
-            rotation.vectors[0].x = trigger_030->value_100;
-            rotation.vectors[0].y = trigger_030->value_104;
-            rotation.vectors[0].z = trigger_030->value_108;
-            rotation.vectors[1] = row_1;
-            rotation.vectors[2] = row_2;
+            axis.Set(0.0, 0.0, 1.0);
+            rotation.vectors[0].Set(trigger_030->value_100, trigger_030->value_104,
+                                    trigger_030->value_108);
+            rotation.vectors[1].Set(1.0, 0.0, 0.0);
+            rotation.vectors[2].Set(0.0, 1.0, 0.0);
 
             if (trigger_030->angle_0fc != 0.0f) {
                 rotation.RotateAroundAxis(sin(trigger_030->angle_0fc), cos(trigger_030->angle_0fc),
@@ -685,7 +676,7 @@ void W8TriggerEvent::Update()
 
             transformed.x = DotProduct(rotation.vectors[1], target);
             transformed.y = DotProduct(rotation.vectors[2], target);
-            transformed.z = DotProduct(row_3, target);
+            transformed.z = DotProduct(axis, target);
             FireMissile004A2D30((unsigned int)trigger_030->m_lData1, &source, &transformed, 0, 1, 1,
                                 0x47435000);
         }
@@ -1727,10 +1718,10 @@ void Trigger::FinishAction()
                 stLight* light = FindLightByName00445A10(g_trigger_parse_buffer_00659908, 0);
                 if (light != 0) {
                     light->m_positional_23a = 1;
-                    if (light->testFlag(srNode::FLAG_POSITIONAL_0) == 0) {
-                        light->setFlag(srNode::FLAG_POSITIONAL_0);
+                    if (light->testFlag(srNode::FLAG_DISABLE) == 0) {
+                        light->setFlag(srNode::FLAG_DISABLE);
                     } else {
-                        light->clearFlag(srNode::FLAG_POSITIONAL_0);
+                        light->clearFlag(srNode::FLAG_DISABLE);
                     }
                     action_completed = 1;
                 }
@@ -1975,9 +1966,7 @@ void Trigger::RunDestination00440DD0(const char* destination)
     g_octree_6598a4->AdjustPortalDestination(&destination_position, &source_position);
     SetWorldScenePosition004511D0(GetWorld(), &destination_position);
 
-    rotation.vectors[0].Set(1.0, 0.0, 0.0);
-    rotation.vectors[1].Set(0.0, 1.0, 0.0);
-    rotation.vectors[2].Set(0.0, 0.0, 1.0);
+    rotation.SetIdentity();
     if (angle != 0.0f) {
         rotation.RotateAroundAxis(sin(angle), cos(angle), destination_direction);
     }
@@ -2487,17 +2476,17 @@ void Trigger::Run(int source)
             if (light != 0) {
                 light->m_positional_23a = 1;
                 if (action_230 == 4) {
-                    if (light->testFlag(srNode::FLAG_POSITIONAL_0) == 0) {
-                        light->setFlag(srNode::FLAG_POSITIONAL_0);
+                    if (light->testFlag(srNode::FLAG_DISABLE) == 0) {
+                        light->setFlag(srNode::FLAG_DISABLE);
                     } else {
-                        light->clearFlag(srNode::FLAG_POSITIONAL_0);
+                        light->clearFlag(srNode::FLAG_DISABLE);
                     }
                 } else if (action_230 == 0x30) {
-                    if (light->testFlag(srNode::FLAG_POSITIONAL_0) != 0) {
-                        light->clearFlag(srNode::FLAG_POSITIONAL_0);
+                    if (light->testFlag(srNode::FLAG_DISABLE) != 0) {
+                        light->clearFlag(srNode::FLAG_DISABLE);
                     }
-                } else if (light->testFlag(srNode::FLAG_POSITIONAL_0) == 0) {
-                    light->setFlag(srNode::FLAG_POSITIONAL_0);
+                } else if (light->testFlag(srNode::FLAG_DISABLE) == 0) {
+                    light->setFlag(srNode::FLAG_DISABLE);
                 }
                 action_succeeded = 1;
             }
@@ -2583,9 +2572,7 @@ void Trigger::Run(int source)
             source_position.Set(position_118, position_11c, position_120);
             target_position = source_position;
             target_position.z += 100.0f;
-            rotation.vectors[0].Set(1.0, 0.0, 0.0);
-            rotation.vectors[1].Set(0.0, 1.0, 0.0);
-            rotation.vectors[2].Set(0.0, 0.0, 1.0);
+            rotation.SetIdentity();
             axis = rotation.vectors[2];
             if (angle_0fc != 0.0f) {
                 rotation.RotateAroundAxis(sin(angle_0fc), cos(angle_0fc), axis);
@@ -2670,8 +2657,8 @@ void Trigger::Run(int source)
                 } else {
                     spell_id = 0x2a;
                 }
-                PointCastSpell((float)position.x, (float)position.y, (float)position.z, spell_id,
-                               (unsigned int)m_lData3);
+                PointCastSpell(srVector3T<float>((float)position.x, (float)position.y, (float)position.z),
+                               spell_id, (unsigned int)m_lData3);
                 if (action_230 == 0x2b) {
                     RemoveAllConditionsFromParty();
                 }
