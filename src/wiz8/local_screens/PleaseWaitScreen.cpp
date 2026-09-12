@@ -122,7 +122,7 @@ unsigned char PleaseWaitScreenEnter(void)
         switch (g_load_descriptor_69b7c8->mode) {
         case 0:
             InitializeFactState();
-            g_load_descriptor_69b7c8->parameter = Function509750();
+            g_load_descriptor_69b7c8->parameter = SelectNewGameStartLevel();
             ReleaseMessageStorage();
             DeleteFileA("Saves\\CurrentGame.SAV");
             break;

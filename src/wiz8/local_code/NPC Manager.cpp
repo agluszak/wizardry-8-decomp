@@ -26,8 +26,10 @@
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/utility.h"
 
 #include <stdio.h>
+#include <wchar.h>
 
 unsigned char Function50F1A0(unsigned int monster_species, int count, srVector3T<float>* position,
                              int a, int b, int c);
@@ -470,6 +472,58 @@ const char* GetNpcDisplayName(W8NpcState* npc)
         return g_npc_name_buffer;
     }
     return npc->record->display_name;
+}
+
+/* New-game start level from the campaign facts InitializeFactState planted.
+   Import path 0x4c is level 14, 0x4b is level 6, and 0x4e or neither is 8. */
+// FUNCTION: WIZ8 0x00509750
+int SelectNewGameStartLevel(void)
+{
+    unsigned char value;
+    wchar_t display_value[10];
+
+    value = EvaluateFact(0x4e);
+    if (g_status_685170.log_fact_checks_3120) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        } else {
+            wcscpy(display_value, L"FALSE");
+        }
+        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4e].symbolic_name,
+                     display_value);
+    }
+    if (value != 0) {
+        return 8;
+    }
+
+    value = EvaluateFact(0x4c);
+    if (g_status_685170.log_fact_checks_3120) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        } else {
+            wcscpy(display_value, L"FALSE");
+        }
+        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4c].symbolic_name,
+                     display_value);
+    }
+    if (value != 0) {
+        return 0xe;
+    }
+
+    value = EvaluateFact(0x4b);
+    if (g_status_685170.log_fact_checks_3120) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        } else {
+            wcscpy(display_value, L"FALSE");
+        }
+        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4b].symbolic_name,
+                     display_value);
+    }
+    if (value != 0) {
+        return 6;
+    }
+    return 8;
 }
 
 /* Create the shared NPC-state vector the first time anything needs it. */
