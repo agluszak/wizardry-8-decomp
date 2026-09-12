@@ -4,7 +4,12 @@
 #include "wiz8/utility.h"
 #include "Font.h"
 
-/* Reconstructed logical owner; original translation-unit identity is unproven. */
+/* Reconstructed logical owner; original translation-unit identity is unproven.
+   Live query: 0x005D14D0/0x005D1640 sit in the gap between DialogInterface.cpp
+   (upper 0x005CF580) and stMessageDialog.cpp (lower 0x005D2800). Retail
+   Dialog Code\stListBox.cpp has assertion sites at 0x005CCE-0x005CD2 with no
+   Ghidra function, so those anchors never form a hull. These helpers are not
+   that unit. */
 
 // VTABLE: WIZ8 0x005ef89c W8GrowableVector<W8DialogTextEntry*>
 // class W8GrowableVector<W8DialogTextEntry*>

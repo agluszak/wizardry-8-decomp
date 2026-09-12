@@ -14,9 +14,9 @@ unsigned char g_flag_68c4f6;
 // GLOBAL: WIZ8 0x0068C4F7
 unsigned char g_flag_68c4f7;
 
-/* NPC interaction availability and its party-slot eligibility query. The
-   original translation-unit spelling is not established; this descriptive
-   name is provisional. */
+/* NPC interaction availability and its party-slot eligibility query. Live
+   query: 0x00524A10 is a gap between Local Code\Conditions & Enchantments.cpp
+   (upper 0x00524780) and Local Code\NPC Scripting.cpp (lower 0x00524CA0). */
 
 /* Report whether a party slot can be picked: in range, occupied, still on its
    feet, and highest_condition below HOSTILE. */

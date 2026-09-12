@@ -12,8 +12,10 @@
 #include "mousesystem_macros.h"
 
 /* Reconstructed logical owner; original translation-unit identity is unproven.
-   0x005DB620 is the one hard-anchored Dialog Code\stButton.cpp body; the rest
-   of this class sits in the gap immediately before that hull. */
+   Live hull: only DialogButtonCallback at 0x005DB620 is Dialog Code\stButton.cpp.
+   The rest of this class (0x005DB1B0-0x005DB3E0 and neighbors) sits in the gap
+   between AssayDialog.cpp (upper 0x005D9460) and that one-address stButton hull.
+   Do not rename this file to stButton.cpp from an assertion-only singleton. */
 
 // SYNTHETIC: WIZ8 0x005db210
 // W8DialogButton::`scalar deleting destructor'

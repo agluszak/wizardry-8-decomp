@@ -21,8 +21,9 @@
 // GLOBAL: WIZ8 0x005ee5a8
 int g_camp_overload_event_id = 8;
 
-/* Party encumbrance redistribution. The original translation-unit spelling is
-   not established; this descriptive name is provisional. */
+/* Party encumbrance redistribution. Live query: 0x004ED9D0 is a gap between
+   Local Code\Combat.cpp (upper 0x004ED390) and Local Code\GameplayCode.cpp
+   (lower 0x004EE000). Not a Combat tail and not an invisible named unit. */
 
 /* The full derived-stat recompute: clamp the level and the fifteen profession
    levels, rebuild the attributes, skills and pools, the damage reduction, the
