@@ -225,7 +225,9 @@ same CMake source lists as the product build, compiles every manually owned
 translation unit with clang-cl at `/W4 -Werror` plus the recovery diagnostics
 (`-Wsometimes-uninitialized -Wswitch -Warray-bounds -Wsign-compare
 -Wmissing-field-initializers -Woverloaded-virtual
--Winconsistent-missing-override -Wshadow-field`), and then runs the narrow clang-tidy profile
+-Winconsistent-missing-override -Wshadow-field -Wcast-function-type-mismatch
+-Wtautological-compare -Wchar-subscripts -Wmismatched-tags
+-Wunknown-escape-sequence`), and then runs the narrow clang-tidy profile
 from `.clang-tidy`. `WIZ8_CLANG_LINT` is an umbrella over the Wizardry game
 sources, SurRender, `WIZ8_SGP`, and the recovered/adapted JPEG and UnZip
 plugin code; the pristine IJG and Info-ZIP trees keep their upstream warnings.
@@ -248,11 +250,15 @@ it as unused and never reproduces EH bytes).
 
 An intentional original behavior that trips a recovery diagnostic gets a
 function-local `#pragma clang diagnostic` with the binary/source evidence in
-the comment. The retained SGP C library is the one target-level exception: its
-upstream C style warnings stay report-only because fixing them would mean
-rewriting vendor source. `wiz8 diagnostics` is fully non-gating: SGP gets its
-four recovery warnings report-only there and promotes them to errors only in
-the gating lane.
+the comment. Compiler suppressions are split: shared Clang/VC6 compatibility
+flags, an empty recovered-suppression bucket, and vendor-only suppressions
+for retained SGP C. Recovered C++ gates callback-prototype, tautological
+compare, char-subscript, mismatched-tag, and unknown-escape diagnostics
+that vendor source still has to silence. The retained SGP C library is the
+one target-level exception: its upstream C style warnings stay report-only
+because fixing them would mean rewriting vendor source. `wiz8 diagnostics`
+is fully non-gating: SGP gets its four recovery warnings report-only there
+and promotes them to errors only in the gating lane.
 
 The same Clang projection feeds `build/source-index.json`. Index targets
 derive from every reccmp target with a `source-root` that has compile-database
@@ -281,8 +287,14 @@ it can gate. It stays tested but uncalled in the meantime.
 The lint lane itself runs on the trixie image with LLVM 19, and the
 clang-tidy profile includes `readability-redundant-casting`,
 `bugprone-misplaced-widening-cast`, `bugprone-swapped-arguments`,
-`bugprone-suspicious-enum-usage`, and `bugprone-sizeof-expression` with the
-pointer-to-aggregate and pointer `sizeof` heuristics turned off.
+`bugprone-suspicious-enum-usage`, `bugprone-sizeof-expression` with the
+pointer-to-aggregate and pointer `sizeof` heuristics turned off, and
+`bugprone-pointer-arithmetic-on-polymorphic-object` with inherited virtuals
+ignored. Multi-level implicit pointer conversions, copy-constructor base
+initialization, and unhandled self-assignment were trialled and left out:
+the first needs explicit opaque-storage boundaries rather than a cast sweep,
+the second is a compare-with-retail signal rather than an automatic
+`Base(other)` fix, and the third nags every growable-vector assignment.
 
 ## Live recovery state
 

@@ -19,17 +19,28 @@
 # - bugprone-virtual-near-miss: a trial only found srBinFStream::pseek/ptell
 #   versus seek/tell, which are distinct virtuals. Remaining FunctionXXXXX
 #   names would make its similarity heuristic worse, not better.
+# - bugprone-multi-level-implicit-pointer-conversion: trial found implicit
+#   T** -> void* at growable-vector / PList / FileRead / hash APIs. Those
+#   opaque-storage boundaries should become explicit, but gating now would
+#   demand a cast sweep rather than a reconstruction fix.
+# - bugprone-copy-constructor-init: a hit means compare the constructor with
+#   retail, not insert Base(other). Recovered copies such as stTextureAnim
+#   and stLightDefinition deliberately reset registry/runtime bases.
+# - bugprone-unhandled-self-assignment: hundreds of hits in vector/srArray/
+#   srPtr assignment templates; too noisy to gate.
 Checks: >
   -*,
   bugprone-misplaced-widening-cast,
   readability-redundant-casting,
   bugprone-sizeof-expression,
   bugprone-swapped-arguments,
-  bugprone-suspicious-enum-usage
+  bugprone-suspicious-enum-usage,
+  bugprone-pointer-arithmetic-on-polymorphic-object
 CheckOptions:
   bugprone-sizeof-expression.WarnOnSizeOfPointerToAggregate: 'false'
   bugprone-sizeof-expression.WarnOnSizeOfPointer: 'false'
   bugprone-suspicious-enum-usage.StrictMode: 'false'
+  bugprone-pointer-arithmetic-on-polymorphic-object.IgnoreInheritedVirtualFunctions: 'true'
 WarningsAsErrors: '*'
 HeaderFilterRegex: '^/repo/(include/wiz8|include/surrender|src/wiz8|src/surrender|src/srext_jpegimporter|src/srext_unzip)/'
 FormatStyle: none

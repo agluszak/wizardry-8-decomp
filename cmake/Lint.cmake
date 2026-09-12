@@ -19,16 +19,13 @@ function(wiz8_lint_target target)
     set_property(GLOBAL APPEND PROPERTY WIZ8_LINT_TARGETS ${target})
 endfunction()
 
-# clang-cl/VC6 compatibility noise from the reconstructed corpus. No
-# decompilation-correctness diagnostic belongs in this list. Clang 19
-# promotes several legacy idioms the corpus deliberately preserves to
-# errors: the reviewed raw-callback casts, Info-ZIP K&R definitions, and
-# VC6-era implicit copies. Recovered C++ still has a handful of those
-# callback casts (region catalog, screen-lifecycle table, trigger
-# activation, AnimObj tail-call, UnZip password/service), so the
-# suppression stays shared rather than being restored for recovered
-# targets only.
-set(WIZ8_LINT_COMPAT_FLAGS
+# Unavoidable Clang/VC6 driver and language-model compatibility. These are
+# not reconstruction diagnostics; recovered and vendor targets share them.
+# Layout offsetof on polymorphic recovered classes, C++98 implicit copies,
+# non-virtual destructors, unused incomplete recovery, Microsoft extensions,
+# and writable-string VC6 APIs stay here: "fixing" them invents source the
+# binary does not contain.
+set(WIZ8_CLANG_COMPAT_FLAGS
     -Xclang -fno-wchar
     -fms-extensions
     -ferror-limit=0
@@ -41,8 +38,6 @@ set(WIZ8_LINT_COMPAT_FLAGS
     -Wno-unused-private-field
     -Wno-undefined-inline
     -Wno-invalid-offsetof
-    -Wno-cast-function-type-mismatch
-    -Wno-char-subscripts
     -Wno-deprecated-copy
     -Wno-deprecated-non-prototype
     -Wno-deprecated-register
@@ -54,13 +49,28 @@ set(WIZ8_LINT_COMPAT_FLAGS
     -Wno-microsoft-exception-spec
     -Wno-microsoft-goto
     -Wno-microsoft-template
-    -Wno-mismatched-tags
     -Wno-non-virtual-dtor
-    -Wno-tautological-compare
-    -Wno-unknown-escape-sequence
     -Wno-visibility
     -Wno-writable-strings
 )
+
+# Recovered-code suppressions. Keep this list empty unless a diagnostic is
+# proven both noisy and unusable as a reconstruction check. ABI-faithful
+# `char` indices, verified callback-table mismatches, and VC6 null-this
+# tests are function-local pragmas, not entries here.
+set(WIZ8_RECOVERED_SUPPRESSIONS)
+
+# Retained SGP/vendor C still produces these as upstream style, not as
+# reconstruction defects. Recovered C++ enables the corresponding warnings
+# in WIZ8_RECOVERY_WARNINGS instead.
+set(WIZ8_VENDOR_SUPPRESSIONS
+    -Wno-cast-function-type-mismatch
+    -Wno-char-subscripts
+    -Wno-mismatched-tags
+    -Wno-tautological-compare
+    -Wno-unknown-escape-sequence
+)
+
 # The decompilation-correctness diagnostics. The gating lane makes them
 # errors; the diagnostics lane reports them without failing. Suspicious
 # original behavior gets a local, evidence-backed suppression at its site.
@@ -70,16 +80,22 @@ set(WIZ8_RECOVERY_WARNINGS
     -Warray-bounds
     -Wsign-compare
     -Wmissing-field-initializers
+    -Wcast-function-type-mismatch
+    -Wtautological-compare
+    -Wchar-subscripts
+    -Wunknown-escape-sequence
     $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual>
     $<$<COMPILE_LANGUAGE:CXX>:-Winconsistent-missing-override>
     $<$<COMPILE_LANGUAGE:CXX>:-Wshadow-field>
+    $<$<COMPILE_LANGUAGE:CXX>:-Wmismatched-tags>
 )
 
 function(wiz8_configure_lint_target target)
     target_link_libraries(${target} PRIVATE wiz8_compile_settings)
     target_include_directories(${target} BEFORE PRIVATE tools/lint/include)
     target_compile_definitions(${target} PRIVATE WIZ8_CLANG_LINT)
-    target_compile_options(${target} PRIVATE /W4 ${WIZ8_LINT_COMPAT_FLAGS})
+    target_compile_options(${target} PRIVATE
+        /W4 ${WIZ8_CLANG_COMPAT_FLAGS} ${WIZ8_RECOVERED_SUPPRESSIONS})
     if(NOT WIZ8_FULL_DIAGNOSTICS)
         target_compile_options(${target} PRIVATE -Werror)
     endif()
@@ -102,7 +118,7 @@ function(wiz8_configure_vendor_lint_target target)
     target_link_libraries(${target} PRIVATE wiz8_compile_settings)
     target_compile_definitions(${target} PRIVATE WIZ8_CLANG_LINT)
     target_compile_options(${target} PRIVATE
-        /W4 ${WIZ8_LINT_COMPAT_FLAGS} /MD /U_DEBUG
+        /W4 ${WIZ8_CLANG_COMPAT_FLAGS} ${WIZ8_VENDOR_SUPPRESSIONS} /MD /U_DEBUG
         -Wsometimes-uninitialized
         -Wswitch
         -Warray-bounds
