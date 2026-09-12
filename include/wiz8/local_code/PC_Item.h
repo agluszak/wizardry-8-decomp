@@ -10,13 +10,12 @@ struct W8ItemDatabaseRecord;
 
 unsigned char CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item);
 
-#define g_game_started (g_status_685170.game_started)
-
 extern const int g_item_spell_presentation[11];
 extern const int g_equip_slot_icons[6];
+int GetItemInHand(void);
 
 void SetHandType(W8Character* character, unsigned int equip_slot);
-unsigned int GetWornBindingDifficulty(int character_index);
+unsigned int GetEquipmentBindingDifficulty(int character_index);
 unsigned char CompatiblePartnerItems(int weapon_item_id, int off_hand_item_id); /* 0x0051C8F0 */
 bool ItemHasSingledOutGenericName(int item_id);
 int GetPairedEquipSlot(int equip_slot);
@@ -49,7 +48,13 @@ unsigned int CountItemOnParty(int item_id, W8ItemInstance** found, W8Character**
                               int include_backpack);
 /* 0x00521360: whether every occupied party slot carries one item. */
 bool EveryCharacterHasItem(int item_id, int include_backpack);
+unsigned int GetItemUnitWeight(const W8ItemInstance* item);
 unsigned int GetItemStackWeight(const W8ItemInstance* item);
+unsigned char GetItemEquipClass(const W8ItemInstance* item);
+int GetItemDefaultEquipSlot(int item_id);
+unsigned short GetItemEquipSlotMask(int item_id, char primary_off_hand_free,
+                                    char alternate_off_hand_free, char primary_main_hand_free,
+                                    char alternate_main_hand_free);
 void CreateItemIntoHandOrPool(int item_id, unsigned char quality);
 void AddPartyGold(int amount, char announce);
 

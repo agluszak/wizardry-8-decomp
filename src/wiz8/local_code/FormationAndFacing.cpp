@@ -1,4 +1,5 @@
 #include "wiz8/local_code/FormationAndFacing.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/local_code/MonsterManager.h"
@@ -62,9 +63,8 @@ enum { W8_FORMATION_ROWS = 5, W8_POSITIONS_PER_ROW = 3 };
    whatever a position is already facing. */
 enum { W8_FACING_ANY = 4 };
 
-/* The state a character has to be under to hold a place in the formation.
-   Tighter than the eligibility window the party sweeps use. */
-enum { W8_FORMATION_ELIGIBLE_LIMIT = 0xd };
+/* The state a character has to be under to hold a place in the formation:
+   highest_condition below HOSTILE, tighter than the party-wide death window. */
 
 // GLOBAL: WIZ8 0x005ee858
 double g_facing_tolerance_005ee858 = 2.3561944500000003;
@@ -77,9 +77,9 @@ float g_facing_tolerance_005ebcf4;
 // FUNCTION: WIZ8 0x005549e0
 bool CanHoldFormationPlace(int party_slot)
 {
-    const W8Character* character = &g_party_characters[party_slot];
+    const W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
-    return character->hp_current != 0 && character->unknown_0b01 < W8_FORMATION_ELIGIBLE_LIMIT;
+    return character->hp_current != 0 && character->highest_condition < W8_CONDITION_HOSTILE;
 }
 
 /* Remember the formation combat started with. */
@@ -272,7 +272,7 @@ void PlaceCharacterInFormation(W8PartyFormationState* formation, int slot)
    name to the slot. */
 // FUNCTION: WIZ8 0x00554bd0
 void SetFormationPosition(W8PartyFormationState* formation, int slot, int new_row, int new_column,
-                          int announce, int detach, int update_facing)
+                    int announce, int detach, int update_facing)
 {
     W8PartyFormationPosition* position = &formation->positions[slot];
     signed char old_row = position->row;
@@ -324,8 +324,8 @@ void SetFormationPosition(W8PartyFormationState* formation, int slot, int new_ro
     if (detach != 0 && old_row != -1) {
         Function554DD0(formation, old_row);
     }
-    if (g_status_685170.game_started != 0 && gXStatus.field_01f == 0) {
-        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_flag_006850ce != 2 &&
+    if (g_status_685170.game_started != 0 && gXStatus.fNpcDialogueMode == 0) {
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_settings_6850c8.field_006 != 2 &&
             formation == &g_status_685170.formation) {
             Function5B1C80();
             Function5A24A0();

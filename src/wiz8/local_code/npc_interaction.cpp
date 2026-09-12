@@ -9,24 +9,17 @@
 unsigned char g_flag_68c4a0;
 // GLOBAL: WIZ8 0x0068C4AC
 W8NpcState* g_npc_state_68c4ac;
-// GLOBAL: WIZ8 0x0068C4C0
-int g_value_68c4c0;
 // GLOBAL: WIZ8 0x0068C4F6
 unsigned char g_flag_68c4f6;
 // GLOBAL: WIZ8 0x0068C4F7
 unsigned char g_flag_68c4f7;
 
-/* NPC interaction availability and its party-slot eligibility query. The
-   original translation-unit spelling is not established; this descriptive
-   name is provisional. */
+/* NPC interaction availability and its party-slot eligibility query. Live
+   query: 0x00524A10 is a gap between Local Code\Conditions & Enchantments.cpp
+   (upper 0x00524780) and Local Code\NPC Scripting.cpp (lower 0x00524CA0). */
 
-/* Report whether a party slot can be picked: in range, its slot row occupied,
-   the character still on its feet, and the 0x0b01 gate under 0x0d. That gate's
-   meaning is not established, so the name stays address-qualified; this is a
-   third observed threshold beside the 0x12 and 0x0f already recorded on it.
-
-   The two status buffers are read as what their sizes say they are: 0xc310 is
-   eight W8Character at the 0x1862 stride and 0x830 is eight 0x106-byte rows. */
+/* Report whether a party slot can be picked: in range, occupied, still on its
+   feet, and highest_condition below HOSTILE. */
 // FUNCTION: WIZ8 0x00524a10
 bool IsPartySlotEligible00524A10(int slot)
 {
@@ -46,6 +39,6 @@ bool IsPartySlotEligible00524A10(int slot)
     if (character->hp_current == 0) {
         return 0;
     }
-    eligible = character->unknown_0b01 < 0xd;
+    eligible = character->highest_condition < W8_CONDITION_HOSTILE;
     return eligible;
 }

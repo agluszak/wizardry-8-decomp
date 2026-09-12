@@ -6,6 +6,7 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/render_state.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/startup_world.h"
@@ -82,9 +83,6 @@ float g_light_scale_0060bfe0 = 1.0f;
 extern float g_monster_scale_transition_step_005ebcf4;
 // GLOBAL
 float g_monster_scale_transition_step_005ebcf4;
-extern unsigned char g_monster_model_value_enabled_00685111;
-// GLOBAL: WIZ8 0x00685111
-unsigned char g_monster_model_value_enabled_00685111;
 unsigned char g_monster_shadow_updates_enabled_0065970c;
 extern unsigned char g_monster_combat_timer_enabled_006f0531;
 extern const float g_monster_attachment_distance_scale_005ed2a8;
@@ -983,7 +981,7 @@ unsigned char W8MonsterRep::ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monst
     animation = CreateAnimObj004A01A0();
     success = AnimObjReadFromFile004A05C0(info, animation, value, lights, 0);
     if (cycle_index == -1) {
-        cycle_index = static_cast<signed char>(animation->unknown_03[1]);
+        cycle_index = static_cast<signed char>(animation->cycle);
     }
     cycle = static_cast<signed char>(cycle_index);
     if (cycle < 0 || cycle >= W8_MONSTER_CYCLE_COUNT) {
@@ -1004,9 +1002,9 @@ unsigned char W8MonsterRep::ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monst
     flag_06e = 1;
     m_bLOD = 2;
     timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    flag_070 = animation->unknown_03[0];
+    flag_070 = animation->unknown_03;
     flag_06f = animation->value_02;
-    flag_06d = animation->unknown_00[1];
+    flag_06d = animation->unknown_01;
     if (current_cycle == -1) {
         current_cycle = cycle;
     }
@@ -1022,8 +1020,7 @@ unsigned char W8MonsterRep::ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monst
             signed char count = static_cast<signed char>(AnimObjListCount004A1620(animation, list));
 
             for (entry = 0; entry < count; ++entry) {
-                W8PathAI* path =
-                    static_cast<W8PathAI*>(AnimObjListEntry004A16C0(animation, list, entry));
+                W8PathAI* path = AnimObjListEntry004A16C0(animation, list, entry);
                 if (path != 0) {
                     PathAISetFlag38004AA9D0(path, 1);
                     PathAISetFlag1C004AAA10(path, 1);
@@ -1459,7 +1456,7 @@ void W8Monster::Update()
         if (monster_info == 0) {
             UpdateNavigation004553A0(0, 0);
         } else {
-            UpdateNavigation004553A0(monster_info->value_107 >= 0x0e,
+            UpdateNavigation004553A0(monster_info->highest_condition >= 0x0e,
                                      monster_info->condition_turns[5] != 0);
         }
 
@@ -2466,7 +2463,7 @@ unsigned char W8Monster::CanContinueScript004CA0F0()
         flags_1dc &= ~0x20;
         return 1;
     case 0x0e:
-        if (gXStatus.field_01f == 1) {
+        if (gXStatus.fNpcDialogueMode == 1) {
             return 0;
         }
         break;
@@ -3302,7 +3299,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         model = GetCurrentModelInstance004A8250();
         if (model != 0) {
             static_cast<stModelInstance*>(model)->value_1ac =
-                g_monster_model_value_enabled_00685111 != 0 ? unknown_1d4 : 0.0f;
+                g_settings_6850c8.smooth_monster_animations != 0 ? unknown_1d4 : 0.0f;
             SetChainValue15C((char*)model, 4);
         }
         if (m_pRep->monster_light_624 != 0) {

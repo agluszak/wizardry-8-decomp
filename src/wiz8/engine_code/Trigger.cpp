@@ -12,7 +12,6 @@
 #include "wiz8/sound_man.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/location_variables.h"
-#include "wiz8/state_getters.h"
 #include "wiz8/string_database.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/Trigger.h"
@@ -75,7 +74,7 @@ unsigned char g_trigger_action_active_006599c8;
 // GLOBAL: WIZ8 0x006599AC
 srVector3T<float> g_trigger_action_scene_offset_006599ac;
 // GLOBAL: WIZ8 0x00659908
-char g_trigger_parse_buffer_00659908[256];
+char g_trigger_parse_buffer_00659908[0x88];
 W8GrowableVector<int> g_location_variable_levels_006598e0;
 W8GrowableVector<char*> g_location_variable_names_006598f8;
 W8GrowableVector<int> g_location_variable_values_00659990;
@@ -2325,8 +2324,7 @@ void Trigger::Run(int source)
                 if (AnimationIsRunning(animation) == 1) {
                     count = AnimObjListCount004A1620(animation, 2);
                     for (index = 0; index < count; ++index) {
-                        W8PathAI* path = static_cast<W8PathAI*>(
-                            AnimObjListEntry004A16C0(animation, 2, (signed char)index));
+                        W8PathAI* path = AnimObjListEntry004A16C0(animation, 2, (signed char)index);
                         PathAIUpdate004A9260(path, previous <= (signed char)value_0b1 ? 1 : -1);
                     }
                 } else {

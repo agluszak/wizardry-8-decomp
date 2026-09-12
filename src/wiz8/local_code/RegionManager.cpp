@@ -1,5 +1,4 @@
 #include "wiz8/regions.h"
-#include "wiz8/bringup_gates.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/cursor.h"

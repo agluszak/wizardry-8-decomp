@@ -1,7 +1,14 @@
 #include "wiz8/engine_code/World.h"
 
-/* World selection. The original translation-unit name is not established;
-   these bodies retain their existing compilation unit and link-order slot. */
+/* World selection. Live query: 0x00451280 sits in the gap between
+   Engine Code\3dapi.cpp (upper 0x004511D0) and Engine Code\Navigator.cpp
+   (lower 0x00452F50). */
+
+// FUNCTION: WIZ8 0x00451280
+W8World* GetWorld(void)
+{
+    return g_world;
+}
 
 // FUNCTION: WIZ8 0x00451290
 void SetCurrentWorld(W8World* world)

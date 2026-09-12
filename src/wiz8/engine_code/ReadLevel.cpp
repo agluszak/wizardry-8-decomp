@@ -39,6 +39,19 @@
 
 #define READ_LEVEL_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\ReadLevel.cpp"
 
+// FUNCTION: WIZ8 0x004B9C00
+stLevel::stLevel(srNode* parent)
+    : srClassSupport<stLevel, srNode, false, 0x10007>(static_cast<srNode*>(0)), m_active(0),
+      m_positional_13c(0)
+{
+    if (parent != 0) {
+        setParent(parent, 1);
+    }
+}
+
+// FUNCTION: WIZ8 0x004B9D10
+stLevel::~stLevel() {}
+
 namespace {
 
 struct W8LevelItemRecord004BC380 {

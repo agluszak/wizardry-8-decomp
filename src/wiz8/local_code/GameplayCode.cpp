@@ -80,7 +80,7 @@ bool AnyMonsterEngaged(void)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0 && monster_info->flag_16 == 1 &&
-            monster_info->hp_current != 0 && (unsigned int)monster_info->value_107 < 0xe) {
+            monster_info->hp_current != 0 && (unsigned int)monster_info->highest_condition < 0xe) {
             return true;
         }
     }
@@ -95,9 +95,9 @@ int CountActiveCharacters(void)
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_party_slot_rows[party_slot].occupied != 0 &&
-            g_party_characters[party_slot].hp_current != 0 &&
-            g_party_characters[party_slot].unknown_0b01 < 0x12) {
+        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
+            g_status_685170.buffers.characters[party_slot].hp_current != 0 &&
+            g_status_685170.buffers.characters[party_slot].highest_condition < 0x12) {
             ++count;
         }
     }
@@ -112,9 +112,9 @@ bool AnyCharacterActive(void)
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_party_slot_rows[party_slot].occupied != 0 &&
-            g_party_characters[party_slot].hp_current != 0 &&
-            g_party_characters[party_slot].unknown_0b01 < 0x12) {
+        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
+            g_status_685170.buffers.characters[party_slot].hp_current != 0 &&
+            g_status_685170.buffers.characters[party_slot].highest_condition < 0x12) {
             ++count;
         }
     }
@@ -208,15 +208,15 @@ void CalcXPGoal(W8Character* character)
 // FUNCTION: WIZ8 0x004ef3c0
 bool IsCharacterReadyToAdvance(int party_slot)
 {
-    const W8Character* character = &g_party_characters[party_slot];
+    const W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
-    if (g_party_slot_rows[party_slot].occupied == 0) {
+    if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
         return false;
     }
     if (character->hp_current == 0) {
         return false;
     }
-    if (character->unknown_0b01 > 0x11) {
+    if (character->highest_condition > 0x11) {
         return false;
     }
     return character->experience >= character->experience_goal;
@@ -229,7 +229,7 @@ unsigned int FindFreePartySlot(unsigned int first, unsigned int last)
     unsigned int slot;
 
     for (slot = first; slot < last; ++slot) {
-        if (g_party_slot_rows[slot].occupied == 0) {
+        if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
             return slot;
         }
     }
@@ -512,7 +512,8 @@ void CalcAttacks(W8Character* character)
                                60;
         if (character->in_party && character->race == 15) {
             unsigned int party_slot = CharacterPointerToPartySlot(character);
-            W8NpcState* npc = GetNpcState(g_party_slot_rows[party_slot].animation_0fa);
+            W8NpcState* npc =
+                GetNpcState(g_status_685170.buffers.party_rows[party_slot].animation_0fa);
             if (npc != 0 && npc->name_style == ' ' && !GetFact(0x44)) {
                 attack->attack_score /= 2;
             }
@@ -679,7 +680,7 @@ void CalcArmorClasses(W8Character* character)
         }
     }
 
-    if (character->unknown_0b01 <= 0x11) {
+    if (character->highest_condition <= 0x11) {
         if (CharacterHasTrait00547940(character, 0x16)) {
             character->armor_class_components[0] += 2;
         }
@@ -811,8 +812,8 @@ unsigned int GetAveragePartyLevel(void)
     int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        if (g_party_slot_rows[slot].occupied != 0) {
-            total_level += g_party_characters[slot].level;
+        if (g_status_685170.buffers.party_rows[slot].occupied != 0) {
+            total_level += g_status_685170.buffers.characters[slot].level;
             ++occupied_slots;
         }
     }
@@ -835,7 +836,7 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
 
     if (slot_kind == -1) {
         slot = 2;
-        while (g_party_slot_rows[slot].occupied != 0) {
+        while (g_status_685170.buffers.party_rows[slot].occupied != 0) {
             ++slot;
             if (slot > 7) {
                 return -1;
@@ -843,7 +844,7 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
         }
     } else {
         slot = 0;
-        while (g_party_slot_rows[slot].occupied != 0) {
+        while (g_status_685170.buffers.party_rows[slot].occupied != 0) {
             ++slot;
             if (slot > 1) {
                 return -1;
@@ -854,13 +855,13 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
         return -1;
     }
 
-    W8Character* destination = &g_party_characters[slot];
+    W8Character* destination = &g_status_685170.buffers.characters[slot];
     memcpy(destination, character, sizeof(W8Character));
     destination->in_party = 1;
     ResetPartySlotRow(slot);
     ResetGameplaySlot(slot);
 
-    W8PartySlotRow* row = &g_party_slot_rows[slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
     row->animation_0fa = slot_kind;
     for (unsigned int index = 0; index < 8; ++index) {
         if (g_status_685170.dwords_18e0[index] == (unsigned int)-1) {

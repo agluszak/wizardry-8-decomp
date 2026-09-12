@@ -110,7 +110,10 @@ struct W8GlobalStatus {
     unsigned char selected_party_member_2434;
     /* 0x2435: read as a gate by the main-game frame's world-cursor path. */
     unsigned char value_2435;
-    unsigned char unknown_2436[0x0e];
+    unsigned char unknown_2436[4];
+    /* 0x243a: the five RPC race ids AssayDialog walks as NUM_RPC_RACES. */
+    unsigned char rpc_races_243a[5];
+    unsigned char unknown_243f[5];
     /* Character creation skips the loose CHR collision check when set. */
     unsigned char skip_loose_character_check_2444;
     unsigned char unknown_2445[2];
@@ -174,6 +177,16 @@ static_assert(offsetof(W8GlobalStatus, party_item_count_1791) == 0x1791,
 static_assert(offsetof(W8GlobalStatus, text_line_cursor_1795) == 0x1795,
               "W8GlobalStatus_text_line_cursor_offset");
 static_assert(offsetof(W8GlobalStatus, flags_2367) == 0x2367, "W8GlobalStatus_flags_2367_offset");
+static_assert(offsetof(W8GlobalStatus, party_facing) == 0x18d0,
+              "W8GlobalStatus_party_facing_offset");
+static_assert(offsetof(W8GlobalStatus, current_level) == 0x1900,
+              "W8GlobalStatus_current_level_offset");
+static_assert(offsetof(W8GlobalStatus, formation) == 0x23a1, "W8GlobalStatus_formation_offset");
+static_assert(offsetof(W8GlobalStatus, value_2390) == 0x2390, "W8GlobalStatus_value_2390_offset");
+static_assert(offsetof(W8GlobalStatus, selected_party_member_2434) == 0x2434,
+              "W8GlobalStatus_selected_party_member_offset");
+static_assert(offsetof(W8GlobalStatus, rpc_races_243a) == 0x243a,
+              "W8GlobalStatus_rpc_races_offset");
 static_assert(offsetof(W8GlobalStatus, monster_name_buffer_2453) == 0x2453,
               "W8GlobalStatus_monster_name_buffer_offset");
 static_assert(offsetof(W8GlobalStatus, alternate_name_slot_247f) == 0x247f,
@@ -184,15 +197,6 @@ static_assert(offsetof(W8GlobalStatus, log_fact_checks_3120) == 0x3120,
 static_assert(offsetof(W8GlobalStatus, text_box_lines_shown_49a7) == 0x49a7,
               "W8GlobalStatus_text_box_lines_shown_offset");
 static_assert(offsetof(W8GlobalStatus, flag_49bc) == 0x49bc, "W8GlobalStatus_flag_49bc_offset");
-static_assert(offsetof(W8GlobalStatus, party_facing) == 0x18d0,
-              "W8GlobalStatus_party_facing_offset");
-static_assert(offsetof(W8GlobalStatus, current_level) == 0x1900,
-              "W8GlobalStatus_current_level_offset");
-static_assert(offsetof(W8GlobalStatus, formation) == 0x23a1, "W8GlobalStatus_formation_offset");
-static_assert(offsetof(W8GlobalStatus, value_2390) == 0x2390, "W8GlobalStatus_value_2390_offset");
-static_assert(offsetof(W8GlobalStatus, selected_party_member_2434) == 0x2434,
-              "W8GlobalStatus_selected_party_member_offset");
-static_assert(offsetof(W8GlobalStatus, value_2435) == 0x2435, "W8GlobalStatus_value_2435_offset");
 static_assert(offsetof(W8GlobalStatus, text_box_lines_used_4997) == 0x4997,
               "W8GlobalStatus_migrated_values_offset");
 static_assert(offsetof(W8GlobalStatus, flag_2489) == 0x2489, "W8GlobalStatus_flag_2489_offset");

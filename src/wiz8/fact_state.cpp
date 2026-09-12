@@ -26,7 +26,7 @@ unsigned char g_import_party_loaded;
 // GLOBAL: WIZ8 0x0068de5d
 int g_import_ending_choice;
 // GLOBAL: WIZ8 0x00689b78
-unsigned char g_fact_values[1001];
+unsigned char g_fact_values[1000];
 // GLOBAL
 unsigned char g_import_flags[0x60];
 
@@ -180,7 +180,7 @@ void LoadFactState(int save_handle)
     if (CheckFactLogged(0x44)) {
         npc = GetNpcStateByKind(0x20);
         if (npc && npc->has_monster) {
-            Function55A0A0(npc->unknown_00);
+            ReleaseRecordFile0055A0A0(npc->record_file);
             Function524CA0(npc);
         }
     }
@@ -309,8 +309,9 @@ unsigned char EvaluateFact(int fact_id)
             return FindItemOnParty(0x27b, 0, 0, 2, 0);
         case 0xb5: {
             unsigned int slot = 0;
-            while (g_party_slot_rows[slot].occupied == 0 || g_party_characters[slot].race != 10 ||
-                   g_party_characters[slot].unknown_0b01 > 0xe) {
+            while (g_status_685170.buffers.party_rows[slot].occupied == 0 ||
+                   g_status_685170.buffers.characters[slot].race != 10 ||
+                   g_status_685170.buffers.characters[slot].highest_condition > 0xe) {
                 if (slot >= 7) {
                     return 0;
                 }
@@ -377,7 +378,7 @@ unsigned char EvaluateFact(int fact_id)
             if (g_status_685170.flag_2489 != 0) {
                 unsigned int slot = 0;
                 do {
-                    if (g_party_slot_rows[slot].occupied != 0 &&
+                    if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
                         slot == (unsigned int)g_status_685170.value_423d) {
                         return 1;
                     }
@@ -404,7 +405,8 @@ unsigned char EvaluateFact(int fact_id)
                 return g_fact_values[fact_id];
             }
             W8NpcState* npc = GetNpcStateByKind(0x18);
-            if (npc != 0 && g_party_characters[npc->group_index].unknown_0b01 >= 0xf) {
+            if (npc != 0 &&
+                g_status_685170.buffers.characters[npc->group_index].highest_condition >= 0xf) {
                 return 1;
             }
             return 0;

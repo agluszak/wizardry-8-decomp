@@ -108,3 +108,5 @@ extern float g_environment_value_0065b9b8;
 extern int g_environment_value_0060a3ac;
 extern int g_environment_value_0060a3b0;
 extern unsigned char g_flag_0060a395;
+
+void SetGameTimeDays(int value);

@@ -205,39 +205,18 @@ def place_address(markers: list[dict[str, Any]], address: int) -> dict[str, Any]
     }
 
 
-_UNIT_DIRECTORIES = {
-    "3d code": "3d_code",
-    "dialog code": "dialog_code",
-    "engine code": "engine_code",
-    "level specific code": "level_specific_code",
-    "local code": "local_code",
-    "local screens": "local_screens",
-}
-
-
 def repository_source_file(repo_dir: Path, unit: str, markers: list[dict[str, Any]]) -> str | None:
-    """Map one reviewed original unit to its unique recovered physical file."""
+    """Map one reviewed original unit to its recovered physical file.
 
-    normalized = unit.replace("\\", "/")
-    basename = normalized.rsplit("/", 1)[-1]
-    candidates = sorted(
-        {
-            str(marker["source_file"])
-            for marker in markers
-            if Path(str(marker["source_file"])).name.casefold() == basename.casefold()
-            and (repo_dir / str(marker["source_file"])).is_file()
-        }
-    )
-    if len(candidates) == 1:
-        return candidates[0]
-    directory, separator, name = normalized.partition("/")
-    if not separator:
-        return None
-    mapped = _UNIT_DIRECTORIES.get(directory.casefold())
-    if mapped is None:
-        return None
-    candidate = Path("src/wiz8") / mapped / name
-    return candidate.as_posix() if (repo_dir / candidate).is_file() else None
+    Directory + filename from the original source path is the only identity
+    proof. Marker basename coincidences, including provisional semantic
+    buckets, do not make a file the original translation unit.
+    """
+
+    del markers
+    from .source_units import mapped_repository_source_file
+
+    return mapped_repository_source_file(repo_dir, unit)
 
 
 def resolve_source_placement(

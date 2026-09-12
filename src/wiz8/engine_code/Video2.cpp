@@ -1,5 +1,5 @@
 #include "wiz8/engine_code/Video2.h"
-#include "wiz8/bringup_gates.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/3dapi.h"
 #include "wiz8/engine_code/Environment.h"

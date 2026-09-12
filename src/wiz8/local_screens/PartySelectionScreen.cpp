@@ -1,6 +1,7 @@
 #include "Types.h"
 #include "mousesystem.h"
-#include "wiz8/bringup_gates.h"
+#include "wiz8/screen_state.h"
+#include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/character_events.h"
@@ -139,9 +140,10 @@ int W8State5PartyCollection::FindPartySlot(int index)
 {
     W8Character* character = GetCharacter(index);
     if (character && character->in_party) {
-        W8PartySlotRow* rows = g_party_slot_rows;
+        W8PartySlotRow* rows = g_status_685170.buffers.party_rows;
         for (int slot = 0; slot < 6; ++slot) {
-            if (rows[slot + 2].occupied && &g_party_characters[slot + 2] == character) {
+            if (rows[slot + 2].occupied &&
+                &g_status_685170.buffers.characters[slot + 2] == character) {
                 return slot;
             }
         }
@@ -181,8 +183,8 @@ void W8State5PartyCollection::LoadExternalCharacters()
         } else {
             int slot;
             for (slot = 2; slot < 8; ++slot) {
-                if (g_party_slot_rows[slot].occupied != 0 &&
-                    wcscmp(g_party_characters[slot].name, character->name) == 0) {
+                if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                    wcscmp(g_status_685170.buffers.characters[slot].name, character->name) == 0) {
                     break;
                 }
             }
@@ -780,8 +782,8 @@ void W8State5CharacterPanel005EF3C8::OpenCampForSelectedMember(int row)
     m_control_58.SetSelected(row);
     int slot;
     for (slot = 0; slot < 6; ++slot) {
-        if (g_party_slot_rows[slot + 2].occupied &&
-            &g_party_characters[slot + 2] == g_state5_controller->m_character_18) {
+        if (g_status_685170.buffers.party_rows[slot + 2].occupied &&
+            &g_status_685170.buffers.characters[slot + 2] == g_state5_controller->m_character_18) {
             break;
         }
     }
@@ -826,11 +828,11 @@ void W8State5PartySlotRow005EF3E4::Redraw(int full_redraw)
     int left = m_pPanel->origin_x + m_left;
     int top = m_pPanel->origin_y + m_top;
     W8Character* character = 0;
-    if (!g_party_slot_rows[m_row + 2].occupied) {
+    if (!g_status_685170.buffers.party_rows[m_row + 2].occupied) {
         ColorFillVideoSurfaceArea(-14, left, top, m_pPanel->origin_x + m_right,
                                   m_pPanel->origin_y + m_bottom, 0x8000);
     } else {
-        character = &g_party_characters[m_row + 2];
+        character = &g_status_685170.buffers.characters[m_row + 2];
         int portrait = character->table_value_0079;
         int flags = 2;
         if ((g_portrait_descriptors_6483d0[portrait].render_mode == 1 && !(m_row & 1)) ||
@@ -858,8 +860,9 @@ void W8State5PartySlotRow005EF3E4::OnRightButtonUp(int event)
     if (m_row == -1) {
         int slot;
         for (slot = 0; slot < 6; ++slot) {
-            if (g_party_slot_rows[slot + 2].occupied &&
-                &g_party_characters[slot + 2] == g_state5_controller->m_character_18) {
+            if (g_status_685170.buffers.party_rows[slot + 2].occupied &&
+                &g_status_685170.buffers.characters[slot + 2] ==
+                    g_state5_controller->m_character_18) {
                 break;
             }
         }
@@ -867,7 +870,7 @@ void W8State5PartySlotRow005EF3E4::OnRightButtonUp(int event)
         g_pending_screen_state.parameter_3 = g_state5_controller->m_character_18;
     } else {
         g_pending_screen_state.parameter_2 = m_row + 2;
-        g_pending_screen_state.parameter_3 = &g_party_characters[m_row + 2];
+        g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[m_row + 2];
     }
     SetPendingScreenState(W8_SCREEN_CAMP);
 }
@@ -898,7 +901,7 @@ W8State5PartySlotPanel005EF438::W8State5PartySlotPanel005EF438() : Controls()
     m_control_50.m_selectionListener = this;
     for (int slot = 0; slot < 6; ++slot) {
         W8TextControl* control = m_control_50.m_lsButtons.data[slot];
-        control->SetEnabled(g_party_slot_rows[slot + 2].occupied);
+        control->SetEnabled(g_status_685170.buffers.party_rows[slot + 2].occupied);
     }
     Invalidate(0);
 }
@@ -926,7 +929,7 @@ void W8State5SixTextPanel005EF450::OnPrimary(W8TextControl* control)
         }
     }
     control->SetAlternateTextEnabled(0);
-    g_pending_screen_state.parameter_3 = &g_party_characters[index + 2];
+    g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[index + 2];
     g_pending_screen_state.mode = 2;
     SetPendingScreenState(W8_SCREEN_CHARACTER);
 }
@@ -1438,7 +1441,7 @@ void W8State5Controller::SetMode(int mode)
         m_control_24->EnableRegionSet(1);
         m_control_24->SetEnabled(1);
         for (int slot = 0; slot < 6; ++slot) {
-            unsigned char occupied = g_party_slot_rows[slot + 2].occupied;
+            unsigned char occupied = g_status_685170.buffers.party_rows[slot + 2].occupied;
             m_control_24->ControlAt(slot)->SetActive(m_mode == 1 && occupied &&
                                                      IsCharacterReadyToAdvance(slot + 2));
         }
@@ -1507,8 +1510,8 @@ void W8State5Controller::SetSelection(int selection, int party_slot, int refresh
             int selected_slot = -1;
             if (m_character_18 && m_character_18->in_party) {
                 for (int slot = 0; slot < 6; ++slot) {
-                    if (g_party_slot_rows[slot + 2].occupied &&
-                        &g_party_characters[slot + 2] == m_character_18) {
+                    if (g_status_685170.buffers.party_rows[slot + 2].occupied &&
+                        &g_status_685170.buffers.characters[slot + 2] == m_character_18) {
                         selected_slot = slot;
                         break;
                     }
@@ -1522,14 +1525,14 @@ void W8State5Controller::SetSelection(int selection, int party_slot, int refresh
             }
         }
     } else {
-        m_character_18 = &g_party_characters[selection + 2];
+        m_character_18 = &g_status_685170.buffers.characters[selection + 2];
         if (!m_character_18->in_party) {
             m_character_18 = 0;
             selection = -1;
         }
         if (m_mode == 0) {
             int character_index = -1;
-            if (selection >= 0 && g_party_slot_rows[selection + 2].occupied) {
+            if (selection >= 0 && g_status_685170.buffers.party_rows[selection + 2].occupied) {
                 for (int index = 0; index < g_state5_party_collection_69c4ec->characters.count;
                      ++index) {
                     if (g_state5_party_collection_69c4ec->GetCharacter(index) == m_character_18) {
@@ -1609,8 +1612,8 @@ void W8State5Controller::OnPrimary(W8TextControl* control)
     if (control == m_text_4c) {
         int slot;
         for (slot = 0; slot < 6; ++slot) {
-            if (g_party_slot_rows[slot + 2].occupied &&
-                &g_party_characters[slot + 2] == m_character_18) {
+            if (g_status_685170.buffers.party_rows[slot + 2].occupied &&
+                &g_status_685170.buffers.characters[slot + 2] == m_character_18) {
                 break;
             }
         }
@@ -1923,12 +1926,12 @@ void W8State5Controller::LoadImportedPartyFile(int selection)
     m_text_54->Invalidate(0);
     int slot;
     for (slot = 0; slot < 6; ++slot) {
-        unsigned char occupied = g_party_slot_rows[slot + 2].occupied;
+        unsigned char occupied = g_status_685170.buffers.party_rows[slot + 2].occupied;
         m_control_28->m_control_50.m_lsButtons.data[slot]->SetEnabled(occupied);
     }
     m_control_28->Invalidate(0);
     for (slot = 0; slot < 6; ++slot) {
-        unsigned char occupied = g_party_slot_rows[slot + 2].occupied;
+        unsigned char occupied = g_status_685170.buffers.party_rows[slot + 2].occupied;
         m_control_24->ControlAt(slot)->SetActive(m_mode == 1 && occupied &&
                                                  IsCharacterReadyToAdvance(slot + 2));
     }
@@ -1953,7 +1956,7 @@ void W8State5Controller::TogglePartyMemberSelection()
         int slot = AddCharacterToParty(character, -1);
         if (slot != -1) {
             delete character;
-            collection->characters.SetAt(selected, &g_party_characters[slot]);
+            collection->characters.SetAt(selected, &g_status_685170.buffers.characters[slot]);
         }
         if (selected < collection->characters.count - 1) {
             ++selected;
@@ -1972,7 +1975,7 @@ void W8State5Controller::TogglePartyMemberSelection()
                     break;
                 }
             }
-            if (g_party_slot_rows[next_slot + 2].occupied) {
+            if (g_status_685170.buffers.party_rows[next_slot + 2].occupied) {
                 found = true;
                 break;
             }
@@ -1986,7 +1989,7 @@ void W8State5Controller::TogglePartyMemberSelection()
     }
 
     for (int slot = 0; slot < 6; ++slot) {
-        unsigned char occupied = g_party_slot_rows[slot + 2].occupied;
+        unsigned char occupied = g_status_685170.buffers.party_rows[slot + 2].occupied;
         m_control_28->m_control_50.m_lsButtons.data[slot]->SetEnabled(occupied);
     }
     m_control_28->Invalidate(0);
@@ -2023,10 +2026,10 @@ unsigned char PartySelectionScreenEnter(void)
             }
         }
         collection->characters.count = 0;
-        W8PartySlotRow* rows = g_party_slot_rows;
+        W8PartySlotRow* rows = g_status_685170.buffers.party_rows;
         for (int slot = 2; slot < 8; ++slot) {
             if (rows[slot].occupied) {
-                collection->characters.Add(&g_party_characters[slot]);
+                collection->characters.Add(&g_status_685170.buffers.characters[slot]);
             }
         }
         collection->LoadExternalCharacters();
@@ -2043,10 +2046,10 @@ unsigned char PartySelectionScreenEnter(void)
                 }
             }
             collection->characters.count = 0;
-            W8PartySlotRow* rows = g_party_slot_rows;
+            W8PartySlotRow* rows = g_status_685170.buffers.party_rows;
             for (int slot = 2; slot < 8; ++slot) {
                 if (rows[slot].occupied) {
-                    collection->characters.Add(&g_party_characters[slot]);
+                    collection->characters.Add(&g_status_685170.buffers.characters[slot]);
                 }
             }
             collection->LoadExternalCharacters();
@@ -2219,10 +2222,6 @@ unsigned char g_portrait_frame_flags_0061cbc0[0x50] = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 };
 
-/* The eight per-slot portrait animation records, cleared at startup. */
-// GLOBAL: WIZ8 0x0068372d
-W8PortraitAnimationState g_portrait_animation_states[8];
-
 /* Draw one party member's portrait at a screen position. When the caller asks
    for the animated form the frame blitter runs first, and the death,
    in-combat or exhausted state adds the darkened overlay. */
@@ -2240,7 +2239,7 @@ void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int
     }
     if ((((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].flag_34 != 0) ||
           gXStatus.fSurprisePossible != 0) ||
-         g_party_characters[party_slot].unknown_0b01 == 0x13) &&
+         g_status_685170.buffers.characters[party_slot].highest_condition == 0x13) &&
         value != 0) {
         Function4048A0(-0xe, left, top, left + 0x59, top + 0x47);
     }
@@ -2254,7 +2253,7 @@ void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int
 char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int party_slot,
                                 char animate)
 {
-    W8PortraitAnimationState* state = &g_portrait_animation_states[party_slot];
+    W8MonsterManagerEntry* state = &g_monster_manager_entries[party_slot];
     W8ScreenRect rect;
     W8ScreenRect other;
     short width;
@@ -2266,10 +2265,10 @@ char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
     if (g_portrait_frame_flags_0061cbc0[portrait] == 0) {
         return drawn;
     }
-    if (state->dirty_b_25 != 0 || state->current_b_14 != state->previous_b_10 ||
-        (animate != 0 && state->current_b_14 != 1)) {
-        GetCatalogImageSize(0x12, portrait, state->current_b_14, &width, &height);
-        GetCatalogImagePosition00549700(0x12, portrait, state->current_b_14, &image_x, &image_y);
+    if (state->field_09a != 0 || state->field_089 != state->field_085 ||
+        (animate != 0 && state->field_089 != 1)) {
+        GetCatalogImageSize(0x12, portrait, state->field_089, &width, &height);
+        GetCatalogImagePosition00549700(0x12, portrait, state->field_089, &image_x, &image_y);
         rect.left = image_x + left;
         rect.top = image_y + top;
         rect.right = width + rect.left;
@@ -2279,15 +2278,14 @@ char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
              gXStatus.fSurprisePossible != 0)) {
             RenderPartyPortrait0052EB00(portrait, left, top, flags, 0, party_slot);
         }
-        if (g_party_characters[party_slot].hp_current == 0) {
+        if (g_status_685170.buffers.characters[party_slot].hp_current == 0) {
             return 1;
         }
-        DrawCatalogImage(-0xe, 0x12, portrait, state->current_b_14, left, top, flags | 0x200, 0);
+        DrawCatalogImage(-0xe, 0x12, portrait, state->field_089, left, top, flags | 0x200, 0);
         drawn = 1;
-        if (state->previous_b_10 != -1) {
-            GetCatalogImageSize(0x12, portrait, state->previous_b_10, &width, &height);
-            GetCatalogImagePosition00549700(0x12, portrait, state->previous_b_10, &image_x,
-                                            &image_y);
+        if (state->field_085 != -1) {
+            GetCatalogImageSize(0x12, portrait, state->field_085, &width, &height);
+            GetCatalogImagePosition00549700(0x12, portrait, state->field_085, &image_x, &image_y);
             other.left = image_x + left;
             other.top = image_y + top;
             other.right = width + other.left;
@@ -2295,31 +2293,30 @@ char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
             UnionScreenRects(&other, &rect, &rect);
         }
         InvalidateScreenRects(&rect, 1, 0);
-        state->previous_b_10 = state->current_b_14;
-        state->dirty_b_25 = 0;
+        state->field_085 = state->field_089;
+        state->field_09a = 0;
     }
-    if (state->dirty_a_26 == 0 && state->current_a_04 == state->previous_a_00 &&
-        (animate == 0 || state->current_a_04 == 6)) {
+    if (state->field_09b == 0 && state->field_079 == state->field_075 &&
+        (animate == 0 || state->field_079 == 6)) {
         if (drawn == 0) {
             return 0;
         }
     } else {
-        GetCatalogImageSize(0x12, portrait, state->current_a_04, &width, &height);
-        GetCatalogImagePosition00549700(0x12, portrait, state->current_a_04, &image_x, &image_y);
+        GetCatalogImageSize(0x12, portrait, state->field_079, &width, &height);
+        GetCatalogImagePosition00549700(0x12, portrait, state->field_079, &image_x, &image_y);
         if (animate == 0 && drawn == 0 && gXStatus.fCombatMode != 0 &&
             g_combat_state->characters[party_slot].flag_34 != 0) {
             RenderPartyPortrait0052EB00(portrait, left, top, flags, 0, party_slot);
         }
-        DrawCatalogImage(-0xe, 0x12, portrait, state->current_a_04, left, top, flags, 0);
+        DrawCatalogImage(-0xe, 0x12, portrait, state->field_079, left, top, flags, 0);
         rect.left = image_x + left;
         rect.top = image_y + top;
         rect.right = width + rect.left;
         rect.bottom = height + rect.top;
         drawn = 1;
-        if (state->previous_a_00 != -1) {
-            GetCatalogImageSize(0x12, portrait, state->previous_a_00, &width, &height);
-            GetCatalogImagePosition00549700(0x12, portrait, state->previous_a_00, &image_x,
-                                            &image_y);
+        if (state->field_075 != -1) {
+            GetCatalogImageSize(0x12, portrait, state->field_075, &width, &height);
+            GetCatalogImagePosition00549700(0x12, portrait, state->field_075, &image_x, &image_y);
             other.left = image_x + left;
             other.top = image_y + top;
             other.right = width + other.left;
@@ -2327,12 +2324,12 @@ char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
             UnionScreenRects(&other, &rect, &rect);
         }
         InvalidateScreenRects(&rect, 1, 0);
-        state->previous_a_00 = state->current_a_04;
-        state->dirty_a_26 = 0;
+        state->field_075 = state->field_079;
+        state->field_09b = 0;
     }
     if (((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].flag_34 != 0) ||
          gXStatus.fSurprisePossible != 0) ||
-        g_party_characters[party_slot].unknown_0b01 == 0x13) {
+        g_status_685170.buffers.characters[party_slot].highest_condition == 0x13) {
         Function4048A0(-0xe, left, top, left + 0x59, top + 0x47);
     }
     return drawn;

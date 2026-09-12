@@ -50,12 +50,12 @@ void OnDismissCharacterDialogClosed(W8DialogBase* dialog);
 // FUNCTION: WIZ8 0x005b6d20
 bool CanSelectRcsPartySlot(int ui_slot)
 {
-    if (!g_party_slot_rows[ui_slot].occupied) {
+    if (!g_status_685170.buffers.party_rows[ui_slot].occupied) {
         srAssertFail("gStatus.XChar[uiSlot].fOccupied",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp", 0x9ac, 0);
     }
 
-    W8Character* character = &g_party_characters[ui_slot];
+    W8Character* character = &g_status_685170.buffers.characters[ui_slot];
     if (character->condition_turns[19] != 0) {
         return false;
     }
@@ -72,7 +72,7 @@ bool CanSelectRcsPartySlot(int ui_slot)
         if (!g_combat_state->flag_a50) {
             return false;
         }
-        if (g_party_slot_rows[ui_slot].pending_action != 9) {
+        if (g_status_685170.buffers.party_rows[ui_slot].pending_action != 9) {
             return false;
         }
     }
@@ -106,13 +106,13 @@ void DrawTallRcsText(const wchar_t* text, int left, int top, int width, unsigned
 // FUNCTION: WIZ8 0x005b6630
 void OpenLevelUpCharacterScreen(void)
 {
-    if (!g_party_slot_rows[g_rcs_mode_0064cbe8].occupied) {
+    if (!g_status_685170.buffers.party_rows[g_rcs_mode_0064cbe8].occupied) {
         srAssertFail("fCHAR_OCCUPIED(giReviewCharSlot)",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp", 0x888, 0);
     }
     g_current_screen_state.parameter_2 = g_rcs_mode_0064cbe8;
     g_current_screen_state.parameter_3 = g_value_0069c0f8;
-    g_pending_screen_state.parameter_3 = &g_party_characters[g_rcs_mode_0064cbe8];
+    g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[g_rcs_mode_0064cbe8];
     g_pending_screen_state.mode = 2;
     SetPendingScreenState(W8_SCREEN_CHARACTER);
 }
@@ -177,7 +177,8 @@ void UpdateRcsLevelUpPanel(void)
 {
     bool enabled = IsCharacterReadyToAdvance(g_rcs_mode_0064cbe8);
     if (!enabled || gXStatus.fCombatMode ||
-        (!g_party_slot_rows[g_rcs_mode_0064cbe8].flag_105 && g_status_685170.game_started) ||
+        (!g_status_685170.buffers.party_rows[g_rcs_mode_0064cbe8].flag_105 &&
+         g_status_685170.game_started) ||
         gXStatus.fCampMode) {
         if (g_level_up_button_0069c3c0->m_active) {
             g_level_up_button_0069c3c0->SetActive(0);
@@ -215,7 +216,7 @@ void CreateRcsDismissPanel(void)
 // FUNCTION: WIZ8 0x005b6950
 void ShowDismissCharacterDialog(void)
 {
-    if (!g_party_slot_rows[g_rcs_mode_0064cbe8].occupied) {
+    if (!g_status_685170.buffers.party_rows[g_rcs_mode_0064cbe8].occupied) {
         srAssertFail("fCHAR_OCCUPIED(giReviewCharSlot)",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp", 0x90a, 0);
     }
@@ -223,10 +224,10 @@ void ShowDismissCharacterDialog(void)
     W8ModalDialogBase* dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
     dialog->SetClientExtent(0xfa, 200);
 
-    W8Character* character = &g_party_characters[g_rcs_mode_0064cbe8];
+    W8Character* character = &g_status_685170.buffers.characters[g_rcs_mode_0064cbe8];
     const wchar_t* format;
     if (character->condition_turns[19] == 0) {
-        if (character->condition_turns[W8_CONDITION_EQUIPMENT_UNLOCKED] == 0) {
+        if (character->condition_turns[W8_CONDITION_DEAD] == 0) {
             format = gppStringList[0x92d];
         } else {
             format = gppStringList[0x92e];
@@ -242,7 +243,8 @@ void ShowDismissCharacterDialog(void)
 // FUNCTION: WIZ8 0x005b6a60
 void OnDismissCharacterDialogClosed(W8DialogBase* base)
 {
-    if (GetDialogResult(base) && g_party_slot_rows[g_rcs_mode_0064cbe8].animation_0fa != -1) {
+    if (GetDialogResult(base) &&
+        g_status_685170.buffers.party_rows[g_rcs_mode_0064cbe8].animation_0fa != -1) {
         g_value_006840be = static_cast<unsigned short>(g_rcs_mode_0064cbe8);
         DismissSelectedPartyCharacter();
     }
@@ -345,7 +347,7 @@ void ReleaseReviewCommonPanels(void)
 void CloseReviewCommonUi(void)
 {
     ReleaseReviewCommonPanels();
-    gXStatus.field_022 = 0;
+    gXStatus.fReviewCharacterMode = 0;
     UpdateHeldItemCursor();
     RegionSetDisable(0x1b);
     RequestRedraw(0x200);

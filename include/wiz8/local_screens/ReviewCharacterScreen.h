@@ -94,7 +94,7 @@ struct W8CampScreenState0069C0F4 {
     unsigned char item_timer_expired;
     unsigned char unknown_ce6[2];
     unsigned int animation_timer;
-    int animation_frames[6];
+    unsigned int animation_frames[6];
     int input_mode; /* 0xd04 */
     unsigned char skill_flag;
     unsigned char unknown_d09[3];

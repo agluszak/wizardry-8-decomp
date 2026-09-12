@@ -51,3 +51,6 @@
 
 // LIBRARY: WIZ8 0x005e1ef1
 // ?__ArrayUnwind@@YGXPAXIHP6EX0@Z@Z
+
+// SYNTHETIC: WIZ8 0x004023a0
+// NoOp (compiler-folded empty)

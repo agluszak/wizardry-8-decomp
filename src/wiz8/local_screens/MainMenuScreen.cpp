@@ -1,4 +1,3 @@
-#include "wiz8/bringup_gates.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/render_state.h"
 #include "wiz8/regions.h"
@@ -38,6 +37,8 @@
  * The unit is named by the assertion in its entry handler. Its six static
  * regions share the global RegionManager catalog and screen-state dispatcher.
  */
+
+extern unsigned char g_flag_689b32;
 
 /* The screen's own state. */
 // GLOBAL: WIZ8 0x0069c4ba
@@ -198,7 +199,7 @@ unsigned char MainMenuScreenEnter(void)
     if (pending != 0) {
         dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(0xfa, 200);
-        dialog->SetMessage((void*)pending, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
+        dialog->SetMessage(pending, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
         SetDialogDestroyCallback(dialog, 0);
         g_main_menu_dialog = dialog;
         delete[] g_pending_main_menu_message;
@@ -206,11 +207,9 @@ unsigned char MainMenuScreenEnter(void)
         return 1;
     }
     if (!HasEnoughFreeDiskSpace() && !g_main_menu_warning_shown) {
-        int message = *(int*)&gppStringList[0x1fb8 / 4];
-
         dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(0xfa, 200);
-        dialog->SetMessage((void*)message, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
+        dialog->SetMessage(gppStringList[0x1fb8 / 4], 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
         SetDialogDestroyCallback(dialog, 0);
         g_main_menu_warning_shown = 1;
         g_main_menu_dialog = dialog;

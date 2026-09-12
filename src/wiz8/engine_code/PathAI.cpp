@@ -21,6 +21,11 @@ void NoOp(W8PathAI* path, W8AnimRepBase005EC1D8* representation)
     (void)representation;
 }
 
+/* identity-alias: retail folds this empty body with the SYNTHETIC at
+   0x004023a0 in vc6_runtime.cpp. */
+
+void NoOp(void) {}
+
 extern const float g_negative_one_005ebc38;
 extern double g_double_005ec3b0;
 

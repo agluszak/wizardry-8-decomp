@@ -3,26 +3,12 @@
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/stScript.h"
 #include "wiz8/engine_code/stLight.h"
+
+/* Compiler-emitted srClassSupport specializations whose original TU is the
+   class that instantiated them. This file is compiler-emission only: it parks
+   no authored game logic. */
 // SYNTHETIC: WIZ8 0x004A2200
 // stLightDefinition005ECDBC::`scalar deleting destructor'
-
-/* Remaining class methods whose original translation-unit ownership is not proved. */
-
-// FUNCTION: WIZ8 0x004A2220
-stLightDefinition::~stLightDefinition() {}
-
-// FUNCTION: WIZ8 0x004B9C00
-stLevel::stLevel(srNode* parent)
-    : srClassSupport<stLevel, srNode, false, 0x10007>(static_cast<srNode*>(0)), m_active(0),
-      m_positional_13c(0)
-{
-    if (parent != 0) {
-        setParent(parent, 1);
-    }
-}
-
-// FUNCTION: WIZ8 0x004B9D10
-stLevel::~stLevel() {}
 
 // TEMPLATE: WIZ8 0x0049DB10
 // srClassSupport<srIlluminator,srNode,0,4608>::getClassID

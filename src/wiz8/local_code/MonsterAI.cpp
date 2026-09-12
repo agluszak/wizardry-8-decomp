@@ -36,6 +36,7 @@ enum { W8_AI_SPELL_PLACE = 0x77 };
 /* The monster action kinds the AI validates. */
 enum { W8_MONSTER_ACTION_ATTACK = 0, W8_MONSTER_ACTION_SPELL = 2, W8_MONSTER_ACTION_FLEE = 3 };
 
+struct W8SpellEffectEntry;
 /* 0x0061EEFC: two dwords per AI kind; only the leading dword is read here. */
 // GLOBAL: WIZ8 0x0061EEFC
 extern const int g_ai_kind_table[32][2] = {
@@ -201,24 +202,28 @@ float GetGroupNearestDistance(W8MonsterGroup* group, float furthest)
 }
 
 /* Whether the point the monster-control effect is anchored to is still within
-   reach. With no effect running, or nothing anchored, there is nothing to be
-   in range of; failing the test falls back on where the party is standing. */
+   reach. effects.data sits at W8SpellEffectEntry + 0x10c; the first visual is
+   a W8SpellVisual whose W8Navigator secondary base is the ordinary GrCycle
+   conversion at +0x18. With no effect running, or nothing anchored, there is
+   nothing to be in range of; failing the test falls back on where the party
+   is standing. */
 // FUNCTION: WIZ8 0x00534d50
 short IsMonsterControlPointInRange(W8MonsterInfo* monster_info)
 {
     W8SpellEffectEntry* effect = FindMonsterControlSpellEffect();
-    W8SpellVisual* anchor;
+    W8SpellVisual* visual;
+    W8Navigator* anchor_navigator;
     short in_range;
     srVector3T<float> party;
 
     if (effect == 0) {
         return 0;
     }
-    anchor = effect->effects.data[0];
-    if (anchor == 0) {
+    visual = effect->effects.data[0];
+    if (visual == 0) {
         return 0;
     }
-    W8Navigator* anchor_navigator = static_cast<W8Navigator*>(anchor);
+    anchor_navigator = visual;
     in_range =
         monster_info->monster->SetMovementTargetToNavigator004526C0(anchor_navigator, 2500.0);
     if (in_range == 0) {

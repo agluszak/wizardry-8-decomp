@@ -333,7 +333,7 @@ unsigned int CharacterPointerToPartySlot(const W8Character* character)
                      0x1c8, "PCPtrToPCSlot: ERROR - called for non-party character");
     }
 
-    party_character = g_party_characters;
+    party_character = g_status_685170.buffers.characters;
     for (slot = 0; slot < 8; ++slot, ++party_character) {
         if (character == party_character) {
             return slot;
@@ -349,7 +349,7 @@ unsigned int CharacterPointerToPartySlot(const W8Character* character)
 // FUNCTION: WIZ8 0x00517f30
 bool IsPartyCharacterPointer(const W8Character* character)
 {
-    W8Character* party_character = g_party_characters;
+    W8Character* party_character = g_status_685170.buffers.characters;
     unsigned int slot;
 
     for (slot = 0; slot < 8; ++slot, ++party_character) {
@@ -389,12 +389,12 @@ retry:
     slot = 0;
     do {
         matched = 0;
-        if (g_party_slot_rows[slot].occupied != 0 && (int)slot != excluded_slot) {
-            character = &g_party_characters[slot];
-            if ((character->hp_current > 0 && character->unknown_0b01 < 0x12) ||
+        if (g_status_685170.buffers.party_rows[slot].occupied != 0 && (int)slot != excluded_slot) {
+            character = &g_status_685170.buffers.characters[slot];
+            if ((character->hp_current > 0 && character->highest_condition < 0x12) ||
                 require_primary == 2) {
                 if (excluded_gender == -1 || excluded_gender != character->gender) {
-                    if (character->unknown_0b01 < 0xf || require_secondary == 2) {
+                    if (character->highest_condition < 0xf || require_secondary == 2) {
                         matched = 1;
                         if (skip == 0) {
                             return slot;
@@ -430,8 +430,8 @@ retry:
 int GetNextCharacter(int require_primary, int require_secondary, int previous_slot)
 {
     int start_slot = (previous_slot + 1) % 8;
-    W8Character* characters = g_party_characters;
-    W8PartySlotRow* rows = g_party_slot_rows;
+    W8Character* characters = g_status_685170.buffers.characters;
+    W8PartySlotRow* rows = g_status_685170.buffers.party_rows;
     int slot;
     unsigned int scanned;
 
@@ -443,9 +443,9 @@ retry:
         if (rows[slot].occupied != 0) {
             W8Character* character = &characters[slot];
 
-            if ((character->hp_current > 0 && character->unknown_0b01 < 0x12) ||
+            if ((character->hp_current > 0 && character->highest_condition < 0x12) ||
                 require_primary == 2) {
-                if (character->unknown_0b01 < 0xf || require_secondary == 2) {
+                if (character->highest_condition < 0xf || require_secondary == 2) {
                     return slot;
                 }
             }

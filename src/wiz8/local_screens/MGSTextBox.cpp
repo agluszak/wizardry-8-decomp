@@ -217,7 +217,7 @@ void SetKnockKnockTarget(int target)
 {
     W8MainGameScreen* screen = g_main_game_screen;
 
-    if (gXStatus.field_021 == 0) {
+    if (gXStatus.fTrapInteractMode == 0) {
         ShowNotice(0xc, L"You can't cast Knock Knock here!", -1, -1, 0);
         return;
     }

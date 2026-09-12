@@ -785,8 +785,8 @@ void W8GrCycle::AdvanceAnimationFrame(int, int)
         unsigned int index;
 
         for (index = 0; index < count; ++index) {
-            W8PathAI* path = (W8PathAI*)AnimObjListEntry004A16C0(animation, representation->m_bLOD,
-                                                                 (signed char)index);
+            W8PathAI* path =
+                AnimObjListEntry004A16C0(animation, representation->m_bLOD, (signed char)index);
             if (path != 0) {
                 PathAISetValue004A9F60(path, (float)representation->flag_064);
             }
@@ -860,7 +860,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             }
             psrMesh->clearFlag(srNode::FLAG_POSITIONAL_0);
             psrMesh->setParent(pWorld->dynamic_scene, 0);
-            path = (W8PathAI*)AnimObjListEntry004A16C0(animation, pRep->m_bLOD, (signed char)index);
+            path = AnimObjListEntry004A16C0(animation, pRep->m_bLOD, (signed char)index);
             if (path != 0) {
                 PathAIApply004AA520(path, psrMesh);
             }

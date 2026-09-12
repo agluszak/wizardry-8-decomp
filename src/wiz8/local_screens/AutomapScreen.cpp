@@ -43,16 +43,29 @@
 /* Lifecycle record 8; the automap screen. Its original screen-class name is
    unknown, so the existing compilation boundary is retained. */
 
+// GLOBAL: WIZ8 0x0068F258
+W8GrowableVector<W8AutomapNote*>* g_automap_notes;
+
+// FUNCTION: WIZ8 0x0057e5d0
+unsigned char AutomapScreenInitialize(void)
+{
+    W8GrowableVector<W8AutomapNote*>* list;
+
+    list = new W8GrowableVector<W8AutomapNote*>();
+    g_automap_notes = list;
+    if (!list) {
+        return 0;
+    }
+    return 1;
+}
+
 // GLOBAL: WIZ8 0x0068f104
 unsigned char g_flag_68f104;
 // GLOBAL: WIZ8 0x0068f105
 unsigned char g_flag_68f105;
 
 /* Lifecycle record 8's own state, all of it released by the finalizer below and
-   nothing here naming what any of it holds. The list is vector.cpp's, created by
-   this record's initializer at 0x0057E5D0. */
-/* vector.cpp defines this with C++ linkage; the spelling has to agree or the
-   reference resolves to the image base under /FORCE. */
+   nothing here naming what any of it holds. The note list is created by this record's initializer at 0x0057E5D0. */
 
 /* Two owned index arrays, released through BitArray's destructor. */
 // GLOBAL: WIZ8 0x0068F288

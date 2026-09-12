@@ -1,8 +1,8 @@
 # Explicit link order for recovered first-party sources. Renaming or moving a
-# unit must not move its slot. src/wiz8/vector.cpp collects compiler-emitted
-# growable-vector specializations whose original translation-unit ownership is
-# not established; every other entry is recovered source whose placement
-# provenance lives in recovery evidence, not in this list.
+# unit must not move its slot. Classification lives in source_units.json.
+# original-tu, unresolved-fragment, or compiler-emission.
+# Compiler-emission units collect template/vtable/synthetic material.
+# Their original translation-unit ownership is not established.
 set(WIZ8_SOURCE_UNITS
     "src/wiz8/local_code/PC Item.cpp"
     src/wiz8/local_code/FormationAndFacing.cpp
@@ -47,7 +47,6 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_screens/MGSPortraits.cpp
     src/wiz8/local_screens/MGSUseItemSelect.cpp
     src/wiz8/local_screens/MGSPartyMovement.cpp
-    src/wiz8/location_variables.cpp
     src/wiz8/local_code/MonsterManager.cpp
     src/wiz8/local_code/MonsterGroup.cpp
     src/wiz8/local_code/UtilityFunctions.cpp
@@ -118,7 +117,6 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/level_specific_code/MasterFunctionList.cpp
     src/wiz8/vector.cpp
     src/wiz8/imports/mss.cpp
-    src/wiz8/bringup_gates.cpp
     src/wiz8/engine_code/Quality.cpp
     src/wiz8/startup_render_state.cpp
     src/wiz8/startup_world.cpp
@@ -156,20 +154,16 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/Traps.cpp
     src/wiz8/local_code/Gameloop.cpp
     src/wiz8/game_init.cpp
-    src/wiz8/gameplay_teardown.cpp
-    src/wiz8/item_spawning.cpp
-    src/wiz8/message_box.cpp
-    src/wiz8/monster_info_dialog.cpp
+    src/wiz8/dialog_code/MonsterInfoDialog.cpp
+    src/wiz8/dialog_code/AssayDialog.cpp
     src/wiz8/dialog_code/DialogTextArea.cpp
-    src/wiz8/dialog_code/DialogButton.cpp
+    src/wiz8/dialog_code/stButton.cpp
+    src/wiz8/dialog_code/SpellInfoDialog.cpp
     src/wiz8/dialog_code/DialogScrollBar.cpp
     src/wiz8/engine_code/MonGen.cpp
-    src/wiz8/monster_lookup.cpp
     src/wiz8/music_playlist.cpp
     src/wiz8/npc_items.cpp
     src/wiz8/record_file_0055a480.cpp
-    src/wiz8/spell_backfire.cpp
-    src/wiz8/state_getters.cpp
     src/wiz8/surrender_math.cpp
     src/wiz8/virtual_file_stream.cpp
     src/wiz8/vc6_runtime.cpp

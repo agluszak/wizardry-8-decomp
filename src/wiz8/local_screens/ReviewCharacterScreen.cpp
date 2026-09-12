@@ -5,6 +5,7 @@
 #include "wiz8/render_state.h"
 #include "wiz8/targeting.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
+#include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MGSRadarMap.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/screen_state.h"
@@ -64,9 +65,7 @@ unsigned int g_camp_skill_controls_region_set;
 // GLOBAL: WIZ8 0x0069c408
 unsigned int g_camp_character_info_region_set;
 
-// GLOBAL: WIZ8 0x00648c8c
-int g_camp_spell_animations[6][3] = {{0, 486, 22}, {3, 487, 18}, {8, 488, 14},
-                                     {8, 489, 21}, {1, 490, 16}, {14, 491, 24}};
+extern unsigned char g_flag_689b32;
 
 // GLOBAL: WIZ8 0x005ee6ec
 int g_effect_005ee6ec = 109;
@@ -681,37 +680,41 @@ unsigned char CampScreenEnter(void)
     g_camp_screen_0069c0f4->animation_timer = SetCountdownClock(50);
     for (unsigned int animation = 0; animation < 6; ++animation) {
         g_camp_screen_0069c0f4->animation_frames[animation] =
-            Random(g_camp_spell_animations[animation][2]);
+            Random(g_spell_realm_animations_00648c90[animation].frame_count);
     }
     if (gXStatus.fCombatMode && g_combat_state->flag_a50) {
         if (g_combat_state->flag_a51 == 1) {
             for (int slot = 0; slot < 8; ++slot) {
-                if (g_party_slot_rows[slot].occupied && IsPartySlotEligible00524A10(slot) &&
-                    g_party_slot_rows[slot].pending_action == 9) {
+                if (g_status_685170.buffers.party_rows[slot].occupied &&
+                    IsPartySlotEligible00524A10(slot) &&
+                    g_status_685170.buffers.party_rows[slot].pending_action == 9) {
                     swprintf(g_camp_screen_0069c0f4->caption, L"%s %s",
-                             g_party_characters[slot].name, gppStringList[0x2464 / 4]);
+                             g_status_685170.buffers.characters[slot].name,
+                             gppStringList[0x2464 / 4]);
                     goto show_equip_message;
                 }
             }
         } else {
             unsigned char count = 0;
             for (int slot = 0; slot < 8; ++slot) {
-                if (g_party_slot_rows[slot].occupied && IsPartySlotEligible00524A10(slot) &&
-                    g_party_slot_rows[slot].pending_action == 9) {
+                if (g_status_685170.buffers.party_rows[slot].occupied &&
+                    IsPartySlotEligible00524A10(slot) &&
+                    g_status_685170.buffers.party_rows[slot].pending_action == 9) {
                     ++count;
                     if (count == 1) {
                         swprintf(g_camp_screen_0069c0f4->caption, L"%s",
-                                 g_party_characters[slot].name);
+                                 g_status_685170.buffers.characters[slot].name);
                     } else {
                         if (count == g_combat_state->flag_a51) {
                             wcscat(g_camp_screen_0069c0f4->caption, L" ");
                             wcscat(g_camp_screen_0069c0f4->caption,
                                    FormatWideString(gppStringList[0x2460 / 4],
-                                                    g_party_characters[slot].name));
+                                                    g_status_685170.buffers.characters[slot].name));
                             goto show_equip_message;
                         }
                         wcscat(g_camp_screen_0069c0f4->caption, L", ");
-                        wcscat(g_camp_screen_0069c0f4->caption, g_party_characters[slot].name);
+                        wcscat(g_camp_screen_0069c0f4->caption,
+                               g_status_685170.buffers.characters[slot].name);
                     }
                 }
             }
@@ -784,8 +787,7 @@ void CampScreenFrame(void)
                             ActivateDialogRegion(0x138);
                         } else {
                             QueueCharacterEvent(g_camp_character_0069c100, g_effect_005ee6ec, 0,
-                                                g_effect_argument_005ed8cc,
-                                                g_effect_argument_005ed914);
+                                           g_effect_argument_005ed8cc, g_effect_argument_005ed914);
                         }
                     }
                 } else {
@@ -811,7 +813,7 @@ void CampScreenFrame(void)
         for (unsigned int realm = 0; realm < 6; ++realm) {
             ++g_camp_screen_0069c0f4->animation_frames[realm];
             if (g_camp_screen_0069c0f4->animation_frames[realm] ==
-                g_camp_spell_animations[realm][2]) {
+                g_spell_realm_animations_00648c90[realm].frame_count) {
                 g_camp_screen_0069c0f4->animation_frames[realm] = 0;
             }
         }

@@ -202,11 +202,11 @@ public:
     unsigned long m_positional_0a4;
     unsigned long m_positional_0a8;
     unsigned long m_positional_0ac;
-    void* m_owned_0b0;
+    unsigned long* m_owned_0b0;
     unsigned long m_positional_0b4;
     unsigned long m_positional_0b8;
     W8OctreeObjectRegistry* object_registry;
-    void* m_owned_0c0;
+    char* m_owned_0c0;
     unsigned char m_fAccumulating;
     unsigned char m_positional_0c5[3];
     unsigned long m_positional_0c8;

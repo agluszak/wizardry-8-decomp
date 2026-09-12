@@ -1,6 +1,5 @@
 #include "Types.h"
 #include "mousesystem.h"
-#include "wiz8/bringup_gates.h"
 #include "wiz8/regions.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/render_state.h"

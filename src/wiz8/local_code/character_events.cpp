@@ -12,12 +12,21 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/npc_interaction.h"
 #include "wiz8/startup_runtime_state.h"
+#include "wiz8/local_code/PC_Item.h"
+#include "soundman.h"
 #include "random.h"
 #include "timer.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_code/Strings.h"
+#undef S32
+#undef U32
 #include "bink.h"
 #include "FileMan.h"
+
+extern unsigned char IsSoundPlaying(int sound_handle);
+extern unsigned char StopSound(int sound_handle);
+extern void QueueGameplayEvent(int event_type, int party_slot);
 
 #include <stdio.h>
 #include <wchar.h>
@@ -143,7 +152,7 @@ W8StartupStateElement005EE748::W8StartupStateElement005EE748(W8Character* charac
     case 6:
     case 9:
     case 0x54:
-        value_18 = character->unknown_0b01;
+        value_18 = character->highest_condition;
         break;
     case 7:
         value_18 = 12;
@@ -151,7 +160,7 @@ W8StartupStateElement005EE748::W8StartupStateElement005EE748(W8Character* charac
     case 0x38:
     case 0x55:
         value_18 = character->hp_current;
-        value_1c = character->unknown_0b01;
+        value_1c = character->highest_condition;
         break;
     }
 }
@@ -217,6 +226,109 @@ wchar_t* W8StartupStateElement005EE748::GetQuoteText()
 {
     FormatCharacterQuoteText(character_04, type_08, 0);
     return g_character_text_0068c580;
+}
+
+/* 0x0052D460 proves four equal derived growable-vector instantiations followed
+   by a fifth instantiation with a distinct vtable and the tail state below. Element identity and the
+   complete lifetime remain tracked by wiz8-bxj; this gives startup the real
+   allocation and field shape without inventing semantic names. */
+
+// FUNCTION: WIZ8 0x0052d460
+W8StartupRuntimeState::W8StartupRuntimeState()
+    : value_50(-1), value_54(-1), value_5c(0), value_64(-1)
+{
+    bytes_68 = new unsigned char[0xb1];
+    memset(bytes_68, 0, 0xb1);
+}
+
+// FUNCTION: WIZ8 0x0052d5b0
+W8StartupRuntimeState::~W8StartupRuntimeState()
+{
+    delete[] bytes_68;
+}
+
+// FUNCTION: WIZ8 0x0052db80
+void W8StartupRuntimeState::ClearOwnedEntries()
+{
+    W8StartupStateElement005EE748* entry;
+    int count;
+
+    count = vector_40.count;
+    while (count > 0) {
+        entry = vector_40.RemoveAt(0);
+        entry->Process0052CED0();
+        count = vector_40.count;
+    }
+    count = vector_30.count;
+    while (count > 0) {
+        entry = vector_30.RemoveAt(0);
+        delete entry;
+        count = vector_30.count;
+    }
+    count = vector_10.count;
+    while (count > 0) {
+        entry = vector_10.RemoveAt(0);
+        delete entry;
+        count = vector_10.count;
+    }
+    count = vector_00.count;
+    while (count > 0) {
+        entry = vector_00.RemoveAt(0);
+        delete entry;
+        count = vector_00.count;
+    }
+}
+
+// FUNCTION: WIZ8 0x0052e3b0
+void W8StartupRuntimeState::ProcessNextPendingEntry()
+{
+    W8StartupStateElement005EE748* entry;
+
+    if (vector_40.count > 0) {
+        entry = *vector_40.GetAt(0);
+        vector_40.RemoveAt(vector_40.IndexOf(entry));
+        if ((value_5c & 1) != 0 && entry->type_08 >= 14 && entry->type_08 < 16) {
+            if ((value_5c & 2) != 0) {
+                unknown_60 = SetCountdownClock(Random(6000) + 2000);
+            } else {
+                unknown_60 = SetCountdownClock(Random(60000) + 300000);
+            }
+        }
+        entry->Process0052CED0();
+        delete entry;
+    }
+}
+
+// FUNCTION: WIZ8 0x0052ced0
+void W8StartupStateElement005EE748::Process0052CED0()
+{
+    W8MonsterManagerEntry* slot;
+    int party_slot;
+    unsigned char sound_was_active;
+
+    party_slot = CharacterPointerToPartySlot(character_04);
+    slot = &g_monster_manager_entries[party_slot];
+    sound_was_active = slot->field_000;
+    slot->field_071 = 0;
+    if (sound_was_active != 0) {
+        if (IsSoundPlaying(slot->field_001) != 0) {
+            handled_00 = 1;
+            StopSound(slot->field_001);
+        }
+        Function52F890(party_slot, 0, -1, 0, 1);
+    }
+    if (type_08 == 23 || type_08 == 24) {
+        if ((flags_10 & 0x40) == 0) {
+            if (item_24.item_id == -1) {
+                PostCharacterMessage(party_slot, gppStringList[0x1dc4 / 4]);
+            } else {
+                PostCharacterMessage(party_slot, gppStringList[0x1dc8 / 4],
+                                     GetItemDisplayName(&item_24));
+            }
+        }
+    } else if (type_08 == 51) {
+        QueueGameplayEvent(30, party_slot);
+    }
 }
 
 /* Restarts the follow-up clock for entries of the middle event band while the
@@ -311,7 +423,7 @@ W8StartupStateElement005EE748* QueueCharacterEvent(W8Character* character, int e
 {
     W8StartupStateElement005EE748* entry;
 
-    if (g_settings_6850c8.field_040 == 0 &&
+    if (g_settings_6850c8.pc_confirmations == 0 &&
         (effect == g_special_event_0068c50c || effect == g_special_event_0068c568)) {
         return 0;
     }
@@ -355,7 +467,7 @@ void W8StartupRuntimeState::ProcessOwnedEntry(W8StartupStateElement005EE748* ent
 // FUNCTION: WIZ8 0x0052F060
 void MaybeStartIncapacitationEvent(unsigned int party_slot)
 {
-    W8Character* character = &g_party_characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
     int effect;
 
     if ((character->hp_current * 100) / (unsigned int)character->hp_max != 0) {
@@ -379,7 +491,7 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
 // FUNCTION: WIZ8 0x0052E590
 unsigned char PartyPortraitEventsIdle(void)
 {
-    W8PartySlotRow* row = g_party_slot_rows;
+    W8PartySlotRow* row = g_status_685170.buffers.party_rows;
     const W8MonsterManagerEntry* current;
 
     for (current = g_monster_manager_entries; current < &g_monster_manager_entries[8];
@@ -405,7 +517,7 @@ int UpdateCharacterEventState(void)
         W8MonsterManagerEntry* record = &g_monster_manager_entries[party_slot];
         unsigned char sound_active = 0;
 
-        if (g_party_slot_rows[party_slot].occupied == 0) {
+        if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
             continue;
         }
         if (record->field_000 != 0) {
@@ -426,7 +538,7 @@ int UpdateCharacterEventState(void)
         if (record->field_000 == 0) {
             unsigned int scan;
             for (scan = 0; scan < 8; ++scan) {
-                if (g_party_slot_rows[scan].occupied != 0 &&
+                if (g_status_685170.buffers.party_rows[scan].occupied != 0 &&
                     g_monster_manager_entries[scan].field_000 != 0) {
                     break;
                 }
@@ -435,15 +547,15 @@ int UpdateCharacterEventState(void)
                 MaybeStartIncapacitationEvent(party_slot);
             }
         } else {
-            W8Character* character = &g_party_characters[party_slot];
-            if ((character->unknown_0b01 > 14 || character->hp_current == 0) &&
+            W8Character* character = &g_status_685170.buffers.characters[party_slot];
+            if ((character->highest_condition > 14 || character->hp_current == 0) &&
                 record->field_071 != 0) {
                 g_startup_runtime_state->ProcessOwnedEntry(record->field_071);
             }
             if (record->field_000 == 0) {
                 unsigned int scan;
                 for (scan = 0; scan < 8; ++scan) {
-                    if (g_party_slot_rows[scan].occupied != 0 &&
+                    if (g_status_685170.buffers.party_rows[scan].occupied != 0 &&
                         g_monster_manager_entries[scan].field_000 != 0) {
                         break;
                     }
@@ -483,7 +595,8 @@ int UpdateCharacterEventState(void)
             }
         }
 
-        if (gXStatus.field_01f != 0 && (party_slot & 1) != 0 && Function56EC90(party_slot) != 0) {
+        if (gXStatus.fNpcDialogueMode != 0 && (party_slot & 1) != 0 &&
+            Function56EC90(party_slot) != 0) {
             continue;
         }
         if (record->field_09b == 0 && record->field_0bd == 0 &&

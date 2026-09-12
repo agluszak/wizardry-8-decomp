@@ -1,8 +1,10 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/game_status.h"
+#include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_screens/Screens.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/PartySelectionScreen.h"
 #include "wiz8/local_screens/MGSPortraits.h"
@@ -200,7 +202,7 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
             }
             RedrawPartyPortraitOverlay(party_slot, highlighted, overlay_ready,
                                        g_level_block->party_bytes_109[party_slot] == 0);
-            g_portrait_animation_states[party_slot].flag_5c = 1;
+            g_monster_manager_entries[party_slot].field_0d1 = 1;
             InvalidatePortraitControl0059BBD0(party_slot);
             return;
         }
@@ -434,8 +436,8 @@ void InitializeMainGameLevelBlock(void)
         g_level_block->values_134[slot] = 0;
     }
     g_level_block->combat_end_notification = -1;
-    previous_mode = g_flag_006850ce;
-    g_flag_006850ce = -1;
+    previous_mode = g_settings_6850c8.field_006;
+    g_settings_6850c8.field_006 = -1;
     ApplyMainGameModeFlag(previous_mode, 1);
     g_level_block->character_update_timer = SetCountdownClock(0);
     g_level_block->world_update_timer = SetCountdownClock(0);

@@ -1,4 +1,4 @@
-#include "wiz8/bringup_gates.h"
+#include "wiz8/screen_state.h"
 #include "surrender/srNode.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/Navigator.h"

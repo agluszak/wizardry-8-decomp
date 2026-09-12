@@ -32,3 +32,4 @@ void Function52F110(int party_slot);
 void Function52F430(void* character);
 void Function52F790(void* character, int condition);
 void Function52F890(int party_slot, int value_1, int value_2, int value_3, int value_4);
+void PostCharacterMessage(int party_slot, const wchar_t* format, ...);

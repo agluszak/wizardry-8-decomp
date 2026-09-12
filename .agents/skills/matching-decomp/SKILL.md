@@ -90,6 +90,10 @@ An inlined copy does not by itself prove an authored `inline` or header body:
 - copies in multiple independently proven TUs with no out-of-line body: strong header-visibility evidence;
 - an out-of-line emission plus inlined copies: ordinary compiler behavior; keep normal source structure.
 
+Do not create a `.cpp` solely to park `VTABLE`, `TEMPLATE`, `SYNTHETIC`, globals, or unrelated recovered
+bodies. A normal `.cpp` should represent a proved retail translation unit. Unknown ownership stays an
+unresolved fragment. Compiler-emission files are exceptional and contain no arbitrary game logic.
+
 Never manually inline a function at call sites or add explicit specialization/instantiation solely to
 force one VC6 emission. SGP/DLL exports are declarations, not product-header inline definitions; an
 exported symbol proves the original call crosses that binary interface.

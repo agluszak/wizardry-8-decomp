@@ -431,7 +431,6 @@ extern unsigned char g_flag_00685070;
 
 void HandleManualCameraHotkeys(void);
 void ApplyWorldRenderHotkeys(void);
-extern int g_flag_006850ce;
 extern unsigned char g_flag_0068edbc;
 extern unsigned char g_flag_0068edc8;
 extern unsigned char g_flag_0068edc9;

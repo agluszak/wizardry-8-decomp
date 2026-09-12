@@ -1,6 +1,7 @@
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/dialog_code/DialogBase.h"
+#include "wiz8/dialog_code/DialogButton.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 
 #include "wiz8/utility.h"
@@ -34,11 +35,11 @@ W8DialogBase::W8DialogBase()
     m_background_flags = 0;
     m_field_4c = 0;
     m_initialized = 0;
-    m_field_41 = 1;
+    m_keep_open = 1;
     m_destroy_callback = 0;
     m_user_data = 0;
     ++g_dword_69ca28;
-    m_field_50 = 0;
+    m_right_button_down = 0;
 }
 
 // SYNTHETIC: WIZ8 0x005dc810
@@ -237,12 +238,21 @@ unsigned char W8DialogBase::ProcessInput()
             break;
         case KEY_DOWN:
             if (input.usParam == 0x1b) {
-                m_field_41 = 0;
+                m_keep_open = 0;
             }
             break;
         }
     }
-    return m_field_41;
+    return m_keep_open;
+}
+
+// FUNCTION: WIZ8 0x005d6eb0
+void DialogCloseButtonCallback(W8DialogButton* button)
+{
+    W8DialogBase* dialog = button->m_owner_040;
+    if (dialog != 0) {
+        dialog->m_keep_open = 0;
+    }
 }
 
 // FUNCTION: WIZ8 0x005d6fa0
@@ -258,7 +268,7 @@ void W8DialogBase::OnNumericInputChanged(int) {}
 // FUNCTION: WIZ8 0x005ad270
 void W8DialogBase::OnRightButtonDown()
 {
-    m_field_50 = 1;
+    m_right_button_down = 1;
 }
 
 // FUNCTION: WIZ8 0x005b1bf0

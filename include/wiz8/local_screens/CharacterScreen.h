@@ -326,6 +326,8 @@ struct W8SpellRealmAnimation {
     unsigned int initial_frame;
 };
 extern W8SpellRealmAnimation g_spell_realm_animations_00648c90[6];
+extern const wchar_t g_format_d_0060aa20[];
+extern const wchar_t g_format_s_parenthesized_s_00617584[];
 
 /* One message id per character trait, indexed by trait id. */
 extern unsigned short g_character_trait_name_ids_61e530[0x20];

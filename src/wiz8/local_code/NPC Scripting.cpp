@@ -12,6 +12,15 @@ unsigned char g_flag_68c4fa;
 // GLOBAL: WIZ8 0x0068c500
 unsigned char g_flag_68c500;
 
+/* Message-box line storage. AddMessageBoxLine and the other owners in this
+   translation unit share these globals; there is no MessageBox.cpp unit. */
+// GLOBAL: WIZ8 0x0068c4c8
+W8MessageBoxLine** g_message_box_lines;
+// GLOBAL: WIZ8 0x0068c4c0
+int g_message_box_line_count;
+// GLOBAL: WIZ8 0x0068c4c4
+int g_message_box_line_capacity;
+
 /* Local Code\NPC Scripting.cpp. The NPC-scripting flag gates the scripted
    monster state; the four accessors below are its only owners. */
 
@@ -53,7 +62,7 @@ unsigned char Function525DF0(unsigned char require_group_entry)
     if (g_flag_68c4f7 != 0) {
         return 0;
     }
-    if (g_flag_68c4a0 == 0 && g_flag_68c4f6 == 0 && g_value_68c4c0 == 0) {
+    if (g_flag_68c4a0 == 0 && g_flag_68c4f6 == 0 && g_message_box_line_count == 0) {
         return 0;
     }
     if (g_npc_state_68c4ac == 0) {
@@ -66,9 +75,9 @@ unsigned char Function525DF0(unsigned char require_group_entry)
 }
 
 // FUNCTION: WIZ8 0x00525E50
-bool IsValue68C4C0Clear(void)
+bool IsMessageBoxLineQueueEmpty(void)
 {
-    return g_value_68c4c0 == 0;
+    return g_message_box_line_count == 0;
 }
 
 // FUNCTION: WIZ8 0x00528a80
@@ -83,7 +92,7 @@ void AddMessageBoxLine(int type, W8WideChar* text, void* extra)
     line->type = type;
     line->text = text;
     line->extra = extra;
-    line->sequence = g_message_sequence;
+    line->npc = g_npc_state_68c4ac;
 
     new_capacity = g_message_box_line_count + 1;
     if (new_capacity > g_message_box_line_capacity) {

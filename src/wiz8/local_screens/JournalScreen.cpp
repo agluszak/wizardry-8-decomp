@@ -4,8 +4,10 @@
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/TextControl.h"
-#include "wiz8/local_screens/JournalScreen.h"
+#include "wiz8/local_code/Configuration.h"
+#include "wiz8/game_status.h"
 #include "wiz8/xstatus.h"
+#include "wiz8/local_screens/JournalScreen.h"
 
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Levels.h"
@@ -40,8 +42,6 @@ extern W8GrowableVector<W8JournalEntry>* g_journal_entries_0069c4e4;
 extern unsigned char g_journal_show_all_0069c4e0;
 // GLOBAL: WIZ8 0x0069c4e0
 unsigned char g_journal_show_all_0069c4e0;
-// GLOBAL: WIZ8 0x006850d5
-int g_value_006850d5;
 // GLOBAL: WIZ8 0x0064d7b8
 wchar_t g_default_level_0064d7b8[] = L"Default Level";
 // GLOBAL: WIZ8 0x0064d7f0
@@ -69,6 +69,9 @@ unsigned int g_journal_region_set_0069c4dc;
 // GLOBAL: WIZ8 0x0068de40
 W8GrowableVector<W8JournalEntry>* g_fact_journal_entries_0068de40;
 
+// GLOBAL: WIZ8 0x0068de44
+unsigned char g_fact_notifications_suppressed;
+
 /* Create the fact journal on first use. An existing journal is only emptied,
    which is what a new game does to the entries left by the previous one. */
 // FUNCTION: WIZ8 0x00558820
@@ -79,6 +82,12 @@ void InitializeFactJournal(void)
     } else {
         g_fact_journal_entries_0068de40->count = 0;
     }
+}
+
+// FUNCTION: WIZ8 0x005588e0
+void SetFactNotificationsSuppressed(unsigned char suppressed)
+{
+    g_fact_notifications_suppressed = suppressed;
 }
 
 /* Append one changed fact to the journal and, when notices are not suppressed
@@ -100,13 +109,13 @@ void RecordFactChangeForJournal(int fact_id)
         return;
     }
     int visibility;
-    if (g_value_006850d5 == 0) {
+    if (g_settings_6850c8.difficulty == W8_DIFFICULTY_NOVICE) {
         visibility = 2;
-    } else if (g_value_006850d5 == 1) {
+    } else if (g_settings_6850c8.difficulty == W8_DIFFICULTY_NORMAL) {
         visibility = 1;
     } else {
         visibility = fact_id;
-        if (g_value_006850d5 == 2) {
+        if (g_settings_6850c8.difficulty == W8_DIFFICULTY_EXPERT) {
             visibility = 0;
         }
     }
@@ -119,7 +128,7 @@ void RecordFactChangeForJournal(int fact_id)
     if (*description == 0 || g_level_block == 0) {
         return;
     }
-    if (gXStatus.field_01f != 0) {
+    if (gXStatus.fNpcDialogueMode != 0) {
         Function5289B0(8, 0);
         return;
     }
@@ -379,14 +388,14 @@ unsigned char JournalScreenEnter(void)
     g_journal_entries_0069c4e4 = new W8GrowableVector<W8JournalEntry>();
     g_journal_panel_0069c4d4 = new W8JournalPanel005EF340(&g_journal_region_set_0069c4dc);
 
-    switch (g_value_006850d5) {
-    case 0:
+    switch (g_settings_6850c8.difficulty) {
+    case W8_DIFFICULTY_NOVICE:
         maximum_visibility = 2;
         break;
-    case 1:
+    case W8_DIFFICULTY_NORMAL:
         maximum_visibility = 1;
         break;
-    case 2:
+    case W8_DIFFICULTY_EXPERT:
         maximum_visibility = 0;
         break;
     }
