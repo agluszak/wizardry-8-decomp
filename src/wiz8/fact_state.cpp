@@ -32,10 +32,6 @@ unsigned char g_fact_values[1001];
 // GLOBAL
 unsigned char g_import_flags[0x60];
 
-/* 0x0055A0A0 and 0x00524CA0 tear down an NPC item list. */
-extern void Function55A0A0(int handle);
-extern void Function524CA0(W8NpcState* npc);
-
 // FUNCTION: WIZ8 0x00506280
 unsigned char GetFact(int fact_id)
 {

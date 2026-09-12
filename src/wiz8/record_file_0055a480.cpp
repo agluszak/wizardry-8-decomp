@@ -76,56 +76,48 @@ unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record)
         }
     }
 
-    index = 0;
-    if (record->entry_count != 0) {
-        do {
-            entry = &record->entries[index];
-            FileRead(handle, entry, 0x12, &transferred);
-            if (transferred != 0x12) {
+    for (index = 0; index < record->entry_count; ++index) {
+        entry = &record->entries[index];
+        FileRead(handle, entry, 0x12, &transferred);
+        if (transferred != 0x12) {
+            return 0;
+        }
+        disk_sub_count = entry->sub_entry_count;
+        if (disk_sub_count != 0) {
+            entry->sub_entry_count = 0;
+            entry->sub_entries = static_cast<W8FileSubEntry0055A140*>(
+                malloc(disk_sub_count * 8));
+            if (entry->sub_entries == 0) {
                 return 0;
             }
-            disk_sub_count = entry->sub_entry_count;
-            if (disk_sub_count != 0) {
-                entry->sub_entry_count = 0;
-                entry->sub_entries = static_cast<W8FileSubEntry0055A140*>(
-                    malloc(disk_sub_count * 8));
-                if (entry->sub_entries == 0) {
+            entry->sub_entry_count = entry->sub_entry_count + disk_sub_count;
+            memset(entry->sub_entries + (entry->sub_entry_count - disk_sub_count),
+                   0, disk_sub_count * 8);
+            total_sub_entries = total_sub_entries + entry->sub_entry_count;
+            for (sub_index = 0; sub_index < entry->sub_entry_count; ++sub_index) {
+                sub_entry = entry->sub_entries + sub_index;
+                FileRead(handle, sub_entry, 8, &transferred);
+                if (transferred != 8) {
                     return 0;
                 }
-                entry->sub_entry_count = entry->sub_entry_count + disk_sub_count;
-                sub_index = 0;
-                memset(entry->sub_entries + (entry->sub_entry_count - disk_sub_count),
-                       0, disk_sub_count * 8);
-                total_sub_entries = total_sub_entries + entry->sub_entry_count;
-                if (entry->sub_entry_count != 0) {
-                    do {
-                        sub_entry = entry->sub_entries + sub_index;
-                        FileRead(handle, sub_entry, 8, &transferred);
-                        if (transferred != 8) {
-                            return 0;
-                        }
-                        if (sub_entry->text != 0) {
-                            FileRead(handle, &length, 2, &transferred);
-                            if (transferred != 2) {
-                                return 0;
-                            }
-                            text = static_cast<char*>(malloc(length + 1));
-                            sub_entry->text = text;
-                            if (text == 0) {
-                                return 0;
-                            }
-                            FileRead(handle, text, length, &transferred);
-                            if (transferred != length) {
-                                return 0;
-                            }
-                            text[length] = 0;
-                        }
-                        ++sub_index;
-                    } while (sub_index < entry->sub_entry_count);
+                if (sub_entry->text != 0) {
+                    FileRead(handle, &length, 2, &transferred);
+                    if (transferred != 2) {
+                        return 0;
+                    }
+                    text = static_cast<char*>(malloc(length + 1));
+                    sub_entry->text = text;
+                    if (text == 0) {
+                        return 0;
+                    }
+                    FileRead(handle, text, length, &transferred);
+                    if (transferred != length) {
+                        return 0;
+                    }
+                    text[length] = 0;
                 }
             }
-            ++index;
-        } while (index < record->entry_count);
+        }
     }
     return 1;
 }

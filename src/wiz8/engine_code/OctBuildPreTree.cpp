@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/OctBuildPreTree.h"
+#include "wiz8/engine_code/materials.h"
 // GLOBAL: WIZ8 0x0065be60
 int g_value_65be60;
 // GLOBAL: WIZ8 0x0065be58
@@ -23,7 +24,6 @@ unsigned short g_value_65be6c;
 #include <stdlib.h>
 #include <string.h>
 
-extern void Function497690(int channel, const char* message);
 extern float g_float_005ed034;
 // GLOBAL: WIZ8 0x005ed034
 float g_float_005ed034 = -0.009999999776482582f;

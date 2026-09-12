@@ -5,6 +5,8 @@
 
 #include "input.h"
 
+extern unsigned char g_flag_689b32;
+
 struct W8RegionSet {
     unsigned int enabled;
     unsigned int first_region;

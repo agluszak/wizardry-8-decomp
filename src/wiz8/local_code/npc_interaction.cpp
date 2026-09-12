@@ -5,10 +5,6 @@
 #include "wiz8/npc_interaction.h"
 #include "wiz8/npc_state.h"
 
-extern unsigned char g_flag_68c4a0;
-extern unsigned char g_flag_68c4f6;
-extern W8NpcState* g_npc_state_68c4ac;
-
 // GLOBAL: WIZ8 0x0068C4A0
 unsigned char g_flag_68c4a0;
 // GLOBAL: WIZ8 0x0068C4AC
@@ -23,9 +19,6 @@ unsigned char g_flag_68c4f7;
 /* NPC interaction availability and its party-slot eligibility query. The
    original translation-unit spelling is not established; this descriptive
    name is provisional. */
-
-
-
 
 /* Report whether a party slot can be picked: in range, its slot row occupied,
    the character still on its feet, and the 0x0b01 gate under 0x0d. That gate's
