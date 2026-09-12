@@ -463,12 +463,8 @@ unsigned char AnimObjGetBounds004A1710(W8AnimObj* animation, signed char list_in
         }
         memset(animation->pfKnownBBoxFrames, 0, frames);
         for (index = 0; (unsigned int)index < frames; ++index) {
-            animation->pvecBoundMin[index].x = 0.0f;
-            animation->pvecBoundMin[index].y = 0.0f;
-            animation->pvecBoundMin[index].z = 0.0f;
-            animation->pvecBoundMax[index].x = 0.0f;
-            animation->pvecBoundMax[index].y = 0.0f;
-            animation->pvecBoundMax[index].z = 0.0f;
+            animation->pvecBoundMin[index] = 0.0f;
+            animation->pvecBoundMax[index] = 0.0f;
         }
     }
     if (animation == 0) {
@@ -511,12 +507,10 @@ unsigned char AnimObjGetBounds004A1710(W8AnimObj* animation, signed char list_in
             PathAISetValue004A9F60(path, saved);
         }
         ((srNode*)instance)->getRotation(rotation);
-        translation.x = (float)((srNode*)instance)->getLocation().x;
-        translation.y = (float)((srNode*)instance)->getLocation().y;
-        translation.z = (float)((srNode*)instance)->getLocation().z;
-        scale.x = (float)((srNode*)instance)->getScale().x;
-        scale.y = (float)((srNode*)instance)->getScale().y;
-        scale.z = (float)((srNode*)instance)->getScale().z;
+        srVector3T<double> node_location = ((srNode*)instance)->getLocation();
+        translation.SetFromDouble(&node_location);
+        srVector3T<double> node_scale = ((srNode*)instance)->getScale();
+        scale.SetFromDouble(&node_scale);
         transformed_minimum = *minimum;
         transformed_maximum = *maximum;
         TransformBounds004A1DF0(&rotation, &translation, &scale, &transformed_minimum,

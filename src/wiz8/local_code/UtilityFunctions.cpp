@@ -1,4 +1,5 @@
 #include "wiz8/utility.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/local_code/Strings.h"
@@ -484,8 +485,8 @@ int RPCPtrToPCSlot(const W8MonsterManagerEntry* rpc)
 {
     int slot = 0;
 
-    for (const W8MonsterManagerEntry* current = g_monster_manager_entries;
-         current < &g_monster_manager_entries[8]; ++current) {
+    for (const W8MonsterManagerEntry* current = gXStatus.monster_manager_entries;
+         current < &gXStatus.monster_manager_entries[8]; ++current) {
         if (rpc == current) {
             return slot;
         }

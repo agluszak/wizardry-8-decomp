@@ -256,7 +256,7 @@ W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc)
     if (!npc->is_grouped) {
         return 0;
     }
-    return &g_monster_manager_entries[npc->group_index];
+    return &gXStatus.monster_manager_entries[npc->group_index];
 }
 
 /* Whether an NPC would take one item in trade. The kind that trades in nothing
@@ -1274,7 +1274,7 @@ void RebindNpcLevelTriggers0050AC60(void)
                     npc->level_band =
                         static_cast<unsigned char>(Function42B740(g_status_685170.current_level));
                     npc->bound_level = static_cast<unsigned char>(g_status_685170.current_level);
-                    Function524CA0(npc);
+                    ReloadNpcScriptResources(npc);
                     npc->is_present = 0;
                 }
             }

@@ -25,17 +25,15 @@ struct W8CycleNameRow {
 
 extern W8CycleNameRow g_cycle_names[];
 
-/* Eight party-slot records at 0x006836B8. The element constructor and
-   destructor at 0x004E6A30 and 0x004E6A10 exist because each record owns the
-   ordinary vector at +0x0D8. The reset at 0x0054B300 clears a record wholesale
-   despite that non-trivial member; that source behavior does not turn the
-   vector into a second layout projection.
+/* One party-slot record. The element constructor and destructor at
+   0x004E6A30 and 0x004E6A10 exist because each record owns the ordinary
+   vector at +0x0D8. The reset at 0x0054B300 clears a record wholesale despite
+   that non-trivial member; that source behavior does not turn the vector into
+   a second layout projection.
 
-   These are not members of a larger "manager state" object: gXStatus begins
-   immediately after the array at 0x00683F78, and a separate targeting vector
-   lives at 0x0068406F. Startup 0x004E6970 / atexit 0x004E6940 are the TU
-   dynamic initializer and destructor for those two globals, not a class
-   constructor/destructor over contiguous BSS. */
+   Eight of these are the leading member of packed gXStatus at 0x006836B8.
+   The constructor at 0x004E6970 and destructor at 0x004E6940 are W8XStatus
+   lifecycle, not TU dynamic initializers for standalone globals. */
 #pragma pack(push, 1)
 struct W8MonsterManagerEntry {
     W8MonsterManagerEntry();

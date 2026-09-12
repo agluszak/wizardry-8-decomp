@@ -309,7 +309,7 @@ void AimAtPlace(int actor)
     target.iType = W8_TARGET_KIND_PLACE;
     Function492500(scratch);
     AimAtTarget(actor, &target, W8_TARGETING_CONTEXT_CURRENT);
-    g_target_marker_vector_0068406f.Clear();
+    gXStatus.target_markers.Clear();
     RequestRefreshPartyState();
 }
 
@@ -907,7 +907,7 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
 // FUNCTION: WIZ8 0x0053ac30
 void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
 {
-    W8MonsterManagerEntry* slot = &g_monster_manager_entries[party_slot];
+    W8MonsterManagerEntry* slot = &gXStatus.monster_manager_entries[party_slot];
     unsigned int index;
 
     if (slot->highlighted_monsters.count > 0) {
@@ -1471,7 +1471,7 @@ void PopulateTargetMarkerForCurrentAction(const srVector3T<float>* position,
 // FUNCTION: WIZ8 0x0053B160
 void ClearTargetMarker(void)
 {
-    g_target_marker_vector_0068406f.Clear();
+    gXStatus.target_markers.Clear();
     RequestRefreshPartyState();
 }
 

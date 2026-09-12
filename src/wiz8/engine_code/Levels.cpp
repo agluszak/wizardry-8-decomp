@@ -584,9 +584,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
                 axis.x = trigger->value_100;
                 axis.y = trigger->value_104;
                 axis.z = trigger->value_108;
-                rotation.vectors[0].Set(1.0, 0.0, 0.0);
-                rotation.vectors[1].Set(0.0, 1.0, 0.0);
-                rotation.vectors[2].Set(0.0, 0.0, 1.0);
+                rotation.SetIdentity();
                 if (trigger->angle_0fc != 0.0f) {
                     rotation.RotateAroundAxis(sin(trigger->angle_0fc), cos(trigger->angle_0fc),
                                               axis);
