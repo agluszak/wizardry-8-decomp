@@ -19,7 +19,6 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/game_status.h"
 #include "wiz8/float_constants.h"
-#include "wiz8/location_variables.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/dialog_code/DialogButton.h"

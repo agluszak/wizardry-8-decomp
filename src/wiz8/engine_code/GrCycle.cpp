@@ -849,7 +849,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
                 srAssertFail("psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x3e4,
                              0);
             }
-            *(W8AnimRepValue4*)&psrMesh->render_depth_164 = pRep->value_04c;
+            psrMesh->render_state_164 = pRep->render_state_04c;
             if (pRep->flag_061 != 0) {
                 if (pRep->value_05c == g_float_005ebb38) {
                     psrMesh->flag_1a0 = 0;
@@ -884,7 +884,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             srAssertFail("psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x40f, 0);
         }
         AniMeshSetFlag10004B6860(pRep->GetEmitterAniMesh(pRep->current_cycle), 1);
-        *(W8AnimRepValue4*)&psrMesh->render_depth_164 = pRep->value_04c;
+        psrMesh->render_state_164 = pRep->render_state_04c;
         if (pRep->flag_061 != 0) {
             if (pRep->value_05c == g_float_005ebb38) {
                 psrMesh->flag_1a0 = 0;

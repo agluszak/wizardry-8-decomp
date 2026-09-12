@@ -34,7 +34,6 @@ unsigned int g_combat_countdown_6850b0;
 #include "wiz8/local_screens/MGSPartyMovement.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/Environment.h"
-#include "wiz8/location_variables.h"
 #include "wiz8/screen_state.h"
 #include "timer.h"
 #include "wiz8/local_code/Combat.h"

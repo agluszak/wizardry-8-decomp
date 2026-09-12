@@ -2,6 +2,9 @@
 
 #include "surrender/srArray.h"
 #include "surrender/srModelInstance.h"
+#include "wiz8/engine_code/AnimRep.h"
+
+#include <stddef.h>
 
 class srMaterial;
 class srTextureIFace;
@@ -31,40 +34,18 @@ public:
                                                     srTextureIFace* replacement);
     unsigned char displayState() const
     {
-        return state_170;
+        return render_state_164.display_state;
     }
     void setRenderDepth(unsigned long depth)
     {
-        render_depth_164 = depth;
+        render_state_164.render_depth = depth;
     }
 
     virtual ~stModelInstance() override; /* 0x0047EF70 */
 
 public:
     unsigned long state_160;
-    unsigned long render_depth_164;
-    union {
-        unsigned long state_168;
-        struct {
-            short left_168;
-            short top_16a;
-        };
-    };
-    union {
-        unsigned long state_16c;
-        struct {
-            short right_16c;
-            short bottom_16e;
-        };
-    };
-    union {
-        unsigned long state_170_173;
-        struct {
-            unsigned char state_170;
-            unsigned char state_171;
-            unsigned char padding_172[2];
-        };
-    };
+    W8ModelInstanceRenderState render_state_164;
     srClass* retained_174;
     unsigned long state_178;
     unsigned long state_17c;
@@ -87,6 +68,8 @@ public:
     float value_1ac;
 };
 
+static_assert(offsetof(stModelInstance, render_state_164) == 0x164,
+              "stModelInstance_render_state_offset");
 static_assert(sizeof(stModelInstance) == 0x1b0, "stModelInstance_size_must_be_0x1b0");
 
 /* Concrete 2D model instance. Slot 5 and the secondary slot-0 adjustor are
@@ -107,14 +90,14 @@ public:
         : srClassSupport<stModelInstance2D, srModelInstance, false, 0x10005>(
               static_cast<srNode*>(0))
     {
-        state_170 = 0;
-        left_168 = 0;
-        top_16a = 0;
-        right_16c = 0;
-        bottom_16e = 0;
+        render_state_164.display_state = 0;
+        render_state_164.left = 0;
+        render_state_164.top = 0;
+        render_state_164.right = 0;
+        render_state_164.bottom = 0;
         state_160 = 0;
-        state_171 = 0;
-        render_depth_164 = 2000;
+        render_state_164.state_0d = 0;
+        render_state_164.render_depth = 2000;
         vector_174 = 0;
         vector_178 = 0;
         m_pGlowMaterial_17c = 0;
@@ -133,55 +116,35 @@ public:
 
     unsigned char displayState() const
     {
-        return state_170;
+        return render_state_164.display_state;
     }
     void configure2D(short width, short height)
     {
         state_160 = 0;
-        render_depth_164 = 2000;
-        left_168 = width;
-        top_16a = height;
-        right_16c = 0;
-        bottom_16e = 0;
-        state_170 = 0;
-        state_171 = 0;
+        render_state_164.render_depth = 2000;
+        render_state_164.left = width;
+        render_state_164.top = height;
+        render_state_164.right = 0;
+        render_state_164.bottom = 0;
+        render_state_164.display_state = 0;
+        render_state_164.state_0d = 0;
         vector_174 = 0;
         vector_178 = 0;
         m_pGlowMaterial_17c = 0;
     }
     void setRenderDepth(unsigned long depth)
     {
-        render_depth_164 = depth;
+        render_state_164.render_depth = depth;
     }
 
     unsigned long state_160;
-    unsigned long render_depth_164;
-    union {
-        unsigned long state_168;
-        struct {
-            short left_168;
-            short top_16a;
-        };
-    };
-    union {
-        unsigned long state_16c;
-        struct {
-            short right_16c;
-            short bottom_16e;
-        };
-    };
-    union {
-        unsigned long state_170_173;
-        struct {
-            unsigned char state_170;
-            unsigned char state_171;
-            unsigned char padding_172[2];
-        };
-    };
+    W8ModelInstanceRenderState render_state_164;
     srVector4T<float>* vector_174;
     srVector4T<float>* vector_178;
     srMaterial* m_pGlowMaterial_17c;
     virtual ~stModelInstance2D() override; /* 0x0047F410 */
 };
 
+static_assert(offsetof(stModelInstance2D, render_state_164) == 0x164,
+              "stModelInstance2D_render_state_offset");
 static_assert(sizeof(stModelInstance2D) == 0x180, "stModelInstance2D_must_be_0x180");

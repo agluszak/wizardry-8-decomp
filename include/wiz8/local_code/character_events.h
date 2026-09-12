@@ -21,6 +21,8 @@ unsigned char FormatCharacterQuoteText(W8Character* character, unsigned int type
                                        unsigned int* metadata);
 extern int g_effect_005ee588;
 
+/* True when no occupied party slot has an active portrait/voice record. */
+unsigned char PartyPortraitEventsIdle(void); /* 0x0052E590 */
 int ApplyItemEffectToRandomCharacter0052E5C0(unsigned int item_id, int character_filter,
                                              int value_3, int value_4);
 unsigned char CharacterHasEffect(void* effect, int party_slot); /* 0x0052DD90 */

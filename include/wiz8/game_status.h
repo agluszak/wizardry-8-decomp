@@ -8,7 +8,7 @@
 #include "wiz8/gameplay_modifiers.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
-#include "wiz8/saved_location.h"
+#include "wiz8/engine_code/World.h"
 #include "wiz8/text_types.h"
 
 #include <stddef.h>
@@ -55,7 +55,10 @@ struct W8GlobalStatus {
     int selected_character;
     W8ItemInstance party_item_pool_0021[500];
     int party_item_count_1791;
-    unsigned short text_line_cursor_1795;
+    /* 0x1795: signed 16-bit text-box line cursor. Every retail access is a
+       word load/store or MOVSX; a 32-bit type would overlap the legacy save
+       fields at +0x1797. */
+    short text_line_cursor_1795;
     unsigned int legacy_text_box_lines_1797[2][3];
     /* 0x17af: the party's twelve effect slots, the same 0x11-byte records the
        monster and combat tables hold. The trailing run is opaque. */
@@ -70,7 +73,7 @@ struct W8GlobalStatus {
     unsigned char status_header_block_1904[0x100];
     W8LevelProgressRow level_progress[47];
     unsigned char unknown_2013[0x294];
-    W8SavedLocation pending_move_location;
+    W8WorldCameraState pending_move_location;
     /* 0x22e3: the party-wide modifier block the effect rebuild clears and
        refills. Its +0x4a flag is the light gate the monster-sight threshold
        pass reads. */
@@ -81,7 +84,8 @@ struct W8GlobalStatus {
     int next_trigger_id_2356;
     unsigned char item_in_cursor;
     W8ItemInstance item_in_hand_235b;
-    unsigned char save_slot_flags_2367[0x20];
+    /* 0x2367: per-slot flags the character-load path consults at 0x006874D7. */
+    unsigned char flags_2367[0x20];
     int game_time_ms;
     unsigned char unknown_238b[4];
     /* 0x238f: scales the monster-sight threshold while set. */
@@ -127,9 +131,9 @@ struct W8GlobalStatus {
     unsigned char flag_2497;
     unsigned char unknown_2498[0xc88];
     unsigned char log_fact_checks_3120;
-    /* 0x3121: 1000 consecutive dwords. EndCombat walks exactly this run
-       flipping 1 -> 2; the extent is representation-proven even though the
-       semantics are not. */
+    /* 0x3121 (ABS 0x688291): 1000 consecutive dwords. EndCombat walks exactly
+       this run flipping 1 -> 2; the extent is representation-proven even
+       though the semantics are not. */
     int status_ints_3121[1000];
     /* 0x40c1: the 0x88 fact reads and writes this byte. */
     unsigned char flag_40c1;
@@ -172,6 +176,7 @@ static_assert(offsetof(W8GlobalStatus, party_item_count_1791) == 0x1791,
               "W8GlobalStatus_party_item_count_offset");
 static_assert(offsetof(W8GlobalStatus, text_line_cursor_1795) == 0x1795,
               "W8GlobalStatus_text_line_cursor_offset");
+static_assert(offsetof(W8GlobalStatus, flags_2367) == 0x2367, "W8GlobalStatus_flags_2367_offset");
 static_assert(offsetof(W8GlobalStatus, party_facing) == 0x18d0,
               "W8GlobalStatus_party_facing_offset");
 static_assert(offsetof(W8GlobalStatus, current_level) == 0x1900,
@@ -182,12 +187,11 @@ static_assert(offsetof(W8GlobalStatus, selected_party_member_2434) == 0x2434,
               "W8GlobalStatus_selected_party_member_offset");
 static_assert(offsetof(W8GlobalStatus, rpc_races_243a) == 0x243a,
               "W8GlobalStatus_rpc_races_offset");
-static_assert(offsetof(W8GlobalStatus, save_slot_flags_2367) == 0x2367,
-              "W8GlobalStatus_save_slot_flags_offset");
 static_assert(offsetof(W8GlobalStatus, monster_name_buffer_2453) == 0x2453,
               "W8GlobalStatus_monster_name_buffer_offset");
 static_assert(offsetof(W8GlobalStatus, alternate_name_slot_247f) == 0x247f,
               "W8GlobalStatus_alternate_name_slot_offset");
+static_assert(offsetof(W8GlobalStatus, flag_2497) == 0x2497, "W8GlobalStatus_flag_2497_offset");
 static_assert(offsetof(W8GlobalStatus, log_fact_checks_3120) == 0x3120,
               "W8GlobalStatus_log_fact_checks_offset");
 static_assert(offsetof(W8GlobalStatus, text_box_lines_shown_49a7) == 0x49a7,

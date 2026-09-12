@@ -1,7 +1,7 @@
 #ifndef WIZ8_FACT_STATE_H
 #define WIZ8_FACT_STATE_H
 
-extern unsigned char g_fact_values[1000];
+extern unsigned char g_fact_values[1001];
 extern unsigned char g_fact_notifications_suppressed;
 extern unsigned char g_import_party_loaded;
 extern int g_import_character_count;

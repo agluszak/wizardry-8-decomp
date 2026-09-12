@@ -1570,8 +1570,8 @@ static void InvalidateDirtyTile004259B0(int cell, unsigned int flags)
     stModelInstance2D* node = static_cast<stModelInstance2D*>(g_surface_nodes_654adc[cell]);
 
     if (node != 0) {
-        short position_x = node->right_16c;
-        short position_y = node->bottom_16e;
+        short position_x = node->render_state_164.right;
+        short position_y = node->render_state_164.bottom;
         int columns = node->GetWidth00480EF0() >> 3;
         int rows = node->GetHeight00480F70() >> 3;
 
@@ -2426,8 +2426,8 @@ void PositionToolTipNode(srNode* node, int x, int y, char positional)
     }
     node->setLocation(location);
     g_dword_6596ec = 2;
-    instance->right_16c = (short)x;
-    instance->bottom_16e = (short)y;
+    instance->render_state_164.right = (short)x;
+    instance->render_state_164.bottom = (short)y;
 }
 
 /* Positions every live tooltip object left to right starting at x, advancing
@@ -2558,10 +2558,10 @@ srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch,
     if (node != 0) {
         stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
         instance->state_160 = g_index_6596e4;
-        instance->left_168 = (short)(rect[2] - rect[0]);
-        instance->top_16a = (short)(rect[3] - rect[1]);
-        instance->right_16c = (short)rect[0];
-        instance->bottom_16e = (short)rect[1];
+        instance->render_state_164.left = (short)(rect[2] - rect[0]);
+        instance->render_state_164.top = (short)(rect[3] - rect[1]);
+        instance->render_state_164.right = (short)rect[0];
+        instance->render_state_164.bottom = (short)rect[1];
         srVector3T<double> location;
         location.x = width * g_double_005ebe80 + left;
         location.y = g_double_005ebc30 - (height * g_double_005ebe80 + top);

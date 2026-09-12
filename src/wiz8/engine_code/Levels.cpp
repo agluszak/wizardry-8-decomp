@@ -28,7 +28,6 @@
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/game_status.h"
-#include "wiz8/location_variables.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/fact_state.h"
@@ -600,8 +599,8 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
             SetWorldScenePosition004511D0(GetWorld(), &position);
         }
     } else {
-        MoveWorldToPoint(GetWorld(), GetWorld659AB8(),
-                         &g_status_685170.pending_move_location.point);
+        RestoreWorldCameraState(GetWorld(), GetWorld659AB8(),
+                                &g_status_685170.pending_move_location);
     }
 
     if (level < 47 && !g_status_685170.level_progress[level].visited) {

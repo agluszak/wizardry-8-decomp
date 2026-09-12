@@ -1,6 +1,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/game_status.h"
 // GLOBAL: WIZ8 0x0068f2d4
 W8MainGameScreen* g_main_game_screen;
 #include "wiz8/local_code/ButtonSound.h"
@@ -118,10 +119,9 @@ bool CurrentTextLineHasContent(void)
 // FUNCTION: WIZ8 0x0058b910
 void ScrollTextBoxToCursor(void)
 {
-    if (g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] > 8) {
+    if (g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] > 7) {
         ScrollTextBoxTo(
-            g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] - 8 +
-            1);
+            g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] - 7);
         return;
     }
     ScrollTextBoxTo(0);
@@ -217,7 +217,7 @@ void SetKnockKnockTarget(int target)
 {
     W8MainGameScreen* screen = g_main_game_screen;
 
-    if (gXStatus.fTrapInteractMode == 0) {
+    if (gXStatus.field_021 == 0) {
         ShowNotice(0xc, L"You can't cast Knock Knock here!", -1, -1, 0);
         return;
     }

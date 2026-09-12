@@ -20,8 +20,9 @@
 
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/engine_code/Levels.h"
-#include "wiz8/game_status.h"
 #include "wiz8/local_screens/OptionsScreen.h"
+#include "wiz8/game_status.h"
+
 extern void ContinueAfterDarkEndingVideo005AE770(void);
 
 // GLOBAL: WIZ8 0x0064d8ac

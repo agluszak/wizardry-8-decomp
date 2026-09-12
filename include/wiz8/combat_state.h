@@ -64,11 +64,11 @@ struct W8PartySlotRow {
 static_assert(sizeof(W8PartySlotRow) == 0x106, "W8PartySlotRow_must_be_0x106");
 
 /* Nine 0x11-byte effect records at +0x7c1 are independently established.
-   +0x85a..+0x8f3 is an unresolved overlapping layout: six 0x11-byte records
-   occupy +0x85a..+0x8bf, then the independently proven engaged_missile at
-   +0x8c0 and TargetHit at +0x8c5. CombatHasCondition still advances 0x11
-   nine times from +0x85a, which overlaps those later fields; that stride
-   is not a typed array. */
+   +0x85a..+0x8f3 overlaps later independently proven fields: six 0x11-byte
+   records occupy +0x85a..+0x8bf, then engaged_missile at +0x8c0 and TargetHit
+   at +0x8c5. CombatHasCondition at 0x00501250 walks g_combat_state from +0x85a
+   with stride 0x11 and bound 9, so retail does read across that overlap. The
+   stride is not a typed nine-element array. */
 static_assert(sizeof(W8EffectSlot) == 0x11, "W8EffectSlot_must_be_0x11");
 
 /* One combat participant's row, 0xd4 bytes per character. The eight rows live

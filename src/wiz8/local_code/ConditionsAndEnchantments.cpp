@@ -14,7 +14,6 @@
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/layouts/item_tables.h"
-#include "wiz8/location_variables.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/utility.h"
 #include "wiz8/sr_api.h"

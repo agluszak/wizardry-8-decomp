@@ -267,8 +267,8 @@ void RecallCasterToSavedLocation(W8SpellQueueEntry* pQueue)
     caster = &g_status_685170.buffers.characters[pQueue->Source.iChar];
     if (caster->has_saved_location != 0) {
         if (caster->saved_level == g_status_685170.current_level) {
-            MoveWorldToPoint(GetWorld(), GetWorld659AB8(), &caster->saved_location.point);
-            point = caster->saved_location.point;
+            RestoreWorldCameraState(GetWorld(), GetWorld659AB8(), &caster->saved_location);
+            point = caster->saved_location.position;
             PlacePartyAtPoint(&point);
             MarkRendererReady();
             return;

@@ -29,6 +29,9 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/stLight.h"
 #include "wiz8/engine_code/stParticle.h"
+#include "wiz8/engine_code/Levels.h"
+#include "wiz8/engine_code/Navigator.h"
+#include "wiz8/startup_world.h"
 #include "wiz8/spell_effect.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/xstatus.h"
@@ -668,6 +671,96 @@ void WorldSetCameraLocation(W8World* world, const float* location)
         position.y = location[1];
         position.z = location[2];
         ((srNode*)world->camera_light)->setLocation(position);
+    }
+}
+
+/* Apply a CamPos record to the world's camera and camera light. A non-null
+   source world repeats the orientation write; automap restore passes null and
+   recall / LoadLevel pass GetWorld659AB8(). */
+// FUNCTION: WIZ8 0x004504B0
+void SetWorldCameraState(W8World* world, W8World* source_world, W8WorldCameraState* state)
+{
+    srVector3T<float> location;
+    srVector3T<double> position;
+    srMatrix3T<float> rotation;
+
+    if (!world) {
+        srAssertFail("pWorld", THREE_D_API_CPP, 0x43f, 0);
+    } else {
+        if (state == 0) {
+            srAssertFail("CamPos", THREE_D_API_CPP, 0x444, 0);
+        }
+        location.x = state->position.x;
+        location.y = state->position.y;
+        location.z = state->position.z;
+        if (world->camera != 0) {
+            position.x = location.x;
+            position.y = location.y;
+            position.z = location.z;
+            ((srNode*)world->camera)->setLocation(position);
+            PlacePartyAtPoint(&location);
+        }
+        if (world->camera_light != 0) {
+            position.x = location.x;
+            position.y = location.y;
+            position.z = location.z;
+            ((srNode*)world->camera_light)->setLocation(position);
+        }
+        world->camera->getRotation(rotation);
+        SetCameraOrientation(state->yaw, state->pitch, &rotation);
+        world->camera->setRotation(rotation);
+    }
+    if (source_world != 0) {
+        if (state == 0) {
+            srAssertFail("CamPos", THREE_D_API_CPP, 0x44e, 0);
+        }
+        world->camera->getRotation(rotation);
+        SetCameraOrientation(state->yaw, state->pitch, &rotation);
+        world->camera->setRotation(rotation);
+    }
+}
+
+/* Reinstall a CamPos record, then copy the resulting camera pose onto the
+   startup navigator in degrees with the default world height removed. */
+// FUNCTION: WIZ8 0x00450610
+void RestoreWorldCameraState(W8World* world, W8World* source_world, W8WorldCameraState* state)
+{
+    srVector3T<double> camera_location;
+    srVector3T<float> navigator_position;
+
+    if (world == 0) {
+        srAssertFail("pWorld", THREE_D_API_CPP, 0x46b, 0);
+    }
+    SetWorldCameraState(world, source_world, state);
+    world->camera->getLocation(camera_location);
+    navigator_position.x = (float)camera_location.x;
+    navigator_position.y = (float)camera_location.y;
+    navigator_position.z = (float)camera_location.z;
+    g_startup_world_659c0c->SetAngles004538F0(GetCameraYawInDegrees());
+    g_startup_world_659c0c->SetPitch(GetCameraPitchInDegrees());
+    navigator_position.y = navigator_position.y - g_default_world_height_00603ac8;
+    g_startup_world_659c0c->SetPositionInternal00453590(&navigator_position);
+}
+
+/* Snapshot the world's camera location and the live yaw/pitch into a CamPos
+   record. A null world is a no-op; a world without a camera zeros the point. */
+// FUNCTION: WIZ8 0x004506C0
+void GetWorldCameraState(W8World* world, W8WorldCameraState* state)
+{
+    if (world != 0) {
+        if (state == 0) {
+            srAssertFail("CamPos", THREE_D_API_CPP, 0x488, 0);
+        }
+        if (world->camera != 0) {
+            state->position.x = (float)world->camera->getLocationX();
+            state->position.y = (float)world->camera->getLocationY();
+            state->position.z = (float)world->camera->getLocationZ();
+        } else {
+            state->position.x = 0.0f;
+            state->position.y = 0.0f;
+            state->position.z = 0.0f;
+        }
+        GetCameraOrientation(state->yaw, state->pitch);
     }
 }
 

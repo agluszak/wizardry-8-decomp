@@ -3,12 +3,12 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/local_code/ItemManager.h"
 #include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/bringup_gates.h"
 #include "wiz8/monster_generators.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/stParticle.h"
-#include "wiz8/location_variables.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_screens/OptionsScreen.h"
@@ -118,6 +118,11 @@ static_assert(sizeof(W8StatusHeader) == 0x314, "W8StatusHeader_must_be_0x314");
    vendored SGP FileMan.h already on this target's include path, so they are not
    restated here. */
 
+/* 0x0068517C selects where characters live, and flags_2367 is a per-slot byte
+   consulted only when it is set. The failure notice comes out of the shared
+   notice array, and 0x00683678 is passed alongside; neither is established
+   beyond that, so both keep positional names. */
+
 /* Build the loose character/NPC path in the two forms used by the save code.
    The first accepts an already formatted filename or wildcard; the second
    appends the canonical CHR extension to a character's wide name first.  When
@@ -133,7 +138,7 @@ void BuildCharacterFilePath00514FA0(char* destination, const char* filename, int
         sprintf(destination, "%s\\%s", directory, filename);
         return;
     }
-    if (slot != -1 && !g_status_685170.save_slot_flags_2367[slot]) {
+    if (slot != -1 && !g_status_685170.flags_2367[slot]) {
         sprintf(destination, "%s\\%s", "Saves\\NPCs", filename);
         return;
     }
@@ -149,7 +154,7 @@ void BuildCharacterPath00514EC0(char* destination, const wchar_t* name, int slot
     sprintf(filename, "%ls.%s", name, "CHR");
     if (!g_status_685170.game_started) {
         strcpy(directory, slot == -1 ? "Saves\\Characters" : "Saves\\NPCs");
-    } else if (slot == -1 || g_status_685170.save_slot_flags_2367[slot]) {
+    } else if (slot == -1 || g_status_685170.flags_2367[slot]) {
         strcpy(destination, filename);
         return;
     } else {
@@ -177,7 +182,7 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot, 
     int handle;
 
     if (g_status_685170.game_started) {
-        if (slot != -1 && g_status_685170.save_slot_flags_2367[slot] == 0) {
+        if (slot != -1 && g_status_685170.flags_2367[slot] == 0) {
             sprintf(path, "%s\\%s", "Saves\\NPCs", name);
         } else {
             strcpy(path, name);
@@ -187,8 +192,7 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot, 
         sprintf(path, "%s\\%s", directory, name);
     }
 
-    if (g_status_685170.game_started &&
-        (slot == -1 || g_status_685170.save_slot_flags_2367[slot] != 0)) {
+    if (g_status_685170.game_started && (slot == -1 || g_status_685170.flags_2367[slot] != 0)) {
         loaded = Function5156C0(path, character);
     } else {
         handle = FileOpen(path, 1, 0);
@@ -841,7 +845,7 @@ unsigned char SaveCharacter(W8Character* character, int slot, char report_failur
     if (g_status_685170.game_started == 0) {
         strcpy(directory, slot != -1 ? "Saves\\NPCs" : "Saves\\Characters");
         sprintf(path, "%s\\%s", directory, file_name);
-    } else if (slot == -1 || g_status_685170.save_slot_flags_2367[slot] != 0) {
+    } else if (slot == -1 || g_status_685170.flags_2367[slot] != 0) {
         strcpy(path, file_name);
     } else {
         sprintf(path, "%s\\%s", "Saves\\NPCs", file_name);
@@ -949,7 +953,7 @@ unsigned char AutoSaveIfAllowed(char forced)
     if (g_status_685170.value_2435 == 0 && AnyMonsterDying() == 0 &&
         ((g_settings_6850c8.auto_save != 0 && forced == 0) || g_status_685170.iron_man != 0) &&
         gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0 &&
-        (char)IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.fNpcDialogueMode == 0 &&
+        (char)IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.field_01f == 0 &&
         gXStatus.fCampMode == 0) {
         /* The copy is written out in both arms rather than selecting the source
            into one call. VC6 tail-merges the two inlined copies but keeps each

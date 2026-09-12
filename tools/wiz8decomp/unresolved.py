@@ -138,7 +138,7 @@ def load_unresolved_baseline(path: Path) -> dict[str, Any]:
     if not path.is_file():
         raise ValueError(
             f"unresolved-symbol baseline does not exist: {path}; "
-            "run wiz8 analyze unresolved --write-baseline once on reviewed main"
+            "pass a path to write with wiz8 analyze unresolved --write-baseline"
         )
     with path.open(newline="", encoding="utf-8") as stream:
         reader = csv.DictReader(stream)

@@ -1,8 +1,8 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/engine_code/GDCamera.h"
-#include "wiz8/game_status.h"
 #include "wiz8/engine_code/quad.h"
+#include "wiz8/game_status.h"
 
 #include "surrender/srNode.h"
 #include "surrender/srScene.h"
@@ -300,7 +300,7 @@ void GDCamera::ApplyRotationMatrix(srMatrix3T<float>* rotation, W8LevelDataRecor
 // FUNCTION: WIZ8 0x00476950
 void GDCamera::SnapToTarget(const srVector3T<float>* target)
 {
-    if (gXStatus.fNpcDialogueMode == 0) {
+    if (gXStatus.field_01f == 0) {
         if ((m_positional_000 & 1) != 0) {
             return;
         }
@@ -349,7 +349,7 @@ void GDCamera::SnapToTarget(const srVector3T<float>* target)
 
     m_target_pitch_09c = pitch;
     m_target_angle_098 = angle;
-    if (gXStatus.fNpcDialogueMode == 0) {
+    if (gXStatus.field_01f == 0) {
         if ((m_positional_000 & 1) != 0) {
             return;
         }
@@ -375,7 +375,7 @@ void GDCamera::SnapToTarget(const srVector3T<float>* target)
 // FUNCTION: WIZ8 0x00476C30
 void GDCamera::SetOrientationImmediate(float pitch, float angle)
 {
-    if (gXStatus.fNpcDialogueMode == 0) {
+    if (gXStatus.field_01f == 0) {
         if ((m_positional_000 & 1) != 0) {
             return;
         }
@@ -401,7 +401,7 @@ void GDCamera::SetOrientationImmediate(float pitch, float angle)
 // FUNCTION: WIZ8 0x00476F90
 unsigned char GDCamera::LookAt(const srVector3T<float>* target, unsigned char preserve_pitch)
 {
-    if (gXStatus.fNpcDialogueMode == 0) {
+    if (gXStatus.field_01f == 0) {
         if ((m_positional_000 & 1) != 0) {
             return 0;
         }
@@ -518,7 +518,7 @@ unsigned char GDCamera::ComputeTrackingOrientation(const srVector3T<float>* targ
 unsigned char GDCamera::BeginOrientationTransition(float target_pitch, float target_angle,
                                                    unsigned char force)
 {
-    if (force == 0 && gXStatus.fNpcDialogueMode == 0) {
+    if (force == 0 && gXStatus.field_01f == 0) {
         if ((m_positional_000 & 1) != 0) {
             return 0;
         }
@@ -675,7 +675,7 @@ void GDCamera::Update(float elapsed)
 void GDCamera::ApplyYawInput(float input)
 {
     if (input != g_float_005ebb34) {
-        if (gXStatus.fNpcDialogueMode == 0 && g_status_685170.value_2435 == 0) {
+        if (gXStatus.field_01f == 0 && g_status_685170.value_2435 == 0) {
             m_positional_000 |= 1;
             m_manual_input_timer->Arm();
             m_transition_active = 0;
@@ -732,8 +732,7 @@ void GDCamera::ApplyYawInput(float input)
 // FUNCTION: WIZ8 0x00477EB0
 void GDCamera::ApplyPitchInput(float input)
 {
-    if (input != g_float_005ebb34 && gXStatus.fNpcDialogueMode == 0 &&
-        g_status_685170.value_2435 == 0) {
+    if (input != g_float_005ebb34 && gXStatus.field_01f == 0 && g_status_685170.value_2435 == 0) {
         m_positional_000 |= 1;
         m_manual_input_timer->Arm();
         m_transition_active = 0;
@@ -1041,7 +1040,7 @@ void GDCamera::GetForwardPoint(float distance, srVector3T<float>* output)
 // FUNCTION: WIZ8 0x00478E00
 void GDCamera::SetManualControlActive(unsigned char enabled)
 {
-    if (enabled != 0 && gXStatus.fNpcDialogueMode == 0 && g_status_685170.value_2435 == 0) {
+    if (enabled != 0 && gXStatus.field_01f == 0 && g_status_685170.value_2435 == 0) {
         m_positional_000 |= 1;
         m_manual_input_timer->Arm();
         m_transition_active = 0;

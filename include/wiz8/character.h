@@ -5,7 +5,7 @@
 #include "wiz8/gameplay_modifiers.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
-#include "wiz8/saved_location.h"
+#include "wiz8/engine_code/World.h"
 
 struct W8MonsterManagerEntry;
 
@@ -305,11 +305,10 @@ struct W8Character {
     /* 0x1770: the derived modifier block the rebuild clears and folds the
        equipment, persistent and party blocks into. */
     W8GameplayModifierBlock bonus_1770;
-    /* 0x17d7: where the character was last anchored, restored by the recall
-       effect in Magic Effects.cpp. Its extent is proven rather than assumed:
-       the cross-level path copies exactly 0x3c bytes from here with one
-       rep movsd, which lands precisely on the level id below. */
-    W8SavedLocation saved_location; /* 0x17d7 */
+    /* 0x17d7: the CamPos record GetWorldCameraState writes and recall restores.
+       The cross-level path copies the whole 0x3c bytes onto
+       W8GlobalStatus::pending_move_location. */
+    W8WorldCameraState saved_location; /* 0x17d7 */
     /* 0x1813: which level that anchor belongs to. The recall compares it
        against g_status_685170.current_level and takes a different path when they differ. */
     int saved_level;                               /* 0x1813 */
