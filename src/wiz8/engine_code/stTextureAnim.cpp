@@ -242,7 +242,7 @@ void stTextureAnim::setupDefaultValues()
 
     if (texture != 0) {
         texture->getDimensions(texture_dimensions_);
-        texture_flags_ &= ~(1UL << FLAG_DIRTY_DEFAULTS);
+        texture_flags_ &= ~2U; /* FLAG_DIRTY_DEFAULTS */
     } else {
         texture_dimensions_.width = 1;
         texture_dimensions_.height = 1;
