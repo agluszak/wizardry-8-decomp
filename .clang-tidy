@@ -3,16 +3,33 @@
 # style, naming and modernize checks are not applicable to decompiled source.
 #
 # Exclusions, with the binary/source evidence:
-# - bugprone-narrowing-conversions / cppcoreguidelines-narrowing-conversions:
-#   VC6 source and the recovered corpus narrow implicitly everywhere (GUI code
-#   int -> INT16), so as errors they demand hundreds of suppressions without
-#   finding reconstruction errors.
-# - bugprone-sizeof-expression: the recovered allocators deliberately size
-#   pointer arrays, which the check reports as "pointer to aggregate".
+# - bugprone-narrowing-conversions / cppcoreguidelines-narrowing-conversions,
+#   -Wconversion, -Wsign-conversion: VC6 source and the recovered corpus narrow
+#   implicitly everywhere (GUI code int -> INT16), so as errors they demand
+#   hundreds of suppressions without finding reconstruction errors.
+# - bugprone-sizeof-expression pointer heuristics: recovered allocators
+#   deliberately size pointer arrays (`sizeof(T*)`), which Clang reports as
+#   "pointer to aggregate". The rest of the check stays on.
+# - Imperialism-audit noise that mostly restated faithful compiler/source shape
+#   or incomplete naming: bugprone-branch-clone, clang-analyzer-deadcode.DeadStores,
+#   misc-redundant-expression, bugprone-assignment-in-if-condition,
+#   bugprone-casting-through-void, readability-suspicious-call-argument,
+#   bugprone-suspicious-memset-usage. Clang 19 already covers the useful
+#   memory diagnostics in the compiler lane.
+# - bugprone-virtual-near-miss: a trial only found srBinFStream::pseek/ptell
+#   versus seek/tell, which are distinct virtuals. Remaining FunctionXXXXX
+#   names would make its similarity heuristic worse, not better.
 Checks: >
   -*,
   bugprone-misplaced-widening-cast,
-  readability-redundant-casting
+  readability-redundant-casting,
+  bugprone-sizeof-expression,
+  bugprone-swapped-arguments,
+  bugprone-suspicious-enum-usage
+CheckOptions:
+  bugprone-sizeof-expression.WarnOnSizeOfPointerToAggregate: 'false'
+  bugprone-sizeof-expression.WarnOnSizeOfPointer: 'false'
+  bugprone-suspicious-enum-usage.StrictMode: 'false'
 WarningsAsErrors: '*'
 HeaderFilterRegex: '^/repo/(include/wiz8|include/surrender|src/wiz8|src/surrender|src/srext_jpegimporter|src/srext_unzip)/'
 FormatStyle: none

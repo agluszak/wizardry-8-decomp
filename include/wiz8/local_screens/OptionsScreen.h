@@ -45,8 +45,7 @@ public:
 // VTABLE: WIZ8 0x005eee2c
 class W8OptionsSaveRow : public W8TextControl {
 public:
-    __forceinline W8OptionsSaveRow(Controls* owner, int top,
-                                  unsigned char save_mode);
+    __forceinline W8OptionsSaveRow(Controls* owner, int top, unsigned char save_mode);
     virtual ~W8OptionsSaveRow() override;
     virtual void Redraw(int full_redraw) override;
     virtual void OnLeftButtonUp(int event) override;
@@ -56,7 +55,7 @@ public:
     unsigned char m_editing;
     unsigned char pad_0ba[2];
     W8SaveSlot* m_save;
-    W8OptionsSaveRowListener* m_listener;
+    W8OptionsSaveRowListener* m_save_listener; /* 0xc0 */
 };
 
 static_assert(sizeof(W8OptionsSaveRow) == 0xc4, "W8OptionsSaveRow_size");
@@ -113,14 +112,13 @@ public:
     int unknown_004;
     unsigned char m_compact_layout;
     unsigned char m_hide_navigation;
-    bool m_active;                       /* set once the set's panels are built */
+    bool m_active; /* set once the set's panels are built */
     unsigned char pad_00b;
     int m_current_00c;
     W8GrowableVector<W8OptionsPanel*> m_panels_010;
 };
 
-static_assert(sizeof(W8OptionsPanelSet) == 0x20,
-              "W8OptionsPanelSet_must_be_0x20");
+static_assert(sizeof(W8OptionsPanelSet) == 0x20, "W8OptionsPanelSet_must_be_0x20");
 
 /* These controls add actual value bindings to the canonical widget classes:
    a checkbox integer at +0xb8, slider float at +0x70, and selection integer
@@ -181,8 +179,7 @@ public:
     W8GrowableVector<W8OptionsSelection*> m_option_selections;
 };
 
-static_assert(sizeof(W8OptionsPanel) == 0x78,
-              "W8OptionsPanel_must_be_0x78");
+static_assert(sizeof(W8OptionsPanel) == 0x78, "W8OptionsPanel_must_be_0x78");
 
 // VTABLE: WIZ8 0x005ef174
 class W8OptionsGamePanel : public W8OptionsPanel {
@@ -202,7 +199,8 @@ public:
 // VTABLE: WIZ8 0x005ef12c W8HorizontalRangeThumbListener
 // VTABLE: WIZ8 0x005ef124 W8TextControl::Listener
 class W8OptionsInterfacePanel : public W8OptionsPanel,
-    public W8HorizontalRangeThumbListener, public W8TextControl::Listener {
+                                public W8HorizontalRangeThumbListener,
+                                public W8TextControl::Listener {
 public:
     W8OptionsInterfacePanel();
     virtual void Populate() override;
@@ -216,7 +214,8 @@ public:
 // VTABLE: WIZ8 0x005ef100 W8HorizontalRangeThumbListener
 // VTABLE: WIZ8 0x005ef0f8 W8TextControl::Listener
 class W8OptionsAudioPanel : public W8OptionsPanel,
-    public W8HorizontalRangeThumbListener, public W8TextControl::Listener {
+                            public W8HorizontalRangeThumbListener,
+                            public W8TextControl::Listener {
 public:
     W8OptionsAudioPanel();
     virtual void Populate() override;
@@ -229,8 +228,7 @@ public:
 
 // VTABLE: WIZ8 0x005ef0dc
 // VTABLE: WIZ8 0x005ef0d4 W8HorizontalRangeThumbListener
-class W8OptionsGraphicsPanel : public W8OptionsPanel,
-    public W8HorizontalRangeThumbListener {
+class W8OptionsGraphicsPanel : public W8OptionsPanel, public W8HorizontalRangeThumbListener {
 public:
     W8OptionsGraphicsPanel();
     virtual void Populate() override;
@@ -251,8 +249,8 @@ public:
 // VTABLE: WIZ8 0x005eee80
 class W8OptionsButton : public W8TextControl {
 public:
-    __forceinline W8OptionsButton(Controls* owner, int left, int top, int right,
-                                 int bottom, const wchar_t* text);
+    __forceinline W8OptionsButton(Controls* owner, int left, int top, int right, int bottom,
+                                  const wchar_t* text);
     virtual ~W8OptionsButton() override;
     virtual void Redraw(int full_redraw) override;
     virtual void OnMouseEnter(int event) override;
@@ -262,8 +260,8 @@ public:
 // VTABLE: WIZ8 0x005eeed0
 class W8OptionsKeyButton : public W8OptionsButton {
 public:
-    __forceinline W8OptionsKeyButton(Controls* owner, int top,
-                                    int primary_binding, int secondary_binding);
+    __forceinline W8OptionsKeyButton(Controls* owner, int top, int primary_binding,
+                                     int secondary_binding);
     virtual ~W8OptionsKeyButton() override;
 
     void SetKey(unsigned short key);
@@ -282,8 +280,10 @@ static_assert(sizeof(W8OptionsKeyButton) == 0xc0, "W8OptionsKeyButton_size");
 // VTABLE: WIZ8 0x005ef024 W8OptionsKeyCapture
 // VTABLE: WIZ8 0x005ef020 W8DialogCloseListener
 class W8OptionsKeyboardPanel : public W8OptionsPanel,
-    public W8TextControl::Listener, public W8ControlSelectionListener,
-    public W8OptionsKeyCapture, public W8DialogCloseListener {
+                               public W8TextControl::Listener,
+                               public W8ControlSelectionListener,
+                               public W8OptionsKeyCapture,
+                               public W8DialogCloseListener {
 public:
     explicit W8OptionsKeyboardPanel(int panel);
     virtual ~W8OptionsKeyboardPanel() override;
@@ -315,9 +315,11 @@ public:
 // VTABLE: WIZ8 0x005ef058 W8OptionsSaveRowListener
 // VTABLE: WIZ8 0x005ef054 W8ControlSelectionListener
 class W8OptionsSaveLoadPanel : public W8OptionsPanel,
-    public W8TextControl::Listener, public W8DialogCloseListener,
-    public W8OptionsTextEditor::Listener, public W8OptionsSaveRowListener,
-    public W8ControlSelectionListener {
+                               public W8TextControl::Listener,
+                               public W8DialogCloseListener,
+                               public W8OptionsTextEditor::Listener,
+                               public W8OptionsSaveRowListener,
+                               public W8ControlSelectionListener {
 public:
     explicit W8OptionsSaveLoadPanel(int panel);
     virtual ~W8OptionsSaveLoadPanel() override;
@@ -353,9 +355,7 @@ static_assert(sizeof(W8OptionsSaveLoadPanel) == 0x150, "W8OptionsSaveLoadPanel_s
    id; the two optional child controls are owned by the base Controls panel. */
 // VTABLE: WIZ8 0x005eed3c
 // VTABLE: WIZ8 0x005eed34 W8TextControl::Listener
-class W8OptionsMenuButton
-    : public W8TextControl,
-      public W8TextControl::Listener {
+class W8OptionsMenuButton : public W8TextControl, public W8TextControl::Listener {
 public:
     W8OptionsMenuButton(Controls* owner, const int* row);
     virtual ~W8OptionsMenuButton() override;
@@ -365,17 +365,14 @@ public:
     int m_item_id_0bc;
 };
 
-static_assert(sizeof(W8OptionsMenuButton) == 0xc0,
-              "W8OptionsMenuButton_must_be_0xc0");
+static_assert(sizeof(W8OptionsMenuButton) == 0xc0, "W8OptionsMenuButton_must_be_0xc0");
 
 /* The 0x60-byte controls-derived menu-set object constructed at 0x005A8C90.
    Its independent allocation, constructor, secondary listener vptr, and the
    OptionsScreen.cpp assertion on m_pMenuSet establish this boundary. */
 // VTABLE: WIZ8 0x005eefec
 // VTABLE: WIZ8 0x005eefe4 W8TextControl::Listener
-class W8OptionsMenuSet
-    : public Controls,
-      public W8TextControl::Listener {
+class W8OptionsMenuSet : public Controls, public W8TextControl::Listener {
 public:
     W8OptionsMenuSet(unsigned int* shared_region_set);
     virtual ~W8OptionsMenuSet();
@@ -390,8 +387,7 @@ public:
     void UpdateMenuSet();
 };
 
-static_assert(sizeof(W8OptionsMenuSet) == 0x60,
-              "W8OptionsMenuSet_must_be_0x60");
+static_assert(sizeof(W8OptionsMenuSet) == 0x60, "W8OptionsMenuSet_must_be_0x60");
 
 /* Local Screens\OptionsScreen.cpp owns the state-10 controller.  Its source
    identity is established by the m_pMenuSet assertion at 0x005A8F14; the
@@ -401,10 +397,9 @@ static_assert(sizeof(W8OptionsMenuSet) == 0x60,
    vector at +0x0c, the selected panel index at +0x20, and the controls owner
    at +0x24; the remaining panel objects stay positional until their types are
    recovered. */
-class W8OptionsScreen
-    : public W8ControlSelectionListener,
-      public W8TextControl::Listener,
-      public W8DialogCloseListener {
+class W8OptionsScreen : public W8ControlSelectionListener,
+                        public W8TextControl::Listener,
+                        public W8DialogCloseListener {
 public:
     W8OptionsScreen();
     ~W8OptionsScreen();
@@ -413,10 +408,8 @@ public:
     unsigned char ProcessInput(const InputAtom* input);
     void Redraw();
     void ShowNotification(W8DialogCloseListener* listener, int caption, int message, int value);
-    void BeginSaveNameEdit(W8OptionsTextEditor::Listener* listener, int row,
-                           const wchar_t* text);
-    virtual void OnSelectionChanged(
-        W8ControlSelection* control, int selected) override;
+    void BeginSaveNameEdit(W8OptionsTextEditor::Listener* listener, int row, const wchar_t* text);
+    virtual void OnSelectionChanged(W8ControlSelection* control, int selected) override;
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSecondary(W8TextControl*) override {}
     virtual void OnDialogClosed(unsigned char reason, int value) override;
@@ -436,8 +429,7 @@ public:
     W8OptionsKeyCapture* m_key_capture;
 };
 
-static_assert(sizeof(W8OptionsScreen) == 0x64,
-              "W8OptionsScreen_must_be_0x64");
+static_assert(sizeof(W8OptionsScreen) == 0x64, "W8OptionsScreen_must_be_0x64");
 
 extern W8OptionsScreen* g_options_screen_0069c254;
 extern wchar_t g_options_last_save_name_0069c1cc[64];
@@ -445,6 +437,4 @@ extern wchar_t g_options_last_save_name_0069c1cc[64];
 void Function5A9E70(const wchar_t* target);
 wchar_t* GetAddress69C1CC(void);
 
-void ShowModalMessage005A6620(int a, int b, int c,
-                                    void (*callback)(void), int d, int e);
-
+void ShowModalMessage005A6620(int a, int b, int c, void (*callback)(void), int d, int e);

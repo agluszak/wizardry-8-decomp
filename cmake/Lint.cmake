@@ -23,7 +23,11 @@ endfunction()
 # decompilation-correctness diagnostic belongs in this list. Clang 19
 # promotes several legacy idioms the corpus deliberately preserves to
 # errors: the reviewed raw-callback casts, Info-ZIP K&R definitions, and
-# VC6-era implicit copies.
+# VC6-era implicit copies. Recovered C++ still has a handful of those
+# callback casts (region catalog, screen-lifecycle table, trigger
+# activation, AnimObj tail-call, UnZip password/service), so the
+# suppression stays shared rather than being restored for recovered
+# targets only.
 set(WIZ8_LINT_COMPAT_FLAGS
     -Xclang -fno-wchar
     -fms-extensions
@@ -68,6 +72,7 @@ set(WIZ8_RECOVERY_WARNINGS
     -Wmissing-field-initializers
     $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual>
     $<$<COMPILE_LANGUAGE:CXX>:-Winconsistent-missing-override>
+    $<$<COMPILE_LANGUAGE:CXX>:-Wshadow-field>
 )
 
 function(wiz8_configure_lint_target target)
