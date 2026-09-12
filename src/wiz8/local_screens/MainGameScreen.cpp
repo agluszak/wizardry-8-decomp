@@ -1345,6 +1345,64 @@ unsigned char Function577850(void)
     return gXStatus.fNpcDialogueMode != 0 && g_screen_state_00649f1c->flag_252 != 0;
 }
 
+// FUNCTION: WIZ8 0x00577880
+unsigned char Function577880(int value)
+{
+    W8MainScreenState* state = g_screen_state_00649f1c;
+    Controls** panel_1b0;
+    Controls** panel_1b4;
+    W8Widget* widget_134;
+    W8Widget* widget_138;
+    unsigned char layout_choice;
+
+    if (gXStatus.fNpcDialogueMode == 0 || state->flag_252 != 0 || state->value_fc != 3) {
+        return 0;
+    }
+
+    panel_1b0 = reinterpret_cast<Controls**>(reinterpret_cast<char*>(state) + 0x1b0);
+    panel_1b4 = reinterpret_cast<Controls**>(reinterpret_cast<char*>(state) + 0x1b4);
+    widget_134 = *reinterpret_cast<W8Widget**>(reinterpret_cast<char*>(state) + 0x134);
+    widget_138 = *reinterpret_cast<W8Widget**>(reinterpret_cast<char*>(state) + 0x138);
+
+    if (value == 0) {
+        Function55E2C0();
+        if (*panel_1b0 != 0) {
+            (*panel_1b0)->SetEnabled(0);
+        }
+        if (*panel_1b4 != 0) {
+            (*panel_1b4)->SetEnabled(0);
+        }
+        Function55EAE0();
+        ClearSurfaceRect(0x1dc, 0x11b, 0x269, 0x1c2);
+        InvalidateRegion(0x1dc, 0x11b, 0x269, 0x1c2, 0);
+        RequestRedraw(2);
+        RequestRedraw(8);
+        RequestRedraw(0x20);
+        RequestRedraw(0x80);
+        RequestRedraw(0x200);
+        state->dialogue_panel_hidden = 1;
+        return 1;
+    }
+
+    if (*panel_1b0 != 0) {
+        (*panel_1b0)->SetEnabled(1);
+    }
+    if (*panel_1b4 != 0) {
+        (*panel_1b4)->SetEnabled(1);
+    }
+    Function55E1E0();
+    layout_choice = Function55E2B0();
+    if (widget_134 != 0) {
+        widget_134->SetEnabled(layout_choice != 0);
+    }
+    if (widget_138 != 0) {
+        widget_138->SetEnabled(layout_choice != 0);
+    }
+    RequestRedraw(0x200);
+    state->dialogue_panel_hidden = 0;
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x005929d0
 void HandleManualCameraHotkeys(void)
 {

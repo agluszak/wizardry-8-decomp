@@ -347,7 +347,8 @@ extern W8DialogBase* g_pending_main_game_dialog_0068edd4;
 struct W8MainScreenState {
     unsigned char unknown_000[0xf8];
     int target_location_id_f8;
-    unsigned char unknown_0fc[8];
+    int value_fc; /* 0xfc: dialogue layout mode; 577880 requires 3 */
+    unsigned char unknown_100[4];
     int value_104;
     unsigned char unknown_108[0xcc];
     int value_1d4;
@@ -355,7 +356,11 @@ struct W8MainScreenState {
     unsigned char flag_1d8;
     unsigned char unknown_1d9[0x13];
     unsigned char flag_1ec;
-    unsigned char unknown_1ed[0x47];
+    unsigned char unknown_1ed[0xd];
+    unsigned char script_busy; /* 0x1fa: set 0xff during script execution */
+    unsigned char unknown_1fb[0x2d];
+    unsigned char dialogue_cursor_flag; /* 0x228 */
+    unsigned char unknown_229[0xb];
     unsigned char flag_234;
     unsigned char unknown_235[3];
     int value_238;
@@ -367,10 +372,17 @@ struct W8MainScreenState {
     unsigned char unknown_25c[4];
     /* 0x260: raised by the screen reset. */
     unsigned char flag_260;
-    unsigned char unknown_261[7];
+    unsigned char unknown_261;
+    unsigned char dialogue_panel_hidden; /* 0x262 */
+    unsigned char unknown_263[5];
 };
 #pragma pack(pop)
 static_assert(sizeof(W8MainScreenState) == 0x268, "W8MainScreenState_size");
+static_assert(offsetof(W8MainScreenState, script_busy) == 0x1fa, "W8MainScreenState_script_busy");
+static_assert(offsetof(W8MainScreenState, dialogue_cursor_flag) == 0x228,
+              "W8MainScreenState_dialogue_cursor_flag");
+static_assert(offsetof(W8MainScreenState, dialogue_panel_hidden) == 0x262,
+              "W8MainScreenState_dialogue_panel_hidden");
 
 extern W8MainScreenState* g_screen_state_00649f1c;
 void OnQuitGameDialogClosed(W8DialogBase* dialog);
@@ -407,7 +419,12 @@ wchar_t* ParseKeywordToken(wchar_t* line, wchar_t* field);
 
 void Function577260(void);
 unsigned char Function577850(void);
+unsigned char Function577880(int value); /* 0x00577880: toggle NPC dialogue panel */
 unsigned char Function577A40(void);
+void Function55E2C0(void);          /* 0x0055E2C0 */
+void Function55E1E0(void);          /* 0x0055E1E0 */
+void Function55EAE0(void);          /* 0x0055EAE0 */
+unsigned char Function55E2B0(void); /* 0x0055E2B0 */
 /* Which party portrait the pointer is over, if any. */
 unsigned int HitTestPartyPortrait(const InputAtom* event);
 void RequestRefreshPartyState(void);

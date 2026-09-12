@@ -19,3 +19,11 @@ unsigned char Function525DF0(unsigned char require_group_entry);
 unsigned char GetNpcQuoteText(W8NpcState* npc, unsigned int type, wchar_t* output);
 
 bool IsPartySlotEligible00524A10(int slot);
+
+void Function524BD0(W8NpcState* npc, char* output);
+void Function525110(W8NpcState* npc, unsigned char preserve_state);
+void Function525C50(unsigned char resume_script);
+int Function525E60(wchar_t* text);
+void Function525FA0(int script_line, unsigned char param);
+void ProcessNpcScriptingIdlePass(void);
+void UpdateNpcDialogueVoiceIdle(void);
