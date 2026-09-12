@@ -363,6 +363,7 @@ def run_clang_tidy(
         log_path=output.parent
         / "logs"
         / ("clang-tidy-diagnostics.json" if full_diagnostics else "clang-tidy.json"),
+        check=not full_diagnostics,
     )
 
 
