@@ -182,12 +182,13 @@ unsigned char BitArray::Save(int handle)
     unsigned long packed_size;
     unsigned int* words;
     unsigned int remaining;
+    unsigned int count;
 
+    magic = 0xdeadd00d;
     if (word_count == 0) {
         return 0;
     }
 
-    magic = 0xdeadd00d;
     if (FileWrite(handle, &magic, 4, 0) == 0) {
         return 0;
     }
@@ -199,9 +200,10 @@ unsigned char BitArray::Save(int handle)
     {
         srHuffman::BitOStream bits(stream);
         srHuffman::Sampler sampler;
-        if (word_count > 0) {
-            words = puiIndex;
-            remaining = word_count;
+        count = word_count;
+        words = puiIndex;
+        if (count > 0) {
+            remaining = count;
             do {
                 sampler.insert(*words);
                 ++words;
@@ -212,11 +214,11 @@ unsigned char BitArray::Save(int handle)
         srHuffman::Compressor compressor(sampler);
         bits.put(compressor.num_symbols_1c, 32);
         bits.put(compressor.code_width_20, 6);
-        bits.put(word_count, 32);
+        bits.put(count, 32);
         compressor.storeSymbolTable(bits);
-        if (word_count > 0) {
+        if (count > 0) {
             words = puiIndex;
-            remaining = word_count;
+            remaining = count;
             do {
                 compressor.compressSymbol(bits, *words);
                 ++words;

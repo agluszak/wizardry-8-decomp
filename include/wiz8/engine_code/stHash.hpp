@@ -37,7 +37,9 @@ public:
     {
         Grow();
     }
-    ~W8HashTable()
+    /* Same COMDAT-call shape as Lookup: Save destroys Sampler's hash prefix
+       with a call to 0x0055db80, not an inlined delete[] pair. */
+    __declspec(noinline) ~W8HashTable()
     {
         if (bucket_heads != 0) {
             delete[] bucket_heads;
@@ -47,7 +49,10 @@ public:
         }
     }
 
-    Value Lookup(const Key* key) const;
+    /* Retail emits Lookup as a COMDAT that BitArray::Save and the automap
+       call rather than inline. clang-cl would otherwise fold the body into
+       those sites and drop the 0x005853a0 emission. */
+    __declspec(noinline) Value Lookup(const Key* key) const;
     int FindNextEntry(const Key* key, int previous) const;
     void Insert(const Key* key, const Value* value);
     void Remove(const Key* key, const Value* value);
@@ -72,7 +77,8 @@ public:
     unsigned int bucket_count;
 };
 
-template <class Key, class Value> Value W8HashTable<Key, Value>::Lookup(const Key* key) const
+template <class Key, class Value>
+__declspec(noinline) Value W8HashTable<Key, Value>::Lookup(const Key* key) const
 {
     Key wanted = *key;
     int slot = bucket_heads[W8HashValue(wanted) & (bucket_count - 1)];
