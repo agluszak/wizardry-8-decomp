@@ -59,9 +59,7 @@ def cmake_source_units(repo_dir: Path) -> list[str]:
     """The recovered C++ files listed in ``sources.cmake``, in link order."""
 
     text = (repo_dir / SOURCES_CMAKE).read_text(encoding="utf-8")
-    block = re.search(
-        r"set\(\s*WIZ8_SOURCE_UNITS\s*(.*?)^\s*\)", text, re.MULTILINE | re.DOTALL
-    )
+    block = re.search(r"set\(\s*WIZ8_SOURCE_UNITS\s*(.*?)^\s*\)", text, re.MULTILINE | re.DOTALL)
     if block is None:
         raise SourceUnitError(f"{SOURCES_CMAKE} has no WIZ8_SOURCE_UNITS list")
     units: list[str] = []
@@ -269,9 +267,7 @@ def validate_source_units(repo_dir: Path) -> dict[str, Any]:
     violations = source_unit_violations(repo_dir)
     if violations:
         rendered = [f"{item['file']}: {item['kind']}: {item['detail']}" for item in violations]
-        raise SourceUnitError(
-            "source-unit classification failed:\n  " + "\n  ".join(rendered)
-        )
+        raise SourceUnitError("source-unit classification failed:\n  " + "\n  ".join(rendered))
     records = source_unit_records(repo_dir)
     counts = {
         ORIGINAL_TU: 0,

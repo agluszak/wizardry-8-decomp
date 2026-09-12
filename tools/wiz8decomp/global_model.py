@@ -17,9 +17,7 @@ _GLOBAL_MARKER = re.compile(
     r"^\s*//\s*GLOBAL:\s+(?P<target>[A-Za-z0-9_]+)\s+(?P<address>0x[0-9a-fA-F]+)\s*$",
     re.IGNORECASE,
 )
-_SOURCE_MARKER = re.compile(
-    r"^\s*//\s*(?:FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY|VTABLE|GLOBAL):\s+"
-)
+_SOURCE_MARKER = re.compile(r"^\s*//\s*(?:FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY|VTABLE|GLOBAL):\s+")
 _SIZEOF_ASSERT = re.compile(
     r"static_assert\s*\(\s*sizeof\s*\(\s*([A-Za-z_][\w:]*)\s*\)\s*==\s*(0x[0-9a-fA-F]+|\d+)",
 )
@@ -143,7 +141,9 @@ def _base_type_size(type_name: str, sizes: dict[str, int]) -> int | None:
         return 4
     template = re.match(r"^(W8GrowableVector|W8HashTable)\s*<", cleaned)
     if template:
-        return sizes.get(template.group(1), 0x10 if template.group(1) == "W8GrowableVector" else None)
+        return sizes.get(
+            template.group(1), 0x10 if template.group(1) == "W8GrowableVector" else None
+        )
     return sizes.get(cleaned)
 
 
@@ -167,7 +167,9 @@ def _strip_comments_and_qualifiers(line: str) -> str:
     return line.split("//", 1)[0].strip()
 
 
-def parse_global_definitions(repo_dir: Path, sizes: dict[str, int] | None = None) -> list[dict[str, Any]]:
+def parse_global_definitions(
+    repo_dir: Path, sizes: dict[str, int] | None = None
+) -> list[dict[str, Any]]:
     """Independently defined ``GLOBAL`` objects, excluding externs and aliases."""
 
     if sizes is None:
@@ -203,7 +205,9 @@ def parse_global_definitions(repo_dir: Path, sizes: dict[str, int] | None = None
                         continue
                     if stripped.startswith("//"):
                         comments.append(stripped)
-                        if _SOURCE_MARKER.match(lines[look]) and not _GLOBAL_MARKER.match(lines[look]):
+                        if _SOURCE_MARKER.match(lines[look]) and not _GLOBAL_MARKER.match(
+                            lines[look]
+                        ):
                             break
                         look += 1
                         continue
@@ -291,10 +295,7 @@ def overlapping_globals(definitions: list[dict[str, Any]]) -> list[dict[str, Any
                 outer_end = _end(outer)
                 inner_end = _end(inner)
                 same_start = inner_start == outer_start
-                contained = (
-                    outer_end is not None
-                    and outer_start < inner_start < outer_end
-                )
+                contained = outer_end is not None and outer_start < inner_start < outer_end
                 partial = (
                     outer_end is not None
                     and inner_end is not None
@@ -318,7 +319,13 @@ def overlapping_globals(definitions: list[dict[str, Any]]) -> list[dict[str, Any
                     f"{member['name']} @ 0x{member['address']:x} overlaps "
                     f"{container['name']} + 0x{offset:x}."
                 )
-                key = (target, member["address"], container["address"], member["name"], container["name"])
+                key = (
+                    target,
+                    member["address"],
+                    container["address"],
+                    member["name"],
+                    container["name"],
+                )
                 violations.append(
                     {
                         "kind": "global-overlap",
@@ -375,8 +382,7 @@ def type_consistency_violations(
                 "names": names,
                 "types": types,
                 "detail": (
-                    f"0x{address:08x}: incompatible types {', '.join(types)} "
-                    f"for {', '.join(names)}"
+                    f"0x{address:08x}: incompatible types {', '.join(types)} for {', '.join(names)}"
                 ),
             }
         )

@@ -98,9 +98,7 @@ def test_provisional_file_does_not_become_the_original_unit(tmp_path: Path) -> N
     (tmp_path / "src/wiz8").mkdir(parents=True, exist_ok=True)
     (tmp_path / "src/wiz8/engine_code/Levels.cpp").write_text("", encoding="utf-8")
     (tmp_path / "src/wiz8/state_getters.cpp").write_text("", encoding="utf-8")
-    layout = TranslationUnitLayout(
-        [UnitAnchor(0x42B410, r"Engine Code\Levels.cpp", "assertion")]
-    )
+    layout = TranslationUnitLayout([UnitAnchor(0x42B410, r"Engine Code\Levels.cpp", "assertion")])
 
     violations = placement_violations(
         tmp_path, layout, [_marker(0x42B410, "src/wiz8/state_getters.cpp")]
@@ -163,7 +161,7 @@ def test_unresolved_fragment_does_not_prove_original_tu(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     (tmp_path / "src/wiz8/sources.cmake").write_text(
-        'set(WIZ8_SOURCE_UNITS\n    src/wiz8/engine_code/world_selection.cpp\n)\n',
+        "set(WIZ8_SOURCE_UNITS\n    src/wiz8/engine_code/world_selection.cpp\n)\n",
         encoding="utf-8",
     )
     (tmp_path / "src/wiz8/source_units.json").write_text(

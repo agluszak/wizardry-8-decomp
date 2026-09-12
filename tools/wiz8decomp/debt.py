@@ -44,7 +44,11 @@ def _function_markers(repo_dir: Path) -> list[dict[str, Any]]:
     if not path.is_file():
         return []
     document = json.loads(path.read_text(encoding="utf-8"))
-    return [marker for marker in document.get("markers") or [] if marker.get("marker_kind") == "FUNCTION"]
+    return [
+        marker
+        for marker in document.get("markers") or []
+        if marker.get("marker_kind") == "FUNCTION"
+    ]
 
 
 def _void_star_uniform_consumers(repo_dir: Path) -> list[dict[str, Any]]:
@@ -160,7 +164,9 @@ def structural_debt_report(repo_dir: Path, *, layout: Any | None = None) -> dict
     definitions = parse_global_definitions(repo_dir)
     overlaps = overlapping_globals(definitions)
     types = type_consistency_violations(definitions)
-    identities = identity_violations(repo_dir) if (repo_dir / "build/source-index.json").is_file() else []
+    identities = (
+        identity_violations(repo_dir) if (repo_dir / "build/source-index.json").is_file() else []
+    )
     empty = [
         path
         for path, record in records.items()

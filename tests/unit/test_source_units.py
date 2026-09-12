@@ -71,7 +71,9 @@ def test_original_path_map_is_directory_qualified(tmp_path: Path) -> None:
 def test_empty_non_emission_file_is_a_violation(tmp_path: Path) -> None:
     (tmp_path / "src/wiz8").mkdir(parents=True)
     (tmp_path / "src/wiz8/empty.cpp").write_text('#include "wiz8/empty.h"\n', encoding="utf-8")
-    (tmp_path / "src/wiz8/sources.cmake").write_text(_cmake(["src/wiz8/empty.cpp"]), encoding="utf-8")
+    (tmp_path / "src/wiz8/sources.cmake").write_text(
+        _cmake(["src/wiz8/empty.cpp"]), encoding="utf-8"
+    )
     (tmp_path / "src/wiz8/source_units.json").write_text(
         json.dumps(
             {
@@ -135,7 +137,9 @@ def test_compiler_emission_need_not_map_to_an_original_path(tmp_path: Path) -> N
         "// TEMPLATE: WIZ8 0x004addf0\n// W8GrowableVector<int>::Grow\n",
         encoding="utf-8",
     )
-    (tmp_path / "src/wiz8/sources.cmake").write_text(_cmake(["src/wiz8/vector.cpp"]), encoding="utf-8")
+    (tmp_path / "src/wiz8/sources.cmake").write_text(
+        _cmake(["src/wiz8/vector.cpp"]), encoding="utf-8"
+    )
     (tmp_path / "src/wiz8/source_units.json").write_text(
         json.dumps(
             {
