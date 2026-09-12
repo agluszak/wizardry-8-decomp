@@ -567,11 +567,18 @@ void BuildPlaneFromPoints0046D660(srVector4T<float>* plane, const srVector3T<flo
 {
     float* values = &plane->x;
     srVector3T<float> vertices[3];
+    float* dst = &vertices[0].x;
+    const float* a = &first->x;
+    const float* b = &second->x;
+    const float* c = &third->x;
     short index = 2;
+    int component;
 
-    vertices[0] = *first;
-    vertices[1] = *second;
-    vertices[2] = *third;
+    for (component = 0; component != 3; ++component) {
+        dst[component] = a[component];
+        dst[component + 3] = b[component];
+        dst[component + 6] = c[component];
+    }
     values[0] = 0.0f;
     values[1] = 0.0f;
     values[2] = 0.0f;
