@@ -19,3 +19,4 @@ unsigned char Function519F80(W8MonsterInfo* monster_info, W8MonsterRecord* recor
 unsigned char IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext context,
                                    int arg_4); /* 0x00519920 */
 float MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int kind);
+float GetRangeConstant5EC35C(void);

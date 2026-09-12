@@ -1,6 +1,7 @@
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/engine_code/AnimRep.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/quad.h"
 #include "wiz8/cursor.h"
@@ -525,11 +526,11 @@ void SetMonsterHighlight(int party_slot, int location_id, int unused, char on)
     bit = (unsigned char)(1 << (location_id & 0x1f));
     if (on) {
         MonsterSetRuntimeFlag5BC(monster, MonsterGetRuntimeFlag5BC(monster) | bit);
-        NotifyMonsterHighlight(location_id, location_id, 1);
+        MonsterForward4C4DE0(location_id, location_id, 1);
         return;
     }
     MonsterSetRuntimeFlag5BC(monster, MonsterGetRuntimeFlag5BC(monster) & ~bit);
-    NotifyMonsterHighlight(location_id, location_id, 0);
+    MonsterForward4C4DE0(location_id, location_id, 0);
 }
 
 /* The same over a whole group, one member at a time. The count is re-read each
@@ -1254,6 +1255,217 @@ void ClearPartySlotMonsterHighlights(unsigned int party_slot)
     }
 }
 
+/* Recompute one party slot's combat-target highlights from its current action.
+   Spell actions repopulate the slot's highlighted-monster list through the
+   magic helper; other actions set or clear direct monster and group highlights. */
+// FUNCTION: WIZ8 0x0053A930
+void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
+{
+    int action;
+    int detail;
+    W8ActionDetailBlock* detail_block;
+    unsigned int spell_id;
+    W8MonsterManagerEntry* entry = &g_monster_manager_entries[party_slot];
+
+    entry->highlighted_monsters.count = 0;
+    ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
+                       &detail_block);
+    spell_id = 0;
+    if (action == 2) {
+        spell_id = 0x77;
+    } else if (action == 7) {
+        spell_id = detail;
+    } else if (action == 8) {
+        spell_id = GetItemSpell(detail_block->item_use.item);
+    }
+
+    if (spell_id != 0) {
+        if (target == 0) {
+            srAssertFail("pSource != NULL", TARGETING_CPP, 0xcc9, 0);
+        }
+
+        {
+            W8TargetSource source;
+            W8GrowableVector<int> scratch;
+
+            memset(&source, 0, sizeof(source));
+            source.iType = W8_TARGET_SOURCE_CHARACTER;
+            source.iChar = party_slot;
+            PopulateSpellTargetMarkers(spell_id, 1, &source, target, &entry->highlighted_monsters,
+                                       &scratch, 0);
+        }
+
+        for (unsigned int monster_list_index = 0;
+             monster_list_index < PLLength(gXStatus.plsMonsterList); ++monster_list_index) {
+            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+            W8Monster* monster = monster_info->monster;
+
+            if (monster_info->flag_14 != 0 && monster != 0) {
+                unsigned char flags = MonsterGetRuntimeFlag5BC(monster);
+                unsigned char bit = static_cast<unsigned char>(1 << (party_slot & 31));
+
+                if ((flags & bit) != 0) {
+                    MonsterSetRuntimeFlag5BC(monster, static_cast<unsigned char>(flags & ~bit));
+                    MonsterForward4C4DE0(party_slot, monster_info->location_id, 0);
+                }
+            }
+        }
+
+        for (int highlight_index = 0; highlight_index < entry->highlighted_monsters.count;
+             ++highlight_index) {
+            SetMonsterHighlight(party_slot, entry->highlighted_monsters.data[highlight_index], 0, 1);
+        }
+        return;
+    }
+
+    if (target->iType == W8_TARGET_KIND_MONSTER && target->iMonsterID != BAD_INDEX) {
+        unsigned int monster_index =
+            MonsterGetIndexByLocationID(0x757, TARGETING_CPP, target->iMonsterID, 0);
+
+        if (monster_index != 0xffffffff) {
+            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
+            W8Monster* monster = monster_info->monster;
+
+            if (monster == 0) {
+                srAssertFail("pMonster", TARGETING_CPP, 0x760, 0);
+            }
+            unsigned char flags = MonsterGetRuntimeFlag5BC(monster);
+            unsigned char bit = static_cast<unsigned char>(1 << (party_slot & 31));
+
+            MonsterSetRuntimeFlag5BC(monster, static_cast<unsigned char>(flags | bit));
+            MonsterForward4C4DE0(party_slot, target->iMonsterID, 1);
+        }
+    }
+
+    if (target->iType == W8_TARGET_KIND_GROUP && target->iGroupID != BAD_INDEX) {
+        unsigned int group_index =
+            GetMonsterGroupIndexByID(0x5da, TARGETING_CPP, target->iGroupID, 0);
+
+        if (group_index != 0xffffffff) {
+            W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
+
+            for (unsigned int member_index = 0; member_index < ILLength(group->monsters);
+                 ++member_index) {
+                SetMonsterHighlight(party_slot, IListGetAt(group->monsters, member_index), 0, 1);
+            }
+        }
+    }
+}
+
+/* When the ranged target point moves, clear any stale spell-target tint and
+   rebuild highlights for the current action at the new position. */
+// FUNCTION: WIZ8 0x0053B310
+void RefreshSpellTargetHighlightsAtRange(void)
+{
+    srVector3T<float> position;
+    W8MonsterInfo* monster_info;
+
+    Function421150(GetRangeConstant5EC35C(), &position);
+    if (position.x == g_target_position_0068407f.x && position.y == g_target_position_0068407f.y &&
+        position.z == g_target_position_0068407f.z) {
+        return;
+    }
+
+    g_target_position_0068407f = position;
+    monster_info = GetNextMonsterInfo(1);
+    while (monster_info != 0) {
+        if (monster_info->flag_14 != 0 && monster_info->hp_current != 0 &&
+            monster_info->condition_turns[0x12] == 0) {
+            W8Monster* monster = monster_info->monster;
+            float channels[4];
+
+            memcpy(channels, &monster->m_pRep->render_state_04c, sizeof(channels));
+            if (channels[0] != g_float_005ebb34 || channels[1] != g_float_005ebb34 ||
+                channels[2] != g_float_005ebb34 || channels[3] != g_float_005ebb34) {
+                SetMonsterHighlightColour(monster, 0.0f, 0.0f, 0.0f, 0.0f);
+            }
+        }
+        monster_info = GetNextMonsterInfo(0);
+    }
+    HighlightSpellTargetsAtCachedPosition();
+}
+
+/* Tint every monster the current spell action can reach at the cached target
+   point. Non-spell actions leave every monster cleared to the default block. */
+// FUNCTION: WIZ8 0x0053B480
+void HighlightSpellTargetsAtCachedPosition(void)
+{
+    int party_slot = g_status_685170.selected_character;
+    unsigned int spell_id = GetActionSpellLikeId(party_slot, W8_TARGETING_CONTEXT_CURRENT);
+
+    if (spell_id == 0) {
+        return;
+    }
+
+    W8TargetSource source;
+    W8CombatSlot target;
+    W8GrowableVector<int> markers;
+    W8GrowableVector<int> scratch;
+
+    SetTargetSourceToCharacter(party_slot, &source);
+    ResetCombatSlot(&target);
+    target.iType = W8_TARGET_KIND_PLACE;
+    target.point = g_target_position_0068407f;
+    PopulateSpellTargetMarkers(spell_id, 1, &source, &target, &markers, &scratch, 0);
+
+    for (int index = 0; index < markers.count; ++index) {
+        W8Monster* monster = GetMonsterByLocationID(markers.data[index]);
+
+        SetMonsterHighlightColour(monster, 0.0f, 1.0f, 0.0f, 1.0f);
+    }
+}
+
+/* Rebuild the world-space target marker from the selected character's current
+   combat action and one world point. When the chosen action carries no
+   spell-like id, the marker vector is left empty. */
+// FUNCTION: WIZ8 0x0053B660
+void PopulateTargetMarkerForCurrentAction(const srVector3T<float>* position,
+                                          W8GrowableVector<int>* marker_vector, int enabled)
+{
+    int party_slot = g_status_685170.selected_character;
+    int action;
+    int detail;
+    W8ActionDetailBlock* detail_block;
+    unsigned int spell_id;
+
+    ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
+                       &detail_block);
+    if (action == 2) {
+        spell_id = 0x77;
+    } else if (action == 7) {
+        spell_id = detail;
+    } else if (action == 8) {
+        spell_id = GetItemSpell(detail_block->item_use.item);
+    } else {
+        return;
+    }
+    if (spell_id == 0) {
+        return;
+    }
+
+    marker_vector->count = 0;
+
+    if (position == 0) {
+        srAssertFail("pSource != NULL", TARGETING_CPP, 0xcc9, 0);
+    }
+
+    W8TargetSource source;
+    memset(&source, 0, sizeof(source));
+    source.iType = W8_TARGET_SOURCE_CHARACTER;
+    source.iChar = party_slot;
+
+    W8CombatSlot target;
+    memset(&target, 0, sizeof(target));
+    target.iChar = BAD_INDEX;
+    target.iMonsterID = BAD_INDEX;
+    target.iGroupID = BAD_INDEX;
+    target.iType = W8_TARGET_KIND_PLACE;
+    target.point = *position;
+
+    W8GrowableVector<int> scratch;
+    PopulateSpellTargetMarkers(spell_id, 1, &source, &target, marker_vector, &scratch, enabled);
+}
+
 /* Clear the target marker and request the party-display refresh that consumes
    the change. */
 // FUNCTION: WIZ8 0x0053B160
@@ -1274,7 +1486,7 @@ void RefreshTargetMarker(void)
     if (position.x != g_target_position_0068407f.x || position.y != g_target_position_0068407f.y ||
         position.z != g_target_position_0068407f.z) {
         g_target_position_0068407f = position;
-        Function53B660(&position, &gXStatus.target_markers, 1);
+        PopulateTargetMarkerForCurrentAction(&position, &g_target_marker_vector_0068406f, 1);
     }
 }
 
@@ -1810,7 +2022,7 @@ void RefreshAllPartyTargets0053BF80(void)
                 CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_CURRENT, 0, 0);
 
             if (can_switch != 0) {
-                Function53A930(party_slot, target);
+                RefreshCombatTargetHighlights(party_slot, target);
             } else {
                 can_switch = CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_CURRENT, 1, 0);
                 if (can_switch != 0) {

@@ -1421,7 +1421,7 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, int unuse
    what makes a caller passing zero cast nothing at all rather than cast weakly.
    Its error text names the function. */
 // FUNCTION: WIZ8 0x004fb220
-int PointCastSpell(float x, float y, float z, int spell_id, unsigned int power_level)
+int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_level)
 {
     W8TargetSource source;
     W8CombatSlot target;
@@ -1436,7 +1436,7 @@ int PointCastSpell(float x, float y, float z, int spell_id, unsigned int power_l
 
     ResetTargetSource(&source);
     source.iType = W8_TARGET_SOURCE_INDIRECT;
-    source.point.Set(x, y, z);
+    source.point = position;
 
     ResetCombatSlot(&target);
     switch (GetSpellTargetType(spell_id, 0)) {

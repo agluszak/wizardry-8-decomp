@@ -1082,8 +1082,8 @@ unsigned short W8Navigator::ConfigureMovementToNavigator004529A0(
     radius_084 = movement_0c0.alternate_radius_0b4;
     unsigned short result = g_pathing_00659c60->ConfigureMovementSearch00464B00(
         &movement_0c0, target->movement_0c0.location_id_004, radius_084, separation,
-        maximum_distance, position.x, position.y, position.z, trace_mode,
-        target->movement_0c0.height_offset_0b8, facing, probe_result);
+        maximum_distance, position, trace_mode, target->movement_0c0.height_offset_0b8, facing,
+        probe_result);
     target_last_position_050 = target->movement_0c0.position_040;
     if (result == 0) {
         if (flag_024 == 0) {

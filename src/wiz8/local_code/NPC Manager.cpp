@@ -30,8 +30,6 @@
 
 extern unsigned char FindEntityByName(const char* name, srVector3T<float>* position, int* value,
                                       srVector3T<float>* direction);
-unsigned char Function50F1A0(unsigned int monster_species, int count, srVector3T<float>* position,
-                             int a, int b, int c);
 
 /*
  * Local Code\NPC Manager.cpp.
@@ -1107,7 +1105,7 @@ unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, char* entity_name)
             return 0;
         }
         copied = position;
-        Function50F1A0(index, 1, &copied, 1, 0, 1);
+        CreateGroup(index, 1, &copied, 1, 0, 1);
         return 1;
     }
     if (npc->is_present == 0) {

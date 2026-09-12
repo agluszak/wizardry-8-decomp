@@ -2043,11 +2043,10 @@ W8PathingService::TestSearchPositionVisibility00464CC0(const srVector3T<float>* 
     W8Monster* monster = GetMonsterByLocationID((unsigned int)movement->location_id_004);
     float distance;
     if (trace_target_location_0c0 == -1) {
-        distance = monster->GetPointDistanceToPlayer004C7D50(position->x, position->y, position->z);
+        distance = monster->GetPointDistanceToPlayer004C7D50(*position);
     } else {
         W8Monster* target = GetMonsterByLocationID(trace_target_location_0c0);
-        distance = monster->GetPointDistanceToMonster004C7E80(target, position->x, position->y,
-                                                              position->z);
+        distance = monster->GetPointDistanceToMonster004C7E80(target, *position);
     }
     if (trace_max_distance_0a8 < distance) {
         return 0;
@@ -2091,12 +2090,11 @@ W8PathingService::TestSearchPositionVisibility00464CC0(const srVector3T<float>* 
 // FUNCTION: WIZ8 0x00464b00
 unsigned short W8PathingService::ConfigureMovementSearch00464B00(
     W8NavigatorMovementState* movement, int target_location, float radius, float separation,
-    float maximum_distance, float offset_x, float offset_y, float offset_z,
-    int requested_trace_mode, float target_height_offset, float target_yaw,
-    unsigned char* probe_result)
+    float maximum_distance, srVector3T<float> trace_offset, int requested_trace_mode,
+    float target_height_offset, float target_yaw, unsigned char* probe_result)
 {
     trace_max_distance_0a8 = maximum_distance;
-    trace_offset_0ac.Set(offset_x, offset_y, offset_z);
+    trace_offset_0ac = trace_offset;
     trace_mode_0b8 = requested_trace_mode;
     flag_0a4 = 1;
     trace_height_offset_0bc = target_height_offset;

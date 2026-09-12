@@ -204,9 +204,9 @@ public:
     unsigned short ConfigureMovementSearch00464B00(W8NavigatorMovementState* movement,
                                                    int target_location, float radius,
                                                    float separation, float maximum_distance,
-                                                   float offset_x, float offset_y, float offset_z,
-                                                   int trace_mode, float target_height_offset,
-                                                   float target_yaw, unsigned char* probe_result);
+                                                   srVector3T<float> trace_offset, int trace_mode,
+                                                   float target_height_offset, float target_yaw,
+                                                   unsigned char* probe_result);
     unsigned char ResolvePathCell004648D0(unsigned int key, unsigned char allow_dynamic,
                                           unsigned int* height, float* direction, float* vertical,
                                           unsigned char* dynamic);
