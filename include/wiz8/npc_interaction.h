@@ -8,6 +8,7 @@ extern unsigned char g_flag_68c4f7;
 
 struct W8NpcState;
 extern W8NpcState* g_npc_state_68c4ac;
+const char* GetNpcDisplayName(W8NpcState* npc);
 
 unsigned char IsNpcScriptSessionActive(void);
 unsigned char ShouldDeferCharacterEventForNpcScript(unsigned char require_group_entry);

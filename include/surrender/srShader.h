@@ -7,6 +7,9 @@
    TEXTURING_DISABLE, DITHER_ENABLE. */
 class srShader {
 public:
+    // FUNCTION: WIZ8 0x00424A40
+    inline srShader() : value(0x0100241b) {}
+
     enum e_pass {
         PASS_NEVER = 0,
         PASS_LESS = 1,

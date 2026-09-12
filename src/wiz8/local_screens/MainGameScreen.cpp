@@ -1901,7 +1901,8 @@ update_screen:
     SGPMouseGetPos(&point);
     if (!IsWorldCursorVisible()) {
         if (!g_modal_owner_0068edd0) {
-            if ((!Function525DF0(1) || !gXStatus.fNpcDialogueMode) && !g_status_685170.value_2435) {
+            if ((!ShouldDeferCharacterEventForNpcScript(1) || !gXStatus.fNpcDialogueMode) &&
+                !g_status_685170.value_2435) {
                 g_level_block->hover_region = UpdateRegionMousePosition(point.x, point.y);
             } else {
                 g_level_block->hover_region = FindRegionAtPoint(

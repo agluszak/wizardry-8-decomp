@@ -17,10 +17,14 @@
 #include "soundman.h"
 
 #include <windows.h>
+#include <stdio.h>
 #include <string.h>
 
 extern int GetEnvironmentValue0060A3A8(void);
 extern W8Monster* GetNpcMonster(W8NpcState* npc);
+extern void Function509CD0(unsigned char value, int enabled, int location_id);
+extern void Function576030(int a, int b, int c, int d, int e);
+extern void Function5E2EF0(unsigned char* state);
 extern int g_effect_argument_005ed8c8;
 extern int g_effect_argument_005ed914;
 
@@ -45,8 +49,7 @@ struct W8NpcDialogueStagingRestore {
     short staged_short_49e;
 };
 #pragma pack(pop)
-static_assert(sizeof(W8NpcDialogueStagingRestore) == 12,
-              "W8NpcDialogueStagingRestore_must_be_12");
+static_assert(sizeof(W8NpcDialogueStagingRestore) == 12, "W8NpcDialogueStagingRestore_must_be_12");
 
 // GLOBAL: WIZ8 0x0068c494
 W8NpcDialogueStagingRestore g_npc_dialogue_staging_restore_68c494;
@@ -68,6 +71,8 @@ unsigned char g_value_68c4ec;
 unsigned char g_flag_68c4f4;
 // GLOBAL: WIZ8 0x0068c4f5
 unsigned char g_flag_68c4f5;
+// GLOBAL: WIZ8 0x0068c4fb
+unsigned char g_flag_68c4fb;
 // GLOBAL: WIZ8 0x0068c4fa
 unsigned char g_flag_68c4fa;
 // GLOBAL: WIZ8 0x0068c4f8
@@ -100,6 +105,54 @@ int g_message_box_line_capacity;
 /* Local Code\NPC Scripting.cpp. The NPC-scripting flag gates the scripted
    monster state; the four accessors below are its only owners. */
 
+// FUNCTION: WIZ8 0x00524BD0
+void FormatNpcVoiceSoundPath(W8NpcState* npc, char* output)
+{
+    const char* name = GetNpcDisplayName(npc);
+
+    if (npc->is_grouped != 0 && g_flag_68c500 == 0) {
+        sprintf(output, "RPC_%s", name);
+    } else if (npc->record->flag_2ea != 0) {
+        sprintf(output, "VOC_%s", name);
+    } else {
+        sprintf(output, "NPC_%s", name);
+    }
+}
+
+// FUNCTION: WIZ8 0x00524CA0
+void ReloadNpcScriptResources(W8NpcState* npc)
+{
+    const char* name = GetNpcDisplayName(npc);
+    const char* prefix;
+    char script_name[128];
+    char resource_name[128];
+
+    if (npc->is_grouped != 0 && g_flag_68c500 == 0) {
+        prefix = "RPC_%s";
+    } else if (npc->record->flag_2ea != 0) {
+        prefix = "VOC_%s";
+    } else {
+        prefix = "NPC_%s";
+    }
+    sprintf(script_name, prefix, name);
+    sprintf(resource_name, "Data\\NPC Scripts\\%s.nsf", script_name);
+    npc->record_file = LoadRecordFile0055A480(resource_name);
+    if (npc->record_file != 0) {
+        W8Monster* monster = GetNpcMonster(npc);
+        if (monster != 0) {
+            sprintf(resource_name, "%s.msf", script_name);
+            monster->SetScript004C7F10(resource_name, 1);
+            unsigned int list_index = MonsterGetIndexByLocationID(
+                0x315, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
+                monster->propagated_value_1e4, 1);
+            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(list_index);
+            if (monster_info != 0) {
+                GetMonsterDataForInfo(monster_info);
+            }
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x00524DA0
 void UpdateNpcDialogueVoiceAndCursor(void)
 {
@@ -109,7 +162,7 @@ void UpdateNpcDialogueVoiceAndCursor(void)
     if (g_flag_68c4f6 != 0) {
         tick_count = GetTickCount();
         if (g_value_68c4b4 < tick_count - g_value_68c4b8) {
-            Function525C50(1);
+            FinishNpcVoicePlayback(1);
         }
         goto update_cursor;
     }
@@ -117,7 +170,7 @@ void UpdateNpcDialogueVoiceAndCursor(void)
         if (g_flag_68c4a1 == 0) {
             tick_count = GetTickCount();
             if (g_value_68c4b4 < tick_count - g_value_68c4b8) {
-                Function525C50(1);
+                FinishNpcVoicePlayback(1);
             }
             if (g_flag_68c4a1 == 0) {
                 goto update_cursor;
@@ -134,8 +187,7 @@ void UpdateNpcDialogueVoiceAndCursor(void)
 
 update_cursor:
     if (gXStatus.fNpcDialogueMode != 0) {
-        if (reinterpret_cast<unsigned char*>(g_screen_state_00649f1c)[0x228] !=
-            0) { /* reinterpret-ok: unnamed W8MainScreenState byte at 0x228 */
+        if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
             SetTargetCursor(1);
             return;
         }
@@ -199,9 +251,8 @@ void ProcessNpcScriptingFrame(void)
         g_flag_68c4f8 = 0;
     }
     if (g_flag_68c4f7 == 0 && g_flag_68c4a0 == 0 && g_flag_68c4f6 == 0) {
-        if (reinterpret_cast<signed char*>(g_screen_state_00649f1c)[0x1fa] <
-            1) { /* reinterpret-ok: unnamed W8MainScreenState byte at 0x1fa */
-            Function526E90();
+        if (g_screen_state_00649f1c->script_busy < 1) {
+            ProcessNpcScriptingIdlePass();
             if (g_flag_68c4a0 != 0) {
                 return;
             }
@@ -220,16 +271,12 @@ void ProcessNpcScriptingFrame(void)
                 g_flag_68c4f5 = 0;
             }
             if (gXStatus.fNpcDialogueMode != 0 && g_status_685170.value_2435 == 0 &&
-                g_flag_68506f == 0 &&
-                reinterpret_cast<unsigned char*>(g_screen_state_00649f1c)[0x1fa] ==
-                    0 && /* reinterpret-ok: unnamed W8MainScreenState byte at 0x1fa */
+                g_flag_68506f == 0 && g_screen_state_00649f1c->script_busy == 0 &&
                 (can_open_dialogue = Function577850(), can_open_dialogue != 0)) {
                 Function56E800(0);
             }
-            if (reinterpret_cast<unsigned char*>(g_screen_state_00649f1c)[0x1fa] ==
-                    0 && /* reinterpret-ok: unnamed W8MainScreenState byte at 0x1fa */
-                reinterpret_cast<unsigned char*>(g_screen_state_00649f1c)[0x262] !=
-                    0 && /* reinterpret-ok: unnamed W8MainScreenState byte at 0x262 */
+            if (g_screen_state_00649f1c->script_busy == 0 &&
+                g_screen_state_00649f1c->dialogue_panel_hidden != 0 &&
                 (dialogue_ready = gXStatus.character_event_queue->IsMainQueueEmpty(),
                  dialogue_ready != 0)) {
                 SetNpcDialoguePanelVisible(1);
@@ -238,40 +285,89 @@ void ProcessNpcScriptingFrame(void)
     }
 }
 
-// FUNCTION: WIZ8 0x00529560
-void SetFlag68C4F4(void)
+// FUNCTION: WIZ8 0x00525110
+void BeginNpcScriptDialogue(W8NpcState* npc, unsigned char preserve_state)
 {
-    g_flag_68c4f4 = 1;
+    if (preserve_state != 0) {
+        g_flag_68c4f5 = 1;
+        g_staged_short_68c3ce = g_npc_dialogue_staging_restore_68c494.staged_short_49e;
+        g_staged_flag_68c3d0 = g_flag_68c4a0;
+        g_staged_value_68c3c8 = g_npc_dialogue_staging_restore_68c494.value_498;
+        g_staged_value_68c3d8 = g_value_68c4a8;
+        g_staged_npc_68c3dc = g_npc_state_68c4ac;
+        g_staged_value_68c3c4 = g_npc_dialogue_staging_restore_68c494.value_494;
+    }
+    if (npc->has_monster == 0) {
+        Function509CD0(npc->name_style, 0, -1);
+    }
+    g_npc_dialogue_staging_restore_68c494.staged_short_49e = 0;
+    g_flag_68c4a0 = 0;
+    g_npc_dialogue_staging_restore_68c494.value_498 = -1;
+    g_npc_state_68c4ac = npc;
+    g_value_68c4a8 =
+        reinterpret_cast<int>(npc->record_file); // reinterpret-ok: retail stores the record pointer in an integer slot
 }
-// FUNCTION: WIZ8 0x00529BC0
-void SetFlag68C4F7(void)
+
+// FUNCTION: WIZ8 0x00525C50
+void FinishNpcVoicePlayback(unsigned char resume_script)
 {
-    g_flag_68c4f7 = 1;
-}
-// FUNCTION: WIZ8 0x00529BD0
-void ClearFlag68C4F7(void)
-{
-    g_flag_68c4f7 = 0;
-}
-// FUNCTION: WIZ8 0x0052A070
-unsigned char GetFlag68C4FA(void)
-{
-    return g_flag_68c4fa;
-}
-// FUNCTION: WIZ8 0x0052A1A0
-void SetFlag68C500(unsigned char value)
-{
-    g_flag_68c500 = value;
+    if (g_flag_68c4f6 != 0) {
+        g_flag_68c4f6 = 0;
+        Function576030(0, 0, 0, -1, -1);
+        g_npc_dialogue_staging_restore_68c494.value_498 =
+            g_npc_dialogue_staging_restore_68c494.value_494;
+        return;
+    }
+    if (g_flag_68c4a0 != 0) {
+        if (g_flag_68c4a1 != 0) {
+            g_flag_68c4a1 = 0;
+            if (g_voice_handle_68c4b0 != -1) {
+                g_flag_68c4fb = 1;
+                SoundStop(static_cast<unsigned int>(g_voice_handle_68c4b0));
+                g_flag_68c4fb = 0;
+            }
+            Function5E2EF0(&g_bink_state_68c4dc);
+        }
+        W8Monster* monster = GetNpcMonster(g_npc_state_68c4ac);
+        if (monster != 0) {
+            monster->StopTalking004C7470();
+        }
+        W8MonsterManagerEntry* entry = GetNpcGroupEntry(g_npc_state_68c4ac);
+        if (entry != 0) {
+            if (entry->field_071 == 0) {
+                SetPartyPortraitEventState(g_npc_state_68c4ac->group_index, 0, -1, 0, 1);
+            } else {
+                gXStatus.character_event_queue->ProcessOwnedEntry(entry->field_071);
+            }
+        }
+        g_flag_68c4a0 = 0;
+        g_voice_handle_68c4b0 = -1;
+        g_npc_dialogue_staging_restore_68c494.value_498 =
+            g_npc_dialogue_staging_restore_68c494.value_494;
+        if (g_screen_state_00649f1c->script_busy == 0 && resume_script != 0) {
+            if (g_npc_state_68c4ac != 0 && g_npc_state_68c4ac->record_file != 0 &&
+                g_npc_dialogue_staging_restore_68c494.value_494 <
+                    g_npc_state_68c4ac->record_file->record_count) {
+                Function576030(
+                    0, 0,
+                    reinterpret_cast<int>(g_npc_state_68c4ac->record_file->records) + // reinterpret-ok: retail callback API takes the record address as an integer
+                        g_npc_dialogue_staging_restore_68c494.value_494 * 0xc,
+                    g_npc_dialogue_staging_restore_68c494.value_494, -1);
+                return;
+            }
+            Function576030(0, 0, 0, -1, -1);
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x00525DD0
-unsigned char Function525DD0(void)
+unsigned char IsNpcScriptSessionActive(void)
 {
     return g_flag_68c4a0 != 0 || g_flag_68c4f6 != 0;
 }
 
 // FUNCTION: WIZ8 0x00525DF0
-unsigned char Function525DF0(unsigned char require_group_entry)
+unsigned char ShouldDeferCharacterEventForNpcScript(unsigned char require_group_entry)
 {
     if (g_flag_68c4f7 != 0) {
         return 0;
@@ -292,6 +388,12 @@ unsigned char Function525DF0(unsigned char require_group_entry)
 bool IsMessageBoxLineQueueEmpty(void)
 {
     return g_message_box_line_count == 0;
+}
+
+// FUNCTION: WIZ8 0x00525E60
+int ComputePortraitMessageDuration(wchar_t* text)
+{
+    return static_cast<int>(wcslen(text) * 0x3c + 2000);
 }
 
 // FUNCTION: WIZ8 0x00528a80
@@ -326,4 +428,29 @@ void AddMessageBoxLine(int type, W8WideChar* text, void* extra)
 
     g_message_box_lines[g_message_box_line_count] = line;
     ++g_message_box_line_count;
+}
+// FUNCTION: WIZ8 0x00529560
+void SetFlag68C4F4(void)
+{
+    g_flag_68c4f4 = 1;
+}
+// FUNCTION: WIZ8 0x00529BC0
+void SetFlag68C4F7(void)
+{
+    g_flag_68c4f7 = 1;
+}
+// FUNCTION: WIZ8 0x00529BD0
+void ClearFlag68C4F7(void)
+{
+    g_flag_68c4f7 = 0;
+}
+// FUNCTION: WIZ8 0x0052A070
+unsigned char GetFlag68C4FA(void)
+{
+    return g_flag_68c4fa;
+}
+// FUNCTION: WIZ8 0x0052A1A0
+void SetFlag68C500(unsigned char value)
+{
+    g_flag_68c500 = value;
 }
