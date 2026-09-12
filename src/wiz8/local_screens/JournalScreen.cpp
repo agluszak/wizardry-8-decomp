@@ -6,6 +6,7 @@
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/game_status.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/local_screens/JournalScreen.h"
 
 #include "wiz8/cursor.h"

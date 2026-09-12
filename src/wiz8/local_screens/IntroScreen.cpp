@@ -20,6 +20,7 @@
 
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/engine_code/Levels.h"
+#include "wiz8/game_status.h"
 #include "wiz8/local_screens/OptionsScreen.h"
 extern void ContinueAfterDarkEndingVideo005AE770(void);
 
