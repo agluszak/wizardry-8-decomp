@@ -178,7 +178,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             npc = GetNpcStateByKind(0x20);
             if (npc != 0) {
                 ReleaseRecordFile0055A0A0(npc->record_file);
-                Function524CA0(npc);
+                ReloadNpcScriptResources(npc);
                 if (!npc->is_grouped) {
                     SetFlag68C4F4();
                     Function528830(0, 0, 0, 0);
