@@ -661,9 +661,6 @@ void W8TriggerEvent::Update()
             srVector3T<float> target;
             srVector3T<float> transformed;
             srVector3T<float> axis;
-            srVector3T<float> row_1;
-            srVector3T<float> row_2;
-            srVector3T<float> row_3;
             srMatrix3T<float> rotation;
 
             source.x = trigger_030->position_118;
@@ -672,15 +669,11 @@ void W8TriggerEvent::Update()
             target = source;
             target.z += 100.0f;
 
-            row_1.Set(1.0, 0.0, 0.0);
-            row_2.Set(0.0, 1.0, 0.0);
-            row_3.Set(0.0, 0.0, 1.0);
-            axis = row_3;
-            rotation.vectors[0].x = trigger_030->value_100;
-            rotation.vectors[0].y = trigger_030->value_104;
-            rotation.vectors[0].z = trigger_030->value_108;
-            rotation.vectors[1] = row_1;
-            rotation.vectors[2] = row_2;
+            axis.Set(0.0, 0.0, 1.0);
+            rotation.vectors[0].Set(trigger_030->value_100, trigger_030->value_104,
+                                    trigger_030->value_108);
+            rotation.vectors[1].Set(1.0, 0.0, 0.0);
+            rotation.vectors[2].Set(0.0, 1.0, 0.0);
 
             if (trigger_030->angle_0fc != 0.0f) {
                 rotation.RotateAroundAxis(sin(trigger_030->angle_0fc), cos(trigger_030->angle_0fc),
@@ -689,7 +682,7 @@ void W8TriggerEvent::Update()
 
             transformed.x = DotProduct(rotation.vectors[1], target);
             transformed.y = DotProduct(rotation.vectors[2], target);
-            transformed.z = DotProduct(row_3, target);
+            transformed.z = DotProduct(axis, target);
             FireMissile004A2D30((unsigned int)trigger_030->m_lData1, &source, &transformed, 0, 1, 1,
                                 0x47435000);
         }

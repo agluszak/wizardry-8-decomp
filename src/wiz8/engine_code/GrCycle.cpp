@@ -1093,9 +1093,9 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
         offset.z = offset.z * scale_z;
         placed = rotation.Transform(offset);
         location = current_model_instance_1a8->getLocation();
-        placed.x = placed.x + (float)location.x;
-        placed.y = (float)location.y + placed.y;
-        placed.z = (float)location.z + placed.z;
+        srVector3T<float> anchor;
+        anchor.SetFromDouble(&location);
+        placed += anchor;
 
         if (unknown_1bf != 0 && particle->value_1b8 == 3) {
             target.SetFromFloat(&placed);

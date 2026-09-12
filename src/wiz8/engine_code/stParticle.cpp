@@ -661,9 +661,8 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
         srVector4T<float> transformed = view.Transform(corners[index]);
 
         float scale = (float)value_140 * value_278;
-        offsets[index].x = transformed.x * scale;
-        offsets[index].y = transformed.y * scale;
-        offsets[index].z = transformed.z * scale;
+        offsets[index] =
+            srVector3T<float>(transformed.x, transformed.y, transformed.z) * (double)scale;
     }
 
     if (value_1c0 == 0) {

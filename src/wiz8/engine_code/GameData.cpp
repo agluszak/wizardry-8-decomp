@@ -284,7 +284,7 @@ const float g_float_005ebcf0 = 57.295784f;
 // GLOBAL: WIZ8 0x005ebca0
 const float g_float_005ebca0 = 6.0f;
 // GLOBAL: WIZ8 0x00652940
-float g_origin_652940[3] = {0.0f, 0.0f, 0.0f};
+srVector3T<float> g_origin_652940;
 
 // FUNCTION: WIZ8 0x00420b40
 float MoveTimer(int value)
@@ -430,10 +430,8 @@ int GetCameraYawDegrees(void)
 // FUNCTION: WIZ8 0x00421090
 void PlacePartyAtPoint(const srVector3T<float>* point)
 {
-    if (sqrtf((point->x - g_origin_652940[0]) * (point->x - g_origin_652940[0]) +
-              (point->y - g_origin_652940[1]) * (point->y - g_origin_652940[1]) +
-              (point->z - g_origin_652940[2]) * (point->z - g_origin_652940[2])) !=
-        g_zero_005ebb40) {
+    srVector3T<float> delta = *point - g_origin_652940;
+    if (sqrtf(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z) != g_zero_005ebb40) {
         MarkRendererReady();
         g_gd_camera_65a0f8->m_position_08c.x = point->x;
         g_gd_camera_65a0f8->m_position_08c.y = point->y;

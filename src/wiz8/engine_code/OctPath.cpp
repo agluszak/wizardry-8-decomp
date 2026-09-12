@@ -3612,9 +3612,7 @@ void W8PathingService::ActivateMovementTrigger0045B880(W8NavigatorMovementState*
             return;
         }
         lower = movement->position_040;
-        upper.x = movement->position_040.x + movement->velocity_034.x * 2.0f;
-        upper.y = movement->position_040.y + movement->velocity_034.y * 2.0f;
-        upper.z = movement->position_040.z + movement->velocity_034.z * 2.0f;
+        upper = movement->position_040 + movement->velocity_034 * 2.0;
     } else {
         W8NavigatorAttachment* attachment = movement->attachment_0ac;
 
@@ -3679,9 +3677,7 @@ void W8PathingService::ActivateMovementTrigger0045B880(W8NavigatorMovementState*
         selected = trigger;
     } else {
         srVector3T<float> midpoint;
-        midpoint.x = (float)((upper.x - lower.x) * g_double_005ebe80) + lower.x;
-        midpoint.y = (float)((upper.y - lower.y) * g_double_005ebe80) + lower.y;
-        midpoint.z = (float)((upper.z - lower.z) * g_double_005ebe80) + lower.z;
+        midpoint = (upper + lower) * g_double_005ebe80;
         double nearest_distance = 1e32;
 
         for (int index = 0; index < count; ++index) {

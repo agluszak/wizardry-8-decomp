@@ -2510,11 +2510,9 @@ unsigned char W8Monster::IsWithinWorldRange004CA2A0()
         double far_clip = WorldGetFarClip(GetWorld());
         srVector3T<float> position = GetPosition();
         srVector3T<float> reference = g_startup_world_659c0c->GetPosition();
-        float dx = reference.x - position.x;
-        float dy = reference.y - position.y;
-        float dz = reference.z - position.z;
+        srVector3T<float> delta = reference - position;
 
-        return dx * dx + dy * dy + dz * dz <= (float)far_clip * (float)far_clip;
+        return delta.LengthSquared() <= (float)far_clip * (float)far_clip;
     }
 }
 
@@ -3730,9 +3728,8 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                 float mesh_scale;
                 srVector3T<double> widened;
 
-                offset.x = source.x * distance_scale;
-                offset.y = (source.y + group_height) * distance_scale;
-                offset.z = source.z * distance_scale;
+                offset = source * distance_scale;
+                offset.y += group_height * distance_scale;
                 srVector3T<float> rotated = camera_rotation.Transform(offset);
                 location.x = base_position.x + rotated.x;
                 location.y = base_position.y + representation->value_5ec +

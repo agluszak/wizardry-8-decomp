@@ -813,9 +813,7 @@ unsigned char W8Navigator::UpdateLinkedPosition00454FE0()
         linked_navigator_05c->movement_0c0.attachment_0ac);
     movement_0c0.attachment_0ac->flags_00 &= 0xff7fffff;
     movement_0c0.yaw = linked_navigator_05c->movement_0c0.yaw;
-    movement_0c0.velocity_034.x = (float)(linked_navigator_05c->movement_0c0.velocity_034.x * 0.5);
-    movement_0c0.velocity_034.y = (float)(linked_navigator_05c->movement_0c0.velocity_034.y * 0.5);
-    movement_0c0.velocity_034.z = (float)(linked_navigator_05c->movement_0c0.velocity_034.z * 0.5);
+    movement_0c0.velocity_034 = linked_navigator_05c->movement_0c0.velocity_034 * 0.5;
     SetPosition(&position);
     g_octree_6598a4->QueueOctreeKind130042E810(movement_0c0.location_id_004, &position);
     linked_update_time_0b8 = 0;
