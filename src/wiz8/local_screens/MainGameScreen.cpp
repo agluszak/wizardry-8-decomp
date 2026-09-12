@@ -544,7 +544,7 @@ void ReloadKeywordLists(void)
 /* Reset the screen state block: zero its 0x268 bytes, write its reset values,
    clear the keyword status byte, and reload the keyword lists. */
 // FUNCTION: WIZ8 0x0056c520
-void Function56C520(void)
+void ResetMainGameScreenState(void)
 {
     int unset = -1;
 
@@ -633,7 +633,7 @@ unsigned char MainGameScreenEnter(void)
     } else {
         ClearHeldItemDisplay();
     }
-    Function53A320(0);
+    SetTargetingMode(0);
     SetPrimarySurfaceTextureHint2Enabled(1);
     if (gXStatus.field_024) {
         Function587510(0);
@@ -728,7 +728,7 @@ update_screen:
         gXStatus.unknown_026[0] = 0;
         Function577220();
     }
-    if (!Function554540()) {
+    if (!IsScreenBusy()) {
         Function5542E0();
     }
     if (!g_level_block->transition_active && !gXStatus.fCombatMode && gXStatus.field_028) {
@@ -1248,7 +1248,7 @@ void ClearCombatSelection(void)
     SetCombatSelection(-1);
     SetCombatTarget(-1);
     SetCombatAction(-1);
-    SetTargetCursor(Function53A3D0(0));
+    SetTargetCursor(GetScreenTargetingContext(0));
 }
 
 /* Drop the highlight when the thing being highlighted is the one going away. */

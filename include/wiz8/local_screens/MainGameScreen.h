@@ -281,7 +281,7 @@ void Function56C5E0(W8NpcState* npc, int value, int line, int suppress, int arg)
 void ResetMainGameScreenState(void);
 /* 0x0056C520: zero W8MainScreenState, write its reset values, and reload the
    keyword lists through the loader below. */
-void Function56C520(void);
+void ResetMainGameScreenState(void);
 
 /* 0x0068EE80: the dialogue keyword tables, one file list per language;
    element zero is English_Keywords.txt and element one the translated list.

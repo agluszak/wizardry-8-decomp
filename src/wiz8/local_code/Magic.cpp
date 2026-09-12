@@ -199,9 +199,9 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
     }
 
     if (GetSpellTargetType(spell_id, 0) == 0) {
-        Function53A2C0(monster_info, monster_info->location_id);
+        SetMonsterCombatTarget(monster_info, monster_info->location_id);
     }
-    else if (!Function53A300(monster_info, spell_id)) {
+    else if (!MonsterTargetMatchesSpell(monster_info, spell_id)) {
         return false;
     }
 
@@ -470,6 +470,7 @@ bool CombatHasCondition(int condition_id)
             }
         }
         slot = g_combat_state->effect_slots_tail;
+        /* retail: walks nine slots even though effect_slots_tail only has six. */
         for (index = 0; index < W8_COMBAT_CONDITION_SLOTS; ++index, ++slot) {
             if (slot->active != 0 && slot->effect_id == condition_id) {
                 return true;

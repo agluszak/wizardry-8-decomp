@@ -36,7 +36,6 @@ use a behavior-descriptive name rather than an address-qualified placeholder.
 
 ### `src/wiz8/engine_code/Video2.cpp`
 
-- `unsigned char Function422800` — Applies the configured window style, asks SurRender for the matching display mode in fullscreen operation, and opens the renderer output window.
 
 ### `src/wiz8/engine_code/stParticle.cpp`
 
@@ -90,7 +89,6 @@ use a behavior-descriptive name rather than an address-qualified placeholder.
 
 ### `src/wiz8/local_code/Magic Effects.cpp`
 
-- `unsigned char Function554540` — Whether anything holds the screen busy: combat, a modal, the trigger flag, or a current state past the idle slot all answer yes; otherwise the idle check decides.
 
 ### `src/wiz8/local_code/MonsterGroup.cpp`
 
@@ -114,16 +112,6 @@ use a behavior-descriptive name rather than an address-qualified placeholder.
 
 ### `src/wiz8/local_code/Targeting.cpp`
 
-- `void Function53A2C0` — Replace a monster's current combat target with one monster id.
-- `unsigned char Function53A300` — Probe whether a monster's current combat target is one of the kinds its chosen hostile spell accepts.
-- `unsigned int Function53A3D0` — Map the current screen state to the targeting context used by this path.
-- `unsigned char Function53A700` — Whether the pending spell in one party row needs an explicit target.
-- `unsigned int Function53A8D0` — Return the spell-like id carried by a chosen action: the fixed attack id, a spell's detail word, or the spell attached to an item use.
-- `void Function53A320` — Select the cursor and renderer-side targeting mode for one targeting state, then clear the cached world point so the following refresh recomputes it.
-- `void Function53AEB0` — Remove one party slot's highlight bit from every live monster that carries it, notifying the render-side highlight owner for each changed monster.
-- `void Function53B160` — Clear the target marker and request the party-display refresh that consumes the change.
-- `void Function53B170` — Recompute the target point and hand it to the marker only when it differs from the cached three-float position.
-- `unsigned char Function53C270` — A party slot can participate only while occupied, alive, and below the terminal character-state threshold.
 
 ### `src/wiz8/local_code/character_events.cpp`
 
@@ -148,7 +136,6 @@ use a behavior-descriptive name rather than an address-qualified placeholder.
 
 ### `src/wiz8/local_screens/MainGameScreen.cpp`
 
-- `void Function56C520` — Reset the screen state block: zero its 0x268 bytes, write its reset values, clear the keyword status byte, and reload the keyword lists.
 - `void Function56C590` — Forward a monster-script notice to the targeting layer unless the screen is busy or this NPC kind suppresses it.
 - `unsigned int Function568950` — The panel flags and the modal-dialog frame hooks.
 

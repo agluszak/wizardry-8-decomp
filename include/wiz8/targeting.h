@@ -140,10 +140,10 @@ void ResetTargetingState(void);
 
 unsigned char GetFactionFlag(char faction);
 void AimByKind(int actor, W8TargetKind kind, W8TargetingContext context);
-void Function53A2C0(W8MonsterInfo* monster_info, int location_id);
-unsigned char Function53A300(W8MonsterInfo* monster_info, int spell_id);
+void SetMonsterCombatTarget(W8MonsterInfo* monster_info, int location_id);
+unsigned char MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_id);
 W8CombatSlot* GetTargetBlockForContext(int party_slot, W8TargetingContext context);
-void Function53B160(void);
+void ClearTargetMarker(void);
 void RefreshAllPartyTargets0053BF80(void);
 unsigned char Function536570(int party_slot, W8TargetingContext context, int arg);
 /* 0x005387F0 */
@@ -154,12 +154,12 @@ void SetFactionFlag(char faction, unsigned char flag);
 unsigned char ShowMonsterTargetMarker(W8MonsterInfo* monster_info);
 bool IsSpellTargetStillValidIn(int party_slot, int spell_id, W8TargetingContext context);
 void ClearTargetHighlights(int party_slot, const W8CombatSlot* target);
-void Function53AEB0(unsigned int party_slot);
+void ClearPartySlotMonsterHighlights(unsigned int party_slot);
 void SetTargetToCharacter(int character_slot, W8TargetingContext context);
 
-void Function53A320(int state);
+void SetTargetingMode(int state);
 void UpdateAllMonsterHighlights(int party_slot, int location_id);
-unsigned int Function53A3D0(int alternate);
+unsigned int GetScreenTargetingContext(int alternate);
 void ResetTargetSource(W8TargetSource* source);
 void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8TargetSource* source);
 W8TargetingContext ResolveTargetingContext(int party_slot, W8TargetingContext context);
@@ -196,12 +196,15 @@ void Function53B310(void);
 void Function53B660(const void* position, void* target, int enabled);
 unsigned char TargetIsInPlay(int party_slot, int arg_2, int arg_3);   /* 0x00536F60 */
 
-#endif
+unsigned char ActionNeedsExplicitTarget(int party_slot);
+unsigned int GetActionSpellLikeId(int party_slot, W8TargetingContext context);
+void RefreshTargetMarker(void);
 void Function53AE00(void);          /* 0x0053AE00 */
 void Function53CD60(void);          /* 0x0053CD60 */
-/* Combat action-selection helpers used across the combat units. */
-unsigned char Function53C270(int party_slot);        /* 0x0053C270 */
+unsigned char CanPartySlotParticipate(int party_slot);        /* 0x0053C270 */
 W8TargetingContext Function53BC90(int party_slot);                  /* 0x0053BC90 */
 W8TargetingContext GetValidatedTargetingContext(
     int party_slot, W8TargetingContext context); /* 0x0053BBD0 */
 void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source); /* 0x0053A9D0 */
+
+#endif

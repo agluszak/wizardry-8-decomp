@@ -515,7 +515,7 @@ void Function54B250(unsigned char notify, const wchar_t* target)
     ResetNpcStates();
     InitializeFactJournal();
     ResetFactions();
-    Function56C520();
+    ResetMainGameScreenState();
     SetPendingScreenState(W8_SCREEN_GAME_START_ROUTER);
 }
 
@@ -619,7 +619,7 @@ unsigned char Function54A9A0(unsigned int uiStartIndex, unsigned int uiEndIndex,
         return 0;
     }
     if (!FileSeek(handle, uiStartIndex * 0x297 + 4, 1)) {
-        return 0;
+        return 0; /* retail: failed seek leaves the handle open */
     }
     if (!FileRead(handle, records,
                          (uiEndIndex + 1) * 0x297 - uiStartIndex * 0x297,
@@ -631,10 +631,10 @@ unsigned char Function54A9A0(unsigned int uiStartIndex, unsigned int uiEndIndex,
     return 1;
 }
 
-/* The new-game reset. It repeats Function54AF30's status-block cycle inline
-   rather than calling it, clears the item in hand and the carried pool, then
-   grants the starting items. The pool and the id list are both walked by
-   address against the symbol that follows them, not by index. */
+/* retail: inlines Function54AF30's status-block cycle rather than calling it.
+   Then clears the item in hand and the carried pool, and grants the starting
+   items. The pool and the id list are both walked by address against the
+   symbol that follows them, not by index. */
 // FUNCTION: WIZ8 0x0054b100
 void Function54B100(void)
 {

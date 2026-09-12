@@ -510,7 +510,7 @@ void EndCombat004EA310(int mode)
     }
     RequestRedrawCombatBar();
     Function53AE00();
-    Function53A320(0);
+    SetTargetingMode(0);
     RemoveConditionFromEveryone(5);
     RemoveConditionFromParty(0xd);
     Function524540();
@@ -622,7 +622,7 @@ void ChooseAction(
         if (arg_5 == 0) {
             Function4EA5C0(party_slot);
         }
-        Function53AEB0(party_slot);
+        ClearPartySlotMonsterHighlights(party_slot);
     }
     else {
         Function4E7EE0(party_slot, action, detail, data, arg_6);
@@ -817,7 +817,7 @@ void ChooseCombatAction(
         kind = context;
         break;
     }
-    if (Function53C270(context) == 0 && kind != 10 && kind != 0xb) {
+    if (CanPartySlotParticipate(context) == 0 && kind != 10 && kind != 0xb) {
         kind = -1;
         value_a = -1;
         target = 0;
@@ -853,7 +853,7 @@ unsigned char CharacterCanSwitchTo(
         }
         return 0;
     }
-    if (Function53C270(party_slot) == 0) {
+    if (CanPartySlotParticipate(party_slot) == 0) {
         return 0;
     }
     if (character->unknown_0b01 > 0xd) {
