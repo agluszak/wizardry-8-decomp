@@ -2443,7 +2443,7 @@ unsigned char W8Monster::CanContinueScript004CA0F0()
         }
         break;
     case 3:
-        if (Function525DF0(0) != 0) {
+        if (ShouldDeferCharacterEventForNpcScript(0) != 0) {
             return 0;
         }
         break;

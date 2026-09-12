@@ -1276,7 +1276,7 @@ void RebindNpcLevelTriggers0050AC60(void)
                     npc->level_band =
                         static_cast<unsigned char>(Function42B740(g_status_685170.current_level));
                     npc->bound_level = static_cast<unsigned char>(g_status_685170.current_level);
-                    Function524CA0(npc);
+                    ReloadNpcScriptResources(npc);
                     npc->is_present = 0;
                 }
             }

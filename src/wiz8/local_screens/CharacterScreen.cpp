@@ -11,6 +11,8 @@
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/xstatus.h"
+#include "wiz8/startup_runtime_state.h"
+
 
 #include "wiz8/cursor.h"
 #include "wiz8/combat_state.h"
@@ -38,14 +40,10 @@
 #include <string.h>
 #include <wchar.h>
 
-#include "FileMan.h"
+#include "wiz8/local_code/LoadSaveGame.h"
 
 extern void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                                         char right_button, char left_button);
-
-extern void Function52DDD0(void);
-
-extern unsigned char SaveCharacter(W8Character*, int, char, void (*)(void));
 
 // GLOBAL: WIZ8 0x0061e3a4
 unsigned short g_character_description_first_ids_61e3a4[22] = {
@@ -195,7 +193,7 @@ void W8CharacterScreen::UpdateDialog()
 {
     if (m_dialog_1b1c != 0) {
         if (m_dialog_response_1b20 == 1) {
-            Function52DDD0();
+            gXStatus.pStartupRuntime->ProcessQueuedCharacterEvents();
             if (UpdateCharacterEventState() == 0 &&
                 static_cast<W8ModalDialogBase*>(m_dialog_1b1c)->close_result) {
                 m_dialog_1b1c->m_keep_open = 0;

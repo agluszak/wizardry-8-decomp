@@ -689,7 +689,7 @@ void ResetForNewGame(void)
     g_status_685170.party_gold = 500;
     g_status_685170.selected_character = GetNextCharacter(1, 1, -1);
     g_status_685170.current_level = -1;
-    InitializePartyFormation((unsigned char*)&g_status_685170.formation);
+    InitializePartyFormation(&g_status_685170.formation);
     for (index = 0; index < 8; ++index) {
         g_status_685170.dwords_18e0[index] = 0xffffffff;
     }

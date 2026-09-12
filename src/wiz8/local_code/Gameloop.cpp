@@ -108,9 +108,7 @@ void GameLoop(void)
     if (g_pending_screen_state.id == -1 || g_pending_screen_state.id == state) {
         goto finish;
     }
-    /* The original tests only the low byte of the vector count. Preserve that
-       aliasing instead of widening the load to the field's full int type. */
-    if (*reinterpret_cast<const unsigned char*>(&gXStatus.pStartupRuntime->vector_40.count) != 0) {
+    if ((char)gXStatus.pStartupRuntime->vector_40.count != 0) {
         gXStatus.pStartupRuntime->ProcessNextPendingEntry();
         state = g_current_screen_state.id;
     }
