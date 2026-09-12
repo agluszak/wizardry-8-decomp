@@ -3,7 +3,6 @@
   "compiler-emission": [
     "src/wiz8/vector.cpp",
     "src/wiz8/vc6_runtime.cpp",
-    "src/wiz8/engine_code/registry_classes.cpp",
     "src/wiz8/surrender_math.cpp"
   ],
   "unresolved-fragment": [
