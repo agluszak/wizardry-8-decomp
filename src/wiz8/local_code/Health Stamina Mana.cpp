@@ -534,7 +534,7 @@ void DamageCharacter(int party_slot, int unused, int damage, char announce)
             SetCharacterCondition(party_slot, 1, W8_CONDITION_INDEFINITE, 0, 0, 0);
         }
         if (character->hp_current != 0) {
-            Function52F2C0(character);
+            QueueDamageReactionEvents(character);
         }
     }
 }

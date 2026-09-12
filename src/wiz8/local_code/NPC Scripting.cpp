@@ -94,7 +94,7 @@ int g_message_box_line_capacity;
    monster state; the four accessors below are its only owners. */
 
 // FUNCTION: WIZ8 0x00524DA0
-void Function524DA0(void)
+void UpdateNpcDialogueVoiceAndCursor(void)
 {
     DWORD tick_count;
     W8Monster* monster;
@@ -147,7 +147,7 @@ update_cursor:
 }
 
 // FUNCTION: WIZ8 0x00524EB0
-void Function524EB0(void)
+void ProcessNpcScriptingFrame(void)
 {
     W8Character* character;
     void* characters;

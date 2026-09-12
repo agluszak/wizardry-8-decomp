@@ -367,7 +367,7 @@ void W8StartupStateElement005EE748::Process0052CED0()
 }
 
 // FUNCTION: WIZ8 0x0052CA60
-unsigned char Function52CA60(W8StartupStateElement005EE748* entry)
+unsigned char DispatchCharacterEventEntry(W8StartupStateElement005EE748* entry)
 {
     unsigned int party_slot;
     unsigned int event_type;
@@ -556,7 +556,7 @@ int W8StartupRuntimeState::QueueEntry(W8StartupStateElement005EE748* entry)
             slot->field_071->Process0052CED0();
             delete slot->field_071;
         }
-        Function52CA60(entry);
+        DispatchCharacterEventEntry(entry);
         return 1;
     }
     if (entry->type_08 == 0x21) {
@@ -714,9 +714,9 @@ void W8StartupRuntimeState::ProcessDeferredCharacterEvents()
     }
 
     if (vector_10.count == 0) {
-        Function524DA0();
+        UpdateNpcDialogueVoiceAndCursor();
         if (PartyPortraitEventsIdle() != 0) {
-            Function524EB0();
+            ProcessNpcScriptingFrame();
         }
         return;
     }
@@ -748,7 +748,7 @@ void W8StartupRuntimeState::ProcessDeferredCharacterEvents()
                     delete entry;
                     return;
                 }
-                if (Function52CA60(entry) == 0) {
+                if (DispatchCharacterEventEntry(entry) == 0) {
                     return;
                 }
                 vector_40.Add(entry);
@@ -838,7 +838,7 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
 /* Queue a low-HP flee or incapacitation event when the character is still
    standing, then always roll one of three ambient follow-up events. */
 // FUNCTION: WIZ8 0x0052F2C0
-void Function52F2C0(W8Character* character)
+void QueueDamageReactionEvents(W8Character* character)
 {
     unsigned int hp_percent;
     unsigned int party_slot;

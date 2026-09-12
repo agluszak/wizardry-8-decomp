@@ -25,8 +25,9 @@ extern int g_effect_005ee588;
 unsigned char PartyPortraitEventsIdle(void); /* 0x0052E590 */
 int ApplyItemEffectToRandomCharacter0052E5C0(unsigned int item_id, int character_filter,
                                              int value_3, int value_4);
-unsigned char Function52CA60(W8StartupStateElement005EE748* entry);
+unsigned char DispatchCharacterEventEntry(W8StartupStateElement005EE748* entry);
 void MaybeStartIncapacitationEvent(unsigned int party_slot); /* 0x0052F060 */
+void QueueDamageReactionEvents(W8Character* character);      /* 0x0052F2C0 */
 void Function52F110(int party_slot);
 void Function52F430(W8Character* character);
 void Function52F790(W8Character* character, int condition);
