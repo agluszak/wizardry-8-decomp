@@ -8,7 +8,13 @@
    spelling is inferred from the named `_minMax` implementation boundary.
 
    Extra inlines below are the srVP slots Wiz8 actually reaches through the
-   imported vp global (IAT 0x005eb7e8): load vp, then CALL [vtable+offset]. */
+   imported vp global (IAT 0x005eb7e8): load vp, then CALL [vtable+offset].
+   Confirmed Wiz8 loaders include FUN_0046e8a0, FUN_00470040, FUN_00470180,
+   FUN_00471ad0, FUN_00472270, FUN_004729f0, FUN_00473190, FUN_00474700,
+   FUN_00474730, FlushSlots00475600, FUN_0047f930, FUN_00486970,
+   PrepareGeometry004B6F30, GDProp::Initialize, FUN_00580270 and FUN_005809f0.
+   Offsets +0x210/+0x218/+0x224 sit past the 100-slot table and are not vp
+   methods. srDebugVP is not reconstructed. */
 class srVectorProcessor {
 public:
     static SR_DLL_IMPORT const char* getName();

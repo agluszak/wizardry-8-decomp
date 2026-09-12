@@ -13,8 +13,10 @@ class stTextureFile;
    12 getMipmapLevelPartial, 13 getTextureParms, 14 getTextureName,
    15 invalidate, 16 setupDefaultValues.
 
-   stTextureFile overrides the same slots SR overrides. Fields at +0x54..+0x60
-   match SR; has_alpha_64 is Wizardry-only (SR sizeof 0x64). */
+   stTextureFile overrides the same slots SR overrides (3, 5-8, 11-12, 15-16).
+   Slots 9/10/13 are inherited from srTexture; slot 14 from srTextureIFace.
+   Do not invent stTextureFile overrides for those four. Fields at
+   +0x54..+0x60 match SR; has_alpha_64 is Wizardry-only (SR sizeof 0x64). */
 class stTextureFile : public srClassSupport<stTextureFile, srTexture, 0, 0x10001> {
 public:
     static const char* sGetClassName()
