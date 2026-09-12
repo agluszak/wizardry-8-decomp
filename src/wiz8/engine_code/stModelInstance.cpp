@@ -322,7 +322,7 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
     srMeshModel* model = static_cast<srMeshModel*>(getModel());
     model->getTriMesh(mesh);
 
-    if (state_171 != 0) {
+    if (render_state_164.state_0d != 0) {
         if (m_pGlowMaterial_17c == 0) {
             m_pGlowMaterial_17c = new stMaterial;
             if (m_pGlowMaterial_17c == 0) {
