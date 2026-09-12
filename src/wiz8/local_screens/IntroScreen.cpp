@@ -21,9 +21,7 @@
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_screens/OptionsScreen.h"
-extern unsigned char g_flag_689b2c;
-// GLOBAL: WIZ8 0x00689b2c
-unsigned char g_flag_689b2c;
+#include "wiz8/game_status.h"
 
 extern void ContinueAfterDarkEndingVideo005AE770(void);
 
@@ -43,7 +41,7 @@ unsigned char IntroScreenEnter(void)
     SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
     SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
     ClearSurfaceRect(0, 0, 0x280, 0x1e0);
-    if (g_intro_video_index == 0 && g_settings_6850c8.intro_seen && !g_flag_689b2c) {
+    if (g_intro_video_index == 0 && g_settings_6850c8.intro_seen && !g_status_685170.flag_49bc) {
         return 1;
     }
     sprintf(path, "Data\\Flics\\Intro\\%s", g_intro_video_names[g_intro_video_index]);
@@ -147,11 +145,11 @@ cleared:
     case 2:
     case 3:
     case 4:
-        if (!g_flag_689b2c) {
+        if (!g_status_685170.flag_49bc) {
             g_pending_screen_state.mode = 0;
             SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
         } else {
-            g_flag_689b2c = 0;
+            g_status_685170.flag_49bc = 0;
             if (GetPendingScreenState() != 7) {
                 SetPendingScreenState(W8_SCREEN_MAIN_GAME);
             }

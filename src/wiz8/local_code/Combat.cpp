@@ -34,7 +34,6 @@ unsigned int g_combat_countdown_6850b0;
 #include "wiz8/local_screens/MGSPartyMovement.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/Environment.h"
-#include "wiz8/location_variables.h"
 #include "wiz8/screen_state.h"
 #include "timer.h"
 #include "wiz8/local_code/Combat.h"
@@ -527,8 +526,8 @@ void EndCombat004EA310(int mode)
     }
     unsigned int active = CountActiveCharacters();
     if (active != 0 && g_combat_state->value_010 != 0) {
-        if (g_loaded_level_id < 0x2f) {
-            g_status_685170.level_progress[g_loaded_level_id].combat_end_count_01 += 1;
+        if (g_status_685170.current_level < 0x2f) {
+            g_status_685170.level_progress[g_status_685170.current_level].combat_end_count_01 += 1;
         }
         g_combat_state->value_010 /= active;
         Function4EEF10(g_combat_state->value_014 + g_combat_state->value_010, 1);

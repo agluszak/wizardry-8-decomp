@@ -39,11 +39,6 @@
 #include <stdio.h>
 #include "wiz8/character_skills.h"
 
-// GLOBAL: WIZ8 0x00686901
-unsigned int g_shared_item_pool_count;
-// GLOBAL
-unsigned char g_shared_item_pool[500 * 0xc];
-
 /* The twelve places an item can be worn or held. GetItemDefaultEquipSlot maps
    an equipment class onto one of these, and GetPairedEquipSlot swaps a hand
    for the hand opposite it. Only the four hand slots have their pairing
@@ -1016,8 +1011,9 @@ void GetOriginOfCharacterItem(int character_index, void* item, unsigned char* or
         }
     }
 
-    for (pool_index = 0; pool_index < g_shared_item_pool_count; ++pool_index) {
-        if (item == g_shared_item_pool + pool_index * 0xc) {
+    for (pool_index = 0; pool_index < (unsigned int)g_status_685170.party_item_count_1791;
+         ++pool_index) {
+        if (item == &g_status_685170.party_item_pool_0021[pool_index]) {
             *origin = 2;
             *slot = (unsigned short)pool_index;
             return;

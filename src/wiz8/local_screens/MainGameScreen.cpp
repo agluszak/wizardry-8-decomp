@@ -298,7 +298,7 @@ void Function593330(void)
 // FUNCTION: WIZ8 0x00577540
 void ClearMainGameTargetState(void)
 {
-    g_flag_006875a5 = 0;
+    g_status_685170.value_2435 = 0;
     ClearLevelDataFlag6();
     SetTargetCursor(W8_CURSOR_NONE);
 }

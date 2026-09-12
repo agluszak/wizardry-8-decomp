@@ -29,7 +29,6 @@
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/game_status.h"
-#include "wiz8/location_variables.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/fact_state.h"
@@ -110,8 +109,6 @@ W8LevelFolderRecord g_level_folders[47] = {
     {"Spare20", "Spare20", "SPK", 0, -1, 0},
 };
 
-// GLOBAL: WIZ8 0x00686A70
-int g_loaded_level_id;
 /* The sky index of the world currently held in g_world_659ab8, or -1 when no
    sky is loaded. Every retail access is a byte access. */
 // GLOBAL: WIZ8 0x00604470
@@ -346,9 +343,6 @@ unsigned char g_level_runtime_flag_0065ba70;
 // GLOBAL: WIZ8 0x0068f0fd
 unsigned char g_value_0068f0fd;
 
-// GLOBAL: WIZ8 0x00687607
-unsigned char g_flag_00687607;
-
 // GLOBAL: WIZ8 0x006059E0
 char g_ambient_sound_filename_006059e0[] = "SCF";
 // GLOBAL: WIZ8 0x00605880
@@ -564,7 +558,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
             Function5777C0();
             g_combat_countdown_6850b0 = 0;
         }
-        if (g_flag_00687607 && (GetFact(0x4c) || GetFact(0x4b))) {
+        if (g_status_685170.flag_2497 && (GetFact(0x4c) || GetFact(0x4b))) {
             DespawnAllActiveMonsterGroups0048C9F0();
         } else {
             UpdateRandomEncounterBudget(first_visit);

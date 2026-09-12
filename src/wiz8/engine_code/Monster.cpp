@@ -3572,10 +3572,10 @@ void W8Monster::SetCycle(signed char cycle)
     }
 
     if (cycle == 0x15) {
-        W8AnimRepValue4 empty = {0, 0, 0, 0};
+        W8ModelInstanceRenderState empty = {0, 0, 0, 0};
         srModelInstance* instance;
 
-        m_pRep->value_04c = empty;
+        m_pRep->render_state_04c = empty;
         instance = SelectCycleFrameLod004A8360(m_pRep->current_cycle, 0, m_pRep->m_bLOD);
         if (instance != 0 && instance->model() != 0 &&
             strstr(instance->model()->getName(), "gib") != 0) {
@@ -4628,7 +4628,7 @@ void W8Monster::SetRuntimeValueA6(signed char value)
 void MonsterSetRuntimeBlock4C(W8Monster* monster, W8MonsterRuntimeBlock4C block)
 {
     if (monster != 0 && monster->Query(6) != 0x15) {
-        monster->m_pRep->value_04c = block;
+        monster->m_pRep->render_state_04c = block;
     }
 }
 

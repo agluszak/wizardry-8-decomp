@@ -22,10 +22,6 @@ float g_monster_record_float_scale = 20.0f;
 // GLOBAL: WIZ8 0x00683698
 int g_monster_info_iterator_index;
 
-// GLOBAL: WIZ8 0x006875c3
-W8WideChar g_monster_name_buffer[22];
-// GLOBAL: WIZ8 0x006875ef
-unsigned char g_alternate_name_slot;
 #include "wiz8/notices.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/utility.h"
@@ -1565,8 +1561,9 @@ W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
         record = MonsterDBFromSpeciesInline(monster_info->monster_species);
     }
     if (record->record_id_187 == W8_MONSTER_RECORD_ALTERNATE_NAME) {
-        swprintf(g_monster_name_buffer, L"Al-%s", g_party_characters[g_alternate_name_slot].name);
-        return g_monster_name_buffer;
+        swprintf(g_status_685170.monster_name_buffer_2453, L"Al-%s",
+                 g_party_characters[g_status_685170.alternate_name_slot_247f].name);
+        return g_status_685170.monster_name_buffer_2453;
     }
     if (monster_info->monster_group_id == 0) {
         if (monster_info->monster->IsDying() == 0) {

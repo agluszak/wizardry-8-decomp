@@ -12,7 +12,6 @@
 #include "random.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/fact_state.h"
-#include "wiz8/location_variables.h"
 #include "wiz8/npc_state.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/engine_code/Octree.h"
@@ -967,7 +966,8 @@ void ClearPendingNpcLevelFlags0050C270(void)
             }
             W8NpcState* npc = *slot;
 
-            if (npc->flag_c5 != 0 && npc->unknown_c7 == 0 && npc->flag_c6 == g_loaded_level_id) {
+            if (npc->flag_c5 != 0 && npc->unknown_c7 == 0 &&
+                npc->flag_c6 == g_status_685170.current_level) {
                 if (Function50C560(npc, npc->unknown_9d) != 0) {
                     npc->flag_c5 = 0;
                 }
@@ -1003,7 +1003,8 @@ void ReleaseNpcMonsterBindings0050C2E0(void)
         }
         W8NpcState* npc = *slot;
 
-        if (npc->flag_112 != 0 && npc->unknown_c7 == 0 && npc->flag_113 == g_loaded_level_id) {
+        if (npc->flag_112 != 0 && npc->unknown_c7 == 0 &&
+            npc->flag_113 == g_status_685170.current_level) {
             W8NpcState* companion = 0;
             bool found = false;
 
@@ -1209,8 +1210,9 @@ void RebindNpcLevelTriggers0050AC60(void)
                     trigger->activation_callback_360 = Function50ABF0;
                     trigger->m_lData1 = static_cast<int>(npc_index);
                     npc->has_monster = 1;
-                    npc->value_24 = static_cast<unsigned char>(Function42B740(g_loaded_level_id));
-                    npc->value_2f = static_cast<unsigned char>(g_loaded_level_id);
+                    npc->value_24 =
+                        static_cast<unsigned char>(Function42B740(g_status_685170.current_level));
+                    npc->value_2f = static_cast<unsigned char>(g_status_685170.current_level);
                     Function524CA0(npc);
                     npc->is_present = 0;
                 }

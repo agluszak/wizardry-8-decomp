@@ -31,8 +31,8 @@ enum { W8_MONSTER_CYCLE_COUNT = 27 };
    copies it with the interleaved two-register rotation it uses for a struct
    assignment, rather than the sequential load/store pairs four separate scalar
    parameters would emit - which is what makes this one object and not four.
-   Nothing observed so far types its contents. */
-typedef W8AnimRepValue4 W8MonsterRuntimeBlock4C;
+   GrCycle copies the same 0x10 bytes onto a model instance at +0x164. */
+typedef W8ModelInstanceRenderState W8MonsterRuntimeBlock4C;
 
 struct W8MonsterLinkedItem005E8 {
     int unknown_00;

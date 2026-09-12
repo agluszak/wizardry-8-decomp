@@ -2,6 +2,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/quad.h"
+#include "wiz8/game_status.h"
 
 #include "surrender/srNode.h"
 #include "surrender/srScene.h"
@@ -106,8 +107,6 @@ float g_camera_max_yaw_velocity_609ea4 = 0.3490658700466156f;
 extern float g_camera_level_forward_scale_603aac;
 // GLOBAL: WIZ8 0x00603aac
 float g_camera_level_forward_scale_603aac = 375.0f;
-// GLOBAL: WIZ8 0x006875a5
-unsigned char g_flag_006875a5;
 
 // GLOBAL: WIZ8 0x0065A0FC
 srCamera* g_game_camera_65a0fc;
@@ -676,7 +675,7 @@ void GDCamera::Update(float elapsed)
 void GDCamera::ApplyYawInput(float input)
 {
     if (input != g_float_005ebb34) {
-        if (gXStatus.field_01f == 0 && g_flag_006875a5 == 0) {
+        if (gXStatus.field_01f == 0 && g_status_685170.value_2435 == 0) {
             m_positional_000 |= 1;
             m_manual_input_timer->Arm();
             m_transition_active = 0;
@@ -733,7 +732,7 @@ void GDCamera::ApplyYawInput(float input)
 // FUNCTION: WIZ8 0x00477EB0
 void GDCamera::ApplyPitchInput(float input)
 {
-    if (input != g_float_005ebb34 && gXStatus.field_01f == 0 && g_flag_006875a5 == 0) {
+    if (input != g_float_005ebb34 && gXStatus.field_01f == 0 && g_status_685170.value_2435 == 0) {
         m_positional_000 |= 1;
         m_manual_input_timer->Arm();
         m_transition_active = 0;
@@ -1041,7 +1040,7 @@ void GDCamera::GetForwardPoint(float distance, srVector3T<float>* output)
 // FUNCTION: WIZ8 0x00478E00
 void GDCamera::SetManualControlActive(unsigned char enabled)
 {
-    if (enabled != 0 && gXStatus.field_01f == 0 && g_flag_006875a5 == 0) {
+    if (enabled != 0 && gXStatus.field_01f == 0 && g_status_685170.value_2435 == 0) {
         m_positional_000 |= 1;
         m_manual_input_timer->Arm();
         m_transition_active = 0;

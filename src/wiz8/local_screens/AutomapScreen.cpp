@@ -19,7 +19,6 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/game_status.h"
 #include "wiz8/float_constants.h"
-#include "wiz8/location_variables.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/dialog_code/DialogButton.h"
@@ -219,7 +218,8 @@ void ResetAutomapView005817D0(void)
         g_automap_notes->RemoveAt(0);
     }
     g_automap_redraw = 1;
-    if (g_loaded_level_id == 0x18 || (g_loaded_level_id > 0x1a && g_loaded_level_id <= 0x22)) {
+    if (g_status_685170.current_level == 0x18 ||
+        (g_status_685170.current_level > 0x1a && g_status_685170.current_level <= 0x22)) {
         g_automap_range_0064b910 = 30000.0f;
     } else {
         g_automap_range_0064b910 = 10000.0f;
